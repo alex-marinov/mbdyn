@@ -1476,10 +1476,10 @@ dnl Use GiNaC?
 dnl
 ol_link_ginac=no
 if test $ol_with_ginac != no ; then
-	AC_MSG_CHECKING([for GiNaC library])
 	AC_LANG_CPLUSPLUS
 	AC_CHECK_HEADERS(ginac/ginac.h)
 	AC_LANG_C
+	AC_MSG_CHECKING([for GiNaC library])
 	which ginac-config >/dev/null 2>&1
 	if test $? = 0 ; then
 		GINACLIB_CONFIG="ginac-config"
