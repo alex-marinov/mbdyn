@@ -244,6 +244,8 @@ private:
 	SolutionManager *const AllocateSolman(integer iNLD, integer iLWS = 0);
 	/* Alloca SchurSolman */
 	SolutionManager *const AllocateSchurSolman();
+	/* Alloca Nonlinear Solver */
+	NonlinearSolver *const AllocateNonlinearSolver();
    
 
 public:   

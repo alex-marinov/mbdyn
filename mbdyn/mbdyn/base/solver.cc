@@ -505,52 +505,8 @@ void Solver::Run(void)
 		THROW(ErrGeneric());
 	}
 	
-	/* a questo punto si costruisce il nonlinear solver passandogli 
-	   il solution manager */
-	switch (NonlinearSolverType) {
-	case NonlinearSolver::MATRIXFREE:
-		switch (MFSolverType) {
-		case MatrixFreeSolver::BICGSTAB:
-			SAFENEWWITHCONSTRUCTOR(pNLS,
-					BiCGStab,
-					BiCGStab(PcType, 
-						iPrecondSteps,
-						dIterTol, 
-						iIterativeMaxSteps,
-						dIterertiveEtaMax,
-						dIterertiveTau));
-			break;
-
-		default:
-			pedantic_cout("unknown matrix free solver type; "
-					"using default" << std::endl);
-			/* warning: should be unreachable */
-			
-		case MatrixFreeSolver::GMRES:
-			SAFENEWWITHCONSTRUCTOR(pNLS,
-					Gmres,
-					Gmres(PcType, 
-						iPrecondSteps,
-						dIterTol, 
-						iIterativeMaxSteps,
-						dIterertiveEtaMax,
-						dIterertiveTau));
-			break;
-		}
-		break;
-
-	default:
-		pedantic_cout("unknown nonlinear solver type; using default"
-				<< std::endl);
-
-	case NonlinearSolver::NEWTONRAPHSON:
-		SAFENEWWITHCONSTRUCTOR(pNLS,
-				NewtonRaphsonSolver,
-				NewtonRaphsonSolver(bTrueNewtonRaphson,
-					bKeepJac,
-					iIterationsBeforeAssembly));  
-		break;
-	}
+	/* a questo punto si costruisce il nonlinear solver */
+	pNLS = AllocateNonlinearSolver();
 
 #ifdef __HACK_SCALE_RES__
 	MyVectorHandler Scale(iNumDofs);
@@ -3520,3 +3476,53 @@ SolutionManager *const Solver::AllocateSchurSolman() {
 #endif /* !USE_MPI */
 	return pSSM;
 };
+
+NonlinearSolver *const Solver::AllocateNonlinearSolver() {
+	NonlinearSolver * pNLS;
+	switch (NonlinearSolverType) {
+	case NonlinearSolver::MATRIXFREE:
+		switch (MFSolverType) {
+		case MatrixFreeSolver::BICGSTAB:
+			SAFENEWWITHCONSTRUCTOR(pNLS,
+					BiCGStab,
+					BiCGStab(PcType, 
+						iPrecondSteps,
+						dIterTol, 
+						iIterativeMaxSteps,
+						dIterertiveEtaMax,
+						dIterertiveTau));
+			break;
+
+		default:
+			pedantic_cout("unknown matrix free solver type; "
+					"using default" << std::endl);
+			/* warning: should be unreachable */
+			
+		case MatrixFreeSolver::GMRES:
+			SAFENEWWITHCONSTRUCTOR(pNLS,
+					Gmres,
+					Gmres(PcType, 
+						iPrecondSteps,
+						dIterTol, 
+						iIterativeMaxSteps,
+						dIterertiveEtaMax,
+						dIterertiveTau));
+			break;
+		}
+		break;
+
+	default:
+		pedantic_cout("unknown nonlinear solver type; using default"
+				<< std::endl);
+
+	case NonlinearSolver::NEWTONRAPHSON:
+		SAFENEWWITHCONSTRUCTOR(pNLS,
+				NewtonRaphsonSolver,
+				NewtonRaphsonSolver(bTrueNewtonRaphson,
+					bKeepJac,
+					iIterationsBeforeAssembly));  
+		break;
+	}
+	return pNLS;
+}
+
