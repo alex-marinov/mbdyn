@@ -112,7 +112,7 @@ void DataManager::DofOwnerInit(void)
 		    << "(" << (*ppNd)->GetLabel()
 		    << "): first dof = " << pDf->iIndex+1 << std::endl);
 #else /* !DEBUG */
-	 if (fPrintDofStats) {
+	 if (!silent_output && fPrintDofStats) {
 	    std::cout << psNodeNames[(*ppNd)->GetNodeType()]
 	      << "(" << (*ppNd)->GetLabel()
 	      << "): first dof = " << pDf->iIndex+1;
@@ -160,7 +160,7 @@ void DataManager::DofOwnerInit(void)
 		    << "(" << pElWD->GetLabel()
 		    << "): first dof = " << pDf->iIndex+1 << std::endl);
 #else /* !DEBUG */
-	 if (fPrintDofStats) {
+	 if (!silent_output && fPrintDofStats) {
 	    std::cout << pdElemNames[pElWD->GetElemType()] 
 	      << "(" << pElWD->GetLabel()
 	      << "): first dof = " << pDf->iIndex+1 << std::endl
@@ -205,7 +205,7 @@ void DataManager::DofOwnerInit(void)
 		       << "(" << pElWD->GetLabel()
 		       << "): first dof = " << pDf->iIndex+1 << std::endl);
 #else /* !DEBUG */
-	    if (fPrintDofStats) {
+	    if (!silent_output && fPrintDofStats) {
 	       std::cout << psElemNames[pEl->GetElemType()]
 		 << "(" << pElWD->GetLabel()
 		 << "): first dof = " << pDf->iIndex+1;

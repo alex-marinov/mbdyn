@@ -90,6 +90,9 @@ extern int fSilent;
 /* Global macros */
 #ifdef __cplusplus
 
+#define silent_output \
+	(::fSilent > 0)
+
 #define silent_cout(arg) \
     	do { \
         	if (::fSilent < 1) { \
