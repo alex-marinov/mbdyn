@@ -40,11 +40,13 @@
 #include "solman.h"
 
 class NaiveSolver;
+class MultiThreadDataManager;
 
 /* Sparse Matrix */
 class NaiveMatrixHandler : public MatrixHandler {
 protected:
 	friend class NaiveSolver;
+	friend class MultiThreadDataManager;
 	integer iSize;
 	bool bOwnsMemory;
 	doublereal **ppdRows;

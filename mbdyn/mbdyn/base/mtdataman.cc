@@ -49,6 +49,63 @@ extern "C" {
 #include "mtdataman.h"
 #include "umfpackwrap.h"
 
+
+
+static inline void
+do_lock(integer *p)
+{
+//	while (mbdyn_cmpxchg((p), 1, 0) != 0);
+	while (!mbdyn_compare_and_swap(*p, 1, 0));
+}
+	
+static inline void
+do_unlock(integer *p)
+{
+	mbdyn_compare_and_swap(*p, 0, 1);
+}
+static void
+naivepsad(doublereal ** ga, integer ** gri, 
+		integer *gnzr, integer ** gci, integer *gnzc, char ** gnz,
+		doublereal ** a, integer ** ci, integer *nzc,
+		integer from, integer to, integer *lock)
+{
+
+	for (integer r = from; r <= to; r++) {
+		integer nc = nzc[r];
+			
+		if (nc) {
+			doublereal * pgar = ga[r];
+			doublereal * par  = a[r];
+			
+			for (integer i = 0; i < nc; i++) {
+				integer c = ci[r][i];
+				
+				if (gnz[r][c]) {
+					pgar[c] += par[c];
+				} else {
+					pgar[c] = par[c];
+					gci[r][gnzc[r]] = c;
+					/* This can only be set to 1 from 0,
+					 * so concurrency is harmless
+					 */
+					gnz[r][c] = 1;
+					
+					//do_lock(&lock[gnzc[r]]);
+					do_lock(&lock[c]);
+
+					gri[c][gnzr[c]] = r;
+					gnzr[c]++;
+										
+					//do_unlock(&lock[gnzc[r]]);
+					do_unlock(&lock[c]);
+					gnzc[r]++;
+				}
+			}
+		}
+	}
+}
+
+
 /* MultiThreadDataManager - begin */
 
 
@@ -152,12 +209,17 @@ MultiThreadDataManager::ThreadDestroy(void)
 		cputime += thread_data[i].cputime;
 	}
 
+	// if ass == NAIVE, thread_data[0].lock != 0
+	if (thread_data[0].lock) {
+		SAFEDELETEARR(thread_data[0].lock);
+	}
 	thread_cleanup(&thread_data[0]);
 
 	SAFEDELETEARR(thread_data);
 
 	return cputime;
 }
+
 
 void *
 MultiThreadDataManager::thread(void *p)
@@ -218,11 +280,31 @@ MultiThreadDataManager::thread(void *p)
 
 		case MultiThreadDataManager::OP_ASSJAC_NAIVE:
 			arg->pNaiveJacHdl->Reset();
-			/* note: Naive should never throw ... */
+			/* note: Naive should never throw ErrRebuildMatrix ... */
 			arg->pDM->DataManager::AssJac(*(arg->pNaiveJacHdl),
 					arg->dCoef,
 					arg->ElemIter,
 					*arg->pWorkMat);
+			break;
+
+		case MultiThreadDataManager::OP_SUM_NAIVE:
+			{/* PUT SOME CODE HERE */;
+			NaiveMatrixHandler* to = arg->ppNaiveJacHdl[0];
+			integer nn = to->iGetNumRows();
+			integer ifrom = nn/arg->nThreads*(arg->threadNumber);
+			integer ito = nn/arg->nThreads*(arg->threadNumber+1)-1;
+			if (arg->threadNumber == arg->nThreads-1) {
+				ito = nn-1;
+			}
+			for (integer matrix=1; matrix<arg->nThreads; matrix++) {
+				NaiveMatrixHandler* from = *(arg->ppNaiveJacHdl+matrix);
+				naivepsad(to->ppdRows, 
+						to->ppiRows, to->piNzr, 
+						to->ppiCols, to->piNzc, to->ppnonzero,
+					  from->ppdRows, from->ppiCols, from->piNzc, 
+					  ifrom, ito, arg->lock);
+			}
+			}
 			break;
 
 #ifdef MBDYN_X_MT_ASSRES
@@ -269,6 +351,9 @@ MultiThreadDataManager::thread_cleanup(ThreadData *arg)
 		}
 		if (arg->pNaiveJacHdl) {
 			SAFEDELETE(arg->pNaiveJacHdl);
+		}
+		if (arg->ppNaiveJacHdl) {
+			SAFEDELETE(arg->ppNaiveJacHdl);
 		}
 		SAFEDELETE(arg->pResHdl);
 	}
@@ -322,7 +407,9 @@ MultiThreadDataManager::ThreadSpawn(void)
 		thread_data[i].pDM = this;
 		sem_init(&thread_data[i].sem, 0, 0);
 		thread_data[i].threadNumber = i;
+		thread_data[i].nThreads = nThreads;
 		thread_data[i].ElemIter.Init(ppElems, iTotElem);
+		thread_data[i].lock = 0;
 
 		/* SubMatrixHandlers */
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatA,
@@ -348,6 +435,7 @@ MultiThreadDataManager::ThreadSpawn(void)
 
 		/* set by AssJac when in Naive form */
 		thread_data[i].pNaiveJacHdl = 0;
+		thread_data[i].ppNaiveJacHdl = 0;
 
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pResHdl,
 				MyVectorHandler, MyVectorHandler(iTotDofs));
@@ -387,13 +475,26 @@ retry:;
 
 			/* TODO: use JacHdl as matrix for the first thread,
 			 * and create copies for the other threads */
-			thread_data[0].pNaiveJacHdl = &JacHdl;
+			SAFENEWARR(thread_data[0].lock, integer, JacHdl.iGetNumRows());
+			memset(thread_data[0].lock, 0, sizeof(integer)*JacHdl.iGetNumRows());
+			thread_data[0].pNaiveJacHdl = dynamic_cast<NaiveMatrixHandler *>(&JacHdl);
+			SAFENEWARR(thread_data[0].ppNaiveJacHdl, NaiveMatrixHandler*, nThreads);
+			thread_data[0].ppNaiveJacHdl[0] = thread_data[0].pNaiveJacHdl;
 
 			for (unsigned i = 1; i < nThreads; i++) {
+				SAFENEWARR(thread_data[i].ppNaiveJacHdl, NaiveMatrixHandler*, nThreads);
+			}
+			for (unsigned i = 1; i < nThreads; i++) {
+				thread_data[i].ppNaiveJacHdl[0] = thread_data[0].pNaiveJacHdl;
+				thread_data[i].lock = thread_data[0].lock;
 				thread_data[i].pNaiveJacHdl = 0;
 				SAFENEWWITHCONSTRUCTOR(thread_data[i].pNaiveJacHdl,
 						NaiveMatrixHandler,
 						NaiveMatrixHandler(JacHdl.iGetNumRows()));
+				for (unsigned ii = 0; ii < nThreads; ii++) {
+					thread_data[ii].ppNaiveJacHdl[i] = 
+						thread_data[i].pNaiveJacHdl;
+				}
 			}
 
 			goto retry;
@@ -529,7 +630,7 @@ MultiThreadDataManager::NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	ASSERT(thread_data != NULL);
 
 	thread_data[0].ElemIter.ResetAccessData();
-	op = MultiThreadDataManager::OP_ASSJAC;
+	op = MultiThreadDataManager::OP_ASSJAC_NAIVE;
 	thread_count = nThreads - 1;
 
 	for (unsigned i = 1; i < nThreads; i++) {
@@ -547,7 +648,34 @@ MultiThreadDataManager::NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	}
 	pthread_mutex_unlock(&thread_mutex);
 
-	/* TODO: implement multithread sum */
+	op = MultiThreadDataManager::OP_SUM_NAIVE;
+	thread_count = nThreads - 1;
+	for (unsigned i = 1; i < nThreads; i++) {
+		sem_post(&thread_data[i].sem);
+	}
+
+	NaiveMatrixHandler* to = thread_data[0].ppNaiveJacHdl[0];
+	integer nn = to->iGetNumRows();
+	integer ifrom = 0;
+	integer ito = nn/nThreads-1;
+	if (nThreads == 1) {
+		ito = nn-1;
+	}
+	for (unsigned matrix=1; matrix<nThreads; matrix++) {
+		NaiveMatrixHandler* from = thread_data[0].ppNaiveJacHdl[matrix];
+		naivepsad(to->ppdRows, 
+				to->ppiRows, to->piNzr, 
+				to->ppiCols, to->piNzc, to->ppnonzero,
+			  from->ppdRows, from->ppiCols, from->piNzc, 
+			  ifrom, ito, thread_data[0].lock);
+	}
+
+	pthread_mutex_lock(&thread_mutex);
+	if (thread_count > 0) {
+		pthread_cond_wait(&thread_cond, &thread_mutex);
+	}
+	
+	pthread_mutex_unlock(&thread_mutex);
 #if 0
 	for (unsigned i = 1; i < nThreads; i++) {
 		pMH->AddUnchecked(*thread_data[i].pJacHdl);

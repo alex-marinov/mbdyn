@@ -97,7 +97,7 @@ static struct solver_t {
        		-1. },
 	{ "Naive", NULL,
 		LinSol::NAIVE_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_COLAMD,
+		LinSol::SOLVER_FLAGS_ALLOWS_COLAMD|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
 		LinSol::SOLVER_FLAGS_NONE,
 		1.e-8 },
 	{ "Empty", NULL,

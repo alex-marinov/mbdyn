@@ -66,7 +66,8 @@ protected:
 	/* per-thread specific data */
 	struct ThreadData {
 		MultiThreadDataManager *pDM;
-		unsigned int threadNumber;
+		integer threadNumber;
+		integer nThreads;
 		pthread_t thread;
 		sem_t sem;
 		clock_t	cputime;
@@ -81,7 +82,9 @@ protected:
 		/* for CC assembly */
 		CompactSparseMatrixHandler* pJacHdl;
 		/* for Naive assembly */
-		MatrixHandler* pNaiveJacHdl;
+		NaiveMatrixHandler* pNaiveJacHdl;
+		NaiveMatrixHandler** ppNaiveJacHdl;
+		integer* lock;
 
 		VectorHandler* pResHdl;
 		MatrixHandler* pMatA;
@@ -94,6 +97,7 @@ protected:
 
 		OP_ASSJAC,
 		OP_ASSJAC_NAIVE,
+		OP_SUM_NAIVE,
 
 		/* used only #ifdef MBDYN_X_MT_ASSRES */
 		OP_ASSRES,
