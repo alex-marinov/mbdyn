@@ -58,7 +58,7 @@ __sighandler_t sh_term = SIG_DFL;
 __sighandler_t sh_int = SIG_DFL;
 __sighandler_t sh_hup = SIG_DFL;
 
-void
+static void
 modify_final_time_handler(int signum)
 {
    	::keep_going = 0;

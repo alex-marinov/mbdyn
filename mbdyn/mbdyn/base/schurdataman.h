@@ -131,36 +131,42 @@ class SchurDataManager : public DataManager {
  /* stampa i risultati */
   void Output(void) const;
 
-
-  integer HowManyDofs(int who) {
+  enum DofType { TOTAL = 1, LOCAL = 2, INTERNAL = 3, MYINTERNAL = 4 };
+  integer HowManyDofs(DofType who) {
     switch(who) {
-    case 1:
+    case TOTAL:
       return iTotDofs;
-      break;
-    case 2:
+      
+    case LOCAL:
       return iNumLocDofs;
-      break;
-    case 3:
+      
+    case INTERNAL:
       return iNumIntDofs;
-      break;
-    case 4:
+      
+    case MYINTERNAL:
       return iNumMyInt;
-      break;
+      
     default:
-      std::cerr << " Wrong request"  << std::endl;
+      std::cerr << "SchurDataManager::HowManyDofs: illegal request (" 
+	      << who << ")" << std::endl;
       THROW(ErrGeneric());
     } 
   };
 
-  integer* GetDofsList(int who) {
+  integer* GetDofsList(DofType who) {
     switch(who) {
-    case 2:
+    case LOCAL:
       return LocalDofs;
-    case 3:
+      
+    case INTERNAL:
       return LocalIntDofs;
-    case 4: 
+      
+    case MYINTERNAL: 
       return pMyIntDofs;
+
     default:
+      std::cerr << "SchurDataManager::GetDofsList: illegal request ("
+	      << who << ")" << std::endl;
       THROW(ErrGeneric());
     } 
   };

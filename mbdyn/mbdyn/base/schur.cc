@@ -71,8 +71,24 @@ extern __sighandler_t sh_term;
 extern __sighandler_t sh_int;
 extern __sighandler_t sh_hup;
 
-extern void
-modify_final_time_handler(int signum);
+static void
+modify_final_time_handler(int signum)
+{
+        ::keep_going = 0;
+        switch (signum) {
+        case SIGTERM:
+                signal(signum, ::sh_term);
+                break;
+
+	case SIGINT:
+		signal(signum, ::sh_int);
+		break;
+
+	case SIGHUP:
+		signal(signum, ::sh_hup);
+		break;
+	}
+}
 #endif /* HAVE_SIGNAL */
 
 /* SchurMultiStepIntegrator - begin */
@@ -109,7 +125,7 @@ SchurMultiStepIntegrator::SchurMultiStepIntegrator(MBDynParser& HPar,
                      flag fPar)
 : 
 CurrStrategy(NOCHANGE),
-CurrLocSolver(defaultSolver),
+CurrSolver(defaultSolver),
 CurrIntSolver(defaultSolver),
 sInputFileName(NULL),
 sOutputFileName(NULL),
@@ -129,8 +145,9 @@ pXPrimePrev(NULL),
 pXPrev2(NULL),
 pXPrimePrev2(NULL),
 pSM(NULL),
-pLocalSM(NULL),
+pIntSM(NULL),
 pDM(NULL),
+pSDM(NULL),
 DofIterator(), 
 iNumDofs(0),
 pDofs(NULL),
@@ -240,14 +257,14 @@ SchurMultiStepIntegrator::Run(void)
    sprintf(sNewOutName+iOutLen,".%.3d", MyRank);
    
    DEBUGLCOUT(MYDEBUG_MEM, "creating ParallelDataManager" << std::endl);
-   SAFENEWWITHCONSTRUCTOR(pDM,
+   SAFENEWWITHCONSTRUCTOR(pSDM,
 			  SchurDataManager,
 			  SchurDataManager(HP,
 					     dInitialTime,
 					     sInputFileName,
 					     sNewOutName,
 					     fAbortAfterInput));
-   
+   pDM = pSDM;
 
    /* Si fa dare l'ostream al file di output per il log */
    std::ostream& Out = pDM->GetOutFile();
@@ -269,7 +286,7 @@ SchurMultiStepIntegrator::Run(void)
 #ifdef MPI_PROFILING
    MPE_Log_event(1, 0, "start");
 #endif /* MPI_PROFILING */ 
-   pDM->CreatePartition();
+   pSDM->CreatePartition();
 #ifdef MPI_PROFILING
    MPE_Log_event(2, 0, "end");
 #endif /* MPI_PROFILING */ 
@@ -283,13 +300,13 @@ SchurMultiStepIntegrator::Run(void)
    /* Costruisce i vettori della soluzione ai vari passi */
    DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << std::endl);
    
-   iNumDofs = pDM->HowManyDofs(1);
-   pDofs = pDM->pGetDofsList();
+   iNumDofs = pSDM->HowManyDofs(SchurDataManager::TOTAL);
+   pDofs = pSDM->pGetDofsList();
 
-   iNumLocDofs = pDM->HowManyDofs(2);
-   pLocDofs = pDM->GetDofsList(2);
-   iNumIntDofs = pDM->HowManyDofs(3);
-   pIntDofs = pDM->GetDofsList(3);
+   iNumLocDofs = pSDM->HowManyDofs(SchurDataManager::LOCAL);
+   pLocDofs = pSDM->GetDofsList(SchurDataManager::LOCAL);
+   iNumIntDofs = pSDM->HowManyDofs(SchurDataManager::INTERNAL);
+   pIntDofs = pSDM->GetDofsList(SchurDataManager::INTERNAL);
 
    ASSERT(iNumDofs > 0);
    
@@ -329,14 +346,14 @@ SchurMultiStepIntegrator::Run(void)
    
 
     /* Crea il solutore locale */
-    integer LociWorkSpaceSize = iLWorkSpaceSize/(iNumDofs*iNumDofs)* iNumLocDofs;
-    switch (CurrLocSolver) {
+    integer iLocWorkSpaceSize = iLWorkSpaceSize/(iNumDofs*iNumDofs)* iNumLocDofs;
+    switch (CurrSolver) {
      	case Y12_SOLVER: 
 #ifdef USE_Y12
-      		SAFENEWWITHCONSTRUCTOR(pLocalSM,
+      		SAFENEWWITHCONSTRUCTOR(pSM,
 			Y12SparseLUSolutionManager,
 			Y12SparseLUSolutionManager(iNumLocDofs,
-				LociWorkSpaceSize,
+				iLocWorkSpaceSize,
 				dLPivotFactor == -1. ? 1. : dLPivotFactor));
       		break;
 #else /* !USE_Y12 */
@@ -350,10 +367,10 @@ SchurMultiStepIntegrator::Run(void)
 			<< "solver. Switching to Harwell...." << std::endl;
    	case HARWELL_SOLVER:
 #ifdef USE_HARWELL
-      		SAFENEWWITHCONSTRUCTOR(pLocalSM,
+      		SAFENEWWITHCONSTRUCTOR(pSM,
 			HarwellSparseLUSolutionManager,
 			HarwellSparseLUSolutionManager(iNumLocDofs,
-				LociWorkSpaceSize,
+				iLocWorkSpaceSize,
 				dLPivotFactor == -1. ? 1. : dLPivotFactor));
       		break;
 #else /* !USE_HARWELL */
@@ -364,7 +381,7 @@ SchurMultiStepIntegrator::Run(void)
 
    	case UMFPACK3_SOLVER:
 #ifdef USE_UMFPACK3
-      		SAFENEWWITHCONSTRUCTOR(pLocalSM,
+      		SAFENEWWITHCONSTRUCTOR(pSM,
 			Umfpack3SparseLUSolutionManager,
 			Umfpack3SparseLUSolutionManager(iNumLocDofs, 
 				0, dLPivotFactor));
@@ -382,14 +399,14 @@ SchurMultiStepIntegrator::Run(void)
      	case Y12_SOLVER: 
 #ifdef USE_Y12
 		{ 
-		  Y12SparseLUSolutionManager* pIntSM;
-   		  SAFENEWWITHCONSTRUCTOR(pSM,
+		  Y12SparseLUSolutionManager* pSM;
+   		  SAFENEWWITHCONSTRUCTOR(pIntSM,
 			  SchurSolutionManager,
 			  SchurSolutionManager(iNumDofs, pLocDofs, 
 						iNumLocDofs, 
 						pIntDofs, iNumIntDofs,
-						pLocalSM,
-						pIntSM,
+						pSM,
+						pSM,
 						iIWorkSpaceSize, 
 						dIPivotFactor== -1.? 1. : dIPivotFactor));
 		}
@@ -407,14 +424,14 @@ SchurMultiStepIntegrator::Run(void)
     	case MESCHACH_SOLVER:
 #ifdef USE_MESCHACH
 		{ 
-		MeschachSparseLUSolutionManager* pIntSM;
-   		SAFENEWWITHCONSTRUCTOR(pSM,
+		MeschachSparseLUSolutionManager* pSM;
+   		SAFENEWWITHCONSTRUCTOR(pIntSM,
 			  SchurSolutionManager,
 			  SchurSolutionManager(iNumDofs, pLocDofs, 
 						iNumLocDofs, 
 						pIntDofs, iNumIntDofs,
-						pLocalSM,
-						pIntSM,
+						pSM,
+						pSM,
 						iIWorkSpaceSize, 
 						dIPivotFactor== -1.? 1. : dIPivotFactor));
 		}
@@ -429,14 +446,14 @@ SchurMultiStepIntegrator::Run(void)
    	case UMFPACK3_SOLVER:
 #ifdef USE_UMFPACK3
 		{
-		Umfpack3SparseLUSolutionManager* pIntSM;
-   		SAFENEWWITHCONSTRUCTOR(pSM,
+		Umfpack3SparseLUSolutionManager* pSM;
+   		SAFENEWWITHCONSTRUCTOR(pIntSM,
 			  SchurSolutionManager,
 			  SchurSolutionManager(iNumDofs, pLocDofs, 
 						iNumLocDofs, 
 						pIntDofs, iNumIntDofs,
-						pLocalSM,
-						pIntSM,
+						pSM,
+						pSM,
 						0, dIPivotFactor));
       		}
 		break;
@@ -449,9 +466,9 @@ SchurMultiStepIntegrator::Run(void)
 
 
    /* Puntatori agli handlers del solution manager */
-   VectorHandler* pRes = pSM->pResHdl();
-   VectorHandler* pSol = pSM->pSolHdl();
-   MatrixHandler* pJac = pSM->pMatHdl();
+   VectorHandler* pRes = pIntSM->pResHdl();
+   VectorHandler* pSol = pIntSM->pSolHdl();
+   MatrixHandler* pJac = pIntSM->pMatHdl();
 
    /* Legenda:
     *   MS - SchurMultiStepIntegrator
@@ -560,14 +577,14 @@ SchurMultiStepIntegrator::Run(void)
      	MPE_Log_event(23, 0, "start");
 #endif /* MPI_PROFILING */
  
-     	pSM->MatrInit(0.);
+     	pIntSM->MatrInit(0.);
      	pDM->AssJac(*pJac, dDerivativesCoef);
     
 #ifdef MPI_PROFILING
      	MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
     
-     	pSM->Solve();
+     	pIntSM->Solve();
   
 
 #ifdef DEBUG
@@ -732,14 +749,14 @@ EndOfDerivatives:
        MPE_Log_event(23, 0, "start");
 #endif /* MPI_PROFILING */ 
        
-       pSM->MatrInit(0.);
+       pIntSM->MatrInit(0.);
        pDM->AssJac(*pJac, db0Differential);
 
 #ifdef MPI_PROFILING
         MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */ 
     
-       pSM->Solve();
+       pIntSM->Solve();
      
 #ifdef DEBUG
        if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_FSTEPS)) {
@@ -888,14 +905,14 @@ EndOfFirstFictitiousStep:
          MPE_Log_event(23, 0, "start");
 #endif /* MPI_PROFILING */  
 	 
-	 pSM->MatrInit(0.);
+	 pIntSM->MatrInit(0.);
 	 pDM->AssJac(*pJac, db0Differential);
 	 
 #ifdef MPI_PROFILING
 	 MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 	 
-	 pSM->Solve();
+	 pIntSM->Solve();
 	 
 #ifdef DEBUG
 	 if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_FSTEPS)) {
@@ -1120,7 +1137,7 @@ EndOfFictitiousStep:
        MPE_Log_event(23,0,"start Jacobian");
 #endif
 
-       pSM->MatrInit(0.);
+       pIntSM->MatrInit(0.);
        pDM->AssJac(*pJac, db0Differential);
 
 #ifdef MPI_PROFILING
@@ -1128,7 +1145,7 @@ EndOfFictitiousStep:
 #endif
       }
 
-     pSM->Solve();
+     pIntSM->Solve();
      
 #ifdef DEBUG
      if (DEBUG_LEVEL(MYDEBUG_SOL)) {
@@ -1345,7 +1362,7 @@ IfStepIsToBeRepeated:
 #ifdef MPI_PROFILING
 	 MPE_Log_event(23,0,"start Jacobian");
 #endif
-	 pSM->MatrInit(0.);
+	 pIntSM->MatrInit(0.);
 	 pDM->AssJac(*pJac, db0Differential);
 
 #ifdef MPI_PROFILING
@@ -1353,7 +1370,7 @@ IfStepIsToBeRepeated:
 #endif
 
        }
-       pSM->Solve();
+       pIntSM->Solve();
        
 #ifdef DEBUG
        if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_MPI)) {
@@ -1430,8 +1447,8 @@ SchurMultiStepIntegrator::~SchurMultiStepIntegrator(void)
       SAFEDELETEARR(sOutputFileName);
    }
 
-   if (pSM != NULL)  {
-      SAFEDELETE(pSM);
+   if (pIntSM != NULL)  {
+      SAFEDELETE(pIntSM);
    }
 
    if (pXPrimePrev2 != NULL) {
@@ -1484,7 +1501,7 @@ SchurMultiStepIntegrator::MakeTest(const VectorHandler& Res,
    * chiama la routine di comunicazione per la trasmissione del residuo
    * delle interfacce
    */
-  pSM->StartExchInt();
+  pIntSM->StartExchInt();
  
   /* calcola il test per i dofs locali */
   int DCount = 0;
@@ -1500,8 +1517,10 @@ SchurMultiStepIntegrator::MakeTest(const VectorHandler& Res,
     /* else if ALGEBRAIC: non aggiunge nulla */
   }
 
-  for (int iCntp1 = 0; iCntp1 < pDM->HowManyDofs(4); iCntp1++) {
-    DCount = (pDM->GetDofsList(4))[iCntp1];
+  for (int iCntp1 = 0; 
+		  iCntp1 < pSDM->HowManyDofs(SchurDataManager::MYINTERNAL); 
+		  iCntp1++) {
+    DCount = (pSDM->GetDofsList(SchurDataManager::MYINTERNAL))[iCntp1];
     CurrDof = pDofs[DCount-1];
     if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
       doublereal d = XP.dGetCoef(DCount);
@@ -1511,7 +1530,7 @@ SchurMultiStepIntegrator::MakeTest(const VectorHandler& Res,
   }
   
   /* verifica completamento trasmissioni */
-  pSM->ComplExchInt(dRes, dXPr);
+  pIntSM->ComplExchInt(dRes, dXPr);
 
   
   dRes /= (1.+dXPr);
@@ -2584,7 +2603,7 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
 	  switch(KeyWords(HP.GetWord())) {	     
 	   case MESCHACH:
 #ifdef USE_MESCHACH
-	     CurrLocSolver = MESCHACH_SOLVER;
+	     CurrSolver = MESCHACH_SOLVER;
 	     DEBUGLCOUT(MYDEBUG_INPUT, 
 			"Using meschach sparse LU solver" << std::endl);
 	     break;
@@ -2592,7 +2611,7 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
 
 	   case Y12:
 #ifdef USE_Y12
-             CurrLocSolver = Y12_SOLVER;
+             CurrSolver = Y12_SOLVER;
 	     DEBUGLCOUT(MYDEBUG_INPUT,
 			"Using y12 sparse LU solver" << std::endl);
 	     break;
@@ -2600,7 +2619,7 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
 							       
 	   case UMFPACK3:
 #ifdef USE_UMFPACK3
-             CurrLocSolver = UMFPACK3_SOLVER;
+             CurrSolver = UMFPACK3_SOLVER;
 	     DEBUGLCOUT(MYDEBUG_INPUT,
 			"Using umfpack3 sparse LU solver" << std::endl);
 	     break;
@@ -2608,7 +2627,7 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
 
 #ifdef USE_HARWELL
 	   case HARWELL: 
-	     CurrLocSolver = HARWELL_SOLVER;
+	     CurrSolver = HARWELL_SOLVER;
 	     DEBUGLCOUT(MYDEBUG_INPUT, 
 			"Using harwell sparse LU solver" << std::endl);	 
 	     break;	   

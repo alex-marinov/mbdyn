@@ -78,7 +78,7 @@ class SchurMultiStepIntegrator : public Integrator {
 		MESCHACH_SOLVER,
 		Y12_SOLVER,
                 UMFPACK3_SOLVER   
-	} CurrLocSolver;
+	} CurrSolver;
 
 	static SolverType defaultSolver;
 	
@@ -123,12 +123,13 @@ class SchurMultiStepIntegrator : public Integrator {
    VectorHandler* pXPrimePrev2; /* derivata due passi prima */
    
    /* Strutture di gestione dei dati e della soluzione */
-   SchurSolutionManager* pSM; /* SolutionManager Schur */
-   SolutionManager* pLocalSM; /* SolutionManager Locale */
-   SchurDataManager* pDM;     /* gestore dei dati */
-   VecIter<Dof> DofIterator;  /* Iteratore per la struttura dei Dof, 
-   			       * passato da DM */
-   integer iNumDofs;          /* Dimensioni del problema */
+   SolutionManager* pSM;        /* SolutionManager Schur */
+   SchurSolutionManager* pIntSM;/* SolutionManager di interfaccia */
+   DataManager* pDM;            /* gestore dei dati */
+   SchurDataManager* pSDM;      /* gestore dei dati */
+   VecIter<Dof> DofIterator;    /* Iteratore per la struttura dei Dof, 
+   			         * passato da DM */
+   integer iNumDofs;            /* Dimensioni del problema */
    
    /* Strutture gestione parallelo */
    integer iNumLocDofs;       /* Dimensioni problema locale */
