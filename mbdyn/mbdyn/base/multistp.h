@@ -119,7 +119,7 @@ class PODMat {
 	       }
 
 #ifdef __HACK_POD_BINARY__
-	       out.write((char *)A, Cols*Rows*sizeof(doublereal));
+	       out.write((char *)A, Cnt*Rows*sizeof(doublereal));
 #else /* !__HACK_POD_BINARY__ */
 	       doublereal *d = A;
                for (unsigned long i = 0; i < Cnt; i++) {         
