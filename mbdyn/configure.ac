@@ -146,6 +146,8 @@ dnl General "enable" options
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debugging], no)dnl
 OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
 OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], auto)dnl
+OL_ARG_ENABLE(adams,[  --enable-adams          enable MSC.ADAMS output], no)dnl
+OL_ARG_ENABLE(motionview,[  --enable-motionview     enable Altair's Motion View output], no)dnl
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
@@ -325,6 +327,21 @@ if test "$ol_enable_debug" != no -o "$ol_enable_debug_mpi" != no ; then
 	AC_DEFINE(DEBUG,1,[define this to add debugging code])
 	if test "$ol_with_debug_mode" = memory ; then
 		AC_DEFINE(DEBUG_MEMMANAGER,1,[define this to add memory debugging code])
+	fi
+fi
+
+if test "$ol_enable_adams" != no ; then
+	AC_DEFINE(USE_ADAMS,1,[define this to enable ADAMS/View output])
+fi
+
+if test "$ol_enable_motionview" != no ; then
+	AC_CHECK_HEADER(mbs_result_api.h,[have_mbs_result_api_h=yes],[have_mbs_result_api_h=no])
+	if test $have_mbs_result_api_h = "yes" ; then
+		AC_DEFINE(USE_MOTIONVIEW,1,[define this to enable Motion View output])
+	else
+		if test $ol_enable_motionview != auto ; then
+			AC_MSG_ERROR([Could not locate mbs_result_api.h header])
+		fi
 	fi
 fi
 

@@ -709,6 +709,7 @@ HBeam::pGetNode(unsigned int i) const
 }
 
 
+#ifdef USE_ADAMS
 void
 HBeam::GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& r) const
 {
@@ -747,6 +748,7 @@ HBeam::WriteAdamsDummyPartCmd(std::ostream& out,
 	
 	return out;
 }
+#endif /* USE_ADAMS */
 
 /* HBeam - end */
 

@@ -118,7 +118,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       "output" "file" "name",
       "output" "precision",
       "output" "frequency",
-      "adams" "res" "output",
+      "output" "results",
       "default" "output",
       "all",	
       "none",
@@ -183,7 +183,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       OUTPUTPRECISION,
       OUTPUTFREQUENCY,
 
-      ADAMSRESOUTPUT,
+      OUTPUTRESULTS,
       DEFAULTOUTPUT,
       ALL,
       NONE,
@@ -726,20 +726,35 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  break;
        }
 	 
-       case ADAMSRESOUTPUT: {
-	  fAdamsResOutput = 1;
-	  if (HP.fIsArg()) {
-	     if (sAdamsModelName != NULL) {
-		SAFEDELETEARR(sAdamsModelName);
-		sAdamsModelName = NULL;
-	     }
+       case OUTPUTRESULTS: {
+	while (HP.fIsArg()) {
+	
+		/* require support for ADAMS/View .res output */
+	  	if (HP.IsKeyWord("adams")) {
+	 	 	ResMode |= RES_ADAMS;
+
+	  		if (HP.fIsArg() && HP.IsKeyWord("model" "name")) {
+	     			if (sAdamsModelName != NULL) {
+					SAFEDELETEARR(sAdamsModelName);
+					sAdamsModelName = NULL;
+	     			}
 	     
-	     const char *tmp = HP.GetStringWithDelims();
-	     SAFESTRDUP(sAdamsModelName, tmp);
-	  } else {
-	     SAFESTRDUP(sAdamsModelName, "mbdyn");
-	  }
-	  break;
+	     			const char *tmp = HP.GetStringWithDelims();
+	     			SAFESTRDUP(sAdamsModelName, tmp);
+	  		} else {
+	     			SAFESTRDUP(sAdamsModelName, "mbdyn");
+	  		}
+
+		/* require support for MotionView output */
+		} else if (HP.IsKeyWord("motion" "view")) {
+			ResMode |= RES_MOTIONVIEW;
+
+			/*
+			 * add output info
+			 */
+		}
+	}
+	break;
        }
 	 
        case DEFAULTOUTPUT: {

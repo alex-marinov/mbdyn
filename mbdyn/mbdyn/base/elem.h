@@ -188,7 +188,8 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput {
    virtual ElemGravityOwner* pGetElemGravityOwner(void) const;
    virtual AerodynamicElem* pGetAerodynamicElem(void) const;
    virtual InitialAssemblyElem* pGetInitialAssemblyElem(void) const;
-   
+
+#ifdef USE_ADAMS 
    /* Adams output stuff */
    virtual unsigned int iGetNumAdamsDummyParts(void) const {
       return 0;
@@ -199,6 +200,7 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput {
    virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const {
       THROW(ErrGeneric());
    };
+#endif /* USE_ADAMS */
 };
 
 /* Elem - end */

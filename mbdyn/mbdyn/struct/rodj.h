@@ -179,7 +179,8 @@ public:
 		NdLabels[1] = pNode2->GetLabel();
 	};
 	/* ************************************************ */
-   
+
+#ifdef USE_ADAMS	
 	/* Adams output stuff */
 	virtual unsigned int iGetNumAdamsDummyParts(void) const {
 		return 1;
@@ -189,6 +190,7 @@ public:
 	virtual std::ostream&
 	WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part,
 			unsigned int firstId) const;
+#endif /* USE_ADAMS */
 
 	virtual unsigned int iGetNumPrivData(void) const;
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;

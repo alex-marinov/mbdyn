@@ -854,6 +854,7 @@ Beam2::pGetNode(unsigned int i) const
 }
 
 
+#ifdef USE_ADAMS
 void
 Beam2::GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& r) const
 {
@@ -892,6 +893,7 @@ Beam2::WriteAdamsDummyPartCmd(std::ostream& out,
 	
 	return out;
 }
+#endif /* USE_ADAMS */
 
 /* Beam2 - end */
 

@@ -5,6 +5,7 @@ include $(top_srcdir)/build/top.mk
 noinst_LTLIBRARIES = libbase.la
 
 libbase_la_SOURCES = \
+adams_res.cc \
 auth.cc \
 auth.h \
 bicg.cc \
@@ -21,7 +22,6 @@ dataman.h \
 dataman2.cc \
 dataman3.cc \
 dataman4.cc \
-dataman5.cc \
 dataman_.h \
 dofdrive.cc \
 dofdrive.h \
@@ -55,12 +55,13 @@ j2p.cc \
 j2p.h \
 loadable.cc \
 loadable.h \
+mbpar.cc \
+mbpar.h \
 mbrtai_utils.c \
 mbrtai_utils.h \
 mfree.cc \
 mfree.h \
-mbpar.cc \
-mbpar.h \
+motionview_res.cc \
 node.cc \
 node.h \
 nodeman.cc \

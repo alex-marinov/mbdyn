@@ -124,12 +124,28 @@ class DataManager : public SolutionDataManager {
 
    integer iOutputFrequency;
    mutable integer iOutputCount;
-   
-   flag fAdamsResOutput;
+
+ public:
+   enum ResType {
+	   RES_NONE = 0x00,
+	   RES_NATIVE = 0x01,
+	   RES_ADAMS = 0x02,
+	   RES_MOTIONVIEW = 0x04
+   };
+
+ protected:
+   int ResMode;
+
+#ifdef USE_ADAMS 
    char *sAdamsModelName;
    integer iAdamsOutputBlock;
    unsigned int iAdamsOutputNodes;
    unsigned int iAdamsOutputParts;
+#endif /* USE_ADAMS */
+
+#ifdef USE_MOTIONVIEW
+
+#endif /* USE_MOTIONVIEW */
    
  private:
    /* chiamate dal costruttore per leggere i relativi articoli */
@@ -256,11 +272,21 @@ class DataManager : public SolutionDataManager {
    virtual void Output_f06(std::ostream& f06, const VectorHandler& X) const;
    virtual void Output_f06(std::ostream& f06, const VectorHandler& Xr, const VectorHandler& Xi) const;
    virtual void Output_OpenDX(std::ostream& dx, const VectorHandler& Xr, const VectorHandler& Xi) const;
-   
-   /* Adams output */
-   flag fAdamsOutput(void) const;
+
+#ifdef USE_ADAMS 
+   /* MSC's ADAMS/View .res output */
+   bool fAdamsOutput(void) const;
    void AdamsResOutputInit(void);
    void AdamsResOutput(integer iBlock, const char *type, const char *id) const;
+#endif /* USE_ADAMS */
+
+#ifdef USE_MOTIONVIEW 
+   /* Altair's Motion View output */
+   bool fMotionViewOutput(void) const;
+   void MotionViewResOutputInit(const char *sOutputFileName);
+   void MotionViewResOutput(integer iBlock, const char *type, const char *id) const;
+   void MotionViewResOutputFini(void) const;
+#endif /* USE_MOTIONVIEW */
 
    /* Prepara la soluzione con i valori iniziali */
    void SetValue(VectorHandler& X, VectorHandler& XP);

@@ -113,7 +113,7 @@ iCurrRestartIter(0),
 dLastRestartTime(dInitialTime),
 iOutputFrequency(1),
 iOutputCount(0),
-fAdamsResOutput(0),
+ResMode(RES_NATIVE),
 sAdamsModelName(NULL),
 iAdamsOutputBlock(1),
 iAdamsOutputNodes(0),
@@ -419,13 +419,22 @@ DofIter()
       silent_cout("Only input is required" << std::endl);
       return;
    }
-   
+
+#ifdef USE_ADAMS 
    /* Se richiesto, inizializza il file di output AdamsRes */
    if (fAdamsOutput()) {
       AdamsResOutputInit();
       iAdamsOutputBlock = 1;
       AdamsResOutput(iAdamsOutputBlock, "INPUT", "MBDyn");
-   }   
+   }
+#endif /* USE_ADAMS */
+
+#ifdef USE_MOTIONVIEW
+   if (fMotionViewOutput()) {
+      MotionViewResOutputInit(sOutputFileName);
+      MotionViewResOutput(1, "INPUT", "MBDyn");
+   }
+#endif /* USE_MOTIONVIEW */
    
    /* Qui intercetto la struttura dei Dof prima che venga costruita e modifico
     * in modo che sia adatta all'assemblaggio dei vincoli; quindi la resetto 
@@ -491,11 +500,20 @@ DofIter()
    }
 #endif /* DEBUG */
    
-   /* Se richiesto, esegue l'output delle condizioni iniziali*/
+   /* Se richiesto, esegue l'output delle condizioni iniziali */
+#ifdef USE_ADAMS
    if (fAdamsOutput()) {
       iAdamsOutputBlock = 2;
       AdamsResOutput(iAdamsOutputBlock, "INITIAL CONDITIONS", "MBDyn");
    }
+#endif /* USE_ADAMS */
+   
+   /* Se richiesto, esegue l'output delle condizioni iniziali */
+#ifdef USE_MOTIONVIEW
+   if (fMotionViewOutput()) {
+      MotionViewResOutput(2, "INITIAL CONDITIONS", "MBDyn");
+   }
+#endif /* USE_ADAMS */
    
 } /* End of DataManager::DataManager() */
 
@@ -513,6 +531,12 @@ DataManager::~DataManager(void)
    if(RestartEvery == ATEND) {
       MakeRestart();
    }
+
+#ifdef USE_MOTIONVIEW
+   if (fMotionViewOutput()) {
+      MotionViewResOutputFini();
+   }
+#endif /* USE_MOTIONVIEW */
    
    if(sSimulationTitle != NULL) {
       SAFEDELETEARR(sSimulationTitle);

@@ -426,6 +426,7 @@ SubVectorHandler& Rod::InitialAssRes(SubVectorHandler& WorkVec,
 }
 
 
+#ifdef USE_ADAMS
 void 
 Rod::GetAdamsDummyPart(unsigned int part,
 			    Vec3& x, 
@@ -473,6 +474,7 @@ Rod::WriteAdamsDummyPartCmd(std::ostream& out,
      << l << " " << 0. << " " << 0. << " "
      << Zero3 << std::endl;
 }
+#endif /* USE_ADAMS */
 
 
 unsigned int

@@ -860,12 +860,21 @@ void DataManager::Output(bool force) const
     default:
       break;
    }
-   
+
+#ifdef USE_ADAMS 
    /* Se richiesto, esegue l'output delle condizioni iniziali*/
    if (fAdamsOutput()) {
       ((integer&)iAdamsOutputBlock)++;
       AdamsResOutput(iAdamsOutputBlock, "DYNAMIC", "MBDyn");
    }
+#endif /* USE_ADAMS */
+
+#ifdef USE_MOTIONVIEW
+   /* Se richiesto, esegue l'output delle condizioni iniziali*/
+   if (fMotionViewOutput()) {
+      MotionViewResOutput(iAdamsOutputBlock, "DYNAMIC", "MBDyn");
+   }
+#endif /* USE_MOTIONVIEW */
 }
 
 

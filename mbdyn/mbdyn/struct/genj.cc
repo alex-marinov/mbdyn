@@ -698,6 +698,7 @@ void DistanceJoint::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
 }
 
 
+#ifdef USE_ADAMS
 void 
 DistanceJoint::GetAdamsDummyPart(unsigned int part, 
 				 Vec3& x, 
@@ -745,6 +746,7 @@ DistanceJoint::WriteAdamsDummyPartCmd(std::ostream& out,
      << l << " " << 0. << " " << 0. << " "
      << Zero3 << std::endl;
 }
+#endif /* USE_ADAMS */
 
 /* DistanceJoint - end */
 
@@ -1483,6 +1485,7 @@ void DistanceJointWithOffset::SetValue(VectorHandler& X,
 }
 
 
+#ifdef USE_ADAMS
 void 
 DistanceJointWithOffset::GetAdamsDummyPart(unsigned int part,
 					   Vec3& x, 
@@ -1551,6 +1554,7 @@ DistanceJointWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
      << l << " " << 0. << " " << 0. << " "
      << Zero3 << std::endl;
 }
+#endif /* USE_ADAMS */
 
 /* DistanceJointWithOffset - end */
 

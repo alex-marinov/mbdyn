@@ -303,7 +303,8 @@ class Beam2
         }
     };
     /**************************************************/
-   
+
+#ifdef USE_ADAMS
     /* Adams output stuff */
     unsigned int iGetNumAdamsDummyParts(void) const {
         return 1;
@@ -313,6 +314,7 @@ class Beam2
     WriteAdamsDummyPartCmd(std::ostream& out,
                            unsigned int part, 
 			   unsigned int firstId) const;
+#endif /* USE_ADAMS */
 };
 
 /* Beam - end */
