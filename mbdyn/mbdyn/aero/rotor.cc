@@ -262,14 +262,13 @@ Rotor::Output(OutputHandler& OH) const
 					<< " " << RRotTranspose*TmpM /* 5-7 */
 					<< " " << dUMean 	/* 8 */
 					<< " " << dVelocity	/* 9 */
-					<< " " << dSinAlphad	/* 10 */
-					<< " " << dCosAlphad	/* 11 */
-					<< " " << dMu		/* 12 */
-					<< " " << dLambda	/* 13 */
-					<< " " << dChi		/* 14 */
-					<< " " << dPsi0		/* 15 */
-					<< " " << bUMeanRefConverged /* 16 */
-					<< " " << iCurrIter	/* 17 */
+					<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
+					<< " " << dMu		/* 11 */
+					<< " " << dLambda	/* 12 */
+					<< " " << dChi		/* 13 */
+					<< " " << dPsi0		/* 14 */
+					<< " " << bUMeanRefConverged /* 15 */
+					<< " " << iCurrIter	/* 16 */
 					<< std::endl;
 
 				for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -291,14 +290,13 @@ Rotor::Output(OutputHandler& OH) const
 				<< " " << RRotTranspose*Res.Couple() /* 5-7 */
 	    			<< " " << dUMean		/* 8 */
 	    			<< " " << dVelocity		/* 9 */
-	    			<< " " << dSinAlphad		/* 10 */
-				<< " " << dCosAlphad		/* 11 */
-	    			<< " " << dMu			/* 12 */
-	    			<< " " << dLambda		/* 13 */
-				<< " " << dChi			/* 14 */
-	    			<< " " << dPsi0			/* 15 */
-				<< " " << bUMeanRefConverged	/* 16 */
-				<< " " << iCurrIter		/* 17 */
+	    			<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
+	    			<< " " << dMu			/* 11 */
+	    			<< " " << dLambda		/* 12 */
+				<< " " << dChi			/* 13 */
+	    			<< " " << dPsi0			/* 14 */
+				<< " " << bUMeanRefConverged	/* 15 */
+				<< " " << iCurrIter		/* 16 */
 	    			<< std::endl;
 
 	    		for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -318,14 +316,13 @@ Rotor::Output(OutputHandler& OH) const
 			<< " " << RRotTranspose*Res.Couple()	/* 5-7 */
 			<< " " << dUMean		/* 8 */
 			<< " " << dVelocity		/* 9 */
-			<< " " << dSinAlphad		/* 10 */
-			<< " " << dCosAlphad		/* 11 */
-			<< " " << dMu			/* 12 */
-			<< " " << dLambda		/* 13 */
-			<< " " << dChi			/* 14 */
-			<< " " << dPsi0			/* 15 */
-			<< " " << bUMeanRefConverged	/* 16 */
-			<< " " << iCurrIter		/* 17 */
+			<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
+			<< " " << dMu			/* 11 */
+			<< " " << dLambda		/* 12 */
+			<< " " << dChi			/* 13 */
+			<< " " << dPsi0			/* 14 */
+			<< " " << bUMeanRefConverged	/* 15 */
+			<< " " << iCurrIter		/* 16 */
 			<< std::endl;
 
 		/* FIXME: check for parallel stuff ... */
@@ -1451,17 +1448,16 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 					<< " " << RRotTranspose*TmpM /* 5-7 */
 					<< " " << dUMean	/* 8 */
 					<< " " << dVelocity	/* 9 */
-					<< " " << dSinAlphad	/* 10 */
-					<< " " << dCosAlphad	/* 11 */
-					<< " " << dMu		/* 12 */
-					<< " " << dLambda	/* 13 */
-					<< " " << dChi		/* 14 */
-					<< " " << dPsi0		/* 15 */
-					<< " " << bUMeanRefConverged /* 16 */
-					<< " " << iCurrIter	/* 17 */
-					<< " " << dVConst	/* 18 */
-					<< " " << dVSine	/* 19 */
-					<< " " << dVCosine	/* 20 */
+					<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
+					<< " " << dMu		/* 11 */
+					<< " " << dLambda	/* 12 */
+					<< " " << dChi		/* 13 */
+					<< " " << dPsi0		/* 14 */
+					<< " " << bUMeanRefConverged /* 15 */
+					<< " " << iCurrIter	/* 16 */
+					<< " " << dVConst	/* 17 */
+					<< " " << dVSine	/* 18 */
+					<< " " << dVCosine	/* 19 */
 					<< std::endl; 
 
 				for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -1483,17 +1479,16 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 				<< " " << RRotTranspose*Res.Couple() /* 5-7 */
 				<< " " << dUMean	/* 8 */
 				<< " " << dVelocity	/* 9 */
-				<< " " << dSinAlphad	/* 10 */
-				<< " " << dCosAlphad	/* 11 */
-				<< " " << dMu		/* 12 */
-				<< " " << dLambda	/* 13 */
-				<< " " << dChi		/* 14 */
-				<< " " << dPsi0		/* 15 */
-				<< " " << bUMeanRefConverged /* 16 */
-				<< " " << iCurrIter	/* 17 */
-				<< " " << dVConst	/* 18 */
-				<< " " << dVSine	/* 19 */
-				<< " " << dVCosine	/* 20 */
+				<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
+				<< " " << dMu		/* 11 */
+				<< " " << dLambda	/* 12 */
+				<< " " << dChi		/* 13 */
+				<< " " << dPsi0		/* 14 */
+				<< " " << bUMeanRefConverged /* 15 */
+				<< " " << iCurrIter	/* 16 */
+				<< " " << dVConst	/* 17 */
+				<< " " << dVSine	/* 18 */
+				<< " " << dVCosine	/* 19 */
 				<< std::endl;
 
 			for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -1513,17 +1508,16 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 			<< " " << RRotTranspose*Res.Couple()	/* 5-7 */
 			<< " " << dUMean	/* 8 */
 			<< " " << dVelocity	/* 9 */
-			<< " " << dSinAlphad	/* 10 */
-			<< " " << dCosAlphad	/* 11 */
-			<< " " << dMu		/* 12 */
-			<< " " << dLambda	/* 13 */
-			<< " " << dChi		/* 14 */
-			<< " " << dPsi0		/* 15 */
-			<< " " << bUMeanRefConverged /* 16 */
-			<< " " << iCurrIter	/* 17 */
-			<< " " << dVConst	/* 18 */
-			<< " " << dVSine	/* 19 */
-			<< " " << dVCosine	/* 20 */
+			<< " " << atan2(dSinAlphad,dCosAlphad)	/* 10 */
+			<< " " << dMu		/* 11 */
+			<< " " << dLambda	/* 12 */
+			<< " " << dChi		/* 13 */
+			<< " " << dPsi0		/* 14 */
+			<< " " << bUMeanRefConverged /* 15 */
+			<< " " << iCurrIter	/* 16 */
+			<< " " << dVConst	/* 17 */
+			<< " " << dVSine	/* 18 */
+			<< " " << dVCosine	/* 19 */
 			<< std::endl;
 
 		for (int i = 0; ppRes && ppRes[i]; i++) {

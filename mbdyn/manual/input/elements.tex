@@ -2137,10 +2137,11 @@ in many ways to nodal degrees of freedom or to element private data.
 
 
 
-\section{Rotor Element}
+\section{Rotor}
 The \kw{rotor} element is used to associate the aerodynamic elements that
-model the blades of a rotor when some inflow related computations are
-required. By means of different inflow models, and by means of the
+model the blades of a helicopter rotor when some inflow related computations 
+are required.
+By means of different inflow models, and by means of the
 aerodynamic load contributions supplied by the aerodynamic elements, the
 rotor element is able to compute the induced velocity at an arbitrary point on
 the rotor disk. This velocity term on turn is used by the aerodynamic
@@ -2265,6 +2266,49 @@ the \kw{delay} optional entry is missing, while the three states,
 corresponding to average, fore-aft and lateral inflow,
 can be explicitly initialized by means of the optional 
 entry \kw{initial value}.
+
+\paragraph{Output}
+The following output is available for all rotor elements:
+\begin{enumerate}
+\item element label
+\item rotor force in \kw{x} direction (longitudinal force)
+\item rotor force in \kw{y} direction (lateral force)
+\item rotor force in \kw{z} direction (thrust)
+\item rotor moment about \kw{x} direction (roll moment)
+\item rotor moment about \kw{y} direction (pitch moment)
+\item rotor moment about \kw{z} direction (torque)
+\item mean inflow velocity, based on momentum theory
+\item reference velocity at rotor center, sum of aistream
+	and craft node velocity
+\item rotor disk angle
+\item advance parameter $\mu$
+\item inflow parameter $\lambda$
+\item advance/inflow angle $\chi=\arctan\plbr{\mu/\lambda}$
+\item reference azimuthal direction $\psi_0$, related to rotor yaw angle
+\item boolean flag indicating convergence in reference induced velocity
+	computation iteration
+\item number of iterations required for convergence
+\newcounter{elem_rotor_output}
+\setcounter{elem_rotor_output}{\value{enumi}}
+\end{enumerate}
+The \kw{dynamic inflow} model adds the columns
+\begin{enumerate}
+\setcounter{enumi}{\value{elem_rotor_output}}
+\item constant inflow state
+\item sine inflow state (lateral)
+\item cosine inflow state (longitudinal)
+\end{enumerate}
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{Tx} rotor force in \kw{x} direction (longitudinal force)
+\item \kw{Ty} rotor force in \kw{y} direction (lateral force)
+\item \kw{Tz} rotor force in \kw{z} direction (thrust)
+\item \kw{Mx} rotor moment about \kw{x} direction (roll moment)
+\item \kw{My} rotor moment about \kw{y} direction (pitch moment)
+\item \kw{Mz} rotor moment about \kw{z} direction (torque)
+\end{enumerate}
 
 
 
