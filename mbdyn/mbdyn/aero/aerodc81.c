@@ -580,17 +580,7 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		cn = dcla*DAN+DCN*C1;
 		cl += cn*v[V_X]/vp;	/* cos(alpha) */
 		cd -= cn*v[V_Y]/vp;	/* sin(alpha) */
-
-#if 0
-		/* 
-		 * I suspect Bielawa '75 considers cm positive 
-		 * when nose-down, while the c81 data considers 
-		 * it positive when nose-up
-		 */
-		cm -= dcma*DAM+DCM*C1;
-#else
 		cm += dcma*DAM+DCM*C1;
-#endif
 
 		break;
 	}
@@ -616,11 +606,7 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 	TNG[V_Z] = -q*cd0*v[V_Z]/vp;
 	TNG[W_X] = 0.;
 	TNG[W_Y] = -ca*TNG[V_Z];
-#if 0
-	TNG[W_Z] = -q*chord*cm-ca*TNG[V_Y];
-#else
 	TNG[W_Z] = q*chord*cm+ca*TNG[V_Y];
-#endif
 	
 	/* 
 	 * Radial drag (TNG[V_Z]) consistent with Harris, JAHS 1970
