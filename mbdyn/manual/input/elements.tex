@@ -547,11 +547,24 @@ the \texttt{dof} field is a normal \texttt{node\_dof} but no \texttt{order} is r
 since the \texttt{force} simply applies to the equation related to the node,
 regardless of the order.
 
+\subsection{Abstract reaction force}
+\begin{verbatim}
+    <force_type> ::= abstract internal
+    <force_arglist> ::= (node_dof) <dof1> ,
+                        (node_dof) <dof2> ,
+                        (drive_caller) <force_magnitude>
+\end{verbatim}
+the \texttt{dof1} and \texttt{dof2} fields are normal \texttt{node\_dof}
+but no \texttt{order} is required since the \texttt{force} simply applies
+to the equations related to the nodes, regardless of the order, with
+opposite magnitudes.
+
 \subsubsection{Output}
 The format is:
 \begin{itemize}
     \item the label of the element
     \item the label of the abstract node the force is applied to
+	(the first node in case of \texttt{abstract internal})
     \item the value of the force
 \end{itemize}
 
@@ -562,6 +575,17 @@ The format is:
     <force_arglist> ::= <node> , 
                         (Vec3) <relative_direction> ,
                         (Vec3) <relative_arm> ,
+                        (drive_caller) <force_magnitude>
+\end{verbatim}
+
+\subsection{Structural internal force}
+\begin{verbatim}
+    <force_type> ::= { conservative | follower } internal
+    <force_arglist> ::= <node1> , 
+                        (Vec3) <relative_direction> ,
+                        (Vec3) <relative_arm1> ,
+                        <node2> ,
+                        (Vec3) <relative_arm2> ,
                         (drive_caller) <force_magnitude>
 \end{verbatim}
 
@@ -582,6 +606,15 @@ The format is:
     <force_type> ::= { conservative | follower } 
     <force_arglist> ::= <node> ,
                         (Vec3) <relative_direction> ,  
+                        (drive_caller) <couple_magnitude>
+\end{verbatim}
+
+\subsection{Structural internal couple}
+\begin{verbatim}
+    <force_type> ::= { conservative | follower } internal
+    <force_arglist> ::= <node1> ,
+                        (Vec3) <relative_direction> ,  
+                        <node2> ,
                         (drive_caller) <couple_magnitude>
 \end{verbatim}
 i.e.\ the arm is not required. 
