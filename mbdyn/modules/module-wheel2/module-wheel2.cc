@@ -750,7 +750,14 @@ get_connected_nodes(const LoadableElem* pEl,
 
 static struct
 LoadableCalls lc = {
+	LOADABLE_VERSION_SET(1, 0, 0),
+
 	"wheel2",
+	"1.1",
+	"Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano",
+	"tire force model for landing gear analysis\n"
+		"\tcontact Stefania Gualdi <gualdi@aero.polimi.it>",
+
 	read, /* */
 	NULL /* i_get_num_dof */ ,
 	NULL /* set_dof */ ,

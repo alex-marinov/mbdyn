@@ -28,6 +28,7 @@ MBDyn 1.2-Engineering
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
 		  is preserved; if run with -PP warnings are issued
+		- changed module API (callback structure holds info fields)
 	Bug fixes:
 		- do not output RelativeFrame dummy struct nodes in ADAMS
 		  res format

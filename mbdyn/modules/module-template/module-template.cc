@@ -216,6 +216,14 @@ update(
 	DEBUGCOUTFNAME("update");
 }
 
+static void 
+after_convergence(const LoadableElem* /* pEl */ ,
+		const VectorHandler& /* X */ ,
+		const VectorHandler& /* XP */ )
+{
+	DEBUGCOUTFNAME("after_convergence");
+}
+
 static unsigned int
 i_get_initial_num_dof(const LoadableElem* pEl)
 {
@@ -361,7 +369,13 @@ get_connected_nodes(const LoadableElem* pEl,
 
 static struct
 LoadableCalls lc = {
+	LOADABLE_VERSION_SET(1, 0, 0),
+
 	"template",
+	"1.1",
+	"Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano",
+	"template module; use it as a basis for new modules",
+
 	read,
 	i_get_num_dof,
 	set_dof,
@@ -374,7 +388,7 @@ LoadableCalls lc = {
 	before_predict,
 	after_predict,
 	update,
-	NULL, /* after_convergence */
+	after_convergence,
 	i_get_initial_num_dof,
 	initial_work_space_dim,
 	initial_ass_jac,

@@ -31,6 +31,10 @@
 #ifndef LOADABLE_H
 #define LOADABLE_H
 
+#define LOADABLE_VERSION_SET(maj, min, fix)	\
+	(((maj) << 24) | ((min) << 16) | (fix))
+#define LOADABLE_VERSION	LOADABLE_VERSION_SET(1, 0, 0)
+
 #ifdef HAVE_LTDL_H
 #include <ltdl.h>
 #elif defined(HAVE_DLFCN_H)
@@ -168,8 +172,33 @@ typedef void (* p_destroy)(LoadableElem*);
  * Se un puntatore e' vuoto, viene riempito con il metodo di default.
  */
 struct LoadableCalls {
-	const char *			module_name;
+	/*
+	 * This is mandatory; use the macro
+
+	   LOADABLE_VERSION_SET(major, minor,fix)
+
+	 * to initialize to the API version your module is using.
+	 */
+	unsigned long			loadable_version;
+
+	/*
+	 * These are optional; they are printed at module loading
+	 * for informational purposes.
+	 */
+	const char *			name;
+	const char *			version;
+	const char *			vendor;
+	const char *			description;
+
+	/*
+	 * This is mandatory; use it to initialize and read any data
+	 * from the input stream.
+	 */
 	p_read				read;
+
+	/*
+	 * These are optional; fill-in as required by your module.
+	 */
 	p_i_get_num_dof			i_get_num_dof;
 	p_set_dof 			set_dof;
 	p_output 			output;

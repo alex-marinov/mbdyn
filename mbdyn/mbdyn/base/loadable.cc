@@ -37,6 +37,8 @@
 #include <loadable.h>
 #include <dataman.h>
 
+#define LOADABLE_VERSION	0x01000000U
+
 /* funzioni di default */
 static unsigned int 
 __i_get_num_dof(const LoadableElem* /* pEl */ )
@@ -318,6 +320,13 @@ needsAirProperties(false)
    	}
 
 	calls = *tmpcalls;
+
+	if (calls->loadable_version != LOADABLE_VERSION) {
+		std::cerr << "Loadable(" << uLabel
+			<< "): incompatible version; need " << LOADABLE_VERSION
+			<< ", got " << calls->loadable_version << std::endl;
+		THROW(ErrGeneric());
+	}
    
 	if (calls->read == NULL) {
 		std::cerr << "Loadable(" << uLabel
@@ -326,9 +335,27 @@ needsAirProperties(false)
 		THROW(ErrGeneric());
 	}
 
-	if (calls->module_name == NULL) {
-		calls->module_name = module_name;
+	if (calls->name == NULL) {
+		calls->name = module_name;
 	}
+
+	if (calls->version == NULL) {
+		calls->version = "(undefined)";
+	}
+
+	if (calls->vendor == NULL) {
+		calls->vendor = "(undefined)";
+	}
+
+	if (calls->description == NULL) {
+		calls->description = "";
+	}
+
+	silent_cout("Loadable(" << uLabel << "): " << calls->name
+			<< " version " << calls->version << std::endl
+			<< "\tvendor: " << calls->vendor << std::endl
+			<< "\tdescription: " << calls->description
+			<< std::endl);
 
 	/*
 	 * Mette i default ove servono

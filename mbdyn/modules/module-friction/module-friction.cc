@@ -379,7 +379,13 @@ get_connected_nodes(const LoadableElem* pEl,
 
 static struct
 LoadableCalls lc = {
+	LOADABLE_VERSION_SET(1, 0, 0),
+
 	"friction",
+	"1.1",
+	"Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano",
+	"eXperimental friction model",
+
 	read, /* */
 	NULL /* i_get_num_dof */ ,
 	NULL /* set_dof */ ,
