@@ -47,7 +47,9 @@ pNode(pN),
 Time(pDC),
 dSamplePeriod(dSP)
 {
-	dSampleTime = Time.dGet() + dSamplePeriod;
+	ASSERT(pN != NULL);
+	ASSERT(pDC != NULL);
+	ASSERT(dSP > 0.);
 }
 
 SampleAndHold::~SampleAndHold(void)
@@ -67,6 +69,7 @@ void
 SampleAndHold::SetValue(VectorHandler& /* X */,
 		VectorHandler& /* XP */ ) const
 {
+	dSampleTime = Time.dGet() + dSamplePeriod;
 	dX = pNode->dGetX();
 }
 
@@ -77,8 +80,8 @@ SampleAndHold::Update(const VectorHandler& /* X */,
 {
 	doublereal dT = Time.dGet();
 	if (dT >= dSampleTime) {
-		dSampleTime += dSamplePeriod;
 		dX = pNode->dGetX();
+		dSampleTime += dSamplePeriod;
 	}
 }
 

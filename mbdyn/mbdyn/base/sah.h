@@ -41,7 +41,7 @@ protected:
 	const ScalarNode	*pNode;
 	const DriveOwner	Time;
 	const doublereal	dSamplePeriod;
-	doublereal		dSampleTime;
+	mutable doublereal	dSampleTime;
  
 public:
 	SampleAndHold(unsigned int uL,
