@@ -243,8 +243,10 @@ pNLS(NULL)
    	ReadData(HP);
 
 #if USE_RTAI
-	/* FIXME: if using RTAI, clear out output */
-	iOutputFlags &= ~OUTPUT_MASK;
+	if (bRT) {
+		/* FIXME: if using RTAI, clear out output */
+		iOutputFlags &= ~OUTPUT_MASK;
+	}
 #endif /* USE_RTAI */
 }
 
@@ -1150,6 +1152,19 @@ IfFirstStepIsToBeRepeated:
 				*(qX[1]), *(qXPrime[1]));
 	
 		Flip();
+
+#ifdef USE_RTAI
+		/*
+		 * TODO: mettere qui l'attesa in caso di real-time
+		 */
+		if (bRT) {
+			if (bRTWaitPeriod) {
+				mbdyn_rt_task_wait_period();
+			} else {
+				/* FIXME: semaphore must be configurable */
+			}
+		}
+#endif /* USE_RTAI */
 
 IfStepIsToBeRepeated:
 		try {   	
@@ -2529,13 +2544,15 @@ Solver::ReadData(MBDynParser& HP)
 	 }
 
 	 if (HP.IsKeyWord("time" "step")) {
-	    lRTPeriod = HP.GetInt();
+	    long long p = HP.GetInt();
 
-	    if (lRTPeriod <= 0) {
-               std::cerr << "illegal time step " << lRTPeriod << " at line "
+	    if (p <= 0) {
+               std::cerr << "illegal time step " << p << " at line "
 		 << HP.GetLineData() << std::endl;
 	       THROW(ErrGeneric());
 	    }
+
+	    lRTPeriod = mbdyn_nano2count(p);
 	 } else {
 	    std::cerr << "need a time step for real time at line "
 	      << HP.GetLineData() << std::endl;
@@ -2546,6 +2563,7 @@ Solver::ReadData(MBDynParser& HP)
          std::cerr << "need to configure --with-rtai to use realtime" << std::endl;
 	 THROW(ErrGeneric());
 #endif /* !USE_RTAI */
+	 break;
        }
 
        case RESERVESTACK: {
