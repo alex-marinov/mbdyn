@@ -772,6 +772,16 @@ to the node or fixed in the global system during the initial assembly.
     <card> ::= title : " <simulation_title> " ;
 \end{verbatim}
 
+\subsubsection{Print}
+\begin{verbatim}
+    <card> ::= print : { dof stats | dof description | none } [ , ... ] ;
+\end{verbatim}
+The \kw{dof stats} keyword enables the printing of all potential
+dof owner entities at initial assembly and at regular assembly,
+so that the index of all variables can be easily identified.
+The \kw{dof description} adds extra variable description.
+The \kw{none} disables all dof statistics printing (the default).
+
 \subsubsection{Make Restart File}
 \begin{verbatim}
     <card> ::= make restart file
