@@ -83,10 +83,7 @@ Body::AssJac(VariableSubMatrixHandler& WorkMat,
     FullSubMatrixHandler& WM = WorkMat.SetFull();
    
     /* Dimensiona e resetta la matrice di lavoro */
-    integer iNumRows = 0;
-    integer iNumCols = 0;
-    this->WorkSpaceDim(&iNumRows, &iNumCols);
-    WM.ResizeInit(iNumRows, iNumCols, 0.);
+    WM.ResizeInit(6, 6, 0.);
       
     /* Setta gli indici della matrice - le incognite sono ordinate come:
      *   - posizione (3)
@@ -97,12 +94,10 @@ Body::AssJac(VariableSubMatrixHandler& WorkMat,
      * ritorna il valore del primo indice -1, in modo che l'indice i-esimo
      * e' dato da iGetFirstPositionIndex()+i */
     integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
     for (integer iCnt = 1; iCnt <= 6; iCnt++) {
         WM.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-        WM.fPutRowIndex(6+iCnt, iFirstMomentumIndex+iCnt);
         WM.fPutColIndex(iCnt, iFirstPositionIndex+iCnt);   
-    }   
+    }
       
     AssMat_(WM, WM, dCoef, XCurr, XPrimeCurr);
     return WorkMat;
@@ -122,11 +117,8 @@ Body::AssEig(VariableSubMatrixHandler& WorkMatA,
     FullSubMatrixHandler& WMB = WorkMatB.SetFull();
    
     /* Dimensiona e resetta la matrice di lavoro */
-    integer iNumRows = 0;
-    integer iNumCols = 0;
-    this->WorkSpaceDim(&iNumRows, &iNumCols);
-    WMA.ResizeInit(iNumRows, iNumCols, 0.);
-    WMB.ResizeInit(iNumRows, iNumCols, 0.);
+    WMA.ResizeInit(6, 6, 0.);
+    WMB.ResizeInit(6, 6, 0.);
       
     /* Setta gli indici della matrice - le incognite sono ordinate come:
      *   - posizione (3)
@@ -137,14 +129,11 @@ Body::AssEig(VariableSubMatrixHandler& WorkMatA,
      * ritorna il valore del primo indice -1, in modo che l'indice i-esimo
      * e' dato da iGetFirstPositionIndex()+i */
     integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
     for (integer iCnt = 1; iCnt <= 6; iCnt++) {
         WMA.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-        WMA.fPutRowIndex(6+iCnt, iFirstMomentumIndex+iCnt);
         WMA.fPutColIndex(iCnt, iFirstPositionIndex+iCnt);
       
         WMB.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-        WMB.fPutRowIndex(6+iCnt, iFirstMomentumIndex+iCnt);
         WMB.fPutColIndex(iCnt, iFirstPositionIndex+iCnt);
     }   
    
@@ -168,8 +157,6 @@ Body::AssMat_(FullSubMatrixHandler& WMA,
     J = pNode->GetRRef()*(J0*(pNode->GetRRef()).Transpose());
 
     Mat3x3 SWedge(S);			/* S /\ */
-    Mat3x3 VWedgeSWedge(V, S);		/* V /\ S /\ */
-    Mat3x3 SWedgeWWedge(S.Cross(W));	/* ( S /\ W ) /\ */
 
     /* 
      * momentum: 
@@ -181,7 +168,7 @@ Body::AssMat_(FullSubMatrixHandler& WMA,
     WMB.fPutCoef(3, 3, dMass);
       
     WMB.Sub(1, 4, SWedge);
-    WMA.Add(1, 4, SWedgeWWedge*dCoef);
+    WMA.Add(1, 4, Mat3x3(S.Cross(W*dCoef)));
    
     /* 
      * momenta moment: 
@@ -191,17 +178,7 @@ Body::AssMat_(FullSubMatrixHandler& WMA,
     WMB.Add(4, 1, SWedge); 
 
     WMB.Add(4, 4, J);
-    WMA.Add(4, 4, (VWedgeSWedge-Mat3x3(J*W))*dCoef);
-      
-    /* 
-     * moment equilibrium:
-     *
-     * ( S /\ W ) /\ DeltaV - V /\ S /\ DeltagP + V /\ ( S /\ W ) /\ Deltag
-     */
-    WMB.Add(10, 1, SWedgeWWedge);
-
-    WMB.Sub(10, 4, VWedgeSWedge);
-    WMA.Add(10, 4, Mat3x3(V*dCoef)*SWedgeWWedge);
+    WMA.Add(4, 4, Mat3x3(V, S*dCoef)-Mat3x3(J*(W*dCoef)));
 }
 
 
@@ -213,14 +190,22 @@ Body::AssRes(SubVectorHandler& WorkVec,
 {
     DEBUGCOUTFNAME("Body::AssRes");
 
-    integer iNumRows;
-    integer iNumCols;
-    this->WorkSpaceDim(&iNumRows, &iNumCols);
+    /* Se e' definita l'accelerazione di gravita',
+     * la aggiunge (solo al residuo) */
+    Vec3 GravityAcceleration(0.);
+    flag g = GravityOwner::fGetAcceleration(pNode->GetXCurr(), 
+		    GravityAcceleration);
+
+    integer iNumRows = 6;
+    if (g) {
+	    iNumRows = 12;
+    }
+
     WorkVec.Resize(iNumRows);
     WorkVec.Reset(0.);
-   
+
     integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-    for (integer iCnt = 1; iCnt <= 12; iCnt++) {
+    for (integer iCnt = 1; iCnt <= iNumRows; iCnt++) {
         WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
     }
       
@@ -232,26 +217,17 @@ Body::AssRes(SubVectorHandler& WorkVec,
     Vec3 STmp = R*S0;
     Mat3x3 JTmp = R*(J0*R.Transpose());
 
-    Vec3 SWedgeW(STmp.Cross(W));
-   
     /* Quantita' di moto: R[1] = Q - M V + S/\W */
-    WorkVec.Add(1, SWedgeW-V*dMass);
+    WorkVec.Add(1, STmp.Cross(W)-V*dMass);
    
     /* Momento della quantita' di moto: R[2] = G - S/\V -J W */
-    WorkVec.Add(4, V.Cross(STmp)-(JTmp*W));
-   
-    /* Derivata del momento della quantita' di moto: R[4] = - GP + V/\(S/\W) */
-    WorkVec.Add(10, V.Cross(SWedgeW));
-      
-    /* Se e' definita l'accelerazione di gravita',
-     * la aggiunge (solo al residuo) */
-    Vec3 GravityAcceleration(0.);
-    if (GravityOwner::fGetAcceleration(pNode->GetXCurr(), 
-                                       GravityAcceleration)) {
+    WorkVec.Add(4, V.Cross(STmp)-JTmp*W);
+  
+    if (g) {
         WorkVec.Add(7, GravityAcceleration*dMass);
         WorkVec.Add(10, STmp.Cross(GravityAcceleration));
-    }   
-  
+    }
+ 
     return WorkVec;
 }
 

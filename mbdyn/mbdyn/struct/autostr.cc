@@ -82,7 +82,7 @@ AutomaticStructElem::AssJac(VariableSubMatrixHandler& WorkMat,
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    
    /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(12, 0, 0.);
+   WM.ResizeInit(24, 0, 0.);
       
    /* Setta gli indici della matrice - le incognite sono ordinate come:
     *   - posizione (3)
@@ -101,6 +101,10 @@ AutomaticStructElem::AssJac(VariableSubMatrixHandler& WorkMat,
       WM.fPutItem(6+iCnt, iFirstMomentumIndex+iCnt,
 		  iFirstMomentumIndex+iCnt, 1.);    
    }
+
+   WM.fPutCross(13, iFirstMomentumIndex+3, iFirstMomentumIndex, 
+		   pNode->GetVCurr()*dCoef);
+   WM.fPutCross(19, iFirstMomentumIndex+3, iFirstPositionIndex, -Q);
    
    return WorkMat;
 }
@@ -161,17 +165,27 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
       WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
    }   
    
-   /* Recupera i suoi dati */
+   /* Collects data */
    Q = Vec3(XCurr, iFirstMomentumIndex+1);
    G = Vec3(XCurr, iFirstMomentumIndex+4);
    QP = Vec3(XPrimeCurr, iFirstMomentumIndex+1);
    GP = Vec3(XPrimeCurr, iFirstMomentumIndex+4);
    
-   /* Quantita' di moto */
+   /*
+    * Momentum and momenta moment (about node):
+    *
+    * Q = m V + W /\ S
+    *
+    * G = S /\ V + J W
+    *
+    * Qp = F
+    *
+    * Gp + V /\ Q = M
+    */
    WorkVec.Add(1, Q);
    WorkVec.Add(4, G);
-   WorkVec.Add(7, -QP);
-   WorkVec.Add(10, -GP);   
+   WorkVec.Sub(7, QP);
+   WorkVec.Sub(10, GP+pNode->GetVCurr().Cross(Q));   
    
    return WorkVec;
 }
