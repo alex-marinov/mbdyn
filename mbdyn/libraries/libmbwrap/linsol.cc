@@ -143,8 +143,10 @@ LinSol::SolverType LinSol::defaultSolver =
 
 LinSol::LinSol(void)
 : CurrSolver(LinSol::defaultSolver),
+solverFlags(0),
 nThreads(1),
 iWorkSpaceSize(0),
+blockSize(0),
 dPivotFactor(-1.)
 {
 	NO_OP;
@@ -608,8 +610,8 @@ SolutionManager *const
 LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 {
 	SolutionManager *pCurrSM = NULL;
-	unsigned type = (solverFlags & LinSol::SOLVER_FLAGS_TYPE_MASK);
-	bool mt = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT);
+	const unsigned type = (solverFlags & LinSol::SOLVER_FLAGS_TYPE_MASK);
+	const bool mt = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT);
 
 	ASSERT((::solver[CurrSolver].s_flags & solverFlags) == solverFlags);
 
