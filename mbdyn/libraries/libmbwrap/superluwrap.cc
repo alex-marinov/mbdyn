@@ -138,29 +138,23 @@ SuperLUSolver::Factor(void)
 	int		panel_size = sp_ienv(1),
 			relax = sp_ienv(2);
 
-	set_default_options(&sld->options);
-	sld->options.DiagPivotThresh = dPivotFactor;
-
 	if (bRegenerateMatrix) {
-		//colperm_t permc_spec = MMD_AT_PLUS_A;
-		colperm_t permc_spec;
-		switch (permutation) {
-		case SUPERLU_MMDATA:
-			permc_spec = MMD_ATA;
-			break;
-		case SUPERLU_COLAMD: 
-		default:
-			permc_spec = COLAMD;
-			break;
-		}
-
-			 
-			
-		sld->options.ColPerm = permc_spec;
-		
 		/* NOTE: we could use sld->A.Store == NULL */
 		if (bFirstSol) {
+			set_default_options(&sld->options);
+			sld->options.DiagPivotThresh = dPivotFactor;
+			//colperm_t permc_spec = MMD_AT_PLUS_A;
+			switch (permutation) {
+			case SUPERLU_MMDATA:
+				sld->options.ColPerm = MMD_ATA;
+				break;
+			case SUPERLU_COLAMD: 
+			default:
+				sld->options.ColPerm = COLAMD;
+				break;
+			}
 			sld->options.Fact = DOFACT;
+			sld->options.PrintStat = NO;
 			ASSERT(Astore == NULL);
 
 			/* ---------------------------------------------------
@@ -184,7 +178,7 @@ SuperLUSolver::Factor(void)
 			bFirstSol = false;	/* never change this again */
 
 		} else {
-			sld->options.Fact = SamePattern;
+			sld->options.Fact = DOFACT;
 			NCformat *Astore = (NCformat *) sld->A.Store;
 
 			ASSERT(Astore);
@@ -195,60 +189,19 @@ SuperLUSolver::Factor(void)
 			Astore->colptr = App;
 		}
 
-		/* --------------------------------------------------
-		 * Get column permutation vector perm_c[], according
-		 * 	to permc_spec:
-		 * permc_spec = 0: use the natural ordering 
-		 * permc_spec = 1: use minimum degree ordering
-		 * 	on structure of A'*A
-		 * permc_spec = 2: use minimum degree ordering
-		 * 	on structure of A'+A
-		 * !!! permc_spec = 3: use approximate minimum
-		 * 	degree column order !!!
-		 * --------------------------------------------------*/
-
-		/*
-		 * According to Umfpack's use of AMD:
-		 *
-		 * symmetric matrix:
-		 *	AMD: A^T + A permutation
-		 *
-		 * Non symmetric matrix:
-		 *	COLAMD: A^T * A permutation
-		 *
-		 * so we use permc_spec = 1
-		 */
-
 		int	*pc = &(sld->perm_c[0]);
-		get_perm_c(permc_spec, &sld->A, pc);
+		get_perm_c(sld->options.ColPerm, &sld->A, pc);
 
-	
 		bRegenerateMatrix = false;
+	} else {
+		sld->options.Fact = SamePattern;
 	}
+
 
 	int	*pr = &(sld->perm_r[0]),
 		*pc = &(sld->perm_c[0]),
 		*et = &(sld->etree[0]);
 
-	/* ------------------------------------------------------------
-	 * Initialize the option structure pdgstrf_options using the
-	 * user-input parameters;
-	 * Apply perm_c to the columns of original A to form AC.
-	 * ------------------------------------------------------------*/
-	
-	/* dgstrf_init(nThreads, refact, panel_size, relax,
-			u, usepr, drop_tol, pc, pr,
-			work, lwork, &sld->A, &sld->AC,
-			&sld->options, &sld->Gstat);
-	*/
-
-	/* --------------------------------------------------------------
-	 * Initializes the parallel data structures for pdgstrf_thread().
-	 * --------------------------------------------------------------*/
-/*	sld->pdgstrf_threadarg = pdgstrf_thread_init(&sld->AC,
-			&sld->L, &sld->U, &sld->pdgstrf_options,
-			&sld->pxgstrf_shared, &sld->Gstat, &info);
-*/
 
 	sp_preorder(&sld->options, &sld->A, pc, et, &sld->AC);
 	dgstrf(&sld->options, &sld->AC, drop_tol, relax, panel_size, et, work, lwork, pc, pr, 
