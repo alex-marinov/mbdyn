@@ -378,8 +378,8 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
       OutData[out].pof->open(_sPutExt((char*)(psExt[out])));
 
       if(!(*OutData[out].pof)) {
-	 silent_cerr("Unable to open file '" << _sPutExt((char*)(psExt[out]))
-	   << '\'' << std::endl);
+	 silent_cerr("Unable to open file \"" << _sPutExt((char*)(psExt[out]))
+	   << "\"" << std::endl);
 	 throw ErrFile();
       }
 

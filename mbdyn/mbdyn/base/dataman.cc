@@ -112,7 +112,7 @@ dEpsilon(1.),
 #if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 loadableElemInitialized(false),
 #endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
-bPrintDofStats(true),		/* Morandini, 2003-11-17 */
+uPrintFlags(PRINT_NONE),		/* Morandini, 2003-11-17 */
 sSimulationTitle(NULL),
 RestartEvery(NEVER),
 iRestartIterations(0),

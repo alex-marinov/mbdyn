@@ -1355,11 +1355,16 @@ ClampJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
 	integer iIndex = iGetFirstIndex();
 
 	if (i >= 0) {
-		silent_cerr("DescribeDof(" << i << ") not implemented yet" << std::endl);
+		silent_cerr("ClampJoint(" << GetLabel() << "): "
+			"DescribeDof(" << i << ") "
+			"not implemented yet" << std::endl);
 		throw ErrGeneric();
 	}
 
-	out << prefix << iIndex + 1 << "->" << iIndex + 6 << ": reactions [Fx,Fy,Fz,mx,my,mz]" << std::endl;
+	out << prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+		"reaction forces [Fx,Fy,Fz]" << std::endl
+		<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
+		"reaction couples [mx,my,mz]" << std::endl;
 
 	return out;
 }

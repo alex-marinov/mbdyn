@@ -143,6 +143,25 @@ StructNode::GetNodeType(void) const
    return Node::STRUCTURAL;
 }
 
+std::ostream&
+StructNode::DescribeDof(std::ostream& out, char *prefix, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	if (i >= 0) {
+		silent_cerr("StructNode(" << GetLabel() << "): "
+			"DescribeDof(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	out << prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+		"position [px,py,pz]" << std::endl
+		<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
+		"orientation parameters [gx,gy,gz]" << std::endl;
+
+	return out;
+}
 
 /* Contributo del nodo strutturale al file di restart */
 std::ostream&
@@ -853,6 +872,20 @@ DynamicStructNode::GetStructNodeType(void) const
    return StructNode::DYNAMIC;
 }
 
+std::ostream&
+DynamicStructNode::DescribeDof(std::ostream& out, char *prefix, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	StructNode::DescribeDof(out, prefix, i);
+
+	out << prefix << iIndex + 7 << "->" << iIndex + 9 << ": "
+		"momentum [Bx,By,Bz]" << std::endl
+		<< prefix << iIndex + 10 << "->" << iIndex + 12 << ": "
+		"momenta moment [Gx,Gy,Gz]" << std::endl;
+
+	return out;
+}
 
 /* Usato dalle forze astratte, dai bulk ecc., per assemblare le forze
  * al posto giusto */
@@ -893,6 +926,10 @@ DynamicStructNode::AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP)
 {
 	if (bComputeAccelerations) {
+		/* FIXME: pAutoStr is 0 in ModalNode */
+		if (pAutoStr == 0) {
+			return;
+		}
 		pAutoStr->ComputeAccelerations(XPPCurr, WPCurr);
 	}
 }
@@ -1083,7 +1120,8 @@ ModalNode::ModalNode(unsigned int uL,
 : DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0,
 		dPosStiff, dVelStiff, fOmRot, fOut)
 {
-   NO_OP;
+	/* XPP and WP are unknowns in ModalNode */
+	bComputeAccelerations = false;
 }
 
 
@@ -1110,6 +1148,20 @@ ModalNode::iGetFirstRowIndex(void) const
    return iGetFirstMomentumIndex();
 }
 
+std::ostream&
+ModalNode::DescribeDof(std::ostream& out, char *prefix, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	StructNode::DescribeDof(out, prefix, i);
+
+	out << prefix << iIndex + 7 << "->" << iIndex + 9 << ": "
+		"velocity [vx,vy,vz]" << std::endl
+		<< prefix << iIndex + 10 << "->" << iIndex + 12 << ": "
+		"angular velocity [wx,wy,wz]" << std::endl;
+
+	return out;
+}
 
 /* Aggiorna dati in base alla soluzione */
 void

@@ -290,16 +290,25 @@ Modal::DescribeDof(std::ostream& out, char *prefix, int i) const
 {
 	integer iModalIndex = iGetFirstIndex();
 
-	/* FIXME: allow to describe the i-th Dof */
+	if (i >= 0) {
+		silent_cerr("Modal(" << GetLabel() << "): "
+			"DescribeDof(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
 
 	out 
-		<< prefix << iModalIndex + 1 << "->" << iModalIndex + NModes << ": modal displacements" << std::endl
-		<< prefix << iModalIndex + NModes + 1 << "->" << iModalIndex + 2*NModes << ": modal velocities" << std::endl;
+		<< prefix << iModalIndex + 1 << "->" << iModalIndex + NModes
+		<< ": modal displacements [q(1.." << NModes << ")]" << std::endl
+		<< prefix << iModalIndex + NModes + 1 << "->" << iModalIndex + 2*NModes
+		<< ": modal velocities [qP(1.." << NModes << ")]" << std::endl;
 	iModalIndex += 2*NModes;
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++, iModalIndex += 6) {
 		out
-			<< prefix << iModalIndex + 1 << "->" << iModalIndex + 6 << ": "
-				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") reactions [Fx,Fy,Fz,mx,my,mz]" << std::endl;
+			<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
+				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") reaction forces [Fx,Fy,Fz]" << std::endl
+			<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
+				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") reaction couples [mx,my,mz]" << std::endl;
 	}
 
 	return out;

@@ -73,11 +73,16 @@ PlaneHingeJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
 	integer iIndex = iGetFirstIndex();
 
 	if (i >= 0) {
-		silent_cerr("DescribeDof(" << i << ") not implemented yet" << std::endl);
+		silent_cerr("PlaneHingeJoint(" << GetLabel() << "): "
+			"DescribeDof(" << i << ") "
+			"not implemented yet" << std::endl);
 		throw ErrGeneric();
 	}
 
-	out << prefix << iIndex + 1 << "->" << iIndex + NumSelfDof << ": reactions [Fx,Fy,Fz,mx,my]" << std::endl;
+	out << prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+		"reaction forces [Fx,Fy,Fz]" << std::endl
+		<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": "
+		"reaction couples [mx,my]" << std::endl;
 	if (fc) {
 		integer iFCDofs = fc->iGetNumDof();
 		if (iFCDofs > 0) {
@@ -1029,6 +1034,24 @@ PlaneRotationJoint::~PlaneRotationJoint(void)
 };
 
 
+std::ostream&
+PlaneRotationJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	if (i >= 0) {
+		silent_cerr("PlaneRotationJoint(" << GetLabel() << "): "
+			"DescribeDof(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	out << prefix << iIndex + 1 << "->" << iIndex + 2 << ": "
+		"reaction couples [mx,my]" << std::endl;
+
+	return out;
+}
+
 void
 PlaneRotationJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
@@ -1686,6 +1709,37 @@ AxialRotationJoint::~AxialRotationJoint(void)
 	NO_OP;
 };
 
+
+std::ostream&
+AxialRotationJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	if (i >= 0) {
+		silent_cerr("AxialRotationJoint(" << GetLabel() << "): "
+			"DescribeDof(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	out << prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+		"reaction forces [Fx,Fy,Fz]" << std::endl
+		<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
+		"reaction couples [mx,my,mz]" << std::endl;
+	if (fc) {
+		integer iFCDofs = fc->iGetNumDof();
+		if (iFCDofs > 0) {
+			out << prefix << iIndex + NumSelfDof + 1;
+			if (iFCDofs > 1) {
+				out << "->" << iIndex + NumSelfDof + iFCDofs;
+			}
+			out << ": friction dof(s)" << std::endl
+				<< "        ", fc->DescribeDof(out, prefix, i);
+		}
+	}
+
+	return out;
+}
 
 void
 AxialRotationJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
@@ -2633,6 +2687,26 @@ PlanePinJoint::~PlanePinJoint(void)
    NO_OP;
 };
 
+
+std::ostream&
+PlanePinJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	if (i >= 0) {
+		silent_cerr("PlanePinJoint(" << GetLabel() << "): "
+			"DescribeDof(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	out << prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+		"reaction forces [Fx,Fy,Fz]" << std::endl
+		<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": "
+		"reaction couples [mx,my]" << std::endl;
+
+	return out;
+}
 
 void
 PlanePinJoint::SetValue(VectorHandler& X, VectorHandler& XP) const

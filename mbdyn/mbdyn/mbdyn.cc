@@ -251,6 +251,7 @@ Solver* RunMBDyn(MBDynParser&, const char* const, const char* const, bool);
 static void SendMessage(const char* const, const char* const, time_t, time_t);
 #endif /* MBDYN_X_MAIL_MESSAGE */
 
+#ifdef USE_MPI
 static int
 parse_args(int argc, char *argv[], bool &using_mpi,
 		int &parallel_fSilent, int &parallel_fPedantic)
@@ -280,7 +281,7 @@ parse_args(int argc, char *argv[], bool &using_mpi,
 
 	return 0;
 }
-
+#endif /* USE_MPI */
 
 int
 main(int argc, char* argv[])
@@ -446,8 +447,8 @@ main(int argc, char* argv[])
 	        		FileStreamIn.open(sInputFileName);
 	        		if (!FileStreamIn) {
 		    			silent_cerr(std::endl 
-		        			<< "Unable to open file '"
-						<< sInputFileName << '\'');
+		        			<< "Unable to open file \""
+						<< sInputFileName << "\"");
 #ifdef USE_MPI
 					if (using_mpi) {
 						silent_cerr(" on "
@@ -682,8 +683,9 @@ main(int argc, char* argv[])
 
         	/* risolve l'input */
         	if (CurrInputSource == FILE_UNKNOWN) {
-	    		if (argv[currarg] != NULL) {
+	    		if (currarg < argc) {
 	        		CurrInputSource = FILE_ARGS;
+
 	    		} else {
 	        		/*
 				 * se non e' un argomento prende
@@ -707,22 +709,21 @@ main(int argc, char* argv[])
 				last = 1;
 
 			} else if (CurrInputSource == FILE_OPT) {
-				silent_cout("reading from file '" 
+				silent_cout("reading from file \"" 
 						<< sInputFileName 
-						<< "'" << std::endl);
+						<< "\"" << std::endl);
 	        		last = 1;
 
 	    		} else if (CurrInputSource == FILE_ARGS) {
 	        		sInputFileName = argv[currarg];
-				silent_cout("reading from file '"
+				silent_cout("reading from file \""
 						<< sInputFileName
-						<< "'" << std::endl);
+						<< "\"" << std::endl);
 				
 	        		/* incrementa il numero di argomento */
-	        		currarg++; 
-	        		if (argv[currarg] == NULL) {
-	            			last = 1;
-	        		}
+	        		if (++currarg == argc) {
+					last = 1; 
+				}
 	    
 #ifdef USE_ADAMS_PP
 	        		/* ADAMS extension */
@@ -746,9 +747,9 @@ main(int argc, char* argv[])
 	            			if (!FileStreamIn) {
 		        			silent_cerr(std::endl 
 			    				<< "Unable to open"
-							" file '"
+							" file \""
 							<< sInputFileName 
-			    				<< "'; aborting ..."
+			    				<< "\"; aborting ..."
 							<< std::endl);
 		        			throw ErrGeneric();
 	            			}
@@ -807,7 +808,7 @@ main(int argc, char* argv[])
 	        		SAFEDELETE(pSolv);
 	    		}
 	 
-	    		if (fTable == 0 || argv[currarg] == NULL) {
+	    		if (fTable == 0 || currarg == argc) {
 	        		if (pMP != NULL) {
 	            			SAFEDELETE(pMP);
 	            			pMP = NULL;

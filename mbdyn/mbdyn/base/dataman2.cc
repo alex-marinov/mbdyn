@@ -196,7 +196,7 @@ DataManager::DofOwnerInit(void)
 #ifdef DEBUG
 			DEBUG_LEVEL_MATCH(MYDEBUG_INIT|MYDEBUG_ASSEMBLY) ||
 #endif /* DEBUG */
-			(!silent_output && bPrintDofStats);
+			(!silent_output && (uPrintFlags & PRINT_DOFSTATS));
 
 	/* NOTE: further direct use of std::cout instead
 	 * of silent_cout() macro because silent_cout is
@@ -268,7 +268,10 @@ DataManager::DofOwnerInit(void)
 					std::cout << "->" << fd + nd;
 				}
 				std::cout << std::endl;
-				(*ppNd)->DescribeDof(std::cout, "        ");
+				if (uPrintFlags & PRINT_DOFDESCRIPTION) {
+					(*ppNd)->DescribeDof(std::cout,
+							     "        ");
+				}
 			}
 #endif /* !DEBUG */
 
@@ -320,7 +323,10 @@ DataManager::DofOwnerInit(void)
 						std::cout << "->" << fd + nd;
 					}
 					std::cout << std::endl;
-					pElWD->DescribeDof(std::cout, "        ");
+					if (uPrintFlags & PRINT_DOFDESCRIPTION) {
+						pElWD->DescribeDof(std::cout,
+								"        ");
+					}
 				}
 #endif /* !DEBUG */
 
@@ -361,7 +367,7 @@ DataManager::InitialJointAssembly(void)
 #ifdef DEBUG
 			DEBUG_LEVEL_MATCH(MYDEBUG_INIT|MYDEBUG_ASSEMBLY) ||
 #endif /* DEBUG */
-			(!silent_output && bPrintDofStats);
+			(!silent_output && (uPrintFlags & PRINT_DOFSTATS));
 
 	if (pds) {
 		silent_cout("Initial assembly dof stats" << std::endl);

@@ -121,7 +121,6 @@ void DataManager::ReadControl(MBDynParser& HP,
       "solver",
 
       "print",
-      "dof" "stats",
       
       "title",
       "make" "restart" "file",
@@ -191,7 +190,6 @@ void DataManager::ReadControl(MBDynParser& HP,
       SOLVER,
 
       PRINT,
-      DOFSTATS,
       
       TITLE,
       MAKERESTARTFILE,
@@ -704,13 +702,17 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  break;
 
        case PRINT:
-	  if (HP.IsKeyWord("dof" "stats")) {
-	     bPrintDofStats = true;
+	  while (HP.IsArg()) {
+	     if (HP.IsKeyWord("dof" "stats")) {
+	        uPrintFlags |= PRINT_DOFSTATS;
 
-	  } else if (HP.IsKeyWord("none")) {
-	     bPrintDofStats = false;
+	     } else if (HP.IsKeyWord("dof" "description")) {
+	        uPrintFlags |= (PRINT_DOFSTATS | PRINT_DOFDESCRIPTION);
+
+	     } else if (HP.IsKeyWord("none")) {
+	        uPrintFlags = PRINT_NONE;
+	     }
 	  }
-
 	  break;
 
        case SOLVER:

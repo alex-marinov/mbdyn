@@ -212,6 +212,7 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
    virtual unsigned int iGetNumDof(void) const { 
       return 2;
    };
+   virtual std::ostream& DescribeDof(std::ostream& out, char *prefix = "", int i = -1) const;
    
    DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < 2);
@@ -352,6 +353,7 @@ public Joint, public DriveOwner {
        } 
        return i;
    };
+   virtual std::ostream& DescribeDof(std::ostream& out, char *prefix = "", int i = -1) const;
    
    DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < iGetNumDof());
@@ -470,6 +472,7 @@ class PlanePinJoint : virtual public Elem, public Joint {
    virtual unsigned int iGetNumDof(void) const { 
       return 5;
    };
+   virtual std::ostream& DescribeDof(std::ostream& out, char *prefix = "", int i = -1) const;
    
    virtual DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < 5);

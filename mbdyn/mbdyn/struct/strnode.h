@@ -152,6 +152,8 @@ class StructNode : public Node {
    /* Contributo del nodo strutturale al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
 
+   virtual std::ostream& DescribeDof(std::ostream& out, char *prefix = "", int i = -1) const;
+
    /* Restituisce il valore del dof iDof;
     * se differenziale, iOrder puo' essere = 1 per la derivata */
    virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
@@ -431,6 +433,7 @@ class DynamicStructNode : public StructNode {
    
    /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
    virtual inline unsigned int iGetNumDof(void) const;
+   virtual std::ostream& DescribeDof(std::ostream& out, char *prefix = "", int i = -1) const;
    
    /* Ritorna il primo indice (-1) di quantita' di moto */
    virtual inline integer iGetFirstMomentumIndex(void) const;
@@ -598,6 +601,7 @@ class ModalNode : public DynamicStructNode {
    
    /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
    virtual inline unsigned int iGetNumDof(void) const;
+   virtual std::ostream& DescribeDof(std::ostream& out, char *prefix = "", int i = -1) const;
    
    /* Ritorna il primo indice (-1) di quantita' di moto */
    virtual inline integer iGetFirstMomentumIndex(void) const;

@@ -130,7 +130,12 @@ private:
 	bool loadableElemInitialized;
 #endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
 
-	bool bPrintDofStats;
+	enum PrintFlags {
+		PRINT_NONE		= 0x00U,
+		PRINT_DOFSTATS		= 0x01U,
+		PRINT_DOFDESCRIPTION	= 0x02U
+	};
+	unsigned uPrintFlags;
 
 	/* Parametri vari */
 	char* sSimulationTitle;
