@@ -149,9 +149,9 @@ public:
 			const integer stp,
 			const integer sts) :
 	StepIntegrator(MaxIt,dT,dSolutionTol,stp,sts),
+	bEvalProdCalledFirstTime(true),
 	pXCurr(0),
-	pXPrimeCurr(0),
-	bEvalProdCalledFirstTime(true)
+	pXPrimeCurr(0)
 	{
 		NO_OP;
 	};

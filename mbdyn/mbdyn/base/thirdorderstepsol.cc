@@ -94,6 +94,7 @@ doublereal ThirdOrderIntegrator::Advance(const doublereal TStep,
 			, doublereal& SolErr
 #endif /* MBDYN_X_CONVSOL */
 			){
+	doublereal dErr = 0.;
 	if (bAdvanceCalledFirstTime) {
 		integer n = pDM->iGetNumDofs();
 		Res1.Resize(n);
@@ -112,7 +113,8 @@ doublereal ThirdOrderIntegrator::Advance(const doublereal TStep,
 	Predict();
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	pDM->AfterPredict();
-
+	
+	return dErr;
 }
 
 void ThirdOrderIntegrator::Predict(void) {
