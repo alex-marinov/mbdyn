@@ -2890,19 +2890,13 @@ ReadModal(DataManager* pDM,
 		IntFEMNodes[iStrNode-1] = uNode1;
 		IntMBNodes[iStrNode-1] = uNode2;
 
-		Vec3 offset(pInterfaceNodes[iStrNode-1]->GetXCurr());
+		Vec3 xMB(pInterfaceNodes[iStrNode-1]->GetXCurr());
 		pedantic_cout("Interface node " << iStrNode << ":" << std::endl
-				<< "        MB node " << uNode2 << " x={" << offset << "}" << std::endl);
-		Vec3 uRel(pXYZFemNodes->GetVec(iNodeCurr));
-		if (pModalNode) {
-			Vec3 u(pModalNode->GetXCurr() + pModalNode->GetRCurr()*uRel);
-			pedantic_cout("        FEM node " << uNode1 << " x={" << u << "} xrel={" << uRel << "}" << std::endl);
-			offset -= u;
-		} else {
-			pedantic_cout("        FEM node " << uNode1 << " x={" << uRel << "}" << std::endl);
-			offset -= uRel;
-		}
-		pedantic_cout("        offset={" << offset << "}" << std::endl);
+				<< "        MB node " << uNode2 << " x={" << xMB << "}" << std::endl);
+		Vec3 xFEMRel(pXYZFemNodes->GetVec(iNodeCurr));
+		Vec3 xFEM(X0 + R*xFEMRel);
+		pedantic_cout("        FEM node " << uNode1 << " x={" << xFEM << "} xrel={" << xFEMRel << "}" << std::endl);
+		pedantic_cout("        offset={" << xFEM - xMB << "}" << std::endl);
 	}  /* fine ciclo sui nodi d'interfaccia */
 
 	/* fine ciclo caricamento dati */
