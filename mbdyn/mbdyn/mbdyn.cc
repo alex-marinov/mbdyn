@@ -1040,9 +1040,23 @@ endofcycle:
         	std::cerr << "Unknown integrator; aborting ..." << std::endl;
         	THROW(ErrGeneric());   
     	}
+
+#ifdef USE_EXCEPTIONS
+	try {
+#endif /* USE_EXCEPTIONS */
    
-    	/* Runs the simulation */
-    	pSolv->Run();
+    		/* Runs the simulation */
+    		pSolv->Run();
+
+#ifdef USE_EXCEPTIONS
+	} catch (...) {
+		if (pSolv != NULL) {
+			SAFEDELETE(pSolv);
+			pSolv = NULL;
+		}
+		throw;
+	}
+#endif /* USE_EXCEPTIONS */
     
     	return pSolv;
 }
