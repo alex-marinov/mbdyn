@@ -43,15 +43,15 @@ extern "C" {
 
 #if 1
 
-struct __xchg_dummy { unsigned long a[100]; };
-#define __xg(x) ((struct __xchg_dummy *)(x))
+struct mbdyn__xchg_dummy { unsigned long a[100]; };
+#define mbdyn__xg(x) ((struct mbdyn__xchg_dummy *)(x))
 
 /* from <asm/bitops.h> */
 #define LOCK_PREFIX "lock ; "
 
 #else
 
-#define __xg(x) (x)
+#define mbdyn__xg(x) (x)
 #define LOCK_PREFIX ""
 
 #endif
@@ -59,7 +59,7 @@ struct __xchg_dummy { unsigned long a[100]; };
 #define CMPXCHG(f) \
 	__asm__ __volatile__( LOCK_PREFIX f \
 			: "=a"(prev) \
-			: "q"(newval), "m"(*__xg(valptr)), "0"(oldval) \
+			: "q"(newval), "m"(*mbdyn__xg(valptr)), "0"(oldval) \
 			: "memory")
 #define CMPXCHGB CMPXCHG("cmpxchgb %b1,%2")
 #define CMPXCHGW CMPXCHG("cmpxchgw %w1,%2")
