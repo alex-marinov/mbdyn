@@ -395,6 +395,10 @@ Forces:
 \end{eqnarray*}
 Linearization:
 
+
+
+
+
 \subsection{Revolute hinge (PlaneHingeJoint)}
 Joint data
 \begin{displaymath}
@@ -612,6 +616,102 @@ $
 	-r * (1+f_{\mathrm{c}}^2(v,z,\dot{z}))^{-3/2}*f_{\mathrm{c}}(v,z,\dot{z})
 $
 \end{itemize}
+
+
+
+
+\subsection{Drive Hinge}
+This joint forces two nodes to assume a relative orientation
+given by a rotation vector $\T{\theta}$, whose direction with respect
+to node 1 represents the rotation axis, and whose amplitude represents 
+the magnitude of the rotation.
+
+\noindent
+Definitions:
+\begin{eqnarray*}
+	\T{R}_{rel} & = & \T{R}_1^T \T{R}_2 \\
+	\T{\theta} & = & \T{R}^{-1}\plbr{\T{R}_{rel}}
+\end{eqnarray*}
+Limitations:
+\begin{displaymath}
+	\nrbr{\T{\theta}} < \pi
+\end{displaymath}
+Constraint equation 
+\begin{displaymath}
+	\T{\theta} - \T{\theta}_0 = \T{0}
+\end{displaymath}
+Couples:
+\begin{eqnarray*}
+	\T{M}_1 & = & -\T{R}_1 \T{\alpha} \\
+	\T{M}_2 & = & \T{R}_1 \T{\alpha}
+\end{eqnarray*}
+Linearization:
+\begin{displaymath}
+	\sqbr{\matr{ccc}{
+		\plbr{\T{R}_1 \T{\alpha}}\times{} & 0 & -\T{R}_1 \\
+		-\plbr{\T{R}_1 \T{\alpha}}\times{} & 0 & \T{R}_1 \\
+		-\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_1^T &
+			\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_1^T & 0
+	}}\cubr{\cvvect{
+		\delta\T{g}_1 \\
+		\delta\T{g}_2 \\
+		\delta\T{\alpha} \\
+	}} = \cubr{\cvvect{
+		\T{R}_1 \T{\alpha} \\
+		-\T{R}_1 \T{\alpha} \\
+		\T{\theta}_0 - \T{\theta}
+	}}
+\end{displaymath}
+The linearization of the reaction moments contribution 
+to the moment equilibrium equations of the nodes is straightforward.
+The linearization of the contraint equation is a bit more complicated.
+According to the definition of $\T{\theta}$, its linearization
+yields
+\begin{eqnarray*}
+	\T{\theta}_{\delta}
+		& = & \T{\Gamma}\plbr{\T{\theta}}^{-1} 
+			\llk{ax}\plbr{\delta\T{R}_{rel} \T{R}_{rel}^T} \\
+		& = & \T{\Gamma}\plbr{\T{\theta}}^{-1} \llk{ax}\plbr{
+			\delta\T{R}_1^T \T{R}_1
+			+ \T{R}_1^T \delta\T{R}_2 \T{R}_2^T \T{R}_1
+		} \\
+		& = & \T{\Gamma}\plbr{\T{\theta}}^{-1} \llk{ax}\plbr{
+			\T{R}_1^T \T{\theta}_{1\delta}\times{}^T \T{R}_1
+			+ \T{R}_1^T \T{\theta}_{2\delta}\times{} \T{R}_1
+		} \\
+		& = & \T{\Gamma}\plbr{\T{\theta}}^{-1} \llk{ax}\plbr{
+			- \T{R}_1^T \T{\theta}_{1\delta}\times{} \T{R}_1
+			+ \T{R}_1^T \T{\theta}_{2\delta}\times{} \T{R}_1
+		} \\
+		& = & \T{\Gamma}\plbr{\T{\theta}}^{-1}
+			\llk{ax} \plbr{
+				\T{R}_1^T \plbr{
+					\T{\theta}_{2\delta}
+					- \T{\theta}_{1\delta}
+				}\times \T{R}_1
+			} \\
+		& = & \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_1^T \plbr{
+			\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+		}
+\end{eqnarray*}
+according to the updated-updated simplifications,
+$\T{\theta}_{i\delta}\cong\Delta\T{g}_i$, thus resulting in
+\begin{displaymath}
+	\T{\theta}_{\delta} = \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_1^T \plbr{
+		\Delta\T{g}_2 - \Delta\T{g}_1
+	}
+\end{displaymath}
+note that $\T{\Gamma}\plbr{\T{\theta}}^{-1}$ does not simplify to $\T{I}$
+because $\T{\theta}$ in general is a finite rotation.
+
+%	\Delta\T{\theta} = \T{\theta}_0 - \T{\theta}
+
+
+
+
+
+
+
 
 \section{Deformable Constraints}
 
