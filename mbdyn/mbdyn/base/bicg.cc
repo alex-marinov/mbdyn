@@ -41,7 +41,6 @@
 #endif /* HAVE_CONFIG_H */
   
   
-  
 #include <bicg.h>  
 #ifdef USE_MPI
 #include <mbcomm.h>
@@ -51,6 +50,7 @@
 #include <dofown.h>
 #include <unistd.h>
 #include <output.h>
+#include <ac/math.h>
 
 BiCGStab::BiCGStab(const Preconditioner::PrecondType PType, 
 		const integer iPStep,

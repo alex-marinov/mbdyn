@@ -49,6 +49,7 @@
 #include <dofown.h>
 #include <unistd.h>
 #include <output.h>
+#include <ac/math.h>
 
 Gmres::Gmres(const Preconditioner::PrecondType PType, 
 		const integer iPStep,

@@ -49,7 +49,7 @@
 
 #include <dofown.h>
 #include <unistd.h>
-#include <output.h>
+#include <ac/math.h>
 
 const doublereal defaultGamma = 0.9;
 

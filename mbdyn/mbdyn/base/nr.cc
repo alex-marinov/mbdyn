@@ -51,6 +51,7 @@
 #include <unistd.h>
 #include <output.h>
 #include <ac/float.h>
+#include <ac/math.h>
 
 doublereal
 NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
