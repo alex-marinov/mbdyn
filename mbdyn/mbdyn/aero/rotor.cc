@@ -441,15 +441,18 @@ void Rotor::InitializeRotorComm(MPI::Intracomm* Rot)
 
 void Rotor::ExchangeVelocity(void) 
 {
-  if (is_parallel && RotorComm.Get_size() > 1){
-    if (RotorComm.Get_rank() == 0) {
-      for (int i=1; i < RotorComm.Get_size(); i++) {
-        RotorComm.Send(MPI::BOTTOM, 1, *pRotDataType, i, 100);
-      }
-    } else {
-      ReqV = RotorComm.Irecv((void *)MPI::BOTTOM, 1, *pRotDataType, 0, 100);
-    }
-  }
+#define ROTDATATYPELABEL	100
+	if (is_parallel && RotorComm.Get_size() > 1){
+		if (RotorComm.Get_rank() == 0) {
+			for (int i = 1; i < RotorComm.Get_size(); i++) {
+				RotorComm.Send(MPI::BOTTOM, 1, *pRotDataType,
+						i, ROTDATATYPELABEL);
+			}
+		} else {
+			ReqV = RotorComm.Irecv((void *)MPI::BOTTOM, 1,
+					*pRotDataType, 0, ROTDATATYPELABEL);
+		}
+	}
 }
 #endif /* USE_MPI */
    
@@ -1292,12 +1295,14 @@ DynamicInflowRotor::AssJac(VariableSubMatrixHandler& WorkMat,
 {
 	DEBUGCOUT("Entering DynamicInflowRotor::AssJac()" << std::endl);
 
-	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-	integer iFirstIndex = iGetFirstIndex();
+	WorkMat.SetNullMatrix();
 
 #ifdef USE_MPI 
 	if (is_parallel && RotorComm.Get_rank() == 0) {
 #endif /* USE_MPI */     
+		SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+		integer iFirstIndex = iGetFirstIndex();
+
 		WM.ResizeInit(5, 0, 0.);
    
 		WM.fPutItem(1, iFirstIndex+1, iFirstIndex+1, dM11+dCoef*dL11);
@@ -1307,12 +1312,6 @@ DynamicInflowRotor::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.fPutItem(5, iFirstIndex+3, iFirstIndex+3, dM33+dCoef*dL33);
 
 #ifdef USE_MPI
-	} else {
-		WM.ResizeInit(3, 0, 0.);
-   
-		WM.fPutItem(1, iFirstIndex+1, iFirstIndex+1, dM11);
-		WM.fPutItem(2, iFirstIndex+2, iFirstIndex+2, dM22);
-		WM.fPutItem(3, iFirstIndex+3, iFirstIndex+3, dM33);
 	}
 #endif /* USE_MPI */
 
