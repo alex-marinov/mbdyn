@@ -259,7 +259,6 @@ void Solver::Run(void)
 			int iOutLen = strlen(sInputFileName);
 			SAFENEWARR(sNewOutName, char, iOutLen+1+iRankLength+1);
 			sOutName = sInputFileName;
-
 		} else {
 			int iOutLen = strlen(sOutputFileName);
 			SAFENEWARR(sNewOutName, char, iOutLen+1+iRankLength+1);
@@ -489,12 +488,12 @@ void Solver::Run(void)
 
 	case LinSol::EMPTY_SOLVER:
 		break;
-
-	default:
+				
+   	default:
 		ASSERT(0);
 		THROW(ErrGeneric());
-				
-   	}
+
+	}
 
 	/*
 	 * This is the LOCAL solver if instantiating a parallel
@@ -675,9 +674,9 @@ void Solver::Run(void)
 	pNLS->SetExternal(External::EMPTY);
 #endif /* USE_EXTERNAL */
 
-   	int iIterCnt = 0;
 	
 	try {
+		
 		dTest = pDerivativeSteps->Advance(0., 1.,
 				StepIntegrator::NEWSTEP,
 			 	pNLS, qX, qXPrime, iStIter
@@ -688,7 +687,7 @@ void Solver::Run(void)
 	}
 	catch (NonlinearSolver::NoConvergence) {
 		std::cerr << std::endl
-			<< "Initial derivatives calculation " << iIterCnt 
+			<< "Initial derivatives calculation " << iStIter 
 			<< " does not converge;" << std::endl
 			<< "aborting ..." << std::endl;	 
 	 	pDM->Output(true);
@@ -928,7 +927,11 @@ void Solver::Run(void)
 			   "Fictitious steps have been completed successfully"
 			   " in " << iStIter << " iterations" << std::endl);
    	} /* Fine dei passi fittizi */
-   
+
+   	/* Output delle "condizioni iniziali" */
+   	pDM->Output();
+
+	   
         if (outputMsg()) {	
   	 	Out << "Step " << 0
      			<< " time " << dTime+dCurrTimeStep
@@ -1160,9 +1163,9 @@ IfStepIsToBeRepeated:
 
 		pDM->AfterConvergence();
 
-	      	dTotErr += dTest;	
-      		iTotIter += iIterCnt;
-      
+	      	dTotErr += dTest;
+      		iTotIter += iStIter;
+
       		pDM->Output();     
 	
 		if (outputMsg()) {	
@@ -1219,7 +1222,8 @@ IfStepIsToBeRepeated:
 #endif /* __HACK_EIG__ */
       
       		/* Calcola il nuovo timestep */
-      		dCurrTimeStep +	NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
+      		dCurrTimeStep =
+			NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
 		DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
    	}
 }
@@ -1663,7 +1667,8 @@ Solver::ReadData(MBDynParser& HP)
        		case DUMMYSTEPSRATIO:
 	  		dFictitiousStepsRatio = HP.GetReal();
 	  		if (dFictitiousStepsRatio < 0.) {
-	     			dFictitiousStepsRatio =	dDefaultFictitiousStepsRatio;
+	     			dFictitiousStepsRatio =
+					dDefaultFictitiousStepsRatio;
 				std::cerr << "warning, negative dummy steps ratio"
 					" is illegal;" << std::endl
 					<< "resorting to default value "
@@ -1686,7 +1691,8 @@ Solver::ReadData(MBDynParser& HP)
        		case DUMMYSTEPSTOLERANCE:
 	  		dFictitiousStepsTolerance = HP.GetReal();
 	  		if (dFictitiousStepsTolerance <= 0.) {
-				dFictitiousStepsTolerance = dDefaultFictitiousStepsTolerance;
+				dFictitiousStepsTolerance =
+					dDefaultFictitiousStepsTolerance;
 				std::cerr << "warning, negative dummy steps"
 					" tolerance is illegal;" << std::endl
 					<< "resorting to default value "
@@ -1804,10 +1810,11 @@ Solver::ReadData(MBDynParser& HP)
 						  << std::endl);
 	   		case MS:
 	   		case HOPE: {
-	      			DriveCaller* pRhoRegular = ReadDriveData(NULL, HP, NULL);
+	      			pRhoRegular =
+					ReadDriveData(NULL, HP, NULL);
 				HP.PutKeyTable(K);
 
-	      			DriveCaller* pRhoAlgebraicRegular = NULL;
+	      			pRhoAlgebraicRegular = NULL;
 				if (HP.fIsArg()) {
 					pRhoAlgebraicRegular = ReadDriveData(NULL, 
 							HP, NULL);
@@ -1845,37 +1852,33 @@ Solver::ReadData(MBDynParser& HP)
 				std::cerr << "error: multiple definition "
 					"of dummy steps integration method "
 					"at line " << HP.GetLineData()
-					<< std::endl;
+					<< std::cerr;
 				THROW(ErrGeneric());
 			}
- 			fFictitiousStepsMethod = flag(1);
-			
+			fFictitiousStepsMethod = flag(1);	  	
+ 
 			KeyWords KMethod = KeyWords(HP.GetWord());
 			switch (KMethod) {
 			case CRANKNICHOLSON:
 				FictitiousType = INT_CRANKNICHOLSON; 
 				break;
 
-			case BDF: {
-				DriveCaller* pRhoFictitious = NULL;
+			case BDF: 
 				SAFENEWWITHCONSTRUCTOR(pRhoFictitious,
 					NullDriveCaller,
 					NullDriveCaller(NULL));
-				DriveCaller* pRhoAlgebraicFictitious = NULL;
 				SAFENEWWITHCONSTRUCTOR(pRhoAlgebraicFictitious,
 					NullDriveCaller,
 					NullDriveCaller(NULL));
-		      		FictitiousType = INT_MS2;
+				FictitiousType = INT_MS2;
 				break;
-			}
-		   
+  
 			case NOSTRO:
 			case MS:
-			case HOPE: {
-				DriveCaller* pRhoFictitious = ReadDriveData(NULL, HP, NULL);
+			case HOPE: 	      	     
+				pRhoFictitious = ReadDriveData(NULL, HP, NULL);
 				HP.PutKeyTable(K);
-	
-				DriveCaller* pRhoAlgebraicFictitious = NULL;
+
 				if (HP.fIsArg()) {
 					pRhoAlgebraicFictitious = ReadDriveData(NULL, HP, NULL);
 					HP.PutKeyTable(K);
@@ -1883,32 +1886,29 @@ Solver::ReadData(MBDynParser& HP)
 					pRhoAlgebraicFictitious = pRhoFictitious->pCopy();
 				}
 				HP.PutKeyTable(K);
-				
+   
 				switch (KMethod) {
 				case NOSTRO:
-				case MS: {
+				case MS: 
 					FictitiousType = INT_MS2;     
 					break;
-				}
-			 
-				case HOPE: {
+				
+				case HOPE: 
 					FictitiousType = INT_HOPE;    	      
 					break;
-				}
 
-				default:
-					THROW(ErrGeneric());
+	       			default:
+	          			THROW(ErrGeneric());
 				}
-				break;
-			}
+	      			break;	      
+	   		
 			default: {
-				std::cerr << "Unknown integration method at line "
-					<< HP.GetLineData() << std::endl;
+				std::cerr << "Unknown integration method at line " << HP.GetLineData() << std::endl;
 				THROW(ErrGeneric());
 			}
-		  	}
+			}	     
 			break;
-		}
+		} 
 
 		case TOLERANCE: {
 			dTol = HP.GetReal();
@@ -1925,22 +1925,23 @@ Solver::ReadData(MBDynParser& HP)
 			if (dSolutionTol <= 0.) {
 				dSolutionTol = 0.;
 				std::cerr << "warning, tolerance <= 0. is illegal; "
-					"switching to default value " << dSolutionTol
+					"switching to default value " << dSolutionTol 
 					<< std::endl;
 			}
-			
+
 			DEBUGLCOUT(MYDEBUG_INPUT, "tolerance = " << dTol
-	      				<< ", " << dSolutionTol << std::endl);
+					<< ", " << dSolutionTol << std::endl);
 #else /* !MBDYN_X_CONVSOL */
-	  		if (HP.fIsArg()) {
+			if (HP.fIsArg()) {
 				pedantic_cerr("define MBDYN_X_SOLCONV to enable "
-	      					"convergence test on solution" << std::endl);
+						"convergence test on solution" << std::endl);
 				(void)HP.GetReal();
 			}
 #endif /* !MBDYN_X_CONVSOL */
 			DEBUGLCOUT(MYDEBUG_INPUT, "tolerance = " << dTol << std::endl);
 			break;
-		}
+		}	
+
 	 
        case DERIVATIVESTOLERANCE: {
 	  dDerivativesTol = HP.GetReal();
@@ -3056,7 +3057,3 @@ Solver::Eig(void)
 }
 
 #endif /* __HACK_EIG__ */
-
-
-
-
