@@ -5,7 +5,8 @@
 
 all:
 	-for m in module-* ; do \
-		cd $m ; \
+		cd $$m ; \
 		$(MAKE) ; \
+		cd .. ; \
 	done
 
