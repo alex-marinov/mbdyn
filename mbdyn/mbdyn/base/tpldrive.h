@@ -51,9 +51,7 @@ class TplDriveCaller {
    virtual TplDriveCaller<T>* pCopy(void) const = 0;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const {       
-      return out;
-   };
+   virtual ostream& Restart(ostream& out) const = 0;
    
    /* Restituisce il valore del driver */
    virtual inline const T& Get(void) const = 0;
@@ -123,6 +121,13 @@ class SingleTplDriveCaller : public TplDriveCaller<T>, public DriveOwner {
       
       return pDC;
    };
+
+   /* Scrive il contributo del DriveCaller al file di restart */
+   virtual ostream& Restart(ostream& out) const {
+      out << "single, ",
+        Write(out, t, ", ") << ", ";
+      return pGetDriveCaller()->Restart(out);
+   }; 
    
    inline const T& Get(void) const {
       return ((T&)TplDriveCaller<T>::TReturnValue = t*dGet());
@@ -152,6 +157,12 @@ class SingleTplDriveCaller<doublereal>
       SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(pGetDriveCaller()->pCopy()), DMmm);
       
       return pDC;
+   };
+
+   /* Scrive il contributo del DriveCaller al file di restart */
+   virtual ostream& Restart(ostream& out) const {
+      out << "single, ";
+      return pGetDriveCaller()->Restart(out);
    };
    
    inline const doublereal& Get(void) const {
@@ -210,6 +221,17 @@ class ArrayTplDriveCaller : public TplDriveCaller<T> {
       SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(iNumDrives, pDA), DMmm);
       
       return pDC;
+   };
+
+   /* Scrive il contributo del DriveCaller al file di restart */
+   virtual ostream& Restart(ostream& out) const {
+      out << "array, " << iNumDrives;
+      for (int i = 0; i < iNumDrives; i++) {
+         out << ", ",
+           Write(out, pDrivesArray[i].t, ", ") << ", ",
+           pDrivesArray[i].pDriveCaller->Restart(out);
+      }
+      return out;
    };
    
    inline const T& Get(void) const {

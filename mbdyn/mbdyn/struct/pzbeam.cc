@@ -148,9 +148,11 @@ PiezoActuatorBeam::~PiezoActuatorBeam(void)
 
     
 /* Contributo al file di restart */
-ostream& PiezoActuatorBeam::Restart(ostream& out) const
+ostream&
+PiezoActuatorBeam::Restart(ostream& out) const
 {
-   return out;
+   Restart_(out);
+   return out << "/* piezoelectric actuator NOT IMPLEMENTED YET */ ;" << endl;
 }
 
     
@@ -375,16 +377,19 @@ PiezoActuatorVEBeam::~PiezoActuatorVEBeam(void)
 
     
 /* Contributo al file di restart */
-ostream& PiezoActuatorVEBeam::Restart(ostream& out) const
+ostream&
+PiezoActuatorVEBeam::Restart(ostream& out) const
 {
-   return out;
+   Restart_(out);
+   return out << "/* piezoelectric actuator NOT IMPLEMENTED YET */ ;" << endl;
 }
 
-    
+
 /* Dimensioni del workspace; sono 36 righe perche' se genera anche le
- *     * forze d'inerzia consistenti deve avere accesso alle righe di definizione
- *     * della quantita' di moto */
-void PiezoActuatorVEBeam::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+ * forze d'inerzia consistenti deve avere accesso alle righe di definizione
+ * della quantita' di moto */
+void
+PiezoActuatorVEBeam::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
    if (fConsistentInertia) {
       *piNumRows = 36;
    } else {

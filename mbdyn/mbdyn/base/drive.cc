@@ -291,7 +291,7 @@ DriveCaller* NullDriveCaller::pCopy(void) const
 /* Scrive il contributo del DriveCaller al file di restart */
 ostream& NullDriveCaller::Restart(ostream& out) const
 {      
-   return out << " null";
+   return out << "null";
 }
  
 /* NullDriveCaller - end */
@@ -325,7 +325,7 @@ DriveCaller* OneDriveCaller::pCopy(void) const
 /* Scrive il contributo del DriveCaller al file di restart */
 ostream& OneDriveCaller::Restart(ostream& out) const
 {      
-   return out << " one";
+   return out << "one";
 }
  
 /* OneDriveCaller - end */

@@ -67,7 +67,7 @@ class GRAALLDamperConstitutiveLaw
    };
 	    
    virtual ostream& Restart(ostream& out) const {
-      return out;
+      return out << "/* GRAALL damper, not implemented yet */" ;
    };
    
    virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */  = 0.) {

@@ -218,6 +218,9 @@ class Beam
     void SetBeamType(BeamType::Type T) { 
         BeamT = T;
     };
+
+    /* Funzione interna di restart */
+    virtual ostream& Restart_(ostream& out) const;
    
   public:
     /* Costruttore normale */

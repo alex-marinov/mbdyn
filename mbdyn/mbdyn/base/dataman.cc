@@ -501,15 +501,14 @@ void DataManager::MakeRestart(void)
      << "  # initial time: " << pTime->GetVal().GetReal() << ';' << endl
      << "  # final time: " << pTime->GetVal().GetReal() << ';' << endl
      << "  # time step: 1.;" << endl
+     << "  # method: ms, .0, .0;" << endl
      << "  # max iterations: 1;" << endl
-     << "  # tolerance: 1.e-6;" << endl     
-     << "  # rho: 0.;" << endl
-     << "  # algebraic rho: 0.;" << endl
+     << "  # tolerance: 1.e-6;" << endl
      << "  # derivatives max iterations: 1;" << endl
-     << "  # derivatives tolerance: 1e-6;" << endl
-     << "  # derivatives coefficient: 1.;" << endl
+     << "  # derivatives tolerance: 1.e-6;" << endl
+     << "  # derivatives coefficient: 1.e-6;" << endl
      << "  # fictitious steps max iterations: 1;" << endl
-     << "  # fictitious steps tolerance: 1e-6;" << endl
+     << "  # fictitious steps tolerance: 1.e-6;" << endl
      << "  # fictitious steps number: 2;" << endl
      << "  # fictitious steps ratio: 1.e-3;" << endl
      << "  # Newton Raphson: true;" << endl

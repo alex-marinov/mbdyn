@@ -483,8 +483,13 @@ ostream& Beam::WriteMat6x6(ostream& Out,
 
 /* Contributo al file di restart */
 ostream& Beam::Restart(ostream& out) const
+{
+   return Restart_(out)<< ';' << endl;
+}
+
+ostream& Beam::Restart_(ostream& out) const
 { 
-   out << "  beam: " << GetLabel() << ", elastic";
+   out << "  beam: " << GetLabel();
    for (unsigned int i = 0; i < NUMNODES; i++) {
       out << ", " << pNode[i]->GetLabel() << ", reference, node, ", 
 	f[i].Write(out, ", ");
@@ -495,7 +500,7 @@ ostream& Beam::Restart(ostream& out) const
 	  << ", 2, ", (R[i].GetVec(2)).Write(out, ", ") << ", ",
 	pD[i]->pGetConstLaw()->Restart(out);
    }
-   return out << ';' << endl;   
+   return out;
 }
 
 

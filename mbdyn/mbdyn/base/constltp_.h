@@ -47,7 +47,17 @@ template <class T, class Tder>
 class ElasticConstitutiveLaw
 : public ConstitutiveLaw<T, Tder>, public TplDriveOwner<T> {
  protected:
-   T PreStress; 
+   T PreStress;
+   
+   virtual ostream& Restart_(ostream& out) const {
+      out << ", prestress, ", 
+        Write(out, PreStress, ", ");
+      if (pGetDriveCaller()) {
+	 out << ", prestrain, ",
+	   pGetDriveCaller()->Restart(out);
+      }
+      return out;
+   };
    
  public:
    ElasticConstitutiveLaw(const TplDriveCaller<T>* pDC, const T& PStress) 
@@ -102,10 +112,8 @@ class LinearElasticIsotropicConstitutiveLaw
    };
    
    virtual ostream& Restart(ostream& out) const {
-      return out << "linear elastic isotropic, "
-	<< dStiffness << ", ", 
-	Write(out, ElasticConstitutiveLaw<T, Tder>::PreStress, ", ") << ", ",
-	ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->Restart(out);
+      out << "linear elastic isotropic, " << dStiffness;
+      return Restart_(out);
    };
    
    virtual void Update(const T& Eps, const T& /* EpsPrime */  = 0.) {
@@ -159,10 +167,9 @@ class LinearElasticGenericConstitutiveLaw
    };
    
    virtual ostream& Restart(ostream& out) const {
-      return out << "linear elastic generic, ",
-        Write(out, ConstitutiveLaw<T, Tder>::FDE, ",") << ", ", 
-	Write(out, ElasticConstitutiveLaw<T, Tder>::PreStress, ", ") << ", ",
-	ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->Restart(out);
+      out << "linear elastic generic, ",
+        Write(out, ConstitutiveLaw<T, Tder>::FDE, ", ");
+      return Restart_(out);
    };
    
    virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.) {
@@ -258,11 +265,9 @@ class LinearElasticGenericAxialTorsionCouplingConstitutiveLaw<Vec6, Mat6x6>
    };
    
    virtual ostream& Restart(ostream& out) const {
-      return out << "linear eleastic generic axial torsion coupling, ",
-        Write(out, FDE, ",") << ", " 
-	<< dAxialTorsionCoupling << ", ",
-	Write(out, PreStress, ", ") << ", ",
-	pGetDriveCaller()->Restart(out);
+      out << "linear eleastic generic axial torsion coupling, ",
+        Write(out, FDE, ", ") << ", " << dAxialTorsionCoupling;
+      return Restart_(out);
    };
    
    virtual void Update(const Vec6& Eps, const Vec6& /* EpsPrime */ = 0.) {
@@ -350,10 +355,8 @@ class LogConstitutiveLaw<doublereal, doublereal>
    };
    
    virtual ostream& Restart(ostream& out) const {
-      return out << "log elastic, " 
-	<< dStiffness << ", "
-        << PreStress << ", ",
-	pGetDriveCaller()->Restart(out);
+      out << "log elastic, " << dStiffness;
+      return Restart_(out);
    };
    
    virtual void Update(const doublereal& Eps, const doublereal& /* EpsPrime */ = 0.) {
@@ -459,7 +462,12 @@ class DoubleLinearElasticConstitutiveLaw<doublereal, doublereal>
    };
    
    virtual ostream& Restart(ostream& out) const {
-      return out;
+      out << "double linear elastic, "
+        << dStiffness << ", "
+        << dUpperLimitStrain << ", "
+	<< dLowerLimitStrain << ", "
+	<< dSecondStiffness;
+      return Restart_(out);
    };
    
    virtual void Update(const doublereal& Eps, const doublereal& /* EpsPrime */ = 0.) {
@@ -534,7 +542,12 @@ class DoubleLinearElasticConstitutiveLaw<Vec3, Mat3x3>
    };
    
    virtual ostream& Restart(ostream& out) const {
-      return out;
+      out << "double linear elastic, "
+        << dStiffness << ", "
+	<< dUpperLimitStrain << ", "
+	<< dLowerLimitStrain << ", "
+	<< dSecondStiffness;
+      return Restart_(out);
    };
    
    virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */ = 0.) {
@@ -569,7 +582,7 @@ class DoubleLinearElasticConstitutiveLaw<Vec3, Mat3x3>
    };
 };
 
-/* DoubleLinearElasticConstitutiveLaw - begin */
+/* DoubleLinearElasticConstitutiveLaw - end */
 
 
 /* IsotropicHardeningConstitutiveLaw - begin */
@@ -619,9 +632,8 @@ class IsotropicHardeningConstitutiveLaw
    
    virtual ostream& Restart(ostream& out) const {
       out << "isoropic hardening elastic, " << dStiffness << ", " 
-	<< sqrt(3./dAlpha) << ", ",
-	Write(out, ElasticConstitutiveLaw<T, Tder>::PreStress, ", ") << ", ";
-      return ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->Restart(out);
+        << sqrt(3./dAlpha);
+      return Restart_(out);
    };      
    
    virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.) {
@@ -729,7 +741,10 @@ class ContactConstitutiveLaw<doublereal, doublereal>
    };
    
    virtual ostream& Restart(ostream& out) const {
-      return out;
+      out << "contact elastic, "
+        << dKappa << ", "
+	<< dGamma;
+      return Restart_(out);
    };
    
    virtual void Update(const doublereal& Eps, const doublereal& /* EpsPrime */  = 0.) {
@@ -788,7 +803,10 @@ class ContactConstitutiveLaw<Vec3, Mat3x3>
    };
    
    virtual ostream& Restart(ostream& out) const {
-      return out;
+      out << "contact elastic, "
+        << dKappa << ", "
+	<< dGamma;
+      return Restart_(out);
    };
    
    virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */  = 0.) {
@@ -814,7 +832,7 @@ typedef ContactConstitutiveLaw<doublereal, doublereal> ContactConstitutiveLaw1D;
 typedef ContactConstitutiveLaw<Vec3, Mat3x3> ContactConstitutiveLaw3D;
 typedef ContactConstitutiveLaw<Vec6, Mat6x6> ContactConstitutiveLaw6D;
 
-/* LinearElasticIsotropicConstitutiveLaw - end */
+/* ContactConstitutiveLaw - end */
 
 
 /* LinearViscousIsotropicConstitutiveLaw - begin */
@@ -853,7 +871,9 @@ class LinearViscousIsotropicConstitutiveLaw
    };
    
    virtual ostream& Restart(ostream& out) const {
-      return out;
+      out << "linear viscous isotropic, "
+        << dStiffnessPrime;
+      return Restart_(out);
    };
    
    virtual void Update(const T& /* Eps */ , const T& EpsPrime = 0.) {
@@ -901,7 +921,9 @@ class LinearViscousGenericConstitutiveLaw
    };
    
    virtual ostream& Restart(ostream& out) const {
-      return out;
+      out << "linear viscous generic, ",
+        Write(out, ConstitutiveLaw<T, Tder>::FDEPrime, ", ");
+      return Restart_(out);
    };
    
    virtual void Update(const T& /* Eps */ , const T& EpsPrime = 0.) {
@@ -959,9 +981,8 @@ class LinearViscoElasticIsotropicConstitutiveLaw
    virtual ostream& Restart(ostream& out) const {
       out << "linear viscoelastic isotropic, "
 	<< dStiffness << ", "
-	<< dStiffnessPrime << ", ",
-	Write(out, ElasticConstitutiveLaw<T, Tder>::PreStress, ", ") << ", ";
-      return ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->Restart(out);      
+	<< dStiffnessPrime;
+      return Restart_(out);      
    };
    
    virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
@@ -1019,7 +1040,10 @@ class LinearViscoElasticGenericConstitutiveLaw
    };
    
    virtual ostream& Restart(ostream& out) const {
-      return out;
+     out << "linear viscoelastic generic, ",
+       Write(out, ConstitutiveLaw<T, Tder>::FDE, ", ") << ", ",
+       Write(out, ConstitutiveLaw<T, Tder>::FDEPrime, ", ");
+       return Restart_(out);
    };
    
    virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
@@ -1134,9 +1158,8 @@ class DoubleLinearViscoElasticConstitutiveLaw<doublereal, doublereal>
 	<< dUpperLimitStrain << ", "
 	<< dLowerLimitStrain << ", "
 	<< dSecondStiffness << ", "
-	<< dStiffnessPrime << ", ",
-	Write(out, PreStress, ", ") << ", ";
-      return pGetDriveCaller()->Restart(out);
+	<< dStiffnessPrime << ", ";
+      return Restart_(out);
    };
    
    virtual void Update(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
@@ -1220,7 +1243,13 @@ class DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3>
    };
    
    virtual ostream& Restart(ostream& out) const {
-      return out;
+      out << "double linear viscoelastic, "
+        << dStiffness << ", "
+	<< dUpperLimitStrain << ", "
+	<< dLowerLimitStrain << ", "
+	<< dSecondStiffness << ", "
+	<< dStiffnessPrime << ", ";
+      return Restart_(out);
    };
    
    virtual void Update(const Vec3& Eps, const Vec3& EpsPrime = 0.) {
@@ -1348,9 +1377,8 @@ class TurbulentViscoElasticConstitutiveLaw<doublereal, doublereal>
 	<< dStiffness << ", "
 	<< dStiffnessPrime << ", "
 	<< dTreshold << ", "
-	<< dParabolicStiffness << ", ",
-	Write(out, PreStress, ", ") << ", ";
-      return pGetDriveCaller()->Restart(out);
+	<< dParabolicStiffness << ", ";
+      return Restart_(out);
    };
    
    virtual void Update(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
