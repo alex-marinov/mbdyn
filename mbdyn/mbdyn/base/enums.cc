@@ -375,6 +375,7 @@ const char* psDofOwnerNames[] = {
    "Joint Element",
    "GENEL Element",
    "Rotor Element",
+   "Aerodynamic Modal Element",
    "Unsteady Aerodynamic Element",
    "Electric Bulk Element",
    "Electric Element",
