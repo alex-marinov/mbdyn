@@ -546,7 +546,7 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.fPutCoef(6*(1+Beam::NUMNODES)+1+3+2, (eb3*l)/dCoef);
 
 		/* calcolo momento */
-		M = eb2.Cross(l*m.dGet(2))+eb3.Cross(l*m.dGet(3));
+		M = eb2.Cross(l*m(2))+eb3.Cross(l*m(3));
 
 		if (iType == SPLINE) {
 			/* FIXME: vincolo spline */
