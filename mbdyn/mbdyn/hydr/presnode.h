@@ -67,8 +67,10 @@ class PressureNode : public ScalarAlgebraicNode {
    };
    
    void Output(OutputHandler& OH) const {
-      OH.PresNodes() << setw(8) << GetLabel() << " "
-	<< dX << endl;
+      if (fToBeOutput()) {
+         OH.PresNodes() << setw(8) << GetLabel() << " "
+	   << dX << endl;
+      }
    };
 };
 
