@@ -9,7 +9,10 @@ CXXFLAGS=$CFLAGS
 CC=gcc
 CXX=g++
 F77=g77
-LDFLAGS="-L/home/masarati/Math/Meschach/meschach \
+
+# -rdynamic required to allow dynamic resolution of symbols in modules
+LDFLAGS="-rdynamic \
+	-L/home/masarati/Math/Meschach/meschach \
 	-L/usr/share/mpi/lib \
 	-L/home/masarati/Math/metis-4.0 \
 	-L/home/masarati/Math/clapack/CLAPACK"
