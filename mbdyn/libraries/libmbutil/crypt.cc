@@ -34,6 +34,7 @@
 
 #include <myassert.h>
 #include <stdlib.h>
+#include <string.h>
 #include <crypt.h>
 
 char *
