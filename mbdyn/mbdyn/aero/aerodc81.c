@@ -224,7 +224,7 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	TNG[V_Z] = -q*cd0*v[V_Z]/vp;
 	TNG[W_X] = 0.;
 	TNG[W_Y] = -ca*TNG[V_Z];
-	TNG[W_Z] = -q*chord*cm-ca*TNG[V_Y];
+	TNG[W_Z] = q*chord*cm+ca*TNG[V_Y];
 	
 	/* 
 	 * Radial drag (TNG[V_Z]) consistent with Harris, JAHS 1970
