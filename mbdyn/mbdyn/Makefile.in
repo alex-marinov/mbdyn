@@ -82,8 +82,8 @@ MODULES_DIRS = @MODULES_DIRS@
 MPI_LIBS = @MPI_LIBS@
 OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
-PAM_LIBS = @PAM_LIBS@
 RANLIB = @RANLIB@
+SECURITY_LIBS = @SECURITY_LIBS@
 TCL_LIBS = @TCL_LIBS@
 VERSION = @VERSION@
 Y12_LIBS = @Y12_LIBS@
@@ -97,7 +97,7 @@ bin_PROGRAMS = mbdyn
 mbdyn_SOURCES =  dummy_c.c dummy_f.f  mbdyn.cc  mbdyn.h
 
 
-mbdyn_LDADD =  base/libbase.la struct/libstruct.la aero/libaero.la elec/libelec.la hydr/libhydr.la ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la @Y12_LIBS@ @HARWELL_LIBS@ ../libraries/libmbwrap/libmbwrap.la ../libraries/libobjs/libobjs.la @MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ @METIS_LIBS@ @PAM_LIBS@ @TCL_LIBS@ @LIBS@
+mbdyn_LDADD =  base/libbase.la struct/libstruct.la aero/libaero.la elec/libelec.la hydr/libhydr.la ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la @Y12_LIBS@ @HARWELL_LIBS@ ../libraries/libmbwrap/libmbwrap.la ../libraries/libobjs/libobjs.la @MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ @METIS_LIBS@ @SECURITY_LIBS@ @TCL_LIBS@ @LIBS@
 
 #mbdyn_LDFLAGS = -static
 
@@ -150,7 +150,7 @@ all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .cc .f .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --foreign ./mbdyn/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu mbdyn/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -317,14 +317,14 @@ maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = ./mbdyn
+subdir = mbdyn
 
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign ./mbdyn/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu mbdyn/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
