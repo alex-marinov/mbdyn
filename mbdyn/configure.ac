@@ -1047,7 +1047,7 @@ if test $ol_with_blas != no ; then
 					 * naming conventions, e.g. uppercase, no underscore
 					 */
 					extern int dgemm_(void);],[return dgemm_();
-				],[try_blas_LIBS="-lcblas -lf77blas -latlas -lm"],[])
+				],[try_blas_LIBS="-lcblas -lf77blas -latlas $F2C_LIBS -lm"],[])
 			],[
 				have_blas="no"
 				if test "$ol_with_blas" = "atlas" ; then
