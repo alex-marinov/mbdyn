@@ -200,6 +200,7 @@ retry:;
 
 	try {
 		pM = pSM->pMatHdl();
+		pM->Reset();
 
 		pM->PutCoef(1, 1, m11);
 		pM->PutCoef(2, 2, m22);

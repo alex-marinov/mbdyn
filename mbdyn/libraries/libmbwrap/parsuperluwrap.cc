@@ -500,7 +500,6 @@ SuperLUSparseSolutionManager::MatrReset(void)
    	IsValid();
 #endif /* DEBUG */
 
-	//MH.Reset();
 	pLS->Reset();
 }
 
@@ -593,11 +592,7 @@ template <class CC>
 void
 SuperLUSparseCCSolutionManager<CC>::MatrReset(void)
 {
-	if (!CCReady) {
-		MH.Reset();
-	} else {
-		Ac->Reset();
-	}
+	pLS->Reset();
 }
 
 /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/

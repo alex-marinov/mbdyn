@@ -269,7 +269,6 @@ MeschachSparseSolutionManager::MatrReset(void)
    	fStatus = RESET;
 	/* FIXME: TOTALLY UNTESTED */
 	pLS->Reset();
-   	//pmh->Reset();
 }
 
 void

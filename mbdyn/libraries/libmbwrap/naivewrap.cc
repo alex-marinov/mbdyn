@@ -153,7 +153,6 @@ NaiveSparseSolutionManager::~NaiveSparseSolutionManager(void)
 void
 NaiveSparseSolutionManager::MatrReset()
 {
-	//A.Reset();
 	pLS->Reset();
 }
 
@@ -214,11 +213,8 @@ NaiveSparsePermSolutionManager::~NaiveSparsePermSolutionManager(void)
 void
 NaiveSparsePermSolutionManager::MatrReset(void)
 {
-	if (!Ac) {
-		//A.Reset();
-	} else {
+	if (Ac) {
 		CCReady = true;
-		//Ac->Reset();
 
 		pLS->ChangeResPoint(VH.pdGetVec());
 		pLS->ChangeSolPoint(XH.pdGetVec());

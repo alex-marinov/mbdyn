@@ -257,8 +257,11 @@ main(int argc, char *argv[])
 	VectorHandler *pV = pSM->pResHdl();
 	VectorHandler *px = pSM->pSolHdl();
 
-	VariableSubMatrixHandler SBMH(10,10);
+	pM->Reset();
+
+	VariableSubMatrixHandler SBMH(10, 10);
 	FullSubMatrixHandler& WM = SBMH.SetFull();
+
 	WM.ResizeReset(3, 3);
 	WM.PutRowIndex(1,1);
 	WM.PutRowIndex(2,2);
@@ -301,8 +304,11 @@ main(int argc, char *argv[])
 	}
 	
 	std::cout << "\nSecond solve:\n";
-	pM = pSM->pMatHdl();
 	pSM->MatrReset();
+	pM = pSM->pMatHdl();
+
+	pM->Reset();
+	
 	*pM += SBMH;
 	pV->PutCoef(1, 1.);
 	pV->PutCoef(2, 1.);

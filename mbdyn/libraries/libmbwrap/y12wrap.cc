@@ -623,7 +623,6 @@ Y12SparseSolutionManager::IsValid(void) const
 void
 Y12SparseSolutionManager::MatrReset(void)
 {
-	MH.Reset();
 	pLS->Reset();
 }
 
@@ -716,11 +715,6 @@ template <class CC>
 void
 Y12SparseCCSolutionManager<CC>::MatrReset(void)
 {
-	if (!CCReady) {
-		MH.Reset();
-	} else {
-		Ac->Reset();
-	}
 	pLS->Reset();
 }
 

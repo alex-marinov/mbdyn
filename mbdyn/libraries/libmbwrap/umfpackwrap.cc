@@ -360,7 +360,6 @@ UmfpackSparseSolutionManager::~UmfpackSparseSolutionManager(void)
 void
 UmfpackSparseSolutionManager::MatrReset(void)
 {
-	//A.Reset();
 	pLS->Reset();
 }
 
@@ -424,11 +423,6 @@ template <class CC>
 void
 UmfpackSparseCCSolutionManager<CC>::MatrReset(void)
 {
-	if (!CCReady) {
-		//A.Reset();
-	} else {
-		//Ac->Reset();
-	}
 	pLS->Reset();
 }
 
