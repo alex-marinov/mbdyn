@@ -120,7 +120,7 @@ mbdyn_usage(std::ostream& out, const char *sShortOpts)
 {
     std::cout 
         << std::endl
-	<< "MBDyn - Multi-Body Dynamics " << VERSION << std::endl
+	<< "MBDyn - MultiBody Dynamics " << VERSION << std::endl
 	<< "compiled on " << __DATE__ << " at " << __TIME__ << std::endl 
 	<< std::endl
 	<< "mbdyn is a multibody simulation program." << std::endl
