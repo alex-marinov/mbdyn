@@ -2438,7 +2438,7 @@ MultiStepIntegrator::Eig(void)
 
 	 d = sqrt(sigma*sigma+omega*omega);
 	 if (d > 1.e-15 && fabs(sigma)/d > 1.e-15) {
-	    Out << "    " << setw(12) << sigma/d;
+	    Out << "    " << setw(12) << 100*sigma/d;
 	 } else {
 	    Out << "    " << setw(12) << 0.;
 	 }
