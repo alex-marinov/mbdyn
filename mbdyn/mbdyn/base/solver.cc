@@ -208,7 +208,7 @@ dPivotFactor(-1.),
 bTrueNewtonRaphson(1),
 iIterationsBeforeAssembly(0),
 NonlinearSolverType(NonlinearSolver::UNKNOWN),
-MFSolverType(MatrixFreeSolver::BICGSTAB),
+MFSolverType(MatrixFreeSolver::UNKNOWN),
 dIterTol(dDefaultTol),
 PcType(Preconditioner::FULLJACOBIAN),
 iPrecondSteps(iDefaultPreconditionerSteps),
@@ -635,6 +635,8 @@ void Solver::Run(void)
 		default:
 			pedantic_cout("unknown matrix free solver type; "
 					"using default" << std::endl);
+			/* warning: should be unreachable */
+			
 		case MatrixFreeSolver::GMRES:
 			SAFENEWWITHCONSTRUCTOR(pNLS,
 					Gmres,
@@ -1591,6 +1593,7 @@ Solver::ReadData(MBDynParser& HP)
 		/* END OF DEPRECATED */
 
 		"nonlinear" "solver",
+			"default",
 			"newton" "raphson",
 			"matrix" "free",
 				"bicgstab",
@@ -1684,6 +1687,7 @@ Solver::ReadData(MBDynParser& HP)
 		/* END OF DEPRECATED */
 	
 		NONLINEARSOLVER,
+			DEFAULT,
 			NEWTONRAPHSON,
 			MATRIXFREE,
 				BICGSTAB,
@@ -2676,9 +2680,27 @@ Solver::ReadData(MBDynParser& HP)
 #endif
        case NONLINEARSOLVER: {
 	  switch (KeyWords(HP.GetWord())) {
+          case DEFAULT:
+		  NonlinearSolverType = NonlinearSolver::DEFAULT;
+		  break;
+
 	  case NEWTONRAPHSON:
 		  NonlinearSolverType = NonlinearSolver::NEWTONRAPHSON;
+		  break;
 
+	  case MATRIXFREE:
+		  NonlinearSolverType = NonlinearSolver::MATRIXFREE;
+		  break;
+
+	  default:
+		  std::cerr << "unknown nonlinear solver at line "
+			  << HP.GetLineData() << std::endl;
+		  THROW(ErrGeneric());
+		  break;
+	  }
+
+	  switch (NonlinearSolverType) {
+	  case NonlinearSolver::NEWTONRAPHSON:
     		  bTrueNewtonRaphson = 1;
     		  iIterationsBeforeAssembly = 0;
 
@@ -2696,10 +2718,12 @@ Solver::ReadData(MBDynParser& HP)
        		  }
 		  break;
 		  
-	  case MATRIXFREE:
-		  NonlinearSolverType = NonlinearSolver::MATRIXFREE;
-
+	  case NonlinearSolver::MATRIXFREE:
   		  switch(KeyWords(HP.GetWord())) {           		  
+		  case DEFAULT:
+			  MFSolverType = MatrixFreeSolver::DEFAULT;
+			  break;
+
   		  case BICGSTAB:
   			  MFSolverType = MatrixFreeSolver::BICGSTAB;
 			  break;
@@ -2769,10 +2793,8 @@ Solver::ReadData(MBDynParser& HP)
 		  break;
 
 	  default:
-		  std::cerr << "unknown nonlinear solver at line "
-			  << HP.GetLineData() << std::endl;
+		  ASSERT(0);
 		  THROW(ErrGeneric());
-		  break;
 	  }
 	  break;
         }

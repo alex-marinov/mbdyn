@@ -46,8 +46,14 @@ class MatrixFreeSolver : public NonlinearSolver
 {
 public:
 	enum SolverType {
+		UNKNOWN = -1,
+
 		BICGSTAB,
-		GMRES
+		GMRES,
+
+		DEFAULT = GMRES,
+
+		LAST
 	};	
 
 protected:
