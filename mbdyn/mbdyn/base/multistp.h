@@ -92,11 +92,14 @@ class PODMat {
        void Output(void) {
                std::ofstream out;
                out.open("mbdyn.POD");
+	       doublereal *d = A;
                for (int i = 0; i < Cols; i++) {         
-                       for (int j = 0; j < Rows; j++) {
-                               out << A[i*Rows+j] << "  ";
+                       out << d[0];
+                       for (int j = 1; j < Rows; j++) {
+                               out << "  " << d[j];
                        }
                        out << std::endl;
+		       d += Rows;
                }
 
 	       bOutput = true;
