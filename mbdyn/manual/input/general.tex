@@ -1935,10 +1935,11 @@ denied to \kw{mbdyn} to avoid possible security breaks (see the following
 example).
 The interested reader should consult the documentation that comes with the
 package, try for instance
-\begin{verbatim}
-    http://www.kernel.org/pub/linux/libs/pam/
-\end{verbatim}
-An example is provided with the package, in  \kw{/etc/pam.d/mbdyn}, reading:
+\htmladdnormallink{\kw{http://www.kernel.org/pub/linux/libs/pam/\ }}\
+for details.
+
+\noindent
+An example is provided with the package, in  \kw{/etc/pam.d/mbdyn}:
 \begin{verbatim}
     ### use either of the following:
     auth       required     /lib/security/pam_unix_auth.so
@@ -1987,7 +1988,8 @@ Finally there are some miscellaneous points:
 	of the program.
     
         \item \kw{MBDYN\_<type>\_<name>=<value>},
-	where \kw{type} is a legal mbdyn type (\kw{integer} or \kw{real}),
+	where \kw{type} is a legal mbdyn type (\kw{integer} or \kw{real};
+	see Table~\ref{tab:MATHP-TYPES} for details),
 	\kw{name} is a legal symbol name and \kw{value} is a legal
 	mathematical expression.
     
@@ -2029,9 +2031,9 @@ Finally there are some miscellaneous points:
     Home expansion occurs after environment variable expansion (see above).
 
     \item The \kw{license} and the \kw{warranty} statements
-    respectively show the license and the warranty statement under 
-    which the code is released on the standard output.
+    respectively show on the standard output the license 
+    and the warranty statement under which the code is released.
     They do not affect the simulation.
     
-\end{itemize}  
+\end{itemize}
  
