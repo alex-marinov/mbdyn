@@ -52,7 +52,8 @@ iMatMaxSize(iSize),
 iMatSize(iSize), 
 // piRow(NULL), piCol(NULL), 
 // pdMat(NULL), pdVec(NULL),
-pMH(NULL), pVH(NULL), pLU(NULL),
+/* pMH(NULL), */
+pVH(NULL), pLU(NULL),
 fHasBeenReset(1)
 {
    	ASSERT(iSize > 0);
