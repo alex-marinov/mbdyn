@@ -1,2 +1,0 @@
-MODULE_DEPENDENCIES=wheel.o
-
