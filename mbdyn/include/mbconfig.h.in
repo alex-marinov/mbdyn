@@ -56,6 +56,15 @@
 /* Define if you have the <metis.h> header file.  */
 #undef HAVE_METIS_H
 
+/* Define if you have the <pam_misc.h> header file.  */
+#undef HAVE_PAM_MISC_H
+
+/* Define if you have the <security/pam_appl.h> header file.  */
+#undef HAVE_SECURITY_PAM_APPL_H
+
+/* Define if you have the <security/pam_misc.h> header file.  */
+#undef HAVE_SECURITY_PAM_MISC_H
+
 /* Name of package */
 #undef PACKAGE
 
@@ -100,6 +109,9 @@
 
 /* define if you want to use Meschach */
 #undef USE_MESCHACH
+
+/* define if you want to use PAM */
+#undef USE_PAM
 
 
 /* this file must be included by every .c/.cc file */

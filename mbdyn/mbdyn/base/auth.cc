@@ -101,7 +101,11 @@ PasswordAuth::Auth(const char *user, const char *cred) const
 
 extern "C" {
 #include <security/pam_appl.h>
+#ifdef HAVE_PAM_MISC_H
 #include <pam_misc.h>
+#elif HAVE_SECURITY_PAM_MISC_H
+#include <security/pam_misc.h>
+#endif /* HAVE_SECURITY_PAM_MISC_H */
 extern "C" char * strdup(const char *);
 }
 

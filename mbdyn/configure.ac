@@ -150,6 +150,9 @@ OL_ARG_WITH(fs,[  --with-fs[=unix|dos]    filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support],auto,[auto yes no])
 OL_ARG_WITH(metis,[  --with-metis              with Metis support],auto,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
+OL_ARG_WITH(pam,[  --with-pam              with PAM support],auto,[auto yes no])
+
+
 
 dnl ----------------------------------------------------------------
 dnl Validate general "enable" options
@@ -435,7 +438,43 @@ else
 	AC_MSG_WARN([Meschach not supported!])
 fi
 
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for PAM
+dnl
+ol_link_pam=no
+if test $ol_with_pam != no ; then
+	AC_CHECK_HEADERS(security/pam_appl.h pam_misc.h security/pam_misc.h)
+	
+	if test $ac_cv_header_security_pam_appl_h = yes ; then
+		if test $ac_cv_header_pam_misc_h = yes \
+			-o $ac_cv_header_security_pam_misc_h = yes ; then
+			AC_CHECK_LIB(pam,pam_start,
+				[have_pam=yes],[have_pam=no],
+				[-lcrypt -lpam_misc -ldl])
+			
+			if test $have_pam != no ; then
+				PAM_LIBS="-lcrypt -lpam -lpam_misc -ldl"
+				AC_DEFINE(USE_PAM,1,
+					[define if you want to use PAM])
+				ol_link_pam=yes
+			fi
+		fi
+	fi
 
+	if test $ol_link_pam = no ; then
+		if test $ol_with_pam != auto ; then
+			AC_MSG_ERROR([Could not locate PAM])
+		else
+			AC_MSG_WARN([Could not locate PAM])
+			AC_MSG_WARN([PAM not supported!])
+		fi		
+	fi
+else
+	AC_MSG_WARN([PAM not supported!])
+fi
+		
+	
 dnl ----------------------------------------------------------------
 dnl Checks for libraries.
 dnl
