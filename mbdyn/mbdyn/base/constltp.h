@@ -67,7 +67,7 @@ class ConstitutiveLaw {
 	 out << s << endl;
       };
    };
-   typedef ConstitutiveLaw<T, Tder>::ErrNotAvailable Err;   
+   typedef typename ConstitutiveLaw<T, Tder>::ErrNotAvailable Err;   
    
  protected:
    T Epsilon;
