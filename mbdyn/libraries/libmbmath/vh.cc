@@ -320,7 +320,7 @@ MyVectorHandler::Resize(integer iSize)
 				SAFENEWARR(pd, doublereal, iSize);
 				pd--;
 #ifdef HAVE_MEMMOVE
-				memmove(pd + 1, pdVec, iCurSize*sizeof(doublereal));
+				memmove(pd + 1, pdVecm1 + 1, iCurSize*sizeof(doublereal));
 #else /* ! HAVE_MEMMOVE */
 				for (integer i = iCurSize; i > 0; i--) {
 					pd[i] = pdVecm1[i];
