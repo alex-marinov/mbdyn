@@ -80,7 +80,7 @@ pFlags(NULL)
 
    	/* Create the socket and set it up to accept connections. */
 	data.Port = p;
-   	sock = make_inet_socket(&name, NULL, data.Port, 1, &save_errno);
+   	sock = mbdyn_make_inet_socket(&name, NULL, data.Port, 1, &save_errno);
    	if (sock == -1) {
 		const char	*err_msg = strerror(save_errno);
 
@@ -119,7 +119,7 @@ pFlags(NULL)
 
    	/* Create the socket and set it up to accept connections. */
 	SAFESTRDUP(data.Path, path);
-   	sock = make_named_socket(data.Path, 1, &save_errno);
+   	sock = mbdyn_make_named_socket(data.Path, 1, &save_errno);
    	if (sock == -1) {
 		const char	*err_msg = strerror(save_errno);
 

@@ -53,7 +53,7 @@
 #include <sys/poll.h>
 
 int
-make_inet_socket(struct sockaddr_in *name, const char *hostname,
+mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
 		unsigned short int port, int dobind, int *perrno)
 {
    	int			sock;
@@ -102,7 +102,7 @@ make_inet_socket(struct sockaddr_in *name, const char *hostname,
 }
 
 int
-make_named_socket(const char *path, int dobind, int *perrno)
+mbdyn_make_named_socket(const char *path, int dobind, int *perrno)
 {
    	int			sock;
    	struct sockaddr_un	name;
@@ -136,7 +136,7 @@ make_named_socket(const char *path, int dobind, int *perrno)
    	return sock;
 }
 
-int
+static int
 make_nonblocking(int sock)
 {
 	int flags = fcntl(sock, F_GETFL, 0);
@@ -153,7 +153,7 @@ make_nonblocking(int sock)
 	return 0;
 }
 
-int
+static int
 make_blocking(int sock)
 {
 	int flags = fcntl(sock, F_GETFL, 0);
@@ -170,7 +170,7 @@ make_blocking(int sock)
 }
 
 int
-MBDyn_connect(int sock, struct sockaddr * addr, socklen_t dim, int _count)
+mbdyn_connect(int sock, struct sockaddr * addr, socklen_t dim, int _count)
 {
 	int count =  _count;
 	if (make_nonblocking(sock)) {

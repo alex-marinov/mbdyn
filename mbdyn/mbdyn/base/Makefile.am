@@ -24,6 +24,7 @@ dataman.h \
 dataman2.cc \
 dataman3.cc \
 dataman4.cc \
+dataman6.cc \
 dataman_.h \
 dofdrive.cc \
 dofdrive.h \
@@ -132,6 +133,8 @@ tpldrive_.h \
 vec3drv.h \
 thirdorderstepsol.h \
 thirdorderstepsol.cc \
+usesock.cc \
+usesock.h \
 ScalarFunctions.h \
 ScalarFunctionsImpl.h \
 ScalarFunctionsImpl.cc

@@ -270,7 +270,7 @@ s2s_prepare(int argc, char *argv[])
 		strncpy(s2s.buf, ::s2s.path, sizeof(s2s.buf));
 		
 		if (::s2s.create) {
-			::s2s.sock = make_named_socket(::s2s.path, 1, &save_errno);
+			::s2s.sock = mbdyn_make_named_socket(::s2s.path, 1, &save_errno);
 		
 			if (::s2s.sock == -1) {
 				const char	*err_msg = strerror(save_errno);
@@ -321,7 +321,7 @@ s2s_prepare(int argc, char *argv[])
 		snprintf(s2s.buf, sizeof(s2s.buf), "%s:%u", ::s2s.host, ::s2s.port);
 
 		if (::s2s.create) {
-	 	  	::s2s.sock = make_inet_socket(&addr.ms_addr.ms_addr_inet, 
+	 	  	::s2s.sock = mbdyn_make_inet_socket(&addr.ms_addr.ms_addr_inet, 
 					::s2s.host, ::s2s.port, 1, &save_errno);
 
 			if (::s2s.sock == -1) {

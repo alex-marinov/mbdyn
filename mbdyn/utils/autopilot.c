@@ -149,9 +149,9 @@ send_message(const char *message)
 
 	/* Create the socket. */
 	if (path) {
-		sock = make_named_socket(path, 0, NULL);
+		sock = mbdyn_make_named_socket(path, 0, NULL);
 	} else {
-		sock = make_inet_socket(&server_name, host, port, 0, NULL);
+		sock = mbdyn_make_inet_socket(&server_name, host, port, 0, NULL);
 	}
 	if (sock < 0) {
 		return -1;

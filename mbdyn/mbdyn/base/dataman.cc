@@ -467,6 +467,9 @@ DofIter()
       return;
    }
 
+   /* waits for all pending sockets to connect */
+   WaitSocketUsers();
+
    /* Qui intercetto la struttura dei Dof prima che venga costruita e modifico
     * in modo che sia adatta all'assemblaggio dei vincoli; quindi la resetto 
     * e la lascio generare correttamente.

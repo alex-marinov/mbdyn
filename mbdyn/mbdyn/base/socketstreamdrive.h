@@ -37,7 +37,8 @@
 #ifndef SOCKETSTREAMDRIVE_H
 #define SOCKETSTREAMDRIVE_H
 
-#include <streamdrive.h>
+#include "streamdrive.h"
+#include "usesock.h"
 
 
 /* SocketStreamDrive - begin */
@@ -47,27 +48,18 @@ protected:
 	unsigned int InputEvery;
 	unsigned int InputCounter;
 
-	const char *host;
-	int type;
-	union {
- 	  	unsigned short int Port;
-		const char *Path;
-	} data;
-	
-	int sock;
-	bool connected;
-	bool abandoned;
+	UseSocket *pUS;
 
 public:
 	SocketStreamDrive::SocketStreamDrive(unsigned int uL,
-		const DriveHandler* pDH,
+		DataManager* pDM,
 		const char* const sFileName,
 		integer nd, unsigned int ie, bool c,
 		unsigned short int p,
 		const char* const h);
 
 	SocketStreamDrive::SocketStreamDrive(unsigned int uL,
-		const DriveHandler* pDH,
+		DataManager* pDM,
 		const char* const sFileName,
 		integer nd, unsigned int ie, bool c,
 		const char* const Path);

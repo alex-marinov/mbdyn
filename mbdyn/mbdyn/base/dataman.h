@@ -67,6 +67,9 @@
 #include "ScalarFunctions.h"
 
 #include "loadable.h"
+
+#include "usesock.h"
+
 class Solver;
 
 /* DataManager - begin */
@@ -576,6 +579,14 @@ public:
 	void OutManager(void);
 	void OutManagerDestructor(void);
 #endif /* 0 */
+
+	/* socket select stuff */
+private:
+	std::map<int, UseSocket *> SocketUsers;
+
+public:
+	void RegisterSocketUser(UseSocket *pUS);
+	void WaitSocketUsers(void);
 };
 
 /* DataManager - end */

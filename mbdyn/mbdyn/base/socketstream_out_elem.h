@@ -55,29 +55,20 @@ protected:
 	unsigned int OutputEvery;
 	mutable unsigned int OutputCounter;
 
-	/* FIXME: store restart info as well */
-	const char *host;
-	int type;
-	union {
- 	  	unsigned short int Port;
-		const char *Path;
-	} data;
-	
-	int sock;
+	UseSocket *pUS;
 
 	const char *name;
-	bool create; 
-	bool connected;
-	bool abandoned;
 	int send_flags;
 	
 public:
    	SocketStreamElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
 			unsigned int oe,
+			DataManager *pDM,
 			const char *h, const char *m, unsigned short int p,
 			bool c, int flags);
    	SocketStreamElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
 			unsigned int oe,
+			DataManager *pDM,
 			const char *m, const char* const Path,
 			bool c, int flags);
 			
@@ -114,5 +105,4 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
 /* SocketSteamElem - end */
 
 #endif /* SOCKETSTREAM_OUT_ELEM_H */
-
 
