@@ -48,18 +48,22 @@ extern "C" {
 typedef int32_t integer;
 typedef float real;
 #ifdef MBDYN_SINGLE_PRECISION
+#warning "ac/f2c.h: defining doublereal as float"
 typedef float doublereal;
 #else /* ! MBDYN_SINGLE_PRECISION */
 typedef double doublereal;
 #endif /* ! MBDYN_SINGLE_PRECISION */
 #else /* !HAVE_SYS_TYPES_H */
 #if defined(__alpha) || defined(__ia64)
+#warning "ac/f2c.h: defining integer as int; edit as required"
 typedef int integer;
 #else /* !__alpha */
+#warning "ac/f2c.h: defining integer as long int; edit as required"
 typedef long int integer;
 #endif /* !__alpha */
 typedef float real;
 #ifdef MBDYN_SINGLE_PRECISION
+#warning "ac/f2c.h: defining doublereal as float"
 typedef float doublereal;
 #else /* ! MBDYN_SINGLE_PRECISION */
 typedef double doublereal;
