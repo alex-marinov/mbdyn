@@ -75,8 +75,8 @@ The elements are read as follows.
 These elements share the description of the aerodynamics; the former assumes
 the aerodynamic surface to be rigid, and takes its configuration from a
 single node, while the latter relies on a three-node beam and uses the
-interpolation functions of the beam to compute the configuration at an 
-arbitrary point.
+same interpolation functions of the beam to compute the configuration 
+at an arbitrary point.
 The \kw{aerodynamic body} input format is:
 \begin{verbatim}
     <normal_arglist> ::= <node_label> 
@@ -133,6 +133,8 @@ The field \kw{rotor} instructs the element that it is linked to a
 induced velocity and should supply information about the forces it generates.
 An arbitrary configuration and offset is allowed for both elements with
 respect to the nodes they are linked to. 
+This means that the aerodynamic beam offsets refer to the position of the nodes,
+and have nothing to do with offsets related to the structural beam element.
 The \kw{shape} entities are used to compute the physical chord,
 aerodynamic center, velocity measurement point (the point where the
 kinematic boundary conditions are evaluated) and twist as functions 
