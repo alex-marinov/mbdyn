@@ -1057,7 +1057,7 @@ if test $ol_with_metis != no ; then
 
 	if test $ac_cv_header_metis_h = yes ; then
 		AC_CHECK_LIB(metis, METIS_PartGraphVKway,
-			[have_metis=yes],[have_metis=no])
+			[have_metis=yes],[have_metis=no],[-lm])
 
 		if test $have_metis != no ; then
 			METIS_LIBS="-lmetis -lm"
@@ -1071,8 +1071,7 @@ if test $ol_with_metis != no ; then
 		if test $ol_with_metis != auto ; then
 			AC_MSG_ERROR([Could not locate Metis])
 		else
-			AC_MSG_WARN([Could not locate Metis])
-			AC_MSG_WARN([Metis not supported!])
+			AC_MSG_WARN([Could not locate Metis; not supported])
 		fi
 	fi
 else
@@ -1089,11 +1088,11 @@ ol_link_chaco=no
 if test $ol_with_chaco != no ; then
 	OL_ADD_DIRS(chaco)
 	
-	AC_CHECK_LIB(chaco, interface,[have_chaco=yes],[have_chaco=no])
+	AC_CHECK_LIB(chaco,interface,[have_chaco=yes],[have_chaco=no],[-lm])
 
 	if test $have_chaco != no ; then
-		METIS_LIBS="-lchaco"
-		AC_DEFINE(USE_CHACO,1, [define if you want to use Chaco])
+		METIS_LIBS="-lchaco -lm"
+		AC_DEFINE(USE_CHACO,1,[define if you want to use Chaco])
 		ol_link_chaco=yes
 	fi
 
@@ -1101,8 +1100,7 @@ if test $ol_with_chaco != no ; then
                 if test $ol_with_chaco != auto ; then
                         AC_MSG_ERROR([Could not locate Chaco])
                 else
-                        AC_MSG_WARN([Could not locate Chaco])
-                        AC_MSG_WARN([Chaco not supported!])
+                        AC_MSG_WARN([Could not locate Chaco; not supported])
                 fi
         fi
 	CHACO_LIBS="-lchaco"
@@ -1115,15 +1113,19 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Need Schur parallel solver with MPI
 dnl
-if test $ol_enable_schur = yes ; then
+if test $ol_enable_schur != no ; then
 	if test $ol_link_mpi = yes ; then
 		if test $ol_link_metis = yes -o $ol_link_chaco=yes ; then
 			AC_DEFINE(USE_SCHUR,1,[define if you want to use Schur parallel solver])
 		else
-			AC_MSG_ERROR([Need either Metis or Chaco for Schur parallel solver])
+			if test $ol_enable_schur = yes ; then
+				AC_MSG_ERROR([Need either Metis or Chaco for Schur parallel solver])
+			fi
 		fi
 	else
-		AC_MSG_ERROR([Need MPI for Schur parallel solver])
+		if test $ol_enable_schur = yes ; then
+			AC_MSG_ERROR([Need MPI for Schur parallel solver])
+		fi
 	fi
 fi
 
