@@ -180,15 +180,15 @@ public:
 	};
 	/* ************************************************ */
 
-#ifdef USE_ADAMS	
 	/* Adams output stuff */
-	virtual unsigned int iGetNumAdamsDummyParts(void) const {
+	virtual unsigned int iGetNumDummyParts(void) const {
 		return 1;
 	};
 	virtual void
-	GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
+	GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
 	virtual void
-	GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
+	GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
+#ifdef USE_ADAMS	
 	virtual std::ostream&
 	WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part,
 			unsigned int firstId) const;
@@ -334,10 +334,13 @@ public:
 	/* Contributo al residuo durante l'assemblaggio iniziale */   
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);   
-	void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
-	void GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
+
+	void GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
+	void GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
+#ifdef USE_ADAMS
 	std::ostream& WriteAdamsDummyPartCmd(std::ostream& out,
 		unsigned int part, unsigned int firstId) const;
+#endif /* USE_ADAMS */
 
 	virtual unsigned int iGetNumPrivData(void) const;
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;

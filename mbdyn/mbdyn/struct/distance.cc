@@ -323,9 +323,8 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-#ifdef USE_ADAMS
 void 
-DistanceJoint::GetAdamsDummyPart(unsigned int part, 
+DistanceJoint::GetDummyPartPos(unsigned int part, 
 		Vec3& x, 
 		Mat3x3& R) const 
 {
@@ -335,7 +334,7 @@ DistanceJoint::GetAdamsDummyPart(unsigned int part,
 }
 
 void 
-DistanceJoint::GetAdamsDummyPartVel(unsigned int part, 
+DistanceJoint::GetDummyPartVel(unsigned int part, 
 		Vec3& v, 
 		Vec3& w) const 
 {
@@ -344,6 +343,7 @@ DistanceJoint::GetAdamsDummyPartVel(unsigned int part,
 	w = pNode1->GetWCurr();
 }
 
+#ifdef USE_ADAMS
 std::ostream& 
 DistanceJoint::WriteAdamsDummyPartCmd(std::ostream& out,
 		unsigned int part, 
@@ -698,9 +698,8 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
 }
 
 
-#ifdef USE_ADAMS
 void 
-DistanceJointWithOffset::GetAdamsDummyPart(unsigned int part,
+DistanceJointWithOffset::GetDummyPartPos(unsigned int part,
 		Vec3& x, 
 		Mat3x3& R) const 
 {
@@ -731,7 +730,7 @@ DistanceJointWithOffset::GetAdamsDummyPart(unsigned int part,
 }
 
 void 
-DistanceJointWithOffset::GetAdamsDummyPartVel(unsigned int part,
+DistanceJointWithOffset::GetDummyPartVel(unsigned int part,
 		Vec3& v, 
 		Vec3& w) const 
 {
@@ -764,6 +763,7 @@ DistanceJointWithOffset::GetAdamsDummyPartVel(unsigned int part,
 	w = pNode1->GetWCurr();
 }
 
+#ifdef USE_ADAMS
 std::ostream& 
 DistanceJointWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
 		unsigned int part, 

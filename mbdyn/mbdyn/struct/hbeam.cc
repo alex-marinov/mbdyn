@@ -707,9 +707,8 @@ HBeam::pGetNode(unsigned int i) const
 }
 
 
-#ifdef USE_ADAMS
 void
-HBeam::GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& r) const
+HBeam::GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& r) const
 {
 	ASSERT(part == 1);
 	part--;
@@ -719,7 +718,7 @@ HBeam::GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& r) const
 }
 
 void
-HBeam::GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
+HBeam::GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
 {
 	ASSERT(part == 1);
 	part--;
@@ -729,6 +728,7 @@ HBeam::GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
 }
 
 
+#ifdef USE_ADAMS
 std::ostream& 
 HBeam::WriteAdamsDummyPartCmd(std::ostream& out,
 		unsigned int part,

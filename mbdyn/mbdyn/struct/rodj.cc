@@ -443,9 +443,8 @@ SubVectorHandler& Rod::InitialAssRes(SubVectorHandler& WorkVec,
 }
 
 
-#ifdef USE_ADAMS
 void 
-Rod::GetAdamsDummyPart(unsigned int part,
+Rod::GetDummyPartPos(unsigned int part,
 			    Vec3& x, 
 			    Mat3x3& R) const 
 {
@@ -455,7 +454,7 @@ Rod::GetAdamsDummyPart(unsigned int part,
 }
 
 void 
-Rod::GetAdamsDummyPartVel(unsigned int part,
+Rod::GetDummyPartVel(unsigned int part,
 			    Vec3& v, 
 			    Vec3& w) const 
 {
@@ -465,6 +464,7 @@ Rod::GetAdamsDummyPartVel(unsigned int part,
 }
 
 
+#ifdef USE_ADAMS
 std::ostream& 
 Rod::WriteAdamsDummyPartCmd(std::ostream& out,
 				 unsigned int part, 
@@ -1564,7 +1564,7 @@ RodWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
 
 
 void 
-RodWithOffset::GetAdamsDummyPart(unsigned int part,
+RodWithOffset::GetDummyPartPos(unsigned int part,
 			    Vec3& x, 
 			    Mat3x3& R) const 
 {
@@ -1574,7 +1574,7 @@ RodWithOffset::GetAdamsDummyPart(unsigned int part,
 }
 
 void 
-RodWithOffset::GetAdamsDummyPartVel(unsigned int part,
+RodWithOffset::GetDummyPartVel(unsigned int part,
 			    Vec3& v, 
 			    Vec3& w) const 
 {
@@ -1583,7 +1583,7 @@ RodWithOffset::GetAdamsDummyPartVel(unsigned int part,
    v = pNode1->GetVCurr()+w.Cross(pNode1->GetRCurr()*f1);
 }
 
-
+#ifdef USE_ADAMS
 std::ostream& 
 RodWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
 					   unsigned int part, 
@@ -1620,6 +1620,7 @@ RodWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
      << l << " " << 0. << " " << 0. << " "
      << Zero3 << std::endl;   
 }
+#endif /* USE_ADAMS */
 
 unsigned int
 RodWithOffset::iGetNumPrivData(void) const 

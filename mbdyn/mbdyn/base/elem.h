@@ -207,17 +207,17 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
    virtual AerodynamicElem* pGetAerodynamicElem(void) const;
    virtual InitialAssemblyElem* pGetInitialAssemblyElem(void) const;
 
-#ifdef USE_ADAMS 
    /* Adams output stuff */
-   virtual unsigned int iGetNumAdamsDummyParts(void) const {
+   virtual unsigned int iGetNumDummyParts(void) const {
       return 0;
    };
-   virtual void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const {
+   virtual void GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const {
       THROW(ErrGeneric());
    };
-   virtual void GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const {
+   virtual void GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const {
       THROW(ErrGeneric());
    };
+#ifdef USE_ADAMS
    virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const {
       THROW(ErrGeneric());
    };

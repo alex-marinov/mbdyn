@@ -82,7 +82,7 @@ DataManager::AdamsResOutputInit(void)
 		do {
 			ASSERT(p != NULL);
 			if (p != NULL) {
-				iAdamsOutputParts += p->iGetNumAdamsDummyParts();
+				iAdamsOutputParts += p->iGetNumDummyParts();
 			}
 		} while (ElemIter.bGetNext(p));
 	}
@@ -159,7 +159,7 @@ DataManager::AdamsResOutputInit(void)
 		do {
 			ASSERT(p != NULL);
 			if (p != NULL) {
-				for (unsigned int part = 1; part <= p->iGetNumAdamsDummyParts(); part++, i++) {
+				for (unsigned int part = 1; part <= p->iGetNumDummyParts(); part++, i++) {
 					out
 						<< std::setw(20) << 2+i
 						<< std::setw(8) << 5+i
@@ -394,14 +394,14 @@ DataManager::AdamsResOutputInit(void)
 			ASSERT(p != NULL);
 			
 			if (p != NULL) {
-				unsigned int nParts = p->iGetNumAdamsDummyParts();
+				unsigned int nParts = p->iGetNumDummyParts();
 				
 				if (nParts > 0) {
 					unsigned int l = p->GetLabel();
 					const char *s = psAdamsElemCode[p->GetElemType()];	     
 
 					/* Nomi e dati delle parti */
-					for (unsigned int part = 1; part <= p->iGetNumAdamsDummyParts(); part++, i++) {
+					for (unsigned int part = 1; part <= p->iGetNumDummyParts(); part++, i++) {
 						/* file intermedio per generazione .cmd */
 						const char *sName = p->GetName();
 						if (sName != NULL) {
@@ -501,13 +501,13 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 			ASSERT(p != NULL);
 			
 			if (p != NULL) {
-				for (unsigned int part = 1; part <= p->iGetNumAdamsDummyParts(); part++) {
+				for (unsigned int part = 1; part <= p->iGetNumDummyParts(); part++) {
 					Vec3 x;
 					Mat3x3 R;
 					doublereal e0;
 					Vec3 e;
 					
-					p->GetAdamsDummyPart(part, x, R);
+					p->GetDummyPartPos(part, x, R);
 					MatR2EulerParams(R, e0, e);
 #ifdef HAVE_FORM_IN_OSTREAM
 					out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
@@ -569,10 +569,10 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 				ASSERT(p != NULL);
 				
 				if (p != NULL) {
-					for (unsigned int part = 1; part <= p->iGetNumAdamsDummyParts(); part++) {
+					for (unsigned int part = 1; part <= p->iGetNumDummyParts(); part++) {
 						Vec3 v, w;
 						
-						p->GetAdamsDummyPartVel(part, v, w);
+						p->GetDummyPartVel(part, v, w);
 #ifdef HAVE_FORM_IN_OSTREAM
 						out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
 								v(1), v(2), v(3), w(1), w(2), w(3));

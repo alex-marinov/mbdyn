@@ -1186,9 +1186,8 @@ const StructNode* Beam::pGetNode(unsigned int i) const
 }
 
 
-#ifdef USE_ADAMS
 void
-Beam::GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& r) const
+Beam::GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& r) const
 {
    ASSERT(part == 1 || part == 2);
    part--;
@@ -1198,7 +1197,7 @@ Beam::GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& r) const
 }
 
 void
-Beam::GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
+Beam::GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
 {
    ASSERT(part == 1 || part == 2);
    part--;
@@ -1208,7 +1207,7 @@ Beam::GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
    w = Zero3;
 }
 
-
+#ifdef USE_ADAMS
 std::ostream& 
 Beam::WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const
 {

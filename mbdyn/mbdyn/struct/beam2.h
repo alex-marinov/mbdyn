@@ -302,13 +302,13 @@ class Beam2
     };
     /**************************************************/
 
-#ifdef USE_ADAMS
     /* Adams output stuff */
-    unsigned int iGetNumAdamsDummyParts(void) const {
+    unsigned int iGetNumDummyParts(void) const {
         return 1;
     };
-    void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
-    void GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
+    void GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
+    void GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
+#ifdef USE_ADAMS
     std::ostream& 
     WriteAdamsDummyPartCmd(std::ostream& out,
                            unsigned int part, 
