@@ -35,6 +35,8 @@
 #include "myassert.h"
 #include "ac/sys_sysinfo.h"
 
+#include "mbpar.h"
+
 #include "spmapmh.h"
 #include "ccmh.h"
 #include "dirccmh.h"
@@ -47,7 +49,6 @@
 #include "taucswrap.h"
 #include "naivewrap.h"
 
-#include "mbpar.h"
 
 #include "linsol.h"
 
