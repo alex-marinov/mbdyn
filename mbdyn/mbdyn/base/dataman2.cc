@@ -831,27 +831,6 @@ DataManager::Output(bool force) const
 	 * dovuta al fatto che i dati propri non vengono modificati in modo
 	 * incontrollabile */
 
-	/* Restart condizionato */
-	switch (RestartEvery) {
-	case ITERATIONS:
-		if (++((integer&)iCurrRestartIter) == iRestartIterations) {
-			(integer&)iCurrRestartIter = 0;
-	  		((DataManager*)this)->MakeRestart();
-		}
-		break;
-
-	case TIME:
-		ASSERT(pTime != NULL);
-		if (pTime->GetVal().GetReal()-dLastRestartTime >= dRestartTime) {
-			(doublereal&)dLastRestartTime = pTime->GetVal().GetReal();
-			((DataManager*)this)->MakeRestart();
-		}
-		break;
-
-	default:
-		break;
-	}
-
 	/* output only at multiples of iOutputFrequency */
 	if ((!force) && (iOutputCount++%iOutputFrequency)) {
 		return;
@@ -1041,6 +1020,30 @@ DataManager::AfterConvergence(void) const
 		} while (ElemIter.fGetNext(pEl));
 	}
 #endif /* USE_ELEM_ITER */
+
+	/* Restart condizionato */
+	switch (RestartEvery) {
+	case ITERATIONS:
+		if (++iCurrRestartIter == iRestartIterations) {
+			iCurrRestartIter = 0;
+			((DataManager*)this)->MakeRestart();
+		}
+		break;
+
+	case TIME: {
+		ASSERT(pTime != NULL);
+
+		doublereal dT = pTime->GetVal().GetReal();
+		if (dT - dLastRestartTime >= dRestartTime) {
+			dLastRestartTime = dT;
+			((DataManager*)this)->MakeRestart();
+		}
+		break;
+	}
+
+	default:
+		break;
+	}
 }
 
 

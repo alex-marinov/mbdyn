@@ -1381,10 +1381,13 @@ ReadStructNode(DataManager* pDM,
 	 if (HP.IsKeyWord("assembly")) {
 	    dPosStiff = HP.GetReal(dPosStiff);
 	    dVelStiff = HP.GetReal(dVelStiff);
+	    
 	    if (HP.IsKeyWord("yes")) {
 	       fOmRot = 1;
+
 	    } else if (HP.IsKeyWord("no")) {
 	       fOmRot = 0;
+
 	    } else {
 	       silent_cerr("use keywords \"yes\" or \"no\"" << std::endl);
 	       fOmRot = HP.GetInt(fOmRot);

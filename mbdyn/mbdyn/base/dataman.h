@@ -129,8 +129,8 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
    integer iRestartIterations;
    doublereal dRestartTime;
    
-   integer iCurrRestartIter;
-   doublereal dLastRestartTime;
+   mutable integer iCurrRestartIter;
+   mutable doublereal dLastRestartTime;
 
    integer iOutputFrequency;
    mutable integer iOutputCount;
