@@ -204,7 +204,7 @@ Eflag(1)
 { 
 	SAFENEWARR(pdEs, doublereal, LSize*(ISize+1));
 	pdE = pdEs+LSize;
-	pE->Attach(LSize*ISize,pdE,LSize*ISize);
+	pE->Attach(LSize*ISize, pdE, LSize*ISize);
 	SAFENEWWITHCONSTRUCTOR(pEs,
 			MyVectorHandler,
 			MyVectorHandler((LSize*ISize), pdEs));

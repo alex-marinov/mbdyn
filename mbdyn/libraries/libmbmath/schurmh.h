@@ -66,6 +66,7 @@ protected:
 			      * per permetterne la distizione */  
   
 	bool extpdE;
+
 public: 
 	inline SchurMatrixHandler(int LocSize, int IntSize,
    			MatrixHandler* pBM, 
