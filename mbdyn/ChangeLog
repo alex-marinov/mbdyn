@@ -6,6 +6,11 @@ Copyright (C) 1996-2002
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+
+*** Fri Apr  5 19:38:36 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - print matrices for modal analysis if required (need to use matlab
+   compatible format)
+
 *** Thu Mar 28 11:37:57 CET 2002 Marco Morandini <morandini@aero.polimi.it>
  - small fixes: libraries/libmbwrap/Makefile.am and mbdyn/aero/rotor.cc
 

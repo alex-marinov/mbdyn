@@ -268,7 +268,7 @@ MultiStepIntegrator::Run(void)
 		 */
 		int iRankLength = 3;	/* should be configurable? */
 		char* sNewOutName = NULL;
-		char* sOutName = NULL;
+		const char* sOutName = NULL;
 
 		if (sOutputFileName == NULL) {
 			int iOutLen = strlen(sInputFileName);
@@ -3007,10 +3007,16 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Eigenanalysis will be performed at time "
 	  	     << OneEig.dTime << " (parameter: " << dEigParam << ")" 
 		     << std::endl);
+	  if (HP.IsKeyWord("outputmatrices")) {
+	     fEigenAnalysis = flag(2);
+	  }
 #else /* !__HACK_EIG__ */
 	  HP.GetReal();
 	  if (HP.IsKeyWord("parameter")) {
 	     HP.GetReal();
+	  }
+	  if (HP.IsKeyWord("outputmatrices")) {
+	     NO_OP;
 	  }
 	  std::cerr << HP.GetLineData()
 	    << ": eigenanalysis not supported (ignored)" << std::endl;
@@ -3023,7 +3029,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  std::cerr << "line " << HP.GetLineData()
 	    << ": warning, no eigenvalue support available" << std::endl;
 #endif /* !__HACK_EIG__ */
-	  if (HP.IsKeyWord("yes")) {
+	  if (HP.IsKeyWord("yes") || HP.IsKeyWord("nastran")) {
 #ifdef __HACK_EIG__
 	     fOutputModes = flag(1);
 	     if (HP.fIsArg()) {
@@ -3380,6 +3386,28 @@ MultiStepIntegrator::Eig(void)
    DEBUGCOUT(std::endl << "Matrix A:" << std::endl << MatA << std::endl
 	     << "Matrix B:" << std::endl << MatB << std::endl);
 #endif /* DEBUG */
+
+   if (fEigenAnalysis == 2) {
+      char *tmpFileName = NULL;
+      const char *srcFileName = NULL;
+      if (sOutputFileName == NULL) {
+	 srcFileName = sInputFileName;
+      } else {
+	 srcFileName = sOutputFileName;
+      }
+
+      size_t l = strlen(srcFileName);
+      SAFENEWARR(tmpFileName, char, l+1+3+1);
+      strcpy(tmpFileName, srcFileName);
+      strcpy(tmpFileName+l, ".mat");
+      
+      std::ofstream o(tmpFileName);
+
+      o << MatA << std::endl << MatB << std::endl;
+
+      o.close();
+      SAFEDELETEARR(tmpFileName);
+   }
    
 #ifdef DEBUG_MEMMANAGER
    ASSERT(defaultMemoryManager.fIsValid(MatA.pdGetMat(), 
@@ -3507,7 +3535,8 @@ MultiStepIntegrator::Eig(void)
    char datebuf[] = "11/14/95"; /* as in the example I used :) */
 
 #if defined(HAVE_STRFTIME) && defined(HAVE_LOCALTIME) && defined(HAVE_TIME)
-   struct tm *currtm = localtime(time(NULL));
+   time_t currtime = time(NULL);
+   struct tm *currtm = localtime(&currtime);
    if (currtm) {
 #warning "Your compiler might complain about %y"
 #warning "yielding only the last two digits of"
