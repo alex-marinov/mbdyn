@@ -91,9 +91,9 @@ AC_DEFUN([OL_ARG_WITH], [# OpenLDAP --with-$1
 	ol_with_$1="$ol_arg"
 ],
 [	ol_with_$1=ifelse($3,,"no","$3")])dnl
-	AC_ARG_WITH($1-dir,,[ol_with_dir_$1="$withval"])dnl
-	AC_ARG_WITH($1-incdir,,[ol_with_incdir_$1="$withval"])dnl
-	AC_ARG_WITH($1-libdir,,[ol_with_libdir_$1="$withval"])dnl
+	dnl AC_ARG_WITH($1-dir,,[ol_with_dir_$1="$withval"])dnl
+	dnl AC_ARG_WITH($1-incdir,,[ol_with_incdir_$1="$withval"])dnl
+	dnl AC_ARG_WITH($1-libdir,,[ol_with_libdir_$1="$withval"])dnl
 dnl AC_VERBOSE(OpenLDAP --with-$1 $ol_with_$1)
 # end --with-$1
 ])dnl
