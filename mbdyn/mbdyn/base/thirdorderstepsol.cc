@@ -315,11 +315,13 @@ void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
 	integer iNumDofs = pDM->iGetNumDofs();
 
 	MyVectorHandler state, stateder;
+	pJac->Reset();
+#if 0
 	pJacxi_x->Reset();
 	pJacxi_xp->Reset();
 	pJac_x->Reset();
 	pJac_xp->Reset();
-
+#endif
 	/* theta*dT */
 	state.Attach(iNumDofs, pXCurr->pdGetVec()+iNumDofs);
 	stateder.Attach(iNumDofs, pXPrimeCurr->pdGetVec()+iNumDofs);
