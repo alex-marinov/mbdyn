@@ -1967,8 +1967,12 @@ Solver::ReadData(MBDynParser& HP)
 		"eigen" "analysis",
 		"output" "modes",
 
+		/* DEPRECATED */
 		"solver",
 		"interface" "solver",
+		/* END OF DEPRECATED */
+		"linear" "solver",
+		"interface" "linear" "solver",
 
 		/* DEPRECATED */
 		"preconditioner",
@@ -2062,8 +2066,12 @@ Solver::ReadData(MBDynParser& HP)
 		EIGENANALYSIS,
 		OUTPUTMODES,
 
-		SOLVER,
+		/* DEPRECATED */
+		SOLVER,	
 		INTERFACESOLVER,
+		/* END OF DEPRECATED */
+		LINEARSOLVER,
+		INTERFACELINEARSOLVER,
 
 		/* DEPRECATED */
 		PRECONDITIONER,
@@ -3015,10 +3023,22 @@ Solver::ReadData(MBDynParser& HP)
 			break;
 
 		case SOLVER:
+			silent_cerr("\"solver\" keyword at line "
+					<< HP.GetLineData()
+					<< " is deprecated; "
+					"use \"linear solver\" instead"
+					<< std::endl);
+		case LINEARSOLVER:
 			ReadLinSol(CurrLinearSolver, HP);
 			break;
 
 		case INTERFACESOLVER:
+			silent_cerr("\"interface solver\" keyword at line "
+					<< HP.GetLineData()
+					<< " is deprecated; "
+					"use \"interface linear solver\" "
+					"instead" << std::endl);
+		case INTERFACELINEARSOLVER:
 			ReadLinSol(CurrIntSolver, HP, true);
 
 #ifndef USE_MPI

@@ -110,7 +110,8 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
       "max" "iterations",
       "epsilon",
 
-      "solver",
+      "solver",		/* deprecated */
+      "linear" "solver",
 
       "print",
       
@@ -183,7 +184,8 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
       MAXITERATIONS,
       EPSILON,
 
-      SOLVER,
+      SOLVER,	/* deprecated */
+      LINEARSOLVER,
 
       PRINT,
       
@@ -722,6 +724,10 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
 	  break;
 
        case SOLVER:
+	  silent_cerr("\"solver\" keyword at line "
+			  << HP.GetLineData() << " is deprecated; "
+			  "use \"linear solver\" instead" << std::endl);
+       case LINEARSOLVER:
 	  ReadLinSol(CurrSolver, HP);
 	  break;
 	 
