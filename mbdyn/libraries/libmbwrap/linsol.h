@@ -58,7 +58,7 @@ public:
 
 	LinSol(void);
    	virtual ~LinSol(void);
-	void Read(MBDynParser &HP, bool bAllowEmpty = false);
+	void Read(HighParser &HP, bool bAllowEmpty = false);
  
 	SolverType GetSolver(void) const;
 	integer iGetWorkSpaceSize(void) const;

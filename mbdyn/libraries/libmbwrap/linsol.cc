@@ -85,7 +85,7 @@ LinSol::~LinSol(void)
 }
 
 void
-LinSol::Read(MBDynParser &HP, bool bAllowEmpty)
+LinSol::Read(HighParser &HP, bool bAllowEmpty)
 {
    	/* parole chiave */
    	const char* sKeyWords[] = { 
