@@ -247,7 +247,7 @@ void Rotor::InitParam(void)
    dVTip = dOmega*dRadius;
    if (dVTip > DBL_EPSILON) {
       dMu = (dVelocity*dCosAlphad)/dVTip;
-      dLambda = (dVelocity*dSinAlphad+dUMeanPrev)/dVTip;
+      dLambda = (dVelocity*dSinAlphad+dUMeanPrev/dCorrection)/dVTip;
    }
    
    if (dMu == 0. && dLambda == 0.) {
