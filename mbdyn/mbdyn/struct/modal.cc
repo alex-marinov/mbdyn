@@ -167,7 +167,8 @@ Inv3jaj(0.),
 Inv3jaPj(0.), 
 Inv8jaj(0.), 
 Inv8jaPj(0.), 
-Inv5jaj(NModes,0),
+Inv5jaj(NModes,0.),
+Inv5jaPj(NModes,0.),
 Inv4j(0.), 
 VInv5jaj(0.), 
 VInv5jaPj(0.), 
@@ -356,8 +357,8 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
    /* momenti statici J[1,2] = -[S/\]+c[-2w/\S/\+S/\w/\] */
    Mat3x3 SWedge(S);
    WM.Add(7, 10, ((SWedge*wrWedge-wrWedge*(SWedge*(2.)))*dCoef)-SWedge);
-   
-   /* J[2,1] = [S/\] */   
+
+      /* J[2,1] = [S/\] */   
    WM.Add(10, 7, SWedge);
    
    /* momenti d'inerzia:       J[2,2] = J+c[-(Jw)/\+(w/\)J];    */   
@@ -419,7 +420,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
    Mat3x3 Inv3jaPjWedge(Inv3jaPj);
    WM.Sub(7, 10, R*Inv3jaPjWedge*(RT*(2.*dCoef)));
 #ifdef MODAL_USE_INV9
-   WM.Add(10,10, R*((Inv8jaPj-Inv9jkajaPk)*(RT*(2.*dCoef))));
+    WM.Add(10,10, R*((Inv8jaPj-Inv9jkajaPk)*(RT*(2.*dCoef))));
 #else /* !MODAL_USE_INV9 */
    WM.Add(10,10, R*(Inv8jaPj*(RT*(2.*dCoef))));
 #endif /* !MODAL_USE_INV9 */
@@ -443,22 +444,40 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
     * (anche questi termini dovrebbero essere trascurabili) 
     */
 #if 0
-   for (int iCnt = 1; iCnt<=3; iCnt++) { 
-      double temp1 = 0., temp2 = 0.;
-      for (int jCnt = 1; jCnt<=3; jCnt++) {
-	 temp1 += -2*wr.dGet(jCnt)*(R*(Inv8jTranspose-Inv9jkak)*RT).dGet(iCnt, jCnt);
-	 temp2 += -(R*(Inv4j+VInv5jaj)).dGet(jCnt)*wrWedge.dGet(iCnt, jCnt);
-      }
-      WM.fIncCoef(12+NModes+1, 9+iCnt, dCoef*(temp1+temp2));
-   }
-   
-   for (int iCnt = 1; iCnt<=3; iCnt++) { 
-      double temp1 = 0.;
-      for (int jCnt = 1; jCnt<=3; jCnt++) {
-	 temp1 += (R*VInv5jaPj*2).dGet(jCnt);
-      }
-      WM.fIncCoef(12+NModes+1, 9+iCnt, dCoef*temp1);
-   } 
+	for (unsigned int iMode = 1; iMode <= NModes; iMode++) { 
+      		Inv4j = pInv4->GetVec(iMode);
+      		VInv5jaj = Inv5jaj.GetVec(iMode);
+      		VInv5jaPj = Inv5jaPj.GetVec(iMode);
+      		unsigned int jOffset = (iMode-1)*3+1;
+      		Inv8jTranspose = (pInv8->GetMat3x3(jOffset)).Transpose();
+#ifdef MODAL_USE_INV9
+		Inv9jkak = 0.;
+      		for (unsigned int kModem1 = 0; kModem1 < NModes; kModem1++)  {
+	 		doublereal a_kMode = a.dGet(kModem1+1);
+	 		integer iOffset = (iMode-1)*3*NModes+kModem1*3+1;
+			Inv9jkak += pInv9->GetMat3x3ScalarMult(iOffset, a_kMode);
+      		}
+#endif /* !MODAL_USE_INV9 */
+		for (int iCnt = 1; iCnt<=3; iCnt++) { 
+      			double temp1 = 0., temp2 = 0.;
+      			for (int jCnt = 1; jCnt<=3; jCnt++) {
+#ifdef MODAL_USE_INV9
+	 			temp1 += -2*wr.dGet(jCnt)*(R*(Inv8jTranspose-Inv9jkak)*RT).dGet(iCnt, jCnt);
+#else /* !MODAL_USE_INV9 */
+	 			temp1 += -2*wr.dGet(jCnt)*(R*(Inv8jTranspose)*RT).dGet(iCnt, jCnt);
+#endif /* !MODAL_USE_INV9 */
+	 			temp2 += -(R*(Inv4j+VInv5jaj)).dGet(jCnt)*wrWedge.dGet(iCnt, jCnt);
+      			}
+      		WM.fIncCoef(12+NModes+iMode, 9+iCnt, dCoef*(temp1+temp2));
+   		}
+	 	for (int iCnt = 1; iCnt<=3; iCnt++) { 
+      			double temp1 = 0.;
+      			for (int jCnt = 1; jCnt<=3; jCnt++) {
+	 			temp1 += (R*VInv5jaPj*2).dGet(jCnt);
+      			}
+      			WM.fIncCoef(12+NModes+iMode, 9+iCnt, dCoef*temp1);
+   		}
+	} 
 #endif
    
    /* ciclo esteso a tutti i nodi d'interfaccia */
@@ -496,7 +515,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 	 WM.fIncCoef(iStrNodeIndex+iCnt, iReactionIndex+iCnt, -1.);
       }
 
-      /* ppd1Tot e' il puntatore all'array 
+      /* pd1Tot e' il puntatore all'array 
        * che contiene le posizioni del nodi FEM */ 
       Mat3x3 dTmp1Wedge(R*pd1tot[iStrNodem1]); 
       WM.Add(10, iReactionIndex+1, dTmp1Wedge);
@@ -517,7 +536,9 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
       WM.Add(12+NModes+1, 4, SubMat3);
       SubMat3.RightMult(PHItT, RT);
       WM.Add(12+NModes+1, iReactionIndex+1, SubMat3);
-      SubMat1.LeftMult(FTmpWedge, PHIt);
+      Mat3xN PHItR(NModes);
+      PHItR.LeftMult(R, PHIt);
+      SubMat1.LeftMult(FTmpWedge, PHItR);
       WM.Sub(10, 13, SubMat1);
       
       /* modifica: divido le equazioni di vincolo per dCoef */
@@ -530,8 +551,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
       WM.Add(iReactionIndex+1, 4, dTmp1Wedge);
       
       /* contributo dovuto alla flessibilita' */
-      SubMat1.LeftMult(R, PHIt);
-      WM.Sub(iReactionIndex+1, 13, SubMat1); 
+      WM.Sub(iReactionIndex+1, 13, PHItR); 
       
       /*termini di vincolo dovuti al nodo 2 */
       WM.Sub(iReactionIndex+1, iStrNodeIndex+4, dTmp2Wedge);
@@ -587,7 +607,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
       SubMat3.RightMult(PHIrT, R1totTranspose*MAWedge);
       WM.Add(12+NModes+1, 4, SubMat3);
       
-      Mat3x3 R1TMAWedge(RT*MA);
+      Mat3x3 R1TMAWedge(RT*MAWedge);
       SubMat1.LeftMult(R1TMAWedge, PHIr);   
       SubMat2.LeftMult(R1totTranspose*M1Wedge, PHIr);
       SubMat1 += SubMat2;
@@ -721,19 +741,19 @@ Modal::AssRes(SubVectorHandler& WorkVec,
    CaP.Mult(*pModalDamp, b);
    MaPP.Mult(*pModalMass, bPrime);
    
-   Inv3jaj = *pInv3*a;
-   Inv3jaPj = *pInv3*b;
-   Vec3 Inv3jaPPj = *pInv3*bPrime;
+   Inv3jaj = *pInv3 * a;
+   Inv3jaPj = *pInv3 * b;
+   Vec3 Inv3jaPPj = *pInv3 * bPrime;
    
    /* invarianti rotazionali */
    Vec3 Inv11jaPj;
-   Inv11jaPj = R*(*pInv11*b);
+   Inv11jaPj = R*(*pInv11 * b);
    
    Inv8jaj = 0.; 
    Inv8jaPj = 0.;  
-   Inv5jaj.Reset();
+   Inv5jaj.Reset(0.);
    
-   Mat3xN Inv5jaPj(NModes, 0.);
+   Inv5jaPj.Reset(0.);
    Mat3x3 MatTmp1(0.), MatTmp2(0.);
 #ifdef MODAL_USE_INV9
    Mat3x3 Inv9jkajak(0.);
@@ -764,8 +784,8 @@ Modal::AssRes(SubVectorHandler& WorkVec,
       }
 
 
-      Inv8jaj += Inv8jajTmp*a_iMode;
-      Inv8jaPj += Inv8jajTmp*aP_iMode; 
+      Inv8jaj += Inv8jajTmp * a_iMode;
+      Inv8jaPj += Inv8jajTmp * aP_iMode; 
       Inv10jaPj += Inv10jaPjTmp;
       
 #ifdef MODAL_USE_INV9
@@ -780,8 +800,8 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 	 doublereal aP_kMode = b.dGet(kMode);
 	 unsigned int iOffset = (iMode-1)*3*NModes+(kMode-1)*3+1;
 
-	 Inv9jkajak  += pInv9->GetMat3x3ScalarMult(iOffset+1, a_iMode*a_kMode);
-	 Inv9jkajaPk += pInv9->GetMat3x3ScalarMult(iOffset+1, a_iMode*aP_kMode); 
+	 Inv9jkajak  += pInv9->GetMat3x3ScalarMult(iOffset, a_iMode*a_kMode );
+	 Inv9jkajaPk += pInv9->GetMat3x3ScalarMult(iOffset, a_iMode*aP_kMode); 
       }
 #endif /* MODAL_USE_INV9 */
       
@@ -793,7 +813,6 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 #endif /* MODAL_USE_INV9 */ 
 		   )*RT;
    Vec3 S = R*(Inv2+Inv3jaj);
-   
    Mat3xN Inv4Curr(NModes, 0), Inv5jajCurr(NModes, 0);
    Inv4Curr.LeftMult(R, *pInv4);
    Inv5jajCurr.LeftMult(R, Inv5jaj);
@@ -803,11 +822,12 @@ Modal::AssRes(SubVectorHandler& WorkVec,
     */
    
    /* forze d'inerzia */
-   WorkVec.Sub(7, vP*dMass-S.Cross(wP)+w.Cross(w.Cross(S))
-		   +(w.Cross(R*Inv3jaPj))*2.+R*Inv3jaPPj);
+   WorkVec.Sub(7, vP*dMass-S.Cross(wP)+R*Inv3jaPPj+w.Cross(w.Cross(S))
+		   +(w.Cross(R*Inv3jaPj))*2.);
 
 #if 0
-   std::cerr << "m*vP=" << vP*dMass << "; R*I3*aPP=" << R*Inv3jaPPj << "; tot=" 
+   std::cerr << "m=" << dMass << "; S=" << S  
+             << "; a="  << a << ";aPrime =" << aPrime << "; b=" << b <<  "; bPrime= " << bPrime << "; tot=" 
    	<< vP*dMass-S.Cross(wP)+w.Cross(w.Cross(S))+(w.Cross(R*Inv3jaPj))*2+R*Inv3jaPPj << std::endl;
 #endif
 
@@ -844,6 +864,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
       Inv8jTranspose = (pInv8->GetMat3x3(jOffset)).Transpose();
       Inv10j = pInv10->GetMat3x3(jOffset);
 
+#ifdef MODAL_USE_INV9
       Inv9jkak = 0.;
 
       for (unsigned int kModem1 = 0; kModem1 < NModes; kModem1++)  {
@@ -852,10 +873,15 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 
 	 Inv9jkak += pInv9->GetMat3x3ScalarMult(iOffset, a_kMode);
       }
-
+#endif /* !MODAL_USE_INV9 */
+      
       WorkVec.fIncCoef(12+NModes+iMode, 
       		-(R*Inv3j).Dot(vP)-(R*(Inv4j+VInv5jaj)).Dot(wP)
+#ifdef MODAL_USE_INV9		      
 		+w.Dot(R*((Inv8jTranspose-Inv9jkak+Inv10j)*RTw))
+#else /* !MODAL_USE_INV9 */
+		+w.Dot(R*((Inv8jTranspose+Inv10j)*RTw))
+#endif /* !MODAL_USE_INV9 */		      		      
 		-(R*VInv5jaPj).Dot(w)*2.
 		-MaPP.dGet(iMode)-CaP.dGet(iMode)-Ka.dGet(iMode));
       
@@ -2235,7 +2261,9 @@ ReadModal(DataManager* pDM,
    DEBUGCOUT("Inertia Matrix : " << std::endl << JTmp << std::endl);
    DEBUGCOUT("Static Moment Vector : " << STmp << std::endl);
    DEBUGCOUT("Generalized Stiffness: " << std::endl);
-   for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+
+   
+    for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
       for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
 	 std::cout << " " << pGenStiff->dGet(iCnt, jCnt);
       }

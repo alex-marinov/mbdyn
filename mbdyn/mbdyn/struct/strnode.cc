@@ -705,7 +705,9 @@ ModalNode::ModalNode(unsigned int uL,
 				     doublereal dVelStiff, 
 				     flag fOmRot,
 				     flag fOut)
-: DynamicStructNode(uL, pDO, X0, R0, V0, W0, dPosStiff, dVelStiff, fOmRot, fOut)
+: DynamicStructNode(uL, pDO, X0, R0, V0, W0, dPosStiff, dVelStiff, fOmRot, fOut),
+XPPCurr(0.),
+WPCurr(0.)
 {
    NO_OP;
 }

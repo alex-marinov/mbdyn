@@ -48,6 +48,7 @@
 #include <ac/fstream>
 #include <joint.h>
 
+
 #if 0
 #define MODAL_USE_INV9
 #define MODAL_USE_GRAVITY /* need GravityOwner inheritance first */
@@ -99,7 +100,7 @@ class Modal : virtual public Elem, public Joint {
    Vec3   Inv3jaPj;
    Mat3x3 Inv8jaj;
    Mat3x3 Inv8jaPj;
-   Mat3xN Inv5jaj;
+   Mat3xN Inv5jaj, Inv5jaPj;
    Vec3 Inv4j, VInv5jaj, VInv5jaPj;
    Mat3x3 Inv8jTranspose, Inv9jkak;
 #ifdef MODAL_USE_INV9
@@ -234,6 +235,10 @@ class Modal : virtual public Elem, public Joint {
       return iGetFirstIndex();
    };
    
+   const ModalNode* pGetModalNode(void) const {
+    	return pModalNode;
+    };
+    
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
     * utile per l'assemblaggio della matrice di connessione fra i dofs */
