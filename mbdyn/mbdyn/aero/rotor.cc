@@ -1446,7 +1446,7 @@ Elem* ReadRotor(DataManager* pDM,
 	  doublereal dVConst = 0.;
 	  doublereal dVCosine = 0.;
 	  doublereal dVSine = 0.;
-	  if (HP.IsKeyWord("initialvalue")) {
+	  if (HP.IsKeyWord("initial" "value")) {
 	     dVConst = HP.GetReal();
 	     dVCosine = HP.GetReal();
 	     dVSine = HP.GetReal();
@@ -1465,7 +1465,19 @@ Elem* ReadRotor(DataManager* pDM,
 				 DMmm);
        } else {   	      	   	      	  
 	  /* Legge il coefficiente di peso della velocita' indotta 
-	   * ("weight" e' deprecato, si preferisce "delay") */
+	   * ("weight" e' deprecato, si preferisce "delay") 
+	   *
+	   * nota:
+	   * 
+	   * U = U_n * ( 1 - dW ) + U_n-1 * dW
+	   * 
+	   * quindi dW rappresenta il peso che si da' al valore
+	   * al passo precedente; in questo modo si introduce un
+	   * ritardo euristico (attenzione: il ritardo vero dipende
+	   * dal passo temporale) che aiuta ad evitare problemi 
+	   * di convergenza. Se si desidera un ritardo "fisico",
+	   * conviene forse provare il "Dynamic Inflow".
+	   */
 	  doublereal dW = 0.;
 	  if (HP.IsKeyWord("weight") || HP.IsKeyWord("delay")) {
 	     dW = HP.GetReal();
