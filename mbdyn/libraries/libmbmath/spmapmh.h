@@ -290,6 +290,7 @@ public:
 		if ((in.iGetNumCols() != iGetNumRows())
 				|| (in.iGetNumRows() != out.iGetNumRows())
 				|| (out.iGetNumCols() != iGetNumCols())) {
+			std::cerr << "Assertion fault in SpMapMatrixHandler::MatMatMul" << std::endl;
 			THROW(ErrGeneric());
 		}
 		out.Reset(0.);
@@ -309,8 +310,9 @@ public:
         /* Moltiplica per uno scalare e somma a una matrice */
 	MatrixHandler& MulAndSumWithShift(MatrixHandler& out, doublereal s = 1.,
 		integer drow = 0, integer dcol = 0) const {
-		if ((out.iGetNumCols() != iGetNumCols()+dcol)
-			|| (out.iGetNumRows() != iGetNumRows()+drow)) {
+		if ((out.iGetNumCols() < iGetNumCols()+dcol)
+			|| (out.iGetNumRows() < iGetNumRows()+drow)) {
+			std::cerr << "Assertion fault in SpMapMatrixHandler::MulAndSumWithShift" << std::endl;
 			THROW(ErrGeneric());
 		}
 		for (int col=0; col<NCols; col++) {
@@ -318,7 +320,7 @@ public:
 			re = col_indices[col].end();
 			integer newcol = col + dcol;
 			for (ri = col_indices[col].begin(); ri!=re; ri++) {
-				out.fIncCoef(ri->first+drow,newcol,ri->second*s);
+				out.fIncCoef(ri->first+drow+1,newcol+1,ri->second*s);
 			}
 		}
 		return out;	
