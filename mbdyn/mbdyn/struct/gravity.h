@@ -188,6 +188,7 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
     * momento statico e momento di inerzia trasportati nel punto X
     * e ruotati di R
     */
+#if 0
    Vec3 GetS(const Vec3& X, const Mat3x3& R) const {
       return R*(_GetS()-X*dGetM());
    };
@@ -195,6 +196,15 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
    Mat3x3 GetJ(const Vec3& X, const Mat3x3& R) const {
       Vec3 S = X*dGetM()+_GetS();
       return R*(_GetJ()-Mat3x3(S, S/dGetM()))*R.Transpose();
+   };
+#endif
+   
+   Vec3 GetS(void) const {
+	   return _GetS();
+   };
+   
+   Mat3x3 GetJ(void) const {
+      return _GetJ();
    };
    
 #ifdef DEBUG

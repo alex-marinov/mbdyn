@@ -13,7 +13,8 @@ MBDyn 1.2-Engineering
 		- UMFPACK 4.0 is the default solver (if available)
 		- implement separate induced velocity correction
 		  factors for hover and forward flight
-		- add -W (--working-dir) switch
+		- added -W (--working-dir) switch
+		- added inertia properties computation of element blocks
 	Bug fixes:
 
 

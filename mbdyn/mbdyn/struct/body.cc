@@ -58,6 +58,26 @@ J0(JTmp)
 }
 
 
+/* momento statico */
+Vec3 
+Body::_GetS(void) const
+{
+	return pNode->GetXCurr()*dMass+pNode->GetRCurr()*S0;
+}
+
+
+/* momento d'inerzia */
+Mat3x3
+Body::_GetJ(void) const
+{
+	Vec3 s = pNode->GetRCurr()*S0;
+	const Vec3& x = pNode->GetXCurr();
+
+	return pNode->GetRCurr()*J0*pNode->GetRCurr().Transpose()
+		- Mat3x3(x, x*dMass) - Mat3x3(s, x) - Mat3x3(x, s);
+}
+ 
+
 /* Scrive il contributo dell'elemento al file di restart */
 std::ostream& 
 Body::Restart(std::ostream& out) const

@@ -34,6 +34,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <float.h>
+
 #include <dataman.h>
 #include <dataman_.h>
 
@@ -94,7 +96,7 @@ enum KeyWords {
    BULK,
    LOADABLE,
    DRIVEN,
-   
+
    INERTIA,
    
    EXISTING,
@@ -316,41 +318,93 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    }
 	 }
 
-#ifdef USE_STRUCT_NODES
       } else if (CurrDesc == INERTIA) {
-	 unsigned int uL = (unsigned int)HP.GetInt();
+	 unsigned int uIn = (unsigned int)HP.GetInt();
 
-	 /*
-	  * add reference frame
-	  */
-	 if (HP.IsKeyWord("reference")) {
-		std::cerr << "inertia " << uL 
-			<< "at line " << HP.GetLineData() 
-			<< ": reference frames not supported yet" << std::endl;
-		THROW(ErrGeneric());
+	 /* Nome dell'elemento */
+         const char *sName = NULL;
+         if (HP.IsKeyWord("name")) {
+	    const char *sTmp = HP.GetStringWithDelims();
+	    SAFESTRDUP(sName, sTmp);
 	 }
 
-	 doublereal M = 0.;
+#ifdef USE_STRUCT_NODES
+	 Vec3 x(0.);
+	 if (HP.IsKeyWord("position")) {
+		 x = HP.GetPosAbs(AbsRefFrame);
+	 }
+	 
+	 doublereal dM(0.);
 	 Vec3 S(0.);
 	 Mat3x3 J(0.);
-	 
-	 while (1) {
-		Body *pB;
-		StructNode *pN;
 
-		unsigned int uB = (unsigned int)HP.GetInt();
-		pB = (Body *)pFindElem(Elem::BODY, uB);
-		if (pB == NULL) {
-			std::cerr << "inertia " << uL 
-				<< " at line " << HP.GetLineData()
-				<< ": cannot find Body(" << uB << ")" 
-				<< std::endl;
-			THROW(ErrGeneric());
-		}
-		
+	 Elem::Type Type = Elem::UNKNOWN;
+	 while (HP.fIsArg()) {
+		 if (HP.IsKeyWord("body")) {
+			 Type = Elem::BODY;
+#if 0
+		 } else if (HP.IsKeyWord("...")) {
+#endif /* other types with inertia */
+		 }
 
+		 if (Type == Elem::UNKNOWN) {
+			 std::cerr << "inertia " << uIn
+				 << " at line " << HP.GetLineData()
+				 << ": missing element type" << std::endl;
+			 THROW(ErrGeneric());
+		 }
+
+		 unsigned int uL = (unsigned int)HP.GetInt();
+		 Elem **ppTmpEl = (Elem **)ppFindElem(Type, uL);
+		 if (ppTmpEl == NULL || ppTmpEl[0] == NULL) {
+			 std::cerr << "inertia " << uIn 
+				 << " at line " << HP.GetLineData()
+				 << ": unable to find " << psElemNames[Type]
+				 << "( " << uL << ")" << std::endl;
+			 THROW(ErrGeneric());
+		 }
+		 ElemGravityOwner *pEl = 
+			 (ElemGravityOwner *)ppTmpEl[0]->pGetElemGravityOwner();
+
+		 dM += pEl->dGetM();
+		 S += pEl->GetS();
+		 J += pEl->GetJ();
 	 }
 
+	 Vec3 Xcg(0.);
+	 Mat3x3 Jcg(J);
+	 if (dM < DBL_EPSILON) {
+	    std::cerr << "inertia " << uIn 
+		    << " at line " << HP.GetLineData()
+		    << ": mass is null" << std::endl;
+	 } else {
+	    Xcg = S/dM;
+	    Jcg += Mat3x3(S, Xcg);
+	 }
+
+	 if (x != Zero3) {
+	    Vec3 Dx = Xcg - x;
+	    J += Mat3x3(x, x*dM) + Mat3x3(Dx, x*dM) + Mat3x3(x, Dx*dM);
+	 }
+
+	 OutHdl.Log()
+		 << "inertia " << uIn
+		 << " (" << ( sName ? sName : "unnamed" ) << ")" << std::endl
+		 << "    mass " << dM << std::endl
+		 << "    Xcg " << Xcg << std::endl
+		 << "    J " << J << std::endl
+		 << "    Jcg " << Jcg << std::endl;
+	 if (sName) {
+	    SAFEDELETEARR(sName);
+	 }
+	 
+#else /* !USE_STRUCT_NODES */
+	 std::cerr << "inertia " << uIn << " at line " << HP.GetLineData()
+		 << " available only if structural nodes are enabled" 
+		 << std::endl;
+#if 0	/* not critical ... */
+	 THROW(ErrGeneric());
+#endif
 #endif /* !USE_STRUCT_NODES */
 
       } else if (CurrDesc == BIND) {
@@ -518,7 +572,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     
 	     break;
 	  }
-
+	    
 #ifdef USE_AERODYNAMIC_ELEMS
 	    /* Elementi aerodinamici: proprieta' dell'aria */
 	  case AIRPROPERTIES: {
