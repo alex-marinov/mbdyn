@@ -65,6 +65,10 @@ D. Code:
 	- add selected output streamed on sockets for interactive analysis
 	- add rot2any/any2rot utilities
 	- rewrite hydraulic nodes as scalar differential (?)
+	- add joints like:
+		- clamp (spherical + prismatic in one joint)
+		- universal and revolute without displacement constraints
+		- inplane and inline with only one node
 
 
 
@@ -75,6 +79,7 @@ E. Bugs/missing features:
 	- eliminate nasty dependence from f2c typedefs (doublereal and so)
 	- review deformable viscous/viscoelastic hinge according
 	  to the elastic one
+	- check "universal pin"
 
 
 
