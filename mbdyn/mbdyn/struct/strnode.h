@@ -153,6 +153,10 @@ class StructNode : public Node {
     * se differenziale, iOrder puo' essere = 1 per la derivata */
    virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
    
+   /* Restituisce il valore del dof iDof al passo precedente;
+    * se differenziale, iOrder puo' essere = 1 per la derivata */
+   virtual const doublereal& dGetDofValuePrev(int iDof, int iOrder = 0) const;
+   
    /* Setta il valore del dof iDof a dValue;
     * se differenziale, iOrder puo' essere = 1 per la derivata */
    virtual void SetDofValue(const doublereal& dValue, 
@@ -611,6 +615,10 @@ class DummyStructNode : public StructNode {
    /* Restituisce il valore del dof iDof;
     * se differenziale, iOrder puo' essere = 1 per la derivata */
    virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
+   
+   /* Restituisce il valore del dof iDof al passo precedente;
+    * se differenziale, iOrder puo' essere = 1 per la derivata */
+   virtual const doublereal& dGetDofValuePrev(int iDof, int iOrder = 0) const;
    
    /* Setta il valore del dof iDof a dValue;
     * se differenziale, iOrder puo' essere = 1 per la derivata */

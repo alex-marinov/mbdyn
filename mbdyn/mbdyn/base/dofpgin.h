@@ -38,6 +38,7 @@ class DofPlugIn : public MathParser::PlugIn {
 protected:
 	ScalarDof dof;
 	DataManager *pDM;
+	bool bPrev;
 
 public:
 	DofPlugIn(MathParser& mp, DataManager *pDM);

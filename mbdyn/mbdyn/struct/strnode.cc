@@ -199,6 +199,37 @@ StructNode::dGetDofValue(int iDof, int iOrder) const
    return dmy;
 }
 
+/* Restituisce il valore del dof iDof al passo precedente;
+ * se differenziale, iOrder puo' essere = 1 per la derivata */
+const doublereal& 
+StructNode::dGetDofValuePrev(int iDof, int iOrder) const
+{
+   ASSERT(iDof >= 1 && iDof <= 6);
+   ASSERT(iOrder == 0 || iOrder == 1);
+   if (iDof >= 1 && iDof <= 3) {
+      if (iOrder == 0) {
+	 return XPrev.dGet(iDof);	 
+      } else if (iOrder == 1) {	 
+	 return VPrev.dGet(iDof);
+      } 
+   } else if (iDof >= 4 && iDof <= 6) {	        
+      if (iOrder == 1) {
+	 return WPrev.dGet(iDof-3);
+      } else if (iOrder == 0) {
+	 std::cerr << "Node " << GetLabel() 
+	   << ": unable to return the angle." << std::endl;
+	 THROW(StructNode::ErrGeneric());
+      }	 
+   } else {
+      std::cerr << "Required dof is not available." << std::endl;
+      THROW(StructNode::ErrGeneric());
+   }
+
+   /* dummy return value to workaround compiler complains */
+   static doublereal dmy = 0.;
+   return dmy;
+}
+
 /* Setta il valore del dof iDof a dValue;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
 void 
@@ -854,6 +885,16 @@ DummyStructNode::GetStructNodeType(void) const
  * se differenziale, iOrder puo' essere = 1 per la derivata */
 const 
 doublereal& DummyStructNode::dGetDofValue(int iDof, int iOrder) const
+{
+   std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
+   THROW(ErrGeneric());   
+}
+
+
+/* Restituisce il valore del dof iDof al passo precedente;
+ * se differenziale, iOrder puo' essere = 1 per la derivata */
+const 
+doublereal& DummyStructNode::dGetDofValuePrev(int iDof, int iOrder) const
 {
    std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
    THROW(ErrGeneric());   

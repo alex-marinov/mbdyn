@@ -100,7 +100,7 @@ ScalarDifferentialNode::ScalarDifferentialNode(unsigned int uL,
 					       const doublereal& dx, 
 					       const doublereal& dxp, 
 					       flag fOut)
-: ScalarNode(uL, pDO, fOut), dX(dx), dXP(dxp)
+: ScalarNode(uL, pDO, fOut), dX(dx), dXP(dxp), dXPrev(dx), dXPPrev(dxp)
 {
    NO_OP;
 }
@@ -141,6 +141,24 @@ ScalarDifferentialNode::dGetDofValue(int /* iDof */ , int iOrder) const
       return dX;
    }
    return dXP;
+}
+
+
+/* Restituisce il valore del dof iDof al passo precedente;
+ * se differenziale, iOrder puo' essere = 1 per la derivata */
+const doublereal& 
+#ifdef DEBUG
+ScalarDifferentialNode::dGetDofValuePrev(int iDof, int iOrder) const
+#else
+ScalarDifferentialNode::dGetDofValuePrev(int /* iDof */ , int iOrder) const
+#endif
+{
+   ASSERT(iDof == 1);
+   ASSERT(iOrder == 0 || iOrder == 1);
+   if(iOrder == 0) {
+      return dXPrev;
+   }
+   return dXPPrev;
 }
 
 
@@ -195,6 +213,10 @@ ScalarDifferentialNode::Update(const class VectorHandler& X,
 		const class VectorHandler& XP) 
 {
    integer iFirstIndex = iGetFirstIndex()+1;
+
+   dXPrev = dX;
+   dXPPrev = dXP;
+   
    dX = X.dGetCoef(iFirstIndex);
    dXP = XP.dGetCoef(iFirstIndex);
 }
@@ -236,7 +258,7 @@ ScalarAlgebraicNode::ScalarAlgebraicNode(unsigned int uL,
 					 const DofOwner* pDO, 
 					 doublereal dx, 
 					 flag fOut)
-: ScalarNode(uL, pDO, fOut), dX(dx) 
+: ScalarNode(uL, pDO, fOut), dX(dx), dXPrev(dx)
 {
    NO_OP;
 }
@@ -270,6 +292,17 @@ ScalarAlgebraicNode::dGetDofValue(int iDof, int iOrder) const
    ASSERT(iDof == 1);
    ASSERT(iOrder == 0);      
    return dX;	       
+}
+
+
+/* Restituisce il valore del dof iDof al passo precedente;
+ * se differenziale, iOrder puo' essere = 1 per la derivata */
+const doublereal&
+ScalarAlgebraicNode::dGetDofValuePrev(int iDof, int iOrder) const
+{
+   ASSERT(iDof == 1);
+   ASSERT(iOrder == 0);      
+   return dXPrev;
 }
 
 
@@ -318,6 +351,8 @@ ScalarAlgebraicNode::Update(const class VectorHandler& X,
 		const class VectorHandler& /* XP */ ) 
 {
    integer iFirstIndex = iGetFirstIndex()+1;
+
+   dXPrev = dX;
    dX = X.dGetCoef(iFirstIndex);
 }
 
@@ -508,6 +543,17 @@ const doublereal& Node2Scalar::dGetDofValue(int iDof, int iOrder) const
 }
 
 
+/* Restituisce il valore del dof iDof al passo precedente;
+ * se differenziale, iOrder puo' essere = 1 per la derivata */
+const doublereal& Node2Scalar::dGetDofValuePrev(int iDof, int iOrder) const
+{
+   if (iDof != 1) {
+      THROW(ErrGeneric());
+   }
+   return ND.pNode->dGetDofValuePrev(ND.iDofNumber+1, iOrder);
+}
+
+
 /* Setta il valore del dof iDof a dValue;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
 void Node2Scalar::SetDofValue(const doublereal& dValue, 
@@ -566,6 +612,12 @@ ScalarDof::~ScalarDof(void)
 doublereal ScalarDof::dGetValue(void) const
 {
    return pNode->dGetDofValue(1, iOrder);
+}
+
+
+doublereal ScalarDof::dGetValuePrev(void) const
+{
+   return pNode->dGetDofValuePrev(1, iOrder);
 }
 
 /* ScalarDof - end */

@@ -36,7 +36,7 @@
 #include <dofpgin.h>
 
 DofPlugIn::DofPlugIn(MathParser& mp, DataManager *pDM)
-: MathParser::PlugIn(mp), pDM(pDM) 
+: MathParser::PlugIn(mp), pDM(pDM), bPrev(false)
 {
 	ASSERT(pDM != NULL);
 }
@@ -58,9 +58,11 @@ DofPlugIn::Read(int argc, char *argv[])
 	unsigned int uLabel = ReadLabel(argv[0]);
 	Node *pNode = ReadNode(uLabel, argv[1]);
 	int iOrder = 0;
+	int iParams = 3;
 		
 	unsigned int iMaxIndex = pNode->iGetNumDof();
 	if (iMaxIndex > 1) {
+		iParams++;
 		unsigned int iIndex = ReadIndex(pNode, iMaxIndex, argv[2]);
 		iOrder = ReadDofOrder(pNode, iIndex, argv[3]);
 		NodeDof nd(pNode->GetLabel(), iIndex-1, pNode);
@@ -77,6 +79,25 @@ DofPlugIn::Read(int argc, char *argv[])
 	}
 	dof = ScalarDof((ScalarNode*)pNode, iOrder);
 
+	if (argc == iParams + 1) {
+		/* prende il valore al passo precedente */
+		if (strncasecmp(argv[iParams], "prev=", sizeof("prev=") - 1) == 0) {
+			char *s = argv[iParams] + sizeof("prev=") - 1;
+			if (strcasecmp(s, "true") == 0) {
+				bPrev = true;
+			} else if (strcasecmp(s, "false") == 0) {
+				bPrev = false;
+			} else {
+				std::cerr << "unknown mode for dof plugin parameter \"" << argv[iParams] << "\"" << std::endl;
+				THROW(ErrGeneric());
+			}
+
+		} else {
+			std::cerr << "unknown parameter for dof plugin" << std::endl;
+			THROW(ErrGeneric());
+		}
+	}
+
 	return 0;
 }
 
@@ -89,6 +110,9 @@ DofPlugIn::GetType(void) const
 TypedValue 
 DofPlugIn::GetVal(void) const 
 {
+	if (bPrev) {
+		return TypedValue(dof.dGetValuePrev());
+	}
 	return TypedValue(dof.dGetValue());
 }
 

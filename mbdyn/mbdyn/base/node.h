@@ -138,6 +138,12 @@ public DofOwnerOwner, public ToBeOutput {
     */
    virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const = 0;
    
+   /* 
+    Restituisce il valore del DoF iDof al passo precedente.
+    Se il nodo e' differenziale, iOrder puo' essere = 1 per avere la derivata
+    */
+   virtual const doublereal& dGetDofValuePrev(int iDof, int iOrder = 0) const = 0;
+   
    /*
     Setta il valore del DoF iDof a dValue.
     Se il nodo e' differenziale, iOrder puo' essere = 1 
@@ -209,10 +215,15 @@ class ScalarNode : public Node {
 
 class ScalarDifferentialNode : public ScalarNode {
  protected:
-   /* Valode del DoF */
+   /* Valore del DoF */
    doublereal dX;
    /* Valore della derivata del DoF */
    doublereal dXP;
+   
+   /* Valore del DoF al passo precedente */
+   doublereal dXPrev;
+   /* Valore della derivata del DoF al passo precedente */
+   doublereal dXPPrev;
    
  public:
    /* Costruttori */
@@ -249,6 +260,12 @@ class ScalarDifferentialNode : public ScalarNode {
     Se differenziale, iOrder puo' essere = 1 per ottenere la derivata
     */
    virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
+
+   /* 
+    Restituisce il valore del DoF iDof al passo precedente.
+    Se differenziale, iOrder puo' essere = 1 per ottenere la derivata
+    */
+   virtual const doublereal& dGetDofValuePrev(int iDof, int iOrder = 0) const;
 
    /*
     Setta il valore del DoF iDof a dValue.
@@ -309,6 +326,9 @@ class ScalarAlgebraicNode : public ScalarNode {
    /* Valore del DoF */
    doublereal dX;
    
+   /* Valore del DoF al passo precedente */
+   doublereal dXPrev;
+   
  public:
    /* Costruttori */
    
@@ -339,6 +359,12 @@ class ScalarAlgebraicNode : public ScalarNode {
     Se differenziale, iOrder puo' essere = 1 per ottenere la derivata 
     */
    virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
+   
+   /* 
+    Restituisce il valore del DoF iDof al passo precedente.
+    Se differenziale, iOrder puo' essere = 1 per ottenere la derivata 
+    */
+   virtual const doublereal& dGetDofValuePrev(int iDof, int iOrder = 0) const;
    
    /*
     Setta il valore del DoF iDof a dValue.
@@ -536,6 +562,12 @@ class Node2Scalar : public ScalarNode {
     */
    virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
    
+   /*
+    Restituisce il valore del DoF iDof al passo precedente.
+    Se differenziale, iOrder puo' essere = 1 per ottenere la derivata 
+    */
+   virtual const doublereal& dGetDofValuePrev(int iDof, int iOrder = 0) const;
+   
    /* 
     Setta il valore del DoF iDof a dValue.
     Se differenziale, iOrder puo' essere = 1 per operare sulla derivata 
@@ -603,6 +635,9 @@ struct ScalarDof {
    
    /* Ottiene il valore del DoF */
    doublereal dGetValue(void) const;
+   
+   /* Ottiene il valore del DoF al passo precedente */
+   doublereal dGetValuePrev(void) const;
 };
 
 /* ScalarDof - end */
