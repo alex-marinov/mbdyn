@@ -898,7 +898,6 @@ Beam2::WriteAdamsDummyPartCmd(std::ostream& out,
 /* Beam2 - end */
 
 
-#ifdef VISCOELASTIC_BEAM
 /* ViscoElasticBeam2 - begin */
 
 /* Costruttore normale */
@@ -1267,7 +1266,6 @@ ViscoElasticBeam2::AfterPredict(VectorHandler& /* X */ ,
 }
 
 /* ViscoElasticBeam - end */
-#endif /* VISCOELASTIC_BEAM */
 
 
 /* Legge una trave */
@@ -1450,7 +1448,6 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 #endif /* defined(USE_ELECTRIC_NODES) */
 		
 	} else /* At least one is VISCOUS or VISCOELASTIC */ {
-#ifdef VISCOELASTIC_BEAM      
 #if defined(USE_ELECTRIC_NODES)      
 		if (fPiezo == 0) {	 
 #endif /* defined(USE_ELECTRIC_NODES) */
@@ -1479,12 +1476,6 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						fOut));
 		}
 #endif /* defined(USE_ELECTRIC_NODES) */
-		
-#else /* VISCOELASTIC_BEAM */
-		std::cerr << "Sorry, the ViscoElasticBeam2 element"
-			" is not available yet" << std::endl;
-		THROW(ErrNotImplementedYet());
-#endif /* VISCOELASTIC_BEAM */
 	}
 	
 	/* Se non c'e' il punto e virgola finale */

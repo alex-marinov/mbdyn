@@ -44,8 +44,6 @@
 
 #include "constltp.h"
 
-#define VISCOELASTIC_BEAM /* uncomment when ViscoElasticBeam is available */
-
 extern const char* psBeamNames[];
 
 /* ... */
@@ -379,7 +377,6 @@ class Beam
 /* Beam - end */
 
 
-#ifdef VISCOELASTIC_BEAM
 /* ViscoElasticBeam - begin */
 
 class ViscoElasticBeam : virtual public Elem, public Beam {
@@ -474,7 +471,6 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
 };
 
 /* ViscoElasticBeam - end */
-#endif /* VISCOELASTIC_BEAM */
 
 extern Elem* 
 ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);

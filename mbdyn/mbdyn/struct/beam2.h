@@ -44,8 +44,6 @@
 
 #include "constltp.h"
 
-#define VISCOELASTIC_BEAM /* uncomment when ViscoElasticBeam is available */
-
 /* Beam - begin */
 
 class Beam2
@@ -320,7 +318,6 @@ class Beam2
 /* Beam - end */
 
 
-#ifdef VISCOELASTIC_BEAM
 /* ViscoElasticBeam - begin */
 
 class ViscoElasticBeam2 : virtual public Elem, public Beam2 {
@@ -387,7 +384,6 @@ class ViscoElasticBeam2 : virtual public Elem, public Beam2 {
 };
 
 /* ViscoElasticBeam - end */
-#endif /* VISCOELASTIC_BEAM */
 
 class DataManager;
 class MBDynParser;

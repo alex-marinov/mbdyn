@@ -300,7 +300,7 @@ class ClampJoint : virtual public Elem, public Joint {
    };
    
    virtual DofOrder::Order GetEqType(unsigned int i) const {
-      ASSERT(i >= 0 && i < 6);
+      ASSERT(i >= 0 && i < iGetNumDof());
       return DofOrder::ALGEBRAIC; 
    }
 

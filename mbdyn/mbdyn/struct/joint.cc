@@ -64,9 +64,11 @@
 /* Provvisorio ?!? */
 #include <modal.h>
 
+#ifdef __HACK_MODULES_AS_JOINTS__
 /* To allow direct loading of wheel2 (and other modules, in the future)
  * as joints ... */
 #include <modules.h>
+#endif /* __HACK_MODULES_AS_JOINTS__ */
 
 #define MBDYN_X_COMPATIBLE_INPUT
 
@@ -196,6 +198,7 @@ Elem* ReadJoint(DataManager* pDM,
       MODAL,
 
       BEAMSLIDER,
+
       WHEEL2,
       
       LASTKEYWORD
@@ -1888,11 +1891,13 @@ Elem* ReadJoint(DataManager* pDM,
 
 
     case WHEEL2: {
+#ifdef __HACK_MODULES_AS_JOINTS__
        LoadableElem *pLE = NULL;
        SAFENEWWITHCONSTRUCTOR(pLE, LoadableElem,
 		       LoadableElem(uLabel, pDO, &module_wheel2_lc, pDM, HP));
        pEl = (Joint *)pLE->pGet();
        pDM->OutputOpen(OutputHandler::LOADABLE);
+#endif /* __HACK_MODULES_AS_JOINTS__ */
        break;
     } 
       /* Aggiungere altri vincoli */
