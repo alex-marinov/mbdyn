@@ -146,6 +146,111 @@ Si ottiene:
 \end{displaymath}
 
 \noindent
+L'equazione di vincolo alla rotazione richiede una cura particolare.
+Si possono ipotizzare tre diversi vincoli:
+\begin{enumerate}
+	\item giunto sferico: consente la libera rotazione attorno a tutti
+	gli assi; di conseguenza non si scrivono equazioni di vincolo
+	alla rotazione;
+	\item manicotto classico: consente la libera rotazione attorno
+	all'asse del manicotto; si scrivono due sole equazioni di vincolo
+	alla rotazione
+	\item manicotto ``rigato'': non consente libert\`a di rotazione;
+	si scrivono tre queazioni di vincolo alla rotazione.
+\end{enumerate}
+Occorre prestare attenzione a come si definiscono i vincoli di rotazione.
+Non \`e ragionevole, in questo caso, ipotizzare che l'orientazione 
+del manicotto coincida con l'orientazione della trave all'ascissa
+curvilinea identificata dal vincolo di posizione.
+Infatti l'orientazione della trave pu\`o non avere un asse parallelo
+alla tangente della linea di riferimento qualora si abbia deformazione
+di scorrimento.
+\`E invece ragionevole ipotizzare che un asse privilegiato del manicotto
+sia orientato come la tangente alla linea di riferimento:
+\begin{displaymath}
+	t \ = \ \frac{l}{\nrbr{l}} ,
+\end{displaymath}
+con 
+\begin{displaymath}
+	l \ = \ x'\plbr{s}
+\end{displaymath}
+e che quindi gli altri due assi siano ad esso ortogonali:
+\begin{eqnarray*}
+	e_{b2}^T t & = & 0 \\
+	e_{b3}^T t & = & 0
+\end{eqnarray*}
+Queste due equazioni definiscono il vincolo alla rotazione del manicotto 
+classico; le corrispondenti reazioni vincolari sono le coppie:
+\begin{displaymath}
+	M \ = \ m_3 e_{b2}\times{t} + m_2 e_{b3}\times{t}
+\end{displaymath}
+L'equazione di vincolo alla rotazione attorno all'asse della trave
+\`e un po' pi\`u complessa, e richiede la definizione della rotazione
+relativa tra manicotto e trave:
+\begin{displaymath}
+	\theta \ = \ \llk{ax}\plbr{R_{\Delta}} 
+		\ = \ \llk{ax}\plbr{R_bR^T}
+\end{displaymath}
+La proiezione di tale rotazione nella direzione tangente alla curva 
+deve essere nulla (o pari alla rotazione iniziale):
+\begin{displaymath}
+	\theta^T t \ = \ 0 .
+\end{displaymath}
+Se si considera la rotazione iniziale nulla, alla tangente si pu\`o 
+sostituire la derivata della linea di riferimento, semplificando cos\`{\i}
+le linearizzazioni:
+\begin{displaymath}
+	\theta^T l \ = \ 0 .
+\end{displaymath}
+La linearizzazione della rotazione relativa \`e data da:
+\begin{eqnarray*}
+	\Delta\theta & = & \Delta\llk{ax}\plbr{R_bR^T} \\
+	& = & \llk{ax}\plbr{\Delta\plbr{R_bR^T}\plbr{R_bR^T}^T} \\
+	& = & \llk{ax}\plbr{\Delta\theta_b\times{R_bR^TRR_b^T}
+		+R_bR^T\Delta\theta_t\times{}^TRR_b^T} \\
+	& = & \llk{ax}\plbr{R_bR_b^T\Delta\theta_b\times{R_bR_b^T}
+		+R_bR^T\Delta\theta_t\times{}^TRR_b^T} \\
+	& = & \llk{ax}\plbr{
+		R_b\plbr{
+			R_b^T\Delta\theta_b\times{R_b}
+			-R^T\Delta\theta_t\times{R}
+		}R_b^T
+	} \\
+	& = & R_b\llk{ax}\plbr{
+		\plbr{R_b^T\Delta\theta_b}\times{}
+		-\plbr{R^T\Delta\theta_t}\times{}
+	} \\
+	& = & R_b\llk{ax}\plbr{\plbr{
+		R_b^T\Delta\theta_b - R^T\Delta\theta_t
+	}\times{}} \\
+	& = & R_b\plbr{R_b^T\Delta\theta_b-R^T\Delta\theta_t}
+\end{eqnarray*}
+dove si sono sfruttate le propriet\`a:
+\begin{eqnarray*}
+	\Delta\llk{ax}\plbr{R} & = & \llk{ax}\plbr{\Delta{R} R^T} \\
+	\Delta{R} & = & \theta\times{R} \\
+	R R^T & = & I \\
+	\llk{ax}\plbr{R R_{\Delta} R^T} & = & R\llk{ax}\plbr{R_{\Delta}} \\
+	R \theta\times{R^T} & = & \plbr{R\theta}\times{} \\
+	\theta_1\times{}+\theta_2\times{} & = & \plbr{\theta_1+\theta_2}\times{} \\
+	\llk{ax}\plbr{\theta\times{}} & = & \theta
+\end{eqnarray*}
+
+\noindent
+La coppia risultante da questa equazione di vincolo si applica semplicemente
+attorno alla direzione tangente:
+\begin{displaymath}
+	M \ = \ m_1 t
+\end{displaymath}
+o, per sempliciare le linearizzazioni, si pu\`o considerare direttamente
+la derivata degli spostamenti $l$, data l'indeterminazione dello scalare
+$m_1$:
+\begin{displaymath}
+	M \ = \ m_1 l .
+\end{displaymath}
+
+
+\noindent
 Si consideri una formulazione del modello di trave a volumi finiti
 \cite{FV-AIAA}.
 Secondo tale schema, l'elemento di trave \`{e} suddiviso nettamente in
@@ -157,8 +262,28 @@ viene applicata come
 \begin{eqnarray*}
     F_i & = & - w_i F , \\
     M_i & = & - w_i \plbr{ x\plbr{s} - x_i }\times F 
-        - \plbr{ R \times R } m .
+        - H m ,
 \end{eqnarray*}
+dove la matrice $ H $ \`e definita, a seconda dei tre modelli considerati,
+come:
+\begin{enumerate}
+	\item giunto sferico:
+	\begin{displaymath}
+		H \ = \ 0
+	\end{displaymath}
+	\item manicotto classico:
+	\begin{displaymath}
+		H \ = \ \sqbr{\matr{cc}{
+			e_{b2}\times{l} & e_{b3}\times{l}
+		}}
+	\end{displaymath}
+	\item manicotto rigato:
+	\begin{displaymath}
+		H \ = \ \sqbr{\matr{ccc}{
+			e_{b2}\times{l} & e_{b3}\times{l} & t
+		}}
+	\end{displaymath}
+\end{enumerate}
 La sua linearizzazione, considerando le approssimazioni della
 linearizzazione delle rotazioni ammesse dall'approccio aggiornato-aggiornato
 descritto in \cite{PHD-MASARATI}, comporta i termini
@@ -175,7 +300,7 @@ descritto in \cite{PHD-MASARATI}, comporta i termini
 	+ \plbr{ x\plbr{s} - x_i }\times \Delta{F}
     } \\
     & & \rplbr{ \mbox{}
-        +
+        + \Delta{H} m + H \Delta{m}
     } .
 \end{eqnarray*}
 
