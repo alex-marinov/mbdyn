@@ -61,6 +61,14 @@ struct module_wheel {
 	doublereal dHystVRef;
 
 	/*
+	 * Attrito
+	 */
+	flag fSlip;
+	DriveCaller *pMuX0;
+	DriveCaller *pMuY0;
+	DriveCaller *pMuY1;
+
+	/*
 	 * Output
 	 */
 	Vec3 F;
@@ -69,6 +77,9 @@ struct module_wheel {
 	doublereal dDeltaL;
 	doublereal dVn;
 	doublereal dSr;
+	doublereal dAlpha;
+	doublereal dMuX;
+	doublereal dMuY;
 };
 
 /* funzioni di default */
@@ -83,6 +94,61 @@ read(LoadableElem* pEl,
 	/* allocation of user-defined struct */
 	module_wheel* p = NULL;
 	SAFENEW(p, module_wheel, EMmm);
+
+	/*
+	 * help
+	 */
+	if (HP.IsKeyWord("help")) {
+		cout <<
+"									\n"
+"2 corpi:								\n"
+"     -	Wheel								\n"
+"     -	Ground								\n"
+"									\n"
+"Note: 									\n"
+"     -	Axle e Wheel sono collegati da un giunto che consente		\n"
+"	solo rotazione relativa attorno ad un asse (axle)		\n"
+"     -	Si assume che il centro della ruota coincida con		\n"
+"	la posizione del corpo ruota					\n"
+"     -	Ground supporta un piano definito dalla normale e da		\n"
+"	un punto (potra' essere reso deformabile e \"non piano\"	\n"
+"	in futuro)							\n"
+"     -	Le forze sono applicate nel \"punto di contatto\", che viene	\n"
+"	calcolato in base a considerazioni geometriche sulla		\n"
+"	posizione ed orientazione relativa tra Wheel e Ground.		\n"
+"									\n"
+"     -	Input:								\n"
+"		<label nodo ruota> ,					\n"
+"		<direzione asse ruota> ,				\n"
+"		<label nodo ground> ,					\n"
+"		<posizione punto di riferimento sul piano ground> ,	\n"
+"		<normale al piano ground> ,				\n"
+"		<raggio ruota> ,					\n"
+"		<raggio toro> ,						\n"
+"		<coefficiente di volume> ,				\n"
+"		<pressione di gonfiaggio pneumatico> ,			\n"
+"		<esponente politropica pneumatico> ,			\n"
+"		<velocita' di riferimento isteresi pneumatico>		\n"
+"		[ slip ,						\n"
+"		<drive del coefficiente di attrito longitudinale>	\n"
+"		<drive del coeff. di attrito laterale per sr=0>		\n"
+"		<drive del coeff. di attrito laterale per sr=1> ]	\n"
+"									\n"
+"     -	Output:								\n"
+"		1)	label elemento					\n"
+"		2-4)	forza sul pneumatico nel sistema assoluto	\n"
+"		5-7)	momento sul pneumatico nel sistema assoluto	\n"
+"		8)	raggio effettivo				\n"
+"		9)	schiacciamento					\n"
+"		10)	velocita' di schiacciamento normale		\n"
+"		11)	slip ratio					\n"
+"		12)	angolo di deriva				\n"
+"		13)	coefficiente di attrito longitudinale		\n"
+"		14)	coefficiente di attrito laterale		\n"
+			<< endl;
+
+		THROW(NoErr());
+	}
 
 	/*
 	 * leggo la ruota
@@ -148,6 +214,22 @@ read(LoadableElem* pEl,
 	p->dP0 = HP.GetReal();
 	p->dGamma = HP.GetReal();
 	p->dHystVRef = HP.GetReal();
+
+	/*
+	 * Attrito
+	 */
+	p->fSlip = 0;
+	if (HP.IsKeyWord("slip")) {
+		p->fSlip = 1;
+
+		/*
+		 * Parametri di attrito
+		 */
+		p->pMuX0 = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+		p->pMuY0 = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+		p->pMuY1 = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+
+	}
 	
 	return (void *)p;
 }
@@ -174,7 +256,10 @@ output(const LoadableElem* pEl, OutputHandler& OH)
 			<< p->dInstRadius << " "
 			<< p->dDeltaL << " "
 			<< p->dVn << " " 
-			<< p->dSr << endl;
+			<< p->dSr << " "
+			<< p->dAlpha << " "
+			<< p->dMuX << " "
+			<< p->dMuY << endl;
 	}
 }
 
@@ -239,10 +324,18 @@ ass_res(LoadableElem* pEl,
 	 */
 	p->dDeltaL = dDeltaL;
 	p->dInstRadius = p->dRadius-dDeltaL;
-	p->F = Zero3;
-	p->M = Zero3;
 	
+	p->dSr = 0.;
+	p->dAlpha = 0.;
+
+	p->dMuX = 0.;
+	p->dMuY = 0.;
+
 	if (dDeltaL < 0.) {
+		
+		p->F = Zero3;
+		p->M = Zero3;
+		
 		/*
 		 * Non assemblo neppure il vettore ;)
 		 */
@@ -264,7 +357,9 @@ ass_res(LoadableElem* pEl,
 	integer iGroundFirstMomIndex = p->pGround->iGetFirstMomentumIndex();
 	integer iWheelFirstMomIndex = p->pWheel->iGetFirstMomentumIndex();
 
-	/* Indici equazioni */
+	/*
+	 * Indici equazioni
+	 */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.fPutRowIndex(iCnt, iGroundFirstMomIndex+iCnt);
 		WorkVec.fPutRowIndex(6+iCnt, iWheelFirstMomIndex+iCnt);
@@ -289,29 +384,6 @@ ass_res(LoadableElem* pEl,
 	 * (positiva se la ruota si allontana dal terreno)
 	 */
 	p->dVn = n*v;
-
-	/*
-	 * Direzione di "avanzamento": asse ruota cross normale al ground
-	 */
-	Vec3 fwd = (p->pWheel->GetRCurr()*p->WheelAxle).Cross(n);
-	doublereal d = fwd.Dot();
-	if (d < DBL_EPSILON) {
-		cerr << "wheel axle is orthogonal to the ground" << endl;
-		THROW(DataManager::ErrGeneric());
-	}
-	fwd /= sqrt(d);
-
-	/*
-	 * Slip ratio
-	 */
-	p->dSr = 0.;
-	doublereal fwdva = fwd.Dot(va);
-	if (fabs(fwdva) > DBL_EPSILON) {
-		p->dSr = fwd.Dot(v)/fwdva;
-		if (fabs(p->dSr) > 1.) {
-			p->dSr = copysign(1., p->dSr);
-		}
-	}
 	
 	/*
 	 * Stima dell'area di contatto
@@ -340,7 +412,105 @@ ass_res(LoadableElem* pEl,
 	/*
 	 * Forza
 	 */
-	p->F = n*(dA*dP*(1.+tanh(-p->dVn/p->dHystVRef)));
+	doublereal dFn = (dA*dP*(1.+tanh(-p->dVn/p->dHystVRef)));
+	p->F = n*dFn;
+
+	if (p->fSlip) {
+	
+		/*
+		 * Direzione di "avanzamento": asse ruota cross normale
+		 * al ground
+		 */
+		Vec3 fwd = (p->pWheel->GetRCurr()*p->WheelAxle).Cross(n);
+		doublereal d = fwd.Dot();
+		if (d < DBL_EPSILON) {
+			cerr << "wheel axle is orthogonal to the ground"
+				<< endl;
+			THROW(DataManager::ErrGeneric());
+		}
+		fwd /= sqrt(d);
+
+		/*
+		 * Slip ratio
+		 */
+		p->dSr = 0.;
+		doublereal dvx = fwd.Dot(v);
+		doublereal dvax = fwd.Dot(va);
+		if (fabs(dvx) > fabs(dvax)) {
+			/*
+			 * Se il modulo della componente longitudinale
+			 * della velocita' del punto di contatto rispetto
+			 * al terreno e' maggiore del modulo
+			 * della componente longitudinale della velocita'
+			 * dell'asse rispetto al terreno, allora
+			 * lo slip ratio viene posto uguale a 1.,
+			 * con il segno dato dal prodotto dei segni
+			 * delle due velocita' (quindi, se concordi
+			 * il segno e' +, se discordi il segno e' -)
+			 */
+			p->dSr = copysign(1., dvx*dvax);
+		} else if (fabs(dvax) > DBL_EPSILON) {
+			/*
+			 * Altrimenti, se la velocita' dell'asse rispetto
+			 * al terreno e' sufficientemente grande, viene
+			 * effettuata la divisione
+			 */
+			p->dSr = dvx/dvax;
+		} /* else */
+		/*
+		 * In alternativa viene usato il valore di default, 0., che
+		 * significa che entrambe le velocita' sono nulle o non occorre
+		 * calcolarle
+		 */
+
+		/*
+		 * Direzione laterale: normale cross forward
+		 */
+		Vec3 lat = n.Cross(fwd);
+
+		/*
+		 * Velocita' laterale del mozzo
+		 */
+		doublereal dvay = lat.Dot(va);
+
+		/*
+		 * Angolo di deriva del mozzo
+		 */
+		p->dAlpha = atan2(dvay, dvax);
+
+		/*
+		 * Coefficiente di attrito longitudinale
+		 */
+		doublereal dMuX0 = p->pMuX0->dGet(p->dSr);
+		p->dMuX = dMuX0*fabs(1.-fabs(p->dAlpha)/M_PI_2);
+		
+		/*
+		 * Correggo le forze
+		 */
+		p->F -= fwd*dFn*p->dMuX;
+
+		if (dvay != 0.) {
+			doublereal dMuY0 = 0., dMuY1 = 0.;
+			if (dvax >= 0.) {
+				dMuY0 = p->pMuY0->dGet(p->dAlpha);
+				dMuY1 = p->pMuY1->dGet(p->dAlpha);
+			} else {
+				/* FIXME: ... */
+			}
+			
+			p->dMuY = dMuY0*(1.-fabs(p->dSr))
+				+ dMuY1*fabs(p->dSr);
+
+			/*
+			 * Correggo le forze
+			 */
+			p->F -= lat*dFn*p->dMuY;
+		}
+	}
+
+	/*
+	 * Momento
+	 */
 	p->M = (pc-p->pWheel->GetXCurr()).Cross(p->F);
 	
 	WorkVec.Sub(1, p->F);
@@ -406,8 +576,9 @@ initial_ass_jac(LoadableElem* pEl,
    
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	WM.ResizeInit(iNumRows, iNumCols, 0.);
-	
+#if 0	
 	module_wheel* p = (module_wheel *)pEl->pGetData();
+#endif /* 0 */
    
 	/* set sub-matrix indices and coefs */
 
@@ -425,8 +596,10 @@ initial_ass_res(LoadableElem* pEl,
 	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
 	
 	WorkVec.Resize(iNumRows);
-	
+
+#if 0
 	module_wheel* p = (module_wheel *)pEl->pGetData(); 
+#endif /* 0 */
 	
 	/* set sub-vector indices and coefs */
    
