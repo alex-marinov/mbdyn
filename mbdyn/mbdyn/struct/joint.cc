@@ -682,14 +682,12 @@ Elem* ReadJoint(DataManager* pDM,
 	}
 	   
 	  /* allocazione e creazione pattino */
-	case PLANEDISPLACEMENT: {
-
+	case PLANEDISPLACEMENT:
 	   std::cerr << "PlaneDispJoint(" << uLabel << "): "
 		   "no longer supported; "
 		   "use an InPlane and a RevoluteRotation"
 		   << std::endl;
 	   THROW(ErrGeneric());
-	}
 	  
 	default: {
 	   ASSERTMSG(0, "You shouldn't have reached this point");
@@ -794,11 +792,11 @@ Elem* ReadJoint(DataManager* pDM,
 	  
 	  /* allocazione e creazione cerniera piana */	     
 	case PLANEDISPLACEMENTPIN: {
-	   SAFENEWWITHCONSTRUCTOR(pEl, 
-				  PlaneDispPinJoint,
-				  PlaneDispPinJoint(uLabel, pDO, pNode,
-						    X0, R0, d, Rh, fOut));
-	   break;
+	   std::cerr << "PlaneDispJoint(" << uLabel << "): "
+		   "no longer supported; "
+		   "use an InPlane and a RevoluteRotation"
+		   << std::endl;
+	   THROW(ErrGeneric());
 	}
 	  
 	default: {
