@@ -122,7 +122,7 @@ public:
 	
 	virtual void OutputTypes(const bool fpred);
 	
-	virtual void SetDriveHandler(const DriveHandler* pDH) = 0;
+	virtual void SetDriveHandler(const DriveHandler* pDH);
 
 	virtual doublereal
 	Advance(Solver* pS, 
@@ -188,8 +188,6 @@ public:
 			const bool bmod_res_test);
 
 	~DerivativeSolver(void);
-	
-	void SetDriveHandler(const DriveHandler* /* pDH */ );
 	
  	doublereal
 	Advance(Solver* pS, 
@@ -327,8 +325,6 @@ public:
 
 	~CrankNicholsonIntegrator(void);
 
-	void SetDriveHandler(const DriveHandler* pDH);
-   
 protected:
 	void SetCoef(doublereal dT, 
 			doublereal dAlpha,
@@ -377,8 +373,6 @@ public:
 
 	~ImplicitEulerIntegrator(void);
 
-	void SetDriveHandler(const DriveHandler* pDH);
-   
 protected:
 	void SetCoef(doublereal dT, 
 			doublereal dAlpha,

@@ -53,12 +53,10 @@
 ThirdOrderIntegrator::ThirdOrderIntegrator(const doublereal dT, 
 			const doublereal dSolutionTol, 
 			const integer iMaxIt,
-			const DriveCaller* pRho,
 			const bool bmod_res_test)
 : ImplicitStepIntegrator(iMaxIt, dT, dSolutionTol, 1, 2, bmod_res_test),
 pXPrev(0),
 pXPrimePrev(0),
-Rho(pRho),
 bAdvanceCalledFirstTime(true)
 {
 	pJacxi_xp = &Jacxi_xp;
@@ -69,58 +67,6 @@ bAdvanceCalledFirstTime(true)
 
 ThirdOrderIntegrator::~ThirdOrderIntegrator(){
 	NO_OP;
-};
-
-void ThirdOrderIntegrator::SetCoef(doublereal dt,
-		doublereal dAlpha,
-		enum StepChange /* NewStep */)
-{
-	dT = dt;
-	/* from "Unconditionally stable multistep integration of ordinary
-	 * differential and differential-algebraic equations with
-	 * controlled algorithmic dissipation for multibody dynamic
-	 * applications", pp 8-9
-	 */
-	rho = Rho.dGet();
-	theta = -rho/(1.+rho);
-	w[0] = (1.+3*theta)/(6.*theta);
-	w[1] = -1./(6.*theta*(1.+theta));
-	w[2] = (2.+3.*theta)/(6.*(1.+theta));
-	/* from "Unconditionally stable multistep integration of ordinary
-	 * differential and differential-algebraic equations with
-	 * controlled algorithmic dissipation for multibody dynamic
-	 * applications", pp 3
-	 */
-	m0 = 1.-theta*theta*(3.+2.*theta);
-	m1 = theta*theta*(3.+2.*theta);
-	n0 = theta*(1.+theta)*(1.+theta);
-	n1 = theta*theta*(1.+theta);
-	/* Attenzione: a differenza di quanto riportato a p. 16,
-	 * "Unconditionally stable multistep integration of ordinary
-	 * differential and differential-algebraic equations with
-	 * controlled algorithmic dissipation for multibody dynamic
-	 * applications"
-	 * qui il tempo finale e' in cima, il tempo theta in basso
-	 */ 
-	jx[1][1] = (1.+3.*rho)/(6.*rho*(1.+rho))*dT;
-	jx[1][0] = -1./(6.*rho*std::pow(1.+rho,2.))*dT;
-	jx[0][1] = std::pow(1.+rho,2.)/(6.*rho)*dT;
-	jx[0][0] = (2.*rho-1.)/(6.*rho)*dT;
-	jxp[1][1] = 1.;
-	jxp[1][0] = 0.;
-	jxp[0][1] = 0.;
-	jxp[0][0] = 1.;
-	DEBUGCOUT("ThirdOrder integrator coefficients:" << std::endl
-		<< "\t  rho: " << rho << std::endl
-		<< "\ttheta: " << theta << std::endl
-		<< "\t w[0]: " << w[0] << std::endl
-		<< "\t w[1]: " << w[1] << std::endl
-		<< "\t w[2]: " << w[2] << std::endl
-		<< "\t   m0: " << m0 << std::endl
-		<< "\t   m1: " << m1 << std::endl
-		<< "\t   n0: " << n0 << std::endl
-		<< "\t   n1: " << n1 << std::endl);
-	
 };
 
 doublereal
@@ -361,24 +307,24 @@ void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
 	 */ 
 	 
 	/* 2,2 */
-	doublereal J22_x = (1.+3.*rho)/(6.*rho*(1.+rho))*dT;
-	Jacxi_x.MulAndSumWithShift(*pJac,J22_x,iNumDofs,iNumDofs);
-	Jacxi_xp.FakeThirdOrderMulAndSumWithShift(*pJac,EqIsDifferential,1.-J22_x,iNumDofs,iNumDofs);
+	// doublereal J22_x = (1.+3.*rho)/(6.*rho*(1.+rho))*dT;
+	Jacxi_x.MulAndSumWithShift(*pJac, jx22, iNumDofs, iNumDofs);
+	Jacxi_xp.FakeThirdOrderMulAndSumWithShift(*pJac, EqIsDifferential, 1. - jx22, iNumDofs, iNumDofs);
 	
 	/* 2,1 */
-	doublereal J21_x = -1./(6.*rho*(1.+rho)*(1.+rho))*dT;
-	Jacxi_x.MulAndSumWithShift(*pJac,J21_x,iNumDofs,0);
-	Jacxi_xp.FakeThirdOrderMulAndSumWithShift(*pJac,EqIsDifferential,-J21_x,iNumDofs,0);
+	// doublereal J21_x = -1./(6.*rho*(1.+rho)*(1.+rho))*dT;
+	Jacxi_x.MulAndSumWithShift(*pJac, jx21, iNumDofs, 0);
+	Jacxi_xp.FakeThirdOrderMulAndSumWithShift(*pJac, EqIsDifferential, -jx21, iNumDofs, 0);
 	
 	/* 1,2 */
-	doublereal J12_x = (1.+rho)*(1.+rho)/(6.*rho)*dT;
-	Jac_x.MulAndSumWithShift(*pJac,J12_x,0,iNumDofs);
-	Jac_xp.FakeThirdOrderMulAndSumWithShift(*pJac,EqIsDifferential,-J12_x,0,iNumDofs);
+	// doublereal J12_x = (1.+rho)*(1.+rho)/(6.*rho)*dT;
+	Jac_x.MulAndSumWithShift(*pJac, jx12, 0, iNumDofs);
+	Jac_xp.FakeThirdOrderMulAndSumWithShift(*pJac, EqIsDifferential, -jx12, 0, iNumDofs);
 	
 	/* 1,1 */
-	doublereal J11_x = (2.*rho-1.)/(6.*rho)*dT;
-	Jac_x.MulAndSumWithShift(*pJac,J11_x,0,0);
-	Jac_xp.FakeThirdOrderMulAndSumWithShift(*pJac,EqIsDifferential,1.-J11_x,0,0);
+	// doublereal J11_x = (2.*rho-1.)/(6.*rho)*dT;
+	Jac_x.MulAndSumWithShift(*pJac, jx11, 0, 0);
+	Jac_xp.FakeThirdOrderMulAndSumWithShift(*pJac, EqIsDifferential, 1. -jx11, 0, 0);
 	
 	return;
 };
@@ -394,17 +340,17 @@ void ThirdOrderIntegrator::UpdateDof(const int DCount,
  		pXPrimeCurr->IncCoef(DCount, dxp);
  		pXPrimeCurr->IncCoef(DCount+iNumDofs, dxp_xi);
 		
- 		pXCurr->IncCoef(DCount, dT*(w[1]*dxp_xi+w[0]*dxp));
+ 		pXCurr->IncCoef(DCount, dT*(w1*dxp_xi+w0*dxp));
  		pXCurr->IncCoef(DCount+iNumDofs, 
-			dT*(m0*w[1]*dxp_xi+(m0*w[0]+n0)*dxp));
+			dT*(m0*w1*dxp_xi+(m0*w0+n0)*dxp));
 	
 	} else if (Order == DofOrder::ALGEBRAIC) {
  		pXCurr->IncCoef(DCount, dxp);
  		pXCurr->IncCoef(DCount+iNumDofs, dxp_xi);
 		
- 		pXPrimeCurr->IncCoef(DCount, dT*(w[1]*dxp_xi+w[0]*dxp));
+ 		pXPrimeCurr->IncCoef(DCount, dT*(w1*dxp_xi+w0*dxp));
  		pXPrimeCurr->IncCoef(DCount+iNumDofs, 
-			dT*(m0*w[1]*dxp_xi+(m0*w[0]+n0)*dxp));
+			dT*(m0*w1*dxp_xi+(m0*w0+n0)*dxp));
 	} else {
  		std::cerr << "unknown order for dof " 
 			<< DCount<< std::endl;
@@ -425,12 +371,6 @@ void ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
 	}}
 	UpdateLoop(this,&ThirdOrderIntegrator::UpdateDof,pSol);	
 	pDM->Update();
-	return;
-};
-
-void ThirdOrderIntegrator::SetDriveHandler(const DriveHandler* pDH)
-{
-	Rho.pGetDriveCaller()->SetDrvHdl(pDH);
 	return;
 };
 
@@ -471,3 +411,142 @@ void ThirdOrderIntegrator::SetDriveHandler(const DriveHandler* pDH)
 // 	return 1.;
 // #endif /* ! __HACK_RES_TEST__ */
 // }
+
+
+TunableThirdOrderIntegrator::TunableThirdOrderIntegrator(const doublereal dT, 
+			const doublereal dSolutionTol, 
+			const integer iMaxIt,
+			const DriveCaller* pRho,
+			const bool bmod_res_test)
+: ThirdOrderIntegrator(dT, dSolutionTol, iMaxIt, bmod_res_test),
+Rho(pRho)
+{
+	NO_OP;
+}
+
+TunableThirdOrderIntegrator::~TunableThirdOrderIntegrator()
+{
+	NO_OP;
+}
+
+void
+TunableThirdOrderIntegrator::SetCoef(doublereal dt,
+		doublereal dAlpha,
+		enum StepChange /* NewStep */)
+{
+	dT = dt;
+
+	/* from "Unconditionally stable multistep integration of ordinary
+	 * differential and differential-algebraic equations with
+	 * controlled algorithmic dissipation for multibody dynamic
+	 * applications", pp 8-9
+	 */
+	rho = Rho.dGet();
+	theta = -rho/(1.+rho);
+	w0 = (1.+3*theta)/(6.*theta);
+	w1 = -1./(6.*theta*(1.+theta));
+	w2 = (2.+3.*theta)/(6.*(1.+theta));
+	/* from "Unconditionally stable multistep integration of ordinary
+	 * differential and differential-algebraic equations with
+	 * controlled algorithmic dissipation for multibody dynamic
+	 * applications", pp 3
+	 */
+	m0 = 1.-theta*theta*(3.+2.*theta);
+	m1 = theta*theta*(3.+2.*theta);
+	n0 = theta*(1.+theta)*(1.+theta);
+	n1 = theta*theta*(1.+theta);
+
+	/* Attenzione: a differenza di quanto riportato a p. 16,
+	 * "Unconditionally stable multistep integration of ordinary
+	 * differential and differential-algebraic equations with
+	 * controlled algorithmic dissipation for multibody dynamic
+	 * applications"
+	 * qui il tempo finale e' in cima, il tempo theta in basso
+	 */ 
+	jx22 = (1.+3.*rho)/(6.*rho*(1.+rho))*dT;
+	jx21 = -1./(6.*rho*std::pow(1.+rho,2.))*dT;
+	jx12 = std::pow(1.+rho,2.)/(6.*rho)*dT;
+	jx11 = (2.*rho-1.)/(6.*rho)*dT;
+
+	DEBUGCOUT("Tunable Third Order Integrator coefficients:" << std::endl
+		<< "\t  rho: " << rho << std::endl
+		<< "\ttheta: " << theta << std::endl
+		<< "\t w0: " << w0 << std::endl
+		<< "\t w1: " << w1 << std::endl
+		<< "\t w2: " << w2 << std::endl
+		<< "\t   m0: " << m0 << std::endl
+		<< "\t   m1: " << m1 << std::endl
+		<< "\t   n0: " << n0 << std::endl
+		<< "\t   n1: " << n1 << std::endl);
+}
+
+void
+TunableThirdOrderIntegrator::SetDriveHandler(const DriveHandler* pDH)
+{
+	Rho.pGetDriveCaller()->SetDrvHdl(pDH);
+}
+
+AdHocThirdOrderIntegrator::AdHocThirdOrderIntegrator(const doublereal dT, 
+			const doublereal dSolutionTol, 
+			const integer iMaxIt,
+			const bool bmod_res_test)
+: ThirdOrderIntegrator(dT, dSolutionTol, iMaxIt, bmod_res_test)
+{
+	NO_OP;
+}
+
+AdHocThirdOrderIntegrator::~AdHocThirdOrderIntegrator()
+{
+	NO_OP;
+}
+
+void
+AdHocThirdOrderIntegrator::SetCoef(doublereal dt,
+		doublereal dAlpha,
+		enum StepChange /* NewStep */)
+{
+	dT = dt;
+
+	/* from "Unconditionally stable multistep integration of ordinary
+	 * differential and differential-algebraic equations with
+	 * controlled algorithmic dissipation for multibody dynamic
+	 * applications", pp 8-9
+	 */
+	theta = -2./3.;
+	w0 = (2.*theta + 1.)/(2.*theta);
+	w1 = -1./(2.*theta);
+	w2 = 0.;
+	/* from "Unconditionally stable multistep integration of ordinary
+	 * differential and differential-algebraic equations with
+	 * controlled algorithmic dissipation for multibody dynamic
+	 * applications", pp 3
+	 */
+	m0 = 1.-theta*theta;
+	m1 = theta*theta;
+	n0 = theta*(1.+theta);
+	n1 = 0.;
+
+	/* Attenzione: a differenza di quanto riportato a p. 16,
+	 * "Unconditionally stable multistep integration of ordinary
+	 * differential and differential-algebraic equations with
+	 * controlled algorithmic dissipation for multibody dynamic
+	 * applications"
+	 * qui il tempo finale e' in cima, il tempo theta in basso
+	 */ 
+	jx22 = 5./12.*dT;
+	jx21 = -1./12.*dT;
+	jx12 = 3./4.*dT;
+	jx11 = 1./4.*dT;
+
+	DEBUGCOUT("Ad Hoc Third Order Integrator coefficients:" << std::endl
+		<< "\t  rho: " << rho << std::endl
+		<< "\ttheta: " << theta << std::endl
+		<< "\t w0: " << w0 << std::endl
+		<< "\t w1: " << w1 << std::endl
+		<< "\t w2: " << w2 << std::endl
+		<< "\t   m0: " << m0 << std::endl
+		<< "\t   m1: " << m1 << std::endl
+		<< "\t   n0: " << n0 << std::endl
+		<< "\t   n1: " << n1 << std::endl);
+}
+

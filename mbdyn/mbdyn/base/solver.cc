@@ -2227,7 +2227,11 @@ Solver::ReadData(MBDynParser& HP)
 	      			break;
 
 			case THIRDORDER:
-	      			pRhoRegular = ReadDriveData(NULL, HP, NULL);
+				if (HP.IsKeyWord("ad" "hoc")) {
+					/* do nothing */ ;
+				} else {
+	      				pRhoRegular = ReadDriveData(NULL, HP, NULL);
+				}
 				RegularType = INT_THIRDORDER;
 				break;
 
@@ -2318,7 +2322,11 @@ Solver::ReadData(MBDynParser& HP)
 	      			break;
 
 	   		case THIRDORDER:
-				pRhoFictitious = ReadDriveData(NULL, HP, NULL);
+				if (HP.IsKeyWord("ad" "hoc")) {
+					/* do nothing */ ;
+				} else {
+					pRhoFictitious = ReadDriveData(NULL, HP, NULL);
+				}
 				FictitiousType = INT_THIRDORDER;
 				break;
 
@@ -3241,13 +3249,22 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		break;
 
 	case INT_THIRDORDER:
-		SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
-				ThirdOrderIntegrator,
-				ThirdOrderIntegrator(dFictitiousStepsTolerance,
-					dSolutionTol,
-					iFictitiousStepsMaxIterations,
-					pRhoFictitious,
-					bModResTest));
+		if (pRhoFictitious == 0) {
+			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+					AdHocThirdOrderIntegrator,
+					AdHocThirdOrderIntegrator(dFictitiousStepsTolerance,
+						dSolutionTol,
+						iFictitiousStepsMaxIterations,
+						bModResTest));
+		} else {
+			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+					TunableThirdOrderIntegrator,
+					TunableThirdOrderIntegrator(dFictitiousStepsTolerance,
+						dSolutionTol,
+						iFictitiousStepsMaxIterations,
+						pRhoFictitious,
+						bModResTest));
+		}
 		break;
 
 	case INT_IMPLICITEULER:
@@ -3294,13 +3311,22 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		break;
 
 	case INT_THIRDORDER:
-		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
-				ThirdOrderIntegrator,
-				ThirdOrderIntegrator(dTol,
-					dSolutionTol,
-					iMaxIterations,
-					pRhoRegular,
-					bModResTest));
+		if (pRhoRegular == 0) {
+			SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+					AdHocThirdOrderIntegrator,
+					AdHocThirdOrderIntegrator(dTol,
+						dSolutionTol,
+						iMaxIterations,
+						bModResTest));
+		} else {
+			SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+					TunableThirdOrderIntegrator,
+					TunableThirdOrderIntegrator(dTol,
+						dSolutionTol,
+						iMaxIterations,
+						pRhoRegular,
+						bModResTest));
+		}
 		break;
 
 	case INT_IMPLICITEULER:

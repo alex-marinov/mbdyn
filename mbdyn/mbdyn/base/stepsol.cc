@@ -93,6 +93,12 @@ StepIntegrator::OutputTypes(const bool fpred)
 	outputPred  = fpred;
 }
 
+void
+StepIntegrator::SetDriveHandler(const DriveHandler* /* pDH */ )
+{
+	NO_OP;
+}
+
 #include "stepsol.hc"
 
 ImplicitStepIntegrator::ImplicitStepIntegrator(const integer MaxIt,
@@ -224,12 +230,6 @@ dCoef(dC)
 }
 
 DerivativeSolver::~DerivativeSolver(void)
-{
-	NO_OP;
-}
-
-void
-DerivativeSolver::SetDriveHandler(const DriveHandler* /* pDH */ )
 {
 	NO_OP;
 }
@@ -661,12 +661,6 @@ CrankNicholsonIntegrator::~CrankNicholsonIntegrator(void)
 }
 
 void
-CrankNicholsonIntegrator::SetDriveHandler(const DriveHandler* /* pDH */ )
-{
-	NO_OP;
-}
-
-void
 CrankNicholsonIntegrator::SetCoef(doublereal dT,
 		doublereal dAlpha,
 		enum StepChange /* NewStep */)
@@ -740,12 +734,6 @@ ImplicitEulerIntegrator::ImplicitEulerIntegrator(const doublereal dTl,
 }
 
 ImplicitEulerIntegrator::~ImplicitEulerIntegrator(void)
-{
-	NO_OP;
-}
-
-void
-ImplicitEulerIntegrator::SetDriveHandler(const DriveHandler* /* pDH */ )
 {
 	NO_OP;
 }

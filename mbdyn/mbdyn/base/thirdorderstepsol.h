@@ -9,17 +9,15 @@
 class ThirdOrderIntegrator :  
 	public ImplicitStepIntegrator
 {
-private:
+protected:
 	VectorHandler *pXPrev;
 	VectorHandler *pXPrimePrev; 
-	DriveOwner Rho;
-	
+
 	doublereal dT;
 	doublereal rho;
 	doublereal theta;
-	doublereal w[3];
-	doublereal jx[2][2];
-	doublereal jxp[2][2];
+	doublereal w0, w1, w2;
+	doublereal jx11, jx12, jx21, jx22;
 	doublereal m0, m1, n0, n1;
 	
 	bool bAdvanceCalledFirstTime;
@@ -28,7 +26,6 @@ private:
 	SpMapMatrixHandler Jacxi_xp, Jacxi_x, Jac_xp, Jac_x;
 	MatrixHandler *pJacxi_xp, *pJacxi_x, *pJac_xp, *pJac_x;
 
-protected:
 	void PredictDof_for_AfterPredict(const int DCount,
 		const DofOrder::Order Order,
 		const VectorHandler* const pSol = 0) const;
@@ -42,7 +39,6 @@ public:
 	ThirdOrderIntegrator(const doublereal dT, 
 			const doublereal dSolutionTol, 
 			const integer iMaxIt,
-			const DriveCaller* pRho,
 			const bool bmod_res_test);
 
 	virtual ~ThirdOrderIntegrator(void);
@@ -52,8 +48,6 @@ public:
 	virtual void Jacobian(MatrixHandler* pJac) const;
 	
 	virtual void Update(const VectorHandler* pSol) const;
-
-	virtual void SetDriveHandler(const DriveHandler* pDH);
 
 	/* scale factor for tests */
 //	virtual doublereal TestScale(const NonlinearSolverTest *pTest) const;
@@ -74,10 +68,48 @@ public:
 protected:
 	virtual void SetCoef(doublereal dT, 
 			doublereal dAlpha,
-			enum StepChange NewStep);
-			
+			enum StepChange NewStep) = 0;
 	virtual void Predict(void);
 
+};
+
+class TunableThirdOrderIntegrator :  
+	public ThirdOrderIntegrator
+{
+private:
+	DriveOwner Rho;
+
+public:
+	TunableThirdOrderIntegrator(const doublereal dT, 
+			const doublereal dSolutionTol, 
+			const integer iMaxIt,
+			const DriveCaller* pRho,
+			const bool bmod_res_test);
+
+	virtual ~TunableThirdOrderIntegrator(void);
+	void SetDriveHandler(const DriveHandler* pDH);
+
+protected:
+	void SetCoef(doublereal dT, 
+			doublereal dAlpha,
+			enum StepChange NewStep);
+};
+
+class AdHocThirdOrderIntegrator :  
+	public ThirdOrderIntegrator
+{
+public:
+	AdHocThirdOrderIntegrator(const doublereal dT, 
+			const doublereal dSolutionTol, 
+			const integer iMaxIt,
+			const bool bmod_res_test);
+
+	virtual ~AdHocThirdOrderIntegrator(void);
+
+protected:
+	void SetCoef(doublereal dT, 
+			doublereal dAlpha,
+			enum StepChange NewStep);
 };
 
 #endif /* THIRD_ORDER_STEPSOL_H */
