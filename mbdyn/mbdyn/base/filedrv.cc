@@ -235,7 +235,10 @@ Drive* ReadFileDriver(DataManager* pDM,
    
    const char* sKeyWords[] = {
       "fixed" "step",
-	"socket"
+	"socket",
+	"rtai" "input",
+
+	NULL
    };
    
    enum KeyWords {
@@ -243,6 +246,7 @@ Drive* ReadFileDriver(DataManager* pDM,
 	
 	FIXEDSTEP = 0,
 	SOCKET,
+	RTAIINPUT,
 	
 	LASTKEYWORD
    };
@@ -311,7 +315,18 @@ Drive* ReadFileDriver(DataManager* pDM,
 #endif /* USE_SOCKET_DRIVES */
        break;
     }
-      
+
+    case RTAIINPUT: {
+#ifdef USE_RTAI
+
+#else /* ! USE_RTAI */
+       std::cerr << "Sorry, RTAI input requires configure --with-rtai"
+	       << std::endl;
+       THROW(ErrGeneric());
+#endif /* ! USE_RTAI */
+       break;
+    }
+ 
     default:     
       std::cerr << "unknown file drive at line " << HP.GetLineData() << std::endl;
       THROW(ErrGeneric());

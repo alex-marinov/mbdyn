@@ -42,9 +42,6 @@
 /* RTAIInDrive - begin */
 
 class RTAIInDrive : public FileDrive {
-protected:
-   	doublereal* pdVal;
-   
 public:
    	RTAIInDrive(unsigned int uL, const DriveHandler* pDH,
 	            integer nd);

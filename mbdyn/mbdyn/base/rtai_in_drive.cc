@@ -36,10 +36,8 @@
 
 #include <rtai_in_drive.h>
 
-RTAIInDrive::RTAIInDrive(unsigned int uL, const DriveHandler* pDH,
-			 integer nd)
-: FileDrive(uL, pDH, "rtai_in", nd), 
-pdVal(NULL)
+RTAIInDrive::RTAIInDrive(unsigned int uL, const DriveHandler* pDH, integer nd)
+: FileDrive(uL, pDH, "rtai_in", nd)
 {
    	ASSERT(nd > 0);
    
