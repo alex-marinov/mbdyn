@@ -25,7 +25,7 @@ main(int argn, const char* const argv[])
 				" m31, m32, m33)" << endl
 				<< endl
 	   			<< "part of MBDyn package (Copyright (C)"
-				" Pierangelo Masarati, 1996-2000)" << endl
+				" Pierangelo Masarati, 1996-2004)" << endl
 				<< endl;
 	 		exit(EXIT_SUCCESS);
       		}

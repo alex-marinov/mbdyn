@@ -460,7 +460,6 @@ static int
 method_multistep(const char* module, integration_data* d, 
 		 void* method_data, const char* user_defined)
 {
-  
    	/* prepara le strutture dati per il calcolo */
    	int size = (*::ff->size)(p_data);
    	MyVectorHandler v0(size);

@@ -59,7 +59,7 @@ main(int argn, const char* const argv[])
 				" matrix (column-oriented)" << std::endl 
 				<< std::endl
 	   			<< "part of MBDyn package (Copyright (C)"
-				" Pierangelo Masarati, 1996-2000)" << std::endl 
+				" Pierangelo Masarati, 1996-2004)" << std::endl 
 				<< std::endl;
 	 		exit(EXIT_SUCCESS);
       		} else if (!strcasecmp(argv[1], "mat")) {
