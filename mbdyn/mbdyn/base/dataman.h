@@ -165,6 +165,7 @@ protected:
 	char *sAdamsModelName;
 	unsigned int iAdamsOutputNodes;
 	unsigned int iAdamsOutputParts;
+	std::streambuf::pos_type adamsNoab;
 #endif /* USE_ADAMS */
 
 #ifdef USE_MOTIONVIEW
@@ -314,6 +315,7 @@ public:
 	void AdamsResOutputInit(void);
 	void AdamsResOutput(integer iBlock, const char *type,
 			const char *id) const;
+	void AdamsResOutputFini(void) const;
 #endif /* USE_ADAMS */
 
 #ifdef USE_MOTIONVIEW

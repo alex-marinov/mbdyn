@@ -126,6 +126,7 @@ iOutputBlock(1),
 sAdamsModelName(NULL),
 iAdamsOutputNodes(0),
 iAdamsOutputParts(0),
+adamsNoab(0),
 #endif /* USE_ADAMS */
 
 /* ElemManager */
@@ -554,6 +555,12 @@ DataManager::~DataManager(void)
       MakeRestart();
    }
 
+#ifdef USE_ADAMS
+   if (bAdamsOutput()) {
+      AdamsResOutputFini();
+   }
+#endif /* USE_ADAMS */
+   
 #ifdef USE_MOTIONVIEW
    if (bMotionViewOutput()) {
       MotionViewResOutputFini();

@@ -22,6 +22,7 @@ MBDyn 1.2-Engineering
 		- fixed dof count in initial assembly dof stats print
 		- fixed element drive input
 		- fixed aeromodal bug for v=0
+		- fixed ADAMS res output
 	Known Issues:
 		- parallel is not working yet
 	Backward compatibility issues:

@@ -132,7 +132,10 @@ DataManager::AdamsResOutputInit(void)
 		 * FIXME: replace 10000 with the number of steps
 		 * actually performed
 		 */
-		<< "NUMBER OF ANALYSIS BLOCKS                      2" << std::endl
+		<< "NUMBER OF ANALYSIS BLOCKS                      2" << std::endl;
+	adamsNoab = out.tellp();
+
+	out
 		<< std::setw(8) << 2+10000 << std::setw(8) << 123+3*iAdamsOutputParts << std::endl
 		<< "!" << std::endl
      
@@ -441,7 +444,7 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 	out.form("%-20s", type);
 #else /* !HAVE_FORM_IN_OSTREAM */
 	std::ios::fmtflags tmpflags;
-	tmpflags = out.flags(std::ios::right);
+	tmpflags = out.flags(std::ios::left);
 	out << std::setw(20) << type;
 	out.flags(tmpflags);
 #endif /* !HAVE_FORM_IN_OSTREAM */
@@ -530,5 +533,12 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 	out << "!" << std::endl;
 }
 
+void
+DataManager::AdamsResOutputFini(void) const
+{
+	std::ostream& out = OutHdl.AdamsRes();
+	out.seekp(adamsNoab, std::ios_base::beg);
+	out << std::setw(8) << iOutputBlock;
+}
 #endif /* USE_ADAMS */
 
