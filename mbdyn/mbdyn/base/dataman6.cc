@@ -55,9 +55,11 @@ DataManager::RegisterSocketUser(UseSocket *pUS)
 void
 DataManager::WaitSocketUsers(void)
 {
-	int n;
-	time_t finalTime = 0;
+	if (SocketUsers.size() == 0) {
+		return;
+	}
 
+	time_t finalTime = 0;
 	if (SocketUsersTimeout != 0) {
 		finalTime = time(NULL) + SocketUsersTimeout;
 	}
@@ -68,6 +70,7 @@ DataManager::WaitSocketUsers(void)
 	/* insert registered sockets in set */
 	std::map<int, UseSocket *>::iterator ri;
 	std::map<int, UseSocket *>::const_iterator re = SocketUsers.end();
+	int n;
 	for (n = 0, ri = SocketUsers.begin(); ri != re; n++, ri++) {
 		FD_SET(ri->first, &active_set);
 	}
