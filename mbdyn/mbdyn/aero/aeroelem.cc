@@ -842,14 +842,16 @@ ReadAerodynamicBody(DataManager* pDM,
 	Vec3 Ra1 = Ra.GetVec(1);
 	Vec3 Ra3 = Ra.GetVec(3);
 	doublereal dCm1 = pChord->dGet(-1.);
+	doublereal dPm1 = pForce->dGet(-1.);
 	doublereal dCp1 = pChord->dGet(1.);
+	doublereal dPp1 = pForce->dGet(1.);
 	std::ostream& out = pDM->GetLogFile();
 	out << "aero0: " << uLabel
 		<< " " << pNode->GetLabel()
-		<< " ", (f - Ra3*(dSpan/2.) - Ra1*(dCm1*3./4.)).Write(out, " ")
-		<< " ", (f - Ra3*(dSpan/2.) + Ra1*(dCm1/4.)).Write(out, " ")
-		<< " ", (f + Ra3*(dSpan/2.) - Ra1*(dCp1*3./4.)).Write(out, " ")
-		<< " ", (f + Ra3*(dSpan/2.) + Ra1*(dCp1/4.)).Write(out, " ")
+		<< " ", (f - Ra3*(dSpan/2.) + Ra1*(dPm1 - dCm1*3./4.)).Write(out, " ")
+		<< " ", (f - Ra3*(dSpan/2.) + Ra1*(dPm1 + dCm1/4.)).Write(out, " ")
+		<< " ", (f + Ra3*(dSpan/2.) + Ra1*(dPp1 - dCp1*3./4.)).Write(out, " ")
+		<< " ", (f + Ra3*(dSpan/2.) + Ra1*(dPp1 + dCp1/4.)).Write(out, " ")
 		<< std::endl;
 
 	return pEl;
@@ -1475,26 +1477,29 @@ ReadAerodynamicBeam(DataManager* pDM,
 	Vec3 ra1 = Ra1.GetVec(1);
 	Vec3 ra3 = Ra1.GetVec(3);
 	doublereal dC = pChord->dGet(-1.);
+	doublereal dP = pForce->dGet(-1.);
 	out
 		<< " " << pNode1->GetLabel()
-		<< " ", (f1 - ra1*(dC*3./4.)).Write(out, " ")
-		<< " ", (f1 + ra1*(dC/4.)).Write(out, " ");
+		<< " ", (f1 + ra1*(dP - dC*3./4.)).Write(out, " ")
+		<< " ", (f1 + ra1*(dP + dC/4.)).Write(out, " ");
 
 	ra1 = Ra2.GetVec(1);
 	ra3 = Ra2.GetVec(3);
 	dC = pChord->dGet(0.);
+	dP = pForce->dGet(0.);
 	out
 		<< " " << pNode2->GetLabel()
-		<< " ", (f2 - ra1*(dC*3./4.)).Write(out, " ")
-		<< " ", (f2 + ra1*(dC/4.)).Write(out, " ");
+		<< " ", (f2 + ra1*(dP - dC*3./4.)).Write(out, " ")
+		<< " ", (f2 + ra1*(dP + dC/4.)).Write(out, " ");
 
 	ra1 = Ra3.GetVec(1);
 	ra3 = Ra3.GetVec(3);
 	dC = pChord->dGet(1.);
+	dP = pForce->dGet(1.);
 	out
 		<< " " << pNode3->GetLabel()
-		<< " ", (f3 - ra1*(dC*3./4.)).Write(out, " ")
-		<< " ", (f3 + ra1*(dC/4.)).Write(out, " ")
+		<< " ", (f3 + ra1*(dP - dC*3./4.)).Write(out, " ")
+		<< " ", (f3 + ra1*(dP + dC/4.)).Write(out, " ")
 		<< std::endl;
 
 	return pEl;
@@ -2083,18 +2088,20 @@ ReadAerodynamicBeam2(
 	Vec3 ra1 = Ra1.GetVec(1);
 	Vec3 ra3 = Ra1.GetVec(3);
 	doublereal dC = pChord->dGet(-1.);
+	doublereal dP = pForce->dGet(-1.);
 	out
 		<< " " << pNode1->GetLabel()
-		<< " ", (f1 - ra1*(dC*3./4.)).Write(out, " ")
-		<< " ", (f1 + ra1*(dC/4.)).Write(out, " ");
+		<< " ", (f1 + ra1*(dP - dC*3./4.)).Write(out, " ")
+		<< " ", (f1 + ra1*(dP + dC/4.)).Write(out, " ");
 
 	ra1 = Ra2.GetVec(1);
 	ra3 = Ra2.GetVec(3);
 	dC = pChord->dGet(1.);
+	dP = pForce->dGet(1.);
 	out
 		<< " " << pNode2->GetLabel()
-		<< " ", (f2 - ra1*(dC*3./4.)).Write(out, " ")
-		<< " ", (f2 + ra1*(dC/4.)).Write(out, " ")
+		<< " ", (f2 + ra1*(dP - dC*3./4.)).Write(out, " ")
+		<< " ", (f2 + ra1*(dP + dC/4.)).Write(out, " ")
 		<< std::endl;
 
 	return pEl;

@@ -272,10 +272,9 @@ STAHRAeroData::GetForces(int i, doublereal* W, doublereal* TNG,
 {
 	switch (unsteadyflag) {
 	case AeroData::HARRIS: 
-	case AeroData::BIELAWA: {
+	case AeroData::BIELAWA:
 		Predict(i, atan2(-W[1], W[0]), OUTA[ALF1], OUTA[ALF2]);
 		break;
-	}
 
 	default:
 		break;
@@ -283,6 +282,7 @@ STAHRAeroData::GetForces(int i, doublereal* W, doublereal* TNG,
 
 	integer u = unsteadyflag;
    	__FC_DECL__(aerod2)(W, VAM, TNG, OUTA, &u, &Omega, &profile);
+
    	return 0;
 }
 
@@ -306,10 +306,9 @@ C81AeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA)
 {
 	switch (unsteadyflag) {
 	case AeroData::HARRIS: 
-	case AeroData::BIELAWA: {
+	case AeroData::BIELAWA:
 		Predict(i, atan2(-W[1], W[0]), OUTA[ALF1], OUTA[ALF2]);
 		break;
-	}
 
 	default:
 		break;
@@ -383,10 +382,9 @@ C81MultipleAeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal
 {
 	switch (unsteadyflag) {
 	case AeroData::HARRIS: 
-	case AeroData::BIELAWA: {
+	case AeroData::BIELAWA:
 		Predict(i, atan2(-W[1], W[0]), OUTA[ALF1], OUTA[ALF2]);
 		break;
-	}
 
 	default:
 		break;
