@@ -285,7 +285,7 @@ public:
 /* Y12SparseSolutionManager - end */
 
 /* Y12SparseCCSolutionManager - begin */
-
+template <class CC>
 class Y12SparseCCSolutionManager: public Y12SparseSolutionManager {
 protected:
 	bool CCReady;

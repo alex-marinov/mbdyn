@@ -34,6 +34,9 @@
 
 #include "myassert.h"
 
+#include "spmapmh.h"
+#include "ccmh.h"
+#include "dirccmh.h"
 #include "harwrap.h"
 #include "mschwrap.h"
 #include "y12wrap.h"
@@ -45,22 +48,41 @@
 
 // #define DEFAULT_CC
 
+/* private data */
+static struct solver_t {
+	const char *const	s_name;
+	const char *const	s_alias;
+	enum LinSol::SolverType	s_type;
+	unsigned		s_flags;
+} solver[] = {
+	{ "Umfpack", "umfpack3", 
+		LinSol::UMFPACK_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR },
+	{ "Y12", NULL,
+		LinSol::Y12_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR },
+	{ "Harwell", NULL,
+		LinSol::HARWELL_SOLVER,
+		LinSol::SOLVER_FLAGS_NONE },
+	{ "Meschach", NULL,
+		LinSol::MESCHACH_SOLVER,
+		LinSol::SOLVER_FLAGS_NONE },
+	{ "Empty", NULL,
+		LinSol::EMPTY_SOLVER,
+		LinSol::SOLVER_FLAGS_NONE },
+	{ NULL, NULL, 
+		LinSol::EMPTY_SOLVER,
+		LinSol::SOLVER_FLAGS_NONE },
+};
+
 /*
  * Default solver
  */
-LinSol::SolverType LinSol::defaultSolver =
+LinSol::SolverType LinSol::defaultSolver = 
 #if defined(USE_UMFPACK)
-#ifdef DEFAULT_CC
-	LinSol::UMFPACK_CC_SOLVER
-#else /* ! DEFAULT_CC */
 	LinSol::UMFPACK_SOLVER
-#endif /* ! DEFAULT_CC */
 #elif /* !USE_UMFPACK */ defined(USE_Y12)
-#ifdef DEFAULT_CC
-	LinSol::Y12_CC_SOLVER
-#else /* ! DEFAULT_CC */
 	LinSol::Y12_SOLVER
-#endif /* ! DEFAULT_CC */
 #elif /* !USE_Y12 */ defined(USE_HARWELL)
 	LinSol::HARWELL_SOLVER
 #elif /* !USE_HARWELL */ defined(USE_MESCHACH)
@@ -101,12 +123,12 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 {
    	/* parole chiave */
    	const char* sKeyWords[] = { 
-		"harwell",
-		"meschach",
-		"y12",
-		"umfpack",
-		"umfpack3",
-		"empty",
+		::solver[LinSol::HARWELL_SOLVER].s_name,
+		::solver[LinSol::MESCHACH_SOLVER].s_name,
+		::solver[LinSol::Y12_SOLVER].s_name,
+		::solver[LinSol::UMFPACK_SOLVER].s_name,
+		::solver[LinSol::UMFPACK_SOLVER].s_alias,
+		::solver[LinSol::EMPTY_SOLVER].s_name,
 		NULL
 	};
 
@@ -139,11 +161,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		/*
 		 * FIXME: use CC as default???
 		 */
-#ifdef DEFAULT_CC
-		CurrSolver = LinSol::Y12_CC_SOLVER;
-#else /* ! DEFAULT_CC */
 		CurrSolver = LinSol::Y12_SOLVER;
-#endif /* ! DEFAULT_CC */
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using y12 sparse LU solver" << std::endl);
 		break;
@@ -157,11 +175,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		/*
 		 * FIXME: use CC as default???
 		 */
-#ifdef DEFAULT_CC
-		CurrSolver = LinSol::UMFPACK_CC_SOLVER;
-#else /* ! DEFAULT_CC */
 		CurrSolver = LinSol::UMFPACK_SOLVER;
-#endif /* ! DEFAULT_CC */
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using umfpack sparse LU solver" << std::endl);
 		break;
@@ -193,20 +207,24 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 	}
 
 	if (HP.IsKeyWord("column" "compressed") || HP.IsKeyWord("cc")) {
-		switch (CurrSolver) {
-		case LinSol::UMFPACK_SOLVER:
-			CurrSolver = LinSol::UMFPACK_CC_SOLVER;
-			break;
+		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_CC) {
+			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_CC;
 
-		case LinSol::Y12_SOLVER:
-			CurrSolver = LinSol::Y12_CC_SOLVER;
-			break;
-
-		default:
+		} else {
 			pedantic_cerr("column compressed is meaningless for "
-					<< psSolverNames[CurrSolver]
+					<< ::solver[CurrSolver].s_name
 					<< " solver" << std::endl);
-			break;
+		}
+	}
+
+	if (HP.IsKeyWord("direct") || HP.IsKeyWord("dir")) {
+		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_DIR) {
+			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_CC;
+
+		} else {
+			pedantic_cerr("direct is meaningless for "
+					<< ::solver[CurrSolver].s_name
+					<< " solver" << std::endl);
 		}
 	}
 
@@ -259,18 +277,23 @@ LinSol::GetSolver(void) const
 }
 
 bool
-LinSol::SetSolver(LinSol::SolverType t)
+LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 {
+	/* check flags */
+	if ((::solver[t].s_flags & f) != f) {
+		return false;
+	}
+
+	solverFlags = f;
+	
 	switch (t) {
 	case LinSol::UMFPACK_SOLVER:
-	case LinSol::UMFPACK_CC_SOLVER:
 #ifdef USE_UMFPACK
 		CurrSolver = t;
 		return true;
 #endif /* USE_UMFPACK */
 
 	case LinSol::Y12_SOLVER:
-	case LinSol::Y12_CC_SOLVER:
 #ifdef USE_Y12
 		CurrSolver = t;
 		return true;
@@ -301,6 +324,63 @@ LinSol::SetSolver(LinSol::SolverType t)
 	}
 }
 
+unsigned
+LinSol::GetSolverFlags(void) const
+{
+	return solverFlags;
+}
+
+unsigned
+LinSol::GetSolverFlags(SolverType t) const
+{
+	return ::solver[t].s_flags;
+}
+
+const char *const
+LinSol::GetSolverName(void) const
+{
+	return ::solver[CurrSolver].s_name;
+}
+
+const char *const
+LinSol::GetSolverName(SolverType t) const
+{
+	return ::solver[t].s_name;
+}
+
+bool
+LinSol::SetSolverFlags(unsigned f)
+{
+	if ((::solver[CurrSolver].s_flags & f) == f) {
+		solverFlags = f;
+		return true;
+	}
+
+	return false;
+}
+
+bool
+LinSol::AddSolverFlags(unsigned f)
+{
+	if ((::solver[CurrSolver].s_flags & f) == f) {
+		solverFlags |= f;
+		return true;
+	}
+
+	return false;
+}
+
+bool
+LinSol::MaskSolverFlags(unsigned f)
+{
+	if ((::solver[CurrSolver].s_flags & f) == f) {
+		solverFlags &= ~f;
+		return true;
+	}
+
+	return false;
+}
+
 integer
 LinSol::iGetWorkSpaceSize(void) const
 {
@@ -317,6 +397,10 @@ SolutionManager *const
 LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 {
 	SolutionManager *pCurrSM = NULL;
+	bool cc = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_CC);
+	bool dir = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_DIR);
+
+	ASSERT((::solver[CurrSolver].s_flags & solverFlags) == solverFlags);
 
 	if (iLWS == 0) {
 		iLWS = iWorkSpaceSize;
@@ -325,27 +409,26 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
    	switch (CurrSolver) {
      	case LinSol::Y12_SOLVER: 
 #ifdef USE_Y12
-      		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			Y12SparseSolutionManager,
-			Y12SparseSolutionManager(iNLD, iLWS,
-				dPivotFactor == -1. ? 1. : dPivotFactor));
+		if (dir) {
+			typedef Y12SparseCCSolutionManager<DirCColMatrixHandler<1> > CCSM;
+	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
+					CCSM(iNLD, iLWS,
+					dPivotFactor == -1. ? 1. : dPivotFactor));
+		} else if (cc) {
+			typedef Y12SparseCCSolutionManager<CColMatrixHandler<1> > CCSM;
+	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
+					CCSM(iNLD, iLWS,
+					dPivotFactor == -1. ? 1. : dPivotFactor));
+		} else {
+      			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				Y12SparseSolutionManager,
+				Y12SparseSolutionManager(iNLD, iLWS,
+					dPivotFactor == -1. ? 1. : dPivotFactor));
+		}
       		break;
 #else /* !USE_Y12 */
       		std::cerr << "Configure with --with-y12 "
 			"to enable Y12 solver" << std::endl;
-      		THROW(ErrGeneric());
-#endif /* !USE_Y12 */
-
-     	case LinSol::Y12_CC_SOLVER: 
-#ifdef USE_Y12
-      		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			Y12SparseCCSolutionManager,
-			Y12SparseCCSolutionManager(iNLD, iLWS,
-				dPivotFactor == -1. ? 1. : dPivotFactor));
-      		break;
-#else /* !USE_Y12 */
-      		std::cerr << "Configure with --with-y12 "
-			"to enable Y12 CC solver" << std::endl;
       		THROW(ErrGeneric());
 #endif /* !USE_Y12 */
 
@@ -377,27 +460,23 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 
 	case LinSol::UMFPACK_SOLVER:
 #ifdef USE_UMFPACK
-		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			UmfpackSparseSolutionManager,
-			UmfpackSparseSolutionManager(iNLD, 
-				0, dPivotFactor));
+		if (dir) {
+			typedef UmfpackSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
+	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
+					CCSM(iNLD, dPivotFactor));
+		} else if (cc) {
+			typedef UmfpackSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
+	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
+					CCSM(iNLD, dPivotFactor));
+		} else {
+			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				UmfpackSparseSolutionManager,
+				UmfpackSparseSolutionManager(iNLD, dPivotFactor));
+		}
       		break;
 #else /* !USE_UMFPACK */
       		std::cerr << "Configure with --with-umfpack "
 			"to enable Umfpack solver" << std::endl;
-      		THROW(ErrGeneric());
-#endif /* !USE_UMFPACK */
-
-	case LinSol::UMFPACK_CC_SOLVER:
-#ifdef USE_UMFPACK
-		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			UmfpackSparseCCSolutionManager,
-			UmfpackSparseCCSolutionManager(iNLD, 
-				0, dPivotFactor));
-      		break;
-#else /* !USE_UMFPACK */
-      		std::cerr << "Configure with --with-umfpack "
-			"to enable Umfpack CC solver" << std::endl;
       		THROW(ErrGeneric());
 #endif /* !USE_UMFPACK */
 

@@ -36,6 +36,9 @@
 #include <ac/iostream>
 
 #include <solman.h>
+#include <spmapmh.h>
+#include <ccmh.h>
+#include <dirccmh.h>
 #include <y12wrap.h>
 #include <harwrap.h>
 #include <mschwrap.h>
@@ -44,7 +47,7 @@
 static void
 usage(void)
 {
-	std::cerr << "usage: wraptest [-c] [-m <solver>] [-s]" << std::endl
+	std::cerr << "usage: wraptest [-c] [-d] [-m <solver>] [-s]" << std::endl
 		<< "\t<solver>={y12|harwell|meschach|umfpack}" << std::endl;
 	exit(EXIT_FAILURE);
 }
@@ -67,11 +70,12 @@ main(int argc, char *argv[])
 #endif /* NO SOLVER !!! */
 		;
 	bool cc(false);
+	bool dir(false);
 	bool singular(false);
 	const int size(3);
 
 	while (1) {
-		int opt = getopt(argc, argv, "cm:s");
+		int opt = getopt(argc, argv, "cdm:s");
 
 		if (opt == EOF) {
 			break;
@@ -80,6 +84,10 @@ main(int argc, char *argv[])
 		switch (opt) {
 		case 'c':
 			cc = true;
+			break;
+
+		case 'd':
+			dir = true;
 			break;
 
 		case 'm':
@@ -97,9 +105,13 @@ main(int argc, char *argv[])
 
 	if (strcasecmp(solver, "y12") == 0) {
 #ifdef USE_Y12
-		if (cc) {
-			SAFENEWWITHCONSTRUCTOR(pSM, Y12SparseCCSolutionManager,
-					Y12SparseCCSolutionManager(size));
+		if (dir) {
+			typedef Y12SparseCCSolutionManager<DirCColMatrixHandler<1> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+
+		} else if (cc) {
+			typedef Y12SparseCCSolutionManager<CColMatrixHandler<1> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
 
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pSM, Y12SparseSolutionManager,
@@ -133,12 +145,14 @@ main(int argc, char *argv[])
 	} else if (strcasecmp(solver, "umfpack") == 0
 			|| strcasecmp(solver, "umfpack3") == 0) {
 #ifdef USE_UMFPACK
-		if (cc) {
-			SAFENEWWITHCONSTRUCTOR(pSM,
-					UmfpackSparseCCSolutionManager,
-					UmfpackSparseCCSolutionManager(size));
-			argc--;
-			argv++;
+		if (dir) {
+			typedef UmfpackSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+
+		} else if (cc) {
+			typedef UmfpackSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pSM,
 					UmfpackSparseSolutionManager,

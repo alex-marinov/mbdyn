@@ -302,7 +302,7 @@ UmfpackSolver::bPrepareSymbolic(void)
 /* UmfpackSparseSolutionManager - begin */
 
 UmfpackSparseSolutionManager::UmfpackSparseSolutionManager(integer Dim,
-		integer dummy, doublereal dPivot)
+		doublereal dPivot)
 : A(Dim),
 xVH(0),
 bVH(0), 
@@ -378,26 +378,27 @@ UmfpackSparseSolutionManager::pSolHdl(void) const
 
 /* UmfpackSparseSolutionManager - end */
 
-/* UmfpackSparseCCSolutionManager - begin */
-
-UmfpackSparseCCSolutionManager::UmfpackSparseCCSolutionManager(integer Dim,
-		integer dummy, doublereal dPivot)
-: UmfpackSparseSolutionManager(Dim, dummy, dPivot),
+template <class CC>
+UmfpackSparseCCSolutionManager<CC>::UmfpackSparseCCSolutionManager(integer Dim,
+		doublereal dPivot)
+: UmfpackSparseSolutionManager(Dim, dPivot),
 CCReady(false),
 Ac(0)
 {
 	NO_OP;
 }
 
-UmfpackSparseCCSolutionManager::~UmfpackSparseCCSolutionManager(void) 
+template <class CC>
+UmfpackSparseCCSolutionManager<CC>::~UmfpackSparseCCSolutionManager(void) 
 {
 	if (Ac) {
 		SAFEDELETE(Ac);
 	}
 }
 
+template <class CC>
 void
-UmfpackSparseCCSolutionManager::MatrReset(const doublereal& d)
+UmfpackSparseCCSolutionManager<CC>::MatrReset(const doublereal& d)
 {
 	if (!CCReady) {
 		A.Reset(d);
@@ -406,21 +407,15 @@ UmfpackSparseCCSolutionManager::MatrReset(const doublereal& d)
 	}
 }
 
-/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+template <class CC>
 void
-UmfpackSparseCCSolutionManager::MakeCompressedColumnForm(void)
+UmfpackSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 {
 	if (!CCReady) {
 		pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
 
 		ASSERT(Ac == 0);
 
-#if 0
-		typedef CColMatrixHandler<0> CC;
-#else
-		typedef DirCColMatrixHandler<0> CC;
-#endif
-		
 		SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(Ax, Ai, Ap));
 
 		CCReady = true;
@@ -428,8 +423,9 @@ UmfpackSparseCCSolutionManager::MakeCompressedColumnForm(void)
 }
 
 /* Inizializzatore "speciale" */
+template <class CC>
 void
-UmfpackSparseCCSolutionManager::MatrInitialize(const doublereal& d)
+UmfpackSparseCCSolutionManager<CC>::MatrInitialize(const doublereal& d)
 {
 	SAFEDELETE(Ac);
 	Ac = 0;
@@ -440,8 +436,9 @@ UmfpackSparseCCSolutionManager::MatrInitialize(const doublereal& d)
 }
 	
 /* Rende disponibile l'handler per la matrice */
+template <class CC>
 MatrixHandler*
-UmfpackSparseCCSolutionManager::pMatHdl(void) const
+UmfpackSparseCCSolutionManager<CC>::pMatHdl(void) const
 {
 	if (!CCReady) {
 		return &A;
@@ -450,6 +447,9 @@ UmfpackSparseCCSolutionManager::pMatHdl(void) const
 	ASSERT(Ac != 0);
 	return Ac;
 }
+
+template class UmfpackSparseCCSolutionManager<CColMatrixHandler<0> >;
+template class UmfpackSparseCCSolutionManager<DirCColMatrixHandler<0> >;
 
 /* UmfpackSparseCCSolutionManager - end */
 

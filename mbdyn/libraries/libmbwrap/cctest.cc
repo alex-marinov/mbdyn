@@ -33,14 +33,17 @@
 
 #include <stdlib.h>
 #include <unistd.h>
-#include <ac/iostream>
-#include <ac/iomanip>
+#include "ac/iostream"
+#include "ac/iomanip"
 
-#include <solman.h>
-#include <y12wrap.h>
-#include <harwrap.h>
-#include <mschwrap.h>
-#include <umfpackwrap.h>
+#include "solman.h"
+#include "spmapmh.h"
+#include "ccmh.h"
+#include "dirccmh.h"
+#include "y12wrap.h"
+#include "harwrap.h"
+#include "mschwrap.h"
+#include "umfpackwrap.h"
 
 char *solvers[] = {
 #ifdef USE_UMFPACK
@@ -55,7 +58,7 @@ char *solvers[] = {
 static void
 usage(void)
 {
-	std::cerr << "usage: cctest [-m <solver>]" << std::endl;
+	std::cerr << "usage: cctest [-d] [-m <solver>]" << std::endl;
 
 	if (!solvers[0]) {
 		std::cerr << "\tno solvers available!!!" << std::endl;
@@ -76,16 +79,21 @@ main(int argc, char *argv[])
 {
 	SolutionManager *pSM = NULL;
 	char *solver = NULL;
+	bool dir(false);
 	const int size(3);
 
 	while (1) {
-		int opt = getopt(argc, argv, "m:");
+		int opt = getopt(argc, argv, "dm:");
 
 		if (opt == EOF) {
 			break;
 		}
 
 		switch (opt) {
+		case 'd':
+			dir = true;
+			break;
+
 		case 'm':
 			solver = optarg;
 			break;
@@ -101,8 +109,14 @@ main(int argc, char *argv[])
 
 	if (strcasecmp(solver, "y12") == 0) {
 #ifdef USE_Y12
-		SAFENEWWITHCONSTRUCTOR(pSM, Y12SparseCCSolutionManager,
-				Y12SparseCCSolutionManager(size));
+		if (dir) {
+			typedef Y12SparseCCSolutionManager<DirCColMatrixHandler<1> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+
+		} else {
+			typedef Y12SparseCCSolutionManager<CColMatrixHandler<1> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+		}
 #else /* !USE_Y12 */
 		std::cerr << "need --with-y12 to use y12m library" 
 			<< std::endl;
@@ -112,9 +126,14 @@ main(int argc, char *argv[])
 	} else if (strcasecmp(solver, "umfpack") == 0
 			|| strcasecmp(solver, "umfpack3") == 0) {
 #ifdef USE_UMFPACK
-		SAFENEWWITHCONSTRUCTOR(pSM,
-				UmfpackSparseCCSolutionManager,
-				UmfpackSparseCCSolutionManager(size));
+		if (dir) {
+			typedef UmfpackSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+
+		} else {
+			typedef UmfpackSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+		}
 #else /* !USE_UMFPACK */
 		std::cerr << "need --with-umfpack to use Umfpack library" 
 			<< std::endl;

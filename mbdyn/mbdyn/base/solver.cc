@@ -365,32 +365,27 @@ Solver::Run(void)
 					"with " << nThreads << " threads"
 					<< std::endl);
 
-			/* set solver for multithreaded solution */
-			switch (CurrLinearSolver.GetSolver()) {
-			case LinSol::UMFPACK_CC_SOLVER:
-			case LinSol::Y12_CC_SOLVER:
-				break;
+			unsigned f = (LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR);
+			if (!(CurrLinearSolver.GetSolverFlags() & f)) {
+				/* conservative: dir may use too much memory */
+				if (!CurrLinearSolver.SetSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_CC)) {
+					bool b;
 
-			default:
-			{
-				silent_cout("multithreaded solution needs "
-						"a CC solver" << std::endl);
-
-				bool b;
 #if defined(USE_UMFPACK)
-				b = CurrLinearSolver.SetSolver(LinSol::UMFPACK_CC_SOLVER);
+					b = CurrLinearSolver.SetSolver(LinSol::UMFPACK_SOLVER,
+							LinSol::SOLVER_FLAGS_ALLOWS_CC);
 #elif defined (USE_Y12)
-				b = CurrLinearSolver.SetSolver(LinSol::Y12_CC_SOLVER);
+					b = CurrLinearSolver.SetSolver(LinSol::Y12_SOLVER,
+							LinSol::SOLVER_FLAGS_ALLOWS_CC);
 #else
-				b = false;
+					b = false;
 #endif
-				if (!b) {
-					silent_cerr("unable to set a CC solver"
-								<< std::endl);
-					THROW(ErrGeneric());
+					if (!b) {
+						silent_cerr("unable to select a CC-capable solver"
+									<< std::endl);
+						THROW(ErrGeneric());
+					}
 				}
-				break;
-			}
 			}
 
 			SAFENEWWITHCONSTRUCTOR(pDM,

@@ -37,21 +37,27 @@
 
 class LinSol
 {
+
 public:
    	enum SolverType {
 		HARWELL_SOLVER = 0,
 		MESCHACH_SOLVER,
 		Y12_SOLVER,
-		Y12_CC_SOLVER,
                 UMFPACK_SOLVER,
-                UMFPACK_CC_SOLVER,
 		EMPTY_SOLVER,
 
 		LAST_SOLVER
 	};
 
+	enum {
+		SOLVER_FLAGS_NONE = 0x00,
+		SOLVER_FLAGS_ALLOWS_CC = 0x01,
+		SOLVER_FLAGS_ALLOWS_DIR = 0x02
+	};
+	
 protected:
 	SolverType CurrSolver;
+	unsigned solverFlags;
 	integer iWorkSpaceSize;
    	doublereal dPivotFactor;
 
@@ -63,15 +69,20 @@ public:
 	void Read(HighParser &HP, bool bAllowEmpty = false);
  
 	SolverType GetSolver(void) const;
-	bool SetSolver(SolverType t);
+	unsigned GetSolverFlags(void) const;
+	unsigned GetSolverFlags(SolverType t) const;
+	const char *const GetSolverName(void) const;
+	const char *const GetSolverName(SolverType t) const;
+	bool SetSolver(SolverType t, unsigned f = SOLVER_FLAGS_NONE);
+	bool SetSolverFlags(unsigned f);
+	bool AddSolverFlags(unsigned f);
+	bool MaskSolverFlags(unsigned f);
 	integer iGetWorkSpaceSize(void) const;
 	const doublereal& dGetPivotFactor(void) const;
 
 	SolutionManager *const
 	LinSol::GetSolutionManager(integer iNLD, integer iLWS = 0) const;
 };
-
-extern const char *psSolverNames[];
 
 /* Integrator - end */
 

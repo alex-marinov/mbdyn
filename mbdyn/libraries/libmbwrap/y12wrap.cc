@@ -42,8 +42,8 @@
 
 #include "spmh.h"
 #include "spmapmh.h"
-#include "ccmh.h"
 #include "dirccmh.h"
+#include "ccmh.h"
 #include "y12lib.h"
 #include "y12wrap.h"
 
@@ -712,7 +712,8 @@ Y12SparseSolutionManager::Solve(void)
 
 /* Y12SparseCCSolutionManager - begin */
 
-Y12SparseCCSolutionManager::Y12SparseCCSolutionManager(integer Dim,
+template <class CC>
+Y12SparseCCSolutionManager<CC>::Y12SparseCCSolutionManager(integer Dim,
 		integer dummy, doublereal dPivot)
 : Y12SparseSolutionManager(Dim, dummy, dPivot, true),
 CCReady(false),
@@ -721,15 +722,17 @@ Ac(0)
 	NO_OP;
 }
 
-Y12SparseCCSolutionManager::~Y12SparseCCSolutionManager(void) 
+template <class CC>
+Y12SparseCCSolutionManager<CC>::~Y12SparseCCSolutionManager(void) 
 {
 	if (Ac) {
 		SAFEDELETE(Ac);
 	}
 }
 
+template <class CC>
 void
-Y12SparseCCSolutionManager::MatrReset(const doublereal& d)
+Y12SparseCCSolutionManager<CC>::MatrReset(const doublereal& d)
 {
 	if (!CCReady) {
 		MH.Reset(d);
@@ -739,20 +742,15 @@ Y12SparseCCSolutionManager::MatrReset(const doublereal& d)
 }
 
 /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+template <class CC>
 void
-Y12SparseCCSolutionManager::MakeIndexForm(void)
+Y12SparseCCSolutionManager<CC>::MakeIndexForm(void)
 {
 	if (!CCReady) {
 		pLS->MakeCompactForm(MH, dMat, iRow, iCol, iColStart);
 
 		ASSERT(Ac == 0);
 
-#if 0
-		typedef CColMatrixHandler<1> CC;
-#else
-		typedef DirCColMatrixHandler<1> CC;
-#endif
-		
 		SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(dMat, iRow, iColStart));
 
 		CCReady = true;
@@ -760,8 +758,9 @@ Y12SparseCCSolutionManager::MakeIndexForm(void)
 }
 
 /* Inizializzatore "speciale" */
+template <class CC>
 void
-Y12SparseCCSolutionManager::MatrInitialize(const doublereal& d)
+Y12SparseCCSolutionManager<CC>::MatrInitialize(const doublereal& d)
 {
 	SAFEDELETE(Ac);
 	Ac = 0;
@@ -772,8 +771,9 @@ Y12SparseCCSolutionManager::MatrInitialize(const doublereal& d)
 }
 	
 /* Rende disponibile l'handler per la matrice */
+template <class CC>
 MatrixHandler*
-Y12SparseCCSolutionManager::pMatHdl(void) const
+Y12SparseCCSolutionManager<CC>::pMatHdl(void) const
 {
 	if (!CCReady) {
 		return &MH;
@@ -782,6 +782,9 @@ Y12SparseCCSolutionManager::pMatHdl(void) const
 	ASSERT(Ac != 0);
 	return Ac;
 }
+
+template class Y12SparseCCSolutionManager<CColMatrixHandler<1> >;
+template class Y12SparseCCSolutionManager<DirCColMatrixHandler<1> >;
 
 /* Y12SparseCCSolutionManager - end */
 

@@ -146,8 +146,7 @@ protected:
 	void BackSub(doublereal t_iniz = 0.);
    
 public:
-	UmfpackSparseSolutionManager(integer Dim, integer /* unused */ = 0, 
-			doublereal dPivot = -1.);
+	UmfpackSparseSolutionManager(integer Dim, doublereal dPivot = -1.);
 	virtual ~UmfpackSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {
@@ -175,6 +174,7 @@ public:
 
 /* UmfpackSparseCCSolutionManager - begin */
 
+template <class CC>
 class UmfpackSparseCCSolutionManager: public UmfpackSparseSolutionManager {
 protected:
 	bool CCReady;
@@ -184,8 +184,7 @@ protected:
 	virtual void MakeCompressedColumnForm(void);
 	
 public:
-	UmfpackSparseCCSolutionManager(integer Dim, integer /* unused */ = 0, 
-			doublereal dPivot = -1.);
+	UmfpackSparseCCSolutionManager(integer Dim, doublereal dPivot = -1.);
 	virtual ~UmfpackSparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */
