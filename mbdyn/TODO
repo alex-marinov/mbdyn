@@ -104,6 +104,9 @@ D. Code:
 	- append constitutive law output, if any, to elements' output
 	  (DONE infrastructure, shock absorber and rods)
 	- merge tool to generate ADAMS/View .cmd models from raw output
+	- add piecewise linear or other simple generic elastic constitutive laws
+	- allow runtime load of constitutive laws
+	- allow runtime load of drive callers
 
 
 
