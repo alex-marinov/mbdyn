@@ -1138,7 +1138,18 @@ class Mat3x3 {
     Prodotto matrice per matrice.
     Restituisce il prodotto di se stessa per m in un temporaneo.
     */
-   Mat3x3 operator * (const Mat3x3& m) const;      
+   Mat3x3 operator * (const Mat3x3& m) const
+   {
+       return Mat3x3(pdMat[M11]*m.pdMat[M11]+pdMat[M12]*m.pdMat[M21]+pdMat[M13]*m.pdMat[M31],
+		 pdMat[M21]*m.pdMat[M11]+pdMat[M22]*m.pdMat[M21]+pdMat[M23]*m.pdMat[M31],
+		 pdMat[M31]*m.pdMat[M11]+pdMat[M32]*m.pdMat[M21]+pdMat[M33]*m.pdMat[M31],
+		 pdMat[M11]*m.pdMat[M12]+pdMat[M12]*m.pdMat[M22]+pdMat[M13]*m.pdMat[M32],
+		 pdMat[M21]*m.pdMat[M12]+pdMat[M22]*m.pdMat[M22]+pdMat[M23]*m.pdMat[M32],
+		 pdMat[M31]*m.pdMat[M12]+pdMat[M32]*m.pdMat[M22]+pdMat[M33]*m.pdMat[M32],
+		 pdMat[M11]*m.pdMat[M13]+pdMat[M12]*m.pdMat[M23]+pdMat[M13]*m.pdMat[M33],
+		 pdMat[M21]*m.pdMat[M13]+pdMat[M22]*m.pdMat[M23]+pdMat[M23]*m.pdMat[M33],
+		 pdMat[M31]*m.pdMat[M13]+pdMat[M32]*m.pdMat[M23]+pdMat[M33]*m.pdMat[M33]);
+    };      
 
    doublereal Tr(void) const {
       return pdMat[M11]+pdMat[M22]+pdMat[M33];
