@@ -608,15 +608,24 @@ The rows contain:
 
 \section{Electric Node}
 \begin{verbatim}
-    <arglist> ::= <initial_value> , <derivative_initial_value>
+    <arglist> ::= "value" , <initial_value> 
+        [ , "derivative" , <derivative_initial_value> ]
 \end{verbatim}
+\emph{Note: the keywords \texttt{value} and \texttt{derivative}
+have been introduced recently; \texttt{value}is not mandatory,
+resulting in a warning while \texttt{derivative} is required.
+The same applies to the \texttt{abstract node} 
+and to the \texttt{hydraulic node}; the latter is an algebraic
+node, so only \texttt{value} is allowed.
+
 
 
 
 
 \section{Abstract Node}
 \begin{verbatim}
-    <arglist> ::= <initial_value> , <derivative_initial_value>
+    <arglist> ::= "value" , <initial_value>
+        [ , "derivative" , <derivative_initial_value> ]
 \end{verbatim}
 {\em
     Note: abstract and electric nodes are derived from the same class, the
@@ -639,7 +648,7 @@ The format of each row is
 
 \section{Hydraulic Node}
 \begin{verbatim}
-    <arglist> ::= <initial_value>
+    <arglist> ::= "value" , <initial_value>
 \end{verbatim}
 
 
