@@ -26,6 +26,7 @@ $(GINACLIB_LIBS)\
 ../libraries/libmbutil/libmbutil.la \
 @Y12_LIBS@ \
 ../libraries/libcolamd/libcolamd.la \
+../libraries/libnaive/libnaive.la \
 @HARWELL_LIBS@ \
 @UMFPACK_LIBS@ \
 ../libraries/libobjs/libobjs.la \

@@ -834,6 +834,79 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Check for threads
+dnl
+dnl MULTITHREAD/MPI compatibility
+if test "$ol_with_mpi" = "yes" ; then
+	if test "$ol_enable_multithread" = "yes" \
+			-o "$ol_enable_multithread" = "force" ; then
+		AC_MSG_ERROR([MPI and multithread cannot coexist; pick one])
+	else
+		ol_enable_multithread="no"
+	fi
+fi
+
+ol_link_multithread=no
+if test "$ol_enable_multithread" != no ; then
+	AC_MSG_CHECKING([for usable threads])
+	if test "${ac_cv_header_pthread_h:+set}" != "set" ; then
+		AC_MSG_ERROR([need pthreads.h])
+	fi
+
+	save_LIBS="$LIBS"
+	have_threads="no"
+	if test "$have_threads" = no ; then
+		AC_TRY_LINK([
+		/* Check whether threads are linked by default */
+#include <pthread.h>
+			],[
+	return pthread_create(0, 0, 0, 0);
+			],[have_threads="yes"])
+		LIBS="$save_LIBS"
+	fi
+
+	if test "$have_threads" = no ; then
+		THREAD_LIBS="-lpthread"
+		LIBS="$save_LIBS $THREAD_LIBS"
+		AC_TRY_LINK([
+		/* Check whether threads need -lpthread */
+#include <pthread.h>
+			],[
+	return pthread_create(0, 0, 0, 0);
+			],[have_threads="yes"])
+		LIBS="$save_LIBS"
+	fi
+	
+	if test "$have_threads" = no ; then
+		AC_MSG_RESULT([no])
+		case "$ol_enable_multithread" in
+		yes)
+			AC_MSG_ERROR([No threads available])
+			;;
+			
+		force)
+			have_threads=yes
+			;;
+
+		*)
+			;; dnl do nothing ...
+		esac
+	fi
+
+	if test "$have_threads" != no ; then
+		ol_link_multithread=yes
+		AC_DEFINE(USE_MULTITHREAD,1,[define to enable multithreaded solution])
+		AC_MSG_RESULT([yes])
+
+		dnl MULTITHREAD/MPI compatibility
+		ol_with_mpi="no"
+	fi
+fi
+
+
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for BLAS
 dnl
 ol_link_blas=no
@@ -1884,6 +1957,7 @@ AC_OUTPUT([ \
 	./libraries/libmbwrap/Makefile:libraries/libmbwrap/Makefile.in
 	./libraries/liby12/Makefile:libraries/liby12/Makefile.in
 	./libraries/libcolamd/Makefile:libraries/libcolamd/Makefile.in
+	./libraries/libnaive/Makefile:libraries/libnaive/Makefile.in
 	./libraries/libobjs/Makefile:libraries/libobjs/Makefile.in
 	./mbdyn/Makefile:mbdyn/Makefile.in
 	./mbdyn/base/Makefile:mbdyn/base/Makefile.in
