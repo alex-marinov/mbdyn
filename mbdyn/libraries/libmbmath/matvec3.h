@@ -239,6 +239,11 @@ class Vec3 {
       ASSERT(iRow > 0 && iRow < 4);
       return pdVec[--iRow];
    };
+
+   inline doublereal& operator () (unsigned short int iRow) {
+      ASSERT(iRow >= 1 && iRow <= 3);
+      return pdVec[--iRow];
+   };
    //@}
    
    
@@ -418,7 +423,7 @@ class Vec3 {
 		 || pdVec[V3] != v.pdVec[V3]);
       };
    //@}
-      
+     
    /**@name Input/Output */
    //@{
       
@@ -668,6 +673,14 @@ class Mat3x3 {
       ASSERT(iCol > 0 && iCol < 4);      
       return pdMat[--iRow+3*--iCol];
    };
+
+   inline doublereal& operator () (unsigned short int iRow, 
+		   unsigned short int iCol) {
+       ASSERT(iRow >= 1 && iRow <= 3);
+       ASSERT(iCol >= 1 && iCol <= 3);
+       return pdMat[--iRow+3*--iCol];
+   };
+
    //@}
    
    /**@name Operazioni su matrici e vettori */
@@ -1057,7 +1070,7 @@ class Mat3x3 {
     */
    Mat3x3 operator * (const Mat3x3& m) const;      
    //@}
-      
+     
    doublereal Tr(void) const {
       return pdMat[M11]+pdMat[M22]+pdMat[M33];
    };
