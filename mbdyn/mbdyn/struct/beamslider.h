@@ -102,7 +102,7 @@ private:
 	enum Type iType;
 
 	const StructNode* pNode;
-	const BeamConn **ppBeam;
+	const BeamConn *const *ppBeam;
 	Vec3 f;
 	Mat3x3 R;
 	Vec3 F;
@@ -123,7 +123,7 @@ public:
 	/* Costruttore non banale */
 	BeamSliderJoint(unsigned int uL, const DofOwner* pDO,
 			const StructNode* pN, enum Type iT,
-			unsigned int nB, const BeamConn **pB,
+			unsigned int nB, const BeamConn *const *pB,
 			const Vec3& fTmp, const Mat3x3& RTmp, flag fOut);
    
 	/* Distruttore */

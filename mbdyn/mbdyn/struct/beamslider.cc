@@ -74,7 +74,7 @@ const doublereal dS = 1./sqrt(3.);
 /* Costruttore non banale */
 BeamSliderJoint::BeamSliderJoint(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pN, enum Type iT,
-		unsigned int nB, const BeamConn** ppB,
+		unsigned int nB, const BeamConn *const * ppB,
 		const Vec3& fTmp, const Mat3x3& RTmp, flag fOut)
 : Elem(uL, Elem::JOINT, fOut),
 Joint(uL, Joint::BEAMSLIDER, pDO, fOut),
