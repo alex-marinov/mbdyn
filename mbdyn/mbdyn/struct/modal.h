@@ -65,6 +65,14 @@
 class Modal : virtual public Elem, public Joint {
 protected:
 	const ModalNode* pModalNode;
+	unsigned iRigidOffset;		/* 0 iff pModalNode == 0; else 12 */
+
+	/* configuration of reference point;
+	 * from ModalNode iff pModalNode == 0 */
+	Vec3	x;
+	Mat3x3	R;
+	Mat3x3	RT;
+
 	unsigned int NModes;
 	unsigned int NStrNodes;
 	unsigned int NFemNodes;
@@ -131,6 +139,8 @@ public:
 	/* Costruttore non banale */
 	Modal(unsigned int uL,
 			const ModalNode* pModalNodeTmp, 
+			const Vec3& x0,
+			const Mat3x3& R0,
 			const DofOwner* pDO,
 			unsigned int N,
 			unsigned int NS,
@@ -180,6 +190,7 @@ public:
 
 	virtual unsigned int iGetNumDof(void) const;
 	DofOrder::Order GetDofType(unsigned int i) const;
+	DofOrder::Order GetEqType(unsigned int i) const;
 
 	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 

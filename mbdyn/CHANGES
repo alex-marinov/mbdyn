@@ -38,7 +38,8 @@ MBDyn 1.2-Engineering
 		  revolute/universal joints with no position constraint
 		- added Umfpack 4.1 support
 		- added "exit" statement
-		- reworked distance joints; d=0 not allowed any more
+		- reworked distance joints (1 dof instead of 4); 
+		  d=0 not allowed any more
 		- selected loadable elements can be used as joints
 		- parameter nodes value is output in .prm files
 		- very rough implementation of aircraft instruments
@@ -49,9 +50,12 @@ MBDyn 1.2-Engineering
 		- convergence test based on solution
 		- selected scaling of residual before testing
 		- specialized tests for residual and solution: 
-		  norm and minmax
+		  norm and minmax (need to fix for parallel)
 		- added ALTER file for normal modes only in
 		  "etc/modal.d/MBDyn_NASTRAN_alter_3.nas"
+		- added RTAI support for soft/hard real-time simulations
+		- allow to clamp the modal element, thus not requiring
+		  the modal node (save 18 dofs)
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
@@ -80,6 +84,7 @@ MBDyn 1.2-Engineering
 		- the static shapes extraction NASTRAN ALTER in 
 		  "etc/modal.d/MBDyn_NASTRAN_alter_1.nas" 
 		  apparently don't work
+		- parallel is not working yet
 
 
 MBDyn 1.1.4

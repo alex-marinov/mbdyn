@@ -1507,11 +1507,16 @@ by directly writing code in files \verb;mbdyn/struct/kin.cc; and
  
 \subsection{Modal}\label{ELEMS-JOINT-MODAL}
 \emph{Note: under development \\
-    Author: Felice Felippone.}
+    Author: Felice Felippone;
+    Initial review: Giuseppe Quaranta;
+    Current review: Pierangelo Masarati.}
 
 \begin{verbatim}
     <joint_type> ::= modal
-    <joint_arglist> ::= <reference_modal_node> ,
+    <joint_arglist> ::=
+        { <reference_modal_node> | clamped
+            [ , position , (Vec3)<absolute_position> ]
+            [ , orientation , (Mat3x3)<absolute_orientation> ] } ,
         <mode_number> ,
         [ , list, <mode> [ , ... ] ]
         <fem_node_number> 
@@ -1535,6 +1540,12 @@ nodes, see Section~\ref{sec:NODE-STRUCT}, only the keyword \kw{dynamic}
 must be replaced by \kw{modal}.
 
 \noindent
+If no rigid body dynamics is required, e.g.\ if the modal element
+is clamped, the \kw{clamped} option can be used, which allows
+to set the optional \kw{absolute\_position} 
+and \kw{absolute\_orientation}; they default to zero and identity.
+
+\noindent
 The mode count in \kw{mode\_number} is not required to match
 the number of modes listed in the FEM data file; if a lower number
 is given, only the first \kw{mode\_number} modes are used;
@@ -1545,11 +1556,13 @@ modes; e.g., to use modes 1, 2, 3 and 6 of a set of 10 modes, use:
 \end{verbatim}
 
 \noindent
-The \kw{origin node} optional keyword is required to mark
-what FEM node corresponds to the \kw{modal} node
-the element is connected to; otherwise, the \kw{modal} node
-is assumed to be connected to the origin of the FEM reference system
-(e.g.\ in \{0.0,0.0,0.0\} in the reference frame of the FEM model.
+The origin of the FEM grid is placed either in the position and orientation 
+of the modal node, or in the absolute position and orientation 
+in case the modal element is clamped, unless the \kw{origin node} 
+optional keyword is used.
+It defines what FEM node corresponds to the \kw{modal} node,
+or what node lies in the absolute position and orientation
+for a clamped modal element.
 
 \noindent
 The list of matchings between FEM and multibody nodes needs
