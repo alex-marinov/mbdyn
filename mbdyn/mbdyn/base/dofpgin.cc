@@ -55,16 +55,69 @@ DofPlugIn::sName(void) const
 int 
 DofPlugIn::Read(int argc, char *argv[])
 {
-	unsigned int uLabel = ReadLabel(argv[0]);
-	Node *pNode = ReadNode(uLabel, argv[1]);
+	unsigned int uLabel;
+	Node *pNode;
 	int iOrder = 0;
-	int iParams = 3;
-		
+	int iParams = 2;
+
+	if (argc < 1 || argv[0] == NULL) {
+		std::cerr << "DofPlugIn::Read(): "
+			"illegal number of parameters " << argc
+			<< std::endl;
+		THROW(ErrGeneric());
+	}
+	uLabel = ReadLabel(argv[0]);
+
+	if (argc < 2 || argv[1] == NULL) {
+		std::cerr << "DofPlugIn::Read(" << argv[0] 
+			<< "): illegal number of parameters " << argc
+			<< std::endl;
+		THROW(ErrGeneric());
+	}
+	pNode = ReadNode(uLabel, argv[1]);
+
 	unsigned int iMaxIndex = pNode->iGetNumDof();
-	if (iMaxIndex > 1) {
+	switch (iMaxIndex) {
+	case 0:
+		/* parameter? */
+		ASSERT(pNode->GetNodeType() == Node::PARAMETER);
+		break;
+
+	case 1:
 		iParams++;
+
+		if (argc < 3 || argv[2] == NULL) {
+			std::cerr << "DofPlugIn::Read(" << argv[0]
+				<< "," << argv[1] 
+				<< "): illegal number of parameters " << argc 
+				<< std::endl;
+			THROW(ErrGeneric());
+		}
+		iOrder = ReadDofOrder(pNode, 1, argv[2]);
+		break;
+
+	default: {
+		iParams += 2;
+
+		if (argc < 3 || argv[2] == NULL) {
+			std::cerr << "DofPlugIn::Read(" << argv[0]
+				<< "," << argv[1] 
+				<< "): illegal number of parameters " << argc 
+				<< std::endl;
+			THROW(ErrGeneric());
+		}
 		unsigned int iIndex = ReadIndex(pNode, iMaxIndex, argv[2]);
+
+		if (argc < 4 || argv[3] == NULL) {
+			std::cerr << "DofPlugIn::Read(" << argv[0]
+				<< "," << argv[1] 
+				<< "," << argv[2] 
+				<< "): illegal number of parameters " << argc 
+				<< std::endl;
+			THROW(ErrGeneric());
+		}
 		iOrder = ReadDofOrder(pNode, iIndex, argv[3]);
+
 		NodeDof nd(pNode->GetLabel(), iIndex-1, pNode);
 		pNode = NULL;
 		/* Chi dealloca questa memoria? ci vorrebbe l'handle */
@@ -74,8 +127,8 @@ DofPlugIn::Read(int argc, char *argv[])
 				<< "): possibly allocating a NodeDof "
 		 		"that nobody will delete until handles "
 				"will be used" << std::endl);
-	} else {
-		iOrder = ReadDofOrder(pNode, 1, argv[2]);
+		break;
+	}
 	}
 	dof = ScalarDof((ScalarNode*)pNode, iOrder);
 
@@ -221,13 +274,14 @@ DofPlugIn::ReadDofOrder(Node *pNode, unsigned int iIndex, const char *s)
 			THROW(ErrGeneric());
 		}
 		return 1;
-	} else if (strcasecmp(s, "algebraic") == 0) {
-		return 0;
-	} else {
-		std::cerr << "unknown dof order '" << s << "'" << std::endl;
-		THROW(ErrGeneric());
 	}
-	return -1;
+	
+	if (strcasecmp(s, "algebraic") == 0) {
+		return 0;
+	} 
+
+	std::cerr << "unknown dof order '" << s << "'" << std::endl;
+	THROW(ErrGeneric());
 }
 
 MathParser::PlugIn *

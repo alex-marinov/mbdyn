@@ -65,6 +65,7 @@ MBDyn 1.2-Engineering
 		  of the FEM reference frame
 		- fix beamslider joint jacobian
 		- fix utils/dae-intg (optional)
+		- fix dof plugin parameter node input (+ overall improvements)
 
 
 MBDyn 1.1.4
