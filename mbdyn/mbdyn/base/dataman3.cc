@@ -41,15 +41,19 @@
 #include <ltdl.h>
 #endif /* HAVE_LOADABLE && HAVE_LTDL_H */
 
-#include <dataman.h>
-#include <dataman_.h>
+#include "dataman.h"
+#include "dataman_.h"
 
-#include <drive.h>
+#include "drive.h"
 #include "filedrv.h"
-#include <presnode.h>
-#include <readclaw.h>
-#include <j2p.h>
-#include <sah.h>
+#include "presnode.h"
+#include "readclaw.h"
+#include "j2p.h"
+#include "sah.h"
+
+#ifdef USE_MULTITHREAD
+#include "ac/sys_sysinfo.h"
+#endif /* USE_MULTITHREAD */
 
 class NotAllowed {};
 
@@ -129,6 +133,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       "reference" "frames",
 
       "default" "scale",
+      "threads",
       
       NULL
    };
@@ -197,6 +202,8 @@ void DataManager::ReadControl(MBDynParser& HP,
       REFERENCEFRAMES,
 
       DEFAULTSCALE,
+
+      THREADS,
       
       LASTKEYWORD
    };
@@ -1077,6 +1084,26 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  
 	  break;
        }
+
+       case THREADS: {
+	  if (HP.IsKeyWord("auto")) {
+#ifdef USE_MULTITHREAD
+	     nThreads = get_nprocs();
+#else /* ! USE_MULTITHREAD */
+	     (void)HP.GetInt();
+	     silent_cerr("configure with --enable-multithread "
+			     "for multithreaded assembly" << std::endl);
+#endif /* ! USE_MULTITHREAD */
+	  } else {
+#ifdef USE_MULTITHREAD
+	     nThreads = HP.GetInt();
+#else /* ! USE_MULTITHREAD */
+	     (void)HP.GetInt();
+	     silent_cerr("configure with --enable-multithread "
+			     "for multithreaded assembly" << std::endl);
+#endif /* ! USE_MULTITHREAD */
+	  }
+       }
 	 
 	 
 	 /* add more entries ... */
@@ -1148,6 +1175,20 @@ void DataManager::ReadControl(MBDynParser& HP,
    }
 
    OutHdl.Log() << "output frequency: " << iOutputFrequency << std::endl;
+
+#ifdef USE_MULTITHREAD
+   /* check for thread potential */
+   if (nThreads == 0) {
+      int n = get_nprocs();
+
+      if (n > 1) {
+         silent_cout("no multithread requested with a potential of " << n
+			 << " CPUs" << std::endl);
+      }
+
+      nThreads = 1;
+   }
+#endif /* USE_MULTITHREAD */
 
    DEBUGLCOUT(MYDEBUG_INPUT, "End of control data" << std::endl);
 } /* End of DataManager::ReadControl() */

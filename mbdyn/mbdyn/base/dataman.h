@@ -72,6 +72,21 @@ const int iGlobalSymbolTableInitialSize = 21;
 
 class DataManager : public SolutionDataManager, public SolverDiagnostics {
 
+protected:
+
+#ifdef USE_MULTITHREAD
+	/* from input file, or auto-detected */
+	unsigned int nThreads;
+
+	/* per-thread specific data */
+	struct PerThreadData {
+		unsigned int threadNumber;
+		pthread_t thread;
+		integer	*piWorkIndex;    /* array di lavoro */
+		doublereal *pdWorkMat;   /* matrice di lavoro */
+	} *ptd;
+#endif /* USE_MULTITHREAD */
+
 public:
 	class ErrGeneric {};
 	class ErrAssemblyDiverged {};

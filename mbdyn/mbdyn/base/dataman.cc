@@ -85,6 +85,10 @@ DataManager::DataManager(MBDynParser& HP,
 		const char* sOutputFileName,
 		bool bAbortAfterInput)
 :
+#ifdef USE_MULTITHREAD
+nThreads(0),
+ptd(NULL),
+#endif /* USE_MULTITHREAD */
 SolverDiagnostics(OF),
 MathPar(HP.GetMathParser()),
 GlobalSymbolTable((HP.GetMathParser()).GetSymbolTable()),
