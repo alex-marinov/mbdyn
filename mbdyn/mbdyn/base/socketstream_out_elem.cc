@@ -128,6 +128,9 @@ SocketStreamElem::Restart(std::ostream& out) const
 	out << "  stream output: " << uLabel 
 		<< ", stream name, \"" << name << "\"";
 	pUS->Restart(out);
+	if (!bSendFirst) {
+		out << ", no send first";
+	}
 	out << ", " << NumChannels;
 	for(unsigned i = 0; i < NumChannels; i++) {
 		out << ", " ;

@@ -69,16 +69,16 @@ const char DIR_SEP = '\\';
 
 class FileName {
  protected:
-   char* sName;
+   mutable char* sName;
    char sExt[4];
-   char* sRef;
+   mutable char* sRef;
    
  public:
    FileName(char* n = NULL);       // Acquisisce e seziona il nome del file
    virtual ~FileName(void);        // Dealloca le stringhe usate
    int iInit(char* n);             // Acquisisce e seziona il nome del file
-   char* _sPutExt(char* n = NULL); // Aggiunge una nuova estensione (di default attacca la vecchia)
-   char* sGet(void);               // Restituisce il nome del file con la vecchia estensione          
+   const char *const _sPutExt(char* n = NULL); // Aggiunge una nuova estensione (di default attacca la vecchia)
+   const char *const sGet(void) const;               // Restituisce il nome del file con la vecchia estensione          
 };
 
 #endif /* USE_DOS_FILE */
@@ -93,18 +93,18 @@ const char DIR_SEP = '/';
 
 class FileName {
  private:
-   char* sName;
+   mutable char* sName;
    char* sExt;
-   char* sRef;
-   unsigned int iMaxSize;
-   unsigned int iCurSize;
+   mutable char* sRef;
+   mutable unsigned int iMaxSize;
+   mutable unsigned int iCurSize;
    
  public:
    FileName(const char* n = NULL, int i = 0);
    virtual ~FileName(void);
    int iInit(const char* n, int i = 0);
-   char* _sPutExt(const char* n);
-   char* sGet(void) const;
+   const char *const _sPutExt(const char* n);
+   const char *const sGet(void) const;
 };
 
 #endif /* USE_UNIX_FILE */

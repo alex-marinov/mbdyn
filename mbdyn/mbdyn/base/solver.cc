@@ -1876,6 +1876,8 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 		}
 		out << ";" << std::endl;
 	}
+	out << "  solver: ";
+	RestartLinSol(out, CurrLinearSolver);
 	out << "end: multistep;" << std::endl << std::endl;	
 	return out;
 }

@@ -35,5 +35,7 @@
 
 void
 ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty = false);
+std::ostream 
+& RestartLinSol(std::ostream& out, const LinSol& cs);
 
 #endif /* READLINSOL_H */

@@ -488,7 +488,7 @@ OutputHandler::RestartOpen(bool openResXSol)
 			int lenXSolExt = sizeof(".") - 1
 				+ n
 				+ sizeof(".rst.X") - 1
-				+ sizeof("\0") - 1;
+				+ 1;
 		
 			SAFENEWARR(resXSolExt, char, lenXSolExt);
 			snprintf(resXSolExt, lenXSolExt, ".%.*d.rst.X", n, nCurrRestartFile);

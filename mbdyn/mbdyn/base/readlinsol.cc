@@ -349,3 +349,57 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	}
 }
 
+std::ostream & RestartLinSol(std::ostream& out, const LinSol& cs)
+{
+	out << cs.GetSolverName();
+	
+	const LinSol::solver_t	currSolver = ::solver[cs.GetSolver()];
+	
+	if (cs.GetSolverFlags() != currSolver.s_default_flags) {
+		unsigned f = cs.GetSolverFlags();
+		if((f & LinSol::SOLVER_FLAGS_ALLOWS_MAP) == 
+			LinSol::SOLVER_FLAGS_ALLOWS_MAP) {
+			/*Map*/
+			out << ", map ";
+		}
+		if((f & LinSol::SOLVER_FLAGS_ALLOWS_CC) == 
+			LinSol::SOLVER_FLAGS_ALLOWS_CC) {
+			/*column compressed*/
+			out << ", cc ";
+		}
+		if((f & LinSol::SOLVER_FLAGS_ALLOWS_DIR) == 
+			LinSol::SOLVER_FLAGS_ALLOWS_DIR) {
+			/*direct access*/
+			out << ", dir ";
+		}
+		if((f & LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) == 
+			LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) {
+			/*colamd*/
+			out << ", colamd ";
+		}
+		unsigned nt = cs.GetNumThreads();
+		if(((f & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) == 
+			 LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) && 
+			(nt != 1)) {
+			/*multi thread*/
+			out << ", mt , " << nt;
+		}
+	}
+	integer ws = cs.iGetWorkSpaceSize();
+	if(ws > 0) {
+		/*workspace size*/
+		out << ", workspace size, " << ws;
+	}
+	doublereal pf = cs.dGetPivotFactor();
+	if(pf != -1.) {
+		/*pivot factor*/
+		out << ", pivot factor, " << pf;
+	}
+	unsigned bs = cs.GetBlockSize();
+	if(bs != 0) {
+		/*block size*/
+		out << ", block size, " << bs ;
+	}
+	out << ";" << std::endl;
+	return out;
+}

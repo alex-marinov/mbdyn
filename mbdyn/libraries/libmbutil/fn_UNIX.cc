@@ -72,13 +72,14 @@ FileName::iInit(const char *sFName, int iExtSepNum)
    	if ((sName == NULL) || (iNewSize > iMaxSize)) {
       		if (sName != NULL) {      
 	 		SAFEDELETEARR(sName);
+			sName = NULL;
       		}
       		iMaxSize = iNewSize;
-      		SAFENEWARR(sName, char, iMaxSize+1);
+      		SAFENEWARR(sName, char, iMaxSize + 1);
    	}
    
-   	strcpy(sName, sFName);         
-   	sRef = (char *)sName+strlen(sName);
+   	strcpy(sName, sFName); 
+   	sRef = (char *)sName + strlen(sName);
    	ASSERT(sRef[0] == '\0');
    
    	if (iExtSepNum > 0) {  /* se si parte dall'inizio */     
@@ -122,7 +123,7 @@ label:
 	
       		int iCnt = 0;
       		char *sLim = sRef;
-      		sRef = (char *)sName+strlen(sName);
+      		sRef = (char *)sName + strlen(sName);
       		while (--sRef > sLim) {  /* cerca il "." n. iExtSepNum */	  
 	 		if (sRef[0] == EXT_SEP) {	    	       
 	    			iCnt++; 
@@ -131,7 +132,7 @@ label:
 	    			}
 	 		}
       		}
-      		sRef = (char *)sName+strlen(sName);
+      		sRef = (char *)sName + strlen(sName);
 	
 label2:
       		iNewSize = strlen(sRef);
@@ -139,7 +140,7 @@ label2:
 	 		if (sExt != NULL) {	    
 	    			SAFEDELETEARR(sExt);
 	 		}
-	 		SAFENEWARR(sExt, char, iNewSize+1);
+	 		SAFENEWARR(sExt, char, iNewSize + 1);
       		}
 	
       		ASSERT(sRef != NULL);
@@ -150,31 +151,32 @@ label2:
       		sExt[0] = '\0'; 
    	}
    
-   	iCurSize = iMaxSize-strlen(sExt);
+   	iCurSize = iMaxSize - strlen(sExt);
    	return iCurSize;
 }
 
-char *
+const char *const
 FileName::_sPutExt(const char *sEName)
 {
-   	if (sEName == NULL) {      
+   	if (sEName == NULL) {
       		sEName = sExt; 
    	}
-      
+ 
    	unsigned int uExtLen = strlen(sEName);
    	if (sEName[0] != '\0' && sEName[0] != EXT_SEP) {      
      		uExtLen++;
    	}
    
-   	if (iCurSize+uExtLen > iMaxSize) {
+   	if (iCurSize + uExtLen > iMaxSize) {
       		char *sTmp = NULL;
-      		SAFENEWARR(sTmp, char, iCurSize+uExtLen+1);
+      		SAFENEWARR(sTmp, char, iCurSize + uExtLen + 1);
       
       		ASSERT(sName != NULL);
       		strcpy(sTmp, sName);
-      		sRef = sTmp+(sRef-sName);
+      		sRef = sTmp + (sRef - sName);
       		SAFEDELETEARR(sName);
       		sName = sTmp;
+		iMaxSize = iCurSize + uExtLen;
    	}
    
    	ASSERT(sRef != NULL);
@@ -182,7 +184,7 @@ FileName::_sPutExt(const char *sEName)
 
    	if (sEName[0] != '\0') {
       		char *sTmp = sRef;
-      		if (sEName[0] != EXT_SEP) {	 
+      		if (sEName[0] != EXT_SEP) {
 	 		sTmp[0] = EXT_SEP;
 			sTmp++;
       		} 
@@ -192,7 +194,7 @@ FileName::_sPutExt(const char *sEName)
    	return sName;
 }
 
-char *
+const char *const
 FileName::sGet(void) const
 { 
    	return ((FileName *)this)->_sPutExt(NULL); 
