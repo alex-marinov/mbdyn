@@ -81,44 +81,79 @@ Multi-Body Dynamics relies on.
 \subsection{Distance Joint}
 
 \subsubsection{Distance Joint Without Offsets}
-Definitions:
+Definitions
 \begin{displaymath}
-	v = \frac{1}{d}\plbr{x_2 - x_1}
+	u = \frac{1}{d}\plbr{x_2 - x_1}
 \end{displaymath}
-Limitations:
+Limitations
 \begin{displaymath}
 	d > 0
 \end{displaymath}
-Constraint equation 
+Constraint Equation
 \begin{displaymath}
-	d \sqrt{v^T v} = d
+	d \sqrt{u^T u} = d
 \end{displaymath}
-Forces:
+Forces
 \begin{eqnarray*}
-	F_1 & = & v \alpha \\
-	F_2 & = & -v \alpha
+	F_1 & = & \alpha u \\
+	F_2 & = & -\alpha u
 \end{eqnarray*}
-Linearization:
+Linearization
 \begin{displaymath}
 	\sqbr{\matr{ccc}{
-		\frac{\alpha}{d}I & -\frac{\alpha}{d}I & -v \\
-		-\frac{\alpha}{d}I & \frac{\alpha}{d}I & v \\
-		-v^T & v^T & 0
+		\frac{\alpha}{d}I & -\frac{\alpha}{d}I & -u \\
+		-\frac{\alpha}{d}I & \frac{\alpha}{d}I & u \\
+		-u^T & u^T & 0
 	}}\cubr{\cvvect{
 		\Delta{x_1} \\
 		\Delta{x_2} \\
 		\Delta{\alpha}
 	}} = \cubr{\cvvect{
-		v \alpha \\
-		-v \alpha \\
-		d\plbr{1 - \sqrt{v^T v}}
+		\alpha u \\
+		- \alpha u \\
+		d\plbr{1 - \sqrt{u^T u}}
 	}}
 \end{displaymath}
+Constraint Equation Derivative
+\begin{displaymath}
+	d u^T \dot{u} = 0
+\end{displaymath}
+Force Derivatives
+\begin{eqnarray*}
+	\dot{F}_1 & = & \alpha \dot{u} + \dot{\alpha} u \\
+	\dot{F}_2 & = & -\alpha \dot{u} - \dot{\alpha} u
+\end{eqnarray*}
+Linearization
+\begin{displaymath}
+        \sqbr{\matr{cccccc}{
+		\frac{\dot{\alpha}}{d}I & \frac{\alpha}{d}I &
+			-\frac{\dot{\alpha}}{d}I & -\frac{\alpha}{d}I &
+			-\dot{u} & -u \\
+		-\frac{\dot{\alpha}}{d}I & -\frac{\alpha}{d}I &
+			\frac{\dot{\alpha}}{d}I & \frac{\alpha}{d}I &
+			\dot{u} & u \\
+		-\dot{u}^T & -u^T & \dot{u}^T & u^T & 0 & 0
+	}}\cubr{\cvvect{
+		\Delta{x_1} \\
+		\Delta{\dot{x}_1} \\
+		\Delta{x_2} \\
+		\Delta{\dot{x}_2} \\
+		\Delta{\alpha} \\
+		\Delta{\dot{\alpha}}
+	}} = \cubr{\cvvect{
+		\alpha \dot{u} + \dot{\alpha} u \\
+		-\alpha \dot{u} - \dot{\alpha} u \\
+		d u^T \dot{u}
+	}}
+\end{displaymath}
+
+
+
 
 \subsubsection{Distance Joint With Offsets}
 Definitions:
 \begin{displaymath}
-	v = \frac{1}{d}\plbr{x_2 + f_2 - x_1 - f_1}
+	u = \frac{1}{d}\plbr{x_2 + f_2 - x_1 - f_1}
 \end{displaymath}
 Limitations:
 \begin{displaymath}
@@ -126,34 +161,34 @@ Limitations:
 \end{displaymath}
 Constraint equation 
 \begin{displaymath}
-	d \sqrt{v^T v} = d
+	d \sqrt{u^T u} = d
 \end{displaymath}
 Forces:
 \begin{eqnarray*}
-	F_1 & = & v \alpha \\
-	M_1 & = & f_1 \times v \alpha \\
-	F_2 & = & -v \alpha \\
-	M_2 & = & -f_2 \times v \alpha
+	F_1 & = & \alpha u \\
+	M_1 & = & \alpha f_1 \times u \\
+	F_2 & = & -\alpha u \\
+	M_2 & = & -\alpha f_2 \times u
 \end{eqnarray*}
 Linearization:
 \begin{displaymath}
 	\sqbr{\matr{ccccc}{
 		\frac{\alpha}{d}I & -\frac{\alpha}{d}f_1\times{} &
-			-\frac{\alpha}{d}I & \frac{\alpha}{d}f_2\times{} & -v \\
+			-\frac{\alpha}{d}I & \frac{\alpha}{d}f_2\times{} & -u \\
 		\frac{\alpha}{d}f_1\times{} & 
-			-\frac{\alpha}{d}\plbr{f_1 + v}\times{f_1\times{}} &
+			-\frac{\alpha}{d}\plbr{f_1 + u}\times{f_1\times{}} &
 			-\frac{\alpha}{d}f_1\times{} & 
 			\frac{\alpha}{d}f_1\times{f_2\times{}} & 
-			-f_1\times{v} \\
+			-f_1\times{u} \\
 		-\frac{\alpha}{d}I & \frac{\alpha}{d}f_1\times{} &
-			\frac{\alpha}{d}I & -\frac{\alpha}{d}f_2\times{} & v \\
+			\frac{\alpha}{d}I & -\frac{\alpha}{d}f_2\times{} & u \\
 		-\frac{\alpha}{d}f_2\times{} &
 			\frac{\alpha}{d}f_2\times{f_1\times{}} &
 			\frac{\alpha}{d}f_2\times{} &
-			- \frac{\alpha}{d}\plbr{f_2 - v}\times{f_2\times{}} &
-			f_2\times{v} \\
-		-v^T & - \plbr{f_1\times{v}}^T & 
-			v^T & \plbr{f_2\times{v}}^T & 0
+			- \frac{\alpha}{d}\plbr{f_2 - u}\times{f_2\times{}} &
+			f_2\times{u} \\
+		-u^T & - \plbr{f_1\times{u}}^T & 
+			u^T & \plbr{f_2\times{u}}^T & 0
 	}}\cubr{\cvvect{
 		\Delta{x_1} \\
 		\Delta{g_1} \\
@@ -164,18 +199,36 @@ Linearization:
 \end{displaymath}
 \begin{displaymath}
 	\mbox{\hspace{100mm}} = \cubr{\cvvect{
-		v \alpha \\
-		f_1\times{v}\alpha \\
-		-v \alpha \\
-		-f_2\times{v}\alpha \\
-		d\plbr{1 - \sqrt{v^T v}}
+		\alpha u \\
+		\alpha f_1\times{u} \\
+		-\alpha u \\
+		-\alpha f_2\times{u} \\
+		d\plbr{1 - \sqrt{u^T u}}
 	}}
 \end{displaymath}
+Constraint Equation Derivative
+\begin{displaymath}
+	d u^T\dot{u} = 0
+\end{displaymath}
+Forces:
+\begin{eqnarray*}
+	\dot{F}_1 & = &  \alpha \dot{u} + \dot{\alpha} u \\
+	\dot{M}_1 & = & \alpha \plbr{\omega_1\times{f_1}} \times u 
+		+ \alpha f_1 \times \dot{u}
+		+ \dot{\alpha} f_1 \times u \\
+	\dot{F}_2 & = & -\alpha \dot{u} - \dot{\alpha} u \\
+	\dot{M}_2 & = & -\alpha \plbr{\omega_2 \times{f_2}} \times u
+		- \alpha f_2 \times \dot{u}
+		- \dot{\alpha} f_2 \times u
+\end{eqnarray*}
+Linearization:
+
+
 
 \section{Deformable Constraints}
 
 \subsection{Deformable Hinge}
-\emph{Author: Marco Morandini} \verb;<morandini@aero.polimi.it>;
+\emph{Author: Marco Morandini} \htmladdnormallink{\texttt{<morandini@aero.polimi.it>}}{mailto:morandini@aero.polimi.it}
 
 
 
@@ -190,7 +243,7 @@ Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano \\
 via La Masa 34, 20156 Milano, Italy \\
 Tel.: ++39 02 2399 8309 \\
 Fax: ++39 02 2399 8334 \\
-E-mail: \htmladdnormallink{\emph{masarati@aero.polimi.it}}{masarati@aero.polimi.it} \\
+E-mail: \htmladdnormallink{\texttt{masarati@aero.polimi.it}}{mailto:masarati@aero.polimi.it} \\
 Web: \htmladdnormallink{\texttt{http://www.aero.polimi.it/\~{}mbdyn/}}{http://www.aero.polimi.it/~mbdyn/} \\
 Web: \htmladdnormallink{\texttt{http://www.aero.polimi.it/\~{}masarati/}}{http://www.aero.polimi.it/~masarati/} \\
 Web: \htmladdnormallink{\texttt{http://mbdyn.aero.polimi.it/\~{}masarati/MBDyn-input/manual/index.html}}{http://mbdyn.aero.polimi.it/~masarati/MBDyn-input/manual/index.html}
