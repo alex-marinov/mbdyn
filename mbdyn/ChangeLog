@@ -6,6 +6,10 @@ Copyright (C) 1996-2003
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Mon Sep 22 16:53:48 CEST 2003 Marco Morandini <morandini@aero.polimi.it>
+ - big cleanup of Update() and Predict() methods in 
+   stepsol.h, stepsol.cc, thirdorderstepsol.h, thirdorderstepsol.cc
+
 *** Tue Sep 16 20:43:14 CEST 2003 Pierangelo Masarati <masarati@aero.polimi.it>
  - specialize tests for residual and solution
  - residual test scaling and solution testing are no longer conditional
