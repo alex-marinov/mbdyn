@@ -64,7 +64,7 @@ SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch, ScalarDof 
 		const char *h, const char *m, unsigned short int p, bool c)
 : Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
-host(h), name(m), create(c),type(AF_INET), sock(0), tmp_sock(0)
+host(h), type(AF_INET), sock(0), tmp_sock(0), name(m), create(c)
 {
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(doublereal)*nch;
@@ -102,7 +102,7 @@ SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch, ScalarDof 
 		const char *m, const char* const Path, bool c)
 : Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
-host(NULL), name(m), create(c),type(AF_LOCAL), sock(0), tmp_sock(0)
+host(NULL), type(AF_LOCAL), sock(0), tmp_sock(0), name(m), create(c)
 {
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(doublereal)*nch;
