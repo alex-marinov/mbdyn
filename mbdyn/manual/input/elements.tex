@@ -1768,9 +1768,15 @@ the rotor disk. This velocity term on turn is used by the aerodynamic
 elements to determine a better estimate of the boundary conditions.
 The syntax of the \kw{rotor} element is:
 \begin{verbatim}
-    <normal_arglist> ::= <craft_node> , <rotor_node> ,
+    <normal_arglist> ::= <craft_node> ,
+            [ hinge , (Mat3x3)<rotor_orientation> , ]
+        <rotor_node> ,
         induced velocity , <induced_velocity_model>
 \end{verbatim}
+The optional \kw{rotor\_orientation} is required when axis 3 
+of the \kw{craft\_node} is not aligned with the rotor axis; axis 3
+of the \kw{rotor\_node} must be aligned with the rotor axis.
+
 \emph{Note: after the keyword \kw{induced velocity} there used to be
 a colon is used as separator.
 This changed for uniformity with the rest of the syntax.
