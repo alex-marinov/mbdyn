@@ -33,10 +33,10 @@
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
-
 #include <ac/fstream>
 
 #include <dataman.h>
+#include <mbdyn.h>
 #include <filedrv.h>
 #include <fixedstep.h>
 #include <sockdrv.h>
@@ -45,6 +45,8 @@
 #include <rtai_in_drive.h>
 
 /* FileDrive - begin */
+
+	
 
 FileDrive::FileDrive(unsigned int uL, const DriveHandler* pDH,
 		const char* const s, integer nd)
@@ -145,8 +147,8 @@ ReadFileDriver(DataManager* pDM,
 		"fixed" "step",
 		"socket",
 		"stream",
+		"socket" "stream",
 		"rtai" "input",
-
 		NULL
 	};
 
@@ -155,6 +157,7 @@ ReadFileDriver(DataManager* pDM,
 
 		FIXEDSTEP = 0,
 		SOCKET,
+		STREAM,
 		SOCKETSTREAM,
 		RTAIINPUT,
 
@@ -177,11 +180,23 @@ ReadFileDriver(DataManager* pDM,
 		break;
 
 	case SOCKETSTREAM:
-		pDr = ReadSocketStreamDrive(pDM, HP, uLabel);
-		break;
-
+		
 	case RTAIINPUT:
-		pDr = ReadRTAIInDrive(pDM, HP, uLabel);
+
+	case STREAM:
+#ifdef USE_RTAI
+		if(mbdyn_rtai_task != NULL){
+			std::cerr << "starting RTAI in drive" << std::endl;
+			pDr = ReadRTAIInDrive(pDM, HP, uLabel);
+		} else 
+#endif /* USE_RTAI */		
+		{
+			std::cerr << "starting Socket Stream drive" << std::endl;
+			pDr = ReadSocketStreamDrive(pDM, HP, uLabel);
+		}
+#ifndef USE_RTAI
+	       	silent_cerr("need USE_RTAI to allow RTAI mailboxes" << std::endl);
+#endif /* ! USE_RTAI */
 		break;
 
 	default:

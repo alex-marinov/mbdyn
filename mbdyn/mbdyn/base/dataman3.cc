@@ -99,7 +99,8 @@ void DataManager::ReadControl(MBDynParser& HP,
       psReadControlElems[Elem::BULK],
       psReadControlElems[Elem::LOADABLE],
       psReadControlElems[Elem::EXTERNAL],
-      psReadControlElems[Elem::RTAI_OUTPUT],
+      psReadControlElems[Elem::SOCKETSTREAM_OUTPUT],
+      "RTAI" "output",
 
       psReadControlDrivers[Drive::FILEDRIVE],
 
@@ -168,6 +169,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       BULKELEMENTS,
       LOADABLEELEMENTS,
       EXTERNALELEMENTS,
+      SOCKETSTREAMOUTPUTELEMENTS,
       RTAIOUTPUTELEMENTS,
 
       FILEDRIVERS,
@@ -511,13 +513,13 @@ void DataManager::ReadControl(MBDynParser& HP,
 #endif /* USE_EXTERNAL */
 	  break;
 	}
+       case SOCKETSTREAMOUTPUTELEMENTS:
        case RTAIOUTPUTELEMENTS: {
-#ifdef USE_RTAI
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::RTAI_OUTPUT].iNum = iDmy;	     
+	  ElemData[Elem::SOCKETSTREAM_OUTPUT].iNum = iDmy;	     
 	  DEBUGLCOUT(MYDEBUG_INPUT, "RTAI output elements: " << iDmy
 		<< std::endl);
-#else /* ! USE_RTAI */
+#ifndef USE_RTAI
           std::cerr << "cannot use RTAI output elements when not configured --with-rtai" << std::endl;
 #endif /* ! USE_RTAI */
 	  break;

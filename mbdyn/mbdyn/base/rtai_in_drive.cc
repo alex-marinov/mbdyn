@@ -44,10 +44,11 @@ RTAIInDrive::RTAIInDrive(unsigned int uL,
 			 const DriveHandler* pDH,
 			 const char* const sFileName,
 			 const char *h,
-			 integer nd, bool c, int n)
+			 integer nd, bool c, unsigned long /*int*/ n)
 : StreamDrive(uL, pDH, sFileName, nd, c),
 host(h), node(n), port(-1), mbx(NULL)
 {
+	ASSERT(sFileName != NULL);
 	if (create) {
 		ASSERT(node == 0);
 
@@ -129,7 +130,7 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	const char *name = NULL;
 	bool create = false;
 
-	if (HP.IsKeyWord("mailbox" "name")) {
+	if (HP.IsKeyWord("stream" "drive" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == NULL) {
 			std::cerr << "unable to read mailbox name "
@@ -165,62 +166,79 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		}
 	}
 
+	if(HP.IsKeyWord("path")){
+		const char *m = HP.GetStringWithDelims();
+		
+		silent_cout ( "path " << m 
+				<< " silently ignored" << std::endl);
+		
+	}
+
+	if(HP.IsKeyWord("port")){
+		int p = HP.GetInt();
+		
+		silent_cout ( "port " << p 
+				<< " silently ignored" << std::endl);
+		
+	}
+	
 	if (HP.IsKeyWord("host")) {
 #if defined(HAVE_GETHOSTBYNAME) || defined(HAVE_INET_ATON)
 		const char *h;
 		
 		h = HP.GetStringWithDelims();
 		if (h == NULL) {
-			std::cerr << "unable to read host for "
-				<< psElemNames[Elem::RTAI_OUTPUT]
-				<< "(" << uLabel << ") at line "
+			std::cerr << "unable to read host "
+				"for RTAIInElem(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl;
 			THROW(ErrGeneric());
 		}
 
 		if (create) {
-			std::cerr << "cannot create mailbox(" << name
-				<< ") as remote on host " << h << std::endl;
-			THROW(ErrGeneric());
-		}
+			/*std::cerr << "cannot create mailbox(" << name
+				<< ") as remote on host " << h << std::endl;*/
+			//THROW(ErrGeneric());
+			silent_cout ( "host name " << h 
+					<< " silently ignored" << std::endl);
+		} else {
 
-		SAFESTRDUP(host, h);
+			SAFESTRDUP(host, h);
 
-		/* resolve host
-		 * FIXME: non-reentrant ... */
+			/* resolve host
+			 * FIXME: non-reentrant ... */
 #if defined(HAVE_GETHOSTBYNAME)
-		struct hostent *he = gethostbyname(host);
-		if (he != NULL)
-		{
-			node = ((unsigned long *)he->h_addr_list[0])[0];
-		} 
+			struct hostent *he = gethostbyname(host);
+			if (he != NULL)
+			{
+				node = ((unsigned long *)he->h_addr_list[0])[0];
+			} 
 #elif defined(HAVE_INET_ATON)
-		struct in_addr addr;
-		if (inet_aton(host, &addr)) {
-			node = addr.s_addr;
-		}
+			struct in_addr addr;
+			if (inet_aton(host, &addr)) {
+				node = addr.s_addr;
+			}
 #endif /* ! HAVE_GETHOSTBYNAME && HAVE_INET_ATON */
-		else {
-			std::cerr << "unable to convert host "
-				<< host << " at line "
-				<< HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
-		}
+			else {
+				std::cerr << "unable to convert host "
+					<< host << " at line "
+					<< HP.GetLineData() << std::endl;
+				THROW(ErrGeneric());
+			}
 #else /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
-		std::cerr << "host (RTAI RPC) not supported for "
-			<< psElemNames[Elem::RTAI_OUTPUT]
-			<< "(" << uLabel << ") at line " << HP.GetLineData()
-			<< std::endl;
-		THROW(ErrGeneric());
+			std::cerr << "host (RTAI RPC) not supported "
+				"for RTAIInElem(" << uLabel << ") at line "
+				<< HP.GetLineData() << std::endl;
+				<< std::endl;
+			THROW(ErrGeneric());
 #endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
+		}
 	}
 
 	int idrives = HP.GetInt();
 	if (idrives <= 0) {
-		std::cerr << "illegal number of channels for "
-			<< psElemNames[Elem::RTAI_OUTPUT]
-			<< "(" << uLabel << ") at line " << HP.GetLineData()
-			<< std::endl;
+		std::cerr << "illegal number of channels "
+			"for RTAIInElem(" << uLabel << ") at line "
+			<< HP.GetLineData() << std::endl;
 		THROW(ErrGeneric());
 	}
 

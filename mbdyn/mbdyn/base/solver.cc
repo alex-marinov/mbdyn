@@ -188,7 +188,10 @@ bRTAllowNonRoot(false),
 RTMode(MBRTAI_UNKNOWN),
 bRTHard(false),
 lRTPeriod(-1),
-RTSemPtr(NULL),
+#if 0
+RTSemPtr_in(NULL),
+RTSemPtr_out(NULL),
+#endif
 RTStackSize(1024),
 RTCpuMap(0xff),
 #ifdef RTAI_LOG
@@ -661,6 +664,7 @@ Solver::Run(void)
    	/*
 	 * Dialoga con il DataManager per dargli il tempo iniziale 
 	 * e per farsi inizializzare i vettori di soluzione e derivata */
+
 	dTime = dInitialTime;
 	pDM->SetTime(dTime);
 	pDM->SetValue(*(pX), *(pXPrime));
@@ -736,6 +740,7 @@ Solver::Run(void)
 #endif /* USE_EXTERNAL */
    	/* Setup SolutionManager(s) */
 	SetupSolmans(pDerivativeSteps->GetIntegratorNumUnknownStates());
+	
 	/* Derivative steps */
 	try {
 		
@@ -1192,14 +1197,16 @@ IfFirstStepIsToBeRepeated:
 					<< r << ")" << std::endl;
 				THROW(ErrGeneric());
 			}
-		} else {
+		} 
+#if 0
+		else {
 			int r;
 
 			/* FIXME: check args 
 			 * name should be configurable?
 			 * initial value 0: non-blocking
 			 */
-			r = mbdyn_rt_sem_init("MBDSEM", 0, &RTSemPtr);
+			r = mbdyn_rt_sem_init("MBDSMI", 0, &RTSemPtr_in);
 			if (r) {
 				std::cerr << "rt_sem_init() failed ("
 					<< r << ")" << std::endl;
@@ -1207,7 +1214,23 @@ IfFirstStepIsToBeRepeated:
 			}
 		}
 
-		/* FIXME: should check whether RTStackSize is correctly set? */
+		if (true) {	/* FIXME: option has to be configurable!*/
+			int r;
+
+			/* FIXME: check args 
+			 * name should be configurable?
+			 * initial value 0: non-blocking
+			 */
+			/*
+			r = mbdyn_rt_sem_init("MBDSMO", 0, &RTSemPtr_out);
+			if (r) {
+				std::cerr << "rt_sem_init() failed ("
+					<< r << ")" << std::endl;
+				THROW(ErrGeneric());
+			}*/
+		}
+#endif
+		/* FIXME: should check whether RTStackSize is correclty set? */
 #ifdef RTAI_LOG	
 		if (bRTlog) { 
 			char *mbxlogname = "logmb";
@@ -1394,7 +1417,7 @@ IfFirstStepIsToBeRepeated:
 
 			} else if (RTSemaphore()) {
 				/* FIXME: semaphore must be configurable */
-				mbdyn_rt_sem_wait(RTSemPtr);
+				//mbdyn_rt_sem_wait(RTSemPtr_in);
 			}
 
 
@@ -2976,7 +2999,7 @@ Solver::ReadData(MBDynParser& HP)
 				}
 				bRTlog = true;
 			}
-#endif /*RTAI_LOG*/
+#endif /* RTAI_LOG */
 
 #else /* !USE_RTAI */
 			std::cerr << "need to configure --with-rtai "

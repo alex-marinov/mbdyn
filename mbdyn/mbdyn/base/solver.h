@@ -128,7 +128,8 @@ private:
 	} RTMode;
 	bool bRTHard;
 	long long lRTPeriod;		/* if RTMode == MBRTAI_WAITPERIOD */
-	void *RTSemPtr;			/* if RTMode == MBRTAI_SEMAPHORE */
+	void *RTSemPtr_in;			/* if RTMode == MBRTAI_SEMAPHORE */
+	void *RTSemPtr_out;
 	unsigned long RTStackSize;
 	int RTCpuMap;
 #ifdef RTAI_LOG

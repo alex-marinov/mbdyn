@@ -65,7 +65,7 @@ const char* psElemNames[] = {
 
    "GENEL",
 
-   "RTAI Output",
+   "Socket Stream Output",
    
    NULL
 };
@@ -99,7 +99,7 @@ const char* psReadElemsElems[] = {
    
    "genel",
 
-   "rtai" "output",
+   "socket" "stream" "output",
    
    NULL
 };
@@ -136,7 +136,7 @@ const char* psReadControlElems[] = {
    
    "genels",
 
-   "rtai" "output" "elements",
+   "output" "elements",
    
    NULL
 };
@@ -173,7 +173,7 @@ const char *psAdamsElemCode[] = {
    
    "GENL",
 
-   "RTAI",
+   "OUTP",
 
    NULL
 };

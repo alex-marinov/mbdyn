@@ -30,21 +30,12 @@
 
 /*
  * Michele Attolico <attolico@aero.polimi.it>
-*/
-
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <netdb.h>
-
-#include <dataman.h>
-#include <filedrv.h>
-#include <streamdrive.h>
-#include "sock.h"
-
-#include <socketstreamdrive.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -57,67 +48,65 @@
 #include <sys/un.h>
 #include <arpa/inet.h>
 
+
+#include <socketstream_out_elem.h>
+#include "sock.h"
+#include <dataman.h>
+
 #define UNIX_PATH_MAX    108
-#define DEFUALT_PORT	5500 /*FIXME:da defineire meglio*/
+#define DEFAULT_PORT	5500 /*FIXME:da defineire meglio*/
 #define SYSTEM_PORT	1000 /*FIXME:da defineire meglio*/
 #define DEFAULT_HOST 	"127.0.0.1"
 
-SocketStreamDrive::SocketStreamDrive(unsigned int uL,
-		const DriveHandler* pDH,
-		const char* const sFileName,
-		integer nd, bool c,
-		unsigned short int p,
-		const char* const h)
-: StreamDrive(uL, pDH, sFileName, nd, c),
-type(AF_INET), sock(0), tmp_sock(0), connection_flag(false)
+/* SocketStreamElem - begin */
+
+SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch, ScalarDof *& pn,
+		const char *h, const char *m, unsigned short int p, bool c)
+: Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
+NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
+host(h), name(m), create(c),type(AF_INET), sock(0), tmp_sock(0)
 {
-	//NO_OP;
-	//FIXME:SAFESTRDUP(host, h) oppure host(h)
-	if(h) {
-		SAFESTRDUP(host, h);
-	} else {
-		host = NULL;
-	}
+	/* FIXME: size depends on the type of the output signals */
+	size = sizeof(doublereal)*nch;
+	SAFENEWARR(buf, char, size);
 	
    	ASSERT(p > 0);
 	data.Port = p;
-	
 	if(create){
-		struct sockaddr_in addr_name;
+		struct sockaddr_in addr_name;	
    		tmp_sock = make_inet_socket(&addr_name, host, data.Port, 1);
 		
 		if (tmp_sock == -1) {
-      			silent_cerr("SocketStreamDrive(" << sFileName
+      			silent_cerr("SocketStreamElem(" << name
 				<< "): socket failed" << std::endl);
       			THROW(ErrGeneric());
    		} else if (tmp_sock == -2) {
-      			silent_cerr("SocketStreamDrive(" << sFileName
+      			silent_cerr("SocketStreamElem(" << name
 				<< "): bind failed" << std::endl);
       			THROW(ErrGeneric());
    		} else if (tmp_sock == -3) {
-      			silent_cerr("SocketStreamDrive(" << sFileName
+      			silent_cerr("SocketStreamElem(" << name
 				<< "): illegal host name" << std::endl);
       			THROW(ErrGeneric());
    		}
 		
    		if (listen(tmp_sock, 1) < 0) {
-      			silent_cerr("SocketStreamDrive(" << sFileName
+      			silent_cerr("SocketStreamElem(" << name
 				<< "): listen failed" << std::endl);
       			THROW(ErrGeneric());
    		}
 	}
-	 
 }
 
-SocketStreamDrive::SocketStreamDrive(unsigned int uL,
-		const DriveHandler* pDH,
-		const char* const sFileName,
-		integer nd, bool c,
-		const char* const Path)
-: StreamDrive(uL, pDH, sFileName, nd, c),
-host(NULL), type(AF_LOCAL), sock(0), tmp_sock(0), connection_flag(false)
+SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch, ScalarDof *& pn,
+		const char *m, const char* const Path, bool c)
+: Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
+NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
+host(NULL), name(m), create(c),type(AF_LOCAL), sock(0), tmp_sock(0)
 {
-	//NO_OP;
+	/* FIXME: size depends on the type of the output signals */
+	size = sizeof(doublereal)*nch;
+	SAFENEWARR(buf, char, size);
 	
 	ASSERT(Path != NULL);
 
@@ -127,32 +116,31 @@ host(NULL), type(AF_LOCAL), sock(0), tmp_sock(0), connection_flag(false)
 		tmp_sock = make_named_socket(data.Path, 1);
 		
 		if (tmp_sock == -1) {
-      			silent_cerr("SocketStreamDrive(" << sFileName
+      			silent_cerr("SocketStreamElem(" << name
 				<< "): socket failed" << std::endl);
       			THROW(ErrGeneric());
    		} else if (tmp_sock == -2) {
-      			silent_cerr("SocketStreamDrive(" << sFileName
+      			silent_cerr("SocketStreamElem(" << name
 				<< "): bind failed" << std::endl);
       			THROW(ErrGeneric());
    		}
 		
    		if (listen(tmp_sock, 1) < 0) {
-      			silent_cerr("SocketStreamDrive(" << sFileName
+      			silent_cerr("SocketStreamElem(" << name
 				<< "): listen failed" << std::endl);
       			THROW(ErrGeneric());
    		}
 	}
 
-	 
 }
 
-SocketStreamDrive::~SocketStreamDrive(void)
+SocketStreamElem::~SocketStreamElem(void)
 {
-	/*if (!create) {
+	if (!create) { //connect
 		shutdown(sock,SHUT_RDWR);
-	}*/
-	shutdown(sock,SHUT_RD);
-	switch (type) { //connect
+	}
+	shutdown(sock,SHUT_WR);		
+	switch (type) {
 	case AF_LOCAL:
 		if (data.Path) {
 			SAFEDELETEARR(data.Path);
@@ -162,68 +150,76 @@ SocketStreamDrive::~SocketStreamDrive(void)
 		NO_OP;
 		break;
 	}
-}
-
-FileDrive::Type
-SocketStreamDrive::GetFileDriveType(void) const
-{
-	return FileDrive::SOCKETSTREAM;
-}
-
-/* Scrive il contributo del DriveCaller al file di restart */   
-std::ostream&
-SocketStreamDrive::Restart(std::ostream& out) const
-{
-   	return out << "0. /* SocketStreamDrive not implemented yet */"
-		<< std::endl;
-}
-   
-void
-SocketStreamDrive::ServePending(const doublereal& t)
-{
-	
-	if (connection_flag) {//non esegue la lettura nel primo passo
-		if ((recv(sock, buf, size, 0))) {
 			
-			doublereal *rbuf = (doublereal *)buf;
-			for (int i = 1; i <= iNumDrives; i++){
-				pdVal[i] = rbuf[i-1];
-			}
-	
-		} else {	
-			std::cout << "SocketStreamDrive(" << sFileName << ") "
-					<< "Comunication closed by host" << std::endl;
-			//stop simulation
-		}
-	}
-	
+}
+
+std::ostream&
+SocketStreamElem::Restart(std::ostream& out) const
+{
+	return out << "# not implemented yet" << std::endl;
+}
+
+Elem::Type
+SocketStreamElem::GetElemType(void) const
+{
+	return Elem::SOCKETSTREAM_OUTPUT;
+}
+
+void
+SocketStreamElem::WorkSpaceDim(integer* piRows, integer* piCols) const
+{
+	*piRows = 0;
+	*piCols = 0;
+}
+
+SubVectorHandler&
+SocketStreamElem::AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
+		const VectorHandler& X, const VectorHandler& XP)
+{
+	WorkVec.Resize(0);
+	return WorkVec;
+}
+
+VariableSubMatrixHandler& 
+SocketStreamElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
+		const VectorHandler& X, const VectorHandler& XP)
+{
+	WorkMat.SetNullMatrix();
+	return WorkMat;
+}
+
+void
+SocketStreamElem::AfterConvergence(const VectorHandler& X, 
+		const VectorHandler& XP)
+{
+	char *curbuf = buf;
 	
 	if (!sock) {
 		if (create) {
 			//accept
 #ifdef HAVE_SOCKLEN_T
-	   		socklen_t socklen;
+		   	socklen_t socklen;
 #else /* !HAVE_SOCKLEN_T */
-			int socklen;
+   			int socklen;
 #endif /* !HAVE_SOCKLEN_T */
 			switch (type) {
 			case AF_LOCAL:
 				{
-					struct sockaddr_un client_addr;
+   					struct sockaddr_un client_addr;
 
 					pedantic_cout("accepting connection on local socket \""
-							<< sFileName << "\" (" << data.Path << ") ..." 
+							<< name << "\" (" << data.Path << ") ..." 
 							<< std::endl);
 
 					sock = accept(tmp_sock,
 							(struct sockaddr *)&client_addr, &socklen);
 					if (sock == -1) {
-               					std::cerr <<"SocketStreamDrive(" << sFileName << ") "
-							"accept failed " << std::endl;
+                				std::cerr <<"SocketStreamElem(" << name << ") "
+							"accept failed" << std::endl;
 						THROW(ErrGeneric());
-     					}
-					silent_cout("SocketStreamDrive(" << GetLabel()
-  							<< "): connect from " << client_addr.sun_path
+        				}
+      					silent_cout("SocketStreamElem(" << GetLabel()
+		  				<< "): connect from " << client_addr.sun_path
 							<< std::endl);
 					unlink(data.Path);
 					
@@ -233,22 +229,22 @@ SocketStreamDrive::ServePending(const doublereal& t)
 			case AF_INET:
 				{
    					struct sockaddr_in client_addr;
-	
+
 					pedantic_cout("accepting connection on inet socket \""
-							<< sFileName << "\" (" 
+							<< name << "\" (" 
 							<< inet_ntoa(client_addr.sin_addr) 
 							<< ":" << ntohs(client_addr.sin_port)
 							<< ") ..." << std::endl);
-						
+							
 					sock = accept(tmp_sock,
 							(struct sockaddr *)&client_addr, &socklen);
 					if (sock == -1) {
-                				std::cerr <<"SocketStreamDrive(" << sFileName << ") "
-							"accept failed " << std::endl;
+                				std::cerr <<"SocketStreamElem(" << name << ") "
+							"accept failed" << std::endl;
 						THROW(ErrGeneric());
         				}
-      					silent_cout("SocketStreamDrive(" << GetLabel()
-	  					<< "): connect from " << inet_ntoa(client_addr.sin_addr)
+      					silent_cout("SocketStreamElem(" << GetLabel()
+		  				<< "): connect from " << inet_ntoa(client_addr.sin_addr)
 		  				<< ":" << ntohs(client_addr.sin_port) << std::endl);
 					shutdown(tmp_sock,SHUT_RDWR);
 					break;
@@ -260,7 +256,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 			}
 			
 		} else {
-				//connect
+			//connect
 			switch (type) {
 			case AF_LOCAL:
 				{
@@ -268,54 +264,54 @@ SocketStreamDrive::ServePending(const doublereal& t)
 						
 					sock = socket(PF_LOCAL, SOCK_STREAM, 0);
 					if (sock < 0){
-						std::cerr <<"SocketStreamDrive(" << sFileName << ") "
+						std::cerr <<"SocketStreamElem(" << name << ") "
 							"socket failed " << host << std::endl;
 						THROW(ErrGeneric());
 					}
 					addr.sun_family = AF_UNIX;
-					memcpy(addr.sun_path, data.Path, UNIX_PATH_MAX);
+					strncpy(addr.sun_path, data.Path, UNIX_PATH_MAX);
 
 					pedantic_cout("connecting to local socket \""
-							<< sFileName << "\" (" << data.Path << ") ..." 
+							<< name << "\" (" << data.Path << ") ..." 
 							<< std::endl);
 
 					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
-						std::cerr <<"SocketStreamDrive(" << sFileName << ") "
-								"connect failed " << std::endl;
-							THROW(ErrGeneric());									
-					}					
+						std::cerr <<"SocketStreamElem(" << name << ") "
+							"connect failed " << std::endl;
+						THROW(ErrGeneric());									
+					}//da sistemare in modo da rendere non bloccante il connect					
 					break;
 				}
-			
+		
 			case AF_INET:
-					{
+				{
 					struct sockaddr_in addr;
-					
+
 					sock = socket(PF_INET, SOCK_STREAM, 0);
-						if (sock < 0){
-						std::cerr <<"SocketStreamDrive(" << sFileName << ") "
+					if (sock < 0){
+						std::cerr <<"SocketStreamElem(" << name << ") "
 							"socket failed " << host << std::endl;
 						THROW(ErrGeneric());
-						}				
+					}				
 					addr.sin_family = AF_INET;
 					addr.sin_port = htons (data.Port);
+					
 					if (inet_aton(host, &(addr.sin_addr)) == 0) {
-							std::cerr <<"SocketStreamDrive(" << sFileName << ") "
+						std::cerr <<"SocketStreamElem(" << name << ") "
 							"unknow host " << host << std::endl;
 						THROW(ErrGeneric());	
 					}
-
-						pedantic_cout("connecting to inet socket \""
-							<< sFileName << "\" (" 
+					pedantic_cout("connecting to inet socket \""
+							<< name << "\" (" 
 							<< inet_ntoa(addr.sin_addr) 
 							<< ":" << ntohs(addr.sin_port)
 							<< ") ..." << std::endl);
 							
 					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
-						std::cerr <<"SocketStreamDrive(" << sFileName << ") "
+						std::cerr <<"SocketStreamElem(" << name << ") "
 							"connect failed " << std::endl;
 						THROW(ErrGeneric());					
-						}
+					}//da sistemare in modo da rendere non bloccante il connect
 					break;
 				}
 				
@@ -325,41 +321,47 @@ SocketStreamDrive::ServePending(const doublereal& t)
 			}
 	
 		} /*create*/
-		connection_flag = true;
 	} /*sock==NULL*/
+	for (unsigned int i = 0; i < NumChannels; i++) {
+		/* assign value somewhere into mailbox buffer */
+		doublereal v = pNodes[i].dGetValue();
+
+		doublereal *dbuf = (doublereal *)curbuf;
+		dbuf[0] = v;
+
+		curbuf += sizeof(doublereal);
+	}
+	if (send(sock, (void *)buf, size, 0) == -1) {
+		std::cout << "SocketStreamElem(" << name << ") "
+				<< "Comunication closed by host" << std::endl;
+		//stop simulation
+	}
 }
 
 
-/* legge i drivers tipo stream */
-
-Drive*
-ReadSocketStreamDrive(DataManager* pDM,
-		MBDynParser& HP,
-		unsigned int uLabel)
+Elem *
+ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 {
-	
 	bool create = false;
-	unsigned short int port = DEFUALT_PORT;
+	unsigned short int port = DEFAULT_PORT;
 	const char *name = NULL;
 	const char *host = NULL;
 	const char *path = NULL;
 
-
-	if (HP.IsKeyWord("stream" "drive" "name")) {
+	if (HP.IsKeyWord("stream" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == NULL) {
-			std::cerr << "unable to read stream drivie name "
-				"for SocketStreamDrive(" << uLabel << ") at line "
+			std::cerr << "unable to read  socket stream name "
+				"for SocketStreamElem(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl;
 			THROW(ErrGeneric());
 
 		} 
-
+		
 		SAFESTRDUP(name, m);
 
 	} else {
-		std::cerr << "missing stream drive name "
-			"for SocketStreamDrive(" << uLabel
+		std::cerr << "missing socket stream name for SocketStreamElem(" << uLabel
 			<< ") at line " << HP.GetLineData() << std::endl;
 		THROW(ErrGeneric());
 	}
@@ -381,21 +383,21 @@ ReadSocketStreamDrive(DataManager* pDM,
 		
 		if (m == NULL) {
 			silent_cerr("unable to read path for "
-				<< "SocketStreamDrive("
-			 	<< uLabel << ") at line "
+				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
+				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
 			THROW(ErrGeneric());
 		}
 		
 		SAFESTRDUP(path, m);	
 	}
-	
+
 	if(HP.IsKeyWord("port")){
 		if (path != NULL){
 			silent_cerr("cannot specify a port "
 					"for a local socket in "
-				<< "SocketStreamDrive("
-			 	<< uLabel << ") at line "
+				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
+				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
 			THROW(ErrGeneric());		
 		}
@@ -404,21 +406,20 @@ ReadSocketStreamDrive(DataManager* pDM,
 		
 		if (p <= SYSTEM_PORT) {
 			silent_cerr("illegal number of port for "
-				<< "SocketStreamDrive("
-			 	<< uLabel << ") at line "
+				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
+				<< "(" << uLabel << ") at line " 
 				<< HP.GetLineData() << std::endl);
 			THROW(ErrGeneric());
 		}
 		port = p;
 	}
 
-	
 	if (HP.IsKeyWord("host")) {
 		if (path != NULL){
 			silent_cerr("cannot specify an allowed host "
 					"for a local socket in "
-				<< "SocketStreamDrive("
-			 	<< uLabel << ") at line "
+				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
+				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
 			THROW(ErrGeneric());		
 		}
@@ -428,8 +429,8 @@ ReadSocketStreamDrive(DataManager* pDM,
 		h = HP.GetStringWithDelims();
 		if (h == NULL) {
 			silent_cerr("unable to read host for "
-				<< "SocketStreamDrive("
-			 	<< uLabel << ") at line "
+				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
+				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
 			THROW(ErrGeneric());
 		}
@@ -438,37 +439,50 @@ ReadSocketStreamDrive(DataManager* pDM,
 
 	} else if (!create){
 		silent_cerr("host undefined for "
-				<< "SocketStreamDrive("
-			 	<< uLabel << ") at line "
+			<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
+			<< "(" << uLabel << ") at line "
 			<< HP.GetLineData() << std::endl);
 		silent_cerr("using default host: "
 			<< DEFAULT_HOST << std::endl);
 		SAFESTRDUP(host, DEFAULT_HOST);
 	}
 
-	int idrives = HP.GetInt();
-	if (idrives <= 0) {
-		silent_cerr("illegal number of channels for "
-				<< "SocketStreamDrive("
-			 	<< uLabel << ") at line "
-			<< std::endl);
+	int nch = HP.GetInt();
+	if (nch <= 0) {
+		std::cerr << "illegal number of channels for "
+			<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
+			<< "(" << uLabel << ") at line " << HP.GetLineData()
+			<< std::endl;
 		THROW(ErrGeneric());
 	}
 
-	Drive* pDr = NULL;
-	if (path == NULL){
-		SAFENEWWITHCONSTRUCTOR(pDr, SocketStreamDrive,
-				SocketStreamDrive(uLabel, 
-				pDM->pGetDrvHdl(),
-				name, idrives, create, port, host));
-
-	} else {
-		SAFENEWWITHCONSTRUCTOR(pDr, SocketStreamDrive,
-				SocketStreamDrive(uLabel, 
-				pDM->pGetDrvHdl(),
-				name, idrives, create, path));	
+	ScalarDof *pNodes = NULL;
+	SAFENEWARR(pNodes, ScalarDof, nch);
+	for (int i = 0; i < nch; i++) {
+		pNodes[i] = ReadScalarDof(pDM, HP, 1);
 	}
 
-	return pDr;
-} /* End of ReadStreamDrive */
+   	(void)pDM->fReadOutput(HP, Elem::LOADABLE); 
 
+	/* Se non c'e' il punto e virgola finale */
+	if (HP.IsArg()) {
+		std::cerr << "semicolon expected at line " << HP.GetLineData()
+			<< std::endl;      
+		THROW(ErrGeneric());
+	}
+      
+      /* costruzione del nodo */
+	Elem *pEl = NULL;
+
+	if (path == NULL){
+		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
+				SocketStreamElem(uLabel, nch, pNodes,
+					host, name, port, create));
+	} else {
+		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
+				SocketStreamElem(uLabel, nch, pNodes,
+					name, path, create));
+	}
+
+	return pEl;
+}

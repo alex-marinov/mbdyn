@@ -55,7 +55,7 @@ public:
 			 const DriveHandler* pDH,
 			 const char* const sFileName,
 			 const char *h,
-			 integer nd, bool c, int n);
+			 integer nd, bool c, unsigned long /*int*/ n);
    
    	virtual ~RTAIInDrive(void);
    

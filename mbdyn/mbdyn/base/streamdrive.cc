@@ -46,7 +46,7 @@ StreamDrive::StreamDrive(unsigned int uL,
 create(c)
 {
    	ASSERT(nd > 0);
-	ASSERT(sFileName != NULL);
+	//ASSERT(sFileName != NULL);
 	
 	/*
 	 * initialize mailbox and so on

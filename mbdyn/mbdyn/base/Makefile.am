@@ -111,6 +111,8 @@ sockdrv.cc \
 sockdrv.h \
 socketstreamdrive.cc \
 socketstreamdrive.h \
+socketstream_out_elem.cc \
+socketstream_out_elem.h \
 streamdrive.cc \
 streamdrive.h \
 solver.cc \

@@ -51,7 +51,7 @@
 
 RTAIOutElem::RTAIOutElem(unsigned int uL, unsigned int nch, ScalarDof *& pn,
 		const char *h, const char *m, unsigned long n, bool c)
-: Elem(uL, Elem::RTAI_OUTPUT, flag(0)),
+: Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
 host(h), name(m), create(c), node(n), port(-1), mbx(NULL)
 {
@@ -118,7 +118,7 @@ RTAIOutElem::Restart(std::ostream& out) const
 Elem::Type
 RTAIOutElem::GetElemType(void) const
 {
-	return Elem::RTAI_OUTPUT;
+	return Elem::SOCKETSTREAM_OUTPUT;
 }
 
 void
@@ -174,7 +174,7 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	const char *name = NULL;
 	bool create = false;
 
-	if (HP.IsKeyWord("mailbox" "name")) {
+	if (HP.IsKeyWord("stream" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == NULL) {
 			std::cerr << "unable to read mailbox name "
@@ -209,6 +209,21 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			THROW(ErrGeneric());
 		}
 	}
+	
+	if(HP.IsKeyWord("path")){
+		const char *m = HP.GetStringWithDelims();
+		silent_cout ( "path " << m 
+				<< " silently ignored" << std::endl);
+
+	}
+
+	if(HP.IsKeyWord("port")){
+		int p = HP.GetInt();
+		
+		silent_cout ( "port " << p 
+				<< " silently ignored" << std::endl);
+		
+	}
 
 	if (HP.IsKeyWord("host")) {
 #if defined(HAVE_GETHOSTBYNAME) || defined(HAVE_INET_ATON)
@@ -217,53 +232,56 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		h = HP.GetStringWithDelims();
 		if (h == NULL) {
 			std::cerr << "unable to read host for "
-				<< psElemNames[Elem::RTAI_OUTPUT]
+				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl;
 			THROW(ErrGeneric());
 		}
 
 		if (create) {
-			std::cerr << "cannot create mailbox(" << name
-				<< ") as remote on host " << h << std::endl;
-			THROW(ErrGeneric());
-		}
+			/*std::cerr << "cannot create mailbox(" << name
+				<< ") as remote on host " << h << std::endl;*/
+			//THROW(ErrGeneric());
+			silent_cout ( "host name " << h 
+					<< " silently ignored" << std::endl);			
+		} else {
 
-		SAFESTRDUP(host, h);
+			SAFESTRDUP(host, h);
 
-		/* resolve host
-		 * FIXME: non-reentrant ... */
+			/* resolve host
+		 	* FIXME: non-reentrant ... */
 #if defined(HAVE_GETHOSTBYNAME)
-		struct hostent *he = gethostbyname(host);
-		if (he != NULL)
-		{
-			node = ((unsigned long *)he->h_addr_list[0])[0];
-		} 
+			struct hostent *he = gethostbyname(host);
+			if (he != NULL)
+			{
+				node = ((unsigned long *)he->h_addr_list[0])[0];
+			} 
 #elif defined(HAVE_INET_ATON)
-		struct in_addr addr;
-		if (inet_aton(host, &addr)) {
-			node = addr.s_addr;
-		}
+			struct in_addr addr;
+			if (inet_aton(host, &addr)) {
+				node = addr.s_addr;
+			}
 #endif /* ! HAVE_GETHOSTBYNAME && HAVE_INET_ATON */
-		else {
-			std::cerr << "unable to convert host "
-				<< host << " at line "
-				<< HP.GetLineData() << std::endl;
+			else {
+				std::cerr << "unable to convert host "
+					<< host << " at line "
+					<< HP.GetLineData() << std::endl;
 			THROW(ErrGeneric());
-		}
+			}
 #else /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
-		std::cerr << "host (RTAI RPC) not supported for "
-			<< psElemNames[Elem::RTAI_OUTPUT]
-			<< "(" << uLabel << ") at line " << HP.GetLineData()
-			<< std::endl;
-		THROW(ErrGeneric());
+			std::cerr << "host (RTAI RPC) not supported for "
+				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
+				<< "(" << uLabel << ") at line " << HP.GetLineData()
+				<< std::endl;
+			THROW(ErrGeneric());
 #endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
+		}
 	}
 
 	int nch = HP.GetInt();
 	if (nch <= 0) {
 		std::cerr << "illegal number of channels for "
-			<< psElemNames[Elem::RTAI_OUTPUT]
+			<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 			<< "(" << uLabel << ") at line " << HP.GetLineData()
 			<< std::endl;
 		THROW(ErrGeneric());

@@ -90,6 +90,8 @@
 #include <rtai_out_elem.h>
 #endif /* USE_RTAI */
 
+#include <socketstream_out_elem.h>
+
 static int iNumTypes[Elem::LASTELEMTYPE];
 
 /* enum delle parole chiave */
@@ -130,6 +132,7 @@ enum KeyWords {
    LOADABLE,
    DRIVEN,
 
+   SOCKETSTREAM_OUTPUT,
    RTAI_OUTPUT,
    
    INERTIA,
@@ -183,7 +186,9 @@ void DataManager::ReadElems(MBDynParser& HP)
       "loadable",
       "driven",
 
-      "rtai" "output",
+      //"socket" "stream" "output",
+      "stream" "output",
+      "RTAI" "output",
 
       "inertia",
       
@@ -571,7 +576,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    break;
 
 	  case RTAI_OUTPUT:
-	    std::cerr << psElemNames[Elem::RTAI_OUTPUT]
+	  case SOCKETSTREAM_OUTPUT:
+	    std::cerr << psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 		    << " does not support bind" << std::endl;
 	  default:
 	    THROW(ErrGeneric());
@@ -776,7 +782,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 		  }
 
 		  case RTAI_OUTPUT:
-		     std::cerr << psElemNames[Elem::RTAI_OUTPUT]
+		  case SOCKETSTREAM_OUTPUT:
+		     std::cerr << psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 	 		     << " cannot be driven" << std::endl;
 	 	     THROW(ErrGeneric());
 		    
@@ -952,6 +959,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	      case LOADABLE:
 #endif /* HAVE_LOADABLE */
 	      case RTAI_OUTPUT:
+	      case SOCKETSTREAM_OUTPUT:
 		  {		 
 		 /* Nome dell'elemento */
              	 const char *sName = NULL;
@@ -1686,42 +1694,50 @@ DataManager::ReadOneElem(MBDynParser& HP,
     }		 		                     
 #endif /* defined(HAVE_LOADABLE) */
 
-    case RTAI_OUTPUT: {
-#ifdef USE_RTAI
-       silent_cout("Reading RTAI output element " << uLabel << std::endl);
+    case RTAI_OUTPUT:
+    case SOCKETSTREAM_OUTPUT: {
+       silent_cout("Reading Socket Stream output element " << uLabel
+		       << std::endl);
        
-       if (iNumTypes[Elem::RTAI_OUTPUT]-- <= 0) {
+       if (iNumTypes[Elem::SOCKETSTREAM_OUTPUT]-- <= 0) {
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
-	    << ": RTAI output element " << uLabel
-	    << " exceeds RTAI output elements number" << std::endl;
+	    << ": Socket Stream output element " << uLabel
+	    << " exceeds Socket Stream output elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }	  
        
        /* verifica che non sia gia' definito */
-       if (pFindElem(Elem::RTAI_OUTPUT, uLabel) != NULL) {
+       if (pFindElem(Elem::SOCKETSTREAM_OUTPUT, uLabel) != NULL) {
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
-	    << ": RTAI output element " << uLabel
+	    << ": Socket Stream output element " << uLabel
 	    << " already defined" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
        
        /* allocazione e creazione */		     
-       int i = ElemData[Elem::RTAI_OUTPUT].iNum
-	 -iNumTypes[Elem::RTAI_OUTPUT]-1;
-       ppE = ElemData[Elem::RTAI_OUTPUT].ppFirstElem+i;
+       int i = ElemData[Elem::SOCKETSTREAM_OUTPUT].iNum
+	 -iNumTypes[Elem::SOCKETSTREAM_OUTPUT]-1;
+       ppE = ElemData[Elem::SOCKETSTREAM_OUTPUT].ppFirstElem+i;
               
-       *ppE = ReadRTAIOutElem(this, HP, uLabel);      
-#else /* ! USE_RTAI */
-       std::cerr << "need USE_RTAI to allow RTAI mailboxes" << std::endl;
-       THROW(ErrGeneric());
+#ifdef USE_RTAI
+       if (mbdyn_rtai_task != 0) {
+	   std::cerr << "starting RTAI out element" << std::endl;    
+          *ppE = ReadRTAIOutElem(this, HP, uLabel);
+       } else
 #endif /* USE_RTAI */
+       {
+	  std::cerr << "starting Socket Stream element" << std::endl;
+          *ppE = ReadSocketStreamElem(this, HP, uLabel);
+       }
+#ifndef USE_RTAI
+       silent_cerr("need USE_RTAI to allow RTAI mailboxes" << std::endl);
+#endif /* ! USE_RTAI */
        break;
     }
-      
      
       /* In case the element type is not correct */
     default: {

@@ -114,7 +114,8 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
 
 	GENEL,
 
-	RTAI_OUTPUT,
+	SOCKETSTREAM_OUTPUT,
+	RTAI_OUTPUT = SOCKETSTREAM_OUTPUT,
 	
 	LASTELEMTYPE
    };

@@ -34,7 +34,7 @@
 #define FILEDRV_H
 
 #include <drive.h>
-
+#include <mbdyn.h>
 /* FileDrive - begin */
 
 class FileDrive : public Drive {
@@ -44,6 +44,7 @@ public:
 
 		FIXEDSTEP = 0,
 		SOCKET,
+		STREAM,
 		SOCKETSTREAM,
 		RTAI_IN,
 

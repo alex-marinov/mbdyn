@@ -28,6 +28,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * Author: Michele Attolico <attolico@aero.polimi.it>
+ */
+
 /* socket driver */
 
 #ifndef SOCKETSTREAMDRIVE_H
@@ -39,13 +43,30 @@
 
 class SocketStreamDrive : public StreamDrive {
 protected:
-
+	const char *host;
+	int type;
+	union {
+ 	  	unsigned short int Port;
+		const char *Path;
+	} data;
+	
+	int sock;
+	int tmp_sock;
+	bool connection_flag;
 public:
-	SocketStreamDrive(unsigned int uL,
-			const DriveHandler* pDH,
-			const char* const sFileName,
-			integer nd, bool c);
+	SocketStreamDrive::SocketStreamDrive(unsigned int uL,
+		const DriveHandler* pDH,
+		const char* const sFileName,
+		integer nd, bool c,
+		unsigned short int p,
+		const char* const h);
 
+	SocketStreamDrive::SocketStreamDrive(unsigned int uL,
+		const DriveHandler* pDH,
+		const char* const sFileName,
+		integer nd, bool c,
+		const char* const Path);
+				
 	virtual ~SocketStreamDrive(void);
 
 	virtual FileDrive::Type GetFileDriveType(void) const;
