@@ -87,6 +87,12 @@ RTAIOutElem::pGet(void) const
 	return (void *)this;
 }
 
+class DataManager;
+class MBDynParser;
+
+extern Elem *
+ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
+
 /* RTAIOutElem - end */
 
 #endif /* USE_RTAI */

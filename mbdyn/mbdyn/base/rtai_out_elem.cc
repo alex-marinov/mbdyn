@@ -38,7 +38,13 @@
 
 /* include del programma */
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
 #include <rtai_out_elem.h>
+#include <dataman.h>
 
 /* RTAIOutElem - begin */
 
@@ -132,6 +138,78 @@ RTAIOutElem::AfterConvergence(const VectorHandler& X,
 	if (RT_mbx_send_if(node, port, mbx, buf, size) != size) {
 		/* error */
 	}
+}
+
+
+Elem *
+ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
+{
+	unsigned long node = 0;
+	const char *host = NULL;
+
+	if (HP.IsKeyWord("host")) {
+#if defined(HAVE_GETHOSTBYNAME) || defined(HAVE_INET_ATON)
+		const char *h;
+		
+		h = HP.GetStringWithDelims();
+		if (h == NULL) {
+			std::cerr << "unable to read host for "
+				<< psElemNames[Elem::RTAI_OUTPUT]
+				<< "(" << uLabel << ") at line "
+				<< HP.GetLineData() << std::endl;
+			THROW(ErrGeneric());
+		}
+
+		SAFESTRDUP(host, h);
+
+		/* resolve host
+		 * FIXME: non-reentrant ... */
+#if defined(HAVE_GETHOSTBYNAME)
+		struct hostent *he = gethostbyname(host);
+		if (he != NULL)
+		{
+			node = ((unsigned long *)he->h_addr_list[0])[0];
+		} 
+#elif defined(HAVE_INET_ATON)
+		struct in_addr addr;
+		if (inet_aton(host, &addr)) {
+			node = addr.s_addr;
+		}
+#endif /* ! HAVE_GETHOSTBYNAME && HAVE_INET_ATON */
+		else {
+			std::cerr << "unable to convert host "
+				<< host << " at line "
+				<< HP.GetLineData() << std::endl;
+			THROW(ErrGeneric());
+		}
+#else /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
+		std::cerr << "host (RTAI RPC) not supported for "
+			<< psElemNames[Elem::RTAI_OUTPUT]
+			<< "(" << uLabel << ") at line " << HP.GetLineData()
+			<< std::endl;
+		THROW(ErrGeneric());
+#endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
+	}
+
+	int nch = HP.GetInt();
+	if (nch <= 0) {
+		std::cerr << "illegal number of channels for "
+			<< psElemNames[Elem::RTAI_OUTPUT]
+			<< "(" << uLabel << ") at line " << HP.GetLineData()
+			<< std::endl;
+		THROW(ErrGeneric());
+	}
+
+	ScalarDof *pNodes = NULL;
+	SAFENEWARR(pNodes, ScalarDof, nch);
+	for (int i = 0; i < nch; i++) {
+		pNodes[i] = ReadScalarDof(pDM, HP, 0);
+	}
+
+	Elem *pEl = NULL;
+	SAFENEWWITHCONSTRUCTOR(pEl, RTAIOutElem,
+			RTAIOutElem(uLabel, nch, pNodes, host, node));
+	return pEl;
 }
 
 #endif /* USE_RTAI */

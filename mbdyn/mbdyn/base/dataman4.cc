@@ -1627,47 +1627,13 @@ Elem** ReadOneElem(DataManager* pDM,
 
     case RTAI_OUTPUT: {
 #ifdef USE_RTAI
-      unsigned long node = 0;
-      const char *host = NULL;
-      if (HP.IsKeyWord("host")) {
-	      const char *h = HP.GetStringWithDelims();
-	      if (h == NULL) {
-		      std::cerr << "unable to real host for "
-			      << psElemNames[Elem::RTAI_OUTPUT]
-			      << "(" << uLabel << ") at line "
-			      << HP.GetLineData() << std::endl;
-		      THROW(ErrGeneric());
-	      }
-	      SAFESTRDUP(host, h);
-
-	      /* resolve host */
-      }
-	      
-      int nch = HP.GetInt();
-
-      if (nch <= 0) {
-	      std::cerr << "illegal number of channels for "
-		      << psElemNames[Elem::RTAI_OUTPUT]
-		      << "(" << uLabel << ") at line " << HP.GetLineData()
-		      << std::endl;
-	      THROW(ErrGeneric());
-      }
-
-      ScalarDof *pNodes = NULL;
-      SAFENEWARR(pNodes, ScalarDof, nch);
-      for (int i = 0; i < nch; i++) {
-	      pNodes[i] = ReadScalarDof(pDM, HP, 0);
-      }
-
-      SAFENEWWITHCONSTRUCTOR(*ppE, RTAIOutElem,
-		      RTAIOutElem(uLabel, nch, pNodes, host, node));
-
+       *ppE = ReadRTAIOutElem(pDM, HP, uLabel);      
 #else /* ! USE_RTAI */
        std::cerr << "need USE_RTAI to allow RTAI mailboxes" << std::endl;
        THROW(ErrGeneric());
 #endif /* USE_RTAI */
 
-      break;
+       break;
     }
       
      
