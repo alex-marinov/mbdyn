@@ -6,6 +6,10 @@ Copyright (C) 1996-2003
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Tue Jul 29 22:00:00 CEST 2003 Pierangelo Masarati <masarati@aero.polimi.it>
+ - reworked distance joints
+ - loadable elems as joints
+
 *** Tue May 20 10:29:56 CEST 2003 Marco Morandini <morandini@aero.polimi.it>
  - added nr keep jacobian option
 
