@@ -290,6 +290,10 @@ do_c81_stall(int NM, int NA, double *a, double *stall)
 		double dcpa0 = (a[start+na+1]-dcp0)/(a[na+1]-a0);
 
 		/* cerca il punto superiore in cui cessa la linearita' */
+		stall[nm] = 1.;
+		stall[NM+nm] = 1.;
+		stall[2*NM+nm] = 0.;
+
 		for (int i = na+2; i < NA; i++) {
 			double dcpa = (a[start+i]-dcp0)/(a[i]-a0);
 			if (fabs(dcpa-dcpa0) > dcptol) {
@@ -319,7 +323,7 @@ do_c81_stall(int NM, int NA, double *a, double *stall)
 					a[start+i+1];
 					
 				/* divide per il delta alpha */
-				stall[2*NM+nm] /= stall[nm] -stall[NM+nm];
+				stall[2*NM+nm] /= (stall[nm] - stall[NM+nm]);
 				break;
 			}
 		}
