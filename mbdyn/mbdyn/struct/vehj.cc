@@ -54,7 +54,7 @@ DeformableHingeJoint::DeformableHingeJoint(unsigned int uL,
 : Elem(uL, Elem::JOINT, fOut), 
 Joint(uL, Joint::DEFORMABLEHINGE, pDO, fOut), 
 ConstitutiveLaw3DOwner(pCL), DefHingeT(T),
-pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2), fFirstRes(1)
+pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2), bFirstRes(true)
 {
    ASSERT(pNode1 != NULL);
    ASSERT(pNode2 != NULL);
@@ -187,7 +187,7 @@ void ElasticHingeJoint::AfterPredict(VectorHandler& /* X */ ,
     * nel sistema globale */
    FDE = R1*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*R1T;
 						     
-   fFirstRes = flag(1);						     
+   bFirstRes = true;						     
 }
 
 
@@ -243,8 +243,8 @@ void ElasticHingeJoint::AssVec(SubVectorHandler& WorkVec)
 {
    Mat3x3 R1(pNode1->GetRCurr()*R1h);
 
-   if (fFirstRes) {
-      fFirstRes = 0;
+   if (bFirstRes) {
+      bFirstRes = false;
 
    } else {
       Mat3x3 R2(pNode2->GetRCurr()*R2h);
@@ -381,7 +381,7 @@ void ViscousHingeJoint::AfterPredict(VectorHandler& /* X */ ,
    // Chiede la matrice tangente di riferimento e la porta nel sistema globale
    FDEPrime = Ra*GetFDEPrime()*RaT;
 
-   fFirstRes = flag(1);						     
+   bFirstRes = true;						     
 }
 						    
 						     
@@ -457,8 +457,9 @@ ViscousHingeJoint::AssRes(SubVectorHandler& WorkVec,
 
    Mat3x3 Ra(pNode1->GetRCurr()*R1h);
    
-   if (fFirstRes) {      
-      fFirstRes = flag(0);
+   if (bFirstRes) {      
+      bFirstRes = false;
+
    } else {
       Mat3x3 RaT(Ra.Transpose());
       
@@ -569,8 +570,9 @@ ViscousHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
    Mat3x3 Ra(pNode1->GetRCurr()*R1h);
    
-   if (fFirstRes) {      
-      fFirstRes = flag(0);
+   if (bFirstRes) {      
+      bFirstRes = false;
+
    } else {
       Mat3x3 RaT(Ra.Transpose());
       
@@ -666,7 +668,7 @@ void ViscoElasticHingeJoint::AfterPredict(VectorHandler& /* X */ ,
    FDE = Ra*GetFDE()*RaT;
    FDEPrime = Ra*GetFDEPrime()*RaT;
 						     
-   fFirstRes = flag(1);
+   bFirstRes = true;
 }
 
 
@@ -742,8 +744,8 @@ ViscoElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
    
    Mat3x3 Ra(pNode1->GetRCurr()*R1h);
    
-   if (fFirstRes) {      
-      fFirstRes = flag(0);
+   if (bFirstRes) {      
+      bFirstRes = false;
    } else {
       Mat3x3 RaT(Ra.Transpose());
       
@@ -859,8 +861,9 @@ ViscoElasticHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    Mat3x3 Ra(pNode1->GetRCurr()*R1h);
    
-   if (fFirstRes) {      
-      fFirstRes = flag(0);
+   if (bFirstRes) {      
+      bFirstRes = false;
+
    } else {
       Mat3x3 RaT(Ra.Transpose());
       

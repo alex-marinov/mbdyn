@@ -68,9 +68,7 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
    const Mat3x3 R1h;
    const Mat3x3 R2h;
    
-   
-   
-   flag fFirstRes;
+   bool bFirstRes;
    
  public:
    /* Costruttore non banale */
