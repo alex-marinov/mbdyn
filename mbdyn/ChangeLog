@@ -7,6 +7,9 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Wed Feb  6 17:19:42 CET 2002 Marco Morandini <morandini@aero.polimi.it>
+ - cleanup of ANSI-fication also in debug mode
+ 
 *** Wed Feb  6 17:19:42 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - added penalty on strain rate in shock absorber (changes input syntax)
 
