@@ -352,7 +352,7 @@ main(int argc, char* argv[])
 	        		break;
 	    
 	    		case int('s'):
-	        		::fSilent = 1;
+	        		::fSilent++;
 	        		break;
 
 	    		case int('l'):
@@ -636,7 +636,8 @@ main(int argc, char* argv[])
 		}
 
 #ifdef USE_EXCEPTIONS
-        	throw NoErr();
+#warning "/* FIXME: causes core dump on Linux RH 6.2 !?! */"
+        	/* throw NoErr(); */
     	}
    
     	catch (NoErr) {     

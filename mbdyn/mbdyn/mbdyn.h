@@ -42,12 +42,21 @@ extern int fSilent;
 
 /* Global macros */
 #ifdef __cplusplus
+
 #define silent_cout(arg) \
-    do { \
-        if (!::fSilent) { \
-            cout << arg; \
-        } \
-    } while (0)
+    	do { \
+        	if (::fSilent < 1) { \
+            		cout << arg; \
+        	} \
+    	} while (0)
+
+#define silent_cerr(arg) \
+	do { \
+		if (::fSilent < 2) { \
+			cerr << arg; \
+		} \
+	} while (0)
+
 #endif /* __cplusplus */
 
 /* Debug levels (from 0x0001 to 0x0080 are reserved) */
