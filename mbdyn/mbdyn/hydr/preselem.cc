@@ -431,7 +431,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        DEBUGCOUT("Area_max: " << area_max << endl);
        
        /* Area di trafilamento in % sull'area massima:valore di default = 1.e-6 */
-       doublereal loss_area = 1.e-6; 
+       doublereal loss_area = 0.; /* 1.e-6; */
        if (HP.IsKeyWord("loss")) {
 	  loss_area = HP.GetReal();
 	  if (loss_area  < 0.) {		  
@@ -443,7 +443,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        }
        
        /* Stato */
-       DriveCaller* pDC =ReadDriveData(pDM, HP,pDM->pGetDrvHdl());
+       DriveCaller* pDC = ReadDriveData(pDM, HP,pDM->pGetDrvHdl());
        
        HydraulicFluid* hf = HP.GetHydraulicFluid();
        ASSERT(hf != NULL);
@@ -540,7 +540,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        DEBUGCOUT("Width: " << width << endl);
        
        /* Area di trafilamento in % sull'area massima(==width*s_max):valore di default = 1.e-6 */
-       doublereal loss_area =1.e-6;
+       doublereal loss_area = 0.; /* 1.e-6; */
        if (HP.IsKeyWord("loss")) {
 	  loss_area = HP.GetReal();
 	  if (loss_area < 0.) {		  
@@ -715,7 +715,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        DEBUGCOUT("Width: " << width << endl);
        
        /* Area di trafilamento in % sull'area massima(==width*s_max):valore di default = 1.e-6 */
-       doublereal loss_area =1.e-6;
+       doublereal loss_area = 0.; /* 1.e-6; */
        if (HP.IsKeyWord("loss")) {
 	  loss_area = HP.GetReal();
 	  if (loss_area < 0.) {		  
