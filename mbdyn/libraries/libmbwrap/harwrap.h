@@ -103,6 +103,7 @@
 #include <except.h>
 #include <harwlib.h>
 #include <solman.h>
+#include <ls.h>
 #include <submat.h>
 #include <spmapmh.h>
 
