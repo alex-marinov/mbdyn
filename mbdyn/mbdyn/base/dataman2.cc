@@ -319,7 +319,7 @@ DataManager::InitialJointAssembly(void)
 		iNumDofs = pTmp->iNumDofs = (*ppNode)->iGetInitialNumDof();
 		if (iNumDofs > 0) {
 			if (pds) {
-				unsigned int nd = (*ppNode)->iGetNumDof();
+				unsigned int nd = iNumDofs;
 				integer fd = iIndex;
 
 				std::cout << psNodeNames[(*ppNode)->GetNodeType()]
@@ -364,9 +364,10 @@ DataManager::InitialJointAssembly(void)
 					ASSERT((*ppEl)->pGetInitialAssemblyElem() != NULL);
 
 					iNumDofs = (*ppEl)->pGetInitialAssemblyElem()->iGetInitialNumDof();
-					if ((pTmp->iNumDofs = iNumDofs) > 0) {
+					pTmp->iNumDofs = iNumDofs;
+					if (iNumDofs > 0) {
 						if (pds) {
-							unsigned int nd = (*ppEl)->iGetNumDof();
+							unsigned int nd = iNumDofs;
 							integer fd = iIndex;
 
 							std::cout << psElemNames[(*ppEl)->GetElemType()]

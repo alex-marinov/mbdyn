@@ -15,6 +15,8 @@ MBDyn 1.2-Engineering
 		- added discrete Coulomb friction model
 		- added constitutive law output to elements
 		- added "sramp" (saturated ramp) function to math parser
+	Bug fixes:
+		- fixed dof count in initial assembly dof stats print
 	Known Issues:
 		- parallel is not working yet
 
