@@ -71,18 +71,6 @@ public:
 			doublereal etaMx); 
 
 	~MatrixFreeSolver(void);
-	
-	virtual void Solve(const NonlinearProblem* NLP,
-			SolutionManager* pSolMan,
-			const integer iMaxIter,
-			const doublereal Tol,
-			const doublereal SolTol,
-			integer& iIterCnt,
-			doublereal& dErr
-#ifdef MBDYN_X_CONVSOL
-			, doublereal& dSolErr
-#endif /* MBDYN_X_CONVSOL  */	
-			) = 0;
 
 protected:
 	doublereal MakeTest(const VectorHandler& Vec);

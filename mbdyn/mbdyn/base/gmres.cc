@@ -143,12 +143,12 @@ void
 Gmres::Solve(const NonlinearProblem* pNLP,
 		SolutionManager* pSolMan,
 		const integer iMaxIter,
-		const doublereal Tol,
-		const doublereal SolTol,
+		const doublereal& Tol,
 		integer& iIterCnt,
 		doublereal& dErr
 #ifdef MBDYN_X_CONVSOL
-		, doublereal& dSolErr
+		, const doublereal& SolTol,
+		doublereal& dSolErr
 #endif /* MBDYN_X_CONVSOL  */	
 	    )
 {

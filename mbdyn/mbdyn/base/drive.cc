@@ -362,6 +362,12 @@ DriveCaller* DriveOwner::pGetDriveCaller(void) const
 }
 
 
+doublereal DriveOwner::dGet(const doublereal& dVal) const
+{
+   return pDriveCaller->dGet(dVal);
+}
+
+
 doublereal DriveOwner::dGet(void) const
 {
    return pDriveCaller->dGet();

@@ -44,7 +44,7 @@
 #include <mfree.h>
 #ifdef USE_MPI
 #include <mbcomm.h>
-#include<schsolman.h>
+#include <schsolman.h>
 #endif /* USE_MPI */
 
 #include <dofown.h>
@@ -119,28 +119,11 @@ MatrixFreeSolver::MakeTest(const VectorHandler& Vec)
 			CurrDof = pDofs[DCount-1];
 			doublereal d = Res.dGetCoef(DCount);
 			dRes += d*d;
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				d = XP.dGetCoef(DCount);
-				dXPr += d*d;
-			}
-			/* else if ALGEBRAIC: non aggiunge nulla */
 		}
 
 		integer iMI = pSDM->HowManyDofs(SchurDataManager::MYINTERNAL);
 		integer *pMI = pSDM->GetDofsList(SchurDataManager::MYINTERNAL);
 
-#ifdef __HACK_RES_TEST__				
-		for (int iCnt = 0; iCnt < iMI; iCnt++) {
-			DCount = pMI[iCnt];
-			CurrDof = pDofs[DCount-1];
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				doublereal d = XP.dGetCoef(DCount);
-				dXPr += d*d;
-			}
-#endif /* __HACK_RES_TEST__ */
-			/* else if ALGEBRAIC: non aggiunge nulla */
-		}
-		
 		/* verifica completamento trasmissioni */
 		pSSM->ComplExchInt(dRes, dXPr);
 		
@@ -164,22 +147,6 @@ MatrixFreeSolver::MakeTest(const VectorHandler& Vec)
 #endif /* __HACK_SCALE_RES__ */
 
 			dRes += d2;
-
-#if 0
-#ifdef __HACK_RES_TEST__
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				d = XP.dGetCoef(iCntp1);
-				d2 = d*d;
-
-#ifdef __HACK_SCALE_RES__
-				d2 *= ds2;         
-#endif /* __HACK_SCALE_RES__ */
-
-				dXPr += d2;
-			}
-			/* else if ALGEBRAIC: non aggiunge nulla */ 
-#endif /* __HACK_RES_TEST__ */
-#endif /* 0 */		
 		}
 		
 #ifdef USE_MPI
@@ -188,11 +155,10 @@ MatrixFreeSolver::MakeTest(const VectorHandler& Vec)
 #endif
 #endif /* USE_MPI */
 
-#if 0
-#ifdef __HACK_RES_TEST__
-	dRes /= (1.+dXPr);
-#endif /* __HACK_RES_TEST__ */
-#endif
+	/* FIXME: sicuri che va qui? */
+	if (!isfinite(dRes)) {      
+		THROW(ErrSimulationDiverged());
+	}
 
    	return sqrt(dRes);
 }

@@ -70,12 +70,12 @@ public:
 	virtual void Solve(const NonlinearProblem* NLP,
 			SolutionManager* pSolMan,
 			const integer iMaxIter,
-			const doublereal Tol,
-			const doublereal SolTol,
+			const doublereal& Tol,
 			integer& iIterCnt,
 			doublereal& dErr
 #ifdef MBDYN_X_CONVSOL
-			, doublereal& dSolErr
+			, const doublereal& SolTol,
+			doublereal& dSolErr
 #endif /* MBDYN_X_CONVSOL  */	
 			);
 			

@@ -95,9 +95,9 @@ protected:
 
 public:
 	StepIntegrator(const integer MaxIt,
-		const doublereal dT,
-		const doublereal dSolutionTol,
-		const integer stp);
+			const doublereal dT,
+			const doublereal dSolutionTol,
+			const integer stp);
 	
 	virtual ~StepIntegrator(void);
 
@@ -109,18 +109,19 @@ public:
 	
 	virtual void SetDriveHandler(const DriveHandler* pDH) = 0;
 
-	virtual doublereal Advance(const doublereal TStep, 
-				const doublereal dAlph, 
-				const StepChange StType,
-				SolutionManager* pSM,
-				NonlinearSolver* pNLS, 
-				std::deque<MyVectorHandler*>& qX,
-	 			std::deque<MyVectorHandler*>& qXPrime,
-				integer& EffIter
+	virtual doublereal
+	Advance(const doublereal TStep, 
+			const doublereal dAlph, 
+			const StepChange StType,
+			SolutionManager* pSM,
+			NonlinearSolver* pNLS, 
+			std::deque<MyVectorHandler*>& qX,
+ 			std::deque<MyVectorHandler*>& qXPrime,
+			integer& EffIter
 #ifdef MBDYN_X_CONVSOL
-				, doublereal& SolErr
+			, doublereal& SolErr
 #endif /* MBDYN_X_CONVSOL */
-				) = 0;
+			) = 0;
 };
 
 
@@ -143,18 +144,20 @@ public:
 	
 	void SetDriveHandler(const DriveHandler* /* pDH */ );
 	
- 	doublereal Advance(const doublereal TStep, 
-				const doublereal /* dAph */, 
-				const StepChange /* StType */,
-				SolutionManager* pSM,
-				NonlinearSolver* pNLS, 
-				std::deque<MyVectorHandler*>& qX,
-	 			std::deque<MyVectorHandler*>& qXPrime,
-				integer& EffIter
+ 	doublereal
+	Advance(const doublereal TStep, 
+			const doublereal /* dAph */, 
+			const StepChange /* StType */,
+			SolutionManager* pSM,
+			NonlinearSolver* pNLS, 
+			std::deque<MyVectorHandler*>& qX,
+ 			std::deque<MyVectorHandler*>& qXPrime,
+			integer& EffIter
 #ifdef MBDYN_X_CONVSOL
-				, doublereal& SolErr
+			, doublereal& SolErr
 #endif /* MBDYN_X_CONVSOL */
 			);
+
  	void Residual(VectorHandler* pRes) const;
 
 	void Jacobian(MatrixHandler* pJac) const;
@@ -168,43 +171,32 @@ public:
 	virtual doublereal TestScale(void) const;
 #endif /* ! __HACK_SCALE_RES__ */
 
-	virtual void EvalProd(doublereal Tau, const VectorHandler& f0,
+	virtual void
+	EvalProd(doublereal Tau, const VectorHandler& f0,
 			const VectorHandler& w, VectorHandler& z) const;
 
  
 };
 
 
-/* classe di base per gli integratori del second'ordine */ 
-class Step2Integrator :   
+/* classe di base per gli integratori di ordine qualsiasi */ 
+class StepNIntegrator :   
 	public StepIntegrator,
 	public NonlinearProblem
 {
 protected:
 	doublereal db0Differential;
 	doublereal db0Algebraic;
-	VectorHandler  *pXCurr, *pXPrev, *pXPrev2;
-	VectorHandler  *pXPrimeCurr, *pXPrimePrev, *pXPrimePrev2; 
+	VectorHandler *pXCurr;
+	VectorHandler *pXPrimeCurr; 
 
 public:
-	Step2Integrator(const integer MaxIt,
-		const doublereal dT,
-		const doublereal dSolutionTol);
+	StepNIntegrator(const integer MaxIt,
+			const doublereal dT,
+			const doublereal dSolutionTol,
+			const integer stp);
 
-	virtual ~Step2Integrator(void);
-
-	virtual doublereal Advance(const doublereal TStep, 
-				const doublereal dAlph, 
-				const StepChange StType,
-				SolutionManager* pSM,
-				NonlinearSolver* pNLS, 
-				std::deque<MyVectorHandler*>& qX,
-	 			std::deque<MyVectorHandler*>& qXPrime,
-				integer& EffIter
-#ifdef MBDYN_X_CONVSOL
-				, doublereal& SolErr
-#endif /* MBDYN_X_CONVSOL */
-				);
+	virtual ~StepNIntegrator(void);
 
 	virtual void Residual(VectorHandler* pRes) const;
 
@@ -219,8 +211,156 @@ public:
 	virtual doublereal TestScale(void) const;
 #endif /* ! __HACK_SCALE_RES__ */
 
-	virtual void EvalProd(doublereal Tau, const VectorHandler& f0,
+	virtual void
+	EvalProd(doublereal Tau, const VectorHandler& f0,
 			const VectorHandler& w, VectorHandler& z) const;
+
+protected:
+	virtual void SetCoef(doublereal dT, 
+			doublereal dAlpha,
+			enum StepChange NewStep) = 0;
+};
+
+/* classe di base per gli integratori del second'ordine */ 
+class Step1Integrator :   
+	public StepNIntegrator
+{
+protected:
+	VectorHandler *pXPrev;
+	VectorHandler *pXPrimePrev; 
+
+public:
+	Step1Integrator(const integer MaxIt,
+			const doublereal dT,
+			const doublereal dSolutionTol);
+
+	virtual ~Step1Integrator(void);
+
+	virtual doublereal
+	Advance(const doublereal TStep, 
+			const doublereal dAlph, 
+			const StepChange StType,
+			SolutionManager* pSM,
+			NonlinearSolver* pNLS, 
+			std::deque<MyVectorHandler*>& qX,
+	 		std::deque<MyVectorHandler*>& qXPrime,
+			integer& EffIter
+#ifdef MBDYN_X_CONVSOL
+			, doublereal& SolErr
+#endif /* MBDYN_X_CONVSOL */
+			);
+
+protected:
+	virtual void Predict(void);
+
+	// Overridden by dedicated inline functions
+	virtual doublereal 
+     	dPredictDerivative(const doublereal& dXm1,
+			const doublereal& dXPm1,
+			DofOrder::Order o = DofOrder::DIFFERENTIAL) const = 0;
+   
+   	// Overridden by dedicated inline functions
+   	virtual doublereal 
+     	dPredictState(const doublereal& dXm1,
+		   const doublereal& dXP,
+		   const doublereal& dXPm1,
+		   DofOrder::Order o = DofOrder::DIFFERENTIAL) const = 0;
+ 
+   	virtual doublereal 
+     	dPredDer(const doublereal& dXm1,
+	      const doublereal& dXPm1) const = 0;
+   
+   	virtual doublereal 
+     	dPredState(const doublereal& dXm1,
+		const doublereal& dXP,
+		const doublereal& dXPm1) const = 0;   
+
+   	virtual doublereal 
+     	dPredDerAlg(const doublereal& dXm1,
+		 const doublereal& dXPm1)  const = 0;
+		    
+   	virtual doublereal 
+     	dPredStateAlg(const doublereal& dXm1,
+		   const doublereal& dXP,
+		   const doublereal& dXPm1) const = 0;
+};
+
+
+class CrankNicholsonSolver: 
+	public Step1Integrator
+{
+public:
+	CrankNicholsonSolver(const doublereal Tl, 
+			const doublereal dSolTl, 
+			const integer iMaxIt);
+
+	~CrankNicholsonSolver(void);
+
+	void SetDriveHandler(const DriveHandler* pDH);
+   
+protected:
+	void SetCoef(doublereal dT, 
+			doublereal dAlpha,
+			enum StepChange NewStep);
+  
+   	doublereal 
+     	dPredictDerivative(const doublereal& dXm1,
+			const doublereal& dXPm1,
+			DofOrder::Order o = DofOrder::DIFFERENTIAL) const;
+   
+	doublereal 
+	dPredictState(const doublereal& dXm1,
+		   const doublereal& dXP,
+		   const doublereal& dXPm1,
+		   DofOrder::Order o = DofOrder::DIFFERENTIAL) const;
+   
+	// Nota: usa predizione lineare per le derivate (massimo ordine possibile)
+	doublereal 
+	dPredDer(const doublereal& dXm1,
+	      const doublereal& dXPm1) const;
+   
+	doublereal 
+	dPredState(const doublereal& dXm1,
+		const doublereal& dXP,
+		const doublereal& dXPm1) const;
+   
+	doublereal 
+	dPredDerAlg(const doublereal& dXm1,
+		 const doublereal& dXPm1) const;
+   
+	doublereal 
+	dPredStateAlg(const doublereal& dXm1,
+		   const doublereal& dXP,
+		   const doublereal& dXPm1) const;
+};
+
+/* classe di base per gli integratori del second'ordine */ 
+class Step2Integrator :   
+	public StepNIntegrator
+{
+protected:
+	VectorHandler *pXPrev, *pXPrev2;
+	VectorHandler *pXPrimePrev, *pXPrimePrev2; 
+
+public:
+	Step2Integrator(const integer MaxIt,
+			const doublereal dT,
+			const doublereal dSolutionTol);
+
+	virtual ~Step2Integrator(void);
+
+	virtual doublereal Advance(const doublereal TStep, 
+			const doublereal dAlph, 
+			const StepChange StType,
+			SolutionManager* pSM,
+			NonlinearSolver* pNLS, 
+			std::deque<MyVectorHandler*>& qX,
+	 		std::deque<MyVectorHandler*>& qXPrime,
+			integer& EffIter
+#ifdef MBDYN_X_CONVSOL
+			, doublereal& SolErr
+#endif /* MBDYN_X_CONVSOL */
+			);
 
 protected:
 	virtual void Predict(void);
@@ -236,200 +376,110 @@ protected:
    	// Overridden by dedicated inline functions
    	virtual doublereal 
      	dPredictState(const doublereal& dXm1,
-		   const doublereal& dXm2,
-		   const doublereal& dXP,
-		   const doublereal& dXPm1,
-		   const doublereal& dXPm2,
-		   DofOrder::Order o = DofOrder::DIFFERENTIAL) const = 0;
+			const doublereal& dXm2,
+			const doublereal& dXP,
+			const doublereal& dXPm1,
+			const doublereal& dXPm2,
+			DofOrder::Order o = DofOrder::DIFFERENTIAL) const = 0;
  
    	virtual doublereal 
      	dPredDer(const doublereal& dXm1,
-	      const doublereal& dXm2,
-	      const doublereal& dXPm1,
-	      const doublereal& dXPm2) const = 0;
+			const doublereal& dXm2,
+			const doublereal& dXPm1,
+			const doublereal& dXPm2) const = 0;
    
    	virtual doublereal 
      	dPredState(const doublereal& dXm1,
-		const doublereal& dXm2,
-		const doublereal& dXP,
-		const doublereal& dXPm1,
-		const doublereal& dXPm2) const = 0;   
+			const doublereal& dXm2,
+			const doublereal& dXP,
+			const doublereal& dXPm1,
+			const doublereal& dXPm2) const = 0;   
    	virtual doublereal 
      	dPredDerAlg(const doublereal& dXm1,
-		 const doublereal& dXPm1,
-		 const doublereal& dXPm2)  const = 0;
+			const doublereal& dXPm1,
+			const doublereal& dXPm2)  const = 0;
 		    
    	virtual doublereal 
      	dPredStateAlg(const doublereal& dXm1,
-		   const doublereal& dXP,
-		   const doublereal& dXPm1,
-		   const doublereal& dXPm2) const = 0;
+			const doublereal& dXP,
+			const doublereal& dXPm1,
+			const doublereal& dXPm2) const = 0;
 
 	virtual void SetCoef(doublereal dT, 
 			doublereal dAlpha,
 			enum StepChange NewStep) = 0;
-
 };
-
-
-class CrankNicholsonSolver: 
-	public Step2Integrator
-{
-public:
-	CrankNicholsonSolver(const doublereal Tl, 
-			const doublereal dSolTl, 
-			const integer iMaxIt);
-
-	~CrankNicholsonSolver(void);
-
-	void SetDriveHandler(const DriveHandler* /* pDH */ );
-   
-protected:
-	void SetCoef(doublereal dT, 
-			doublereal dAlpha,
-			enum StepChange /* NewStep */);
-  
-   	doublereal 
-     	dPredictDerivative(const doublereal& /* dXm1 */,
-			const doublereal& /* dXm2 */,
-			const doublereal& dXPm1,
-			const doublereal& /* dXPm2 */,
-			DofOrder::Order o = DofOrder::DIFFERENTIAL) const {
-   				return dXPm1;
-			};
-   
-	doublereal 
-	dPredictState(const doublereal& dXm1,
-		   const doublereal& /* dXm2 */,
-		   const doublereal& dXP,
-		   const doublereal& dXPm1,
-		   const doublereal& /* dXPm2 */,
-		   DofOrder::Order o = DofOrder::DIFFERENTIAL) const {
-		   	if (o == DofOrder::ALGEBRAIC) {
-				return db0Differential*(dXP+dXPm1);     
-			} /* else if (o == DofOrder::DIFFERENTIAL) */   
-			return dXm1+db0Differential*(dXP+dXPm1);
-		};
-   
-	// Nota: usa predizione lineare per le derivate (massimo ordine possibile)
-	doublereal 
-	dPredDer(const doublereal& /* dXm1 */ ,
-	      const doublereal& /* dXm2 */ ,
-	      const doublereal& dXPm1,
-	      const doublereal& /* dXPm2 */ ) const {
-		return dXPm1;
-	      };
-   
-	doublereal 
-	dPredState(const doublereal& dXm1,
-		const doublereal& /* dXm2 */ ,
-		const doublereal& dXP,
-		const doublereal& dXPm1,
-		const doublereal& /* dXPm2 */ ) const {
-		   return dXm1+db0Differential*(dXP+dXPm1);
-		};
-   
-	doublereal 
-	dPredDerAlg(const doublereal& /* dXm1 */ ,
-		 const doublereal& dXPm1,
-		 const doublereal& /* dXPm2 */ ) const {
-		    return dXPm1;
-		 };
-   
-	doublereal 
-	dPredStateAlg(const doublereal& /* dXm1 */ ,
-		   const doublereal& dXP,
-		   const doublereal& dXPm1,
-		   const doublereal& /* dXPm2 */ ) const {
-		      return db0Differential*(dXP+dXPm1);
-		   };     
-};
-
 
 /* NostroMetodo - begin */
 
 class MultistepSolver: 
 	public Step2Integrator
 {
- protected:
-   DriveOwner Rho;
-   DriveOwner AlgebraicRho;
+protected:
+	DriveOwner Rho;
+	DriveOwner AlgebraicRho;
    
-   doublereal a[2][2];
-   doublereal b[3][2];
-   
-   doublereal mp[2];
-   doublereal np[2];
+	doublereal a[2][2];
+	doublereal b[3][2];
+
+	doublereal mp[2];
+	doublereal np[2];
    
 public:
-   MultistepSolver(const doublereal Tl, 
-		const doublereal dSolTol, 
-		const integer iMaxIt,
-		const DriveCaller* pRho,
-		const DriveCaller* pAlgRho);
-   
-   ~MultistepSolver(void);
+	MultistepSolver(const doublereal Tl, 
+			const doublereal dSolTol, 
+			const integer iMaxIt,
+			const DriveCaller* pRho,
+			const DriveCaller* pAlgRho);
+
+	~MultistepSolver(void);
 
 protected:
-  void SetCoef(doublereal dT, 
+	void SetCoef(doublereal dT, 
 			doublereal dAlpha,
 			enum StepChange NewStep);
-   
-  void SetDriveHandler(const DriveHandler* pDH) {
-      Rho.pGetDriveCaller()->SetDrvHdl(pDH);
-      AlgebraicRho.pGetDriveCaller()->SetDrvHdl(pDH);
-   };
-   
-   
-  doublereal 
-     dPredictDerivative(const doublereal& dXm1,
+
+	void SetDriveHandler(const DriveHandler* pDH);
+
+	doublereal 
+	dPredictDerivative(const doublereal& dXm1,
 			const doublereal& dXm2,
 			const doublereal& dXPm1,
 			const doublereal& dXPm2,
 			DofOrder::Order o = DofOrder::DIFFERENTIAL) const;
+
+	doublereal 
+	dPredictState(const doublereal& dXm1,
+			const doublereal& dXm2,
+			const doublereal& dXP,
+			const doublereal& dXPm1,
+			const doublereal& dXPm2,
+			DofOrder::Order o = DofOrder::DIFFERENTIAL) const;
    
-   doublereal 
-     dPredictState(const doublereal& dXm1,
-		   const doublereal& dXm2,
-		   const doublereal& dXP,
-		   const doublereal& dXPm1,
-		   const doublereal& dXPm2,
-		   DofOrder::Order o = DofOrder::DIFFERENTIAL) const;
+	// Nota: usa predizione cubica per le derivate (massimo ordine possibile)
+	doublereal 
+	dPredDer(const doublereal& dXm1,
+			const doublereal& dXm2,
+			const doublereal& dXPm1,
+			const doublereal& dXPm2) const;
    
-   // Nota: usa predizione cubica per le derivate (massimo ordine possibile)
-   doublereal 
-     dPredDer(const doublereal& dXm1,
-	      const doublereal& dXm2,
-	      const doublereal& dXPm1,
-	      const doublereal& dXPm2) const {
-		 return mp[0]*dXm1+mp[1]*dXm2+np[0]*dXPm1+np[1]*dXPm2;
-	      };
-   
-   doublereal 
-     dPredState(const doublereal& dXm1,
-		const doublereal& dXm2,
-		const doublereal& dXP,
-		const doublereal& dXPm1,
-		const doublereal& dXPm2) const {
-		   return a[0][DIFFERENTIAL]*dXm1+a[1][DIFFERENTIAL]*dXm2
-		     +b[0][DIFFERENTIAL]*dXP+b[1][DIFFERENTIAL]*dXPm1+b[2][DIFFERENTIAL]*dXPm2;
-		};
-   
-  doublereal 
-     dPredDerAlg(const doublereal& dXm1,
-		 const doublereal& dXPm1,
-		 const doublereal& dXPm2) const {
-		    return np[0]*dXPm1+np[1]*dXPm2-mp[1]*dXm1;
-		 };
-   
-   doublereal 
-     dPredStateAlg(const doublereal& dXm1,
-		   const doublereal& dXP,
-		   const doublereal& dXPm1,
-		   const doublereal& dXPm2) const {
-		      return b[0][ALGEBRAIC]*dXP+b[1][ALGEBRAIC]*dXPm1+b[2][ALGEBRAIC]*dXPm2
-			-a[1][ALGEBRAIC]*dXm1;
-		   };
+	doublereal 
+	dPredState(const doublereal& dXm1,
+			const doublereal& dXm2,
+			const doublereal& dXP,
+			const doublereal& dXPm1,
+			const doublereal& dXPm2) const;
+
+	doublereal 
+	dPredDerAlg(const doublereal& dXm1,
+			const doublereal& dXPm1,
+			const doublereal& dXPm2) const;
+
+	doublereal 
+	dPredStateAlg(const doublereal& dXm1,
+			const doublereal& dXP,
+			const doublereal& dXPm1,
+			const doublereal& dXPm2) const;
 };
 
 /* NostroMetodo - end */
@@ -440,97 +490,75 @@ protected:
 class HopeSolver : 
 	public Step2Integrator 
 {
- protected:
-   DriveOwner Rho;
-   DriveOwner AlgebraicRho;
+protected:
+	DriveOwner Rho;
+	DriveOwner AlgebraicRho;
    
-   flag fStep;
+	flag fStep;
    
-   doublereal a[2][2];
-   doublereal b[2][2];
+	doublereal a[2][2];
+	doublereal b[2][2];
    
-   doublereal mp[2];
-   doublereal np[2];
+	doublereal mp[2];
+	doublereal np[2];
    
- public:
-    HopeSolver(const doublereal Tl, 
-		const doublereal dSolTol, 
-		const integer iMaxIt,
-		const DriveCaller* pRho,
-		const DriveCaller* pAlgRho);
-   
-   ~HopeSolver(void);
+public:
+	HopeSolver(const doublereal Tl, 
+			const doublereal dSolTol, 
+			const integer iMaxIt,
+			const DriveCaller* pRho,
+			const DriveCaller* pAlgRho);
+
+	~HopeSolver(void);
 
 protected:
-   void SetCoef(doublereal dT,
+	void SetCoef(doublereal dT,
 			doublereal dAlpha,
 			enum StepChange NewStep);
-   
-   void SetDriveHandler(const DriveHandler* pDH) {
-      Rho.pGetDriveCaller()->SetDrvHdl(pDH);
-      AlgebraicRho.pGetDriveCaller()->SetDrvHdl(pDH);
-   };
 
-  doublereal 
-     dPredictDerivative(const doublereal& dXm1,
+	void SetDriveHandler(const DriveHandler* pDH);
+
+	doublereal 
+	dPredictDerivative(const doublereal& dXm1,
 			const doublereal& dXm2,
 			const doublereal& dXPm1,
 			const doublereal& dXPm2,
 			DofOrder::Order o = DofOrder::DIFFERENTIAL) const;
-   
-  doublereal 
-     dPredictState(const doublereal& dXm1,
-		   const doublereal& dXm2,
-		   const doublereal& dXP,
-		   const doublereal& dXPm1,
-		   const doublereal& dXPm2,
-		   DofOrder::Order o = DofOrder::DIFFERENTIAL) const;      
 
-   // Nota: usa predizione cubica per le derivate (massimo ordine possibile)
-   doublereal 
-     dPredDer(const doublereal& dXm1,
-	      const doublereal& dXm2,
-	      const doublereal& dXPm1,
-	      const doublereal& dXPm2) const {
-		 return mp[0]*dXm1+mp[1]*dXm2+np[0]*dXPm1+np[1]*dXPm2;
-	      };
-   
-   doublereal 
-     dPredState(const doublereal& dXm1,
-		const doublereal& dXm2,
-		const doublereal& dXP,
-		const doublereal& dXPm1,
-		const doublereal& /* dXPm2 */ ) const {
-		   if (fStep) {
-		      return dXm1+b[0][ALGEBRAIC]*(dXP+dXPm1);
-		   } else {
-		      return a[0][DIFFERENTIAL]*dXm1+a[1][DIFFERENTIAL]*dXm2
-			+b[0][DIFFERENTIAL]*dXP+b[1][DIFFERENTIAL]*dXPm1;
-		   }
-		};
-   
-   doublereal 
-     dPredDerAlg(const doublereal& dXm1,
-		 const doublereal& dXPm1,
-		 const doublereal& dXPm2) const {
-		    return np[0]*dXPm1+np[1]*dXPm2-mp[1]*dXm1;
-		 };
-   
-   doublereal 
-     dPredStateAlg(const doublereal& dXm1,
-		   const doublereal& dXP,
-		   const doublereal& dXPm1,
-		   const doublereal& /* dXPm2 */ ) const {
-		      if (fStep) {
-			 return b[0][ALGEBRAIC]*(dXP+dXPm1);
-		      } else {
-			 return b[0][ALGEBRAIC]*dXP+b[1][ALGEBRAIC]*dXPm1
-						   -a[1][ALGEBRAIC]*dXm1;
-		      }
-		   };
+	doublereal 
+	dPredictState(const doublereal& dXm1,
+			const doublereal& dXm2,
+			const doublereal& dXP,
+			const doublereal& dXPm1,
+			const doublereal& dXPm2,
+			DofOrder::Order o = DofOrder::DIFFERENTIAL) const;      
+
+	// Nota: usa predizione cubica per le derivate (massimo ordine possibile)
+	doublereal 
+	dPredDer(const doublereal& dXm1,
+			const doublereal& dXm2,
+			const doublereal& dXPm1,
+			const doublereal& dXPm2) const;
+
+	doublereal 
+	dPredState(const doublereal& dXm1,
+			const doublereal& dXm2,
+			const doublereal& dXP,
+			const doublereal& dXPm1,
+			const doublereal& dXPm2) const;
+
+	doublereal 
+	dPredDerAlg(const doublereal& dXm1,
+			const doublereal& dXPm1,
+			const doublereal& dXPm2) const;
+
+	doublereal 
+	dPredStateAlg(const doublereal& dXm1,
+			const doublereal& dXP,
+			const doublereal& dXPm1,
+			const doublereal& dXPm2) const;
 };
 
 /* Hope - end */
-
 
 #endif /* STEPSOL_H */

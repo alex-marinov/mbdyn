@@ -72,12 +72,12 @@ void
 BiCGStab::Solve(const NonlinearProblem* pNLP,
 		SolutionManager* pSolMan,
 		const integer iMaxIter,
-		const doublereal Tol,
-		const doublereal SolTol,
+		const doublereal& Tol,
 		integer& iIterCnt,
 		doublereal& dErr
 #ifdef MBDYN_X_CONVSOL
-		, doublereal& dSolErr
+		, const doublereal SolTol,
+		doublereal& dSolErr
 #endif /* MBDYN_X_CONVSOL  */	
 	       )
 {
@@ -139,10 +139,12 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 			}
       		}
 
+		dErr = MakeTest(*pRes);	
+
 #ifdef __HACK_SCALE_RES__
-		dErr = pNLP->TestScale(pScale)*MakeTest(*pRes);		
+		dErr *= pNLP->TestScale(pScale);
 #else /* ! __HACK_SCALE_RES__ */
-		dErr = pNLP->TestScale()*MakeTest(*pRes);		
+		dErr *= pNLP->TestScale();
 #endif /* ! __HACK_SCALE_RES__ */
 
 #ifdef DEBUG_ITERATIVE
@@ -340,6 +342,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 #ifdef MBDYN_X_CONVSOL
 		if (SolTol > 0.) {
 			dSolErr = MakeTest(dx);
+
         		if (dSolErr < SolTol) {
 				THROW(ConvergenceOnSolution());
 			}

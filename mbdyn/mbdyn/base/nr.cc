@@ -57,10 +57,6 @@ NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 {
    	DEBUGCOUTFNAME("NewtonRaphsonSolver::MakeTest");
 
-#if 0
-   	Dof CurrDof;
-#endif 
-      
    	doublereal dRes = 0.;
 	ASSERT(pSM != NULL);
 	
@@ -83,28 +79,11 @@ NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 			CurrDof = pDofs[DCount-1];
 			doublereal d = Res.dGetCoef(DCount);
 			dRes += d*d;
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				d = XP.dGetCoef(DCount);
-				dXPr += d*d;
-			}
-			/* else if ALGEBRAIC: non aggiunge nulla */
 		}
 
 		integer iMI = pSDM->HowManyDofs(SchurDataManager::MYINTERNAL);
 		integer *pMI = pSDM->GetDofsList(SchurDataManager::MYINTERNAL);
 
-#ifdef __HACK_RES_TEST__
-		for (int iCnt = 0; iCnt < iMI; iCnt++) {
-			DCount = pMI[iCnt];
-			CurrDof = pDofs[DCount-1];
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				doublereal d = XP.dGetCoef(DCount);
-				dXPr += d*d;
-			}
-#endif /* __HACK_RES_TEST__ */
-			/* else if ALGEBRAIC: non aggiunge nulla */
-		}
-		
 		/* verifica completamento trasmissioni */
 		pSSM->ComplExchInt(dRes, dXPr);
 		
@@ -117,6 +96,7 @@ NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 		ASSERT(pScale != NULL);
 		ASSERT(pScale->iGetSize == Size);
 #endif /* __HACK_SCALE_RES__ */
+
  	  	for (int iCntp1 = 1; iCntp1 <= Size; 
 				iCntp1++) {
 			doublereal d = Vec.dGetCoef(iCntp1);
@@ -129,39 +109,15 @@ NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 #endif /* __HACK_SCALE_RES__ */
 
 			dRes += d2;
-
-#if 0
-#ifdef __HACK_RES_TEST__
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				d = XP.dGetCoef(iCntp1);
-				d2 = d*d;
-
-#ifdef __HACK_SCALE_RES__
-				d2 *= ds2;         
-
-#endif /* __HACK_SCALE_RES__ */
-
-				dXPr += d2;
-			}
-			/* else if ALGEBRAIC: non aggiunge nulla */ 
-#endif /* __HACK_RES_TEST__ */
-#endif /* 0 */
 		}
 #ifdef USE_MPI
-#if 0 		
+#if 0 
 	}
 #endif
 #endif /* USE_MPI */
 
-#if 0
-#ifdef __HACK_RES_TEST__
-	dRes /= (1.+dXPr);
-#endif /* __HACK_RES_TEST__ */
-#endif
-
+	/* FIXME: sicuri che va qui? */
 	if (!isfinite(dRes)) {      
-		std::cerr << "The simulation diverged; aborting ..." 
-			<< std::endl;       
 		THROW(ErrSimulationDiverged());
 	}
 
@@ -189,12 +145,12 @@ void
 NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 		SolutionManager* pSolMan,
 		const integer iMaxIter,
-		const doublereal Tol,
-		const doublereal SolTol,
+		const doublereal& Tol,
 		integer& iIterCnt,
 		doublereal& dErr
 #ifdef MBDYN_X_CONVSOL
-		, doublereal& dSolErr
+		, const doublereal& SolTol,
+		doublereal& dSolErr
 #endif /* MBDYN_X_CONVSOL  */	
 		)
 {
@@ -231,20 +187,24 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 			}
       		}
 
+		dErr = MakeTest(*pRes);
+
+#if 0 /* this check goes inside MakeTest */
+		if (!isfinite(dErr)) {
+			THROW(ErrSimulationDiverged());
+		}
+#endif /* 0 */
+		
 #ifdef __HACK_SCALE_RES__
-		dErr = pNLP->TestScale(pScale)*MakeTest(*pRes);		
+		dErr *= pNLP->TestScale(pScale);
 #else /* ! __HACK_SCALE_RES__ */
-		dErr = pNLP->TestScale()*MakeTest(*pRes);		
+		dErr *= pNLP->TestScale();
 #endif /* ! __HACK_SCALE_RES__ */
 
       		if (dErr < Tol) {
 	 		return;
       		}
       		
-		if (!isfinite(dErr)) {
-			THROW(ErrSimulationDiverged());
-		}
-		
 		if (iIterCnt > iMaxIter) {
 			THROW(NoConvergence());
 		}

@@ -393,6 +393,7 @@ class DriveOwner {
    
    void Set(const DriveCaller* pDC);
    DriveCaller* pGetDriveCaller(void) const;
+   doublereal dGet(const doublereal& dVal) const;
    doublereal dGet(void) const;
 };
 
