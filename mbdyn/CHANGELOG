@@ -22,6 +22,7 @@ MBDyn 1.1 Engineering
 		  ratio computation
 		- configurable extra output for the iteration engine
 		- configurable local and interface solver for parallel build
+		- configurable output precision
 	Bug fixes:
 		- fixed bug in tire friction force in module-wheel2
 		- fixed bug in tire reference volume computation

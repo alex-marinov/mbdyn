@@ -6,6 +6,9 @@ Copyright (C) 1996-2002
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Fri Mar  8 19:00:00 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - configurable output precision
+
 *** Mon Mar  4 16:52:59 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - use pdflatex to generate better quality pdf documentation (as suggested
    by Herman Bruyninckx <Herman.Bruyninckx@mech.kuleuven.ac.be>)
