@@ -227,7 +227,8 @@ MultiThreadDataManager::thread(void *p)
 			break;
 
 		default:
-			silent_cerr("unhandled op" << std::endl);
+			silent_cerr("MultiThreadDataManager: unhandled op"
+					<< std::endl);
 			THROW(ErrGeneric());
 		}
 

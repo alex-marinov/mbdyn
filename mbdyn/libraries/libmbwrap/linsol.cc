@@ -55,18 +55,18 @@ static struct solver_t {
 	enum LinSol::SolverType	s_type;
 	unsigned		s_flags;
 } solver[] = {
-	{ "Umfpack", "umfpack3", 
-		LinSol::UMFPACK_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR },
-	{ "Y12", NULL,
-		LinSol::Y12_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR },
 	{ "Harwell", NULL,
 		LinSol::HARWELL_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE },
 	{ "Meschach", NULL,
 		LinSol::MESCHACH_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE },
+	{ "Y12", NULL,
+		LinSol::Y12_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR },
+	{ "Umfpack", "umfpack3", 
+		LinSol::UMFPACK_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR },
 	{ "Empty", NULL,
 		LinSol::EMPTY_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE },
@@ -153,8 +153,8 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using meschach sparse LU solver"
 				<< std::endl);
-		break;
 #endif /* USE_MESCHACH */
+		break;
 
 	case Y12:
 #ifdef USE_Y12
@@ -164,8 +164,8 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		CurrSolver = LinSol::Y12_SOLVER;
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using y12 sparse LU solver" << std::endl);
-		break;
 #endif /* USE_Y12 */
+		break;
 
 	case UMFPACK3:
 		pedantic_cerr("\"umfpack3\" is deprecated; "
@@ -178,16 +178,16 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		CurrSolver = LinSol::UMFPACK_SOLVER;
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using umfpack sparse LU solver" << std::endl);
-		break;
 #endif /* USE_UMFPACK */
+		break;
 
 	case HARWELL:
 #ifdef USE_HARWELL
 		CurrSolver = LinSol::HARWELL_SOLVER;
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using harwell sparse LU solver" << std::endl);
-		break;
 #endif /* USE_HARWELL */
+		break;
 
 	case EMPTY:
 		if (!bAllowEmpty) {
@@ -219,7 +219,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 
 	if (HP.IsKeyWord("direct") || HP.IsKeyWord("dir")) {
 		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_DIR) {
-			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_CC;
+			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_DIR;
 
 		} else {
 			pedantic_cerr("direct is meaningless for "
