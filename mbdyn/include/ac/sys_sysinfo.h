@@ -40,8 +40,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-extern int get_nproc_conf(void);
-extern int get_nproc(void);
+extern int get_nprocs_conf(void);
+extern int get_nprocs(void);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
