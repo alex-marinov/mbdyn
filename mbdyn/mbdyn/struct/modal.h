@@ -90,7 +90,7 @@ class Modal : virtual public Elem, public Joint {
    Mat3x3 Inv8jaPj;
    Mat3xN Inv5jaj;
    Vec3 Inv4j, VInv5jaj, VInv5jaPj;
-   Mat3x3 Inv8j, Inv9jkak, Inv9jkajaPk;
+   Mat3x3 Inv8jTranspose, Inv9jkak, Inv9jkajaPk;
 
    VecN a;
    VecN b;
