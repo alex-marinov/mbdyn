@@ -37,10 +37,15 @@
 
 class Integrator
 {
- public:
-   virtual ~Integrator(void) { NO_OP; };
+public:
+   	virtual ~Integrator(void) {
+		NO_OP;
+	};
+
+	virtual void Run(void) = 0;
 };
 
 /* Integrator - end */
 
-#endif
+#endif /* INTEGR_H */
+

@@ -71,7 +71,11 @@ class SchurMultiStepIntegrator : public Integrator {
    enum Strategy { NOCHANGE, FACTOR } CurrStrategy;
    enum SolverType { HARWELL_SOLVER, MESCHACH_SOLVER } CurrSolver;
    
- private:      
+ private:
+   const char *sInputFileName;
+   const char *sOutputFileName;
+   MBDynParser& HP;
+ 
    /* Dati per strategia FACTOR */
    struct {
       doublereal dReductionFactor;
@@ -222,6 +226,9 @@ class SchurMultiStepIntegrator : public Integrator {
    
    /* distruttore: esegue tutti i distruttori e libera la memoria */
    ~SchurMultiStepIntegrator(void);
+
+   /* segue la simulazione vera e propria */
+   void Run(void);
      
    static const char* sClassName(void) {
       return "SchurMultiStepIntegrator"; 

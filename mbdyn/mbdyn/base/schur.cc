@@ -60,7 +60,7 @@ extern "C" {
 
 #ifdef DEBUG_MEMMANAGER
 clMemMan MSmm(SchurMultiStepIntegrator::sClassName());
-#endif
+#endif /* DEBUG_MEMMANAGER */
 
 /* Parametri locali */
 const integer iDefaultMaxIterations = 1;
@@ -73,22 +73,31 @@ const doublereal dDefaultToll = 1e-6;
 const integer iDefaultIterationsBeforeAssembly = 2;
 
 /* Costruttore: esegue la simulazione */
-SchurMultiStepIntegrator::SchurMultiStepIntegrator(MBDynParser& HP,
-                     const char* sInputFileName,
-                     const char* sOutputFileName,
+SchurMultiStepIntegrator::SchurMultiStepIntegrator(MBDynParser& HPar,
+                     const char* sInFName,
+                     const char* sOutFName,
                      flag fPar)
-: CurrStrategy(NOCHANGE),
+: sInputFileName(NULL),
+sOutputFileName(NULL),
+HP(HPar),
+CurrStrategy(NOCHANGE),
 CurrSolver(HARWELL_SOLVER),
 pdWorkSpace(NULL),
-pXCurr(NULL), pXPrimeCurr(NULL),
-pXPrev(NULL), pXPrimePrev(NULL),
-pXPrev2(NULL), pXPrimePrev2(NULL),
+pXCurr(NULL),
+pXPrimeCurr(NULL),
+pXPrev(NULL),
+pXPrimePrev(NULL),
+pXPrev2(NULL),
+pXPrimePrev2(NULL),
 pSM(NULL),
 pDM(NULL),
 DofIterator(), 
-iNumDofs(0), pDofs(NULL),
-iNumLocDofs(0), pLocDofs(NULL),
-iNumIntDofs(0), pIntDofs(NULL),
+iNumDofs(0),
+pDofs(NULL),
+iNumLocDofs(0),
+pLocDofs(NULL),
+iNumIntDofs(0),
+pIntDofs(NULL),
 dInitialTime(0.),
 dFinalTime(0.),
 dRefTimeStep(0.),
@@ -114,25 +123,36 @@ iPerformedIterations(0),
 iStepsAfterReduction(0),
 iStepsAfterRaise(0),
 fLastChance(0),
-pMethod(NULL), pFictitiousStepsMethod(NULL),
-db0Differential(0.), db0Algebraic(0.),
-
-/********* TEMPORARY *******/
-fEigenAnalysis(0),
-
+pMethod(NULL),
+pFictitiousStepsMethod(NULL),
+db0Differential(0.),
+db0Algebraic(0.),
+fEigenAnalysis(0),		/********* TEMPORARY *******/
 iWorkSpaceSize(0),
 dPivotFactor(1.),
 fParallel(fPar)
 {
+	DEBUGCOUTFNAME(sClassName() << "::SchurMultiStepIntegrator");
 
+	if (sInFName != NULL) {
+		SAFESTRDUP(sInputFileName, sInFName, DMmm);
+	}
+	if (sOutFName != NULL) {
+		SAFESTRDUP(sOutputFileName, sOutFName, DMmm);
+	}
 
-   DEBUGCOUTFNAME(sClassName() << "::SchurMultiStepIntegrator");
+   	/* Legge i dati relativi al metodo di integrazione */
+   	ReadData(HP);
+}
 
-   /* Legge i dati relativi al metodo di integrazione */
-   ReadData(HP);
-
-   /* E' necessario poter determinare in questa routine quale e' il master in modo
-      da far calcolare la soluzione solo su di esso */
+void
+SchurMultiStepIntegrator::Run(void)
+{
+   	/*
+    	 * E' necessario poter determinare in questa routine
+	 * quale e' il master in modo da far calcolare la soluzione
+	 * solo su di esso
+	 */
    int MyRank = MPI::COMM_WORLD.Get_rank();
    /* chiama il gestore dei dati generali della simulazione */
 
@@ -1140,6 +1160,14 @@ SchurMultiStepIntegrator::~SchurMultiStepIntegrator(void)
 #ifdef MPI_PROFILING
    MPE_Finish_log("mbdyn.mpi");
 #endif /* MPI_PROFILING */
+
+   if (sInputFileName != NULL) {
+      SAFEDELETEARR(sInputFileName, DMmm);
+   }
+
+   if (sOutputFileName != NULL) {
+      SAFEDELETEARR(sOutputFileName, DMmm);
+   }
 
    if (pSM != NULL)  {
       SAFEDELETE(pSM, SMmm);

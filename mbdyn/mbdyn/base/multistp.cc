@@ -71,19 +71,20 @@ __sighandler_t sh_hup = SIG_DFL;
 void
 modify_final_time_handler(int signum)
 {
-   ::keep_going = 0;
-   switch( signum ) {
-    case SIGTERM:
-      signal( signum, ::sh_term );
-      break;
-    case SIGINT:
-      signal( signum, ::sh_int );
-      break;
-    case SIGHUP:
-      signal( signum, ::sh_hup );
-      break;
-   }
-   /* signal(signum, modify_final_time_handler); */
+   	::keep_going = 0;
+   	switch (signum) {
+    	case SIGTERM:
+      		signal(signum, ::sh_term);
+      		break;
+	
+    	case SIGINT:
+      		signal(signum, ::sh_int);
+      		break;
+	
+    	case SIGHUP:
+      		signal(signum, ::sh_hup);
+      		break;
+   	}
 }
 #endif /* HAVE_SIGNAL */
 
@@ -104,15 +105,21 @@ const doublereal dDefaultToll = 1e-6;
 const integer iDefaultIterationsBeforeAssembly = 2;
 
 /* Costruttore: esegue la simulazione */
-MultiStepIntegrator::MultiStepIntegrator(MBDynParser& HP,
-					 const char* sInputFileName,
-					 const char* sOutputFileName)
-: CurrStrategy(NOCHANGE),
+MultiStepIntegrator::MultiStepIntegrator(MBDynParser& HPar,
+					 const char* sInFName,
+					 const char* sOutFName)
+:sInputFileName(NULL),
+sOutputFileName(NULL),
+HP(HPar),
+CurrStrategy(NOCHANGE),
 CurrSolver(HARWELL_SOLVER),
 pdWorkSpace(NULL),
-pXCurr(NULL), pXPrimeCurr(NULL),
-pXPrev(NULL), pXPrimePrev(NULL),
-pXPrev2(NULL), pXPrimePrev2(NULL),
+pXCurr(NULL),
+pXPrimeCurr(NULL),
+pXPrev(NULL),
+pXPrimePrev(NULL),
+pXPrev2(NULL),
+pXPrimePrev2(NULL),
 pSM(NULL),
 pDM(NULL),
 DofIterator(), iNumDofs(0),
@@ -142,1513 +149,1649 @@ iPerformedIterations(0),
 iStepsAfterReduction(0),
 iStepsAfterRaise(0),
 fLastChance(0),
-pMethod(NULL), pFictitiousStepsMethod(NULL),
-db0Differential(0.), db0Algebraic(0.),
-
-/********* TEMPORARY *******/
+pMethod(NULL),
+pFictitiousStepsMethod(NULL),
+db0Differential(0.),
+db0Algebraic(0.),
+#ifdef __HACK_EIG__
 fEigenAnalysis(0),
-
+#endif /* __HACK_EIG__ */
 iWorkSpaceSize(0),
 dPivotFactor(1.)
 {
-   DEBUGCOUTFNAME("MultiStepIntegrator::MultiStepIntegrator");
-   
-   /* Legge i dati relativi al metodo di integrazione */
-   ReadData(HP);
-   
-   /* chiama il gestore dei dati generali della simulazione */
+	DEBUGCOUTFNAME("MultiStepIntegrator::MultiStepIntegrator");
 
-   DEBUGLCOUT(MYDEBUG_MEM, "creating DataManager" << endl);
-   SAFENEWWITHCONSTRUCTOR(pDM,
-			  DataManager,
-			  DataManager(HP, 
-				      dInitialTime, 
-				      sInputFileName,
-				      sOutputFileName,
-				      fAbortAfterInput),
-			  SMmm);
+	if (sInFName != NULL) {
+		SAFESTRDUP(sInputFileName, sInFName, DMmm);
+	}
+	if (sOutFName != NULL) {
+		SAFESTRDUP(sOutputFileName, sOutFName, DMmm);
+	}
+
+   	/* Legge i dati relativi al metodo di integrazione */
+   	ReadData(HP);
+}
+
+void
+MultiStepIntegrator::Run(void)
+{
+   	DEBUGCOUTFNAME("MultiStepIntegrator::Run");
+   
+   	/* chiama il gestore dei dati generali della simulazione */
+   	DEBUGLCOUT(MYDEBUG_MEM, "creating DataManager" << endl);
+   	SAFENEWWITHCONSTRUCTOR(pDM,
+			       DataManager,
+			       DataManager(HP, 
+			       		   dInitialTime, 
+					   sInputFileName,
+					   sOutputFileName,
+					   fAbortAfterInput),
+			       SMmm);
+
+   	/* Si fa dare l'ostream al file di output per il log */
+   	ostream& Out = pDM->GetOutFile();
+
+   	if (fAbortAfterInput) {
+      		/* Esce */     
+      		Out << "End of Input; no simulation or assembly is required."
+			<< endl;
+      		return;
+   	} else if (fAbortAfterAssembly) {
+      		/* Fa l'output dell'assemblaggio iniziale e poi esce */
+      		pDM->Output();
+      		Out << "End of Initial Assembly; no simulation is required."
+		<< endl;
+      		return;
+   	}
+
+   	/* Si fa dare il DriveHandler e linka i drivers di rho ecc. */
+   	const DriveHandler* pDH = pDM->pGetDrvHdl();
+   	pMethod->SetDriveHandler(pDH);
+   	pFictitiousStepsMethod->SetDriveHandler(pDH);
+   
+   	/* Costruisce i vettori della soluzione ai vari passi */
+   	DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << endl);
+   
+   	iNumDofs = pDM->iGetNumDofs();
+   	ASSERT(iNumDofs > 0);        
+   
+   	SAFENEWARR(pdWorkSpace, doublereal, 6*iNumDofs, SMmm);   
+   	SAFENEWWITHCONSTRUCTOR(pXCurr,
+			       MyVectorHandler,
+			       MyVectorHandler(iNumDofs, pdWorkSpace),
+			       SMmm);
+   	SAFENEWWITHCONSTRUCTOR(pXPrimeCurr, 
+			       MyVectorHandler,
+			       MyVectorHandler(iNumDofs, pdWorkSpace+iNumDofs),
+			       SMmm);
+   	SAFENEWWITHCONSTRUCTOR(pXPrev, 
+			       MyVectorHandler,
+			       MyVectorHandler(iNumDofs,
+			       		       pdWorkSpace+2*iNumDofs),
+			       SMmm);
+   	SAFENEWWITHCONSTRUCTOR(pXPrimePrev,
+			       MyVectorHandler,
+			       MyVectorHandler(iNumDofs,
+			       		       pdWorkSpace+3*iNumDofs),
+			       SMmm);
+   	SAFENEWWITHCONSTRUCTOR(pXPrev2, 
+			       MyVectorHandler,
+			       MyVectorHandler(iNumDofs,
+			       		       pdWorkSpace+4*iNumDofs),
+			       SMmm);
+   	SAFENEWWITHCONSTRUCTOR(pXPrimePrev2, 
+			       MyVectorHandler,
+			       MyVectorHandler(iNumDofs,
+			       		       pdWorkSpace+5*iNumDofs),
+			       SMmm);
+   
+   	/* Resetta i vettori */
+   	pXCurr->Reset(0.);
+   	pXPrimeCurr->Reset(0.);
+   	pXPrev->Reset(0.);
+   	pXPrimePrev->Reset(0.);
+   	pXPrev2->Reset(0.);
+   	pXPrimePrev2->Reset(0.);
+
+   	/* Subito collega il DataManager alla soluzione corrente */
+   	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);         
       
-   /* Si fa dare l'ostream al file di output per il log */
-   ostream& Out = pDM->GetOutFile();
-
-   if (fAbortAfterInput) {
-      /* Esce */     
-      Out << "End of Input; no simulation or assembly is required." << endl;
-      return;
-   } else if (fAbortAfterAssembly) {
-      /* Fa l'output dell'assemblaggio iniziale e poi esce */
-      pDM->Output();
-      Out << "End of Initial Assembly; no simulation is required." << endl;
-      return;
-   } 
-
-   /* Si fa dare il DriveHandler e linka i drivers di rho ecc. */
-   const DriveHandler* pDH = pDM->pGetDrvHdl();
-   pMethod->SetDriveHandler(pDH);
-   pFictitiousStepsMethod->SetDriveHandler(pDH);
+   	/* costruisce il SolutionManager */
+   	DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager, size = "
+		   << iNumDofs << endl);
    
-   /* Costruisce i vettori della soluzione ai vari passi */
-   DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << endl);
-   
-   iNumDofs = pDM->iGetNumDofs();
-   ASSERT(iNumDofs > 0);        
-   
-   SAFENEWARR(pdWorkSpace, doublereal, 6*iNumDofs, SMmm);   
-   SAFENEWWITHCONSTRUCTOR(pXCurr,
-			  MyVectorHandler,
-			  MyVectorHandler(iNumDofs, pdWorkSpace), SMmm);
-   SAFENEWWITHCONSTRUCTOR(pXPrimeCurr, 
-			  MyVectorHandler,
-			  MyVectorHandler(iNumDofs, pdWorkSpace+iNumDofs), SMmm);
-   SAFENEWWITHCONSTRUCTOR(pXPrev, 
-			  MyVectorHandler,
-			  MyVectorHandler(iNumDofs, pdWorkSpace+2*iNumDofs), SMmm);
-   SAFENEWWITHCONSTRUCTOR(pXPrimePrev, 
-			  MyVectorHandler,
-			  MyVectorHandler(iNumDofs, pdWorkSpace+3*iNumDofs), SMmm);
-   SAFENEWWITHCONSTRUCTOR(pXPrev2, 
-			  MyVectorHandler,
-			  MyVectorHandler(iNumDofs, pdWorkSpace+4*iNumDofs), SMmm);
-   SAFENEWWITHCONSTRUCTOR(pXPrimePrev2, 
-			  MyVectorHandler,
-			  MyVectorHandler(iNumDofs, pdWorkSpace+5*iNumDofs), SMmm);
-   
-   /* Resetta i vettori */
-   pXCurr->Reset(0.);
-   pXPrimeCurr->Reset(0.);
-   pXPrev->Reset(0.);
-   pXPrimePrev->Reset(0.);
-   pXPrev2->Reset(0.);
-   pXPrimePrev2->Reset(0.);
-
-   /* Subito collega il DataManager alla soluzione corrente */
-   pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);         
-      
-   /* costruisce il SolutionManager */
-   DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager, size = " << iNumDofs << endl);
-   
-   switch (CurrSolver) {
-    case MESCHACH_SOLVER:
+   	switch (CurrSolver) {
+    	case MESCHACH_SOLVER:
 #ifdef USE_MESCHACH
-      SAFENEWWITHCONSTRUCTOR(pSM,
-			     MeschachSparseLUSolutionManager,
-			     MeschachSparseLUSolutionManager(iNumDofs,
-			     				     iWorkSpaceSize,
-							     dPivotFactor),
-			     SMmm);
-      break;
+      		SAFENEWWITHCONSTRUCTOR(pSM,
+			MeschachSparseLUSolutionManager,
+			MeschachSparseLUSolutionManager(iNumDofs,
+						        iWorkSpaceSize,
+							dPivotFactor),
+				       SMmm);
+      		break;
 #else /* !USE_MESCHACH */
-      cerr << "Compile with USE_MESCHACH to enable Meschach solver" << endl;
-      THROW(ErrGeneric());
+      		cerr << "Compile with USE_MESCHACH to enable Meschach solver"
+			<< endl;
+      		THROW(ErrGeneric());
 #endif /* !USE_MESCHACH */
 
-    case Y12_SOLVER: 
+    	case Y12_SOLVER: 
 #ifdef USE_Y12
-      SAFENEWWITHCONSTRUCTOR(pSM,
-	                     MeschachSparseLUSolutionManager,
-			     MeschachSparseLUSolutionManager(iNumDofs,
-			     				     iWorkSpaceSize,
-							     1),
-			     SMmm);
-      break;
+      		SAFENEWWITHCONSTRUCTOR(pSM,
+			Y12SparseLUSolutionManager,
+			Y12SparseLUSolutionManager(iNumDofs,
+						   iWorkSpaceSize,
+						   dPivotFactor),
+			               SMmm);
+      		break;
 #else /* !USE_Y12 */
-      cerr << "Compile with USE_Y12 to enable Y12 solver" << endl;
-      THROW(ErrGeneric());
+      		cerr << "Compile with USE_Y12 to enable Y12 solver" << endl;
+      		THROW(ErrGeneric());
 #endif /* !USE_Y12 */
 
-    case HARWELL_SOLVER:
-      SAFENEWWITHCONSTRUCTOR(pSM,
-			     HarwellSparseLUSolutionManager,
-			     HarwellSparseLUSolutionManager(iNumDofs,
-			     				    iWorkSpaceSize,
-							    dPivotFactor),
-			     SMmm);
-      break;
-   }
+	default:
+    	case HARWELL_SOLVER:
+      		SAFENEWWITHCONSTRUCTOR(pSM,
+			HarwellSparseLUSolutionManager,
+			HarwellSparseLUSolutionManager(iNumDofs,
+						       iWorkSpaceSize,
+						       dPivotFactor),
+				       SMmm);
+      		break;
+   	}
    
-   /* Puntatori agli handlers del solution manager */
-   VectorHandler* pRes = pSM->pResHdl();
-   VectorHandler* pSol = pSM->pSolHdl(); 
-   MatrixHandler* pJac = pSM->pMatHdl();
+   	/* Puntatori agli handlers del solution manager */
+   	VectorHandler* pRes = pSM->pResHdl();
+   	VectorHandler* pSol = pSM->pSolHdl(); 
+   	MatrixHandler* pJac = pSM->pMatHdl();
 
-   /* Legenda:
-    *   MS - MultiStepIntegrator 
-    *   DM - DataManager
-    *   OM - DofManager
-    *   NM - NodeManager
-    *   EM - ElemManager
-    *   SM - SolutionManager */
+   	/*
+	 * Legenda:
+	 *   MS - MultiStepIntegrator 
+	 *   DM - DataManager
+	 *   OM - DofManager
+	 *   NM - NodeManager
+	 *   EM - ElemManager
+	 *   SM - SolutionManager
+	 */
 
    
-   /* cicli vari */
-
+   	/*
+	 * Dell'assemblaggio iniziale dei vincoli se ne occupa il DataManager 
+	 * in quanto e' lui il responsabile dei dati della simulazione,
+	 * e quindi anche della loro coerenza. Inoltre e' lui a sapere
+	 * quali equazioni sono di vincolo o meno.
+	 */
    
-   /* Dell'assemblaggio iniziale dei vincoli se ne occupa il DataManager 
-    * in quanto e' lui il responsabile dei dati della simulazione,
-    * e quindi anche della loro coerenza. Inoltre e' lui a sapere
-    * quali equazioni sono di vincolo o meno. */
+   	/*
+	 * Dialoga con il DataManager per dargli il tempo iniziale 
+	 * e per farsi inizializzare i vettori di soluzione e derivata */
+	dTime = dInitialTime;
+	pDM->SetTime(dTime);
+	pDM->SetValue(*pXCurr, *pXPrimeCurr);
+	DofIterator = pDM->GetDofIterator();
+	
+#ifdef __HACK_EIG__  
+   	if (fEigenAnalysis && OneEig.dTime <= dTime && !OneEig.fDone) {
+	 	Eig();
+	 	OneEig.fDone = flag(1);
+   	}
+#endif /* __HACK_EIG__ */
    
-   /* Dialoga con il DataManager per dargli il tempo iniziale 
-    * e per farsi inizializzare i vettori di soluzione e derivata */
-   dTime = dInitialTime;
-   pDM->SetTime(dTime);
-   pDM->SetValue(*pXCurr, *pXPrimeCurr);
-   DofIterator = pDM->GetDofIterator();
+   	integer iTotIter = 0;
+   	doublereal dTotErr = 0.;
    
-#ifdef USE_LAPACK   
-   /************************
-    * TEMPORANEO: FA UN'EIGENANALYSIS */
-   if (fEigenAnalysis) {
-      if (OneEig.dTime <= dTime && !OneEig.fDone) {
-	 Eig();
-	 OneEig.fDone = flag(1);
-      }
-   }
-#endif /* USE_LAPACK */
-   
-   integer iTotIter = 0;
-   doublereal dTotErr = 0.;                  
-   
-   /**************************************************************************
-    * calcolo delle derivate 
-    **************************************************************************/
-   DEBUGLCOUT(MYDEBUG_DERIVATIVES, "derivatives solution step" << endl);
-   doublereal dTest = 1.;
+	/* calcolo delle derivate */
+   	DEBUGLCOUT(MYDEBUG_DERIVATIVES, "derivatives solution step" << endl);
+   	doublereal dTest = 1.;
 
 #ifdef HAVE_SIGNAL
-   ::sh_term = signal(SIGTERM, modify_final_time_handler);
-   ::sh_int = signal(SIGINT, modify_final_time_handler);
-   ::sh_hup = signal(SIGHUP, modify_final_time_handler);
+   	::sh_term = signal(SIGTERM, modify_final_time_handler);
+   	::sh_int = signal(SIGINT, modify_final_time_handler);
+   	::sh_hup = signal(SIGHUP, modify_final_time_handler);
    
-   if ( ::sh_term == SIG_IGN ) {
-      signal (SIGTERM, SIG_IGN);
-   }
-   if ( ::sh_int == SIG_IGN ) {
-      signal (SIGINT, SIG_IGN);
-   }
-   if ( ::sh_hup == SIG_IGN ) {
-      signal (SIGHUP, SIG_IGN);
-   }
+   	if (::sh_term == SIG_IGN) {
+      		signal (SIGTERM, SIG_IGN);
+   	}
+   	if (::sh_int == SIG_IGN) {
+      		signal (SIGINT, SIG_IGN);
+   	}
+   	if (::sh_hup == SIG_IGN) {
+      		signal (SIGHUP, SIG_IGN);
+   	}
 #endif /* HAVE_SIGNAL */
 
-   int iIterCnt = 0;
-   while (1) {
-      pRes->Reset(0.);
-      pDM->AssRes(*pRes, dDerivativesCoef);
-      dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+   	int iIterCnt = 0;
+   	while (1) {
+      		pRes->Reset(0.);
+      		pDM->AssRes(*pRes, dDerivativesCoef);
+      		dTest = this->MakeTest(*pRes, *pXPrimeCurr);
       
 #ifdef DEBUG
-      if (DEBUG_LEVEL_MATCH(MYDEBUG_DERIVATIVES|MYDEBUG_RESIDUAL)) {
-	 cout << "Residual:" << endl;
-	 for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-	    cout << "Dof" << setw(4) << iTmpCnt << ": " 
-	      << pRes->dGetCoef(iTmpCnt) << endl;
-	 }
-      }
+      		if (DEBUG_LEVEL_MATCH(MYDEBUG_DERIVATIVES|MYDEBUG_RESIDUAL)) {
+	 		cout << "Residual:" << endl;
+	 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
+	    			cout << "Dof" << setw(4) << iTmpCnt << ": " 
+	      				<< pRes->dGetCoef(iTmpCnt) << endl;
+	 		}
+      		}
 #endif /* DEBUG */
 
-      if (dTest < dDerivativesToll) {
-	 goto EndOfDerivatives;
-      }
+      		if (dTest < dDerivativesToll) {
+	 		goto EndOfDerivatives;
+      		}
       
-      iIterCnt++;
+      		iIterCnt++;
           
-      DEBUGLCOUT(MYDEBUG_DERIVATIVES, "calculating derivatives, iteration "
-		 << setw(4) << iIterCnt << ", test = " << dTest << endl);
+      		DEBUGLCOUT(MYDEBUG_DERIVATIVES,
+			   "calculating derivatives, iteration "
+			   << setw(4) << iIterCnt
+			   << ", test = " << dTest << endl);
 	
-      if ( iIterCnt > iDerivativesMaxIterations || !isfinite(dTest) ) {
-	 cerr << endl << "Maximum iterations number " << iIterCnt 
-	   << " has been reached during initial derivatives calculation;" << endl
-	   << "aborting ..." << endl;
-	 
-	 pDM->Output();
-	 
-	 THROW(MultiStepIntegrator::ErrMaxIterations());
-      }
+      		if (iIterCnt > iDerivativesMaxIterations || !isfinite(dTest)) {
+	 		cerr << endl
+				<< "Maximum iterations number " << iIterCnt 
+				<< " has been reached during initial"
+				" derivatives calculation;" << endl
+				<< "aborting ..." << endl;	 
+	 		pDM->Output();	 
+	 		THROW(MultiStepIntegrator::ErrMaxIterations());
+      		}
       
-      pSM->MatrInit(0.);
-      pDM->AssJac(*pJac, dDerivativesCoef);
-      pSM->Solve();
+      		pSM->MatrInit(0.);
+      		pDM->AssJac(*pJac, dDerivativesCoef);
+      		pSM->Solve();
       
 #ifdef DEBUG
-      /* Output della soluzione */
-      if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_DERIVATIVES)) {
-	 cout << "Solution:" << endl;
-	 for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {	 
-	    cout << "Dof" << setw(4) << iTmpCnt << ": " 
-	      << pSol->dGetCoef(iTmpCnt) << endl;
-	 }
-      }
+      		/* Output della soluzione */
+      		if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_DERIVATIVES)) {
+	 		cout << "Solution:" << endl;
+	 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
+	    			cout << "Dof" << setw(4) << iTmpCnt << ": "
+					<< pSol->dGetCoef(iTmpCnt) << endl;
+	 		}
+      		}
 #endif /* DEBUG */
       	
-      this->Update(*pSol);
-      pDM->DerivativesUpdate();	
-   }
+      		this->Update(*pSol);
+      		pDM->DerivativesUpdate();	
+   	}
    
 EndOfDerivatives:
    
-   dTotErr += dTest;	
-   iTotIter += iIterCnt;
+   	dTotErr += dTest;	
+   	iTotIter += iIterCnt;
    
-   Out << "Derivatives solution step at time " << dInitialTime
-     << " performed in " << iIterCnt
-     << " iterations with " << dTest
-     << " error" << endl;
+   	Out << "Derivatives solution step at time " << dInitialTime
+     		<< " performed in " << iIterCnt
+     		<< " iterations with " << dTest
+     		<< " error" << endl;
       
-   DEBUGCOUT("Derivatives solution step has been performed successfully in "
-	     << iIterCnt << " iterations" << endl);
+   	DEBUGCOUT("Derivatives solution step has been performed successfully"
+		  " in " << iIterCnt << " iterations" << endl);
    
-   if (fAbortAfterDerivatives) {
-      /* Fa l'output della soluzione delle derivate iniziali ed esce */
-      pDM->Output();
-      Out << "End of derivatives; no simulation is required." << endl;
-      return;
+   	if (fAbortAfterDerivatives) {
+      		/*
+		 * Fa l'output della soluzione delle derivate iniziali ed esce
+		 */
+      		pDM->Output();
+      		Out << "End of derivatives; no simulation is required."
+			<< endl;
+      		return;
 #ifdef HAVE_SIGNAL
-   } else if (!::keep_going) {
-      /* Fa l'output della soluzione delle derivate iniziali ed esce */
-      pDM->Output();
-      Out << "Interrupted during derivatives computation." << endl;
-      return;      
+   	} else if (!::keep_going) {
+      		/*
+		 * Fa l'output della soluzione delle derivate iniziali ed esce
+		 */
+      		pDM->Output();
+      		Out << "Interrupted during derivatives computation." << endl;
+      		return;
 #endif /* HAVE_SIGNAL */
-   }
+   	}
    
-   /* Dati comuni a passi fittizi e normali */
-   integer iStep = 1;
-   doublereal dCurrTimeStep = 0.;
-   /* First step prediction must always be Crank-Nicholson for accuracy */
-   CrankNicholson cn;
+   	/* Dati comuni a passi fittizi e normali */
+   	integer iStep = 1;
+   	doublereal dCurrTimeStep = 0.;
+   	/* First step prediction must always be Crank-Nicholson for accuracy */
+   	CrankNicholson cn;
       
-   if (iFictitiousStepsNumber > 0) {
-      /***********************************************************************
-       * passi fittizi 
-       ***********************************************************************/
+   	if (iFictitiousStepsNumber > 0) {
+       		/* passi fittizi */
       
-      /* inizio integrazione: primo passo a predizione lineare con sottopassi
-       * di correzione delle accelerazioni e delle reazioni vincolari */
-      pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *pXPrev, *pXPrimePrev);
-      this->Flip();
+      		/*
+		 * inizio integrazione: primo passo a predizione lineare
+		 * con sottopassi di correzione delle accelerazioni
+		 * e delle reazioni vincolari
+		 */
+      		pDM->BeforePredict(*pXCurr, *pXPrimeCurr,
+				   *pXPrev, *pXPrimePrev);
+      		this->Flip();
          
-      /***********************************************************************
-       * primo passo fittizio 
-       ***********************************************************************/
+       		/* primo passo fittizio */
+      		/* Passo ridotto per step fittizi di messa a punto */
+      		dRefTimeStep = dInitialTimeStep*dFictitiousStepsRatio;
+      		dCurrTimeStep = dRefTimeStep;
+      		pDM->SetTime(dTime+dCurrTimeStep);    
       
-      /* Passo ridotto per step fittizi di messa a punto */
-      dRefTimeStep = dInitialTimeStep*dFictitiousStepsRatio;
-      dCurrTimeStep = dRefTimeStep;
-      pDM->SetTime(dTime+dCurrTimeStep);    
+      		DEBUGLCOUT(MYDEBUG_FSTEPS, "Current time step: "
+			   << dCurrTimeStep << endl);
       
-      DEBUGLCOUT(MYDEBUG_FSTEPS, "Current time step: " << dCurrTimeStep << endl);
-      
-      /* First step prediction must always be Crank-Nicholson for accuracy */      
-      cn.SetCoef(dRefTimeStep, 1., MultiStepIntegrationMethod::NEWSTEP, db0Differential, db0Algebraic);
-      FirstStepPredict(&cn);
-      pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
-      pDM->AfterPredict();
+      		/*
+		 * First step prediction must always be Crank-Nicholson
+		 * for accuracy
+		 */
+      		cn.SetCoef(dRefTimeStep, 1.,
+			   MultiStepIntegrationMethod::NEWSTEP,
+			   db0Differential, db0Algebraic);
+      		FirstStepPredict(&cn);
+      		pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
+      		pDM->AfterPredict();
       
 #ifdef DEBUG
-      if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_PRED)) {
-	 cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  ,   XPrime  ,   XPPrev  ,   XPPrev2" 
-	   << endl;
-	 for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {      
-	    cout << setw(4) << iTmpCnt << ": " 
-	      << setw(12) << pXCurr->dGetCoef(iTmpCnt) 
-	      << setw(12) << pXPrev->dGetCoef(iTmpCnt) 
-	      << setw(12) << pXPrev2->dGetCoef(iTmpCnt) 
-	      << setw(12) << pXPrimeCurr->dGetCoef(iTmpCnt) 
-	      << setw(12) << pXPrimePrev->dGetCoef(iTmpCnt) 
-	      << setw(12) << pXPrimePrev2->dGetCoef(iTmpCnt) 
-	      << endl;
-	 }
-      }
+      		if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_PRED)) {
+	 		cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  "
+				",   XPrime  ,   XPPrev  ,   XPPrev2" 
+		   		<< endl;
+	 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
+	    			cout << setw(4) << iTmpCnt << ": "
+					<< setw(12)
+					<< pXCurr->dGetCoef(iTmpCnt) 
+					<< setw(12)
+					<< pXPrev->dGetCoef(iTmpCnt) 
+					<< setw(12)
+					<< pXPrev2->dGetCoef(iTmpCnt) 
+					<< setw(12)
+					<< pXPrimeCurr->dGetCoef(iTmpCnt) 
+					<< setw(12)
+					<< pXPrimePrev->dGetCoef(iTmpCnt) 
+					<< setw(12)
+					<< pXPrimePrev2->dGetCoef(iTmpCnt) 
+					<< endl;
+	 		}
+      		}
 #endif /* DEBUG */
       
-      iIterCnt = 0;   
-      while (1) { 
-	 
-	 /* l02: EM calcolo del residuo */
-	 pRes->Reset(0.);
-	 pDM->AssRes(*pRes, db0Differential);
-	 dTest = this->MakeTest(*pRes, *pXPrimeCurr);
-	 
-#ifdef DEBUG
-	 if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)) {
-	    cout << "Residual:" << endl;
-	    for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {	 
-	       cout << "Dof" << setw(4) << iTmpCnt << ": " 
-		 << pRes->dGetCoef(iTmpCnt) << endl;
-	    }
-	 }
-#endif /* DEBUG */
-	 
-	 
-	 if (dTest < dFictitiousStepsTolerance) {
-	   goto EndOfFirstFictitiousStep;
-	 }
-	 
-	 iIterCnt++;		
-	 if ( iIterCnt > iFictitiousStepsMaxIterations || !isfinite(dTest) ) {
-	    cerr << endl << "Maximum iterations number " << iIterCnt 
-	      << " has been reached during first dummy step;"
-	      << endl << "time step dt = " << dCurrTimeStep 
-	      << " cannot be reduced further;" << endl
-	      << "aborting ..." << endl;
-	    
-	    pDM->Output();
-	    
-	    THROW(MultiStepIntegrator::ErrMaxIterations());	 
-	 }
-	 
-	 pSM->MatrInit(0.);
-	 pDM->AssJac(*pJac, db0Differential);
-	 pSM->Solve();
+      		iIterCnt = 0;   
+      		while (1) {
+	 		/* l02: EM calcolo del residuo */
+	 		pRes->Reset(0.);
+			pDM->AssRes(*pRes, db0Differential);
+			dTest = this->MakeTest(*pRes, *pXPrimeCurr);
 	 
 #ifdef DEBUG
-	 if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_FSTEPS)) {
-	    cout << "Solution:" << endl;
-	    for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {	 
-	       cout << "Dof" << setw(4) << iTmpCnt << ": " 
-		 << pSol->dGetCoef(iTmpCnt) << endl;
-	    }
-	 }
+			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)) {
+				cout << "Residual:" << endl;
+				for (int iTmpCnt = 1;
+				     iTmpCnt <= iNumDofs;
+				     iTmpCnt++) {	 
+       					cout << "Dof"
+						<< setw(4) << iTmpCnt << ": " 
+						<< pRes->dGetCoef(iTmpCnt) << endl;
+	    			}
+	 		}
 #endif /* DEBUG */
 	 
-	 this->Update(*pSol); 
-	 pDM->Update();
-      }   
+	 		if (dTest < dFictitiousStepsTolerance) {
+	   			goto EndOfFirstFictitiousStep;
+	 		}
+	 
+	 		iIterCnt++;
+	 		if (iIterCnt > iFictitiousStepsMaxIterations
+			    || !isfinite(dTest)) {
+			    	cerr << endl
+					<< "Maximum iterations number "
+					<< iIterCnt 
+					<< " has been reached during"
+					" first dummy step;" << endl
+					<< "time step dt = " << dCurrTimeStep 
+					<< " cannot be reduced further;"
+					<< endl
+					<< "aborting ..." << endl;
+	    			pDM->Output();
+	    			THROW(MultiStepIntegrator::ErrMaxIterations());
+	 		}
+	 
+	 		pSM->MatrInit(0.);
+	 		pDM->AssJac(*pJac, db0Differential);
+	 		pSM->Solve();
+	 
+#ifdef DEBUG
+	 		if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_FSTEPS)) {
+	    			cout << "Solution:" << endl;
+	    			for (int iTmpCnt = 1;
+				     iTmpCnt <= iNumDofs;
+				     iTmpCnt++) {
+				     	cout << "Dof"
+						<< setw(4) << iTmpCnt << ": "
+						<< pSol->dGetCoef(iTmpCnt)
+						<< endl;
+	    			}
+	 		}
+#endif /* DEBUG */
+	 
+	 		this->Update(*pSol); 
+	 		pDM->Update();
+      		}
       
 EndOfFirstFictitiousStep:
       
-      dRefTimeStep = dCurrTimeStep;
-      dTime += dRefTimeStep;
+      		dRefTimeStep = dCurrTimeStep;
+      		dTime += dRefTimeStep;
       
-      dTotErr += dTest;
-      iTotIter += iIterCnt;
+      		dTotErr += dTest;
+      		iTotIter += iIterCnt;
 
 #ifdef HAVE_SIGNAL
-      if (!::keep_going) {
-	 /* Fa l'output della soluzione delle derivate iniziali ed esce */
+      		if (!::keep_going) {
+	 		/*
+			 * Fa l'output della soluzione delle derivate iniziali
+			 * ed esce
+			 */
 #ifdef DEBUG_FICTITIOUS
-	   pDM->Output();
+	   		pDM->Output();
 #endif /* DEBUG_FICTITIOUS */
-	 Out << "Interrupted during first dummy step." << endl;
-	 return;
-      }
+	 		Out << "Interrupted during first dummy step." << endl;
+	 		return;
+      		}
 #endif /* HAVE_SIGNAL */
       
 #ifdef DEBUG_FICTITIOUS
-      pDM->Output();
+      		pDM->Output();
 #endif /* DEBUG_FICTITIOUS */
             
-      /**********************************************************************
-       * Passi fittizi successivi 
-       **********************************************************************/
-      for (int iSubStep = 2; iSubStep <= iFictitiousStepsNumber; iSubStep++) {
-	 pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *pXPrev, *pXPrimePrev);
-	 this->Flip();
+       		/* Passi fittizi successivi */
+      		for (int iSubStep = 2;
+		     iSubStep <= iFictitiousStepsNumber;
+		     iSubStep++) {
+	 		pDM->BeforePredict(*pXCurr, *pXPrimeCurr,
+					   *pXPrev, *pXPrimePrev);
+	 		this->Flip();
 	 
-	 DEBUGLCOUT(MYDEBUG_FSTEPS, "Fictitious step " << iSubStep 
-		    << "; current time step: " << dCurrTimeStep << endl);
+	 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Fictitious step "
+				   << iSubStep 
+				   << "; current time step: " << dCurrTimeStep
+				   << endl);
 	 
-	 pDM->SetTime(dTime+dCurrTimeStep);
-	 ASSERT(pFictitiousStepsMethod != NULL);
-	 pFictitiousStepsMethod->SetCoef(dRefTimeStep, 
-					 dCurrTimeStep/dRefTimeStep, 
-					 MultiStepIntegrationMethod::NEWSTEP,
-					 db0Differential, 
-					 db0Algebraic);	
-	 Predict(pFictitiousStepsMethod);
-	 pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
-	 pDM->AfterPredict();          
+	 		pDM->SetTime(dTime+dCurrTimeStep);
+	 		ASSERT(pFictitiousStepsMethod != NULL);
+	 		pFictitiousStepsMethod->SetCoef(dRefTimeStep, 
+				dCurrTimeStep/dRefTimeStep, 
+				MultiStepIntegrationMethod::NEWSTEP,
+				db0Differential, db0Algebraic);	
+	 		Predict(pFictitiousStepsMethod);
+	 		pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
+	 		pDM->AfterPredict();          
 	 
 #ifdef DEBUG
-	 if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_PRED)) {
-	    cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  ,   XPrime  ,   XPPrev  ,   XPPrev2" 
-	      << endl;
-	    for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {	 
-	       cout << setw(4) << iTmpCnt << ": " 
-		 << setw(12) << pXCurr->dGetCoef(iTmpCnt) 
-		 << setw(12) << pXPrev->dGetCoef(iTmpCnt) 
-		 << setw(12) << pXPrev2->dGetCoef(iTmpCnt) 
-		 << setw(12) << pXPrimeCurr->dGetCoef(iTmpCnt) 
-		 << setw(12) << pXPrimePrev->dGetCoef(iTmpCnt) 
-		 << setw(12) << pXPrimePrev2->dGetCoef(iTmpCnt) 
-		 << endl;
-	    }
-	 }
+	 		if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_PRED)) {
+	    			cout << "Dof:      XCurr  ,    XPrev  "
+					",   XPrev2  ,   XPrime  "
+					",   XPPrev  ,   XPPrev2" << endl;
+	    			for (int iTmpCnt = 1;
+				     iTmpCnt <= iNumDofs;
+				     iTmpCnt++) {	 
+				     	cout << setw(4) << iTmpCnt << ": " 
+						<< setw(12)
+						<< pXCurr->dGetCoef(iTmpCnt) 
+						<< setw(12)
+						<< pXPrev->dGetCoef(iTmpCnt) 
+						<< setw(12)
+						<< pXPrev2->dGetCoef(iTmpCnt) 
+						<< setw(12)
+						<< pXPrimeCurr->dGetCoef(iTmpCnt) 
+						<< setw(12)
+						<< pXPrimePrev->dGetCoef(iTmpCnt) 
+						<< setw(12)
+						<< pXPrimePrev2->dGetCoef(iTmpCnt) 
+						<< endl;
+	    			}
+	 		}
 #endif /* DEBUG */
 	 
-	 iIterCnt = 0;
-	 while (1) { 
-	    pRes->Reset(0.);
-	    pDM->AssRes(*pRes, db0Differential);
-	    dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+	 		iIterCnt = 0;
+	 		while (1) { 
+	    			pRes->Reset(0.);
+	    			pDM->AssRes(*pRes, db0Differential);
+	    			dTest = this->MakeTest(*pRes, *pXPrimeCurr);
 	    
 #ifdef DEBUG
-	    if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)) {
-	       cout << "Residual:" << endl;
-	       for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {	    
-		  cout << "Dof" << setw(4) << iTmpCnt << ": " 
-		    << pRes->dGetCoef(iTmpCnt) << endl;
-	       }
-	    }
+	    			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)) {
+	       				cout << "Residual:" << endl;
+	       				for (int iTmpCnt = 1;
+					     iTmpCnt <= iNumDofs;
+					     iTmpCnt++) {	    
+		  				cout << "Dof"
+							<< setw(4) << iTmpCnt
+							<< ": " 
+							<< pRes->dGetCoef(iTmpCnt)
+							<< endl;
+	       				}
+	    			}
 #endif /* DEBUG */
 
 	    
-	    if (dTest < dFictitiousStepsTolerance) {
-	       goto EndOfFictitiousStep;
-	    }
+	    			if (dTest < dFictitiousStepsTolerance) {
+	       				goto EndOfFictitiousStep;
+	    			}
 	    
-	    iIterCnt++;
-	    if ( iIterCnt > iFictitiousStepsMaxIterations || !isfinite(dTest) ) {
-	       cerr << endl << "Maximum iterations number " << iIterCnt 
-		 << " has been reached during dummy step " 
-		 << iSubStep << ';' << endl
-		 << "aborting ..." << endl;
-	       
-	       pDM->Output();
-	       
-	       THROW(MultiStepIntegrator::ErrMaxIterations());
-	    }
+	    			iIterCnt++;
+	    			if (iIterCnt > iFictitiousStepsMaxIterations
+				    || !isfinite(dTest) ) {
+				    	cerr << endl
+						<< "Maximum iterations number "
+						<< iIterCnt 
+						<< " has been reached"
+						" during dummy step " 
+						<< iSubStep << ';' << endl
+						<< "aborting ..." << endl;
+						
+	       				pDM->Output();
+					THROW(MultiStepIntegrator::ErrMaxIterations());
+	    			}
 	    
-	    pSM->MatrInit(0.);
-	    pDM->AssJac(*pJac, db0Differential);
-	    pSM->Solve();
+	    			pSM->MatrInit(0.);
+	    			pDM->AssJac(*pJac, db0Differential);
+	    			pSM->Solve();
 	    
 #ifdef DEBUG
-	    if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_FSTEPS)) {
-	       cout << "Solution:" << endl;
-	       for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {	    
-		  cout << "Dof" << setw(4) << iTmpCnt << ": " 
-		    << pSol->dGetCoef(iTmpCnt) << endl;
-	       }
-	    }
+	    			if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_FSTEPS)) {
+	       				cout << "Solution:" << endl;
+	       				for (int iTmpCnt = 1;
+					     iTmpCnt <= iNumDofs;
+					     iTmpCnt++) {
+					     	cout << "Dof"
+							<< setw(4) << iTmpCnt
+							<< ": " 
+							<< pSol->dGetCoef(iTmpCnt)
+							<< endl;
+	       				}
+	    			}
 #endif /* DEBUG */
-
-
 	    
-	    this->Update(*pSol); 
-	    pDM->Update();
-	 }   
+	    			this->Update(*pSol); 
+	    			pDM->Update();
+	 		}
 	 
 EndOfFictitiousStep:
 	 
-	 dTotErr += dTest;	
-	 iTotIter += iIterCnt;
+	 		dTotErr += dTest;	
+	 		iTotIter += iIterCnt;
 	 
 #ifdef DEBUG
-	 if (DEBUG_LEVEL(MYDEBUG_FSTEPS)) {
-	    pDM->Output();	
-	    
-	    Out << "Step " << iStep 
-	      << " at time " << dTime+dCurrTimeStep
-	      << " time step " << dCurrTimeStep
-	      << " performed in " << iIterCnt
-	      << " iterations with " << dTest 
-	      << " error" << endl;
-	 }
+	 		if (DEBUG_LEVEL(MYDEBUG_FSTEPS)) {
+	    			pDM->Output();
+				
+	    			Out << "Step " << iStep 
+					<< " at time " << dTime+dCurrTimeStep
+					<< " time step " << dCurrTimeStep
+					<< " performed in " << iIterCnt
+					<< " iterations with " << dTest 
+					<< " error" << endl;
+	 		}
 #endif /* DEBUG */
 
-	 DEBUGLCOUT(MYDEBUG_FSTEPS, "Substep " << iSubStep 
-		    << " of step " << iStep 
-		    << " has been completed successfully in "
-		    << iIterCnt << " iterations" << endl);
-	 
+	 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Substep " << iSubStep 
+				   << " of step " << iStep 
+				   << " has been completed successfully in "
+				   << iIterCnt << " iterations" << endl);
+				   
 #ifdef HAVE_SIGNAL
-	 if (!::keep_going) {
-	    /* */
+	 		if (!::keep_going) {
+				/* */
 #ifdef DEBUG_FICTITIOUS
-	    pDM->Output();
+	    			pDM->Output();
 #endif /* DEBUG_FICTITIOUS */
-	    Out << "Interrupted during dummy steps." << endl;
-	    return;
-	 }
+	    			Out << "Interrupted during dummy steps."
+					<< endl;
+				return;
+			}
 #endif /* HAVE_SIGNAL */
 
-	 dTime += dRefTimeStep;	  
-      }
+			dTime += dRefTimeStep;	  
+      		}
       
-      Out << "Initial solution after dummy steps at time " 
-	<< dTime
-	<< " performed in " << iIterCnt
-	<< " iterations with " << dTest 
-	<< " error" << endl;
-      
-      DEBUGLCOUT(MYDEBUG_FSTEPS, 
-		 "Fictitious steps have been completed successfully in " 
-		 << iIterCnt << " iterations" << endl);
-   } /* Fine dei passi fittizi */
+      		Out << "Initial solution after dummy steps at time " << dTime
+			<< " performed in " << iIterCnt
+			<< " iterations with " << dTest 
+			<< " error" << endl;
+			
+      		DEBUGLCOUT(MYDEBUG_FSTEPS, 
+			   "Fictitious steps have been completed successfully"
+			   " in " << iIterCnt << " iterations" << endl);
+   	} /* Fine dei passi fittizi */
    
    
-   /* Output delle "condizioni iniziali" */
-   pDM->Output();
+   	/* Output delle "condizioni iniziali" */
+   	pDM->Output();
    
-   Out << "Step " << 0
-     << " at time " << dTime+dCurrTimeStep
-     << " with time step " << dCurrTimeStep
-     << " performed in " << iIterCnt
-     << " iterations with " << dTest 
-     << " error" << endl;
+   	Out << "Step " << 0
+     		<< " at time " << dTime+dCurrTimeStep
+     		<< " with time step " << dCurrTimeStep
+     		<< " performed in " << iIterCnt
+     		<< " iterations with " << dTest 
+     		<< " error" << endl;
    
-   if (fAbortAfterFictitiousSteps) {
-      Out << "End of dummy steps; no simulation is required." << endl;
-      return;
+   	if (fAbortAfterFictitiousSteps) {
+      		Out << "End of dummy steps; no simulation is required."
+			<< endl;
+		return;
 #ifdef HAVE_SIGNAL
-   } else if (!::keep_going) {
-      /* Fa l'output della soluzione ed esce */
-      Out << "Interrupted during dummy steps." << endl;
-      return;
+   	} else if (!::keep_going) {
+      		/* Fa l'output della soluzione ed esce */
+      		Out << "Interrupted during dummy steps." << endl;
+      		return;
 #endif /* HAVE_SIGNAL */
-   }
+   	}
 
-   iStep = 1; /* Resetto di nuovo iStep */
+   	iStep = 1; /* Resetto di nuovo iStep */
       
-   DEBUGCOUT("Step " << iStep << " has been completed successfully in "
-	     << iIterCnt << " iterations" << endl);
+   	DEBUGCOUT("Step " << iStep << " has been completed successfully in "
+		  << iIterCnt << " iterations" << endl);
    
+   	pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *pXPrev, *pXPrimePrev);
+   	this->Flip();
    
-   pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *pXPrev, *pXPrimePrev);
-   this->Flip();
+   	dRefTimeStep = dInitialTimeStep;   
+   	dCurrTimeStep = dRefTimeStep;
    
-   dRefTimeStep = dInitialTimeStep;   
-   dCurrTimeStep = dRefTimeStep;
+   	DEBUGCOUT("Current time step: " << dCurrTimeStep << endl);
    
-   DEBUGCOUT("Current time step: " << dCurrTimeStep << endl);
-   
-   /**************************************************************************
-    * Primo passo regolare
-    **************************************************************************/
+    	/* Primo passo regolare */
    
 IfFirstStepIsToBeRepeated:
-   pDM->SetTime(dTime+dCurrTimeStep);
+   	pDM->SetTime(dTime+dCurrTimeStep);
 
-   /* doublereal dRho = Rho.pGetDriveCaller()->dGet();
-    * doublereal dRhoAlgebraic = RhoAlgebraic.pGetDriveCaller()->dGet();
-    * metto rho = 1 perche' cosi' rispetto certi teoremi sulla precisione di
-    * questo passo (Petzold, 89) (ricado nella regola dei trapezi) */
-   cn.SetCoef(dRefTimeStep, 1., MultiStepIntegrationMethod::NEWSTEP, db0Differential, db0Algebraic);
-   FirstStepPredict(&cn);
-   pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
-   pDM->AfterPredict();    
+    	/*
+	 * metto rho = 1 perche' cosi' rispetto certi teoremi
+	 * sulla precisione di questo passo (Petzold, 89)
+	 * (ricado nella regola dei trapezi)
+	 */
+   	cn.SetCoef(dRefTimeStep, 1.,
+		   MultiStepIntegrationMethod::NEWSTEP,
+		   db0Differential, db0Algebraic);
+   	FirstStepPredict(&cn);
+   	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
+   	pDM->AfterPredict();    
 
 #ifdef DEBUG
-   if (DEBUG_LEVEL(MYDEBUG_PRED)) {
-      cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  ,   XPrime  ,   XPPrev  ,   XPPrev2" 
-	<< endl;
-      for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {      
-	 cout << setw(4) << iTmpCnt << ": " 
-	   << setw(12) << pXCurr->dGetCoef(iTmpCnt) 
-	   << setw(12) << pXPrev->dGetCoef(iTmpCnt) 
-	   << setw(12) << pXPrev2->dGetCoef(iTmpCnt) 
-	   << setw(12) << pXPrimeCurr->dGetCoef(iTmpCnt) 
-	   << setw(12) << pXPrimePrev->dGetCoef(iTmpCnt) 
-	   << setw(12) << pXPrimePrev2->dGetCoef(iTmpCnt) 
-	   << endl;
-      }  
-   }
+   	if (DEBUG_LEVEL(MYDEBUG_PRED)) {
+      		cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  "
+			",   XPrime  ,   XPPrev  ,   XPPrev2" << endl;
+      		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
+	 		cout << setw(4) << iTmpCnt << ": " 
+				<< setw(12) << pXCurr->dGetCoef(iTmpCnt) 
+				<< setw(12) << pXPrev->dGetCoef(iTmpCnt) 
+				<< setw(12) << pXPrev2->dGetCoef(iTmpCnt) 
+				<< setw(12) << pXPrimeCurr->dGetCoef(iTmpCnt) 
+				<< setw(12) << pXPrimePrev->dGetCoef(iTmpCnt) 
+				<< setw(12) << pXPrimePrev2->dGetCoef(iTmpCnt) 
+				<< endl;
+      		}
+   	}
 #endif /* DEBUG */
       
-   iIterCnt = 0;
-   iPerformedIterations = iIterationsBeforeAssembly;   
-   while (1) {
-      pRes->Reset(0.);
-      pDM->AssRes(*pRes, db0Differential);      
-      dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+   	iIterCnt = 0;
+   	iPerformedIterations = iIterationsBeforeAssembly;   
+   	while (1) {
+      		pRes->Reset(0.);
+      		pDM->AssRes(*pRes, db0Differential);      
+      		dTest = this->MakeTest(*pRes, *pXPrimeCurr);
       
 #ifdef DEBUG
-      if (DEBUG_LEVEL(MYDEBUG_RESIDUAL)) {
-	 cout << "Residual:" << endl;
-	 cout << iStep  << "   " << iIterCnt <<endl;
-	 for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {	 
-	    cout << "Dof" << setw(4) << iTmpCnt << ": " 
-	      << pRes->dGetCoef(iTmpCnt) << endl;
-	 }
-      }
+      		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL)) {
+	 		cout << "Residual:" << endl;
+	 		cout << iStep  << "   " << iIterCnt <<endl;
+	 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
+	    			cout << "Dof" << setw(4) << iTmpCnt << ": " 
+					<< pRes->dGetCoef(iTmpCnt) << endl;
+			}
+      		}
 #endif /* DEBUG */
       
-      if (dTest < dToll) {
-	 goto EndOfFirstStep;
-      }
+      		if (dTest < dToll) {
+	 		goto EndOfFirstStep;
+      		}
       
-      iIterCnt++;	
-      if ( iIterCnt > iMaxIterations || !isfinite(dTest) ) {
-	 if (dCurrTimeStep > dMinimumTimeStep) {
-	    /* Riduce il passo */
-	    dCurrTimeStep = this->NewTimeStep(dCurrTimeStep, 
-					      iIterCnt, 
-					      MultiStepIntegrationMethod::REPEATSTEP);
-	    dRefTimeStep = dCurrTimeStep;
-	    DEBUGCOUT("Changing time step during first step after "
-		      << iIterCnt << " iterations" << endl);
-	    goto IfFirstStepIsToBeRepeated;
-	    
-	 } else {
-	    cerr << endl << "Maximum iterations number " << iIterCnt
-	      << " has been reached during first step;"
-	      << endl << "time step dt = " << dCurrTimeStep 
-	      << " cannot be reduced further;" << endl
-	      << "aborting ..." << endl;
-	    
-	    pDM->Output();
-	    
-	    THROW(MultiStepIntegrator::ErrMaxIterations());
-	 }		  
-      }
+      		iIterCnt++;	
+      		if (iIterCnt > iMaxIterations || !isfinite(dTest)) {
+			if (dCurrTimeStep > dMinimumTimeStep) {
+				/* Riduce il passo */
+				dCurrTimeStep =
+					this->NewTimeStep(dCurrTimeStep, 
+							  iIterCnt, 
+							  MultiStepIntegrationMethod::REPEATSTEP);
+				dRefTimeStep = dCurrTimeStep;
+				DEBUGCOUT("Changing time step during"
+					  " first step after "
+					  << iIterCnt << " iterations"
+					  << endl);
+	    			goto IfFirstStepIsToBeRepeated;
+	 		} else {
+	    			cerr << endl
+					<< "Maximum iterations number "
+					<< iIterCnt
+					<< " has been reached during"
+					" first step;"
+					<< endl
+					<< "time step dt = " << dCurrTimeStep 
+					<< " cannot be reduced further;"
+					<< endl
+					<< "aborting ..." << endl;
+	    			pDM->Output();
+				THROW(MultiStepIntegrator::ErrMaxIterations());
+	 		}
+      		}
       
-      if (iPerformedIterations < iIterationsBeforeAssembly) {
-	 iPerformedIterations++;
-      }	else {
-	 iPerformedIterations = 0;
-	 pSM->MatrInit(0.);
-	 pDM->AssJac(*pJac, db0Differential);
-      }	
-      pSM->Solve();   
+      		/* Modified Newton-Raphson ... */
+      		if (iPerformedIterations < iIterationsBeforeAssembly) {
+	 		iPerformedIterations++;
+      		} else {
+	 		iPerformedIterations = 0;
+	 		pSM->MatrInit(0.);
+	 		pDM->AssJac(*pJac, db0Differential);
+      		}
+      		pSM->Solve();   
       
 #ifdef DEBUG
-      if (DEBUG_LEVEL(MYDEBUG_SOL)) {      
-	 cout << "Solution:" << endl;
-	 for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {	 
-	    cout << "Dof" << setw(4) << iTmpCnt << ": " 
-	      << pSol->dGetCoef(iTmpCnt) << endl;
-	 }
-      }
+      		if (DEBUG_LEVEL(MYDEBUG_SOL)) {      
+	 		cout << "Solution:" << endl;
+	 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
+	    			cout << "Dof" << setw(4) << iTmpCnt << ": "
+					<< pSol->dGetCoef(iTmpCnt) << endl;
+			}
+		}
 #endif /* DEBUG */
 
 
-      this->Update(*pSol); 
-      pDM->Update();
-   }
+      		this->Update(*pSol); 
+      		pDM->Update();
+   	}
    
 EndOfFirstStep:
 
-   pDM->Output();
+   	pDM->Output();
       
 #ifdef HAVE_SIGNAL
-   if (!::keep_going) {
-      /* Fa l'output della soluzione al primo passo ed esce */
-      Out << "Interrupted during first dummy step." << endl;
-      return;
-   } else {
+   	if (!::keep_going) {
+      		/* Fa l'output della soluzione al primo passo ed esce */
+      		Out << "Interrupted during first dummy step." << endl;
+      		return;
+   	} else {
 #endif /* HAVE_SIGNAL */
-      Out << "Step " << iStep
-	<< " at time " << dTime+dCurrTimeStep
-	<< " with time step " << dCurrTimeStep
-	<< " performed in " << iIterCnt
-	<< " iterations with " << dTest 
-	<< " error" << endl;
+      		Out << "Step " << iStep
+			<< " at time " << dTime+dCurrTimeStep
+			<< " with time step " << dCurrTimeStep
+			<< " performed in " << iIterCnt
+			<< " iterations with " << dTest 
+			<< " error" << endl;
 #ifdef HAVE_SIGNAL
-   }
+   	}
 #endif /* HAVE_SIGNAL */
    
-   dRefTimeStep = dCurrTimeStep;
-   dTime += dRefTimeStep;
+   	dRefTimeStep = dCurrTimeStep;
+   	dTime += dRefTimeStep;
    
-   dTotErr += dTest;
-   iTotIter += iIterCnt;
+   	dTotErr += dTest;
+   	iTotIter += iIterCnt;
    
-#ifdef USE_LAPACK   
-   /************************
-    * TEMPORANEO: FA UN'EIGENANALYSIS */
-   if (fEigenAnalysis) {
-      if (OneEig.dTime <= dTime && !OneEig.fDone) {
-	 Eig();
-	 OneEig.fDone = flag(1);
-      }
-   } 
-#endif /* USE_LAPACK */
+#ifdef __HACK_EIG__  
+   	if (fEigenAnalysis && OneEig.dTime <= dTime && !OneEig.fDone) {
+	 	Eig();
+		OneEig.fDone = flag(1);
+      	}
+#endif /* __HACK_EIG__ */
    
-   /*************************************************************************
-    * Altri passi regolari
-    *************************************************************************/
-   while (1) {
-      MultiStepIntegrationMethod::StepChange CurrStep 
-	= MultiStepIntegrationMethod::NEWSTEP;
+    	/* Altri passi regolari */
+   	while (1) {
+      		MultiStepIntegrationMethod::StepChange CurrStep 
+			= MultiStepIntegrationMethod::NEWSTEP;
       
-      if (dTime >= dFinalTime) {
-	 cout << "End of simulation at time " << dTime << " after " 
-	   << iStep << " steps;" << endl
-	   << "total iterations: " << iTotIter << endl
-	   << "total error: " << dTotErr << endl;
-	 return;
+      		if (dTime >= dFinalTime) {
+	 		cout << "End of simulation at time "
+				<< dTime << " after " 
+				<< iStep << " steps;" << endl
+				<< "total iterations: " << iTotIter << endl
+				<< "total error: " << dTotErr << endl;
+			return;
 #ifdef HAVE_SIGNAL
-      } else if (!::keep_going) {
-	 cout << "Interrupted!" << endl
-	   << "Simulation ended at time " << dTime << " after " 
-	   << iStep << " steps;" << endl
-	   << "total iterations: " << iTotIter << endl
-	   << "total error: " << dTotErr << endl;
-	 return;
+      		} else if (!::keep_going) {
+	 		cout << "Interrupted!" << endl
+	   			<< "Simulation ended at time "
+				<< dTime << " after " 
+				<< iStep << " steps;" << endl
+				<< "total iterations: " << iTotIter << endl
+				<< "total error: " << dTotErr << endl;
+	 		return;
 #endif /* HAVE_SIGNAL */
-      }
+      		}
 	 
-      iStep++;
+      		iStep++;
 	   
-      pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *pXPrev, *pXPrimePrev);
-      this->Flip();
+      		pDM->BeforePredict(*pXCurr, *pXPrimeCurr,
+				   *pXPrev, *pXPrimePrev);
+      		this->Flip();
       		
 IfStepIsToBeRepeated:
-      pDM->SetTime(dTime+dCurrTimeStep);
-      pMethod->SetCoef(dRefTimeStep, 
-		       dCurrTimeStep/dRefTimeStep, 
-		       CurrStep,
-		       db0Differential, 
-		       db0Algebraic);	
-      Predict(pMethod);
-      pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
-      pDM->AfterPredict();        
+      		pDM->SetTime(dTime+dCurrTimeStep);
+      		pMethod->SetCoef(dRefTimeStep, 
+				 dCurrTimeStep/dRefTimeStep, 
+				 CurrStep,
+				 db0Differential, 
+				 db0Algebraic);	
+      		Predict(pMethod);
+      		pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
+      		pDM->AfterPredict();        
    
 #ifdef DEBUG
-      if (DEBUG_LEVEL(MYDEBUG_PRED)) {
-	 cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  ,   XPrime  ,   XPPrev  ,   XPPrev2" 
-	   << endl;
-	 for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {	   
-	    cout << setw(4) << iTmpCnt << ": " 
-	      << setw(12) << pXCurr->dGetCoef(iTmpCnt) 
-	      << setw(12) << pXPrev->dGetCoef(iTmpCnt) 
-	      << setw(12) << pXPrev2->dGetCoef(iTmpCnt) 
-	      << setw(12) << pXPrimeCurr->dGetCoef(iTmpCnt) 
-	      << setw(12) << pXPrimePrev->dGetCoef(iTmpCnt) 
-	      << setw(12) << pXPrimePrev2->dGetCoef(iTmpCnt) 
-	      << endl;
-	 }
-      }
+      		if (DEBUG_LEVEL(MYDEBUG_PRED)) {
+			cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  "
+				",   XPrime  ,   XPPrev  ,   XPPrev2" << endl;
+			for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
+	    			cout << setw(4) << iTmpCnt << ": " 
+					<< setw(12)
+					<< pXCurr->dGetCoef(iTmpCnt) 
+					<< setw(12)
+					<< pXPrev->dGetCoef(iTmpCnt) 
+					<< setw(12)
+					<< pXPrev2->dGetCoef(iTmpCnt) 
+					<< setw(12)
+					<< pXPrimeCurr->dGetCoef(iTmpCnt) 
+					<< setw(12)
+					<< pXPrimePrev->dGetCoef(iTmpCnt) 
+					<< setw(12)
+					<< pXPrimePrev2->dGetCoef(iTmpCnt) 
+					<< endl;
+	 		}
+      		}
 #endif /* DEBUG */
 	
-      iIterCnt = 0;
-      iPerformedIterations = iIterationsBeforeAssembly;
-      while (1) { 	
-	 pRes->Reset(0.);
-	 pDM->AssRes(*pRes, db0Differential);
-	 dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+      		iIterCnt = 0;
+      		iPerformedIterations = iIterationsBeforeAssembly;
+      		while (1) { 	
+	 		pRes->Reset(0.);
+	 		pDM->AssRes(*pRes, db0Differential);
+	 		dTest = this->MakeTest(*pRes, *pXPrimeCurr);
 	 
 #ifdef DEBUG   
-	 if (DEBUG_LEVEL(MYDEBUG_RESIDUAL)) {
-	    cout << "Residual:" <<endl;
-	    cout << iStep  << "   " << iIterCnt <<endl;
-	    for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-	       cout << "Dof" << setw(4) << iTmpCnt << ": " 
-		 << pRes->dGetCoef(iTmpCnt) << endl;
-	    }
-	 }
+	 		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL)) {
+	    			cout << "Residual:" << endl;
+	    			cout << iStep  << "   " << iIterCnt << endl;
+	    			for (int iTmpCnt = 1;
+				     iTmpCnt <= iNumDofs;
+				     iTmpCnt++) {
+	       				cout << "Dof"
+						<< setw(4) << iTmpCnt << ": " 
+						<< pRes->dGetCoef(iTmpCnt)
+						<< endl;
+	    			}
+	 		}
 #endif /* DEBUG */
 
-  
-        if (dTest < dToll) {
-	   CurrStep = MultiStepIntegrationMethod::NEWSTEP;
-	   goto EndOfStep;
-	}
+        		if (dTest < dToll) {
+				CurrStep = MultiStepIntegrationMethod::NEWSTEP;
+				goto EndOfStep;
+			}
 	 
-	 iIterCnt++;
-	 if ( iIterCnt > iMaxIterations || !isfinite(dTest) ) {
-	    if (dCurrTimeStep > dMinimumTimeStep) {
-	       /* Riduce il passo */
-	       CurrStep = MultiStepIntegrationMethod::REPEATSTEP;
-	       dCurrTimeStep = this->NewTimeStep(dCurrTimeStep,
-						 iIterCnt, CurrStep);	       
-	       DEBUGCOUT("Changing time step during step " 
-			 << iStep << " after "
-			 << iIterCnt << " iterations" << endl);
-	       goto IfStepIsToBeRepeated;
-	       
-	    } else {
-	       cerr << endl << "Maximum iterations number " << iIterCnt 
-		 << " has been reached during step " << iStep << ';'
-		 << endl << "time step dt = " << dCurrTimeStep
-		 << " cannot be reduced further;" << endl
-		 << "aborting ..." << endl;
-	       THROW(MultiStepIntegrator::ErrMaxIterations());
-	    }		  
-	 }
-	 
-	 if (iPerformedIterations < iIterationsBeforeAssembly) {
-	    iPerformedIterations++;
-	 } else {
-	    iPerformedIterations = 0;
-	    pSM->MatrInit(0.);
-	    pDM->AssJac(*pJac, db0Differential);
-	 }	
-	 pSM->Solve();
-	     
+	 		iIterCnt++;
+			if (iIterCnt > iMaxIterations || !isfinite(dTest)) {
+				if (dCurrTimeStep > dMinimumTimeStep) {
+					/* Riduce il passo */
+					CurrStep = MultiStepIntegrationMethod::REPEATSTEP;
+					dCurrTimeStep =
+						this->NewTimeStep(dCurrTimeStep,
+								  iIterCnt,
+								  CurrStep);	       
+					DEBUGCOUT("Changing time step"
+						  " during step " 
+						  << iStep << " after "
+						  << iIterCnt << " iterations"
+						  << endl);
+					goto IfStepIsToBeRepeated;
+	    			} else {
+					cerr << endl
+						<< "Maximum iterations number "
+						<< iIterCnt 
+						<< " has been reached during"
+						" step " << iStep << ';'
+						<< endl
+						<< "time step dt = "
+						<< dCurrTimeStep
+						<< " cannot be reduced"
+						" further;" << endl
+						<< "aborting ..." << endl;
+	       				THROW(MultiStepIntegrator::ErrMaxIterations());
+		    		}
+	 		}
+	 		
+			/* Modified Newton-Raphson ... */
+	 		if (iPerformedIterations < iIterationsBeforeAssembly) {
+	    			iPerformedIterations++;
+	 		} else {
+	    			iPerformedIterations = 0;
+	    			pSM->MatrInit(0.);
+	    			pDM->AssJac(*pJac, db0Differential);
+	 		}
+	 		pSM->Solve();
 	 
 #ifdef DEBUG
-	 if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_MPI)) {
-	    cout << "Solution:" << endl;
-	    for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {	    
-	       cout << "Dof" << setw(4) << iTmpCnt << ": " 
-		 << pSol->dGetCoef(iTmpCnt) << endl;
-	    }
-	 }
+	 		if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_MPI)) {
+	    			cout << "Solution:" << endl;
+	    			for (int iTmpCnt = 1;
+				     iTmpCnt <= iNumDofs;
+				     iTmpCnt++) {	    
+	       				cout << "Dof"
+						<< setw(4) << iTmpCnt << ": " 
+						<< pSol->dGetCoef(iTmpCnt)
+						<< endl;
+	    			}
+	 		}
 #endif /* DEBUG */
 
-	 this->Update(*pSol);
-	 pDM->Update();
-      }   
+	 		this->Update(*pSol);
+	 		pDM->Update();
+      		}
 	 
 EndOfStep:
 
-      dTotErr += dTest;	
-      iTotIter += iIterCnt;
+      		dTotErr += dTest;	
+      		iTotIter += iIterCnt;
       
-      pDM->Output();     
+      		pDM->Output();     
 	 
-      Out << "Step " << iStep 
-	<< " at time " << dTime+dCurrTimeStep
-	<< " with time step " << dCurrTimeStep
-	<< " performed in " << iIterCnt
-	<< " iterations with " << dTest 
-	<< " error" << endl;
+      		Out << "Step " << iStep 
+			<< " at time " << dTime+dCurrTimeStep
+			<< " with time step " << dCurrTimeStep
+			<< " performed in " << iIterCnt
+			<< " iterations with " << dTest 
+			<< " error" << endl;
       
-      DEBUGCOUT("Step " << iStep << " has been completed successfully in "
-		<< iIterCnt << " iterations" << endl);
+      		DEBUGCOUT("Step " << iStep
+			  << " has been completed successfully in "
+			  << iIterCnt << " iterations" << endl);
       
-      dRefTimeStep = dCurrTimeStep;
-      dTime += dRefTimeStep;
+      		dRefTimeStep = dCurrTimeStep;
+      		dTime += dRefTimeStep;
 
+#ifdef __HACK_EIG__
+      		if (fEigenAnalysis && OneEig.dTime <= dTime && !OneEig.fDone) {
+			Eig();
+			OneEig.fDone = flag(1);
+		}
+#endif /* __HACK_EIG__ */
       
-#ifdef USE_LAPACK   
-      /************************
-       * TEMPORANEO: FA UN'EIGENANALYSIS */
-      if (fEigenAnalysis) {
-	 if (OneEig.dTime <= dTime && !OneEig.fDone) {
-	    Eig();
-	    OneEig.fDone = flag(1);
-	 }
-      }      
-#endif /* USE_LAPACK */
-      
-      
-      /* Calcola il nuovo timestep */
-      dCurrTimeStep = this->NewTimeStep(dCurrTimeStep, iIterCnt, CurrStep);
-      DEBUGCOUT("Current time step: " << dCurrTimeStep << endl);
-   }      
+      		/* Calcola il nuovo timestep */
+      		dCurrTimeStep =
+			this->NewTimeStep(dCurrTimeStep, iIterCnt, CurrStep);
+		DEBUGCOUT("Current time step: " << dCurrTimeStep << endl);
+   	}
 }
-
 
 /* Distruttore */
 MultiStepIntegrator::~MultiStepIntegrator(void)
 {
-   DEBUGCOUTFNAME("MultiStepIntegrator::~MultiStepIntegrator");
-   
-   if (pSM != NULL)  {
-      SAFEDELETE(pSM, SMmm);
-   }   
+   	DEBUGCOUTFNAME("MultiStepIntegrator::~MultiStepIntegrator");
 
-   if (pXPrimePrev2 != NULL) {	
-      SAFEDELETE(pXPrimePrev2, SMmm);
-   }
+   	if (sInputFileName != NULL) {
+      		SAFEDELETEARR(sInputFileName, SMmm);
+   	}
    
-   if (pXPrev2 != NULL) {	
-      SAFEDELETE(pXPrev2, SMmm);
-   }
+   	if (sOutputFileName != NULL) {
+      		SAFEDELETEARR(sOutputFileName, SMmm);
+   	}
    
-   if (pXPrimePrev != NULL) {	
-      SAFEDELETE(pXPrimePrev, SMmm);
-   }
+   	if (pSM != NULL)  {
+      		SAFEDELETE(pSM, SMmm);
+   	}
+
+   	if (pXPrimePrev2 != NULL) {	
+      		SAFEDELETE(pXPrimePrev2, SMmm);
+   	}
    
-   if (pXPrev != NULL) {	
-      SAFEDELETE(pXPrev, SMmm);
-   }
+   	if (pXPrev2 != NULL) {	
+      		SAFEDELETE(pXPrev2, SMmm);
+   	}
    
-   if (pXPrimeCurr != NULL) {	
-      SAFEDELETE(pXPrimeCurr, SMmm);
-   }
+   	if (pXPrimePrev != NULL) {	
+      		SAFEDELETE(pXPrimePrev, SMmm);
+   	}
    
-   if (pXCurr != NULL) {	
-      SAFEDELETE(pXCurr, SMmm);
-   }
+   	if (pXPrev != NULL) {	
+      		SAFEDELETE(pXPrev, SMmm);
+   	}
+   
+   	if (pXPrimeCurr != NULL) {	
+      		SAFEDELETE(pXPrimeCurr, SMmm);
+   	}
+   
+   	if (pXCurr != NULL) {	
+      		SAFEDELETE(pXCurr, SMmm);
+   	}
       
-   if (pdWorkSpace != NULL) {	
-      SAFEDELETEARR(pdWorkSpace, SMmm);
-   }
+   	if (pdWorkSpace != NULL) {	
+      		SAFEDELETEARR(pdWorkSpace, SMmm);
+   	}
       
-   if (pDM != NULL) {	
-      SAFEDELETE(pDM, SMmm);
-   }
+   	if (pDM != NULL) {	
+      		SAFEDELETE(pDM, SMmm);
+   	}
 }
-
 
 /* Test sul residuo */
 doublereal 
 MultiStepIntegrator::MakeTest(const VectorHandler& Res, 
 			      const VectorHandler& XP)
 {
-   DEBUGCOUTFNAME("MultiStepIntegrator::MakeTest");
+   	DEBUGCOUTFNAME("MultiStepIntegrator::MakeTest");
    
-   Dof CurrDof;
-   DofIterator.fGetFirst(CurrDof);
+   	Dof CurrDof;
+   	DofIterator.fGetFirst(CurrDof);
       
-   doublereal dRes = 0.;
-   doublereal dXPr = 0.;
+   	doublereal dRes = 0.;
+   	doublereal dXPr = 0.;
    
-   for (int iCntp1 = 1; iCntp1 <= iNumDofs; 
-	iCntp1++, DofIterator.fGetNext(CurrDof)) {
-      doublereal d = Res.dGetCoef(iCntp1);
-      dRes += d*d;
-      if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-	 d = XP.dGetCoef(iCntp1);
-	 dXPr += d*d;
-      }
-      /* else if ALGEBRAIC: non aggiunge nulla */
-   }
-   dRes /= (1.+dXPr);
-   if (!isfinite(dRes)) {      
-      cerr << "The simulation diverged; aborting ..." << endl;       
-      THROW(MultiStepIntegrator::ErrSimulationDiverged());          
-   }
-   return sqrt(dRes);
+   	for (int iCntp1 = 1;
+	     iCntp1 <= iNumDofs; 
+	     iCntp1++, DofIterator.fGetNext(CurrDof)) {
+      		doublereal d = Res.dGetCoef(iCntp1);
+      		dRes += d*d;
+      		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+	 		d = XP.dGetCoef(iCntp1);
+	 		dXPr += d*d;
+      		}
+      		/* else if ALGEBRAIC: non aggiunge nulla */
+   	}
+   	dRes /= (1.+dXPr);
+   	if (!isfinite(dRes)) {      
+      		cerr << "The simulation diverged; aborting ..." << endl;       
+      		THROW(MultiStepIntegrator::ErrSimulationDiverged());
+   	}
+   	return sqrt(dRes);
 }
-
 
 /* Predizione al primo passo */
 void 
 MultiStepIntegrator::FirstStepPredict(MultiStepIntegrationMethod* pM)
 {      
-   DEBUGCOUTFNAME("MultiStepIntegrator::FirstStepPredict");
+   	DEBUGCOUTFNAME("MultiStepIntegrator::FirstStepPredict");
    
-   Dof CurrDof;
-   DofIterator.fGetFirst(CurrDof);
+   	Dof CurrDof;
+   	DofIterator.fGetFirst(CurrDof);
    
-   /* Combinazione lineare di stato e derivata al passo precedente ecc. */   
-   for (int iCntp1 = 1; iCntp1 <= iNumDofs; iCntp1++, DofIterator.fGetNext(CurrDof)) {
-      if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-	 doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-	 doublereal dXPnm1 = pXPrimePrev->dGetCoef(iCntp1);
+   	/* Combinazione lineare di stato e derivata al passo precedente ecc. */
+   	for (int iCntp1 = 1;
+	     iCntp1 <= iNumDofs;
+	     iCntp1++, DofIterator.fGetNext(CurrDof)) {
+      		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+	 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
+	 		doublereal dXPnm1 = pXPrimePrev->dGetCoef(iCntp1);
 
-	 doublereal dXPn = pM->dPredDer(dXnm1, 0., dXPnm1, 0.);
-	 pXPrimeCurr->fPutCoef(iCntp1, dXPn);	 
-	 pXCurr->fPutCoef(iCntp1, pM->dPredState(dXnm1, 0., dXPn, dXPnm1, 0.));
-	 
-      } else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
-	 doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
+	 		doublereal dXPn = pM->dPredDer(dXnm1, 0., dXPnm1, 0.);
+			doublereal dXn = pM->dPredState(dXnm1, 0.,
+							dXPn, dXPnm1, 0.);
+			
+	 		pXPrimeCurr->fPutCoef(iCntp1, dXPn);	 
+	 		pXCurr->fPutCoef(iCntp1, dXn);
+      		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
+	 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
 	
-	 doublereal dXn = pM->dPredDerAlg(0., dXnm1, 0.);
-	 pXCurr->fPutCoef(iCntp1, dXn);
-	 pXPrimeCurr->fPutCoef(iCntp1, pM->dPredStateAlg(0., dXn, dXnm1, 0.));
-	 
-      }	else {
-	 cerr << "MultiStepIntegrator::FirstStepPredict(): unknown dof order" << endl;
-	 THROW(ErrGeneric());
-      }
-   }
-}
+	 		doublereal dXn = pM->dPredDerAlg(0., dXnm1, 0.);
+			doublereal dXIn = pM->dPredStateAlg(0., dXn,
+							    dXnm1, 0.);
+			
+	 		pXCurr->fPutCoef(iCntp1, dXn);
+	 		pXPrimeCurr->fPutCoef(iCntp1, dXIn);
 
+      		} else {
+	 		cerr << "MultiStepIntegrator::FirstStepPredict():"
+				" unknown dof order" << endl;
+	 		THROW(ErrGeneric());
+      		}
+   	}
+}
 
 /* Predizione al passo generico */
 void 
 MultiStepIntegrator::Predict(MultiStepIntegrationMethod* pM)
 {   
-   /* Note: pM must be initialised prior to calling Predict() */
+   	/* Note: pM must be initialised prior to calling Predict() */
    
-   DEBUGCOUTFNAME("MultiStepIntegrator::Predict");
+   	DEBUGCOUTFNAME("MultiStepIntegrator::Predict");
    
-   Dof CurrDof;
-   DofIterator.fGetFirst(CurrDof);
+   	Dof CurrDof;
+   	DofIterator.fGetFirst(CurrDof);
    
-   /* Combinazione lineare di stato e derivata al passo precedente ecc. */   
-   for (int iCntp1 = 1; iCntp1 <= iNumDofs; iCntp1++, DofIterator.fGetNext(CurrDof)) {
-      if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-	 doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-	 doublereal dXnm2 = pXPrev2->dGetCoef(iCntp1);
-	 doublereal dXPnm1 = pXPrimePrev->dGetCoef(iCntp1);
-	 doublereal dXPnm2 = pXPrimePrev2->dGetCoef(iCntp1);
+   	/* Combinazione lineare di stato e derivata al passo precedente ecc. */
+   	for (int iCntp1 = 1;
+	     iCntp1 <= iNumDofs;
+	     iCntp1++, DofIterator.fGetNext(CurrDof)) {
+      		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+	 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
+	 		doublereal dXnm2 = pXPrev2->dGetCoef(iCntp1);
+	 		doublereal dXPnm1 = pXPrimePrev->dGetCoef(iCntp1);
+	 		doublereal dXPnm2 = pXPrimePrev2->dGetCoef(iCntp1);
 
-	 doublereal dXPn = pM->dPredDer(dXnm1, dXnm2, dXPnm1, dXPnm2);
-	 pXPrimeCurr->fPutCoef(iCntp1, dXPn);	 
-	 pXCurr->fPutCoef(iCntp1, pM->dPredState(dXnm1, dXnm2, dXPn, dXPnm1, dXPnm2));
-	 
-      } else if (CurrDof.Order == DofOrder::ALGEBRAIC) {	
-	 doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-	 doublereal dXnm2 = pXPrev2->dGetCoef(iCntp1);
-	 doublereal dXInm1 = pXPrimePrev->dGetCoef(iCntp1);
+	 		doublereal dXPn = pM->dPredDer(dXnm1, dXnm2,
+						       dXPnm1, dXPnm2);
+			doublereal dXn = pM->dPredState(dXnm1, dXnm2, 
+							dXPn, dXPnm1, dXPnm2);
+			
+	 		pXPrimeCurr->fPutCoef(iCntp1, dXPn);
+	 		pXCurr->fPutCoef(iCntp1, dXn);
+			
+      		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
+	 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
+	 		doublereal dXnm2 = pXPrev2->dGetCoef(iCntp1);
+	 		doublereal dXInm1 = pXPrimePrev->dGetCoef(iCntp1);
 
-	 doublereal dXn = pM->dPredDerAlg(dXInm1, dXnm1, dXnm2);
-	 pXCurr->fPutCoef(iCntp1, dXn);
-	 pXPrimeCurr->fPutCoef(iCntp1, pM->dPredStateAlg(dXInm1, dXn, dXnm1, dXnm2));
-	 
-      }	else {
-	 cerr << "unknown dof order" << endl;
-	 THROW(ErrGeneric());
-      }
-   }
+	 		doublereal dXn = pM->dPredDerAlg(dXInm1, dXnm1, dXnm2);
+			doublereal dXIn = pM->dPredStateAlg(dXInm1, dXn,
+							    dXnm1, dXnm2);
+			
+	 		pXCurr->fPutCoef(iCntp1, dXn);
+	 		pXPrimeCurr->fPutCoef(iCntp1, dXIn);
+
+      		} else {
+	 		cerr << "unknown dof order" << endl;
+	 		THROW(ErrGeneric());
+      		}
+   	}
 }
-
 
 /* Nuovo delta t */
-doublereal MultiStepIntegrator::NewTimeStep(doublereal dCurrTimeStep,
-					    integer iPerformedIters,
-					    MultiStepIntegrationMethod::StepChange Why )
+doublereal
+MultiStepIntegrator::NewTimeStep(doublereal dCurrTimeStep,
+				 integer iPerformedIters,
+				 MultiStepIntegrationMethod::StepChange Why)
 {
-   DEBUGCOUTFNAME("MultiStepIntegrator::NewTimeStep");
+   	DEBUGCOUTFNAME("MultiStepIntegrator::NewTimeStep");
 
-   switch (CurrStrategy) {
-    case FACTOR: {	   
-       if (Why == MultiStepIntegrationMethod::REPEATSTEP) {
-	  if (dCurrTimeStep*StrategyFactor.dReductionFactor 
-	      >= dMinimumTimeStep) {
-	     if (fLastChance == flag(1)) {
-		fLastChance = flag(0);
-	     }	 
-	     iStepsAfterReduction = 0;
-	     return dCurrTimeStep*StrategyFactor.dReductionFactor;
-	  } else {
-	     if (fLastChance == flag(0)) {
-		fLastChance = flag(1);
-		return StrategyFactor.dRaiseFactor*dCurrTimeStep;
-	     } else {
-		/* Fuori viene intercettato il valore illegale */
-		return dCurrTimeStep*StrategyFactor.dReductionFactor;
-	     }	 
-	  }            	 
-       }
+   	switch (CurrStrategy) {
+    	case FACTOR:
+       		if (Why == MultiStepIntegrationMethod::REPEATSTEP) {
+	  		if (dCurrTimeStep*StrategyFactor.dReductionFactor 
+	      		    >= dMinimumTimeStep) {
+	     			if (fLastChance == flag(1)) {
+					fLastChance = flag(0);
+	     			}
+	     			iStepsAfterReduction = 0;
+	     			return dCurrTimeStep*StrategyFactor.dReductionFactor;
+	  		} else {
+	     			if (fLastChance == flag(0)) {
+					fLastChance = flag(1);
+					return StrategyFactor.dRaiseFactor*dCurrTimeStep;
+	     			} else {
+					/*
+					 * Fuori viene intercettato
+					 * il valore illegale
+					 */
+					return dCurrTimeStep*StrategyFactor.dReductionFactor;
+	     			}
+	  		}
+       		}
        
-       if (Why == MultiStepIntegrationMethod::NEWSTEP) {
-	  iStepsAfterReduction++;
-	  iStepsAfterRaise++;      
+       		if (Why == MultiStepIntegrationMethod::NEWSTEP) {
+	  		iStepsAfterReduction++;
+	  		iStepsAfterRaise++;      
 	  
-	  if (iPerformedIters <= StrategyFactor.iMinIters
-	      && iStepsAfterReduction > StrategyFactor.iStepsBeforeReduction
-	      && iStepsAfterRaise > StrategyFactor.iStepsBeforeRaise
-	      && dCurrTimeStep < dMaxTimeStep) {
-	     iStepsAfterRaise = 0;
-	     return dCurrTimeStep*StrategyFactor.dRaiseFactor;
-	  }      
-	  return dCurrTimeStep;
-       }   
-       
-       break;
-    }
+	  		if (iPerformedIters <= StrategyFactor.iMinIters
+	      		    && iStepsAfterReduction > StrategyFactor.iStepsBeforeReduction
+			    && iStepsAfterRaise > StrategyFactor.iStepsBeforeRaise
+			    && dCurrTimeStep < dMaxTimeStep) {
+	     			iStepsAfterRaise = 0;
+	     			return dCurrTimeStep*StrategyFactor.dRaiseFactor;
+	  		}
+	  		return dCurrTimeStep;
+       		}
+       		break;
       
-    case NOCHANGE: {
-       return dCurrTimeStep;
-    }      
+    	case NOCHANGE:
+       		return dCurrTimeStep;
       
-    default: {
-       cerr << "You shouldn't have reached this point!" << endl;
-       THROW(MultiStepIntegrator::ErrGeneric());
-    }      
-   }
+    	default:
+       		cerr << "You shouldn't have reached this point!" << endl;
+       		THROW(MultiStepIntegrator::ErrGeneric());
+   	}
    
-   return dCurrTimeStep;
+   	return dCurrTimeStep;
 }
-      
 
 /* Aggiornamento della soluzione nel passo fittizio */
 void 
 MultiStepIntegrator::DerivativesUpdate(const VectorHandler& Sol)
 {
-   DEBUGCOUTFNAME("MultiStepIntegrator::DerivativesUpdate");
+   	DEBUGCOUTFNAME("MultiStepIntegrator::DerivativesUpdate");
    
-   Dof CurrDof;
-   DofIterator.fGetFirst(CurrDof);
+   	Dof CurrDof;
+   	DofIterator.fGetFirst(CurrDof);
 
-   for (int iCntp1 = 1; iCntp1 <= iNumDofs; iCntp1++, DofIterator.fGetNext(CurrDof)) {		
-      doublereal d = Sol.dGetCoef(iCntp1);
-      if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-	 pXPrimeCurr->fIncCoef(iCntp1, d);
-      }	else {
-	 pXCurr->fIncCoef(iCntp1, d);
-      }
-   }   
+   	for (int iCntp1 = 1;
+	     iCntp1 <= iNumDofs;
+	     iCntp1++, DofIterator.fGetNext(CurrDof)) {		
+      		doublereal d = Sol.dGetCoef(iCntp1);
+      		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+	 		pXPrimeCurr->fIncCoef(iCntp1, d);
+      		} else {
+	 		pXCurr->fIncCoef(iCntp1, d);
+      		}
+   	}
 }
 
-   
 /* Aggiornamento normale */
 void 
 MultiStepIntegrator::Update(const VectorHandler& Sol)
 {   
-   DEBUGCOUTFNAME("MultiStepIntegrator::Update");
+   	DEBUGCOUTFNAME("MultiStepIntegrator::Update");
 
-   Dof CurrDof;
-   DofIterator.fGetFirst(CurrDof);
+   	Dof CurrDof;
+   	DofIterator.fGetFirst(CurrDof);
  
-   for (int iCntp1 = 1; iCntp1 <= iNumDofs; iCntp1++, DofIterator.fGetNext(CurrDof)) {		
-      doublereal d = Sol.dGetCoef(iCntp1);
-      if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-	 pXPrimeCurr->fIncCoef(iCntp1, d);
-	 /* Nota: b0Differential e b0Algebraic possono essere distinti;
-	  * in ogni caso sono calcolati dalle funzioni di predizione
-	  * e sono dati globali */
-	 pXCurr->fIncCoef(iCntp1, db0Differential*d);
-      } else {
-	 pXCurr->fIncCoef(iCntp1, d);
-	 pXPrimeCurr->fIncCoef(iCntp1, db0Algebraic*d);
-      }
-   }   
+   	for (int iCntp1 = 1;
+	     iCntp1 <= iNumDofs;
+	     iCntp1++, DofIterator.fGetNext(CurrDof)) {		
+	     	doublereal d = Sol.dGetCoef(iCntp1);
+		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+			pXPrimeCurr->fIncCoef(iCntp1, d);
+			/*
+			 * Nota: b0Differential e b0Algebraic
+			 * possono essere distinti;
+			 * in ogni caso sono calcolati dalle funzioni
+			 * di predizione e sono dati globali
+			 */
+	 		pXCurr->fIncCoef(iCntp1, db0Differential*d);
+      		} else {
+	 		pXCurr->fIncCoef(iCntp1, d);
+	 		pXPrimeCurr->fIncCoef(iCntp1, db0Algebraic*d);
+      		}
+   	}
 }
-
 
 /* Dati dell'integratore */
 void 
 MultiStepIntegrator::ReadData(MBDynParser& HP)
 {
-   DEBUGCOUTFNAME("MultiStepIntegrator::ReadData");
+   	DEBUGCOUTFNAME("MultiStepIntegrator::ReadData");
 
-   /* parole chiave */
-   const char* sKeyWords[] = { 
-      "begin",
-	"multistep",
-	"end",
+   	/* parole chiave */
+   	const char* sKeyWords[] = { 
+      		"begin",
+		"multistep",
+		"end",
 	
-	"initial" "time",
-	"final" "time",
-	"time" "step",
-	"min" "time" "step",
-	"max" "time" "step",
-	"tolerance",
-	"max" "iterations",
+		"initial" "time",
+		"final" "time",
+		"time" "step",
+		"min" "time" "step",
+		"max" "time" "step",
+		"tolerance",
+		"max" "iterations",
 	
-	/* DEPRECATED */
-	"fictitious" "steps" "number",
-	"fictitious" "steps" "ratio",      
-	"fictitious" "steps" "tolerance",
-	"fictitious" "steps" "max" "iterations",
-	/* END OF DEPRECATED */
+		/* DEPRECATED */
+		"fictitious" "steps" "number",
+		"fictitious" "steps" "ratio",      
+		"fictitious" "steps" "tolerance",
+		"fictitious" "steps" "max" "iterations",
+		/* END OF DEPRECATED */
 
-	"dummy" "steps" "number",
-	"dummy" "steps" "ratio",
-	"dummy" "steps" "tolerance",
-	"dummy" "steps" "max" "iterations",
+		"dummy" "steps" "number",
+		"dummy" "steps" "ratio",
+		"dummy" "steps" "tolerance",
+		"dummy" "steps" "max" "iterations",
 	
-	"abort" "after",
-	"input",
-	"assembly",
-	"derivatives",
+		"abort" "after",
+		"input",
+		"assembly",
+		"derivatives",
 
-	/* DEPRECATED */ "fictitious" "steps" /* END OF DEPRECATED */ ,
-	"dummy" "steps",
+		/* DEPRECATED */ "fictitious" "steps" /* END OF DEPRECATED */ ,
+		"dummy" "steps",
 	
-	"method",
-	/* DEPRECATED */ "fictitious" "steps" "method" /* END OF DEPRECATED */ ,
-	"dummy" "steps" "method",
+		"method",
+		/* DEPRECATED */ "fictitious" "steps" "method" /* END OF DEPRECATED */ ,
+		"dummy" "steps" "method",
 	
-	"Crank" "Nicholson",
-	/* DEPRECATED */ "nostro" /* END OF DEPRECATED */ ,
-	"ms",
-	"hope",
+		"Crank" "Nicholson",
+		/* DEPRECATED */ "nostro" /* END OF DEPRECATED */ ,
+		"ms",
+		"hope",
 	
-	"derivatives" "coefficient",
-	"derivatives" "tolerance",
-	"derivatives" "max" "iterations",
+		"derivatives" "coefficient",
+		"derivatives" "tolerance",
+		"derivatives" "max" "iterations",
 	
-	"Newton" "Raphson",
-	"true",
-	"modified",
+		"Newton" "Raphson",
+		"true",
+		"modified",
 	
-	"strategy",
-	"factor",
-	"no" "change",
-	
-	"eigen" "analysis",
-	"solver",
-	"harwell",
-	"meschach",
-	"y12"
-   };
-   
-   /* enum delle parole chiave */
-   enum KeyWords {
-      UNKNOWN = -1,
-	BEGIN = 0,
-	MULTISTEP,
-	END,
-	
-	INITIALTIME,
-	FINALTIME,
-	TIMESTEP,
-	MINTIMESTEP,
-	MAXTIMESTEP,
-	TOLERANCE,
-	MAXITERATIONS,
-	
-	FICTITIOUSSTEPSNUMBER,
-	FICTITIOUSSTEPSRATIO,      
-	FICTITIOUSSTEPSTOLERANCE,
-	FICTITIOUSSTEPSMAXITERATIONS,
+		"strategy",
+		"factor",
+		"no" "change",
 
-	DUMMYSTEPSNUMBER,
-	DUMMYSTEPSRATIO,
-	DUMMYSTEPSTOLERANCE,
-	DUMMYSTEPSMAXITERATIONS,
-	
-	ABORTAFTER,
-	INPUT,
-	ASSEMBLY,
-	DERIVATIVES,
-	FICTITIOUSSTEPS,
-	DUMMYSTEPS,
-	
-	METHOD,
-	FICTITIOUSSTEPSMETHOD,
-	DUMMYSTEPSMETHOD,
-	CRANKNICHOLSON,
-	NOSTRO, 
-	MS,
-	HOPE,
-	
-	DERIVATIVESCOEFFICIENT,
-	DERIVATIVESTOLERANCE,
-	DERIVATIVESMAXITERATIONS,
-	
-	NEWTONRAPHSON,
-	NR_TRUE,
-	MODIFIED,
-	
-	STRATEGY,
-	STRATEGYFACTOR,
-	STRATEGYNOCHANGE,
-	
-	EIGENANALYSIS,
-	SOLVER,
-	HARWELL,
-	MESCHACH,
-	Y12,
-	
-	LASTKEYWORD
-   };
+		"eigen" "analysis",
+		"solver",
+		"harwell",
+		"meschach",
+		"y12"
+   	};
    
-   /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   /* cambia la tabella del parser */
-   HP.PutKeyTable(K);
-   
-      
-   /* legge i dati della simulazione */
-   if (KeyWords(HP.GetDescription()) != BEGIN) {
-      cerr << endl << "Error: <begin> expected at line " 
-	<< HP.GetLineData() << "; aborting ..." << endl;
-      THROW(MultiStepIntegrator::ErrGeneric());
-   }
-   
-   if (KeyWords(HP.GetWord()) != MULTISTEP) {
-      cerr << endl << "Error: <begin: multistep;> expected at line " 
-	<< HP.GetLineData() << "; aborting ..." << endl;
-      THROW(MultiStepIntegrator::ErrGeneric());
-   }
+   	/* enum delle parole chiave */
+   	enum KeyWords {
+      		UNKNOWN = -1,
+		BEGIN = 0,
+		MULTISTEP,
+		END,
+	
+		INITIALTIME,
+		FINALTIME,
+		TIMESTEP,
+		MINTIMESTEP,
+		MAXTIMESTEP,
+		TOLERANCE,
+		MAXITERATIONS,
+	
+		FICTITIOUSSTEPSNUMBER,
+		FICTITIOUSSTEPSRATIO,      
+		FICTITIOUSSTEPSTOLERANCE,
+		FICTITIOUSSTEPSMAXITERATIONS,
 
+		DUMMYSTEPSNUMBER,
+		DUMMYSTEPSRATIO,
+		DUMMYSTEPSTOLERANCE,
+		DUMMYSTEPSMAXITERATIONS,
+	
+		ABORTAFTER,
+		INPUT,
+		ASSEMBLY,
+		DERIVATIVES,
+		FICTITIOUSSTEPS,
+		DUMMYSTEPS,
+	
+		METHOD,
+		FICTITIOUSSTEPSMETHOD,
+		DUMMYSTEPSMETHOD,
+		CRANKNICHOLSON,
+		NOSTRO, 
+		MS,
+		HOPE,
+	
+		DERIVATIVESCOEFFICIENT,
+		DERIVATIVESTOLERANCE,
+		DERIVATIVESMAXITERATIONS,
+	
+		NEWTONRAPHSON,
+		NR_TRUE,
+		MODIFIED,
+	
+		STRATEGY,
+		STRATEGYFACTOR,
+		STRATEGYNOCHANGE,
+	
+		EIGENANALYSIS,
+		SOLVER,
+		HARWELL,
+		MESCHACH,
+		Y12,
+	
+		LASTKEYWORD
+   	};
    
-   flag fMethod(0);
-   flag fFictitiousStepsMethod(0);      
+   	/* tabella delle parole chiave */
+   	KeyTable K((int)LASTKEYWORD, sKeyWords);
+   
+   	/* cambia la tabella del parser */
+   	HP.PutKeyTable(K);
+
+   	/* legge i dati della simulazione */
+   	if (KeyWords(HP.GetDescription()) != BEGIN) {
+      		cerr << endl << "Error: <begin> expected at line " 
+			<< HP.GetLineData() << "; aborting ..." << endl;
+      		THROW(MultiStepIntegrator::ErrGeneric());
+   	}
+   
+   	if (KeyWords(HP.GetWord()) != MULTISTEP) {
+      		cerr << endl << "Error: <begin: multistep;> expected at line " 
+			<< HP.GetLineData() << "; aborting ..." << endl;
+      		THROW(MultiStepIntegrator::ErrGeneric());
+   	}
+
+   	flag fMethod(0);
+   	flag fFictitiousStepsMethod(0);      
      
-   /* Ciclo infinito */
-   while (1) {	
-      KeyWords CurrKeyWord = KeyWords(HP.GetDescription());
+   	/* Ciclo infinito */
+   	while (1) {	
+      		KeyWords CurrKeyWord = KeyWords(HP.GetDescription());
       
-      switch (CurrKeyWord) {
-	 	 
-       case INITIALTIME: {
-	  dInitialTime = HP.GetReal();
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Initial time is " << dInitialTime << endl);
-	  break;
-       }	
+      		switch (CurrKeyWord) {	 	 
+       		case INITIALTIME:
+	  		dInitialTime = HP.GetReal();
+	  		DEBUGLCOUT(MYDEBUG_INPUT, "Initial time is "
+				   << dInitialTime << endl);
+	  		break;
 	 
-       case FINALTIME: {
-	  dFinalTime = HP.GetReal();
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Final time is " << dFinalTime << endl);
+       		case FINALTIME:
+	  		dFinalTime = HP.GetReal();
+	  		DEBUGLCOUT(MYDEBUG_INPUT, "Final time is "
+				   << dFinalTime << endl);
+				   
+	  		if(dFinalTime <= dInitialTime) {
+	     			cerr << "warning: final time " << dFinalTime
+	       				<< " is less than initial time "
+					<< dInitialTime << ';' << endl
+	       				<< "this will cause the simulation"
+					" to abort" << endl;
+			}
+	  		break;
+	 
+       		case TIMESTEP:
+	  		dInitialTimeStep = HP.GetReal();
+	  		DEBUGLCOUT(MYDEBUG_INPUT, "Initial time step is "
+				   << dInitialTimeStep << endl);
 	  
-	  if(dFinalTime <= dInitialTime) {
-	     cerr << "warning: final time " << dFinalTime 
-	       << " is less than initial time " << dInitialTime 
-	       << ';' << endl
-	       << "this will cause the simulation to abort" << endl;
-	  }	     
-	  break;
-       }	
+	  		if (dInitialTimeStep == 0.) {
+	     			cerr << "warning, null initial time step"
+					" is not allowed" << endl;
+	  		} else if (dInitialTimeStep < 0.) {
+	     			dInitialTimeStep = -dInitialTimeStep;
+				cerr << "warning, negative initial time step"
+					" is not allowed;" << endl
+					<< "its modulus " << dInitialTimeStep 
+					<< " will be considered" << endl;
+			}
+			break;
 	 
-       case TIMESTEP: {
-	  dInitialTimeStep = HP.GetReal();
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Initial time step is " << dInitialTimeStep << endl);
+       		case MINTIMESTEP:
+	  		dMinimumTimeStep = HP.GetReal();
+	  		DEBUGLCOUT(MYDEBUG_INPUT, "Minimum time step is "
+				   << dMinimumTimeStep << endl);
 	  
-	  if (dInitialTimeStep == 0.) {
-	     cerr
-	       << "warning, null initial time step is not allowed" 
-	       << endl;
-	  } else if (dInitialTimeStep < 0.) {
-	     dInitialTimeStep = -dInitialTimeStep;
-	     cerr 
-	       << "warning, negative initial time step is not allowed;"
-	       << endl << "its modulus " << dInitialTimeStep 
-	       << " will be considered" << endl;
-	  }	     
-	  break;
-       }	
-	 
-       case MINTIMESTEP: {
-	  dMinimumTimeStep = HP.GetReal();
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Minimum time step is " << dMinimumTimeStep << endl);
+	  		if (dMinimumTimeStep == 0.) {
+	     			cerr << "warning, null minimum time step"
+					" is not allowed" << endl;
+	     			THROW(MultiStepIntegrator::ErrGeneric());
+			} else if (dMinimumTimeStep < 0.) {
+				dMinimumTimeStep = -dMinimumTimeStep;
+				cerr << "warning, negative minimum time step"
+					" is not allowed;" << endl
+					<< "its modulus " << dMinimumTimeStep 
+					<< " will be considered" << endl;
+	  		}
+	  		break;
+	
+       		case MAXTIMESTEP:
+	  		dMaxTimeStep = HP.GetReal();
+	  		DEBUGLCOUT(MYDEBUG_INPUT, "Max time step is "
+				   << dMaxTimeStep << endl);
 	  
-	  if (dMinimumTimeStep == 0.) {
-	     cerr 
-	       << "warning, null minimum time step is not allowed" 
-	       << endl;
-	     THROW(MultiStepIntegrator::ErrGeneric());
-	  } else if (dMinimumTimeStep < 0.) {
-	     dMinimumTimeStep = -dMinimumTimeStep;
-	     cerr 
-	       << "warning, negative minimum time step is not allowed;"
-	       << endl << "its modulus " << dMinimumTimeStep 
-	       << " will be considered" << endl;
-	  }	     
-	  break;
-       }	
+	  		if (dMaxTimeStep == 0.) {
+				cout << "no max time step limit will be"
+					" considered" << endl;
+			} else if (dMaxTimeStep < 0.) {
+				dMaxTimeStep = -dMaxTimeStep;
+				cerr << "warning, negative max time step"
+					" is not allowed;" << endl
+					<< "its modulus " << dMaxTimeStep 
+					<< " will be considered" << endl;
+	  		}
+	  		break;
 	 
-       case MAXTIMESTEP: {
-	  dMaxTimeStep = HP.GetReal();
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Max time step is " << dMaxTimeStep << endl);
+       		case FICTITIOUSSTEPSNUMBER:
+       		case DUMMYSTEPSNUMBER:
+	  		iFictitiousStepsNumber = HP.GetInt();
+			if (iFictitiousStepsNumber < 0) {
+				iFictitiousStepsNumber = 
+					iDefaultFictitiousStepsNumber;
+				cerr << "warning, negative dummy steps number"
+					" is illegal;" << endl
+					<< "resorting to default value "
+					<< iDefaultFictitiousStepsNumber
+					<< endl;		       
+			} else if (iFictitiousStepsNumber == 1) {
+				cerr << "warning, a single dummy step"
+					" may be useless" << endl;
+	  		}
 	  
-	  if (dMaxTimeStep == 0.) {
-	     cout << "no max time step limit will be considered" << endl;
-	  } else if (dMaxTimeStep < 0.) {
-	     dMaxTimeStep = -dMaxTimeStep;
-	     cerr 
-	       << "warning, negative max time step is not allowed;"
-	       << endl << "its modulus " << dMaxTimeStep 
-	       << " will be considered" << endl;
-	  }	     
-	  break;
-       }	
+	  		DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps number: " 
+		     		   << iFictitiousStepsNumber << endl);
+	  		break;
 	 
-       case FICTITIOUSSTEPSNUMBER:
-       case DUMMYSTEPSNUMBER: {
-	  iFictitiousStepsNumber = HP.GetInt();
-	  if (iFictitiousStepsNumber < 0) {
-	     iFictitiousStepsNumber = iDefaultFictitiousStepsNumber;
-	     cerr << "warning, negative dummy steps number is illegal;" << endl
-	       << "resorting to default value " << iDefaultFictitiousStepsNumber << endl;		       
-	  } else if (iFictitiousStepsNumber == 1) {
-	     cerr << "warning, a single dummy step may be useless" << endl;
-	  }
+       		case FICTITIOUSSTEPSRATIO:
+       		case DUMMYSTEPSRATIO:
+	  		dFictitiousStepsRatio = HP.GetReal();
+	  		if (dFictitiousStepsRatio < 0.) {
+	     			dFictitiousStepsRatio =
+					dDefaultFictitiousStepsRatio;
+				cerr << "warning, negative dummy steps ratio"
+					" is illegal;" << endl
+					<< "resorting to default value "
+					<< dDefaultFictitiousStepsRatio
+					<< endl;		       
+			}
+			
+	  		if (dFictitiousStepsRatio > 1.) {
+				cerr << "warning, dummy steps ratio"
+					" is larger than one." << endl
+					<< "Something like 1.e-3 should"
+					" be safer ..." << endl;
+	  		}
 	  
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps number: " 
-		     << iFictitiousStepsNumber << endl);
-	  break;
-       }
+	  		DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps ratio: " 
+		     		   << dFictitiousStepsRatio << endl);
+	  		break;
 	 
-       case FICTITIOUSSTEPSRATIO:
-       case DUMMYSTEPSRATIO: {
-	  dFictitiousStepsRatio = HP.GetReal();
-	  if (dFictitiousStepsRatio < 0.) {
-	     dFictitiousStepsRatio = dDefaultFictitiousStepsRatio;
-	     cerr << "warning, negative dummy steps ratio is illegal;" << endl
-	       << "resorting to default value " << dDefaultFictitiousStepsRatio << endl;		       
-	  }
-	  
-	  if (dFictitiousStepsRatio > 1.) {
-	     cerr << "warning, dummy steps ratio is larger than one." << endl
-	       << "Something like 1.e-3 should be safer ..." << endl;
-	  }
-	  
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps ratio: " 
-		     << dFictitiousStepsRatio << endl);
-	  break;
-       }
+       		case FICTITIOUSSTEPSTOLERANCE:
+       		case DUMMYSTEPSTOLERANCE:
+	  		dFictitiousStepsTolerance = HP.GetReal();
+	  		if (dFictitiousStepsTolerance <= 0.) {
+				dFictitiousStepsTolerance =
+					dDefaultFictitiousStepsTolerance;
+				cerr << "warning, negative dummy steps"
+					" tolerance is illegal;" << endl
+					<< "resorting to default value "
+					<< dDefaultFictitiousStepsTolerance
+					<< endl;		       
+	  		}
+			DEBUGLCOUT(MYDEBUG_INPUT,
+				   "Fictitious steps tolerance: "
+		     		   << dFictitiousStepsTolerance << endl);
+	  		break;
 	 
-       case FICTITIOUSSTEPSTOLERANCE:
-       case DUMMYSTEPSTOLERANCE: {
-	  dFictitiousStepsTolerance = HP.GetReal();
-	  if (dFictitiousStepsTolerance <= 0.) {
-	     dFictitiousStepsTolerance = dDefaultFictitiousStepsTolerance;
-	     cerr << "warning, negative dummy steps tolerance is illegal;" << endl
-	       << "resorting to default value " << dDefaultFictitiousStepsTolerance << endl;		       
-	  }		  		  		  		  
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps tolerance: "
-		     << dFictitiousStepsTolerance << endl);
-	  break;
-       }
-	 
-       case ABORTAFTER: {
-	  KeyWords WhenToAbort(KeyWords(HP.GetWord()));
-	  switch(WhenToAbort) {
-	   case INPUT: {
-	      fAbortAfterInput = flag(1);
-	      DEBUGLCOUT(MYDEBUG_INPUT, 
-			 "Simulation will abort after data input" << endl);
-	      break;		      
-	   }
-	   case ASSEMBLY: {			    
-	      fAbortAfterAssembly = flag(1);
-	      DEBUGLCOUT(MYDEBUG_INPUT, 
-			 "Simulation will abort after initial assembly" << endl);
-	      break;
-	   }
+       		case ABORTAFTER: {
+	  		KeyWords WhenToAbort(KeyWords(HP.GetWord()));
+	  		switch (WhenToAbort) {
+	   		case INPUT:
+	      			fAbortAfterInput = flag(1);
+	      			DEBUGLCOUT(MYDEBUG_INPUT, 
+			 		"Simulation will abort after"
+					" data input" << endl);
+	      			break;
+			
+	   		case ASSEMBLY:
+	     			fAbortAfterAssembly = flag(1);
+	      			DEBUGLCOUT(MYDEBUG_INPUT,
+			 		   "Simulation will abort after"
+					   " initial assembly" << endl);
+	      			break;	  
 	     
-	   case DERIVATIVES: {
-	      fAbortAfterDerivatives = flag(1);
-	      DEBUGLCOUT(MYDEBUG_INPUT, 
-			 "Simulation will abort after derivatives solution" << endl);
-	      break;
-	   }
+	   		case DERIVATIVES:
+	      			fAbortAfterDerivatives = flag(1);
+	      			DEBUGLCOUT(MYDEBUG_INPUT, 
+			 		   "Simulation will abort after"
+					   " derivatives solution" << endl);
+	      			break;
 	     
-	   case FICTITIOUSSTEPS:
-	   case DUMMYSTEPS: {
-	      fAbortAfterFictitiousSteps = flag(1);
-	      DEBUGLCOUT(MYDEBUG_INPUT, 
-			 "Simulation will abort after dummy steps solution" << endl);
-	      break;
-	   }
+	   		case FICTITIOUSSTEPS:
+	   		case DUMMYSTEPS:
+	      			fAbortAfterFictitiousSteps = flag(1);
+	      			DEBUGLCOUT(MYDEBUG_INPUT, 
+			 		   "Simulation will abort after"
+					   " dummy steps solution" << endl);
+	      			break;
 	     
-	   default: {
-	      cerr << endl 
-		<< "Don't know when to abort, so I'm going to abort now" << endl;
-	      THROW(MultiStepIntegrator::ErrGeneric());
-	   }
-	  }
-	  break;
-       }	     
+	   		default:
+	      			cerr << endl 
+					<< "Don't know when to abort,"
+					" so I'm going to abort now" << endl;
+	      			THROW(MultiStepIntegrator::ErrGeneric());
+	  		}
+	  		break;
+       		}
 	 
-       case METHOD: {
-	  if (fMethod) {
-	     cerr << "error: multiple definition of integration method at line "
-	       << HP.GetLineData();
-	     THROW(MultiStepIntegrator::ErrGeneric());
-	  }
-	  fMethod = flag(1);
+       		case METHOD: {
+	  		if (fMethod) {
+	     			cerr << "error: multiple definition"
+					" of integration method at line "
+					<< HP.GetLineData() << endl;
+	     			THROW(MultiStepIntegrator::ErrGeneric());
+	  		}
+	  		fMethod = flag(1);
 	        	  
-	  KeyWords KMethod = KeyWords(HP.GetWord());
-	  switch (KMethod) {
-	   case CRANKNICHOLSON: {	      
-	      SAFENEW(pMethod,
-		      CrankNicholson, /* no constructor */
-		      DMmm);
-	      break;
-	   }
-	   case NOSTRO:
-	   case MS:
-	   case HOPE: {	      	     
-	      DriveCaller* pRho = ReadDriveData(NULL, HP, NULL);
-	      HP.PutKeyTable(K);
-	      
-	      DriveCaller* pRhoAlgebraic = ReadDriveData(NULL, HP, NULL);
-	      HP.PutKeyTable(K);
-	      
-	      switch (KMethod) {
-	       case NOSTRO: 
-	       case MS: {
-		  SAFENEWWITHCONSTRUCTOR(pMethod,
-					 NostroMetodo,
-					 NostroMetodo(pRho, pRhoAlgebraic),
-					 DMmm);
-		  break;
-	       }
+	  		KeyWords KMethod = KeyWords(HP.GetWord());
+	  		switch (KMethod) {
+	   		case CRANKNICHOLSON:
+	      			SAFENEW(pMethod,
+		      			CrankNicholson, /* no constructor */
+		      			DMmm);
+	      			break;
+			
+	   		case NOSTRO:
+	   		case MS:
+	   		case HOPE: {
+	      			DriveCaller* pRho =
+					ReadDriveData(NULL, HP, NULL);
+				HP.PutKeyTable(K);	      
+	      			DriveCaller* pRhoAlgebraic = 
+					ReadDriveData(NULL, HP, NULL);
+				HP.PutKeyTable(K);
+			
+	      			switch (KMethod) {
+	       			case NOSTRO: 
+	       			case MS:
+		  			SAFENEWWITHCONSTRUCTOR(pMethod,
+					 	NostroMetodo,
+					 	NostroMetodo(pRho,
+							     pRhoAlgebraic),
+							       DMmm);
+		  			break;
 		 
-	       case HOPE: {	      
-		  SAFENEWWITHCONSTRUCTOR(pMethod,
-					 Hope,
-					 Hope(pRho, pRhoAlgebraic),
-					 DMmm);
-		  break;
-	       }
-	       default:
-	          THROW(ErrGeneric());
-	      }
-	      break;	      
-	   }
-	   default: {
-	      cerr << "Unknown integration method at line " << HP.GetLineData() << endl;
-	      THROW(MultiStepIntegrator::ErrGeneric());
-	   }
-	  }
-	  break;
-       }
+	       			case HOPE:	      
+		  			SAFENEWWITHCONSTRUCTOR(pMethod,
+					 	Hope,
+						Hope(pRho, pRhoAlgebraic),
+					 		       DMmm);
+		  			break;
+					
+	       			default:
+	          			THROW(ErrGeneric());
+	      			}
+	      			break;
+	   		}
+	   		default:
+	      			cerr << "Unknown integration method at line "
+					<< HP.GetLineData() << endl;
+				THROW(MultiStepIntegrator::ErrGeneric());
+	  		}
+	  		break;
+       		}
 
        case FICTITIOUSSTEPSMETHOD:
        case DUMMYSTEPSMETHOD: {
@@ -1916,20 +2059,24 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  break;
        }
 	 
-       case EIGENANALYSIS: {	     
+       case EIGENANALYSIS: {
+#ifdef __HACK_EIG__
 	  OneEig.dTime = HP.GetReal();
 	  OneEig.fDone = flag(0);
 	  fEigenAnalysis = flag(1);
-	  
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Eigenanalysis will be performed at time " 
-		     << OneEig.dTime << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Eigenanalysis will be performed at time "
+	  	     << OneEig.dTime << endl);
+#else /* !__HACK_EIG__ */
+	  HP.GetReal();
+	  cerr << "eigenanalysis not supported (ignored)" << endl;
+#endif /* !__HACK_EIG__ */
 	  break;
        }
 
        case SOLVER: {
 	  switch(KeyWords(HP.GetWord())) {	     
 	   case MESCHACH:
-#if defined(USE_MESCHACH)
+#ifdef USE_MESCHACH
 	     CurrSolver = MESCHACH_SOLVER;
 	     DEBUGLCOUT(MYDEBUG_INPUT, 
 			"Using meschach sparse LU solver" << endl);
@@ -1937,7 +2084,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 #endif /* USE_MESCHACH */
 
 	   case Y12:
-#if defined(USE_Y12)
+#ifdef USE_Y12
              CurrSolver = Y12_SOLVER;
 	     DEBUGLCOUT(MYDEBUG_INPUT,
 			"Using meschach sparse LU solver" << endl);
@@ -2042,6 +2189,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
    
    
 /* Estrazione autovalori, vincolata alla disponibilita' delle LAPACK */
+#ifdef __HACK_EIG__
 #ifdef USE_LAPACK
 extern "C" int dgegv_(char* jobvl,
 		      char* jobvr, 
@@ -2554,8 +2702,9 @@ MultiStepIntegrator::Eig(void)
    
 #endif /* 0 */
 }
-   
+ 
 #endif /* USE_LAPACK */
+#endif /* __HACK_EIG__ */
 
 /* MultiStepIntegrator - end */
 

@@ -313,7 +313,8 @@ void DataManager::InitialJointAssembly(void)
 
 
 
-   /* Alla fine, i DofOwner di nodi e joint contengono gli indici giusti per 
+   /*
+    * Alla fine, i DofOwner di nodi e joint contengono gli indici giusti per 
     * l'assemblaggio iniziale. Corrispondono a:
     * - per ogni nodo:
     *   - posizione x
@@ -324,7 +325,8 @@ void DataManager::InitialJointAssembly(void)
     *   - se vincolo in posizione, reazione e sua derivata
     *   - se vincolo in velocita', reazione.
     * - per vincoli misti si hanno reazioni ed eventualmente loro derivate 
-    *   in base al tipo */
+    *   in base al tipo
+    */
 
    
    /* Creazione e costruzione array Dof */   
