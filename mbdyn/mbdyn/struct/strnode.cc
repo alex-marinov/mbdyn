@@ -1340,7 +1340,7 @@ ReadStructNode(DataManager* pDM,
 	      pRefNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
 #ifndef MBDYN_X_RELATIVE_PREDICTION
-	      silent_cerr("warning, relativ prediction disabled; "
+	      silent_cerr("warning, relative prediction disabled; "
 		      "absolute prediction will be used" << std::endl);
 #endif /* ! MBDYN_X_RELATIVE_PREDICTION */
       }
