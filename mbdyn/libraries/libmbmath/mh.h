@@ -135,6 +135,43 @@ public:
 	/* */
 	virtual MatrixHandler& ScalarMul(const doublereal& d);
 
+        /* Matrix Matrix product */
+protected:
+	virtual MatrixHandler*
+	MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
+				const doublereal& dCoef),
+			MatrixHandler* out, const MatrixHandler& in) const;
+	virtual MatrixHandler*
+	MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
+				const doublereal& dCoef),
+			MatrixHandler* out, const MatrixHandler& in) const;
+
+public:
+	virtual MatrixHandler*
+	MatMatMul(MatrixHandler* out, const MatrixHandler& in) const;
+	virtual MatrixHandler*
+	MatTMatMul(MatrixHandler* out, const MatrixHandler& in) const;
+	virtual MatrixHandler*
+	MatMatIncMul(MatrixHandler* out, const MatrixHandler& in) const;
+	virtual MatrixHandler*
+	MatTMatIncMul(MatrixHandler* out, const MatrixHandler& in) const;
+	virtual MatrixHandler*
+	MatMatDecMul(MatrixHandler* out, const MatrixHandler& in) const;
+	virtual MatrixHandler*
+	MatTMatDecMul(MatrixHandler* out, const MatrixHandler& in) const;
+
+	/* Matrix Vector product */
+protected:
+	virtual VectorHandler&
+	MatVecMul_base(void (VectorHandler::*op)(integer iRow,
+				const doublereal& dCoef),
+			VectorHandler& out, const VectorHandler& in) const;
+	virtual VectorHandler&
+	MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
+				const doublereal& dCoef),
+			VectorHandler& out, const VectorHandler& in) const;
+
+public:
 	virtual VectorHandler&
 	MatVecMul(VectorHandler& out, const VectorHandler& in) const;
 	virtual VectorHandler&

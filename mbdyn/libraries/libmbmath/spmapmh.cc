@@ -1,5 +1,5 @@
-/* 
- * HmFe (C) is a FEM analysis code. 
+/*
+ * HmFe (C) is a FEM analysis code.
  *
  * Copyright (C) 1996-2004
  *
@@ -26,14 +26,14 @@
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
  * http://www.aero.polimi.it
- *      
+ *
  */
 /*
- * MBDyn (C) is a multibody analysis code. 
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 2003-2004
- * 
+ *
  * This code is a partial merge of HmFe and MBDyn.
  *
  * Pierangelo Masarati  <masarati@aero.polimi.it>
@@ -48,7 +48,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -82,10 +82,10 @@ SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
 		integer *const Ai, integer *const Ap, int offset) const
 {
 	integer x_ptr = 0;
-		
+
 	row_cont_type::iterator ri;
 	row_cont_type::const_iterator re;
-		
+
 	for (integer col = 0; col < NCols; col++) {
 		Ap[col] = x_ptr + offset;
 		re = col_indices[col].end();
@@ -123,9 +123,9 @@ SpMapMatrixHandler::MakeIndexForm(doublereal *const Ax,
 {
 	integer x_ptr = 0;
 
-	row_cont_type::iterator ri;		
-	row_cont_type::const_iterator re;		
-		
+	row_cont_type::iterator ri;
+	row_cont_type::const_iterator re;
+
 	for (integer col = 0; col < NCols; col++) {
 		Ap[col] = x_ptr + offset;
 		re = col_indices[col].end();
@@ -207,54 +207,66 @@ SpMapMatrixHandler::GetCol(integer icol, VectorHandler& out) const
 	}
 	return out;
 }
-	
+
 /* Prodotto Matrice per Matrice */
-MatrixHandler *
-SpMapMatrixHandler::MatMatMul(MatrixHandler* out,
-		const MatrixHandler& in) const
+MatrixHandler*
+SpMapMatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
+			integer iCol, const doublereal& dCoef),
+			MatrixHandler* out, const MatrixHandler& in) const
 {
 	if ((in.iGetNumRows() != iGetNumCols())
 			|| (in.iGetNumCols() != out->iGetNumCols())
 			|| (out->iGetNumRows() != iGetNumRows()))
 	{
 		silent_cerr("Assertion fault "
-			"in SpMapMatrixHandler::MatMatMul" << std::endl);
+			"in SpMapMatrixHandler::MatMatIncMul" << std::endl);
 		throw ErrGeneric();
 	}
 
-	out->Reset();
-	
-	return this->MatMatMulSum(out, in);
-
-}
-MatrixHandler *
-SpMapMatrixHandler::MatMatMulSum(MatrixHandler* out,
-		const MatrixHandler& in) const
-{
-	if ((in.iGetNumRows() != iGetNumCols())
-			|| (in.iGetNumCols() != out->iGetNumCols())
-			|| (out->iGetNumRows() != iGetNumRows()))
-	{
-		silent_cerr("Assertion fault "
-			"in SpMapMatrixHandler::MatMatMulSum" << std::endl);
-		throw ErrGeneric();
-	}
-
-	integer iend = in.iGetNumCols();
-	for (integer col = 0; col < NCols; col++) {
+	integer ncols_in = in.iGetNumCols();
+	for (integer row_in = 0; row_in < NCols; row_in++) {
 		row_cont_type::const_iterator ri, re;
-		re = col_indices[col].end();
-		for (ri = col_indices[col].begin(); ri != re; ri++) {
-			for (integer col2 = 1; col2 <= iend;  col2++) {
-				out->IncCoef(ri->first+1,col2,
-						ri->second*in(col+1, col2));
+		re = col_indices[row_in].end();
+		for (ri = col_indices[row_in].begin(); ri != re; ri++) {
+			for (integer col_in = 1; col_in <= ncols_in;  col_in++) {
+				(out->*op)(ri->first + 1, col_in,
+						ri->second*in(row_in + 1, col_in));
 			}
 		}
 	}
 
-	return out;	
+	return out;
 }
-	
+
+MatrixHandler*
+SpMapMatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
+			integer iCol, const doublereal& dCoef),
+			MatrixHandler* out, const MatrixHandler& in) const
+{
+	if ((in.iGetNumRows() != iGetNumCols())
+			|| (in.iGetNumCols() != out->iGetNumCols())
+			|| (out->iGetNumRows() != iGetNumRows()))
+	{
+		silent_cerr("Assertion fault "
+			"in SpMapMatrixHandler::MatTMatMul_base" << std::endl);
+		throw ErrGeneric();
+	}
+
+	integer ncols_in = in.iGetNumCols();
+	for (integer row_out = 0; row_out < NCols; row_out++) {
+		row_cont_type::const_iterator ri, re;
+		re = col_indices[row_out].end();
+		for (ri = col_indices[row_out].begin(); ri != re; ri++) {
+			for (integer col_in = 1; col_in <= ncols_in;  col_in++) {
+				(out->*op)(row_out + 1, col_in,
+						ri->second*in(ri->first + 1, col_in));
+			}
+		}
+	}
+
+	return out;
+}
+
 /* Moltiplica per uno scalare e somma a una matrice */
 MatrixHandler &
 SpMapMatrixHandler::MulAndSumWithShift(MatrixHandler& out, doublereal s ,
@@ -280,12 +292,12 @@ SpMapMatrixHandler::MulAndSumWithShift(MatrixHandler& out, doublereal s ,
 		}
 	}
 
-	return out;	
+	return out;
 }
-	
+
 MatrixHandler &
-SpMapMatrixHandler::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out, 
-		std::vector<bool> b, doublereal s, integer drow, 
+SpMapMatrixHandler::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
+		std::vector<bool> b, doublereal s, integer drow,
 		integer dcol) const
 {
 	if ((out.iGetNumCols() < iGetNumCols() + dcol)
@@ -311,36 +323,13 @@ SpMapMatrixHandler::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
 		}
 	}
 
-	return out;	
-}
-
-VectorHandler &
-SpMapMatrixHandler::MatTVecMul(VectorHandler& out,
-		const VectorHandler& in) const
-{
-	if (out.iGetSize() != iGetNumRows()
-			|| in.iGetSize() != iGetNumCols())
-	{
-		throw ErrGeneric();
-	}
-
-	row_cont_type::const_iterator ri, re;
-
-	for (integer col = 0; col < NCols; col++) {
-		doublereal d = 0.;
-		re = col_indices[col].end();
-		for (ri = col_indices[col].begin(); ri != re; ri++) {
-			d += ri->second*in(ri->first + 1);
-		}
-		out.PutCoef(col+1, d);
-	}
-
 	return out;
 }
-	
+
 VectorHandler &
-SpMapMatrixHandler::MatVecMul(VectorHandler& out,
-		const VectorHandler& in) const
+SpMapMatrixHandler::MatVecMul_base(void (VectorHandler::*op)(integer iRow,
+			const doublereal &dCoef),
+		VectorHandler& out, const VectorHandler& in) const
 {
 	if (in.iGetSize() != iGetNumCols()
 			|| out.iGetSize() != iGetNumRows())
@@ -355,31 +344,7 @@ SpMapMatrixHandler::MatVecMul(VectorHandler& out,
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin(); ri != re; ri++) {
 			doublereal d = ri->second*in(col + 1);
-			out.IncCoef(ri->first + 1, d);
-		}
-	}
-
-	return out;
-}
-
-
-VectorHandler &
-SpMapMatrixHandler::MatVecIncMul(VectorHandler& out,
-		const VectorHandler& in) const
-{
-	if (in.iGetSize() != iGetNumCols()
-			|| out.iGetSize() != iGetNumRows())
-	{
-		throw ErrGeneric();
-	}
-
-	row_cont_type::const_iterator ri, re;
-
-	for (integer col = 0; col < NCols; col++) {
-		re = col_indices[col].end();
-		for (ri = col_indices[col].begin(); ri != re; ri++) {
-			doublereal d = ri->second*in(col + 1);
-			out.IncCoef(ri->first + 1, d);
+			(out.*op)(ri->first + 1, d);
 		}
 	}
 
@@ -387,8 +352,9 @@ SpMapMatrixHandler::MatVecIncMul(VectorHandler& out,
 }
 
 VectorHandler &
-SpMapMatrixHandler::MatTVecIncMul(VectorHandler& out,
-		const VectorHandler& in) const
+SpMapMatrixHandler::MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
+			const doublereal &dCoef),
+		VectorHandler& out, const VectorHandler& in) const
 {
 	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols())
@@ -404,54 +370,7 @@ SpMapMatrixHandler::MatTVecIncMul(VectorHandler& out,
 		for (ri = col_indices[col].begin(); ri != re; ri++) {
 			d += ri->second*in(ri->first + 1);
 		}
-		out.IncCoef(col+1, d);
-	}
-
-	return out;
-}
-
-VectorHandler &
-SpMapMatrixHandler::MatVecDecMul(VectorHandler& out,
-		const VectorHandler& in) const
-{
-	if (in.iGetSize() != iGetNumCols()
-			|| out.iGetSize() != iGetNumRows())
-	{
-		throw ErrGeneric();
-	}
-
-	row_cont_type::const_iterator ri, re;
-
-	for (integer col = 0; col < NCols; col++) {
-		re = col_indices[col].end();
-		for (ri = col_indices[col].begin(); ri != re; ri++) {
-			doublereal d = ri->second*in(col + 1);
-			out.DecCoef(ri->first + 1, d);
-		}
-	}
-
-	return out;
-}
-
-VectorHandler &
-SpMapMatrixHandler::MatTVecDecMul(VectorHandler& out,
-		const VectorHandler& in) const
-{
-	if (out.iGetSize() != iGetNumRows()
-			|| in.iGetSize() != iGetNumCols())
-	{
-		throw ErrGeneric();
-	}
-
-	row_cont_type::const_iterator ri, re;
-
-	for (integer col = 0; col < NCols; col++) {
-		doublereal d = 0.;
-		re = col_indices[col].end();
-		for (ri = col_indices[col].begin(); ri != re; ri++) {
-			d += ri->second*in(ri->first + 1);
-		}
-		out.DecCoef(col+1, d);
+		(out.*op)(col+1, d);
 	}
 
 	return out;

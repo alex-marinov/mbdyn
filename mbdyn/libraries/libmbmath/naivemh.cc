@@ -40,6 +40,8 @@
 #include "naivemh.h"
 #include "mthrdslv.h"
 
+#undef CHECK_FOR_ZERO
+
 /* NaiveMatrixHandler begin */
 
 NaiveMatrixHandler::NaiveMatrixHandler(const integer n, 
@@ -188,7 +190,10 @@ NaiveMatrixHandler::operator += (const SubMatrixHandler& SubMH)
 		for (integer ic = 1; ic <= nc; ic++) {
 			doublereal d = SubMH(ir, ic);
 
-			if (d != 0.) {
+#ifdef CHECK_FOR_ZERO
+			if (d != 0.)
+#endif /* CHECK_FOR_ZERO */
+			{
 				integer iCol = SubMH.iGetColIndex(ic);
 
 				operator()(iRow, iCol) += d;
@@ -212,7 +217,10 @@ NaiveMatrixHandler::operator -= (const SubMatrixHandler& SubMH)
 		for (integer ic = 1; ic <= nc; ic++) {
 			doublereal d = SubMH(ir, ic);
 
-			if (d != 0.) {
+#ifdef CHECK_FOR_ZERO
+			if (d != 0.)
+#endif /* CHECK_FOR_ZERO */
+			{
 				integer iCol = SubMH.iGetColIndex(ic);
 
 				operator()(iRow, iCol) -= d;
@@ -253,7 +261,10 @@ NaiveMatrixHandler::operator += (const VariableSubMatrixHandler& SubMH)
 			for (integer ic = 0; ic < nc; ic++) {
 				doublereal d = ppd[ic][iR];
 
-				if (d != 0.) {
+#ifdef CHECK_FOR_ZERO
+				if (d != 0.)
+#endif /* CHECK_FOR_ZERO */
+				{
 					integer iCol = pic[ic];
 
 					operator()(iRow, iCol) += d;
@@ -271,7 +282,10 @@ NaiveMatrixHandler::operator += (const VariableSubMatrixHandler& SubMH)
 		for (integer i = 1; i <= SMH.iNumItems; i++) {
 			doublereal d = SMH.pdMatm1[i];
 
-			if (d != 0.) {
+#ifdef CHECK_FOR_ZERO
+			if (d != 0.)
+#endif /* CHECK_FOR_ZERO */
+			{
 				integer iRow = SMH.piRowm1[i];
 				integer iCol = SMH.piColm1[i];
 
@@ -308,7 +322,10 @@ NaiveMatrixHandler::operator -= (const VariableSubMatrixHandler& SubMH)
 			for (integer ic = 0; ic < nc; ic++) {
 				doublereal d = ppd[ic][iR];
 
-				if (d != 0.) {
+#ifdef CHECK_FOR_ZERO
+				if (d != 0.)
+#endif /* CHECK_FOR_ZERO */
+				{
 					integer iCol = pic[ic];
 
 					operator()(iRow, iCol) -= d;
@@ -326,7 +343,10 @@ NaiveMatrixHandler::operator -= (const VariableSubMatrixHandler& SubMH)
 		for (integer i = 1; i <= SMH.iNumItems; i++) {
 			doublereal d = SMH.pdMatm1[i];
 
-			if (d != 0.) {
+#ifdef CHECK_FOR_ZERO
+			if (d != 0.)
+#endif /* CHECK_FOR_ZERO */
+			{
 				integer iRow = SMH.piRowm1[i];
 				integer iCol = SMH.piColm1[i];
 

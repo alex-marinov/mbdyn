@@ -99,37 +99,27 @@ CColMatrixHandler<off>::GetCol(integer icol, VectorHandler& out) const
 	
 /* Prodotto Matrice per Matrice */
 template <int off>
-MatrixHandler* 
-CColMatrixHandler<off>::MatMatMul(MatrixHandler* out,
-		const MatrixHandler& in) const
+MatrixHandler*
+CColMatrixHandler<off>::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
+			integer iCol, const doublereal& dCoef),
+			MatrixHandler* out, const MatrixHandler& in) const
 {
-	silent_cerr("CColMatrixHandler<off>::MatMatMul called" << std::endl);
+	silent_cerr("CColMatrixHandler<off>::MatMatMul_base called"
+			<< std::endl);
 	throw ErrGeneric();		
-
-#if 0
-	if ((in.iGetNumCols() != iGetNumRows())
- 			|| (in.iGetNumRows() != out.iGetNumRows())
- 			|| (out.iGetNumCols() != iGetNumCols())) {
- 		silent_cerr("Assertion fault in SpMapMatrixHandler::MatMatMul"
- 			<< std::endl);
- 		throw ErrGeneric();
- 	}
- 	out.Reset();
- 	for (integer col=0; col<NCols; col++) {
- 		row_cont_type::const_iterator ri, re;
- 		re = col_indices[col].end();
- 		for (ri = col_indices[col].begin(); ri!=re; ri++) {
- 			integer iend = in.iGetNumCols();
- 			for (integer col2=0; col2<iend;  col2++) {
- 				out.IncCoef(ri->first,col2,ri->second*in.dGetCoef(col,col2));
- 			}
- 		}
- 	}
-#endif
-
-	return out;	
 }
-	
+
+template <int off>
+MatrixHandler*
+CColMatrixHandler<off>::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
+			integer iCol, const doublereal& dCoef),
+			MatrixHandler* out, const MatrixHandler& in) const
+{
+	silent_cerr("CColMatrixHandler<off>::MatTMatMul_base called"
+			<< std::endl);
+	throw ErrGeneric();		
+}
+
 /* Moltiplica per uno scalare e somma a una matrice */
 template <int off>
 MatrixHandler&
@@ -189,139 +179,29 @@ CColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
 	}
 	return out;	
 }
-	
+
+/* Prodotto Matrice per Vettore */
 template <int off>
 VectorHandler&
-CColMatrixHandler<off>::MatTVecMul(VectorHandler& out,
-		const VectorHandler& in) const
+CColMatrixHandler<off>::MatVecMul_base(void (VectorHandler::*op)(integer iRow,
+			const doublereal& dCoef),
+			VectorHandler& out, const VectorHandler& in) const
 {
-	silent_cerr("CColMatrixHandler<off>::MatTVecMul called" << std::endl);
+	silent_cerr("CColMatrixHandler<off>::MatVecMul_base called"
+			<< std::endl);
 	throw ErrGeneric();		
-	if (out.iGetSize() != iGetNumRows()
-			|| in.iGetSize() != iGetNumCols()) {
-		throw ErrGeneric();
-	}
-
-	for (integer col = 0; col < NCols; col++) {
-		doublereal d = 0.;
-		integer idx = Ap[col];
-		integer idxe = Ap[col+1];
-		for (; idx < idxe; idx++) {
-			d += Ax[idx]*in.dGetCoef(Ai[idx]+1);
-		}
-		out.PutCoef(col+1, d);
-	}
-	return out;
 }
-	
+
 template <int off>
 VectorHandler&
-CColMatrixHandler<off>::MatVecMul(VectorHandler& out,
-		const VectorHandler& in) const
+CColMatrixHandler<off>::MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
+			const doublereal& dCoef),
+			VectorHandler& out, const VectorHandler& in) const
 {
-	silent_cerr("CColMatrixHandler<off>::MatTVecMul called" << std::endl);
+	silent_cerr("CColMatrixHandler<off>::MatTVecMul_base called"
+			<< std::endl);
 	throw ErrGeneric();		
-	if (in.iGetSize() != iGetNumCols() 
-			|| out.iGetSize() != iGetNumRows()) {
-		throw ErrGeneric();
-  	}
-
-	out.Reset();
-	return MatVecIncMul(out, in);
 }
 
-template <int off>
-VectorHandler&
-CColMatrixHandler<off>::MatVecIncMul(VectorHandler& out,
-		const VectorHandler& in) const {
-	silent_cerr("CColMatrixHandler<off>::MatTVecMul called" << std::endl);
-	throw ErrGeneric();		
-	if (in.iGetSize() != iGetNumCols()
-			|| out.iGetSize() != iGetNumRows()) {
-		throw ErrGeneric();
-	}
-
-	for (integer col = 0; col < NCols; col++) {
-		integer idx = Ap[col];
-		integer idxe = Ap[col+1];
-		for (; idx < idxe; idx++) {
-			doublereal d = Ax[idx]*in.dGetCoef(Ai[idx]+1);
-			out.IncCoef(Ai[idx]+1, d);
-		}
-	}
-	return out;
-}
-
-template <int off>
-VectorHandler&
-CColMatrixHandler<off>::MatTVecIncMul(VectorHandler& out,
-		const VectorHandler& in) const
-{
-	silent_cerr("CColMatrixHandler<off>::MatTVecMul called" << std::endl);
-	throw ErrGeneric();		
-	if (out.iGetSize() != iGetNumRows()
-			|| in.iGetSize() != iGetNumCols()) {
-		throw ErrGeneric();
-	}
-
-	for (integer col = 0; col < NCols; col++) {
-		doublereal d = 0.;
-		integer idx = Ap[col];
-		integer idxe = Ap[col+1];
-		for (; idx < idxe; idx++) {
-			d += Ax[idx]*in.dGetCoef(Ai[idx]+1);
-		}
-		out.IncCoef(col+1, d);
-	}
-	return out;
-}
-	
-template <int off>
-VectorHandler&
-CColMatrixHandler<off>::MatVecDecMul(VectorHandler& out,
-		const VectorHandler& in) const
-{
-	silent_cerr("CColMatrixHandler<off>::MatTVecMul called" << std::endl);
-	throw ErrGeneric();		
-	if (in.iGetSize() != iGetNumCols()
-			|| out.iGetSize() != iGetNumRows()) {
-		throw ErrGeneric();
-	}
-
-	for (integer col = 0; col < NCols; col++) {
-		integer idx = Ap[col];
-		integer idxe = Ap[col+1];
-		for (; idx < idxe; idx++) {
-			doublereal d = Ax[idx]*in.dGetCoef(Ai[idx]+1);
-			out.DecCoef(Ai[idx]+1, d);
-		}
-	}
-	return out;
-}
-
-template <int off>
-VectorHandler&
-CColMatrixHandler<off>::MatTVecDecMul(VectorHandler& out,
-		const VectorHandler& in) const
-{
-	silent_cerr("CColMatrixHandler<off>::MatTVecMul called" << std::endl);
-	throw ErrGeneric();		
-	if (out.iGetSize() != iGetNumRows()
-			|| in.iGetSize() != iGetNumCols()) {
-		throw ErrGeneric();
-	}
-
-	for (integer col = 0; col < NCols; col++) {
-		doublereal d = 0.;
-		integer idx = Ap[col];
-		integer idxe = Ap[col+1];
-		for (; idx < idxe; idx++) {
-			d += Ax[idx]*in.dGetCoef(Ai[idx]+1);
-		}
-		out.DecCoef(col+1, d);
-	}
-	return out;
-}
-	
 template class CColMatrixHandler<0>;
 template class CColMatrixHandler<1>;

@@ -231,14 +231,18 @@ public:
 	/* Estrae una colonna da una matrice */
 	VectorHandler& GetCol(integer icol, VectorHandler& out) const;
 	
-        /* Prodotto Matrice per Matrice */
-	MatrixHandler* MatMatMul(MatrixHandler* out,
-			const MatrixHandler& in) const;
-	
-        /* Prodotto Matrice per Matrice */
-	MatrixHandler* MatMatMulSum(MatrixHandler* out,
-			const MatrixHandler& in) const;
-	
+	/* Matrix Matrix product */
+protected:
+	MatrixHandler*
+	MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
+				const doublereal& dCoef),
+			MatrixHandler* out, const MatrixHandler& in) const;
+	MatrixHandler*
+	MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
+				const doublereal& dCoef),
+			MatrixHandler* out, const MatrixHandler& in) const;
+public:
+
         /* Moltiplica per uno scalare e somma a una matrice */
 	MatrixHandler& MulAndSumWithShift(MatrixHandler& out,
 			doublereal s = 1.,
@@ -248,23 +252,18 @@ public:
 			std::vector<bool> b, doublereal s = 1.,
 			integer drow = 0, integer dcol = 0) const;
 	
-	VectorHandler& MatVecMul(VectorHandler& out,
-			const VectorHandler& in) const;
+	/* Matrix Vector product */
+protected:
+	virtual VectorHandler&
+	MatVecMul_base(void (VectorHandler::*op)(integer iRow,
+				const doublereal& dCoef),
+			VectorHandler& out, const VectorHandler& in) const;
+	virtual VectorHandler&
+	MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
+				const doublereal& dCoef),
+			VectorHandler& out, const VectorHandler& in) const;
 
-	VectorHandler& MatTVecMul(VectorHandler& out,
-			const VectorHandler& in) const;
-	
-	VectorHandler& MatVecIncMul(VectorHandler& out,
-			const VectorHandler& in) const;
-
-	VectorHandler& MatTVecIncMul(VectorHandler& out,
-			const VectorHandler& in) const;
-	
-	VectorHandler& MatVecDecMul(VectorHandler& out,
-			const VectorHandler& in) const;
-	
-	VectorHandler& MatTVecDecMul(VectorHandler& out,
-			const VectorHandler& in) const;
+public:
 };
 
 #endif /* SpMapMatrixHandler_hh */

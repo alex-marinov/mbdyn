@@ -106,8 +106,102 @@ MatrixHandler::ScalarMul(const doublereal& d)
 	return *this;
 }
 
+/* Matrix Matrix product */
+MatrixHandler*
+MatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow, 
+			integer iCol, const doublereal& dCoef),
+		MatrixHandler* out, const MatrixHandler& in) const
+{
+	if (out->iGetNumRows() != iGetNumRows()
+			|| out->iGetNumCols() != in.iGetNumCols()
+			|| in.iGetNumRows() != iGetNumCols())
+	{
+		throw ErrGeneric();
+	}
+
+	for (integer c = 1; c <= out->iGetNumCols(); c++) {
+		for (integer r = 1; r <= out->iGetNumRows(); r++) {
+			doublereal d = 0.;
+
+			for (integer k = 1; k <= in.iGetNumRows(); k++) {
+				d += dGetCoef(r, k)*in(k, c);
+			}
+
+			(out->*op)(r, c, d);
+		}
+	}
+
+	return out;
+}
+
+MatrixHandler*
+MatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, 
+			integer iCol, const doublereal& dCoef),
+		MatrixHandler* out, const MatrixHandler& in) const
+{
+	if (out->iGetNumRows() != iGetNumCols()
+			|| out->iGetNumCols() != in.iGetNumCols()
+			|| in.iGetNumRows() != iGetNumRows())
+	{
+		throw ErrGeneric();
+	}
+
+	for (integer c = 1; c <= out->iGetNumCols(); c++) {
+		for (integer r = 1; r <= out->iGetNumRows(); r++) {
+			doublereal d = 0.;
+
+			for (integer k = 1; k <= in.iGetNumRows(); k++) {
+				d += dGetCoef(k, r)*in(k, c);
+			}
+
+			(out->*op)(r, c, d);
+		}
+	}
+
+	return out;
+}
+
+MatrixHandler*
+MatrixHandler::MatMatMul(MatrixHandler* out, const MatrixHandler& in) const
+{
+	return MatMatMul_base(&MatrixHandler::PutCoef, out, in);
+}
+
+MatrixHandler*
+MatrixHandler::MatTMatMul(MatrixHandler* out, const MatrixHandler& in) const
+{
+	return MatTMatMul_base(&MatrixHandler::PutCoef, out, in);
+}
+
+MatrixHandler*
+MatrixHandler::MatMatIncMul(MatrixHandler* out, const MatrixHandler& in) const
+{
+	return MatMatMul_base(&MatrixHandler::IncCoef, out, in);
+}
+
+MatrixHandler*
+MatrixHandler::MatTMatIncMul(MatrixHandler* out, const MatrixHandler& in) const
+{
+	return MatTMatMul_base(&MatrixHandler::IncCoef, out, in);
+}
+
+MatrixHandler*
+MatrixHandler::MatMatDecMul(MatrixHandler* out, const MatrixHandler& in) const
+{
+	return MatMatMul_base(&MatrixHandler::DecCoef, out, in);
+}
+
+MatrixHandler*
+MatrixHandler::MatTMatDecMul(MatrixHandler* out, const MatrixHandler& in) const
+{
+	return MatTMatMul_base(&MatrixHandler::DecCoef, out, in);
+}
+
+/* Matrix Vector product */
 VectorHandler&
-MatrixHandler::MatVecMul(VectorHandler& out, const VectorHandler& in) const
+MatrixHandler::MatVecMul_base(void (VectorHandler::*op)(integer iRow,
+			const doublereal& dCoef),
+		VectorHandler& out, const VectorHandler& in) const
 {
 	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols()) {
@@ -118,129 +212,92 @@ MatrixHandler::MatVecMul(VectorHandler& out, const VectorHandler& in) const
 		doublereal d = 0.;
 
 		for (integer c = 1; c <= in.iGetSize(); c++) {
-			d += this->operator()(r, c)*in(c);
+			d += dGetCoef(r, c)*in(c);
 		}
-		out(r) = d;
+		(out.*op)(r, d);
 	}
 
 	return out;
+
+}
+
+VectorHandler&
+MatrixHandler::MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
+			const doublereal& dCoef),
+		VectorHandler& out, const VectorHandler& in) const
+{
+	if (out.iGetSize() != iGetNumCols()
+			|| in.iGetSize() != iGetNumRows()) {
+		throw ErrGeneric();
+	}
+
+	for (integer r = 1; r <= iGetNumCols(); r++) {
+		doublereal d = 0.;
+
+		for (integer c = 1; c <= in.iGetSize(); c++) {
+			d += dGetCoef(c, r)*in(c);
+		}
+		(out.*op)(r, d);
+	}
+
+	return out;
+}
+
+VectorHandler&
+MatrixHandler::MatVecMul(VectorHandler& out, const VectorHandler& in) const
+{
+	return MatVecMul_base(&VectorHandler::PutCoef, out, in);
 }
 
 VectorHandler&
 MatrixHandler::MatTVecMul(VectorHandler& out, const VectorHandler& in) const
 {
-	if (out.iGetSize() != iGetNumCols()
-			|| in.iGetSize() != iGetNumRows()) {
-		throw ErrGeneric();
-	}
-
-	for (integer r = 1; r <= iGetNumCols(); r++) {
-		doublereal d = 0.;
-
-		for (integer c = 1; c <= in.iGetSize(); c++) {
-			d += this->operator()(c, r)*in(c);
-		}
-		out(r) = d;
-	}
-	return out;
+	return MatTVecMul_base(&VectorHandler::PutCoef, out, in);
 }
 
 VectorHandler&
 MatrixHandler::MatVecIncMul(VectorHandler& out, const VectorHandler& in) const
 {
-	if (out.iGetSize() != iGetNumRows()
-			|| in.iGetSize() != iGetNumCols()) {
-		throw ErrGeneric();
-	}
-
-	for (integer r = 1; r <= iGetNumRows(); r++) {
-		doublereal d = 0.;
-
-		for (integer c = 1; c <= in.iGetSize(); c++) {
-			d += this->operator()(r, c)*in(c);
-		}
-		out(r) += d;
-	}
-	return out;
+	return MatVecMul_base(&VectorHandler::IncCoef, out, in);
 }
 
 VectorHandler&
 MatrixHandler::MatTVecIncMul(VectorHandler& out, const VectorHandler& in) const
 {
-	if (out.iGetSize() != iGetNumCols()
-			|| in.iGetSize() != iGetNumRows()) {
-		throw ErrGeneric();
-	}
-
-	for (integer r = 1; r <= iGetNumCols(); r++) {
-		doublereal d = 0.;
-
-		for (integer c = 1; c <= in.iGetSize(); c++) {
-			d += this->operator()(c, r)*in(c);
-		}
-		out(r) += d;
-	}
-	return out;
+	return MatTVecMul_base(&VectorHandler::IncCoef, out, in);
 }
 
 VectorHandler&
 MatrixHandler::MatVecDecMul(VectorHandler& out, const VectorHandler& in) const
 {
-	if (out.iGetSize() != iGetNumRows()
-			|| in.iGetSize() != iGetNumCols()) {
-		throw ErrGeneric();
-	}
-
-	for (integer r = 1; r <= iGetNumRows(); r++) {
-		doublereal d = 0.;
-
-		for (integer c = 1; c <= in.iGetSize(); c++) {
-			d += this->operator()(r, c)*in(c);
-		}
-		out(r) -= d;
-	}
-	return out;
+	return MatVecMul_base(&VectorHandler::DecCoef, out, in);
 }
 
 VectorHandler&
 MatrixHandler::MatTVecDecMul(VectorHandler& out, const VectorHandler& in) const
 {
-	if (out.iGetSize() != iGetNumCols()
-			|| in.iGetSize() != iGetNumRows()) {
-		throw ErrGeneric();
-	}
-
-	for (integer r = 1; r <= iGetNumCols(); r++) {
-		doublereal d = 0.;
-
-		for (integer c = 1; c <= in.iGetSize(); c++) {
-			d += this->operator()(c, r)*in(c);
-		}
-		out(r) -= d;
-	}
-	return out;
+	return MatTVecMul_base(&VectorHandler::DecCoef, out, in);
 }
 
 void 
 MatrixHandler::IncCoef(integer ix, integer iy, const doublereal& inc) {
-	operator()(ix,iy) += inc;
-};
+	operator()(ix, iy) += inc;
+}
 
 void 
 MatrixHandler::DecCoef(integer ix, integer iy, const doublereal& inc) {
-	operator()(ix,iy) -= inc;
-};
+	operator()(ix, iy) -= inc;
+}
 
 void 
 MatrixHandler::PutCoef(integer ix, integer iy, const doublereal& val) {
-	operator()(ix,iy) = val;
-};
+	operator()(ix, iy) = val;
+}
 
 const doublereal& 
 MatrixHandler::dGetCoef(integer ix, integer iy) const {
 	return operator()(ix, iy);
-};
-
+}
 
 std::ostream&
 operator << (std::ostream& out, const MatrixHandler& MH)
