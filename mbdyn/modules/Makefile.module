@@ -1,0 +1,12 @@
+.PHONY: all clean
+
+all: $(MBDYN_MODULE).so
+
+$(MBDYN_MODULE).so: $(MBDYN_MODULE).o
+	$(CXXLINK) -o $@ $<
+
+.cc.o:
+	$(LTCXXCOMPILE) -c $<
+
+clean:
+	-rm -f *.o core
