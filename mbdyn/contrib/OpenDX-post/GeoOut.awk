@@ -55,7 +55,7 @@ function print_preamble() {
 
 # Prints the objects at one step
 function print_step() {
-	t = Start+Step*Skip*Incr;
+	t = Start + Step*Skip*Incr;
 	printf("# Step%f\n", t);
 	printf("object \"TriadPositions%f\" class array type float rank 1 shape 3 items %d data follows\n", t, strnode_num);
 	for (i = 0; i < strnode_num; i++) {
@@ -93,7 +93,7 @@ function print_members() {
 	printf("# Series\n");
 	printf("object \"series\" class series\n");
 	for (i = 0; i <= Step; i++) {
-		t = Start+i*Skip*Incr;
+		t = Start + i*Skip*Incr;
 		printf("member %d position %f value \"MBDynSym%f\"\n", i, t, t);
 	}
 	printf("end\n");
@@ -147,6 +147,7 @@ BEGIN {
 	beam3_num = 0;
 
 	Preamble = 1;
+	Node = 0;
 }
 
 # End of preamble 
@@ -242,7 +243,6 @@ BEGIN {
 {
 	if (!Preamble) {
 		if ($1 == FirstLabel) {
-			Node = 0;
 			if (FirstStep) {
 				FirstStep = 0;
 			}
@@ -265,11 +265,9 @@ BEGIN {
 		}
 
 		if (!skip_node_label($1)) {
-			Node++;
-	
-			strnode_pos[Node,1] = $2;
-			strnode_pos[Node,2] = $3;
-			strnode_pos[Node,3] = $4;
+			strnode_pos[$1, 1] = $2;
+			strnode_pos[$1, 2] = $3;
+			strnode_pos[$1, 3] = $4;
 	
 			dCosAlpha = cos($5*AngleScale);
 			dSinAlpha = sin($5*AngleScale);
@@ -277,15 +275,15 @@ BEGIN {
 			dSinBeta = sin($6*AngleScale);
 			dCosGamma = cos($7*AngleScale);
 			dSinGamma = sin($7*AngleScale);
-			strnode_cos[Node,1] = dCosBeta*dCosGamma;
-			strnode_cos[Node,2] = dCosAlpha*dSinGamma+dSinAlpha*dSinBeta*dCosGamma;
-			strnode_cos[Node,3] = dSinAlpha*dSinGamma-dCosAlpha*dSinBeta*dCosGamma;
-			strnode_cos[Node,4] = -dCosBeta*dSinGamma;
-			strnode_cos[Node,5] = dCosAlpha*dCosGamma-dSinAlpha*dSinBeta*dSinGamma;
-			strnode_cos[Node,6] = dSinAlpha*dCosGamma+dCosAlpha*dSinBeta*dSinGamma;
-			strnode_cos[Node,7] = dSinBeta;
-			strnode_cos[Node,8] = -dSinAlpha*dCosBeta;
-			strnode_cos[Node,9] = dCosAlpha*dCosBeta;
+			strnode_cos[$1, 1] = dCosBeta*dCosGamma;
+			strnode_cos[$1, 2] = dCosAlpha*dSinGamma+dSinAlpha*dSinBeta*dCosGamma;
+			strnode_cos[$1, 3] = dSinAlpha*dSinGamma-dCosAlpha*dSinBeta*dCosGamma;
+			strnode_cos[$1, 4] = -dCosBeta*dSinGamma;
+			strnode_cos[$1, 5] = dCosAlpha*dCosGamma-dSinAlpha*dSinBeta*dSinGamma;
+			strnode_cos[$1, 6] = dSinAlpha*dCosGamma+dCosAlpha*dSinBeta*dSinGamma;
+			strnode_cos[$1, 7] = dSinBeta;
+			strnode_cos[$1, 8] = -dSinAlpha*dCosBeta;
+			strnode_cos[$1, 9] = dCosAlpha*dCosBeta;
 		}
 	}
 }
