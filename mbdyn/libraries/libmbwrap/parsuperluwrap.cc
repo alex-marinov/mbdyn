@@ -76,12 +76,14 @@ struct SuperLUSolverData {
 /* SuperLUSolver - begin */
 
 /* Costruttore: si limita ad allocare la memoria */
-SuperLUSolver::SuperLUSolver(unsigned nt, integer iMatOrd)
+SuperLUSolver::SuperLUSolver(unsigned nt, integer iMatOrd,
+		const doublereal &dPivot)
 : Aip(0),
 App(0),
 Axp(0),
 iN(iMatOrd),
 iNonZeroes(0),
+dPivotFactor(dPivot),
 bFirstSol(true),
 bRegenerateMatrix(true),
 sld(0),
@@ -243,7 +245,7 @@ SuperLUSolver::Factor(void)
 
 	yes_no_t	refact = YES,
 			usepr = NO;
-	doublereal	u = 1.0,
+	doublereal	u = dPivotFactor,
 			drop_tol = 0.0;
 	void		*work = NULL;
 	int		info = 0, lwork = 0;
@@ -441,17 +443,9 @@ VH(iSize, &xb[0])
    	ASSERT(iSize > 0);
    	ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
 
-
-	integer iPivot;
-	if (dPivotFactor == 0.) {
-		iPivot = 0;
-	} else {
-		iPivot = 1;
-	}
-
    	SAFENEWWITHCONSTRUCTOR(SolutionManager::pLS, 
 			       SuperLUSolver,
-			       SuperLUSolver(nt, iMatSize));
+			       SuperLUSolver(nt, iMatSize, dPivotFactor));
    
 	pLS->ChangeResPoint(&(xb[0]));
 	pLS->ChangeSolPoint(&(xb[0]));

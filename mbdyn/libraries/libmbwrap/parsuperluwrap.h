@@ -75,6 +75,8 @@ private:
 	mutable integer iN;     	/* ordine della matrice */
 	mutable integer iNonZeroes;
 
+	doublereal dPivotFactor;
+
 	mutable bool bFirstSol;		/* true se prima backsubst */
 	mutable bool bRegenerateMatrix;	/* true se prima backsubst */
 
@@ -110,7 +112,7 @@ private:
 
 public:
 	/* Costruttore: si limita ad allocare la memoria */
-	SuperLUSolver(unsigned nt, integer iMatOrd);
+	SuperLUSolver(unsigned nt, integer iMatOrd, const doublereal &dPivot);
 
 	/* Distruttore */
 	~SuperLUSolver(void);
