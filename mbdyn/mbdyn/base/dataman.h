@@ -579,7 +579,7 @@ public:
 
 
 extern DriveCaller *
-ReadDriveData(const DataManager* pDM, MBDynParser& HP, const DriveHandler* pDH);
+ReadDriveData(const DataManager* pDM, MBDynParser& HP);
 extern ScalarDof
 ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder);
 

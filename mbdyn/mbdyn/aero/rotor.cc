@@ -2004,10 +2004,9 @@ ReadRotor(DataManager* pDM,
 			 * provare il "Dynamic Inflow".
 			 */
 	      		if (HP.IsKeyWord("weight") || HP.IsKeyWord("delay")) {
-		   		pdW = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+		   		pdW = HP.GetDriveCaller();
 	      		} else {
-		   		SAFENEWWITHCONSTRUCTOR(pdW, NullDriveCaller,
-		   				NullDriveCaller(NULL));
+		   		SAFENEW(pdW, NullDriveCaller);
 	      		}
 	 	}
 

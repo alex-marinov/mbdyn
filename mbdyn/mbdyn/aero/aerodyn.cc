@@ -454,7 +454,7 @@ ReadAirstreamData(DataManager *pDM, MBDynParser& HP,
 	ASSERT(pG == NULL);
 
 	/* Driver multiplo */
-     	pDC = ReadTplDrive(pDM, HP, pDM->pGetDrvHdl(), Vec3(0.));
+     	pDC = ReadTplDrive(pDM, HP, Vec3(0.));
 	if (HP.IsKeyWord("gust")) {
 		if (HP.IsKeyWord("front1d")) {
 			/* front direction */
@@ -473,8 +473,7 @@ ReadAirstreamData(DataManager *pDM, MBDynParser& HP,
 					TimeDriveCaller(pDM->pGetDrvHdl()));
 
 			/* gust profile drive caller */
-			DriveCaller *pP = ReadDriveData(pDM, HP,
-					pDM->pGetDrvHdl());
+			DriveCaller *pP = HP.GetDriveCaller();
 
 			/* gust */
 			SAFENEWWITHCONSTRUCTOR(pG, Gust1D,
@@ -540,7 +539,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 				throw ErrGeneric();
 			}
 
-			RhoRef = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+			RhoRef = HP.GetDriveCaller();
 			/* FIXME: we need to do runtime checks ... */
 
 			TRef = HP.GetReal();
@@ -645,7 +644,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 		/* Legacy: density and sound celerity at one altitude;
 		 * no altitude dependency */
 		
-		DriveCaller *pRho = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+		DriveCaller *pRho = HP.GetDriveCaller();
 
 	     	doublereal dSS = HP.GetReal();
 	     	DEBUGLCOUT(MYDEBUG_INPUT, "Sound speed: " << dSS << std::endl);

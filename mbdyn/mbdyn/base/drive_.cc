@@ -879,12 +879,16 @@ std::ostream& DriveArrayCaller::Restart(std::ostream& out) const
 
 /* Legge i dati dei drivers built-in */
 
-DriveCaller* ReadDriveData(const DataManager* pDM,
-			   MBDynParser& HP, 
-			   const DriveHandler* pDrvHdl)
+DriveCaller *
+ReadDriveData(const DataManager* pDM, MBDynParser& HP)
 {
    DEBUGCOUTFNAME("ReadDriveData()");
    
+   const DriveHandler* pDrvHdl = 0;
+   if (pDM != 0) {
+      pDrvHdl = pDM->pGetDrvHdl();
+   }
+
    const char* sKeyWords[] = {
       "time",
 	"null",
@@ -976,7 +980,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       /* driver nullo */
     case NULLDRIVE: {
        /* allocazione e creazione */
-        SAFENEWWITHCONSTRUCTOR(pDC, NullDriveCaller, NullDriveCaller(pDrvHdl));
+        SAFENEW(pDC, NullDriveCaller);
       
        /* scrittura dei dati specifici */	     
        
@@ -1002,7 +1006,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 
        /* allocazione e creazione */
        if (dConst == 0.) {
-          SAFENEWWITHCONSTRUCTOR(pDC, NullDriveCaller, NullDriveCaller(pDrvHdl));
+          SAFENEW(pDC, NullDriveCaller);
        } else if (dConst == 1.) {
           SAFENEWWITHCONSTRUCTOR(pDC, OneDriveCaller, OneDriveCaller(pDrvHdl));
       
@@ -1281,10 +1285,12 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        doublereal dInitialTime = HP.GetReal();
        DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
        
-       DriveCaller* pOmega = ReadDriveData(pDM, HP, pDrvHdl);
+       DriveCaller* pOmega = 0;
+       pOmega = HP.GetDriveCaller();
        // DEBUGCOUT("Omega: " << dOmega << std::endl);
        
-       DriveCaller* pAmplitude = ReadDriveData(pDM, HP, pDrvHdl);
+       DriveCaller* pAmplitude = 0;
+       pAmplitude = HP.GetDriveCaller();
        // DEBUGCOUT("Amplitude: " << dAmplitude << std::endl);
        
        doublereal dInitialValue = HP.GetReal();	   
@@ -1451,7 +1457,8 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 #endif /* USE_MPI */
        
        /* Chiamata ricorsiva a leggere il drive supplementare */
-       DriveCaller* pTmp = ReadDriveData(pDM, HP, pDrvHdl);
+       DriveCaller* pTmp = 0;
+       pTmp = HP.GetDriveCaller();
        
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pDC,
@@ -1520,7 +1527,8 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 #endif /* USE_MPI */
        
        /* Chiamata ricorsiva a leggere il drive supplementare */
-       DriveCaller* pTmp = ReadDriveData(pDM, HP, pDrvHdl);
+       DriveCaller* pTmp = 0;
+       pTmp = HP.GetDriveCaller();
        
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pDC,
@@ -1542,13 +1550,13 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	  throw ErrGeneric();
        } else if (iNumDr == 1) {
 	  /* creazione di un driver normale mediante chiamata ricorsiva */
-	  pDC = ReadDriveData(pDM, HP, pDrvHdl);
+	  pDC = HP.GetDriveCaller();
 	  // HP.PutKeyTable(K);
        } else {
 	  DriveCaller** ppDC = NULL;
 	  SAFENEWARR(ppDC, DriveCaller*, iNumDr);
 	  for (int i = 0; i < iNumDr; i++) {
-	     ppDC[i] = ReadDriveData(pDM, HP, pDrvHdl);
+	     ppDC[i] = HP.GetDriveCaller();
 	  }
 	  // HP.PutKeyTable(K);
 	  

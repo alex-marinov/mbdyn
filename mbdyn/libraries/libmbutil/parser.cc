@@ -340,7 +340,7 @@ HighParser::IsDescription(void)
 
 
 int
-HighParser::iGetDescription_(const char* const s)
+HighParser::iGetDescription_int(const char* const s)
 {
 	int i = -1;
 	
@@ -349,7 +349,7 @@ HighParser::iGetDescription_(const char* const s)
 	}
 
      	if (FirstToken() == HighParser::UNKNOWN) {
-		silent_cerr("Parser error in HighParser::iGetDescription_(), "
+		silent_cerr("Parser error in HighParser::iGetDescription_int(), "
 			"semicolon expected at line "
 			<< GetLineData() << std::endl);
 	  	throw HighParser::ErrSemicolonExpected();
@@ -360,10 +360,10 @@ HighParser::iGetDescription_(const char* const s)
 
 
 void
-HighParser::Set_(void)
+HighParser::Set_int(void)
 {
      	if (FirstToken() == UNKNOWN) {
-     		silent_cerr("Parser error in HighParser::Set_(), "
+     		silent_cerr("Parser error in HighParser::Set_int(), "
      			"colon expected at line "
      			<< GetLineData() << std::endl);
      		throw HighParser::ErrColonExpected();
@@ -373,10 +373,10 @@ HighParser::Set_(void)
 }
 
 void
-HighParser::SetEnv_(void)
+HighParser::SetEnv_int(void)
 {
      	if (FirstToken() == UNKNOWN) {
-     		silent_cerr("Parser error in HighParser::SetEnv_(), "
+     		silent_cerr("Parser error in HighParser::SetEnv_int(), "
      			"colon expected at line "
      			<< GetLineData() << std::endl);
      		throw HighParser::ErrColonExpected();
@@ -434,10 +434,10 @@ HighParser::SetEnv_(void)
 }
 
 void
-HighParser::Remark_(void)
+HighParser::Remark_int(void)
 {
 	if (FirstToken() == UNKNOWN) {
-		silent_cerr("Parser error in MBDynParser::Remark_(),"
+		silent_cerr("Parser error in MBDynParser::Remark_int(),"
 			" colon expected at line "
 			<< GetLineData() << std::endl);
 		throw HighParser::ErrColonExpected();
@@ -496,7 +496,7 @@ restart_parsing:;
 		goto restart_parsing;
 	}
 
-	return iGetDescription_(s);
+	return iGetDescription_int(s);
 }
 
 
@@ -508,12 +508,12 @@ HighParser::GetDescription_int(const char *s)
 {
 	/* calls the MathParser */
 	if (strcmp(s, "set") == 0) {
-		Set_();
+		Set_int();
 		return true;
 
 	/* sets environment variable */
 	} else if (strcmp(s, "setenv") == 0) {
-		SetEnv_();
+		SetEnv_int();
 		return true;
 
 	/* exits with no error */

@@ -194,10 +194,10 @@ IncludeParser::fCheckStack(void)
 }
 
 void 
-IncludeParser::Include_()
+IncludeParser::Include_int()
 {
    	if (FirstToken() == UNKNOWN) {
-		std::cerr << "Parser error in IncludeParser::Include_(),"
+		std::cerr << "Parser error in IncludeParser::Include_int(),"
 			" colon expected at line " << GetLineData() 
 			<< std::endl;
       		throw HighParser::ErrColonExpected();
@@ -304,14 +304,14 @@ bool
 IncludeParser::GetDescription_int(const char *s)
 {
    	if (!strcmp(s, "include")) {
-      		Include_();
+      		Include_int();
       		return true;
 
 #ifdef USE_INCLUDE_PARSER
 	} else if (!strcmp(s, "chdir")) {
   	 	if (FirstToken() == UNKNOWN) {
 			std::cerr << "Parser error "
-				"in IncludeParser::Include_(), "
+				"in IncludeParser::Include_int(), "
 				"colon expected at line " << GetLineData() 
 				<< std::endl;
       			throw HighParser::ErrColonExpected();

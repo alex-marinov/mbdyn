@@ -136,14 +136,14 @@ PersistentExcitation* ReadPX(DataManager* pDM, MBDynParser& HP, integer iNumInpu
    
    if (HP.IsKeyWord("excitation")) {
       if (iNumInputs == 1) {
-	 DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+	 DriveCaller* pDC = HP.GetDriveCaller();
 	 SAFENEWWITHCONSTRUCTOR(pPX, ScalarPX, ScalarPX(pDC));
       } else {
 	 DriveCaller** ppDC = NULL;
 	 SAFENEWARR(ppDC, DriveCaller*, iNumInputs);
 	 
 	 for (integer i = iNumInputs; i-- > 0; ) {
-	    ppDC[i] = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());	    
+	    ppDC[i] = HP.GetDriveCaller();
 	 }
 	 SAFENEWWITHCONSTRUCTOR(pPX, VectorPX, VectorPX(iNumInputs, ppDC));
       }
@@ -585,7 +585,7 @@ Elem* ReadElectric(DataManager* pDM,
 	      }
 	      
 	      DEBUGCOUT("Weight Drive:" << std::endl);
-	      DriveCaller* pLambda = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+	      DriveCaller* pLambda = HP.GetDriveCaller();
 	      
 	      SAFENEWWITHCONSTRUCTOR(pCD,
 				     GPC,
@@ -620,7 +620,7 @@ Elem* ReadElectric(DataManager* pDM,
 	   DriveCaller* pTrig = NULL;
 	   if (HP.IsKeyWord("trigger")) {	      
 	      DEBUGCOUT("Trigger:" << std::endl);
-	      pTrig = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+	      pTrig = HP.GetDriveCaller();
 	   } else {
 	      SAFENEWWITHCONSTRUCTOR(pTrig, 
 				     OneDriveCaller,
@@ -635,7 +635,7 @@ Elem* ReadElectric(DataManager* pDM,
 	      
 	      for (integer i = 0; i < iNumOutputs; i++) {
 		 DEBUGCOUT("output[" << i+1 << "]:" << std::endl);
-		 pvDesiredOut[i] = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+		 pvDesiredOut[i] = HP.GetDriveCaller();
 	      }
 	   }
 	   	   
@@ -694,7 +694,7 @@ Elem* ReadElectric(DataManager* pDM,
        for (int i = 0; i < iNumOutputs; i++) {
 	  pOutputs[i] = ReadScalarDof(pDM, HP, 1);
 	  if (HP.IsKeyWord("scale")) {
-	     ppOutScaleFact[i] = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+	     ppOutScaleFact[i] = HP.GetDriveCaller();
 	  } else {
 	     ppOutScaleFact[i] = NULL;
 	     SAFENEWWITHCONSTRUCTOR(ppOutScaleFact[i], 

@@ -154,7 +154,7 @@ protected:
 	
 	Frame GetRef(ReferenceFrame& rf);
 	
-	void Reference_(void);
+	void Reference_int(void);
 #endif /* USE_STRUCT_NODES */
  
 	/* Struttura e dati per la linked list di hydraulic fluids */
@@ -162,7 +162,7 @@ protected:
 	HardDestructor<HydraulicFluid> HFHD;
 	MyLList<HydraulicFluid> HF;
 	
-	void HydraulicFluid_(void);
+	void HydraulicFluid_int(void);
 #endif /* USE_HYDRAULIC_NODES */
  
 	/* Struttura e dati per la linked list di c81 data */
@@ -170,10 +170,8 @@ protected:
 	HardDestructor<C81Data> ADHD;
 	MyLList<C81Data> AD;
 	
-	void C81Data_(void);
+	void C81Data_int(void);
 #endif /* USE_AERODYNAMIC_ELEMS */
-
-	void ConstitutiveLaw_(void);
 	
 	HardDestructor<ConstitutiveLaw1D> C1DHD;
 	MyLList<ConstitutiveLaw1D> C1D;
@@ -181,6 +179,14 @@ protected:
 	MyLList<ConstitutiveLaw3D> C3D;
 	HardDestructor<ConstitutiveLaw6D> C6DHD;
 	MyLList<ConstitutiveLaw6D> C6D;
+
+	void ConstitutiveLaw_int(void);
+
+	/* Drives */
+	HardDestructor<DriveCaller> DCHD;
+	MyLList<DriveCaller> DC;
+
+	void DriveCaller_int(void);
 
 	/* Legge una parola chiave */
 	bool GetDescription_int(const char *s);
@@ -227,6 +233,7 @@ public:
 	ConstitutiveLaw1D* GetConstLaw1D(ConstLawType::Type& clt);
 	ConstitutiveLaw3D* GetConstLaw3D(ConstLawType::Type& clt);
 	ConstitutiveLaw6D* GetConstLaw6D(ConstLawType::Type& clt);
+	DriveCaller *MBDynParser::GetDriveCaller(void);
 };
 
 /*

@@ -266,7 +266,7 @@ Elem* ReadJoint(DataManager* pDM,
 				 ConstDriveCaller,
 				 ConstDriveCaller(pDM->pGetDrvHdl(), l));
        } else {
-	  pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+	  pDC = HP.GetDriveCaller();
        }
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
@@ -360,7 +360,7 @@ Elem* ReadJoint(DataManager* pDM,
 				 ConstDriveCaller, 
 				 ConstDriveCaller(pDM->pGetDrvHdl(), l));
        } else {
-	  pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+	  pDC = HP.GetDriveCaller();
        }
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
@@ -615,7 +615,7 @@ Elem* ReadJoint(DataManager* pDM,
        
        DriveCaller* pDC = NULL;
        if (CurrKeyWord == AXIALROTATION) {
-	  pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+	  pDC = HP.GetDriveCaller();
        }	   
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
@@ -679,7 +679,7 @@ Elem* ReadJoint(DataManager* pDM,
 	   Vec3 Dir(0.);
 #endif
 	   
-	   DriveCaller *pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+	   DriveCaller *pDC = HP.GetDriveCaller();
 	   
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  Brake,
@@ -1349,7 +1349,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  throw ErrGeneric();
        }	     
        
-       DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+       DriveCaller* pDC = HP.GetDriveCaller();
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
@@ -1394,7 +1394,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  throw ErrGeneric();
        }	     
        
-       DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+       DriveCaller* pDC = HP.GetDriveCaller();
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
@@ -1483,8 +1483,7 @@ Elem* ReadJoint(DataManager* pDM,
        }
        
 
-       TplDriveCaller<Vec3>* pDC 
-	 = ReadTplDrive(pDM, HP, pDM->pGetDrvHdl(), Vec3(0.));
+       TplDriveCaller<Vec3>* pDC = ReadTplDrive(pDM, HP, Vec3(0.));
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
@@ -1503,7 +1502,7 @@ Elem* ReadJoint(DataManager* pDM,
        /* nodo collegato */
        StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
-       DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+       DriveCaller* pDC = HP.GetDriveCaller();
        
        Kinematics* pK = NULL;
        SAFENEWWITHCONSTRUCTOR(pK, KinematicsTest, KinematicsTest(pDC));

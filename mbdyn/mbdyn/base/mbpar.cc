@@ -86,6 +86,8 @@ C3DHD(),
 C3D(C3DHD),
 C6DHD(),
 C6D(C6DHD),
+DCHD(),
+DC(DCHD),
 pDM(0)
 {
 	NO_OP;
@@ -115,10 +117,10 @@ const ReferenceFrame AbsRefFrame(0,
 
 
 void 
-MBDynParser::Reference_(void)
+MBDynParser::Reference_int(void)
 {
 	if (FirstToken() == UNKNOWN) {
-		std::cerr << "Parser error in MBDynParser::Reference_(),"
+		std::cerr << "Parser error in MBDynParser::Reference_int(),"
 			" colon expected at line " 
 			<< GetLineData() << std::endl;
 		throw HighParser::ErrColonExpected();
@@ -170,10 +172,10 @@ MBDynParser::Reference_(void)
 
 #if defined(USE_HYDRAULIC_NODES)
 void 
-MBDynParser::HydraulicFluid_(void)
+MBDynParser::HydraulicFluid_int(void)
 {
 	if (FirstToken() == UNKNOWN) {
-		std::cerr << "Parser error in MBDynParser::HydraulicFluid_(),"
+		std::cerr << "Parser error in MBDynParser::HydraulicFluid_int(),"
 			" colon expected at line "
 			<< GetLineData() << std::endl;
 		throw HighParser::ErrColonExpected();
@@ -210,10 +212,10 @@ MBDynParser::HydraulicFluid_(void)
 
 #if defined(USE_AERODYNAMIC_ELEMS)
 void 
-MBDynParser::C81Data_(void)
+MBDynParser::C81Data_int(void)
 {
 	if (FirstToken() == UNKNOWN) {
-		std::cerr << "Parser error in MBDynParser::C81Data_(),"
+		std::cerr << "Parser error in MBDynParser::C81Data_int(),"
 			" colon expected at line " << GetLineData() << std::endl;
 		throw HighParser::ErrColonExpected();
 	}
@@ -269,20 +271,20 @@ MBDynParser::C81Data_(void)
 #endif /* USE_AERODYNAMIC_ELEMS */
 
 void 
-MBDynParser::ConstitutiveLaw_(void)
+MBDynParser::ConstitutiveLaw_int(void)
 {
 	if (FirstToken() == UNKNOWN) {
-		std::cerr << "Parser error in MBDynParser::ConstitutiveLaw_(),"
+		std::cerr << "Parser error in MBDynParser::ConstitutiveLaw_int(),"
 			" colon expected at line "
 			<< GetLineData() << std::endl;
 		throw HighParser::ErrColonExpected();
 	}
 
 	if (pDM == 0) {
-		silent_cerr("consitutive law parsing at line "
+		silent_cerr("constitutive law parsing at line "
 				<< GetLineData() << " allowed "
 				"only after control data block" << std::endl);
-		throw HighParser::ErrColonExpected();
+		throw MBDynParser::ErrGeneric();
 	}
 	
 	unsigned int uLabel(GetInt());
@@ -401,19 +403,70 @@ MBDynParser::ConstitutiveLaw_(void)
 		SAFEDELETEARR(sName);
 	}
 }
+
+void 
+MBDynParser::DriveCaller_int(void)
+{
+	if (FirstToken() == UNKNOWN) {
+		std::cerr << "Parser error in MBDynParser::DriveCaller_int(), "
+			" colon expected at line "
+			<< GetLineData() << std::endl;
+		throw HighParser::ErrColonExpected();
+	}
+
+	unsigned int uLabel(GetInt());
+	
+	/* drive name */
+	const char *sName = NULL;
+	if (IsKeyWord("name")) {
+		const char *sTmp = GetStringWithDelims();
+		SAFESTRDUP(sName, sTmp);
+	}
+
+	DriveCaller *pDC = ReadDriveData(pDM, *this);
+	if (pDC == NULL) {
+		silent_cerr("unable to read drive caller " << uLabel);
+		if (sName) {
+			silent_cerr(" (" << sName << ")");
+		}
+		silent_cerr(" at line " << GetLineData()
+				<< std::endl);
+		throw MBDynParser::ErrGeneric();
+	}
+
+	pDC->PutLabel(uLabel);
+	if (sName) {
+		pDC->PutName(sName);
+	}
+	
+	if (DC.Add(pDC)) {
+		silent_cerr("drive caller " << uLabel);
+		if (sName) {
+			silent_cerr(" (" << sName << ")");
+		}
+		silent_cerr(" already defined at line " 
+				<< GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric();
+	}
+
+	if (sName) {
+		SAFEDELETEARR(sName);
+	}
+}
+
 bool
 MBDynParser::GetDescription_int(const char *s)
 {
 	/* Se trova un remark, scrive il commento ed eventualmente
 	 * quello che segue */
 	if (!strcmp(s, "remark")) {
-		Remark_();
+		Remark_int();
 		return true;
 
 	/* Se trova un sistema di riferimento, lo gestisce direttamente */
 	} else if (!strcmp(s, "reference")) {
 #if defined(USE_STRUCT_NODES)      
-		Reference_();
+		Reference_int();
 		return true;
 #else /* USE_STRUCT_NODES */
 		throw MBDynParser::ErrGeneric();
@@ -422,7 +475,7 @@ MBDynParser::GetDescription_int(const char *s)
 	/* Se trova un fluido idraulico, lo gestisce direttamente */
 	} else if (!strcmp(s, "hydraulic" "fluid")) {
 #if defined(USE_HYDRAULIC_NODES)
-		HydraulicFluid_();
+		HydraulicFluid_int();
 		return true;
 #else /* USE_HYDRAULIC_NODES */
 		throw MBDynParser::ErrGeneric();
@@ -431,14 +484,18 @@ MBDynParser::GetDescription_int(const char *s)
 	/* Se trova dati aerodinamici c81, li gestisce direttamente */
 	} else if (!strcmp(s, "c81" "data")) {
 #if defined(USE_AERODYNAMIC_ELEMS)
-		C81Data_();
+		C81Data_int();
 		return true;
 #else /* USE_AERODYNAMIC_ELEMS */
 		throw MBDynParser::ErrGeneric();
 #endif /* USE_AERODYNAMIC_ELEMS */
 
 	} else if (!strcmp(s, "constitutive" "law")) {
-		ConstitutiveLaw_();
+		ConstitutiveLaw_int();
+		return true;
+
+	} else if (!strcmp(s, "drive" "caller")) {
+		DriveCaller_int();
 		return true;
 
 	/* Scrive la licenza */
@@ -953,7 +1010,7 @@ MBDynParser::GetConstLaw1D(ConstLawType::Type& clt)
 		silent_cerr("consitutive law parsing at line "
 				<< GetLineData() << " allowed "
 				"only after control data block" << std::endl);
-		throw HighParser::ErrColonExpected();
+		throw MBDynParser::ErrGeneric();
 	}
 
 	if (!IsKeyWord("reference")) {
@@ -980,7 +1037,7 @@ MBDynParser::GetConstLaw3D(ConstLawType::Type& clt)
 		silent_cerr("consitutive law parsing at line "
 				<< GetLineData() << " allowed "
 				"only after control data block" << std::endl);
-		throw HighParser::ErrColonExpected();
+		throw MBDynParser::ErrGeneric();
 	}
 
 	if (!IsKeyWord("reference")) {
@@ -1007,7 +1064,7 @@ MBDynParser::GetConstLaw6D(ConstLawType::Type& clt)
 		silent_cerr("consitutive law parsing at line "
 				<< GetLineData() << " allowed "
 				"only after control data block" << std::endl);
-		throw HighParser::ErrColonExpected();
+		throw MBDynParser::ErrGeneric();
 	}
 
 	if (!IsKeyWord("reference")) {
@@ -1025,6 +1082,25 @@ MBDynParser::GetConstLaw6D(ConstLawType::Type& clt)
 
 	clt = pCL->GetConstLawType();
 	return pCL->pCopy();
+}
+
+DriveCaller *
+MBDynParser::GetDriveCaller(void)
+{
+	if (!IsKeyWord("reference")) {
+		return ReadDriveData(pDM, *this);
+	}
+
+	unsigned int uLabel = GetInt();
+	const DriveCaller *pDC = DC.Get(uLabel);
+	if (pDC == NULL) {
+		silent_cerr("drive caller " << uLabel
+				<< " is undefined at line "
+				<< GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric();
+	}
+
+	return pDC->pCopy();
 }
 
 /* MBDynParser - end */

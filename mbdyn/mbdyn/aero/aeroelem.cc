@@ -606,12 +606,10 @@ ReadAeroData(DataManager* pDM,
   
    	if (HP.IsKeyWord("control")) {      
       		/* Driver di un'eventuale controllo */
-      		*ppDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+      		*ppDC = HP.GetDriveCaller();
 
    	} else {
-      		SAFENEWWITHCONSTRUCTOR(*ppDC,
-			NullDriveCaller,
-			NullDriveCaller(pDM->pGetDrvHdl()));
+      		SAFENEW(*ppDC, NullDriveCaller);
    	}
  
    	if (HP.IsArg()) {

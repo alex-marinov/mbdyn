@@ -279,8 +279,8 @@ void DriveCaller::SetDrvHdl(const DriveHandler* pDH)
 
 /* NullDriveCaller - begin */
 
-NullDriveCaller::NullDriveCaller(const DriveHandler* pDH)
-: DriveCaller(pDH)
+NullDriveCaller::NullDriveCaller(void)
+: DriveCaller(0)
 {
    NO_OP;
 }
@@ -296,7 +296,7 @@ NullDriveCaller::~NullDriveCaller(void)
 DriveCaller* NullDriveCaller::pCopy(void) const
 {
    DriveCaller* pDC = NULL;
-   SAFENEWWITHCONSTRUCTOR(pDC, NullDriveCaller, NullDriveCaller(pDrvHdl));
+   SAFENEW(pDC, NullDriveCaller);
    
    return pDC;
 }

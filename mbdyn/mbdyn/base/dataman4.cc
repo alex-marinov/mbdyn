@@ -693,8 +693,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     uLabel = 1;
 	     
 	      
-	     TplDriveCaller<Vec3>* pDC 
-	       = ReadTplDrive(this, HP, &DrvHdl, Vec3(0.));
+	     TplDriveCaller<Vec3>* pDC = ReadTplDrive(this, HP, Vec3(0.));
 	     
 	     flag fOut = fReadOutput(HP, Elem::GRAVITY);
 	     
@@ -740,7 +739,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		
 	      case DRIVEN: {
 		 /* Reads the driver */
-		 DriveCaller* pDC = ReadDriveData(this, HP, &DrvHdl);
+		 DriveCaller* pDC = HP.GetDriveCaller();
 		 
 		 HP.ExpectDescription();
 		 KeyWords CurrDriven = KeyWords(HP.GetDescription());

@@ -78,7 +78,7 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	  throw DataManager::ErrGeneric();	      
        }	     	  
        
-       DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+       DriveCaller* pDC = HP.GetDriveCaller();
        flag fOut = pDM->fReadOutput(HP, Elem::BULK);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 

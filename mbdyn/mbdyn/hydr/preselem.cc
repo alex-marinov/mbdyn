@@ -396,7 +396,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        }
        
        /* Stato */
-       DriveCaller* pDC = ReadDriveData(pDM, HP,pDM->pGetDrvHdl());
+       DriveCaller* pDC = HP.GetDriveCaller();
        
        HydraulicFluid* hf = HP.GetHydraulicFluid();
        ASSERT(hf != NULL);
@@ -442,7 +442,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        PressureNode* pNode4 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* Forza */
-       DriveCaller* pDC = ReadDriveData(pDM, HP,pDM->pGetDrvHdl());
+       DriveCaller* pDC = HP.GetDriveCaller();
        
        /* spostamento iniziale */
        doublereal start = HP.GetReal();
@@ -549,7 +549,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        PressureNode* pNode6 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
               
        /* Forza */
-       DriveCaller* pDC =ReadDriveData(pDM, HP,pDM->pGetDrvHdl());
+       DriveCaller* pDC = HP.GetDriveCaller();
        
        /* spostamento iniziale */
        doublereal start = HP.GetReal();

@@ -274,7 +274,6 @@ class ReadTplDriveKeyWords {
 template <class T> 
 TplDriveCaller<T>* ReadTplDrive(const DataManager* pDM,
 				MBDynParser& HP,
-				const DriveHandler* pDH, 
 				const T& t)
 {
    DEBUGCOUT("Entering ReadTplDrive" << std::endl);
@@ -294,9 +293,7 @@ TplDriveCaller<T>* ReadTplDrive(const DataManager* pDM,
     * faccio chiedere se e' desiderata */
    if (!HP.IsArg()) {
       DriveCaller* pDC = NULL;
-      SAFENEWWITHCONSTRUCTOR(pDC,
-			     NullDriveCaller,
-			     NullDriveCaller(pDH));
+      SAFENEW(pDC, NullDriveCaller);
 
       T t(0.);
       SAFENEWWITHCONSTRUCTOR(pTplDC,
@@ -319,7 +316,7 @@ restart:
 	  	  
 	  t = GetT(HP, t);
 	  
-	  DriveCaller* pDC = ReadDriveData(pDM, HP, pDH);
+	  DriveCaller* pDC = HP.GetDriveCaller();
 	  
 	  SAFENEWWITHCONSTRUCTOR(pTplDC, 
 				 SingleTplDriveCaller<T>,
@@ -346,7 +343,7 @@ restart:
 	  for (unsigned short int i = 0; i < iNumDr; i++) {
 	     T t(0.);
 	     pDA[i].t = GetT(HP, t);
-	     pDA[i].pDriveCaller = ReadDriveData(pDM, HP, pDH);
+	     pDA[i].pDriveCaller = HP.GetDriveCaller();
 	  }
 	  
 	  SAFENEWWITHCONSTRUCTOR(pTplDC, 

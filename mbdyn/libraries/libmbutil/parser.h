@@ -262,10 +262,10 @@ protected:
 	virtual HighParser::Token FirstToken(void);
 	virtual void NextToken(const char* sFuncName);
 
-	int iGetDescription_(const char* const s);
-	void Set_(void);
-	void SetEnv_(void);
-	void Remark_(void);
+	int iGetDescription_int(const char* const s);
+	void Set_int(void);
+	void SetEnv_int(void);
+	void Remark_int(void);
 	virtual bool GetDescription_int(const char *s);
 	virtual void Eof(void);
 

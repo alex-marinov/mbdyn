@@ -312,7 +312,7 @@ Elem* ReadForce(DataManager* pDM,
       
       ScalarDof SD = ReadScalarDof(pDM, HP, 0);                          
       
-      DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+      DriveCaller* pDC = HP.GetDriveCaller();
 
       flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
       
@@ -329,7 +329,7 @@ Elem* ReadForce(DataManager* pDM,
       
       ScalarDof SD2 = ReadScalarDof(pDM, HP, 0);                          
       
-      DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+      DriveCaller* pDC = HP.GetDriveCaller();
 
       flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
       
@@ -408,7 +408,7 @@ Elem* ReadForce(DataManager* pDM,
       }   
 #endif /* DEBUG */
             
-      DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+      DriveCaller* pDC = HP.GetDriveCaller();
       
       flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
       

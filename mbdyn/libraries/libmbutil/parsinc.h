@@ -143,7 +143,7 @@ class IncludeParser : public HighParser {
    char* sCurrFile;
 
    flag fCheckStack(void);
-   void Include_(void);
+   void Include_int(void);
 
    /* Legge una parola chiave */
    virtual bool GetDescription_int(const char *s);

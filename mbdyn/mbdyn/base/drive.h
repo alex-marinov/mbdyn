@@ -246,7 +246,7 @@ DriveHandler::iGetRand(integer iNumber) const
  * un dato istante di tempo. Gli oggetti sono posseduti dai singoli elementi.
  * Ogni oggetto contiene i parametri che gli occorrono per la chiamata. */
 
-class DriveCaller {   
+class DriveCaller : public WithLabel {
  protected:
    const DriveHandler* pDrvHdl;   
    
@@ -280,7 +280,7 @@ DriveCaller:: dGet(void) const
 
 class NullDriveCaller : public DriveCaller {   
  public:
-   NullDriveCaller(const DriveHandler* pDH);
+   NullDriveCaller(void);
    virtual ~NullDriveCaller(void);
    
    /* Copia */
@@ -408,9 +408,7 @@ class DataManager;
 class MBDynParser;
 
 extern DriveCaller* 
-ReadDriveData(const DataManager* pDM,
-	      MBDynParser& HP, 
-	      const DriveHandler* pDrvHdl);
+ReadDriveData(const DataManager* pDM, MBDynParser& HP);
 
 #endif /* DRIVE_H */
 

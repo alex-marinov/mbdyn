@@ -263,9 +263,9 @@ Elem* ReadGenel(DataManager* pDM,
 		 << pvNodes[2]->GetLabel() << std::endl);
        
        DriveCaller* pvDrives[3];
-       pvDrives[0] = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-       pvDrives[1] = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-       pvDrives[2] = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+       pvDrives[0] = HP.GetDriveCaller();
+       pvDrives[1] = HP.GetDriveCaller();
+       pvDrives[2] = HP.GetDriveCaller();
        
        doublereal dSigma = HP.GetReal();
        DEBUGCOUT("Sigma: " << dSigma << std::endl);
@@ -312,7 +312,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  throw DataManager::ErrGeneric();	      
        }	     	  
        
-       DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+       DriveCaller* pDC = HP.GetDriveCaller();
        // DEBUGCOUT("Stiffness: " << dK << std::endl);
        
        flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
@@ -338,7 +338,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  throw DataManager::ErrGeneric();	      
        }	     	  
        
-       DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+       DriveCaller* pDC = HP.GetDriveCaller();
        // DEBUGCOUT("Stiffness: " << dK << std::endl);
        
        flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
@@ -503,7 +503,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  throw DataManager::ErrGeneric();
        }
 
-       DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+       DriveCaller* pDC = HP.GetDriveCaller();
        
        flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
        

@@ -2007,7 +2007,7 @@ void DataManager::ReadDrivers(MBDynParser& HP)
 ConstitutiveLaw1D* 
 DataManager::ReadConstLaw1D(MBDynParser& HP, ConstLawType::Type& T)
 {
-   return ReadConstLaw(this, HP, &DrvHdl, T, (ConstitutiveLaw1D*)NULL);
+   return ReadConstLaw(this, HP, T, (ConstitutiveLaw1D*)NULL);
 }
 
 
@@ -2015,7 +2015,7 @@ DataManager::ReadConstLaw1D(MBDynParser& HP, ConstLawType::Type& T)
 ConstitutiveLaw3D* 
 DataManager::ReadConstLaw3D(MBDynParser& HP, ConstLawType::Type& T)
 {  
-   return ReadConstLaw(this, HP, &DrvHdl, T, (ConstitutiveLaw3D*)NULL);
+   return ReadConstLaw(this, HP, T, (ConstitutiveLaw3D*)NULL);
 }
 
 
@@ -2023,7 +2023,7 @@ DataManager::ReadConstLaw3D(MBDynParser& HP, ConstLawType::Type& T)
 ConstitutiveLaw6D* 
 DataManager::ReadConstLaw6D(MBDynParser& HP, ConstLawType::Type& T)
 {
-   return ReadConstLaw(this, HP, &DrvHdl, T, (ConstitutiveLaw6D*)NULL);
+   return ReadConstLaw(this, HP, T, (ConstitutiveLaw6D*)NULL);
 }
 
 /* DataManager - end */

@@ -2185,12 +2185,8 @@ Solver::ReadData(MBDynParser& HP)
 				}
 
 				if (RegularType == INT_MS2) {
-					SAFENEWWITHCONSTRUCTOR(pRhoRegular,
-							NullDriveCaller,
-							NullDriveCaller(NULL));
-					SAFENEWWITHCONSTRUCTOR(pRhoAlgebraicRegular,
-							NullDriveCaller,
-							NullDriveCaller(NULL));
+					SAFENEW(pRhoRegular, NullDriveCaller);
+					SAFENEW(pRhoAlgebraicRegular, NullDriveCaller);
 				}
 		  		break;
 
@@ -2202,11 +2198,11 @@ Solver::ReadData(MBDynParser& HP)
 						  << std::endl);
 	   		case MS:
 	   		case HOPE:
-	      			pRhoRegular = ReadDriveData(NULL, HP, NULL);
+	      			pRhoRegular = HP.GetDriveCaller();
 
 	      			pRhoAlgebraicRegular = NULL;
 				if (HP.IsArg()) {
-					pRhoAlgebraicRegular = ReadDriveData(NULL, HP, NULL);
+					pRhoAlgebraicRegular = HP.GetDriveCaller();
 				} else {
 					pRhoAlgebraicRegular = pRhoRegular->pCopy();
 				}
@@ -2230,7 +2226,7 @@ Solver::ReadData(MBDynParser& HP)
 				if (HP.IsKeyWord("ad" "hoc")) {
 					/* do nothing */ ;
 				} else {
-	      				pRhoRegular = ReadDriveData(NULL, HP, NULL);
+	      				pRhoRegular = HP.GetDriveCaller();
 				}
 				RegularType = INT_THIRDORDER;
 				break;
@@ -2286,22 +2282,18 @@ Solver::ReadData(MBDynParser& HP)
 				}
 
 				if (FictitiousType == INT_MS2) {
-					SAFENEWWITHCONSTRUCTOR(pRhoFictitious,
-						NullDriveCaller,
-						NullDriveCaller(NULL));
-					SAFENEWWITHCONSTRUCTOR(pRhoAlgebraicFictitious,
-						NullDriveCaller,
-						NullDriveCaller(NULL));
+					SAFENEW(pRhoFictitious, NullDriveCaller);
+					SAFENEW(pRhoAlgebraicFictitious, NullDriveCaller);
 				}
 				break;
 
 			case NOSTRO:
 			case MS:
 			case HOPE:
-				pRhoFictitious = ReadDriveData(NULL, HP, NULL);
+				pRhoFictitious = HP.GetDriveCaller();
 
 				if (HP.IsArg()) {
-					pRhoAlgebraicFictitious = ReadDriveData(NULL, HP, NULL);
+					pRhoAlgebraicFictitious = HP.GetDriveCaller();
 				} else {
 					pRhoAlgebraicFictitious = pRhoFictitious->pCopy();
 				}
@@ -2325,7 +2317,7 @@ Solver::ReadData(MBDynParser& HP)
 				if (HP.IsKeyWord("ad" "hoc")) {
 					/* do nothing */ ;
 				} else {
-					pRhoFictitious = ReadDriveData(NULL, HP, NULL);
+					pRhoFictitious = HP.GetDriveCaller();
 				}
 				FictitiousType = INT_THIRDORDER;
 				break;
@@ -2680,7 +2672,7 @@ Solver::ReadData(MBDynParser& HP)
 
 			case STRATEGYCHANGE: {
 				CurrStrategy = CHANGE;
-				pStrategyChangeDrive = ReadDriveData(NULL, HP, NULL);
+				pStrategyChangeDrive = HP.GetDriveCaller();
 				break;
 			}
 
@@ -3172,9 +3164,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 
 		/* FIXME: maybe we should use a better value
 		 * like 0.6; however, BDF should be conservative */
-		SAFENEWWITHCONSTRUCTOR(pRhoRegular,
-				NullDriveCaller,
-				NullDriveCaller(NULL));
+		SAFENEW(pRhoRegular, NullDriveCaller);
 
 		/* DriveCaller per Rho asintotico per variabili algebriche */
 		pRhoAlgebraicRegular = pRhoRegular->pCopy();
@@ -3186,9 +3176,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 	if (!bFictitiousStepsMethod) {
 		ASSERT(FictitiousType == INT_UNKNOWN);
 
-		SAFENEWWITHCONSTRUCTOR(pRhoFictitious,
-				NullDriveCaller,
-				NullDriveCaller(NULL));
+		SAFENEW(pRhoFictitious, NullDriveCaller);
 
 		/* DriveCaller per Rho asintotico per variabili algebriche */
 		pRhoAlgebraicFictitious = pRhoFictitious->pCopy();

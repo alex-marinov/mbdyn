@@ -307,16 +307,16 @@ public:
 		}
 
 		if (HP.IsKeyWord("metering")) { 
-			pAreaPinPlus = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+			pAreaPinPlus = HP.GetDriveCaller();
 			if (HP.IsKeyWord("negative")) { 
-				pAreaPinMinus = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+				pAreaPinMinus = HP.GetDriveCaller();
 			} else {
 				pAreaPinMinus = pAreaPinPlus->pCopy();
 			}
 		}
 
 		if (HP.IsKeyWord("orifice")) {
-			pAreaOrifices = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+			pAreaOrifices = HP.GetDriveCaller();
 		}
 
 		if (pAreaPinPlus == NULL && pAreaOrifices == NULL) {
