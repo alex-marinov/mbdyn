@@ -4,7 +4,7 @@
 .PHONY: all
 
 all:
-	for m in module-* ; do \
+	-for m in module-* ; do \
 		cd $m ; \
 		$(MAKE) ; \
 	done
