@@ -277,6 +277,7 @@ void FullMatrixHandler::IsValid(void) const
    
 ostream& operator << (ostream& out, const FullMatrixHandler& m)
 {
+   // FIXME: mettere in configure ...
    // ios::fmtflags oldbits = out.setf(ios::scientific);
    long oldbits = out.setf(ios::scientific);
    

@@ -389,7 +389,7 @@ const char cDebugFree  = 'F';
 #ifdef DEBUG_MEMMANAGER_DELETEBUTKEEPLOG
 
 #define SAFEDELETE(pnt, memman) \
-	do { \       
+	do { \
 		ASSERT(pnt); \
 		(memman).removeButKeepLog((void*)(pnt)); \
 		delete (pnt); \

@@ -2093,17 +2093,25 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  if (HP.IsKeyWord("parameter")) {
 	     HP.GetReal();
 	  }
-	  cerr << HP.GetLIneData()
+	  cerr << HP.GetLineData()
 	    << ": eigenanalysis not supported (ignored)" << endl;
 #endif /* !__HACK_EIG__ */
 	  break;
        }
 
        case OUTPUTMODES:
+#ifndef __HACK_EIG__
+	  cerr << "line " << HP.GetLineData()
+	    << ": warning, no eigenvalue support available" << endl;
+#endif /* !__HACK_EIG__ */
 	  if (HP.IsKeyWord("yes")) {
+#ifdef __HACK_EIG__
 	     fOutputModes = flag(1);
+#endif /* !__HACK_EIG__ */
 	  } else if (HP.IsKeyWord("no")) {
+#ifdef __HACK_EIG__
 	     fOutputModes = flag(0);
+#endif /* !__HACK_EIG__ */
 	  } else {
 	     cerr << HP.GetLineData()
 	       << ": unknown mode output flag (should be { yes | no })"
