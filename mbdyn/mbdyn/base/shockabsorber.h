@@ -220,7 +220,7 @@ public:
 	EpsPrimeRef(1.), FrictionAmpl(0.), dPressure(0.) {
 		if (HP.IsKeyWord("help")) {
 
-			std::cout <<
+			silent_cout(
 "\n"
 "this help refers to the specific \"shock absorber\" constitutive\n"
 "law input data.  The prestrain value, if required, must be inserted\n"
@@ -252,10 +252,10 @@ public:
 "\n"
 "\toutput appended to output from element;\n"
 "\t\trod joint:\n"
-"\t\t\tcolumn 18: gas pressure\n"
-"\t\t\tcolumn 19: metering area\n"
-"\t\t\tcolumn 20: elastic force\n"
-"\t\t\tcolumn 21: viscous force\n"
+"\t\t\tcolumn 19: gas pressure\n"
+"\t\t\tcolumn 20: metering area\n"
+"\t\t\tcolumn 21: elastic force\n"
+"\t\t\tcolumn 22: viscous force\n"
 "\n"
 "\toutput available as element private data; syntax:\n"
 "\n"
@@ -271,7 +271,7 @@ public:
 "\t\t\"Fe\": elastic force\n"
 "\t\t\"Fv\": viscous force\n"
 "\n"
-				<< std::endl;
+				<< std::endl);
 
 			if (!HP.IsArg()) {
 				/*
