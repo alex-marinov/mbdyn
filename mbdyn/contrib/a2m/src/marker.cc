@@ -188,7 +188,7 @@ void s_marker::Translate (ostream& out)
 	 temp->Translate(out);
 	 pTR=Pmass_Table.find(Point_mass);
       }      
-      ReferencedTo = (*(Pmass_Table.find(Point_mass))).second;
+      ReferencedTo = (*pTR).second;
       if (ReferencedTo==0) exit (-3);
    }
    if (_Floating==Y) {
@@ -200,8 +200,6 @@ void s_marker::Translate (ostream& out)
    }
    switch (Mode) {
     case POINT : {
-       /* Trova la matrice di rotazione a partire dai vettori sghembi */
-       /* RelRot=Plane_ROT (Qp,Zp,Xp,_UseXP); */
        V1=(Xp-Qp); V2=(Zp-Qp);
        if (_UseXP==Y) { 
 	  IA=1; IB=3;

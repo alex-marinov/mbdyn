@@ -127,7 +127,7 @@ Vector operator - (const Vector& a, const Vector& b)
    if (a.size() != b.size()) return a;
    Vector diff(a.size());
    for (int i=0; i<a.size();i++)
-     diff.dato[i]=(a.dato[i]+b.dato[i]);
+     diff.dato[i]=(a.dato[i]-b.dato[i]);
    return diff;
 }
 
@@ -183,6 +183,7 @@ void Vector::Clear()
    for (int j=0; j<size();j++) dato[j]=0;
 }
 
+
 // Sottovettori di 2 e 3 elementi
 
 void Vec3::Set(double i, double j, double k)
@@ -223,7 +224,8 @@ Vector& Matrix::operator [] (unsigned int j) const
    return *data[j];
 }
 
-Matrix Matrix::tr() {
+Matrix Matrix::tr() 
+{
    Matrix MIRROR (columns(),rows());
    for (int i=0; i<columns(); i++)
      for (int j=0; j<rows();j++)
@@ -369,6 +371,32 @@ Matrix operator * (const Matrix& B, const double value)
    Matrix P(B.rows(),B.columns());
    P=value*B;
    return P;
+}
+
+Vector operator * (const Matrix& M, const Vector& V)
+{
+   if (V.size()!=M.columns()) DEBUGCOUT ("Matrice x vettore = dimensioni diverse");
+   Vector result (V.size());
+   Matrix A = M;
+   Matrix B (M.columns(),1);
+   for (int i=0;i<V.size();i++) B[i][0]=V[i];
+   Matrix C (M.columns(),1);
+   C = A*B;
+   for (int i=0;i<V.size();i++) result[i]=C[i][0];
+   return result;
+}
+
+Vector operator * (const Vector& V, const Matrix& M)
+{
+   if (V.size()!=M.rows()) DEBUGCOUT ("Matrice x vettore = dimensioni diverse!");
+   Vector result (V.size());
+   Matrix A = M;
+   Matrix B (1,M.columns());
+   for (int i=0;i<V.size();i++) B[0][i]=V[i];
+   Matrix C (1,M.columns());
+   C=B*A;
+   for (int i=0;i<V.size();i++) result[i]=C[0][i];
+   return result;
 }
 
 Matrix operator + (const Matrix& A, const Matrix& B)
@@ -634,16 +662,13 @@ doublereal Vec3::Norm(void) const {
 
 double Vector::dGet(int i) const
 {
-   return (dato[i+1]);
+   return (dato[i-1]);
 }
 
 double Matrix::dGet(int i, int j) const
 {
-   return (*(data[i+1]))[j+1];
+   return (*(data[i-1]))[j-1];
 }
-
-// INIZIO DELLA PARTE DI CODICE SPERIMENTALE: ENTITY
-
 
 MBDyn_entity::MBDyn_entity ()
 {
@@ -953,4 +978,56 @@ RVec3 RMat3x3::GetVec (unsigned int n) const
    WS=REF;
    RVec3 toreturn(parteuno,WS);
    return (toreturn);
+}
+
+ostream& Mat6x6::Write(ostream& out, const char* fill,
+		       const char* fill2,
+		       const char* indent) const
+{
+   enum Matrix_type {
+      GENERIC_MATRIX,
+	NULL_MATRIX,
+	DIAG_MATRIX,
+	EYE_MATRIX
+   };
+   
+   Boolean TARGET=Y;
+   Matrix_type TYPE=GENERIC_MATRIX;
+   
+   if (EXTENDED_MATRIX_DISPLAY==N)
+     {
+	/* DIAG MATRIX */
+	for (int i=0;i<rows();i++)
+	  for (int j=0;j<columns();j++)
+	    if ((i!=j) && ((*data[i])[j]!=0)) TARGET=N;
+	if (TARGET==Y) TYPE=DIAG_MATRIX;
+	/* NULL MATRIX */
+	for (int i=0;i<rows();i++)
+	  for (int j=0;j<columns();j++)
+	    if ( (*data[i])[j]!=0 ) TARGET=N;
+	if (TARGET==Y) TYPE=NULL_MATRIX;
+	/* EYE MATRIX */
+	if (TYPE==DIAG_MATRIX) {
+	   TARGET=Y;
+	   for (int i=0;i<rows();i++)
+	      if ((*data[i])[i]!=1) TARGET=N;
+	   if (TARGET==Y) TYPE=EYE_MATRIX;
+	}
+	/* VISUALIZZAZIONE SELETTIVA */
+	switch (TYPE) {
+	 case NULL_MATRIX: out << indent << "null"; break;
+	 case EYE_MATRIX: out << indent << "eye"; break;
+	 case DIAG_MATRIX: out << indent << "diag";
+	   for (int i=0;i<rows();i++) 
+	     out << fill << (*(data[i]))[i];
+	   break;
+	}
+        if (TYPE!=GENERIC_MATRIX) return out;
+     }
+   for (int i=0;i<rows();i++) {
+      out << indent;
+      out << "",(*data[i]).Write(out,fill);
+      if (i<rows()-1) out << "" << fill2;
+   }
+   return out;
 }

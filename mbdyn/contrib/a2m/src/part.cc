@@ -317,7 +317,5 @@ void s_part::Translate (ostream& out)
    sprintf(comment,"Rigid Body %i due to Adams PART %i ",BodyID,label);
    MB->Remark(comment);
 
-   // END OF TRANSLATE ROUTINE
    return;
 }
-

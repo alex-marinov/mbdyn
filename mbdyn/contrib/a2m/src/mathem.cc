@@ -46,14 +46,15 @@ Leonardo Cassan		<lcassan@tiscalinet.it>
 
 #include <mathem.h>
 
-Matrix& KMatrix (double L, double Ixx, double Iyy, double Izz,
+Mat6x6 KMatrix  (double L, double Ixx, double Iyy, double Izz,
 		 double A, double E, double G, double Asy, double Asz,
 		 double* Cmatrix, double Cratio)
 {
    double Py,Pz;
-   Matrix* K=new Matrix(6,6);
+   Mat6x6* K=new Mat6x6;
    Py=12*E*Izz*Asy/(G*A*L*L);
    Pz=12*E*Iyy*Asz/(G*A*L*L);
+#if 0
    (*K)[0][0]=E*A/L;
    (*K)[1][1]=12*E*Izz/(L*L*L*(1+Py));
    (*K)[1][5]=-6*E*Izz/(L*L*(1+Py));
@@ -62,6 +63,13 @@ Matrix& KMatrix (double L, double Ixx, double Iyy, double Izz,
    (*K)[3][3]=G*Ixx/L;
    (*K)[4][4]=(4+Pz)*E*Iyy/(L*(1+Pz));
    (*K)[5][5]=(4+Py)*E*Izz/(L*(1+Py));
+#endif
+   (*K)[0][0]=E*A;
+   (*K)[1][1]=G*A;
+   (*K)[2][2]=G*A;
+   (*K)[3][3]=G*Ixx;
+   (*K)[4][4]=E*Iyy;
+   (*K)[5][5]=E*Izz;
    return (*K);
 }
 
@@ -132,7 +140,7 @@ Matrix Inv(Matrix& R) {
    unsigned int c=R.columns();
    Vector BUF(r);// Vettore che contiene la colonna i-esima
    Vector XBUF(r); // Vettore che contiene la soluzione per la colonna i-esima
-   Matrix TM(R); // Matrice che conterrà l'inversa
+   Matrix TM(R); // Matrice che conterra' l'inversa
    Matrix RI(r);
    /* Rende RI identità */
    for (int k; k<r; k++)
@@ -281,7 +289,7 @@ Mat3x3 RFromEulerAngles (const Vec3& v)
    doublereal dSinBeta(sin(d));
    doublereal dCosGamma(cos((d = v.dGet(3))));
    doublereal dSinGamma(sin(d));
-    
+   
    return Mat3x3(dCosBeta*dCosGamma,
 		 dCosAlpha*dSinGamma+dSinAlpha*dSinBeta*dCosGamma,
 		 dSinAlpha*dSinGamma-dCosAlpha*dSinBeta*dCosGamma,

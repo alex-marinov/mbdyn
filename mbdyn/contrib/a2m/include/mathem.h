@@ -59,7 +59,7 @@ double a360tan2 (double,double);
 void Gauss (Vector&, Matrix&, Vector&);
 Matrix Inv (Matrix&);
 Matrix operator / (Matrix&, Matrix&);
-Matrix& KMatrix (double, double, double, double,
+Mat6x6 KMatrix (double, double, double, double,
 		 double, double, double, double, double,
 		 double*, double);
 Vec3 EulerAngles (const Mat3x3&); 

@@ -158,12 +158,12 @@ MBDyn_beam::MBDyn_beam ()
 {
    Node[0]=0; Node[1]=0; Node[2]=0;
    Label=0;
-   pD[0]=NULL,pD[1]=NULL;
+   pD[0]=new Mat6x6(),pD[1]=new Mat6x6();
 }
 
 MBDyn_beam::MBDyn_beam	(Id L, Id N1, Id N2, Id N3, Vec3 F1, Vec3 F2, 
-			 Vec3 F3,Mat3x3 R1, Mat3x3 R2,pCL6D CS1,
-			 pCL6D CS2) :
+			 Vec3 F3,Mat3x3 R1, Mat3x3 R2,Mat6x6* CS1,
+			 Mat6x6* CS2) :
                          MBDyn_elem (L,_BEAM)
 {
    Node[0]=N1; Node[1]=N2; Node[2]=N3;
@@ -189,7 +189,9 @@ ostream& MBDyn_beam::Restart (ostream& out) const
    for (unsigned int i=0; i< NUMSEZ; i++) {
       out << ", " << endl << indent << "reference, global, "
 	<< endl << indent, R[i].RWrite(out,", ","") << 
-	", " << endl << indent << "",pD[i]->Restart(out,indent);
+	", " << endl
+	<< indent << "linear elastic generic," << endl
+	<< "",pD[i]->Write(out,",",",\n",indent);
    }
    out << ";" << endl;
    return out;
@@ -1056,8 +1058,8 @@ MBDyn_node_structural::MBDyn_node_structural (Id N,
 		       RVec3 AP, RMat3x3 ARM, 
 		       RVec3 AV,RVec3 AAV, double PIS, 
 		       double VIS, Boolean O) :
-        Mode_type(q),Abs_pos (AP), Abs_rot_matrix (ARM), Abs_vel(AV), 
-        Abs_ang_vel(AAV),position_initial_stiffness(PIS), 
+        Mode_type(q),Abs_Pos (AP), Abs_Rot_Matrix (ARM), Abs_Vel(AV), 
+        Abs_Ang_Vel(AAV),position_initial_stiffness(PIS), 
         velocity_initial_stiffness(VIS), Omega_rotates(O),
         MBDyn_node(N,STRUCTURAL)
 {}
@@ -1085,12 +1087,12 @@ ostream& MBDyn_node_structural::Restart(ostream& out) const
    if (_title_!=NULL) out << "name, " << _title_ << ", ";
    if (Mode_type!=DUMMY) {
      out << GetMode() << ", " << endl << indent,
-	Abs_pos.Write(out,", ") << ", " 
-	<< endl, Abs_rot_matrix.RWrite(out,", ","\n",indent) << ", "
+	Abs_Pos.Write(out,", ") << ", " 
+	<< endl, Abs_Rot_Matrix.RWrite(out,", ","\n",indent) << ", "
 	<< endl << indent,
-	Abs_vel.Write(out,", ") << ", " 
+	Abs_Vel.Write(out,", ") << ", " 
 	<< endl << indent,
-	Abs_ang_vel.Write(out,", ") << ", " << endl << indent
+	Abs_Ang_Vel.Write(out,", ") << ", " << endl << indent
 	<< "assembly, "
 	<< position_initial_stiffness << ", "
 	<< velocity_initial_stiffness << ", "

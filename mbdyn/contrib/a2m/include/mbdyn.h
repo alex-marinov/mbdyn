@@ -200,7 +200,7 @@ typedef ConstitutiveLaw6D* pCL6D;
 
 struct MBDyn_beam : public MBDyn_elem {
    MBDyn_beam();
-   MBDyn_beam (Id,Id,Id,Id,Vec3,Vec3,Vec3,Mat3x3,Mat3x3,pCL6D,pCL6D);
+   MBDyn_beam (Id,Id,Id,Id,Vec3,Vec3,Vec3,Mat3x3,Mat3x3,Mat6x6*,Mat6x6*);
    ~MBDyn_beam();
    ostream& Restart(ostream& out) const;
    ostream& Test(ostream& out) const;
@@ -212,7 +212,7 @@ struct MBDyn_beam : public MBDyn_elem {
    Id Node[3];      			// Posizione dei nodi
    Vec3 f[3];			        // Offset dei nodi
    Mat3x3 R[2];			        // Matrici di rotazione
-   pCL6D pD[2];				// Legge costitutiva nella sezione
+   Mat6x6* pD[2];		        // Legge costitutiva nella sezione
 };
 
 // CORPO RIGIDO DI MBDYN
@@ -583,10 +583,10 @@ struct MBDyn_node_structural : public MBDyn_node {
    };
    
    Type Mode_type;
-   RVec3 Abs_pos;
-   RMat3x3 Abs_rot_matrix;
-   RVec3 Abs_vel;
-   RVec3 Abs_ang_vel;
+   RVec3 Abs_Pos;
+   RMat3x3 Abs_Rot_Matrix;
+   RVec3 Abs_Vel;
+   RVec3 Abs_Ang_Vel;
    double position_initial_stiffness;
    double velocity_initial_stiffness;
    Boolean Omega_rotates;

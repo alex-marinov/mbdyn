@@ -73,7 +73,7 @@ struct Vector {
    void Clear();
    double dGet(int) const;
    unsigned int size() const;
-   double Module() const; 
+   // double Module(); 
    
    // Dati propri della classe
    unsigned int sz;
@@ -102,7 +102,6 @@ struct Matrix {
    void Display () const;
    void Clear();
    double dGet(int,int) const;
-   /*ostream& Write(ostream&, const char*,const char*) const;*/
    ostream& Write(ostream&, const char*, const char*, const char* c="") const;
    Vector GetVec(unsigned int) const;
    // Dati propri della classe
@@ -157,6 +156,7 @@ struct Mat6x6: public Matrix {
    Mat6x6() : Matrix (6,6) {}
    ~Mat6x6() {}
    Mat6x6& operator = (const Matrix&);
+   ostream& Write(ostream&, const char*, const char*, const char* c="") const;
 };
 
 struct Vec2 : public Vector {
@@ -263,5 +263,7 @@ const Mat3x3 Eye3(1., 0., 0., 0., 1., 0., 0., 0., 1.);
 const Mat3x3 Zero3x3(0., 0., 0., 0., 0., 0., 0., 0., 0.);
 const Vec3 Zero3(0., 0., 0.);
 
+Vector operator * (const Matrix&, const Vector&);
+Vector operator * (const Vector&, const Matrix&);
 
 #endif

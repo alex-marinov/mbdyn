@@ -157,21 +157,28 @@ ostream& s_beam::Print (ostream& out) const
 
 void s_beam::Translate(ostream& out)
 {
+   double norma;
+   Vec3 contrib;
    char* comment = new char [160];
    char* title = new char[80];
    // Traduzione : TRAVE ADAMS = STRUCT NODE + BEAM MBDYN
-   pCL6D pK1=new ConstitutiveLaw6D(Emodulus,Gmodulus);
-   pCL6D pK2=new ConstitutiveLaw6D(Emodulus,Gmodulus);
    /* Dati da inserire nella formula della BEAM */
    Vec3 F1,F2,F3;
+   Mat3x3 R_parte_I, R_parte_J, R_nodo_C;
    
    /* R0 e R1 sono le matrici di rotazione relative al materiale
     rispetto al sistema globale o cosa? verificare. Per adesso ..*/
    Mat3x3 R[2]; for (int j=0;j<2;j++) R[j]=Eye3;
    
-   Id I,J;
-   MBDyn_reference* MI, *MJ, *MarkerI, *MarkerJ;
+   Id I,J,NodeID;
+   MBDyn_reference* MI, *MJ, *MarkerI, *MarkerJ, 
+     *BCS_I, *BCS_J, *BCS_parte_I, *BCS_parte_J;
+   MBDyn_node_structural* NI, *NJ, *NodeI, *NodeJ;
    Vec3 OffsetL,OffsetC,OffsetR;
+   Vec3 X_I,X_J;
+   Vec3 OffsetI,OffsetJ,OffsetM;
+   Vec3 X_parte_I, X_parte_J, X_nodo_C;
+   
    I = Node[0];
    J = Node[1];
    
@@ -193,107 +200,123 @@ void s_beam::Translate(ostream& out)
 	WhichReference[i] = (*p3).second;
      }
    
-   /* Load Markers */
+   /* Load references relative to markers I and J */
    MI = (MBDyn_reference*) Find_MBCard (I,MBReference);
    MJ = (MBDyn_reference*) Find_MBCard (J,MBReference);
+   /* Load BCS (Body Coordinate System) for each part */
+   BCS_I = (MBDyn_reference*) Find_MBCard (WhichReference[0],MBReference);
+   BCS_J = (MBDyn_reference*) Find_MBCard (WhichReference[1],MBReference);
+   /* Load nodes */
+   NI = (MBDyn_node_structural*) Find_MBCard (WhichNode[0],MBNodes);
+   NJ = (MBDyn_node_structural*) Find_MBCard (WhichNode[1],MBNodes);
+   /* Debug references and nodes */
    CHECK_AND_DEBUG (MJ,MarkerJ,J,MBReference);
    CHECK_AND_DEBUG (MI,MarkerI,I,MBReference);
+   CHECK_AND_DEBUG (NI,NodeI,WhichNode[0],MBNodes);
+   CHECK_AND_DEBUG (NJ,NodeJ,WhichNode[1],MBNodes);
+   CHECK_AND_DEBUG (BCS_I,BCS_parte_I,WhichReference[0],MBNodes);
+   CHECK_AND_DEBUG (BCS_J,BCS_parte_J,WhichReference[1],MBNodes);
    
-   /*
-    * Offset del marker J rispetto alla parte, nell'orientazione della parte
-    * questo e' gia' l'offset che va scritto nell'elemento di trave
-    */
-   OffsetL=Unref(MarkerJ->Abs_Pos);
-   /*
-    * Offset del marker I rispetto alla parte, nell'orientazione della parte,
-    * con aggiunta la lunghezza della trave
-    * (a questo punto conviene scrivere: X_J+(X_I-X_J)/|X_I-X_J|*L)
-    */
+   /* Posizioni riferite al sistema assoluto delle parti */
+   X_parte_I = Unref (BCS_parte_I->Abs_Pos);
+   X_parte_J = Unref (BCS_parte_J->Abs_Pos);   
+   /* Le matrici di rotazione delle parti nel GCS */
+   R_parte_I = Unref (BCS_parte_I->Abs_Rot_Matrix);
+   R_parte_J = Unref (BCS_parte_J->Abs_Rot_Matrix);
    
-   /*
-    * Per farlo devo calcolare X_J come offset del marker J rispetto
-    * alla parte, portato nel sistema assoluto e con aggiunta la posizione
-    * assoluta della parte:
-    * X_J = R_parte_J * OffsetJ + X_parte_J
-    * 
-    * Poi devo fare lo stesso per X_I:
-    * X_I = R_parte_I * OffsetI + X_parte_I
-    * 
-    * Poi calcolo il modulo della distanza tra i due:
-    * | X_J - X_I |
-    * 
-    * e verifico che non sia nullo (estremi coincidenti!)
-    * 
-    * Infine trovo l'offset come differenza tra la proiezione di X_I - X_J
-    * per la lunghezza L a partire da X_J e la posizione della parte I,
-    * X_parte_I, entrambe scritte nel sistema assoluto e poi ruotate
-    * nel sistema della parte I:
-    * 
-    * OffsetI = 
-    *     R_parte_I ^ T * (X_J + (X_I - X_J) / |X_I - X_J| * L - X_parte_I)
-    * 
-    * A questo punto, il nodo centrale e' dato dalla interpolazione
-    * delle posizioni delle due parti:
-    * X_nodo_C = 1/2 * (X_parte_J + X_parte_I)
-    * 
-    * mentre l'offset e' dato dalla interpolazione delle posizioni dei 
-    * due punto calcolati in precedenza; l'interpolazione deve essere
-    * fatta in un sistema di riferimento comune (es. globale):
-    * 
-    * OffsetC = 1/2 * (R_parte_I * OffsetI + R_parte_J * OffsetJ)
-    */
-   OffsetC=Interp(OffsetL,OffsetR,0.5);
-   /* ATTENZIONE : LA PARTE DI CODICE SOTTOSTANTE E' VALIDA SE :
-    * 1. I BCS DELLE PARTI SONO RIFERITI, ATTRAVERSO IL SEMPLICE
-    * MARKER "BCS", AL SISTEMA GLOBALE */
+   /* Offset dei marker nei sistemi di riferimento parte */
+   OffsetL = Unref (MarkerJ->Abs_Pos);
+   OffsetR = Unref (MarkerI->Abs_Pos);
 
-   /* Si crea un nodo strutturale interpolato tra i due e si interpola
-    * l'offset relativo */
-   /* WhichReference sono già i due BCS */
+   /* L'offset della parte a sinistra di trave e' gia' definito */
+   OffsetJ = OffsetL;
+
+   /* Posizione del marker J nel sistema assoluto */
+   X_J = R_parte_J * OffsetL + X_parte_J;
+   /* Posizione del marker I nel sistema assoluto */
+   X_I = R_parte_I * OffsetR + X_parte_I;
+   /* Norma del vettore differenza */
+   norma = Module((X_I-X_J));
+    
+   /* Versore markerI->markerJ - > contributo relativo alla lunghezza */
+   contrib = (((X_I-X_J)/norma)*Length);
+
+   /* Offset del Marker I nel sistema di riferimento della parte I */
+   OffsetI = R_parte_I.tr() * (X_J + contrib - X_parte_I);
    
-   /* Creazione del reference BCS */
-   Id CENTR = GetFreeLabel (MBReference);
-   MBDyn_reference* RFR = new MBDyn_reference(CENTR);
-   Ref_Interp (RFR,WhichReference[0],WhichReference[1]);
+   /* La matrice di rotazione del nodo centrale e' l'interpolazione tra
+    * la parte I e la parte J , altrettanto dicasi la posizione */
+   R_nodo_C = 0.5 * ( R_parte_I + R_parte_J );
+   X_nodo_C = 0.5 * ( X_parte_I + X_parte_J );
+   /* Offset del nodo centrale nel sistema di riferimento assoluto */
+   OffsetC = 0.5 * (R_parte_I * OffsetI + R_parte_J * OffsetJ);
+   /* Offset del nodo centrale nel sistema di riferimento nodo centrale */
+   OffsetC = R_nodo_C.tr()*OffsetC;
+   
+   /* Referenziazione al sistema globale di posizione e matrice di rot */
+   RVec3 RDefPos (X_nodo_C,MBDyn_entity(MBDyn_entity::NUL));
+   RMat3x3 RDefRot (R_nodo_C,MBDyn_entity(MBDyn_entity::NUL));
+
+   
+   /* Creazione del reference BCS per il nodo centrale */
+   Id CentrID = GetFreeLabel (MBReference);
+   MBDyn_reference* RFR = new 
+     MBDyn_reference(CentrID,RDefPos,RDefRot,Y,Zero3,Zero3);
    sprintf (title,"BCS for central node of generated BEAM");
    RFR->Title(title);
    sprintf (comment,"Reference %i generated by interpolation between BCS %i and BCS %i",
-	    CENTR,WhichReference[0],WhichReference[1]);
-   MBReference.insert (MBDyn_entry (CENTR, (MBDyn_card*) RFR));
+	    CentrID,WhichReference[0],WhichReference[1]);
+   MBReference.insert (MBDyn_entry (CentrID, (MBDyn_card*) RFR));
    RFR->Remark(comment);
-
    /* Inserisce la label tra i reference generati dalle Beam [ADAMS] */
-   Beam_reference_Table.insert (BTR_entry(label,CENTR));
+   Beam_reference_Table.insert (BTR_entry(label,CentrID));
    
    /* Creazione del nodo strutturale intermedio */
-   MBDyn_entity M (MBDyn_entity::REFERENCED,CENTR);
-   RVec3 RDefPos (Vec3(0,0,0),M);
-   RMat3x3 RDefRot (Eye3,M);
-   Id NodeID = GetFreeLabel (MBNodes);
-   MBDyn_node_structural* CENTRALNODE = new 
+   MBDyn_entity RF(MBDyn_entity::REFERENCED,CentrID);
+   RVec3 RNulPos(Zero3,RF);
+   RMat3x3 RNulRot(Eye3,RF);
+   NodeID = GetFreeLabel (MBNodes);
+   MBDyn_node_structural* CENTRALNODE = new
      MBDyn_node_structural (NodeID,MBDyn_node_structural::DYNAMIC,
-			    RDefPos,RDefRot,RDefPos,RDefPos,0,0,Y);   
+			    RNulPos,RNulRot,RNulPos,RNulPos,0,0,Y);
    sprintf (comment,"Central node automatically generated for Adams BEAM %i",
 	    label);
    CENTRALNODE->Remark(comment);
    sprintf (title,"central node for BEAM %i",label);
    CENTRALNODE->Title(title);
-   MBNodes.insert ( MBDyn_entry (NodeID,(MBDyn_card*) CENTRALNODE));
+   MBNodes.insert (MBDyn_entry (NodeID,(MBDyn_card*) CENTRALNODE));
 
+   /* Referenziazione al sistema nodo dei 3 offset */
+   MBDyn_entity STD(MBDyn_entity::NODE);
+   RVec3 STDOffsetL (OffsetJ,STD);
+   RVec3 STDOffsetR (OffsetI,STD);
+   RVec3 STDOffsetC (OffsetC,STD);
+
+   /* Leggi costitutive nelle sezioni */
    
-   // Creazione della beam attaccata al nodo centrale.
-   // Al solito verifica che ci sia una label libera per la Beam.
-   Id IDBEAM = GetFreeLabel (MBBeams,label);
-   MBDyn_beam* CENTRALBEAM = new
-     MBDyn_beam (IDBEAM,WhichNode[0],NodeID,WhichNode[1],
-		 OffsetL,OffsetC,OffsetR,R[0],R[1],pK1,pK2);
-   MBBeams.insert(MBDyn_entry(IDBEAM,(MBDyn_card*) CENTRALBEAM));
+   Mat6x6* pK[2];
+   for (int i=0;i<2;i++) {
+      pK[i]=new Mat6x6();
+      *(pK[i])= KMatrix (Length,Ixx,Iyy,Izz,Area,Emodulus,
+			 Gmodulus,Asy,Asz,NULL,0);
+   }
 
+   /* Beam attaccata ai nodi */
+   Id BeamID = GetFreeLabel (MBBeams,label);
+   MBDyn_beam* BEAM = new MBDyn_beam (BeamID,WhichNode[1],NodeID,
+				      WhichNode[0],STDOffsetL,STDOffsetC,
+				      STDOffsetR,R[1],R[0],pK[1],pK[0]);
+   MBBeams.insert(MBDyn_entry(BeamID,(MBDyn_card*) BEAM));
+ 
    sprintf (title,"Adams BEAM %i",label);
    sprintf (comment,"MBDyn Beam %i relative to Adams BEAM %i",
-	    IDBEAM,label);   
-   CENTRALBEAM->Remark(comment);
-   CENTRALBEAM->Title(title);
+	    BeamID,label);   
+   BEAM->Remark(comment);
+   BEAM->Title(title);
+
+   
+   /* End of new code */
+   /* return; */
    
    return;
 }

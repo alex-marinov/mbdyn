@@ -91,10 +91,10 @@ void NodeSet (MBDyn_node_structural* NS, MBDyn_reference* NR)
     * BEAM */
    // NR->Restart(cout);
    NS->Mode_type=MBDyn_node_structural::DYNAMIC;
-   NS->Abs_pos=NR->Abs_Pos;
-   NS->Abs_rot_matrix=NR->Abs_Rot_Matrix;
-   NS->Abs_vel=NR->Abs_Vel;
-   NS->Abs_ang_vel=NR->Abs_Omega;
+   NS->Abs_Pos=NR->Abs_Pos;
+   NS->Abs_Rot_Matrix=NR->Abs_Rot_Matrix;
+   NS->Abs_Vel=NR->Abs_Vel;
+   NS->Abs_Ang_Vel=NR->Abs_Omega;
    NS->position_initial_stiffness=0;
    NS->velocity_initial_stiffness=0;
    NS->Omega_rotates=N;

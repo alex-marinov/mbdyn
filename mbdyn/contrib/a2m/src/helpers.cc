@@ -119,18 +119,22 @@ char * CheckInputFile (int argn, char *argv[], FILE*& erf, FILE*& msg,
 	if (argv[optind] == NULL) {
 		return NULL;
 	}
-	const char *base = argv[optind];
-	char *base_error = new char[strlen(base)+4+1];
-	char *base_messg = new char[strlen(base)+4+1];
-	char *base_input = new char[strlen(base)+1];
-        char *base_table = new char[strlen(base)+4+1];
-        strcpy(base_error, base);
+        int l = strlen(argv[optind]);
+	char *base_input = new char[l+1];
+	strcpy(base_input, argv[optind]);
+	
+	if (l > 4 && strcasecmp(base_input+l-4, ".adm") == 0) {
+		base_input[l-4] = '\0';
+	}
+	char *base_error = new char[l+4+1];
+	char *base_messg = new char[l+4+1];
+        char *base_table = new char[l+4+1];
+        strcpy(base_error, base_input);
 	strcat(base_error, ".err");
-	strcpy(base_messg, base);
+	strcpy(base_messg, base_input);
 	strcat(base_messg, ".msg");
-        strcpy(base_table, base);
+        strcpy(base_table, base_input);
         strcat(base_table,".ref");
-	strcpy(base_input, base);
 
 	erf=fopen(base_error,"w");
 	msg=fopen(base_messg,"w");

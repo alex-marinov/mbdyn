@@ -109,7 +109,7 @@ extern double A2M_deriv_coef;
 extern double A2M_deriv_tol;
 extern double A2M_deriv_iter;
 
-int NO_STRUCTURAL_NODES, NO_FORCES, NO_JOINTS, NO_RIGIDBODIES;
+int NO_STRUCTURAL_NODES, NO_FORCES, NO_JOINTS, NO_RIGIDBODIES, NO_BEAMS;
 double IS,IT;
 
 void Translate (ofstream& out)
@@ -157,6 +157,7 @@ void Translate (ofstream& out)
    NO_FORCES=MBForces.size();
    NO_JOINTS=MBJoints.size();
    NO_RIGIDBODIES=MBBodies.size();
+   NO_BEAMS=MBBeams.size();
    cout << "Processing output file ... " << endl;
    //
    /* 01. - HEADER OF THE TRANSLATED FILE */
@@ -188,7 +189,8 @@ void Translate (ofstream& out)
      << "  structural nodes: " << NO_STRUCTURAL_NODES<< ";" << endl
      << "  rigid bodies: " << NO_RIGIDBODIES << ";" << endl
      << "  joints: " << NO_JOINTS << ";" << endl
-     << "  forces: " << NO_FORCES << ";" << endl;
+     << "  forces: " << NO_FORCES << ";" << endl
+     << "  beams: " << NO_BEAMS << ";" << endl;
    
    /* Se è presente la gravità la inserisce nella lista */
    if (accgravs.size()!=0) out << "  gravity;" << endl;
