@@ -54,27 +54,35 @@ static struct solver_t {
 	const char *const	s_alias;
 	enum LinSol::SolverType	s_type;
 	unsigned		s_flags;
+	unsigned		s_default_flags;
 } solver[] = {
 	{ "Harwell", NULL,
 		LinSol::HARWELL_SOLVER,
+		LinSol::SOLVER_FLAGS_NONE,
 		LinSol::SOLVER_FLAGS_NONE },
 	{ "Meschach", NULL,
 		LinSol::MESCHACH_SOLVER,
+		LinSol::SOLVER_FLAGS_NONE,
 		LinSol::SOLVER_FLAGS_NONE },
 	{ "Y12", NULL,
 		LinSol::Y12_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR },
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP },
 	{ "Umfpack", "umfpack3", 
 		LinSol::UMFPACK_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR },
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP },
 	{ "SuperLU", NULL, 
 		LinSol::SUPERLU_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT },
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT },
 	{ "Empty", NULL,
 		LinSol::EMPTY_SOLVER,
+		LinSol::SOLVER_FLAGS_NONE,
 		LinSol::SOLVER_FLAGS_NONE },
 	{ NULL, NULL, 
 		LinSol::EMPTY_SOLVER,
+		LinSol::SOLVER_FLAGS_NONE,
 		LinSol::SOLVER_FLAGS_NONE },
 };
 
@@ -214,22 +222,46 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		break;
 	}
 
+	solverFlags |= ::solver[CurrSolver].s_default_flags;
+
+	/* map? */
+	if (HP.IsKeyWord("map")) {
+		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MAP) {
+			solverFlags &= ~LinSol::SOLVER_FLAGS_TYPE_MASK;
+			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_MAP;
+			pedantic_cout("using map matrix handling for "
+					<< ::solver[CurrSolver].s_name
+					<< " solver" << std::endl);
+
+		} else {
+			pedantic_cerr("map is meaningless for "
+					<< ::solver[CurrSolver].s_name
+					<< " solver" << std::endl);
+		}
+
 	/* CC? */
-	if (HP.IsKeyWord("column" "compressed") || HP.IsKeyWord("cc")) {
+	} else if (HP.IsKeyWord("column" "compressed") || HP.IsKeyWord("cc")) {
 		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_CC) {
+			solverFlags &= ~LinSol::SOLVER_FLAGS_TYPE_MASK;
 			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_CC;
+			pedantic_cout("using column compressed matrix handling for "
+					<< ::solver[CurrSolver].s_name
+					<< " solver" << std::endl);
 
 		} else {
 			pedantic_cerr("column compressed is meaningless for "
 					<< ::solver[CurrSolver].s_name
 					<< " solver" << std::endl);
 		}
-	}
 
 	/* direct? */
-	if (HP.IsKeyWord("direct") || HP.IsKeyWord("dir")) {
+	} else if (HP.IsKeyWord("direct" "access") || HP.IsKeyWord("dir")) {
 		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_DIR) {
+			solverFlags &= ~LinSol::SOLVER_FLAGS_TYPE_MASK;
 			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_DIR;
+			pedantic_cout("using direct access matrix handling for "
+					<< ::solver[CurrSolver].s_name
+					<< " solver" << std::endl);
 
 		} else {
 			pedantic_cerr("direct is meaningless for "
@@ -465,8 +497,7 @@ SolutionManager *const
 LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 {
 	SolutionManager *pCurrSM = NULL;
-	bool cc = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_CC);
-	bool dir = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_DIR);
+	unsigned type = (solverFlags & LinSol::SOLVER_FLAGS_TYPE_MASK);
 	bool mt = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_MT);
 
 	ASSERT((::solver[CurrSolver].s_flags & solverFlags) == solverFlags);
@@ -478,21 +509,29 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
    	switch (CurrSolver) {
      	case LinSol::Y12_SOLVER: 
 #ifdef USE_Y12
-		if (dir) {
+		switch (type) {
+		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
 			typedef Y12SparseCCSolutionManager<DirCColMatrixHandler<1> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
 					CCSM(iNLD, iLWS,
 					dPivotFactor == -1. ? 1. : dPivotFactor));
-		} else if (cc) {
+			break;
+		}
+
+		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
 			typedef Y12SparseCCSolutionManager<CColMatrixHandler<1> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
 					CCSM(iNLD, iLWS,
 					dPivotFactor == -1. ? 1. : dPivotFactor));
-		} else {
+			break;
+		}
+
+		default:
       			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				Y12SparseSolutionManager,
 				Y12SparseSolutionManager(iNLD, iLWS,
 					dPivotFactor == -1. ? 1. : dPivotFactor));
+			break;
 		}
       		break;
 #else /* !USE_Y12 */
@@ -507,21 +546,29 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			silent_cerr("warning: SuperLU supperted only in multithread form" << std::endl);
 		}
 
-		if (dir) {
+		switch (type) {
+		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
 			typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
 					CCSM(nThreads, iNLD,
 					dPivotFactor == -1. ? 1. : dPivotFactor));
-		} else if (cc) {
+			break;
+		}
+
+		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
 			typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
 					CCSM(nThreads, iNLD,
 					dPivotFactor == -1. ? 1. : dPivotFactor));
-		} else {
+			break;
+		}
+
+		default:
       			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				SuperLUSparseSolutionManager,
 				SuperLUSparseSolutionManager(nThreads, iNLD,
 					dPivotFactor == -1. ? 1. : dPivotFactor));
+			break;
 		}
       		break;
 #else /* !USE_Y12 */
@@ -558,18 +605,26 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 
 	case LinSol::UMFPACK_SOLVER:
 #ifdef USE_UMFPACK
-		if (dir) {
+		switch (type) {
+		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
 			typedef UmfpackSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
 					CCSM(iNLD, dPivotFactor));
-		} else if (cc) {
+			break;
+		}
+
+		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
 			typedef UmfpackSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
 					CCSM(iNLD, dPivotFactor));
-		} else {
+			break;
+		}
+
+		default:
 			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				UmfpackSparseSolutionManager,
 				UmfpackSparseSolutionManager(iNLD, dPivotFactor));
+			break;
 		}
       		break;
 #else /* !USE_UMFPACK */
