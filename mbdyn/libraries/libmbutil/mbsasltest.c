@@ -62,6 +62,7 @@
 #include <sys/types.h>
 #include <sys/poll.h>
 #include <sys/socket.h>
+#include <ac/getopt.h>
 
 #if defined(HAVE_SASL2) && defined(HAVE_THREADS) && (HAVE_SEMAPHORE_H)
 

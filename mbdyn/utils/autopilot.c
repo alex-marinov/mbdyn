@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <termios.h>
+#include <ac/getopt.h>
 
 #include <stdio.h>
 #include <errno.h>

@@ -47,6 +47,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <ac/getopt.h>
 
 #include <iostream>
 #include <sstream>

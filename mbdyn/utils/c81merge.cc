@@ -36,6 +36,7 @@
 
 #include <ac/iostream>
 #include <ac/fstream>
+#include <ac/getopt.h>
 
 #include <myassert.h>
 #include <mynewmem.h>

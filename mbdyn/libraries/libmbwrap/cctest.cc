@@ -35,6 +35,7 @@
 #include <unistd.h>
 #include "ac/iostream"
 #include "ac/iomanip"
+#include <ac/getopt.h>
 
 #include "solman.h"
 #include "spmapmh.h"

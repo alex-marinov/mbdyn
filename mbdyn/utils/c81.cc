@@ -35,6 +35,7 @@
 #include <ac/iostream>
 #include <ac/iomanip>
 #include <ac/fstream>
+#include <ac/getopt.h>
 
 extern "C" {
 #include <aerodc81.h>
