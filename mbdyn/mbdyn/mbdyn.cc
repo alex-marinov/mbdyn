@@ -744,16 +744,9 @@ main(int argc, char* argv[])
 	    		struct tms tmsbuf;
 	    		times(&tmsbuf);
 
-#if 0
-			std::cerr
-				<< "utime:  " << tmsbuf.tms_utime << std::endl
-				<< "stime:  " << tmsbuf.tms_stime << std::endl
-				<< "cutime: " << tmsbuf.tms_cutime << std::endl
-				<< "cstime: " << tmsbuf.tms_cstime << std::endl;
-#endif
-			
 	    		ct += tmsbuf.tms_utime + tmsbuf.tms_cutime
 				+ tmsbuf.tms_stime + tmsbuf.tms_cstime;
+
 			long clk_tck = sysconf(_SC_CLK_TCK);
 	    		tSecs = ct/clk_tck;
 	    		tMils = ((ct*1000)/clk_tck)%1000;
