@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 		- added "ad hoc" (Radau IIA) third-order integrator
 		- added ideal gimbal joint
 		- reworked matrix/matrix and matrix/vector product
+		- added "print symbol table" directive
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

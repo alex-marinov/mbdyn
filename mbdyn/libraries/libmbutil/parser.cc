@@ -506,8 +506,29 @@ restart_parsing:;
 bool
 HighParser::GetDescription_int(const char *s)
 {
+	/* Se trova un remark, scrive il commento ed eventualmente
+	 * quello che segue */
+	if (!strcmp(s, "remark")) {
+		Remark_int();
+		return true;
+		
+ 	/* display the symbol table */
+	} else if (strcmp(s, "print" "symbol" "table" ) == 0 ) {
+		/* FIXME: move to a ddicated helper? */
+		if (FirstToken() == UNKNOWN) {
+			silent_cerr("Parser error in MBDynParser::GetDescription_int(),"
+				" semicolon expected at line "
+				<< GetLineData() << std::endl);
+			throw HighParser::ErrSemicolonExpected();
+		}
+
+		silent_cout( "math parser symbol table at line "
+				<< GetLineData() << ":" << std::endl
+				<< MathP.GetSymbolTable() << std::endl );
+		return true;
+		
 	/* calls the MathParser */
-	if (strcmp(s, "set") == 0) {
+	} else if (strcmp(s, "set") == 0) {
 		Set_int();
 		return true;
 
