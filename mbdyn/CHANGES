@@ -28,6 +28,7 @@ MBDyn 1.2-Engineering
 	Bug fixes:
 		- do not output RelativeFrame dummy struct nodes in ADAMS
 		  res format
+		- fix timing
 
 
 MBDyn 1.1.4

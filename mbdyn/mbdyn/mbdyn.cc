@@ -38,6 +38,7 @@
 #include <ac/getopt.h>
 
 extern "C" {
+#include <time.h>
 #ifdef HAVE_SYS_TIMES_H
 #include <sys/times.h>
 #endif /* HAVE_SYS_TIMES_H */
@@ -694,17 +695,18 @@ main(int argc, char* argv[])
 	    		}
 	 
 	    		time_t tSecs = 0;
-	    		time_t tCents = 0;
+	    		time_t tMils = 0;
 #ifdef HAVE_SYS_TIMES_H	 
 	    		/* Tempo di CPU impiegato */
 	    		struct tms buf;
 	    		times(&buf);
 	    		clock_t ct = buf.tms_utime+buf.tms_cutime
 				+buf.tms_stime+buf.tms_cstime;
-	    		tSecs = ct/CLK_TCK;
-	    		tCents = ((ct*100)/CLK_TCK)%100;
+			long clk_tck = sysconf(_SC_CLK_TCK);
+	    		tSecs = ct/clk_tck;
+	    		tMils = ((ct*1000)/clk_tck)%1000;
 	    		std::cout << std::endl << "The simulation required " 
-	        		<< tSecs << '.' << tCents 
+	        		<< tSecs << '.' << tMils 
 	        		<< " seconds of CPU time";
 #ifdef USE_MPI
 			if (using_mpi) {
@@ -719,7 +721,7 @@ main(int argc, char* argv[])
 	    		/* E-mail all'utente */
 	    		if (sMailToAddress) {
 	        		SendMessage(sInputFileName, sMailToAddress,
-					    tSecs, tCents);
+					    tSecs, tMils);
 				sMailToAddress = NULL;
 	    		}
 #endif /* HAVE_GETOPT */
@@ -936,7 +938,7 @@ static void
 SendMessage(const char* const sInputFileName,
 	    const char* const sMailToAddress,
 	    time_t tSecs,
-	    time_t tCents)
+	    time_t tMils)
 {
     	DEBUGCOUTFNAME("SendMessage");
    
@@ -947,7 +949,7 @@ SendMessage(const char* const sInputFileName,
         	Msg << "'" << sInputFileName << "' ";
     	}
 #ifdef HAVE_SYS_TIMES_H
-    	Msg << "in " << tSecs << '.' << tCents << " seconds of CPU time";
+    	Msg << "in " << tSecs << '.' << tMils << " seconds of CPU time";
 #endif /* HAVE_SYS_TIMES_H */
     	Msg << '.' << std::endl;
     	Msg.close();
