@@ -804,7 +804,7 @@ class Mat3x3 {
    void PutVec(unsigned short int i, const Vec3& v) {
       ASSERT(i >= 1 && i <= 3);
 
-      i = 3*--i;
+      i--; i = 3*i;
       pdMat[i++] = v.pdVec[V1];
       pdMat[i++] = v.pdVec[V2];
       pdMat[i] = v.pdVec[V3];
@@ -813,7 +813,7 @@ class Mat3x3 {
    void AddVec(unsigned short int i, const Vec3& v) {
       ASSERT(i >= 1 && i <= 3);
 
-      i = 3*--i;
+      i--; i = 3*i;
       pdMat[i++] += v.pdVec[V1];
       pdMat[i++] += v.pdVec[V2];
       pdMat[i] += v.pdVec[V3];
@@ -822,7 +822,7 @@ class Mat3x3 {
    void SubVec(unsigned short int i, const Vec3& v) {
       ASSERT(i >= 1 && i <= 3);
 
-      i = 3*--i;
+      i--; i = 3*i;
       pdMat[i++] -= v.pdVec[V1];
       pdMat[i++] -= v.pdVec[V2];
       pdMat[i] -= v.pdVec[V3];
