@@ -128,8 +128,8 @@ Modal::Modal(unsigned int uL,
              Mat3xN *pInv9,
              Mat3xN *pInv10,
              Mat3xN *pInv11,
-	     VecN *a,
-	     VecN *b,
+	     VecN *aa,
+	     VecN *bb,
 	     const char *sFileMod,
              DataManager* pDM,  /* non serve */
              MBDynParser& HP,   /* non serve */
@@ -176,9 +176,9 @@ Inv9jkak(0.),
 #ifdef MODAL_USE_INV9
 Inv9jkajaPk(0.),
 #endif /* MODAL_USE_INV9 */
-a(*a), 
+a(*aa), 
 aPrime(NModes, 0.),
-b(*b),
+b(*bb),
 bPrime(NModes, 0.),
 pd1tot(NULL), 
 pd2(NULL), 
