@@ -20,16 +20,19 @@ MBDyn 1.2-Engineering
 		- added separate definition of constitutive laws
 		- added "bailout" output mode (residual at divergence)
 	Bug fixes:
-		- fixed dof count in initial assembly dof stats print
-		- fixed element drive input
 		- fixed aeromodal bug for v=0
-		- fixed ADAMS res output
 		- fixed solver diagnostics incremental activation
 	Known Issues:
 		- parallel is not working yet
 	Backward compatibility issues:
 		- bind now uses "name" instead of "string";
 		  compatibility preserved
+
+MBDyn 1.2-beta.2
+	Bug fixes:
+		- fixed dof count in initial assembly dof stats print
+		- fixed element drive input
+		- fixed ADAMS res output
 
 MBDyn 1.2-beta.1
 	Enhancements:
