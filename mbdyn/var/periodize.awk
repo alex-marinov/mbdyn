@@ -125,6 +125,21 @@ function skip_label(l)
 
 # Condition
 function condition(d) {
+	# return 1 if the condition of periodicity is met;
+	# plus, put in d[1] and d[2] the weights of the previous
+	# and the current step for linear interpolation of the
+	# periodicity time, and in d[3] the label of a node
+	# that is considered as reference
+
+	# this condition applies to the ADYN model of rotor + pylon:
+	# when node 5000 (the shaft) completes a round about its
+	# axis (approximate, in the global frame) a period is
+	# completed.
+	# (Note: the node is oriented with axis 3 in direction -1,
+	# axis 1 in direction 3 and axis 2 in direction 2 when the
+	# model is assembled; the condition is represented by axis
+	# 1 of the node crossing the global plane 1-2 coming from 
+	# below
 	euler2R(The[5000, 1], The[5000, 2], The[5000, 3], Rtmp);
 	euler2R(OldThe[5000, 1], OldThe[5000, 2], OldThe[5000, 3], OldRtmp);
 	if (Rtmp[2, 1] >= 0 && OldRtmp[2, 1] < 0) {
@@ -134,6 +149,8 @@ function condition(d) {
 		d[3] = 5000;
 		return 1;
 	}
+
+	# default: no periodicity
 	return 0;
 }
 
