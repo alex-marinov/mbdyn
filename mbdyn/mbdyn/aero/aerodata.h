@@ -59,6 +59,7 @@ private:
 	doublereal	*t;
 	integer		iPoints;
 	DriveCaller	*pTime;
+	int		numUpdates;
 
 protected:
 	virtual int StorageSize(void) const = 0;

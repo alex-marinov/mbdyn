@@ -39,7 +39,7 @@ extern "C" {
 };
 
 AeroMemory::AeroMemory(DriveCaller *pt)
-: a(0), t(0), iPoints(0), pTime(pt)
+: a(0), t(0), iPoints(0), pTime(pt), numUpdates(0)
 {
 	NO_OP;
 }
@@ -55,30 +55,49 @@ AeroMemory::~AeroMemory(void)
 	}
 }
 
+#define USE_POLCOE
 void
 AeroMemory::Predict(int i, doublereal alpha, doublereal &alf1, doublereal &alf2)
 {
-	doublereal 	coe[3];
-	integer		order = 3;
+	/* FIXME: this should be s, but I don't want a malloc here */
+	doublereal 	coe[4];
+	int		s = StorageSize();
+#ifdef USE_POLCOE
+	/*
+	 * FIXME: actually this is not the order of the polynomial,
+	 * but the number of coefficients, e.g. a second-order polynomial
+	 * has three coefficients :)
+	 */
+	integer		order = s;
+#endif /* USE_POLCOE */
 
-	ASSERT(StorageSize());
+	ASSERT(s > 0);
 	ASSERT(i < iPoints);
 
-	doublereal *aa = a + 3*i;
-	doublereal *tt = t + 3*i;
+	doublereal *aa = a + s*i;
+	doublereal *tt = t + s*i;
 
-	aa[2] = alpha;
-	tt[2] = pTime->dGet();
+	aa[s-1] = alpha;
+	tt[s-1] = pTime->dGet();
 
-	if (tt[2] > tt[1] && tt[1] > tt[0]) {
+	if (numUpdates >= s) {
+#ifdef USE_POLCOE
 		__FC_DECL__(polcoe)(tt, aa, &order, coe);
+#else /* !USE_POLCOE */
+		coe[2] = ((aa[2]-aa[0])/(tt[2]-tt[0]) - (aa[1]-aa[0])/(tt[1]-tt[0]))/(tt[2]-tt[1]);
+		coe[1] = (aa[1]-aa[0])/(tt[1]-tt[0]) - (tt[1]+tt[0])*coe[2];
+
+#if 0	/* not used ... */
+		coe[1] = aa[0] - tt[0]*coe[1] - tt[0]*tt[0]*coe[2];
+#endif
+#endif /* !USE_POLCOE */
 
 #if 0
 			std::cerr << "aa[0:2]= " << aa[0] << "," << aa[1] << "," << aa[2] << std::endl
 				<< "tt[0:2]= " << tt[0] << "," << tt[1] << "," << tt[2] << std::endl
 				<< "coe[0:2]=" << coe[0] << "," << coe[1] << "," << coe[2] << std::endl;
-#endif
-		
+#endif /* 0 */
+	
 		alf1 = coe[1]+2.*coe[2]*tt[2];
 		alf2 = 2.*coe[2];
 	} else {
@@ -101,10 +120,14 @@ AeroMemory::Update(int i)
 
 		ASSERT(i < iPoints);
 
-		aa[0] = aa[1];
-		aa[1] = aa[2];
-		tt[0] = tt[1];
-		tt[1] = tt[2];
+		for (int j = 1; j < s; j++) {
+			aa[j-1] = aa[j];
+			tt[j-1] = tt[j];
+		}
+
+		if (i == 0) {
+			numUpdates++;
+		}
 	}
 }
 
@@ -164,7 +187,7 @@ AeroData::StorageSize(void) const
 	switch (unsteadyflag) {
 	case AeroData::HARRIS:
 	case AeroData::BIELAWA:
-		return 3;
+		return 4;
 
 	case AeroData::STEADY:
 		return 0;
