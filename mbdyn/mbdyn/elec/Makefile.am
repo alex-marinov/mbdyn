@@ -6,7 +6,8 @@ libelec_la_SOURCES = \
 discctrl.cc  discctrl.h   elec.cc     elec.h     elecnode.cc \
 elecnode.h   forgfact.cc  forgfact.h  genel.cc   genel.h  genel_.h \
 genfilt.cc   genfilt.h    gpc.h       id.cc      id.h \
-px.cc        px.h         swashpl.cc  swashpl.h  gpc.cc
+px.cc        px.h         swashpl.cc  swashpl.h  gpc.cc \
+rottrim.cc   rottrim.h
 
 libelec_la_LIBADD = @LIBS@
 libelec_la_LDFLAGS = -static

@@ -37,7 +37,9 @@
 #include <genel_.h>
 #include <genfilt.h>
 #include <swashpl.h>
+#ifdef USE_AERODYNAMIC_ELEMS
 #include <rottrim.h>
+#endif /* USE_AERODYNAMIC_ELEMS */
 #include <dataman.h>
 
 /* genel - begin */
@@ -297,7 +299,7 @@ Elem* ReadGenel(DataManager* pDM,
 
       
     case ROTORTRIM: {
-#if defined(USE_AERODYNAMIC_ELEMS)
+#ifdef USE_AERODYNAMIC_ELEMS
        unsigned int uL = HP.GetInt();
        Rotor* pRot = (Rotor*)(((Elem*)pDM->pFindElem(ElemType::ROTOR, uL))->pGet());
        if (pRot == NULL) {
@@ -372,10 +374,10 @@ Elem* ReadGenel(DataManager* pDM,
 					0 /* fOut */ ),
 			      DMmm);
 
-#else // defined(USE_AERODYNAMIC_ELEMS)
+#else /* !USE_AERODYNAMIC_ELEMS */
        cerr << "can't use a rotor trim element without rotors" << endl;
        THROW(ErrGeneric());       
-#endif // defined(USE_AERODYNAMIC_ELEMS)
+#endif /* !USE_AERODYNAMIC_ELEMS */
        
        break;
     }
