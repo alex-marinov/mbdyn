@@ -330,8 +330,12 @@ DataManager::ElemAssInit(void)
 	}
 }
 
+#define MBDYN_X_THREADSAFE
+
+#ifdef MBDYN_X_THREADSAFE
 /* temporary */
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif /* MBDYN_X_THREADSAFE */
 
 /* Assemblaggio dello jacobiano.
  * Di questa routine e' molto importante l'efficienza, quindi vanno valutate
@@ -360,12 +364,16 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 	if (pIter->bGetFirst(pTmpEl)) {
 		do {
 
+#if MBDYN_X_THREADSAFE
 			pthread_mutex_lock(&mutex);
+#endif /* MBDYN_X_THREADSAFE */
 			
 			JacHdl += pTmpEl->AssJac(WorkMat, dCoef,
 					*pXCurr, *pXPrimeCurr);
 
+#ifdef MBDYN_X_THREADSAFE
 			pthread_mutex_unlock(&mutex);
+#endif /* MBDYN_X_THREADSAFE */
 			
 			// i++;
 			// usleep(100);
@@ -448,12 +456,16 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 	if (pIter->bGetFirst(pTmpEl)) {
 		do {
 
+#ifdef MBDYN_X_THREADSAFE
 			pthread_mutex_lock(&mutex);
+#endif /* MBDYN_X_THREADSAFE */
 			
 			ResHdl += pTmpEl->AssRes(WorkVec, dCoef,
 					*pXCurr, *pXPrimeCurr);
 
+#ifdef MBDYN_X_THREADSAFE
 			pthread_mutex_unlock(&mutex);
+#endif /* MBDYN_X_THREADSAFE */
 
 			// i++;
 			// usleep(100);
