@@ -52,8 +52,8 @@ ReadHydraulicFluid(MBDynParser& HP,
       "uncompressible",
       "linear" "compressible",
       "linear" "thermal" "compressible",
-      "x-super",
-      "x-amesim",
+      "super",
+      "exponential",
       
       NULL
    };
