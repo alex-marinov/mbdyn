@@ -897,7 +897,7 @@ DynamicStructNode::DynamicStructNode(unsigned int uL,
 				     flag fOmRot,
 				     flag fOut)
 : StructNode(uL, pDO, X0, R0, V0, W0, pRN, dPosStiff, dVelStiff, fOmRot, fOut),
-bComputeAccelerations(fOut ? true : false),
+bComputeAccelerations((fOut & 2) ? true : false),
 pAutoStr(0),
 XPPCurr(0.), WPCurr(0.),
 XPPPrev(0.), WPPrev(0.)
@@ -991,7 +991,9 @@ DynamicStructNode::ComputeAccelerations(bool b)
 void
 DynamicStructNode::SetOutputFlag(flag f)
 {
-	ComputeAccelerations(true);
+	if (f & 2) {
+		ComputeAccelerations(true);
+	}
 	ToBeOutput::SetOutputFlag(f);
 }
 
@@ -1013,15 +1015,19 @@ void
 DynamicStructNode::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.StrNodes()
+		std::ostream& out = OH.StrNodes();
+		out 
 			<< std::setw(8) << GetLabel()
 			<< " " << XCurr
 			<< " " << MatR2EulerAngles(RCurr)*dRaDegr
 			<< " " << VCurr
-			<< " " << WCurr
-			<< " " << XPPCurr
-			<< " " << WPCurr
-			<< std::endl;
+			<< " " << WCurr;
+		if (bComputeAccelerations) {
+			out
+				<< " " << XPPCurr
+				<< " " << WPCurr;
+		}
+		out << std::endl;
 	}
 }
 
@@ -1733,6 +1739,9 @@ ReadStructNode(DataManager* pDM,
 
       pDO->SetScale(pDM->dReadScale(HP, DofOwner::STRUCTURALNODE));
       flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
+      if (CurrType == DYNAMIC && HP.IsArg() && HP.IsKeyWord("accelerations")) {
+      	      fOut |= 2;
+      }
 
       /* Se non c'e' il punto e virgola finale */
       if (HP.IsArg()) {
@@ -1751,7 +1760,7 @@ ReadStructNode(DataManager* pDM,
 						 dPosStiff, dVelStiff,
 						 fOmRot, fOut));
 
-      } else if(CurrType == DYNAMIC) {
+      } else if (CurrType == DYNAMIC) {
 	 SAFENEWWITHCONSTRUCTOR(pNd, DynamicStructNode,
 				DynamicStructNode(uLabel, pDO,
 						  X0, R0,

@@ -1386,12 +1386,16 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	 DEBUGLCOUT(MYDEBUG_INPUT, "nodes to be output: ");
 	 
 	 Node::Type Typ;
+	 flag fOutput = 1;
 	 switch (KeyWords(HP.GetWord())) {
 
 	  case STRUCTURAL: {
 #if defined(USE_STRUCT_NODES)
 	     DEBUGLCOUT(MYDEBUG_INPUT, "structural" << std::endl);
 	     Typ = Node::STRUCTURAL;
+	     if (HP.IsKeyWord("accelerations")) {
+		     fOutput |= 2;
+	     }
 	     break;
 #else /* USE_STRUCT_NODES */
 	     silent_cerr("you're not allowed to use structural nodes"
@@ -1459,7 +1463,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 		       << std::endl);
 	    } else {
 	       DEBUGLCOUT(MYDEBUG_INPUT, "node " << uL << std::endl);
-	       pN->SetOutputFlag(flag(1));
+	       pN->SetOutputFlag(fOutput);
 	    }
 	 }	 
       } else {      
