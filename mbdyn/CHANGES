@@ -9,8 +9,14 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.1 Engineering
 	Enhancements:
+		- unsteady aerodynamics from Bielawa 31th A.H.S. Forum 1975
+		  for C81 aerodynamics
+		- unsteady aerodynamic model selection by keywords
 	Bug fixes:
+		- fixed native aerodynamic forces with unsteady aerodynamics
+		  (see above)
 	Known bugs:
+		- parallel build still requires HSL library
 
 
 MBDyn 1.1.0

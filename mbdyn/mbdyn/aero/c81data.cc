@@ -58,6 +58,8 @@ extern "C" {
 
 static int
 do_c81_data_stall(c81_data *data);
+static int
+do_c81_stall(int NM, int NA, double *a, double *stall);
 
 static int 
 get_vec(std::istream& in, double* v, int nrows)
@@ -272,57 +274,66 @@ set_c81_data(long int jpro, c81_data* data)
 static const double dcptol = 1.e-2;
 
 static int
+do_c81_stall(int NM, int NA, double *a, double *stall)
+{
+	for (int nm = 0; nm < NM; nm++) {
+		int start = NA*(nm+1);
+		int na = NA/2;	/* punto di mezzo */
+		double a0 = a[na];
+		double dcp0 = a[start+na];
+		double dcpa0 = (a[start+na+1]-dcp0)/(a[na+1]-a0);
+
+		/* cerca il punto superiore in cui cessa la linearita' */
+		for (int i = na+2; i < NA; i++) {
+			double dcpa = (a[start+i]-dcp0)/(a[i]-a0);
+			if (fabs(dcpa-dcpa0) > dcptol) {
+
+				/* alpha di stallo superiore */
+				stall[nm] = a[i-1];
+
+				/* mette temporaneamente il Cp di stallo */
+				stall[2*NM+nm] = 
+					a[start+i-1];
+				break;
+			}
+		}
+
+		dcpa0 = (a[start+na-1]-dcp0)/(a[na-1]-a0);
+		
+		/* cerca il punto inferiore in cui cessa la linearita' */
+		for (int i = na-2; i >= 0; i--) {
+			double dcpa = (a[start+i]-dcp0)/(a[i]-a0);
+			if (fabs(dcpa-dcpa0) > dcptol) {
+			
+				/* stallo inferiore */
+				stall[NM+nm] = a[i+1];
+
+				/* sottrae il cp allo stallo inferiore */
+				stall[2*NM+nm] -= 
+					a[start+i+1];
+					
+				/* divide per il delta alpha */
+				stall[2*NM+nm] /= stall[nm] -stall[NM+nm];
+				break;
+			}
+		}
+	}
+
+	return 0;
+}
+
+static int
 do_c81_data_stall(c81_data *data)
 {
-	if (data == NULL || data->NML <= 0) {
+	if (data == NULL || data->NML <= 0 || data->NMM <= 0) {
 		return -1;
 	}
 
 	data->stall = new double[3*data->NML];
-	for (int nm = 0; nm < data->NML; nm++) {
-		int start = data->NAL*(nm+1);
-		int na = data->NAL/2;	/* punto di mezzo */
-		double a0 = data->al[na];
-		double dcp0 = data->al[start+na];
-		double dcpa0 = (data->al[start+na+1]-dcp0)/(data->al[na+1]-a0);
+	do_c81_stall(data->NML, data->NAL, data->al, data->stall);
 
-		/* cerca il punto superiore in cui cessa la linearita' */
-		for (int i = na+2; i < data->NAL; i++) {
-			double dcpa = (data->al[start+i]-dcp0)/(data->al[i]-a0);
-			if (fabs(dcpa-dcpa0) > dcptol) {
-
-				/* alpha di stallo superiore */
-				data->stall[nm] = data->al[i-1];
-
-				/* mette temporaneamente il Cp di stallo */
-				data->stall[2*data->NML+nm] = 
-					data->al[start+i-1];
-				break;
-			}
-		}
-
-		dcpa0 = (data->al[start+na-1]-dcp0)/(data->al[na-1]-a0);
-		
-		/* cerca il punto inferiore in cui cessa la linearita' */
-		for (int i = na-2; i >= 0; i--) {
-			double dcpa = (data->al[start+i]-dcp0)/(data->al[i]-a0);
-			if (fabs(dcpa-dcpa0) > dcptol) {
-			
-				/* stallo inferiore */
-				data->stall[data->NML+nm] = data->al[i+1];
-
-				/* sottrae il cp allo stallo inferiore */
-				data->stall[2*data->NML+nm] -= 
-					data->al[start+i+1];
-					
-				/* divide per il delta alpha */
-				data->stall[2*data->NML+nm] /= 
-					data->stall[nm]
-					-data->stall[data->NML+nm];
-				break;
-			}
-		}
-	}
+	data->mstall = new double[3*data->NMM];
+	do_c81_stall(data->NMM, data->NAM, data->am, data->mstall);
 
 	return 0;
 }

@@ -51,9 +51,34 @@ public:
 /* C81Data - end */
 
 
+/* AeroMemory - begin */
+
+class AeroMemory {
+private:
+	doublereal	*a;
+	doublereal	*t;
+	integer		iPoints;
+	DriveCaller	*pTime;
+
+protected:
+	virtual int StorageSize(void) const = 0;
+
+public:
+	AeroMemory(DriveCaller *pt);
+	virtual ~AeroMemory(void);
+
+	void Predict(int i, doublereal alpha, doublereal &alf1, 
+			doublereal &alf2);
+	void Update(int i);
+	void SetNumPoints(int i);
+};
+
+/* Memory - end */
+
+
 /* AeroData - begin */
 
-class AeroData {
+class AeroData : public AeroMemory {
 public:
 	enum UnsteadyModel {
 		STEADY = 0,
@@ -61,13 +86,17 @@ public:
 		BIELAWA = 2
 	};
 	
+	enum { ALF1 = 8, ALF2 = 9 };
+
 protected:
    	UnsteadyModel unsteadyflag;
    	doublereal VAM[6];
    	doublereal Omega;
+
+	int StorageSize(void) const;
    
 public:
-   	AeroData(UnsteadyModel u = STEADY);
+   	AeroData(UnsteadyModel u = STEADY, DriveCaller *pt = NULL);
    	virtual ~AeroData(void);
    
    	virtual std::ostream& Restart(std::ostream& out) const = 0;   
@@ -83,8 +112,6 @@ public:
    
    	virtual int
 	GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA) = 0;
-	virtual void Update(int i) { NO_OP; };
-	virtual void SetNumPoints(int i) { NO_OP; };
 	inline AeroData::UnsteadyModel Unsteady(void) const;
 };
 
@@ -103,12 +130,6 @@ AeroData::Unsteady(void) const
 class STAHRAeroData : public AeroData {
 protected:
    	integer 	profile;
-	doublereal	*a;
-	doublereal	*t;
-	integer		iPoints;
-	DriveCaller	*pTime;
-
-	enum { ALF1 = 8, ALF2 = 9 };
    
 public: 
    	STAHRAeroData(AeroData::UnsteadyModel u, integer p, 
@@ -117,8 +138,6 @@ public:
    
 	std::ostream& Restart(std::ostream& out) const;   
    	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
-	void Update(int i);
-	void SetNumPoints(int i);
 };
 
 /* STAHRAeroData - end */
@@ -132,7 +151,8 @@ protected:
    	const c81_data* data;
    
 public: 
-   	C81AeroData(AeroData::UnsteadyModel u, integer p, const c81_data* d);
+   	C81AeroData(AeroData::UnsteadyModel u, integer p, const c81_data* d,
+			DriveCaller *ptime = NULL);
 
 	std::ostream& Restart(std::ostream& out) const;
    	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
@@ -157,7 +177,8 @@ public:
 			integer np,
 			integer *p,
 			doublereal *ub,
-			const c81_data** d);
+			const c81_data** d,
+			DriveCaller *ptime = NULL);
    	~C81MultipleAeroData(void);
 
 	std::ostream& Restart(std::ostream& out) const;

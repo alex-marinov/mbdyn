@@ -77,6 +77,7 @@ typedef struct c81_data {
 	 *  2*NAL -> 3*NAL-1 :	Cp/alpha
 	 */
 	double *stall;
+	double *mstall;
    
    	int NMD;
    	int NAD;
@@ -91,6 +92,10 @@ typedef struct c81_data {
 
 extern int 
 c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data);
+
+extern int 
+c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA, 
+		c81_data* data, long unsteadyflag);
 
 #ifdef __cplusplus
 }

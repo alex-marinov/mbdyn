@@ -38,16 +38,104 @@ extern "C" {
 #include <aerod2.h>
 };
 
+AeroMemory::AeroMemory(DriveCaller *pt)
+: a(0), t(0), iPoints(0), pTime(pt)
+{
+	NO_OP;
+}
+
+AeroMemory::~AeroMemory(void)
+{
+	if (iPoints > 0) {
+		ASSERT(ptime);
+		ASSERT(a);
+
+		SAFEDELETE(pTime);
+		SAFEDELETEARR(a);
+	}
+}
+
+void
+AeroMemory::Predict(int i, doublereal alpha, doublereal &alf1, doublereal &alf2)
+{
+	doublereal 	coe[3];
+	integer		order = 3;
+
+	ASSERT(StorageSize());
+	ASSERT(i < iPoints);
+
+	doublereal *aa = a + 3*i;
+	doublereal *tt = t + 3*i;
+
+	aa[2] = alpha;
+	tt[2] = pTime->dGet();
+
+	if (tt[2] > tt[1] && tt[1] > tt[0]) {
+		__FC_DECL__(polcoe)(tt, aa, &order, coe);
+
+#if 0
+			std::cerr << "aa[0:2]= " << aa[0] << "," << aa[1] << "," << aa[2] << std::endl
+				<< "tt[0:2]= " << tt[0] << "," << tt[1] << "," << tt[2] << std::endl
+				<< "coe[0:2]=" << coe[0] << "," << coe[1] << "," << coe[2] << std::endl;
+#endif
+		
+		alf1 = coe[1]+2.*coe[2]*tt[2];
+		alf2 = 2.*coe[2];
+	} else {
+		alf1 = 0.;
+		alf2 = 0.;
+	}
+}
+
+void
+AeroMemory::Update(int i)
+{
+	int s = StorageSize();
+	if (s > 0) {
+		/* 
+		 * shift back angle of attack and time 
+		 * for future interpolation 
+		 */
+		doublereal *aa = a + s*i;
+		doublereal *tt = t + s*i;
+
+		ASSERT(i < iPoints);
+
+		aa[0] = aa[1];
+		aa[1] = aa[2];
+		tt[0] = tt[1];
+		tt[1] = tt[2];
+	}
+}
+
+void
+AeroMemory::SetNumPoints(int i)
+{
+	int s = StorageSize();
+
+	if (s > 0) {
+		iPoints = i;
+
+		SAFENEWARR(a, doublereal, 2*s*iPoints);
+		t = a + s*iPoints;
+	}
+}
+
+
 C81Data::C81Data(unsigned int uLabel)
 : WithLabel(uLabel) 
 {
    	NO_OP;
 }
 
-AeroData::AeroData(AeroData::UnsteadyModel u) 
-: unsteadyflag(u), Omega(0.)
+AeroData::AeroData(AeroData::UnsteadyModel u, DriveCaller *ptime) 
+: AeroMemory(ptime), unsteadyflag(u), Omega(0.)
 {
-   	NO_OP;
+   	if (u != AeroData::STEADY) {
+		if (ptime == 0) {
+			THROW(ErrGeneric());
+		}
+	}
 }
 
 AeroData::~AeroData(void) 
@@ -60,6 +148,22 @@ AeroData::SetAirData(const doublereal& rho, const doublereal& c)
 {
    	VAM[0] = rho;
    	VAM[1] = c;
+}
+
+int
+AeroData::StorageSize(void) const
+{
+	switch (unsteadyflag) {
+	case AeroData::HARRIS:
+	case AeroData::BIELAWA:
+		return 3;
+
+	case AeroData::STEADY:
+		return 0;
+
+	default:
+		THROW(ErrGeneric());
+	}
 }
 
 void 
@@ -98,23 +202,14 @@ AeroData::RestartUnsteady(std::ostream& out) const
    
 STAHRAeroData::STAHRAeroData(AeroData::UnsteadyModel u, integer p, 
 		DriveCaller *ptime) 
-: AeroData(u), profile(p), a(NULL), t(NULL), iPoints(0), pTime(ptime)
+: AeroData(u, ptime), profile(p)
 {
-	ASSERT(u ? ptime : 1);
+	ASSERT(u != AeroData::STEADY ? ptime : 1);
 }
 
 STAHRAeroData::~STAHRAeroData(void)
 {
-	switch (unsteadyflag) {
-	case AeroData::HARRIS:
-	case AeroData::BIELAWA:
-		ASSERT(ptime);
-		SAFEDELETE(pTime);
-		SAFEDELETEARR(a);
-
-	default:
-		break;
-	}
+	NO_OP;
 }
    
 std::ostream& 
@@ -143,34 +238,7 @@ STAHRAeroData::GetForces(int i, doublereal* W, doublereal* TNG,
 	switch (unsteadyflag) {
 	case AeroData::HARRIS: 
 	case AeroData::BIELAWA: {
-		doublereal 	coe[3];
-		integer		order = 3;
-
-		ASSERT(i < iPoints);
-
-		doublereal *aa = a + 3*i;
-		doublereal *tt = t + 3*i;
-
-		aa[2] = atan2(-W[1], W[0]);
-		tt[2] = pTime->dGet();
-
-		if (tt[2] > tt[1] && tt[1] > tt[0]) {
-	
-			__FC_DECL__(polcoe)(tt, aa, &order, coe);
-
-#if 0
-			std::cerr << "aa[0:2]= " << aa[0] << "," << aa[1] << "," << aa[2] << std::endl
-				<< "tt[0:2]= " << tt[0] << "," << tt[1] << "," << tt[2] << std::endl
-				<< "coe[0:2]=" << coe[0] << "," << coe[1] << "," << coe[2] << std::endl;
-#endif
-		
-			OUTA[ALF1] = coe[1]+2.*coe[2]*tt[2];
-			OUTA[ALF2] = 2.*coe[2];
-		} else {
-			OUTA[ALF1] = 0.;
-			OUTA[ALF2] = 0.;
-		}
-
+		Predict(i, atan2(-W[1], W[0]), OUTA[ALF1], OUTA[ALF2]);
 		break;
 	}
 
@@ -183,40 +251,9 @@ STAHRAeroData::GetForces(int i, doublereal* W, doublereal* TNG,
    	return 0;
 }
 
-void
-STAHRAeroData::Update(int i)
-{
-	/* shift back angle of attack and time for future interpolation */
-	doublereal *aa = a + 3*i;
-	doublereal *tt = t + 3*i;
-
-	ASSERT(i < iPoints);
-
-	aa[0] = aa[1];
-	aa[1] = aa[2];
-	tt[0] = tt[1];
-	tt[1] = tt[2];
-}
-
-void
-STAHRAeroData::SetNumPoints(int i)
-{
-	iPoints = i;
-
-	switch (Unsteady()) {
-	case 2:
-		SAFENEWARR(a, doublereal, 2*3*iPoints);
-		t = a + 3*iPoints;
-		break;
-		
-	default:
-		break;
-	}
-}
-
 C81AeroData::C81AeroData(AeroData::UnsteadyModel u, integer p, 
-		const c81_data* d)
-: AeroData(u), profile(p), data(d) 
+		const c81_data* d, DriveCaller *ptime)
+: AeroData(u, ptime), profile(p), data(d) 
 {
    	ASSERT(data != NULL);
 }
@@ -232,7 +269,18 @@ C81AeroData::Restart(std::ostream& out) const
 int
 C81AeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA) 
 {
-   	return c81_aerod2(W, VAM, TNG, OUTA, (c81_data*)data);
+	switch (unsteadyflag) {
+	case AeroData::HARRIS: 
+	case AeroData::BIELAWA: {
+		Predict(i, atan2(-W[1], W[0]), OUTA[ALF1], OUTA[ALF2]);
+		break;
+	}
+
+	default:
+		break;
+	}
+
+   	return c81_aerod2_u(W, VAM, TNG, OUTA, (c81_data*)data, Unsteady());
 }
 
 
@@ -242,9 +290,10 @@ C81MultipleAeroData::C81MultipleAeroData(
 		integer np,
 		integer *p,
 		doublereal *ub,
-		const c81_data** d
+		const c81_data** d,
+		DriveCaller *ptime
 )
-: AeroData(u), nprofiles(np), profiles(p), upper_bounds(ub), data(d) 
+: AeroData(u, ptime), nprofiles(np), profiles(p), upper_bounds(ub), data(d) 
 {
 	ASSERT(nprofiles > 0);
 	ASSERT(profiles != NULL);
@@ -298,7 +347,19 @@ C81MultipleAeroData::SetSectionData(
 int
 C81MultipleAeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA) 
 {
-   	return c81_aerod2(W, VAM, TNG, OUTA, (c81_data*)data[curr_data]);
+	switch (unsteadyflag) {
+	case AeroData::HARRIS: 
+	case AeroData::BIELAWA: {
+		Predict(i, atan2(-W[1], W[0]), OUTA[ALF1], OUTA[ALF2]);
+		break;
+	}
+
+	default:
+		break;
+	}
+
+   	return c81_aerod2_u(W, VAM, TNG, OUTA, (c81_data*)data[curr_data],
+			Unsteady());
 }
 
 

@@ -7,6 +7,10 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Tue Jan 22 16:48:30 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+				 Massimiliano Lanz <lanz@aero.polimi.it>
+ - native and c81 unsteady aerodynamic forces work with "Bielawa" model
+
 *** Sun Jan 13 09:04:22 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - actually there's no need to reset the matrix as we know in advance
    if we're adding/subtracting a coefficient for the first time; all

@@ -45,10 +45,6 @@ extern "C" {
 #include <c81data.h>
 }
 
-#ifdef __HACK_UNSTEADY_AERO__
-static doublereal dDA = 1.e-3; /* diventera' parente del Delta_t (memoria) */
-#endif /* __HACK_UNSTEADY_AERO__ */
-
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 Aero_output *
 Aero_output_alloc(unsigned int iNumPoints)
@@ -422,16 +418,14 @@ void
 AerodynamicBody::Output(OutputHandler& OH) const
 {
    	/* Memoria in caso di forze instazionarie */
-#ifdef __HACK_UNSTEADY_AERO__ /* E' molto bacato */
    	switch (aerodata->Unsteady()) {
-	case 0:
+	case AeroData::STEADY:
 		break;
 
-	case 1:
+	case AeroData::HARRIS:
 		THROW(ErrGeneric());
-		break;
 
-	case 2:
+	case AeroData::BIELAWA:
       		for (integer i = 0; i < GDI.iGetNum(); i++) {
 	 		aerodata->Update(i);
       		}
@@ -440,7 +434,6 @@ AerodynamicBody::Output(OutputHandler& OH) const
 	default:
 		THROW(ErrGeneric());
    	}
-#endif /* __HACK_UNSTEADY_AERO__ */
 
    	/* Output delle forze aerodinamiche F, M su apposito file */
    	if (fToBeOutput()) {
@@ -677,10 +670,15 @@ ReadAeroData(DataManager* pDM,
 				
 				AeroData::UnsteadyModel 
 					iInst = ReadUnsteadyFlag(HP);
-
+				DriveCaller *ptime = NULL;
+				if (iInst) {
+					SAFENEWWITHCONSTRUCTOR(ptime, TimeDriveCaller, 
+							TimeDriveCaller(pDM->pGetDrvHdl()));
+				}
 				SAFENEWWITHCONSTRUCTOR(*aerodata,
 						C81MultipleAeroData,
-						C81MultipleAeroData(iInst, nProfiles, profiles, upper_bounds, data));
+						C81MultipleAeroData(iInst, nProfiles, profiles, 
+							upper_bounds, data, ptime));
 	
 			} else {
 	  			integer iProfile = HP.GetInt();
@@ -691,9 +689,14 @@ ReadAeroData(DataManager* pDM,
 					<< iProfile << std::endl);
 				AeroData::UnsteadyModel 
 					iInst = ReadUnsteadyFlag(HP);
+				DriveCaller *ptime = NULL;
+				if (iInst) {
+					SAFENEWWITHCONSTRUCTOR(ptime, TimeDriveCaller, 
+							TimeDriveCaller(pDM->pGetDrvHdl()));
+				}
 	  			SAFENEWWITHCONSTRUCTOR(*aerodata,
 					C81AeroData,
-					C81AeroData(iInst, iProfile, data));
+					C81AeroData(iInst, iProfile, data, ptime));
 			}
 			break;
        		}
@@ -1236,23 +1239,23 @@ AerodynamicBeam::Output(OutputHandler& OH ) const
 {
 	DEBUGCOUTFNAME("AerodynamicBeam::Output");
 	
-#ifdef __HACK_UNSTEADY_AERO__ /* Ha seri bugs */
 	/* Memoria in caso di forze instazionarie */
 	switch (aerodata->Unsteady()) {
-	case 1:
+	case AeroData::STEADY:
+		break;
+
+	case AeroData::HARRIS:
 		THROW(ErrGeneric());
 
-	case 2:
+	case AeroData::BIELAWA:
 		for (integer i = 0; i < 3*GDI.iGetNum(); i++) {
 			aerodata->Update(i);
 		}
 		break;
-	case 0:
-		break;
+
 	default:
 		THROW(ErrGeneric());
 	}
-#endif /* __HACK_UNSTEADY_AERO__ */
 
 	if (fToBeOutput()) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
@@ -1830,33 +1833,23 @@ AerodynamicBeam2::Output(OutputHandler& OH ) const
 {
 	DEBUGCOUTFNAME("AerodynamicBeam2::Output");
 	
-#ifdef __HACK_UNSTEADY_AERO__ /* Ha seri bugs */
-	/* Memoria in caso di forze instazionarie */
-	switch (aerodata->Unsteady()) {
-	case 1: {
-		doublereal d = 0.;
-		if (pRotor != NULL) {
-			d = dDA*pRotor->dGetOmega();
-		}
-		if (fabs(d) < 1.e-6) {
-			d = 1.e-6;
-		}
-		for (integer i = 0; i < 2*GDI.iGetNum(); i++) {
-			__FC_DECL__(coeprd)(&d, pvdOuta[i]);
-		}
+   	/* Memoria in caso di forze instazionarie */
+   	switch (aerodata->Unsteady()) {
+	case AeroData::STEADY:
 		break;
-	}
-	case 2:
-		for (integer i = 0; i < 2*GDI.iGetNum(); i++) {
-			__FC_DECL__(coeprd)(&dDA, pvdOuta[i]);
-		}
+
+	case AeroData::HARRIS:
+		THROW(ErrGeneric());
+
+	case AeroData::BIELAWA:
+      		for (integer i = 0; i < 2*GDI.iGetNum(); i++) {
+	 		aerodata->Update(i);
+      		}
 		break;
-	case 0:
-		break;
+		
 	default:
 		THROW(ErrGeneric());
-	}
-#endif /* __HACK_UNSTEADY_AERO__ */
+   	}
 
 	if (fToBeOutput()) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
