@@ -1481,11 +1481,18 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP)
        KeyTable Kel(HP, psReadElemsElems);
        int k = HP.IsKeyWord();
        if (k == -1) {
-
+	       const char *s = HP.GetString();
+	       silent_cerr("unknown element type \"" << s
+			       << "\" at line " << HP.GetLineData()
+			       << std::endl);
+	       throw ErrGeneric();
        }
        Elem *pElem = (Elem*)pDM->pFindElem(Elem::Type(k), uLabel);
        if (pElem ==  NULL) {
-
+	       silent_cerr("unable to find " << psElemNames[Elem::Type(k)]
+			       << "(" << uLabel << ") at line "
+			       << HP.GetLineData() << std::endl);
+	       throw ErrGeneric();
        }
        unsigned int iMaxIndex = pElem->iGetNumPrivData();
        unsigned int iIndex = 0;
@@ -1500,6 +1507,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP)
 
        } else if (iMaxIndex == 1) {
 	       iIndex = 1;
+
        } else {
 	       silent_cerr("need a private data index for " 
 			       << psElemNames[pElem->GetElemType()] 
