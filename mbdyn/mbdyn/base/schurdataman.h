@@ -147,7 +147,7 @@ class SchurDataManager : public DataManager {
       return iNumMyInt;
       break;
     default:
-      cerr << " Wrong request"  << endl;
+      std::cerr << " Wrong request"  << std::endl;
       THROW(ErrGeneric());
     } 
   };

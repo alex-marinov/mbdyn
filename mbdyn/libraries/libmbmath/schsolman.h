@@ -42,14 +42,15 @@
 #include <mynewmem.h>
 #include <except.h>
 #include <solman.h>
-#include <umfpackwrap.h>
-#ifndef USE_UMFPACK3
-#error "Sorry, Parallel MBDyn can not be compiled without UMFPACK3!"
-#endif  
-
 #include <mpi++.h>
+#include <schurmh.h>
 
-void InitializeList(int* list, integer dim, integer  value);
+inline void InitializeList(int* list, integer dim, integer  value){
+ for (int i=0; i <= dim-1; i++) {
+    list[i] = value;
+  }
+};
+  
 
 /* SchurMatrixHandler - Begin */
 
@@ -62,6 +63,7 @@ class SchurSolutionManager : public SolutionManager {
   class ErrGeneric {};
    
  private:
+ 
 
   /* communicator per lo scambio di messaggi */
   MPI::Intracomm SolvComm; 
@@ -70,7 +72,7 @@ class SchurSolutionManager : public SolutionManager {
   integer iPrbmSize;                /*dimensioni totali del problema */
   integer* pLocDofs;                /*lista dei dof locali */
   integer* pIntDofs;                /*lista dof interfaccia locale */ 
-  int LocVecDim, IntVecDim;         /* dimensioni vettori dof locali e interfacce */ 
+  int iLocVecDim, iIntVecDim;         /* dimensioni vettori dof locali e interfacce */ 
   int* pRecvDim;                    /* vettore dimensioni interfaccie locali; master */
   int* pDispl;                      /* vettore displacement x comunicazioni; master */
   integer* pDofsRecvdList;          /* lista dof da ricevere sul master; i dof del processo i
@@ -91,39 +93,39 @@ class SchurSolutionManager : public SolutionManager {
 
   SchurMatrixHandler* pMH;         /* handler della matrice globale */
   SchurVectorHandler* pRVH;        /* handler del vettore residuo  globale */
+  SchurVectorHandler* pSolVH;      /* handler del vettore soluzione  globale */
 
   
-  SpMapMatrixHandler* pSchMH;      /*handler matrice delle interfacce */
+  MatrixHandler* pSchMH;      /*handler matrice delle interfacce */
   VectorHandler* pSchVH;  	   /* vettore delle interfacce  */
+  VectorHandler* pSolSchVH;     /* soluzione problema delle interfacce */  
 
   /* Vettori di lavoro x il Matrix Handler */
-  SpMapMatrixHandler* pBMH;
-  SpMapMatrixHandler* pEMH;
-  SpMapMatrixHandler* pFMH;
-  doubleral* pCMH;
-  MyVectorHandler* prVH;
-  MyVectorHandler* pgVH;  
-
-  /* vettore g (residuo interfaccia) */
-  doublereal* pdgVec;
+  MatrixHandler* pBMH;
+  doublereal* pdCM;                 /* puntatore necessario per lo scambio delle schur locali */
+  VectorHandler* prVH;
+  VectorHandler* pgVH;  
+  VectorHandler* pSolrVH;
+  MyVectorHandler* pSolrTempVH;
+  doublereal* pdTemp;
 
   MPI::Request* pGSReq;               /* Array di request Send */
   MPI::Request* pGRReq;               /* Array di request Receive */
   
-#ifdef USE_UMFPACK3
- Umfpack3SparseLUSolutionManager* pLocalSM;           /* Solutore sparso locale */
- Umfpack3SparseLUSolutionManager* pInterSM;          /* Solutore sparso locale */
-#endif /* USE_UMFPACK3 */
+ SolutionManager* pLocalSM;           /* Solutore sparso locale */
+ SolutionManager* pInterSM;          /* Solutore sparso locale */
 
   
   flag fNewMatrix;
  public:
   
-  SchurSolutionManager(integer iSize,
+  template<class S> SchurSolutionManager(integer iSize,
 		     integer* pLocalDofs,
 		     int iDim1,
 		     integer* pInterfDofs,
 		     int iDim2,
+		     SolutionManager* pLSM,
+		     S* pISM,
 		     integer iWorkSpaceSize = 0,
 		     const doublereal& dPivotFactor = 1.0);			 
   

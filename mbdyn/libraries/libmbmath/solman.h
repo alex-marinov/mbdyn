@@ -140,7 +140,8 @@ class MatrixHandler {
    virtual VectorHandler& MatTVecMul(VectorHandler& out, const VectorHandler& in) const;
    virtual VectorHandler& MatVecIncMul(VectorHandler& out, const VectorHandler& in) const;
    virtual VectorHandler& MatTVecIncMul(VectorHandler& out, const VectorHandler& in) const;
-};
+
+   };
 
 
 extern std::ostream& operator << (std::ostream& out, const MatrixHandler& MH);
@@ -214,6 +215,9 @@ class VectorHandler {
    
    /* Norma del vettore */
    virtual doublereal Norm(void) const;
+
+   /* copia i valori del vettore chiamante su quelli del VH inviato */ 
+   virtual void Copy(VectorHandler& VH) const;
 };
 
 /* VectorHandler - end */

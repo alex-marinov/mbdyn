@@ -62,25 +62,33 @@ extern "C" {
 };
 #endif /* MPI_PROFILING */
 
+#include <harwrap.h>
+#include <mschwrap.h>
+#include <y12wrap.h>
+#include <umfpackwrap.h>
+
 #undef min
 #undef max
 #include <algorithm>
 
-SchurSolutionManager::SchurSolutionManager (integer iSize, 
+template <class S> SchurSolutionManager::SchurSolutionManager (integer iSize, 
 					    integer* pLocalDofs,
 					    int iDim1,
 					    integer* pInterfDofs,
-					    int iDim2, 
+					    int iDim2,
+					    SolutionManager* pLSM,
+					    S* pISM,
 					    integer iWorkSize,
 					    const doublereal& dPivotFactor)
-: iPrbmSize(iSize),
+: 
 SolvCommSize(0),
+iPrbmSize(iSize),
 pLocDofs(pLocalDofs),
-LocVecDim(iDim1),
 pIntDofs(pInterfDofs),
-IntVecDim(iDim2),
-pDispl(NULL),
+iLocVecDim(iDim1),
+iIntVecDim(iDim2),
 pRecvDim(NULL),
+pDispl(NULL),
 pDofsRecvdList(NULL),
 pSchurDofs(NULL),
 iSchurIntDim(0),
@@ -90,20 +98,23 @@ pBlockLenght(NULL),
 pTypeDsp(NULL), 
 pBuffer(NULL),
 ppNewTypes(NULL),
-pBMH(NULL), 
-pdEMH(NULL), 
-pdFMH(NULL), 
-pdCMH(NULL), 
-prVH(NULL),
-pgVH(NULL),
-pdgVec(NULL), 
+iWorkSpaceSize(iWorkSize), 
 pMH(NULL), 
 pRVH(NULL),
 pSchMH(NULL), 
 pSchVH(NULL),
+pSolSchVH(NULL),
+pBMH(NULL), 
+pdCM(NULL), 
+prVH(NULL),
+pgVH(NULL),
+pSolrVH(NULL),
+pSolrTempVH(NULL),
+pdTemp(NULL),
 pGSReq(NULL), 
-pGRReq(NULL),  
-iWorkSpaceSize(iWorkSize), 
+pGRReq(NULL),
+pLocalSM(pLSM),
+pInterSM(NULL),  
 fNewMatrix(0) 
 {
   DEBUGCOUT("Entering SchurSolutionManager::SchurSolutionManager()"
@@ -119,97 +130,91 @@ fNewMatrix(0)
   
 #ifdef DEBUG
   if (SolvCommSize != 1) {
-    ASSERT(pIntDofs != NULL);
+    	ASSERT(pIntDofs != NULL);
   }
 #endif /* DEBUG */
   
-  DEBUGCOUT("Solution Communicator Size: " << SolvCommSize << endl);
+  DEBUGCOUT("Solution Communicator Size: " << SolvCommSize << std::endl);
   
-  /* detrmino le dimensioni locali e il vettore di trasferimento Globale -> Locale;
+  /* determina le dimensioni locali e il vettore di trasferimento Globale -> Locale;
      sul master (myrank == 0) la matrice C è quella di tutte le interfaccie */
   
   InitializeComm();
 
-
-//   ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
-// 
-// 
-//   /* Valore di default */
-//   if (iWorkSpaceSize != 0) {
-//   	iWorkSpaceSize = static_cast<integer>(sqrt(iWorkSpaceSize) + 1);
-//   } else {	
-//         iWorkSpaceSize = LocVecDim;
-//   }
-
-  /* matrice C e vettore g*/
-  SAFENEWARR(pCMH, doublereal, IntVecDim*IntVecDim);
-  SAFENEWARR(pdgVec, doublereal, IntVecDim);
-  
-  /* Costruisce il solutore UMFPACK3 locale */
-  DEBUGCOUT(" Using UMFPACK3 math library as local solver" << endl);  
-  SAFENEWWITHCONSTRUCTOR(pLocalSM, Umfpack3SparseLUSolutionManager,
-			   Umfpack3SparseLUSolutionManager(LocVecDim));			    
-   pBMH = pLocalSM->pMatHdl();
-   prVH = pLocalSM->pResHdl();
-
-  if(!MyRank) {
-     	DEBUGCOUT(" Using UMFPACK3 math library as interface solver" << endl);  
-  	/* Costruisce il solutore UMFPACK3 di interfaccia */
-  	SAFENEWWITHCONSTRUCTOR(pInterfSM, Umfpack3SparseLUSolutionManager,
-				   Umfpack3SparseLUSolutionManager(iSchurIntDim));			    
-   	pSchMH = pLocalSM->pMatHdl();
-   	pSchVH = pLocalSM->pResHdl();
+   /* utilizza iWorkSpaceSize come un coefficiente motiplicativo */
+   integer IntiWorkSpaceSize = iWorkSpaceSize/(iPrbmSize*iPrbmSize)* (iSchurIntDim*iSchurIntDim);
+   		
+   if(!MyRank) {
+  	/* solutore di interfaccia */				
+	SAFENEWWITHCONSTRUCTOR(pInterSM,
+				S,
+				S(iSchurIntDim,
+				IntiWorkSpaceSize,
+				dPivotFactor));
+   }
+   /* estrae i puntatori alle matrici e ai vettori creati dai solutori per 
+    * l'assemblaggio degli SchurHandlers */
+   pBMH    = pLocalSM->pMatHdl();
+   prVH    = pLocalSM->pResHdl();
+   pSolrVH = pLocalSM->pSolHdl();
+   
+   SAFENEWARR(pdTemp, doublereal, iLocVecDim);
+   SAFENEWWITHCONSTRUCTOR(pSolrTempVH,
+   			MyVectorHandler,
+			MyVectorHandler(iLocVecDim, pdTemp));
+			
+   if(!MyRank) {
+   	pSchMH    = pInterSM->pMatHdl();
+   	pSchVH    = pInterSM->pResHdl();
+	pSolSchVH = pInterSM->pSolHdl();
    }	
 
-  /* Definisco le matrici globali */
-   SAFENEWWITHCONSTRUCTOR(pMH, SchurMatrixHandler, 
-			 SchurMatrixHandler(LocVecDim, IntVecDim, pBMH, 
-					    pdCMat, pGlbToLoc));
-  
-  pEMH = pMH->GetEMat();
-  pFMH = pMH->GetFMat();
-  
+  /* Definisce le matrici globali */
+  SAFENEWWITHCONSTRUCTOR(pMH, SchurMatrixHandler, 
+			 SchurMatrixHandler(iLocVecDim, 
+			 		iIntVecDim, pBMH,pGlbToLoc));
   SAFENEWWITHCONSTRUCTOR(pRVH, SchurVectorHandler, 
-			 SchurVectorHandler(LocVecDim, IntVecDim, prVH,
-					    pdgVec, pGlbToLoc));
+			 SchurVectorHandler(iLocVecDim, 
+			 		iIntVecDim, prVH, pGlbToLoc));
   
-  pgVH = pRVH->GetI();
+  pdCM = pMH->GetCMat();
+  pgVH = pRVH->GetIVec();
      
   /* Creazione di NewType per la trasmissione del vett soluzione calcolato */
   if(!MyRank) {
-    SAFENEWARR(pBlockLenght, int, pDispl[SolvCommSize]);
-    InitializeList(pBlockLenght, pDispl[SolvCommSize], 1);
-    SAFENEWARR(pTypeDsp, MPI::Aint, pDispl[SolvCommSize]);
+    	SAFENEWARR(pBlockLenght, int, pDispl[SolvCommSize]);
+    	InitializeList(pBlockLenght, pDispl[SolvCommSize], 1);
+    	SAFENEWARR(pTypeDsp, MPI::Aint, pDispl[SolvCommSize]);
     
-    MPI::Aint DispTmp = MPI::Get_address(pSchVH->pdGetVec());
-    for (int i=0; i < pDispl[SolvCommSize]; i++) {
-      pTypeDsp[i] = MPI::Get_address(pSchVH->pdGetVec() + pSchGlbToLoc[pDofsRecvdList[i]] - 1) - DispTmp;
-    }
+    	MPI::Aint DispTmp = MPI::Get_address(pSolSchVH->pdGetVec());
+    	for (int i=0; i < pDispl[SolvCommSize]; i++) {
+      		pTypeDsp[i] = MPI::Get_address(pSolSchVH->pdGetVec() + pSchGlbToLoc[pDofsRecvdList[i]] - 1) - DispTmp;
+    	}
     
-    SAFENEWARR(ppNewTypes, MPI::Datatype*, SolvCommSize);
-    MPI::Aint* pActualDispl = pTypeDsp;
-    for (int i=0; i < SolvCommSize; i++) {
-      ppNewTypes[i] = NULL;
-      SAFENEWWITHCONSTRUCTOR(ppNewTypes[i], MPI::Datatype, 
-		      MPI::Datatype(MPI::DOUBLE.Create_hindexed(pRecvDim[i], 
-				      pBlockLenght, pActualDispl)));
-      ppNewTypes[i]->Commit();
-      pActualDispl += pRecvDim[i];
-    }
+    	SAFENEWARR(ppNewTypes, MPI::Datatype*, SolvCommSize);
+    	MPI::Aint* pActualDispl = pTypeDsp;
+    	for (int i=0; i < SolvCommSize; i++) {
+      		ppNewTypes[i] = NULL;
+      		SAFENEWWITHCONSTRUCTOR(ppNewTypes[i], MPI::Datatype, 
+		      		MPI::Datatype(MPI::DOUBLE.Create_hindexed(pRecvDim[i], 
+				      	pBlockLenght, pActualDispl)));
+      		ppNewTypes[i]->Commit();
+      		pActualDispl += pRecvDim[i];
+    	}
   }
   
-  cout << "Local dimension on process " << MyRank << ": " << LocVecDim << endl;
+  std::cout << "Local dimension on process " << MyRank << ": " << iLocVecDim << std::endl;
   if(!MyRank) {
-    cout << "Interface dimension: " << iSchurIntDim << endl;
+    	std::cout << "Interface dimension: " << iSchurIntDim << std::endl;
   }
   
 #ifdef DEBUG
   if(!MyRank) {
-    cout << "Interface Dofs " <<endl;
-    for (int i=0; i < iSchurIntDim; i++) { 
-      cout << pSchurDofs[i] << "  ";
-    }
-    cout << endl;
+    	std::cout << "Interface Dofs " <<std::endl;
+    	for (int i=0; i < iSchurIntDim; i++) { 
+      		std::cout << pSchurDofs[i] << "  ";
+    	}
+    	std::cout << std::endl;
   }
   IsValid();
 #endif /* DEBUG */
@@ -223,13 +228,6 @@ SchurSolutionManager::~SchurSolutionManager(void)
   IsValid();
 #endif /* DEBUG */
 
-#if 0
-  if(pLocDofs != NULL) {
-    SAFEDELETEARR(pLocDofs);
-  }
-  if(pIntDofs != NULL) {
-    SAFEDELETEARR(pIntDofs);
-  } 
   if(pRecvDim != NULL) {
     SAFEDELETEARR(pRecvDim);
   }
@@ -264,31 +262,27 @@ SchurSolutionManager::~SchurSolutionManager(void)
     }
    SAFEDELETEARR(ppNewTypes);
   }
-  if(pBMH != NULL) {
-      SAFEDELETE(pBMH);
-  }
-  if(pdCMat != NULL) {
-    SAFEDELETEARR(pdCMat);
-  }
-  if(pdgVec != NULL) {
-    SAFEDELETEARR(pdgVec);
-  }
   if(pMH != NULL) {
 	SAFEDELETE(pMH);
   }
   if(pRVH != NULL) {
 	SAFEDELETE(pRVH);
   }
-  if(pSchSM != NULL) {
-      SAFEDELETEARR(pSchSM);
+  if(pInterSM != NULL) {
+	SAFEDELETE(pInterSM);
   }
-  if(pSchMH != NULL) {
-    SAFEDELETEARR(pSchMH);
+  if(pSolrTempVH != NULL) {
+	SAFEDELETE(pSolrTempVH);
   }
-  if(pSchVH != NULL) {
-    SAFEDELETEARR(pSchVH);
+  if(pdTemp != NULL) {
+	SAFEDELETEARR(pdTemp);
   }
-#endif /* 0 */
+  if(pGSReq != NULL) {
+	SAFEDELETEARR(pGSReq);
+  }
+  if(pGRReq != NULL) {
+	SAFEDELETEARR(pGRReq);
+  }
 }
 
 
@@ -302,182 +296,188 @@ void SchurSolutionManager::IsValid(void) const
 void SchurSolutionManager::MatrInit(const doublereal& dResetVal)
 {
 #ifdef DEBUG
-  IsValid();
+  	IsValid();
 #endif /* DEBUG */
-  pMH->Init(dResetVal);
-  fNewMatrix = flag(1);
+	
+	pLocalSM->MatrInit(dResetVal);
+	pMH->MatEFCInit(dResetVal);
+	if(!MyRank) {
+		pInterSM->MatrInit(dResetVal);
+	}
+	fNewMatrix = flag(1);
 }
 
 /* Risolve i blocchi */
 
 void SchurSolutionManager::Solve(void)
 {
-  DEBUGCOUT("Entering SchurSolutionManager::Solve()" << endl);
+  	DEBUGCOUT("Entering SchurSolutionManager::Solve()" << endl);
 #ifdef DEBUG
-  IsValid();
+  	IsValid();
 #endif /* DEBUG */
+#ifdef MPI_PROFILING 
+  	MPE_Log_event(31, 0, "start");
+#endif /* MPI_PROFILING */
 
+	/* Fattorizzazione matrice B */
+	pLocalSM->Solve();
+	pSolrVH->Copy(*pSolrTempVH); 
 #ifdef MPI_PROFILING 
-  MPE_Log_event(31, 0, "start");
-#endif /* MPI_PROFILING */   
-  
-  if(fNewMatrix) {
-     pLocalSM->Solve();
-  } 
-  
-#ifdef MPI_PROFILING 
-  MPE_Log_event(32, 0, "end");
+  	MPE_Log_event(32, 0, "end");
 #endif /* MPI_PROFILING */   
      
-  /* prodotto F * r */
-  pFMH->MatVecDecMul(pgVH, prVH);
-  
-  /* Inizializza Trasmissione di g */
+	/* prodotto g = g - F*r */
+	pMH->CompNewg(*pgVH, *pSolrVH);
 #ifdef MPI_PROFILING
-   MPE_Log_event(13, 0, "start");
-   MPE_Log_send(0, G_TAG, IntVecDim);
-#endif /* MPI_PROFILING */   
-   pGSReq[0] = SolvComm.Isend(pdgVec, IntVecDim, MPI::DOUBLE, 0, G_TAG);
-  
-   if(!MyRank) {
-#ifdef MPI_PROFILING
-     MPE_Log_event(19, 0, "start");
-#endif /* MPI_PROFILING */   
-     for( int i=0; i < SolvCommSize; i++){
-       pGRReq[i] = SolvComm.Irecv(pBuffer + pDispl[i], pRecvDim[i], MPI::DOUBLE, i, G_TAG);
-       
-     }
-   }
-  
-   if (fNewMatrix) {
-     /* Calcolo di E' */ 
-     for (int i=0; i < IntVecDim; i++) {
-       pEMH->GetCol(i, pLocalSM->pdRhs);
-       pLocalSM->BackSub();
-     }
-   }
-   
-   /* verifica completamento ricezioni e trasmissione g*/
-   flag SentFlag;
-   while (1) {
-     SentFlag = pGSReq->Test();
-     if (SentFlag) {
-#ifdef MPI_PROFILING
-      MPE_Log_event(14, 0, "end");
-#endif /* MPI_PROFILING */       
-      break;
-#ifdef USE_MYSLEEP
-     } else {
-       mysleep(150);
-#endif /* USE_MYSLEEP */
-     }
-   }
-   
-  if(!MyRank) {
-    flag RecvFlag;
-    while (1) {
-      RecvFlag = MPI::Request::Testall(SolvCommSize, pGRReq);
-      if (RecvFlag) {
-#ifdef MPI_PROFILING
-        MPE_Log_event(20, 0, "end");
-        for( int i=0; i < SolvCommSize; i++){
-          MPE_Log_receive(i, G_TAG, pRecvDim[i]);
-        }
-#endif /* MPI_PROFILING */
-  	break;
-#ifdef USE_MYSLEEP
-      } else {
-	mysleep(1500);
-#endif /* USE_MYSLEEP */
-      }
-    }
-  }
-  
-  /* Assemblaggio del vettore dell incognite g sulla macchina master */  
-  if (!MyRank) {
-    /* Assembla pSVH */
-    for (int i=0; i < pDispl[SolvCommSize]; i++) {
-      pSchVH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[i]], pBuffer[i]);
-    }
-  }    
-  
-  
-  /* assembla la matrice di schur se è stata appena assemblata una nuova matrice di partenza */
-  
-  if (fNewMatrix) {
-    AssSchur();
-    fNewMatrix = flag(0);
-  }
-  
-  if ((!MyRank) && (SolvCommSize != 1)) {
-#ifdef MPI_PROFILING 
-    MPE_Log_event(35, 0, "start");
+   	MPE_Log_event(13, 0, "start");
+   	MPE_Log_send(0, G_TAG, iIntVecDim);
 #endif /* MPI_PROFILING */   
 
-  /* risoluzione schur pb sul master */
-    pSchSM->Solve();
-#ifdef MPI_PROFILING 
-    MPE_Log_event(36, 0, "end");
-#endif /* MPI_PROFILING */       
-  }
+  	/* Inizializza Trasmissione di g */
+   	pGSReq[0] = SolvComm.Isend(pgVH->pdGetVec(), iIntVecDim, MPI::DOUBLE, 0, G_TAG);
   
-  /* invia la soluzione calcolata */  
-  if(!MyRank) {
+   	if(!MyRank) {
 #ifdef MPI_PROFILING
-    MPE_Log_event(13, 0, "start");
+     		MPE_Log_event(19, 0, "start");
+#endif /* MPI_PROFILING */   
+     		for( int i=0; i < SolvCommSize; i++){
+       			pGRReq[i] = SolvComm.Irecv(pBuffer + pDispl[i], pRecvDim[i], MPI::DOUBLE, i, G_TAG);
+     		}
+   	}
+	
+     /* Calcolo di E'. Va fatto solo se  La matrice è stata rifattorizzata*/   
+   	if (fNewMatrix) {
+		MyVectorHandler* pTVH = new MyVectorHandler(0);
+     		for (int i=0; i < iIntVecDim; i++) {			
+			pMH->GetECol(i,pTVH);
+			pTVH->Copy(*prVH);
+       			/* fa solo la back Substion perche' 
+			 * e' stato già lanciato il solve al precedentemente */
+			pLocalSM->Solve();
+			pSolrVH->Copy(*pTVH);
+     		}
+	}
+
+
+   	/* verifica completamento ricezioni e trasmissione vettore g*/
+   	flag SentFlag;
+   	while (1) {
+     		SentFlag = pGSReq->Test();
+     		if (SentFlag) {
+#ifdef MPI_PROFILING
+      			MPE_Log_event(14, 0, "end");
+#endif /* MPI_PROFILING */       
+      		
+			break;
+
+#ifdef USE_MYSLEEP
+     		} else {
+       			mysleep(150);
+#endif /* USE_MYSLEEP */
+     		}
+   	}
+   
+   	if(!MyRank) {
+    		flag RecvFlag;
+    		while (1) {
+      			RecvFlag = MPI::Request::Testall(SolvCommSize, pGRReq);
+      			if (RecvFlag) {
+#ifdef MPI_PROFILING
+        			MPE_Log_event(20, 0, "end");
+        			for( int i=0; i < SolvCommSize; i++){
+          				MPE_Log_receive(i, G_TAG, pRecvDim[i]);
+        			}
+#endif /* MPI_PROFILING */
+  				break;
+#ifdef USE_MYSLEEP
+      			} else {
+				mysleep(1500);
+#endif /* USE_MYSLEEP */
+      			}
+    		}
+  	}
+  
+  	/* Assemblaggio del vettore delle incognite g sulla macchina master */  
+  	if (!MyRank) {
+    		/* Assembla pSchVH */
+		pSchVH->Reset(0.);
+    		for (int i=0; i < pDispl[SolvCommSize]; i++) {
+      			pSchVH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[i]], pBuffer[i]);
+    		}
+  	}      
+  
+  	/* assembla le matrici di schur locali se è stata 
+	 * appena assemblata una nuova matrice di partenza */
+  	if (fNewMatrix) {
+    		AssSchur();
+    		fNewMatrix = flag(0);
+  	}
+  	/* risoluzione schur pb sul master */
+  	if ((!MyRank) && (SolvCommSize != 1)) {
+#ifdef MPI_PROFILING 
+    		MPE_Log_event(35, 0, "start");
+#endif /* MPI_PROFILING */   
+    		pInterSM->Solve();
+#ifdef MPI_PROFILING 
+    		MPE_Log_event(36, 0, "end");
+#endif /* MPI_PROFILING */       
+  	}
+  
+  	/* invia la soluzione calcolata */  
+  	if(!MyRank) {
+#ifdef MPI_PROFILING
+    		MPE_Log_event(13, 0, "start");
 #endif /* MPI_PROFILING */ 
-    for( int i=0; i < SolvCommSize; i++){
-      pGRReq[i] = SolvComm.Isend(pSchVH->pdGetVec(), 1, *ppNewTypes[i], i, G_TAG);	 
+    		for( int i=0; i < SolvCommSize; i++){
+      			pGRReq[i] = SolvComm.Isend(pSolSchVH->pdGetVec(), 1, *ppNewTypes[i], i, G_TAG);	 
 #ifdef MPI_PROFILING
-      MPE_Log_send(i, G_TAG, pRecvDim[i]);  
+      			MPE_Log_send(i, G_TAG, pRecvDim[i]);  
 #endif /* MPI_PROFILING */     
-    }	
-  }
+    		}	
+  	}
     
 #ifdef MPI_PROFILING
-   MPE_Log_event(19, 0, "start");
+   	MPE_Log_event(19, 0, "start");
 #endif /* MPI_PROFILING */   
 
-  pGSReq[0] = SolvComm.Irecv(pdgVec, IntVecDim, MPI::DOUBLE, 0, G_TAG);
+  	pGSReq[0] = SolvComm.Irecv(pgVH->pdGetVec(), iIntVecDim, MPI::DOUBLE, 0, G_TAG);
   
-  /* Verifica completamento trasmissioni */
-  if(!MyRank) {
-    flag SentFlag;
-    while (1) {
-      SentFlag = MPI::Request::Testall(SolvCommSize, pGRReq);
-      if (SentFlag) {
+  	/* Verifica completamento trasmissioni */
+  	if(!MyRank) {
+    		flag SentFlag;
+    		while (1) {
+      			SentFlag = MPI::Request::Testall(SolvCommSize, pGRReq);
+      			if (SentFlag) {
 #ifdef MPI_PROFILING
-        MPE_Log_event(14, 0, "end");
+        			MPE_Log_event(14, 0, "end");
 #endif /* MPI_PROFILING */
-	break;
+				break;
 #ifdef USE_MYSLEEP
-      } else {
-	mysleep(150);
+      			} else {
+				mysleep(150);
 #endif /* USE_MYSLEEP */
-      }
-    }
-  }
+      			}
+    		}
+  	}
   
-  flag RecvFlag;
-  while (1) {
-    RecvFlag = pGSReq->Test();
-    if (RecvFlag) {
+  	flag RecvFlag;
+  	while (1) {
+    		RecvFlag = pGSReq->Test();
+    		if (RecvFlag) {
 #ifdef MPI_PROFILING
-    MPE_Log_event(20, 0, "end");
-    MPE_Log_receive(0, G_TAG, IntVecDim);
+    			MPE_Log_event(20, 0, "end");
+    			MPE_Log_receive(0, G_TAG, iIntVecDim);
 #endif /* MPI_PROFILING */ 
-      break;
+      			break;
 #ifdef USE_MYSLEEP
-    } else {
-      mysleep(1500);
+    		} else {
+      			mysleep(1500);
 #endif /* USE_MYSLEEP */
-    }
-  }
-  
-   
-  /* calcolo la soluzione corretta per x */
-  pEMH->MatVecDecMul(prVH, pgVH); 
-
+    		}
+  	}   
+  	/* calcolo la soluzione corretta per x = Solr - E'*g */
+	pMH->CompNewf(*pSolrTempVH, *pgVH);
+	pSolrTempVH->Copy(*prVH);
 }
 
 
@@ -485,100 +485,86 @@ void SchurSolutionManager::Solve(void)
 void SchurSolutionManager::AssSchur(void) 
 {
 #ifdef MPI_PROFILING
-   MPE_Log_event(41, 0, "start");
+   	MPE_Log_event(41, 0, "start");
 #endif /* MPI_PROFILING */ 
   
-  DEBUGCOUT("Entering SchurSolutionManager::AssSchur()" << endl);
+  	DEBUGCOUT("Entering SchurSolutionManager::AssSchur()" << endl);
   
 #ifdef DEBUG
-  IsValid();
+  	IsValid();
 #endif /* DEBUG */
-  SpMapMatrixHandler Mtmp(IntVecDim, IntVecDim);  
-  pFMH->MatMatMul(&Mtmp,pEMH);
-  
- /*******************************CONTROLLA**************/ 
-  
-  /* Calcola le Schur locali */
-  for(int j=0; j < IntVecDim; j++) {
-    int iColc = j * IntVecDim;
-    for( int i=0; i < IntVecDim; i++) {
-     pdCMat[i + iColc] -=  Mtmp(i,j);
-      }
-    }
-  }
- 
-  /* Trasmette le Schur locali */
+	pMH->CompLocSchur();
+
+  	/* Trasmette le Schur locali */
 #ifdef MPI_PROFILING
-   MPE_Log_event(13, 0, "start");
-   MPE_Log_send(0, S_TAG, IntVecDim*IntVecDim);
+   	MPE_Log_event(13, 0, "start");
+   	MPE_Log_send(0, S_TAG, iIntVecDim*iIntVecDim);
 #endif /* MPI_PROFILING */   
   
-  pGSReq[0] = SolvComm.Isend(pdCMat, IntVecDim*IntVecDim, MPI::DOUBLE, 0, S_TAG);
-  int iOffset = 0;
-  if(!MyRank) { 
-  #ifdef MPI_PROFILING
-   MPE_Log_event(19, 0, "start");
+  	pGSReq[0] = SolvComm.Isend(pdCM, iIntVecDim*iIntVecDim, MPI::DOUBLE, 0, S_TAG);
+  	int iOffset = 0;
+  	if(!MyRank) { 
+#ifdef MPI_PROFILING
+   		MPE_Log_event(19, 0, "start");
 #endif /* MPI_PROFILING */  
-    for( int i=0; i < SolvCommSize; i++){
-      pGRReq[i] = SolvComm.Irecv(pBuffer + iOffset, (pRecvDim[i]*pRecvDim[i]), MPI::DOUBLE, i, S_TAG);
-      iOffset += (pRecvDim[i]*pRecvDim[i]);
-    }
-  }
-
-  /* verifica completamento ricezioni e trasmissione */
-  flag SentFlag;
-  while (1) {
-    SentFlag = pGSReq->Test();
-    if (SentFlag) {
-#ifdef MPI_PROFILING
-      MPE_Log_event(14, 0, "end");
-#endif /* MPI_PROFILING */        
-      break;
-#ifdef USE_MYSLEEP
-    } else {
-      mysleep(150);
-#endif /* USE_MYSLEEP */
-    }
-  }
-  
-  
-  if(!MyRank) {
-    flag RecvFlag;
-    while (1) {
-      RecvFlag = MPI::Request::Testall(SolvCommSize, pGRReq);
-      if (RecvFlag) {
-#ifdef MPI_PROFILING
-        MPE_Log_event(20, 0, "end");
-        for( int i=0; i < SolvCommSize; i++){
-          MPE_Log_receive(i, S_TAG, pRecvDim[i]*pRecvDim[i]);
-        }
-#endif /* MPI_PROFILING */      
-	break;
-#ifdef USE_MYSLEEP
-      } else {
-	mysleep(1500);
-#endif /* USE_MYSLEEP */
-      }
-    }
-    
-    
-    /* Assembla Schur matrix */
-
-    
-    pSchSM->MatrInit();
-    iOffset = 0;
-    for (int i=0; i < SolvCommSize; i++) {
-      for(int  j=0; j < pRecvDim[i]; j++) {
-	int iColx = j * pRecvDim[i];
-	for( int k=0; k < pRecvDim[i]; k++) {
-	  pSchMH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[pDispl[i]+k]], pSchGlbToLoc[pDofsRecvdList[pDispl[i]+j]], pBuffer[iOffset + k + iColx]);
+    		for( int i=0; i < SolvCommSize; i++){
+      			pGRReq[i] = SolvComm.Irecv(pBuffer + iOffset, (pRecvDim[i]*pRecvDim[i]), MPI::DOUBLE, i, S_TAG);
+      			iOffset += (pRecvDim[i]*pRecvDim[i]);
+    		}
 	}
-      }
-      iOffset += (pRecvDim[i]*pRecvDim[i]);
-    }
-  }
+	
+  	/* verifica completamento ricezioni e trasmissione */
+  	flag SentFlag;
+  	while (1) {
+    		SentFlag = pGSReq->Test();
+    		if (SentFlag) {
 #ifdef MPI_PROFILING
-  MPE_Log_event(42, 0, "end");
+      			MPE_Log_event(14, 0, "end");
+#endif /* MPI_PROFILING */        
+      			break;
+#ifdef USE_MYSLEEP
+    		} else {
+      			mysleep(150);
+#endif /* USE_MYSLEEP */
+    		}
+  	}
+  
+  
+  	if(!MyRank) {
+    		flag RecvFlag;
+    		while (1) {
+      			RecvFlag = MPI::Request::Testall(SolvCommSize, pGRReq);
+      			if (RecvFlag) {
+#ifdef MPI_PROFILING
+        			MPE_Log_event(20, 0, "end");
+        			for( int i=0; i < SolvCommSize; i++){
+          				MPE_Log_receive(i, S_TAG, pRecvDim[i]*pRecvDim[i]);
+        			}
+#endif /* MPI_PROFILING */      
+				break;
+#ifdef USE_MYSLEEP
+      			} else {
+				mysleep(1500);
+#endif /* USE_MYSLEEP */
+      			}
+    		}
+    
+    
+    		/* Assembla Schur matrix */
+    		iOffset = 0;
+    		for (int i=0; i < SolvCommSize; i++) {
+      			for(int  j=0; j < pRecvDim[i]; j++) {
+				int iColx = j * pRecvDim[i];
+				for( int k=0; k < pRecvDim[i]; k++) {
+	  				pSchMH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[pDispl[i]+k]], pSchGlbToLoc[pDofsRecvdList[pDispl[i]+j]], pBuffer[iOffset + k + iColx]);
+				}
+      			}
+      			iOffset += (pRecvDim[i]*pRecvDim[i]);
+    		}
+;
+	}
+#ifdef MPI_PROFILING
+  	MPE_Log_event(42, 0, "end");
 #endif /* MPI_PROFILING */ 
 }
 
@@ -588,39 +574,38 @@ void SchurSolutionManager::InitializeComm(void)
 {
   DEBUGCOUT("Entering SchurSolutionManager::InitializeComm()" << endl);
 
+   /* il master riceve informazioni sulle dimensioni dei vettori scambiati */
   if (!MyRank) {
-    SAFENEWARR(pRecvDim, int, SolvCommSize);
-    SAFENEWARR(pDispl, int, SolvCommSize+1);
-    pDispl[0] = 0;
+  	SAFENEWARR(pRecvDim, int, SolvCommSize);
+    	SAFENEWARR(pDispl, int, SolvCommSize+1);
+    	pDispl[0] = 0;
   } 
-  
-  SolvComm.Gather(&IntVecDim, 1, MPI::INT, pRecvDim, 1, MPI::INT, 0);
-  
+   /* trasmiussione dimensioni interfacce locali */
+  SolvComm.Gather(&iIntVecDim, 1, MPI::INT, pRecvDim, 1, MPI::INT, 0);
   if (!MyRank) {
-    for(int i=1; i <= SolvCommSize; i++){
-      pDispl[i] = pDispl[i-1] + pRecvDim[i-1];
-    }
+    	for(int i=1; i <= SolvCommSize; i++){
+      		pDispl[i] = pDispl[i-1] + pRecvDim[i-1];
+    	}
   }
   
  
   if (!MyRank && pDispl[SolvCommSize] != 0) {
-    SAFENEWARR(pSchurDofs, integer, pDispl[SolvCommSize]);
-    SAFENEWARR(pDofsRecvdList, integer, pDispl[SolvCommSize]);
+    	SAFENEWARR(pSchurDofs, integer, pDispl[SolvCommSize]);
+    	SAFENEWARR(pDofsRecvdList, integer, pDispl[SolvCommSize]);
   }
   
-  SolvComm.Gatherv(pIntDofs, IntVecDim, MPI::INT, pDofsRecvdList, pRecvDim, pDispl, MPI::INT, 0);
+  SolvComm.Gatherv(pIntDofs, iIntVecDim, MPI::INT, pDofsRecvdList, pRecvDim, pDispl, MPI::INT, 0);
   
   if (!MyRank) { 
-    for(int i=0; i < pDispl[SolvCommSize]; i++) {
-      pSchurDofs[i] = pDofsRecvdList[i];
-    }
-    
-    /*ordino gli indici dei residui locali*/
-    std::sort(pSchurDofs, pSchurDofs + pDispl[SolvCommSize]);
-    /* elimino le ripetizioni */
-    integer* p = std::unique(pSchurDofs, pSchurDofs + pDispl[SolvCommSize]);
-    /* dimensione effettiva del residuo locale */
-    iSchurIntDim = p - pSchurDofs;
+    	for(int i=0; i < pDispl[SolvCommSize]; i++) {
+      		pSchurDofs[i] = pDofsRecvdList[i];
+    	}
+    	/*ordina gli indici dei residui locali*/
+    	std::sort(pSchurDofs, pSchurDofs + pDispl[SolvCommSize]);
+    	/* elimina le ripetizioni */
+    	integer* p = std::unique(pSchurDofs, pSchurDofs + pDispl[SolvCommSize]);
+    	/* dimensione effettiva del residuo locale */
+    	iSchurIntDim = p - pSchurDofs;
   }
   
   
@@ -628,54 +613,50 @@ void SchurSolutionManager::InitializeComm(void)
   SAFENEWARR(pGlbToLoc, integer, iPrbmSize+1);
   SAFENEWARR(pSchGlbToLoc, integer, iPrbmSize+1);
   for (int i=0; i < iPrbmSize+1; i++) {
-    pGlbToLoc[i] = 0;
-    pSchGlbToLoc[i] = 0;
+    	pGlbToLoc[i] = 0;
+    	pSchGlbToLoc[i] = 0;
   }
   
   
-  for (int i=0; i < LocVecDim; i++) {
-    pGlbToLoc[pLocDofs[i]] = i + 1;
+  for (int i=0; i < iLocVecDim; i++) {
+    	pGlbToLoc[pLocDofs[i]] = i + 1;
   }
   
   /* per distinguerli gli indici dei nodi di interfaccia sono negativi */
-  for (int i=0; i < IntVecDim; i++) {
-    pGlbToLoc[pIntDofs[i]] = -(i + 1);
+  for (int i=0; i < iIntVecDim; i++) {
+    	pGlbToLoc[pIntDofs[i]] = -(i + 1);
   }
   
   /* Global to local per la matrice di schur */
   if (!MyRank) {
-    for (int i=0; i < iSchurIntDim; i++) {
-      pSchGlbToLoc[pSchurDofs[i]] = i+1;
-    }
+    	for (int i=0; i < iSchurIntDim; i++) {
+      		pSchGlbToLoc[pSchurDofs[i]] = i+1;
+    	}
   }
 
 
   /* creo i buffer per la ricezione e trasmissione dei messaggi */
  if (SolvCommSize !=1) {
-   if (!MyRank) {
-     /* i  messaggi + grandi sono le trasmissioni delle matrici di schur */
-     integer iTmpTot = 0;
-    
-     for (int i=0; i < SolvCommSize; i++) {
-       iTmpTot += pRecvDim[i] * pRecvDim[i];
-     }
-     /* buffer di ricezione */
-     SAFENEWARR(pBuffer, doublereal, iTmpTot);
-   }
-   else{
-     /* il messaggi + grandi sono le ricezioni dei valori di interfaccia */
-     SAFENEWARR(pBuffer, doublereal, IntVecDim);
-   }
+   	if (!MyRank) {
+     		/* i  messaggi + grandi sono legati alla ricezione  delle matrici di schur */
+     		integer iTmpTot = 0;
+    		for (int i=0; i < SolvCommSize; i++) {
+       			iTmpTot += pRecvDim[i] * pRecvDim[i];
+     		}
+     		/* buffer di ricezione */
+     		SAFENEWARR(pBuffer, doublereal, iTmpTot);
+   	} else {
+     		/* il messaggi + grandi sono le ricezioni dei valori di interfaccia */
+     		SAFENEWARR(pBuffer, doublereal, iIntVecDim);
+   	}
   }
  
   if (!MyRank){
-    SAFENEWARR(pGSReq, MPI::Request, SolvCommSize);
-    SAFENEWARR(pGRReq, MPI::Request, SolvCommSize);
-    for (int i=0; i < SolvCommSize; i++) { 
-    }
+    	SAFENEWARR(pGSReq, MPI::Request, SolvCommSize);
+    	SAFENEWARR(pGRReq, MPI::Request, SolvCommSize);
   } else {
-    SAFENEWARR(pGSReq, MPI::Request, 1);
-    SAFENEWARR(pGRReq, MPI::Request, 1);
+    	SAFENEWARR(pGSReq, MPI::Request, 1);
+    	SAFENEWARR(pGRReq, MPI::Request, 1);
   }
 
 
@@ -684,146 +665,150 @@ void SchurSolutionManager::InitializeComm(void)
 
 void SchurSolutionManager::StartExchInt(void)
 {
-  DEBUGCOUT("Entering SchurSolutionManager::StartExchInt()" << endl);
+  	DEBUGCOUT("Entering SchurSolutionManager::StartExchInt()" << endl);
   
-  if (SolvCommSize > 1) {
-    /* Inizializza Trasmissione di g */
+  	if (SolvCommSize > 1) {
+    	/* Inizializza Trasmissione di g */
     
 #ifdef MPI_PROFILING
-    MPE_Log_event(13, 0, "start");
-    MPE_Log_send(0, G_TAG, IntVecDim);
+    		MPE_Log_event(13, 0, "start");
+    		MPE_Log_send(0, G_TAG, iIntVecDim);
 #endif /* MPI_PROFILING */      
-    pGSReq[0] = SolvComm.Isend(pdgVec, IntVecDim, MPI::DOUBLE, 0, G_TAG);
+    		pGSReq[0] = SolvComm.Isend(pgVH->pdGetVec(), iIntVecDim, MPI::DOUBLE, 0, G_TAG);
     
-    if(!MyRank) {
+    		if(!MyRank) {
 #ifdef MPI_PROFILING
-      MPE_Log_event(19, 0, "start");
+      			MPE_Log_event(19, 0, "start");
 #endif /* MPI_PROFILING */     
-      for( int i=0; i < SolvCommSize; i++){
-	pGRReq[i] = SolvComm.Irecv(pBuffer + pDispl[i], pRecvDim[i], MPI::DOUBLE, i, G_TAG);
-      }
-      pSchVH->Reset();
-    }
-  }
+      			for( int i=0; i < SolvCommSize; i++){
+				pGRReq[i] = SolvComm.Irecv(pBuffer + pDispl[i], pRecvDim[i], MPI::DOUBLE, i, G_TAG);
+      			}
+    		}
+  	}
 }
 
 void SchurSolutionManager::ComplExchInt(doublereal& dR, doublereal& dXP)
 {
-  DEBUGCOUT("Entering SchurSolutionManager::ComplExchInt()" << endl);
-  if (!MyRank) {
-    }
-   if (SolvCommSize > 1) {
-    /* verifica completamento ricezioni e trasmissione */
-      flag SentFlag = 0;
-    while (1) {
-      SentFlag = pGSReq->Test();
-      if (SentFlag) {
+  	DEBUGCOUT("Entering SchurSolutionManager::ComplExchInt()" << endl);
+   	if (SolvCommSize > 1) {
+    		doublereal dTmp[2] = {0, 0};
+    		dTmp[0] = dR;
+    		dTmp[1] = dXP;
+    		SolvComm.Send(dTmp, 2, MPI::DOUBLE, 0, G_TAG+100);
+    		/* verifica completamento ricezioni e trasmissione */
+      		flag SentFlag = 0;
+    		while (1) {
+      			SentFlag = pGSReq->Test();
+      			if (SentFlag) {
 #ifdef MPI_PROFILING
-	MPE_Log_event(14, 0, "end");
+				MPE_Log_event(14, 0, "end");
 #endif /* MPI_PROFILING */       
-	break;
+				break;
 #ifdef USE_MYSLEEP
-      } else {
-	mysleep(150);
+      			} else {
+				mysleep(150);
 #endif /* USE_MYSLEEP */
-      }
-    }
-    
-    if(!MyRank) {
-      flag RecvFlag;
-      while (1) {
-	RecvFlag = MPI::Request::Testall(SolvCommSize, pGRReq);
-	if (RecvFlag) {
+      			}
+    		}
+    		if(!MyRank) {
+      			flag RecvFlag;
+      			while (1) {
+				RecvFlag = MPI::Request::Testall(SolvCommSize, pGRReq);
+				if (RecvFlag) {
 #ifdef MPI_PROFILING
-	  MPE_Log_event(20, 0, "end");
-	  for( int i=0; i < SolvCommSize; i++){
-	    MPE_Log_receive(i, G_TAG, pRecvDim[i]);
-	  }
+	  				MPE_Log_event(20, 0, "end");
+	  				for( int i=0; i < SolvCommSize; i++){
+	    					MPE_Log_receive(i, G_TAG, pRecvDim[i]);
+	  				}
 #endif /* MPI_PROFILING */      	
-	  break;
+	  				break;
 #ifdef USE_MYSLEEP
-	} else {
-	  mysleep(1500);
+				} else {
+	  				mysleep(1500);
 #endif /* USE_MYSLEEP */
-	}
-      }
-    }
-    
-    if (!MyRank) {
-      /* Assembla pSVH */ 
-      for (int i=0; i < pDispl[SolvCommSize]; i++) {
-	pSchVH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[i]], pBuffer[i]);
-      }
-      
-      for (int iCntp1 = 1; iCntp1 <= iSchurIntDim; iCntp1++) {
-	doublereal d = pSchVH->dGetCoef(iCntp1);
-	dR += d * d;
-      }
-    }
-    
-    
-    doublereal dTmp[2] = {0, 0};
-    dTmp[0] = dR;
-    dTmp[1] = dXP;
-    
-    SolvComm.Send(dTmp, 2, MPI::DOUBLE, 0, G_TAG);
-    
-    if(!MyRank) {
-      for( int i=0; i < SolvCommSize; i++){
-	pGRReq[i] = SolvComm.Irecv(pBuffer + 2*i, 2, MPI::DOUBLE, i, G_TAG);
-      }
-    }
-    
-    if(!MyRank) {
-      flag RecvFlag;
-      while (1) {
-	RecvFlag = MPI::Request::Testall(SolvCommSize, pGRReq);
-	if (RecvFlag) {
-	  break;
+				}
+      			}
+      			/* Assembla pSVH */ 
+      			pSchVH->Reset(0.);
+      			for (int i=0; i < pDispl[SolvCommSize]; i++) {
+				pSchVH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[i]], pBuffer[i]);
+      			}
+      			for (int iCntp1 = 1; iCntp1 <= iSchurIntDim; iCntp1++) {
+				doublereal d = pSchVH->dGetCoef(iCntp1);
+				dR += d * d;
+      			}
+    		}
+    		if(!MyRank) {
+      			for( int i=0; i < SolvCommSize; i++){
+				pGRReq[i] = SolvComm.Irecv(pBuffer + 2*i, 2, MPI::DOUBLE, i, G_TAG+100);
+      			}
+      			flag RecvFlag;
+      			while (1) {
+				RecvFlag = MPI::Request::Testall(SolvCommSize, pGRReq);
+				if (RecvFlag) {
+	  				break;
 #ifdef USE_MYSLEEP
-	} else {
-	  mysleep(1500);
+				} else {
+	  				mysleep(1500);
 #endif /* USE_MYSLEEP */
-	}
-      }
-    }
-    if(!MyRank) {
-      for( int i=1; i < SolvCommSize; i++){
-	dTmp[0] += pBuffer[2*i];
-	dTmp[1] += pBuffer[2*i+1];
-      }
-      
-      for( int i=0; i < SolvCommSize; i++){
-	SolvComm.Send(dTmp, 2, MPI::DOUBLE, i, G_TAG);
-      }
-    } 
-    
-    pGRReq[0] = SolvComm.Irecv(dTmp, 2, MPI::DOUBLE, 0, G_TAG);
-    
-    while (1) {
-      SentFlag = pGRReq->Test();
-      if (SentFlag) {
-	break;
+				}
+      			}
+      			for( int i=1; i < SolvCommSize; i++){
+				dTmp[0] += pBuffer[2*i];
+				dTmp[1] += pBuffer[2*i+1];
+      			}      
+      			for( int i=0; i < SolvCommSize; i++){
+				SolvComm.Send(dTmp, 2, MPI::DOUBLE, i, G_TAG);
+      			}
+    		}
+		
+		pGRReq[0] = SolvComm.Irecv(dTmp, 2, MPI::DOUBLE, 0, G_TAG);
+    		while (1) {
+      			SentFlag = pGRReq->Test();
+      			if (SentFlag) {
+				break;
 #ifdef USE_MYSLEEP
-      } else {
-	mysleep(150);
+      			} else {
+				mysleep(150);
 #endif /* USE_MYSLEEP */
-      }
-    }
-
-    dR = dTmp[0];
-    dXP = dTmp[1];
-  }
+      			}
+   		}
+    		dR = dTmp[0];
+    		dXP = dTmp[1];
+  	}
 }
 /* SchurSolutionManager - End */
-  /* Inizializza le varie liste */
-void InitializeList(int* list, integer dim, integer  value)
-{ 
-  for (int i=0; i <= dim-1; i++) {
-    list[i] = value;
-  }
-}  
 
+template SchurSolutionManager::SchurSolutionManager(integer iSize, 
+					    integer* pLocalDofs,
+					    int iDim1,
+					    integer* pInterfDofs,
+					    int iDim2,
+					    SolutionManager* pLSM,
+					    Y12SparseLUSolutionManager* pISM,
+					    integer iWorkSize,
+					    const doublereal& dPivotFactor);
+					    
+template SchurSolutionManager::SchurSolutionManager(integer iSize, 
+					    integer* pLocalDofs,
+					    int iDim1,
+					    integer* pInterfDofs,
+					    int iDim2,
+					    SolutionManager* pLSM,
+					    MeschachSparseLUSolutionManager* pISM,
+					    integer iWorkSize,
+					    const doublereal& dPivotFactor); 
+
+template SchurSolutionManager::SchurSolutionManager(integer iSize, 
+					    integer* pLocalDofs,
+					    int iDim1,
+					    integer* pInterfDofs,
+					    int iDim2,
+					    SolutionManager* pLSM,
+					    Umfpack3SparseLUSolutionManager* pISM,
+					    integer iWorkSize,
+					    const doublereal& dPivotFactor); 
 
 #endif /* USE_MPI */
+
 

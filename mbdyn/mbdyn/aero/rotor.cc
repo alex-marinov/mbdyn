@@ -90,7 +90,13 @@ iNumSteps(0)
 	      "for Rotor(" << GetLabel() << ")" << std::endl;
    }
 #ifdef USE_MPI
-   RotorComm = MPI::COMM_WORLD.Dup();
+	iForcesVecDim = 6;
+	for (int i = 0; ppRes && ppRes[i]; i++) {
+		iForcesVecDim += 6;
+	}	        
+	SAFENEWARR(pTmpVecR, doublereal, iForcesVecDim);
+	SAFENEWARR(pTmpVecS, doublereal, iForcesVecDim);
+   	RotorComm = MPI::COMM_WORLD.Dup();
 #endif /* USE_MPI */
 }
 
@@ -118,7 +124,7 @@ void Rotor::Output(OutputHandler& OH) const
 #ifdef USE_MPI
         if (RotorComm.Get_size() > 1) { 
 	    if (RotorComm.Get_rank() == 0) {
-		Vec3 TmpF(TmpVecR), TmpM(TmpVecR+3);
+		Vec3 TmpF(pTmpVecR), TmpM(pTmpVecR+3);
 		Mat3x3 RT((pCraft->GetRCurr()).Transpose());
 		OH.Rotors() << std::setw(8) << GetLabel() << " " 
 			<< (RT*TmpF) << " " << (RT*TmpM) << " " 
@@ -131,6 +137,13 @@ void Rotor::Output(OutputHandler& OH) const
 			<< dPsi0
 #endif
 			<< std::endl;
+	        for (int i = 0; ppRes && ppRes[i]; i++) {
+			Vec3 TmpF(pTmpVecR+6+6*i), TmpM(pTmpVecR+9+6*i);
+			OH.Rotors() << std::setw(8) << GetLabel() 
+				<< ":" << ppRes[i]->GetLabel() << " "
+				<< TmpF << " "
+				<< TmpM << std::endl;
+		}
 	    }
 	} else {
 	    Mat3x3 RT((pCraft->GetRCurr()).Transpose());
@@ -145,6 +158,12 @@ void Rotor::Output(OutputHandler& OH) const
 		    << dPsi0
 #endif 
 		    << std::endl;
+	    for (int i = 0; ppRes && ppRes[i]; i++) {
+		OH.Rotors() << std::setw(8) << GetLabel() 
+			    << ":" << ppRes[i]->GetLabel() << " "
+			    << ppRes[i]->pRes->Force() << " "
+			    << ppRes[i]->pRes->Couple() << std::endl;
+	    }
 	}
 #else /* !USE_MPI */     
 	Mat3x3 RT((pCraft->GetRCurr()).Transpose());
@@ -159,7 +178,6 @@ void Rotor::Output(OutputHandler& OH) const
 		<< dPsi0
 #endif
 		<< std::endl;
-#endif /* !USE_MPI */
 
 	/* FIXME: check for parallel stuff ... */
 	for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -168,6 +186,7 @@ void Rotor::Output(OutputHandler& OH) const
 			<< ppRes[i]->pRes->Force() << " "
 			<< ppRes[i]->pRes->Couple() << std::endl;
 	}
+#endif /* !USE_MPI */
     }
 }
 
@@ -308,14 +327,21 @@ void Rotor::ExchangeTraction(flag fWhat)
   if (RotorComm.Get_size() > 1){
     if (fWhat) {
       /* Scambia F e M */
-      Res.Force().PutTo(TmpVecS);
-      Res.Couple().PutTo(TmpVecS+3);
-      RotorComm.Allreduce(TmpVecS, TmpVecR, 6, MPI::DOUBLE, MPI::SUM);
-      Res.PutForces(Vec3(TmpVecR), Vec3(TmpVecR+3));
+      Res.Force().PutTo(pTmpVecS);
+      Res.Couple().PutTo(pTmpVecS+3);
+      for (int i = 0; ppRes && ppRes[i]; i++) {
+	ppRes[i]->pRes->Force().PutTo(pTmpVecS+6+6*i);
+	ppRes[i]->pRes->Couple().PutTo(pTmpVecS+9+6*i);
+      }
+      RotorComm.Allreduce(pTmpVecS, pTmpVecR, iForcesVecDim, MPI::DOUBLE, MPI::SUM);
+      Res.PutForces(Vec3(pTmpVecR), Vec3(pTmpVecR+3));
+      for (int i = 0; ppRes && ppRes[i]; i++) {
+	ppRes[i]->pRes->PutForces(Vec3(pTmpVecR+6+6*i),  Vec3(pTmpVecR+9+6*i));
+      }
     } else {
-      RotorComm.Allreduce(Res.Force().pGetVec(), TmpVecR, 3, 
+      RotorComm.Allreduce(Res.Force().pGetVec(), pTmpVecR, 3, 
 		      MPI::DOUBLE, MPI::SUM);
-      Res.PutForce(Vec3(TmpVecR));
+      Res.PutForce(Vec3(pTmpVecR));
     }
   }
 #ifdef MPI_PROFILING
@@ -1053,32 +1079,50 @@ void DynamicInflowRotor::Output(OutputHandler& OH) const
 
    /* FIXME: posso usare dei temporanei per il calcolo della trazione
     * totale per l'output, cosi' evito il giro dei cast */
-#ifdef USE_MPI
- if (RotorComm.Get_size() > 1) {
-   if (RotorComm.Get_rank() == 0) {
-     if (fToBeOutput()) {
-       Vec3 TmpF(TmpVecR), TmpM(TmpVecR+3);
-       Mat3x3 RT((pCraft->GetRCurr()).Transpose());
-       OH.Rotors() << std::setw(8) << GetLabel() << " " 
-		   << (RT*TmpF) << " " << (RT*TmpM) << " " << dUMean << " "
-		   << dVConst << " " << dVCosine << " " << dVSine  << std::endl; 
-     }
-   }
-  } else {
-    Mat3x3 RT((pCraft->GetRCurr()).Transpose());
-	 OH.Rotors() << std::setw(8) << GetLabel() << " "
-		     << (RT*Res.Force()) << " " << (RT*Res.Couple()) << " " << dUMean << " "
-		     << dVConst << " " << dVCosine << " " << dVSine  << std::endl;
-  }
-#else /* !USE_MPI */     
    if (fToBeOutput()) {
-     Mat3x3 RT((pCraft->GetRCurr()).Transpose());
-     OH.Rotors() << std::setw(8) << GetLabel() << " " 
+
+#ifdef USE_MPI
+ 	if (RotorComm.Get_size() > 1) {
+   		if (RotorComm.Get_rank() == 0) {
+       			Vec3 TmpF(pTmpVecR), TmpM(pTmpVecR+3);
+       			Mat3x3 RT((pCraft->GetRCurr()).Transpose());
+       			OH.Rotors() << std::setw(8) << GetLabel() << " " 
+		   		<< (RT*TmpF) << " " << (RT*TmpM) << " " << dUMean << " "
+		   		<< dVConst << " " << dVCosine << " " << dVSine  << std::endl; 
+       			for (int i = 0; ppRes && ppRes[i]; i++) {
+				Vec3 TmpF(pTmpVecR+6+6*i), TmpM(pTmpVecR+9+6*i);
+				OH.Rotors() << std::setw(8) << GetLabel() 
+			    		<< ":" << ppRes[i]->GetLabel() << " "
+			    		<< TmpF << " "
+			    		<< TmpM << std::endl;
+       			}
+     		}
+   	} else {
+    		Mat3x3 RT((pCraft->GetRCurr()).Transpose());
+	 	OH.Rotors() << std::setw(8) << GetLabel() << " "
+		     	<< (RT*Res.Force()) << " " << (RT*Res.Couple()) << " " << dUMean << " "
+		     	<< dVConst << " " << dVCosine << " " << dVSine  << std::endl;
+  	        for (int i = 0; ppRes && ppRes[i]; i++) {
+			OH.Rotors() << std::setw(8) << GetLabel() 
+			    << ":" << ppRes[i]->GetLabel() << " "
+			    << ppRes[i]->pRes->Force() << " "
+			    << ppRes[i]->pRes->Couple() << std::endl;
+	    	}
+  	}
+#else /* !USE_MPI */     
+     	Mat3x3 RT((pCraft->GetRCurr()).Transpose());
+     	OH.Rotors() << std::setw(8) << GetLabel() << " " 
 		 << (RT*Res.Force()) << " " << (RT*Res.Couple()) << " " 
 		 << dUMean << " "
 		 << dVConst << " " << dVCosine << " " << dVSine  << std::endl;
-   } 
+ 	for (int i = 0; ppRes && ppRes[i]; i++) {
+		OH.Rotors() << std::setw(8) << GetLabel() 
+			    << ":" << ppRes[i]->GetLabel() << " "
+			    << ppRes[i]->pRes->Force() << " "
+			    << ppRes[i]->pRes->Couple() << std::endl;
+	}  	 
 #endif /* !USE_MPI */     
+   }
 }
      
 /* assemblaggio jacobiano */

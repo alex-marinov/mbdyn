@@ -31,7 +31,7 @@
 /* metodo di Schur */
 
 /* 
- * Copyright 1999-2000 Giuseppe Quaranta <giuquaranta@tiscalinet.it>
+ * Copyright 1999-2000 Giuseppe Quaranta <giuquaranta@aero.polimi.it>
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  */
 
@@ -68,32 +68,48 @@ class SchurMultiStepIntegrator : public Integrator {
    class ErrSimulationDiverged {};
    
  private:   
-   enum Strategy { NOCHANGE, FACTOR } CurrStrategy;
-   enum SolverType { HARWELL_SOLVER, MESCHACH_SOLVER } CurrSolver;
-   
+   	enum Strategy { 
+   		NOCHANGE, 
+   		FACTOR
+	} CurrStrategy;
+	   	
+	enum SolverType {
+		HARWELL_SOLVER,
+		MESCHACH_SOLVER,
+		Y12_SOLVER,
+                UMFPACK3_SOLVER   
+	} CurrLocSolver;
+
+	static SolverType defaultSolver;
+	
+	SolverType CurrIntSolver;
+	
+
  private:
-   const char *sInputFileName;
-   const char *sOutputFileName;
-   MBDynParser& HP;
+	const char *sInputFileName;
+   	const char *sOutputFileName;
+   	MBDynParser& HP;
  
-   /* Dati per strategia FACTOR */
-   struct {
-      doublereal dReductionFactor;
-      doublereal dRaiseFactor;
-      integer iStepsBeforeReduction;
-      integer iStepsBeforeRaise;
-      integer iMinIters;
-   } StrategyFactor;
+   	/* Dati per strategia FACTOR */
+   	struct {
+      		doublereal dReductionFactor;
+      		doublereal dRaiseFactor;
+      		integer iStepsBeforeReduction;
+      		integer iStepsBeforeRaise;
+      		integer iMinIters;
+   	} StrategyFactor;
    
 #ifdef __HACK_EIG__
-   /********** TEMPORARY ***********/
-   /* Dati per esecuzione di eigenanalysis */
-   struct WhenEigen {
-      doublereal dTime;
-      flag fDone;
-   };
-   
-   WhenEigen OneEig;
+   	/* Dati per esecuzione di eigenanalysis */
+    	struct WhenEigen {
+      		doublereal dTime;
+      		flag fDone;
+   	} OneEig;
+	flag fEigenAnalysis;
+	doublereal dEigParam;
+	flag fOutputModes;
+	doublereal dUpperFreq;
+	doublereal dLowerFreq;  
 #endif /* __HACK_EIG__ */
    
    
@@ -108,17 +124,21 @@ class SchurMultiStepIntegrator : public Integrator {
    
    /* Strutture di gestione dei dati e della soluzione */
    SchurSolutionManager* pSM; /* SolutionManager Schur */
+   SolutionManager* pLocalSM; /* SolutionManager Locale */
    SchurDataManager* pDM;     /* gestore dei dati */
-   VecIter<Dof> DofIterator; /* Iteratore per la struttura dei Dof, passato da DM */
-   integer iNumDofs;     /* Dimensioni del problema */
+   VecIter<Dof> DofIterator;  /* Iteratore per la struttura dei Dof, 
+   			       * passato da DM */
+   integer iNumDofs;          /* Dimensioni del problema */
    
-   integer iNumLocDofs;  /* Dimensioni problema locale */
-   integer iNumIntDofs;  /* Dimensioni interfaccia locale */
-   integer* pLocDofs;    /* Puntatore alla lista dei dof locali (stile fortran)*/
-   integer* pIntDofs;    /* Puntatore alla lista dei dofs di interfaccia */
+   /* Strutture gestione parallelo */
+   integer iNumLocDofs;       /* Dimensioni problema locale */
+   integer iNumIntDofs;       /* Dimensioni interfaccia locale */
+   integer* pLocDofs;         /* Puntatore alla lista dei dof locali (stile fortran)*/
+   integer* pIntDofs;         /* Puntatore alla lista dei dofs di interfaccia */
    Dof* pDofs;  
    
    /* Dati della simulazione */
+   doublereal dTime;
    doublereal dInitialTime;
    doublereal dFinalTime;
    doublereal dRefTimeStep;
@@ -165,32 +185,19 @@ class SchurMultiStepIntegrator : public Integrator {
    doublereal db0Differential;
    doublereal db0Algebraic;
    
-#ifdef __HACK_EIG__
-   /******* TEMPORARY */
-   flag fEigenAnalysis;
-#endif /* __HACK_EIG__ */
-    
+
    /* Dimensioni del workspace (se 0, su misura per la matrice) */
-   integer iWorkSpaceSize;
-   doublereal dPivotFactor;
+   integer iLWorkSpaceSize;
+   doublereal dLPivotFactor;
+   integer iIWorkSpaceSize;
+   doublereal dIPivotFactor;
 
    /* Test sul residuo */
    doublereal MakeTest(const VectorHandler& Res, 
 		       const VectorHandler& XP);
 
    /* corregge i puntatori per un nuovo passo */
-   void Flip(void) {
-      /* switcha i puntatori; in questo modo non e' necessario 
-       * copiare i vettori per cambiare passo */
-      VectorHandler* p = pXPrev2;
-      pXPrev2 = pXPrev;
-      pXPrev = pXCurr;
-      pXCurr = p;
-      p = pXPrimePrev2;
-      pXPrimePrev2 = pXPrimePrev;
-      pXPrimePrev = pXPrimeCurr;
-      pXPrimeCurr = p;
-   };
+   inline void Flip(void); 
     
    /* Lettura dati */
    void ReadData(MBDynParser& HP);
@@ -236,6 +243,23 @@ class SchurMultiStepIntegrator : public Integrator {
       return "SchurMultiStepIntegrator"; 
    };
 };
+
+inline void
+SchurMultiStepIntegrator::Flip(void)
+{
+	/*
+	 * switcha i puntatori; in questo modo non e' necessario
+	 * copiare i vettori per cambiare passo
+	 */
+	VectorHandler* p = pXPrev2;
+	pXPrev2 = pXPrev;
+	pXPrev = pXCurr;
+	pXCurr = p;
+	p = pXPrimePrev2;
+	pXPrimePrev2 = pXPrimePrev;
+	pXPrimePrev = pXPrimeCurr;
+	pXPrimeCurr = p;
+}
 
 /* SchurMultiStepIntegrator - end */
 

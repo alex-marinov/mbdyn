@@ -16,7 +16,7 @@
  *
  */
 /* November 2001 
- * Modified to add a Sparse matrix in row form and to implement methods
+ * Modified to add methods
  * to be used in the parallel MBDyn Solver.
  *
  * Copyright (C) 1996-2001
@@ -37,7 +37,7 @@
  * This code is a partial merge of HmFe and MBDyn.
  *
  * Pierangelo Masarati  <masarati@aero.polimi.it>
- * Paolo Mantegazza     <mantegazza@aero.polimi.it>
+21 * Paolo Mantegazza     <mantegazza@aero.polimi.it>
  *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
@@ -95,7 +95,9 @@ public:
 		NCols = nnn;
 		col_indices.resize(NCols);
 	};
+
 	virtual ~SpMapMatrixHandler() {};
+
 	void Init(const double& = 0.) {
 		NO_OP;
 	};
@@ -241,7 +243,6 @@ public:
 	        if (icol > iGetNumCols()) {
 			THROW(ErrGeneric());
 		}
-		out.Reset(0.);
 		row_cont_type::const_iterator ri, re;
 		re = col_indices[icol].end();
 		for (ri = col_indices[icol].begin();ri != re; ri++) {		
@@ -290,8 +291,8 @@ public:
 	};
 	
 	VectorHandler& MatVecMul(VectorHandler& out, const VectorHandler& in) const {
-		if (out.iGetSize() != iGetNumCols()
-				|| in.iGetSize() != iGetNumRows()) {
+		if (in.iGetSize() != iGetNumCols()
+				|| out.iGetSize() != iGetNumRows()) {
 			THROW(ErrGeneric());
   		}
 
@@ -326,8 +327,8 @@ public:
 	};
 	
 	VectorHandler& MatVecIncMul(VectorHandler& out, const VectorHandler& in) const {
-		if (out.iGetSize() != iGetNumCols()
-				|| in.iGetSize() != iGetNumRows()) {
+		if (in.iGetSize() != iGetNumCols()
+				|| out.iGetSize() != iGetNumRows()) {
 			THROW(ErrGeneric());
 		}
 
@@ -343,8 +344,8 @@ public:
 	};
 
 	VectorHandler& MatVecDecMul(VectorHandler& out, const VectorHandler& in) const {
-		if (out.iGetSize() != iGetNumCols()
-				|| in.iGetSize() != iGetNumRows()) {
+		if (in.iGetSize() != iGetNumCols()
+				|| out.iGetSize() != iGetNumRows()) {
 			THROW(ErrGeneric());
 		}
 

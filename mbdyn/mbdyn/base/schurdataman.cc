@@ -101,7 +101,7 @@ pParAmgProcs(NULL),
 wgtflag(1),
 pRotorComm(NULL)
 {
-    DEBUGCOUT("Entering SchurDataManager" << endl);
+    DEBUGCOUT("Entering SchurDataManager" << std::endl);
 
     /* Inizializza il communicator */ 
     DataComm = MPI::COMM_WORLD.Dup();
@@ -109,10 +109,10 @@ pRotorComm(NULL)
     MyRank = DataComm.Get_rank();
 
 
-    DEBUGCOUT("Communicator Size: " << DataCommSize << endl);
+    DEBUGCOUT("Communicator Size: " << DataCommSize << std::endl);
 
     iTotVertices = iTotNodes + iTotElem;
-    DEBUGCOUT("iTotVertexes: " << iTotVertices << endl);
+    DEBUGCOUT("iTotVertexes: " << iTotVertices << std::endl);
 
     /* parole chiave del blocco parallelizzazione */
     const char* sKeyWords[] = {
@@ -186,17 +186,17 @@ pRotorComm(NULL)
     /* legge la distribuzione degli elementi sulle diverse CPU */
 
     if (KeyWords(HP.GetDescription()) != BEGIN) {
-    cerr << endl 
+    std::cerr << std::endl 
 	 << "Warning: no explicit connection declared"
-	 << " for this input file " << endl;
+	 << " for this input file " << std::endl;
         return;
     } else {
         int iNumElems = 0;
         int iNumNodes = 0;
         if (KeyWords(HP.GetWord()) != PARALLEL) {
-            cerr << endl 
+            std::cerr << std::endl 
 	        << "Error: <begin: parallel;> expected at line "
-	        << HP.GetLineData() << "; aborting ..." << endl;
+	        << HP.GetLineData() << "; aborting ..." << std::endl;
             THROW(ErrGeneric());
         }
         while (1) {
@@ -206,8 +206,8 @@ pRotorComm(NULL)
 	        if (HP.fIsArg()) {
 	            wgtflag = HP.GetInt();
 	        } else {
-	            cerr << endl << "Error: Number expected at line "  
-	                << HP.GetLineData() << "; aborting ..." << endl;
+	            std::cerr << std::endl << "Error: Number expected at line "  
+	                << HP.GetLineData() << "; aborting ..." << std::endl;
 	            THROW(ErrGeneric());
 	        }
 	        break;
@@ -218,10 +218,10 @@ pRotorComm(NULL)
 	            if (HP.fIsArg()) {
 	                pParAmgProcs[i] = HP.GetInt();
 	            } else {
-	                cerr << endl 
+	                std::cerr << std::endl 
 			    << "Error: the partition assignment"
 			    " is not complete at line "  
-	                    << HP.GetLineData() << "; aborting ..." << endl;
+	                    << HP.GetLineData() << "; aborting ..." << std::endl;
 	                THROW(ErrGeneric());
 	            }
 	        }  
@@ -229,16 +229,16 @@ pRotorComm(NULL)
 	
             case END:   
 	        if (KeyWords(HP.GetWord()) != PARALLEL) {
-	            cerr << endl 
+	            std::cerr << std::endl 
 		        << "Error: <end: parallel;> expected at line "
-	                << HP.GetLineData() << "; aborting ..." << endl;
+	                << HP.GetLineData() << "; aborting ..." << std::endl;
 	            THROW(ErrGeneric());
 	        }
 	        goto endcycle;
     
             default:
-	        cerr << "Unknown input at line "
-	            << HP.GetLineData() << "; aborting ..." << endl;
+	        std::cerr << "Unknown input at line "
+	            << HP.GetLineData() << "; aborting ..." << std::endl;
 	        THROW(ErrGeneric());
     
             case NUMBEROFCONNECTIONS: 
@@ -252,9 +252,9 @@ pRotorComm(NULL)
       
 	        for (int i = 0; i < iTotalExpConnections; i++) {
 	            if (KeyWords(HP.GetDescription()) != CONNECTION) {
-	                cerr << endl 
+	                std::cerr << std::endl 
 			    << "Error: <Connection> expected at line "
-		            << HP.GetLineData() << "; aborting ..." << endl;
+		            << HP.GetLineData() << "; aborting ..." << std::endl;
 	                THROW(ErrGeneric());
 	            }
 	  
@@ -270,19 +270,19 @@ pRotorComm(NULL)
 		                if (HP.fIsArg()) {
 		                    j = HP.GetInt();
 		                } else {
-		                    cerr << endl 
+		                    std::cerr << std::endl 
 				        << "Error: Label expected at line "  
 					<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 		                    THROW(ErrGeneric());
 		                }
 		                ppExpCntElems[iNumElems] = 
 				    *(ppFindElem(ActualElType, j));
 		                if (ppExpCntElems[iNumElems] == NULL ) {
-		                    cerr << "Error: at line " 
+		                    std::cerr << "Error: at line " 
 				        << HP.GetLineData() 
 					<< " undefined element; aborting ..." 
-					<< endl;
+					<< std::endl;
 		                    THROW(ErrGeneric());
 		                }
 		                iNumElems++;
@@ -294,19 +294,19 @@ pRotorComm(NULL)
 		                if (HP.fIsArg()) {
 		                    j = HP.GetInt();
 		                } else {
-		                    cerr << endl 
+		                    std::cerr << std::endl 
 				        << "Error: Label expected at line "  
 					<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 		                    THROW(ErrGeneric());
 		                }
 		                ppExpCntElems[iNumElems] = 
 				    *(ppFindElem(ActualElType, j));
 				if (ppExpCntElems[iNumElems] == NULL ) {
-		                    cerr << "Error: at line " 
+		                    std::cerr << "Error: at line " 
 				        << HP.GetLineData() 
 					<< " undefined element; aborting ..." 
-					<< endl;
+					<< std::endl;
 		                    THROW(ErrGeneric());
 		                }
 		                iNumElems++;
@@ -318,19 +318,19 @@ pRotorComm(NULL)
 		                if (HP.fIsArg()) {
 		                    j = HP.GetInt();
 		                } else {
-		                    cerr << endl 
+		                    std::cerr << std::endl 
 				        << "Error: Label expected at line "  
 				        << HP.GetLineData() 
-				        << "; aborting ..." << endl;
+				        << "; aborting ..." << std::endl;
 				    THROW(ErrGeneric());
 			       	}
 				ppExpCntElems[iNumElems] = 
 				    *(ppFindElem(ActualElType, j));
 				if (ppExpCntElems[iNumElems] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				        << HP.GetLineData() 
 					<< " undefined element; aborting ..." 
-					<< endl;
+					<< std::endl;
 			  	    THROW(ErrGeneric());
 				}
 				iNumElems++;
@@ -342,19 +342,19 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-		  		    cerr << endl 
+		  		    std::cerr << std::endl 
 				        << "Error: Label expected at line "  
 		       			<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				ppExpCntElems[iNumElems] = 
 				    *(ppFindElem(ActualElType, j));
 				if (ppExpCntElems[iNumElems] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				      	<< HP.GetLineData() 
 					<< " undefined element; aborting ..." 
-					<< endl;
+					<< std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				iNumElems++;
@@ -366,19 +366,19 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-		  		    cerr << endl 
+		  		    std::cerr << std::endl 
 				        << "Error: Label expected at line "  
 					<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				ppExpCntElems[iNumElems] = 
 				    *(ppFindElem(ActualElType, j));
 				if (ppExpCntElems[iNumElems] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				    	<< HP.GetLineData() 
 					<< " undefined element; aborting ..." 
-					<< endl;
+					<< std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				iNumElems++;
@@ -390,19 +390,19 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-		  		    cerr << endl 
+		  		    std::cerr << std::endl 
 				        << "Error: Label expected at line "  
 					<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				ppExpCntElems[iNumElems] = 
 				    *(ppFindElem(ActualElType, j));
 				if (ppExpCntElems[iNumElems] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				        << HP.GetLineData() 
 					<< " undefined element; aborting ..." 
-					<< endl;
+					<< std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				iNumElems++;
@@ -414,19 +414,19 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-		  		    cerr << endl 
+		  		    std::cerr << std::endl 
 				        << "Error: Label expected at line "  
 					<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 			  	    THROW(ErrGeneric());
 				}
 				ppExpCntElems[iNumElems] = 
 				    *(ppFindElem(ActualElType, j));
 				if (ppExpCntElems[iNumElems] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				        << HP.GetLineData() 
 					<< " undefined element; aborting ..." 
-					<< endl;
+					<< std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				iNumElems++;
@@ -438,19 +438,19 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-		  		    cerr << endl 
+		  		    std::cerr << std::endl 
 				        << "Error: Label expected at line "  
 					<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				ppExpCntElems[iNumElems] = 
 				    *(ppFindElem(ActualElType, j));
 				if (ppExpCntElems[iNumElems] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				        << HP.GetLineData() 
 					<< " undefined element; aborting ..." 
-					<< endl;
+					<< std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				iNumElems++;
@@ -462,19 +462,19 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-		  		    cerr << endl 
+		  		    std::cerr << std::endl 
 				        << "Error: Label expected at line "  
 					<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				ppExpCntElems[iNumElems] = 
 				    *(ppFindElem(ActualElType, j));
 				if (ppExpCntElems[iNumElems] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				        << HP.GetLineData() 
 					<< " undefined element; aborting ..." 
-					<< endl;
+					<< std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				iNumElems++;
@@ -486,19 +486,19 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-		  		    cerr << endl 
+		  		    std::cerr << std::endl 
 				        << "Error: Label expected at line "  
 					<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				ppExpCntElems[iNumElems] = 
 				    *(ppFindElem(ActualElType, j));
 				if (ppExpCntElems[iNumElems] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				        << HP.GetLineData() 
 					<< " undefined element; aborting ..." 
-					<< endl;
+					<< std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				iNumElems++;
@@ -510,19 +510,19 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-		  		    cerr << endl 
+		  		    std::cerr << std::endl 
 				        << "Error: Label expected at line "  
 		       			<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				ppExpCntElems[iNumElems] = 
 				    *(ppFindElem(ActualElType, j));
 				if (ppExpCntElems[iNumElems] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				        << HP.GetLineData() 
 					<< " undefined element; aborting ..." 
-					<< endl;
+					<< std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				iNumElems++;
@@ -534,19 +534,19 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-		  		    cerr << endl 
+		  		    std::cerr << std::endl 
 				        << "Error: Label expected at line "  
 					<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 			  	    THROW(ErrGeneric());
 				}
 				ppExpCntElems[iNumElems] = 
 				    *(ppFindElem(ActualElType, j));
 				if (ppExpCntElems[iNumElems] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				        << HP.GetLineData() 
 					<< " undefined element; aborting ..." 
-					<< endl;
+					<< std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				iNumElems++;
@@ -558,19 +558,19 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-		  		    cerr << endl 
+		  		    std::cerr << std::endl 
 				        << "Error: Label expected at line "  
 		       			<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				ppExpCntElems[iNumElems] = 
 				    *(ppFindElem(ActualElType, j));
 				if (ppExpCntElems[iNumElems] == NULL ) {
-				    cerr << "Error: at line " 
+				    std::cerr << "Error: at line " 
 				     	<< HP.GetLineData() 
 					<< " undefined element; aborting ..." 
-					<< endl;
+					<< std::endl;
 				    THROW(ErrGeneric());
 				}
 				iNumElems++;
@@ -582,28 +582,28 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-		  		    cerr << endl 
+		  		    std::cerr << std::endl 
 				      	<< "Error: Label expected at line "  
 		       			<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				ppExpCntElems[iNumElems] = 
 				    *(ppFindElem(ActualElType, j));
 				if (ppExpCntElems[iNumElems] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				        << HP.GetLineData() 
 					<< " undefined element; aborting ..." 
-					<< endl;
+					<< std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				iNumElems++;
 				break;
 		
 	      		    default:
-				cerr << "Error: Element Type on line " 
+				std::cerr << "Error: Element Type on line " 
 				   << HP.GetLineData() 
-				   << " not valid; aborting ..." << endl;
+				   << " not valid; aborting ..." << std::endl;
 				THROW(ErrGeneric());
 	      		    }
 	      		    break;
@@ -618,19 +618,19 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-		  		    cerr << endl 
+		  		    std::cerr << std::endl 
 				     	<< "Error: Label expected at line "  
 		       			<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				ppExpCntNodes[iNumNodes] = 
 				    pFindNode(ActualNdType, j);
 				if (ppExpCntNodes[iNumNodes] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				    	<< HP.GetLineData() 
 					<< " undefined node; aborting ..." 
-					<< endl;
+					<< std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				iNumNodes++;
@@ -642,19 +642,19 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-				    cerr << endl 
+				    std::cerr << std::endl 
 				      	<< "Error: Label expected at line "  
 		     			<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 				    THROW(ErrGeneric());
 				}
 				ppExpCntNodes[iNumNodes] = 
 				    pFindNode(ActualNdType, j);
 				if (ppExpCntNodes[iNumNodes] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				    	<< HP.GetLineData() 
 					<< " undefined node; aborting ..." 
-					<< endl;
+					<< std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				iNumNodes++;
@@ -666,19 +666,19 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-		  		    cerr << endl 
+		  		    std::cerr << std::endl 
 				      	<< "Error: Label expected at line "  
 		       			<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				ppExpCntNodes[iNumNodes] = 
 				    pFindNode(ActualNdType, j);
 				if (ppExpCntNodes[iNumNodes] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				    	<< HP.GetLineData() 
 					<< " undefined node; aborting ..." 
-					<< endl;
+					<< std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				iNumNodes++;
@@ -689,19 +689,19 @@ pRotorComm(NULL)
 	      			if (HP.fIsArg()) {
 				    j = HP.GetInt();
 	      			} else {
-				    cerr << endl 
+				    std::cerr << std::endl 
 				    	<< "Error: Label expected at line "  
 		     			<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 				    THROW(ErrGeneric());
 	      			}
 	      			ppExpCntNodes[iNumNodes] = 
 				    pFindNode(ActualNdType, j);
 	      			if (ppExpCntNodes[iNumNodes] == NULL ) {
-				    cerr << "Error: at line " 
+				    std::cerr << "Error: at line " 
 				    	<< HP.GetLineData() 
 					<< " undefined node; aborting ..." 
-					<< endl;
+					<< std::endl;
 				    THROW(ErrGeneric());
 	      			}
 	      			iNumNodes++;
@@ -713,37 +713,37 @@ pRotorComm(NULL)
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
 				} else {
-		  		    cerr << endl 
+		  		    std::cerr << std::endl 
 				    	<< "Error: Label expected at line "  
 		       			<< HP.GetLineData() 
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				ppExpCntNodes[iNumNodes] = 
 				    pFindNode(ActualNdType, j);
 				if (ppExpCntNodes[iNumNodes] == NULL ) {
-		  		    cerr << "Error: at line " 
+		  		    std::cerr << "Error: at line " 
 				    	<< HP.GetLineData() 
 					<< " undefined node; aborting ..." 
-					<< endl;
+					<< std::endl;
 		  		    THROW(ErrGeneric());
 				}
 				iNumNodes++;
 				break;
 		
 	      		    default:
-				cerr << "Error: Node Type on line " 
+				std::cerr << "Error: Node Type on line " 
 				    << HP.GetLineData() << " not valid "
-		     		    << "; aborting ..." << endl;
+		     		    << "; aborting ..." << std::endl;
 				THROW(ErrGeneric());
 	      		    }  
 	      		    break;
 	    		}
 	    
 	    		default:
-	      		    cerr << " Unknown input at line "
+	      		    std::cerr << " Unknown input at line "
 		   		<< HP.GetLineData() 
-				<< "; aborting ..." << endl;
+				<< "; aborting ..." << std::endl;
 	      		    THROW(ErrGeneric());
 	    		}
 	  	    }
@@ -751,11 +751,11 @@ pRotorComm(NULL)
    
 		ASSERT(iNumNodes == iNumElems);
 		if (iNumNodes + iNumElems !=  2*iTotalExpConnections) {
-	  	    cerr << endl 
+	  	    std::cerr << std::endl 
 		     	<< "Error: Total number of Nodes and elements"
 			" in the parallel section at line "
 	       		<< HP.GetLineData() 
-			<< " is not consistent; aborting ..." << endl;
+			<< " is not consistent; aborting ..." << std::endl;
 	  	    THROW(ErrGeneric());
 		}  
 		break;
@@ -802,7 +802,7 @@ SchurDataManager::~SchurDataManager(void)
 void 
 SchurDataManager::CreatePartition(void)
 { 
-    DEBUGCOUT("Entering SchurDataManager::CreatePartition()" << endl);
+    DEBUGCOUT("Entering SchurDataManager::CreatePartition()" << std::endl);
 
     Adjacency Vertices;  /* Struttura contenente le connessioni fra i vertici */
     int* pVertexWgts;   /* Pesi dei vertici = dofs x ogni v. utile per METIS */
@@ -970,26 +970,26 @@ SchurDataManager::CreatePartition(void)
       	ofstream ofMetis;
       	if (MyRank == 0) {
       	    ofMetis.open("metis_conn.debug");
-      	    ofMetis << "# METIS Input File" << endl
-                << "Column 1 is for Computational weights " << endl
-            	<< "Column 2 is for Comunicational weight " << endl
-            	<< "Total Vertexes: " << iTotVertices << endl
-            	<< "# Nodes" << endl;
+      	    ofMetis << "# METIS Input File" << std::endl
+                << "Column 1 is for Computational weights " << std::endl
+            	<< "Column 2 is for Comunicational weight " << std::endl
+            	<< "Total Vertexes: " << iTotVertices << std::endl
+            	<< "# Nodes" << std::endl;
       	    for (int i = 0; i < iTotNodes; i++) {
             	ofMetis << "# " << i << "  Node Type: "
           	    << "(" << psNodeNames[(ppNodes[i])->GetNodeType()] << ")"
-          	    << " Label: " << (ppNodes[i])->GetLabel() << endl
+          	    << " Label: " << (ppNodes[i])->GetLabel() << std::endl
           	    << pVertexWgts[i] << " " << pCommWgts[i];
             	for (int j = Vertices.pXadj[i]; j < Vertices.pXadj[i+1]; j++) {
           	    ofMetis << " " << Vertices.pAdjncy[j];
             	}
-            	ofMetis << endl;
+            	ofMetis << std::endl;
       	    }
-            ofMetis << "# Elements" << endl;
+            ofMetis << "# Elements" << std::endl;
       	    for (int i = 0; i < iTotElem; i++) {
             	ofMetis << "# " << i+iTotNodes << "  Element Type: "
           	    << "("  << psElemNames[(ppElems[i])->GetElemType()] << ")"
-          	    << " Label: " << (ppElems[i])->GetLabel() << endl
+          	    << " Label: " << (ppElems[i])->GetLabel() << std::endl
           	    << pVertexWgts[i+iTotNodes] 
 		    << " " << pCommWgts[i+iTotNodes];
             	for (int j = Vertices.pXadj[i+iTotNodes]; 
@@ -997,7 +997,7 @@ SchurDataManager::CreatePartition(void)
 	             j++) {
           	    ofMetis << " " << Vertices.pAdjncy[j];
 	    	}
-            	ofMetis << endl;
+            	ofMetis << std::endl;
       	    }
             ofMetis.close();
     	}
@@ -1019,9 +1019,9 @@ SchurDataManager::CreatePartition(void)
 			     &edgecut,
 			     pParAmgProcs);    
 #else /* !USE_METIS */
-    	cerr <<"Sorry. You need to compile with -DUSE_METIS." << endl 
+    	std::cerr <<"Sorry. You need to compile with -DUSE_METIS." << std::endl 
     	    << "No other partition library is implemented yet."
-	    " Aborting ..." << endl;
+	    " Aborting ..." << std::endl;
 #endif /* !USE_METIS */    
     }
  
@@ -1173,7 +1173,7 @@ SchurDataManager::CreatePartition(void)
 	  	color = 1;
 	  	if (pParAmgProcs[pMyRot[i]+iTotNodes] == MyRank) {
 	    	    silent_cout("Rotor " << ppElems[pRotPos[i]]->GetLabel() 
-	      	                << " assigned to process " << MyRank << endl);
+	      	                << " assigned to process " << MyRank << std::endl);
 	    	    iRotorIsMine = 1;
 	    	    key = 0;
 	  	} else {
@@ -1438,24 +1438,24 @@ SchurDataManager::OutputPartition(void)
   
     time_t tCurrTime(time(NULL));
     OutHdl.Partition() 
-    	<< "# Partition file for Mbdyn. Time: " << ctime(&tCurrTime)  << endl
-	<< "# Partition produced with METIS" << endl << endl << endl;
+    	<< "# Partition file for Mbdyn. Time: " << ctime(&tCurrTime)  << std::endl
+	<< "# Partition produced with METIS" << std::endl << std::endl << std::endl;
   
     /* Dati */
   
     OutHdl.Partition()
     	<< "# Control data useful to verify the partition "
-    	<< endl << endl 
-    	<< "Total number of processes: " << DataCommSize << ";" << endl
-    	<< " Process #: " << MyRank << ";" << endl
-    	<< "Total number of Nodes: " << iTotNodes << ";"  << endl
-    	<< "Total number of Elements: " << iTotElem << ";"  << endl
-    	<< "Total number of Dofs: " << iTotDofs << ";"  << endl
-    	<< endl << endl;
+    	<< std::endl << std::endl 
+    	<< "Total number of processes: " << DataCommSize << ";" << std::endl
+    	<< " Process #: " << MyRank << ";" << std::endl
+    	<< "Total number of Nodes: " << iTotNodes << ";"  << std::endl
+    	<< "Total number of Elements: " << iTotElem << ";"  << std::endl
+    	<< "Total number of Dofs: " << iTotDofs << ";"  << std::endl
+    	<< std::endl << std::endl;
 
-    OutHdl.Partition() << " Local Dofs number: " << iNumLocDofs << endl;
+    OutHdl.Partition() << " Local Dofs number: " << iNumLocDofs << std::endl;
     
-    OutHdl.Partition() << " Local Nodes: " << iNumLocNodes << endl;
+    OutHdl.Partition() << " Local Nodes: " << iNumLocNodes << std::endl;
     for (int i = 0; i < iNumLocNodes; i++) {
     	ASSERT(ppMyNodes[i] != NULL);
     	OutHdl.Partition() 
@@ -1463,11 +1463,11 @@ SchurDataManager::OutputPartition(void)
             << "(" << psNodeNames[(ppMyNodes[i])->GetNodeType()] << ")"
             << " Label: " << (ppMyNodes[i])->GetLabel()
             << " Dofs #: " << (ppMyNodes[i])->iGetNumDof()
-            << endl;
+            << std::endl;
     }
 
     OutHdl.Partition() 
-    	<< endl << endl << "Local Elements: "<< iNumLocElems << endl << endl;
+    	<< std::endl << std::endl << "Local Elements: "<< iNumLocElems << std::endl << std::endl;
     for (int i = 0; i < iNumLocElems; i++) {
     	ASSERT(ppMyElems[i] != NULL);
     	OutHdl.Partition() 
@@ -1475,13 +1475,13 @@ SchurDataManager::OutputPartition(void)
       	    << "("  << psElemNames[(ppMyElems[i])->GetElemType()] << ")"
       	    << " Label: " << (ppMyElems[i])->GetLabel()
       	    << " Dofs #: " << (ppMyElems[i])->iGetNumDof()
-      	    << endl;
+      	    << std::endl;
     }
 
     OutHdl.Partition() 
-    	<< endl << endl << " Interface Dofs number: " << iNumIntDofs << endl;
+    	<< std::endl << std::endl << " Interface Dofs number: " << iNumIntDofs << std::endl;
     OutHdl.Partition() 
-    	<< endl << "Interface Nodes: " << iNumIntNodes << endl;
+    	<< std::endl << "Interface Nodes: " << iNumIntNodes << std::endl;
     for (int i = 0; i < iNumIntNodes; i++) {
     	ASSERT(ppIntNodes[i] != NULL);
     	OutHdl.Partition() 
@@ -1489,49 +1489,49 @@ SchurDataManager::OutputPartition(void)
       	    << "(" << psNodeNames[(ppIntNodes[i])->GetNodeType()] << ")" 
       	    << " Label: " << (ppIntNodes[i])->GetLabel()
       	    << " Dofs #: " <<  (ppIntNodes[i])->iGetNumDof()
-      	    << endl;
+      	    << std::endl;
     }
   
     OutHdl.Partition() 
-    	<< endl << endl << "Elements whose internal dofs are interface dofs: "
-	<< iNumIntElems << endl << endl;
+    	<< std::endl << std::endl << "Elements whose internal dofs are interface dofs: "
+	<< iNumIntElems << std::endl << std::endl;
     for (int i = 0; i < iNumIntElems; i++) {
     	OutHdl.Partition() 
       	    << "Element Type: " 
       	    << "("  << psElemNames[(ppMyIntElems[i])->GetElemType()] << ")"
       	    << " Label: " << (ppMyIntElems[i])->GetLabel()
       	    << " Dofs #: " << (ppMyIntElems[i])->iGetNumDof()
-      	    << endl;
+      	    << std::endl;
     }
 
 #ifdef DEBUG
-    OutHdl.Partition() << endl << "Local Dofs List:" << endl;
+    OutHdl.Partition() << std::endl << "Local Dofs List:" << std::endl;
     int j = 0;
     for (int i = 0; i < iNumLocDofs; i++) {
     	OutHdl.Partition() << LocalDofs[i] << " ";
     	j++;
     	if (j > 10) {
-      	    OutHdl.Partition() << endl;
+      	    OutHdl.Partition() << std::endl;
       	    j = 0;
     	}
     }
-    OutHdl.Partition() << endl;
+    OutHdl.Partition() << std::endl;
 
-    OutHdl.Partition() << endl << "Local Interface Dofs List:" <<endl;
+    OutHdl.Partition() << std::endl << "Local Interface Dofs List:" <<std::endl;
     j = 0;
     for (int i = 0; i < iNumIntDofs; i++) {
 	OutHdl.Partition() << LocalIntDofs[i] << " ";
     	j++;
     	if (j > 10) {
-      	    OutHdl.Partition() << endl;
+      	    OutHdl.Partition() << std::endl;
       	    j = 0;
     	}
     }
-    OutHdl.Partition() << endl;
+    OutHdl.Partition() << std::endl;
   
 #endif /* DEBUG */   
 
-    silent_cout("done" << endl);
+    silent_cout("done" << std::endl);
 }
 
 /* compatta il vettore delle adiacenze */
@@ -1572,7 +1572,7 @@ SchurDataManager::SearchNode(Node** ppFirst, int dim, unsigned int& label)
 void
 SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 {
-    DEBUGCOUT("Entering SchurDataManager::AssRes()" << endl);
+    DEBUGCOUT("Entering SchurDataManager::AssRes()" << std::endl);
    
     /* Vedi quanto scritto per lo jacobiano */   
     ASSERT(iWorkIntSize >= iWorkDoubleSize);
@@ -1587,7 +1587,7 @@ SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 void 
 SchurDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
-    DEBUGCOUT("Entering SchurDataManager::AssJac()" << endl);
+    DEBUGCOUT("Entering SchurDataManager::AssJac()" << std::endl);
     ASSERT(pWorkMatA != NULL);   
     ASSERT(ppElems != NULL);
 
@@ -1602,7 +1602,7 @@ SchurDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 void
 SchurDataManager::Update(void) const
 {  
-    DEBUGCOUT("Entering SchurDataManager::Update()" << endl);
+    DEBUGCOUT("Entering SchurDataManager::Update()" << std::endl);
 
     /* Nodi */   
     for (int i = 0; i < iNumLocNodes; i++) {
@@ -1627,7 +1627,7 @@ SchurDataManager::Update(void) const
 void
 SchurDataManager::DerivativesUpdate(void) const
 {  
-    DEBUGCOUT("Entering SchurDataManager::DerivativesUpdate()" << endl);
+    DEBUGCOUT("Entering SchurDataManager::DerivativesUpdate()" << std::endl);
 
     /* Nodi */   
     for (int i = 0; i < iNumLocNodes; i++) {
@@ -1664,7 +1664,7 @@ SchurDataManager::BeforePredict(VectorHandler& X,
 				VectorHandler& XPrev, 
 				VectorHandler& XPPrev) const
 {
-    DEBUGCOUT("Entering SchurDataManager::BeforePredict()" << endl);
+    DEBUGCOUT("Entering SchurDataManager::BeforePredict()" << std::endl);
 
     /* Nodi */   
     for (int i = 0; i < iNumLocNodes; i++) {
@@ -1689,7 +1689,7 @@ SchurDataManager::BeforePredict(VectorHandler& X,
 void
 SchurDataManager::AfterPredict(void) const
 {
-    DEBUGCOUT("Entering SchurDataManager::AfterPredict()" << endl);
+    DEBUGCOUT("Entering SchurDataManager::AfterPredict()" << std::endl);
 
     /* Nodi */   
     for (int i = 0; i < iNumLocNodes; i++) {
@@ -1719,12 +1719,12 @@ SchurDataManager::AfterPredict(void) const
 void
 SchurDataManager::Output(void) const
 {
-    DEBUGCOUT("Entering SchurDataManager::Output()" << endl);
+    DEBUGCOUT("Entering SchurDataManager::Output()" << std::endl);
 
     /* Dati intestazione */
     ((OutputHandler&)OutHdl).Output() 
      	<< "Time: " 
-	<< setw(16) << setprecision(8) << DrvHdl.dGetTime() << endl;
+	<< std::setw(16) << std::setprecision(8) << DrvHdl.dGetTime() << std::endl;
 
     OutputHandler& OH = (OutputHandler&)OutHdl;
     /* Nodi */

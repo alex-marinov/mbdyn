@@ -70,15 +70,16 @@ class Rotor
  protected:
 #ifdef USE_MPI
    /* Communicator per il calcolo della trazione totale */
-   MPI::Intracomm RotorComm;
-   int* pBlockLenght;
-   MPI::Aint* pDispl;
-   MPI::Request ReqV;
-   doublereal  TmpVecR[6];
-   doublereal  TmpVecS[6];
-   MPI::Datatype* pRotDataType;
-#endif /* USE_MPI */
-
+   MPI::Intracomm RotorComm;  /* Gruppo di macchine su cui si scambiano dati relativi al rotore */  
+   int* pBlockLenght;    
+   MPI::Aint* pDispl;        /* vettore di indirizzi di dati */
+   MPI::Request ReqV;        /* request per le comunicazioni Send Receive */
+   integer iForcesVecDim;    /* dimensioni del vettore forze scambiato fra i processi */ 
+   doublereal*  pTmpVecR;     /* vettori temporanei per lo scambio delle forze */
+   doublereal*  pTmpVecS;
+   MPI::Datatype* pRotDataType; /* datatype che contiene le posizioni dei dati da scambiare 
+				 * ad ogni passo */
+#endif /* USE_MPI */             
    const StructNode* pCraft;
    const StructNode* pRotor;
 
