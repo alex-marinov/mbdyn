@@ -733,36 +733,19 @@ because $\T{\theta}$ in general is a finite rotation.
 
 
 \subsubsection{Future Development}
-Definitions:
-\begin{eqnarray*}
-	\tilde{\T{R}}_{rel} & = & \T{R}_1^T \T{R}_2 \\
-		& = & \llk{exp}\plbr{\tilde{\T{\varphi}}\times{}}
-\end{eqnarray*}
-A perturbation of the relative rotation matrix is:
-\begin{eqnarray*}
-	\delta\llk{ax}\plbr{\exp^{-1}\plbr{\T{R}_1^T \T{R}_2}}
-		& = & \delta\llk{ax}\plbr{\tilde{\T{\varphi}}\times{}} \\
-		& = & \delta\T{\tilde{\varphi}} \\
-		& = & \T{\Gamma}^{-1}\plbr{\T{\tilde{\varphi}}}
-			\tilde{\T{\varphi}_{\delta}}
-\end{eqnarray*}
-and
-\begin{eqnarray*}
-	\T{\tilde{\varphi}}_{\delta}\times{}
-		& = & \delta\plbr{\T{R}_1^T \T{R}_2} \plbr{\T{R}_1^T \T{R}_2}^T \\
-		& = & \delta\T{R}_1^T \T{R}_1
-			+ \T{R}_1^T \delta\T{R}_2 \T{R}_2^T \T{R}_1 \\
-		& = & \T{R}_1^T \T{r}_{1\delta}\times{}^T \T{R}_1
-			+ \T{R}_1^T \T{r}_{2\delta}\times{} \T{R}_1 \\
-		& = & \T{R}_1^T
-			\plbr{\T{r}_{2\delta} - \T{r}_{1\delta}}\times{}
-			\T{R}_1
-\end{eqnarray*}
-which yields:
+Try to use
 \begin{displaymath}
-	\delta\tilde{\T{\varphi}} = \T{\Gamma}^{-1}\T{R}_1^T\plbr{\T{\tilde{\varphi}}}
-		\plbr{\T{r}_{2\delta} - \T{r}_{1\delta}}	
+	\exp^{-1}\plbr{\T{R}_{rel} \T{R}_{imposed}^T} = \T{0}
 \end{displaymath}
+as constraint equation.
+
+Moreover, try to develop the constraint in a form that allows
+to mix free and constrained angular degrees of freedom, with
+stiffness, friction and more on the free ones.
+
+
+
+
 
 
 \section{Deformable Constraints}
