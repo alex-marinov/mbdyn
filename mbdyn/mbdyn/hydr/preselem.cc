@@ -554,6 +554,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 				      pNode1, pNode2, pNode3, pNode4, 
 				      area_max, loss_area, pDC, fOut));
        break;
+
        case CONTROL_VALVE2:
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Control_valve2,
@@ -561,6 +562,9 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 				      pNode1, pNode2, pNode3, pNode4, 
 				      area_max, loss_area, pDC, fOut));
        break;
+
+       default:
+          THROW(ErrGeneric());
        }
        
        break;

@@ -53,7 +53,11 @@ Control_valve::Control_valve(unsigned int uL, const DofOwner* pDO,
 HydraulicElem(uL, pDO, hf, fOut),
 DriveOwner(pDC),
 pNode1(p1), pNode2(p2), pNode3(p3), pNode4(p4),
-area_max(A_max), loss_area(Loss_A)
+area_max(A_max), loss_area(Loss_A),
+A1min(2.*area_max*loss_area),
+A2min(area_max*loss_area),
+A3min(2.*area_max*loss_area),
+A4min(area_max*loss_area)
 {
    ASSERT(pNode1 != NULL);
    ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
@@ -66,6 +70,7 @@ area_max(A_max), loss_area(Loss_A)
    ASSERT(A_max > DBL_EPSILON);
    ASSERT(loss_area >= 0.);
    
+
    Cd = .611; /* coefficiente di perdita */
  //   W = .005;  /* larghezza del condotto (m): A=x*W 0.005; */
 }
@@ -142,69 +147,42 @@ Control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal p4 = pNode4->dGetX();
    doublereal density = HF->dGetDensity();
  
-   // doublereal A1min = 1.e-8;         /* valore minimo di A1 (m^2)1.e-8 */
-   // doublereal A2min = 5.e-9;         /* valore minimo di A2 (m^2)5.e-9 */
-   // doublereal A3min = 1.e-8;         /* valore minimo di A3 (m^2)1.e-8 */
-   // doublereal A4min = 5.e-9;         /* valore minimo di A4 (m^2)5.e-9 */
-  
-   doublereal A1min = 2.*area_max*loss_area;  // valore minimo di A1 (e' il doppio di A2min)
-   doublereal A2min = area_max*loss_area;     // valore minimo di A2
-   doublereal A3min = 2.*area_max*loss_area;  // valore minimo di A3 (e' il doppio di A4min)
-   doublereal A4min = area_max*loss_area;     // valore minimo di A4;
-  
-					 
    doublereal jumpPres12 = fabs(p1-p2); /* salto di pressione nodo1 & nodo3 */
    doublereal jumpPres13 = fabs(p1-p3); /* salto di pressione nodo1 & nodo4 */
    doublereal jumpPres24 = fabs(p2-p4); /* salto di pressione nodo2 & nodo3 */
    doublereal jumpPres34 = fabs(p3-p4); /* salto di pressione nodo2 & nodo4 */
-
    
-   if (jumpPres12 == 0.) {
-      jumpPres12 = DBL_EPSILON;
+   if (jumpPres12 < 1.e8*DBL_EPSILON) {
+      jumpPres12 = 1.e8*DBL_EPSILON;
    }
-   if (jumpPres13 == 0.) {
-      jumpPres13 = DBL_EPSILON;
+   if (jumpPres13 < 1.e8*DBL_EPSILON) {
+      jumpPres13 = 1.e8*DBL_EPSILON;
    }
-   if (jumpPres24 == 0.) {
-      jumpPres24 = DBL_EPSILON;
+   if (jumpPres24 < 1.e8*DBL_EPSILON) {
+      jumpPres24 = 1.e8*DBL_EPSILON;
    }
-   if (jumpPres34 == 0.) {
-      jumpPres34 = DBL_EPSILON;
-   }
-   
-   doublereal primo = 0.;
-   if (jumpPres12 != 0.) {
-      primo = Cd*A1/sqrt(2*jumpPres12/density);
-   }
-
-   doublereal secondo = 0.;
-   if (jumpPres13 != 0.) {
-      secondo = Cd*A2/sqrt(2*jumpPres13/density);
-   }
-
-   doublereal terzo = 0.;
-   if (jumpPres24 != 0.) {
-      terzo = Cd*A4/sqrt(2*jumpPres24/density);
+   if (jumpPres34 < 1.e8*DBL_EPSILON) {
+      jumpPres34 = 1.e8*DBL_EPSILON;
    }
    
-   doublereal quarto = 0.;
-   if (jumpPres34 != 0.) {
-      quarto = Cd*A3/sqrt(2*jumpPres34/density);
-   }
+   doublereal primo = Cd*A1/sqrt(2*jumpPres12/density);
+   doublereal secondo = Cd*A2/sqrt(2*jumpPres13/density);
+   doublereal terzo = Cd*A4/sqrt(2*jumpPres24/density);
+   doublereal quarto = Cd*A3/sqrt(2*jumpPres34/density);
 
    doublereal Jac11 = -primo-secondo;
    doublereal Jac12 = primo;
    doublereal Jac13 = secondo;
-   doublereal Jac14 = 0.;
+   // doublereal Jac14 = 0.;
    doublereal Jac21 = primo;
    doublereal Jac22 = -primo-terzo;
-   doublereal Jac23 = 0.;
+   // doublereal Jac23 = 0.;
    doublereal Jac24 = terzo;
    doublereal Jac31 = secondo;
-   doublereal Jac32 = 0.;
+   // doublereal Jac32 = 0.;
    doublereal Jac33 = -secondo-quarto;
    doublereal Jac34 = quarto;
-   doublereal Jac41 = 0.;
+   // doublereal Jac41 = 0.;
    doublereal Jac42 = terzo;
    doublereal Jac43 = quarto;
    doublereal Jac44 = -terzo-quarto;
@@ -212,16 +190,16 @@ Control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    WM.fPutCoef(1, 1, Jac11);
    WM.fPutCoef(1, 2, Jac12);
    WM.fPutCoef(1, 3, Jac13);
-   WM.fPutCoef(1, 4, Jac14);
+   // WM.fPutCoef(1, 4, Jac14);
    WM.fPutCoef(2, 1, Jac21);
    WM.fPutCoef(2, 2, Jac22);
-   WM.fPutCoef(2, 3, Jac23);
+   // WM.fPutCoef(2, 3, Jac23);
    WM.fPutCoef(2, 4, Jac24);
    WM.fPutCoef(3, 1, Jac31);
-   WM.fPutCoef(3, 2, Jac32);
+   // WM.fPutCoef(3, 2, Jac32);
    WM.fPutCoef(3, 3, Jac33);
    WM.fPutCoef(3, 4, Jac24);
-   WM.fPutCoef(4, 1, Jac41);
+   // WM.fPutCoef(4, 1, Jac41);
    WM.fPutCoef(4, 2, Jac42);
    WM.fPutCoef(4, 3, Jac43);
    WM.fPutCoef(4, 4, Jac44);
@@ -253,19 +231,16 @@ Control_valve::AssRes(SubVectorHandler& WorkVec,
  
    Stato = pGetDriveCaller()->dGet();
 
-   doublereal jumpPres12 = fabs(p1-p2); /* salto di pressione nodo1 & nodo2 */
-   doublereal jumpPres13 = fabs(p1-p3); /* salto di pressione nodo1 & nodo3 */
-   doublereal jumpPres24 = fabs(p2-p4); /* salto di pressione nodo2 & nodo4 */
-   doublereal jumpPres34 = fabs(p3-p4); /* salto di pressione nodo3 & nodo4 */
-
+   doublereal dp12 = p1-p2;
+   doublereal dp13 = p1-p3;
+   doublereal dp24 = p2-p4;
+   doublereal dp34 = p3-p4;
    
-    
-   doublereal A1min = 2.*area_max*loss_area;  // valore minimo di A1 (e' il doppio di A2min)
-   doublereal A2min = area_max*loss_area;     // valore minimo di A2
-   doublereal A3min = 2.*area_max*loss_area;  // valore minimo di A3 (e' il doppio di A4min)
-   doublereal A4min = area_max*loss_area;     // valore minimo di A4;
-    
-   					 
+   doublereal jumpPres12 = fabs(dp12); /* salto di pressione nodo1 & nodo2 */
+   doublereal jumpPres13 = fabs(dp13); /* salto di pressione nodo1 & nodo3 */
+   doublereal jumpPres24 = fabs(dp24); /* salto di pressione nodo2 & nodo4 */
+   doublereal jumpPres34 = fabs(dp34); /* salto di pressione nodo3 & nodo4 */
+
    if (Stato > 1.) {
       Stato = 1.;
    } else if (Stato < -1.) {
@@ -284,10 +259,10 @@ Control_valve::AssRes(SubVectorHandler& WorkVec,
       A4 = -Stato*area_max+A4min;
    }
 
-   doublereal Q12 = density*Cd*A1*copysign(sqrt(2.*jumpPres12/density), p1-p2);
-   doublereal Q13 = density*Cd*A2*copysign(sqrt(2.*jumpPres13/density), p1-p3);
-   doublereal Q24 = density*Cd*A4*copysign(sqrt(2.*jumpPres24/density), p2-p4);
-   doublereal Q34 = density*Cd*A3*copysign(sqrt(2.*jumpPres34/density), p3-p4);
+   doublereal Q12 = Cd*A1*copysign(sqrt(2.*jumpPres12*density), dp12);
+   doublereal Q13 = Cd*A2*copysign(sqrt(2.*jumpPres13*density), dp13);
+   doublereal Q24 = Cd*A4*copysign(sqrt(2.*jumpPres24*density), dp24);
+   doublereal Q34 = Cd*A3*copysign(sqrt(2.*jumpPres34*density), dp34);
 
    doublereal Res_1 = Q12+Q13;
    doublereal Res_2 = -Q12+Q24;
@@ -782,17 +757,17 @@ Dynamic_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal jumpPres24 = fabs(p2-p4); /* salto di pressione nodo2 & nodo4 */
    doublereal jumpPres34 = fabs(p3-p4); /* salto di pressione nodo3 & nodo4 */
    
-    if (jumpPres12 == 0.) {
-      jumpPres12 = DBL_EPSILON;
+   if (jumpPres12 < 1.e8*DBL_EPSILON) {
+      jumpPres12 = 1.e8*DBL_EPSILON;
    }
-   if (jumpPres13 == 0.) {
-      jumpPres13 = DBL_EPSILON;
+   if (jumpPres13 < 1.e8*DBL_EPSILON) {
+      jumpPres13 = 1.e8*DBL_EPSILON;
    }
-   if (jumpPres24 == 0.) {
-      jumpPres24 = DBL_EPSILON;
+   if (jumpPres24 < 1.e8*DBL_EPSILON) {
+      jumpPres24 = 1.e8*DBL_EPSILON;
    }
-   if (jumpPres34 == 0.) {
-      jumpPres34 = DBL_EPSILON;
+   if (jumpPres34 < 1.e8*DBL_EPSILON) {
+      jumpPres34 = 1.e8*DBL_EPSILON;
    }
    doublereal Jac15;
    doublereal Jac25;
@@ -822,14 +797,15 @@ Dynamic_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal Jac44 = -terzo-quarto;
       
    doublereal costante = density*Cd*width*valve_diameter;
-   /* 
+
+#if 0
    doublereal Jac51  = -.2*costante*sp/sqrt(density*deltaP)-.43*width*s; 
    doublereal Jac52  = -Jac51;
    doublereal Jac53  = Jac51;
    doublereal Jac54  = -Jac51;
    doublereal Jac55  = -.4*valve_diameter*Cd*width*sqrt(density*deltaP)-dCoef*.43*width*deltaP-dCoef*c1-c2-dCoef*cf1-cf2;
    doublereal Jac56  = -Mass-c3-cf3;
-  */
+#endif
    
    doublereal Jac51  = -.2*costante*sp/sqrt(density*deltaP)-.43*width*s; 
    doublereal Jac52  = 0.;
@@ -1231,17 +1207,17 @@ Pressure_flow_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal jumpPres24 = fabs(p2-p4); /* salto di pressione nodo2 & nodo4 */
    doublereal jumpPres34 = fabs(p3-p4); /* salto di pressione nodo3 & nodo4 */
    
-    if (jumpPres12 == 0.) {
-      jumpPres12 = DBL_EPSILON;
+   if (jumpPres12 < 1.e8*DBL_EPSILON) {
+      jumpPres12 = 1.e8*DBL_EPSILON;
    }
-   if (jumpPres13 == 0.) {
-      jumpPres13 = DBL_EPSILON;
+   if (jumpPres13 < 1.e8*DBL_EPSILON) {
+      jumpPres13 = 1.e8*DBL_EPSILON;
    }
-   if (jumpPres24 == 0.) {
-      jumpPres24 = DBL_EPSILON;
+   if (jumpPres24 < 1.e8*DBL_EPSILON) {
+      jumpPres24 = 1.e8*DBL_EPSILON;
    }
-   if (jumpPres34 == 0.) {
-      jumpPres34 = DBL_EPSILON;
+   if (jumpPres34 < 1.e8*DBL_EPSILON) {
+      jumpPres34 = 1.e8*DBL_EPSILON;
    }
    doublereal Jac17;
    doublereal Jac27;

@@ -59,6 +59,10 @@ class Control_valve : virtual public Elem, public HydraulicElem, public DriveOwn
    doublereal A2;
    doublereal A3;
    doublereal A4;
+   doublereal A1min;
+   doublereal A2min;
+   doublereal A3min;
+   doublereal A4min;
    
  public:
    Control_valve(unsigned int uL, const DofOwner* pD, HydraulicFluid* hf,
