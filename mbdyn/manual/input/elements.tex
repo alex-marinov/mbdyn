@@ -2591,8 +2591,10 @@ of elements to be generated.
         [ , position , (Vec3)<reference_position> ]
         [ , orientation , (Mat3x3)<reference_orientation> ]
         , <type_subset> [ , ... ]
-        [ output , { yes | no | log | both } ] ;
+        [ , output , { no | yes | log | both } ] ;
+
         <type_subset> ::= <type> , { all | <label_list> }
+        <type> ::= { body | joint | loadable }
         <label_list> ::= <label> [ , <label_list> ]
 \end{verbatim}
 where \kw{type} currently can be \kw{body}, \kw{joint} and \kw{loadable}, 
@@ -2608,6 +2610,15 @@ each \kw{inertia} entry in the \kw{.log} file in a self explanatory form,
 referred both to the \kw{global} reference frame and to a reference frame
 originating from \kw{reference\_position} and oriented 
 as \kw{reference\_orientation}.
+The optional parameter \kw{output} may be used to alter the default 
+behavior:
+\begin{itemize}
+\item \kw{no} disables the output, making the \kw{inertia} 
+statement essentially ineffective;
+\item \kw{yes} enables output to standard output;
+\item \kw{log} enables output to the \kw{.log} file (the default);
+\item \kw{both} enables output to both standard output and \kw{.log} file.
+\end{itemize}
 
 
 
