@@ -998,6 +998,23 @@ flag DataManager::fReadOutput(MBDynParser& HP, enum Node::Type t)
 } /* End of DataManager::fReadOutput */
 
 
+doublereal
+DataManager::dReadScale(MBDynParser& HP, enum DofOwner::Type t)
+{
+	doublereal d = dGetDefaultScale(t);
+
+	if (!HP.IsKeyWord("scale")) {
+		return d;
+	}
+
+	if (!HP.IsKeyWord("default")) {
+		d = HP.GetReal(d);
+	}
+
+	return d;
+}
+
+
 /* legge i nodi e li costruisce */
 
 int
@@ -1475,6 +1492,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     /* lettura dei dati specifici */
 	     doublereal dx(0.);
 	     ReadScalarAlgebraicNode(HP, uLabel, Node::ABSTRACT, dx);
+	     doublereal dScale = dReadScale(HP, DofOwner::HYDRAULICNODE);
 	     flag fOut = fReadOutput(HP, Node::HYDRAULIC);
 	     
 	     /* allocazione e creazione */
@@ -1482,6 +1500,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	       -iNumTypes[Node::HYDRAULIC]-1;
 	     ppN = NodeData[Node::HYDRAULIC].ppFirstNode+i;
 	     DofOwner* pDO = DofData[DofOwner::HYDRAULICNODE].pFirstDofOwner+i;
+	     pDO->SetScale(dScale);
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppN, 
 				    PressureNode,

@@ -165,6 +165,8 @@ class DataManager : public SolutionDataManager {
  public:
    flag fReadOutput(MBDynParser& HP, enum Elem::Type t);
    flag fReadOutput(MBDynParser& HP, enum Node::Type t);
+
+   doublereal dReadScale(MBDynParser& HP, enum DofOwner::Type t);
    
  private:
    /* legge i legami costitutivi */
@@ -432,6 +434,7 @@ class DataManager : public SolutionDataManager {
       DofOwner* pFirstDofOwner;     /* punt. al primo DofOwner di ogni tipo */
       integer iNum;                 /* numero di DofOwners per ogni tipo */
       integer iSize;                /* numero di Dof (se fisso, es. nodi) */
+      doublereal dDefScale;
    } DofData[DofOwner::LASTDOFTYPE]; 
    
    /* struttura dei dati dei dof di ogni ente possessore: 
@@ -448,6 +451,7 @@ class DataManager : public SolutionDataManager {
    
    DofOwner DummyDofOwner; /* Per quelli che non hanno dof */
      
+   doublereal dGetDefaultScale(DofOwner::Type t) const;
  public:
    /* pseudocostruttore */
    void DofManager(void);

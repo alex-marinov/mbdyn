@@ -48,6 +48,7 @@ void DataManager::DofManager(void)
       DofData[i].pFirstDofOwner = NULL;
       DofData[i].iNum = 0;
       DofData[i].iSize = 0;
+      DofData[i].dDefScale = 1.;
    }   
 }
 
@@ -69,6 +70,11 @@ void DataManager::DofManagerDestructor(void)
    }   
 }
 
+doublereal
+DataManager::dGetDefaultScale(DofOwner::Type t) const
+{
+	return DofData[t].dDefScale;
+}
 
 void DataManager::DofDataInit(void)
 {
@@ -86,32 +92,34 @@ void DataManager::DofDataInit(void)
       SAFENEWARR(pDofOwners, DofOwner, iTotDofOwners);
       
       /* Resetta la struttura dinamica dei DofOwner */
-      DofOwner* pTmp = pDofOwners;
-      while (pTmp < pDofOwners+iTotDofOwners) {
-	 pTmp->iFirstIndex = 0;
-	 pTmp->iNumDofs = 0;
-	 pTmp++;
+      for (int iCnt = 0; iCnt < iTotDofOwners; iCnt++) {
+	 pDofOwners[iCnt].iFirstIndex = 0;
+	 pDofOwners[iCnt].iNumDofs = 0;
       }
       
       /* Inizializza la struttura dinamica dei DofOwner
        * con il numero di Dof di ognuno */
       DofData[0].pFirstDofOwner = pDofOwners;
-      for (int iCnt = 1; iCnt < DofOwner::LASTDOFTYPE; iCnt++) {
-	 DofData[iCnt].pFirstDofOwner =
-	   DofData[iCnt-1].pFirstDofOwner+
-	   DofData[iCnt-1].iNum;
+      for (int iType = 0; iType < DofOwner::LASTDOFTYPE - 1; iType++) {
+	 DofData[iType + 1].pFirstDofOwner =
+	   DofData[iType].pFirstDofOwner+
+	   DofData[iType].iNum;
+
+	 for (int iDof = 0; iDof < DofData[iType].iNum; iDof++) {
+	    DofData[iType].pFirstDofOwner[iDof].SetScale(dGetDefaultScale(DofOwner::Type(iType)));
+	 }
       }
+
    } else {
       /* Se non sono definiti DofOwners, la simulazione non ha senso,
        * quindi il programma termina */
-      DEBUGCERR("");
       std::cerr << "warning, no dof owners are defined" << std::endl;
 #ifdef USE_EXCEPTIONS      
       throw NoErr();
 #else
       exit(EXIT_SUCCESS);
 #endif      
-   }	   
+   }
 }
 
 void DataManager::DofInit(void)

@@ -33,8 +33,19 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <dofown.h>
+#include <solman.h>
 
-doublereal DofOwnerOwner::one = 1.;
+doublereal
+DofOwner::dGetScale(void) const
+{
+	return dScale;
+}
+
+void
+DofOwner::SetScale(const doublereal& d)
+{
+	dScale = d;
+}
 
 DofOwnerOwner::DofOwnerOwner(const DofOwner* pDO) 
 : pDofOwner(pDO)
@@ -47,3 +58,4 @@ DofOwnerOwner::SetInitialValue(VectorHandler& /* X */ ) const
 { 
 	NO_OP; 
 }
+

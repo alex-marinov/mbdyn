@@ -86,16 +86,18 @@ struct DofOwner {
    
    integer iFirstIndex;
    unsigned int iNumDofs;
+   doublereal dScale;
+
+   doublereal dGetScale(void) const;
+   void SetScale(const doublereal& d);
 };
 
-
 /* Da questa classe derivano tutti gli elementi che possiedono Dof 
- * e che quindi sono esplicitamente costretti a dichiarare il metodo con cui 
- * inizializzanop i vettori della soluzione */
+ * e che quindi sono esplicitamente costretti a dichiarare il metodo
+ * con cui inizializzano i vettori della soluzione */
 class DofOwnerOwner {
  private:
    const DofOwner* pDofOwner;
-   static doublereal one;
    
  public:   
    DofOwnerOwner(const DofOwner* pDO);
@@ -118,15 +120,7 @@ class DofOwnerOwner {
       return pDofOwner->iFirstIndex; 
    };   
 
-   /*
-    * Scale coefficient used in normalization of dof value,
-    * residual and so on; must be positive and > 0. (DBL_EPSILON)
-    */
-   virtual inline const doublereal& dGetScale(unsigned int /* iDof */ ) const {
-      return one;
-   };
-
-   virtual void DofOwnerOwner::SetInitialValue(VectorHandler& /* X */ ) const;
+   virtual void SetInitialValue(VectorHandler& X) const;
 };
 
 #endif /* DOFOWN_H */
