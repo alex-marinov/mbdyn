@@ -371,5 +371,5 @@ DirCColMatrixHandler<off>::MatVecDecMul(VectorHandler& out,
 	return out;
 }
 
-class DirCColMatrixHandler<0>;
-class DirCColMatrixHandler<1>;
+template class DirCColMatrixHandler<0>;
+template class DirCColMatrixHandler<1>;
