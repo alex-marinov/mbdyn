@@ -2407,6 +2407,46 @@ The following data is available:
 not implemented yet, use a \kw{spherical hinge} and a \kw{prismatic} 
 instead.
 
+\subsection{Deformable joint}
+\begin{verbatim}
+    <joint_type> ::= deformable joint
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1>
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
+        (ConstitutiveLaw6D) <const_law>
+\end{verbatim}
+\emph{Note: this joint is experimental; it only works with elastic 
+constitutive laws, the use with viscous and viscoelastic laws 
+is untested yet, and thus it is disabled.}
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"xx"} relative displacement in node 1 local direction 1
+\item \kw{"xy"} relative displacement in node 1 local direction 2
+\item \kw{"xz"} relative displacement in node 1 local direction 3
+\item \kw{"rx"} relative rotation vector component in node 1 local direction 1
+\item \kw{"ry"} relative rotation vector component in node 1 local direction 2
+\item \kw{"rz"} relative rotation vector component in node 1 local direction 3
+\item \kw{"Fx"} constraint reaction force in node 1 local direction 1
+\item \kw{"Fy"} constraint reaction force in node 1 local direction 2
+\item \kw{"Fz"} constraint reaction force in node 1 local direction 3
+\item \kw{"Mx"} constraint reaction moment in node 1 local direction 1
+\item \kw{"My"} constraint reaction moment in node 1 local direction 2
+\item \kw{"Mz"} constraint reaction moment in node 1 local direction 3
+\end{enumerate}
+In addition, the joint provides
+access to the private data provided by the constitutive law.
+It is accessed by prefixing the name of the data with the string
+\kw{"constitutiveLaw."}; see the specific constitutive law
+description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
+
+
+
+
+
 \subsection{Deformable displacement hinge}
 \begin{verbatim}
     <joint_type> ::= deformable displacement hinge
