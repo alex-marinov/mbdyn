@@ -33,6 +33,9 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+
+#include <time.h>
+
 #include <ac/iostream>
 #include <ac/fstream>
 
@@ -76,6 +79,78 @@ char *solvers[] = {
 		NULL
 };
 
+void SetupSystem(
+	const bool singular,
+	const char *const filename,
+	MatrixHandler *const pM, 
+	VectorHandler *const pV
+) {
+	VariableSubMatrixHandler SBMH(10, 10);
+	FullSubMatrixHandler& WM = SBMH.SetFull();
+	
+	std::ifstream file;
+	int size(3);
+	
+	if (filename == 0) {
+
+		WM.ResizeReset(3, 3);
+		WM.PutRowIndex(1,1);
+		WM.PutRowIndex(2,2);
+		WM.PutRowIndex(3,3);
+		WM.PutColIndex(1,1);
+		WM.PutColIndex(2,2);
+		WM.PutColIndex(3,3);
+		WM.PutCoef(1, 1, 1.);
+		WM.PutCoef(2, 2, 2.);
+		WM.PutCoef(2, 3, -1.);
+		WM.PutCoef(3, 2, 11.);
+		WM.PutCoef(3, 1, 10.);
+		if (singular) {
+			WM.PutCoef(3, 3, 0.);
+
+		} else {
+			WM.PutCoef(3, 3, 3.);
+		}
+	
+		*pM += SBMH;
+	
+		pV->PutCoef(1, 1.);
+		pV->PutCoef(2, 1.);
+		pV->PutCoef(3, 1.);
+	
+		std::cout << *pM << "\n";
+	} else {
+		file.open(filename);
+		file >> size;
+
+		integer count = 0;
+		integer row, col;
+		doublereal x;
+		while (file >> row >> col >> x) {
+			if (row > size || col > size) {
+				std::cerr << "Fatal read error of file" << filename << std::endl;
+				std::cerr << "size: " << size << std::endl;
+				std::cerr << "row:  " << row << std::endl;
+				std::cerr << "col:  " << col << std::endl;
+				std::cerr << "x:    " << x << std::endl;
+			}
+			(*pM)(row, col) = x;
+			count++;
+		}
+		
+		file.close();
+		
+		for (integer i = 1; i <= size; i++) {
+			pV->PutCoef(i, (*pM)(i,size));
+		}
+		std::cout << "\nThe matrix has "
+			<< pM->iGetNumRows() << " rows, "
+			<< pM->iGetNumCols() << " cols "
+			<< "and " << count << " nonzeros\n" << std::endl;
+	}
+}
+
+
 static void
 usage(int err)
 {
@@ -116,6 +191,9 @@ main(int argc, char *argv[])
 #endif
 #endif /* NO SOLVER !!! */
 		;
+	clock_t start, end;
+	double cpu_time_used;
+	
 	char *filename = 0;
 	std::ifstream file;
 	bool cc(false);
@@ -167,6 +245,7 @@ main(int argc, char *argv[])
 	if (filename != 0) {
 		file.open(filename);
 		file >> size;
+		file.close();
 	}
 
 	if (strcasecmp(solver, "taucs") == 0) {
@@ -332,63 +411,12 @@ main(int argc, char *argv[])
 
 	pM->Reset();
 
-	VariableSubMatrixHandler SBMH(10, 10);
-	FullSubMatrixHandler& WM = SBMH.SetFull();
-	
-	if (filename == 0) {
-
-		WM.ResizeReset(3, 3);
-		WM.PutRowIndex(1,1);
-		WM.PutRowIndex(2,2);
-		WM.PutRowIndex(3,3);
-		WM.PutColIndex(1,1);
-		WM.PutColIndex(2,2);
-		WM.PutColIndex(3,3);
-		WM.PutCoef(1, 1, 1.);
-		WM.PutCoef(2, 2, 2.);
-		WM.PutCoef(2, 3, -1.);
-		WM.PutCoef(3, 2, 11.);
-		WM.PutCoef(3, 1, 10.);
-		if (singular) {
-			WM.PutCoef(3, 3, 0.);
-
-		} else {
-			WM.PutCoef(3, 3, 3.);
-		}
-	
-		*pM += SBMH;
-	
-		pV->PutCoef(1, 1.);
-		pV->PutCoef(2, 1.);
-		pV->PutCoef(3, 1.);
-	
-		std::cout << *pM << "\n";
-	} else {
-		integer count = 0;
-		integer row, col;
-		doublereal x;
-		while (file >> row >> col >> x) {
-			if (row > size || col > size) {
-				std::cerr << "Fatal read error of file" << filename << std::endl;
-				std::cerr << "size: " << size << std::endl;
-				std::cerr << "row:  " << row << std::endl;
-				std::cerr << "col:  " << col << std::endl;
-				std::cerr << "x:    " << x << std::endl;
-			}
-			(*pM)(row, col) = x;
-			count++;
-		}
-		for (integer i = 1; i <= size; i++) {
-			pV->PutCoef(i, (*pM)(i,size));
-		}
-		std::cout << "\nThe matrix has "
-			<< pM->iGetNumRows() << " rows, "
-			<< pM->iGetNumCols() << " cols "
-			<< "and " << count << " nonzeros\n" << std::endl;
-	}
+	SetupSystem(singular, filename, pM, pV);
 	
 	try {
+		start = clock();
 		pSM->Solve();
+		end = clock();
 	} catch (...) {
 		exit(EXIT_FAILURE);
 	}
@@ -396,30 +424,37 @@ main(int argc, char *argv[])
 		std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 
 			<< std::endl;
 	}
+	//cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+	cpu_time_used = ((double) (end - start));
+	cpu_time_used = cpu_time_used / CLOCKS_PER_SEC;
+	std::cout << "Clock tics to solve: " << end - start << std::endl;
+	std::cout << "Time to solve: " << cpu_time_used << std::endl;
 	
-	if (filename == 0) {
-		std::cout << "\nSecond solve:\n";
-		pSM->MatrReset();
-		pM = pSM->pMatHdl();
 
-		pM->Reset();
+	std::cout << "\nSecond solve:\n";
 	
-		*pM += SBMH;
-		pV->PutCoef(1, 1.);
-		pV->PutCoef(2, 1.);
-		pV->PutCoef(3, 1.);
-		std::cout << *pM << "\n";
-		try {
-			pSM->Solve();
-		} catch (...) {
-			exit(EXIT_FAILURE);
-		}
+	pSM->MatrReset();
+	pM = pSM->pMatHdl();
+
+	pM->Reset();
+
+	SetupSystem(singular, filename, pM, pV);
 	
-		for (int i = 1; i <= size; i++) {
-			std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 
-				<< std::endl;
-		}
+	try {
+		pSM->Solve();
+	} catch (...) {
+		exit(EXIT_FAILURE);
 	}
+	
+	for (int i = 1; i <= size; i++) {
+		std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 
+			<< std::endl;
+	}
+	//cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+	cpu_time_used = ((double) (end - start));
+	cpu_time_used = cpu_time_used / CLOCKS_PER_SEC;
+	std::cout << "Clock tics to solve: " << end - start << std::endl;
+	std::cout << "Time to solve: " << cpu_time_used << std::endl;
 	
 	return 0;
 }
