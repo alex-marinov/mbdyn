@@ -493,11 +493,11 @@ ReadUnsteadyFlag(MBDynParser& HP)
 			} else if (HP.IsKeyWord("bielawa")) {
 				eInst = AeroData::BIELAWA;
 			} else {
-				silent_cerr(HP.GetLineData()
- 					<< ": deprecated unsteady model "
+				silent_cerr("deprecated unsteady model "
 					"given by integer number;"
 					" use 'Steady', 'Harris' or 'Bielawa' "
-					"instead" << std::endl);
+					"instead, at line " << HP.GetLineData()
+					<< std::endl);
 
 				int i = HP.GetInt();
 				if (i < AeroData::STEADY || i >= AeroData::LAST) {

@@ -60,9 +60,6 @@ rotrel_SOURCES = rotrel.cc
 sockdrive_SOURCES = sockdrive.c
 vec2rot_SOURCES = vec2rot.cc
 
-c81merge_CPPFLAGS = -I../mbdyn/aero -I../mbdyn/base
-c81test_CPPFLAGS = -I../mbdyn/aero -I../mbdyn/base
-
 autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@
 # need to fool libtool in getting libbase linked twice ;)
 # hope this is not fixed for a while...
@@ -93,7 +90,9 @@ INCLUDES = \
 -I../libraries/libmbutil \
 -I../libraries/libmbmath \
 -I../libraries/libmbwrap \
--I../mbdyn
+-I../mbdyn \
+-I../mbdyn/aero \
+-I../mbdyn/base
 
 # Rule to compile modules; run "make <module-name>.so"
 %.so: %.o
