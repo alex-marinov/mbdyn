@@ -29,7 +29,7 @@ export MODULES_DIRS=@MODULES_DIRS@
 # to sh ../libtool, so, when we change directory to the modules,
 # the effective libtool is not found.
 
-all: all__ libtool
+all: libtool all__
 
 libtool: 
 	-@ln -sf ../libtool .
