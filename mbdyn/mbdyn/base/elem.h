@@ -88,10 +88,10 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
         /* rotors must be as early as possible */
 	ROTOR = 0,
 	
-	FORCE,
-
 	AUTOMATICSTRUCTURAL,
 	
+	FORCE,
+
 	GRAVITY,
 	BODY,
 	JOINT,
