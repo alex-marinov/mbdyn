@@ -271,27 +271,42 @@ can be reassigned.
 
 \section{Higher Level Structures}
 Every time a higher level structure is expected, it can be
-substituted by a keyword that influences how the structure is read.
+preceeded by a keyword that influences how the structure is read.
+All of the available structures support the keyword \kw{null}
+which causes the structure to be initialized with zeros.
+When a non-null value is input, it can be followed by the keyword
+\kw{scale} and by a scale factor; the scale factor can be any
+mathematical expression.
+This is useful to rescale structure values by reassigning the value 
+of the scale factor.
 The main data structures are:
-\subsection{3 x 1 vectors}
+\subsection{$3\times{1}$ vectors}
 \begin{enumerate}
     \item general case: a sequence of 3 reals, comma-separated.
     \item null vector: keyword \kw{null}; the vector is initialised
-    with zeros.
+	with zeros.
 \end{enumerate}
 As an example, all the following lines define an empty 3 x 1 vector:
 \begin{verbatim}
+    default
     null
     0.,0.,0.
     ,,
-\end{verbatim} 
-\subsection{6 x 1 vectors}
+\end{verbatim}
+the first case is correct if no default was actually available
+for that specific vector, thus falling back to three zeros.
+The following rescales an arbitrary vector
+\begin{verbatim}
+    cos(pi/3.),0.,sin(pi/3.), scale, 100.
+\end{verbatim}
+
+\subsection{$6\times{1}$ vectors}
 \begin{enumerate}
     \item general case: a sequence of 6 reals, comma-separated.
     \item null vector: keyword \kw{null}; the vector is initialised 
     with zeros.	
 \end{enumerate}
-\subsection{3 x 3 matrices}
+\subsection{$3\times{3}$ matrices}
 \begin{enumerate}
     \item general case: a sequence of 9 reals, comma-separated, which
     represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
@@ -309,7 +324,7 @@ As an example, all the following lines define an empty 3 x 1 vector:
     \item null matrix: keyword \kw{null}; the matrix is initialised 
     with zeros.
 \end{enumerate}
-\subsection{3 x 3 orientation matrix}
+\subsection{$3\times{3}$ orientation matrices}
 \begin{enumerate}
     \item general case: two vectors that define an orthonormal reference
     system, each of them preceded by its index in the final orientation 
@@ -334,7 +349,7 @@ As an example, all the following lines define an empty 3 x 1 vector:
     \item Euler angles: keyword \kw{euler}, followed by the three
     values, as output by structural nodes.
 \end{enumerate}
-\subsection{6 x 6 matrices}
+\subsection{$6\times{6}$ matrices}
 \begin{enumerate}
     \item general case: a sequence of 36 reals, comma-separated, that
     represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
@@ -365,7 +380,7 @@ As an example, all the following lines define an empty 3 x 1 vector:
     \item null matrix: keyword \kw{null}; the matrix is initialised 
     with zeros.
 \end{enumerate}
-\subsection{6 x N matrices}
+\subsection{$6\times{N}$ matrices}
 \begin{enumerate}
     \item general case: a sequence of 6 x N reals, comma-separated, that
     represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
@@ -407,10 +422,13 @@ There is no check for recursive \kw{include}s, so
 The \kw{include} directive forces the parser to scan the included file
 \kw{file\_name} before continuing with the including one.
 This is very useful if, for instance, a big model can be made of many
-small models that are meaningful by themselves. It can be used to
-replicate parts of the model, by simply using parametric labels for
-nodes, elements, reference systems, and setting a bias value before 
-multiple-including the same bulk data file.
+small models that are meaningful by themselves.
+It can be used to replicate parts of the model, by simply using parametric 
+labels for nodes, elements, reference systems, and setting a bias value 
+before multiple-including the same bulk data file.
+Examples of this usage are given in the tutorials
+\htmladdnormallink{(\texttt{http://www.aero.polimi.it/\~{}mbdyn/documentation/tutorials/})}
+	{http://www.aero.polimi.it/~mbdyn/documentation/tutorials/}.
 
 \subsection{Set}
 The \kw{set} directive:
@@ -662,31 +680,29 @@ But in a few cases, nodal degrees of freedom must be accessed
 at a very low level, with the bare knowledge of the node label,
 the internal number of the degree of freedom, and the order 
 (algebraic or differential, if any).
-The data that allows an entity to track a nodal degree of freedom is read as
-follows:
+The data that allows an entity to track a nodal degree of freedom
+is read as follows:
 \begin{verbatim}
     <node_dof> :: = <node_label> , 
                     <node_type> 
                     [ , <dof_number> ]
                     [ , { algebraic | differential } ]
 \end{verbatim}
-In case an algebraic node is addressed (e.g.\ a pressure node), 
-the \kw{dof\_order} field is not required.
 The label and the type of the node are used to track the pointer to the
 desired node. 
-If the node is not scalar, the \kw{dof\_number} field is required.
+If the node is not scalar, the \kw{dof\_number} field is required
+to address the appropriate degree of freedom.
 Finally, the order of the degree of freedom is checked, if required.
 It must be one of \kw{algebraic} or \kw{differential}.
 If the \kw{dof\_number} degree of freedom is differential, both
 of them can be addressed, while in case of an algebraic node there is no
-choice, only the \kw{algebraic} order can be addressed.
-The \kw{dof\_number} must range between 1 and the number of {\em dof}s that
+choice, only the \kw{algebraic} order can be addressed and thus this field
+is not required.
+The \kw{dof\_number} must range between 1 and the number of \emph{dof}s that
 belong to the node.
-The second choice is used in those cases where the order is not meaningful,
-as for instance when the node is used to address an equation (abstract
-forces, discrete control elements). 
-In those cases, the contribution to the equation is added regardless 
-of the order of the degree of freedom.
+When the node is used to address an equation (abstract forces, 
+discrete control elements), the distinction between \kw{algebraic} 
+and \kw{differential} is meaningless, and thus this filed is not required.
 
 \section{Drives and Drive Callers}\label{sec:DRIVES}
 Everytime some entity can be ``driven'', i.e.\ a value can be

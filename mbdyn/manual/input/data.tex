@@ -499,7 +499,7 @@ essentially for backwards compatibility.
 \begin{verbatim}
     <card> ::= omega rotates : { yes | no } ;
 \end{verbatim}
-Sets wether the imposed angular velocity should be considered attached 
+Sets whether the imposed angular velocity should be considered attached 
 to the node or fixed in the global system during the initial assembly.
 
 \subsubsection{Initial tolerance}
@@ -519,11 +519,9 @@ to the node or fixed in the global system during the initial assembly.
 
 \subsubsection{Make restart file}
 \begin{verbatim}
-    <card> ::= make restart file [ , {
-        iterations , <iterations_between_restarts>
-    |
-        time , <time_between_restarts>
-    } ;    
+    <card> ::= make restart file
+        [ : { iterations , <iterations_between_restarts>
+            | time , <time_between_restarts> } ] ;
 \end{verbatim}
 The default (no arguments) is to make the restart file only at the end of
 the simulation.
@@ -642,11 +640,12 @@ Two dummy structural node types are available.
     The stiffness parameters, and the \kw{omega\_rotates} flag, 
     override the default values. 
     They are optional, but they must be supplied all together if at least
-    one is to be input. \\
-    The \kw{omega\_rotates} flag can take values 0 or 1. 
-    A boolean (string) type \kw{\{yes | no \}} may be introduced in the
-    future. 
+    one is to be input.
 } \\
+The \kw{omega\_rotates} flag can take values \kw{yes} or \kw{no};
+a numerical value of 0 (no) or 1 (yes) is supported for backwards
+compatibility, but its use is deprecated.
+
 Dummy nodes take the label of the \kw{base\_node} they are attached to, 
 followed by the type of dummy node, possibly followed by specific data.
 The following dummy types are available:
