@@ -90,7 +90,63 @@ enum {
 };
 
 
+inline void Compute(const Vec3 *const node_pos,
+		const Mat3x3 *const node_or,
+		const Vec3 *const node_f,
+		const doublereal xi,
+		const doublereal dexi_des,
+		Vec3 &pos,
+		Mat3x3 &orient,
+		Vec3 &F,
+		Vec3 &om,
+		MatExp& A1,
+		MatExp& A2,
+		MatExp& A12,
+		MatExp& A_tilde,
+		MatExp& Theta_r_I,
+		MatExp& Theta_tilde,
+		MatExp& A_xi,
+		VecExp& eta_r,
+		VecExp& kappa,
+		VecExp& eta_tilde
+		) {
+	A1 = MatExp(node_or[NODE1],Mat3x3(node_pos[NODE1])*node_or[NODE1]);
+	A2 = MatExp(node_or[NODE2],Mat3x3(node_pos[NODE2])*node_or[NODE2]);
+	A12 = A2*(A1.Transpose());
+	//VecExp e1(0.);
+	eta_r = RoTrManip::Helix(A12);
+	Theta_r_I = RoTrManip::DRoTr_I(eta_r);
+	eta_tilde = eta_r*xi;
+	RoTrManip::RoTrAndDRoTr(eta_tilde,A_tilde,Theta_tilde);
+	A_xi = A_tilde*A1;
+		//extract interpolated orientation and position
+		orient = A_xi.GetVec();
+		pos = (A_xi.GetMom()*(orient.Transpose())).Ax();
+
+	kappa = Theta_tilde*eta_r*dexi_des;
+		//extract interpolated curvature and def. gradient
+		om = kappa.GetVec();
+		F = kappa.GetMom();
+		F -= pos.Cross(om); /* :) */
+};
+
 void ComputeInterpolation(const Vec3 *const node_pos,
+			const Mat3x3 *const node_or,
+			const Vec3 *const node_f,
+			const doublereal xi,
+			const doublereal dexi_des,
+			Vec3 &pos,
+			Mat3x3 &orient,
+			Vec3 &F,
+			Vec3 &om) {
+	MatExp A1, A2, A12, A_tilde, Theta_r_I, Theta_tilde, A_xi;
+	VecExp eta_r, kappa, eta_tilde;
+	Compute(node_pos,node_or, node_f,xi,dexi_des,pos,orient,F,om,
+		A1,A2,A12,A_tilde,Theta_r_I,Theta_tilde,A_xi,eta_r, 
+		kappa,eta_tilde);
+};
+
+void ComputeFullInterpolation(const Vec3 *const node_pos,
 			const Mat3x3 *const node_or,
 			const Vec3 *const node_f,
 			const doublereal xi,
@@ -105,25 +161,12 @@ void ComputeInterpolation(const Vec3 *const node_pos,
 			Mat3x3 *const delta_om_ws_or,
 			Mat3x3 *const delta_F_ws_or,
 			Mat3x3 *const delta_F_ws_pos) {
-	MatExp A1(node_or[NODE1],Mat3x3(node_pos[NODE1])*node_or[NODE1]);
-	MatExp A2(node_or[NODE2],Mat3x3(node_pos[NODE2])*node_or[NODE2]);
-	MatExp A12(A2*(A1.Transpose()));
-	//VecExp e1(0.);
-	VecExp eta_r(RoTrManip::Helix(A12));
-	MatExp Theta_r_I(RoTrManip::DRoTr_I(eta_r));
-	VecExp eta_tilde(eta_r*xi);
-	MatExp A_tilde, Theta_tilde;
-	RoTrManip::RoTrAndDRoTr(eta_tilde,A_tilde,Theta_tilde);
-	MatExp A_xi(A_tilde*A1);
-		//extract interpolated orientation and position
-		orient = A_xi.GetVec();
-		pos = (A_xi.GetMom()*(orient.Transpose())).Ax();
+	MatExp A1, A2, A12, A_tilde, Theta_r_I, Theta_tilde, A_xi;
+	VecExp eta_r, kappa, eta_tilde;
+	Compute(node_pos,node_or, node_f,xi,dexi_des,pos,orient,F,om,
+		A1,A2,A12,A_tilde,Theta_r_I,Theta_tilde,A_xi,eta_r, 
+		kappa,eta_tilde);
 
-	VecExp kappa(Theta_tilde*eta_r*dexi_des);
-		//extract interpolated curvature and def. gradient
-		om = kappa.GetVec();
-		F = kappa.GetMom();
-		F -= pos.Cross(om); /* :) */
 	MatExp eta_xi_delta_2(Theta_tilde*Theta_r_I*xi);
 	MatExp eta_xi_delta_1(A_tilde);
 		eta_xi_delta_1-=Theta_tilde*Theta_r_I*A2*xi;

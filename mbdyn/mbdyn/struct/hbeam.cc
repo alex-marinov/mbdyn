@@ -145,9 +145,7 @@ HBeam::DsDxi(void)
 	ComputeInterpolation(yTmp, RTmp, fTmp,
 			xi, dsdxi,
 			p, R,
-			RdP, pdP, pdp,
-			L, Rho,
-			RhodP, LdP, Ldp);
+			L, Rho);
 	
 	doublereal d = L.Dot();
 	if (d > DBL_EPSILON) {
@@ -166,9 +164,7 @@ HBeam::DsDxi(void)
 	ComputeInterpolation(yTmp, RTmp, fTmp,
 			xi, dxids,
 			p, R,
-			RdP, pdP, pdp,
-			L, Rho,
-			RhodP, LdP, Ldp);
+			L, Rho);
 
 	/* Grandezze iniziali e di riferimento */
 	/* FIXME: fare un temporaneo per i trasposti ... */
@@ -259,6 +255,23 @@ HBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	 * e con gli indici di righe e colonne a posto
 	 */
    
+	/* Recupera i dati dei nodi */
+	Vec3 x[NUMNODES];
+	Vec3 yTmp[NUMNODES];
+	Vec3 fTmp[NUMNODES];
+	Mat3x3 RTmp[NUMNODES];
+	for (unsigned int i = 0; i < NUMNODES; i++) {
+		RTmp[i] = pNode[i]->GetRCurr()*Rn[i];
+		fTmp[i] = pNode[i]->GetRCurr()*f[i];
+		x[i] = pNode[i]->GetXCurr();
+		yTmp[i] = x[i]+fTmp[i];
+	}   
+	ComputeFullInterpolation(yTmp, RTmp, fTmp,
+			xi, dxids,
+			p, R,
+			RdP, pdP, pdp,
+			L, Rho,
+			RhodP, LdP, Ldp);
 	/* Legame costitutivo (viene generato sempre) */
 	DRef = MultRMRt(pD->GetFDE(), R);
 	
@@ -351,9 +364,7 @@ HBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 	ComputeInterpolation(yTmp, RTmp, fTmp,
 			xi, dxids,
 			p, R,
-			RdP, pdP, pdp,
-			L, Rho,
-			RhodP, LdP, Ldp);
+			L, Rho);
 	
 	Mat3x3 RT(R.Transpose());
 	DefLoc = Vec6(RT*L-L0, RT*Rho-Rho0);
