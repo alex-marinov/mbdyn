@@ -195,7 +195,48 @@ public:
    	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
 };
 
-/* C81AeroData - end */
+/* C81MultipleAeroData - end */
+
+/* C81InterpolatedAeroData - begin */
+
+#ifdef USE_C81INTERPOLATEDAERODATA
+
+class C81InterpolatedAeroData : public AeroData {
+protected:
+   	integer nprofiles;
+	integer *profiles;
+	doublereal *upper_bounds;
+	const c81_data** data;
+
+	integer i_points;
+	c81_data* i_data;
+	integer curr_data;
+
+public: 
+   	C81InterpolatedAeroData(
+			AeroData::UnsteadyModel u,
+			integer np,
+			integer *p,
+			doublereal *ub,
+			const c81_data** d,
+			integer i_p,
+			DriveCaller *ptime = NULL);
+   	~C81InterpolatedAeroData(void);
+
+	std::ostream& Restart(std::ostream& out) const;
+   	void SetSectionData(const doublereal& abscissa,
+			    const doublereal& chord,
+			    const doublereal& forcepoint,
+			    const doublereal& velocitypoint,
+			    const doublereal& twist,
+			    const doublereal& omega = 0.);
+   
+   	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
+};
+
+/* C81InterpolatedAeroData - end */
+
+#endif /* USE_C81INTERPOLATEDAERODATA */
 
 #endif /* AERODATA_H */
 

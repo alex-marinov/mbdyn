@@ -249,7 +249,15 @@ read_c81_data(std::istream& in, c81_data* data)
 int
 write_c81_data(std::ostream& out, c81_data* data)
 {
-   	out << data->header
+	if (data == 0) {
+		return -1;
+	}
+
+	std::ios::fmtflags tmpflags;
+	tmpflags = out.flags(std::ios::left);
+   	out << std::setw(30) << data->header;
+	out.flags(tmpflags);
+	out
      		<< std::setw(2) << data->NML
      		<< std::setw(2) << data->NAL
      		<< std::setw(2) << data->NMD

@@ -33,10 +33,13 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <mynewmem.h>
+// #define USE_C81INTERPOLATEDAERODATA
 #include <aerodata.h>
+#include <gauss.h>
+
 extern "C" {
 #include <aerod2.h>
-};
+}
 
 AeroMemory::AeroMemory(DriveCaller *pt)
 : a(0), t(0), iPoints(0), pTime(pt), numUpdates(0)
@@ -316,7 +319,6 @@ C81AeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA)
 }
 
 
-
 C81MultipleAeroData::C81MultipleAeroData(
 		AeroData::UnsteadyModel u,
 		integer np,
@@ -390,8 +392,190 @@ C81MultipleAeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal
 		break;
 	}
 
-   	return c81_aerod2_u(W, VAM, TNG, OUTA, (c81_data*)data[curr_data],
+   	return c81_aerod2_u(W, VAM, TNG, OUTA, (c81_data *)data[curr_data],
 			unsteadyflag);
 }
 
+#ifdef USE_C81INTERPOLATEDAERODATA
+
+C81InterpolatedAeroData::C81InterpolatedAeroData(
+		AeroData::UnsteadyModel u,
+		integer np,
+		integer *p,
+		doublereal *ub,
+		const c81_data** d,
+		integer i_p,
+		DriveCaller *ptime
+)
+: AeroData(u, ptime), nprofiles(np), profiles(p), upper_bounds(ub), data(d),
+i_points(i_p), i_data(0)
+{
+	ASSERT(nprofiles > 0);
+	ASSERT(profiles != NULL);
+	ASSERT(upper_bounds != NULL);
+   	ASSERT(data != NULL);
+	ASSERT(i_points > 0);
+
+	SAFENEWARR(i_data, c81_data, i_points);
+
+	GaussDataIterator GDI(i_points);
+	PntWght PW = GDI.GetFirst();
+	do {
+		doublereal dCsi = PW.dGetPnt();
+		int	from = -1, to;
+
+		for (int i = nprofiles - 1; i--; ) {
+			if (dCsi >= upper_bounds[i]) {
+				from = i;
+				break;
+			}
+		}
+
+		if (from == -1) {
+			silent_cerr("cannot find C81 data lower bound for point xi=" << dCsi << std::endl);
+			throw ErrGeneric();
+		}
+
+		ASSERT(from < nprofiles);
+
+		to = from + 1;
+
+		/* we need to interpolate between data[from]
+		 * and data[to] */
+
+		/* we only accept homogeneous data sources,
+		 * i.e. same Mach and alpha patterns */
+		if (data[from]->NML != data[to]->NML) {
+			silent_cerr("number of Mach points for Cl between profiles "
+					<< from << " (" << data[from]->NML << ") and "
+					<< to << " (" << data[to]->NML << ") do not match"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		if (data[from]->NAL != data[to]->NAL) {
+			silent_cerr("number of AoA points for Cl between profiles "
+					<< from << " (" << data[from]->NAL << ") and "
+					<< to << " (" << data[to]->NAL << ") do not match"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		if (data[from]->NMD != data[to]->NMD) {
+			silent_cerr("number of Mach points for Cd between profiles "
+					<< from << " (" << data[from]->NMD << ") and "
+					<< to << " (" << data[to]->NMD << ") do not match"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		if (data[from]->NAD != data[to]->NAD) {
+			silent_cerr("number of AoA points for Cd between profiles "
+					<< from << " (" << data[from]->NAD << ") and "
+					<< to << " (" << data[to]->NAD << ") do not match"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		if (data[from]->NMM != data[to]->NMM) {
+			silent_cerr("number of Mach points for Cm between profiles "
+					<< from << " (" << data[from]->NMM << ") and "
+					<< to << " (" << data[to]->NMM << ") do not match"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		if (data[from]->NAM != data[to]->NAM) {
+			silent_cerr("number of AoA points for Cm between profiles "
+					<< from << " (" << data[from]->NAM << ") and "
+					<< to << " (" << data[to]->NAM << ") do not match"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		for (int i = 0; i < data[from]->NML; i++) {
+			if (data[from]->ml[i] != data[to]->ml[i]) {
+				silent_cerr("Mach point " << i << "for profiles "
+						<< from << " (" << data[from]->ml[i] << ") and "
+						<< to << " (" << data[to]->ml[i] << ") differs"
+						<< std::endl);
+				throw ErrGeneric();
+			}
+		}
+
+		for (int i = 0; i < data[from]->NAL; i++) {
+			if (data[from]->al[i] != data[to]->al[i]) {
+				silent_cerr("AoA point " << i << "for profiles "
+						<< from << " (" << data[from]->al[i] << ") and "
+						<< to << " (" << data[to]->al[i] << ") differs"
+						<< std::endl);
+				throw ErrGeneric();
+			}
+		}
+
+	} while (GDI.fGetNext(PW));
+}
+
+C81InterpolatedAeroData::~C81InterpolatedAeroData(void)
+{
+	SAFEDELETEARR(profiles);
+	SAFEDELETEARR(upper_bounds);
+	SAFEDELETEARR(data);
+}
+
+std::ostream& 
+C81InterpolatedAeroData::Restart(std::ostream& out) const 
+{
+   	out << "C81, interpolated";
+	for (int i = 0; i < nprofiles; i++) {
+		out << ", " << profiles[i] << ", " << upper_bounds[i];
+	}
+
+	return RestartUnsteady(out);
+}
+
+void 
+C81InterpolatedAeroData::SetSectionData(
+		const doublereal& abscissa,
+		const doublereal& chord,
+		const doublereal& forcepoint,
+		const doublereal& velocitypoint,
+		const doublereal& twist,
+		const doublereal& omega
+)
+{
+	ASSERT(abscissa >= -1. && abscissa <= 1.);
+
+	AeroData::SetSectionData(abscissa, chord, forcepoint, velocitypoint,
+			twist, omega);
+
+	for (int i = nprofiles-1; i--; ) {
+		if (abscissa > upper_bounds[i]) {
+			curr_data = i+1;
+			return;
+		}
+	}
+
+	curr_data = 0;
+}
+
+int
+C81InterpolatedAeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA) 
+{
+	switch (unsteadyflag) {
+	case AeroData::HARRIS: 
+	case AeroData::BIELAWA: {
+		Predict(i, atan2(-W[1], W[0]), OUTA[ALF1], OUTA[ALF2]);
+		break;
+	}
+
+	default:
+		break;
+	}
+
+   	return c81_aerod2_u(W, VAM, TNG, OUTA, (c81_data *)data[curr_data],
+			unsteadyflag);
+}
+
+#endif /* USE_C81INTERPOLATEDAERODATA */
 
