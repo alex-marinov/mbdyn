@@ -82,7 +82,8 @@ public:
 	long int iGetNumCols(void) const {
 		return N;
 	}
-	
+
+private:
 	double & operator()(const int &i_row, const int &i_col) {
 		ASSERTMSGBREAK(i_row < N, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
 		ASSERTMSGBREAK(i_col < N, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
@@ -96,6 +97,7 @@ public:
 			return i->second;
 		}
 	};
+public:
 	long int fIncCoef(long int ix, long int iy, const double& inc) {
 		ASSERTMSGBREAK(ix-1 < N, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
 		ASSERTMSGBREAK(iy-1 < N, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
@@ -190,6 +192,77 @@ public:
 	};
 	const int Nz() {
 		return NZ;
+	};
+
+	VectorHandler& MatVecMul(VectorHandler& out, const VectorHandler& in) const {
+		if (out.iGetSize() != iGetNumRows()
+				|| in.iGetSize() != iGetNumCols()) {
+			THROW(ErrGeneric());
+		}
+
+		row_cont_type::const_iterator ri, re;
+		for (int col=0; col<N; col++) {
+			double d = 0.;
+			re = col_indices[col].end();
+			for (ri = col_indices[col].begin();ri != re; ri++) {
+				d += ri->second*in.dGetCoef(ri->first+1);
+			}
+			out.fPutCoef(col+1, d);
+		}
+		return out;
+	};
+	
+	VectorHandler& MatTVecMul(VectorHandler& out, const VectorHandler& in) const {
+		if (out.iGetSize() != iGetNumCols()
+				|| in.iGetSize() != iGetNumRows()) {
+			THROW(ErrGeneric());
+		}
+
+		row_cont_type::const_iterator ri, re;
+		out.Reset(0.);
+		for (int col=0; col<N; col++) {
+			re = col_indices[col].end();
+			for (ri = col_indices[col].begin();ri != re; ri++) {
+				double d = ri->second*in.dGetCoef(col+1);
+				out.fIncCoef(ri->first+1, d);
+			}
+		}
+		return out;
+	};
+
+	VectorHandler& MatVecIncMul(VectorHandler& out, const VectorHandler& in) const {
+		if (out.iGetSize() != iGetNumRows()
+				|| in.iGetSize() != iGetNumCols()) {
+			THROW(ErrGeneric());
+		}
+
+		row_cont_type::const_iterator ri, re;
+		for (int col=0; col<N; col++) {
+			double d = 0.;
+			re = col_indices[col].end();
+			for (ri = col_indices[col].begin();ri != re; ri++) {
+				d += ri->second*in.dGetCoef(ri->first+1);
+			}
+			out.fIncCoef(col+1, d);
+		}
+		return out;
+	};
+	
+	VectorHandler& MatTVecIncMul(VectorHandler& out, const VectorHandler& in) const {
+		if (out.iGetSize() != iGetNumCols()
+				|| in.iGetSize() != iGetNumRows()) {
+			THROW(ErrGeneric());
+		}
+
+		row_cont_type::const_iterator ri, re;
+		for (int col=0; col<N; col++) {
+			re = col_indices[col].end();
+			for (ri = col_indices[col].begin();ri != re; ri++) {
+				double d = ri->second*in.dGetCoef(col+1);
+				out.fIncCoef(ri->first+1, d);
+			}
+		}
+		return out;
 	};
 };
 

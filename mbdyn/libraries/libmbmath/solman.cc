@@ -556,7 +556,85 @@ MatrixHandler& MatrixHandler::ScalarMul(const doublereal& d)
    return *this;
 }
 
+VectorHandler& MatrixHandler::MatVecMul(
+		VectorHandler& out, 
+		const VectorHandler& in
+) const
+{
+	if (out.iGetSize() != iGetNumRows() 
+			|| in.iGetSize() != iGetNumCols()) {
+		THROW(ErrGeneric());
+	}
+	
+	for (integer r = 1; r <= iGetNumRows(); r++) {
+		doublereal d = 0.;
+		for (integer c = 1; c <= in.iGetSize(); c++) {
+			d += dGetCoef(r, c)*in.dGetCoef(c);
+		}
+		out.fPutCoef(r, d);
+	}
+	return out;
+}
 
+VectorHandler& MatrixHandler::MatTVecMul(
+		VectorHandler& out, 
+		const VectorHandler& in
+) const
+{
+	if (out.iGetSize() != iGetNumCols() 
+			|| in.iGetSize() != iGetNumRows()) {
+		THROW(ErrGeneric());
+	}
+	
+	for (integer r = 1; r <= iGetNumCols(); r++) {
+		doublereal d = 0.;
+		for (integer c = 1; c <= in.iGetSize(); c++) {
+			d += dGetCoef(c, r)*in.dGetCoef(c);
+		}
+		out.fPutCoef(r, d);
+	}
+	return out;
+}
+
+VectorHandler& MatrixHandler::MatVecIncMul(
+		VectorHandler& out, 
+		const VectorHandler& in
+) const
+{
+	if (out.iGetSize() != iGetNumRows() 
+			|| in.iGetSize() != iGetNumCols()) {
+		THROW(ErrGeneric());
+	}
+	
+	for (integer r = 1; r <= iGetNumRows(); r++) {
+		doublereal d = 0.;
+		for (integer c = 1; c <= in.iGetSize(); c++) {
+			d += dGetCoef(r, c)*in.dGetCoef(c);
+		}
+		out.fIncCoef(r, d);
+	}
+	return out;
+}
+
+VectorHandler& MatrixHandler::MatTVecIncMul(
+		VectorHandler& out, 
+		const VectorHandler& in
+) const
+{
+	if (out.iGetSize() != iGetNumCols() 
+			|| in.iGetSize() != iGetNumRows()) {
+		THROW(ErrGeneric());
+	}
+	
+	for (integer r = 1; r <= iGetNumCols(); r++) {
+		doublereal d = 0.;
+		for (integer c = 1; c <= in.iGetSize(); c++) {
+			d += dGetCoef(c, r)*in.dGetCoef(c);
+		}
+		out.fIncCoef(r, d);
+	}
+	return out;
+}
 
 ostream& operator << (ostream& out, const MatrixHandler& MH)
 {

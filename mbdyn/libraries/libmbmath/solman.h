@@ -143,6 +143,11 @@ class MatrixHandler {
    
    /* */
    virtual MatrixHandler& ScalarMul(const doublereal& d);
+
+   virtual VectorHandler& MatVecMul(VectorHandler& out, const VectorHandler& in) const;
+   virtual VectorHandler& MatTVecMul(VectorHandler& out, const VectorHandler& in) const;
+   virtual VectorHandler& MatVecIncMul(VectorHandler& out, const VectorHandler& in) const;
+   virtual VectorHandler& MatTVecIncMul(VectorHandler& out, const VectorHandler& in) const;
 };
 
 
