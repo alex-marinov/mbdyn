@@ -129,8 +129,6 @@ void ThirdOrderIntegrator::Predict(void) {
    	ASSERT(pDM != NULL);
    	Dof CurrDof;
 
-	std::cerr << "Sono dentro  predict" << std::endl;
-	
 	{SchurDataManager* pSDM;
 	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
 		std::cerr << "Fatal error: ThirdOrderIntegrator currently does "
