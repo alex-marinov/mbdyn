@@ -142,7 +142,7 @@ The initial time step.
 \begin{verbatim}
     <card> ::= method : <method_data> ;
 \end{verbatim}
-there are three multistep methods at present. 
+there are four multistep methods at present. 
 The first is Crank-Nicholson:
 \begin{verbatim}
     <method_data> ::= crank nicholson
@@ -161,6 +161,16 @@ dependent radius variation.
     <method_data> ::= { ms | hope } ,
         (drive_caller) <differential_radius>
         [ , (drive_caller) <algebraic_radius> ]
+\end{verbatim}
+The fourth method is experimental. It is a third-order,
+two stage unconditionally stable method, and can be tuned to give 
+the desired algorithmic dissipation
+by setting the value of the asymptotic spectral radius. Currently
+it is not possible to set independently the radius for the differential
+and the algebraic variables.
+\begin{verbatim}
+    <method_data> ::= { thirdorder } ,
+        (drive_caller) <differential_radius>
 \end{verbatim}
 The first method proved to be more accurate at high values of asymptotic
 radius (low dissipation), while the second proved to be more accurate
