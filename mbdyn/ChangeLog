@@ -3,6 +3,13 @@ see http://www.mbdyn.org
 
 Copyright: 1996-2000 Pierangelo Masarati
 
+*** Wed Aug  1 14:10:23 CEST 2001 Pierangelo Masarati <masarati@aero.polimi.it>
+ - added NASRAN output (bulk and .f06) for modes at trim point.
+
+*** Wed Aug  1 14:10:23 CEST 2001 Giuseppe Quaranta <quaranta@aero.polimi.it>
+ - fixed modal flexibility; a new utility, femgen, generates the input for
+   MBDyn form NASTRAN binary output. Alter files are provided.
+
 *** Thu Oct 12 15:01:33 CEST 2000 Pierangelo Masarati <masarati@aero.polimi.it>
  - fixed (hopefully) the c81 coefficients in yaw (the cm is still under
    investigation).
