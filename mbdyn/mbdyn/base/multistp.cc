@@ -135,6 +135,7 @@ MultiStepIntegrator::MultiStepIntegrator(MBDynParser& HPar,
 		flag fIter)
 :
 CurrStrategy(NOCHANGE),
+pStrategyChangeDrive(NULL),
 CurrSolver(Integrator::defaultSolver),
 sInputFileName(NULL),
 sOutputFileName(NULL),
@@ -2171,6 +2172,14 @@ MultiStepIntegrator::NewTimeStep(doublereal dCurrTimeStep,
    	DEBUGCOUTFNAME("MultiStepIntegrator::NewTimeStep");
 
    	switch (CurrStrategy) {
+    	case NOCHANGE:
+       		return dCurrTimeStep;
+		break;
+	
+	case CHANGE:
+		return pStrategyChangeDrive->dGet(dTime);
+		break;
+      
     	case FACTOR:
        		if (Why == MultiStepIntegrationMethod::REPEATSTEP) {
 	  		if (dCurrTimeStep*StrategyFactor.dReductionFactor 
@@ -2208,9 +2217,6 @@ MultiStepIntegrator::NewTimeStep(doublereal dCurrTimeStep,
 	  		return dCurrTimeStep;
        		}
        		break;
-      
-    	case NOCHANGE:
-       		return dCurrTimeStep;
       
     	default:
        		std::cerr << "You shouldn't have reached this point!" << std::endl;
@@ -2416,6 +2422,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		"strategy",
 			"factor",
 			"no" "change",
+			"change",
 
 		"eigen" "analysis",
 		"output" "modes",
@@ -2486,6 +2493,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		STRATEGY,
 		STRATEGYFACTOR,
 		STRATEGYNOCHANGE,
+		STRATEGYCHANGE,
 	
 		EIGENANALYSIS,
 		OUTPUTMODES,
@@ -3073,6 +3081,13 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	     
 	   case STRATEGYNOCHANGE: {
 	      CurrStrategy = NOCHANGE;
+	      break;
+	   }
+	   
+	   case STRATEGYCHANGE: {
+	      CurrStrategy = CHANGE;
+	      pStrategyChangeDrive = ReadDriveData(NULL, HP, NULL);
+	      HP.PutKeyTable(K);	      
 	      break;
 	   }
 	     

@@ -75,6 +75,7 @@ public:
 private:
    	enum Strategy {
 		NOCHANGE,
+		CHANGE,
 		FACTOR
 	} CurrStrategy;
 
@@ -93,6 +94,9 @@ private:
       		integer iStepsBeforeRaise;
       		integer iMinIters;
    	} StrategyFactor;
+
+   	/* Dati per strategia DRIVER_CHANGE */
+	DriveCaller* pStrategyChangeDrive;
 
 #ifdef __HACK_EIG__
    	/* Dati per esecuzione di eigenanalysis */

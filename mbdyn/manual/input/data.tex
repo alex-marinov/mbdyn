@@ -92,7 +92,7 @@ where the available strategies are:
 \begin{verbatim}
     <strategy_data> ::= no change 
 \end{verbatim}
-obviously the step is never changed, and
+obviously the step is never changed;
 \begin{verbatim}
     <strategy_data> ::= factor , 
                         <reduction_factor> ,
@@ -104,7 +104,12 @@ obviously the step is never changed, and
 the time step is reduced or raised of the proper factor not before a
 minimum number of time steps; it is reduced if more than 
 \texttt{max\_iterations} are performed at a time step, it is raised if less
-than \texttt{min\_iterations} are performed at a time step.
+than \texttt{min\_iterations} are performed at a time step;
+\begin{verbatim}
+    <strategy_data> ::= change , 
+                        (drive_caller) <time_step_change>
+\end{verbatim}
+the time step is change according to the time_step_change law.
 
 \subsubsection{Min time step}
 \begin{verbatim}
