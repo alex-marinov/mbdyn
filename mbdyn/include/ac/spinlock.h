@@ -111,6 +111,8 @@ mbdyn_compare_and_swap(int8_t *valptr, int8_t newval, int8_t oldval)
 	int		new_val = newval;
 
 	return compare_and_swap(word_addr, &old_val, new_val);
+#else
+	/* FIXME: provide an alternative ... */
 #endif
 }
 
@@ -125,6 +127,8 @@ mbdyn_compare_and_swap(int16_t *valptr, int16_t newval, int16_t oldval)
 	int		new_val = newval;
 
 	return compare_and_swap(word_addr, &old_val, new_val);
+#else
+	/* FIXME: provide an alternative ... */
 #endif
 }
 
@@ -139,6 +143,8 @@ mbdyn_compare_and_swap(int32_t *valptr, int32_t newval, int32_t oldval)
 	int		new_val = newval;
 
 	return compare_and_swap(word_addr, &old_val, new_val);
+#else
+	/* FIXME: provide an alternative ... */
 #endif
 }
 
