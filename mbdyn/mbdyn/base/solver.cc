@@ -385,8 +385,8 @@ void Solver::Run(void)
 
 #ifdef __HACK_POD__
 	std::ofstream PodOut;
-	char *PODFileName;
 	if (fPOD) {
+		char *PODFileName = NULL;
 		
 		if (sOutputFileName == NULL) {
 			SAFESTRDUP(PODFileName, "MBDyn.POD");
@@ -404,6 +404,8 @@ void Solver::Run(void)
 				<< "\"" << std::endl;
 			THROW(ErrGeneric());
 		}
+		SAFEDELETEARR(PODFileName);
+
 #ifdef __HACK_POD_BINARY__
 		/* matrix size is coded at the beginning */
 		PodOut.write((char *)&(pod.iFrames), sizeof(unsigned long));
