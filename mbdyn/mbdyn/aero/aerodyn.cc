@@ -96,7 +96,12 @@ Gust1D::~Gust1D(void)
 std::ostream&
 Gust1D::Restart(std::ostream& out) const
 {
-	return out;	/* FIXME: to be implemented */
+	out << "front 1D, ",
+		FrontDir.Write(out, ", ")
+		<< ", ", GustDir.Write(out, ", ")
+		<< ", " << dVRef
+		<< ", ", GustProfile.pGetDriveCaller()->Restart(out);
+	return out;
 }
 
 Vec3
@@ -456,7 +461,7 @@ ReadAirstreamData(DataManager *pDM, MBDynParser& HP,
 	/* Driver multiplo */
      	pDC = ReadTplDrive(pDM, HP, Vec3(0.));
 	if (HP.IsKeyWord("gust")) {
-		if (HP.IsKeyWord("front1d")) {
+		if (HP.IsKeyWord("front" "1d")) {
 			/* front direction */
 			Vec3 f = HP.GetVecAbs(AbsRefFrame);
 
