@@ -258,6 +258,16 @@ void Solver::Run(void)
 {
    	DEBUGCOUTFNAME("Solver::Run");
 
+#ifdef USE_RTAI
+	if (bRT) {
+		/* Init RTAI; if init'ed, it will be shut down at exit */
+		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, &mbdyn_rtai_task)) {
+			std::cerr << "unable to init RTAI task" << std::endl;
+			THROW(ErrGeneric());
+		}
+	}
+#endif /* USE_RTAI */
+
 #ifdef USE_MPI
 	int MyRank = 0;
 	if (fParallel) {
@@ -317,7 +327,7 @@ void Solver::Run(void)
 #ifdef USE_MPI
 	}
 #endif /* USE_MPI */
-   
+
    	/* Si fa dare l'std::ostream al file di output per il log */
    	std::ostream& Out = pDM->GetOutFile();
 
@@ -724,16 +734,6 @@ void Solver::Run(void)
 	pNLS->SetExternal(External::EMPTY);
 #endif /* USE_EXTERNAL */
 
-#ifdef USE_RTAI
-	if (bRT) {
-		/* Init RTAI; if init'ed, it will be shut down at exit */
-		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, &mbdyn_rtai_task)) {
-			std::cerr << "unable to init RTAI task" << std::endl;
-			THROW(ErrGeneric());
-		}
-	}
-#endif /* USE_RTAI */
-	
 	try {
 		
 		dTest = pDerivativeSteps->Advance(0., 1.,
@@ -1094,7 +1094,7 @@ IfFirstStepIsToBeRepeated:
 
 	pDM->AfterConvergence();
    	pDM->Output();
-      
+     
 #ifdef HAVE_SIGNAL
    	if (!::mbdyn_keep_going) {
       		/* Fa l'output della soluzione al primo passo ed esce */
@@ -1102,7 +1102,7 @@ IfFirstStepIsToBeRepeated:
       		return;
    	}
 #endif /* HAVE_SIGNAL */
-
+ 
 	if (outputMsg()) {
       		Out << "Step " << iStep
 			<< " time " << dTime+dCurrTimeStep
@@ -1134,7 +1134,6 @@ IfFirstStepIsToBeRepeated:
 #endif /* __HACK_EIG__ */
 
 #ifdef USE_RTAI
-
 	if (bRT) {
 		/* Need timer */
 		if (!mbdyn_rt_is_hard_timer_running() ){

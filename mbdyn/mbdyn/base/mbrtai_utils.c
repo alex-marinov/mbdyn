@@ -58,7 +58,7 @@ mbdyn_rt_task_init(const char *name, int priority, int stack_size,
 
 	*__task = (void *)rt_task_init(nam2num(name), priority,
 			stack_size, max_msg_size);
-
+	
 	return (*__task == NULL);
 }
 
@@ -165,7 +165,7 @@ mbdyn_nano2count(long long nanos)
 
 int
 mbdyn_rt_mbx_init(const char *name, int size, void **__mbx)
-{
+{	printf("mail box init");
 	assert(name);
 	assert(strlen(name) <= 6);
 	assert(size > 0);
@@ -235,8 +235,8 @@ mbdyn_RT_mbx_receive_if(unsigned long node, int port, void *__mbx,
 	assert(msg_size > 0);
 
 	return RT_mbx_receive_if(node, port, mbx, msg, msg_size);
-	
 }
+
 int
 mbdyn_rt_task_suspend(void *__task)
 {
@@ -247,6 +247,7 @@ mbdyn_rt_task_suspend(void *__task)
 	return rt_task_suspend(task);
 
 }
+
 void
 mbdyn_rt_sleep(long long count)
 {

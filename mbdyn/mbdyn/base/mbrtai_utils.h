@@ -73,6 +73,7 @@ extern int mbdyn_rt_sem_init(char *name, int value, void **__sem);
 extern int mbdyn_rt_sem_delete(void **__sem);
 extern int mbdyn_rt_sem_signal(void *__sem);
 extern int mbdyn_rt_sem_wait(void *__sem);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
