@@ -160,12 +160,12 @@ mbdyn_usage(const char *sShortOpts)
         << "  -s, --silent             :"
         " runs quietly" << std::endl
         << "  -P, --pedantic           :"
-        " pedantic warning messages" << std::endl
+        " pedantic warning messages" << std::endl);
 #ifdef USE_MPI
-        << "  -p, --parallel           :"
-        " required when run in parallel (invoked by mpirun)" << std::endl
+    silent_cout("  -p, --parallel           :"
+        " required when run in parallel (invoked by mpirun)" << std::endl);
 #endif /* USE_MPI */
-        << "  -h, --help               :"
+    silent_cout("  -h, --help               :"
         " prints this message" << std::endl
         << "  -l, --license            :"
         " prints the licensing terms" << std::endl
