@@ -1,0 +1,30 @@
+MBDyn (C) is a multibody analysis code.
+http://www.mbdyn.org
+
+Copyright (C) 1996-2001
+
+Pierangelo Masarati     <masarati@aero.polimi.it>
+Paolo Mantegazza        <mantegazza@aero.polimi.it>
+
+
+MBDyn 1.0.1
+	Enhancements:
+		- better detection of security stuff for socket drive auth
+		- detect availability of Pseudo-Inverse to build GPC
+		- use strtod/strtol in math parser
+		- test for EOF in parsers
+		- added keywords in sine/cosine drives for special wave 
+		  numbers
+		- added helper for BDF integration scheme
+		- transition Reynolds numbers moved to fluid properties
+		  (still incomplete)
+		- selected documentation updates
+	Bugs:
+		- fixed multiple . in floats in math parser
+		- fixed collisions in pam_* names
+		- minor fixes
+
+
+MBDyn 1.0.0
+	First release
+
