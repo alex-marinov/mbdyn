@@ -889,11 +889,12 @@ yields
 \end{eqnarray*}
 according to the updated-updated simplifications,
 $\T{\theta}_{i\delta}\cong\Delta\T{g}_i$, thus resulting in
-\begin{displaymath}
+\begin{equation}
 	\T{\theta}_{\delta} = \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_1^T \plbr{
 		\Delta\T{g}_2 - \Delta\T{g}_1
 	}
-\end{displaymath}
+	\label{eq:DRIVE-HINGE-theta-delta}
+\end{equation}
 note that $\T{\Gamma}\plbr{\T{\theta}}^{-1}$ does not simplify to $\T{I}$
 because $\T{\theta}$ in general is a finite rotation.
 
@@ -1007,10 +1008,10 @@ where the simplifications of the updated-updated approach
 have been considered, as indicated by the $\cong$ operator.
 
 \noindent
-The couples applied by the constrain equations are
+The couples applied by the constraint equations are
 \begin{eqnarray*}
-	C_1 & = & \bar{\T{R}} \T{\alpha} \\
-	C_2 & = & - \bar{\T{R}} \T{\alpha}
+	\T{C}_1 & = & \bar{\T{R}} \T{\alpha} \\
+	\T{C}_2 & = & - \bar{\T{R}} \T{\alpha}
 \end{eqnarray*}
 where $\T{\alpha}$ are the reaction unknowns, which correspond 
 to the physical moments in the relative reference frame.
@@ -1022,8 +1023,8 @@ component that is left free results in no reaction couple.
 If rotational springs or dampers are defined, the corresponding
 couples have the same form, i.e.\
 \begin{eqnarray*}
-	C_1 & = & \bar{\T{R}} \T{\beta} \\
-	C_2 & = & - \bar{\T{R}} \T{\beta}
+	\T{C}_1 & = & \bar{\T{R}} \T{\beta} \\
+	\T{C}_2 & = & - \bar{\T{R}} \T{\beta}
 \end{eqnarray*}
 now $\T{\beta}=\T{\beta}\plbr{\T{\theta}^{\Delta},\T{\omega}^{\Delta}}$ 
 is a relative orientation dependent couple, and no constraint equation
@@ -1032,20 +1033,20 @@ is related to it.
 The linearization of the couples is straightforward; with respect
 to the kinematic constraints:
 \begin{eqnarray*}
-	\delta{C_1} & = &
+	\delta\T{C}_1 & = &
 	\plbr{\bar{\T{R}} \T{\alpha}}\times\T{\theta}_{1\delta}
 	+ \bar{\T{R}} \delta\T{\alpha} \\
-	\delta{C_2} & = &
+	\delta\T{C}_2 & = &
 	- \plbr{\bar{\T{R}} \T{\alpha}}\times\T{\theta}_{1\delta}
 	- \bar{\T{R}} \delta\T{\alpha}
 \end{eqnarray*}
 and with respect to the spring and damper constraints:
 \begin{eqnarray*}
-	\delta{C_1} & = &
+	\delta\T{C}_1 & = &
 	\plbr{\bar{\T{R}} \T{\beta}}\times\T{\theta}_{1\delta}
 	+ \bar{\T{R}}\T{\beta}_{/\T{\theta}} \T{\theta}^{\Delta}_{\delta}
 	+ \bar{\T{R}}\T{\beta}_{/\T{\omega}} \delta\T{\omega}^{\Delta} \\
-	\delta{C_2} & = &
+	\delta\T{C}_2 & = &
 	- \plbr{\bar{\T{R}} \T{\beta}}\times\T{\theta}_{1\delta}
 	- \bar{\T{R}}\T{\beta}_{/\T{\theta}} \T{\theta}^{\Delta}_{\delta}
 	- \bar{\T{R}}\T{\beta}_{/\T{\omega}} \delta\T{\omega}^{\Delta}
@@ -1128,6 +1129,129 @@ that are left free (or constrained by springs);
 always in place, and activate/deactivate them based on some trigger.
 \end{itemize}
 
+
+\subsection{Gimbal}
+Ideal gimbal joint.
+The relative orientation is made of three steps, described by
+\begin{eqnarray*}
+	\T{R}_{rel}
+	& = & \T{R}_a^T \T{R}_b \\
+	& = & \llk{exp}\plbr{\vartheta \T{e}_2 \times{}}
+		\llk{exp}\plbr{\varphi \T{e}_1 \times{}}
+		\llk{exp}\plbr{\vartheta \T{e}_2 \times{}}
+\end{eqnarray*}
+
+\noindent
+Definitions:
+\begin{eqnarray}
+	\llk{exp}\plbr{\vartheta \T{e}_2 \times{}} & = &
+		\T{I} + \sin\vartheta \T{e}_2\times{}
+			+ \plbr{1 - \cos\vartheta}\T{e}_2\times\T{e}_2\times{}
+		\label{eq:GIMBAL-EXP-THETA} \\
+	\llk{exp}\plbr{\varphi \T{e}_1 \times{}} & = &
+		\T{I} + \sin\varphi \T{e}_1\times{}
+			+ \plbr{1 - \cos\varphi}\T{e}_1\times\T{e}_1\times{}
+		\label{eq:GIMBAL-EXP-PHI}
+\end{eqnarray}
+where $\T{e}_i$ is the unit vector in the $i$-th direction.
+
+\noindent
+Constraint equation
+\begin{equation}
+	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{rel}}}
+	- \llk{ax}\plbr{\llk{exp}^{-1}\plbr{
+		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
+		\llk{exp}\plbr{\T{e}_1 \varphi \times{}}
+		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
+	}} = \T{0}.
+	\label{eq:GIMBAL-CONSTRAINT}
+\end{equation}
+Lagrange multipliers approach:
+\begin{eqnarray*}
+	0 & = & \delta\plbr{\T{\lambda}^T\plbr{
+	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{rel}}}
+	- \llk{ax}\plbr{\llk{exp}^{-1}\plbr{
+		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
+		\llk{exp}\plbr{\T{e}_1 \varphi \times{}}
+		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
+	}}
+	}} \\
+	& = & \delta\T{\lambda}^T \plbr{
+	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{rel}}}
+	- \llk{ax}\plbr{\llk{exp}^{-1}\plbr{
+		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
+		\llk{exp}\plbr{\T{e}_1 \varphi \times{}}
+		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
+	}}
+	} \\
+	& & \mbox{} + \delta\T{g}_b^T \T{R}_a \T{\lambda}
+	- \delta\T{g}_a^T \T{R}_a \T{\lambda} \\
+	& & \mbox{} + \delta\vartheta \T{e}_2^T \plbr{
+		\T{I} + \llk{exp}\plbr{\varphi \T{e}_1 \times{}}^T
+			\llk{exp}\plbr{\vartheta \T{e}_2 \times{}}^T
+	} \T{\lambda} \\
+	& & \mbox{} + \delta\varphi \T{e}_1^T \plbr{
+		\llk{exp}\plbr{\vartheta \T{e}_2 \times{}}^T
+	} \T{\lambda}
+\end{eqnarray*}
+The equations in $\delta\vartheta $ and $\delta\varphi$ can be simplified
+by exploiting Equations~(\ref{eq:GIMBAL-EXP-THETA}, \ref{eq:GIMBAL-EXP-PHI}):
+\begin{eqnarray*}
+	\T{e}_2^T \plbr{
+		\T{I} + \llk{exp}\plbr{\varphi \T{e}_1 \times{}}^T
+			\llk{exp}\plbr{\vartheta \T{e}_2 \times{}}^T
+	} & = & \plbr{
+		\sin\vartheta \sin\varphi \T{e}_1
+		+ \plbr{1 + \cos\varphi} \T{e}_2 
+		+ \cos\vartheta\sin\varphi \T{e}_3
+	}^T \\
+	\T{e}_1^T \plbr{
+		\llk{exp}\plbr{\vartheta \T{e}_2 \times{}}^T
+	} & = & \plbr{
+		\cos\vartheta \T{e}_1 - \sin\vartheta \T{e}_3
+	}^T 
+\end{eqnarray*}
+Linearization: by defining
+\begin{eqnarray*}
+	\T{w}_{\vartheta} & = & 
+		\sin\vartheta \sin\varphi \T{e}_1
+		+ \plbr{1 + \cos\varphi} \T{e}_2 
+		+ \cos\vartheta\sin\varphi \T{e}_3 \\
+	\T{w}_{\varphi} & = & 
+		\cos\vartheta \T{e}_1 - \sin\vartheta \T{e}_3
+\end{eqnarray*}
+the linearization becomes
+\begin{equation*}
+	\sqbr{\matr{ccccc}{
+		-\plbr{\T{R}_a \T{\lambda}}\times{} & & \T{R}_a & & \\
+		\plbr{\T{R}_a \T{\lambda}}\times{} & & -\T{R}_a & & \\
+			\T{R}_a^T & -\T{R}_a^T & & \T{w}_{\vartheta} & \T{w}_{\varphi} \\
+		& & \T{w}_{\vartheta}^T &
+			\sin\varphi\T{w}_{\varphi}^T \T{\lambda} &
+			\plbr{\cvvect{
+				\cos\varphi\sin\vartheta\T{e}_1 \\
+				- \sin\varphi\T{e}_2 \\
+				+ \cos\varphi\cos\vartheta\T{e}_3
+			}}^T\T{\lambda} \\
+		& & \T{w}_{\varphi}^T &
+			-\plbr{\sin\vartheta\T{e}_1 + \cos\vartheta\T{e}_3}^T \T{\lambda} &
+	}} \cubr{\cvvect{
+		\Delta\T{g}_a \\
+		\Delta\T{g}_b \\
+		\Delta\T{\lambda} \\
+		\Delta\vartheta \\
+		\Delta\varphi
+	}}
+\end{equation*}
+\begin{equation*}
+	\mbox{} = \cubr{\cvvect{
+		-\T{R}_a \T{\lambda} \\
+		\T{R}_a \T{\lambda} \\
+		\mathrm{Eq.~(\ref{eq:GIMBAL-CONSTRAINT})} \\
+		-\T{w}_{\vartheta}^T \T{\lambda} \\
+		-\T{w}_{\varphi}^T \T{\lambda}
+	}}
+\end{equation*}
 
 
 
