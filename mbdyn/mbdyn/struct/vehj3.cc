@@ -68,12 +68,13 @@ pNode1(pN1), pNode2(pN2), f1(f1Tmp), f2(f2Tmp), R1h(R1), R2h(R2)
 /* Distruttore */
 DeformableJoint::~DeformableJoint(void)
 {
-   NO_OP;
+	NO_OP;
 }
 
    
 /* Contributo al file di restart */
-std::ostream& DeformableJoint::Restart(std::ostream& out) const
+std::ostream&
+DeformableJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", deformable joint, " 
      << pNode1->GetLabel() << ", reference, node, ",
@@ -125,13 +126,14 @@ DeformableJoint::iGetPrivDataIdx(const char *s) const
 	case 'M':
 		idx += 9;
 		break;
-	default: {
+	default:
+	{
 		size_t l = sizeof("constitutiveLaw.") - 1;
 		if (strncmp(s, "constitutiveLaw.", l) == 0) {
 			return ConstitutiveLaw6DOwner::iGetPrivDataIdx(s + l);
 		}
 		return 0;
-		}
+	}
 	}
 	
 	switch (s[1]) {
@@ -160,7 +162,7 @@ DeformableJoint::dGetPrivData(unsigned int i) const
 {
 	ASSERT(i > 0);
 
-	ASSERT(i <= ConstitutiveLaw6DOwner::iGetNumPrivData());
+	ASSERT(i <= iGetNumPrivData());
 	
 	switch (i) {
 	case 1:
@@ -266,8 +268,8 @@ ElasticJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
 		WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
-		WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-		WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		WM.PutRowIndex(6 + iCnt, iNode2FirstMomIndex+iCnt);
+		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex+iCnt);
 	}
 
 	AssMat(WM, dCoef);
@@ -400,7 +402,7 @@ ElasticJoint::AssRes(SubVectorHandler& WorkVec,
 	/* Setta gli indici della matrice */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex+iCnt);
 	}
 
 	AssVec(WorkVec);
@@ -435,8 +437,8 @@ ElasticJoint::AssVec(SubVectorHandler& WorkVec)
    
 	WorkVec.Add(1, F.GetVec1());
 	WorkVec.Add(4, f1Tmp.Cross(F.GetVec1()) + F.GetVec2());
-	WorkVec.Sub(7, F.GetVec1());   
-	WorkVec.Sub(10, f2Tmp.Cross(F.GetVec1()) + F.GetVec2());
+	WorkVec.Sub(6 + 1, F.GetVec1());   
+	WorkVec.Sub(6 + 4, f2Tmp.Cross(F.GetVec1()) + F.GetVec2());
 }
 
 void
@@ -480,56 +482,56 @@ VariableSubMatrixHandler&
 ElasticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& /* XCurr */ )
 {
-   FullSubMatrixHandler& WM = WorkMat.SetFull();
-   
-   /* Dimensiona e resetta la matrice di lavoro */
-   integer iNumRows = 0;
-   integer iNumCols = 0;
-   InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeReset(iNumRows, iNumCols);
+	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
-   /* Recupera gli indici */
-   integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
-   integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
-   
-   /* Setta gli indici della matrice */
-   for(int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-   }  
-   
-   AssMat(WM, 1.);
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	InitialWorkSpaceDim(&iNumRows, &iNumCols);
+	WM.ResizeReset(iNumRows, iNumCols);
 
-   return WorkMat;
+	/* Recupera gli indici */
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WM.PutRowIndex(6 + iCnt, iNode2FirstPosIndex+iCnt);
+		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex+iCnt);
+	}
+
+	AssMat(WM, 1.);
+
+	return WorkMat;
 }
 
 
 /* Contributo al residuo durante l'assemblaggio iniziale */   
 SubVectorHandler& 
 ElasticJoint::InitialAssRes(SubVectorHandler& WorkVec,
-				     const VectorHandler& /* XCurr */ )
+		const VectorHandler& /* XCurr */ )
 {
-   /* Dimensiona e resetta la matrice di lavoro */
-   integer iNumRows = 0;
-   integer iNumCols = 0;
-   InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeReset(iNumRows);
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	InitialWorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
 
-   /* Recupera gli indici */
-   integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
-   integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
-   
-   /* Setta gli indici della matrice */
-   for(int iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WorkVec.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-   }  
- 
-   AssVec(WorkVec);
-   
-   return WorkVec;
+	/* Recupera gli indici */
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstPosIndex+iCnt);
+	}
+
+	AssVec(WorkVec);
+
+	return WorkVec;
 }
 
 /* ElasticJoint - end */
