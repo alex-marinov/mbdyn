@@ -596,7 +596,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 
 	 	/* Numero d'ordine del dato privato a cui fare il binding */
 	 unsigned int i = 0;
-	 if (HP.IsKeyWord("string")) {
+	 if (HP.IsKeyWord("name") || HP.IsKeyWord("string" /* deprecated */ )) {
 	    const char *s = HP.GetStringWithDelims();
 
 	    ASSERT(s != NULL);

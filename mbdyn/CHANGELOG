@@ -19,8 +19,12 @@ MBDyn 1.2-Engineering
 		- added environment vars expansion in file names
 	Bug fixes:
 		- fixed dof count in initial assembly dof stats print
+		- fixed element drive input
 	Known Issues:
 		- parallel is not working yet
+	Backward compatibility issues:
+		- bind now uses "name" instead of "string";
+		  compatibility preserved
 
 MBDyn 1.2-beta.1
 	Enhancements:
