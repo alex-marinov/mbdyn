@@ -57,14 +57,13 @@ sCurrFile(NULL)
 {   
 	ASSERT(sInitialFile != NULL);
 #ifdef USE_INCLUDE_PARSER
-   	char* s = NULL;
-   	SAFENEWARR(s, char, PATHBUFSIZE);
+   	char s[PATHBUFSIZE];
    	sCurrPath = getcwd(s, PATHBUFSIZE);
    	if (sCurrPath == NULL) {
 		std::cerr << "Error in getcwd()" << std::endl;
-      		SAFEDELETEARR(s);
       		THROW(ErrFileSystem());
    	}
+	SAFESTRDUP(sCurrPath, s);
    	DEBUGCOUT("Current directory is <" << sCurrPath << '>' << std::endl);
    
    	SAFESTRDUP(sCurrFile, sInitialFile);
@@ -248,14 +247,14 @@ IncludeParser::Include_()
 					<< stmp << std::endl;
 	    			THROW(ErrFileSystem());
 	 		}
-	 		char* p = NULL;
-	 		SAFENEWARR(p, char, PATHBUFSIZE);
+	 		char p[PATHBUFSIZE];
 	 		sCurrPath = getcwd(p, PATHBUFSIZE);
 	 		if (sCurrPath == NULL) {
 				std::cerr << "Error in getcwd()" << std::endl;
-	    			SAFEDELETEARR(s);
+	    			SAFEDELETEARR(stmp);
 	    			THROW(ErrFileSystem());
 	 		}
+			SAFESTRDUP(sCurrPath, p);
 	 		DEBUGCOUT("Current directory is <" << sCurrPath 
 				<< '>' << std::endl);
 	 
@@ -270,15 +269,13 @@ IncludeParser::Include_()
    	SAFEDELETEARR(stmp);
    
    	if (sCurrPath == NULL) {
-      		char* s = NULL;
-      
-      		SAFENEWARR(s, char, PATHBUFSIZE);
+      		char s[PATHBUFSIZE];
       		sCurrPath = getcwd(s, PATHBUFSIZE);
       		if (sCurrPath == NULL) {
 			std::cerr << "Error in getcwd()" << std::endl;
-	 		SAFEDELETEARR(s);
 	 		THROW(ErrFileSystem());
       		}
+		SAFESTRDUP(sCurrPath, s);
       		DEBUGCOUT("Current directory is <" << sCurrPath 
 			<< '>' << std::endl);
    	}

@@ -123,11 +123,13 @@ class IncludeParser : public HighParser {
 #ifdef USE_INCLUDE_PARSER
       char* sPath;      
       char* sFile;
+
       MyInput(std::ifstream* pf = NULL, InputStream* pi = NULL,
 	      char* sp = NULL, char* sfile = NULL)
 	: pfile(pf), pis(pi), sPath(sp), sFile(sfile) { 
 	   NO_OP; 
 	};
+
 #else /* !USE_INCLUDE_PARSER */
       MyInput(std::ifstream* pf = NULL, InputStream* pi = NULL)
 	: pfile(pf), pis(pi) { 
