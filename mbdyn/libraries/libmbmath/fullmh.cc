@@ -153,7 +153,7 @@ FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 				iRawSize = iSize;
 				SAFEDELETEARR(pdRaw);
 				pdRaw = pd;
-				pdRawm1 = pd-1;
+				pdRawm1 = pd - 1;
 			}
 
 			if (iNewCols > iMaxCols) {
@@ -280,9 +280,9 @@ FullMatrixHandler::Attach(integer iNewRows, integer iNewCols,
 		iMaxCols = iNumCols;
 	}
 	pdRaw = pd;
-	pdRawm1 = pdRaw-1;
+	pdRawm1 = pdRaw - 1;
 	ppdCols = ppd;
-	ppdColsm1 = ppdCols-1;
+	ppdColsm1 = ppdCols - 1;
 
 #ifdef DEBUG
 	IsValid();

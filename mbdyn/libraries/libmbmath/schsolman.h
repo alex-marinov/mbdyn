@@ -47,8 +47,12 @@
 #endif /* USE_MPI */
 #include "schurmh.h"
 
+/* look ahead */
+class NonlinearSolverTest;
+
+template <class T>
 inline void
-InitializeList(int* list, integer dim, integer value)
+InitializeList(T* list, integer dim, T value)
 {
 	for (int i = 0; i < dim; i++) {
 		list[i] = value;
@@ -102,8 +106,9 @@ private:
 
 
 	SchurMatrixHandler* pMH;         /* handler della matrice globale */
-	SchurVectorHandler* pRVH;        /* handler del vettore residuo  globale */
-	SchurVectorHandler* pSolVH;      /* handler del vettore soluzione  globale */
+	SchurVectorHandler* pRVH;        /* handler del vettore residuo globale */
+	/* FIXME: do we need a SchurVectorHandler or is a MyVectorHandler enough? */
+	VectorHandler* pSolVH;      /* handler del vettore soluzione globale */
 
 	MatrixHandler* pSchMH;      /*handler matrice delle interfacce */
 	VectorHandler* pSchVH;  	   /* vettore delle interfacce  */
@@ -155,17 +160,18 @@ public:
 	doublereal *ChangeSolPoint(doublereal* pSol);
 
 	/* Rende disponibile l'handler per la matrice */
-	SchurMatrixHandler* pMatHdl(void) const;
+	MatrixHandler* pMatHdl(void) const;
 
 	/* Rende disponibile l'handler per il termine noto */
-	SchurVectorHandler* pResHdl(void) const;
+	VectorHandler* pResHdl(void) const;
 
 	/* Rende disponibile l'handler per la soluzione */
-	SchurVectorHandler* pSolHdl(void) const;
+	VectorHandler* pSolHdl(void) const;
 
-	void StartExchInt(void);
-
-	void ComplExchInt(doublereal& d);
+	void StartExchIntRes(void);
+	void ComplExchIntRes(doublereal& d, const NonlinearSolverTest* t);
+	void StartExchIntSol(void);
+	void ComplExchIntSol(doublereal& d, const NonlinearSolverTest* t);
 
 private:
 	void AssSchur(void);

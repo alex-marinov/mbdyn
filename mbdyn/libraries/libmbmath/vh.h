@@ -138,6 +138,9 @@ public:
 	virtual doublereal InnerProd(const VectorHandler& VH) const;
 };
 
+extern std::ostream&
+operator << (std::ostream& out, const VectorHandler& VH);
+
 /* VectorHandler - end */
 
 
@@ -241,7 +244,7 @@ MyVectorHandler::pdGetVec(void) const
 	IsValid();
 #endif /* DEBUG */
 
-	return pdVecm1 + 1;
+	return &pdVecm1[1];
 }
 
 inline integer

@@ -284,6 +284,15 @@ VectorHandler::InnerProd(const VectorHandler& VH) const
 	return d2;
 }
 
+std::ostream&
+operator << (std::ostream& out, const VectorHandler& VH)
+{
+	for (integer i = 1; i <= VH.iGetSize(); i++) {
+		out << std::setw(16) << VH(i) << std::endl;
+	}
+	return out;
+}
+
 /* VectorHandler - end */
 
 

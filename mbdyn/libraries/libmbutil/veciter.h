@@ -95,6 +95,21 @@ public:
 		return true;
 	};
 
+	inline bool bGetCurr(T& TReturn) const
+	{
+		ASSERT(pStart != NULL);
+		ASSERT(iSize > 0);
+		ASSERT(pCount >= (T*)pStart);
+
+		if (pCount == pStart + iSize) {
+			return false;
+		}
+
+		TReturn = *pCount;
+
+		return true;
+	};
+
 	inline bool bGetNext(T& TReturn) const
 	{
 		ASSERT(pStart != NULL);
@@ -188,6 +203,23 @@ public:
 		VecIter<T>::pCount = VecIter<T>::pStart - 1;
 
 		return bGetNext(TReturn);
+	};
+
+	inline bool bGetCurr(T& TReturn) const
+	{
+		ASSERT(VecIter<T>::pStart != NULL);
+		ASSERT(VecIter<T>::iSize > 0);
+		ASSERT(VecIter<T>::pCount >= (T *)VecIter<T>::pStart - 1 && 
+			VecIter<T>::pCount < VecIter<T>::pStart + VecIter<T>::iSize);
+
+		if (VecIter<T>::pCount == VecIter<T>::pStart + VecIter<T>::iSize) {
+			return false;
+		}
+
+		TReturn = *VecIter<T>::pCount;
+		/* NOTE: of course, by definition it's already in use */
+
+		return true;
 	};
 
 	inline bool bGetNext(T& TReturn) const

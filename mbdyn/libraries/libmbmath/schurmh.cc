@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2004
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,9 +26,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */ 
-/* 
- * Copyright (C)1996-2004 
+ */
+/*
+ * Copyright (C)1996-2004
  * Giuseppe Quaranta     <quaranta@aero.polimi.it>
  *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
@@ -57,7 +57,7 @@ SchurMatrixHandler::iGetNumCols(void) const
 {
 	return LSize + ISize;
 }
-  
+
 /* Restituisce l'handler alla matrice B */
 MatrixHandler*
 SchurMatrixHandler::GetBMat(void)
@@ -65,7 +65,7 @@ SchurMatrixHandler::GetBMat(void)
 	return pB;
 }
 
-/* Restituisce il puntatore alla alla matrice C 
+/* Restituisce il puntatore alla alla matrice C
  * che e' un vettore doublereal contenente le righe in successione */
 doublereal*
 SchurMatrixHandler::GetCMat(void)
@@ -82,7 +82,7 @@ pE(NULL),
 pdE(NULL),
 pF(NULL),
 pC(NULL),
-pdC(NULL), 
+pdC(NULL),
 pGTL(pGlobToLoc),
 extpdE(pdEv == NULL ? true : false)
 {
@@ -94,14 +94,14 @@ extpdE(pdEv == NULL ? true : false)
 	SAFENEWWITHCONSTRUCTOR(pE,
 				MyVectorHandler,
 				MyVectorHandler(LSize*ISize, pdEv));
-	SAFENEWARR(pdC, doublereal, ISize*ISize); 
+	SAFENEWARR(pdC, doublereal, ISize*ISize);
 	SAFENEWWITHCONSTRUCTOR(pC,
 				MyVectorHandler,
 				MyVectorHandler(ISize*ISize, pdC));
 	SAFENEWWITHCONSTRUCTOR(pF,
 				SpMapMatrixHandler,
 				SpMapMatrixHandler(ISize, LSize));
-   
+
 #ifdef DEBUG
 	IsValid();
 #endif /* DEBUG */
@@ -112,7 +112,7 @@ SchurMatrixHandler::~SchurMatrixHandler(void)
 	if (pE != NULL) {
 		SAFEDELETE(pE);
 	}
-	if (pC != NULL) {	
+	if (pC != NULL) {
 		SAFEDELETE(pC);
 	}
 	if (pF != NULL) {
@@ -161,7 +161,7 @@ SchurVectorHandler::SchurVectorHandler(int LocSize, int IntSize,
 ISize(IntSize),
 pLV(pLocVec),
 pIV(NULL),
-pGTL(pGlobToLoc) 
+pGTL(pGlobToLoc)
 {
 	SAFENEWWITHCONSTRUCTOR(pIV,
 			MyVectorHandler,
@@ -175,17 +175,17 @@ SchurVectorHandler::SchurVectorHandler(int LocSize, int IntSize,
 ISize(IntSize),
 pLV(pLocV),
 pIV(pIntV),
-pGTL(pGlobToLoc) 
+pGTL(pGlobToLoc)
 {
 	NO_OP;
 }
-     
+
 
 SchurVectorHandler::~SchurVectorHandler(void)
 {
 	if (pIV != NULL) {
 		SAFEDELETE(pIV);
-	}	 
+	}
 }
 
 #ifdef DEBUG
@@ -196,7 +196,7 @@ SchurVectorHandler::IsValid(void) const
 	NO_OP;
 }
 #endif /* DEBUG */
-                                       
+
 /* SchurVectorHandler - End */
 
 
@@ -205,17 +205,17 @@ SchurVectorHandler::IsValid(void) const
 SchurMatrixHandlerUm::SchurMatrixHandlerUm(int LocSize, int IntSize,
 		MatrixHandler* pBM,
 		integer* pGlobToLoc)
-: SchurMatrixHandler(LocSize, IntSize, pBM, pGlobToLoc, NULL), 
+: SchurMatrixHandler(LocSize, IntSize, pBM, pGlobToLoc, NULL),
 pdEs(NULL),
 pEs(NULL),
 Eflag(1)
-{ 
-	SAFENEWARR(pdEs, doublereal, LSize*(ISize+1));
-	pdE = pdEs+LSize;
+{
+	SAFENEWARR(pdEs, doublereal, LSize*(ISize + 1));
+	pdE = pdEs + LSize;
 	pE->Attach(LSize*ISize, pdE, LSize*ISize);
 	SAFENEWWITHCONSTRUCTOR(pEs,
 			MyVectorHandler,
-			MyVectorHandler((LSize*ISize), pdEs));
+			MyVectorHandler(LSize*ISize, pdEs));
 }
 
 SchurMatrixHandlerUm::~SchurMatrixHandlerUm(void)
@@ -225,8 +225,8 @@ SchurMatrixHandlerUm::~SchurMatrixHandlerUm(void)
 	}
 	if (pdEs != NULL) {
 		SAFEDELETEARR(pdEs);
-	};
+	}
 }
 
-/* SchurMatrixHandlerUm - End*/
+/* SchurMatrixHandlerUm - End */
 

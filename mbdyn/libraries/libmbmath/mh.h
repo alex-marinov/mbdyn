@@ -62,9 +62,6 @@ public:
 	class ErrRebuildMatrix {};
 	class ErrMatrixIsSingular {};
 
-	/* read-only return value for sparse data structures */
-	//static const doublereal dZero = 0.;
-
 public:
 	virtual ~MatrixHandler(void);
 
