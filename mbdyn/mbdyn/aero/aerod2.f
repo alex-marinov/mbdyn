@@ -65,19 +65,14 @@ C VAM(2): celerita' del suono
 C VAM(3): corda
 C VAM(4): 1/4 corda
 C VAM(5): 3/4 corda
-C VAM(6): svergolamento
-ccccc non viene usato ? probabilmente lo svergolamento viene aggiunto
-ccccc direttamente alla matrice di rotazione dal sistema aerodinamico
-ccccc a quello globale
+C VAM(6): svergolamento (non usato; aggiunto esternamente alla rotaz. profilo)
 C
       DENS  = VAM(1)
       CS    = VAM(2)
       CORDA = VAM(3)
       B     = VAM(4)
       D     = VAM(5)
-C
 C     SVER  = VAM(6)
-C
 C
 C     COSTRUZIONE VC*
 C
@@ -86,13 +81,13 @@ C
         DM(I,I) = 1.D0
  10   CONTINUE
       DM(2,6) = D
-CCC Ci vuole anche questo!
+CCC Ci vuole anche questo ?!?
       DM(3,5) = -D
 C
 C Ora DM ha la struttura seguente:
-C   [1 0 0   0 0 0 ]
-C   [0 1 0   0 0 D ]
-C   [0 0 1   0 0 0 ]
+C   [ 1  0  0   0  0  0 ]
+C   [ 0  1  0   0  0  D ]
+C   [ 0  0  1   0 -D  0 ]
 C
 C e quindi se la velocita' W del corpo aerodinamico e' organizzata come
 C W = [v1 v2 v3 w1 w2 w3 ]
@@ -104,10 +99,15 @@ C DM*W da' la velocita' nel punto a 3/4 della corda
 C
 C Moltiplica DM per W a dare VCSTR (velocita' nel sistema locale, punto 3/4 c)
       CALL DPROMV(DM, 3, 3, 6, W, VCSTR, 0)
+C
+C VP2 e' il modulo della velocita' nel piano del profilo al quadrato
+C VP e' il modulo della velocita' nel piano del profilo
+C V e' il modulo della velocita'
       VP2 = VCSTR(1)**2+VCSTR(2)**2
       VP = DSQRT(VP2)
       V = DSQRT(VP2+VCSTR(3)**2)
-
+C
+C Se il numero di Mach e' troppo piccolo, si ferma
       IF(V/CS.LT.1.E-6) THEN
         CALL DZERO(TNG, 6)
         RETURN
@@ -120,22 +120,23 @@ C     CALCOLO COEFFICIENTI AERODINAMICI
 C
 C INST e' il flag di instazionarieta';
 C puo' valere 0, 1, 2 e forza l'utilizzo del metodo PK del relativo ordine
+C FIXME: solo 0 e' valido, gli altri due sono probabilmente bacati ...
       IGO = INST+1
       GOTO(100, 200, 300), IGO
 C
-C PK di ordine 0
+C PK di ordine 0? FIXME: credo che sia stazionario e basta!
  100  CALL COE0(VCSTR, OUTA, CS,
      &  CLIFT, CDRAG, CMOME, ASLOP, BSLOP, CSLOP,
      &  CRF, CFSLOP, DCPDM, DCDRDM, DCMDM, DCRFDM, JPRO)
       GOTO 400
 C
-C PK di ordine 1
+C PK di ordine 1?
  200  CALL COE1(VCSTR, OUTA, CS, CORDA, RSPEED, 
      &  CLIFT, CDRAG, CMOME, ASLOP, BSLOP, CSLOP,
      &  CRF, CFSLOP, DCPDM, DCDRDM, DCMDM, DCRFDM, JPRO)
       GOTO 400
 C
-C PK di ordine 2
+C PK di ordine 2?
  300  CALL COE2(VCSTR, OUTA, CS, CORDA, RSPEED,
      &  CLIFT, CDRAG, CMOME, ASLOP, BSLOP, CSLOP,
      &  CRF, CFSLOP, DCPDM, DCDRDM, DCMDM, DCRFDM, JPRO)
@@ -153,38 +154,40 @@ C
       A1STR(3,3) = -RK*CRF*V
       A1STR(4,1) = -RK*CMOME*CORDA*VCSTR(1)
       A1STR(4,2) = -RK*CMOME*CORDA*VCSTR(2)
-C     CALL DWRITE(' A1STR',A1STR,4,4,3,0)
 C
-C     COSTRUZIONE AA* ?
+C La matrice BM ha la forma
+C
+C   [ 1  0  0    0 ]
+C   [ 0  1  0    0 ]
+C   [ 0  0  1    0 ]
+C
+C   [ 0  0  0    0 ]
+C   [ 0  0  0    0 ]
+C   [ 0  B  0    1 ]
+C
+C dove B e' la posizione del punto a 1/4 della corda rispetto al riferimento
+C (punto di applicazione delle forze aerodinamiche)
 C
       CALL DZERO(BM, 24)                                      
       DO 20 I = 1,3
-        BM(I,I) = 1D0
+        BM(I,I) = 1.D0
  20   CONTINUE
       BM(6,2) = B
-      BM(6,4) = 1D0
+      BM(6,4) = 1.D0
       CALL DPROMM(A1STR, 4, 4, 3, DM, 3, AP, 4, 6, 0, 0)
       CALL DPROMM(BM, 6, 6, 4, AP, 4, AASTR, 6, 6, 0, 0)
 C
 C     COSTRUZIONE Q* ?
 C
-CCCCC Copia gli ultimi 3 termini di W in VCSTR !!!
+CCCCC Copia gli ultimi 3 termini di W in VCSTR (elimina l'effetto della
+CCCCC moltiplicazione iniziale per DM)
       CALL MOVE(VCSTR(4), W(4), 3)
 CCCCC Quindi moltiplica la matrice AASTR per VCSTR a dare QASTR, le forze
       CALL DPROMV(AASTR, 6, 6, 6, VCSTR, QASTR, 0)
-c     cambio segno alle forze perchè le calcola con segno opposto
+C     cambio segno alle forze perchè le calcola con segno opposto
       do I = 1,6
         TNG(I) = -QASTR(I)
       end do  
-C
-C     COSTRUZIONE TERMINE NOTO TNG
-C
-CCCCC      CALL DZERO(TNG, 12)
-CCCCC Routa le forze nel sistema globale
-CCCCC (quasi quasi conviene farlo all'esterno)
-CCCCC CALL DZERO(TNG, 6)
-CCCCC CALL DPROMV(BLQ, 3, 3, 3, QASTR(1), TNG(1), 0)
-CCCCC CALL DPROMV(BLQ, 3, 3, 3, QASTR(4), TNG(4), 0)
 C
       END
       
@@ -199,13 +202,11 @@ C=    COMPILER (LINK=IBJ$)
 
 C Modificato da Pierangelo Masarati 19/11/97
       implicit none
-C      
-C      IMPLICIT REAL*8(A-H,O-Z)
 C
 C Input      
       real*8 VCSTR(*), CS
       integer*4 JPRO
-
+C
 C Output
       real*8 OUTA(*),
      &  CLIFT,CDRAG,CMOME,ASLOP,BSLOP,CSLOP,CRF,CFSLOP,DCPDM,DCRDRM,
@@ -216,7 +217,7 @@ C Local
 C
 C Data      
       real*8 PG, DEGRAD
-      DATA PG /3.1415926D0/, DEGRAD /.017453293D0/
+      DATA PG /3.14159265358979323846D0/, DEGRAD /.017453293D0/
 C
 C     CALCOLA I COEFFICIENTI AERODINAMICI CON TEORIA STAZIONARIA
 C     (CON CORREZIONE PER FRECCIA SECONDO HARRIS A.H.S.JULY 1970)
@@ -288,7 +289,7 @@ C Local:
 C
 C Data:
       real*8 PG,DEGRAD
-      DATA PG /3.1415926D0/, DEGRAD /.017453293D0/
+      DATA PG /3.14159265358979323846D0/, DEGRAD /.017453293D0/
 C
 C     CALCOLA COEFFICIENTI AERODINAMICI CON TEORIA INSTAZIONARIA
 C     SECONDO TEORIA HARRIS A.H.S. JULY 1970
@@ -376,7 +377,7 @@ C Local:
 C
 C Data:
       real*8 PG,DEGRAD,ASN0,ASM0,PN(14),QN(14),PM(14),QM(14)
-      DATA PG /3.1415926D0/, DEGRAD /.017453293D0/
+      DATA PG /3.14159265358979323846D0/, DEGRAD /.017453293D0/
       DATA ASN0 /.22689D0/, ASM0 /.22689D0/
       DATA PN /-3.464003D-1,-1.549076D+0, 4.306330D+1,-5.397529D+1,
      &          5.781402D+0,-3.233003D+1,-2.162257D+1, 1.866347D+1,
@@ -503,20 +504,19 @@ C=    COMPILER (LINK=IBJ$)
      &  BSLOP,CSLOP, CRF, CFSLOP, DCPDM, DCDRDM, DCMDM, DCRFDM,
      &  AS0, CS0, JPRO, IRETRN)
 
-      implicit none
-C     IMPLICIT REAL*8 (A-H,O-Z)
+      IMPLICIT NONE
 
-      real*8 APHIJ, EMIJ, CLIFT, CDRAG, CMOME, ASLOP,
+      REAL*8 APHIJ, EMIJ, CLIFT, CDRAG, CMOME, ASLOP,
      &  BSLOP,CSLOP, CRF, CFSLOP, DCPDM, DCDRDM, DCMDM, DCRFDM,
      &  AS0, CS0
-      integer*4 JPRO, IRETRN
+      INTEGER*4 JPRO, IRETRN
       
-      real*8 D1, D2, D3, CD0, B1, B2, B3,
+      REAL*8 D1, D2, D3, CD0, B1, B2, B3,
      &  PG, SQT, C1, C2, C3, C4, C5, S, S2, S3, S4,
      &  P1, P2, P3, R0, R1, R2, R3, PEND0, PEND1, PEND2, PEND3,
      &  APHIJ2, APHIJ3
       
-      integer*4 NEG
+      INTEGER*4 NEG
 
 
       DIMENSION D1(2,5), D2(2,5), D3(2,5), CD0(2,5),
@@ -552,15 +552,12 @@ C**** DCMDM  = DERIVATA DI CMOME RISPETTO NUMERO DI MACH
 C**** DCRFDM = DERIVATA DI CRF RISPETTO NUMERO DI MACH
 C**** AS0    = PENDENZA CURVA PORTANZA PER ALFA=0
 C**** CS0    = PENDENZA CURVA MOMENTO PER ALFA=0
-      PG = 3.14159
+      PG = 3.14159265358979323846D0
       CFSLOP = 0.
       CRF = .006
       DCRFDM = 0.
       NEG = 1
-C aggiunto da Masarati 21/11/98
-C      IF(EMIJ.GT.1.D0) EMIJ = .99D0
       IF(EMIJ.GT..99D0) EMIJ = .99D0
-C fine aggiunta Masarati 21/11/98
       SQT = DSQRT(1.-EMIJ*EMIJ)
       C1 = 1.-EMIJ
       C2 = .22689*C1
@@ -604,9 +601,7 @@ C fine aggiunta Masarati 21/11/98
       C2 = DCOS(2.*APHIJ)
       C3 = DCOS(3.*APHIJ)
       C4 = DCOS(4.*APHIJ)
-C aggiunto da Masarati 21/11/98
-C      CLIFT = CLIFT/C2
-C fine aggiunta Masarati 21/11/98
+CCCCC CLIFT = CLIFT/C2
       CSLOP = (-.02827*C1+.28044*C2-.01866*C3+.04048*C4)/SQT
       ASLOP = (.080373*C1+2.08616*C2-.033177*C3+.092508*C4)/SQT
       DCPDM = CLIFT*C5
@@ -707,13 +702,13 @@ C
 C*************************          PSIROT          ********************
 C=    COMPILER (LINK=IBJ$)
       SUBROUTINE PSIROT(PSI, A, NRDA, NC, B, NRDB)
-      implicit none
+      IMPLICIT NONE
 
-      integer*4 NRDA, NC, NRDB
-      real*8 PSI, A(NRDA,1), B(NRDB,1)
+      INTEGER*4 NRDA, NC, NRDB
+      REAL*8 PSI, A(NRDA,1), B(NRDB,1)
       
-      real*8 SINP, COSP, TMP1, TMP2
-      integer*4 K
+      REAL*8 SINP, COSP, TMP1, TMP2
+      INTEGER*4 K
 
       
       SINP = DSIN(PSI)
@@ -731,7 +726,7 @@ C=    COMPILER (LINK=IBJ$)
 C*************************          THF F          *********************
 C=    COMPILER (LINK=IBJ$)
       FUNCTION THF(K)
-      implicit none
+      IMPLICIT NONE
       REAL*8 THF, K, A, B, C, D
 C ****  FUNZIONE F DI THEODORSEN ***
       A =  K**4-.102058*K**2+9.55732E-6
@@ -744,7 +739,7 @@ C ****  FUNZIONE F DI THEODORSEN ***
 C*************************          THG F          *********************
 C=    COMPILER (LINK=IBJ$)
       FUNCTION THG(K)
-      implicit none
+      IMPLICIT NONE
       REAL*8 THG, K, A, B, C, D
 C ****  FUNZIONE G DI THEODORSEN ***
       A =  K**4-.102058*K**2+9.55732E-6
@@ -757,15 +752,15 @@ C ****  FUNZIONE G DI THEODORSEN ***
 C*************************          UNST0          *********************
 C=    COMPILER (LINK=IBJ$)
       SUBROUTINE UNST0(ALF, PP, COE, PUNTI, NUPIA, NUPIR)
-      IMPLICIT none
+      IMPLICIT NONE
 
-      integer*4 NUPIA, NUPIR
-      real*8 ALF(25,3), PP(5,5), COE(5,5), PUNTI(2,25),
+      INTEGER*4 NUPIA, NUPIR
+      REAL*8 ALF(25,3), PP(5,5), COE(5,5), PUNTI(2,25),
      &  PERM(5), CD(5)
 
-      real*8 DSCAL
-      real*8 QPSI1, QPSI2,QPSI3
-      integer*4 I, K, L, INDER
+      REAL*8 DSCAL
+      REAL*8 QPSI1, QPSI2,QPSI3
+      INTEGER*4 I, K, L, INDER
       
       DO 10 I = 1,NUPIA
         PP(I,1) = 1.D0
@@ -831,12 +826,12 @@ C
 C*************************          ADD          ***********************
 C=    COMPILER (LINK=IBJ$)
       SUBROUTINE ADD(A,NRDA,B,NRDB,NR,NC,PLUS)
-      implicit none
+      IMPLICIT NONE
 
-      integer*4 NRDA, NRDB, NR, NC
-      real*8 A(NRDA,1),B(NRDB,1),PLUS
+      INTEGER*4 NRDA, NRDB, NR, NC
+      REAL*8 A(NRDA,1),B(NRDB,1),PLUS
 
-      integer*4 I, K
+      INTEGER*4 I, K
       
       DO 10 I=1,NR
       DO 10 K=1,NC
@@ -850,14 +845,14 @@ C=    COMPILER (LINK=IBJ$)
 C
 C     CALCOLA IL PRODOTTO DELLE MATRICI (3*3) "A" * "B" * "C-TRASPOSTA"
 C
-      implicit none
+      IMPLICIT NONE
 
-      integer*4 NRDB
-      real*8 A,B,C,D
+      INTEGER*4 NRDB
+      REAL*8 A,B,C,D
       
       DIMENSION A(3,3),B(NRDB,1),C(3,3),D(3,3)
 
-      integer*4 I, K, L
+      INTEGER*4 I, K, L
       
       DO 10 I=1,3
       DO 10 K=1,3
@@ -878,17 +873,17 @@ C
 C     GIVEN THE ROTATION VECTOR RO AND THE DERIVATIVE OF THE ROTATION
 C     VECTOR RD, CALCULATE THE CAPITAL GAMMA DOT.
 C
-      IMPLICIT none
+      IMPLICIT NONE
 
-      integer*4 ND
-      real*8 RO,RD,DEMA,FACT
+      INTEGER*4 ND
+      REAL*8 RO,RD,DEMA,FACT
 
       REAL*8 A,B,C,D,E,G,RDRO,ARG,ARG2,T
-      integer*4 I
+      INTEGER*4 I
       
       DIMENSION RO(3),RD(3),DEMA(ND,3),T(3)
 
-      real*8 TRESH2
+      REAL*8 TRESH2
       DATA TRESH2/1.D-10/
       
       ARG2=0.D0
@@ -946,13 +941,13 @@ C
 C     GIVEN THE ROTATION VECTOR RO, CALCULATE THE CAPITAL GAMMA MATRIX
 C     SPMA.
 C
-      IMPLICIT none
+      IMPLICIT NONE
 
-      integer*4 ND, ID
-      real *8 RO,SPMA,FACT
+      INTEGER*4 ND, ID
+      REAL *8 RO,SPMA,FACT
       
       REAL*8 A,B,C,ARG,ARG2,T,TRESH2
-      integer*4 I
+      INTEGER*4 I
       
       DIMENSION RO(3),SPMA(ND,3),T(3)
       
@@ -1011,13 +1006,13 @@ C     IA   = INDICE DI TRASPOSIZIONE DI "A"  0 = NO
 C                                            1 = SI
 C     IB   = INDICE DI TRASPOSIZIONE DI "B"
 C
-      implicit none
+      IMPLICIT NONE
 
-      integer*4 NRDA,NRA,NCA,NRDB,NRDC,NCC,IA,IB
-      real*8 A,B,C
+      INTEGER*4 NRDA,NRA,NCA,NRDB,NRDC,NCC,IA,IB
+      REAL*8 A,B,C
       DIMENSION A(NRDA,1),B(NRDB,1),C(NRDC,1)
 
-      integer*4 IGO,I,K,L
+      INTEGER*4 IGO,I,K,L
       
       IGO=2*IA+IB+1
       GOTO(10,20,30,40),IGO
@@ -1065,14 +1060,14 @@ C     IA   = INDICE DI TRASPOSIZIONE DI "A"  0 = NO
 C                                            1 = SI
 C     IB   = INDICE DI TRASPOSIZIONE DI "B"
 C
-      implicit none
+      IMPLICIT NONE
 
-      integer*4 NRDA,NRA,NCA,NRDB,NRDC,NCC,IA,IB
-      real*8 A,B,C
+      INTEGER*4 NRDA,NRA,NCA,NRDB,NRDC,NCC,IA,IB
+      REAL*8 A,B,C
       
       DIMENSION A(NRDA,1),B(NRDB,1),C(NRDC,1)
 
-      integer*4 IGO,I,K,L
+      INTEGER*4 IGO,I,K,L
       
       IGO=2*IA+IB+1
       GOTO(10,20,30,40),IGO
@@ -1113,13 +1108,13 @@ C=    COMPILER (LINK=IBJ$)
 C
 C     ESEGUE IL PRODOTTO DELLA MATRICE "A" PER IL VETTORE "B"
 C
-      implicit none
+      IMPLICIT NONE
 
-      integer*4 NRDA,NRA,NCA,IA
-      real*8 A,B,C
+      INTEGER*4 NRDA,NRA,NCA,IA
+      REAL*8 A,B,C
 
-      integer*4 IGO,I,K
-      real*8 D
+      INTEGER*4 IGO,I,K
+      REAL*8 D
       
       DIMENSION A(NRDA,1),B(NCA),C(NRA)
       
@@ -1146,9 +1141,9 @@ C
 C     ESEGUE IL PRODOTTO DEL VETTORE "X"
 C     PER IL VETTORE "Y" E SOMMA IL RISULTATO IN "Z"
 C
-      implicit none
+      IMPLICIT NONE
       
-      real*8  X,Y,Z,W
+      REAL*8  X,Y,Z,W
       
       DIMENSION X(3),Y(3),Z(3),W(3)
       
@@ -1165,12 +1160,12 @@ C*************************          DPRVVA          ********************
 C=    COMPILER (LINK=IBJ$)
       SUBROUTINE DPRVVA(A,B,C,NRDC,NRA,NRB)
 
-      implicit none
+      IMPLICIT NONE
 
-      integer*4 NRDC,NRA,NRB
-      real*8 A(1),B(1),C(NRDC,1)
+      INTEGER*4 NRDC,NRA,NRB
+      REAL*8 A(1),B(1),C(NRDC,1)
 
-      integer*4 I,K
+      INTEGER*4 I,K
 C
 C     ESEGUE IL PRODOTTO DEL VETTORE A PER IL VETTORE B TRASPOSTO
 C     LA MATRICE RISULTANTE VIENE SOMMATA IN C
@@ -1191,13 +1186,13 @@ C=    COMPILER (LINK=IBJ$)
 C
 C     SOMMA AI TERMINI DEL VETTORE "A" QUELLI DI "B" MOLTIPLICATI PER H
 C
-      implicit none
+      IMPLICIT NONE
 
-      integer*4 N
-      real*8 A,B,H
+      INTEGER*4 N
+      REAL*8 A,B,H
       DIMENSION A(1),B(1)
 
-      integer*4 I
+      INTEGER*4 I
       
       DO 10 I=1,N
         A(I)=A(I)+B(I)*H
@@ -1208,15 +1203,15 @@ C
 C*************************          DRUFCT          ********************
 C=    COMPILER (LINK=IBJ$)
       SUBROUTINE DRUFCT(A,PERM,N,NR,INDER)      
-      IMPLICIT none
+      IMPLICIT NONE
 
-      integer*4 N,NR,INDER
-      real*8 A,PERM
+      INTEGER*4 N,NR,INDER
+      REAL*8 A,PERM
       
       DIMENSION A(NR,1),PERM(1)
 
-      real*8 X,DP
-      integer*4 I,K,IM1,IP1,IPVT,J
+      REAL*8 X,DP
+      INTEGER*4 I,K,IM1,IP1,IPVT,J
       
       DO10I=1,N
       X=0.
@@ -1274,15 +1269,15 @@ C*************************          DRUSOL          ********************
 C=    COMPILER (LINK=IBJ$)
       SUBROUTINE DRUSOL(A,B,NR,N,PERM)
       
-      IMPLICIT none
+      IMPLICIT NONE
 
-      integer*4 NR,N
-      real*8 A,B,PERM
+      INTEGER*4 NR,N
+      REAL*8 A,B,PERM
       
       DIMENSION A(NR,1),B(1),PERM(1)
 
-      real*8 X,DP
-      integer*4 I,K,IM1,INF
+      REAL*8 X,DP
+      INTEGER*4 I,K,IM1,INF
       
       IF(N.GT.1)GOTO 2
       B(1)=B(1)/A(1,1)
@@ -1318,15 +1313,15 @@ C=    COMPILER (LINK=IBJ$)
 
 C*************************          DSCAL          *********************
 C=    COMPILER (LINK=IBJ$)
-      real*8 FUNCTION DSCAL(X,Y,N)
+      REAL*8 FUNCTION DSCAL(X,Y,N)
 C
 C     ESEGUE IL PRODOTTO SCALARE DI X PER Y
 C
-      IMPLICIT none
-      integer*4 N
-      real*8 X, Y
+      IMPLICIT NONE
+      INTEGER*4 N
+      REAL*8 X, Y
 
-      integer*4 I
+      INTEGER*4 I
       DIMENSION X(1),Y(1)
       DSCAL=0.
       DO 1 I=1,N
@@ -1340,12 +1335,12 @@ C=    COMPILER (LINK=IBJ$)
 C
 C     CALCOLA L'OPERATORE VETTORE DI UN VETTORE
 C
-      implicit none
+      IMPLICIT NONE
 
-      integer*4 IVER
-      real*8 W,WV
+      INTEGER*4 IVER
+      REAL*8 W,WV
 
-      real*8 H
+      REAL*8 H
       
       DIMENSION W(3),WV(9)
       
@@ -1367,13 +1362,13 @@ C*************************          LININT          ********************
 C=    COMPILER (LINK=IBJ$)
       SUBROUTINE LININT(XY,N,X,Y,PEND)
       
-      implicit none
+      IMPLICIT NONE
       
-      integer*4 N
-      real*8 XY(2,1),X,Y,PEND
+      INTEGER*4 N
+      REAL*8 XY(2,1),X,Y,PEND
 
-      real*8 K1, K2
-      integer*4 I
+      REAL*8 K1, K2
+      INTEGER*4 I
       IF(X.GT.XY(1,1)) GO TO 10
       K1=1
       GO TO 30
@@ -1394,13 +1389,13 @@ C=    COMPILER (LINK=IBJ$)
 C
 C     TRASFERISCE N TERMINI DEL VETTORE 'B' NEL VETTORE 'A'
 C
-      implicit none
+      IMPLICIT NONE
 
-      integer*4 N
-      real*8 A,B
+      INTEGER*4 N
+      REAL*8 A,B
       DIMENSION A(1),B(1)
 
-      integer*4 I
+      INTEGER*4 I
       
       DO 10 I=1,N
       A(I)=B(I)
@@ -1425,13 +1420,13 @@ C     IA   = INDICE DI TRASPOSIZIONE DI "A"  0 = NO
 C                                            1 = SI
 C     IB   = INDICE DI TRASPOSIZIONE DI "B"
 C
-      implicit none
+      IMPLICIT NONE
 
-      integer*4 NRDA,NRDB,NRDC,IA,IB
-      real*8 A,B,C
+      INTEGER*4 NRDA,NRDB,NRDC,IA,IB
+      REAL*8 A,B,C
 
-      integer*4 NRA, NCA, NCC, IGO, I, K, L
-      real*8 D
+      INTEGER*4 NRA, NCA, NCC, IGO, I, K, L
+      REAL*8 D
       DIMENSION A(NRDA,1),B(NRDB,1),C(NRDC,1),D(3,3)
       
       NRA=3
@@ -1476,15 +1471,16 @@ C
 
 
 C*************************          DZERO            ********************
-      SUBROUTINE DZERO(A,n)
+      SUBROUTINE DZERO(A,N)
 
-      implicit none
+      IMPLICIT NONE
       
-      integer*4 n,i
-      real*8 A(n)
+      INTEGER*4 N,I
+      REAL*8 A(N)
 
-      do i=1,n
-        A(i)=0D0
-      end do
-      return
-      end
+      DO I=1,N
+        A(I)=0.D0
+      END DO
+      RETURN
+      END
+
