@@ -3,6 +3,7 @@ include $(top_srcdir)/build/top.mk
 ## Do not forget to run automake ( --add-missing ) when you modify Makefile.am
 
 EXTRA_DIST = \
+f2c-int.h \
 f2c.h \
 float.h \
 fstream \
