@@ -127,9 +127,8 @@ void Rod::AssMat(FullSubMatrixHandler& WorkMat, doublereal dCoef)
    WorkMat.Add(4, 4, K);
    
    /* termini extradiagonali */
-   K = -K;
-   WorkMat.Add(1, 4, K);
-   WorkMat.Add(4, 1, K);
+   WorkMat.Sub(1, 4, K);
+   WorkMat.Sub(4, 1, K);
 }
 
 
@@ -153,14 +152,25 @@ void Rod::AssVec(SubVectorHandler& WorkVec)
    dEpsilon = dElle/dL0-1.;
    
    /* Ampiezza della forza */
-   ConstitutiveLaw1DOwner::Update(dEpsilon);
+   bool ChangeJac(false);
+   try {
+      ConstitutiveLaw1DOwner::Update(dEpsilon);
+   }
+   catch (Elem::ChangedEquationStructure) {
+      ChangeJac = true;
+   }
+
    doublereal dF = GetF();
    
    /* Vettore forza */
    Vec3 F = v*(dF/dElle);
    
    WorkVec.Add(1, F);
-   WorkVec.Add(4, -F);
+   WorkVec.Sub(4, F);
+
+   if (ChangeJac) {
+      throw Elem::ChangedEquationStructure();
+   }
 }
 
 
@@ -623,9 +633,8 @@ ViscoElasticRod::AssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(4, 4, K);
    
    /* termini extradiagonali */
-   K = -K;
-   WM.Add(1, 4, K);
-   WM.Add(4, 1, K);
+   WM.Sub(1, 4, K);
+   WM.Sub(4, 1, K);
    
    return WorkMat;
 }
@@ -679,7 +688,13 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
    dEpsilonPrime  = (v.Dot(vPrime))/(dElle*dL0);
    
    /* Ampiezza della forza */
-   ConstitutiveLaw1DOwner::Update(dEpsilon, dEpsilonPrime);
+   bool ChangeJac(false);
+   try {
+      ConstitutiveLaw1DOwner::Update(dEpsilon, dEpsilonPrime);
+   }
+   catch (Elem::ChangedEquationStructure) {
+      ChangeJac = true;
+   }
    doublereal dF = GetF();
    
    /* Vettore forza */
@@ -687,6 +702,10 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
    
    WorkVec.Add(1, F);
    WorkVec.Sub(4, F);
+
+   if (ChangeJac) {
+      throw Elem::ChangedEquationStructure();
+   }
    
    return WorkVec;
 }
@@ -760,13 +779,11 @@ ViscoElasticRod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(4, 10, KPrime);
    
    /* termini extradiagonali */
-   K = -K;
-   WM.Add(1, 7, K);
-   WM.Add(4, 1, K);
+   WM.Sub(1, 7, K);
+   WM.Sub(4, 1, K);
 
-   KPrime = -KPrime;
-   WM.Add(1, 10, KPrime);
-   WM.Add(4, 4, KPrime);
+   WM.Sub(1, 10, KPrime);
+   WM.Sub(4, 4, KPrime);
    
    return WorkMat;
 }
@@ -1037,28 +1054,27 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Termini di coppia, nodo 1 */
    Mat3x3 Tmp2 = Mat3x3(f1Tmp)*Tmp;
    WM.Add(4, 1, Tmp2);
-   WM.Add(4, 7, -Tmp2);
+   WM.Sub(4, 7, Tmp2);
    
    /* Termini di coppia, nodo 2 */
    Tmp2 = Mat3x3(f2Tmp)*Tmp;
    WM.Add(10, 7, Tmp2);
-   WM.Add(10, 1, -Tmp2);
+   WM.Sub(10, 1, Tmp2);
    
    /* termini di forza extradiagonali */
-   Tmp = -Tmp;
-   WM.Add(1, 7, Tmp);
-   WM.Add(7, 1, Tmp);
+   WM.Sub(1, 7, Tmp);
+   WM.Sub(7, 1, Tmp);
    
    
    /* Termini di rotazione, Delta g1 */
    Tmp = K*Mat3x3(-f1Tmp)
      +KPrime*(Mat3x3(Omega1.Cross(f1Tmp*dCoef))-Mat3x3(f1Tmp));
    WM.Add(1, 4, Tmp);
-   WM.Add(7, 4, -Tmp);
+   WM.Sub(7, 4, Tmp);
    
    /* Termini di coppia, Delta g1 */
    Tmp2 = Mat3x3(f1Tmp)*Tmp;
-   WM.Add(10, 4, -Tmp2);
+   WM.Sub(10, 4, Tmp2);
    Tmp2 += Mat3x3(f1Tmp*dCoef, F);
    WM.Add(4, 4, Tmp2);     
            
@@ -1066,11 +1082,11 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
    Tmp = K*Mat3x3(-f2Tmp)
      +KPrime*(Mat3x3(Omega2.Cross(f2Tmp*dCoef))-Mat3x3(f2Tmp));   
    WM.Add(7, 10, Tmp);
-   WM.Add(1, 10, -Tmp);
+   WM.Sub(1, 10, Tmp);
 
    /* Termini di coppia, Delta g2 */
    Tmp2 = Mat3x3(f2Tmp)*Tmp;
-   WM.Add(4, 10, -Tmp2);
+   WM.Sub(4, 10, Tmp2);
    Tmp2 += Mat3x3(f2Tmp*dCoef, F);
    WM.Add(10, 10, Tmp2);     
    
@@ -1140,7 +1156,14 @@ RodWithOffset::AssRes(SubVectorHandler& WorkVec,
    dEpsilonPrime  = (v.Dot(vPrime))/(dElle*dL0);
    
    /* Ampiezza della forza */
-   ConstitutiveLaw1DOwner::Update(dEpsilon, dEpsilonPrime);
+   bool ChangeJac(false);
+   try {
+      ConstitutiveLaw1DOwner::Update(dEpsilon, dEpsilonPrime);
+   }
+   catch (Elem::ChangedEquationStructure) {
+      ChangeJac = true;
+   }
+   
    doublereal dF = GetF();
    
    /* Vettore forza */
@@ -1150,6 +1173,10 @@ RodWithOffset::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(4, f1Tmp.Cross(F));
    WorkVec.Sub(7, F);
    WorkVec.Sub(10, f2Tmp.Cross(F));
+
+   if (ChangeJac) {
+      throw Elem::ChangedEquationStructure();
+   }
    
    return WorkVec;
 }
@@ -1367,17 +1394,16 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Termini di coppia, nodo 1 */
    Mat3x3 Tmp2 = Mat3x3(f1Tmp)*Tmp;
    WM.Add(4, 1, Tmp2);
-   WM.Add(4, 13, -Tmp2);
+   WM.Sub(4, 13, Tmp2);
    
    /* Termini di coppia, nodo 2 */
    Tmp2 = Mat3x3(f2Tmp)*Tmp;
    WM.Add(10, 13, Tmp2);
-   WM.Add(10, 1, -Tmp2);
+   WM.Sub(10, 1, Tmp2);
    
    /* termini di forza extradiagonali */
-   Tmp = -Tmp;
-   WM.Add(1, 13, Tmp);
-   WM.Add(7, 1, Tmp);
+   WM.Sub(1, 13, Tmp);
+   WM.Sub(7, 1, Tmp);
 
    
    /* Termini di forza, velocita' */
@@ -1388,38 +1414,37 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Termini di coppia, nodo 1 */
    Tmp2 = Mat3x3(f1Tmp)*Tmp;
    WM.Add(4, 7, Tmp2);
-   WM.Add(4, 19, -Tmp2);
+   WM.Sub(4, 19, Tmp2);
    
    /* Termini di coppia, nodo 2 */
    Tmp2 = Mat3x3(f2Tmp)*Tmp;
    WM.Add(10, 19, Tmp2);
-   WM.Add(10, 7, -Tmp2);
+   WM.Sub(10, 7, Tmp2);
    
    /* termini di forza extradiagonali */
-   Tmp = -Tmp;
-   WM.Add(1, 19, Tmp);
-   WM.Add(7, 7, Tmp);
+   WM.Sub(1, 19, Tmp);
+   WM.Sub(7, 7, Tmp);
       
    
    /* Termini di rotazione, Delta g1 */
    Tmp = K*Mat3x3(-f1Tmp)+KPrime*Mat3x3(Omega1, -f1Tmp);	    
    WM.Add(1, 4, Tmp);
-   WM.Add(7, 4, -Tmp);
+   WM.Sub(7, 4, Tmp);
    
    /* Termini di coppia, Delta g1 */
    Tmp2 = Mat3x3(f1Tmp)*Tmp;
-   WM.Add(10, 4, -Tmp2);
+   WM.Sub(10, 4, Tmp2);
    Tmp2 += Mat3x3(f1Tmp, F);
    WM.Add(4, 4, Tmp2);     
            
    /* Termini di rotazione, Delta g2 */
    Tmp = K*Mat3x3(-f2Tmp)+KPrime*Mat3x3(Omega2, -f2Tmp);
    WM.Add(7, 16, Tmp);
-   WM.Add(1, 16, -Tmp);
+   WM.Sub(1, 16, Tmp);
 
    /* Termini di coppia, Delta g2 */
    Tmp2 = Mat3x3(f2Tmp)*Tmp;
-   WM.Add(4, 16, -Tmp2);
+   WM.Sub(4, 16, Tmp2);
    Tmp2 += Mat3x3(f2Tmp, F);
    WM.Add(10, 16, Tmp2);     
    
@@ -1427,22 +1452,22 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Termini di velocita' angolare, Delta Omega1 */
    Tmp = KPrime*Mat3x3(-f1Tmp);
    WM.Add(1, 10, Tmp);
-   WM.Add(7, 10, -Tmp);
+   WM.Sub(7, 10, Tmp);
    
    /* Termini di coppia, Delta Omega1 */
    Tmp2 = Mat3x3(f1Tmp)*Tmp;
    WM.Add(4, 10, Tmp2);
-   WM.Add(10, 10, -Tmp2);     
+   WM.Sub(10, 10, Tmp2);     
    
    /* Termini di velocita' angolare, Delta Omega2 */
    Tmp = KPrime*Mat3x3(-f2Tmp);
    WM.Add(7, 22, Tmp);
-   WM.Add(1, 22, -Tmp);
+   WM.Sub(1, 22, Tmp);
    
    /* Termini di coppia, Delta Omega2 */
    Tmp2 = Mat3x3(f2Tmp)*Tmp;
    WM.Add(10, 22, Tmp2);
-   WM.Add(4, 22, -Tmp2);     
+   WM.Sub(4, 22, Tmp2);     
    
    return WorkMat;   
 }
@@ -1517,8 +1542,8 @@ RodWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
    
    WorkVec.Add(1, F);
    WorkVec.Add(4, f1Tmp.Cross(F));
-   WorkVec.Add(7, -F);
-   WorkVec.Add(10, F.Cross(f2Tmp));
+   WorkVec.Sub(7, F);
+   WorkVec.Sub(10, f2Tmp.Cross(F));
    
    return WorkVec;
 }
