@@ -143,6 +143,10 @@ void
 NaiveMatrixHandler::Reset(void)
 {
 #ifdef HAVE_MEMSET_H
+#if 0
+	/* FIXME: if the matrix is dense, this should be better */
+	memset(ppnonzero[0], 0, sizeof(char)*iSize*iSize);
+#else
 	for (integer row = 0; row < iSize; row++) {
 		integer ncols = piNzc[row];
 		integer * piCols = ppiCols[row];
@@ -151,7 +155,7 @@ NaiveMatrixHandler::Reset(void)
 			pnonzero[piCols[col]] = 0;
 		}
 	}
-//	memset(ppnonzero[0], 0, sizeof(char)*iSize*iSize);
+#endif
 	memset(piNzr, 0, sizeof(integer)*iSize);
 	memset(piNzc, 0, sizeof(integer)*iSize);
 #else /* ! HAVE_MEMSET_H */
