@@ -134,7 +134,7 @@ C     il secondo record DI GRT non serve
      *     'DISPLACEMENTS'
       write(outfil,'(500(1X,1PE17.10))') (0.0*i, i=1,nmodes)        
       write(outfil,'(A2)') '**'
-      write(outfil,'(A32,A10)') '** RECORD GROUP 4, INITIAL MODAL', 
+      write(outfil,'(A32,A10)') '** RECORD GROUP 4, INITIAL MODAL ', 
      *     'VELOCITIES'
       write(outfil,'(500(1X,1PE17.10))') (0.0*i, i=1,nmodes)        
       
