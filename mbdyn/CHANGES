@@ -39,7 +39,8 @@ MBDyn 1.2-Engineering
 		- added Umfpack 4.1 support
 		- added "exit" statement
 		- reworked distance joints; d=0 not allowed any more
-		- loadable elements can be used as joints
+		- selected loadable elements can be used as joints
+		- parameter nodes value is output in .prm files
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility

@@ -6,6 +6,9 @@ Copyright (C) 1996-2003
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Wed Jul 30 20:44:46 CEST 2003 Pierangelo Masarati <masarati@aero.polimi.it>
+ - parameter node output in .prm files
+
 *** Tue Jul 29 22:00:00 CEST 2003 Pierangelo Masarati <masarati@aero.polimi.it>
  - reworked distance joints
  - loadable elems as joints

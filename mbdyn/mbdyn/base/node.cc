@@ -426,9 +426,14 @@ ParameterNode::GetDofType(unsigned int i) const
 
 
 /* Output di default per nodi di cui non si desidera output */
-void ParameterNode::Output(OutputHandler& /* OH */ ) const
+void ParameterNode::Output(OutputHandler& OH) const
 {
-   NO_OP; 
+	if (fToBeOutput()) {
+		std::ostream& out = OH.Parameters(); 
+
+		out << std::setw(8) << GetLabel() 
+			<< " " << dGetX() << std::endl;
+	}
 }
 
 

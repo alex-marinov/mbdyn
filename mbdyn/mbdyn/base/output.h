@@ -52,29 +52,30 @@ class OutputHandler : public FileName {
    enum OutFiles {
       UNKNOWN = -1,
       OUTPUT      = 0,
-      STRNODES    = 1,
-      ELECTRIC    = 2,
-      ABSTRACT    = 3,      
-      INERTIA     = 4,
-      JOINTS      = 5,
-      FORCES      = 6, 
-      BEAMS       = 7,
-      ROTORS      = 8,
-      RESTART     = 9,
-      AERODYNAMIC = 10,
-      HYDRAULIC   = 11,
-      PRESNODES   = 12,
-      LOADABLE    = 13,
-      GENELS      = 14,
-      PARTITION   = 15,
-      ADAMSRES    = 16,
-      ADAMSCMD    = 17,
-      AEROMODALS  = 18,
-      REFERENCEFRAMES	= 19,
-      LOG         = 20,
-      AIRPROPS	  = 21,
+      STRNODES,
+      ELECTRIC,
+      ABSTRACT,      
+      INERTIA,
+      JOINTS,
+      FORCES, 
+      BEAMS,
+      ROTORS,
+      RESTART,
+      AERODYNAMIC,	/* 10 */
+      HYDRAULIC,
+      PRESNODES,
+      LOADABLE,
+      GENELS,
+      PARTITION,
+      ADAMSRES,
+      ADAMSCMD,
+      AEROMODALS,
+      REFERENCEFRAMES,
+      LOG,		/* 20 */
+      AIRPROPS,
+      PARAMETERS,
 
-      LASTFILE    /* = 22 */
+      LASTFILE		/* 23 */
    };   
    
  private:
@@ -109,6 +110,7 @@ class OutputHandler : public FileName {
    std::ofstream ofReferenceFrames;
    std::ofstream ofLog;
    std::ofstream ofAirProps;
+   std::ofstream ofParameters;
    
    int iCurrWidth;
    int iCurrPrecision;
@@ -328,6 +330,14 @@ class OutputHandler : public FileName {
       ASSERT(ofAirProps.is_open());
 #endif /* HAVE_ISOPEN */
       return (std::ostream&)ofAirProps;	  
+   };
+
+   inline std::ostream& Parameters(void) const {
+      ASSERT(ofParameters.IsOpen);
+#ifdef HAVE_ISOPEN
+      ASSERT(ofParameters.is_open());
+#endif /* HAVE_ISOPEN */
+      return (std::ostream&)ofParameters;	  
    };
 
    inline int iW(void) const { 
