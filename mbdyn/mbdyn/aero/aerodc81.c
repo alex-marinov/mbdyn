@@ -578,8 +578,8 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		 * earlier without computing forces)
 		 */
 		cn = dcla*DAN+DCN*C1;
-		cl += cn*v[V_X]/vp;	/* cos(alpha) */
-		cd -= cn*v[V_Y]/vp;	/* sin(alpha) */
+		cl += cn*v[V_X]/vp;	/* cos(x) */
+		cd -= cn*v[V_Y]/vp;	/* sin(x) */
 		cm += dcma*DAM+DCM*C1;
 
 		break;
