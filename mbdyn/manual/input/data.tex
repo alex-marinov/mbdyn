@@ -708,6 +708,8 @@ structure for nodes and elements is allocated at the beginning with fixed
 size. This is going to change, giving raise to a ``free'' and resizable
 structure. But this practice is to be considered reliable since it allows a
 sort of double-check on the entities that are inserted.
+
+\section{Model Control Cards}
 The cards are: 
 
 \subsubsection{Skip Initial Joint Assembly}
@@ -800,6 +802,44 @@ This will be fixed when a binary output is implemented.
     <card> ::= output precision : <number_of_digits> ;
 \end{verbatim}
 
+
+\section{Model Counter Cards}
+The following counters can be defined:
+\subsection{Nodes}
+\begin{itemize}
+\item \kw{abstract nodes}
+\item \kw{electric nodes}
+\item \kw{hydraulic nodes}
+\item \kw{parameter nodes}
+\item \kw{structural nodes}
+\end{itemize}
+
+\subsection{Drivers}
+\begin{itemize}
+\item \kw{file drivers}
+\end{itemize}
+
+\subsection{Elements}
+\begin{itemize}
+\item \kw{aerodynamic elements}
+\item \kw{aeromodals}
+\item \kw{air properties}
+\item \kw{automatic structural elements}
+\item \kw{beams}
+\item \kw{bulk elements}
+\item \kw{electric bulk elements}
+\item \kw{electric elements}
+\item \kw{external elements}
+\item \kw{forces}
+\item \kw{genels}
+\item \kw{gravity}
+\item \kw{hydraulic elements}
+\item \kw{joints}
+\item \kw{loadable elements}
+\item \kw{output elements}
+\item \kw{rigid bodies}
+\item \kw{rotors}
+\end{itemize}
 
 
 
