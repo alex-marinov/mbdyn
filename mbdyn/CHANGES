@@ -24,7 +24,8 @@ MBDyn 1.1.2
 		- modal element can use a portion of the available modes
 		- deformable hinge rewritten using absolute rotation
 		  (caveat: more accurate and insensitive to drift, 
-		  but prone to singularities for excessively large rotations)
+		  but prone to singularities for excessively large 
+		  relative rotations)
 	Bug fixes:
 		- fix unsteady Cm sign bug in unsteady c81 aerodynamics
 		- fix input file command line arg delete[] failure 
