@@ -403,6 +403,45 @@ The alternative form, which will become the default, allows more
 friendly definition of the binding.
 The name of the parameter depends on the element whose property
 is being bound.
+A complete listing of the parameters that a parameter node 
+can be bound to is not available, since most are added based
+on developers' needs.
+It is advisable that a mechanism for elements to publish 
+what parameters they can make available be devised and implemented.
+
+Example: the parameter node \texttt{angle} is bound to the rotation
+of a revolute hinge.
+\begin{verbatim}
+    # ... integrator
+    begin: control data;
+        structural nodes: 2;
+        parameter nodes: 2;
+        # ... other control data
+    end: control data;
+
+    set: integer node1 = 1000;
+    set: integer node2 = 2000;
+    set integer angle = 5000;
+
+    begin: nodes;
+        structural: node1, dynamic, null, eye, null, null;
+        structural: node2, dynamic, null, eye, null, null;
+        parameter: angle, element;
+
+        # ... other nodes
+    end: nodes;
+
+    begin: elements;
+        joint: 1, revolute hinge,
+            node1, reference, node, null,
+                hinge, reference, node, eye,
+            node2, reference, node, null,
+                hinge, reference, node, eye;
+        bind: 1, 1, joint, angle, string, "rx";
+
+        # ... other elements
+    end: elements;
+\end{verbatim}
 
 
 
