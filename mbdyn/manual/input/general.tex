@@ -127,7 +127,53 @@ as the machine $ \pi $, as well as the constants \kw{e},
 \begin{verbatim}
     mbdyn -H
 \end{verbatim}
-for an up-to-date list of predefined variables.
+for an up-to-date list of predefined variables; a typical output
+is shown in Figure~\ref{fig:MBDYN-H}.
+Of course values are stored with the maximum precision allowed
+by the underlying real type (by default, double precision, 64 bit).
+
+\begin{figure}
+\label{fig:MBDYN-H}
+\centering
+\small
+\begin{minipage}{120mm}
+\begin{verbatim}
+user@host:~> mbdyn -H
+
+MBDyn - MultiBody Dynamics 1.2-Engineering
+compiled on May 20 2004 at 10:42:24
+
+Copyright 1997-2004 (C) Paolo Mantegazza and Pierangelo Masarati,
+Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano.
+
+MBDyn is free software, covered by the GNU General Public License, and you are
+welcome to change it and/or distribute copies of it under certain conditions.
+Use 'mbdyn --license' to see the conditions.
+There is absolutely no warranty for MBDyn.  Use "mbdyn --warranty" for details.
+
+default symbol table:
+  real mm2in = 0.0393701
+  real lb2kg = 0.4535
+  real m2in = 39.3701
+  real m2ft = 3.28084
+  real in2m = 0.0254
+  real in2mm = 25.4
+  real pi = 3.14159
+  real deg2rad = 0.0174533
+  real kg2lb = 2.20507
+  real e = 2.71828
+  real rad2deg = 57.2958
+  int RAND_MAX = 2147483647
+  real ft2m = 0.3048
+
+MBDyn terminated normally
+user@host:~>
+\end{verbatim}
+\end{minipage}
+\caption{Predefined variables in mathematical parser}
+\end{figure}
+
+\noindent
 The variable \kw{Time} is declared, defined and initialized\footnote{
     A variable is \kw{declared} when its name enters the namespace;
     it is \kw{defined} when it can be referenced;
@@ -314,6 +360,9 @@ The following rescales an arbitrary vector
     \item general case: a sequence of 9 reals, comma-separated, which
     represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
     \ldots, $ a_{32} $, $ a_{33} $.
+    \emph{Note: the 9 coefficients can pre preceded by the keyword
+    \kw{matr} for consistency with other entities; its use is recommended
+    whenever an ambiguity is possible.}
     \item symmetric matrix: keyword \kw{sym}, followed by a sequence
     of 6 reals, comma-separated, that represents the upper triangle, 
     row-oriented coefficients of a symmetric matrix, 
@@ -327,6 +376,14 @@ The following rescales an arbitrary vector
     \item null matrix: keyword \kw{null}; the matrix is initialised 
     with zeros.
 \end{enumerate}
+For example, the identity matrix can be defined as:
+\begin{verbatim}
+    matr, 1.,0.,0., 0.,1.,0., 0.,0.,1.
+    1.,0.,0., 0.,1.,0., 0.,0.,1.
+    sym, 1.,0.,0., 1.,0., 1.
+    diag, 1.,1.,1.
+    eye
+\end{verbatim}
 \subsection{$3\times{3}$ orientation matrices}
 \begin{enumerate}
     \item general case: two vectors that define an orthonormal reference
@@ -339,18 +396,38 @@ The following rescales an arbitrary vector
     1, (real alpha=pi/6.; 
        cos(alpha)), sin(alpha), 0., 3, 0.,0.,1.
     \end{verbatim}
-    the first example represents the identity matrix (no rotation 
-    with respect to the global reference frame),
-    while the second one describes a rotation of $ \pi/6 $ rad.\ about
-    axis 3.
+    the first example represents the identity matrix i.e.\ no rotation 
+    occurs with respect to the global reference frame: direction 1
+    in the local frame is parallel to \kw{1.,0.,0.} which represents
+    direction 1 in the global frame, while direction 2 in the local frame
+    is parallel to \kw{0.,1.,0.} which represents direction 2
+    in the global frame.
+
+    \noindent
+    The second example describes a rotation of $ \pi/6 $ rad.\ about
+    global direction 3: direction 1 in the local frame results from 
+    composing \kw{cos(pi/6.)} in global direction 1 and \kw{sin(pi/6.)}
+    in global direction 2, while direction 3 in the local frame remains
+    parallel to \kw{0.,0.,1.} which represents direction 3 in the global
+    frame.
     \item identity matrix: keyword \kw{eye}; the identity matrix,
     which means there is no rotation with respect to the global reference
     frame.
     \item a complete orientation matrix: keyword \kw{matr}
     followed by the nine, row-oriented, coefficients, namely
     $ r_{11} $, $ r_{12} $, \ldots, $ r_{33} $.
+    \emph{Note: no orthogonality check is performed; be sure an orthogonal
+    matrix, within the desired tolerance, is input}.
     \item Euler angles: keyword \kw{euler}, followed by the three
     values, as output by structural nodes.
+    \emph{Note: the definition of the three angles that are used 
+    by the code to express orientations may vary between versions.
+    Currently, Briant-Cardano angles are used in place of Euler
+    angles.  The code will remain consistent, i.e. the same angle
+    definition will be used for input and output, but models
+    over versions may become incompatible, so this syntax should 
+    really be used only as a means to quickly reproduce in the input
+    an orientation as resulting from a previous analysis.}
 \end{enumerate}
 \subsection{$6\times{6}$ matrices}
 \begin{enumerate}
