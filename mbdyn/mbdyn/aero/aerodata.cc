@@ -60,7 +60,7 @@ void
 AeroMemory::Predict(int i, doublereal alpha, doublereal &alf1, doublereal &alf2)
 {
 	/* FIXME: this should be s, but I don't want a malloc here */
-	doublereal 	coe[4];
+	doublereal 	coe[3];
 	int		s = StorageSize();
 #ifdef USE_POLCOE
 	/*
@@ -84,7 +84,8 @@ AeroMemory::Predict(int i, doublereal alpha, doublereal &alf1, doublereal &alf2)
 #ifdef USE_POLCOE
 		__FC_DECL__(polcoe)(tt, aa, &order, coe);
 #else /* !USE_POLCOE */
-		coe[2] = ((aa[2]-aa[0])/(tt[2]-tt[0]) - (aa[1]-aa[0])/(tt[1]-tt[0]))/(tt[2]-tt[1]);
+		coe[2] = ((aa[2]-aa[0])/(tt[2]-tt[0])
+				- (aa[1]-aa[0])/(tt[1]-tt[0]))/(tt[2]-tt[1]);
 		coe[1] = (aa[1]-aa[0])/(tt[1]-tt[0]) - (tt[1]+tt[0])*coe[2];
 
 #if 0	/* not used ... */
@@ -187,7 +188,7 @@ AeroData::StorageSize(void) const
 	switch (unsteadyflag) {
 	case AeroData::HARRIS:
 	case AeroData::BIELAWA:
-		return 4;
+		return 3;
 
 	case AeroData::STEADY:
 		return 0;
