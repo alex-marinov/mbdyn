@@ -368,20 +368,19 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		return -1;
 
 	case 2: {
+
+		/*
+		 * Constants from unsteady theory
+		 * synthetized by Richard L. Bielawa,
+		 * 31th A.H.S. Forum Washington D.C. 
+		 * May 1975
+		 */
 		double A, B, A2, B2, ETA, ASN, ASM, 
 			SGN, SGM, SGMAX, 
 			DAN, DCN, DAM, DCM, 
 			S2, alphaN, alphaM, C1,
-			dcma;
-
-		double ALF1, ALF2;
+			dcma, dclatan, ALF1, ALF2;
 		
-		/*
-		 * Constants from unsteady theory
-		 * synthetized by Bielawa 31th A.H.S. Forum 1975
-		 */
-		const double ASN0 = .22689, ASM0 = .22689;
-
 		const double PN[] = { 
 			-3.464003e-1, 
 			-1.549076e+0, 
@@ -393,10 +392,6 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 			1.866347e+1,
 			4.198390e+1,
 			3.295461e+2,
-			0.e+0,
-			0.e+0,
-			0.e+0,
-			0.e+0
 		};
 	
 		const double QN[] = {
@@ -428,9 +423,6 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 			-7.550329e+2,
 			-1.021613e+1,
 			2.247664e+1,
-			0.e+0,
-			0.e+0,
-			0.e+0
 		};
 	
 		const double QM[] = {
@@ -446,8 +438,6 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 			-1.204976e+1,
 			-1.157802e+2,
 			8.612138e+0,
-			0.e+0,
-			0.e+0
 		};
 
 		enum {
@@ -466,6 +456,13 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 			U13 = 12,
 			U14 = 13
 		};
+
+		/*
+		 * This is the static stall angle for Mach = 0
+		 * (here a symmetric airfoil is assumed; the real
+		 * _SIGNED_ static stall should be considered ...)
+		 */
+		const double ASN0 = .22689, ASM0 = .22689;
 
 		ALF1 = OUTA[8];
 		ALF2 = OUTA[9];
@@ -505,12 +502,13 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		}
 
 		DAN = (A*(PN[U_1]+PN[U_5]*SGN)+B*(PN[U_2]+PN[U_6]*SGN)
-			+ exp(-1072.52*A2)*(A*(PN[U_3]
-					+PN[U_7]*SGN)+A2*(PN[U_9]+PN[U10]*SGN))
+			+ exp(-1072.52*A2)*(A*(PN[U_3] +PN[U_7]*SGN)
+				+A2*(PN[U_9]+PN[U10]*SGN))
 			+ exp(-40316.42*B2)*B*(PN[U_4]+PN[U_8]*SGN))*ASN;
 		DCN = A*(QN[U_1]+QN[U_3]*A2+SGN*(QN[U_7]+QN[U_9]*A2+QN[U13]*SGN)
 				+ B2*(QN[U_5]+QN[U11]*SGN))
-			+ B*(QN[U_2]+QN[U_4]*A2+SGN*(QN[U_8]+QN[U10]*A2+QN[U14]*SGN)
+			+ B*(QN[U_2]+QN[U_4]*A2
+					+SGN*(QN[U_8]+QN[U10]*A2+QN[U14]*SGN)
 					+B2*(QN[U_6]+QN[U12]*SGN));
 		DAM = (A*(PM[U_1]+PM[U_3]*A2+PM[U_5]*B2+PM[U10]*SGM+PM[U_7]*A)
 				+ B*(PM[U_2]+PM[U_4]*B2+PM[U_6]*A2
@@ -518,8 +516,10 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 
 		S2 = SGM*SGM;
 
-		DCM = A*(QM[U_2]+QM[U_8]*A+SGM*(QM[U_4]+QM[U10]*A)+S2*(QM[U_6]+QM[U12]*A))
-			+ B*(QM[U_1]+QM[U_7]*B+SGM*(QM[U_3]+QM[U_9]*B)+S2*(QM[U_5]+QM[U11]*B));
+		DCM = A*(QM[U_2]+QM[U_8]*A+SGM*(QM[U_4]+QM[U10]*A)
+				+S2*(QM[U_6]+QM[U12]*A))
+			+ B*(QM[U_1]+QM[U_7]*B+SGM*(QM[U_3]+QM[U_9]*B)
+					+S2*(QM[U_5]+QM[U11]*B));
 
 		OUTA[10] = DAN*RAD2DEG;
 		OUTA[11] = DAM*RAD2DEG;
@@ -553,13 +553,11 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		dcma = get_dcla(data->NMM, data->mm, data->mstall, mach);
 
 		/* note: cl/alpha in 1/deg */
-		if (fabs(alpha) > 1.e-6) {
-			double dclatmp = (cl-cl0)/(alphaN*cosgam);
-			if (dclatmp < dcla) {
-				dcla = dclatmp;
-			}
+		dclatan = dcla;
+		if (fabs(alphaN) > 1.e-6) {
+			dclatan = (cl-cl0)/(alphaN*cosgam);
 		}
-		cl = cl0+dcla*alphaN;
+		cl = cl0+dclatan*alphaN;
 
 		/* back to 1/rad */
 		dcla *= RAD2DEG;
