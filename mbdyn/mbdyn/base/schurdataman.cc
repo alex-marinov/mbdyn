@@ -1828,9 +1828,6 @@ SchurDataManager::Output(void) const
 
 /* End Output */
 
-        
-/* End MakeRestart */
-
 /* End SchurDataManager */
 
 #endif /* USE_MPI */
