@@ -34,6 +34,9 @@
 #define DATAMAN_H
 
 #include <ac/iostream>
+#include <list>
+#include <map>
+#include <string>
 
 #include <myassert.h>
 #include <mynewmem.h>
@@ -61,6 +64,8 @@
 #include <solverdiagnostics.h>
 #include <integr.h>
 
+#include "ScalarFunctions.h"
+
 /* DataManager - begin */
 
 const int iGlobalSymbolTableInitialSize = 21;
@@ -75,6 +80,7 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
    class ErrAssemblyMaxIters {};
    class ErrElemNotAllowedInAssembly {};
    class ErrUnknownElem {};
+   class ErrUnknownFunction {};
    class ErrUnknownNode {};
    class ErrMissingNodes {};
    
@@ -347,6 +353,9 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
    
    Elem** ppElems;         /* puntatore all'array di puntatori agli el. */
    unsigned int iTotElem;  /* numero totale di el. definiti */
+   
+   /* scalar functions */
+   std::map<std::string, const BasicScalarFunction *> MapOfScalarFunctions;
    
    /* struttura dei drivers */
    struct {

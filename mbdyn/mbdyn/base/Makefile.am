@@ -109,7 +109,10 @@ tpldrive.h \
 tpldrive_.h \
 vec3drv.h \
 thirdorderstepsol.h \
-thirdorderstepsol.cc
+thirdorderstepsol.cc \
+ScalarFunctions.h \
+ScalarFunctionsImpl.h \
+ScalarFunctionsImpl.cc
 
 libbase_la_LIBADD = @LIBS@ $(GINACLIB_LIBS)
 libbase_la_LDFLAGS = -static

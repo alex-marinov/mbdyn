@@ -73,7 +73,6 @@ const integer iDefaultMaxInitialIterations = 1;
 const char sDefaultOutputFileName[] = "MBDyn";
 
 
-
 /*
  * costruttore: inizializza l'oggetto, legge i dati e crea le strutture di
  * gestione di Dof, nodi, elementi e drivers.
@@ -194,6 +193,7 @@ DofIter()
    const char* sKeyWords[] = { 
       "begin",
 	"controldata",
+	"scalarfunction",
 	"nodes",
 	"elements",
 	"drivers",
@@ -204,21 +204,25 @@ DofIter()
    enum KeyWords { 
       BEGIN = 0,
 	CONTROLDATA,
+	SCALARFUNCTION,
 	NODES,
 	ELEMENTS,
 	DRIVERS,
 	OUTPUT,
 	LASTKEYWORD
    };
+   /* token corrente */
+   KeyWords CurrDesc;
    
    /* tabella delle parole chiave */
    KeyTable K((int)LASTKEYWORD, sKeyWords);
       
    /* aggiorna la tabella del parser */
    HP.PutKeyTable(K);
-      
+   
+   CurrDesc = KeyWords(HP.GetDescription());    
    /* legge i dati di controllo */
-   if(KeyWords(HP.GetDescription()) != BEGIN) {
+   if(CurrDesc != BEGIN) {
       DEBUGCERR("");
       std::cerr << "<begin> expected at line "
 	<< HP.GetLineData() << std::endl;
@@ -235,6 +239,7 @@ DofIter()
 
    ReadControl(HP, sInputFileName, sOutputFileName);
    HP.PutKeyTable(K);
+   try {CurrDesc = KeyWords(HP.GetDescription()); } catch (EndOfFile) {}
       
    /* fine lettura dati di controllo */
 
@@ -260,7 +265,7 @@ DofIter()
     * e contemporaneamente aggiorna i dof
     */
    if(iTotNodes > 0) {	
-      if(KeyWords(HP.GetDescription()) != BEGIN) {
+      if(CurrDesc != BEGIN) {
 	 DEBUGCERR("");
 	 std::cerr << "<begin> expected at line " 
 	   << HP.GetLineData() << std::endl;
@@ -277,6 +282,7 @@ DofIter()
       
       ReadNodes(HP);
       HP.PutKeyTable(K);
+      try {CurrDesc = KeyWords(HP.GetDescription()); } catch (EndOfFile) {}
    } else {
       DEBUGCERR("");
       std::cerr << "warning, no nodes are defined" << std::endl;
@@ -289,9 +295,16 @@ DofIter()
     */
    ElemDataInit();
    
+   
+   while (CurrDesc == SCALARFUNCTION) {
+   	ParseScalarFunction(HP,MapOfScalarFunctions);
+	HP.PutKeyTable(K);
+	try {CurrDesc = KeyWords(HP.GetDescription()); } catch (EndOfFile) {} 
+   }
+   
    /* legge i drivers, crea la struttura ppDrive */
    if(iTotDrive > 0) {	
-      if(KeyWords(HP.GetDescription()) != BEGIN) {
+      if(CurrDesc != BEGIN) {
 	 DEBUGCERR("");
 	 std::cerr << "<begin> expected at line "
 	   << HP.GetLineData() << std::endl;
@@ -308,6 +321,7 @@ DofIter()
       
       ReadDrivers(HP);
       HP.PutKeyTable(K);
+      try {CurrDesc = KeyWords(HP.GetDescription()); } catch (EndOfFile) {}
    } else {
       DEBUGCERR("warning, no drivers are defined" << std::endl);
    }   
@@ -320,7 +334,7 @@ DofIter()
     * e contemporaneamente aggiorna i dof
     */
    if(iTotElem > 0) {	
-      if(KeyWords(HP.GetDescription()) != BEGIN) {
+      if(CurrDesc != BEGIN) {
 	 DEBUGCERR("");
 	 std::cerr << "<begin> expected at line " 
 	   << HP.GetLineData() << std::endl;
@@ -337,6 +351,7 @@ DofIter()
 	
       ReadElems(HP);
       HP.PutKeyTable(K);
+      try {CurrDesc = KeyWords(HP.GetDescription()); } catch (EndOfFile) {}
    } else {
       DEBUGCERR("");
       std::cerr << "warning, no elements are defined" << std::endl;
