@@ -72,8 +72,8 @@ pPrevNLP(NULL)
 		break;
 	
 	default:
-		std::cerr << "Unknown Preconditioner type; aborting"
-			<< std::endl;
+		silent_cerr("Unknown Preconditioner type; aborting"
+			<< std::endl);
 		throw ErrGeneric(); 
 	}
 }

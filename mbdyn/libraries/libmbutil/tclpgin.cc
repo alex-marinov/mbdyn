@@ -71,7 +71,7 @@ TclPlugIn::Read(int argc, char *argv[])
 	} else if (strcasecmp(s_type, "integer") == 0) {
 		type = TypedValue::VAR_INT;
 	} else {
-		std::cerr << "unknown type '" << s_type << "'" << std::endl;
+		silent_cerr("unknown type \"" << s_type << "\"" << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -83,12 +83,12 @@ TclPlugIn::Read(int argc, char *argv[])
 
 		fin = fopen(s_tcl+7, "r");
 		if (fin == NULL) {
-			std::cerr << "TclPlugIn::Read: error" << std::endl;
+			silent_cerr("TclPlugIn::Read: error" << std::endl);
 			throw ErrGeneric();
 		}
 
 		if (!fgets(buf, sizeof(buf), fin)) {
-			std::cerr << "TclPlugIn::Read: error" << std::endl;
+			silent_cerr("TclPlugIn::Read: error" << std::endl);
 			throw ErrGeneric();
 		}
 
@@ -99,8 +99,8 @@ TclPlugIn::Read(int argc, char *argv[])
 			cmdlen += strlen(buf);
 			s = (char *)realloc(s, cmdlen+1);
 			if (s == NULL) {
-				std::cerr << "TclPlugIn::Read: error" 
-					<< std::endl;
+				silent_cerr("TclPlugIn::Read: error" 
+					<< std::endl);
 				throw ErrGeneric();
 			}
 			strcat(s, buf);
@@ -118,7 +118,7 @@ TclPlugIn::Read(int argc, char *argv[])
 	}
 
 	if (cmd == NULL) {
-		std::cerr << "TclPlugIn::Read: error" << std::endl;
+		silent_cerr("TclPlugIn::Read: error" << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -137,21 +137,21 @@ TclPlugIn::GetVal(void) const
 	Tcl_Obj *res;
 	
 	if (Tcl_GlobalEvalObj(interp, cmd) != TCL_OK) {
-		std::cerr << "TclPlugIn::GetVal: Tcl_GlobalEvalObj: error" 
-			<< std::endl;
+		silent_cerr("TclPlugIn::GetVal: Tcl_GlobalEvalObj: error" 
+			<< std::endl);
 		throw ErrGeneric();
 	}
 
 	if ((res = Tcl_GetObjResult(interp)) == NULL) {
-		std::cerr << "TclPlugIn::GetVal: Tcl_GlobalEvalObj: error" 
-			<< std::endl;
+		silent_cerr("TclPlugIn::GetVal: Tcl_GlobalEvalObj: error" 
+			<< std::endl);
 		throw ErrGeneric();
 	}
 	
 	Real d;
 	if (Tcl_GetDoubleFromObj(NULL, res, &d) != TCL_OK) {
-		std::cerr << "TclPlugIn::GetVal: Tcl_GetDoubleFromObj: error"
-			<< std::endl;
+		silent_cerr("TclPlugIn::GetVal: Tcl_GetDoubleFromObj: error"
+			<< std::endl);
 		throw ErrGeneric();
 	}
 

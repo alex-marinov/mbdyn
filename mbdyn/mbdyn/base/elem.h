@@ -188,8 +188,8 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
        * di nodi connessi; quindi viene chiamata la successiva con gli array
        * dimensionati opportunamente
        */
-      std::cerr << psElemNames[GetElemType()] << "(" << GetLabel() 
-         << ") cannot be used in parallel environment" << std::endl;
+      silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel() 
+         << ") cannot be used in parallel environment" << std::endl);
       throw ErrGeneric();
    };
    

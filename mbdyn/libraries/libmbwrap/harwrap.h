@@ -284,9 +284,9 @@ protected:
 					&iFlag);
       
       		if (iFlag < 0) { 
-	 		std::cerr << sLUClassName 
+	 		silent_cerr(sLUClassName 
 	   			<< ": error during factorization, code "
-				<< iFlag << std::endl;	 
+				<< iFlag << std::endl);
 	 		throw HarwellSolver::ErrFactorization(iFlag);
       		}
       

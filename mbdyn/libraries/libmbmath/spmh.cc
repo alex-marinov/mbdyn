@@ -83,14 +83,14 @@ CompactSparseMatrixHandler::AddUnchecked(const CompactSparseMatrixHandler& m)
 	ASSERT(Ap.size() == m.Ap.size());
 	for (std::vector<doublereal>::size_type i = 0; i < Ai.size(); i++) {
 		if (Ai[i] != m.Ai[i]) {
-			std::cerr << "Ai[" << i << "]" << std::endl;
+			silent_cerr("Ai[" << i << "]" << std::endl);
 			throw ErrGeneric();
 		}
 	}
 
 	for (std::vector<doublereal>::size_type i = 0; i < Ap.size(); i++) {
 		if (Ap[i] != m.Ap[i]) {
-			std::cerr << "Ap[" << i << "]" << std::endl;
+			silent_cerr("Ap[" << i << "]" << std::endl);
 			throw ErrGeneric();
 		}
 	}

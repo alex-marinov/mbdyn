@@ -318,7 +318,7 @@ void
 MyVectorHandler::Resize(integer iSize)
 {
 	if (iSize < 0) {
-		std::cerr << "Negative size!" << std::endl;
+		silent_cerr("Negative size!" << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -355,16 +355,16 @@ MyVectorHandler::Resize(integer iSize)
 	} else {
 		if (pdVecm1 != NULL) {
 			if (iSize > iMaxSize) {
-				std::cerr << "Can't resize to " << iSize
+				silent_cerr("Can't resize to " << iSize
 					<< ": larger than "
-					"max size " << iMaxSize << std::endl;
+					"max size " << iMaxSize << std::endl);
 				throw ErrGeneric();
 			
 			} else {
 				iCurSize = iSize;
 			}
 		} else {
-			std::cerr << "internal error!" << std::endl;
+			silent_cerr("internal error!" << std::endl);
 			throw ErrGeneric();
 		}
 	}

@@ -54,28 +54,28 @@ void
 Elem2Param::Bind(const Elem* pEl, unsigned int i)
 {
 	if (pElem != NULL) {
-		std::cerr << "Elem2Param::Bind(): parameter (" << GetLabel()
+		silent_cerr("Elem2Param::Bind(): parameter (" << GetLabel()
 			<< ") is already bound to "
 			<< psElemNames[pElem->GetElemType()] 
-			<< " (" << pElem->GetLabel() << ')' << std::endl;
+			<< " (" << pElem->GetLabel() << ')' << std::endl);
 		throw ErrGeneric();
 	}
 
 	if (i <= 0) {
-		std::cerr << "Elem2Param::Bind(): illegal value " << i 
+		silent_cerr("Elem2Param::Bind(): illegal value " << i 
 			<< " for " << psElemNames[pEl->GetElemType()] 
 			<< " (" << pEl->GetLabel() << ") private data"
-			<< std::endl;
+			<< std::endl);
 		throw ErrGeneric();
 	}
 
 	iNum = i;     
 
 	if (iNum <= 0 || iNum > pEl->iGetNumPrivData()) {
-		std::cerr << "Elem2Param::Bind(): "
+		silent_cerr("Elem2Param::Bind(): "
 			"wrong element private data number "
 			<< iNum << " for " << psElemNames[pEl->GetElemType()]
-			<< " (" << pEl->GetLabel() << ')' << std::endl;
+			<< " (" << pEl->GetLabel() << ')' << std::endl);
 		throw ErrGeneric();
 	}
 	pElem = (Elem*)pEl;
@@ -135,8 +135,8 @@ StrainGageParam::Bind(const Elem* pEl, unsigned int i)
 {
 	ASSERT(pEl != NULL);
 	if (pEl->GetElemType() != Elem::BEAM) {
-		std::cerr << "StrainGageParam::Bind(): must bind to a beam"
-			<< std::endl;
+		silent_cerr("StrainGageParam::Bind(): must bind to a beam"
+			<< std::endl);
 		throw ErrGeneric();
 	}
 

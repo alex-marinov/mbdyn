@@ -123,8 +123,8 @@ extern const ReferenceFrame AbsRefFrame;
 #include "constltp.h"
 
 /* Deals with license and disclaimer output */
-extern void mbdyn_license(std::ostream& out);
-extern void mbdyn_warranty(std::ostream& out);
+extern void mbdyn_license(void);
+extern void mbdyn_warranty(void);
 
 /* MBDynParser - begin */
 

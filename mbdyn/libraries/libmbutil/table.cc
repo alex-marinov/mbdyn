@@ -127,8 +127,8 @@ Table::Table(Int s, Int f) : size(s), v(NULL)
       NamedValue* n = Put(p->name, (p->type == TABLE_REAL ? p->r_val : p->i_val));
 #endif /* GCC_BUG == 1 */
       if (n == NULL) { 
-	 std::cerr << func_name << ": unable to insert " << p->name 
-		 << std::endl;
+	 silent_cerr(func_name << ": unable to insert " << p->name 
+		 << std::endl);
 	 throw ErrGeneric();
       }
       p++;
@@ -173,8 +173,8 @@ Table::Put(const char* const name, const TypedValue& x)
    static char func_name[] = "Table::Put()";
    NamedValue* pVar = Get(name);
    if (pVar != NULL) {
-      std::cerr << func_name << ": name \"" << name 
-	<< "\" already defined" << std::endl;
+      silent_cerr(func_name << ": name \"" << name 
+	<< "\" already defined" << std::endl);
       throw Table::ErrNameAlreadyDefined();
    }
    
@@ -195,8 +195,8 @@ Table::Put(NamedValue *p)
    static char func_name[] = "Table::Put()";
    NamedValue* pVar = Get(p->GetName());
    if (pVar != NULL) {
-      std::cerr << func_name << ": name \"" << p->GetName()
-	<< "\" already defined" << std::endl;
+      silent_cerr(func_name << ": name \"" << p->GetName()
+	<< "\" already defined" << std::endl);
       throw Table::ErrNameAlreadyDefined();
    }
 

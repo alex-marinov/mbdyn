@@ -55,8 +55,8 @@ void Elem::AssMats(VariableSubMatrixHandler& /* WorkMatA */ ,
 		  const VectorHandler& /* XCurr */ ,
 		  const VectorHandler& /* XPrimeCurr */ ) 
 {
-   std::cerr << psElemNames[GetElemType()] << "(" << GetLabel()
-	   << "): AssMats() not implemented yet" << std::endl;
+   silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel()
+	   << "): AssMats() not implemented yet" << std::endl);
 }
 
 
@@ -69,9 +69,9 @@ Elem::iGetNumDof(void) const
 DofOrder::Order 
 Elem::GetDofType(unsigned int) const
 {
-	std::cerr << psElemNames[GetElemType()] << "(" << GetLabel()
+	silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel()
 		<< "): GetDofType() is undefined because element "
-		"has no degrees of freedom" << std::endl;
+		"has no degrees of freedom" << std::endl);
 	throw ErrGeneric();
 }
 

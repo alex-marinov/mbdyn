@@ -85,21 +85,22 @@ type(AF_INET), sock(0), connection_flag(false)
 		
 		if (sock == -1) {
       			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): socket failed" << std::endl);
+				<< "): socket() failed" << std::endl);
       			throw ErrGeneric();
    		} else if (sock == -2) {
       			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): bind failed" << std::endl);
+				<< "): bind() failed" << std::endl);
       			throw ErrGeneric();
    		} else if (sock == -3) {
       			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): illegal host name" << std::endl);
+				<< "): illegal host name \"" << host << "\""
+				<< std::endl);
       			throw ErrGeneric();
    		}
 		
    		if (listen(sock, 1) < 0) {
       			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): listen failed" << std::endl);
+				<< "): listen() failed" << std::endl);
       			throw ErrGeneric();
    		}
 	}
@@ -125,17 +126,17 @@ host(NULL), type(AF_LOCAL), sock(0), connection_flag(false)
 		
 		if (sock == -1) {
       			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): socket failed" << std::endl);
+				<< "): socket() failed" << std::endl);
       			throw ErrGeneric();
    		} else if (sock == -2) {
       			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): bind failed" << std::endl);
+				<< "): bind() failed" << std::endl);
       			throw ErrGeneric();
    		}
 		
    		if (listen(sock, 1) < 0) {
       			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): listen failed" << std::endl);
+				<< "): listen() failed" << std::endl);
       			throw ErrGeneric();
    		}
 	}
@@ -185,9 +186,9 @@ SocketStreamDrive::ServePending(const doublereal& t)
 			}
 	
 		} else {	
-			std::cout << "SocketStreamDrive(" << sFileName << ") "
-					<< "Comunication closed by host" << std::endl;
-			//stop simulation
+			silent_cout("SocketStreamDrive(" << sFileName << ") "
+					<< "Comunication closed by host" << std::endl);
+			// stop simulation?
 		}
 	}
 	
@@ -213,8 +214,8 @@ SocketStreamDrive::ServePending(const doublereal& t)
 					sock = accept(tmp_sock,
 							(struct sockaddr *)&client_addr, &socklen);
 					if (sock == -1) {
-               					std::cerr <<"SocketStreamDrive(" << sFileName << ") "
-							"accept failed " << std::endl;
+               					silent_cerr("SocketStreamDrive(" << sFileName << ") "
+							"accept() failed " << std::endl);
 						throw ErrGeneric();
      					}
 					silent_cout("SocketStreamDrive(" << GetLabel()
@@ -238,8 +239,8 @@ SocketStreamDrive::ServePending(const doublereal& t)
 					sock = accept(tmp_sock,
 							(struct sockaddr *)&client_addr, &socklen);
 					if (sock == -1) {
-                				std::cerr <<"SocketStreamDrive(" << sFileName << ") "
-							"accept failed " << std::endl;
+                				silent_cerr("SocketStreamDrive(" << sFileName << ") "
+							"accept() failed " << std::endl);
 						throw ErrGeneric();
         				}
       					silent_cout("SocketStreamDrive(" << GetLabel()
@@ -262,8 +263,8 @@ SocketStreamDrive::ServePending(const doublereal& t)
 						
 					sock = socket(PF_LOCAL, SOCK_STREAM, 0);
 					if (sock < 0){
-						std::cerr <<"SocketStreamDrive(" << sFileName << ") "
-							"socket failed " << host << std::endl;
+						silent_cerr("SocketStreamDrive(" << sFileName << ") "
+							"socket() failed " << host << std::endl);
 						throw ErrGeneric();
 					}
 					addr.sun_family = AF_UNIX;
@@ -274,9 +275,9 @@ SocketStreamDrive::ServePending(const doublereal& t)
 							<< std::endl);
 
 					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
-						std::cerr <<"SocketStreamDrive(" << sFileName << ") "
-								"connect failed " << std::endl;
-							throw ErrGeneric();									
+						silent_cerr("SocketStreamDrive(" << sFileName << ") "
+							"connect() failed " << std::endl);
+						throw ErrGeneric();									
 					}					
 					break;
 				}
@@ -286,16 +287,16 @@ SocketStreamDrive::ServePending(const doublereal& t)
 					struct sockaddr_in addr;
 					
 					sock = socket(PF_INET, SOCK_STREAM, 0);
-						if (sock < 0){
-						std::cerr <<"SocketStreamDrive(" << sFileName << ") "
-							"socket failed " << host << std::endl;
+					if (sock < 0){
+						silent_cerr("SocketStreamDrive(" << sFileName << ") "
+							"socket() failed " << host << std::endl);
 						throw ErrGeneric();
 						}				
 					addr.sin_family = AF_INET;
 					addr.sin_port = htons (data.Port);
 					if (inet_aton(host, &(addr.sin_addr)) == 0) {
-							std::cerr <<"SocketStreamDrive(" << sFileName << ") "
-							"unknow host " << host << std::endl;
+						silent_cerr("SocketStreamDrive(" << sFileName << ") "
+							"unknow host \"" << host << "\"" << std::endl);
 						throw ErrGeneric();	
 					}
 
@@ -306,8 +307,8 @@ SocketStreamDrive::ServePending(const doublereal& t)
 							<< ") ..." << std::endl);
 							
 					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
-						std::cerr <<"SocketStreamDrive(" << sFileName << ") "
-							"connect failed " << std::endl;
+						silent_cerr("SocketStreamDrive(" << sFileName << ") "
+							"connect() failed " << std::endl);
 						throw ErrGeneric();					
 						}
 					break;
@@ -325,8 +326,8 @@ SocketStreamDrive::ServePending(const doublereal& t)
 		lin.l_linger = 0;
 		
 		if (setsockopt(sock, SOL_SOCKET, SO_LINGER, &lin, sizeof(lin))){
-      			std::cerr << "SocketStreamDrive(" << sFileName
-				<< "): setsockopt failed" << std::endl;
+      			silent_cerr("SocketStreamDrive(" << sFileName
+				<< "): setsockopt() failed" << std::endl);
       			throw ErrGeneric();
 			
 		}
@@ -353,10 +354,10 @@ ReadSocketStreamDrive(DataManager* pDM,
 	if (HP.IsKeyWord("name") || HP.IsKeyWord("stream" "drive" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == NULL) {
-			std::cerr << "unable to read socket stream drive name "
+			silent_cerr("unable to read stream drive name "
 				"for SocketStreamDrive(" << uLabel 
 				<< ") at line "
-				<< HP.GetLineData() << std::endl;
+				<< HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 
 		} 
@@ -364,9 +365,9 @@ ReadSocketStreamDrive(DataManager* pDM,
 		SAFESTRDUP(name, m);
 
 	} else {
-		std::cerr << "missing socket stream drive name "
+		silent_cerr("missing stream drive name "
 			"for SocketStreamDrive(" << uLabel
-			<< ") at line " << HP.GetLineData() << std::endl;
+			<< ") at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -376,8 +377,9 @@ ReadSocketStreamDrive(DataManager* pDM,
 		} else if (HP.IsKeyWord("no")) {
 			create = false;
 		} else {
-			std::cerr << "\"create\" must be \"yes\" or \"no\" "
-				"at line " << HP.GetLineData() << std::endl;
+			silent_cerr("\"create\" must be \"yes\" or \"no\" "
+				"for stream drive \"" << name << "\" "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
 	}

@@ -192,10 +192,10 @@ Y12Solver::Factor(void)
 			    dAFLAG, iIFLAG, &iIFAIL);
 			    
 	if (iIFAIL != 0) {
-		std::cerr << "Y12Solver (y12prefactor): "
+		silent_cerr("Y12Solver (y12prefactor): "
 			"error during pre-factorization, code " 
-			<< iIFAIL << ":" << std::endl;
-		PutError(std::cerr, iIFAIL);
+			<< iIFAIL << ":" << std::endl);
+		PutError(iIFAIL);
 		throw Y12Solver::ErrFactorization(iIFAIL);
 	}
 
@@ -208,17 +208,17 @@ Y12Solver::Factor(void)
 			    dAFLAG, iIFLAG, &iIFAIL);
 
 	if (iIFAIL != 0) {
-		std::cerr << "Y12Solver (y12factor): "
+		silent_cerr("Y12Solver (y12factor): "
 			"error during factorization, code " 
-			<< iIFAIL << ":" << std::endl;
-		PutError(std::cerr, iIFAIL);
+			<< iIFAIL << ":" << std::endl);
+		PutError(iIFAIL);
 		throw Y12Solver::ErrFactorization(iIFAIL);
 	}
 
 	if (dAFLAG[7] < 1.e-12) {
-		std::cerr << "Y12Solver (y12factor):"
+		silent_cerr("Y12Solver (y12factor):"
 			" warning, possible bad conditioning of matrix" 
-			<< std::endl;
+			<< std::endl);
 	}
 }
 
@@ -242,10 +242,10 @@ Y12Solver::Solve(void) const
 			    iIFLAG, &iIFAIL);
 	
 	if (iIFAIL != 0) {
-		std::cerr << "Y12Solver (y12solve): "
+		silent_cerr("Y12Solver (y12solve): "
 			"error during back substitution, code "
-			<< iIFAIL << ":" << std::endl;
-		PutError(std::cerr, iIFAIL);
+			<< iIFAIL << ":" << std::endl);
+		PutError(iIFAIL);
 		throw Y12Solver::ErrFactorization(iIFAIL);
 	}
 	
@@ -287,14 +287,13 @@ Y12Solver::MakeCompactForm(SparseMatrixHandler& mh,
 }
 
 void 
-Y12Solver::PutError(std::ostream& out, integer rc) const
+Y12Solver::PutError(integer rc) const
 {
-	out << std::endl;
+	silent_cerr(std::endl);
 
 	switch (rc) {
 	case 1:
-		out 
-			<< "\tThe    coefficient   matrix   A   is   not" << std::endl
+		silent_cerr("\tThe    coefficient   matrix   A   is   not" << std::endl
 			<< "\tfactorized, i.e. the  call  of  subroutine" << std::endl
 			<< "\tY12MD  was not preceded by a call of Y12MC" << std::endl
 			<< "\tduring the solution of   Ax=b   or  during" << std::endl
@@ -305,32 +304,29 @@ Y12Solver::PutError(std::ostream& out, integer rc) const
 			<< "\tif  the  user  sets IFLAG(1) .ge. 0 before" << std::endl
 			<< "\tthe call of package Y12M (i.e. before  the" << std::endl
 			<< "\tfirst   call   of  a  subroutine  of  this" << std::endl
-			<< "\tpackage)." << std::endl;
+			<< "\tpackage)." << std::endl);
 		break;
 
 	case 2:
-		out
-			<< "\tThe coefficient matrix A is  not  ordered," << std::endl
+		silent_cerr("\tThe coefficient matrix A is  not  ordered," << std::endl
 			<< "\ti.e.  the call of subroutine Y12MC was not" << std::endl
 			<< "\tpreceded by a call  of  Y12MB.  This  will" << std::endl
 			<< "\twork  in  all  cases only if the user sets" << std::endl
 			<< "\tIFLAG(1) .ge. 0 before the call of package" << std::endl
 			<< "\tY12M  (i.e.  before  the  first  call of a" << std::endl
-			<< "\tsubroutine of this package)." << std::endl;
+			<< "\tsubroutine of this package)." << std::endl);
 		break;
 
 	case 3:
-		out
-			<< "\tA pivotal element abs(a(i,i;j)) < AFLAG(4)" << std::endl
+		silent_cerr("\tA pivotal element abs(a(i,i;j)) < AFLAG(4)" << std::endl
 			<< "\t*  AFLAG(6) is selected.  When AFLAG(4) is" << std::endl
 			<< "\tsufficiently small this is  an  indication" << std::endl
 			<< "\tthat the coefficient matrix is numerically" << std::endl
-			<< "\tsingular." << std::endl;
+			<< "\tsingular." << std::endl);
 		break;
 		
 	case 4:
-		out
-			<< "\tAFLAG(5), the  growth  factor,  is  larger" << std::endl
+		silent_cerr("\tAFLAG(5), the  growth  factor,  is  larger" << std::endl
 			<< "\tthan    AFLAG(3).    When    AFLAG(3)   is" << std::endl
 			<< "\tsufficiently large this indicates that the" << std::endl
 			<< "\telements  of the coefficient matrix A grow" << std::endl
@@ -338,26 +334,23 @@ Y12Solver::PutError(std::ostream& out, integer rc) const
 			<< "\tthe continuation of the computation is not" << std::endl
 			<< "\tjustified.  The  choice   of   a   smaller" << std::endl
 			<< "\tstability   factor,   AFLAG(1),  may  give" << std::endl
-			<< "\tbetter results in this case." << std::endl;
+			<< "\tbetter results in this case." << std::endl);
 		break;
 
 	case 5:
-		out
-			<< "\tThe length NN of arrays A and SNR  is  not" << std::endl
+		silent_cerr("\tThe length NN of arrays A and SNR  is  not" << std::endl
 			<< "\tsufficient.   Larger  values  of  NN  (and" << std::endl
-			<< "\tpossibly of NN1) should be used." << std::endl;
+			<< "\tpossibly of NN1) should be used." << std::endl);
 		break;
 
 	case 6:
-		out
-			<< "\tThe  length  NN1  of  array  RNR  is   not" << std::endl
+		silent_cerr("\tThe  length  NN1  of  array  RNR  is   not" << std::endl
 			<< "\tsufficient.   Larger  values  of  NN1 (and" << std::endl
-			<< "\tpossibly of NN) should be used." << std::endl;
+			<< "\tpossibly of NN) should be used." << std::endl);
 		break;
 
 	case 7:
-		out
-			<< "\tA row without  non-zero  elements  in  its" << std::endl
+		silent_cerr("\tA row without  non-zero  elements  in  its" << std::endl
 			<< "\tactive    part   is   found   during   the" << std::endl
 			<< "\tdecomposition.  If   the   drop-tolerance," << std::endl
 			<< "\tAFLAG(2),   is  sufficiently  small,  then" << std::endl
@@ -368,12 +361,11 @@ Y12Solver::PutError(std::ostream& out, integer rc) const
 			<< "\trun  with  a  smaller  value  of  AFLAG(2)" << std::endl
 			<< "\tand/or  a  careful check of the parameters" << std::endl
 			<< "\tAFLAG(8) and AFLAG(5)  is  recommended  in" << std::endl
-			<< "\tthe latter case." << std::endl;
+			<< "\tthe latter case." << std::endl);
 		break;
 
 	case 8:
-		out
-			<< "\tA  column without non-zero elements in its" << std::endl
+		silent_cerr("\tA  column without non-zero elements in its" << std::endl
 			<< "\tactive   part   is   found   during    the" << std::endl
 			<< "\tdecomposition.   If   the  drop-tolerance," << std::endl
 			<< "\tAFLAG(2),  is  sufficiently  small,   then" << std::endl
@@ -384,12 +376,11 @@ Y12Solver::PutError(std::ostream& out, integer rc) const
 			<< "\trun  with  a  smaller  value  of  AFLAG(2)" << std::endl
 			<< "\tand/or a careful check of  the  parameters" << std::endl
 			<< "\tAFLAG(8)  and  AFLAG(5)  is recommended in" << std::endl
-			<< "\tthe latter case." << std::endl;
+			<< "\tthe latter case." << std::endl);
 		break;
 	
 	case 9:
-		out
-			<< "\tA pivotal element  is  missing.  This  may" << std::endl
+		silent_cerr("\tA pivotal element  is  missing.  This  may" << std::endl
 			<< "\toccur  if  AFLAG(2)  >  0 and IFLAG(4) = 2" << std::endl
 			<< "\t(i.e. some system after the first one in a" << std::endl
 			<< "\tsequence   of   systems   with   the  same" << std::endl
@@ -401,144 +392,127 @@ Y12Solver::PutError(std::ostream& out, integer rc) const
 			<< "\talso occur when one of the special pivotal" << std::endl
 			<< "\tstrategies (IFLAG(3)=0 or  IFLAG(3)=2)  is" << std::endl
 			<< "\tused  and  the  matrix is not suitable for" << std::endl
-			<< "\tsuch a strategy." << std::endl;
+			<< "\tsuch a strategy." << std::endl);
 		break;
 
 	case 10:
-		out
-			<< "\tSubroutine Y12MF is called with IFLAG(5) =" << std::endl
+		silent_cerr("\tSubroutine Y12MF is called with IFLAG(5) =" << std::endl
 			<< "\t1  (i.e.  with  a  request  to  remove the" << std::endl
 			<< "\tnon-zero elements of the lower  triangular" << std::endl
 			<< "\tmatrix    L).     IFLAG(5)=2     must   be" << std::endl
-			<< "\tinitialized instead of IFLAG(5)=1." << std::endl;
+			<< "\tinitialized instead of IFLAG(5)=1." << std::endl);
 		break;
 
 	case 11:
-		out
-			<< "\tThe coefficient matrix A contains at least" << std::endl
+		silent_cerr("\tThe coefficient matrix A contains at least" << std::endl
 			<< "\ttwo  elements  in the same position (i,j)." << std::endl
 			<< "\tThe  input   data   should   be   examined" << std::endl
-			<< "\tcarefully in this case." << std::endl;
+			<< "\tcarefully in this case." << std::endl);
 		break;
 
 	case 12:
-		out
-			<< "\tThe number of equations in the system Ax=b" << std::endl
+		silent_cerr("\tThe number of equations in the system Ax=b" << std::endl
 			<< "\tis smaller than 2 (i.e.  N<2).  The  value" << std::endl
-			<< "\tof N should be checked." << std::endl;
+			<< "\tof N should be checked." << std::endl);
 		break;
 		
 	case 13:
-		out
-			<< "\tThe  number  of  non-zero  elements of the" << std::endl
+		silent_cerr("\tThe  number  of  non-zero  elements of the" << std::endl
 			<< "\tcoefficient matrix is  non-positive  (i.e." << std::endl
 			<< "\tZ.le.0  ).   The  value of the parameter Z" << std::endl
-			<< "\t(renamed NZ in Y12MF) should be checked." << std::endl;
+			<< "\t(renamed NZ in Y12MF) should be checked." << std::endl);
 		break;
 
 	case 14:
-		out
-			<< "\tThe number of  non-zero  elements  in  the" << std::endl
+		silent_cerr("\tThe number of  non-zero  elements  in  the" << std::endl
 			<< "\tcoefficient  matrix  is  smaller  than the" << std::endl
 			<< "\tnumber of equations (i.e. Z  <  N  ).   If" << std::endl
 			<< "\tthere  is no mistake (i.e. if parameter Z," << std::endl
 			<< "\trenamed NZ in Y12MF, is correctly assigned" << std::endl
 			<< "\ton  entry)  then the coefficient matrix is" << std::endl
-			<< "\tstructurally singular in this case." << std::endl;
+			<< "\tstructurally singular in this case." << std::endl);
 		break;
 
 	case 15:
-		out
-			<< "\tThe length IHA of the first  dimension  of" << std::endl
+		silent_cerr("\tThe length IHA of the first  dimension  of" << std::endl
 			<< "\tarray  HA  is  smaller  than  N.  IHA.ge.N" << std::endl
-			<< "\tshould be assigned." << std::endl;
+			<< "\tshould be assigned." << std::endl);
 		break;
 
 	case 16:
-		out
-			<< "\tThe value of  parameter  IFLAG(4)  is  not" << std::endl
+		silent_cerr("\tThe value of  parameter  IFLAG(4)  is  not" << std::endl
 			<< "\tassigned  correctly.  IFLAG(4)  should  be" << std::endl
 			<< "\tequal to 0, 1 or 2. See  more  details  in" << std::endl
-			<< "\tthe description of this parameter." << std::endl;
+			<< "\tthe description of this parameter." << std::endl);
 		break;
 		
 	case 17:
-		out
-			<< "\tA  row  without non-zero elements has been" << std::endl
+		silent_cerr("\tA  row  without non-zero elements has been" << std::endl
 			<< "\tfound in the coefficient matrix A  of  the" << std::endl
 			<< "\tsystem  before the Gaussian elimination is" << std::endl
 			<< "\tinitiated.  Matrix   A   is   structurally" << std::endl
-			<< "\tsingular." << std::endl;
+			<< "\tsingular." << std::endl);
 		break;
 
 	case 18:
-		out
-			<< "\tA  column  without  non-zero  elements has" << std::endl
+		silent_cerr("\tA  column  without  non-zero  elements has" << std::endl
 			<< "\tbeen found in the coefficient matrix A  of" << std::endl
 			<< "\tthe system before the Gaussian elimination" << std::endl
 			<< "\tis initiated.  Matrix  A  is  structurally" << std::endl
-			<< "\tsingular." << std::endl;
+			<< "\tsingular." << std::endl);
 		break;
 
 	case 19:
-		out
-			<< "\tParameter  IFLAG(2) is smaller than 1. The" << std::endl
+		silent_cerr("\tParameter  IFLAG(2) is smaller than 1. The" << std::endl
 			<< "\tvalue of IFLAG(2)  should  be  a  positive" << std::endl
-			<< "\tinteger (IFLAG(2) = 3 is recommended)." << std::endl;
+			<< "\tinteger (IFLAG(2) = 3 is recommended)." << std::endl);
 		break;
 
 	case 20:
-		out
-			<< "\tParameter   IFLAG(3)   is  out  of  range." << std::endl
-			<< "\tIFLAG(3) should be equal to 0, 1 or 2." << std::endl;
+		silent_cerr("\tParameter   IFLAG(3)   is  out  of  range." << std::endl
+			<< "\tIFLAG(3) should be equal to 0, 1 or 2." << std::endl);
 		break;
 
 	case 21:
-		out
-			<< "\tParameter  IFLAG(5)  is  out   of   range." << std::endl
+		silent_cerr("\tParameter  IFLAG(5)  is  out   of   range." << std::endl
 			<< "\tIFLAG(5) should be equal to 1, 2 or 3 (but" << std::endl
 			<< "\twhen IFLAG(5) = 3 Y12MB and  Y12MC  should" << std::endl
 			<< "\tnot  be  called;  see also the message for" << std::endl
-			<< "\tIFAIL = 22 below)." << std::endl;
+			<< "\tIFAIL = 22 below)." << std::endl);
 		break;
 
 	case 22:
-		out
-			<< "\tEither  subroutine  Y12MB  or   subroutine" << std::endl
+		silent_cerr("\tEither  subroutine  Y12MB  or   subroutine" << std::endl
 			<< "\tY12MC is called with IFLAG(5) = 3. Each of" << std::endl
 			<< "\tthese subroutines should  be  called  with" << std::endl
-			<< "\tIFLAG(5) equal to 1 or 2." << std::endl;
+			<< "\tIFLAG(5) equal to 1 or 2." << std::endl);
 		break;
 
 	case 23:
-		out
-			<< "\tThe    number    of   allowed   iterations" << std::endl
+		silent_cerr("\tThe    number    of   allowed   iterations" << std::endl
 			<< "\t(parameter IFLAG(11) when Y12MF  is  used)" << std::endl
 			<< "\tis  smaller  than  2.   IFLAG(11)  .ge.  2" << std::endl
-			<< "\tshould be assigned." << std::endl;
+			<< "\tshould be assigned." << std::endl);
 		break;
 
 	case 24:
-		out
-			<< "\tAt least one element whose  column  number" << std::endl
+		silent_cerr("\tAt least one element whose  column  number" << std::endl
 			<< "\tis  either larger than N or smaller than 1" << std::endl
-			<< "\tis found." << std::endl;
+			<< "\tis found." << std::endl);
 		break;
 
 	case 25:
-		out
-			<< "\tAt least one element whose row  number  is" << std::endl
+		silent_cerr("\tAt least one element whose row  number  is" << std::endl
 			<< "\teither  larger than N or smaller than 1 is" << std::endl
-			<< "\tfound." << std::endl;
+			<< "\tfound." << std::endl);
 		break;
 
 	default:
-		out
-			<<"\t Unhandled code." << std::endl;
+		silent_cerr("\t Unhandled code." << std::endl);
 		break;
 	}
 
-	out << std::endl;
+	silent_cerr(std::endl);
 }
 
 /* Y12Solver - end */

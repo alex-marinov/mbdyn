@@ -215,8 +215,8 @@ SpMapMatrixHandler::MatMatMul(SpMapMatrixHandler& out,
 	if ((in.iGetNumCols() != iGetNumRows())
 			|| (in.iGetNumRows() != out.iGetNumRows())
 			|| (out.iGetNumCols() != iGetNumCols())) {
-		std::cerr << "Assertion fault "
-			"in SpMapMatrixHandler::MatMatMul" << std::endl;
+		silent_cerr("Assertion fault "
+			"in SpMapMatrixHandler::MatMatMul" << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -244,9 +244,9 @@ SpMapMatrixHandler::MulAndSumWithShift(MatrixHandler& out, doublereal s ,
 {
 	if ((out.iGetNumCols() < iGetNumCols()+dcol)
 			|| (out.iGetNumRows() < iGetNumRows()+drow)) {
-		std::cerr << "Assertion fault "
+		silent_cerr("Assertion fault "
 			"in SpMapMatrixHandler::MulAndSumWithShift"
-			<< std::endl;
+			<< std::endl);
 		throw ErrGeneric();
 	}
 
@@ -271,9 +271,9 @@ SpMapMatrixHandler::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
 {
 	if ((out.iGetNumCols() < iGetNumCols()+dcol)
 			|| (out.iGetNumRows() < iGetNumRows()+drow)) {
-		std::cerr << "Assertion fault "
+		silent_cerr("Assertion fault "
 			"in SpMapMatrixHandler::MulAndSumWithShift"
-			<< std::endl;
+			<< std::endl);
 		throw ErrGeneric();
 	}
 

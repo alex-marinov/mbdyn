@@ -425,8 +425,8 @@ StdAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 		p = PRef * pow(T / TRef, -g0 / (a * R));
 		doublereal rhoRef = RhoRef->dGet();
 		if (rhoRef < 0.) {
-			std::cerr << "illegal reference density "
-				<< rhoRef << std::endl;
+			silent_cerr("illegal reference density "
+				<< rhoRef << std::endl);
 			throw ErrGeneric();
 		}
 		rho = rhoRef * pow(T / TRef, -(g0 / (a * R) + 1));
@@ -437,8 +437,8 @@ StdAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 		p = p1*exp(-g0 / (R * T) * (z - z1));
 		doublereal rhoRef = RhoRef->dGet();
 		if (rhoRef < 0.) {
-			std::cerr << "illegal reference density "
-				<< rhoRef << std::endl;
+			silent_cerr("illegal reference density "
+				<< rhoRef << std::endl);
 			throw ErrGeneric();
 		}
 		doublereal rho1 = rhoRef * pow(T / TRef, -(g0 / (a * R) + 1));
@@ -485,8 +485,8 @@ ReadAirstreamData(DataManager *pDM, MBDynParser& HP,
 					Gust1D(f, g, v, pT, pP));
 
 		} else {
-			std::cerr << "unknown gust type at line "
-				<< HP.GetLineData() << std::endl;
+			silent_cerr("unknown gust type at line "
+				<< HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
 	}
@@ -537,10 +537,10 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 		} else {
 			PRef = HP.GetReal();
 			if (PRef <= 0.) {
-				std::cerr << "illegal reference "
+				silent_cerr("illegal reference "
 					"pressure" << PRef 
 					<< " at line " << HP.GetLineData()
-					<< std::endl;
+					<< std::endl);
 				throw ErrGeneric();
 			}
 
@@ -549,54 +549,54 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 
 			TRef = HP.GetReal();
 			if (TRef <= 0.) {
-				std::cerr << "illegal reference "
+				silent_cerr("illegal reference "
 					"temperature " << TRef 
 					<< " at line " << HP.GetLineData()
-					<< std::endl;
+					<< std::endl);
 				throw ErrGeneric();
 			}
 
 			a = HP.GetReal();
 			if (a >= 0.) {
 				/* FIXME: should we leave this free? */
-				std::cerr << "illegal temperature gradient "
+				silent_cerr("illegal temperature gradient "
 					<< a << " at line " << HP.GetLineData()
-					<< std::endl;
+					<< std::endl);
 				throw ErrGeneric();
 			}
 
 			R = HP.GetReal();
 			if (R <= 0.) {
-				std::cerr << "illegal gas constant " << R
+				silent_cerr("illegal gas constant " << R
 					<< " at line " << HP.GetLineData()
-					<< std::endl;
+					<< std::endl);
 				throw ErrGeneric();
 			}
 
 			g0 = HP.GetReal();
 			if (g0 <= 0.) {
-				std::cerr << "illegal reference "
+				silent_cerr("illegal reference "
 					"gravity acceleration " << g0
 					<< " at line " << HP.GetLineData()
-					<< std::endl;
+					<< std::endl);
 				throw ErrGeneric();
 			}
 
 			z1 = HP.GetReal();
 			if (z1 <= 0.) {
-				std::cerr << "illegal troposphere altitude "
+				silent_cerr("illegal troposphere altitude "
 					<< z1
 					<< " at line " << HP.GetLineData()
-					<< std::endl;
+					<< std::endl);
 				throw ErrGeneric();
 			}
 
 			z2 = HP.GetReal();
 			if (z2 <= z1) {
-				std::cerr << "illegal stratosphere altitude "
+				silent_cerr("illegal stratosphere altitude "
 					<< z2
 					<< " at line " << HP.GetLineData()
-					<< std::endl;
+					<< std::endl);
 				throw ErrGeneric();
 			}
 		}
@@ -606,11 +606,11 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 				doublereal T = HP.GetReal();
 
 				if (TRef + T <= 0.) {
-					std::cerr << "illegal "
+					silent_cerr("illegal "
 						"temperature deviation " << T
 						<< " at line " 
 						<< HP.GetLineData()
-						<< std::endl;
+						<< std::endl);
 					throw ErrGeneric();
 				}
 
@@ -653,8 +653,8 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 	     	doublereal dSS = HP.GetReal();
 	     	DEBUGLCOUT(MYDEBUG_INPUT, "Sound speed: " << dSS << std::endl);
 	     	if (dSS <= 0.) {
-			std::cerr << "illegal null or negative sound speed "
-				"at line " << HP.GetLineData() << std::endl;
+			silent_cerr("illegal null or negative sound speed "
+				"at line " << HP.GetLineData() << std::endl);
 		
 			throw DataManager::ErrGeneric();
 	     	}	      

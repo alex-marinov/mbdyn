@@ -90,8 +90,8 @@ inline doublereal StringDriveCaller::dGet(const doublereal& dVar) const
       istrstream in(sEvalStr);
 #endif /* HAVE_STRSTREAM_H */
       InputStream In(in);
-      std::cout << "StringDriveCaller::dGet(): "
-	<< DriveCaller::pDrvHdl->dGet(In) << std::endl;
+      silent_cout("StringDriveCaller::dGet(): "
+	<< DriveCaller::pDrvHdl->dGet(In) << std::endl);
    } while (0);
 #endif /* DEBUG */
 

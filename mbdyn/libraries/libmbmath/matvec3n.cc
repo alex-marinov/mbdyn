@@ -443,7 +443,7 @@ const Mat3xN& Mat3xN::operator /= (const doublereal& d)
    IsValid();
 #endif /* DEBUG */
    if (d == 0.) {
-      std::cerr << "division by zero" << std::endl;
+      silent_cerr("division by zero" << std::endl);
       throw ErrGeneric();
    }
    if (d != 1.) {

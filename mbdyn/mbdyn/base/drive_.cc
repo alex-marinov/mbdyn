@@ -1129,11 +1129,11 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        DEBUGCOUT("Final time: " << dEndStepTime << std::endl);
        
        if(dEndStepTime <= dStepTime) {	      
-	  std::cerr<< "Warning at line " 
+	  silent_cerr("Warning at line " 
 	    << HP.GetLineData() 
 	    << ": final time " << dEndStepTime
 	    << " is less than or equal to initial time " << dStepTime 
-	    << " in double step func drive" << std::endl;
+	    << " in double step func drive" << std::endl);
        }
        
        doublereal dStepValue = HP.GetReal(1.);
@@ -1167,11 +1167,11 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        DEBUGCOUT("Final time: " << dFinalTime << std::endl);
        
        if(dFinalTime <= dInitialTime) {	      
-	  std::cerr<< "Warning at line "
+	  silent_cerr("Warning at line "
 	    << HP.GetLineData() 
 	    << ": final time " << dFinalTime
 	    << " is less than or equal to initial time " << dInitialTime 
-	    << " in ramp func drive" << std::endl;
+	    << " in ramp func drive" << std::endl);
        }	   
        
        doublereal dInitialValue = HP.GetReal();	   
@@ -1197,12 +1197,12 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        DEBUGCOUT("Ascending Final time: " << dAscendingFinalTime << std::endl);
        
        if (dAscendingFinalTime <= dAscendingInitialTime) {	      
-	  std::cerr<< "Warning at line " 
+	  silent_cerr("Warning at line " 
 	    << HP.GetLineData() << ": ascending final time " 
 	    << dAscendingFinalTime
 	    << " is less than or equal to ascending initial time " 
 	    << dAscendingInitialTime 
-	    << " in double ramp func drive" << std::endl;
+	    << " in double ramp func drive" << std::endl);
 	  throw ErrGeneric();
        }
        
@@ -1216,12 +1216,12 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        DEBUGCOUT("Descending Initial time: " << dDescendingInitialTime << std::endl);
        
        if (dDescendingInitialTime < dAscendingFinalTime) {
-	  std::cerr<< "Warning at line " 
+	  silent_cerr("Warning at line " 
 	    << HP.GetLineData() << ": descending initial time " 
 	    << dDescendingInitialTime
 	    << " is less than ascending final time " 
 	    << dAscendingFinalTime 
-	    << " in double ramp func drive" << std::endl;
+	    << " in double ramp func drive" << std::endl);
 	  throw ErrGeneric();
        }	   
        
@@ -1229,12 +1229,12 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        DEBUGCOUT("Descending Final time: " << dDescendingFinalTime << std::endl);
        
        if (dDescendingFinalTime <= dDescendingInitialTime) {	      
-	  std::cerr<< "Warning at line " 
+	  silent_cerr("Warning at line " 
 	    << HP.GetLineData() << ": descending final time " 
 	    << dDescendingFinalTime
 	    << " is less than descending initial time " 
 	    << dDescendingInitialTime 
-	    << " in double ramp func drive" << std::endl;
+	    << " in double ramp func drive" << std::endl);
 	  throw ErrGeneric();
        }	   
        
@@ -1386,8 +1386,8 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	  if (HP.IsKeyWord("steps")) {
 	     iSteps = HP.GetInt();
 	     if (iSteps <= 0) {		    
-		std::cerr<< "Warning: Steps number " << iSteps 
-		  << " is illegal; resorting to default value" << std::endl;
+		silent_cerr("Warning: Steps number " << iSteps 
+		  << " is illegal; resorting to default value" << std::endl);
 		iSteps = 1;
 	     }
 	     DEBUGCOUT("Force changes every " << iSteps 
@@ -1423,8 +1423,8 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        DEBUGCOUT("number of points: " << n << std::endl);
 
        if (n < 2) {
-	  std::cerr<< "Need at least two points for piecewise linear drive at line "
-	    << HP.GetLineData() << std::endl;
+	  silent_cerr("Need at least two points for piecewise linear drive at line "
+	    << HP.GetLineData() << std::endl);
 	  throw DataManager::ErrGeneric();
        }
 
@@ -1435,9 +1435,9 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        for (unsigned int i = 1; i < n; i++) {
 	  p[i] = HP.GetReal();
 	  if (p[i] <= p[i-1]) {
-	     std::cerr<< "point " << p[i]
+	     silent_cerr("point " << p[i]
 	       << " is smaller than or equal to preceding point " << p[i-1]
-	       << " at line " << HP.GetLineData();
+	       << " at line " << HP.GetLineData() << std::endl);
 	     throw DataManager::ErrGeneric();
 	  }
 	  p[i+n] = HP.GetReal();
@@ -1468,9 +1468,9 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
       /* driver legato ad un grado di liberta' nodale */
     case DOF: {
        if (pDM == NULL) {
-	  std::cerr<< "sorry, since the driver is not owned by a DataManager" << std::endl
+	  silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
 	    << "no DOF dependent drivers are allowed;" << std::endl
-	    << "aborting ...";	  
+	    << "aborting ..." << std::endl);	  
 	  throw DataManager::ErrGeneric();
        }
 
@@ -1478,10 +1478,10 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        
 #ifdef USE_MPI
        if (MPI::Is_initialized() && MBDynComm.Get_size() > 1) {
-          std::cerr<< "warning: add explicit connection entry for "
+          silent_cerr("warning: add explicit connection entry for "
             << psNodeNames[SD.pNode->GetNodeType()] 
 	    << "(" << SD.pNode->GetLabel() << ") dof drive"
-            " at line " << HP.GetLineData() << std::endl;
+            " at line " << HP.GetLineData() << std::endl);
        }
 #endif /* USE_MPI */
        
@@ -1500,9 +1500,9 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
       /* driver legato ai dati privati di un elemento */
     case ELEMENT: {
        if (pDM == NULL) {
-	  std::cerr<< "sorry, since the driver is not owned by a DataManager" << std::endl
+	  silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
 	    << "no element dependent drivers are allowed;" << std::endl
-	    << "aborting ...";	  
+	    << "aborting ..." << std::endl);
 	  throw DataManager::ErrGeneric();
        }
 
@@ -1556,10 +1556,10 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 #ifdef USE_MPI
        /* FIXME: todo ... */
        if (MPI::Is_initialized() && MBDynComm.Get_size() > 1) {
-          std::cerr<< "warning: add explicit connection entry for "
+          silent_cerr("warning: add explicit connection entry for "
             << psElemNames[pElem->GetElemType()] 
 	    << "(" << pElem->GetLabel() << ") element drive"
-            " at line " << HP.GetLineData() << std::endl;
+            " at line " << HP.GetLineData() << std::endl);
        }
 #endif /* USE_MPI */
        
@@ -1583,7 +1583,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
     case ARRAY: {
        unsigned short int iNumDr = (unsigned short int)HP.GetInt();
        if (iNumDr == 0) {	      
-	  std::cerr<< "Sorry, at least one driver is required" << std::endl;
+	  silent_cerr("Sorry, at least one driver is required" << std::endl);
 	  throw ErrGeneric();
        } else if (iNumDr == 1) {
 	  /* creazione di un driver normale mediante chiamata ricorsiva */
@@ -1613,8 +1613,8 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        unsigned int uL = HP.GetInt();
        FileDrive* pDrv = (FileDrive*)pDM->pFindDrive(Drive::FILEDRIVE, uL);
        if (pDrv == NULL) {
-	  std::cerr<< "line " << HP.GetLineData() 
-	    << ": can't find FileDrive(" << uL << ")" << std::endl;
+	  silent_cerr("line " << HP.GetLineData() 
+	    << ": can't find FileDrive(" << uL << ")" << std::endl);
 	  throw ErrGeneric();
        }
               
@@ -1637,7 +1637,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
     }
       
     default: {
-       std::cerr<< "unknown drive type at line " << HP.GetLineData() << std::endl;       
+       silent_cerr("unknown drive type at line " << HP.GetLineData() << std::endl);
        throw DataManager::ErrGeneric();
     }	
    }

@@ -217,11 +217,11 @@ bNewMatrix(false)
 
 #ifdef DEBUG
 	if (!MyRank) {
-		std::cout << "Interface Dofs " <<std::endl;
+		silent_cout("Interface Dofs " <<std::endl);
 		for (int i = 0; i < iSchurIntDim; i++) {
-			std::cout << pSchurDofs[i] << "  ";
+			silent_cout(pSchurDofs[i] << "  ");
 		}
-		std::cout << std::endl;
+		silent_cout(std::endl);
 	}
 
 	IsValid();
@@ -689,9 +689,9 @@ SchurSolutionManager::InitializeComm(void)
 doublereal *
 SchurSolutionManager::ChangeResPoint(doublereal* pRes)
 {
-	std::cerr << "SchurSolutionManager::ChangeResPoint(): "
+	silent_cerr("SchurSolutionManager::ChangeResPoint(): "
 		"you should not be here!! "
-		"Aborting..." << std::endl;
+		"Aborting..." << std::endl);
 	throw ErrGeneric();
 }
 
@@ -699,9 +699,9 @@ SchurSolutionManager::ChangeResPoint(doublereal* pRes)
 doublereal *
 SchurSolutionManager::ChangeSolPoint(doublereal* pSol)
 {
-	std::cerr << "SchurSolutionManager::ChangeSolPoint(): "
+	silent_cerr("SchurSolutionManager::ChangeSolPoint(): "
 		"you should not be here!! "
-		"Aborting..." << std::endl;\
+		"Aborting..." << std::endl);
 	throw ErrGeneric();
 }
 

@@ -136,7 +136,7 @@ void
 FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 {
 	if (iNewRows < 0 || iNewCols < 0) {
-		std::cerr << "Negative size!" << std::endl;
+		silent_cerr("Negative size!" << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -191,18 +191,18 @@ FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 			if (iSize > iRawSize || iNewCols > iMaxCols) {
 				if (iSize > iRawSize) {
 					/* errore */
-					std::cerr << "Can't resize to "
+					silent_cerr("Can't resize to "
 						<< iSize
 						<< ": larger than max size "
-						<< iRawSize << std::endl;
+						<< iRawSize << std::endl);
 					throw ErrGeneric();
 
 				} else if (iNewCols > iMaxCols) {
-					std::cerr << "Can't resize to "
+					silent_cerr("Can't resize to "
 						<< iNewCols
 						<< " cols: larger than max "
 						"num cols "
-						<< iMaxCols << std::endl;
+						<< iMaxCols << std::endl);
 					throw ErrGeneric();
 				}
 
@@ -218,7 +218,7 @@ FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 
 		} else {
 			/* errore */
-			std::cerr << "internal error!" << std::endl;
+			silent_cerr("internal error!" << std::endl);
 			throw ErrGeneric();
 		}
 	}

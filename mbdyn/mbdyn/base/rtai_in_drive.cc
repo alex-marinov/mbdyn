@@ -53,8 +53,8 @@ host(h), node(n), port(-1), mbx(NULL)
 		ASSERT(node == 0);
 
 		if (mbdyn_rt_mbx_init(sFileName, size, &mbx)) {
-			std::cerr << "RTAI mailbox(" << sFileName << ") "
-				"init failed" << std::endl;
+			silent_cerr("RTAI mailbox(" << sFileName << ") "
+				"init failed" << std::endl);
 			throw ErrGeneric();
 		}
 	} else {
@@ -65,8 +65,8 @@ host(h), node(n), port(-1), mbx(NULL)
 		}
 
 		if (mbdyn_RT_get_adr(node, port, sFileName, &mbx)) {
-			std::cerr << "RTAI mailbox(" << sFileName << ") "
-				"get_adr failed" << std::endl;
+			silent_cerr("RTAI mailbox(" << sFileName << ") "
+				"get_adr failed" << std::endl);
 			throw ErrGeneric();
 		}
 	}
@@ -133,24 +133,24 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsKeyWord("stream" "drive" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == NULL) {
-			std::cerr << "unable to read mailbox name "
+			silent_cerr("unable to read mailbox name "
 				"for RTAIInDrive(" << uLabel << ") at line "
-				<< HP.GetLineData() << std::endl;
+				<< HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 
 		} else if (strlen(m) != 6) {
-			std::cerr << "illegal mailbox name \"" << m
+			silent_cerr("illegal mailbox name \"" << m
 				<< "\" for RTAIInDrive(" << uLabel 
 				<< ") (must be 6 char) at line "
-				<< HP.GetLineData() << std::endl;
+				<< HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
 
 		SAFESTRDUP(name, m);
 
 	} else {
-		std::cerr << "missing mailbox name for RTAIInDrive(" << uLabel
-			<< ") at line " << HP.GetLineData() << std::endl;
+		silent_cerr("missing mailbox name for RTAIInDrive(" << uLabel
+			<< ") at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -160,8 +160,8 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		} else if (HP.IsKeyWord("no")) {
 			create = false;
 		} else {
-			std::cerr << "\"create\" must be \"yes\" or \"no\" "
-				"at line " << HP.GetLineData() << std::endl;
+			silent_cerr("\"create\" must be \"yes\" or \"no\" "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
 	}
@@ -187,9 +187,9 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		
 		h = HP.GetStringWithDelims();
 		if (h == NULL) {
-			std::cerr << "unable to read host "
+			silent_cerr("unable to read host "
 				"for RTAIInDrive(" << uLabel << ") at line "
-				<< HP.GetLineData() << std::endl;
+				<< HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
 
@@ -215,16 +215,16 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			}
 #endif /* ! HAVE_GETHOSTBYNAME && HAVE_INET_ATON */
 			else {
-				std::cerr << "unable to convert host \""
-					<< host << "\" at line "
-					<< HP.GetLineData() << std::endl;
+				silent_cerr("unable to convert host "
+					"\"" << host << "\" at line "
+					<< HP.GetLineData() << std::endl);
 				throw ErrGeneric();
 			}
 #else /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
-			std::cerr << "host (RTAI RPC) not supported "
+			silent_cerr("host (RTAI RPC) not supported "
 				"for RTAIInDrive(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl;
-				<< std::endl;
+				<< std::endl);
 			throw ErrGeneric();
 #endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
 		}
@@ -232,9 +232,9 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 
 	int idrives = HP.GetInt();
 	if (idrives <= 0) {
-		std::cerr << "illegal number of channels "
+		silent_cerr("illegal number of channels "
 			"for RTAIInDrive(" << uLabel << ") at line "
-			<< HP.GetLineData() << std::endl;
+			<< HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -246,8 +246,8 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	
 	return pDr;
 #else /* ! USE_RTAI */
-       std::cerr << "Sorry, RTAI input requires configure --with-rtai"
-	       << std::endl;
+       silent_cerr("Sorry, RTAI input requires configure --with-rtai"
+	       << std::endl);
        throw ErrGeneric();
 #endif /* ! USE_RTAI */
        

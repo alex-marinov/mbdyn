@@ -196,19 +196,19 @@ ReadFileDriver(DataManager* pDM,
 read_stream:;
 #ifdef USE_RTAI
 		if (mbdyn_rtai_task != NULL){
-			std::cerr << "starting RTAI in drive" << std::endl;
+			silent_cout("starting RTAI input drive" << std::endl);
 			pDr = ReadRTAIInDrive(pDM, HP, uLabel);
 		} else 
 #endif /* USE_RTAI */		
 		{
-			std::cerr << "starting stream drive" << std::endl;
+			silent_cout("starting stream drive" << std::endl);
 			pDr = ReadSocketStreamDrive(pDM, HP, uLabel);
 		}
 		break;
 
 	default:
-		std::cerr << "unknown file drive at line " << HP.GetLineData()
-			<< std::endl;
+		silent_cerr("unknown file drive at line " << HP.GetLineData()
+			<< std::endl);
 		throw ErrGeneric();
 	}
 

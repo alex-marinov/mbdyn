@@ -145,9 +145,9 @@ void ThirdOrderIntegrator::PredictDof_for_AfterPredict(const int DCount,
  		pXPrimeCurr->PutCoef(DCount, dXIn);
 
 	} else {
- 		std::cerr << "ThirdOrderIntegrator::PredictDof_for_AfterPredict:"
+ 		silent_cerr("ThirdOrderIntegrator::PredictDof_for_AfterPredict:"
 			<< "unknown order for dof " 
-			<< DCount<< std::endl;
+			<< DCount<< std::endl);
  		throw ErrGeneric();
 	}
 }
@@ -187,9 +187,9 @@ void ThirdOrderIntegrator::RealPredictDof(const int DCount,
 		pXPrimeCurr->IncCoef(DCount+iNumDofs,
 			pXPrev->dGetCoef(DCount)*theta*dT);
 	} else {
-		std::cerr << "ThirdOrderIntegrator::RealPredictDof: "
+		silent_cerr("ThirdOrderIntegrator::RealPredictDof: "
 			<< "unknown order for dof " 
-			<< DCount<< std::endl;
+			<< DCount<< std::endl);
 		throw ErrGeneric();
 	}
 }
@@ -201,8 +201,8 @@ void ThirdOrderIntegrator::Predict(void) {
 
 	{SchurDataManager* pSDM;
 	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
-		std::cerr << "Warning: ThirdOrderIntegrator currently is "
-			<< "untested with the parallel solver\n";
+		silent_cerr("Warning: ThirdOrderIntegrator currently is "
+			<< "untested with the parallel solver" << std::endl);
 	}}
 
 	DofIterator.bGetFirst(CurrDof);
@@ -352,8 +352,8 @@ void ThirdOrderIntegrator::UpdateDof(const int DCount,
  		pXPrimeCurr->IncCoef(DCount+iNumDofs, 
 			dT*(m0*w1*dxp_xi+(m0*w0+n0)*dxp));
 	} else {
- 		std::cerr << "unknown order for dof " 
-			<< DCount<< std::endl;
+ 		silent_cerr("unknown order for dof " 
+			<< DCount<< std::endl);
  		throw ErrGeneric();
 	}
 };
@@ -366,8 +366,8 @@ void ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
 	
 	{SchurDataManager* pSDM;
 	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
-		std::cerr << "Warning: ThirdOrderIntegrator is untested "
-			<< "with the parallel solver\n";
+		silent_cerr("Warning: ThirdOrderIntegrator is untested "
+			<< "with the parallel solver" << std::endl);
 	}}
 	UpdateLoop(this,&ThirdOrderIntegrator::UpdateDof,pSol);	
 	pDM->Update();

@@ -118,15 +118,15 @@ int get_debug_options(const char *const s, const debug_array da[])
 	 } else if (l == 3 && strncmp("any", p, 3) == 0) {
 	    ::debug_level = MYDEBUG_ANY;
 	 } else {
-	    std::cerr << "Unknown debug level \"";
+	    silent_cerr("Unknown debug level \"");
 	    for (unsigned int i = 0; i < l; i++) {
-	       std::cerr << p[i];
+	       silent_cerr(p[i]);
 	    }
-	    std::cerr << "\"" << std::endl;
+	    silent_cerr("\"" << std::endl);
 	 }
       } else {
 	 ::debug_level |= w->l;
-	 std::cerr << "debug level: " << w->s << std::endl;
+	 silent_cerr("debug level: " << w->s << std::endl);
       }
       if (sep == NULL) {
 	 break;

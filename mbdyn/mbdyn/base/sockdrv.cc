@@ -109,12 +109,12 @@ pFlags(NULL)
 	SAFESTRDUP(data.Path, path);
    	sock = make_named_socket(data.Path, 1);
    	if (sock == -1) {
-      		std::cerr << "SocketDrive(" << GetLabel()
-			<< "): socket failed" << std::endl;
+      		silent_cerr("SocketDrive(" << GetLabel()
+			<< "): socket failed" << std::endl);
       		throw ErrGeneric();
    	} else if (sock == -2) {
-      		std::cerr << "SocketDrive(" << GetLabel()
-			<< "): bind failed" << std::endl;
+      		silent_cerr("SocketDrive(" << GetLabel()
+			<< "): bind failed" << std::endl);
       		throw ErrGeneric();
    	}
 
@@ -310,8 +310,8 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 
       		if (cur_sock == -1) {
 	 		if (errno != EWOULDBLOCK) {
-	    			std::cerr << "SocketDrive(" << GetLabel()
-					<< "): accept failed" << std::endl;
+	    			silent_cerr("SocketDrive(" << GetLabel()
+					<< "): accept failed" << std::endl);
 	 		}
 	 		return;
       		}
@@ -324,8 +324,8 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 #ifdef HAVE_SASL2
 		if (dynamic_cast<SASL2_Auth*>(auth)) {
      	 		if (auth->Auth(cur_sock) != AuthMethod::AUTH_OK) {
-		 		std::cerr << "SocketDrive(" << GetLabel()
-					<< "): authentication failed" << std::endl;
+		 		silent_cerr("SocketDrive(" << GetLabel()
+					<< "): authentication failed" << std::endl);
 		 		continue;
       			}
 			bAuthc = true;
@@ -336,8 +336,8 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 
 		if (!bAuthc) {
       			if (get_auth_token(fd, user, cred, &nextline) == -1) {
-	 			std::cerr << "SocketDrive(" << GetLabel()
-					<< "): corrupted stream" << std::endl;
+	 			silent_cerr("SocketDrive(" << GetLabel()
+					<< "): corrupted stream" << std::endl);
 	 			fclose(fd);
 	 			continue;
       			}
@@ -346,8 +346,8 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 				<< "\", cred=\"" << cred << "\"" << std::endl);
 
       			if (auth->Auth(user, cred) != AuthMethod::AUTH_OK) {
-	 			std::cerr << "SocketDrive(" << GetLabel()
-					<< "): authentication failed" << std::endl;
+	 			silent_cerr("SocketDrive(" << GetLabel()
+					<< "): authentication failed" << std::endl);
 	 			fclose(fd);
 	 			continue;
       			}
@@ -361,8 +361,8 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 		 */
       		if (nextline == NULL) {
 	 		if (get_line(buf, bufsize, fd) == NULL) {
-	    			std::cerr << "SocketDrive(" << GetLabel()
-					<< "): corrupted stream" << std::endl;
+	    			silent_cerr("SocketDrive(" << GetLabel()
+					<< "): corrupted stream" << std::endl);
 	    			fclose(fd);
 	    			continue;
 	 		}
@@ -374,8 +374,8 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 
       		/* legge la label */
       		if (strncasecmp(nextline, "label:", 6) != 0) {
-	 		std::cerr << "SocketDrive(" << GetLabel()
-				<< "): missing label" << std::endl;
+	 		silent_cerr("SocketDrive(" << GetLabel()
+				<< "): missing label" << std::endl);
 	 		fclose(fd);
 	 		continue;
       		}
@@ -386,25 +386,25 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 	 	}
 
 	 	if (sscanf(p, "%d", &label) != 1) {
-	    		std::cerr << "SocketDrive(" << GetLabel()
-				<< "): unable to read label" << std::endl;
+	    		silent_cerr("SocketDrive(" << GetLabel()
+				<< "): unable to read label" << std::endl);
 	    		fclose(fd);
 	    		continue;
 	 	}
 
 	 	if (label <= 0 || label > iNumDrives) {
-	    		std::cerr << "SocketDrive(" << GetLabel()
+	    		silent_cerr("SocketDrive(" << GetLabel()
 				<< "): illegal label "
-				<< label << std::endl;
+				<< label << std::endl);
 	    		fclose(fd);
 	    		continue;
 	 	}
 
 	 	while (true) {
 	    		if (get_line(buf, bufsize, fd) == NULL) {
-	       			std::cerr << "SocketDrive(" << GetLabel()
+	       			silent_cerr("SocketDrive(" << GetLabel()
 					<< "): corrupted stream"
-					<< std::endl;
+					<< std::endl);
 	       			fclose(fd);
 	       			break;
 	    		}
@@ -423,10 +423,10 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 				}
 
 	       			if (sscanf(p, "%lf", &value) != 1) {
-	  				std::cerr << "SocketDrive("
+	  				silent_cerr("SocketDrive("
 						<< GetLabel()
 						<< "): unable to read"
-						" value" << std::endl;
+						" value" << std::endl);
 	  				fclose(fd);
 	  				break;
 				}
@@ -443,12 +443,12 @@ SocketDrive::ServePending(const doublereal& /* t */ )
        				} else if (strncasecmp(p, "no", 2) == 0) {
 	  				pFlags[label] &= !SocketDrive::INCREMENTAL;
        				} else {
-	  				std::cerr << "SocketDrive("
+	  				silent_cerr("SocketDrive("
 						<< GetLabel()
 	    					<< "): \"inc\" line"
 						" in \"" << nextline
 	    					<< "\" looks corrupted"
-						<< std::endl;
+						<< std::endl);
 	  				fclose(fd);
 	  				break;
        				}
@@ -465,12 +465,12 @@ SocketDrive::ServePending(const doublereal& /* t */ )
        				} else if (strncasecmp(p, "no", 2) == 0) {
 	  				pFlags[label] &= !SocketDrive::IMPULSIVE;
        				} else {
-	  				std::cerr << "SocketDrive("
+	  				silent_cerr("SocketDrive("
 						<< GetLabel()
 	    					<< "): \"imp\" line"
 						" in \"" << nextline
 	    					<< "\" looks corrupted"
-						<< std::endl;
+						<< std::endl);
 	  				fclose(fd);
 	  				break;
        				}
@@ -549,9 +549,9 @@ ReadSocketDrive(DataManager* pDM,
 		AuthMethod* pAuth = ReadAuthMethod(pDM, HP);
 
 		if (pAuth == NULL) {
-			std::cerr << "need an authentication method "
+			silent_cerr("need an authentication method "
 				"at line " << HP.GetLineData()
-				<< std::endl;
+				<< std::endl);
 			throw ErrGeneric();
 		}
 
@@ -570,8 +570,8 @@ ReadSocketDrive(DataManager* pDM,
 	return pDr;
 
 #else /* ! USE_SOCKET_DRIVES */
-	std::cerr << "Sorry, socket drives not supported at line"
-		<< HP.GetLineData() << std::endl;
+	silent_cerr("Sorry, socket drives not supported at line"
+		<< HP.GetLineData() << std::endl);
 	throw ErrGeneric();
 #endif /* USE_SOCKET_DRIVES */
 }

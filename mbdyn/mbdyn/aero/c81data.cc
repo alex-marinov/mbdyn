@@ -345,7 +345,7 @@ set_c81_data(long int jpro, c81_data* data)
       		__c81_pdata = pp;
       		c81_ndata = ndata;
    	} else if (__c81_pdata[jpro] != NULL) {
-      		std::cerr << "profile " << jpro << "already defined" << std::endl;
+      		silent_cerr("profile " << jpro << "already defined" << std::endl);
       		return -1;
    	}
    

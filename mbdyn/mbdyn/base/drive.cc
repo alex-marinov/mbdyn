@@ -84,12 +84,13 @@ ppMyRand(NULL)
    if (v == NULL) {
       pTime = SymbolTable.Put("Time", Real(0));  
       if (pTime == NULL) {
-	 std::cerr << "DriveHandler::DriveHandler(): error in insertion Time symbol" << std::endl;	 
+	 silent_cerr("DriveHandler::DriveHandler(): "
+			 "error in Time symbol insertion" << std::endl); 
 	 throw ErrGeneric();
       }
    } else {
       if (!v->IsVar()) {
-	 std::cerr << "Symbol 'Time' must be a variable" << std::endl;
+	 silent_cerr("Symbol 'Time' must be a variable" << std::endl);
          throw ErrGeneric();
       }
       pTime = (Var *)v;
@@ -101,13 +102,14 @@ ppMyRand(NULL)
    if (v == NULL) {
       pVar = SymbolTable.Put("Var", Real(0)); 
       if (pVar == NULL) {
-	 std::cerr << "DriveHandler::DriveHandler(): error in insertion Var symbol" << std::endl;	 
-	 throw ErrGeneric();      
+	 silent_cerr("DriveHandler::DriveHandler(): "
+			 "error in Var symbol insertion" << std::endl);
+	 throw ErrGeneric();
       }
-      // pVar->SetVal(Real(0));
+
    } else {
       if (!v->IsVar()) {
-	 std::cerr << "Symbol 'Var' must be a variable" << std::endl;
+	 silent_cerr("Symbol 'Var' must be a variable" << std::endl);
 	 throw ErrGeneric();
       }
       pVar = (Var *)v;
@@ -127,7 +129,7 @@ DriveHandler::~DriveHandler(void)
       if (ppMyRand != NULL) {
 	 SAFEDELETEARR(ppMyRand);
       } else {
-	 std::cerr << "Error, random drive data array should exist" << std::endl;
+	 silent_cerr("Error, random drive data array should exist" << std::endl);
       }
    }
 }
@@ -180,7 +182,7 @@ integer DriveHandler::iRandInit(integer iSteps)
       MyRand** ppmr = ppMyRand;
       MyRand* pmr = NULL;
       if (!MyRandLL.GetFirst(pmr)) {
-	 std::cerr << "Error in getting first random drive data" << std::endl;
+	 silent_cerr("Error in getting first random drive data" << std::endl);
 	 
 	 throw ErrGeneric();
       }
@@ -204,7 +206,7 @@ integer DriveHandler::iRandInit(integer iSteps)
 			  MyRand((unsigned int)iNumber, iSteps, rand()));
    
    if (MyRandLL.Add(pmr)) {
-      std::cerr << "Error in insertion of random driver data" << std::endl;
+      silent_cerr("Error in insertion of random driver data" << std::endl);
       throw ErrGeneric();
    }
    

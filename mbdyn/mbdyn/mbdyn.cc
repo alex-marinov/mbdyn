@@ -116,10 +116,9 @@ const debug_array da[] = {
 
 #ifdef HAVE_GETOPT
 static void
-mbdyn_usage(std::ostream& out, const char *sShortOpts)
+mbdyn_usage(const char *sShortOpts)
 {
-    std::cout 
-        << std::endl
+    silent_cout(std::endl
 	<< "MBDyn - MultiBody Dynamics " << VERSION << std::endl
 	<< "compiled on " << __DATE__ << " at " << __TIME__ << std::endl 
 	<< std::endl
@@ -138,22 +137,19 @@ mbdyn_usage(std::ostream& out, const char *sShortOpts)
 	<< "  -m, --mail {address}     :"
 	" mails to {address} at job completion" << std::endl
 	<< "  -n, --nice [level]       :"
-	" change the execution priority of the process" << std::endl;
+	" change the execution priority of the process" << std::endl);
 #ifdef DEBUG
-    out
-        << "  -d, --debug {level[:level[...]]} :"
+    silent_cout("  -d, --debug {level[:level[...]]} :"
         " when using the debug version of the code," << std::endl
         << "                            "
 	" enables debug levels; available:" << std::endl
-        << "                                 none" << std::endl;
+        << "                                 none" << std::endl);
     for (int i = 0; da[i].s != NULL; i++) {
-        out << "                                 " << da[i].s << std::endl;
+        silent_cout("                                 " << da[i].s << std::endl);
     }      
-    out 
-        << "                                 any" << std::endl;
+    silent_cout("                                 any" << std::endl);
 #endif /* DEBUG */
-    out    
-        << "  -t, --same-table" << std::endl
+    silent_cout("  -t, --same-table" << std::endl
         << "  -T, --no-same-table      :"
         " use/don't use same symbol table for multiple runs" << std::endl
         << "  -r, --redefine" << std::endl
@@ -181,8 +177,8 @@ mbdyn_usage(std::ostream& out, const char *sShortOpts)
         << "is put in '{file}.out', and data output"
         " is sent to various '{file}.xxx' files" << std::endl
         << "('Mbdyn.xxx' if input from stdin)" << std::endl
-        << std::endl;
-    std::cout << std::endl;   
+        << std::endl
+	<< std::endl);
 }
 
 /* Dati di getopt */
@@ -535,7 +531,7 @@ main(int argc, char* argv[])
 	        		break;
 
 	    		case int('l'):
-	        		mbdyn_license(std::cout);
+	        		mbdyn_license();
 #ifdef USE_EXCEPTIONS
 	        		throw NoErr();
 #else /* !USE_EXCEPTIONS */
@@ -544,7 +540,7 @@ main(int argc, char* argv[])
 #endif /* !USE_EXCEPTIONS */
 	    
 	    		case int('w'):
-				mbdyn_warranty(std::cout);
+				mbdyn_warranty();
 #ifdef USE_EXCEPTIONS
 	        		throw NoErr();
 #else /* !USE_EXCEPTIONS */
@@ -574,7 +570,7 @@ main(int argc, char* argv[])
 #ifdef USE_MPI
 	        		if (myrank == 0) {
 #endif /* USE_MPI */
-		    			mbdyn_usage(std::cout, sShortOpts);
+		    			mbdyn_usage(sShortOpts);
 #ifdef USE_MPI
 	        		}
 #endif /* USE_MPI */
@@ -641,8 +637,8 @@ main(int argc, char* argv[])
 	        		Table t(31, 1);
 				MathParser mp(t);
 				GetEnviron(mp);
-	        		std::cout << "default symbol table:"
-					<< std::endl << mp.GetSymbolTable() << std::endl;
+	        		silent_cout("default symbol table:"
+					<< std::endl << mp.GetSymbolTable() << std::endl);
 #ifdef USE_MPI
 	    		}
 #endif /* USE_MPI */
@@ -824,8 +820,8 @@ main(int argc, char* argv[])
 
 			n = snprintf(s, l, "%ld.%03ld", tSecs, tMils);
 
-	    		std::cout << std::endl << "The simulation required " 
-	        		<< timebuf << " seconds of CPU time";
+	    		silent_cout(std::endl << "The simulation required " 
+	        		<< timebuf << " seconds of CPU time");
 
 			if (tSecs > 60) {
 				n = snprintf(s, l, " (" /* ) */ );
@@ -849,14 +845,14 @@ main(int argc, char* argv[])
 				s += n;
 				l -= n;
 
-				std::cout << timebuf;
+				silent_cout(timebuf);
 			}
 #ifdef USE_MPI
 			if (using_mpi) {
-	    			std::cout << " on " << ProcessorName;
+	    			silent_cout(" on " << ProcessorName);
 			}
 #endif /* USE_MPI */
-	    		std::cout << std::endl;
+	    		silent_cout(std::endl);
 #endif /* HAVE_SYS_TIMES_H */
 
 #ifdef MBDYN_X_MAIL_MESSAGE

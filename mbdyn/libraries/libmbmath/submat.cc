@@ -1277,7 +1277,7 @@ void
 MySubVectorHandler::Resize(integer iSize)
 {
 	if (iSize < 0) {
-		std::cerr << "Negative size!" << std::endl;
+		silent_cerr("Negative size!" << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -1286,9 +1286,9 @@ MySubVectorHandler::Resize(integer iSize)
 
 	if (!bOwnsMemory && piRowm1 != NULL) {
 		if (iSize > iMaxSize) {
-			std::cerr << "Can't resize to " << iSize
+			silent_cerr("Can't resize to " << iSize
 				<< ": larger than max size " << iMaxSize
-				<< std::endl;
+				<< std::endl);
 			throw ErrGeneric();
 		}
 		iCurSize = iSize;

@@ -107,7 +107,7 @@ Mat3x3 Mat3x3::Inv(void) const
      +p[M13]*(p[M21]*p[M32]-p[M22]*p[M31]);
    
    if (fabs(d) < DBL_EPSILON) {
-      std::cerr << "matrix is singular" << std::endl;
+      silent_cerr("matrix is singular" << std::endl);
       throw ErrGeneric();
    }
    
@@ -134,7 +134,7 @@ Vec3 Mat3x3::Inv(const Vec3& v) const
    doublereal* pv = v.pGetVec();
    
    if (fabs(d) < DBL_EPSILON) {
-      std::cerr << "matrix is singular" << std::endl;
+      silent_cerr("matrix is singular" << std::endl);
       throw ErrGeneric();
    }
    return Vec3((pv[V1]*(p[M22]*p[M33]-p[M23]*p[M32])
@@ -273,8 +273,8 @@ Vec3 gparam(const Mat3x3& m)
    doublereal d = 1.+m.Trace();
    
    if (d == 0.) {
-      std::cerr << "gparam(): divide by zero,"
-        " probably due to singularity in rotation parameters" << std::endl;
+      silent_cerr("gparam(): divide by zero,"
+        " probably due to singularity in rotation parameters" << std::endl);
       throw ErrGeneric();
    }
    
@@ -300,8 +300,8 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
 	     << " ib = " << ib << " (" << vb << ")" << std::endl);
    
    if (ia < 1 || ia > 3) {
-      std::cerr << sFuncName << ": first index is illegal" 
-	      << std::endl;
+      silent_cerr(sFuncName << ": first index is illegal" 
+	      << std::endl);
       throw ErrGeneric();
    }
    
@@ -314,8 +314,8 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       r[i3] = r[i1].Cross(vb);
       doublereal d = r[i3].Dot();
       if (d <= DBL_EPSILON) {
-	 std::cerr << sFuncName << ": vectors must be distinct" 
-		 << std::endl;
+	 silent_cerr(sFuncName << ": vectors must be distinct" 
+		 << std::endl);
 	 throw ErrGeneric();
       }	
       d = sqrt(d);
@@ -330,8 +330,8 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       r[i2] = vb.Cross(r[i1]);
       doublereal d = r[i2].Dot();
       if (d <= DBL_EPSILON) {
-	 std::cerr << sFuncName << ": vectors must be distinct" 
-		 << std::endl;
+	 silent_cerr(sFuncName << ": vectors must be distinct" 
+		 << std::endl);
 	 throw ErrGeneric();
       }	
       d = sqrt(d);
@@ -342,7 +342,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       
       return Mat3x3(r[0], r[1], r[2]);
    } else {
-      std::cerr << sFuncName << ": second index is illegal" << std::endl;
+      silent_cerr(sFuncName << ": second index is illegal" << std::endl);
       throw ErrGeneric();
    }
    

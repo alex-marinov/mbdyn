@@ -179,7 +179,9 @@ public:
 			  Node::Type* NdTyps,
 			  unsigned int* NdLabels) {
 		if (NumNodes != NodeN) {
-			std::cerr << "Parallel Connection Computation, wrong array size. Aborting ...\n";
+			silent_cerr("Parallel Connection Computation, "
+					"wrong array size. Aborting ..."
+					<< std::endl);
 			throw ErrGeneric();
 		}
 		for (int i=0; i < NodeN; i++) {

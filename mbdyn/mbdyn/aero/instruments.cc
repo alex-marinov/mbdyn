@@ -232,8 +232,8 @@ doublereal
 AircraftInstruments::dGetPrivData(unsigned int i) const
 {
 	if (i <= 0 || i >= LASTMEASURE) {
-		std::cerr << "AircraftInstruments(" << GetLabel() 
-			<< "): illegal measure " << i << std::endl;
+		silent_cerr("AircraftInstruments(" << GetLabel() 
+			<< "): illegal measure " << i << std::endl);
 		throw ErrGeneric();
 	}
 

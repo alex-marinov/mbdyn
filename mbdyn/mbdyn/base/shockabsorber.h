@@ -294,9 +294,9 @@ public:
 		if (HP.IsKeyWord("epsilon" "min")) {
 			EpsMin = HP.GetReal(defaultEpsMin);
 			if ( EpsMin >= EpsMax) {
-				std::cerr << "line " << HP.GetLineData()
+				silent_cerr("line " << HP.GetLineData()
 					<< ": epsilon min must be less"
-					" than epsilon max" << std::endl;
+					" than epsilon max" << std::endl);
 				throw ErrGeneric();
 			}
 		}
@@ -320,9 +320,9 @@ public:
 		}
 
 		if (pAreaPinPlus == NULL && pAreaOrifices == NULL) {
-			std::cerr << "line " << HP.GetLineData()
+			silent_cerr("line " << HP.GetLineData()
 				<< ": at least one area (metering or orifice)"
-				" must be defined" << std::endl;
+				" must be defined" << std::endl);
 			throw ErrGeneric();
 		}
 
@@ -333,13 +333,19 @@ public:
 		if (HP.IsKeyWord("friction")) {
 			EpsPrimeRef = HP.GetReal();
 			if (EpsPrimeRef <= 0.) {
-				std::cerr << "Illegal Reference Epsilon Prime " << EpsPrimeRef << " at line " << HP.GetLineData() << std::endl;
+				silent_cerr("Illegal Reference "
+					"Epsilon Prime " << EpsPrimeRef 
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
 				throw ErrGeneric();
 			}
 
 			FrictionAmpl = HP.GetReal();
 			if (FrictionAmpl < 0. || FrictionAmpl > 1.) {
-				std::cerr << "Illegal Friction Amplitude Coefficient " << FrictionAmpl << " at line " << HP.GetLineData() << std::endl;
+				silent_cerr("Illegal Friction "
+					"Amplitude Coefficient " << FrictionAmpl
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
 				throw ErrGeneric();
 			}
 		}
@@ -519,8 +525,8 @@ public:
 		}
 
 		if (dArea <= 0.) {
-			std::cerr << "ShockAbsorberConstitutiveLaw::Update:"
-				" null or negative area" << std::endl;
+			silent_cerr("ShockAbsorberConstitutiveLaw::Update:"
+				" null or negative area" << std::endl);
 			throw ErrGeneric();
 		}
 		

@@ -222,9 +222,9 @@ doublereal LogScalarFunction::ComputeDiff(const doublereal x, const integer orde
 		return -6.*mul_const/pow(x,4.);
 		break;
 	default:
-		std::cerr << "Error, LogScalarFunction::ComputeDiff "
+		silent_cerr("Error, LogScalarFunction::ComputeDiff "
 			<< "with diff order " << order
-			<< " while the maximum implemented is 4\n";
+			<< " while the maximum implemented is 4" << std::endl);
 		throw ErrGeneric();
 		break;
 	}
@@ -298,7 +298,7 @@ CubicSplineScalarFunction::CubicSplineScalarFunction(
 	xe = X_i.end()-1;
 	for (; xi != xe; xi++) {
 		if (*xi >= *(xi+1)) {
-			std::cerr << "CubicSplineScalarFunction error, X_i is not ordered\n";
+			silent_cerr("CubicSplineScalarFunction error, X_i is not ordered" << std::endl);
 			throw ErrGeneric();
 		}
 	}
@@ -364,7 +364,7 @@ MultiLinearScalarFunction::MultiLinearScalarFunction(
 	xe = X_i.end()-1;
 	for (; xi != xe; xi++) {
 		if (*xi >= *(xi+1)) {
-			std::cerr << "MultiLinearScalarFunction error, X_i is not ordered\n";
+			silent_cerr("MultiLinearScalarFunction error, X_i is not ordered" << std::endl);
 			throw ErrGeneric();
 		}
 	}
@@ -543,16 +543,16 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 			break;
 		}
 		default: {
-			std::cerr << "unknown ScalarFunction type"
-			<< " at line " << HP.GetLineData() << std::endl;       
+			silent_cerr("unknown ScalarFunction type"
+				<< " at line " << HP.GetLineData() << std::endl);
 			throw DataManager::ErrGeneric();
 			break;
 		}
 		} 
 	} else if (HP.IsKeyWord() != -1) {
-		std::cerr << "Error: redefinition of \"" 
-			<< func_name << "\" scalar function at line "
-			<< HP.GetLineData() << std::endl;
+		silent_cerr("Error: redefinition of "
+			"\"" << func_name << "\" scalar function "
+			"at line " << HP.GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric();
 	}
 	

@@ -426,10 +426,10 @@ void Step1Integrator::PredictDof(const int DCount,
 		pXPrimeCurr->PutCoef(DCount, dXIn);
 	
 	} else {
-		std::cerr << "Step1Integrator::"
+		silent_cerr("Step1Integrator::"
 			"PredictDof(): "
 			"unknown order for local dof " 
-			<< DCount << std::endl;
+			<< DCount << std::endl);
 		throw ErrGeneric();
 	}
 };
@@ -561,10 +561,10 @@ void Step2Integrator::PredictDof(const int DCount,
 		pXPrimeCurr->PutCoef(DCount, dXIn);
 			
 	} else {
-		std::cerr << "Step2Integrator::"
+		silent_cerr("Step2Integrator::"
 			"PredictDof(): "
 			"unknown order for local dof " 
-			<< DCount << std::endl;
+			<< DCount << std::endl);
 		throw ErrGeneric();
 	}
 }

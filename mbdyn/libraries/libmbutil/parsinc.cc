@@ -58,7 +58,7 @@ sCurrFile(NULL)
 #ifdef USE_INCLUDE_PARSER
    	char s[PATHBUFSIZE];
    	if (getcwd(s, PATHBUFSIZE) == NULL) {
-		std::cerr << "Error in getcwd()" << std::endl;
+		silent_cerr("Error in getcwd()" << std::endl);
       		throw ErrFileSystem();
    	}
 	SAFESTRDUP(sCurrPath, s);
@@ -120,8 +120,8 @@ void IncludeParser::Close(void)
       		DEBUGCOUT("Entering directory <" << sCurrPath 
 			<< ">, file <" << sCurrFile << '>' << std::endl);
       		if (chdir(sCurrPath)) {
-			std::cerr << "Error in chdir, path = " 
-				<< sCurrPath << std::endl;
+			silent_cerr("Error in chdir, path=" 
+				<< sCurrPath << std::endl);
 	 		throw ErrFileSystem();
       		}
 #endif /* USE_INCLUDE_PARSER */
@@ -180,8 +180,8 @@ IncludeParser::fCheckStack(void)
       		DEBUGCOUT("Entering directory <" << sCurrPath 
 			<< ">, file <" << sCurrFile << '>' << std::endl);
       		if (chdir(sCurrPath)) {
-			std::cerr << "Error in chdir, path = " 
-				<< sCurrPath << std::endl;
+			silent_cerr("Error in chdir, path=" 
+				<< sCurrPath << std::endl);
 	 		throw ErrFileSystem();
       		}
 #endif /* USE_INCLUDE_PARSER */
@@ -197,9 +197,9 @@ void
 IncludeParser::Include_int()
 {
    	if (FirstToken() == UNKNOWN) {
-		std::cerr << "Parser error in IncludeParser::Include_int(),"
+		silent_cerr("Parser error in IncludeParser::Include_int(),"
 			" colon expected at line " << GetLineData() 
-			<< std::endl;
+			<< std::endl);
       		throw HighParser::ErrColonExpected();
    	}
    
@@ -223,7 +223,7 @@ IncludeParser::Include_int()
 			free(buf);
 		}
 #endif /* DEBUG */
-		std::cerr << "Invalid file <" << sfname << '>' << std::endl;
+		silent_cerr("Invalid file <" << sfname << '>' << std::endl);
       		throw ErrFile();
    	}
    
@@ -241,13 +241,13 @@ IncludeParser::Include_int()
 	 		char c = s[1];
 	 		s[1] = '\0';
 	 		if (chdir(stmp)) {
-				std::cerr << "Error in chdir, path = " 
-					<< stmp << std::endl;
+				silent_cerr("Error in chdir, path=" 
+					<< stmp << std::endl);
 	    			throw ErrFileSystem();
 	 		}
 	 		char p[PATHBUFSIZE];
 	 		if (getcwd(p, PATHBUFSIZE) == NULL) {
-				std::cerr << "Error in getcwd()" << std::endl;
+				silent_cerr("Error in getcwd()" << std::endl);
 	    			SAFEDELETEARR(stmp);
 	    			throw ErrFileSystem();
 	 		}
@@ -268,7 +268,7 @@ IncludeParser::Include_int()
    	if (sCurrPath == NULL) {
       		char s[PATHBUFSIZE];
       		if (getcwd(s, PATHBUFSIZE) == NULL) {
-			std::cerr << "Error in getcwd()" << std::endl;
+			silent_cerr("Error in getcwd()" << std::endl);
 	 		throw ErrFileSystem();
       		}
 		SAFESTRDUP(sCurrPath, s);
@@ -310,18 +310,18 @@ IncludeParser::GetDescription_int(const char *s)
 #ifdef USE_INCLUDE_PARSER
 	} else if (!strcmp(s, "chdir")) {
   	 	if (FirstToken() == UNKNOWN) {
-			std::cerr << "Parser error "
+			silent_cerr("Parser error "
 				"in IncludeParser::Include_int(), "
 				"colon expected at line " << GetLineData() 
-				<< std::endl;
+				<< std::endl);
       			throw HighParser::ErrColonExpected();
    		}
    
    		const char* sfname = GetFileName();
 
       		if (chdir(sfname)) {
-			std::cerr << "Error in chdir, path = " 
-				<< sfname << std::endl;
+			silent_cerr("Error in chdir, path = " 
+				<< sfname << std::endl);
 	 		throw ErrFileSystem();
       		}
       		return true;

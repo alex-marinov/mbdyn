@@ -188,7 +188,7 @@ DofIter()
    ASSERT(pTime != NULL);
    if(pTime == NULL) {
       DEBUGCERR("");
-      std::cerr << "error in setting Time symbol" << std::endl;
+      silent_cerr("error in setting Time symbol" << std::endl);
 
       throw DataManager::ErrGeneric();
    }   
@@ -241,15 +241,15 @@ DofIter()
    /* legge i dati di controllo */
    if(CurrDesc != BEGIN) {
       DEBUGCERR("");
-      std::cerr << "<begin> expected at line "
-	<< HP.GetLineData() << std::endl;
+      silent_cerr("<begin> expected at line "
+	<< HP.GetLineData() << std::endl);
 
       throw DataManager::ErrGeneric();
    }
    if(KeyWords(HP.GetWord()) != CONTROLDATA) {
       DEBUGCERR("");
-      std::cerr << "<begin: control data;> expected at line " 
-	<< HP.GetLineData() << std::endl;
+      silent_cerr("<begin: control data;> expected at line " 
+	<< HP.GetLineData() << std::endl);
 
       throw DataManager::ErrGeneric();
    }
@@ -287,15 +287,15 @@ DofIter()
    if(iTotNodes > 0) {	
       if(CurrDesc != BEGIN) {
 	 DEBUGCERR("");
-	 std::cerr << "<begin> expected at line " 
-	   << HP.GetLineData() << std::endl;
+	 silent_cerr("<begin> expected at line " 
+	   << HP.GetLineData() << std::endl);
 
 	 throw DataManager::ErrGeneric();
       }
       if(KeyWords(HP.GetWord()) != NODES) {
 	 DEBUGCERR("");
-	 std::cerr << "<begin: nodes;> expected at line " 
-	   << HP.GetLineData() << std::endl;
+	 silent_cerr("<begin: nodes;> expected at line " 
+	   << HP.GetLineData() << std::endl);
 
 	 throw DataManager::ErrGeneric();
       }
@@ -304,7 +304,7 @@ DofIter()
       try {CurrDesc = KeyWords(HP.GetDescription()); } catch (EndOfFile) {}
    } else {
       DEBUGCERR("");
-      std::cerr << "warning, no nodes are defined" << std::endl;
+      silent_cerr("warning, no nodes are defined" << std::endl);
    }   
    /* fine lettura nodi */
    
@@ -326,15 +326,15 @@ DofIter()
    if(iTotDrive > 0) {	
       if(CurrDesc != BEGIN) {
 	 DEBUGCERR("");
-	 std::cerr << "<begin> expected at line "
-	   << HP.GetLineData() << std::endl;
+	 silent_cerr("\"begin\" expected at line "
+	   << HP.GetLineData() << std::endl);
 
 	 throw DataManager::ErrGeneric();
       }
       if(KeyWords(HP.GetWord()) != DRIVERS) {
 	 DEBUGCERR("");
-	 std::cerr << "<begin: drivers;> expected at line " 
-	   << HP.GetLineData() << std::endl;
+	 silent_cerr("\"begin: drivers;\" expected at line " 
+	   << HP.GetLineData() << std::endl);
 
 	 throw DataManager::ErrGeneric();
       }
@@ -357,15 +357,15 @@ DofIter()
    if(iTotElem > 0) {	
       if(CurrDesc != BEGIN) {
 	 DEBUGCERR("");
-	 std::cerr << "<begin> expected at line " 
-	   << HP.GetLineData() << std::endl;
+	 silent_cerr("\"begin\" expected at line " 
+	   << HP.GetLineData() << std::endl);
 
 	 throw DataManager::ErrGeneric();
       }
       if(KeyWords(HP.GetWord()) != ELEMENTS) {
 	 DEBUGCERR("");
-	 std::cerr << "<begin: elements;> expected at line " 
-	   << HP.GetLineData() << std::endl;
+	 silent_cerr("\"begin: elements;\" expected at line " 
+	   << HP.GetLineData() << std::endl);
 
 	 throw DataManager::ErrGeneric();
       }
@@ -376,7 +376,7 @@ DofIter()
       } catch (EndOfFile) {}
    } else {
       DEBUGCERR("");
-      std::cerr << "warning, no elements are defined" << std::endl;
+      silent_cerr("warning, no elements are defined" << std::endl);
    }
 
 #ifdef USE_STRUCT_NODES

@@ -613,8 +613,8 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    Elem* pM = pDM->ReadElem(HP, Elem::JOINT);
    Modal* pModalJoint = (Modal*)pM->pGet();
    if (pModalJoint->GetJointType() != Joint::MODAL) {
-      std::cerr << "Joint " << pModalJoint->GetLabel()
-	      << " is required to be a modal joint" << std::endl;
+      silent_cerr("Joint " << pModalJoint->GetLabel()
+	      << " is required to be a modal joint" << std::endl);
       throw DataManager::ErrGeneric();
    }
    
@@ -646,8 +646,8 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    DEBUGCOUT("Reading Aerodynamic State Space Matrices from file '" 
 		   << sFileData << '\'' << std::endl);
    if (!fdat) {
-     std::cerr << std::endl << "Unable to open file '" << sFileData << '\''
-	     << std::endl;
+     silent_cerr(std::endl << "Unable to open file \"" << sFileData << "\""
+	     << std::endl);
      throw DataManager::ErrGeneric();
    }	
    SpMapMatrixHandler* pAMat = NULL;
@@ -739,8 +739,8 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.IsArg()) {
-      std::cerr << "semicolon expected at line " 
-	      << HP.GetLineData() << std::endl;      
+      silent_cerr("semicolon expected at line " 
+	      << HP.GetLineData() << std::endl);
       throw DataManager::ErrGeneric();
    }   
    

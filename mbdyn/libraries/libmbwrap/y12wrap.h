@@ -175,7 +175,7 @@ private:
 
 	mutable bool bFirstSol;		/* true se prima backsubst */
 
-	void PutError(std::ostream& out, integer rc) const; /* scrive l'errore */
+	void PutError(integer rc) const; /* scrive l'errore */
 
 	/* Fattorizza la matrice */
 	void Factor(void);

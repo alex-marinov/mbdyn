@@ -102,13 +102,15 @@ struct less_mag : public binary_function<doublereal, doublereal, bool> {
 void PODEig::ComputeEigenvalues(doublereal t)
 {
 	if (t <= dFinalTime) {
-		std::cerr << "Warning: you cannot require to compute the eigenvalues " 
-			 << "before getting all the required snapshot!! No Eig computed!!\n";
+		silent_cerr("Warning: you cannot require to compute the eigenvalues " 
+			 << "before getting all the required snapshot!! No Eig computed!!"
+			 << std::endl);
 		 return;
 	}
 	
 	if (bEigDone) {
-		std::cerr << "Warning: eigenvalues already obtained. No new eigenvalues computed\n"; 
+		silent_cerr("Warning: eigenvalues already obtained. No new eigenvalues computed"
+				<< std::endl); 
 		return;
 	}
 	
@@ -184,7 +186,8 @@ void PODEig::ComputeEigenvalues(doublereal t)
 			    
 	if (iInfo != 0) {
       		/* = 0:  successful exit */
-      		std::cerr << "Eigenvalues error computing lapack  work spaces dimensions !!" << std::endl;
+      		silent_cerr("Eigenvalues error computing lapack work spaces dimensions !!"
+				<< std::endl);
 		return;
 	}
 	 
@@ -226,9 +229,8 @@ void PODEig::ComputeEigenvalues(doublereal t)
 	 		}
       		}
       		/* < 0:  if INFO = -i, the i-th argument had an illegal value. */
-      		std::cerr << "the " << -iInfo << "-" << th 
-	      		  << " argument had an illegal value" << std::endl;
-
+      		silent_cerr("the " << -iInfo << "-" << th 
+	      		  << " argument had an illegal value" << std::endl);
    	}
    
    /* ottenuti i valori singolari e i modi

@@ -272,7 +272,8 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 
 	case EMPTY:
 		if (!bAllowEmpty) {
-			std::cerr << "empty solver not allowed at line " << HP.GetLineData() << std::endl;
+			silent_cerr("empty solver not allowed at line "
+				<< HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
 
@@ -646,8 +647,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		}
       		break;
 #else /* !USE_Y12 */
-      		std::cerr << "Configure with --with-y12 "
-			"to enable Y12 solver" << std::endl;
+      		silent_cerr("Configure with --with-y12 "
+			"to enable Y12 solver" << std::endl);
       		throw ErrGeneric();
 #endif /* !USE_Y12 */
 
@@ -682,8 +683,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		}
       		break;
 #else /* !USE_SUPERLU */
-      		std::cerr << "Configure with --with-superlu "
-			"to enable superlu solver" << std::endl;
+      		silent_cerr("Configure with --with-superlu "
+			"to enable superlu solver" << std::endl);
       		throw ErrGeneric();
 #endif /* !USE_SUPERLU */
 
@@ -695,8 +696,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 				dPivotFactor));
 		break;
 #else /* !USE_MESCHACH */
-		std::cerr << "Configure with --with-meschach "
-			"to enable Meschach solver" << std::endl;
+		silent_cerr("Configure with --with-meschach "
+			"to enable Meschach solver" << std::endl);
       		throw ErrGeneric();
 #endif /* !USE_MESCHACH */
 
@@ -707,8 +708,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			LapackSolutionManager(iNLD, dPivotFactor));
 		break;
 #else /* !USE_LAPACK */
-		std::cerr << "Configure with --with-lapack "
-			"to enable Lapack dense solver" << std::endl;
+		silent_cerr("Configure with --with-lapack "
+			"to enable Lapack dense solver" << std::endl);
       		throw ErrGeneric();
 #endif /* !USE_LAPACK */
 
@@ -735,8 +736,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		}
       		break;
 #else /* !USE_TAUCS */
-		std::cerr << "Configure with --with-taucs "
-			"to enable Taucs sparse solver" << std::endl;
+		silent_cerr("Configure with --with-taucs "
+			"to enable Taucs sparse solver" << std::endl);
       		throw ErrGeneric();
 #endif /* !USE_TAUCS */
 
@@ -748,8 +749,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 				dPivotFactor));
       		break;
 #else /* !USE_HARWELL */
-      		std::cerr << "Configure with --with-harwell "
-			"to enable Harwell solver" << std::endl;
+      		silent_cerr("Configure with --with-harwell "
+			"to enable Harwell solver" << std::endl);
 		throw ErrGeneric();
 #endif /* !USE_HARWELL */
 
@@ -779,8 +780,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		}
       		break;
 #else /* !USE_UMFPACK */
-      		std::cerr << "Configure with --with-umfpack "
-			"to enable Umfpack solver" << std::endl;
+      		silent_cerr("Configure with --with-umfpack "
+			"to enable Umfpack solver" << std::endl);
       		throw ErrGeneric();
 #endif /* !USE_UMFPACK */
 

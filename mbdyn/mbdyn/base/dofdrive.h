@@ -66,8 +66,8 @@ public:
 inline doublereal
 DofDriveCaller::dGet(const doublereal& dVar) const
 {
-	std::cerr << "warning, possible improper call of dof drive "
-		"with real argument" << std::endl;
+	silent_cerr("warning, possible improper call of dof drive "
+		"with real argument" << std::endl);
 	return DriveOwner::pGetDriveCaller()->dGet(dVar);
 }
 

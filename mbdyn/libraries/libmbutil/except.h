@@ -58,7 +58,7 @@ class ErrDivideByZero {};
 class ErrMemory {
   public: 
     ErrMemory(void) {};
-    ErrMemory(const char* const s) { std::cerr << s << std::endl; };
+    ErrMemory(const char* const s) { silent_cerr(s << std::endl); };
     ErrMemory(std::ostream& out, const char* const s) { out << s << std::endl; };   
 };
 

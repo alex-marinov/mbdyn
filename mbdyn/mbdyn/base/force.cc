@@ -260,8 +260,8 @@ Elem* ReadForce(DataManager* pDM,
    /* tipo di forza */
    KeyWords CurrType = KeyWords(HP.GetWord());
    if (CurrType == UNKNOWN) {
-      std::cerr << std::endl << sFuncName << " at line " << HP.GetLineData() 
-	<< ": unknown force type" << std::endl;      
+      silent_cerr(sFuncName << " at line " << HP.GetLineData() 
+	<< ": unknown force type" << std::endl);
       throw DataManager::ErrGeneric();
    }   
    
@@ -364,8 +364,9 @@ Elem* ReadForce(DataManager* pDM,
       if (d > DBL_EPSILON) {      
 	 Dir /= sqrt(d);
       } else {      
-	 std::cerr << "Warning, force " << uLabel 
-	   << " has null direction" << std::endl;
+	 silent_cerr("Force(" << uLabel 
+	   << ") has null direction" << std::endl);
+	 throw ErrGeneric();
       }        
       
       /* distanza dal nodo (vettore di 3 elementi) ( solo se e' una forza) */
@@ -486,8 +487,8 @@ Elem* ReadForce(DataManager* pDM,
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.IsArg()) {
-      std::cerr << std::endl << sFuncName
-	<< ": semicolon expected at line " << HP.GetLineData() << std::endl;      
+      silent_cerr(sFuncName
+	<< ": semicolon expected at line " << HP.GetLineData() << std::endl);
       throw DataManager::ErrGeneric();
    }      
    

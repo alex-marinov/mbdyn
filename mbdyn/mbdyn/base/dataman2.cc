@@ -199,7 +199,7 @@ DataManager::DofOwnerInit(void)
 			(!silent_output && bPrintDofStats);
 
 	if (pds) {
-		std::cout << "Regular steps dof stats" << std::endl;
+		silent_cout("Regular steps dof stats" << std::endl);
 	}
 
 	/* per ogni nodo strutturale */
@@ -257,13 +257,13 @@ DataManager::DofOwnerInit(void)
 				unsigned int nd = (*ppNd)->iGetNumDof();
 				integer fd = pDf->iIndex;
 
-				std::cout << psNodeNames[(*ppNd)->GetNodeType()]
+				silent_cout(psNodeNames[(*ppNd)->GetNodeType()]
 					<< "(" << (*ppNd)->GetLabel() << "): "
-					<< nd << " " << fd + 1;
+					<< nd << " " << fd + 1);
 				if (nd > 1) {
-					std::cout << "->" << fd + nd;
+					silent_cout("->" << fd + nd);
 				}
-				std::cout << std::endl;
+				silent_cout(std::endl);
 			}
 #endif /* !DEBUG */
 
@@ -308,13 +308,13 @@ DataManager::DofOwnerInit(void)
 					unsigned int nd = pElWD->iGetNumDof();
 					integer fd = pDf->iIndex;
 
-					std::cout << psElemNames[pElWD->GetElemType()]
+					silent_cout(psElemNames[pElWD->GetElemType()]
 						<< "(" << pElWD->GetLabel()
-						<< "): " << nd << " " << fd + 1;
+						<< "): " << nd << " " << fd + 1);
 					if (nd > 1) {
-						std::cout << "->" << fd + nd;
+						silent_cout("->" << fd + nd);
 					}
-					std::cout << std::endl;
+					silent_cout(std::endl);
 				}
 #endif /* !DEBUG */
 
@@ -358,7 +358,7 @@ DataManager::InitialJointAssembly(void)
 			(!silent_output && bPrintDofStats);
 
 	if (pds) {
-		std::cout << "Initial assembly dof stats" << std::endl;
+		silent_cout("Initial assembly dof stats" << std::endl);
 	}
 
 	integer iIndex = 0;    /* Indice dei gradi di liberta' */
@@ -373,13 +373,13 @@ DataManager::InitialJointAssembly(void)
 				unsigned int nd = iNumDofs;
 				integer fd = iIndex;
 
-				std::cout << psNodeNames[(*ppNode)->GetNodeType()]
+				silent_cout(psNodeNames[(*ppNode)->GetNodeType()]
 					<< "(" << (*ppNode)->GetLabel()
-					<< "): " << nd << " " << fd + 1;
+					<< "): " << nd << " " << fd + 1);
 				if (nd > 1) {
-					std::cout << "->" << fd + nd;
+					silent_cout("->" << fd + nd);
 				}
-				std::cout << std::endl;
+				silent_cout(std::endl);
 			}
 			pTmp->iFirstIndex = iIndex;
 			iIndex += iNumDofs;
@@ -421,13 +421,13 @@ DataManager::InitialJointAssembly(void)
 							unsigned int nd = iNumDofs;
 							integer fd = iIndex;
 
-							std::cout << psElemNames[(*ppEl)->GetElemType()]
+							silent_cout(psElemNames[(*ppEl)->GetElemType()]
 								<< "(" << (*ppEl)->GetLabel()
-								<< "): " << nd << " " << fd + 1;
+								<< "): " << nd << " " << fd + 1);
 							if (nd > 1) {
-								std::cout << "->" << fd + nd;
+								silent_cout("->" << fd + nd);
 							}
-							std::cout << std::endl;
+							silent_cout(std::endl);
 						}
 						pTmp->iFirstIndex = iIndex;
 						iIndex += iNumDofs;
@@ -607,17 +607,17 @@ DataManager::InitialJointAssembly(void)
 #endif /* DEBUG */
 				outputRes()) {
 			/* Output del residuo */
-			std::cout << "Residual (" << iNumIter << "):" << std::endl;
+			silent_cout("Residual (" << iNumIter << "):" << std::endl);
 			for (int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {
-				std::cout << "Dof " << std::setw(8) << iTmpCnt << ": "
-					<< pResHdl->dGetCoef(iTmpCnt) << std::endl;
+				silent_cout("Dof " << std::setw(8) << iTmpCnt << ": "
+					<< pResHdl->dGetCoef(iTmpCnt) << std::endl);
 			}
 		}
 
 		/* Eseguo il test di convergenza; se e' positivo, esco */
 		doublereal dTest = pResHdl->Dot()/(1.+X.Dot());
 		if (!isfinite(dTest)) {
-			std::cerr << "Assembly diverged; aborting ..." << std::endl;
+			silent_cerr("Assembly diverged; aborting ..." << std::endl);
 			throw DataManager::ErrAssemblyDiverged();
 		}
 		dTest = sqrt(dTest);
@@ -627,10 +627,10 @@ DataManager::InitialJointAssembly(void)
 				DEBUG_LEVEL_MATCH(MYDEBUG_ASSEMBLY) ||
 #endif /* DEBUG */
 				outputIters()) {
-			std::cout << "Iteration: " << iNumIter
+			silent_cout("Iteration: " << iNumIter
 				<< ", Test: " << dTest
 				<< " (Tol = " << dInitialAssemblyTol << ")"
-				<< std::endl;
+				<< std::endl);
 		}
 
 		/* Se la tolleranza e' raggiunta, esce dal ciclo */
@@ -644,11 +644,10 @@ DataManager::InitialJointAssembly(void)
 
 		/* Se ho raggiunto il numero massimo di iterazioni */
 		if (iNumIter > iMaxInitialIterations) {
-			std::cerr
-				<< "Initial assembly iterations "
+			silent_cerr("Initial assembly iterations "
 				"reached maximum number "
 				<< iMaxInitialIterations << "; aborting ..."
-				<< std::endl;
+				<< std::endl);
 			throw DataManager::ErrAssemblyMaxIters();
 		}
 
@@ -716,10 +715,10 @@ DataManager::InitialJointAssembly(void)
 #endif /* DEBUG */
 				outputSol()) {
 			/* Output della soluzione */
-			std::cout << "Solution (" << iNumIter << "):" << std::endl;
+			silent_cout("Solution (" << iNumIter << "):" << std::endl);
 			for (int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {
-				std::cout << "Dof " << std::setw(8) << iTmpCnt << ": "
-					<< pSolHdl->dGetCoef(iTmpCnt) << std::endl;
+				silent_cout("Dof " << std::setw(8) << iTmpCnt << ": "
+					<< pSolHdl->dGetCoef(iTmpCnt) << std::endl);
 			}
 		}
 

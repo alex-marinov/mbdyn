@@ -538,8 +538,8 @@ gpc_pinv(integer lda, integer m, integer n, doublereal* a,
 	                    u, &ldu, vt, &ldvt, work, &lwork, &info);
 #else /* !USE_LAPACK */
 	integer info = 1;
-   	std::cerr << "warning: LAPACK libraries are not available," << std::endl
-     		<< "so the pseudo-inversion will not be performed" << std::endl;
+   	silent_cerr("warning: LAPACK libraries are not available," << std::endl
+     		<< "so the pseudo-inversion will not be performed" << std::endl);
 #endif /* !USE_LAPACK */
 
    	if (info != 0) {
@@ -705,27 +705,27 @@ pivot(PNULL)
    	ASSERT(n > 0);
 	
    	if ((A = m_get(m, n)) == MNULL) {
-      		std::cerr << "A = m_get(" << m << ',' << n << ") failed" << std::endl;
+      		silent_cerr("A = m_get(" << m << ',' << n << ") failed" << std::endl);
       		throw ErrGeneric();
    	}
 	
    	if ((diag = v_get(std::min(m, n))) == VNULL) {
-      		std::cerr << "diag = v_get(" << std::min(m, n) << ") failed" << std::endl;
+      		silent_cerr("diag = v_get(" << std::min(m, n) << ") failed" << std::endl);
       		throw ErrGeneric();
    	}
 	
    	if ((x = v_get(n)) == VNULL) {
-      		std::cerr << "x = v_get(" << n << ") failed" << std::endl;
+      		silent_cerr("x = v_get(" << n << ") failed" << std::endl);
       		throw ErrGeneric();
    	}
 	
    	if ((b = v_get(m)) == VNULL) {
-      		std::cerr << "b = v_get(" << m << ") failed" << std::endl;
+      		silent_cerr("b = v_get(" << m << ") failed" << std::endl);
       		throw ErrGeneric();
    	}
 	
    	if ((pivot = px_get(n)) == PNULL) {
-      		std::cerr << "pivot = px_get(" << n << ") failed" << std::endl;
+      		silent_cerr("pivot = px_get(" << n << ") failed" << std::endl);
       		throw ErrGeneric();
    	}
 }
@@ -945,11 +945,11 @@ DeadBeat::DesignControl(const doublereal* pdTheta,
    	integer info = pInv->Inv(iDim, iTmpRows, iTmpCols, pdPTmp);
    
    	if (info < 0) {
-      		std::cerr << "DeadBeat::DesignControl(): illegal value in " 
-			<< -info << "-th argument of dgesvd()" << std::endl;
+      		silent_cerr("DeadBeat::DesignControl(): illegal value in " 
+			<< -info << "-th argument of dgesvd()" << std::endl);
       		throw ErrGeneric();
    	} else if (info > 0) {
-      		std::cerr << "DeadBeat::DesignControl(): error in dgesvd()" << std::endl;
+      		silent_cerr("DeadBeat::DesignControl(): error in dgesvd()" << std::endl);
       		throw ErrGeneric();
    	} /* else: OK */
      
@@ -1058,7 +1058,7 @@ pInv(NULL)
    	}
       
    	if (pInv == NULL) {
-      		std::cerr << "unable to create GPCInv" << std::endl;
+      		silent_cerr("unable to create GPCInv" << std::endl);
       		throw ErrGeneric();
    	}
    
@@ -1217,11 +1217,11 @@ GPC::DesignControl(const doublereal* pdTheta,
 		   iTmpRows, pdInvP);
    
    	if (info < 0) {
-      		std::cerr << "GPC::DesignControl(): illegal value in " 
-			<< -info << "-th argument of dgesvd()" << std::endl;
+      		silent_cerr("GPC::DesignControl(): illegal value in " 
+			<< -info << "-th argument of dgesvd()" << std::endl);
       		throw ErrGeneric();
    	} else if (info > 0) {
-      		std::cerr << "GPC::DesignControl(): error in dgesvd()" << std::endl;
+      		silent_cerr("GPC::DesignControl(): error in dgesvd()" << std::endl);
       		throw ErrGeneric();
    	} /* else: OK */
      
@@ -1344,36 +1344,36 @@ int main(void)
 		      theta);
    
    doublereal* pA = d;
-   std::cout << "A:" << std::endl;
+   silent_cout("A:" << std::endl);
    for (integer i = 0; i < nout*s; i++) {     
       for (integer j = 0; j < nout*pa; j++) {
-	 std::cout << std::setw(8) << pA[i+nout*s*j];
+	 silent_cout(std::setw(8) << pA[i+nout*s*j]);
       }
-      std::cout << std::endl;
+      silent_cout(std::endl);
    }
    doublereal* pB = d+nout*nout*pa*s;
-   std::cout << "B:" << std::endl;
+   silent_cout("B:" << std::endl);
    for (integer i = 0; i < nout*s; i++) {     
       for (integer j = 0; j < nin*pb; j++) {
-	 std::cout << std::setw(8) << pB[i+nout*s*j];
+	 silent_cout(std::setw(8) << pB[i+nout*s*j]);
       }
-      std::cout << std::endl;
+      silent_cout(std::endl);
    }
    doublereal* pP = d+nout*nout*pa*s+nout*s*nin*pb;
-   std::cout << "P:" << std::endl;
+   silent_cout("P:" << std::endl);
    for (integer i = 0; i < nout*s; i++) {
       for (integer j = 0; j < nin*s; j++) {
-	 std::cout << std::setw(8) << pP[i+nout*s*j];
+	 silent_cout(std::setw(8) << pP[i+nout*s*j]);
       }
-      std::cout << std::endl;
+      silent_cout(std::endl);
    }
    doublereal* pC = d+nout*nout*pa*s+nout*s*nin*pb+nout*s*nin*s;
-   std::cout << "C:" << std::endl;
+   silent_cout("C:" << std::endl);
    for (integer i = 0; i < nout*s; i++) {     
       for (integer j = 0; j < nout*pa; j++) {
-	 std::cout << std::setw(8) << pC[i+nout*s*j];
+	 silent_cout(std::setw(8) << pC[i+nout*s*j]);
       }
-      std::cout << std::endl;
+      silent_cout(std::endl);
    }      
 
    integer q = s/2;
@@ -1387,12 +1387,12 @@ int main(void)
    doublereal* pT = pP+s*nout*(s-q)*nin;
    inv.Inv(s*nout, tmprow, tmpcol, pT);
    
-   std::cout << "Inv(P'):" << std::endl;
+   silent_cout("Inv(P'):" << std::endl);
    for (integer i = 0; i < tmpcol; i++) {
       for (integer j = 0; j < tmprow; j++) {
-	 std::cout << std::setw(12) << pT[tmprow*i+j];
+	 silent_cout(std::setw(12) << pT[tmprow*i+j]);
       }
-      std::cout << std::endl;
+      silent_cout(std::endl);
    }
    
    DeadBeat db(nout, nin,
@@ -1405,39 +1405,39 @@ int main(void)
    doublereal* pmd;
    db.DesignControl(theta, &pac, &pbc, &pmd, &pcc);
    
-   std::cout << "Ac:" << std::endl;
+   silent_cout("Ac:" << std::endl);
    for (integer i = 0; i < nin; i++) {
       for (integer j = 0; j < nout*pa; j++) {
-	 std::cout << std::setw(12) << pac[i*nout*pa+j];
+	 silent_cout(std::setw(12) << pac[i*nout*pa+j]);
       }
-      std::cout << std::endl;
+      silent_cout(std::endl);
    }
-   std::cout << "Bc:" << std::endl;
+   silent_cout("Bc:" << std::endl);
    for (integer i = 0; i < nin; i++) {
       for (integer j = 0; j < nin*pb; j++) {
-	 std::cout << std::setw(12) << pbc[i*nin*pb+j];
+	 silent_cout(std::setw(12) << pbc[i*nin*pb+j]);
       }
-      std::cout << std::endl;
+      silent_cout(std::endl);
    }
-   std::cout << "Cc:" << std::endl;
+   silent_cout("Cc:" << std::endl);
    for (integer i = 0; i < nin; i++) {
       for (integer j = 0; j < nout*pa; j++) {
-	 std::cout << std::setw(12) << pcc[i*nout*pa+j];
+	 silent_cout(std::setw(12) << pcc[i*nout*pa+j]);
       }
-      std::cout << std::endl;
+      silent_cout(std::endl);
    }
-   std::cout << "Md:" << std::endl;
+   silent_cout("Md:" << std::endl);
    for (integer i = 0; i < nin; i++) {
       for (integer j = 0; j < tmprow; j++) {
-	 std::cout << std::setw(12) << pmd[i*tmprow+j];
+	 silent_cout(std::setw(12) << pmd[i*tmprow+j]);
       }
-      std::cout << std::endl;
+      silent_cout(std::endl);
    }
 #else /* !USE_DBC */
-   std::cerr << "cannot use GPC/Deadbeat" << std::endl;
+   silent_cerr("cannot use GPC/Deadbeat" << std::endl);
 #endif /* !USE_DBC */
 #else /* !USE_ELECTRIC_NODES */
-   std::cerr << "configure with --with-elec to enable electric stuff" << std::endl;
+   silent_cerr("configure with --with-elec to enable electric stuff" << std::endl);
 #endif /* !USE_ELECTRIC_NODES */
    return 0;
 }

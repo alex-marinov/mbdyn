@@ -57,8 +57,8 @@ dT0(t0), dDT(dt), iNumSteps(is), pd(NULL), pvd(NULL)
 
 	std::ifstream in(sFileName);
 	if (!in) {
-		std::cerr << "can't open file \""
-			<< sFileName << "\"" << std::endl;
+		silent_cerr("can't open file \""
+			<< sFileName << "\"" << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -92,8 +92,8 @@ dT0(t0), dDT(dt), iNumSteps(is), pd(NULL), pvd(NULL)
 		for (integer i = 1; i <= iNumDrives; i++) {
 			in >> pvd[i][j];
 			if (in.eof()) {
-				std::cerr << "unexpected end of file '"
-					<< sFileName << '\'' << std::endl;
+				silent_cerr("unexpected end of file '"
+					<< sFileName << '\'' << std::endl);
 				throw ErrGeneric();
 			}
 		}

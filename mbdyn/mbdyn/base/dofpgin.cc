@@ -61,17 +61,17 @@ DofPlugIn::Read(int argc, char *argv[])
 	int iParams = 2;
 
 	if (argc < 1 || argv[0] == NULL) {
-		std::cerr << "DofPlugIn::Read(): "
+		silent_cerr("DofPlugIn::Read(): "
 			"illegal number of parameters " << argc
-			<< std::endl;
+			<< std::endl);
 		throw ErrGeneric();
 	}
 	uLabel = ReadLabel(argv[0]);
 
 	if (argc < 2 || argv[1] == NULL) {
-		std::cerr << "DofPlugIn::Read(" << argv[0] 
+		silent_cerr("DofPlugIn::Read(" << argv[0] 
 			<< "): illegal number of parameters " << argc
-			<< std::endl;
+			<< std::endl);
 		throw ErrGeneric();
 	}
 	pNode = ReadNode(uLabel, argv[1]);
@@ -87,10 +87,10 @@ DofPlugIn::Read(int argc, char *argv[])
 		iParams++;
 
 		if (argc < 3 || argv[2] == NULL) {
-			std::cerr << "DofPlugIn::Read(" << argv[0]
+			silent_cerr("DofPlugIn::Read(" << argv[0]
 				<< "," << argv[1] 
 				<< "): illegal number of parameters " << argc 
-				<< std::endl;
+				<< std::endl);
 			throw ErrGeneric();
 		}
 		iOrder = ReadDofOrder(pNode, 1, argv[2]);
@@ -100,20 +100,20 @@ DofPlugIn::Read(int argc, char *argv[])
 		iParams += 2;
 
 		if (argc < 3 || argv[2] == NULL) {
-			std::cerr << "DofPlugIn::Read(" << argv[0]
+			silent_cerr("DofPlugIn::Read(" << argv[0]
 				<< "," << argv[1] 
 				<< "): illegal number of parameters " << argc 
-				<< std::endl;
+				<< std::endl);
 			throw ErrGeneric();
 		}
 		unsigned int iIndex = ReadIndex(pNode, iMaxIndex, argv[2]);
 
 		if (argc < 4 || argv[3] == NULL) {
-			std::cerr << "DofPlugIn::Read(" << argv[0]
+			silent_cerr("DofPlugIn::Read(" << argv[0]
 				<< "," << argv[1] 
 				<< "," << argv[2] 
 				<< "): illegal number of parameters " << argc 
-				<< std::endl;
+				<< std::endl);
 			throw ErrGeneric();
 		}
 		iOrder = ReadDofOrder(pNode, iIndex, argv[3]);
@@ -151,8 +151,8 @@ DofPlugIn::Read(int argc, char *argv[])
 
 			char *v = strchr(p, '=');
 			if (v == NULL) {
-				std::cerr << "dof plugin: missing \"=\" "
-					"in <param>=<value>" << std::endl;
+				silent_cerr("dof plugin: missing \"=\" "
+					"in <param>=<value>" << std::endl);
 				throw ErrGeneric();
 			}
 
@@ -166,17 +166,17 @@ DofPlugIn::Read(int argc, char *argv[])
 				} else if (strcasecmp(v, "false") == 0) {
 					bPrev = false;
 				} else {
-					std::cerr << "dof plugin: "
+					silent_cerr("dof plugin: "
 						"unknown mode for parameter "
 						"\"" << p << "=" << v << "\""
-						<< std::endl;
+						<< std::endl);
 					throw ErrGeneric();
 				}
 
 			} else {
-				std::cerr << "dof plugin: unknown parameter "
+				silent_cerr("dof plugin: unknown parameter "
 					"\"" << p << "=" << v << "\""
-					<< std::endl;
+					<< std::endl);
 				throw ErrGeneric();
 			}
 		}
@@ -238,12 +238,12 @@ DofPlugIn::ReadNode(unsigned int uLabel, const char *s)
 		}
 	}
 	if (i == Node::LASTNODETYPE) {
-		std::cerr << "unknown node type '" << s << "'" << std::endl;
+		silent_cerr("unknown node type '" << s << "'" << std::endl);
 		throw ErrGeneric();
 	}
 	if ((pNode = pDM->pFindNode(Node::Type(i), uLabel)) == NULL) {
-		std::cerr << psNodeNames[Node::Type(i)] 
-			<< "(" << uLabel << ") not defined" << std::endl;
+		silent_cerr(psNodeNames[Node::Type(i)] 
+			<< "(" << uLabel << ") not defined" << std::endl);
 		throw ErrGeneric();
 	}
 	return pNode;
@@ -254,9 +254,9 @@ DofPlugIn::ReadIndex(Node *pNode, unsigned int iMaxIndex, const char *s)
 {
 	unsigned int i = ReadLabel(s);
 	if (i == 0 || i > iMaxIndex) {
-		std::cerr << "illegal index " << i << " for "
+		silent_cerr("illegal index " << i << " for "
 			<< psNodeNames[pNode->GetNodeType()]
-			<< "(" << pNode->GetLabel() << ")" << std::endl;
+			<< "(" << pNode->GetLabel() << ")" << std::endl);
 		throw ErrGeneric();
 	}
 	return i;
@@ -267,10 +267,10 @@ DofPlugIn::ReadDofOrder(Node *pNode, unsigned int iIndex, const char *s)
 {
 	if (strcasecmp(s, "differential") == 0) {
 		if (pNode->GetDofType(iIndex-1) != DofOrder::DIFFERENTIAL) {
-			std::cerr << "cannot take differential value of "
+			silent_cerr("cannot take differential value of "
 				<< psNodeNames[pNode->GetNodeType()] 
 				<< "(" << pNode->GetLabel() << ")[" 
-				<< iIndex << "]" << std::endl;
+				<< iIndex << "]" << std::endl);
 			throw ErrGeneric();
 		}
 		return 1;
@@ -280,7 +280,7 @@ DofPlugIn::ReadDofOrder(Node *pNode, unsigned int iIndex, const char *s)
 		return 0;
 	} 
 
-	std::cerr << "unknown dof order '" << s << "'" << std::endl;
+	silent_cerr("unknown dof order '" << s << "'" << std::endl);
 	throw ErrGeneric();
 }
 

@@ -60,9 +60,9 @@ public:
 	class ErrNotAvailable {
 	public:
 		ErrNotAvailable(void) {
-			std::cerr << "Constitutive law not available "
+			silent_cerr("Constitutive law not available "
 				"for this dimensionality"
-				<< std::endl;
+				<< std::endl);
 		};
 		ErrNotAvailable(std::ostream& out) {
 			out << "Constitutive law not available "

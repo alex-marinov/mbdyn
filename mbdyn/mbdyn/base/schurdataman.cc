@@ -77,11 +77,11 @@ SchurDataManager::SchurDataManager(MBDynParser& HP,
 : DataManager(HP, OF, dInitialTime, sInputFileName,
 		sOutputFileName, bAbortAfterInput)
 {
-	std::cerr << "fatal error: you are building SchurDataManager,\n" <<
-		"but mbdyn was compiled without MPI.\n" <<
-		"Something weird is happening\n" <<
-		"Anyway, please compile with -DUSE_MPI\n" <<
-		"to enable paralle solution\n";
+	silent_cerr("fatal error: you are building SchurDataManager, "
+		"but mbdyn was compiled without MPI. "
+		"Something weird is happening. "
+		"Anyway, please compile with -DUSE_MPI "
+		"to enable parallel solution" << std::endl);
 	throw ErrGeneric();
 }
 
@@ -295,9 +295,8 @@ iTotalExpConnections(0)
 	int iNumElems = 0;
 	int iNumNodes = 0;
 	if (KeyWords(HP.GetWord()) != PARALLEL) {
-		std::cerr
-			<< "Error: <begin: parallel;> expected at line "
-			<< HP.GetLineData() << "; aborting..." << std::endl;
+		silent_cerr("Error: <begin: parallel;> expected at line "
+			<< HP.GetLineData() << "; aborting..." << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -305,9 +304,9 @@ iTotalExpConnections(0)
 		switch (KeyWords(HP.GetDescription())) {
 		case WEIGHTS:
 			if (!HP.IsArg()) {
-				std::cerr << "Error: Weight flag expected "
+				silent_cerr("Error: Weight flag expected "
 					"at line " << HP.GetLineData()
-					<< "; aborting ..." << std::endl;
+					<< "; aborting ..." << std::endl);
 				throw ErrGeneric();
 			}
 			wgtflag = HP.GetInt();
@@ -317,13 +316,13 @@ iTotalExpConnections(0)
 			SAFENEWARR(pParAmgProcs, int, iTotVertices);
 			for (int i = 0; i < iTotVertices; i++) {
 				if (!HP.IsArg()) {
-					std::cerr << "Error: the partition "
+					silent_cerr("Error: the partition "
 						"assignment is not complete, "
 						"only " << i << " vertices "
 						"input so far "
 						"at line " << HP.GetLineData()
 						<< "; aborting ..." 
-						<< std::endl;
+						<< std::endl);
 					throw ErrGeneric();
 				}
 				pParAmgProcs[i] = HP.GetInt();
@@ -335,7 +334,7 @@ iTotalExpConnections(0)
 #ifdef USE_METIS
 				Partitioner = PARTITIONER_METIS;
 #else /* ! USE_METIS */
-				std::cerr << "METIS partitioner not available; aborting..." << std::endl;
+				silent_cerr("METIS partitioner not available; aborting..." << std::endl);
 				throw ErrGeneric();
 #endif /* ! USE_METIS */
 
@@ -343,30 +342,30 @@ iTotalExpConnections(0)
 #ifdef USE_CHACO
 				Partitioner = PARTITIONER_CHACO;
 #else /* ! USE_CHACO */
-				std::cerr << "CHACO partitioner not available; aborting..." << std::endl;
+				silent_cerr("CHACO partitioner not available; aborting..." << std::endl);
 				throw ErrGeneric();
 #endif /* ! USE_CHACO */
 
 			} else {
-				std::cerr << "unknown partitioner at line " << HP.GetLineData()
-					<< "; aborting..." << std::endl;
+				silent_cerr("unknown partitioner at line " << HP.GetLineData()
+					<< "; aborting..." << std::endl);
 				throw ErrGeneric();
 			}
 			break;
 
 		case END:
 			if (KeyWords(HP.GetWord()) != PARALLEL) {
-				std::cerr << "Error: <end: parallel;> expected "
+				silent_cerr("Error: \"end: parallel;\" expected "
 					"at line " << HP.GetLineData()
-					<< "; aborting ..." << std::endl;
+					<< "; aborting ..." << std::endl);
 				throw ErrGeneric();
 			}
 			goto endcycle;
 
 		default:
-			std::cerr << "Unknown input at line "
+			silent_cerr("Unknown input at line "
 				<< HP.GetLineData() << "; aborting ..." 
-				<< std::endl;
+				<< std::endl);
 			throw ErrGeneric();
 
 		case NUMBEROFCONNECTIONS:
@@ -380,11 +379,11 @@ iTotalExpConnections(0)
 
 			for (int i = 0; i < iTotalExpConnections; i++) {
 				if (KeyWords(HP.GetDescription()) != CONNECTION) {
-					std::cerr << "Error: <Connection> "
+					silent_cerr("Error: <Connection> "
 						"expected at line "
 						<< HP.GetLineData() 
 						<< "; aborting ..." 
-						<< std::endl;
+						<< std::endl);
 					throw ErrGeneric();
 				}
 
@@ -453,33 +452,32 @@ iTotalExpConnections(0)
 							break;
 
 						default:
-							std::cerr << "Error: Element Type at line "
-								<< HP.GetLineData()
-								<< " not valid; aborting ..."
-								<< std::endl;
+							silent_cerr("Error: invalid element type "
+								"at line " << HP.GetLineData()
+								<< "; aborting ..." << std::endl);
 							throw ErrGeneric();
 						}
 
 						if (HP.IsArg()) {
 							j = HP.GetInt();
+
 						} else {
-							std::cerr
-								<< "Error: Label expected "
+							silent_cerr("Error: label expected "
 								"for " << psElemNames[CurrElType]
-								<< " element at line "
+								<< " element type at line "
 								<< HP.GetLineData()
-								<< "; aborting ..." << std::endl;
+								<< "; aborting ..." << std::endl);
 							throw ErrGeneric();
 						}
 
 						ppExpCntElems[iNumElems] =
 							*(ppFindElem(CurrElType, j));
 						if (ppExpCntElems[iNumElems] == NULL) {
-							std::cerr << "Error at line "
+							silent_cerr("Error at line "
 								<< HP.GetLineData() << ": "
 								<< psElemNames[CurrElType]
 								<< "(" << j << ") undefined; "
-								"aborting ..." << std::endl;
+								"aborting ..." << std::endl);
 							throw ErrGeneric();
 						}
 						iNumElems++;
@@ -508,38 +506,39 @@ iTotalExpConnections(0)
 							break;
 
 						default:
-							std::cerr << "Error: node type on line "
-								<< HP.GetLineData() << " not valid"
-								<< "; aborting ..." << std::endl;
+							silent_cerr("Error: invalid node type "
+								"at line " << HP.GetLineData()
+								<< "; aborting ..." << std::endl);
 							throw ErrGeneric();
 						}
 
 						if (HP.IsArg()) {
 							j = HP.GetInt();
+
 						} else {
-							std::cerr << std::endl
-								<< "Error: Label expected at line "
-								<< HP.GetLineData()
-								<< "; aborting ..." << std::endl;
+							silent_cerr("Error: label expected "
+								"at line " << HP.GetLineData()
+								<< "; aborting ..." << std::endl);
 							throw ErrGeneric();
 						}
 
 						ppExpCntNodes[iNumNodes] =
 							pFindNode(CurrNdType, j);
 						if (ppExpCntNodes[iNumNodes] == NULL ) {
-							std::cerr << "Error: at line "
-								<< HP.GetLineData()
-								<< " undefined node; aborting ..."
-								<< std::endl;
+							silent_cerr("Error: at line "
+								<< HP.GetLineData() << ":"
+								<< psNodeNames[CurrNdType]
+								<< "(" << j << ") undefined; "
+								<< "aborting ..." << std::endl);
 							throw ErrGeneric();
 						}
 						iNumNodes++;
 						break;
 
 					default:
-						std::cerr << " Unknown input at line "
+						silent_cerr("Unknown input at line "
 							<< HP.GetLineData()
-							<< "; aborting ..." << std::endl;
+							<< "; aborting ..." << std::endl);
 						throw ErrGeneric();
 					}
 				}
@@ -547,11 +546,10 @@ iTotalExpConnections(0)
 
 			ASSERT(iNumNodes == iNumElems);
 			if (iNumNodes + iNumElems !=  2*iTotalExpConnections) {
-				std::cerr << std::endl
-					<< "Error: Total number of Nodes and elements"
+				silent_cerr("Error: total number of nodes and elements"
 					" in the parallel section at line "
 					<< HP.GetLineData()
-					<< " is not consistent; aborting ..." << std::endl;
+					<< " is not consistent; aborting ..." << std::endl);
 				throw ErrGeneric();
 			}
 			break;
@@ -616,9 +614,9 @@ SchurDataManager::HowManyDofs(DofType who) const
 		return iNumMyInt;
 
 	default:
-		std::cerr << "SchurDataManager::HowManyDofs: "
+		silent_cerr("SchurDataManager::HowManyDofs: "
 			"illegal request (" << unsigned(who) << ")"
-			<< std::endl;
+			<< std::endl);
 		throw ErrGeneric();
 	}
 }
@@ -637,9 +635,9 @@ SchurDataManager::GetDofsList(DofType who) const
 		return pMyIntDofs;
 
 	default:
-		std::cerr << "SchurDataManager::GetDofsList: "
+		silent_cerr("SchurDataManager::GetDofsList: "
 			"illegal request (" << unsigned(who) << ")"
-			<< std::endl;
+			<< std::endl);
 		throw ErrGeneric();
 	}
 }
@@ -905,11 +903,10 @@ SchurDataManager::CreatePartition(void)
 			break;
 
 		default:
-			std::cerr
-				<< "Sorry. You need to compile with -DUSE_METIS or -DUSE_CHACO."
+			silent_cerr("Sorry. You need to compile with -DUSE_METIS " // "or -DUSE_CHACO."
 				<< std::endl
 				<< "No other partition library is implemented yet."
-				" Aborting ..." << std::endl;
+				" Aborting ..." << std::endl);
 			throw ErrGeneric();
 		}
 	}
@@ -1523,8 +1520,9 @@ SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef) throw(ChangedE
 		}
 	}
 	if (ChangedEqStructure) {
-		std::cerr << "Jacobian reassembly requested by an element. Currently unsopported with MPI"
-			<< std::endl;
+		silent_cerr("Jacobian reassembly requested by an element. "
+				"Currently unsopported with MPI" << std::endl);
+		/* FIXME: exception? */
 	}
 }
 

@@ -119,7 +119,7 @@ void DataManager::NodeDataInit(void)
 	   NodeData[iCnt].ppFirstNode+NodeData[iCnt].iNum;
       }      
    } else {
-      std::cerr << "warning, no nodes are defined" << std::endl;
+      silent_cerr("warning, no nodes are defined" << std::endl);
    }
 }
 

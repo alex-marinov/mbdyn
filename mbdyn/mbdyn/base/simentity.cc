@@ -101,14 +101,14 @@ SimulationEntity::iGetNumPrivData(void) const
 unsigned int
 SimulationEntity::iGetPrivDataIdx(const char *s) const 
 {
-	std::cerr << "no private data available" << std::endl;
+	silent_cerr("no private data available" << std::endl);
 	throw ErrGeneric();
 }
 
 doublereal
 SimulationEntity::dGetPrivData(unsigned int /* i */ ) const
 {
-	std::cerr << "no private data available" << std::endl;
+	silent_cerr("no private data available" << std::endl);
 	throw ErrGeneric();
 }
 

@@ -58,9 +58,9 @@ int DiscreteControlARXProcess_Debug::ReadMatrix(std::istream& In,
 	 for (unsigned int j = 0; j < iNumCols; j++) {  // for every column
 	    In >> pdTmp[j];
 	    if (!In) {
-	       std::cerr << "Error: unexpected end of stream while reading " 
+	       silent_cerr("Error: unexpected end of stream while reading " 
 		 << sMatName << '_'
-		 << k+1 << '(' << i+1 << ',' << j+1 << ')' << std::endl;
+		 << k+1 << '(' << i+1 << ',' << j+1 << ')' << std::endl);
 	       
 	       throw ErrGeneric();
 	    }
@@ -297,7 +297,7 @@ void DiscreteIdentProcess_Debug::PutOutput(doublereal* pdOut,
    if (fout) {
       integer size = pId->iGetSize()*pId->iGetNumOutput();
       if (size*sizeof(doublereal) > BUFSIZE) {
-	 std::cerr << "buffer is too small" << std::endl;
+	 silent_cerr("buffer is too small" << std::endl);
       } else {      	 
 	 pId->GetTheta(buf);
 	 for (integer i = 0; i < pId->iGetSize()*pId->iGetNumOutput(); i++) {
@@ -429,7 +429,7 @@ fout(sf != NULL ? 1 : 0)
 					       iOrdA, iOrdB, pf));
       break;
     default:
-      std::cerr << "Unknown type of identification!" << std::endl;
+      silent_cerr("Unknown type of identification!" << std::endl);
       throw ErrGeneric();
    }
    

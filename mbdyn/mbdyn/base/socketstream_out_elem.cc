@@ -79,11 +79,11 @@ create(c), connection_flag(false)
 		
 		if (sock == -1) {
       			silent_cerr("SocketStreamElem(" << name
-				<< "): socket failed" << std::endl);
+				<< "): socket() failed" << std::endl);
       			throw ErrGeneric();
    		} else if (sock == -2) {
       			silent_cerr("SocketStreamElem(" << name
-				<< "): bind failed" << std::endl);
+				<< "): bind() failed" << std::endl);
       			throw ErrGeneric();
    		} else if (sock == -3) {
       			silent_cerr("SocketStreamElem(" << name
@@ -119,11 +119,11 @@ create(c), connection_flag(false)
 		
 		if (sock == -1) {
       			silent_cerr("SocketStreamElem(" << name
-				<< "): socket failed" << std::endl);
+				<< "): socket() failed" << std::endl);
       			throw ErrGeneric();
    		} else if (sock == -2) {
       			silent_cerr("SocketStreamElem(" << name
-				<< "): bind failed" << std::endl);
+				<< "): bind() failed" << std::endl);
       			throw ErrGeneric();
    		}
 		
@@ -191,8 +191,6 @@ void
 SocketStreamElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
-	char *curbuf = buf;
-	
 	if (!connection_flag) {
 		if (create) {
 			int tmp_sock = sock;
@@ -214,8 +212,8 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 					sock = accept(tmp_sock,
 							(struct sockaddr *)&client_addr, &socklen);
 					if (sock == -1) {
-                				std::cerr <<"SocketStreamElem(" << name << ") "
-							"accept failed" << std::endl;
+                				silent_cerr("SocketStreamElem(" << name << ") "
+							"accept failed" << std::endl);
 						throw ErrGeneric();
         				}
       					silent_cout("SocketStreamElem(" << GetLabel()
@@ -239,8 +237,8 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 					sock = accept(tmp_sock,
 							(struct sockaddr *)&client_addr, &socklen);
 					if (sock == -1) {
-                				std::cerr <<"SocketStreamElem(" << name << ") "
-							"accept failed" << std::endl;
+                				silent_cerr("SocketStreamElem(" << name << ") "
+							"accept failed" << std::endl);
 						throw ErrGeneric();
         				}
       					silent_cout("SocketStreamElem(" << GetLabel()
@@ -264,8 +262,8 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 						
 					sock = socket(PF_LOCAL, SOCK_STREAM, 0);
 					if (sock < 0){
-						std::cerr <<"SocketStreamElem(" << name << ") "
-							"socket failed " << host << std::endl;
+						silent_cerr("SocketStreamElem(" << name << ") "
+							"socket() failed " << host << std::endl);
 						throw ErrGeneric();
 					}
 					addr.sun_family = AF_UNIX;
@@ -276,8 +274,8 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 							<< std::endl);
 
 					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
-						std::cerr <<"SocketStreamElem(" << name << ") "
-							"connect failed " << std::endl;
+						silent_cerr("SocketStreamElem(" << name << ") "
+							"connect failed " << std::endl);
 						throw ErrGeneric();									
 					}//da sistemare in modo da rendere non bloccante il connect					
 					break;
@@ -289,16 +287,16 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 
 					sock = socket(PF_INET, SOCK_STREAM, 0);
 					if (sock < 0){
-						std::cerr <<"SocketStreamElem(" << name << ") "
-							"socket failed " << host << std::endl;
+						silent_cerr("SocketStreamElem(" << name << ") "
+							"socket() failed " << host << std::endl);
 						throw ErrGeneric();
 					}				
 					addr.sin_family = AF_INET;
 					addr.sin_port = htons (data.Port);
 					
 					if (inet_aton(host, &(addr.sin_addr)) == 0) {
-						std::cerr <<"SocketStreamElem(" << name << ") "
-							"unknow host " << host << std::endl;
+						silent_cerr("SocketStreamElem(" << name << ") "
+							"unknow host " << host << std::endl);
 						throw ErrGeneric();	
 					}
 					pedantic_cout("connecting to inet socket \""
@@ -308,8 +306,8 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 							<< ") ..." << std::endl);
 							
 					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
-						std::cerr <<"SocketStreamElem(" << name << "): "
-							"connect failed " << std::endl;
+						silent_cerr("SocketStreamElem(" << name << "): "
+							"connect failed " << std::endl);
 						throw ErrGeneric();					
 					}//da sistemare in modo da rendere non bloccante il connect
 					break;
@@ -326,13 +324,15 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 		lin.l_linger = 0;
 		
 		if (setsockopt(sock, SOL_SOCKET, SO_LINGER, &lin, sizeof(lin))){
-      			std::cerr << "SocketStreamElem(" << name
-				<< "): setsockopt failed" << std::endl;
+      			silent_cerr("SocketStreamElem(" << name
+				<< "): setsockopt failed" << std::endl);
       			throw ErrGeneric();
 			
 		}
 		connection_flag = true;
-	} /*sock==NULL*/
+	} /* sock == NULL */
+
+	char *curbuf = buf;
 	for (unsigned int i = 0; i < NumChannels; i++) {
 		/* assign value somewhere into mailbox buffer */
 		doublereal v = pNodes[i].dGetValue();
@@ -344,9 +344,9 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 	}
 	
 	if (send(sock, (void *)buf, size, 0) == -1) {
-		std::cerr << "SocketStreamElem(" << name << ") "
-				<< "Comunication closed by host" << std::endl;
-		//stop simulation
+		silent_cerr("SocketStreamElem(" << name << ") "
+			<< "Communication closed by host" << std::endl);
+		// stop simulation?
 	}
 }
 
@@ -363,10 +363,10 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsKeyWord("name") || HP.IsKeyWord("stream" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == NULL) {
-			std::cerr << "unable to read socket stream name "
+			silent_cerr("unable to read stream name "
 				"for SocketStreamElem(" << uLabel
 				<< ") at line "
-				<< HP.GetLineData() << std::endl;
+				<< HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 
 		} 
@@ -374,9 +374,9 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		SAFESTRDUP(name, m);
 
 	} else {
-		std::cerr << "missing socket stream name "
+		silent_cerr("missing stream name "
 			"for SocketStreamElem(" << uLabel
-			<< ") at line " << HP.GetLineData() << std::endl;
+			<< ") at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -386,8 +386,8 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		} else if (HP.IsKeyWord("no")) {
 			create = false;
 		} else {
-			std::cerr << "\"create\" must be \"yes\" or \"no\" "
-				"at line " << HP.GetLineData() << std::endl;
+			silent_cerr("\"create\" must be \"yes\" or \"no\" "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
 	}
@@ -466,10 +466,10 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 
 	int nch = HP.GetInt();
 	if (nch <= 0) {
-		std::cerr << "illegal number of channels for "
+		silent_cerr("illegal number of channels for "
 			<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 			<< "(" << uLabel << ") at line " << HP.GetLineData()
-			<< std::endl;
+			<< std::endl);
 		throw ErrGeneric();
 	}
 
@@ -483,8 +483,8 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
-		std::cerr << "semicolon expected at line " << HP.GetLineData()
-			<< std::endl;      
+		silent_cerr("semicolon expected at line " << HP.GetLineData()
+			<< std::endl);
 		throw ErrGeneric();
 	}
       

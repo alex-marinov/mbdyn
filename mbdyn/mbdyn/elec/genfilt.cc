@@ -455,7 +455,7 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
 # ifdef USE_EXCEPTIONS
       } 
       catch (...) {
-	 std::cerr << "Matrix might be singular; skipping state initialization" << std::endl;
+	 silent_cerr("Matrix might be singular; skipping state initialization" << std::endl);
 	 return;
       }
 # endif 

@@ -178,10 +178,10 @@ SchurMatrixHandler::PutCoef(integer iRow, integer iCol,
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "PutCoef - Process(" << MBDynComm.Get_rank()
+		silent_cerr("PutCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {" << iRow << "," << iCol << "}"
-			<< std::endl;
+			<< std::endl);
 		return;
 	}
 #endif /* DEBUG_MPI */
@@ -212,10 +212,10 @@ SchurMatrixHandler::IncCoef(integer iRow, integer iCol,
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "IncCoef - Process(" << MBDynComm.Get_rank()
+		silent_cerr("IncCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {" << iRow << "," << iCol << "}"
-			<< std::endl;
+			<< std::endl);
 		return flag(0);
 	}
 #endif /* DEBUG_MPI */
@@ -246,10 +246,10 @@ SchurMatrixHandler::DecCoef(integer iRow, integer iCol,
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "DecCoef - Process(" << MBDynComm.Get_rank()
+		silent_cerr("DecCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {" << iRow << "," << iCol << "}"
-			<< std::endl;
+			<< std::endl);
 		return flag(0);
 	}
 #endif /* DEBUG_MPI */
@@ -279,10 +279,10 @@ SchurMatrixHandler::dGetCoef(integer iRow, integer iCol) const
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "dGetCoef - Process(" << MBDynComm.Get_rank()
+		silent_cerr("dGetCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {"<< iRow << "," << iCol << "}"
-			<< std::endl;
+			<< std::endl);
 		return ::dZero; 
 	}
 #endif /* DEBUG_MPI */
@@ -310,10 +310,10 @@ SchurMatrixHandler::operator () (integer iRow, integer iCol)
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "dGetCoef - Process(" << MBDynComm.Get_rank()
+		silent_cerr("dGetCoef - Process(" << MBDynComm.Get_rank()
 			<< "): error, MatrixHandler is trying to operate "
 			"on a non local value {"<< iRow << "," << iCol << "}"
-			<< std::endl;
+			<< std::endl);
 		throw ErrGeneric();
 	}
 #endif /* DEBUG_MPI */
@@ -341,10 +341,10 @@ SchurMatrixHandler::operator () (integer iRow, integer iCol) const
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "dGetCoef - Process(" << MBDynComm.Get_rank()
+		silent_cerr("dGetCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {"<< iRow << "," << iCol << "}"
-			<< std::endl;
+			<< std::endl);
 		return ::dZero; 
 	}
 #endif /* DEBUG_MPI */
@@ -415,24 +415,24 @@ SchurMatrixHandler::CompNewf(VectorHandler& f, const VectorHandler& g) const
 inline void
 SchurMatrixHandler::PrintMatrix(void)
 {
-	std::cout << "Schur Matrix " << std::endl;
+	silent_cout("Schur Matrix " << std::endl);
 	for (int i = 0;i < LSize; i++) {
 		for (int j = 0;j < LSize; j++) {
- 			std::cout << pB->dGetCoef(i+1,j+1) << " "; 
+ 			silent_cout(pB->dGetCoef(i+1,j+1) << " ");
 		}
 		for (int j = 0; j < ISize; j++) {
-			std::cout << pdE[i+j*LSize] << " ";
+			silent_cout(pdE[i+j*LSize] << " ");
 		}
-		std::cout << std::endl;
+		silent_cout(std::endl);
 	}
 	for (int i = 0;i < ISize; i++) {
 		for (int j = 0;j < LSize; j++) {
- 			std::cout << pF->dGetCoef(i+1,j+1) << " "; 
+ 			silent_cout(pF->dGetCoef(i+1,j+1) << " ");
 		}
 		for (int j = 0; j < ISize; j++) {
-			std::cout << pdC[i+j*ISize] << " ";
+			silent_cout(pdC[i+j*ISize] << " ");
 		}
-		std::cout << std::endl;
+		silent_cout(std::endl);
 	}
 }
 
@@ -493,9 +493,9 @@ public:
 inline doublereal*
 SchurVectorHandler::pdGetVec(void) const
 {
-	std::cerr << "You shouldn't have asked for "
+	silent_cerr("You shouldn't have asked for "
 		"the internal pointer of a SchurVectorHandler"
-		<< std::endl; 
+		<< std::endl);
 	return pLV->pdGetVec();
 }
 
@@ -509,9 +509,8 @@ SchurVectorHandler::iGetSize(void) const
 inline void
 SchurVectorHandler::Resize(integer iNewSize)
 {
-	std::cerr << "Why are you trying to resize a SchurVector ????"
-		<< std::endl
-		<< "No Operation Performed!!" << std::endl;
+	silent_cerr("Why are you trying to resize a SchurVector ???? "
+		<< "No Operation Performed!!" << std::endl);
 }
 
 /* assegna 0. a tutti gli elementi del vettore */
@@ -541,10 +540,10 @@ SchurVectorHandler::PutCoef(integer iRow, const doublereal& dCoef)
 	IsValid();
 #ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
-		std::cerr << "PutCoef - Process(" << MBDynComm.Get_rank()
+		silent_cerr("PutCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, VectorHandler is trying to operate "
 			"on a non local value {" << iRow << "}"
-			<< std::endl;
+			<< std::endl);
 		return flag(0); 
 	}
 #endif /* DEBUG_MPI */
@@ -566,10 +565,10 @@ SchurVectorHandler::IncCoef(integer iRow, const doublereal& dCoef)
 	IsValid();
 #ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
-		std::cerr <<"IncCoef - Process(" << MBDynComm.Get_rank()
+		silent_cerr("IncCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, VectorHandler is trying to operate "
 			"on a non local value {" << iRow << "}"
-			<< std::endl;
+			<< std::endl);
 		return flag(0);
 	}
 #endif /* DEBUG_MPI */
@@ -590,10 +589,10 @@ SchurVectorHandler::DecCoef(integer iRow, const doublereal& dCoef)
 	IsValid();
 #ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
-		std::cerr <<"DecCoef - Process(" << MBDynComm.Get_rank()
+		silent_cerr("DecCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, VectorHandler is trying to operate "
 			"on a non local value {" << iRow << "}"
-			<< std::endl;
+			<< std::endl);
 		return flag(0);
 	}
 #endif /* DEBUG_MPI */
@@ -614,10 +613,10 @@ SchurVectorHandler::dGetCoef(integer iRow) const
 	IsValid();
 #ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
-		std::cerr << "dGetCoef - Process:(" << MBDynComm.Get_rank()
+		silent_cerr("dGetCoef - Process:(" << MBDynComm.Get_rank()
 			<< "): warning, VectorHandler is trying to operate "
 			"on a non local value {" << iRow << "}"
-			<< std::endl;
+			<< std::endl);
 		return dZero;
 	}
 #endif /* DEBUG_MPI */
@@ -637,10 +636,10 @@ SchurVectorHandler::operator () (integer iRow) const
 	IsValid();
 #ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
-		std::cerr << "dGetCoef - Process:(" << MBDynComm.Get_rank()
+		silent_cerr("dGetCoef - Process:(" << MBDynComm.Get_rank()
 			<< "): warning, VectorHandler is trying to operate "
 			"on a non local value {" << iRow << "}"
-			<< std::endl;
+			<< std::endl);
 		return dZero;
 	}
 #endif /* DEBUG_MPI */
@@ -662,12 +661,12 @@ SchurVectorHandler::operator () (integer iRow)
 inline void
 SchurVectorHandler::PrintVector(void)
 {
-	std::cout << "Schur Vector " << std::endl;
+	silent_cout("Schur Vector " << std::endl);
 	for (int j = 0;j < LSize; j++) {
- 		std::cout << pLV->dGetCoef(j+1) << " " << std::endl; 
+ 		silent_cout(pLV->dGetCoef(j+1) << " " << std::endl);
 	}
 	for (int j = 0; j < ISize; j++) {
- 		std::cout << pIV->dGetCoef(j+1) << " " << std::endl; 
+ 		silent_cout(pIV->dGetCoef(j+1) << " " << std::endl);
 	}
 }
 
@@ -764,10 +763,10 @@ SchurMatrixHandlerUm::PutCoef(integer iRow, integer iCol,
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "PutCoef - Process(" << MBDynComm.Get_rank()
+		silent_cerr("PutCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {"<< iRow << "," << iCol << "}"
-			<< std::endl;
+			<< std::endl);
 		return flag(0);
 	}
 #endif /* DEBUG_MPI */
@@ -804,10 +803,10 @@ SchurMatrixHandlerUm::IncCoef(integer iRow, integer iCol,
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "IncCoef - Process(" << MBDynComm.Get_rank()
+		silent_cerr("IncCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {"<< iRow << "," << iCol << "}"
-			<< std::endl;
+			<< std::endl);
 		return flag(0);
 	}
 #endif /* DEBUG_MPI */
@@ -844,10 +843,10 @@ SchurMatrixHandlerUm::DecCoef(integer iRow, integer iCol,
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "DecCoef - Process(" << MBDynComm.Get_rank()
+		silent_cerr("DecCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {"<< iRow << "," << iCol << "}"
-			<< std::endl;
+			<< std::endl);
 		return flag(0);
 	}
 #endif /* DEBUG_MPI */
@@ -883,10 +882,10 @@ SchurMatrixHandlerUm::dGetCoef(integer iRow, integer iCol) const
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "dGetCoef - Process(" << MBDynComm.Get_rank()
+		silent_cerr("dGetCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {" << iRow << "," << iCol << "}"
-			<< std::endl;
+			<< std::endl);
 		return ::dZero; 
 	}
 #endif /* DEBUG_MPI */
@@ -964,28 +963,28 @@ SchurMatrixHandlerUm::CompNewf(VectorHandler& f, const VectorHandler& g) const
 inline void
 SchurMatrixHandlerUm::PrintMatrix(void)
 {
-	std::cout << "Schur Matrix " << std::endl;
+	silent_cout("Schur Matrix " << std::endl);
 	for (int i = 0; i < LSize; i++) {
 		for (int j = 0; j < LSize; j++) {
- 			std::cout << pB->dGetCoef(i+1, j+1) << " "; 
+ 			silent_cout(pB->dGetCoef(i+1, j+1) << " ");
 		}
 		for (int j = 0; j < ISize; j++) {
 			if (Eflag) {
-				std::cout << pdE[i+j*LSize] << " ";
+				silent_cout(pdE[i+j*LSize] << " ");
 			} else {
-				std::cout << pdEs[i+j*LSize] << " ";
+				silent_cout(pdEs[i+j*LSize] << " ");
 			}
 		}		
-		std::cout << std::endl;
+		silent_cout(std::endl);
 	}
 	for (int i = 0;i < ISize; i++) {
 		for (int j = 0;j < LSize; j++) {
- 			std::cout << pF->dGetCoef(i+1, j+1) << " "; 
+ 			silent_cout(pF->dGetCoef(i+1, j+1) << " ");
 		}
 		for (int j = 0; j < ISize; j++) {
-			std::cout << pdC[i+j*ISize] << " ";
+			silent_cout(pdC[i+j*ISize] << " ");
 		}
-		std::cout << std::endl;
+		silent_cout(std::endl);
 	}
 }
 

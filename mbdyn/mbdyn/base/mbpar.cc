@@ -56,18 +56,17 @@
 /* MBDynParser - begin */
 
 void
-mbdyn_license(std::ostream& out)
+mbdyn_license(void)
 {
-	out << "license not available yet;"
-		" see GPL" << std::endl;
+	silent_cout("license not available yet;"
+		" see GPL" << std::endl);
 }
 
 void
-mbdyn_warranty(std::ostream& out)
+mbdyn_warranty(void)
 {
-	out << "warranty not available yet;"
-		" see warranty coming with GPL"
-		<< std::endl;
+	silent_cout("warranty not available yet;"
+		" see warranty coming with GPL" << std::endl);
 }
 
 MBDynParser::MBDynParser(MathParser& MP, 
@@ -631,13 +630,13 @@ MBDynParser::GetDescription_int(const char *s)
 
 	/* Scrive la licenza */
 	} else if (!strcmp(s, "license")) {
-		mbdyn_license(std::cout);
+		mbdyn_license();
 		CurrLowToken = LowP.GetToken(*pIn);
 		return true;
 
 	/* Scrive il disclaimer */
 	} else if (!strcmp(s, "warranty")) {
-		mbdyn_warranty(std::cout);
+		mbdyn_warranty();
 		CurrLowToken = LowP.GetToken(*pIn);
 		return true;
 	}

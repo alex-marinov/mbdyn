@@ -60,17 +60,17 @@ PrivPlugIn::Read(int argc, char *argv[])
 	unsigned int uLabel;
 
 	if (argc < 1 || argv[0] == NULL) {
-		std::cerr << "PrivPlugIn::Read(): "
+		silent_cerr("PrivPlugIn::Read(): "
 			"illegal number of parameters " << argc
-			<< std::endl;
+			<< std::endl);
 		throw ErrGeneric();
 	}
 	uLabel = ReadLabel(argv[0]);
 
 	if (argc < 2 || argv[1] == NULL) {
-		std::cerr << "PrivPlugIn::Read(" << argv[0] 
+		silent_cerr("PrivPlugIn::Read(" << argv[0] 
 			<< "): illegal number of parameters " << argc
-			<< std::endl;
+			<< std::endl);
 		throw ErrGeneric();
 	}
 	ReadElem(uLabel, argv[1]);
@@ -158,13 +158,13 @@ PrivPlugIn::ReadElem(unsigned int uLabel, const char *ss)
 	SAFEDELETEARR(s);
 	
 	if (i == Elem::LASTELEMTYPE) {
-		std::cerr << "unknown element type '" << ss << "'" << std::endl;
+		silent_cerr("unknown element type '" << ss << "'" << std::endl);
 		throw ErrGeneric();
 	}
 
 	if ((pElem = (Elem *)pDM->pFindElem(Elem::Type(i), uLabel)) == NULL) {
-		std::cerr << psElemNames[Elem::Type(i)] 
-			<< "(" << uLabel << ") not defined" << std::endl;
+		silent_cerr(psElemNames[Elem::Type(i)] 
+			<< "(" << uLabel << ") not defined" << std::endl);
 		throw ErrGeneric();
 	}
 }

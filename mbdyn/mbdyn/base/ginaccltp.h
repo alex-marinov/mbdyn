@@ -110,8 +110,8 @@ gEps(epsilon), gSymList(0), vals(0)
 				char	*next = NULL;
 				vals[i] = strtod(&v[1], &next);
 				if (next == NULL || next[0] != '\0') {
-					std::cerr << "unable to parse value "
-						<< &v[1] << std::endl;
+					silent_cerr("unable to parse value "
+						<< &v[1] << std::endl);
 					throw ErrGeneric();
 				}
 			}
@@ -125,14 +125,14 @@ gEps(epsilon), gSymList(0), vals(0)
 	try {
 		gExpr = GiNaC::ex(expression, l);
 	} catch (std::exception e) {
-		std::cerr << "expression parsing failed: " << e.what() << std::endl;
+		silent_cerr("expression parsing failed: " << e.what() << std::endl);
 		throw e;
 	}
 
 	try {
 		gDerEps = gExpr.diff(gEps);
 	} catch (std::exception e) {
-		std::cerr << "expression differentiation wrt/ Eps failed: " << e.what() << std::endl;
+		silent_cerr("expression differentiation wrt/ Eps failed: " << e.what() << std::endl);
 		throw e;
 	}
 
@@ -295,8 +295,8 @@ gEpsPrime(epsilonPrime), gSymList(0), vals(0)
 				char	*next = NULL;
 				vals[i] = strtod(&v[1], &next);
 				if (next == NULL || next[0] != '\0') {
-					std::cerr << "unable to parse value "
-						<< &v[1] << std::endl;
+					silent_cerr("unable to parse value "
+						<< &v[1] << std::endl);
 					throw ErrGeneric();
 				}
 			}
@@ -310,14 +310,14 @@ gEpsPrime(epsilonPrime), gSymList(0), vals(0)
 	try {
 		gExpr = GiNaC::ex(expression, l);
 	} catch (std::exception e) {
-		std::cerr << "expression parsing failed: " << e.what() << std::endl;
+		silent_cerr("expression parsing failed: " << e.what() << std::endl);
 		throw e;
 	}
 
 	try {
 		gDerEpsPrime = gExpr.diff(gEpsPrime);
 	} catch (std::exception e) {
-		std::cerr << "expression differentiation wrt/ EpsPrime failed: " << e.what() << std::endl;
+		silent_cerr("expression differentiation wrt/ EpsPrime failed: " << e.what() << std::endl);
 		throw e;
 	}
 
@@ -484,8 +484,8 @@ gEps(epsilon), gEpsPrime(epsilonPrime), gSymList(0), vals(0)
 				char	*next = NULL;
 				vals[i] = strtod(&v[1], &next);
 				if (next == NULL || next[0] != '\0') {
-					std::cerr << "unable to parse value "
-						<< &v[1] << std::endl;
+					silent_cerr("unable to parse value "
+						<< &v[1] << std::endl);
 					throw ErrGeneric();
 				}
 			}
@@ -499,21 +499,21 @@ gEps(epsilon), gEpsPrime(epsilonPrime), gSymList(0), vals(0)
 	try {
 		gExpr = GiNaC::ex(expression, l);
 	} catch (std::exception e) {
-		std::cerr << "expression parsing failed: " << e.what() << std::endl;
+		silent_cerr("expression parsing failed: " << e.what() << std::endl);
 		throw e;
 	}
 
 	try {
 		gDerEps = gExpr.diff(gEps);
 	} catch (std::exception e) {
-		std::cerr << "expression differentiation wrt/ Eps failed: " << e.what() << std::endl;
+		silent_cerr("expression differentiation wrt/ Eps failed: " << e.what() << std::endl);
 		throw e;
 	}
 
 	try {
 		gDerEpsPrime = gExpr.diff(gEpsPrime);
 	} catch (std::exception e) {
-		std::cerr << "expression differentiation wrt/ EpsPrime failed: " << e.what() << std::endl;
+		silent_cerr("expression differentiation wrt/ EpsPrime failed: " << e.what() << std::endl);
 		throw e;
 	}
 

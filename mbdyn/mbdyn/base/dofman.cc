@@ -113,7 +113,7 @@ void DataManager::DofDataInit(void)
    } else {
       /* Se non sono definiti DofOwners, la simulazione non ha senso,
        * quindi il programma termina */
-      std::cerr << "warning, no dof owners are defined" << std::endl;
+      silent_cerr("warning, no dof owners are defined" << std::endl);
 #ifdef USE_EXCEPTIONS      
       throw NoErr();
 #else
@@ -150,7 +150,7 @@ void DataManager::DofInit(void)
       DEBUGLCOUT(MYDEBUG_INIT, "iTotDofs = " << iTotDofs << std::endl);
    } else {
       DEBUGCERR("");
-      std::cerr << "no dof owners are defined" << std::endl;
+      silent_cerr("no dof owners are defined" << std::endl);
       
       throw DataManager::ErrGeneric();
    }	   	
@@ -173,7 +173,7 @@ void DataManager::DofInit(void)
       }	
    } else {
       DEBUGCERR("");
-      std::cerr << "no dofs are defined" << std::endl;
+      silent_cerr("no dofs are defined" << std::endl);
       
       throw DataManager::ErrGeneric();
    }	   	

@@ -328,8 +328,8 @@ restart:
        case ReadTplDriveKeyWords<T>::ARRAY: {
 	  unsigned short int iNumDr = HP.GetInt();
 	  if (iNumDr == 0) {
-	     std::cerr << "At least one drive is required "
-		     "in array template drive" << std::endl;
+	     silent_cerr("At least one drive is required "
+		     "in array template drive" << std::endl);
 	     throw ErrGeneric();
 	  } else if (iNumDr == 1) {
 	     CurrKeyWord = ReadTplDriveKeyWords<T>::SINGLE;
@@ -354,14 +354,14 @@ restart:
        }
 	 
        default: {
-	  std::cerr << "Unknown template drive type" << std::endl;
+	  silent_cerr("Unknown template drive type" << std::endl);
 	  throw ErrGeneric();
        }
       }
    }
    
    if (pTplDC == NULL) {
-      std::cerr << "Error in allocation of template drive" << std::endl;
+      silent_cerr("Error in allocation of template drive" << std::endl);
       throw ErrMemory();
    }
    

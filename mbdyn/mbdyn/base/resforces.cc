@@ -233,15 +233,15 @@ ReadResSet(DataManager* pDM, MBDynParser& HP, unsigned int uL)
 		}
 		
 	} else {
-		std::cerr << "unknown force set type at line " 
-			<< HP.GetLineData() << std::endl;
+		silent_cerr("unknown force set type at line " 
+			<< HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric();
 	}
 
 	unsigned int nItems = HP.GetInt();
 	if (nItems < 1) {
-		std::cerr << "illegal number of items " << nItems 
-			<< " in set at line " << HP.GetLineData() << std::endl;
+		silent_cerr("illegal number of items " << nItems 
+			<< " in set at line " << HP.GetLineData() << std::endl);
 		SAFEDELETE(pres);
 		throw DataManager::ErrGeneric();
 	}
@@ -254,9 +254,9 @@ ReadResSet(DataManager* pDM, MBDynParser& HP, unsigned int uL)
 			pset->labelSet.insert(uLabel);
 
 		if (!rc.second) {
-			std::cerr << "unable to insert item " << uLabel 
+			silent_cerr("unable to insert item " << uLabel 
 				<< " in set at line " << HP.GetLineData() 
-				<< std::endl;
+				<< std::endl);
 			SAFEDELETE(pset);
 			throw DataManager::ErrGeneric();
 		}
@@ -274,9 +274,9 @@ ReadResSets(DataManager* pDM, MBDynParser& HP)
 		int nSets = HP.GetInt();
 
 		if (nSets < 1) {
-			std::cerr << "Illegal number of sets (" << nSets 
+			silent_cerr("Illegal number of sets (" << nSets 
 				<< ") at line " << HP.GetLineData() 
-				<< std::endl;
+				<< std::endl);
 			throw DataManager::ErrGeneric();
 		}
 

@@ -44,9 +44,9 @@ harwell_error(int, const char* const v[])
 {
 	while (v[0] != NULL) {
 		if (*v[0] == '\n') {
-			std::cerr << std::endl;
+			silent_cerr(std::endl);
 		} else {
-			std::cerr << v[0];
+			silent_cerr(v[0]);
 
 		}
 		v++;

@@ -73,8 +73,8 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     case SPRINGSUPPORT: {       
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
        if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  std::cerr << "Sorry, parameters are not allowed for bulk spring" 
-		  << std::endl;
+	  silent_cerr("Sorry, parameters are not allowed for bulk spring" 
+		  << std::endl);
 	  throw DataManager::ErrGeneric();	      
        }	     	  
        
@@ -91,16 +91,16 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
       /* Aggiungere altri elementi elettrici */
       
     default: {
-       std::cerr << "unknown bulk element type in bulk element " << uLabel
-	 << " at line " << HP.GetLineData() << std::endl;
+       silent_cerr("unknown bulk element type in bulk element " << uLabel
+	 << " at line " << HP.GetLineData() << std::endl);
        throw DataManager::ErrGeneric();
     }	
    }
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.IsArg()) {
-      std::cerr << "semicolon expected at line " 
-	      << HP.GetLineData() << std::endl;     
+      silent_cerr("semicolon expected at line " 
+	      << HP.GetLineData() << std::endl);
       throw DataManager::ErrGeneric();
    }   
    
