@@ -221,10 +221,10 @@ private:
 	doublereal dIterTol;
 	Preconditioner::PrecondType PcType;
 	integer iPrecondSteps;
-	bool honorJacRequest;
 	integer iIterativeMaxSteps;
 	doublereal dIterertiveEtaMax;
 	doublereal dIterertiveTau;
+	bool honorJacRequest;
 
 /* FOR PARALLEL SOLVERS */
 	bool bParallel;
