@@ -245,7 +245,17 @@ class Vec3 {
       return pdVec[--iRow];
    };
 
+   inline const doublereal& operator () (unsigned short int iRow) const {
+      ASSERT(iRow >= 1 && iRow <= 3);
+      return pdVec[--iRow];
+   };
+
    inline doublereal& operator [] (unsigned short int iRow) {
+      ASSERT(iRow >= 0 && iRow <= 2);
+      return pdVec[iRow];
+   };
+
+   inline const doublereal& operator [] (unsigned short int iRow) const {
       ASSERT(iRow >= 0 && iRow <= 2);
       return pdVec[iRow];
    };
@@ -681,6 +691,13 @@ class Mat3x3 {
 
    inline doublereal& operator () (unsigned short int iRow, 
 		   unsigned short int iCol) {
+       ASSERT(iRow >= 1 && iRow <= 3);
+       ASSERT(iCol >= 1 && iCol <= 3);
+       return pdMat[--iRow+3*--iCol];
+   };
+
+   inline const doublereal& operator () (unsigned short int iRow, 
+		   unsigned short int iCol) const {
        ASSERT(iRow >= 1 && iRow <= 3);
        ASSERT(iCol >= 1 && iCol <= 3);
        return pdMat[--iRow+3*--iCol];
