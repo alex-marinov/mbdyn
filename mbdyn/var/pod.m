@@ -84,7 +84,7 @@ if exist('OCTAVE_HOME'),
 	%%% This is a very rough estimate of the transition matrix ...
 	H = (Aout(1:r-1, :)\Aout(2:r, :))';
 else
-	H = ssdata(arx(Aout, ones(ns)));
+	H = ssdata(arx(Aout, ones(ns), 'CovarianceMatrix', 'None'));
 end
 
 % physical eigenvalues and eigenvectors ...
