@@ -215,6 +215,8 @@ Elem* ReadJoint(DataManager* pDM,
        /* lettura dei dati specifici */
        /* due nodi e tipo di drive, con dati specifici */
        
+       flag fOffset(0);
+
        /* nodo collegato 1 */
        unsigned int uNode1 = (unsigned int)HP.GetInt();
        
@@ -227,6 +229,12 @@ Elem* ReadJoint(DataManager* pDM,
 	    << ": structural node " << uNode1
 	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
+       }
+
+       Vec3 f1(0.);
+       if (HP.IsKeyWord("position")) {
+	       f1 = HP.GetPosRel(ReferenceFrame(pNode1));
+	       fOffset = 1;
        }
        
        /* nodo collegato 2 */
@@ -244,9 +252,18 @@ Elem* ReadJoint(DataManager* pDM,
 	  THROW(DataManager::ErrGeneric());
        }		  
        
+       Vec3 f2(0.);
+       if (HP.IsKeyWord("position")) {
+	       f2 = HP.GetPosRel(ReferenceFrame(pNode2));
+	       fOffset = 1;
+       }
+       
        DriveCaller* pDC = NULL;
-       if (HP.IsKeyWord("fromnodes")) {
-	  doublereal l = (pNode2->GetXCurr()-pNode1->GetXCurr()).Norm();
+       if (HP.IsKeyWord("from" "nodes")) {
+	  doublereal l = (pNode2->GetXCurr()
+			  -pNode1->GetXCurr()
+			  +pNode2->GetRCurr()*f2
+			  -pNode1->GetRCurr()*f1).Norm();
 	  SAFENEWWITHCONSTRUCTOR(pDC, 
 				 ConstDriveCaller,
 				 ConstDriveCaller(pDM->pGetDrvHdl(), l));
@@ -258,11 +275,18 @@ Elem* ReadJoint(DataManager* pDM,
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        /* allocazione e costruzione */
-       SAFENEWWITHCONSTRUCTOR(pEl, 
-			      DistanceJoint,
-			      DistanceJoint(uLabel, pDO, pNode1, pNode2, pDC, fOut));
+       if (fOffset) {
+	       SAFENEWWITHCONSTRUCTOR(pEl, 
+			       DistanceJointWithOffset,
+			       DistanceJointWithOffset(uLabel, pDO, 
+				       pNode1, pNode2, f1, f2, pDC, fOut));
+       } else {
+     	       SAFENEWWITHCONSTRUCTOR(pEl, 
+ 			       DistanceJoint,
+ 			       DistanceJoint(uLabel, pDO,
+				       pNode1, pNode2, pDC, fOut));
+       }
        
-       /* scrittura dei dati specifici */	     	     
        break;
     }
       
@@ -285,7 +309,20 @@ Elem* ReadJoint(DataManager* pDM,
 	  THROW(DataManager::ErrGeneric());
        }		  
        
-       Vec3 f1(HP.GetPosRel(ReferenceFrame(pNode1)));
+       Vec3 f1(0.);
+       if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+	       NO_OP;
+       } else {
+	       pedantic_cerr("Joint(" << uLabel
+			       << "): missing keyword \"podition\" at line "
+			       << HP.GetLineData());
+       }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+          f1 = HP.GetPosRel(ReferenceFrame(pNode1));
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+       }
+#endif /* !MBDYN_X_COMPATIBLE_INPUT */
        
        DEBUGCOUT("Offset 1: " << f1 << std::endl);
        
@@ -304,7 +341,20 @@ Elem* ReadJoint(DataManager* pDM,
 	  THROW(DataManager::ErrGeneric());
        }		  
        
-       Vec3 f2(HP.GetPosRel(ReferenceFrame(pNode2)));
+       Vec3 f2(0.);
+       if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+	       NO_OP;
+       } else {
+	       pedantic_cerr("Joint(" << uLabel
+			       << "): missing keyword \"podition\" at line "
+			       << HP.GetLineData());
+       }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+          f2 = HP.GetPosRel(ReferenceFrame(pNode2));
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+       }
+#endif /* !MBDYN_X_COMPATIBLE_INPUT */
        
        DEBUGCOUT("Offset 2: " << f2 << std::endl);
        
@@ -317,7 +367,7 @@ Elem* ReadJoint(DataManager* pDM,
        }	     
        
        DriveCaller* pDC = NULL;
-       if (HP.IsKeyWord("fromnodes")) {
+       if (HP.IsKeyWord("from" "nodes")) {
 	  doublereal l = (pNode2->GetXCurr()
 			  +pNode2->GetRCurr()*f2
 			  -pNode1->GetXCurr()
@@ -334,9 +384,9 @@ Elem* ReadJoint(DataManager* pDM,
        
        /* allocazione e costruzione */
        SAFENEWWITHCONSTRUCTOR(pEl, 
-			      DistanceJointWithOffset,
-			      DistanceJointWithOffset(uLabel, pDO, pNode1, pNode2,
-						      f1, f2, pDC, fOut));
+		       DistanceJointWithOffset,
+		       DistanceJointWithOffset(uLabel, pDO, pNode1, pNode2,
+			       f1, f2, pDC, fOut));
        
        /* scrittura dei dati specifici */
        break;
@@ -363,22 +413,46 @@ Elem* ReadJoint(DataManager* pDM,
        
        /* posizione (vettore di 3 elementi) */
        ReferenceFrame RF(pNode);
-       Vec3 X0;
+       Vec3 X0(Zero3);
        if (HP.IsKeyWord("node")) { /* stessa posizione del nodo */
 	  X0 = pNode->GetXCurr();
        } else {                     /* posizione arbitraria */
-	  X0 = HP.GetPosAbs(RF);
+	  if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+		  NO_OP;
+	  } else {
+		  pedantic_cerr("Joint(" << uLabel
+				  << "): missing keyword \"position\" at line "
+				  << HP.GetLineData());
+	  }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+	     X0 = HP.GetPosAbs(RF);
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+          }
+#endif /* !MBDYN_X_COMPATIBLE_INPUT */
        }	   	       	     	       
        
        DEBUGCOUT("X0 =" << std::endl << X0 << std::endl);
        
        /* sistema di riferimento (trucco dei due vettori) */
-       Mat3x3 R0;
+       Mat3x3 R0(Eye3);
        if (HP.IsKeyWord("node")) { /* stessa giacitura del nodo */
 	  R0 = pNode->GetRCurr();
        } else {                     /* giacitura arbitraria */
-	  R0 = HP.GetRotAbs(RF);
-       }	   
+	  if (HP.IsKeyWord("orientation")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+		  NO_OP;
+	  } else {
+		  pedantic_cerr("Joint(" << uLabel
+				  << "): missing keyword \"orientation\" at line "
+				  << HP.GetLineData());
+	  }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+	     R0 = HP.GetRotAbs(RF);
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+          }
+#endif /* !MBDYN_X_COMPATIBLE_INPUT */
+       }
        
        DEBUGCOUT("R0 =" << std::endl << R0 << std::endl);
        
@@ -410,36 +484,47 @@ Elem* ReadJoint(DataManager* pDM,
        ReferenceFrame RF(pNode);
 
        Vec3 d(0.);
-#ifndef MBDYN_X_COMPATIBLE_INPUT
        if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+	       NO_OP;
+       } else {
+	  pedantic_cerr("Joint(" << uLabel 
+			  << "): missing keyword \"position\" at line "
+			  << HP.GetLineData() << std::endl);
+       }
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
           d = HP.GetPosRel(RF);
 #ifndef MBDYN_X_COMPATIBLE_INPUT
        }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
 
        /* currently unused */
        if (HP.IsKeyWord("orientation")) {
 	  (void)HP.GetRotRel(RF);
        }
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
        
        DEBUGCOUT("Node reference frame d:" << std::endl << d << std::endl);
        
-       
        /* posizione (vettore di 3 elementi) */	 
        Vec3 X0(0.);
-#ifndef MBDYN_X_COMPATIBLE_INPUT
        if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+	       NO_OP;
+       } else {
+	  pedantic_cerr("Joint(" << uLabel 
+			  << "): missing keyword \"position\" at line "
+			  << HP.GetLineData() << std::endl);
+       }
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 	  X0 = HP.GetPosAbs(AbsRefFrame);
 #ifndef MBDYN_X_COMPATIBLE_INPUT
        }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
 
        /* currently unused */
        if (HP.IsKeyWord("orientation")) {
 	  (void)HP.GetRotRel(ReferenceFrame(pNode));
        }
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
        
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
@@ -693,8 +778,14 @@ Elem* ReadJoint(DataManager* pDM,
        
        ReferenceFrame RF(pNode);
        Vec3 d(0.);
-#ifndef MBDYN_X_COMPATIBLE_INPUT
        if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+	       NO_OP;
+       } else {
+	       pedantic_cerr("Joint(" << uLabel 
+			       << "): missing keyword \"position\" at line "
+			       << HP.GetLineData() << std::endl);
+       }
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 	  d = HP.GetPosRel(RF);
 #ifndef MBDYN_X_COMPATIBLE_INPUT
@@ -804,8 +895,14 @@ Elem* ReadJoint(DataManager* pDM,
        
        ReferenceFrame RF(pNode1);
        Vec3 p(0.);
-#ifndef MBDYN_X_COMPATIBLE_INPUT
        if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+	       NO_OP;
+       } else {
+	       pedantic_cerr("Joint(" << uLabel
+			       << "): missing keyword \"position\" at line "
+			       << HP.GetLineData() << std::endl);
+       }
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
           p = HP.GetPosRel(RF);
 #ifndef MBDYN_X_COMPATIBLE_INPUT
@@ -835,19 +932,19 @@ Elem* ReadJoint(DataManager* pDM,
 	  THROW(DataManager::ErrGeneric());
        }		  
               
-       Vec3 q;
+       Vec3 q(0.);
        flag fOffset(0);
-       flag fOut(0);
        
        if (HP.fIsArg()) {
 	  if (HP.IsKeyWord("offset")) {
 	     fOffset = 1;	     
 	     q = HP.GetPosRel(ReferenceFrame(pNode2));	     
-	     DEBUGCOUT("Node 2 reference frame q:" << std::endl << p << std::endl);
+	     DEBUGCOUT("Node 2 reference frame q:" << std::endl
+			     << p << std::endl);
 	  }
        }
        
-       fOut = pDM->fReadOutput(HP, Elem::JOINT);      	   
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);      	   
        
        if (fOffset) {	      
 	  SAFENEWWITHCONSTRUCTOR(pEl, 
@@ -881,8 +978,14 @@ Elem* ReadJoint(DataManager* pDM,
        
        ReferenceFrame RF(pNode1);
        Vec3 p(0.);
-#ifndef MBDYN_X_COMPATIBLE_INPUT
        if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+	       NO_OP;
+       } else {
+	       pedantic_cerr("Joint(" << uLabel
+			       << "): missing keyword \"position\" at line "
+			       << HP.GetLineData());
+       }
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
           p = HP.GetPosRel(RF);
 #ifndef MBDYN_X_COMPATIBLE_INPUT
@@ -891,7 +994,20 @@ Elem* ReadJoint(DataManager* pDM,
        
        DEBUGCOUT("Node 1 reference frame p:" << std::endl << p << std::endl);
        
-       Mat3x3 R(HP.GetRotRel(RF));       
+       Mat3x3 R(Eye3);
+       if (HP.IsKeyWord("orientation")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+	       NO_OP;
+       } else {
+	       pedantic_cerr("Joint(" << uLabel
+			       << "): missing keyword \"orientation\" at line "
+			       << HP.GetLineData());
+       }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+          R = HP.GetRotRel(RF);
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+       }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
        
        /* nodo collegato 2 */
        unsigned int uNode2 = (unsigned int)HP.GetInt();	     
@@ -906,9 +1022,8 @@ Elem* ReadJoint(DataManager* pDM,
 	  THROW(DataManager::ErrGeneric());
        }		  
               
-       Vec3 q;
+       Vec3 q(0.);
        flag fOffset(0);
-       flag fOut(0);
        
        if (HP.fIsArg()) {
 	  if (HP.IsKeyWord("offset")) {
@@ -918,7 +1033,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  }
        }
        
-       fOut = pDM->fReadOutput(HP, Elem::JOINT);      	   
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);      	   
        
        if (fOffset) {
 	  SAFENEWWITHCONSTRUCTOR(pEl,
@@ -945,18 +1060,32 @@ Elem* ReadJoint(DataManager* pDM,
         * due nodi, lunghezza iniziale e tipo di legame elastico
 	*/
        
+       flag fOffset(0);
+       
        /* nodo collegato 1 */
        StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        DEBUGCOUT("Linked to Node " << pNode1->GetLabel() << std::endl);
 
+       Vec3 f1;
+       if (HP.IsKeyWord("position")) {
+          f1 = HP.GetPosRel(ReferenceFrame(pNode1));
+	  fOffset = 1;
+       }
+       
        /* nodo collegato 2 */
        StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        DEBUGCOUT("Linked to Node " << pNode2->GetLabel() << std::endl);
        
+       Vec3 f2;
+       if (HP.IsKeyWord("position")) {
+          f2 = HP.GetPosRel(ReferenceFrame(pNode2));
+	  fOffset = 1;
+       }
+
        /* Lunghezza iniziale */
        doublereal dL = 0.;
        flag fFromNodes(0);
-       if (HP.IsKeyWord("fromnodes")) {
+       if (HP.IsKeyWord("from" "nodes")) {
 	  fFromNodes = 1;
 	  DEBUGCOUT("Initial length will be computed from nodes position" << std::endl);	  
        } else {
@@ -964,13 +1093,18 @@ Elem* ReadJoint(DataManager* pDM,
 	  DEBUGCOUT("Initial length = " << dL << std::endl);
        }
        
-       flag fOffset(0);
-       Vec3 f1;
-       Vec3 f2;
-       
        /* Se si tratta di Rod con Offset, legge gli offset e poi passa 
 	* al tipo di legame costitutivo */
+#ifdef MBDYN_X_COMPATIBLE_INPUT
        if (HP.IsKeyWord("offset")) {
+	  pedantic_cerr("Joint(" << uLabel 
+		 << "): keyword \"offset\" at line " << HP.GetLineData()
+		 << " is deprecated; use \"position\" instead" << std::endl);
+	  if (fOffset) {
+	     std::cerr << "Joint(" << uLabel << "): offsets already defined "
+		     "at line " << HP.GetLineData() << std::endl;
+	     THROW(ErrGeneric());
+	  }
 	  fOffset = 1;
 	  f1 = HP.GetPosRel(ReferenceFrame(pNode1));	  
 	  DEBUGCOUT("Offset 1: " << f1 << std::endl);
@@ -978,6 +1112,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  f2 = HP.GetPosRel(ReferenceFrame(pNode2));	  
 	  DEBUGCOUT("Offset 2: " << f2 << std::endl);
        }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
        
        if (fFromNodes) {
 	  Vec3 v = pNode2->GetXCurr()-pNode1->GetXCurr();
@@ -1032,19 +1167,49 @@ Elem* ReadJoint(DataManager* pDM,
 
        /* nodo collegato 1 */
        StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-       Vec3 f1(HP.GetPosRel(ReferenceFrame(pNode1)));
+       
+       Vec3 f1(0.);
+       if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+	       NO_OP;
+       } else {
+	       pedantic_cerr("Joint(" << uLabel
+			       << "): missing keyword \"position\" at line "
+			       << HP.GetLineData());
+       }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+          f1 = HP.GetPosRel(ReferenceFrame(pNode1));
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+       }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+       
        DEBUGCOUT("Linked to Node " << pNode1->GetLabel()
 		       << "with offset " << f1 << std::endl);
 
        /* nodo collegato 2 */
        StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-       Vec3 f2(HP.GetPosRel(ReferenceFrame(pNode2)));
+
+       Vec3 f2(0.);
+       if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+	       NO_OP;
+       } else {
+	       pedantic_cerr("Joint(" << uLabel
+			       << "): missing keyword \"position\" at line "
+			       << HP.GetLineData());
+       }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+	  f2 = HP.GetPosRel(ReferenceFrame(pNode2));
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+       }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+
        DEBUGCOUT("Linked to Node " << pNode2->GetLabel()
 		       << "with offset " << f2 << std::endl);
 
        /* Lunghezza iniziale */
        doublereal dL = 0.;
-       if (HP.IsKeyWord("fromnodes")) {
+       if (HP.IsKeyWord("from" "nodes")) {
           dL = (pNode2->GetXCurr()-pNode1->GetXCurr()
 		+pNode2->GetRCurr()*f2-pNode1->GetRCurr()*f1).Norm();
        } else {
@@ -1086,7 +1251,7 @@ Elem* ReadJoint(DataManager* pDM,
        }
        
        /* Offset if displacement hinge */
-       Vec3 f1;
+       Vec3 f1(0.);
        if (CurrKeyWord == DEFORMABLEDISPHINGE) {
 	  f1 = HP.GetPosRel(ReferenceFrame(pNode1));
        }	   
@@ -1112,7 +1277,7 @@ Elem* ReadJoint(DataManager* pDM,
 
 	   
        /* Offset if displacement hinge */
-       Vec3 f2;
+       Vec3 f2(Zero3);
        if (CurrKeyWord == DEFORMABLEDISPHINGE) {
 	  f2 = HP.GetPosRel(ReferenceFrame(pNode2));
        }	   
@@ -1219,7 +1384,8 @@ Elem* ReadJoint(DataManager* pDM,
        if (d > 0.) {	      
 	  Dir /= sqrt(d);
        } else {
-	  std::cerr << "warning, direction vector is null" << std::endl;
+	  std::cerr << "direction is null" << std::endl;
+	  THROW(ErrGeneric());
        }	     
        
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
@@ -1274,7 +1440,8 @@ Elem* ReadJoint(DataManager* pDM,
        if (d > 0.) {	      
 	  Dir /= sqrt(d);
        } else {
-	  std::cerr << "warning, direction vector is null" << std::endl;
+	  std::cerr << "direction is null" << std::endl;
+	  THROW(ErrGeneric());
        }	     
        
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
@@ -1620,7 +1787,7 @@ Elem* ReadJoint(DataManager* pDM,
        }
 
        unsigned uIB = 1;
-       if (HP.IsKeyWord("initialbeam")) {
+       if (HP.IsKeyWord("initial" "beam")) {
 	       uIB = HP.GetInt();
 
 	       if (uIB < 1 || uIB > nB) {
@@ -1631,7 +1798,7 @@ Elem* ReadJoint(DataManager* pDM,
        }
       
        unsigned uIN = 2;
-       if (HP.IsKeyWord("initialnode")) {
+       if (HP.IsKeyWord("initial" "node")) {
 	       uIN = HP.GetInt();
 
 	       if (uIN < 1 || uIN > 3) {
