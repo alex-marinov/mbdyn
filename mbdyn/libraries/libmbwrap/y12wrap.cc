@@ -40,9 +40,12 @@
 
 #ifdef USE_Y12
 
-#include "y12wrap.h"
-#include "y12lib.h"
+#include "spmh.h"
+#include "spmapmh.h"
 #include "ccmh.h"
+#include "dirccmh.h"
+#include "y12lib.h"
+#include "y12wrap.h"
 
 /* Y12Solver - begin */
 
@@ -744,7 +747,11 @@ Y12SparseCCSolutionManager::MakeIndexForm(void)
 
 		ASSERT(Ac == 0);
 
+#if 0
 		typedef CColMatrixHandler<1> CC;
+#else
+		typedef DirCColMatrixHandler<1> CC;
+#endif
 		
 		SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(dMat, iRow, iColStart));
 

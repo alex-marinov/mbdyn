@@ -116,7 +116,7 @@ public:
 			std::vector<integer>& AcolSt,
 			int offset = 0) const;
 
-	void Resize(const int &n, const int &nn = 0);
+	void Resize(integer n, integer nn);
 
 	/* Estrae una colonna da una matrice */
 	VectorHandler& GetCol(integer icol, VectorHandler& out) const;

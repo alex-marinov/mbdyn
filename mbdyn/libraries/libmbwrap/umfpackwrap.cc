@@ -71,6 +71,7 @@
 #include "solman.h"
 #include "spmapmh.h"
 #include "ccmh.h"
+#include "dirccmh.h"
 #include "umfpackwrap.h"
 
 #ifdef HAVE_UMFPACK4
@@ -414,7 +415,11 @@ UmfpackSparseCCSolutionManager::MakeCompressedColumnForm(void)
 
 		ASSERT(Ac == 0);
 
+#if 0
 		typedef CColMatrixHandler<0> CC;
+#else
+		typedef DirCColMatrixHandler<0> CC;
+#endif
 		
 		SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(Ax, Ai, Ap));
 

@@ -43,15 +43,15 @@ DirCColMatrixHandler<off>::DirCColMatrixHandler(std::vector<doublereal>& x,
 		const std::vector<int>& i,
 		const std::vector<int>& p)
 : CompactSparseMatrixHandler(p.size() - 1, p.size() - 1, x, i, p),
-  pindices(p.size() + 1), indices(p.size()*p.size(), -1)
+  pindices(NCols + 1), indices(NRows*NCols, -1)
 {
 	for (integer col = 1; col <= NCols; col++) {
-		pindices[col] = &(indices[(col - 1)*NRows]) - 1;
+		pindices[col] = &indices[(col - 1)*NRows] - 1;
 
 		int row_begin = p[col - 1], row_end = p[col];
 
 		for (int r = row_begin; r < row_end; r++) {
-			pindices[col][i[r]] = r;
+			pindices[col][i[r] + 1 - off] = r;
 		}
 	}
 }
@@ -142,7 +142,7 @@ DirCColMatrixHandler<off>::MakeIndexForm(std::vector<doublereal>& rAx,
 
 template <int off>
 void
-DirCColMatrixHandler<off>::Resize(const int &n, const int &nn)
+DirCColMatrixHandler<off>::Resize(integer n, integer nn)
 {
 	silent_cerr("DirCColMatrixHandler<off>::Resize called" << std::endl);
 	THROW(ErrGeneric());
