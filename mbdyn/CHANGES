@@ -9,6 +9,12 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.2-Engineering
 	Enhancements:
+		- added matrix-free solver
+	Known Issues:
+		- parallel is not working yet
+
+MBDyn 1.2-beta.1
+	Enhancements:
 		- implement separate induced velocity correction
 		  factors for hover and forward flight
 		- added -W (--working-dir) switch
@@ -43,14 +49,13 @@ MBDyn 1.2-Engineering
 		- selected loadable elements (modules) can be read as joints
 		- parameter nodes value is output in .prm files
 		- very rough implementation of aircraft instruments
-		- added matrix-free solver
 		- improved API
 		- added a cycle to better approximate reference
 		  induced velocity in helicopter rotors
 		- added convergence test based on solution
 		- selected scaling of residual before testing
 		- specialized tests for residual and solution: 
-		  none, norm and minmax (need to fix for parallel)
+		  none, norm and minmax
 		- added ALTER file for normal modes only in
 		  "etc/modal.d/MBDyn_NASTRAN_alter_3.nas"
 		- added RTAI support for soft/hard real-time simulations
@@ -70,6 +75,7 @@ MBDyn 1.2-Engineering
 		- viscoelastic rods also output length rate
 		- shock absorber allows separate metering based on stroke rate
 		- beamslider joint
+		- provision for external aerodynamic forces
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
@@ -99,7 +105,7 @@ MBDyn 1.2-Engineering
 		- the static shapes extraction NASTRAN ALTER in 
 		  "etc/modal.d/MBDyn_NASTRAN_alter_1.nas" 
 		  apparently don't work
-		- parallel is not working yet
+		- parallel has been disabled
 
 
 MBDyn 1.1.4
