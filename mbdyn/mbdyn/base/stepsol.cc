@@ -258,6 +258,9 @@ DerivativeSolver::Advance(Solver* pS,
 	pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol,
     			EffIter, Err, dSolTol, SolErr);
 
+	/* if it gets here, it surely converged */
+	pDM->AfterConvergence();
+
 	return Err;
 }
 
@@ -491,6 +494,9 @@ Step1Integrator::Advance(Solver* pS,
 	pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol,
     			EffIter, Err, dSolTol, SolErr);
 	
+	/* if it gets here, it surely converged */
+	pDM->AfterConvergence();
+
 	return Err;
 }
 
@@ -629,6 +635,9 @@ Step2Integrator::Advance(Solver* pS,
 	pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol,
     			EffIter, Err, dSolTol, SolErr);
 	
+	/* if it gets here, it surely converged */
+	pDM->AfterConvergence();
+
 	return Err;
 }
 

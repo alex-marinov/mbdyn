@@ -767,8 +767,6 @@ Solver::Run(void)
 		THROW(ErrGeneric());
 	}
 
-	pDM->AfterConvergence();
-
 	dTotErr  += dTest;
 	iTotIter += iStIter;
 	  	
@@ -868,8 +866,7 @@ Solver::Run(void)
 		catch (...) {
 			THROW(ErrGeneric());
 		}
-		pDM->AfterConvergence();
-      
+
       		dRefTimeStep = dCurrTimeStep;
       		dTime += dRefTimeStep;
       
@@ -947,7 +944,6 @@ Solver::Run(void)
 			catch (...) {
 				THROW(ErrGeneric());
 			}
-			pDM->AfterConvergence();
       
       			dTotErr += dTest;
       			iTotIter += iStIter;
@@ -1110,7 +1106,6 @@ IfFirstStepIsToBeRepeated:
 		THROW(ErrGeneric());
 	}
 
-	pDM->AfterConvergence();
    	pDM->Output();
      
 #ifdef HAVE_SIGNAL
@@ -1468,8 +1463,6 @@ IfStepIsToBeRepeated:
 		catch (...) {
 			THROW(ErrGeneric());
 		}
-
-		pDM->AfterConvergence();
 
 	      	dTotErr += dTest;
       		iTotIter += iStIter;
