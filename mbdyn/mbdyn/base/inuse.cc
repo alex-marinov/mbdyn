@@ -34,6 +34,7 @@
 
 #include <stdlib.h>
 #include "ac/iostream"
+#include <ac/getopt.h>
 
 #ifdef USE_MULTITHREAD
 
