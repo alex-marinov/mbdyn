@@ -141,6 +141,16 @@ DataManager::DofOwnerInit(void)
 	ASSERT(ppNodes != NULL);
 	ASSERT(ppElems != NULL);
 
+	bool pds =
+#ifdef DEBUG
+			DEBUG_LEVEL_MATCH(MYDEBUG_INIT|MYDEBUG_ASSEMBLY) ||
+#endif /* DEBUG */
+			(!silent_output && bPrintDofStats);
+
+	if (pds) {
+		std::cout << "Regular steps dof stats" << std::endl;
+	}
+
 	/* per ogni nodo strutturale */
 	if (NodeData[Node::STRUCTURAL].iNum > 0) {
 
@@ -192,7 +202,7 @@ DataManager::DofOwnerInit(void)
 					<< "): first dof = " << pDf->iIndex+1
 					<< std::endl);
 #else /* !DEBUG */
-			if (!silent_output && bPrintDofStats) {
+			if (pds) {
 				unsigned int nd = (*ppNd)->iGetNumDof();
 				integer fd = pDf->iIndex;
 
@@ -243,7 +253,7 @@ DataManager::DofOwnerInit(void)
 						<< "): first dof = "
 						<< pDf->iIndex+1 << std::endl);
 #else /* !DEBUG */
-				if (!silent_output && bPrintDofStats) {
+				if (pds) {
 					unsigned int nd = pElWD->iGetNumDof();
 					integer fd = pDf->iIndex;
 
