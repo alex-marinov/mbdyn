@@ -33,6 +33,9 @@
 
 #if defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H)
 
+/* FIXME: temporary hack ... */
+#undef HAVE_LTDL_H
+
 #include <string.h>
 #ifdef HAVE_LTDL_H
 #include <ltdl.h>
@@ -172,42 +175,45 @@ main(int argn, char *const argv[])
 	  		break;
 
        		case int('t'): {
-	  		char* s = new char[strlen(optarg)+1];
-	  		strcpy(s, optarg);
-	  		char* p = strrchr(s, ':');
-	  		if (p == NULL) {
+			char	*next = optarg;
+
+			d.ti = strtod(next, &next);
+			if (next[0] != ':') {
 	     			std::cerr << "syntax: ti:dt:tf" << std::endl;
 	     			exit(EXIT_FAILURE);
 	  		}
-	  		d.tf = atof(p+1);
-	  		p[0] = '\0';
-	  		p = strrchr(s, ':');
-	  		if (p == NULL) {
+			
+			next++;
+			d.dt = strtod(next, &next);
+			if (next[0] != ':') {
 	     			std::cerr << "syntax: ti:dt:tf" << std::endl;
 	     			exit(EXIT_FAILURE);
 	  		}
-	  		d.dt = atof(p+1);
-	  		p[0] = '\0';
-	  		d.ti = atof(s);
-	  		delete[] s;
+			
+			next++;
+			d.tf = strtod(next, &next);
+			if (next[0] != ':') {
+	     			std::cerr << "syntax: ti:dt:tf" << std::endl;
+	     			exit(EXIT_FAILURE);
+	  		}
+			
 	  		break;
        		}
 		
        		case int ('T'):
-	  		d.tol = atof(optarg);
+	  		d.tol = strtod(optarg, NULL);
 	  		break;
 
        		case int ('n'):
-	  		d.maxiter = atoi(optarg);
+	  		d.maxiter = strtol(optarg, NULL, 10);
 	  		break;
 
        		case int ('r'):
-	  		d.rho = atof(optarg);
+	  		d.rho = strtod(optarg, NULL);
 	  		break;
 
        		case int('u'):
-	  		user_defined = new char[strlen(optarg)+1];
-	  		strcpy(user_defined, optarg);
+	  		user_defined = optarg;
 	  		break;
 			
        		default:
@@ -240,11 +246,6 @@ main(int argn, char *const argv[])
       		exit(EXIT_FAILURE);
    	}
    
-   	if (user_defined != NULL) {
-      		delete[] user_defined;
-      		user_defined = NULL;
-   	}
-
 #ifdef HAVE_LTDL_H
 	if (lt_dlexit()) {
 		std::cerr << "lt_dlexit() failed" << std::endl;
@@ -268,7 +269,7 @@ get_method_data(int curr_method, const char* optarg)
 }
 
 #include <dae-intg.h>
-static funcs *ff;
+static struct funcs *ff = NULL;
 
 int
 open_module(const char* module) 
@@ -290,7 +291,7 @@ open_module(const char* module)
       		exit(EXIT_FAILURE);
    	}
    
-   	if ((::ff = (funcs *)lt_dlsym(handle, "ff")) == NULL) {
+   	if ((::ff = (struct funcs *)lt_dlsym(handle, "ff")) == NULL) {
       		err = lt_dlerror();
       		std::cerr << "lt_dlsym(\"ff\") returned \"" << err << "\""
 			<< std::endl;
@@ -307,7 +308,7 @@ open_module(const char* module)
       		exit(EXIT_FAILURE);
    	}
    
-   	if ((::ff = (funcs *)dlsym(handle, "ff")) == NULL) {
+   	if ((::ff = (struct funcs *)dlsym(handle, "ff")) == NULL) {
       		err = dlerror();
       		std::cerr << "dlsym(\"ff\") returned \"" << err << "\""
 			<< std::endl;

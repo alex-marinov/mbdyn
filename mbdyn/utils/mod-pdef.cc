@@ -37,6 +37,7 @@
 
 #include <myassert.h>
 #include <solman.h>
+#include "dae-intg.h"
 
 struct private_data {
    doublereal m;
@@ -47,7 +48,7 @@ struct private_data {
    doublereal x[4];
 };
 
-int read(void** pp, const char* user_defined)
+static int read(void** pp, const char* user_defined)
 {
    *pp = (void*)new private_data;
    private_data* pd = (private_data*)*pp;
@@ -81,13 +82,13 @@ int read(void** pp, const char* user_defined)
    return 0;
 }
 
-int size(void* p)
+static int size(void* p)
 {
-   // private_data* pd = (private_data*)p;
+   /* private_data* pd = (private_data*)p; */
    return 4;
 }
 
-int init(void* p, VectorHandler& X)
+static int init(void* p, VectorHandler& X)
 {
    private_data* pd = (private_data*)p;
    X.Reset(0.);
@@ -97,7 +98,8 @@ int init(void* p, VectorHandler& X)
    return 0;
 }
 
-int grad(void* p, MatrixHandler& J, const VectorHandler& X, const doublereal& t)
+static int grad(void* p, MatrixHandler& J, MatrixHandler& Jp, 
+		const VectorHandler& X, const doublereal& t)
 {
    private_data* pd = (private_data*)p;
    
@@ -126,10 +128,14 @@ int grad(void* p, MatrixHandler& J, const VectorHandler& X, const doublereal& t)
    J.fPutCoef(4, 3, 2*l*phi);
    J.fPutCoef(4, 4, -c/m);
 
+   for (int i = 1; i <= 4; i++) {
+	   Jp.fPutCoef(i, i, -1.);
+   }
+
    return 0;
 }
 
-int func(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
+static int func(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
 {
    private_data* pd = (private_data*)p;
    
@@ -155,7 +161,7 @@ int func(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
    return 0;
 }
 
-std::ostream& out(void* p, std::ostream& o, 
+static std::ostream& out(void* p, std::ostream& o, 
 	     const VectorHandler& X, const VectorHandler& XP)
 {
    private_data* pd = (private_data*)p;
@@ -185,10 +191,26 @@ std::ostream& out(void* p, std::ostream& o,
      << " " << x << " " << y << " " << E;
 }
 
-int destroy(void** p)
+static int destroy(void** p)
 {
-   // private_data* pd = (private_data*)p;
-   delete *p;
+   private_data* pd = (private_data*)p;
+   delete pd;
    *p = NULL;
    return 0;
 }
+
+static struct funcs funcs_handler = {
+	read,
+	init,
+	size,
+	grad,
+	func,
+	out,
+	destroy
+};
+
+/* de-mangle name */
+extern "C" {
+void *ff = &funcs_handler;
+}
+

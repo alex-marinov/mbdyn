@@ -43,7 +43,7 @@ typedef std::ostream& (*pout_t)(void*, std::ostream&,
 			 const VectorHandler&, const VectorHandler&);
 typedef int (*pdestroy_t)(void**);
 
-typedef struct _funcs {
+struct funcs {
 	pread_t read;
 	pinit_t init;
 	psize_t size;
@@ -51,7 +51,7 @@ typedef struct _funcs {
 	pfunc_t func;
 	pout_t out;
 	pdestroy_t destroy;
-} funcs;
+};
 
 #endif /* DAE_INTG_H */
 
