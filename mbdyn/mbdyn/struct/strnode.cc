@@ -1245,11 +1245,12 @@ ReadStructNode(DataManager* pDM,
    }
 #endif /* DEBUG */
 
-   Node* pNd = NULL;
+   StructNode* pNd = NULL;
+   KeyWords DummyType = UNKNOWN;
    if (CurrType == DUMMY) {
       StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
-      KeyWords DummyType = KeyWords(HP.GetWord());
+      DummyType = KeyWords(HP.GetWord());
       switch (DummyType) {
        case OFFSET: {
 	  ReferenceFrame RF(pNode);
@@ -1386,11 +1387,6 @@ ReadStructNode(DataManager* pDM,
 	 throw DataManager::ErrGeneric();
       }
 
-      std::ostream& out = pDM->GetLogFile();
-      out << "structural node: " << uLabel
-	      << " ", X0.Write(out, " ")
-	      << std::endl;
-
       /* costruzione del nodo */
       if (CurrType == STATIC) {
 	 SAFENEWWITHCONSTRUCTOR(pNd, StaticStructNode,
@@ -1413,7 +1409,7 @@ ReadStructNode(DataManager* pDM,
 	 /* Incrementa il numero di elementi automatici dei nodi dinamici */
 	 pDM->IncElemCount(Elem::AUTOMATICSTRUCTURAL);
 
-      } else if(CurrType == MODAL) {
+      } else if (CurrType == MODAL) {
 	 SAFENEWWITHCONSTRUCTOR(pNd, ModalNode,
 				ModalNode(uLabel, pDO,
 					  X0, R0,
@@ -1423,6 +1419,25 @@ ReadStructNode(DataManager* pDM,
       }
    }
 
+   switch (CurrType) {
+   case DUMMY:
+      switch (DummyType) {
+      case RELATIVEFRAME:
+         goto done;
+
+      default:
+	 break;
+      }
+
+   default:
+      std::ostream& out = pDM->GetLogFile();
+      out << "structural node: " << uLabel
+	      << " ", pNd->GetXCurr().Write(out, " ")
+	      << std::endl;
+      break;
+   }
+
+done:;
    ASSERT(pNd != NULL);
 
    return pNd;
