@@ -275,16 +275,16 @@ StructNode::Output_pch(
 			<< setw(16) << 0
 			<< setw(16) << XCurr.dGet(1)
 			<< setw(16) << XCurr.dGet(2)
-			<< "+" << setw(7) << 1
+			<< "*" << setw(7) << 1
 			<< endl
-			<< "+" << setw(7) << 1
+			<< "*" << setw(7) << 1
 			<< setw(16) << XCurr.dGet(3)
 			<< setw(16) << eZ.dGet(1)
 			<< setw(16) << eZ.dGet(2)
 			<< setw(16) << eZ.dGet(3)
-			<< "+" << setw(7) << 2
+			<< "*" << setw(7) << 2
 			<< endl
-			<< "+" << setw(7) << 2
+			<< "*" << setw(7) << 2
 			<< setw(16) << eX.dGet(1)
 			<< setw(16) << eX.dGet(2)
 			<< setw(16) << eX.dGet(3)
@@ -294,9 +294,9 @@ StructNode::Output_pch(
 			<< setw(16) << GetLabel()
 			<< setw(16) << 0.
 			<< setw(16) << 0.
-			<< "+" << setw(7) << 1
+			<< "*" << setw(7) << 1
 			<< endl
-			<< "+" << setw(7) << 1
+			<< "*" << setw(7) << 1
 			<< setw(16) << 0.
 			<< endl;
 #elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FREE__

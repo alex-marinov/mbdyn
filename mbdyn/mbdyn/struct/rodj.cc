@@ -326,9 +326,9 @@ Rod::Output_pch(ostream& out) const
 			<< setw(16) << 1		/* material */
 			<< setw(16) << 1.		/* area */
 			<< setw(16) << 1.		/* J1 */
-			<< "+" << setw(7) << 1
+			<< "*" << setw(7) << 1
 			<< endl
-			<< "+" << setw(7) << 1
+			<< "*" << setw(7) << 1
 			<< setw(16) << 1.		/* J2 */
 			<< setw(16) << " "		/* J12 */
 			<< setw(16) << 1.		/* Jp */
@@ -1109,9 +1109,9 @@ RodWithOffset::Output_pch(ostream& out) const
 			<< setw(16) << 1		/* material */
 			<< setw(16) << 1.		/* area */
 			<< setw(16) << 1.		/* J1 */
-			<< "+" << setw(7) << 1
+			<< "*" << setw(7) << 1
 			<< endl
-			<< "+" << setw(7) << 1
+			<< "*" << setw(7) << 1
 			<< setw(16) << 1.		/* J2 */
 			<< setw(16) << " "		/* J12 */
 			<< setw(16) << 1.		/* Jp */
@@ -1123,19 +1123,19 @@ RodWithOffset::Output_pch(ostream& out) const
 			<< setw(16) << 20000000+label	/* prop */
 			<< setw(16) << pNode1->GetLabel()	/* node 1 */
 			<< setw(16) << pNode2->GetLabel()	/* node 2 */
-			<< "+" << setw(7) << 1
+			<< "*" << setw(7) << 1
 			<< endl
-			<< "+" << setw(7) << 1
+			<< "*" << setw(7) << 1
 			<< setw(64) << " "
-			<< "+" << setw(7) << 2
+			<< "*" << setw(7) << 2
 			<< endl
-			<< "+" << setw(7) << 2
+			<< "*" << setw(7) << 2
 			<< setw(32) << " "
 			<< setw(16) << F1.dGet(1)
 			<< setw(16) << F1.dGet(2)
-			<< "+" << setw(7) << 3
+			<< "*" << setw(7) << 3
 			<< endl
-			<< "+" << setw(7) << 3
+			<< "*" << setw(7) << 3
 			<< setw(16) << F1.dGet(3)
 			<< setw(16) << F2.dGet(1)
 			<< setw(16) << F2.dGet(2)

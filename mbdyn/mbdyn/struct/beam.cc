@@ -817,6 +817,189 @@ void Beam::Output(OutputHandler& OH) const
    }   
 }
 
+/* Output di un modello NASTRAN equivalente nella configurazione corrente */
+void
+Beam::Output_pch(ostream& out) const
+{
+	if (fToBeOutput()) {
+		unsigned int label = GetLabel();
+		if (label > 9999999) {
+			cerr << "label of Beam(" << label <<") is too large" << endl;
+			THROW(ErrGeneric());
+		}
+		
+		const char *name = GetName();
+		out << "$ Beam " << GetLabel();
+		if (name) {
+			out << " (" << name << ")";
+		}
+		
+#define __NASTRAN_FORMAT__ __HACK_NASTRAN_MODES__
+		Vec3 F1(pNode[NODE1]->GetRCurr()*f[NODE1]);
+		Vec3 F2(pNode[NODE2]->GetRCurr()*f[NODE2]);
+		Vec3 F3(pNode[NODE3]->GetRCurr()*f[NODE3]);
+		
+#if __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED__
+		out << endl
+			/* PBEAM */
+			<< "PBEAM   "
+			<< setw(8) << label    		/* label */
+			<< setw(8) << 1                 /* material */
+			<< setw(8) << 1.                /* area */
+			<< setw(8) << 1.                /* J1 */
+			<< setw(8) << 1.                /* J2 */
+			<< setw(8) << " "               /* J12 */
+			<< setw(8) << 1.                /* Jp */
+			<< endl
+			
+			/* CBEAM */
+			<< "CBEAM   "
+			<< setw(8) << label   		/* label */
+			<< setw(8) << label    		/* prop */
+			<< setw(8) << pNode[NODE1]->GetLabel()	/* node 1 */
+			<< setw(8) << pNode[NODE2]->GetLabel()	/* node 2 */
+			<< setw(32) << " "
+			<< "+" << setw(7) << 1
+			<< endl
+			<< "+" << setw(7) << 1
+			<< setw(16) << " "
+			<< setw(8) << F1.dGet(1)
+			<< setw(8) << F1.dGet(2)
+			<< setw(8) << F1.dGet(3)
+			<< setw(8) << F2.dGet(1)
+			<< setw(8) << F2.dGet(2)
+			<< setw(8) << F2.dGet(3)
+
+			/* CBEAM */
+			<< "CBEAM   "
+			<< setw(8) << 10000000+label    /* label */
+			<< setw(8) << label    		/* prop */
+			<< setw(8) << pNode[NODE2]->GetLabel()	/* node 2 */
+			<< setw(8) << pNode[NODE3]->GetLabel()	/* node 3 */
+			<< setw(32) << " "
+			<< "+" << setw(7) << 1
+			<< endl
+			<< "+" << setw(7) << 1
+			<< setw(16) << " "
+			<< setw(8) << F2.dGet(1)
+			<< setw(8) << F2.dGet(2)
+			<< setw(8) << F2.dGet(3)
+			<< setw(8) << F3.dGet(1)
+			<< setw(8) << F3.dGet(2)
+			<< setw(8) << F3.dGet(3)
+			<< enld;
+#elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED16__
+		out << endl
+			/* PBEAM */
+			<< "PBEAM*  "
+			<< setw(16) << label   		/* label */
+			<< setw(16) << 1                /* material */
+			<< setw(16) << 1.               /* area */
+			<< setw(16) << 1.               /* J1 */
+			<< "*" << setw(7) << 1
+			<< endl
+			<< "*" << setw(7) << 1
+			<< setw(16) << 1.               /* J2 */
+			<< setw(16) << " "              /* J12 */
+			<< setw(16) << 1.               /* Jp */
+			<< endl
+			
+			/* CBEAM */
+			<< "CBEAM*  "
+			<< setw(16) << label   		/* label */
+			<< setw(16) << label   		/* prop */
+			<< setw(16) << pNode[NODE1]->GetLabel()	/* node 1 */
+			<< setw(16) << pNode[NODE2]->GetLabel()	/* node 2 */
+			<< "*" << setw(7) << 1
+			<< endl
+			<< "*" << setw(7) << 1
+			<< setw(64) << " "
+			<< "*" << setw(7) << 2
+			<< endl
+			<< "*" << setw(7) << 2
+			<< setw(32) << " "
+			<< setw(16) << F1.dGet(1)
+			<< setw(16) << F1.dGet(2)
+			<< "*" << setw(7) << 3
+			<< endl
+			<< "*" << setw(7) << 3
+			<< setw(16) << F1.dGet(3)
+			<< setw(16) << F2.dGet(1)
+			<< setw(16) << F2.dGet(2)
+			<< setw(16) << F2.dGet(3)
+			
+			/* CBEAM */
+			<< "CBEAM*  "
+			<< setw(16) << 10000000+label   /* label */
+			<< setw(16) << label   		/* prop */
+			<< setw(16) << pNode[NODE2]->GetLabel()	/* node 2 */
+			<< setw(16) << pNode[NODE3]->GetLabel()	/* node 3 */
+			<< "*" << setw(7) << 1
+			<< endl
+			<< "*" << setw(7) << 1
+			<< setw(64) << " "
+			<< "*" << setw(7) << 2
+			<< endl
+			<< "*" << setw(7) << 2
+			<< setw(32) << " "
+			<< setw(16) << F2.dGet(1)
+			<< setw(16) << F2.dGet(2)
+			<< "*" << setw(7) << 3
+			<< endl
+			<< "*" << setw(7) << 3
+			<< setw(16) << F2.dGet(3)
+			<< setw(16) << F3.dGet(1)
+			<< setw(16) << F3.dGet(2)
+			<< setw(16) << F3.dGet(3)
+			<< endl;
+#elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FREE__
+		out << endl
+			/* PBEAM */
+			<< "PBEAM,"
+			<< label << ","
+			<< 1 << ","
+			<< 1. << ","
+			<< 1. << ","
+			<< 1. << ","
+			<< ","
+			<< 1. << endl
+			
+			/* CBEAM */
+			<< "CBEAM,"
+			<< label << ","
+			<< label << ","
+			<< pNode[NODE1]->GetLabel() << ","
+			<< pNode[NODE2]->GetLabel() << ",,,,"
+#if 0
+			<< "," 
+#endif
+			<< endl
+#if 1
+			<< ","
+#endif
+			<< " ,,", F1.Write(out, ",") << ",", F2.Write(out, ",")
+			
+			/* CBEAM */
+			<< "CBEAM,"
+			<< 10000000+label << ","
+			<< label << ","
+			<< pNode[NODE2]->GetLabel() << ","
+			<< pNode[NODE3]->GetLabel() << ",,,,"
+#if 0
+			<< "," 
+#endif
+			<< endl
+#if 1
+			<< ","
+#endif
+			<< " ,,", F2.Write(out, ",") << ",", F3.Write(out, ",")
+			<< endl;
+#else
+#error "unknown NASTRAN format"
+#endif
+	}
+}
+
    
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler& 
