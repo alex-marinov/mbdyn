@@ -57,12 +57,14 @@
 #include <dataman.h>
 #ifdef USE_MPI
 #include <schurdataman.h>
-#include<schsolman.h>
+#include <schsolman.h>
 #endif /* USE_MPI */
-#include<deque>
-#include<integr.h>
-#include<stepsol.h>
-#include<nonlin.h>
+#include <deque>
+#include <integr.h>
+#include <stepsol.h>
+#include <nonlin.h>
+#include <mfree.h>
+#include <precond.h>
   
 class Solver {
 

@@ -176,7 +176,9 @@ class AirProperties
 };
 
 class DataManager;
-Elem *ReadAirProperties(DataManager* pDM, MBDynParser& HP);
+
+extern Elem *
+ReadAirProperties(DataManager* pDM, MBDynParser& HP);
 
 /* AirProperties - end */
 

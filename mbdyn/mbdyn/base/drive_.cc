@@ -35,8 +35,7 @@
 #include <ac/math.h>
 
 #ifdef USE_MPI
-#include <mpi++.h>
-extern MPI::Intracomm MBDynComm;
+#include <mbcomm.h>
 #endif /* USE_MPI */
 
 #include <dataman.h>

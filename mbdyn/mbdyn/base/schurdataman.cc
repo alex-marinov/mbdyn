@@ -49,7 +49,7 @@ extern "C" {
 #endif /* USE_METIS */
 
 #include <schurdataman.h>
-extern MPI::Intracomm MBDynComm;
+#include <mbcomm.h>
 #include <mysleep.h>
 #include <except.h>
 

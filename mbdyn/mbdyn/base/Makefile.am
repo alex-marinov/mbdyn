@@ -7,6 +7,8 @@ noinst_LTLIBRARIES = libbase.la
 libbase_la_SOURCES = \
 auth.cc \
 auth.h \
+bicg.cc \
+bicg.h \
 bulk.cc \
 bulk.h \
 constltp.h \
@@ -45,12 +47,16 @@ filedrv.cc \
 filedrv.h \
 force.cc \
 force.h \
+gmres.cc \
+gmres.h \
 integr.cc \
 integr.h \
 j2p.cc \
 j2p.h \
 loadable.cc \
 loadable.h \
+mfree.cc \
+mfree.h \
 mbpar.cc \
 mbpar.h \
 node.cc \
@@ -59,9 +65,14 @@ nodeman.cc \
 nonlin.cc \
 nonlin.h \
 nonlinpb.h \
+nr.cc \
+nr.h \
 output.cc \
 output.h \
 posrel.h \
+precond.cc \
+precond.h \
+precond_.h \
 readclaw.h \
 reffrm.h \
 resforces.cc \

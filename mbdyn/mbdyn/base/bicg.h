@@ -35,64 +35,34 @@
   *
   * classi che implementano la risoluzione del sistema nonlineare 
   */
-  
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
- 
-#include <nonlin.h>  
-#ifdef USE_MPI
-#include <mbcomm.h>
-#include <schsolman.h>
-#endif /* USE_MPI */
 
-#include <dofown.h>
-#include <umfpackwrap.h>
-#include <unistd.h>
-#include <output.h>
+#ifndef BICG_H
+#define BICG_H
 
-NonlinearSolver::NonlinearSolver(void)
-: Size(0),
-TotJac(0),
-foutIters(false),
-foutRes(false),
-foutJac(false),
-foutSol(false)
-#ifdef USE_EXTERNAL
-, ExtStepType(External::ERROR)  
-#endif /* USE_EXTERNAL */
-#ifdef __HACK_SCALE_RES__
-, pScale(NULL) 
-#endif /* __HACK_SCALE_RES__ */
-{
-	NO_OP;
-}
+#include <mfree.h>
 
-#ifdef __HACK_SCALE_RES__
-void
-NonlinearSolver::SetScale(const VectorHandler* pScl)
+class BiCGStab : public MatrixFreeSolver
 {
-	pScale = (VectorHandler *)pScl;
-}  
-#endif /* __HACK_SCALE_RES__ */
+public:
+	BiCGStab(const Preconditioner::PrecondType PType, 
+			const integer iPStep,
+			doublereal ITol,
+			integer MaxIt,
+			doublereal etaMx);
+	~BiCGStab(void);
+	
+	virtual void Solve(const NonlinearProblem* NLP,
+			SolutionManager* pSolMan,
+			const integer iMaxIter,
+			const doublereal Toll,
+			const doublereal SolToll,
+			integer& iIterCnt,
+			doublereal& dErr
+#ifdef MBDYN_X_CONVSOL
+			, doublereal& dSolErr
+#endif /* MBDYN_X_CONVSOL  */	
+			);
+};
 
-void
-NonlinearSolver::SetOutputFlag(bool fIt, bool fRes, bool fJac, bool fSol)
-{
-	foutIters = fIt;
-	foutRes = fRes;
-	foutJac = fJac;
-	foutSol = fSol;
-}
-		
-NonlinearSolver::~NonlinearSolver(void)
-{
-	NO_OP;
-}
-
-integer
-NonlinearSolver::TotalAssembledJacobian(void)
-{
-	return TotJac;
-}
+#endif /* BICG_H */
 

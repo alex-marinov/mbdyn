@@ -35,64 +35,21 @@
   *
   * classi che implementano la risoluzione del sistema nonlineare 
   */
-  
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
- 
-#include <nonlin.h>  
-#ifdef USE_MPI
-#include <mbcomm.h>
-#include <schsolman.h>
-#endif /* USE_MPI */
 
-#include <dofown.h>
-#include <umfpackwrap.h>
-#include <unistd.h>
-#include <output.h>
+#ifndef PRECOND__H
+#define PRECOND__H
 
-NonlinearSolver::NonlinearSolver(void)
-: Size(0),
-TotJac(0),
-foutIters(false),
-foutRes(false),
-foutJac(false),
-foutSol(false)
-#ifdef USE_EXTERNAL
-, ExtStepType(External::ERROR)  
-#endif /* USE_EXTERNAL */
-#ifdef __HACK_SCALE_RES__
-, pScale(NULL) 
-#endif /* __HACK_SCALE_RES__ */
-{
-	NO_OP;
-}
+#include <precond.h>
 
-#ifdef __HACK_SCALE_RES__
-void
-NonlinearSolver::SetScale(const VectorHandler* pScl)
-{
-	pScale = (VectorHandler *)pScl;
-}  
-#endif /* __HACK_SCALE_RES__ */
+class FullJacobianPr : public Preconditioner
+{	
 
-void
-NonlinearSolver::SetOutputFlag(bool fIt, bool fRes, bool fJac, bool fSol)
-{
-	foutIters = fIt;
-	foutRes = fRes;
-	foutJac = fJac;
-	foutSol = fSol;
-}
-		
-NonlinearSolver::~NonlinearSolver(void)
-{
-	NO_OP;
-}
+public:
+	~FullJacobianPr(void);
+	
+	void Precond(VectorHandler& b, VectorHandler& x, 
+			SolutionManager* pSM) const;
+};
 
-integer
-NonlinearSolver::TotalAssembledJacobian(void)
-{
-	return TotJac;
-}
+#endif /* PRECOND__H */
 

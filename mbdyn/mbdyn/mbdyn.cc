@@ -45,7 +45,7 @@ extern "C" {
 }
 
 #ifdef USE_MPI 
-#include <mpi++.h>
+#include <mbcomm.h>
 MPI::Intracomm MBDynComm = MPI::COMM_SELF;
 #ifdef USE_EXTERNAL
 #include<list>

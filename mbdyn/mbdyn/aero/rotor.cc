@@ -48,14 +48,11 @@ extern "C" {
 #include <stdio.h>
 }
 #endif /* MPI_PROFILING */
+#include <mbcomm.h>
 #endif /* USE_MPI */
 
 #include <rotor.h>
 #include <dataman.h>
-
-#ifdef USE_MPI
-extern MPI::Intracomm MBDynComm;
-#endif /* USE_MPI */
 
 /* Rotor - begin */
 

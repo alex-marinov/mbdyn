@@ -54,17 +54,20 @@
 #include <ac/math.h>
 
 #include <solver.h>
-#include<solman.h>
-#include<vector>
+#include <nr.h>
+#include <bicg.h>
+#include <gmres.h>
+#include <solman.h>
+#include <vector>
 
 #if defined(HAVE_SIGNAL) && defined(HAVE_SIGNAL_H)
 #include <signal.h>
 #endif /* HAVE_SIGNAL && HAVE_SIGNAL_H */
   
 #ifdef USE_MPI
-extern MPI::Intracomm MBDynComm;
+#include <mbcomm.h>
 #ifdef USE_EXTERNAL
-#include<external.h>
+#include <external.h>
 #endif /* USE_EXTERNAL */
 #endif /* USE_MPI */
 
@@ -1967,13 +1970,15 @@ Solver::ReadData(MBDynParser& HP)
 	  dDerivativesTol = HP.GetReal();
 	  if (dDerivativesTol <= 0.) {
 	     dDerivativesTol = 1e-6;
-	     std::cerr 
-	       << "warning, derivatives tolerance <= 0. is illegal; switching to default value " 
+	     std::cerr
+	       << "warning, derivatives tolerance <= 0.0 "
+	       "is illegal; switching to default value " 
 	       << dDerivativesTol
 	       << std::endl;
 	  }		       		  
 	  DEBUGLCOUT(MYDEBUG_INPUT, 
-		     "Derivatives toll = " << dDerivativesTol << std::endl);
+		     "Derivatives tolerance = " << dDerivativesTol
+		     << std::endl);
 	  break;
        }
 	 
@@ -1982,7 +1987,8 @@ Solver::ReadData(MBDynParser& HP)
 	  if (iMaxIterations < 1) {
 	     iMaxIterations = iDefaultMaxIterations;
 	     std::cerr 
-	       << "warning, max iterations < 1 is illegal; switching to default value "
+	       << "warning, max iterations < 1 is illegal; "
+	       "switching to default value "
 	       << iMaxIterations
 	       << std::endl;
 	  }		       		  
@@ -1996,7 +2002,8 @@ Solver::ReadData(MBDynParser& HP)
 	  if (iDerivativesMaxIterations < 1) {
 	     iDerivativesMaxIterations = iDefaultMaxIterations;
 	     std::cerr 
-	       << "warning, derivatives max iterations < 1 is illegal; switching to default value "
+	       << "warning, derivatives max iterations < 1 is illegal; "
+	       "switching to default value "
 	       << iDerivativesMaxIterations
 	       << std::endl;
 	  }		       		  
@@ -2026,7 +2033,8 @@ Solver::ReadData(MBDynParser& HP)
 	  if (dDerivativesCoef <= 0.) {
 	     dDerivativesCoef = 1.;
 	     std::cerr 
-	       << "warning, derivatives coefficient <= 0. is illegal; switching to default value "
+	       << "warning, derivatives coefficient <= 0. is illegal; "
+	       "switching to default value "
 	       << dDerivativesCoef
 	       << std::endl;
 	  }
@@ -2104,7 +2112,8 @@ Solver::ReadData(MBDynParser& HP)
 	      
 	      StrategyFactor.iStepsBeforeReduction = HP.GetInt();
 	      if (StrategyFactor.iStepsBeforeReduction <= 0) {
-		 std::cerr << "Warning, illegal number of steps before reduction at line "
+		 std::cerr << "Warning, illegal number of steps "
+		   "before reduction at line "
 		   << HP.GetLineData() << ';' << std::endl
 		   << "default value 1 will be used (it may be dangerous)" 
 		   << std::endl;
@@ -2122,7 +2131,8 @@ Solver::ReadData(MBDynParser& HP)
 	      
 	      StrategyFactor.iStepsBeforeRaise = HP.GetInt();
 	      if (StrategyFactor.iStepsBeforeRaise <= 0) {
-		 std::cerr << "Warning, illegal number of steps before raise at line "
+		 std::cerr << "Warning, illegal number of steps "
+		   "before raise at line "
 		   << HP.GetLineData() << ';' << std::endl
 		   << "default value 1 will be used (it may be dangerous)" 
 		   << std::endl;
@@ -2131,14 +2141,13 @@ Solver::ReadData(MBDynParser& HP)
 	      
 	      StrategyFactor.iMinIters = HP.GetInt();
 	      if (StrategyFactor.iMinIters <= 0) {
-		 std::cerr << "Warning, illegal minimum number of iterations at line "
+		 std::cerr << "Warning, illegal minimum number "
+		   "of iterations at line "
 		   << HP.GetLineData() << ';' << std::endl
 		   << "default value 0 will be used (never raise)" 
 		   << std::endl;
 		 StrategyFactor.iMinIters = 1;
 	      }
-	      
-	      
 	      
 	      DEBUGLCOUT(MYDEBUG_INPUT,
 			 "Time step control strategy: Factor" << std::endl
@@ -2152,7 +2161,6 @@ Solver::ReadData(MBDynParser& HP)
 			 << StrategyFactor.iStepsBeforeRaise 
 			 << "Min iterations: "
 			 << StrategyFactor.iMinIters << std::endl);
-
 	      break;  
 	   }		 
 	     
@@ -2434,11 +2442,13 @@ Solver::ReadData(MBDynParser& HP)
 				break;
 		
 			default:
-				std::cerr << "Unknown iterative solver switching to default (Bicgstab)" 
+				std::cerr << "Unknown iterative solver "
+					"at line " << HP.GetLineData()
 					<< std::endl;
+				THROW(ErrGeneric());
 		}	
 	       
-		if (HP.IsKeyWord("toll")) {
+		if (HP.IsKeyWord("tolerance")) {
 			dIterTol = HP.GetReal();
 			DEBUGLCOUT(MYDEBUG_INPUT, "Inner Iterative Solver Tolerance: " 
 				<< dIterTol << std::endl);
@@ -2470,9 +2480,9 @@ Solver::ReadData(MBDynParser& HP)
 			break;
 			
 		default:
-			std::cerr << "Unkown preconditioner. Using Jacobian with a " 
-				<< iPrecondSteps << " steps recoputing." << std::endl;
-			break; 	
+			std::cerr << "Unkown preconditioner at line "
+				<< HP.GetLineData() << std::endl;
+			THROW(ErrGeneric());
 		}
 		
 		break;
@@ -2949,8 +2959,9 @@ Solver::Eig(void)
    struct tm *currtm = localtime(&currtime);
    if (currtm) {
 #warning "Your compiler might complain about %y"
-#warning "yielding only the last two digits of"
-#warning "the year; don't worry, it's intended :)"
+#warning "in strftime() yielding only the last"
+#warning "two digits of the year; don't worry,"
+#warning "it's intended :)"
    	strftime(datebuf, sizeof(datebuf)-1, "%m/%d/%y", currtm);
    }
 #endif /* HAVE_STRFTIME && HAVE_LOCALTIME && HAVE_TIME */

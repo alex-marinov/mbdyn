@@ -39,60 +39,32 @@
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
- 
-#include <nonlin.h>  
-#ifdef USE_MPI
-#include <mbcomm.h>
-#include <schsolman.h>
-#endif /* USE_MPI */
+  
+#include <precond_.h>  
 
-#include <dofown.h>
-#include <umfpackwrap.h>
-#include <unistd.h>
-#include <output.h>
-
-NonlinearSolver::NonlinearSolver(void)
-: Size(0),
-TotJac(0),
-foutIters(false),
-foutRes(false),
-foutJac(false),
-foutSol(false)
-#ifdef USE_EXTERNAL
-, ExtStepType(External::ERROR)  
-#endif /* USE_EXTERNAL */
-#ifdef __HACK_SCALE_RES__
-, pScale(NULL) 
-#endif /* __HACK_SCALE_RES__ */
+Preconditioner::~Preconditioner(void)
+{
+	NO_OP;
+}
+	
+FullJacobianPr::~FullJacobianPr(void)
 {
 	NO_OP;
 }
 
-#ifdef __HACK_SCALE_RES__
-void
-NonlinearSolver::SetScale(const VectorHandler* pScl)
-{
-	pScale = (VectorHandler *)pScl;
-}  
-#endif /* __HACK_SCALE_RES__ */
 
 void
-NonlinearSolver::SetOutputFlag(bool fIt, bool fRes, bool fJac, bool fSol)
+FullJacobianPr::Precond(VectorHandler& b, VectorHandler& x, 
+		SolutionManager* pSM) const
 {
-	foutIters = fIt;
-	foutRes = fRes;
-	foutJac = fJac;
-	foutSol = fSol;
-}
-		
-NonlinearSolver::~NonlinearSolver(void)
-{
-	NO_OP;
-}
-
-integer
-NonlinearSolver::TotalAssembledJacobian(void)
-{
-	return TotJac;
+	if (pSM->pSolHdl() != pSM->pResHdl()) {	
+		pSM->ChangeResPoint(b.pdGetVec());
+		pSM->ChangeSolPoint(x.pdGetVec());
+		pSM->Solve();
+	} else {
+		x = b;
+		pSM->ChangeResPoint(x.pdGetVec());
+		pSM->Solve();
+	}
 }
 
