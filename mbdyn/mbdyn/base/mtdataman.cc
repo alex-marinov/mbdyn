@@ -86,6 +86,8 @@ MultiThreadDataManager::dataman_helper(void *p)
 		 */
 		sem_wait(&arg->sem);
 
+		// std::cerr << "thread " << arg->threadNumber << ": op " << arg->pDM->op << std::endl;
+
 		/* select requested operation */
 		switch (arg->pDM->op) {
 		case MultiThreadDataManager::OP_ASSJAC:
@@ -126,18 +128,28 @@ MultiThreadDataManager::dataman_helper(void *p)
 			THROW(ErrGeneric());
 		}
 
-		/* decrement the thread counter */
-		pthread_mutex_lock(&arg->pDM->dataman_helper_mutex);
-		arg->pDM->dataman_helper_count--;
-		pthread_mutex_unlock(&arg->pDM->dataman_helper_mutex);
-
-		/* if last thread, signal to restart */
-		if (arg->pDM->dataman_helper_count == 0) {
-			pthread_cond_signal(&arg->pDM->dataman_helper_cond);
-		}
+		/* decrease counter and signal if last */
+		arg->pDM->EndOfOp();
 	}
 
 	return NULL;
+}
+
+void
+MultiThreadDataManager::EndOfOp(void)
+{
+	bool last;
+	
+	/* decrement the thread counter */
+	pthread_mutex_lock(&dataman_helper_mutex);
+	dataman_helper_count--;
+	last = (dataman_helper_count == 0);
+	pthread_mutex_unlock(&dataman_helper_mutex);
+
+	/* if last thread, signal to restart */
+	if (last) {
+		pthread_cond_signal(&dataman_helper_cond);
+	}
 }
 
 /* starts the helper threads */
@@ -171,8 +183,8 @@ MultiThreadDataManager::MultiThreadSpawn(void)
 				VariableSubMatrixHandler,
 				VariableSubMatrixHandler(iWorkIntSize,
 					iWorkDoubleSize,
-					ptd[i].piWorkIndex+iWorkIntSize,
-					ptd[i].pdWorkMat+iWorkDoubleSize));
+					ptd[i].piWorkIndex + iWorkIntSize,
+					ptd[i].pdWorkMat + iWorkDoubleSize));
 
 		ptd[i].pWorkMat = ptd[i].pWorkMatA;
 
@@ -208,10 +220,7 @@ MultiThreadDataManager::ResetInUse(bool b)
 void
 MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
-	if (ptd == NULL) {
-		DataManager::AssJac(JacHdl, dCoef);
-		return;
-	}
+	ASSERT(ptd != NULL);
 
 	ResetInUse(false);
 	op = MultiThreadDataManager::OP_ASSJAC;
@@ -233,10 +242,7 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 void
 MultiThreadDataManager::AssMats(MatrixHandler& MatA, MatrixHandler& MatB)
 {
-	if (ptd == NULL) {
-		DataManager::AssMats(MatA, MatB);
-		return;
-	}
+	ASSERT(ptd != NULL);
 
 	ResetInUse(false);
 	op = MultiThreadDataManager::OP_ASSMATS;
@@ -258,10 +264,7 @@ MultiThreadDataManager::AssMats(MatrixHandler& MatA, MatrixHandler& MatB)
 void
 MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 {
-	if (ptd == NULL) {
-		DataManager::AssRes(ResHdl, dCoef);
-		return;
-	}
+	ASSERT(ptd != NULL);
 
 	ResetInUse(false);
 	op = MultiThreadDataManager::OP_ASSRES;

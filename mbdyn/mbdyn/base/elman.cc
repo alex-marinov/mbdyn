@@ -330,6 +330,9 @@ DataManager::ElemAssInit(void)
 	}
 }
 
+/* temporary */
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
 /* Assemblaggio dello jacobiano.
  * Di questa routine e' molto importante l'efficienza, quindi vanno valutate
  * correttamente le opzioni. */
@@ -351,17 +354,26 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 {
 	DEBUGCOUT("Entering DataManager::AssJac()" << std::endl);
 
+	int i = 0;
+
 	Elem* pTmpEl = NULL;
 	if (pIter->bGetFirst(pTmpEl)) {
 		do {
+
+			pthread_mutex_lock(&mutex);
 			
-			// std::cerr << pIter << " " << psElemNames[pTmpEl->GetElemType()] << "(" << pTmpEl->GetLabel() << ")" << std::endl;
-
-
 			JacHdl += pTmpEl->AssJac(WorkMat, dCoef,
 					*pXCurr, *pXPrimeCurr);
+
+			pthread_mutex_unlock(&mutex);
+			
+			i++;
+			// usleep(100);
+			
 		} while (pIter->bGetNext(pTmpEl));
 	}
+
+	fprintf(stderr, "[%d]: J %d\n", pthread_self(), i);
 }
 
 void
@@ -430,13 +442,26 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
+	int i = 0;
+
 	Elem* pTmpEl = NULL;
 	if (pIter->bGetFirst(pTmpEl)) {
 		do {
+
+			pthread_mutex_lock(&mutex);
+			
 			ResHdl += pTmpEl->AssRes(WorkVec, dCoef,
 					*pXCurr, *pXPrimeCurr);
+
+			pthread_mutex_unlock(&mutex);
+
+			i++;
+			// usleep(100);
+			
 		} while (pIter->bGetNext(pTmpEl));
 	}
+
+	fprintf(stderr, "[%d]: R %d\n", pthread_self(), i);
 }
 
 void

@@ -141,4 +141,8 @@ INCLUDES = \
 -I../../mbdyn/hydr \
 $(GINACLIB_CPPFLAGS)
 
+noinst_PROGRAMS = inusetest
+inusetest_SOURCES = inuse.cc
+inusetest_LDADD = @THREAD_LIBS@ # libaero.la ../../libraries/libmbutil/libmbutil.la
+
 include $(top_srcdir)/build/bot.mk

@@ -88,8 +88,12 @@ protected:
 
 	/* will be replaced by barriers ... */
 	unsigned dataman_helper_count;
+
+	/* this can be replaced by a barrier ... */
 	pthread_mutex_t	dataman_helper_mutex;
 	pthread_cond_t	dataman_helper_cond;
+
+	void EndOfOp(void);
 
 	/* thread function */
 	static void *dataman_helper(void *);

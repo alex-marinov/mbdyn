@@ -284,9 +284,10 @@ pNLS(NULL)
 			silent_cout("no multithread requested "
 					"with a potential of " << n
 					<< " CPUs" << std::endl);
+			nThreads = n;
+		} else {
+			nThreads = 1;
 		}
-
-		nThreads = 1;
 	}
 #endif /* USE_MULTITHREAD */
 }
