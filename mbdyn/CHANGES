@@ -24,7 +24,7 @@ MBDyn 1.2-Engineering
 		- added c81merge utility for c81 files blending
 		- inertia can be output to stdout as well
 	Backward compatibility issues:
-		- merge columns 10 and 11 into disk angle for rotor
+		- merged columns 10 and 11 into disk angle for rotor
 		  elements output
 		- --enable-loadable has been replaced
 		  by --enable-runtime-loading
