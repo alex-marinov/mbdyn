@@ -150,6 +150,12 @@ mp_ctgh_t(Real* d)
    return 0;
 }
 
+Real
+mp_sign(Real s)
+{
+	return copysign(1., s);
+}
+
 #ifdef __USE_XOPEN
 Real 
 mp_actgh(Real s)
@@ -228,6 +234,8 @@ static mathfuncs FuncTable[] = {
      { "sqrt",       1, { (Real (*)(void))((Real (*)(Real))sqrt)      }, log_t,      ""   },
      
      { "abs",        1, { (Real (*)(void))((Real (*)(Real))fabs)      }, NULL,       ""   },
+     { "sign",       1, { (Real (*)(void))((Real (*)(Real))mp_sign)   }, NULL,       ""   },
+     { "copysign",   2, { (Real (*)(void))((Real (*)(Real, Real))copysign)  }, NULL,       ""   },
      { "max",        2, { (Real (*)(void))((Real (*)(Real, Real))max_t)  }, NULL,       ""   },
      { "min",        2, { (Real (*)(void))((Real (*)(Real, Real))min_t)  }, NULL,       ""   },
      { "floor",      1, { (Real (*)(void))((Real (*)(Real))floor)     }, NULL,       ""   },
