@@ -69,6 +69,8 @@ D. Code:
 		- clamp (spherical + prismatic in one joint)
 		- universal and revolute without displacement constraints
 		- inplane and inline with only one node
+	- allow to define modules as separate entities which are later
+		referred to by labels, like c81 data or hydraulic fluids.
 
 
 
