@@ -9,7 +9,9 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.2-Engineering
 	Enhancements:
-		- added matrix-free solver
+		- added matrix-free nonlinear solver (BiCGStab/GMRES)
+		- added third order step solver
+		- added TAUCS linear solver (eXperimental)
 	Known Issues:
 		- parallel is not working yet
 
@@ -71,7 +73,7 @@ MBDyn 1.2-beta.1
 		- compact column form and multithread assembly works also
 		  with Y12
 		- direct access compact column matrix for further improvements
-		- support for multithread SuperLU solver
+		- support for multithread SuperLU solver (eXperimental)
 		- viscoelastic rods also output length rate
 		- shock absorber allows separate metering based on stroke rate
 		- beamslider joint
