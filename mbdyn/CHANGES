@@ -20,6 +20,7 @@ MBDyn 1.X-Engineering
 		- fixed angular acceleration bug with ScalarDof
 		- fixed jacobian output during modified NR
 		- fixed Schur solver API bug in driven elements
+		- fixed "naive" support of parallel assembly
 
 MBDyn 1.2-Engineering
 	Enhancements:
