@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2003
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -94,15 +94,16 @@ RelativeStructNodeOutput::Output(std::ostream& out, const StructNode *pN) const
 /* StructNode - begin */
 
 /* Costruttore definitivo */
-StructNode::StructNode(unsigned int uL, 
+StructNode::StructNode(unsigned int uL,
 		       const DofOwner* pDO,
-		       const Vec3& X0, 
+		       const Vec3& X0,
 		       const Mat3x3& R0,
-		       const Vec3& V0, 
+		       const Vec3& V0,
 		       const Vec3& W0,
+		       const StructNode *pRN,
 		       doublereal dPosStiff,
-		       doublereal dVelStiff, 
-		       flag fOmRot, 
+		       doublereal dVelStiff,
+		       flag fOmRot,
 		       flag fOut)
 : Node(uL, pDO, fOut),
 RPrev(R0),
@@ -112,18 +113,19 @@ gRef(0.),
 gCurr(0.),
 gPRef(0.),
 gPCurr(0.),
-XPrev(X0), 
+XPrev(X0),
 XCurr(X0),
-VPrev(V0), 
-VCurr(V0), 
+VPrev(V0),
+VCurr(V0),
 WPrev(W0),
 WRef(W0),
 WCurr(W0),
-dPositionStiffness(dPosStiff), 
+pRefNode(pRN),
+dPositionStiffness(dPosStiff),
 dVelocityStiffness(dVelStiff),
-fOmegaRot(fOmRot) 
+fOmegaRot(fOmRot)
 {
-   NO_OP;
+	NO_OP;
 }
 
 
@@ -135,7 +137,7 @@ StructNode::~StructNode(void)
 
 
 /* Tipo di nodo */
-Node::Type 
+Node::Type
 StructNode::GetNodeType(void) const
 {
    return Node::STRUCTURAL;
@@ -143,52 +145,52 @@ StructNode::GetNodeType(void) const
 
 
 /* Contributo del nodo strutturale al file di restart */
-std::ostream& 
+std::ostream&
 StructNode::Restart(std::ostream& out) const
 {
    out << "  structural: " << GetLabel() << ", ";
-   if (GetStructNodeType() == StructNode::DYNAMIC) {	
+   if (GetStructNodeType() == StructNode::DYNAMIC) {
       out << "dynamic";
-   } else if (GetStructNodeType() == StructNode::STATIC) {	
+   } else if (GetStructNodeType() == StructNode::STATIC) {
 	out << "static";
    }
    out << ", reference, global, ";
    XCurr.Write(out, ", ")
      << ", reference, global, 1, ", (RCurr.GetVec(1)).Write(out, ", ")
-     << ", 2, ", (RCurr.GetVec(2)).Write(out, ", ") 
+     << ", 2, ", (RCurr.GetVec(2)).Write(out, ", ")
      << ", reference, global, ",
-     VCurr.Write(out, ", ") 
+     VCurr.Write(out, ", ")
      << ", reference, global, ",
      WCurr.Write(out, ", ") << ", assembly, "
      << dPositionStiffness << ", "
-     << dVelocityStiffness << ", " 
+     << dVelocityStiffness << ", "
      << fOmegaRot << ';' << std::endl;
-   
+
    return out;
 }
 
 
 /* Restituisce il valore del dof iDof;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
-const doublereal& 
+const doublereal&
 StructNode::dGetDofValue(int iDof, int iOrder) const
 {
    ASSERT(iDof >= 1 && iDof <= 6);
    ASSERT(iOrder == 0 || iOrder == 1);
    if (iDof >= 1 && iDof <= 3) {
       if (iOrder == 0) {
-	 return XCurr.dGet(iDof);	 
-      } else if (iOrder == 1) {	 
+	 return XCurr.dGet(iDof);
+      } else if (iOrder == 1) {
 	 return VCurr.dGet(iDof);
-      } 
-   } else if (iDof >= 4 && iDof <= 6) {	        
+      }
+   } else if (iDof >= 4 && iDof <= 6) {
       if (iOrder == 1) {
 	 return WCurr.dGet(iDof-3);
       } else if (iOrder == 0) {
-	 std::cerr << "Node " << GetLabel() 
+	 std::cerr << "Node " << GetLabel()
 	   << ": unable to return the angle." << std::endl;
 	 THROW(StructNode::ErrGeneric());
-      }	 
+      }
    } else {
       std::cerr << "Required dof is not available." << std::endl;
       THROW(StructNode::ErrGeneric());
@@ -201,25 +203,25 @@ StructNode::dGetDofValue(int iDof, int iOrder) const
 
 /* Restituisce il valore del dof iDof al passo precedente;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
-const doublereal& 
+const doublereal&
 StructNode::dGetDofValuePrev(int iDof, int iOrder) const
 {
    ASSERT(iDof >= 1 && iDof <= 6);
    ASSERT(iOrder == 0 || iOrder == 1);
    if (iDof >= 1 && iDof <= 3) {
       if (iOrder == 0) {
-	 return XPrev.dGet(iDof);	 
-      } else if (iOrder == 1) {	 
+	 return XPrev.dGet(iDof);
+      } else if (iOrder == 1) {
 	 return VPrev.dGet(iDof);
-      } 
-   } else if (iDof >= 4 && iDof <= 6) {	        
+      }
+   } else if (iDof >= 4 && iDof <= 6) {
       if (iOrder == 1) {
 	 return WPrev.dGet(iDof-3);
       } else if (iOrder == 0) {
-	 std::cerr << "Node " << GetLabel() 
+	 std::cerr << "Node " << GetLabel()
 	   << ": unable to return the angle." << std::endl;
 	 THROW(StructNode::ErrGeneric());
-      }	 
+      }
    } else {
       std::cerr << "Required dof is not available." << std::endl;
       THROW(StructNode::ErrGeneric());
@@ -232,9 +234,9 @@ StructNode::dGetDofValuePrev(int iDof, int iOrder) const
 
 /* Setta il valore del dof iDof a dValue;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
-void 
+void
 StructNode::SetDofValue(const doublereal& dValue,
-			unsigned int iDof, 
+			unsigned int iDof,
 			unsigned int iOrder /* = 0 */ )
 {
    ASSERT(iDof >= 1 && iDof <= 6);
@@ -243,27 +245,27 @@ StructNode::SetDofValue(const doublereal& dValue,
       if (iOrder == 0) {
 	 XCurr.Put(iDof, dValue);
 	 return;
-      } else if (iOrder == 1) {	 
+      } else if (iOrder == 1) {
 	 VCurr.Put(iDof, dValue);
 	 return;
-      } 
-   } else if (iDof >= 4 && iDof <= 6) {	        
+      }
+   } else if (iDof >= 4 && iDof <= 6) {
       if (iOrder == 1) {
 	 WCurr.Put(iDof, dValue);
 	 return;
       } else if (iOrder == 0) {
-	 std::cerr << "Node " << GetLabel() 
+	 std::cerr << "Node " << GetLabel()
 	   << ": unable to set the angle." << std::endl;
-	 THROW(StructNode::ErrGeneric());	 
-      }	 
+	 THROW(StructNode::ErrGeneric());
+      }
    } else {
       std::cerr << "Required dof is not available." << std::endl;
       THROW(StructNode::ErrGeneric());
-   }   
+   }
 }
 
 
-DofOrder::Order 
+DofOrder::Order
 StructNode::GetDofType(unsigned int i) const
 {
 	ASSERT(i >= 0 && i < iGetNumDof());
@@ -272,22 +274,22 @@ StructNode::GetDofType(unsigned int i) const
 
 
 /* Output del nodo strutturale (da mettere a punto) */
-void 
+void
 StructNode::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {      
+   if (fToBeOutput()) {
       OH.StrNodes() << std::setw(8) << GetLabel() << " "
 	<< XCurr << " " << MatR2EulerAngles(RCurr)*dRaDegr << " "
 	<< VCurr << " " << WCurr << " " << std::endl;
-   }   
+   }
 }
 
 
 /* Output della soluzione perturbata (modi ...) */
 void
 StructNode::Output(
-		OutputHandler& OH, 
-		const VectorHandler& X, 
+		OutputHandler& OH,
+		const VectorHandler& X,
 		const VectorHandler& XP
 		) const
 {
@@ -304,7 +306,7 @@ StructNode::Output(
 }
 
 /* Output di un modello NASTRAN equivalente nella configurazione corrente */
-void 
+void
 StructNode::Output_pch(
 		std::ostream& out
 		) const
@@ -317,7 +319,7 @@ StructNode::Output_pch(
 		if (name) {
 			out << " (" << name << ")";
 		}
-		
+
 #define __NASTRAN_FORMAT__ __HACK_NASTRAN_MODES__
 
 		Vec3 eZ = XCurr+RCurr.GetVec(3);
@@ -326,7 +328,7 @@ StructNode::Output_pch(
 #if __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED__
 		out << std::endl
 			/* CORD2R with node position and orientation */
-			<< "CORD2R  " 
+			<< "CORD2R  "
 			<< std::setw(8) << GetLabel()
 			<< std::setw(8) << 0
 			<< std::setw(8) << XCurr.dGet(1)
@@ -352,7 +354,7 @@ StructNode::Output_pch(
 #elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED16__
 		out << std::endl
 			/* CORD2R with node position and orientation */
-			<< "CORD2R* " 
+			<< "CORD2R* "
 			<< std::setw(16) << GetLabel()
 			<< std::setw(16) << 0
 			<< std::setw(16) << XCurr.dGet(1)
@@ -388,16 +390,16 @@ StructNode::Output_pch(
 			<< ",0,", XCurr.Write(out, ",")
 			<< ",", eZ.Write(out, ",")
 #if 0
-			<< "," 
+			<< ","
 #endif
 			<< std::endl
 #if 1
-			<< "," 
+			<< ","
 #endif
 			<< " ", eX.Write(out, ",")
 			<< std::endl
 			/* grid in CORD2R */
-			<< "GRID," << GetLabel() 
+			<< "GRID," << GetLabel()
 			<< "," << GetLabel()
 			<< ",0.,0.,0." << std::endl;
 #else
@@ -408,7 +410,7 @@ StructNode::Output_pch(
 }
 
 
-void 
+void
 StructNode::Output_f06(
 		std::ostream& out,
 		const VectorHandler& X
@@ -417,21 +419,21 @@ StructNode::Output_f06(
 #if defined(__HACK_NASTRAN_MODES__)
 	if (fToBeOutput()) {
 		integer iFirstIndex = iGetFirstIndex();
-		
-		out 
-			<< std::setw(13) << GetLabel() << "      G" 
-			<< std::setw(18) << std::setprecision(6) 
+
+		out
+			<< std::setw(13) << GetLabel() << "      G"
+			<< std::setw(18) << std::setprecision(6)
 			<< X.dGetCoef(iFirstIndex+1)
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< X.dGetCoef(iFirstIndex+2)
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< X.dGetCoef(iFirstIndex+3)
 
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< X.dGetCoef(iFirstIndex+4)
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< X.dGetCoef(iFirstIndex+5)
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< X.dGetCoef(iFirstIndex+6)
 			<< std::endl;
 	}
@@ -439,7 +441,7 @@ StructNode::Output_f06(
 }
 
 
-void 
+void
 StructNode::Output_f06(
 		std::ostream& out,
 		const VectorHandler& Xr,
@@ -449,36 +451,36 @@ StructNode::Output_f06(
 #if defined(__HACK_NASTRAN_MODES__)
 	if (fToBeOutput()) {
 		integer iFirstIndex = iGetFirstIndex();
-		
-		out 
-			<< "0" << std::setw(12) << GetLabel() << "      G" 
-			<< std::setw(18) << std::setprecision(6) 
+
+		out
+			<< "0" << std::setw(12) << GetLabel() << "      G"
+			<< std::setw(18) << std::setprecision(6)
 			<< Xr.dGetCoef(iFirstIndex+1)
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< Xr.dGetCoef(iFirstIndex+2)
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< Xr.dGetCoef(iFirstIndex+3)
 
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< Xr.dGetCoef(iFirstIndex+4)
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< Xr.dGetCoef(iFirstIndex+5)
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< Xr.dGetCoef(iFirstIndex+6)
 			<< std::endl
 
-			<< std::setw(38) << std::setprecision(6) 
+			<< std::setw(38) << std::setprecision(6)
 			<< Xi.dGetCoef(iFirstIndex+1)
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< Xi.dGetCoef(iFirstIndex+2)
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< Xi.dGetCoef(iFirstIndex+3)
 
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< Xi.dGetCoef(iFirstIndex+4)
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< Xi.dGetCoef(iFirstIndex+5)
-			<< std::setw(15) << std::setprecision(6) 
+			<< std::setw(15) << std::setprecision(6)
 			<< Xi.dGetCoef(iFirstIndex+6)
 			<< std::endl;
 	}
@@ -487,23 +489,23 @@ StructNode::Output_f06(
 
 
 /* Aggiorna dati in base alla soluzione */
-void 
+void
 StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
-{   
+{
    integer iFirstIndex = iGetFirstIndex();
-   
+
    XCurr = Vec3(X, iFirstIndex+1);
    VCurr = Vec3(XP, iFirstIndex+1);
-    
+
    /* Nota: i g, gP non vengono incrementati */
    gCurr = Vec3(X, iFirstIndex+4);
    gPCurr = Vec3(XP, iFirstIndex+4);
-   
-#if 1
+
    /* Matrice RDelta, incremento di rotazione da predetto a corrente;
     Questo e' piu' efficiente */
    Mat3x3 RDelta(MatR, gCurr);
-#else
+
+#if 0
    /* Questo e' meno efficiente anche se sembra piu' elegante.
     * Il problema e' che per scrivere il manipolatore in forma
     * elegante bisogna aggiungere alla matrice le informazioni
@@ -511,15 +513,15 @@ StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
     * Oppure occorre un operatore ternario */
     RDelta = MatR << gCurr;
 #endif
-  
-#if 1
-   /* La matrice di rotazione corrente e' data dalla matrice predetta 
+
+   /* La matrice di rotazione corrente e' data dalla matrice predetta
     * (costante) moltiplicata per l'incremento totale occorso;
     * la velocita' angolare e' data dalla parte incrementale totale
     * piu' il contributo della velocita' di riferimento (costante) */
-   RCurr = RDelta*RRef;   
+   RCurr = RDelta*RRef;
    WCurr = Mat3x3(MatG, gCurr)*gPCurr+RDelta*WRef;
-#else   
+
+#if 0
    /* Nuovo manipolatore (forse e' meno efficiente) */
    WCurr = (MatG << gCurr)*gPCurr+RDelta*WRef;
 #endif
@@ -527,7 +529,7 @@ StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 
 
 /* Aggiorna dati in base alla soluzione */
-void 
+void
 StructNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
 {
    integer iFirstIndex = iGetFirstIndex();
@@ -537,27 +539,21 @@ StructNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
    ((VectorHandler&)X).Put(iFirstIndex+4, Zero3);
    ((VectorHandler&)XP).Put(iFirstIndex+1, VCurr);
    ((VectorHandler&)XP).Put(iFirstIndex+4, Zero3);
-      
-   /* Questa parte e' spuria, va messa a punto (?) */
-   XPrev = XCurr;
-   RPrev = RCurr;
-   VPrev = VCurr;
-   WPrev = WCurr;   
 }
 
 
 /* Aggiorna dati in base alla soluzione durante l'assemblaggio iniziale */
-void 
+void
 StructNode::InitialUpdate(const VectorHandler& X)
 {
    integer iFirstIndex = iGetFirstIndex();
-   
+
    XCurr = Vec3(X, iFirstIndex+1);
    VCurr = Vec3(X, iFirstIndex+7);
-   
+
    /* Nota: g viene incrementato */
    gCurr = Vec3(X, iFirstIndex+4);
-   
+
 #if 1
    /* Questo manipolatore e' piu' efficiente */
    Mat3x3 RDelta(MatR, gCurr);
@@ -565,100 +561,229 @@ StructNode::InitialUpdate(const VectorHandler& X)
    /* Nuovo manipolatore (e' meno efficiente) */
    Mat3x3 RDelta(MatR << gCurr);
 #endif
-   
+
    RCurr = RDelta*RRef;
    WCurr = Vec3(X, iFirstIndex+10);
 }
 
-   
+
 /* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
-void 
+void
 StructNode::SetInitialValue(VectorHandler& X) const
 {
-   integer iFirstIndex = iGetFirstIndex();
-   X.Put(iFirstIndex+1, XCurr);
-   X.Put(iFirstIndex+4, Vec3(0.));
-   X.Put(iFirstIndex+7, VCurr);
-   X.Put(iFirstIndex+10, WCurr);		
+	ASSERT(0);
 }
 
 
-void 
-StructNode::BeforePredict(VectorHandler& X, 
+void
+StructNode::SetValue(VectorHandler& X, VectorHandler& XP) const
+{
+#ifdef MBDYN_X_RELATIVE_PREDICTION
+	if (pRefNode) {
+		Vec3 Xtmp = XPrev - pRefNode->GetXCurr();
+		Mat3x3 R0T = (pRefNode->GetRCurr()).Transpose();
+		Vec3 V0 = pRefNode->GetVCurr();
+		Vec3 W0 = pRefNode->GetWCurr();
+
+		XPrev = R0T*Xtmp;
+		RPrev = R0T*RCurr;
+		VPrev = R0T*(VCurr - V0 - W0.Cross(Xtmp));
+		WPrev = R0T*(WCurr - W0);
+
+		std::cout << "SetValue: X=" << XPrev << ", R=" << RPrev << ", V=" << VPrev << ", W=" << WPrev << std::endl;
+
+	} else {
+#endif /* MBDYN_X_RELATIVE_PREDICTION */
+
+		/* FIXME: in any case, we start with Crank-Nicholson ... */
+		XPrev = XCurr;
+		RPrev = RCurr;
+		VPrev = VCurr;
+		WPrev = WCurr;
+
+#ifdef MBDYN_X_RELATIVE_PREDICTION
+	}
+#endif /* MBDYN_X_RELATIVE_PREDICTION */
+
+	integer iFirstIndex = iGetFirstIndex();
+	X.Put(iFirstIndex+1, XPrev);
+	X.Put(iFirstIndex+4, Vec3(0.));
+	gRef = gCurr = gPRef = gPCurr = Vec3(0.);
+	XP.Put(iFirstIndex+1, VPrev);
+	XP.Put(iFirstIndex+4, WPrev);
+}
+
+
+void
+StructNode::BeforePredict(VectorHandler& X,
 			  VectorHandler& XP,
-			  VectorHandler& XPr, 
+			  VectorHandler& XPr,
 			  VectorHandler& XPPr) const
 {
-   /* Questa e' la predizione "consistente", ovvero usa come gdl di rotazione
-    * i parametri di rotazione "totali" per predire la configurazione al nuovo
-    * passo, quindi ritorna in forma incrementale */
-   
-   /* Calcolo la matrice RDelta riferita a tutto il passo trascorso
-    * all'indietro */
-   Mat3x3 RDelta(RPrev*RCurr.Transpose());
-   
-   /* Pongo la R al passo precedente uguale a quella corrente
-    * mi servira' se devo ripetere il passo con un diverso Delta t 
-    * e per la rettifica dopo la predizione */
-   RPrev = RCurr;
-   
-   integer iFirstPos = iGetFirstIndex()+3;
-   
-   /* Mi assicuro che g, al passo corrente sia nullo */
-   X.Put(iFirstPos+1, Vec3(0.));
-   
-   /* Calcolo g al passo precedente attraverso la matrice RDelta riferita
-    * a tutto il passo. Siccome RDelta e' calcolata all'indietro,
-    * i parametri soo gia' con il segno corretto */
-   Vec3 gPrev = gparam(RDelta);
-   XPr.Put(iFirstPos+1, gPrev);
-   
-   /* Calcolo gP al passo precedente attraverso la definizione 
-    * mediante le Omega. Siccome i parametri sono con il segno meno 
-    * e la matrice RDelta e' gia' calcolata all'indietro, l'insieme
-    * e' consistente */   
-   XPPr.Put(iFirstPos+1, Mat3x3(MatGm1, gPrev)*WPrev);
+	integer iFirstPos = iGetFirstIndex();
 
-   /* Metto Omega al passo corrente come gP */
-   XP.Put(iFirstPos+1, WCurr);
-   
-   /* Pongo le Omega al passo precedente uguali alle Omega al passo corrente
-    * mi servira' per la correzione dopo la predizione */
-   WPrev = WCurr;
-   
-   XPrev = XCurr;   
-   VPrev = VCurr;
+#ifdef MBDYN_X_RELATIVE_PREDICTION
+	/* If pRefNode is defined, the prediction is made
+	 * on the data in the reference frame it provides */
+	if (pRefNode) {
+
+		/*
+		   x_r = R_0^T * ( x - x_0 )
+		   R_r = R_0^T * R
+		   v_r = R_0^T * ( v - v_0 - omega_0 \times ( x - x_0 ) )
+		   omega_r = R_0^T * ( omega - omega_0 )
+		 */
+		Vec3 Xtmp = XCurr - pRefNode->GetXCurr();
+		Mat3x3 R0T = (pRefNode->GetRCurr()).Transpose();
+		Vec3 V0 = pRefNode->GetVCurr();
+		Vec3 W0 = pRefNode->GetWCurr();
+
+		XCurr = R0T*Xtmp;
+		RCurr = R0T*RCurr;
+		VCurr = R0T*(VCurr - V0 - W0.Cross(Xtmp));
+		WCurr = R0T*(WCurr - W0);
+
+		/* update state vectors with relative position and velocity */
+		X.Put(iFirstPos+1, XCurr);
+		XP.Put(iFirstPos+1, VCurr);
+		XPr.Put(iFirstPos+1, XPrev);
+		XPPr.Put(iFirstPos+1, VPrev);
+
+#if 1
+		std::cout << "BeforePredict: X=" << XCurr << ", R=" << RCurr << ", V=" << VCurr << ", W=" << WCurr << std::endl;
+#endif
+	}
+#endif /* MBDYN_X_RELATIVE_PREDICTION */
+
+	/* Questa e' la predizione "consistente", ovvero usa come gdl di rotazione
+	 * i parametri di rotazione "totali" per predire la configurazione al nuovo
+	 * passo, quindi ritorna in forma incrementale */
+
+	/* Calcolo la matrice RDelta riferita a tutto il passo trascorso
+	 * all'indietro */
+	Mat3x3 RDelta(RPrev*RCurr.Transpose());
+
+	/* Mi assicuro che g al passo corrente sia nullo */
+	X.Put(iFirstPos+4, Vec3(0.));
+
+	/* Calcolo g al passo precedente attraverso la matrice RDelta riferita
+	 * a tutto il passo. Siccome RDelta e' calcolata all'indietro,
+	 * i parametri sono gia' con il segno corretto */
+	Vec3 gPrev = gparam(RDelta);
+	XPr.Put(iFirstPos+4, gPrev);
+
+	/* Calcolo gP al passo precedente attraverso la definizione
+	 * mediante le Omega. Siccome i parametri sono con il segno meno
+	 * e la matrice RDelta e' gia' calcolata all'indietro, l'insieme
+	 * e' consistente */
+	XPPr.Put(iFirstPos+4, Mat3x3(MatGm1, gPrev)*WPrev);
+
+	/* Metto Omega al passo corrente come gP (perche' G(0) = I) */
+	XP.Put(iFirstPos+4, WCurr);
+
+#if 0
+	std::cout
+		<< "  " << std::setw(16) << "prev" << std::setw(16) << "curr" << std::setw(16) << GetLabel() << std::endl
+		<< "x:" << std::setw(16) << XPrev(1) << std::setw(16) << XCurr(1) << std::endl
+		<< "  " << std::setw(16) << XPrev(2) << std::setw(16) << XCurr(2) << std::endl
+		<< "  " << std::setw(16) << XPrev(3) << std::setw(16) << XCurr(3) << std::endl
+		<< "v:" << std::setw(16) << VPrev(1) << std::setw(16) << VCurr(1) << std::endl
+		<< "  " << std::setw(16) << VPrev(2) << std::setw(16) << VCurr(2) << std::endl
+		<< "  " << std::setw(16) << VPrev(3) << std::setw(16) << VCurr(3) << std::endl
+		<< "g:" << std::setw(16) << gPrev(1) << std::setw(16) << 0 << std::endl
+		<< "  " << std::setw(16) << gPrev(2) << std::setw(16) << 0 << std::endl
+		<< "  " << std::setw(16) << gPrev(3) << std::setw(16) << 0 << std::endl
+		<< "w:" << std::setw(16) << XP.dGetCoef(iFirstPos+4) << std::setw(16) << WCurr(1) << std::endl
+		<< "  " << std::setw(16) << XP.dGetCoef(iFirstPos+5) << std::setw(16) << WCurr(2) << std::endl
+		<< "  " << std::setw(16) << XP.dGetCoef(iFirstPos+6) << std::setw(16) << WCurr(3) << std::endl;
+#endif
+
+	XPrev = XCurr;
+	VPrev = VCurr;
+
+	/* Pongo la R al passo precedente uguale a quella corrente
+	 * mi servira' se devo ripetere il passo con un diverso Delta t
+	 * e per la rettifica dopo la predizione */
+	RPrev = RCurr;
+
+	/* Pongo le Omega al passo precedente uguali alle Omega al passo corrente
+	 * mi servira' per la correzione dopo la predizione */
+	WPrev = WCurr;
 }
 
-void 
+void
 StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
-   integer iFirstIndex = iGetFirstIndex();
-   
-   /* Spostamento e velocita' aggiornati */
-   XCurr = Vec3(X, iFirstIndex+1);
-   VCurr = Vec3(XP, iFirstIndex+1);
-   
-   /* Ottengo il g predetto */
-   gRef = Vec3(X, iFirstIndex+4);
-   
-   /* Calcolo la matrice RDelta derivante dalla predizione */
-   Mat3x3 RDelta(MatR, gRef);
-   
-   /* Calcolo la R corrente in base alla predizione */ 
-   RCurr = RRef = RDelta*RPrev; 
-   
-   /* Calcolo la Omega corrente in base alla predizione (gP "totale") */
-   gPRef = Vec3(XP, iFirstIndex+4);
-      
-   /* Calcolo il nuovo Omega */
-   WCurr = WRef = Mat3x3(MatG, gRef)*gPRef;  
+	integer iFirstIndex = iGetFirstIndex();
 
-   /* Resetto i parametri di rotazione e le derivate, g e gP */
-   X.Put(iFirstIndex+4, Vec3(0.));
-   XP.Put(iFirstIndex+4, Vec3(0.));   
+	/* Spostamento e velocita' aggiornati */
+	XCurr = Vec3(X, iFirstIndex+1);
+	VCurr = Vec3(XP, iFirstIndex+1);
 
-   gCurr = gPCurr = Vec3(0.);
+	/* Ottengo il g predetto */
+	gRef = Vec3(X, iFirstIndex+4);
+
+	/* Calcolo la matrice RDelta derivante dalla predizione */
+	Mat3x3 RDelta(MatR, gRef);
+
+	/* Calcolo la R corrente in base alla predizione */
+	RCurr = RDelta*RPrev;
+
+	/* Calcolo la Omega corrente in base alla predizione (gP "totale") */
+	gPRef = Vec3(XP, iFirstIndex+4);
+
+	/* Calcolo il nuovo Omega */
+	WCurr = Mat3x3(MatG, gRef)*gPRef;
+
+	/* Resetto i parametri di rotazione e le derivate, g e gP */
+	X.Put(iFirstIndex+4, Vec3(0.));
+	XP.Put(iFirstIndex+4, Vec3(0.));
+
+	gCurr = gPCurr = Vec3(0.);
+
+#ifdef MBDYN_X_RELATIVE_PREDICTION
+	if (pRefNode) {
+
+		/*
+		   x = x_0 + R_0 * x_r
+		   R = R_0 * R_r
+		   v = v_0 + omega_0 \times ( R_0 * x_r ) + R_0 * v_r
+		   omega = omega_0 + R_0 * omega_r
+		 */
+		Vec3 X0 = pRefNode->GetXCurr();
+		Mat3x3 R0 = pRefNode->GetRCurr();
+		Vec3 V0 = pRefNode->GetVCurr();
+		Vec3 W0 = pRefNode->GetWCurr();
+
+		XCurr = R0*XCurr;	/* temporary */
+		RCurr = R0*RCurr;
+		VCurr = V0 + W0.Cross(XCurr) + R0*VCurr;
+		WCurr = W0 + R0*WCurr;
+		XCurr += X0;		/* plus reference */
+
+		/* alcuni usano anche le predizioni dei parametri 
+		 * di rotazione e delle loro derivate come riferimento
+		 * (approccio updated-updated); quindi calcolo 
+		 * i parametri di riferimento come i parametri
+		 * che danno una predizione pari alla variazione
+		 * di R0 piu' l'incremento relativo, e le derivate
+		 * dei parametri corrispondenti */
+		gRef = gparam(R0*RDelta*(pRefNode->GetRPrev()).Transpose());
+		gPRef = Mat3x3(MatGm1, gRef)*WCurr;
+
+		/* to be safe, the correct values are put back
+		 * in the state vectors */
+		X.Put(iFirstIndex+1, XCurr);
+		XP.Put(iFirstIndex+1, VCurr);
+
+#if 1
+		std::cout << "AfterPredict: X=" << XCurr << ", R=" << RCurr << ", V=" << VCurr << ", W=" << WCurr << std::endl;
+#endif
+	}
+#endif /* MBDYN_X_RELATIVE_PREDICTION */
+
+	RRef = RCurr;
+	WRef = WCurr;
 }
 
 /* StructNode - end */
@@ -666,22 +791,23 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 
 /* DynamicStructNode - begin */
 
-DynamicStructNode::DynamicStructNode(unsigned int uL, 
+DynamicStructNode::DynamicStructNode(unsigned int uL,
 				     const DofOwner* pDO,
-				     const Vec3& X0, 
+				     const Vec3& X0,
 				     const Mat3x3& R0,
-				     const Vec3& V0, 
+				     const Vec3& V0,
 				     const Vec3& W0,
+				     const StructNode *pRN,
 				     doublereal dPosStiff,
-				     doublereal dVelStiff, 
+				     doublereal dVelStiff,
 				     flag fOmRot,
 				     flag fOut)
-: StructNode(uL, pDO, X0, R0, V0, W0, dPosStiff, dVelStiff, fOmRot, fOut)
+: StructNode(uL, pDO, X0, R0, V0, W0, pRN, dPosStiff, dVelStiff, fOmRot, fOut)
 {
    NO_OP;
 }
 
-   
+
 /* Distruttore (per ora e' banale) */
 DynamicStructNode::~DynamicStructNode(void)
 {
@@ -690,32 +816,19 @@ DynamicStructNode::~DynamicStructNode(void)
 
 
 /* Tipo di nodo strutturale */
-StructNode::Type 
+StructNode::Type
 DynamicStructNode::GetStructNodeType(void) const
 {
    return StructNode::DYNAMIC;
 }
 
-   
+
 /* Usato dalle forze astratte, dai bulk ecc., per assemblare le forze
  * al posto giusto */
-integer 
+integer
 DynamicStructNode::iGetFirstRowIndex(void) const
 {
-   return iGetFirstMomentumIndex(); 
-}
-
-
-void 
-DynamicStructNode::SetValue(VectorHandler& X, VectorHandler& XP) const
-{
-   /* Mettere a punto */
-   integer iFirstIndex = iGetFirstIndex();
-   X.Put(iFirstIndex+1, XCurr);
-   X.Put(iFirstIndex+4, Vec3(0.));
-   gRef = gCurr = gPRef = gPCurr = Vec3(0.);
-   XP.Put(iFirstIndex+1, VCurr);
-   XP.Put(iFirstIndex+4, WCurr);
+   return iGetFirstMomentumIndex();
 }
 
 /* DynamicStructNode - end */
@@ -724,17 +837,18 @@ DynamicStructNode::SetValue(VectorHandler& X, VectorHandler& XP) const
 /* StaticStructNode - begin */
 
 /* Costruttore definitivo */
-StaticStructNode::StaticStructNode(unsigned int uL, 
+StaticStructNode::StaticStructNode(unsigned int uL,
 				   const DofOwner* pDO,
-				   const Vec3& X0, 
+				   const Vec3& X0,
 				   const Mat3x3& R0,
-				   const Vec3& V0, 
+				   const Vec3& V0,
 				   const Vec3& W0,
-				   doublereal dPosStiff, 
-				   doublereal dVelStiff, 
+				   const StructNode *pRN,
+				   doublereal dPosStiff,
+				   doublereal dVelStiff,
 				   flag fOmRot,
 				   flag fOut)
-: StructNode(uL, pDO, X0, R0, V0, W0, dPosStiff, dVelStiff, fOmRot, fOut)
+: StructNode(uL, pDO, X0, R0, V0, W0, pRN, dPosStiff, dVelStiff, fOmRot, fOut)
 {
    NO_OP;
 }
@@ -748,23 +862,10 @@ StaticStructNode::~StaticStructNode(void)
 
 
 /* Tipo di nodo strutturale */
-StructNode::Type 
+StructNode::Type
 StaticStructNode::GetStructNodeType(void) const
 {
-   return StructNode::STATIC; 
-}
-
-
-void 
-StaticStructNode::SetValue(VectorHandler& X, VectorHandler& XP) const
-{
-   /* Mettere a punto */
-   integer iFirstIndex = iGetFirstIndex();
-   X.Put(iFirstIndex+1, XCurr);
-   X.Put(iFirstIndex+4, Vec3(0.));   
-   gRef = gCurr = gPRef = gPCurr = Vec3(0.);
-   XP.Put(iFirstIndex+1, VCurr);
-   XP.Put(iFirstIndex+4, WCurr);   
+   return StructNode::STATIC;
 }
 
 /* StaticStructNode - end */
@@ -772,24 +873,24 @@ StaticStructNode::SetValue(VectorHandler& X, VectorHandler& XP) const
 
 /* ModalNode - begin */
 
-ModalNode::ModalNode(unsigned int uL, 
+ModalNode::ModalNode(unsigned int uL,
 				     const DofOwner* pDO,
-				     const Vec3& X0, 
+				     const Vec3& X0,
 				     const Mat3x3& R0,
-				     const Vec3& V0, 
+				     const Vec3& V0,
 				     const Vec3& W0,
 				     doublereal dPosStiff,
-				     doublereal dVelStiff, 
+				     doublereal dVelStiff,
 				     flag fOmRot,
 				     flag fOut)
-: DynamicStructNode(uL, pDO, X0, R0, V0, W0, dPosStiff, dVelStiff, fOmRot, fOut),
+: DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0, dPosStiff, dVelStiff, fOmRot, fOut),
 XPPCurr(0.),
 WPCurr(0.)
 {
    NO_OP;
 }
 
-   
+
 /* Distruttore (per ora e' banale) */
 ModalNode::~ModalNode(void)
 {
@@ -798,47 +899,33 @@ ModalNode::~ModalNode(void)
 
 
 /* Tipo di nodo strutturale */
-StructNode::Type 
+StructNode::Type
 ModalNode::GetStructNodeType(void) const
 {
    return StructNode::MODAL;
 }
 
-   
+
 /* Usato dalle forze astratte, dai bulk ecc., per assemblare le forze
  * al posto giusto */
-integer 
+integer
 ModalNode::iGetFirstRowIndex(void) const
 {
-   return iGetFirstMomentumIndex(); 
+   return iGetFirstMomentumIndex();
 }
 
-
-void 
-ModalNode::SetValue(VectorHandler& X, VectorHandler& XP) const
-{
-   /* Mettere a punto */
-   integer iFirstIndex = iGetFirstIndex();
-   X.Put(iFirstIndex+1, XCurr);
-   X.Put(iFirstIndex+4, Vec3(0.));
-   gRef = gCurr = gPRef = gPCurr = Vec3(0.);
-   XP.Put(iFirstIndex+1, VCurr);
-   XP.Put(iFirstIndex+4, WCurr);
-
-  
-}
 
 /* Aggiorna dati in base alla soluzione */
-void 
+void
 ModalNode::Update(const VectorHandler& X, const VectorHandler& XP)
-{   
+{
    StructNode::Update(X, XP);
-   
+
    integer iFirstIndex = iGetFirstIndex();
-   
+
    /* aggiorno XPP e WP (servono solo a modal.cc) */
    XPPCurr = Vec3(XP, iFirstIndex+7);
-   WPCurr  = Vec3(XP, iFirstIndex+10);      
+   WPCurr  = Vec3(XP, iFirstIndex+10);
 }
 
 /* ModalNode - end */
@@ -850,7 +937,7 @@ ModalNode::Update(const VectorHandler& X, const VectorHandler& XP)
 DummyStructNode::DummyStructNode(unsigned int uL,
 				 const DofOwner* pDO,
 				 const StructNode* pN)
-: StructNode(uL, pDO, 0., 0., 0., 0., 0., 0., 0, flag(1)), pNode(pN)
+: StructNode(uL, pDO, 0., 0., 0., 0., 0, 0., 0., 0, flag(1)), pNode(pN)
 {
    ASSERT(pNode != NULL);
 }
@@ -864,7 +951,7 @@ DummyStructNode::~DummyStructNode(void)
 
 
 /* Tipo di nodo strutturale */
-StructNode::Type 
+StructNode::Type
 DummyStructNode::GetStructNodeType(void) const
 {
    return StructNode::DUMMY;
@@ -873,48 +960,48 @@ DummyStructNode::GetStructNodeType(void) const
 
 /* Restituisce il valore del dof iDof;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
-const 
+const
 doublereal& DummyStructNode::dGetDofValue(int iDof, int iOrder) const
 {
    std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
-   THROW(ErrGeneric());   
+   THROW(ErrGeneric());
 }
 
 
 /* Restituisce il valore del dof iDof al passo precedente;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
-const 
+const
 doublereal& DummyStructNode::dGetDofValuePrev(int iDof, int iOrder) const
 {
    std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
-   THROW(ErrGeneric());   
+   THROW(ErrGeneric());
 }
 
 
 /* Setta il valore del dof iDof a dValue;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
-void 
+void
 DummyStructNode::SetDofValue(const doublereal& dValue,
 			     unsigned int iDof, unsigned int iOrder)
 {
    std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
-   THROW(ErrGeneric());   
+   THROW(ErrGeneric());
 }
 
-   
+
 /* Aggiorna dati durante l'iterazione fittizia iniziale */
-void 
+void
 DummyStructNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
 {
    /* posso farlo perche' in genere i dummy nodes si limitano
-    * a copiare i valori di altri nodi, quindi non alterano 
+    * a copiare i valori di altri nodi, quindi non alterano
     * le variabili cinematiche */
    Update(X, XP);
 }
 
 
 /* Aggiorna dati in base alla soluzione durante l'assemblaggio iniziale */
-void 
+void
 DummyStructNode::InitialUpdate(const VectorHandler& /* X */ )
 {
    NO_OP;
@@ -922,14 +1009,14 @@ DummyStructNode::InitialUpdate(const VectorHandler& /* X */ )
 
 
 /* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
-void 
+void
 DummyStructNode::SetInitialValue(VectorHandler& /* X */ ) const
 {
    NO_OP;
 }
 
 
-void 
+void
 DummyStructNode::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
    ((DummyStructNode*)this)->Update(X, XP);
@@ -938,17 +1025,17 @@ DummyStructNode::SetValue(VectorHandler& X, VectorHandler& XP) const
 
 /* Elaborazione vettori e dati prima e dopo la predizione
  * per MultiStepIntegrator */
-void 
+void
 DummyStructNode::BeforePredict(VectorHandler& /* X */ ,
 			       VectorHandler& /* XP */ ,
-			       VectorHandler& /* XPrev */ , 
+			       VectorHandler& /* XPrev */ ,
 			       VectorHandler& /* XPPrev */ ) const
 {
    NO_OP;
 }
 
 
-void 
+void
 DummyStructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
    Update(X, XP);
@@ -985,12 +1072,12 @@ void OffsetDummyStructNode::__Update(void)
    RCurr = pNode->GetRCurr();
    XCurr = pNode->GetXCurr()+RCurr*f;
    WCurr = pNode->GetWCurr();
-   VCurr = pNode->GetVCurr()+WCurr.Cross(RCurr*f);	
+   VCurr = pNode->GetVCurr()+WCurr.Cross(RCurr*f);
 }
 
 
 /* Tipo di nodo dummy */
-DummyStructNode::Type 
+DummyStructNode::Type
 OffsetDummyStructNode::GetDummyType(void) const
 {
    return DummyStructNode::OFFSET;
@@ -1022,7 +1109,7 @@ RelFrameDummyStructNode::RelFrameDummyStructNode(unsigned int uL,
    ASSERT(pNodeRef != NULL);
 
    /*
-    * Note: Rh is transposed from the beginning because it is 
+    * Note: Rh is transposed from the beginning because it is
     *       never used directly;
     *       fh is premultiplied by Rh.Transpose() for the same reason
     *
@@ -1040,7 +1127,7 @@ RelFrameDummyStructNode::RelFrameDummyStructNode(unsigned int uL,
     *
     * and differentiating with respect to time
     */
-   
+
    /* forzo la ricostruzione del nodo strutturale sottostante */
    __Update();
 }
@@ -1059,11 +1146,11 @@ void RelFrameDummyStructNode::__Update(void)
    Mat3x3 RrT(pNodeRef->GetRCurr().Transpose());
    Mat3x3 RT(RhT*RrT);
    Vec3 XRel(pNode->GetXCurr()-pNodeRef->GetXCurr());
-   
+
    RCurr = RT*pNode->GetRCurr();
    XCurr = RT*XRel - fhT;
    WCurr = RT*(pNode->GetWCurr()-pNodeRef->GetWCurr());
-     
+
    VCurr = RT*(pNode->GetVCurr()
 	       -pNodeRef->GetVCurr()
 	       -pNodeRef->GetWCurr().Cross(XRel));
@@ -1071,7 +1158,7 @@ void RelFrameDummyStructNode::__Update(void)
 
 
 /* Tipo di nodo dummy */
-DummyStructNode::Type 
+DummyStructNode::Type
 RelFrameDummyStructNode::GetDummyType(void) const
 {
    return DummyStructNode::RELATIVEFRAME;
@@ -1079,7 +1166,7 @@ RelFrameDummyStructNode::GetDummyType(void) const
 
 
 /* Aggiorna dati in base alla soluzione */
-void 
+void
 RelFrameDummyStructNode::Update(const VectorHandler& /* X */ ,
 				const VectorHandler& /* XP */ )
 {
@@ -1091,43 +1178,43 @@ RelFrameDummyStructNode::Update(const VectorHandler& /* X */ ,
 
 /* Legge un nodo strutturale */
 
-Node* 
-ReadStructNode(DataManager* pDM, 
+Node*
+ReadStructNode(DataManager* pDM,
 	       MBDynParser& HP,
 	       DofOwner* pDO,
 	       unsigned int uLabel)
 {
    const char sFuncName[] = "ReadStructNode()";
    DEBUGCOUT("Entering " << sFuncName << std::endl);
-   
+
    const char* sKeyWords[] = {
       "static",
       "dynamic",
       "modal",
       "dummy",
-      
+
       "offset",
       "relativeframe"   /* temporary */
    };
-   
+
    /* enum delle parole chiave */
-   enum KeyWords { 
+   enum KeyWords {
       UNKNOWN = -1,
-      
+
       STATIC = 0,
       DYNAMIC,
       MODAL,
       DUMMY,
-      
+
       OFFSET,
       RELATIVEFRAME,
-      
+
       LASTKEYWORD
    };
-   
+
    /* tabella delle parole chiave */
    KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
+
    /* parser del blocco di controllo */
    HP.PutKeyTable(K);
 
@@ -1141,10 +1228,10 @@ ReadStructNode(DataManager* pDM,
       std::cerr << "missing node type at line " << HP.GetLineData()
       	      << std::endl;
       THROW(ErrGeneric());
-   }   
-   
+   }
+
 #ifdef DEBUG
-   if (CurrType == STATIC) {      
+   if (CurrType == STATIC) {
       std::cout << "Static structural node" << std::endl;
    } else if (CurrType == DYNAMIC) {
       std::cout << "Dynamic structural node" << std::endl;
@@ -1154,50 +1241,50 @@ ReadStructNode(DataManager* pDM,
       std::cout << "Modal node" << std::endl;
    } else {
       std::cout << "Unknown structural node" << std::endl;
-   }   
+   }
 #endif /* DEBUG */
-   
+
    Node* pNd = NULL;
    if (CurrType == DUMMY) {
       unsigned int uNode = (unsigned int)HP.GetInt();
-      
+
       DEBUGCOUT("Linked to Node " << uNode << std::endl);
-      
+
       /* verifica di esistenza del nodo */
       StructNode* pNode;
       if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
 	 std::cerr << std::endl << sFuncName
-	   << " at line " << HP.GetLineData() 
+	   << " at line " << HP.GetLineData()
 	     << ": structural node " << uNode
-	   << " not defined" << std::endl;    
+	   << " not defined" << std::endl;
 	 THROW(DataManager::ErrGeneric());
       }
-      
+
       KeyWords DummyType = KeyWords(HP.GetWord());
       switch (DummyType) {
        case OFFSET: {
 	  ReferenceFrame RF(pNode);
 	  Vec3 f(HP.GetPosRel(RF));
 	  Mat3x3 R(HP.GetRotRel(RF));
-	  
-	  SAFENEWWITHCONSTRUCTOR(pNd, 
+
+	  SAFENEWWITHCONSTRUCTOR(pNd,
 				 OffsetDummyStructNode,
 				 OffsetDummyStructNode(uLabel, pDO, pNode, f, R));
 	  break;
        }
-	 
+
        case RELATIVEFRAME: {
 	  unsigned int uNodeRef = (unsigned int)HP.GetInt();
-	  
+
 	  DEBUGCOUT("Linked to Node " << uNodeRef << std::endl);
-	  
+
 	  /* verifica di esistenza del nodo */
 	  StructNode* pNodeRef;
 	  if ((pNodeRef = pDM->pFindStructNode(uNodeRef)) == NULL) {
 	     std::cerr << std::endl << sFuncName
-	       << " at line " << HP.GetLineData() 
+	       << " at line " << HP.GetLineData()
 		 << ": structural node " << uNodeRef
-	       << " not defined" << std::endl;    
+	       << " not defined" << std::endl;
 	     THROW(DataManager::ErrGeneric());
 	  }
 
@@ -1213,13 +1300,13 @@ ReadStructNode(DataManager* pDM,
 		  Rh = HP.GetRotRel(RF);
 	  }
 
-	  SAFENEWWITHCONSTRUCTOR(pNd, 
+	  SAFENEWWITHCONSTRUCTOR(pNd,
 				 RelFrameDummyStructNode,
 				 RelFrameDummyStructNode(uLabel, pDO,
 					 pNode, pNodeRef, fh, Rh));
-	  break;	  
+	  break;
        }
-	 
+
        default: {
 	  std::cerr << "unknown dummy node type at line " << HP.GetLineData() << std::endl;
 	  THROW(ErrGeneric());
@@ -1228,46 +1315,68 @@ ReadStructNode(DataManager* pDM,
    } else {
       /* posizione (vettore di 3 elementi) */
       if (!HP.IsKeyWord("position")) {
-	 pedantic_cerr("StructNode(" << uLabel 
-		 << "): missing keyword \"position\" at line " 
+	 pedantic_cerr("StructNode(" << uLabel
+		 << "): missing keyword \"position\" at line "
 		 << HP.GetLineData() << std::endl);
       }
-      Vec3 X0(HP.GetPosAbs(AbsRefFrame));   
+      Vec3 X0(HP.GetPosAbs(AbsRefFrame));
       DEBUGCOUT("X0 =" << std::endl << X0 << std::endl);
-      
-      /* sistema di riferimento (trucco dei due vettori) */  
+
+      /* sistema di riferimento (trucco dei due vettori) */
       if (!HP.IsKeyWord("orientation")) {
-	 pedantic_cerr("StructNode(" << uLabel 
-		 << "): missing keyword \"orientation\" at line " 
+	 pedantic_cerr("StructNode(" << uLabel
+		 << "): missing keyword \"orientation\" at line "
 		 << HP.GetLineData() << std::endl);
       }
       Mat3x3 R0(HP.GetRotAbs(AbsRefFrame));
       DEBUGCOUT("R0 =" << std::endl << R0 << std::endl);
-      
-      /* Velocita' iniziali (due vettori di 3 elementi, con la possibilita' 
+
+      /* Velocita' iniziali (due vettori di 3 elementi, con la possibilita'
        * di usare "null" per porli uguali a zero) */
       if (!HP.IsKeyWord("velocity")) {
-	 pedantic_cerr("StructNode(" << uLabel 
-		 << "): missing keyword \"velocity\" at line " 
+	 pedantic_cerr("StructNode(" << uLabel
+		 << "): missing keyword \"velocity\" at line "
 		 << HP.GetLineData() << std::endl);
       }
       Vec3 XPrime0(HP.GetVelAbs(AbsRefFrame, X0));
 
       if (!HP.IsKeyWord("angular" "velocity")) {
-	 pedantic_cerr("StructNode(" << uLabel 
-		 << "): missing keyword \"angular velocity\" at line " 
+	 pedantic_cerr("StructNode(" << uLabel
+		 << "): missing keyword \"angular velocity\" at line "
 		 << HP.GetLineData() << std::endl);
       }
       Vec3 Omega0(HP.GetOmeAbs(AbsRefFrame));
-      DEBUGCOUT("Xprime0 =" << std::endl << XPrime0 << std::endl 
+      DEBUGCOUT("Xprime0 =" << std::endl << XPrime0 << std::endl
 		<< "Omega0 =" << std::endl << Omega0 << std::endl);
-      
+
+      StructNode *pRefNode = 0;
+      if (HP.IsKeyWord("prediction" "node")) {
+	      switch (CurrType) {
+	      case STATIC:
+	      case DYNAMIC:
+		      break;
+
+	      default:
+		      std::cerr << "line " << HP.GetLineData()
+			      << ": prediction node allowed "
+			      "for static and dynamic nodes only"
+			      << std::endl;
+		      THROW(ErrGeneric());
+	      }
+	      pRefNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+
+#ifndef MBDYN_X_RELATIVE_PREDICTION
+	      silent_cerr("warning, relativ prediction disabled; "
+		      "absolute prediction will be used" << std::endl);
+#endif /* ! MBDYN_X_RELATIVE_PREDICTION */
+      }
+
       /* Rigidezza in assemblaggio diversa da quella di default
        * e flag di output */
       doublereal dPosStiff = pDM->dInitialPositionStiffness;
       doublereal dVelStiff = pDM->dInitialVelocityStiffness;
       flag fOmRot = pDM->fOmegaRotates;
-      
+
       if (HP.fIsArg()) {
 	 if (HP.IsKeyWord("assembly")) {
 	    dPosStiff = HP.GetReal(dPosStiff);
@@ -1280,53 +1389,55 @@ ReadStructNode(DataManager* pDM,
 	       silent_cerr("use keywords \"yes\" or \"no\"" << std::endl);
 	       fOmRot = HP.GetInt(fOmRot);
 	    }
-	    
+
 	    DEBUGCOUT("Initial position stiffness: " << dPosStiff << std::endl);
 	    DEBUGCOUT("Initial velocity stiffness: " << dVelStiff << std::endl);
 	    DEBUGCOUT("Omega rotates? : " << (fOmRot ? "yes" : "no") << std::endl);
 	 }
       }
-      
+
       pDO->SetScale(pDM->dReadScale(HP, DofOwner::STRUCTURALNODE));
-      flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);   
-      
+      flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
+
       /* Se non c'e' il punto e virgola finale */
       if (HP.fIsArg()) {
 	 std::cerr << std::endl << sFuncName
-	   << ": semicolon expected at line " << HP.GetLineData() << std::endl;      
+	   << ": semicolon expected at line " << HP.GetLineData() << std::endl;
 	 THROW(DataManager::ErrGeneric());
-      }   
-      
+      }
+
       /* costruzione del nodo */
-      if (CurrType == STATIC) {	
+      if (CurrType == STATIC) {
 	 SAFENEWWITHCONSTRUCTOR(pNd, StaticStructNode,
-				StaticStructNode(uLabel, pDO, 
-						 X0, R0, 
+				StaticStructNode(uLabel, pDO,
+						 X0, R0,
 						 XPrime0, Omega0,
-						 dPosStiff, dVelStiff, 
+						 pRefNode,
+						 dPosStiff, dVelStiff,
 						 fOmRot, fOut));
-	 
+
       } else if(CurrType == DYNAMIC) {
 	 SAFENEWWITHCONSTRUCTOR(pNd, DynamicStructNode,
-				DynamicStructNode(uLabel, pDO, 
-						  X0, R0, 
+				DynamicStructNode(uLabel, pDO,
+						  X0, R0,
 						  XPrime0, Omega0,
-						  dPosStiff, dVelStiff, 
+						  pRefNode,
+						  dPosStiff, dVelStiff,
 						  fOmRot, fOut));
-	 
+
 	 /* Incrementa il numero di elementi automatici dei nodi dinamici */
 	 pDM->ElemData[Elem::AUTOMATICSTRUCTURAL].iNum++;
-	 
+
       } else if(CurrType == MODAL) {
 	 SAFENEWWITHCONSTRUCTOR(pNd, ModalNode,
-				ModalNode(uLabel, pDO, 
-					  X0, R0, 
+				ModalNode(uLabel, pDO,
+					  X0, R0,
 					  XPrime0, Omega0,
-					  dPosStiff, dVelStiff, 
+					  dPosStiff, dVelStiff,
 					  fOmRot, fOut));
       }
    }
-   
+
    ASSERT(pNd != NULL);
 
    return pNd;

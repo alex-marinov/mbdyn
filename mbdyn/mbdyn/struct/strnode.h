@@ -97,7 +97,7 @@ class StructNode : public Node {
  protected:
    mutable Mat3x3 RPrev;   /* Matrice di rotazione da zero al passo prec. */
    Mat3x3 RRef;            /* Matrice di rotazione predetta al passo corr. */
-   Mat3x3 RCurr;           /* Matrice di rotazione all'iterazione corrente */
+   mutable Mat3x3 RCurr;   /* Matrice di rotazione all'iterazione corrente */
    
    mutable Vec3 gRef;
    mutable Vec3 gCurr;     /* parametri e derivate correnti */
@@ -113,14 +113,16 @@ class StructNode : public Node {
     */
    
    mutable Vec3 XPrev;   /* Posizione al passo precedente */
-   Vec3 XCurr;           /* Posizione corrente */
+   mutable Vec3 XCurr;   /* Posizione corrente */
    
    mutable Vec3 VPrev;   /* Velocita' al passo precedente */
-   Vec3 VCurr;           /* Velocita' corrente */
+   mutable Vec3 VCurr;   /* Velocita' corrente */
    
    mutable Vec3 WPrev;   /* Velocita' angolare al passo precedente */
    Vec3 WRef;            /* Velocita' angolare predetta al passo corrente */
-   Vec3 WCurr;           /* Velocita' angolare corrente */
+   mutable Vec3 WCurr;   /* Velocita' angolare corrente */
+
+   const StructNode *pRefNode;	/* Reference node for relative prediction */
 
    /* Rigidezze fittizie usate nell'assemblaggio dei vincoli */
    doublereal dPositionStiffness; 
@@ -135,6 +137,7 @@ class StructNode : public Node {
 	      const Mat3x3& R0,
 	      const Vec3& V0, 
 	      const Vec3& W0,
+	      const StructNode *pRN,
 	      doublereal dPosStiff,
 	      doublereal dVelStiff, 
 	      flag fOmRot, 
@@ -231,7 +234,7 @@ class StructNode : public Node {
       
    /* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
    virtual void SetInitialValue(VectorHandler& X) const;   
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const = 0;
+   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
       
    /* Elaborazione vettori e dati prima e dopo la predizione
     * per MultiStepIntegrator */
@@ -399,6 +402,7 @@ class DynamicStructNode : public StructNode {
 		     const Mat3x3& R0,
 		     const Vec3& V0, 
 		     const Vec3& W0,
+	             const StructNode *pRN,
 		     doublereal dPosStiff,
 		     doublereal dVelStiff, 
 		     flag fOmRot,
@@ -419,8 +423,6 @@ class DynamicStructNode : public StructNode {
    /* Usato dalle forze astratte, dai bulk ecc., per assemblare le forze
     * al posto giusto */
    virtual integer iGetFirstRowIndex(void) const;
-   
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
 };
 
 
@@ -464,6 +466,7 @@ class StaticStructNode : public StructNode {
 		    const Mat3x3& R0,
 		    const Vec3& V0, 
 		    const Vec3& W0,
+	            const StructNode *pRN,
 		    doublereal dPosStiff, 
 		    doublereal dVelStiff, 
 		    flag fOmRot,
@@ -480,8 +483,6 @@ class StaticStructNode : public StructNode {
    
    /* Ritorna il primo indice (-1) di quantita' di moto */
    virtual inline integer iGetFirstMomentumIndex(void) const;
-      
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
 };
 
 
@@ -542,8 +543,6 @@ class ModalNode : public DynamicStructNode {
    /* Usato dalle forze astratte, dai bulk ecc., per assemblare le forze
     * al posto giusto */
    virtual integer iGetFirstRowIndex(void) const;
-   
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
    
    /* Aggiorna dati in base alla soluzione */
    virtual void Update(const VectorHandler& X,
