@@ -58,10 +58,9 @@ protected:
  	  	unsigned short int Port;
 		const char *Path;
 	} data;
-   	AuthMethod* auth;
+   	AuthMethod *auth;
 
-   	doublereal* pdVal;
-   	int* pFlags;
+   	int *pFlags;
 
    	int sock;
 
