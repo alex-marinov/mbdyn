@@ -742,6 +742,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
    Ka.Mult(*pModalStiff, a);
    CaP.Mult(*pModalDamp, b);
    MaPP.Mult(*pModalMass, bPrime);
+
 #if 0
    std::cerr << "###Stiff" << std::endl;
    for (unsigned int i = 1; i <= NModes; i++) {
@@ -2211,7 +2212,8 @@ ReadModal(DataManager* pDM,
    Mat3xN* pPHIrStrNode = NULL;
    
    /* traslazione origine delle coordinate */	
-   unsigned int NFemOriginNode = HP.GetInt();  /* numero di nodi FEM del modello */
+   if (HP.IsKeyWord("origin" "node")) {
+      unsigned int NFemOriginNode = HP.GetInt();  /* numero di nodi FEM del modello */
       for (iNode = 1; iNode <= NFemNodes; iNode++) {
 	 if ( NFemOriginNode == IdFemNodes[iNode-1]) {
 	    break;
@@ -2223,22 +2225,20 @@ ReadModal(DataManager* pDM,
 	    THROW(DataManager::ErrGeneric());
 	 }
       }
-   Vec3 Origin(0.);
-   for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-   	Origin.Put(iCnt, pXYZFemNodes->dGet(iCnt, iNode));
-   }
-   for (iStrNode = 1; iStrNode <= NFemNodes; iStrNode++) {
+      Vec3 Origin(0.);
       for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	 pXYZFemNodes->Sub(iCnt, iStrNode, Origin.dGet(iCnt));
+   	 Origin.Put(iCnt, pXYZFemNodes->dGet(iCnt, iNode));
+      }
+      for (iStrNode = 1; iStrNode <= NFemNodes; iStrNode++) {
+         for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+	    pXYZFemNodes->Sub(iCnt, iStrNode, Origin.dGet(iCnt));
+         }
       }
    }
-
    
-      unsigned int NStrNodes = HP.GetInt();  /* numero di nodi d'interfaccia */
+   unsigned int NStrNodes = HP.GetInt();  /* numero di nodi d'interfaccia */
    DEBUGCOUT("Number of Interface Nodes : " << NStrNodes << std::endl);
-   
-	   
-      
+ 
    SAFENEWWITHCONSTRUCTOR(pXYZOffsetNodes, Mat3xN, Mat3xN(2*NStrNodes+1, 0.));
    SAFENEWWITHCONSTRUCTOR(pPHItStrNode, Mat3xN, Mat3xN(NStrNodes*NModes, 0.));
    SAFENEWWITHCONSTRUCTOR(pPHIrStrNode, Mat3xN, Mat3xN(NStrNodes*NModes, 0.));
