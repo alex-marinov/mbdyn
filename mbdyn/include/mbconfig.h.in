@@ -92,6 +92,9 @@
 /* define this to add debugging code */
 #undef DEBUG
 
+/* define if C++ compiler handles exceptions */
+#undef USE_EXCEPTIONS
+
 /* define this to use UNIX-style filenames */
 #undef USE_UNIX_FILE
 

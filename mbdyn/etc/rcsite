@@ -1,3 +1,5 @@
+# Tailor to your machine if you installed any package in uncommon way
+
 CPPFLAGS="-I/home/masarati/Math/Meschach \
 	-I/usr/share/mpi/include -I/usr/share/mpi/include/c++ \
 	-I/home/masarati/Math/metis-4.0/Lib"

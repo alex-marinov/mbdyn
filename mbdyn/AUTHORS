@@ -26,3 +26,56 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+
+
+Among the authors:
+
+Prof. Paolo Mantegazza initiated the work on the F77 version of the code,
+	which was a sort of proof-of-concept implementation.
+
+Prof. Massimiliano Lanz worked on the initial, F77 version, called MBDin;
+	he had an important role in adding the flexible elements, both
+	beams and modal bodies. He also worked on the implementation
+	wake aerodynamics, based on the code NUVOLA.
+
+Prof. Gian Luca Ghiringhelli also worked on the F77 version, at the modal
+	bodies and at the piezoelectric beams. He is working at present
+	at the integration of landing gear stuff in the current version.
+	He also contributed in adding the hydraulic part of the code.
+
+Dr. Giampiero Bindolino had an important role in interfacing the initial
+	F77 version with wake aerodynamics. We expect him to do the
+	same in the new version!
+
+
+
+Many students had a part in developing the code:
+
+Dr. Gabriele Gilardi worked on the initial code as a PhD student, but I don't
+	known what his exact contribution was.
+
+Stefano Marazzani worked as an undergrad student at the beam, rotor 
+	and aerodynamic  elements in the F77 version of the code.
+
+Pierangelo Masarati (me!) worked as an undergraduate student at developing
+	the control-related genels and at the piezoelectric beam elements.
+	Then, as a PhD student, I entirely reengineered the program, by
+	rewriting it in C++/C/F77, and added many control-related features.
+	Now, as a Staff Researcher, I'm maintaining the code and developing
+	new modules.
+
+Felice Felippone, as an undergraduate student, implemented the modal body back
+	in the new version of the code.
+
+Lamberto Puggelli, another undergrad, impklemented the hydraulic stuff
+
+Giuseppe Quaranta (Beppe), as an undergrad, did a very good job in 
+	parallelizingthe code adding a Schur domain decomposition solver
+	and incorporating Metis as a partitioning tool, all under the
+	MPI umbrella.
+
+
+
+Other undergrads might have had a role in the F77 version of the code, 
+that I'm not aware of.
+

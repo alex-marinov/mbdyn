@@ -174,6 +174,7 @@ F2C_LIBS=
 MPI_LIBS=
 METIS_LIBS=
 MESCHACH_LIBS=
+PAM_LIBS=
 
 
 dnl ----------------------------------------------------------------
@@ -225,6 +226,29 @@ dnl
 if test "$ol_enable_debug" != no ; then
 	AC_DEFINE(DEBUG,1,[define this to add debugging code])
 fi
+
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for exceptions
+dnl
+AC_LANG_CPLUSPLUS
+AC_MSG_CHECKING([whether C++ compiler handles exceptions])
+AC_TRY_COMPILE([],[
+	try {
+		(void *)0;
+	}
+	catch (...) {
+		(void *)0;
+	}
+],[have_exceptions=yes],[have_exceptions=no])
+if test $have_exceptions != no ; then
+	AC_DEFINE(USE_EXCEPTIONS,1,[define if C++ compiler handles exceptions])
+	AC_MSG_RESULT([yes])
+else
+	AC_MSG_RESULT([no])
+fi		
+AC_LANG_C
 
 
 dnl ----------------------------------------------------------------
@@ -322,7 +346,6 @@ if test $ol_with_mpi != no ; then
 
 		if test $have_mpi != no ; then
 			MPI_LIBS=$try_mpi_LIBS
-			MPI_SOURCES='$(MPI_SRCS)'
 			AC_DEFINE(USE_MPI,1,[define if you want to use MPI])
 			ol_link_mpi=yes
 			AC_MSG_RESULT([yes])
@@ -501,9 +524,9 @@ dnl ----------------------------------------------------------------
 dnl Variable substituion
 AC_SUBST(F2C_LIBS)
 AC_SUBST(MPI_LIBS)
-AC_SUBST(MPI_SOURCES)
 AC_SUBST(METIS_LIBS)
 AC_SUBST(MESCHACH_LIBS)
+AC_SUBST(PAM_LIBS)
 
 
 dnl ----------------------------------------------------------------
