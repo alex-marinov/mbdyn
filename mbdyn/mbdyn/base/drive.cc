@@ -70,6 +70,14 @@ MyRandLL(MyRandD),
 iRandDriveSize(0),
 ppMyRand(NULL)
 {	
+#ifdef USE_MULTITHREAD
+   if (pthread_mutex_init(&parser_mutex, NULL)) {
+      silent_cerr("DriveHandler::DriveHandler(): mutex init failed"
+		      << std::endl);
+      THROW(ErrGeneric());
+   }
+#endif /* USE_MULTITHREAD */
+
    /* Inserisce la variabile Time nella tabella dei simboli; sara'
     * mantenuta aggiornata dal DriveHandler */
    NamedValue *v = SymbolTable.Get("Time");
@@ -111,6 +119,10 @@ ppMyRand(NULL)
 
 DriveHandler::~DriveHandler(void) 
 {
+#ifdef USE_MULTITHREAD
+   pthread_mutex_destroy(&parser_mutex);
+#endif /* USE_MULTITHREAD */
+
    if (iRandDriveSize > 0) { 
       if (ppMyRand != NULL) {
 	 SAFEDELETEARR(ppMyRand);
@@ -215,7 +227,15 @@ void DriveHandler::SetVar(const doublereal& dVar)
 
 doublereal DriveHandler::dGet(InputStream& InStr) const 
 {
-   return ((MathParser&)Parser).GetLastStmt(InStr);
+   doublereal d;
+#ifdef USE_MULTITHREAD
+   pthread_mutex_lock(&parser_mutex);
+#endif /* USE_MULTITHREAD */
+   d = Parser.GetLastStmt(InStr);
+#ifdef USE_MULTITHREAD
+   pthread_mutex_unlock(&parser_mutex);
+#endif /* USE_MULTITHREAD */
+   return d;
 }
 
 

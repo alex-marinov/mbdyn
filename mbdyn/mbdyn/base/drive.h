@@ -37,6 +37,7 @@
 /* include generali */
 #include <time.h>
 #include <ac/f2c.h>
+#include <ac/pthread.h>
 
 /* include per il debug */
 #include <myassert.h>
@@ -144,7 +145,10 @@ class DriveHandler {
    
  private:
    doublereal dTime;
-   MathParser Parser;
+#ifdef USE_MULTITHREAD
+   mutable pthread_mutex_t parser_mutex;
+#endif /* USE_MULTITHREAD */
+   mutable MathParser Parser;
    
    /* variabili predefinite: tempo e variabile generica */
    Var* pTime;
