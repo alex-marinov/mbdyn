@@ -255,7 +255,6 @@ class HighParser {
    virtual HighParser::Token FirstToken(void);
    virtual void NextToken(const char* sFuncName);
    
-   flag fIsDescription(void);
    int iGetDescription_(const char* const s);
    void Set_(void);
    void Remark_(void);
@@ -265,8 +264,10 @@ class HighParser {
  public:   
    HighParser(MathParser& MP, KeyTable& KT, InputStream& streamIn);
    virtual ~HighParser(void);
-   /* Attacca una nuova KeyTable */
+   /* Attacca una nuova KeyTable (e ritorna la vecchia) */
    virtual void PutKeyTable(KeyTable& KT);
+   /* Restituisce la KeyTable */
+   KeyTable GetKeyTable(void) const;
    /* Numero di linea corrente */   
    virtual int GetLineNumber(void) const;
    /* Numero di nome file e linea corrente */   
@@ -275,6 +276,8 @@ class HighParser {
    virtual MathParser& GetMathParser(void);
    /* "Chiude" i flussi */
    virtual void Close(void);
+   /* verifica se il token successivo e' una description (ambiguo ...) */
+   flag fIsDescription(void);
    /* Legge una parola chiave */
    int GetDescription(void);
    /* si attende una descrizione */

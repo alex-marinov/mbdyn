@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2003
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -42,13 +42,13 @@ static int
 skip_remarks(InputStream& In, char &cIn)
 {
 skip_again:
-   
+
    for (cIn = In.get(); isspace(cIn); cIn = In.get()) {
       if (In.eof()) {
 	  return -1;
       }
    }
-   
+
    if (cIn == REMARK) {
       for (cIn = In.get(); cIn != '\n'; cIn = In.get()) {
 	 if (In.eof()) {
@@ -56,7 +56,7 @@ skip_again:
 	 }
       }
       goto skip_again;
-      
+
    } else if (cIn == '/') {
       cIn = In.get();
       if (In.eof()) {
@@ -76,18 +76,18 @@ skip_again:
 	 return 0;
       }
    }
-   
+
    return 0;
 }
 
-void 
+void
 LowParser::PackWords(InputStream& In)
 {
    char* pCur = sCurrWordBuf;
    char cIn;
-   
+
    /* note: no remarks allowed inside words */
-   for (cIn = In.get(); cIn != ':' && cIn != ';' && cIn != ','; cIn = In.get()) {      
+   for (cIn = In.get(); cIn != ':' && cIn != ';' && cIn != ','; cIn = In.get()) {
       if (In.eof()) {
 	 return;
       } else if (!isspace(cIn)) {
@@ -98,13 +98,13 @@ LowParser::PackWords(InputStream& In)
 	 }
       }
    }
-   
+
    *pCur = '\0';
    In.putback(cIn);
 }
 
 
-LowParser::Token 
+LowParser::Token
 LowParser::GetToken(InputStream& In)
 {
    /* toglie gli spazi iniziali e tutti i commenti */
@@ -112,22 +112,22 @@ LowParser::GetToken(InputStream& In)
    if (skip_remarks(In, cIn)) {
       return CurrToken = LowParser::ENDOFFILE;
    }
-      
+
    if (isalpha(cIn) || cIn == '_') {
       PackWords(In.putback(cIn));
       return CurrToken = LowParser::WORD;
    }
-   
-   switch (cIn) {	     
+
+   switch (cIn) {
     case ',':
       return CurrToken = LowParser::COMMA;
-      
+
     case ':':
-      return CurrToken = LowParser::COLON;       
-      
+      return CurrToken = LowParser::COLON;
+
     case ';':
       return CurrToken = LowParser::SEMICOLON;
-      
+
     case '0':
     case '1':
     case '2':
@@ -143,33 +143,33 @@ LowParser::GetToken(InputStream& In)
     case '+':
       In.putback(cIn) >> dCurrNumber;
       return CurrToken = LowParser::NUMBER;
-      
+
     default:
       In.putback(cIn);
-      return CurrToken = LowParser::UNKNOWN;      
+      return CurrToken = LowParser::UNKNOWN;
    }
 }
 
 
-doublereal 
+doublereal
 LowParser::dGetReal(void)
 {
    return dCurrNumber;
 }
 
 
-integer 
+integer
 LowParser::iGetInt(void)
 {
    return integer(dCurrNumber);
 }
 
 
-char* 
+char*
 LowParser::sGetWord(void)
 {
    return sCurrWordBuf;
-}   
+}
 
 /* LowParser - end */
 
@@ -181,20 +181,20 @@ KeyTable::KeyTable(int iTableLen, const char* const sTable[])
    sKeyWords = (char* const*)sTable;
    iNumKeys = iTableLen;
 }
- 
 
-int 
+
+int
 KeyTable::Find(const char* sToFind)
 {
    int iCnt = -1;
-   while (iCnt++,  iCnt < iNumKeys) {      
-      if (strcasecmp(sKeyWords[iCnt], sToFind) == 0) {	 
+   while (iCnt++,  iCnt < iNumKeys) {
+      if (strcasecmp(sKeyWords[iCnt], sToFind) == 0) {
 	 return iCnt;
       }
-   }   
-   
+   }
+
    return -1;
-}  
+}
 
 /* KeyTable - end */
 
@@ -204,12 +204,12 @@ KeyTable::Find(const char* sToFind)
 HighParser::HighParser(MathParser& MP, KeyTable& KT, InputStream& streamIn)
 : ESCAPE_CHAR('\\'),
 pIn(&streamIn), pf(NULL),
-MathP(MP), 
+MathP(MP),
 KeyT(KT)
 {
    DEBUGCOUTFNAME("HighParser::HighParser");
-   CurrToken = HighParser::DESCRIPTION;  
-}   
+   CurrToken = HighParser::DESCRIPTION;
+}
 
 
 HighParser::~HighParser(void)
@@ -217,84 +217,81 @@ HighParser::~HighParser(void)
    DEBUGCOUTFNAME("HighParser::~HighParser");
    Close();
 }
- 
 
-void 
+
+void
 HighParser::Close(void)
 {
    NO_OP;
 }
 
 
-void 
+void
 HighParser::PutKeyTable(KeyTable& KT)
 {
-   KeyT = KT;
+	KeyT = KT;
 }
 
-MathParser& 
-HighParser::GetMathParser(void) 
+MathParser&
+HighParser::GetMathParser(void)
 {
    return MathP;
 }
 
-int 
+int
 HighParser::GetLineNumber(void) const
 {
    return ((InputStream*)pIn)->GetLineNumber();
 }
 
 
-HighParser::ErrOut 
+HighParser::ErrOut
 HighParser::GetLineData(void) const
 {
    ErrOut LineData;
    LineData.iLineNumber = GetLineNumber();
    LineData.sFileName = NULL;
-   return LineData;	
+   return LineData;
 }
 
 
-flag 
+flag
 HighParser::fIsDescription(void)
 {
      	if (CurrToken != HighParser::DESCRIPTION) {
-	  	std::cerr << "Parser error in HighParser::fIsDescription, "
-	  		"invalid call to GetDescription at line "
-			<< GetLineData() << std::endl;
 	  	return flag(0);
      	}
      	return flag(1);
 }
 
 
-int 
+int
 HighParser::iGetDescription_(const char* const s)
 {
 	int i = KeyT.Find(s);
-     	
+
      	if (FirstToken() == HighParser::UNKNOWN) {
 		std::cerr << "Parser error in HighParser::iGetDescription_(), "
-			"semicolon expected at line " 
+			"semicolon expected at line "
 			<< GetLineData() << std::endl;
-	  	THROW(HighParser::ErrSemicolonExpected());      
+	  	THROW(HighParser::ErrSemicolonExpected());
      	}
-     	
-     	return i;   
+
+     	return i;
 }
 
 
-void 
-HighParser::Set_(void) 
-{      
+void
+HighParser::Set_(void)
+{
      	if (FirstToken() == UNKNOWN) {
      		std::cerr << "Parser error in HighParser::Set_(), "
-     			"colon expected at line " 
+     			"colon expected at line "
      			<< GetLineData() << std::endl;
      		THROW(HighParser::ErrColonExpected());
 	}
-   
-	GetReal();   
+
+	GetReal();
 }
 
 
@@ -307,13 +304,13 @@ HighParser::Remark_(void)
 			<< GetLineData() << std::endl;
 		THROW(HighParser::ErrColonExpected());
 	}
-	
-	std::cout << "line " << GetLineData() << ": " << GetStringWithDelims();
-	if (fIsArg()) {
-		std::cout << ", " << GetReal();
+
+	silent_cout("line " << GetLineData() << ": " << GetStringWithDelims());
+	while (fIsArg()) {
+		silent_cout(", " << GetReal());
 	}
- 
-	std::cout << std::endl;
+
+	silent_cout(std::endl);
 }
 
 
@@ -323,49 +320,56 @@ HighParser::Eof(void)
 	 THROW(EndOfFile());
 }
 
-int 
+int
 HighParser::GetDescription(void)
 {
-   const char sFuncName[] = "HighParser::GetDescription()";
-   
-   /* Checks if current token is a description */
-   if (!fIsDescription()) {
-      THROW(HighParser::ErrInvalidCallToGetDescription());
-   }      
-   
-restart_parsing:
-   
-   if ((CurrLowToken = LowP.GetToken(*pIn)) != LowParser::WORD) {
-      if (pIn->GetStream().eof()) {
-	 Eof();
-	 goto restart_parsing;
+	/* Checks if current token is a description */
+	if (!fIsDescription()) {
+		std::cerr << "Parser error in HighParser::GetDescription, "
+			"invalid call to GetDescription at line "
+			<< GetLineData() << std::endl;
+		THROW(HighParser::ErrInvalidCallToGetDescription());
+	}
 
-      } else {     	 
-	std::cerr << "Parser error in "
-	   << sFuncName << ", keyword expected at line " 
-	   << GetLineData() << std::endl;
-	 THROW(HighParser::ErrKeyWordExpected());
-      }      
-   }
-   
-   /* Description corrente */
-   char* s = LowP.sGetWord();
-   
-   if (GetDescription_int(s)) {
-      goto restart_parsing;
+restart_parsing:;
 
-   }
-   return iGetDescription_(s);
+	CurrLowToken = LowP.GetToken(*pIn);
+	if (CurrLowToken != LowParser::WORD) {
+		if (pIn->GetStream().eof()) {
+			Eof();
+			goto restart_parsing;
+
+		}
+		
+		std::cerr << "Parser error in HighParser::GetDescription, "
+			<< "keyword expected at line "
+			<< GetLineData() << std::endl;
+		THROW(HighParser::ErrKeyWordExpected());
+	}
+
+	/* Description corrente */
+	char* s = LowP.sGetWord();
+
+	if (GetDescription_int(s)) {
+		goto restart_parsing;
+	}
+
+	return iGetDescription_(s);
 }
 
 
+/*
+ * special descriptions, that are eaten by the parser
+ */
 bool
 HighParser::GetDescription_int(const char *s)
 {
-	if (strcmp(s, "set") == 0) {
+	/* calls the MathParser */
+	if (strcasecmp(s, "set") == 0) {
 		Set_();
 		return true;
 
+	/* exits with no error */
 	} else if (strcmp(s, "exit") == 0) {
 		THROW(NoErr());
 
@@ -375,80 +379,95 @@ HighParser::GetDescription_int(const char *s)
 }
 
 
-HighParser::Token 
+HighParser::Token
 HighParser::FirstToken(void)
 {
-   if ((CurrLowToken = LowP.GetToken(*pIn)) == LowParser::COLON) {
-      return (CurrToken = HighParser::ARG);
-   } else {
-      if (CurrLowToken != LowParser::SEMICOLON) {
-	 return (CurrToken = HighParser::UNKNOWN);
-      } else {
-	 return (CurrToken = HighParser::DESCRIPTION);
-      }
-   }
+	CurrLowToken = LowP.GetToken(*pIn);
+
+	switch (CurrLowToken) {
+	case LowParser::COLON:
+		CurrToken = HighParser::ARG;
+		break;
+
+	case LowParser::SEMICOLON:
+		CurrToken = HighParser::DESCRIPTION;
+		break;
+
+	default:
+		CurrToken = HighParser::UNKNOWN;
+		break;
+	}
+
+	return CurrToken;
 }
 
-void 
+void
 HighParser::ExpectDescription(void)
 {
-   CurrToken = HighParser::DESCRIPTION;
+	/* forces the next expected token to be a "description"
+	 * e.g. a keyword followed by a colon (deprecated) */
+	CurrToken = HighParser::DESCRIPTION;
 }
 
 
-void 
+void
 HighParser::ExpectArg(void)
 {
-   CurrToken = HighParser::ARG;
+	/* forces the next expected token to be an argument
+	 * e.g. a keyword followed by a separator (deprecated) */
+	CurrToken = HighParser::ARG;
 }
 
 
-flag 
+flag
 HighParser::fIsArg(void)
 {
-   if (CurrToken == ARG) {
-      return flag(1);
-   }   
-   return flag(0);
+	if (CurrToken == ARG) {
+		return flag(1);
+	}
+	return flag(0);
 }
 
-void 
+void
 HighParser::PutBackSemicolon(void)
 {
-   if (CurrLowToken == LowParser::SEMICOLON) {
-      pIn->putback(';');
-   }   
+	if (CurrLowToken == LowParser::SEMICOLON) {
+		pIn->putback(';');
+	}
 }
 
 
-void 
+void
 HighParser::NextToken(const char* sFuncName)
 {
-   switch (CurrLowToken = LowP.GetToken(*pIn)) {
-    case LowParser::COMMA:
-      CurrToken = HighParser::ARG;
-      break;
-    case LowParser::SEMICOLON:
-      CurrToken = HighParser::DESCRIPTION;
-      break;
-    default:
-      std::cerr << "Parser error in "
-	<< sFuncName << ", missing separator at line " 
-	<< GetLineData() << std::endl;
-      THROW(HighParser::ErrMissingSeparator());
-   }   
+	CurrLowToken = LowP.GetToken(*pIn);
+	switch (CurrLowToken) {
+	case LowParser::COMMA:
+		CurrToken = HighParser::ARG;
+		break;
+
+	case LowParser::SEMICOLON:
+		CurrToken = HighParser::DESCRIPTION;
+		break;
+
+	default:
+		std::cerr << "Parser error in "
+			<< sFuncName << ", missing separator at line "
+			<< GetLineData() << std::endl;
+		THROW(HighParser::ErrMissingSeparator());
+	}
 }
 
 
-flag 
+flag
 HighParser::IsKeyWord(const char* sKeyWord)
-{      
+{
    const char sFuncName[] = "HighParser::IsKeyWord()";
-      
-   if (CurrToken != HighParser::ARG) {      
+
+   if (CurrToken != HighParser::ARG) {
       return 0;
-   }   
-   
+   }
+
    char* sBuf = sStringBuf;
    char* sBufWithSpaces = sStringBufWithSpaces;
 
@@ -456,18 +475,18 @@ HighParser::IsKeyWord(const char* sKeyWord)
    if (skip_remarks(*pIn, cIn)) {
       return CurrToken = HighParser::ENDOFFILE;
    }
-   
+
    if (!isalpha(cIn)) {
       pIn->putback(cIn);
       return 0;
    }
-   
+
    *sBuf++ = cIn;
    *sBufWithSpaces++ = cIn;
-   
+
    /* Forse e' meglio modificare in modo che digerisca anche gli spazi
     * tra due parole, magari con due buffer, uno in cui li mangia per fare
-    * il confronto con la keyword, l'altro in cui li tiene per l'eventuale 
+    * il confronto con la keyword, l'altro in cui li tiene per l'eventuale
     * putback */
    for (cIn = pIn->get(); isalnum(cIn) || isspace(cIn); cIn = pIn->get()) {
       *sBufWithSpaces++ = cIn;
@@ -479,32 +498,32 @@ HighParser::IsKeyWord(const char* sKeyWord)
       }
    }
    pIn->putback(cIn);
-   
+
    *sBuf = '\0';
    *sBufWithSpaces = '\0';
-   
+
    if (!strcasecmp(sStringBuf, sKeyWord)) {
       NextToken(sFuncName);
       return 1;
    }
-   
+
    while (sBufWithSpaces > sStringBufWithSpaces) {
       pIn->putback(*--sBufWithSpaces);
    }
-   
+
    return 0;
 }
 
 
-int 
+int
 HighParser::IsKeyWord(void)
 {
    const char sFuncName[] = "HighParser::IsKeyWord()";
-   
+
    if (CurrToken != HighParser::ARG) {
       return -1;
    }
-      
+
    char* sBuf = sStringBuf;
    char* sBufWithSpaces = sStringBufWithSpaces;
 
@@ -512,14 +531,14 @@ HighParser::IsKeyWord(void)
    if (skip_remarks(*pIn, cIn)) {
       return CurrToken = HighParser::ENDOFFILE;
    }
-   
+
    if (!isalpha(cIn)) {
       pIn->putback(cIn);
       return -1;
    }
    *sBuf++ = cIn;
    *sBufWithSpaces++ = cIn;
-   
+
    for (cIn = pIn->get(); isalnum(cIn) || isspace(cIn); cIn = pIn->get()) {
       *sBufWithSpaces++ = cIn;
       if (isalnum(cIn)) {
@@ -530,137 +549,137 @@ HighParser::IsKeyWord(void)
       }
    }
    pIn->putback(cIn);
-   
+
    *sBuf = '\0';
    *sBufWithSpaces = '\0';
-   
+
    int iKW;
    if ((iKW = KeyT.Find(sStringBuf)) >= 0) {
       NextToken(sFuncName);
       return iKW;
    }
-   
+
    while (sBufWithSpaces > sStringBufWithSpaces) {
       pIn->putback(*--sBufWithSpaces);
    }
-   
-   return -1;   
+
+   return -1;
 }
 
 
-integer 
+integer
 HighParser::GetInt(int iDefval)
 {
    const char sFuncName[] = "HighParser::GetInt()";
-   
+
    if (CurrToken != HighParser::ARG) {
 	std::cerr << "Parser error in "
-	<< sFuncName << ", integer arg expected at line " 
+	<< sFuncName << ", integer arg expected at line "
 	<< GetLineData() << std::endl;
       THROW(HighParser::ErrIntegerExpected());
    }
-   
+
    integer iReturnValue;
-   
+
 #ifdef USE_EXCEPTIONS
    try {
 #endif
-      
+
       iReturnValue = int(MathP.Get(*pIn, (doublereal)iDefval));
-      
+
 #ifdef USE_EXCEPTIONS
    }
    catch (MathParser::ErrGeneric e) {
-      std::cerr << sFuncName << ": error return from MathParser at line " 
+      std::cerr << sFuncName << ": error return from MathParser at line "
 	      << GetLineData() << std::endl;
       throw e;
    }
-#endif     
-   
+#endif
+
    NextToken(sFuncName);
    return iReturnValue;
 }
 
 
-doublereal 
+doublereal
 HighParser::GetReal(const doublereal& dDefval)
 {
    const char sFuncName[] = "HighParser::GetReal()";
-   
+
    if (CurrToken != HighParser::ARG) {
       std::cerr << "Parser error in "
-	<< sFuncName << ", real arg expected at line " 
+	<< sFuncName << ", real arg expected at line "
 	<< GetLineData() << std::endl;
       THROW(HighParser::ErrRealExpected());
    }
-   
+
    doublereal dReturnValue;
 #ifdef USE_EXCEPTIONS
    try {
 #endif
-   
+
       dReturnValue = doublereal(MathP.Get(*pIn, dDefval));
 
 #ifdef USE_EXCEPTIONS
    }
    catch (MathParser::ErrGeneric e) {
-      std::cerr << sFuncName << ": error return from MathParser at line " 
+      std::cerr << sFuncName << ": error return from MathParser at line "
 	      << GetLineData() << std::endl;
       throw e;
    }
-#endif     
-      
+#endif
+
    NextToken(sFuncName);
    return dReturnValue;
 }
 
 
-int 
+int
 HighParser::GetWord(void)
 {
    const char sFuncName[] = "HighParser::GetWord()";
-   
+
    if (CurrToken != HighParser::ARG) {
       std::cerr << "Parser error in "
-	<< sFuncName << ", keyword arg expected at line " 
+	<< sFuncName << ", keyword arg expected at line "
 	<< GetLineData() << std::endl;
       THROW(HighParser::ErrKeyWordExpected());
    }
-   
+
    if ((CurrLowToken = LowP.GetToken(*pIn)) != LowParser::WORD) {
       std::cerr << "Parser error in "
-	<< sFuncName << ", keyword expected at line " 
+	<< sFuncName << ", keyword expected at line "
 	<< GetLineData() << std::endl;
       THROW(HighParser::ErrKeyWordExpected());
    }
-   
+
    int i = KeyT.Find(LowP.sGetWord());
-   
+
    NextToken(sFuncName);
    return i;
 }
 
 
-const char* 
+const char*
 HighParser::GetString(void)
 {
    const char sFuncName[] = "HighParser::GetString()";
-   
+
    std::cerr << "line " << GetLineData()
      << ": warning, use of deprecated method \"GetString\"" << std::endl;
-   
+
    if (CurrToken != HighParser::ARG) {
       std::cerr << "Parser error in "
-	<< sFuncName << ", string arg expected at line " 
+	<< sFuncName << ", string arg expected at line "
 	<< GetLineData() << std::endl;
       THROW(HighParser::ErrStringExpected());
    }
-   
+
    char* s = sStringBuf;
    char* sTmp = s;
-   
+
    char cIn = '\0';
-   
+
    while (isspace(cIn = pIn->get())) {
       NO_OP;
    }
@@ -669,46 +688,46 @@ HighParser::GetString(void)
       CurrToken = HighParser::ENDOFFILE;
       return NULL;
    }
-   
+
    pIn->putback(cIn);
    for (cIn = pIn->get(); cIn != ',' && cIn != ';'; cIn = pIn->get()) {
-      /* Attenzione! cosi' la legge tutta, 
+      /* Attenzione! cosi' la legge tutta,
        * ma ne tiene solo iBufSize-1 caratteri */
       if (pIn->eof()) {
 	 CurrToken = HighParser::ENDOFFILE;
-         *sTmp = '\0';	
+         *sTmp = '\0';
 	 return s;
       } else if (sTmp < s+iBufSize-1) {
 	 *sTmp++ = cIn;
-      }      
+      }
    }
-   
+
    pIn->putback(cIn);
-   *sTmp = '\0';	
-   
+   *sTmp = '\0';
+
    NextToken(sFuncName);
    return s;
 }
 
 
-const char* 
+const char*
 HighParser::GetStringWithDelims(enum Delims Del)
 {
    const char sFuncName[] = "HighParser::GetStringWithDelims()";
-   
+
    if (CurrToken != HighParser::ARG) {
       std::cerr << "Parser error in "
-	<< sFuncName << ", string arg expected at line " 
+	<< sFuncName << ", string arg expected at line "
 	<< GetLineData() << std::endl;
       THROW(HighParser::ErrStringExpected());
    }
-   
+
    char* s = sStringBuf;
    char* sTmp = s;
-   
+
    char cLdelim = '\0';
    char cRdelim = '\0';
-   
+
    switch (Del) {
     case PLAINBRACKETS:
       cLdelim = '(';
@@ -732,61 +751,68 @@ HighParser::GetStringWithDelims(enum Delims Del)
     case DOUBLEQUOTE:
       cLdelim = '"';
       cRdelim = '"';
-      break;	
+      break;
    }
 
    char cIn;
    if (skip_remarks(*pIn, cIn)) {
       return NULL;
    }
-      
+
    /* Se trova il delimitatore sinistro, legge la stringa */
    if (cIn == cLdelim) {
       for (cIn = pIn->get(); cIn != cRdelim; cIn = pIn->get()) {
-	 /* Attenzione! cosi' la legge tutta, 
+	 /* Attenzione! cosi' la legge tutta,
 	  * ma ne tiene solo iBufSize-1 caratteri */
 	 if (pIn->eof()) {
-	    *sTmp = '\0';
+	    sTmp[0] = '\0';
 	    return s;
 	 } else if (sTmp < s+iBufSize-1) {
 	    if (cIn == ESCAPE_CHAR) {
-	       *sTmp++ = cIn;
+#if 0
+	       /* FIXME: the escape char must be eaten 
+	        * NOTE: the only charthat is worth escaping 
+	        * is the right delimiter, I guess */
+	       sTmp[0] = cIn;
+	       ++sTmp;
+#endif
 	       cIn = pIn->get();
 	    }
-	    *sTmp++ = cIn;	   
-	 }	 
-      }   
-   
-   /* Se trova una virgola o un punto e virgola, le rimette nello stream 
-    * e passa oltre, restituendo un puntatore nullo. Il chiamante deve 
+	    sTmp[0] = cIn;
+	    ++sTmp;
+	 }
+      }
+
+   /* Se trova una virgola o un punto e virgola, le rimette nello stream
+    * e passa oltre, restituendo un puntatore nullo. Il chiamante deve
     * occuparsi della gestione del valore di default */
-   } else if (cIn == ',' || cIn == ';') {	
+   } else if (cIn == ',' || cIn == ';') {
       pIn->putback(cIn);
-      goto nullstring;  
-   
+      goto nullstring;
+
    /* Altrimenti c'e' qualcosa senza delimitatore. Adesso da' errore,
     * forse e' piu' corretto fargli ritornare lo stream intatto */
-   } else {	
+   } else {
       std::cerr << "Parser error in "
-	<< sFuncName << std::endl 
-	<< "first non-blank char at line " 
+	<< sFuncName << std::endl
+	<< "first non-blank char at line "
 	<< GetLineData() << " isn't a valid left-delimiter;" << std::endl
 	<< "aborting ..." << std::endl;
       THROW(HighParser::ErrIllegalDelimiter());
-   }   
-   
+   }
+
    /* Mette zero al termine della stringa */
-   *sTmp = '\0';	
-	
+   *sTmp = '\0';
+
 nullstring:
-   
+
    NextToken(sFuncName);
    return s;
 }
 
 
 /* Legge un Vec3 */
-Vec3 
+Vec3
 HighParser::GetVec3(void)
 {
    Vec3 v(0.);
@@ -795,13 +821,17 @@ HighParser::GetVec3(void)
 
 
 /* Legge un Vec3 */
-Vec3 
+Vec3
 HighParser::GetVec3(const Vec3& vDef)
 {
-   if (IsKeyWord("null")) {	
+   if (IsKeyWord("default")) {
       return vDef;
-   }      
-   
+   }
+
+   if (IsKeyWord("null")) {
+      return Zero3;
+   }
+
    doublereal x1 = GetReal(vDef.dGet(1));
    doublereal x2 = GetReal(vDef.dGet(2));
    doublereal x3 = GetReal(vDef.dGet(3));
@@ -811,19 +841,19 @@ HighParser::GetVec3(const Vec3& vDef)
    if (IsKeyWord("scale")) {
        v *= GetReal(1.);
    }
-   
+
    return v;
 }
 
 
 /* Legge una matrice R sotto forma di due vettori (oppure eye) */
-Mat3x3 
+Mat3x3
 HighParser::GetMatR2vec(void)
 {
-   if (IsKeyWord("eye")) {	
+   if (IsKeyWord("eye")) {
       return Eye3;
    }
-   
+
    if (IsKeyWord("matr")) {
       doublereal r11 = GetReal();
       doublereal r12 = GetReal();
@@ -834,16 +864,16 @@ HighParser::GetMatR2vec(void)
       doublereal r31 = GetReal();
       doublereal r32 = GetReal();
       doublereal r33 = GetReal();
-      
+
       return Mat3x3(r11, r21, r31, r12, r22, r32, r13, r23, r33);
    }
-   
+
    if (IsKeyWord("euler" "parameters")) {
       doublereal e0 = GetReal();
       doublereal e1 = GetReal();
       doublereal e2 = GetReal();
       doublereal e3 = GetReal();
-     
+
 #if 0 /* FIXME: this function is TODO */
       return EulerParams2MatR(Vec3(e1, e2, e3));
 #else
@@ -852,57 +882,69 @@ HighParser::GetMatR2vec(void)
       THROW(ErrGeneric());
 #endif
    }
-   
+
    if (IsKeyWord("euler")) {
       doublereal e1 = GetReal();
       doublereal e2 = GetReal();
       doublereal e3 = GetReal();
-      
+
       return EulerAngles2MatR(Vec3(e1, e2, e3));
    }
-   
+
    int i1 = GetInt();
    doublereal x1 = GetReal();
    doublereal x2 = GetReal();
    doublereal x3 = GetReal();
    Vec3 v1(x1, x2, x3);
-   
+
    int i2 = GetInt();
    x1 = GetReal();
    x2 = GetReal();
    x3 = GetReal();
-   Vec3 v2(x1, x2, x3);    
-   
+   Vec3 v2(x1, x2, x3);
+
    return MatR2vec(i1, v1, i2, v2);
 }
 
 
 /* Legge una matrice 3x3 simmetrica come diagonale o triangolare superiore */
-Mat3x3 
+Mat3x3
 HighParser::GetMat3x3Sym(void)
 {
-   if (IsKeyWord("null")) {	
+   if (IsKeyWord("null")) {
       return Mat3x3(0.);
-   } else if (IsKeyWord("eye")) {	
-      return Eye3;
-   } else if (IsKeyWord("diag")) {	
+   }
+   
+   Mat3x3 m;
+
+   if (IsKeyWord("eye")) {
+      m = Eye3;
+
+   } else if (IsKeyWord("diag")) {
       doublereal m11 = GetReal();
       doublereal m22 = GetReal();
       doublereal m33 = GetReal();
-      return Mat3x3(m11, 0., 0., 0., m22, 0., 0., 0., m33);
-   } else {
+      m = Mat3x3(m11, 0., 0., 0., m22, 0., 0., 0., m33);
+
+   } else {   
       doublereal m11 = GetReal();
       doublereal m12 = GetReal();
       doublereal m13 = GetReal();
       doublereal m22 = GetReal();
       doublereal m23 = GetReal();
       doublereal m33 = GetReal();
-      return Mat3x3(m11, m12, m13, m12, m22, m23, m13, m23, m33);
-   }   
+      m = Mat3x3(m11, m12, m13, m12, m22, m23, m13, m23, m33);
+   }
+
+   if (IsKeyWord("scale")) {
+       m *= GetReal(1.);
+   }
+
+   return m;
 }
 
 /* Legge una matrice 3x3 generica (diagonale o nulla) */
-Mat3x3 
+Mat3x3
 HighParser::GetMat3x3(void)
 {
    Mat3x3 m(0.);
@@ -911,27 +953,38 @@ HighParser::GetMat3x3(void)
 
 
 /* Legge una matrice 3x3 generica (diagonale o nulla) */
-Mat3x3 
+Mat3x3
 HighParser::GetMat3x3(const Mat3x3& mDef)
 {
-   if (IsKeyWord("null")) {	
+   if (IsKeyWord("default")) {
       return mDef;
-   } else if(IsKeyWord("eye")) {	
-      return Eye3;
-   } else if(IsKeyWord("diag")) {	
+
+   } else if (IsKeyWord("null")) {
+      return Zero3x3;
+   }
+
+   Mat3x3 m;
+
+   if (IsKeyWord("eye")) {
+      m = Eye3;
+
+   } else if (IsKeyWord("diag")) {
       doublereal m11 = GetReal(mDef.dGet(1, 1));
       doublereal m22 = GetReal(mDef.dGet(2, 2));
       doublereal m33 = GetReal(mDef.dGet(3, 3));
-      return Mat3x3(m11, 0., 0., 0., m22, 0., 0., 0., m33);
-   } else if(IsKeyWord("sym")) {	
+      m = Mat3x3(m11, 0., 0., 0., m22, 0., 0., 0., m33);
+
+   } else if (IsKeyWord("sym")) {
       doublereal m11 = GetReal(mDef.dGet(1, 1));
       doublereal m12 = GetReal(mDef.dGet(1, 2));
       doublereal m13 = GetReal(mDef.dGet(1, 3));
       doublereal m22 = GetReal(mDef.dGet(2, 2));
       doublereal m23 = GetReal(mDef.dGet(2, 3));
       doublereal m33 = GetReal(mDef.dGet(3, 3));
-      return Mat3x3(m11, m12, m13, m12, m22, m23, m13, m23, m33);
+      m = Mat3x3(m11, m12, m13, m12, m22, m23, m13, m23, m33);
+
    } else {
+   
       doublereal m11 = GetReal(mDef.dGet(1, 1));
       doublereal m12 = GetReal(mDef.dGet(1, 2));
       doublereal m13 = GetReal(mDef.dGet(1, 3));
@@ -941,13 +994,19 @@ HighParser::GetMat3x3(const Mat3x3& mDef)
       doublereal m31 = GetReal(mDef.dGet(3, 1));
       doublereal m32 = GetReal(mDef.dGet(3, 2));
       doublereal m33 = GetReal(mDef.dGet(3, 3));
-      return Mat3x3(m11, m21, m31, m12, m22, m32, m13, m23, m33);
-   }   
+      m = Mat3x3(m11, m21, m31, m12, m22, m32, m13, m23, m33);
+   }
+
+   if (IsKeyWord("scale")) {
+       m *= GetReal(1.);
+   }
+
+   return m;
 }
 
 
 /* Legge un Vec6 */
-Vec6 
+Vec6
 HighParser::GetVec6(void)
 {
    Vec6 v(0.);
@@ -956,25 +1015,35 @@ HighParser::GetVec6(void)
 
 
 /* Legge un Vec6 */
-Vec6 
+Vec6
 HighParser::GetVec6(const Vec6& vDef)
 {
-   if (IsKeyWord("null")) {	
+   if (IsKeyWord("null")) {
+      return Zero6;
+   }
+
+   if (IsKeyWord("default")) {
       return vDef;
-   }      
-   
+   }
+
    doublereal x1 = GetReal(vDef.dGet(1));
    doublereal x2 = GetReal(vDef.dGet(2));
    doublereal x3 = GetReal(vDef.dGet(3));
    doublereal x4 = GetReal(vDef.dGet(4));
    doublereal x5 = GetReal(vDef.dGet(5));
    doublereal x6 = GetReal(vDef.dGet(6));
-   return Vec6(x1, x2, x3, x4, x5, x6);
+   Vec6 v(x1, x2, x3, x4, x5, x6);
+
+   if (IsKeyWord("scale")) {
+       v *= GetReal(1.);
+   }
+
+   return v;
 }
 
 
 /* Legge una matrice 6x6 generica (diagonale o nulla) */
-Mat6x6 
+Mat6x6
 HighParser::GetMat6x6(void)
 {
    Mat6x6 m(0.);
@@ -983,27 +1052,36 @@ HighParser::GetMat6x6(void)
 
 
 /* Legge una matrice 6x6 generica (diagonale o nulla) */
-Mat6x6 
+Mat6x6
 HighParser::GetMat6x6(const Mat6x6& mDef)
 {
-   if (IsKeyWord("null")) {	
+   if (IsKeyWord("null")) {
       return Zero6x6;
-   } else if(IsKeyWord("eye")) {	
-      return Eye6;
-   } else if(IsKeyWord("diag")) {	
+
+   } else if (IsKeyWord("default")) {
+      return mDef;
+   }
+   
+   Mat6x6 m;
+
+   if (IsKeyWord("eye")) {
+      m = Eye6;
+
+   } else if (IsKeyWord("diag")) {
       doublereal m11 = GetReal(mDef.dGet(1, 1));
       doublereal m22 = GetReal(mDef.dGet(2, 2));
       doublereal m33 = GetReal(mDef.dGet(3, 3));
       doublereal m44 = GetReal(mDef.dGet(4, 4));
       doublereal m55 = GetReal(mDef.dGet(5, 5));
       doublereal m66 = GetReal(mDef.dGet(6, 6));
-      return Mat6x6(m11, 0., 0., 0., 0., 0., 
-		    0., m22, 0., 0., 0., 0.,
-		    0., 0., m33, 0., 0., 0.,
-		    0., 0., 0., m44, 0., 0.,
-		    0., 0., 0., 0., m55, 0.,
-		    0., 0., 0., 0., 0., m66);
-   } else if(IsKeyWord("sym")) {	
+      m = Mat6x6(m11, 0., 0., 0., 0., 0.,
+		 0., m22, 0., 0., 0., 0.,
+		 0., 0., m33, 0., 0., 0.,
+		 0., 0., 0., m44, 0., 0.,
+		 0., 0., 0., 0., m55, 0.,
+		 0., 0., 0., 0., 0., m66);
+ 
+   } else if (IsKeyWord("sym")) {
       doublereal m11 = GetReal(mDef.dGet(1, 1));
       doublereal m12 = GetReal(mDef.dGet(1, 2));
       doublereal m13 = GetReal(mDef.dGet(1, 3));
@@ -1024,14 +1102,15 @@ HighParser::GetMat6x6(const Mat6x6& mDef)
       doublereal m46 = GetReal(mDef.dGet(4, 6));
       doublereal m55 = GetReal(mDef.dGet(5, 5));
       doublereal m56 = GetReal(mDef.dGet(5, 6));
-      doublereal m66 = GetReal(mDef.dGet(6, 6));      
-      return Mat6x6(m11, m12, m13, m14, m15, m16, 
-		    m12, m22, m23, m24, m25, m26,
-		    m13, m23, m33, m34, m35, m36,
-		    m14, m24, m34, m44, m45, m46,
-		    m15, m25, m35, m45, m55, m56,
-		    m16, m26, m36, m46, m56, m66);
-   } else if(IsKeyWord("anba")) {
+      doublereal m66 = GetReal(mDef.dGet(6, 6));
+      m = Mat6x6(m11, m12, m13, m14, m15, m16,
+		 m12, m22, m23, m24, m25, m26,
+		 m13, m23, m33, m34, m35, m36,
+		 m14, m24, m34, m44, m45, m46,
+		 m15, m25, m35, m45, m55, m56,
+		 m16, m26, m36, m46, m56, m66);
+
+   } else if (IsKeyWord("anba")) {
       /* Formato ANBA, in cui vale la trasformazione:
        * ex = e2
        * ey = e3
@@ -1074,12 +1153,13 @@ HighParser::GetMat6x6(const Mat6x6& mDef)
       doublereal m46 = GetReal(mDef.dGet(4, 6));
       doublereal m44 = GetReal(mDef.dGet(4, 4));
 
-      return Mat6x6(m11, m21, m31, m41, m51, m61,
-		    m12, m22, m32, m42, m52, m62,
-		    m13, m23, m33, m43, m53, m63,
-		    m14, m24, m34, m44, m54, m64,
-		    m15, m25, m35, m45, m55, m65,
-		    m16, m26, m36, m46, m56, m66);
+      m = Mat6x6(m11, m21, m31, m41, m51, m61,
+		 m12, m22, m32, m42, m52, m62,
+		 m13, m23, m33, m43, m53, m63,
+		 m14, m24, m34, m44, m54, m64,
+		 m15, m25, m35, m45, m55, m65,
+		 m16, m26, m36, m46, m56, m66);
+
    } else {
       doublereal m11 = GetReal(mDef.dGet(1, 1));
       doublereal m12 = GetReal(mDef.dGet(1, 2));
@@ -1117,48 +1197,59 @@ HighParser::GetMat6x6(const Mat6x6& mDef)
       doublereal m64 = GetReal(mDef.dGet(6, 4));
       doublereal m65 = GetReal(mDef.dGet(6, 5));
       doublereal m66 = GetReal(mDef.dGet(6, 6));
-      return Mat6x6(m11, m21, m31, m41, m51, m61,
-		    m12, m22, m32, m42, m52, m62,
-		    m13, m23, m33, m43, m53, m63,
-		    m14, m24, m34, m44, m54, m64,
-		    m15, m25, m35, m45, m55, m65,
-		    m16, m26, m36, m46, m56, m66);
-   }   
+      m = Mat6x6(m11, m21, m31, m41, m51, m61,
+	         m12, m22, m32, m42, m52, m62,
+	         m13, m23, m33, m43, m53, m63,
+	         m14, m24, m34, m44, m54, m64,
+	         m15, m25, m35, m45, m55, m65,
+	         m16, m26, m36, m46, m56, m66);
+   }
+
+   if (IsKeyWord("scale")) {
+       m *= GetReal(1.);
+   }
+
+   return m;
 }
 
 /* provvisoria */
-void 
+void
 HighParser::GetMat6xN(Mat3xN& m1, Mat3xN& m2, integer iNumCols)
 {
    ASSERT(iNumCols > 0);
    ASSERT(m1.iGetNumCols() == iNumCols);
    ASSERT(m2.iGetNumCols() == iNumCols);
-   
-   if(IsKeyWord("null")) {
+
+   if (IsKeyWord("null")) {
       m1.Reset();
       m2.Reset();
-   } else if (IsKeyWord("anba")) {
-      int vi[] = { 2, 3, 1 };
+
+   } else {
+      int vi[] = { 1, 2, 3 };
+
+      if (IsKeyWord("anba")) {
+	 vi[0] = 2;
+	 vi[1] = 3;
+	 vi[2] = 1;
+      }
+
       for (int i = 0; i < 3; i++) {
 	 for (integer j = 1; j <= iNumCols; j++) {
 	    m1.Put(vi[i], j, GetReal());
 	 }
-      }      
+      }
+
       for (int i = 0; i < 3; i++) {
 	 for (integer j = 1; j <= iNumCols; j++) {
 	    m2.Put(vi[i], j, GetReal());
 	 }
-      }      
-   } else {     
-      for (int i = 1; i <= 3; i++) {
-	 for (integer j = 1; j <= iNumCols; j++) {
-	    m1.Put(i, j, GetReal());
-	 }
-      }      
-      for (int i = 1; i <= 3; i++) {
-	 for (integer j = 1; j <= iNumCols; j++) {
-	    m2.Put(i, j, GetReal());
-	 }
+      }
+
+      if (IsKeyWord("scale")) {
+         doublereal d = GetReal(1.);
+
+	 m1 *= d;
+	 m2 *= d;
       }
    }
 }
@@ -1166,12 +1257,12 @@ HighParser::GetMat6xN(Mat3xN& m1, Mat3xN& m2, integer iNumCols)
 
 /* HighParser - end */
 
-std::ostream& 
+std::ostream&
 operator << (std::ostream& out, const HighParser::ErrOut& err)
 {
    out << err.iLineNumber;
-   if (err.sFileName != NULL) {      
+   if (err.sFileName != NULL) {
       out << ", file <" << err.sFileName << '>';
    }
-   return out;   
+   return out;
 }
