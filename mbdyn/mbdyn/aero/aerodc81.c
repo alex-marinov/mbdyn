@@ -122,13 +122,13 @@ c81_aerod2(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA, c8
 	 * porta la velocita' al punto di calcolo delle boundary conditions 
 	 */
 	v[V_X] = W[V_X];
-	v[V_Y] = W[V_Y]+c34*W[W_Z];
-	v[V_Z] = W[V_Z]-c34*W[W_Y];
+	v[V_Y] = W[V_Y] + c34*W[W_Z];
+	v[V_Z] = W[V_Z] - c34*W[W_Y];
 	
-	vp2 = v[V_X]*v[V_X]+v[V_Y]*v[V_Y];
+	vp2 = v[V_X]*v[V_X] + v[V_Y]*v[V_Y];
 	vp = sqrt(vp2);
 	
-	vtot = sqrt(vp2+v[V_Z]*v[V_Z]);
+	vtot = sqrt(vp2 + v[V_Z]*v[V_Z]);
 	
 	/*
 	 * non considera velocita' al di sotto di 1.e-6
@@ -207,12 +207,12 @@ c81_aerod2(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA, c8
 	 */
 	dcla *= RAD2DEG;
 	if (fabs(alpha) > 1.e-6) {
-		doublereal dclatmp = (cl-cl0)/(alpha*cosgam);
+		doublereal dclatmp = (cl - cl0)/(alpha*cosgam);
 		if (dclatmp < dcla) {
 			dcla = dclatmp;
 		}
 	}
-	cl = cl0+dcla*alpha;
+	cl = cl0 + dcla*alpha;
 	
 	OUTA[4] = cl;
 	OUTA[5] = cd;
@@ -220,12 +220,12 @@ c81_aerod2(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA, c8
 
 	q = .5*rho*chord*vp2;
 
-	TNG[V_X] = -q*(cl*v[V_Y]+cd*v[V_X])/vp;
-	TNG[V_Y] = q*(cl*v[V_X]-cd*v[V_Y])/vp;
+	TNG[V_X] = -q*(cl*v[V_Y] + cd*v[V_X])/vp;
+	TNG[V_Y] = q*(cl*v[V_X] - cd*v[V_Y])/vp;
 	TNG[V_Z] = -q*cd0*v[V_Z]/vp;
 	TNG[W_X] = 0.;
 	TNG[W_Y] = -ca*TNG[V_Z];
-	TNG[W_Z] = q*chord*cm+ca*TNG[V_Y];
+	TNG[W_Z] = q*chord*cm + ca*TNG[V_Y];
 	
 	/* 
 	 * Radial drag (TNG[V_Z]) consistent with Harris, JAHS 1970
@@ -264,13 +264,13 @@ c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA,
 	 * porta la velocita' al punto di calcolo delle boundary conditions 
 	 */
 	v[V_X] = W[V_X];
-	v[V_Y] = W[V_Y]+c34*W[W_Z];
-	v[V_Z] = W[V_Z]-c34*W[W_Y];
+	v[V_Y] = W[V_Y] + c34*W[W_Z];
+	v[V_Z] = W[V_Z] - c34*W[W_Y];
 	
-	vp2 = v[V_X]*v[V_X]+v[V_Y]*v[V_Y];
+	vp2 = v[V_X]*v[V_X] + v[V_Y]*v[V_Y];
 	vp = sqrt(vp2);
 	
-	vtot = sqrt(vp2+v[V_Z]*v[V_Z]);
+	vtot = sqrt(vp2 + v[V_Z]*v[V_Z]);
 	
 	/*
 	 * non considera velocita' al di sotto di 1.e-6
@@ -362,12 +362,12 @@ c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA,
 		 */
 		dcla *= RAD2DEG;
 		if (fabs(alpha) > 1.e-6) {
-			doublereal dclatmp = (cl-cl0)/(alpha*cosgam);
+			doublereal dclatmp = (cl - cl0)/(alpha*cosgam);
 			if (dclatmp < dcla) {
 				dcla = dclatmp;
 			}
 		}
-		cl = cl0+dcla*alpha;
+		cl = cl0 + dcla*alpha;
 		break;
 
 	case 1:
@@ -477,7 +477,7 @@ c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA,
 		A = .5*chord*ALF1/vp;
 		B = .25*chord*chord*ALF2/vp2;
 
-		ETA = sqrt(pow(A/.048, 2)+pow(B/.016, 2));
+		ETA = sqrt(pow(A/.048, 2) + pow(B/.016, 2));
 
 		if (alpha < 0.) {
 			A = -A;
@@ -492,12 +492,12 @@ c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA,
 		A2 = A*A;
 		B2 = B*B;
 
-		ASN = ASN0*(1.-mach);
-		ASM = ASM0*(1.-mach);
+		ASN = ASN0*(1. - mach);
+		ASM = ASM0*(1. - mach);
 
 		SGN = fabs(alpha/ASN);
 		SGM = fabs(alpha/ASM);
-		SGMAX = 1.839-70.33*fabs(B);
+		SGMAX = 1.839 - 70.33*fabs(B);
 		if (SGMAX > 1.86) {
 			SGMAX = 1.86;
 		}
@@ -508,25 +508,25 @@ c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA,
 			SGM = SGMAX;
 		}
 
-		DAN = (A*(PN[U_1]+PN[U_5]*SGN)+B*(PN[U_2]+PN[U_6]*SGN)
-			+ exp(-1072.52*A2)*(A*(PN[U_3] +PN[U_7]*SGN)
-				+A2*(PN[U_9]+PN[U10]*SGN))
-			+ exp(-40316.42*B2)*B*(PN[U_4]+PN[U_8]*SGN))*ASN;
-		DCN = A*(QN[U_1]+QN[U_3]*A2+SGN*(QN[U_7]+QN[U_9]*A2+QN[U13]*SGN)
-				+ B2*(QN[U_5]+QN[U11]*SGN))
-			+ B*(QN[U_2]+QN[U_4]*A2
-					+SGN*(QN[U_8]+QN[U10]*A2+QN[U14]*SGN)
-					+B2*(QN[U_6]+QN[U12]*SGN));
-		DAM = (A*(PM[U_1]+PM[U_3]*A2+PM[U_5]*B2+PM[U10]*SGM+PM[U_7]*A)
-				+ B*(PM[U_2]+PM[U_4]*B2+PM[U_6]*A2
-					+PM[U11]*SGM+PM[U_8]*B+PM[U_9]*A))*ASM;
+		DAN = (A*(PN[U_1] + PN[U_5]*SGN) + B*(PN[U_2] + PN[U_6]*SGN)
+			+ exp(-1072.52*A2)*(A*(PN[U_3] + PN[U_7]*SGN)
+				+A2*(PN[U_9] + PN[U10]*SGN))
+			+ exp(-40316.42*B2)*B*(PN[U_4] + PN[U_8]*SGN))*ASN;
+		DCN = A*(QN[U_1] + QN[U_3]*A2 + SGN*(QN[U_7] + QN[U_9]*A2 + QN[U13]*SGN)
+				+ B2*(QN[U_5] + QN[U11]*SGN))
+			+ B*(QN[U_2] + QN[U_4]*A2
+					+ SGN*(QN[U_8] + QN[U10]*A2 + QN[U14]*SGN)
+					+ B2*(QN[U_6] + QN[U12]*SGN));
+		DAM = (A*(PM[U_1] + PM[U_3]*A2 + PM[U_5]*B2 + PM[U10]*SGM + PM[U_7]*A)
+				+ B*(PM[U_2] + PM[U_4]*B2 + PM[U_6]*A2
+					+ PM[U11]*SGM + PM[U_8]*B + PM[U_9]*A))*ASM;
 
 		S2 = SGM*SGM;
 
-		DCM = A*(QM[U_2]+QM[U_8]*A+SGM*(QM[U_4]+QM[U10]*A)
-				+S2*(QM[U_6]+QM[U12]*A))
-			+ B*(QM[U_1]+QM[U_7]*B+SGM*(QM[U_3]+QM[U_9]*B)
-					+S2*(QM[U_5]+QM[U11]*B));
+		DCM = A*(QM[U_2] + QM[U_8]*A + SGM*(QM[U_4] + QM[U10]*A)
+				+ S2*(QM[U_6] + QM[U12]*A))
+			+ B*(QM[U_1] + QM[U_7]*B + SGM*(QM[U_3] + QM[U_9]*B)
+					+ S2*(QM[U_5] + QM[U11]*B));
 
 		OUTA[10] = DAN*RAD2DEG;
 		OUTA[11] = DAM*RAD2DEG;
@@ -546,13 +546,13 @@ c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA,
 			DCM = -DCM;
 		}
 
-		alphaN = (alpha-DAN)*RAD2DEG;
+		alphaN = (alpha - DAN)*RAD2DEG;
 		get_coef(data->NML, data->ml, data->NAL, data->al, 
 				alphaN, mach, &cl, &cl0);
 		get_coef(data->NMD, data->md, data->NAD, data->ad, 
 				alphaN, mach, &cd, &cd0);
 
-		alphaM = (alpha-DAM)*RAD2DEG;
+		alphaM = (alpha - DAM)*RAD2DEG;
 		get_coef(data->NMM, data->mm, data->NAM, data->am, 
 				alphaM, mach, &cm, NULL);
 
@@ -562,15 +562,15 @@ c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA,
 		/* note: cl/alpha in 1/deg */
 		dclatan = dcla;
 		if (fabs(alphaN) > 1.e-6) {
-			dclatan = (cl-cl0)/(alphaN*cosgam);
+			dclatan = (cl - cl0)/(alphaN*cosgam);
 		}
-		cl = cl0+dclatan*alphaN;
+		cl = cl0 + dclatan*alphaN;
 
 		/* back to 1/rad */
 		dcla *= RAD2DEG;
 		dcma *= RAD2DEG;
 
-		C1 = .9457/sqrt(1.-mach*mach);
+		C1 = .9457/sqrt(1. - mach*mach);
 
 		/* 
 		 * the unsteady correction is "cn", 
@@ -578,10 +578,10 @@ c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA,
 		 * (note: if "vp" is too small the routine exits
 		 * earlier without computing forces)
 		 */
-		cn = dcla*DAN+DCN*C1;
+		cn = dcla*DAN + DCN*C1;
 		cl += cn*v[V_X]/vp;	/* cos(x) */
 		cd -= cn*v[V_Y]/vp;	/* sin(x) */
-		cm += dcma*DAM+DCM*C1;
+		cm += dcma*DAM + DCM*C1;
 
 		break;
 	}
@@ -602,12 +602,12 @@ c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA,
 	/*
 	 * airfoil forces and moments in the airfoil frame
 	 */
-	TNG[V_X] = -q*(cl*v[V_Y]+cd*v[V_X])/vp;
-	TNG[V_Y] = q*(cl*v[V_X]-cd*v[V_Y])/vp;
+	TNG[V_X] = -q*(cl*v[V_Y] + cd*v[V_X])/vp;
+	TNG[V_Y] = q*(cl*v[V_X] - cd*v[V_Y])/vp;
 	TNG[V_Z] = -q*cd0*v[V_Z]/vp;
 	TNG[W_X] = 0.;
 	TNG[W_Y] = -ca*TNG[V_Z];
-	TNG[W_Z] = q*chord*cm+ca*TNG[V_Y];
+	TNG[W_Z] = q*chord*cm + ca*TNG[V_Y];
 	
 	/* 
 	 * Radial drag (TNG[V_Z]) consistent with Harris, JAHS 1970
@@ -627,12 +627,12 @@ c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA,
  *
  * restituisce l'indice corrispondente al valore di v
  * che approssima per eccesso val;
- * se val > v[ub] restituisce ub+1;
+ * se val > v[ub] restituisce ub + 1;
  * se val < v[lb] restituisce lb.
- * quindi v[ret-1] <= val <= v[ret]
+ * quindi v[ret - 1] <= val <= v[ret]
  *
  * Nota: ovviamente si presuppone che i valori di v siano ordinati in modo
- * crescente e strettamente monotono, ovvero v[i] < v[i+1].
+ * crescente e strettamente monotono, ovvero v[i] < v[i + 1].
  */
 static int 
 bisec(doublereal* v, doublereal val, int lb, int ub)
@@ -642,11 +642,11 @@ bisec(doublereal* v, doublereal val, int lb, int ub)
 	}
 	
 	if (val > v[ub]) {
-		return ub+1;
+		return ub + 1;
 	}
 	
-	while (ub > lb+1) {
-		int b = (lb+ub)/2;
+	while (ub > lb + 1) {
+		int b = (lb + ub)/2;
 		if (v[b] > val) {
 			ub = b;
 		} else if (v[b] < val) {
@@ -664,7 +664,7 @@ bisec(doublereal* v, doublereal val, int lb, int ub)
  *
  * il numero di Mach mach viene cercato nell'array m di lunghezza nm
  * ed interpolato linearmente; quindi il coefficiente alpha viene cercato
- * nella prima colonna della matrice a di dimensioni na x nm+1 ed interpolato
+ * nella prima colonna della matrice a di dimensioni na x nm + 1 ed interpolato
  * linearmente; infine il coefficiente corrispondente alla combinazione di
  * mach e alpha viene restituito.
  */
@@ -689,7 +689,7 @@ get_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doubler
 	 * im e' l'indice di m in cui si trova l'approssimazione per eccesso 
 	 * di mach
 	 */
-	im = bisec(m, mach, 0, nm-1);
+	im = bisec(m, mach, 0, nm - 1);
 	if (im != nm) {
 		im++;
 	}
@@ -699,13 +699,13 @@ get_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doubler
 	 * l'approssimazione per eccesso di alpha
 	 */
 	if (c0 != NULL) {
-		ia0 = bisec(a, 0., 0, na-1);
+		ia0 = bisec(a, 0., 0, na - 1);
 		if (ia0 != na) {
 			ia0++;
 		}
 	}
 
-	ia = bisec(a, alpha, 0, na-1);
+	ia = bisec(a, alpha, 0, na - 1);
 	if (ia != na) {
 		ia++;
 	}
@@ -717,43 +717,43 @@ get_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doubler
 	if (im == nm) {
 		if (c0 != NULL) {
 			if (ia0 == na) {
-				*c0 = a[na*(nm+1)-1];
+				*c0 = a[na*(nm + 1) - 1];
 			} else {
-				doublereal da = -a[ia0-1]/(a[ia0]-a[ia0-1]);
-				*c0 = (1.-da)*a[na*nm+ia0-1]+da*a[na*nm+ia0];
+				doublereal da = -a[ia0 - 1]/(a[ia0] - a[ia0 - 1]);
+				*c0 = (1. - da)*a[na*nm + ia0 - 1] + da*a[na*nm + ia0];
 			}
 		}
 		
 		if (ia == na) {
-			*c = a[na*(nm+1)-1];
+			*c = a[na*(nm + 1) - 1];
 		} else {
-			doublereal da = (alpha-a[ia-1])/(a[ia]-a[ia-1]);
-			*c = (1.-da)*a[na*nm+ia-1]+da*a[na*nm+ia];
+			doublereal da = (alpha - a[ia - 1])/(a[ia] - a[ia - 1]);
+			*c = (1. - da)*a[na*nm + ia - 1] + da*a[na*nm + ia];
 		}
 	} else {
 		doublereal d;
-		d = (mach-m[im-1])/(m[im]-m[im-1]);
+		d = (mach - m[im - 1])/(m[im] - m[im - 1]);
 
 		if (c0 != NULL) {
 			if (ia0 == na) {
-				*c0 = (1.-d)*a[na*(im+1)-1]+d*a[na*(im+2)-1];
+				*c0 = (1. - d)*a[na*(im + 1) - 1] + d*a[na*(im + 2) - 1];
 			} else {
 				doublereal a1, a2, da;
-				a1 = (1.-d)*a[na*im+ia0-1]+d*a[na*(im+1)+ia0-1];
-				a2 = (1.-d)*a[na*im+ia0]+d*a[na*(im+1)+ia0];
-				da = -a[ia0-1]/(a[ia0]-a[ia0-1]);
-				*c0 = (1.-da)*a1+da*a2;
+				a1 = (1. - d)*a[na*im + ia0 - 1] + d*a[na*(im + 1) + ia0 - 1];
+				a2 = (1. - d)*a[na*im + ia0] + d*a[na*(im + 1) + ia0];
+				da = -a[ia0 - 1]/(a[ia0] - a[ia0 - 1]);
+				*c0 = (1. - da)*a1 + da*a2;
 			}
 		}
 
 		if (ia == na) {
-			*c = (1.-d)*a[na*(im+1)-1]+d*a[na*(im+2)-1];
+			*c = (1. - d)*a[na*(im + 1) - 1] + d*a[na*(im + 2) - 1];
 		} else {
 			doublereal a1, a2, da;
-			a1 = (1.-d)*a[na*im+ia-1]+d*a[na*(im+1)+ia-1];
-			a2 = (1.-d)*a[na*im+ia]+d*a[na*(im+1)+ia];
-			da = (alpha-a[ia-1])/(a[ia]-a[ia-1]);
-			*c = (1.-da)*a1+da*a2;
+			a1 = (1. - d)*a[na*im + ia - 1] + d*a[na*(im + 1) + ia - 1];
+			a2 = (1. - d)*a[na*im + ia] + d*a[na*(im + 1) + ia];
+			da = (alpha - a[ia - 1])/(a[ia] - a[ia - 1]);
+			*c = (1. - da)*a1 + da*a2;
 		}
 	}
 
@@ -771,17 +771,17 @@ get_dcla(int nm, doublereal* m, doublereal* s, doublereal mach)
 	 * im e' l'indice di m in cui si trova l'approssimazione per eccesso
 	 * di mach
 	 */
-	im = bisec(m, mach, 0, nm-1);
+	im = bisec(m, mach, 0, nm - 1);
 	if (im != nm) {
 		im++;
 	}
 	
 	if (im == nm) {
-		return s[3*nm-1];
+		return s[3*nm - 1];
 	} else {
-		doublereal d = (mach-m[im-1])/(m[im]-m[im-1]);
+		doublereal d = (mach - m[im - 1])/(m[im] - m[im - 1]);
 
-		return (1.-d)*s[2*nm+im-1]+d*s[2*nm+im];
+		return (1. - d)*s[2*nm + im - 1] + d*s[2*nm + im];
 	}
 }
 
@@ -798,21 +798,21 @@ get_stall(int nm, doublereal* m, doublereal* s, doublereal mach,
 	 * im e' l'indice di m in cui si trova l'approssimazione per eccesso
 	 * di mach
 	 */
-	im = bisec(m, mach, 0, nm-1);
+	im = bisec(m, mach, 0, nm - 1);
 	if (im != nm) {
 		im++;
 	}
 	
 	if (im == nm) {
-		*dcpa = s[3*nm-1];
-		*dasp = s[nm-1];
-		*dasm = s[2*nm-1];
+		*dcpa = s[3*nm - 1];
+		*dasp = s[nm - 1];
+		*dasm = s[2*nm - 1];
 	} else {
-		doublereal d = (mach-m[im-1])/(m[im]-m[im-1]);
+		doublereal d = (mach - m[im - 1])/(m[im] - m[im - 1]);
 
-		*dcpa = (1.-d)*s[2*nm+im-1]+d*s[2*nm+im];
-		*dasp = (1.-d)*s[im-1]+d*s[im];
-		*dasm = (1.-d)*s[nm+im-1]+d*s[nm+im];
+		*dcpa = (1. - d)*s[2*nm + im - 1] + d*s[2*nm + im];
+		*dasp = (1. - d)*s[im - 1] + d*s[im];
+		*dasm = (1. - d)*s[nm + im - 1] + d*s[nm + im];
 	}
 	
 	return 0;
