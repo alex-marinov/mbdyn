@@ -1026,6 +1026,26 @@ else
 	AC_MSG_RESULT([no])
 fi
 
+dnl ----------------------------------------------------------------
+dnl
+dnl Checks whether cmath defines std::isfinite
+dnl
+AC_LANG_CPLUSPLUS
+AC_MSG_CHECKING([whether cmath defines 'std::isfinite'])
+AC_TRY_LINK([#include <cmath>],[
+	using std::isfinite;
+	isfinite(1.);
+],[have_std_isfinite=yes],[have_std_isfinite=no])
+AC_LANG_C
+
+if test $have_std_isfinite != no ; then
+	AC_DEFINE(HAVE_STD_ISFINITE_IN_CMATH,1,
+		[define if cmath defines 'std::isfinite'])
+	AC_MSG_RESULT([yes])
+else
+	AC_MSG_RESULT([no])
+fi
+
 
 dnl ----------------------------------------------------------------
 dnl

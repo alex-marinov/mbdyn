@@ -30,22 +30,29 @@
 #ifndef AC_MATH_H
 #define AC_MATH_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
+/*use cmath only for c++ programs*/
+#if defined(HAVE_STD_ISFINITE_IN_CMATH) && defined(__cplusplus)
+#include <cmath>
+using std::isfinite;
+#else
 #include <math.h>
-   
 #ifndef isfinite
 /* Return nonzero value if X is not +-Inf or NaN.  */
 #define isfinite(x)     finite(x)
 #endif /* isfinite */
+#endif /*HAVE_STD_ISFINITE_IN_CMATH && __cplusplus*/
 
 #if !defined(HAVE_MATH_MACROS) && !defined(__USE_XOPEN) && !defined(__USE_BSD)
 
 /* Return nonzero value if X is not +-Inf or NaN.  */
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 extern int finite(double);
 extern double copysign(double x, double y);
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
    
 /* Some useful constants.  */
 #define M_E            2.7182818284590452354   /* e */
@@ -81,9 +88,6 @@ extern double copysign(double x, double y);
 
 #endif /* define fancy constants */
    
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* AC_MATH_H */
 
