@@ -33,7 +33,9 @@
  * input; then applies the input to selected dofs as an abstract force
  */
 
-#include <mbconfig.h>
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
 #include <discctrl.h>
 

@@ -30,7 +30,9 @@
 
 /* vettori 3 e matrici 3x3 */
 
-#include <mbconfig.h>
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
 extern "C" {
 #include <mymath.h>
@@ -38,7 +40,7 @@ extern "C" {
 }
 
 #include <matvec3.h>
-#include <output.h> /* ? */
+// #include <output.h> /* ? */
 
 /* matrice identita' */
 

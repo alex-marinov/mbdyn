@@ -30,7 +30,9 @@
 
 /* Drive che usa  i gradi di liberta' */
 
-#include <mbconfig.h>
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
 #include <dofdrive.h>
 

@@ -31,10 +31,11 @@
 /* Codice della tabella dei simboli 
  * dell'analizzatore di espressioni alfanumeriche */
 
-#include <mbconfig.h>
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
 #include <table.h>
-
 #include <myassert.h>
 #include <mynewmem.h>
 

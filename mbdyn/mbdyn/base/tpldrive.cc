@@ -28,11 +28,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <mbconfig.h>
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
 #include <tpldrive.h>
 
-doublereal GetT(MBDynParser& /* HP */ , const doublereal& /* t */ )
+doublereal 
+GetT(MBDynParser& /* HP */ , const doublereal& /* t */ )
 {
-   return 0.;
+	return 0.;
 }
+

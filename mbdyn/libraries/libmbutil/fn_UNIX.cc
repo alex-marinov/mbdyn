@@ -30,7 +30,9 @@
 /* Codice relativo alla classe File_name, per l'handling di nomi di files
  * in ambiente DOS e UNIX */
 
-#include <mbconfig.h>
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
 #include <filename.h>
 #include <myassert.h>

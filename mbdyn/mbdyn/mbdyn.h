@@ -41,12 +41,14 @@ typedef long int mbFlag;
 extern int fSilent;
 
 /* Global macros */
+#ifdef __cplusplus
 #define silent_cout(arg) \
     do { \
         if (!::fSilent) { \
             cout << arg; \
         } \
     } while (0)
+#endif /* __cplusplus */
 
 /* Debug levels (from 0x0001 to 0x0080 are reserved) */
 static const long int MYDEBUG_INPUT               = 0x00000100;

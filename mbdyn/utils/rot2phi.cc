@@ -1,5 +1,9 @@
-#include "matvec3.h"
-#include "string.h"
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
+
+#include <matvec3.h>
+#include <string.h>
 
 
 int main(int argn, const char* const argv[])

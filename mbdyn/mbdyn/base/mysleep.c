@@ -28,7 +28,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <mbconfig.h>
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
+
+#ifdef USE_MPI
 
 #include <mysleep.h>
 
@@ -40,4 +44,6 @@ mysleep(int us)
   	tv.tv_usec = us;
   	return select(0, NULL, NULL, NULL, &tv);
 }
+
+#endif /* USE_MPI */
 

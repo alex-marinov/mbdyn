@@ -30,14 +30,15 @@
 
 /* parser con include */
 
-#include <mbconfig.h>
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
 #include <parsinc.h>
-
 #include <unistd.h>
 #include <pwd.h>
 
-const int PATHBUFSIZE = 256;
+const int PATHBUFSIZE = MAXPATHLEN;
 
 /* IncludeParser - begin */
 

@@ -31,7 +31,9 @@
 /* Trave a volumi finiti, con predisposizione per forze di inerzia consistenti
  * e legame cositutivo piezoelettico */
 
-#include <mbconfig.h>
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
 #include <constltp.h>
 #include <beam.h>
