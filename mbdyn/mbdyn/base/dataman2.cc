@@ -158,7 +158,7 @@ void DataManager::DofOwnerInit(void)
    }
 #else /* USE_ELEM_ITER */
    Elem* pEl = NULL;
-   if(ElemIter.fGetFirst(pEl)) {
+   if (ElemIter.fGetFirst(pEl)) {
       do {
 	 ASSERT(pEl != NULL);
 	 DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
@@ -219,19 +219,18 @@ void DataManager::InitialJointAssembly(void)
    
    integer iIndex = 0;    /* Indice dei gradi di liberta' */
    unsigned int iNumDofs = 0;  /* numero di dof di un owner */
-   for(int iCnt = 1; 
-       pTmp < DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner+
-       DofData[DofOwner::STRUCTURALNODE].iNum;
-       iCnt++, pTmp++, ppNode++) {
+   for (int iCnt = 1; 
+        pTmp < DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner+
+        DofData[DofOwner::STRUCTURALNODE].iNum;
+        iCnt++, pTmp++, ppNode++) {
       iNumDofs = pTmp->iNumDofs = (*ppNode)->iGetInitialNumDof();
-      if(iNumDofs > 0) {
+      if (iNumDofs > 0) {
 	 DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
 		    "Node " << (*ppNode)->GetLabel() 
 		    << ": first index = " << iIndex+1 << endl);
 	 pTmp->iFirstIndex = iIndex;
 	 iIndex += iNumDofs;
-      }
-      else {
+      } else {
 	 DEBUGCERR("");
 	 cerr << "warning, item " << iCnt << " has 0 dofs" << endl;
       }
@@ -239,16 +238,16 @@ void DataManager::InitialJointAssembly(void)
 
    
    /* Elementi: mette gli indici agli eventuali DofOwner */   
-   for(int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
+   for (int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
       /* Pre ogni tipo di elemento */
-      if(ElemData[iCnt1].fToBeUsedInAssembly && ElemData[iCnt1].iNum > 0) {
+      if (ElemData[iCnt1].fToBeUsedInAssembly && ElemData[iCnt1].iNum > 0) {
 	 /* Se deve essere usato nell'assemblaggio e ne sono definiti */
 	 
 	 /* Tipo di dof dell'elemento corrente */
 	 DofOwner::Type CurrDofType = 
 	   ElemData[iCnt1].DofOwnerType;
 	 
-	 if(CurrDofType != DofOwner::UNKNOWN) {
+	 if (CurrDofType != DofOwner::UNKNOWN) {
 	    
 	    /* Puntatore al primo DofOwner */
 	    pTmp = DofData[CurrDofType].pFirstDofOwner;
@@ -259,14 +258,14 @@ void DataManager::InitialJointAssembly(void)
 	  
 	    /* Iterazione sugli Elem */
 	    Elem** ppEl = ppFirstEl;	     
-	    for(int iCnt = 0;
-		pTmp < DofData[CurrDofType].pFirstDofOwner+iNumEls;
-		pTmp++, ppEl++, iCnt++) {
+	    for (int iCnt = 0;
+		 pTmp < DofData[CurrDofType].pFirstDofOwner+iNumEls;
+		 pTmp++, ppEl++, iCnt++) {
 	       
 	       ASSERT((*ppEl)->pGetInitialAssemblyElem() != NULL);
 	       iNumDofs = 
 		 (*ppEl)->pGetInitialAssemblyElem()->iGetInitialNumDof();
-	       if((pTmp->iNumDofs = iNumDofs) > 0) {
+	       if ((pTmp->iNumDofs = iNumDofs) > 0) {
 		  DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
 			     "Elem " << (*ppEl)->GetLabel()
 			     << " of type \"" << psElemNames[iCnt1]
@@ -274,8 +273,7 @@ void DataManager::InitialJointAssembly(void)
 			     << iIndex+1 << endl);
 		  pTmp->iFirstIndex = iIndex;
 		  iIndex += iNumDofs;
-	       }
-	       else {
+	       } else {
 		  DEBUGCERR("");
 		  cerr << "warning, item " << iCnt << " has 0 dofs" << endl;
 	       }	
@@ -298,14 +296,14 @@ void DataManager::InitialJointAssembly(void)
    InitialAssemblyIterator IAIter(&ElemData);
    InitialAssemblyElem* pEl = IAIter.GetFirst();
    ASSERT(pEl != NULL);
-   while(pEl != NULL) {
+   while (pEl != NULL) {
       integer iCurrRows = 0;
       integer iCurrCols = 0;
       pEl->InitialWorkSpaceDim(&iCurrRows, &iCurrCols);
-      if(iCurrRows > iMaxRows) {	 
+      if (iCurrRows > iMaxRows) {	 
 	 iMaxRows = iCurrRows;
       }      
-      if(iCurrCols > iMaxCols) {	 
+      if (iCurrCols > iMaxCols) {	 
 	 iMaxCols = iCurrCols;
       }      
       pEl = IAIter.GetNext();       
@@ -333,8 +331,8 @@ void DataManager::InitialJointAssembly(void)
    SAFENEWARR(pDofs, Dof, iInitialNumDofs, DMmm);
    
    iIndex = 0;
-   for(Dof* pTmpDof = pDofs; 
-       pTmpDof < pDofs+iInitialNumDofs; pTmpDof++) {
+   for (Dof* pTmpDof = pDofs; 
+        pTmpDof < pDofs+iInitialNumDofs; pTmpDof++) {
       pTmpDof->iIndex = iIndex++;
    }
 
@@ -394,24 +392,24 @@ void DataManager::InitialJointAssembly(void)
 
    /* Setta i valori iniziali dei gradi di liberta' dei nodi strutturali
     * durante l'assemblaggio iniziale */
-   for(StructNode** ppTmpNode = ppFirstNode;
-       ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++) {	
+   for (StructNode** ppTmpNode = ppFirstNode;
+        ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++) {	
       (*ppTmpNode)->SetInitialValue(X);
    }   
      
    
    /* Setta i valori iniziali dei gradi di liberta' dei vincoli
     * durante l'assemblaggio iniziale */
-   for(int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
+   for (int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
       /* Pre ogni tipo di elemento */
-      if(ElemData[iCnt1].DofOwnerType != DofOwner::UNKNOWN &&
-	 ElemData[iCnt1].fToBeUsedInAssembly &&
-	 ElemData[iCnt1].iNum > 0) {
+      if (ElemData[iCnt1].DofOwnerType != DofOwner::UNKNOWN &&
+	  ElemData[iCnt1].fToBeUsedInAssembly &&
+	  ElemData[iCnt1].iNum > 0) {
 	 
 	 Elem** ppFirstEl = ElemData[iCnt1].ppFirstElem;
 	 integer iNumEl = ElemData[iCnt1].iNum;
-	 for(Elem** ppTmpEl = ppFirstEl;
-	     ppTmpEl < ppFirstEl+iNumEl; ppTmpEl++) {
+	 for (Elem** ppTmpEl = ppFirstEl;
+	      ppTmpEl < ppFirstEl+iNumEl; ppTmpEl++) {
 	    
 	    ASSERT((*ppTmpEl)->pGetElemWithDofs() != NULL);
 	    (*ppTmpEl)->pGetElemWithDofs()->SetInitialValue(X);
@@ -433,12 +431,12 @@ void DataManager::InitialJointAssembly(void)
    
    /* Ciclo di assemblaggio */
    integer iNumIter = 0;
-   while(++iNumIter) {	
+   while (++iNumIter) {	
       /* Assemblo il residuo */
       pResHdl->Reset(0.);
       
       /* Contributo dei nodi */	
-      for(StructNode** ppTmpNode = ppFirstNode; 
+      for (StructNode** ppTmpNode = ppFirstNode; 
 	  ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++) {
 	 integer iFirstIndex = ((*ppTmpNode)->pGetDofOwner())->iFirstIndex;
 	 
@@ -466,7 +464,7 @@ void DataManager::InitialJointAssembly(void)
 	 Vec3 wCurr((*ppTmpNode)->GetWCurr());
 	 
 	 
-	 if((*ppTmpNode)->fOmegaRotates()) {
+	 if ((*ppTmpNode)->fOmegaRotates()) {
 	    TmpVec = RDelta*wPrev-wCurr; // con questa la velocita' angolare e' solidale con il nodo
 	 } else {	 
 	    TmpVec = wPrev-wCurr; // con questa la velocita' angolare e' solidale col riferimento assoluto
@@ -478,7 +476,7 @@ void DataManager::InitialJointAssembly(void)
        	
       /* Elementi (con iteratore): */
       pEl = IAIter.GetFirst();
-      while(pEl != NULL) {
+      while (pEl != NULL) {
 	 *pResHdl += pEl->InitialAssRes(WorkVec, X);
 	 pEl = IAIter.GetNext();
       }	
@@ -488,7 +486,7 @@ void DataManager::InitialJointAssembly(void)
 	if (DEBUG_LEVEL_MATCH(MYDEBUG_ASSEMBLY|MYDEBUG_RESIDUAL)) {
 	   /* Output del residuo */
 	   cout << "Residual:" << endl;
-	   for(int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {
+	   for (int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {
 	      cout << "Dof" << setw(4) << iTmpCnt << ": "
 		<< pResHdl->dGetCoef(iTmpCnt) << endl;
 	   }
@@ -498,7 +496,7 @@ void DataManager::InitialJointAssembly(void)
 	
       /* Eseguo il test di convergenza; se e' positivo, esco */
       doublereal dTest = pResHdl->Dot()/(1.+X.Dot());
-      if(!isfinite(dTest)) {
+      if (!isfinite(dTest)) {
 	 cerr << "Assembly diverged; aborting ..." << endl;
 
 	 THROW(DataManager::ErrAssemblyDiverged());
@@ -510,7 +508,7 @@ void DataManager::InitialJointAssembly(void)
 		 << " (Toll = " << dInitialAssemblyToll << ") " << endl);
 	
       /* Se la tolleranza e' raggiunta, esce dal ciclo */
-      if(dTest <= dInitialAssemblyToll) {
+      if (dTest <= dInitialAssemblyToll) {
 	 DEBUGLCOUT(MYDEBUG_ASSEMBLY, "Initial assembly performed successfully in "
 		    << iNumIter << " iterations" << endl);
 	 goto endofcycle;
@@ -519,7 +517,7 @@ void DataManager::InitialJointAssembly(void)
 	
 	
       /* Se ho raggiunto il numero massimo di iterazioni */
-      if(iNumIter > iMaxInitialIterations) {
+      if (iNumIter > iMaxInitialIterations) {
 	 cerr
 	   << "Initial assembly iterations reached maximum number "
 	   << iMaxInitialIterations << "; aborting ..." << endl;
@@ -532,7 +530,7 @@ void DataManager::InitialJointAssembly(void)
       pSM->MatrInit(0.);
 	
       /* Contributo dei nodi */	
-      for(StructNode** ppTmpNode = ppFirstNode; 
+      for (StructNode** ppTmpNode = ppFirstNode; 
 	  ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++) {
 	 integer iFirstIndex = ((*ppTmpNode)->pGetDofOwner())->iFirstIndex;
 	 
@@ -540,7 +538,7 @@ void DataManager::InitialJointAssembly(void)
 	 doublereal dPosStiff = (*ppTmpNode)->dGetPositionStiffness();
 	 doublereal dVelStiff = (*ppTmpNode)->dGetVelocityStiffness();
 	 
-	 for(int iCnt = 1; iCnt<= 6; iCnt++) {
+	 for (int iCnt = 1; iCnt <= 6; iCnt++) {
 	    /* Posizione, rotazione */
 	    integer iTmp = iFirstIndex+iCnt;
 	    pMatHdl->fPutCoef(iTmp, iTmp, dPosStiff);
@@ -551,7 +549,7 @@ void DataManager::InitialJointAssembly(void)
 	 }
 	 
 
-	 if((*ppTmpNode)->fOmegaRotates()) {
+	 if ((*ppTmpNode)->fOmegaRotates()) {
 	    // con questi la velocita' angolare e' solidale con il nodo
 	    
 	    /* Velocita' angolare - termine di rotazione: R_Delta*w0/\ */
@@ -582,7 +580,7 @@ void DataManager::InitialJointAssembly(void)
       		
       /* Contributo degli elementi */
       pEl = IAIter.GetFirst();
-      while(pEl != NULL) {
+      while (pEl != NULL) {
 	 *pMatHdl += pEl->InitialAssJac(WorkMat, X);
 	 pEl = IAIter.GetNext();
       }
@@ -597,7 +595,7 @@ void DataManager::InitialJointAssembly(void)
       if (DEBUG_LEVEL_MATCH(MYDEBUG_ASSEMBLY|MYDEBUG_RESIDUAL)) {
 	 /* Output della soluzione */
 	 cout << "Solution:" << endl;
-	 for(int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {	   
+	 for (int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {	   
 	    cout << "Dof" << setw(4) << iTmpCnt << ": " 
 	      << pSolHdl->dGetCoef(iTmpCnt) << endl;
 	 }
@@ -609,7 +607,7 @@ void DataManager::InitialJointAssembly(void)
       X += *pSolHdl;
 	
       /* Correggo i nodi */
-      for(StructNode** ppTmpNode = ppFirstNode;
+      for (StructNode** ppTmpNode = ppFirstNode;
 	  ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++) {
 	 (*ppTmpNode)->InitialUpdate(X);
       }		     
@@ -621,19 +619,19 @@ endofcycle:
       
    /* Distrugge il workspace */
    ASSERT(pdWD != NULL);
-   if(pdWD != NULL) {	
+   if (pdWD != NULL) {	
       SAFEDELETEARR(pdWD, SMmm);
    }
    
    ASSERT(piWI != NULL);
-   if(piWI != NULL) {
+   if (piWI != NULL) {
       SAFEDELETEARR(piWI, SMmm);
    }
       
    
    /* Distrugge il vettore soluzione */
    ASSERT(pdX != NULL);
-   if(pdX != NULL) {	
+   if (pdX != NULL) {	
       SAFEDELETEARR(pdX, SMmm);
    }   
 
@@ -641,11 +639,11 @@ endofcycle:
    /* Resetta e distrugge la struttura temporanea dei Dof */
 
    /* Elementi: rimette a posto il numero di Dof propri dei vincoli */
-   for(int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
+   for (int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
       /* Per ogni tipo di elemento */
-      if(ElemData[iCnt1].DofOwnerType != DofOwner::UNKNOWN &&
-	 ElemData[iCnt1].fToBeUsedInAssembly &&
-	 ElemData[iCnt1].iNum > 0) {
+      if (ElemData[iCnt1].DofOwnerType != DofOwner::UNKNOWN &&
+	  ElemData[iCnt1].fToBeUsedInAssembly &&
+	  ElemData[iCnt1].iNum > 0) {
 	 /* Se possiede dofs, se deve essere usato nell'assemblaggio
 	  * e se ne sono presenti */
 	 
@@ -663,8 +661,8 @@ endofcycle:
 	 
 	 /* Iterazione sugli Elem */
 	 Elem** ppEl = ppFirstEl;
-	 for(; pTmp < DofData[CurrDofType].pFirstDofOwner+iNumEls;
-	     pTmp++, ppEl++) {
+	 for (; pTmp < DofData[CurrDofType].pFirstDofOwner+iNumEls;
+	      pTmp++, ppEl++) {
 	    pTmp->iNumDofs = (*ppEl)->iGetNumDof();
 	 }
       }
@@ -673,7 +671,7 @@ endofcycle:
    
    /* Dealloca il vettore dei Dof */
    ASSERT(pDofs != NULL);
-   if(pDofs != NULL) {	
+   if (pDofs != NULL) {	
       SAFEDELETEARR((Dof*&)pDofs, DMmm);
    }   
    
@@ -737,7 +735,7 @@ void DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pEl = NULL;
-    if(ElemIter.fGetFirst(pEl)) {       
+    if (ElemIter.fGetFirst(pEl)) {       
        do {
 	  pEl->SetValue(X, XP);
        } while (ElemIter.fGetNext(pEl));
@@ -821,7 +819,7 @@ void DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pEl = NULL;
-    if(((VecIter<Elem*>&)ElemIter).fGetFirst(pEl)) {       
+    if (((VecIter<Elem*>&)ElemIter).fGetFirst(pEl)) {       
        do {
 	  pEl->BeforePredict(X, XP, XPrev, XPPrev);
        } while (((VecIter<Elem*>&)ElemIter).fGetNext(pEl));
@@ -849,7 +847,7 @@ void DataManager::AfterPredict(void) const
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pEl = NULL;
-    if(((VecIter<Elem*>&)ElemIter).fGetFirst(pEl)) {       
+    if (((VecIter<Elem*>&)ElemIter).fGetFirst(pEl)) {       
        do {
 	  pEl->AfterPredict(*(VectorHandler*)pXCurr,
 			    *(VectorHandler*)pXPrimeCurr);
@@ -876,7 +874,7 @@ void DataManager::Update(void) const
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pEl = NULL;
-    if(((VecIter<Elem*>&)ElemIter).fGetFirst(pEl)) {       
+    if (((VecIter<Elem*>&)ElemIter).fGetFirst(pEl)) {       
        do {
 	  pEl->Update(*pXCurr, *pXPrimeCurr);
        } while (((VecIter<Elem*>&)ElemIter).fGetNext(pEl));
@@ -906,7 +904,7 @@ void DataManager::DerivativesUpdate(void) const
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pEl = NULL;
-    if(((VecIter<Elem*>&)ElemIter).fGetFirst(pEl)) {       
+    if (((VecIter<Elem*>&)ElemIter).fGetFirst(pEl)) {       
        do {
 	  pEl->Update(*pXCurr, *pXPrimeCurr);
        } while (((VecIter<Elem*>&)ElemIter).fGetNext(pEl));

@@ -178,7 +178,7 @@ Mat3x3 operator - (const Mat3x3& m)
 }
 
 
-const char sForm[] = "%15.6e%15.6e%15.6e";
+const char sForm[] = "%15.6e%15.6e%15.6e%15.6e%15.6e%15.6e%15.6e%15.6e%15.6e";
 const char sDefFill[] = " ";
 
 /* output di matrici */
@@ -186,14 +186,16 @@ const char sDefFill[] = " ";
 ostream& operator << (ostream& out, const Mat3x3& m)
 {
    doublereal* pd = m.pGetMat();
-   
-//   out.form(sForm, *pd, *(pd+3), *(pd+6)) << endl;
-//   out.form(sForm, *(pd+1), *(pd+4), *(pd+7)) << endl;
-//   out.form(sForm, *(pd+2), *(pd+5), *(pd+8));
-
-   out << pd[0] << sDefFill << pd[3] << sDefFill << pd[6] << sDefFill
-     << pd[1] << sDefFill << pd[4] << sDefFill << pd[7] << sDefFill
-     << pd[2] << sDefFill << pd[5] << sDefFill << pd[8];
+#ifdef HAVE_FORM_IN_OSTREAM
+   out.form(sForm,
+		   pd[M11], pd[M12], pd[M13],
+		   pd[M21], pd[M22], pd[M23],
+		   pd[M31], pd[M32], pd[M33]);
+#else /* !HAVE_FORM_IN_OSTREAM */
+   out << pd[M11] << sDefFill << pd[M12] << sDefFill << pd[M13] << sDefFill
+     << pd[M21] << sDefFill << pd[M22] << sDefFill << pd[M23] << sDefFill
+     << pd[M31] << sDefFill << pd[M32] << sDefFill << pd[M33];
+#endif /* !HAVE_FORM_IN_OSTREAM */
    
    return out;
 }

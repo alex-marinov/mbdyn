@@ -19,7 +19,10 @@ main(int argn, const char* const argv[])
 	   			<< "    reads the Euler angles (in degs)"
 				" from stdin;" << endl
 	   			<< "    writes the rotation matrix"
-				" (column-oriented) on standard output" << endl
+				" on standard output" << endl
+				<< "    (m11, m12, m13,"
+				" m21, m22, m23,"
+				" m31, m32, m33)" << endl
 				<< endl
 	   			<< "part of MBDyn package (Copyright (C)"
 				" Pierangelo Masarati, 1996-2000)" << endl
