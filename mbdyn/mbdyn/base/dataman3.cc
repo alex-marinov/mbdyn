@@ -37,6 +37,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
+#include <ltdl.h>
+#endif /* HAVE_LOADABLE && HAVE_LTDL_H */
+
 #include <dataman.h>
 #include <dataman_.h>
 
@@ -89,8 +93,9 @@ void DataManager::ReadControl(MBDynParser& HP,
       psReadControlElems[Elem::HYDRAULIC],      
       psReadControlElems[Elem::BULK],
       psReadControlElems[Elem::LOADABLE],
-      psReadControlDrivers[Drive::FILEDRIVE],       
-      
+      psReadControlDrivers[Drive::FILEDRIVE],
+
+      "loadable" "path",
       
       "skip" "initial" "joint" "assembly",
       "use",
@@ -148,6 +153,8 @@ void DataManager::ReadControl(MBDynParser& HP,
       BULKELEMENTS,
       LOADABLEELEMENTS,
       FILEDRIVERS,
+
+      LOADABLEPATH,
       
       SKIPINITIALJOINTASSEMBLY,
       USE,
@@ -401,7 +408,7 @@ void DataManager::ReadControl(MBDynParser& HP,
        }	     
 	 
 #if defined(HAVE_LOADABLE)
-	 /* Numero di elementi elettrici attesi */
+	 /* Numero di elementi caricabili attesi */
        case LOADABLEELEMENTS: {
 	  int iDmy = HP.GetInt();
 	  ElemData[Elem::LOADABLE].iNum = iDmy;	     	    
@@ -409,6 +416,51 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Loadable elements: " << iDmy << std::endl);
 	  break;
        }
+
+#if defined(HAVE_LTDL_H)
+       case LOADABLEPATH: {
+          int mode = 0;
+
+	  if (loadableElemInitialized == false) {
+	     if (lt_dlinit()) {
+	  	std::cerr << "unable to initialize loadable elements" << std::endl;
+      		THROW(ErrGeneric());
+	     }
+	     loadableElemInitialized = true;
+	  }
+
+	  if (HP.IsKeyWord("set")) {
+	     mode = 0;
+	  } else if (HP.IsKeyWord("add")) {
+	     mode = 1;
+	  }
+
+	  const char *s = HP.GetFileName();
+	  if (s == NULL) {
+	     std::cerr << "missing path in \"loadable path\" statement "
+		     "at line " << HP.GetLineData() << std::endl;
+	     THROW(ErrGeneric());
+	  }
+
+	  if (mode == 0) {
+	     if (lt_dlsetsearchpath(s) != 0) {
+	        std::cerr << "unable to set path \"" << s 
+			<< "in \"loadable path\" statement at line "
+			<< HP.GetLineData() << std::endl;
+	        THROW(ErrGeneric());
+	     }
+	  } else {
+	     if (lt_dladdsearchdir(s) != 0) {
+	        std::cerr << "unable to add path \"" << s 
+			<< "\" in \"loadable path\" statement at line "
+			<< HP.GetLineData() << std::endl;
+	        THROW(ErrGeneric());
+	     }
+	  }
+
+	  break;
+       }
+#endif /* HAVE_LTDL_H */
 #endif /* defined(HAVE_LOADABLE) */
 	 	 
 	 /* Numero di drivers attesi */

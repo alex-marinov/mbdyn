@@ -262,39 +262,11 @@ needsAirProperties(false)
 
    	SAFESTRDUP(module_name, s);
 #ifdef HAVE_LTDL_H
-	handle = lt_dlopen(module_name);
+	handle = lt_dlopenext(module_name);
 #elif defined(HAVE_DLFCN_H)
    	handle = dlopen(module_name, RTLD_NOW /* RTLD_LAZY */ );
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 
-#ifdef HAVE_GETCWD
-   	if (handle == NULL) {
-		/* look for module in cwd */
-		size_t l = strlen(module_name);
-		char cwd[PATH_MAX];
-
-		if (getcwd(cwd, sizeof(cwd)) == NULL 
-				|| strlen(cwd) >= (sizeof(cwd) - sizeof("/.so") - l)) {
-			std::cerr << "Loadable(" << uLabel 
-				<< "): unable to get current working directory"
-				<< std::endl;
-	                THROW(ErrGeneric());
-		}
-
-		strcat(cwd, "/");
-		strcat(cwd, module_name);
-		if (strcmp(module_name + l - 3, ".so") != 0) {
-			strcat(cwd, ".so");
-		}
-
-#ifdef HAVE_LTDL_H
-		handle = lt_dlopen(cwd);
-#elif defined(HAVE_DLFCN_H)
-		handle = dlopen(cwd, RTLD_NOW /* RTLD_LAZY */ );
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
-	}
-#endif /* HAVE_GETCWD */
-	
 	if (handle == NULL) {
       		std::cerr << "Loadable(" << uLabel 
 			<< "): unable to open module <" << module_name 
