@@ -34,10 +34,10 @@
 #ifndef VECITER_H
 #define VECITER_H
 
-#ifdef MBDYN_X_MULTITHREAD
+#ifdef USE_MULTITHREAD
 #include <signal.h>
 #include "ac/spinlock.h"
-#endif /* MBDYN_X_MULTITHREAD */
+#endif /* USE_MULTITHREAD */
 
 #include "myassert.h"
 
@@ -112,7 +112,7 @@ public:
 	};
 };
 
-#ifdef MBDYN_X_MULTITHREAD
+#ifdef USE_MULTITHREAD
 class InUse {
 public:
 	mutable sig_atomic_t	inuse;
@@ -199,6 +199,6 @@ public:
 	};
 };
 
-#endif /* MBDYN_X_MULTITHREAD */
+#endif /* USE_MULTITHREAD */
 
 #endif /* VECITER_H */
