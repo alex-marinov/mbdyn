@@ -159,6 +159,21 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		std::cerr << "dErr " << dErr << std::endl;
 #endif /* DEBUG_ITERATIVE */
 
+		if (outputIters()) {
+#ifdef USE_MPI
+			if (MBDynComm.Get_rank() == 0) {
+#endif /* USE_MPI */
+				std::cout << "\tIteration " << iIterCnt
+					<< " " << dErr;
+				if (bBuildMat && dErr >= Tol) {
+					std::cout << " J";
+				}
+				std::cout << std::endl;
+#ifdef USE_MPI
+			}
+#endif /* USE_MPI */
+		}
+		
 		if (dErr < Tol) {
 	 		return;
       		}
@@ -332,19 +347,6 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 					<< dx.dGetCoef(iTmpCnt) << std::endl;
 			}
 		}		
-		
-		
-		if (outputIters()) {
-#ifdef USE_MPI
-			if (MBDynComm.Get_rank() == 0) {
-#endif /* USE_MPI */
-				std::cout << "\tIteration " << iIterCnt
-					<< " " << dErr << " J"
-					<< std::endl;
-#ifdef USE_MPI
-			}
-#endif /* USE_MPI */
-		}
 		
       		pNLP->Update(&dx);
 

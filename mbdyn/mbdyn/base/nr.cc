@@ -126,6 +126,21 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 
 		dErr = MakeResTest(pS, *pRes)*pNLP->TestScale(pResTest);
 
+		if (outputIters()) {
+#ifdef USE_MPI
+			if (MBDynComm.Get_rank() == 0) {
+#endif /* USE_MPI */
+				std::cout << "\tIteration " << iIterCnt
+					<< " " << dErr;
+				if (dErr >= Tol && (bTrueNewtonRaphson || (iPerformedIterations%IterationBeforeAssembly == 0))){
+					std::cout << " J";
+				}
+				std::cout << std::endl;
+#ifdef USE_MPI
+			}
+#endif /* USE_MPI */
+		}
+		
       		if (dErr < Tol) {
 	 		return;
       		}
@@ -170,21 +185,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 			}
 		}		
 		
-		
-		if (outputIters()) {
-#ifdef USE_MPI
-			if (MBDynComm.Get_rank() == 0) {
-#endif /* USE_MPI */
-				std::cout << "\tIteration " << iIterCnt
-					<< " " << dErr << " J"
-					<< std::endl;
-#ifdef USE_MPI
-			}
-#endif /* USE_MPI */
-		}
-		
       		pNLP->Update(pSol);
-
 		
 		dSolErr = MakeSolTest(pS, *pSol);
 		if (outputIters()) {
