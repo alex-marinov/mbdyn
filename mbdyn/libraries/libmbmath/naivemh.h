@@ -45,7 +45,9 @@ class MultiThreadDataManager;
 /* Sparse Matrix */
 class NaiveMatrixHandler : public MatrixHandler {
 protected:
+	friend void* sum_naive_matrices(void* arg);
 	friend class NaiveSolver;
+	friend class ParNaiveSolver;
 	friend class MultiThreadDataManager;
 	integer iSize;
 	bool bOwnsMemory;
