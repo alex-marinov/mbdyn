@@ -3,7 +3,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  * 
- * Copyright (C) 1996-2000
+ * Copyright (C) 1996-2003
  * 
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -34,7 +34,7 @@
  * ADAMS2MBDyn (C) is a translator from ADAMS/View models in adm format
  * into raw MBDyn input files.
  * 
- * Copyright (C) 1999-2000
+ * Copyright (C) 1999-2003
  * Leonardo Cassan		<lcassan@tiscalinet.it>
  * 
  */

@@ -2,7 +2,7 @@
  * 
  * NASTRAN 2 MBDyn bulk data conversion tool
  * 
- * Copyright (c) 2000
+ * Copyright (c) 2003
  * 
  * Author:         Pierangelo Masarati <masarati@aero.polimi.it>
  * Affiliation:    Dipartimento di Ingegneria Aerospaziale

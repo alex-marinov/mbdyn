@@ -1,7 +1,7 @@
 dnl MBDyn (C) is a multibody analysis code.
 dnl http://www.mbdyn.org
 dnl
-dnl Copyright (C) 1996-2000
+dnl Copyright (C) 1996-2003
 dnl
 dnl Pierangelo Masarati     <masarati@aero.polimi.it>
 dnl Paolo Mantegazza        <mantegazza@aero.polimi.it>
@@ -29,7 +29,7 @@ dnl
 dnl *************************************************************************
 dnl *** Borrowed from:
 dnl
-dnl Copyright 1998-2001 The OpenLDAP Foundation, Redwood City, California, USA
+dnl Copyright 1998-2003 The OpenLDAP Foundation, Redwood City, California, USA
 dnl All rights reserved.
 dnl 
 dnl Redistribution and use in source and binary forms, with or without

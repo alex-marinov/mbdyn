@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2002
+ * Copyright (C) 2003
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>

@@ -23,3 +23,8 @@ if test -d contrib ; then
 fi
 autoconf
 
+#
+# Copyright update
+#
+# for i in `grep -Erl 'Copyright.*-200[^3]' .`; do sed 's;\(Copyright.*\)200[0-2];\12003;' $i >x; mv -f x $i; done
+#

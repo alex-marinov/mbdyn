@@ -2,7 +2,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2000
+ * Copyright (C) 1996-2003
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -462,6 +462,21 @@ class DataManager : public SolutionDataManager {
    void DofInit(void);
 
    void SetScale(VectorHandler& XScale) const;
+
+#if 0
+   /* DataOut: entita' che richiedono solo l'output */
+ protected:
+   struct {
+     DataOut *pFirstDataOut;
+     integer iNum;
+   } OutData[OutData::LASTDATAOUTTYPE];
+   integer iTotDataOut;
+   DataOut **pDataOut;
+
+ public:
+   void OutManager(void);
+   void OutManagerDestructor(void);
+#endif /* 0 */
 };
 
 /* DataManager - end */

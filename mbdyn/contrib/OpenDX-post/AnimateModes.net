@@ -18,7 +18,7 @@ include "M3Mul.net"
 // comment: macro reference (direct): FormatList /opt/dx/samples/macros/FormatListMacro.net
 // comment: macro reference (direct): M3TimesP3 @PREFIX@/contrib/OpenDX-post/M3TimesP3.net
 // comment: macro reference (direct): M3TimesP3 /data1/home/marc2/OpenDX-post/M3TimesP3.net
-// comment: Copyright (C) 2002
+// comment: Copyright (C) 2003
 // comment: 
 // comment: Marco Morandini <morandini@aero.polimi.it>
 // comment: 
