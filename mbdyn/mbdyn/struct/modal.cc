@@ -176,7 +176,7 @@ ppR1tot(NULL),
 ppR2(NULL), 
 ppF(NULL), 
 ppM(NULL),
-fOutFlex(sFileMod, ios::out | ios::noreplace)
+fOutFlex(sFileMod, ios::out /* | ios::noreplace */ )
 {
    SAFENEWARR(ppd1tot, Vec3*, NStrNodes, DMmm);
    SAFENEWARR(ppd2, Vec3*, NStrNodes, DMmm);
