@@ -31,6 +31,10 @@ moddae-prig3.cc
 moddae-pdef.cc
 	deformable pendulum, explicit ODE rewritten as implicit
 
+massdae.cc
+	linear dae system: two masses and two springs; a constraint
+		impose coincidence positions
+
 to build the modules, type
 
 	make <module-name>.so
