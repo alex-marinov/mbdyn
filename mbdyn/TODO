@@ -6,9 +6,9 @@ Copyright: 1996 Pierangelo Masarati
 
 ############################################################################
 URGENT!!!!!!!!!
- - Verify hydraulic stuff; add unit tests
+ - (DONE for pipe) Verify hydraulic stuff; add unit tests
  - Write hydraulic stuff manual
- - Fix C81 aerodynamic forces for transverse flow
+ - (DONE October 2000) Fix C81 aerodynamic forces for transverse flow
  - Fix template instantiation to increase portability
  - Verify modal element; fix ADAMS input
 
@@ -23,7 +23,8 @@ Known Bugs
  - The helicopter trim by Peters doesn't work very good
  - (Partially done) There is urgent need to refresh stuff like Drives and so, 
    to avoid tedious recompilations
-
+ - Restart stuff is broken
+   - (22 Nov 2000) fixing drives, constitutive law and beam stuff
 
 
 
@@ -47,13 +48,12 @@ Very Short Term
  - feedforward for GPC and DPC
 
 
-
 ##############################################################################
 Short Term
 
  - Piezoelectric beams (sensors)
  - (01-27-99) Hydraulic nodes and elements (Puggelli)
- - (done, fix bugs!...) Analytical model for helicopter rotor trim (from Peters') (Boscaini?)
+ - (done, fix bugs!...) Analytical model for helicopter rotor trim (Peters')
  - Piezo matrices as Constitutive laws <Vec6, Mat6xN> for non-linear piezo
  - BeamLumpedInertia: element that generates lumped inertia for the three nodes
    of a beam element from a 6x6 section constitutive law (or from m, S, J)
@@ -68,8 +68,7 @@ Short Term
 ##############################################################################
 Mid Term
 
- - Integration with NUVOLA for uncompressible rotor wake (Boscaini?)
- - (Cancelled) Integration with DADS Pre/Post Processing
+ - Integration with NUVOLA for uncompressible rotor wake
  - Integration with ADAMS Pre/Post Processing
  - Modal deformations (with aerodynamics and inertia, for wing and blades)
  - Parallel and iterative solution (Quaranta?)
@@ -81,3 +80,4 @@ Long Term (No Schedule)
 
  - Translation structural nodes (no rotations, for wires and so)
  - Wire element
+
