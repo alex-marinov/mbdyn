@@ -229,10 +229,6 @@ static struct option LongOpts[] = {
 
 
 extern void GetEnviron(MathParser&);
-
-/* flag di silent run (no output su stdout) */
-int fSilent = 0;
-int fPedantic = 0;
 const char* sDefaultInputFileName = "MBDyn";
 
 

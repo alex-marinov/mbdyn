@@ -53,6 +53,10 @@ se msg e' definito, viene aggiunto in coda al messaggio di default
 #include <myassert.h>
 #include <string.h>
 
+/* flag di silent run (no output su stdout) */
+int fSilent = 0;
+int fPedantic = 0;
+
 #ifdef DEBUG
 
 long int debug_level = MYDEBUG_ANY;
