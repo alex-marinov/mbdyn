@@ -1258,6 +1258,23 @@ the linearization becomes
 
 
 \section{Deformable Constraints}
+Definitions
+\begin{eqnarray*}
+	\T{f}_1 & = & \T{R}_1 \tilde{\T{f}}_1 \\
+	\T{f}_2 & = & \T{R}_2 \tilde{\T{f}}_2 \\
+	\T{R}_{1h} & = & \T{R}_1 \tilde{\T{R}}_{1h} \\
+	\T{R}_{2h} & = & \T{R}_2 \tilde{\T{R}}_{2h}
+\end{eqnarray*}
+where $\T{R}_i$ is the current orientation of node $i$, 
+$\tilde{\T{R}}_{ih}$ is a constant re-orientation of the joint
+with respect to node $i$, so $\T{R}_{ih}$ is the orientation
+of the joint with respect to the global frame;
+$\tilde{\T{f}}_i$ is the offset of the joint with respect to
+node $i$ in the node reference frame, so $\T{f}_i$ is the offset 
+of the joint with respect to node $i$ in the global frame, and
+$\T{x}_i+\T{f}_i$ is the position of the joint with respect 
+to the global frame.
+
 
 \subsection{Deformable Hinge}
 The deformable hinge applies an internal moment to two nodes that may depend
@@ -1266,7 +1283,8 @@ on their relative orientation and angular velocity through a 3D constitutive law
 \noindent
 The relative orientation is computed in analogy with the Drive Hinge joint
 \begin{equation*}
-	\T{\theta} = \llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{1h}^T \T{R}_{2h}}}
+	\tilde{\T{\theta}} =
+	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{1h}^T \T{R}_{2h}}}
 \end{equation*}
 The relative angular velocity is
 \begin{equation*}
@@ -1274,8 +1292,8 @@ The relative angular velocity is
 \end{equation*}
 The linearization of the relative orientation yields
 \begin{equation*}
-	\T{\theta}_{\delta} \cong
-	\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \plbr{
+	\tilde{\T{\theta}}_{\delta} \cong
+	\T{\Gamma}\plbr{\tilde{\T{\theta}}}^{-1} \T{R}_{1h}^T \plbr{
 		\delta\T{g}_2 - \delta\T{g}_1
 	}
 \end{equation*}
@@ -1290,12 +1308,12 @@ The linearization of the angular velocity yields
 \end{equation*}
 The moment is
 \begin{equation*}
-	\T{M}_i = \plbr{ -1 }^i \T{R}_{1h} \tilde{\T{M}}\plbr{\T{\theta}, \tilde{\T{\omega}}}
+	\T{M}_i = \plbr{ -1 }^i \T{R}_{1h} \tilde{\T{M}}\plbr{\tilde{\T{\theta}}, \tilde{\T{\omega}}}
 \end{equation*}
 Its linearization yields
 \begin{equation*}
 	\delta\T{M}_i \cong \plbr{ -1 }^i \T{R}_{1h} \plbr{
-		\tilde{\T{M}}_{/\T{\theta}} \T{\theta}_{\delta}
+		\tilde{\T{M}}_{/\tilde{\T{\theta}}} \tilde{\T{\theta}}_{\delta}
 		+ \tilde{\T{M}}_{/\tilde{\T{\omega}}} \delta\tilde{\T{\omega}}
 	} - \T{M}_i \times \delta\T{g}_1
 \end{equation*}
