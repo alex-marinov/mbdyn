@@ -196,6 +196,16 @@ __i_get_num_priv_data(const LoadableElem* /* pEl */ )
    	return 0;
 }
 
+static unsigned int 
+__i_get_priv_data_idx(const LoadableElem* /* pEl */ , const char *s)
+{
+   	std::cerr << "You shouldn't be here!" << std::endl;
+   	THROW(ErrGeneric());
+#ifndef USE_EXCEPTIONS
+        return 0;
+#endif /* USE_EXCEPTIONS */
+}
+
 static doublereal 
 __d_get_priv_data(const LoadableElem* /* pEl */ , unsigned int /* i */ )
 {
@@ -434,6 +444,10 @@ needsAirProperties(false)
 		calls->i_get_num_priv_data = __i_get_num_priv_data;
 	}
 
+	if (calls->i_get_priv_data_idx == NULL) {
+		calls->i_get_priv_data_idx = __i_get_priv_data_idx;
+	}
+
 	if (calls->d_get_priv_data == NULL) {
 		calls->d_get_priv_data = __d_get_priv_data;
 	}
@@ -631,6 +645,13 @@ LoadableElem::iGetNumPrivData(void) const
 {
    	ASSERT(calls->i_get_num_priv_data != NULL);
    	return (*calls->i_get_num_priv_data)(this);
+}
+
+unsigned int 
+LoadableElem::iGetPrivDataIdx(const char *s) const
+{
+   	ASSERT(calls->i_get_priv_data_idx != NULL);
+   	return (*calls->i_get_priv_data_idx)(this, s);
 }
 
 doublereal 

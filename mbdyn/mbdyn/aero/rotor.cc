@@ -124,6 +124,69 @@ Rotor::~Rotor(void)
 #endif /* USE_MPI */
 }
 
+unsigned int
+Rotor::iGetNumPrivData(void) const {
+	return 6;
+}
+   
+unsigned int
+Rotor::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+
+	unsigned int idx = 0;
+
+	switch (s[0]) {
+	case 'T':
+		break;
+		
+	case 'M':
+		idx = 3;
+		break;
+
+	default:
+		/* error; handled later */
+		return 0;
+	}
+
+	switch (s[1]) {
+	case 'x':
+		idx += 1;
+		break;
+
+	case 'y':
+		idx += 2;
+		break;
+
+	case 'z':
+		idx += 3;
+		break;
+
+	default:
+		/* error; handled later */
+		return 0;
+	}
+
+	return idx;
+}
+
+doublereal
+Rotor::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i > 0 && i <= 6);
+
+	if (i >= 1 && i <= 3) {
+		return Res.Force().dGet(i);
+	} else if (i >= 4 && i <= 6) {      
+		return Res.Couple().dGet(i-3);
+	} else {
+		THROW(ErrGeneric());
+	}
+#ifndef USE_EXCEPTIONS
+	return 0.;
+#endif /* USE_EXCEPTIONS */
+}
+ 
 /* Tipo dell'elemento (usato per debug ecc.) */
 Elem::Type Rotor::GetElemType(void) const
 {

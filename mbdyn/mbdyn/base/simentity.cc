@@ -92,5 +92,25 @@ SimulationEntity::AfterConvergence(const VectorHandler& /* X */ ,
 	NO_OP;
 }
 
+unsigned int
+SimulationEntity::iGetNumPrivData(void) const 
+{
+	return 0;
+}
+
+unsigned int
+SimulationEntity::iGetPrivDataIdx(const char *s) const 
+{
+	std::cerr << "no private data available" << std::endl;
+	THROW(ErrGeneric());
+}
+
+doublereal
+SimulationEntity::dGetPrivData(unsigned int /* i */ ) const
+{
+	std::cerr << "no private data available" << std::endl;
+	THROW(ErrGeneric());
+}
+
 /* SimulationEntity - end */
 

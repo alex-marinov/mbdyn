@@ -178,12 +178,6 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput {
    };
    /* ************************************************ */
 
-   /* Metodi per l'estrazione di dati "privati".
-    * Si suppone che l'estrattore li sappia interpretare.
-    * Come default non ci sono dati privati estraibili */
-   virtual unsigned int iGetNumPrivData(void) const;
-   virtual doublereal dGetPrivData(unsigned int i) const;
-   
    /* Funzioni di casting sicuro verso elementi derivati */
    virtual inline void* pGet(void) const = 0;
    

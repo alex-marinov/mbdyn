@@ -45,6 +45,23 @@
  * Functional class that introduces methods to handle the simulation.
  * 
  * Ancestor of nodes and elements.
+ *
+ * Usage pattern:
+ * 
+ * pre-operation:
+ *	iGetNumDof()
+ *	fIsValidIndex()
+ *	SetDof()
+ *	SetValue()
+ *	iGetNumPrivData()
+ *	iGetPrivDataIdx()
+ *
+ * runtime:
+ * 	BeforePredict()		: prepare for prediction
+ *	AfterPredict()		: account for predicted state
+ *	Update()		: use converged solution
+ *	AfterConvergence()	: account for conveged state
+ *	dGetPrivData()		: get an internal state
  */
 
 class SimulationEntity {
@@ -114,6 +131,26 @@ public:
 	 */
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);
+
+	/*
+	 * Metodi per l'estrazione di dati "privati".
+	 * Si suppone che l'estrattore li sappia interpretare.
+	 * Come default non ci sono dati privati estraibili
+	 */
+	virtual unsigned int iGetNumPrivData(void) const;
+
+	/*
+	 * Maps a string (possibly with substrings) to a private data;
+	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+	 * in case of unrecognized data; error must be handled by caller
+	 */
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+
+	/*
+	 * Returns the current value of a private data
+	 * with 0 < i <= iGetNumPrivData()
+	 */
+	virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 /* SimulationEntity - end */

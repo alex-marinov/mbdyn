@@ -252,23 +252,9 @@ class Rotor
    /* Metodi per l'estrazione di dati "privati".
     * Si suppone che l'estrattore li sappia interpretare.
     * Come default non ci sono dati privati estraibili */
-   virtual unsigned int iGetNumPrivData(void) const {
-      return 6;
-   };
-   
-   virtual doublereal dGetPrivData(unsigned int i) const {
-      if (i >= 1 && i <= 3) {
-	 return Res.Force().dGet(i);
-      } else if (i >= 4 && i <= 6) {      
-	 return Res.Couple().dGet(i-3);
-      } else {
-	 THROW(ErrGeneric());
-      }
-#ifndef USE_EXCEPTIONS
-      return 0.;
-#endif /* USE_EXCEPTIONS */
-   };
-   
+   virtual unsigned int iGetNumPrivData(void) const;
+   virtual unsigned int iGetPrivDataIdx(const char *s) const;
+   virtual doublereal dGetPrivData(unsigned int i) const;
    
    /* Somma alla trazione il contributo di un elemento */
    virtual void AddForce(unsigned int uL, 

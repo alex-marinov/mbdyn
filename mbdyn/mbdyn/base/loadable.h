@@ -33,7 +33,13 @@
 
 #define LOADABLE_VERSION_SET(maj, min, fix)	\
 	(((maj) << 24) | ((min) << 16) | (fix))
-#define LOADABLE_VERSION	LOADABLE_VERSION_SET(1, 0, 0)
+#define LOADABLE_VERSION	LOADABLE_VERSION_SET(1, 1, 0)
+/*
+ * CHANGELOG:
+ * 
+ * 2003-02-25: 1.1.0 added hook for iGetPrivDataIdx()
+ * 2002-XX-XX: 1.0.0 added versioning system to detect structure conflicts
+ */
 
 #ifdef HAVE_LTDL_H
 #include <ltdl.h>
@@ -159,6 +165,8 @@ typedef void
 		VectorHandler&);
 typedef void (* p_set_initial_value)(const LoadableElem*, VectorHandler&);
 typedef unsigned int (* p_i_get_num_priv_data)(const LoadableElem* pEl);
+typedef unsigned int (* p_i_get_priv_data_idx)(const LoadableElem* pEl, 
+		const char *);
 typedef doublereal
 (* p_d_get_priv_data)(const LoadableElem* pEl, 
 		      unsigned int i);
@@ -218,6 +226,7 @@ struct LoadableCalls {
 	p_set_value			set_value;
 	p_set_initial_value		set_initial_value;
 	p_i_get_num_priv_data		i_get_num_priv_data;
+	p_i_get_priv_data_idx		i_get_priv_data_idx;
 	p_d_get_priv_data		d_get_priv_data;
 	p_i_get_num_connected_nodes	i_get_num_connected_nodes;
 	p_get_connected_nodes		get_connected_nodes;
@@ -303,6 +312,7 @@ public:
    	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
 
    	virtual unsigned int iGetNumPrivData(void) const;
+   	virtual unsigned int iGetPrivDataIdx(const char *s) const;
    	virtual doublereal dGetPrivData(unsigned int i) const;
 
 	bool NeedsAirProperties(void) const;

@@ -76,21 +76,6 @@ Elem::SetDof(unsigned int) const
 }
 
 
-/* Metodi per l'estrazione di dati "privati".
- * Si suppone che l'estrattore li sappia interpretare.
- * Come default non ci sono dati privati estraibili */
-unsigned int Elem::iGetNumPrivData(void) const 
-{
-   return 0;
-}
-
-
-doublereal Elem::dGetPrivData(unsigned int /* i */ ) const
-{
-   return 0.;
-}
-
-
 Elem* Elem::pGetElem(void) const
 {
    return (Elem*)this; 
