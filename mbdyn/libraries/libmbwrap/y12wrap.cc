@@ -714,7 +714,7 @@ Y12SparseCCSolutionManager<CC>::~Y12SparseCCSolutionManager(void)
 
 template <class CC>
 void
-Y12SparseCCSolutionManager<CC>::MatrReset()
+Y12SparseCCSolutionManager<CC>::MatrReset(void)
 {
 	if (!CCReady) {
 		MH.Reset();
