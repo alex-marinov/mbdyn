@@ -24,6 +24,7 @@ MBDyn 1.2-Engineering
 	Bug fixes:
 		- fixed aeromodal bug for v=0
 		- fixed solver diagnostics incremental activation
+		- fixed 3 node beam constitutive law type selection
 	Known Issues:
 		- parallel is not working yet
 	Backward compatibility issues:

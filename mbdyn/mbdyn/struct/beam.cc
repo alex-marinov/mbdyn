@@ -1894,7 +1894,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    Elem* pEl = NULL;
    
    if ((CLType_I == ConstLawType::ELASTIC) 
-       && (CLType_I == ConstLawType::ELASTIC)) {
+       && (CLTypeII == ConstLawType::ELASTIC)) {
 
 #if defined(USE_ELECTRIC_NODES)      
       if (fPiezo == 0) {	 
