@@ -606,6 +606,13 @@ void Solver::Run(void)
    	DEBUGCOUT("Derivatives solution step has been performed successfully"
 		  " in " << iStIter << " iterations" << std::endl);
    
+#ifdef USE_EXTERNAL
+	/* comunica che gli ultimi dati inviati sono la condizione iniziale */
+	if (iFictitiousStepsNumber == 0) {
+		External::SendInitial();
+	}
+#endif /* USE_EXTERNAL */
+
    	if (fAbortAfterDerivatives) {
       		/*
 		 * Fa l'output della soluzione delle derivate iniziali ed esce
@@ -818,6 +825,10 @@ void Solver::Run(void)
       		DEBUGLCOUT(MYDEBUG_FSTEPS, 
 			   "Fictitious steps have been completed successfully"
 			   " in " << iStIter << " iterations" << std::endl);
+#ifdef USE_EXTERNAL
+	/* comunica che gli ultimi dati inviati sono la condizione iniziale */
+	External::SendInitial();
+#endif /* USE_EXTERNAL */
    	} /* Fine dei passi fittizi */
 
    	/* Output delle "condizioni iniziali" */
@@ -832,6 +843,7 @@ void Solver::Run(void)
      			<< " error " << dTest << std::endl;
 	}
    
+
    	if (fAbortAfterFictitiousSteps) {
       		Out << "End of dummy steps; no simulation is required."
 			<< std::endl;
@@ -845,7 +857,9 @@ void Solver::Run(void)
    	}
 
 	/* primo passo regolare */
+
 #ifdef USE_EXTERNAL
+	/* il prossimo passo e' un regular */
 	pNLS->SetExternal(External::REGULAR);
 #endif /* USE_EXTERNAL */
 	

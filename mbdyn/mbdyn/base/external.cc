@@ -52,6 +52,17 @@ void SendNull(void) {
 	}
 }
 
+/* setta il sistema per una comunicare che gli ultimi dati inviati 
+   sono le condizioni iniziali post assemblaggio e passi fittizi */
+void SendInitial(void) {
+	std::list<MPI::Intercomm>::iterator iComm; 
+	std::list<MPI::Intercomm>::const_iterator iComm_end = InterfaceComms.end(); 
+	char buff = 'I';
+	for(iComm = InterfaceComms.begin(); iComm != iComm_end; iComm++) {
+		iComm->Send(&buff, 1, MPI::CHAR, 0, 0);
+	}
+}
+
 /* setta il sistema per una connessione regolare con il codice interfaciato */
 void SendRegular(void) {
 	std::list<MPI::Intercomm>::iterator iComm; 

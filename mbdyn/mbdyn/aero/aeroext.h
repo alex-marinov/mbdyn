@@ -48,7 +48,7 @@
 
 class AerodynamicExternal
 	: virtual public Elem,
-	public AerodynamicElem {
+	public AerodynamicElem, public DriveOwner {
 
 private:
 	MyVectorHandler*   pdBuffer;    /* buffer per lo scambio dei dati riguardanti 
@@ -66,9 +66,12 @@ private:
 	MPI::Prequest* 	   pRecReq;
 	bool               VelFlag;
 	bool		   MomFlag;
+	bool               SentFlag;
+
 public:
 	
 	AerodynamicExternal(unsigned int uLabel,
+			    const DriveCaller* pDC,
 			    int NN,
 			    const StructNode** ppN,
 			    const doublereal* RefL,
@@ -77,7 +80,8 @@ public:
 			    bool VF,
 			    bool MF);
 
-	AerodynamicExternal(unsigned int uLabel, 
+	AerodynamicExternal(unsigned int uLabel,
+			    const DriveCaller* pDC, 
 			    int NN,
 			    const StructNode** ppN,
 			    const doublereal* RefL,
@@ -91,7 +95,7 @@ public:
 	virtual ~AerodynamicExternal(void);
 	
 	bool NeedsAirProperties(void) const
-	{ return false; };
+	{ return true; };
 	
 	/* Tipo dell'elemento (usato per debug ecc.) */
    	Elem::Type GetElemType(void) const 
@@ -197,7 +201,8 @@ private:
 /* AerodynamicExternalModal */
 class AerodynamicExternalModal
 	: virtual public Elem,
-	public AerodynamicElem {
+	public AerodynamicElem,
+	public DriveOwner {
 
 protected:
 	
@@ -212,10 +217,12 @@ protected:
 	MPI::Prequest* 	   pRecReq;
 	bool               VelFlag;
 	bool		   MomFlag;
+	bool               SentFlag;
 
 public:
 	
 	AerodynamicExternalModal(unsigned int uLabel,
+			    const DriveCaller* pDC,
 			    Modal* pM,
 			    MPI::Intercomm* IC,
 			    flag fOut,

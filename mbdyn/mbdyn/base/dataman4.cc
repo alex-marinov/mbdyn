@@ -1374,6 +1374,8 @@ Elem** ReadOneElem(DataManager* pDM,
     }	 
       
       /* Elementi aerodinamici: aeromodal */
+    case AERODYNAMICEXTERNAL:
+    case AERODYNAMICEXTERNALMODAL:
     case AERODYNAMICBODY:
     case AERODYNAMICBEAM:
     case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */

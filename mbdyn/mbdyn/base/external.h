@@ -45,6 +45,7 @@ namespace External {
 
 	enum ExtMessage{
 		EMPTY,
+		INITIAL,
 		REGULAR,
 		CLOSE,
 		ERROR
@@ -52,6 +53,8 @@ namespace External {
 	
 	void SendNull(void);
 
+	void SendInitial(void);
+	
 	void SendRegular(void);
 
 	void SendClose(void);

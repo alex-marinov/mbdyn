@@ -936,15 +936,12 @@ RunMBDyn(MBDynParser& HP,
 			SAFENEWARR(pBuff, int, size+1);
 			pBuff[0] = 0;
 			MPI::COMM_WORLD.Allgather(pBuff, 1, MPI::INT, pBuff+1, 1, MPI::INT);
-			MPI::Group WorldGroup = MPI::COMM_WORLD.Get_group();
-			int* pRan = NULL;
-			SAFENEWARR(pRan, int, size);
 			std::vector<unsigned int> iInterfaceProc(5);
 			unsigned int Bcount = 0;
 			unsigned int Icount = 0;
 			for (unsigned int i = 1; i <= size; i++) {
 				if (pBuff[i] == pBuff[0]) {
-					pRan[Bcount++] = i-1;
+					Bcount++;
 				}
 				if (pBuff[i] > 9) {
 					if (Icount <= 5) { 
@@ -959,18 +956,14 @@ RunMBDyn(MBDynParser& HP,
 				/* l'unica cosa che c'e' e' MBDyn */
 				MBDynComm = MPI::COMM_WORLD.Dup();
 			} else {
-				MPI::Group MBDynGroup = WorldGroup.Incl(Bcount, pRan);
-		 		MBDynComm = MPI::COMM_WORLD.Create(MBDynGroup);
-				MBDynGroup.Free();
+				MBDynComm = MPI::COMM_WORLD.Split(pBuff[0],1);
 			}
-			WorldGroup.Free();
 			if (Icount != 0) {
 				for (unsigned int ii = 0; ii < Icount; ii++) {
 					InterfaceComms.push_back(MBDynComm.Create_intercomm(0, MPI::COMM_WORLD, iInterfaceProc[ii], INTERF_COMM_LABEL));
 				}
 			}
 			SAFEDELETEARR(pBuff);
-			SAFEDELETEARR(pRan);
 #else /* USE_EXTERNAL */
 			MBDynComm = MPI::COMM_WORLD.Dup();
 #endif /* USE_EXTERNAL */			
