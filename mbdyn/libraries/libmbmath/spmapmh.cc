@@ -223,51 +223,47 @@ SpMapMatrixHandler::MakeNaiveForm(doublereal *const Ax,
 		int offset) const
 {
 	integer	size = iGetNumRows();
-
+	
 	for (integer col = 0; col < NCols; col++) {
 		row_cont_type::iterator row_it = col_indices[col].begin();
 		row_cont_type::const_iterator row_end = col_indices[col].end();
 
 		for (; row_it != row_end; row_it++) {
 			integer irow = row_it->first;
-			integer icol = col;
+			integer nirow = size*irow;
+// 			integer icol = col;
+			
+			if (row_it->second) {
+				Ax[nirow + col] = row_it->second;
 
-#if 0
-			if (row_it->second == 0.) {
-				continue;
+				Arow[nirow + col] |= 0xF0000000;
+				Arow[size*col + nzr[col]] |= irow;
+				Acol[nirow + nzc[irow]] = col;
+// 				std::cerr << "inserisco in " <<
+// 					nirow + nzc[irow] <<
+// 					" " << col << std::endl;
+
+				nzc[irow]++;
+				nzr[col]++;
 			}
-			Ax[size*irow + col] = row_it->second;
-#else
-			if (row_it->second == 0.) {
-				Ax[size*irow + col] = 1.e-307;
-			} else {
-				Ax[size*irow + col] = row_it->second;
-			}
-#endif
-
-			Arow[size*icol + nzr[icol]] = irow;
-			Acol[size*irow + nzc[irow]] = icol;
-
-			nzc[irow]++;
-			nzr[icol]++;
 		}
 	}
 
-#if 1
+#if 0
 	std::cerr << "/////////////////////////////////////" << std::endl;
 	std::cerr << "int neq = " << size << ";" << std::endl;
 	std::cerr << "int nzr[] = {" << std::endl;
 	for (integer ir = 0; ir < size - 1; ir++) {
 		std::cerr << "\t" << nzr[ir] << "," << std::endl;
 	}
-	std::cerr << "\t" << nzr[0] << std::endl
+	std::cerr << "\t" << nzr[size - 1] << std::endl
 		<< "};" << std::endl;
 
 	std::cerr << "int nzc[] = {" << std::endl;
 	for (integer ir = 0; ir < size - 1; ir++) {
 		std::cerr << "\t" << nzc[ir] << "," << std::endl;
 	}
-	std::cerr << "\t" << nzc[0] << std::endl
+	std::cerr << "\t" << nzc[size - 1] << std::endl
 		<< "};" << std::endl;
 
 	std::cerr << "int ri[]["<< size << "] = {" << std::endl;
@@ -316,14 +312,16 @@ SpMapMatrixHandler::MakeNaiveForm(std::vector<doublereal>& Ax,
 	integer s2 = s*s;
 
 	Ax.resize(s2);
-	std::fill(Ax.begin(), Ax.end(), 0.);
+	//std::fill(Ax.begin(), Ax.end(), 0.);
 	Arow.resize(s2);
+	std::fill(Arow.begin(), Arow.end(), 0);
 	Acol.resize(s2);
 
 	Nzr.resize(s, 0);
 	std::fill(Nzr.begin(), Nzr.end(), 0);
 	Nzc.resize(s, 0);
 	std::fill(Nzc.begin(), Nzc.end(), 0);
+	
 
 	return MakeNaiveForm(&Ax[0], &Arow[0], &Acol[0],
 			&Nzr[0], &Nzc[0], offset);

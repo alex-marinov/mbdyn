@@ -96,13 +96,13 @@ void
 NaiveSolver::Factor(void)
 {
 	int		rc;
-	doublereal	minpiv = 1e-9;
+	doublereal	minpiv = 1.E-6;
 	
 	rc = naivfct(Axp, iSize, &nzr[0], Arowp, &nzc[0], Acolp,
 			iSize, &piv[0], minpiv);
 
-#define ENULCOL  -1
-#define ENOPIV   -2
+#define ENULCOL  -1000000
+#define ENOPIV   -2000000
 
 	switch (rc) {
 	case ENULCOL:

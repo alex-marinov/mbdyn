@@ -2,26 +2,21 @@
 #include <stdio.h>
 #include <math.h>
 
-#define  NOPIV    1
-#define  SPRSPIV  2
-#define  FULLPIV  3
-
-//#define  PIVMETH  NOPIV
-#define  PIVMETH  SPRSPIV
-//#define  PIVMETH  FULLPIV
+#define  SPRSPIV
 
 // questi 2 non sono colpa mia, li ha chiesti PierMasa
 typedef int     integer;
 typedef double  doublereal;
 
-#define MAXINT   ((1 << 30) - 1)
-#define NEGLGBL  1.0e-64
+#define BIGINT   (1 << 30)
 
-#define ENULCOL  1
-#define ENOPIV   2
+#define ENULCOL  1000000
+#define ENOPIV   2000000
 
-#define is_a_zero_double(a)  (!((unsigned long *)&a)[1])
-//#define is_a_zero_double(a)  (!(a))
+#define HIGH  0xF0000000
+#define LOW   0x0FFFFFFF
+
+#define MINPIV   1.0e-8
 
 int naivfct(void *mat_a, integer neq, integer *vet_nzr, void *mat_ri, integer *vet_nzc, void *mat_ci, integer ncd, integer *vet_piv, doublereal minpiv)
 {
@@ -42,54 +37,51 @@ int naivfct(void *mat_a, integer neq, integer *vet_nzr, void *mat_ri, integer *v
 	integer i, j, k, m, pvr, pvc, nr, nc, r;
 	doublereal den, mul;
 
+	if (!minpiv) {
+		minpiv = MINPIV;
+	}
 	for (pvr = 0; pvr < neq; pvr++) {
 		piv(pvr) = todo(pvr) = -1;
 	}
 	for (i = 0; i < neq; i++) {
-		if (!nzr(i)) { return -ENULCOL; }
-		m = MAXINT;	
+		if (!nzr(i)) { return -(ENULCOL + i); }
+		m = BIGINT;	
 		nr = nzr(i);
-#if PIVMETH == SPRSPIV
+		mul = 0.0;
 		for (k = 0; k < nr; k++) {
-			r = ri(i, k);
-			if (todo(r) && nzc(r) < m && fabs(a(r, i)) > minpiv) {
-				m = nzc(pvr = r);	
-			}
-		}
-#endif
-#if PIVMETH == FULLPIV
-		mul = minpiv;
-		for (k = 0; k < nr; k++) {
-			r = ri(i, k);
+			r = ri(i, k) & LOW;
 			if (todo(r) && fabs(a(r, i)) > mul) {
 				mul = fabs(a(r, i));
 				m = nzc(pvr = r);	
 			}
 		}
+		if (m == BIGINT) { return -(ENOPIV + i); }
+#ifdef SPRSPIV
+		mul *= minpiv;
+		for (k = 0; k < nr; k++) {
+			r = ri(i, k) & LOW;
+			if (todo(r) && nzc(r) < m && fabs(a(r, i)) > mul) {
+				m = nzc(pvr = r);	
+			}
+		}
 #endif
-#if PIVMETH == NOPIV
-		pvr = i;
-#endif
-		if (m == MAXINT) { return -ENOPIV; }
 		piv(i) = pvr;
 		todo(pvr) = 0;
 		den = a(pvr, i) = 1.0/a(pvr, i);
 		nr = nzr(i);
 		nc = nzc(pvr);
 		for (k = 0; k < nr; k++) {
-			if (!todo(r = ri(i, k))) { continue; }
+			if (!todo(r = ri(i, k) & LOW)) { continue; }
 			mul = a(r, i) = a(r, i)*den;
 			for (j = 0; j < nc; j++) {
 				if ((pvc = ci(pvr, j)) <= i) { continue; }
-				if (is_a_zero_double(a(r, pvc))) {
-					a(r, pvc) = -mul*a(pvr, pvc);
-					ri(pvc, nzr(pvc)++) = r;
-					ci(r, nzc(r)++) = pvc;
-				} else {
+				if (ri(r, pvc) & HIGH) {
 					a(r, pvc) -= mul*a(pvr, pvc);
-					if (is_a_zero_double(a(r, pvc))) {
-						a(r, pvc) = NEGLGBL;
-					}
+				} else {
+					a(r, pvc) = -mul*a(pvr, pvc);
+					ri(r, pvc) |= HIGH;
+					ri(pvc, nzr(pvc)++) |= r;
+					ci(r, nzc(r)++) = pvc;
 				}
 			}
 		}
