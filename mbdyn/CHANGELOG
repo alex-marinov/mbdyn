@@ -16,7 +16,7 @@ MBDyn 1.X-Engineering
 		- added TAUCS linear solver (experimental) (by Marco Morandini)
 		- added "ad hoc" (Radau IIA) third-order integrator
 		- honor describe dofs directive in initial assembly
-		- added support for describing equations
+		- added support for equation description
 		- added support for namespaces in math parser
 		- added model:: namespace with basic functions
 	Backward compatibility issues:
