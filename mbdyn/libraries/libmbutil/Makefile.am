@@ -5,6 +5,8 @@ include $(top_srcdir)/build/top.mk
 lib_LTLIBRARIES = libmbutil.la
 
 libmbutil_la_SOURCES = \
+crypt.cc \
+crypt.h \
 destr.h \
 dummypgin.cc \
 dummypgin.h \
