@@ -69,9 +69,15 @@ C 3 direzione lungo l'apertura,
 C DM*W da' la velocita' nel punto a 3/4 della corda      
 */
 
-extern c81_data* get_c81_data(int jpro);
+extern c81_data *get_c81_data(int jpro);
+
 static int bisec(double* v, double val, int lb, int ub);
-double get_coef(int nm, double* m, int na, double* a, double alpha, double mach);
+static double 
+get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
+	 int *pim);
+static int
+get_stall(int nm, double* m, double* s, double mach, int im,
+          double *dcpa, double *dasp, double *dasm);
 
 int 
 c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
@@ -87,12 +93,15 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	
 	double cl, cd, cd0, cm;
 	double alpha, gamma, cosgam, mach, q;
+	double dcl, dcpa, dasp, dasm;
 	
 	double ca = VAM[3];
 	double c34 = VAM[4];
 	
 	const double RAD2DEG = 180.*M_1_PI;
 	const double M_PI_3 = M_PI/3.;
+
+	int im;
 	
 	/* porta la velocita' al punto di calcolo delle boundary conditions */
 	v[0] = W[0];
@@ -149,31 +158,77 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	mach = vtot/cs*sqrt(cosgam);
 	OUTA[3] = mach;
 	
-	cl = get_coef(data->NML, data->ml, data->NAL, data->al, OUTA[1], mach);
-	cd = get_coef(data->NMD, data->md, data->NAD, data->ad, OUTA[1], mach);
-	cd0 = get_coef(data->NMD, data->md, data->NAD, data->ad, 0., mach);
-	cm = get_coef(data->NMM, data->mm, data->NAM, data->am, OUTA[1], mach);
+	/*
+	 * Note: all angles in c81 files is in degrees
+	 */
+	cl = get_coef(data->NML, data->ml, data->NAL, data->al, OUTA[1], mach,
+		      &im);
+	cd = get_coef(data->NMD, data->md, data->NAD, data->ad, OUTA[1], mach,
+		      NULL);
+	cd0 = get_coef(data->NMD, data->md, data->NAD, data->ad, 0., mach,
+		      NULL);
+	cm = get_coef(data->NMM, data->mm, data->NAM, data->am, OUTA[1], mach,
+		      NULL);
+
+#if 0
+	get_stall(data->NML, data->ml, data->stall, mach, im, 
+		  &dcpa, &dasp, &dasm);
+	
+	dcl = dcpa*(1.-cosgam)/cosgam;
+	if (OUTA[1] < dasm) {
+		cl += dasm*dcl;
+	} else if (OUTA[1] > dasp) {
+		cl += dasp*dcl;
+	} else {
+		cl /= cosgam;
+	}
+#endif /* 0 */
 	
 	OUTA[4] = cl;
 	OUTA[5] = cd;
 	OUTA[6] = cm;
 	
 	q = .5*rho*chord*vp2;
+
+	TNG[0] = -q*(cl*v[1]+cd*v[0])/vp;
+	TNG[1] = q*(cl*v[0]-cd*v[1])/vp;
+	TNG[2] = -q*cd0*v[2]/vp;
+	TNG[3] = 0.;
+	TNG[4] = -ca*TNG[2];
+	TNG[5] = -q*chord*cm-ca*TNG[1];
 	
+#if 0
 	TNG[0] = -q*(cl/cosgam*v[1]+cd*v[0])/vp;
 	TNG[1] = q*(cl/cosgam*v[0]-cd*v[1])/vp;
 	TNG[2] = -q*cd0*v[2]/vp;
 	TNG[3] = 0.;
 	TNG[4] = -ca*TNG[2];
 	TNG[5] = -q*chord*cm-ca*TNG[1];
+#endif /* 0 */
 	
 	return 0;
 }
 
-/* algoritmo di bisezione per ricerca efficiente di angoli */
+/*
+ * algoritmo di bisezione per ricerca efficiente degli angoli
+ *
+ * v:	array dei valori
+ * val:	valore da cercare
+ * lb:	indice inferiore
+ * ub:	indice superiore
+ *
+ * restituisce l'indice corrispondente al valore di v
+ * che approssima per eccesso val;
+ * se val > v[ub] restituisce ub+1;
+ * se val < v[lb] restituisce lb.
+ * quindi v[ret-1] <= val <= v[ret]
+ *
+ * Nota: ovviamente si presuppone che i valori di v siano ordinati in modo
+ * crescente e strettamente monotono, ovvero v[i] < v[i+1].
+ */
 static int 
 bisec(double* v, double val, int lb, int ub)
-{   
+{
 	if (val < v[lb]) {
 		return lb;
 	}
@@ -196,9 +251,18 @@ bisec(double* v, double val, int lb, int ub)
    	return lb;
 }
 
-/* trova un coefficiente dato l'angolo ed il numero di Mach */
-double
-get_coef(int nm, double* m, int na, double* a, double alpha, double mach)
+/*
+ * trova un coefficiente dato l'angolo ed il numero di Mach
+ *
+ * il numero di Mach mach viene cercato nell'array m di lunghezza nm
+ * ed interpolato linearmente; quindi il coefficiente alpha viene cercato
+ * nella prima colonna della matrice a di dimensioni na x nm+1 ed interpolato
+ * linearmente; infine il coefficiente corrispondente alla combinazione di
+ * mach e alpha viene restituito.
+ */
+static double
+get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
+	 int *pim)
 {
    	int im;
    	int ia;
@@ -214,29 +278,34 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach)
 	
 	mach = fabs(mach);
 	
+	/*
+	 * im e' l'indice di m in cui si trova l'approssimazione per eccesso 
+	 * di mach
+	 */
 	im = bisec(m, mach, 0, nm-1);
 	if (im != nm) {
 		im++;
 	}
+
+	if (pim != NULL) {
+		*pim = im;
+	}
 	
+	/*
+	 * ia e' l'indice della prima colonna di a in cui si trova
+	 * l'approssimazione per eccesso di alpha
+	 */
 	ia = bisec(a, alpha, 0, na-1);
 	if (ia != na) {
 		ia++;
 	}
-	
-	if (im == 0) {
-		if (ia == 0) {
-			c = a[na];
-		} else if (ia == na) {
-			c = a[2*na-1];
-		} else {
-			double da = (alpha-a[ia-1])/(a[ia]-a[ia-1]);
-			c = (1.-da)*a[na+ia-1]+da*a[na+ia];
-		}
-	} else if (im == nm) {
-		if (ia == 0) {
-			c = a[na*nm];
-		} else if (ia == na) {
+
+	/*
+	 * nota: sono stati scartati i casi im == 0 e ia == 0 perche'
+	 * impossibili per vari motivi
+	 */
+	if (im == nm) {
+		if (ia == na) {
 			c = a[na*(nm+1)-1];
 		} else {
 			double da = (alpha-a[ia-1])/(a[ia]-a[ia-1]);
@@ -244,10 +313,8 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach)
 		}
 	} else {
 		double d;
-		d = (mach-m[im-1])/(m[im]-m[im-1]);      
-		if (ia == 0) {
-			c = (1.-d)*a[na*im]+d*a[na*(im+1)];
-		} else if (ia == na) {
+		d = (mach-m[im-1])/(m[im]-m[im-1]);
+		if (ia == na) {
 			c = (1.-d)*a[na*(im+1)-1]+d*a[na*(im+2)-1];
 		} else {
 			double a1, a2, da;
@@ -259,5 +326,26 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach)
 	}
 	
 	return c;
+}
+
+static int
+get_stall(int nm, double* m, double* s, double mach, int im,
+	  double *dcpa, double *dasp, double *dasm)
+{
+	mach = fabs(mach);
+	
+	if (im == nm) {
+		*dcpa = s[3*nm-1];
+		*dasp = s[nm-1];
+		*dasm = s[2*nm-1];
+	} else {
+		double d = (mach-m[im-1])/(m[im]-m[im-1]);
+
+		*dcpa = (1.-d)*s[2*nm+im-1]+d*s[2*nm+im];
+		*dasp = (1.-d)*s[im-1]+d*s[im];
+		*dasm = (1.-d)*s[nm+im-1]+d*s[nm+im];
+	}
+	
+	return 0;
 }
 
