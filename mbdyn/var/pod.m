@@ -37,7 +37,8 @@ end
 % detrend and normalize
 mn = mean(A);
 A = A - ones(r, 1)*mn;
-scl = max(abs(A));
+% scl = max(abs(A));
+scl = std(A);
 thr = 1.e-9;
 lt = find(scl <= thr);
 nlt = length(lt);
@@ -62,6 +63,11 @@ if ((exist('OCTAVE_HOME') == 0) & (exist('dec') == 1)),
 end
 
 [nt, nd] = size(A);
+nn = min(nt, nd);
+if (nn < ns),
+	error(sprintf('number of requested modes %d is too high', ns));
+end
+
 if exist('OCTAVE_HOME'),
 	%%% This is the big octave drawback: no eigs() ...
 	if (nt > nd),
