@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2004
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -43,14 +43,14 @@
 
 RotorTrim::RotorTrim(unsigned int uL,
 		     const DofOwner* pDO,
-		     Rotor* pRot, 
+		     Rotor* pRot,
 		     ScalarDifferentialNode* pNode1,
 		     ScalarDifferentialNode* pNode2,
 		     ScalarDifferentialNode* pNode3,
 		     DriveCaller* pDrive1,
 		     DriveCaller* pDrive2,
 		     DriveCaller* pDrive3,
-		     const doublereal& dS,	    
+		     const doublereal& dS,
 		     const doublereal& dG,
 		     const doublereal& dp,
 		     const doublereal& dT0,
@@ -66,7 +66,7 @@ dCpAlpha(2*M_PI),
 dGamma(dG),
 dP(dp),
 dP2(dP*dP),
-dC(8.*(dP*dP-1.)/dGamma),
+dC(8.*(dP*dP - 1.)/dGamma),
 dC2(dC*dC),
 dTau0(dT0),
 dTau1(dT1),
@@ -81,7 +81,7 @@ dKappa1(dK1)
 	ASSERT(dCpAlpha > 0.);
 	ASSERT(dGamma > 0.);
 	ASSERT(dP > 0.);
-	
+
 	pvNodes[0] = pNode1;
 	pvNodes[1] = pNode2;
 	pvNodes[2] = pNode3;
@@ -118,31 +118,31 @@ RotorTrim::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 
 
 /* assemblaggio jacobiano */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 RotorTrim::AssJac(VariableSubMatrixHandler& WorkMat,
 		  doublereal dCoef,
 		  const VectorHandler& /* XCurr */ ,
 		  const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUT("Entering RotorTrim::AssJac()" << std::endl);
-	
-	SparseSubMatrixHandler& WM = WorkMat.SetSparse();        
+
+	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
 	WM.Resize(3, 0);
-        
+
         integer iRowIndex = 0;
         integer iColIndex = 0;
-	
-	iRowIndex = pvNodes[0]->iGetFirstRowIndex()+1;
-	iColIndex = pvNodes[0]->iGetFirstColIndex()+1;
-        WM.PutItem(1, iRowIndex, iColIndex, dTau0+dCoef);      
 
- 	iRowIndex = pvNodes[1]->iGetFirstRowIndex()+1;
-	iColIndex = pvNodes[1]->iGetFirstColIndex()+1;
-        WM.PutItem(2, iRowIndex, iColIndex, dTau1+dCoef);      
+	iRowIndex = pvNodes[0]->iGetFirstRowIndex() + 1;
+	iColIndex = pvNodes[0]->iGetFirstColIndex() + 1;
+        WM.PutItem(1, iRowIndex, iColIndex, dTau0 + dCoef);
 
- 	iRowIndex = pvNodes[2]->iGetFirstRowIndex()+1;
-	iColIndex = pvNodes[2]->iGetFirstColIndex()+1;
-        WM.PutItem(3, iRowIndex, iColIndex, dTau1+dCoef);      
+ 	iRowIndex = pvNodes[1]->iGetFirstRowIndex() + 1;
+	iColIndex = pvNodes[1]->iGetFirstColIndex() + 1;
+        WM.PutItem(2, iRowIndex, iColIndex, dTau1 + dCoef);
+
+ 	iRowIndex = pvNodes[2]->iGetFirstRowIndex() + 1;
+	iColIndex = pvNodes[2]->iGetFirstColIndex() + 1;
+        WM.PutItem(3, iRowIndex, iColIndex, dTau1 + dCoef);
 
         return WorkMat;
 }
@@ -155,20 +155,20 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 		  const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUT("Entering RotorTrim::AssRes()" << std::endl);
-	
+
 	WorkVec.Resize(3);
-	
+
 	WorkVec.PutRowIndex(1, pvNodes[0]->iGetFirstRowIndex()+1);
 	WorkVec.PutRowIndex(2, pvNodes[1]->iGetFirstRowIndex()+1);
 	WorkVec.PutRowIndex(3, pvNodes[2]->iGetFirstRowIndex()+1);
-	
+
 	doublereal dX1 = pvNodes[0]->dGetX();
 	doublereal dX2 = pvNodes[1]->dGetX();
 	doublereal dX3 = pvNodes[2]->dGetX();
 	doublereal dX1Prime = pvNodes[0]->dGetXPrime();
 	doublereal dX2Prime = pvNodes[1]->dGetXPrime();
 	doublereal dX3Prime = pvNodes[2]->dGetXPrime();
-	
+
 	doublereal dRho, dc, dp, dT;
 	pRotor->GetAirProps(pRotor->GetXCurr(), dRho, dc, dp, dT);
 
@@ -179,16 +179,19 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 	}
 	doublereal dMu = pRotor->dGetMu();
 	doublereal dMu2 = dMu*dMu;
-	
-	doublereal d = 
+
+	doublereal d =
 		M_PI*pow(dRadius, 4)*dRho*dOmega*dOmega*(dSigma*dCpAlpha);
-	doublereal dTraction = pRotor->GetForces().dGet(3)/d;
+	// doublereal dTraction = pRotor->GetForces().dGet(3)/d;
+	doublereal dTraction = pRotor->dGetPrivData(3)/d;
 	d *= dRadius;
-	doublereal dRollMoment = pRotor->GetMoments().dGet(1)/d;
-	doublereal dPitchMoment = pRotor->GetMoments().dGet(2)/d;
-	
-	doublereal f = dC/(1+dC2);
-	
+	// doublereal dRollMoment = pRotor->GetMoments().dGet(1)/d;
+	// doublereal dPitchMoment = pRotor->GetMoments().dGet(2)/d;
+	doublereal dRollMoment = pRotor->dGetPrivData(4)/d;
+	doublereal dPitchMoment = pRotor->dGetPrivData(5)/d;
+
+	doublereal f = dC/(1.+dC2);
+
 	Mat3x3 m((1.+1.5*dMu2)/6.,
 		-f*dMu/6.*(dC-dGamma/(16.*dP2)),
 		f*dMu/6.*(1.+dC*dGamma/(16.*dP2)),
@@ -198,15 +201,17 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 		0.,
 		-f/16.,
 		-f/16.*(1.+.5*dMu2));
-	Vec3 v(pvDrives[0].dGet()-dTraction,
-		pvDrives[1].dGet()-dRollMoment,
-		pvDrives[2].dGet()-dPitchMoment);
+	Vec3 v(pvDrives[0].dGet() - dTraction,
+		pvDrives[1].dGet() - dRollMoment,
+		pvDrives[2].dGet() - dPitchMoment);
 	v = m.Inv(v);
-	
-	WorkVec.PutCoef(1, v.dGet(1)*dKappa0-dX1-dTau0*dX1Prime);
-	WorkVec.PutCoef(2, v.dGet(2)*dKappa1-dX2-dTau1*dX2Prime);
-	WorkVec.PutCoef(3, v.dGet(3)*dKappa1-dX3-dTau1*dX3Prime);
-	
+
+	// std::cerr << dTraction << " " << dRollMoment << " " << dPitchMoment << std::endl;
+
+	WorkVec.PutCoef(1, v.dGet(1)*dKappa0 - dX1 - dTau0*dX1Prime);
+	WorkVec.PutCoef(2, v.dGet(2)*dKappa1 - dX2 - dTau1*dX2Prime);
+	WorkVec.PutCoef(3, v.dGet(3)*dKappa1 - dX3 - dTau1*dX3Prime);
+
 	return WorkVec;
 }
 
