@@ -38,7 +38,6 @@ libmbwrap_la_LIBADD = \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \
-../liby12/liby12.la \
 ../libcolamd/libcolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
@@ -48,6 +47,7 @@ libmbwrap_la_LIBADD = \
 @TAUCS_LIBS@ \
 @WSMP_LIBS@ \
 @LAPACK_LIBS@ \
+@Y12_LIBS@ \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @LIBS@ \
@@ -65,7 +65,6 @@ wraptest_LDADD = \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \
-../liby12/liby12.la \
 ../libcolamd/libcolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
@@ -74,6 +73,7 @@ wraptest_LDADD = \
 @SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
 @LAPACK_LIBS@ \
+@Y12_LIBS@ \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @F2C_LIBS@ \
@@ -87,13 +87,13 @@ cctest_LDADD = \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \
-../liby12/liby12.la \
 ../libcolamd/libcolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
+@Y12_LIBS@ \
 @BLAS_LIBS@ \
 @LIBS@ \
 @F2C_LIBS@ \

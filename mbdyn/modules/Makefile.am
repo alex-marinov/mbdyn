@@ -2,8 +2,6 @@ include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 ## Do not forget to run automake ( --add-missing ) when you modify Makefile.am
 
-EXTRA_DIST = Makefile.module Makefile.template
-
 export LTCXXCOMPILE = @LIBTOOL@ --mode=compile @CXX@ @DEFS@ \
 	-I. -I@srcdir@ -I../../include \
 	-I../../libraries/libmbutil -I../../libraries/libmbmath \
@@ -41,45 +39,56 @@ libtool:
 	-@ln -sf ../libtool .
 	
 all__:
-	-@for i in $(MODULES_DIRS) ; do \
-		echo "Playing with $$i ..."; \
-		export MBDYN_MODULE=$$i ; \
-		cp Makefile.module $$i/Makefile ; \
-		cd $$i && $(MAKE) ; \
-		cd .. ; \
-		rm -f $$i/Makefile ; \
-	done
+	@echo "Configured modules: $(MODULES_DIRS)"
+	-@if test x"$(MODULES_DIRS)" != x ; then \
+		for i in $(MODULES_DIRS) ; do \
+			echo "Playing with $$i ..."; \
+			export MBDYN_MODULE=$$i ; \
+			cp Makefile.module $$i/Makefile ; \
+			cd $$i && $(MAKE) ; \
+			cd .. ; \
+			rm -f $$i/Makefile ; \
+		done \
+	fi
 
 install:
 	$(mkinstalldirs) $(libexecdir)
-	-@for i in $(MODULES_DIRS) ; do \
-		echo "Installing $$i ..."; \
-		export MBDYN_MODULE=$$i ; \
-		cp Makefile.module $$i/Makefile ; \
-		cd $$i && $(MAKE) install; \
-		cd .. ; \
-		rm -f $$i/Makefile ; \
-	done
+	-@if test x"$(MODULES_DIRS)" != x ; then \
+		for i in $(MODULES_DIRS) ; do \
+			echo "Installing $$i ..."; \
+			export MBDYN_MODULE=$$i ; \
+			cp Makefile.module $$i/Makefile ; \
+			cd $$i && $(MAKE) install; \
+			cd .. ; \
+			rm -f $$i/Makefile ; \
+		done \
+	fi
 
 clean:
-	-@for i in $(MODULES_DIRS) ; do \
-		echo "Cleaning $$i ..."; \
-		export MBDYN_MODULE=$$i ; \
-		cp Makefile.module $$i/Makefile ; \
-		cd $$i && $(MAKE) clean ; \
-		cd .. ; \
-		rm -f $$i/Makefile ; \
-	done
+	-@if test x"$(MODULES_DIRS)" != x ; then \
+		for i in $(MODULES_DIRS) ; do \
+			echo "Cleaning $$i ..."; \
+			export MBDYN_MODULE=$$i ; \
+			cp Makefile.module $$i/Makefile ; \
+			cd $$i && $(MAKE) clean ; \
+			cd .. ; \
+			rm -f $$i/Makefile ; \
+		done \
+	fi
 
 distclean:
-	-@for i in $(MODULES_DIRS) ; do \
-		echo "Dist-cleaning $$i ..."; \
-		export MBDYN_MODULE=$$i ; \
-		cp Makefile.module $$i/Makefile ; \
-		cd $$i && $(MAKE) distclean ; \
-		cd .. ; \
-		rm -f $$i/Makefile ; \
-	done
+	-@if test x"$(MODULES_DIRS)" != x ; then \
+		for i in $(MODULES_DIRS) ; do \
+			echo "Dist-cleaning $$i ..."; \
+			export MBDYN_MODULE=$$i ; \
+			cp Makefile.module $$i/Makefile ; \
+			cd $$i && $(MAKE) distclean ; \
+			cd .. ; \
+			rm -f $$i/Makefile ; \
+		done \
+	fi
 	rm -f Makefile libtool
+
+EXTRA_DIST = Makefile.module Makefile.template module-template/module-template.cc
 
 include $(top_srcdir)/build/bot.mk
