@@ -60,8 +60,9 @@
 // node_pos	array delle posizioni attuali dei due nodi piu' offset
 // node_or	array delle orientazioni attuali dei due nodi
 // node_f	array degli offset attuali (R*f_tilde) dei due nodi
-// w		array dei pesi associati ai due nodi nel punto di calcolo
-// wder		array dei pesi derivati rispetto all'ascissa curvilinea
+// xi		posizione del punto, da 0 a 1
+// dexi_des	derivata della posizione del punto rispetto all'ascissa
+//		curvilinea
 // 
 // Output:
 // pos		posizione del punto interpolato
@@ -92,8 +93,8 @@ enum {
 void ComputeInterpolation(const Vec3 *const node_pos,
 			const Mat3x3 *const node_or,
 			const Vec3 *const node_f,
-			const doublereal *const w,
-			const doublereal *const wder,
+			const doublereal xi,
+			const doublereal dexi_des,
 			Vec3 &pos,
 			Mat3x3 &orient,
 			Mat3x3 *const or_delta_w_or,
@@ -104,93 +105,73 @@ void ComputeInterpolation(const Vec3 *const node_pos,
 			Mat3x3 *const delta_om_ws_or,
 			Mat3x3 *const delta_F_ws_or,
 			Mat3x3 *const delta_F_ws_pos) {
-	MatExp n1(node_or[NODE1],Mat3x3(node_pos[NODE1])*node_or[NODE1]);
-	MatExp n2(node_or[NODE2],Mat3x3(node_pos[NODE2])*node_or[NODE2]);
-	MatExp n12(n2*(n1.Transpose()));
+	MatExp A1(node_or[NODE1],Mat3x3(node_pos[NODE1])*node_or[NODE1]);
+	MatExp A2(node_or[NODE2],Mat3x3(node_pos[NODE2])*node_or[NODE2]);
+	MatExp A12(A2*(A1.Transpose()));
 	//VecExp e1(0.);
-	VecExp e2(RoTrManip::Helix(n12));
-	VecExp we2(e2*w[NODE2]);
-	MatExp E12, Theta12;
-	RoTrManip::RoTrAndDRoTr(we2,E12,Theta12);
-	MatExp E(E12*n1);
-	orient = E.GetVec();
-	pos = (E.GetMom()*(orient.Transpose())).Ax();
-	
-	
-	MatExp Theta2I(RoTrManip::DRoTr_I(e2));
-	MatExp d1, d2;
-	MatExp Wd1, Wd2;
-	d1 = Theta12;
-	d2 = Theta12*Theta2I;
-	Wd1 = d1*w[NODE1];
-	Wd2 = d2*w[NODE2];
-	or_delta_w_or[NODE1] = Wd1.GetVec();
-	or_delta_w_or[NODE2] = Wd2.GetVec();
-	
-	delta_pos_w_or[NODE1] = Wd1.GetMom();
-	delta_pos_w_or[NODE1] += Wd1.GetVec()*Mat3x3(node_pos[NODE1]);
-	delta_pos_w_or[NODE1] -= pos.Cross(Wd1.GetVec());
-	delta_pos_w_or[NODE2] = Wd2.GetMom();
-	delta_pos_w_or[NODE2] += Wd2.GetVec()*Mat3x3(node_pos[NODE2]);
-	delta_pos_w_or[NODE2] -= pos.Cross(Wd2.GetVec());
-	
-	delta_pos_w_pos[NODE1] = Wd1.GetVec();
-	delta_pos_w_pos[NODE2] = Wd2.GetVec();
-		
-	VecExp kappa(Theta12*(e2*wder[NODE2]));
-	om = kappa.GetVec();
-	F = kappa.GetMom();
-	F -= pos.Cross(om); /* :) */
-	
-	Wd1 = d1*wder[NODE1];
-	Wd2 = d2*wder[NODE2];
-	
-	delta_om_ws_or[NODE1] = Wd1.GetVec();
-	delta_om_ws_or[NODE2] = Wd2.GetVec();
-	
-	delta_F_ws_or[NODE1] = Wd1.GetVec()*Mat3x3(node_pos[NODE1]);
-	delta_F_ws_or[NODE2] = Wd2.GetVec()*Mat3x3(node_pos[NODE2]);
-	delta_F_ws_or[NODE1] += Wd1.GetMom();
-	delta_F_ws_or[NODE2] += Wd2.GetMom();
-	delta_F_ws_or[NODE1] += om.Cross(delta_pos_w_or[NODE1]);
-	delta_F_ws_or[NODE2] += om.Cross(delta_pos_w_or[NODE2]);
-	delta_F_ws_or[NODE1] -= pos.Cross(delta_om_ws_or[NODE1]);
-	delta_F_ws_or[NODE2] -= pos.Cross(delta_om_ws_or[NODE2]);
-	
-	delta_F_ws_pos[NODE1] = Wd1.GetVec();
-	delta_F_ws_pos[NODE2] = Wd2.GetVec();
-	delta_F_ws_or[NODE1] += om.Cross(delta_pos_w_pos[NODE1]);
-	delta_F_ws_or[NODE2] += om.Cross(delta_pos_w_pos[NODE2]);
-	
-	
-	//hic sunt leones....
-// 	Mat3x3 L(RotManip::Elle(we2.GetVec(),(e2.GetVec())*wder[NODE2]));
-// 	delta_om_ws_or[NODE1] += L*Theta12.GetVec().Inv()*or_delta_w_or[NODE1];
-// 	delta_om_ws_or[NODE2] += L*Theta12.GetVec().Inv()*or_delta_w_or[NODE2];
-// 	
-// 	L = RotManip::Elle(we2.GetVec(),(e2.GetMom())*wder[NODE2]);
-// 	delta_F_ws_or[NODE1] += L*Theta12.GetVec().Inv()*or_delta_w_or[NODE1];
-// 	delta_F_ws_or[NODE2] += L*Theta12.GetVec().Inv()*or_delta_w_or[NODE2];
+	VecExp eta_r(RoTrManip::Helix(A12));
+	MatExp Theta_r_I(RoTrManip::DRoTr_I(eta_r));
+	VecExp eta_tilde(eta_r*xi);
+	MatExp A_tilde, Theta_tilde;
+	RoTrManip::RoTrAndDRoTr(eta_tilde,A_tilde,Theta_tilde);
+	MatExp A_xi(A_tilde*A1);
+		//extract interpolated orientation and position
+		orient = A_xi.GetVec();
+		pos = (A_xi.GetMom()*(orient.Transpose())).Ax();
 
+	VecExp kappa(Theta_tilde*eta_r*dexi_des);
+		//extract interpolated curvature and def. gradient
+		om = kappa.GetVec();
+		F = kappa.GetMom();
+		F -= pos.Cross(om); /* :) */
+	MatExp eta_xi_delta_2(Theta_tilde*Theta_r_I*xi);
+	MatExp eta_xi_delta_1(A_tilde);
+		eta_xi_delta_1-=Theta_tilde*Theta_r_I*A2*xi;
+	//compute traslation wrenches at xi and at the nodes:
+	MatExp Trasl_n[NUMNODES];
+		Trasl_n[NODE1] = MatExp(1.,node_pos[NODE1]);
+		Trasl_n[NODE2] = MatExp(1.,node_pos[NODE2]);
+	MatExp Trasl_xi_bak(1.,-pos);
+	//compute delta_kappa_i
+	MatExp Lambda(RoTrManip::Elle(eta_tilde,eta_r*dexi_des));
+	MatExp delta_kappa_2(Lambda*xi);
+		delta_kappa_2+=Theta_tilde*dexi_des;
+		delta_kappa_2 = delta_kappa_2*Theta_r_I;
+	MatExp delta_kappa_1(delta_kappa_2*A2*-1);
+	
+	//transform eta_xi_delta_i to deltapos_ordelta_xi_i
+	MatExp dpos_ord_xi_1(Trasl_xi_bak*eta_xi_delta_1);
+	MatExp dpos_ord_xi_2(Trasl_xi_bak*eta_xi_delta_2);
+	//project to nodes delta_pos, or_delta:
+	MatExp dpos_ord_dpos_ord_1(dpos_ord_xi_1*Trasl_n[NODE1]);
+	MatExp dpos_ord_dpos_ord_2(dpos_ord_xi_2*Trasl_n[NODE2]);
+	//extract or_delta_w_or, delta_pos_w_or and delta_pos_w_pos
+	or_delta_w_or[NODE1] = dpos_ord_dpos_ord_1.GetVec();
+	or_delta_w_or[NODE2] = dpos_ord_dpos_ord_2.GetVec();
+	delta_pos_w_or[NODE1] = dpos_ord_dpos_ord_1.GetMom();
+	delta_pos_w_or[NODE2] = dpos_ord_dpos_ord_2.GetMom();
+	delta_pos_w_pos[NODE1] = dpos_ord_dpos_ord_1.GetVec();
+	delta_pos_w_pos[NODE2] = dpos_ord_dpos_ord_2.GetVec();
+	//project delta_kappa_1 to nodes delta_pos, or_delta:
+	MatExp dkappa_dpos_ord_1(delta_kappa_1*Trasl_n[NODE1]);
+	MatExp dkappa_dpos_ord_2(delta_kappa_2*Trasl_n[NODE2]);
+	//extract delta_om_ws_or, delta_F_ws_or and delta_F_ws_pos
+	delta_om_ws_or[NODE1] = dkappa_dpos_ord_1.GetVec();
+	delta_om_ws_or[NODE2] = dkappa_dpos_ord_2.GetVec();
+	//delta kappa.Mom()
+	delta_F_ws_or[NODE1] = dkappa_dpos_ord_1.GetMom();
+	delta_F_ws_pos[NODE1] = dkappa_dpos_ord_1.GetVec();
+	delta_F_ws_or[NODE2] = dkappa_dpos_ord_2.GetMom();
+	delta_F_ws_pos[NODE2] = dkappa_dpos_ord_2.GetVec();
+	//x cross delta kappa.Vec()
+	delta_F_ws_or[NODE1] -= pos.Cross(dkappa_dpos_ord_1.GetVec());
+	delta_F_ws_or[NODE2] -= pos.Cross(dkappa_dpos_ord_2.GetVec());
+	//kappa.Vec() x delta_pos
+	delta_F_ws_or[NODE1] += kappa.GetVec().Cross(delta_pos_w_or[NODE1]);
+	delta_F_ws_pos[NODE1] += kappa.GetVec().Cross(delta_pos_w_pos[NODE1]);
+	delta_F_ws_or[NODE2] += kappa.GetVec().Cross(delta_pos_w_or[NODE2]);
+	delta_F_ws_pos[NODE2] += kappa.GetVec().Cross(delta_pos_w_pos[NODE2]);
 
-	MatExp L(RoTrManip::Elle(we2,e2*wder[NODE2]));
-	Mat3x3 Theta12vI(RotManip::DRot_I(we2.GetVec()));
-	
-	delta_om_ws_or[NODE1] += L.GetVec()*Theta12vI*or_delta_w_or[NODE1];
-	delta_om_ws_or[NODE2] += L.GetVec()*Theta12vI*or_delta_w_or[NODE2];
-	
-	delta_F_ws_or[NODE1] += L.GetMom()*Theta12vI*or_delta_w_or[NODE1];
-	delta_F_ws_or[NODE2] += L.GetMom()*Theta12vI*or_delta_w_or[NODE2];
-	
-	delta_F_ws_or[NODE1] += L.GetVec()*Theta12.GetVec()*pos.Cross(or_delta_w_or[NODE1]);
-	delta_F_ws_or[NODE1] += L.GetVec()*Theta12.GetVec()*delta_pos_w_or[NODE1];
-	delta_F_ws_or[NODE1] += L.GetVec()*Theta12.GetVec()*delta_pos_w_pos[NODE1];
-	delta_F_ws_or[NODE1] += L.GetVec()*Theta12.GetMom()*or_delta_w_or[NODE1];
-	delta_F_ws_or[NODE2] += L.GetVec()*Theta12.GetVec()*pos.Cross(or_delta_w_or[NODE2]);
-	delta_F_ws_or[NODE2] += L.GetVec()*Theta12.GetVec()*delta_pos_w_or[NODE2];
-	delta_F_ws_or[NODE2] += L.GetVec()*Theta12.GetVec()*delta_pos_w_pos[NODE2];
-	delta_F_ws_or[NODE2] += L.GetVec()*Theta12.GetMom()*or_delta_w_or[NODE2];
-	
 	//tarocco per l'aggiunta dell'offset f
 	//le curvature e le posizioni invece sono giuste perche' 
 	//viene passato node_pos=x_node+node_or*f
@@ -203,8 +184,6 @@ void ComputeInterpolation(const Vec3 *const node_pos,
 	fodo = Mat3x3(node_f[NODE2])*or_delta_w_or[NODE2];
 	delta_pos_w_or[NODE2] -= delta_pos_w_pos[NODE2]*fodo;
 	delta_F_ws_or[NODE2] -=	delta_F_ws_pos[NODE2]*fodo;
-	
-	
-	
+
 };
 

@@ -52,8 +52,9 @@
 // node_pos	array delle posizioni attuali dei due nodi piu' offset
 // node_or	array delle orientazioni attuali dei due nodi
 // node_f	array degli offset attuali (R*f_tilde) dei due nodi
-// w		array dei pesi associati ai due nodi nel punto di calcolo
-// wder		array dei pesi derivati rispetto all'ascissa curvilinea
+// xi		posizione del punto, da 0 a 1
+// dexi_des	derivata della posizione del punto rispetto all'ascissa
+//		curvilinea
 // 
 // Output:
 // pos		posizione del punto interpolato
@@ -77,8 +78,8 @@
 void ComputeInterpolation(const Vec3 *const node_pos,
 			const Mat3x3 *const node_or,
 			const Vec3 *const node_f,
-			const doublereal *const w,
-			const doublereal *const wder,
+			const doublereal w,
+			const doublereal wder,
 			Vec3 &pos,
 			Mat3x3 &orient,
 			Mat3x3 *const or_delta_w_or,

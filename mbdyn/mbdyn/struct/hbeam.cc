@@ -129,6 +129,7 @@ HBeam::~HBeam(void)
 void
 HBeam::DsDxi(void)
 {
+#warning "FIXME: rivedere calcolo dsdxi"
 	/* Calcola il ds/dxi e le deformazioni iniziali */
 	Mat3x3 RTmp[NUMNODES];
 	Vec3 yTmp[NUMNODES];
@@ -138,16 +139,12 @@ HBeam::DsDxi(void)
 		fTmp[i] = pNode[i]->GetRCurr()*f[i];
 		yTmp[i] = pNode[i]->GetXCurr()+fTmp[i];
 	}
-
-	w[NODE1] = .5;
-	w[NODE2] = .5;
 	
-	wder[NODE1] = -.5;
-	wder[NODE2] = .5;
-	
+	xi = 0.5;
+	dsdxi = 1.0;
 	/* Calcolo i wder ... */
 	ComputeInterpolation(yTmp, RTmp, fTmp,
-			w, wder,
+			xi, dsdxi,
 			p, R,
 			RdP, pdP, pdp,
 			L, Rho,
@@ -163,12 +160,12 @@ HBeam::DsDxi(void)
 		THROW(HBeam::ErrGeneric());
 	}
 	
-	wder[NODE1] = wder[NODE1]/d;
-	wder[NODE2] = wder[NODE2]/d;
+	dsdxi = dsdxi/d;
+	dxids = 1./dsdxi;
 
 	/* Calcolo le caratteristiche iniziali ... */
 	ComputeInterpolation(yTmp, RTmp, fTmp,
-			w, wder,
+			xi, dxids,
 			p, R,
 			RdP, pdP, pdp,
 			L, Rho,
@@ -353,7 +350,7 @@ HBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 	
 	/* Interpolazione generica */
 	ComputeInterpolation(yTmp, RTmp, fTmp,
-			w, wder,
+			xi, dxids,
 			p, R,
 			RdP, pdP, pdp,
 			L, Rho,

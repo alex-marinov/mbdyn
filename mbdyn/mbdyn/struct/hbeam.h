@@ -107,7 +107,9 @@ class HBeam
     Vec3 L;
     Vec3 LRef;   
    
+    doublereal xi;
     doublereal dsdxi;
+    doublereal dxids;
    
     /* Is first res? */
     flag fFirstRes;
@@ -134,8 +136,6 @@ class HBeam
      */
 
     /* pesi e derivate */
-    doublereal w[NUMNODES];
-    doublereal wder[NUMNODES];
 
     /* Funzioni di calcolo delle matrici */
     virtual void 
