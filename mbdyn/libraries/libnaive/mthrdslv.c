@@ -82,7 +82,7 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 			if (todo[r]) {
 				fari = fabs(a[r][i]);
 				if (fari > mul) {
-					mulpiv = mul*minpiv;
+					mulpiv = fari*minpiv;
 					if (nzc[r] <= nc  || mulpiv > fapvr) {
 						nc = nzc[pvr = r];
 						fapvr = fari;

@@ -111,7 +111,7 @@ int pnaivfct(doublereal** a,
 				if (todo[r]) {
 					fari = fabs(a[r][i]);
 					if (fari > mul) {
-						mulpiv = mul*minpiv;
+						mulpiv = fari*minpiv;
 						if (nzc[r] <= m  || mulpiv > fapvr) {
 							m = nzc[pvr = r];
 							fapvr = fari;
