@@ -28,18 +28,18 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef ac_asm_system_h
-#define ac_asm_system_h
+#ifndef ac_spinlock_h
+#define ac_spinlock_h
 
 /*
  * inspired by <asm/system.h>; requires <sys/types.h>
  */
 
-#ifdef HAVE_CMPXCHG
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+#ifdef HAVE_CMPXCHG
 
 #if 1
 
@@ -95,11 +95,53 @@ mbdyn_cmpxchgl(int32_t *valptr, int32_t newval, int32_t oldval)
 	return prev;
 }
 
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-	
 #endif /* HAVE_CMPXCHG */
 
+#ifdef __cplusplus
+}
 
-#endif /* ac_asm_system_h */
+static inline bool
+mbdyn_compare_and_swap(int8_t *valptr, int8_t newval, int8_t oldval)
+{
+#if defined(HAVE_CMPXCHG)
+	return (mbdyn_cmpxchgb(valptr, newval, oldval) == oldval);
+#elif defined(HAVE_COMPARE_AND_SWAP)
+	atomic_p	word_addr = (atomic_p *)valptr;
+	int		old_val = oldval;
+	int		new_val = newval;
+
+	return compare_and_swap(word_addr, &old_val, new_val);
+#endif
+}
+
+static inline bool
+mbdyn_compare_and_swap(int16_t *valptr, int16_t newval, int16_t oldval)
+{
+#if defined(HAVE_CMPXCHG)
+	return (mbdyn_cmpxchgw(valptr, newval, oldval) == oldval);
+#elif defined(HAVE_COMPARE_AND_SWAP)
+	atomic_p	word_addr = (atomic_p *)valptr;
+	int		old_val = oldval;
+	int		new_val = newval;
+
+	return compare_and_swap(word_addr, &old_val, new_val);
+#endif
+}
+
+static inline bool
+mbdyn_compare_and_swap(int32_t *valptr, int32_t newval, int32_t oldval)
+{
+#if defined(HAVE_CMPXCHG)
+	return (mbdyn_cmpxchgl(valptr, newval, oldval) == oldval);
+#elif defined(HAVE_COMPARE_AND_SWAP)
+	atomic_p	word_addr = (atomic_p *)valptr;
+	int		old_val = oldval;
+	int		new_val = newval;
+
+	return compare_and_swap(word_addr, &old_val, new_val);
+#endif
+}
+
+#endif /* __cplusplus */
+	
+#endif /* ac_spinlock_h */
