@@ -64,7 +64,8 @@ SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch, ScalarDof 
 		const char *h, const char *m, unsigned short int p, bool c)
 : Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
-host(h), type(AF_INET), sock(0), tmp_sock(0), name(m), create(c)
+host(h), type(AF_INET), sock(0), name(m),
+create(c), connection_flag(false)
 {
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(doublereal)*nch;
@@ -74,23 +75,23 @@ host(h), type(AF_INET), sock(0), tmp_sock(0), name(m), create(c)
 	data.Port = p;
 	if(create){
 		struct sockaddr_in addr_name;	
-   		tmp_sock = make_inet_socket(&addr_name, host, data.Port, 1);
+   		sock = make_inet_socket(&addr_name, host, data.Port, 1);
 		
-		if (tmp_sock == -1) {
+		if (sock == -1) {
       			silent_cerr("SocketStreamElem(" << name
 				<< "): socket failed" << std::endl);
       			THROW(ErrGeneric());
-   		} else if (tmp_sock == -2) {
+   		} else if (sock == -2) {
       			silent_cerr("SocketStreamElem(" << name
 				<< "): bind failed" << std::endl);
       			THROW(ErrGeneric());
-   		} else if (tmp_sock == -3) {
+   		} else if (sock == -3) {
       			silent_cerr("SocketStreamElem(" << name
 				<< "): illegal host name" << std::endl);
       			THROW(ErrGeneric());
    		}
 		
-   		if (listen(tmp_sock, 1) < 0) {
+   		if (listen(sock, 1) < 0) {
       			silent_cerr("SocketStreamElem(" << name
 				<< "): listen failed" << std::endl);
       			THROW(ErrGeneric());
@@ -102,7 +103,8 @@ SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch, ScalarDof 
 		const char *m, const char* const Path, bool c)
 : Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
-host(NULL), type(AF_LOCAL), sock(0), tmp_sock(0), name(m), create(c)
+host(NULL), type(AF_LOCAL), sock(0), name(m),
+create(c), connection_flag(false)
 {
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(doublereal)*nch;
@@ -113,19 +115,19 @@ host(NULL), type(AF_LOCAL), sock(0), tmp_sock(0), name(m), create(c)
 	SAFESTRDUP(data.Path, Path);
 	
 	if(create){
-		tmp_sock = make_named_socket(data.Path, 1);
+		sock = make_named_socket(data.Path, 1);
 		
-		if (tmp_sock == -1) {
+		if (sock == -1) {
       			silent_cerr("SocketStreamElem(" << name
 				<< "): socket failed" << std::endl);
       			THROW(ErrGeneric());
-   		} else if (tmp_sock == -2) {
+   		} else if (sock == -2) {
       			silent_cerr("SocketStreamElem(" << name
 				<< "): bind failed" << std::endl);
       			THROW(ErrGeneric());
    		}
 		
-   		if (listen(tmp_sock, 1) < 0) {
+   		if (listen(sock, 1) < 0) {
       			silent_cerr("SocketStreamElem(" << name
 				<< "): listen failed" << std::endl);
       			THROW(ErrGeneric());
@@ -136,9 +138,6 @@ host(NULL), type(AF_LOCAL), sock(0), tmp_sock(0), name(m), create(c)
 
 SocketStreamElem::~SocketStreamElem(void)
 {
-	if (!create) { //connect
-		shutdown(sock,SHUT_RDWR);
-	}
 	shutdown(sock,SHUT_WR);		
 	switch (type) {
 	case AF_LOCAL:
@@ -194,8 +193,9 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 {
 	char *curbuf = buf;
 	
-	if (!sock) {
+	if (!connection_flag) {
 		if (create) {
+			int tmp_sock = sock;
 			//accept
 #ifdef HAVE_SOCKLEN_T
 		   	socklen_t socklen;
@@ -308,7 +308,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 							<< ") ..." << std::endl);
 							
 					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
-						std::cerr <<"SocketStreamElem(" << name << ") "
+						std::cerr <<"SocketStreamElem(" << name << "): "
 							"connect failed " << std::endl;
 						THROW(ErrGeneric());					
 					}//da sistemare in modo da rendere non bloccante il connect
@@ -321,6 +321,17 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 			}
 	
 		} /*create*/
+		struct linger lin;
+		lin.l_onoff = 1;
+		lin.l_linger = 0;
+		
+		if (setsockopt(sock, SOL_SOCKET, SO_LINGER, &lin, sizeof(lin))){
+      			std::cerr << "SocketStreamElem(" << name
+				<< "): setsockopt failed" << std::endl;
+      			THROW(ErrGeneric());
+			
+		}
+		connection_flag = true;
 	} /*sock==NULL*/
 	for (unsigned int i = 0; i < NumChannels; i++) {
 		/* assign value somewhere into mailbox buffer */
@@ -331,8 +342,9 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 
 		curbuf += sizeof(doublereal);
 	}
+	
 	if (send(sock, (void *)buf, size, 0) == -1) {
-		std::cout << "SocketStreamElem(" << name << ") "
+		std::cerr << "SocketStreamElem(" << name << ") "
 				<< "Comunication closed by host" << std::endl;
 		//stop simulation
 	}

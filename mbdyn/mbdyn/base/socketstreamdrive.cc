@@ -68,7 +68,7 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		unsigned short int p,
 		const char* const h)
 : StreamDrive(uL, pDH, sFileName, nd, c),
-type(AF_INET), sock(0), tmp_sock(0), connection_flag(false)
+type(AF_INET), sock(0), connection_flag(false)
 {
 	if (h) {
 		SAFESTRDUP(host, h);
@@ -81,23 +81,23 @@ type(AF_INET), sock(0), tmp_sock(0), connection_flag(false)
 	
 	if(create){
 		struct sockaddr_in addr_name;
-   		tmp_sock = make_inet_socket(&addr_name, host, data.Port, 1);
+   		sock = make_inet_socket(&addr_name, host, data.Port, 1);
 		
-		if (tmp_sock == -1) {
+		if (sock == -1) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): socket failed" << std::endl);
       			THROW(ErrGeneric());
-   		} else if (tmp_sock == -2) {
+   		} else if (sock == -2) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): bind failed" << std::endl);
       			THROW(ErrGeneric());
-   		} else if (tmp_sock == -3) {
+   		} else if (sock == -3) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): illegal host name" << std::endl);
       			THROW(ErrGeneric());
    		}
 		
-   		if (listen(tmp_sock, 1) < 0) {
+   		if (listen(sock, 1) < 0) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): listen failed" << std::endl);
       			THROW(ErrGeneric());
@@ -112,7 +112,7 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		integer nd, bool c,
 		const char* const Path)
 : StreamDrive(uL, pDH, sFileName, nd, c),
-host(NULL), type(AF_LOCAL), sock(0), tmp_sock(0), connection_flag(false)
+host(NULL), type(AF_LOCAL), sock(0), connection_flag(false)
 {
 	//NO_OP;
 	
@@ -121,19 +121,19 @@ host(NULL), type(AF_LOCAL), sock(0), tmp_sock(0), connection_flag(false)
 	SAFESTRDUP(data.Path, Path);
 	
 	if(create){
-		tmp_sock = make_named_socket(data.Path, 1);
+		sock = make_named_socket(data.Path, 1);
 		
-		if (tmp_sock == -1) {
+		if (sock == -1) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): socket failed" << std::endl);
       			THROW(ErrGeneric());
-   		} else if (tmp_sock == -2) {
+   		} else if (sock == -2) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): bind failed" << std::endl);
       			THROW(ErrGeneric());
    		}
 		
-   		if (listen(tmp_sock, 1) < 0) {
+   		if (listen(sock, 1) < 0) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): listen failed" << std::endl);
       			THROW(ErrGeneric());
@@ -145,9 +145,6 @@ host(NULL), type(AF_LOCAL), sock(0), tmp_sock(0), connection_flag(false)
 
 SocketStreamDrive::~SocketStreamDrive(void)
 {
-	/*if (!create) {
-		shutdown(sock,SHUT_RDWR);
-	}*/
 	shutdown(sock,SHUT_RD);
 	switch (type) { //connect
 	case AF_LOCAL:
@@ -195,8 +192,9 @@ SocketStreamDrive::ServePending(const doublereal& t)
 	}
 	
 	
-	if (!sock) {
+	if (!connection_flag) {
 		if (create) {
+			int tmp_sock = sock;
 			//accept
 #ifdef HAVE_SOCKLEN_T
 	   		socklen_t socklen;
@@ -255,7 +253,6 @@ SocketStreamDrive::ServePending(const doublereal& t)
 				NO_OP;
 				break;
 			}
-			
 		} else {
 				//connect
 			switch (type) {
@@ -322,8 +319,19 @@ SocketStreamDrive::ServePending(const doublereal& t)
 			}
 	
 		} /*create*/
+		
+		struct linger lin;
+		lin.l_onoff = 1;
+		lin.l_linger = 0;
+		
+		if (setsockopt(sock, SOL_SOCKET, SO_LINGER, &lin, sizeof(lin))){
+      			std::cerr << "SocketStreamDrive(" << sFileName
+				<< "): setsockopt failed" << std::endl;
+      			THROW(ErrGeneric());
+			
+		}
 		connection_flag = true;
-	} /*sock==NULL*/
+	} /*connection_flag == false*/
 }
 
 

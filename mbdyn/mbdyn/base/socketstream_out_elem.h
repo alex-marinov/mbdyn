@@ -60,10 +60,10 @@ protected:
 	} data;
 	
 	int sock;
-	int tmp_sock;
 
 	const char *name;
-	bool create;   
+	bool create; 
+	bool connection_flag;
 public:
    	SocketStreamElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
 			const char *h, const char *m, unsigned short int p,

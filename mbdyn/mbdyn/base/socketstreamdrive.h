@@ -51,7 +51,6 @@ protected:
 	} data;
 	
 	int sock;
-	int tmp_sock;
 	bool connection_flag;
 public:
 	SocketStreamDrive::SocketStreamDrive(unsigned int uL,
