@@ -62,6 +62,10 @@
 /* Provvisorio ?!? */
 #include <modal.h>
 
+/* To allow direct loading of wheel2 (and other modules, in the future)
+ * as joints ... */
+#include <modules.h>
+
 #define MBDYN_X_COMPATIBLE_INPUT
 
 /* Joint - begin */
@@ -147,6 +151,7 @@ Elem* ReadJoint(DataManager* pDM,
       "modal",
 
       "beam" "slider",
+      "wheel2",
       
       NULL
    };
@@ -189,6 +194,7 @@ Elem* ReadJoint(DataManager* pDM,
       MODAL,
 
       BEAMSLIDER,
+      WHEEL2,
       
       LASTKEYWORD
    };
@@ -1877,7 +1883,16 @@ Elem* ReadJoint(DataManager* pDM,
 			       f, R, fOut));
        break;
     }
-      
+
+
+    case WHEEL2: {
+       LoadableElem *pLE = NULL;
+       SAFENEWWITHCONSTRUCTOR(pLE, LoadableElem,
+		       LoadableElem(uLabel, pDO, &module_wheel2_lc, pDM, HP));
+       pEl = (Joint *)pLE->pGet();
+       pDM->OutputOpen(OutputHandler::LOADABLE);
+       break;
+    } 
       /* Aggiungere altri vincoli */
       
     default: {

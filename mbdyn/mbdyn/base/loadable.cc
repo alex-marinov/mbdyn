@@ -261,11 +261,43 @@ calls(NULL),
 needsAirProperties(false)
 {
    	ASSERT(pDM != NULL);
-   
+
+	GetCalls(HP);
+	BindCalls(pDM, HP);
+}
+
+LoadableElem::LoadableElem(unsigned int uLabel, 
+			   const DofOwner* pDO, 
+			   LoadableCalls *c,
+			   DataManager* pDM, 
+			   MBDynParser& HP)
+: Elem(uLabel, Elem::LOADABLE, flag(0)),
+#ifdef USE_STRUCT_NODES
+InitialAssemblyElem(uLabel, Elem::LOADABLE, flag(0)),
+#ifdef USE_AERODYNAMIC_ELEMS
+AerodynamicElem(uLabel, AerodynamicElem::AERODYNAMICLOADABLE, flag(0)),
+#endif /* USE_AERODYNAMIC_ELEMS */
+ElemGravityOwner(uLabel, Elem::LOADABLE, flag(0)),
+#endif /* USE_STRUCT_NODES */
+ElemWithDofs(uLabel, Elem::LOADABLE, pDO, flag(0)),
+priv_data(NULL),
+module_name(NULL),
+handle(NULL),
+calls(c),
+needsAirProperties(false)
+{
+   	ASSERT(pDM != NULL);
+
+	BindCalls(pDM, HP);
+}
+
+void
+LoadableElem::GetCalls(MBDynParser& HP)
+{
    	/* nome del modulo */
    	const char* s = HP.GetFileName();
 	if (s == NULL) {
-		std::cerr << "Loadable(" << uLabel
+		std::cerr << "Loadable(" << GetLabel()
 			<< "): unable to get module name" << std::endl;
 		THROW(ErrGeneric());
 	}
@@ -328,7 +360,11 @@ needsAirProperties(false)
    	}
 
 	calls = *tmpcalls;
+}
 
+void
+LoadableElem::BindCalls(DataManager* pDM, MBDynParser& HP)
+{
 	if (calls->loadable_version != LOADABLE_VERSION) {
 		std::cerr << "Loadable(" << uLabel
 			<< "): incompatible version; need "
@@ -476,12 +512,13 @@ LoadableElem::~LoadableElem(void)
 	ASSERT(calls->destroy != NULL);
    	(*calls->destroy)(this);
    
-   	ASSERT(handle != NULL);
 #if !defined(HAVE_LTDL_H) && defined(HAVE_DLFCN_H)
-   	if (dlclose(handle) != 0) {
-		std::cerr << "unable to dlclose module \"" << module_name 
-			<< "\"" << std::endl;
-		THROW(ErrGeneric());
+   	if (handle != NULL) {
+   		if (dlclose(handle) != 0) {
+			std::cerr << "unable to dlclose module \"" 
+				<< module_name << "\"" << std::endl;
+			THROW(ErrGeneric());
+		}
 	}
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 	

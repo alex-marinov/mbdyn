@@ -732,8 +732,11 @@ get_connected_nodes(const LoadableElem* pEl,
 	NdLabels[1] = p->pGround->GetLabel();
 }
 
-static struct
-LoadableCalls lc = {
+#ifdef MBDYN_MODULE
+static
+#endif /* MBDYN_MODULE */
+struct
+LoadableCalls module_wheel2_lc = {
 	LOADABLE_VERSION_SET(1, 1, 0),
 
 	"wheel2",
@@ -770,6 +773,6 @@ LoadableCalls lc = {
 };
 
 extern "C" {
-void *calls = &lc;
+void *calls = &module_wheel2_lc;
 }
 

@@ -100,93 +100,97 @@ ofLog(),
 ofAirProps(),
 iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
 {
-   OutData[OUTPUT].fToUseDefaultPrecision = flag(0);
-   OutData[OUTPUT].fToUseScientific = flag(0);
+   OutData[OUTPUT].UseDefaultPrecision = false;
+   OutData[OUTPUT].UseScientific = false;
    OutData[OUTPUT].pof = &ofOutput;
    
-   OutData[STRNODES].fToUseDefaultPrecision = flag(1);
-   OutData[STRNODES].fToUseScientific = flag(1);
+   OutData[STRNODES].UseDefaultPrecision = true;
+   OutData[STRNODES].UseScientific = true;
    OutData[STRNODES].pof = &ofStrNodes;
    
-   OutData[ELECTRIC].fToUseDefaultPrecision = flag(1);
-   OutData[ELECTRIC].fToUseScientific = flag(1);
+   OutData[ELECTRIC].UseDefaultPrecision = true;
+   OutData[ELECTRIC].UseScientific = true;
    OutData[ELECTRIC].pof= &ofElectric;
    
-   OutData[ABSTRACT].fToUseDefaultPrecision = flag(1);
-   OutData[ABSTRACT].fToUseScientific = flag(1);
+   OutData[ABSTRACT].UseDefaultPrecision = true;
+   OutData[ABSTRACT].UseScientific = true;
    OutData[ABSTRACT].pof = &ofAbstract;
    
-   OutData[INERTIA].fToUseDefaultPrecision = flag(1);
-   OutData[INERTIA].fToUseScientific = flag(1);
+   OutData[INERTIA].UseDefaultPrecision = true;
+   OutData[INERTIA].UseScientific = true;
    OutData[INERTIA].pof = &ofInertia;
    
-   OutData[JOINTS].fToUseDefaultPrecision = flag(1);
-   OutData[JOINTS].fToUseScientific = flag(1);
+   OutData[JOINTS].UseDefaultPrecision = true;
+   OutData[JOINTS].UseScientific = true;
    OutData[JOINTS].pof = &ofJoints;
    
-   OutData[FORCES].fToUseDefaultPrecision = flag(1);
-   OutData[FORCES].fToUseScientific = flag(1);
+   OutData[FORCES].UseDefaultPrecision = true;
+   OutData[FORCES].UseScientific = true;
    OutData[FORCES].pof = &ofForces;
    
-   OutData[BEAMS].fToUseDefaultPrecision = flag(1);
-   OutData[BEAMS].fToUseScientific = flag(1);
+   OutData[BEAMS].UseDefaultPrecision = true;
+   OutData[BEAMS].UseScientific = true;
    OutData[BEAMS].pof = &ofBeams;
    
-   OutData[ROTORS].fToUseDefaultPrecision = flag(1);
-   OutData[ROTORS].fToUseScientific = flag(1);
+   OutData[ROTORS].UseDefaultPrecision = true;
+   OutData[ROTORS].UseScientific = true;
    OutData[ROTORS].pof = &ofRotors;
    
-   OutData[RESTART].fToUseDefaultPrecision = flag(1);
-   OutData[RESTART].fToUseScientific = flag(1);
+   OutData[RESTART].UseDefaultPrecision = true;
+   OutData[RESTART].UseScientific = true;
    OutData[RESTART].pof = &ofRestart;
 
-   OutData[AERODYNAMIC].fToUseDefaultPrecision = flag(1);
-   OutData[AERODYNAMIC].fToUseScientific = flag(1);
+   OutData[AERODYNAMIC].UseDefaultPrecision = true;
+   OutData[AERODYNAMIC].UseScientific = true;
    OutData[AERODYNAMIC].pof = &ofAerodynamic;
    
-   OutData[HYDRAULIC].fToUseDefaultPrecision = flag(1);
-   OutData[HYDRAULIC].fToUseScientific = flag(1);
+   OutData[HYDRAULIC].UseDefaultPrecision = true;
+   OutData[HYDRAULIC].UseScientific = true;
    OutData[HYDRAULIC].pof = &ofHydraulic;
 
-   OutData[PRESNODES].fToUseDefaultPrecision = flag(1);
-   OutData[PRESNODES].fToUseScientific = flag(1);
+   OutData[PRESNODES].UseDefaultPrecision = true;
+   OutData[PRESNODES].UseScientific = true;
    OutData[PRESNODES].pof = &ofPresNodes;
 
-   OutData[LOADABLE].fToUseDefaultPrecision = flag(1);
-   OutData[LOADABLE].fToUseScientific = flag(1);
+   OutData[LOADABLE].UseDefaultPrecision = true;
+   OutData[LOADABLE].UseScientific = true;
    OutData[LOADABLE].pof = &ofLoadable;
    
-   OutData[GENELS].fToUseDefaultPrecision = flag(1);
-   OutData[GENELS].fToUseScientific = flag(1);
+   OutData[GENELS].UseDefaultPrecision = true;
+   OutData[GENELS].UseScientific = true;
    OutData[GENELS].pof = &ofGenels;
 
-   OutData[PARTITION].fToUseDefaultPrecision = flag(1);
-   OutData[PARTITION].fToUseScientific = flag(1);
+   OutData[PARTITION].UseDefaultPrecision = true;
+   OutData[PARTITION].UseScientific = true;
    OutData[PARTITION].pof = &ofPartition;
    
-   OutData[ADAMSRES].fToUseDefaultPrecision = flag(1);
-   OutData[ADAMSRES].fToUseScientific = flag(1);
+   OutData[ADAMSRES].UseDefaultPrecision = true;
+   OutData[ADAMSRES].UseScientific = true;
    OutData[ADAMSRES].pof = &ofAdamsRes;
 
-   OutData[ADAMSCMD].fToUseDefaultPrecision = flag(1);
-   OutData[ADAMSCMD].fToUseScientific = flag(1);
+   OutData[ADAMSCMD].UseDefaultPrecision = true;
+   OutData[ADAMSCMD].UseScientific = true;
    OutData[ADAMSCMD].pof = &ofAdamsCmd;
 
-   OutData[AEROMODALS].fToUseDefaultPrecision = flag(1);
-   OutData[AEROMODALS].fToUseScientific = flag(1);
+   OutData[AEROMODALS].UseDefaultPrecision = true;
+   OutData[AEROMODALS].UseScientific = true;
    OutData[AEROMODALS].pof = &ofAeroModals;
    
-   OutData[REFERENCEFRAMES].fToUseDefaultPrecision = flag(1);
-   OutData[REFERENCEFRAMES].fToUseScientific = flag(1);
+   OutData[REFERENCEFRAMES].UseDefaultPrecision = true;
+   OutData[REFERENCEFRAMES].UseScientific = true;
    OutData[REFERENCEFRAMES].pof = &ofReferenceFrames;
    
-   OutData[LOG].fToUseDefaultPrecision = flag(0);
-   OutData[LOG].fToUseScientific = flag(0);
+   OutData[LOG].UseDefaultPrecision = false;
+   OutData[LOG].UseScientific = false;
    OutData[LOG].pof = &ofLog;
    
-   OutData[AIRPROPS].fToUseDefaultPrecision = flag(1);
-   OutData[AIRPROPS].fToUseScientific = flag(1);
+   OutData[AIRPROPS].UseDefaultPrecision = true;
+   OutData[AIRPROPS].UseScientific = true;
    OutData[AIRPROPS].pof = &ofAirProps;
+
+   for (int iCnt = 0; iCnt < LASTFILE; iCnt++) {
+      OutData[iCnt].IsOpen = false;
+   }
 }
 
 
@@ -218,97 +222,101 @@ ofLog(),
 ofAirProps(),
 iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
 {
-   OutData[OUTPUT].fToUseDefaultPrecision = flag(0);
-   OutData[OUTPUT].fToUseScientific = flag(0);
+   OutData[OUTPUT].UseDefaultPrecision = false;
+   OutData[OUTPUT].UseScientific = false;
    OutData[OUTPUT].pof = &ofOutput;
    ofOutput.width(iCurrWidth);
    ofOutput.precision(iCurrPrecision);
    
-   OutData[STRNODES].fToUseDefaultPrecision = flag(1);
-   OutData[STRNODES].fToUseScientific = flag(1);
+   OutData[STRNODES].UseDefaultPrecision = true;
+   OutData[STRNODES].UseScientific = true;
    OutData[STRNODES].pof = &ofStrNodes;
    
-   OutData[ELECTRIC].fToUseDefaultPrecision = flag(1);
-   OutData[ELECTRIC].fToUseScientific = flag(1);
+   OutData[ELECTRIC].UseDefaultPrecision = true;
+   OutData[ELECTRIC].UseScientific = true;
    OutData[ELECTRIC].pof = &ofElectric;
    
-   OutData[ABSTRACT].fToUseDefaultPrecision = flag(1);
-   OutData[ABSTRACT].fToUseScientific = flag(1);
+   OutData[ABSTRACT].UseDefaultPrecision = true;
+   OutData[ABSTRACT].UseScientific = true;
    OutData[ABSTRACT].pof = &ofAbstract;
    
-   OutData[INERTIA].fToUseDefaultPrecision = flag(1);
-   OutData[INERTIA].fToUseScientific = flag(1);
+   OutData[INERTIA].UseDefaultPrecision = true;
+   OutData[INERTIA].UseScientific = true;
    OutData[INERTIA].pof = &ofInertia;
    
-   OutData[JOINTS].fToUseDefaultPrecision = flag(1);
-   OutData[JOINTS].fToUseScientific = flag(1);
+   OutData[JOINTS].UseDefaultPrecision = true;
+   OutData[JOINTS].UseScientific = true;
    OutData[JOINTS].pof = &ofJoints;
    
-   OutData[FORCES].fToUseDefaultPrecision = flag(1);
-   OutData[FORCES].fToUseScientific = flag(1);
+   OutData[FORCES].UseDefaultPrecision = true;
+   OutData[FORCES].UseScientific = true;
    OutData[FORCES].pof = &ofForces;
    
-   OutData[BEAMS].fToUseDefaultPrecision = flag(1);
-   OutData[BEAMS].fToUseScientific = flag(1);
+   OutData[BEAMS].UseDefaultPrecision = true;
+   OutData[BEAMS].UseScientific = true;
    OutData[BEAMS].pof = &ofBeams;
    
-   OutData[ROTORS].fToUseDefaultPrecision = flag(1);
-   OutData[ROTORS].fToUseScientific = flag(1);
+   OutData[ROTORS].UseDefaultPrecision = true;
+   OutData[ROTORS].UseScientific = true;
    OutData[ROTORS].pof = &ofRotors;
    
-   OutData[RESTART].fToUseDefaultPrecision = flag(1);
-   OutData[RESTART].fToUseScientific = flag(1);
+   OutData[RESTART].UseDefaultPrecision = true;
+   OutData[RESTART].UseScientific = true;
    OutData[RESTART].pof = &ofRestart;
    
-   OutData[AERODYNAMIC].fToUseDefaultPrecision = flag(1);
-   OutData[AERODYNAMIC].fToUseScientific = flag(1);
+   OutData[AERODYNAMIC].UseDefaultPrecision = true;
+   OutData[AERODYNAMIC].UseScientific = true;
    OutData[AERODYNAMIC].pof = &ofAerodynamic;
    
-   OutData[HYDRAULIC].fToUseDefaultPrecision = flag(1);
-   OutData[HYDRAULIC].fToUseScientific = flag(1);
+   OutData[HYDRAULIC].UseDefaultPrecision = true;
+   OutData[HYDRAULIC].UseScientific = true;
    OutData[HYDRAULIC].pof = &ofHydraulic;
 
-   OutData[PRESNODES].fToUseDefaultPrecision = flag(1);
-   OutData[PRESNODES].fToUseScientific = flag(1);
+   OutData[PRESNODES].UseDefaultPrecision = true;
+   OutData[PRESNODES].UseScientific = true;
    OutData[PRESNODES].pof = &ofPresNodes;
 
-   OutData[LOADABLE].fToUseDefaultPrecision = flag(1);
-   OutData[LOADABLE].fToUseScientific = flag(1);
+   OutData[LOADABLE].UseDefaultPrecision = true;
+   OutData[LOADABLE].UseScientific = true;
    OutData[LOADABLE].pof = &ofLoadable;
    
-   OutData[GENELS].fToUseDefaultPrecision = flag(1);
-   OutData[GENELS].fToUseScientific = flag(1);
+   OutData[GENELS].UseDefaultPrecision = true;
+   OutData[GENELS].UseScientific = true;
    OutData[GENELS].pof = &ofGenels;
 
-   OutData[PARTITION].fToUseDefaultPrecision = flag(1);
-   OutData[PARTITION].fToUseScientific = flag(1);
+   OutData[PARTITION].UseDefaultPrecision = true;
+   OutData[PARTITION].UseScientific = true;
    OutData[PARTITION].pof = &ofPartition;
    
-   OutData[ADAMSRES].fToUseDefaultPrecision = flag(1);
-   OutData[ADAMSRES].fToUseScientific = flag(1);
+   OutData[ADAMSRES].UseDefaultPrecision = true;
+   OutData[ADAMSRES].UseScientific = true;
    OutData[ADAMSRES].pof = &ofAdamsRes;
 
-   OutData[ADAMSCMD].fToUseDefaultPrecision = flag(1);
-   OutData[ADAMSCMD].fToUseScientific = flag(1);
+   OutData[ADAMSCMD].UseDefaultPrecision = true;
+   OutData[ADAMSCMD].UseScientific = true;
    OutData[ADAMSCMD].pof = &ofAdamsCmd;
    
-   OutData[AEROMODALS].fToUseDefaultPrecision = flag(1);
-   OutData[AEROMODALS].fToUseScientific = flag(1);
+   OutData[AEROMODALS].UseDefaultPrecision = true;
+   OutData[AEROMODALS].UseScientific = true;
    OutData[AEROMODALS].pof = &ofAeroModals;
    
-   OutData[REFERENCEFRAMES].fToUseDefaultPrecision = flag(1);
-   OutData[REFERENCEFRAMES].fToUseScientific = flag(1);
+   OutData[REFERENCEFRAMES].UseDefaultPrecision = true;
+   OutData[REFERENCEFRAMES].UseScientific = true;
    OutData[REFERENCEFRAMES].pof = &ofReferenceFrames;
 
-   OutData[LOG].fToUseDefaultPrecision = flag(0);
-   OutData[LOG].fToUseScientific = flag(0);
+   OutData[LOG].UseDefaultPrecision = false;
+   OutData[LOG].UseScientific = false;
    OutData[LOG].pof = &ofLog;
    ofLog.width(iCurrWidth);
    ofLog.precision(iCurrPrecision);
    
-   OutData[AIRPROPS].fToUseDefaultPrecision = flag(1);
-   OutData[AIRPROPS].fToUseScientific = flag(1);
+   OutData[AIRPROPS].UseDefaultPrecision = true;
+   OutData[AIRPROPS].UseScientific = true;
    OutData[AIRPROPS].pof = &ofAirProps;
+
+   for (int iCnt = 0; iCnt < LASTFILE; iCnt++) {
+      OutData[iCnt].IsOpen = false;
+   }
 }
 
 
@@ -325,23 +333,26 @@ void OutputHandler::Init(const char* sFName, int iExtNum)
 OutputHandler::~OutputHandler(void) 
 {
    for(int iCnt = 0; iCnt < LASTFILE; iCnt++) {
+      if (OutData[iCnt].IsOpen) {
 #if HAVE_ISOPEN
-      if (OutData[iCnt].pof->is_open()) {
+	 ASSERT(OutData[iCnt].pof->is_open());
 #endif /* HAVE_ISOPEN */
 	 OutData[iCnt].pof->close();
-#if HAVE_ISOPEN
+	 OutData[iCnt].IsOpen = false;
       }
-#endif /* HAVE_ISOPEN */
    }
 }
    
    
 /* Aggiungere qui le funzioni che aprono i singoli stream */
-int OutputHandler::Open(OutFiles out)
+bool
+OutputHandler::Open(const OutputHandler::OutFiles out)
 {
+   if(!OutData[out].IsOpen) {
 #if HAVE_ISOPEN
-   if(!OutData[out].pof->is_open()) {
+      ASSERT(!OutData[out].pof->is_open());
 #endif /* HAVE_ISOPEN */
+
       /* Apre lo stream */
       OutData[out].pof->open(_sPutExt((char*)(psExt[out])));
 
@@ -350,107 +361,40 @@ int OutputHandler::Open(OutFiles out)
 	   << '>' << std::endl;
 	 THROW(ErrFile());
       }
+
+      OutData[out].IsOpen = true;
       
       /* Setta la formattazione dei campi */
-      if(OutData[out].fToUseDefaultPrecision) {		        
+      if(OutData[out].UseDefaultPrecision) {		        
 	 OutData[out].pof->precision(iCurrPrecision);
       }
       
       /* Setta la notazione */
-      if(OutData[out].fToUseScientific) {
+      if(OutData[out].UseScientific) {
 	 OutData[out].pof->setf(std::ios::scientific);
       }
 
-      return 0;
-#if HAVE_ISOPEN
-   }
-   return 1;
-#endif /* HAVE_ISOPEN */
+      return false;
+   } /* else */
+
+   return true;
+}
+
+bool
+OutputHandler::IsOpen(const OutputHandler::OutFiles out) const
+{
+	return OutData[out].IsOpen;
 }
    
    
-int OutputHandler::OutputOpen(void) 
+bool
+OutputHandler::OutputOpen(void) 
 {
-#if HAVE_ISOPEN
-   ASSERT(!ofOutput.is_open());
-#endif /* HAVE_ISOPEN */
    return Open(OUTPUT);
 }
 
-#if 0
-int OutputHandler::StrNodesOpen(void) 
-{ 
-#if HAVE_ISOPEN
-   ASSERT(!ofStrNodes.is_open());
-#endif /* HAVE_ISOPEN */
-   return Open(STRNODES);
-}
-
-
-int OutputHandler::ElectricOpen(void) 
-{
-#if HAVE_ISOPEN
-   ASSERT(!ofElectric.is_open());
-#endif /* HAVE_ISOPEN */
-   return Open(ELECTRIC);
-}
-
-
-int OutputHandler::AbstractOpen(void) 
-{ 
-#if HAVE_ISOPEN
-   ASSERT(!ofAbstract.is_open());
-#endif /* HAVE_ISOPEN */
-   return Open(ABSTRACT);
-}
-
-
-int OutputHandler::InertiaOpen(void) 
-{ 
-#if HAVE_ISOPEN
-   ASSERT(!ofInertia.is_open());
-#endif /* HAVE_ISOPEN */
-   return Open(INERTIA);
-}
-
-
-int OutputHandler::JointsOpen(void)
-{ 
-#if HAVE_ISOPEN
-   ASSERT(!ofJoints.is_open());
-#endif /* HAVE_ISOPEN */
-   return Open(JOINTS);
-}
-
-
-int OutputHandler::ForcesOpen(void)
-{ 
-#if HAVE_ISOPEN
-   ASSERT(!ofForces.is_open());
-#endif /* HAVE_ISOPEN */
-   return Open(FORCES);
-}
-
-
-int OutputHandler::BeamsOpen(void)
-{ 
-#if HAVE_ISOPEN
-   ASSERT(!ofBeams.is_open());
-#endif /* HAVE_ISOPEN */
-   return Open(BEAMS);
-}
-
-
-int OutputHandler::RotorsOpen(void)
-{ 
-#if HAVE_ISOPEN
-   ASSERT(!ofRotors.is_open());
-#endif /* HAVE_ISOPEN */
-   return Open(ROTORS);
-}
-#endif /* 0 */
-
-int OutputHandler::RestartOpen(void)
+bool
+OutputHandler::RestartOpen(void)
 { 
 #if HAVE_ISOPEN
    ASSERT(!ofRestart.is_open());
@@ -458,53 +402,8 @@ int OutputHandler::RestartOpen(void)
    return Open(RESTART);
 }
 
-#if 0
-int OutputHandler::AerodynamicOpen(void)
-{ 
-#if HAVE_ISOPEN
-   ASSERT(!ofAerodynamic.is_open());
-#endif /* HAVE_ISOPEN */
-   return Open(AERODYNAMIC);
-}
-
-
-int OutputHandler::HydraulicOpen(void)
-{ 
-#if HAVE_ISOPEN
-   ASSERT(!ofHydraulic.is_open());
-#endif /* HAVE_ISOPEN */
-   return Open(HYDRAULIC);
-}
-
-
-int OutputHandler::PresNodesOpen(void)
-{ 
-#if HAVE_ISOPEN
-   ASSERT(!ofPresNodes.is_open());
-#endif /* HAVE_ISOPEN */
-   return Open(PRESNODES);
-}
-
-
-int OutputHandler::LoadableOpen(void)
-{ 
-#if HAVE_ISOPEN
-   ASSERT(!ofLoadable.is_open());
-#endif /* HAVE_ISOPEN */
-   return Open(LOADABLE);
-}
-
-
-int OutputHandler::GenelsOpen(void)
-{ 
-#if HAVE_ISOPEN
-   ASSERT(!ofGenels.is_open());
-#endif /* HAVE_ISOPEN */
-   return Open(GENELS);
-}
-#endif /* 0 */
-
-int OutputHandler::PartitionOpen(void)
+bool
+OutputHandler::PartitionOpen(void)
 { 
 #if HAVE_ISOPEN
   ASSERT(!ofPartition.is_open());
@@ -512,7 +411,8 @@ int OutputHandler::PartitionOpen(void)
   return Open(PARTITION);
 }
 
-int OutputHandler::AdamsResOpen(void)
+bool
+OutputHandler::AdamsResOpen(void)
 { 
 #if HAVE_ISOPEN
   ASSERT(!ofAdamsRes.is_open());
@@ -520,7 +420,8 @@ int OutputHandler::AdamsResOpen(void)
   return Open(ADAMSRES);
 }
 
-int OutputHandler::AdamsCmdOpen(void)
+bool
+OutputHandler::AdamsCmdOpen(void)
 {
 #if HAVE_ISOPEN
    ASSERT(!ofAdamsCmd.is_open());
@@ -528,7 +429,8 @@ int OutputHandler::AdamsCmdOpen(void)
    return Open(ADAMSCMD);
 }
 
-int OutputHandler::LogOpen(void) 
+bool
+OutputHandler::LogOpen(void) 
 {
 #if HAVE_ISOPEN
    ASSERT(!ofLog.is_open());
@@ -536,16 +438,6 @@ int OutputHandler::LogOpen(void)
    return Open(LOG);
 }
 
-
-#if 0
-int OutputHandler::AirPropsOpen(void)
-{ 
-#if HAVE_ISOPEN
-   ASSERT(!ofAirProps.is_open());
-#endif /* HAVE_ISOPEN */
-   return Open(AIRPROPS);
-}
-#endif /* 0 */
 
 /* Setta precisione e dimensioni campo */
 const int iWidth = 7; /* Caratteri richiesti dalla notazione esponenziale */
@@ -557,7 +449,7 @@ void OutputHandler::SetWidth(int iNewWidth)
       iCurrWidth = iNewWidth;
       iCurrPrecision = iCurrWidth-iWidth;
       for (int iCnt = 0; iCnt < LASTFILE; iCnt++) {
-	 if(OutData[iCnt].fToUseDefaultPrecision && *OutData[iCnt].pof) {
+	 if(OutData[iCnt].UseDefaultPrecision && *OutData[iCnt].pof) {
 	    OutData[iCnt].pof->width(iCurrWidth);
 	    OutData[iCnt].pof->precision(iCurrPrecision);
 	 }		  
@@ -572,7 +464,7 @@ void OutputHandler::SetPrecision(int iNewPrecision)
       iCurrPrecision = iNewPrecision;
       iCurrWidth = iNewPrecision+iWidth;
       for (int iCnt = 0; iCnt < LASTFILE; iCnt++) {
-	 if (OutData[iCnt].fToUseDefaultPrecision && *OutData[iCnt].pof) {
+	 if (OutData[iCnt].UseDefaultPrecision && *OutData[iCnt].pof) {
 	    OutData[iCnt].pof->width(iCurrWidth);
 	    OutData[iCnt].pof->precision(iCurrPrecision);
 	 }

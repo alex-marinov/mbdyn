@@ -82,8 +82,9 @@ class OutputHandler : public FileName {
    /* Aggiungere qui i files che si desidera avere a disposizione */
    struct {
        std::ofstream* pof;
-      flag fToUseDefaultPrecision;
-      flag fToUseScientific;
+      bool UseDefaultPrecision;
+      bool UseScientific;
+      bool IsOpen;
    } OutData[LASTFILE];
    
    std::ofstream ofOutput;      /*  0 */
@@ -123,20 +124,22 @@ class OutputHandler : public FileName {
    
    
    /* Aggiungere qui le funzioni che aprono i singoli stream */
-   int Open(OutFiles out);
-   
-   
-   int OutputOpen(void);
-   int RestartOpen(void);
+   bool Open(const OutputHandler::OutFiles out);
 
-   int PartitionOpen(void);
-   int AdamsResOpen(void);
-   int AdamsCmdOpen(void);
-   int LogOpen(void);
+   bool IsOpen(const OutputHandler::OutFiles out) const;
+   
+   bool OutputOpen(void);
+   bool RestartOpen(void);
+
+   bool PartitionOpen(void);
+   bool AdamsResOpen(void);
+   bool AdamsCmdOpen(void);
+   bool LogOpen(void);
 
    /* Aggiungere qui le funzioni che ritornano gli stream desiderati */
    inline std::ostream& Get(const OutputHandler::OutFiles f) {
       ASSERT(f > -1 && f < LASTFILE);
+      ASSERT(OutData[f].IsOpen);
 #if HAVE_ISOPEN
       ASSERT(OutData[f].pof->is_open());
 #endif /* HAVE_ISOPEN */
@@ -147,6 +150,7 @@ class OutputHandler : public FileName {
 #ifdef DEBUG_COUT
       return (std::ostream&)cout;
 #else
+      ASSERT(ofOutput.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofOutput.is_open());
 #endif /* HAVE_ISOPEN */
@@ -155,6 +159,7 @@ class OutputHandler : public FileName {
    };   
    
    inline std::ostream& StrNodes(void) const {
+      ASSERT(ofStrNodes.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofStrNodes.is_open());
 #endif /* HAVE_ISOPEN */
@@ -162,6 +167,7 @@ class OutputHandler : public FileName {
    };   
    
    inline std::ostream& Electric(void) const {
+      ASSERT(ofElectric.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofElectric.is_open());
 #endif /* HAVE_ISOPEN */
@@ -169,6 +175,7 @@ class OutputHandler : public FileName {
    };
    
    inline std::ostream& Abstract(void) const {
+      ASSERT(ofAbstract.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofAbstract.is_open());
 #endif /* HAVE_ISOPEN */
@@ -176,6 +183,7 @@ class OutputHandler : public FileName {
    };   
    
    inline std::ostream& Inertia(void) const {
+      ASSERT(ofInertia.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofInertia.is_open());
 #endif /* HAVE_ISOPEN */
@@ -183,6 +191,7 @@ class OutputHandler : public FileName {
    };   
    
    inline std::ostream& Joints(void) const {
+      ASSERT(ofJoints.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofJoints.is_open());
 #endif /* HAVE_ISOPEN */
@@ -190,6 +199,7 @@ class OutputHandler : public FileName {
    };   
    
    inline std::ostream& Forces(void) const {
+      ASSERT(ofForces.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofForces.is_open());
 #endif /* HAVE_ISOPEN */
@@ -197,6 +207,7 @@ class OutputHandler : public FileName {
    };   
    
    inline std::ostream& Beams(void) const {
+      ASSERT(ofBeams.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofBeams.is_open());
 #endif /* HAVE_ISOPEN */
@@ -204,6 +215,7 @@ class OutputHandler : public FileName {
    };   
    
    inline std::ostream& Rotors(void) const {
+      ASSERT(ofRotors.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofRotors.is_open());
 #endif /* HAVE_ISOPEN */
@@ -211,6 +223,7 @@ class OutputHandler : public FileName {
    };   
    
    inline std::ostream& Restart(void) const {
+      ASSERT(ofRestart.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofRestart.is_open());
 #endif /* HAVE_ISOPEN */
@@ -218,6 +231,7 @@ class OutputHandler : public FileName {
    };   
    
    inline std::ostream& Aerodynamic(void) const {
+      ASSERT(ofAerodynamic.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofAerodynamic.is_open());
 #endif /* HAVE_ISOPEN */
@@ -225,6 +239,7 @@ class OutputHandler : public FileName {
    };   
    
    inline std::ostream& Hydraulic(void) const {
+      ASSERT(ofHydraulic.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofHydraulic.is_open());
 #endif /* HAVE_ISOPEN */
@@ -232,6 +247,7 @@ class OutputHandler : public FileName {
    };   
 
    inline std::ostream& PresNodes(void) const {
+      ASSERT(ofPresNodes.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofPresNodes.is_open());
 #endif /* HAVE_ISOPEN */
@@ -239,6 +255,7 @@ class OutputHandler : public FileName {
    };   
 
    inline std::ostream& Loadable(void) const {
+      ASSERT(ofLoadable.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofLoadable.is_open());
 #endif /* HAVE_ISOPEN */
@@ -246,6 +263,7 @@ class OutputHandler : public FileName {
    };   
 
    inline std::ostream& Genels(void) const {
+      ASSERT(ofGenels.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofGenels.is_open());
 #endif /* HAVE_ISOPEN */
@@ -253,6 +271,7 @@ class OutputHandler : public FileName {
    };   
 
    inline std::ostream& Partition(void) const {
+      ASSERT(ofPartition.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofPartition.is_open());
 #endif /* HAVE_ISOPEN */
@@ -260,6 +279,7 @@ class OutputHandler : public FileName {
    };
    
    inline std::ostream& AdamsRes(void) const {
+      ASSERT(ofAdamsRes.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofAdamsRes.is_open());
 #endif /* HAVE_ISOPEN */
@@ -267,6 +287,7 @@ class OutputHandler : public FileName {
    };
 
    inline std::ostream& AdamsCmd(void) const {
+      ASSERT(ofAdamsCmd.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofAdamsCmd.is_open());
 #endif /* HAVE_ISOPEN */
@@ -274,6 +295,7 @@ class OutputHandler : public FileName {
    };
 
    inline std::ostream& AeroModals(void) const {
+      ASSERT(ofAeroModals.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofAeroModals.is_open());
 #endif /* HAVE_ISOPEN */
@@ -281,6 +303,7 @@ class OutputHandler : public FileName {
    };   
 
    inline std::ostream& ReferenceFrames(void) const {
+      ASSERT(ofReferenceFrames.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofReferenceFrames.is_open());
 #endif /* HAVE_ISOPEN */
@@ -291,6 +314,7 @@ class OutputHandler : public FileName {
 #ifdef DEBUG_COUT
       return (std::ostream&)cout;
 #else
+      ASSERT(ofLog.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofLog.is_open());
 #endif /* HAVE_ISOPEN */
@@ -299,6 +323,7 @@ class OutputHandler : public FileName {
    };   
    
    inline std::ostream& AirProps(void) const {
+      ASSERT(ofAirProps.IsOpen);
 #if HAVE_ISOPEN
       ASSERT(ofAirProps.is_open());
 #endif /* HAVE_ISOPEN */

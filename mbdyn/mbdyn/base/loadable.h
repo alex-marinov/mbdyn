@@ -255,10 +255,16 @@ protected:
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 	LoadableCalls *calls;	/* Simboli delle funzioni attese */
 	bool needsAirProperties;
+
+	void GetCalls(MBDynParser& HP);
+	void BindCalls(DataManager* pDM, MBDynParser& HP);
    
 public:
    	LoadableElem(unsigned int uLabel, const DofOwner* pDO,
 		     DataManager* pDM, MBDynParser& HP);
+   	LoadableElem(unsigned int uLabel, const DofOwner* pDO,
+			LoadableCalls *c,
+			DataManager* pDM, MBDynParser& HP);
    	~LoadableElem(void); 
    	virtual inline void* pGet(void) const;
    

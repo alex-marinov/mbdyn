@@ -42,6 +42,8 @@ kinj.cc \
 kinj.h \
 modal.cc \
 modal.h \
+module-wheel2.cc \
+modules.h \
 planedj.cc \
 planedj.h \
 planej.cc \
@@ -85,3 +87,12 @@ INCLUDES = \
 -I../../mbdyn/hydr
 
 include $(top_srcdir)/build/bot.mk
+
+module-wheel2.cc:
+	if test -f module-wheel2.cc ; then \
+		rm -f module-wheel2.cc ; \
+	else \
+		ln -s ../../modules/module-wheel2/module-wheel2.cc . ; \
+	fi
+
+	

@@ -43,15 +43,15 @@ $(MBDYN_MODULE).so: $(MODULE_DEPENDENCIES) $(MBDYN_MODULE).o
 
 .cc.o: 
 	$(MAKE) clean-so
-	$(LTCXXCOMPILE) -c $<
+	$(LTCXXCOMPILE) -DMBDYN_MODULE -c $<
 
 .c.o: 
 	$(MAKE) clean-so
-	$(LTCOMPILE) -c $<
+	$(LTCOMPILE) -DMBDYN_MODULE -c $<
 
 .f.o: 
 	$(MAKE) clean-so
-	$(LTF77COMPILE) -c $<
+	$(LTF77COMPILE) -DMBDYN_MODULE -c $<
 
 install: $(MBDYN_MODULE).so
 	if test -f $<; then \

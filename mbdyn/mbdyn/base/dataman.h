@@ -276,6 +276,9 @@ class DataManager : public SolutionDataManager {
    virtual void Output_f06(std::ostream& f06, const VectorHandler& Xr, const VectorHandler& Xi) const;
    virtual void Output_OpenDX(std::ostream& dx, const VectorHandler& Xr, const VectorHandler& Xi) const;
 
+   /* Aggiungere qui le funzioni che aprono i singoli stream */
+   void OutputOpen(const OutputHandler::OutFiles out);
+
 #ifdef USE_ADAMS 
    /* MSC's ADAMS/View .res output */
    bool bAdamsOutput(void) const;

@@ -520,8 +520,6 @@ DofIter()
 } /* End of DataManager::DataManager() */
 
 
-
-
 /* Distruttore: se richiesto, crea il file di restart; quindi
  * chiama i distruttori degli oggetti propri e libera la memoria di lavoro */
 
@@ -557,6 +555,15 @@ DataManager::~DataManager(void)
    }
 #endif /* HAVE_LOADABLE && HAVE_LTDL_H */
 } /* End of DataManager::DataManager() */
+
+
+void
+DataManager::OutputOpen(const OutputHandler::OutFiles o)
+{
+	if (!OutHdl.IsOpen(o)) {
+		OutHdl.Open(o);
+	}
+}
 
 
 bool
