@@ -1611,7 +1611,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     /* bound a elemento */
 	     if (HP.IsKeyWord("element")) {
 		DEBUGLCOUT(MYDEBUG_INPUT, "parameter node " << uLabel 
-			   << "is linked to an element" << std::endl);
+			   << " is linked to an element" << std::endl);
 		flag fOut = fReadOutput(HP, Node::PARAMETER);
 		
 		/* allocazione e creazione */
