@@ -92,7 +92,7 @@ void DriveHingeJoint::Output(OutputHandler& OH) const
       Vec3 d(MatR2EulerAngles(pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()));
       Joint::Output(OH.Joints(), "DriveHinge", GetLabel(),
 		    Zero3, M, Zero3, pNode1->GetRCurr()*M)
-	<< " " << d 
+	<< " " << d*dRaDegr 
 	<< " " << ThetaCurr << std::endl;
    }     
 }

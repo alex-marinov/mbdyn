@@ -86,7 +86,7 @@ std::ostream& DeformableHingeJoint::Restart(std::ostream& out) const
 void DeformableHingeJoint::Output(OutputHandler& OH) const
 {   
    if (fToBeOutput()) {
-      Vec3 d(MatR2EulerAngles(pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()));
+      Vec3 d(MatR2EulerAngles(pNode1->GetRCurr().Transpose()*pNode2->GetRCurr())*dRaDegr);
       Vec3 v(GetF());
       Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
 		    Zero3, v, Zero3, pNode1->GetRCurr()*v) 

@@ -169,6 +169,7 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
    Mat3x3 R1h;
    Mat3x3 R2h;
    Vec3 M;
+   mutable doublereal dTheta;
    
  public:
    /* Costruttore non banale */
@@ -199,6 +200,11 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
       ASSERT(i >= 0 && i < 2);
       return DofOrder::ALGEBRAIC; 
    };
+
+	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+
+	virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP);
 
    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
       *piNumRows = 3+3+2;

@@ -76,14 +76,15 @@ main(int argn, const char* const argv[])
       		std::cin >> d[0];
       		if (std::cin) {
 	 		std::cin >> d[1] >> d[2];
-	 		Mat3x3 R1(EulerAngles2MatR(Vec3(d)/180.*M_PI));
+	 		Mat3x3 R1(EulerAngles2MatR(Vec3(d)/dRaDegr));
 	 		std::cin >> d[0] >> d[1] >> d[2];
-	 		Mat3x3 R2(EulerAngles2MatR(Vec3(d)/180.*M_PI));
+	 		Mat3x3 R2(EulerAngles2MatR(Vec3(d)/dRaDegr));
+			Mat3x3 R(R1.Transpose()*R2);
 			
 	 		if (f) {
-	    			std::cout << R1.Transpose()*R2 << std::endl;
+	    			std::cout << R << std::endl;
 	 		} else {
-	    			std::cout << MatR2EulerAngles(R1.Transpose()*R2) << std::endl;
+	    			std::cout << MatR2EulerAngles(R)*dRaDegr << std::endl;
 	 		}
       		} else {
 	 		break;

@@ -376,11 +376,11 @@ Vec3 MatR2EulerAngles(const Mat3x3& R)
    doublereal dCosAlpha = cos(dAlpha);
    doublereal dSinAlpha = sin(dAlpha);
       
-   return Vec3(dAlpha*dRaDegr,
+   return Vec3(dAlpha,
 	       atan2(R.dGet(1,3), 
-		     dCosAlpha*R.dGet(3,3)-dSinAlpha*R.dGet(2,3))*dRaDegr,
+		     dCosAlpha*R.dGet(3,3)-dSinAlpha*R.dGet(2,3)),
 	       atan2(dCosAlpha*R.dGet(2,1)+dSinAlpha*R.dGet(3,1),
-		     dCosAlpha*R.dGet(2,2)+dSinAlpha*R.dGet(3,2))*dRaDegr);   
+		     dCosAlpha*R.dGet(2,2)+dSinAlpha*R.dGet(3,2)));   
 }
 
 void MatR2EulerParams(const Mat3x3& R, doublereal& e0, Vec3& e)

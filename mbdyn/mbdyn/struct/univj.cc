@@ -313,7 +313,8 @@ void UniversalHingeJoint::Output(OutputHandler& OH) const
 
       Joint::Output(OH.Joints(), "UniversalHinge", GetLabel(),
 		    R1Tmp.Transpose()*F, Vec3(dM, 0., 0.), F, vTmp*dM)
-	<< " " << MatR2EulerAngles(R2Tmp.Transpose()*R1Tmp) << std::endl;      
+	<< " " << MatR2EulerAngles(R2Tmp.Transpose()*R1Tmp)*dRaDegr
+	<< std::endl;      
    }   
 }
 
@@ -846,7 +847,7 @@ void UniversalPinJoint::Output(OutputHandler& OH) const
       
       Joint::Output(OH.Joints(), "UniversalPin", GetLabel(),
 		    RTmp.Transpose()*F, Vec3(dM, 0., 0.), F, vTmp*dM)
-	<< " " << MatR2EulerAngles(R0.Transpose()*RTmp) << std::endl;      
+	<< " " << MatR2EulerAngles(R0.Transpose()*RTmp)*dRaDegr << std::endl;
    }   
 }
 

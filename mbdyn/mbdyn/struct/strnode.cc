@@ -55,7 +55,7 @@ std::ostream&
 BasicStructNodeOutput::Output(std::ostream& out, const StructNode *pN) const
 {
 	return out << pN->GetXCurr()
-		<< " " << MatR2EulerAngles(pN->GetRCurr())
+		<< " " << MatR2EulerAngles(pN->GetRCurr())*dRaDegr
 		<< " " << pN->GetVCurr()
 		<< " " << pN->GetWCurr()
 		<< std::endl;
@@ -81,7 +81,7 @@ RelativeStructNodeOutput::Output(std::ostream& out, const StructNode *pN) const
 	Mat3x3 RT = pBaseNode->GetRCurr().Transpose();
 
 	return out << RT*Xr
-		<< " " << MatR2EulerAngles(RT*pN->GetRCurr())
+		<< " " << MatR2EulerAngles(RT*pN->GetRCurr())*dRaDegr
 		<< " " << RT*(pN->GetVCurr() - pBaseNode->GetVCurr() - pBaseNode->GetWCurr().Cross(Xr))
 		<< " " << RT*(pN->GetWCurr() - pBaseNode->GetWCurr())
 		<< std::endl;
@@ -277,7 +277,7 @@ StructNode::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {      
       OH.StrNodes() << std::setw(8) << GetLabel() << " "
-	<< XCurr << " " << MatR2EulerAngles(RCurr) << " "
+	<< XCurr << " " << MatR2EulerAngles(RCurr)*dRaDegr << " "
 	<< VCurr << " " << WCurr << " " << std::endl;
    }   
 }
@@ -298,7 +298,7 @@ StructNode::Output(
       Mat3x3 DR(MatR, Dg);
 
       OH.StrNodes() << std::setw(8) << GetLabel() << " "
-	<< (XCurr+DX) << " " << MatR2EulerAngles(DR*RCurr) << " "
+	<< (XCurr+DX) << " " << MatR2EulerAngles(DR*RCurr)*dRaDegr << " "
 	<< "#" << std::endl;
    }
 }

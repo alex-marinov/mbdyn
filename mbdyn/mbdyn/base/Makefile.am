@@ -74,6 +74,7 @@ precond.cc \
 precond.h \
 precond_.h \
 readclaw.h \
+reffrm.cc \
 reffrm.h \
 resforces.cc \
 resforces.h \

@@ -216,7 +216,7 @@ void SphericalHingeJoint::Output(OutputHandler& OH) const
       
       Joint::Output(OH.Joints(), "SphericalHinge", GetLabel(),
 		    R2TmpT*F, Zero3, F, Zero3) 
-	<< " " << MatR2EulerAngles(RTmp) << std::endl;
+	<< " " << MatR2EulerAngles(RTmp)*dRaDegr << std::endl;
    }   
 }
 
@@ -572,7 +572,7 @@ void PinJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
       Joint::Output(OH.Joints(), "Pin", GetLabel(), F, Zero3, F, Zero3) 
-	<< " " << MatR2EulerAngles(pNode->GetRCurr()) << std::endl;      
+	<< " " << MatR2EulerAngles(pNode->GetRCurr())*dRaDegr << std::endl;
    }   
 }
 

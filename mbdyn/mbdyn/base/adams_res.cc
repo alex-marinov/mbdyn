@@ -328,7 +328,7 @@ DataManager::AdamsResOutputInit(void)
 	<< "." << sAdamsModelName << ".PART_" << l << std::endl;
       
       Vec3 x(p->GetXCurr());
-      Vec3 e(MatR2EulerAngles(p->GetRCurr()));
+      Vec3 e(MatR2EulerAngles(p->GetRCurr())*dRaDegr);
 
       /* Commento con il nome del nodo */
       const char *sName = p->GetName();

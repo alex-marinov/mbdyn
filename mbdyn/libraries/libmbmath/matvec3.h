@@ -1214,6 +1214,7 @@ extern Mat3x3 MatR2vec(unsigned short int ia,
  Calcola gli angoli di Eulero a partire dalla matrice di rotazione R.
  Nota: gli angoli di Eulero sono ritornati in gradi.
  */
+extern const doublereal dRaDegr;
 extern Vec3 MatR2EulerAngles(const Mat3x3& R);
 extern void MatR2EulerParams(const Mat3x3& R, doublereal& e0, Vec3& e);
 
