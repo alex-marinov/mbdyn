@@ -195,7 +195,9 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	virtual unsigned int iGetNumDof(void) const;
-	virtual std::ostream& DescribeDof(std::ostream& out, char *prefix = "", int i = -1) const;
+	virtual std::ostream& DescribeDof(std::ostream& out,
+			char *prefix = "",
+			bool bInitial = false, int i = -1) const;
 	DofOrder::Order GetDofType(unsigned int i) const;
 	DofOrder::Order GetEqType(unsigned int i) const;
 

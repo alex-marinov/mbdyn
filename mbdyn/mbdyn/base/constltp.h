@@ -128,7 +128,9 @@ public:
 		return 0;
 	};
 
-	virtual std::ostream& DescribeDof(std::ostream& out, char *prefix = "", int i = -1) const {
+	virtual std::ostream& DescribeDof(std::ostream& out,
+			char *prefix = "",
+			bool bInitial = false, int i = -1) const {
 		return out;
 	};
 
@@ -206,7 +208,9 @@ public:
 		return pConstLaw->iGetNumDof();
 	};
 
-	virtual std::ostream& DescribeDof(std::ostream& out, char *prefix = "", int i = -1) const {
+	virtual std::ostream& DescribeDof(std::ostream& out,
+			char *prefix = "",
+			bool bInitial = false, int i = -1) const {
 		return out;
 	};
 

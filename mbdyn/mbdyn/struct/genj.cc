@@ -1350,7 +1350,7 @@ ClampJoint::~ClampJoint(void)
 
 
 std::ostream&
-ClampJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
+ClampJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -1361,10 +1361,20 @@ ClampJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
 		throw ErrGeneric();
 	}
 
-	out << prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
-		"reaction forces [Fx,Fy,Fz]" << std::endl
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+			"reaction forces [Fx,Fy,Fz]" << std::endl
 		<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
-		"reaction couples [mx,my,mz]" << std::endl;
+			"reaction couples [mx,my,mz]" << std::endl;
+	
+	if (bInitial) {
+		iIndex += 6;
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"reaction force derivatives [FPx,FPy,FPz]" << std::endl
+			<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
+				"reaction couple derivatives [mPx,mPy,mPz]" << std::endl;
+	}
 
 	return out;
 }

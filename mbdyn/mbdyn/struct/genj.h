@@ -291,7 +291,9 @@ class ClampJoint : virtual public Elem, public Joint {
    virtual unsigned int iGetNumDof(void) const {
       return 6; 
    };
-   virtual std::ostream& DescribeDof(std::ostream& out, char *prefix = "", int i = -1) const;
+   virtual std::ostream& DescribeDof(std::ostream& out,
+		   char *prefix = "",
+		   bool bInitial = false, int i = -1) const;
    virtual DofOrder::Order GetDofType(unsigned int i) const
    {
       ASSERT(i >= 0 && i < 6);

@@ -286,7 +286,7 @@ Modal::iGetNumDof(void) const
 }
 
 std::ostream&
-Modal::DescribeDof(std::ostream& out, char *prefix, int i) const
+Modal::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 {
 	integer iModalIndex = iGetFirstIndex();
 
@@ -309,6 +309,14 @@ Modal::DescribeDof(std::ostream& out, char *prefix, int i) const
 				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") reaction forces [Fx,Fy,Fz]" << std::endl
 			<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
 				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") reaction couples [mx,my,mz]" << std::endl;
+		if (bInitial) {
+			iModalIndex += 6;
+			out
+				<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
+					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") reaction force derivatives [FPx,FPy,FPz]" << std::endl
+				<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
+					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") reaction couple derivatives [mPx,mPy,mPz]" << std::endl;
+		}
 	}
 
 	return out;
@@ -2783,6 +2791,8 @@ ReadModal(DataManager* pDM,
 		iNode++;
 		Vec3 Origin(pXYZFemNodes->GetVec(iNode));
 
+		pedantic_cout("Modal(" << uLabel << "): origin x={" << Origin << "}" << std::endl);
+
 		for (iStrNode = 1; iStrNode <= NFemNodes; iStrNode++) {
 			pXYZFemNodes->SubVec(iStrNode, Origin);
 		}
@@ -2879,6 +2889,16 @@ ReadModal(DataManager* pDM,
 		 * puo' servire per il restart? */
 		IntFEMNodes[iStrNode-1] = uNode1;
 		IntMBNodes[iStrNode-1] = uNode2;
+
+		pedantic_cout("Interface node " << iStrNode << ":" << std::endl
+				<< "        MB node " << uNode2 << " x={" << pInterfaceNodes[iStrNode-1]->GetXCurr() << "}" << std::endl);
+		if (pModalNode) {
+			Vec3 u = pXYZFemNodes->GetVec(iNodeCurr);
+			pedantic_cout("        FEM node " << uNode1 << " x={" << pModalNode->GetXCurr() + pModalNode->GetRCurr()*u
+					<< "} xrel={" << u << "}" << std::endl);
+		} else {
+			pedantic_cout("        FEM node " << uNode1 << " x={" << pXYZFemNodes->GetVec(iNodeCurr) << "}" << std::endl);
+		}
 	}  /* fine ciclo sui nodi d'interfaccia */
 
 	/* fine ciclo caricamento dati */

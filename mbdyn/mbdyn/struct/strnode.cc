@@ -144,7 +144,7 @@ StructNode::GetNodeType(void) const
 }
 
 std::ostream&
-StructNode::DescribeDof(std::ostream& out, char *prefix, int i) const
+StructNode::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -155,10 +155,20 @@ StructNode::DescribeDof(std::ostream& out, char *prefix, int i) const
 		throw ErrGeneric();
 	}
 
-	out << prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
-		"position [px,py,pz]" << std::endl
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+			"position [px,py,pz]" << std::endl
 		<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
-		"orientation parameters [gx,gy,gz]" << std::endl;
+			"orientation parameters [gx,gy,gz]" << std::endl;
+
+	if (bInitial) {
+		iIndex += 6;
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"linear velocity [vx,vy,vz]" << std::endl
+			<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
+				"angular velocity [wx,wy,wz]" << std::endl;
+	}
 
 	return out;
 }
@@ -873,16 +883,19 @@ DynamicStructNode::GetStructNodeType(void) const
 }
 
 std::ostream&
-DynamicStructNode::DescribeDof(std::ostream& out, char *prefix, int i) const
+DynamicStructNode::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
-	StructNode::DescribeDof(out, prefix, i);
+	StructNode::DescribeDof(out, prefix, bInitial, i);
 
-	out << prefix << iIndex + 7 << "->" << iIndex + 9 << ": "
-		"momentum [Bx,By,Bz]" << std::endl
-		<< prefix << iIndex + 10 << "->" << iIndex + 12 << ": "
-		"momenta moment [Gx,Gy,Gz]" << std::endl;
+	if (bInitial == false) {
+		out
+			<< prefix << iIndex + 7 << "->" << iIndex + 9 << ": "
+				"momentum [Bx,By,Bz]" << std::endl
+			<< prefix << iIndex + 10 << "->" << iIndex + 12 << ": "
+				"momenta moment [Gx,Gy,Gz]" << std::endl;
+	}
 
 	return out;
 }
@@ -1147,16 +1160,19 @@ ModalNode::iGetFirstRowIndex(void) const
 }
 
 std::ostream&
-ModalNode::DescribeDof(std::ostream& out, char *prefix, int i) const
+ModalNode::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
-	StructNode::DescribeDof(out, prefix, i);
+	StructNode::DescribeDof(out, prefix, bInitial, i);
 
-	out << prefix << iIndex + 7 << "->" << iIndex + 9 << ": "
-		"velocity [vx,vy,vz]" << std::endl
-		<< prefix << iIndex + 10 << "->" << iIndex + 12 << ": "
-		"angular velocity [wx,wy,wz]" << std::endl;
+	if (bInitial == false) {
+		out
+			<< prefix << iIndex + 7 << "->" << iIndex + 9 << ": "
+				"velocity [vx,vy,vz]" << std::endl
+			<< prefix << iIndex + 10 << "->" << iIndex + 12 << ": "
+				"angular velocity [wx,wy,wz]" << std::endl;
+	}
 
 	return out;
 }

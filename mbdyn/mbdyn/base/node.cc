@@ -54,7 +54,7 @@ Node::~Node(void)
 }
 
 std::ostream&
-Node::DescribeDof(std::ostream& out, char *prefix, int i) const
+Node::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 {
 	return out;
 }

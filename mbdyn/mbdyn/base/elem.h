@@ -137,7 +137,9 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
   
    /* inherited from SimulationEntity */
    virtual unsigned int iGetNumDof(void) const;
-   virtual std::ostream& DescribeDof(std::ostream& out, char *prefix = "", int i = -1) const;
+   virtual std::ostream& DescribeDof(std::ostream& out,
+		   char *prefix = "",
+		   bool bInitial = false, int i = -1) const;
    virtual DofOrder::Order GetDofType(unsigned int) const;
    
    /* funzioni di servizio */

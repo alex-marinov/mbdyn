@@ -381,20 +381,25 @@ DataManager::InitialJointAssembly(void)
 			iCnt++, pTmp++, ppNode++) {
 		iNumDofs = pTmp->iNumDofs = (*ppNode)->iGetInitialNumDof();
 		if (iNumDofs > 0) {
+			pTmp->iFirstIndex = iIndex;
 			if (pds) {
 				unsigned int nd = iNumDofs;
 				integer fd = iIndex;
 
-				silent_cout(psNodeNames[(*ppNode)->GetNodeType()]
+				std::cout << psNodeNames[(*ppNode)->GetNodeType()]
 					<< "(" << (*ppNode)->GetLabel()
-					<< "): " << nd << " " << fd + 1);
+					<< "): " << nd << " " << fd + 1;
 				if (nd > 1) {
-					silent_cout("->" << fd + nd);
+					std::cout << "->" << fd + nd;
 				}
-				silent_cout(std::endl);
+				std::cout << std::endl;
+				if (uPrintFlags & PRINT_DOFDESCRIPTION) {
+					(*ppNode)->DescribeDof(std::cout,
+							     "        ", true);
+				}
 			}
-			pTmp->iFirstIndex = iIndex;
 			iIndex += iNumDofs;
+
 		} else {
 			pedantic_cerr(psNodeNames[(*ppNode)->GetNodeType()] << "(" << iCnt
 					<< ") has 0 dofs" << std::endl);
@@ -429,9 +434,11 @@ DataManager::InitialJointAssembly(void)
 					iNumDofs = (*ppEl)->pGetInitialAssemblyElem()->iGetInitialNumDof();
 					pTmp->iNumDofs = iNumDofs;
 					if (iNumDofs > 0) {
+						pTmp->iFirstIndex = iIndex;
 						if (pds) {
 							unsigned int nd = iNumDofs;
 							integer fd = iIndex;
+							ElemWithDofs* pElWD = (ElemWithDofs*)(*ppEl)->pGetElemWithDofs();
 
 							silent_cout(psElemNames[(*ppEl)->GetElemType()]
 								<< "(" << (*ppEl)->GetLabel()
@@ -440,9 +447,13 @@ DataManager::InitialJointAssembly(void)
 								silent_cout("->" << fd + nd);
 							}
 							silent_cout(std::endl);
+							if (uPrintFlags & PRINT_DOFDESCRIPTION) {
+								pElWD->DescribeDof(std::cout,
+										"        ", true);
+							}
 						}
-						pTmp->iFirstIndex = iIndex;
 						iIndex += iNumDofs;
+
 					} else {
 						pedantic_cerr(psElemNames[iCnt1]
 								<< "(" << (*ppEl)->GetLabel()

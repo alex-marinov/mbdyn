@@ -67,7 +67,7 @@ Elem::iGetNumDof(void) const
 }
 
 std::ostream&
-Elem::DescribeDof(std::ostream& out, char *prefix, int i) const
+Elem::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 {
 	return out;
 }

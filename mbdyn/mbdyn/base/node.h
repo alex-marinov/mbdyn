@@ -115,7 +115,9 @@ public DofOwnerOwner, public ToBeOutput {
    /*
     * Describe the degrees of freedom
     */
-   virtual std::ostream& DescribeDof(std::ostream& out, char *prefix = "", int i = -1) const;
+   virtual std::ostream& DescribeDof(std::ostream& out,
+		   char *prefix = "",
+		   bool bInitial = false, int i = -1) const;
 
    /* Metodi che operano sui DoF */
       

@@ -68,7 +68,7 @@ PlaneHingeJoint::~PlaneHingeJoint(void)
 };
 
 std::ostream&
-PlaneHingeJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
+PlaneHingeJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -79,19 +79,31 @@ PlaneHingeJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
 		throw ErrGeneric();
 	}
 
-	out << prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
-		"reaction forces [Fx,Fy,Fz]" << std::endl
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+			"reaction forces [Fx,Fy,Fz]" << std::endl
 		<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": "
-		"reaction couples [mx,my]" << std::endl;
+			"reaction couples [mx,my]" << std::endl;
+
+	if (bInitial) {
+		iIndex += NumSelfDof;
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"reaction force derivatives [FPx,FPy,FPz]" << std::endl
+			<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": "
+				"reaction couple derivatives [mPx,mPy]" << std::endl;
+	}
+
+	iIndex += NumSelfDof;
 	if (fc) {
 		integer iFCDofs = fc->iGetNumDof();
 		if (iFCDofs > 0) {
-			out << prefix << iIndex + NumSelfDof + 1;
+			out << prefix << iIndex + 1;
 			if (iFCDofs > 1) {
-				out << "->" << iIndex + NumSelfDof + iFCDofs;
+				out << "->" << iIndex + iFCDofs;
 			}
 			out << ": friction dof(s)" << std::endl
-				<< "        ", fc->DescribeDof(out, prefix, i);
+				<< "        ", fc->DescribeDof(out, prefix, bInitial, i);
 		}
 	}
 
@@ -1040,7 +1052,7 @@ PlaneRotationJoint::~PlaneRotationJoint(void)
 
 
 std::ostream&
-PlaneRotationJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
+PlaneRotationJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -1051,8 +1063,16 @@ PlaneRotationJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
 		throw ErrGeneric();
 	}
 
-	out << prefix << iIndex + 1 << "->" << iIndex + 2 << ": "
-		"reaction couples [mx,my]" << std::endl;
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 2 << ": "
+			"reaction couples [mx,my]" << std::endl;
+
+	if (bInitial) {
+		iIndex += 2;
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 2 << ": "
+				"reaction couple derivatives [mPx,mPy]" << std::endl;
+	}
 
 	return out;
 }
@@ -1717,7 +1737,7 @@ AxialRotationJoint::~AxialRotationJoint(void)
 
 
 std::ostream&
-AxialRotationJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
+AxialRotationJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -1728,19 +1748,31 @@ AxialRotationJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
 		throw ErrGeneric();
 	}
 
-	out << prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
-		"reaction forces [Fx,Fy,Fz]" << std::endl
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+			"reaction forces [Fx,Fy,Fz]" << std::endl
 		<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
-		"reaction couples [mx,my,mz]" << std::endl;
+			"reaction couples [mx,my,mz]" << std::endl;
+
+	if (bInitial) {
+		iIndex += NumSelfDof;
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"reaction force derivatives [FPx,FPy,FPz]" << std::endl
+			<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
+				"reaction couple derivatives [mPx,mPy,mPz]" << std::endl;
+	}
+	
+	iIndex += NumSelfDof;
 	if (fc) {
 		integer iFCDofs = fc->iGetNumDof();
 		if (iFCDofs > 0) {
-			out << prefix << iIndex + NumSelfDof + 1;
+			out << prefix << iIndex + 1;
 			if (iFCDofs > 1) {
-				out << "->" << iIndex + NumSelfDof + iFCDofs;
+				out << "->" << iIndex + iFCDofs;
 			}
 			out << ": friction dof(s)" << std::endl
-				<< "        ", fc->DescribeDof(out, prefix, i);
+				<< "        ", fc->DescribeDof(out, prefix, bInitial, i);
 		}
 	}
 
@@ -2702,7 +2734,7 @@ PlanePinJoint::~PlanePinJoint(void)
 
 
 std::ostream&
-PlanePinJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
+PlanePinJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -2713,10 +2745,20 @@ PlanePinJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
 		throw ErrGeneric();
 	}
 
-	out << prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
-		"reaction forces [Fx,Fy,Fz]" << std::endl
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+			"reaction forces [Fx,Fy,Fz]" << std::endl
 		<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": "
-		"reaction couples [mx,my]" << std::endl;
+			"reaction couples [mx,my]" << std::endl;
+
+	if (bInitial) {
+		iIndex += 5;
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"reaction force derivatives [FPx,FPy,FPz]" << std::endl
+			<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": "
+				"reaction couple derivatives [mPx,mPy]" << std::endl;
+	}
 
 	return out;
 }
