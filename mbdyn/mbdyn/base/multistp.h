@@ -105,6 +105,17 @@ class PODMat {
        };
  
        void Output(void) const {
+	       /*
+	        * Not required
+	        */
+	       if (Cols == 0) {
+		       return;
+	       }
+
+	       /*
+	        * Simulation ended earlier than expected
+	        * -- do not waste CPU, get what's available!
+	        */
 	       if (Cnt < Cols) {
 		       pedantic_cout("warning, only " << Cnt 
 				       << " out of " << Cols
@@ -196,6 +207,7 @@ private:
                doublereal dTime;
                int iSteps;
                int iFrames;
+	       PODData(void) : dTime(0.), iSteps(0), iFrames(0) {};
        } pod;
 
        flag fPOD;
@@ -261,7 +273,10 @@ private:
    	doublereal dInitialTimeStep;
    	doublereal dMinimumTimeStep;
    	doublereal dMaxTimeStep;
-   	doublereal dTol;
+	doublereal dTol;
+#ifdef MBDYN_X_CONVSOL
+   	doublereal dSolutionTol;
+#endif /* MBDYN_X_CONVSOL */
    	integer iMaxIterations;
 
    	/* Dati dei passi fittizi di trimmaggio iniziale */

@@ -170,7 +170,10 @@ dFinalTime(0.),
 dRefTimeStep(0.),
 dInitialTimeStep(1.), 
 dMinimumTimeStep(1.),
-dTol(dDefaultTol), 
+dTol(dDefaultTol),
+#ifdef MBDYN_X_CONVSOL
+dSolutionTol(0.),
+#endif /* MBDYN_X_CONVSOL */
 iMaxIterations(iDefaultMaxIterations),
 iFictitiousStepsNumber(iDefaultFictitiousStepsNumber),
 dFictitiousStepsRatio(dDefaultFictitiousStepsRatio),
@@ -675,8 +678,15 @@ MultiStepIntegrator::Run(void)
    	doublereal dTotErr = 0.;
    
 	/* calcolo delle derivate */
-   	DEBUGLCOUT(MYDEBUG_DERIVATIVES, "derivatives solution step" << std::endl);
-   	doublereal dTest = 1.;
+   	DEBUGLCOUT(MYDEBUG_DERIVATIVES, "derivatives solution step"
+			<< std::endl);
+
+	/* dTest e' l test sul residuo */
+	doublereal dTest = DBL_MAX;
+#ifdef MBDYN_X_CONVSOL
+   	doublereal dSolTest = DBL_MAX;
+	bool bSolConv = false;
+#endif /* MBDYN_X_CONVSOL */
 
 #ifdef HAVE_SIGNAL
    	::sh_term = signal(SIGTERM, modify_final_time_handler);
@@ -710,7 +720,7 @@ MultiStepIntegrator::Run(void)
 		MPE_Log_event(3, 0, "start");
 #endif /* MPI_PROFILING */
 
-      		dTest = MakeTest(*pRes, *pXPrimeCurr);
+		dTest = MakeTest(*pRes, *pXPrimeCurr);
 
 #ifdef MPI_PROFILING
 		MPE_Log_event(4, 0, "end");
@@ -1451,6 +1461,17 @@ IfFirstStepIsToBeRepeated:
 #ifdef MPI_PROFILING
 		MPE_Log_event(16, 0, "end local Update");
 #endif /* MPI_PROFILING */
+
+#ifdef MBDYN_X_CONVSOL
+		if (dSolutionTol > 0.) {
+	 		dSolTest = MakeTest(*pSol, *pXPrimeCurr);
+
+        		if (dSolTest < dSolutionTol) {
+				bSolConv = true;
+				goto EndOfFirstStep;
+			}
+      		}
+#endif /* MBDYN_X_CONVSOL */
    	}
    
 EndOfFirstStep:
@@ -1461,7 +1482,7 @@ EndOfFirstStep:
 #ifdef HAVE_SIGNAL
    	if (!::keep_going) {
       		/* Fa l'output della soluzione al primo passo ed esce */
-      		Out << "Interrupted during first dummy step." << std::endl;
+      		Out << "Interrupted during first step." << std::endl;
       		return;
    	} else {
 #endif /* HAVE_SIGNAL */
@@ -1469,11 +1490,20 @@ EndOfFirstStep:
 			<< " time " << dTime+dCurrTimeStep
 			<< " step " << dCurrTimeStep
 			<< " iterations " << iIterCnt
-			<< " error " << dTest << std::endl;
+			<< " error " << dTest
+#ifdef MBDYN_X_CONVSOL
+			<< " " << dSolTest
+			<< " " << bSolConv
+#endif /* MBDYN_X_CONVSOL */
+			<< std::endl;
 #ifdef HAVE_SIGNAL
    	}
 #endif /* HAVE_SIGNAL */
-   
+
+#ifdef MBDYN_X_CONVSOL
+	bSolConv = false;
+#endif /* MBDYN_X_CONVSOL */
+
    	dRefTimeStep = dCurrTimeStep;
    	dTime += dRefTimeStep;
    
@@ -1734,7 +1764,31 @@ IfStepIsToBeRepeated:
 #ifdef MPI_PROFILING
 			MPE_Log_event(16, 0, "end local Update");
 #endif /* MPI-PROFILING */
-      		}
+
+#ifdef MBDYN_X_CONVSOL
+			if (dSolutionTol > 0.) {
+#ifdef USE_EXCEPTIONS
+				try {
+#endif /* USE_EXCEPTIONS */
+	 				dSolTest = MakeTest(*pSol, *pXPrimeCurr);
+#ifdef USE_EXCEPTIONS
+				} catch (MultiStepIntegrator::ErrSimulationDiverged) {
+					/*
+					 * Mettere qui eventuali azioni speciali 
+					 * da intraprendere in caso di errore ...
+					 */
+					throw;
+				}
+#endif /* USE_EXCEPTIONS */
+
+        			if (dSolTest < dSolutionTol) {
+					CurrStep = MultiStepIntegrationMethod::NEWSTEP;
+					bSolConv = true;
+					goto EndOfStep;
+				}
+      			}
+#endif /* MBDYN_X_CONVSOL */
+		}
 	 
 EndOfStep:
 
@@ -1750,7 +1804,12 @@ EndOfStep:
 			<< " time " << dTime+dCurrTimeStep
 			<< " step " << dCurrTimeStep
 			<< " iterations " << iIterCnt
-			<< " error " << dTest << std::endl;
+			<< " error " << dTest 
+#ifdef MBDYN_X_CONVSOL
+			<< " " << dSolTest
+			<< " " << bSolConv 
+#endif /* MBDYN_X_CONVSOL */
+			<< std::endl;
       
       		DEBUGCOUT("Step " << iStep
 			  << " has been completed successfully in "
@@ -1758,6 +1817,10 @@ EndOfStep:
       
       		dRefTimeStep = dCurrTimeStep;
       		dTime += dRefTimeStep;
+
+#ifdef MBDYN_X_CONVSOL
+		bSolConv = 0;
+#endif /* MBDYN_X_CONVSOL */
 
 #ifdef __HACK_POD__
               if (fPOD && dTime >= pod.dTime) {
@@ -2952,10 +3015,31 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  if (dTol <= 0.) {
 	     dTol = dDefaultTol;
 	     std::cerr 
-	       << "warning, tolerance <= 0. is illegal; switching to default value "
+	       << "warning, tolerance <= 0. is illegal; using default value "
 	       << dTol << std::endl;
-	  }		       		  
+	  }
+#ifdef MBDYN_X_CONVSOL
+	  dSolutionTol = dTol;
+	  if (HP.fIsArg()) {
+	  	dSolutionTol = HP.GetReal();
+	  }
+	  if (dSolutionTol <= 0.) {
+	     dSolutionTol = 0.;
+	     std::cerr 
+	       << "warning, tolerance <= 0. is illegal; switching to default value "
+	       << dSolutionTol << std::endl;
+	  }
+
+	  DEBUGLCOUT(MYDEBUG_INPUT, "tolerance = " << dTol
+			  << ", " << dSolutionTol << std::endl);
+#else /* !MBDYN_X_CONVSOL */
+	  if (HP.fIsArg()) {
+		  pedantic_cerr("define MBDYN_X_SOLCONV to enable "
+				  "convergence test on solution" << std::endl);
+		  (void)HP.GetReal();
+	  }
 	  DEBUGLCOUT(MYDEBUG_INPUT, "tolerance = " << dTol << std::endl);
+#endif /* !MBDYN_X_CONVSOL */
 	  break;
        }
 	 
