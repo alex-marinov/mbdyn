@@ -71,10 +71,6 @@
 #include "ac/iostream"
 #include <vector>
 
-extern "C" {
-#include <umfpack.h>
-}
-
 #include "myassert.h"
 #include "mynewmem.h"
 #include "ls.h"
