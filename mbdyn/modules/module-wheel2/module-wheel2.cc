@@ -3,14 +3,15 @@
 #include <loadable.h>
 
 /*
- *	3 corpi: 
- *	-	Axle
+ *	2 corpi: 
  *	-	Wheel
  *	-	Ground
  *
  *	Note: 
  *	-	Axle e Wheel sono collegati da un giunto che consente
  *		solo rotazione relativa attorno ad un asse (axle)
+ *	-	Si assume che il centro della ruota coincida con
+ *		la posizione del corpo ruota
  *	-	Ground supporta un piano definito dalla normale e da
  *		un punto (potra' essere reso deformabile e "non piano"
  *		in futuro)
@@ -21,10 +22,18 @@
 
 struct module_wheel {
 	/*
-	 * Connessioni
+	 * Ruota
 	 */
-	StructNode *pAxle;
 	StructNode *pWheel;
+
+	/*
+	 * Direzione asse ruota
+	 */
+	Vec3 WheelAxle;
+	
+	/*
+	 * Terreno
+	 */
 	StructNode *pGround;
 
 	/*
@@ -49,14 +58,17 @@ struct module_wheel {
 	 */
 	doublereal dP0;
 	doublereal dGamma;
+	doublereal dHystVRef;
 
 	/*
 	 * Output
 	 */
-	doublereal dDeltaL;
-	doublereal dInstRadius;
 	Vec3 F;
 	Vec3 M;
+	doublereal dInstRadius;
+	doublereal dDeltaL;
+	doublereal dVn;
+	doublereal dSr;
 };
 
 /* funzioni di default */
@@ -73,16 +85,25 @@ read(LoadableElem* pEl,
 	SAFENEW(p, module_wheel, EMmm);
 
 	/*
-	 * leggo i 3 nodi
+	 * leggo la ruota
 	 */
-	p->pAxle = (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL);
 	p->pWheel = (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL);
+
+	/*
+	 * leggo l'orientazione dell'asse ruota nel sistema locale
+	 */
+	ReferenceFrame RF = ReferenceFrame(p->pWheel);
+	p->WheelAxle = HP.GetVecRel(RF);
+	
+	/*
+	 * leggo il terreno
+	 */
 	p->pGround = (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL);
 	
 	/*
 	 * leggo posizione ed orientazione del terreno nel sistema del nodo
 	 */
-	ReferenceFrame RF = ReferenceFrame(p->pGround);
+	RF = ReferenceFrame(p->pGround);
 	p->GroundPosition = HP.GetPosRel(RF);
 	p->GroundDirection = HP.GetVecRel(RF);
 
@@ -126,6 +147,7 @@ read(LoadableElem* pEl,
 	 */
 	p->dP0 = HP.GetReal();
 	p->dGamma = HP.GetReal();
+	p->dHystVRef = HP.GetReal();
 	
 	return (void *)p;
 }
@@ -150,7 +172,9 @@ output(const LoadableElem* pEl, OutputHandler& OH)
 			p->F.Write(out, " ") << " ",
 			p->M.Write(out, " ") << " "
 			<< p->dInstRadius << " "
-			<< p->dDeltaL << endl;
+			<< p->dDeltaL << " "
+			<< p->dVn << " " 
+			<< p->dSr << endl;
 	}
 }
 
@@ -247,6 +271,49 @@ ass_res(LoadableElem* pEl,
 	}
 
 	/*
+	 * Velocita' tra Wheel (nell'asse)
+	 * e Ground nel sistema assoluto
+	 */
+	Vec3 va = p->pWheel->GetVCurr()
+		-p->pGround->GetVCurr()-(p->pGround->GetWCurr()).Cross(
+			p->pGround->GetRCurr()*p->GroundPosition
+			);
+	/*
+	 * Velocita' tra Wheel (nel punto di contatto) 
+	 * e Ground nel sistema assoluto
+	 */
+	Vec3 v = va-(p->pWheel->GetWCurr()).Cross(n*p->dInstRadius);
+	
+	/*
+	 * Componente normale al terreno della velocita'
+	 * (positiva se la ruota si allontana dal terreno)
+	 */
+	p->dVn = n*v;
+
+	/*
+	 * Direzione di "avanzamento": asse ruota cross normale al ground
+	 */
+	Vec3 fwd = (p->pWheel->GetRCurr()*p->WheelAxle).Cross(n);
+	doublereal d = fwd.Dot();
+	if (d < DBL_EPSILON) {
+		cerr << "wheel axle is orthogonal to the ground" << endl;
+		THROW(DataManager::ErrGeneric());
+	}
+	fwd /= sqrt(d);
+
+	/*
+	 * Slip ratio
+	 */
+	p->dSr = 0.;
+	doublereal fwdva = fwd.Dot(va);
+	if (fabs(fwdva) > DBL_EPSILON) {
+		p->dSr = fwd.Dot(v)/fwdva;
+		if (fabs(p->dSr) > 1.) {
+			p->dSr = copysign(1., p->dSr);
+		}
+	}
+	
+	/*
 	 * Stima dell'area di contatto
 	 */
 	doublereal dA = p->dRefArea*(dDeltaL/p->dRadius);
@@ -273,7 +340,7 @@ ass_res(LoadableElem* pEl,
 	/*
 	 * Forza
 	 */
-	p->F = n*(dA*dP);
+	p->F = n*(dA*dP*(1.+tanh(-p->dVn/p->dHystVRef)));
 	p->M = (pc-p->pWheel->GetXCurr()).Cross(p->F);
 	
 	WorkVec.Sub(1, p->F);
