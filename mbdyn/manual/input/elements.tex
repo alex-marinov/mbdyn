@@ -208,6 +208,36 @@ is repeated for each portion of the beam.
 
 
 
+\section{Aircraft instruments}
+\begin{verbatim}
+    <card> ::= aircraft instruments
+    <arglist> ::= <aircraft_node>
+\end{verbatim}
+The \kw{<aircraft\_node>} represents the aircraft; it is assumed
+that the ``nose'' of the aircraft is towards the positive $x$ direction
+of the node, and the ``top'' of the aircraft is towards the positive 
+$z$ direction of the node.
+The available measures are accessed by defining appropriate 
+\kw{parameter} nodes, and by binding the \kw{aircraft instruments} 
+element private data to the nodes by means of the \kw{bind} mechanism.
+The measures are:
+\begin{itemize}
+	\item \kw{airspeed}
+	\item \kw{groundspeed}
+	\item \kw{altitude}
+	\item \kw{attitude}
+	\item \kw{bank}
+	\item \kw{turn}
+	\item \kw{slip}
+	\item \kw{verticalspeed}
+	\item \kw{angleofattack}
+\end{itemize}
+
+\noindent
+\emph{Note: this element is eXperimental.}
+
+
+
 
 \section{Air Properties Element}
 The properties of the airstream are made of the physical properties
