@@ -52,7 +52,8 @@ public:
 			doublereal ITol,
 			integer MaxIt,
 			doublereal etaMx,
-			doublereal T);
+			doublereal T,
+			bool JacReq = false);
 	~BiCGStab(void);
 	
 	virtual void Solve(const NonlinearProblem* NLP,

@@ -287,12 +287,21 @@ ass_res(LoadableElem* pEl,
 	WorkVec.IncCoef(2,
 		-XCurr.dGetCoef(iFirstMomentumIndex+1)/p->mass);
 	if (p->fc) {
+		bool ChangeJac(false);
 		doublereal v = XPrimeCurr.dGetCoef(iFirstPositionIndex+1);
-		p->fc->AssRes(WorkVec,2,iFirstReactionIndex,p->mass,
-			v,XCurr,XPrimeCurr);
+		try {
+			p->fc->AssRes(WorkVec,2,iFirstReactionIndex,p->mass,
+				v,XCurr,XPrimeCurr);
+		}
+		catch (Elem::ChangedEquationStructure) {
+			ChangeJac = true;
+		}
 		doublereal f = p->fc->fc();
 		doublereal shc = p->Sh_c->Sh_c(f,p->mass,v);
 		WorkVec.Add(1,-shc*p->mass*f);
+		if (ChangeJac) {
+			throw Elem::ChangedEquationStructure();
+		}
 	}
 
 	return WorkVec;

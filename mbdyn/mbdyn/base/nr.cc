@@ -104,7 +104,13 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 #endif /* USE_EXTERNAL */
 		
 		pRes->Reset();
-      		pNLP->Residual(pRes);
+		bool forceJacobian(false);
+		try {
+	      		pNLP->Residual(pRes);
+		}
+		catch (SolutionDataManager::ChangedEquationStructure) {
+			forceJacobian = true;
+		}
 		
       		if (outputRes()) {
 	 		silent_cout("Residual (" << iIterCnt 
@@ -150,7 +156,8 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
           
       		iIterCnt++;
 
-		if (bTrueNewtonRaphson || (iPerformedIterations%IterationBeforeAssembly == 0)) {
+		if (bTrueNewtonRaphson || (iPerformedIterations%IterationBeforeAssembly == 0)
+			|| forceJacobian) {
       			pSM->MatrReset();
 rebuild_matrix:;
 			try {

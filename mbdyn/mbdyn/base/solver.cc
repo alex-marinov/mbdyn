@@ -237,6 +237,7 @@ MFSolverType(MatrixFreeSolver::UNKNOWN),
 dIterTol(dDefaultTol),
 PcType(Preconditioner::FULLJACOBIAN),
 iPrecondSteps(iDefaultPreconditionerSteps),
+honorJacRequest(false),
 iIterativeMaxSteps(iDefaultPreconditionerSteps),
 dIterertiveEtaMax(defaultIterativeEtaMax),
 dIterertiveTau(defaultIterativeTau),
@@ -2830,6 +2831,14 @@ Solver::ReadData(MBDynParser& HP)
 									<< iPrecondSteps
 									<< std::endl);
 						}
+						if (HP.IsKeyWord("honor" "element" "requests")) {
+							honorJacRequest = true;
+							DEBUGLCOUT(MYDEBUG_INPUT,
+									"honor elements' "
+									"request to update "
+									"the preconditioner"
+									<< std::endl);
+						}
 						break;
 
 						/* add other preconditioners
@@ -3820,7 +3829,8 @@ Solver::AllocateNonlinearSolver()
 						dIterTol, 
 						iIterativeMaxSteps,
 						dIterertiveEtaMax,
-						dIterertiveTau));
+						dIterertiveTau,
+						iPrecondSteps));
 			break;
 
 		default:
@@ -3836,7 +3846,8 @@ Solver::AllocateNonlinearSolver()
 						dIterTol, 
 						iIterativeMaxSteps,
 						dIterertiveEtaMax,
-						dIterertiveTau));
+						dIterertiveTau,
+						iPrecondSteps));
 			break;
 		}
 		break;

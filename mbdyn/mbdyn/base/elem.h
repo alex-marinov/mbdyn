@@ -118,7 +118,8 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
 	
 	LASTELEMTYPE
    };
-
+   struct ChangedEquationStructure {};
+   
  private:
    Elem::Type ElemT;
 

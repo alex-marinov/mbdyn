@@ -492,11 +492,17 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
 
    }   
    if (fc) {
+      bool ChangeJac(false);
       Vec3 Omega1(pNode1->GetWCurr());
       Vec3 Omega2(pNode2->GetWCurr());
       doublereal v = (Omega1-Omega2).Dot(e3a)*r;
       doublereal modF = std::max(F.Norm(), preF);
-      fc->AssRes(WorkVec,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,modF,v,XCurr,XPrimeCurr);
+      try {
+          fc->AssRes(WorkVec,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,modF,v,XCurr,XPrimeCurr);
+      }
+      catch (Elem::ChangedEquationStructure) {
+          ChangeJac = true;
+      }
       doublereal f = fc->fc();
       doublereal shc = Sh_c->Sh_c(f,modF,v);
       M3 = shc*modF*f;
@@ -504,6 +510,9 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
       WorkVec.Add(10,e3a*M3);
 //!!!!!!!!!!!!!!
 //      M += e3a*M3;
+      if (ChangeJac) {
+          throw Elem::ChangedEquationStructure();
+      }
    }
    
    return WorkVec;

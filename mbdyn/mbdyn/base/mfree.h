@@ -66,6 +66,7 @@ protected:
 	doublereal etaMax; 
 	integer PrecondIter; 
 	bool bBuildMat;
+	bool honorJacRequest;
 	const NonlinearProblem* pPrevNLP;
 	
 public:
@@ -74,7 +75,8 @@ public:
 			doublereal ITol,
 			integer MaxIt,
 			doublereal etaMx,
-			doublereal T); 
+			doublereal T,
+			bool JacReq = false); 
 
 	~MatrixFreeSolver(void);
 };

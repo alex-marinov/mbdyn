@@ -136,7 +136,8 @@ public:
 	void CreatePartition(void);
 
 	/* Assembla il residuo */
-	void AssRes(VectorHandler& ResHdl, doublereal dCoef);
+	void AssRes(VectorHandler& ResHdl, doublereal dCoef) 
+		throw(ChangedEquationStructure);
 
 	/* Assembla lo jacobiano */
 	void AssJac(MatrixHandler& JacHdl, doublereal dCoef);

@@ -91,7 +91,7 @@ SchurDataManager::~SchurDataManager()
 }
 
 void
-SchurDataManager::AssRes(VectorHandler&, doublereal)
+SchurDataManager::AssRes(VectorHandler&, doublereal) throw(ChangedEquationStructure)
 {
 	NO_OP;
 }
@@ -1504,7 +1504,7 @@ SchurDataManager::SearchNode(Node** ppFirst, int dim, unsigned int& label)
 
 
 void
-SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
+SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef) throw(ChangedEquationStructure)
 {
 	DEBUGCOUT("Entering SchurDataManager::AssRes()" << std::endl);
 
@@ -1512,8 +1512,19 @@ SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 	ASSERT(iWorkIntSize >= iWorkDoubleSize);
 	MySubVectorHandler WorkVec(iWorkDoubleSize, piWorkIndex, pdWorkMat);
 	
+	bool ChangedEqStructure(false);
 	for (Elem** ppTmpEl = ppMyElems; ppTmpEl < ppMyElems+iNumLocElems; ppTmpEl++) {
-		ResHdl += (*ppTmpEl)->AssRes(WorkVec, dCoef, *pXCurr, *pXPrimeCurr);
+		try {
+			ResHdl += (*ppTmpEl)->AssRes(WorkVec, dCoef, *pXCurr, *pXPrimeCurr);
+		}
+		catch (Elem::ChangedEquationStructure) {
+				ResHdl += WorkVec;
+				ChangedEqStructure = true;
+		}
+	}
+	if (ChangedEqStructure) {
+		std::cerr << "Jacobian reassembly requested by an element. Currently unsopported with MPI"
+			<< std::endl;
 	}
 }
 

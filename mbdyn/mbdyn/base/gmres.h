@@ -55,7 +55,8 @@ public:
 			doublereal ITol,
 			integer MaxIt,
 			doublereal etaMx,
-			doublereal T);
+			doublereal T,
+			bool JacReq = false);
 	
 	~Gmres(void);
 	

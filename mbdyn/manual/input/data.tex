@@ -260,7 +260,8 @@ reused is expected; otherwise a default value is used.
       [ , tau , <tau> ]
       [ , eta , <eta> ]
       [ , preconditioner, {
-              full jacobian [ , steps, <steps> ]
+              full jacobian [ , steps, <steps> ] 
+	                    [ , honor element requests]
       } ];
 \end{verbatim}
 Tolerance is the iterative linear solver tolerance;
@@ -277,7 +278,9 @@ The preconditioner steps fixes the maximum number of
 iterations that can be performed without requiring
 an update of the preconditioner; this parameter can heavily influence
 the performance of the matrix free solver.
-
+If the option "honor element requests" is selected the preconditioned
+is updated also when an element changes the structure of its equations.
+The default behaiour is to ignore such requests.
 
 \subsubsection{Eigenanalysis}
 Experimental, not available nor documented yet.

@@ -57,8 +57,9 @@ BiCGStab::BiCGStab(const Preconditioner::PrecondType PType,
 		doublereal ITol,
 		integer MaxIt,
 		doublereal etaMx,
-		doublereal T) 
-: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T)
+		doublereal T,
+		bool JacReq) 
+: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T, JacReq)
 {
 	NO_OP;
 }
@@ -141,7 +142,14 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 #endif /* USE_EXTERNAL */
 		
 		pRes->Reset();
-      		pNLP->Residual(pRes);
+		try {
+	      		pNLP->Residual(pRes);
+		}
+		catch (SolutionDataManager::ChangedEquationStructure) {
+			if (honorJacRequest) {
+				bBuildMat = true;
+			}
+		}
 		
       		if (outputRes()) {
 	 		std::cout << "Residual (" << iIterCnt

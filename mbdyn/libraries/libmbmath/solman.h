@@ -77,13 +77,16 @@ class SolutionDataManager {
 public:
 	virtual ~SolutionDataManager(void);
 
+	struct ChangedEquationStructure {};
+	
 	/* Collega il DataManager ed il DriveHandler ai vettori soluzione */
 	virtual void
 	LinkToSolution(const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr) = 0;
 
 	/* Assembla il residuo */
-	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef) = 0;
+	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef) 
+		throw(ChangedEquationStructure) = 0;
 };
 
 /* SolutionDataManager - end */

@@ -276,7 +276,8 @@ public:
 	virtual void AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl);
 
 	/* Assembla il residuo */
-	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef);
+	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef)
+		throw(ChangedEquationStructure);
 
 protected:
 	/* specialized functions, called by above general helpers */

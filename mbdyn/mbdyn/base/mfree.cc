@@ -51,7 +51,8 @@ MatrixFreeSolver::MatrixFreeSolver(
 		doublereal ITol,
 		integer MaxIt,
 		doublereal etaMx,
-		doublereal T) 
+		doublereal T,
+		bool JacReq) 
 : pPM(NULL),
 pRes(NULL),
 IterTol(ITol),
@@ -61,6 +62,7 @@ gamma(defaultGamma),
 etaMax(etaMx),
 PrecondIter(iPStep),
 bBuildMat(true),
+honorJacRequest(JacReq),
 pPrevNLP(NULL)
 {
 	

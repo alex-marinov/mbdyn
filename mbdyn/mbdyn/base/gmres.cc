@@ -57,8 +57,9 @@ Gmres::Gmres(const Preconditioner::PrecondType PType,
 		doublereal ITol,
 		integer MaxIt,
 		doublereal etaMx,
-		doublereal T) 
-: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T),
+		doublereal T,
+		bool JacReq) 
+: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T, JacReq),
 v(NULL),
 s(MaxLinIt + 1), cs(MaxLinIt + 1), sn(MaxLinIt + 1)
 {
@@ -181,7 +182,14 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 		SendExternal();
 #endif /* USE_EXTERNAL */
 		pRes->Reset();
-      		pNLP->Residual(pRes);
+		try {
+	      		pNLP->Residual(pRes);
+		}
+		catch (SolutionDataManager::ChangedEquationStructure) {
+			if (honorJacRequest) {
+				bBuildMat = true;
+			}
+		}
 		
       		if (outputRes()) {
 	 		std::cout << "Residual (" << iIterCnt 
