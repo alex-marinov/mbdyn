@@ -238,6 +238,7 @@ class DataManager : public SolutionDataManager {
    virtual void Output(const VectorHandler& X, const VectorHandler& XP) const;
    virtual void Output_pch(std::ostream& pch) const;
    virtual void Output_f06(std::ostream& f06, const VectorHandler& X) const;
+   virtual void Output_f06(std::ostream& f06, const VectorHandler& Xr, const VectorHandler& Xi) const;
    
    /* Adams output */
    flag fAdamsOutput(void) const;
@@ -348,6 +349,7 @@ class DataManager : public SolutionDataManager {
 		   const VectorHandler& X, const VectorHandler& XP) const;
    void ElemOutput_pch(std::ostream& pch) const;
    void ElemOutput_f06(std::ostream& f06, const VectorHandler& X) const;
+   void ElemOutput_f06(std::ostream& f06, const VectorHandler& Xr, const VectorHandler& Xi) const;
    
    
    /* da NodeManager */
@@ -402,6 +404,7 @@ class DataManager : public SolutionDataManager {
 		   const VectorHandler& X, const VectorHandler& XP) const;
    void NodeOutput_pch(std::ostream& pch) const;
    void NodeOutput_f06(std::ostream& f06, const VectorHandler& X) const;
+   void NodeOutput_f06(std::ostream& f06, const VectorHandler& Xr, const VectorHandler& Xi) const;
    
    
    /* da DofManager */

@@ -211,6 +211,30 @@ DataManager::NodeOutput_f06(
 }
 
 
+void
+DataManager::NodeOutput_f06(
+		std::ostream& f06,
+		const VectorHandler& Xr,
+		const VectorHandler& Xi
+		) const
+{
+   Node** ppTmpNode = ppNodes;
+   for(; ppTmpNode < ppNodes+iTotNodes; ppTmpNode++) {      
+     (*ppTmpNode)->Output_f06(f06, Xr, Xi);
+   }   
+
+#if 0
+   /* Con iteratore: */
+    Node* pTmpNode = NULL;
+    if(NodeIter.fGetFirst(pTmpNode)) {      
+       do {
+	  pTmpNode->Output_f06(f06, Xr, Xi);
+       } while(NodeIter.fGetNext(pTmpNode));
+    }
+#endif
+}
+
+
 flag DataManager::fGetDefaultOutputFlag(const Node::Type& t) const
 {
    return NodeData[t].fDefaultOut;

@@ -3618,7 +3618,7 @@ MultiStepIntegrator::Eig(void)
        * =N+10: error return from DLASCL (various calls) */
       Out << "error return from " << sErrs[iInfo-iSize-1] << std::endl;	      
    }
-   
+
    /* Output? */
    Out << "Mode n. " "  " "    Real    " "   " "    Imag    " "  " "    " "   Damp %   " "  Freq Hz" << std::endl;
 
@@ -3657,6 +3657,7 @@ MultiStepIntegrator::Eig(void)
    }
 
 #ifdef __HACK_NASTRAN_MODES__
+   int iPage = 1;
    /* EXPERIMENTAL */
    std::ofstream f06, pch;
    char datebuf[] = "11/14/95"; /* as in the example I used :) */
@@ -3671,10 +3672,15 @@ MultiStepIntegrator::Eig(void)
    	strftime(datebuf, sizeof(datebuf)-1, "%m/%d/%y", currtm);
    }
 #endif /* HAVE_STRFTIME && HAVE_LOCALTIME && HAVE_TIME */
-   
+#endif /* __HACK_NASTRAN_MODES__ */
+ 
+#ifdef __HACK_NASTRAN_MODES__  
    if (fOutputModes) {
 	   /* crea il file .pch */
-	   pch.open("mbdyn.bdf");
+	   char *tmp = NULL;
+	   SAFENEWARR(tmp, char, strlen(sOutputFileName ? sOutputFileName : sInputFileName) + sizeof(".bdf"));
+	   sprintf(tmp, "%s.bdf", sOutputFileName ? sOutputFileName : sInputFileName);
+	   pch.open(tmp);
 	   pch.setf(std::ios::showpoint);
 	   pch 
 		   << "BEGIN BULK" << std::endl
@@ -3683,23 +3689,68 @@ MultiStepIntegrator::Eig(void)
 	   pDM->Output_pch(pch);
 	   
 	   /* crea il file .f06 */
-	   f06.open("mbdyn.f06");
+	   sprintf(tmp, "%s.f06", sOutputFileName ? sOutputFileName : sInputFileName);
+	   f06.open(tmp);
+	   SAFEDELETEARR(tmp);
+
 	   f06.setf(std::ios::showpoint);
 	   f06.setf(std::ios::scientific);
+
+	   f06 
+		   << "1                                                                                                MSC.NASTRAN " << datebuf << "    PAGE   " 
+		   << std::setw(4) << iPage++ << std::endl
+		   << "MBDyn modal analysis" << std::endl
+		   << "0     COMPLEX MODES" << std::endl
+		   << std::endl
+		   << "                                        C O M P L E X   E I G E N V A L U E   S U M M A R Y" << std::endl
+		   << "0                ROOT     EXTRACTION                  EIGENVALUE                     FREQUENCY              DAMPING" << std::endl
+		   << "                  NO.        ORDER             (REAL)           (IMAG)                (CYCLES)            COEFFICIENT" << std::endl;
+
+	   int iMode = 0;
+	   for (int iCnt = 1; iCnt <= iSize; iCnt++) {
+		   /*
+		    * FIXME: this is repeated later; 
+		    * maybe we can save these computations
+		    */
+		   doublereal b = Beta.dGetCoef(iCnt);
+		   doublereal re = AlphaR.dGetCoef(iCnt);
+		   doublereal im = AlphaI.dGetCoef(iCnt);
+		   doublereal sigma;
+		   doublereal omega;
+		   doublereal csi;
+		   doublereal freq;
+
+		   do_eig(b, re, im, h, sigma, omega, csi, freq);
+
+		   if (freq >= dLowerFreq && freq <= dUpperFreq) {
+			   iMode++;
+
+#if 0
+		                 "                      1          10         -2.490040E+01     0.0                   0.0                   0.0"
+#endif
+			   f06
+				   << std::setw(23) << iMode 
+				   << std::setw(12) << iCnt 
+				   << std::setw(22) << sigma
+				   << std::setw(22) << omega
+				   << std::setw(22) << freq 
+				   << std::setw(22) << -csi << std::endl;
+		   }
+	   }
    }
 #endif /* __HACK_NASTRAN_MODES__ */
 
-   int iPage;
-   for (iPage = 1; iPage <= iSize; iPage++) {
+   int iMode = 0;
+   for (int iCnt = 1; iCnt <= iSize; iCnt++) {
 
 #ifdef __HACK_NASTRAN_MODES__
       /* EXPERIMENTAL */
       flag doPlot = 0;
       if (fOutputModes) {
 
-         doublereal b = Beta.dGetCoef(iPage);
-	 doublereal re = AlphaR.dGetCoef(iPage);
-	 doublereal im = AlphaI.dGetCoef(iPage);
+         doublereal b = Beta.dGetCoef(iCnt);
+	 doublereal re = AlphaR.dGetCoef(iCnt);
+	 doublereal im = AlphaI.dGetCoef(iCnt);
 	 doublereal sigma;
 	 doublereal omega;
 	 doublereal csi;
@@ -3709,62 +3760,55 @@ MultiStepIntegrator::Eig(void)
 
 	 if (freq >= dLowerFreq && freq <= dUpperFreq) {
 	    doPlot = 1;
+	    iMode++;
 	      
 	    f06 
-	      << "                                                                                                 CSA/NASTRAN " << datebuf << "    PAGE   " 
-	      << std::setw(4) << iPage << std::endl
+	      << "1                                                                                                MSC.NASTRAN " << datebuf << "    PAGE   " 
+	      << std::setw(4) << iPage++ << std::endl
 	      << "MBDyn modal analysis" << std::endl
+	      << "0     COMPLEX MODES" << std::endl
 	      << std::endl
-	      << "    LABEL=DISPLACEMENTS, ";
-#ifdef HAVE_FMTFLAGS_IN_IOS
-	    std::ios::fmtflags iosfl = f06.setf(std::ios::left);
-#else /* !HAVE_FMTFLAGS_IN_IOS */
-	    long iosfl = f06.setf(std::ios::left);
-#endif /* !HAVE_FMTFLAGS_IN_IOS */
-	    const char *comment = "(EXPERIMENTAL) MODAL ANALYSIS";
-	    int l = strlen(comment);
-	    f06 << std::setw(l+1) << comment;
-	    f06 << sigma << " " << (omega < 0. ? "-" : "+") << " " << fabs(omega) << " j (" << csi << ", "<< freq << std::setw(80-1-l) << ")";
-	    f06.flags(iosfl);
-	    f06 << "   SUBCASE " << iPage << std::endl
-	      << std::endl
-	      << "                                            D I S P L A C E M E N T  V E C T O R" << std::endl
+	      << "      COMPLEX EIGENVALUE =" << std::setw(14) << sigma << "," << std::setw(14) << omega << std::endl;
+	    f06 
+	      << "                             C O M P L E X   E I G E N V E C T O R   N O . " << std::setw(10) << iMode << "   (SOLUTION SET)" << std::endl
+	      << "                                                          (REAL/IMAGINARY)" << std::endl
 	      << std::endl
 	      << "     POINT ID.   TYPE          T1             T2             T3             R1             R2             R3" << std::endl;
 	 }
       }
 #endif /* __HACK_NASTRAN_MODES__ */
       
-      doublereal cmplx = AlphaI.dGetCoef(iPage);
+      doublereal cmplx = AlphaI.dGetCoef(iCnt);
       if (cmplx == 0.) {
-         Out << "Mode " << iPage << ":" << std::endl;
+         Out << "Mode " << iMode << ":" << std::endl;
          for (int jCnt = 1; jCnt <= iSize; jCnt++) {
             Out << std::setw(12) << jCnt << ": "
-	      << std::setw(12) << MatR.dGetCoef(jCnt, iPage) << std::endl;
+	      << std::setw(12) << MatR.dGetCoef(jCnt, iCnt) << std::endl;
 	 }
 	 
 	 if (fOutputModes) {
 	    /*
 	     * per ora sono uguali; in realta' XP e' X * lambda
 	     */
-	    MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*(iPage-1));
-	    MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*(iPage-1));
-	    pDM->Output(X, XP);
+	    MyVectorHandler Xr(iSize, MatR.pdGetMat()+iSize*(iCnt-1));
+	    MyVectorHandler X0(iSize);
+	    X0.Reset(0.);
+	    pDM->Output(Xr, X0);
 	    
 #ifdef __HACK_NASTRAN_MODES__
 	    /* EXPERIMENTAL */
 	    if (doPlot) {
-	       pDM->Output_f06(f06, X);
+	       pDM->Output_f06(f06, Xr, X0);
 	    }
 #endif /* __HACK_NASTRAN_MODES__ */
 	 }
       } else {
 	 if (cmplx > 0.) {
-            Out << "Modes " << iPage << ", " << iPage+1 << ":" << std::endl;
+            Out << "Modes " << iMode << ", " << iMode+1 << ":" << std::endl;
 	    for (int jCnt = 1; jCnt <= iSize; jCnt++) {
-	       doublereal im = MatR.dGetCoef(jCnt, iPage+1);
+	       doublereal im = MatR.dGetCoef(jCnt, iCnt+1);
 	       Out << std::setw(12) << jCnt << ": "
-	         << std::setw(12) << MatR.dGetCoef(jCnt, iPage) 
+	         << std::setw(12) << MatR.dGetCoef(jCnt, iCnt) 
 	         << ( im >= 0. ? " + " : " - " ) 
 	         << std::setw(12) << fabs(im) << " * j " << std::endl;
             }
@@ -3774,15 +3818,16 @@ MultiStepIntegrator::Eig(void)
             /*
 	     * uso la parte immaginaria ...
 	     */
-	    int i = iPage - (cmplx > 0. ? 0 : 1);
-	    MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*i);
-	    MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*i);
-	    pDM->Output(X, XP);
+	    int i = iCnt - (cmplx > 0. ? 0 : 1);
+	    MyVectorHandler Xr(iSize, MatR.pdGetMat()+iSize*i);
+	    MyVectorHandler X0(iSize);
+	    pDM->Output(Xr, X0);
 
 #ifdef __HACK_NASTRAN_MODES__
 	    /* EXPERIMENTAL */
 	    if (doPlot) {
-	       pDM->Output_f06(f06, X);
+	       MyVectorHandler Xi(iSize, MatR.pdGetMat()+iSize*(i+1));
+	       pDM->Output_f06(f06, Xr, Xi);
 	    }
 #endif /* __HACK_NASTRAN_MODES__ */
 	 }
@@ -3793,10 +3838,13 @@ MultiStepIntegrator::Eig(void)
    if (fOutputModes) {
       pch 
 	      << "ENDDATA" << std::endl;
-      f06 
-	      << "                                                                                                 CSA/NASTRAN " << datebuf << "    PAGE   " 
-	      << std::setw(4) << iPage << std::endl;
       pch.close();
+
+      f06 
+	      << "1                                                                                                MSC.NASTRAN " << datebuf << "    PAGE   " 
+	      << std::setw(4) << iPage++ << std::endl
+	      << "MBDyn modal analysis" << std::endl
+	      << "0     COMPLEX MODES" << std::endl;
       f06.close();
    }
 #endif /* __HACK_NASTRAN_MODES__ */      

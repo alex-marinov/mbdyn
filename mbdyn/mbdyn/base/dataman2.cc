@@ -862,6 +862,18 @@ DataManager::Output_f06(std::ostream& f06, const VectorHandler& X) const
 };
 
 
+/* Output dati f06 */
+void
+DataManager::Output_f06(std::ostream& f06, const VectorHandler& Xr, const VectorHandler& Xi) const
+{
+   /* Dati dei nodi */
+   NodeOutput_f06(f06, Xr, Xi);
+   
+   /* Dati degli elementi */
+   ElemOutput_f06(f06, Xr, Xi);
+};
+
+
 void DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
 				VectorHandler& XPrev, 
 				VectorHandler& XPPrev) const

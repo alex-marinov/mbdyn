@@ -351,6 +351,9 @@ class ToBeOutput {
    virtual void Output_f06(std::ostream &f06, const VectorHandler& X) const {
 	   NO_OP;
    };
+   virtual void Output_f06(std::ostream &f06, const VectorHandler& Xr, const VectorHandler& Xi) const {
+	   NO_OP;
+   };
 
    /* virtual void AdamsOutput(void) const; */
       

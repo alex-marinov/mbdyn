@@ -189,6 +189,7 @@ class StructNode : public Node {
    /* Output di un modello NASTRAN equivalente nella configurazione corrente */
    virtual void Output_pch(std::ostream& out) const;
    virtual void Output_f06(std::ostream& out, const VectorHandler& X) const;
+   virtual void Output_f06(std::ostream& out, const VectorHandler& Xr, const VectorHandler& Xi) const;
    
    /* Aggiorna dati in base alla soluzione */
    virtual void Update(const VectorHandler& X,
