@@ -37,6 +37,16 @@ typedef int mbInt;
 typedef long int mbLong;
 typedef long int mbFlag;
 
+#ifdef HAVE_SIGNAL_H
+#ifndef HAVE___SIGHANDLER_T
+#ifndef HAVE_SIGHANDLER_T
+typedef void (*__sighandler_t)(int);
+#else /* HAVE_SIGHANDLER_T */
+typedef sighandler_t __sighandler_t;
+#endif /* HAVE_SIGHANDLER_T */
+#endif /* !HAVE___SIGHANDLER_T */
+#endif /* HAVE_SIGNAL_H */
+
 /* Global variables */
 extern int fSilent;
 
