@@ -442,7 +442,8 @@ MatrixHandler& FullSubMatrixHandler::AddTo(MatrixHandler& MH) const {
       pd -= iNumRows;
       for (integer i = iNumRows; i-- > 0; ) {
 	 ASSERT(piRow[i] > 0 && piRow[i] <= MH.iGetNumRows());
-	 MH.IncCoef(piRow[i], piCol[j], pd[i]);
+	 //MH.IncCoef(piRow[i], piCol[j], pd[i]);
+	 MH(piRow[i], piCol[j]) += pd[i];
       }
    }
    
@@ -894,7 +895,8 @@ MatrixHandler& SparseSubMatrixHandler::AddTo(MatrixHandler& MH) const {
    for (integer i = iNumItems; i-- > 0; ) {
       ASSERT(piRow[i] > 0 && piRow[i] <= MH.iGetNumRows());
       ASSERT(piCol[i] > 0 && piCol[i] <= MH.iGetNumCols());
-      MH.IncCoef(piRow[i], piCol[i], pdMat[i]);
+      // MH.IncCoef(piRow[i], piCol[i], pdMat[i]);
+      MH(piRow[i], piCol[i]) += pdMat[i];
    }
    
    return MH;
