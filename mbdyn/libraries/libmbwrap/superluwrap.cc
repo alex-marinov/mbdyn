@@ -187,6 +187,10 @@ SuperLUSolver::Factor(void)
 			Astore->nzval = Axp;
 			Astore->rowind = Aip;
 			Astore->colptr = App;
+			
+			Destroy_CompCol_Permuted(&sld->AC);
+			Destroy_SuperNode_Matrix(&sld->L);
+			Destroy_CompCol_Matrix(&sld->U);
 		}
 
 		int	*pc = &(sld->perm_c[0]);
@@ -195,6 +199,9 @@ SuperLUSolver::Factor(void)
 		bRegenerateMatrix = false;
 	} else {
 		sld->options.Fact = SamePattern;
+		Destroy_CompCol_Permuted(&sld->AC);
+		Destroy_SuperNode_Matrix(&sld->L);
+		Destroy_CompCol_Matrix(&sld->U);
 	}
 
 
