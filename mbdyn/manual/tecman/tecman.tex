@@ -146,6 +146,42 @@ used by the parser.
 \section{LowParser} ... 
 \section{MathParser} ...
 
+\chapter{Solvers}
+...
+\section{Linear solvers}
+...
+\section{Non linear solvers}
+...
+\section{Parallel solver}
+\subsection{Partitioning}
+\texttt{iTotVertices} is equal to the sum of nodes and elements. 
+It is made in this way because we want the partitioner 
+to generate a twofold subdivision:
+\begin{itemize}
+\item a subdivision related to elements; 
+this subdivision is done in order to share the computational 
+load during the assembly phase;
+\item a subdivision related to nodes, 
+which is necessary for the solving phase with the substructuring method.
+\end{itemize}
+Of course this two partitions must be connected, 
+so we build created a graph which is made of nodes and elements as vertex. 
+The connection between vertexes are only between nodes and elements. 
+There is no node to node or element to element connection.
+
+\texttt{pVertexWgts} 
+contains what we call the computational weight of each entity, 
+so nodes have weight null while elements has a weight related to 
+the dimension of the submatrix of the Jacobian assembled by each one of them.
+
+\texttt{pCommWgts} contains the communication weights 
+(see metis documentation) which are a measure of the quantity 
+of data which needs to be sent if the i-th vertex is part 
+of an interface between different partitions. 
+This means that nodes have a \texttt{CommWgts} equal to the number 
+of dofs while elements have a weight equal to eventual internal dofs of it.
+
+
 \chapter{Integration}
 
 \begin{itemize}
