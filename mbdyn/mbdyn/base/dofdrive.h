@@ -41,40 +41,40 @@
 #ifndef DOFDRIVE_H
 #define DOFDRIVE_H
 
-#include "drive.h"
-#include "dofown.h"
-#include "node.h"
+#include <drive.h>
+#include <node.h>
 
 class DofDriveCaller : public DriveCaller, public DriveOwner
 {
- protected:
-   const ScalarDof SD;    
+protected:
+	const ScalarDof SD;    
    
- public:
-   DofDriveCaller(const DriveHandler* pDH, const DriveCaller* pDC,
-		  const ScalarDof& sd);
-   virtual ~DofDriveCaller(void);
+public:
+	DofDriveCaller(const DriveHandler* pDH, const DriveCaller* pDC,
+			const ScalarDof& sd);
+	virtual ~DofDriveCaller(void);
+
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const;
    
-   /* Copia */
-   virtual DriveCaller* pCopy(void) const;
+	virtual std::ostream& Restart(std::ostream& out) const;
    
-   virtual std::ostream& Restart(std::ostream& out) const;
-   
-   inline doublereal dGet(const doublereal& dVar) const;
-   inline doublereal dGet(void) const;
+	inline doublereal dGet(const doublereal& dVar) const;
+	inline doublereal dGet(void) const;
 };
 
-
-inline doublereal DofDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal
+DofDriveCaller::dGet(const doublereal& dVar) const
 {
-   std::cerr << "warning, possible improper call of dof drive with real argument" << std::endl;
-   return DriveOwner::pGetDriveCaller()->dGet(dVar);
+	std::cerr << "warning, possible improper call of dof drive "
+		"with real argument" << std::endl;
+	return DriveOwner::pGetDriveCaller()->dGet(dVar);
 }
 
-
-inline doublereal DofDriveCaller::dGet(void) const
+inline doublereal
+DofDriveCaller::dGet(void) const
 {
-   return DriveOwner::pGetDriveCaller()->dGet(SD.pNode->dGetDofValue(1, SD.iOrder));
+	return pGetDriveCaller()->dGet(SD.pNode->dGetDofValue(1, SD.iOrder));
 }
 
 #endif /* DOFDRIVE_H */
