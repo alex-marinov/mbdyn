@@ -16,6 +16,7 @@ lapackwrap.h \
 mschwrap.cc \
 mschwrap.h \
 mthrdslv.c \
+mthrdslv.h \
 naivewrap.cc \
 naivewrap.h \
 superluwrap.cc \
@@ -35,6 +36,7 @@ libmbwrap_la_LIBADD = \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
+@SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
 @LAPACK_LIBS@ \
 @METIS_LIBS@ \
@@ -58,6 +60,7 @@ wraptest_LDADD = \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
+@SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
 @LAPACK_LIBS@ \
 @METIS_LIBS@ \
@@ -77,6 +80,7 @@ cctest_LDADD = \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
+@SUPERLU_LIBS@ \
 @BLAS_LIBS@ \
 @LIBS@ \
 @F2C_LIBS@ \

@@ -20,7 +20,8 @@ aero/libaero.la \
 struct/libstruct.la \
 elec/libelec.la \
 hydr/libhydr.la \
-base/libbase.la \
+base/libbase.la  \
+$(GINACLIB_LIBS)\
 ../libraries/libmbmath/libmbmath.la \
 ../libraries/libmbutil/libmbutil.la \
 @Y12_LIBS@ \
@@ -28,6 +29,7 @@ base/libbase.la \
 @UMFPACK_LIBS@ \
 ../libraries/libobjs/libobjs.la \
 @MESCHACH_LIBS@ \
+@SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
 @LAPACK_LIBS@ \
 @MPI_LIBS@ \

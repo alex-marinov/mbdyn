@@ -494,20 +494,20 @@ SuperLUSparseSolutionManager::IsValid(void) const
 
 /* Inizializza il gestore delle matrici */
 void
-SuperLUSparseSolutionManager::MatrInit(const doublereal& dResetVal)
+SuperLUSparseSolutionManager::MatrInit(const doublereal d)
 {
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
 
-	MatrReset(dResetVal);
+	MatrReset();
 	pLS->Init();
 }
 
 void
-SuperLUSparseSolutionManager::MatrReset(const doublereal& d)
+SuperLUSparseSolutionManager::MatrReset(void)
 {
-	MH.Reset(d);
+	MH.Reset(0.);
 }
 
 void
@@ -597,12 +597,12 @@ SuperLUSparseCCSolutionManager<CC>::~SuperLUSparseCCSolutionManager(void)
 
 template <class CC>
 void
-SuperLUSparseCCSolutionManager<CC>::MatrReset(const doublereal& d)
+SuperLUSparseCCSolutionManager<CC>::MatrReset(void)
 {
 	if (!CCReady) {
-		MH.Reset(d);
+		MH.Reset(0.);
 	} else {
-		Ac->Reset(d);
+		Ac->Reset(0.);
 	}
 }
 
@@ -625,11 +625,11 @@ SuperLUSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 /* Inizializzatore "speciale" */
 template <class CC>
 void
-SuperLUSparseCCSolutionManager<CC>::MatrInitialize(const doublereal& d)
+SuperLUSparseCCSolutionManager<CC>::MatrInitialize(const doublereal d)
 {
 	CCReady = false;
 
-	MatrInit();
+	MatrInit(d);
 }
 	
 /* Rende disponibile l'handler per la matrice */

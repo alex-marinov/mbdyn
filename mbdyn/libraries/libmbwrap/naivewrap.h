@@ -51,6 +51,8 @@
 class NaiveSolver: public LinearSolver {
 private:
 	integer iSize;
+	doublereal dMinPiv;
+	
 	NaiveMatrixHandler *const A;
 
 	mutable std::vector<integer> piv;
@@ -58,12 +60,12 @@ private:
 	void Factor(void);
 
 public:
-	NaiveSolver(const integer &size, NaiveMatrixHandler *const a);
+	NaiveSolver(const integer &size, const doublereal &dMP,
+			NaiveMatrixHandler *const a);
 	~NaiveSolver(void);
 
 	void Init(void);
 	void Solve(void) const;
-
 };
 
 /* NaiveSolver - end */
@@ -79,7 +81,7 @@ protected:
 	virtual void MatrReset(const doublereal d);
 
 public:
-	NaiveSparseSolutionManager(integer Dim);
+	NaiveSparseSolutionManager(integer Dim, const doublereal &dMP = 1.e-9);
 	virtual ~NaiveSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {

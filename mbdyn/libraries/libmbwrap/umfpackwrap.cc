@@ -85,9 +85,7 @@
  * (will be automated in the future ...)
  */
 
-/* #define UMFPACK_LONG */
-
-#ifdef UMFPACK_LONG
+#ifdef USE_UMFPACK_LONG
 
 #define UMFPACKWRAP_defaults 		umfpack_dl_defaults
 #define UMFPACKWRAP_free_symbolic 	umfpack_dl_free_symbolic

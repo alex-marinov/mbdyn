@@ -1,26 +1,51 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 2004-2004
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
-#define  SPRSPIV
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
+
+#include <stdlib.h>
+#include <limits.h>
+
+#include "ac/math.h"
+#include "ac/f2c.h"
+#include "mthrdslv.h"
 
 #define BIGINT   (1 << 30)
-#define ENULCOL  1000000
-#define ENOPIV   2000000
-
-#define HIGH     0x80000000
-#define LOW      0x7FFFFFFF
 
 #define MINPIV   1.0e-8
 
-// questi 2 non sono colpa mia, li ha chiesti PierMasa
-typedef int     integer;
-typedef double  doublereal;
-
-typedef integer** IMAT;
-typedef doublereal** RMAT;
-
-int naivfct(RMAT a, integer neq, integer *nzr, IMAT ri, integer *nzc, IMAT ci, integer *piv, doublereal minpiv)
+int
+naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
+		integer *nzc, IMAT ci, integer *piv, doublereal minpiv)
 {
 	integer todo[neq];
 	integer i, j, k, m, pvr, pvc, nr, nc, r;
@@ -48,7 +73,7 @@ int naivfct(RMAT a, integer neq, integer *nzr, IMAT ri, integer *nzc, IMAT ci, i
 			}
 		}
 		if (m == BIGINT) { return ENOPIV + i; }
-#ifdef SPRSPIV
+#if PIVMETH == SPRSPIV
 		mul *= minpiv;
 		for (k = 0; k < nr; k++) {
 			r = pri[k] & LOW;
@@ -56,7 +81,7 @@ int naivfct(RMAT a, integer neq, integer *nzr, IMAT ri, integer *nzc, IMAT ci, i
 				m = nzc[pvr = r];	
 			}
 		}
-#endif
+#endif /* PIVMETH == SPRSPIV */
 		piv[i] = pvr;
 		todo[pvr] = 0;
 		papvr = a[pvr];
@@ -85,7 +110,9 @@ int naivfct(RMAT a, integer neq, integer *nzr, IMAT ri, integer *nzc, IMAT ci, i
 	return 0;
 }
 
-void naivslv(RMAT a, integer neq, integer *nzc, IMAT ci, doublereal *rhs, integer *piv)
+void
+naivslv(RMAT a, integer neq, integer *nzc, IMAT ci, doublereal *rhs,
+		integer *piv)
 {
 	doublereal fwd[neq];
 

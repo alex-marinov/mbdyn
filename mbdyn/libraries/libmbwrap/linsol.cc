@@ -762,7 +762,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 	case LinSol::NAIVE_SOLVER:
 		SAFENEWWITHCONSTRUCTOR(pCurrSM,
 			NaiveSparseSolutionManager,
-			NaiveSparseSolutionManager(iNLD));
+			NaiveSparseSolutionManager(iNLD, dPivotFactor));
 		break;
 
 	case LinSol::EMPTY_SOLVER:

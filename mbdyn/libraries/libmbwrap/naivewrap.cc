@@ -44,21 +44,15 @@
 #include "spmh.h"
 #include "spmapmh.h"
 #include "naivewrap.h"
-
-extern "C" {
-int 
-naivfct(doublereal** a, integer neq, integer *nzr, integer** ri, 
-	integer *nzc, integer** ci, integer *piv, doublereal minpiv);
-void 
-naivslv(doublereal** a, integer neq, integer *nzc, integer** ci, 
-	doublereal *rhs, integer *piv);
-}
+#include "mthrdslv.h"
 
 /* NaiveSolver - begin */
 	
-NaiveSolver::NaiveSolver(const integer &size, NaiveMatrixHandler *const a)
+NaiveSolver::NaiveSolver(const integer &size, const doublereal& dMP,
+		NaiveMatrixHandler *const a)
 : LinearSolver(0),
 iSize(size),
+dMinPiv(dMP),
 A(a),
 piv(size)
 {
@@ -92,33 +86,43 @@ void
 NaiveSolver::Factor(void)
 {
 	int		rc;
-	doublereal	minpiv = 1.E-8;
+
+#if 0
+	integer i = 0;
+	for (integer j = 0; j < iSize; j++) {
+		i += A->piNzr[j];
+	}
+	std::cerr << "prima: " << i << std::endl;
+#endif
 	
 	rc = naivfct(A->ppdRows, iSize, 
 			A->piNzr, A->ppiRows, 
 			A->piNzc, A->ppiCols,
-			&piv[0], minpiv);
+			&piv[0], dMinPiv);
 
-#define ENULCOL  -1000000
-#define ENOPIV   -2000000
+#if 0
+	i = 0;
+	for (integer j = 0; j < iSize; j++) {
+		i += A->piNzr[j];
+	}
+	std::cerr << "dopo: " << i << std::endl;
+#endif
+	
+	if (rc) {
+		if (rc & ENULCOL) {
+			silent_cerr("NaiveSolver: ENULCOL("
+					<< (rc & ~ENULCOL) << ")" << std::endl);
+			THROW(ErrGeneric());
+		}
 
-	switch (rc) {
-	case ENULCOL:
-		silent_cerr("NaiveSolver: ENULCOL" << std::endl);
+		if (rc & ENOPIV) {
+			silent_cerr("NaiveSolver: ENOPIV("
+					<< (rc & ~ENOPIV) << ")" << std::endl);
+			THROW(ErrGeneric());
+		}
+
+		/* default */
 		THROW(ErrGeneric());
-		break;
-
-	case ENOPIV:
-		silent_cerr("NaiveSolver: ENOPIV" << std::endl);
-		THROW(ErrGeneric());
-		break;
-
-	case 0:
-		break;
-
-	default:
-		THROW(ErrGeneric());
-		break;
 	}
 }
 
@@ -126,14 +130,16 @@ NaiveSolver::Factor(void)
 
 /* NaiveSparseSolutionManager - begin */
 
-NaiveSparseSolutionManager::NaiveSparseSolutionManager(integer Dim)
+NaiveSparseSolutionManager::NaiveSparseSolutionManager(integer Dim,
+		const doublereal& dMP)
 : A(Dim),
 VH(Dim)
 {
-	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver, NaiveSolver(Dim,&A));
+	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver, NaiveSolver(Dim, dMP, &A));
 
 	(void)pLS->ChangeResPoint(VH.pdGetVec());
 	(void)pLS->ChangeSolPoint(VH.pdGetVec());
+
 	pLS->SetSolutionManager(this);
 }
 

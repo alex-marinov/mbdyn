@@ -172,6 +172,7 @@ AC_ARG_WITH(goto,[  --with-goto=lib(s)      with Goto BLAS implementation],[
 OL_ARG_WITH(y12,[  --with-y12              with Y12 sparse math library],auto,[auto yes no])
 OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math library],auto,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
+OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library],auto,[auto yes no])
 OL_ARG_WITH(lapack,[
   --with-lapack           with LAPACK math library],auto,[auto yes no])
 OL_ARG_WITH(taucs,[
@@ -221,6 +222,7 @@ UMFPACK_LIBS=
 BLAS_LIBS=
 THREAD_LIBS=
 MESCHACH_LIBS=
+SUPERLU_LIBS=
 HARWELL_LIBS=
 LAPACK_LIBS=
 TAUCS_LIBS=
@@ -1046,6 +1048,40 @@ if test "$ol_with_umfpack" != "no" ; then
 
 		if test "$have_umfpack4" = "yes" ; then
 			AC_DEFINE(HAVE_UMFPACK4,1,[define if Umfpack4 is available])
+
+			AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <umfpack.h>
+			],[
+#define SIZE 2
+	int32_t n_row = SIZE, n_col = SIZE;
+	const int32_t Ap[SIZE], Ai[SIZE];
+	const double Ax[SIZE];
+	void *Symbolic;
+	const double Control[UMFPACK_CONTROL];
+	double Info[UMFPACK_INFO];
+
+	umfpack_di_symbolic(n_row, n_col, Ap, Ai, Ax, &Symbolic, Control, Info);
+			],[],[
+				AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <umfpack.h>
+				],[
+#define SIZE 2
+	int32_t n_row = SIZE, n_col = SIZE;
+	const int32_t Ap[SIZE], Ai[SIZE];
+	const double Ax[SIZE];
+	void *Symbolic;
+	const double Control[UMFPACK_CONTROL];
+	double Info[UMFPACK_INFO];
+
+	umfpack_di_symbolic(n_row, n_col, Ap, Ai, Ax, &Symbolic, Control, Info);
+				],[
+					AC_DEFINE(USE_UMFPACK_LONG,1,[define if need to use umfpack_dl_* calls])
+				],[
+					AC_MSG_ERROR([umfpack might be broken])
+				]) 
+			])
 		fi
 
 		if test "$have_umfpack" = "yes" ; then
@@ -1119,6 +1155,75 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Check for SuperLU
+dnl
+ol_link_superlu=no
+if test $ol_with_superlu != no ; then
+	dnl OL_ADD_DIRS(meschach)
+	
+	AC_CHECK_HEADERS(dsp_defs.h)
+	AC_CHECK_HEADERS(pdsp_defs.h)
+	AC_CHECK_HEADERS(util.h)
+
+	if test "$ac_cv_header_util_h" = "yes" ; then
+		AC_MSG_CHECKING([for SuperLU library])
+		try_superlu_LIBS="-lsuperlu"
+		save_LIBS="$LIBS"
+		have_superlu_mt="no"
+		if test "$ac_cv_header_pdsp_defs_h" = "yes" ; then
+			LIBS="$try_superlu_LIBS $save_LIBS $BLAS_LIBS $THREAD_LIBS -lm"
+			AC_TRY_LINK([
+#include <pdsp_defs.h>
+#include <util.h>
+],[
+	SuperMatrix	AC, L, U;
+	(void)pdgstrf_thread_init(&AC, &L, &U,
+			(void *)0, (void *)0, (void *)0, (void *)0);
+			],[have_superlu_mt="yes"])
+		fi
+		have_superlu="no"
+		if test "$ac_cv_header_dsp_defs_h" = "yes" ; then
+			LIBS="$try_superlu_LIBS $save_LIBS $BLAS_LIBS -lm"
+			AC_TRY_LINK([
+#include <dsp_defs.h>
+#include <util.h>
+],[
+	SuperMatrix	B;
+	dCreate_Dense_Matrix(&B, 1, 1, (void *)0, 0,
+			SLU_DN, SLU_D, SLU_GE);
+			],[have_superlu="yes"])
+		fi
+		LIBS="$save_LIBS"
+
+		if test "$have_superlu_mt" != "no" -o \
+				"$have_superlu" != "no" ; then
+			SUPERLU_LIBS=$try_superlu_LIBS
+			ol_link_superlu=yes
+			if test "$have_superlu_mt" != "no" ; then
+				AC_DEFINE(USE_SUPERLU_MT,1,[define if you want to use multithreaded SuperLU])
+			fi
+			AC_DEFINE(USE_SUPERLU,1,[define if you want to use SuperLU])
+
+			AC_MSG_RESULT([yes])
+		else
+			AC_MSG_RESULT([no])
+		fi
+	fi
+
+	if test $ol_link_superlu = no ; then
+		if test $ol_with_superlu != auto ; then
+			AC_MSG_ERROR([Could not locate SuperLU])
+		dnl who cares?
+		dnl else
+		dnl	AC_MSG_WARN([SuperLU not supported!])
+		fi
+	fi
+else
+	AC_MSG_WARN([SuperLU not supported!])
+fi
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for Y12
 dnl
 ol_link_y12=no
@@ -1174,7 +1279,7 @@ if test $ol_with_lapack != no ; then
 
 	save_LIBS="$LIBS"
 	try_lapack_LIBS="-llapack"
-	LIBS="$try_lapack_LIBS $BLAS_LIBS $F2C_LIBS $LIBS"
+	LIBS="$try_lapack_LIBS $BLAS_LIBS $F2C_LIBS $save_LIBS"
 	AC_TRY_LINK([
 	extern double dgesvd(double *);
 		],[
@@ -1577,7 +1682,7 @@ if test $ol_with_ginac != no ; then
 	AC_CHECK_HEADERS(ginac/ginac.h)
 	AC_LANG_C
 	AC_MSG_CHECKING([for GiNaC library])
-	ginac-config >/dev/null 2>&1
+	ginac-config --version >/dev/null 2>&1
 	if test $? = 0 ; then
 		GINACLIB_CONFIG="ginac-config"
 		GINACLIB_LIBS=`$GINACLIB_CONFIG --libs`
@@ -1728,16 +1833,17 @@ AC_SUBST(MPI_LIBS)
 AC_SUBST(CHACO_LIBS)
 AC_SUBST(METIS_LIBS)
 AC_SUBST(UMFPACK_LIBS)
-AC_SUBST(BLAS_LIBS)
-AC_SUBST(THREAD_LIBS)
+AC_SUBST(Y12_LIBS)
+AC_SUBST(SUPERLU_LIBS)
+AC_SUBST(HARWELL_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
+AC_SUBST(BLAS_LIBS)
+AC_SUBST(THREAD_LIBS)
 AC_SUBST(TAUCS_LIBS)
 AC_SUBST(SECURITY_LIBS)
 AC_SUBST(TCL_LIBS)
 
-AC_SUBST(Y12_LIBS)
-AC_SUBST(HARWELL_LIBS)
 AC_SUBST(MODULES_DIRS)
 AC_SUBST(MODULE_LOADPATH)
 

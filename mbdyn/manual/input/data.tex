@@ -294,7 +294,7 @@ mainly used to cleanly check models and simulations at various phases.
 \subsubsection{Solver}   
 \begin{verbatim}
     <card> ::= solver :
-            { umfpack | y12 | harwell | meschach | superlu }
+            { umfpack | y12 | harwell | meschach | superlu | lapack}
         [ , { map | cc | dir } ]
         [ , mt , <threads> ]
         [ , workspace size , <workspace_size> ] 
@@ -377,18 +377,32 @@ Table~\ref{tab:solvers} summarizes the properties of the solvers
 \begin{table}
 \centering
 \caption{Properties of the solvers}\label{tab:solvers}
-\begin{tabular}{llll}
+\begin{tabular}{lllll}
 \hline\hline
-Solver		& Pivot			& Size			& Memory \\
-		&			&			& Allocation \\
+	\multicolumn{1}{c}{\textbf{Solver}} &
+	\multicolumn{1}{c}{\textbf{Pivot}} &
+	\multicolumn{1}{c}{\textbf{Workspace}} &
+	\multicolumn{1}{c}{\textbf{Memory}} &
+	\multicolumn{1}{c}{\textbf{Block Size}} \\
+	&
+	&
+	\multicolumn{1}{c}{\textbf{Size}} &
+	\multicolumn{1}{c}{\textbf{Allocation}} \\
 \hline
-Umfpack 3	& 0.0$\rightarrow$1.0 	& 			& dynamic \\
- 		& default: 0.1 		&			& \\
-Y12m 		& none=0.0, 		& $2\times{n^2} $	& static \\
-		& full=1.0		& optimal		& \\
-SuperLU		& 0.0$\rightarrow$1.0	&			& dynamic \\
-Harwell		& full: 1.0		& ?			& static \\
-Meschach	& full: 1.0		& 			& dynamic \\
+	Umfpack 3	& 0.0$\rightarrow$1.0 	& 			&
+		dynamic		& default=32	\\
+ 			& default: 0.1 		&			&
+				&		\\
+	Y12m 		& none=0.0, 		& default=$2\times{n^2}$&
+		static		&		\\
+			& full=1.0		& $3nz \rightarrow 5nz$	&
+				&		\\
+	SuperLU		& 0.0$\rightarrow$1.0	&			&
+		dynamic 	&		\\
+	Harwell		& full: 1.0		& ?			&
+		static		&		\\
+	Meschach	& full: 1.0		& 			&
+		dynamic		&		\\
 \hline\hline
 \end{tabular}
 \end{table}
