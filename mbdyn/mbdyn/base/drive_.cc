@@ -33,6 +33,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <ac/math.h>
+#include <ac/float.h>
 
 #ifdef USE_MPI
 #include <mbcomm.h>
@@ -1158,8 +1159,11 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        
        doublereal dInitialTime = HP.GetReal();
        DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
-       
-       doublereal dFinalTime = HP.GetReal();
+
+       doublereal dFinalTime = DBL_MAX;
+       if (!HP.IsKeyWord("forever")) {
+	  dFinalTime = HP.GetReal();
+       }
        DEBUGCOUT("Final time: " << dFinalTime << std::endl);
        
        if(dFinalTime <= dInitialTime) {	      
@@ -1205,7 +1209,10 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        doublereal dDescendingSlope = HP.GetReal(-1.);
        DEBUGCOUT("Descending Slope Value: " << dDescendingSlope << std::endl);
        
-       doublereal dDescendingInitialTime = HP.GetReal();
+       doublereal dDescendingInitialTime = DBL_MAX;
+       if (!HP.IsKeyWord("forever")) {
+          dDescendingInitialTime = HP.GetReal();
+       }
        DEBUGCOUT("Descending Initial time: " << dDescendingInitialTime << std::endl);
        
        if (dDescendingInitialTime < dAscendingFinalTime) {
@@ -1312,7 +1319,10 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        doublereal dInitialValue = HP.GetReal();	   
        DEBUGCOUT("Initial value: " << dInitialValue << std::endl);
        
-       doublereal dFinalTime = HP.GetReal();
+       doublereal dFinalTime = DBL_MAX;
+       if (!HP.IsKeyWord("forever")) {
+          dFinalTime = HP.GetReal();
+       }
        DEBUGCOUT("Final time: " << dFinalTime << std::endl);
        
        doublereal dFinalValue = HP.GetReal();	   
@@ -1364,7 +1374,10 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        doublereal dInitialTime = HP.GetReal();
        DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
        
-       doublereal dFinalTime = HP.GetReal();
+       doublereal dFinalTime = DBL_MAX;
+       if (!HP.IsKeyWord("forever")) {
+          dFinalTime = HP.GetReal();
+       }
        DEBUGCOUT("Final time: " << dFinalTime << std::endl);
        
        /* Type of random number (additional data) */

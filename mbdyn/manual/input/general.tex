@@ -993,7 +993,7 @@ Yields the current time; the arglist is empty.
     <drive_caller> ::= ramp ,
         <slope> , 
         <initial_time> ,
-        <final_time> , 
+        { forever | <final_time> } ,
         <initial_value>
 \end{verbatim}
   
@@ -1005,7 +1005,7 @@ Yields the current time; the arglist is empty.
         <asc_final_time> , 
         <desc_slope> , 
         <desc_initial_time> , 
-        <desc_final_time> , 
+        { forever | <desc_final_time> } , 
         <initial_value>
 \end{verbatim}
 
@@ -1076,7 +1076,7 @@ Special keywords can be used for \kw{number\_of\_cycles}:
         <pulsation_drive> ,
         <amplitude_drive> ,
         <initial_value> ,
-        <final_time> ,
+        { forever | <final_time> } ,
         <final_value>
 \end{verbatim}
 this drive recursively calls two other drives that supply the pulsation 
@@ -1097,7 +1097,7 @@ and the amplitude of the oscillation. Any drive can be used.
         <amplitude_value> ,
         <mean_value> ,
         <initial_time> ,
-        <final_time> 
+        { forever | <final_time> }
         [ , steps , <steps_to_hold_value>]
         [ , seed , { time | <seed_value>} ]
 \end{verbatim}
