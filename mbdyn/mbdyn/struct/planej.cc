@@ -1870,6 +1870,10 @@ AxialRotationJoint::GetEqType(unsigned int i) const
 {
 	ASSERTMSGBREAK(i < iGetNumDof(),
 		"INDEX ERROR in AxialRotationJoint::GetEqType");
+	if (i == 5) {
+		return DofOrder::DIFFERENTIAL;
+	}
+	
 	return DofOrder::ALGEBRAIC;
 }
 

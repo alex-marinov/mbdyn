@@ -70,11 +70,7 @@ class LinearVelocityJoint
       return 1;
    };
    
-#ifdef DEBUG
    DofOrder::Order GetDofType(unsigned int i) const
-#else
-   DofOrder::Order GetDofType(unsigned int /* i */ ) const     
-#endif     
    {
       ASSERT(i == 0);
       return DofOrder::ALGEBRAIC; 
@@ -177,11 +173,7 @@ class AngularVelocityJoint
       return 1;
    };
    
-#ifdef DEBUG
    DofOrder::Order GetDofType(unsigned int i) const
-#else
-   DofOrder::Order GetDofType(unsigned int /* i */ ) const
-#endif
    {
       ASSERT(i == 0);
       return DofOrder::ALGEBRAIC; 
