@@ -31,7 +31,7 @@
 /* Schur Data Manager */
 
 /* 
- * Copyright 1999-2005 Giuseppe Quaranta <quaranta@tiscalinet.it>
+ * Copyright 1999-2005 Giuseppe Quaranta <quaranta@aero.polimi.it>
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  */
  
