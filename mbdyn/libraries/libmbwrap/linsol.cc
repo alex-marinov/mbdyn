@@ -45,6 +45,7 @@
 #include "y12wrap.h"
 #include "umfpackwrap.h"
 #include "parsuperluwrap.h"
+#include "superluwrap.h"
 #include "lapackwrap.h"
 #include "taucswrap.h"
 #include "naivewrap.h"
@@ -83,7 +84,7 @@ const LinSol::solver_t solver[] = {
 	{ "SuperLU", NULL, 
 		LinSol::SUPERLU_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP,
 		1. },
 	{ "Taucs", NULL, 
 		LinSol::TAUCS_SOLVER,
@@ -416,34 +417,65 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 
      	case LinSol::SUPERLU_SOLVER: 
 #ifdef USE_SUPERLU
-		if (!mt) {
-			silent_cerr("warning: SuperLU supported only "
-					"in multithread form" << std::endl);
-		}
-
+#ifdef USE_SUPERLU_MT
 		switch (type) {
 		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
-			typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
+			typedef ParSuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
 					CCSM(nThreads, iNLD, dPivotFactor));
 			break;
 		}
 
 		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
-			typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
+			typedef ParSuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
 					CCSM(nThreads, iNLD, dPivotFactor));
 			break;
 		}
 
 		default:
-      			SAFENEWWITHCONSTRUCTOR(pCurrSM,
-				SuperLUSparseSolutionManager,
-				SuperLUSparseSolutionManager(nThreads, iNLD,
+			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				ParSuperLUSparseSolutionManager,
+				ParSuperLUSparseSolutionManager(nThreads, iNLD,
 					dPivotFactor));
 			break;
 		}
-      		break;
+		break;
+		
+		if (nThreads == 1) {
+			silent_cerr("warning, using multithread SuperLU with only one thread; "
+				<< std::endl);
+		}
+#else /* !USE_SUPERLU_MT */
+		if (nThreads > 1) {
+			silent_cerr("multithread SuperLU solver support not compiled; "
+				<< std::endl);
+			throw ErrGeneric();
+		}
+		switch (type) {
+		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
+			typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
+	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
+					CCSM(iNLD, dPivotFactor));
+			break;
+		}
+
+		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
+			typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
+	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
+					CCSM(iNLD, dPivotFactor));
+			break;
+		}
+
+		default:
+			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				SuperLUSparseSolutionManager,
+				SuperLUSparseSolutionManager(iNLD,
+					dPivotFactor));
+			break;
+		}
+#endif /* !USE_SUPERLU_MT */
+		break;
 #else /* !USE_SUPERLU */
       		silent_cerr("Configure with --with-superlu "
 			"to enable superlu solver" << std::endl);

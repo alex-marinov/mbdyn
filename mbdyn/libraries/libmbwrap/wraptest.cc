@@ -34,7 +34,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+extern "C" {
 #include <time.h>
+#ifdef HAVE_SYS_TIMES_H
+#include <sys/times.h>
+#endif /* HAVE_SYS_TIMES_H */
+}
 
 #include <ac/iostream>
 #include <ac/fstream>
@@ -48,6 +53,7 @@
 #include <mschwrap.h>
 #include <umfpackwrap.h>
 #include <parsuperluwrap.h>
+#include <superluwrap.h>
 #include <lapackwrap.h>
 #include <taucswrap.h>
 #include <naivewrap.h>
@@ -544,22 +550,43 @@ main(int argc, char *argv[])
 
 	} else if (strcasecmp(solver, "superlu") == 0) {
 #ifdef USE_SUPERLU
-		std::cerr << "SuperLU solver";
-		if (dir) {
-			std::cerr << " with dir matrix";
-			typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
-			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size));
-
-		} else if (cc) {
-			std::cerr << " with cc matrix";
-			typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
-			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size));
-
+		if (nt > 1) {
+#ifdef USE_SUPERLU_MT
+			std::cerr << "Multi-threaded SuperLU solver";
+			if (dir) {
+				std::cerr << " with dir matrix";
+				typedef ParSuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
+				SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size));
+			} else if (cc) {
+				std::cerr << " with cc matrix";
+				typedef ParSuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
+				SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size));
+			} else {
+				SAFENEWWITHCONSTRUCTOR(pSM, ParSuperLUSparseSolutionManager,
+						ParSuperLUSparseSolutionManager(nt, size));
+			}
+			std::cerr << " using " << nt << " threads" << std::endl;
+#else /* !USE_SUPERLU_MT */
+			silent_cerr("multithread SuperLU solver support not compiled; "
+				<< std::endl);
+			throw ErrGeneric();
 		} else {
-			SAFENEWWITHCONSTRUCTOR(pSM, SuperLUSparseSolutionManager,
-					SuperLUSparseSolutionManager(nt, size));
+			std::cerr << "SuperLU solver";
+			if (dir) {
+				std::cerr << " with dir matrix";
+				typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
+				SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+			} else if (cc) {
+				std::cerr << " with cc matrix";
+				typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
+				SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+			} else {
+				SAFENEWWITHCONSTRUCTOR(pSM, SuperLUSparseSolutionManager,
+					SuperLUSparseSolutionManager(size));
+			}
+#endif /* !USE_SUPERLU_MT */
 		}
-		std::cerr << " using " << nt << " threads" << std::endl;
+		std::cerr << std::endl;
 #else /* !USE_SUPERLU */
 		std::cerr << "need --with-superlu to use SuperLU library" 
 			<< std::endl;
@@ -720,12 +747,20 @@ main(int argc, char *argv[])
 	SetupSystem(random, random_args, singular,
 			matrixfilename, filename, pM, pV);
 	
+	clock_t ct = 0;
+	struct tms tmsbuf;
 	try {
 		start = clock();
 		tf = rd_CPU_ts();
+		times(&tmsbuf);
+		ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
+			+ tmsbuf.tms_stime + tmsbuf.tms_cstime;
 		pSM->Solve();
 		tf = rd_CPU_ts() - tf;
 		end = clock();
+		times(&tmsbuf);
+		ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
+			+ tmsbuf.tms_stime + tmsbuf.tms_cstime - ct;
 	} catch (...) {
 		exit(EXIT_FAILURE);
 	}
@@ -739,6 +774,7 @@ main(int argc, char *argv[])
 	cpu_time_used = ((double) (end - start));
 	cpu_time_used = cpu_time_used / CLOCKS_PER_SEC;
 	std::cout << "Clock tics to solve: " << tf << std::endl;
+	std::cout << "Clock tics to solve: " << ct << std::endl;
 	std::cout << "Time to solve: " << cpu_time_used << std::endl;
 	
 
@@ -754,9 +790,15 @@ main(int argc, char *argv[])
 	try {
 		start = clock();
 		tf = rd_CPU_ts();
+		times(&tmsbuf);
+		ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
+			+ tmsbuf.tms_stime + tmsbuf.tms_cstime;
 		pSM->Solve();
 		tf = rd_CPU_ts() - tf;
 		end = clock();
+		times(&tmsbuf);
+		ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
+			+ tmsbuf.tms_stime + tmsbuf.tms_cstime - ct;
 	} catch (...) {
 		exit(EXIT_FAILURE);
 	}
@@ -771,6 +813,7 @@ main(int argc, char *argv[])
 	cpu_time_used = ((double) (end - start));
 	cpu_time_used = cpu_time_used / CLOCKS_PER_SEC;
 	std::cout << "Clock tics to solve: " << tf << std::endl;
+	std::cout << "Clock tics to solve: " << ct << std::endl;
 	std::cout << "Time to solve: " << cpu_time_used << std::endl;
 	
 	return 0;

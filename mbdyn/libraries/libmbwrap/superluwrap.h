@@ -39,10 +39,11 @@
  * http://www.cs.berkeley.edu/~xiaoye/superlu_mt.html
  */
 
-#ifndef PARSUPERLUWRAP_H
-#define PARSUPERLUWRAP_H
+#ifndef SUPERLUWRAP_H
+#define SUPERLUWRAP_H
 
-#ifdef USE_SUPERLU_MT
+#ifdef USE_SUPERLU
+#ifndef USE_SUPERLU_MT /* SUPERLU and SUPERLU_MT are incompatible */
 
 #include "ac/iostream"
 #include "ac/pthread.h"
@@ -56,16 +57,16 @@
 #include "spmapmh.h"
 #include "ls.h"
 
-/* ParSuperLUSolver - begin */
+/* SuperLUSolver - begin */
 
 /*
  * Solutore LU per matrici sparse. usa spazio messo a disposizione da altri 
  * e si aspetta le matrici gia' bell'e preparate
  */
 
-struct ParSuperLUSolverData;
+struct SuperLUSolverData;
 
-class ParSuperLUSolver : public LinearSolver  {
+class SuperLUSolver : public LinearSolver  {
 public:
 private:
 	mutable integer *Aip;
@@ -80,42 +81,17 @@ private:
 	mutable bool bFirstSol;		/* true se prima backsubst */
 	mutable bool bRegenerateMatrix;	/* true se prima backsubst */
 
-	ParSuperLUSolverData *sld;
-
-	unsigned nThreads;
-
-	enum Op {
-		FACTOR,
-		EXIT
-	};
-
-	struct thread_data_t {
-		pthread_t		thread;
-		ParSuperLUSolver	*pSLUS;
-		unsigned		threadNumber;
-		sem_t			sem;
-		void			*pdgstrf_threadarg;
-	} *thread_data;
-
-	Op		thread_operation;
-	unsigned	thread_count;
-	pthread_mutex_t	thread_mutex;
-	pthread_cond_t	thread_cond;
-
-	/* Thread process */
-	static void *thread_op(void *arg);
+	SuperLUSolverData *sld;
 
 	/* Fattorizza la matrice */
 	void Factor(void);
 
-	void EndOfOp(void);
-
 public:
 	/* Costruttore: si limita ad allocare la memoria */
-	ParSuperLUSolver(unsigned nt, integer iMatOrd, const doublereal &dPivot);
+	SuperLUSolver(integer iMatOrd, const doublereal &dPivot);
 
 	/* Distruttore */
-	~ParSuperLUSolver(void);
+	~SuperLUSolver(void);
 
 #ifdef DEBUG	
 	void IsValid(void) const;
@@ -132,18 +108,18 @@ public:
 			std::vector<integer>& Ap) const;
 };
 
-/* ParSuperLUSolver - end */
+/* SuperLUSolver - end */
 
 
 
-/* ParSuperLUSparseSolutionManager - begin */
+/* SuperLUSparseSolutionManager - begin */
 
 /*
  * Gestisce la soluzione del problema; alloca le matrici occorrenti
  * e gli oggetti dedicati alla gestione delle matrici ed alla soluzione
  */
 
-class ParSuperLUSparseSolutionManager : public SolutionManager {
+class SuperLUSparseSolutionManager : public SolutionManager {
 public: 
 	class ErrGeneric {};
 
@@ -152,7 +128,7 @@ private:
 protected:
 	integer iMatSize;		/* ordine della matrice */
 	std::vector<integer> Ai;	/* array di interi con
-					 * indici di riga di ParSuperLUSolver */
+					 * indici di riga di SuperLUSolver */
    	std::vector<integer> Adummy;	/* dummy */
    	std::vector<integer> Ap;	/* array di interi con
 						 * indici di colonna CC */
@@ -174,11 +150,11 @@ protected:
 	virtual void MakeCompressedColumnForm(void);
 public:
 	/* Costruttore: usa e mette a disposizione matrici che gli sono date */
-	ParSuperLUSparseSolutionManager(unsigned nt, integer iSize,
+	SuperLUSparseSolutionManager(integer iSize,
 			const doublereal& dPivotFactor = 1.0);
 
 	/* Distruttore: dealloca le matrici e distrugge gli oggetti propri */
-	~ParSuperLUSparseSolutionManager(void);
+	~SuperLUSparseSolutionManager(void);
 
 	/* Inizializza il gestore delle matrici */
 	void MatrReset(void);
@@ -209,11 +185,11 @@ public:
 	};
 };
 
-/* ParSuperLUSparseSolutionManager - end */
+/* SuperLUSparseSolutionManager - end */
 
-/* ParSuperLUSparseCCSolutionManager - begin */
+/* SuperLUSparseCCSolutionManager - begin */
 template <class CC>
-class ParSuperLUSparseCCSolutionManager: public ParSuperLUSparseSolutionManager {
+class SuperLUSparseCCSolutionManager: public SuperLUSparseSolutionManager {
 protected:
 	bool CCReady;
 	CompactSparseMatrixHandler *Ac;
@@ -222,9 +198,9 @@ protected:
 	virtual void MakeCompressedColumnForm(void);
 	
 public:
-	ParSuperLUSparseCCSolutionManager(unsigned nt, integer Dim,
+	SuperLUSparseCCSolutionManager(integer Dim,
 			const doublereal &dPivot = -1.);
-	virtual ~ParSuperLUSparseCCSolutionManager(void);
+	virtual ~SuperLUSparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */
 	virtual void MatrInitialize(void);
@@ -233,9 +209,10 @@ public:
 	virtual MatrixHandler* pMatHdl(void) const;
 };
 
-/* ParSuperLUSparseCCSolutionManager - end */
+/* SuperLUSparseCCSolutionManager - end */
 
-#endif /* USE_SUPERLU_MT */
+#endif /* !USE_SUPERLU_MT */
+#endif /* USE_SUPERLU */
 
-#endif /* PARSUPERLUWRAP_H */
+#endif /* SUPERLUWRAP_H */
 

@@ -23,6 +23,8 @@ parnaivewrap.cc \
 parnaivewrap.h \
 parsuperluwrap.cc \
 parsuperluwrap.h \
+superluwrap.cc \
+superluwrap.h \
 umfpackwrap.cc \
 umfpackwrap.h \
 taucswrap.cc \

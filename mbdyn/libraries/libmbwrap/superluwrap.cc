@@ -38,7 +38,9 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_SUPERLU_MT
+
+#ifdef USE_SUPERLU
+#ifndef USE_SUPERLU_MT /* SUPERLU and SUPERLU_MT are incompatible */
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -49,35 +51,34 @@
 #include "dirccmh.h"
 #include "ccmh.h"
 
-extern "C" {
-#include <pdsp_defs.h>
-#include <util.h>
 
-extern void *pdgstrf_thread(void *);
-extern void pdgstrf_finalize(pdgstrf_options_t *, SuperMatrix*);
+#include "superluwrap.h"
+
+extern "C" {
+#include <dsp_defs.h>
+#include <util.h>
 }
 
-#include "parsuperluwrap.h"
-
-
-struct ParSuperLUSolverData {
+struct SuperLUSolverData {
 	SuperMatrix		A,
 				AC,
 				L,
 				U,
 				B;
-	Gstat_t			Gstat;
+	
+	SuperLUStat_t		Gstat;
 	std::vector<int>	perm_c, /* column permutation vector */
-				perm_r; /* row permutations from partial pivoting */
-	pdgstrf_options_t	pdgstrf_options;
-	pxgstrf_shared_t	pxgstrf_shared;
-	pdgstrf_threadarg_t	*pdgstrf_threadarg;
+				perm_r, /* row permutations from partial pivoting */
+				etree ; /* elimination tree of A'*A */
+				
+	superlu_options_t	options;
 };
 
-/* ParSuperLUSolver - begin */
+
+/* SuperLUSolver - begin */
 
 /* Costruttore: si limita ad allocare la memoria */
-ParSuperLUSolver::ParSuperLUSolver(unsigned nt, integer iMatOrd,
+SuperLUSolver::SuperLUSolver(integer iMatOrd,
 		const doublereal &dPivot)
 : Aip(0),
 App(0),
@@ -86,14 +87,11 @@ iN(iMatOrd),
 iNonZeroes(0),
 dPivotFactor(dPivot),
 bFirstSol(true),
-bRegenerateMatrix(true),
-sld(0),
-nThreads(nt),
-thread_data(0)
+bRegenerateMatrix(true)
 {
 	ASSERT(iN > 0);
 
-	SAFENEW(sld, ParSuperLUSolverData);
+	SAFENEW(sld, SuperLUSolverData);
 	
 	/*
 	 * This means it's the first run
@@ -101,138 +99,17 @@ thread_data(0)
 	 */
 	sld->A.Store = NULL;
 
-	pthread_mutex_init(&thread_mutex, NULL);
-	pthread_cond_init(&thread_cond, NULL);
-
-	SAFENEWARR(thread_data, thread_data_t, nThreads);
-
-	for (unsigned t = 0; t < nThreads; t++) {
-		thread_data[t].pSLUS = this;
-		thread_data[t].threadNumber = t;
-
-		if (t == 0) {
-			continue;
-		}
-
-		sem_init(&thread_data[t].sem, 0, 0);
-		if (pthread_create(&thread_data[t].thread, NULL, thread_op, &thread_data[t]) != 0) {
-			silent_cerr("ParSuperLUSolver: pthread_create() failed "
-					"for thread " << t
-					<< " of " << nThreads << std::endl);
-			throw ErrGeneric();
-		}
-	}
 }
 
 /* Distruttore */
-ParSuperLUSolver::~ParSuperLUSolver(void)
+SuperLUSolver::~SuperLUSolver(void)
 {
-#if 0
-	/* ------------------------------------------------------------
-	 * Clean up and free storage after multithreaded factorization.
-	 * ------------------------------------------------------------*/
-	pdgstrf_thread_finalize(sld->pdgstrf_threadarg, &sld->pxgstrf_shared, 
-			&sld->A, &sld->perm_r[0], &sld->L, &sld->U);
-
-	/* ------------------------------------------------------------
-	 * Deallocate storage after factorization.
-	 * ------------------------------------------------------------*/
-	pdgstrf_finalize(&sld->pdgstrf_options, &sld->AC);
-#endif
-	
-	thread_operation = ParSuperLUSolver::EXIT;
-	thread_count = nThreads - 1;
-
-	for (unsigned i = 1; i < nThreads; i++) {
-		sem_post(&thread_data[i].sem);
-	}
-
-	/* thread cleanup func? */
-
-	pthread_mutex_lock(&thread_mutex);
-	if (thread_count > 0) {
-		pthread_cond_wait(&thread_cond, &thread_mutex);
-	}
-	pthread_mutex_unlock(&thread_mutex);
-
-	for (unsigned i = 1; i < nThreads; i++) {
-		sem_destroy(&thread_data[i].sem);
-	}
-
-	pthread_mutex_destroy(&thread_mutex);
-	pthread_cond_destroy(&thread_cond);
-
-	/* other cleanup... */
 }
 
-void *
-ParSuperLUSolver::thread_op(void *arg)
-{
-	thread_data_t *td = (thread_data_t *)arg;
-
-	silent_cout("ParSuperLUSolver: thread " << td->threadNumber
-			<< " [self=" << pthread_self()
-			<< ",pid=" << getpid() << "]"
-			<< " starting..." << std::endl);
-
-	/* deal with signals ... */
-	sigset_t newset /* , oldset */ ;
-	sigemptyset(&newset);
-	sigaddset(&newset, SIGTERM);
-	sigaddset(&newset, SIGINT);
-	sigaddset(&newset, SIGHUP);
-	pthread_sigmask(SIG_BLOCK, &newset, /* &oldset */ NULL);
-
-	bool bKeepGoing(true);
-
-	while (bKeepGoing) {
-		sem_wait(&td->sem);
-
-		switch (td->pSLUS->thread_operation) {
-		case ParSuperLUSolver::FACTOR:
-			(void)pdgstrf_thread(td->pdgstrf_threadarg);
-			break;
-
-		case ParSuperLUSolver::EXIT:
-			bKeepGoing = false;
-			break;
-
-		default:
-			silent_cerr("ParSuperLUSolver: unhandled op"
-					<< std::endl);
-			throw ErrGeneric();
-		}
-
-		td->pSLUS->EndOfOp();
-	}
-
-	pthread_exit(NULL);
-}
-
-void
-ParSuperLUSolver::EndOfOp(void)
-{
-	bool last;
-
-	/* decrement the thread counter */
-	pthread_mutex_lock(&thread_mutex);
-	thread_count--;
-	last = (thread_count == 0);
-
-	/* if last thread, signal to restart */
-	if (last) {
-#if 0
-		pthread_cond_broadcast(&thread_cond);
-#else
-		pthread_cond_signal(&thread_cond);
-#endif
-	}
-	pthread_mutex_unlock(&thread_mutex);
-}
 
 #ifdef DEBUG
 void 
-ParSuperLUSolver::IsValid(void) const
+SuperLUSolver::IsValid(void) const
 {
 	ASSERT(Aip != NULL);
 	ASSERT(App != NULL);
@@ -243,7 +120,7 @@ ParSuperLUSolver::IsValid(void) const
 
 /* Fattorizza la matrice */
 void
-ParSuperLUSolver::Factor(void)
+SuperLUSolver::Factor(void)
 {
 #ifdef DEBUG 
 	IsValid();
@@ -251,20 +128,21 @@ ParSuperLUSolver::Factor(void)
 
 	ASSERT(iNonZeroes > 0);
 
-	yes_no_t	refact = YES,
-			usepr = NO;
-	doublereal	u = dPivotFactor,
-			drop_tol = 0.0;
+	doublereal	drop_tol = 0.0;
 	void		*work = NULL;
 	int		info = 0, lwork = 0;
 	int		panel_size = sp_ienv(1),
 			relax = sp_ienv(2);
 
+	set_default_options(&sld->options);
 	if (bRegenerateMatrix) {
-		refact = NO;
+		colperm_t permc_spec = MMD_AT_PLUS_A;
+		//colperm_t permc_spec = COLAMD;
+		sld->options.ColPerm = permc_spec;
 		
 		/* NOTE: we could use sld->A.Store == NULL */
 		if (bFirstSol) {
+			sld->options.Fact = DOFACT;
 			ASSERT(Astore == NULL);
 
 			/* ---------------------------------------------------
@@ -273,21 +151,22 @@ ParSuperLUSolver::Factor(void)
 			/* Set up the dense matrix data structure for B. */
 			dCreate_Dense_Matrix(&sld->B, iN, 1,
 					LinearSolver::pdRhs,
-					iN, DN, _D, GE);
+					iN, SLU_DN, SLU_D, SLU_GE);
 
 			/* Set up the sparse matrix data structure for A. */
 			dCreate_CompCol_Matrix(&sld->A, iN, iN, iNonZeroes,
-					Axp, Aip, App, NC, _D, GE);
+					Axp, Aip, App, SLU_NC, SLU_D, SLU_GE);
 
-			StatAlloc(iN, nThreads, panel_size, relax, &sld->Gstat);
-			StatInit(iN, nThreads, &sld->Gstat);
+			StatInit(&sld->Gstat);
 			
 			sld->perm_c.resize(iN);
 			sld->perm_r.resize(iN);
-
+			sld->etree.resize(iN);
+			
 			bFirstSol = false;	/* never change this again */
 
 		} else {
+			sld->options.Fact = SamePattern;
 			NCformat *Astore = (NCformat *) sld->A.Store;
 
 			ASSERT(Astore);
@@ -321,76 +200,54 @@ ParSuperLUSolver::Factor(void)
 		 *
 		 * so we use permc_spec = 1
 		 */
-	
-		int	permc_spec = 1;
+
 		int	*pc = &(sld->perm_c[0]);
 		get_perm_c(permc_spec, &sld->A, pc);
 
+	
 		bRegenerateMatrix = false;
 	}
 
-	int		*pr = &(sld->perm_r[0]),
-			*pc = &(sld->perm_c[0]);
+	int	*pr = &(sld->perm_r[0]),
+		*pc = &(sld->perm_c[0]),
+		*et = &(sld->etree[0]);
 
 	/* ------------------------------------------------------------
 	 * Initialize the option structure pdgstrf_options using the
 	 * user-input parameters;
 	 * Apply perm_c to the columns of original A to form AC.
 	 * ------------------------------------------------------------*/
-	pdgstrf_init(nThreads, refact, panel_size, relax,
+	
+	/* dgstrf_init(nThreads, refact, panel_size, relax,
 			u, usepr, drop_tol, pc, pr,
 			work, lwork, &sld->A, &sld->AC,
-			&sld->pdgstrf_options, &sld->Gstat);
-
+			&sld->options, &sld->Gstat);
+	*/
 
 	/* --------------------------------------------------------------
 	 * Initializes the parallel data structures for pdgstrf_thread().
 	 * --------------------------------------------------------------*/
-	sld->pdgstrf_threadarg = pdgstrf_thread_init(&sld->AC,
+/*	sld->pdgstrf_threadarg = pdgstrf_thread_init(&sld->AC,
 			&sld->L, &sld->U, &sld->pdgstrf_options,
 			&sld->pxgstrf_shared, &sld->Gstat, &info);
+*/
 
-	if (info != 0) {
-		silent_cerr("ParSuperLUSolver::Factor: pdgstrf_thread_init failed"
-				<< std::endl);
-	}
-		
-	for (unsigned t = 0; t < nThreads; t++) {
-		thread_data[t].pdgstrf_threadarg = &sld->pdgstrf_threadarg[t];
-	}
+	sp_preorder(&sld->options, &sld->A, pc, et, &sld->AC);
+	dgstrf(&sld->options, &sld->AC, drop_tol, relax, panel_size, et, work, lwork, pc, pr, 
+		&sld->L, &sld->U, &sld->Gstat, &info);
 
-	thread_operation = ParSuperLUSolver::FACTOR;
-	thread_count = nThreads - 1;
-
-	for (unsigned t = 1; t < nThreads; t++) {
-		sem_post(&thread_data[t].sem);
-	}
-
-	(void)pdgstrf_thread(thread_data[0].pdgstrf_threadarg);
-
-	pthread_mutex_lock(&thread_mutex);
-	if (thread_count > 0) {
-		pthread_cond_wait(&thread_cond, &thread_mutex);
-	}
-	pthread_mutex_unlock(&thread_mutex);
-
-	/* ------------------------------------------------------------
-	 * Clean up and free storage after multithreaded factorization.
-	 * ------------------------------------------------------------*/
-	pdgstrf_thread_finalize(sld->pdgstrf_threadarg, &sld->pxgstrf_shared, 
-			&sld->A, pr, &sld->L, &sld->U);
 }
 
 /* Risolve */
 void
-ParSuperLUSolver::Solve(void) const
+SuperLUSolver::Solve(void) const
 {
 #ifdef DEBUG
 	IsValid();
 #endif /* DEBUG */
 	
 	if (bHasBeenReset) {
-      		((ParSuperLUSolver *)this)->Factor();
+      		((SuperLUSolver *)this)->Factor();
       		bHasBeenReset = false;
 	}
 
@@ -403,13 +260,13 @@ ParSuperLUSolver::Solve(void) const
 	int		*pr = &(sld->perm_r[0]),
 			*pc = &(sld->perm_c[0]);
 
-	dgstrs(trans, &sld->L, &sld->U, pr, pc,
+	dgstrs(trans, &sld->L, &sld->U, pc, pr,
 			&sld->B, &sld->Gstat, &info);
 }
 
 /* Index Form */
 void
-ParSuperLUSolver::MakeCompactForm(SparseMatrixHandler& mh,
+SuperLUSolver::MakeCompactForm(SparseMatrixHandler& mh,
 		std::vector<doublereal>& Ax,
 		std::vector<integer>& Ar, std::vector<integer>& Ac,
 		std::vector<integer>& Ap) const
@@ -434,14 +291,14 @@ ParSuperLUSolver::MakeCompactForm(SparseMatrixHandler& mh,
 #endif
 }
 
-/* ParSuperLUSolver - end */
+/* SuperLUSolver - end */
 
 
-/* ParSuperLUSparseSolutionManager - begin: code */
+/* SuperLUSparseSolutionManager - begin: code */
 
 /* Costruttore */
-ParSuperLUSparseSolutionManager::ParSuperLUSparseSolutionManager(unsigned nt,
-		integer iSize, const doublereal& dPivotFactor)
+SuperLUSparseSolutionManager::SuperLUSparseSolutionManager(integer iSize,
+		const doublereal& dPivotFactor)
 : iMatSize(iSize), 
 Ap(iSize + 1),
 xb(iSize),
@@ -452,8 +309,8 @@ VH(iSize, &xb[0])
    	ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
 
    	SAFENEWWITHCONSTRUCTOR(SolutionManager::pLS, 
-			       ParSuperLUSolver,
-			       ParSuperLUSolver(nt, iMatSize, dPivotFactor));
+			       SuperLUSolver,
+			       SuperLUSolver(iMatSize, dPivotFactor));
    
 	pLS->ChangeResPoint(&(xb[0]));
 	pLS->ChangeSolPoint(&(xb[0]));
@@ -466,7 +323,7 @@ VH(iSize, &xb[0])
 
 
 /* Distruttore; verificare la distruzione degli oggetti piu' complessi */
-ParSuperLUSparseSolutionManager::~ParSuperLUSparseSolutionManager(void)
+SuperLUSparseSolutionManager::~SuperLUSparseSolutionManager(void)
 {
 #ifdef DEBUG
    	IsValid();
@@ -478,7 +335,7 @@ ParSuperLUSparseSolutionManager::~ParSuperLUSparseSolutionManager(void)
 #ifdef DEBUG
 /* Test di validita' del manager */
 void 
-ParSuperLUSparseSolutionManager::IsValid(void) const
+SuperLUSparseSolutionManager::IsValid(void) const
 {   
    	ASSERT(iMatSize > 0);
    
@@ -494,7 +351,7 @@ ParSuperLUSparseSolutionManager::IsValid(void) const
 
 /* Inizializza il gestore delle matrici */
 void
-ParSuperLUSparseSolutionManager::MatrReset(void)
+SuperLUSparseSolutionManager::MatrReset(void)
 {
 #ifdef DEBUG
    	IsValid();
@@ -504,7 +361,7 @@ ParSuperLUSparseSolutionManager::MatrReset(void)
 }
 
 void
-ParSuperLUSparseSolutionManager::MakeCompressedColumnForm(void)
+SuperLUSparseSolutionManager::MakeCompressedColumnForm(void)
 {
 #ifdef DEBUG
    	IsValid();
@@ -516,7 +373,7 @@ ParSuperLUSparseSolutionManager::MakeCompressedColumnForm(void)
 
 /* Risolve il problema */
 void
-ParSuperLUSparseSolutionManager::Solve(void)
+SuperLUSparseSolutionManager::Solve(void)
 {
 #ifdef DEBUG
    	IsValid();
@@ -566,14 +423,14 @@ ParSuperLUSparseSolutionManager::Solve(void)
 #endif
 }
 
-/* ParSuperLUSparseSolutionManager - end */
+/* SuperLUSparseSolutionManager - end */
 
-/* ParSuperLUSparseCCSolutionManager - begin */
+/* SuperLUSparseCCSolutionManager - begin */
 
 template <class CC>
-ParSuperLUSparseCCSolutionManager<CC>::ParSuperLUSparseCCSolutionManager(unsigned nt,
-		integer Dim, const doublereal &dPivot)
-: ParSuperLUSparseSolutionManager(nt, Dim, dPivot),
+SuperLUSparseCCSolutionManager<CC>::SuperLUSparseCCSolutionManager(integer Dim,
+		const doublereal &dPivot)
+: SuperLUSparseSolutionManager(Dim, dPivot),
 CCReady(false),
 Ac(0)
 {
@@ -581,7 +438,7 @@ Ac(0)
 }
 
 template <class CC>
-ParSuperLUSparseCCSolutionManager<CC>::~ParSuperLUSparseCCSolutionManager(void) 
+SuperLUSparseCCSolutionManager<CC>::~SuperLUSparseCCSolutionManager(void) 
 {
 	if (Ac) {
 		SAFEDELETE(Ac);
@@ -590,7 +447,7 @@ ParSuperLUSparseCCSolutionManager<CC>::~ParSuperLUSparseCCSolutionManager(void)
 
 template <class CC>
 void
-ParSuperLUSparseCCSolutionManager<CC>::MatrReset(void)
+SuperLUSparseCCSolutionManager<CC>::MatrReset(void)
 {
 	pLS->Reset();
 }
@@ -598,7 +455,7 @@ ParSuperLUSparseCCSolutionManager<CC>::MatrReset(void)
 /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
 template <class CC>
 void
-ParSuperLUSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
+SuperLUSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 {
 	if (!CCReady) {
 		pLS->MakeCompactForm(MH, Ax, Ai, Adummy, Ap);
@@ -614,7 +471,7 @@ ParSuperLUSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 /* Inizializzatore "speciale" */
 template <class CC>
 void
-ParSuperLUSparseCCSolutionManager<CC>::MatrInitialize()
+SuperLUSparseCCSolutionManager<CC>::MatrInitialize()
 {
 	CCReady = false;
 
@@ -624,7 +481,7 @@ ParSuperLUSparseCCSolutionManager<CC>::MatrInitialize()
 /* Rende disponibile l'handler per la matrice */
 template <class CC>
 MatrixHandler*
-ParSuperLUSparseCCSolutionManager<CC>::pMatHdl(void) const
+SuperLUSparseCCSolutionManager<CC>::pMatHdl(void) const
 {
 	if (!CCReady) {
 		return &MH;
@@ -634,10 +491,10 @@ ParSuperLUSparseCCSolutionManager<CC>::pMatHdl(void) const
 	return Ac;
 }
 
-template class ParSuperLUSparseCCSolutionManager<CColMatrixHandler<0> >;
-template class ParSuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> >;
+template class SuperLUSparseCCSolutionManager<CColMatrixHandler<0> >;
+template class SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> >;
 
-/* ParSuperLUSparseCCSolutionManager - end */
+/* SuperLUSparseCCSolutionManager - end */
 
-#endif /* USE_SUPERLU_MT */
-
+#endif /* !USE_SUPERLU_MT */
+#endif /* USE_SUPERLU */

@@ -45,6 +45,7 @@
 #include "mschwrap.h"
 #include "umfpackwrap.h"
 #include "parsuperluwrap.h"
+#include "superluwrap.h"
 
 char *solvers[] = {
 #ifdef USE_UMFPACK
@@ -122,14 +123,25 @@ main(int argc, char *argv[])
 
 	if (strcasecmp(solver, "superlu") == 0) {
 #ifdef USE_SUPERLU
+#ifdef USE_SUPERLU_MT
 		if (dir) {
-			typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
+			typedef ParSuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
 			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size));
 
 		} else {
-			typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
+			typedef ParSuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
 			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size));
 		}
+#else /* !USE_SUPERLU_MT */
+		if (dir) {
+			typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+
+		} else {
+			typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+		}
+#endif /* USE_SUPERLU_MT */
 #else /* !USE_SUPERLU */
 		std::cerr << "need --with-superlu to use SuperLU library" 
 			<< std::endl;
