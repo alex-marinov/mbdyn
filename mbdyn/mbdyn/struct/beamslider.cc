@@ -83,7 +83,7 @@ nRotConstr(0), nBeams(nB), iCurrBeam(0), iType(iT),
 pNode(pN), ppBeam(ppB),
 f(fTmp), R(RTmp),
 F(0.), M(0.),
-s(0.),
+sRef(0.), s(0.),
 x(0.), l(0.)
 {
 	ASSERT(pNode != NULL);
@@ -150,7 +150,7 @@ BeamSliderJoint::Output(OutputHandler& OH) const
 		Joint::Output(OH.Joints(), "BeamSlider", GetLabel(),
 				RTmpT*F, M, F, RTmp*M)
 			<< " " << ppBeam[iCurrBeam]->pGetBeam()->GetLabel()
-			<< " " << s << endl;
+			<< " " << sRef << endl;
 	}
 }
 
@@ -316,7 +316,7 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 	const StructNode *pBeamNode[Beam::NUMNODES];
 	
 	/* Aggiorna i dati propri */
-	s = XCurr.dGetCoef(iFirstReactionIndex+1);
+	sRef = XCurr.dGetCoef(iFirstReactionIndex+1);
 	F = Vec3(XCurr, iFirstReactionIndex+2);
 	switch (iType) {
 		/*
@@ -358,6 +358,7 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 	 * un raffinamento si potra' avere considerando il rapporto
 	 * tra le metriche.
 	 */
+	s = sRef - 2*iCurrBeam;
 	if (s < -1.) {
 		/* passo alla trave precedente */
 		if (iCurrBeam > 0) {

@@ -8,6 +8,9 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
 
+*** Thu Nov 15 11:16:54 CET 2001 Pierangelo Masarati <masarati@aero.polimi.it>
+ - Beam slider works with multiple beams
+
 *** Tue Nov 13 19:39:46 CET 2001 Giuseppe Quaranta <quaranta@aero.polimi.it>
  - reviewed parallel stuff
 

@@ -108,6 +108,7 @@ private:
 	Mat3x3 R;
 	Vec3 F;
 	Vec3 M;
+	doublereal sRef;
 	doublereal s;
 	int activeNode;
 

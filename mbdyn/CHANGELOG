@@ -7,6 +7,12 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+MBDyn 1.0 Engineering
+	Enhancements:
+		- Beam slider now works with multiple beams
+	Bugs:
+
+
 MBDyn 1.0.1
 	Enhancements:
 		- better detection of security stuff for socket drive auth
