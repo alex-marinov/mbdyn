@@ -3,6 +3,14 @@ begin: data;
 	integrator: schur;  # unico solutore supportato al momento
 end: data;
 
+begin: multistep;
+	solver: {y12 | umfpack3 | harwell | meschach}, 
+		workspace size, <int>, Pivot Factor, <double> ;
+		 
+	interface solver: {y12 | umfpack3 | meschach}, 
+		workspace size, <int>, Pivot Factor, <double> ;
+end: multistep;
+
 begin: parallel;
 	weights: { 0 | 1 | 2 } ;	/* 0: nessun peso
 					   1: pesi solo su comunicazioni
