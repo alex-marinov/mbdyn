@@ -64,7 +64,58 @@ DataManager::SetScalarFunction(
 	return MapOfScalarFunctions[func_name];
 }
 
+const LoadableCalls *
+DataManager::GetLoadableElemModule(std::string name) const
+{
+	for (int j = 0; name[j]; j++) {
+		name[j] = tolower(name[j]);
+	}
 
+	typedef std::map<std::string,const LoadableCalls *> mleh;
+	mleh::const_iterator i = MapOfLoadableElemHandlers.find(name);
+	if (i == MapOfLoadableElemHandlers.end()) {
+		return 0;
+	}
+	return i->second;
+}
+
+void
+DataManager::SetLoadableElemModule(std::string name,
+		const LoadableCalls *calls, ModuleInsertMode mode)
+{
+	for (int j = 0; name[j]; j++) {
+		name[j] = tolower(name[j]);
+	}
+
+	const LoadableCalls *tmp = GetLoadableElemModule(name);
+
+	if (tmp != 0) {
+		switch (mode) {
+		case FAIL:
+		default:
+			silent_cerr("DataManager::SetLoadableElemModule(): "
+				"loadable element handler \"" << name
+				<< "\" already defined" << std::endl);
+			throw ErrGeneric();
+
+		case IGNORE:
+			silent_cout("DataManager::SetLoadableElemModule(): "
+				"loadable element handler \"" << name
+				<< "\" already defined; "
+				"new definition ignored" << std::endl);
+			return;
+
+		case REPLACE:
+			silent_cout("DataManager::SetLoadableElemModule(): "
+				"loadable element handler \"" << name
+				<< "\" already defined; "
+				"replaced by new definition" << std::endl);
+			break;
+		}
+	}
+
+	MapOfLoadableElemHandlers[name] = calls;
+}
 
 const doublereal&
 DataManager::dGetInitialPositionStiffness(void) const

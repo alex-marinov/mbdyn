@@ -33,7 +33,6 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <unistd.h>
-#include <loadable.h>
 #include <dataman.h>
 
 /* funzioni di default */
@@ -46,7 +45,7 @@ int_i_get_num_dof(const LoadableElem* /* pEl */ )
 static DofOrder::Order 
 int_set_dof(const LoadableElem*, unsigned int /* i */ )
 {
-   	std::cerr << "You shouldn't be here!" << std::endl;
+   	silent_cerr("You shouldn't be here!" << std::endl);
    	throw ErrGeneric();
 #ifndef USE_EXCEPTIONS
    	return DofOrder::UNKNOWN;
@@ -198,7 +197,7 @@ int_i_get_num_priv_data(const LoadableElem* /* pEl */ )
 static unsigned int 
 int_i_get_priv_data_idx(const LoadableElem* /* pEl */ , const char *s)
 {
-   	std::cerr << "You shouldn't be here!" << std::endl;
+   	silent_cerr("You shouldn't be here!" << std::endl);
    	throw ErrGeneric();
 #ifndef USE_EXCEPTIONS
         return 0;
@@ -208,7 +207,7 @@ int_i_get_priv_data_idx(const LoadableElem* /* pEl */ , const char *s)
 static doublereal 
 int_d_get_priv_data(const LoadableElem* /* pEl */ , unsigned int /* i */ )
 {
-   	std::cerr << "You shouldn't be here!" << std::endl;
+   	silent_cerr("You shouldn't be here!" << std::endl);
    	throw ErrGeneric();
 #ifndef USE_EXCEPTIONS
         return 0.;
@@ -218,8 +217,8 @@ int_d_get_priv_data(const LoadableElem* /* pEl */ , unsigned int /* i */ )
 static int
 int_i_get_num_connected_nodes(const LoadableElem* pEl)
 {
-	std::cerr << psElemNames[Elem::LOADABLE] << "(" << pEl->GetLabel()
-		<< ") cannot be used in parallel environment" << std::endl;
+	silent_cerr(psElemNames[Elem::LOADABLE] << "(" << pEl->GetLabel()
+		<< ") cannot be used in parallel environment" << std::endl);
 	throw ErrGeneric();
 }
 
@@ -303,7 +302,7 @@ needsAirProperties(false)
 
 LoadableElem::LoadableElem(unsigned int uLabel, 
 			   const DofOwner* pDO, 
-			   LoadableCalls *c,
+			   const LoadableCalls *c,
 			   DataManager* pDM, 
 			   MBDynParser& HP)
 : Elem(uLabel, Elem::LOADABLE, flag(0)),
@@ -318,7 +317,7 @@ ElemWithDofs(uLabel, Elem::LOADABLE, pDO, flag(0)),
 priv_data(NULL),
 module_name(NULL),
 handle(NULL),
-calls(c),
+calls((LoadableCalls *)c),
 needsAirProperties(false)
 {
    	ASSERT(pDM != NULL);
@@ -332,8 +331,8 @@ LoadableElem::GetCalls(MBDynParser& HP)
    	/* nome del modulo */
    	const char* s = HP.GetFileName();
 	if (s == NULL) {
-		std::cerr << "Loadable(" << GetLabel()
-			<< "): unable to get module name" << std::endl;
+		silent_cerr("Loadable(" << GetLabel()
+			<< "): unable to get module name" << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -345,14 +344,16 @@ LoadableElem::GetCalls(MBDynParser& HP)
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 
 	if (handle == NULL) {
-      		std::cerr << "Loadable(" << uLabel 
-			<< "): unable to open module <" << module_name 
 #ifdef HAVE_LTDL_H
-			<< "> (lt_dlopen returns \"" << lt_dlerror() << "\")"
+		const char *err = lt_dlerror();
 #elif defined(HAVE_DLFCN_H)
-			<< "> (dlopen returns \"" << dlerror() << "\")" 
+		const char *err = dlerror();
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
-			<< std::endl;
+
+      		silent_cerr("Loadable(" << uLabel 
+			<< "): unable to open module <" << module_name 
+			<< "> (" << err << ") at line " << HP.GetLineData()
+			<< std::endl);
       		throw ErrGeneric();
    	}
 
@@ -379,17 +380,17 @@ LoadableElem::GetCalls(MBDynParser& HP)
 			dlerror();
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
       		if (err == NULL) {
-	 		std::cerr << "Loadable(" << uLabel 
+	 		silent_cerr("Loadable(" << uLabel 
 	   			<< "): data \"" << data_name
 	   			<< "\" must be defined in module <" 
-				<< module_name << ">" << std::endl;
+				<< module_name << ">" << std::endl);
       		} else {
-	 		std::cerr << "Loadable(" << uLabel
+	 		silent_cerr("Loadable(" << uLabel
 	   			<< "): error while binding to data \"" 
 				<< data_name
 	   			<< "\" in module <" << module_name
 	   			<< "> (\"" << err 
-				<< "\")" << std::endl;
+				<< "\")" << std::endl);
       		}
       		throw ErrGeneric();
    	}
@@ -401,19 +402,19 @@ void
 LoadableElem::BindCalls(DataManager* pDM, MBDynParser& HP)
 {
 	if (calls->loadable_version != LOADABLE_VERSION) {
-		std::cerr << "Loadable(" << uLabel
+		silent_cerr("Loadable(" << uLabel
 			<< "): incompatible version; need "
 			<< LOADABLE_VERSION_OUT(LOADABLE_VERSION)
 			<< ", got " 
 			<< LOADABLE_VERSION_OUT(calls->loadable_version) 
-			<< std::endl;
+			<< std::endl);
 		throw ErrGeneric();
 	}
    
 	if (calls->read == NULL) {
-		std::cerr << "Loadable(" << uLabel
+		silent_cerr("Loadable(" << uLabel
 			<< "): function \"read\" must be defined in module <"
-			<< module_name << "> data" << std::endl;
+			<< module_name << "> data" << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -557,7 +558,7 @@ LoadableElem::BindCalls(DataManager* pDM, MBDynParser& HP)
 	}
 #endif /* USE_ADAMS */
 
-   	priv_data = (*calls->read)(this, pDM, HP, pDM->pGetDrvHdl());
+   	priv_data = (*calls->read)(this, pDM, HP);
    	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE)); 
 }
 
@@ -569,8 +570,8 @@ LoadableElem::~LoadableElem(void)
 #if !defined(HAVE_LTDL_H) && defined(HAVE_DLFCN_H)
    	if (handle != NULL) {
    		if (dlclose(handle) != 0) {
-			std::cerr << "unable to dlclose module \"" 
-				<< module_name << "\"" << std::endl;
+			silent_cerr("unable to dlclose module \"" 
+				<< module_name << "\"" << std::endl);
 			throw ErrGeneric();
 		}
 	}
@@ -810,10 +811,30 @@ ReadLoadable(DataManager* pDM,
 	     unsigned int uLabel)
 {
    	Elem* pEl = NULL;
-   
-   	SAFENEWWITHCONSTRUCTOR(pEl,
-			       LoadableElem,
-			       LoadableElem(uLabel, pDO, pDM, HP));
+
+	if (HP.IsKeyWord("reference")) {
+		const char *s = HP.GetStringWithDelims();
+
+		const LoadableCalls *c = pDM->GetLoadableElemModule(s);
+
+		if (c == 0) {
+			silent_cerr("Loadable(" << uLabel << "): "
+				"unable to find loadable element module \""
+				<< s << "\" at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+				LoadableElem,
+				LoadableElem(uLabel, pDO, c, pDM, HP));
+
+	} else {
+		SAFENEWWITHCONSTRUCTOR(pEl,
+				LoadableElem,
+				LoadableElem(uLabel, pDO, pDM, HP));
+	}
+
    	return pEl;
 }
 

@@ -33,7 +33,7 @@
 
 /* funzioni di default */
 static void *
-read(LoadableElem*, DataManager*, MBDynParser&, const DriveHandler*)
+read(LoadableElem*, DataManager*, MBDynParser&)
 {
    DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
    return NULL;
@@ -224,7 +224,7 @@ get_connected_nodes(const LoadableElem* pEl,
 }
 
 static struct LoadableCalls lc = {
-	LOADABLE_VERSION_SET(1, 2, 0),
+	LOADABLE_VERSION_SET(1, 3, 0),
 
 	"dummy",
 	"1.2",

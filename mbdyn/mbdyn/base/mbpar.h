@@ -188,6 +188,9 @@ protected:
 
 	void DriveCaller_int(void);
 
+	/* Dynamic modules */
+	void ModuleLoad_int(void);
+
 	/* Legge una parola chiave */
 	bool GetDescription_int(const char *s);
 

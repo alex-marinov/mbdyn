@@ -66,6 +66,8 @@
 
 #include "ScalarFunctions.h"
 
+#include "loadable.h"
+
 /* DataManager - begin */
 
 const int iGlobalSymbolTableInitialSize = 21;
@@ -93,6 +95,9 @@ private:
 
 	/* scalar functions */
 	std::map<std::string, const BasicScalarFunction *> MapOfScalarFunctions;
+
+	/* loadable elements */
+	std::map<std::string, const LoadableCalls *> MapOfLoadableElemHandlers;
 
 protected:
 	DriveHandler DrvHdl;
@@ -344,10 +349,21 @@ public:
 	/* da ElemManager */
 	friend class InitialAssemblyIterator;
 
+	enum ModuleInsertMode {
+		FAIL,
+		REPLACE,
+		IGNORE
+	};
+
 	/* scalar functions */
 	const BasicScalarFunction * GetScalarFunction(std::string) const;
 	const BasicScalarFunction * SetScalarFunction(std::string,
 			const BasicScalarFunction *);
+
+	/* loadable elements */
+	const LoadableCalls *GetLoadableElemModule(std::string) const;
+	void SetLoadableElemModule(std::string, const LoadableCalls *,
+			ModuleInsertMode = FAIL);
 
 public:
 	enum DerivationTable {

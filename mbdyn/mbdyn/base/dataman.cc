@@ -58,6 +58,12 @@ extern "C" {
 /* temporary? */
 #include "beam.h"
 
+#ifdef __HACK_MODULES_AS_JOINTS__
+/* To allow direct loading of wheel2 (and other modules, in the future)
+ * as joints ... */
+#include <modules.h>
+#endif /* __HACK_MODULES_AS_JOINTS__ */
+
 /* DataManager - begin */
 
 /* linka i singoli DriveCaller al DriveHandler posseduto dal DataManager */
@@ -201,6 +207,11 @@ DofIter()
     * i dati di controllo, chiama la relativa 
     * funzione di lettura (distinta per comodita')
     */
+
+   /* initialize pre-loaded loadable elements... */
+#ifdef __HACK_MODULES_AS_JOINTS__
+   SetLoadableElemModule(module_wheel2_lc.name, &module_wheel2_lc);
+#endif /* __HACK_MODULES_AS_JOINTS__ */
    
    /* parole chiave */
    const char* sKeyWords[] = { 
@@ -247,7 +258,11 @@ DofIter()
    }
 
    ReadControl(HP, sInputFileName, sOutputFileName);
-   try {CurrDesc = KeyWords(HP.GetDescription()); } catch (EndOfFile) {}
+   try {
+	   CurrDesc = KeyWords(HP.GetDescription());
+   } catch (EndOfFile) {
+	   NO_OP;
+   }
       
    /* fine lettura dati di controllo */
 

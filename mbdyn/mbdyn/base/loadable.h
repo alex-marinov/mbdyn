@@ -43,7 +43,7 @@
 
 #define LOADABLE_VERSION_SET(maj, min, fix)	\
 	(((maj) << 24) | ((min) << 16) | (fix))
-#define LOADABLE_VERSION	LOADABLE_VERSION_SET(1, 2, 0)
+#define LOADABLE_VERSION	LOADABLE_VERSION_SET(1, 3, 0)
 #define LOADABLE_VERSION_OUT(v) \
 	((v & 0xFF000000U) >> 24) << '.' << ((v & 0x00FF0000U) >> 16) << '.' << (v & 0x0000FFFFU)
 /*
@@ -100,8 +100,7 @@
  * 
  *     void *read(LoadableElem*,
  *                DataManager*,
- *                MBDynParser&,
- *                DriveHandler*)
+ *                MBDynParser&)
  * 
  * in questo modo, tramite il puntatore all'elemento, si ha accesso 
  * a tutti i dati dell'elemento;
@@ -111,100 +110,70 @@
 class LoadableElem;
 
 typedef void *
-(* p_read)(LoadableElem*,
-	   DataManager*,
-	   MBDynParser&,
-	   const DriveHandler*);
+(* p_read)(LoadableElem*, DataManager*, MBDynParser&);
 typedef unsigned int (* p_i_get_num_dof)(const LoadableElem*);
 typedef DofOrder::Order (* p_set_dof)(const LoadableElem*, unsigned int);
 typedef void (* p_output)(const LoadableElem*, OutputHandler&);
 typedef std::ostream& (* p_restart)(const LoadableElem*, std::ostream&);
 typedef void (* p_work_space_dim)(const LoadableElem*, integer*, integer*);
 typedef VariableSubMatrixHandler& 
-(* p_ass_jac)(LoadableElem*,
-	      VariableSubMatrixHandler&,
-	      doublereal,
-	      const VectorHandler&,
-	      const VectorHandler&);
+(* p_ass_jac)(LoadableElem*, VariableSubMatrixHandler&, doublereal,
+		const VectorHandler&, const VectorHandler&);
 typedef void
-(* p_ass_mats)(LoadableElem*,
-	      VariableSubMatrixHandler&,
-	      VariableSubMatrixHandler&,
-	      const VectorHandler&,
-	      const VectorHandler&);
+(* p_ass_mats)(LoadableElem*, VariableSubMatrixHandler&,
+		VariableSubMatrixHandler&,
+		const VectorHandler&, const VectorHandler&);
 typedef SubVectorHandler&
-(* p_ass_res)(LoadableElem*,
-	      SubVectorHandler&,
-	      doublereal,
-	      const VectorHandler&,
-	      const VectorHandler&);
+(* p_ass_res)(LoadableElem*, SubVectorHandler&, doublereal,
+		const VectorHandler&, const VectorHandler&);
 typedef void
 (* p_before_predict)(const LoadableElem* pEl, 
-		     VectorHandler& X,
-		     VectorHandler& XP,
-		     VectorHandler& XPrev,
-		     VectorHandler& XPPrev);
+		VectorHandler& X, VectorHandler& XP,
+		VectorHandler& XPrev, VectorHandler& XPPrev);
 typedef void
 (* p_after_predict)(const LoadableElem* pEl, 
-		    VectorHandler& X,
-		    VectorHandler& XP);
+		VectorHandler& X, VectorHandler& XP);
 typedef void
 (* p_update)(LoadableElem* pEl, 
-	     const VectorHandler& X,
-	     const VectorHandler& XP);
+		const VectorHandler& X, const VectorHandler& XP);
 typedef void
 (* p_after_convergence)(const LoadableElem* pEl, 
-    			const VectorHandler& X,
-    			const VectorHandler& XP);
+    		const VectorHandler& X, const VectorHandler& XP);
 typedef unsigned int (* p_i_get_initial_num_dof)(const LoadableElem*);
 typedef void
-(* p_initial_work_space_dim)(const LoadableElem*, 
-			     integer*, 
-			     integer*);
+(* p_initial_work_space_dim)(const LoadableElem*, integer*, integer*);
 typedef VariableSubMatrixHandler&
-(* p_initial_ass_jac)(LoadableElem*,
-		      VariableSubMatrixHandler &, 
-		      const VectorHandler&);
+(* p_initial_ass_jac)(LoadableElem*, VariableSubMatrixHandler &, 
+		const VectorHandler&);
 typedef SubVectorHandler&
-(* p_initial_ass_res)(LoadableElem*,
-		      SubVectorHandler&,
-		      const VectorHandler&);
+(* p_initial_ass_res)(LoadableElem*, SubVectorHandler&, const VectorHandler&);
 typedef void
-(* p_set_value)(const LoadableElem*,
-		VectorHandler&,
-		VectorHandler&);
+(* p_set_value)(const LoadableElem*, VectorHandler&, VectorHandler&);
 typedef void (* p_set_initial_value)(const LoadableElem*, VectorHandler&);
 typedef unsigned int (* p_i_get_num_priv_data)(const LoadableElem* pEl);
-typedef unsigned int (* p_i_get_priv_data_idx)(const LoadableElem* pEl, 
-		const char *);
+typedef unsigned int
+(* p_i_get_priv_data_idx)(const LoadableElem* pEl, const char *);
 typedef doublereal
-(* p_d_get_priv_data)(const LoadableElem* pEl, 
-		      unsigned int i);
+(* p_d_get_priv_data)(const LoadableElem* pEl, unsigned int i);
 typedef int (* p_i_get_num_connected_nodes)(const LoadableElem*);
-typedef void (* p_get_connected_nodes)(const LoadableElem*, int&, 
+typedef void
+(* p_get_connected_nodes)(const LoadableElem*, int&,
 		Node::Type*, unsigned int*);
-
 typedef void (* p_destroy)(LoadableElem*);
 
 /* Adams output stuff -- added with 1.2.0 */
 typedef unsigned int
 (* p_i_get_num_dummy_parts)(const LoadableElem* pEl);
 typedef void
-(* p_get_dummy_part_pos)(const LoadableElem* pEl, 
-			 unsigned int part,
-			 Vec3& x,
-			 Mat3x3& R);
+(* p_get_dummy_part_pos)(const LoadableElem* pEl, unsigned int part,
+		Vec3& x, Mat3x3& R);
 typedef void
-(* p_get_dummy_part_vel)(const LoadableElem* pEl,
-			 unsigned int part,
-			 Vec3& v,
-			 Vec3& w);
+(* p_get_dummy_part_vel)(const LoadableElem* pEl, unsigned int part,
+		Vec3& v, Vec3& w);
 /* only used #ifdef USE_ADAMS */
 typedef std::ostream&
 (* p_write_adams_dummy_part_cmd)(const LoadableElem* pEl,
-				 std::ostream& out,
-				 unsigned int part,
-				 unsigned int firstId);
+		std::ostream& out, unsigned int part, unsigned int firstId);
 
 /*
  * Struttura che contiene le chiamate alle funzioni del modulo;
@@ -215,7 +184,7 @@ struct LoadableCalls {
 	/*
 	 * This is mandatory; use the macro
 
-	   LOADABLE_VERSION_SET(major, minor,fix)
+	   LOADABLE_VERSION_SET(major, minor, fix)
 
 	 * to initialize to the API version your module is using.
 	 */
@@ -301,7 +270,7 @@ public:
    	LoadableElem(unsigned int uLabel, const DofOwner* pDO,
 		     DataManager* pDM, MBDynParser& HP);
    	LoadableElem(unsigned int uLabel, const DofOwner* pDO,
-			LoadableCalls *c,
+			const LoadableCalls *c,
 			DataManager* pDM, MBDynParser& HP);
    	~LoadableElem(void); 
    	virtual inline void* pGet(void) const;

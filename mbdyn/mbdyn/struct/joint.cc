@@ -67,12 +67,6 @@
 /* Provvisorio ?!? */
 #include <modal.h>
 
-#ifdef __HACK_MODULES_AS_JOINTS__
-/* To allow direct loading of wheel2 (and other modules, in the future)
- * as joints ... */
-#include <modules.h>
-#endif /* __HACK_MODULES_AS_JOINTS__ */
-
 #define MBDYN_X_COMPATIBLE_INPUT
 
 /* Joint - begin */
@@ -160,9 +154,7 @@ Elem* ReadJoint(DataManager* pDM,
       "brake",
       
       "modal",
-      
-      "wheel2",
-      
+
       NULL
    };
    
@@ -206,16 +198,14 @@ Elem* ReadJoint(DataManager* pDM,
       
       MODAL,
 
-      WHEEL2,
-      
       LASTKEYWORD
    };
    
    /* tabella delle parole chiave */
    KeyTable K(HP, sKeyWords);
    
-   /* lettura del tipo di vincolo */   
-   KeyWords CurrKeyWord = KeyWords(HP.GetWord());
+   /* lettura del tipo di vincolo */
+   KeyWords CurrKeyWord = KeyWords(HP.IsKeyWord());
    
 #ifdef DEBUG   
    if (CurrKeyWord >= 0) {
@@ -341,8 +331,8 @@ Elem* ReadJoint(DataManager* pDM,
  
        /* Legge e costruisce il drivecaller */
        if (!HP.IsArg()) {
-	  std::cerr << "line " << HP.GetLineData()
-	    << ": driver data expected" << std::endl;
+	  silent_cerr("line " << HP.GetLineData()
+	    << ": driver data expected" << std::endl);
 	  throw DataManager::ErrGeneric();
        }	     
        
@@ -635,9 +625,9 @@ Elem* ReadJoint(DataManager* pDM,
 	  
 	  /* allocazione e creazione cerniera piana */
 	case PLANEHINGE:
-	   std::cerr << "line " << HP.GetLineData() 
+	   silent_cerr("line " << HP.GetLineData() 
 		   << ": deprecated 'plane hinge' name;"
-		   << " use 'revolute hinge' instead" << std::endl;
+		   << " use 'revolute hinge' instead" << std::endl);
 	case REVOLUTEHINGE: {
 	   doublereal r = 0.;
 	   doublereal preload = 0.;
@@ -746,10 +736,10 @@ Elem* ReadJoint(DataManager* pDM,
 	   
 	  /* allocazione e creazione pattino */
 	case PLANEDISPLACEMENT:
-	   std::cerr << "PlaneDispJoint(" << uLabel << "): "
+	   silent_cerr("PlaneDispJoint(" << uLabel << "): "
 		   "temporarily supported; "
 		   "use an InPlane and a RevoluteRotation"
-		   << std::endl;
+		   << std::endl);
 	   throw ErrGeneric();
 	  
 	default: {
@@ -835,8 +825,8 @@ Elem* ReadJoint(DataManager* pDM,
 	  
 	  /* allocazione e creazione cerniera piana */	     
 	case PLANEPIN:
-		std::cerr << "deprecated 'plane pin' name;" 
-			<< " use 'revolute pin' instead" << std::endl;
+		silent_cerr("deprecated 'plane pin' name;" 
+			<< " use 'revolute pin' instead" << std::endl);
 	case REVOLUTEPIN: {
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlanePinJoint,
@@ -855,10 +845,10 @@ Elem* ReadJoint(DataManager* pDM,
 	  
 	  /* allocazione e creazione cerniera piana */	     
 	case PLANEDISPLACEMENTPIN: {
-	   std::cerr << "PlaneDispJoint(" << uLabel << "): "
+	   silent_cerr("PlaneDispJoint(" << uLabel << "): "
 		   "temporarily supported; "
 		   "use an InPlane and a RevoluteRotation"
-		   << std::endl;
+		   << std::endl);
 	   throw ErrGeneric();
 	}
 	  
@@ -895,7 +885,8 @@ Elem* ReadJoint(DataManager* pDM,
        Vec3 v(HP.GetVecRel(RF));
        doublereal d = v.Dot();
        if (d <= DBL_EPSILON) {
-	  std::cerr << "null direction at line " << HP.GetLineData() << std::endl;	  
+	  silent_cerr("null direction at line " << HP.GetLineData()
+			  << std::endl);
 	  throw DataManager::ErrGeneric();
        }
        v /= sqrt(d);
@@ -1053,8 +1044,8 @@ Elem* ReadJoint(DataManager* pDM,
 		 << "): keyword \"offset\" at line " << HP.GetLineData()
 		 << " is deprecated; use \"position\" instead" << std::endl);
 	  if (fOffset) {
-	     std::cerr << "Joint(" << uLabel << "): offsets already defined "
-		     "at line " << HP.GetLineData() << std::endl;
+	     silent_cerr("Joint(" << uLabel << "): offsets already defined "
+		     "at line " << HP.GetLineData() << std::endl);
 	     throw ErrGeneric();
 	  }
 	  fOffset = 1;
@@ -1089,10 +1080,10 @@ Elem* ReadJoint(DataManager* pDM,
        ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
        
        if (pCL->iGetNumDof() != 0) {
-	  std::cerr << "line " << HP.GetLineData()
+	  silent_cerr("line " << HP.GetLineData()
 		  << ": rod joint does not support "
 		  "dynamic constitutive laws yet"
-		  << std::endl;
+		  << std::endl);
 	  throw ErrGeneric();
        }
 	
@@ -1199,10 +1190,10 @@ Elem* ReadJoint(DataManager* pDM,
        ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
 
        if (pCL->iGetNumDof() != 0) {
-	  std::cerr << "line " << HP.GetLineData()
+	  silent_cerr("line " << HP.GetLineData()
 		  << ": rod with offset joint does not support "
 		  "dynamic constitutive laws yet"
-		  << std::endl;
+		  << std::endl);
 	  throw ErrGeneric();
        }
 	
@@ -1257,10 +1248,10 @@ Elem* ReadJoint(DataManager* pDM,
        ConstitutiveLaw3D* pCL = HP.GetConstLaw3D(CLType);
        
        if (pCL->iGetNumDof() != 0) {
-	  std::cerr << "line " << HP.GetLineData()
+	  silent_cerr("line " << HP.GetLineData()
 		  << ": deformable hinge joint does not support "
 		  "dynamic constitutive laws yet"
-		  << std::endl;
+		  << std::endl);
 	  throw ErrGeneric();
        }
 	
@@ -1345,7 +1336,7 @@ Elem* ReadJoint(DataManager* pDM,
        if (d > 0.) {	      
 	  Dir /= sqrt(d);
        } else {
-	  std::cerr << "direction is null" << std::endl;
+	  silent_cerr("direction is null" << std::endl);
 	  throw ErrGeneric();
        }	     
        
@@ -1390,7 +1381,7 @@ Elem* ReadJoint(DataManager* pDM,
        if (d > 0.) {	      
 	  Dir /= sqrt(d);
        } else {
-	  std::cerr << "direction is null" << std::endl;
+	  silent_cerr("direction is null" << std::endl);
 	  throw ErrGeneric();
        }	     
        
@@ -1543,16 +1534,16 @@ Elem* ReadJoint(DataManager* pDM,
 	       } else if (HP.IsKeyWord("spline")) {
 		       sliderType = BeamSliderJoint::SPLINE;
 	       } else {
-		       std::cerr << "unknown slider type at line " 
-			       << HP.GetLineData() << std::endl;
+		       silent_cerr("unknown slider type at line " 
+			       << HP.GetLineData() << std::endl);
 		       throw ErrGeneric();
 	       }
        }
 
        unsigned int nB = HP.GetInt();
        if (nB < 1) {
-	       std::cerr << "At least one beam is required at line " 
-		       << HP.GetLineData() << std::endl;
+	       silent_cerr("At least one beam is required at line " 
+		       << HP.GetLineData() << std::endl);
 	       throw ErrGeneric();
        }
        
@@ -1567,9 +1558,9 @@ Elem* ReadJoint(DataManager* pDM,
 	  Beam* pBeam;
 	  Elem* p = (Elem*)(pDM->pFindElem(Elem::BEAM, uBeam));
 	  if (p == NULL) {
-		  std::cerr << " at line " << HP.GetLineData()
+		  silent_cerr(" at line " << HP.GetLineData()
 			  << ": Beam(" << uBeam
-			  << ") not defined" << std::endl;
+			  << ") not defined" << std::endl);
 		  throw DataManager::ErrGeneric();
 	  }
 	  pBeam = (Beam*)p->pGet();
@@ -1583,14 +1574,13 @@ Elem* ReadJoint(DataManager* pDM,
 	  Mat3x3 R1 = Eye3;
 	  if (i != 0) {
 		  if (pNode1 != pLastNode) {
-			std::cerr 
-				<< "line " << HP.GetLineData()
+			silent_cerr("line " << HP.GetLineData()
 				<< ": Beam(" << pBeam->GetLabel() 
 				<< ").Node1(" << pNode1->GetLabel()
  				<< ") and Beam(" 
 				<< bc[i-1]->pGetBeam()->GetLabel() 
 				<< ").Node3(" << pLastNode->GetLabel()
-				<< ") do not match" << std::endl;
+				<< ") do not match" << std::endl);
 			throw ErrGeneric();
 		  }
 		  
@@ -1599,12 +1589,11 @@ Elem* ReadJoint(DataManager* pDM,
 		  } else {
 			  f1 = HP.GetPosRel(RF);
 			  if (f1 != bc[i-1]->Getf(3)) {
-				std::cerr 
-					<< "line " << HP.GetLineData()
+				silent_cerr("line " << HP.GetLineData()
 					<< ": Beam(" << pBeam->GetLabel()
 					<< ").f1 and Beam("
 					<< bc[i-1]->pGetBeam()->GetLabel()
-					<< ").f3 do not match" << std::endl;
+					<< ").f3 do not match" << std::endl);
 				throw ErrGeneric();
 			  }
 		  }
@@ -1616,12 +1605,14 @@ Elem* ReadJoint(DataManager* pDM,
 			  } else {
 				  R1 = HP.GetRotRel(RF);
 				  if (R1 != bc[i-1]->GetR(3)) {
-					std::cerr 
-						<< "line " << HP.GetLineData()
-						<< ": Beam(" << pBeam->GetLabel()
+					silent_cerr("line "
+						<< HP.GetLineData()
+						<< ": Beam("
+						<< pBeam->GetLabel()
 						<< ").R1 and Beam("
 						<< bc[i-1]->pGetBeam()->GetLabel()
-						<< ").R3 do not match" << std::endl;
+						<< ").R3 do not match"
+						<< std::endl);
 					throw ErrGeneric();
 				  }
 			  }
@@ -1684,8 +1675,8 @@ Elem* ReadJoint(DataManager* pDM,
 	       uIB = HP.GetInt();
 
 	       if (uIB < 1 || uIB > nB) {
-		       std::cerr << "illegal initial beam " << uIB
-			       << " at line " << HP.GetLineData() << std::endl;
+		       silent_cerr("illegal initial beam " << uIB
+			       << " at line " << HP.GetLineData() << std::endl);
 		       throw ErrGeneric();
 	       }
        }
@@ -1695,8 +1686,8 @@ Elem* ReadJoint(DataManager* pDM,
 	       uIN = HP.GetInt();
 
 	       if (uIN < 1 || uIN > 3) {
-		       std::cerr << "illegal initial node " << uIN
-			       << " at line " << HP.GetLineData() << std::endl;
+		       silent_cerr("illegal initial node " << uIN
+			       << " at line " << HP.GetLineData() << std::endl);
 		       throw ErrGeneric();
 	       }
        }
@@ -1705,8 +1696,8 @@ Elem* ReadJoint(DataManager* pDM,
        if (HP.IsKeyWord("smearing")) {
 	       dL = HP.GetReal();
 	       if (dL < 0. || dL > .4) {
-		       std::cerr << "illegal smearing factor " << dL 
-			       << "; using default" << std::endl;
+		       silent_cerr("illegal smearing factor " << dL 
+			       << "; using default" << std::endl);
 		       dL = 0.;
 	       }
        }
@@ -1728,29 +1719,32 @@ Elem* ReadJoint(DataManager* pDM,
        pEl = ReadModal(pDM, HP, pDO, uLabel);
        break;
 
-
-    case WHEEL2: {
-#ifdef __HACK_MODULES_AS_JOINTS__
-       LoadableElem *pLE = NULL;
-       SAFENEWWITHCONSTRUCTOR(pLE, LoadableElem,
-		       LoadableElem(uLabel, pDO, &module_wheel2_lc, pDM, HP));
-       pEl = (Joint *)pLE->pGet();
-       pDM->OutputOpen(OutputHandler::LOADABLE);
-#endif /* __HACK_MODULES_AS_JOINTS__ */
-       break;
-    } 
       /* Aggiungere altri vincoli */
       
     default: {
-       std::cerr << "unknown joint type in joint " << uLabel
-	 << " at line " << HP.GetLineData() << std::endl;       
-       throw DataManager::ErrGeneric();
+       const char *s = HP.GetString();
+
+       const LoadableCalls *c = pDM->GetLoadableElemModule(s);
+
+       if (c == 0) {
+          silent_cerr("unknown joint type \"" << s << "\" in joint " << uLabel
+		  << " at line " << HP.GetLineData() << std::endl);
+	  throw DataManager::ErrGeneric();
+       }
+
+       LoadableElem *pLE = NULL;
+       SAFENEWWITHCONSTRUCTOR(pLE, LoadableElem,
+		       LoadableElem(uLabel, pDO, c, pDM, HP));
+       pEl = (Joint *)pLE->pGet();
+       pDM->OutputOpen(OutputHandler::LOADABLE);
+       break;
     }
    }
 
    /* Se non c'e' il punto e virgola finale */
    if (HP.IsArg()) {
-      std::cerr << "semicolon expected at line " << HP.GetLineData() << std::endl;
+      silent_cerr("semicolon expected at line " << HP.GetLineData()
+		      << std::endl);
       throw DataManager::ErrGeneric();
    }
 

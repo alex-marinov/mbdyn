@@ -1490,7 +1490,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP)
        unsigned int iMaxIndex = pElem->iGetNumPrivData();
        unsigned int iIndex = 0;
        const char *sIndexName = NULL;
-       if (HP.IsKeyWord("name")) {
+       if (HP.IsKeyWord("string")) {
 	       const char *s = HP.GetStringWithDelims();
 	       iIndex = pElem->iGetPrivDataIdx(s);
 	       SAFESTRDUP(sIndexName, s);

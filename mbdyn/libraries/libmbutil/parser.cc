@@ -811,6 +811,7 @@ HighParser::GetWord(void)
    }
 
    NextToken(sFuncName);
+
    return i;
 }
 
@@ -820,8 +821,8 @@ HighParser::GetString(void)
 {
    const char sFuncName[] = "HighParser::GetString()";
 
-   silent_cout("line " << GetLineData()
-     << ": warning, use of deprecated method \"GetString\"" << std::endl);
+   pedantic_cout("use of deprecated method \"GetString\" at line"
+		   << GetLineData() << std::endl);
 
    if (CurrToken != HighParser::ARG) {
       silent_cerr("Parser error in "

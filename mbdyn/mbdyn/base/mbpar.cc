@@ -45,6 +45,12 @@
 #include "c81data.h"
 #endif /* USE_AERODYNAMIC_ELEMS */
 
+#ifdef HAVE_LTDL_H
+#include <ltdl.h>
+#elif defined(HAVE_DLFCN_H)
+#include <dlfcn.h>
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+
 #include "dataman.h"
 
 /* MBDynParser - begin */
@@ -120,9 +126,9 @@ void
 MBDynParser::Reference_int(void)
 {
 	if (FirstToken() == UNKNOWN) {
-		std::cerr << "Parser error in MBDynParser::Reference_int(),"
+		silent_cerr("Parser error in MBDynParser::Reference_int(),"
 			" colon expected at line " 
-			<< GetLineData() << std::endl;
+			<< GetLineData() << std::endl);
 		throw HighParser::ErrColonExpected();
 	}
 	
@@ -157,9 +163,9 @@ MBDynParser::Reference_int(void)
 		ReferenceFrame,
 		ReferenceFrame(uLabel, x, R, v, w));
 	if (RF.Add(pRF)) {
-		std::cerr << "Reference frame " << uLabel
+		silent_cerr("Reference frame " << uLabel
 			<< " already defined at line " << GetLineData()
-			<< std::endl;
+			<< std::endl);
 		throw MBDynParser::ErrReferenceAlreadyDefined();
 	}
 	
@@ -175,9 +181,9 @@ void
 MBDynParser::HydraulicFluid_int(void)
 {
 	if (FirstToken() == UNKNOWN) {
-		std::cerr << "Parser error in MBDynParser::HydraulicFluid_int(),"
+		silent_cerr("Parser error in MBDynParser::HydraulicFluid_int(),"
 			" colon expected at line "
-			<< GetLineData() << std::endl;
+			<< GetLineData() << std::endl);
 		throw HighParser::ErrColonExpected();
 	}
 	
@@ -192,14 +198,15 @@ MBDynParser::HydraulicFluid_int(void)
 	
 	HydraulicFluid* pHF = ReadHydraulicFluid(*this, uLabel);
 	if (pHF == NULL) {
-		std::cerr << "unable to read hydraulic fluid " << uLabel << std::endl;
+		silent_cerr("unable to read hydraulic fluid " << uLabel
+				<< std::endl);
 		throw ErrGeneric();
 	}
 	
 	if (HF.Add(pHF)) {
-		std::cerr << "hydraulic fluid " << uLabel
+		silent_cerr("hydraulic fluid " << uLabel
 			<< " already defined at line " << GetLineData()
-			<< std::endl;
+			<< std::endl);
 		throw MBDynParser::ErrGeneric();
 	}
 	
@@ -215,8 +222,9 @@ void
 MBDynParser::C81Data_int(void)
 {
 	if (FirstToken() == UNKNOWN) {
-		std::cerr << "Parser error in MBDynParser::C81Data_int(),"
-			" colon expected at line " << GetLineData() << std::endl;
+		silent_cerr("Parser error in MBDynParser::C81Data_int(),"
+			" colon expected at line " << GetLineData()
+			<< std::endl);
 		throw HighParser::ErrColonExpected();
 	}
 	
@@ -232,8 +240,8 @@ MBDynParser::C81Data_int(void)
 	const char* filename = GetFileName();
 	std::ifstream in(filename);
 	if (!in) {
-		std::cerr << "unable to open file '" << filename << "' at line " 
-			<< GetLineData() << std::endl;
+		silent_cerr("unable to open file '" << filename << "' at line " 
+			<< GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 	
@@ -244,9 +252,9 @@ MBDynParser::C81Data_int(void)
 	SAFENEWWITHCONSTRUCTOR(data, C81Data, C81Data(uLabel));
 	
 	if (read_c81_data(in, data) != 0) {
-		std::cerr << "unable to read c81 data " << uLabel 
+		silent_cerr("unable to read c81 data " << uLabel 
 			<< " from file '" << filename 
-			<< "' at line " << GetLineData() << std::endl;
+			<< "' at line " << GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 	
@@ -257,9 +265,9 @@ MBDynParser::C81Data_int(void)
 #endif
 
 	if (AD.Add(data)) {
-		std::cerr << "c81 data " << uLabel
+		silent_cerr("c81 data " << uLabel
 			<< " already defined at line " << GetLineData()
-			<< std::endl;
+			<< std::endl);
 		throw MBDynParser::ErrGeneric();
 	}
 	
@@ -274,9 +282,9 @@ void
 MBDynParser::ConstitutiveLaw_int(void)
 {
 	if (FirstToken() == UNKNOWN) {
-		std::cerr << "Parser error in MBDynParser::ConstitutiveLaw_int(),"
+		silent_cerr("Parser error in MBDynParser::ConstitutiveLaw_int(),"
 			" colon expected at line "
-			<< GetLineData() << std::endl;
+			<< GetLineData() << std::endl);
 		throw HighParser::ErrColonExpected();
 	}
 
@@ -408,9 +416,9 @@ void
 MBDynParser::DriveCaller_int(void)
 {
 	if (FirstToken() == UNKNOWN) {
-		std::cerr << "Parser error in MBDynParser::DriveCaller_int(), "
+		silent_cerr("Parser error in MBDynParser::DriveCaller_int(), "
 			" colon expected at line "
-			<< GetLineData() << std::endl;
+			<< GetLineData() << std::endl);
 		throw HighParser::ErrColonExpected();
 	}
 
@@ -454,6 +462,94 @@ MBDynParser::DriveCaller_int(void)
 	}
 }
 
+void 
+MBDynParser::ModuleLoad_int(void)
+{
+#if !defined(HAVE_LTDL_H) && !defined(HAVE_DLFCN_H)
+	silent_cerr("ModuleLoad_int: dynamic modules not supported"
+			<< std::endl);
+	throw ErrGeneric();
+#else /* HAVE_LTDL_H || HAVE_DLFCN_H */
+	if (FirstToken() == UNKNOWN) {
+		silent_cerr("Parser error in MBDynParser::ModuleLoad_int(), "
+			" colon expected at line "
+			<< GetLineData() << std::endl);
+		throw HighParser::ErrColonExpected();
+	}
+
+   	/* nome del modulo */
+   	const char* s = GetFileName();
+	if (s == NULL) {
+		silent_cerr("ModuleLoad_int: unable to get module name"
+			<< std::endl);
+		throw ErrGeneric();
+	}
+
+	char *module_name = 0;
+   	SAFESTRDUP(module_name, s);
+
+#ifdef HAVE_LTDL_H
+	lt_dlhandle handle = lt_dlopenext(module_name);
+#elif defined(HAVE_DLFCN_H)
+   	void* handle = dlopen(module_name, RTLD_NOW /* RTLD_LAZY */ );
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+
+	if (handle == NULL) {
+#ifdef HAVE_LTDL_H
+      		const char* err = lt_dlerror();
+#elif defined(HAVE_DLFCN_H)
+      		const char* err = dlerror();
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+
+      		silent_cerr("ModuleLoad_int: "
+			<< "unable to open module <" << module_name 
+			<< "> (" << err << ") at line " << GetLineData()
+			<< std::endl);
+      		throw ErrGeneric();
+   	}
+
+	typedef int (*sym_t)(const char *, void *, void *);
+#ifdef HAVE_LTDL_H
+	sym_t sym = (sym_t)lt_dlsym(handle, "module_init");
+#elif defined(HAVE_DLFCN_H)
+	sym_t sym = (sym_t)dlsym(handle, "module_init");
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+	
+   	if (sym == NULL) {
+#ifdef HAVE_LTDL_H
+      		const char* err = lt_dlerror();
+#elif defined(HAVE_DLFCN_H)
+      		const char* err = dlerror();
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+
+      		if (err == NULL) {
+			silent_cerr("ModuleLoad_int: module_init() "
+				"function not available "
+				"in module <" << module_name
+				<< "> at line " << GetLineData()
+				<< std::endl);
+      		} else {
+	 		silent_cerr("ModuleLoad_int: "
+	   			<< "error while binding to symbol "
+				"module_init() in module <" << module_name
+	   			<< "> (" << err << ") at line " << GetLineData()
+				<< std::endl);
+      		}
+      		throw ErrGeneric();
+   	}
+
+	if ((*sym)(module_name, (void *)pDM, (void *)this)) {
+		silent_cerr("ModuleLoad_int: module_init() "
+				"of module <" << module_name
+				<< "> failed at line " << GetLineData()
+				<< std::endl);
+		throw ErrGeneric();
+	}
+
+   	SAFEDELETEARR(module_name);
+#endif /* HAVE_LTDL_H || HAVE_DLFCN_H */
+}
+
 bool
 MBDynParser::GetDescription_int(const char *s)
 {
@@ -490,12 +586,19 @@ MBDynParser::GetDescription_int(const char *s)
 		throw MBDynParser::ErrGeneric();
 #endif /* USE_AERODYNAMIC_ELEMS */
 
+	/* Reads a constitutive law */
 	} else if (!strcmp(s, "constitutive" "law")) {
 		ConstitutiveLaw_int();
 		return true;
 
+	/* Reads a drive caller */
 	} else if (!strcmp(s, "drive" "caller")) {
 		DriveCaller_int();
+		return true;
+
+	/* Loads a dynamic module */
+	} else if (!strcmp(s, "module" "load" )) {
+		ModuleLoad_int();
 		return true;
 
 	/* Scrive la licenza */
@@ -503,7 +606,7 @@ MBDynParser::GetDescription_int(const char *s)
 		mbdyn_license(std::cout);
 		CurrLowToken = LowP.GetToken(*pIn);
 		return true;
-	
+
 	/* Scrive il disclaimer */
 	} else if (!strcmp(s, "warranty")) {
 		mbdyn_warranty(std::cout);
@@ -538,8 +641,8 @@ MBDynParser::GetRef(ReferenceFrame& rf)
 	unsigned int uLabel((unsigned int)GetInt());
 	const ReferenceFrame* pRF = RF.Get(uLabel);
 	if (pRF == NULL) {
-		std::cerr << "reference " << uLabel << " is undefined at line " 
-			<< GetLineData() << std::endl;
+		silent_cerr("reference " << uLabel << " is undefined at line " 
+			<< GetLineData() << std::endl);
 		throw MBDynParser::ErrReferenceUndefined();
 	}
 	
@@ -765,15 +868,15 @@ MBDynParser::GetVecRel(const ReferenceFrame& rf)
 	case UNKNOWNFRAME: /* global */
 		if (IsKeyWord("fromnode")) {
 			/* FIXME */
-			std::cerr << "'from node' at line " << GetLineData()
-				<< " not implemented yet :)" << std::endl;
+			silent_cerr("'from node' at line " << GetLineData()
+				<< " not implemented yet :)" << std::endl);
 			throw MBDynParser::ErrGeneric();
 			
 			unsigned int uLabel = GetInt();
 			StructNode *pNode1 = NULL; /* get node 1 */
 			if (IsKeyWord("tonode")) {
-				std::cerr << "missing keyword 'to node' at line "
-					<< GetLineData() << std::endl;
+				silent_cerr("missing keyword 'to node' at line "
+					<< GetLineData() << std::endl);
 				throw MBDynParser::ErrGeneric();
 			}
 			uLabel = GetInt();
@@ -811,15 +914,15 @@ MBDynParser::GetVecAbs(const ReferenceFrame& rf)
 	case UNKNOWNFRAME: /* global */
 		if (IsKeyWord("fromnode")) {
 			/* FIXME */
-			std::cerr << "'from node' at line " << GetLineData()
-				<< " not implemented yet :)" << std::endl;
+			silent_cerr("'from node' at line " << GetLineData()
+				<< " not implemented yet :)" << std::endl);
 			throw MBDynParser::ErrGeneric();
 			
 			unsigned int uLabel = GetInt();
 			StructNode *pNode1 = NULL; /* get node 1 */
 			if (IsKeyWord("tonode")) {
-				std::cerr << "missing keyword 'to node' at line "
-					<< GetLineData() << std::endl;
+				silent_cerr("missing keyword 'to node' at line "
+					<< GetLineData() << std::endl);
 				throw MBDynParser::ErrGeneric();
 			}
 			uLabel = GetInt();
@@ -965,8 +1068,8 @@ MBDynParser::GetHydraulicFluid(void)
 {
 	/* verifica che sia stato chiamato con "hydraulic" "fluid" */
 	if (!IsKeyWord("hydraulic" "fluid") && !IsKeyWord("fluid")) {
-		std::cerr << "hydraulic fluid expected at line "
-			<< GetLineData() << std::endl;
+		silent_cerr("hydraulic fluid expected at line "
+			<< GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 	
@@ -979,8 +1082,9 @@ MBDynParser::GetHydraulicFluid(void)
 	unsigned int uLabel = GetInt();
 	const HydraulicFluid* pHF = HF.Get(uLabel);
 	if (pHF == NULL) {
-		std::cerr << "hydraulic fluid " << uLabel
-			<< " is undefined at line " << GetLineData() << std::endl;
+		silent_cerr("hydraulic fluid " << uLabel
+			<< " is undefined at line " << GetLineData()
+			<< std::endl);
 		throw MBDynParser::ErrGeneric();
 	}
 	return pHF->pCopy();
@@ -995,8 +1099,8 @@ MBDynParser::GetC81Data(integer profile)
 	const c81_data* data = AD.Get(profile);
 	ASSERT(data != NULL);
 	if (data == NULL) {
-		std::cerr << "c81 data " << profile << " is undefined at line " 
-			<< GetLineData() << std::endl;
+		silent_cerr("c81 data " << profile << " is undefined at line " 
+			<< GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric();
 	}
 	return data;

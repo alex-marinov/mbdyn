@@ -18,6 +18,9 @@ MBDyn 1.2-Engineering
 		- added inertia log supports joints and loadable elements
 		- added crypt utility to encrypt credentials
 		- improved auth handling and docs
+		- added support for generic modules
+		- added generic module support for loadable elements
+		- added generic module support for joints 
 	Backward compatibility issues:
 		- merge columns 10 and 11 into disk angle for rotor
 		  elements output

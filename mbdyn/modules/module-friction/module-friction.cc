@@ -58,8 +58,7 @@ struct module_friction {
 static void*
 read(LoadableElem* pEl,
 		DataManager* pDM,
-		MBDynParser& HP,
-		const DriveHandler* pDH)
+		MBDynParser& HP)
 {
 	DEBUGCOUTFNAME("read");
 	
@@ -363,7 +362,7 @@ get_connected_nodes(const LoadableElem* pEl,
 
 static struct
 LoadableCalls lc = {
-	LOADABLE_VERSION_SET(1, 1, 0),
+	LOADABLE_VERSION_SET(1, 3, 0),
 
 	"friction",
 	"1.1",

@@ -35,7 +35,7 @@
 #include <ac/iostream>
 #include <ac/float.h>
 
-#include <loadable.h>
+#include <dataman.h>
 
 /*
  * Usage:
@@ -113,8 +113,7 @@ struct module_wheel {
 static void*
 read(LoadableElem* pEl,
 		DataManager* pDM,
-		MBDynParser& HP,
-		const DriveHandler* pDH)
+		MBDynParser& HP)
 {
 	DEBUGCOUTFNAME("read");
 	
@@ -300,12 +299,14 @@ read(LoadableElem* pEl,
 	return (void *)p;
 }
 
+#if 0
 static unsigned int
 i_get_num_dof(const LoadableElem* pEl)
 {
 	DEBUGCOUTFNAME("i_get_num_dof");
 	return 0;
 }
+#endif
 
 static void
 output(const LoadableElem* pEl, OutputHandler& OH)
@@ -332,12 +333,14 @@ output(const LoadableElem* pEl, OutputHandler& OH)
 	}
 }
 
+#if 0
 static std::ostream&
 restart(const LoadableElem* pEl, std::ostream& out)
 {
 	DEBUGCOUTFNAME("restart");
 	return out << "not implemented yet;" << std::endl;
 }
+#endif
 
 static void
 work_space_dim(const LoadableElem* pEl, 
@@ -605,6 +608,7 @@ ass_res(LoadableElem* pEl,
 	return WorkVec;
 }
 
+#if 0
 static void
 before_predict(const LoadableElem* pEl, 
 		VectorHandler& X,
@@ -701,6 +705,7 @@ set_initial_value(const LoadableElem* pEl, VectorHandler& X)
 {
 	DEBUGCOUTFNAME("set_initial_value");
 }
+#endif
 
 static unsigned int
 i_get_num_priv_data(const LoadableElem* pEl)
@@ -749,7 +754,7 @@ static
 #endif /* MBDYN_MODULE */
 struct
 LoadableCalls module_wheel2_lc = {
-	LOADABLE_VERSION_SET(1, 2, 0),
+	LOADABLE_VERSION_SET(1, 3, 0),
 
 	"wheel2",
 	"1.2.0",
@@ -789,6 +794,20 @@ LoadableCalls module_wheel2_lc = {
 };
 
 extern "C" {
+
 void *calls = &module_wheel2_lc;
+
+#ifndef __HACK_MODULES_AS_JOINTS__
+extern "C" int
+module_init(const char *s, void *dm, void *)
+{
+	DataManager *pDM = (DataManager *)dm;
+	
+	pDM->SetLoadableElemModule(module_wheel2_lc.name, &module_wheel2_lc);
+
+	return 0;
+}
+#endif /* !__HACK_MODULES_AS_JOINTS__ */
+
 }
 
