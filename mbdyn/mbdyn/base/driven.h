@@ -167,6 +167,7 @@ public:
 	 * Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
 	 */
+	virtual int GetNumConnectedNodes(void) const;
 	virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps,
 			unsigned int* NdLabels);
 };

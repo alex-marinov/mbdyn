@@ -18,6 +18,7 @@ MBDyn 1.X-Engineering
 	Known issues:
 	Bug fixes:
 		- fixed angular acceleration bug with ScalarDof
+		- fixed Schur solver related API bug in driven elements
 
 MBDyn 1.2-Engineering
 	Enhancements:

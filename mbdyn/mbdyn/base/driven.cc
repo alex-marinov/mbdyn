@@ -248,6 +248,13 @@ DrivenElem::AssRes(SubVectorHandler& WorkVec,
  * Fornisce il tipo e la label dei nodi che sono connessi all'elemento
  * utile per l'assemblaggio della matrice di connessione fra i dofs
  */
+int
+DrivenElem::GetNumConnectedNodes(void) const
+{
+	ASSERT(pElem != NULL);
+	return pElem->GetNumConnectedNodes();
+}
+
 void
 DrivenElem::GetConnectedNodes(int& NumNodes,
 		Node::Type* NdTyps,
