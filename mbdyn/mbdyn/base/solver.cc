@@ -1301,7 +1301,7 @@ IfFirstStepIsToBeRepeated:
 #ifdef USE_RTAI
 			if (bRT){
 				std::cout << "total overruns: " << or_counter  << std::endl
-					  << "total overrun time: " << t_tot << " micro s" << std::endl;
+					  << "total overrun time: " << t_tot << " micros" << std::endl;
 			}
 #endif /* USE_RTAI */
 
@@ -1320,8 +1320,8 @@ IfFirstStepIsToBeRepeated:
 				<< "total Jacobians: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl;
 			if (!bRTlog){
-				std::cout << "Total overruns:" << or_counter  << std::endl
-					<< "Total overruns time:" << t_tot << "micro s" << std::endl;
+				std::cout << "total overruns: " << or_counter  << std::endl
+					<< "total overruns time: " << t_tot << " micros" << std::endl;
 			}
 			return;
 #endif /* USE_RTAI */
