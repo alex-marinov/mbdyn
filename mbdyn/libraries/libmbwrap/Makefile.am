@@ -17,6 +17,8 @@ mschwrap.cc \
 mschwrap.h \
 naivewrap.cc \
 naivewrap.h \
+parnaivewrap.cc \
+parnaivewrap.h \
 superluwrap.cc \
 superluwrap.h \
 umfpackwrap.cc \
