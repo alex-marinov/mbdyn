@@ -130,7 +130,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		pRes->Reset(0.);
       		pNLP->Residual(pRes);
 		
-      		if (foutRes) {
+      		if (outputRes()) {
 	 		std::cout << "Residual:" << std::endl;
 	 		std::cout << iIterCnt <<std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
@@ -315,7 +315,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		std::cerr << "eta " << eta << std::endl;
 #endif /* DEBUG_ITERATIVE */
 		
-		if (foutSol) {      
+		if (outputSol()) {      
 	 		std::cout << "Solution:" << std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
 	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": "
@@ -324,7 +324,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		}		
 		
 		
-		if (foutIters) {
+		if (outputIters()) {
 #ifdef USE_MPI
 			if (dynamic_cast<SchurSolutionManager*> (pSM) && (MBDynComm.Get_rank() == 0)) {
 #endif /* USE_MPI */

@@ -64,7 +64,57 @@
  *      |--- gmres.h		Gmres, UpHessMatrix
  */
 
-class NonlinearSolver
+class SolverDiagnostics {
+protected:
+ 	unsigned OutputFlags;
+
+	enum {
+		OUTPUT_NONE		= 0x0000,
+
+		OUTPUT_ITERS		= 0x0001,
+		OUTPUT_RES		= 0x0002,
+		OUTPUT_SOL		= 0x0004,
+		OUTPUT_JAC		= 0x0008,
+		OUTPUT_MSG		= 0x0010,
+
+		OUTPUT_DEFAULT		= OUTPUT_MSG,
+
+		OUTPUT_MASK		= 0x00FF
+	};
+public:
+
+	SolverDiagnostics(unsigned OF = OUTPUT_DEFAULT);
+	virtual ~SolverDiagnostics(void);
+	
+	void SetOutputFlags(unsigned OF);
+		
+	inline bool outputIters(void) const {
+		return (OutputFlags & OUTPUT_ITERS);
+	};
+ 
+	inline bool outputRes(void) const {
+		return (OutputFlags & OUTPUT_RES);
+	};
+ 
+	inline bool outputSol(void) const {
+		return (OutputFlags & OUTPUT_SOL);
+	};
+ 
+	inline bool outputJac(void) const {
+		return (OutputFlags & OUTPUT_JAC);
+	};
+
+        /*
+	 * all messages not protected behind any other condition
+	 * must be protected by a "if (outputMsg())" condition
+	 */
+	inline bool outputMsg(void) const {
+		return (OutputFlags & OUTPUT_MSG);
+	};
+};
+
+ 
+class NonlinearSolver : public SolverDiagnostics
 {
 public:
  	class ErrSimulationDiverged {};
@@ -75,7 +125,6 @@ public:
 protected:
 	integer Size;
 	integer TotJac;	
-	bool foutIters, foutRes, foutJac, foutSol;	
 #ifdef USE_EXTERNAL	
 	External::ExtMessage ExtStepType;
 #endif /* USE_EXTERNAL */
@@ -93,8 +142,6 @@ public:
 	virtual void SetScale(const VectorHandler* pScl);
 #endif /* __HACK_SCALE_RES__ */
 
-	virtual void SetOutputFlag(bool fIt, bool fRes, bool fJac, bool fSol);
-		
 	virtual ~NonlinearSolver(void);
 
 	virtual void Solve(const NonlinearProblem* NLP,

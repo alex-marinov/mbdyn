@@ -65,13 +65,13 @@
 #include <nonlin.h>
 #include <mfree.h>
 #include <precond.h>
-  
-class Solver {
 
+class Solver : public SolverDiagnostics {
 public:
 	class ErrGeneric {};
 	class ErrMaxIterations{};
 	class SimulationDiverged{};
+
 private:
    	enum Strategy {
 		NOCHANGE,
@@ -162,45 +162,6 @@ private:
    	flag fAbortAfterDerivatives;
    	flag fAbortAfterFictitiousSteps;
 
-	integer iOutputFlags;
-	enum {
-		OUTPUT_NONE		= 0x0000,
-
-		OUTPUT_ITERS		= 0x0001,
-		OUTPUT_RES		= 0x0002,
-		OUTPUT_SOL		= 0x0004,
-		OUTPUT_JAC		= 0x0008,
-		OUTPUT_MSG		= 0x0010,
-
-		OUTPUT_DEFAULT		= OUTPUT_MSG,
-
-		OUTPUT_MASK		= 0x00FF
-	};
-	
-	inline bool outputIters(void) const {
-		return (iOutputFlags & OUTPUT_ITERS);
-	};
- 
-	inline bool outputRes(void) const {
-		return (iOutputFlags & OUTPUT_RES);
-	};
- 
-	inline bool outputSol(void) const {
-		return (iOutputFlags & OUTPUT_SOL);
-	};
- 
-	inline bool outputJac(void) const {
-		return (iOutputFlags & OUTPUT_JAC);
-	};
-
-        /*
-	 * all messages not protected behind any other condition
-	 * must be protected by a "if (outputMsg())" condition
-	 */
-	inline bool outputMsg(void) const {
-		return (iOutputFlags & OUTPUT_MSG);
-	};
-
 	/* Parametri per la variazione passo */
    	integer iStepsAfterReduction;
    	integer iStepsAfterRaise;
@@ -276,7 +237,8 @@ public:
    	~Solver(void);
 };
 
-inline void Solver::Flip(void)
+inline void
+Solver::Flip(void)
 {
 	/*
 	 * switcha i puntatori; in questo modo non e' necessario

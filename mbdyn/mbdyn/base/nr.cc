@@ -178,7 +178,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 		pRes->Reset(0.);
       		pNLP->Residual(pRes);
 		
-      		if (foutRes) {
+      		if (outputRes()) {
 	 		std::cout << "Residual:" << std::endl;
 	 		std::cout << iIterCnt <<std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
@@ -219,7 +219,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 		
 		iPerformedIterations++;
 		
-		if (foutJac) {
+		if (outputJac()) {
 #ifdef USE_UMFPACK
 			if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
 #endif /* USE_UMFPACK */
@@ -237,7 +237,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 		
 		pSM->Solve();
 
-      		if (foutSol) {      
+      		if (outputSol()) {      
 	 		std::cout << "Solution:" << std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
 	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": "
@@ -246,7 +246,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 		}		
 		
 		
-		if (foutIters) {
+		if (outputIters()) {
 #ifdef USE_MPI
 			if (dynamic_cast<SchurSolutionManager*> (pSM) && (MBDynComm.Get_rank() == 0)) {
 #endif /* USE_MPI */

@@ -192,7 +192,6 @@ fAbortAfterInput(0),
 fAbortAfterAssembly(0),
 fAbortAfterDerivatives(0),
 fAbortAfterFictitiousSteps(0),
-iOutputFlags(OUTPUT_DEFAULT),
 iStepsAfterReduction(0),
 iStepsAfterRaise(0),
 iWeightedPerformedIters(0),
@@ -683,10 +682,17 @@ void Solver::Run(void)
 #endif /* HAVE_SIGNAL */
 
 	/* settaggio degli output Types */
-	pNLS->SetOutputFlag(outputIters(),	
-		(DEBUG_LEVEL_MATCH(MYDEBUG_RESIDUAL)|| outputRes()),
-		(DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()),
-		 DEBUG_LEVEL_MATCH(MYDEBUG_SOL) || outputSol());
+	unsigned OF = OutputFlags;
+	if ( DEBUG_LEVEL_MATCH(MYDEBUG_RESIDUAL) ) {
+		OF |= OUTPUT_RES;
+	}
+	if ( DEBUG_LEVEL_MATCH(MYDEBUG_JAC) ) {
+		OF |= OUTPUT_JAC;
+	}
+	if ( DEBUG_LEVEL_MATCH(MYDEBUG_SOL) ) {
+		OF |= OUTPUT_SOL;
+	}
+	pNLS->SetOutputFlags(OF);
 	
 	pDerivativeSteps->SetDataManager(pDM);
 	pFirstFictitiousStep->SetDataManager(pDM);
@@ -1862,27 +1868,27 @@ Solver::ReadData(MBDynParser& HP)
 				KeyWords OutputFlag(KeyWords(HP.GetWord()));
 				switch (OutputFlag) {
 				case NONE:
-					iOutputFlags = OUTPUT_NONE;
+					OutputFlags = OUTPUT_NONE;
 					break;
 
 				case ITERATIONS:
-					iOutputFlags |= OUTPUT_ITERS;
+					OutputFlags |= OUTPUT_ITERS;
 					break;
 
 				case RESIDUAL:
-					iOutputFlags |= OUTPUT_RES;
+					OutputFlags |= OUTPUT_RES;
 					break;
 
 				case SOLUTION:
-					iOutputFlags |= OUTPUT_SOL;
+					OutputFlags |= OUTPUT_SOL;
 					break;
 
 				case JACOBIAN:
-					iOutputFlags |= OUTPUT_JAC;
+					OutputFlags |= OUTPUT_JAC;
 					break;
 
 				case MESSAGES:
-					iOutputFlags |= OUTPUT_MSG;
+					OutputFlags |= OUTPUT_MSG;
 					break;
 
 				default:

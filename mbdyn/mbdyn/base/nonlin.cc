@@ -51,13 +51,25 @@
 #include <unistd.h>
 #include <output.h>
 
+SolverDiagnostics::SolverDiagnostics(unsigned OF)
+{
+	SetOutputFlags(OF);
+}
+
+SolverDiagnostics::~SolverDiagnostics(void)
+{
+	NO_OP;
+}
+	
+void
+SolverDiagnostics::SetOutputFlags(unsigned OF)
+{
+	OutputFlags = OF;
+}
+
 NonlinearSolver::NonlinearSolver(void)
 : Size(0),
-TotJac(0),
-foutIters(false),
-foutRes(false),
-foutJac(false),
-foutSol(false)
+TotJac(0)
 #ifdef USE_EXTERNAL
 , ExtStepType(External::ERROR)  
 #endif /* USE_EXTERNAL */
@@ -76,15 +88,6 @@ NonlinearSolver::SetScale(const VectorHandler* pScl)
 }  
 #endif /* __HACK_SCALE_RES__ */
 
-void
-NonlinearSolver::SetOutputFlag(bool fIt, bool fRes, bool fJac, bool fSol)
-{
-	foutIters = fIt;
-	foutRes = fRes;
-	foutJac = fJac;
-	foutSol = fSol;
-}
-		
 NonlinearSolver::~NonlinearSolver(void)
 {
 	NO_OP;
