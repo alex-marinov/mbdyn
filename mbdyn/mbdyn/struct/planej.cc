@@ -1783,11 +1783,14 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
     */
 
    /* Setta gli indici delle equazioni */
-   for (int iCnt = 1; iCnt <= 6; iCnt++) {	
+   for (int iCnt = 1; iCnt <= 6; iCnt++) {
       WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
       WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
       WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
       WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+   }
+   
+   for (unsigned int iCnt = 1; iCnt <= iGetNumDof(); iCnt++) {
       WM.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
       WM.PutColIndex(12+iCnt, iFirstReactionIndex+iCnt);
    }
@@ -1917,7 +1920,7 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
           //variation of relative velocity
       dv.ReDim(6);
       
-/* new (approximate: assume constant triads orientations) 
+/* (approximate: assume constant triads orientations) 
  * relative velocity linearization 
 */
       dv.Set((e3a.dGet(1)*1.)*r,1, 0+4);
@@ -1981,6 +1984,9 @@ SubVectorHandler& AxialRotationJoint::AssRes(SubVectorHandler& WorkVec,
    for (int iCnt = 1; iCnt <= 6; iCnt++) {	
       WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
       WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+   }
+   /* Indici del vincolo */
+   for (unsigned int iCnt = 1; iCnt <= iGetNumDof(); iCnt++) {
       WorkVec.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
    }
    
