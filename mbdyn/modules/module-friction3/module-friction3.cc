@@ -69,7 +69,7 @@ read(LoadableElem* pEl,
 	 * help
 	 */
 	if (HP.IsKeyWord("help")) {
-		std::cout <<
+		silent_cout(
 "									\n"
 "Module: 	friction3						\n"
 "Author: 	Marco Morandini <morandini@aero.polimi.it>		\n"
@@ -81,7 +81,7 @@ read(LoadableElem* pEl,
 "									\n"
 "	EXPERIMENTAL: used to test friction model			\n"
 "									\n"
-			<< std::endl;
+			<< std::endl);
 
 		if (!HP.IsArg()) {
 			/*
@@ -96,11 +96,13 @@ read(LoadableElem* pEl,
 	p->mom = ReadScalarDof(pDM, HP, 0);
 	p->pos = ReadScalarDof(pDM, HP, 0);
 	if (p->mom.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
-		std::cerr << "need a differential node" << std::endl;
+		silent_cerr("Friction3(" << pEl->GetLabel() << "): "
+			"need a differential node" << std::endl);
 		throw ErrGeneric();
 	}
 	if (p->pos.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
-		std::cerr << "need a differential node" << std::endl;
+		silent_cerr("Friction3(" << pEl->GetLabel() << "): "
+			"need a differential node" << std::endl);
 		throw ErrGeneric();
 	}
 	p->mass = HP.GetReal();
@@ -109,8 +111,9 @@ read(LoadableElem* pEl,
 		p->fc = ParseFriction(HP, pDM);
 		p->Sh_c = ParseShapeCoefficient(HP);
 	} else {
-		std::cerr << "perhaps you need a friction model" << std::endl;
-		std::cerr << "anyway, I'll go ahead" << std::endl;
+		silent_cerr("Friction3(" << pEl->GetLabel() << "): "
+			"perhaps you need a friction model; "
+			"anyway, I'll go ahead" << std::endl);
 		p->fc = 0;
 	}
 

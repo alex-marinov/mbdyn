@@ -70,7 +70,7 @@ read(LoadableElem* pEl,
 	 * help
 	 */
 	if (HP.IsKeyWord("help")) {
-		std::cout <<
+		silent_cout(
 "									\n"
 "Module: 	friction						\n"
 "Author: 	Stefania Gualdi <gualdi@aero.polimi.it>			\n"
@@ -84,7 +84,7 @@ read(LoadableElem* pEl,
 "									\n"
 "	EXPERIMENTAL: used to test different friction models		\n"
 "									\n"
-			<< std::endl;
+			<< std::endl);
 
 		if (!HP.IsArg()) {
 			/*
@@ -98,7 +98,8 @@ read(LoadableElem* pEl,
 
 	p->dof = ReadScalarDof(pDM, HP, 0);
 	if (p->dof.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
-		std::cerr << "need a differential node" << std::endl;
+		silent_cerr("Friction(" << pEl->GetLabel() << "): "
+			"need a differential node" << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -129,7 +130,9 @@ read(LoadableElem* pEl,
 			} else if (HP.IsKeyWord("slip")) {
 				state = DiscStateFriction<doublereal>::Slip;
 			} else {
-				std::cerr << "unknown state for discrete state friction model" << std::endl;
+				silent_cerr("Friction(" << pEl->GetLabel() << "): "
+					"unknown state for discrete state friction model"
+					<< std::endl);
 				throw ErrGeneric();
 			}
 		}
@@ -139,7 +142,8 @@ read(LoadableElem* pEl,
 					damping, velTreshold, state));
 
 	} else {
-		std::cerr << "unknown friction model" << std::endl;
+		silent_cerr("Friction(" << pEl->GetLabel() << "): "
+			"unknown friction model" << std::endl);
 		throw ErrGeneric();
 	}
 

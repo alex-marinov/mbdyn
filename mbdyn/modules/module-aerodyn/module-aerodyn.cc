@@ -48,8 +48,8 @@ read(
 	DEBUGCOUTFNAME("read");
 
 	if (::module_aerodyn != NULL) {
-		std::cerr << "Another module-aerodyn might be running; error"
-			<< std::endl;
+		silent_cerr("Another module-aerodyn might be running; error"
+			<< std::endl);
 		throw ErrGeneric();
 	}
 	
@@ -63,7 +63,8 @@ read(
 	 * read data
 	 */
 	if (HP.IsKeyWord("help")) {
-		std::cout << "Module: AeroDyn" << std::endl;
+		/* NOTE: add help message */
+		silent_cout("Module: AeroDyn" << std::endl);
 	}
 
 	/* hub node */
@@ -74,9 +75,9 @@ read(
 	/* verifica di esistenza del nodo */
 	p->pHub = pDM->pFindStructNode(uNode);
 	if (p->pHub  == NULL) {
-		std::cerr << "line " << HP.GetLineData() 
-			<< ": structural node " << uNode
-			<< " not defined" << std::endl;	  
+		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
+			"StructuralNode(" << uNode << ") not defined "
+			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 

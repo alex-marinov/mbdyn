@@ -224,7 +224,9 @@ read(LoadableElem* pEl,
 	 */
 	doublereal d = p->GroundDirection.Dot();
 	if (d <= DBL_EPSILON) {
-		std::cerr << "null direction at line " << HP.GetLineData() << std::endl;
+		silent_cerr("Wheel2(" << pEl->GetLabel() << "): "
+			"null direction at line " << HP.GetLineData()
+			<< std::endl);
 		throw DataManager::ErrGeneric();
 	}
 	p->GroundDirection /= sqrt(d);
@@ -280,17 +282,17 @@ read(LoadableElem* pEl,
 		if (HP.IsKeyWord("threshold")) {
 			p->dvThreshold = HP.GetReal();
 			if (p->dvThreshold < 0.) {
-				std::cerr << "illegal velocity threshold "
-					<< p->dvThreshold << " at line "
-					<< HP.GetLineData() << std::endl;
+				silent_cerr("Wheel2(" << pEl->GetLabel() << "): "
+					"illegal velocity threshold " << p->dvThreshold
+					<< " at line " << HP.GetLineData() << std::endl);
 				p->dvThreshold = fabs(p->dvThreshold);
 			}
 
 			p->dAlphaThreshold = HP.GetReal();
 			if (p->dvThreshold < 0.) {
-				std::cerr << "illegal slip angle threshold "
-					<< p->dAlphaThreshold << " at line "
-					<< HP.GetLineData() << std::endl;
+				silent_cerr("Wheel2(" << pEl->GetLabel() << "): "
+					"illegal slip angle threshold " << p->dAlphaThreshold
+					<< " at line " << HP.GetLineData() << std::endl);
 				p->dAlphaThreshold = fabs(p->dAlphaThreshold);
 			}
 		}
@@ -508,8 +510,9 @@ ass_res(LoadableElem* pEl,
 		Vec3 fwd = (p->pWheel->GetRCurr()*p->WheelAxle).Cross(n);
 		doublereal d = fwd.Dot();
 		if (d < DBL_EPSILON) {
-			std::cerr << "wheel axle is orthogonal to the ground"
-				<< std::endl;
+			silent_cerr("Wheel2(" << pEl->GetLabel() << "): "
+				"wheel axle is (neraly) orthogonal "
+				"to the ground" << std::endl);
 			throw DataManager::ErrGeneric();
 		}
 		fwd /= sqrt(d);

@@ -40,11 +40,7 @@ struct module_template {
 
 /* default funcs */
 static void *
-read(
-		LoadableElem* pEl,
-		DataManager* pDM,
-		MBDynParser& HP)
-)
+read( LoadableElem* pEl, DataManager* pDM, MBDynParser& HP)
 {
 	DEBUGCOUTFNAME("read");
 	
@@ -58,7 +54,7 @@ read(
 	 * read data
 	 */
 	if (HP.IsKeyWord("help")) {
-		std::cout << "Module; template" << std::endl;
+		silent_cout("Module template" << std::endl);
 	}
 	
 	return (void *)p;
@@ -316,8 +312,8 @@ static unsigned int
 i_get_priv_data_idx(const LoadableElem* pEl, const char *s)
 {
 	DEBUGCOUTFNAME("i_get_priv_data_idx");
-	std::cerr << "Module-template Elem: priv data \"" << s
-		<< "\" is unknown" << std::endl;
+	silent_cerr("Module-template Elem(" << pEl->getLabel() << "): "
+		"priv data \"" << s << "\" is unknown" << std::endl);
 	throw ErrGeneric();
 
 	return 0;
@@ -329,8 +325,8 @@ d_get_priv_data(const LoadableElem* pEl, unsigned int i)
 	DEBUGCOUTFNAME("d_get_priv_data");
 	ASSERT(pEl->iGetNumPrivData() > 0);
 	if (i > pEl->iGetNumPrivData()) {
-		std::cerr << "Module-template Elem: illegal private data index "
-			<< i << std::endl;      
+		silent_cerr("Module-template Elem(" << pEl->GetLabel() << "): "
+			"illegal private data index " << i << std::endl);
 		throw ErrGeneric();
 	}
    

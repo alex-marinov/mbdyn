@@ -93,8 +93,8 @@ __FC_DECL__(usrmes)(F_LOGICAL *Logical, F_CHAR msg[],
 		F_INTEGER *code, F_CHAR level[])
 {
 	if (*Logical) {
-		std::cerr << "AeroDyn [" << level << ":"
-			<< *code << "] " << msg << std::endl;
+		silent_cerr("AeroDyn [" << level << ":"
+			<< *code << "] " << msg << std::endl);
 	}
 
 	return 0;
