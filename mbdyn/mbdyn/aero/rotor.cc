@@ -198,11 +198,14 @@ Rotor::dGetPrivData(unsigned int i) const
 
 	if (i >= 1 && i <= 3) {
 		return Res.Force().dGet(i);
+
 	} else if (i >= 4 && i <= 6) {      
 		return Res.Couple().dGet(i-3);
+
 	} else {
 		THROW(ErrGeneric());
 	}
+
 #ifndef USE_EXCEPTIONS
 	return 0.;
 #endif /* USE_EXCEPTIONS */

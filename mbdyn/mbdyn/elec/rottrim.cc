@@ -41,6 +41,10 @@
 #include <strnode.h>
 #include <rottrim.h>
 
+static unsigned iRotorTz = 0;
+static unsigned iRotorMx = 0;
+static unsigned iRotorMy = 0;
+
 RotorTrim::RotorTrim(unsigned int uL,
 		     const DofOwner* pDO,
 		     Rotor* pRot,
@@ -88,6 +92,13 @@ dKappa1(dK1)
 	pvDrives[0].Set(pDrive1);
 	pvDrives[1].Set(pDrive2);
 	pvDrives[2].Set(pDrive3);
+
+	if (iRotorTz == 0) {
+		/* first RotorTrim */
+		iRotorTz = pRotor->iGetPrivDataIdx("Tz");
+		iRotorMx = pRotor->iGetPrivDataIdx("Mx");
+		iRotorMy = pRotor->iGetPrivDataIdx("My");
+	}
 }
 
 RotorTrim::~RotorTrim(void)
@@ -182,13 +193,10 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 
 	doublereal d =
 		M_PI*pow(dRadius, 4)*dRho*dOmega*dOmega*(dSigma*dCpAlpha);
-	// doublereal dTraction = pRotor->GetForces().dGet(3)/d;
-	doublereal dTraction = pRotor->dGetPrivData(3)/d;
+	doublereal dTraction = pRotor->dGetPrivData(iRotorTz)/d;
 	d *= dRadius;
-	// doublereal dRollMoment = pRotor->GetMoments().dGet(1)/d;
-	// doublereal dPitchMoment = pRotor->GetMoments().dGet(2)/d;
-	doublereal dRollMoment = pRotor->dGetPrivData(4)/d;
-	doublereal dPitchMoment = pRotor->dGetPrivData(5)/d;
+	doublereal dRollMoment = pRotor->dGetPrivData(iRotorMx)/d;
+	doublereal dPitchMoment = pRotor->dGetPrivData(iRotorMy)/d;
 
 	doublereal f = dC/(1.+dC2);
 
