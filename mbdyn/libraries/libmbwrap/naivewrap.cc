@@ -47,9 +47,8 @@
 #include "mthrdslv.h"
 
 /* NaiveSolver - begin */
-template<class S>	
-NaiveSolver<S>::NaiveSolver(const integer &size, const doublereal& dMP,
-		S *const a)
+NaiveSolver::NaiveSolver(const integer &size, const doublereal& dMP,
+		NaiveMatrixHandler *const a)
 : LinearSolver(0),
 iSize(size),
 dMinPiv(dMP),
@@ -59,22 +58,19 @@ A(a)
 	NO_OP;
 }
 
-template<class S>	
-NaiveSolver<S>::~NaiveSolver(void)
+NaiveSolver::~NaiveSolver(void)
 {
 	NO_OP;
 }
 
-template<class S>	
 void
-NaiveSolver<S>::Reset(void)
+NaiveSolver::Reset(void)
 {
 	bHasBeenReset = true;
 }
 
-template<class S>	
 void
-NaiveSolver<S>::Solve(void) const
+NaiveSolver::Solve(void) const
 {
 	if (bHasBeenReset) {
       		((NaiveSolver *)this)->Factor();
@@ -85,9 +81,8 @@ NaiveSolver<S>::Solve(void) const
 			LinearSolver::pdRhs, LinearSolver::pdSol, &piv[0]);
 }
 
-template<class S>	
 void
-NaiveSolver<S>::Factor(void)
+NaiveSolver::Factor(void)
 {
 	int		rc;
 
@@ -141,8 +136,8 @@ NaiveSparseSolutionManager::NaiveSparseSolutionManager(const integer Dim,
 VH(Dim),
 XH(Dim)
 {
-	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver<NaiveMatrixHandler>, 
-		NaiveSolver<NaiveMatrixHandler>(Dim, dMP, &A));
+	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver, 
+		NaiveSolver(Dim, dMP, &A));
 
 	pLS->ChangeResPoint(VH.pdGetVec());
 	pLS->ChangeSolPoint(XH.pdGetVec());
@@ -228,8 +223,8 @@ NaiveSparsePermSolutionManager::MatrReset(void)
 			SAFEDELETE(pLS);
 		}
 		SAFENEWWITHCONSTRUCTOR(pLS, 
-			NaiveSolver<NaivePermMatrixHandler>, 
-			NaiveSolver<NaivePermMatrixHandler>(Ac->iGetNumCols(), dMinPiv, Ac));
+			NaiveSolver, 
+			NaiveSolver(Ac->iGetNumCols(), dMinPiv, Ac));
 
 		pLS->ChangeResPoint(VH.pdGetVec());
 		pLS->ChangeSolPoint(XH.pdGetVec());
@@ -276,7 +271,7 @@ NaiveSparsePermSolutionManager::Solve(void)
 			SAFEDELETE(Ac);
 		}
 		SAFENEWWITHCONSTRUCTOR(Ac, NaivePermMatrixHandler, 
-			NaivePermMatrixHandler(A, &(perm[0])));
+			NaivePermMatrixHandler(&A, &(perm[0])));
 	} else {
 		pLS->ChangeSolPoint(VH.pdGetVec());
 	}

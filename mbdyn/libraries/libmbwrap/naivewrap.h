@@ -48,7 +48,6 @@
 	
 /* NaiveSolver - begin */
 
-template<class S>
 class NaiveSolver: public LinearSolver {
 private:
 	integer iSize;
@@ -58,10 +57,10 @@ private:
 
 	void Factor(void);
 
-	S * A;
+	NaiveMatrixHandler *const A;
 public:
 	NaiveSolver(const integer &size, const doublereal &dMP,
-			S *const a);
+			NaiveMatrixHandler *const a);
 	~NaiveSolver(void);
 
 	void Reset(void);
