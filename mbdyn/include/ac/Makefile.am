@@ -17,14 +17,4 @@ spinlock.h \
 sstream \
 sys_sysinfo.h
 
-noinst_PROGRAMS = integertest
-integertest_SOURCES = integertest.cc
-INCLUDES = -I../../mbdyn
-
-export SH_CXXCOMPILE=$(CXXCOMPILE)
-export SH_CXXLD=$(CXXLD)
-
-all-local: integertest.cc
-	-@$(SHELL) integertest.sh
-
 include $(top_srcdir)/build/bot.mk
