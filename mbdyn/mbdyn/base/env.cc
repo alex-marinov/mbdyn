@@ -46,7 +46,7 @@
 extern char **environ;
 
 static const char MBDYNPREFIX[] = "MBDYN";
-static const int MBDYNPREFIXLEN = strlen(MBDYNPREFIX);
+static const int MBDYNPREFIXLEN = sizeof(MBDYNPREFIX) - 1;
 
 extern void GetEnviron(MathParser& MP);
 
@@ -56,7 +56,7 @@ GetEnviron(MathParser& MP)
    	/* cerca la variabile MBDYNVARS */
    	char* p = NULL;
    	char* s = "VARS";
-	int l = MBDYNPREFIXLEN+strlen(s)+1;
+	int l = MBDYNPREFIXLEN + strlen(s) + 1;
    	SAFENEWARR(p, char, l);
    	sprintf(p, "%s%s", MBDYNPREFIX, s);
    	char* e = getenv(p);
@@ -89,39 +89,51 @@ GetEnviron(MathParser& MP)
 	 		SAFESTRDUP(p, *env);
 	 		v = strchr(p, '=');
 	 		if (v == NULL) {
-	    			std::cerr << "parse error in envvar <" 
-					<< p << ">" << std::endl;	  
+	    			silent_cerr("parse error in envvar <" 
+					<< p << ">" << std::endl);
 	    			throw ErrGeneric();
 	 		}
 
 	 		*v = '\0';
 	 		v++;
 	 
-	 		if (strncmp(p+5, "_real_", 6) == 0) {
+	 		if (strncmp(p+sizeof("MBDYN")-1, "VARS", sizeof("VARS")-1) == 0) {
+				NO_OP;
+
+			} else if (strncmp(p+sizeof("MBDYN")-1, "_real_", sizeof("_real_")-1) == 0) {
 	    			n = p+11;
-	    			d = atof(v);
+				char *endptr = NULL;
+	    			d = strtod(v, &endptr);
+				if (endptr != NULL && endptr[0] != '\0') {
+					silent_cerr("SetEnv: unable to parse "
+							"real <" << v << "> "
+							"for var <" << p << ">"
+							<< std::endl);
+					throw ErrGeneric();
+				}
 	    			DEBUGCOUT("setting real var <" 
 					<< n << "=" << d << ">" << std::endl);
 	    
 	    			if ((T.Get(n)) == NULL) {	   
 	       				if (T.Put(n, Real(d))  == NULL) {      
-		  				std::cerr << "SetEnv:"
+		  				silent_cerr("SetEnv:"
 							" error in insertion"
 							" of real symbol <"
-		    					<< n << ">" << std::endl;
+		    					<< n << ">" << std::endl);
 		  				throw ErrGeneric();
 	       				}
 	    			}
 	    
-	 		} else if (strncmp(p+5, "_integer_", 9) == 0) {
+	 		} else if (strncmp(p+sizeof("MBDYN")-1, "_integer_", sizeof("_integer_")-1) == 0) {
 	    			n = p+14;
 #ifdef HAVE_STRTOL
 				char *endptr = NULL;
 				i = strtol(v, &endptr, 10);
 				if (endptr != NULL && endptr[0] != '\0') {
-					std::cerr << "SetEnv: unable to read "
-						"integer <" << v << ">"
-						<< std::endl;
+					silent_cerr("SetEnv: unable to parse "
+						"integer <" << v << "> "
+						"for var <" << p << ">"
+						<< std::endl);
 					throw ErrGeneric();
 				}
 #else /* !HAVE_STRTOL */
@@ -132,17 +144,17 @@ GetEnviron(MathParser& MP)
 	    
 	    			if ((T.Get(n)) == NULL) {	   
 	       				if (T.Put(n, Int(i))  == NULL) {
-		  				std::cerr << "SetEnv:"
+		  				silent_cerr("SetEnv:"
 							" error in insertion"
 							" of integer symbol <"
-		    					<< n << ">" << std::endl;
+		    					<< n << ">" << std::endl);
 		  				throw ErrGeneric();
 	       				}
 	    			}
 	    
 	 		} else {
-	    			std::cerr << "unknown var type <" 
-					<< p << ">; skipping ..." << std::endl;
+	    			silent_cerr("unknown var type <" 
+					<< p << ">; skipping ..." << std::endl);
 	 		}
       		}
       		env++;

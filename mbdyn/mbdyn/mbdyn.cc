@@ -639,8 +639,10 @@ main(int argc, char* argv[])
 	    		if (myrank == 0) {
 #endif /* USE_MPI */
 	        		Table t(31, 1);
+				MathParser mp(t);
+				GetEnviron(mp);
 	        		std::cout << "default symbol table:"
-					<< std::endl << t << std::endl;
+					<< std::endl << mp.GetSymbolTable() << std::endl;
 #ifdef USE_MPI
 	    		}
 #endif /* USE_MPI */
