@@ -7,6 +7,9 @@ lib_LTLIBRARIES = libmbmath.la
 libmbmath_la_SOURCES = \
 fullmh.cc \
 fullmh.h \
+interp.h \
+interp.cc \
+JacSubMatrix.cc \
 ldl.f \
 ldl.h \
 matvec3.cc \
@@ -34,10 +37,7 @@ spdata.h \
 spdata_.f \
 spmapmh.h \
 submat.cc \
-submat.h \
-interp.h \
-interp.cc \
-JacSubMatrix.cc
+submat.h
 
 libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@
 libmbmath_la_LDFLAGS =
