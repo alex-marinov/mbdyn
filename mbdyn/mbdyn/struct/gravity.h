@@ -155,13 +155,13 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
    /*
     * momento statico e momento di inerzia nel sistema globale
     */
-   virtual Vec3 _GetS(void) const {
-      std::cerr << "warning: using default _GetS()" << std::endl;
+   virtual Vec3 GetS_int(void) const {
+      std::cerr << "warning: using default GetS_int()" << std::endl;
       return Vec3(0.);
    };
 
-   virtual Mat3x3 _GetJ(void) const {
-      std::cerr << "warning: using default _GetJ()" << std::endl;
+   virtual Mat3x3 GetJ_int(void) const {
+      std::cerr << "warning: using default GetJ_int()" << std::endl;
       return Mat3x3(0.);
    };
 
@@ -190,21 +190,21 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
     */
 #if 0
    Vec3 GetS(const Vec3& X, const Mat3x3& R) const {
-      return R*(_GetS()-X*dGetM());
+      return R*(GetS_int()-X*dGetM());
    };
 
    Mat3x3 GetJ(const Vec3& X, const Mat3x3& R) const {
-      Vec3 S = X*dGetM()+_GetS();
-      return R*(_GetJ()-Mat3x3(S, S/dGetM()))*R.Transpose();
+      Vec3 S = X*dGetM()+GetS_int();
+      return R*(GetJ_int()-Mat3x3(S, S/dGetM()))*R.Transpose();
    };
 #endif
    
    Vec3 GetS(void) const {
-	   return _GetS();
+	   return GetS_int();
    };
    
    Mat3x3 GetJ(void) const {
-      return _GetJ();
+      return GetJ_int();
    };
    
 #ifdef DEBUG

@@ -60,7 +60,7 @@ J0(JTmp)
 
 /* momento statico */
 Vec3 
-Body::_GetS(void) const
+Body::GetS_int(void) const
 {
 	return pNode->GetXCurr()*dMass+pNode->GetRCurr()*S0;
 }
@@ -68,7 +68,7 @@ Body::_GetS(void) const
 
 /* momento d'inerzia */
 Mat3x3
-Body::_GetJ(void) const
+Body::GetJ_int(void) const
 {
 	Vec3 s = pNode->GetRCurr()*S0;
 	const Vec3& x = pNode->GetXCurr();

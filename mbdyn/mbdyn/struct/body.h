@@ -62,10 +62,10 @@ virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
 		 const VectorHandler& XPrimeCurr);
 
     /* momento statico */
-    Vec3 _GetS(void) const;
+    Vec3 GetS_int(void) const;
 
     /* momento d'inerzia */
-    Mat3x3 _GetJ(void) const;
+    Mat3x3 GetJ_int(void) const;
       
   public:
     /* Costruttore definitivo (da mettere a punto) */

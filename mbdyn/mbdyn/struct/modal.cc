@@ -2110,19 +2110,19 @@ Modal::GetCurrFemNodesVelocity(void)
 doublereal
 Modal::dGetM(void) const
 {
-	return 0.;
+	return dMass;
 }
 
 /* momento statico */
 Vec3
-Modal::_GetS(void) const
+Modal::GetS_int(void) const
 {
 	return Zero3;
 }
 
 /* momento d'inerzia */
 Mat3x3
-Modal::_GetJ(void) const
+Modal::GetJ_int(void) const
 {
 	return Zero3x3;
 }
