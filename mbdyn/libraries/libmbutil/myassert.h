@@ -67,22 +67,22 @@ Uso:
 # define MYASSERT_H
 
 extern "C" {
-# include <stdlib.h>
+#include <stdlib.h>
 }
 
-# include <iostream.h>
-# include "except.h"
+#include <iostream.h>
+#include "except.h"
 
-# define NO_OP do {} while(0)
+#define NO_OP do {} while(0)
 
-# ifdef DEBUG
+#ifdef DEBUG
 /* predefined debug level flags (reserved from 0x0000001 to 0x00000080) */
 const long int MYDEBUG_NONE                = 0x00000000;
 const long int MYDEBUG_ANY                 = 0xFFFFFFFF;
 const long int MYDEBUG_FNAMES              = 0x00000001;
-#  ifdef __GNUC__
+#ifdef __GNUC__
 const long int MYDEBUG_PRETTYFN            = 0x00000002;
-#  endif /* __GNUC__ */
+#endif /* __GNUC__ */
 
 /* debug level global var */
 extern long int debug_level /* = MYDEBUG_ANY */ ;
@@ -106,7 +106,7 @@ class MyAssert {
 extern void _Assert(const char* file, const int line, const char* msg = NULL);
 extern ostream& _Out(ostream& out, const char* file, const int line);
 
-#  define ASSERT(expr) \
+#define ASSERT(expr) \
     do { \
         if (!(expr)) { \
             _Assert(__FILE__, __LINE__); \
@@ -114,7 +114,7 @@ extern ostream& _Out(ostream& out, const char* file, const int line);
     } while (0)
 
 
-#  define ASSERTBREAK(expr) \
+#define ASSERTBREAK(expr) \
     do { \
         if (!(expr)) { \
             _Assert(__FILE__, __LINE__); \
@@ -122,14 +122,14 @@ extern ostream& _Out(ostream& out, const char* file, const int line);
         } \
     } while (0)
 
-#  define ASSERTMSG(expr, msg) \
+#define ASSERTMSG(expr, msg) \
     do { \
         if (!(expr)) { \
             _Assert(__FILE__, __LINE__, (msg)); \
         } \
     } while (0)
 
-#  define ASSERTMSGBREAK(expr, msg) \
+#define ASSERTMSGBREAK(expr, msg) \
     do { \
         if (!(expr)) { \
             _Assert(__FILE__, __LINE__, (msg)); \
@@ -140,60 +140,60 @@ extern ostream& _Out(ostream& out, const char* file, const int line);
 
 
 
-#  define COUT \
+#define COUT \
     _Out(cout, __FILE__, __LINE__)
 
-#  define CERR \
+#define CERR \
     _Out(cerr, __FILE__, __LINE__)
 
 
 
-#  define DEBUGCOUT(msg) \
+#define DEBUGCOUT(msg) \
     do { \
         _Out(cout, __FILE__, __LINE__) << msg; cout.flush(); \
     } while (0)
 
-#  define DEBUGCERR(msg) \
+#define DEBUGCERR(msg) \
     do { \
         _Out(cerr, __FILE__, __LINE__) << msg; cerr.flush(); \
     } while (0)
 
-#  define DEBUG_LEVEL(level) \
+#define DEBUG_LEVEL(level) \
     level & ::debug_level
 
-#  define DEBUG_LEVEL_MATCH(level) \
+#define DEBUG_LEVEL_MATCH(level) \
       (level & ::debug_level) == level
 
-#  define DEBUGLCOUT(level, msg) \
+#define DEBUGLCOUT(level, msg) \
     do { \
         if (::debug_level & level) { \
             DEBUGCOUT(msg); \
         } \
     } while (0)
 
-#  define DEBUGLCERR(level, msg) \
+#define DEBUGLCERR(level, msg) \
     do { \
         if (::debug_level & level) { \
             DEBUGCERR(msg); \
         } \
     } while (0)
 
-#  define DEBUGLMCOUT(level, msg) \
+#define DEBUGLMCOUT(level, msg) \
     do { \
         if ((::debug_level & level) == level) { \
             DEBUGCOUT(msg); \
         } \
     } while (0)
 
-#  define DEBUGLMCERR(level, msg) \
+#define DEBUGLMCERR(level, msg) \
     do { \
         if ((::debug_level & level) == level) { \
             DEBUGCERR(msg); \
         } \
     } while (0)
 
-#  if defined(__GNUC__)
-#   define DEBUGCOUTFNAME(fname) \
+#if defined(__GNUC__)
+#define DEBUGCOUTFNAME(fname) \
     do { \
         if (::debug_level & MYDEBUG_FNAMES) { \
             if (::debug_level & MYDEBUG_PRETTYFN) { \
@@ -203,63 +203,58 @@ extern ostream& _Out(ostream& out, const char* file, const int line);
             } \
         } \
     } while (0)
-#  else /* !__GNUC__ */
-#   define DEBUGCOUTFNAME(fname) \
+#else /* !__GNUC__ */
+#define DEBUGCOUTFNAME(fname) \
     DEBUGLCOUT(MYDEBUG_FNAMES, "Entering <" << fname << ">" << endl)
-#  endif /* !__GNUC__ */
+#endif /* !__GNUC__ */
 
-# else /* !DEBUG */
-#  define ASSERT(expr) \
+#else /* !DEBUG */
+#define ASSERT(expr) \
     NO_OP
 
-#  define ASSERTBREAK(expr) \
+#define ASSERTBREAK(expr) \
     NO_OP
 
-#  define ASSERTMSG(expr, msg) \
+#define ASSERTMSG(expr, msg) \
     NO_OP
 
-#  define ASSERTMSGBREAK(expr, msg) \
+#define ASSERTMSGBREAK(expr, msg) \
     NO_OP
 
-
-
-
-
-#  define COUT \
+#define COUT \
     cout
 
-#  define CERR \
+#define CERR \
     cerr
 
 
-#  define DEBUGCOUT(msg) \
+#define DEBUGCOUT(msg) \
     do { } while (0)        
 
-#  define DEBUGCERR(msg) \
+#define DEBUGCERR(msg) \
     do { } while (0)
 
-#  define DEBUG_LEVEL(level) \
+#define DEBUG_LEVEL(level) \
     0
 
-#  define DEBUG_LEVEL_MATCH(level) \
+#define DEBUG_LEVEL_MATCH(level) \
     0
 
-#  define DEBUGLCOUT(level, msg) \
+#define DEBUGLCOUT(level, msg) \
     do { } while (0)        
 
-#  define DEBUGLCERR(level, msg) \
+#define DEBUGLCERR(level, msg) \
     do { } while (0)
 
-#  define DEBUGLMCOUT(level, msg) \
+#define DEBUGLMCOUT(level, msg) \
     do { } while (0)        
 
-#  define DEBUGLMCERR(level, msg) \
+#define DEBUGLMCERR(level, msg) \
     do { } while (0)
 
-#  define DEBUGCOUTFNAME(fname) \
+#define DEBUGCOUTFNAME(fname) \
     do { } while (0)
 
-# endif /* !DEBUG */
-
+#endif /* !DEBUG */
 
 #endif /* MYASSERT_H */

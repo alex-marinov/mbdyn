@@ -99,7 +99,7 @@ libaero_la_LDFLAGS = -static
 
 bin_PROGRAMS = testc81
 testc81_SOURCES = testc81.cc
-testc81_LDADD = libaero.la
+testc81_LDADD = libaero.la ../../libraries/libmbutil/libmbutil.la
 
 INCLUDES =  -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../libraries/libmbwrap -I../../mbdyn -I../../mbdyn/base -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr
 
@@ -119,7 +119,8 @@ aeromodal.lo c81data.lo rotor.lo
 PROGRAMS =  $(bin_PROGRAMS)
 
 testc81_OBJECTS =  testc81.o
-testc81_DEPENDENCIES =  libaero.la
+testc81_DEPENDENCIES =  libaero.la \
+../../libraries/libmbutil/libmbutil.la
 testc81_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
