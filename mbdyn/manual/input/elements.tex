@@ -2428,7 +2428,19 @@ or viscous constitutive laws, the use with viscoelastic laws
 is untested yet, and thus it is disabled.}
 
 \paragraph{Private Data}
-This joint does not provide any specific data; however, it provides
+The following data is available:
+\begin{enumerate}
+\item \kw{"dx"} relative displacement in node 1 local direction 1
+\item \kw{"dy"} relative displacement in node 1 local direction 2
+\item \kw{"dz"} relative displacement in node 1 local direction 3
+\item \kw{"vx"} relative velocity in node 1 local direction 1
+\item \kw{"vy"} relative velocity in node 1 local direction 2
+\item \kw{"vz"} relative velocity in node 1 local direction 3
+\item \kw{"Fx"} constraint reaction force in node 1 local direction 1
+\item \kw{"Fy"} constraint reaction force in node 1 local direction 2
+\item \kw{"Fz"} constraint reaction force in node 1 local direction 3
+\end{enumerate}
+In addition, the joint provides
 access to the private data provided by the constitutive law.
 They are accessed by prefixing the name of the data with the string
 \kw{"constitutiveLaw."}; see the specific constitutive law
@@ -2452,7 +2464,19 @@ description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
     joint that constrains the displacements too.}
 
 \paragraph{Private Data}
-This joint does not provide any specific data; however, it provides
+The following data is available:
+\begin{enumerate}
+\item \kw{"rx"} relative rotation vector component in node 1 local direction 1
+\item \kw{"ry"} relative rotation vector component in node 1 local direction 2
+\item \kw{"rz"} relative rotation vector component in node 1 local direction 3
+\item \kw{"wx"} relative angular velocity in node 1 local direction 1
+\item \kw{"wy"} relative angular velocity in node 1 local direction 2
+\item \kw{"wz"} relative angular velocity in node 1 local direction 3
+\item \kw{"Mx"} constraint reaction moment in node 1 local direction 1
+\item \kw{"My"} constraint reaction moment in node 1 local direction 2
+\item \kw{"Mz"} constraint reaction moment in node 1 local direction 3
+\end{enumerate}
+In addition, the joint provides
 access to the private data provided by the constitutive law.
 They are accessed by prefixing the name of the data with the string
 \kw{"constitutiveLaw."}; see the specific constitutive law

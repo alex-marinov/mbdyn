@@ -99,21 +99,57 @@ void DeformableDispHingeJoint::Output(OutputHandler& OH) const
 unsigned int
 DeformableDispHingeJoint::iGetNumPrivData(void) const
 {
-	return ConstitutiveLaw3DOwner::iGetNumPrivData();
+	return 9 + ConstitutiveLaw3DOwner::iGetNumPrivData();
 }
 
 unsigned int
 DeformableDispHingeJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
+	
+	unsigned idx = 0;
+	
+	switch (s[0]) {
+	case 'd':
+		break;
 
-	size_t l = sizeof("constitutiveLaw.") - 1;
-	if (strncmp(s, "constitutiveLaw.", l) == 0) {
-		return ConstitutiveLaw3DOwner::iGetPrivDataIdx(s + l);
+	case 'v':
+		idx += 3;
+		break;
+
+	case 'F':
+		idx += 6;
+		break;
+
+	default:
+	{
+		size_t l = sizeof("constitutiveLaw.") - 1;
+		if (strncmp(s, "constitutiveLaw.", l) == 0) {
+			return 9 + ConstitutiveLaw3DOwner::iGetPrivDataIdx(s + l);
+		}
+		return 0;
 	}
-
-	/* error; handle later */
-	return 0;
+	}
+	
+	switch (s[1]) {
+	case 'x':
+		idx += 1;
+		break;
+	case 'y':
+		idx += 2;
+		break;
+	case 'z':
+		idx += 3;
+		break;
+	default:
+		return 0;
+	}
+	
+	if (s[2] != '\0') {
+		return 0;
+	}
+	
+	return idx;
 }
 
 doublereal
@@ -121,9 +157,42 @@ DeformableDispHingeJoint::dGetPrivData(unsigned int i) const
 {
 	ASSERT(i > 0);
 
-	ASSERT(i <= ConstitutiveLaw3DOwner::iGetNumPrivData());
+	ASSERT(i <= iGetNumPrivData());
+	
+	switch (i) {
+	case 1:
+	case 2:
+	case 3:
+	{
+		Vec3 f1Tmp(pNode1->GetRCurr()*f1);
+		Vec3 f2Tmp(pNode2->GetRCurr()*f2);
+		Mat3x3 R1T((pNode1->GetRCurr()*R1h).Transpose());
+		Vec3 d(R1T*(pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr() - f1Tmp));
 
-	return ConstitutiveLaw3DOwner::dGetPrivData(i);
+		return d(i);
+	}
+	
+	case 4:
+	case 5:
+	case 6:
+	{
+		Vec3 f2Tmp(pNode2->GetRCurr()*f2);
+		Mat3x3 R1T(pNode1->GetRCurr().Transpose());
+		Vec3 v(R1T*(pNode2->GetVCurr() - pNode1->GetVCurr()
+					+ (pNode2->GetXCurr() - pNode1->GetXCurr()).Cross(pNode1->GetWCurr())
+					- f2Tmp.Cross(pNode2->GetWCurr() - pNode1->GetWCurr())));
+
+		return v(i - 3);
+	}
+	
+	case 7:
+	case 8:
+	case 9:
+		return GetF()(i - 6);
+	
+	default:
+		return ConstitutiveLaw3DOwner::dGetPrivData(i - 9);
+	}
 }
 
 /* DeformableDispHingeJoint - end */

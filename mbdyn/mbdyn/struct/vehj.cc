@@ -98,7 +98,7 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 unsigned int
 DeformableHingeJoint::iGetNumPrivData(void) const
 {
-	return ConstitutiveLaw3DOwner::iGetNumPrivData();
+	return 9 + ConstitutiveLaw3DOwner::iGetNumPrivData();
 }
 
 unsigned int
@@ -106,13 +106,49 @@ DeformableHingeJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 
-	size_t l = sizeof("constitutiveLaw.") - 1;
-	if (strncmp(s, "constitutiveLaw.", l) == 0) {
-		return ConstitutiveLaw3DOwner::iGetPrivDataIdx(s + l);
+	unsigned idx = 0;
+	
+	switch (s[0]) {
+	case 'r':
+		break;
+
+	case 'w':
+		idx += 3;
+		break;
+
+	case 'M':
+		idx += 6;
+		break;
+
+	default:
+	{
+		size_t l = sizeof("constitutiveLaw.") - 1;
+		if (strncmp(s, "constitutiveLaw.", l) == 0) {
+			return 9 + ConstitutiveLaw3DOwner::iGetPrivDataIdx(s + l);
+		}
+		return 0;
+	}
+	}
+	
+	switch (s[1]) {
+	case 'x':
+		idx += 1;
+		break;
+	case 'y':
+		idx += 2;
+		break;
+	case 'z':
+		idx += 3;
+		break;
+	default:
+		return 0;
 	}
 
-	/* error; handle later */
-	return 0;
+	if (s[2] != '\0') {
+		return 0;
+	}
+	
+	return idx;
 }
 
 doublereal
@@ -120,9 +156,41 @@ DeformableHingeJoint::dGetPrivData(unsigned int i) const
 {
 	ASSERT(i > 0);
 
-	ASSERT(i <= ConstitutiveLaw3DOwner::iGetNumPrivData());
+	ASSERT(i <= iGetNumPrivData());
+	
+	switch (i) {
+	case 1:
+	case 2:
+	case 3:
+	{
+		Mat3x3 R1T((pNode1->GetRCurr()*R1h).Transpose());
+		Mat3x3 R2(pNode2->GetRCurr()*R2h);
 
-	return ConstitutiveLaw3DOwner::dGetPrivData(i);
+		Vec3 v(RotManip::VecRot(R1T*R2));
+
+		return v(i);
+	}
+	
+	case 4:
+	case 5:
+	case 6:
+	{
+		Mat3x3 R1T((pNode1->GetRCurr()*R1h).Transpose());
+		Vec3 W1(pNode1->GetWCurr());
+		Vec3 W2(pNode2->GetWCurr());
+		Vec3 w = R1T*(W2 - W1);
+
+		return w(i - 3);
+	}
+
+	case 7:
+	case 8:
+	case 9:
+		return GetF()(i - 6);
+	
+	default:
+		return ConstitutiveLaw3DOwner::dGetPrivData(i - 9);
+	}
 }
 
 /* DeformableHingeJoint - end */

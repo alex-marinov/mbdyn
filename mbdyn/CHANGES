@@ -18,7 +18,11 @@ MBDyn 1.X-Devel
 		- added ideal gimbal joint
 		- reworked matrix/matrix and matrix/vector product
 		- added "print symbol table" directive
+		- added deformable joint (elastic only)
+		- added private data to deformable hinge
+		- added private data to deformable displacement joint
 	Backward compatibility issues:
+		- s/(deformable displacement )hinge/\1joint/
 	Known issues:
 	Bug fixes:
 		- fixed stream opening sequence
