@@ -1308,15 +1308,43 @@ The linearization of the angular velocity yields
 \end{equation*}
 The moment is
 \begin{equation*}
-	\T{M}_i = \plbr{ -1 }^i \T{R}_{1h} \tilde{\T{M}}\plbr{\tilde{\T{\theta}}, \tilde{\T{\omega}}}
+	\T{M}_i = \plbr{ -1 }^{\plbr{i-1}} \T{R}_{1h} \tilde{\T{M}}\plbr{\tilde{\T{\theta}}, \tilde{\T{\omega}}}
 \end{equation*}
 Its linearization yields
 \begin{equation*}
-	\delta\T{M}_i \cong \plbr{ -1 }^i \T{R}_{1h} \plbr{
+	\delta\T{M}_i \cong \plbr{ -1 }^{\plbr{i-1}} \T{R}_{1h} \plbr{
 		\tilde{\T{M}}_{/\tilde{\T{\theta}}} \tilde{\T{\theta}}_{\delta}
 		+ \tilde{\T{M}}_{/\tilde{\T{\omega}}} \delta\tilde{\T{\omega}}
 	} - \T{M}_i \times \delta\T{g}_1
 \end{equation*}
+The complete linearized problem is
+\begin{eqnarray*}
+	\sqbr{\matr{cc}{
+		\T{M}_{/\tilde{\T{\omega}}} & - \T{M}_{/\tilde{\T{\omega}}} \\
+		- \T{M}_{/\tilde{\T{\omega}}} & \T{M}_{/\tilde{\T{\omega}}}
+	}}\cubr{\cvvect{
+		\delta\dot{\T{g}}_1 \\
+		\delta\dot{\T{g}}_2
+	}} & & \\
+	\mbox{} + \sqbr{\matr{cc}{
+		\T{M}_{/\tilde{\T{\theta}}} - \T{M}_{/\tilde{\T{\omega}}} \T{\omega}_2\times{} + \T{M}\times{} & 
+			- \T{M}_{/\tilde{\T{\theta}}} + \T{M}_{/\tilde{\T{\omega}}} \T{\omega}_2\times{} \\
+		- \T{M}_{/\tilde{\T{\theta}}} + \T{M}_{/\tilde{\T{\omega}}} \T{\omega}_2\times{} - \T{M}\times{} & 
+			\T{M}_{/\tilde{\T{\theta}}} - \T{M}_{/\tilde{\T{\omega}}} \T{\omega}_2\times{}
+	}}\cubr{\cvvect{
+		\delta\T{g}_1 \\
+		\delta\T{g}_2
+	}} & = & \cubr{\cvvect{
+		\T{M} \\
+		- \T{M}
+	}}
+\end{eqnarray*}
+where
+\begin{eqnarray*}
+	\T{M}_{/\tilde{\T{\omega}}} & = & \T{R}_{1h} \tilde{\T{M}}_{/\tilde{\T{\omega}}} \T{R}_{1h}^T \\
+	\T{M}_{/\tilde{\T{\theta}}} & = & \T{R}_{1h} \tilde{\T{M}}_{/\tilde{\T{\theta}}} \T{R}_{1h}^T
+\end{eqnarray*}
+
 
 
 
@@ -1399,6 +1427,98 @@ Their linearization yields
 	} - \T{F}_i \times \delta\T{g}_1 \\
 	\delta\T{M}_i & = & \T{f}_i \times \delta\T{F}_i + \T{F}_i \times \T{f}_i \times \delta\T{g}_i
 \end{eqnarray*}
+The complete linearized problem is
+\begin{eqnarray*}
+	\sqbr{\matr{cccc}{
+		\T{F}_{/\dot{\tilde{\T{d}}}} & -\T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
+			- \T{F}_{/\dot{\tilde{\T{d}}}} & \T{F}_{/\dot{\tilde{\T{d}}}} \T{f}_2\times{} \\
+		\T{f}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
+			- \T{f}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
+			- \T{f}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
+			\T{f}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{f}_2\times{} \\
+		- \T{F}_{/\dot{\tilde{\T{d}}}} & \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
+			\T{F}_{/\dot{\tilde{\T{d}}}} & - \T{F}_{/\dot{\tilde{\T{d}}}} \T{f}_2\times{} \\
+		\T{f}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
+			- \T{f}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
+			- \T{f}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
+			\T{f}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{f}_2\times{}
+	}} \cubr{\cvvect{
+		\delta\dot{\T{x}}_1 \\
+		\delta\dot{\T{g}}_1 \\
+		\delta\dot{\T{x}}_2 \\
+		\delta\dot{\T{g}}_2
+	}} & & \\
+	\mbox{} + \sqbr{\cvvect{
+		\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
+		\T{f}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}} \\
+		- \T{F}_{/\tilde{\T{d}}} + \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
+		- \T{f}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
+	}} \delta\T{x}_1 + \sqbr{\cvvect{
+		- \T{F}_{/\tilde{\T{d}}} + \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_2 \times{} \\
+		- \T{f}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_2 \times{}} \\
+		\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_2 \times{} \\
+		\T{f}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_2 \times{}}
+	}} \delta\T{x}_2 & & \\
+	\mbox{} + \sqbr{\cvvect{
+		- \T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
+		- \T{F}_{/\tilde{\T{d}}} \plbr{
+			\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
+		} + \T{F}\times \\
+		- \T{f}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
+			+ \T{F}_{/\tilde{\T{d}}} \plbr{
+				\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
+			} - \T{F}\times
+		} - \T{F} \times \T{f}_1 \times{} \\
+		\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
+		+ \T{F}_{/\tilde{\T{d}}} \plbr{
+			\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
+		} - \T{F}\times \\
+		\T{f}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
+			+ \T{F}_{/\tilde{\T{d}}} \plbr{
+				\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
+			} - \T{F}\times
+		}
+	}} \delta\T{g}_1 \\
+	\mbox{} + \sqbr{\cvvect{
+		- \T{F}_{/\tilde{\T{d}}} \T{f}_2 \times{}
+		- \T{F}_{/\tilde{\T{d}}} \plbr{
+			\plbr{\T{f}_2 \times \T{\omega}_2}\times{}
+			- \T{\omega}_1 \times \T{f}_2\times{}
+		} \\
+		- \T{f}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{f}_2 \times{}
+			+ \T{F}_{/\tilde{\T{d}}} \plbr{
+				\plbr{\T{f}_2 \times \T{\omega}_2}\times{}
+				- \T{\omega}_1 \times \T{f}_2\times{}
+			}
+		} - \T{F} \times \T{f}_2 \times{} \\
+		\T{F}_{/\tilde{\T{d}}} \T{f}_2 \times{}
+		+ \T{F}_{/\tilde{\T{d}}} \plbr{
+			\plbr{\T{f}_2 \times \T{\omega}_2}\times{}
+			- \T{\omega}_1 \times \T{f}_2\times{}
+		} \\
+		\T{f}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{f}_2 \times{}
+			+ \T{F}_{/\tilde{\T{d}}} \plbr{
+				\plbr{\T{f}_2 \times \T{\omega}_2}\times{}
+				- \T{\omega}_1 \times \T{f}_2\times{}
+			} - \T{F}\times
+		} + \T{F} \times \T{f}_2 \times{}
+	}} \delta\T{g}_2
+	& = & \\
+	\cubr{\cvvect{
+		\T{F} \\
+		\T{f}_1 \times \T{F} \\
+		- \T{F} \\
+		- \T{f}_2 \times \T{F}
+	}} & &
+\end{eqnarray*}
+where 
+\begin{eqnarray*}
+	\T{F}_{/\tilde{\T{\omega}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{\omega}}} \T{R}_{1h}^T \\
+	\T{F}_{/\tilde{\T{\theta}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{\theta}}} \T{R}_{1h}^T \\
+	\T{d}_1 & = & \T{x}_2 + \T{f}_2 - \T{x}_1 \\
+	\dot{\T{d}}_1 & = & \dot{\T{x}}_2 - \T{f}_2 \times\T{\omega}_2 - \dot{\T{x}}_1
+\end{eqnarray*}
+
 
 
 \subsection{Deformable Joint}
