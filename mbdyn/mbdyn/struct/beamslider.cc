@@ -42,3 +42,87 @@
 #include <beamslider.h>
 #include <dataman.h>
 
+/* Costruttore non banale */
+BeamSliderJoint::BeamSliderJoint(unsigned int uL, const DofOwner* pDO,
+		const StructNode* pN, enum Type iT,
+		unsigned int nB, const Beam** ppB,
+		const Vec3& fTmp, const Mat3x3& RTmp, flag fOut)
+: Elem(uL, Elem::JOINT, fOut),
+Joint(uL, Joint::BEAMSLIDER, pDO, fOut),
+nRotConstr(0), nBeams(nB), iCurrBeam(0), iType(iT),
+pNode(pN), ppBeam(ppB),
+f(fTmp), R(RTmp),
+F(0.), M(0.)
+{
+	ASSERT(pNode != NULL);
+	ASSERT(nBeams > 0);
+	ASSERT(ppBeam != NULL);
+
+	switch (iType) {
+	case CLASSIC:
+		nRotConstr = 2;
+		break;
+	case SPLINE:
+		nRotConstr = 3;
+		break;
+	default:
+		break;
+	}
+
+	for (unsigned int iCnt = 0; iCnt < nBeams; iCnt++) {
+		ASSERT(ppBeam[iCnt] != NULL);
+	}
+}
+
+/* Assemblaggio residuo */
+SubVectorHandler& 
+BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& /* XPrimeCurr */ )
+{
+	DEBUGCOUT("Entering BeamSliderJoint::AssRes()" << endl);
+	
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.Resize(iNumRows);
+	WorkVec.Reset(0.);
+
+	/* Indici */
+	integer iNodeFirstMomIndex = pNode->iGetFirstMomentumIndex();
+	integer iFirstReactionIndex = iGetFirstIndex();
+	const StructNode *pBeamNode[Beam::NUMNODES];
+	
+	/* Indici dei nodi */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.fPutRowIndex(iCnt, iNodeFirstMomIndex+iCnt);
+	}
+	for (int nCnt = 1; nCnt <= Beam::NUMNODES; nCnt++) {
+		pBeamNode[nCnt-1] = ppBeam[iCurrBeam]->pGetNode(nCnt);
+		integer iBeamFirstMomIndex = 
+			pBeamNode[nCnt-1]->iGetFirstMomentumIndex();
+
+		for (int iCnt = 1; iCnt <= 6; iCnt++) {
+			WorkVec.fPutRowIndex(6*nCnt+iCnt, 
+					iBeamFirstMomIndex+iCnt);
+		}
+	}
+	
+	/* Indici del vincolo */
+	for (unsigned int iCnt = 1; iCnt <= iGetNumDof(); iCnt++) {
+		WorkVec.fPutRowIndex(6*(1+Beam::NUMNODES)+iCnt, 
+				iFirstReactionIndex+iCnt);
+	}
+	
+	/* Aggiorna i dati propri */
+	F = Vec3(XCurr, iFirstReactionIndex+1);
+	M = Vec3(0.);
+	for (unsigned int iCnt = 1; iCnt <= nRotConstr; iCnt++) {
+		M.Put(iCnt, XCurr.dGetCoef(iFirstReactionIndex+3+iCnt));
+	}
+	
+	return WorkVec;
+}
+
