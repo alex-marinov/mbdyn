@@ -95,6 +95,7 @@ D. Code:
 			bank=atan2(e2(3),e2(2));
 		+:	turn=Omega(3);
 			slip=?
+	- allow the FEM data filename as command-line arg in utils/femgen
 
 
 
