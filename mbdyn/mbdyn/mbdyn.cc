@@ -982,7 +982,7 @@ RunMBDyn(MBDynParser& HP,
             		fParallel = int(MBDynComm.Get_size() != 1);
 	    		break;
 #else /* !USE_MPI */
-            		std::cerr << "complile with -DUSE_MPI to enable "
+            		std::cerr << "compile with -DUSE_MPI to enable "
 				"parallel solution" << std::endl;
 	    		THROW(ErrGeneric());
 #ifndef USE_EXCEPTIONS
