@@ -163,32 +163,39 @@ OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
 OL_ARG_WITH(metis,[  --with-metis            with Metis model partitioning support],auto,[auto yes no])
 OL_ARG_WITH(chaco,[  --with-chaco            with Chaco model partitioning support],auto,[auto yes no])
 OL_ARG_WITH(rtai,[  --with-rtai             with RTAI support],no,[auto yes no])
-OL_ARG_WITH(umfpack,[       linear algebra solvers:
-  --with-umfpack          with Umfpack math library],auto,[auto yes no])
-OL_ARG_WITH(blas,[  --with-blas             with (C)BLAS math library],auto,[auto goto atlas cblas blas])
+OL_ARG_WITH(blas,[
+       math libraries:
+  --with-blas             with (C)BLAS math library],auto,[auto goto atlas cblas blas])
 AC_ARG_WITH(goto,[  --with-goto=lib(s)      with Goto BLAS implementation],[
 	ol_with_goto_lib="$withval"
 ],[ol_with_goto_lib=])
-OL_ARG_WITH(y12,[  --with-y12              with Y12 sparse math library],auto,[auto yes no])
-OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math library],auto,[auto yes no])
-OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
-OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library],auto,[auto yes no])
-OL_ARG_WITH(lapack,[
-  --with-lapack           with LAPACK math library],auto,[auto yes no])
-OL_ARG_WITH(taucs,[
-  --with-taucs           with TAUCS math library],auto,[auto yes no])
-OL_ARG_WITH(pam,[  --with-pam              with PAM support],auto,[auto yes no])
-OL_ARG_WITH(sasl2,[  --with-sasl2            with Cyrus SASL2 support],auto,[auto yes no])
 OL_ARG_WITH(ginac,[  --with-ginac            with GiNaC support
                           (ginac-config must be in $PATH)],auto,[auto yes no])
-OL_ARG_WITH(struct,[  --with-struct           with structural elements],yes,[yes no])
+OL_ARG_WITH(y12,[
+       linear algebra solvers (naive is enabled by default):
+  --with-y12              with Y12 sparse math library],yes,[auto yes no])
+OL_ARG_WITH(umfpack,[  --with-umfpack          with Umfpack math library],auto,[auto yes no])
+OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
+OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math library - historical],auto,[auto yes no])
+OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library - historical],auto,[auto yes no])
+OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library - eXperimental],auto,[auto yes no])
+OL_ARG_WITH(taucs,[  --with-taucs            with TAUCS math library - eXperimental],auto,[auto yes no])
+OL_ARG_WITH(pam,[
+       misc security libraries:
+  --with-pam              with PAM support],auto,[auto yes no])
+OL_ARG_WITH(sasl2,[  --with-sasl2            with Cyrus SASL2 support],auto,[auto yes no])
+OL_ARG_WITH(struct,[
+       supported features:
+  --with-struct           with structural elements],yes,[yes no])
 OL_ARG_WITH(elec,[  --with-elec             with electric stuff],yes,[yes no])
 OL_ARG_WITH(aero,[  --with-aero             with aerodynamic stuff],yes,[yes no])
 OL_ARG_WITH(aero_output,[  --with-aero-output={std,gauss,node}  aerodynamic output mode],auto,[auto std gauss node])
 OL_ARG_WITH(hydr,[  --with-hydr             with hydraulic stuff],yes,[yes no])
 
 dnl module with's
-AC_ARG_WITH(module,[  --with-module=modulelist  build listed modules],[
+AC_ARG_WITH(module,[
+  --with-module=<list>    build listed modules (see modules/)
+],[
 	ol_arg=
 	for ol_val in $withval ; do
 		ol_arg="$ol_arg module-$ol_val"
