@@ -2568,7 +2568,7 @@ MultiStepIntegrator::Eig(void)
 	    const char *comment = "(EXPERIMENTAL) MODAL ANALYSIS";
 	    int l = strlen(comment);
 	    f06 << setw(l+1) << comment;
-	    f06 << sigma << " " << (omega < 0. ? "-" : "+") << " " << fabs(omega) << setw(80-1-l) << " j";
+	    f06 << sigma << " " << (omega < 0. ? "-" : "+") << " " << fabs(omega) << " j (" << csi << ", "<< freq << setw(80-1-l) << ")";
 	    f06.flags(iosfl);
 	    f06 << "   SUBCASE " << iCnt << endl
 	      << endl
