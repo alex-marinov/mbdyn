@@ -8,8 +8,9 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn_NASTRAN_alter_1.nas
 MBDyn_NASTRAN_alter_2.nas
+MBDyn_NASTRAN_alter_3.nas
 
 Alter files for NASTRAN.  Used to generate the flexible element data
 from (enhanced) FEM modal analysis.  See each file for a brief 
-description.
+description, and test/modal/beam.README where available.
 
