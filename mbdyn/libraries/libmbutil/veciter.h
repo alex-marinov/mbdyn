@@ -115,7 +115,7 @@ public:
 #ifdef MBDYN_X_MULTITHREAD
 class InUse {
 public:
-	mutable int8_t	inuse;
+	mutable sig_atomic_t	inuse;
 
 	InUse(void) : inuse(false) { NO_OP; };
 	virtual ~InUse(void) { NO_OP; };
@@ -123,7 +123,8 @@ public:
 	inline bool IsInUse(void) const
 	{
 		/* FIXME: make it portable? */
-		return mbdyn_compare_and_swap(&inuse, int8_t(true), int8_t(false));
+		return mbdyn_compare_and_swap(&inuse,
+				sig_atomic_t(true), sig_atomic_t(false));
 	};
 	inline void SetInUse(bool b = false) { inuse = b; };
 };
