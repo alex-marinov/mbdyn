@@ -36,7 +36,7 @@ C     Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
 C
 C
       integer maxnod, maxmod
-      parameter(maxnod=1000,maxmod=100)
+      parameter(maxnod=10000,maxmod=1000)
       character*72 modnam, name*8,filein*9
       dimension lab(2),t(7),nam(2)
       integer outfil,in2f,in4f,sysout
@@ -245,14 +245,14 @@ C
       CHARACTER*8 CNAME
       REAL DR(2)
 C     
-C     A,DA AND IA REPRESENT THE LARGEST COLUMN OF A MATRIX WHIC CAN BE
+C     A,DA AND IA REPRESENT THE LARGEST COLUMN OF A MATRIX WHICH CAN BE
 C     READ
 C     
-      DIMENSION A(2000),DA(1000),IA(2000)
+      DIMENSION A(20000),DA(10000),IA(20000)
       EQUIVALENCE (A(1),DA(1),IA(1))
       EQUIVALENCE (DD(1),DR(1))
 C     
-      DATA LENA/2000/
+      DATA LENA/20000/
       DATA SYSOUT /6/
       
 C     
@@ -364,110 +364,6 @@ C
       RETURN 
       END
       
-C******************************************************************************
-      SUBROUTINE GETMC(B,NCOL,NROW,CNAME,NRB,NCB,DB,IDL,IU)
-C     legge una matrice complex double precision
-C     Subroutine taken from mattest.f NASTRAN Version 70.7 utility program 
-C******************************************************************************
-C     ARGUMENTS:
-C     
-C     B     -  SINGLE PRECISION ARRAY SUBSCRIPTED BY B(NRB,NCB)
-C     THE MATRIX WILL BE RETURNED IN B IF IDL = 0
-C     NCOL  -  RETURNED AS THE ACTUAL NUMBER OF COLUMNS OF MATRIX
-C     NROW  -  RETURNED AS THE ACTUAL NUMBER OF ROWS OF MATRIX
-C     CNAME -  RETURNED AS THE NAME OF THE INCOMMING MATRIX
-C     NRB   -  MAXIMUM ROWS IN B AND DB ARRAYS
-C     NCB   -  THE MAXIMUM NUMBER OF COLUMNS IN B AND DB ARRAYS
-C     DB    -  DOUBLE PRECISION ARRAY LIKE B
-C     IDL   -  0 ASKS FOR SINGLE RETURN  1  ASKS FOR D.P.
-C     IU    -  FORTRAN UNIT TO READ
-C     
-      INTEGER SYSOUT
-      DOUBLE PRECISION DB(NRB,NCB)
-      DOUBLE PRECISION DA,DD(1)
-      REAL B(NRB,NCB)
-      REAL DR(2)
-      CHARACTER*8 CNAME
-      INTEGER NF
-C     
-C     A,DA AND IA REPRESENT THE LARGEST COLUMN OF A MATRIX WHIC CAN BE
-C     READ
-C     
-      DIMENSION A(2000),DA(1000),IA(2000)
-      EQUIVALENCE (A(1),DA(1),IA(1))
-      EQUIVALENCE (DD(1),DR(1))
-C     
-      DATA LENA/2000/
-      DATA SYSOUT /6/
-C     
-C     READ MATRIX DESCRIPTORS
-C     
-      READ (IU) NCOL,NROW,NF,NTYPE,CNAME
-      PRINT*, NCOL,NROW,NF,NTYPE,CNAME
-C     
-C     CHECK IF MATRIX IS TOO LARGE
-C     
-      IF(NCOL .GT. NCB .OR. NROW .GT. NRB) GO TO 50
-      IF(NTYPE*NROW .GT. LENA) GO TO 50
-C     
-C     ZERO B MATRIX
-C     
-      DO 7 I = 1,NCOL
-         DO 66 J = 1,NROW
-            IF(IDL .EQ. 1)  GO TO 67
-            B(J,I) = 0.0
-            GO TO 66
- 67         DB(J,I) = 0.0D0
- 66      CONTINUE
-    7 CONTINUE
-      
-C
-C     FOR EACH COLUMN (ONLY NON-ZERO COLUMNS ON FILE)
-C     
-      DO 10 I = 1,NCOL
-         READ(IU) ICOL,IROW,NW,(A(K),K=1,NW)
-         IF(ICOL .GT. NCOL) GO TO 20
-C     
-C     TEST FOR SPARSE MATRIX OPTION
-C     
-         IF(IROW .EQ. 0) GO TO 30
-C     
-C     DENSE MATRIX FORMAT
-C     DOUBLE INCOMMING MATRIX
-C     
-         IF(NTYPE .NE. 4) GO TO 60 
- 100     NW = NW/4
-         DO 6 J = 1,NW
-            K = IROW+J-1
-            IF(IDL .EQ. 1) GO TO 11
-            B(K,(ICOL*2)-1) = DA((J*2)-1)
-            B(K,(ICOL*2)) = DA(J*2)
-            GO TO 6
- 11         DB(K,(ICOL*2)-1) = DA((J*2)-1)
-            DB(K,(ICOL*2)) = DA(J*2)
- 6       CONTINUE
- 10   CONTINUE
-C     
-C     THERE IS DUMMY RECORD FOR LAST COLUMN +1
-C     
-      READ(IU) ICOL,IROW,NW,(A(K),K=1,NW)
- 20   RETURN
-C     
-C     SPARSE INCOMMING MATRIX
-C     
- 30   CONTINUE
-      WRITE(SYSOUT,*)'Sorry, Sparse complex matrix is not supported yet'
-      STOP
- 50   CONTINUE
-      WRITE(SYSOUT,55)
- 55   FORMAT(' MSC/NASTRAN MATRIX TOO LARGE.')
-      STOP
- 60   CONTINUE
-      WRITE(SYSOUT,*) 'Input matrix is not d.p. complex'
-      STOP   
-      END 
-      
-      
 C***********************************************************************
 C     
       SUBROUTINE TABRD(IUN,IOUT,ITOUT,TTYP)
@@ -487,8 +383,8 @@ C     3 modal spc forces
 C     5 modal element stresses
 C     4 modal element forces  
 C     
-      REAL BLOCK(20000)
-      INTEGER IBLOCK(20000)
+      REAL BLOCK(200000)
+      INTEGER IBLOCK(200000)
       EQUIVALENCE (BLOCK(1),IBLOCK(1))
 C     
 C     DATA BLOCK NAME (NAM) IS 2 WORDS, NASTRAN TRAILER (T) IS 7 WORDS,
