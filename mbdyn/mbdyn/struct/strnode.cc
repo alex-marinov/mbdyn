@@ -1063,7 +1063,7 @@ RelFrameDummyStructNode::Update(const VectorHandler& /* X */ ,
 Node* 
 ReadStructNode(DataManager* pDM, 
 	       MBDynParser& HP,
-	       const DofOwner* pDO,
+	       DofOwner* pDO,
 	       unsigned int uLabel)
 {
    const char sFuncName[] = "ReadStructNode()";
@@ -1237,8 +1237,6 @@ ReadStructNode(DataManager* pDM,
       doublereal dVelStiff = pDM->dInitialVelocityStiffness;
       flag fOmRot = pDM->fOmegaRotates;
       
-      flag fOut;
-      
       if (HP.fIsArg()) {
 	 if (HP.IsKeyWord("assembly")) {
 	    dPosStiff = HP.GetReal(dPosStiff);
@@ -1257,7 +1255,9 @@ ReadStructNode(DataManager* pDM,
 	    DEBUGCOUT("Omega rotates? : " << (fOmRot ? "yes" : "no") << std::endl);
 	 }
       }
-      fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);   
+      
+      pDO->SetScale(pDM->dReadScale(HP, DofOwner::STRUCTURALNODE));
+      flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);   
       
       /* Se non c'e' il punto e virgola finale */
       if (HP.fIsArg()) {

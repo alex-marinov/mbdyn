@@ -750,7 +750,7 @@ class MBDynParser;
 
 extern Node* ReadStructNode(DataManager* pDM, 
 			    MBDynParser& HP,
-			    const DofOwner* pDO,
+			    DofOwner* pDO,
 			    unsigned int uLabel);
 
 #endif /* STRNODE_H */

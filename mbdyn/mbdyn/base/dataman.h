@@ -139,7 +139,7 @@ class DataManager : public SolutionDataManager {
    void ReadDrivers(MBDynParser& HP);
          
    /* read functions */
-   friend Node* ReadStructNode(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);   
+   friend Node* ReadStructNode(DataManager* pDM, MBDynParser& HP, DofOwner* pDO, unsigned int uLabel);   
    friend Elem** ReadOneElem(DataManager* pDM, MBDynParser& HP, unsigned int uLabel, int CurrType);   
    friend Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
    friend Elem* ReadJoint(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);

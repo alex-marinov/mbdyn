@@ -1318,6 +1318,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     doublereal dxp(0.);
 
 	     ReadScalarDifferentialNode(HP, uLabel, Node::ELECTRIC, dx, dxp);
+	     doublereal dScale = dReadScale(HP, DofOwner::ELECTRICNODE);
 	     flag fOut = fReadOutput(HP, Node::ELECTRIC);
 	     
 	     /* allocazione e creazione */
@@ -1325,6 +1326,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	       -iNumTypes[Node::ELECTRIC]-1;
 	     ppN = NodeData[Node::ELECTRIC].ppFirstNode+i;
 	     DofOwner* pDO = DofData[DofOwner::ELECTRICNODE].pFirstDofOwner+i;
+	     pDO->SetScale(dScale);
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppN, 
 				    ElectricNode,
@@ -1358,6 +1360,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     doublereal dx(0.);
 	     doublereal dxp(0.);
 	     ReadScalarDifferentialNode(HP, uLabel, Node::ABSTRACT, dx, dxp);
+	     doublereal dScale = dReadScale(HP, DofOwner::ABSTRACTNODE);
 	     flag fOut = fReadOutput(HP, Node::ABSTRACT);
 	     
 	     /* allocazione e creazione */
@@ -1365,6 +1368,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	       -iNumTypes[Node::ABSTRACT]-1;
 	     ppN = NodeData[Node::ABSTRACT].ppFirstNode+i;
 	     DofOwner* pDO = DofData[DofOwner::ABSTRACTNODE].pFirstDofOwner+i;
+	     pDO->SetScale(dScale);
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppN, 
 				    AbstractNode,
