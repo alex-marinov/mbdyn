@@ -472,9 +472,9 @@ Linearization
 		-\frac{\alpha}{d}I & \frac{\alpha}{d}I & u \\
 		-u^T & u^T & 0
 	}}\cubr{\cvvect{
-		\Delta{x_1} \\
-		\Delta{x_2} \\
-		\Delta{\alpha}
+		\delta{x_1} \\
+		\delta{x_2} \\
+		\delta{\alpha}
 	}} = \cubr{\cvvect{
 		\alpha u \\
 		- \alpha u \\
@@ -501,12 +501,12 @@ Linearization
 			\dot{u} & u \\
 		-\dot{u}^T & -u^T & \dot{u}^T & u^T & 0 & 0
 	}}\cubr{\cvvect{
-		\Delta{x_1} \\
-		\Delta{\dot{x}_1} \\
-		\Delta{x_2} \\
-		\Delta{\dot{x}_2} \\
-		\Delta{\alpha} \\
-		\Delta{\dot{\alpha}}
+		\delta{x_1} \\
+		\delta{\dot{x}_1} \\
+		\delta{x_2} \\
+		\delta{\dot{x}_2} \\
+		\delta{\alpha} \\
+		\delta{\dot{\alpha}}
 	}} = \cubr{\cvvect{
 		\alpha \dot{u} + \dot{\alpha} u \\
 		-\alpha \dot{u} - \dot{\alpha} u \\
@@ -557,11 +557,11 @@ Linearization:
 		-u^T & - \plbr{f_1\times{u}}^T & 
 			u^T & \plbr{f_2\times{u}}^T & 0
 	}}\cubr{\cvvect{
-		\Delta{x_1} \\
-		\Delta{g_1} \\
-		\Delta{x_2} \\
-		\Delta{g_2} \\
-		\Delta{\alpha}
+		\delta{x_1} \\
+		\delta{g_1} \\
+		\delta{x_2} \\
+		\delta{g_2} \\
+		\delta{\alpha}
 	}}
 \end{displaymath}
 \begin{displaymath}
@@ -890,17 +890,17 @@ yields
 		}
 \end{eqnarray*}
 according to the updated-updated simplifications,
-$\T{\theta}_{i\delta}\cong\Delta\T{g}_i$, thus resulting in
+$\T{\theta}_{i\delta}\cong\delta\T{g}_i$, thus resulting in
 \begin{equation}
 	\T{\theta}_{\delta} = \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_1^T \plbr{
-		\Delta\T{g}_2 - \Delta\T{g}_1
+		\delta\T{g}_2 - \delta\T{g}_1
 	}
 	\label{eq:DRIVE-HINGE-theta-delta}
 \end{equation}
 note that $\T{\Gamma}\plbr{\T{\theta}}^{-1}$ does not simplify to $\T{I}$
 because $\T{\theta}$ in general is a finite rotation.
 
-%	\Delta\T{\theta} = \T{\theta}_0 - \T{\theta}
+%	\delta\T{\theta} = \T{\theta}_0 - \T{\theta}
 
 
 
@@ -932,16 +932,16 @@ nodes 1 and 2,
 \end{displaymath}
 through the previous redefinition can be expressed as
 \begin{displaymath}
-	\T{\theta}^{\Delta} = \llk{ax}\plbr{\exp^{-1}\plbr{
+	\T{\theta}^{\delta} = \llk{ax}\plbr{\exp^{-1}\plbr{
 		\T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h} \T{R}_0^T
 	}}
 \end{displaymath}
 and is equivalent to
 \begin{displaymath}
-	\T{\theta}^{\Delta} = \T{\theta} - \T{\theta}_0
+	\T{\theta}^{\delta} = \T{\theta} - \T{\theta}_0
 \end{displaymath}
-when $\T{\theta}^{\Delta}=\T{0}$.
-Each component of $\T{\theta}^{\Delta}$ can be selectively set
+when $\T{\theta}^{\delta}=\T{0}$.
+Each component of $\T{\theta}^{\delta}$ can be selectively set
 to zero to enforce a constraint on that degree of freedom.
 The axis about which the constraint is applied can be arbitrarily 
 defined by appropriately setting the constant relative orientation
@@ -950,14 +950,14 @@ An arbitrary amplitude of the rotation about that axis can be imposed
 by means of the components of the imposed vector $\T{\theta}_0$.
 
 \noindent
-If any component of $\T{\theta}^{\Delta}$ are left free, they are
+If any component of $\T{\theta}^{\delta}$ are left free, they are
 simply ignored, and the resulting constraint equations are dropped.
 Otherwise, they can be used to apply moments based on the 
 relative orientation of the nodes, e.g.\ rotational springs or 
 dampers.
 In this case, the singularity problem comes back: the norm
 of the relative orientation must not exceed $\pi$, i.e.\
-$\shbr{\T{\theta}^{\Delta}}<\pi$.
+$\shbr{\T{\theta}^{\delta}}<\pi$.
 Note that the relative orientation is computed with respect to 
 $\T{\theta}_0$, so an anelastic (or imposed) rotation can be easily
 applied to the spring, resulting in an imposed rotation with stiffness.
@@ -965,15 +965,15 @@ applied to the spring, resulting in an imposed rotation with stiffness.
 \noindent
 The linearization of the constraint equations is relatively 
 straightforward. 
-We need to compute the perturbation of $\T{\theta}^{\Delta}$, i.e.,
+We need to compute the perturbation of $\T{\theta}^{\delta}$, i.e.,
 after defining
 \begin{displaymath}
-	\T{R}^{\Delta} = \T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h} \T{R}_0^T
+	\T{R}^{\delta} = \T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h} \T{R}_0^T
 \end{displaymath}
 we obtain
 \begin{eqnarray*}
-	\T{\theta}^{\Delta}_{\delta}
-	& = & \llk{ax}\plbr{\delta\T{R}^{\Delta} \T{R}^{\Delta T}} \\
+	\T{\theta}^{\delta}_{\delta}
+	& = & \llk{ax}\plbr{\delta\T{R}^{\delta} \T{R}^{\delta T}} \\
 	& = & \llk{ax}\plbr{\T{R}_{1h}^T \T{R}_1^T
 		\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}\times{}
 		\T{R}_1 \T{R}_{1h}} \\
@@ -981,19 +981,19 @@ we obtain
 \end{eqnarray*}
 where $\bar{\T{R}}=\T{R}_1 \T{R}_{1h}$.
 Note that, since the constraint equations are defined by setting 
-to zero any components of the vector $\T{\theta}^{\Delta}$, the
+to zero any components of the vector $\T{\theta}^{\delta}$, the
 related Jacobian contribution is obtained by selecting 
 the corresponding columns of matrix $\bar{\T{R}}$.
 
 \noindent
 The relative angular velocity is defined, in analogy with 
-the differentiation of $\T{\theta}^{\Delta}$, as
+the differentiation of $\T{\theta}^{\delta}$, as
 \begin{displaymath}
-	\T{\omega}^{\Delta} = \bar{\T{R}}^T\plbr{\T{\omega}_2 - \T{\omega}_1}
+	\T{\omega}^{\delta} = \bar{\T{R}}^T\plbr{\T{\omega}_2 - \T{\omega}_1}
 \end{displaymath}
 whose differentiation yields
 \begin{eqnarray*}
-	\delta\T{\omega}^{\Delta}
+	\delta\T{\omega}^{\delta}
 	& = & \bar{\T{R}}^T \plbr{
 		\delta\T{\omega}_2
 		- \delta\T{\omega}_1
@@ -1028,7 +1028,7 @@ couples have the same form, i.e.\
 	\T{C}_1 & = & \bar{\T{R}} \T{\beta} \\
 	\T{C}_2 & = & - \bar{\T{R}} \T{\beta}
 \end{eqnarray*}
-now $\T{\beta}=\T{\beta}\plbr{\T{\theta}^{\Delta},\T{\omega}^{\Delta}}$ 
+now $\T{\beta}=\T{\beta}\plbr{\T{\theta}^{\delta},\T{\omega}^{\delta}}$ 
 is a relative orientation dependent couple, and no constraint equation
 is related to it.
 
@@ -1046,12 +1046,12 @@ and with respect to the spring and damper constraints:
 \begin{eqnarray*}
 	\delta\T{C}_1 & = &
 	\plbr{\bar{\T{R}} \T{\beta}}\times\T{\theta}_{1\delta}
-	+ \bar{\T{R}}\T{\beta}_{/\T{\theta}} \T{\theta}^{\Delta}_{\delta}
-	+ \bar{\T{R}}\T{\beta}_{/\T{\omega}} \delta\T{\omega}^{\Delta} \\
+	+ \bar{\T{R}}\T{\beta}_{/\T{\theta}} \T{\theta}^{\delta}_{\delta}
+	+ \bar{\T{R}}\T{\beta}_{/\T{\omega}} \delta\T{\omega}^{\delta} \\
 	\delta\T{C}_2 & = &
 	- \plbr{\bar{\T{R}} \T{\beta}}\times\T{\theta}_{1\delta}
-	- \bar{\T{R}}\T{\beta}_{/\T{\theta}} \T{\theta}^{\Delta}_{\delta}
-	- \bar{\T{R}}\T{\beta}_{/\T{\omega}} \delta\T{\omega}^{\Delta}
+	- \bar{\T{R}}\T{\beta}_{/\T{\theta}} \T{\theta}^{\delta}_{\delta}
+	- \bar{\T{R}}\T{\beta}_{/\T{\omega}} \delta\T{\omega}^{\delta}
 \end{eqnarray*}
 
 \noindent
@@ -1106,7 +1106,7 @@ are summarized below:
  	\mbox{} = \cubr{\cvvect{
 		\bar{\T{R}} \T{\alpha} + \bar{\T{R}} \T{\beta} \\
 		- \bar{\T{R}} \T{\alpha} - \bar{\T{R}} \T{\beta} \\
-		- \T{\theta}^{\Delta}
+		- \T{\theta}^{\delta}
 	}}
 \end{displaymath}
 
@@ -1238,11 +1238,11 @@ the linearization becomes
 		& & \T{w}_{\varphi}^T &
 			-\plbr{\sin\vartheta\T{e}_1 + \cos\vartheta\T{e}_3}^T \T{\lambda} &
 	}} \cubr{\cvvect{
-		\Delta\T{g}_a \\
-		\Delta\T{g}_b \\
-		\Delta\T{\lambda} \\
-		\Delta\vartheta \\
-		\Delta\varphi
+		\delta\T{g}_a \\
+		\delta\T{g}_b \\
+		\delta\T{\lambda} \\
+		\delta\vartheta \\
+		\delta\varphi
 	}}
 \end{equation*}
 \begin{equation*}
@@ -1274,18 +1274,18 @@ The relative angular velocity is
 \end{equation*}
 The linearization of the relative orientation yields
 \begin{equation*}
-	\T{\theta}_{\Delta} \cong
+	\T{\theta}_{\delta} \cong
 	\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \plbr{
-		\Delta\T{g}_2 - \Delta\T{g}_1
+		\delta\T{g}_2 - \delta\T{g}_1
 	}
 \end{equation*}
 The linearization of the angular velocity yields
 \begin{equation*}
-	\Delta\tilde{\T{\omega}} \cong \T{R}_{1h}^T \plbr{
-		\Delta\dot{\T{g}}_2
-		- \Delta\dot{\T{g}}_1
-		- \T{\omega}_2 \times \Delta\T{g}_2
-		+ \T{\omega}_2 \times \Delta\T{g}_1
+	\delta\tilde{\T{\omega}} \cong \T{R}_{1h}^T \plbr{
+		\delta\dot{\T{g}}_2
+		- \delta\dot{\T{g}}_1
+		- \T{\omega}_2 \times \delta\T{g}_2
+		+ \T{\omega}_2 \times \delta\T{g}_1
 	}
 \end{equation*}
 The moment is
@@ -1294,10 +1294,10 @@ The moment is
 \end{equation*}
 Its linearization yields
 \begin{equation*}
-	\Delta\T{M}_i \cong \plbr{ -1 }^i \T{R}_{1h} \plbr{
-		\tilde{\T{M}}_{/\T{\theta}} \T{\theta}_{\Delta}
-		+ \tilde{\T{M}}_{/\tilde{\T{\omega}}} \Delta\tilde{\T{\omega}}
-	} - \T{M}_i \times \Delta\T{g}_1
+	\delta\T{M}_i \cong \plbr{ -1 }^i \T{R}_{1h} \plbr{
+		\tilde{\T{M}}_{/\T{\theta}} \T{\theta}_{\delta}
+		+ \tilde{\T{M}}_{/\tilde{\T{\omega}}} \delta\tilde{\T{\omega}}
+	} - \T{M}_i \times \delta\T{g}_1
 \end{equation*}
 
 
@@ -1332,30 +1332,30 @@ The relative velocity is
 \end{eqnarray*}
 The linearization of the distance yields
 \begin{eqnarray*}
-	\Delta{\tilde{\T{d}}} & \cong & \T{R}_{1h}^T\plbr{
-		\Delta{\T{x}}_2 - \T{f}_2\times\Delta\T{g}_2
-		- \Delta{\T{x}}_1 + \T{f}_1\times\Delta\T{g}_1
-	} + \tilde{\T{d}}\times\T{R}_{1h}^T \Delta\T{g}_1 \\
+	\delta{\tilde{\T{d}}} & \cong & \T{R}_{1h}^T\plbr{
+		\delta{\T{x}}_2 - \T{f}_2\times\delta\T{g}_2
+		- \delta{\T{x}}_1 + \T{f}_1\times\delta\T{g}_1
+	} + \tilde{\T{d}}\times\T{R}_{1h}^T \delta\T{g}_1 \\
 	& \cong & \T{R}_{1h}^T\plbr{
-		\Delta{\T{x}}_2 - \Delta{\T{x}}_1
-		- \T{f}_2\times\Delta\T{g}_2
-		+ \plbr{\T{x}_2 + \T{f}_2 - \T{x}_1}\times\Delta\T{g}_1
+		\delta{\T{x}}_2 - \delta{\T{x}}_1
+		- \T{f}_2\times\delta\T{g}_2
+		+ \plbr{\T{x}_2 + \T{f}_2 - \T{x}_1}\times\delta\T{g}_1
 	}
 \end{eqnarray*}
 while the linearization of the relative velocity yields
 \begin{eqnarray*}
-	\Delta\dot{\tilde{\T{d}}} & \cong & \T{R}_{1h}^T\lplbr{
-		\Delta\dot{\T{x}}_2
-		- \Delta\dot{\T{x}}_1
-		- \T{f}_2\times\Delta\dot{g}_2
-		+ \plbr{\T{x}_2 + \T{f}_2 - \T{x}_1}\times\Delta\dot{\T{g}}_1
+	\delta\dot{\tilde{\T{d}}} & \cong & \T{R}_{1h}^T\lplbr{
+		\delta\dot{\T{x}}_2
+		- \delta\dot{\T{x}}_1
+		- \T{f}_2\times\delta\dot{g}_2
+		+ \plbr{\T{x}_2 + \T{f}_2 - \T{x}_1}\times\delta\dot{\T{g}}_1
 	} \\
-	& & \mbox{} - \T{\omega}_1 \times \Delta\T{x}_2
-		+ \T{\omega}_1 \times \Delta\T{x}_1
+	& & \mbox{} - \T{\omega}_1 \times \delta\T{x}_2
+		+ \T{\omega}_1 \times \delta\T{x}_1
 		+ \plbr{
 			\plbr{\T{f}_2 \times \T{\omega}_2}\times{}
 			- \T{\omega}_1 \times \T{f}_2 \times{}
-		} \Delta\T{g}_2 \\
+		} \delta\T{g}_2 \\
 	& & \rplbr{
 		+ \plbr{
 			\plbr{
@@ -1365,7 +1365,7 @@ while the linearization of the relative velocity yields
 			} \times{} - \T{\omega}_1 \times \plbr{
 				\T{x}_2 + \T{f}_2 - \T{x}_1
 			}\times{}
-		} \Delta\T{g}_1
+		} \delta\T{g}_1
 	}
 \end{eqnarray*}
 The force and the moment are
@@ -1375,11 +1375,11 @@ The force and the moment are
 \end{eqnarray*}
 Their linearization yields
 \begin{eqnarray*}
-	\Delta\T{F}_i & = & \plbr{ -1 }^i \T{R}_{1h} \plbr{
-		\tilde{\T{F}}_{/\tilde{\T{d}}} \Delta{\tilde{\T{d}}}
-		+ \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \Delta\dot{\tilde{\T{d}}}
-	} - \T{F}_i \times \Delta\T{g}_1 \\
-	\Delta\T{M}_i & = & \T{f}_i \times \Delta\T{F}_i + \T{F}_i \times \T{f}_i \times \Delta\T{g}_i
+	\delta\T{F}_i & = & \plbr{ -1 }^i \T{R}_{1h} \plbr{
+		\tilde{\T{F}}_{/\tilde{\T{d}}} \delta{\tilde{\T{d}}}
+		+ \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \delta\dot{\tilde{\T{d}}}
+	} - \T{F}_i \times \delta\T{g}_1 \\
+	\delta\T{M}_i & = & \T{f}_i \times \delta\T{F}_i + \T{F}_i \times \T{f}_i \times \delta\T{g}_i
 \end{eqnarray*}
 
 
