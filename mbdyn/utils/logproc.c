@@ -50,8 +50,15 @@
 #include <sched.h>
 
 #define KEEP_STATIC_INLINE
+
+#if defined (HAVE_RTAI_LXRT_USER_H)
 #include <rtai_lxrt_user.h>
+#elif defined (HAVE_RTAI_LXRT_H)
 #include <rtai_lxrt.h>
+#include <rtai_mbx.h>
+#else
+#error "No rtai_lxrt_user and no rtai_lxrt within rtai"
+#endif
 
 int main(int argc, char* argv[])
 {
