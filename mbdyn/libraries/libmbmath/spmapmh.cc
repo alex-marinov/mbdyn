@@ -247,7 +247,7 @@ SpMapMatrixHandler::MatMatMulSum(MatrixHandler* out,
 		for (ri = col_indices[col].begin(); ri != re; ri++) {
 			for (integer col2 = 1; col2 <= iend;  col2++) {
 				out->IncCoef(ri->first+1,col2,
-						ri->second*in(col, col2));
+						ri->second*in(col+1, col2));
 			}
 		}
 	}
