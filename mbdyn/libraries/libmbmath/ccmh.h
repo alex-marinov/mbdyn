@@ -77,48 +77,55 @@ public:
 		ASSERTMSGBREAK(i_row > 0 && i_row <= NRows, "Error in CColMatrixHandler::operator(), row index out of range");
 		ASSERTMSGBREAK(i_col > 0 && i_col <= NCols, "Error in CColMatrixHandler::operator(), col index out of range");
 		i_row--;
-		integer row_begin = Ap[i_col-1];
-		integer row_end = Ap[i_col];
+		integer row_begin = Ap[i_col - 1];
+		integer row_end = Ap[i_col] - 1;
 		integer idx;
 		integer row;
-		do {
-			ASSERTMSGBREAK(row_begin != row_end, "Error in CColMatrixHandler::operator(), "
-				"elment does not exist");
-			idx = (row_begin+row_end)/2;
+
+		if (row_begin == Ap[i_col] || Ai[row_begin] > i_row || Ai[row_end] < i_row) {
+			THROW(ErrGeneric());
+		}
+
+		while (row_end >= row_begin) {
+			idx = (row_begin + row_end)/2;
 			row = Ai[idx];
-			if (row > i_row) {
-				row_end = idx;
-			} else if (row < i_row) {
-				row_begin = idx;
+			if (i_row < row) {
+				row_end = idx - 1;
+			} else if (i_row > row) {
+				row_begin = idx + 1;
 			} else {
-				break;
+				return Ax[idx];
 			}
-		} while (true);
-		return Ax[idx];
+		}
+		/* fixme: handle case */
+		THROW(ErrGeneric());
 	};
 	const doublereal& operator () (integer i_row, integer i_col) const {
 		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in CColMatrixHandler::operator(), row index out of range");
 		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in CColMatrixHandler::operator(), col index out of range");
 		i_row--;
-		integer row_begin = Ap[i_col-1];
-		integer row_end = Ap[i_col];
+		integer row_begin = Ap[i_col - 1];
+		integer row_end = Ap[i_col] - 1;
 		integer idx;
 		integer row;
-		do {
-			if (row_begin == row_end) {
-				return zero;
-			}
-			idx = (row_begin+row_end)/2;
+
+		if (row_begin == Ap[i_col] || Ai[row_begin] > i_row || Ai[row_end] < i_row) {
+			return zero;
+		}
+
+		while (row_end >= row_begin) {
+			idx = (row_begin + row_end)/2;
 			row = Ai[idx];
-			if (row > i_row) {
-				row_end = idx;
-			} else if (row < i_row) {
-				row_begin = idx;
+			if (i_row < row) {
+				row_end = idx - 1;
+			} else if (i_row > row) {
+				row_begin = idx + 1;
 			} else {
-				break;
+				return Ax[idx];
 			}
-		} while (true);
-		return Ax[idx];
+		}
+		/* fixme: handle case */
+		return zero;
 	};
 	void IncCoef(integer ix, integer iy, const doublereal& inc) {
 		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in CColMatrixHandler::IncCoef(), row index out of range");
