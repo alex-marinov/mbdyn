@@ -434,7 +434,9 @@ class SchurSolutionManager : public SolutionManager {
 
   /* vettore r (residuo locale) */
   doublereal* pdrVec;
-  
+#ifndef USE_HARWELL
+#error "cannot use SchurSolutionManager without Harwell"
+#endif /* !USE_HARWELL */
   HarwellLUSolver* pLU;           /* Solutore sparso Harwell  */
   
   /* Matrice E */

@@ -98,7 +98,7 @@ libbase_la_SOURCES =  auth.cc auth.h bool.h bulk.cc bulk.h constltp.h constltp_.
 libbase_la_LIBADD = @LIBS@
 libbase_la_LDFLAGS = -static
 
-INCLUDES =  -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../libraries/libobjs -I../../mbdyn -I../../mbdyn/base -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr
+INCLUDES =  -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../libraries/libharwell -I../../libraries/libobjs -I../../mbdyn -I../../mbdyn/base -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = ../../include/mbconfig.h
