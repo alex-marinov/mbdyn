@@ -938,37 +938,31 @@ ol_link_metis=no
 if test $ol_with_metis != no ; then
 	OL_ADD_DIRS(metis)
 	
-	if test $ol_link_mpi != yes -a $ol_with_metis != yes ; then
-	
-		AC_MSG_WARN([You need Metis only with MPI])
-	else
-	
-		AC_CHECK_HEADERS(metis.h)
+	AC_CHECK_HEADERS(metis.h)
 
-		if test $ac_cv_header_metis_h = yes ; then
-			AC_CHECK_LIB(metis, METIS_PartGraphVKway,
-				[have_metis=yes],[have_metis=no])
+	if test $ac_cv_header_metis_h = yes ; then
+		AC_CHECK_LIB(metis, METIS_PartGraphVKway,
+			[have_metis=yes],[have_metis=no])
 
-			if test $have_metis != no ; then
-				METIS_LIBS="-lmetis -lm"
-				AC_DEFINE(USE_METIS,1,
-					[define if you want to use Metis])
-				ol_link_metis=yes
-			fi
+		if test $have_metis != no ; then
+			METIS_LIBS="-lmetis -lm"
+			AC_DEFINE(USE_METIS,1,
+				[define if you want to use Metis])
+			ol_link_metis=yes
+		fi
+	fi
+
+	if test $ol_link_metis = no ; then
+		if test $ol_with_metis != auto ; then
+			AC_MSG_ERROR([Could not locate Metis])
+		else
+			AC_MSG_WARN([Could not locate Metis])
+			AC_MSG_WARN([Metis not supported!])
 		fi
 
-		if test $ol_link_metis = no ; then
-			if test $ol_with_metis != auto ; then
-				AC_MSG_ERROR([Could not locate Metis])
-			else
-				AC_MSG_WARN([Could not locate Metis])
-				AC_MSG_WARN([Metis not supported!])
-			fi
-
-			if test $ol_link_mpi = yes ; then
-				AC_MSG_ERROR([You NEED Metis \
-					to use Schur parallel solver!])
-			fi
+		if test $ol_link_mpi = yes ; then
+			AC_MSG_ERROR([You NEED Metis \
+				to use Schur parallel solver!])
 		fi
 	fi
 else
