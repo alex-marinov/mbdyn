@@ -15,6 +15,9 @@ lapackwrap.cc \
 lapackwrap.h \
 mschwrap.cc \
 mschwrap.h \
+mthrdslv.c \
+naivewrap.cc \
+naivewrap.h \
 superluwrap.cc \
 superluwrap.h \
 umfpackwrap.cc \

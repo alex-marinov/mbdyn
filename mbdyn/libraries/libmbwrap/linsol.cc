@@ -44,6 +44,7 @@
 #include "umfpackwrap.h"
 #include "superluwrap.h"
 #include "lapackwrap.h"
+#include "naivewrap.h"
 
 #include "mbpar.h"
 
@@ -81,6 +82,10 @@ static struct solver_t {
 		LinSol::LAPACK_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
 		LinSol::SOLVER_FLAGS_NONE },
+	{ "Naive", NULL,
+		LinSol::NAIVE_SOLVER,
+		LinSol::SOLVER_FLAGS_NONE,
+		LinSol::SOLVER_FLAGS_NONE },
 	{ "Empty", NULL,
 		LinSol::EMPTY_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
@@ -108,7 +113,10 @@ LinSol::SolverType LinSol::defaultSolver =
 #elif /* !USE_MESCHACK */ defined(USE_LAPACK)
 	LinSol::LAPACK_SOLVER
 #else /* !USE_LAPACK */
+	LinSol::NAIVE_SOLVER
+#if 0
 	LinSol::EMPTY_SOLVER
+#endif
 /* FIXME: remove this error if no solver becomes acceptable :) */
 #error "need a solver!"
 #endif /* !USE_MESCHACH */
@@ -140,6 +148,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::UMFPACK_SOLVER].s_alias,
 		::solver[LinSol::SUPERLU_SOLVER].s_name,
 		::solver[LinSol::LAPACK_SOLVER].s_name,
+		::solver[LinSol::NAIVE_SOLVER].s_name,
 		::solver[LinSol::EMPTY_SOLVER].s_name,
 		NULL
 	};
@@ -152,6 +161,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		UMFPACK3,
 		SUPERLU,
 		LAPACK,
+		NAIVE,
 		EMPTY,
 
 		LASTKEYWORD
@@ -223,6 +233,10 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using harwell sparse LU solver" << std::endl);
 #endif /* USE_HARWELL */
+		break;
+
+	case NAIVE:
+		CurrSolver = LinSol::NAIVE_SOLVER;
 		break;
 
 	case EMPTY:
@@ -330,15 +344,13 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		}
 
 		switch (CurrSolver) {
-		case LinSol::EMPTY_SOLVER:
-		case LinSol::MESCHACH_SOLVER:
-		case LinSol::UMFPACK_SOLVER:
-			pedantic_cerr("workspace size is meaningless for "
-					<< ::solver[CurrSolver].s_name
-					<< " solver" << std::endl);
+		case LinSol::Y12_SOLVER:
 			break;
 
 		default:
+			pedantic_cerr("workspace size is meaningless for "
+					<< ::solver[CurrSolver].s_name
+					<< " solver" << std::endl);
 			break;
 		}
 	}
@@ -350,6 +362,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		}
 
 		switch (CurrSolver) {
+		case LinSol::NAIVE_SOLVER:
 		case LinSol::EMPTY_SOLVER:
 			pedantic_cerr("pivot factor is meaningless for "
 					<< ::solver[CurrSolver].s_name
@@ -376,7 +389,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 			break;
 
 		default:
-			pedantic_cerr("workspace size is meaningless for "
+			pedantic_cerr("block size is meaningless for "
 					<< ::solver[CurrSolver].s_name
 					<< " solver" << std::endl);
 			break;
@@ -440,6 +453,10 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 		/* else */
 		silent_cerr(::solver[t].s_name << " unavailable" << std::endl);
 		return false;
+
+	case LinSol::NAIVE_SOLVER:
+		CurrSolver = t;
+		return true;
 
 	case LinSol::EMPTY_SOLVER:
 		CurrSolver = t;
@@ -690,6 +707,12 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			"to enable Umfpack solver" << std::endl;
       		THROW(ErrGeneric());
 #endif /* !USE_UMFPACK */
+
+	case LinSol::NAIVE_SOLVER:
+		SAFENEWWITHCONSTRUCTOR(pCurrSM,
+			NaiveSparseSolutionManager,
+			NaiveSparseSolutionManager(iNLD));
+		break;
 
 	case LinSol::EMPTY_SOLVER:
 		break;

@@ -45,12 +45,13 @@
 #include <umfpackwrap.h>
 #include <superluwrap.h>
 #include <lapackwrap.h>
+#include <naivewrap.h>
 
 static void
 usage(void)
 {
 	std::cerr << "usage: wraptest [-c] [-d] [-m <solver>] [-s]" << std::endl
-		<< "\t<solver>={y12|harwell|meschach|umfpack|superlu|lapack}" << std::endl;
+		<< "\t<solver>={y12|harwell|meschach|umfpack|superlu|lapack|naive}" << std::endl;
 	exit(EXIT_FAILURE);
 }
 
@@ -72,7 +73,10 @@ main(int argc, char *argv[])
 #elif defined(USE_LAPACK)
 		"lapack"
 #else
+		"naive"
+#if 0
 		"no solver!!!"
+#endif
 #endif /* NO SOLVER !!! */
 		;
 	bool cc(false);
@@ -207,6 +211,11 @@ main(int argc, char *argv[])
 			<< std::endl;
 		usage();
 #endif /* !USE_UMFPACK */
+
+	} else if (strcasecmp(solver, "naive") == 0) {
+		SAFENEWWITHCONSTRUCTOR(pSM,
+				NaiveSparseSolutionManager,
+				NaiveSparseSolutionManager(size));
 
 	} else {
 		std::cerr << "unknown solver '" << solver << "'" << std::endl;
