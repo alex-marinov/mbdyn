@@ -34,7 +34,9 @@ spdata.h \
 spdata_.f \
 spmapmh.h \
 submat.cc \
-submat.h
+submat.h \
+interp.h \
+interp.cc
 
 libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@
 libmbmath_la_LDFLAGS =
