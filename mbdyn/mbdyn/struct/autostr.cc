@@ -2,7 +2,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2000
+ * Copyright (C) 1996-2002
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -95,7 +95,7 @@ AutomaticStructElem::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
   
-   for(int iCnt = 1; iCnt <= 6; iCnt++) {
+   for (int iCnt = 1; iCnt <= 6; iCnt++) {
       WM.fPutItem(iCnt, iFirstPositionIndex+iCnt,
 		  iFirstMomentumIndex+iCnt, -dCoef);
       WM.fPutItem(6+iCnt, iFirstMomentumIndex+iCnt,
@@ -109,7 +109,7 @@ AutomaticStructElem::AssJac(VariableSubMatrixHandler& WorkMat,
    return WorkMat;
 }
 
-   
+
 /* assemblaggio autoval */
 void 
 AutomaticStructElem::AssEig(VariableSubMatrixHandler& WorkMatA,
@@ -161,7 +161,7 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
    
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-   for(integer iCnt = 1; iCnt <= 12; iCnt++) {      
+   for (integer iCnt = 1; iCnt <= 12; iCnt++) {      
       WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
    }   
    
@@ -185,7 +185,7 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(1, Q);
    WorkVec.Add(4, G);
    WorkVec.Sub(7, QP);
-   WorkVec.Sub(10, GP+pNode->GetVCurr().Cross(Q));   
+   WorkVec.Sub(10, GP+pNode->GetVCurr().Cross(Q));
    
    return WorkVec;
 }
@@ -218,3 +218,4 @@ AutomaticStructElem::SetValue(VectorHandler& /* X */ , VectorHandler& XP) const
    XP.Put(iIndex+1, QP);
    XP.Put(iIndex+4, GP);
 }
+

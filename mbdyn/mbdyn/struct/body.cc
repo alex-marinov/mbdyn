@@ -153,22 +153,26 @@ Body::AssMat_(FullSubMatrixHandler& WMA,
     Vec3 V(pNode->GetVCurr());
     Vec3 W(pNode->GetWRef());
    
+#if 0
+    /* ci pensa AfterPredict() */
     S = pNode->GetRRef()*S0;
     J = pNode->GetRRef()*(J0*(pNode->GetRRef()).Transpose());
+#endif
 
     Mat3x3 SWedge(S);			/* S /\ */
+    Vec3 Sc(S*dCoef);
 
     /* 
      * momentum: 
      *
      * m * I DeltaV - S /\ DeltagP + ( S /\ W ) /\ Deltag 
      */
-    WMB.fPutCoef(1, 1, dMass);
-    WMB.fPutCoef(2, 2, dMass);
-    WMB.fPutCoef(3, 3, dMass);
+    WMB.fIncCoef(1, 1, dMass);
+    WMB.fIncCoef(2, 2, dMass);
+    WMB.fIncCoef(3, 3, dMass);
       
     WMB.Sub(1, 4, SWedge);
-    WMA.Add(1, 4, Mat3x3(S.Cross(W*dCoef)));
+    WMA.Add(1, 4, Mat3x3(Sc.Cross(W)));
    
     /* 
      * momenta moment: 
@@ -178,7 +182,7 @@ Body::AssMat_(FullSubMatrixHandler& WMA,
     WMB.Add(4, 1, SWedge); 
 
     WMB.Add(4, 4, J);
-    WMA.Add(4, 4, Mat3x3(V, S*dCoef)-Mat3x3(J*(W*dCoef)));
+    WMA.Add(4, 4, Mat3x3(V, Sc)-Mat3x3(J*(W*dCoef)));
 }
 
 
@@ -217,11 +221,11 @@ Body::AssRes(SubVectorHandler& WorkVec,
     Vec3 STmp = R*S0;
     Mat3x3 JTmp = R*(J0*R.Transpose());
 
-    /* Quantita' di moto: R[1] = Q - M V + S/\W */
-    WorkVec.Add(1, STmp.Cross(W)-V*dMass);
+    /* Quantita' di moto: R[1] = Q - M * V - W /\ S */
+    WorkVec.Sub(1, V*dMass + W.Cross(STmp));
    
-    /* Momento della quantita' di moto: R[2] = G - S/\V -J W */
-    WorkVec.Add(4, V.Cross(STmp)-JTmp*W);
+    /* Momento della quantita' di moto: R[2] = G - S /\ V - J * W */
+    WorkVec.Sub(4, JTmp*W + STmp.Cross(V));
   
     if (g) {
         WorkVec.Add(7, GravityAcceleration*dMass);
@@ -267,7 +271,7 @@ Body::InitialAssJac(VariableSubMatrixHandler& WorkMat,
     /* Dimensiona e resetta la matrice di lavoro */
     integer iNumRows = 0;
     integer iNumCols = 0;
-    this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+    InitialWorkSpaceDim(&iNumRows, &iNumCols);
     WM.ResizeInit(iNumRows, iNumCols, 0.);
    
     /* Setta gli indici della matrice - le incognite sono ordinate come:
@@ -331,7 +335,7 @@ Body::InitialAssRes(SubVectorHandler& WorkVec,
 
     integer iNumRows;
     integer iNumCols;
-    this->WorkSpaceDim(&iNumRows, &iNumCols);
+    InitialWorkSpaceDim(&iNumRows, &iNumCols);
     WorkVec.Resize(iNumRows);
     WorkVec.Reset(0.);
    
@@ -385,8 +389,9 @@ Body::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
     Vec3 V(pNode->GetVCurr());
     Vec3 W(pNode->GetWCurr());
     Mat3x3 R(pNode->GetRCurr());
-    (Vec3&)S = R*S0;  
-    (Mat3x3&)J = R*(J0*R.Transpose());
+
+    S = R*S0;  
+    J = R*(J0*R.Transpose());
    
     X.Add(iFirstIndex+1, V*dMass+W.Cross(S));
     X.Add(iFirstIndex+4, S.Cross(V)+J*W);
@@ -397,6 +402,7 @@ void
 Body::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 {
     Mat3x3 R = pNode->GetRRef();
+
     S = R*S0;
     J = R*(J0*R.Transpose());
 }

@@ -48,9 +48,10 @@ virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
     doublereal dMass;
     Vec3 Xgc;
     Vec3 S0;
-    Vec3 S;
     Mat3x3 J0;
-    Mat3x3 J;
+    
+    mutable Vec3 S;
+    mutable Mat3x3 J;
    
     /* Assembla le due matrici necessarie per il calcolo degli
      * autovalori e per lo jacobiano */  
