@@ -16,6 +16,7 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
+		- fixed SuperLU memory leak
 
 MBDyn 1.2.3
 	Enhancements:
