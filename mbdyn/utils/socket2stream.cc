@@ -64,7 +64,7 @@ usage(int rc)
 "via La Masa, 34 - 20156 Milano, Italy\n"
 "http://www.aero.polimi.it\n"
 "\n"
-"usage: stream2socket [options]\n"
+"usage: socket2stream [options]\n"
 "\n"
 "    -h <host>\t"	"host name (for INET sockets; default: \"localhost\")\n"
 "    -n <channels>\t"	"number of channels (default: auto-detect)\n"
