@@ -60,6 +60,8 @@
 #ifndef Umfpack3SparseLUSolutionManager_hh
 #define Umfpack3SparseLUSolutionManager_hh
 
+#ifdef USE_UMFPACK3
+
 #include <vector>
 extern "C" {
 #include "umfpack.h"
@@ -193,4 +195,7 @@ class Umfpack3SparseLUSolutionManager:public SolutionManager {
       
 };
 
+#endif /* USE_UMFPACK3 */
+
 #endif //Umfpack3SparseLUSolutionManager_hh
+

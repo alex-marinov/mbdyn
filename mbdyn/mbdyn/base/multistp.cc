@@ -39,15 +39,9 @@
 #include <mymath.h>
 
 #include <harwrap.h>
-#ifdef USE_MESCHACH  
 #include <mschwrap.h>
-#endif /* USE_MESCHACH */
-#ifdef USE_Y12
 #include <y12wrap.h>
-#endif /* USE_Y12 */
-#ifdef USE_UMFPACK3
 #include <umfpackwrap.h>
-#endif /* USE_UMFPACK3 */
 
 #include <unistd.h>
 
@@ -99,19 +93,15 @@ MultiStepIntegrator::MultiStepIntegrator(MBDynParser& HPar,
 					 const char* sOutFName)
 :
 CurrStrategy(NOCHANGE),
-#ifdef USE_UMFPACK3
+#if defined(USE_UMFPACK3)
 CurrSolver(UMFPACK3_SOLVER),
-#else /* !USE_Y12 */
-#ifdef USE_Y12
+#elif /* !USE_UMFPACK3 */ defined(USE_Y12)
 CurrSolver(Y12_SOLVER),
-#else /* !USE_Y12 */
-#ifdef USE_HARWELL
+#elif /* !USE_Y12 */ defined(USE_HARWELL)
 CurrSolver(HARWELL_SOLVER),
 #else /* !USE_HARWELL */
 CurrSolver(MESCHACH_SOLVER),
 #endif /* !USE_HARWELL */
-#endif /* !USE_Y12 */
-#endif /* !USE_UMFPACK3 */
 sInputFileName(NULL),
 sOutputFileName(NULL),
 HP(HPar),

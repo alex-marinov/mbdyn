@@ -42,9 +42,8 @@
 #include <mynewmem.h>
 #include <except.h>
 #include <solman.h>
-#ifdef USE_UMFPACK3
-#include 
-#else
+#include <umfpackwrap.h>
+#ifndef USE_UMFPACK3
 #error "Sorry, Parallel MBDyn can not be compiled without UMFPACK3!"
 #endif  
 
@@ -114,8 +113,6 @@ class SchurSolutionManager : public SolutionManager {
 #ifdef USE_UMFPACK3
  Umfpack3SparseLUSolutionManager* pLocalSM;           /* Solutore sparso locale */
  Umfpack3SparseLUSolutionManager* pInterSM;          /* Solutore sparso locale */
-#else
-#error "You need to use UMFPACK3 for parallel solving"
 #endif /* USE_UMFPACK3 */
 
   

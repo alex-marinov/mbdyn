@@ -94,7 +94,7 @@ top_builddir = @top_builddir@
 bin_PROGRAMS =  autopilot cl dae-intg deriv env eu2rot femgen intg loadable posrel rot2eu rot2eup rot2phi rotrel sockdrive
 
 
-LIBS =  ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la ../libraries/libobjs/libobjs.la @Y12_LIBS@ @HARWELL_LIBS@ ../libraries/libmbwrap/libmbwrap.la @MESCHACH_LIBS@ @F2C_LIBS@ @TCL_LIBS@
+LIBS =  ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la ../libraries/libobjs/libobjs.la @Y12_LIBS@ @HARWELL_LIBS@ @UMFPACK3_LIBS@ ../libraries/libmbwrap/libmbwrap.la @MESCHACH_LIBS@ @F2C_LIBS@ @TCL_LIBS@
 
 
 autopilot_SOURCES = autopilot.cc
@@ -205,7 +205,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/autopilot.P .deps/cl.P .deps/dae-intg.P .deps/deriv.P \
 .deps/env.P .deps/eu2rot.P .deps/femgen.P .deps/intg.P .deps/loadable.P \

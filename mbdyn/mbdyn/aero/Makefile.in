@@ -143,7 +143,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/aerod2.P .deps/aerodata.P .deps/aerodc81.P \
 .deps/aeroelem.P .deps/aeromodal.P .deps/c81data.P .deps/rotor.P \

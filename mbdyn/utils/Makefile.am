@@ -25,6 +25,7 @@ LIBS = \
 ../libraries/libobjs/libobjs.la \
 @Y12_LIBS@ \
 @HARWELL_LIBS@ \
+@UMFPACK3_LIBS@ \
 ../libraries/libmbwrap/libmbwrap.la \
 @MESCHACH_LIBS@ \
 @F2C_LIBS@ \

@@ -583,12 +583,32 @@ if test $ol_with_umfpack3 != no ; then
 		LIBS=$save_LIBS
 
 		if test $have_umfpack3 != no ; then
-			UMFPACK3_LIBS=$try_umfpack3_LIBS
+			UMFPACK3_LIBS="$try_umfpack3_LIBS"
 			AC_DEFINE(USE_UMFPACK3,1,[define if you want to use Umfpack3])
 			ol_link_umfpack3=yes
 			AC_MSG_RESULT([yes])
 		else
-			AC_MSG_RESULT([no])
+			try_umfpack3_LIBS="-lumfpack"
+			save_LIBS=$LIBS
+			LIBS="$LIBS $try_umfpack3_LIBS"
+			AC_TRY_LINK([
+#include <umfpack.h>
+],[
+				double t;
+				t = umfpack_timer();
+			],[have_umfpack3=yes],[have_umfpack3=no])
+			LIBS=$save_LIBS
+	
+			if test $have_umfpack3 != no ; then
+				UMFPACK3_LIBS="$try_umfpack3_LIBS"
+				AC_DEFINE(USE_UMFPACK3,1,[define if you want to use Umfpack3])
+				ol_link_umfpack3=yes
+				AC_MSG_RESULT([yes])
+				AC_DEFINE(NBLAS,1,[define if BLAS/ATLAS are not available to Umfpack3])
+				AC_MSG_WARN([Umfpack3 will be used without cblas/atlas])
+			else
+				AC_MSG_RESULT([no])
+			fi
 		fi
 	fi
 

@@ -24,6 +24,7 @@ hydr/libhydr.la \
 ../libraries/libmbutil/libmbutil.la \
 @Y12_LIBS@ \
 @HARWELL_LIBS@ \
+@UMFPACK3_LIBS@ \
 ../libraries/libmbwrap/libmbwrap.la \
 ../libraries/libobjs/libobjs.la \
 @MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ \

@@ -80,6 +80,9 @@
 /* Define if you have the <tcl.h> header file.  */
 #undef HAVE_TCL_H
 
+/* Define if you have the <umfpack.h> header file.  */
+#undef HAVE_UMFPACK_H
+
 /* Define if you have the <unistd.h> header file.  */
 #undef HAVE_UNISTD_H
 
@@ -158,6 +161,12 @@
 /* define if you want to use Umfpack3 */
 #undef USE_UMFPACK3
 
+/* define if you want to use Umfpack3 */
+#undef USE_UMFPACK3
+
+/* define if BLAS/ATLAS are not available to Umfpack3 */
+#undef NBLAS
+
 /* define if you want to use Meschach */
 #undef USE_MESCHACH
 
@@ -188,7 +197,7 @@
 /* define if you want to use Metis */
 #undef USE_METIS
 
-/* define if you want to use DeadBeat control */
+/* define if you want to use GPC/DeadBeat control */
 #undef USE_DBC
 
 /* define if class ostream has 'form' method */

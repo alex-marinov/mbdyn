@@ -39,11 +39,12 @@
 #include <y12wrap.h>
 #include <harwrap.h>
 #include <mschwrap.h>
+#include <umfpackwrap.h>
 
 static void
 usage(void)
 {
-	cerr << "usage: t [y12|harwell|meschach [singular]]" << endl;
+	cerr << "usage: t [y12|harwell|meschach|umfpack3 [singular]]" << endl;
 	exit(EXIT_FAILURE);
 }
 
@@ -81,6 +82,14 @@ main(int argc, char *argv[])
 		cerr << "need --with-meschach to use Meschach library" << endl;
 		usage();
 #endif
+	} else if (strcasecmp(solver, "umfpack3") == 0) {
+#ifdef USE_UMFPACK3
+		pSM = new Umfpack3SparseLUSolutionManager(size);
+#else
+		cerr << "need --with-umfpack3 to use Umfpack3 library" << endl;
+		usage();
+#endif
+
 	} else {
 		cerr << "unknown solver '" << solver << "'" << endl;
 		usage();

@@ -4,6 +4,7 @@ CPPFLAGS="-I/home/masarati/Math/Meschach \
 	-I/home/masarati/Math/mpich-1.2/include \
 	-I/home/masarati/Math/mpich-1.2/include/c++ \
 	-I/home/masarati/Math/metis-4.0/Lib \
+	-I/usr/include/umfpack \
 	-DHAVE_LOADABLE \
 	-D__HACK_EIG__ \
 	-D__HACK_UNSTEADY_AERO__ \

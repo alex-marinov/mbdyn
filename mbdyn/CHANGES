@@ -19,9 +19,12 @@ MBDyn 1.0 Engineering
 		  initialization after input
 		- improved optional parameter input for struct nodes
 		- added helper for BDF integration scheme also in dummy steps
-	Bugs:
+		- added support for Umfpack3
+	Bug fixes:
 		- Hydraulic nodes did not honor the output flag (always on)
 		- minor fixes in documentation
+	Known bugs:
+		- parallel build broken
 
 
 MBDyn 1.0.1
@@ -37,7 +40,7 @@ MBDyn 1.0.1
 		  (still incomplete)
 		- reviewed parallel stuff
 		- selected documentation updates
-	Bugs:
+	Bug fixes:
 		- fixed multiple . in floats in math parser
 		- fixed collisions in pam_* names
 		- minor fixes

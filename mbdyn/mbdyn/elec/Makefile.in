@@ -141,7 +141,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/discctrl.P .deps/elec.P .deps/elecnode.P \
 .deps/forgfact.P .deps/genel.P .deps/genfilt.P .deps/gpc.P .deps/id.P \

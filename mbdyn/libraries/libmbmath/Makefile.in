@@ -135,7 +135,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/Rot.P .deps/fullmh.P .deps/ldl.P .deps/matvec3.P \
 .deps/matvec3n.P .deps/matvec6.P .deps/matvecexp.P .deps/schsolman.P \

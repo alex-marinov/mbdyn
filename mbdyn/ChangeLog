@@ -8,6 +8,10 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
 
+*** Tue Jan  8 19:27:59 CET 2002 Giuseppe Quaranta <quaranta@aero.polimi.it>
+				 Marco Morandini <morandini@aero.polimi.it>
+ - added support for Umfpack3 (parallel build is broken)
+
 *** Tue Dec 11 14:11:59 CET 2001 Pierangelo Masarati <masarati@aero.polimi.it>
  - added "bdf" option to integration methods also for dummy steps
  - same for asymptotic radius of algebraic unknowns
