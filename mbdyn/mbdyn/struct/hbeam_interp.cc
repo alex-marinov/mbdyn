@@ -1,3 +1,52 @@
+/* 
+ * HmFe (C) is a FEM analysis code. 
+ *
+ * Copyright (C) 1996-2001
+ *
+ * Marco Morandini  <morandini@aero.polimi.it>
+ * Teodoro Merlini  <merlini@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ */
+/*
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2000
+ *
+ * This code is a partial merge of HmFe and MBDyn.
+ *
+ * Pierangelo Masarati  <masarati@aero.polimi.it>
+ * Paolo Mantegazza     <mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 #include "matvecexp.h"
 #include "Rot.hh"
@@ -62,14 +111,12 @@ void ComputeInterpolation(const Vec3 *const node_pos,
 	or_delta_w_or[0] = Wd1.GetVec();
 	or_delta_w_or[1] = Wd2.GetVec();
 	
-	Mat3x3 posx(pos);
-	
 	delta_pos_w_or[0] = Wd1.GetMom();
 	delta_pos_w_or[0] += Wd1.GetVec()*Mat3x3(node_pos[0]);
-	delta_pos_w_or[0] -= posx*Wd1.GetVec();
+	delta_pos_w_or[0] -= pos.Cross(Wd1.GetVec());
 	delta_pos_w_or[1] = Wd2.GetMom();
 	delta_pos_w_or[1] += Wd2.GetVec()*Mat3x3(node_pos[1]);
-	delta_pos_w_or[1] -= posx*Wd2.GetVec();
+	delta_pos_w_or[1] -= pos.Cross(Wd2.GetVec());
 	
 	delta_pos_w_pos[0] = Wd1.GetVec();
 	delta_pos_w_pos[1] = Wd2.GetVec();
@@ -77,7 +124,7 @@ void ComputeInterpolation(const Vec3 *const node_pos,
 	VecExp kappa(Theta12*(e2*wder[1]));
 	om = kappa.GetVec();
 	F = kappa.GetMom();
-	F -= pos.Cross(om);
+	F -= pos.Cross(om); /* :) */
 	
 	Wd1 = d1*wder[0];
 	Wd2 = d2*wder[1];
@@ -98,6 +145,5 @@ void ComputeInterpolation(const Vec3 *const node_pos,
 	delta_F_ws_pos[1] = Wd2.GetVec();
 	delta_F_ws_or[0] += om.Cross(delta_pos_w_pos[0]);
 	delta_F_ws_or[1] += om.Cross(delta_pos_w_pos[1]);
-	
-	
 };
+

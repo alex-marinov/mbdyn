@@ -38,21 +38,28 @@
 #include "myassert.h"
 #include "except.h"
 
+#include <matvecexp.h>
+
 #include "strnode.h"
 #include "elem.h"
+#include "gravity.h"
 
 #include "constltp.h"
 
-#include "matvecexp.h"
+// #define VISCOELASTIC_BEAM /* uncomment when ViscoElasticBeam is available */
+// #define PIEZO_BEAM /* uncomment when PiezoBeam is available */
 
-/* HBeam - begin */
+/* Beam - begin */
 
-class HBeam 
-: virtual public Elem, public InitialAssemblyElem {
+class HBeam
+: virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
     friend class AerodynamicBeam;
 
   public:
     class ErrGeneric {};
+   
+  private:
+    Beam::Type BeamT;
    
   protected:   
     enum NodeName { NODE1 = 0, NODE2 = 1, NUMNODES = 2 };
@@ -88,25 +95,18 @@ class HBeam
     Vec6 DefLoc;
     Vec6 DefLocRef;
 
-    Vec3 p;   
-    Vec3 g;   
-    Vec3 L0;   
-    Vec3 L;   
-       
+    Vec3 p;
+    Vec3 g;
+    
+    Vec3 L0;
+    Vec3 L;
     Vec3 LRef;   
    
     doublereal dsdxi;
    
     /* Is first res? */
     flag fFirstRes;
-         
-    virtual Vec3 
-    InterpState(const Vec3& v1,
-                const Vec3& v2);
-    virtual Vec3 
-    InterpDeriv(const Vec3& v1,
-                const Vec3& v2);
-   
+
     /* Funzioni di calcolo delle matrici */
     virtual void 
     AssStiffnessMat(FullSubMatrixHandler& WMA,
@@ -127,18 +127,20 @@ class HBeam
         NO_OP;
     };   
    
-    /*
-     * Inizializza le derivate delle funzioni di forma 
-     * e calcola le deformazioni geometriche iniziali
-     */
+    /* Inizializza le derivate delle funzioni di forma 
+     * e calcola le deformazioni geometriche iniziali */
     virtual void DsDxi(void);
 
-    /*
-     * Calcola la velocita' angolare delle sezioni a partire da quelle
-     * dei nodi in modo consistente
-     */
+    /* Calcola la velocita' angolare delle sezioni a partire da quelle
+     * dei nodi; per ora lo fa in modo brutale, ma si puo' fare anche 
+     * in modo consistente */
     virtual void Omega0(void);
-   
+  
+    /* cambia il tipo (?) */
+    void SetBeamType(Beam::Type T) { 
+        BeamT = T;
+    };
+
     /* Funzione interna di restart */
     virtual ostream& Restart_(ostream& out) const;
    
@@ -147,10 +149,10 @@ class HBeam
     HBeam(unsigned int uL, 
 	 const StructNode* pN1, const StructNode* pN2,
 	 const Vec3& F1, const Vec3& F2,
-	 const Mat3x3& r,
-	 const ConstitutiveLaw6D* pD_I,
+	 const Mat3x3& R1, const Mat3x3& R2,
+	 const ConstitutiveLaw6D* pd,
 	 flag fOut);
-   
+
     /* Distruttore banale */
     virtual ~HBeam(void);
    
@@ -173,7 +175,9 @@ class HBeam
    
     /* funzioni proprie */
    
-    /* Dimensioni del workspace */
+    /* Dimensioni del workspace; sono 36 righe perche' se genera anche le 
+     * forze d'inerzia consistenti deve avere accesso alle righe di definizione
+     * della quantita' di moto */
     virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
 	*piNumRows = 12;
         *piNumCols = 12; 
@@ -262,11 +266,11 @@ class HBeam
 	    return DefLoc.dGet(i);
         case 2:
         case 3:
-	    cerr << "Beam " << GetLabel() 
+	    cerr << "HBeam " << GetLabel() 
 	        << ": not allowed to return shear strain" << endl;
 	    THROW(ErrGeneric());
         default:
-	    cerr << "Beam " << GetLabel() << ": illegal private data " 
+	    cerr << "HBeam " << GetLabel() << ": illegal private data " 
 	       << i << endl;
 	    THROW(ErrGeneric());
         }
@@ -308,11 +312,78 @@ class HBeam
 /* Beam - end */
 
 
+#ifdef VISCOELASTIC_BEAM
+/* ViscoElasticBeam - begin */
+
+class ViscoElasticHBeam : virtual public Elem, public HBeam {
+  protected:
+   
+    /* Derivate di deformazioni e curvature */
+    Vec3 LPrime; 
+    Vec3 gPrime;  
+      
+    Vec3 LPrimeRef;
+   
+    Vec6 DefPrimeLoc;
+    Vec6 DefPrimeLocRef;
+
+    Mat6x6 ERef;
+      
+    /* Funzioni di calcolo delle matrici */
+    virtual void 
+    AssStiffnessMat(FullSubMatrixHandler& WMA, 
+                    FullSubMatrixHandler& WMB,
+		    doublereal dCoef, 
+		    const VectorHandler& XCurr,	    
+		    const VectorHandler& XPrimeCurr);
+   
+    virtual void 
+    AssStiffnessVec(SubVectorHandler& WorkVec,
+                    doublereal dCoef,
+		    const VectorHandler& XCurr, 
+		    const VectorHandler& XPrimeCurr);
+   
+  public:
+    /* Costruttore normale */
+    ViscoElasticHBeam(unsigned int uL, 
+	             const StructNode* pN1, 
+		     const StructNode* pN2, 
+	             const Vec3& F1, 
+		     const Vec3& F2, 
+	             const Mat3x3& r, 
+	             const ConstitutiveLaw6D* pd, 
+		     flag fOut);
+   
+    /* Distruttore banale */
+    virtual ~ViscoElasticHBeam(void) { 
+        NO_OP;
+    };
+
+    virtual inline void* pGet(void) const { 
+        return (void*)this;
+    };
+   
+    /* Tipo di trave */
+    virtual Beam::Type GetBeamType(void) const {
+        return Beam::VISCOELASTIC; 
+    };
+
+    /* Settings iniziali, prima della prima soluzione */
+    void SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const;
+   
+    /* Prepara i parametri di riferimento dopo la predizione */
+    virtual void 
+    AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ );   
+};
+
+/* ViscoElasticBeam - end */
+#endif /* VISCOELASTIC_BEAM */
+
 class DataManager;
 class MBDynParser;
 
 extern Elem* 
 ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
 
-#endif /* HBEAM_H */
+#endif /* BEAM2_H */
 
