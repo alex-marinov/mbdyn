@@ -724,13 +724,25 @@ i.e.:
 		A_{11} & A_{12} & A_{13} \\
 		& A_{22} & A_{23} \\
 		\llk{sym.} & & A_{33}
-	}} = \sqbr{T_{\llk{axial}}}^T \sqbr{R_{\llk{axial}}}^T \sqbr{\matr{ccc}{
+	}} = \sqbr{T_{\llk{axial}}}^{-1} \sqbr{R_{\llk{axial}}}^T \sqbr{\matr{ccc}{
 		EA & 0 & 0 \\
 		0 & EJ_y & 0 \\
 		0 & 0 & EJ_z
-	}} \sqbr{R_{\llk{axial}}} \sqbr{T_{\llk{axial}}}
+	}} \sqbr{R_{\llk{axial}}} \sqbr{T_{\llk{axial}}}^{-T}
 	\label{eq:EL:BEAM:AXIAL-TRANSFORM-REVERSED}
 \end{equation}
+This expression implies that the stiffness properties are referred
+to an arbitrary point at $\cubr{-y,-z}$ after that they are rotated 
+into the section reference frame, i.e.\ by an amount $-\alpha$.
+The resulting coefficients are
+\begin{eqnarray*}
+	A_{11} & = & EA \\
+	A_{12} & = & -z EA \\
+	A_{13} & = & y EA \\
+	A_{22} & = & EJ_y \cos^2\alpha + EJ_z \sin^2\alpha + z^2 EA \\
+	A_{23} & = & \plbr{EJ_z - EJ_y} \sin\alpha\cos\alpha - y z EA \\
+	A_{33} & = & EJ_z \cos^2\alpha + EJ_y \sin^2\alpha + y^2 EA
+\end{eqnarray*}
 
 
 
@@ -930,13 +942,26 @@ i.e.:
 		S_{11} & S_{12} & S_{13} \\
 		& S_{22} & S_{23} \\
 		\llk{sym.} & & S_{33}
-	}} = \sqbr{R_{\llk{shear}}}^T \sqbr{T_{\llk{shear}}}^T \sqbr{\matr{ccc}{
+	}} = \sqbr{R_{\llk{shear}}}^T \sqbr{T_{\llk{shear}}}^{-1} \sqbr{\matr{ccc}{
 		GA_y & 0 & 0 \\
 		0 & GA_z & 0 \\
 		0 & 0 & GJ
-	}} \sqbr{T_{\llk{shear}}} \sqbr{R_{\llk{shear}}}
+	}} \sqbr{T_{\llk{shear}}}^{-T} \sqbr{R_{\llk{shear}}}
 	\label{eq:EL:BEAM:SHEAR-TRANSFORM-REVERSED}
 \end{equation}
+This expression implies that the stiffness properties are referred
+to an arbitrary point at $\cubr{-y,-z}$ after that they are rotated 
+into the section reference frame, i.e.\ by an amount $-\beta$.
+The resulting coefficients are
+\begin{eqnarray*}
+	S_{11} & = & GA_y \cos^2\beta + GA_z \sin^2\beta \\
+	S_{12} & = & \plbr{GA_z - GA_y} \sin\beta\cos\beta \\
+	S_{13} & = & y GA_z \sin\beta - z GA_y \cos\beta \\
+	S_{22} & = & GA_z \cos^2\beta + GA_y \sin^2\beta \\
+	S_{23} & = & y GA_z \cos\beta + z GA_y \sin\beta \\
+	S_{33} & = & GJ + z^2 GA_y + y^2 GA_z
+\end{eqnarray*}
+
 
 
 
