@@ -120,6 +120,9 @@ void DataManager::ReadControl(MBDynParser& HP,
       "all",	
       "none",
       "reference" "frames",
+
+      "default" "scale",
+      
       NULL
    };
    
@@ -180,6 +183,9 @@ void DataManager::ReadControl(MBDynParser& HP,
       ALL,
       NONE,
       REFERENCEFRAMES,
+
+      DEFAULTSCALE,
+      
       LASTKEYWORD
    };
    
@@ -775,7 +781,6 @@ void DataManager::ReadControl(MBDynParser& HP,
 	      }
 #endif /* USE_HYDRAULIC_NODES */
 		
-		
 #if defined(USE_STRUCT_NODES)
 	      case GRAVITY: {			 
 		 ElemData[Elem::GRAVITY].fDefaultOut = flag(1);
@@ -846,6 +851,12 @@ void DataManager::ReadControl(MBDynParser& HP,
 	      }
 #endif /* USE_ELECTRIC_NODES */
 
+#if defined(USE_HYDRAULIC)
+	      case HYDRAULICELEMENTS: {
+		 ElemData[Elem::HYDRAULIC].fDefaultOut = flag(1);
+		 break;
+	      }
+#endif /* USE_HYDRAULIC */
 #if defined(HAVE_LOADABLE)
 	      case LOADABLEELEMENTS: {
 		 ElemData[Elem::LOADABLE].fDefaultOut = flag(1);
@@ -853,6 +864,114 @@ void DataManager::ReadControl(MBDynParser& HP,
 	      }
 #endif /* defined(HAVE_LOADABLE) */
 		
+		
+	      case UNKNOWN: {
+		 std::cerr << "warning: unknown output case at line " 
+		   << HP.GetLineData() << std::endl;
+		 ASSERT(0);		 
+		 break;
+	      }
+		
+	      default: {
+		 std::cerr << "case " << sKeyWords[CurrDesc] << " at line "
+		   << HP.GetLineData() << " is not allowed" << std::endl;
+		 ASSERT(0);		 
+		 break;
+	      }		    		    
+	     }		 
+	  }
+	  
+	  break;
+       }
+	 
+	 
+       case DEFAULTSCALE: {
+	  while (HP.fIsArg()) {
+	     KeyWords CurrDefOut(KeyWords(HP.GetWord()));
+	     doublereal dScale = HP.GetReal(1.);
+
+	     switch (CurrDefOut) {
+	      case ALL: {
+		 for (int iCnt = 0; iCnt < DofOwner::LASTDOFTYPE; iCnt++) {
+		    DofData[iCnt].dDefScale= dScale;
+		 }			 
+	      }
+		
+#if defined(USE_STRUCT_NODES)
+	      case STRUCTURALNODES: {
+		 DofData[DofOwner::STRUCTURALNODE].dDefScale = dScale;
+		 break;
+	      }
+#endif /* USE_STRUCT_NODES */
+		
+#if defined(USE_ELECTRIC_NODES)
+	      case ELECTRICNODES: {
+		 DofData[DofOwner::ELECTRICNODE].dDefScale = dScale;
+		 break;
+	      }
+		
+	      case ABSTRACTNODES: {
+		 DofData[DofOwner::ABSTRACTNODE].dDefScale = dScale;
+		 break;
+	      }
+#endif /* USE_ELECTRIC_NODES */
+
+#if defined(USE_HYDRAULIC_NODES)
+	      case HYDRAULICNODES: {
+		 DofData[DofOwner::HYDRAULICNODE].dDefScale = dScale;
+		 break;
+	      }
+#endif /* USE_HYDRAULIC_NODES */
+
+#if defined(USE_STRUCT_NODES)
+	      case JOINTS: {
+		 DofData[DofOwner::JOINT].dDefScale = dScale;
+		 break;
+	      }
+		
+#if defined(USE_AERODYNAMIC_ELEMS)
+	      case ROTORS: {
+		 DofData[DofOwner::ROTOR].dDefScale = dScale;
+		 break;
+	      }
+		
+	      case AEROMODALS: {
+		 DofData[DofOwner::AEROMODAL].dDefScale = dScale;
+		 break;
+	      }
+#endif /* USE_AERODYNAMIC_ELEMS */
+#endif /* USE_STRUCT_NODES */
+
+#if defined(USE_ELECTRIC_NODES)
+	      case GENELS: {
+		 DofData[DofOwner::GENEL].dDefScale = dScale;
+		 break;
+	      }
+		
+	      case ELECTRICBULKELEMENTS: {
+		 DofData[DofOwner::ELECTRICBULK].dDefScale = dScale;
+		 break;
+	      }
+		
+	      case ELECTRICELEMENTS: {
+		 DofData[DofOwner::ELECTRIC].dDefScale = dScale;
+		 break;
+	      }
+#endif /* USE_ELECTRIC_NODES */
+
+#if defined(USE_HYDRAULIC_NODES)
+	      case HYDRAULICELEMENTS: {
+		 DofData[DofOwner::HYDRAULIC].dDefScale = dScale;
+		 break;
+	      }
+#endif /* USE_HYDRAULIC */
+
+#if defined(HAVE_LOADABLE)
+	      case LOADABLEELEMENTS: {
+		 DofData[DofOwner::LOADABLE].dDefScale = dScale;
+		 break;
+	      }
+#endif /* defined(HAVE_LOADABLE) */
 		
 	      case UNKNOWN: {
 		 std::cerr << "warning: unknown output case at line " 
