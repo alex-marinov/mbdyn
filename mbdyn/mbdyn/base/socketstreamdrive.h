@@ -52,6 +52,8 @@ protected:
 	
 	int sock;
 	bool connected;
+	bool abandoned;
+
 public:
 	SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		const DriveHandler* pDH,

@@ -45,99 +45,60 @@
 #include <sys/un.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
+
 #include <iostream>
+#include <sstream>
+#include <vector>
 
 #include "sock.h"
-
-void
-usage(int rc)
-{
-	silent_cerr(
-"\n"
-"    MBDyn (C) is a multibody analysis code.\n"
-"    http://www.mbdyn.org\n"
-"\n"
-"    Copyright (C) 1996-2004\n"
-"\n"
-"    Pierangelo Masarati	<masarati@aero.polimi.it>\n"
-"\n"
-"    Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano\n"
-"    via La Masa, 34 - 20156 Milano, Italy\n"
-"    http://www.aero.polimi.it\n"
-"\n"
-"    usage: stream2socket [options]\n"
-"\n"
-"    -C\t\t\t"		"create socket (default: connect to existing)\n"
-"    -h <host>\t\t"	"host name (for INET sockets; default: \"localhost\")\n"
-"    -n <channels>\t"	"number of channels (default: auto-detect)\n"
-"    -p <port>\t\t"	"port number (for INET sockets)\n"
-"    -P <path>\t\t"	"path (for LOCAL sockets)\n"
-"    -s\t\t\t"		"decrease verbosity level\n"
-			<< std::endl);
-	exit(rc);
-}
+#include "s2s.h"
 
 int
 main(int argc, char *argv[])
 {
-	int	nChannels = 0;
-	char	*host = 0;
-	int	port = -1;
-	char	*path = 0;
-	char	*next;
-	bool	create = false;
+	try {
+		s2s_prepare(argc, argv);
 
+	} catch (...) {
+		s2s_shutdown(EXIT_FAILURE);
+	}
+
+	if (::s2s.nChannels == 0) {
+		std::cin.getline(::s2s.buf, sizeof(::s2s.buf));
+
+		std::istringstream	str(::s2s.buf);
+		std::vector<double>	data;
+
+		for (;; ::s2s.nChannels++) {
+			double	d;
+
+			str >> d;
+
+			if (!str) {
+				break;
+			}
+			
+			data.insert(data.end(), d);
+		}
+
+		send(::s2s.sock, (char *)&data[0], sizeof(double)*::s2s.nChannels, 0);
+	}
+
+	double	dbuf[::s2s.nChannels];
 	while (true) {
-		int opt = getopt(argc, argv, "Ch:n:p:P:s");
-
-		if (opt == EOF) {
-			break;
-		}
-
-		switch (opt) {
-		case 'C':
-			create = true;
-			break;
-
-		case 'h':
-			host = optarg;
-			break;
-
-		case 'n':
-			nChannels = strtol(optarg, &next, 10);
-			if (next[0] != '\0') {
-				silent_cerr("unable to parse option -n "
-						"\"" << optarg << "\""
-						<< std::endl);
-				usage(EXIT_FAILURE);
+		for (int i = 0; i < ::s2s.nChannels; i++) {
+			std::cin >> dbuf[i];
+			if (!std::cin) {
+				goto done;
 			}
-			break;
-
-		case 'p':
-			port = strtol(optarg, &next, 10);
-			if (next[0] != '\0') {
-				silent_cerr("unable to parse option -p "
-						"\"" << optarg << "\""
-						<< std::endl);
-				usage(EXIT_FAILURE);
-			}
-			break;
-
-		case 'P':
-			path = optarg;
-			break;
-
-		case 's':
-			::fSilent++;
-			break;
-
-		default:
-			usage(EXIT_SUCCESS);
 		}
+		
+		send(::s2s.sock, (char *)dbuf, sizeof(double)*::s2s.nChannels, 0);
 	}
 
-	if (path == 0 && (host == 0 && port == -1)) {
-		usage(EXIT_FAILURE);
-	}
+done:;
+	s2s_shutdown(EXIT_SUCCESS);
 }
 

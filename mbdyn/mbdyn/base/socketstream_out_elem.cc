@@ -62,11 +62,11 @@
 /* SocketStreamElem - begin */
 
 SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch, ScalarDof *& pn,
-		const char *h, const char *m, unsigned short int p, bool c)
+		const char *h, const char *m, unsigned short int p, bool c, int flags)
 : Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
 host(h), type(AF_INET), sock(0), name(m),
-create(c), connected(false)
+create(c), connected(false), abandoned(false), send_flags(flags)
 {
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(doublereal)*nch;
@@ -74,7 +74,7 @@ create(c), connected(false)
 	
    	ASSERT(p > 0);
 	data.Port = p;
-	if(create){
+	if (create) {
 		struct sockaddr_in	addr_name;
 		int			save_errno;
 
@@ -112,7 +112,7 @@ create(c), connected(false)
 			const char	*err_msg = strerror(save_errno);
 
       			silent_cerr("SocketStreamElem(" << name
-				<< "): listen failed "
+				<< "): listen() failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
       			throw ErrGeneric();
@@ -121,11 +121,11 @@ create(c), connected(false)
 }
 
 SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch, ScalarDof *& pn,
-		const char *m, const char* const Path, bool c)
+		const char *m, const char* const Path, bool c, int flags)
 : Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
 host(NULL), type(AF_LOCAL), sock(0), name(m),
-create(c), connected(false)
+create(c), connected(false), abandoned(false), send_flags(flags)
 {
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(doublereal)*nch;
@@ -135,7 +135,7 @@ create(c), connected(false)
 
 	SAFESTRDUP(data.Path, Path);
 	
-	if(create){
+	if (create) {
 		int			save_errno;
 
 		sock = make_named_socket(data.Path, 1, &save_errno);
@@ -236,156 +236,150 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 		   	socklen_t socklen;
 
 			switch (type) {
-			case AF_LOCAL:
-				{
-   					struct sockaddr_un client_addr;
+			case AF_LOCAL: {
+   				struct sockaddr_un client_addr;
 
-					pedantic_cout("accepting connection on local socket \""
-							<< name << "\" (" << data.Path << ") ..." 
-							<< std::endl);
+				pedantic_cout("accepting connection on local socket \""
+						<< name << "\" (" << data.Path << ") ..." 
+						<< std::endl);
 
-					socklen = sizeof(struct sockaddr_un);
-					client_addr.sun_path[0] = '\0';
-					sock = accept(tmp_sock,
-							(struct sockaddr *)&client_addr, &socklen);
-					if (sock == -1) {
-						int		save_errno = errno;
-						const char	*err_msg = strerror(save_errno);
+				socklen = sizeof(struct sockaddr_un);
+				client_addr.sun_path[0] = '\0';
+				sock = accept(tmp_sock,
+						(struct sockaddr *)&client_addr, &socklen);
+				if (sock == -1) {
+					int		save_errno = errno;
+					const char	*err_msg = strerror(save_errno);
 
-                				silent_cerr("SocketStreamElem(" << name << ") "
-							"accept(" << tmp_sock << ") failed ("
-							<< save_errno << ": " << err_msg << ")"
-							<< std::endl);
-						throw ErrGeneric();
-        				}
-					if (client_addr.sun_path[0] == '\0') {
-						strncpy(client_addr.sun_path, data.Path, sizeof(client_addr.sun_path));
-					}
-      					silent_cout("SocketStreamElem(" << GetLabel()
-		  				<< "): connect from " << client_addr.sun_path
-							<< std::endl);
-					
-					break;
+               				silent_cerr("SocketStreamElem(" << name << ") "
+						"accept(" << tmp_sock << ") failed ("
+						<< save_errno << ": " << err_msg << ")"
+						<< std::endl);
+					throw ErrGeneric();
+       				}
+				if (client_addr.sun_path[0] == '\0') {
+					strncpy(client_addr.sun_path, data.Path, sizeof(client_addr.sun_path));
 				}
+      				silent_cout("SocketStreamElem(" << GetLabel()
+	  				<< "): connect from " << client_addr.sun_path
+					<< std::endl);
+	
+				break;
+			}
 
-			case AF_INET:
-				{
-   					struct sockaddr_in client_addr;
+			case AF_INET: {
+				struct sockaddr_in client_addr;
 
-					pedantic_cout("accepting connection on inet socket \""
-							<< name << "\" (" 
-							<< inet_ntoa(client_addr.sin_addr) 
-							<< ":" << ntohs(client_addr.sin_port)
-							<< ") ..." << std::endl);
-							
-					socklen = sizeof(struct sockaddr_in);
-					sock = accept(tmp_sock,
-							(struct sockaddr *)&client_addr, &socklen);
-					if (sock == -1) {
-						int		save_errno = errno;
-						const char	*err_msg = strerror(save_errno);
+				pedantic_cout("accepting connection on inet socket \""
+					<< name << "\" (" 
+					<< inet_ntoa(client_addr.sin_addr) 
+					<< ":" << ntohs(client_addr.sin_port)
+					<< ") ..." << std::endl);
+						
+				socklen = sizeof(struct sockaddr_in);
+				sock = accept(tmp_sock,
+						(struct sockaddr *)&client_addr, &socklen);
+				if (sock == -1) {
+					int		save_errno = errno;
+					const char	*err_msg = strerror(save_errno);
 
-                				silent_cerr("SocketStreamElem(" << name << ") "
-							"accept(" << tmp_sock << ") failed ("
-							<< save_errno << ": " << err_msg << ")"
-							<< std::endl);
-						throw ErrGeneric();
-        				}
-      					silent_cout("SocketStreamElem(" << GetLabel()
-		  				<< "): connect from " << inet_ntoa(client_addr.sin_addr)
-		  				<< ":" << ntohs(client_addr.sin_port) << std::endl);
-					shutdown(tmp_sock,SHUT_RDWR);
-					break;
-				}
+               				silent_cerr("SocketStreamElem(" << name << ") "
+						"accept(" << tmp_sock << ") failed ("
+						<< save_errno << ": " << err_msg << ")"
+						<< std::endl);
+					throw ErrGeneric();
+       				}
+      				silent_cout("SocketStreamElem(" << GetLabel()
+	  				<< "): connect from " << inet_ntoa(client_addr.sin_addr)
+	  				<< ":" << ntohs(client_addr.sin_port) << std::endl);
+				shutdown(tmp_sock,SHUT_RDWR);
+				break;
+			}
 
 			default:
-				NO_OP;
 				break;
 			}
 			
 		} else {
 			switch (type) {
-			case AF_LOCAL:
-				{
-					struct sockaddr_un addr;
-						
-					sock = socket(PF_LOCAL, SOCK_STREAM, 0);
-					if (sock < 0){
-						int	save_errno = errno;
-						const char	*err_msg = strerror(save_errno);
-						
-						silent_cerr("SocketStreamElem(" << name << ") "
-							"socket(PF_LOCAL, SOCK_STREAM, 0) failed "
-							"(" << save_errno << ": " << err_msg << ")"
-							<< std::endl);
-						throw ErrGeneric();
-					}
-					addr.sun_family = AF_UNIX;
-					strncpy(addr.sun_path, data.Path, UNIX_PATH_MAX);
-
-					pedantic_cout("connecting to local socket \""
-							<< name << "\" (" << data.Path << ") ..." 
-							<< std::endl);
-
-					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
-						int	save_errno = errno;
-						const char	*err_msg = strerror(save_errno);
-						
-						silent_cerr("SocketStreamElem(" << name << ") "
-							"connect(" << sock << ", \"" << data.Path << "\""
-							", " << sizeof(struct sockaddr_un) << ") "
-							"failed (" << save_errno << ": " << err_msg << ")"
-							<< std::endl);
-						throw ErrGeneric();									
-					} // da sistemare in modo da rendere non bloccante il connect					
-					break;
-				}
-		
-			case AF_INET:
-				{
-					struct sockaddr_in addr;
-
-					sock = socket(PF_INET, SOCK_STREAM, 0);
-					if (sock < 0){
-						int	save_errno = errno;
-						const char	*err_msg = strerror(save_errno);
-						
-						silent_cerr("SocketStreamElem(" << name << ") "
-							"socket(PF_INET, SOCK_STREAM, 0) failed "
-							"(" << save_errno << ": " << err_msg << ")"
-							<< std::endl);
-						throw ErrGeneric();
-					}				
-					addr.sin_family = AF_INET;
-					addr.sin_port = htons (data.Port);
+			case AF_LOCAL: {
+				struct sockaddr_un addr;
 					
-					if (inet_aton(host, &(addr.sin_addr)) == 0) {
-						silent_cerr("SocketStreamElem(" << name << ") "
-							"unknow host " << host << std::endl);
-						throw ErrGeneric();	
-					}
-					pedantic_cout("connecting to inet socket \""
-							<< name << "\" (" 
-							<< inet_ntoa(addr.sin_addr) 
-							<< ":" << ntohs(addr.sin_port)
-							<< ") ..." << std::endl);
-							
-					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
-						int	save_errno = errno;
-						const char	*err_msg = strerror(save_errno);
-						
-						silent_cerr("SocketStreamElem(" << name << ") "
-							"connect(" << sock << ", \"" << host << ":" << data.Port << "\""
-							", " << sizeof(struct sockaddr_un) << ") "
-							"failed (" << save_errno << ": " << err_msg << ")"
-							<< std::endl);
-						throw ErrGeneric();					
-					} //da sistemare in modo da rendere non bloccante il connect
-					break;
+				sock = socket(PF_LOCAL, SOCK_STREAM, 0);
+				if (sock < 0){
+					int	save_errno = errno;
+					const char	*err_msg = strerror(save_errno);
+					
+					silent_cerr("SocketStreamElem(" << name << ") "
+						"socket(PF_LOCAL, SOCK_STREAM, 0) failed "
+						"(" << save_errno << ": " << err_msg << ")"
+						<< std::endl);
+					throw ErrGeneric();
 				}
+				addr.sun_family = AF_UNIX;
+				strncpy(addr.sun_path, data.Path, UNIX_PATH_MAX);
+
+				pedantic_cout("connecting to local socket \""
+					<< name << "\" (" << data.Path << ") ..." 
+					<< std::endl);
+
+				if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0) {
+					int	save_errno = errno;
+					const char	*err_msg = strerror(save_errno);
+					
+					silent_cerr("SocketStreamElem(" << name << ") "
+						"connect(" << sock << ", \"" << data.Path << "\""
+						", " << sizeof(struct sockaddr_un) << ") "
+						"failed (" << save_errno << ": " << err_msg << ")"
+						<< std::endl);
+					throw ErrGeneric();									
+				} // da sistemare in modo da rendere non bloccante il connect					
+				break;
+			}
+	
+			case AF_INET: {
+				struct sockaddr_in addr;
+
+				sock = socket(PF_INET, SOCK_STREAM, 0);
+				if (sock < 0){
+					int	save_errno = errno;
+					const char	*err_msg = strerror(save_errno);
+					
+					silent_cerr("SocketStreamElem(" << name << ") "
+						"socket(PF_INET, SOCK_STREAM, 0) failed "
+						"(" << save_errno << ": " << err_msg << ")"
+						<< std::endl);
+					throw ErrGeneric();
+				}				
+				addr.sin_family = AF_INET;
+				addr.sin_port = htons (data.Port);
+				
+				if (inet_aton(host, &(addr.sin_addr)) == 0) {
+					silent_cerr("SocketStreamElem(" << name << ") "
+						"unknow host " << host << std::endl);
+					throw ErrGeneric();	
+				}
+				pedantic_cout("connecting to inet socket \""
+					<< name << "\" (" 
+					<< inet_ntoa(addr.sin_addr) 
+					<< ":" << ntohs(addr.sin_port)
+					<< ") ..." << std::endl);
+						
+				if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
+					int	save_errno = errno;
+					const char	*err_msg = strerror(save_errno);
+					
+					silent_cerr("SocketStreamElem(" << name << ") "
+						"connect(" << sock << ", \"" << host << ":" << data.Port << "\""
+						", " << sizeof(struct sockaddr_un) << ") "
+							"failed (" << save_errno << ": " << err_msg << ")"
+						<< std::endl);
+					throw ErrGeneric();					
+				} //da sistemare in modo da rendere non bloccante il connect
+				break;
+			}
 				
 			default:
-				NO_OP;
 				break;
 			}
 	
@@ -394,7 +388,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 		lin.l_onoff = 1;
 		lin.l_linger = 0;
 		
-		if (setsockopt(sock, SOL_SOCKET, SO_LINGER, &lin, sizeof(lin))){
+		if (setsockopt(sock, SOL_SOCKET, SO_LINGER, &lin, sizeof(lin))) {
 			int	save_errno = errno;
 			const char	*err_msg = strerror(save_errno);
 						
@@ -408,6 +402,12 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 		connected = true;
 	} /* sock == NULL */
 
+	/* by now, an abandoned element does not write any more;
+	 * should we retry or what? */
+	if (abandoned) {
+		return;
+	}
+
 	char *curbuf = buf;
 	for (unsigned int i = 0; i < NumChannels; i++) {
 		/* assign value somewhere into mailbox buffer */
@@ -419,9 +419,10 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 		curbuf += sizeof(doublereal);
 	}
 	
-	if (send(sock, (void *)buf, size, 0) == -1) {
+	if (send(sock, (void *)buf, size, send_flags) == -1) {
 		silent_cerr("SocketStreamElem(" << name << ") "
 			<< "Communication closed by host" << std::endl);
+		abandoned = true;
 		/* FIXME: stop simulation? */
 	}
 }
@@ -540,6 +541,11 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		SAFESTRDUP(host, DEFAULT_HOST);
 	}
 
+	int flags = 0;
+	if (HP.IsKeyWord("no" "signal")) {
+		flags = MSG_NOSIGNAL;
+	}
+
 	int nch = HP.GetInt();
 	if (nch <= 0) {
 		silent_cerr("illegal number of channels for "
@@ -570,11 +576,11 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	if (path == NULL){
 		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
 				SocketStreamElem(uLabel, nch, pNodes,
-					host, name, port, create));
+					host, name, port, create, flags));
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
 				SocketStreamElem(uLabel, nch, pNodes,
-					name, path, create));
+					name, path, create, flags));
 	}
 
 	return pEl;

@@ -69,12 +69,10 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		unsigned short int p,
 		const char* const h)
 : StreamDrive(uL, pDH, sFileName, nd, c),
-type(AF_INET), sock(0), connected(false)
+host(0), type(AF_INET), sock(0), connected(false), abandoned(false)
 {
 	if (h) {
 		SAFESTRDUP(host, h);
-	} else {
-		host = NULL;
 	}
 	
    	ASSERT(p > 0);
@@ -133,7 +131,7 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		integer nd, bool c,
 		const char* const Path)
 : StreamDrive(uL, pDH, sFileName, nd, c),
-host(NULL), type(AF_LOCAL), sock(0), connected(false)
+host(NULL), type(AF_LOCAL), sock(0), connected(false), abandoned(false)
 {
 	ASSERT(Path != NULL);
 
@@ -180,7 +178,8 @@ host(NULL), type(AF_LOCAL), sock(0), connected(false)
 
 SocketStreamDrive::~SocketStreamDrive(void)
 {
-	shutdown(sock,SHUT_RD);
+	shutdown(sock, SHUT_RD);
+
 	switch (type) {
 	case AF_LOCAL:
 		if (data.Path) {
@@ -190,8 +189,15 @@ SocketStreamDrive::~SocketStreamDrive(void)
 		}
 		break;
 
+	case AF_INET:
+		if (host) {
+			SAFEDELETEARR(host);
+			host = 0;
+		}
+		break;
+
 	default:
-		NO_OP;
+		ASSERT(0);
 		break;
 	}
 }
@@ -214,158 +220,136 @@ void
 SocketStreamDrive::ServePending(const doublereal& t)
 {
 	
-	if (connected) {
-		/* FIXME: no receive at first step? */
-		if ((recv(sock, buf, size, 0))) {
-			
-			doublereal *rbuf = (doublereal *)buf;
-			for (int i = 1; i <= iNumDrives; i++) {
-				pdVal[i] = rbuf[i-1];
-			}
-	
-		} else {	
-			silent_cout("SocketStreamDrive(" << sFileName << ") "
-					<< "Communication closed by host" << std::endl);
-			/* FIXME: stop simulation? */
-		}
-	}
-	
-	
 	if (!connected) {
 		if (create) {
 			int tmp_sock = sock;
 	   		socklen_t socklen;
 
 			switch (type) {
-			case AF_LOCAL:
-				{
-					struct sockaddr_un client_addr;
-					socklen = sizeof(struct sockaddr_un);
+			case AF_LOCAL: {
+				struct sockaddr_un client_addr;
+				socklen = sizeof(struct sockaddr_un);
 
-					pedantic_cout("accepting connection on local socket \""
-							<< sFileName << "\" (" << data.Path << ") ..." 
-							<< std::endl);
+				pedantic_cout("accepting connection on local socket \""
+						<< sFileName << "\" (" << data.Path << ") ..." 
+						<< std::endl);
 
-					socklen = sizeof(struct sockaddr_un);
-					client_addr.sun_path[0] = '\0';
-					sock = accept(tmp_sock,
-							(struct sockaddr *)&client_addr, &socklen);
-					if (sock == -1) {
-						int		save_errno = errno;
-						const char	*err_msg = strerror(save_errno);
+				socklen = sizeof(struct sockaddr_un);
+				client_addr.sun_path[0] = '\0';
+				sock = accept(tmp_sock,
+						(struct sockaddr *)&client_addr, &socklen);
+				if (sock == -1) {
+					int		save_errno = errno;
+					const char	*err_msg = strerror(save_errno);
 
-                				silent_cerr("SocketStreamElem(" << sFileName << ") "
-							"accept(" << tmp_sock << ") failed ("
-							<< save_errno << ": " << err_msg << ")"
-							<< std::endl);
-						throw ErrGeneric();
-     					}
-					if (client_addr.sun_path[0] == '\0') {
-						strncpy(client_addr.sun_path, data.Path, sizeof(client_addr.sun_path));
-					}
-					silent_cout("SocketStreamDrive(" << GetLabel()
-  							<< "): connect from " << client_addr.sun_path
-							<< std::endl);
-					
-					break;
+               				silent_cerr("SocketStreamElem(" << sFileName << ") "
+						"accept(" << tmp_sock << ") failed ("
+						<< save_errno << ": " << err_msg << ")"
+						<< std::endl);
+					throw ErrGeneric();
+     				}
+				if (client_addr.sun_path[0] == '\0') {
+					strncpy(client_addr.sun_path, data.Path, sizeof(client_addr.sun_path));
 				}
-
-			case AF_INET:
-				{
-   					struct sockaddr_in client_addr;
-					socklen = sizeof(struct sockaddr_in);
-	
-					pedantic_cout("accepting connection on inet socket \""
-							<< sFileName << "\" (" 
-							<< inet_ntoa(client_addr.sin_addr) 
-							<< ":" << ntohs(client_addr.sin_port)
-							<< ") ..." << std::endl);
-						
-					socklen = sizeof(struct sockaddr_in);
-					sock = accept(tmp_sock,
-							(struct sockaddr *)&client_addr, &socklen);
-					if (sock == -1) {
-						int		save_errno = errno;
-						const char	*err_msg = strerror(save_errno);
-
-                				silent_cerr("SocketStreamElem(" << sFileName << ") "
-							"accept(" << tmp_sock << ") failed ("
-							<< save_errno << ": " << err_msg << ")"
-							<< std::endl);
-						throw ErrGeneric();
-        				}
-      					silent_cout("SocketStreamDrive(" << GetLabel()
-	  					<< "): connect from " << inet_ntoa(client_addr.sin_addr)
-		  				<< ":" << ntohs(client_addr.sin_port) << std::endl);
-					shutdown(tmp_sock,SHUT_RDWR);
-					break;
-				}
-
-			default:
-				NO_OP;
+				silent_cout("SocketStreamDrive(" << GetLabel()
+  						<< "): connect from " << client_addr.sun_path
+						<< std::endl);
+				
 				break;
 			}
+
+			case AF_INET: {
+   				struct sockaddr_in client_addr;
+				socklen = sizeof(struct sockaddr_in);
+
+				pedantic_cout("accepting connection on inet socket \""
+						<< sFileName << "\" (" 
+						<< inet_ntoa(client_addr.sin_addr) 
+						<< ":" << ntohs(client_addr.sin_port)
+						<< ") ..." << std::endl);
+					
+				socklen = sizeof(struct sockaddr_in);
+				sock = accept(tmp_sock,
+						(struct sockaddr *)&client_addr, &socklen);
+				if (sock == -1) {
+					int		save_errno = errno;
+					const char	*err_msg = strerror(save_errno);
+
+               				silent_cerr("SocketStreamElem(" << sFileName << ") "
+						"accept(" << tmp_sock << ") failed ("
+						<< save_errno << ": " << err_msg << ")"
+						<< std::endl);
+					throw ErrGeneric();
+       				}
+      				silent_cout("SocketStreamDrive(" << GetLabel()
+  					<< "): connect from " << inet_ntoa(client_addr.sin_addr)
+	  				<< ":" << ntohs(client_addr.sin_port) << std::endl);
+				shutdown(tmp_sock,SHUT_RDWR);
+				break;
+			}
+
+			default:
+				break;
+			}
+
 		} else {
 			switch (type) {
-			case AF_LOCAL:
-				{
-					struct sockaddr_un addr;
-						
-					sock = socket(PF_LOCAL, SOCK_STREAM, 0);
-					if (sock < 0) {
-						silent_cerr("SocketStreamDrive(" << sFileName << ") "
-							"socket() failed " << host << std::endl);
-						throw ErrGeneric();
-					}
-					addr.sun_family = AF_UNIX;
-					memcpy(addr.sun_path, data.Path, UNIX_PATH_MAX);
-
-					pedantic_cout("connecting to local socket \""
-							<< sFileName << "\" (" << data.Path << ") ..." 
-							<< std::endl);
-
-					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0) {
-						silent_cerr("SocketStreamDrive(" << sFileName << ") "
-							"connect() failed " << std::endl);
-						throw ErrGeneric();									
-					}					
-					break;
-				}
-			
-			case AF_INET:
-					{
-					struct sockaddr_in addr;
+			case AF_LOCAL: {
+				struct sockaddr_un addr;
 					
-					sock = socket(PF_INET, SOCK_STREAM, 0);
-					if (sock < 0) {
-						silent_cerr("SocketStreamDrive(" << sFileName << ") "
-							"socket() failed " << host << std::endl);
-						throw ErrGeneric();
-						}				
-					addr.sin_family = AF_INET;
-					addr.sin_port = htons (data.Port);
-					if (inet_aton(host, &(addr.sin_addr)) == 0) {
-						silent_cerr("SocketStreamDrive(" << sFileName << ") "
-							"unknow host \"" << host << "\"" << std::endl);
-						throw ErrGeneric();	
-					}
-
-						pedantic_cout("connecting to inet socket \""
-							<< sFileName << "\" (" 
-							<< inet_ntoa(addr.sin_addr) 
-							<< ":" << ntohs(addr.sin_port)
-							<< ") ..." << std::endl);
-							
-					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0) {
-						silent_cerr("SocketStreamDrive(" << sFileName << ") "
-							"connect() failed " << std::endl);
-						throw ErrGeneric();					
-						}
-					break;
+				sock = socket(PF_LOCAL, SOCK_STREAM, 0);
+				if (sock < 0) {
+					silent_cerr("SocketStreamDrive(" << sFileName << ") "
+						"socket() failed " << host << std::endl);
+					throw ErrGeneric();
 				}
+				addr.sun_family = AF_UNIX;
+				memcpy(addr.sun_path, data.Path, UNIX_PATH_MAX);
+
+				pedantic_cout("connecting to local socket \""
+						<< sFileName << "\" (" << data.Path << ") ..." 
+						<< std::endl);
+
+				if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0) {
+					silent_cerr("SocketStreamDrive(" << sFileName << ") "
+						"connect() failed " << std::endl);
+					throw ErrGeneric();									
+				}					
+				break;
+			}
+		
+			case AF_INET: {
+				struct sockaddr_in addr;
+				
+				sock = socket(PF_INET, SOCK_STREAM, 0);
+				if (sock < 0) {
+					silent_cerr("SocketStreamDrive(" << sFileName << ") "
+						"socket() failed " << host << std::endl);
+					throw ErrGeneric();
+					}				
+				addr.sin_family = AF_INET;
+				addr.sin_port = htons (data.Port);
+				if (inet_aton(host, &(addr.sin_addr)) == 0) {
+					silent_cerr("SocketStreamDrive(" << sFileName << ") "
+						"unknow host \"" << host << "\"" << std::endl);
+					throw ErrGeneric();	
+				}
+
+				pedantic_cout("connecting to inet socket \""
+					<< sFileName << "\" (" 
+					<< inet_ntoa(addr.sin_addr) 
+					<< ":" << ntohs(addr.sin_port)
+					<< ") ..." << std::endl);
+					
+				if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0) {
+					silent_cerr("SocketStreamDrive(" << sFileName << ") "
+						"connect() failed " << std::endl);
+					throw ErrGeneric();					
+				}
+				break;
+			}
 				
 			default:
-				NO_OP;
 				break;
 			}
 	
@@ -383,6 +367,38 @@ SocketStreamDrive::ServePending(const doublereal& t)
 		}
 		connected = true;
 	} /* connected == false */
+
+	/* by now, an abandoned drive is not read any more;
+	 * should we retry or what? */
+	if (abandoned) {
+		return;
+	}
+
+	/* FIXME: no receive at first step? */
+	switch (recv(sock, buf, size, 0)) {
+	case 0:
+		silent_cout("SocketStreamDrive(" << sFileName << "): "
+				<< "communication closed by host" << std::endl);
+		abandoned = true;
+		/* FIXME: stop simulation? */
+		break;
+
+	case -1: {
+		int save_errno = errno;
+		char *err_msg = strerror(save_errno);
+		silent_cout("SocketStreamDrive(" << sFileName << ") "
+				<< "failed (" << save_errno << ": " 
+				<< err_msg << ")" << std::endl);
+		throw ErrGeneric();
+	}
+
+	default: {	
+		doublereal *rbuf = (doublereal *)buf;
+		for (int i = 1; i <= iNumDrives; i++) {
+			pdVal[i] = rbuf[i-1];
+		}
+	}
+	}
 }
 
 

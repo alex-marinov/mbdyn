@@ -60,8 +60,8 @@ rot2eu_SOURCES = rot2eu.cc
 rot2phi_SOURCES = rot2phi.cc
 rotrel_SOURCES = rotrel.cc
 sockdrive_SOURCES = sockdrive.c
-socket2stream_SOURCES = socket2stream.cc
-stream2socket_SOURCES = stream2socket.cc
+socket2stream_SOURCES = socket2stream.cc s2s.cc s2s.h
+stream2socket_SOURCES = stream2socket.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
 
 autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@

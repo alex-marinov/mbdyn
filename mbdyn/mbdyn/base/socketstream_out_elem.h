@@ -64,13 +64,16 @@ protected:
 	const char *name;
 	bool create; 
 	bool connected;
+	bool abandoned;
+	int send_flags;
+	
 public:
    	SocketStreamElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
 			const char *h, const char *m, unsigned short int p,
-			bool c);
+			bool c, int flags);
    	SocketStreamElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
 			const char *m, const char* const Path,
-			bool c);
+			bool c, int flags);
 			
    	virtual ~SocketStreamElem(void);
 

@@ -45,99 +45,59 @@
 #include <sys/un.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
+
 #include <iostream>
+#include <sstream>
+#include <vector>
 
 #include "sock.h"
-
-void
-usage(int rc)
-{
-	silent_cerr(
-"\n"
-"    MBDyn (C) is a multibody analysis code.\n"
-"    http://www.mbdyn.org\n"
-"\n"
-"    Copyright (C) 1996-2004\n"
-"\n"
-"    Pierangelo Masarati	<masarati@aero.polimi.it>\n"
-"\n"
-"    Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano\n"
-"    via La Masa, 34 - 20156 Milano, Italy\n"
-"    http://www.aero.polimi.it\n"
-"\n"
-"    usage: socket2stream [options]\n"
-"\n"
-"    -C\t\t\t"		"create the socket (default: connect to existing)\n"
-"    -h <host>\t\t"	"host name (for INET sockets; default: \"localhost\")\n"
-"    -n <channels>\t"	"number of channels (default: auto-detect)\n"
-"    -p <port>\t\t"	"port number (for INET sockets)\n"
-"    -P <path>\t\t"	"path (for LOCAL sockets)\n"
-"    -s\t\t\t"		"decrease verbosity level\n"
-			<< std::endl);
-	exit(rc);
-}
+#include "s2s.h"
 
 int
 main(int argc, char *argv[])
 {
-	int	nChannels = 0;
-	char	*host = 0;
-	int	port = -1;
-	char	*path = 0;
-	char	*next;
-	bool	create = false;
+	try {
+		s2s_prepare(argc, argv);
 
+	} catch (...) {
+		s2s_shutdown(EXIT_FAILURE);
+	}
+
+	if (::s2s.nChannels == 0) {
+		::s2s.nChannels = 1;
+	}
+
+	double	dbuf[::s2s.nChannels];
+	char	*sep = " ";
 	while (true) {
-		int opt = getopt(argc, argv, "Ch:n:p:P:s");
+		int len = recv(::s2s.sock, (char *)dbuf, sizeof(double)*::s2s.nChannels, 0);
 
-		if (opt == EOF) {
-			break;
+		switch (len) {
+		case -1: {
+			int		save_errno = errno;
+			const char	*err_msg = strerror(save_errno);
+			
+			silent_cerr("recv(" << ::s2s.sock << ",\"" << ::s2s.buf << "\") "
+				"failed (" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
 		}
 
-		switch (opt) {
-		case 'C':
-			create = true;
-			break;
-
-		case 'h':
-			host = optarg;
-			break;
-
-		case 'n':
-			nChannels = strtol(optarg, &next, 10);
-			if (next[0] != '\0') {
-				silent_cerr("unable to parse option -n "
-						"\"" << optarg << "\""
-						<< std::endl);
-				usage(EXIT_FAILURE);
-			}
-			break;
-
-		case 'p':
-			port = strtol(optarg, &next, 10);
-			if (next[0] != '\0') {
-				silent_cerr("unable to parse option -p "
-						"\"" << optarg << "\""
-						<< std::endl);
-				usage(EXIT_FAILURE);
-			}
-			break;
-
-		case 'P':
-			path = optarg;
-			break;
-
-		case 's':
-			::fSilent++;
-			break;
+		case 0:
+			goto done;
 
 		default:
-			usage(EXIT_SUCCESS);
+			break;
 		}
+
+		for (int i = 0; i < ::s2s.nChannels - 1; i++) {
+			std::cout << dbuf[i] << sep;
+		}
+		std::cout << dbuf[::s2s.nChannels - 1] << std::endl;
 	}
 
-	if (path == 0 && (host == 0 && port == -1)) {
-		usage(EXIT_FAILURE);
-	}
+done:;
+	s2s_shutdown(EXIT_SUCCESS);
 }
 
