@@ -406,10 +406,11 @@ of the factorized matrix, as implemented in \kw{libcolamd}
 (part of \kw{umfpack} package).
 
 \noindent
-Pivot factor is a real, which in a heuristic sense can be regarded as
-the threshold for the ratio between two coefficients below which they are
-switched, so $ 0.0 $ means no pivoting, while $ 1.0 $ means switch as
-soon as the norm of the ratio is less than unity.
+The \kw{pivot factor} is a real number, which in a heuristic sense 
+can be regarded as the threshold for the ratio between two coefficients 
+below which they are switched, so $ 0.0 $ means no pivoting, 
+while $ 1.0 $ means switch as soon as the norm of the ratio 
+is less than unity.
 
 \noindent
 Table~\ref{tab:solvers-props} summarizes the properties that can be set
@@ -444,6 +445,7 @@ summarizes how each linear solver deals with pivoting policies.
 	Meschach	&	&	&	&	&	& x	&	\\
 	SuperLU		& x	& x	& x	& x	&	& x	&	\\
 	TAUCS		& x	& x	& x	&	&	&	&	\\
+	Watson		& x	& x	& x	&	&	& x	&	\\
 \hline\hline
 \end{tabular}
 \end{table}
@@ -473,6 +475,7 @@ summarizes how each linear solver deals with pivoting policies.
 	Meschach	& 			& dynamic	&		\\
 	SuperLU		& 			& dynamic 	&		\\
 	TAUCS		&			& ?		&		\\
+	Watson		&			& dynamic	&		\\
 \hline\hline
 \end{tabular}
 \end{table}
@@ -495,6 +498,7 @@ summarizes how each linear solver deals with pivoting policies.
 	Meschach	& full: 1.0		& 1.0		& \\
 	SuperLU		& 0.0$\rightarrow$1.0	& 1.0		& \\
 	TAUCS		&			&		& \\
+	Watson		&			&		& \\
 \hline\hline
 \end{tabular}
 \end{table}
