@@ -63,6 +63,8 @@ MBDyn 1.2-Engineering
 		- added 'element' drive to allow direct access to element
 		  private data from math parser (companion of 'dof' drive)
 		- added multithreaded assembly (eXperimental)
+		- compact column form and multithread assembly works also
+		  with Y12
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
