@@ -195,7 +195,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 	 		silent_cout("Residual (" << iIterCnt 
 				<< "):" << std::endl);
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
-	    			silent_cout("Dof " << std::setw(8)
+	    			silent_cout("Eq  " << std::setw(8)
 					<< iTmpCnt << ": " 
 					<< pRes->dGetCoef(iTmpCnt)
 					<< std::endl);
@@ -234,7 +234,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 	 			silent_cout("Residual (" << iIterCnt 
 					<< "):" << std::endl);
 	 			for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
-	    				silent_cout("Dof " << std::setw(8)
+	    				silent_cout("Eq  " << std::setw(8)
 						<< iTmpCnt << ": " 
 						<< pRes->dGetCoef(iTmpCnt)
 						<< std::endl);

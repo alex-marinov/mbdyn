@@ -652,7 +652,7 @@ DataManager::InitialJointAssembly(void)
 			/* Output del residuo */
 			silent_cout("Residual (" << iNumIter << "):" << std::endl);
 			for (int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {
-				silent_cout("Dof " << std::setw(8) << iTmpCnt << ": "
+				silent_cout("Eq  " << std::setw(8) << iTmpCnt << ": "
 					<< pResHdl->dGetCoef(iTmpCnt) << std::endl);
 			}
 		}
