@@ -160,7 +160,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
    
 #ifdef DEBUG   
    if (CurrKeyWord >= 0) {      
-      cout << "hydraulic element type: "
+      std::cout << "hydraulic element type: "
 	<< sKeyWords[CurrKeyWord] << std::endl;
    }   
 #endif   

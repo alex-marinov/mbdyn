@@ -455,7 +455,7 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr,
 		const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering BeamSliderJoint::AssRes()" << endl);
+	DEBUGCOUT("Entering BeamSliderJoint::AssRes()" << std::endl);
 
 	/*
 	 * Nota: posso risparmiare tutte le righe dei nodi della trave

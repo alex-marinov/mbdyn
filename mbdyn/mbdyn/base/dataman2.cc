@@ -515,7 +515,7 @@ void DataManager::InitialJointAssembly(void)
 	   /* Output del residuo */
 	   std::cout << "Residual:" << std::endl;
 	   for (int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {
-	      std::cout << "Dof" << setw(4) << iTmpCnt << ": "
+	      std::cout << "Dof" << std::setw(4) << iTmpCnt << ": "
 		<< pResHdl->dGetCoef(iTmpCnt) << std::endl;
 	   }
 	}
@@ -624,7 +624,7 @@ void DataManager::InitialJointAssembly(void)
 	 /* Output della soluzione */
 	 std::cout << "Solution:" << std::endl;
 	 for (int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {	   
-	    std::cout << "Dof" << setw(4) << iTmpCnt << ": " 
+	    std::cout << "Dof" << std::setw(4) << iTmpCnt << ": " 
 	      << pSolHdl->dGetCoef(iTmpCnt) << std::endl;
 	 }
       }

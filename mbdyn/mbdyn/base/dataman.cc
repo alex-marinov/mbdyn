@@ -463,7 +463,7 @@ DofIter()
 #ifdef DEBUG
    if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
       for (int iCnt = 0; iCnt < iTotDofs; iCnt++) {
-	 std::cout << "Dof " << setw(4) << iCnt+1 << ": order "
+	 std::cout << "Dof " << std::setw(4) << iCnt+1 << ": order "
 	   << pDofs[iCnt].Order << std::endl;
       }
    }

@@ -449,7 +449,7 @@ inline const doublereal& ScalarAlgebraicNode::dGetX(void) const
 
 inline const doublereal& ScalarAlgebraicNode::dGetXPrime(void) const
 {
-   DEBUGCERR("Error, getting derivative from algebraic dof!" << endl);
+   DEBUGCERR("Error, getting derivative from algebraic dof!" << std::endl);
    THROW(Node::ErrGeneric());
 #ifndef USE_EXCEPTIONS
    return dX; /* inutile, ma evita warnings se non si usano eccezioni */

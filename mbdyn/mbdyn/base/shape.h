@@ -120,7 +120,7 @@ class ConstShape1D : public Shape1D {
    };
    
    ~ConstShape1D(void) { 
-      DEBUGCOUT("Const 1D shape deleted" << endl); 
+      DEBUGCOUT("Const 1D shape deleted" << std::endl); 
    };
    
    doublereal dGet(doublereal /* d */ , doublereal = 0.) const { 
@@ -142,7 +142,7 @@ class LinearShape1D : public Shape1D {
    };
    
    ~LinearShape1D(void) { 
-      DEBUGCOUT("Linear 1D shape deleted" << endl); 
+      DEBUGCOUT("Linear 1D shape deleted" << std::endl); 
    };
    
    doublereal dGet(doublereal d, doublereal = 0.) const { 
@@ -207,7 +207,7 @@ class ParabolicShape1D : public Shape1D {
      };
    
    ~ParabolicShape1D(void) { 
-      DEBUGCOUT("Parabolic 1D shape deleted" << endl); 
+      DEBUGCOUT("Parabolic 1D shape deleted" << std::endl); 
    };
    
    doublereal dGet(doublereal d, doublereal = 0.) const { 
@@ -243,7 +243,7 @@ class ConstShape2D : public Shape2D {
    };
    
    ~ConstShape2D(void) { 
-      DEBUGCOUT("Const 2D shape deleted" << endl); 
+      DEBUGCOUT("Const 2D shape deleted" << std::endl); 
    };
    
    doublereal dGet(doublereal /* d */ , doublereal = 0.) const { 

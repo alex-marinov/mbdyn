@@ -189,8 +189,8 @@ class Elem : public WithLabel, public ToBeOutput {
    
    virtual void GetConnectedNodes(int& NumNodes, Node::Type* /* NdTyps */ , unsigned int* /* NdLabels */ ) {
 #ifdef DEBUG
-      cerr << "Warning: probably function Elem::GetConnectedNodes"
-        " is not defined for an element Type" << endl;
+      std::cerr << "Warning: probably function Elem::GetConnectedNodes"
+        " is not defined for an element Type" << std::endl;
 #endif /* DEBUG */
       NumNodes = 0;
    };

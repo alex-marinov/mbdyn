@@ -120,16 +120,16 @@ void NostroMetodo::SetCoef(doublereal dT,
    b[1][DIFFERENTIAL] = dT*(dBeta/2.+dAlpha/2.-dDelta/dAlpha*(1.+dAlpha));
    b[2][DIFFERENTIAL] = dT*(dBeta/2.+dDelta);
    
-   DEBUGCOUT("Predict()" << endl
-	     << "Alpha = " << dAlpha << endl
-	     << "Differential coefficients:" << endl
-	     << "beta  = " << dBeta << endl
-	     << "delta = " << dDelta << endl
-	     << "a1    = " << a[0][DIFFERENTIAL] << endl
-	     << "a2    = " << a[1][DIFFERENTIAL] << endl
-	     << "b0    = " << b[0][DIFFERENTIAL] << endl
-	     << "b1    = " << b[1][DIFFERENTIAL] << endl
-	     << "b2    = " << b[2][DIFFERENTIAL] << endl);
+   DEBUGCOUT("Predict()" << std::endl
+	     << "Alpha = " << dAlpha << std::endl
+	     << "Differential coefficients:" << std::endl
+	     << "beta  = " << dBeta << std::endl
+	     << "delta = " << dDelta << std::endl
+	     << "a1    = " << a[0][DIFFERENTIAL] << std::endl
+	     << "a2    = " << a[1][DIFFERENTIAL] << std::endl
+	     << "b0    = " << b[0][DIFFERENTIAL] << std::endl
+	     << "b1    = " << b[1][DIFFERENTIAL] << std::endl
+	     << "b2    = " << b[2][DIFFERENTIAL] << std::endl);
    
    /* Coefficienti del metodo - variabili algebriche */
    if (dAlgebraicRho != dRho) {
@@ -150,24 +150,24 @@ void NostroMetodo::SetCoef(doublereal dT,
       b[2][ALGEBRAIC] = b[2][DIFFERENTIAL];
    }
    
-   DEBUGCOUT("Algebraic coefficients:" << endl
-	     << "beta  = " << dBeta << endl
-	     << "delta = " << dDelta << endl
-	     << "a2    = " << a[1][ALGEBRAIC] << endl
-	     << "b0    = " << b[0][ALGEBRAIC] << endl
-	     << "b1    = " << b[1][ALGEBRAIC] << endl
-	     << "b2    = " << b[2][ALGEBRAIC] << endl);
+   DEBUGCOUT("Algebraic coefficients:" << std::endl
+	     << "beta  = " << dBeta << std::endl
+	     << "delta = " << dDelta << std::endl
+	     << "a2    = " << a[1][ALGEBRAIC] << std::endl
+	     << "b0    = " << b[0][ALGEBRAIC] << std::endl
+	     << "b1    = " << b[1][ALGEBRAIC] << std::endl
+	     << "b2    = " << b[2][ALGEBRAIC] << std::endl);
       
    DEBUGCOUT("Asymptotic rho: " 
-	     << -b[1][DIFFERENTIAL]/(2.*b[0][DIFFERENTIAL]) << endl
+	     << -b[1][DIFFERENTIAL]/(2.*b[0][DIFFERENTIAL]) << std::endl
 	     << "Discriminant: " 
 	     << b[1][DIFFERENTIAL]*b[1][DIFFERENTIAL]-4.*b[2][DIFFERENTIAL]*b[0][DIFFERENTIAL] 
-	     << endl
+	     << std::endl
 	     << "Asymptotic rho for algebraic variables: " 
-	     << -b[1][ALGEBRAIC]/(2.*b[0][ALGEBRAIC]) << endl
+	     << -b[1][ALGEBRAIC]/(2.*b[0][ALGEBRAIC]) << std::endl
 	     << "Discriminant: " 
 	     << b[1][ALGEBRAIC]*b[1][ALGEBRAIC]-4.*b[2][ALGEBRAIC]*b[0][ALGEBRAIC] 
-	     << endl);
+	     << std::endl);
   
    /* Vengono modificati per la predizione, dopo che sono stati usati per
     * costruire gli altri coefficienti */
@@ -229,7 +229,7 @@ void Hope::SetCoef(doublereal dT,
 {
    /*
    if (dAlpha != 1.) {
-      cerr << "HOPE time step integrator is not implemented yet in variable step form" << endl;
+      cerr << "HOPE time step integrator is not implemented yet in variable step form" << std::endl;
       THROW(ErrNotImplementedYet());
    }
     */
@@ -261,14 +261,14 @@ void Hope::SetCoef(doublereal dT,
       b[0][DIFFERENTIAL] = dTMod*(4.-dALPHA)/6.; // dT*(4.-dALPHA)/12.;
       b[1][DIFFERENTIAL] = dTMod*dALPHA/2.; // dT*dALPHA/4.;
       
-      DEBUGCOUT("Predict()" << endl
-		<< "Alpha = " << dAlpha << endl
-		<< "Differential coefficients:" << endl
-		<< "HOPE-Alpha = " << dALPHA << endl
-		<< "a1    = " << a[0][DIFFERENTIAL] << endl
-		<< "a2    = " << a[1][DIFFERENTIAL] << endl
-		<< "b0    = " << b[0][DIFFERENTIAL] << endl
-		<< "b1    = " << b[1][DIFFERENTIAL] << endl);
+      DEBUGCOUT("Predict()" << std::endl
+		<< "Alpha = " << dAlpha << std::endl
+		<< "Differential coefficients:" << std::endl
+		<< "HOPE-Alpha = " << dALPHA << std::endl
+		<< "a1    = " << a[0][DIFFERENTIAL] << std::endl
+		<< "a2    = " << a[1][DIFFERENTIAL] << std::endl
+		<< "b0    = " << b[0][DIFFERENTIAL] << std::endl
+		<< "b1    = " << b[1][DIFFERENTIAL] << std::endl);
                   
       /* Coefficienti del metodo - variabili algebriche */
       doublereal dAlgebraicRho = AlgebraicRho.dGet();   
@@ -285,11 +285,11 @@ void Hope::SetCoef(doublereal dT,
 	 b[1][ALGEBRAIC] = b[1][DIFFERENTIAL];   
       }
       
-      DEBUGCOUT("Algebraic coefficients:" << endl
-		<< "HOPE-Alpha = " << dAlgebraicALPHA << endl
-		<< "a2    = " << a[1][ALGEBRAIC] << endl
-		<< "b0    = " << b[0][ALGEBRAIC] << endl
-		<< "b1    = " << b[1][ALGEBRAIC] << endl);
+      DEBUGCOUT("Algebraic coefficients:" << std::endl
+		<< "HOPE-Alpha = " << dAlgebraicALPHA << std::endl
+		<< "a2    = " << a[1][ALGEBRAIC] << std::endl
+		<< "b0    = " << b[0][ALGEBRAIC] << std::endl
+		<< "b1    = " << b[1][ALGEBRAIC] << std::endl);
             
       /* valori di ritorno */     
       db0Differential = b[0][DIFFERENTIAL];

@@ -817,7 +817,7 @@ Var*
 MathParser::NewVar(const char* const s, TypedValue::Type t, const Real& d) 
 {
    if (GetVar(s) != NULL) {
-      DEBUGCERR("var '" << s << "' already defined!" << endl);
+      DEBUGCERR("var '" << s << "' already defined!" << std::endl);
       THROW(ErrGeneric(this, "var '", s, "' already defined!" ));
    }
    Var* v = NULL;
@@ -1187,7 +1187,7 @@ MathParser::mult(void)
 	  GetToken();
 	  TypedValue e = power();
 	  if (e == 0.) {
-	     DEBUGCERR("divide by zero in mult()" << endl);	  
+	     DEBUGCERR("divide by zero in mult()" << std::endl);	  
 	     THROW(ErrGeneric(this, "divide by zero in mult()"));
 	  }
 	  d /= e;
@@ -1218,7 +1218,7 @@ MathParser::power(void) {
 		
 		if (d < 0. && e <= 0.) {
 			DEBUGCERR("can't compute " << d << '^'
-					<< e << " in power()" << endl);
+					<< e << " in power()" << std::endl);
 			THROW(ErrGeneric(this, "invalid operands in power()"));
 		}
 
@@ -1285,7 +1285,7 @@ MathParser::evalfunc(mathfuncs* f)
    for (int i = 0; i < f->nargs-1; i++) {
       d[i] = stmtlist().GetReal();
       if (currtoken != ARGSEP) {	 
-	 DEBUGCERR("argument separator expected in evalfunc()" << endl);
+	 DEBUGCERR("argument separator expected in evalfunc()" << std::endl);
 	 THROW(ErrGeneric(this, "argument separator expected"));
       }
       GetToken();
@@ -1295,7 +1295,7 @@ MathParser::evalfunc(mathfuncs* f)
    if (f->t != NULL) {
       if ((*(f->t))(d)) {
 	 DEBUGCERR("error in function " << f->fname << " (msg: "
-		   << f->errmsg << ')' << " in evalfunc()" << endl);
+		   << f->errmsg << ')' << " in evalfunc()" << std::endl);
 	 THROW(ErrGeneric(this, f->fname, ": error ", f->errmsg));
       }
    }
@@ -1306,7 +1306,7 @@ MathParser::evalfunc(mathfuncs* f)
     case 2:
       return TypedValue((*(f->f.f2))(d[0], d[1]));
     default:
-      DEBUGCERR("unsupported feature in evalfunc()" << endl);
+      DEBUGCERR("unsupported feature in evalfunc()" << std::endl);
       THROW(ErrGeneric(this, "unsupported number of arguments"));
    }
    return 0;
@@ -1324,7 +1324,7 @@ MathParser::expr(void)
       GetToken();
       TypedValue d = stmtlist();
       if (currtoken != CBR) {
-	 DEBUGCERR("closing parenthesis expected in expr()" << endl);
+	 DEBUGCERR("closing parenthesis expected in expr()" << std::endl);
 	 THROW(ErrGeneric(this, "closing parenthesis expected"));
       }
       GetToken();
@@ -1334,7 +1334,7 @@ MathParser::expr(void)
    if (currtoken == OPGIN) {
        TypedValue d = readplugin();
        if (currtoken != CPGIN) {
-	  DEBUGCERR("closing plugin expected in expr()" << endl);
+	  DEBUGCERR("closing plugin expected in expr()" << std::endl);
 	  THROW(ErrGeneric(this, "closing plugin expected"));
        }
        GetToken();
@@ -1357,7 +1357,7 @@ MathParser::expr(void)
 	 TypedValue d = evalfunc(f);
 	 if (currtoken != CBR) {	   
 	    DEBUGCERR("closing parenthesis expected after function '"
-		      << f->fname << "' in expr()" << endl);
+		      << f->fname << "' in expr()" << std::endl);
 	    THROW(ErrGeneric(this, "closing parenthesis expected after function '",
 			     f->fname, "' in expr()"));
 	 }
@@ -1370,13 +1370,13 @@ MathParser::expr(void)
 	 }
       }
            
-      DEBUGCERR("unknown name '" << namebuf << "' in expr()" << endl);
+      DEBUGCERR("unknown name '" << namebuf << "' in expr()" << std::endl);
       THROW(ErrGeneric(this, "unknown name '", namebuf, "'"));
    }
    
    /* invalid expr */
    if (currtoken != ENDOFFILE) {
-      DEBUGCERR("unknown token in expr()" << currtoken << endl);
+      DEBUGCERR("unknown token in expr()" << currtoken << std::endl);
       THROW(ErrGeneric(this, "unknown token"));
    }
    return TypedValue(0.);
@@ -1631,7 +1631,7 @@ last_arg:
 		}
 #ifdef DEBUG
 		for (int i = 0; argv[i] != NULL; i++) {
-			cout << "argv[" << i << "]=" << argv[i] << endl;
+			std::cout << "argv[" << i << "]=" << argv[i] << std::endl;
 		}
 #endif /* DEBUG */
 
@@ -1833,7 +1833,7 @@ MathParser::Get(Real d)
    GetToken();
    d = stmt().GetReal();
    if (currtoken != STMTSEP && currtoken != ENDOFFILE) {     
-      DEBUGCERR("stmtsep expected in Get()" << endl);
+      DEBUGCERR("stmtsep expected in Get()" << std::endl);
       THROW(ErrGeneric(this, "statement separator expected"));
    }
    return d;
@@ -1853,7 +1853,7 @@ MathParser::Get(const InputStream& strm, Real d)
    } else if (currtoken == ARGSEP) {
       in->putback(',');
    } else {
-      DEBUGCERR("separator expected in Get()" << endl);
+      DEBUGCERR("separator expected in Get()" << std::endl);
       THROW(ErrGeneric(this, "separator expected"));
    }
    in = (InputStream*)p;

@@ -101,7 +101,7 @@ class MyAssert {
 };
 
 extern void _Assert(const char* file, const int line, const char* msg = NULL);
-extern ostream& _Out(ostream& out, const char* file, const int line);
+extern std::ostream& _Out(std::ostream& out, const char* file, const int line);
 
 #define ASSERT(expr) \
     do { \
@@ -138,21 +138,21 @@ extern ostream& _Out(ostream& out, const char* file, const int line);
 
 
 #define COUT \
-    _Out(cout, __FILE__, __LINE__)
+    _Out(std::cout, __FILE__, __LINE__)
 
 #define CERR \
-    _Out(cerr, __FILE__, __LINE__)
+    _Out(std::cerr, __FILE__, __LINE__)
 
 
 
 #define DEBUGCOUT(msg) \
     do { \
-        _Out(cout, __FILE__, __LINE__) << msg; cout.flush(); \
+        _Out(std::cout, __FILE__, __LINE__) << msg; std::cout.flush(); \
     } while (0)
 
 #define DEBUGCERR(msg) \
     do { \
-        _Out(cerr, __FILE__, __LINE__) << msg; cerr.flush(); \
+        _Out(std::cerr, __FILE__, __LINE__) << msg; std::cerr.flush(); \
     } while (0)
 
 #define DEBUG_LEVEL(level) \
@@ -194,15 +194,15 @@ extern ostream& _Out(ostream& out, const char* file, const int line);
     do { \
         if (::debug_level & MYDEBUG_FNAMES) { \
             if (::debug_level & MYDEBUG_PRETTYFN) { \
-                DEBUGCOUT("Entering <" << __PRETTY_FUNCTION__ << ">" << endl); \
+                DEBUGCOUT("Entering <" << __PRETTY_FUNCTION__ << ">" << std::endl); \
             } else { \
-                DEBUGCOUT("Entering <" << __FUNCTION__ << ">" << endl); \
+                DEBUGCOUT("Entering <" << __FUNCTION__ << ">" << std::endl); \
             } \
         } \
     } while (0)
 #else /* !__GNUC__ */
 #define DEBUGCOUTFNAME(fname) \
-    DEBUGLCOUT(MYDEBUG_FNAMES, "Entering <" << fname << ">" << endl)
+    DEBUGLCOUT(MYDEBUG_FNAMES, "Entering <" << fname << ">" << std::endl)
 #endif /* !__GNUC__ */
 
 #else /* !DEBUG */
@@ -219,10 +219,10 @@ extern ostream& _Out(ostream& out, const char* file, const int line);
     NO_OP
 
 #define COUT \
-    cout
+    std::cout
 
 #define CERR \
-    cerr
+    std::cerr
 
 
 #define DEBUGCOUT(msg) \
