@@ -185,6 +185,7 @@ void AerodynamicExternal::AfterPredict(VectorHandler& X  ,
 					VectorHandler&  XP  )
 {
 	DEBUGCOUTFNAME("AerodynamicExternal::AfterPredict");
+	std::cout << "New Step "  << std::endl; 
 	Send(X, XP);
 }
 
@@ -229,7 +230,17 @@ void AerodynamicExternal::Send(const VectorHandler& X  ,
 			if (VelFlag) pdBufferVel->Put(i*(OffN+1)*3+j*3+1, V + ( Mat3x3(ppNode[i]->GetWCurr()) * R)* MatTmp.GetVec(j));
 		}
 	}
+	MPI::Status ss;
+	pSenReq->Wait(ss);
+	int pippo = ss.Get_error();
+	std::cout << "pippo 1 " << pippo << std::endl; 
+	if (VelFlag) {
+		(pSenReq[1]).Wait(ss);
+		int pippo = ss.Get_error();
+		std::cout << "pippo 2 " << pippo << std::endl; 
+	}
 	MPI::Prequest::Startall(1 + VelFlag, pSenReq);
+	std::cout <<"nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn "  << std::endl; 
 	/* attiva la ricezione delle forze */
 	MPI::Prequest::Startall(1 , pRecReq);
 	SentFlag = true; 
@@ -244,9 +255,16 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 	DEBUGCOUTFNAME("AerodynamicExternal::AssRes");
 	/* verifica il completamento dei send */
 	if(!SentFlag) Send(XCurr, XPrimeCurr);
-
-	MPI::Prequest::Waitall(1 + VelFlag, pSenReq);
-   	
+	
+	MPI::Status ss;
+	pSenReq->Wait(ss);
+	int pippo = ss.Get_error();
+	std::cout << "pippo 1 " << pippo << std::endl; 
+	if (VelFlag) {
+		(pSenReq[1]).Wait(ss);
+		int pippo = ss.Get_error();
+		std::cout << "pippo 2 " << pippo << std::endl; 
+	}
 	WorkVec.Resize(6*NodeN);
    	WorkVec.Reset(0.);
 
@@ -263,10 +281,12 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 	
 	/* calcola le forze su ciascun nodo */
 	/* le forze e i momenti sono gia' espressi nel sistema di riferimento global */
-	Vec3 F(0.);
-	Vec3 Fo(0.);
-	Vec3 M(0.);
+	Vec3 FT(0.);
+	Vec3 MT(0.);
 	for (int i=0; i < NodeN; i++) {
+		Vec3 F(0.);
+		Vec3 Fo(0.);
+		Vec3 M(0.);
 		F[0] +=  pdBuffer->dGetCoef(i*(OffN+1)*3+1);
 		F[1] +=  pdBuffer->dGetCoef(i*(OffN+1)*3+2);
 		F[2] +=  pdBuffer->dGetCoef(i*(OffN+1)*3+3);
@@ -287,13 +307,15 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 			}
 			//Vec3 TmpF(*pdBuffer, i*(OffN+1)*3+(j+1)*3+1);
 			
-			M += Fo.Cross( ppNode[i]->GetRCurr() * pOffsetVectors->GetVec(j) * pRefLength[i]);
+			M -= Fo.Cross( ppNode[i]->GetRCurr() * pOffsetVectors->GetVec(j) * pRefLength[i]);
 		}
-		std::cerr << "F " << F << std::endl;
-		std::cerr << "M " << M << std::endl;
 		WorkVec.Add(i*6+1, F);
    		WorkVec.Add(i*6+4, M);
+		FT +=F;
+		MT +=M;
 	}
+	std::cerr << "FT " << FT << std::endl;
+	std::cerr << "MT " << MT << std::endl;
 	SentFlag = false; 
 	return WorkVec;			
 }
