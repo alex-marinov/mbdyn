@@ -73,6 +73,7 @@ class Vec3 {
    friend class Mat3x3;   
    friend Vec3 operator - (const Vec3& v);
    friend class _Mat3x3_Manip;
+   friend class VecN;
    
 
  private:
@@ -486,6 +487,8 @@ class Mat3x3 {
    friend class Vec3;
    friend class SparseSubMatrixHandler;
    friend class _Mat3x3_Manip;   
+   friend class Mat3xN;
+   friend class MatNx3;
    
  protected:
    ///Vettore di 9 reali che contiene i coefficienti

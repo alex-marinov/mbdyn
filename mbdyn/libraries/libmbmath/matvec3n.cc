@@ -34,6 +34,8 @@
 
 #include <matvec3n.h>
 
+/* VecN - begin */
+
 void VecN::IsValid(void) const
 {      
    ASSERT(iMaxRows > 0);
@@ -146,13 +148,13 @@ void VecN::Reset(const doublereal& d)
    }
 }
 
-void VecN::RightMult(const MatNx3&n, const Vec3& v)
+void VecN::RightMult(const MatNx3& n, const Vec3& v)
 {
    IsValid();
    for (integer i = iNumRows; i-- > 0; ) {
-      pdVec[i] = n.pdVec1[i]*v.dGet(1)+
-                 n.pdVec2[i]*v.dGet(2)+
-                 n.pdVec3[i]*v.dGet(3);
+      pdVec[i] = n.pdCols[0][i]*v.pdVec[V1]
+                 + n.pdCols[1][i]*v.pdVec[V2]
+                 + n.pdCols[2][i]*v.pdVec[V3];
    }
 }
 
@@ -165,29 +167,30 @@ const VecN& VecN::operator += (const VecN& m)
    return *this;
 }
 
-const VecN& VecN::operator * (const doublereal& d)
+const VecN& 
+VecN::operator *= (const doublereal& d)
 {
-   IsValid();
-    for (integer i = iNumRows; i-- > 0; ) {
-	 pdVec[i] = pdVec[i]*d;
-      }
-   return *this;
+	IsValid();
+	for (integer i = iNumRows; i-- > 0; ) {
+		pdVec[i] *= d;
+	}
+	return *this;
 }
 
 const VecN& VecN::Mult(const MatNxN& m, const VecN& n)
 {
-  IsValid();
-  ASSERT(iNumRows=n.iNumRows);
-  for(integer i = iNumRows; i-- > 0; ) {
-  double temp=0;
-   for(integer j = iNumRows; j-- > 0; ) { 
-      temp+=m.pdVec[i*iNumRows+j]*n.pdVec[j];
-     }
-  pdVec[i] = temp; 
-  }
-  return *this;
-}
+   IsValid();
+   ASSERT(iNumRows=n.iNumRows);
 
+   for(integer i = iNumRows; i-- > 0; ) {
+      pdVec[i] = 0.;
+      for(integer j = iNumRows; j-- > 0; ) { 
+         pdVec[i] += m.pdVec[i*iNumRows+j]*n.pdVec[j];
+      }
+   }
+
+   return *this;
+}
 
 /* VecN - end */
 
@@ -198,26 +201,26 @@ void Mat3xN::IsValid(void) const
 {
    ASSERT(iNumCols > 0);
    ASSERT(iMaxCols > 0);
-   ASSERT(pvdMat[0] != NULL);
+   ASSERT(pdRows[0] != NULL);
 }
 
 
 void Mat3xN::Create_(integer ns)
 {
    ASSERT(ns > 0);
-   if (pvdMat[0] != NULL) {
+   if (pdRows[0] != NULL) {
       Destroy_();
    }
-   SAFENEWARR(pvdMat[0], doublereal, 3*ns);
-   pvdMat[1] = pvdMat[0]+ns;
-   pvdMat[2] = pvdMat[1]+ns;
+   SAFENEWARR(pdRows[0], doublereal, 3*ns);
+   pdRows[1] = pdRows[0]+ns;
+   pdRows[2] = pdRows[1]+ns;
 }
   
 
 void Mat3xN::Destroy_(void)
 {
-   if (pvdMat[0] != NULL) {
-      SAFEDELETEARR(pvdMat[0]);
+   if (pdRows[0] != NULL) {
+      SAFEDELETEARR(pdRows[0]);
    }
 }
 
@@ -225,9 +228,9 @@ void Mat3xN::Destroy_(void)
 Mat3xN::Mat3xN(void)
 : iMaxCols(0), iNumCols(0)
 {
-   pvdMat[0] = NULL;
-   pvdMat[1] = NULL;
-   pvdMat[2] = NULL;
+   pdRows[0] = NULL;
+   pdRows[1] = NULL;
+   pdRows[2] = NULL;
 }
 
 
@@ -235,9 +238,9 @@ Mat3xN::Mat3xN(integer nc)
 : iMaxCols(nc), iNumCols(nc)
 {
    ASSERT(iNumCols > 0);
-   pvdMat[0] = NULL;
-   pvdMat[1] = NULL;
-   pvdMat[2] = NULL;
+   pdRows[0] = NULL;
+   pdRows[1] = NULL;
+   pdRows[2] = NULL;
    
    Create_(iNumCols);
    IsValid();
@@ -248,9 +251,9 @@ Mat3xN::Mat3xN(integer nc, const doublereal& d)
 : iMaxCols(nc), iNumCols(nc) 
 {
    ASSERT(iNumCols > 0);
-   pvdMat[0] = NULL;
-   pvdMat[1] = NULL;
-   pvdMat[2] = NULL;
+   pdRows[0] = NULL;
+   pdRows[1] = NULL;
+   pdRows[2] = NULL;
 
    Create_(iNumCols);
    IsValid();
@@ -281,10 +284,10 @@ void Mat3xN::Resize(integer ns)
 void Mat3xN::Reset(const doublereal& d)
 {
    IsValid();
-   for (int i = 3; i-- > 0; ) {
-      for (integer j = iNumCols; j-- > 0; ) {
-	 pvdMat[i][j] = d;
-      }
+   for (integer j = iNumCols; j-- > 0; ) {
+      pdRows[0][j] = d;
+      pdRows[1][j] = d;
+      pdRows[2][j] = d;
    }
 }
 
@@ -293,21 +296,18 @@ const Mat3xN& Mat3xN::LeftMult(const Mat3x3& m)
 {
    IsValid();
    for (integer i = iNumCols; i-- > 0; ) {
-      doublereal d1 =
-	pvdMat[0][i]*m.dGet(1, 1)
-	+pvdMat[1][i]*m.dGet(1, 2)
-	+pvdMat[2][i]*m.dGet(1, 3);
-      doublereal d2 =
-	pvdMat[0][i]*m.dGet(2, 1)
-	+pvdMat[1][i]*m.dGet(2, 2)
-	+pvdMat[2][i]*m.dGet(2, 3);
-      doublereal d3 =
-	pvdMat[0][i]*m.dGet(3, 1)
-	+pvdMat[1][i]*m.dGet(3, 2)
-	+pvdMat[2][i]*m.dGet(3, 3);
-      pvdMat[0][i] = d1;
-      pvdMat[1][i] = d2;
-      pvdMat[2][i] = d3;
+      pdRows[0][i] =
+	pdRows[0][i]*m.pdMat[M11]
+	+pdRows[1][i]*m.pdMat[M12]
+	+pdRows[2][i]*m.pdMat[M13];
+      pdRows[1][i] =
+	pdRows[0][i]*m.pdMat[M21]
+	+pdRows[1][i]*m.pdMat[M22]
+	+pdRows[2][i]*m.pdMat[M23];
+      pdRows[2][i] =
+	pdRows[0][i]*m.pdMat[M31]
+	+pdRows[1][i]*m.pdMat[M32]
+	+pdRows[2][i]*m.pdMat[M33];
    }
    return *this;
 }
@@ -322,18 +322,18 @@ const Mat3xN& Mat3xN::LeftMult(const Mat3x3& m, const Mat3xN& n)
    }   
    
    for (integer i = iNumCols; i-- > 0; ) {
-      pvdMat[0][i] =
-	n.pvdMat[0][i]*m.dGet(1, 1)
-	+n.pvdMat[1][i]*m.dGet(1, 2)
-	+n.pvdMat[2][i]*m.dGet(1, 3);
-      pvdMat[1][i] =
-	n.pvdMat[0][i]*m.dGet(2, 1)
-	+n.pvdMat[1][i]*m.dGet(2, 2)
-	+n.pvdMat[2][i]*m.dGet(2, 3);
-      pvdMat[2][i] =
-	n.pvdMat[0][i]*m.dGet(3, 1)
-	+n.pvdMat[1][i]*m.dGet(3, 2)
-	+n.pvdMat[2][i]*m.dGet(3, 3);
+      pdRows[0][i] =
+	n.pdRows[0][i]*m.pdMat[M11]
+	+n.pdRows[1][i]*m.pdMat[M12]
+	+n.pdRows[2][i]*m.pdMat[M13];
+      pdRows[1][i] =
+	n.pdRows[0][i]*m.pdMat[M21]
+	+n.pdRows[1][i]*m.pdMat[M22]
+	+n.pdRows[2][i]*m.pdMat[M23];
+      pdRows[2][i] =
+	n.pdRows[0][i]*m.pdMat[M31]
+	+n.pdRows[1][i]*m.pdMat[M32]
+	+n.pdRows[2][i]*m.pdMat[M33];
    }
    return *this;
 }
@@ -343,10 +343,10 @@ const Mat3xN& Mat3xN::Copy(const Mat3xN& m)
 {
    m.IsValid();
    Resize(m.iNumCols);
-   for (integer i = 3; i-- > 0; ) {
-      for (integer j = m.iNumCols; j-- > 0; ) {
-	 pvdMat[i][j] = m.pvdMat[i][j];
-      }
+   for (integer j = m.iNumCols; j-- > 0; ) {
+      pdRows[0][j] = m.pdRows[0][j];
+      pdRows[1][j] = m.pdRows[1][j];
+      pdRows[2][j] = m.pdRows[2][j];
    }
    return *this;
 }
@@ -355,11 +355,12 @@ const Mat3xN& Mat3xN::Copy(const Mat3xN& m)
 const Mat3xN& Mat3xN::operator *= (const doublereal& d) 
 {
    IsValid();
+
    if (d != 1.) {
-      for (int i = 3; i-- > 0; ) {
-	 for (integer j = iNumCols; j-- > 0; ) {
-	    pvdMat[i][j] *= d;
-	 }
+      for (integer j = iNumCols; j-- > 0; ) {
+         pdRows[0][j] *= d;
+         pdRows[1][j] *= d;
+         pdRows[2][j] *= d;
       }
    }
    return *this;
@@ -374,10 +375,10 @@ const Mat3xN& Mat3xN::operator /= (const doublereal& d)
       THROW(ErrGeneric());
    }
    if (d != 1.) {
-      for (int i = 3; i-- > 0; ) {
-	 for (integer j = iNumCols; j-- > 0; ) {
-	    pvdMat[i][j] /= d;
-	 }
+      for (integer j = iNumCols; j-- > 0; ) {
+         pdRows[0][j] /= d;
+         pdRows[1][j] /= d;
+         pdRows[2][j] /= d;
       }
    }
    return *this;
@@ -387,10 +388,10 @@ const Mat3xN& Mat3xN::operator /= (const doublereal& d)
 const Mat3xN& Mat3xN::operator += (const Mat3xN& m)
 {
    IsValid();
-   for (int i = 3; i-- > 0; ) {
-      for (integer j = m.iNumCols; j-- > 0; ) {
-	 pvdMat[i][j] += m.pvdMat[i][j];
-      }
+   for (integer j = m.iNumCols; j-- > 0; ) {
+      pdRows[0][j] += m.pdRows[0][j];
+      pdRows[1][j] += m.pdRows[1][j];
+      pdRows[2][j] += m.pdRows[2][j];
    }
    return *this;
 }
@@ -399,30 +400,33 @@ const Mat3xN& Mat3xN::operator += (const Mat3xN& m)
 const Mat3xN& Mat3xN::operator -= (const Mat3xN& m)
 {
    IsValid();
-   for (int i = 3; i-- > 0; ) {
-      for (integer j = m.iNumCols; j-- > 0; ) {
-	 pvdMat[i][j] -= m.pvdMat[i][j];
-      }
+   for (integer j = m.iNumCols; j-- > 0; ) {
+      pdRows[0][j] -= m.pdRows[0][j];
+      pdRows[1][j] -= m.pdRows[1][j];
+      pdRows[2][j] -= m.pdRows[2][j];
    }
    return *this;
 }
 
   
-Vec3 Mat3xN::operator * (const VecN& v)
+Vec3 
+Mat3xN::operator * (const VecN& v) const
 {
-   IsValid();
-   ASSERT(iNumCols == v.iNumRows);
-   doublereal d[3];
-   for (int i = 3; i-- > 0; ) {
-      d[i] = 0.;
-      for (integer j = iNumCols; j-- > 0; ) {
-	 d[i] += pvdMat[i][j]*v.pdVec[j];
-      }
-   }
-   return Vec3(d);
+	IsValid();
+	ASSERT(iNumCols == v.iNumRows);
+
+	doublereal d[3] = { 0., 0., 0. };
+	for (integer j = iNumCols; j-- > 0; ) {
+		d[0] += pdRows[0][j]*v.pdVec[j];
+		d[1] += pdRows[1][j]*v.pdVec[j];
+		d[2] += pdRows[2][j]*v.pdVec[j];
+	}
+
+	return Vec3(d);
 }
 
 /* Mat3xN - end */
+
 
 /* MatNx3 - begin */
 
@@ -430,63 +434,52 @@ void MatNx3::IsValid(void) const
 {      
    ASSERT(iMaxRows > 0);
    ASSERT(iNumRows > 0);
-   ASSERT(pdVec1 != NULL);
-   ASSERT(pdVec2 != NULL);
-   ASSERT(pdVec3 != NULL);
+   ASSERT(pdCols[0] != NULL);
+   ASSERT(pdCols[1] != NULL);
+   ASSERT(pdCols[2] != NULL);
 }
 
 
 void MatNx3::Create_(integer ns)
 {
    ASSERT(ns > 0);
-   if (pdVec1 != NULL) {
+   if (pdCols[0] != NULL) {
       Destroy_();
    }
-   if (pdVec2 != NULL) {
-      Destroy_();
-   }
-   if (pdVec3 != NULL) {
-      Destroy_();
-   }
-   SAFENEWARR(pdVec1, doublereal, ns);
-   SAFENEWARR(pdVec2, doublereal, ns);
-   SAFENEWARR(pdVec3, doublereal, ns);
-
+   SAFENEWARR(pdCols[0], doublereal, 3*ns);
+   pdCols[1] = pdCols[0] + ns;
+   pdCols[2] = pdCols[1] + ns;
 }
  
 
 void MatNx3::Destroy_(void)
 {
-   if (pdVec1 != NULL) {
-      SAFEDELETEARR(pdVec1);
+   if (pdCols[0] != NULL) {
+      SAFEDELETEARR(pdCols[0]);
    }
-    if (pdVec2 != NULL) {
-      SAFEDELETEARR(pdVec2);
-   }
-    if (pdVec3 != NULL) {
-      SAFEDELETEARR(pdVec3);
-  }
 }
 
 
 MatNx3::MatNx3(void)
-: iMaxRows(0), iNumRows(0), pdVec1(NULL), pdVec2(NULL), pdVec3(NULL)
+: iMaxRows(0), iNumRows(0)
 {
-   NO_OP;
+   pdCols[0] = NULL;
 }
 
 
 MatNx3::MatNx3(integer ns)
-: iMaxRows(ns), iNumRows(ns), pdVec1(NULL), pdVec2(NULL), pdVec3(NULL)
+: iMaxRows(ns), iNumRows(ns)
 {
+   pdCols[0] = NULL;
    Create_(ns);
    IsValid();
 }
 
 
 MatNx3::MatNx3(integer ns, const doublereal& d)
-: iMaxRows(ns), iNumRows(ns), pdVec1(NULL), pdVec2(NULL), pdVec3(NULL)
+: iMaxRows(ns), iNumRows(ns)
 {
+   pdCols[0] = NULL;
    Create_(ns);
    Reset(d);
 }
@@ -500,13 +493,7 @@ MatNx3::~MatNx3(void)
 void MatNx3::Resize(integer ns)
 {
    ASSERT(ns > 0);
-   if (pdVec1 != NULL) {
-      Destroy_();
-   }
-   if (pdVec2 != NULL) {
-      Destroy_();
-   }
-   if (pdVec3 != NULL) {
+   if (pdCols[0] != NULL) {
       Destroy_();
    }
    Create_(ns);
@@ -518,38 +505,36 @@ void MatNx3::Reset(const doublereal& d)
 {
    IsValid();
    for (integer i = iNumRows; i-- > 0; ) {
-      pdVec1[i] = d;
-      pdVec2[i] = d;
-      pdVec3[i] = d;
+      pdCols[0][i] = d;
+      pdCols[1][i] = d;
+      pdCols[2][i] = d;
    }
 }
 
 const MatNx3& MatNx3::RightMult(const MatNx3& n, const Mat3x3& m)
 {  
-   doublereal temp1=0, temp2=0, temp3=0;
    IsValid();
    n.IsValid();
+
    if (iNumRows != n.iNumRows) {
       Resize(n.iNumRows);
    }   
    
    for (integer i = iNumRows; i-- > 0; ) {
-      temp1 =
-	n.pdVec1[i]*m.dGet(1, 1)
-	+n.pdVec2[i]*m.dGet(2, 1)
-	+n.pdVec3[i]*m.dGet(3, 1);
-      temp2 =
-	n.pdVec1[i]*m.dGet(1, 2)
-	+n.pdVec2[i]*m.dGet(2, 2)
-	+n.pdVec3[i]*m.dGet(3, 2);
-      temp3 =
-	n.pdVec1[i]*m.dGet(1, 3)
-	+n.pdVec2[i]*m.dGet(2, 3)
-	+n.pdVec3[i]*m.dGet(3, 3);
-      pdVec1[i]=temp1;
-      pdVec2[i]=temp2;
-      pdVec3[i]=temp3;
+      pdCols[0][i] = 
+	n.pdCols[0][i]*m.pdMat[M11]
+	+n.pdCols[1][i]*m.pdMat[M21]
+	+n.pdCols[2][i]*m.pdMat[M31];
+      pdCols[1][i] = 
+	n.pdCols[0][i]*m.pdMat[M12]
+	+n.pdCols[1][i]*m.pdMat[M22]
+	+n.pdCols[2][i]*m.pdMat[M32];
+      pdCols[2][i] =
+	n.pdCols[0][i]*m.pdMat[M13]
+	+n.pdCols[1][i]*m.pdMat[M23]
+	+n.pdCols[2][i]*m.pdMat[M33];
    }
+
    return *this;
 }
 
@@ -557,14 +542,16 @@ const MatNx3& MatNx3::Transpose(const Mat3xN& n)
 {
   IsValid();
   n.IsValid();
+
   for (integer i = iNumRows; i-- > 0; ) {
-   pdVec1[i]=n.pvdMat[0][i];
-   pdVec2[i]=n.pvdMat[1][i];
-   pdVec3[i]=n.pvdMat[2][i];
+     pdCols[0][i] = n.pdRows[0][i];
+     pdCols[1][i] = n.pdRows[1][i];
+     pdCols[2][i] = n.pdRows[2][i];
   }
   return *this;
 }
 /* MatNx3 - end */
+
 
 /* MatNxN - begin */
 
@@ -573,6 +560,7 @@ void MatNxN::IsValid(void) const
    ASSERT(iMaxRows > 0);
    ASSERT(iNumRows > 0);
    ASSERT(pdVec != NULL);
+   ASSERT(pdMat != NULL);
 }
 
 
@@ -583,6 +571,12 @@ void MatNxN::Create_(integer ns)
       Destroy_();
    }
    SAFENEWARR(pdVec, doublereal, ns*ns);
+   SAFENEWARR(pdMat, doublereal*, ns);
+
+   pdMat[0] = pdVec;
+   for (integer i = 1; i < ns; i++) {
+      pdMat[i] = pdMat[i-1]+ns;
+   }
 }
  
 
@@ -591,18 +585,22 @@ void MatNxN::Destroy_(void)
    if (pdVec != NULL) {
       SAFEDELETEARR(pdVec);
    }
+
+   if (pdMat != NULL) {
+      SAFEDELETEARR(pdMat);
+   }
 }
 
 
 MatNxN::MatNxN(void)
-: iMaxRows(0), iNumRows(0), pdVec(NULL)
+: iMaxRows(0), iNumRows(0), pdVec(NULL), pdMat(NULL)
 {
    NO_OP;
 }
 
 
 MatNxN::MatNxN(integer ns)
-: iMaxRows(ns), iNumRows(ns), pdVec(NULL)
+: iMaxRows(ns), iNumRows(ns), pdVec(NULL), pdMat(NULL)
 {
    Create_(ns*ns);
    IsValid();
@@ -610,7 +608,7 @@ MatNxN::MatNxN(integer ns)
 
 
 MatNxN::MatNxN(integer ns, const doublereal& d)
-: iMaxRows(ns), iNumRows(ns), pdVec(NULL)
+: iMaxRows(ns), iNumRows(ns), pdVec(NULL), pdMat(NULL)
 {
    Create_(ns*ns);
    Reset(d);
@@ -635,20 +633,21 @@ const MatNxN& MatNxN::Mult(const MatNx3& m, const Mat3xN& n)
    IsValid();
    n.IsValid();
    m.IsValid();
-   ASSERT(m.iNumRows==iNumRows);  
-   ASSERT(m.iNumRows==n.iNumCols); 
+
+   ASSERT(m.iNumRows == iNumRows);  
+   ASSERT(m.iNumRows == n.iNumCols); 
+
    for (integer i = 0; i < iNumRows; i++) {
-     for (integer j = 0; j < iNumRows; j++) {
-       double temp = 0;
-       for(integer iCnt = 0; iCnt < 3; iCnt++) {
-         temp += m.dGet(i+1, iCnt+1)*n.dGet(iCnt+1, j+1);
-       } 
-      pdVec[i*iNumRows+j] = temp;
-     }
-   }      
+      for (integer j = 0; j < iNumRows; j++) {
+         pdMat[i][j] = 
+		 m.pdCols[0][i]*n.pdRows[0][j]
+		 + m.pdCols[1][i]*n.pdRows[1][j]
+		 + m.pdCols[2][i]*n.pdRows[2][j];
+      }
+   }
+
    return *this;
 }
 
-
-
 /* MatNxN - end */
+

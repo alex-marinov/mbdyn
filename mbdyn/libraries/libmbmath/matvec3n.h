@@ -35,6 +35,10 @@
 
 /* VecN - begin */
 
+/*
+ * FIXME: why not derived from VectorHandler, or viceversa? 
+ */
+
 class VecN {
    friend class Mat3xN;
    friend class MatNx3;
@@ -59,9 +63,10 @@ class VecN {
    VecN(integer ns);
    VecN(integer ns, const doublereal& d);
 
+   /* costruttore copia */
    VecN(const VecN&);
  
-  /* costruttore da VectorHandler (Aggiunta) */
+   /* costruttore da VectorHandler (Aggiunta) */
    VecN(const VectorHandler& vh, integer ns, integer iFirstIndex);
 
    virtual ~VecN(void);
@@ -84,8 +89,9 @@ class VecN {
  
 
    /* prodotto per scalare */
-   const VecN& operator * (const doublereal & d);
- 
+   const VecN& operator *= (const doublereal & d);
+
+   inline doublereal& operator () (integer i);
 };
 
 
@@ -126,6 +132,14 @@ inline const doublereal& VecN::dGet(integer i) const
    return pdVec[--i];
 }
 
+inline doublereal &
+VecN::operator () (integer i)
+{
+   IsValid();
+   ASSERT(i > 0 && i <= iNumRows);
+   return pdVec[--i];
+}
+
 /* VecN - end */
 
 
@@ -145,7 +159,7 @@ class Mat3xN {
  protected:
    integer iMaxCols;
    integer iNumCols;
-   doublereal* pvdMat[3];
+   doublereal* pdRows[3];
 
    void IsValid(void) const;
    void Create_(integer ns);
@@ -182,7 +196,9 @@ class Mat3xN {
    const Mat3xN& operator += (const Mat3xN& m);
    const Mat3xN& operator -= (const Mat3xN& m);
    
-   Vec3 operator * (const VecN& v);
+   Vec3 operator * (const VecN& v) const;
+
+   inline doublereal & operator () (integer i, integer j);
 };
 
 
@@ -197,7 +213,7 @@ inline void Mat3xN::Put(int i, integer j, const doublereal& d)
    IsValid();
    ASSERT(i > 0 && i <= 3);
    ASSERT(j > 0 && j <= iNumCols);
-   pvdMat[--i][--j] = d;
+   pdRows[--i][--j] = d;
 }
 
 inline void Mat3xN::Add(int i, integer j, const doublereal& d)
@@ -205,7 +221,7 @@ inline void Mat3xN::Add(int i, integer j, const doublereal& d)
    IsValid();
    ASSERT(i > 0 && i <= 3);
    ASSERT(j > 0 && j <= iNumCols);
-   pvdMat[--i][--j] += d;
+   pdRows[--i][--j] += d;
 }
 
 inline void Mat3xN::Sub(int i, integer j, const doublereal& d)
@@ -213,7 +229,7 @@ inline void Mat3xN::Sub(int i, integer j, const doublereal& d)
    IsValid();
    ASSERT(i > 0 && i <= 3);
    ASSERT(j > 0 && j <= iNumCols);
-   pvdMat[--i][--j] -= d;
+   pdRows[--i][--j] -= d;
 };   
 
 inline const doublereal& Mat3xN::dGet(int i, integer j) const
@@ -221,7 +237,16 @@ inline const doublereal& Mat3xN::dGet(int i, integer j) const
    IsValid();
    ASSERT(i > 0 && i <= 3);
    ASSERT(j > 0 && j <= iNumCols);
-   return pvdMat[--i][--j];
+   return pdRows[--i][--j];
+}
+
+inline doublereal &
+Mat3xN::operator () (integer i, integer j)
+{
+   IsValid();
+   ASSERT(i > 0 && i <= 3);
+   ASSERT(j > 0 && j <= iNumCols);
+   return pdRows[--i][--j];
 }
       
 /* Mat3xN - end */
@@ -245,9 +270,7 @@ class MatNx3 {
  protected:
    integer iMaxRows;
    integer iNumRows;
-   doublereal* pdVec1;
-   doublereal* pdVec2;
-   doublereal* pdVec3;
+   doublereal* pdCols[3];
    
    void IsValid(void) const;   
    void Create_(integer ns);
@@ -272,54 +295,62 @@ class MatNx3 {
    /* *this = [3xN]T    */
    const MatNx3& Transpose(const Mat3xN& n);
    const MatNx3& Mult(const MatNxN& m, const MatNx3& n);
+
+   inline doublereal & operator () (integer i, integer j);
 };
 
 
-inline integer MatNx3::iGetNumRows(void) const 
+inline integer 
+MatNx3::iGetNumRows(void) const 
 {
    IsValid();
    return iNumRows;
 }
 
 
-inline void MatNx3::Put(integer i, integer j, const doublereal& d)
+inline void 
+MatNx3::Put(integer i, integer j, const doublereal& d)
 {   
    IsValid();
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= 3);
-   if(j==1)
-   pdVec1[--i] = d;
-   else if(j==2)
-   pdVec2[--i] = d;
-   else
-   pdVec3[--i] = d;
+   pdCols[--j][--i] = d;
 }
 
-
-inline void MatNx3::Add(integer i, integer j, const doublereal& d)
+inline void 
+MatNx3::Add(integer i, integer j, const doublereal& d)
 {
    IsValid();
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= 3);
-   if(j==1)
-   pdVec1[--i] += d;
-   else if(j==2)
-   pdVec2[--i] += d;
-   else
-   pdVec3[--i] += d;
+   pdCols[--j][--i] += d;
 }
 
-inline const doublereal& MatNx3::dGet(integer i, integer j) const
+inline void 
+MatNx3::Sub(integer i, integer j, const doublereal& d)
 {
    IsValid();
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= 3);
-   if(j==1)
-   return pdVec1[--i];
-   else if(j==2)
-   return pdVec2[--i];
-   else
-   return pdVec3[--i];
+   pdCols[--j][--i] -= d;
+}
+
+inline const doublereal& 
+MatNx3::dGet(integer i, integer j) const
+{
+   IsValid();
+   ASSERT(i > 0 && i <= iNumRows);
+   ASSERT(j > 0 && j <= 3);
+   return pdCols[--j][--i];
+}
+
+inline doublereal &
+MatNx3::operator () (integer i, integer j)
+{
+   IsValid();
+   ASSERT(i > 0 && i <= iNumRows);
+   ASSERT(j > 0 && j <= 3);
+   return pdCols[--j][--i];
 }
 
 /* Mat Nx3 - end */
@@ -345,6 +376,7 @@ class MatNxN {
    integer iMaxRows;
    integer iNumRows;
    doublereal* pdVec;
+   doublereal** pdMat;
    
    void IsValid(void) const;   
    void Create_(integer ns);
@@ -360,9 +392,12 @@ class MatNxN {
    void Reset(const doublereal& d = 0.);
    inline void Put(integer i, integer j, const doublereal& d);
    inline void Add(integer i, integer j, const doublereal& d);
+   inline void Sub(integer i, integer j, const doublereal& d);
    inline const doublereal& dGet(integer i, integer j) const;
 
    const MatNxN& Mult(const MatNx3&m, const Mat3xN& n);
+
+   inline doublereal& operator () (integer i, integer j);
 };
 
 
@@ -378,7 +413,7 @@ inline void MatNxN::Put(integer i, integer j, const doublereal& d)
    IsValid();
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= iNumRows);
-   pdVec[--i*iNumRows+(--j)] = d;
+   pdMat[--i][--j] = d;
 }
 
 
@@ -387,19 +422,30 @@ inline void MatNxN::Add(integer i, integer j, const doublereal& d)
    IsValid();
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= iNumRows);
-   pdVec[--i*iNumRows+(--j)] += d;
+   pdMat[--i][--j] += d;
 }
 
 
-inline const doublereal& MatNxN::dGet(integer i, integer j) const
+inline const doublereal& 
+MatNxN::dGet(integer i, integer j) const
 {
    IsValid();
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= iNumRows);
-   return pdVec[--i*iNumRows+(--j)];
+   return pdMat[--i][--j];
+}
+
+inline doublereal&
+MatNxN::operator () (integer i, integer j)
+{
+   IsValid();
+   ASSERT(i > 0 && i <= iNumRows);
+   ASSERT(j > 0 && j <= iNumRows);
+   return pdMat[--i][--j];
 }
 
 /* MatNxN - end */
 
 
-#endif // MATVEC3N_H
+#endif /* MATVEC3N_H */
+
