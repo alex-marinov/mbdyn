@@ -162,6 +162,18 @@ OL_ARG_WITH(elec,[  --with-elec             with electric stuff],yes,[yes no])
 OL_ARG_WITH(aero,[  --with-aero             with aerodynamic stuff],yes,[yes no])
 OL_ARG_WITH(hydr,[  --with-hydr             with hydraulic stuff],yes,[yes no])
 
+dnl module with's
+AC_ARG_WITH(module,[  --with-module=modulelist	with listed modules],[
+	ol_arg=
+	for ol_val in $withval ; do
+		ol_arg="$ol_arg module-$ol_val"
+	done
+	if test "${ol_arg+set}" != set ; then
+		AC_MSG_ERROR(bad value $withval for --with-module)
+	fi
+	MODULES_DIRS=$ol_arg
+],[MODULES_DIRS=])dnl
+
 dnl ----------------------------------------------------------------
 dnl Validate general "enable" options
 
@@ -184,6 +196,8 @@ METIS_LIBS=
 MESCHACH_LIBS=
 LAPACK_LIBS=
 PAM_LIBS=
+
+dnl MODULES_DIRS=
 
 
 dnl ----------------------------------------------------------------
@@ -702,6 +716,8 @@ AC_SUBST(METIS_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
 AC_SUBST(PAM_LIBS)
+
+AC_SUBST(MODULES_DIRS)
 
 
 dnl ----------------------------------------------------------------
