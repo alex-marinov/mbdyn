@@ -140,6 +140,12 @@
 /* define to use LAPACK libraries */
 #undef USE_LAPACK
 
+/* define to use LAPACK's dgesvd in GPC */
+#undef HAVE_DGESVD
+
+/* define to use LAPACK's dgegv in Eig */
+#undef HAVE_DGEGV
+
 /* define if you want to use PAM */
 #undef USE_PAM
 

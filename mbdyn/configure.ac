@@ -547,15 +547,23 @@ ol_link_lapack=no
 if test $ol_with_lapack != no ; then
 
 	AC_LANG_FORTRAN77
-	AC_CHECK_LIB(lapack,dgesvd,
-		[have_lapack=yes],[have_lapack=no],
-		[-lblas])
+	AC_CHECK_LIB(lapack,dgesvd,[have_lapack=yes],[have_lapack=no],[-lblas])
 	AC_LANG_C
 	
 	if test $have_lapack != no ; then
 		AC_DEFINE(USE_LAPACK,1,[define to use LAPACK libraries])
+		AC_DEFINE(HAVE_DGESVD,1,[define to use LAPACK's dgesvd in GPC])
 		LAPACK_LIBS="-llapack -lblas"
 	fi
+
+	AC_LANG_FORTRAN77
+	AC_CHECK_LIB(lapack,dgegv,[have_lapack=yes],[have_lapack=no],[-lblas])
+	AC_LANG_C
+
+	if test $have_lapack != no ; then
+		AC_DEFINE(HAVE_DGEGV,1,[define to use LAPACK's dgegv in Eig])
+	fi
+	
 fi
 
 
