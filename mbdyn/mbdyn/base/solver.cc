@@ -390,11 +390,12 @@ void Solver::Run(void)
 	iFSteps = pFictitiousSteps->GetIntegratorNumUnknownStates();
 	iUnkStates = (iNSteps < iFSteps) ? iFSteps : iNSteps;
 	
+	/* allocate workspace for previous time steps */
 	SAFENEWARR(
 		pdWorkSpace,
 		doublereal, 
 		2*(iNumPreviousVectors)*iNumDofs);
-	
+	/* allocate MyVectorHandlers for previous time steps: use workspace */
 	for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {  
    		SAFENEWWITHCONSTRUCTOR(pX,
 			       	MyVectorHandler,
@@ -408,6 +409,7 @@ void Solver::Run(void)
 		pX = NULL;
 		pXPrime = NULL;
 	}
+	/* allocate MyVectorHandlers for unknown time step(s): own memory */
 	SAFENEWWITHCONSTRUCTOR(pX,
 		       	MyVectorHandler,
 		       	MyVectorHandler(iUnkStates*iNumDofs));
@@ -456,7 +458,9 @@ void Solver::Run(void)
 #endif /* __HACK_POD__ */
 
 
-   	/* Subito collega il DataManager alla soluzione corrente */
+   	/* Immediately link DataManager to current solution */
+	/* this shuold work as long as the last unknown time step is put */
+	/* at the beginning of pX, pXPrime                               */
    	pDM->LinkToSolution(*(pX), *(pXPrime));         
 
 
