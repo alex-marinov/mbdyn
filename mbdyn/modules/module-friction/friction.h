@@ -117,7 +117,7 @@ public:
 	virtual void Update(const T &force,
 			const T & /* position */, 
 			const T & velocity, 
-			Friction<T>::UpdateType = ANY) {
+			typename Friction<T>::UpdateType = ANY) {
 		m_F = dir(velocity)*(-norm(force)*m_mu0);
 	};
 };
@@ -138,7 +138,7 @@ public:
 	virtual void Update(const T &force,
 			const T & /* position */, 
 			const T &velocity, 
-			Friction<T>::UpdateType = ANY) {
+			typename Friction<T>::UpdateType = ANY) {
 #if 0
 		m_F = dir(velocity)*(-norm(force)*m_mu0*tanh(norm(velocity)/m_vRef));
 #else
@@ -191,7 +191,7 @@ private:
 	virtual void Update(const T &force,
 			const T & position, 
 			const T &velocity, 
-			Friction<T>::UpdateType update = ANY) {
+			typename Friction<T>::UpdateType update = ANY) {
 
 		// std::cerr << ">>> state: " << S() << "; p=" << position << "; v=" << velocity << "; m_s0=" << m_s0 << "; F=" << m_F << std::endl;
 		

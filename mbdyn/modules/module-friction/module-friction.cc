@@ -379,6 +379,7 @@ get_connected_nodes(const LoadableElem* pEl,
 
 static struct
 LoadableCalls lc = {
+	"friction",
 	read, /* */
 	NULL /* i_get_num_dof */ ,
 	NULL /* set_dof */ ,
