@@ -119,7 +119,7 @@ void Translate (ofstream& out)
      << "  time step: .1;" << endl
      << endl
      << "  set: real rho = .6;" << endl
-     << "  methods: ms, rho, rho;" << endl
+     << "  method: ms, rho, rho;" << endl
      << "  tolerance: 1.e-6;" << endl
      << "  max iterations: 20;" << endl
      << endl
