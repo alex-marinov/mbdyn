@@ -174,6 +174,8 @@ OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math li
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
 OL_ARG_WITH(lapack,[
   --with-lapack           with LAPACK math library],auto,[auto yes no])
+OL_ARG_WITH(taucs,[
+  --with-taucs           with TAUCS math library],auto,[auto yes no])
 OL_ARG_WITH(pam,[  --with-pam              with PAM support],auto,[auto yes no])
 OL_ARG_WITH(sasl2,[  --with-sasl2            with Cyrus SASL2 support],auto,[auto yes no])
 OL_ARG_WITH(ginac,[  --with-ginac            with GiNaC support
@@ -221,6 +223,7 @@ THREAD_LIBS=
 MESCHACH_LIBS=
 HARWELL_LIBS=
 LAPACK_LIBS=
+TAUCS_LIBS=
 SECURITY_LIBS=
 TCL_LIBS=
 
@@ -1212,6 +1215,40 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Check for TAUCS
+dnl
+ol_link_taucs=no
+if test $ol_with_taucs != no ; then
+	dnl OL_ADD_DIRS(taucs)
+	AC_MSG_CHECKING([for taucs])
+
+	save_LIBS="$LIBS"
+	try_taucs_LIBS="-ltaucs"
+	LIBS="$try_taucs_LIBS $BLAS_LIBS $LIBS"
+	AC_TRY_LINK([#include "taucs.h"
+		],[
+	taucs_ccs_matrix* A; 
+	void* x; 
+	void* aux;
+	taucs_ccs_times_vec(A,x,aux);
+		],[have_taucs=yes],
+		   [have_taucs=no])
+	
+	if test $have_taucs != no ; then
+		AC_DEFINE(USE_TAUCS,1,[define to use Taucs libraries])
+		TAUCS_LIBS="$try_taucs_LIBS"
+	fi
+
+	if test "$have_taucs" = "yes" ; then
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])	
+	fi
+	LIBS="$save_LIBS"
+fi
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for SASL2
 dnl
 ol_link_sasl2="no"
@@ -1663,6 +1700,7 @@ AC_SUBST(BLAS_LIBS)
 AC_SUBST(THREAD_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
+AC_SUBST(TAUCS_LIBS)
 AC_SUBST(SECURITY_LIBS)
 AC_SUBST(TCL_LIBS)
 

@@ -72,15 +72,15 @@ scalar function: "constfriction", const, 1.5;
 
 begin: elements;
 	loadable: 1000, 
-	"/home2/marco/mbdyn/modules/module-friction3/module-friction3.so", help,
+	"/home/marco/Mbdyn/mbdyn/modules/module-friction3/module-friction3.so", help,
 		1, abstract,
 		2, abstract,
 		1.
 		,
 		friction, 
-#			modlugre, 1E5, sqrt(1E5),0.4,0.71, "splinefriction", 
-			discrete coulomb, "splinefriction", 
-				sigma2, 0.4, velocity ratio, 0.8,
+			modlugre, 1E5, sqrt(1E5),0.4,0.71, "splinefriction", 
+#			discrete coulomb, "splinefriction", 
+#				sigma2, 0.4, velocity ratio, 0.8,
 			simple
 #			simple plane hinge, 0.1
 		;
