@@ -288,10 +288,15 @@ output(const LoadableElem* pEl, OutputHandler& OH)
 
 		out << std::setw(8) << pEl->GetLabel() << " ",
 			p->F.Write(out, " ") << " ",
-			p->M.Write(out, " ") << " "
-			<< p->dInstRadius << " "
-			<< p->dDeltaL << " "
-			<< p->dVn << " " 
+			p->M.Write(out, " ") << " ";
+		if (p->dDeltaL > 0.) {
+			out << p->dInstRadius << " "
+				<< p->dDeltaL << " ";
+		} else {
+			out << p->dRadius << " "
+				<< 0. << " ";
+		}
+		out << p->dVn << " " 
 			<< p->dSr << " "
 			<< p->dAlpha << " "
 			<< p->dMuX << " "
@@ -441,7 +446,9 @@ ass_res(LoadableElem* pEl,
 	 * per la forza normale si puo' usare anche la posizione
 	 * della ruota, nell'ipotesi che il punto di contatto
 	 * stia nell'intersezione della normale al ground passante
-	 * per l'asse ruota
+	 * per l'asse ruota.
+	 *
+	 * FIXME: perche' dRadius invece di dInstRadius?
 	 */
 	Vec3 pc = p->pWheel->GetXCurr()-(n*p->dRadius);
 
@@ -490,8 +497,10 @@ ass_res(LoadableElem* pEl,
 			 * Altrimenti, se la velocita' dell'asse rispetto
 			 * al terreno e' sufficientemente grande, viene
 			 * effettuata la divisione
+			 *
+			 * FIXME: (dva - dv) / dva   o   dv / dva ?
 			 */
-			p->dSr = dvx/dvax;
+			p->dSr = 1.-dvx/dvax;
 		} /* else */
 		/*
 		 * In alternativa viene usato il valore di default, 0., che
@@ -525,7 +534,7 @@ ass_res(LoadableElem* pEl,
 		 * uso il coefficiente di attrito longitudinale
 		 * con il segno della velocita' del punto di contatto
 		 */
-		p->F -= fwd*dFn*copysign(p->dMuX,dvx);
+		p->F -= fwd*dFn*p->dMuX;
 
 		if (dvay != 0.) {
 			doublereal dAlpha = p->dAlpha;
