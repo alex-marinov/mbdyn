@@ -733,6 +733,12 @@ MultiStepIntegrator::Run(void)
 	 		THROW(MultiStepIntegrator::ErrMaxIterations());
       		}
 
+		if (iOutputFlags & OUTPUT_ITERS) {
+			Out << "\tIteration " << iIterCnt
+				<< " " << dTest << " J"
+				<< std::endl;
+		}
+
 #ifdef MPI_PROFILING
 		MPE_Log_event(23, 0, "start");
 #endif /* MPI_PROFILING */
@@ -929,6 +935,12 @@ EndOfDerivatives:
 	    			pDM->Output(1);
 	    			THROW(MultiStepIntegrator::ErrMaxIterations());
 	 		}
+
+			if (iOutputFlags & OUTPUT_ITERS) {
+				Out << "\tIteration " << iIterCnt
+					<< " " << dTest << " J"
+					<< std::endl;
+			}
 
 #ifdef MPI_PROFILING
 			MPE_Log_event(23, 0, "start");
