@@ -80,6 +80,16 @@ Leonardo Cassan, undergrad, is working at the ADAMS2MBDyn project,
 	a translator form ADAMS/View models in adm format into MBDyn
 	raw input files. You can find it in contrib/a2m.
 
+Future development:
+
+Marco Morandini, a Ph.D. student, is working on sophisticated flexible
+	bodies (beams, at present, but also plates and shells in the 
+	future).
+
+Giuseppe Quaranta, currently a Ph.D. student will work on integration
+	with sophisticated aerodynamics, including wake modeling
+	and CFD.
+
 Other undergrads might have had a role in the F77 version of the code, 
 that I'm not aware of.
 
