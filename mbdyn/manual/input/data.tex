@@ -142,8 +142,12 @@ The first is Crank-Nicholson:
 \begin{verbatim}
     <method_data> ::= crank nicholson
 \end{verbatim}
-the second and the third are original methods, that are unconditionally
-stable and can be tuned to give the desired algorithmic dissipation
+the second and the third are original 
+methods (the former is discussed in \cite{MASARATI-LANZ-MANTEGAZZA-2001}; 
+see also 
+\htmladdnormallink{\texttt{http://www.aero.polimi.it/\~{}mbdyn/}}{http://www.aero.polimi.it/~mbdyn}), 
+that are unconditionally stable and can be tuned to give 
+the desired algorithmic dissipation
 by setting the value of the asymptotic spectral radius.
 The radius can be set independently for the differential
 and the algebraic variables, and a driver is used, to allow parameter 
