@@ -47,6 +47,8 @@
 #include <ac/float.h>
 #include <ac/math.h>
 
+#include <multistp.h>
+
 #ifdef HAVE_SIGNAL
 #ifdef HAVE_SIGNAL_H
 #include <signal.h>
@@ -68,8 +70,6 @@ extern "C" {
 #include <mschwrap.h>
 #include <y12wrap.h>
 #include <umfpackwrap.h>
-
-#include <multistp.h>
 
 #ifdef HAVE_SIGNAL
 static volatile sig_atomic_t keep_going = 1;

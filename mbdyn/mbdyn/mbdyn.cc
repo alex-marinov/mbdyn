@@ -681,8 +681,10 @@ RunMBDyn(MBDynParser& HP,
    
     	Integrator* pIntg = NULL;
 
+#ifdef USE_MPI
     	/* flag di parallelo */
     	flag fParallel(0);
+#endif /* USE_MPI */
 
     	/* parole chiave */
     	const char* sKeyWords[] = { 
