@@ -465,13 +465,14 @@ class AMESimHydraulicFluid : public HydraulicFluid {
 			const doublereal& dDens,
 			const doublereal& dB,
 			const doublereal& dPr0,
-			const doublereal& dPsat,
+			const doublereal& dPs,
 			const doublereal& dVisc = 0.,
 			const doublereal dTp0 = -1.)
      : HydraulicFluid(Label, dPr0, dTp0), 
    dDensity(dDens), 
    dBeta(dB),
-   dViscosity(dVisc) {
+   dViscosity(dVisc),
+   dPsat(dPs) {
       if (dB == 0.) {
 	 THROW(ErrGeneric());
       }
