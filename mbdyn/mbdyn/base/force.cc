@@ -480,6 +480,9 @@ Elem* ReadForce(DataManager* pDM,
 			    FollowerInternalForce(uLabel, pNode, pNode2,
 				    pDC, Dir, Arm, Arm2, fOut));
 	    break;
+
+	  default:
+	    ASSERT(0);
 	 }
 
       } else if (fCouple == 1) {
@@ -511,6 +514,9 @@ Elem* ReadForce(DataManager* pDM,
 			    FollowerInternalCouple(uLabel, pNode, pNode2,
 				    pDC, Dir, fOut));
 	    break;
+
+	  default:
+	    ASSERT(0);
 	 }
       }
    }

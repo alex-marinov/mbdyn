@@ -51,7 +51,7 @@ create(c)
 	/*
 	 * initialize mailbox and so on
 	 */
-	size = sizeof(double)*nd;
+	size = sizeof(doublereal)*nd;
 	SAFENEWARR(buf, char, size);
 }
 

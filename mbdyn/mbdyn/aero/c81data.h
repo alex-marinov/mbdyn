@@ -38,7 +38,7 @@ extern c81_data* get_c81_data(long int jpro);
 extern int set_c81_data(long int jpro, c81_data* data);
 extern int read_c81_data(std::istream& in, c81_data* data);
 extern int write_c81_data(std::ostream& out, c81_data* data);
-extern double get_c81_coef(int nm, double* m, int na, double* a, double alpha, double mach);
+extern doublereal get_c81_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doublereal mach);
 }
 
 #endif /* C81DATA_H */

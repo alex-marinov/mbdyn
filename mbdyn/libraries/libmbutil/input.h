@@ -34,7 +34,7 @@
 #define INPUT_H
 
 #include <ac/iostream>
-#include "myassert.h"
+#include <myassert.h>
 
 /* Filtro per la classe istream che conta il numero di righe. */
 

@@ -60,29 +60,45 @@ const MatExp EyeExp(0.);
 
 
 
-ScalExp pow(const ScalExp &d, const doublereal &e) {
+ScalExp
+pow(const ScalExp &d, const doublereal &e)
+{
+#ifdef MBDYN_SINGLE_PRECISION
+    double p = d.GetVec();
+    return ScalExp(doublereal(pow(p, double(e))),
+		    doublereal(d.GetMom()*(e*pow(p, double(e-1.)))));
+#else /* ! MBDYN_SINGLE_PRECISION */
     doublereal p = d.GetVec();
-    return ScalExp(pow(p,e),d.GetMom()*(e*pow(p,e-1.)));
+    return ScalExp(pow(p, e), d.GetMom()*(e*pow(p, e-1.)));
+#endif /* ! MBDYN_SINGLE_PRECISION */
 };
 
-ScalExp sqrt(const ScalExp &d) {
+ScalExp
+sqrt(const ScalExp &d)
+{
     doublereal p = sqrt(d.GetVec());
-    return ScalExp(p,d.GetMom()/(p*2.));
+    return ScalExp(p, d.GetMom()/(p*2.));
 };
 
-ScalExp sin(const ScalExp &d) {
+ScalExp
+sin(const ScalExp &d)
+{
     doublereal p = d.GetVec();
-    return ScalExp(sin(p),d.GetMom()*cos(p));
+    return ScalExp(sin(p), d.GetMom()*cos(p));
 };
 
-ScalExp cos(const ScalExp &d) {
+ScalExp
+cos(const ScalExp &d)
+{
     doublereal p = d.GetVec();
-    return ScalExp(cos(p),d.GetMom()*(-sin(p)));
+    return ScalExp(cos(p), d.GetMom()*(-sin(p)));
 };
 
-ScalExp exp(const ScalExp &d) {
+ScalExp
+exp(const ScalExp &d)
+{
     doublereal p = exp(d.GetVec());
-    return ScalExp(p,d.GetMom()*p);
+    return ScalExp(p, d.GetMom()*p);
 };
 
 

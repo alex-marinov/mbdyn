@@ -119,7 +119,7 @@ void spline (
 	return;
 };
 
-doublereal seval(const doublereal u,
+doublereal seval(const doublereal& u,
 	const std::vector<doublereal>& x,
 	const std::vector<doublereal>& y,
 	const std::vector<doublereal>& b,
@@ -228,7 +228,7 @@ doublereal seval(const doublereal u,
 	return 0.;
 };
 
-doublereal leval(const doublereal u,
+doublereal leval(const doublereal& u,
 	const std::vector<doublereal>& x,
 	const std::vector<doublereal>& y,
 	const int diff) {

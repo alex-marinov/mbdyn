@@ -176,7 +176,7 @@ UmfpackSparseLUSolutionManager::PrepareSymbolic(void)
 {
 	const int* const Aip = &(Ai[0]);
 	const int* const App = &(Ap[0]);
-	const double* const Axp = &(Ax[0]);
+	const doublereal* const Axp = &(Ax[0]);
 	int status;
 
 	status = UMFPACKWRAP_symbolic(b.size(), App, Aip, Axp,
@@ -200,15 +200,15 @@ UmfpackSparseLUSolutionManager::PrepareSymbolic(void)
 void
 UmfpackSparseLUSolutionManager::Solve(void)
 {
+	doublereal t = 0.;
+
 #ifdef UMFPACK_REPORT
-	double t = umfpack_timer() ;
-#else /* ! UMFPACK_REPORT */
-	double t = 0.;
-#endif /* ! UMFPACK_REPORT */
+	t = umfpack_timer() ;
+#endif /* UMFPACK_REPORT */
 
 	if (HasBeenReset) {
 		A.MakeCompressedColumnForm(Ax, Ai, Ap);
-		const double* const Axp = &(Ax[0]);
+		const doublereal* const Axp = &(Ax[0]);
 		const int* const Aip = &(Ai[0]);
 		const int* const App = &(Ap[0]);
 		int status;
@@ -220,7 +220,7 @@ UmfpackSparseLUSolutionManager::Solve(void)
 		UMFPACKWRAP_report_symbolic ("Symbolic factorization of A",
 				Symbolic, Control) ;
 		UMFPACKWRAP_report_info(Control, Info);
-		double t1 = umfpack_timer() - t;
+		doublereal t1 = umfpack_timer() - t;
 #endif /* UMFPACK_REPORT */
 
 		status = UMFPACKWRAP_numeric(App, Aip, Axp, Symbolic, 
@@ -264,7 +264,7 @@ UmfpackSparseLUSolutionManager::Solve(void)
 void
 UmfpackSparseLUSolutionManager::BackSub(doublereal t_iniz)
 {
-	const double* const Axp = &(Ax[0]);
+	const doublereal* const Axp = &(Ax[0]);
 	const int* const Aip = &(Ai[0]);
 	const int* const App = &(Ap[0]);
 	int status;
@@ -272,7 +272,7 @@ UmfpackSparseLUSolutionManager::BackSub(doublereal t_iniz)
 	ASSERT(HasBeenReset == false);
 	
 #ifdef UMFPACK_REPORT
-	double t = t_iniz;
+	doublereal t = t_iniz;
 #endif /* UMFPACK_REPORT */
 
 	Control[UMFPACK_IRSTEP]= 0;
@@ -293,7 +293,7 @@ UmfpackSparseLUSolutionManager::BackSub(doublereal t_iniz)
 	
 #ifdef UMFPACK_REPORT
 	UMFPACKWRAP_report_info(Control, Info);
-	double t1 = umfpack_timer() - t;
+	doublereal t1 = umfpack_timer() - t;
 #endif /* UMFPACK_REPORT */
 }
 

@@ -124,7 +124,7 @@ class SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>
 private:
 	GiNaC::symbol gEps;		/* parameter symbol */
 	GiNaC::symbol **gSymList;	/* list of other symbols */
-	double *vals;			/* values of other symbols */
+	doublereal *vals;			/* values of other symbols */
 
 	GiNaC::ex gExpr;		/* expression */
 	GiNaC::ex gDer;			/* derivative */

@@ -34,8 +34,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ac/f2c.h>
 #include <ac/math.h>
-
 #include <aerodc81.h>
 
 /*
@@ -71,22 +71,23 @@ C DM*W da' la velocita' nel punto a 3/4 della corda
 
 extern c81_data *get_c81_data(int jpro);
 
-static int bisec(double* v, double val, int lb, int ub);
+static int bisec(doublereal* v, doublereal val, int lb, int ub);
 static int
-get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
-		double* c, double* c0);
-static double
-get_dcla(int nm, double* m, double* s, double mach);
+get_coef(int nm, doublereal* m, int na, doublereal* a,
+		doublereal alpha, doublereal mach,
+		doublereal* c, doublereal* c0);
+static doublereal
+get_dcla(int nm, doublereal* m, doublereal* s, doublereal mach);
 #ifdef USE_GET_STALL
 static int
-get_stall(int nm, double* m, double* s, double mach,
-          double *dcpa, double *dasp, double *dasm);
+get_stall(int nm, doublereal* m, doublereal* s, doublereal mach,
+          doublereal *dcpa, doublereal *dasp, doublereal *dasm);
 #endif /* USE_GET_STALL */
 
-double
-get_c81_coef(int nm, double* m, int na, double* a, double alpha, double mach)
+doublereal
+get_c81_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doublereal mach)
 {
-	double c;
+	doublereal c;
 	
 	get_coef(nm, m, na, a, alpha, mach, &c, NULL);
 
@@ -94,26 +95,26 @@ get_c81_coef(int nm, double* m, int na, double* a, double alpha, double mach)
 }
 
 int 
-c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
+c81_aerod2(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA, c81_data* data)
 {
    	/* 
 	 * velocita' del punto in cui sono calcolate le condizioni al contorno
 	 */
-   	double v[3];
-   	double vp, vp2, vtot;
-	double rho = VAM[0];
-	double cs = VAM[1];
-	double chord = VAM[2];
+   	doublereal v[3];
+   	doublereal vp, vp2, vtot;
+	doublereal rho = VAM[0];
+	doublereal cs = VAM[1];
+	doublereal chord = VAM[2];
 	
-	double cl = 0., cl0 = 0., cd = 0., cd0 = 0., cm = 0.;
-	double alpha, gamma, cosgam, mach, q;
-	double dcla;
+	doublereal cl = 0., cl0 = 0., cd = 0., cd0 = 0., cm = 0.;
+	doublereal alpha, gamma, cosgam, mach, q;
+	doublereal dcla;
 	
-	double ca = VAM[3];
-	double c34 = VAM[4];
+	doublereal ca = VAM[3];
+	doublereal c34 = VAM[4];
 	
-	const double RAD2DEG = 180.*M_1_PI;
-	const double M_PI_3 = M_PI/3.;
+	const doublereal RAD2DEG = 180.*M_1_PI;
+	const doublereal M_PI_3 = M_PI/3.;
 
 	enum { V_X = 0, V_Y = 1, V_Z = 2, W_X = 3, W_Y = 4, W_Z = 5 };
 	
@@ -206,7 +207,7 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	 */
 	dcla *= RAD2DEG;
 	if (fabs(alpha) > 1.e-6) {
-		double dclatmp = (cl-cl0)/(alpha*cosgam);
+		doublereal dclatmp = (cl-cl0)/(alpha*cosgam);
 		if (dclatmp < dcla) {
 			dcla = dclatmp;
 		}
@@ -235,27 +236,27 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 }
 
 int 
-c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA, 
+c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA, 
 		c81_data* data, long unsteadyflag)
 {
    	/* 
 	 * velocita' del punto in cui sono calcolate le condizioni al contorno
 	 */
-   	double v[3];
-   	double vp, vp2, vtot;
-	double rho = VAM[0];
-	double cs = VAM[1];
-	double chord = VAM[2];
+   	doublereal v[3];
+   	doublereal vp, vp2, vtot;
+	doublereal rho = VAM[0];
+	doublereal cs = VAM[1];
+	doublereal chord = VAM[2];
 	
-	double cl = 0., cl0 = 0., cd = 0., cd0 = 0., cm = 0.;
-	double alpha, gamma, cosgam, mach, q;
-	double dcla;
+	doublereal cl = 0., cl0 = 0., cd = 0., cd0 = 0., cm = 0.;
+	doublereal alpha, gamma, cosgam, mach, q;
+	doublereal dcla;
 	
-	double ca = VAM[3];
-	double c34 = VAM[4];
+	doublereal ca = VAM[3];
+	doublereal c34 = VAM[4];
 
-	const double RAD2DEG = 180.*M_1_PI;
-	const double M_PI_3 = M_PI/3.;
+	const doublereal RAD2DEG = 180.*M_1_PI;
+	const doublereal M_PI_3 = M_PI/3.;
 
 	enum { V_X = 0, V_Y = 1, V_Z = 2, W_X = 3, W_Y = 4, W_Z = 5 };
 	
@@ -361,7 +362,7 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		 */
 		dcla *= RAD2DEG;
 		if (fabs(alpha) > 1.e-6) {
-			double dclatmp = (cl-cl0)/(alpha*cosgam);
+			doublereal dclatmp = (cl-cl0)/(alpha*cosgam);
 			if (dclatmp < dcla) {
 				dcla = dclatmp;
 			}
@@ -380,14 +381,14 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		 * 31th A.H.S. Forum Washington D.C. 
 		 * May 1975
 		 */
-		double A, B, A2, B2, ETA, ASN, ASM, 
+		doublereal A, B, A2, B2, ETA, ASN, ASM, 
 			SGN, SGM, SGMAX, 
 			DAN, DCN, DAM, DCM, 
 			S2, alphaN, alphaM, C1,
 			dcma, dclatan, ALF1, ALF2,
 			cn;
 		
-		const double PN[] = { 
+		const doublereal PN[] = { 
 			-3.464003e-1, 
 			-1.549076e+0, 
 			4.306330e+1, 
@@ -400,7 +401,7 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 			3.295461e+2,
 		};
 	
-		const double QN[] = {
+		const doublereal QN[] = {
 			1.533717e+0,
 			6.977203e+0,
 			1.749010e+3,
@@ -417,7 +418,7 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 			1.163661e+1
 		};
 
-		const double PM[] = {
+		const doublereal PM[] = {
 			1.970065e+1,
 			-6.751639e+1,
 			7.265269e+2,
@@ -431,7 +432,7 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 			2.247664e+1,
 		};
 	
-		const double QM[] = {
+		const doublereal QM[] = {
 			-2.322808e+0,
 			-1.322257e+0,
 			-2.633891e+0,
@@ -468,7 +469,7 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		 * (here a symmetric airfoil is assumed; the real
 		 * _SIGNED_ static stall should be considered ...)
 		 */
-		const double ASN0 = .22689, ASM0 = .22689;
+		const doublereal ASN0 = .22689, ASM0 = .22689;
 
 		ALF1 = OUTA[8];
 		ALF2 = OUTA[9];
@@ -634,7 +635,7 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
  * crescente e strettamente monotono, ovvero v[i] < v[i+1].
  */
 static int 
-bisec(double* v, double val, int lb, int ub)
+bisec(doublereal* v, doublereal val, int lb, int ub)
 {
 	if (val < v[lb]) {
 		return lb;
@@ -668,8 +669,8 @@ bisec(double* v, double val, int lb, int ub)
  * mach e alpha viene restituito.
  */
 static int
-get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
-		double* c, double* c0)
+get_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doublereal mach,
+		doublereal* c, doublereal* c0)
 {
    	int im;
    	int ia, ia0 = -1;
@@ -718,7 +719,7 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
 			if (ia0 == na) {
 				*c0 = a[na*(nm+1)-1];
 			} else {
-				double da = -a[ia0-1]/(a[ia0]-a[ia0-1]);
+				doublereal da = -a[ia0-1]/(a[ia0]-a[ia0-1]);
 				*c0 = (1.-da)*a[na*nm+ia0-1]+da*a[na*nm+ia0];
 			}
 		}
@@ -726,18 +727,18 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
 		if (ia == na) {
 			*c = a[na*(nm+1)-1];
 		} else {
-			double da = (alpha-a[ia-1])/(a[ia]-a[ia-1]);
+			doublereal da = (alpha-a[ia-1])/(a[ia]-a[ia-1]);
 			*c = (1.-da)*a[na*nm+ia-1]+da*a[na*nm+ia];
 		}
 	} else {
-		double d;
+		doublereal d;
 		d = (mach-m[im-1])/(m[im]-m[im-1]);
 
 		if (c0 != NULL) {
 			if (ia0 == na) {
 				*c0 = (1.-d)*a[na*(im+1)-1]+d*a[na*(im+2)-1];
 			} else {
-				double a1, a2, da;
+				doublereal a1, a2, da;
 				a1 = (1.-d)*a[na*im+ia0-1]+d*a[na*(im+1)+ia0-1];
 				a2 = (1.-d)*a[na*im+ia0]+d*a[na*(im+1)+ia0];
 				da = -a[ia0-1]/(a[ia0]-a[ia0-1]);
@@ -748,7 +749,7 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
 		if (ia == na) {
 			*c = (1.-d)*a[na*(im+1)-1]+d*a[na*(im+2)-1];
 		} else {
-			double a1, a2, da;
+			doublereal a1, a2, da;
 			a1 = (1.-d)*a[na*im+ia-1]+d*a[na*(im+1)+ia-1];
 			a2 = (1.-d)*a[na*im+ia]+d*a[na*(im+1)+ia];
 			da = (alpha-a[ia-1])/(a[ia]-a[ia-1]);
@@ -759,8 +760,8 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
 	return 0;
 }
 
-static double
-get_dcla(int nm, double* m, double* s, double mach)
+static doublereal
+get_dcla(int nm, doublereal* m, doublereal* s, doublereal mach)
 {
 	int im;
 	
@@ -778,7 +779,7 @@ get_dcla(int nm, double* m, double* s, double mach)
 	if (im == nm) {
 		return s[3*nm-1];
 	} else {
-		double d = (mach-m[im-1])/(m[im]-m[im-1]);
+		doublereal d = (mach-m[im-1])/(m[im]-m[im-1]);
 
 		return (1.-d)*s[2*nm+im-1]+d*s[2*nm+im];
 	}
@@ -786,8 +787,8 @@ get_dcla(int nm, double* m, double* s, double mach)
 
 #ifdef USE_GET_STALL
 static int
-get_stall(int nm, double* m, double* s, double mach,
-	  double *dcpa, double *dasp, double *dasm)
+get_stall(int nm, doublereal* m, doublereal* s, doublereal mach,
+	  doublereal *dcpa, doublereal *dasp, doublereal *dasm)
 {
 	int im;
 
@@ -807,7 +808,7 @@ get_stall(int nm, double* m, double* s, double mach,
 		*dasp = s[nm-1];
 		*dasm = s[2*nm-1];
 	} else {
-		double d = (mach-m[im-1])/(m[im]-m[im-1]);
+		doublereal d = (mach-m[im-1])/(m[im]-m[im-1]);
 
 		*dcpa = (1.-d)*s[2*nm+im-1]+d*s[2*nm+im];
 		*dasp = (1.-d)*s[im-1]+d*s[im];

@@ -169,14 +169,14 @@ Y12LUSolver::fLUFactor(void)
 	iIFLAG[I_1] = 0;
 	iIFLAG[I_5] = 2;
 	
-	__FC_DECL__(y12mbf)(&iN, &iNonZeroes, &((*pdMat)[0]),
+	y12prefactor(&iN, &iNonZeroes, &((*pdMat)[0]),
 			    &((*piCol)[0]), &iCurSize,
 			    &((*piRow)[0]), &iCurSize,
 			    piHA, &iN,
 			    dAFLAG, iIFLAG, &iIFAIL);
 			    
 	if (iIFAIL != 0) {
-		std::cerr << "Y12LUSolver (y12mbf): "
+		std::cerr << "Y12LUSolver (y12prefactor): "
 			"error during pre-factorization, code " 
 			<< iIFAIL << ":" << std::endl;
 		PutError(std::cerr, iIFAIL);
@@ -184,7 +184,7 @@ Y12LUSolver::fLUFactor(void)
 	}
 
 	/* actual factorization */
-	__FC_DECL__(y12mcf)(&iN, &iNonZeroes, &((*pdMat)[0]),
+	y12factor(&iN, &iNonZeroes, &((*pdMat)[0]),
 			    &((*piCol)[0]), &iCurSize,
 			    &((*piRow)[0]), &iCurSize,
 			    pdPIVOT, pdRhs,
@@ -192,7 +192,7 @@ Y12LUSolver::fLUFactor(void)
 			    dAFLAG, iIFLAG, &iIFAIL);
 
 	if (iIFAIL != 0) {
-		std::cerr << "Y12LUSolver (y12mcf): "
+		std::cerr << "Y12LUSolver (y12factor): "
 			"error during factorization, code " 
 			<< iIFAIL << ":" << std::endl;
 		PutError(std::cerr, iIFAIL);
@@ -200,7 +200,7 @@ Y12LUSolver::fLUFactor(void)
 	}
 
 	if (dAFLAG[7] < 1.e-12) {
-		std::cerr << "Y12LUSolver (y12mcf):"
+		std::cerr << "Y12LUSolver (y12factor):"
 			" warning, possible bad conditioning of matrix" 
 			<< std::endl;
 	}
@@ -218,13 +218,13 @@ Y12LUSolver::Solve(void)
 
 	integer iIFAIL = 0;
 	
-	__FC_DECL__(y12mdf)(&iN, &((*pdMat)[0]), &iCurSize, pdRhs,
+	y12solve(&iN, &((*pdMat)[0]), &iCurSize, pdRhs,
 			    pdPIVOT, &((*piCol)[0]),
 			    piHA, &iN,
 			    iIFLAG, &iIFAIL);
 	
 	if (iIFAIL != 0) {
-		std::cerr << "Y12LUSolver (y12mdf): "
+		std::cerr << "Y12LUSolver (y12solve): "
 			"error during back substitution, code "
 			<< iIFAIL << ":" << std::endl;
 		PutError(std::cerr, iIFAIL);

@@ -47,7 +47,11 @@ extern "C" {
 #include <sys/types.h>
 typedef int32_t integer;
 typedef float real;
+#ifdef MBDYN_SINGLE_PRECISION
+typedef float doublereal;
+#else /* ! MBDYN_SINGLE_PRECISION */
 typedef double doublereal;
+#endif /* ! MBDYN_SINGLE_PRECISION */
 #else /* !HAVE_SYS_TYPES_H */
 #if defined(__alpha) || defined(__ia64)
 typedef int integer;
@@ -55,7 +59,11 @@ typedef int integer;
 typedef long int integer;
 #endif /* !__alpha */
 typedef float real;
+#ifdef MBDYN_SINGLE_PRECISION
+typedef float doublereal;
+#else /* ! MBDYN_SINGLE_PRECISION */
 typedef double doublereal;
+#endif /* ! MBDYN_SINGLE_PRECISION */
 #endif /* !HAVE_SYS_TYPES_H */
 
 typedef integer logical;

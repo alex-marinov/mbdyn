@@ -71,10 +71,10 @@ public:
 	virtual Elem::Type GetElemType(void) const;
 	virtual void WorkSpaceDim(integer* piRows, integer* piCols) const;
 	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WrokVec, double dCoef,
+	AssRes(SubVectorHandler& WrokVec, doublereal dCoef,
 			const VectorHandler& X, const VectorHandler& XP);
 	virtual VariableSubMatrixHandler& 
-	AssJac(VariableSubMatrixHandler& WorkMat, double dCoef,
+	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 			const VectorHandler& X, const VectorHandler& XP);
 
 	virtual void AfterConvergence(const VectorHandler& X, 

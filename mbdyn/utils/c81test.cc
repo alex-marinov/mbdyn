@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	double alpha(atof(argv[2])), mach(atof(argv[3]));
+	doublereal alpha(atof(argv[2])), mach(atof(argv[3]));
 
 	std::cout 
 		<< "alpha: " << alpha << std::endl

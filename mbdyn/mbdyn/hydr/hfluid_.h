@@ -285,9 +285,9 @@ class LinearCompressibleTHydraulicFluid
 
 /* SuperHydraulicFluid - begin */
 
-static const double a = 2.e-5;
-static const double dPresRif = .2*101325.;
-static const double dRhoZero = 977.*1.e-2;
+static const doublereal a = 2.e-5;
+static const doublereal dPresRif = .2*101325.;
+static const doublereal dRhoZero = 977.*1.e-2;
 
 class SuperHydraulicFluid : public HydraulicFluid {
  protected:
@@ -370,7 +370,7 @@ class SuperHydraulicFluid : public HydraulicFluid {
 	 }      
 	 return dDensity+(dPres-dPres0)*dDensityDPres;
        case TANH:
-	 double d = ::dRhoZero+dDensity*.5*(1. + tanh(::a*(dPres-::dPresRif)));
+	 doublereal d = ::dRhoZero+dDensity*.5*(1. + tanh(::a*(dPres-::dPresRif)));
 	 if (dPres > ::dPresRif) {
 	    d += (dPres-::dPresRif)*dDensityDPres;
 	 }
@@ -408,7 +408,7 @@ class SuperHydraulicFluid : public HydraulicFluid {
 	 }
 	 return dDensityDPres;
        case TANH:
-	 double d = ::a*dDensity*.5/pow(cosh(::a*(dPres-::dPresRif)), 2);
+	 doublereal d = ::a*dDensity*.5/pow(cosh(::a*(dPres-::dPresRif)), 2);
 	 if (dPres > ::dPresRif) {
 	    d += dDensityDPres;
 	 }

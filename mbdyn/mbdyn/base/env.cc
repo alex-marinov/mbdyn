@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <ac/f2c.h>
 #include <mathp.h>
 
 /* environment */
@@ -80,7 +81,7 @@ GetEnviron(MathParser& MP)
       		if (strncmp(*env, MBDYNPREFIX, MBDYNPREFIXLEN) == 0) {
 	 		DEBUGCOUT("reading var <" << *env << ">" << std::endl);
 	 		long int i = 0;
-	 		double d = 0.;
+	 		doublereal d = 0.;
 	 		char* p = NULL;
 	 		char* v = NULL;
 	 		char* n = NULL;

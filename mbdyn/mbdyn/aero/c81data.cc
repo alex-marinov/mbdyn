@@ -37,6 +37,7 @@
 
 #include <ac/iostream>
 #include <ac/iomanip>
+#include <ac/f2c.h>
 #include <ac/math.h>
 
 extern "C" {
@@ -59,10 +60,10 @@ extern "C" {
 static int
 do_c81_data_stall(c81_data *data);
 static int
-do_c81_stall(int NM, int NA, double *a, double *stall);
+do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall);
 
 static int 
-get_vec(std::istream& in, double* v, int nrows)
+get_vec(std::istream& in, doublereal* v, int nrows)
 {
    	if (!in || v == NULL || nrows < 1) {
       		return -1;
@@ -76,7 +77,7 @@ get_vec(std::istream& in, double* v, int nrows)
 }
 
 static int 
-get_mat(std::istream& in, double* m, int nrows, int ncols)
+get_mat(std::istream& in, doublereal* m, int nrows, int ncols)
 {
    	if (!in || m == NULL || nrows < 1 || ncols < 1) {
       		return -1;
@@ -92,7 +93,7 @@ get_mat(std::istream& in, double* m, int nrows, int ncols)
 }
 
 static int
-put_row(std::ostream& out, double* v, int dim, int ncols, int first = 0)
+put_row(std::ostream& out, doublereal* v, int dim, int ncols, int first = 0)
 {
    	int start = 0;
    	const int N = 9;
@@ -122,7 +123,7 @@ put_row(std::ostream& out, double* v, int dim, int ncols, int first = 0)
 }
 
 static int
-put_vec(std::ostream& out, double* v, int nrows)
+put_vec(std::ostream& out, doublereal* v, int nrows)
 {
    	if (!out || v == NULL || nrows < 1) {
       		return -1;
@@ -134,7 +135,7 @@ put_vec(std::ostream& out, double* v, int nrows)
 }
 
 static int
-put_mat(std::ostream& out, double* m, int nrows, int ncols)
+put_mat(std::ostream& out, doublereal* m, int nrows, int ncols)
 {
    	if (!out || m == NULL || nrows < 1 || ncols < 1) {
       		return -1;
@@ -219,24 +220,24 @@ read_c81_data(std::istream& in, c81_data* data)
    	data->header[30] = '\0';
    
    	/* lift */
-   	data->ml = new double[data->NML];
+   	data->ml = new doublereal[data->NML];
    	get_vec(in, data->ml, data->NML);
    
-   	data->al = new double[(data->NML+1)*data->NAL];
+   	data->al = new doublereal[(data->NML+1)*data->NAL];
    	get_mat(in, data->al, data->NAL, data->NML+1);
    
    	/* drag */
-   	data->md = new double[data->NMD];
+   	data->md = new doublereal[data->NMD];
    	get_vec(in, data->md, data->NMD);
    
-   	data->ad = new double[(data->NMD+1)*data->NAD];      
+   	data->ad = new doublereal[(data->NMD+1)*data->NAD];      
    	get_mat(in, data->ad, data->NAD, data->NMD+1);
    
    	/* moment */
-   	data->mm = new double[data->NMM];
+   	data->mm = new doublereal[data->NMM];
    	get_vec(in, data->mm, data->NMM);
    
-   	data->am = new double[(data->NMM+1)*data->NAM];
+   	data->am = new doublereal[(data->NMM+1)*data->NAM];
    	get_mat(in, data->am, data->NAM, data->NMM+1);
 
 	/* FIXME: maybe this is not the best place */
@@ -316,17 +317,17 @@ set_c81_data(long int jpro, c81_data* data)
 /*
  * sistema i dati di stallo
  */
-static const double dcptol = 1.e-2;
+static const doublereal dcptol = 1.e-2;
 
 static int
-do_c81_stall(int NM, int NA, double *a, double *stall)
+do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall)
 {
 	for (int nm = 0; nm < NM; nm++) {
 		int start = NA*(nm+1);
 		int na = NA/2;	/* punto di mezzo */
-		double a0 = a[na];
-		double dcp0 = a[start+na];
-		double dcpa0 = (a[start+na+1]-dcp0)/(a[na+1]-a0);
+		doublereal a0 = a[na];
+		doublereal dcp0 = a[start+na];
+		doublereal dcpa0 = (a[start+na+1]-dcp0)/(a[na+1]-a0);
 
 		/* cerca il punto superiore in cui cessa la linearita' */
 		stall[nm] = 1.;
@@ -334,7 +335,7 @@ do_c81_stall(int NM, int NA, double *a, double *stall)
 		stall[2*NM+nm] = 0.;
 
 		for (int i = na+2; i < NA; i++) {
-			double dcpa = (a[start+i]-dcp0)/(a[i]-a0);
+			doublereal dcpa = (a[start+i]-dcp0)/(a[i]-a0);
 			if (fabs(dcpa-dcpa0) > dcptol) {
 
 				/* alpha di stallo superiore */
@@ -351,7 +352,7 @@ do_c81_stall(int NM, int NA, double *a, double *stall)
 		
 		/* cerca il punto inferiore in cui cessa la linearita' */
 		for (int i = na-2; i >= 0; i--) {
-			double dcpa = (a[start+i]-dcp0)/(a[i]-a0);
+			doublereal dcpa = (a[start+i]-dcp0)/(a[i]-a0);
 			if (fabs(dcpa-dcpa0) > dcptol) {
 			
 				/* stallo inferiore */
@@ -378,10 +379,10 @@ do_c81_data_stall(c81_data *data)
 		return -1;
 	}
 
-	data->stall = new double[3*data->NML];
+	data->stall = new doublereal[3*data->NML];
 	do_c81_stall(data->NML, data->NAL, data->al, data->stall);
 
-	data->mstall = new double[3*data->NMM];
+	data->mstall = new doublereal[3*data->NMM];
 	do_c81_stall(data->NMM, data->NAM, data->am, data->mstall);
 
 	return 0;

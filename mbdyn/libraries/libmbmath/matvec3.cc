@@ -307,7 +307,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
    if (ib == (ia%3)+1) {
       r[i1] = va/va.Norm();
       r[i3] = r[i1].Cross(vb);
-      double d = r[i3].Dot();
+      doublereal d = r[i3].Dot();
       if (d <= DBL_EPSILON) {
 	 std::cerr << sFuncName << ": vectors must be distinct" 
 		 << std::endl;
@@ -323,7 +323,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
    } else if (ib == ((ia+1)%3+1)) {
       r[i1] = va/va.Norm();	
       r[i2] = vb.Cross(r[i1]);
-      double d = r[i2].Dot();
+      doublereal d = r[i2].Dot();
       if (d <= DBL_EPSILON) {
 	 std::cerr << sFuncName << ": vectors must be distinct" 
 		 << std::endl;

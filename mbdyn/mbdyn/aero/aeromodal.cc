@@ -48,7 +48,7 @@ AerodynamicModal::AerodynamicModal(unsigned int uLabel,
 		   		const int NAero,
 				RigidF_t rgF,
 		   		const int Gust,
-				const double Vff,
+				const doublereal Vff,
 		   		SpMapMatrixHandler* pAMat,
 		   		FullMatrixHandler* pBMat,
 		   		FullMatrixHandler* pCMat,
@@ -620,7 +620,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
 	NModes += rigidF;
    }   
    unsigned int GustN = 0;
-   double Vff = 0.;
+   doublereal Vff = 0.;
    /* Eventuale raffica */
    if (HP.IsKeyWord("gust")) {
 	GustN = 2; 

@@ -757,7 +757,7 @@ PlaneDispJoint::dGetPrivData(unsigned int i) const
 {
    ASSERT(i >= 1 && i <= 3);
    
-   double d;
+   doublereal d;
    
    Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
    Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);

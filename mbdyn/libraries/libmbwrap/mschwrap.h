@@ -53,7 +53,7 @@ extern "C" {
 class MeschachVectorHandler : public VectorHandler {
 protected:
 	VEC* pv;
-	double* pdVecm1;
+	doublereal* pdVecm1;
    
 public:
 	MeschachVectorHandler(int iSize = 0);   
@@ -286,7 +286,7 @@ protected:
    	MeschachSparseMatrixHandler* pmh;
    
    	enum { RESET, FACTORED } fStatus;
-   	double alpha;
+   	doublereal alpha;
    
    	void Create(unsigned int iSize, unsigned int iMaxSize);
    	void Factor(void);
@@ -294,7 +294,7 @@ protected:
 public:
    	MeschachSparseLUSolutionManager(int iSize,
 					int iMaxSize = 0, 
-					double a = 1.);
+					const doublereal& a = 1.);
    	~MeschachSparseLUSolutionManager(void);
 
    	void IsValid(void) const;

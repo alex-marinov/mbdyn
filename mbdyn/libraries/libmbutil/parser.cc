@@ -566,7 +566,7 @@ HighParser::GetInt(int iDefval)
    try {
 #endif
       
-      iReturnValue = int(MathP.Get(*pIn, (double)iDefval));
+      iReturnValue = int(MathP.Get(*pIn, (doublereal)iDefval));
       
 #ifdef USE_EXCEPTIONS
    }
@@ -583,7 +583,7 @@ HighParser::GetInt(int iDefval)
 
 
 doublereal 
-HighParser::GetReal(double dDefval)
+HighParser::GetReal(const doublereal& dDefval)
 {
    const char sFuncName[] = "HighParser::GetReal()";
    

@@ -346,7 +346,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 	if (pModalNode) {
 		integer iRigidIndex = pModalNode->iGetFirstIndex();
 
-		for (integer iCnt = 1; iCnt <= iRigidOffset; iCnt++) {
+		for (unsigned int iCnt = 1; iCnt <= iRigidOffset; iCnt++) {
 			WM.fPutRowIndex(iCnt, iRigidIndex+iCnt);
 			WM.fPutColIndex(iCnt, iRigidIndex+iCnt);
 		}
@@ -515,7 +515,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 			}
 #endif /* !MODAL_USE_INV9 */
 			for (int iCnt = 1; iCnt <= 3; iCnt++) {
-				double temp1 = 0., temp2 = 0.;
+				doublereal temp1 = 0., temp2 = 0.;
 				for (int jCnt = 1; jCnt<=3; jCnt++) {
 #ifdef MODAL_USE_INV9
 		 			temp1 += -2*wr.dGet(jCnt)*(R*(Inv8jTranspose-Inv9jkak)*RT).dGet(iCnt, jCnt);
@@ -528,7 +528,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 						dCoef*(temp1+temp2));
 			}
 		 	for (int iCnt = 1; iCnt<=3; iCnt++) {
-				double temp1 = 0.;
+				doublereal temp1 = 0.;
 				for (int jCnt = 1; jCnt<=3; jCnt++) {
 		 			temp1 += (R*VInv5jaPj*2).dGet(jCnt);
 				}
@@ -1688,7 +1688,7 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 	if (pModalNode) {
 		integer iRigidIndex = pModalNode->iGetFirstIndex();
 
-		for (integer iCnt = 1; iCnt <= iRigidOffset; iCnt++) {
+		for (unsigned int iCnt = 1; iCnt <= iRigidOffset; iCnt++) {
 			WorkVec.fPutRowIndex(iCnt, iRigidIndex+iCnt);
 		}
 	}

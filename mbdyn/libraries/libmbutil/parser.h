@@ -292,7 +292,7 @@ class HighParser {
    /* legge un intero con il mathpar */
    virtual integer GetInt(int iDefval = 0);
    /* legge un reale col mathpar */
-   virtual doublereal GetReal(double dDefval = 0.0);
+   virtual doublereal GetReal(const doublereal& dDefval = 0.0);
    /* legge una keyword */
    virtual int GetWord(void);
    /* legge una stringa */
@@ -316,7 +316,7 @@ class HighParser {
    virtual Mat6x6 GetMat6x6(void);
    virtual Mat6x6 GetMat6x6(const Mat6x6& mDef);
    
-   virtual inline doublereal Get(const doublereal& d) { return GetReal(double(d)); };
+   virtual inline doublereal Get(const doublereal& d) { return GetReal(doublereal(d)); };
    virtual inline Vec3 Get(const Vec3& v) { return GetVec3(v); };
    virtual inline Mat3x3 Get(const Mat3x3& m) { return GetMat3x3(m); };
    virtual inline Vec6 Get(const Vec6& v) { return GetVec6(v); };

@@ -99,8 +99,8 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
    MyVectorHandler* pgs;                      /* coordinate modali raffica*/
    MyVectorHandler* pgsPrime;		     /* derivate prime modali raffica*/
 
-   const double gustVff;               /* frequenza di taglio filtro passa basso raffica */
-   const double gustXi;                /* smorzamento filtro del secondo ordine raffica */
+   const doublereal gustVff;               /* frequenza di taglio filtro passa basso raffica */
+   const doublereal gustXi;                /* smorzamento filtro del secondo ordine raffica */
 
  public:
    enum RigidF_t {
@@ -125,7 +125,7 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
 		   const int NAero,
 		   RigidF_t rgF,
 		   const int Gust,
-		   const double Vff,
+		   const doublereal Vff,
 		   SpMapMatrixHandler* pAMat,
 		   FullMatrixHandler* pBMat,
 		   FullMatrixHandler* pCMat,

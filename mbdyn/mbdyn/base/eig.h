@@ -71,7 +71,7 @@ class PODEig
 	doublereal  dPecision; 		/* precisione da utilizzare nell'estrazione degli autovalori 
 					   0 indica default = 10^-6 */				   
 	
-	std::vector<double>*  pXMat;      /* matrice che contiene gli 
+	std::vector<doublereal>*  pXMat;      /* matrice che contiene gli 
 					  [snapshot numero di stati] x [numero di snapshot]
 					  ordinati per righe in modo da poter normalizzare facilmente le storie 
 					  temporali */

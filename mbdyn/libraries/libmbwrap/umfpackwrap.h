@@ -89,9 +89,9 @@ class UmfpackSparseLUSolutionManager: public SolutionManager {
 private:
 	mutable SpMapMatrixHandler A;
 	MyVectorHandler *xVH, *bVH;
-	std::vector<double> x;
-	std::vector<double> b;
-	std::vector<double> Ax;
+	std::vector<doublereal> x;
+	std::vector<doublereal> b;
+	std::vector<doublereal> Ax;
 	std::vector<int> Ai;
 	std::vector<int> Ap;
 	doublereal* pdRhs;
@@ -99,8 +99,8 @@ private:
 	
 
 	void * Symbolic;
-	double Control[UMFPACK_CONTROL];
-	double Info[UMFPACK_INFO];
+	doublereal Control[UMFPACK_CONTROL];
+	doublereal Info[UMFPACK_INFO];
 	void * Numeric;
 	
 	bool HasBeenReset;

@@ -34,15 +34,25 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#ifdef MBDYN_SINGLE_PRECISION
+#define y12prefactor __FC_DECL__(y12mbe)
+#define y12factor __FC_DECL__(y12mce)
+#define y12solve __FC_DECL__(y12mde)
+#else /* ! MBDYN_SINGLE_PRECISION */
+#define y12prefactor __FC_DECL__(y12mbf)
+#define y12factor __FC_DECL__(y12mcf)
+#define y12solve __FC_DECL__(y12mdf)
+#endif /* ! MBDYN_SINGLE_PRECISION */
+
 extern int 
-__FC_DECL__(y12mbf) (integer *n, integer *z__, doublereal *const a, 
+y12prefactor (integer *n, integer *z__, doublereal *const a, 
 		   integer *const snr, integer *nn, 
 		   integer *const rnr, integer *nn1, integer *ha,
 		   integer *iha, doublereal *aflag, integer *iflag,
 		   integer *ifail);
 		   
 extern int 
-__FC_DECL__(y12mcf) (integer *n, integer *z__, doublereal *const a, 
+y12factor (integer *n, integer *z__, doublereal *const a, 
 		   integer *const snr, integer *nn, 
 		   integer *const rnr, integer *nn1, doublereal *pivot,
 		   doublereal *const b, integer *ha, 
@@ -50,7 +60,7 @@ __FC_DECL__(y12mcf) (integer *n, integer *z__, doublereal *const a,
 		   integer *iflag, integer *ifail);
 		   
 extern int 
-__FC_DECL__(y12mdf) (integer *n, doublereal *const a, 
+y12solve (integer *n, doublereal *const a, 
 		   integer *nn, doublereal *const b,
 		   doublereal *pivot, integer *const snr, 
 		   integer *ha, integer *iha,

@@ -56,7 +56,7 @@ NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
 host(h), name(m), create(c), node(n), port(-1), mbx(NULL)
 {
 	/* FIXME: size depends on the type of the output signals */
-	size = sizeof(double)*nch;
+	size = sizeof(doublereal)*nch;
 	SAFENEWARR(buf, char, size);
 
 	/* RATIONALE:
@@ -129,7 +129,7 @@ RTAIOutElem::WorkSpaceDim(integer* piRows, integer* piCols) const
 }
 
 SubVectorHandler&
-RTAIOutElem::AssRes(SubVectorHandler& WorkVec, double dCoef,
+RTAIOutElem::AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
 		const VectorHandler& X, const VectorHandler& XP)
 {
 	WorkVec.Resize(0);
@@ -137,7 +137,7 @@ RTAIOutElem::AssRes(SubVectorHandler& WorkVec, double dCoef,
 }
 
 VariableSubMatrixHandler& 
-RTAIOutElem::AssJac(VariableSubMatrixHandler& WorkMat, double dCoef,
+RTAIOutElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 		const VectorHandler& X, const VectorHandler& XP)
 {
 	WorkMat.SetNullMatrix();

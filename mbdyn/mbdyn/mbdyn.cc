@@ -752,7 +752,7 @@ main(int argc, char* argv[])
 			char *s = timebuf;
 			size_t l = sizeof(timebuf), n;
 
-			n = snprintf(s, l, "%d.%03d", tSecs, tMils);
+			n = snprintf(s, l, "%ld.%03ld", tSecs, tMils);
 
 	    		std::cout << std::endl << "The simulation required " 
 	        		<< timebuf << " seconds of CPU time";
@@ -763,7 +763,7 @@ main(int argc, char* argv[])
 				l -= n;
 
 				if (tSecs > 3600) {
-					n = snprintf(s, l, "%dh ", tSecs/3600);
+					n = snprintf(s, l, "%ldh ", tSecs/3600);
 					if (n >= l) {
 						THROW(ErrGeneric());
 					}
@@ -772,7 +772,7 @@ main(int argc, char* argv[])
 				}
 
 				n = snprintf(s, l,
-						/* ( */ "%02dm %02ds %03dms)",
+						/* ( */ "%02ldm %02lds %03ldms)",
 						(tSecs%3600)/60,
 						(tSecs%3600)%60, tMils);
 

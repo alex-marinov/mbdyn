@@ -218,8 +218,8 @@ MeschachSparseLUSolutionManager::Factor(void)
 }
 
 MeschachSparseLUSolutionManager::MeschachSparseLUSolutionManager(int iSize,
-								 int iMaxSize, 
-								 double a)
+		int iMaxSize, 
+		const doublereal& a)
 : prhs(NULL), pivot(PNULL), pmh(NULL), fStatus(RESET), alpha (a)
 {
    	Create(iSize, iMaxSize);

@@ -67,8 +67,8 @@ typedef struct c81_data {
    
    	int NML;
    	int NAL;
-   	double *ml;
-   	double *al;
+   	doublereal *ml;
+   	doublereal *al;
 
 	/*
 	 * matrice dei dati di stallo:
@@ -76,25 +76,25 @@ typedef struct c81_data {
 	 *  NAL -> 2*NAL-1 :	angoli di stallo negativi
 	 *  2*NAL -> 3*NAL-1 :	Cp/alpha
 	 */
-	double *stall;
-	double *mstall;
+	doublereal *stall;
+	doublereal *mstall;
    
    	int NMD;
    	int NAD;
-   	double *md;
-   	double *ad;
+   	doublereal *md;
+   	doublereal *ad;
    
    	int NMM;
    	int NAM;
-   	double *mm;
-   	double *am;
+   	doublereal *mm;
+   	doublereal *am;
 } c81_data;
 
 extern int 
-c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data);
+c81_aerod2(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA, c81_data* data);
 
 extern int 
-c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA, 
+c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA, 
 		c81_data* data, long unsteadyflag);
 
 #ifdef __cplusplus

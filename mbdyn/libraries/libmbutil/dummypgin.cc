@@ -67,7 +67,7 @@ DummyPlugIn::GetType(void) const
 TypedValue 
 DummyPlugIn::GetVal(void) const
 {
-	return TypedValue(0.);
+	return TypedValue(0);
 }
 
 MathParser::PlugIn *

@@ -76,7 +76,7 @@ private:
 	int NRows;
 	int NCols;
 	int NZ;
-	double zero;
+	doublereal zero;
 	std::vector<row_cont_type> col_indices;
 //	x_cont_type x;	
 	
@@ -98,7 +98,7 @@ public:
 
 	virtual ~SpMapMatrixHandler() {};
 
-	void Init(const double& c = 0.) {
+	void Init(const doublereal& c = 0.) {
 		Reset(c);
 	};
 	integer iGetNumRows(void) const {
@@ -124,7 +124,7 @@ public:
 			return i->second;
 		}
 	};
-	flag fIncCoef(integer ix, integer iy, const double& inc) {
+	flag fIncCoef(integer ix, integer iy, const doublereal& inc) {
 		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::fIncCoef(), row index out of range");
 		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::fIncCoef(), col index out of range");
 		//try to keep sparsity
@@ -134,7 +134,7 @@ public:
 		//}
 		return 1;
 	};
-	flag fDecCoef(integer ix, integer iy, const double& inc) {
+	flag fDecCoef(integer ix, integer iy, const doublereal& inc) {
 		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::fDecCoef(), row index out of range");
 		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::fDecCoef(), col index out of range");
 		//try to keep sparsity
@@ -144,7 +144,7 @@ public:
 		//}
 		return 1;
 	};
-	flag fPutCoef(integer ix, integer iy, const double& val) {
+	flag fPutCoef(integer ix, integer iy, const doublereal& val) {
 		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::fPutCoef(), row index out of range");
 		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::fPutCoef(), col index out of range");
 		//try to keep sparsity
@@ -188,7 +188,7 @@ public:
 		}
 	};
 	void MakeCompressedColumnForm(
-		double *const Ax,
+		doublereal *const Ax,
 		int *const Ai,
 		int *const Ap) const {
 		int x_ptr = 0;
@@ -208,7 +208,7 @@ public:
 		Ap[NCols] = x_ptr;
 	};
         void MakeCompressedColumnForm(
-                std::vector<double>& Ax,
+                std::vector<doublereal>& Ax,
                 std::vector<int>& Ai,
                 std::vector<int>& Ap) const {
                 Ax.resize(Nz());
@@ -373,7 +373,7 @@ public:
 
 		row_cont_type::const_iterator ri, re;
 		for (int col=0; col<NCols; col++) {
-			double d = 0.;
+			doublereal d = 0.;
 			re = col_indices[col].end();
 			for (ri = col_indices[col].begin();ri != re; ri++) {
 				d += ri->second*in.dGetCoef(ri->first+1);
@@ -394,7 +394,7 @@ public:
 		for (int col=0; col<NCols; col++) {
 			re = col_indices[col].end();
 			for (ri = col_indices[col].begin();ri != re; ri++) {
-				double d = ri->second*in.dGetCoef(col+1);
+				doublereal d = ri->second*in.dGetCoef(col+1);
 				out.fIncCoef(ri->first+1, d);
 			}
 		}
@@ -409,7 +409,7 @@ public:
 
 		row_cont_type::const_iterator ri, re;
 		for (int col=0; col<NCols; col++) {
-			double d = 0.;
+			doublereal d = 0.;
 			re = col_indices[col].end();
 			for (ri = col_indices[col].begin();ri != re; ri++) {
 				d += ri->second*in.dGetCoef(ri->first+1);
@@ -429,7 +429,7 @@ public:
 		for (int col=0; col<NCols; col++) {
 			re = col_indices[col].end();
 			for (ri = col_indices[col].begin();ri != re; ri++) {
-				double d = ri->second*in.dGetCoef(col+1);
+				doublereal d = ri->second*in.dGetCoef(col+1);
 				out.fIncCoef(ri->first+1, d);
 			}
 		}
@@ -446,7 +446,7 @@ public:
 		for (int col=0; col<NCols; col++) {
 			re = col_indices[col].end();
 			for (ri = col_indices[col].begin();ri != re; ri++) {
-				double d = ri->second*in.dGetCoef(col+1);
+				doublereal d = ri->second*in.dGetCoef(col+1);
 				out.fDecCoef(ri->first+1, d);
 			}
 		}
@@ -458,7 +458,7 @@ public:
  * #include "SubMatrix.hh"
  * void SubMatrix<SpMapMatrixHandler>::addtovalue(
  * 	SpMapMatrixHandler*const m,
- * 	const double &x,
+ * 	const doublereal &x,
  * 	int ix,
  * 	int iy) const {
  * 	if (x != 0) {

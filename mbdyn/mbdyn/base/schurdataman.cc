@@ -93,8 +93,8 @@ SchurDataManager::~SchurDataManager() {
 	NO_OP;
 };
 
-void SchurDataManager::AssRes(VectorHandler&, double) { NO_OP; };
-void SchurDataManager::AssJac(MatrixHandler&, double) { NO_OP; };
+void SchurDataManager::AssRes(VectorHandler&, doublereal) { NO_OP; };
+void SchurDataManager::AssJac(MatrixHandler&, doublereal) { NO_OP; };
 void SchurDataManager::DerivativesUpdate(void) const { NO_OP; };
 void SchurDataManager::BeforePredict(VectorHandler&, VectorHandler&,
 		VectorHandler&, VectorHandler&) const { NO_OP; };
