@@ -83,7 +83,6 @@ PlaneHingeJoint::AfterConvergence(const VectorHandler& X,
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta += v.dGet(3);
-	std::cerr << "Converged" << std::endl;
 }
 
 
