@@ -183,6 +183,18 @@ mp_ramp(Real s)
 }
 
 Real 
+mp_sramp(Real s, Real s_max)
+{
+	if (s <= 0.) {
+		return 0.;
+	}
+	if (s >= s_max) {
+		return s_max;
+	}
+	return s;
+}
+
+Real 
 mp_par(Real s)
 {
    if (s > 0.) {
@@ -250,6 +262,7 @@ static mathfuncs FuncTable[] = {
 
      { "step",       1, { (Real (*)(void))((Real (*)(Real))mp_step)   }, NULL,       ""   },
      { "ramp",       1, { (Real (*)(void))((Real (*)(Real))mp_ramp)   }, NULL,       ""   },
+     { "sramp",      2, { (Real (*)(void))((Real (*)(Real, Real))mp_sramp)   }, NULL,       ""   },
      { "par",        1, { (Real (*)(void))((Real (*)(Real))mp_par)    }, NULL,       ""   },
      
      { "print",      1, { (Real (*)(void))((Real (*)(Real))mp_prnt)   }, NULL,       ""   },
