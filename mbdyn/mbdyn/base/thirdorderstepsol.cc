@@ -79,21 +79,17 @@ void ThirdOrderIntegrator::SetCoef(doublereal dt,
 	rho = Rho.dGet();
 	theta = -rho/(1.+rho);
 	w[0] = (1.+3*theta)/(6.*theta);
-	w[1] = -1./(6*theta*(1+theta));
-	w[2] = (2.+3.*theta)/(6*(1+theta));
+	w[1] = -1./(6.*theta*(1.+theta));
+	w[2] = (2.+3.*theta)/(6.*(1.+theta));
 	/* from "Unconditionally stable multistep integration of ordinary
 	 * differential and differential-algebraic equations with
 	 * controlled algorithmic dissipation for multibody dynamic
 	 * applications", pp 3
 	 */
-	m[0][0] = 1.;
-	m[1][0] = 0.;
-	m[0][1] = 1.-theta*theta*(3.+2*theta);
-	m[1][1] = theta*theta*(3.+2*theta);
-	n[0][0] = 0.;
-	n[1][0] = 0.;
-	n[0][1] = theta*(1.+theta)*(1.+theta);
-	n[1][1] = theta*theta*(1.+theta);
+	m0 = 1.-theta*theta*(3.+2.*theta);
+	m1 = theta*theta*(3.+2.*theta);
+	n0 = theta*(1.+theta)*(1.+theta);
+	n1 = theta*theta*(1.+theta);
 	/* Attenzione: a differenza di quanto riportato a p. 16,
 	 * "Unconditionally stable multistep integration of ordinary
 	 * differential and differential-algebraic equations with
@@ -101,14 +97,23 @@ void ThirdOrderIntegrator::SetCoef(doublereal dt,
 	 * applications"
 	 * qui il tempo finale e' in cima, il tempo theta in basso
 	 */ 
-	jx[1][1] = (1+3.*rho)/(6*rho*(1+rho))*dT;
-	jx[1][0] = -1./(6*rho*std::pow(1+rho,2.))*dT;
-	jx[0][1] = std::pow(1+rho,2.)/(6.*rho)*dT;
+	jx[1][1] = (1.+3.*rho)/(6.*rho*(1.+rho))*dT;
+	jx[1][0] = -1./(6.*rho*std::pow(1.+rho,2.))*dT;
+	jx[0][1] = std::pow(1.+rho,2.)/(6.*rho)*dT;
 	jx[0][0] = (2.*rho-1.)/(6.*rho)*dT;
 	jxp[1][1] = 1.;
 	jxp[1][0] = 0.;
 	jxp[0][1] = 0.;
 	jxp[0][0] = 1.;
+// 	std::cout << "rho: " << rho << std::endl;
+// 	std::cout << "theta: " << theta << std::endl;
+// 	std::cout << "w[0]: " << w[0] << std::endl;
+// 	std::cout << "w[1]: " << w[1] << std::endl;
+// 	std::cout << "w[2]: " << w[2] << std::endl;
+// 	std::cout << "  m0: " << m0 << std::endl;
+// 	std::cout << "  m1: " << m1 << std::endl;
+// 	std::cout << "  n0: " << n0 << std::endl;
+// 	std::cout << "  n1: " << n1 << std::endl;
 	
 };
 
@@ -138,6 +143,7 @@ doublereal ThirdOrderIntegrator::Advance(const doublereal TStep,
 				CurrDof.EqOrder==DofOrder::ALGEBRAIC);
 			EqIsDifferential[iCntp1] = (!EqIsAlgebraic[iCntp1]);
 		}
+		DofIterator.fGetFirst(CurrDof);
 // 		Res1.Resize(n);
 // 		Res2.Resize(n);
 		Jacxi_xp.Resize(n);
@@ -146,6 +152,7 @@ doublereal ThirdOrderIntegrator::Advance(const doublereal TStep,
 		Jac_x.Resize(n);
 		bAdvanceCalledFirstTime = false;
 	}
+	std::cout << "\n**********************\n";
 	pXCurr  = pX;
 	pXPrev  = qX[0];
 
@@ -235,14 +242,27 @@ void ThirdOrderIntegrator::Predict(void) {
 	 		doublereal dXPnm1 = 
 				pXPrimePrev->dGetCoef(iCntp1);
 			/* tempo theta*/
-	 		doublereal dXn = dXPnm1*(theta-1.)*dT;
-	 		pXCurr->fIncCoef(iCntp1+iNumDofs, dXn);
+// 			doublereal dXn = dXPnm1*(theta-1.)*dT;
+// 	 		pXCurr->fIncCoef(iCntp1+iNumDofs, dXn);
+// 			pXCurr->fPutCoef(iCntp1+iNumDofs,
+// 				m0*pXCurr->dGetCoef(iCntp1)+m1*pXPrev->dGetCoef(iCntp1)
+// 				+dT*(n0*pXPrimeCurr->dGetCoef(iCntp1)+
+// 					n1*pXPrimePrev->dGetCoef(iCntp1)));
+			pXCurr->fIncCoef(iCntp1+iNumDofs,
+				pXPrimePrev->dGetCoef(iCntp1)*theta*dT);
       		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
 	 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
 			/* tempo theta*/
-			doublereal dXIn = dXnm1*(theta-1.)*dT;
-	 		pXPrimeCurr->fIncCoef(iCntp1+iNumDofs, dXIn);
-
+// 			doublereal dXIn = dXnm1*(theta-1.)*dT;
+// 	 		pXPrimeCurr->fIncCoef(iCntp1+iNumDofs, dXIn);
+// 			pXPrimeCurr->fPutCoef(iCntp1+iNumDofs,
+// 				m0*pXPrimeCurr->dGetCoef(iCntp1)+m1*pXPrimePrev->dGetCoef(iCntp1)
+// 				+dT*(n0*pXCurr->dGetCoef(iCntp1)+
+// 					n1*pXPrev->dGetCoef(iCntp1)));
+// 			pXCurr->fPutCoef(iCntp1+iNumDofs,
+// 				pXPrev->dGetCoef(iCntp1));
+			pXPrimeCurr->fIncCoef(iCntp1+iNumDofs,
+				pXPrev->dGetCoef(iCntp1)*theta*dT);
 		} else {
 	 		std::cerr << "unknown order for dof " 
 				<< iCntp1<< std::endl;
@@ -265,16 +285,21 @@ void ThirdOrderIntegrator::Residual(VectorHandler* pRes) const
 	state.Attach(iNumDofs,pXCurr->pdGetVec()+iNumDofs);
 	stateder.Attach(iNumDofs,pXPrimeCurr->pdGetVec()+iNumDofs);
 	res.Attach(iNumDofs,pRes->pdGetVec()+iNumDofs);
-	pDM->SetTime(pDM->dGetTime()-(1.-theta)*dT);
+	pDM->SetTime(pDM->dGetTime()+theta*dT);
 	pDM->LinkToSolution(state, stateder);
 	pDM->Update();
 	pDM->AssRes(res, 1.);
 	
 	/* dT */
-	pDM->SetTime(pDM->dGetTime()+(1.-theta)*dT);
+	pDM->SetTime(pDM->dGetTime()-theta*dT);
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	pDM->Update();
 	pDM->AssRes(*pRes, 1.);
+
+// 	std::cout << "NumDofs: " << pDM->iGetNumDofs() << std::endl;
+// 	for (int i=1; i<=pDM->iGetNumDofs()*2; i+=6) {
+// 		std::cout << "\n" << pRes->dGetCoef(i);
+// 	} std::cout << "\n==================\n";
 
 	return;
 };
@@ -287,18 +312,22 @@ void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
 	integer iNumDofs = pDM->iGetNumDofs();
 
 	MyVectorHandler state, stateder;
+	pJacxi_x->Init();
+	pJacxi_xp->Init();
+	pJac_x->Init();
+	pJac_xp->Init();
 
 	/* theta*dT */
 	state.Attach(iNumDofs,pXCurr->pdGetVec()+iNumDofs);
 	stateder.Attach(iNumDofs,pXPrimeCurr->pdGetVec()+iNumDofs);
-	pDM->SetTime(pDM->dGetTime()-(1.-theta)*dT);
+	pDM->SetTime(pDM->dGetTime()+theta*dT);
 	pDM->LinkToSolution(state, stateder);
 	pDM->Update();
 	pDM->AssJac(*pJacxi_x, 1.);
 	pDM->AssJac(*pJacxi_xp, 0.);
 	
 	/* dT */
-	pDM->SetTime(pDM->dGetTime()+(1.-theta)*dT);
+	pDM->SetTime(pDM->dGetTime()-theta*dT);
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	pDM->Update();
 	pDM->AssJac(*pJac_x, 1.);
@@ -333,6 +362,12 @@ void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
 	Jac_x.MulAndSumWithShift(*pJac,J11_x,0,0);
 	Jac_xp.FakeThirdOrderMulAndSumWithShift(*pJac,EqIsDifferential,1.-J11_x,0,0);
 	
+// 	std::cout.precision(14);
+// 	for (int i=1; i<=pDM->iGetNumDofs()*2; i+=6) {
+// 	for (int j=1; j<=pDM->iGetNumDofs()*2; j+=6) {
+// 		std::cout << std::setw(16) << pJac->dGetCoef(i,j) << "\t";
+// 	} std::cout << std::endl;
+// 	}
 	return;
 };
 
@@ -356,6 +391,13 @@ void ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
 	 * Combinazione lineare di stato e derivata 
 	 * al passo precedente ecc. 
 	 */
+// 	std::cout << "Prima:\n";
+// 	std::cout.precision(14);
+// 	for (int i=1; i<=pDM->iGetNumDofs()*2; i+=6) {
+// 		std::cout << "\n" << std::setw(16) << pSol->dGetCoef(i) << "\t" << 
+// 			std::setw(16) << pXCurr->dGetCoef(i) << "\t" <<
+// 			std::setw(16) << pXPrimeCurr->dGetCoef(i);
+// 	} std::cout << "\n-------------------\n";
 	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
 		iCntp1++, DofIterator.fGetNext(CurrDof)) {
 		doublereal dxp = pSol->dGetCoef(iCntp1);
@@ -367,7 +409,7 @@ void ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
 			
 	 		pXCurr->fIncCoef(iCntp1, dT*(w[1]*dxp_xi+w[0]*dxp));
 	 		pXCurr->fIncCoef(iCntp1+iNumDofs, 
-				dT*(m[0][1]*w[1]*dxp_xi+(m[0][1]*w[0]+n[0][1])*dxp));
+				dT*(m0*w[1]*dxp_xi+(m0*w[0]+n0)*dxp));
 		
       		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
 	 		pXCurr->fIncCoef(iCntp1, dxp);
@@ -375,13 +417,20 @@ void ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
 			
 	 		pXPrimeCurr->fIncCoef(iCntp1, dT*(w[1]*dxp_xi+w[0]*dxp));
 	 		pXPrimeCurr->fIncCoef(iCntp1+iNumDofs, 
-				dT*(m[0][1]*w[1]*dxp_xi+(m[0][1]*w[0]+n[0][1])*dxp));
+				dT*(m0*w[1]*dxp_xi+(m0*w[0]+n0)*dxp));
 		} else {
 	 		std::cerr << "unknown order for dof " 
 				<< iCntp1<< std::endl;
 	 		THROW(ErrGeneric());
 		}
-   	}	
+   	}
+// 	std::cout << "Dopo:\n";
+// 	std::cout.precision(14);
+// 	for (int i=1; i<=pDM->iGetNumDofs()*2; i+=6) {
+// 		std::cout << "\n" << std::setw(16) << pSol->dGetCoef(i) << "\t" << 
+// 			std::setw(16) << pXCurr->dGetCoef(i) << "\t" <<
+// 			std::setw(16) << pXPrimeCurr->dGetCoef(i);
+// 	} std::cout << "\n-------------------\n";
 	pDM->Update();
 	return;
 };
