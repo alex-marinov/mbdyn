@@ -937,7 +937,7 @@ Solver::Run(void)
       		dRefTimeStep = dInitialTimeStep*dFictitiousStepsRatio;
       		dCurrTimeStep = dRefTimeStep;
 		/* FIXME: do we need to serve pending drives in dummy steps? */
-      		pDM->SetTime(dTime+dCurrTimeStep, true);
+      		pDM->SetTime(dTime+dCurrTimeStep);
 
       		DEBUGLCOUT(MYDEBUG_FSTEPS, "Current time step: "
 			   << dCurrTimeStep << std::endl);
@@ -1167,8 +1167,7 @@ Solver::Run(void)
 	SetupSolmans(pFirstRegularStep->GetIntegratorNumUnknownStates());
 IfFirstStepIsToBeRepeated:
 	try {
-		pDM->SetTime(dTime+dCurrTimeStep,
-				iFictitiousStepsNumber == 0 ? true : false);
+		pDM->SetTime(dTime+dCurrTimeStep);
 		dTest = pFirstRegularStep->Advance(this, dRefTimeStep,
 				dCurrTimeStep/dRefTimeStep, CurrStep,
 				qX, qXPrime, pX, pXPrime,
