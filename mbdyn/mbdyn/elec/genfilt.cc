@@ -35,10 +35,10 @@
 #ifdef USE_ELECTRIC_NODES
 
 #include <genfilt.h>
-#ifdef USE_MESCHACH
-#include <mschwrap.h>
+#ifdef USE_Y12
+#include <y12wrap.h>
 #undef catch
-#endif /* USE_MESCHACH */
+#endif /* USE_Y12 */
 
 #if 0
 /* GenelFilter - begin */
@@ -420,7 +420,7 @@ GenelFilterEq::AssRes(SubVectorHandler& WorkVec,
 void 
 GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
-#ifdef USE_MESCHACH
+#ifdef USE_Y12
    if (fSteady) {
       DEBUGCOUT("Finding initial conditions for scalar filter " << GetLabel() << std::endl);
       
@@ -434,7 +434,7 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
 	 return;
       } 
             
-      MeschachSparseLUSolutionManager sm(Na);
+      Y12SparseLUSolutionManager sm(Na);
       
       /* preparo matrice */
       DEBUGCOUT("Preparing matrix ..." << std::endl);
@@ -464,7 +464,7 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
       try {
 # endif 
 	 DEBUGCOUT("Solving ..." << std::endl);
-	 sm.Solve(0.);
+	 sm.Solve();
 # ifdef USE_EXCEPTIONS
       } 
       catch (...) {
@@ -499,7 +499,7 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
       }
    }
 
-#endif /* USE_MESCHACH */
+#endif /* USE_Y12 */
 }
 /* GenelFilterEq - end */
 
