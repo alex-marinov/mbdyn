@@ -630,7 +630,6 @@ main(int argc, char* argv[])
 		}
 
 #ifdef USE_EXCEPTIONS
-#warning "/* FIXME: causes core dump on Linux RH 6.2 !?! */"
         	throw NoErr();
     	} catch (NoErr) {     
         	silent_cout("MBDyn terminated normally" << endl);
