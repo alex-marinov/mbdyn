@@ -87,7 +87,7 @@ public:
 	const doublereal& dGetPivotFactor(void) const;
 
 	SolutionManager *const
-	LinSol::GetSolutionManager(integer iNLD, integer iLWS = 0) const;
+	GetSolutionManager(integer iNLD, integer iLWS = 0) const;
 };
 
 /* Integrator - end */

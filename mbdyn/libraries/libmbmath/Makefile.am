@@ -58,6 +58,7 @@ INCLUDES = \
 -I../../libraries/libmbutil \
 -I../../libraries/libmbmath \
 -I../../libraries/libmbwrap \
--I../../mbdyn
+-I../../mbdyn \
+-I../../mbdyn/base
 
 include $(top_srcdir)/build/bot.mk

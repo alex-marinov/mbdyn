@@ -38,12 +38,15 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #ifdef USE_MPI
-#include <schsolman.h>
-#include <mysleep.h>
+#include "solman.h"
+#include "parser.h"
+#include "linearsolver.h"
+#include "schsolman.h"
+#include "mysleep.h"
 /*
  * Le occorrenze della routine 'mysleep' vanno commentate quando
  * si opera su di una macchina dove le comunicazioni sono efficienti
@@ -59,25 +62,18 @@ extern "C" {
 };
 #endif /* MPI_PROFILING */
 
-#include <harwrap.h>
-#include <mschwrap.h>
-#include <y12wrap.h>
-#include <umfpackwrap.h>
-
 #undef min
 #undef max
 #include <algorithm>
 
-template <class S> SchurSolutionManager::SchurSolutionManager (integer iSize,
-					    integer iBlocks,
-					    integer* pLocalDofs,
-					    int iDim1,
-					    integer* pInterfDofs,
-					    int iDim2,
-					    SolutionManager* pLSM,
-					    S* pISM,
-					    integer iWorkSize,
-					    const doublereal& dPivotFactor)
+SchurSolutionManager::SchurSolutionManager (integer iSize,
+	    integer iBlocks,
+	    integer* pLocalDofs,
+	    int iDim1,
+	    integer* pInterfDofs,
+	    int iDim2,
+	    SolutionManager* pLSM,
+	    LinSol &ls)
 :
 SolvCommSize(0),
 iPrbmSize(iSize),
@@ -98,7 +94,6 @@ pBlockLenght(NULL),
 pTypeDsp(NULL),
 ppNewTypes(NULL),
 pBuffer(NULL),
-iWorkSpaceSize(iWorkSize),
 pMH(NULL),
 pRVH(NULL),
 pSolVH(NULL),
@@ -113,7 +108,7 @@ pSolrVH(NULL),
 pGSReq(NULL),
 pGRReq(NULL),
 pLocalSM(pLSM),
-pInterSM(pISM),
+pInterSM(0),
 bNewMatrix(false)
 {
 	DEBUGCOUT("Entering SchurSolutionManager::SchurSolutionManager()"
@@ -143,15 +138,12 @@ bNewMatrix(false)
 	InitializeComm();
 
 	/* utilizza iWorkSpaceSize come un coefficiente moltiplicativo */
+	iWorkSpaceSize = ls.iGetWorkSpaceSize();
 	integer IntiWorkSpaceSize = iWorkSpaceSize/(iPrbmSize*iPrbmSize)*(iSchurIntDim*iSchurIntDim);
 
 	if (!MyRank) {
-		/* solutore di interfaccia */
-		SAFENEWWITHCONSTRUCTOR(pInterSM,
-				S,
-				S(iSchurIntDim,
-				IntiWorkSpaceSize,
-				dPivotFactor));
+		pInterSM = ls.GetSolutionManager(iSchurIntDim,
+				IntiWorkSpaceSize);
 	}
 
 	/* estrae i puntatori alle matrici e ai vettori creati
@@ -855,42 +847,6 @@ SchurSolutionManager::ComplExchInt(doublereal& dRes)
 }
 /* SchurSolutionManager - End */
 
-#ifdef USE_Y12
-template SchurSolutionManager::SchurSolutionManager(integer iSize,
-					    integer iBlocks,
-					    integer* pLocalDofs,
-					    int iDim1,
-					    integer* pInterfDofs,
-					    int iDim2,
-					    SolutionManager* pLSM,
-					    Y12SparseSolutionManager* pISM,
-					    integer iWorkSize,
-					    const doublereal& dPivotFactor);
-#endif //USE_Y12
-#ifdef USE_MESCHACH
-template SchurSolutionManager::SchurSolutionManager(integer iSize,
-					    integer iBlocks,
-					    integer* pLocalDofs,
-					    int iDim1,
-					    integer* pInterfDofs,
-					    int iDim2,
-					    SolutionManager* pLSM,
-					    MeschachSparseSolutionManager* pISM,
-					    integer iWorkSize,
-					    const doublereal& dPivotFactor);
-#endif /* USE_MESCHACH */
-#ifdef USE_UMFPACK
-template SchurSolutionManager::SchurSolutionManager(integer iSize,
-					    integer iBlocks,
-					    integer* pLocalDofs,
-					    int iDim1,
-					    integer* pInterfDofs,
-					    int iDim2,
-					    SolutionManager* pLSM,
-					    UmfpackSparseSolutionManager* pISM,
-					    integer iWorkSize,
-					    const doublereal& dPivotFactor);
-#endif /* USE_UMFPACK */
 #endif /* USE_MPI */
 
 

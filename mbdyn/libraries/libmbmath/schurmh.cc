@@ -143,6 +143,15 @@ SchurMatrixHandler::IsValid(void) const
 }
 #endif /* DEBUG */
 
+/* Ridimensiona la matrice */
+void
+SchurMatrixHandler::Resize(integer, integer)
+{
+	silent_cerr("cannot resize a matrix handler of type SchurMatrixHandler"
+			<< std::endl);
+	THROW(ErrGeneric());
+}
+
 /* SchurMatrixHandler - End */
 
 /* SchurVectorHandler - Start */

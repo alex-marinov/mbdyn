@@ -3684,6 +3684,28 @@ Solver::AllocateSchurSolman(integer iStates)
 
 	switch (CurrIntSolver.GetSolver()) {
 	case LinSol::Y12_SOLVER:
+	case LinSol::UMFPACK_SOLVER:
+	case LinSol::MESCHACH_SOLVER:
+		break;
+
+	default:
+		silent_cerr("apparently solver "
+				<< CurrIntSolver.GetSolverName()
+				<< " is not allowed as interface solver "
+				"for SchurSolutionManager" << std::endl);
+		THROW(ErrGeneric());
+	}
+
+	SAFENEWWITHCONSTRUCTOR(pSSM, 
+			SchurSolutionManager,
+			SchurSolutionManager(iNumDofs, iStates, pLocDofs,
+				iNumLocDofs,
+				pIntDofs, iNumIntDofs,
+				pLocalSM, CurrIntSolver));
+
+#if 0
+	switch (CurrIntSolver.GetSolver()) {
+	case LinSol::Y12_SOLVER:
 #ifdef USE_Y12
 		SAFENEWWITHCONSTRUCTOR(pSSM, 
 			SchurSolutionManager,
@@ -3758,10 +3780,13 @@ Solver::AllocateSchurSolman(integer iStates)
 
 		break;
 	}
+#endif
+
 #else /* !USE_MPI */
 	std::cerr << "Configure --with-mpi to enable Schur solver" << std::endl;
 	THROW(ErrGeneric());
 #endif /* !USE_MPI */
+
 	return pSSM;
 };
 

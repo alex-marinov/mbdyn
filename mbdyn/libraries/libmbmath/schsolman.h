@@ -38,14 +38,14 @@
 #ifndef SCHSOLMAN_H
 #define SCHSOLMAN_H
 
-#include <myassert.h>
-#include <mynewmem.h>
-#include <except.h>
-#include <solman.h>
+#include "myassert.h"
+#include "mynewmem.h"
+#include "except.h"
+#include "solman.h"
 #ifdef USE_MPI
 #include <mpi++.h>
 #endif /* USE_MPI */
-#include <schurmh.h>
+#include "schurmh.h"
 
 inline void
 InitializeList(int* list, integer dim, integer value)
@@ -127,16 +127,14 @@ private:
 	bool bNewMatrix;
 public:
   
-	template<class S> SchurSolutionManager(integer iSize,
+	SchurSolutionManager(integer iSize,
 			integer iBlocks,
 			integer* pLocalDofs,
 			int iDim1,
 			integer* pInterfDofs,
 			int iDim2,
 			SolutionManager* pLSM,
-			S* pISM,
-			integer iWorkSpaceSize = 0,
-			const doublereal& dPivotFactor = 1.0);
+			LinSol& ls);
 	
 	virtual ~SchurSolutionManager(void);
 

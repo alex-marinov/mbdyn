@@ -36,7 +36,7 @@
  * http://www.aero.polimi.it
  *
  */
-/*Schur Matrix Handler */
+/* Schur Matrix Handler */
 
 #ifndef SCHURMH_H
 #define SCHURMH_H
@@ -87,6 +87,9 @@ public:
 	/* Resetta la matrice */
 	virtual inline void Init(const doublereal& dResetVal);
   
+	/* Ridimensiona la matrice */
+	virtual void Resize(integer, integer);
+
 	/* Resetta la matrice */
 	virtual inline void 
 	SchurMatrixHandler::MatEFCInit(const doublereal& dResetVal);
@@ -468,11 +471,10 @@ public:
 	/* restituisce le dimensioni del vettore */
 	inline integer iGetSize(void) const;
 
+	virtual void Init(doublereal dResetVal = 0.);
+
 	inline void Resize(integer iNewSize);
 
-	/* assegna il dResetVal a tutti gli elementi del vettore */
-	inline void Reset(doublereal dResetVal = 0.);
-  
 	inline VectorHandler* GetIVec(void);
 	inline VectorHandler* GetLVec(void);
 
@@ -514,10 +516,10 @@ SchurVectorHandler::Resize(integer iNewSize)
 
 /* assegna il dResetVal a tutti gli elementi del vettore */
 inline void
-SchurVectorHandler::Reset(doublereal dResetVal)
+SchurVectorHandler::Init(doublereal dResetVal)
 {
-	pLV->Reset(dResetVal);
-	pIV->Reset(dResetVal); 
+	pLV->Init(dResetVal);
+	pIV->Init(dResetVal); 
 }
   
 inline VectorHandler*
