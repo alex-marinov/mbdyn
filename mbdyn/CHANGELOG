@@ -34,6 +34,10 @@ MBDyn 1.2-Engineering
 	Bug fixes:
 		- fixed potential bug in c81 data input
 
+MBDyn 1.2-Beta.Engineering
+	Bug fixes:
+		- fixed .vol generation script for EasyAnim
+
 MBDyn 1.2-Beta.4
 	Enhancements:
 		- modal joint uses gravity

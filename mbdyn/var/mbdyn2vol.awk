@@ -91,7 +91,7 @@ BEGIN {
 		print "structural node("$11") requested by beam3("$2") as node 3 not found" > "/dev/stderr";
 		exit;
 	}
-	beam3_label[beam2_num] = $2;
+	beam3_label[beam3_num] = $2;
 	beam3[$2, 1] = $3;
 	beam3[$2, 1, 1] = $4;
 	beam3[$2, 1, 2] = $5;
