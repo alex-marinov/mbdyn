@@ -80,6 +80,12 @@ static int
 get_stall(int nm, double* m, double* s, double mach,
           double *dcpa, double *dasp, double *dasm);
 
+double
+get_c81_coef(int nm, double* m, int na, double* a, double alpha, double mach)
+{
+	return get_coef(nm, m, na, a, alpha, mach);
+}
+
 int 
 c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 {
@@ -92,9 +98,9 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	double cs = VAM[1];
 	double chord = VAM[2];
 	
-	double cl, cd, cd0, cm;
+	double cl, cl0, cd, cd0, cm;
 	double alpha, gamma, cosgam, mach, q;
-	double dcl, dcla, dasp, dasm;
+	double dcla;
 	
 	double ca = VAM[3];
 	double c34 = VAM[4];
@@ -161,6 +167,7 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	 * Note: all angles in c81 files are in degrees
 	 */
 	cl = get_coef(data->NML, data->ml, data->NAL, data->al, OUTA[1], mach);
+	cl0 = get_coef(data->NML, data->ml, data->NAL, data->al, 0., mach);
 	cd = get_coef(data->NMD, data->md, data->NAD, data->ad, OUTA[1], mach);
 	cd0 = get_coef(data->NMD, data->md, data->NAD, data->ad, 0., mach);
 	cm = get_coef(data->NMM, data->mm, data->NAM, data->am, OUTA[1], mach);
@@ -176,17 +183,17 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 */
 	dcla *= RAD2DEG;
 	if (fabs(alpha) > 1.e-6) {
-		double dclatmp = cl/(alpha*cosgam);
+		double dclatmp = (cl-cl0)/(alpha*cosgam);
 		if (dclatmp < dcla) {
 			dcla = dclatmp;
 		}
 	}
-	cl = dcla*alpha;
+	cl = cl0+dcla*alpha;
 	
 	OUTA[4] = cl;
 	OUTA[5] = cd;
 	OUTA[6] = cm;
-	
+
 	q = .5*rho*chord*vp2;
 
 	TNG[0] = -q*(cl*v[1]+cd*v[0])/vp;
