@@ -70,8 +70,9 @@ void Elem::AssEig(VariableSubMatrixHandler& /* WorkMatA */ ,
 		  const VectorHandler& /* XCurr */ ,
 		  const VectorHandler& /* XPrimeCurr */ ) 
 {
-   cerr << "Sorry, not implemented yet" << endl;     
-   THROW(ErrNotImplementedYet());
+   cerr << psElemNames[GetElemType()] 
+     << "(" << GetLabel() << "): sorry, AssEig not implemented yet" << endl;
+   // THROW(ErrNotImplementedYet());
 }
 
 
