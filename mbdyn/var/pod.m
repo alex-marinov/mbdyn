@@ -9,14 +9,14 @@
 %output:
 %	S	singular values
 %	Aout	data after POD
-%	B	POMs
+%	B	reduced dataset POMs
 %	mn	mean value of data
-%	scl	scale factor of data-mn
-%	ee	eigenvalues
-%	vv	eigenvectors
+%	scl	scale factor of data minus mn
+%	ee	eigenvalues of the transition matrix
+%	vv	eigenvectors of the transition matrix
 %	X	physical eigenvectors
 %	H	transition matrix
-%	BB	expanded PODs
+%	BB	expanded POMs
 %
 function [S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, dec)
 
@@ -137,4 +137,8 @@ BB(:, gt) = B;
 % k = 1.;
 % x = mn(l+1)+k*[1 1]*X([6 7], l+1);
 % y = mn(l+2)+k*[1 1]*X([6 7], l+2);
+%
+% eigenvalues:
+% [x,I]=sort(imag(ee));
+% [I,-100*real(ee(I))./abs(ee(I)),imag(ee(I))/2/pi,(S'*abs(vv(:,I)))']
 
