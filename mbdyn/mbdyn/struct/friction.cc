@@ -236,3 +236,85 @@ void SimplePlaneHingeJointSh_c::dSh_c(
 		dShc.Set(dsh_fc,2);
 		dShc.Link(1,&dfc);
 };
+
+
+//---------------------------------------
+
+BasicFriction *const ParseFriction(MBDynParser& HP,
+	std::map<
+		std::string,const BasicScalarFunction *
+	> &MapOfScalarFunctions) 
+{
+   const char* sKeyWords[] = { 
+      "modlugre",
+      NULL
+   };
+	enum KeyWords { 
+	   CONST = 0,
+	     MODLUGRE,
+	     LASTKEYWORD
+	};
+	/* token corrente */
+	KeyWords CurrDesc;
+	KeyWords FuncType;
+	
+	KeyTable K((int)LASTKEYWORD, sKeyWords);
+	HP.PutKeyTable(K);
+	
+	
+	FuncType = KeyWords(HP.IsKeyWord());
+	switch (FuncType) {
+	case CONST: {
+		doublereal sigma0 = HP.GetReal();
+		doublereal sigma1 = HP.GetReal();
+		doublereal sigma2 = HP.GetReal();
+		doublereal kappa = HP.GetReal();
+		const BasicScalarFunction*const sf = 
+			ParseScalarFunction(HP,MapOfScalarFunctions);
+		return new ModLugreFriction(sigma0, sigma1, sigma2, kappa, sf);
+		break;
+	}
+	default: {
+		std::cerr << "Error: unrecognized friction type keyword at line "
+			<< HP.GetLineData() << std::endl;
+		throw MBDynParser::ErrGeneric();
+		break;
+	}
+	}
+	return 0;
+};
+
+BasicShapeCoefficient *const ParseShapeCoefficient(MBDynParser& HP) {
+   const char* sKeyWords[] = { 
+      "simple" "plane" "hinge",
+      NULL
+   };
+	enum KeyWords { 
+	   CONST = 0,
+	     SIMPLEPLANEHINGE,
+	     LASTKEYWORD
+	};
+	/* token corrente */
+	KeyWords CurrDesc;
+	KeyWords FuncType;
+	
+	KeyTable K((int)LASTKEYWORD, sKeyWords);
+	HP.PutKeyTable(K);
+	
+	
+	FuncType = KeyWords(HP.IsKeyWord());
+	switch (FuncType) {
+	case SIMPLEPLANEHINGE: {
+		doublereal r = HP.GetReal();
+		return new SimplePlaneHingeJointSh_c(r);
+		break;
+	}
+	default: {
+		std::cerr << "Error: unrecognized shape coefficient type keyword at line "
+			<< HP.GetLineData() << std::endl;
+		throw MBDynParser::ErrGeneric();
+		break;
+	}
+	}
+	return 0;
+};

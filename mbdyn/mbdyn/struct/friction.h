@@ -178,6 +178,12 @@ public:
 		const ExpandableRowVector& dv) const;
 };
 
+//---------------------------------------
+
+BasicFriction *const ParseFriction(MBDynParser& HP,
+	std::map<std::string,const BasicScalarFunction *> &MapOfScalarFunctions);
+
+BasicShapeCoefficient *const ParseShapeCoefficient(MBDynParser& HP);
 
 #endif /* FRICTION_H */
 
