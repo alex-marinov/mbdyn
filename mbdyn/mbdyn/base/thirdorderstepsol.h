@@ -27,6 +27,16 @@ private:
 	SpMapMatrixHandler Jacxi_xp, Jacxi_x, Jac_xp, Jac_x;
 	MatrixHandler *pJacxi_xp, *pJacxi_x, *pJac_xp, *pJac_x;
 
+protected:
+	void PredictDof_for_AfterPredict(const int DCount,
+		const DofOrder::Order Order,
+		const VectorHandler* const pSol = 0) const;
+	void RealPredictDof(const int DCount,
+		const DofOrder::Order Order,
+		const VectorHandler* const pSol = 0) const;
+	void UpdateDof(const int DCount,
+		const DofOrder::Order Order,
+		const VectorHandler* const pSol = 0) const;
 public:
 	ThirdOrderIntegrator(const doublereal dT, 
 			const doublereal dSolutionTol, 

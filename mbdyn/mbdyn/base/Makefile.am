@@ -102,6 +102,7 @@ solverdiagnostics.cc \
 solverdiagnostics.h \
 stepsol.cc \
 stepsol.h \
+stepsol.hc \
 symcltp.h \
 tpldrive.cc \
 tpldrive.h \

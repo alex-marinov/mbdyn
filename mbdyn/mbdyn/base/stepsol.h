@@ -52,7 +52,7 @@
   *		- Predict e After Predict	
   *
   */
-  
+ 
 #ifndef STEPSOL_H
 #define STEPSOL_H
 
@@ -93,7 +93,15 @@ protected:
 	doublereal dTol, dSolTol;
 	integer steps;
 	integer unkstates;
-
+	
+	template<class T>
+	void UpdateLoop(
+		const T* const t,
+		void (T::* pUpd)(const int DCount,
+			const DofOrder::Order Order,
+			const VectorHandler* const pSol = 0) const,
+		const VectorHandler* const pSol = 0
+	) const;
 public:
 	StepIntegrator(const integer MaxIt,
 			const doublereal dT,
@@ -139,6 +147,7 @@ private:
 	mutable MyVectorHandler SavedState;
 	mutable MyVectorHandler SavedDerState;
 	mutable bool bEvalProdCalledFirstTime;
+
 protected:
 	VectorHandler *pXCurr;
 	VectorHandler *pXPrimeCurr; 
@@ -149,18 +158,8 @@ public:
 			const doublereal dSolutionTol,
 			const integer stp,
 			const integer sts,
-			const bool bmod_res_test) :
-	StepIntegrator(MaxIt,dT,dSolutionTol,stp,sts),
-	bEvalProdCalledFirstTime(true),
-	pXCurr(0),
-	pXPrimeCurr(0),
-	bModResTest(bmod_res_test)
-	{
-		NO_OP;
-	};
-	virtual ~ImplicitStepIntegrator(){
-		NO_OP;
-	};
+			const bool bmod_res_test);
+	virtual ~ImplicitStepIntegrator(void);
 	
 	virtual void
 	EvalProd(doublereal Tau, const VectorHandler& f0,
@@ -175,7 +174,10 @@ class DerivativeSolver:
 	public ImplicitStepIntegrator{
 private:
 	doublereal dCoef;
-
+protected:
+	void UpdateDof(const int DCount,
+		const DofOrder::Order Order,
+		const VectorHandler* const pSol = 0) const;
 public:
 	DerivativeSolver(const doublereal Tl, 
 			const doublereal dSolTl, 
@@ -216,11 +218,14 @@ public:
 class StepNIntegrator :   
 	public ImplicitStepIntegrator
 {
-protected:
 public:
 	doublereal db0Differential;
 	doublereal db0Algebraic;
 
+protected:
+	void UpdateDof(const int DCount,
+		const DofOrder::Order Order,
+		const VectorHandler* const pSol = 0) const;
 public:
 	StepNIntegrator(const integer MaxIt,
 			const doublereal dT,
@@ -273,15 +278,18 @@ public:
 			doublereal& SolErr);
 
 protected:
+	void PredictDof(const int DCount,
+		const DofOrder::Order Order,
+		const VectorHandler* const pSol = 0) const;
 	virtual void Predict(void);
 
-	// Overridden by dedicated inline functions
+	/* Overridden by dedicated inline functions */
 	virtual doublereal 
      	dPredictDerivative(const doublereal& dXm1,
 			const doublereal& dXPm1,
 			DofOrder::Order o = DofOrder::DIFFERENTIAL) const = 0;
    
-   	// Overridden by dedicated inline functions
+   	/* Overridden by dedicated inline functions */
    	virtual doublereal 
      	dPredictState(const doublereal& dXm1,
 		   const doublereal& dXP,
@@ -337,7 +345,8 @@ protected:
 		   const doublereal& dXPm1,
 		   DofOrder::Order o = DofOrder::DIFFERENTIAL) const;
    
-	// Nota: usa predizione lineare per le derivate (massimo ordine possibile)
+	/* Note: uses linear prediction for derivatives 
+	 * (highest possible order) */
 	doublereal 
 	dPredDer(const doublereal& dXm1,
 	      const doublereal& dXPm1) const;
@@ -387,9 +396,12 @@ public:
 			doublereal& SolErr);
 
 protected:
+	void PredictDof(const int DCount,
+		const DofOrder::Order Order,
+		const VectorHandler* const pSol = 0) const;
 	virtual void Predict(void);
 
-	// Overridden by dedicated inline functions
+	/* Overridden by dedicated inline functions */
 	virtual doublereal 
      	dPredictDerivative(const doublereal& dXm1,
 			const doublereal& dXm2,
@@ -397,7 +409,7 @@ protected:
 			const doublereal& dXPm2,
 			DofOrder::Order o = DofOrder::DIFFERENTIAL) const = 0;
    
-   	// Overridden by dedicated inline functions
+   	/* Overridden by dedicated inline functions */
    	virtual doublereal 
      	dPredictState(const doublereal& dXm1,
 			const doublereal& dXm2,
@@ -481,7 +493,8 @@ protected:
 			const doublereal& dXPm2,
 			DofOrder::Order o = DofOrder::DIFFERENTIAL) const;
    
-	// Nota: usa predizione cubica per le derivate (massimo ordine possibile)
+	/* Note: uses cubic prediction for derivatives
+	 * (highest possible order) */
 	doublereal 
 	dPredDer(const doublereal& dXm1,
 			const doublereal& dXm2,
@@ -559,7 +572,8 @@ protected:
 			const doublereal& dXPm2,
 			DofOrder::Order o = DofOrder::DIFFERENTIAL) const;      
 
-	// Nota: usa predizione cubica per le derivate (massimo ordine possibile)
+	/* Note: uses cubic prediction for derivatives
+	 * (highest possible order) */
 	doublereal 
 	dPredDer(const doublereal& dXm1,
 			const doublereal& dXm2,

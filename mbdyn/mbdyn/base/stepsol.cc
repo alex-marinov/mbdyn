@@ -92,6 +92,27 @@ StepIntegrator::OutputTypes(const bool fpred)
 	outputPred  = fpred;
 }
 
+#include "stepsol.hc"
+
+ImplicitStepIntegrator::ImplicitStepIntegrator(const integer MaxIt,
+		const doublereal dT,
+		const doublereal dSolutionTol,
+		const integer stp,
+		const integer sts,
+		const bool bmod_res_test)
+: StepIntegrator(MaxIt, dT, dSolutionTol, stp, sts),
+bEvalProdCalledFirstTime(true),
+pXCurr(0),
+pXPrimeCurr(0),
+bModResTest(bmod_res_test)
+{
+	NO_OP;
+}
+
+ImplicitStepIntegrator::~ImplicitStepIntegrator(void)
+{
+	NO_OP;
+}
 
 void
 ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
@@ -133,14 +154,14 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 	XTau.Reset(0.);
 	z.Reset(0.);
         XTau.ScalarMul(w, Tau);
-	this->Update(&XTau);
+	Update(&XTau);
 #ifdef  USE_EXTERNAL    
         External::SendFreeze();
 #endif /* USE_EXTERNAL */
-	this->Residual(&z);
+	Residual(&z);
 	XTau.ScalarMul(XTau, -1.);
 	/* riporta tutto nelle condizioni inziali */
-	//this->Update(&XTau);
+	// Update(&XTau);
 	*pXCurr=SavedState;
 	*pXPrimeCurr=SavedDerState;
 	pDM->Update();
@@ -255,86 +276,32 @@ DerivativeSolver::Jacobian(MatrixHandler* pJac) const
 	return;
 }
 
+void DerivativeSolver::UpdateDof(const int DCount,
+		const DofOrder::Order Order,
+		const VectorHandler* const pSol) const {
+	doublereal d = pSol->dGetCoef(DCount);
+	if (Order == DofOrder::DIFFERENTIAL) {
+		pXPrimeCurr->fIncCoef(DCount, d);
+		
+		/* Nota: b0Differential e b0Algebraic 
+		 * possono essere distinti;
+		 * in ogni caso sono calcolati 
+		 * dalle funzioni di predizione
+		 * e sono dati globali */
+		pXCurr->fIncCoef(DCount, dCoef*d);
+	} else {
+		pXCurr->fIncCoef(DCount, d);
+		pXPrimeCurr->fIncCoef(DCount, dCoef*d);
+	}	
+}
+		
 void
 DerivativeSolver::Update(const VectorHandler* pSol) const
 {
 	DEBUGCOUTFNAME("DerivativeSolver::Update");
 	ASSERT(pDM != NULL);
 	
-   	Dof CurrDof;
-	SchurDataManager* pSDM;
-	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
-		
-		Dof* pDofs = pSDM->pGetDofsList();
-		
-		integer iNumLocDofs = pSDM->HowManyDofs(SchurDataManager::LOCAL);
-		integer* pLocDofs = pSDM->GetDofsList(SchurDataManager::LOCAL);
-		integer iNumIntDofs = pSDM->HowManyDofs(SchurDataManager::INTERNAL);
-		integer* pIntDofs = pSDM->GetDofsList(SchurDataManager::INTERNAL);
-		/* dofs locali */
-		int DCount = 0;
-		for (int iCntp1 = 0; iCntp1 < iNumLocDofs; iCntp1++) {
-			DCount = pLocDofs[iCntp1];
-			CurrDof = pDofs[DCount-1];
-			doublereal d = pSol->dGetCoef(DCount);
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				pXPrimeCurr->fIncCoef(DCount, d);
-				
-				/* Nota: b0Differential e b0Algebraic 
-				 * possono essere distinti;
-				 * in ogni caso sono calcolati 
-				 * dalle funzioni di predizione
-				 * e sono dati globali */
-				pXCurr->fIncCoef(DCount, dCoef*d);
-			} else {
-				pXCurr->fIncCoef(DCount, d);
-				pXPrimeCurr->fIncCoef(DCount, dCoef*d);
-			}
-		}
-
-		/* dofs interfaccia locale */
-		DCount = 0;
-		for (int iCntp1 = 0; iCntp1 < iNumIntDofs; iCntp1++) {
-			DCount = pIntDofs[iCntp1];
-			CurrDof = pDofs[DCount-1];
-			doublereal d = pSol->dGetCoef(DCount);
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				pXPrimeCurr->fIncCoef(DCount, d);
-				/* Nota: b0Differential e b0Algebraic 
-				 * possono essere distinti;
-				 * in ogni caso sono calcolati 
-				 * dalle funzioni di predizione
-				 * e sono dati globali */
-				pXCurr->fIncCoef(DCount, dCoef*d);
-			} else {
-				pXCurr->fIncCoef(DCount, d);
-				pXPrimeCurr->fIncCoef(DCount, dCoef*d);
-			}
-		}
-
-	} else {
-		
-   		DofIterator.fGetFirst(CurrDof);
-		integer iNumDofs = pDM->iGetNumDofs();
-
-	   	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
-				iCntp1++, DofIterator.fGetNext(CurrDof)) {
-			doublereal d = pSol->dGetCoef(iCntp1);
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				pXPrimeCurr->fIncCoef(iCntp1, d);
-				/*
-				 * Nota: b0Differential e b0Algebraic
-				 * possono essere distinti;
-				 * in ogni caso sono calcolati dalle funzioni
-				 * di predizione e sono dati globali
-				 */
-		 		pXCurr->fIncCoef(iCntp1, dCoef*d);
-      			} else {
-		 		pXCurr->fIncCoef(iCntp1, d);
-		 		pXPrimeCurr->fIncCoef(iCntp1, dCoef*d);
-      			}
-   		}
-	}
+	UpdateLoop(this, &DerivativeSolver::UpdateDof, pSol);
 	pDM->DerivativesUpdate();
 	return;
 }
@@ -377,6 +344,25 @@ StepNIntegrator::Jacobian(MatrixHandler* pJac) const
 	ASSERT(pDM != NULL);
 	pDM->AssJac(*pJac, db0Differential);
 }
+
+void StepNIntegrator::UpdateDof(const int DCount,
+	const DofOrder::Order Order,
+	const VectorHandler* const pSol) const {
+	doublereal d = pSol->dGetCoef(DCount);
+	if (Order == DofOrder::DIFFERENTIAL) {
+		pXPrimeCurr->fIncCoef(DCount, d);
+		
+		/* Nota: b0Differential e b0Algebraic 
+		 * possono essere distinti;
+		 * in ogni caso sono calcolati 
+		 * dalle funzioni di predizione
+		 * e sono dati globali */
+		pXCurr->fIncCoef(DCount, db0Differential*d);
+	} else {
+		pXCurr->fIncCoef(DCount, d);
+		pXPrimeCurr->fIncCoef(DCount, db0Algebraic*d);
+	}
+}
 	
 void
 StepNIntegrator::Update(const VectorHandler* pSol) const
@@ -384,80 +370,7 @@ StepNIntegrator::Update(const VectorHandler* pSol) const
 	DEBUGCOUTFNAME("StepNIntegrator::Update");
 	ASSERT(pDM != NULL);
 	
-   	Dof CurrDof;
-	
-	SchurDataManager* pSDM;
-	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
-		
-		Dof* pDofs = pSDM->pGetDofsList();
-		
-		integer iNumLocDofs = pSDM->HowManyDofs(SchurDataManager::LOCAL);
-		integer* pLocDofs = pSDM->GetDofsList(SchurDataManager::LOCAL);
-		integer iNumIntDofs = pSDM->HowManyDofs(SchurDataManager::INTERNAL);
-		integer* pIntDofs = pSDM->GetDofsList(SchurDataManager::INTERNAL);
-		/* dofs locali */
-		int DCount = 0;
-		for (int iCntp1 = 0; iCntp1 < iNumLocDofs; iCntp1++) {
-			DCount = pLocDofs[iCntp1];
-			CurrDof = pDofs[DCount-1];
-			doublereal d = pSol->dGetCoef(DCount);
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				pXPrimeCurr->fIncCoef(DCount, d);
-				
-				/* Nota: b0Differential e b0Algebraic 
-				 * possono essere distinti;
-				 * in ogni caso sono calcolati 
-				 * dalle funzioni di predizione
-				 * e sono dati globali */
-				pXCurr->fIncCoef(DCount, db0Differential*d);
-			} else {
-				pXCurr->fIncCoef(DCount, d);
-				pXPrimeCurr->fIncCoef(DCount, db0Algebraic*d);
-			}
-		}
-
-		/* dofs interfaccia locale */
-		DCount = 0;
-		for (int iCntp1 = 0; iCntp1 < iNumIntDofs; iCntp1++) {
-			DCount = pIntDofs[iCntp1];
-			CurrDof = pDofs[DCount-1];
-			doublereal d = pSol->dGetCoef(DCount);
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				pXPrimeCurr->fIncCoef(DCount, d);
-				/* Nota: b0Differential e b0Algebraic 
-				 * possono essere distinti;
-				 * in ogni caso sono calcolati 
-				 * dalle funzioni di predizione
-				 * e sono dati globali */
-				pXCurr->fIncCoef(DCount, db0Differential*d);
-			} else {
-				pXCurr->fIncCoef(DCount, d);
-				pXPrimeCurr->fIncCoef(DCount, db0Algebraic*d);
-			}
-		}
-
-	} else {
-		
-   		DofIterator.fGetFirst(CurrDof);
-		integer iNumDofs = pDM->iGetNumDofs();
-	   	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
-				iCntp1++, DofIterator.fGetNext(CurrDof)) {
-			doublereal d = pSol->dGetCoef(iCntp1);
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				pXPrimeCurr->fIncCoef(iCntp1, d);
-				/*
-				 * Nota: b0Differential e b0Algebraic
-				 * possono essere distinti;
-				 * in ogni caso sono calcolati dalle funzioni
-				 * di predizione e sono dati globali
-				 */
-		 		pXCurr->fIncCoef(iCntp1, db0Differential*d);
-      			} else {
-		 		pXCurr->fIncCoef(iCntp1, d);
-		 		pXPrimeCurr->fIncCoef(iCntp1, db0Algebraic*d);
-      			}
-   		}
-	}
+	UpdateLoop(this, &StepNIntegrator::UpdateDof, pSol);
 	pDM->Update();
 	return;
 }
@@ -485,141 +398,49 @@ Step1Integrator::~Step1Integrator(void)
 }
 
 /* predizione valida per tutti i metodi del second'ordine 
-  a patto di utllizzare le giuste funzioni implementate per 
+  a patto di utilizzare le giuste funzioni implementate per 
   ciascun metodo
   */
+
+void Step1Integrator::PredictDof(const int DCount,
+	const DofOrder::Order Order,
+	const VectorHandler* const pSol) const {
+	if (Order == DofOrder::DIFFERENTIAL) {
+		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+		doublereal dXPnm1 = 
+			pXPrimePrev->dGetCoef(DCount);
+		doublereal dXPn = dPredDer(dXnm1, dXPnm1);
+		doublereal dXn = dPredState(dXnm1, dXPn, dXPnm1);
+		pXPrimeCurr->fPutCoef(DCount, dXPn);
+		pXCurr->fPutCoef(DCount, dXn);
+	
+	} else if (Order == DofOrder::ALGEBRAIC) {
+		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+		doublereal dXInm1 = 
+			pXPrimePrev->dGetCoef(DCount);
+				                                
+		doublereal dXn = dPredDerAlg(dXInm1, dXnm1);
+		doublereal dXIn = dPredStateAlg(dXInm1, dXn, dXnm1);
+
+		pXCurr->fPutCoef(DCount, dXn);
+		pXPrimeCurr->fPutCoef(DCount, dXIn);
+	
+	} else {
+		std::cerr << "Step1Integrator::"
+			"PredictDof(): "
+			"unknown order for local dof " 
+			<< DCount << std::endl;
+		THROW(ErrGeneric());
+	}
+};
+
+
 void
 Step1Integrator::Predict(void) 
 {
    	DEBUGCOUTFNAME("Step1Integrator::Predict");
    	ASSERT(pDM != NULL);
-   	Dof CurrDof;
-	
-	SchurDataManager* pSDM;
-	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
-		
-		Dof* pDofs = pSDM->pGetDofsList();
-		
-		integer iNumLocDofs = pSDM->HowManyDofs(SchurDataManager::LOCAL);
-		integer* pLocDofs = pSDM->GetDofsList(SchurDataManager::LOCAL);
-		integer iNumIntDofs = pSDM->HowManyDofs(SchurDataManager::INTERNAL);
-		integer* pIntDofs = pSDM->GetDofsList(SchurDataManager::INTERNAL);
-
-		int DCount = 0;
-
-		/* 
-		 * Combinazione lineare di stato e derivata 
-		 * al passo precedente ecc. 
-		 */
-		/* Dofs locali */
-		for (int iCnt = 0; iCnt < iNumLocDofs; iCnt++) {
-			DCount = pLocDofs[iCnt];
-			CurrDof = pDofs[DCount-1];
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
-				doublereal dXPnm1 = 
-					pXPrimePrev->dGetCoef(DCount);
-
-				doublereal dXPn = dPredDer(dXnm1, dXPnm1);
-				doublereal dXn = dPredState(dXnm1, dXPn, dXPnm1);
-
-				pXPrimeCurr->fPutCoef(DCount, dXPn);
-				pXCurr->fPutCoef(DCount, dXn);
-				
-			} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
-				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
-				doublereal dXInm1 = 
-					pXPrimePrev->dGetCoef(DCount);
-						                                
-				doublereal dXn = dPredDerAlg(dXInm1, dXnm1);
-				doublereal dXIn = dPredStateAlg(dXInm1, dXn, dXnm1);
-
-				pXCurr->fPutCoef(DCount, dXn);
-				pXPrimeCurr->fPutCoef(DCount, dXIn);
-			
-			} else {
-				std::cerr << "Step1Integrator::"
-					"Predict(): "
-					"unknown order for local dof " 
-					<< iCnt + 1 << std::endl;
-				THROW(ErrGeneric());
-			}
-		}
-
-		/* Dofs interfaccia */
-		DCount = 0;
-		for (int iCnt = 0; iCnt < iNumIntDofs; iCnt++) {
-			DCount = pIntDofs[iCnt];
-			CurrDof = pDofs[DCount-1];
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
-				doublereal dXPnm1 = 
-					pXPrimePrev->dGetCoef(DCount);
-
-				doublereal dXPn = dPredDer(dXnm1, dXPnm1);
-				doublereal dXn = dPredState(dXnm1, dXPn, dXPnm1);
-				
-				pXPrimeCurr->fPutCoef(DCount, dXPn);
-				pXCurr->fPutCoef(DCount, dXn);
-	
-			} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
-				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
-				doublereal dXInm1 = 
-					pXPrimePrev->dGetCoef(DCount);
-									 
-				doublereal dXn = dPredDerAlg(dXInm1, dXnm1);
-				doublereal dXIn = dPredStateAlg(dXInm1, dXn, dXnm1);
-
-				pXCurr->fPutCoef(DCount, dXn);
-				pXPrimeCurr->fPutCoef(DCount, dXIn);
-												 
-			} else {
-				std::cerr << "Step1Integrator::"
-					"Predict(): "
-					"unknown order for interface dof " 
-					<< iCnt + 1 << std::endl;
-				THROW(ErrGeneric());
-			}
-		}
-
-	} else {
-
-	   	DofIterator.fGetFirst(CurrDof);
-		integer iNumDofs = pDM->iGetNumDofs();
-	   	/* 
-		 * Combinazione lineare di stato e derivata 
-		 * al passo precedente ecc. 
-		 */
-   		for (int iCntp1 = 1; iCntp1 <= iNumDofs;
-				iCntp1++, DofIterator.fGetNext(CurrDof)) {
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-		 		doublereal dXPnm1 = 
-					pXPrimePrev->dGetCoef(iCntp1);
-	
-		 		doublereal dXPn = dPredDer(dXnm1, dXPnm1);
-				doublereal dXn = dPredState(dXnm1, dXPn, dXPnm1);
-			
-		 		pXPrimeCurr->fPutCoef(iCntp1, dXPn);
-		 		pXCurr->fPutCoef(iCntp1, dXn);
-			
-	      		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
-		 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-		 		doublereal dXInm1 = pXPrimePrev->dGetCoef(iCntp1);
-
-		 		doublereal dXn = dPredDerAlg(dXInm1, dXnm1);
-				doublereal dXIn = dPredStateAlg(dXInm1, dXn, dXnm1);
-			
-		 		pXCurr->fPutCoef(iCntp1, dXn);
-		 		pXPrimeCurr->fPutCoef(iCntp1, dXIn);
-
-      			} else {
-		 		std::cerr << "unknown order for dof " 
-					<< iCntp1<< std::endl;
-		 		THROW(ErrGeneric());
-      			}
-	   	}
-	}
+	UpdateLoop(this, &Step1Integrator::PredictDof);
 }
 
 doublereal
@@ -701,167 +522,56 @@ Step2Integrator::~Step2Integrator(void)
 }
 
 /* predizione valida per tutti i metodi del second'ordine 
-  a patto di utllizzare le giuste funzioni implementate per 
+  a patto di utilizzare le giuste funzioni implementate per 
   ciascun metodo
   */
+void Step2Integrator::PredictDof(const int DCount,
+	const DofOrder::Order Order,
+	const VectorHandler* const pSol) const {
+	if (Order == DofOrder::DIFFERENTIAL) {
+		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+		doublereal dXnm2 = pXPrev2->dGetCoef(DCount);
+		doublereal dXPnm1 = 
+			pXPrimePrev->dGetCoef(DCount);
+
+		doublereal dXPnm2 = 
+			pXPrimePrev2->dGetCoef(DCount);
+		doublereal dXPn = dPredDer(dXnm1, dXnm2, 
+				dXPnm1, dXPnm2);
+		doublereal dXn = dPredState(dXnm1, dXnm2, 
+				dXPn, dXPnm1, dXPnm2);
+
+		pXPrimeCurr->fPutCoef(DCount, dXPn);
+		pXCurr->fPutCoef(DCount, dXn);
+		
+	} else if (Order == DofOrder::ALGEBRAIC) {
+		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+		doublereal dXnm2 = pXPrev2->dGetCoef(DCount);
+		doublereal dXInm1 = 
+			pXPrimePrev->dGetCoef(DCount);
+						                                
+		doublereal dXn = dPredDerAlg(dXInm1, 
+				dXnm1, dXnm2);
+		doublereal dXIn = dPredStateAlg(dXInm1, 
+				dXn, dXnm1, dXnm2);
+
+		pXCurr->fPutCoef(DCount, dXn);
+		pXPrimeCurr->fPutCoef(DCount, dXIn);
+			
+	} else {
+		std::cerr << "Step2Integrator::"
+			"PredictDof(): "
+			"unknown order for local dof " 
+			<< DCount << std::endl;
+		THROW(ErrGeneric());
+	}
+};
 void
 Step2Integrator::Predict(void) 
 {
    	DEBUGCOUTFNAME("Step2Integrator::Predict");
    	ASSERT(pDM != NULL);
-   	Dof CurrDof;
-	
-	SchurDataManager* pSDM;
-	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
-		
-		Dof* pDofs = pSDM->pGetDofsList();
-		
-		integer iNumLocDofs = pSDM->HowManyDofs(SchurDataManager::LOCAL);
-		integer* pLocDofs = pSDM->GetDofsList(SchurDataManager::LOCAL);
-		integer iNumIntDofs = pSDM->HowManyDofs(SchurDataManager::INTERNAL);
-		integer* pIntDofs = pSDM->GetDofsList(SchurDataManager::INTERNAL);
-
-		int DCount = 0;
-
-		/* 
-		 * Combinazione lineare di stato e derivata 
-		 * al passo precedente ecc. 
-		 */
-		/* Dofs locali */
-		for (int iCnt = 0; iCnt < iNumLocDofs; iCnt++) {
-			DCount = pLocDofs[iCnt];
-			CurrDof = pDofs[DCount-1];
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
-				doublereal dXnm2 = pXPrev2->dGetCoef(DCount);
-				doublereal dXPnm1 = 
-					pXPrimePrev->dGetCoef(DCount);
-
-				doublereal dXPnm2 = 
-					pXPrimePrev2->dGetCoef(DCount);
-				doublereal dXPn = dPredDer(dXnm1, dXnm2, 
-						dXPnm1, dXPnm2);
-				doublereal dXn = dPredState(dXnm1, dXnm2, 
-						dXPn, dXPnm1, dXPnm2);
-
-				pXPrimeCurr->fPutCoef(DCount, dXPn);
-				pXCurr->fPutCoef(DCount, dXn);
-				
-			} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
-				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
-				doublereal dXnm2 = pXPrev2->dGetCoef(DCount);
-				doublereal dXInm1 = 
-					pXPrimePrev->dGetCoef(DCount);
-						                                
-				doublereal dXn = dPredDerAlg(dXInm1, 
-						dXnm1, dXnm2);
-				doublereal dXIn = dPredStateAlg(dXInm1, 
-						dXn, dXnm1, dXnm2);
-
-				pXCurr->fPutCoef(DCount, dXn);
-				pXPrimeCurr->fPutCoef(DCount, dXIn);
-			
-			} else {
-				std::cerr << "StepIntegrator::"
-					"Predict(): "
-					"unknown order for local dof " 
-					<< iCnt + 1 << std::endl;
-				THROW(ErrGeneric());
-			}
-		}
-
-		/* Dofs interfaccia */
-		DCount = 0;
-		for (int iCnt = 0; iCnt < iNumIntDofs; iCnt++) {
-			DCount = pIntDofs[iCnt];
-			CurrDof = pDofs[DCount-1];
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
-				doublereal dXnm2 = pXPrev2->dGetCoef(DCount);
-				doublereal dXPnm1 = 
-					pXPrimePrev->dGetCoef(DCount);
-				doublereal dXPnm2 = 
-					pXPrimePrev2->dGetCoef(DCount);
-
-
-				doublereal dXPn = dPredDer(dXnm1, dXnm2, 
-						dXPnm1, dXPnm2);
-				doublereal dXn = dPredState(dXnm1, dXnm2, 
-						dXPn, dXPnm1, dXPnm2);
-				
-				pXPrimeCurr->fPutCoef(DCount, dXPn);
-				pXCurr->fPutCoef(DCount, dXn);
-	
-			} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
-				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
-				doublereal dXnm2 = pXPrev2->dGetCoef(DCount);
-				doublereal dXInm1 = 
-					pXPrimePrev->dGetCoef(DCount);
-									 
-				doublereal dXn = dPredDerAlg(dXInm1, 
-						dXnm1, dXnm2);
-				doublereal dXIn = dPredStateAlg(dXInm1, 
-						dXn, dXnm1, dXnm2);
-
-				pXCurr->fPutCoef(DCount, dXn);
-				pXPrimeCurr->fPutCoef(DCount, dXIn);
-												 
-			} else {
-				std::cerr << "StepIntegrator::"
-					"Predict(): "
-					"unknown order for interface dof " 
-					<< iCnt + 1 << std::endl;
-				THROW(ErrGeneric());
-			}
-		}
-
-	} else {
-
-	   	DofIterator.fGetFirst(CurrDof);
-		integer iNumDofs = pDM->iGetNumDofs();
-	   	/* 
-		 * Combinazione lineare di stato e derivata 
-		 * al passo precedente ecc. 
-		 */
-   		for (int iCntp1 = 1; iCntp1 <= iNumDofs;
-				iCntp1++, DofIterator.fGetNext(CurrDof)) {
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-		 		doublereal dXnm2 = pXPrev2->dGetCoef(iCntp1);
-		 		doublereal dXPnm1 = 
-					pXPrimePrev->dGetCoef(iCntp1);
-		 		doublereal dXPnm2 = 
-					pXPrimePrev2->dGetCoef(iCntp1);
-	
-		 		doublereal dXPn = dPredDer(dXnm1, dXnm2,
-						dXPnm1, dXPnm2);
-				doublereal dXn = dPredState(dXnm1, dXnm2, 
-						dXPn, dXPnm1, dXPnm2);
-			
-		 		pXPrimeCurr->fPutCoef(iCntp1, dXPn);
-		 		pXCurr->fPutCoef(iCntp1, dXn);
-			
-	      		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
-		 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-		 		doublereal dXnm2 = pXPrev2->dGetCoef(iCntp1);
-		 		doublereal dXInm1 = 
-					pXPrimePrev->dGetCoef(iCntp1);
-
-		 		doublereal dXn = dPredDerAlg(dXInm1, 
-						dXnm1, dXnm2);
-				doublereal dXIn = dPredStateAlg(dXInm1, 
-						dXn, dXnm1, dXnm2);
-			
-		 		pXCurr->fPutCoef(iCntp1, dXn);
-		 		pXPrimeCurr->fPutCoef(iCntp1, dXIn);
-
-      			} else {
-		 		std::cerr << "unknown order for dof " 
-					<< iCntp1<< std::endl;
-		 		THROW(ErrGeneric());
-      			}
-	   	}
-	}
+	UpdateLoop(this, &Step2Integrator::PredictDof);
 }
 
 doublereal

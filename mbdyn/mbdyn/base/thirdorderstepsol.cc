@@ -48,6 +48,8 @@
 #include "thirdorderstepsol.h"
 #include <schurdataman.h> 
 
+#include "stepsol.hc"
+
 ThirdOrderIntegrator::ThirdOrderIntegrator(const doublereal dT, 
 			const doublereal dSolutionTol, 
 			const integer iMaxIt,
@@ -172,6 +174,78 @@ ThirdOrderIntegrator::Advance(const doublereal TStep,
 	return Err;
 };
 
+
+void ThirdOrderIntegrator::PredictDof_for_AfterPredict(const int DCount,
+		const DofOrder::Order Order,
+		const VectorHandler* const pSol) const {
+	if (Order == DofOrder::DIFFERENTIAL) {
+		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+ 		doublereal dXPnm1 = 
+			pXPrimePrev->dGetCoef(DCount);
+			
+ 		doublereal dXn = dXnm1+dXPnm1*dT;
+		doublereal dXPn = dXPnm1;
+	
+ 		pXPrimeCurr->fPutCoef(DCount, dXPn);
+ 		pXCurr->fPutCoef(DCount, dXn);
+		
+	} else if (Order == DofOrder::ALGEBRAIC) {
+ 		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+ 		doublereal dXInm1 = pXPrimePrev->dGetCoef(DCount);
+ 		doublereal dXn = dXnm1;
+		doublereal dXIn = dXnm1*dT;
+		
+ 		pXCurr->fPutCoef(DCount, dXn);
+ 		pXPrimeCurr->fPutCoef(DCount, dXIn);
+
+	} else {
+ 		std::cerr << "ThirdOrderIntegrator::PredictDof_for_AfterPredict:"
+			<< "unknown order for dof " 
+			<< DCount<< std::endl;
+ 		THROW(ErrGeneric());
+	}
+}
+void ThirdOrderIntegrator::RealPredictDof(const int DCount,
+		const DofOrder::Order Order,
+		const VectorHandler* const pSol) const {
+	integer iNumDofs = pDM->iGetNumDofs();
+	//simple copy of predicted state
+	pXPrimeCurr->fPutCoef(DCount+iNumDofs,
+		pXPrimeCurr->dGetCoef(DCount));
+ 	pXCurr->fPutCoef(DCount+iNumDofs, pXCurr->dGetCoef(DCount));
+	if (Order == DofOrder::DIFFERENTIAL) {
+		doublereal dXPnm1 = 
+			pXPrimePrev->dGetCoef(DCount);
+		/* tempo theta*/
+// 		doublereal dXn = dXPnm1*(theta-1.)*dT;
+// 		pXCurr->fIncCoef(DCount+iNumDofs, dXn);
+// 		pXCurr->fPutCoef(DCount+iNumDofs,
+// 			m0*pXCurr->dGetCoef(DCount)+m1*pXPrev->dGetCoef(DCount)
+// 			+dT*(n0*pXPrimeCurr->dGetCoef(DCount)+
+// 				n1*pXPrimePrev->dGetCoef(DCount)));
+		pXCurr->fIncCoef(DCount+iNumDofs,
+			pXPrimePrev->dGetCoef(DCount)*theta*dT);
+      	} else if (Order == DofOrder::ALGEBRAIC) {
+		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+		/* tempo theta*/
+// 		doublereal dXIn = dXnm1*(theta-1.)*dT;
+// 		pXPrimeCurr->fIncCoef(DCount+iNumDofs, dXIn);
+// 		pXPrimeCurr->fPutCoef(DCount+iNumDofs,
+// 			m0*pXPrimeCurr->dGetCoef(DCount)+m1*pXPrimePrev->dGetCoef(DCount)
+// 			+dT*(n0*pXCurr->dGetCoef(DCount)+
+// 				n1*pXPrev->dGetCoef(DCount)));
+// 		pXCurr->fPutCoef(DCount+iNumDofs,
+// 			pXPrev->dGetCoef(DCount));
+		pXPrimeCurr->fIncCoef(DCount+iNumDofs,
+			pXPrev->dGetCoef(DCount)*theta*dT);
+	} else {
+		std::cerr << "ThirdOrderIntegrator::RealPredictDof: "
+			<< "unknown order for dof " 
+			<< DCount<< std::endl;
+		THROW(ErrGeneric());
+	}
+}
+
 void ThirdOrderIntegrator::Predict(void) {
    	DEBUGCOUTFNAME("ThirdOrderIntegrator::Predict");
    	ASSERT(pDM != NULL);
@@ -179,92 +253,27 @@ void ThirdOrderIntegrator::Predict(void) {
 
 	{SchurDataManager* pSDM;
 	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
-		std::cerr << "Fatal error: ThirdOrderIntegrator currently does "
-			<< "not support the parallel solver\n";
-		THROW(ErrGeneric());
+		std::cerr << "Warning: ThirdOrderIntegrator currently is "
+			<< "untested with the parallel solver\n";
 	}}
 	
 
 	DofIterator.fGetFirst(CurrDof);
 	integer iNumDofs = pDM->iGetNumDofs();
    	/* 
-	 * Combinazione lineare di stato e derivata 
-	 * al passo precedente ecc. 
-	 */
-	 /*
-	  * Predict per AfterPredict
-	  */
-	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
-		iCntp1++, DofIterator.fGetNext(CurrDof)) {
-		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-			doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-	 		doublereal dXPnm1 = 
-				pXPrimePrev->dGetCoef(iCntp1);
-			
-	 		doublereal dXn = dXnm1+dXPnm1*dT;
-			doublereal dXPn = dXPnm1;
-		
-	 		pXPrimeCurr->fPutCoef(iCntp1, dXPn);
-	 		pXCurr->fPutCoef(iCntp1, dXn);
-		
-      		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
-	 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-	 		doublereal dXInm1 = pXPrimePrev->dGetCoef(iCntp1);
-	 		doublereal dXn = dXnm1;
-			doublereal dXIn = dXnm1*dT;
-		
-	 		pXCurr->fPutCoef(iCntp1, dXn);
-	 		pXPrimeCurr->fPutCoef(iCntp1, dXIn);
-
-		} else {
-	 		std::cerr << "unknown order for dof " 
-				<< iCntp1<< std::endl;
-	 		THROW(ErrGeneric());
-		}
-   	}
+	 * Linear combination of previous step state and derivative 
+	 * etc....
+	*/
+	/*
+	 * Predict for AfterPredict
+	*/
+	UpdateLoop(this,&ThirdOrderIntegrator::PredictDof_for_AfterPredict);
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
       	pDM->AfterPredict();
 	/*
 	 * Vero Predict
 	 */
-	DofIterator.fGetFirst(CurrDof);
-	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
-		iCntp1++, DofIterator.fGetNext(CurrDof)) {
-		//simple copy of predicted state
- 		pXPrimeCurr->fPutCoef(iCntp1+iNumDofs,
-			pXPrimeCurr->dGetCoef(iCntp1));
- 		pXCurr->fPutCoef(iCntp1+iNumDofs, pXCurr->dGetCoef(iCntp1));
-		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-	 		doublereal dXPnm1 = 
-				pXPrimePrev->dGetCoef(iCntp1);
-			/* tempo theta*/
-// 			doublereal dXn = dXPnm1*(theta-1.)*dT;
-// 	 		pXCurr->fIncCoef(iCntp1+iNumDofs, dXn);
-// 			pXCurr->fPutCoef(iCntp1+iNumDofs,
-// 				m0*pXCurr->dGetCoef(iCntp1)+m1*pXPrev->dGetCoef(iCntp1)
-// 				+dT*(n0*pXPrimeCurr->dGetCoef(iCntp1)+
-// 					n1*pXPrimePrev->dGetCoef(iCntp1)));
-			pXCurr->fIncCoef(iCntp1+iNumDofs,
-				pXPrimePrev->dGetCoef(iCntp1)*theta*dT);
-      		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
-	 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-			/* tempo theta*/
-// 			doublereal dXIn = dXnm1*(theta-1.)*dT;
-// 	 		pXPrimeCurr->fIncCoef(iCntp1+iNumDofs, dXIn);
-// 			pXPrimeCurr->fPutCoef(iCntp1+iNumDofs,
-// 				m0*pXPrimeCurr->dGetCoef(iCntp1)+m1*pXPrimePrev->dGetCoef(iCntp1)
-// 				+dT*(n0*pXCurr->dGetCoef(iCntp1)+
-// 					n1*pXPrev->dGetCoef(iCntp1)));
-// 			pXCurr->fPutCoef(iCntp1+iNumDofs,
-// 				pXPrev->dGetCoef(iCntp1));
-			pXPrimeCurr->fIncCoef(iCntp1+iNumDofs,
-				pXPrev->dGetCoef(iCntp1)*theta*dT);
-		} else {
-	 		std::cerr << "unknown order for dof " 
-				<< iCntp1<< std::endl;
-	 		THROW(ErrGeneric());
-		}
-   	}
+	UpdateLoop(this,&ThirdOrderIntegrator::RealPredictDof);
 	return;
 };
 
@@ -356,6 +365,35 @@ void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
 	return;
 };
 
+void ThirdOrderIntegrator::UpdateDof(const int DCount,
+	const DofOrder::Order Order,
+	const VectorHandler* const pSol) const {
+	integer iNumDofs = pDM->iGetNumDofs();
+	doublereal dxp = pSol->dGetCoef(DCount);
+	doublereal dxp_xi = pSol->dGetCoef(DCount+iNumDofs);
+	if (Order == DofOrder::DIFFERENTIAL) {
+		
+ 		pXPrimeCurr->fIncCoef(DCount, dxp);
+ 		pXPrimeCurr->fIncCoef(DCount+iNumDofs, dxp_xi);
+		
+ 		pXCurr->fIncCoef(DCount, dT*(w[1]*dxp_xi+w[0]*dxp));
+ 		pXCurr->fIncCoef(DCount+iNumDofs, 
+			dT*(m0*w[1]*dxp_xi+(m0*w[0]+n0)*dxp));
+	
+	} else if (Order == DofOrder::ALGEBRAIC) {
+ 		pXCurr->fIncCoef(DCount, dxp);
+ 		pXCurr->fIncCoef(DCount+iNumDofs, dxp_xi);
+		
+ 		pXPrimeCurr->fIncCoef(DCount, dT*(w[1]*dxp_xi+w[0]*dxp));
+ 		pXPrimeCurr->fIncCoef(DCount+iNumDofs, 
+			dT*(m0*w[1]*dxp_xi+(m0*w[0]+n0)*dxp));
+	} else {
+ 		std::cerr << "unknown order for dof " 
+			<< DCount<< std::endl;
+ 		THROW(ErrGeneric());
+	}
+};
+
 void ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
 {
   	DEBUGCOUTFNAME("ThirdOrderIntegrator::Predict");
@@ -364,44 +402,10 @@ void ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
 	
 	{SchurDataManager* pSDM;
 	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
-		std::cerr << "Fatal error: ThirdOrderIntegrator currently does "
-			<< "not support the parallel solver\n";
-		THROW(ErrGeneric());
+		std::cerr << "Warning: ThirdOrderIntegrator is untested "
+			<< "with the parallel solver\n";
 	}}
-	
-
-	DofIterator.fGetFirst(CurrDof);
-	integer iNumDofs = pDM->iGetNumDofs();
-   	/* 
-	 * Combinazione lineare di stato e derivata 
-	 * al passo precedente ecc. 
-	 */
-	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
-		iCntp1++, DofIterator.fGetNext(CurrDof)) {
-		doublereal dxp = pSol->dGetCoef(iCntp1);
-		doublereal dxp_xi = pSol->dGetCoef(iCntp1+iNumDofs);
-		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-			
-	 		pXPrimeCurr->fIncCoef(iCntp1, dxp);
-	 		pXPrimeCurr->fIncCoef(iCntp1+iNumDofs, dxp_xi);
-			
-	 		pXCurr->fIncCoef(iCntp1, dT*(w[1]*dxp_xi+w[0]*dxp));
-	 		pXCurr->fIncCoef(iCntp1+iNumDofs, 
-				dT*(m0*w[1]*dxp_xi+(m0*w[0]+n0)*dxp));
-		
-      		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
-	 		pXCurr->fIncCoef(iCntp1, dxp);
-	 		pXCurr->fIncCoef(iCntp1+iNumDofs, dxp_xi);
-			
-	 		pXPrimeCurr->fIncCoef(iCntp1, dT*(w[1]*dxp_xi+w[0]*dxp));
-	 		pXPrimeCurr->fIncCoef(iCntp1+iNumDofs, 
-				dT*(m0*w[1]*dxp_xi+(m0*w[0]+n0)*dxp));
-		} else {
-	 		std::cerr << "unknown order for dof " 
-				<< iCntp1<< std::endl;
-	 		THROW(ErrGeneric());
-		}
-   	}
+	UpdateLoop(this,&ThirdOrderIntegrator::UpdateDof,pSol);	
 	pDM->Update();
 	return;
 };
