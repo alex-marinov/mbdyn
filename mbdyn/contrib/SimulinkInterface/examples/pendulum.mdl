@@ -37,8 +37,8 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "masarati"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Wed Aug  4 13:36:44 2004"
-  ModelVersionFormat	  "1.%<AutoIncrement:2>"
+  LastModifiedDate	  "Wed Aug  4 18:40:00 2004"
+  ModelVersionFormat	  "1.%<AutoIncrement:3>"
   ConfigurationManager	  "None"
   SimParamPage		  "Solver"
   LinearizationMsg	  "none"
@@ -276,8 +276,8 @@ Model {
       Name		      "Scope"
       Ports		      [1]
       Position		      [610, 189, 640, 221]
-      Location		      [810, 166, 1134, 714]
-      Open		      off
+      Location		      [339, 166, 1134, 714]
+      Open		      on
       NumInputPorts	      "1"
       List {
 	ListType		AxesTitles
@@ -287,16 +287,17 @@ Model {
 	ListType		SelectedSignals
 	axes1			""
       }
-      YMin		      "0"
-      YMax		      "15"
+      YMin		      "-20"
+      YMax		      "12.5"
       DataFormat	      "StructureWithTime"
+      LimitDataPoints	      off
     }
     Block {
       BlockType		      Scope
       Name		      "Scope1"
       Ports		      [1]
       Position		      [250, 209, 280, 241]
-      Location		      [336, 89, 1236, 853]
+      Location		      [361, 229, 1261, 993]
       Open		      on
       NumInputPorts	      "1"
       List {
@@ -308,7 +309,7 @@ Model {
 	axes1			""
       }
       YMin		      "0"
-      YMax		      "0.18"
+      YMax		      "0.175"
       SaveName		      "ScopeData1"
       DataFormat	      "StructureWithTime"
       LimitDataPoints	      off
