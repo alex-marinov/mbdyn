@@ -76,17 +76,23 @@ static void
 usage(void)
 {
  	fprintf(stderr,
-			"\n\tusage: autopilot [h:p:D:vw:Wx:] label\n\n"
-			"\t\t-D user\t\tuser name\n"
-			"\t\t-h host\t\thost name\n"
-			"\t\t-m mech\t\tSASL mechanism(s)\n"
-			"\t\t-p port\t\tport number\n"
-			"\t\t-S\t\tuse SASL\n"
+			"\n\tusage: autopilot [h:p:D:vw:Wx:] <label>\n\n"
+			"\t\t-D <user>\tuser name\n"
+			"\t\t-h <host>\thost name\n"
+			"\t\t-m <mech>\tSASL mechanism(s)\n"
+			"\t\t-p <port>\tport number\n"
+			"\t\t-P <path>\tpath for named socked\n"
+			"\t\t-S\t\tuse SASL"
+#ifndef HAVE_SASL2
+				" (not supported)"
+#endif /* ! HAVE_SASL2 */
+			"\n"
 			"\t\t-v\t\tverbose\n"
-			"\t\t-w cred\t\tuser credentials\n"
+			"\t\t-w <cred>\tuser credentials\n"
 			"\t\t-W\t\tprompt for user credentials\n"
-			"\t\t-x value\tincrement\n\n"
-			"\tlabel:\tfile drive index to modify\n\n");
+			"\t\t-x <value>\tincrement\n"
+			"\n"
+			"\t\t<label>:\tfile drive (base 1) index to modify\n\n");
 	keys(stderr);
 }
 
@@ -198,7 +204,7 @@ main(int argc, char *argv[])
 	while (1) {
 		int opt;
 
-		opt = getopt(argc, argv, "D:h:m:p:Svw:Wx:");
+		opt = getopt(argc, argv, "D:h:m:p:P:Svw:Wx:");
 
 		if (opt == EOF) {
 			break;
@@ -222,6 +228,10 @@ main(int argc, char *argv[])
 
 		case 'p':
 			port = atoi(optarg);
+			break;
+
+		case 'P':
+			path = optarg;
 			break;
 
 		case 'S':

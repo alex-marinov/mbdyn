@@ -70,17 +70,24 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-		"\n\tusage: sockdrive [h:p:D:w:Wi:I:] label [value]\n\n"
-		"\t\t-h host\t\thost name\n"
-		"\t\t-p port\t\tport number\n"
-		"\t\t-P path\t\tpath of named pipe\n"
-		"\t\t-D user\t\tuser name\n"
-		"\t\t-w cred\t\tuser credentials\n"
+		"\n\tusage: sockdrive [h:p:D:w:Wi:I:] <label> [<value>]\n\n"
+		"\t\t-D <user>\tuser name\n"
+		"\t\t-h <host>\thost name\n"
+		"\t\t-i {yes|no}\tincremental (i.e. value[<label>] += <value>)\n"
+		"\t\t-I {yes|no}\timpulsive (reset after one step)\n"
+		"\t\t-m <mech>\tSASL mechanism (needs -S)\n"
+		"\t\t-p <port>\tport number\n"
+		"\t\t-P <path>\tpath of named pipe\n"
+		"\t\t-S\t\tenable SASL auth"
+#ifndef HAVE_SASL2
+			" (not supported)"
+#endif /* ! HAVE_SASL2 */
+		"\n"
+		"\t\t-w <cred>\tuser credentials\n"
 		"\t\t-W\t\tprompt for user credentials\n"
-		"\t\t-i {yes|no}\tincremental (i.e. value[label] += value)\n"
-		"\t\t-I {yes|no}\timpulsive (reset after one step)\n\n"
-		"\tlabel:\tfile drive index to modify\n"
-		"\tvalue:\tnew value (or increment if -i)\n\n");
+		"\t\t<label>:\tfile drive (base 1) index to modify\n"
+		"\n"
+		"\t\t<value>:\tnew value (or increment if -i)\n\n");
 }
 
 	static int sasl = 0;
