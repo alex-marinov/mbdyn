@@ -74,6 +74,21 @@
 #include <ac/f2c-int.h>
 #include <ac/lapack.h>
 
+#ifndef HAVE_POW_DI
+
+static double pow_di(doublereal *d, integer *i)
+{
+	doublereal ret = *d;
+
+	for ( ; --(*i) > 0;  ) {
+		ret *= *d;
+	}
+
+	return ret;
+}
+
+#endif /* !HAVE_POW_DI */
+
 /* Subroutine */ int dgegv_(char *jobvl, char *jobvr, integer *n, doublereal *
 	a, integer *lda, doublereal *b, integer *ldb, doublereal *alphar, 
 	doublereal *alphai, doublereal *beta, doublereal *vl, integer *ldvl, 
