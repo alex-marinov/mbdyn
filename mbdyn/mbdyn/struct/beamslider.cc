@@ -108,6 +108,9 @@ x(0.), l(0.)
 		break;
 	}
 
+	sRef = 2.*iCurrBeam + activeNode - 2.;
+	s = sRef;
+
 	switch (iType) {
 	case CLASSIC:
 		nRotConstr = 2;
