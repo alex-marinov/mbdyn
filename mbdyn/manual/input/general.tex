@@ -1880,14 +1880,14 @@ Finally there are some miscellaneous points:
     it is a bug!)
     
     \item A new style for comments has been introduced, resembling the 
-    C programming language style: everything comprised between the marks 
-    \begin{verbatim}
+    C programming language style: everything comprised between the marks
+    \kw{/*} and \kw{*/} is regarded as a remark:
+\begin{verbatim}
     /*
-        useful comments make input files readable!
-    */
-    \end{verbatim}
-    is regarded as a remark. 
-    This can happen everywhere in the text {\bf except} in the middle 
+     * useful comments make input files readable!
+     */
+\end{verbatim}
+    This can happen everywhere in the text except in the middle 
     of a keyword.
     
     \item (UN*X systems) Whenever a file name contains a portion
@@ -1905,7 +1905,7 @@ Finally there are some miscellaneous points:
     filename values are inserted.
     Home expansion occurs after environment variable expansion (see above).
 
-    \item The \kw{license} and the \kw{warranty} commands
+    \item The \kw{license} and the \kw{warranty} statements
     respectively show the license and the warranty statement under 
     which the code is released on the standard output.
     They do not affect the simulation.
