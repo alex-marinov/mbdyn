@@ -651,6 +651,7 @@ AC_OUTPUT([ \
 	libraries/Makefile:build/top.mk:libraries/Makefile.in:build/bot.mk \
 	libraries/libmbutil/Makefile:build/top.mk:libraries/libmbutil/Makefile.in:build/bot.mk \
 	libraries/libmbmath/Makefile:build/top.mk:libraries/libmbmath/Makefile.in:build/bot.mk \
+	libraries/liby12/Makefile:build/top.mk:libraries/liby12/Makefile.in:build/bot.mk \
 	mbdyn/Makefile:build/top.mk:mbdyn/Makefile.in:build/bot.mk \
 	mbdyn/base/Makefile:build/top.mk:mbdyn/base/Makefile.in:build/bot.mk \
 	mbdyn/aero/Makefile:build/top.mk:mbdyn/aero/Makefile.in:build/bot.mk \
