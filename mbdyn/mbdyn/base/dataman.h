@@ -259,6 +259,7 @@ class DataManager : public SolutionDataManager {
    virtual void BeforePredict(VectorHandler& X, VectorHandler& XP, VectorHandler& XPrev, VectorHandler& XPPrev) const;        
    virtual void AfterPredict(void) const;        
    virtual void Update(void) const;
+   virtual void AfterConvergence(void) const;        
 
    
    
@@ -293,7 +294,7 @@ class DataManager : public SolutionDataManager {
       
    } ElemData[Elem::LASTELEMTYPE];
    
-   VecIter<Elem*> ElemIter;
+   mutable VecIter<Elem*> ElemIter;
    
    Elem** ppElems;         /* puntatore all'array di puntatori agli el. */
    unsigned int iTotElem;  /* numero totale di el. definiti */

@@ -506,9 +506,9 @@ PlaneDispJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp1.Dot() <= DBL_EPSILON || Tmp2.Dot() <= DBL_EPSILON) {
-      std::cerr << "joint " << GetLabel() << ':' << std::endl
-	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << std::endl
-	<< "aborting ..." << std::endl;
+      std::cerr << "Joint(" << GetLabel() << "): first node hinge axis "
+	      "and second node hinge axis are (nearly) orthogonal"
+	      << std::endl;
       THROW(Joint::ErrGeneric());
    }   
    
@@ -983,17 +983,6 @@ SubVectorHandler& PlaneDispPinJoint::AssRes(SubVectorHandler& WorkVec,
 void PlaneDispPinJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
-#ifdef DEBUG
-      OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[Joint::PLANEPIN]
-	<< "\", linked to node " << pNode->GetLabel() << ':' << std::endl
-	<< "Distance from node (node reference frame): " << std::endl << d << std::endl
-	<< "Hinge rotation matrix (node reference frame): " << std::endl << Rh << std::endl
-	<< "Current reaction force: " << std::endl << F << std::endl
-	<< "Current reaction couple (hinge reference frame):" << std::endl 
-	<< M << std::endl;
-#endif
-      
       Mat3x3 RTmp(pNode->GetRCurr()*Rh);
       Mat3x3 RTmpT(RTmp.Transpose());
       Mat3x3 R0Tmp(R0.Transpose()*RTmp);
@@ -1086,9 +1075,9 @@ PlaneDispPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp1.Dot() <= DBL_EPSILON || Tmp2.Dot() <= DBL_EPSILON) {
-      std::cerr << "joint " << GetLabel() << ':' << std::endl
-	<< "warning, node hinge axis and fixed point hinge axis are (nearly) orthogonal;" << std::endl
-	<< "aborting ..." << std::endl;
+      std::cerr << "Joint(" << GetLabel() << "): node hinge axis "
+	      "and fixed point hinge axis are (nearly) orthogonal"
+	      << std::endl;
       THROW(Joint::ErrGeneric());
    }   
    

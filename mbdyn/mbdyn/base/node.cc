@@ -66,25 +66,6 @@ integer Node::iGetFirstColIndex(void) const
    return iGetFirstIndex();
 }
 
-
-/* Output di default per nodi di cui non si desidera output */
-void Node::Output(OutputHandler& /* OH */ ) const
-{
-   NO_OP;
-}
-
-
-/* Output di default per nodi di cui non si desidera output */
-void
-Node::Output(
-		OutputHandler& /* OH */,
-		const VectorHandler& /* X */ ,
-		const VectorHandler& /* XP */
-		) const
-{
-   NO_OP;
-}
-
 /* Node - end */
 
 

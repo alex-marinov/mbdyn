@@ -111,10 +111,6 @@ class BulkSpringSupport
       *piNumCols = 1;
    };
    
-   void Output(OutputHandler& /* OH */ ) const {
-      NO_OP;
-   };
-   
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
      AssJac(VariableSubMatrixHandler& WorkMat,

@@ -410,12 +410,9 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
    	WorkVec.Add(4, M);
 }
 
-/*
- * output; si assume che ogni tipo di elemento sappia, attraverso
- * l'OutputHandler, dove scrivere il proprio output
- */
-void
-AerodynamicBody::Output(OutputHandler& OH) const
+void 
+AerodynamicBody::AfterConvergence(VectorHandler& /* X */ , 
+		VectorHandler& /* XP */ )
 {
    	/* Memoria in caso di forze instazionarie */
    	switch (aerodata->Unsteady()) {
@@ -434,13 +431,22 @@ AerodynamicBody::Output(OutputHandler& OH) const
 	default:
 		THROW(ErrGeneric());
    	}
+}
 
+/*
+ * output; si assume che ogni tipo di elemento sappia, attraverso
+ * l'OutputHandler, dove scrivere il proprio output
+ */
+void
+AerodynamicBody::Output(OutputHandler& OH) const
+{
    	/* Output delle forze aerodinamiche F, M su apposito file */
    	if (fToBeOutput()) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
       		ASSERT(pOutput != NULL);
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
-      		std::ostream& out = OH.Aerodynamic() << std::setw(8) << GetLabel();
+      		std::ostream& out = OH.Aerodynamic() 
+			<< std::setw(8) << GetLabel();
       
 #if AEROD_OUTPUT == AEROD_OUT_NODE
       		out << " " << std::setw(8) << pNode->GetLabel()
@@ -1231,15 +1237,10 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	}
 }
 
-/*
- * output; si assume che ogni tipo di elemento sappia, attraverso
- * l'OutputHandler, dove scrivere il proprio output
- */
-void
-AerodynamicBeam::Output(OutputHandler& OH ) const
+void 
+AerodynamicBeam::AfterConvergence(VectorHandler& /* X */ , 
+		VectorHandler& /* XP */ )
 {
-	DEBUGCOUTFNAME("AerodynamicBeam::Output");
-	
 	/* Memoria in caso di forze instazionarie */
 	switch (aerodata->Unsteady()) {
 	case AeroData::STEADY:
@@ -1257,7 +1258,17 @@ AerodynamicBeam::Output(OutputHandler& OH ) const
 	default:
 		THROW(ErrGeneric());
 	}
+}
 
+/*
+ * output; si assume che ogni tipo di elemento sappia, attraverso
+ * l'OutputHandler, dove scrivere il proprio output
+ */
+void
+AerodynamicBeam::Output(OutputHandler& OH ) const
+{
+	DEBUGCOUTFNAME("AerodynamicBeam::Output");
+	
 	if (fToBeOutput()) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 		ASSERT(pOutput != NULL);
@@ -1826,15 +1837,10 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 	}	
 }
 
-/*
- * output; si assume che ogni tipo di elemento sappia, attraverso
- * l'OutputHandler, dove scrivere il proprio output
- */
-void
-AerodynamicBeam2::Output(OutputHandler& OH ) const
+void 
+AerodynamicBeam2::AfterConvergence(VectorHandler& /* X */ , 
+		VectorHandler& /* XP */ )
 {
-	DEBUGCOUTFNAME("AerodynamicBeam2::Output");
-	
    	/* Memoria in caso di forze instazionarie */
    	switch (aerodata->Unsteady()) {
 	case AeroData::STEADY:
@@ -1852,7 +1858,17 @@ AerodynamicBeam2::Output(OutputHandler& OH ) const
 	default:
 		THROW(ErrGeneric());
    	}
+}
 
+/*
+ * output; si assume che ogni tipo di elemento sappia, attraverso
+ * l'OutputHandler, dove scrivere il proprio output
+ */
+void
+AerodynamicBeam2::Output(OutputHandler& OH ) const
+{
+	DEBUGCOUTFNAME("AerodynamicBeam2::Output");
+	
 	if (fToBeOutput()) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 		ASSERT(pOutput != NULL);

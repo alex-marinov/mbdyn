@@ -728,14 +728,16 @@ std::ostream& DiscreteControlElem::Restart(std::ostream& out) const
 }
 
 
-void DiscreteControlElem::Output(OutputHandler& /* OH */) const
+void 
+DiscreteControlElem::AfterConvergence(VectorHandler& X,
+		VectorHandler& XP)
 {
    /* Sets the flag for a new step */
-   if (++(integer&)iCurrIter == iNumIter) {      
-      (integer&)iCurrIter = 0;
+   if (++iCurrIter == iNumIter) {      
+      iCurrIter = 0;
       
       ASSERT(fNewStep == flag(0));
-      (flag&)fNewStep = flag(1);
+      fNewStep = flag(1);
       
       
       /* Gets output from solution */   

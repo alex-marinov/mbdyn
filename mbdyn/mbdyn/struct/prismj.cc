@@ -254,16 +254,6 @@ SubVectorHandler& PrismaticJoint::AssRes(SubVectorHandler& WorkVec,
 void PrismaticJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
-#ifdef DEBUG   
-      OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[Joint::PRISMATIC] 
-	<< "\", linked to nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() << ':' << std::endl 
-	<< "Hinge to node 1 relative orientation: " << std::endl << R1h << std::endl
-	<< "Hinge to node 2 relative orientation: " << std::endl << R2h << std::endl
-	<< "Current reaction couple: " << std::endl << M << std::endl;   
-#endif   
-   
       Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
       
       Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),

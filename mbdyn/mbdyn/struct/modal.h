@@ -35,12 +35,23 @@
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  */
 
+/* 
+ * Copyright 1999-2002 Pierangelo Masarati  <masarati@aero.polimi.it>
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ *
+ * Modified by Pierangelo Masarati
+ */
+
 #ifndef MODAL_H
 #define MODAL_H
 
 #include <ac/fstream>
-
 #include <joint.h>
+
+#if 0
+#define MODAL_USE_INV9
+#define MODAL_USE_GRAVITY /* need GravityOwner inheritance first */
+#endif
 
 /* Modal - begin */
 
@@ -90,9 +101,13 @@ class Modal : virtual public Elem, public Joint {
    Mat3x3 Inv8jaPj;
    Mat3xN Inv5jaj;
    Vec3 Inv4j, VInv5jaj, VInv5jaPj;
-   Mat3x3 Inv8jTranspose, Inv9jkak, Inv9jkajaPk;
+   Mat3x3 Inv8jTranspose, Inv9jkak;
+#ifdef MODAL_USE_INV9
+   Mat3x3 Inv9jkajaPk;
+#endif /* MODAL_USE_INV9 */
 
    VecN a;
+   VecN aPrime;
    VecN b;
    VecN bPrime;
 

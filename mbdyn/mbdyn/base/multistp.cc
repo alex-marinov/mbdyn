@@ -981,6 +981,8 @@ EndOfDerivatives:
       		}
       
 EndOfFirstFictitiousStep:
+
+		pDM->AfterConvergence();
       
       		dRefTimeStep = dCurrTimeStep;
       		dTime += dRefTimeStep;
@@ -1171,13 +1173,13 @@ EndOfFirstFictitiousStep:
 	 
 EndOfFictitiousStep:
 	 
+			pDM->AfterConvergence();
+
 	 		dTotErr += dTest;	
 	 		iTotIter += iIterCnt;
 	 
 #ifdef DEBUG
 	 		if (DEBUG_LEVEL(MYDEBUG_FSTEPS)) {
-	    			pDM->Output();
-				
 	    			Out << "Step " << iStep 
 					<< " time " << dTime+dCurrTimeStep
 					<< " step " << dCurrTimeStep
@@ -1431,6 +1433,7 @@ IfFirstStepIsToBeRepeated:
    
 EndOfFirstStep:
 
+	pDM->AfterConvergence();
    	pDM->Output();
       
 #ifdef HAVE_SIGNAL
@@ -1707,6 +1710,8 @@ IfStepIsToBeRepeated:
       		}
 	 
 EndOfStep:
+
+		pDM->AfterConvergence();
 
       		dTotErr += dTest;	
       		iTotIter += iIterCnt;

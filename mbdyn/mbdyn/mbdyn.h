@@ -86,6 +86,7 @@ enum {
 
 /* Global variables */
 extern int fSilent;
+extern int fPedantic;
 
 /* Global macros */
 #ifdef __cplusplus
@@ -103,6 +104,23 @@ extern int fSilent;
 #define silent_cerr(arg) \
 	do { \
 		if (::fSilent < 2) { \
+			std::cerr << arg; \
+		} \
+	} while (0)
+
+#define pedantic_output \
+	(::fPedantic > 0)
+
+#define pedantic_cout(arg) \
+    	do { \
+        	if (::fPedantic > 2) { \
+            		std::cout << arg; \
+        	} \
+    	} while (0)
+
+#define pedantic_cerr(arg) \
+	do { \
+		if (::fPedantic > 1) { \
 			std::cerr << arg; \
 		} \
 	} while (0)

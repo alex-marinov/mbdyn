@@ -147,19 +147,6 @@ LinearVelocityJoint::AssRes(SubVectorHandler& WorkVec,
 void LinearVelocityJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {      
-#ifdef DEBUG   
-      OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[Joint::LINEARVELOCITY]
-	<< "\", linked to node " << pNode->GetLabel() << std::endl
-	<< "Current force reaction: " << dF << std::endl
-	<< "Current imposed speed: " << dGet() << std::endl;
-#endif   
-      
-      /*
-      OH.Joints().write("LinearVelocity  ", 16)
-	<< std::setw(8) << GetLabel() << " " << Dir*dF << " " << Vec3(0.) << std::endl;
-       */
-      
       Joint::Output(OH.Joints(), "LinearVelocity", GetLabel(),
 		    Vec3(dF, 0., 0.), Zero3, Dir*dF, Zero3)
 	<< " " << Dir << " " << dGet() << std::endl;
@@ -353,19 +340,6 @@ AngularVelocityJoint::AssRes(SubVectorHandler& WorkVec,
 void AngularVelocityJoint::Output(OutputHandler& OH) const
 {
    if(fToBeOutput()) {      
-#ifdef DEBUG   
-      OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[Joint::ANGULARVELOCITY]
-	<< "\", linked to node " << pNode->GetLabel() << std::endl
-	<< "Current couple reaction: " << dM << std::endl
-	<< "Current imposed speed: " << dGet() << std::endl;
-#endif   
-      
-      /*
-      OH.Joints().write("AngularVelocity ", 16)
-	<< std::setw(8) << GetLabel() << " " << Vec3(0.) << " " << Dir*dM << std::endl;
-       */
-      
       Vec3 Tmp(pNode->GetRCurr()*Dir);
       
       Joint::Output(OH.Joints(), "AngularVelocity", GetLabel(),

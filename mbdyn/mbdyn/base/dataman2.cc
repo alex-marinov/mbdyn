@@ -900,10 +900,10 @@ void DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pEl = NULL;
-    if (((VecIter<Elem*>&)ElemIter).fGetFirst(pEl)) {       
+    if (ElemIter.fGetFirst(pEl)) {       
        do {
 	  pEl->BeforePredict(X, XP, XPrev, XPPrev);
-       } while (((VecIter<Elem*>&)ElemIter).fGetNext(pEl));
+       } while (ElemIter.fGetNext(pEl));
     }
 #endif /* USE_ELEM_ITER */
 }
@@ -928,11 +928,11 @@ void DataManager::AfterPredict(void) const
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pEl = NULL;
-    if (((VecIter<Elem*>&)ElemIter).fGetFirst(pEl)) {       
+    if (ElemIter.fGetFirst(pEl)) {       
        do {
 	  pEl->AfterPredict(*(VectorHandler*)pXCurr,
 			    *(VectorHandler*)pXPrimeCurr);
-       } while (((VecIter<Elem*>&)ElemIter).fGetNext(pEl));
+       } while (ElemIter.fGetNext(pEl));
     }
 #endif /* USE_ELEM_ITER */
 }
@@ -955,10 +955,39 @@ void DataManager::Update(void) const
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pEl = NULL;
-    if (((VecIter<Elem*>&)ElemIter).fGetFirst(pEl)) {       
+    if (ElemIter.fGetFirst(pEl)) {       
        do {
 	  pEl->Update(*pXCurr, *pXPrimeCurr);
-       } while (((VecIter<Elem*>&)ElemIter).fGetNext(pEl));
+       } while (ElemIter.fGetNext(pEl));
+    }
+#endif /* USE_ELEM_ITER */
+}
+
+
+void DataManager::AfterConvergence(void) const
+{   
+   Node** ppLastNode = ppNodes+iTotNodes;
+   for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
+      ASSERT(*ppTmp != NULL);
+      (*ppTmp)->AfterConvergence(*(VectorHandler*)pXCurr,
+			     *(VectorHandler*)pXPrimeCurr);
+   }
+
+#if !defined(USE_ELEM_ITER)
+   Elem** ppLastElem = ppElems+iTotElem;
+   for (Elem** ppTmp = ppElems; ppTmp < ppLastElem; ppTmp++) {
+      ASSERT(*ppTmp != NULL);
+      (*ppTmp)->AfterConvergence(*(VectorHandler*)pXCurr,
+			     *(VectorHandler*)pXPrimeCurr);
+   }   
+#else /* USE_ELEM_ITER */
+   /* Versione con iteratore: */
+    Elem* pEl = NULL;
+    if (ElemIter.fGetFirst(pEl)) {       
+       do {
+	  pEl->AfterConvergence(*(VectorHandler*)pXCurr,
+			    *(VectorHandler*)pXPrimeCurr);
+       } while (ElemIter.fGetNext(pEl));
     }
 #endif /* USE_ELEM_ITER */
 }
@@ -985,10 +1014,10 @@ void DataManager::DerivativesUpdate(void) const
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pEl = NULL;
-    if (((VecIter<Elem*>&)ElemIter).fGetFirst(pEl)) {       
+    if (ElemIter.fGetFirst(pEl)) {       
        do {
 	  pEl->Update(*pXCurr, *pXPrimeCurr);
-       } while (((VecIter<Elem*>&)ElemIter).fGetNext(pEl));
+       } while (ElemIter.fGetNext(pEl));
     }
 #endif /* USE_ELEM_ITER */
 }

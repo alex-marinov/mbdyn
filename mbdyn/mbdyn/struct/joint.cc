@@ -78,20 +78,6 @@ Joint::~Joint(void)
    NO_OP; 
 }
    
-void Joint::Output(OutputHandler& OH) const
-{
-   if(fToBeOutput()) {
-#ifdef DEBUG   
-      OH.Output() << "Joint " << uLabel 
-	<< ", type \"" << psJointNames[GetJointType()] 
-	<< "\": sorry, not implemented yet" << std::endl;
-#endif
-      
-      Output(OH.Joints(), "UnknownJoint", GetLabel(), 
-	     Zero3, Zero3, Zero3, Zero3);
-   }   
-}
-
 
 /* Output specifico dei vincoli */
 std::ostream& Joint::Output(std::ostream& out, const char* sJointName, 

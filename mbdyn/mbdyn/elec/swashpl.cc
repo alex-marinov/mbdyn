@@ -242,12 +242,6 @@ SwashPlate::AssRes(SubVectorHandler& WorkVec,
 }
 
 
-void SwashPlate::Output(OutputHandler& /* OH */ ) const
-{
-   NO_OP;
-}
-
-
 void SwashPlate::SetInitialValue(VectorHandler& /* X */ ) const
 {
    NO_OP;

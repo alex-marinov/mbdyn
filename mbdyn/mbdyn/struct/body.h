@@ -118,8 +118,6 @@ virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
 			     const VectorHandler& XCurr, 
 			     const VectorHandler& XPrimeCurr);
    
-    virtual void Output(OutputHandler& OH) const;
-
     /* Numero gdl durante l'assemblaggio iniziale */
     virtual unsigned int iGetInitialNumDof(void) const { 
         return 0; 

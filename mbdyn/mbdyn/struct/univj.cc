@@ -307,19 +307,6 @@ SubVectorHandler& UniversalHingeJoint::AssRes(SubVectorHandler& WorkVec,
 void UniversalHingeJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
-#ifdef DEBUG   
-      OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[Joint::UNIVERSALHINGE] 
-	<< "\", linked to nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() << ':' << std::endl 
-	<< "Distance from node 1 (node reference frame): " << std::endl << d1 << std::endl 
-	<< "Distance from node 2 (node reference frame): " << std::endl << d2 << std::endl
-	<< "Current force reaction: " << std::endl << F << std::endl
-	<< "Hinge to node 1 relative orientation: " << std::endl << R1h << std::endl
-	<< "Hinge to node 2 relative orientation: " << std::endl << R2h << std::endl
-	<< "Current reaction couple: " << std::endl << dM << std::endl;
-#endif   
-         
       Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
       Vec3 vTmp(R2Tmp.GetVec(2).Cross(R1Tmp.GetVec(3)));
@@ -854,17 +841,6 @@ SubVectorHandler& UniversalPinJoint::AssRes(SubVectorHandler& WorkVec,
 void UniversalPinJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {      
-#ifdef DEBUG   
-      OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[Joint::UNIVERSALPIN]
-	<< "\", linked to node " << pNode->GetLabel() << ':' << std::endl
-	<< "Distance from node (node reference frame): " << std::endl << d << std::endl
-	<< "Hinge rotation matrix (node reference frame): " << std::endl << Rh << std::endl
-	<< "Current reaction force: " << std::endl << F << std::endl
-	<< "Current reaction couple (hinge reference frame):" << std::endl 
-	<< dM << std::endl;
-#endif   
-
       Mat3x3 RTmp(pNode->GetRCurr()*Rh);
       Vec3 vTmp(RTmp.GetVec(2).Cross(R0.GetVec(3)));
       

@@ -126,10 +126,6 @@ class SwashPlate : virtual public Elem, public Genel {
 	    const VectorHandler& XCurr, 
 	    const VectorHandler& XPrimeCurr);
 
-   /* output; si assume che ogni tipo di elemento sappia, attraverso
-    * l'OutputHandler, dove scrivere il proprio output */
-   virtual void Output(OutputHandler& OH) const;      
-
    virtual void SetInitialValue(VectorHandler& X) const;
    virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
 
@@ -156,4 +152,5 @@ class SwashPlate : virtual public Elem, public Genel {
 
 /* SwashPlate - end */
 
-#endif
+#endif /* SWASHPL_H */
+

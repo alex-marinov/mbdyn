@@ -136,6 +136,10 @@ mbdyn_usage(std::ostream& out, const char *sShortOpts)
 	" print symbol table and exit" << std::endl
         << "  -s, --silent             :"
         " runs quietly" << std::endl
+        << "  -P, --pedantic           :"
+        " pedantic warning messages" << std::endl
+        << "  -p, --parallel           :"
+        " required when run in parallel (invoked by mpirun)" << std::endl
         << "  -h, --help               :"
         " prints this message" << std::endl
         << "  -l, --license            :"
@@ -153,7 +157,7 @@ mbdyn_usage(std::ostream& out, const char *sShortOpts)
 }
 
 /* Dati di getopt */
-static char sShortOpts[] = "a:d:f:hHlm:n::o:prRstTw";
+static char sShortOpts[] = "a:d:f:hHlm:n::o:pPrRstTw";
 enum MyOptions {
 	MAIL = 0,
 	INPUT_FILE,
@@ -180,6 +184,7 @@ static struct option LongOpts[] = {
 	{ "nice",           optional_argument, NULL,           int('n') },
 	{ "output-file",    required_argument, NULL,           int('o') },
 	{ "parallel",	    no_argument,       NULL,           int('p') },
+	{ "pedantic",	    no_argument,       NULL,           int('P') },
 	{ "redefine",       no_argument,       NULL,           int('r') },
 	{ "no-redefine",    no_argument,       NULL,           int('R') },
 	{ "silent",         no_argument,       NULL,           int('s') },
@@ -197,6 +202,7 @@ extern void GetEnviron(MathParser&);
 
 /* flag di silent run (no output su stdout) */
 int fSilent = 0;
+int fPedantic = 0;
 const char* sDefaultInputFileName = "MBDyn";
 
 
@@ -394,6 +400,10 @@ main(int argc, char* argv[])
 #endif /* !USE_MPI */
 				break;
 	    
+	    		case int('P'):
+	        		::fPedantic++;
+	        		break;
+
 	    		case int('r'):
 	        		fRedefine = 1;
 	        		break;

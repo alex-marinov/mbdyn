@@ -165,6 +165,11 @@ public:
 	       const VectorHandler& XPrimeCurr);
 	
 	/*
+	 * Elaborazione stato interno dopo la convergenza
+	 */
+	virtual void AfterConvergence(VectorHandler& X, VectorHandler& XP);
+
+	/*
 	 * output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output
 	 */
@@ -364,6 +369,11 @@ public:
 		      const VectorHandler& XCurr);
 	
 	/*
+	 * Elaborazione stato interno dopo la convergenza
+	 */
+	virtual void AfterConvergence(VectorHandler& X, VectorHandler& XP);
+
+	/*
 	 * output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output
 	 */
@@ -532,6 +542,11 @@ public:
 	InitialAssRes(SubVectorHandler& WorkVec,
 		      const VectorHandler& XCurr);
 	
+	/*
+	 * Elaborazione stato interno dopo la convergenza
+	 */
+	virtual void AfterConvergence(VectorHandler& X, VectorHandler& XP);
+
 	/*
 	 * output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output

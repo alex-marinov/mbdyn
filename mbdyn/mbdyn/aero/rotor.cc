@@ -115,15 +115,19 @@ Elem::Type Rotor::GetElemType(void) const
     return Elem::ROTOR;
 }
 
-void Rotor::Output(OutputHandler& OH) const
+void 
+Rotor::AfterConvergence(VectorHandler& /* X */ , 
+		VectorHandler& /* XP */ )
 {
     /* non mi ricordo a cosa serve! */
     iNumSteps++;
 
     /* updates the umean at the previous step */
     dUMeanPrev = dUMean; 
+}
 
-
+void Rotor::Output(OutputHandler& OH) const
+{
     if (fToBeOutput()) {
 #ifdef USE_MPI
         if (is_parallel && RotorComm.Get_size() > 1) { 
@@ -1086,11 +1090,6 @@ DynamicInflowRotor::~DynamicInflowRotor(void)
 
 void DynamicInflowRotor::Output(OutputHandler& OH) const
 {
-   /* non mi ricordo a cosa serve! */
-   iNumSteps++;
-
-   (doublereal&)dUMeanPrev = dUMean; /* updates the umean at the previous step */
-
    /* FIXME: posso usare dei temporanei per il calcolo della trazione
     * totale per l'output, cosi' evito il giro dei cast */
    if (fToBeOutput()) {

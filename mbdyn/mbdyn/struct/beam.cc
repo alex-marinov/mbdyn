@@ -810,13 +810,6 @@ void Beam::AfterPredict(VectorHandler& /* X */ ,
 void Beam::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {      
-#ifdef DEBUG
-      OH.Output() << psBeamNames[GetBeamType()] << ' ' << GetLabel() 
-	<< " linked to nodes " << pNode[NODE1]->GetLabel() << ", " 
-	<< pNode[NODE2]->GetLabel() << " and " << pNode[NODE3]->GetLabel() 
-	  << std::endl;
-#endif   
-      
       OH.Beams() << std::setw(8) << GetLabel() << " " 
 	<< AzLoc[S_I].GetVec1() << " " << AzLoc[S_I].GetVec2() << " " 
 	<< AzLoc[SII].GetVec1() << " " << AzLoc[SII].GetVec2() << std::endl;

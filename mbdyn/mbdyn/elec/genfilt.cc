@@ -103,12 +103,6 @@ void GenelFilter::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 }
 
 
-void GenelFilter::Output(OutputHandler& /* OH */ ) const
-{
-   NO_OP;
-}
- 
-
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 
 GenelFilter::AssJac(VariableSubMatrixHandler& WorkMat,
@@ -315,12 +309,6 @@ void GenelFilterEq::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
    *piNumCols = Na+1;
 }
 
-
-void GenelFilterEq::Output(OutputHandler& /* OH */ ) const
-{
-   NO_OP;
-}
- 
 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 
@@ -584,12 +572,6 @@ void GenelStateSpaceSISO::WorkSpaceDim(integer* piNumRows,
 }
 
 
-void GenelStateSpaceSISO::Output(OutputHandler& /* OH */ ) const 
-{
-   NO_OP;
-}
-
-
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 
 GenelStateSpaceSISO::AssJac(VariableSubMatrixHandler& WorkMat,
@@ -790,12 +772,6 @@ void GenelStateSpaceMIMO::WorkSpaceDim(integer* piNumRows,
 {
    *piNumRows = iNumDofs+iNumOutputs;
    *piNumCols = iNumDofs+iNumOutputs;
-}
-
-
-void GenelStateSpaceMIMO::Output(OutputHandler& /* OH */ ) const 
-{
-   NO_OP;
 }
 
 

@@ -329,43 +329,32 @@ class ToBeOutput {
    flag fOutput;
    
  public:
-   ToBeOutput(flag fOut = fDefaultOut) : fOutput(fOut) { NO_OP; };
-   virtual ~ToBeOutput(void) { NO_OP; };
+   ToBeOutput(flag fOut = fDefaultOut);
+   virtual ~ToBeOutput(void);
    
    /* Regular output */
-   virtual void Output(OutputHandler& OH) const = 0;
+   virtual void Output(OutputHandler& OH) const;
 
    /* Output of perturbed solution (modes ...) */
    virtual void Output(OutputHandler& OH,
-		   const VectorHandler& X, const VectorHandler& XP) const {
-	   NO_OP;
-   };
+		   const VectorHandler& X, const VectorHandler& XP) const;
 
    /* Output of modes in NASTRAN's pch/f06 format */
 #define __NASTRAN_FORMAT_FIXED__	1
 #define __NASTRAN_FORMAT_FIXED16__	2
 #define __NASTRAN_FORMAT_FREE__		3
-   virtual void Output_pch(std::ostream &pch) const {
-	   NO_OP;
-   };
-   virtual void Output_f06(std::ostream &f06, const VectorHandler& X) const {
-	   NO_OP;
-   };
-   virtual void Output_f06(std::ostream &f06, const VectorHandler& Xr, const VectorHandler& Xi) const {
-	   NO_OP;
-   };
+   virtual void Output_pch(std::ostream &pch) const;
+   virtual void Output_f06(std::ostream &f06, const VectorHandler& X) const;
+   virtual void Output_f06(std::ostream &f06, 
+		   const VectorHandler& Xr, const VectorHandler& Xi) const;
 
    /* virtual void AdamsOutput(void) const; */
       
-   virtual flag fToBeOutput(void) const {
-      return fOutput;
-   };
-   
-   virtual void SetOutputFlag(flag f = flag(1)) {
-      fOutput = f;
-   };
+   virtual flag fToBeOutput(void) const;
+   virtual void SetOutputFlag(flag f = flag(1));
 };
 
 /* ToBeOutput - end */
 
-#endif
+#endif /* OUTPUT_H */
+

@@ -56,8 +56,6 @@ extern "C" {
 
 /* DataManager - begin */
 
-const char sDMClassName[] = "DataManager";
-
 /* linka i singoli DriveCaller al DriveHandler posseduto dal DataManager */
 extern void SetDrvHdl(DriveHandler*);
 

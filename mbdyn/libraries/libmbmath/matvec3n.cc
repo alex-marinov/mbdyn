@@ -547,6 +547,45 @@ Mat3xN::SubVec(integer iCol, const Vec3& v)
 	pdRows[2][iCol] -= v.pdVec[2];
 }
 
+Mat3x3 
+Mat3xN::GetMat3x3(integer iFirstCol)
+{
+	IsValid();
+	ASSERT(iFirstCol >= 1 && iFirstCol <= iNumCols-2);
+	
+	--iFirstCol;
+	return Mat3x3(
+			pdRows[0][iFirstCol],
+			pdRows[1][iFirstCol],
+			pdRows[2][iFirstCol],
+			pdRows[0][iFirstCol+1],
+			pdRows[1][iFirstCol+1],
+			pdRows[2][iFirstCol+1],
+			pdRows[0][iFirstCol+2],
+			pdRows[1][iFirstCol+2],
+			pdRows[2][iFirstCol+2]);
+}
+
+Mat3x3
+Mat3xN::GetMat3x3ScalarMult(integer iFirstCol, const doublereal& d)
+{
+	IsValid();
+	ASSERT(iFirstCol >= 1 && iFirstCol <= iNumCols-2);
+	
+	--iFirstCol;
+	return Mat3x3(
+			pdRows[0][iFirstCol]*d,
+			pdRows[1][iFirstCol]*d,
+			pdRows[2][iFirstCol]*d,
+			pdRows[0][iFirstCol+1]*d,
+			pdRows[1][iFirstCol+1]*d,
+			pdRows[2][iFirstCol+1]*d,
+			pdRows[0][iFirstCol+2]*d,
+			pdRows[1][iFirstCol+2]*d,
+			pdRows[2][iFirstCol+2]*d);
+
+}
+
 /* Mat3xN - end */
 
 

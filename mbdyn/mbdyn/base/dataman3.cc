@@ -948,9 +948,9 @@ DataManager::ReadScalarAlgebraicNode(MBDynParser& HP,
 	if (HP.fIsArg()) {
 		/* eat keyword "value" */
 		if (!HP.IsKeyWord("value")) {
-			std::cerr << psNodeNames[type] << "(" << uLabel 
+			pedantic_cerr(psNodeNames[type] << "(" << uLabel 
      				<< "): initial value specified without "
-     				"\"value\" keyword (deprecated)" << std::endl;
+     				"\"value\" keyword (deprecated)" << std::endl);
 		}
 		dX = HP.GetReal();
 		DEBUGLCOUT(MYDEBUG_INPUT, "Initial value x = " << dX 
@@ -1700,37 +1700,28 @@ int GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
        * Questo check e' pleonastico, viene gia' fatto dal chiamante
        */
       if (pNode->SetDof(iIndex-1) != DofOrder::DIFFERENTIAL) {
-	 std::cerr << sDMClassName 
-	   << " at line " << HP.GetLineData()
-	     << ": invalid order for index " << iIndex 
-	   << " variable" << std::endl;
+	 std::cerr << psNodeNames[pNode->GetNodeType()] 
+		 << "(" << pNode->GetLabel() 
+		 << "): invalid order for index " << iIndex 
+      		 << " variable at line " << HP.GetLineData()
+	   << std::endl;
 	 THROW(DataManager::ErrGeneric());
       }
       return 1;
    } 
 
    if (HP.IsKeyWord("algebraic")) {
-#ifdef DEBUG
-      if ((pNode->SetDof(iIndex-1) != DofOrder::DIFFERENTIAL)
-	  && (pNode->SetDof(iIndex-1) != DofOrder::ALGEBRAIC)) {
-	 std::cerr << sDMClassName 
-	   << " at line " << HP.GetLineData()
-	     << ": invalid order for index " << iIndex 
-	   << " variable" << std::endl;
-	 THROW(DataManager::ErrGeneric());
-      }	     
-#endif      
       return 0;
+
    } /* else */
 
-   std::cerr 
-     << "unknown or illegal order for index " << iIndex
-     << " dof of " << psNodeNames[pNode->GetNodeType()] 
-     << "(" << pNode->GetLabel() << ")" << std::endl 
-     << "(hint: you may need to specify \"differential\" or \"algebraic\" "
-     "when referencing " << std::endl
-     << "a generic degree of freedom at line " 
-     << HP.GetLineData() << ")" << std::endl;
+   std::cerr << psNodeNames[pNode->GetNodeType()] 
+	   << "(" << pNode->GetLabel() 
+	   << "): unknown or illegal order for index " << iIndex << std::endl
+      	   << "(hint: you may need to specify "
+	   "\"differential\" or \"algebraic\" when referencing " << std::endl
+      	   << "a generic degree of freedom at line " 
+      	   << HP.GetLineData() << ")" << std::endl;
 
    THROW(DataManager::ErrGeneric());
 #ifndef USE_EXCEPTIONS
@@ -1761,10 +1752,8 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
    /* verifica di esistenza del nodo */
    Node* pNode;
    if ((pNode = pDM->pFindNode(Type, uNode)) == NULL) {
-      std::cerr << sDMClassName
-	<< " at line " << HP.GetLineData() 
-	<< ": node " << uNode
-	<< " not defined" << std::endl;	 
+      std::cerr << psNodeNames[Type] << "(" << uNode << ") not defined" 
+	" at line " << HP.GetLineData() << std::endl;	 
       THROW(DataManager::ErrGeneric());
    }
 
@@ -1779,7 +1768,8 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
       if (iIndex > iMaxIndex) {
 	 std::cerr << "Illegal index " << iIndex << ", " 
 	   << psNodeNames[Type] << "(" << uNode << ") has only " 
-	   << iMaxIndex << " dofs" << std::endl;
+	   << iMaxIndex << " dofs at line " 
+	   << HP.GetLineData() << std::endl;
 	 THROW(ErrGeneric());
       }
       DEBUGLCOUT(MYDEBUG_INPUT, "index: " << iIndex << std::endl);
@@ -1799,9 +1789,10 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
        pNode = NULL;
        /* Chi dealloca questa memoria? ci vorrebbe l'handle */	 
        SAFENEWWITHCONSTRUCTOR(pNode, Node2Scalar, Node2Scalar(nd));
-       std::cerr << sDMClassName
-	 << ": warning, possibly allocating a NodeDof that nobody will delete until Handles will be used"
-	 << std::endl;
+       pedantic_cerr(psNodeNames[Type] << "(" << uNode 
+	       << "): warning, possibly allocating a NodeDof "
+	       "that nobody will delete until handles will be used"
+	       "at line " << HP.GetLineData() << std::endl);
    } 
    
    return ScalarDof((ScalarNode*)pNode, iOrder);

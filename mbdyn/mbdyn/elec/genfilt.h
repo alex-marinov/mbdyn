@@ -69,8 +69,6 @@ class GenelFilter : public Genel {
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
    
-   void Output(OutputHandler& /* OH */ ) const;
-   
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
      AssJac(VariableSubMatrixHandler& WorkMat,
@@ -147,8 +145,6 @@ class GenelFilterEq : public Genel {
 
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-   
-   void Output(OutputHandler& /* OH */ ) const;
    
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
@@ -237,8 +233,6 @@ class GenelStateSpaceSISO : public Genel {
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
    
-   void Output(OutputHandler& /* OH */ ) const;
-   
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
      AssJac(VariableSubMatrixHandler& WorkMat,
@@ -317,8 +311,6 @@ class GenelStateSpaceMIMO : public Genel {
 
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-   
-   void Output(OutputHandler& /* OH */ ) const;
    
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 

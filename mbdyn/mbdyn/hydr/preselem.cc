@@ -88,16 +88,6 @@ std::ostream& HydraulicElem::Restart(std::ostream& out) const
    return out << "  hydraulic: " << GetLabel();
 }
 
-/* Output */
-void HydraulicElem::Output(OutputHandler& OH) const 
-{
-   NO_OP;
-}
-
-void HydraulicElem::SetInitialValue(VectorHandler& /* X */ ) const {
-   NO_OP; 
-}
-
 /* HydraulicElem - end */
 
 

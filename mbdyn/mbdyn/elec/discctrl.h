@@ -294,8 +294,7 @@ class DiscreteControlElem : virtual public Elem, public Electric {
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
    
-   virtual void Output(OutputHandler& OH) const;
-      
+   virtual void AfterConvergence(VectorHandler& X, VectorHandler& XP);
    
    /* funzioni di servizio */
 

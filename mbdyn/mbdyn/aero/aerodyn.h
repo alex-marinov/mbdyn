@@ -186,17 +186,11 @@ class AirProperties
       /* Chiama AssRes, che si limita ad aggiornare la velocita' */
       return AssRes(WorkVec, 1, XCurr, XCurr);
    };
-     
-     
-     
-     
-    
-   /* output; si assume che ogni tipo di elemento sappia, attraverso
-    * l'OutputHandler, dove scrivere il proprio output */
-   virtual void Output(OutputHandler& /* OH */ ) const { 
-      NO_OP; 
+
+   virtual void Output(OutputHandler&) const {
+	NO_OP;	   
    };
-   
+     
    virtual const Vec3& GetVelocity(const Vec3& /* X */ ) const { 
       return Velocity;
    };

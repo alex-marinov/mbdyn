@@ -124,6 +124,10 @@ typedef void
 (* p_update)(LoadableElem* pEl, 
 	     const VectorHandler& X,
 	     const VectorHandler& XP);
+typedef void
+(* p_after_convergence)(const LoadableElem* pEl, 
+    			VectorHandler& X,
+    			VectorHandler& XP);
 typedef unsigned int (* p_i_get_initial_num_dof)(const LoadableElem*);
 typedef void
 (* p_initial_work_space_dim)(const LoadableElem*, 
@@ -169,6 +173,7 @@ struct LoadableCalls {
 	p_before_predict		before_predict;
 	p_after_predict			after_predict;
 	p_update			update;
+	p_after_convergence		after_convergence;
 	p_i_get_initial_num_dof		i_get_initial_num_dof;
 	p_initial_work_space_dim	initial_work_space_dim;
 	p_initial_ass_jac		initial_ass_jac;
@@ -239,6 +244,8 @@ public:
 				  VectorHandler& XP);   
 	virtual void Update(const VectorHandler& XCurr, 
                        	    const VectorHandler& XPrimeCurr);
+   	virtual void AfterConvergence(VectorHandler& X,
+			VectorHandler& XP);   
 
 #ifdef USE_STRUCT_NODES
    	virtual unsigned int iGetInitialNumDof(void) const;

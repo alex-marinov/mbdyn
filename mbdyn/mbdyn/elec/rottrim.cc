@@ -116,11 +116,6 @@ RotorTrim::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 	*piNumCols = 3;
 }
 
-void
-RotorTrim::Output(OutputHandler& /* OH */ ) const
-{
-	NO_OP;
-}
 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 

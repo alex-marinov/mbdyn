@@ -108,6 +108,11 @@ public:
 	 */
 	virtual void Update(const VectorHandler& XCurr, 
 		       const VectorHandler& XPrimeCurr);
+
+	/*
+	 * Elaborazione stato interno dopo la convergenza
+	 */
+	virtual void AfterConvergence(VectorHandler& X, VectorHandler& XP);
 };
 
 /* SimulationEntity - end */

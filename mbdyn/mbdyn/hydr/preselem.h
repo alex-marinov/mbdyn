@@ -92,11 +92,6 @@ class HydraulicElem : virtual public Elem, public ElemWithDofs {
 
    /* Tipo di elemento elettrico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const = 0;
-
-   /* Output */
-   virtual void Output(OutputHandler& OH) const;
-
-   virtual void SetInitialValue(VectorHandler& X) const;
 };
 
 /* HydraulicElem - end */
@@ -111,4 +106,4 @@ extern Elem* ReadHydraulicElem(DataManager* pDM,
 			       unsigned int uLabel);
 
 
-#endif // PRESELEM_H
+#endif /* PRESELEM_H */

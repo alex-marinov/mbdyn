@@ -160,11 +160,11 @@ void DataManager::ElemManagerDestructor(void)
    /* Distruzione elementi */
    ASSERT(ppElems != NULL);
 
-   if(ppElems != NULL) {
+   if (ppElems != NULL) {
 #if defined(USE_ELEM_ITER)
       /* Usa l'iteratore built-in */
        Elem* p = NULL;
-       if(ElemIter.fGetFirst(p)) {
+       if (ElemIter.fGetFirst(p)) {
 	  do {
 	     ASSERT(p != NULL);
 	     if(p != NULL) {		  
@@ -173,7 +173,7 @@ void DataManager::ElemManagerDestructor(void)
 			  << std::endl);
 		SAFEDELETE(p);
 	     }
-	  } while(ElemIter.fGetNext(p));
+	  } while (ElemIter.fGetNext(p));
        }
 #else /* !USE_ELEM_ITER */
       Elem** pp = ppElems;
@@ -369,10 +369,10 @@ void DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
    
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    if(ElemIter.fGetFirst(pTmpEl)) {
+    if (ElemIter.fGetFirst(pTmpEl)) {
        do {	
 	  JacHdl += pTmpEl->AssJac(*pWorkMatA, dCoef, *pXCurr, *pXPrimeCurr);
-       } while(ElemIter.fGetNext(pTmpEl));    
+       } while (ElemIter.fGetNext(pTmpEl));    
     }   
 #endif /* USE_ELEM_ITER */
 }
@@ -417,12 +417,12 @@ void DataManager::AssEig(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
    
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    if(ElemIter.fGetFirst(pTmpEl)) {
+    if (ElemIter.fGetFirst(pTmpEl)) {
        do {		 
 	  pTmpEl->AssEig(*pWorkMatA, *pWorkMatB, *pXCurr, *pXPrimeCurr);
 	  A_Hdl += *pWorkMatA;
 	  B_Hdl += *pWorkMatB;
-       } while(ElemIter.fGetNext(pTmpEl));    
+       } while (ElemIter.fGetNext(pTmpEl));    
     }   
 #endif /* USE_ELEM_ITER */
 }
@@ -440,13 +440,13 @@ void DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
    MySubVectorHandler WorkVec(iWorkDoubleSize, piWorkIndex, pdWorkMat);
       
 #if !defined(USE_ELEM_ITER)
-   for(Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {
+   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {
       ResHdl += (*ppTmpEl)->AssRes(WorkVec, dCoef, *pXCurr, *pXPrimeCurr);
    }
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    if(ElemIter.fGetFirst(pTmpEl)) {       
+    if (ElemIter.fGetFirst(pTmpEl)) {       
        do {
 	  DEBUGCOUT(psElemNames[pTmpEl->GetElemType()]
 		    << "(" << pTmpEl->GetLabel() << ")" << std::endl);
@@ -464,17 +464,16 @@ void DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 void DataManager::ElemOutput(OutputHandler& OH) const
 {
 #if !defined(USE_ELEM_ITER)
-   for(Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
+   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
       (*ppTmpEl)->Output(OH);
    }   
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    VecIter<Elem*>& ElIter = (VecIter<Elem*>&)ElemIter;
-    if(ElIter.fGetFirst(pTmpEl)) {       
+    if (ElemIter.fGetFirst(pTmpEl)) {       
        do {	
 	  pTmpEl->Output(OH);
-       } while(ElIter.fGetNext(pTmpEl));
+       } while (ElemIter.fGetNext(pTmpEl));
     }
 #endif /* USE_ELEM_ITER */
 }
@@ -488,17 +487,16 @@ DataManager::ElemOutput(
 		) const
 {
 #if !defined(USE_ELEM_ITER)
-   for(Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
+   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
       (*ppTmpEl)->Output(OH, X, XP);
    }   
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    VecIter<Elem*>& ElIter = (VecIter<Elem*>&)ElemIter;
-    if(ElIter.fGetFirst(pTmpEl)) {       
+    if (ElemIter.fGetFirst(pTmpEl)) {       
        do {	
 	  pTmpEl->Output(OH, X, XP);
-       } while(ElIter.fGetNext(pTmpEl));
+       } while (ElemIter.fGetNext(pTmpEl));
     }
 #endif /* USE_ELEM_ITER */
 }
@@ -510,17 +508,16 @@ DataManager::ElemOutput_pch(
 		) const
 {
 #if !defined(USE_ELEM_ITER)
-   for(Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
+   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
       (*ppTmpEl)->Output_pch(pch);
    }   
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    VecIter<Elem*>& ElIter = (VecIter<Elem*>&)ElemIter;
-    if(ElIter.fGetFirst(pTmpEl)) {       
+    if (ElemIter.fGetFirst(pTmpEl)) {       
        do {	
 	  pTmpEl->Output_pch(pch);
-       } while(ElIter.fGetNext(pTmpEl));
+       } while (ElemIter.fGetNext(pTmpEl));
     }
 #endif /* USE_ELEM_ITER */
 }
@@ -533,17 +530,16 @@ DataManager::ElemOutput_f06(
 		) const
 {
 #if !defined(USE_ELEM_ITER)
-   for(Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
+   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
       (*ppTmpEl)->Output_f06(f06, X);
    }   
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    VecIter<Elem*>& ElIter = (VecIter<Elem*>&)ElemIter;
-    if(ElIter.fGetFirst(pTmpEl)) {       
+    if (ElemIter.fGetFirst(pTmpEl)) {       
        do {	
 	  pTmpEl->Output_f06(f06, X);
-       } while(ElIter.fGetNext(pTmpEl));
+       } while (ElemIter.fGetNext(pTmpEl));
     }
 #endif /* USE_ELEM_ITER */
 }
@@ -557,17 +553,16 @@ DataManager::ElemOutput_f06(
 		) const
 {
 #if !defined(USE_ELEM_ITER)
-   for(Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
+   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
       (*ppTmpEl)->Output_f06(f06, Xr, Xi);
    }   
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    VecIter<Elem*>& ElIter = (VecIter<Elem*>&)ElemIter;
-    if(ElIter.fGetFirst(pTmpEl)) {       
+    if (ElemIter.fGetFirst(pTmpEl)) {       
        do {	
 	  pTmpEl->Output_f06(f06, Xr, Xi);
-       } while(ElIter.fGetNext(pTmpEl));
+       } while (ElemIter.fGetNext(pTmpEl));
     }
 #endif /* USE_ELEM_ITER */
 }

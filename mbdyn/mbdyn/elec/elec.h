@@ -73,9 +73,6 @@ class Electric : virtual public Elem, public ElemWithDofs {
 
    /* Tipo di elemento elettrico (usato solo per debug ecc.) */
    virtual Electric::Type GetElectric(void) const = 0;
-
-   /* Output */
-   virtual void Output(OutputHandler& OH) const;
 };
 
 /* Electric - end */
@@ -124,8 +121,6 @@ class Accelerometer : virtual public Elem, public Electric {
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
-   
-   virtual void Output(OutputHandler& OH) const;
    
    virtual void SetInitialValue(VectorHandler& /* X */ ) const;
    virtual void SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const;
@@ -190,7 +185,6 @@ class TraslAccel : virtual public Elem, public Electric {
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
    
-   virtual void Output(OutputHandler& OH) const;
    virtual void SetInitialValue(VectorHandler& /* X */ ) const;
    virtual void SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const;
 
@@ -253,7 +247,6 @@ class RotAccel : virtual public Elem, public Electric {
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
    
-   virtual void Output(OutputHandler& OH) const;
    virtual void SetInitialValue(VectorHandler& /* X */ ) const;
    virtual void SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const;
 
@@ -314,8 +307,6 @@ class DispMeasure : virtual public Elem, public Electric {
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
-   
-   virtual void Output(OutputHandler& OH) const;
    
    /* Setta i valori iniziali delle variabili (e fa altre cose)
     * prima di iniziare l'integrazione */

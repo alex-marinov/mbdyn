@@ -392,6 +392,7 @@ LoadableCalls lc = {
 	NULL /* before_predict */ ,
 	after_predict /* */ ,
 	NULL /* update */ ,
+	NULL /* after_convergence */ ,
 	NULL /* i_get_initial_num_dof */ ,
 	NULL /* initial_work_space_dim */ ,
 	NULL /* initial_ass_jac */ ,

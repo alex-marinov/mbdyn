@@ -236,28 +236,6 @@ Body::AssRes(SubVectorHandler& WorkVec,
 }
 
 
-/* Output temporaneo, per controllo dei dati */
-#ifdef DEBUG
-void Body::Output(OutputHandler& OH) const
-#else /* !DEBUG */
-void Body::Output(OutputHandler& /* OH */ ) const
-#endif /* !DEBUG */
-{
-    if(fToBeOutput()) {      
-#ifdef DEBUG
-        if (DEBUG_LEVEL_MATCH(MYDEBUG_OUTPUT)) {
-            OH.Output() << "Body Element " << uLabel << ", linked to node " 
-	        << pNode->GetLabel() << ':' << std::endl 
-		<< "Mass: " << dMass << std::endl 
-		<< "Mass Center Position: " << std::endl << Xgc << std::endl 
-		<< "Static Moment Vector: " << std::endl << S << std::endl 
-		<< "Inertia Moment Matrix: " << std::endl << J << std::endl;
-	}
-#endif
-   }
-}
-
-
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler& 
 Body::InitialAssJac(VariableSubMatrixHandler& WorkMat,

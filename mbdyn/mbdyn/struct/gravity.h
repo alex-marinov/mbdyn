@@ -121,12 +121,6 @@ class Gravity : public Elem, public TplDriveOwner<Vec3> {
 				    const VectorHandler& XCurr, 
 				    const VectorHandler& XPrimeCurr);
 
-   /* output; si assume che ogni tipo di elemento sappia, attraverso
-    * l'OutputHandler, dove scrivere il proprio output */
-   virtual void Output(OutputHandler& /* OH */ ) const {
-      NO_OP;
-   };
-   
    virtual const Vec3& GetAcceleration(const Vec3& /* X */ ) const { 
       return Acc;
    };

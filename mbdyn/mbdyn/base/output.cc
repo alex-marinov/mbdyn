@@ -539,3 +539,65 @@ void OutputHandler::SetPrecision(int iNewPrecision)
 
 /* OutputHandler - end */
 
+
+/* ToBeOutput - begin */
+
+ToBeOutput::ToBeOutput(flag fOut) 
+: fOutput(fOut)
+{
+	NO_OP;
+}
+
+ToBeOutput::~ToBeOutput(void)
+{
+	NO_OP;
+}
+
+/* Regular output */
+void
+ToBeOutput::Output(OutputHandler& OH) const
+{
+	NO_OP;
+}
+
+/* Output of perturbed solution (modes ...) */
+void
+ToBeOutput::Output(OutputHandler& OH,
+		const VectorHandler& X, const VectorHandler& XP) const
+{
+	NO_OP;
+}
+
+/* Output of modes in NASTRAN's pch/f06 format */
+void
+ToBeOutput::Output_pch(std::ostream &pch) const
+{
+	NO_OP;
+}
+
+void
+ToBeOutput::Output_f06(std::ostream &f06, const VectorHandler& X) const
+{
+	NO_OP;
+}
+
+void
+ToBeOutput::Output_f06(std::ostream &f06,
+		const VectorHandler& Xr, const VectorHandler& Xi) const
+{
+	NO_OP;
+}
+
+flag
+ToBeOutput::fToBeOutput(void) const
+{
+  	return fOutput;
+}
+   
+void
+ToBeOutput::SetOutputFlag(flag f)
+{
+  	fOutput = f;
+}
+
+/* ToBeOutput - end */

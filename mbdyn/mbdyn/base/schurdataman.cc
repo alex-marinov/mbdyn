@@ -1746,6 +1746,35 @@ SchurDataManager::AfterPredict(void) const
 /* End of AfterPredict */
 
 
+void
+SchurDataManager::AfterConvergence(void) const
+{
+    DEBUGCOUT("Entering SchurDataManager::AfterConvergence()" << std::endl);
+
+    /* Nodi */   
+    for (int i = 0; i < iNumLocNodes; i++) {
+    	ASSERT(ppMyNodes[i] != NULL);
+    	(ppMyNodes[i])->AfterConvergence(*(VectorHandler*)pXCurr,
+				     *(VectorHandler*)pXPrimeCurr);
+    }
+  
+    /* Nodi adiacenti i cui valori influenzano gli assemblaggi degli elementi */
+    for (int i = 0; i < iNumIntNodes; i++) {
+    	ASSERT(ppIntNodes[i] != NULL);
+    	(ppIntNodes[i])->AfterConvergence(*(VectorHandler*)pXCurr,
+				      *(VectorHandler*)pXPrimeCurr);
+    }
+  
+    /* Elementi */
+    for (int i = 0; i < iNumLocElems; i++) {
+    	ASSERT(ppMyElems[i] != NULL);
+    	(ppMyElems[i])->AfterConvergence(*(VectorHandler*)pXCurr,
+				     *(VectorHandler*)pXPrimeCurr);
+    }        
+}
+/* End of AfterConvergence */
+
+
  /* stampa i risultati */
 void
 SchurDataManager::Output(void) const

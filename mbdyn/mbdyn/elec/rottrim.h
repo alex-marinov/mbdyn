@@ -93,8 +93,6 @@ public:
 	virtual void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 	
-	void Output(OutputHandler& /* OH */ ) const;
-	
 	/* assemblaggio jacobiano */
 	virtual VariableSubMatrixHandler& 
 	AssJac(VariableSubMatrixHandler& WorkMat,

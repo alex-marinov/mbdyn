@@ -112,9 +112,6 @@ class Joint
       return out << "  joint: " << GetLabel();
    };
    
-   /* Output dei vincoli */
-   virtual void Output(OutputHandler& OH) const;
-   
    /* Output specifico dei vincoli */
    std::ostream& Output(std::ostream& out, const char* sJointName,
 	           unsigned int uLabel, 

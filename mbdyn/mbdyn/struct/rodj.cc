@@ -259,14 +259,6 @@ SubVectorHandler& Rod::AssRes(SubVectorHandler& WorkVec,
 void Rod::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {      
-#ifdef DEBUG   
-      OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[Joint::ROD]
-	<< "\", linked to nodes " 
-	<< pNode1->GetLabel() << " and " << pNode2->GetLabel() << ':' << std::endl
-	<< "Initial length = " << dL0 << std::endl;
-#endif   
-      
       ASSERT(dElle > DBL_EPSILON);	
       Vec3 vTmp(v/dElle);      
       doublereal d = GetF();

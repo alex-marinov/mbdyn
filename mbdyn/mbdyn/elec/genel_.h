@@ -373,10 +373,6 @@ class GenelSpring
       *piNumCols = 2;
    };
    
-   void Output(OutputHandler& /* OH */ ) const {
-      NO_OP;
-   };
-   
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
      AssJac(VariableSubMatrixHandler& WorkMat,
@@ -507,10 +503,6 @@ class GenelSpringSupport
       *piNumCols = 1;
    };
    
-   void Output(OutputHandler& /* OH */ ) const {
-      NO_OP;
-   };
-   
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
      AssJac(VariableSubMatrixHandler& WorkMat,
@@ -614,10 +606,6 @@ class GenelCrossSpringSupport
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
       *piNumRows = 1;
       *piNumCols = 1;
-   };
-   
-   void Output(OutputHandler& /* OH */ ) const {
-      NO_OP;
    };
    
    /* assemblaggio jacobiano */
@@ -727,10 +715,6 @@ class GenelCrossSpringDamperSupport
       *piNumCols = 1;
    };
    
-   void Output(OutputHandler& /* OH */ ) const {
-      NO_OP;
-   };
-   
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
      AssJac(VariableSubMatrixHandler& WorkMat,
@@ -835,10 +819,6 @@ class GenelSpringDamperSupport
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
       *piNumRows = 1;
       *piNumCols = 1;
-   };
-   
-   void Output(OutputHandler& /* OH */ ) const {
-      NO_OP;
    };
    
    /* assemblaggio jacobiano */
@@ -953,10 +933,6 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
       *piNumRows = 2;
       *piNumCols = 2;
-   };
-   
-   void Output(OutputHandler& /* OH */ ) const {
-      NO_OP;
    };
    
    /* assemblaggio jacobiano */

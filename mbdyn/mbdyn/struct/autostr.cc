@@ -196,12 +196,6 @@ AutomaticStructElem::Output(OutputHandler& OH) const
 {
    ASSERT(pNode != NULL);
    if(pNode->fToBeOutput()) {
-#ifdef DEBUG   
-      OH.Output() << "Automatic structural element " << GetLabel() << std::endl
-	<< "Momentum: " << std::endl << Q <<std::endl << G << std::endl
-	<< "Momentum derivative: " << std::endl << QP << std::endl << GP << std::endl;
-#endif   
-   
       OH.Inertia() << std::setw(8) << GetLabel() << " " 
 	<< Q << " " << G << " " << QP << " " << GP << std::endl;
    }

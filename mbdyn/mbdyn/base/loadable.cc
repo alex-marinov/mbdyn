@@ -138,6 +138,14 @@ __update(LoadableElem* /* pEl */ ,
    	NO_OP;
 }
 
+static void 
+__after_convergence(const LoadableElem* /* pEl */ ,
+		VectorHandler& /* X */ ,
+		VectorHandler& /* XP */ )
+{
+   	NO_OP;
+}
+
 static unsigned int 
 __i_get_initial_num_dof(const LoadableElem* /* pEl */ )
 {
@@ -375,6 +383,10 @@ needsAirProperties(false)
 		calls->update = __update;
 	}
 
+	if (calls->after_convergence == NULL) {
+		calls->after_convergence = __after_convergence;
+	}
+
 	if (calls->i_get_initial_num_dof == NULL) {
 		calls->i_get_initial_num_dof = __i_get_initial_num_dof;
 	}
@@ -526,13 +538,20 @@ LoadableElem::AfterPredict(VectorHandler& X,
    	(*calls->after_predict)(this, X, XP);
 }
 
-
 void 
 LoadableElem::Update(const VectorHandler& XCurr, 
 		     const VectorHandler& XPrimeCurr)
 {
    	ASSERT(calls->update != NULL);
    	(*calls->update)(this, XCurr, XPrimeCurr);
+}
+
+void 
+LoadableElem::AfterConvergence(VectorHandler& X,
+		VectorHandler& XP)
+{
+   	ASSERT(calls->after_convergence != NULL);
+   	(*calls->after_convergence)(this, X, XP);
 }
 
 #ifdef USE_STRUCT_NODES

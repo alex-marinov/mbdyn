@@ -89,7 +89,6 @@ void DeformableDispHingeJoint::Output(OutputHandler& OH) const
 {
    
    if(fToBeOutput()) {
-      // Vec3 d(EulerAngles(pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()));
       Vec3 v(GetF());
       Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
 		    v, Zero3, pNode1->GetRCurr()*v, Zero3) << std::endl;	

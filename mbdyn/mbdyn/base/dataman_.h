@@ -33,7 +33,6 @@
 #ifndef DATAMAN__H
 #define DATAMAN__H
 
-extern const char sDMClassName[];
 extern void SetDrvHdl(DriveHandler*);
 extern const flag fDefaultSkipInitialJointAssembly;
 extern const doublereal dDefaultInitialStiffness;
@@ -42,4 +41,5 @@ extern const doublereal dDefaultInitialAssemblyToll;
 extern const integer iDefaultMaxInitialIterations;
 extern const char sDefaultOutputFileName[];
 
-#endif
+#endif /* DATAMAN__H */
+

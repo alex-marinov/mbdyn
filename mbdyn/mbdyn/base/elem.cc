@@ -49,21 +49,6 @@ Elem::~Elem(void)
 }
 
 
-/* ritorna il numero di Dofs per gli elementi che sono anche DofOwners */
-unsigned int Elem::iGetNumDof(void) const
-{
-   return 0;
-}
-
-      
-/* esegue operazioni sui dof di proprieta' dell'elemento */
-DofOrder::Order Elem::SetDof(unsigned int /* i */ ) const
-{
-   ASSERTMSG(0, "You shouldn't have called this function");
-   return DofOrder::UNKNOWN;
-}
-
-   
 /* assemblaggio matrici per autovalori */
 void Elem::AssEig(VariableSubMatrixHandler& /* WorkMatA */ ,
 		  VariableSubMatrixHandler& /* WorkMatB */ ,
@@ -76,36 +61,19 @@ void Elem::AssEig(VariableSubMatrixHandler& /* WorkMatA */ ,
 }
 
 
-/* Setta i valori iniziali delle variabili (e fa altre cose) 
- * prima di iniziare l'integrazione */
-void Elem::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const
+unsigned int 
+Elem::iGetNumDof(void) const
 {
-   NO_OP;
+	return 0;
 }
 
-
-/* Elaborazione vettori e dati prima e dopo la predizione
- * per MultiStepIntegrator */
-void Elem::BeforePredict(VectorHandler& /* X */ ,
-			 VectorHandler& /* XP */ ,
-			 VectorHandler& /* XPrev */ ,
-			 VectorHandler& /* XPPrev */ ) const 
+DofOrder::Order 
+Elem::SetDof(unsigned int) const
 {
-   NO_OP;
-}
-
-
-void Elem::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ ) 
-{
-   NO_OP;
-}
-
-         
-/* Aggiorna dati in base alla soluzione */
-void Elem::Update(const VectorHandler& /* XCurr */ , 
-		  const VectorHandler& /* XPrimeCurr */ ) 
-{
-   NO_OP;
+	std::cerr << psElemNames[GetElemType()] << "(" << GetLabel()
+		<< "): SetDof() is undefined because element "
+		"has no degrees of freedom" << std::endl;
+	THROW(ErrGeneric());
 }
 
 

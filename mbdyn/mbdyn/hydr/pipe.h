@@ -93,6 +93,7 @@ class Pipe : virtual public Elem, public HydraulicElem {
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
    
+   virtual void AfterConvergence(VectorHandler& X, VectorHandler& XP);
    virtual void Output(OutputHandler& OH) const;
    
    virtual void SetValue(VectorHandler& X, VectorHandler& XP ) const;
@@ -179,6 +180,7 @@ class Dynamic_pipe : virtual public Elem, public HydraulicElem {
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
    
+   virtual void AfterConvergence(VectorHandler& X, VectorHandler& XP);
    virtual void Output(OutputHandler& OH) const;
    
    virtual void SetValue(VectorHandler& X, VectorHandler& XP ) const;
@@ -271,6 +273,7 @@ class DynamicPipe : virtual public Elem, public HydraulicElem {
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
    
+   virtual void AfterConvergence(VectorHandler& X, VectorHandler& XP);
    virtual void Output(OutputHandler& OH) const;
    
    virtual void SetValue(VectorHandler& X, VectorHandler& XP ) const;

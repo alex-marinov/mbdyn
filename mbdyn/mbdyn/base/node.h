@@ -147,16 +147,6 @@ public DofOwnerOwner, public ToBeOutput {
    virtual void SetDofValue(const doublereal& dValue,
 			    unsigned int iDof, 
 			    unsigned int iOrder = 0) = 0;
-      
-   /* Metodi legati all'integrazione */
-   
-   /*
-    Output.  
-    Di default non fa nulla per nodi che non generano output
-    */
-   virtual void Output(OutputHandler& OH) const;
-   virtual void Output(OutputHandler& OH,
-		   const VectorHandler& X, const VectorHandler& XP) const;
 };
 
 /* Node - end */

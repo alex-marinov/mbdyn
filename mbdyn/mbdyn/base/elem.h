@@ -48,6 +48,7 @@
 #include <withlab.h>
 #include <dofown.h>
 
+#include <simentity.h>
 #include <node.h>
 
 extern const char* psElemNames[];
@@ -64,7 +65,7 @@ class Rotor;
 
 /* Elem - begin */
 
-class Elem : public WithLabel, public ToBeOutput {
+class Elem : public WithLabel, public SimulationEntity, public ToBeOutput {
    /*
     * Tipi di Elem. Lasciare sempre UNKNOWN = -1, cosi' il primo elemento
     * ha tipo zero, e l'ultima entry dell'enum, LAST...TYPE, e' uguale
@@ -112,7 +113,10 @@ class Elem : public WithLabel, public ToBeOutput {
    
    /* Tipo dell'elemento (usato solo per debug ecc.) */
    virtual Elem::Type GetElemType(void) const = 0;
-   
+  
+   /* inherited from SimulationEntity */
+   virtual unsigned int iGetNumDof(void) const;
+   virtual DofOrder::Order SetDof(unsigned int) const;
    
    /* funzioni di servizio */
 
@@ -131,13 +135,6 @@ class Elem : public WithLabel, public ToBeOutput {
     * E' usato per completare i singoli Dof relativi all'elemento.
     */
    
-   /* ritorna il numero di Dofs per gli elementi che sono anche DofOwners */
-   virtual unsigned int iGetNumDof(void) const;
-      
-   /* esegue operazioni sui dof di proprieta' dell'elemento */
-   virtual DofOrder::Order SetDof(unsigned int i) const;
-
-   
    /* funzioni proprie */
    
    /* Dimensioni del workspace */
@@ -149,20 +146,6 @@ class Elem : public WithLabel, public ToBeOutput {
 		       const VectorHandler& XCurr,
 		       const VectorHandler& XPrimeCurr);
 
-   /* Setta i valori iniziali delle variabili (e fa altre cose) 
-    * prima di iniziare l'integrazione */
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
-      
-   /* Elaborazione vettori e dati prima e dopo la predizione
-    * per MultiStepIntegrator */
-   virtual void BeforePredict(VectorHandler& X,
-      			      VectorHandler& XP,
-			      VectorHandler& XPrev,
-			      VectorHandler& XPPrev) const;
-   
-   virtual void AfterPredict(VectorHandler& X,
-			     VectorHandler& XP);
-      
    /* assemblaggio residuo */
    virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 				    doublereal dCoef,
@@ -195,11 +178,6 @@ class Elem : public WithLabel, public ToBeOutput {
    };
    /* ************************************************ */
 
-   /* Aggiorna dati in base alla soluzione */
-   virtual void Update(const VectorHandler& XCurr, 
-		       const VectorHandler& XPrimeCurr);
-	
-   
    /* Metodi per l'estrazione di dati "privati".
     * Si suppone che l'estrattore li sappia interpretare.
     * Come default non ci sono dati privati estraibili */
@@ -300,4 +278,5 @@ class InitialAssemblyElem
    
 /* InitialAssemblyElem - end */
 
-#endif
+#endif /* ELEM_H */
+

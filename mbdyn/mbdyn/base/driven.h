@@ -188,6 +188,13 @@ class DrivenElem : /* virtual */ public Elem, protected DriveOwner {
       }
    };
    
+   virtual void AfterConvergence(VectorHandler& X, VectorHandler& XP) {
+      ASSERT(pElem != NULL);
+      if (dGet() != 0.) {
+	 pElem->AfterConvergence(X, XP);
+      }
+   };
+
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
      AssJac(VariableSubMatrixHandler& WorkMat,

@@ -298,16 +298,6 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 void DistanceJoint::Output(OutputHandler& OH) const
 {
    if(fToBeOutput()) {      
-#ifdef DEBUG   
-      OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[Joint::DISTANCE] 
-	<< "\", linked to nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() << ':' << std::endl 
-	<< "Current distance: " << pGetDriveCaller()->dGet() << std::endl 
-	<< "Current reaction direction: " << std::endl << v << std::endl 
-	<< "Current reaction amplitude: " << dAlpha << std::endl;
-#endif  
-      
       doublereal d = dGet();
       Vec3 vTmp;      
       if (fabs(d) > DBL_EPSILON) {
@@ -1027,16 +1017,6 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 void DistanceJointWithOffset::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
-#ifdef DEBUG   
-      OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[Joint::DISTANCE] 
-	<< "\", linked to nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() << ':' << std::endl 
-	<< "Current distance: " << pGetDriveCaller()->dGet() << std::endl 
-	<< "Current reaction direction: " << std::endl << v << std::endl 
-	<< "Current reaction amplitude: " << dAlpha << std::endl;
-#endif     
-      
       doublereal d = dGet();
       Vec3 vTmp;      
       if (fabs(d) > DBL_EPSILON) {
@@ -1685,15 +1665,6 @@ SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
 void ClampJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {      
-#ifdef DEBUG   
-      OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[Joint::CLAMP] 
-	<< "\", linked to node " << pNode->GetLabel() << ':' << std::endl 
-	<< "Position: " << std::endl << XClamp << std::endl 
-	<< "Rotation Matrix: " << std::endl << RClamp << std::endl 
-	<< "Rotation Parameters: " << std::endl << gparam(RClamp) << std::endl;
-#endif   
-      
       Joint::Output(OH.Joints(), "Clamp", GetLabel(),
 		    F, M, F, M) << std::endl;
    }

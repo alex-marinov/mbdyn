@@ -72,17 +72,6 @@ Elem::Type Electric::GetElemType(void) const
    return Elem::ELECTRIC; 
 }
 
-
-void Electric::Output(OutputHandler& OH) const
-{
-   if (fToBeOutput()) {
-#ifdef DEBUG	
-      OH.Output() << "Electric Element " << uLabel 
-	<< ": sorry, not implemented yet" << std::endl;
-#endif	
-   }
-}   
-
 /* Electric - end */
 
 
@@ -262,23 +251,6 @@ Accelerometer::AssRes(SubVectorHandler& WorkVec,
 }
 
 
-/* Output (provvisorio) */
-void Accelerometer::Output(OutputHandler& OH) const
-{
-   if(fToBeOutput()) {      
-#ifdef DEBUG   
-      OH.Output() << "Accelerometer " << uLabel << ':' << std::endl
-	<< "linked to structural node " << pStrNode->GetLabel() 
-	<< " and to abstract node " << pAbsNode->GetLabel() << std::endl
-	<< "Omega: " << dOmega
-	<< ", Tau: " << dTau
-	<< ", Csi: " << dCsi
-	<< ", Kappa: " << dKappa << std::endl;
-#endif   
-   }   
-}
-
-
 unsigned int Accelerometer::iGetNumDof(void) const
 {
    return 3;
@@ -422,18 +394,6 @@ TraslAccel::AssRes(SubVectorHandler& WorkVec,
 }
 
 
-/* Output (provvisorio) */
-void TraslAccel::Output(OutputHandler& OH) const
-{
-   if(fToBeOutput()) {      
-#ifdef DEBUG   
-      OH.Output() << "TraslAccel " << uLabel << ':' << std::endl
-	<< "linked to structural node " << pStrNode->GetLabel() 
-	<< " and to abstract node " << pAbsNode->GetLabel() << std::endl;
-#endif   
-   }   
-}
-
 unsigned int TraslAccel::iGetNumDof(void) const
 {
    return 1;
@@ -571,18 +531,6 @@ RotAccel::AssRes(SubVectorHandler& WorkVec,
 }
 
 
-/* Output (provvisorio) */
-void RotAccel::Output(OutputHandler& OH) const
-{
-   if(fToBeOutput()) {      
-#ifdef DEBUG   
-      OH.Output() << "RotAccel " << uLabel << ':' << std::endl
-	<< "linked to structural node " << pStrNode->GetLabel() 
-	<< " and to abstract node " << pAbsNode->GetLabel() << std::endl;
-#endif   
-   }   
-}
-
 unsigned int RotAccel::iGetNumDof(void) const
 {
    return 1;
@@ -706,16 +654,6 @@ DispMeasure::AssRes(SubVectorHandler& WorkVec,
    WorkVec.fPutCoef(1, d-a);
    
    return WorkVec;
-}
-
-
-/* Output (provvisorio) */
-void DispMeasure::Output(OutputHandler& /* OH */ ) const
-{
-   /*
-   if (fToBeOutput()) {    
-   }
-    */
 }
 
 

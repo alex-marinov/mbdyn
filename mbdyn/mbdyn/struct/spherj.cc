@@ -211,16 +211,6 @@ SubVectorHandler& SphericalHingeJoint::AssRes(SubVectorHandler& WorkVec,
 void SphericalHingeJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
-#ifdef DEBUG   
-      OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[Joint::SPHERICALHINGE] 
-	<< "\", linked to nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() << ':' << std::endl 
-	<< "Distance from node 1 (node reference frame): " << std::endl << d1 << std::endl 
-	<< "Distance from node 2 (node reference frame): " << std::endl << d2 << std::endl 
-	<< "Current reaction: " << std::endl << F << std::endl;
-#endif   
-         
       Mat3x3 RTmp((pNode2->GetRCurr()*R2h).Transpose()*(pNode1->GetRCurr()*R1h));
       
       Joint::Output(OH.Joints(), "SphericalHinge", GetLabel(),
@@ -580,14 +570,6 @@ SubVectorHandler& PinJoint::AssRes(SubVectorHandler& WorkVec,
 void PinJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
-#ifdef DEBUG   
-      OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[Joint::PIN] 
-	<< "\", linked to node " << pNode->GetLabel() << ':' << std::endl
-	<< "Distance from node (node reference frame): " << std::endl << d << std::endl 
-	<< "Current reaction: " << std::endl << F << std::endl;   
-#endif   
-   
       Joint::Output(OH.Joints(), "Pin", GetLabel(), F, Zero3, F, Zero3) 
 	<< " " << EulerAngles(pNode->GetRCurr()) << std::endl;      
    }   
