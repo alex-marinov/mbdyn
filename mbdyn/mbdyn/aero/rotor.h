@@ -129,6 +129,9 @@ class Rotor
    /* Calcola la distanza di un punto dall'asse di rotazione in coordinate 
     * adimensionali */
    virtual doublereal dGetPos(const Vec3& X) const;
+
+   /* Combina i due ... */
+   virtual void GetPos(const Vec3& X, doublereal& dr, doublereal& dp) const;
    
    /* Calcola la velocita' di traslazione del rotore */
    virtual void InitParam(void);
@@ -483,6 +486,21 @@ class ManglerRotor : virtual public Elem, public Rotor {
 
 
 /* DynamicInflowRotor - begin */
+
+/*
+ * Based on the 3 state dynamic inflow by Pitt-Peters:
+ * 
+ * D. M. Pitt,  D. A. Peters,
+ * "Theoretical Prediction of Dynamic Inflow Derivatives",
+ * Vertica, Vol. 5, pp.21-34, 1981
+ *
+ * as discussed by Chen in:
+ *
+ * R. T. N. Chen,
+ * "A Survey of Nonuniform Inflow Models for Rotorcraft
+ * Flight Dynamics and Control Applications"
+ * Vertica, Vol 14, No. 2, pp.147-184, 1990
+ */
 
 class DynamicInflowRotor : virtual public Elem, public Rotor {
  protected:
