@@ -99,6 +99,7 @@ D. Code:
 	- add orthogonality test when reading orientation matrix
 	- append constitutive law output, if any, to elements' output
 	  (DONE infrastructure, shock absorber and rods)
+	- merge tool to generate ADAMS/View .cmd models from raw output
 
 
 
@@ -114,6 +115,8 @@ E. Bugs/missing features:
 	  of node sets to reduce the amount of FEM nodes that are passed
 	  to the model element (e.g. no nodes without inertia that do not
 	  participate in the interface)
+	- clarify how to increase the size of models utils/femgen can
+	  handle
 
 
 
