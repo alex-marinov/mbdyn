@@ -6,6 +6,9 @@ Copyright (C) 1996-2004
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Tue Aug 31 15:42:59 CEST 2004 Pierangelo Masarati <masarati@aero.polimi.it>
+ - Honor describe dofs in initial assembly
+
 *** Thu Aug 19 14:16:31 CEST 2004 Pierangelo Masarati <masarati@aero.polimi.it>
  - Chaco partitioning works; issues on quality of partitions
 
