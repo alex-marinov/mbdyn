@@ -68,9 +68,9 @@ protected:
 
 	/* configuration of reference point;
 	 * from ModalNode iff pModalNode == 0 */
-	Vec3	x;
-	Mat3x3	R;
-	Mat3x3	RT;
+	mutable Vec3	x;
+	mutable Mat3x3	R;
+	mutable Mat3x3	RT;
 
 	unsigned int NModes;
 	unsigned int NStrNodes;

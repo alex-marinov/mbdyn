@@ -2194,37 +2194,29 @@ Modal::dGetM(void) const
 Vec3
 Modal::GetS_int(void) const
 {
-	Mat3x3 Rtmp;
 	if (pModalNode != 0) {
-		Rtmp = pModalNode->GetRCurr();
-	} else {
-		Rtmp = R;
+		x = pModalNode->GetXCurr();
+		R = pModalNode->GetRCurr();
 	}
 
-	Vec3 S = Rtmp*(Inv2+Inv3jaj);
-
-	return S;
+	return R*(Inv2+Inv3jaj) + x*dMass;
 }
 
 /* momento d'inerzia */
 Mat3x3
 Modal::GetJ_int(void) const
 {
-	Mat3x3 Rtmp;
 	if (pModalNode != 0) {
-		Rtmp = pModalNode->GetRCurr();
-	} else {
-		Rtmp = R;
+		x = pModalNode->GetXCurr();
+		R = pModalNode->GetRCurr();
 	}
-	Mat3x3 RT = Rtmp.Transpose();
+	RT = R.Transpose();
 
-	Mat3x3 J = Rtmp*(Inv7+Inv8jaj.Symm2()
+	return R*(Inv7+Inv8jaj.Symm2()
 #ifdef MODAL_USE_INV9
 			-Inv9jkajak
 #endif /* MODAL_USE_INV9 */
-			)*RT;
-
-	return J;
+			)*RT - Mat3x3(x, x*dMass);
 }
 
 
