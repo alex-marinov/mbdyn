@@ -264,6 +264,7 @@ protected:
 
 	int iGetDescription_(const char* const s);
 	void Set_(void);
+	void SetEnv_(void);
 	void Remark_(void);
 	virtual bool GetDescription_int(const char *s);
 	virtual void Eof(void);

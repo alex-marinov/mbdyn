@@ -442,6 +442,18 @@ This directive simply invokes the math parser to evaluate the expression
 \kw{math\_expression} and then discards the result. It can be useful
 to declare new variables, or to set the values of existing ones.
 
+\subsection{Setenv}
+The \kw{setenv} directive:
+\begin{verbatim}
+    <card> ::= setenv : [ overwrite , ] " <varname> [ = <value> ] " ;
+\end{verbatim}
+This directive sets the environment variable \kw{<varname>} 
+to the value \kw{<value>}, if given; otherwise, the variable
+is unset.
+If the keyword \kw{overwrite} is set, the variable is overwritten, 
+if already set.
+See \kw{setenv(3)} and \kw{unsetenv(3)} man pages for details.
+
 \subsection{Remark}
 The \kw{remark} directive:
 \begin{verbatim}
@@ -1454,10 +1466,20 @@ Finally there are some miscellaneous points:
     This can happen everywhere in the text {\bf except} in the middle 
     of a keyword.
     
+    \item (UN*X systems) Whenever a file name contains a portion
+    of the form \verb;$VARNAME; or \verb;${VARNAME};, appropriate
+    expansion from environment is performed; \verb;VARNAME; is
+\begin{verbatim}
+    VARNAME ::= [_a-zA-Z][_a-zA-Z0-9]*
+\end{verbatim}
+    namely, it must begin with a letter or an underscore, and can be
+    made of underscores, letters and digits.
+
     \item (UN*X systems) Whenever a file name is required, the shell-like
     syntax for home directories (i.e.\ \verb1~/filename1
     or \verb1~user/filename1 is automatically resolved if legal [user and]
     filename values are inserted.
+    Home expansion occurs after environment variable expansion (see above).
 
     \item The \kw{license} and the \kw{warranty} commands
     respectively show the license and the warranty statement under 

@@ -326,16 +326,174 @@ IncludeParser::GetDescription_int(const char *s)
       		}
       		return true;
 
-#endif /* USE_INCLUDE_PARSER*/
+#endif /* USE_INCLUDE_PARSER */
 		
    	}
 	
 	return HighParser::GetDescription_int(s);
 }
 
+/*
+ * returns a dynamically allocated string with environment variables expanded
+ */
 char *
-resolve_filename(const char *filename)
+expand_environment(const char *in)
 {
+	char		*out = NULL;
+#define MAXSUBST		10
+	struct {
+		unsigned	start;
+		unsigned	end;
+		char		*value;
+		unsigned	length;
+	} 		subst[MAXSUBST];
+	unsigned	cnt = 0, c;
+
+	DEBUGCOUT(">> expand_environment: " << in << std::endl);
+
+	subst[cnt].start = 0;
+	subst[cnt].end = 0;
+	subst[cnt].value = NULL;
+	subst[cnt].length = 0;
+	for (c = 0; in[c]; c++) {
+		if (in[c] == '$') {
+			if (cnt >= MAXSUBST - 2) {
+				silent_cerr("too many substitutions in \""
+						<< in << "\"" << std::endl);
+				return NULL;
+			}
+
+			subst[cnt].end = c;
+			if (in[c + 1] == '$') {
+				c++;
+				subst[cnt].start = c;
+				subst[cnt].value = "";
+				subst[cnt].length = 0;
+				continue;
+			}
+
+			c++;
+			unsigned namepos = c;
+			if (in[c] == '{') {
+				char *end = strchr(&in[c], '}');
+
+				if (end == NULL) {
+					silent_cerr("missing trailing \"}\" "
+							"in \"" << in << "\""
+							<< std::endl);
+					return NULL;
+				}
+
+				namepos++;
+				unsigned l = end - &in[namepos];
+				char buf[l + 1];
+				memcpy(buf, &in[namepos], l);
+				buf[l] = '\0';
+				subst[cnt].value = getenv(buf);
+				if (subst[cnt].value == NULL) {
+					silent_cerr("unable to find "
+							"environment "
+							"variable \""
+							<< buf << "\""
+							<< std::endl);
+					return NULL;
+				}
+
+				c = end - &in[0] + 1;
+
+			} else {
+				if (in[c] != '_' && !isalpha(in[c])) {
+					silent_cerr("illegal leading char "
+							"in environment "
+							"variable name in \""
+							<< in << "\""
+							<< std::endl);
+					return NULL;
+				}
+
+				for (c++; in[c]; c++) {
+					if (in[c] != '_' && !isalnum(in[c])) {
+						break;
+					}
+				}
+
+				unsigned l = &in[c] - &in[namepos];
+				char buf[l + 1];
+				memcpy(buf, &in[namepos], l);
+				buf[l] = '\0';
+
+				subst[cnt].value = getenv(buf);
+				if (subst[cnt].value == NULL) {
+					silent_cerr("unable to find "
+							"environment "
+							"variable \""
+							<< buf << "\""
+							<< std::endl);
+					return NULL;
+				}
+			}
+
+			/* can't be NULL */
+			subst[cnt].length = strlen(subst[cnt].value);
+
+			cnt++;
+			subst[cnt].start = c;
+
+			/* because it's incremented again by "for" */
+			c--;
+		}
+	}
+	subst[cnt].end = c;
+	subst[cnt].value = NULL;
+	subst[cnt].length = 0;
+
+	unsigned len = 0;
+	for (c = 0; c < cnt; c++) {
+		len += (subst[c].end - subst[c].start) + subst[c].length;
+	}
+	len += subst[c].end - subst[c].start;
+
+	SAFENEWARR(out, char, len + 1);
+
+	unsigned p = 0;
+	for (c = 0; c < cnt; c++) {
+		unsigned l = subst[c].end - subst[c].start;
+		if (l > 0) {
+			memcpy(&out[p], &in[subst[c].start], l);
+			p += l;
+		}
+		if (subst[c].length > 0) {
+			memcpy(&out[p], subst[c].value, subst[c].length);
+			p += subst[c].length;
+		}
+	}
+	unsigned l = subst[c].end - subst[c].start;
+	if (l > 0) {
+		memcpy(&out[p], &in[subst[c].start], l);
+		p += l;
+	}
+	out[p] = '\0';
+
+	DEBUGCOUT("<< expand_environment: " << out << std::endl);
+
+	return out;
+}
+
+char *
+resolve_filename(const char *filename_in)
+{
+	char	*res = NULL,
+		*filename = NULL;;
+
+	if (strchr(filename_in, '$')) {
+		filename = expand_environment(filename_in);
+		if (filename == NULL) {
+			goto error_return;
+		}
+	} else {
+		filename = (char *)filename_in;
+	}
+	
    	if (filename[0] == '~') {
       		filename++;
       		if (filename[0] == '/') {
@@ -344,20 +502,21 @@ resolve_filename(const char *filename)
 	 
 	 		home = getenv("HOME");
 	 		if (home == NULL) {	 	 
-	    			return NULL;
+	    			goto error_return;
 	 		}
 	 
 	 		char *s = NULL;
 	 		int l, ll;
 	 
 	 		l = strlen(home);
-			ll = l+strlen(filename)+1;
+			ll = l + strlen(filename) + 1;
 	 		SAFENEWARR(s, char, ll);
 	 
 	 		strncpy(s, home, l);
-	 		strcpy(s+l, filename);
+	 		strcpy(s + l, filename);
 	 
-	 		return s;
+	 		res = s;
+			goto error_return;
 
 #if defined(HAVE_PWD_H)
       		} else {
@@ -365,39 +524,53 @@ resolve_filename(const char *filename)
 	 
 	 		p = strchr(filename, '/');
 	 		if (p == NULL) {
-	    			return NULL;
+	    			goto error_return;
 	 		} 
 	 
-	 		char *s = NULL;
-	 		int l = p-filename;
+	 		int l = p - filename;
 	 
-	 		SAFENEWARR(s, char, l+1);
-	 		strncpy(s, filename, l);
-	 		s[l] = '\0';
+	 		char buf[l + 1];
+	 		memcpy(buf, filename, l);
+	 		buf[l] = '\0';
 
 	 		/* do passwd stuff */
 	 		struct passwd *pw;
 	 
-	 		pw = getpwnam(s);
-	 		SAFEDELETEARR(s);
+	 		pw = getpwnam(buf);
 	 
 	 		if (pw == NULL ) {
-	    			return NULL;
+	    			goto error_return;
 	 		}
 	 
 	 		l = strlen(pw->pw_dir);
-			int ll = l+strlen(p)+1;
-	 		s = NULL;
+			int ll = l + strlen(p) + 1;
+	 		char *s = NULL;
 	 		SAFENEWARR(s, char, ll);
 	 		strncpy(s, pw->pw_dir, l);
-	 		strcpy(s+l, p);
+	 		strcpy(s + l, p);
 	 
-	 		return s;
+	 		res = s;
+			goto error_return;
 #endif /* HAVE_PWD_H */
       		}
-   	} else {
-      		return NULL;
    	}
+
+error_return:;
+	if (filename != NULL) {
+		if (res == NULL) {
+			if (filename != filename_in) {
+				res = filename;
+			} else {
+				SAFESTRDUP(res, filename_in);
+			}
+		} else {
+			if (filename != filename_in) {
+				SAFEDELETEARR(filename);
+			}
+		}
+	}
+
+	return res;
 }
 
 const char* 
@@ -408,6 +581,7 @@ IncludeParser::GetFileName(enum Delims Del)
 	
    	if (stmp == NULL) {
       		return s;
+
    	} else {
       		if (strlen(stmp) >= iDefaultBufSize) {
 	 		/* errore */

@@ -372,6 +372,60 @@ HighParser::Set_(void)
 	GetReal();
 }
 
+void
+HighParser::SetEnv_(void)
+{
+     	if (FirstToken() == UNKNOWN) {
+     		silent_cerr("Parser error in HighParser::SetEnv_(), "
+     			"colon expected at line "
+     			<< GetLineData() << std::endl);
+     		THROW(HighParser::ErrColonExpected());
+	}
+
+	int overwrite = 0;
+	if (IsKeyWord("overwrite")) {
+		overwrite = 1;
+	}
+
+	const char *ava = GetStringWithDelims();
+	if (ava == NULL) {
+		silent_cerr("unable to get AVA for \"setenv\" at line "
+				<< GetLineData() << std::endl);
+		THROW(ErrGeneric());
+	}
+
+	char *avasep = strchr(ava, '=');
+	if (avasep == NULL) {
+		if (unsetenv(ava)) {
+			silent_cerr("unable to unset the environment variable "
+					"\"" << ava << "\" at line "
+					<< GetLineData() << std::endl);
+			THROW(ErrGeneric());
+		}
+
+
+	} else {
+		if (avasep == ava) {
+			silent_cerr("illegal AVA \"" << ava
+					<< "\" at line "
+					<< GetLineData() << std::endl);
+			THROW(ErrGeneric());
+		}
+
+		unsigned l = avasep - ava;
+		char buf[l + 1];
+		memcpy(buf, ava, l);
+		buf[l] = '\0';
+		avasep++;
+		if (setenv(buf, avasep, overwrite)) {
+			silent_cerr("unable to set the environment variable \""
+					<< buf << "\" to \"" << avasep 
+					<< "\" at line " << GetLineData()
+					<< std::endl);
+			THROW(ErrGeneric());
+		}
+	}
+}
 
 void
 HighParser::Remark_(void)
@@ -451,10 +505,14 @@ HighParser::GetDescription_int(const char *s)
 		Set_();
 		return true;
 
+	/* sets environment variable */
+	} else if (strcmp(s, "setenv") == 0) {
+		SetEnv_();
+		return true;
+
 	/* exits with no error */
 	} else if (strcmp(s, "exit") == 0) {
 		THROW(NoErr());
-
 	}
 
 	return false;
