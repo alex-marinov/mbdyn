@@ -29,7 +29,7 @@
  */
 
 #ifndef INLINE_H
-# define INLINE_H
+#define INLINE_H
 
 #include <joint.h>
 
@@ -61,12 +61,7 @@ class InLineJoint : virtual public Elem, public Joint {
       return 2;
    };
       
-#ifdef DEBUG
-   virtual DofOrder::Order SetDof(unsigned int i) const
-#else
-   virtual DofOrder::Order SetDof(unsigned int /* i */ ) const
-#endif
-   {
+   virtual DofOrder::Order SetDof(unsigned int i) const {
       ASSERT(i >= 0 && i < 2);
       return DofOrder::ALGEBRAIC;
    };
@@ -95,7 +90,8 @@ class InLineJoint : virtual public Elem, public Joint {
       return 4; 
    };
    
-   virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+   virtual void 
+   InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
       *piNumRows = 24+4; 
       *piNumCols = 24+4; 
    };
@@ -108,11 +104,7 @@ class InLineJoint : virtual public Elem, public Joint {
    SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
 				   const VectorHandler& XCurr);
    
-   /* Setta il valore iniziale delle proprie variabili */
-   virtual void SetInitialValue(VectorHandler& X) const;
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
-
-  /* *******PER IL SOLUTORE PARALLELO******** */        
+   /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
    virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
@@ -123,7 +115,6 @@ class InLineJoint : virtual public Elem, public Joint {
      NdLabels[1] = pNode2->GetLabel();
    };
    /* ************************************************ */
-
 };
 
 /* InLineJoint - end */
@@ -159,12 +150,7 @@ class InLineWithOffsetJoint : virtual public Elem, public Joint {
       return 2;
    };
       
-#ifdef DEBUG
-   virtual DofOrder::Order SetDof(unsigned int i) const
-#else
-   virtual DofOrder::Order SetDof(unsigned int /* i */ ) const
-#endif
-   {
+   virtual DofOrder::Order SetDof(unsigned int i) const {
       ASSERT(i >= 0 && i < 2);
       return DofOrder::ALGEBRAIC;
    };
@@ -206,10 +192,6 @@ class InLineWithOffsetJoint : virtual public Elem, public Joint {
    SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
 				   const VectorHandler& XCurr);
    
-   /* Setta il valore iniziale delle proprie variabili */
-   virtual void SetInitialValue(VectorHandler& X) const;
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
-
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
@@ -221,9 +203,9 @@ class InLineWithOffsetJoint : virtual public Elem, public Joint {
      NdLabels[1] = pNode2->GetLabel();
    };
    /* ************************************************ */
-
 };
 
 /* InLineWithOffsetJoint - end */
 
-#endif
+#endif /* INLINE_H */
+

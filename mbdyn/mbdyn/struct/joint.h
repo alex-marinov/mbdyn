@@ -61,6 +61,7 @@ class Joint
       UNIVERSALHINGE,
       UNIVERSALPIN,
       PLANEHINGE,
+      PLANEROTATION,
       PLANEPIN,
       AXIALROTATION,
       PLANEDISP,

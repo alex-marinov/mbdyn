@@ -93,7 +93,7 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Ridimensiona la sottomatrice in base alle esigenze */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
    
    /* Recupera gli indici delle varie incognite */
@@ -246,7 +246,7 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
       
@@ -346,7 +346,7 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Equazioni: vedi joints.dvi */
@@ -598,7 +598,7 @@ PlaneHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
@@ -737,6 +737,610 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
 /* PlaneHingeJoint - end */
 
 
+/* PlaneRotationJoint - begin */
+
+/* Costruttore non banale */
+PlaneRotationJoint::PlaneRotationJoint(unsigned int uL, const DofOwner* pDO,
+				 const StructNode* pN1, const StructNode* pN2,
+				 const Mat3x3& R1hTmp, const Mat3x3& R2hTmp,
+				 flag fOut)
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::PLANEHINGE, pDO, fOut), 
+pNode1(pN1), pNode2(pN2),
+R1h(R1hTmp), R2h(R2hTmp), M(0.)
+{
+   NO_OP;
+}
+
+
+/* Distruttore banale */
+PlaneRotationJoint::~PlaneRotationJoint(void)
+{
+   NO_OP;
+};
+
+
+/* Contributo al file di restart */
+std::ostream& PlaneRotationJoint::Restart(std::ostream& out) const
+{
+   Joint::Restart(out) << ", plane hinge, "
+     << pNode1->GetLabel() 
+     << ", hinge, reference, node, 1, ", (R1h.GetVec(1)).Write(out, ", ")
+     << ", 2, ", (R1h.GetVec(2)).Write(out, ", ") << ", "
+     << pNode2->GetLabel() 
+     << ", hinge, reference, node, 1, ", (R2h.GetVec(1)).Write(out, ", ")
+     << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ';' << std::endl;
+   
+   return out;
+}
+
+
+/* Assemblaggio jacobiano */
+VariableSubMatrixHandler& 
+PlaneRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+			    doublereal dCoef,
+			    const VectorHandler& /* XCurr */ ,
+			    const VectorHandler& /* XPrimeCurr */ )
+{
+   DEBUGCOUT("Entering PlaneRotationJoint::AssJac()" << std::endl);
+   
+   /* Setta la sottomatrice come piena (e' un po' dispersivo, ma lo jacobiano 
+    * e' complicato */					
+   FullSubMatrixHandler& WM = WorkMat.SetFull();
+   
+   /* Ridimensiona la sottomatrice in base alle esigenze */
+   integer iNumRows = 0;
+   integer iNumCols = 0;
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   
+   /* Recupera gli indici delle varie incognite */
+   integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
+   integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex()+3;
+   integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex()+3;
+   integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex()+3;
+   integer iFirstReactionIndex = iGetFirstIndex();
+
+   /* Setta gli indici delle equazioni */
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {	
+      WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.fPutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+   }
+   
+   for (int iCnt = 1; iCnt <= 2; iCnt++) {	
+      WM.fPutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);
+      WM.fPutColIndex(6+iCnt, iFirstReactionIndex+iCnt);
+   }
+   
+   /* Recupera i dati che servono */
+   const Mat3x3& R1(pNode1->GetRRef());
+   const Mat3x3& R2(pNode2->GetRRef());   
+   Mat3x3 R1hTmp(R1*R1h);
+   Mat3x3 R2hTmp(R2*R2h);
+   
+   /* Suppongo che le reazioni F, M siano gia' state aggiornate da AssRes;
+    * ricordo che la forza F e' nel sistema globale, mentre la coppia M
+    * e' nel sistema locale ed il terzo termine, M(3), e' nullo in quanto
+    * diretto come l'asse attorno al quale la rotazione e' consentita */
+   
+      
+   /* 
+    * La cerniera piana ha le prime 3 equazioni uguali alla cerniera sferica;
+    * inoltre ha due equazioni che affermano la coincidenza dell'asse 3 del
+    * riferimento solidale con la cerniera visto dai due nodi.
+    * 
+    *      (R1 * R1h * e1)^T * (R2 * R2h * e3) = 0
+    *      (R1 * R1h * e2)^T * (R2 * R2h * e3) = 0
+    * 
+    * A queste equazioni corrisponde una reazione di coppia agente attorno 
+    * agli assi 1 e 2 del riferimento della cerniera. La coppia attorno 
+    * all'asse 3 e' nulla per definizione. Quindi la coppia nel sistema 
+    * globale e':
+    *      -R1 * R1h * M       per il nodo 1,
+    *       R2 * R2h * M       per il nodo 2
+    * 
+    * 
+    *       xa   ga                   xb   gb                     F     M 
+    * Qa |  0    0                     0    0                     I     0  | | xa |   | -F           |
+    * Ga |  0    c*(F/\da/\-(Sa*M)/\)  0    0                     da/\  Sa | | ga |   | -da/\F-Sa*M |
+    * Qb |  0    0                     0    0                    -I     0  | | xb | = |  F           |
+    * Gb |  0    0                     0   -c*(F/\db/\-(Sb*M)/\) -db/\ -Sb | | gb |   |  db/\F+Sb*M |
+    * F  | -c*I  c*da/\                c*I -c*db/\                0     0  | | F  |   |  xa+da-xb-db |
+    * M1 |  0    c*Tb1^T*Ta3/\         0    c*Ta3^T*Tb1/\         0     0  | | M  |   |  Sb^T*Ta3    |
+    * M2 |  0    c*Tb2^T*Ta3/\         0    c*Ta3^T*Tb2/\         0     0  | 
+    * 
+    * con da = R1*d01, db = R2*d02, c = dCoef,
+    * Sa = R1*R1h*[e1,e2], Sb = R2*R2h*[e1, e2],
+    * Ta3 = R1*R1h*e3, Tb1 = R2*R2h*e1, Tb2 = R2*R2h*e2
+    */
+
+   /* Moltiplica il momento per il coefficiente del metodo */
+   Vec3 MTmp = M*dCoef;
+
+   Vec3 e3a(R1hTmp.GetVec(3));
+   Vec3 e1b(R2hTmp.GetVec(1));
+   Vec3 e2b(R2hTmp.GetVec(2));
+   MTmp = e2b*MTmp.dGet(1)-e1b*MTmp.dGet(2);
+   
+   Mat3x3 MWedgee3aWedge(MTmp, e3a);
+   Mat3x3 e3aWedgeMWedge(e3a, MTmp);
+   
+   WM.Sub(1, 1, MWedgee3aWedge);
+   WM.Add(1, 4, e3aWedgeMWedge);
+   
+   WM.Add(4, 1, MWedgee3aWedge);   
+   WM.Sub(4, 4, e3aWedgeMWedge);      
+   
+   /* Contributo del momento alle equazioni di equilibrio dei nodi */
+   Vec3 Tmp1(e2b.Cross(e3a));
+   Vec3 Tmp2(e3a.Cross(e1b));
+   
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {
+      doublereal d = Tmp1.dGet(iCnt);
+      WM.fPutCoef(iCnt, 7, d);
+      WM.fPutCoef(3+iCnt, 7, -d);
+      d = Tmp2.dGet(iCnt);
+      WM.fPutCoef(iCnt, 8, d);
+      WM.fPutCoef(3+iCnt, 8, -d);
+   }         
+   
+   /* Modifica: divido le equazioni di vincolo per dCoef */
+   
+   /* Equazione di vincolo del momento
+    * 
+    * Attenzione: bisogna scrivere il vettore trasposto
+    *   (Sb[1]^T*(Sa[3]/\))*dCoef
+    * Questo pero' e' uguale a:
+    *   (-Sa[3]/\*Sb[1])^T*dCoef,
+    * che puo' essere ulteriormente semplificato:
+    *   (Sa[3].Cross(Sb[1])*(-dCoef))^T;
+    */
+   
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {
+      doublereal d = Tmp1.dGet(iCnt);
+      WM.fPutCoef(7, iCnt, d);
+      WM.fPutCoef(7, 3+iCnt, -d);
+      d = Tmp2.dGet(iCnt);
+      WM.fPutCoef(8, iCnt, -d);
+      WM.fPutCoef(8, 3+iCnt, d);
+   }   
+   
+   return WorkMat;
+}
+
+
+/* Assemblaggio residuo */
+SubVectorHandler& PlaneRotationJoint::AssRes(SubVectorHandler& WorkVec,
+					  doublereal dCoef,
+					  const VectorHandler& XCurr, 
+					  const VectorHandler& /* XPrimeCurr */ )
+{
+   DEBUGCOUT("Entering PlaneRotationJoint::AssRes()" << std::endl);
+      
+   /* Dimensiona e resetta la matrice di lavoro */
+   integer iNumRows = 0;
+   integer iNumCols = 0;
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.Resize(iNumRows);
+   WorkVec.Reset(0.);
+      
+   /* Indici */
+   integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex()+3;
+   integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex()+3;
+   integer iFirstReactionIndex = iGetFirstIndex();
+   
+   /* Indici dei nodi */
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {	
+      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+   }   
+   
+   /* Indici del vincolo */
+   for (int iCnt = 1; iCnt <= 2; iCnt++) {
+      WorkVec.fPutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);
+   }
+
+   /* Aggiorna i dati propri */
+   M = Vec3(XCurr.dGetCoef(iFirstReactionIndex+1),
+	    XCurr.dGetCoef(iFirstReactionIndex+2),
+	    0.);
+
+   /*
+    * FIXME: provare a mettere "modificatori" di forza/momento sui gdl
+    * residui: attrito, rigidezze e smorzamenti, ecc.
+    */
+   
+   /* Recupera i dati */
+   const Mat3x3& R1(pNode1->GetRCurr());
+   const Mat3x3& R2(pNode2->GetRCurr());
+   
+   /* Costruisce i dati propri nella configurazione corrente */
+   Mat3x3 R1hTmp(R1*R1h);
+   Mat3x3 R2hTmp(R2*R2h);
+   
+   Vec3 e3a(R1hTmp.GetVec(3));
+   Vec3 e1b(R2hTmp.GetVec(1));
+   Vec3 e2b(R2hTmp.GetVec(2));
+   
+   Vec3 MTmp(e2b.Cross(e3a)*M.dGet(1)+e3a.Cross(e1b)*M.dGet(2));
+   
+   /* Equazioni di equilibrio, nodo 1 */
+   WorkVec.Sub(1, MTmp); /* Sfrutto  F/\d = -d/\F */
+   
+   /* Equazioni di equilibrio, nodo 2 */
+   WorkVec.Add(4, MTmp);
+
+   /* Modifica: divido le equazioni di vincolo per dCoef */
+   if (dCoef != 0.) {
+      
+      /* Equazioni di vincolo di rotazione */
+      Vec3 Tmp = R1hTmp.GetVec(3);
+      WorkVec.fPutCoef(7, Tmp.Dot(R2hTmp.GetVec(2))/dCoef);
+      WorkVec.fPutCoef(8, Tmp.Dot(R2hTmp.GetVec(1))/dCoef);
+   }   
+   
+   return WorkVec;
+}
+
+/* Output (da mettere a punto) */
+void PlaneRotationJoint::Output(OutputHandler& OH) const
+{
+   if (fToBeOutput()) {
+      Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
+      Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
+      Mat3x3 R2TmpT(R2Tmp.Transpose());
+      
+      Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
+		    Zero3, M, Zero3, R2Tmp*M)
+	<< " " << EulerAngles(RTmp) 
+	<< " " << R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()) << std::endl;
+   }
+}
+
+
+/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+VariableSubMatrixHandler& 
+PlaneRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+			       const VectorHandler& XCurr)
+{
+   /* Per ora usa la matrice piena; eventualmente si puo' 
+    * passare a quella sparsa quando si ottimizza */
+   FullSubMatrixHandler& WM = WorkMat.SetFull();
+   
+   /* Dimensiona e resetta la matrice di lavoro */
+   integer iNumRows = 0;
+   integer iNumCols = 0;
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   WM.ResizeInit(iNumRows, iNumCols, 0.);
+
+   /* Equazioni: vedi joints.dvi */
+   
+   /*       equazioni ed incognite
+    * F1                                     Delta_x1         0+1 =  1
+    * M1                                     Delta_g1         3+1 =  4
+    * FP1                                    Delta_xP1        6+1 =  7
+    * MP1                                    Delta_w1         9+1 = 10
+    * F2                                     Delta_x2        12+1 = 13
+    * M2                                     Delta_g2        15+1 = 16
+    * FP2                                    Delta_xP2       18+1 = 19
+    * MP2                                    Delta_w2        21+1 = 22
+    * vincolo spostamento                    Delta_F         24+1 = 25
+    * vincolo rotazione                      Delta_M         27+1 = 28
+    * derivata vincolo spostamento           Delta_FP        29+1 = 30
+    * derivata vincolo rotazione             Delta_MP        32+1 = 33
+    */
+        
+    
+   /* Indici */
+   integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
+   integer iNode1FirstVelIndex = iNode1FirstPosIndex+6+3;
+   integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex()+3;
+   integer iNode2FirstVelIndex = iNode2FirstPosIndex+6+3;
+   integer iFirstReactionIndex = iGetFirstIndex();
+   integer iReactionPrimeIndex = iFirstReactionIndex+2;
+   
+   /* Nota: le reazioni vincolari sono: 
+    * Forza,       3 incognite, riferimento globale, 
+    * Momento,     2 incognite, riferimento locale
+    */
+
+   /* Setta gli indici dei nodi */
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {
+      WM.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.fPutRowIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
+      WM.fPutColIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
+      WM.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.fPutRowIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
+      WM.fPutColIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
+   }
+   
+   /* Setta gli indici delle reazioni */
+   for (int iCnt = 1; iCnt <= 4; iCnt++) {
+      WM.fPutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WM.fPutColIndex(12+iCnt, iFirstReactionIndex+iCnt);	
+   }   
+
+   
+   /* Recupera i dati */
+   const Mat3x3& R1(pNode1->GetRRef());
+   const Mat3x3& R2(pNode2->GetRRef());
+   const Vec3& Omega1(pNode1->GetWRef());
+   const Vec3& Omega2(pNode2->GetWRef());
+   
+   /* F ed M sono gia' state aggiornate da InitialAssRes */
+   Vec3 MPrime(XCurr.dGetCoef(iReactionPrimeIndex+1),
+	       XCurr.dGetCoef(iReactionPrimeIndex+2),
+	       0.);
+   
+   /* Matrici identita' */   
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {
+      /* Contributo di forza all'equazione della forza, nodo 1 */
+      WM.fPutCoef(iCnt, 12+iCnt, 1.);
+      
+      /* Contrib. di der. di forza all'eq. della der. della forza, nodo 1 */
+      WM.fPutCoef(3+iCnt, 14+iCnt, 1.);
+      
+      /* Contributo di forza all'equazione della forza, nodo 2 */
+      WM.fPutCoef(6+iCnt, 12+iCnt, -1.);
+      
+      /* Contrib. di der. di forza all'eq. della der. della forza, nodo 2 */
+      WM.fPutCoef(9+iCnt, 14+iCnt, -1.);
+   }
+      
+   /* Matrici di rotazione dai nodi alla cerniera nel sistema globale */
+   Mat3x3 R1hTmp(R1*R1h);
+   Mat3x3 R2hTmp(R2*R2h);
+   
+   Vec3 e3a(R1hTmp.GetVec(3));
+   Vec3 e1b(R2hTmp.GetVec(1));
+   Vec3 e2b(R2hTmp.GetVec(2));
+   
+   /* Ruota il momento e la sua derivata con le matrici della cerniera 
+    * rispetto ai nodi */
+   Vec3 MTmp(e2b*M.dGet(1)-e1b*M.dGet(2));
+   Vec3 MPrimeTmp(e2b*MPrime.dGet(1)-e1b*MPrime.dGet(2));
+
+   Mat3x3 MDeltag1((Mat3x3(Omega2.Cross(MTmp)+MPrimeTmp)+
+		    Mat3x3(MTmp, Omega1))*Mat3x3(e3a));
+   Mat3x3 MDeltag2(Mat3x3(Omega1.Cross(e3a), MTmp)+
+		   Mat3x3(e3a, MPrimeTmp)+
+		   Mat3x3(e3a)*Mat3x3(Omega2, MTmp));
+
+   /* Vettori temporanei */
+   Vec3 Tmp1(e2b.Cross(e3a));   
+   Vec3 Tmp2(e3a.Cross(e1b));
+   
+   /* Prodotto vettore tra il versore 3 della cerniera secondo il nodo 1
+    * ed il versore 1 della cerniera secondo il nodo 2. A convergenza
+    * devono essere ortogonali, quindi il loro prodotto vettore deve essere 
+    * unitario */
+
+   /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
+   if (Tmp1.Dot() <= DBL_EPSILON || Tmp2.Dot() <= DBL_EPSILON) {
+      std::cerr << "Joint(" << GetLabel() << "): first node hinge axis "
+	      "and second node hinge axis are (nearly) orthogonal"
+	      << std::endl;
+      THROW(Joint::ErrGeneric());
+   }   
+   
+   Vec3 TmpPrime1(e2b.Cross(Omega1.Cross(e3a))-e3a.Cross(Omega2.Cross(e2b)));
+   Vec3 TmpPrime2(e3a.Cross(Omega2.Cross(e1b))-e1b.Cross(Omega1.Cross(e3a)));
+   
+   /* Equazione di momento, nodo 1 */
+   WM.Sub(4, 4, Mat3x3(MTmp, e3a));
+   WM.Add(4, 16, Mat3x3(e3a, MTmp));
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {
+      WM.fPutCoef(iCnt, 13, Tmp1.dGet(iCnt));
+      WM.fPutCoef(iCnt, 14, Tmp2.dGet(iCnt));	
+   }
+   
+   /* Equazione di momento, nodo 2 */
+   WM.Add(7, 1, Mat3x3(MTmp, e3a));
+   WM.Sub(7, 7, Mat3x3(e3a, MTmp));
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {
+      WM.fPutCoef(6+iCnt, 13, -Tmp1.dGet(iCnt));
+      WM.fPutCoef(6+iCnt, 14, -Tmp2.dGet(iCnt));	
+   }
+   
+   /* Derivata dell'equazione di momento, nodo 1 */
+   WM.Sub(4, 1, MDeltag1);
+   WM.Sub(4, 4, Mat3x3(MTmp, e3a));
+   WM.Add(4, 7, MDeltag2);
+   WM.Add(4, 10, Mat3x3(e3a, MTmp));
+   
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {
+      WM.fPutCoef(3+iCnt, 13, TmpPrime1.dGet(iCnt));
+      WM.fPutCoef(3+iCnt, 14, TmpPrime2.dGet(iCnt));
+      WM.fPutCoef(3+iCnt, 15, Tmp1.dGet(iCnt));
+      WM.fPutCoef(3+iCnt, 16, Tmp2.dGet(iCnt));	
+   }
+   
+   /* Derivata dell'equazione di momento, nodo 2 */
+   WM.Add(10, 1, MDeltag1);
+   WM.Add(10, 4, Mat3x3(MTmp, e3a));
+   WM.Sub(10, 7, MDeltag2);
+   WM.Sub(10, 10, Mat3x3(e3a, MTmp));
+
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {
+      WM.fPutCoef(9+iCnt, 13, -TmpPrime1.dGet(iCnt));
+      WM.fPutCoef(9+iCnt, 14, -TmpPrime2.dGet(iCnt));	
+      WM.fPutCoef(9+iCnt, 15, -Tmp1.dGet(iCnt));
+      WM.fPutCoef(9+iCnt, 16, -Tmp2.dGet(iCnt));	
+   }
+   
+   /* Equazioni di vincolo di rotazione: e1b~e3a, e2b~e3a */
+            
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {	
+      doublereal d = Tmp1.dGet(iCnt);
+      WM.fPutCoef(13, iCnt, d);
+      WM.fPutCoef(13, 6+iCnt, -d);
+      
+      /* Queste sono per la derivata dell'equazione, sono qui solo per 
+       * ottimizzazione */
+      WM.fPutCoef(15, 3+iCnt, d);
+      WM.fPutCoef(15, 9+iCnt, -d);
+      
+      d = Tmp2.dGet(iCnt);
+      WM.fPutCoef(14, iCnt, -d);
+      WM.fPutCoef(14, 6+iCnt, d);
+      
+      /* Queste sono per la derivata dell'equazione, sono qui solo per 
+       * ottimizzazione */
+      WM.fPutCoef(16, 3+iCnt, -d);
+      WM.fPutCoef(16, 9+iCnt, d);
+   }   
+   
+   /* Derivate delle equazioni di vincolo di rotazione: e1b~e3a, e2b~e3a */
+   Vec3 O1mO2(Omega1-Omega2);
+   TmpPrime1 = e3a.Cross(O1mO2.Cross(e2b));   
+   TmpPrime2 = e2b.Cross(e3a.Cross(O1mO2));
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {	
+      WM.fPutCoef(15, iCnt, TmpPrime1.dGet(iCnt));
+      WM.fPutCoef(15, 6+iCnt, TmpPrime2.dGet(iCnt));
+   }
+   
+   TmpPrime1 = e3a.Cross(O1mO2.Cross(e1b));
+   TmpPrime2 = e1b.Cross(e3a.Cross(O1mO2));
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {	
+      WM.fPutCoef(16, iCnt, TmpPrime1.dGet(iCnt));
+      WM.fPutCoef(16, 6+iCnt, TmpPrime2.dGet(iCnt));
+   }   
+   
+   return WorkMat;
+}
+
+
+/* Contributo al residuo durante l'assemblaggio iniziale */   
+SubVectorHandler& 
+PlaneRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
+			       const VectorHandler& XCurr)
+{   
+   DEBUGCOUT("Entering PlaneRotationJoint::InitialAssRes()" << std::endl);
+   
+   /* Dimensiona e resetta la matrice di lavoro */
+   integer iNumRows = 0;
+   integer iNumCols = 0;
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.Resize(iNumRows);
+   WorkVec.Reset(0.);
+   
+   /* Indici */
+   integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
+   integer iNode1FirstVelIndex = iNode1FirstPosIndex+6+3;
+   integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex()+3;
+   integer iNode2FirstVelIndex = iNode2FirstPosIndex+6+3;
+   integer iFirstReactionIndex = iGetFirstIndex();
+   integer iReactionPrimeIndex = iFirstReactionIndex+2;
+   
+   /* Setta gli indici */
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {
+      WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.fPutRowIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
+      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.fPutRowIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
+   }
+   
+   for (int iCnt = 1; iCnt <= 4; iCnt++) {
+      WorkVec.fPutRowIndex(24+iCnt, iFirstReactionIndex+iCnt);
+   }
+
+   /* Recupera i dati */
+   const Mat3x3& R1(pNode1->GetRCurr());
+   const Mat3x3& R2(pNode2->GetRCurr());
+   const Vec3& Omega1(pNode1->GetWCurr());
+   const Vec3& Omega2(pNode2->GetWCurr());
+   
+   /* Aggiorna F ed M, che restano anche per InitialAssJac */
+   M = Vec3(XCurr.dGetCoef(iFirstReactionIndex+1),
+	    XCurr.dGetCoef(iFirstReactionIndex+2),
+	    0.);
+   Vec3 MPrime(XCurr.dGetCoef(iReactionPrimeIndex+1),
+	       XCurr.dGetCoef(iReactionPrimeIndex+2),
+	       0.);
+   
+   /* Distanza nel sistema globale */
+   Mat3x3 R1hTmp(R1*R1h);
+   Mat3x3 R2hTmp(R2*R2h);
+
+   Vec3 e3a(R1hTmp.GetVec(3));
+   Vec3 e1b(R2hTmp.GetVec(1));
+   Vec3 e2b(R2hTmp.GetVec(2));  
+   
+   /* Ruota il momento e la sua derivata con le matrici della cerniera 
+    * rispetto ai nodi */
+   Vec3 MTmp(e2b*M.dGet(1)-e1b*M.dGet(2));       
+   Vec3 MPrimeTmp(e3a.Cross(MTmp.Cross(Omega2))+MTmp.Cross(Omega1.Cross(e3a))+
+		  e2b.Cross(e3a)*MPrime.dGet(1)+e3a.Cross(e1b)*MPrime.dGet(2)); 
+   
+   /* Equazioni di equilibrio, nodo 1 */
+   WorkVec.Sub(1, MTmp.Cross(e3a));
+   
+   /* Derivate delle equazioni di equilibrio, nodo 1 */
+   WorkVec.Sub(4, MPrimeTmp);
+   
+   /* Equazioni di equilibrio, nodo 2 */
+   WorkVec.Add(7, MTmp.Cross(e3a)); 
+   
+   /* Derivate delle equazioni di equilibrio, nodo 2 */
+   WorkVec.Add(10, MPrimeTmp);
+   
+   /* Equazioni di vincolo di rotazione */
+   WorkVec.fPutCoef(13, e2b.Dot(e3a));
+   WorkVec.fPutCoef(14, e1b.Dot(e3a));
+   
+   /* Derivate delle equazioni di vincolo di rotazione: e1b~e3a, e2b~e3a */
+   Vec3 Tmp((Omega1-Omega2).Cross(e3a));
+   WorkVec.fPutCoef(15, e2b.Dot(Tmp));
+   WorkVec.fPutCoef(16, e1b.Dot(Tmp));
+
+   return WorkVec;
+}
+
+
+doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
+{
+   ASSERT(i >= 1 && i <= 6);
+   
+   double d;
+   
+   Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
+   Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
+   
+   switch (i) {
+    case 1:
+    case 2:
+    case 3: {
+       Vec3 v(EulerAngles(RTmp));
+       
+       d = v.dGet(i);
+       break;
+    }
+      
+    case 4:
+    case 5:
+    case 6: {
+       Mat3x3 R2TmpT(R2Tmp.Transpose());
+       Vec3 v(R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()));
+       
+       d = v.dGet(i-3);
+       break;
+    }
+      
+    default:
+      std::cerr << "Illegal private data" << std::endl;
+      THROW(ErrGeneric());
+   }
+   
+   return d;
+}
+
+/* PlaneRotationJoint - end */
+
+
 /* AxialRotationJoint - begin */
 
 /* Costruttore non banale */
@@ -797,7 +1401,7 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Ridimensiona la sottomatrice in base alle esigenze */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
    
    /* Recupera gli indici delle varie incognite */
@@ -965,7 +1569,7 @@ SubVectorHandler& AxialRotationJoint::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
       
@@ -1062,7 +1666,7 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Equazioni: vedi joints.dvi */
@@ -1336,7 +1940,7 @@ AxialRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
@@ -1599,7 +2203,7 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
         
@@ -1672,7 +2276,7 @@ PlanePinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Equazioni: vedi joints.dvi */
@@ -1834,7 +2438,7 @@ PlanePinJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    

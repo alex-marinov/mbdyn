@@ -405,20 +405,7 @@ InLineJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-   
-/* Setta il valore iniziale delle proprie variabili */
-void InLineJoint::SetInitialValue(VectorHandler& /* X */ ) const
-{ 
-   NO_OP;
-}
-
-
-void InLineJoint::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const
-{ 
-   NO_OP;
-}
-
-/* InLIneJoint - end */
+/* InLineJoint - end */
 
 
 /* InLineWithOffsetJoint - begin */
@@ -886,17 +873,5 @@ InLineWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-   
-/* Setta il valore iniziale delle proprie variabili */
-void InLineWithOffsetJoint::SetInitialValue(VectorHandler& /* X */ ) const
-{ 
-   NO_OP;
-}
-
-
-void InLineWithOffsetJoint::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const
-{ 
-   NO_OP;
-}
-
 /* InLineWithOffsetJoint - end */
+

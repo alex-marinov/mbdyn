@@ -148,6 +148,114 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
 /* PlaneHingeJoint - end */
 
 
+/* PlaneRotationJoint - begin */
+
+class PlaneRotationJoint : virtual public Elem, public Joint {
+ private:
+   /* Cerniera piana - asse di rotazione dato dall'asse 3 del sistema di 
+    * riferimento della cerniera. Tale sistema e' noto relativamente ai due
+    * nodi. In particolare rispetto al nodo 1 la trasformazione dal sistema
+    * di riferimento della cerniera al sistema globale e': R1*R1h, mentre per
+    * il nodo 2 la medesima trasformazion e': R2*R2h.
+    * I vettori d1 e d2 esprimono, nel sistema di riferimento dei rispettivi 
+    * nodi, la distanza della cerniera dai nodi stessi. 
+    * I vettori F, M esprimono le reazioni vincolari di forza e coppia. */
+   const StructNode* pNode1;
+   const StructNode* pNode2;
+   Mat3x3 R1h;
+   Mat3x3 R2h;
+   Vec3 M;
+   
+ public:
+   /* Costruttore non banale */
+   PlaneRotationJoint(unsigned int uL, const DofOwner* pDO,
+		   const StructNode* pN1, const StructNode* pN2,
+		   const Mat3x3& R1hTmp, const Mat3x3& R2hTmp, flag fOut);
+   
+   /* Distruttore */
+   ~PlaneRotationJoint(void);
+
+   virtual inline void* pGet(void) const { 
+      return (void*)this;
+   };
+
+   /* Contributo al file di restart */
+   virtual std::ostream& Restart(std::ostream& out) const;
+
+   /* Tipo di Joint */
+   virtual Joint::Type GetJointType(void) const { 
+      return Joint::PLANEROTATION;
+   };
+   
+   virtual unsigned int iGetNumDof(void) const { 
+      return 2;
+   };
+   
+   DofOrder::Order SetDof(unsigned int i) const {
+      ASSERT(i >= 0 && i < 2);
+      return DofOrder::ALGEBRAIC; 
+   };
+
+   void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+      *piNumRows = 3+3+2;
+      *piNumCols = 3+3+2; 
+   };
+   
+      
+   VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
+				    doublereal dCoef,
+				    const VectorHandler& XCurr, 
+				    const VectorHandler& XPrimeCurr);
+   SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+			    doublereal dCoef,
+			    const VectorHandler& XCurr, 
+			    const VectorHandler& XPrimeCurr);
+   
+   void Output(OutputHandler& OH) const;
+ 
+
+   /* funzioni usate nell'assemblaggio iniziale */
+   
+   virtual unsigned int iGetInitialNumDof(void) const { 
+      return 2+2;
+   };
+   virtual void InitialWorkSpaceDim(integer* piNumRows,
+				    integer* piNumCols) const {
+      *piNumRows = 3+3+3+3+2+2; 
+      *piNumCols = 3+3+3+3+2+2;
+   };
+   
+   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
+   VariableSubMatrixHandler& InitialAssJac(VariableSubMatrixHandler& WorkMat,
+					   const VectorHandler& XCurr);
+   
+   /* Contributo al residuo durante l'assemblaggio iniziale */   
+   SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
+				   const VectorHandler& XCurr);
+   
+   /* Dati privati */
+   virtual unsigned int iGetNumPrivData(void) const {
+      return 3;
+   };   
+   
+   virtual doublereal dGetPrivData(unsigned int i = 0) const;
+   
+   /* *******PER IL SOLUTORE PARALLELO******** */        
+   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+      utile per l'assemblaggio della matrice di connessione fra i dofs */
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
+     NumNodes = 2;
+     NdTyps[0] = pNode1->GetNodeType();
+     NdLabels[0] = pNode1->GetLabel();
+     NdTyps[1] = pNode2->GetNodeType();
+     NdLabels[1] = pNode2->GetLabel();
+   };
+   /* ************************************************ */
+};
+
+/* PlaneRotationJoint - end */
+
+
 /* AxialRotationJoint - begin */
 
 class AxialRotationJoint : virtual public Elem, 
@@ -360,4 +468,5 @@ class PlanePinJoint : virtual public Elem, public Joint {
 
 /* PlanePinJoint - end */
 
-#endif
+#endif /* PLANEJ_H */
+

@@ -121,6 +121,7 @@ Elem* ReadJoint(DataManager* pDM,
       "universal" "pin",
       "plane" "hinge",
       "revolute" "hinge",
+      "revolute" "rotation",
       "plane" "pin",
       "revolute" "pin",
       "axial" "rotation",
@@ -161,6 +162,7 @@ Elem* ReadJoint(DataManager* pDM,
       UNIVERSALPIN,
       PLANEHINGE,
       REVOLUTEHINGE,
+      REVOLUTEROTATION,
       PLANEPIN,
       REVOLUTEPIN,
       AXIALROTATION,
@@ -426,6 +428,7 @@ Elem* ReadJoint(DataManager* pDM,
     case SPHERICALHINGE:
     case PLANEHINGE:
     case REVOLUTEHINGE:
+    case REVOLUTEROTATION:
     case UNIVERSALHINGE:
     case AXIALROTATION:
     case PLANEDISPLACEMENT: {
@@ -443,16 +446,22 @@ Elem* ReadJoint(DataManager* pDM,
        }		  
        
        ReferenceFrame RF(pNode1);
-       Vec3 d1(HP.GetPosRel(RF));	   
-       
-       DEBUGCOUT("Node 1 reference frame d1:" << std::endl << d1 << std::endl);
+       Vec3 d1;
+       switch (CurrKeyWord) {
+       case REVOLUTEROTATION:
+          break;
+
+       default:
+          d1 = HP.GetPosRel(RF);
+   	  DEBUGCOUT("Node 1 reference frame d1:" << std::endl 
+			  << d1 << std::endl);
+       }
        
        Mat3x3 R1h(Eye3);
        if (HP.IsKeyWord("hinge")) {
 	  DEBUGCOUT("Hinge Rotation matrix is supplied" << std::endl);
 	  R1h = HP.GetRotRel(RF);
        }
-       
        
        
        /* nodo collegato 2 */
@@ -471,9 +480,16 @@ Elem* ReadJoint(DataManager* pDM,
        /* Stessa cosa per il nodo 2 */
        
        RF = ReferenceFrame(pNode2);
-       Vec3 d2(HP.GetPosRel(RF));	   
-       
-       DEBUGCOUT("Node 2 reference frame d2:" << std::endl << d2 << std::endl);
+       Vec3 d2;
+       switch (CurrKeyWord) {
+       case REVOLUTEROTATION:
+          break;
+
+       default:
+          d2 = HP.GetPosRel(RF);
+   	  DEBUGCOUT("Node 2 reference frame d2:" << std::endl 
+			  << d2 << std::endl);
+       }
        
        Mat3x3 R2h(Eye3);
        if (HP.IsKeyWord("hinge")) {
@@ -491,7 +507,6 @@ Elem* ReadJoint(DataManager* pDM,
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        switch (CurrKeyWord) {
-	  
 	  
 	  /* allocazione e creazione cerniera sferica */
 	case SPHERICALHINGE: {		   
@@ -514,6 +529,15 @@ Elem* ReadJoint(DataManager* pDM,
 				  PlaneHingeJoint,
 				  PlaneHingeJoint(uLabel, pDO, pNode1, pNode2, 
 						  d1, d2, R1h, R2h, fOut));
+	   break;
+	}
+
+	  /* allocazione e creazione cerniera piana senza vincolo in pos. */
+	case REVOLUTEROTATION: {
+	   SAFENEWWITHCONSTRUCTOR(pEl, 
+				  PlaneRotationJoint,
+				  PlaneRotationJoint(uLabel, pDO, 
+					  pNode1, pNode2, R1h, R2h, fOut));
 	   break;
 	}
 	  
