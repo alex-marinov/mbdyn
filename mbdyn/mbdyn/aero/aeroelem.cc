@@ -478,17 +478,17 @@ static AeroData::UnsteadyModel
 ReadUnsteadyFlag(MBDynParser& HP)
 {
    	if (HP.IsArg()) {
-		AeroData::UnsteadyModel iInst = AeroData::STEADY;
+		AeroData::UnsteadyModel eInst = AeroData::STEADY;
 		if (HP.IsKeyWord("unsteady")) {
 			/*
 			 * swallow "unsteady" keyword
 			 */
 			if (HP.IsKeyWord("steady")) {
-				iInst = AeroData::STEADY;
+				eInst = AeroData::STEADY;
 			} else if (HP.IsKeyWord("harris")) {
-				iInst = AeroData::HARRIS;
+				eInst = AeroData::HARRIS;
 			} else if (HP.IsKeyWord("bielawa")) {
-				iInst = AeroData::BIELAWA;
+				eInst = AeroData::BIELAWA;
 			} else {
 				silent_cerr(HP.GetLineData()
  					<< ": deprecated unsteady model "
@@ -505,7 +505,7 @@ ReadUnsteadyFlag(MBDynParser& HP)
 						<< std::endl;
 					throw ErrGeneric();
 				}
-      				iInst = AeroData::UnsteadyModel(i);
+      				eInst = AeroData::UnsteadyModel(i);
 			}
 
 		} else {
@@ -524,10 +524,10 @@ ReadUnsteadyFlag(MBDynParser& HP)
 					<< std::endl;
 				throw ErrGeneric();
 			}
-      			iInst = AeroData::UnsteadyModel(i);
+      			eInst = AeroData::UnsteadyModel(i);
 		}
 
-      		switch (iInst) {
+      		switch (eInst) {
 		case AeroData::STEADY:
 		case AeroData::BIELAWA:
 			break;
@@ -548,7 +548,7 @@ ReadUnsteadyFlag(MBDynParser& HP)
 		/*
 		 * unsteady flag
 		 */
-      		return iInst;
+      		return eInst;
    	}
 	
 	/*
@@ -623,15 +623,15 @@ ReadAeroData(DataManager* pDM,
 	  		DEBUGLCOUT(MYDEBUG_INPUT,
 				   "profile is NACA0012" << std::endl);
 	  
-			AeroData::UnsteadyModel iInst = ReadUnsteadyFlag(HP);
+			AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
 			DriveCaller *ptime = NULL;
-			if (iInst) {
+			if (eInst != AeroData::STEADY) {
 				SAFENEWWITHCONSTRUCTOR(ptime, TimeDriveCaller, 
 						TimeDriveCaller(pDM->pGetDrvHdl()));
 			}
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				STAHRAeroData,
-				STAHRAeroData(iInst, 1, ptime));
+				STAHRAeroData(eInst, 1, ptime));
 	  		break;
        		}
 	 
@@ -639,15 +639,15 @@ ReadAeroData(DataManager* pDM,
 	  		DEBUGLCOUT(MYDEBUG_INPUT,
 				"profile is RAE9671" << std::endl);
 	  
-			AeroData::UnsteadyModel iInst = ReadUnsteadyFlag(HP);
+			AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
 			DriveCaller *ptime = NULL;
-			if (iInst) {
+			if (eInst != AeroData::STEADY) {
 				SAFENEWWITHCONSTRUCTOR(ptime, TimeDriveCaller, 
 						TimeDriveCaller(pDM->pGetDrvHdl()));
 			}
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				STAHRAeroData,
-				STAHRAeroData(iInst, 2, ptime));
+				STAHRAeroData(eInst, 2, ptime));
 	  		break;
        		}
 	 
@@ -684,6 +684,7 @@ ReadAeroData(DataManager* pDM,
 							<< HP.GetLineData() 
 							<< std::endl;
 						throw ErrGeneric();
+
 					} else if (upper_bounds[i] > 1.) {
 						std::cerr << "upper bound " 
 							<< i+1 << " = " 
@@ -693,6 +694,7 @@ ReadAeroData(DataManager* pDM,
 							<< HP.GetLineData() 
 							<< std::endl;
 						throw ErrGeneric();
+
 					} else if (i > 0 && upper_bounds[i] <= upper_bounds[i-1]) {
 						std::cerr << "upper bound " 
 							<< i+1 << " = " 
@@ -733,16 +735,16 @@ ReadAeroData(DataManager* pDM,
 				data[nProfiles] = NULL;
 				
 				AeroData::UnsteadyModel 
-					iInst = ReadUnsteadyFlag(HP);
+					eInst = ReadUnsteadyFlag(HP);
 				DriveCaller *ptime = NULL;
-				if (iInst) {
+				if (eInst != AeroData::STEADY) {
 					SAFENEWWITHCONSTRUCTOR(ptime,
 							TimeDriveCaller, 
 							TimeDriveCaller(pDM->pGetDrvHdl()));
 				}
 				SAFENEWWITHCONSTRUCTOR(*aerodata,
 						C81MultipleAeroData,
-						C81MultipleAeroData(iInst,
+						C81MultipleAeroData(eInst,
 							nProfiles, profiles, 
 							upper_bounds, data,
 							ptime));
@@ -755,16 +757,16 @@ ReadAeroData(DataManager* pDM,
 					"profile data is from file c81 "
 					<< iProfile << std::endl);
 				AeroData::UnsteadyModel 
-					iInst = ReadUnsteadyFlag(HP);
+					eInst = ReadUnsteadyFlag(HP);
 				DriveCaller *ptime = NULL;
-				if (iInst) {
+				if (eInst != AeroData::STEADY) {
 					SAFENEWWITHCONSTRUCTOR(ptime,
 							TimeDriveCaller, 
 							TimeDriveCaller(pDM->pGetDrvHdl()));
 				}
 	  			SAFENEWWITHCONSTRUCTOR(*aerodata,
 					C81AeroData,
-					C81AeroData(iInst, iProfile,
+					C81AeroData(eInst, iProfile,
 						data, ptime));
 			}
 			break;
@@ -776,9 +778,9 @@ ReadAeroData(DataManager* pDM,
 			<< HP.GetLineData()
 			<< "; using default (NACA0012)" << std::endl;
       
-		AeroData::UnsteadyModel iInst = ReadUnsteadyFlag(HP);
+		AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
       		SAFENEWWITHCONSTRUCTOR(*aerodata,
-			STAHRAeroData, STAHRAeroData(iInst, 1));
+			STAHRAeroData, STAHRAeroData(eInst, 1));
    	}
 }
 

@@ -103,16 +103,16 @@ enum KeyWords {
    AUTOMATICSTRUCTURAL,
    JOINT,
    COUPLE,
-   BEAM,
-   BEAM3,		/* same as BEAM */
+   BEAM3,
+   BEAM,		/* same as BEAM3 */
    BEAM2,
    HBEAM,
    
    AIRPROPERTIES,
    ROTOR,
    AERODYNAMICBODY,
-   AERODYNAMICBEAM,
-   AERODYNAMICBEAM3,	/* same as AERODYNAMICBEAM */
+   AERODYNAMICBEAM3,
+   AERODYNAMICBEAM,	/* same as AERODYNAMICBEAM3 */
    AERODYNAMICBEAM2,
    AERODYNAMICEXTERNAL,
    AERODYNAMICEXTERNALMODAL,
@@ -157,16 +157,16 @@ void DataManager::ReadElems(MBDynParser& HP)
       "automatic" "structural",
       "joint",
       "couple",
-      "beam",
       "beam3",
+      "beam",
       "beam2",
       "hbeam",
       
       "air" "properties",
       "rotor",
       "aerodynamic" "body",
-      "aerodynamic" "beam",
       "aerodynamic" "beam3",
+      "aerodynamic" "beam",
       "aerodynamic" "beam2",
       "aerodynamic" "external",
       "aerodynamic" "external" "modal",
@@ -1323,8 +1323,8 @@ DataManager::ReadOneElem(MBDynParser& HP,
        ppE = ElemData[Elem::BEAM].ppFirstElem+i;
       
        switch (KeyWords(CurrType)) {
-       case BEAM:
-       case BEAM3:	/* same as BEAM */
+       case BEAM3:
+       case BEAM:	/* same as BEAM3 */
 	  *ppE = ReadBeam(this, HP, uLabel);
 	  break;
 
@@ -1499,8 +1499,8 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	   break;
 	}
 	  
-	case AERODYNAMICBEAM:
-	case AERODYNAMICBEAM3:	/* same as BEAM */
+	case AERODYNAMICBEAM3:
+	case AERODYNAMICBEAM:	/* same as BEAM3 */
 	   *ppE = ReadAerodynamicBeam(this, HP, uLabel);
 	   break;
 	  
