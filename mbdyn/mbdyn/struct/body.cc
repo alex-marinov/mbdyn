@@ -254,7 +254,7 @@ void Body::Output(OutputHandler& /* OH */ ) const
 {
     if(fToBeOutput()) {      
 #ifdef DEBUG
-        if (DEBUG_LEVEL_MATCH(DEBUG_LEVEL_OUTPUT)) {
+        if (DEBUG_LEVEL_MATCH(MYDEBUG_OUTPUT)) {
             OH.Output() << "Body Element " << uLabel << ", linked to node " 
 	        << pNode->GetLabel() << ':' << endl 
 		<< "Mass: " << dMass << endl 
