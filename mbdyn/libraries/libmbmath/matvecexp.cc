@@ -1,8 +1,10 @@
-/* 
+/*
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2000
+ * 
+ * This code is a partial merge of HmFe and MBDyn.
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -27,156 +29,196 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/* 
+ * HmFe (C) is a FEM analysis code. 
+ *
+ * Copyright (C) 1996-2001
+ *
+ * Marco Morandini  <morandini@aero.polimi.it>
+ * Teodoro Merlini  <merlini@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ */
+
 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <matvecexp.h>
+#include "matvecexp.h"
 
 const VecExp ZeroExp(0.);
 const MatExp EyeExp(0.);
 
-ostream& VecExp::Write(ostream& out, const char* sFill) const
+ostream&
+VecExp::Write(ostream& out, const char* sFill) const
 {
-   return out 
-     << x.dGet(1) << sFill
-     << x.dGet(2) << sFill
-     << x.dGet(3) << sFill
-     << g.dGet(1) << sFill
-     << g.dGet(2) << sFill
-     << g.dGet(3);
+	return out 
+		<< vec.dGet(1) << sFill
+		<< vec.dGet(2) << sFill
+		<< vec.dGet(3) << sFill
+		<< mom.dGet(1) << sFill
+		<< mom.dGet(2) << sFill
+		<< mom.dGet(3);
+}
+
+VecExp
+operator - (const VecExp& v)
+{
+	return VecExp(-v.Vec(), -v.Mom());
+}
+
+ostream&
+operator << (ostream& out, const VecExp& v)
+{
+	const Vec3& vec = v.Vec();
+	const Vec3& mom = v.Mom();
+	return out 
+		<< vec.dGet(1) << " "
+		<< vec.dGet(2) << " "
+		<< vec.dGet(3) << " " 
+		<< mom.dGet(1) << " "
+		<< mom.dGet(2) << " "
+		<< mom.dGet(3);    
+}
+
+ostream&
+Write(ostream& out, const VecExp& v, const char* sFill)
+{
+	return v.Write(out, sFill);
+}
+
+ostream&
+MatExp::Write(ostream& out, const char* sFill, const char* sFill2) const
+{
+	char* sF2 = (char*)sFill2; 
+	if (sFill2 == NULL) {      
+		sF2 = (char*)sFill;
+	}   
+	
+	return out 
+		<< vec.dGet(1,1) << sFill
+		<< vec.dGet(1,2) << sFill
+		<< vec.dGet(1,3) << sFill
+		<< mom.dGet(1,1) << sFill
+		<< mom.dGet(1,2) << sFill
+		<< mom.dGet(1,3) << sF2
+		<< vec.dGet(2,1) << sFill
+		<< vec.dGet(2,2) << sFill
+		<< vec.dGet(2,3) << sFill
+		<< mom.dGet(2,1) << sFill
+		<< mom.dGet(2,2) << sFill
+		<< mom.dGet(2,3) << sF2
+		<< vec.dGet(3,1) << sFill
+		<< vec.dGet(3,2) << sFill
+		<< vec.dGet(3,3) << sFill
+		<< mom.dGet(3,1) << sFill
+		<< mom.dGet(3,2) << sFill
+		<< mom.dGet(3,3) << sF2
+		<< 0. << sFill
+		<< 0. << sFill
+		<< 0. << sFill
+		<< vec.dGet(1,1) << sFill
+		<< vec.dGet(1,2) << sFill
+		<< vec.dGet(1,3) << sF2
+		<< 0. << sFill
+		<< 0. << sFill
+		<< 0. << sFill
+		<< vec.dGet(2,1) << sFill
+		<< vec.dGet(2,2) << sFill
+		<< vec.dGet(2,3) << sF2
+		<< 0. << sFill
+		<< 0. << sFill
+		<< 0. << sFill
+		<< vec.dGet(3,1) << sFill
+		<< vec.dGet(3,2) << sFill
+		<< vec.dGet(3,3);
+}
+
+ostream&
+operator << (ostream& out, const MatExp& m)
+{
+	const Mat3x3& vec = m.Vec();
+	const Mat3x3& mom = m.Mom();
+	return out 
+		<< vec.dGet(1, 1) << " "
+		<< vec.dGet(1, 2) << " "
+		<< vec.dGet(1, 3) << " " 
+		<< mom.dGet(1, 1) << " "
+		<< mom.dGet(1, 2) << " "
+		<< mom.dGet(1, 3) << endl
+		<< vec.dGet(2, 1) << " "
+		<< vec.dGet(2, 2) << " "
+		<< vec.dGet(2, 3) << " " 
+		<< mom.dGet(2, 1) << " "
+		<< mom.dGet(2, 2) << " "
+		<< mom.dGet(2, 3) << endl
+		<< vec.dGet(3, 1) << " "
+		<< vec.dGet(3, 2) << " "
+		<< vec.dGet(3, 3) << " " 
+		<< mom.dGet(3, 1) << " "
+		<< mom.dGet(3, 2) << " "
+		<< mom.dGet(3, 3) << endl
+		<< 0. << " "
+		<< 0. << " "
+		<< 0. << " " 
+		<< vec.dGet(1, 1) << " "
+		<< vec.dGet(1, 2) << " "
+		<< vec.dGet(1, 3) << endl
+		<< 0. << " "
+		<< 0. << " " 
+		<< 0. << " " 
+		<< vec.dGet(2, 1) << " "
+		<< vec.dGet(2, 2) << " "
+		<< vec.dGet(2, 3) << endl
+		<< 0. << " "
+		<< 0. << " "
+		<< 0. << " " 
+		<< vec.dGet(3, 1) << " "
+		<< vec.dGet(3, 2) << " "
+		<< vec.dGet(3, 3);     
+}
+
+ostream&
+Write(ostream& out, const MatExp& m, const char* sFill, const char* sFill2)
+{
+	return m.Write(out, sFill, sFill2);
+}
+
+#if 0
+VecExp
+MultRV(const VecExp& v, const Mat3x3& R)
+{
+	return VecExp(R*v.Vec(),R*v.Mom());
+}
+
+MatExp
+MultRM(const MatExp& m, const Mat3x3& R)
+{
+	return MatExp(R*m.GetA(), R*m.GetXA());
 }
 
 
-VecExp operator + (const VecExp& v)
+MatExp
+MultMRt(const MatExp& m, const Mat3x3& R)
 {
-   return v;
+	Mat3x3 Rt = R.Transpose();
+	return MatExp(m.GetA()*Rt, m.GetXA()*Rt);
 }
 
-
-VecExp operator - (const VecExp& v)
-{
-   return VecExp(-v.GetX(), -v.GetG());
-}
-
-
-ostream& operator << (ostream& out, const VecExp& v)
-{
-   const Vec3& x = v.GetX();
-   const Vec3& g = v.GetG();
-   return out 
-     << x.dGet(1) << " " << x.dGet(2) << " " << x.dGet(3) << " " 
-     << g.dGet(1) << " " << g.dGet(2) << " " << g.dGet(3);    
-}
-
-
-ostream& Write(ostream& out, const VecExp& v, const char* sFill)
-{
-   return v.Write(out, sFill);
-}
-
-
-ostream& MatExp::Write(ostream& out,
-		       const char* sFill, 
-		       const char* sFill2) const
-{
-   char* sF2 = (char*)sFill2; 
-   if (sFill2 == NULL) {      
-      sF2 = (char*)sFill;
-   }   
-   
-   return out 
-     << a.dGet(1,1) << sFill
-     << a.dGet(1,2) << sFill
-     << a.dGet(1,3) << sFill
-     << xa.dGet(1,1) << sFill
-     << xa.dGet(1,2) << sFill
-     << xa.dGet(1,3) << sF2
-     << a.dGet(2,1) << sFill
-     << a.dGet(2,2) << sFill
-     << a.dGet(2,3) << sFill
-     << xa.dGet(2,1) << sFill
-     << xa.dGet(2,2) << sFill
-     << xa.dGet(2,3) << sF2
-     << a.dGet(3,1) << sFill
-     << a.dGet(3,2) << sFill
-     << a.dGet(3,3) << sFill
-     << xa.dGet(3,1) << sFill
-     << xa.dGet(3,2) << sFill
-     << xa.dGet(3,3) << sF2
-     << 0. << sFill
-     << 0. << sFill
-     << 0. << sFill
-     << a.dGet(1,1) << sFill
-     << a.dGet(1,2) << sFill
-     << a.dGet(1,3) << sF2
-     << 0. << sFill
-     << 0. << sFill
-     << 0. << sFill
-     << a.dGet(2,1) << sFill
-     << a.dGet(2,2) << sFill
-     << a.dGet(2,3) << sF2
-     << 0. << sFill
-     << 0. << sFill
-     << 0. << sFill
-     << a.dGet(3,1) << sFill
-     << a.dGet(3,2) << sFill
-     << a.dGet(3,3);
-}
-
-
-ostream& operator << (ostream& out, const MatExp& m)
-{
-   const Mat3x3& a = m.GetA();
-   const Mat3x3& xa = m.GetXA();
-   return out 
-     << a.dGet(1, 1)  << " " << a.dGet(1, 2)  << " " << a.dGet(1,3)  << " " 
-     << xa.dGet(1, 1) << " " << xa.dGet(1, 2) << " " << xa.dGet(1,3) << endl
-     << a.dGet(2, 1)  << " " << a.dGet(2, 2)  << " " << a.dGet(2,3)  << " " 
-     << xa.dGet(2, 1) << " " << xa.dGet(2, 2) << " " << xa.dGet(2,3) << endl
-     << a.dGet(3, 1)  << " " << a.dGet(3, 2)  << " " << a.dGet(3,3)  << " " 
-     << xa.dGet(3, 1) << " " << xa.dGet(3, 2) << " " << xa.dGet(3,3) << endl
-     << 0.            << " " << 0.            << " " << 0.           << " " 
-     << a.dGet(1, 1)  << " " << a.dGet(1, 2)  << " " << a.dGet(1,3)  << endl
-     << 0.            << " " << 0.            << " " << 0.           << " " 
-     << a.dGet(2, 1)  << " " << a.dGet(2, 2)  << " " << a.dGet(2,3)  << endl
-     << 0.            << " " << 0.            << " " << 0.           << " " 
-     << a.dGet(3, 1)  << " " << a.dGet(3, 2)  << " " << a.dGet(3,3);     
-}
-
-
-ostream& Write(ostream& out,
-	       const MatExp& m,
-	       const char* sFill,
-	       const char* sFill2)
-{
-   return m.Write(out, sFill, sFill2);
-}
-
-
-VecExp MultRV(const VecExp& v, const Mat3x3& R)
-{
-   return VecExp(R*v.GetX(),R*v.GetG());
-}
-
-
-MatExp MultRM(const MatExp& m, const Mat3x3& R)
-{
-   return MatExp(R*m.GetA(), R*m.GetXA());
-}
-
-
-MatExp MultMRt(const MatExp& m, const Mat3x3& R)
-{
-   Mat3x3 Rt = R.Transpose();
-   return MatExp(m.GetA()*Rt, m.GetXA()*Rt);
-}
-
-
-MatExp MultRMRt(const MatExp& m, const Mat3x3& R)
+MatExp
+MultRMRt(const MatExp& m, const Mat3x3& R)
 {   
-   Mat3x3 Rt = R.Transpose();
-   return MatExp(R*m.GetA()*Rt, R*m.GetXA()*Rt);
+	Mat3x3 Rt = R.Transpose();
+	return MatExp(R*m.GetA()*Rt, R*m.GetXA()*Rt);
 }
+#endif /* 0 */
 

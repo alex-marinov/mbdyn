@@ -477,6 +477,30 @@ void DataManager::ElemOutput(OutputHandler& OH) const
 }
 
 
+void
+DataManager::ElemOutput(
+		OutputHandler& OH,
+		const VectorHandler& X,
+		const VectorHandler& XP
+		) const
+{
+#if !defined(USE_ELEM_ITER)
+   for(Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
+      (*ppTmpEl)->Output(OH, X, XP);
+   }   
+#else /* USE_ELEM_ITER */
+   /* Versione con iteratore: */
+    Elem* pTmpEl = NULL;
+    VecIter<Elem*>& ElIter = (VecIter<Elem*>&)ElemIter;
+    if(ElIter.fGetFirst(pTmpEl)) {       
+       do {	
+	  pTmpEl->Output(OH, X, XP);
+       } while(ElIter.fGetNext(pTmpEl));
+    }
+#endif /* USE_ELEM_ITER */
+}
+
+
 /* cerca un elemento qualsiasi */
 void* DataManager::pFindElem(Elem::Type Typ, unsigned int uL) const
 {

@@ -36,9 +36,10 @@
 
 /* se #define DEBUG_COUT l'output avviene su cout anziche' nei files */
 
-#include "myassert.h"
-#include "mystddef.h"
-#include "except.h"
+#include <myassert.h>
+#include <mystddef.h>
+#include <except.h>
+#include <solman.h>
 
 
 /* include di servizio */
@@ -319,6 +320,12 @@ class ToBeOutput {
    virtual ~ToBeOutput(void) { NO_OP; };
    
    virtual void Output(OutputHandler& OH) const = 0;
+
+   /* Output of perturbed solution (modes ...) */
+   virtual void Output(OutputHandler& OH,
+		   const VectorHandler& X, const VectorHandler& XP) const {
+	   NO_OP;
+   };
    /* virtual void AdamsOutput(void) const; */
       
    virtual flag fToBeOutput(void) const {

@@ -827,9 +827,19 @@ void DataManager::Output(void) const
       ((integer&)iAdamsOutputBlock)++;
       AdamsResOutput(iAdamsOutputBlock, "DYNAMIC", "MBDyn");
    }
-   
-   
 }
+
+
+/* Output dati */
+void
+DataManager::Output(const VectorHandler& X, const VectorHandler& XP) const
+{
+   /* Dati dei nodi */
+   NodeOutput((OutputHandler&)OutHdl, X, XP);
+   
+   /* Dati degli elementi */
+   ElemOutput((OutputHandler&)OutHdl, X, XP);
+};
 
 
 void DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,

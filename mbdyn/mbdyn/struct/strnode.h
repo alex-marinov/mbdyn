@@ -181,6 +181,10 @@ class StructNode : public Node {
    
    /* Output del nodo strutturale (da mettere a punto) */
    virtual void Output(OutputHandler& OH) const;
+
+   /* Output della soluzione perturbata (modi ...) */
+   virtual void Output(OutputHandler& OH, 
+		   const VectorHandler& X, const VectorHandler& XP) const;
    
    /* Aggiorna dati in base alla soluzione */
    virtual void Update(const VectorHandler& X,

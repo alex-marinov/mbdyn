@@ -697,6 +697,35 @@ class Mat3x3 {
 		    pdMat[M31], pdMat[M32], pdMat[M33]);
    };
 
+   Vec3 Ax(void) const {
+      /* assumendo che sia una matrice di rotazione ?!? */
+      return Vec3(
+		      .5*(pdMat[M32]-pdMat[M23]),
+		      .5*(pdMat[M13]-pdMat[M31]),
+		      .5*(pdMat[M21]-pdMat[M12])
+		      );
+   };
+
+   doublereal Trace(void) const {
+      return pdMat[M11]+pdMat[M22]+pdMat[M33];
+   };
+
+   Mat3x3 Symm(void) const {
+      doublereal m12 = .5*(pdMat[M21]+pdMat[M12]);
+      doublereal m13 = .5*(pdMat[M31]+pdMat[M13]);
+      doublereal m23 = .5*(pdMat[M32]+pdMat[M23]);
+
+      return Mat3x3(
+		      pdMat[M11], m12, m13,
+		      m12, pdMat[M22], m23,
+		      m13, m23, pdMat[M33]
+		      );
+   };
+
+   Mat3x3 Skew(void) const {
+      return Mat3x3(this->Ax());
+   }
+
    /** 
     Ottiene un sottovettore dalla matrice.
     Nota: l'indice e' a base 1, in stile FORTRAN.

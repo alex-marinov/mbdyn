@@ -106,6 +106,7 @@ HP(HPar),
 #ifdef __HACK_EIG__
 fEigenAnalysis(0),
 dEigParam(1.),
+fOutputModes(0),
 #endif /* __HACK_EIG__ */
 pdWorkSpace(NULL),
 pXCurr(NULL),
@@ -1459,6 +1460,8 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		"no" "change",
 
 		"eigen" "analysis",
+		"output" "modes",
+		
 		"solver",
 		"harwell",
 		"meschach",
@@ -1518,6 +1521,8 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		STRATEGYNOCHANGE,
 	
 		EIGENANALYSIS,
+		OUTPUTMODES,
+		
 		SOLVER,
 		HARWELL,
 		MESCHACH,
@@ -2068,10 +2073,23 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  if (HP.IsKeyWord("parameter")) {
 	     HP.GetReal();
 	  }
-	  cerr << "eigenanalysis not supported (ignored)" << endl;
+	  cerr << HP.GetLIneData()
+	    << ": eigenanalysis not supported (ignored)" << endl;
 #endif /* !__HACK_EIG__ */
 	  break;
        }
+
+       case OUTPUTMODES:
+	  if (HP.IsKeyWord("yes")) {
+	     fOutputModes = flag(1);
+	  } else if (HP.IsKeyWord("no")) {
+	     fOutputModes = flag(0);
+	  } else {
+	     cerr << HP.GetLineData()
+	       << ": unknown mode output flag (should be { yes | no })"
+	       << endl;
+	  }
+	  break;
 
        case SOLVER: {
 	  switch(KeyWords(HP.GetWord())) {	     
@@ -2420,15 +2438,36 @@ MultiStepIntegrator::Eig(void)
             Out << setw(12) << jCnt << ": "
 	      << setw(12) << MatR.dGetCoef(jCnt, iCnt) << endl;
 	 }
-      } else if (cmplx > 0.) {
-         Out << "Modes " << iCnt << ", " << iCnt+1 << ":" << endl;
-	 for (int jCnt = 1; jCnt <= iSize; jCnt++) {
-	    doublereal im = MatR.dGetCoef(jCnt, iCnt+1);
-	    Out << setw(12) << jCnt << ": "
-	      << setw(12) << MatR.dGetCoef(jCnt, iCnt) 
-	      << ( im >= 0. ? " + " : " - " ) 
-	      << setw(12) << fabs(im) << " * j " << endl;
-         }
+	 
+	 if (fOutputModes) {
+	    /*
+	     * per ora sono uguali; in realta' XP e' X * lambda
+	     */
+	    MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*(iCnt-1));
+	    MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*(iCnt-1));
+	    pDM->Output(X, XP);
+	 }
+      } else {
+	 if (cmplx > 0.) {
+            Out << "Modes " << iCnt << ", " << iCnt+1 << ":" << endl;
+	    for (int jCnt = 1; jCnt <= iSize; jCnt++) {
+	       doublereal im = MatR.dGetCoef(jCnt, iCnt+1);
+	       Out << setw(12) << jCnt << ": "
+	         << setw(12) << MatR.dGetCoef(jCnt, iCnt) 
+	         << ( im >= 0. ? " + " : " - " ) 
+	         << setw(12) << fabs(im) << " * j " << endl;
+            }
+	 }
+
+	 if (fOutputModes) {
+            /*
+	     * uso la parte immaginaria ...
+	     */
+	    int i = iCnt - (cmplx > 0. ? 0 : 1);
+	    MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*i);
+	    MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*i);
+	    pDM->Output(X, XP);
+	 }
       }
    }
 

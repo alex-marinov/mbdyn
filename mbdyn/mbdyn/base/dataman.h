@@ -242,6 +242,7 @@ class DataManager {
    
    /* stampa i risultati */
    virtual void Output(void) const;
+   virtual void Output(const VectorHandler& X, const VectorHandler& XP) const;
    
    /* Adams output */
    flag fAdamsOutput(void) const;
@@ -348,7 +349,9 @@ class DataManager {
    
    /* Scrive i risultati */
    void ElemOutput(OutputHandler& OH) const;
-
+   void ElemOutput(OutputHandler& OH,
+		   const VectorHandler& X, const VectorHandler& XP) const;
+   
    
    /* da NodeManager */
  protected:
@@ -398,6 +401,8 @@ class DataManager {
      
    /* scrive i dati dei nodi */
    void NodeOutput(OutputHandler& OH) const;
+   void NodeOutput(OutputHandler& OH, 
+		   const VectorHandler& X, const VectorHandler& XP) const;
    
    
    /* da DofManager */

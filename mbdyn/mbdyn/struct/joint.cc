@@ -140,6 +140,7 @@ Elem* ReadJoint(DataManager* pDM,
       "in" "plane",
       "in" "line",
       "rod",
+      "rod" "with" "offset",
       "deformable" "hinge",
       "deformable" "displacement" "hinge",
       "linear" "velocity",
@@ -175,6 +176,7 @@ Elem* ReadJoint(DataManager* pDM,
       INPLANE,
       INLINE,
       ROD,
+      RODWITHOFFSET,
       DEFORMABLEHINGE,
       DEFORMABLEDISPHINGE,
       LINEARVELOCITY,
@@ -782,36 +784,18 @@ Elem* ReadJoint(DataManager* pDM,
       /* vincolo di distanza */
     case ROD: {
        
-       /* lettura dei dati specifici */
-       /* due nodi, lunghezza iniziale e tipo di legame elastico */
+       /*
+	* lettura dei dati specifici:
+        * due nodi, lunghezza iniziale e tipo di legame elastico
+	*/
        
        /* nodo collegato 1 */
-       unsigned int uNode1 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode1 << endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode1;
-       if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode1
-	    << " not defined" << endl;
-	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
-       
+       StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+       DEBUGCOUT("Linked to Node " << pNode1->GetLabel() << endl);
+
        /* nodo collegato 2 */
-       unsigned int uNode2 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode2 << endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode2;
-       if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode2
-	    << " not defined" << endl;
-	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+       DEBUGCOUT("Linked to Node " << pNode2->GetLabel() << endl);
        
        /* Lunghezza iniziale */
        doublereal dL = 0.;
@@ -863,7 +847,8 @@ Elem* ReadJoint(DataManager* pDM,
 						    f1, f2, dL, fOut),
 				 DMmm);
        } else {	  
-	  if (ConstLawType == DefHingeType::VISCOUS || ConstLawType == DefHingeType::VISCOELASTIC) {
+	  if (ConstLawType == DefHingeType::VISCOUS
+			  || ConstLawType == DefHingeType::VISCOELASTIC) {
 	     SAFENEWWITHCONSTRUCTOR(pEl, 
 				    ViscoElasticRod,
 				    ViscoElasticRod(uLabel, pDO, pCL,
@@ -873,11 +858,62 @@ Elem* ReadJoint(DataManager* pDM,
 	  } else {		 
 	     SAFENEWWITHCONSTRUCTOR(pEl, 
 				    Rod,
-				    Rod(uLabel, pDO, pCL, pNode1, pNode2, dL, fOut), 
+				    Rod(uLabel, pDO, pCL,
+					pNode1, pNode2, dL, fOut), 
 				    DMmm);
 	  }
        }	   
        
+       break;
+    }
+
+    case RODWITHOFFSET: {
+
+       /*
+	* lettura dei dati specifici:
+	* due nodi, lunghezza iniziale e tipo di legame elastico.
+	* Nota: prima gli offset erano un optional dei dati del rod normale;
+	* questo e' lo stesso rod with offset, ma con un input piu' simile
+	* a quello standard.
+	*/
+
+       /* nodo collegato 1 */
+       StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+       Vec3 f1(HP.GetPosRel(ReferenceFrame(pNode1)));
+       DEBUGCOUT("Linked to Node " << pNode1->GetLabel()
+		       << "with offset " << f1 << endl);
+
+       /* nodo collegato 2 */
+       StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+       Vec3 f2(HP.GetPosRel(ReferenceFrame(pNode2)));
+       DEBUGCOUT("Linked to Node " << pNode2->GetLabel()
+		       << "with offset " << f2 << endl);
+
+       /* Lunghezza iniziale */
+       doublereal dL = 0.;
+       if (HP.IsKeyWord("fromnodes")) {
+          Vec3 v = pNode2->GetXCurr()-pNode1->GetXCurr()
+		  +pNode2->GetRCurr()*f2-pNode1->GetRCurr()*f1;
+          dL = v.Norm();
+       } else {
+          dL = HP.GetReal();
+       }
+       DEBUGCOUT("Initial length = " << dL << endl);
+
+       /* Legame costitutivo */
+       DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
+       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
+       HP.PutKeyTable(K);
+
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+       SAFENEWWITHCONSTRUCTOR(pEl,
+                              RodWithOffset,
+                              RodWithOffset(uLabel, pDO, pCL,
+                                            pNode1, pNode2,
+                                            f1, f2, dL, fOut),
+                              DMmm);
+
        break;
     }
       

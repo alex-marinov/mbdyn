@@ -123,21 +123,47 @@ void DataManager::NodeDataInit(void)
    }
 }
 
+
 void DataManager::NodeOutput(OutputHandler& OH) const
 {
    Node** ppTmpNode = ppNodes;
    for(; ppTmpNode < ppNodes+iTotNodes; ppTmpNode++) {      
      (*ppTmpNode)->Output(OH);
    }   
-   
-   /* Con iteratore:
+
+#if 0
+   /* Con iteratore: */
     Node* pTmpNode = NULL;
     if(NodeIter.fGetFirst(pTmpNode)) {      
        do {
 	  pTmpNode->Output(OH);
        } while(NodeIter.fGetNext(pTmpNode));
     }
-    */
+#endif
+}
+
+
+void
+DataManager::NodeOutput(
+		OutputHandler& OH,
+		const VectorHandler& X,
+		const VectorHandler& XP
+		) const
+{
+   Node** ppTmpNode = ppNodes;
+   for(; ppTmpNode < ppNodes+iTotNodes; ppTmpNode++) {      
+     (*ppTmpNode)->Output(OH, X, XP);
+   }   
+
+#if 0
+   /* Con iteratore: */
+    Node* pTmpNode = NULL;
+    if(NodeIter.fGetFirst(pTmpNode)) {      
+       do {
+	  pTmpNode->Output(OH, X, XP);
+       } while(NodeIter.fGetNext(pTmpNode));
+    }
+#endif
 }
 
 

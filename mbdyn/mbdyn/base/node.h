@@ -36,8 +36,6 @@
 
 
 #include "myassert.h"
-// #include "except.h"
-
 
 /* include del programma */
 #include "memmans.h"
@@ -184,6 +182,8 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
     Di default non fa nulla per nodi che non generano output
     */
    virtual void Output(OutputHandler& OH) const;
+   virtual void Output(OutputHandler& OH,
+		   const VectorHandler& X, const VectorHandler& XP) const;
    
    /**
     Setta i valori iniziali dei DoF.

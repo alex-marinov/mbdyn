@@ -102,6 +102,7 @@ private:
    	} OneEig;
 	flag fEigenAnalysis;
 	doublereal dEigParam;
+	flag fOutputModes;
 #endif /* __HACK_EIG__ */
    
    	/* 

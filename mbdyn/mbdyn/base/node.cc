@@ -97,6 +97,18 @@ void Node::Output(OutputHandler& /* OH */ ) const
 }
 
 
+/* Output di default per nodi di cui non si desidera output */
+void
+Node::Output(
+		OutputHandler& /* OH */,
+		const VectorHandler& /* X */ ,
+		const VectorHandler& /* XP */
+		) const
+{
+   NO_OP;
+}
+
+
 /* Setta i valori iniziali delle variabili (e fa altre cose) 
  * prima di iniziare l'integrazione */
 void Node::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const 

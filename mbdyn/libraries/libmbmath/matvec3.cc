@@ -53,29 +53,29 @@ const Vec3 Zero3(0., 0., 0.);
 
 Mat3x3 Vec3::Tens(const Vec3& v) const
 {
-   return Mat3x3(pdVec[0]*v.pdVec[0],
-		 pdVec[1]*v.pdVec[0],
-		 pdVec[2]*v.pdVec[0],
-		 pdVec[0]*v.pdVec[1],
-		 pdVec[1]*v.pdVec[1],
-		 pdVec[2]*v.pdVec[1],
-		 pdVec[0]*v.pdVec[2],
-		 pdVec[1]*v.pdVec[2],
-		 pdVec[2]*v.pdVec[2]);
+   return Mat3x3(pdVec[V1]*v.pdVec[V1],
+		 pdVec[V2]*v.pdVec[V1],
+		 pdVec[V3]*v.pdVec[V1],
+		 pdVec[V1]*v.pdVec[V2],
+		 pdVec[V2]*v.pdVec[V2],
+		 pdVec[V3]*v.pdVec[V2],
+		 pdVec[V1]*v.pdVec[V3],
+		 pdVec[V2]*v.pdVec[V3],
+		 pdVec[V3]*v.pdVec[V3]);
 }
 
 
 /* Prodotto vettore per matrice */
 Mat3x3 Vec3::Cross(const Mat3x3& m) const {
-   return Mat3x3(pdVec[1]*m.pdMat[2]-pdVec[2]*m.pdMat[1],
-		 pdVec[2]*m.pdMat[0]-pdVec[0]*m.pdMat[2],
-		 pdVec[0]*m.pdMat[1]-pdVec[1]*m.pdMat[0],
-		 pdVec[1]*m.pdMat[5]-pdVec[2]*m.pdMat[4],
-		 pdVec[2]*m.pdMat[3]-pdVec[0]*m.pdMat[5],
-		 pdVec[0]*m.pdMat[4]-pdVec[1]*m.pdMat[3],
-		 pdVec[1]*m.pdMat[8]-pdVec[2]*m.pdMat[7],
-		 pdVec[2]*m.pdMat[6]-pdVec[0]*m.pdMat[8],
-		 pdVec[0]*m.pdMat[7]-pdVec[1]*m.pdMat[6]);
+   return Mat3x3(pdVec[V2]*m.pdMat[M31]-pdVec[V3]*m.pdMat[M21],
+		 pdVec[V3]*m.pdMat[M11]-pdVec[V1]*m.pdMat[M31],
+		 pdVec[V1]*m.pdMat[M21]-pdVec[V2]*m.pdMat[M11],
+		 pdVec[V2]*m.pdMat[M32]-pdVec[V3]*m.pdMat[M22],
+		 pdVec[V3]*m.pdMat[M12]-pdVec[V1]*m.pdMat[M32],
+		 pdVec[V1]*m.pdMat[M22]-pdVec[V2]*m.pdMat[M12],
+		 pdVec[V2]*m.pdMat[M33]-pdVec[V3]*m.pdMat[M23],
+		 pdVec[V3]*m.pdMat[M13]-pdVec[V1]*m.pdMat[M33],
+		 pdVec[V1]*m.pdMat[M23]-pdVec[V2]*m.pdMat[M13]);
 }
 
 /* Vec3 - end */
@@ -157,24 +157,24 @@ _MatGm1_Manip MatGm1;
 
 Vec3 operator - (const Vec3& v)
 {
-   return Vec3(-v.pdVec[0],
-	       -v.pdVec[1],
-	       -v.pdVec[2]);
+   return Vec3(-v.pdVec[V1],
+	       -v.pdVec[V2],
+	       -v.pdVec[V3]);
 }
 
 
 Mat3x3 operator - (const Mat3x3& m)
 {
    doublereal* pdMat = m.pGetMat();
-   return Mat3x3(-pdMat[0],
-		 -pdMat[1],
-		 -pdMat[2],
-		 -pdMat[3],
-		 -pdMat[4],
-		 -pdMat[5],
-		 -pdMat[6],
-		 -pdMat[7],
-		 -pdMat[8]);
+   return Mat3x3(-pdMat[M11],
+		 -pdMat[M21],
+		 -pdMat[M31],
+		 -pdMat[M12],
+		 -pdMat[M22],
+		 -pdMat[M32],
+		 -pdMat[M13],
+		 -pdMat[M23],
+		 -pdMat[M33]);
 }
 
 
@@ -240,9 +240,9 @@ ostream& Mat3x3::Write(ostream& out,
       sF2 = (char*)sFill;
    }
    out 
-     << pdMat[0] << sFill << pdMat[3] << sFill << pdMat[6] << sF2
-     << pdMat[1] << sFill << pdMat[4] << sFill << pdMat[7] << sF2
-     << pdMat[2] << sFill << pdMat[5] << sFill << pdMat[8];
+     << pdMat[M11] << sFill << pdMat[M12] << sFill << pdMat[M13] << sF2
+     << pdMat[M21] << sFill << pdMat[M22] << sFill << pdMat[M23] << sF2
+     << pdMat[M31] << sFill << pdMat[M32] << sFill << pdMat[M33];
    
    return out;
 }
@@ -250,7 +250,7 @@ ostream& Mat3x3::Write(ostream& out,
 
 ostream& Vec3::Write(ostream& out, const char* sFill) const
 {
-   out << pdVec[0] << sFill << pdVec[1] << sFill << pdVec[2];
+   out << pdVec[V1] << sFill << pdVec[V2] << sFill << pdVec[V3];
    
    return out;
 }
@@ -266,23 +266,16 @@ ostream& Write(ostream& out, const doublereal& d, const char*)
 
 Vec3 gparam(const Mat3x3& m)
 {
-   doublereal* pd = m.pGetMat();
-   
    /* test di singolarita' */
-   doublereal d = 1.+pd[0]+pd[4]+pd[8];
+   doublereal d = 1.+m.Trace();
    
    if (d == 0.) {
-      cerr << endl 
-	<< "gparam(): divide by zero, probably due to singularity in rotation parameters" 
-	<< endl;
+      cerr << "gparam(): divide by zero,"
+        " probably due to singularity in rotation parameters" << endl;
       THROW(ErrGeneric());
    }
    
-   d = 2./d;
-      
-   return Vec3(d*(pd[5]-pd[7]),
-	       d*(pd[6]-pd[2]),
-	       d*(pd[1]-pd[3]));
+   return m.Ax()*(4./d);
 }
 
 

@@ -202,6 +202,27 @@ StructNode::Output(OutputHandler& OH) const
 }
 
 
+/* Output della soluzione perturbata (modi ...) */
+void
+StructNode::Output(
+		OutputHandler& OH, 
+		const VectorHandler& X, 
+		const VectorHandler& XP
+		) const
+{
+   if (fToBeOutput()) {
+      integer iFirstIndex = iGetFirstIndex();
+      Vec3 DX(X, iFirstIndex+1);
+      Vec3 Dg(X, iFirstIndex+4);
+      Mat3x3 DR(MatR, Dg);
+
+      OH.StrNodes() << setw(8) << GetLabel() << " "
+	<< (XCurr+DX) << " " << EulerAngles(DR*RCurr) << " "
+	<< "#" << endl;
+   }
+}
+
+
 /* Aggiorna dati in base alla soluzione */
 void 
 StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
