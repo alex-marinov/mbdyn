@@ -151,15 +151,18 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
  protected:
    int ResMode;
 
+#if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
+   mutable integer iOutputBlock;
+#endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */
+
 #ifdef USE_ADAMS 
    char *sAdamsModelName;
-   integer iAdamsOutputBlock;
    unsigned int iAdamsOutputNodes;
    unsigned int iAdamsOutputParts;
 #endif /* USE_ADAMS */
 
 #ifdef USE_MOTIONVIEW
-
+   /* nothing yet */
 #endif /* USE_MOTIONVIEW */
    
  private:

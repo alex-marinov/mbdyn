@@ -115,9 +115,11 @@ dLastRestartTime(dInitialTime),
 iOutputFrequency(1),
 iOutputCount(0),
 ResMode(RES_NATIVE),
+#if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
+iOutputBlock(1),
+#endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */
 #ifdef USE_ADAMS 
 sAdamsModelName(NULL),
-iAdamsOutputBlock(1),
 iAdamsOutputNodes(0),
 iAdamsOutputParts(0),
 #endif /* USE_ADAMS */
@@ -435,8 +437,7 @@ DofIter()
    /* Se richiesto, inizializza il file di output AdamsRes */
    if (bAdamsOutput()) {
       AdamsResOutputInit();
-      iAdamsOutputBlock = 1;
-      AdamsResOutput(iAdamsOutputBlock, "INPUT", "MBDyn");
+      AdamsResOutput(iOutputBlock, "INPUT", "MBDyn");
    }
 #endif /* USE_ADAMS */
 
@@ -512,17 +513,20 @@ DofIter()
 #endif /* DEBUG */
    
    /* Se richiesto, esegue l'output delle condizioni iniziali */
+#if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
+   iOutputBlock++;
+#endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */
+
 #ifdef USE_ADAMS
    if (bAdamsOutput()) {
-      iAdamsOutputBlock = 2;
-      AdamsResOutput(iAdamsOutputBlock, "INITIAL CONDITIONS", "MBDyn");
+      AdamsResOutput(iOutputBlock, "INITIAL CONDITIONS", "MBDyn");
    }
 #endif /* USE_ADAMS */
    
    /* Se richiesto, esegue l'output delle condizioni iniziali */
 #ifdef USE_MOTIONVIEW
    if (bMotionViewOutput()) {
-      MotionViewResOutput(2, "INITIAL CONDITIONS", "MBDyn");
+      MotionViewResOutput(iOutputBlock, "INITIAL CONDITIONS", "MBDyn");
    }
 #endif /* USE_ADAMS */
    

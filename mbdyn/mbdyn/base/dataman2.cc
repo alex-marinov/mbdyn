@@ -889,18 +889,21 @@ DataManager::Output(bool force) const
 	/* Dati degli elementi */
 	ElemOutput((OutputHandler&)OutHdl);
 
+#if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
+	iOutputBlock++;
+#endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */
+
 #ifdef USE_ADAMS
 	/* Se richiesto, esegue l'output delle condizioni iniziali*/
 	if (bAdamsOutput()) {
-		((integer&)iAdamsOutputBlock)++;
-		AdamsResOutput(iAdamsOutputBlock, "DYNAMIC", "MBDyn");
+		AdamsResOutput(iOutputBlock, "DYNAMIC", "MBDyn");
 	}
 #endif /* USE_ADAMS */
 
 #ifdef USE_MOTIONVIEW
 	/* Se richiesto, esegue l'output delle condizioni iniziali*/
 	if (bMotionViewOutput()) {
-		MotionViewResOutput(iAdamsOutputBlock, "DYNAMIC", "MBDyn");
+		MotionViewResOutput(iOutputBlock, "DYNAMIC", "MBDyn");
 	}
 #endif /* USE_MOTIONVIEW */
 }
