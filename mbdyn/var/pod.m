@@ -1,11 +1,11 @@
 %[S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, uu, dec, ord)
 %
 %input:
-%	A	data (number of frames x number of outputs)
-%	ns	desired POMs
+%	A	data (n. of frames x n. of outputs)
+%	ns	desired POMs (ns(1): POM, ns(2): identification)
 %	dt	time lag between two frames (optional, defaults to 1.0)
-%       uu      input signals (number of frames x number of input signals; Matlab only) 
-%	dec	decimation factor (Matlab only)
+%       uu      input signals (n. of frames x n. of inputs; MATLAB only) 
+%	dec	decimation factor
 %	ord	model order (default 1)
 %
 %output:
@@ -73,7 +73,20 @@ end
 
 [r, c] = size(A);
 
-if ( ns > min(r,c)),
+% ns(1): POM; ns(2): identification
+if (length(ns) == 1),
+	ns2 = ns;
+
+elseif (length(ns) >= 2),
+	ns2 = ns(2);
+	ns = ns(1);
+
+	if (ns2 > ns),
+		error(sprintf('illegal ns(2) = %d > ns(1) = %d', ns2, ns));
+	end
+end
+
+if ( ns > min(r, c)),
  	error('too many sv required');
 end
 
@@ -95,7 +108,16 @@ A = A(:, gt)./(ones(r, 1)*scl(gt));
 for i = 1:nlt,
 	disp(sprintf('dof %d: output is negligible', lt(i)));
 end
-disp(sprintf('using %d dofs (out of %d)', ngt, c));
+msg = sprintf('using %d dofs', ngt);
+if (ngt < c),
+	msg = [msg, sprintf(' (out of %d)', c)];
+end
+msg = [msg, sprintf(' and %d', r)];
+if (dec > 1),
+	msg = [msg, sprintf('/%d', dec)];
+end
+msg = [msg, ' samples'];
+disp(msg);
 
 if (ns == 0),
 	S = [];
@@ -171,40 +193,41 @@ end
 % Aout = B*A';			% = E^-1*U'*A*A' = E^-1*U'*U*E*U' = U'
 Aout = U;
 
-if exist('OCTAVE_HOME'),
+MATLAB_IS_BRAINDEAD = 1;
+if MATLAB_IS_BRAINDEAD, % exist('OCTAVE_HOME'),
 	%%% This is a very rough estimate of the transition matrix ...
 	%%% H = (Aout(1:r-1, :)\Aout(2:r, :))';
 
 	hh = [];
 	for i = 1:ord,
-		hh(:, ns*(i-1)+1:ns*i) = Aout(ord-i+1:r-i, :);
+		hh(:, ns2*(i-1)+1:ns2*i) = Aout(ord-i+1:r-i, 1:ns2);
 	end
-	H = (hh\Aout(ord+1:r, :))';
+	H = (hh\Aout(ord+1:r, 1:ns2))';
 	if (ord > 1),
-		H(ns+1:ord*ns, 1:(ord-1)*ns) = eye((ord-1)*ns);
-		C = [eye(ns), zeros(ns, (ord-1)*ns)];
+		H(ns2+1:ord*ns2, 1:(ord-1)*ns2) = eye((ord-1)*ns2);
+		C = [eye(ns2), zeros(ns2, (ord-1)*ns2)];
 	end
 else
        if (exist('uu') & ~isempty(uu)),
                 [ru, cu] = size(uu);
-                yu = iddata(Aout, uu);
+                yu = iddata(Aout(:, 1:ns2), uu);
 		%% si potrebbe dare la struttura della B noto il nodo eccitato... 
-                [H, Btmp, C] = ssdata(arx(yu, [ord*ones(ns), ones(ns, cu), zeros(ns, cu)], 'Covariance', 'None'));
+                [H, Btmp, C] = ssdata(arx(yu, [ord*ones(ns2), ones(ns2, cu), zeros(ns, cu)], 'Covariance', 'None'));
     	else
-		[H, Btmp, C] = ssdata(arx(Aout, ord*ones(ns), 'Covariance', 'None'));
+		[H, Btmp, C] = ssdata(arx(Aout, ord*ones(ns2), 'Covariance', 'None'));
 	end
 end
 
 % physical eigenvalues and eigenvectors ...
 [vv, eetmp] = eig(H);
 ee = log(diag(eetmp))/dt;
-B = diag(S)*B.*(ones(ns, 1)*scl(gt));
+B = diag(S(1:ns2))*B(1:ns2, :).*(ones(ns2, 1)*scl(gt));
 if (ord > 1),
 	vv = C*vv*C';
 end
-X = zeros(ns, c);
-X(:, gt) = vv'*B;
-BB = zeros(ns, c);
+X = zeros(ns2, c);
+X(:, gt) = vv'*B(1:ns2, :);
+BB = zeros(ns2, c);
 BB(:, gt) = B;
 
 %
