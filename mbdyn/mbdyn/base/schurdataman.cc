@@ -166,10 +166,11 @@ SchurDataManager::Output(bool force) const
 /* Costruttore - begin */
 SchurDataManager::SchurDataManager(MBDynParser& HP,
 		unsigned OF,
+		Solver *pS,
 		doublereal dInitialTime,
 		const char* sOutputFileName,
 		bool bAbortAfterInput)
-: DataManager(HP, OF, dInitialTime, sOutputFileName, bAbortAfterInput),
+: DataManager(HP, OF, pS, dInitialTime, sOutputFileName, bAbortAfterInput),
 iTotVertices(0),
 ppMyElems(NULL),
 iNumLocElems(0),

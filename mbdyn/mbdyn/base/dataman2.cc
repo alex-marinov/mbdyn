@@ -893,10 +893,11 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 			throw ErrGeneric();	
 		}
 #endif /* HAVE_ISOPEN */
-		/*int count = 0;
-		while(!fp.eof()) {
+#if 0
+		int count = 0;
+		while (!fp.eof()) {
 			char tmp;
-			count ++;
+			count++;
 			fp.get(tmp);
 		}
 		count--;
@@ -904,15 +905,16 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 			silent_cerr("DataManager::SetValue(): " 
 				"File(" << solArrFileName << ") too short!" << std::endl);
 			throw ErrGeneric();				
-		}*/
+		}
+#endif
 		fp.read((char*)X.pdGetVec() , X.iGetSize()*sizeof(double));
-		if(fp.gcount()!=X.iGetSize()*sizeof(double)) {
+		if (fp.gcount() != std::streamsize(X.iGetSize()*sizeof(double))) {
 			silent_cerr("DataManager::SetValue(): " 
 				"File(" << solArrFileName << ") too short!" << std::endl);
 			throw ErrGeneric();				
 		}
 		fp.read((char*)XP.pdGetVec() , XP.iGetSize()*sizeof(double));
-		if(fp.gcount()!=XP.iGetSize()*sizeof(double)) {
+		if (fp.gcount() != std::streamsize(XP.iGetSize()*sizeof(double))) {
 			silent_cerr("DataManager::SetValue(): " 
 				"File(" << solArrFileName << ") too short!" << std::endl);
 			throw ErrGeneric();				
