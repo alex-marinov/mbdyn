@@ -40,6 +40,7 @@ extern "C" {
 
 #include "ac/float.h"
 #include "constltp.h"
+#include "elem.h"
 
 /* ElasticConstitutiveLaw - begin */
 
@@ -1483,28 +1484,38 @@ public:
 	Update(const T& Eps, const T& EpsPrime = 0.) {
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
 		ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
+		bool ChangeJac(false);
 
 		switch (status) {
 		case INACTIVE:
 			if (pActivatingCondition->dGet() == 0.) {
+				/* remains inactive: nothing to do */
 				break;
 			}
+			/* activates: change data and ask for jacobian rigeneration */
 			status = ACTIVE;
-			EpsRef = ConstitutiveLaw<T, Tder>::Epsilon-ElasticConstitutiveLaw<T, Tder>::Get();
+			EpsRef = ConstitutiveLaw<T, Tder>::Epsilon - ElasticConstitutiveLaw<T, Tder>::Get();
 			ConstitutiveLaw<T, Tder>::FDE = FDECurr;
 			ConstitutiveLaw<T, Tder>::FDEPrime = FDEPrimeCurr;
+			ChangeJac = true;
 
 		case ACTIVE:
 			if (pDeactivatingCondition->dGet() != 0.) {
+				/* disactivates: reset data and ask for jacobian rigeneration */
 				status = INACTIVE;
 				ConstitutiveLaw<T, Tder>::FDE = 0.;
 				ConstitutiveLaw<T, Tder>::FDEPrime = 0.;
 				ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress;
-				break;
+				throw Elem::ChangedEquationStructure();
 			}
+			/* change force as well */
 			ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress
-				+ConstitutiveLaw<T, Tder>::FDE*(ConstitutiveLaw<T, Tder>::Epsilon-ElasticConstitutiveLaw<T, Tder>::Get()-EpsRef)
+				+ConstitutiveLaw<T, Tder>::FDE*(ConstitutiveLaw<T, Tder>::Epsilon - ElasticConstitutiveLaw<T, Tder>::Get() - EpsRef)
 				+ConstitutiveLaw<T, Tder>::FDEPrime*ConstitutiveLaw<T, Tder>::EpsilonPrime;
+			if (ChangeJac) {
+				/* if activating, ask for jacobian rigeneration */
+				throw Elem::ChangedEquationStructure();
+			}
 			break;
 		}
 	};

@@ -148,10 +148,7 @@ private:
 	doublereal EpsMin;
 	doublereal Penalty;
 	doublereal PenaltyPrime;
-#if 0
-	doublereal FMax;
-	doublereal FMin;
-#endif
+	bool bPenalty;
 
 	/*
 	 * Dissipazione
@@ -218,6 +215,7 @@ public:
 	) : ElasticConstitutiveLaw<doublereal, doublereal>(pDC, 0.),
 	EpsMax(defaultEpsMax), EpsMin(defaultEpsMin), 
 	Penalty(defaultPenalty), PenaltyPrime(defaultPenaltyPrime),
+	bPenalty(false),
 	pAreaPinPlus(NULL), pAreaPinMinus(NULL), pAreaOrifices(NULL),
 	EpsPrimeRef(1.), FrictionAmpl(0.), dPressure(0.) {
 		if (HP.IsKeyWord("help")) {
@@ -430,6 +428,8 @@ public:
 
 		FDE = Gamma*Cint*VRatio*F;
 
+		bool ChangeJac(false);
+
 		if (CurrEpsilon > EpsMax) {
 			FDE += Penalty;
 #if 0
@@ -445,6 +445,11 @@ public:
 
 			dFelastic += dFP;
 			F += dFP;
+
+			if (!bPenalty) {
+				bPenalty = true;
+				ChangeJac = true;
+			}
 	
 		} else if (CurrEpsilon < EpsMin) {
 			FDE += Penalty;
@@ -461,37 +466,16 @@ public:
 
 			dFelastic += dFP;
 			F += dFP;
-		}
 
-#if 0
-		if (CurrEpsilon > EpsMax) {
-			F = FMin+Penalty*(CurrEpsilon-EpsMax)
-				+PenaltyPrime*EpsPrime;
-			FDE = Penalty;
-			FDEPrime = PenaltyPrime;
-
-			dFelastic = F;
-
-		} else if (CurrEpsilon < EpsMin) {
-			F = FMax + Penalty*(CurrEpsilon-EpsMin)
-				+PenaltyPrime*EpsPrime;
-			FDE = Penalty;
-			FDEPrime = PenaltyPrime;
-
-			dFelastic = F;
-
-		} else {
-			F = -A0*dPressure;
-
-			dFelastic = F;
-
-			if (FrictionAmpl != 0.) {
-				F *= (1.-FrictionAmpl*tanh(EpsPrime/EpsPrimeRef));
+			if (!bPenalty) {
+				bPenalty = true;
+				ChangeJac = true;
 			}
 
-			FDE = Gamma*Cint*VRatio*F;
+		} else if (bPenalty) {
+			bPenalty = false;
+			ChangeJac = true;
 		}
-#endif
 
 
 		/*
@@ -525,7 +509,11 @@ public:
 
 		F += dFviscous;
 		FDEPrime += d*fabs(EpsPrime);
-	}
+
+		if (ChangeJac) {
+			throw Elem::ChangedEquationStructure();
+		}
+	};
 
 	virtual void
 	IncrementalUpdate(
