@@ -238,7 +238,7 @@ The increment of angular velocity is
 $\Delta \T \omega = \T G\Delta \dot{\T g}+ \Delta \T G \dot{\T g}-
 \T \omega_{ref}\times \T G \Delta \T g$,
 where $\T G(\T g)$ is the tensor relating $\T g_\delta$ to $\delta \T g$,
-and $\T \omega_{ref}$ is the nodal referenc angular velocity (Wref).
+and $\T \omega_{ref}$ is the nodal reference angular velocity (Wref).
 We assume $\T G = \T I$ and $\Delta \T G = \T 0$,
 so that $\Delta \T \omega = \Delta \dot{\T g}-\T \omega_{ref}\times\Delta \T g$
 and so $\Delta \T \omega = \Delta \dot{\T g}-
@@ -246,8 +246,8 @@ and so $\Delta \T \omega = \Delta \dot{\T g}-
 
 \chapter{Data Structure}
 \section{ExpandableRowVector}
-\texttt{ExpandableRowVector} is a simple class that can be used to
-simplify the compute of complex Jacobians.
+\texttt{ExpandableRowVector} is a class that can be used to
+simplify the computation of complex Jacobians.
 An \texttt{ExpandableRowVector} is a vector with a given dimension,
 and is designed in order to carry the partial derivatives
 of a scalar quantity, say $y$, with respect to problem variables.
