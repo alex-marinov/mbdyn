@@ -83,6 +83,7 @@ PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 SECURITY_LIBS = @SECURITY_LIBS@
 TCL_LIBS = @TCL_LIBS@
+UMFPACK3_LIBS = @UMFPACK3_LIBS@
 VERSION = @VERSION@
 Y12_LIBS = @Y12_LIBS@
 mbdyn_subdir = @mbdyn_subdir@
@@ -119,7 +120,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/dgegv.P .deps/getopt.P
 SOURCES = $(libobjs_la_SOURCES)
@@ -129,7 +130,7 @@ all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --foreign ./libraries/libobjs/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu ./libraries/libobjs/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -234,7 +235,7 @@ distdir: $(DISTFILES)
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign ./libraries/libobjs/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu ./libraries/libobjs/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \

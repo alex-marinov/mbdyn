@@ -15,6 +15,19 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  */
+/* November 2001 
+ * Modified to add a Sparse matrix in row form and to implement methods
+ * to be used in the parallel MBDyn Solver.
+ *
+ * Copyright (C) 1996-2001
+ *
+ * Giuseppe Quaranta  <quaranta@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *      
+ */
 /*
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
@@ -55,11 +68,13 @@
 #include <myassert.h>
 #include <solman.h>
 
+/* Sparse Matrix in columns form */
 class SpMapMatrixHandler : public MatrixHandler {
 private:
-//	typedef std::slist<double> x_cont_type;
-	typedef std::map<int,double> row_cont_type;
-	int N;
+//	typedef std::slist<doublereal> x_cont_type;
+	typedef std::map<int,doublereal> row_cont_type;
+	int NRows;
+	int NCols;
 	int NZ;
 	double zero;
 	std::vector<row_cont_type> col_indices;
@@ -69,24 +84,32 @@ private:
 		NO_OP;
 	};
 public:
-	SpMapMatrixHandler(const int &n = 0) : N(n), NZ(0), zero(0.) {
-		col_indices.resize(n);
+	SpMapMatrixHandler(const int &n = 0,const int &nn = 0) : NZ(0), zero(0.) {
+		int nnn;
+		if (nn == 0) {
+			nnn = n;
+		} else {
+			nnn = nn;
+		}
+		NRows = n; 
+		NCols = nnn;
+		col_indices.resize(NCols);
 	};
 	virtual ~SpMapMatrixHandler() {};
 	void Init(const double& = 0.) {
 		NO_OP;
 	};
 	long int iGetNumRows(void) const {
-		return N;
+		return NRows;
 	}
 	long int iGetNumCols(void) const {
-		return N;
+		return NCols;
 	}
 
 private:
 	double & operator()(const int &i_row, const int &i_col) {
-		ASSERTMSGBREAK(i_row < N, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
-		ASSERTMSGBREAK(i_col < N, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
+		ASSERTMSGBREAK(i_row < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
+		ASSERTMSGBREAK(i_col < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
 		row_cont_type::iterator i;
 		row_cont_type & row = col_indices[i_col];
 		i = row.find(i_row);
@@ -99,8 +122,8 @@ private:
 	};
 public:
 	long int fIncCoef(long int ix, long int iy, const double& inc) {
-		ASSERTMSGBREAK(ix-1 < N, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
-		ASSERTMSGBREAK(iy-1 < N, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
+		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
+		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
 		//try to keep sparsity
 		if (inc != 0.) {
 			operator()(ix-1,iy-1) += inc;
@@ -108,8 +131,8 @@ public:
 		return 1;
 	};
 	long int fDecCoef(long int ix, long int iy, const double& inc) {
-		ASSERTMSGBREAK(ix-1 < N, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
-		ASSERTMSGBREAK(iy-1 < N, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
+		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
+		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
 		//try to keep sparsity
 		if (inc != 0.) {
 			operator()(ix-1,iy-1) -= inc;
@@ -117,8 +140,8 @@ public:
 		return 1;
 	};
 	long int fPutCoef(long int ix, long int iy, const double& val) {
-		ASSERTMSGBREAK(ix-1 < N, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
-		ASSERTMSGBREAK(iy-1 < N, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
+		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
+		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
 		//try to keep sparsity
 		if (val != 0.) {
 			operator()(ix-1,iy-1) = val;
@@ -135,8 +158,8 @@ public:
 		return 1;
 	};
 	const double& dGetCoef(long int ix, long int iy) const {
-		ASSERTMSGBREAK(ix-1 < N, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
-		ASSERTMSGBREAK(iy-1 < N, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
+		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
+		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
 		//try to keep sparsity
 		row_cont_type::iterator i;
 		row_cont_type & row = ((std::vector<row_cont_type>&)col_indices)[iy-1];
@@ -150,12 +173,12 @@ public:
 	void MakeCompressedColumnForm(
 		double *const Ax,
 		int *const Ai,
-		int *const Ap) {
+		int *const Ap) const {
 		int x_ptr = 0;
 		
 		row_cont_type::const_iterator ri, re;
 		
-		for (int col=0; col<N; col++) {
+		for (int col=0; col<NCols; col++) {
 			Ap[col] = x_ptr;
 			re = col_indices[col].end();
 			for (ri = col_indices[col].begin();ri != re; ri++) {
@@ -165,12 +188,21 @@ public:
 			}
 		}
 		ASSERTMSGBREAK(x_ptr == NZ, "Error in SpMapMatrixHandler::MakeCompressedColumnForm");
-		Ap[N] = x_ptr;
+		Ap[NCols] = x_ptr;
 	};
+        void MakeCompressedColumnForm(
+                std::vector<double>& Ax,
+                std::vector<int>& Ai,
+                std::vector<int>& Ap) const {
+                Ax.resize(Nz());
+                Ai.resize(Nz());
+                Ap.resize(iGetNumCols()+1);
+                MakeCompressedColumnForm(&(Ax[0]),&(Ai[0]),&(Ap[0]));
+        };
 	void Reset(Real r = 0.) {
 		row_cont_type::const_iterator re;
 		row_cont_type::iterator ri;
-		for (int col=0; col<N; col++) {
+		for (int col=0; col<NCols; col++) {
 			re = col_indices[col].end();
 			for (ri = col_indices[col].begin();ri != re; ri++) {
 				ri->second = r;
@@ -185,23 +217,68 @@ public:
  * 		NZ = 0;
  * 	};
  */
-	void Resize(const int &n) {
-		Reset();
-		col_indices.resize(n);
-		N = n;
+	void Resize(const int &n, const int &nn = 0) {
+		int nnn;
+		if (nn == 0) {
+			nnn = n;
+		} else {
+			nnn = nn;
+		}
+		col_indices.resize(nn);
+		for (int col=0; col<NCols; col++) {
+			col_indices[col].clear();
+		}
+		NCols = n;
+		NRows = nnn;
+		NZ = 0;
 	};
-	const int Nz() {
+	const int Nz() const {
 		return NZ;
 	};
-
-	VectorHandler& MatVecMul(VectorHandler& out, const VectorHandler& in) const {
+	
+	/* Estrae una colonna da una matrice */
+	VectorHandler& GetCol(long int icol, VectorHandler& out) const {
+	        if (icol > iGetNumCols()) {
+			THROW(ErrGeneric());
+		}
+		out.Reset(0.);
+		row_cont_type::const_iterator ri, re;
+		re = col_indices[icol].end();
+		for (ri = col_indices[icol].begin();ri != re; ri++) {		
+			out.fPutCoef(ri->first+1, ri->second);
+		}
+		return out;
+	};		 	
+	
+        /* Prodotto Matrice per Matrice */
+	SpMapMatrixHandler& MatMatMul(SpMapMatrixHandler& out, const SpMapMatrixHandler& in) const {
+		if ((in.iGetNumCols() != iGetNumRows())
+				|| (in.iGetNumRows() != out.iGetNumRows())
+				|| (out.iGetNumCols() != iGetNumCols())) {
+			THROW(ErrGeneric());
+		}
+		out.Reset(0.);
+		for (int col=0; col<NCols; col++) {
+			row_cont_type::const_iterator ri, re;
+			re = col_indices[col].end();
+			for (ri = col_indices[col].begin(); ri!=re; ri++) {
+				int iend = in.iGetNumCols();
+				for (int col2=0; col2<iend;  col2++) {
+				out.fIncCoef(ri->first,col2,ri->second*in.dGetCoef(col,col2));
+				}
+			}
+		}
+		return out;	
+	};
+	
+	VectorHandler& MatTVecMul(VectorHandler& out, const VectorHandler& in) const {
 		if (out.iGetSize() != iGetNumRows()
 				|| in.iGetSize() != iGetNumCols()) {
 			THROW(ErrGeneric());
 		}
 
 		row_cont_type::const_iterator ri, re;
-		for (int col=0; col<N; col++) {
+		for (int col=0; col<NCols; col++) {
 			double d = 0.;
 			re = col_indices[col].end();
 			for (ri = col_indices[col].begin();ri != re; ri++) {
@@ -212,15 +289,15 @@ public:
 		return out;
 	};
 	
-	VectorHandler& MatTVecMul(VectorHandler& out, const VectorHandler& in) const {
+	VectorHandler& MatVecMul(VectorHandler& out, const VectorHandler& in) const {
 		if (out.iGetSize() != iGetNumCols()
 				|| in.iGetSize() != iGetNumRows()) {
 			THROW(ErrGeneric());
-		}
+  		}
 
 		row_cont_type::const_iterator ri, re;
 		out.Reset(0.);
-		for (int col=0; col<N; col++) {
+		for (int col=0; col<NCols; col++) {
 			re = col_indices[col].end();
 			for (ri = col_indices[col].begin();ri != re; ri++) {
 				double d = ri->second*in.dGetCoef(col+1);
@@ -230,14 +307,14 @@ public:
 		return out;
 	};
 
-	VectorHandler& MatVecIncMul(VectorHandler& out, const VectorHandler& in) const {
+	VectorHandler& MatTVecIncMul(VectorHandler& out, const VectorHandler& in) const {
 		if (out.iGetSize() != iGetNumRows()
 				|| in.iGetSize() != iGetNumCols()) {
 			THROW(ErrGeneric());
 		}
 
 		row_cont_type::const_iterator ri, re;
-		for (int col=0; col<N; col++) {
+		for (int col=0; col<NCols; col++) {
 			double d = 0.;
 			re = col_indices[col].end();
 			for (ri = col_indices[col].begin();ri != re; ri++) {
@@ -248,18 +325,35 @@ public:
 		return out;
 	};
 	
-	VectorHandler& MatTVecIncMul(VectorHandler& out, const VectorHandler& in) const {
+	VectorHandler& MatVecIncMul(VectorHandler& out, const VectorHandler& in) const {
 		if (out.iGetSize() != iGetNumCols()
 				|| in.iGetSize() != iGetNumRows()) {
 			THROW(ErrGeneric());
 		}
 
 		row_cont_type::const_iterator ri, re;
-		for (int col=0; col<N; col++) {
+		for (int col=0; col<NCols; col++) {
 			re = col_indices[col].end();
 			for (ri = col_indices[col].begin();ri != re; ri++) {
 				double d = ri->second*in.dGetCoef(col+1);
 				out.fIncCoef(ri->first+1, d);
+			}
+		}
+		return out;
+	};
+
+	VectorHandler& MatVecDecMul(VectorHandler& out, const VectorHandler& in) const {
+		if (out.iGetSize() != iGetNumCols()
+				|| in.iGetSize() != iGetNumRows()) {
+			THROW(ErrGeneric());
+		}
+
+		row_cont_type::const_iterator ri, re;
+		for (int col=0; col<NCols; col++) {
+			re = col_indices[col].end();
+			for (ri = col_indices[col].begin();ri != re; ri++) {
+				double d = ri->second*in.dGetCoef(col+1);
+				out.fDecCoef(ri->first+1, d);
 			}
 		}
 		return out;

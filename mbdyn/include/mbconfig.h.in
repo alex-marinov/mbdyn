@@ -155,6 +155,9 @@
 /* define this to use DOS-style filenames */
 #undef USE_DOS_FILE
 
+/* define if you want to use Umfpack3 */
+#undef USE_UMFPACK3
+
 /* define if you want to use Meschach */
 #undef USE_MESCHACH
 

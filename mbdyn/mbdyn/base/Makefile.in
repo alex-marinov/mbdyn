@@ -85,6 +85,7 @@ PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 SECURITY_LIBS = @SECURITY_LIBS@
 TCL_LIBS = @TCL_LIBS@
+UMFPACK3_LIBS = @UMFPACK3_LIBS@
 VERSION = @VERSION@
 Y12_LIBS = @Y12_LIBS@
 mbdyn_subdir = @mbdyn_subdir@
@@ -153,7 +154,7 @@ all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .cc .f .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu mbdyn/base/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu ./mbdyn/base/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -259,14 +260,14 @@ maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = mbdyn/base
+subdir = ./mbdyn/base
 
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu mbdyn/base/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu ./mbdyn/base/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \

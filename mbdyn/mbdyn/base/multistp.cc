@@ -45,6 +45,9 @@
 #ifdef USE_Y12
 #include <y12wrap.h>
 #endif /* USE_Y12 */
+#ifdef USE_UMFPACK3
+#include <umfpackwrap.h>
+#endif /* USE_UMFPACK3 */
 
 #include <unistd.h>
 
@@ -96,6 +99,9 @@ MultiStepIntegrator::MultiStepIntegrator(MBDynParser& HPar,
 					 const char* sOutFName)
 :
 CurrStrategy(NOCHANGE),
+#ifdef USE_UMFPACK3
+CurrSolver(UMFPACK3_SOLVER),
+#else /* !USE_Y12 */
 #ifdef USE_Y12
 CurrSolver(Y12_SOLVER),
 #else /* !USE_Y12 */
@@ -105,6 +111,7 @@ CurrSolver(HARWELL_SOLVER),
 CurrSolver(MESCHACH_SOLVER),
 #endif /* !USE_HARWELL */
 #endif /* !USE_Y12 */
+#endif /* !USE_UMFPACK3 */
 sInputFileName(NULL),
 sOutputFileName(NULL),
 HP(HPar),
@@ -296,6 +303,18 @@ MultiStepIntegrator::Run(void)
 			"to enable Harwell solver" << endl;
       		THROW(ErrGeneric());
 #endif /* !USE_HARWELL */
+
+   	case UMFPACK3_SOLVER:
+#ifdef USE_UMFPACK3
+      		SAFENEWWITHCONSTRUCTOR(pSM,
+			Umfpack3SparseLUSolutionManager,
+			Umfpack3SparseLUSolutionManager(iNumDofs));
+      		break;
+#else /* !USE_UMFPACK3 */
+      		cerr << "Configure with --with-umfpack3 "
+			"to enable Umfpack3 solver" << endl;
+      		THROW(ErrGeneric());
+#endif /* !USE_UMFPACK3 */
    	}
    
    	/* Puntatori agli handlers del solution manager */
@@ -1487,7 +1506,8 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		"solver",
 		"harwell",
 		"meschach",
-		"y12"
+		"y12",
+		"umfpack3"
    	};
    
    	/* enum delle parole chiave */
@@ -1550,6 +1570,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		HARWELL,
 		MESCHACH,
 		Y12,
+		UMFPACK3,
 	
 		LASTKEYWORD
    	};
@@ -2195,10 +2216,18 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 #ifdef USE_Y12
              CurrSolver = Y12_SOLVER;
 	     DEBUGLCOUT(MYDEBUG_INPUT,
-			"Using meschach sparse LU solver" << endl);
+			"Using y12 sparse LU solver" << endl);
 	     break;
 #endif /* USE_Y12 */
 							       
+	   case UMFPACK3:
+#ifdef USE_UMFPACK3
+             CurrSolver = UMFPACK3_SOLVER;
+	     DEBUGLCOUT(MYDEBUG_INPUT,
+			"Using umfpack3 sparse LU solver" << endl);
+	     break;
+#endif /* USE_UMFPACK3 */
+
 	   default:
 	     DEBUGLCOUT(MYDEBUG_INPUT, 
 			"Unknown solver; switching to default" << endl);

@@ -85,6 +85,7 @@ PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 SECURITY_LIBS = @SECURITY_LIBS@
 TCL_LIBS = @TCL_LIBS@
+UMFPACK3_LIBS = @UMFPACK3_LIBS@
 VERSION = @VERSION@
 Y12_LIBS = @Y12_LIBS@
 mbdyn_subdir = @mbdyn_subdir@
@@ -127,7 +128,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/actuator.P .deps/hfluid.P .deps/hminor.P \
 .deps/hutils.P .deps/pipe.P .deps/preselem.P .deps/valve.P
@@ -138,7 +139,7 @@ all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .cc .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --foreign ./mbdyn/hydr/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu ./mbdyn/hydr/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -247,7 +248,7 @@ distdir: $(DISTFILES)
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign ./mbdyn/hydr/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu ./mbdyn/hydr/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \

@@ -42,360 +42,20 @@
 #include <mynewmem.h>
 #include <except.h>
 #include <solman.h>
-#ifdef USE_HARWELL
-#include <harwrap.h> 		/* includes <sparsemh.h> */
-#include <mschwrap.h>
+#ifdef USE_UMFPACK3
+#include 
 #else
-#error "Sorry, Parallel MBDyn can not be compiled without Harwell!"
+#error "Sorry, Parallel MBDyn can not be compiled without UMFPACK3!"
 #endif  
 
 #include <mpi++.h>
 
 void InitializeList(int* list, integer dim, integer  value);
 
-void InitializeList(doublereal* list, integer dim, doublereal  value);
-
 /* SchurMatrixHandler - Begin */
 
 const int G_TAG = 100;
 const int S_TAG = 200; 
-
-class SchurMatrixHandler : public MatrixHandler {
-
- public:
-  class ErrGeneric{};
-
- private: 
-  integer LSize, ISize; /* dimensioni locali, interfacce */
-  MatrixHandler* pB;
-  doublereal* pE;
-  doublereal* pF;
-  doublereal* pC;
-  integer* pGTL;
-  
- public: 
-  SchurMatrixHandler(int LocSize, int IntSize,
-		     MatrixHandler* pMatB,
-		     doublereal* pMatE,
-		     doublereal* pMatF,
-		     doublereal* pMatC,
-		     integer* pGlobToLoc);
-  
-  ~SchurMatrixHandler(void); 
-  
-  /* Usata per il debug */
-  void IsValid(void) const;
-  
-  /* Resetta la matrice */
-  inline void Init(const doublereal& dResetVal);
-  
-  /* Inserisce un coefficiente */
-  inline flag fPutCoef(integer iRow, integer iCol, const doublereal& dCoef);
-  
-  /* Incrementa un coefficiente - se non esiste lo crea */
-  inline flag fIncCoef(integer iRow, integer iCol, const doublereal& dCoef);
-  
-  /* Incrementa un coefficiente - se non esiste lo crea */
-  inline flag fDecCoef(integer iRow, integer iCol, const doublereal& dCoef);
-  
-  /* Restituisce un coefficiente - zero se non e' definito */
-  inline const doublereal& dGetCoef(integer iRow, integer iCol) const;
-  
-  /* dimensioni */
-  integer iGetNumRows(void) const {
-    return LSize+ISize;
-  };
-  
-  integer iGetNumCols(void) const {
-    return LSize+ISize;
-  };   
-  
-};
-
-inline void SchurMatrixHandler::Init(const doublereal& dResetVal)
-{
-#ifdef DEBUG
-  IsValid();
-#endif
-  pB->Init(dResetVal);
-  InitializeList(pE,LSize * ISize, dResetVal);
-  InitializeList(pF,LSize * ISize, dResetVal);
-  InitializeList(pC,ISize * ISize, dResetVal);
-}
-
-inline flag SchurMatrixHandler::fPutCoef(integer iRow, 
-					 integer iCol, 
-					 const doublereal& dCoef) 
-{
-#ifdef DEBUG
-  IsValid();
-  if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-    cerr << "fPutCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
-      << " Warning, you are trying to operate on a non local value !!!"
-      " (Matrix Handler) "<< iRow << " " << iCol  << endl;
-    return flag(0);
-  }
-#endif
-  if (pGTL[iRow] > 0) { 
-    if (pGTL[iCol] > 0) { 
-      pB->fPutCoef(pGTL[iRow], pGTL[iCol], dCoef); 
-      // pB[pGTL[iRow]-1 + (pGTL[iCol]-1) *LSize] = dCoef;
-    } 
-    else {
-      pE[pGTL[iRow]-1 + (-pGTL[iCol]-1)*LSize] = dCoef;
-    }
-  } 
-  else {
-    if (pGTL[iCol] > 0) {
-      pF[-pGTL[iRow]-1 + (pGTL[iCol]-1)*ISize] = dCoef;
-    } 
-    else {
-      pC[-pGTL[iRow]-1 + (-pGTL[iCol]-1)*ISize] = dCoef;
-    }
-  }
-  return flag(0);
-}
-
-inline flag SchurMatrixHandler::fIncCoef(integer iRow, 
-					 integer iCol, 
-					 const doublereal& dCoef)
-{
-#ifdef DEBUG
-  IsValid();
-  if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-    cerr << "fIncCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
-      << " Warning, you are trying to operate on a non local value !!!"
-      " (Matrix Handler) "<< iRow << " " << iCol  << endl;
-    return  flag(0);
-  }
-#endif
-  if (pGTL[iRow] > 0) { 
-    if (pGTL[iCol] > 0) { 
-      pB->fIncCoef(pGTL[iRow], pGTL[iCol], dCoef);
-      //      pB[pGTL[iRow]-1 + (pGTL[iCol]-1) *LSize] += dCoef;
-    } 
-    else {
-      pE[pGTL[iRow]-1 + (-pGTL[iCol]-1)*LSize] += dCoef;
-    }
-  } 
-  else {
-    if (pGTL[iCol] > 0) {
-      pF[-pGTL[iRow]-1 + (pGTL[iCol]-1)*ISize] += dCoef;
-    } 
-    else {
-      pC[-pGTL[iRow]-1 + (-pGTL[iCol]-1)*ISize] += dCoef;
-    }
-  }
-  return flag(0);
-}
- 
-
-inline flag SchurMatrixHandler::fDecCoef(integer iRow,
-					 integer iCol, 
-					 const doublereal& dCoef)
-{
-#ifdef DEBUG
-  IsValid();
-  if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-    cerr << "fDecCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
-      << " Warning, you are trying to operate on a non local value !!!"
-      " (Matrix Handler) "<< iRow << " " << iCol << endl;
-    return  flag(0);
-  }
-#endif
-  if (pGTL[iRow] > 0) { 
-    if (pGTL[iCol] > 0) { 
-      pB->fDecCoef(pGTL[iRow], pGTL[iCol], dCoef);
-      // pB[pGTL[iRow]-1 + (pGTL[iCol]-1) *LSize] -= dCoef;
-    } 
-    else {
-      pE[pGTL[iRow]-1 + (-pGTL[iCol]-1)*LSize] -= dCoef;
-    }
-  } 
-  else {
-    if (iCol > 0) {
-      pF[-pGTL[iRow]-1 + (pGTL[iCol]-1)*ISize] -= dCoef;
-    } 
-    else {
-      pC[-pGTL[iRow]-1 + (-pGTL[iCol]-1)*ISize] -= dCoef;
-    }
-  }
-  return flag(0);
-}
-
-inline const doublereal& SchurMatrixHandler::dGetCoef(integer iRow, integer iCol) const
-{
-#ifdef DEBUG
-  IsValid();
-  if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-    cerr << "dGetCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
-      << " Warning, you are trying to operate on a non local value !!!"
-      " (Matrix Handler) "<< iRow << " " << iCol << endl;
-    return ::dZero; 
-  }
-#endif
-  if (pGTL[iRow] > 0) { 
-    if (pGTL[iCol] > 0) { 
-      return pB->dGetCoef(pGTL[iRow], pGTL[iCol]);
-      // return pB[pGTL[iRow]-1 + (pGTL[iCol]-1) *LSize];
-    } 
-    else {
-      return pE[pGTL[iRow]-1 + (-pGTL[iCol]-1)*LSize];
-    }
-  } 
-  else {
-    if (pGTL[iCol] > 0) {
-      return pF[-pGTL[iRow]-1 + (pGTL[iCol]-1)*ISize];
-    } 
-    else {
-      return pC[-pGTL[iRow]-1 + (-pGTL[iCol]-1)*ISize];
-    }
-  }
-}
-
-/* SchurMatrixHandler - End */
-
-/* SchurVectorHandler - Start */
-
-class SchurVectorHandler : public VectorHandler {
-
- public:
-
-  class ErrGeneric{};
-
- private:
-  integer LSize, ISize;
-  doublereal* pLV;
-  doublereal* pIV;
-  integer* pGTL;
-  
- public:
-  SchurVectorHandler(int LocSize, int IntSize,
-		     doublereal* pLocVec,
-		     doublereal* pIntVec,
-		     integer* pGlobToLoc);
-  
-  ~SchurVectorHandler(void);
-  
-  /* Usata per il debug */
-  void IsValid(void) const;
-                                       
-  /* restituisce il puntatore al vettore */
-  inline doublereal* pdGetVec(void) const {
-    cerr << endl << "You shouldn't have asked for the internal pointer to a SchurVector  " << endl; 
-    return pLV;
-  }; 
-  
-  /* restituisce le dimensioni del vettore */
-  inline integer iGetSize(void) const {
-    return LSize+ISize;
-  };  
-  
-  void Resize(integer iNewSize) {
-    cerr << endl << " Why ar you trying to resize a SchurVector ????  " << endl;
-  };
-  
-  /* assegna il dResetVal a tutti gli elementi del vettore */
-  void Reset(doublereal dResetVal = 0.) {
-    InitializeList(pLV, LSize, dResetVal);
-    InitializeList(pIV, ISize, dResetVal);
-  };
-  
-  inline flag fPutCoef(integer iRow, const doublereal& dCoef);
-  
-  inline flag fIncCoef(integer iRow, const doublereal& dCoef);
-  
-  inline flag fDecCoef(integer iRow, const doublereal& dCoef);
-  
-  inline const doublereal& dGetCoef(integer iRow) const;
- 
-};
-
-inline flag SchurVectorHandler::fPutCoef(integer iRow, const doublereal& dCoef)
-{
-#ifdef DEBUG
-  IsValid();
-  if (pGTL[iRow] == 0) {
-    cerr << "fIncCoef "<< "Process: " << MPI::COMM_WORLD.Get_rank()
-      << " Warning, you are trying to operate on a non local value !!!"
-      " (Vector Handler) " << iRow << endl;
-    return flag(0); 
-  }
-#endif
-  if (pGTL[iRow] > 0) {
-    pLV[pGTL[iRow]-1] = dCoef;
-  }
-  else {
-    pIV[-pGTL[iRow]-1] = dCoef;
-  }
-
-  return flag(0);
-}
-
-inline flag SchurVectorHandler::fIncCoef(integer iRow, const doublereal& dCoef)
-{
-#ifdef DEBUG
-  IsValid();
-  if (pGTL[iRow] == 0) {
-    cerr <<"fDecCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
-      << " Warning, you are trying to operate on a non local value !!!"
-      " (Vector Handler) " << iRow << endl;
-    return  flag(0);
-  }
-#endif /* DEBUG */
-
-  if (pGTL[iRow] > 0) {
-    pLV[pGTL[iRow]-1] += dCoef;
-  }
-  else {
-    pIV[-pGTL[iRow]-1] += dCoef;
-  }  
-  return flag(0); 
-}
-
-inline flag SchurVectorHandler::fDecCoef(integer iRow, const doublereal& dCoef)
-{
-#ifdef DEBUG
-  IsValid();
-  if (pGTL[iRow] == 0) {
-    cerr << " Warning, you are trying to operate on a non local value !!! (Vector Handler) " << iRow <<  endl;
-    return  flag(0);
-  }
-#endif /* DEBUG */
-
-  if (pGTL[iRow] > 0) {
-    pLV[pGTL[iRow]-1] -= dCoef;
-  }
-  else {
-    pIV[-pGTL[iRow]-1] -= dCoef;
-  }  
-  return flag(0); 
-}
-
-inline const doublereal& SchurVectorHandler::dGetCoef(integer iRow) const
-
-{
-#ifdef DEBUG
-  IsValid();
-  if (pGTL[iRow] == 0) {
-    cerr <<"dGetCoef "  << "Process: " << MPI::COMM_WORLD.Get_rank()
-      << " Warning, you are trying to operate on a non local value !!!"
-      " (Vector Handler) " << iRow << endl;
-    return ::dZero;
-  } 
-#endif /* DEBUG */
-
-  if (pGTL[iRow] > 0) {
-    return pLV[pGTL[iRow]-1];
-  }
-  else {
-    return pIV[-pGTL[iRow]-1];
-  }  
-}
-
-/* SchurVectorHandler - End */
-  
-
 
 class SchurSolutionManager : public SolutionManager {
  
@@ -429,53 +89,35 @@ class SchurSolutionManager : public SolutionManager {
 
   integer iWorkSpaceSize;
 
-  /* Vettori di lavoro x l'Harwell solver */
-  integer*  piBRow;
-  integer*  piBCol;
-  SparseMatrixHandler* pBMH;
-  
-  /* Matrice B */
-  doublereal*  pdBMat;
 
-  /* vettore r (residuo locale) */
-  doublereal* pdrVec;
-  
+  SchurMatrixHandler* pMH;         /* handler della matrice globale */
+  SchurVectorHandler* pRVH;        /* handler del vettore residuo  globale */
 
-#ifdef USE_HARWELL
- HarwellLUSolver* pLU;           /* Solutore sparso Harwell  */
-#else
-#error "You need to use either Harwell  main parallel solver"
-#endif /* USE_HARWELL */
+  
+  SpMapMatrixHandler* pSchMH;      /*handler matrice delle interfacce */
+  VectorHandler* pSchVH;  	   /* vettore delle interfacce  */
 
-  /* Matrice E */
-  doublereal* pdEMat;
-  
-  /* Matrice F */
-  doublereal* pdFMat;;
-  
-  /* Matrice C */
-  doublereal* pdCMat;
+  /* Vettori di lavoro x il Matrix Handler */
+  SpMapMatrixHandler* pBMH;
+  SpMapMatrixHandler* pEMH;
+  SpMapMatrixHandler* pFMH;
+  doubleral* pCMH;
+  MyVectorHandler* prVH;
+  MyVectorHandler* pgVH;  
 
   /* vettore g (residuo interfaccia) */
   doublereal* pdgVec;
 
-  /* Matrice di Schur (master) */
-#if USE_MESCHACH
-  MeschachSparseLUSolutionManager* pSchSM;
-#else 
-#error "You need either Meschach"
-#endif /*USE_Y12*/
-
-  MatrixHandler* pSchMH;
-
- /* vettore Schur */
-  VectorHandler* pSchVH;
-
-  SchurMatrixHandler* pMH;         /* handler della matrice globale */
-  SchurVectorHandler* pRVH;        /* handler del vettore residuo  globale */
-  
   MPI::Request* pGSReq;               /* Array di request Send */
   MPI::Request* pGRReq;               /* Array di request Receive */
+  
+#ifdef USE_UMFPACK3
+ Umfpack3SparseLUSolutionManager* pLocalSM;           /* Solutore sparso locale */
+ Umfpack3SparseLUSolutionManager* pInterSM;          /* Solutore sparso locale */
+#else
+#error "You need to use UMFPACK3 for parallel solving"
+#endif /* USE_UMFPACK3 */
+
   
   flag fNewMatrix;
  public:

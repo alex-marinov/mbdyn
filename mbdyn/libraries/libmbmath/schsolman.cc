@@ -66,79 +66,6 @@ extern "C" {
 #undef max
 #include <algorithm>
 
-/*  BroySchMatrixHandler - Start */
-
-SchurMatrixHandler::SchurMatrixHandler(int LocSize, int IntSize,
-				       MatrixHandler* pMatB,
-				       doublereal* pMatE,
-				       doublereal* pMatF,
-				       doublereal* pMatC,
-				       integer* pGlobToLoc)
-: LSize(LocSize),
-ISize(IntSize),
-pB(pMatB),
-pE(pMatE),
-pF(pMatF),
-pC(pMatC),
-pGTL(pGlobToLoc)
-{ 
-#ifdef DEBUG
-  IsValid();
-#endif /* DEBUG */
-}
-
-SchurMatrixHandler::~SchurMatrixHandler(void)
-{
- NO_OP;
-}
-
-void SchurMatrixHandler::IsValid(void) const
-{
-  ASSERT(LSize >0);
-  ASSERT(ISize >0);
-  ASSERT(pB != NULL);
-  ASSERT(pE != NULL);
-  ASSERT(pF != NULL);
-  ASSERT(pC != NULL);
-  ASSERT(pGTL != NULL);
-}
-
-/* SchurMatrixHandler - End */
-
-
-/* SchurVectorHandler - Start */
-
-SchurVectorHandler::SchurVectorHandler(int LocSize, int IntSize,
-				       doublereal* pLocVec,
-				       doublereal* pIntVec,
-				       integer* pGlobToLoc)
-:  LSize(LocSize),
-ISize(IntSize),
-pLV(pLocVec),
-pIV(pIntVec),
-pGTL(pGlobToLoc)
-{
-#ifdef DEBUG
-  IsValid();
-#endif /* DEBUG */
-}
-
-SchurVectorHandler::~SchurVectorHandler(void)
-{
-NO_OP;
-}
-
-void SchurVectorHandler::IsValid(void) const
-{
-  ASSERT(LSize >0);
-  ASSERT(ISize >0);
-  ASSERT(pLV != NULL);
-  ASSERT(pIV != NULL);
-  ASSERT(pGTL != NULL);
-}
-
-/* SchurSolutionManager - Start */
-
 SchurSolutionManager::SchurSolutionManager (integer iSize, 
 					    integer* pLocalDofs,
 					    int iDim1,
@@ -159,14 +86,25 @@ pSchurDofs(NULL),
 iSchurIntDim(0),
 pGlbToLoc(NULL),
 pSchGlbToLoc(NULL),
-pBlockLenght(NULL), pTypeDsp(NULL), pBuffer(NULL), ppNewTypes(NULL),
-piBRow(NULL), piBCol(NULL), pdBMat(NULL), pdrVec(NULL), 
-pBMH(NULL), pLU(NULL), pdEMat(NULL), pdFMat(NULL), pdCMat(NULL), 
+pBlockLenght(NULL), 
+pTypeDsp(NULL), 
+pBuffer(NULL),
+ppNewTypes(NULL),
+pBMH(NULL), 
+pdEMH(NULL), 
+pdFMH(NULL), 
+pdCMH(NULL), 
+prVH(NULL),
+pgVH(NULL),
 pdgVec(NULL), 
-pMH(NULL), pRVH(NULL),
-pSchSM(NULL), pSchMH(NULL), pSchVH(NULL),
-pGSReq(NULL), pGRReq(NULL),  
-iWorkSpaceSize(iWorkSize), fNewMatrix(0) 
+pMH(NULL), 
+pRVH(NULL),
+pSchMH(NULL), 
+pSchVH(NULL),
+pGSReq(NULL), 
+pGRReq(NULL),  
+iWorkSpaceSize(iWorkSize), 
+fNewMatrix(0) 
 {
   DEBUGCOUT("Entering SchurSolutionManager::SchurSolutionManager()"
 		  << endl);
@@ -191,74 +129,52 @@ iWorkSpaceSize(iWorkSize), fNewMatrix(0)
      sul master (myrank == 0) la matrice C è quella di tutte le interfaccie */
   
   InitializeComm();
-  
-
-  ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
 
 
-  /* Valore di default */
-  if (iWorkSpaceSize != 0) {
-  	iWorkSpaceSize = static_cast<integer>(sqrt(iWorkSpaceSize) + 1);
-  } else {	
-        iWorkSpaceSize = LocVecDim;
-  }
-  /* Alloca arrays per la matrice B e il vettore r */
-  SAFENEWARR(pdBMat, doublereal, iWorkSpaceSize*iWorkSpaceSize);
-  SAFENEWARR(piBRow, integer, iWorkSpaceSize*iWorkSpaceSize);
-  SAFENEWARR(piBCol, integer, iWorkSpaceSize*iWorkSpaceSize);
-  SAFENEWARR(pdrVec, doublereal, iWorkSpaceSize);
-
-  /* Alloca arrays per il solutore */
-  
-
-  SAFENEWWITHCONSTRUCTOR(pBMH, 
-                         SparseMatrixHandler, 
-			 SparseMatrixHandler(iWorkSpaceSize, &piBRow, 
-			 		     &piBCol, &pdBMat,
- 					     iWorkSpaceSize*iWorkSpaceSize));
-
-	 
-  DEBUGCOUT(" Using Harwell math library as local solver" << endl);  
-  SAFENEWWITHCONSTRUCTOR(pLU, 
-			 HarwellLUSolver,
-			 HarwellLUSolver(iWorkSpaceSize, 
-				 iWorkSpaceSize*iWorkSpaceSize, 
-				 &piBRow, &piBCol, 
-				 &pdBMat, pdrVec, dPivotFactor));
-  
-
-
-  /* Alloca la matrice E  per colonne */
-  SAFENEWARR(pdEMat, doublereal, LocVecDim * IntVecDim);
-  
-  /* Alloca la matrice F */
-  SAFENEWARR(pdFMat, doublereal, IntVecDim * LocVecDim);
+//   ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
+// 
+// 
+//   /* Valore di default */
+//   if (iWorkSpaceSize != 0) {
+//   	iWorkSpaceSize = static_cast<integer>(sqrt(iWorkSpaceSize) + 1);
+//   } else {	
+//         iWorkSpaceSize = LocVecDim;
+//   }
 
   /* matrice C e vettore g*/
-  SAFENEWARR(pdCMat, doublereal, IntVecDim*IntVecDim);
+  SAFENEWARR(pCMH, doublereal, IntVecDim*IntVecDim);
   SAFENEWARR(pdgVec, doublereal, IntVecDim);
   
-  /* matrice di Shur sul master */
+  /* Costruisce il solutore UMFPACK3 locale */
+  DEBUGCOUT(" Using UMFPACK3 math library as local solver" << endl);  
+  SAFENEWWITHCONSTRUCTOR(pLocalSM, Umfpack3SparseLUSolutionManager,
+			   Umfpack3SparseLUSolutionManager(LocVecDim));			    
+   pBMH = pLocalSM->pMatHdl();
+   prVH = pLocalSM->pResHdl();
+
   if(!MyRank) {
-     DEBUGCOUT(" Using Meschach math library as interface solver" << endl);  
-     SAFENEWWITHCONSTRUCTOR(pSchSM, MeschachSparseLUSolutionManager,
-			    MeschachSparseLUSolutionManager(iSchurIntDim, 
-				    iSchurIntDim));			    
-     pSchMH = pSchSM->pMatHdl();
-     pSchVH = pSchSM->pResHdl();
-  }
-  
-  
-  
-  /* Hadlers per la matrice per il residuo e per la soluzione */
-  SAFENEWWITHCONSTRUCTOR(pMH, SchurMatrixHandler, 
+     	DEBUGCOUT(" Using UMFPACK3 math library as interface solver" << endl);  
+  	/* Costruisce il solutore UMFPACK3 di interfaccia */
+  	SAFENEWWITHCONSTRUCTOR(pInterfSM, Umfpack3SparseLUSolutionManager,
+				   Umfpack3SparseLUSolutionManager(iSchurIntDim));			    
+   	pSchMH = pLocalSM->pMatHdl();
+   	pSchVH = pLocalSM->pResHdl();
+   }	
+
+  /* Definisco le matrici globali */
+   SAFENEWWITHCONSTRUCTOR(pMH, SchurMatrixHandler, 
 			 SchurMatrixHandler(LocVecDim, IntVecDim, pBMH, 
-					    pdEMat, pdFMat, pdCMat, pGlbToLoc));
+					    pdCMat, pGlbToLoc));
+  
+  pEMH = pMH->GetEMat();
+  pFMH = pMH->GetFMat();
   
   SAFENEWWITHCONSTRUCTOR(pRVH, SchurVectorHandler, 
-			 SchurVectorHandler(LocVecDim, IntVecDim, pdrVec,
+			 SchurVectorHandler(LocVecDim, IntVecDim, prVH,
 					    pdgVec, pGlbToLoc));
   
+  pgVH = pRVH->GetI();
+     
   /* Creazione di NewType per la trasmissione del vett soluzione calcolato */
   if(!MyRank) {
     SAFENEWARR(pBlockLenght, int, pDispl[SolvCommSize]);
@@ -307,9 +223,6 @@ SchurSolutionManager::~SchurSolutionManager(void)
   IsValid();
 #endif /* DEBUG */
 
- /* FIXME : la cancellazione di questi arrays da alcuni problemi
-	    in chiusura. Per ora viene commentata .
-  */
 #if 0
   if(pLocDofs != NULL) {
     SAFEDELETEARR(pLocDofs);
@@ -351,29 +264,8 @@ SchurSolutionManager::~SchurSolutionManager(void)
     }
    SAFEDELETEARR(ppNewTypes);
   }
-  if(piBRow != NULL) {
-    SAFEDELETEARR(piBRow);
-  }
-  if(piBCol != NULL) {
-    SAFEDELETEARR(piBCol);
-  }
-  if(pdBMat != NULL) {
-    SAFEDELETEARR(pdBMat);
-  }
-  if(pdrVec != NULL) {
-    SAFEDELETEARR(pdrVec);
-  }
   if(pBMH != NULL) {
       SAFEDELETE(pBMH);
-  }
-  if(pLU != NULL) {
-    SAFEDELETE(pLU);
-  }
-  if(pdEMat != NULL) {
-    SAFEDELETEARR(pdEMat);
-  }
-  if(pdFMat != NULL) {
-    SAFEDELETEARR(pdFMat);
   }
   if(pdCMat != NULL) {
     SAFEDELETEARR(pdCMat);
@@ -430,32 +322,15 @@ void SchurSolutionManager::Solve(void)
 #endif /* MPI_PROFILING */   
   
   if(fNewMatrix) {
-    integer iCount = pBMH->PacMat();
-    pLU->iNonZeroes = iCount;
-    flag fReturnFlag = pLU->fLUFactor();
-    if (fReturnFlag < 0) {	 
-      THROW(HarwellSparseLUSolutionManager::ErrGeneric());   
-    }
+     pLocalSM->Solve();
   } 
   
-  pLU->pdRhs = pdrVec; 
-  
-  pLU->Solve();
 #ifdef MPI_PROFILING 
   MPE_Log_event(32, 0, "end");
 #endif /* MPI_PROFILING */   
-  
-  InitializeList(pdgVec, IntVecDim, 0.);
-  
+     
   /* prodotto F * r */
-  for (int j=0; j < LocVecDim; j++) {
-    int iColx = j * IntVecDim;
-    for (int i=0; i < IntVecDim; i++) {
-      if(pdFMat[i + iColx] != 0) {
-	pdgVec[i] -= pdFMat[i + iColx] * pdrVec[j];
-      }
-    }
-  } 
+  pFMH->MatVecDecMul(pgVH, prVH);
   
   /* Inizializza Trasmissione di g */
 #ifdef MPI_PROFILING
@@ -474,16 +349,15 @@ void SchurSolutionManager::Solve(void)
      }
    }
   
-  
    if (fNewMatrix) {
      /* Calcolo di E' */ 
      for (int i=0; i < IntVecDim; i++) {
-       pLU->pdRhs = pdEMat + i*LocVecDim; 
-       pLU->Solve();
+       pEMH->GetCol(i, pLocalSM->pdRhs);
+       pLocalSM->BackSub();
      }
    }
    
-   /* verifica completamento ricezioni e trasmissione */
+   /* verifica completamento ricezioni e trasmissione g*/
    flag SentFlag;
    while (1) {
      SentFlag = pGSReq->Test();
@@ -519,8 +393,7 @@ void SchurSolutionManager::Solve(void)
     }
   }
   
-   
-  /* risoluzione schur pb sul master */
+  /* Assemblaggio del vettore dell incognite g sulla macchina master */  
   if (!MyRank) {
     /* Assembla pSVH */
     for (int i=0; i < pDispl[SolvCommSize]; i++) {
@@ -541,6 +414,7 @@ void SchurSolutionManager::Solve(void)
     MPE_Log_event(35, 0, "start");
 #endif /* MPI_PROFILING */   
 
+  /* risoluzione schur pb sul master */
     pSchSM->Solve();
 #ifdef MPI_PROFILING 
     MPE_Log_event(36, 0, "end");
@@ -602,14 +476,8 @@ void SchurSolutionManager::Solve(void)
   
    
   /* calcolo la soluzione corretta per x */
-  for( int j=0; j < IntVecDim; j++) {  
-    int iColx = j * LocVecDim;
-    for (int i=0; i < LocVecDim; i++) {
-      if (pdEMat[i + iColx] != 0) {
-	pdrVec[i] -= pdEMat[i + iColx] * pdgVec[j];
-      }
-    }
-  }
+  pEMH->MatVecDecMul(prVH, pgVH); 
+
 }
 
 
@@ -625,15 +493,16 @@ void SchurSolutionManager::AssSchur(void)
 #ifdef DEBUG
   IsValid();
 #endif /* DEBUG */
+  SpMapMatrixHandler Mtmp(IntVecDim, IntVecDim);  
+  pFMH->MatMatMul(&Mtmp,pEMH);
+  
+ /*******************************CONTROLLA**************/ 
   
   /* Calcola le Schur locali */
   for(int j=0; j < IntVecDim; j++) {
     int iColc = j * IntVecDim;
-    int iCole = j * LocVecDim;
-    for (int k=0; k < LocVecDim; k++) {
-      int iColf = k * IntVecDim;
-      for( int i=0; i < IntVecDim; i++) {
-	pdCMat[i + iColc] -=  pdFMat[i + iColf] * pdEMat[iCole + k];
+    for( int i=0; i < IntVecDim; i++) {
+     pdCMat[i + iColc] -=  Mtmp(i,j);
       }
     }
   }
@@ -696,7 +565,6 @@ void SchurSolutionManager::AssSchur(void)
     /* Assembla Schur matrix */
 
     
-    //InitializeList(pdSchMat, iSchurIntDim * iSchurIntDim, 0.);
     pSchSM->MatrInit();
     iOffset = 0;
     for (int i=0; i < SolvCommSize; i++) {
@@ -747,7 +615,7 @@ void SchurSolutionManager::InitializeComm(void)
       pSchurDofs[i] = pDofsRecvdList[i];
     }
     
-    /*ordino gli indici dei residulocali*/
+    /*ordino gli indici dei residui locali*/
     std::sort(pSchurDofs, pSchurDofs + pDispl[SolvCommSize]);
     /* elimino le ripetizioni */
     integer* p = std::unique(pSchurDofs, pSchurDofs + pDispl[SolvCommSize]);
@@ -956,12 +824,6 @@ void InitializeList(int* list, integer dim, integer  value)
   }
 }  
 
-void InitializeList(doublereal* list, integer dim, doublereal  value)
-{ 
-  for (int i=0; i <= dim-1; i++) {
-    list[i] = value;
-  }
-}
 
 #endif /* USE_MPI */
 

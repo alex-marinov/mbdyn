@@ -85,6 +85,7 @@ PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 SECURITY_LIBS = @SECURITY_LIBS@
 TCL_LIBS = @TCL_LIBS@
+UMFPACK3_LIBS = @UMFPACK3_LIBS@
 VERSION = @VERSION@
 Y12_LIBS = @Y12_LIBS@
 mbdyn_subdir = @mbdyn_subdir@
@@ -92,7 +93,7 @@ top_builddir = @top_builddir@
 
 lib_LTLIBRARIES = libmbwrap.la
 
-libmbwrap_la_SOURCES =  harwout.c harwout.h harwout_.cc harwrap.cc harwrap.h mschwrap.cc mschwrap.h y12wrap.cc y12wrap.h
+libmbwrap_la_SOURCES =  harwout.c harwout.h harwout_.cc harwrap.cc harwrap.h mschwrap.cc mschwrap.h y12wrap.cc y12wrap.h umfpackwrap.h
 
 
 libmbwrap_la_LIBADD = @LIBS@ @F2C_LIBS@
@@ -103,7 +104,7 @@ INCLUDES =  -I../../mbdyn -I../libmbutil -I../libmbmath -I../liby12
 
 bin_PROGRAMS = t
 t_SOURCES = test.cc
-t_LDADD =  ./libmbwrap.la ../libmbmath/libmbmath.la ../libmbutil/libmbutil.la ../libobjs/libobjs.la ../liby12/liby12.la ./libmbwrap.la @MESCHACH_LIBS@ @HARWELL_LIBS@ @F2C_LIBS@ @TCL_LIBS@
+t_LDADD =  ./libmbwrap.la ../libmbmath/libmbmath.la ../libmbutil/libmbutil.la ../libobjs/libobjs.la ../liby12/liby12.la ./libmbwrap.la @UMFPACK3_LIBS@ @MESCHACH_LIBS@ @HARWELL_LIBS@ @F2C_LIBS@ @TCL_LIBS@
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = ../../include/mbconfig.h
@@ -140,7 +141,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/harwout.P .deps/harwout_.P .deps/harwrap.P \
 .deps/mschwrap.P .deps/test.P .deps/y12wrap.P
@@ -151,7 +152,7 @@ all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .cc .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --foreign ./libraries/libmbwrap/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu libraries/libmbwrap/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -282,14 +283,14 @@ maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = ./libraries/libmbwrap
+subdir = libraries/libmbwrap
 
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign ./libraries/libmbwrap/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu libraries/libmbwrap/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \

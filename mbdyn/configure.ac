@@ -154,6 +154,7 @@ OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support],auto,[auto yes no])
 OL_ARG_WITH(metis,[  --with-metis            with Metis support],auto,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
+OL_ARG_WITH(umfpack3,[  --with-umfpack3         with Umfpack3 math library],auto,[auto yes no])
 OL_ARG_WITH(y12,[  --with-y12              with Y12 math library],auto,[auto yes no])
 OL_ARG_WITH(harwell,[  --with-harwell          with Harwell sparse math library],no,[auto yes no])
 OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
@@ -216,6 +217,7 @@ F2C_LIBS=
 MPI_LIBS=
 METIS_LIBS=
 Y12_LIBS=
+UMFPACK3_LIBS=
 MESCHACH_LIBS=
 HARWELL_LIBS=
 LAPACK_LIBS=
@@ -558,6 +560,52 @@ esac
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Check for Umfpack3
+dnl
+ol_link_umfpack3=no
+if test $ol_with_umfpack3 != no ; then
+	OL_ADD_DIRS(umfpack3)
+	
+	AC_CHECK_HEADERS(umfpack.h)
+
+	if test $ac_cv_header_umfpack_h = yes ; then
+
+		AC_MSG_CHECKING([for umfpack3 library])
+		try_umfpack3_LIBS="-lumfpack -lcblas -latlas"
+		save_LIBS=$LIBS
+		LIBS="$LIBS $try_umfpack3_LIBS"
+		AC_TRY_LINK([
+#include <umfpack.h>
+],[
+			double t;
+			t = umfpack_timer();
+		],[have_umfpack3=yes],[have_umfpack3=no])
+		LIBS=$save_LIBS
+
+		if test $have_umfpack3 != no ; then
+			UMFPACK3_LIBS=$try_umfpack3_LIBS
+			AC_DEFINE(USE_UMFPACK3,1,[define if you want to use Umfpack3])
+			ol_link_umfpack3=yes
+			AC_MSG_RESULT([yes])
+		else
+			AC_MSG_RESULT([no])
+		fi
+	fi
+
+	if test $ol_link_umfpack3 = no ; then
+		if test $ol_with_umfpack3 != auto ; then
+			AC_MSG_ERROR([Could not locate Umfpack3])
+		else
+			AC_MSG_WARN([Could not locate Umfpack3])
+			AC_MSG_WARN([Umfpack3 not supported!])
+		fi
+	fi
+else
+	AC_MSG_WARN([Umfpack3 not supported!])
+fi
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for Meschach
 dnl
 ol_link_meschach=no
@@ -760,7 +808,7 @@ if test $ol_with_mpi != no ; then
 		LIBS="$LIBS $try_mpi_LIBS"
 		AC_TRY_LINK([#include <mpi++.h>],[
 			int argc = 0;
-			char **argv = (void *)0;
+			char **argv = 0;
 			MPI::Init(argc, argv);
 		],[have_mpi=yes],[have_mpi=no])
 		LIBS=$save_LIBS
@@ -783,10 +831,10 @@ if test $ol_with_mpi != no ; then
 			AC_MSG_WARN([Could not locate MPI])
 			AC_MSG_WARN([MPI not supported!])
 		fi
-	else
-		if test $ol_link_harwell != yes ; then
-			AC_MSG_ERROR([Need Harwell to use Schur solver with MPI])
-		fi
+#	else
+#		if test $ol_link_harwell != yes ; then
+#			AC_MSG_ERROR([Need Harwell to use Schur solver with MPI])
+#		fi
 	fi
 else
 	AC_MSG_WARN([MPI not supported!])
@@ -922,6 +970,7 @@ dnl
 AC_SUBST(F2C_LIBS)
 AC_SUBST(MPI_LIBS)
 AC_SUBST(METIS_LIBS)
+AC_SUBST(UMFPACK3_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
 AC_SUBST(SECURITY_LIBS)

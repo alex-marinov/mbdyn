@@ -12,7 +12,8 @@ harwrap.h \
 mschwrap.cc \
 mschwrap.h \
 y12wrap.cc \
-y12wrap.h
+y12wrap.h \
+umfpackwrap.h
 
 libmbwrap_la_LIBADD = @LIBS@ @F2C_LIBS@
 libmbwrap_la_LDFLAGS =
@@ -32,6 +33,7 @@ t_LDADD = \
 ../libobjs/libobjs.la \
 ../liby12/liby12.la \
 ./libmbwrap.la \
+@UMFPACK3_LIBS@ \
 @MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @F2C_LIBS@ \

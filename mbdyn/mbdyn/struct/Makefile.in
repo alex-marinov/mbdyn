@@ -85,6 +85,7 @@ PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 SECURITY_LIBS = @SECURITY_LIBS@
 TCL_LIBS = @TCL_LIBS@
+UMFPACK3_LIBS = @UMFPACK3_LIBS@
 VERSION = @VERSION@
 Y12_LIBS = @Y12_LIBS@
 mbdyn_subdir = @mbdyn_subdir@
@@ -130,7 +131,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/accj.P .deps/autostr.P .deps/beam.P .deps/beam2.P \
 .deps/beamslider.P .deps/body.P .deps/drvhinge.P .deps/drvj.P \
@@ -146,7 +147,7 @@ all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .cc .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --foreign ./mbdyn/struct/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu ./mbdyn/struct/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -255,7 +256,7 @@ distdir: $(DISTFILES)
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign ./mbdyn/struct/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu ./mbdyn/struct/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \

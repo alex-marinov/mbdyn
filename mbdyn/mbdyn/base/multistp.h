@@ -77,7 +77,8 @@ private:
    	enum SolverType {
 		HARWELL_SOLVER,
 		MESCHACH_SOLVER,
-		Y12_SOLVER
+		Y12_SOLVER,
+                UMFPACK3_SOLVER   
 	} CurrSolver;
    
 private:
