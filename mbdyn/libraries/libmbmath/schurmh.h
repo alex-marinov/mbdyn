@@ -105,6 +105,12 @@ public:
 	/* Restituisce un coefficiente - zero se non e' definito */
 	virtual inline const doublereal&
 	dGetCoef(integer iRow, integer iCol) const;
+	
+		virtual const doublereal&
+	operator () (integer iRow, integer iCol) const;
+
+	virtual doublereal&
+	operator () (integer iRow, integer iCol);
   
 	virtual inline doublereal* GetECol(const integer iCol) const;
 	virtual inline doublereal* GetEColSol(const integer iCol) const;
@@ -293,6 +299,67 @@ SchurMatrixHandler::dGetCoef(integer iRow, integer iCol) const
 	}
 }
 
+inline doublereal&
+SchurMatrixHandler::operator () (integer iRow, integer iCol)
+{
+#ifdef DEBUG
+	IsValid();
+#ifdef DEBUG_MPI
+	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
+		std::cerr << "dGetCoef - Process(" << MBDynComm.Get_rank()
+			<< "): error, MatrixHandler is trying to operate "
+			"on a non local value {"<< iRow << "," << iCol << "}"
+			<< std::endl;
+		THROW(ErrGeneric());
+	}
+#endif /* DEBUG_MPI */
+#endif /* DEBUG */
+
+	if (pGTL[iRow] > 0) { 
+		if (pGTL[iCol] > 0) { 
+			return (*pB)(pGTL[iRow], pGTL[iCol]);
+		} else {
+			return (*pE)(pGTL[iRow]-(pGTL[iCol]+1)*LSize);
+		}
+	} else {
+		if (pGTL[iCol] > 0) {
+			return (*pF)(-pGTL[iRow], pGTL[iCol]);
+		} else {
+			return (*pC)(-pGTL[iRow]-(pGTL[iCol]+1)*ISize);
+		}
+	}
+}
+
+inline const doublereal&
+SchurMatrixHandler::operator () (integer iRow, integer iCol) const
+{
+#ifdef DEBUG
+	IsValid();
+#ifdef DEBUG_MPI
+	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
+		std::cerr << "dGetCoef - Process(" << MBDynComm.Get_rank()
+			<< "): warning, MatrixHandler is trying to operate "
+			"on a non local value {"<< iRow << "," << iCol << "}"
+			<< std::endl;
+		return ::dZero; 
+	}
+#endif /* DEBUG_MPI */
+#endif /* DEBUG */
+
+	if (pGTL[iRow] > 0) { 
+		if (pGTL[iCol] > 0) { 
+			return pB->dGetCoef(pGTL[iRow], pGTL[iCol]);
+		} else {
+			return pE->dGetCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize);
+		}
+	} else {
+		if (pGTL[iCol] > 0) {
+			return pF->dGetCoef(-pGTL[iRow], pGTL[iCol]);
+		} else {
+			return pC->dGetCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize);
+		}
+	}
+}
 inline VectorHandler&
 SchurMatrixHandler::CompNewg(VectorHandler& g, const VectorHandler& f) const
 {
