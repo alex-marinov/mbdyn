@@ -19,8 +19,6 @@ superluwrap.cc \
 superluwrap.h \
 umfpackwrap.cc \
 umfpackwrap.h \
-taucswrap.cc \
-taucswrap.h \
 y12wrap.cc \
 y12wrap.h
 
