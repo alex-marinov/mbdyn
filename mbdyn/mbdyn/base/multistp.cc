@@ -43,6 +43,9 @@
 #ifdef USE_MESCHACH  
 #include <mschwrap.h>
 #endif /* USE_MESCHACH */
+#ifdef USE_Y12
+#include <y12wrap.h>
+#endif /* USE_Y12 */
 
 #include <unistd.h>
 
@@ -224,28 +227,44 @@ dPivotFactor(1.)
    /* costruisce il SolutionManager */
    DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager, size = " << iNumDofs << endl);
    
+   switch (CurrSolver) {
+    case MESCHACH_SOLVER:
 #ifdef USE_MESCHACH
-   if (CurrSolver == MESCHACH_SOLVER) {
       SAFENEWWITHCONSTRUCTOR(pSM,
 			     MeschachSparseLUSolutionManager,
 			     MeschachSparseLUSolutionManager(iNumDofs,
 			     				     iWorkSpaceSize,
 							     dPivotFactor),
 			     SMmm);
-   } else if (CurrSolver == HARWELL_SOLVER) {
-#endif /* USE_MESCHACH */
+      break;
+#else /* !USE_MESCHACH */
+      cerr << "Compile with USE_MESCHACH to enable Meschach solver" << endl;
+      THROW(ErrGeneric());
+#endif /* !USE_MESCHACH */
+
+    case Y12_SOLVER: 
+#ifdef USE_Y12
+      SAFENEWWITHCONSTRUCTOR(pSM,
+	                     MeschachSparseLUSolutionManager,
+			     MeschachSparseLUSolutionManager(iNumDofs,
+			     				     iWorkSpaceSize,
+							     1),
+			     SMmm);
+      break;
+#else /* !USE_Y12 */
+      cerr << "Compile with USE_Y12 to enable Y12 solver" << endl;
+      THROW(ErrGeneric());
+#endif /* !USE_Y12 */
+
+    case HARWELL_SOLVER:
       SAFENEWWITHCONSTRUCTOR(pSM,
 			     HarwellSparseLUSolutionManager,
 			     HarwellSparseLUSolutionManager(iNumDofs,
 			     				    iWorkSpaceSize,
 							    dPivotFactor),
 			     SMmm);
-#ifdef USE_MESCHACH
-   } else {
-      cerr << "don't know which solver to use!" << endl;
-      THROW(ErrGeneric());
+      break;
    }
-#endif /* USE_MESCHACH */
    
    /* Puntatori agli handlers del solution manager */
    VectorHandler* pRes = pSM->pResHdl();
@@ -1321,7 +1340,8 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	"eigen" "analysis",
 	"solver",
 	"harwell",
-	"meschach"
+	"meschach",
+	"y12"
    };
    
    /* enum delle parole chiave */
@@ -1380,6 +1400,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	SOLVER,
 	HARWELL,
 	MESCHACH,
+	Y12,
 	
 	LASTKEYWORD
    };
@@ -1914,6 +1935,15 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 			"Using meschach sparse LU solver" << endl);
 	     break;
 #endif /* USE_MESCHACH */
+
+	   case Y12:
+#if defined(USE_Y12)
+             CurrSolver = Y12_SOLVER;
+	     DEBUGLCOUT(MYDEBUG_INPUT,
+			"Using meschach sparse LU solver" << endl);
+	     break;
+#endif /* USE_Y12 */
+							       
 	   default:
 	     DEBUGLCOUT(MYDEBUG_INPUT, 
 			"Unknown solver; switching to default" << endl);

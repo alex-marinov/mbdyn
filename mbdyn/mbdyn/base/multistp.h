@@ -76,7 +76,7 @@ class MultiStepIntegrator : public Integrator {
    
  private:   
    enum Strategy { NOCHANGE, FACTOR } CurrStrategy;
-   enum SolverType { HARWELL_SOLVER, MESCHACH_SOLVER } CurrSolver;
+   enum SolverType { HARWELL_SOLVER, MESCHACH_SOLVER, Y12_SOLVER } CurrSolver;
    
  private:      
    /* Dati per strategia FACTOR */
