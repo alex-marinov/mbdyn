@@ -259,7 +259,7 @@ main(int argc, char* argv[])
 	 * the check is on the first two chars because "most" of
 	 * the mpirun/MPI extra args start with -p<something>
 	 */
-	for (int i = 1; i <= argc; i++) {
+	for (int i = 1; i < argc; i++) {
 		if (strncmp(argv[i], "-p", 2) == 0) {
 
 			MPI::Init(argc, argv);	   
