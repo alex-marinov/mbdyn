@@ -952,8 +952,9 @@ if test $ol_with_meschach != no ; then
 	if test $ol_link_meschach = no ; then
 		if test $ol_with_meschach != auto ; then
 			AC_MSG_ERROR([Could not locate Meschach])
-		else
-			AC_MSG_WARN([Meschach not supported!])
+		dnl who cares?
+		dnl else
+		dnl	AC_MSG_WARN([Meschach not supported!])
 		fi
 	fi
 else
@@ -990,8 +991,9 @@ if test $ol_with_harwell != no ; then
 	else
 		if test $ol_with_harwell != auto ; then
 			AC_MSG_ERROR([Could not locate Harwell lib (-lhsl)])
-		else
-			AC_MSG_WARN([Harwell lib (-lhsl) not supported])
+		dnl who cares?
+		dnl else
+		dnl	AC_MSG_WARN([Harwell lib (-lhsl) not supported])
 		fi
 	fi
 fi
@@ -1001,9 +1003,10 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check for a solver
 dnl
-if test $ol_link_meschach = no \
+if test $ol_link_umfpack = no \
 	-a $ol_link_y12 = no \
-	-a $ol_link_harwell = no ; then
+	-a $ol_link_harwell = no \
+	-a $ol_link_meschach = no ; then
 	AC_MSG_ERROR([Need at least one (sparse) solver])
 fi
 
