@@ -470,20 +470,24 @@ static integer
 ReadUnsteadyFlag(MBDynParser& HP)
 {
    	if (HP.fIsArg()) {
+		if (HP.IsKeyWord("unsteady")) {
+			/*
+			 * ...
+			 */
+		}
+
       		integer iInst = HP.GetInt();
+
       		if (iInst != 0
-#if 0
 	  	    && iInst != 1 && iInst != 2
-#endif /* 0 */
 	  	    ) {
 	 		if (iInst < 0 || iInst > 2) {
-	    			cerr << "illegal unsteady flag";
-	 		} else {
-	    			cerr << "unsteady aerodynamics"
-					" are not tested yet";
+	    			cerr << "illegal unsteady flag at line "
+					<< HP.GetLineData() << endl;
+				THROW(ErrGeneric());
 	 		}
-	 		cerr << " at line " << HP.GetLineData() << endl;
-	 		THROW(ErrGeneric());
+	    		cerr << HP.GetLineData() << "warning:"
+				" unsteady aerodynamics are not tested yet";
       		}
       		return iInst;
    	}
@@ -585,10 +589,10 @@ ReadAeroData(DataManager* pDM,
 	  		DEBUGLCOUT(MYDEBUG_INPUT, 
 				"profile data is from file c81 "
 				<< iProfile << endl);
-	  
+			integer iInst = ReadUnsteadyFlag(HP);
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				C81AeroData,
-				C81AeroData(iProfile, data),
+				C81AeroData(iProfile, iInst, data),
 				DMmm);
 			break;
        		}

@@ -25,6 +25,13 @@ C
 C You should have received a copy of the GNU General Public License
 C along with this program; if not, write to the Free Software
 C Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+C
+C ============================================================================
+C
+C These routines have been supplied by
+C Professor Massimiliano Lanz <massimiliano.lanz@polimi.it>
+C
+C ============================================================================
 C 
 C*************************          AEROD          *********************
 c                        MODIFICATA NEL CALCOLO TNG

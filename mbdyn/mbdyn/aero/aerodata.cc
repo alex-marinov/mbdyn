@@ -44,8 +44,8 @@ C81Data::C81Data(unsigned int uLabel)
    	NO_OP;
 }
 
-AeroData::AeroData(void) 
-: Omega(0.) 
+AeroData::AeroData(integer u) 
+: unsteadyflag(u), Omega(0.)
 {
    	NO_OP;
 }
@@ -77,7 +77,7 @@ AeroData::SetSectionData(const doublereal& chord,
 }
    
 STAHRAeroData::STAHRAeroData(integer p, integer u) 
-: profile(p), unsteadyflag(u) 
+: AeroData(u), profile(p)
 {
    	NO_OP;
 }
@@ -109,8 +109,8 @@ STAHRAeroData::GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA)
    	return 0;
 }
 
-C81AeroData::C81AeroData(integer p, const c81_data* d)
-: profile(p), data(d) 
+C81AeroData::C81AeroData(integer p, integer u, const c81_data* d)
+: AeroData(u), profile(p), data(d) 
 {
    	ASSERT(data != NULL);
 }

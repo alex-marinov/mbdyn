@@ -52,11 +52,12 @@ public:
 
 class AeroData {
 protected:
+   	integer unsteadyflag;
    	doublereal VAM[6];
    	doublereal Omega;
    
 public:
-   	AeroData(void);
+   	AeroData(integer u = 0);
    	virtual ~AeroData(void);
    
    	virtual ostream& Restart(ostream& out) const = 0;   
@@ -80,7 +81,6 @@ public:
 class STAHRAeroData : public AeroData {
 protected:
    	integer profile;
-   	integer unsteadyflag;
    
 public: 
    	STAHRAeroData(integer p, integer u);
@@ -100,7 +100,7 @@ protected:
    	const c81_data* data;
    
 public: 
-   	C81AeroData(integer p, const c81_data* d);
+   	C81AeroData(integer p, integer u, const c81_data* d);
 
    	ostream& Restart(ostream& out) const;
    	int GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA);
