@@ -373,7 +373,6 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 						"(" << save_errno << ": " << err_msg << ")"
 						<< std::endl);
 					throw ErrGeneric();
->>>>>>> 1.14
 				}
 				addr.sun_family = AF_UNIX;
 				strncpy(addr.sun_path, data.Path, UNIX_PATH_MAX);
