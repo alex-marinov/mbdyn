@@ -73,6 +73,9 @@ void DataManager::SetTime(doublereal dTime)
       
 } /* End of DataManager::SetTime() */
 
+doublereal DataManager::dGetTime() const {
+    return pTime->GetVal().GetReal();
+} /* End of DataManager::dGetTime() */
 
 /* Collega il DataManager ed il DriveHandler alla soluzione */
 void DataManager::LinkToSolution(const VectorHandler& XCurr, 
