@@ -1479,6 +1479,7 @@ Solver::ReadData(MBDynParser& HP)
 			"dummy" "steps",
 
 		"output",
+			"none",
 			"iterations",
 			"residual",
 			"solution",
@@ -1566,6 +1567,7 @@ Solver::ReadData(MBDynParser& HP)
 		DUMMYSTEPS,
 
 		OUTPUT,
+			NONE,
 			ITERATIONS,
 			RESIDUAL,
 			SOLUTION,
@@ -1859,6 +1861,10 @@ Solver::ReadData(MBDynParser& HP)
 			while (HP.fIsArg()) {
 				KeyWords OutputFlag(KeyWords(HP.GetWord()));
 				switch (OutputFlag) {
+				case NONE:
+					iOutputFlags = OUTPUT_NONE;
+					break;
+
 				case ITERATIONS:
 					iOutputFlags |= OUTPUT_ITERS;
 					break;
