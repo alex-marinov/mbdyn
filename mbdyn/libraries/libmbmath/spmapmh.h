@@ -126,20 +126,6 @@ public:
 	flag fIncCoef(integer ix, integer iy, const double& inc) {
 		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
 		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
-		/* TOGLIMI */
-		if (ix-1 > NRows) {
-			std::cerr << "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range"
-				<< std::endl
-			<< "row: " << ix << std::endl;
-		}
-		if (iy-1 > NCols) {
-			std::cerr << "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range"
-				<< std::endl
-			<< "col: " << iy << std::endl;
-		}
-		std::cerr << "NRows: " << NRows << std::endl;
-		std::cerr << "NCols: " << NCols << std::endl;
-		std::cerr << "check NCols: " << col_indices.size() << std::endl;
 		//try to keep sparsity
 		//FIXME: disable "try to keep sparsity" in view of RTAI
 		//if (inc != 0.) {
@@ -150,15 +136,6 @@ public:
 	flag fDecCoef(integer ix, integer iy, const double& inc) {
 		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
 		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
-		/* TOGLIMI */
-		if (ix-1 < NRows) {
-			std::cerr << "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range"
-				<< std::endl;
-		}
-		if (iy-1 < NCols) {
-			std::cerr << "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range"
-				<< std::endl;
-		}
 		//try to keep sparsity
 		//FIXME: disable "try to keep sparsity" in view of RTAI
 		//if (inc != 0.) {
@@ -283,7 +260,6 @@ public:
 		} else {
 			nnn = nn;
 		}
-		std::cerr << "Faccio il resize per n = " << n << ", nn = " << nn << std::endl;
 		for (int col=0; col<NCols; col++) {
 			col_indices[col].clear();
 		}
