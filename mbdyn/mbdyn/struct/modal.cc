@@ -284,7 +284,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
    
    /* gli indici sono ordinati cosi': i primi 6 sono le equazioni 
@@ -641,7 +641,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    
-   this->WorkSpaceDim(&iNumRows, &iNumCols); 
+   WorkSpaceDim(&iNumRows, &iNumCols); 
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
 
@@ -1002,7 +1002,7 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
    
    integer iRigidIndex = pModalNode->iGetFirstIndex();
@@ -1386,7 +1386,7 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
    
    integer iNumRows;
    integer iNumCols;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
