@@ -1008,8 +1008,7 @@ dnl Check for RTAI
 dnl
 if test $ol_with_rtai != no ; then
 	dnl FIXME: LOT TODO ...
-	AC_CHECK_HEADERS(rtai.h)
-	AC_CHECK_HEADERS(rtai_sched.h)
+	AC_CHECK_HEADERS(rtai_lxrt_user.h)
 	AC_CHECK_HEADERS(net_rpc.h)
 
 	AC_DEFINE(USE_RTAI,1,[define to use RTAI])

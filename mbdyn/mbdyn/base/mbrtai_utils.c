@@ -38,8 +38,11 @@
 
 /* include del programma */
 
-//#include <rtai.h>
-//#include <rtai_sched.h>
+/*
+ * Mante prefers KEEP_STATIC_INLINE instead of linking liblxrt.a
+ */
+#define KEEP_STATIC_INLINE
+#include <rtai_lxrt_user.h>
 #include <net_rpc.h>
 
 #include <mbrtai_utils.h>
@@ -60,7 +63,8 @@ mbdyn_rt_mbx_init(void **__mbx, int size)
 	if (mbx == NULL) {
 		return -1;
 	}
-	
+
+	/* usare quella in spazio utente ... rtai_lxrt.h */	
 	rc = rt_mbx_init(mbx, size);
 	if (rc) {
 		free(mbx);
