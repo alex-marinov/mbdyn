@@ -66,12 +66,16 @@ unsigned int ModLugreFriction::iGetNumDof(void) const {
 };
 
 DofOrder::Order ModLugreFriction::GetDofType(unsigned int i) const {
-	ASSERTMSGBREAK(i<iGetNumDof()+1, "INDEX ERROR in ModLugreFriction::GetDofType");
-	return DofOrder::DIFFERENTIAL;
+	ASSERTMSGBREAK(i<iGetNumDof(), "INDEX ERROR in ModLugreFriction::GetDofType");
+	if (i == 0) {
+		return DofOrder::ALGEBRAIC;
+	} else {
+		return DofOrder::DIFFERENTIAL;
+	}
 };
 
 DofOrder::Order ModLugreFriction::GetEqType(unsigned int i) const {
-	ASSERTMSGBREAK(i<iGetNumDof()+1, "INDEX ERROR in ModLugreFriction::GetEqType");
+	ASSERTMSGBREAK(i<iGetNumDof(), "INDEX ERROR in ModLugreFriction::GetEqType");
 	return DofOrder::DIFFERENTIAL;
 };
 
@@ -157,11 +161,11 @@ void ModLugreFriction::AssRes(
 	doublereal z = X.dGetCoef(startdof+1);
 	doublereal zp = XP.dGetCoef(startdof+1);	
 	f = X.dGetCoef(startdof);
-	WorkVec.fPutCoef(startdof,
+	WorkVec.fPutCoef(startdof+1,
 		sigma0*z+
 		sigma1*zp+
 		sigma2*v-f);
-	WorkVec.fPutCoef(startdof+1,-zp+v-alpha(z,v)*v*z/fss(v)*sigma0);
+	WorkVec.fPutCoef(startdof+2,-zp+v-alpha(z,v)*v*z/fss(v)*sigma0);
 };
 
 void ModLugreFriction::AssJac(
@@ -174,24 +178,24 @@ void ModLugreFriction::AssJac(
 	const VectorHandler& X,
 	const VectorHandler& XP,
 	const ExpandableRowVector& dF,
-	const ExpandableRowVector& dv) {
+	const ExpandableRowVector& dv) const {
 
-	doublereal z = X.dGetCoef(startdof+1);
-	doublereal zp = XP.dGetCoef(startdof+1);	
+	doublereal z = X.dGetCoef(startdof+2);
+	doublereal zp = XP.dGetCoef(startdof+2);	
 /*
  * 	prima equazione
  */
-	WorkMat.fPutCoef(startdof,startdof+1,-sigma0*dCoef-sigma1);
-	dv.Add(WorkMat,startdof,-sigma2);
+	WorkMat.fPutCoef(startdof+1,startdof+2,-sigma0*dCoef-sigma1);
+	dv.Add(WorkMat,startdof+1,-sigma2);
 	//f: algebrico
-	WorkMat.fPutCoef(startdof,startdof,1.);
+	WorkMat.fPutCoef(startdof+1,startdof+1,1.);
 /*
  * 	seconda equazione
  */
  	doublereal alph = alpha(z,v);
 	doublereal fs = fss(v);
-	WorkMat.fPutCoef(startdof+1,startdof+1,1.);
-	dv.Add(WorkMat,startdof+1,
+	WorkMat.fPutCoef(startdof+2,startdof+2,1.);
+	dv.Add(WorkMat,startdof+2,
 		-1.+
 		alphad_v(z,v)*v+
 		z/fs*sigma0+
@@ -203,7 +207,7 @@ void ModLugreFriction::AssJac(
  	dfc.ReDim(3);
 	dfc.Set(0.,1);  dfc.Link(1,&dF);
 	dfc.Set(sigma2,2); dfc.Link(2,&dv);
-	dfc.Set(sigma0*dCoef+sigma1,3,startdof+1);
+	dfc.Set(sigma0*dCoef+sigma1,3,startdof+2);
 };
 
 
@@ -213,8 +217,9 @@ SimplePlaneHingeJointSh_c::SimplePlaneHingeJointSh_c(const doublereal rr):
 doublereal SimplePlaneHingeJointSh_c::Sh_c(
 	const doublereal f,
 	const doublereal F,
-	const doublereal v) const {
-	return r/std::sqrt(1.+f*f);
+	const doublereal v) {
+	shc = r/std::sqrt(1.+f*f);
+	return shc;
 };
 
 void SimplePlaneHingeJointSh_c::dSh_c(
@@ -225,8 +230,10 @@ void SimplePlaneHingeJointSh_c::dSh_c(
 	const ExpandableRowVector& dfc,
 	const ExpandableRowVector& dF,
 	const ExpandableRowVector& dv) const {
-		doublereal dsh = r*-0.5*std::pow(1.+f*f,-3./2.)*f;
-		dShc.ReDim(1);
-		dShc.Set(dsh,1);
+		doublereal dsh_fc = r*-0.5*std::pow(1.+f*f,-3./2.)*f;
+		dShc.ReDim(2);
+		dShc.Set(0.,1);
+		dShc.Link(1,&dF);
+		dShc.Set(dsh_fc,2);
 		dShc.Link(1,&dfc);
 };

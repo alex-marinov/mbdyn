@@ -54,7 +54,11 @@ public:
  * 	void Update(const VectorHandler&XCurr, const VectorHandler&XPrimeCurr);
  * 	void AfterConvergence(VectorHandler&X, VectorHandler&XP);
  */
+/** Return last computed friction coefficient
+ */
 	virtual doublereal fc(void) const = 0;
+/** Compute self residual and friction coefficient
+ */
 	virtual void AssRes(
 		SubVectorHandler& WorkVec,
 		const unsigned int startdof,
@@ -62,6 +66,8 @@ public:
 		const doublereal v,
 		const VectorHandler& X,
 		const VectorHandler& XP) = 0;
+/** Compute self jacobian and friction coefficient derivatives
+ */
 	virtual void AssJac(
 		FullSubMatrixHandler& WorkMat,
 		ExpandableRowVector& dfc,
@@ -72,19 +78,22 @@ public:
 		const VectorHandler& X,
 		const VectorHandler& XP,
 		const ExpandableRowVector& dF,
-		const ExpandableRowVector& dv) = 0;
+		const ExpandableRowVector& dv) const = 0;
 };
 
 /** Base class for friction shape coefficient
  */
 class BasicShapeCoefficient {
 public:
+/** Return last computed shape coefficient
+ */
+	virtual doublereal Sh_c(void) const = 0;
 /** Compute the shape coefficient
  */
 	virtual doublereal Sh_c(
 		const doublereal f,
 		const doublereal F,
-		const doublereal v) const = 0;
+		const doublereal v) = 0;
 /** Compute derivatives of the shape coefficient
  */
 	virtual void dSh_c(
@@ -144,7 +153,7 @@ public:
 		const VectorHandler& X,
 		const VectorHandler& XP,
 		const ExpandableRowVector& dF,
-		const ExpandableRowVector& dv);
+		const ExpandableRowVector& dv) const;
 };
 
 /** Simple, low load shape coefficient for revolute hinge (PlaneHingeJoint)
@@ -152,12 +161,14 @@ public:
 class SimplePlaneHingeJointSh_c : public BasicShapeCoefficient {
 private:
 	doublereal r;
+	doublereal shc;
 public:
 	SimplePlaneHingeJointSh_c(const doublereal rr);
+	virtual doublereal Sh_c(void) const;
 	doublereal Sh_c(
 		const doublereal f,
 		const doublereal F,
-		const doublereal v) const;
+		const doublereal v);
 	void dSh_c(
 		ExpandableRowVector& dShc,
 		const doublereal f,

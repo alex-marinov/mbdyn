@@ -35,6 +35,7 @@
 
 #include "joint.h"
 #include "drive.h"
+#include "friction.h"
 
 /* PlaneHingeJoint - begin */
 
@@ -57,13 +58,20 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    Vec3 F;
    Vec3 M;
    mutable doublereal dTheta;
-   
+   BasicShapeCoefficient *const Sh_c;
+   BasicFriction *const fc;
+   const doublereal r;
+   static const unsigned int NumSelfDof;
+   static const unsigned int NumDof;
  public:
    /* Costruttore non banale */
    PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
 		   const StructNode* pN1, const StructNode* pN2,
 		   const Vec3& dTmp1, const Vec3& dTmp2,
-		   const Mat3x3& R1hTmp, const Mat3x3& R2hTmp, flag fOut);
+		   const Mat3x3& R1hTmp, const Mat3x3& R2hTmp, flag fOut,
+		   const doublereal r = 0.,
+		   BasicShapeCoefficient *const sh = 0,
+		   BasicFriction *const f = 0);
    
    /* Distruttore */
    ~PlaneHingeJoint(void);
@@ -80,23 +88,22 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
       return Joint::PLANEHINGE;
    };
    
-   virtual unsigned int iGetNumDof(void) const { 
-      return 5;
-   };
+   virtual unsigned int iGetNumDof(void) const;
    
-   DofOrder::Order GetDofType(unsigned int i) const {
-      ASSERT(i >= 0 && i < 5);
-      return DofOrder::ALGEBRAIC; 
-   };
+   DofOrder::Order GetDofType(unsigned int i) const;
 
-	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
 
-	virtual void AfterConvergence(const VectorHandler& X, 
+   virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);
 
    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 17;
-      *piNumCols = 17; 
+      *piNumRows = NumDof;
+      *piNumCols = NumDof;
+      if (fc) {
+          *piNumRows += fc->iGetNumDof();
+          *piNumCols += fc->iGetNumDof();
+      } 
    };
    
       
