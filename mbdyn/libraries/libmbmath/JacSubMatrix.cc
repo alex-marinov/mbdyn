@@ -103,7 +103,7 @@ void ExpandableRowVector::Add(FullSubMatrixHandler& WM,
 	const doublereal c) const {
 	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
 		if (idx[i] != 0) {
-			WM.fIncCoef(eq-1,idx[i],x[i]);
+			WM.fIncCoef(eq,idx[i],x[i]);
 		} else {
 			xm[i]->Add(WM,eq,c*x[i]);
 		}
