@@ -35,6 +35,8 @@ parser.h \
 parsinc.cc \
 parsinc.h \
 search.h \
+sock.c \
+sock.h \
 stack.h \
 table.cc \
 table.h \

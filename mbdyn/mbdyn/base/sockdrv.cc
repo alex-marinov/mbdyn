@@ -34,9 +34,6 @@
 
 #ifdef USE_SOCKET_DRIVES
 
-#include <dataman.h>
-#include <sockdrv.h>
-
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -56,59 +53,14 @@
 #include <sys/un.h>
 #include <arpa/inet.h>
 
+#include "dataman.h"
+#include "sockdrv.h"
+#include "sock.h"
+
 const size_t USERLEN = 32;
 const size_t CREDLEN = 128;
 const size_t BUFSIZE = 1024;
 const char *MBDynSocketDrivePath = "/var/mbdyn/mbdyn.sock";
-
-static int
-make_socket(unsigned short int port)
-{
-   	int sock;
-   	struct sockaddr_in name;
-
-   	/* Create the socket. */
-   	sock = socket (PF_INET, SOCK_STREAM, 0);
-   	if (sock < 0) {
-      		return -1;
-   	}
-
-   	/* Give the socket a name. */
-   	name.sin_family = AF_INET;
-   	name.sin_port = htons (port);
-   	name.sin_addr.s_addr = htonl (INADDR_ANY);
-   	if (bind (sock, (struct sockaddr *) &name, sizeof (name)) < 0) {
-      		return -2;
-   	}
-
-   	return sock;
-}
-
-static int
-make_named_socket(const char *path)
-{
-   	int sock;
-   	struct sockaddr_un name;
-	size_t size;
-
-   	/* Create the socket. */
-   	sock = socket (PF_LOCAL, SOCK_STREAM, 0);
-   	if (sock < 0) {
-      		return -1;
-   	}
-
-   	/* Give the socket a name. */
-   	name.sun_family = AF_LOCAL;
-   	strncpy(name.sun_path, path, sizeof(name.sun_path));
-	size = (offsetof (struct sockaddr_un, sun_path)
-			+strlen(name.sun_path)+1);
-   	if (bind (sock, (struct sockaddr *) &name, size) < 0) {
-      		return -2;
-   	}
-
-   	return sock;
-}
-
 
 SocketDrive::SocketDrive(unsigned int uL, const DriveHandler* pDH,
 			 unsigned short int p,
@@ -119,18 +71,15 @@ type(AF_INET),
 auth(a),
 pFlags(NULL)
 {
+	struct sockaddr_in name;
+	
    	ASSERT(p > 0);
    	ASSERT(auth != NULL);
    	ASSERT(nd > 0);
 
-   	SAFENEWARR(pFlags, int, nd+1);
-   	for (int iCnt = 0; iCnt <= nd; iCnt++) {
-      		pFlags[iCnt] = SocketDrive::DEFAULT;
-   	}
-
    	/* Create the socket and set it up to accept connections. */
 	data.Port = p;
-   	sock = make_socket(data.Port);
+   	sock = make_inet_socket(&name, NULL, data.Port, 1);
    	if (sock == -1) {
       		silent_cerr("SocketDrive(" << GetLabel()
 			<< "): socket failed" << std::endl);
@@ -141,8 +90,42 @@ pFlags(NULL)
       		THROW(ErrGeneric());
    	}
 
+   	Init();
+}
+
+SocketDrive::SocketDrive(unsigned int uL, const DriveHandler* pDH,
+		const char *path, integer nd)
+: FileDrive(uL, pDH, "socket", nd),
+type(AF_LOCAL),
+auth(NULL),
+pFlags(NULL)
+{
+   	ASSERT(path != NULL);
+   	ASSERT(nd > 0);
+
+	SAFENEW(auth, NoAuth);
+
+   	/* Create the socket and set it up to accept connections. */
+	SAFESTRDUP(data.Path, path);
+   	sock = make_named_socket(data.Path, 1);
+   	if (sock == -1) {
+      		std::cerr << "SocketDrive(" << GetLabel()
+			<< "): socket failed" << std::endl;
+      		THROW(ErrGeneric());
+   	} else if (sock == -2) {
+      		std::cerr << "SocketDrive(" << GetLabel()
+			<< "): bind failed" << std::endl;
+      		THROW(ErrGeneric());
+   	}
+
+	Init();
+}
+
+void
+SocketDrive::Init(void)
+{
    	/* non-blocking */
-   	int oldflags = fcntl (sock, F_GETFL, 0);
+   	int oldflags = fcntl(sock, F_GETFL, 0);
    	if (oldflags == -1) {
 		silent_cerr("SocketDrive(" << GetLabel()
 				<< ": unable to get socket flags"
@@ -162,52 +145,10 @@ pFlags(NULL)
 			<< "): listen failed" << std::endl);
       		THROW(ErrGeneric());
    	}
-}
 
-SocketDrive::SocketDrive(unsigned int uL, const DriveHandler* pDH,
-		const char *path, integer nd)
-: FileDrive(uL, pDH, "socket", nd),
-type(AF_LOCAL),
-auth(NULL),
-pFlags(NULL)
-{
-   	ASSERT(path != NULL);
-   	ASSERT(nd > 0);
-
-	SAFENEW(auth, NoAuth);
-
-   	SAFENEWARR(pFlags, int, nd+1);
-   	for (int iCnt = 0; iCnt <= nd; iCnt++) {
+   	SAFENEWARR(pFlags, int, iNumDrives + 1);
+   	for (int iCnt = 0; iCnt <= iNumDrives; iCnt++) {
       		pFlags[iCnt] = SocketDrive::DEFAULT;
-   	}
-
-   	/* Create the socket and set it up to accept connections. */
-	SAFESTRDUP(data.Path, path);
-   	sock = make_named_socket(data.Path);
-   	if (sock == -1) {
-      		std::cerr << "SocketDrive(" << GetLabel()
-			<< "): socket failed" << std::endl;
-      		THROW(ErrGeneric());
-   	} else if (sock == -2) {
-      		std::cerr << "SocketDrive(" << GetLabel()
-			<< "): bind failed" << std::endl;
-      		THROW(ErrGeneric());
-   	}
-
-   	/* non-blocking */
-   	int oldflags = fcntl (sock, F_GETFL, 0);
-   	if (oldflags == -1) {
-      		/* FIXME: err ... */
-   	}
-   	oldflags |= O_NONBLOCK;
-   	if (fcntl(sock, F_SETFL, oldflags) == -1) {
-      		/* FIXME: err ... */
-   	}
-
-   	if (listen(sock, 1) < 0) {
-      		std::cerr << "SocketDrive(" << GetLabel()
-			<< "): listen failed" << std::endl;
-      		THROW(ErrGeneric());
    	}
 }
 

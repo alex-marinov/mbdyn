@@ -64,6 +64,8 @@ protected:
 
    	int sock;
 
+	void Init(void);
+
 public:
    	SocketDrive(unsigned int uL, const DriveHandler* pDH,
 	            unsigned short int p, AuthMethod* a, integer nd);
