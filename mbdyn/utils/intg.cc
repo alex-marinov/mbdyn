@@ -486,7 +486,7 @@ int method_multistep(const char* module, integration_data* d,
 	 }      
 	 if (++j > maxiter) {
 	    std::cerr << "current iteration " << j 
-	      << " exceedes max iteration number " << maxiter << std::endl;
+	      << " exceeds max iteration number " << maxiter << std::endl;
 	    exit(EXIT_FAILURE);
 	 }
 	 
@@ -667,7 +667,7 @@ int method_cubic(const char* module, integration_data* d,
 	 }      
 	 if (++j > maxiter) {
 	    std::cerr << "current iteration " << j 
-	      << " exceedes max iteration number " << maxiter << std::endl;
+	      << " exceeds max iteration number " << maxiter << std::endl;
 	    exit(EXIT_FAILURE);
 	 }
 	 
