@@ -188,7 +188,8 @@ usage:;
 		nt = 1;
 	}
 
-	Arg arg[nt];
+	Arg *arg = NULL;
+	arg = new Arg[nt];
 	unsigned c;
 
 	A** ppA = new A*[size];
@@ -257,6 +258,8 @@ usage:;
 		sem_post(&arg[i].s);
 		pthread_join(arg[i].t, NULL);
 	}
+
+	delete[] arg;
 
 	return 0;
 }
