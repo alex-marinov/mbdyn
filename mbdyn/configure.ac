@@ -77,6 +77,8 @@ dnl ================================================================
 dnl configure.in for MBDyn
 AC_INIT(build/version)
 
+DATE=`date "+%B %e, %Y"`
+
 # set unset (borrowed from autoconf 2.14a)
 if (unset FOO) >/dev/null 2>&1; then
 	ol_unset=unset
@@ -1147,6 +1149,8 @@ AC_SUBST(GINACLIB_CONFIG)
 AC_SUBST(GINACLIB_CPPFLAGS)
 AC_SUBST(GINACLIB_LIBS)
 
+AC_SUBST(DATE)
+
 
 dnl ----------------------------------------------------------------
 dnl
@@ -1165,26 +1169,27 @@ dnl final output
 dnl
 
 AC_OUTPUT([ \
-	Makefile:Makefile.in \
-	libraries/Makefile:libraries/Makefile.in \
-	libraries/libmbutil/Makefile:libraries/libmbutil/Makefile.in \
-	libraries/libmbmath/Makefile:libraries/libmbmath/Makefile.in \
-	libraries/libmbwrap/Makefile:libraries/libmbwrap/Makefile.in \
-	libraries/liby12/Makefile:libraries/liby12/Makefile.in \
-	libraries/libobjs/Makefile:libraries/libobjs/Makefile.in \
-	mbdyn/Makefile:mbdyn/Makefile.in \
-	mbdyn/base/Makefile:mbdyn/base/Makefile.in \
-	mbdyn/aero/Makefile:mbdyn/aero/Makefile.in \
-	mbdyn/elec/Makefile:mbdyn/elec/Makefile.in \
-	mbdyn/hydr/Makefile:mbdyn/hydr/Makefile.in \
-	mbdyn/struct/Makefile:mbdyn/struct/Makefile.in \
-	modules/Makefile:modules/Makefile.in \
+	Makefile:Makefile.in
+	libraries/Makefile:libraries/Makefile.in
+	libraries/libmbutil/Makefile:libraries/libmbutil/Makefile.in
+	libraries/libmbmath/Makefile:libraries/libmbmath/Makefile.in
+	libraries/libmbwrap/Makefile:libraries/libmbwrap/Makefile.in
+	libraries/liby12/Makefile:libraries/liby12/Makefile.in
+	libraries/libobjs/Makefile:libraries/libobjs/Makefile.in
+	mbdyn/Makefile:mbdyn/Makefile.in
+	mbdyn/base/Makefile:mbdyn/base/Makefile.in
+	mbdyn/aero/Makefile:mbdyn/aero/Makefile.in
+	mbdyn/elec/Makefile:mbdyn/elec/Makefile.in
+	mbdyn/hydr/Makefile:mbdyn/hydr/Makefile.in
+	mbdyn/struct/Makefile:mbdyn/struct/Makefile.in
+	modules/Makefile:modules/Makefile.in
 	utils/Makefile:utils/Makefile.in
 	etc/Makefile:etc/Makefile.in
 	etc/modal.d/Makefile:etc/modal.d/Makefile.in
 	etc/pam.d/Makefile:etc/pam.d/Makefile.in
 	var/Makefile:var/Makefile.in
 	manual/Makefile:manual/Makefile.in
+	manual/mbdyn.1:manual/mbdyn.1.in
 	include/Makefile:include/Makefile.in
 	include/ac/Makefile:include/ac/Makefile.in
 	build/Makefile:build/Makefile.in
