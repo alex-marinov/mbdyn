@@ -64,6 +64,7 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    BasicFriction *const fc;
    const doublereal preF;
    const doublereal r;
+   doublereal M3;
    static const unsigned int NumSelfDof;
    static const unsigned int NumDof;
    /* end of friction related data */

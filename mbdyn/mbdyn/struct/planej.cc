@@ -102,7 +102,7 @@ PlaneHingeJoint::AfterConvergence(const VectorHandler& X,
 		//relative velocity
 		doublereal v = (Omega1-Omega2).Dot(e3a)*r;
 		//reaction norm
-		doublereal modF = F.Norm();
+		doublereal modF = std::max(F.Norm(), preF);;
 		fc->AfterConvergence(modF,v,X,XP,iGetFirstIndex()+NumSelfDof);
 	}
 }
@@ -316,13 +316,46 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       dv.ReDim(6);
       Vec3 domega = Omega1-Omega2;
       
-      dv.Set((e3a.dGet(1)*1.-( e3a.dGet(2)*Omega1r.dGet(3)-e3a.dGet(3)*Omega1r.dGet(2))*dCoef)*r,1,0+4);
-      dv.Set((e3a.dGet(2)*1.-(-e3a.dGet(1)*Omega1r.dGet(3)+e3a.dGet(3)*Omega1r.dGet(1))*dCoef)*r,2,0+5);
-      dv.Set((e3a.dGet(3)*1.-( e3a.dGet(1)*Omega1r.dGet(2)-e3a.dGet(2)*Omega1r.dGet(1))*dCoef)*r,3,0+6);
+/* old (wrong?) relative velocity linearization */
+
+//       dv.Set((e3a.dGet(1)*1.-( e3a.dGet(2)*Omega1r.dGet(3)-e3a.dGet(3)*Omega1r.dGet(2))*dCoef)*r,1,0+4);
+//       dv.Set((e3a.dGet(2)*1.-(-e3a.dGet(1)*Omega1r.dGet(3)+e3a.dGet(3)*Omega1r.dGet(1))*dCoef)*r,2,0+5);
+//       dv.Set((e3a.dGet(3)*1.-( e3a.dGet(1)*Omega1r.dGet(2)-e3a.dGet(2)*Omega1r.dGet(1))*dCoef)*r,3,0+6);
+//       
+//       dv.Set(-(e3a.dGet(1)*1.-( e3a.dGet(2)*Omega2r.dGet(3)-e3a.dGet(3)*Omega2r.dGet(2))*dCoef)*r,4,6+4);
+//       dv.Set(-(e3a.dGet(2)*1.-(-e3a.dGet(1)*Omega2r.dGet(3)+e3a.dGet(3)*Omega2r.dGet(1))*dCoef)*r,5,6+5);
+//       dv.Set(-(e3a.dGet(3)*1.-( e3a.dGet(1)*Omega2r.dGet(2)-e3a.dGet(2)*Omega2r.dGet(1))*dCoef)*r,6,6+6);
+
+/* new (exact?) relavtive velocity linearization */
+
+//       dv.Set((e3a.dGet(1)*1.-( 
+//       		e3a.dGet(2)*(Omega1.dGet(3)-Omega2.dGet(3))-
+// 		e3a.dGet(3)*(Omega1.dGet(2)-Omega2.dGet(2)))*dCoef)*r,1,0+4);
+//       dv.Set((e3a.dGet(2)*1.-(
+//       		-e3a.dGet(1)*(Omega1.dGet(3)-Omega2.dGet(3))+
+// 		e3a.dGet(3)*(Omega1.dGet(1)-Omega2.dGet(1)))*dCoef)*r,2,0+5);
+//       dv.Set((e3a.dGet(3)*1.-( 
+//       		e3a.dGet(1)*(Omega1.dGet(2)-Omega2.dGet(2))-
+// 		e3a.dGet(2)*(Omega1.dGet(1)-Omega2.dGet(1)))*dCoef)*r,3,0+6);
+// 
+//       dv.Set(-(e3a.dGet(1)*1.)*r,4,6+4);
+//       dv.Set(-(e3a.dGet(2)*1.)*r,5,6+5);
+//       dv.Set(-(e3a.dGet(3)*1.)*r,6,6+6);
+
+
+/* new (approximate: assume costatnt trads orientations) 
+ * relative velocity linearization 
+*/
+
+      dv.Set((e3a.dGet(1)*1.)*r,1,0+4);
+      dv.Set((e3a.dGet(2)*1.)*r,2,0+5);
+      dv.Set((e3a.dGet(3)*1.)*r,3,0+6);
       
-      dv.Set(-(e3a.dGet(1)*1.-( e3a.dGet(2)*Omega2r.dGet(3)-e3a.dGet(3)*Omega2r.dGet(2))*dCoef)*r,4,6+4);
-      dv.Set(-(e3a.dGet(2)*1.-(-e3a.dGet(1)*Omega2r.dGet(3)+e3a.dGet(3)*Omega2r.dGet(1))*dCoef)*r,5,6+5);
-      dv.Set(-(e3a.dGet(3)*1.-( e3a.dGet(1)*Omega2r.dGet(2)-e3a.dGet(2)*Omega2r.dGet(1))*dCoef)*r,6,6+6);
+      dv.Set(-(e3a.dGet(1)*1.)*r,4,6+4);
+      dv.Set(-(e3a.dGet(2)*1.)*r,5,6+5);
+      dv.Set(-(e3a.dGet(3)*1.)*r,6,6+6);
+
+
       //assemble friction states
       fc->AssJac(WM,dfc,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,dCoef,modF,v,
       		XCurr,XPrimeCurr,dF,dv);
@@ -439,9 +472,11 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
       fc->AssRes(WorkVec,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,modF,v,XCurr,XPrimeCurr);
       doublereal f = fc->fc();
       doublereal shc = Sh_c->Sh_c(f,modF,v);
-      doublereal M3 = shc*modF*f;
+      M3 = shc*modF*f;
       WorkVec.Sub(4,e3a*M3);
       WorkVec.Add(10,e3a*M3);
+//!!!!!!!!!!!!!!
+//      M += e3a*M3;
    }
    
    return WorkVec;
@@ -486,10 +521,14 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
       Mat3x3 R2TmpT(R2Tmp.Transpose());
       
-      Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
+      std::ostream &of = Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
 		    R2TmpT*F, M, F, R2Tmp*M)
 	<< " " << MatR2EulerAngles(RTmp)*dRaDegr
-	  << " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()) << std::endl;
+	  << " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr());
+      if (fc) {
+          of << " " << M3;
+      }
+      of << std::endl;
    }   
 }
 
