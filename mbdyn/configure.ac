@@ -1051,6 +1051,8 @@ dnl
 dnl Checks for library functions.
 dnl
 AC_CHECK_FUNCS([ \
+	atoi \
+	atol \
 	chdir \
 	getcwd \
 	getopt \
@@ -1063,6 +1065,7 @@ AC_CHECK_FUNCS([ \
 	strftime \
 	strtod \
 	strtol \
+	strtoul \
 	time \
 ])
 
