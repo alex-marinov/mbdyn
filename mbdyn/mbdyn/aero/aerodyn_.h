@@ -77,6 +77,29 @@
 
 #include <aerodyn.h>
 
+/* Gust1D - begin */
+
+class Gust1D : public Gust {
+private:
+	Vec3 FrontDir;
+	Vec3 GustDir;
+	doublereal dVRef;
+	DriveOwner Time;
+	DriveOwner GustProfile;
+
+public:
+	Gust1D(const Vec3& f, const Vec3& g, const doublereal& v,
+			DriveCaller *pT, DriveCaller *pG);
+	~Gust1D(void);
+
+	virtual std::ostream& Restart(std::ostream& out) const;
+	Vec3 GetVelocity(const Vec3& X) const;
+	void GetVelocity(const Vec3& X, Vec3& V) const;
+};
+
+/* Gust1D - end */
+
+
 /* BasicAirProperties - begin */
 
 class BasicAirProperties 
@@ -87,7 +110,7 @@ class BasicAirProperties
    
  public:
    BasicAirProperties(const TplDriveCaller<Vec3>* pDC,
-		 DriveCaller *pRho, doublereal dSS, flag fOut);
+		 DriveCaller *pRho, doublereal dSS, Gust *pG, flag fOut);
    
    virtual ~BasicAirProperties(void);
 
@@ -97,8 +120,6 @@ class BasicAirProperties
    
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
-   
-   virtual const Vec3& GetVelocity(const Vec3& /* X */ ) const;
    
    /*
     * Deprecated; use GetAirProps instead
@@ -133,6 +154,7 @@ class StdAirProperties
    doublereal a;
    doublereal R;
    doublereal g0;
+   doublereal z0;
    doublereal z1;
    doublereal z2;
    
@@ -140,7 +162,8 @@ class StdAirProperties
    StdAirProperties(const TplDriveCaller<Vec3>* pDC,
 		 doublereal PRef_, DriveCaller *RhoRef_, doublereal TRef_,
 		 doublereal a_, doublereal R_, doublereal g0_,
-		 doublereal z1_, doublereal z2_, flag fOut);
+		 doublereal z0_, doublereal z1_, doublereal z2_,
+		 Gust *pG, flag fOut);
    
    virtual ~StdAirProperties(void);
 
@@ -150,8 +173,6 @@ class StdAirProperties
    
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
-   
-   virtual const Vec3& GetVelocity(const Vec3& /* X */ ) const;
    
    /*
     * Deprecated; use GetAirProps instead

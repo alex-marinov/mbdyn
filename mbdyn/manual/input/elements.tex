@@ -210,12 +210,64 @@ is repeated for each portion of the beam.
 
 
 \section{Air Properties Element}
+The properties of the airstream are made of the physical properties
+of the air plus the description of the airstream velocity direction
+and amplitude.
+The former can be expressed in different forms, while the latter
+are based on three-dimensional vectors which depend on multipliers.
 \begin{verbatim}
-    <arglist> ::= (scalar) <air_density> , 
-                  (scalar) <sound_speed> ,
-                  (Vec3_tpl_drive_caller) <air_speed>
+    <arglist> ::= {
+        (drive_caller) <air_density> , (scalar) <sound_speed> 
+        | std , { { SI | British }
+            [ , temperature deviation , <delta T> ]
+            | <p0> , (drive_caller) <rho0> ,
+            <T0> , <dT/dz> , <R> , <g0> , <z1> , <z2>
+        } [ , reference altitude, <z0> ]
+    } , (Vec3_tpl_drive_caller) <air_speed>
 \end{verbatim}
-the asymptotic air properties are characterised by the drive of the 
+The first form consists in the bare input of the air density,
+in form of a drive caller, and of the sound celerity, e.g.:
+\begin{verbatim}
+    air properties: 1.225, 340.,
+        1.,0.,0., 150.;
+\end{verbatim}
+The second form uses standard air properties, both in the
+international system (SI) or in British units, possibly
+with a temperature deviation and an altitude offset, e.g.:
+\begin{verbatim}
+    air properties: std, SI, temperature deviation, -55,
+        reference altitude, 1000.,
+        1.,0.,0., 150.;
+\end{verbatim}
+where standard properties in SI are used, with a temperature
+deviation of -55 K degrees and a reference altitude of 1000 m.
+The air properties are computed based on the Z position of the
+point where the air properties are requested (plus the optional
+altitude offset).
+The last possibility requires the user to input all the parameters
+required to compute the air properties based on the Z position
+of the point where they are requested, namely the reference
+pressure \texttt{p0}, the reference density \texttt{rho0},
+the reference temperature \texttt{T0}, the initial temperature
+gradient \texttt{dT/dz}, the gas constant \texttt{R}, the
+initial gravity acceleration \texttt{g0}, the bottom and top
+altitudes of the null temperature gradient region \texttt{z1} and
+\texttt{z2}; e.g., for SI units:
+\begin{verbatim}
+    air properties: std,
+        101325.,       /* Pa */
+        1.2250,        /* kg/m^3 */
+        288.16,        /* K */
+        -6.5e-3,       /* K/m */
+        287.,          /* J/kgK */
+        9.81,          /* m/s^2 */
+        11000.,        /* m */
+        25000.,        /* m */
+        temperature deviation, -55,
+        reference altitude, 1000.,
+        1.,0.,0., 150.;
+\end{verbatim}
+The asymptotic air properties are characterized by the drive of the 
 air speed, in the global reference frame.
 
 
@@ -504,7 +556,7 @@ The \texttt{electric} elements implemented at present are:
   At present only a simple form of control is implemented. Other types
   to come are system identification, both recursive and one-shot, and
   adaptive control, with different models and schemes, all based on 
-  Generalised Predictive Control (GPC) and Deadbeat Control.
+  Generalized Predictive Control (GPC) and Deadbeat Control.
   The \texttt{control} syntax is:
   \begin{verbatim}
     <control_data> ::= control , " <control_matrices_file> "

@@ -65,15 +65,65 @@
 
 #include <aerodyn_.h>
 #include <dataman.h>
+#include <drive_.h>
 #include <tpldrive_.h>
+
+/*
+ * Gust
+ */
+Gust::~Gust(void)
+{
+	NO_OP;
+}
+
+Gust1D::Gust1D(const Vec3& f, const Vec3& g, const doublereal& v,
+		DriveCaller *pT, DriveCaller *pG)
+: FrontDir(f),
+GustDir(g),
+dVRef(v),
+Time(pT),
+GustProfile(pG)
+{
+	ASSERT(pT != NULL);
+	ASSERT(pG != NULL);
+}
+
+Gust1D::~Gust1D(void)
+{
+	NO_OP;
+}
+
+std::ostream&
+Gust1D::Restart(std::ostream& out) const
+{
+	return out;	/* FIXME: to be implemented */
+}
+
+Vec3
+Gust1D::GetVelocity(const Vec3& X) const
+{
+	Vec3 V;
+	GetVelocity(X, V);
+	return V;
+}
+
+void
+Gust1D::GetVelocity(const Vec3& X, Vec3& V) const
+{
+	doublereal x = FrontDir*X + dVRef*Time.dGet();
+	doublereal v = GustProfile.dGet(x);
+	V = GustDir*v;
+}
 
 /* AirProperties - begin */
 
-AirProperties::AirProperties(const TplDriveCaller<Vec3>* pDC, flag fOut)
+AirProperties::AirProperties(const TplDriveCaller<Vec3>* pDC,
+		Gust *pG, flag fOut)
 : Elem(1, Elem::AIRPROPERTIES, fOut),
 InitialAssemblyElem(1, Elem::AIRPROPERTIES, fOut),
 TplDriveOwner<Vec3>(pDC),
-Velocity(0.)
+Velocity(0.),
+pGust(pG)
 {
 	NO_OP;
 }
@@ -87,7 +137,11 @@ AirProperties::~AirProperties(void)
 std::ostream&
 AirProperties::Restart(std::ostream& out) const
 {
-	return pGetDriveCaller()->Restart(out) << ';' << std::endl;	   
+	pGetDriveCaller()->Restart(out);
+	if (pGust) {
+		out << ", ", pGust->Restart(out);
+	}
+	return out << ';' << std::endl;	   
 }
    
 /* Dimensioni del workspace */
@@ -173,16 +227,34 @@ AirProperties::Output(OutputHandler& OH) const
 			<< GetVelocity(Zero3) << std::endl;
 	}
 }
-     
+ 
+Vec3
+AirProperties::GetVelocity(const Vec3& X) const
+{
+	Vec3 V(0.);
+
+	if (pGust) {
+		pGust->GetVelocity(X, V);
+	}
+
+	return V += Velocity;
+}
+
+void
+AirProperties::GetVelocity(const Vec3& X, Vec3& V) const
+{
+	V = GetVelocity(X);
+}
+
 /* AirProperties - end */
 
 
 /* BasicAirProperties - begin */
 
 BasicAirProperties::BasicAirProperties(const TplDriveCaller<Vec3>* pDC,
-		DriveCaller *pRho, doublereal dSS, flag fOut)
+		DriveCaller *pRho, doublereal dSS, Gust *pG, flag fOut)
 : Elem(1, Elem::AIRPROPERTIES, fOut),
-AirProperties(pDC, fOut),
+AirProperties(pDC, pG, fOut),
 pAirDensity(pRho),
 dSoundSpeed(dSS)
 {
@@ -201,12 +273,6 @@ BasicAirProperties::Restart(std::ostream& out) const
 	out << "  air properties: ",
 		pAirDensity->Restart(out) << ", " << dSoundSpeed << ", ";
 	return AirProperties::Restart(out);
-}
-   
-const Vec3&
-BasicAirProperties::GetVelocity(const Vec3& /* X */ ) const
-{
-	return Velocity;
 }
    
 doublereal
@@ -254,15 +320,17 @@ BasicAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 StdAirProperties::StdAirProperties(const TplDriveCaller<Vec3>* pDC,
 		 doublereal PRef_, DriveCaller *RhoRef_, doublereal TRef_,
 		 doublereal a_, doublereal R_, doublereal g0_,
-		 doublereal z1_, doublereal z2_, flag fOut)
+		 doublereal z0_, doublereal z1_, doublereal z2_,
+		 Gust *pG, flag fOut)
 : Elem(1, Elem::AIRPROPERTIES, fOut),
-AirProperties(pDC, fOut),
+AirProperties(pDC, pG, fOut),
 PRef(PRef_),
 RhoRef(RhoRef_),
 TRef(TRef_),
 a(a_),
 R(R_),
 g0(g0_),
+z0(z0_),
 z1(z1_),
 z2(z2_)
 {
@@ -293,13 +361,10 @@ StdAirProperties::Restart(std::ostream& out) const
 		<< g0 << ", "
 		<< z1 << ", "
 		<< z2 << ", ";
+	if (z0 != 0.) {
+		out << "reference altitude, " << z0 << ", ";
+	}
 	return AirProperties::Restart(out);
-}
-   
-const Vec3&
-StdAirProperties::GetVelocity(const Vec3& /* X */ ) const
-{
-	return Velocity;
 }
    
 doublereal
@@ -347,7 +412,7 @@ StdAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 		doublereal& c, doublereal& p, doublereal& T) const
 {
 	/* FIXME */
-	doublereal z = X.dGet(3);
+	doublereal z = X.dGet(3) + z0;
 
 	if (z < z1) {
 		/* regione del gradiente (troposfera) */
@@ -381,8 +446,49 @@ StdAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 
 /* StdAirProperties - end */
 
+static void
+ReadAirstreamData(DataManager *pDM, MBDynParser& HP,
+		TplDriveCaller<Vec3>*& pDC, Gust*& pG)
+{
+	ASSERT(pDC == NULL);
+	ASSERT(pG == NULL);
 
-Elem*
+	/* Driver multiplo */
+     	pDC = ReadTplDrive(pDM, HP, pDM->pGetDrvHdl(), Vec3(0.));
+	if (HP.IsKeyWord("gust")) {
+		if (HP.IsKeyWord("front1d")) {
+			/* front direction */
+			Vec3 f = HP.GetVecAbs(AbsRefFrame);
+
+			/* gust velocity direction */
+			Vec3 g = HP.GetVecAbs(AbsRefFrame);
+
+			/* reference velocity */
+			doublereal v = HP.GetReal();
+
+			/* time drive caller
+			 * FIXME: not needed if v = 0 */
+			DriveCaller *pT = NULL;
+			SAFENEWWITHCONSTRUCTOR(pT, TimeDriveCaller,
+					TimeDriveCaller(pDM->pGetDrvHdl()));
+
+			/* gust profile drive caller */
+			DriveCaller *pP = ReadDriveData(pDM, HP,
+					pDM->pGetDrvHdl());
+
+			/* gust */
+			SAFENEWWITHCONSTRUCTOR(pG, Gust1D,
+					Gust1D(f, g, v, pT, pP));
+
+		} else {
+			std::cerr << "unknown gust type at line "
+				<< HP.GetLineData() << std::endl;
+			THROW(ErrGeneric());
+		}
+	}
+}
+
+Elem *
 ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 {
 	Elem *pEl = NULL;
@@ -395,6 +501,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 		doublereal a(0.);
 		doublereal R(0.);
 		doublereal g0(0.);
+		doublereal z0(0.);
 		doublereal z1(0.);
 		doublereal z2(0.);
 
@@ -519,17 +626,21 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 						rhoRef));
 		}
 
+		if (HP.IsKeyWord("reference" "altitude")) {
+			z0 = HP.GetReal();
+		}
+
 	     	/* Driver multiplo */	   
-	     	TplDriveCaller<Vec3>* pDC 
-	       		= ReadTplDrive(pDM, HP, pDM->pGetDrvHdl(), Vec3(0.));
-	     
+	     	TplDriveCaller<Vec3>* pDC = NULL;
+		Gust *pG = NULL;
+		ReadAirstreamData(pDM, HP, pDC, pG);
 	     	flag fOut = pDM->fReadOutput(HP, Elem::AIRPROPERTIES);
 	     
 	     	SAFENEWWITHCONSTRUCTOR(pEl, 
 				StdAirProperties,
 				StdAirProperties(pDC, 
-					PRef, RhoRef, TRef, a, R, g0, z1, z2,
-					fOut));
+					PRef, RhoRef, TRef, a, R, g0, z0, z1, z2,
+					pG, fOut));
 	} else {
 		/* Legacy: density and sound celerity at one altitude;
 		 * no altitude dependency */
@@ -546,14 +657,15 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 	     	}	      
 	     
 	     	/* Driver multiplo */	   
-	     	TplDriveCaller<Vec3>* pDC 
-	       		= ReadTplDrive(pDM, HP, pDM->pGetDrvHdl(), Vec3(0.));
-	     
+	     	TplDriveCaller<Vec3>* pDC = NULL;
+		Gust *pG = NULL;
+		ReadAirstreamData(pDM, HP, pDC, pG);
 	     	flag fOut = pDM->fReadOutput(HP, Elem::AIRPROPERTIES);
 	     
 	     	SAFENEWWITHCONSTRUCTOR(pEl, 
 				BasicAirProperties,
-				BasicAirProperties(pDC, pRho, dSS, fOut));
+				BasicAirProperties(pDC, pRho, dSS,
+					pG, fOut));
 	}
 
 	return pEl;
