@@ -136,7 +136,7 @@ LinSol::SolverType LinSol::defaultSolver =
 	;
 
 LinSol::LinSol(void)
-: CurrSolver(LinSol::defaultSolver),
+: currSolver(LinSol::defaultSolver),
 solverFlags(0),
 nThreads(1),
 iWorkSpaceSize(0),
@@ -151,314 +151,10 @@ LinSol::~LinSol(void)
 	NO_OP;
 }
 
-#if 0
-void
-LinSol::Read(HighParser &HP, bool bAllowEmpty)
-{
-   	/* parole chiave */
-   	const char* sKeyWords[] = { 
-		::solver[LinSol::EMPTY_SOLVER].s_name,
-		::solver[LinSol::HARWELL_SOLVER].s_name,
-		::solver[LinSol::LAPACK_SOLVER].s_name,
-		::solver[LinSol::MESCHACH_SOLVER].s_name,
-		::solver[LinSol::NAIVE_SOLVER].s_name,
-		::solver[LinSol::SUPERLU_SOLVER].s_name,
-		::solver[LinSol::TAUCS_SOLVER].s_name,
-		::solver[LinSol::UMFPACK_SOLVER].s_name,
-		::solver[LinSol::UMFPACK_SOLVER].s_alias,
-		::solver[LinSol::Y12_SOLVER].s_name,
-		NULL
-	};
-
-	enum KeyWords {
-		EMPTY,
-		HARWELL,
-		LAPACK,
-		MESCHACH,
-		NAIVE,
-		SUPERLU,
-		TAUCS,
-		UMFPACK,
-		UMFPACK3,
-		Y12,
-
-		LASTKEYWORD
-	};
-
-   	/* tabella delle parole chiave */
-   	KeyTable K(HP, sKeyWords);
-
-	bool bGotIt = false;	
-	switch (KeyWords(HP.GetWord())) {
-	case EMPTY:
-		if (!bAllowEmpty) {
-			silent_cerr("empty solver not allowed at line "
-				<< HP.GetLineData() << std::endl);
-			throw ErrGeneric();
-		}
-
-		CurrSolver = LinSol::EMPTY_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"No LU solver" << std::endl);
-		bGotIt = true;
-		break;
-
-	case HARWELL:
-		CurrSolver = LinSol::HARWELL_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using harwell sparse LU solver" << std::endl);
-#ifdef USE_HARWELL
-		bGotIt = true;
-#endif /* USE_HARWELL */
-		break;
-
-	case LAPACK:
-		CurrSolver = LinSol::LAPACK_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using Lapack dense LU solver" << std::endl);
-#ifdef USE_LAPACK
-		bGotIt = true;
-#endif /* USE_LAPACK */
-		break;
-
-	case MESCHACH:
-		CurrSolver = LinSol::MESCHACH_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using meschach sparse LU solver"
-				<< std::endl);
-#ifdef USE_MESCHACH
-		bGotIt = true;
-#endif /* USE_MESCHACH */
-		break;
-
-	case NAIVE:
-		CurrSolver = LinSol::NAIVE_SOLVER;
-		bGotIt = true;
-		break;
-
-	case SUPERLU:
-		/*
-		 * FIXME: use CC as default???
-		 */
-		CurrSolver = LinSol::SUPERLU_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using SuperLU sparse LU solver" << std::endl);
-#ifdef USE_SUPERLU
-		bGotIt = true;
-#endif /* USE_SUPERLU */
-		break;
-
-	case TAUCS:
-		/*
-		 * FIXME: use CC as default???
-		 */
-		CurrSolver = LinSol::TAUCS_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using Taucs sparse solver" << std::endl);
-#ifdef USE_TAUCS
-		bGotIt = true;
-#endif /* USE_TAUCS */
-		break;
-
-	case UMFPACK3:
-		pedantic_cerr("\"umfpack3\" is deprecated; "
-				"use \"umfpack\" instead" << std::endl);
-	case UMFPACK:
-		/*
-		 * FIXME: use CC as default???
-		 */
-		CurrSolver = LinSol::UMFPACK_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using umfpack sparse LU solver" << std::endl);
-#ifdef USE_UMFPACK
-		bGotIt = true;
-#endif /* USE_UMFPACK */
-		break;
-
-	case Y12:
-		/*
-		 * FIXME: use CC as default???
-		 */
-		CurrSolver = LinSol::Y12_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using y12 sparse LU solver" << std::endl);
-#ifdef USE_Y12
-		bGotIt = true;
-#endif /* USE_Y12 */
-		break;
-
-	default:
-		silent_cerr("unknown solver" << std::endl);
-		throw ErrGeneric();
-	}
-
-	if (!bGotIt) {
-		silent_cerr(::solver[CurrSolver].s_name << " solver "
-			"not available at line " << HP.GetLineData()
-			<< std::endl);
-		throw ErrGeneric();
-	}
-
-	solverFlags = ::solver[CurrSolver].s_default_flags;
-
-	/* map? */
-	if (HP.IsKeyWord("map")) {
-		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MAP) {
-			solverFlags &= ~LinSol::SOLVER_FLAGS_TYPE_MASK;
-			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_MAP;
-			pedantic_cout("using map matrix handling for "
-					<< ::solver[CurrSolver].s_name
-					<< " solver" << std::endl);
-
-		} else {
-			pedantic_cerr("map is meaningless for "
-					<< ::solver[CurrSolver].s_name
-					<< " solver" << std::endl);
-		}
-
-	/* CC? */
-	} else if (HP.IsKeyWord("column" "compressed") || HP.IsKeyWord("cc")) {
-		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_CC) {
-			solverFlags &= ~LinSol::SOLVER_FLAGS_TYPE_MASK;
-			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_CC;
-			pedantic_cout("using column compressed matrix handling for "
-					<< ::solver[CurrSolver].s_name
-					<< " solver" << std::endl);
-
-		} else {
-			pedantic_cerr("column compressed is meaningless for "
-					<< ::solver[CurrSolver].s_name
-					<< " solver" << std::endl);
-		}
-
-	/* direct? */
-	} else if (HP.IsKeyWord("direct" "access") || HP.IsKeyWord("dir")) {
-		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_DIR) {
-			solverFlags &= ~LinSol::SOLVER_FLAGS_TYPE_MASK;
-			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_DIR;
-			pedantic_cout("using direct access matrix handling for "
-					<< ::solver[CurrSolver].s_name
-					<< " solver" << std::endl);
-
-		} else {
-			pedantic_cerr("direct is meaningless for "
-					<< ::solver[CurrSolver].s_name
-					<< " solver" << std::endl);
-		}
-	}
-
-	/* colamd? */
-	if (HP.IsKeyWord("colamd")) {
-		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) {
-			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_COLAMD;
-			pedantic_cout("using colamd preordering for "
-					<< ::solver[CurrSolver].s_name
-					<< " solver" << std::endl);
-
-		} else {
-			pedantic_cerr("colamd preordering is meaningless for "
-					<< ::solver[CurrSolver].s_name
-					<< " solver" << std::endl);
-		}
-	}
-
-	/* multithread? */
-	if (HP.IsKeyWord("multi" "thread") || HP.IsKeyWord("mt")) {
-		nThreads = HP.GetInt();
-
-		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) {
-			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT;
-			if (nThreads < 1) {
-				silent_cerr("illegal thread number, using 1" << std::endl);
-				nThreads = 1;
-			}
-
-		} else {
-			pedantic_cerr("multithread is meaningless for "
-					<< ::solver[CurrSolver].s_name
-					<< " solver" << std::endl);
-			nThreads = 1;
-		}
-	} else {
-		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) {
-			int n = get_nprocs();
-
-			if (n > 1) {
-				silent_cout("no multithread requested "
-						"with a potential of " << n
-						<< " CPUs" << std::endl);
-				nThreads = n;
-
-			} else {
-				nThreads = 1;
-			}
-		}
-	}
-
-	if (HP.IsKeyWord("workspace" "size")) {
-		iWorkSpaceSize = HP.GetInt();
-		if (iWorkSpaceSize < 0) {
-			iWorkSpaceSize = 0;
-		}
-
-		switch (CurrSolver) {
-		case LinSol::Y12_SOLVER:
-			break;
-		default:
-			pedantic_cerr("workspace size is meaningless for "
-					<< ::solver[CurrSolver].s_name
-					<< " solver" << std::endl);
-			break;
-		}
-	}
-
-	if (HP.IsKeyWord("pivot" "factor")) {
-		dPivotFactor = HP.GetReal();
-
-		if (::solver[CurrSolver].s_pivot_factor == -1.) {
-			pedantic_cerr("pivot factor is meaningless for "
-					<< ::solver[CurrSolver].s_name
-					<< " solver" << std::endl);
-			dPivotFactor = -1.;
-
-		} else if (dPivotFactor <= 0. || dPivotFactor > 1.) {
-			dPivotFactor = ::solver[CurrSolver].s_pivot_factor;
-		}
-
-	} else {
-		if (::solver[CurrSolver].s_pivot_factor != -1.) {
-			dPivotFactor = ::solver[CurrSolver].s_pivot_factor;
-		}
-	}
-
-	if (HP.IsKeyWord("block" "size")) {
-		integer i = HP.GetInt();
-		if (i < 1) {
-			silent_cerr("illegal negative block size; "
-					"using default" << std::endl);
-			blockSize = 0;
-		} else {
-			blockSize = (unsigned)i;
-		}
-
-		switch (CurrSolver) {
-		case LinSol::UMFPACK_SOLVER:
-			break;
-
-		default:
-			pedantic_cerr("block size is meaningless for "
-					<< ::solver[CurrSolver].s_name
-					<< " solver" << std::endl);
-			break;
-		}
-	}
-}
-#endif
-
 LinSol::SolverType
 LinSol::GetSolver(void) const
 {
-	return CurrSolver;
+	return currSolver;
 }
 
 bool
@@ -474,43 +170,43 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 	switch (t) {
 	case LinSol::UMFPACK_SOLVER:
 #ifdef USE_UMFPACK
-		CurrSolver = t;
+		currSolver = t;
 		return true;
 #endif /* USE_UMFPACK */
 
 	case LinSol::SUPERLU_SOLVER:
 #ifdef USE_SUPERLU
-		CurrSolver = t;
+		currSolver = t;
 		return true;
 #endif /* USE_SUPERLU */
 
 	case LinSol::LAPACK_SOLVER:
 #ifdef USE_LAPACK
-		CurrSolver = t;
+		currSolver = t;
 		return true;
 #endif /* USE_LAPACK */
 
 	case LinSol::TAUCS_SOLVER:
 #ifdef USE_TAUCS
-		CurrSolver = t;
+		currSolver = t;
 		return true;
 #endif /* USE_TAUCS */
 
 	case LinSol::Y12_SOLVER:
 #ifdef USE_Y12
-		CurrSolver = t;
+		currSolver = t;
 		return true;
 #endif /* USE_Y12 */
 
 	case LinSol::HARWELL_SOLVER:
 #ifdef USE_HARWELL
-		CurrSolver = t;
+		currSolver = t;
 		return true;
 #endif /* USE_HARWELL */
 
 	case LinSol::MESCHACH_SOLVER:
 #ifdef USE_MESCHACH
-		CurrSolver = t;
+		currSolver = t;
 		return true;
 #endif /* USE_MESCHACH */
 
@@ -519,11 +215,11 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 		return false;
 
 	case LinSol::NAIVE_SOLVER:
-		CurrSolver = t;
+		currSolver = t;
 		return true;
 
 	case LinSol::EMPTY_SOLVER:
-		CurrSolver = t;
+		currSolver = t;
 		return true;
 
 	default:
@@ -546,7 +242,7 @@ LinSol::GetSolverFlags(SolverType t) const
 const char *const
 LinSol::GetSolverName(void) const
 {
-	return ::solver[CurrSolver].s_name;
+	return ::solver[currSolver].s_name;
 }
 
 const char *const
@@ -558,7 +254,7 @@ LinSol::GetSolverName(SolverType t) const
 bool
 LinSol::SetSolverFlags(unsigned f)
 {
-	if ((::solver[CurrSolver].s_flags & f) == f) {
+	if ((::solver[currSolver].s_flags & f) == f) {
 		solverFlags = f;
 		return true;
 	}
@@ -569,7 +265,7 @@ LinSol::SetSolverFlags(unsigned f)
 bool
 LinSol::AddSolverFlags(unsigned f)
 {
-	if ((::solver[CurrSolver].s_flags & f) == f) {
+	if ((::solver[currSolver].s_flags & f) == f) {
 		solverFlags |= f;
 		return true;
 	}
@@ -580,7 +276,7 @@ LinSol::AddSolverFlags(unsigned f)
 bool
 LinSol::MaskSolverFlags(unsigned f)
 {
-	if ((::solver[CurrSolver].s_flags & f) == f) {
+	if ((::solver[currSolver].s_flags & f) == f) {
 		solverFlags &= ~f;
 		return true;
 	}
@@ -591,7 +287,7 @@ LinSol::MaskSolverFlags(unsigned f)
 bool
 LinSol::SetNumThreads(unsigned nt)
 {
-	if (GetSolverFlags(CurrSolver) & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) {
+	if (GetSolverFlags(currSolver) & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) {
 		if (nt == 0) {
 			solverFlags &= ~LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT;
 
@@ -607,6 +303,12 @@ LinSol::SetNumThreads(unsigned nt)
 	return false;
 }
 
+unsigned
+LinSol::GetNumThreads(void) const
+{
+	return nThreads;
+}
+
 integer
 LinSol::iGetWorkSpaceSize(void) const
 {
@@ -619,6 +321,33 @@ LinSol::dGetPivotFactor(void) const
 	return dPivotFactor;
 }
 
+bool
+LinSol::SetWorkSpaceSize(integer i)
+{
+	switch (currSolver) {
+	case LinSol::Y12_SOLVER:
+		iWorkSpaceSize = i;
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool
+LinSol::SetPivotFactor(const doublereal& d)
+{
+	if (::solver[currSolver].s_pivot_factor == -1.) {
+		return false;
+	}
+
+	dPivotFactor = d;
+
+	return true;
+}
+
 SolutionManager *const
 LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 {
@@ -626,13 +355,13 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 	const unsigned type = (solverFlags & LinSol::SOLVER_FLAGS_TYPE_MASK);
 	const bool mt = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT);
 
-	ASSERT((::solver[CurrSolver].s_flags & solverFlags) == solverFlags);
+	ASSERT((::solver[currSolver].s_flags & solverFlags) == solverFlags);
 
 	if (iLWS == 0) {
 		iLWS = iWorkSpaceSize;
 	}
 
-   	switch (CurrSolver) {
+   	switch (currSolver) {
      	case LinSol::Y12_SOLVER: 
 #ifdef USE_Y12
 		switch (type) {

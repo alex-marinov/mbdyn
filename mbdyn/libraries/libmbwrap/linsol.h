@@ -76,7 +76,7 @@ public:
 	};
 
 protected:
-	SolverType CurrSolver;
+	SolverType currSolver;
 	unsigned solverFlags;
 	/*
 	 * number of threads
@@ -113,17 +113,22 @@ public:
    	virtual ~LinSol(void);
  
 	SolverType GetSolver(void) const;
-	unsigned GetSolverFlags(void) const;
-	unsigned GetSolverFlags(SolverType t) const;
 	const char *const GetSolverName(void) const;
+	unsigned GetSolverFlags(void) const;
+	unsigned GetNumThreads(void) const;
+	integer iGetWorkSpaceSize(void) const;
+	const doublereal& dGetPivotFactor(void) const;
+
 	const char *const GetSolverName(SolverType t) const;
+	unsigned GetSolverFlags(SolverType t) const;
+
 	bool SetSolver(SolverType t, unsigned f = SOLVER_FLAGS_NONE);
 	bool SetSolverFlags(unsigned f);
 	bool AddSolverFlags(unsigned f);
 	bool MaskSolverFlags(unsigned f);
 	bool SetNumThreads(unsigned nt);
-	integer iGetWorkSpaceSize(void) const;
-	const doublereal& dGetPivotFactor(void) const;
+	bool SetWorkSpaceSize(integer);
+	bool SetPivotFactor(const doublereal &d);
 
 	SolutionManager *const
 	GetSolutionManager(integer iNLD, integer iLWS = 0) const;
