@@ -105,7 +105,8 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 	"turbulent" "viscoelastic",
 	"linear" "viscoelastic" "bistop",
 	"graall" "damper",
-	"shock" "absorber"
+	"shock" "absorber",
+	NULL
    };
    
    /* enum delle parole chiave */
@@ -139,10 +140,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
    int CurrKW;
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);
+   KeyTable K(HP, sKeyWords);
    
    ConstitutiveLaw<T, Tder>* pCL = NULL;   
    CurrKW = HP.GetWord();
@@ -754,10 +752,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
    };
    
    // tabella delle parole chiave
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   // parser del blocco di controllo
-   HP.PutKeyTable(K);
+   KeyTable K(HP, sKeyWords);
    
    ConstitutiveLaw3D* pCL = NULL;   
    switch(HP.GetWord()) {

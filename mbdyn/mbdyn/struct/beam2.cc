@@ -1275,7 +1275,8 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	DEBUGCOUTFNAME("ReadBeam2");
 	
 	const char* sKeyWords[] = {
-		"piezoelectric"
+		"piezoelectric",
+		NULL
 	};
 	
 	/* enum delle parole chiave */
@@ -1288,10 +1289,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	};
 	
 	/* tabella delle parole chiave */
-	KeyTable K((int)LASTKEYWORD, sKeyWords);
-	
-	/* parser del blocco di controllo */
-	HP.PutKeyTable(K);
+	KeyTable K(HP, sKeyWords);
 	
 	/* Nodo 1 */
 	StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);

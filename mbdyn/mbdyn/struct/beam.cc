@@ -1681,7 +1681,8 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    const char* sKeyWords[] = {
       "elastic",
 	"viscoelastic",
-	"piezoelectric"
+	"piezoelectric",
+	NULL
    };
    
    /* enum delle parole chiave */
@@ -1694,11 +1695,8 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
+   KeyTable K(HP, sKeyWords);
    
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);
-         
    /* Per ogni nodo: */
    
    /* Nodo 1 */

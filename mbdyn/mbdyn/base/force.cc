@@ -257,12 +257,7 @@ Elem* ReadForce(DataManager* pDM,
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);
-   
-   /* lettura dati specifici */
+   KeyTable K(HP, sKeyWords);
    
    /* tipo di forza */
    KeyWords CurrType = KeyWords(HP.GetWord());
@@ -315,14 +310,11 @@ Elem* ReadForce(DataManager* pDM,
    if (CurrType == ABSTRACT) {
       
       /* tabella delle parole chiave */
-      KeyTable KDof((int)Node::LASTNODETYPE, psReadNodesNodes);
-      HP.PutKeyTable(KDof);
+      KeyTable KDof(HP, psReadNodesNodes);
       
       ScalarDof SD = ReadScalarDof(pDM, HP, 0);                          
-      HP.PutKeyTable(KDof);
       
       DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-      HP.PutKeyTable(K);
 
       flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
       
@@ -333,17 +325,13 @@ Elem* ReadForce(DataManager* pDM,
    } else if (CurrType == ABSTRACTINTERNAL) {
       
       /* tabella delle parole chiave */
-      KeyTable KDof((int)Node::LASTNODETYPE, psReadNodesNodes);
-      HP.PutKeyTable(KDof);
+      KeyTable KDof(HP, psReadNodesNodes);
       
       ScalarDof SD1 = ReadScalarDof(pDM, HP, 0);                          
-      HP.PutKeyTable(KDof);
       
       ScalarDof SD2 = ReadScalarDof(pDM, HP, 0);                          
-      HP.PutKeyTable(KDof);
       
       DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-      HP.PutKeyTable(K);
 
       flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
       
@@ -423,7 +411,6 @@ Elem* ReadForce(DataManager* pDM,
 #endif /* DEBUG */
             
       DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-      HP.PutKeyTable(K);
       
       flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
       

@@ -1680,11 +1680,8 @@ Solver::ReadData(MBDynParser& HP)
    	};
    
    	/* tabella delle parole chiave */
-   	KeyTable K((int)LASTKEYWORD, sKeyWords);
+   	KeyTable K(HP, sKeyWords);
    
-   	/* cambia la tabella del parser */
-   	HP.PutKeyTable(K);
-
    	/* legge i dati della simulazione */
    	if (KeyWords(HP.GetDescription()) != BEGIN) {
       		std::cerr << std::endl << "Error: <begin> expected at line " 
@@ -1993,15 +1990,12 @@ Solver::ReadData(MBDynParser& HP)
 						  << std::endl);
 	   		case MS:
 	   		case HOPE: {
-	      			pRhoRegular =
-					ReadDriveData(NULL, HP, NULL);
-				HP.PutKeyTable(K);
+	      			pRhoRegular = ReadDriveData(NULL, HP, NULL);
 
 	      			pRhoAlgebraicRegular = NULL;
 				if (HP.fIsArg()) {
 					pRhoAlgebraicRegular = ReadDriveData(NULL, 
 							HP, NULL);
-					HP.PutKeyTable(K);
 				} else {
 					pRhoAlgebraicRegular = pRhoRegular->pCopy();
 				}
@@ -2022,9 +2016,7 @@ Solver::ReadData(MBDynParser& HP)
 	      			break;
 	   		}
 			case THIRDORDER: {
-	      			pRhoRegular =
-					ReadDriveData(NULL, HP, NULL);
-				HP.PutKeyTable(K);
+	      			pRhoRegular = ReadDriveData(NULL, HP, NULL);
 				RegularType = INT_THIRDORDER;
 				break;
 			}
@@ -2067,15 +2059,12 @@ Solver::ReadData(MBDynParser& HP)
 			case MS:
 			case HOPE: 	      	     
 				pRhoFictitious = ReadDriveData(NULL, HP, NULL);
-				HP.PutKeyTable(K);
 
 				if (HP.fIsArg()) {
 					pRhoAlgebraicFictitious = ReadDriveData(NULL, HP, NULL);
-					HP.PutKeyTable(K);
 				} else {
 					pRhoAlgebraicFictitious = pRhoFictitious->pCopy();
 				}
-				HP.PutKeyTable(K);
    
 				switch (KMethod) {
 				case NOSTRO:
@@ -2093,7 +2082,6 @@ Solver::ReadData(MBDynParser& HP)
 	      			break;	      
 	   		case THIRDORDER:
 				pRhoFictitious = ReadDriveData(NULL, HP, NULL);
-				HP.PutKeyTable(K);
 				FictitiousType = INT_THIRDORDER;
 				break;
 			default: {
@@ -2444,7 +2432,6 @@ Solver::ReadData(MBDynParser& HP)
 			case STRATEGYCHANGE: {
 				CurrStrategy = CHANGE;
 				pStrategyChangeDrive = ReadDriveData(NULL, HP, NULL);
-				HP.PutKeyTable(K);
 				break;
 			}
 
@@ -2571,17 +2558,10 @@ Solver::ReadData(MBDynParser& HP)
 
 		case SOLVER:
 			CurrSolver.Read(HP);
-			
-			/* ripristina la tabella del parser */
-			HP.PutKeyTable(K);
-
 			break;
 
 		case INTERFACESOLVER:
 			CurrIntSolver.Read(HP, true);
-			
-			/* ripristina la tabella del parser */
-			HP.PutKeyTable(K);
 
 #ifndef USE_MPI
 			std::cerr << "Interface solver only allowed "

@@ -1194,7 +1194,8 @@ ReadStructNode(DataManager* pDM,
       "dummy",
 
       "offset",
-      "relativeframe"   /* temporary */
+      "relativeframe",   /* temporary */
+      NULL
    };
 
    /* enum delle parole chiave */
@@ -1213,10 +1214,7 @@ ReadStructNode(DataManager* pDM,
    };
 
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);
+   KeyTable K(HP, sKeyWords);
 
    /* lettura dati specifici */
    KeyWords CurrType((KeyWords)HP.IsKeyWord());

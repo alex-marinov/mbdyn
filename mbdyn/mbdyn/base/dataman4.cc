@@ -177,11 +177,8 @@ void DataManager::ReadElems(MBDynParser& HP)
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
+   KeyTable K(HP, sKeyWords);
    
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);
-      
    /* strutture di conteggio degli elementi letti */
    for (int i = 0; i < Elem::LASTELEMTYPE; 
 	iNumTypes[i] = ElemData[i].iNum, i++) { 
@@ -674,7 +671,6 @@ void DataManager::ReadElems(MBDynParser& HP)
 	      
 	     TplDriveCaller<Vec3>* pDC 
 	       = ReadTplDrive(this, HP, &DrvHdl, Vec3(0.));
-	     HP.PutKeyTable(K);
 	     
 	     flag fOut = fReadOutput(HP, Elem::GRAVITY);
 	     
@@ -702,7 +698,6 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     uLabel = 1;
 
 	     *ppE = ReadAirProperties(this, HP);
- 	     HP.PutKeyTable(K);	      	      
 	     
 	     break;
 	  }
@@ -722,7 +717,6 @@ void DataManager::ReadElems(MBDynParser& HP)
 	      case DRIVEN: {
 		 /* Reads the driver */
 		 DriveCaller* pDC = ReadDriveData(this, HP, &DrvHdl);
-		 HP.PutKeyTable(K);
 		 
 		 HP.ExpectDescription();
 		 KeyWords CurrDriven = KeyWords(HP.GetDescription());
@@ -880,7 +874,6 @@ void DataManager::ReadElems(MBDynParser& HP)
 		    
 		    /* Reads the true element */
 		    ppE = ReadOneElem(this, HP, uLabel, CurrDriven);
-		    HP.PutKeyTable(K);
 		    
 		    if (*ppE == NULL) {
 		       DEBUGCERR("");
@@ -970,7 +963,6 @@ void DataManager::ReadElems(MBDynParser& HP)
 #endif /* HAVE_LOADABLE && HAVE_LTDL_H */
 		 
 		 ppE = ReadOneElem(this, HP, uLabel, CurrDesc);
-		 HP.PutKeyTable(K);
 		 
 		 if (sName != NULL) {
 		    (*ppE)->PutName(sName);
@@ -1636,7 +1628,6 @@ Elem** ReadOneElem(DataManager* pDM,
        ppE = pDM->ElemData[Elem::BULK].ppFirstElem+i;
        
        *ppE = ReadBulk(pDM, HP, uLabel);
-       /* HP.PutKeyTable(K); */
        
        break;
     }		 		                     

@@ -366,7 +366,8 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
       "noauth",
 	"password",
 	"pwdb",
-	"pam"
+	"pam",
+      NULL
    };
    
    enum KeyWords {
@@ -381,10 +382,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);   
+   KeyTable K(HP, sKeyWords);
    
    /* lettura del tipo di drive */   
    KeyWords CurrKeyWord = KeyWords(HP.GetWord());

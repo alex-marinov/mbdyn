@@ -110,11 +110,8 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 	};
 
    	/* tabella delle parole chiave */
-   	KeyTable K((int)LASTKEYWORD, sKeyWords);
+   	KeyTable K(HP, sKeyWords);
    
-   	/* cambia la tabella del parser */
-   	HP.PutKeyTable(K);
-
 	switch(KeyWords(HP.GetWord())) {
 	case MESCHACH:
 #ifdef USE_MESCHACH

@@ -48,10 +48,9 @@ const int PATHBUFSIZE = 1024;
 /* IncludeParser - begin */
 
 IncludeParser::IncludeParser(MathParser& MP, 
-			     KeyTable& KT, 
 			     InputStream& streamIn,
 			     const char *sInitialFile)
-: HighParser(MP, KT, streamIn),
+: HighParser(MP, streamIn),
 sCurrPath(NULL),
 sCurrFile(NULL)
 {   

@@ -84,16 +84,17 @@ Elem* ReadGenel(DataManager* pDM,
    
    const char* sKeyWords[] = {
       "swashplate",
-	"rotortrim",
+	"rotor" "trim",
 	"clamp",
 	"distance",
 	"spring",
-	"springsupport",
-	"crossspringsupport",
+	"spring" "support",
+	"cross" "spring" "support",
 	"mass",
-	"scalarfilter",
-	"statespaceSISO",
-	"statespaceMIMO"
+	"scalar" "filter",
+	"state" "space" "SISO",
+	"state" "space" "MIMO",
+	NULL
    };
    
    /* enum delle parole chiave */
@@ -114,10 +115,7 @@ Elem* ReadGenel(DataManager* pDM,
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);
+   KeyTable K(HP, sKeyWords);
    
    /* lettura del tipo di vincolo */   
    KeyWords CurrKeyWord = KeyWords(HP.GetWord());
@@ -136,9 +134,6 @@ Elem* ReadGenel(DataManager* pDM,
        /* nodo Collettivo */
        AbstractNode* pCollIn = (AbstractNode*)pDM->ReadNode(HP, Node::ABSTRACT);
        
-       // DriveCaller* pColl = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-       // HP.PutKeyTable(K);
-       
        flag fCollLimits(0);
        doublereal dCollMax(0.);
        doublereal dCollMin(0.);
@@ -152,9 +147,6 @@ Elem* ReadGenel(DataManager* pDM,
        /* nodo Longitudinale */
        AbstractNode* pLongIn = (AbstractNode*)pDM->ReadNode(HP, Node::ABSTRACT);
        
-       // DriveCaller* pLong = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-       // HP.PutKeyTable(K);
-       
        flag fForeAftLimits(0);
        doublereal dForeAftMax(0.);
        doublereal dForeAftMin(0.);
@@ -167,9 +159,6 @@ Elem* ReadGenel(DataManager* pDM,
        
        /* nodo Laterale */
        AbstractNode* pLatIn = (AbstractNode*)pDM->ReadNode(HP, Node::ABSTRACT);
-       
-       // DriveCaller* pLat = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-       // HP.PutKeyTable(K);
        
        flag fLatLimits(0);
        doublereal dLatMax(0.);

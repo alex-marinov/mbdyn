@@ -205,10 +205,7 @@ Elem* ReadJoint(DataManager* pDM,
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);
+   KeyTable K(HP, sKeyWords);
    
    /* lettura del tipo di vincolo */   
    KeyWords CurrKeyWord = KeyWords(HP.GetWord());
@@ -260,7 +257,6 @@ Elem* ReadJoint(DataManager* pDM,
        } else {
 	  pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
        }
-       HP.PutKeyTable(K);
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
@@ -351,7 +347,6 @@ Elem* ReadJoint(DataManager* pDM,
        } else {
 	  pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
        }
-       HP.PutKeyTable(K);
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
@@ -604,7 +599,6 @@ Elem* ReadJoint(DataManager* pDM,
        DriveCaller* pDC = NULL;
        if (CurrKeyWord == AXIALROTATION) {
 	  pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-	  HP.PutKeyTable(K);
        }	   
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
@@ -635,7 +629,6 @@ Elem* ReadJoint(DataManager* pDM,
 	       r = HP.GetReal();
 	       bf = ParseFriction(HP,pDM->MapOfScalarFunctions);
 	       bsh = ParseShapeCoefficient(HP);
-	       HP.PutKeyTable(K);
 	   }	
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlaneHingeJoint,
@@ -1029,7 +1022,6 @@ Elem* ReadJoint(DataManager* pDM,
        /* Legame costitutivo */
        DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
        ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
-       HP.PutKeyTable(K);
        
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "line " << HP.GetLineData()
@@ -1136,7 +1128,6 @@ Elem* ReadJoint(DataManager* pDM,
        /* Legame costitutivo */
        DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
        ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
-       HP.PutKeyTable(K);
 
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "line " << HP.GetLineData()
@@ -1195,7 +1186,6 @@ Elem* ReadJoint(DataManager* pDM,
        /* Legame costitutivo */
        DefHingeType::Type ConstLawType;
        ConstitutiveLaw3D* pCL = pDM->ReadConstLaw3D(HP, ConstLawType);
-       HP.PutKeyTable(K);
        
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "line " << HP.GetLineData()
@@ -1291,7 +1281,6 @@ Elem* ReadJoint(DataManager* pDM,
        }	     
        
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-       HP.PutKeyTable(K);
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
@@ -1337,7 +1326,6 @@ Elem* ReadJoint(DataManager* pDM,
        }	     
        
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-       HP.PutKeyTable(K);
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        

@@ -200,10 +200,7 @@ Elem* ReadElectric(DataManager* pDM,
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);
+   KeyTable K(HP, sKeyWords);
    
    /* lettura del tipo di elemento elettrico */   
    KeyWords CurrKeyWord = KeyWords(HP.GetWord());
@@ -487,7 +484,6 @@ Elem* ReadElectric(DataManager* pDM,
 	   
 	   /* Persistent excitation */
 	   PersistentExcitation* pPX = ReadPX(pDM, HP, iNumInputs);
-	   HP.PutKeyTable(K);
 	   
 	   char* s = NULL;
 	   if (HP.IsKeyWord("file")) {
@@ -621,7 +617,6 @@ Elem* ReadElectric(DataManager* pDM,
 	   /* Persistent excitation */
 	   DEBUGCOUT("Persistent Excitation:" << std::endl);
 	   PersistentExcitation* pPX = ReadPX(pDM, HP, iNumInputs);
-	   HP.PutKeyTable(K);
 	   
 	   DriveCaller* pTrig = NULL;
 	   if (HP.IsKeyWord("trigger")) {	      
@@ -729,8 +724,6 @@ Elem* ReadElectric(DataManager* pDM,
 	  }	      
        }
        
-       HP.PutKeyTable(K);
-
        flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl,

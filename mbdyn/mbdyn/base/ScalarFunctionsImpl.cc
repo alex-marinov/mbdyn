@@ -405,8 +405,7 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 	
 	mbf::const_iterator sf1,sf2;
 
-	KeyTable K((int)LASTKEYWORD, sKeyWords);
-	HP.PutKeyTable(K);
+	KeyTable K(HP, sKeyWords);
 	
 	func_name = HP.GetStringWithDelims();
 	

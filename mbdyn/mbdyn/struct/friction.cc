@@ -261,9 +261,7 @@ BasicFriction *const ParseFriction(MBDynParser& HP,
 	KeyWords CurrDesc;
 	KeyWords FuncType;
 	
-	KeyTable K((int)LASTKEYWORD, sKeyWords);
-	HP.PutKeyTable(K);
-	
+	KeyTable K(HP, sKeyWords);
 	
 	FuncType = KeyWords(HP.IsKeyWord());
 	switch (FuncType) {
@@ -300,9 +298,7 @@ BasicShapeCoefficient *const ParseShapeCoefficient(MBDynParser& HP) {
 	KeyWords CurrDesc;
 	KeyWords FuncType;
 	
-	KeyTable K((int)LASTKEYWORD, sKeyWords);
-	HP.PutKeyTable(K);
-	
+	KeyTable K(HP, sKeyWords);
 	
 	FuncType = KeyWords(HP.IsKeyWord());
 	switch (FuncType) {

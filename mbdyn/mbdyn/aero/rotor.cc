@@ -1724,7 +1724,8 @@ ReadRotor(DataManager* pDM,
 			"uniform",
 			"glauert",
 			"mangler",
-			"dynamic" "inflow"
+			"dynamic" "inflow",
+		NULL
      	};
 
      	/* enum delle parole chiave */
@@ -1740,12 +1741,7 @@ ReadRotor(DataManager* pDM,
      	};
 
      	/* tabella delle parole chiave */
-     	KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-     	/* parser del blocco di controllo */
-     	HP.PutKeyTable(K);
-      
-     	/* Per ogni nodo: */
+     	KeyTable K(HP, sKeyWords);
    
      	/*     Velivolo */
      	unsigned int uNode = (unsigned int)HP.GetInt();

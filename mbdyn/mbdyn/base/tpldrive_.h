@@ -279,14 +279,12 @@ TplDriveCaller<T>* ReadTplDrive(const DataManager* pDM,
    
    const char* sKeyWords[] = {
       "single",
-	"array"
+	"array",
+      NULL
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)ReadTplDriveKeyWords<T>::LASTKEYWORD, sKeyWords);
-   
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);   
+   KeyTable K(HP, sKeyWords);
    
    TplDriveCaller<T>* pTplDC = NULL;
 
@@ -320,7 +318,6 @@ restart:
 	  t = GetT(HP, t);
 	  
 	  DriveCaller* pDC = ReadDriveData(pDM, HP, pDH);
-	  HP.PutKeyTable(K);
 	  
 	  SAFENEWWITHCONSTRUCTOR(pTplDC, 
 				 SingleTplDriveCaller<T>,
@@ -349,7 +346,6 @@ restart:
 	     pDA[i].t = GetT(HP, t);
 	     pDA[i].pDriveCaller = ReadDriveData(pDM, HP, pDH);
 	  }
-	  HP.PutKeyTable(K);
 	  
 	  SAFENEWWITHCONSTRUCTOR(pTplDC, 
 				 ArrayTplDriveCaller<T>,

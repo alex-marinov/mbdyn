@@ -271,10 +271,7 @@ iTotalExpConnections(0)
 	};
 
 	/* tabella delle parole chiave */
-	KeyTable K((int)LASTKEYWORD, sKeyWords);
-
-	/* parser del blocco parallelizzazione */
-	HP.PutKeyTable(K);
+	KeyTable K(HP, sKeyWords);
 
 	/* legge la distribuzione degli elementi sulle diverse CPU */
 

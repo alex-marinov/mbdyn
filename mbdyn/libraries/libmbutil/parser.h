@@ -166,14 +166,15 @@ class LowParser {
 /* KeyTable - begin */
 
 class KeyTable {
- private:
-   char* const* sKeyWords;
-   int iNumKeys;
+private:
+	char* const* sKeyWords;
+	const KeyTable *oldKey;
+	HighParser& HP;
    
- public:      
-   KeyTable(int iTableLen, const char* const sTable[]);   
-   int Find(const char* sToFind);  
-   
+public:      
+	KeyTable(HighParser& hp, const char* const sTable[]);   
+	virtual ~KeyTable(void);
+	int Find(const char* sToFind) const;
 };
 
 /* KeyTable - end */
@@ -246,7 +247,7 @@ class HighParser {
    MathParser& MathP;
       
    /* Tabella dei simboli da riconoscere; puo' essere cambiata */
-   KeyTable KeyT;   
+   const KeyTable* KeyT;
    
    /* Token di basso ed alto livello */
    LowParser::Token CurrLowToken;
@@ -262,12 +263,10 @@ class HighParser {
    virtual void Eof(void);
    
  public:   
-   HighParser(MathParser& MP, KeyTable& KT, InputStream& streamIn);
+   HighParser(MathParser& MP, InputStream& streamIn);
    virtual ~HighParser(void);
    /* Attacca una nuova KeyTable (e ritorna la vecchia) */
-   virtual void PutKeyTable(KeyTable& KT);
-   /* Restituisce la KeyTable */
-   KeyTable GetKeyTable(void) const;
+   virtual const KeyTable* PutKeyTable(const KeyTable& KT);
    /* Numero di linea corrente */   
    virtual int GetLineNumber(void) const;
    /* Numero di nome file e linea corrente */   

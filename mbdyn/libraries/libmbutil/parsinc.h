@@ -150,7 +150,7 @@ class IncludeParser : public HighParser {
    virtual void Eof(void);
    
  public:
-   IncludeParser(MathParser& MP, KeyTable& KT, InputStream& streamIn, 
+   IncludeParser(MathParser& MP, InputStream& streamIn, 
 		   const char *initial_file = "initial file");
    virtual ~IncludeParser(void);
 

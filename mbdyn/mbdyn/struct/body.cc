@@ -411,7 +411,9 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 {
     DEBUGCOUTFNAME("ReadBody");
    
-    const char* sKeyWords[] = { NULL };
+    const char* sKeyWords[] = {
+	    NULL
+    };
    
     /* enum delle parole chiave */
     enum KeyWords {
@@ -420,10 +422,7 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     };
    
     /* tabella delle parole chiave */
-    KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-    /* parser del blocco di controllo */
-    HP.PutKeyTable(K);
+    KeyTable K(HP, sKeyWords);
    
     /* nodo collegato */
     StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);

@@ -175,7 +175,7 @@ protected:
 	bool GetDescription_int(const char *s);
 
 public:
-	MBDynParser(MathParser& MP, KeyTable& KT, InputStream& streamIn,
+	MBDynParser(MathParser& MP, InputStream& streamIn,
 			const char *initial_file);
 	~MBDynParser(void);
 	

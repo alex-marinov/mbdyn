@@ -162,10 +162,7 @@ ReadFileDriver(DataManager* pDM,
 	};
 
 	/* tabella delle parole chiave */
-	KeyTable K((int)LASTKEYWORD, sKeyWords);
-
-	/* parser del blocco di controllo */
-	HP.PutKeyTable(K);
+	KeyTable K(HP, sKeyWords);
 
 	/* lettura del tipo di drive */
 	KeyWords CurrKeyWord = KeyWords(HP.GetWord());

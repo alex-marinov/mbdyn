@@ -176,24 +176,32 @@ LowParser::sGetWord(void)
 
 /* KeyTable - begin */
 
-KeyTable::KeyTable(int iTableLen, const char* const sTable[])
+KeyTable::KeyTable(HighParser& hp, const char* const sTable[])
+: sKeyWords(0), oldKey(0), HP(hp) 
 {
-   sKeyWords = (char* const*)sTable;
-   iNumKeys = iTableLen;
+	sKeyWords = (char* const*)sTable;
+	oldKey = HP.PutKeyTable(*this);
+}
+
+
+KeyTable::~KeyTable(void)
+{
+	if (oldKey) {
+		(void)HP.PutKeyTable(*oldKey);
+	}
 }
 
 
 int
-KeyTable::Find(const char* sToFind)
+KeyTable::Find(const char* sToFind) const
 {
-   int iCnt = -1;
-   while (iCnt++,  iCnt < iNumKeys) {
-      if (strcasecmp(sKeyWords[iCnt], sToFind) == 0) {
-	 return iCnt;
-      }
-   }
+	for (int iCnt = 0; sKeyWords[iCnt]; iCnt++) {
+		if (strcasecmp(sKeyWords[iCnt], sToFind) == 0) {
+			return iCnt;
+		}
+	}
 
-   return -1;
+	return -1;
 }
 
 /* KeyTable - end */
@@ -201,11 +209,11 @@ KeyTable::Find(const char* sToFind)
 
 /* HighParser - begin */
 
-HighParser::HighParser(MathParser& MP, KeyTable& KT, InputStream& streamIn)
+HighParser::HighParser(MathParser& MP, InputStream& streamIn)
 : ESCAPE_CHAR('\\'),
 pIn(&streamIn), pf(NULL),
 MathP(MP),
-KeyT(KT)
+KeyT(0)
 {
    DEBUGCOUTFNAME("HighParser::HighParser");
    CurrToken = HighParser::DESCRIPTION;
@@ -226,10 +234,14 @@ HighParser::Close(void)
 }
 
 
-void
-HighParser::PutKeyTable(KeyTable& KT)
+const KeyTable*
+HighParser::PutKeyTable(const KeyTable& KT)
 {
-	KeyT = KT;
+	const KeyTable* oldKey = KeyT;
+
+	KeyT = &KT;
+
+	return oldKey;
 }
 
 MathParser&
@@ -268,7 +280,11 @@ HighParser::fIsDescription(void)
 int
 HighParser::iGetDescription_(const char* const s)
 {
-	int i = KeyT.Find(s);
+	int i = -1;
+	
+	if (KeyT) {
+		i = KeyT->Find(s);
+	}
 
      	if (FirstToken() == HighParser::UNKNOWN) {
 		std::cerr << "Parser error in HighParser::iGetDescription_(), "
@@ -553,8 +569,13 @@ HighParser::IsKeyWord(void)
    *sBuf = '\0';
    *sBufWithSpaces = '\0';
 
-   int iKW;
-   if ((iKW = KeyT.Find(sStringBuf)) >= 0) {
+   int iKW = -1;
+
+   if (KeyT) {
+      iKW = KeyT->Find(sStringBuf);
+   }
+   
+   if (iKW >= 0) {
       NextToken(sFuncName);
       return iKW;
    }
@@ -653,7 +674,10 @@ HighParser::GetWord(void)
       THROW(HighParser::ErrKeyWordExpected());
    }
 
-   int i = KeyT.Find(LowP.sGetWord());
+   int i = -1;
+   if (KeyT) {
+      i = KeyT->Find(LowP.sGetWord());
+   }
 
    NextToken(sFuncName);
    return i;

@@ -574,7 +574,8 @@ ReadAeroData(DataManager* pDM,
    	const char* sKeyWords[] = {    
 		"naca0012",
 		"rae9671",
-		"c81"
+		"c81",
+		NULL
    	};
    
    	/* enum delle parole chiave */
@@ -588,15 +589,13 @@ ReadAeroData(DataManager* pDM,
    	};
    
    	/* tabella delle parole chiave */
-   	KeyTable K((int)LASTKEYWORD, sKeyWords);
+   	KeyTable K(HP, sKeyWords);
    
    	*ppChord = ReadShape(HP);
    	*ppForce = ReadShape(HP);
    	*ppVelocity = ReadShape(HP);
    	*ppTwist = ReadShape(HP);
    
-   	HP.PutKeyTable(K);
-
    	*piNumber = HP.GetInt();
 	if ( *piNumber <= 0 ) {
 		std::cerr << "line " << HP.GetLineData() 
@@ -608,7 +607,6 @@ ReadAeroData(DataManager* pDM,
    	if (HP.IsKeyWord("control")) {      
       		/* Driver di un'eventuale controllo */
       		*ppDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-      		HP.PutKeyTable(K);
 
    	} else {
       		SAFENEWWITHCONSTRUCTOR(*ppDC,

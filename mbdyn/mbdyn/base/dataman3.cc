@@ -201,11 +201,8 @@ void DataManager::ReadControl(MBDynParser& HP,
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
+   KeyTable K(HP, sKeyWords);
    
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);
-
 #if 0
    /*
     * reset default output in case of realtime
@@ -691,7 +688,6 @@ void DataManager::ReadControl(MBDynParser& HP,
 
        case SOLVER:
 	  CurrSolver.Read(HP);
-	  HP.PutKeyTable(K);
 	  break;
 	 
 	 /* Titolo */
@@ -1283,7 +1279,8 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	psReadNodesNodes[Node::PARAMETER],
 	psReadNodesNodes[Node::HYDRAULIC],
 
-	"output"
+	"output",
+	NULL
    };
    
    /* enum delle parole chiave */
@@ -1305,11 +1302,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);
-   
+   KeyTable K(HP, sKeyWords);
    
    /* struttura di servizio che conta i nodi tipo per tipo */
    int iNumTypes[Node::LASTNODETYPE];
@@ -1491,7 +1484,6 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     DofOwner* pDO = DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner+i;
 	     
 	     *ppN = ReadStructNode(this, HP, pDO, uLabel);
-	     HP.PutKeyTable(K);
 	     
 	     break;
 #else /* USE_STRUCT_NODES */
@@ -1635,7 +1627,6 @@ void DataManager::ReadNodes(MBDynParser& HP)
 			   << "is a sample-and-hold" << std::endl);
 		
 		ScalarDof SD(ReadScalarDof(this, HP, 0));
-		HP.PutKeyTable(K);
 
 		DriveCaller *pDC = NULL;
 		SAFENEWWITHCONSTRUCTOR(pDC, TimeDriveCaller,
@@ -1840,7 +1831,8 @@ void DataManager::ReadDrivers(MBDynParser& HP)
    const char* sKeyWords[] = { 
       "end",
 	"drivers",
-	"file"
+	"file",
+      NULL
    };
    
    /* enum delle parole chiave */
@@ -1855,11 +1847,7 @@ void DataManager::ReadDrivers(MBDynParser& HP)
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);
-   
+   KeyTable K(HP, sKeyWords);
    
    /* strutture di conteggio dei drivers letti */
    int iNumTypes[Drive::LASTDRIVETYPE];
@@ -1905,7 +1893,6 @@ void DataManager::ReadDrivers(MBDynParser& HP)
 	  ppD = DriveData[Drive::FILEDRIVE].ppFirstDrive+i;
 	  
 	  *ppD = ReadFileDriver(this, HP, uLabel);
-	  HP.PutKeyTable(K);
 	  break;
        }
 	 	
@@ -2065,8 +2052,7 @@ int GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
 ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
 {
    /* tabella delle parole chiave */
-   KeyTable KDof((int)Node::LASTNODETYPE, psReadNodesNodes);
-   HP.PutKeyTable(KDof);	     	        
+   KeyTable KDof(HP, psReadNodesNodes);
 
    /* Label del nodo */
    unsigned int uNode = (unsigned int)HP.GetInt();
@@ -2154,6 +2140,7 @@ Shape* ReadShape(MBDynParser& HP)
 	"linear",
 	"piecewise" "linear",
 	"parabolic",
+      NULL
    };
    
    /* enum delle parole chiave */
@@ -2167,10 +2154,7 @@ Shape* ReadShape(MBDynParser& HP)
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);   
+   KeyTable K(HP, sKeyWords);
    
    /* lettura del tipo di drive */   
    KeyWords CurrKeyWord;

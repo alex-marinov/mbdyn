@@ -696,12 +696,9 @@ main(int argc, char* argv[])
 		    			GetEnviron(*pMP);
 	        		} 
 		
-	        		/* parser del blocco di controllo */
-	        		KeyTable K(0, NULL);
-	     
 	        		/* stream in ingresso */
 	        		InputStream In(*pIn);
-	        		MBDynParser HP(*pMP, K, In, 
+	        		MBDynParser HP(*pMP, In, 
 						sInputFileName == sDefaultInputFileName ? "initial file" : sInputFileName);
 	     
 	        		pSolv = RunMBDyn(HP, sInputFileName, 
@@ -856,7 +853,8 @@ RunMBDyn(MBDynParser& HP,
         	"multistep",
         	"rungekutta",
         	"parallel",
-        	"schur"
+        	"schur",
+		NULL
     	};
 
     	/* enum delle parole chiave */
@@ -875,10 +873,7 @@ RunMBDyn(MBDynParser& HP,
     	};
    
     	/* tabella delle parole chiave */
-    	KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-    	/* Attacca la tabella al parser */
-    	HP.PutKeyTable(K);
+    	KeyTable K(HP, sKeyWords);
    
     	/* legge i dati della simulazione */
     	if (KeyWords(HP.GetDescription()) != BEGIN) {

@@ -71,10 +71,7 @@ ReadHydraulicFluid(MBDynParser& HP,
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   /* attacca la tabella al parser */
-   HP.PutKeyTable(K);
+   KeyTable K(HP, sKeyWords);
    
    /* lettura del tipo di drive */   
    KeyWords CurrKeyWord;

@@ -906,7 +906,8 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	"file", 
 	"string",
 	"dof",
-	"array"
+	"array",
+	NULL
    };
    
    /* enum delle parole chiave */
@@ -940,10 +941,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);   
+   KeyTable K(HP, sKeyWords);
    
    /* lettura del tipo di drive */   
    KeyWords CurrKeyWord;
@@ -1454,7 +1452,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 			      DofDriveCaller,
 			      DofDriveCaller(pDrvHdl, pTmp, SD));
        
-       HP.PutKeyTable(K);
+       // HP.PutKeyTable(K);
        break;
     }
 
@@ -1468,14 +1466,14 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        } else if (iNumDr == 1) {
 	  /* creazione di un driver normale mediante chiamata ricorsiva */
 	  pDC = ReadDriveData(pDM, HP, pDrvHdl);
-	  HP.PutKeyTable(K);
+	  // HP.PutKeyTable(K);
        } else {
 	  DriveCaller** ppDC = NULL;
 	  SAFENEWARR(ppDC, DriveCaller*, iNumDr);
 	  for (int i = 0; i < iNumDr; i++) {
 	     ppDC[i] = ReadDriveData(pDM, HP, pDrvHdl);
 	  }
-	  HP.PutKeyTable(K);
+	  // HP.PutKeyTable(K);
 	  
 	  /* allocazione e creazione array */
 	  SAFENEWWITHCONSTRUCTOR(pDC,

@@ -42,7 +42,8 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    DEBUGCOUTFNAME("ReadBulk");
    
    const char* sKeyWords[] = {
-      "springsupport"
+      "spring" "support",
+      NULL
    };
    
    /* enum delle parole chiave */
@@ -53,10 +54,7 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    };
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);
+   KeyTable K(HP, sKeyWords);
    
    /* lettura del tipo di elemento elettrico */   
    KeyWords CurrKeyWord = KeyWords(HP.GetWord());

@@ -197,7 +197,8 @@ DofIter()
 	"nodes",
 	"elements",
 	"drivers",
-	"output"
+	"output",
+      NULL
    };
    
    /* enum delle parole chiave */
@@ -215,11 +216,8 @@ DofIter()
    KeyWords CurrDesc;
    
    /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
+   KeyTable K(HP, sKeyWords);
       
-   /* aggiorna la tabella del parser */
-   HP.PutKeyTable(K);
-   
    CurrDesc = KeyWords(HP.GetDescription());    
    /* legge i dati di controllo */
    if(CurrDesc != BEGIN) {
@@ -238,7 +236,6 @@ DofIter()
    }
 
    ReadControl(HP, sInputFileName, sOutputFileName);
-   HP.PutKeyTable(K);
    try {CurrDesc = KeyWords(HP.GetDescription()); } catch (EndOfFile) {}
       
    /* fine lettura dati di controllo */
@@ -281,7 +278,6 @@ DofIter()
       }
       
       ReadNodes(HP);
-      HP.PutKeyTable(K);
       try {CurrDesc = KeyWords(HP.GetDescription()); } catch (EndOfFile) {}
    } else {
       DEBUGCERR("");
@@ -298,8 +294,9 @@ DofIter()
    
    while (CurrDesc == SCALARFUNCTION) {
    	ParseScalarFunction(HP,MapOfScalarFunctions);
-	HP.PutKeyTable(K);
-	try {CurrDesc = KeyWords(HP.GetDescription()); } catch (EndOfFile) {} 
+	try {
+		CurrDesc = KeyWords(HP.GetDescription());
+	} catch (EndOfFile) {} 
    }
    
    /* legge i drivers, crea la struttura ppDrive */
@@ -320,8 +317,9 @@ DofIter()
       }
       
       ReadDrivers(HP);
-      HP.PutKeyTable(K);
-      try {CurrDesc = KeyWords(HP.GetDescription()); } catch (EndOfFile) {}
+      try {
+	      CurrDesc = KeyWords(HP.GetDescription());
+      } catch (EndOfFile) {}
    } else {
       DEBUGCERR("warning, no drivers are defined" << std::endl);
    }   
@@ -350,8 +348,9 @@ DofIter()
       }
 	
       ReadElems(HP);
-      HP.PutKeyTable(K);
-      try {CurrDesc = KeyWords(HP.GetDescription()); } catch (EndOfFile) {}
+      try {
+	      CurrDesc = KeyWords(HP.GetDescription());
+      } catch (EndOfFile) {}
    } else {
       DEBUGCERR("");
       std::cerr << "warning, no elements are defined" << std::endl;

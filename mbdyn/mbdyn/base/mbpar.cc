@@ -62,9 +62,9 @@ mbdyn_warranty(std::ostream& out)
 		<< std::endl;
 }
 
-MBDynParser::MBDynParser(MathParser& MP, KeyTable& KT, InputStream& streamIn,
+MBDynParser::MBDynParser(MathParser& MP, InputStream& streamIn,
 		const char *initial_file)
-: IncludeParser(MP, KT, streamIn, initial_file)
+: IncludeParser(MP, streamIn, initial_file)
 #if defined(USE_STRUCT_NODES)
 , RFHD()
 , RF(RFHD)
@@ -171,14 +171,11 @@ MBDynParser::HydraulicFluid_(void)
 		SAFESTRDUP(sName, sTmp);
 	}
 	
-	KeyTable CurrTable = KeyT;
-	
 	HydraulicFluid* pHF = ReadHydraulicFluid(*this, uLabel);
 	if (pHF == NULL) {
 		std::cerr << "unable to read hydraulic fluid " << uLabel << std::endl;
 		THROW(ErrGeneric());
 	}
-	PutKeyTable(CurrTable);
 	
 	if (HF.Add(pHF)) {
 		std::cerr << "hydraulic fluid " << uLabel
