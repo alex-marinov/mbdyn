@@ -155,6 +155,11 @@ private:
    	flag fAbortAfterAssembly;
    	flag fAbortAfterDerivatives;
    	flag fAbortAfterFictitiousSteps;
+
+	integer iOutputFlags;
+	enum {
+		OUTPUT_ITERS = 0x0001
+	};
    
    	/* Parametri per Newton-Raphson modificato */
    	flag fTrueNewtonRaphson;

@@ -20,6 +20,7 @@ MBDyn 1.1 Engineering
 		  elements (set).
 		- added threshold switch to axel velocity for tire slip 
 		  ratio computation
+		- configurable extra output for the iteration engine
 	Bug fixes:
 		- fixed bug in tire friction force in module-wheel2
 		- fixed bug in tire reference volume computation

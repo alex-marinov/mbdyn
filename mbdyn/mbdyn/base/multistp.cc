@@ -153,6 +153,7 @@ fAbortAfterInput(0),
 fAbortAfterAssembly(0),
 fAbortAfterDerivatives(0),
 fAbortAfterFictitiousSteps(0),
+iOutputFlags(0),
 fTrueNewtonRaphson(1),
 iIterationsBeforeAssembly(0),
 iPerformedIterations(0),
@@ -708,6 +709,12 @@ EndOfFirstFictitiousStep:
 					THROW(MultiStepIntegrator::ErrMaxIterations());
 	    			}
 	    
+				if (iOutputFlags & OUTPUT_ITERS) {
+					Out << "\tIteration " << iIterCnt
+						<< " " << dTest << " J"
+						<< std::endl;
+				}
+
 	    			pSM->MatrInit(0.);
 	    			pDM->AssJac(*pJac, db0Differential);
 	    			pSM->Solve();
@@ -902,10 +909,24 @@ IfFirstStepIsToBeRepeated:
       		/* Modified Newton-Raphson ... */
       		if (iPerformedIterations < iIterationsBeforeAssembly) {
 	 		iPerformedIterations++;
+			
+			if (iOutputFlags & OUTPUT_ITERS) {
+				Out << "\tIteration " << iIterCnt
+					<< " " << dTest << " M"
+					<< std::endl;
+			}
+
       		} else {
 	 		iPerformedIterations = 0;
 	 		pSM->MatrInit(0.);
 	 		pDM->AssJac(*pJac, db0Differential);
+
+			if (iOutputFlags & OUTPUT_ITERS) {
+				Out << "\tIteration " << iIterCnt
+					<< " " << dTest << " J"
+					<< std::endl;
+			}
+
       		}
       		pSM->Solve();   
       
@@ -1031,8 +1052,7 @@ IfStepIsToBeRepeated:
 #endif /* USE_EXCEPTIONS */
 	 			dTest = MakeTest(*pRes, *pXPrimeCurr);
 #ifdef USE_EXCEPTIONS
-			}
-			catch (MultiStepIntegrator::ErrSimulationDiverged) {
+			} catch (MultiStepIntegrator::ErrSimulationDiverged) {
 				/*
 				 * Mettere qui eventuali azioni speciali 
 				 * da intraprendere in caso di errore ...
@@ -1098,17 +1118,31 @@ IfStepIsToBeRepeated:
 	       				THROW(MultiStepIntegrator::ErrMaxIterations());
 		    		}
 	 		}
-	 		
+
 			/* Modified Newton-Raphson ... */
 	 		if (iPerformedIterations < iIterationsBeforeAssembly) {
 	    			iPerformedIterations++;
+
+				if (iOutputFlags & OUTPUT_ITERS) {
+					Out << "\tIteration " << iIterCnt
+						<< " " << dTest << " M"
+						<< std::endl;
+				}
+
 	 		} else {
 	    			iPerformedIterations = 0;
 	    			pSM->MatrInit(0.);
 	    			pDM->AssJac(*pJac, db0Differential);
+
+				if (iOutputFlags & OUTPUT_ITERS) {
+					Out << "\tIteration " << iIterCnt
+						<< " " << dTest << " J"
+						<< std::endl;
+				}
+
 	 		}
 	 		pSM->Solve();
-	 
+
 #ifdef DEBUG
 	 		if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_MPI)) {
 	    			std::cout << "Solution:" << std::endl;
@@ -1473,43 +1507,46 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		"dummy" "steps" "max" "iterations",
 	
 		"abort" "after",
-		"input",
-		"assembly",
-		"derivatives",
+			"input",
+			"assembly",
+			"derivatives",
 
-		/* DEPRECATED */ "fictitious" "steps" /* END OF DEPRECATED */ ,
-		"dummy" "steps",
+			/* DEPRECATED */ "fictitious" "steps" /* END OF DEPRECATED */ ,
+			"dummy" "steps",
+
+		"output",
+			"iterations",
 	
 		"method",
 		/* DEPRECATED */ "fictitious" "steps" "method" /* END OF DEPRECATED */ ,
 		"dummy" "steps" "method",
 	
 		"Crank" "Nicholson",
-		/* DEPRECATED */ "nostro" /* END OF DEPRECATED */ ,
-		"ms",
-		"hope",
-		"bdf",
+			/* DEPRECATED */ "nostro" /* END OF DEPRECATED */ ,
+			"ms",
+			"hope",
+			"bdf",
 	
 		"derivatives" "coefficient",
 		"derivatives" "tolerance",
 		"derivatives" "max" "iterations",
 	
 		"Newton" "Raphson",
-		"true",
-		"modified",
+			"true",
+			"modified",
 	
 		"strategy",
-		"factor",
-		"no" "change",
+			"factor",
+			"no" "change",
 
 		"eigen" "analysis",
 		"output" "modes",
 		
 		"solver",
-		"harwell",
-		"meschach",
-		"y12",
-		"umfpack3"
+			"harwell",
+			"meschach",
+			"y12",
+			"umfpack3"
    	};
    
    	/* enum delle parole chiave */
@@ -1543,6 +1580,9 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		DERIVATIVES,
 		FICTITIOUSSTEPS,
 		DUMMYSTEPS,
+
+		OUTPUT,
+		ITERATIONS,
 	
 		METHOD,
 		FICTITIOUSSTEPSMETHOD,
@@ -1777,6 +1817,25 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  		}
 	  		break;
        		}
+
+		case OUTPUT: {
+			while (HP.fIsArg()) {
+				KeyWords OutputFlag(KeyWords(HP.GetWord()));
+				switch (OutputFlag) {
+				case ITERATIONS:
+					iOutputFlags |= OUTPUT_ITERS;
+					break;
+
+				default:
+					std::cerr << "Unknown output flag "
+						"at line " << HP.GetLineData() 
+						<< "; ignored" << std::endl;
+					break;
+				}
+			}
+			
+			break;
+		}
 	 
        		case METHOD: {
 	  		if (fMethod) {

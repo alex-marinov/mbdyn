@@ -7,6 +7,9 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Tue Feb 26 18:23:16 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - configurable extra output for the iteration engine
+
 *** Fri Feb 22 11:42:22 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - fix bug in calculator (+)
 
