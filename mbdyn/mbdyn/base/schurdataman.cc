@@ -999,14 +999,13 @@ SchurDataManager::CreatePartition(void)
 
 		DataComm.Allreduce(&iMax, &iRMax, 1, MPI::INT, MPI::MAX);
 		iMax = iRMax;
-		if (iMax > iMaxInterfNodes) {
-			iMaxInterfNodes = iMax;
-			SAFEDELETEARR(InterfNodes.pAdjncy);
-			/* FIXME: then what? */
-
-		} else {
+		if (iMax <= iMaxInterfNodes) {
 			break;
 		}
+
+		iMaxInterfNodes = iMax;
+		SAFEDELETEARR(InterfNodes.pAdjncy);
+		InterfNodes.pAdjncy = 0;
 	}
 
 	/* Scambio i dati riguardo ai nodi di interfaccia */
@@ -1022,7 +1021,7 @@ SchurDataManager::CreatePartition(void)
 
 	const int DIM_TAG = 10;
 
-	for (int i = 0; i <= DataCommSize-1; i++) {
+	for (int i = 0; i < DataCommSize; i++) {
 		if (i != MyRank) {
 			pRReq[i] = DataComm.Irecv(InterfNodes.pAdjncy + iMaxInterfNodes + i*iMaxInterfNodes*2,
 					iMaxInterfNodes, MPI::INT, i, DIM_TAG);
@@ -1111,8 +1110,8 @@ SchurDataManager::CreatePartition(void)
 					key = MyRank+1;
 				}
 			}
-			pRotorComm[i] = MBDynComm.Split(color,key);
-			/* RotorComm[i] = MPI::COMM_WORLD.Split(color,key); */
+			pRotorComm[i] = MBDynComm.Split(color, key);
+			/* RotorComm[i] = MPI::COMM_WORLD.Split(color, key); */
 			Rotor *r = (Rotor *)ppElems[pRotPos[i]]->pGet();
 			r->InitializeRotorComm(pRotorComm + i);
 		}
@@ -1120,7 +1119,7 @@ SchurDataManager::CreatePartition(void)
 		for (int i = 0; i < iMyTotRot; i++) {
 			ppMyElems[iNumLocElems] = ppElems[pMyRot[i]];
 			if (pParAmgProcs[pMyRot[i]+iTotNodes] == MyRank) {
-				iNumLocDofs += (ppMyElems[iNumLocElems])->iGetNumDof();
+				iNumLocDofs += ppMyElems[iNumLocElems]->iGetNumDof();
 			} else {
 				move++;
 			}
@@ -1539,24 +1538,11 @@ void
 SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef) throw(ChangedEquationStructure)
 {
 	DEBUGCOUT("Entering SchurDataManager::AssRes()" << std::endl);
+	ASSERT(pWorkVec != NULL);
 
-	Elem* pTmpEl = NULL;
-	bool ChangedEqStructure(false);
-	if (MyElemIter.bGetFirst(pTmpEl)) {
-		do {
-			try {
-				ResHdl += pTmpEl->AssRes(*pWorkVec, dCoef,
-					*pXCurr, *pXPrimeCurr);
-			}
-			catch(Elem::ChangedEquationStructure) {
-				ResHdl += *pWorkVec;
-				ChangedEqStructure = true;
-			}
-
-		} while (MyElemIter.bGetNext(pTmpEl));
-	}
-
-	if (ChangedEqStructure) {
+	try {
+		DataManager::AssRes(ResHdl, dCoef, MyElemIter, *pWorkVec);
+	} catch (ChangedEquationStructure) {
 		silent_cerr("Jacobian reassembly requested by an element. "
 				"Currently unsopported with MPI" << std::endl);
 		throw ErrGeneric();
@@ -1568,16 +1554,8 @@ SchurDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
 	DEBUGCOUT("Entering SchurDataManager::AssJac()" << std::endl);
 	ASSERT(pWorkMat != NULL);
-	ASSERT(ppMyElems != NULL);
 
-	Elem* pTmpEl = NULL;
-	if (MyElemIter.bGetFirst(pTmpEl)) {
-		do {
-			JacHdl += pTmpEl->AssJac(*pWorkMat, dCoef,
-					*pXCurr, *pXPrimeCurr);
-
-		} while (MyElemIter.bGetNext(pTmpEl));
-	}
+	DataManager::AssJac(JacHdl, dCoef, MyElemIter, *pWorkMat);
 }
 /* End of AssJac */
 
