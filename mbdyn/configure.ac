@@ -678,6 +678,7 @@ AC_OUTPUT([ \
 	mbdyn/elec/Makefile:build/top.mk:mbdyn/elec/Makefile.in:build/bot.mk \
 	mbdyn/hydr/Makefile:build/top.mk:mbdyn/hydr/Makefile.in:build/bot.mk \
 	mbdyn/struct/Makefile:build/top.mk:mbdyn/struct/Makefile.in:build/bot.mk \
+	modules/Makefile:build/top.mk:modules/Makefile.in:build/bot.mk \
 	utils/Makefile:build/top.mk:utils/Makefile.in:build/bot.mk
 ],[
 	date > stamp-h
