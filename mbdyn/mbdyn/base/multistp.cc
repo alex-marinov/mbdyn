@@ -49,11 +49,9 @@
 
 #include <multistp.h>
 
-#ifdef HAVE_SIGNAL
-#ifdef HAVE_SIGNAL_H
+#if defined(HAVE_SIGNAL) && defined(HAVE_SIGNAL_H)
 #include <signal.h>
-#endif /* HAVE_SIGNAL_H */
-#endif /* HAVE_SIGNAL */
+#endif /* HAVE_SIGNAL && HAVE_SIGNAL_H */
 
 #ifdef USE_MPI
 
@@ -68,6 +66,10 @@ extern "C" {
 }
 #endif /* MPI_PROFILING */
 #endif /* USE_MPI */
+
+#if defined(USE_RTAI) && defined(HAVE_SYS_MMAN_H)
+#include <sys/mman.h>
+#endif /* USE_RTAI && HAVE_SYS_MMAN_H */
 
 #include <harwrap.h>
 #include <mschwrap.h>
@@ -100,6 +102,28 @@ modify_final_time_handler(int signum)
    	}
 }
 #endif /* HAVE_SIGNAL */
+
+#ifdef USE_RTAI
+static int
+reserve_stack(unsigned long size)
+{
+	int buf[size];
+
+#ifdef HAVE_MEMSET
+	memset(buf, '\0', size*sizeof(int));
+#else /* !HAVE_MEMSET */
+	for (unsigned long i = 0; i < size; i++) {
+		buf[i] = 0;
+	}
+#endif /* !HAVE_MEMSET */
+
+#ifdef HAVE_MLOCKALL
+	return mlockall(MCL_CURRENT | MCL_FUTURE);
+#else /* !HAVE_MLOCKALL */
+	return 0;
+#endif /* !HAVE_MLOCKALL */
+}
+#endif /* USE_RTAI */
 
 /* MultiStepIntegrator - begin */
 
@@ -2574,6 +2598,9 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		"iterative" "tollerance",
 		"iterative" "max" "steps",
 
+		/* RTAI stuff */
+		"reserve" "stack",
+
 		NULL
    	};
    
@@ -2650,6 +2677,9 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		
 		ITERATIVETOLERANCE,
 		ITERATIVEMAXSTEPS,
+
+		/* RTAI stuff */
+		RESERVESTACK,
 	
 		LASTKEYWORD
    	};
@@ -3509,6 +3539,20 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 			<< iIterativeMaxSteps << std::endl);
 		break;
         }
+
+       case RESERVESTACK: {
+#ifdef USE_RTAI
+		unsigned long size = HP.GetInt();
+		if (reserve_stack(size)) {
+			std::cerr << "unable to reserve stack" << std::endl;
+			THROW(ErrGeneric());
+		}
+#else /* !USE_RTAI */
+		pedantic_cerr("\"reserve stack\" useless without RTAI"
+				<< std::endl);
+#endif /* !USE_RTAI */
+		break;
+	}
 
        default: {
 	  std::cerr << std::endl << "Unknown description at line " 

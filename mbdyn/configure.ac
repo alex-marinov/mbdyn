@@ -249,6 +249,8 @@ AC_CHECK_HEADERS(values.h)
 
 AC_CHECK_HEADERS(sys/times.h)
 
+AC_CHECK_HEADERS(sys/mman.h)
+
 dnl ----------------------------------------------------------------
 dnl
 dnl Checks for C++ header files (takes care of ANSI/pre-ANSI naming)
@@ -356,12 +358,6 @@ if test "$ol_enable_socket_drives" != no ; then
 else
 	AC_MSG_WARN([socket drives not supported!])
 fi
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Checks for nice
-dnl
-AC_CHECK_FUNCS(nice)
 
 dnl ----------------------------------------------------------------
 dnl
@@ -1061,6 +1057,8 @@ AC_CHECK_FUNCS([ \
 	getopt_long \
 	localtime \
 	memset \
+	mlockall \
+	nice \
 	signal \
 	strftime \
 	strtod \
