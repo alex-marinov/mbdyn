@@ -25,7 +25,6 @@ demangled.h \
 dofdrive.cc \
 dofdrive.h \
 dofman.cc \
-dofown.cc \
 dofown.h \
 dofpgin.cc \
 dofpgin.h \
