@@ -312,7 +312,6 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
    
    
    /* da ElemManager */
-   friend class ElemManIterator;
    friend class InitialAssemblyIterator;
 
    /* scalar functions */
