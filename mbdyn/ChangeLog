@@ -7,6 +7,9 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Fri Feb 22 11:42:22 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - fix bug in calculator (+)
+
 *** Tue Feb 12 20:48:00 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - added ResForces and SetResForces to output partial rotor forces 
    and couples referred to arbitrary poles

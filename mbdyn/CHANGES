@@ -22,6 +22,7 @@ MBDyn 1.1 Engineering
 		- fixed bug in tire friction force in module-wheel2
 		- fixed bug in tire reference volume computation
 		- cleanup of ANSI-fication also in debug mode
+		- fix bug in calculator (+)
 	Known bugs:
 		- parallel build still requires HSL library
 		- Built-in naca0012/RAE* unsteady aero still broken

@@ -476,8 +476,9 @@ TypedValue::operator += (const TypedValue& v)
        && (v.GetType() == TypedValue::VAR_INT)) {
       return Set(GetInt()+v.GetInt());
    }
+   Real d = GetReal()+v.GetReal();
    type = TypedValue::VAR_REAL;
-   return Set(GetReal()+v.GetReal());
+   return Set(d);
 }
 
 const TypedValue& 
