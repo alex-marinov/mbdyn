@@ -84,9 +84,8 @@ $
 $ IF THERE AREN'T  STATIC MODES COMMENT THE FOLLOWING 4 LINES
 $
 APPEND      UG,STMDINT/TOT/1 $
-NORM        TOT/TOT1/ $ Normalize Columns by largest element
 DELETE      /UG,,,,/ $
-COPY        TOT1/UG/-1 $
+COPY        TOT/UG/-1 $
 $
 SMPYAD      UG,MGG,UG,,,/MHH/3////1////6 $
 SMPYAD      UG,KGG,UG,,,/KHH/3////1////6 $
