@@ -153,7 +153,9 @@ main(int argc, char* argv[])
 
 	f2(&arg[0].i, arg[0].n);
 
-	pthread_cond_wait(&cond, &mutex);
+	if (nt > 1) {
+		pthread_cond_wait(&cond, &mutex);
+	}
 	pthread_mutex_unlock(&mutex);
 
 	unsigned who[nt];
