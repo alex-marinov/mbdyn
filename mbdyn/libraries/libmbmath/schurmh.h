@@ -696,8 +696,8 @@ SchurMatrixHandlerUm::SchurMatrixHandlerUm(int LocSize, int IntSize,
 				       		MatrixHandler* pBM,
 				       		integer* pGlobToLoc)
 :SchurMatrixHandler(LocSize, IntSize, pBM, pGlobToLoc, NULL), 
-pEs(NULL),
 pdEs(NULL),
+pEs(NULL),
 Eflag(1)
 { 
 	
