@@ -498,8 +498,8 @@ inline doublereal CosineDriveCaller::dGet(const doublereal& dVar) const
 class FreqSweepDriveCaller : public DriveCaller {
  private:
    doublereal dStartTime;       
-   DriveOwner Omega;
-   DriveOwner Amplitude;   
+   DriveCaller *pOmega;
+   DriveCaller *pAmplitude;   
    doublereal dInitialValue;   
    doublereal dEndTime;
    doublereal dFinalValue;
@@ -533,7 +533,7 @@ inline doublereal FreqSweepDriveCaller::dGet(const doublereal& dVar) const
    }
    if (fNeverEnd || dVar < dEndTime) {
       return dInitialValue
-	      +Amplitude.dGet()*sin(Omega.dGet()*(dVar-dStartTime));
+	      +pAmplitude->dGet(dVar)*sin(pOmega->dGet(dVar)*(dVar-dStartTime));
    }
    /* else if dVar > dEndTime */
    return dFinalValue;

@@ -612,7 +612,7 @@ FreqSweepDriveCaller::FreqSweepDriveCaller(const DriveHandler* pDH,
 					   doublereal d3,
 					   doublereal d4)
 : DriveCaller(pDH),
-dStartTime(d1), Omega(pOmega), Amplitude(pAmplitude),
+dStartTime(d1), pOmega(pOmega), pAmplitude(pAmplitude),
 dInitialValue(d2), dEndTime(d3), dFinalValue(d4), 
 fNeverEnd(0)
 {
@@ -639,8 +639,8 @@ DriveCaller* FreqSweepDriveCaller::pCopy(void) const
 			  FreqSweepDriveCaller, 
 			  FreqSweepDriveCaller(pDrvHdl, 
 					       dStartTime, 
-					       Omega.pGetDriveCaller()->pCopy(),
-					       Amplitude.pGetDriveCaller()->pCopy(),
+					       pOmega->pCopy(),
+					       pAmplitude->pCopy(),
 					       dInitialValue,
 					       dEndTime, 
 					       dFinalValue),
@@ -656,8 +656,8 @@ ostream& FreqSweepDriveCaller::Restart(ostream& out) const
    return out 
      << " frequency sweep, "
      << dStartTime << ", ",
-     Omega.pGetDriveCaller()->Restart(out) << ", ",
-     Amplitude.pGetDriveCaller()->Restart(out) << ", "     
+     pOmega->Restart(out) << ", ",
+     pAmplitude->Restart(out) << ", "     
      << dInitialValue << ", "
      << dEndTime << ", "
      << dFinalValue;
@@ -777,7 +777,7 @@ PiecewiseLinearDriveCaller::PiecewiseLinearDriveCaller(const DriveHandler* pDH,
 		doublereal *p)
 : DriveCaller(pDH), iNumPoints(i), pPoints(p), pVals(p+i)
 {
-	ASSERT(i > 0);
+	ASSERT(i >= 2);
 	ASSERT(p != NULL);
 }
 
@@ -904,16 +904,16 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	"cubic",
 	"function",
 	"step",
-	"doublestep",
+	"double" "step",
 	"ramp",
-	"doubleramp",
+	"double" "ramp",
 	"sine",
 	"cosine",
-	"frequencysweep",
+	"frequency" "sweep",
 	"exponential",
 	"random",
 	"piecewise" "linear",
-	"file",       
+	"file", 
 	"string",
 	"dof",
 	"array"
@@ -922,6 +922,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
    /* enum delle parole chiave */
    enum KeyWords {
       UNKNOWN = -1,
+
 	TIME = 0,
 	NULLDRIVE,
 	ONEDRIVE,
@@ -944,6 +945,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	STRING,
 	DOF,
 	ARRAY,
+
 	LASTKEYWORD
    };
    
@@ -1424,7 +1426,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	  p[i] = HP.GetReal();
 	  if (p[i] <= p[i-1]) {
 	     cerr << "point " << p[i]
-	       << " is smaller than preceding point " << p[i-1]
+	       << " is smaller than or equal to preceding point " << p[i-1]
 	       << " at line " << HP.GetLineData();
 	     THROW(DataManager::ErrGeneric());
 	  }
