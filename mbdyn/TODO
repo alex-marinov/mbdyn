@@ -97,6 +97,7 @@ D. Code:
 			slip=?
 	- allow the FEM data filename as command-line arg in utils/femgen
 	- add orthogonality test when reading orientation matrix
+	- append constitutive law output, if any, to elements' output
 
 
 
