@@ -1009,7 +1009,7 @@ CrankNicholsonSolver::SetCoef(doublereal dT,
 doublereal 
 CrankNicholsonSolver::dPredictDerivative(const doublereal& /* dXm1 */,
 		const doublereal& dXPm1,
-		DofOrder::Order o = DofOrder::DIFFERENTIAL) const
+		DofOrder::Order o) const
 {
 	return dXPm1;
 }
@@ -1018,7 +1018,7 @@ doublereal
 CrankNicholsonSolver::dPredictState(const doublereal& dXm1,
 		const doublereal& dXP,
 		const doublereal& dXPm1,
-		DofOrder::Order o = DofOrder::DIFFERENTIAL) const
+		DofOrder::Order o) const
 {
 	if (o == DofOrder::ALGEBRAIC) {
 		return db0Differential*(dXP+dXPm1);     
