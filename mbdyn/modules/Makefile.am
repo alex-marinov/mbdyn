@@ -23,9 +23,18 @@ export LTF77COMPILE = @LIBTOOL@ --mode=compile @F77@ $(AM_FFLAGS) @FFLAGS@ \
 	-fPIC
 export MODULES_DIRS=@MODULES_DIRS@
 
-.PHONY: all clean distclean
+.PHONY: all all__ clean distclean
 
-all:
+# Note: this hack is required because macro "LIBTOOL" may expand
+# to sh ../libtool, so, when we change directory to the modules,
+# the effective libtool is not found.
+
+all: all__ libtool
+
+libtool: 
+	-@ln -sf ../libtool .
+	
+all__:
 	-@for i in $(MODULES_DIRS) ; do \
 		echo "Playing with $$i ..."; \
 		export MBDYN_MODULE=$$i ; \
@@ -54,6 +63,6 @@ distclean:
 		cd .. ; \
 		rm -f $$i/Makefile ; \
 	done
-	rm -f Makefile
+	rm -f Makefile libtool
 
 include $(top_srcdir)/build/bot.mk
