@@ -10,6 +10,7 @@ A. Configuration:
 	- eliminate horrible blank lines in '--with-*'
 	- check the 'getopt' stuff in program, utils and contrib
 	- audit all the suite for not-so-GNU systems
+	- add test for crypt
 
 
 

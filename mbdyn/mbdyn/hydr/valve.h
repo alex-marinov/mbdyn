@@ -36,7 +36,7 @@
 #ifndef VALVE_H
 #define VALVE_H
 
-#include "preselem.h"
+#include <preselem.h>
 
 /* Control_valve - begin */
 
@@ -116,6 +116,107 @@ class Control_valve : virtual public Elem, public HydraulicElem, public DriveOwn
 };
 
 /* Control_valve - end */
+
+
+/* Control_valve2 - begin */
+
+class Control_valve2 
+: virtual public Elem, public HydraulicElem, public DriveOwner {
+private:
+	 /*
+	  *
+	  * Node 1    Node 4
+	  *          __
+	  *   |  \     | / \
+	  *   |   \  /    |
+	  *   |    \/     |
+	  *   |    /\     |
+	  *  \ /  / __|   |
+	  *  
+	  * Node 2     Node 3
+	  * 
+	  */
+	enum {
+		N1 = 0,
+		N2 = 1,
+		N3 = 2,
+		N4 = 3,
+		LAST_N = 4
+	};
+	enum {
+		Q12 = 0,
+		Q34 = 1,
+		Q13 = 2,
+		Q24 = 3,
+		LAST_Q = 4
+	};
+	const PressureNode* pNode[LAST_N];
+	doublereal q[LAST_Q];
+	doublereal dp[LAST_Q];
+
+	doublereal Stato;
+	doublereal Cd;		/* coefficiente di perdita */
+	doublereal area_max;	/* larghezza del condotto: A=x*area_max */
+	doublereal loss_area;	/* area di trafilamento in % sull'area max */
+	doublereal s_max; 
+	doublereal f[LAST_N];
+	doublereal A[LAST_Q];
+   
+public:
+	Control_valve2(unsigned int uL, const DofOwner* pD, HydraulicFluid* hf,
+			const PressureNode* p1, const PressureNode* p2, 
+			const PressureNode* p3, const PressureNode* p4, 
+			doublereal A_max, doublereal Loss_a, 
+			const DriveCaller* pDC,flag fOut);
+
+	~Control_valve2(void);
+	
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
+
+	/* Tipo di elemento idraulico (usato solo per debug ecc.) */
+	virtual HydraulicElem::Type GetHydraulicType(void) const;
+	
+	/* Contributo al file di restart */
+	virtual ostream& Restart(ostream& out) const;
+	
+	virtual unsigned int iGetNumDof(void) const;
+	virtual DofOrder::Order SetDof(unsigned int i) const;
+	
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+	
+	VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
+			doublereal dCoef, const VectorHandler& XCurr, 
+			const VectorHandler& XPrimeCurr);
+	
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+			doublereal dCoef, const VectorHandler& XCurr, 
+			const VectorHandler& XPrimeCurr);
+	
+	virtual void Output(OutputHandler& OH) const;
+	
+	virtual void SetValue(VectorHandler& X, VectorHandler& XP ) const;
+	
+	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, 
+			unsigned int* NdLabels) {
+		NumNodes = 4;
+		NdTyps[0] = pNode[N1]->GetNodeType();
+		NdLabels[0] = pNode[N1]->GetLabel();
+		NdTyps[1] = pNode[N2]->GetNodeType();
+		NdLabels[1] = pNode[N2]->GetLabel();
+		NdTyps[2] = pNode[N3]->GetNodeType();
+		NdLabels[2] = pNode[N3]->GetLabel();
+		NdTyps[3] = pNode[N4]->GetNodeType();
+		NdLabels[3] = pNode[N4]->GetLabel();
+	};
+	/* ************************************************ */ 	
+};
+
+/* Control_valve2 - end */
 
 
 /* Control_valve_dinamica - begin */
@@ -519,4 +620,5 @@ class  Flow_valve : virtual public Elem, public HydraulicElem {
 
 /* Flow_valve - end */
 
-#endif
+#endif /* VALVE_H */
+

@@ -354,6 +354,229 @@ Control_valve::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const
 /* Control_valve - end */
 
 
+/* Control_valve2 - begin */
+
+Control_valve2::Control_valve2(unsigned int uL, const DofOwner* pDO,
+			     HydraulicFluid* hf,
+			     const PressureNode* p1, const PressureNode* p2, 
+			     const PressureNode* p3, const PressureNode* p4,  
+			     doublereal A_max, doublereal Loss_A, 
+			     const DriveCaller* pDC,
+			     flag fOut) 
+: Elem(uL, Elem::HYDRAULIC, fOut),
+HydraulicElem(uL, pDO, hf, fOut),
+DriveOwner(pDC),
+area_max(A_max), loss_area(Loss_A)
+{
+	pNode[N1] = p1;
+	pNode[N2] = p2;
+	pNode[N3] = p3;
+	pNode[N4] = p4;
+	ASSERT(pNode[N1] != NULL);
+	ASSERT(pNode[N1]->GetNodeType() == Node::HYDRAULIC);
+	ASSERT(pNode[N2] != NULL);
+	ASSERT(pNode[N2]->GetNodeType() == Node::HYDRAULIC);
+	ASSERT(pNode[N3] != NULL);
+	ASSERT(pNode[N3]->GetNodeType() == Node::HYDRAULIC);
+	ASSERT(pNode[N4] != NULL);
+	ASSERT(pNode[N4]->GetNodeType() == Node::HYDRAULIC);
+	ASSERT(A_max > DBL_EPSILON);
+	ASSERT(loss_area >= 0.);
+   
+	Cd = .611; /* coefficiente di perdita */
+}
+
+Control_valve2::~Control_valve2(void)
+{
+	NO_OP;
+}
+   
+/* Tipo di elemento idraulico (usato solo per debug ecc.) */
+HydraulicElem::Type 
+Control_valve2::GetHydraulicType(void) const 
+{
+	return HydraulicElem::CONTROL_VALVE;
+}
+
+/* Contributo al file di restart */
+ostream& 
+Control_valve2::Restart(ostream& out) const
+{
+	return out << "Control_valve2 not implemented yet!" << endl;
+}
+   
+unsigned int 
+Control_valve2::iGetNumDof(void) const 
+{
+	return 4;
+}
+   
+DofOrder::Order Control_valve2::SetDof(unsigned int i) const 
+{
+	ASSERT(i >= 0 && i < iGetNumDof());
+	return DofOrder::ALGEBRAIC;
+}
+
+void 
+Control_valve2::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const 
+{
+	*piNumRows = 8; 
+	*piNumCols = 8; 
+}
+
+VariableSubMatrixHandler& 
+Control_valve2::AssJac(VariableSubMatrixHandler& WorkMat,
+		      doublereal dCoef,
+		      const VectorHandler& XCurr, 
+		      const VectorHandler& XPrimeCurr)
+{
+	DEBUGCOUT("Entering Control_valve2::AssJac()" << endl);
+	
+	FullSubMatrixHandler& WM = WorkMat.SetFull();
+	WM.Resize(8, 8);
+
+	integer iFirstIndex = iGetFirstIndex();
+	
+	for (int i = 0; i < LAST_N; i++) {
+		WM.fPutRowIndex(1+i, pNode[i]->iGetFirstRowIndex()+1);
+		WM.fPutColIndex(1+i, pNode[i]->iGetFirstColIndex()+1);
+	}
+
+	for (int i = 1; i <= LAST_Q; i++) {
+		WM.fPutRowIndex(4+i, iFirstIndex+i);
+		WM.fPutColIndex(4+i, iFirstIndex+i);
+	}
+	
+	doublereal dKappa = Cd*HF->dGetDensity();
+
+	/* Q12 */
+	WM.fPutCoef(1, 5, -1.);
+	WM.fPutCoef(2, 5,  1.);
+	
+	WM.fPutCoef(5, 1, -1.);
+	WM.fPutCoef(5, 2,  1.);
+
+	/* Q34 */
+	WM.fPutCoef(3, 6, -1.);
+	WM.fPutCoef(4, 6,  1.);
+	
+	WM.fPutCoef(6, 3, -1.);
+	WM.fPutCoef(6, 4,  1.);
+	
+	/* Q13 */
+	WM.fPutCoef(1, 7, -1.);
+	WM.fPutCoef(3, 7,  1.);
+	
+	WM.fPutCoef(7, 1, -1.);
+	WM.fPutCoef(7, 3,  1.);
+	
+	/* Q24 */
+	WM.fPutCoef(2, 8, -1.);
+	WM.fPutCoef(4, 8,  1.);
+	
+	WM.fPutCoef(8, 2, -1.);
+	WM.fPutCoef(8, 4,  1.);
+	
+	for (int i = 0; i < LAST_Q; i++) {
+		WM.fPutCoef(5+i, 5+i, 2.*dKappa*A[i]*q[i]);
+	}
+	
+	return WorkMat;
+}
+
+
+SubVectorHandler& 
+Control_valve2::AssRes(SubVectorHandler& WorkVec,
+		      doublereal dCoef,
+		      const VectorHandler& XCurr, 
+		      const VectorHandler& XPrimeCurr)
+{
+	DEBUGCOUT("Entering Control_valve2::AssRes()" << endl);
+	
+	WorkVec.Resize(8);
+	
+	integer iFirstIndex = iGetFirstIndex();
+
+	integer iNodeRowIndex[LAST_N];
+	doublereal p[LAST_N];
+
+	for (int i = 0; i < LAST_N; i++) {
+		iNodeRowIndex[i] = pNode[i]->iGetFirstRowIndex()+1;
+		p[i] = pNode[i]->dGetX();
+	}
+	
+	doublereal dKappa = Cd*HF->dGetDensity();
+	
+	Stato = pGetDriveCaller()->dGet();
+
+	dp[Q12] = p[N1]-p[N2];
+	dp[Q34] = p[N3]-p[N4];
+	dp[Q13] = p[N1]-p[N3];
+	dp[Q24] = p[N2]-p[N4];
+
+	doublereal Amin = area_max*loss_area;
+ 
+	if (Stato > 1.) {
+		Stato = 1.;
+	} else if (Stato < -1.) {
+		Stato = -1.;
+	}
+	
+	if (Stato > 0.) { 
+		A[Q12] = Stato*area_max+2.*Amin;
+		A[Q34] = Stato*area_max+2.*Amin;
+		A[Q13] = Amin;
+		A[Q24] = Amin;
+	} else {
+		A[Q12] = 2.*Amin;
+		A[Q34] = 2.*Amin;
+		A[Q13] = -Stato*area_max+Amin;
+		A[Q24] = -Stato*area_max+Amin;
+	}
+
+	for (int i = 0; i < LAST_Q; i++) {
+		q[i] = XCurr.dGetCoef(iFirstIndex+i);
+	}
+
+	f[N1] = q[Q12]+q[Q13];
+	f[N2] = -q[Q12]+q[Q24];
+	f[N3] = -q[Q13]+q[Q34];
+	f[N4] = -q[Q24]-q[Q34];
+
+	for (int i = 0; i < LAST_N; i++) {
+		WorkVec.fPutItem(1, iNodeRowIndex[i], f[i]);
+	}
+	
+	for (int i = 0; i < LAST_Q; i++) {
+		doublereal d = copysign(dKappa*A[i]*q[i]*q[i], dp[i]);
+		WorkVec.fPutItem(4+i, iFirstIndex+i, dp[i]-d);
+	}
+
+	return WorkVec;
+}
+  
+void
+Control_valve2::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) { 
+		ostream& out = OH.Hydraulic();
+		out << setw(8) << GetLabel()
+			<< " " << Stato 
+			<< " " << f[N1] << " " << f[N2] 
+			<< " " << f[N3] << " " << f[N4] << endl;
+	}   
+}
+
+void 
+Control_valve2::SetValue(VectorHandler& /* X */ , 
+		VectorHandler& /* XP */ ) const
+{
+	NO_OP;
+}
+
+/* Control_valve2 - end */
+
+
 /* Dynamic_control_valve - begin */
 
 Dynamic_control_valve::Dynamic_control_valve(unsigned int uL, const DofOwner* pDO, 

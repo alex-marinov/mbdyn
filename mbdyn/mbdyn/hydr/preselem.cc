@@ -113,6 +113,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
       "minor" "loss",
       "three" "way" "minor" "loss",
       "control" "valve",
+      "control" "valve" "2",
       "dynamic" "control" "valve",
       "pressure" "flow" "control",
       "pressure" "valve",
@@ -131,6 +132,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
       MINOR_LOSS = 0, 
       THREEWAYMINORLOSS,
       CONTROL_VALVE,
+      CONTROL_VALVE2,
       DYNAMIC_CONTROL_VALVE,
       PRESSURE_FLOW_CONTROL_VALVE,
       PRESSURE_VALVE,
@@ -461,7 +463,8 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        break;
     }
 
-    case CONTROL_VALVE: {
+    case CONTROL_VALVE:
+    case CONTROL_VALVE2: {
        
        /* nodo 1 */
        unsigned int uNode = (unsigned int)HP.GetInt();	     
@@ -543,13 +546,25 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        ASSERT(hf != NULL);
        
        flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
-       
+      
+       switch (CurrKeyWord) {
+       case CONTROL_VALVE:
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Control_valve,
-			      Control_valve(uLabel, pDO, hf, pNode1, pNode2, 
-					    pNode3, pNode4, area_max, loss_area, pDC,
-					    fOut), 
+			      Control_valve(uLabel, pDO, hf, 
+				      pNode1, pNode2, pNode3, pNode4, 
+				      area_max, loss_area, pDC, fOut), 
 			      DMmm);
+       break;
+       case CONTROL_VALVE2:
+       SAFENEWWITHCONSTRUCTOR(pEl, 
+			      Control_valve2,
+			      Control_valve2(uLabel, pDO, hf, 
+				      pNode1, pNode2, pNode3, pNode4, 
+				      area_max, loss_area, pDC, fOut), 
+			      DMmm);
+       break;
+       }
        
        break;
     }
