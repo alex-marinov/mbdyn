@@ -95,12 +95,12 @@ DataManager::MotionViewResOutputInit(const char *sOutputFileName)
 	mrfCreateComponent("e3");
 
 	/* ... plus velocity and angular velocity */
-	mrfCreateComponent("xd");
-	mrfCreateComponent("yd");
-	mrfCreateComponent("zd");
-	mrfCreateComponent("wxd");
-	mrfCreateComponent("wyd");
-	mrfCreateComponent("wzd");
+	mrfCreateComponent("vx");
+	mrfCreateComponent("vy");
+	mrfCreateComponent("vz");
+	mrfCreateComponent("wx");
+	mrfCreateComponent("wy");
+	mrfCreateComponent("wz");
 
 	mrfCloseDataType();
 
