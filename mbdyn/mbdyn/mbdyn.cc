@@ -708,6 +708,15 @@ main(int argc, char* argv[])
 	    		std::cout << std::endl << "The simulation required " 
 	        		<< tSecs << '.' << tMils 
 	        		<< " seconds of CPU time";
+			if (tSecs > 60) {
+				std::cout << " (";
+				if (tSecs > 3600) {
+					std::cout << tSecs/3600 << "h ";
+				}
+				std::cout << (tSecs%3600)/60 << "m "
+					<< (tSecs%3600)%60 << "s "
+					<< tMils << "ms)";
+			}
 #ifdef USE_MPI
 			if (using_mpi) {
 	    			std::cout << " on " << ProcessorName;
