@@ -50,7 +50,7 @@ for i = 1:nlt,
 end
 disp(sprintf('using %d dofs (out of %d)', ngt, c));
 
-if ((exist('OCTAVE_HOME') == 0) & (exist('dec') == 1)),
+if ((exist('dec') == 1)),
 	if dec <= 1,
 		error(sprintf('dec = %d is illegal', dec));
 	end
