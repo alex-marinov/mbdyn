@@ -818,6 +818,7 @@ MultiStepIntegrator::Run(void)
 		MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
+#ifdef USE_UMFPACK
       		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
 	 		std::cout << "Jacobian:" << std::endl;
 			if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
@@ -826,6 +827,7 @@ MultiStepIntegrator::Run(void)
 				std::cout << *(pSM->pMatHdl());
 	 		}
       		}
+#endif /* USE_UMFPACK */
       		pSM->Solve(dDerivativesCoef);
       
 #ifdef DEBUG
@@ -1033,6 +1035,7 @@ EndOfDerivatives:
 			MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
+#ifdef USE_UMFPACK
 	      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
 		 		std::cout << "Jacobian:" << std::endl;
 				if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
@@ -1041,6 +1044,7 @@ EndOfDerivatives:
 					std::cout << *(pSM->pMatHdl());
 		 		}
       			}
+#endif /* USE_UMFPACK */
 	 		pSM->Solve(db0Differential);
 	 
 #ifdef DEBUG
@@ -1235,6 +1239,7 @@ EndOfFirstFictitiousStep:
 				MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
+#ifdef USE_UMFPACK
 		      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
 			 		std::cout << "Jacobian:" << std::endl;
 					if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
@@ -1243,6 +1248,7 @@ EndOfFirstFictitiousStep:
 						std::cout << *(pSM->pMatHdl());
 			 		}
       				}
+#endif /* USE_UMFPACK */
 	    			pSM->Solve(db0Differential);
 	    
 #ifdef DEBUG
@@ -1517,6 +1523,7 @@ IfFirstStepIsToBeRepeated:
 #endif /* USE_MPI */
       		}
 
+#ifdef USE_UMFPACK
       		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
 	 		std::cout << "Jacobian:" << std::endl;
 			if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
@@ -1525,6 +1532,7 @@ IfFirstStepIsToBeRepeated:
 				std::cout << *(pSM->pMatHdl());
 	 		}
       		}
+#endif /* USE_UMFPACK */
       		pSM->Solve(db0Differential);   
       
 #ifdef DEBUG
@@ -1830,6 +1838,7 @@ IfStepIsToBeRepeated:
 #endif /* USE_MPI */
 	 		}
 
+#ifdef USE_UMFPACK
 	      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
 		 		std::cout << "Jacobian:" << std::endl;
 				if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
@@ -1838,6 +1847,7 @@ IfStepIsToBeRepeated:
 					std::cout << *(pSM->pMatHdl());
 		 		}
       			}
+#endif /* USE_UMFPACK */
 	 		pSM->Solve(db0Differential);
 
 #ifdef DEBUG
