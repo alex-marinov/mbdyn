@@ -34,7 +34,7 @@
 #if defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H)
 
 /* FIXME: temporary hack ... */
-#undef HAVE_LTDL_H
+//#undef HAVE_LTDL_H
 
 #include <string.h>
 #ifdef HAVE_LTDL_H
@@ -53,6 +53,7 @@
 #include <y12wrap.h>
 #include <harwrap.h>
 #include <mschwrap.h>
+#include <umfpackwrap.h>
 
 struct integration_data {
    	doublereal ti;
@@ -192,7 +193,7 @@ main(int argn, char *const argv[])
 			
 			next++;
 			d.tf = strtod(next, &next);
-			if (next[0] != ':') {
+			if (next[0] != '\0') {
 	     			std::cerr << "syntax: ti:dt:tf" << std::endl;
 	     			exit(EXIT_FAILURE);
 	  		}
@@ -290,8 +291,9 @@ open_module(const char* module)
 			<< "\"" << std::endl;
       		exit(EXIT_FAILURE);
    	}
-   
-   	if ((::ff = (struct funcs *)lt_dlsym(handle, "ff")) == NULL) {
+
+	struct funcs **pf = (struct funcs **)lt_dlsym(handle, "ff");
+   	if (pf == NULL) {
       		err = lt_dlerror();
       		std::cerr << "lt_dlsym(\"ff\") returned \"" << err << "\""
 			<< std::endl;
@@ -308,13 +310,21 @@ open_module(const char* module)
       		exit(EXIT_FAILURE);
    	}
    
-   	if ((::ff = (struct funcs *)dlsym(handle, "ff")) == NULL) {
+	struct funcs **pf = (struct funcs **)dlsym(handle, "ff");
+   	if (pf == NULL) {
       		err = dlerror();
       		std::cerr << "dlsym(\"ff\") returned \"" << err << "\""
 			<< std::endl;
       		exit(EXIT_FAILURE);
    	}
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+
+	::ff = *pf;
+	if (::ff == NULL) {
+		std::cerr << "invalid \"ff\" symbol in \"" << module << "\""
+			<< std::endl;
+      		exit(EXIT_FAILURE);
+   	}
 
    	return 0;
 }
@@ -373,7 +383,9 @@ method_multistep(const char* module, integration_data* d,
 	FullMatrixHandler Jp(pd+size*size, ppd+size, size*size, size, size);
    	MyVectorHandler R(size);
 
-#if defined(USE_Y12)
+#if defined(USE_UMFPACK)
+	UmfpackSparseLUSolutionManager sm(size);
+#elif defined(USE_Y12)
 	Y12SparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
 #elif defined(USE_HARWELL)
    	HarwellSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
@@ -541,14 +553,16 @@ method_cubic(const char* module, integration_data* d,
    	doublereal** ppd = new doublereal*[4*size];
    	FullMatrixHandler Jz(pd, ppd, size*size, size, size);
    	FullMatrixHandler J0(pd+size*size, ppd+size, size*size, size, size);
-	FullMatrixHandler Jpz(pd+2*size*size,
-			      ppd+2*size, size*size, size, size);
-	FullMatrixHandler Jp0(pd+3*size*size,
-			      ppd+3*size, size*size, size, size);
+	FullMatrixHandler Jpz(pd+2*size*size, ppd+2*size,
+			size*size, size, size);
+	FullMatrixHandler Jp0(pd+3*size*size, ppd+3*size,
+			size*size, size, size);
    	MyVectorHandler Xz(size);
    	MyVectorHandler XPz(size);
    
-#if defined(USE_Y12)
+#if defined(USE_UMFPACK)
+	UmfpackSparseLUSolutionManager sm(size);
+#elif defined(USE_Y12)
 	Y12SparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
 #elif defined(USE_HARWELL)
    	HarwellSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);

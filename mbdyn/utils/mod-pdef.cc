@@ -194,7 +194,9 @@ static std::ostream& out(void* p, std::ostream& o,
 static int destroy(void** p)
 {
    private_data* pd = (private_data*)p;
+#if 0 /* sigsegv ... */
    delete pd;
+#endif
    *p = NULL;
    return 0;
 }
