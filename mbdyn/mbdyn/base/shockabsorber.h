@@ -192,9 +192,24 @@ public:
 		if (HP.IsKeyWord("help")) {
 
 			cout <<
-"                                                                         \n"
-"sorry: no help available at present                                      \n"
-"                                                                         \n"
+"\n"
+"this help refers to the specific \"shock absorber\" constitutive\n"
+"law input data.  The prestrain value, if required, must be inserted\n"
+"at the beginning of the data.  The syntax is:\n"
+"\t[ prestrain , <value> , ]\n"
+"\t<reference pressure> ,\n"
+"\t<reference area for force computation> ,\n"
+"\t<interpolation coefficient (kinematic scale * ( L * A / V0 ) )> ,\n"
+"\t<gamma (polytropic exponent)> ,\n"
+"\t[ epsilon max , <upper strain bound, > prestrain; defaults to 0.)> , ]\n"
+"\t[ epsilon min , <lower strain bound, < prestrain; defaults to -.5)> , ]\n"
+"\t[ penalty , <penalty factor for strain bound enforcement> , ]\n"
+"\t[ metering , <metering area (drive, strain dependent)> , ]\n"
+"\t[ orifice , <orifice area (drive, strain rate dependent)> , ]\n"
+"\t<fluid area> ,\n"
+"\t<fluid density> ,\n"
+"\t<drag coefficient / reference length (scales strain rate to velocity)> ;\n"
+"\n"
 				<< endl;
 
 			if (!HP.fIsArg()) {
@@ -294,7 +309,7 @@ public:
 			doublereal VRatio = 1./(1.+Cint*CurrEpsilon);
 			doublereal Adiab = pow(VRatio, Gamma);
 
-			F = -A0*P0*Adiab;
+			F = -(1.-tanh(EpsPrime))*A0*P0*Adiab;
 			FDE = Gamma*Cint*VRatio*Adiab;
 		}
 
