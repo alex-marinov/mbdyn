@@ -163,7 +163,7 @@ doublereal ThirdOrderIntegrator::Advance(const doublereal TStep,
 
 	Predict();
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
-	pDM->AfterPredict();
+	//pDM->AfterPredict();
 	
 	doublereal dErr = 0.;        
 	pNLS->Solve(this, pSM, MaxIters, dTol,
