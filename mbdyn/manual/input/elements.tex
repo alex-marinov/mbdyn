@@ -540,7 +540,7 @@ derivative can be used) multiplied times the stiffness. \\
 
 
 \section{Couple}
-An alias of \kw{force}; see Section~\ref{sec:FORCE}.
+An alias of \kw{force}; see Section~\ref{sec:EL-FORCE}.
 
 
 \section{Driven Element}
@@ -675,7 +675,7 @@ and $ s $ is the Laplace variable.
 
 
 
-\section{Force}\label{sec:FORCE}
+\section{Force}\label{sec:EL-FORCE}
 The \kw{force} element has the following syntax:
 \begin{verbatim}
   <normal_arglist> ::= <force_type> , <force_arglist>
@@ -1064,7 +1064,7 @@ the drive of the gravity acceleration, in the global reference frame.
 
 
 
-\section{Hydraulic Element}\label{sec:HYDRAULIC-ELEMENT}
+\section{Hydraulic Element}\label{sec:EL-HYDR}
 {\em 
     Note: under development \\
     Author: Lamberto Puggelli
@@ -1123,7 +1123,7 @@ of area that leaks even when \kw{state} is zero.
 
 
 
-\subsection{Dynamic Control Valve}\label{sec:DYNAMIC_CONTROL_VALVE}
+\subsection{Dynamic Control Valve}\label{sec:EL-HYDR-DYNAMIC_CONTROL_VALVE}
 \begin{verbatim}
     <hydr_elem_type> ::= dynamic control valve ,
     <hydr_elem_data> ::= <node_1> , <node_2> ,
@@ -1176,7 +1176,7 @@ when the maximum stroke is reached.
                          <acceleration> ,
                          <hydraulic_fluid_properties>
 \end{verbatim}
-Same as Dynamic Control Valve (\ref{sec:DYNAMIC_CONTROL_VALVE}),
+Same as Dynamic Control Valve (\ref{sec:EL-HYDR-DYNAMIC_CONTROL_VALVE}),
 only the pressures at \kw{node\_5} and \kw{node\_6} are applied
 at the sides of the valve body and participate in the force balance.
 
@@ -1477,7 +1477,7 @@ by directly writing code in files \verb;mbdyn/struct/kin.cc; and
                         (drive_caller) <velocity>
 \end{verbatim}
 
-\subsection{Modal}\label{ELEMS-JOINT-MODAL}
+\subsection{Modal}\label{sec:EL-STRUCT-JOINT-MODAL}
 \emph{Note: under development \\
     Author: Felice Felippone; \\
     Initial review: Giuseppe Quaranta; \\
@@ -1660,7 +1660,7 @@ is discouraged, unless strictly required.
 
 
 
-\subsection{Plane displacement}\label{sec:PLANE_DISPLACEMENT}
+\subsection{Plane displacement}\label{sec:EL-STRUCT-JOINT-PLANE_DISPLACEMENT}
 This joint allows two nodes to move in the common relative 1--2 plane 
 and to rotate about the common relative axis 3.
 \begin{verbatim}
@@ -1680,7 +1680,7 @@ combine an \kw{in plane} and a \kw{revolute rotation} joint instead.}
 This joint allows a node to move in the relative 1--2 plane 
 and to rotate about the relative axis 3 with respect to an absolute point 
 and plane.
-See also Section~\ref{sec:PLANE_DISPLACEMENT}.
+See also Section~\ref{sec:EL-STRUCT-JOINT-PLANE_DISPLACEMENT}.
 \begin{verbatim}
     <joint_type> ::= plane displacement pin
     <joint_arglist> ::= 
@@ -1789,9 +1789,9 @@ and in general
 where $l_0=\kw{<rod\_length>}$.
 For further details on the constitutive laws, 
 see Section~\ref{sec:CONSTITUTIVE-LAWS}.
-See also \kw{rod with offset} in Section~\ref{sec:RD-WITH-OFFSET}.
+See also \kw{rod with offset} in Section~\ref{sec:EL-STRUCT-JOINT-ROD-WITH-OFFSET}.
 
-\subsection{Rod with offset}\label{sec:RD-WITH-OFFSET}.
+\subsection{Rod with offset}\label{sec:EL-STRUCT-JOINT-ROD-WITH-OFFSET}.
 \begin{verbatim}
     <joint_type> ::= rod with offset
     <joint_arglist> ::= <node_1> , (Vec3) <relative_offset_1>
@@ -2012,7 +2012,7 @@ on \kw{csh(1)} and compatible shells.
 
 \section{Output Elements}
 
-\subsection{RTAI output}\label{sec:RTAI_out}
+\subsection{RTAI output}\label{sec:EL-BASE-RTAI_out}
 This is a special element which takes care of sending generic output
 to external processes by means of RTAI mailboxes during real-time 
 simulations.
@@ -2055,7 +2055,7 @@ or model debugging purposes.}
 
 
 
-\subsection{Stream output}\label{sec:STREAM_OUTPUT}
+\subsection{Stream output}\label{sec:EL-BASE-STREAM_OUTPUT}
 This is a special element which takes care of sending generic output
 to external processes by means of RTAI mailboxes during real-time 
 simulations.

@@ -693,7 +693,7 @@ Real-time simulation is mostly useless without interaction
 with external programs.
 The input is dealt with by the special RTAI file drivers described
 in Section~\ref{sec:RTAI_in}; the output by the special RTAI output
-element described in Section~\ref{sec:RTAI_out}.
+element described in Section~\ref{sec:EL-BASE-RTAI_out}.
 
 
 
@@ -973,7 +973,7 @@ and automatically generates the so-called \kw{automatic structural}
 elements.
 The \kw{modal} node is a regular \kw{dynamic} node that must be used 
 to describe the rigid reference motion of a \kw{modal} joint.
-See Section~\ref{ELEMS-JOINT-MODAL} for further details.
+See Section~\ref{sec:EL-STRUCT-JOINT-MODAL} for further details.
 \begin{verbatim}
     <arglist> ::= { static | dynamic | modal } ,
             (Vec3)              <absolute_position> ,
