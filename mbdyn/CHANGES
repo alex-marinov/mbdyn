@@ -15,6 +15,8 @@ MBDyn 1.1-Engineering
 		  slip angle
 		- log reference frames on dedicated file (if required)
 		- removed last COMMON from F77 code in sparse matrix handling
+		- strengthen hydraulic turbulent elems at small pressure 
+		  differentials
 	Bug fixes:
 		- fixed SIGSEGV when reading from stdin
 

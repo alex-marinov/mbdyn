@@ -7,6 +7,10 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Thu May 16 14:10:46 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - strengthen turbulent dissipative elements when dealing with nearly null 
+   pressure differential
+
 *** Wed May 15 16:39:30 CEST 2002 Marco Morandini <morandini@aero.polimi.it>
  - fix default argument in iterwrap.cc
 
