@@ -16,44 +16,132 @@
  * 
  *****************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif /* HAVE_GETOPT_H */
+
 #include <n2m.h>
 
-int do_conm2(struct n2m_buffer *b, FILE *fout, struct n2m_buffer *form);
-int do_conm2_cont(struct n2m_buffer *b, FILE *fout, struct n2m_buffer *form, int def);
-
 int
-main(int argc, const char *const argv[])
+main(int argc, char *const argv[])
 {
-	FILE *fin = stdin;
-	FILE *fout_node = stdout;
-	FILE *fout_elem = stdout;
+	FILE *f[NASTRAN_FILE_LAST];
 	struct n2m_buffer b;
 	
 	struct n2m_buffer form;		/* per continuaz. */
 	double coords[6];		/* per cord2r */
 
-	int type = -1;
-	int cont = 0;
-	
+	int type = -1;			/* tipo di card */
+	int cont = 0;			/* n. riga continuazione */
+
+	f[NASTRAN_FILE_IN] = stdin;
+	f[NASTRAN_FILE_OUT_REF] = stdout;
+	f[NASTRAN_FILE_OUT_NODE] = stdout;
+	f[NASTRAN_FILE_OUT_ELEM] = stdout;
+	f[NASTRAN_FILE_OUT_ERR] = stderr;
+
+#ifdef HAVE_GETOPT
+	while (1) {
+		char optstring[] = "e:i:n:o:r:";
+		int opt;
+
+		opt = getopt(argc, argv, optstring);
+
+		if (opt == EOF) {
+			break;
+		}
+
+		switch (opt) {
+		case 'e':
+			f[NASTRAN_FILE_OUT_ELEM] = fopen(optarg, "w");
+			if (f[NASTRAN_FILE_OUT_ELEM] == NULL) {
+				fprintf(f[NASTRAN_FILE_OUT_ERR],
+					"### unable to open file '%s'\n",
+					optarg);
+				exit(EXIT_FAILURE);
+			}
+			break;
+		case 'i':
+			f[NASTRAN_FILE_IN] = fopen(optarg, "r");
+			if (f[NASTRAN_FILE_IN] == NULL) {
+				fprintf(f[NASTRAN_FILE_OUT_ERR],
+					"### unable to open file '%s'\n",
+					optarg);
+				exit(EXIT_FAILURE);
+			}
+			break;
+		case 'n':
+			f[NASTRAN_FILE_OUT_NODE] = fopen(optarg, "w");
+			if (f[NASTRAN_FILE_OUT_NODE] == NULL) {
+				fprintf(f[NASTRAN_FILE_OUT_ERR],
+					"### unable to open file '%s'\n",
+					optarg);
+				exit(EXIT_FAILURE);
+			}
+			break;
+		case 'o': {
+			char buf[1024];
+			int l;
+
+			l = strlen(optarg);
+			strncpy(buf, optarg, sizeof(buf));
+
+			strcpy(buf+l, ".elm");
+			f[NASTRAN_FILE_OUT_ELEM] = fopen(buf, "w");
+			if (f[NASTRAN_FILE_OUT_ELEM] == NULL) {
+				fprintf(f[NASTRAN_FILE_OUT_ERR],
+					"### unable to open file '%s'\n", buf);
+				exit(EXIT_FAILURE);
+			}
+			
+			strcpy(buf+l, ".nod");
+			f[NASTRAN_FILE_OUT_NODE] = fopen(buf, "w");
+			if (f[NASTRAN_FILE_OUT_NODE] == NULL) {
+				fprintf(f[NASTRAN_FILE_OUT_ERR],
+					"### unable to open file '%s'\n", buf);
+				exit(EXIT_FAILURE);
+			}
+
+			strcpy(buf+l, ".ref");
+			f[NASTRAN_FILE_OUT_REF] = fopen(buf, "w");
+			if (f[NASTRAN_FILE_OUT_REF] == NULL) {
+				fprintf(f[NASTRAN_FILE_OUT_ERR],
+					"### unable to open file '%s'\n", buf);
+				exit(EXIT_FAILURE);
+			}
+			break;
+		}
+		case 'r':
+			f[NASTRAN_FILE_OUT_REF] = fopen(optarg, "w");
+			if (f[NASTRAN_FILE_OUT_REF] == NULL) {
+				fprintf(f[NASTRAN_FILE_OUT_ERR],
+					"### unable to open file '%s'\n",
+					optarg);
+				exit(EXIT_FAILURE);
+			}
+			break;
+		}
+	}
+#else /* !HAVE_GETOPT */
 	if (argc > 1) {
-		fin = fopen(argv[1], "r");
-		if (fin == NULL) {
-			fprintf(stderr,
+		f[NASTRAN_FILE_IN] = fopen(argv[1], "r");
+		if (f[NASTRAN_FILE_IN] == NULL) {
+			fprintf(f[NASTRAN_FILE_OUT_ERR],
 				"### unable to open file '%s'\n", argv[1]);
 			exit(EXIT_FAILURE);
 		}
 	}
+#endif /* !HAVE_GETOPT */
 
-	while (get_buf(fin, &b)) {
+	while (get_buf(f[NASTRAN_FILE_IN], &b)) {
 		if (cont > 0) {
 			int def = 0;
 			
@@ -63,15 +151,15 @@ main(int argc, const char *const argv[])
 			// card continuation
 			switch (type) {
 			case NASTRAN_CARD_CONM2:
-				do_conm2_cont(&b, fout_elem, &form, def);
+				do_conm2_cont(&b, f, &form, def);
 				cont = 0;
 				break;
 			case NASTRAN_CARD_CORD2R:
-				do_cord2r_cont(&b, fout_elem, &form, coords);
+				do_cord2r_cont(&b, f, &form, coords);
 				cont = 0;
 				break;
 			default:
-				fprintf(stderr,
+				fprintf(f[NASTRAN_FILE_OUT_ERR],
 					"### unable to handle continuation card\n%s\nbailing out ...\n", 
 					b.buf);
 				exit(EXIT_FAILURE);
@@ -82,15 +170,15 @@ main(int argc, const char *const argv[])
 
 		if (strncasecmp(b.buf, "CONM2", 5) == 0) {
 			type = NASTRAN_CARD_CONM2;
-			do_conm2(&b, fout_elem, &form);
+			do_conm2(&b, f, &form);
 			cont = 1;
 		} else if (strncasecmp(b.buf, "CORD2R", 6) == 0) {
 			type = NASTRAN_CARD_CORD2R;
-			do_cord2r(&b, fout_elem, &form, coords);
+			do_cord2r(&b, f, &form, coords);
 			cont = 1;
 		} else if (strncasecmp(b.buf, "GRID", 4) == 0) {
 			type = NASTRAN_CARD_GRID;
-			do_grid(&b, fout_node);
+			do_grid(&b, f);
 		}
 	}
 

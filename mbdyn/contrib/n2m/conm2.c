@@ -16,24 +16,22 @@
  * 
  *****************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #include <n2m.h>
 
 int
-do_conm2_cont(struct n2m_buffer *b, FILE *fout, struct n2m_buffer *form, int def)
+do_conm2_cont(struct n2m_buffer *b, FILE **f, struct n2m_buffer *form, int def)
 {
 	double I11 = 0., I21 = 0., I22 = 0., I31 = 0., I32 = 0., I33 = 0.;
 
 	if (def == 1) {
-		fprintf(fout, "%s, null;\n", form->buf);
+		fprintf(f[NASTRAN_FILE_OUT_ELEM], "%s, null;\n", form->buf);
 		return 0;
 	}
 		
@@ -44,15 +42,15 @@ do_conm2_cont(struct n2m_buffer *b, FILE *fout, struct n2m_buffer *form, int def
         I32 = get_double(b, NASTRAN_SIXTH, &I32);
         I33 = get_double(b, NASTRAN_SEVENTH, &I33);
 		
-	fprintf(fout,
+	fprintf(f[NASTRAN_FILE_OUT_ELEM],
 		"%s, sym,\n", form->buf);
-	fprintf(fout,
+	fprintf(f[NASTRAN_FILE_OUT_ELEM],
 		"\t                     %14.7e, %14.7e, %14.7e,\n",
 		I11, I21, I31);
-	fprintf(fout,
+	fprintf(f[NASTRAN_FILE_OUT_ELEM],
 		"\t                                     %14.7e, %14.7e,\n",
 		I22, I32);
-	fprintf(fout,
+	fprintf(f[NASTRAN_FILE_OUT_ELEM],
 		"\t                                                     %14.7e;\n",
 		I33);
 	
@@ -60,7 +58,7 @@ do_conm2_cont(struct n2m_buffer *b, FILE *fout, struct n2m_buffer *form, int def
 }
 
 int
-do_conm2(struct n2m_buffer *b, FILE *fout, struct n2m_buffer *form)
+do_conm2(struct n2m_buffer *b, FILE **f, struct n2m_buffer *form)
 {
 	int EID, G, CID = 0;
 	double M, X1, X2, X3;
@@ -75,7 +73,10 @@ do_conm2(struct n2m_buffer *b, FILE *fout, struct n2m_buffer *form)
 	X2 = get_double(b, NASTRAN_SIXTH, NULL);
 	X3 = get_double(b, NASTRAN_SEVENTH, NULL);
 	
-	fprintf(fout, "\t%14.7e, # CONM2=%d, GRID=%d\n", M, EID, G);
+	fprintf(f[NASTRAN_FILE_OUT_ELEM],
+		"#body: /* CONM2 = */ %8d, /* GRID = */ %8d,\n", EID, G);
+	fprintf(f[NASTRAN_FILE_OUT_ELEM],
+		"\t%14.7e, # CONM2=%d, GRID=%d\n", M, EID, G);
 	if (CID == 0 || CID == -1) {
 		snprintf(form->buf, sizeof(form->buf),
 			"\treference,   global");
@@ -83,7 +84,7 @@ do_conm2(struct n2m_buffer *b, FILE *fout, struct n2m_buffer *form)
 		snprintf(form->buf, sizeof(form->buf),
 			"\treference, %8d", CID);
 	}
-	fprintf(fout, "%s, %14.7e, %14.7e, %14.7e,\n",
+	fprintf(f[NASTRAN_FILE_OUT_ELEM], "%s, %14.7e, %14.7e, %14.7e,\n",
 		form->buf, X1, X2, X3);
 
 	return 0;

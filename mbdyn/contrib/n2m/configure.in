@@ -4,5 +4,7 @@ AM_INIT_AUTOMAKE(n2m, 1.0)
 AM_CONFIG_HEADER(config.h)
 AC_PROG_CC
 CFLAGS="$CFLAGS -Wall -pedantic"
+AC_CHECK_HEADERS([getopt.h])
+AC_CHECK_FUNCS([getopt])
 AC_OUTPUT([Makefile])
 

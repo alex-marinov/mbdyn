@@ -16,19 +16,17 @@
  * 
  *****************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #include <n2m.h>
 
 int
-do_grid(struct n2m_buffer *b, FILE *fout)
+do_grid(struct n2m_buffer *b, FILE **f)
 {
 	int ID, CP = 0;
 	double X1, X2, X3;
@@ -41,16 +39,25 @@ do_grid(struct n2m_buffer *b, FILE *fout)
         X2 = get_double(b, NASTRAN_FIFTH, NULL);
         X3 = get_double(b, NASTRAN_SIXTH, NULL);
 	
-	fprintf(fout, "reference: %8d, # GRID %d\n", ID, ID);
+	fprintf(f[NASTRAN_FILE_OUT_REF], "reference: %8d, # GRID %d\n", ID, ID);
 	if (CP == 0) {
 		snprintf(form, sizeof(form), "\treference,   global");
 	} else {
 		snprintf(form, sizeof(form), "\treference, %8d", CP);
 	}
-	fprintf(fout, "%s, %14.7e, %14.7e, %14.7e,\n", form, X1, X2, X3);
-	fprintf(fout, "%s, eye,\n", form);
-	fprintf(fout, "%s, null,\n", form);
-	fprintf(fout, "%s, null;\n", form);
+	fprintf(f[NASTRAN_FILE_OUT_REF],
+		"%s, %14.7e, %14.7e, %14.7e,\n", form, X1, X2, X3);
+	fprintf(f[NASTRAN_FILE_OUT_REF], "%s, eye,\n", form);
+	fprintf(f[NASTRAN_FILE_OUT_REF], "%s, null,\n", form);
+	fprintf(f[NASTRAN_FILE_OUT_REF], "%s, null;\n", form);
+
+	snprintf(form, sizeof(form), "\treference, %8d", ID);
+	fprintf(f[NASTRAN_FILE_OUT_NODE],
+		"structural: %8d, dynamic, # GRID %d\n", ID, ID);
+	fprintf(f[NASTRAN_FILE_OUT_NODE], "%s, null,\n", form);
+	fprintf(f[NASTRAN_FILE_OUT_NODE], "%s, eye,\n", form);
+	fprintf(f[NASTRAN_FILE_OUT_NODE], "%s, null,\n", form);
+	fprintf(f[NASTRAN_FILE_OUT_NODE], "%s, null;\n", form);
 
 	return 0;
 }

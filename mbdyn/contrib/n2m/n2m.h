@@ -43,6 +43,15 @@ enum {
 	LAST_CARD		/* always goes last */
 };
 
+enum {
+	NASTRAN_FILE_IN = 0,
+	NASTRAN_FILE_OUT_REF,
+	NASTRAN_FILE_OUT_NODE,
+	NASTRAN_FILE_OUT_ELEM,
+	NASTRAN_FILE_OUT_ERR,
+	NASTRAN_FILE_LAST
+};
+
 #define NASTRAN_TOKEN_SIZE 8
 enum {
 	N2M_GOT_TOKEN = 0,
@@ -63,15 +72,15 @@ extern int get_int(struct n2m_buffer *b, int number, int *def);
 extern double get_double(struct n2m_buffer *b, int number, double *def);
 
 /* CONM2 */
-extern int do_conm2(struct n2m_buffer *b, FILE *fout, struct n2m_buffer *form);
-extern int do_conm2_cont(struct n2m_buffer *b, FILE *fout, struct n2m_buffer *form, int def);
+extern int do_conm2(struct n2m_buffer *b, FILE **f, struct n2m_buffer *form);
+extern int do_conm2_cont(struct n2m_buffer *b, FILE **f, struct n2m_buffer *form, int def);
 
 /* CORD2R */
-int do_cord2r(struct n2m_buffer *b, FILE *fout, struct n2m_buffer *form, double *coords);
-int do_cord2r_cont(struct n2m_buffer *b, FILE *fout, struct n2m_buffer *form, double *coords);
+int do_cord2r(struct n2m_buffer *b, FILE **f, struct n2m_buffer *form, double *coords);
+int do_cord2r_cont(struct n2m_buffer *b, FILE **f, struct n2m_buffer *form, double *coords);
 
 /* GRID */
-extern int do_grid(struct n2m_buffer *b, FILE *fout);
+extern int do_grid(struct n2m_buffer *b, FILE **f);
 
 #endif /* N2M_H */
 
