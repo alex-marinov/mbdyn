@@ -36,6 +36,7 @@
 
 #include <float.h>
 #include <vector>
+#include <set>
 
 #include <dataman.h>
 #include <dataman_.h>
@@ -346,6 +347,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 Vec3 S(0.);
 	 Mat3x3 J(0.);
 
+	 std::set<unsigned int> Body_labels;
 	 Elem::Type Type = Elem::UNKNOWN;
 	 while (HP.fIsArg()) {
 		 if (HP.IsKeyWord("body")) {
@@ -370,6 +372,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 			 Elem **ppTmpEl = ElemData[Type].ppFirstElem;
 			 for (unsigned int cnt = 0; cnt < ElemData[Type].iNum; cnt++) {
 				 unsigned int uL = ppTmpEl[cnt]->GetLabel();
+				 Body_labels.insert(uL);
 				 ElemGravityOwner *pEl = 
 					 (ElemGravityOwner *)ppTmpEl[cnt]->pGetElemGravityOwner();
 
@@ -380,22 +383,30 @@ void DataManager::ReadElems(MBDynParser& HP)
 
 		 } else {
 			 unsigned int uL = (unsigned int)HP.GetInt();
-			 Elem **ppTmpEl = (Elem **)ppFindElem(Type, uL);
-			 if (ppTmpEl == NULL || ppTmpEl[0] == NULL) {
-				 std::cerr << "inertia " << uIn 
-					 << " at line " << HP.GetLineData()
-					 << ": unable to find " << psElemNames[Type]
-					 << "( " << uL << ")" << std::endl;
-				 THROW(ErrGeneric());
-			 }
-			 ElemGravityOwner *pEl = 
-				 (ElemGravityOwner *)ppTmpEl[0]->pGetElemGravityOwner();
+			 std::set<unsigned int>::const_iterator BL_end = Body_labels.end();
+			 if (Body_labels.find(uL) == BL_end) {			 
+				Body_labels.insert(uL);
+			 	Elem **ppTmpEl = (Elem **)ppFindElem(Type, uL);
+			 	if (ppTmpEl == NULL || ppTmpEl[0] == NULL) {
+				 	std::cerr << "inertia " << uIn 
+					 	<< " at line " << HP.GetLineData()
+					 	<< ": unable to find " << psElemNames[Type]
+					 	<< "( " << uL << ")" << std::endl;
+				 	THROW(ErrGeneric());
+			 	}
+			 
+			 	ElemGravityOwner *pEl = 
+				 	(ElemGravityOwner *)ppTmpEl[0]->pGetElemGravityOwner();
 
-			 dM += pEl->dGetM();
-			 S += pEl->GetS();
-			 J += pEl->GetJ();
-		 }
-	 }
+			 	dM += pEl->dGetM();
+			 	S += pEl->GetS();
+			 	J += pEl->GetJ();
+		 	} else {
+				std::cerr << "Warning: duplicated label at line " << HP.GetLineData()
+					  << std::endl;
+			}
+		}
+	} 
 
 	 Vec3 Xcg(0.);
 	 Mat3x3 Jcg(J);
