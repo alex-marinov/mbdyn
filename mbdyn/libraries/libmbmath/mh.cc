@@ -53,14 +53,14 @@ MatrixHandler::~MatrixHandler(void)
 /* Ridimensiona ed inizializza. */
 void
 MatrixHandler::ResizeInit(integer iNewRow, integer iNewCol,
-		const doublereal& dResetVal)
+		const doublereal dResetVal)
 {
 	Resize(iNewRow, iNewCol);
 	Init(dResetVal);
 }
 
 void
-MatrixHandler::Reset(const doublereal& dResetVal)
+MatrixHandler::Reset(const doublereal dResetVal)
 {
 	Init(dResetVal);
 }
@@ -189,6 +189,27 @@ MatrixHandler::MatTVecIncMul(VectorHandler& out, const VectorHandler& in) const
 	}
 	return out;
 }
+
+void 
+MatrixHandler::IncCoef(integer ix, integer iy, const doublereal& inc) {
+	operator()(ix,iy) += inc;
+};
+
+void 
+MatrixHandler::DecCoef(integer ix, integer iy, const doublereal& inc) {
+	operator()(ix,iy) -= inc;
+};
+
+void 
+MatrixHandler::PutCoef(integer ix, integer iy, const doublereal& val) {
+	operator()(ix,iy) = val;
+};
+
+const doublereal& 
+MatrixHandler::dGetCoef(integer ix, integer iy) const {
+	return operator()(ix, iy);
+};
+
 
 std::ostream&
 operator << (std::ostream& out, const MatrixHandler& MH)

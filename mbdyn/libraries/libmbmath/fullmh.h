@@ -92,7 +92,7 @@ public:
 #endif /* DEBUG */
 
 	/* Resetta la matrice ecc. */
-	virtual void Init(const doublereal& dResetVal = 0.);
+	virtual void Init(const doublereal dResetVal = 0.);
 
 	/* Used to access raw data by c functions */
 	doublereal* pdGetMat(void) const {

@@ -107,7 +107,7 @@ class VecN {
    inline integer iGetNumRows(void) const;
    
    void Resize(integer ns);   
-   void Reset(const doublereal& d = 0.);
+   void Reset(const doublereal d = 0.);
    
    inline void Put(integer i, const doublereal& d);
    inline void Add(integer i, const doublereal& d);
@@ -234,7 +234,7 @@ class Mat3xN {
    ~Mat3xN(void);
    
    void Resize(integer ns);
-   void Reset(const doublereal& d = 0.);
+   void Reset(const doublereal d = 0.);
    
    inline integer iGetNumCols(void) const;
    
@@ -387,7 +387,7 @@ class MatNx3 {
    
    inline integer iGetNumRows(void) const;
    void Resize(integer ns); 
-   void Reset(const doublereal& d = 0.);
+   void Reset(const doublereal d = 0.);
    
    inline void Put(integer i, integer j, const doublereal& d);
    inline void Add(integer i, integer j, const doublereal& d);
@@ -526,7 +526,7 @@ class MatNxN {
    ~MatNxN(void);
    
    inline integer iGetNumRows(void) const;
-   void Reset(const doublereal& d = 0.);
+   void Reset(const doublereal d = 0.);
    inline void Put(integer i, integer j, const doublereal& d);
    inline void Add(integer i, integer j, const doublereal& d);
    inline void Sub(integer i, integer j, const doublereal& d);

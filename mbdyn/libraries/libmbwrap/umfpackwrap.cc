@@ -125,7 +125,7 @@
 /* UmfpackSolver - begin */
 	
 UmfpackSolver::UmfpackSolver(const integer &size, const doublereal &dPivot,
-		const unsigned& blockSize)
+		const unsigned blockSize)
 : LinearSolver(0),
 iSize(size),
 Axp(0),
@@ -310,7 +310,7 @@ UmfpackSolver::bPrepareSymbolic(void)
 
 UmfpackSparseSolutionManager::UmfpackSparseSolutionManager(integer Dim,
 		doublereal dPivot,
-		const unsigned& blockSize)
+		const unsigned blockSize)
 : A(Dim),
 x(Dim),
 b(Dim),
@@ -331,7 +331,7 @@ UmfpackSparseSolutionManager::~UmfpackSparseSolutionManager(void)
 }
 
 void
-UmfpackSparseSolutionManager::MatrReset(const doublereal& d)
+UmfpackSparseSolutionManager::MatrReset(const doublereal d)
 {
 	A.Reset(d);
 }
@@ -343,7 +343,7 @@ UmfpackSparseSolutionManager::MakeCompressedColumnForm(void)
 }
 
 void
-UmfpackSparseSolutionManager::MatrInit(const doublereal& d)
+UmfpackSparseSolutionManager::MatrInit(const doublereal d)
 {
 	MatrReset(d);
 	pLS->Init();
@@ -401,7 +401,7 @@ UmfpackSparseCCSolutionManager<CC>::~UmfpackSparseCCSolutionManager(void)
 
 template <class CC>
 void
-UmfpackSparseCCSolutionManager<CC>::MatrReset(const doublereal& d)
+UmfpackSparseCCSolutionManager<CC>::MatrReset(const doublereal d)
 {
 	if (!CCReady) {
 		A.Reset(d);
@@ -428,7 +428,7 @@ UmfpackSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 /* Inizializzatore "speciale" */
 template <class CC>
 void
-UmfpackSparseCCSolutionManager<CC>::MatrInitialize(const doublereal& d)
+UmfpackSparseCCSolutionManager<CC>::MatrInitialize(const doublereal d)
 {
 	CCReady = false;
 

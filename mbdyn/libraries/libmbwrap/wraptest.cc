@@ -251,20 +251,34 @@ main(int argc, char *argv[])
 	VectorHandler *pV = pSM->pResHdl();
 	VectorHandler *px = pSM->pSolHdl();
 
-	pM->PutCoef(1, 1, 1.);
-	pM->PutCoef(2, 2, 2.);
-	pM->PutCoef(2, 3, -1.);
-	pM->PutCoef(3, 2, -1.);
+	VariableSubMatrixHandler SBMH(10,10);
+	FullSubMatrixHandler& WM = SBMH.SetFull();
+	WM.ResizeInit(3, 3, 0.);
+	WM.PutRowIndex(1,1);
+	WM.PutRowIndex(2,2);
+	WM.PutRowIndex(3,3);
+	WM.PutColIndex(1,1);
+	WM.PutColIndex(2,2);
+	WM.PutColIndex(3,3);
+	WM.PutCoef(1, 1, 1.);
+	WM.PutCoef(2, 2, 2.);
+	WM.PutCoef(2, 3, -1.);
+	WM.PutCoef(3, 2, 11.);
+	WM.PutCoef(3, 1, 10.);
 	if (singular) {
-		pM->PutCoef(3, 3, 0.);
+		WM.PutCoef(3, 3, 0.);
 
 	} else {
-		pM->PutCoef(3, 3, 3.);
+		WM.PutCoef(3, 3, 3.);
 	}
+	
+	*pM += SBMH;
 	
 	pV->PutCoef(1, 1.);
 	pV->PutCoef(2, 1.);
 	pV->PutCoef(3, 1.);
+	
+	std::cout << *pM << "\n";
 	
 #ifdef USE_EXCEPTIONS
 	try {

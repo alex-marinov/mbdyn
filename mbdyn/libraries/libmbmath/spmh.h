@@ -69,7 +69,7 @@ public:
 		return NCols;
 	};
 
-	void Init(const doublereal &r = 0.);
+	void Init(const doublereal r = 0.);
 
 	virtual
 	integer MakeCompressedColumnForm(doublereal *const Ax,
@@ -91,18 +91,6 @@ public:
         integer MakeIndexForm(std::vector<doublereal>& Ax,
 			std::vector<integer>& Arow, std::vector<integer>& Acol,
 			std::vector<integer>& AcolSt,
-			int offset = 0) const = 0;
-
-	virtual
-	integer MakeNaiveForm(doublereal *const Ax,
-			integer *const Arow, integer *const Acol,
-			integer *const nzr, integer *const nzc,
-			int offset = 0) const = 0;
-
-	virtual
-	integer MakeNaiveForm(std::vector<doublereal>& Ax,
-                	std::vector<integer>& Arow, std::vector<integer>& Acol,
-			std::vector<integer>& Nzr, std::vector<integer>& Nzc,
 			int offset = 0) const = 0;
 
 	/* Estrae una colonna da una matrice */
@@ -145,23 +133,7 @@ public:
 	};
 
 public:
-	void IncCoef(integer ix, integer iy, const doublereal& inc) {
-		operator()(ix,iy) += inc;
-	};
-	
-	void DecCoef(integer ix, integer iy, const doublereal& inc) {
-		operator()(ix,iy) -= inc;
-	};
-
-	void PutCoef(integer ix, integer iy, const doublereal& val) {
-		operator()(ix,iy) = val;
-	};
-
-	const doublereal& dGetCoef(integer ix, integer iy) const {
-		return operator()(ix, iy);
-	};
-
-	void Reset(const doublereal &r);
+	void Reset(const doublereal r);
 	
 	virtual
 	integer MakeCompressedColumnForm(doublereal *const Ax,
@@ -185,17 +157,6 @@ public:
 			std::vector<integer>& AcolSt,
 			int offset = 0) const;
 
-	virtual
-	integer MakeNaiveForm(doublereal *const Ax,
-			integer *const Arow, integer *const Acol,
-			integer *const nzr, integer *const nzc,
-			int offset = 0) const;
-
-	virtual
-	integer MakeNaiveForm(std::vector<doublereal>& Ax,
-                	std::vector<integer>& Arow, std::vector<integer>& Acol,
-			std::vector<integer>& Nzr, std::vector<integer>& Nzc,
-			int offset = 0) const;
 };
 
 #endif /* SPMH_H */

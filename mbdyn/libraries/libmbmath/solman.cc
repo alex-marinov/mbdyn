@@ -73,7 +73,7 @@ SolutionManager::~SolutionManager(void)
 
 /* Inizializzatore "speciale" */
 void
-SolutionManager::MatrInitialize(const doublereal& d)
+SolutionManager::MatrInitialize(const doublereal d)
 {
 	MatrInit(d);
 }

@@ -110,10 +110,10 @@ public:
 #endif /* DEBUG */
 
 	/* Inizializzatore generico */
-	virtual void MatrInit(const doublereal& d = 0.) = 0;
+	virtual void MatrInit(const doublereal d = 0.) = 0;
 
 	/* Inizializzatore "speciale" */
-	virtual void MatrInitialize(const doublereal& d = 0.);
+	virtual void MatrInitialize(const doublereal d = 0.);
 
 	/* Risolve il sistema */
 	virtual void Solve(void) = 0;

@@ -318,7 +318,7 @@ SchurSolutionManager::IsValid(void) const
 /* Inizializza il gestore delle matrici */
 
 void
-SchurSolutionManager::MatrInit(const doublereal& dResetVal)
+SchurSolutionManager::MatrInit(const doublereal dResetVal)
 {
 #ifdef DEBUG
 	IsValid();

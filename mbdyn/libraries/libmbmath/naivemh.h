@@ -34,17 +34,26 @@
 #define NAIVEMH_H
 
 #include <vector>
+#include <limits>
 
 #include "myassert.h"
 #include "solman.h"
 
+// #define MBDYN_HIGH_NAIVEMH     0x80000000
+// #define MBDYN_LOW_NAIVEMH      0x7FFFFFFF
+
+class NaiveSolver;
+
 /* Sparse Matrix */
 class NaiveMatrixHandler : public MatrixHandler {
 protected:
+	friend class NaiveSolver;
 	integer iSize;
 	doublereal **ppdRows;
 	integer **ppiRows, **ppiCols;
 	integer *piNzr, *piNzc;
+	const integer HIGH;
+	const integer LOW;
 
 #ifdef DEBUG
 	void IsValid(void) const {
@@ -66,26 +75,13 @@ public:
 		return iSize;
 	};
 
-	void Init(const doublereal &r = 0.);
+	void Reset(const doublereal r = 0.);
+	void Init(const doublereal r = 0.) {Reset(r);};
 
 	/* Ridimensiona la matrice */
-	virtual void Resize(integer, integer);
-
-	/* Inserisce un coefficiente */
-	virtual inline void
-	PutCoef(integer iRow, integer iCol, const doublereal& dCoef);
-
-	/* Incrementa un coefficiente - se non esiste lo crea */
-	virtual inline void
-	IncCoef(integer iRow, integer iCol, const doublereal& dCoef);
-
-	/* Decrementa un coefficiente - se non esiste lo crea */
-	virtual inline void
-	DecCoef(integer iRow, integer iCol, const doublereal& dCoef);
-
-	/* Restituisce un coefficiente - zero se non e' definito */
-	virtual inline const doublereal&
-	dGetCoef(integer iRow, integer iCol) const;
+	virtual void Resize(integer, integer) {
+		THROW(ErrGeneric());
+	};
 
 	virtual inline const doublereal&
 	operator () (integer iRow, integer iCol) const;
@@ -109,82 +105,17 @@ public:
 
 };
 
-/* Inserisce un coefficiente */
-void
-NaiveMatrixHandler::PutCoef(integer iRow, integer iCol,
-		const doublereal& dCoef)
-{
-	if (dCoef == 0.) {
-		return;
-	}
-
-	--iRow;
-	--iCol;
-	if (ppdRows[iRow][iCol] == 0.) {
-		ppiRows[iRow][piNzr[iCol]] = iRow;
-		ppiCols[iCol][piNzc[iRow]] = iCol;
-		piNzr[iCol]++;
-		piNzc[iRow]++;
-	}
-
-	ppdRows[iRow][iCol] = dCoef;
-}
-
-/* Incrementa un coefficiente - se non esiste lo crea */
-void
-NaiveMatrixHandler::IncCoef(integer iRow, integer iCol,
-		const doublereal& dCoef)
-{
-	if (dCoef == 0.) {
-		return;
-	}
-
-	--iRow;
-	--iCol;
-	if (ppdRows[iRow][iCol] == 0.) {
-		ppdRows[iRow][iCol] = dCoef;
-		ppiRows[iRow][piNzr[iCol]] = iRow;
-		ppiCols[iCol][piNzc[iRow]] = iCol;
-		piNzr[iCol]++;
-		piNzc[iRow]++;
-	} else {
-		ppdRows[iRow][iCol] += dCoef;
-	}
-}
-
-/* Decrementa un coefficiente - se non esiste lo crea */
-void
-NaiveMatrixHandler::DecCoef(integer iRow, integer iCol,
-		const doublereal& dCoef)
-{
-	if (dCoef == 0.) {
-		return;
-	}
-
-	--iRow;
-	--iCol;
-	if (ppdRows[iRow][iCol] == 0.) {
-		ppdRows[iRow][iCol] = dCoef;
-		ppiRows[iRow][piNzr[iCol]] = iRow;
-		ppiCols[iCol][piNzc[iRow]] = iCol;
-		piNzr[iCol]++;
-		piNzc[iRow]++;
-	} else {
-		ppdRows[iRow][iCol] -= dCoef;
-	}
-}
-
-/* Restituisce un coefficiente - zero se non e' definito */
-const doublereal&
-NaiveMatrixHandler::dGetCoef(integer iRow, integer iCol) const
-{
-	return ppdRows[--iRow][--iCol];
-}
 
 const doublereal&
 NaiveMatrixHandler::operator () (integer iRow, integer iCol) const
 {
-	return ppdRows[--iRow][--iCol];
+	--iRow;
+	--iCol;
+	if (ppiRows[iRow][iCol] & HIGH) {
+		return ppdRows[iRow][iCol];
+	} else {
+		return ::dZero;
+	}
 }
 
 doublereal&
@@ -192,12 +123,13 @@ NaiveMatrixHandler::operator () (integer iRow, integer iCol)
 {
 	--iRow;
 	--iCol;
-	
-	if (ppdRows[iRow][iCol] == 0.) {
-		ppiRows[iRow][piNzr[iCol]] = iRow;
-		ppiCols[iCol][piNzc[iRow]] = iCol;
+	if (!(ppiRows[iRow][iCol] & HIGH)) {
+		ppiRows[iRow][iCol] |= HIGH;
+		ppiRows[iCol][piNzr[iCol]] |= iRow;
+		ppiCols[iRow][piNzc[iRow]] = iCol;
 		piNzr[iCol]++;
 		piNzc[iRow]++;
+		ppdRows[iRow][iCol] = 0.;
 	}
 
 	return ppdRows[iRow][iCol];

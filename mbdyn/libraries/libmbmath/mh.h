@@ -73,13 +73,13 @@ public:
 #endif /* DEBUG */
 
 	/* Resetta la matrice ecc. */
-	virtual void Init(const doublereal& dResetVal = 0.) = 0;
+	virtual void Init(const doublereal dResetVal = 0.) = 0;
 
 	/* Ridimensiona la matrice */
 	virtual void Resize(integer, integer) = 0;
 
 	/* Ridimensiona ed inizializza. */
-	virtual void ResizeInit(integer, integer, const doublereal&);
+	virtual void ResizeInit(integer, integer, const doublereal = 0.);
 
 	/* Restituisce un puntatore all'array di reali della matrice */
 	virtual inline doublereal* pdGetMat(void) const;
@@ -95,23 +95,23 @@ public:
 	virtual integer PacMat(void);
 
 	/* Resetta la matrice ecc. */
-	virtual void Reset(const doublereal& dResetVal = 0.);
+	virtual void Reset(const doublereal dResetVal = 0.);
 
 	/* Inserisce un coefficiente */
 	virtual void
-	PutCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
+	PutCoef(integer iRow, integer iCol, const doublereal& dCoef);
 
 	/* Incrementa un coefficiente - se non esiste lo crea */
 	virtual void
-	IncCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
+	IncCoef(integer iRow, integer iCol, const doublereal& dCoef);
 
 	/* Decrementa un coefficiente - se non esiste lo crea */
 	virtual void
-	DecCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
+	DecCoef(integer iRow, integer iCol, const doublereal& dCoef);
 
 	/* Restituisce un coefficiente - zero se non e' definito */
 	virtual const doublereal&
-	dGetCoef(integer iRow, integer iCol) const = 0;
+	dGetCoef(integer iRow, integer iCol) const;
 
 	virtual const doublereal&
 	operator () (integer iRow, integer iCol) const = 0;

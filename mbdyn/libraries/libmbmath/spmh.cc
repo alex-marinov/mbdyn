@@ -48,7 +48,7 @@ SparseMatrixHandler::~SparseMatrixHandler(void)
 }
 
 void
-SparseMatrixHandler::Init(const doublereal& c)
+SparseMatrixHandler::Init(const doublereal c)
 {
 	Reset(c);
 }
@@ -109,7 +109,7 @@ CompactSparseMatrixHandler::AddUnchecked(const CompactSparseMatrixHandler& m)
 }
 
 void
-CompactSparseMatrixHandler::Reset(const doublereal &r)
+CompactSparseMatrixHandler::Reset(const doublereal r)
 {
 	std::fill(Ax.begin(), Ax.end(), r);
 }
@@ -145,26 +145,6 @@ integer
 CompactSparseMatrixHandler::MakeIndexForm(std::vector<doublereal>& rAx,
                 std::vector<integer>& Arow, std::vector<integer>& Acol,
 		std::vector<integer>& AcolSt, int offset) const
-{
-	THROW(ErrGeneric());
-	return Nz();
-}
-
-integer
-CompactSparseMatrixHandler::MakeNaiveForm(doublereal *const Ax,
-		integer *const Arow, integer *const Acol,
-		integer *const nzr, integer *const nzc,
-		int offset) const
-{
-	THROW(ErrGeneric());
-	return Nz();
-}
-
-integer
-CompactSparseMatrixHandler::MakeNaiveForm(std::vector<doublereal>& Ax,
-               	std::vector<integer>& Arow, std::vector<integer>& Acol,
-		std::vector<integer>& Nzr, std::vector<integer>& Nzc,
-		int offset) const
 {
 	THROW(ErrGeneric());
 	return Nz();

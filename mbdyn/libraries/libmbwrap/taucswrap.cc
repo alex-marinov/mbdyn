@@ -239,7 +239,7 @@ TaucsSparseSolutionManager::~TaucsSparseSolutionManager(void)
 }
 
 void
-TaucsSparseSolutionManager::MatrReset(const doublereal& d)
+TaucsSparseSolutionManager::MatrReset(const doublereal d)
 {
 	A.Reset(d);
 }
@@ -251,7 +251,7 @@ TaucsSparseSolutionManager::MakeCompressedColumnForm(void)
 }
 
 void
-TaucsSparseSolutionManager::MatrInit(const doublereal& d)
+TaucsSparseSolutionManager::MatrInit(const doublereal d)
 {
 	MatrReset(d);
 	pLS->Init();
@@ -307,7 +307,7 @@ TaucsSparseCCSolutionManager<CC>::~TaucsSparseCCSolutionManager(void)
 
 template <class CC>
 void
-TaucsSparseCCSolutionManager<CC>::MatrReset(const doublereal& d)
+TaucsSparseCCSolutionManager<CC>::MatrReset(const doublereal d)
 {
 	if (!CCReady) {
 		A.Reset(d);
@@ -334,7 +334,7 @@ TaucsSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 /* Inizializzatore "speciale" */
 template <class CC>
 void
-TaucsSparseCCSolutionManager<CC>::MatrInitialize(const doublereal& d)
+TaucsSparseCCSolutionManager<CC>::MatrInitialize(const doublereal d)
 {
 	SAFEDELETE(Ac);
 	Ac = 0;

@@ -43,7 +43,7 @@
 #include "mynewmem.h"
 #include "ls.h"
 #include "solman.h"
-#include "spmapmh.h"
+#include "naivemh.h"
 
 	
 /* NaiveSolver - begin */
@@ -51,28 +51,19 @@
 class NaiveSolver: public LinearSolver {
 private:
 	integer iSize;
-	mutable doublereal *Axp;
-	mutable integer *Arowp;
-	mutable integer *Acolp;
+	NaiveMatrixHandler *const A;
 
-	mutable std::vector<integer> nzr;
-	mutable std::vector<integer> nzc;
 	mutable std::vector<integer> piv;
 
 	void Factor(void);
 
 public:
-	NaiveSolver(const integer &size);
+	NaiveSolver(const integer &size, NaiveMatrixHandler *const a);
 	~NaiveSolver(void);
 
 	void Init(void);
 	void Solve(void) const;
 
-	void MakeCompactForm(SparseMatrixHandler&,
-			std::vector<doublereal>& Ax,
-			std::vector<integer>& Ar,
-			std::vector<integer>& Ac,
-			std::vector<integer>& curCol) const;
 };
 
 /* NaiveSolver - end */
@@ -81,21 +72,12 @@ public:
 
 class NaiveSparseSolutionManager: public SolutionManager {
 protected:
-	mutable SpMapMatrixHandler A;
+	mutable NaiveMatrixHandler A;
 	mutable MyVectorHandler VH;
 
-	std::vector<doublereal> Ax;
-	std::vector<integer> Arow;
-	std::vector<integer> Acol;
-	std::vector<integer> Admy;
-
 	/* Azzera la matrice (callback per MatrInit) */
-	virtual void MatrReset(const doublereal& d);
+	virtual void MatrReset(const doublereal d);
 
-	/* Passa in forma di Compressed Column (callback per solve,
-	 * richiesto da SpMap e CC Matrix Handler) */
-	virtual void MakeNaiveForm(void);
-	
 public:
 	NaiveSparseSolutionManager(integer Dim);
 	virtual ~NaiveSparseSolutionManager(void);
@@ -106,7 +88,7 @@ public:
 #endif /* DEBUG */
 
 	/* Inizializzatore generico */
-	virtual void MatrInit(const doublereal& d = 0.);
+	virtual void MatrInit(const doublereal d = 0.);
 	
 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
 	virtual void Solve(void);

@@ -138,7 +138,7 @@ protected:
 	std::vector<integer> Ap;
 
 	/* Azzera la matrice (callback per MatrInit) */
-	virtual void MatrReset(const doublereal& d);
+	virtual void MatrReset(const doublereal d);
 
 	/* Passa in forma di Compressed Column (callback per solve,
 	 * richiesto da SpMap e CC Matrix Handler) */
@@ -157,7 +157,7 @@ public:
 #endif /* DEBUG */
 
 	/* Inizializzatore generico */
-	virtual void MatrInit(const doublereal& d = 0.);
+	virtual void MatrInit(const doublereal d = 0.);
 	
 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
 	virtual void Solve(void);
@@ -182,7 +182,7 @@ protected:
 	bool CCReady;
 	CompactSparseMatrixHandler *Ac;
 
-	virtual void MatrReset(const doublereal& d);
+	virtual void MatrReset(const doublereal d);
 	virtual void MakeCompressedColumnForm(void);
 	
 public:
@@ -190,7 +190,7 @@ public:
 	virtual ~TaucsSparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */
-	virtual void MatrInitialize(const doublereal& d = 0.);
+	virtual void MatrInitialize(const doublereal d = 0.);
 	
 	/* Rende disponibile l'handler per la matrice */
 	virtual MatrixHandler* pMatHdl(void) const;

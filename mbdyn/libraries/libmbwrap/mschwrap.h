@@ -190,7 +190,7 @@ public:
 #ifdef DEBUG
    	void IsValid(void) const;
 #endif /* DEBUG */
-   	void Init(const doublereal& d = 0.);
+   	void Init(const doublereal d = 0.);
    
    	/* Inserisce un coefficiente */
    	inline flag PutCoef(integer iRow, integer iCol,
@@ -325,7 +325,7 @@ public:
 #ifdef DEBUG
    	void IsValid(void) const;
 #endif /* DEBUG */
-   	void MatrInit(const doublereal& d = 0.);
+   	void MatrInit(const doublereal d = 0.);
    
    	void Solve(void);
    	

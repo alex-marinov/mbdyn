@@ -45,25 +45,21 @@
 #include "spmapmh.h"
 #include "naivewrap.h"
 
-extern "C" int
-naivfct(void *mat_a, integer neq, integer *vet_nzr,
-		void *mat_ri, integer *vet_nzc, void *mat_ci,
-		integer ncd, integer *vet_piv, doublereal minpiv);
-extern "C" void
-naivslv(void *mat_a, integer neq, integer *vet_nzc,
-		void *mat_ci, integer ncd, doublereal *vet_rhs,
-		integer *vet_piv);
+extern "C" {
+int 
+naivfct(doublereal** a, integer neq, integer *nzr, integer** ri, 
+	integer *nzc, integer** ci, integer *piv, doublereal minpiv);
+void 
+naivslv(doublereal** a, integer neq, integer *nzc, integer** ci, 
+	doublereal *rhs, integer *piv);
+}
 
 /* NaiveSolver - begin */
 	
-NaiveSolver::NaiveSolver(const integer &size)
+NaiveSolver::NaiveSolver(const integer &size, NaiveMatrixHandler *const a)
 : LinearSolver(0),
 iSize(size),
-Axp(0),
-Arowp(0),
-Acolp(0),
-nzr(size),
-nzc(size),
+A(a),
 piv(size)
 {
 	NO_OP;
@@ -88,7 +84,7 @@ NaiveSolver::Solve(void) const
       		bHasBeenReset = false;
 	}
 
-	naivslv(Axp, iSize, &nzc[0], Acolp, iSize,
+	naivslv(A->ppdRows, iSize, A->piNzc, A->ppiCols,
 			LinearSolver::pdRhs, &piv[0]);
 }
 
@@ -96,10 +92,12 @@ void
 NaiveSolver::Factor(void)
 {
 	int		rc;
-	doublereal	minpiv = 1.E-6;
+	doublereal	minpiv = 1.E-8;
 	
-	rc = naivfct(Axp, iSize, &nzr[0], Arowp, &nzc[0], Acolp,
-			iSize, &piv[0], minpiv);
+	rc = naivfct(A->ppdRows, iSize, 
+			A->piNzr, A->ppiRows, 
+			A->piNzc, A->ppiCols,
+			&piv[0], minpiv);
 
 #define ENULCOL  -1000000
 #define ENOPIV   -2000000
@@ -124,24 +122,6 @@ NaiveSolver::Factor(void)
 	}
 }
 
-void
-NaiveSolver::MakeCompactForm(SparseMatrixHandler& mh,
-		std::vector<doublereal>& Ax,
-		std::vector<integer>& Arow,
-		std::vector<integer>& Acol,
-		std::vector<integer>& Admy) const
-{
-	if (!bHasBeenReset) {
-		return;
-	}
-	
-	mh.MakeNaiveForm(Ax, Arow, Acol, nzr, nzc);
-
-	Axp = &Ax[0];
-	Arowp = &Arow[0];
-	Acolp = &Acol[0];
-}
-
 /* NaiveSolver - end */
 
 /* NaiveSparseSolutionManager - begin */
@@ -150,7 +130,7 @@ NaiveSparseSolutionManager::NaiveSparseSolutionManager(integer Dim)
 : A(Dim),
 VH(Dim)
 {
-	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver, NaiveSolver(Dim));
+	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver, NaiveSolver(Dim,&A));
 
 	(void)pLS->ChangeResPoint(VH.pdGetVec());
 	(void)pLS->ChangeSolPoint(VH.pdGetVec());
@@ -163,19 +143,13 @@ NaiveSparseSolutionManager::~NaiveSparseSolutionManager(void)
 }
 
 void
-NaiveSparseSolutionManager::MatrReset(const doublereal& d)
+NaiveSparseSolutionManager::MatrReset(const doublereal d)
 {
 	A.Reset(d);
 }
 
 void
-NaiveSparseSolutionManager::MakeNaiveForm(void)
-{
-	pLS->MakeCompactForm(A, Ax, Arow, Acol, Admy);
-}
-
-void
-NaiveSparseSolutionManager::MatrInit(const doublereal& d)
+NaiveSparseSolutionManager::MatrInit(const doublereal d)
 {
 	MatrReset(d);
 	pLS->Init();
@@ -185,7 +159,7 @@ NaiveSparseSolutionManager::MatrInit(const doublereal& d)
 void
 NaiveSparseSolutionManager::Solve(void)
 {
-	MakeNaiveForm();
+// 	MakeNaiveForm();
 	pLS->Solve();
 }
 

@@ -42,7 +42,7 @@
 /* FullMatrixHandler - begin */
 
 void
-FullMatrixHandler::Init(const doublereal& dResetVal)
+FullMatrixHandler::Init(const doublereal dResetVal)
 {
 #ifdef DEBUG
 	IsValid();

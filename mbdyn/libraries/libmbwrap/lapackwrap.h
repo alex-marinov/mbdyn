@@ -113,7 +113,7 @@ protected:
 	mutable MyVectorHandler VH;
 
 	/* Azzera la matrice (callback per MatrInit) */
-	virtual void MatrReset(const doublereal& d);
+	virtual void MatrReset(const doublereal d);
 
 	/* Backward Substitution */
 	void BackSub(doublereal t_iniz = 0.);
@@ -128,7 +128,7 @@ public:
 #endif /* DEBUG */
 
 	/* Inizializzatore generico */
-	virtual void MatrInit(const doublereal& d = 0.);
+	virtual void MatrInit(const doublereal d = 0.);
 	
 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
 	virtual void Solve(void);

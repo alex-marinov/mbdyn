@@ -113,7 +113,7 @@ FullSubMatrixHandler::IsValid(void) const
 
 
 void
-FullSubMatrixHandler::Init(const doublereal& dResetVal)
+FullSubMatrixHandler::Init(const doublereal dResetVal)
 {
 #ifdef DEBUG
 	IsValid();
@@ -180,7 +180,7 @@ FullSubMatrixHandler::Resize(integer iNewRow, integer iNewCol) {
 
 /* Ridimensiona ed inizializza. */
 void
-FullSubMatrixHandler::ResizeInit(integer ir, integer ic, const doublereal& d)
+FullSubMatrixHandler::ResizeInit(integer ir, integer ic, const doublereal d)
 {
 	FullSubMatrixHandler::Resize(ir, ic);
 	FullSubMatrixHandler::Init(d);
@@ -836,7 +836,7 @@ SparseSubMatrixHandler::Resize(integer iNewRow, integer iNewCol)
  */
 void
 SparseSubMatrixHandler::ResizeInit(integer iNewRow, integer iNewCol,
-		const doublereal& dCoef)
+		const doublereal dCoef)
 {
 	Resize(iNewRow, iNewCol);
 	Init(dCoef);
@@ -1059,7 +1059,7 @@ SparseSubMatrixHandler::PutCross(integer iSubIt, integer iFirstRow,
 
 
 void
-SparseSubMatrixHandler::Init(const doublereal& dCoef)
+SparseSubMatrixHandler::Init(const doublereal dCoef)
 {
 #ifdef DEBUG
 	IsValid();

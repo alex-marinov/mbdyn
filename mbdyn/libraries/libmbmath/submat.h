@@ -93,7 +93,7 @@ public:
 	/*
 	 * Inizializza la matrice con d
 	 */
-	virtual void Init(const doublereal&) = 0;
+	virtual void Init(const doublereal) = 0;
 
 	/*
 	 * Ridimensiona la matrice.
@@ -106,7 +106,7 @@ public:
 	 * Ridimensiona ed inizializza.
 	 * Combina le due funzioni precedenti in una chiamata.
 	 */
-	virtual void ResizeInit(integer, integer, const doublereal&) = 0;
+	virtual void ResizeInit(integer, integer, const doublereal) = 0;
 
 	/* Gestione dei vettori di incidenza */
 
@@ -231,7 +231,7 @@ public:
 	/*
 	 * Inizializza la porzione utilizzata con il valore desiderato
 	 */
-	void Init(const doublereal& dResetVal = 0.);
+	void Init(const doublereal dResetVal = 0.);
 
 	/*
 	 * Modifica le dimensioni correnti
@@ -239,7 +239,7 @@ public:
 	void Resize(integer iNewRow, integer iNewCol);
 
 	/* Ridimensiona ed inizializza. */
-	virtual void ResizeInit(integer, integer, const doublereal&);
+	virtual void ResizeInit(integer, integer, const doublereal);
 
 	/*
 	 * Collega la matrice Full alla memoria che gli viene passata
@@ -605,7 +605,7 @@ public:
 	/*
 	 * Inizializza la matrice con d.
 	 */
-	void Init(const doublereal& dCoef = 0.);
+	void Init(const doublereal dCoef = 0.);
 
 	/*
 	 * Ridimensiona la matrice.
@@ -621,7 +621,7 @@ public:
 	 * Unione dei due metodi precedenti
 	 */
 	void ResizeInit(integer iNewRow, integer iNewCol,
-			const doublereal& dCoef = 0.);
+			const doublereal dCoef = 0.);
 
 	/*
 	 * Collega la matrice sparsa alla memoria che gli viene passata

@@ -152,13 +152,13 @@ LapackSolutionManager::~LapackSolutionManager(void)
 }
 
 void
-LapackSolutionManager::MatrReset(const doublereal& d)
+LapackSolutionManager::MatrReset(const doublereal d)
 {
 	A.Reset(d);
 }
 
 void
-LapackSolutionManager::MatrInit(const doublereal& d)
+LapackSolutionManager::MatrInit(const doublereal d)
 {
 	MatrReset(d);
 	pLS->Init();

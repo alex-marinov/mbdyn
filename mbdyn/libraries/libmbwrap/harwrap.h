@@ -363,7 +363,7 @@ public:
 #endif /* DEBUG */
    
    	/* Inizializza il gestore delle matrici */
-   	void MatrInit(const doublereal& dResetVal = 0.);
+   	void MatrInit(const doublereal dResetVal = 0.);
    
    	/* Risolve il sistema */
    	void Solve(void);

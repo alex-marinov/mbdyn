@@ -145,7 +145,7 @@ void VecN::Resize(integer ns)
 }
 
 
-void VecN::Reset(const doublereal& d)
+void VecN::Reset(const doublereal d)
 {
 #ifdef DEBUG
    IsValid();
@@ -332,7 +332,7 @@ void Mat3xN::Resize(integer ns)
 }
 
 
-void Mat3xN::Reset(const doublereal& d)
+void Mat3xN::Reset(const doublereal d)
 {
 #ifdef DEBUG
    IsValid();
@@ -800,7 +800,7 @@ void MatNx3::Resize(integer ns)
 #endif /* DEBUG */
 }
 
-void MatNx3::Reset(const doublereal& d)
+void MatNx3::Reset(const doublereal d)
 {
 #ifdef DEBUG
    IsValid();
@@ -984,7 +984,7 @@ MatNxN::~MatNxN(void)
    Destroy_();
 }
 
-void MatNxN::Reset(const doublereal& d)
+void MatNxN::Reset(const doublereal d)
 {
 #ifdef DEBUG
    IsValid();

@@ -242,7 +242,7 @@ protected:
 	void IsValid(void) const;
 #endif /* DEBUG */
 
-	virtual void MatrReset(const doublereal& d);
+	virtual void MatrReset(const doublereal d);
 	virtual void MakeIndexForm(void);
 public:
 	/* Costruttore: usa e mette a disposizione matrici che gli sono date */
@@ -255,7 +255,7 @@ public:
 	~Y12SparseSolutionManager(void);
 
 	/* Inizializza il gestore delle matrici */
-	void MatrInit(const doublereal& dResetVal = 0.);
+	void MatrInit(const doublereal dResetVal = 0.);
 
 	/* Risolve il sistema */
 	void Solve(void);
@@ -286,7 +286,7 @@ protected:
 	bool CCReady;
 	CompactSparseMatrixHandler *Ac;
 
-	virtual void MatrReset(const doublereal& d);
+	virtual void MatrReset(const doublereal d);
 	virtual void MakeIndexForm(void);
 	
 public:
@@ -295,7 +295,7 @@ public:
 	virtual ~Y12SparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */
-	virtual void MatrInitialize(const doublereal& d = 0.);
+	virtual void MatrInitialize(const doublereal d = 0.);
 	
 	/* Rende disponibile l'handler per la matrice */
 	virtual MatrixHandler* pMatHdl(void) const;
