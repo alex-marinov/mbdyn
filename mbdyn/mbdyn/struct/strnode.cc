@@ -415,7 +415,10 @@ StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
    gCurr += Vec3(X, iFirstIndex+4);
    gPCurr += Vec3(XP, iFirstIndex+4);
    
-   /* resetto i parametri di rotazione nei vettori soluzione */
+   /*
+    * resetto i parametri di rotazione nei vettori soluzione
+    * FIXME: probabilmente non occorre ...
+    */
    ((VectorHandler&)X).Put(iFirstIndex+4, Vec3(0.));
    ((VectorHandler&)XP).Put(iFirstIndex+4, Vec3(0.));
 
