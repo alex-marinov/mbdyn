@@ -166,38 +166,70 @@ void ThirdOrderIntegrator::Predict(void) {
 	 */
 	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
 		iCntp1++, DofIterator.fGetNext(CurrDof)) {
-		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-			doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-	 		doublereal dXPnm1 = 
-				pXPrimePrev->dGetCoef(iCntp1);
-			/* tempo theta*/
-	 		doublereal dXPn = dXnm1+dXPnm1*theta*dT;
-			doublereal dXn = dXPnm1;		
-	 		pXPrimeCurr->fPutCoef(iCntp1+iNumDofs, dXPn);
-	 		pXCurr->fPutCoef(iCntp1+iNumDofs, dXn);
-			/* tempo finale */
-	 		dXPn = dXnm1+dXPnm1*dT;
-			dXn = dXPnm1;
-	 		pXPrimeCurr->fPutCoef(iCntp1, dXPn);
-	 		pXCurr->fPutCoef(iCntp1, dXn);
-      		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
-	 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-	 		doublereal dXInm1 = pXPrimePrev->dGetCoef(iCntp1);
-			/* tempo theta*/
-	 		doublereal dXn = dXnm1;
-			doublereal dXIn = dXnm1*theta*dT;
-	 		pXCurr->fPutCoef(iCntp1+iNumDofs, dXn);
-	 		pXPrimeCurr->fPutCoef(iCntp1+iNumDofs, dXIn);
-			/* tempo finale */
-	 		dXn = dXnm1;
-			dXIn = dXnm1*dT;
-	 		pXCurr->fPutCoef(iCntp1, dXn);
-	 		pXPrimeCurr->fPutCoef(iCntp1, dXIn);
-
-		} else {
-	 		std::cerr << "unknown order for dof " 
-				<< iCntp1<< std::endl;
-	 		THROW(ErrGeneric());
-		}
+		//simple copy of predicted state
+ 		pXPrimeCurr->fPutCoef(iCntp1+iNumDofs,
+			pXPrimeCurr->dGetCoef(iCntp1));
+ 		pXCurr->fPutCoef(iCntp1+iNumDofs, pXCurr->dGetCoef(iCntp1));
+// 		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+// 			doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
+// 	 		doublereal dXPnm1 = 
+// 				pXPrimePrev->dGetCoef(iCntp1);
+// 			/* tempo theta*/
+// 	 		doublereal dXPn = dXnm1+dXPnm1*theta*dT;
+// 			doublereal dXn = dXPnm1;		
+// 	 		pXPrimeCurr->fPutCoef(iCntp1+iNumDofs, dXPn);
+// 	 		pXCurr->fPutCoef(iCntp1+iNumDofs, dXn);
+// 			/* tempo finale */
+// 	 		dXPn = dXnm1+dXPnm1*dT;
+// 			dXn = dXPnm1;
+// 	 		pXPrimeCurr->fPutCoef(iCntp1, dXPn);
+// 	 		pXCurr->fPutCoef(iCntp1, dXn);
+//       		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
+// 	 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
+// 	 		doublereal dXInm1 = pXPrimePrev->dGetCoef(iCntp1);
+// 			/* tempo theta*/
+// 	 		doublereal dXn = dXnm1;
+// 			doublereal dXIn = dXnm1*theta*dT;
+// 	 		pXCurr->fPutCoef(iCntp1+iNumDofs, dXn);
+// 	 		pXPrimeCurr->fPutCoef(iCntp1+iNumDofs, dXIn);
+// 			/* tempo finale */
+// 	 		dXn = dXnm1;
+// 			dXIn = dXnm1*dT;
+// 	 		pXCurr->fPutCoef(iCntp1, dXn);
+// 	 		pXPrimeCurr->fPutCoef(iCntp1, dXIn);
+// 
+// 		} else {
+// 	 		std::cerr << "unknown order for dof " 
+// 				<< iCntp1<< std::endl;
+// 	 		THROW(ErrGeneric());
+// 		}
    	}
+}
+
+void ThirdOrderIntegrator::Residual(VectorHandler* pRes) const
+{
+	ASSERT(pDM != NULL);
+	
+	integer iNumDofs = pDM->iGetNumDofs();
+
+	MyVectorHandler state, stateder, res;
+	
+	/* theta*dT */
+	state.Attach(iNumDofs,pXCurr->pdGetVec()+iNumDofs);
+	stateder.Attach(iNumDofs,pXPrimeCurr->pdGetVec()+iNumDofs);
+	res.Attach(iNumDofs,pRes->pdGetVec()+iNumDofs);
+	pDM->SetTime(pDM->dGetTime()-(1.-theta)*dT);
+	pDM->LinkToSolution(state, stateder);
+	pDM->Update();
+	pDM->AssRes(res, 1.);
+	
+	/* dT */
+	state.Attach(iNumDofs,pXCurr->pdGetVec());
+	stateder.Attach(iNumDofs,pXPrimeCurr->pdGetVec());
+	res.Attach(iNumDofs,pRes->pdGetVec());
+	pDM->SetTime(pDM->dGetTime()+(1.-theta)*dT);
+	pDM->LinkToSolution(state, stateder);
+	pDM->Update();
+	pDM->AssRes(res, 1.);
+	
 }
