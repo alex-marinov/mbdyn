@@ -1,13 +1,36 @@
-object "TriadLabels" class array type int rank 1 shape 1 items 2 data follows
+object "TriadLabels" class array type int rank 1 shape 1 items 3 data follows
                1        
+               10
                15
 attribute "dep" string "positions"
-object "TriadPositions0.0" class array type float rank 1 shape 3 items 2 data follows
+object "Beam2Connections" class array type int shape 2 items 2 data follows
+ 0 1
+ 1 2
+attribute "ref" string "positions"
+attribute "element type" string "lines"
+#
+#questo e' un commento
+#
+object "Beam2Labels" class array type int shape 1 items 2 data follows
+ 1
+ 5
+attribute "dep" string "connections"
+attribute "element type" string "lines"
+object "Beam2Offsets" class array type float shape 6 items 2 data follows
+ 0.1 0.0 0.2 0. 0. 0.15
+ 0.0 0.0 0.0 1. 0. 0.
+attribute "dep" string "connections"
+#
+#questo e' un commento
+#
+object "TriadPositions0.0" class array type float rank 1 shape 3 items 3 data follows
                0               0               0
                1               0               0
-object "TriadCosines0.0" class array type float rank 1 shape 9 items 2 data follows
+               1               1               0
+object "TriadCosines0.0" class array type float rank 1 shape 9 items 3 data follows
 1 0 0 0 1 0 0 0 1
 0 1 0 1 0 0 0 0 1
+0 1 0 0 0 1 1 0 0
 attribute "dep" string "positions"
 #
 #questo e' un commento
@@ -16,18 +39,28 @@ object "OrientedTriads0.0" class field
 component "positions" "TriadPositions0.0"
 component "cosines" "TriadCosines0.0"
 component "labels" "TriadLabels"
+object "Beams20.0" class field
+component "positions" "TriadPositions0.0"
+component "connections" "Beam2Connections"
+component "cosines" "TriadCosines0.0"
+component "labels" "Beam2Labels"
+component "nodelabels" "TriadLabels"
+component "offsets" "Beam2Offsets"
 #
 #questo e' un commento
 #
 object "MbdynSym0.0" class group
 member "OrientedTriads" value "OrientedTriads0.0"
+member "Beams2" value "Beams20.0"
 #
 #questo e' un commento
 #
-object "TriadPositions0.1" class array type float rank 1 shape 3 items 2 data follows
+object "TriadPositions0.1" class array type float rank 1 shape 3 items 3 data follows
                0               0.2               0
                1.1               0               0
-object "TriadCosines0.1" class array type float rank 1 shape 9 items 2 data follows
+               1.1               1               0
+object "TriadCosines0.1" class array type float rank 1 shape 9 items 3 data follows
+0 1 0 1 0 0 0 0 1
 0 1 0 1 0 0 0 0 1
 0 1 0 1 0 0 0 0 1
 attribute "dep" string "positions"
@@ -35,11 +68,19 @@ object "OrientedTriads0.1" class field
 component "positions" "TriadPositions0.1"
 component "cosines" "TriadCosines0.1"
 component "labels" "TriadLabels"
+object "Beams20.1" class field
+component "positions" "TriadPositions0.1"
+component "connections" "Beam2Connections"
+component "cosines" "TriadCosines0.1"
+component "labels" "Beam2Labels"
+component "nodelabels" "TriadLabels"
+component "offsets" "Beam2Offsets"
 #
 #questo e' un commento
 #
 object "MbdynSym0.1" class group
 member "OrientedTriads" value "OrientedTriads0.1"
+member "Beams2" value "Beams20.1"
 #
 #questo e' un commento
 #
