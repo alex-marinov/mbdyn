@@ -11,6 +11,7 @@ env \
 eu2rot \
 femgen \
 intg \
+logproc \
 mbplot \
 posrel \
 rot2eu \
@@ -20,7 +21,7 @@ rotrel \
 sockdrive \
 vec2rot
 
-LIBS = \
+MYLIBS = \
 ../libraries/libobjs/libobjs.la \
 ../libraries/libmbwrap/libmbwrap.la \
 @Y12_LIBS@ \
@@ -41,6 +42,7 @@ env_SOURCES = env.c
 eu2rot_SOURCES = eu2rot.cc
 femgen_SOURCES = femgen.f
 intg_SOURCES = intg.cc
+logproc_SOURCES = logproc.c
 mbplot_SOURCES = mbplot.c
 posrel_SOURCES = posrel.cc
 rot2eup_SOURCES = rot2eup.cc
@@ -50,8 +52,18 @@ rotrel_SOURCES = rotrel.cc
 sockdrive_SOURCES = sockdrive.cc
 vec2rot_SOURCES = vec2rot.cc
 
-intg_LDADD = -ldl
-dae_intg_LDADD = -ldl
+cl_LDADD = $(MYLIBS)
+dae_intg_LDADD = $(MYLIBS) -ldl
+eu2rot_LDADD = $(MYLIBS)
+intg_LDADD = $(MYLIBS) -ldl
+posrel_LDADD = $(MYLIBS)
+rot2eup_LDADD = $(MYLIBS)
+rot2eu_LDADD = $(MYLIBS)
+rot2phi_LDADD = $(MYLIBS)
+rotrel_LDADD = $(MYLIBS)
+vec2rot_LDADD = $(MYLIBS)
+
+logproc_LDFLAGS = -static
 
 INCLUDES = \
 -I../libraries/libmbutil \
