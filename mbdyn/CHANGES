@@ -26,6 +26,8 @@ MBDyn 1.X-Devel
 		- fixed SuperLU memory leak
 		- fixed (mostly socket) portability issues for Cygwin
 		  and FreeBSD (patches from Kay Lehmann).
+		- fixed dynamic node accelerations postprocessing
+		- fixed compile with gcc3.2/icc8.0
 
 MBDyn 1.2.3
 	Enhancements:
