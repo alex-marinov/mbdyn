@@ -40,9 +40,10 @@
 const char* psElemNames[] = {
    "Rotor",
 
+   "Automatic Structural",
+
    "Force",
    
-   "Automatic Structural",
    "Gravity",
    "Rigid Body",
    "Joint",
@@ -74,9 +75,10 @@ const char* psElemNames[] = {
 const char* psReadElemsElems[] = {
    "rotor",
 
+   "automatic" "structural",
+
    "force",
    
-   "automatic" "structural",
    "gravity",
    "rigid" "body",
    "joint",
@@ -111,9 +113,10 @@ const char* psReadElemsElems[] = {
 const char* psReadControlElems[] = {
    "rotors",
 
+   "automatic" "structural" "elements",
+
    "forces",
    
-   "automatic" "structural" "elements",
    "gravity",
    "rigid" "bodies",
    "joints",
@@ -146,9 +149,10 @@ const char* psReadControlElems[] = {
 const char *psAdamsElemCode[] = {
    "ROTR",
 
+   "AUTO",
+
    "FORC",
    
-   "AUTO",
    "GRAV",
    "PART",
    "LINK",
