@@ -234,10 +234,7 @@ void Rotor::InitParam(void)
    doublereal dV2 = VTmp.dGet(2);
    doublereal dV3 = VTmp.dGet(3);
    doublereal dVV = dV1*dV1+dV2*dV2;
-   doublereal dV = 0.;
-   if (dVV > DBL_EPSILON) {
-      dV = sqrt(dVV);
-   }        
+   doublereal dV = sqrt(dVV);
        
    /* Angolo di azimuth del rotore */
    dPsi0 = atan2(-dV2, dV1);
@@ -258,7 +255,7 @@ void Rotor::InitParam(void)
    doublereal d = 0.;
    dMu = 0.;
    dLambda = 0.;
-   d = dOmega*dRadius;
+   d = fabs(dOmega*dRadius);
    if (d > DBL_EPSILON) {
       dMu = (dVelocity*dCosAlphad)/d;
       dLambda = (dVelocity*dSinAlphad+dUMeanPrev)/d;
@@ -281,20 +278,8 @@ void Rotor::MeanInducedVelocity(void)
 
    /* Velocita' indotta media */
    doublereal dUMeanTmp = 0.;
-   if (dT*dT > 1.e-6) {
-      doublereal d = dMu*dMu+dLambda*dLambda;     
-      /* if (d > DBL_EPSILON) { */
-	 d = sqrt(d);	 
-      /* } else {
-	 cerr << endl << "infinite mean induced velocity at Rotor "
-	   << GetLabel() << ';' << endl
-	   << "aborting ..." << endl;
-	 THROW(Rotor::ErrInfiniteMeanInducedVelocity());	
-      } */
-      
-      d = 2.*dGetAirDensity(GetXCurr())*dArea*dOmega*dRadius*d;
-      dUMeanTmp = dCorrection*dT/(d+1.);
-   } /* else dUMeanTmp is already 0. */
+   doublereal d = 2.*dGetAirDensity(GetXCurr())*dArea*dOmega*dRadius*sqrt(dMu*dMu+dLambda*dLambda);
+   dUMeanTmp = dCorrection*dT/(d+1.);
 
    dUMean = dUMeanTmp*(1.-dWeight)+dUMeanPrev*dWeight;
 }
@@ -1479,9 +1464,10 @@ Elem* ReadRotor(DataManager* pDM,
 						    fOut),
 				 DMmm);
        } else {   	      	   	      	  
-	  /* Legge il coefficiente di peso della velocita' indotta */
+	  /* Legge il coefficiente di peso della velocita' indotta 
+	   * ("weight" e' deprecato, si preferisce "delay") */
 	  doublereal dW = 0.;
-	  if (HP.IsKeyWord("weight")) {
+	  if (HP.IsKeyWord("weight") || HP.IsKeyWord("delay")) {
 	     dW = HP.GetReal();
 	     DEBUGCOUT("Weight: " << dW << endl);
 	     if (dW < 0.) {
