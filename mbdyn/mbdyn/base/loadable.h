@@ -31,14 +31,24 @@
 #ifndef LOADABLE_H
 #define LOADABLE_H
 
+/*
+ * Policy for LOADABLE_VERSION changes:
+ * <maj>	is increased when major changes in element API occur
+ * <min>	is increased when loadable elements data structure
+ * 		changes (e.g. a new call is added)
+ * <fix>	is increased when minor fixes are added to loadable
+ * 		elements handling, which do not involve data 
+ * 		structure changes.
+ */
+
 #define LOADABLE_VERSION_SET(maj, min, fix)	\
 	(((maj) << 24) | ((min) << 16) | (fix))
-#define LOADABLE_VERSION	LOADABLE_VERSION_SET(1, 1, 0)
+#define LOADABLE_VERSION	LOADABLE_VERSION_SET(1, 2, 0)
 #define LOADABLE_VERSION_OUT(v) \
 	((v & 0xFF000000U) >> 24) << '.' << ((v & 0x00FF0000U) >> 16) << '.' << (v & 0x0000FFFFU)
 /*
  * CHANGELOG:
- * 
+ * 2004-05-21: 1.2.0 added hooks for dummy part output calls
  * 2003-02-25: 1.1.0 added hook for iGetPrivDataIdx()
  * 2002-XX-XX: 1.0.0 added versioning system to detect structure conflicts
  */
@@ -173,7 +183,29 @@ typedef doublereal
 typedef int (* p_i_get_num_connected_nodes)(const LoadableElem*);
 typedef void (* p_get_connected_nodes)(const LoadableElem*, int&, 
 		Node::Type*, unsigned int*);
+
 typedef void (* p_destroy)(LoadableElem*);
+
+/* Adams output stuff -- added with 1.2.0 */
+typedef unsigned int
+(* p_i_get_num_dummy_parts)(const LoadableElem* pEl);
+typedef void
+(* p_get_dummy_part_pos)(const LoadableElem* pEl, 
+			 unsigned int part,
+			 Vec3& x,
+			 Mat3x3& R);
+typedef void
+(* p_get_dummy_part_vel)(const LoadableElem* pEl,
+			 unsigned int part,
+			 Vec3& v,
+			 Vec3& w);
+/* only used #ifdef USE_ADAMS */
+typedef std::ostream&
+(* p_write_adams_dummy_part_cmd)(const LoadableElem* pEl,
+				 std::ostream& out,
+				 unsigned int part,
+				 unsigned int firstId);
+
 /*
  * Struttura che contiene le chiamate alle funzioni del modulo;
  * e' l'unico contatto tra modulo ed elemento caricato runtime.
@@ -230,7 +262,15 @@ struct LoadableCalls {
 	p_d_get_priv_data		d_get_priv_data;
 	p_i_get_num_connected_nodes	i_get_num_connected_nodes;
 	p_get_connected_nodes		get_connected_nodes;
+
 	p_destroy			destroy;
+
+	/* Adams output stuff -- added with 1.2.0 */
+	p_i_get_num_dummy_parts		i_get_num_dummy_parts;
+	p_get_dummy_part_pos		get_dummy_part_pos;
+	p_get_dummy_part_vel		get_dummy_part_vel;
+	/* only used #ifdef USE_ADAMS */
+	p_write_adams_dummy_part_cmd	write_adams_dummy_part_cmd;
 };
 
 class LoadableElem
@@ -334,6 +374,14 @@ public:
 			Node::Type* /* NdTyps */ , 
 			unsigned int* /* NdLabels */ );
      	/* ************************************************ */
+
+	/* Adams output stuff */
+	unsigned int iGetNumDummyParts(void) const;
+	void GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
+	void GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
+#ifdef USE_ADAMS
+	std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
+#endif /* USE_ADAMS */
 };
 
 inline void* 

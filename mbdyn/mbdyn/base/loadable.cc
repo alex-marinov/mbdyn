@@ -38,13 +38,13 @@
 
 /* funzioni di default */
 static unsigned int 
-__i_get_num_dof(const LoadableElem* /* pEl */ )
+int_i_get_num_dof(const LoadableElem* /* pEl */ )
 {
    	return 0;
 }
 
 static DofOrder::Order 
-__set_dof(const LoadableElem*, unsigned int /* i */ )
+int_set_dof(const LoadableElem*, unsigned int /* i */ )
 {
    	std::cerr << "You shouldn't be here!" << std::endl;
    	THROW(ErrGeneric());
@@ -54,20 +54,20 @@ __set_dof(const LoadableElem*, unsigned int /* i */ )
 }
 
 static void
-__output(const LoadableElem* /* pEl */ , OutputHandler& /* OH */ )
+int_output(const LoadableElem* /* pEl */ , OutputHandler& /* OH */ )
 {
    	NO_OP;
 }
 
 static std::ostream& 
-__restart(const LoadableElem* pEl , std::ostream& out)
+int_restart(const LoadableElem* pEl , std::ostream& out)
 {
    	return out << "loadable: " << pEl->GetLabel() 
 		<< ", not implemented yet;" << std::endl;
 }
 
 static void 
-__work_space_dim(const LoadableElem* /* pEl */ ,
+int_work_space_dim(const LoadableElem* /* pEl */ ,
 		 integer* piNumRows, 
 		 integer* piNumCols)
 {
@@ -76,7 +76,7 @@ __work_space_dim(const LoadableElem* /* pEl */ ,
 }
 
 static VariableSubMatrixHandler& 
-__ass_jac(LoadableElem* /* pEl */ ,
+int_ass_jac(LoadableElem* /* pEl */ ,
 	  VariableSubMatrixHandler& WorkMat,
 	  doublereal /* dCoef */ ,
 	  const VectorHandler& /* XCurr */ ,
@@ -87,7 +87,7 @@ __ass_jac(LoadableElem* /* pEl */ ,
 }
 
 static void 
-__ass_mats(LoadableElem* /* pEl */ ,
+int_ass_mats(LoadableElem* /* pEl */ ,
 	  VariableSubMatrixHandler& WorkMatA,
 	  VariableSubMatrixHandler& WorkMatB,
 	  const VectorHandler& /* XCurr */ ,
@@ -98,7 +98,7 @@ __ass_mats(LoadableElem* /* pEl */ ,
 }
 
 static SubVectorHandler& 
-__ass_res(LoadableElem* /* pEl */ ,
+int_ass_res(LoadableElem* /* pEl */ ,
 	  SubVectorHandler& WorkVec,
 	  doublereal /* dCoef */ ,
 	  const VectorHandler& /* XCurr */ ,
@@ -109,7 +109,7 @@ __ass_res(LoadableElem* /* pEl */ ,
 }
 
 static void 
-__before_predict(const LoadableElem* /* pEl */ ,
+int_before_predict(const LoadableElem* /* pEl */ ,
 		 VectorHandler& /* X */ ,
 		 VectorHandler& /* XP */ ,
 		 VectorHandler& /* XPrev */ ,
@@ -119,7 +119,7 @@ __before_predict(const LoadableElem* /* pEl */ ,
 }
 
 static void 
-__after_predict(const LoadableElem* /* pEl */ ,
+int_after_predict(const LoadableElem* /* pEl */ ,
 		VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ )
 {
@@ -127,7 +127,7 @@ __after_predict(const LoadableElem* /* pEl */ ,
 }
 
 static void 
-__update(LoadableElem* /* pEl */ ,
+int_update(LoadableElem* /* pEl */ ,
 	 const VectorHandler& /* X */ ,
 	 const VectorHandler& /* XP */ )
 {
@@ -135,7 +135,7 @@ __update(LoadableElem* /* pEl */ ,
 }
 
 static void 
-__after_convergence(const LoadableElem* /* pEl */ ,
+int_after_convergence(const LoadableElem* /* pEl */ ,
 		const VectorHandler& /* X */ ,
 		const VectorHandler& /* XP */ )
 {
@@ -143,13 +143,13 @@ __after_convergence(const LoadableElem* /* pEl */ ,
 }
 
 static unsigned int 
-__i_get_initial_num_dof(const LoadableElem* /* pEl */ )
+int_i_get_initial_num_dof(const LoadableElem* /* pEl */ )
 {
    	return 0;
 }
 
 static void 
-__initial_work_space_dim(const LoadableElem* /* pEl */ ,
+int_initial_work_space_dim(const LoadableElem* /* pEl */ ,
 			 integer* piNumRows, 
 			 integer* piNumCols)
 {
@@ -158,7 +158,7 @@ __initial_work_space_dim(const LoadableElem* /* pEl */ ,
 }
 
 static VariableSubMatrixHandler& 
-__initial_ass_jac(LoadableElem* /* pEl */ ,
+int_initial_ass_jac(LoadableElem* /* pEl */ ,
 		  VariableSubMatrixHandler& WorkMat, 
 		  const VectorHandler& /* XCurr */ )
 {
@@ -167,7 +167,7 @@ __initial_ass_jac(LoadableElem* /* pEl */ ,
 }
 
 static SubVectorHandler& 
-__initial_ass_res(LoadableElem* /* pEl */ ,
+int_initial_ass_res(LoadableElem* /* pEl */ ,
 		  SubVectorHandler& WorkVec, 
 		  const VectorHandler& /* XCurr */ )
 {  
@@ -176,7 +176,7 @@ __initial_ass_res(LoadableElem* /* pEl */ ,
 }
 
 static void 
-__set_value(const LoadableElem* /* pEl */ , 
+int_set_value(const LoadableElem* /* pEl */ , 
 	    VectorHandler& /* X */ ,
 	    VectorHandler& /* XP */ )
 {
@@ -184,19 +184,19 @@ __set_value(const LoadableElem* /* pEl */ ,
 }
 
 static void 
-__set_initial_value(const LoadableElem* /* pEl */ , VectorHandler& /* X */ )
+int_set_initial_value(const LoadableElem* /* pEl */ , VectorHandler& /* X */ )
 {
    	NO_OP;
 }
 
 static unsigned int 
-__i_get_num_priv_data(const LoadableElem* /* pEl */ )
+int_i_get_num_priv_data(const LoadableElem* /* pEl */ )
 {
    	return 0;
 }
 
 static unsigned int 
-__i_get_priv_data_idx(const LoadableElem* /* pEl */ , const char *s)
+int_i_get_priv_data_idx(const LoadableElem* /* pEl */ , const char *s)
 {
    	std::cerr << "You shouldn't be here!" << std::endl;
    	THROW(ErrGeneric());
@@ -206,7 +206,7 @@ __i_get_priv_data_idx(const LoadableElem* /* pEl */ , const char *s)
 }
 
 static doublereal 
-__d_get_priv_data(const LoadableElem* /* pEl */ , unsigned int /* i */ )
+int_d_get_priv_data(const LoadableElem* /* pEl */ , unsigned int /* i */ )
 {
    	std::cerr << "You shouldn't be here!" << std::endl;
    	THROW(ErrGeneric());
@@ -216,7 +216,7 @@ __d_get_priv_data(const LoadableElem* /* pEl */ , unsigned int /* i */ )
 }
 
 static int
-__i_get_num_connected_nodes(const LoadableElem* pEl)
+int_i_get_num_connected_nodes(const LoadableElem* pEl)
 {
 	std::cerr << psElemNames[Elem::LOADABLE] << "(" << pEl->GetLabel()
 		<< ") cannot be used in parallel environment" << std::endl;
@@ -224,19 +224,55 @@ __i_get_num_connected_nodes(const LoadableElem* pEl)
 }
 
 static void
-__get_connected_nodes(const LoadableElem* pEl, 
+int_get_connected_nodes(const LoadableElem* pEl, 
 		int& NumNodes, 
 		Node::Type* /* NdTyps */ , 
 		unsigned int* /* NdLabels */ )
 {
-	NumNodes = __i_get_num_connected_nodes(pEl);
+	NumNodes = int_i_get_num_connected_nodes(pEl);
 }
 
 static void 
-__destroy(LoadableElem* /* pEl */ )
+int_destroy(LoadableElem* /* pEl */ )
 {
    	NO_OP;
 }
+
+/* Adams output stuff -- added with 1.2.0 */
+static unsigned int
+int_i_get_num_dummy_parts(const LoadableElem* pEl)
+{
+	return 0;
+}
+
+static void
+int_get_dummy_part_pos(const LoadableElem* pEl, 
+		unsigned int part,
+		Vec3& x,
+		Mat3x3& R)
+{
+	NO_OP;
+}
+
+static void
+int_get_dummy_part_vel(const LoadableElem* pEl,
+		unsigned int part,
+		Vec3& v,
+		Vec3& w)
+{
+	NO_OP;
+}
+
+#ifdef USE_ADAMS
+static std::ostream&
+int_write_adams_dummy_part_cmd(const LoadableElem* pEl,
+		std::ostream& out,
+		unsigned int part,
+		unsigned int firstId)
+{
+	return out;
+}
+#endif /* USE_ADAMS */
 
 /* metodi della classe */
 
@@ -407,101 +443,120 @@ LoadableElem::BindCalls(DataManager* pDM, MBDynParser& HP)
 	 * Mette i default ove servono
 	 */
 	if (calls->i_get_num_dof == NULL) {
-		calls->i_get_num_dof = __i_get_num_dof;
+		calls->i_get_num_dof = int_i_get_num_dof;
 	}
 
 	if (calls->set_dof == NULL) {
-		calls->set_dof = __set_dof;
+		calls->set_dof = int_set_dof;
 	}
 
 	if (calls->output == NULL) {
-		calls->output = __output;
+		calls->output = int_output;
 	}
 
 	if (calls->restart == NULL) {
-		calls->restart = __restart;
+		calls->restart = int_restart;
 	}
 
 	if (calls->work_space_dim == NULL) {
-		calls->work_space_dim = __work_space_dim;
+		calls->work_space_dim = int_work_space_dim;
 	}
 
 	if (calls->ass_jac == NULL) {
-		calls->ass_jac = __ass_jac;
+		calls->ass_jac = int_ass_jac;
 	}
 
 	if (calls->ass_mats == NULL) {
-		calls->ass_mats = __ass_mats;
+		calls->ass_mats = int_ass_mats;
 	}
 
 	if (calls->ass_res == NULL) {
-		calls->ass_res = __ass_res;
+		calls->ass_res = int_ass_res;
 	}
 
 	if (calls->before_predict == NULL) {
-		calls->before_predict = __before_predict;
+		calls->before_predict = int_before_predict;
 	}
 
 	if (calls->after_predict == NULL) {
-		calls->after_predict = __after_predict;
+		calls->after_predict = int_after_predict;
 	}
 
 	if (calls->update == NULL) {
-		calls->update = __update;
+		calls->update = int_update;
 	}
 
 	if (calls->after_convergence == NULL) {
-		calls->after_convergence = __after_convergence;
+		calls->after_convergence = int_after_convergence;
 	}
 
 	if (calls->i_get_initial_num_dof == NULL) {
-		calls->i_get_initial_num_dof = __i_get_initial_num_dof;
+		calls->i_get_initial_num_dof = int_i_get_initial_num_dof;
 	}
 
 	if (calls->initial_work_space_dim == NULL) {
-		calls->initial_work_space_dim = __initial_work_space_dim;
+		calls->initial_work_space_dim = int_initial_work_space_dim;
 	}
 
 	if (calls->initial_ass_jac == NULL) {
-		calls->initial_ass_jac = __initial_ass_jac;
+		calls->initial_ass_jac = int_initial_ass_jac;
 	}
 
 	if (calls->initial_ass_res == NULL) {
-		calls->initial_ass_res = __initial_ass_res;
+		calls->initial_ass_res = int_initial_ass_res;
 	}
 
 	if (calls->set_value == NULL) {
-		calls->set_value = __set_value;
+		calls->set_value = int_set_value;
 	}
 
 	if (calls->set_initial_value == NULL) {
-		calls->set_initial_value = __set_initial_value;
+		calls->set_initial_value = int_set_initial_value;
 	}
 
 	if (calls->i_get_num_priv_data == NULL) {
-		calls->i_get_num_priv_data = __i_get_num_priv_data;
+		calls->i_get_num_priv_data = int_i_get_num_priv_data;
 	}
 
 	if (calls->i_get_priv_data_idx == NULL) {
-		calls->i_get_priv_data_idx = __i_get_priv_data_idx;
+		calls->i_get_priv_data_idx = int_i_get_priv_data_idx;
 	}
 
 	if (calls->d_get_priv_data == NULL) {
-		calls->d_get_priv_data = __d_get_priv_data;
+		calls->d_get_priv_data = int_d_get_priv_data;
 	}
 
 	if (calls->i_get_num_connected_nodes == NULL) {
-		calls->i_get_num_connected_nodes = __i_get_num_connected_nodes;
+		calls->i_get_num_connected_nodes = int_i_get_num_connected_nodes;
 	}
 
 	if (calls->get_connected_nodes == NULL) {
-		calls->get_connected_nodes = __get_connected_nodes;
+		calls->get_connected_nodes = int_get_connected_nodes;
 	}
 
 	if (calls->destroy == NULL) {
-		calls->destroy = __destroy;
+		calls->destroy = int_destroy;
 	}
 	
+	/* Adams output stuff -- added with 1.2.0 */
+	if (calls->i_get_num_dummy_parts == NULL) {
+		calls->i_get_num_dummy_parts = int_i_get_num_dummy_parts;
+	}
+
+	if (calls->get_dummy_part_pos == NULL) {
+		calls->get_dummy_part_pos = int_get_dummy_part_pos;
+	}
+
+	if (calls->get_dummy_part_vel == NULL) {
+		calls->get_dummy_part_vel = int_get_dummy_part_vel;
+	}
+	
+#ifdef USE_ADAMS
+	if (calls->write_adams_dummy_part_cmd == NULL) {
+		calls->write_adams_dummy_part_cmd = int_write_adams_dummy_part_cmd;
+	}
+#endif /* USE_ADAMS */
+
    	priv_data = (*calls->read)(this, pDM, HP, pDM->pGetDrvHdl());
    	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE)); 
 }
@@ -715,6 +770,38 @@ LoadableElem::GetConnectedNodes(int& NumNodes,
 	ASSERT(calls->get_connected_nodes != NULL);
 	return (*calls->get_connected_nodes)(this, NumNodes, NdTyps, NdLabels);
 }
+
+/* Adams output stuff */
+unsigned int
+LoadableElem::iGetNumDummyParts(void) const
+{
+	ASSERT(calls->i_get_num_dummy_parts != NULL);
+	return (*calls->i_get_num_dummy_parts)(this);
+}
+
+void
+LoadableElem::GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const
+{
+	ASSERT(calls->get_dummy_part_pos != NULL);
+	return (*calls->get_dummy_part_pos)(this, part, x, R);
+}
+
+void
+LoadableElem::GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
+{
+	ASSERT(calls->get_dummy_part_vel != NULL);
+	return (*calls->get_dummy_part_vel)(this, part, v, w);
+}
+
+#ifdef USE_ADAMS
+std::ostream&
+LoadableElem::WriteAdamsDummyPartCmd(std::ostream& out,
+		unsigned int part, unsigned int firstId) const
+{
+	ASSERT(calls->write_adams_dummy_part_cmd != NULL);
+	return (*calls->write_adams_dummy_part_cmd)(this, out, part, firstId);
+}
+#endif /* USE_ADAMS */
 
 Elem* 
 ReadLoadable(DataManager* pDM, 
