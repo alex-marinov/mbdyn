@@ -42,17 +42,42 @@
 
 /* RTAIOutElem - begin */
 
-RTAIOutElem::RTAIOutElem(unsigned int uL, unsigned int nmb,
-		ScalarDof *& pn)
+RTAIOutElem::RTAIOutElem(unsigned int uL, unsigned int nch,
+		ScalarDof *& pn, unsigned long n)
 : Elem(uL, Elem::RTAI_OUTPUT, flag(0)),
-NumChannels(nmb), pNodes(pn)
+NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
+node(n), port(-1), mbx(NULL)
 {
-	NO_OP;
+	/* FIXME: size depends on the type of the output signals */
+	size = sizeof(double)*nch;
+	SAFENEWARR(buf, char, size);
+
+	SAFENEW(mbx, MBX);
+	if (rt_mbx_init(mbx, size)) {
+		std::cerr << "RTAI mailbox failed" << std::endl;
+		THROW(ErrGeneric());
+	}
+
+	if (node) {
+		/* get port ... */
+	}
 }
 
 RTAIOutElem::~RTAIOutElem(void)
 {
-	SAFEDELETEARR(pNodes);
+	if (mbx) {
+		rt_mbx_delete(mbx);
+		SAFEDELETE(mbx);
+	}
+
+	if (buf) {
+		SAFEDELETEARR(buf);
+	}
+
+	if (pNodes) {
+		/* FIXME: pNodes leak */
+		SAFEDELETEARR(pNodes);
+	}
 }
 
 std::ostream&
@@ -96,7 +121,12 @@ RTAIOutElem::AfterConvergence(const VectorHandler& X,
 {
 	for (unsigned int i; i < NumChannels; i++) {
 		/* assign value somewhere into mailbox buffer */
-		(void)pNodes[i].pNode->dGetDofValue(1, pNodes[i].iOrder);
+		doublereal v = pNodes[i].pNode->dGetDofValue(1, pNodes[i].iOrder);
+		memcpy(&buf[sizeof(double)*i], &v, sizeof(double));
+	}
+
+	if (RT_mbx_send_if(node, port, mbx, buf, size) != size) {
+		/* error */
 	}
 }
 

@@ -1627,6 +1627,11 @@ Elem** ReadOneElem(DataManager* pDM,
 
     case RTAI_OUTPUT: {
 #ifdef USE_RTAI
+      unsigned long node = 0;
+      if (HP.IsKeyWord("host")) {
+	      /* resolve host */
+      }
+	      
       int nch = HP.GetInt();
 
       if (nch <= 0) {
@@ -1644,7 +1649,7 @@ Elem** ReadOneElem(DataManager* pDM,
       }
 
       SAFENEWWITHCONSTRUCTOR(*ppE, RTAIOutElem,
-		      RTAIOutElem(uLabel, nch, pNodes));
+		      RTAIOutElem(uLabel, nch, pNodes, node));
 
 #else /* ! USE_RTAI */
        std::cerr << "need USE_RTAI to allow RTAI mailboxes" << std::endl;

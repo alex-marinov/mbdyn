@@ -40,15 +40,29 @@
 #include <elem.h>
 #include <node.h>
 
+#include <rtai.h>
+#include <rtai_sched.h>
+#include <net_rpc.h>
+
 /* RTAIOutElem - begin */
 
 class RTAIOutElem : virtual public Elem {
 protected:
 	unsigned int NumChannels;
    	ScalarDof* pNodes;
+
+	/* MBox buffer */
+	int size;
+	void *buf;
+
+	/* FIXME: store restart info as well */
+	unsigned long node;
+	int port;
+	MBX *mbx;
    
 public:
-   	RTAIOutElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn);
+   	RTAIOutElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
+			unsigned long n);
    	virtual ~RTAIOutElem(void);
 
 	virtual inline void* pGet(void) const;
