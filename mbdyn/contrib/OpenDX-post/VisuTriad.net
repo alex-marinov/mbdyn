@@ -1,11 +1,11 @@
 //
-// time: Mon Oct 28 15:45:11 2002
+// time: Mon Oct 28 16:09:24 2002
 //
 // version: 3.1.2 (format), 4.1.3 (DX)
 //
 //
 // MODULE main
-// workspace: width = 811, height = 875
+// workspace: width = 1124, height = 875
 // layout: snap = 0, width = 50, height = 50, align = NN
 //
 macro main(
@@ -125,7 +125,7 @@ main_Compute_3_out_1 =
     main_Compute_3_in_3
     ) [instance: 3, cache: 1];
     // 
-    // node Receiver[3]: x = 737, y = 402, inputs = 1, label = TriadScale
+    // node Receiver[3]: x = 672, y = 347, inputs = 1, label = TriadScale
     //
 main_Receiver_3_out_1[cache: 0] = TriadScale;
     // 
@@ -142,7 +142,7 @@ main_AutoGlyph_3_out_1 =
     main_AutoGlyph_3_in_7
     ) [instance: 3, cache: 1];
     // 
-    // node Mark[5]: x = 50, y = 274, inputs = 2, label = Mark
+    // node Mark[5]: x = 789, y = 260, inputs = 2, label = Mark
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "labels"
     //
 main_Mark_5_out_1 = 
@@ -151,7 +151,7 @@ main_Mark_5_out_1 =
     main_Mark_5_in_2
     ) [instance: 5, cache: 1];
     // 
-    // node AutoGlyph[4]: x = 0, y = 387, inputs = 7, label = AutoGlyph
+    // node AutoGlyph[4]: x = 856, y = 483, inputs = 7, label = AutoGlyph
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "text"
     //
 main_AutoGlyph_4_out_1 = 
@@ -165,24 +165,60 @@ main_AutoGlyph_4_out_1 =
     main_AutoGlyph_4_in_7
     ) [instance: 4, cache: 1];
     // 
-    // node Toggle[1]: x = 5, y = 552, inputs = 6, label = Toggle
-    // input[1]: defaulting = 0, visible = 0, type = 32, value = "Toggle_1"
-    // input[2]: defaulting = 0, visible = 0, type = 29, value = 0
-    // input[3]: defaulting = 0, visible = 0, type = 3, value = 0
-    // input[4]: defaulting = 1, visible = 1, type = 29, value = 1
-    // input[5]: defaulting = 1, visible = 1, type = 29, value = 0
-    // output[1]: visible = 1, type = 29, value = 0
-    // toggle : 0
+    // node Selector[1]: x = 1016, y = 121, inputs = 7, label = Selector
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "Selector_1"
+    // input[2]: defaulting = 0, visible = 0, type = 32, value = "x" 
+    // input[3]: defaulting = 0, visible = 0, type = 29, value = 0 
+    // input[4]: defaulting = 1, visible = 1, type = 16777248, value = { "x", "y", "z" }
+    // input[5]: defaulting = 1, visible = 0, type = 16777245, value = { 0, 1, 2 }
+    // output[1]: visible = 1, type = 29, value = 0 
+    // output[2]: visible = 1, type = 32, value = "x" 
     //
     // 
-    // node Switch[1]: x = 50, y = 643, inputs = 3, label = Switch
+    // node Format[2]: x = 1013, y = 207, inputs = 3, label = Format
+    // input[1]: defaulting = 0, visible = 1, type = 32, value = "a.%d"
     //
-main_Switch_1_out_1 = 
-    Switch(
-    main_Toggle_1_out_1,
-    main_AutoGlyph_4_out_1,
-    main_Switch_1_in_3
+main_Format_2_out_1 = 
+    Format(
+    main_Format_2_in_1,
+    main_Selector_1_out_1,
+    main_Format_2_in_3
+    ) [instance: 2, cache: 1];
+    // 
+    // node Mark[6]: x = 925, y = 231, inputs = 2, label = Mark
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "positions"
+    //
+main_Mark_6_out_1 = 
+    Mark(
+    main_Import_1_out_1,
+    main_Mark_6_in_2
+    ) [instance: 6, cache: 1];
+    // 
+    // node Compute2[1]: x = 968, y = 317, inputs = 5, label = Compute2
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "a"
+    //
+main_Compute2_1_out_1 = 
+    Compute2(
+    main_Format_2_out_1,
+    main_Compute2_1_in_2,
+    main_Mark_6_out_1,
+    main_Compute2_1_in_4,
+    main_Compute2_1_in_5
     ) [instance: 1, cache: 1];
+    // 
+    // node AutoGlyph[6]: x = 1004, y = 475, inputs = 7, label = AutoGlyph
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "text"
+    //
+main_AutoGlyph_6_out_1 = 
+    AutoGlyph(
+    main_Compute2_1_out_1,
+    main_AutoGlyph_6_in_2,
+    main_AutoGlyph_6_in_3,
+    main_AutoGlyph_6_in_4,
+    main_AutoGlyph_6_in_5,
+    main_AutoGlyph_6_in_6,
+    main_AutoGlyph_6_in_7
+    ) [instance: 6, cache: 1];
     // 
     // node Color[1]: x = 166, y = 584, inputs = 5, label = Color
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "red"
@@ -220,7 +256,7 @@ main_Color_3_out_1 =
     main_Color_3_in_5
     ) [instance: 3, cache: 1];
     // 
-    // node Legend[1]: x = 602, y = 686, inputs = 10, label = Legend
+    // node Legend[1]: x = 617, y = 650, inputs = 10, label = Legend
     // input[1]: defaulting = 0, visible = 1, type = 16777248, value = {"z","y","x"}
     // input[2]: defaulting = 0, visible = 1, type = 16777248, value = {"blue","green","red"}
     // input[3]: defaulting = 0, visible = 1, type = 8, value = [1 1]
@@ -243,27 +279,48 @@ main_Legend_1_out_1 =
     main_Legend_1_in_10
     ) [instance: 1, cache: 1];
     // 
-    // node Collect[1]: x = 296, y = 744, inputs = 5, label = Collect
+    // node Selector[2]: x = 759, y = 481, inputs = 7, label = Selector
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "Selector_2"
+    // input[2]: defaulting = 0, visible = 0, type = 32, value = "Position Component" 
+    // input[3]: defaulting = 0, visible = 0, type = 29, value = 2 
+    // input[4]: defaulting = 1, visible = 1, type = 16777248, value = { "No Data", "Labels", "Position Component" }
+    // input[5]: defaulting = 1, visible = 0, type = 16777245, value = { 0, 1, 2 }
+    // output[1]: visible = 1, type = 29, value = 2 
+    // output[2]: visible = 1, type = 32, value = "Position Component" 
+    //
+    // 
+    // node Switch[1]: x = 877, y = 609, inputs = 5, label = Switch
+    //
+main_Switch_1_out_1 = 
+    Switch(
+    main_Selector_2_out_1,
+    main_AutoGlyph_4_out_1,
+    main_AutoGlyph_6_out_1,
+    main_Switch_1_in_4,
+    main_Switch_1_in_5
+    ) [instance: 1, cache: 1];
+    // 
+    // node Collect[1]: x = 294, y = 744, inputs = 5, label = Collect
     //
 main_Collect_1_out_1 = 
     Collect(
-    main_Switch_1_out_1,
     main_Color_1_out_1,
     main_Color_2_out_1,
     main_Color_3_out_1,
-    main_Legend_1_out_1
+    main_Legend_1_out_1,
+    main_Switch_1_out_1
     ) [instance: 1, cache: 1];
     // 
     // node Image[1]: x = 318, y = 813, inputs = 49, label = Image
     // input[1]: defaulting = 0, visible = 0, type = 67108863, value = "Image_1"
     // input[4]: defaulting = 0, visible = 0, type = 1, value = 1
     // input[5]: defaulting = 0, visible = 0, type = 8, value = [0.721283 0.221283 0.222912]
-    // input[6]: defaulting = 0, visible = 0, type = 8, value = [3.88118 2.23975 1.94458]
+    // input[6]: defaulting = 0, visible = 0, type = 8, value = [3.91107 2.58495 1.34608]
     // input[7]: defaulting = 0, visible = 0, type = 5, value = 2.2111
     // input[8]: defaulting = 0, visible = 0, type = 1, value = 640
     // input[9]: defaulting = 0, visible = 0, type = 5, value = 0.751
-    // input[10]: defaulting = 0, visible = 0, type = 8, value = [-0.311542 0.850014 -0.424756]
-    // input[11]: defaulting = 1, visible = 0, type = 5, value = 30.0003
+    // input[10]: defaulting = 0, visible = 0, type = 8, value = [-0.421992 0.784997 -0.453545]
+    // input[11]: defaulting = 1, visible = 0, type = 5, value = 30.0004
     // input[12]: defaulting = 0, visible = 0, type = 1, value = 0
     // input[14]: defaulting = 0, visible = 0, type = 1, value = 1
     // input[15]: defaulting = 1, visible = 0, type = 32, value = "none"
@@ -276,7 +333,7 @@ main_Collect_1_out_1 =
     // input[36]: defaulting = 0, visible = 0, type = 3, value = 1
     // input[41]: defaulting = 0, visible = 0, type = 32, value = "rotate"
     // depth: value = 16
-    // window: position = (0.0000,0.2549), size = 0.5109x0.5117
+    // window: position = (0.0000,0.2832), size = 0.5109x0.5117
     // internal caching: 1
     //
 main_Image_1_out_1,
@@ -397,15 +454,30 @@ main_AutoGlyph_4_in_5 = NULL;
 main_AutoGlyph_4_in_6 = NULL;
 main_AutoGlyph_4_in_7 = NULL;
 main_AutoGlyph_4_out_1 = NULL;
-main_Toggle_1_in_1 = "Toggle_1";
-main_Toggle_1_in_2 = 0;
-main_Toggle_1_in_3 = 0;
-main_Toggle_1_in_4 = NULL;
-main_Toggle_1_in_5 = NULL;
-main_Toggle_1_in_6 = NULL;
-main_Toggle_1_out_1 = 0;
-main_Switch_1_in_3 = NULL;
-main_Switch_1_out_1 = NULL;
+main_Selector_1_in_1 = "Selector_1";
+main_Selector_1_in_2 = "x" ;
+main_Selector_1_in_3 = 0 ;
+main_Selector_1_in_4 = NULL;
+main_Selector_1_in_5 = NULL;
+main_Selector_1_in_6 = NULL;
+main_Selector_1_in_7 = NULL;
+main_Selector_1_out_1 = 0 ;
+main_Format_2_in_1 = "a.%d";
+main_Format_2_in_3 = NULL;
+main_Format_2_out_1 = NULL;
+main_Mark_6_in_2 = "positions";
+main_Mark_6_out_1 = NULL;
+main_Compute2_1_in_2 = "a";
+main_Compute2_1_in_4 = NULL;
+main_Compute2_1_in_5 = NULL;
+main_Compute2_1_out_1 = NULL;
+main_AutoGlyph_6_in_2 = "text";
+main_AutoGlyph_6_in_3 = NULL;
+main_AutoGlyph_6_in_4 = NULL;
+main_AutoGlyph_6_in_5 = NULL;
+main_AutoGlyph_6_in_6 = NULL;
+main_AutoGlyph_6_in_7 = NULL;
+main_AutoGlyph_6_out_1 = NULL;
 main_Color_1_in_2 = "red";
 main_Color_1_in_3 = NULL;
 main_Color_1_in_4 = NULL;
@@ -432,6 +504,17 @@ main_Legend_1_in_8 = NULL;
 main_Legend_1_in_9 = 1.0;
 main_Legend_1_in_10 = NULL;
 main_Legend_1_out_1 = NULL;
+main_Selector_2_in_1 = "Selector_2";
+main_Selector_2_in_2 = "Position Component" ;
+main_Selector_2_in_3 = 2 ;
+main_Selector_2_in_4 = NULL;
+main_Selector_2_in_5 = NULL;
+main_Selector_2_in_6 = NULL;
+main_Selector_2_in_7 = NULL;
+main_Selector_2_out_1 = 2 ;
+main_Switch_1_in_4 = NULL;
+main_Switch_1_in_5 = NULL;
+main_Switch_1_out_1 = NULL;
 main_Collect_1_out_1 = NULL;
 macro Image(
         id,
@@ -749,11 +832,11 @@ main_Image_1_in_1 = "Image_1";
 main_Image_1_in_3 = "X16,,";
 main_Image_1_in_4 = 1;
 main_Image_1_in_5 = [0.721283 0.221283 0.222912];
-main_Image_1_in_6 = [3.88118 2.23975 1.94458];
+main_Image_1_in_6 = [3.91107 2.58495 1.34608];
 main_Image_1_in_7 = 2.2111;
 main_Image_1_in_8 = 640;
 main_Image_1_in_9 = 0.751;
-main_Image_1_in_10 = [-0.311542 0.850014 -0.424756];
+main_Image_1_in_10 = [-0.421992 0.784997 -0.453545];
 main_Image_1_in_11 = NULL;
 main_Image_1_in_12 = 0;
 main_Image_1_in_13 = NULL;
