@@ -39,6 +39,37 @@
  * FIXME: why not derived from VectorHandler, or viceversa? 
  */
 
+class ArrayView {
+private:
+	integer start, offset, number;
+
+public:
+	ArrayView(integer s, integer o, integer n)
+	: start(s), offset(o), number(n) { 
+		NO_OP; 
+	};
+
+	~ArrayView(void) {
+		NO_OP;
+	};
+
+	inline integer Start(void) const {
+		return start;
+	};
+
+	inline integer Offset(void) const {
+		return offset;
+	};
+
+	inline integer Number(void) const {
+		return number;
+	};
+
+	inline integer Last(void) const {
+		return start + (number-1)*offset;
+	};
+};
+
 class VecN {
    friend class Mat3xN;
    friend class MatNx3;
@@ -82,11 +113,15 @@ class VecN {
    inline const doublereal& dGet(integer i) const;
 
    const VecN& Copy(const VectorHandler& vh, integer iFirstIndex);
-  
-   void RightMult(const MatNx3& n, const Vec3& v);
-   const VecN& Mult(const MatNxN& m, const VecN& n); 
-   const VecN& operator += (const VecN& m);
  
+   /* *this = n * v */ 
+   void RightMult(const MatNx3& n, const Vec3& v);
+
+   /* *this = m * n */
+   const VecN& Mult(const MatNxN& m, const VecN& n); 
+   const VecN& Mult(const MatNxN& m, const ArrayView& vm, 
+		   const VecN& n, const ArrayView& vn);
+   const VecN& operator += (const VecN& m);
 
    /* prodotto per scalare */
    const VecN& operator *= (const doublereal & d);
@@ -184,9 +219,10 @@ class Mat3xN {
    /* *this = m x *this */
    const Mat3xN& LeftMult(const Mat3x3& m);
 
-   /* *this = m x *this */
+   /* *this = m x n */
    const Mat3xN& LeftMult(const Mat3x3& m, const Mat3xN& n);
 
+   /* *this = m * n */
    const Mat3xN& Mult(const Mat3xN& m, const MatNxN& n);
    const Mat3xN& Copy(const Mat3xN& m);
    
@@ -197,6 +233,9 @@ class Mat3xN {
    const Mat3xN& operator -= (const Mat3xN& m);
    
    Vec3 operator * (const VecN& v) const;
+
+   Vec3 Mult(const ArrayView& vm, const VecN& v) const;
+   Vec3 Mult(const ArrayView& vm, const VecN& v, const ArrayView& vv) const;
 
    Vec3 GetVec(integer iCol) const;
    void PutVec(integer iCol, const Vec3& v);
@@ -295,10 +334,13 @@ class MatNx3 {
    inline void Add(integer i, integer j, const doublereal& d);
    inline void Sub(integer i, integer j, const doublereal& d);   
    inline const doublereal& dGet(integer i, integer j) const;
-   /* *this = *this x m */
+   /* *this = n x m */
    const MatNx3& RightMult(const MatNx3& n, const Mat3x3& m);
-   /* *this = [3xN]T    */
+
+   /* *this = [3xN]T */
    const MatNx3& Transpose(const Mat3xN& n);
+
+   /* *this = m * n */
    const MatNx3& Mult(const MatNxN& m, const MatNx3& n);
 
    Vec3 GetVec(integer iRow) const;
@@ -405,7 +447,8 @@ class MatNxN {
    inline void Sub(integer i, integer j, const doublereal& d);
    inline const doublereal& dGet(integer i, integer j) const;
 
-   const MatNxN& Mult(const MatNx3&m, const Mat3xN& n);
+   /* *this = m * n */
+   const MatNxN& Mult(const MatNx3& m, const Mat3xN& n);
 
    inline doublereal& operator () (integer i, integer j);
 };
@@ -423,7 +466,7 @@ inline void MatNxN::Put(integer i, integer j, const doublereal& d)
    IsValid();
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= iNumRows);
-   pdMat[--i][--j] = d;
+   pdMat[--j][--i] = d;
 }
 
 
@@ -432,7 +475,16 @@ inline void MatNxN::Add(integer i, integer j, const doublereal& d)
    IsValid();
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= iNumRows);
-   pdMat[--i][--j] += d;
+   pdMat[--j][--i] += d;
+}
+
+
+inline void MatNxN::Sub(integer i, integer j, const doublereal& d)
+{
+   IsValid();
+   ASSERT(i > 0 && i <= iNumRows);
+   ASSERT(j > 0 && j <= iNumRows);
+   pdMat[--j][--i] -= d;
 }
 
 
@@ -442,7 +494,7 @@ MatNxN::dGet(integer i, integer j) const
    IsValid();
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= iNumRows);
-   return pdMat[--i][--j];
+   return pdMat[--j][--i];
 }
 
 inline doublereal&
@@ -451,7 +503,7 @@ MatNxN::operator () (integer i, integer j)
    IsValid();
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= iNumRows);
-   return pdMat[--i][--j];
+   return pdMat[--j][--i];
 }
 
 /* MatNxN - end */

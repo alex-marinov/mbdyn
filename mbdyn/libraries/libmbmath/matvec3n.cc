@@ -180,12 +180,39 @@ VecN::operator *= (const doublereal& d)
 const VecN& VecN::Mult(const MatNxN& m, const VecN& n)
 {
    IsValid();
-   ASSERT(iNumRows=n.iNumRows);
+   ASSERT(iNumRows = m.iNumRows);
+   ASSERT(m.iNumCols = n.iNumRows);
 
    for(integer i = iNumRows; i-- > 0; ) {
       pdVec[i] = 0.;
       for(integer j = iNumRows; j-- > 0; ) { 
-         pdVec[i] += m.pdVec[i*iNumRows+j]*n.pdVec[j];
+         pdVec[i] += m.pdMat[j][i]*n.pdVec[j];
+      }
+   }
+
+   return *this;
+}
+
+const VecN& 
+VecN::Mult(const MatNxN& m, const ArrayView& vm, 
+		const VecN& n, const ArrayView& vn)
+{
+   IsValid();
+   ASSERT(iNumRows == m.iNumRows);
+   ASSERT(m.iNumCols >= vm.Last());
+   ASSERT(n.iNumRows >= vn.Last());
+   ASSERT(vm.Number() == vm.Number());
+
+   for(integer i = 0; i < iNumRows; i++) {
+      integer jm = vm.Start() - 1;
+      integer jn = vn.Start() - 1;
+
+      pdVec[i] = 0.;
+      for(integer j = 0; j < vm.Number(); j++) {
+         pdVec[i] += m.pdMat[jm][i]*n.pdVec[jn];
+
+	 jm += vm.Offset();
+	 jn += vn.Offset();
       }
    }
 
@@ -426,6 +453,49 @@ Mat3xN::operator * (const VecN& v) const
 		d[0] += pdRows[0][j]*v.pdVec[j];
 		d[1] += pdRows[1][j]*v.pdVec[j];
 		d[2] += pdRows[2][j]*v.pdVec[j];
+	}
+
+	return Vec3(d);
+}
+
+Vec3 
+Mat3xN::Mult(const ArrayView& vm, const VecN& v) const
+{
+	IsValid();
+	ASSERT(iNumCols >= vm.Last());
+	ASSERT(vm.Number() == v.iNumRows);
+
+	doublereal d[3] = { 0., 0., 0. };
+	integer jm = vm.Start() - 1;
+	for (integer j = 0; j < vm.Number(); j++) {
+		d[0] += pdRows[0][jm]*v.pdVec[j];
+		d[1] += pdRows[1][jm]*v.pdVec[j];
+		d[2] += pdRows[2][jm]*v.pdVec[j];
+
+		jm += vm.Offset();
+	}
+
+	return Vec3(d);
+}
+
+Vec3 
+Mat3xN::Mult(const ArrayView& vm, const VecN& v, const ArrayView& vv) const
+{
+	IsValid();
+	ASSERT(iNumCols >= vm.Last());
+	ASSERT(vviNumRows >= vv.Last());
+	ASSERT(vm.Number() == vv.Number());
+
+	doublereal d[3] = { 0., 0., 0. };
+	integer jm = vm.Start() - 1;
+	integer jv = vv.Start() - 1;
+	for (integer j = 0; j < vm.Number(); j++) {
+		d[0] += pdRows[0][jm]*v.pdVec[jv];
+		d[1] += pdRows[1][jm]*v.pdVec[jv];
+		d[2] += pdRows[2][jm]*v.pdVec[jv];
+
+		jm += vm.Offset();
+		jv += vv.Offset();
 	}
 
 	return Vec3(d);
@@ -738,7 +808,7 @@ const MatNxN& MatNxN::Mult(const MatNx3& m, const Mat3xN& n)
 
    for (integer i = 0; i < iNumRows; i++) {
       for (integer j = 0; j < iNumRows; j++) {
-         pdMat[i][j] = 
+         pdMat[j][i] = 
 		 m.pdCols[0][i]*n.pdRows[0][j]
 		 + m.pdCols[1][i]*n.pdRows[1][j]
 		 + m.pdCols[2][i]*n.pdRows[2][j];
