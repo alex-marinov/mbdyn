@@ -38,9 +38,10 @@ end
 mn = mean(A);
 A = A - ones(r, 1)*mn;
 scl = max(abs(A));
-lt = find(scl <= 1.e-9);
+thr = 1.e-9;
+lt = find(scl <= thr);
 nlt = length(lt);
-gt = find(scl > 1.e-9);
+gt = find(scl > thr);
 ngt = length(gt);
 A = A(:, gt)./(ones(r, 1)*scl(gt));
 for i = 1:nlt,
@@ -73,8 +74,9 @@ end
 
 B = U'*A;
 for i = 1:ns,
-    S(i, 1) = norm(B(i, :));	% S = sqrt(E)
-    B(i, :) = B(i, :)/S(i)^2;
+    s = B(i, :)*B(i, :)';
+    S(i, 1) = sqrt(s); % norm(B(i, :)), since S = sqrt(E)
+    B(i, :) = B(i, :)/s;
 end
 
 % Aout = B*A';			% = E^-1*U'*A*A' = E^-1*U'*U*E*U' = U'
