@@ -184,6 +184,10 @@ usage:;
 		}
 	}
 
+	if (nt < 1) {
+		nt = 1;
+	}
+
 	Arg arg[nt];
 	unsigned c;
 
