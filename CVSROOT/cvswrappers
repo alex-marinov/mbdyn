@@ -30,6 +30,7 @@
 *.DOC -k 'b'
 *.pdf -k 'b'
 *.xls -k 'b'
+*.ppt -k 'b'
 
 *.exe -k 'b'
 
