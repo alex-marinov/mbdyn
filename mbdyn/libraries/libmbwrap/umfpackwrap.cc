@@ -195,7 +195,12 @@ UmfpackSparseLUSolutionManager::PrepareSymbolic(void)
 void
 UmfpackSparseLUSolutionManager::Solve(void)
 {
+#ifdef UMFPACK_REPORT
 	double t = umfpack_timer() ;
+#else /* ! UMFPACK_REPORT */
+	double t = 0.;
+#endif /* ! UMFPACK_REPORT */
+
 	if (HasBeenReset) {
 		A.MakeCompressedColumnForm(Ax, Ai, Ap);
 		const double* const Axp = &(Ax[0]);
@@ -272,6 +277,7 @@ UmfpackSparseLUSolutionManager::BackSub(doublereal t_iniz)
 #ifdef UMFPACK_REPORT
 	double t = t_iniz;
 #endif /* UMFPACK_REPORT */
+
 	Control[UMFPACK_IRSTEP]= 0;
 	status = UMFPACKWRAP_solve(SYS_VALUE,
 			App, Aip, Axp, pdSol, pdRhs, 
