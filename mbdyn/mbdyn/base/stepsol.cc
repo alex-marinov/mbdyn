@@ -52,14 +52,16 @@
 StepIntegrator::StepIntegrator(const integer MaxIt,
 		const doublereal dT,
 		const doublereal dSolutionTol,
-		const integer stp) 
+		const integer stp,
+		const integer sts) 
 : pDM(NULL),
 DofIterator(),
 outputPred(false),
 MaxIters(MaxIt),
 dTol(dT),
 dSolTol(dSolutionTol),
-steps(stp)
+steps(stp),
+unkstates(sts)
 {
 	NO_OP;
 }
@@ -82,6 +84,12 @@ StepIntegrator::GetIntegratorNumPreviousStates(void) const
 	return steps;
 }
 
+integer
+StepIntegrator::GetIntegratorNumUnknownStates(void) const
+{
+	return unkstates;
+}
+
 void
 StepIntegrator::OutputTypes(const bool fpred)
 {
@@ -92,7 +100,7 @@ DerivativeSolver::DerivativeSolver(const doublereal Tl,
 		const doublereal dSolTl, 
 		const doublereal dC,
 		const integer iMaxIt) 
-: StepIntegrator(iMaxIt, Tl, dSolTl, 1),
+: StepIntegrator(iMaxIt, Tl, dSolTl, 1, 1),
 dCoef(dC)
 {
 	NO_OP;
@@ -308,7 +316,7 @@ StepNIntegrator::StepNIntegrator(const integer MaxIt,
 		const doublereal dT,
 		const doublereal dSolutionTol,
 		const integer stp)
-: StepIntegrator(MaxIt, dT, dSolutionTol, stp),
+: StepIntegrator(MaxIt, dT, dSolutionTol, stp , 1),
 db0Differential(0.),
 db0Algebraic(0.),
 pXCurr(NULL),

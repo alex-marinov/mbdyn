@@ -92,18 +92,22 @@ protected:
 	integer MaxIters;
 	doublereal dTol, dSolTol;
 	integer steps;
+	integer unkstates;
 
 public:
 	StepIntegrator(const integer MaxIt,
 			const doublereal dT,
 			const doublereal dSolutionTol,
-			const integer stp);
+			const integer stp,
+			const integer sts);
 	
 	virtual ~StepIntegrator(void);
 
 	void SetDataManager(DataManager* pDatMan);
 		
 	virtual integer GetIntegratorNumPreviousStates(void) const;
+	
+	virtual integer GetIntegratorNumUnknownStates(void) const;
 	
 	virtual void OutputTypes(const bool fpred);
 	
