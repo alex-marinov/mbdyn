@@ -466,25 +466,25 @@ Step1Integrator::Advance(Solver* pS,
       	pDM->AfterPredict();
 	
 #ifdef DEBUG
-      		integer iNumDofs = pDM->iGetNumDofs();
-		if (outputPred) {
-			std::cout << "Dof:      XCurr  ,    XPrev  "
-				",   XPrime  ,   XPPrev" << std::endl;
-			for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-	    			std::cout << std::setw(4) << iTmpCnt << ": ";
-				std::cout << std::setw(12) << pX->dGetCoef(iTmpCnt);
-				for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {  
-					std::cout << std::setw(12)
-					<< (qX[ivec])->dGetCoef(iTmpCnt);
-				} 
-				std::cout << std::setw(12) << pXPrime->dGetCoef(iTmpCnt);
-				for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {  
-					std::cout << std::setw(12)
-					<< (qXPrime[ivec])->dGetCoef(iTmpCnt);
-				} 
-				std::cout << std::endl;
-	 		}
-      		}
+      	integer iNumDofs = pDM->iGetNumDofs();
+	if (outputPred) {
+		std::cout << "Dof:      XCurr  ,    XPrev  "
+			",   XPrime  ,   XPPrev" << std::endl;
+		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
+    			std::cout << std::setw(4) << iTmpCnt << ": ";
+			std::cout << std::setw(12) << pX->dGetCoef(iTmpCnt);
+			for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {  
+				std::cout << std::setw(12)
+				<< (qX[ivec])->dGetCoef(iTmpCnt);
+			} 
+			std::cout << std::setw(12) << pXPrime->dGetCoef(iTmpCnt);
+			for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {  
+				std::cout << std::setw(12)
+				<< (qXPrime[ivec])->dGetCoef(iTmpCnt);
+			} 
+			std::cout << std::endl;
+ 		}
+	}
 #endif /* DEBUG */
 
 	Err = 0.;
