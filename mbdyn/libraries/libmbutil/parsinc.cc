@@ -302,8 +302,6 @@ IncludeParser::Include_()
 int
 IncludeParser::GetDescription(void)
 {
-   	const char sFuncName[] = "IncludeParser::GetDescription()";
-
    	/* Checks if current token is a description */
    	if (!fIsDescription()) {
       		THROW(HighParser::ErrInvalidCallToGetDescription());
@@ -320,8 +318,9 @@ restart:
 	    			THROW(ErrFile());
 	 		}
       		} else {     	 
-			std::cerr << "Parser error in "
-	   			<< sFuncName << ", keyword expected at line " 
+			std::cerr << "Parser error "
+				"in IncludeParser::GetDescription(), "
+	   			"keyword expected at line " 
 	   			<< GetLineData() << std::endl;
 	 		THROW(HighParser::ErrKeyWordExpected());
       		}
