@@ -74,8 +74,8 @@ this:
 Or on systems that have the `env' program, you can do it like this:
      env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ./configure
 
-Known Problems
-==============
+Known Problems (see also "BUGS" file)
+=====================================
 
    Some compilers are known to have problems in compiling MBDyn; its 
 development was mainly based on gcc 2.7.X, and later on gcc egcs-2.91.X

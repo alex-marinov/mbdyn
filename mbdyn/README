@@ -15,11 +15,11 @@ developers:
 
   - check out from the CVS tree
   - run "sh ./bootstrap.sh" to generate ancillary files.
-    Mmay need some tailoring.  A system with working autoconf, 
+    May need some tailoring.  A system with working autoconf, 
     automake and libtool is required; I'm currently using 
     autoconf 2.13, automake 1.4, libtool 1.3.4.
   - tar the tree and move to the target system; this way, all
-    the ancillary files wil be available even if the target 
+    the ancillary files will be available even if the target 
     system does not have those tools.
 
 
@@ -27,6 +27,7 @@ developers:
 distribution:
 
   - follow the above instructions
+  - run "./configure"
   - run "make dist"
 
 
@@ -44,4 +45,5 @@ installation:
     be installed in "$PREFIX/bin", while some libraries will be put
     in "$PREFIX/lib".  Those libraries are not required to run either
     mbdyn or the utilities (unless you force the shared build).
-    
+    a bare-bone man page will be installed in "$PREFIX/man/man1".
+ 
