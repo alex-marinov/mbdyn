@@ -158,7 +158,7 @@ dnl General "with" options
 OL_ARG_WITH(tcl,[  --with-tcl              with tcl interpreters],auto,[auto yes no])
 OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}] with f2c library],auto,[auto yes no g2c])
 OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
-OL_ARG_WITH(mpi,[  --with-mpi              with MPI support],auto,[auto yes no])
+OL_ARG_WITH(mpi,[  --with-mpi              with MPI support (=pmpi for profiling)],auto,[auto yes pmpi no])
 OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
 OL_ARG_WITH(metis,[  --with-metis            with Metis model partitioning support],auto,[auto yes no])
 OL_ARG_WITH(chaco,[  --with-chaco            with Chaco model partitioning support],auto,[auto yes no])
@@ -335,11 +335,15 @@ fi
 
 dnl try to detect MPI and either Metis or Chaco
 if test "$ol_enable_schur" = yes ; then
-	if test "$ol_with_mpi" = no ; then
+	case "$ol_with_mpi" in
+	no)
 		AC_MSG_ERROR([Schur parallel solver needs MPI])
-	else
+		;;
+
+	auto)
 		ol_with_mpi=yes
-	fi
+		;;
+	esac
 	if test "$ol_with_metis" = no -a "$ol_with_chaco" = no ; then
 		AC_MSG_ERROR([Schur parallel solver needs either Metis or Chaco])
 	fi
@@ -693,7 +697,7 @@ dnl ----------------------------------------------------------------
 dnl
 dnl MULTITHREAD/MPI compatibility
 dnl
-if test "$ol_with_mpi" = "yes" ; then
+if test "$ol_with_mpi" != "no" -a "$ol_with_mpi" != "auto" ; then
 	if test "$ol_enable_multithread" = "yes" \
 			-o "$ol_enable_multithread" = "force" ; then
 		AC_MSG_ERROR([MPI and multithread cannot coexist; pick one])
@@ -1461,7 +1465,11 @@ if test $ol_with_mpi != no ; then
  	MPI::Init(argc, argv);
  		],[have_mpi=yes],[have_mpi=no])
                 if test $have_mpi = no ; then
-        		try_mpi_LIBS="-lmpich++ -lmpich -lnsl"
+			if test "$ol_with_mpi" = "pmpi" ; then
+        			try_mpi_LIBS="-lpmpich++ -lmpich -lpmpich -lnsl"
+			else
+        			try_mpi_LIBS="-lmpich++ -lmpich -lnsl"
+			fi
 		        LIBS="$LIBS $try_mpi_LIBS"
 		        AC_TRY_LINK([
 #include <mpi++.h>
