@@ -88,10 +88,10 @@ static int size(void* p)
    return 4;
 }
 
-static int init(void* p, VectorHandler& X)
+static int init(void* p, VectorHandler& X, VectorHandler& XP)
 {
    private_data* pd = (private_data*)p;
-   X.Reset(0.);
+   X.Reset();
    for (int i = 1; i <= size(p); i++) {      
       X.PutCoef(i, pd->x[i-1]); /* posiz. iniziale */
    }
@@ -99,7 +99,7 @@ static int init(void* p, VectorHandler& X)
 }
 
 static int grad(void* p, MatrixHandler& J, MatrixHandler& Jp, 
-		const VectorHandler& X, const doublereal& t)
+		const VectorHandler& X, const VectorHandler& XP, const doublereal& t)
 {
    private_data* pd = (private_data*)p;
    
@@ -135,7 +135,7 @@ static int grad(void* p, MatrixHandler& J, MatrixHandler& Jp,
    return 0;
 }
 
-static int func(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
+static int func(void* p, VectorHandler& R, const VectorHandler& X, const VectorHandler& XP, const doublereal& t)
 {
    private_data* pd = (private_data*)p;
    

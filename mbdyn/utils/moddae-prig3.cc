@@ -126,8 +126,8 @@ static int size(void* p)
 static int init(void* p, VectorHandler& X, VectorHandler& XP)
 {
    private_data* pd = (private_data*)p;
-   X.Reset(0.);
-   XP.Reset(0.);
+   X.Reset();
+   XP.Reset();
    for (int i = 1; i <= size(p); i++) {
       XP.PutCoef(i, pd->xP[i-1]); /* posiz. iniziale */
       X.PutCoef(i, pd->x[i-1]); /* posiz. iniziale */

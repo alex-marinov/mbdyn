@@ -53,9 +53,10 @@ int read(void** pp, const char* user_defined)
    
    if (user_defined != NULL) {
       // cerr << "opening file \"" << user_defined << "\"" << endl;
-      ifstream in(user_defined);
+      std::ifstream in(user_defined);
       if (!in) {
-	 cerr << "unable to open file \"" << user_defined << "\"" << endl;
+	 std::cerr << "unable to open file \"" << user_defined << "\"" << 
+	 	std::endl;
 	 exit(EXIT_FAILURE);
       }
       in >> pd->m >> pd->c >> pd->k >> pd->x[0] >> pd->x[1];
@@ -82,7 +83,7 @@ int size(void* p)
 int init(void* p, VectorHandler& X)
 {
    private_data* pd = (private_data*)p;
-   X.Reset(0.);
+   X.Reset();
    for (int i = 1; i <= size(p); i++) {      
       X.PutCoef(i, pd->x[i-1]); /* posiz. iniziale */
    }
@@ -108,7 +109,7 @@ int res(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
    return 0;
 }
 
-ostream& out(void* p, ostream& o, 
+std::ostream& out(void* p, std::ostream& o, 
 	     const VectorHandler& X, const VectorHandler& XP)
 {
    // private_data* pd = (private_data*)p;

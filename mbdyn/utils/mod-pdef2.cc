@@ -100,7 +100,7 @@ int size(void* p)
 int init(void* p, VectorHandler& X)
 {
    private_data* pd = (private_data*)p;
-   X.Reset(0.);
+   X.Reset();
    for (int i = 1; i <= size(p); i++) {      
       X.PutCoef(i, pd->x[i-1]); /* posiz. iniziale */
    }
