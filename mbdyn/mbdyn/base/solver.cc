@@ -1152,6 +1152,17 @@ IfFirstStepIsToBeRepeated:
 
 #ifdef USE_RTAI
 	if (bRT) {
+
+		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, &mbdyn_rtai_task)) {
+			std::cerr << "unable to init RTAI task" << std::endl;
+			THROW(ErrGeneric());
+		}
+
+		/* FIXME: configurable? */
+		if (1) {
+			mbdyn_rt_allow_nonroot_hrt();
+		}
+
 		if (bRTWaitPeriod) {
 			long long t = mbdyn_rt_get_time();
 			int r;

@@ -248,14 +248,6 @@ main(int argc, char* argv[])
 {
 	int	rc = EXIT_SUCCESS;
 
-#ifdef USE_RTAI
-	if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, &mbdyn_rtai_task)) {
-		std::cerr << "unable to init RTAI task" << std::endl;
-		THROW(ErrGeneric());
-	}
-	mbdyn_rt_allow_nonroot_hrt();
-#endif /* USE_RTAI */
-
 #ifdef USE_MPI
 	int using_mpi = 0;
 	int WorldSize = 1;
@@ -801,7 +793,9 @@ exit_point:;
 #endif /* USE_EXCEPTIONS */
 
 #ifdef USE_RTAI
-	(void)mbdyn_rt_task_delete(&mbdyn_rtai_task);
+	if (mbdyn_rtai_task) {
+		(void)mbdyn_rt_task_delete(&mbdyn_rtai_task);
+	}
 #endif /* USE_RTAI */
    
     	MB_EXIT(rc);
