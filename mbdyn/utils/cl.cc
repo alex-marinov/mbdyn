@@ -54,6 +54,15 @@ main(int argc, const char* const argv[])
 #else /* !USE_TABLE */
 	    		MathParser mp(In);
 #endif /* !USE_TABLE */
+#ifdef USE_TCL
+			/* registra il plugin per il tcl */
+			mp.RegisterPlugIn("tcl", tcl_plugin, NULL);
+#else /* !USE_TCL */
+			mp.RegisterPlugIn("tcl", dummy_plugin,
+					(void *)"configure with --with-tcl "
+					"to use tcl plugin");
+#endif /* USE_TCL */
+	
 			if (verbose) {
 	    			cout << "argv[" << i << "] = ";
 			}
@@ -71,7 +80,6 @@ main(int argc, const char* const argv[])
 #endif /* !USE_TABLE */
 
 #ifdef USE_TCL
-#warning "using 'tcl' plugin"
 	/* registra il plugin per il tcl */
 	mp.RegisterPlugIn("tcl", tcl_plugin, NULL);
 #else /* !USE_TCL */
