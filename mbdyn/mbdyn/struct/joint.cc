@@ -294,6 +294,11 @@ Elem* ReadJoint(DataManager* pDM,
     case DISTANCEWITHOFFSET: {
        /* lettura dei dati specifici */
        /* due nodi e tipo di drive, con dati specifici */
+
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+       pedantic_cerr("Joint(" << uLabel << "): \"distance with offset\" "
+		       "is deprecated; use \"distance\" instead" << std::endl);
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
        
        /* nodo collegato 1 */
        unsigned int uNode1 = (unsigned int)HP.GetInt();
@@ -1164,6 +1169,11 @@ Elem* ReadJoint(DataManager* pDM,
 	* questo e' lo stesso rod with offset, ma con un input piu' simile
 	* a quello standard.
 	*/
+
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+       pedantic_cerr("Joint(" << uLabel << "): \"rod with offset\" "
+		       "is deprecated; use \"rod\" instead" << std::endl);
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
 
        /* nodo collegato 1 */
        StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
