@@ -446,6 +446,7 @@ destroy(LoadableElem* pEl)
 
 static struct
 LoadableCalls lc = {
+	"rollercoaster",
 	read,
 	i_get_num_dof,
 	set_dof,
@@ -466,6 +467,8 @@ LoadableCalls lc = {
 	set_initial_value,
 	i_get_num_priv_data,
 	d_get_priv_data,
+	NULL /* i_get_num_connected_nodes */ ,
+	NULL /* get_connected_nodes */ ,
 	destroy
 };
 
