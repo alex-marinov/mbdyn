@@ -39,13 +39,11 @@
 
 /* DataManager - begin */
 
-const char sEMClassName[] = "DataManager";
-
 /* costruttore: resetta i dati */
 void DataManager::ElemManager(void)
 {
    /* Reset della struttura ElemData */
-   for(int i = 0; i < Elem::LASTELEMTYPE; i++) {
+   for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
       ElemData[i].ppFirstElem = NULL;
       ElemData[i].iNum = 0;
       ElemData[i].DofOwnerType = DofOwner::UNKNOWN;
@@ -124,7 +122,7 @@ void DataManager::ElemManager(void)
    
    
    /* Reset della struttura DriveData */
-   for(int i = 0; i < Drive::LASTDRIVETYPE; i++) {
+   for (int i = 0; i < Drive::LASTDRIVETYPE; i++) {
       DriveData[i].ppFirstDrive = NULL;
       DriveData[i].iNum = 0;
    }
@@ -137,25 +135,25 @@ void DataManager::ElemManagerDestructor(void)
    DEBUGCOUT("Entering DataManager::ElemManagerDestructor()" << std::endl);
    
    /* Distruzione matrici di lavoro per assemblaggio */ 
-   if(pWorkMatB != NULL) {
+   if (pWorkMatB != NULL) {
       DEBUGCOUT("deleting assembly structure, SubMatrix B" << std::endl);
       SAFEDELETE(pWorkMatB);
    }   
    
-   if(pWorkMatA != NULL) {
+   if (pWorkMatA != NULL) {
       DEBUGCOUT("deleting assembly structure, SubMatrix A" << std::endl);
       SAFEDELETE(pWorkMatA);
    }   
    
    
-   if(pdWorkMat != NULL) {
+   if (pdWorkMat != NULL) {
       DEBUGCOUT("deleting assembly structure, double workspace" << std::endl);
       SAFEDELETEARR(pdWorkMat);
    }   
 
    // ASSERT(piWorkIndex != NULL);
 
-   if(piWorkIndex != NULL) {
+   if (piWorkIndex != NULL) {
       DEBUGCOUT("deleting assembly structure, integer workspace" << std::endl);
       SAFEDELETEARR(piWorkIndex);
    }   
@@ -180,7 +178,7 @@ void DataManager::ElemManagerDestructor(void)
        }
 #else /* !USE_ELEM_ITER */
       Elem** pp = ppElems;
-      while(pp < ppElems+iTotElem) {
+      while (pp < ppElems+iTotElem) {
 	 ASSERT(*pp != NULL);
 	 if(*pp != NULL) {		  
 	    DEBUGCOUT("deleting element " << (*pp)->GetLabel() 
@@ -196,10 +194,10 @@ void DataManager::ElemManagerDestructor(void)
    }   
      
    /* Distruzione drivers */
-   if(ppDrive != NULL) {
+   if (ppDrive != NULL) {
       Drive** pp = ppDrive;
-      while(pp < ppDrive+iTotDrive) {
-	 if(*pp != NULL) {
+      while (pp < ppDrive+iTotDrive) {
+	 if (*pp != NULL) {
 	    DEBUGCOUT("deleting driver " << (*pp)->GetLabel() << ", type " 
 		      << psDriveNames[(*pp)->GetDriveType()] << std::endl);
 	    SAFEDELETE(*pp);
@@ -345,7 +343,7 @@ void DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 
 #if !defined(USE_ELEM_ITER)
    /* ciclo sugli elementi */
-   for(Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {
+   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {
       /* Nuova versione, piu' compatta.
        * La funzione propria AssJac, comune a tutti gli elementi,
        * scrive nella WorkMat (passata come reference) il contributo
@@ -391,7 +389,7 @@ void DataManager::AssEig(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
          
 #if !defined(USE_ELEM_ITER)
    /* ciclo sugli elementi */
-   for(Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {
+   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {
       /* Nuova versione, piu' compatta.
        * La funzione propria AssJac, comune a tutti gli elementi,
        * scrive nella WorkMat (passata come reference) il contributo
@@ -580,7 +578,7 @@ void* DataManager::pFindElem(Elem::Type Typ, unsigned int uL) const
    
    Elem* p = pLabelSearch(ElemData[Typ].ppFirstElem, ElemData[Typ].iNum, uL);
       
-   if( p == NULL ) {
+   if (p == NULL) {
       return NULL;
    }
    
@@ -617,7 +615,7 @@ void* DataManager::pFindElem(Elem::Type Typ, unsigned int uL,
       
    Elem* p = pLabelSearch(ElemData[Typ].ppFirstElem, ElemData[Typ].iNum, uL);
       
-   if( p == NULL ) {
+   if (p == NULL) {
       return NULL;
    }
    
@@ -630,7 +628,7 @@ void* DataManager::pChooseElem(Elem* p, unsigned int iDeriv) const
 {
    ASSERT(p != NULL);
 
-   switch(iDeriv) {
+   switch (iDeriv) {
     case ELEM:
       ASSERT(p->pGetElem() != NULL);
       return p->pGetElem();
