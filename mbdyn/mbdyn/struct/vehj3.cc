@@ -35,26 +35,28 @@
 #endif /* HAVE_CONFIG_H */
 
 #include "dataman.h"
-#include "vehj2.h"
+#include "vehj3.h"
 
-/* DeformableDispHingeJoint - begin */
+#include "matvecexp.h"
+#include "Rot.hh"
+
+/* DeformableJoint - begin */
 
 /* Costruttore non banale */
-DeformableDispHingeJoint::DeformableDispHingeJoint(unsigned int uL,
-						   const DofOwner* pDO, 
-						   const ConstitutiveLaw3D* pCL,
-						   const StructNode* pN1,
-						   const StructNode* pN2,
-						   const Vec3& f1Tmp,
-						   const Vec3& f2Tmp,
-						   const Mat3x3& R1,
-						   const Mat3x3& R2,
-						   flag fOut)
+DeformableJoint::DeformableJoint(unsigned int uL,
+		const DofOwner* pDO, 
+		const ConstitutiveLaw6D* pCL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const Vec3& f1Tmp,
+		const Vec3& f2Tmp,
+		const Mat3x3& R1,
+		const Mat3x3& R2,
+		flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
-Joint(uL, Joint::DEFORMABLEDISPJOINT, pDO, fOut), 
-ConstitutiveLaw3DOwner(pCL),
-pNode1(pN1), pNode2(pN2), f1(f1Tmp), f2(f2Tmp), R1h(R1), R2h(R2),
-k(0.), kPrime(0.)
+Joint(uL, Joint::DEFORMABLEJOINT, pDO, fOut), 
+ConstitutiveLaw6DOwner(pCL),
+pNode1(pN1), pNode2(pN2), f1(f1Tmp), f2(f2Tmp), R1h(R1), R2h(R2)
 {
    ASSERT(pNode1 != NULL);
    ASSERT(pNode2 != NULL);
@@ -64,16 +66,16 @@ k(0.), kPrime(0.)
 
    
 /* Distruttore */
-DeformableDispHingeJoint::~DeformableDispHingeJoint(void)
+DeformableJoint::~DeformableJoint(void)
 {
    NO_OP;
 }
 
    
 /* Contributo al file di restart */
-std::ostream& DeformableDispHingeJoint::Restart(std::ostream& out) const
+std::ostream& DeformableJoint::Restart(std::ostream& out) const
 {
-   Joint::Restart(out) << ", deformable displacement joint, " 
+   Joint::Restart(out) << ", deformable joint, " 
      << pNode1->GetLabel() << ", reference, node, ",
      f1.Write(out, ", ") << ", hinge, reference, node, 1, ", 
      (R1h.GetVec(1)).Write(out, ", ")
@@ -86,30 +88,32 @@ std::ostream& DeformableDispHingeJoint::Restart(std::ostream& out) const
 }
 
 
-void DeformableDispHingeJoint::Output(OutputHandler& OH) const
+void
+DeformableJoint::Output(OutputHandler& OH) const
 {
-   
-   if(fToBeOutput()) {
-      Vec3 v(GetF());
-      Joint::Output(OH.Joints(), "DeformableDispJoint", GetLabel(),
-		    v, Zero3, pNode1->GetRCurr()*v, Zero3) << std::endl;	
+	if (fToBeOutput()) {
+		Mat3x3 R1(pNode1->GetRCurr());
+      		Vec3 F(GetF().GetVec1());
+		Vec3 M(GetF().GetVec2());
+		Joint::Output(OH.Joints(), "DeformableJoint", GetLabel(),
+				F, M, R1*F, R1*M) << std::endl;	
    }     
 }
 
 unsigned int
-DeformableDispHingeJoint::iGetNumPrivData(void) const
+DeformableJoint::iGetNumPrivData(void) const
 {
-	return ConstitutiveLaw3DOwner::iGetNumPrivData();
+	return ConstitutiveLaw6DOwner::iGetNumPrivData();
 }
 
 unsigned int
-DeformableDispHingeJoint::iGetPrivDataIdx(const char *s) const
+DeformableJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 
 	size_t l = sizeof("constitutiveLaw.") - 1;
 	if (strncmp(s, "constitutiveLaw.", l) == 0) {
-		return ConstitutiveLaw3DOwner::iGetPrivDataIdx(s + l);
+		return ConstitutiveLaw6DOwner::iGetPrivDataIdx(s + l);
 	}
 
 	/* error; handle later */
@@ -117,174 +121,297 @@ DeformableDispHingeJoint::iGetPrivDataIdx(const char *s) const
 }
 
 doublereal
-DeformableDispHingeJoint::dGetPrivData(unsigned int i) const
+DeformableJoint::dGetPrivData(unsigned int i) const
 {
 	ASSERT(i > 0);
 
-	ASSERT(i <= ConstitutiveLaw3DOwner::iGetNumPrivData());
+	ASSERT(i <= ConstitutiveLaw6DOwner::iGetNumPrivData());
 
-	return ConstitutiveLaw3DOwner::dGetPrivData(i);
+	return ConstitutiveLaw6DOwner::dGetPrivData(i);
 }
 
-/* DeformableDispHingeJoint - end */
+/* DeformableJoint - end */
 
 
-/* ElasticDispHingeJoint - begin */
+/* ElasticJoint - begin */
 
-ElasticDispHingeJoint::ElasticDispHingeJoint(unsigned int uL, 
-					     const DofOwner* pDO, 
-					     const ConstitutiveLaw3D* pCL,
-					     const StructNode* pN1, 
-					     const StructNode* pN2,
-					     const Vec3& f1Tmp,
-					     const Vec3& f2Tmp,
-					     const Mat3x3& R1,
-					     const Mat3x3& R2,
-					     flag fOut)
+ElasticJoint::ElasticJoint(unsigned int uL, 
+		const DofOwner* pDO, 
+		const ConstitutiveLaw6D* pCL,
+		const StructNode* pN1, 
+		const StructNode* pN2,
+		const Vec3& f1Tmp,
+		const Vec3& f2Tmp,
+		const Mat3x3& R1,
+		const Mat3x3& R2,
+		flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
-DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
+DeformableJoint(uL, pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut),
+ThetaRef(0.), k(0.)
 {
-   NO_OP;
+	/*
+	 * Chiede la matrice tangente di riferimento
+	 * e la porta nel sistema globale
+	 */
+	Mat3x3 R(pNode1->GetRRef()*R1h);
+	FDE = MultRMRt(ConstitutiveLaw6DOwner::GetFDE(), R);
 }
 
 
-ElasticDispHingeJoint::~ElasticDispHingeJoint(void)
+ElasticJoint::~ElasticJoint(void)
 {
-   NO_OP;
+	NO_OP;
+}
+
+void
+ElasticJoint::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP)
+{
+	ConstitutiveLaw6DOwner::AfterConvergence(k);
 }
 
    
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 
-ElasticDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
-			      doublereal dCoef, 
-			      const VectorHandler& /* XCurr */ ,
-			      const VectorHandler& /* XPrimeCurr */ )
+ElasticJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef, 
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
 {
-   FullSubMatrixHandler& WM = WorkMat.SetFull();
+	FullSubMatrixHandler& WM = WorkMat.SetFull();
    
-   /* Dimensiona e resetta la matrice di lavoro */
-   integer iNumRows = 0;
-   integer iNumCols = 0;
-   WorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeReset(iNumRows, iNumCols);
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WM.ResizeReset(iNumRows, iNumCols);
 
-   /* Recupera gli indici */
-   integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
-   integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
-   integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
-   integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
-   
-   /* Setta gli indici della matrice */
-   for(int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
-      WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-   }  
-   
-   AssMat(WM, dCoef);
+	/* Recupera gli indici */
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
 
-   return WorkMat;
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
+		WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+		WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+	}
+
+	AssMat(WM, dCoef);
+
+	return WorkMat;
 }
 
 
-void ElasticDispHingeJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)   
+void
+ElasticJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)   
 {      
-   Vec3 f1Tmp(pNode1->GetRRef()*f1);
-   Vec3 f2Tmp(pNode2->GetRRef()*f2);
-   Vec3 d1(pNode2->GetXCurr()+f2Tmp-pNode1->GetXCurr());
+	Vec3 f1Tmp(pNode1->GetRRef()*f1);
+	Vec3 f2Tmp(pNode2->GetRRef()*f2);
+	Vec3 d1(pNode2->GetXCurr()+f2Tmp-pNode1->GetXCurr());
 
-   Mat3x3 R1(pNode1->GetRRef()*R1h);
-   Vec3 F(R1*(GetF()*dCoef));
-   Mat3x3 MatF(F);
-   /* F/e */
-   Mat3x3 FDE(R1*GetFDE()*(R1.Transpose()*dCoef));
-   
-   WM.Add(1, 1, FDE);
-   WM.Add(7, 7, FDE);
-   WM.Sub(1, 7, FDE);
-   WM.Sub(7, 1, FDE);
-   
-   Mat3x3 MTmp;
-   MTmp = FDE*Mat3x3(f2Tmp); /* F/e * f2/\ */
-   WM.Add(1, 10, MTmp);   
-   WM.Sub(7, 10, MTmp);
-   
-   WM.Add(4, 10, Mat3x3(f1Tmp)*MTmp); /* f1/\ F/e f2/\ */
-   
-   MTmp = Mat3x3(f2Tmp)*FDE; /* f2/\ F/e */
-   WM.Add(10, 7, MTmp);
-   WM.Sub(10, 1, MTmp);
-   
-   WM.Add(10, 10, (MatF - MTmp)*Mat3x3(f2Tmp)); /* (F/\ - f2/\ F/e) f2/\ */
-   
-   MTmp = Mat3x3(f1Tmp)*FDE; /* f1/\ F/e */
-   WM.Add(4, 1, MTmp);
-   WM.Sub(4, 7, MTmp);
-   
-   MTmp = FDE*Mat3x3(d1) - MatF; /* F/e * d1/\ - F/\ */
-   WM.Add(7, 4, MTmp);
-   WM.Sub(1, 4, MTmp);
-   WM.Add(10, 4, Mat3x3(f2Tmp)*MTmp); /* f2/\ (F/e * d1/\ - F/\) */
-   
-   WM.Add(4, 4, Mat3x3(f1Tmp, F) - Mat3x3(f1Tmp)*FDE*Mat3x3(d1)); /* ... */
+	Mat3x3 R1(pNode1->GetRRef()*R1h);
+	Vec6 F(MultRV(GetF(), R1));
+
+	/* D11 */
+	Mat3x3 DTmp = FDE.GetMat11()*dCoef;
+
+	WM.Add(1, 1, DTmp);
+	WM.Sub(1, 6 + 1, DTmp);
+	WM.Sub(6 + 1, 1, DTmp);
+	WM.Add(6 + 1, 6 + 1, DTmp);
+
+	/* D11 * (f1 x) */
+	Mat3x3 FTmp = DTmp*Mat3x3(f1Tmp);
+
+	WM.Sub(1, 4, FTmp);
+	WM.Add(6 + 1, 4, FTmp);
+	
+	/* D11 * (f2 x) */
+	FTmp = DTmp*Mat3x3(f2Tmp);
+
+	WM.Add(1, 6 + 4, FTmp);
+	WM.Sub(6 + 1, 6 + 4, FTmp);
+
+	/* (f1 x) * D11 */
+	FTmp = Mat3x3(f1Tmp)*DTmp;
+
+	WM.Add(4, 1, FTmp);
+	WM.Sub(4, 6 + 1, FTmp);
+	
+	/* (f2 x) * D11 */
+	FTmp = Mat3x3(f2Tmp)*DTmp;
+
+	WM.Add(6 + 4, 1, FTmp);
+	WM.Sub(6 + 4, 6 + 1, FTmp);
+	
+
+	/* D12 - (F1 x) */
+	DTmp = (FDE.GetMat12() - Mat3x3(F.GetVec1()))*dCoef;
+
+	WM.Add(1, 4, DTmp);
+	WM.Sub(1, 6 + 4, DTmp);
+	WM.Sub(6 + 1, 4, DTmp);
+	WM.Add(6 + 1, 6 + 4, DTmp);
+
+	/* (f1 x) * D11 */
+	FTmp = Mat3x3(f1Tmp)*DTmp;
+
+	WM.Add(4, 4, FTmp);
+	WM.Sub(4, 6 + 4, FTmp);
+	
+	/* (f2 x) * D11 */
+	FTmp = Mat3x3(f2Tmp)*DTmp;
+
+	WM.Add(6 + 4, 4, FTmp);
+	WM.Sub(6 + 4, 6 + 4, FTmp);
+
+
+	/* D21 */
+	DTmp = FDE.GetMat21()*dCoef;
+
+	WM.Add(4, 1, DTmp);
+	WM.Sub(4, 6 + 1, DTmp);
+	WM.Sub(6 + 4, 1, DTmp);
+	WM.Add(6 + 4, 6 + 1, DTmp);
+
+	/* D21 * (f1 x) */
+	FTmp = DTmp*Mat3x3(f1Tmp);
+
+	WM.Sub(4, 4, FTmp);
+	WM.Add(6 + 4, 4, FTmp);
+	
+	/* D21 * (f2 x) */
+	FTmp = DTmp*Mat3x3(f2Tmp);
+
+	WM.Add(4, 6 + 4, FTmp);
+	WM.Sub(6 + 4, 6 + 4, FTmp);
+
+
+	/* D22 - (F2 x) */
+	DTmp = (FDE.GetMat22() - Mat3x3(F.GetVec2()))*dCoef;
+
+	WM.Add(4, 4, DTmp);
+	WM.Sub(4, 6 + 4, DTmp);
+	WM.Sub(6 + 4, 4, DTmp);
+	WM.Add(6 + 4, 6 + 4, DTmp);
+
+
+	/* ((F1 x f1) x) */
+	FTmp = Mat3x3(F.GetVec1().Cross(f1Tmp*dCoef));
+
+	WM.Add(4, 4, FTmp);
+	WM.Sub(6 + 4, 4, FTmp);
+
+	/* ((F1 x f2) x) */
+	FTmp = Mat3x3(F.GetVec1().Cross(f2Tmp*dCoef));
+
+	WM.Sub(4, 6 + 4, FTmp);
+	WM.Add(6 + 4, 6 + 4, FTmp);
 }
-
 
 /* assemblaggio residuo */
 SubVectorHandler& 
-ElasticDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
-			      doublereal /* dCoef */ ,
-			      const VectorHandler& /* XCurr */ ,
-			      const VectorHandler& /* XPrimeCurr */ )
+ElasticJoint::AssRes(SubVectorHandler& WorkVec,
+		doublereal /* dCoef */ ,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
 {
-   /* Dimensiona e resetta la matrice di lavoro */
-   integer iNumRows = 0;
-   integer iNumCols = 0;
-   WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeReset(iNumRows);
-   
-   /* Recupera gli indici */
-   integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
-   integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
-   
-   /* Setta gli indici della matrice */
-   for(int iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-   }  
-   
-   AssVec(WorkVec);
-   
-   return WorkVec;
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Recupera gli indici */
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+	}
+
+	AssVec(WorkVec);
+
+	return WorkVec;
 }
 
    
-void ElasticDispHingeJoint::AssVec(SubVectorHandler& WorkVec)
+void
+ElasticJoint::AssVec(SubVectorHandler& WorkVec)
 {   
-   Mat3x3 R1(pNode1->GetRCurr()*R1h);
-   Vec3 f1Tmp(pNode1->GetRCurr()*f1);
-   Vec3 f2Tmp(pNode2->GetRCurr()*f2);
-   Vec3 d1(pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr());   
+	Mat3x3 R1(pNode1->GetRCurr()*R1h);
+	Vec3 f1Tmp(pNode1->GetRCurr()*f1);
+	Vec3 f2Tmp(pNode2->GetRCurr()*f2);
 
-   /* k = R1^T*(d1-f1) */   
-   k = R1.Transpose()*(d1 - f1Tmp);
-   ConstitutiveLaw3DOwner::Update(k);
+	if (bFirstRes) {
+		bFirstRes = false;
+
+	} else {
+		Mat3x3 R1T(R1.Transpose());
+		Mat3x3 R2(pNode2->GetRCurr()*R2h);
+		Vec3 d1(pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr());   
+
+		ThetaCurr = RotManip::VecRot(R1T*R2);
+
+		k = Vec6(R1T*(d1 - f1Tmp), ThetaCurr);
+		
+		ConstitutiveLaw6DOwner::Update(k);
+	}
+
+	Vec6 F(MultRV(GetF(), R1));
    
-   Vec3 F(R1*GetF());
-   
-   WorkVec.Add(1, F);
-   WorkVec.Add(4, f1Tmp.Cross(F));
-   WorkVec.Sub(7, F);   
-   WorkVec.Sub(10, f2Tmp.Cross(F));
+	WorkVec.Add(1, F.GetVec1());
+	WorkVec.Add(4, f1Tmp.Cross(F.GetVec1()) + F.GetVec2());
+	WorkVec.Sub(7, F.GetVec1());   
+	WorkVec.Sub(10, f2Tmp.Cross(F.GetVec1()) + F.GetVec2());
+}
+
+void
+ElasticJoint::AfterPredict(VectorHandler& /* X */ ,
+		VectorHandler& /* XP */ )
+{
+	/* Calcola le deformazioni, aggiorna il legame costitutivo
+	 * e crea la FDE */
+
+	/* Recupera i dati */
+	Mat3x3 R1(pNode1->GetRRef()*R1h);
+	Mat3x3 R2(pNode2->GetRRef()*R2h);
+	Mat3x3 R1T(R1.Transpose());
+
+	/* Calcola la deformazione corrente nel sistema locale (nodo a) */
+	ThetaCurr = ThetaRef = RotManip::VecRot(R1T*R2);
+
+	/* Calcola l'inversa di Gamma di ThetaRef */
+	Mat3x3 GammaRefm1 = RotManip::DRot_I(ThetaRef);
+
+	Vec3 f1Tmp(R1*f1);
+	Vec3 f2Tmp(R2*f2);
+	Vec3 d1(pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr());   
+
+	k = Vec6(R1T*(d1 - f1Tmp), ThetaRef);
+
+	/* Aggiorna il legame costitutivo */
+	ConstitutiveLaw6DOwner::Update(k);
+
+	/* Chiede la matrice tangente di riferimento e la porta
+	 * nel sistema globale */
+	/* FIXME: horrible */
+        FDE = MultRMRt(ConstitutiveLaw6DOwner::GetFDE()*Mat6x6(Eye3, Zero3x3, Zero3x3, GammaRefm1), R1);
+
+	bFirstRes = true;
 }
 
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler& 
-ElasticDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
-				     const VectorHandler& /* XCurr */ )
+ElasticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& /* XCurr */ )
 {
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -314,7 +441,7 @@ ElasticDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 /* Contributo al residuo durante l'assemblaggio iniziale */   
 SubVectorHandler& 
-ElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
+ElasticJoint::InitialAssRes(SubVectorHandler& WorkVec,
 				     const VectorHandler& /* XCurr */ )
 {
    /* Dimensiona e resetta la matrice di lavoro */
@@ -338,23 +465,24 @@ ElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-/* ElasticDispHingeJoint - end */
+/* ElasticJoint - end */
 
+#if 0
 
-/* ViscousDispHingeJoint - begin */
+/* ViscousJoint - begin */
 
-ViscousDispHingeJoint::ViscousDispHingeJoint(unsigned int uL, 
-					     const DofOwner* pDO, 
-					     const ConstitutiveLaw3D* pCL,
-					     const StructNode* pN1, 
-					     const StructNode* pN2,
-					     const Vec3& f1Tmp,
-					     const Vec3& f2Tmp,
-					     const Mat3x3& R1,
-					     const Mat3x3& R2,
-					     flag fOut)
+ViscousJoint::ViscousJoint(unsigned int uL, 
+		const DofOwner* pDO, 
+		const ConstitutiveLaw6D* pCL,
+		const StructNode* pN1, 
+		const StructNode* pN2,
+		const Vec3& f1Tmp,
+		const Vec3& f2Tmp,
+		const Mat3x3& R1,
+		const Mat3x3& R2,
+		flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
-DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
+DeformableJoint(uL, pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
 {
    NO_OP;
    
@@ -365,7 +493,7 @@ DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
 }
 
 
-ViscousDispHingeJoint::~ViscousDispHingeJoint(void)
+ViscousJoint::~ViscousJoint(void)
 {
    NO_OP;
 }
@@ -373,10 +501,10 @@ ViscousDispHingeJoint::~ViscousDispHingeJoint(void)
    
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 
-ViscousDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
-			      doublereal dCoef,
-			      const VectorHandler& /* XCurr */ ,
-			      const VectorHandler& /* XPrimeCurr */ )
+ViscousJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
 {
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -420,10 +548,10 @@ ViscousDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 /* assemblaggio residuo */
 SubVectorHandler& 
-ViscousDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
-			      doublereal /* dCoef */ ,
-			      const VectorHandler& /* XCurr */ ,
-			      const VectorHandler& /* XPrimeCurr */ )
+ViscousJoint::AssRes(SubVectorHandler& WorkVec,
+		doublereal /* dCoef */ ,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
 {
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -462,8 +590,8 @@ ViscousDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler& 
-ViscousDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat, 
-				     const VectorHandler& /* XCurr */ )
+ViscousJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+		const VectorHandler& /* XCurr */ )
 {
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -513,8 +641,8 @@ ViscousDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 /* Contributo al residuo durante l'assemblaggio iniziale */   
 SubVectorHandler& 
-ViscousDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
-				     const VectorHandler& /* XCurr */ )
+ViscousJoint::InitialAssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& /* XCurr */ )
 {
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -553,23 +681,23 @@ ViscousDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-/* ViscousDispHingeJoint - end */
+/* ViscousJoint - end */
 
 
-/* ViscoElasticDispHingeJoint - begin */
+/* ViscoElasticJoint - begin */
 
-ViscoElasticDispHingeJoint::ViscoElasticDispHingeJoint(unsigned int uL, 
-						       const DofOwner* pDO, 
-						       const ConstitutiveLaw3D* pCL,
-						       const StructNode* pN1, 
-						       const StructNode* pN2,
-						       const Vec3& f1Tmp,
-						       const Vec3& f2Tmp,
-						       const Mat3x3& R1,
-						       const Mat3x3& R2, 
-						       flag fOut)
+ViscoElasticJoint::ViscoElasticJoint(unsigned int uL, 
+		const DofOwner* pDO, 
+		const ConstitutiveLaw6D* pCL,
+		const StructNode* pN1, 
+		const StructNode* pN2,
+		const Vec3& f1Tmp,
+		const Vec3& f2Tmp,
+		const Mat3x3& R1,
+		const Mat3x3& R2, 
+		flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
-DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
+DeformableJoint(uL, pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
 {
    /* Temporary */
    silent_cerr("DeformableHingeJoint(" << GetLabel() << "): "
@@ -578,7 +706,7 @@ DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
 }
 
 
-ViscoElasticDispHingeJoint::~ViscoElasticDispHingeJoint(void)
+ViscoElasticJoint::~ViscoElasticJoint(void)
 {
    NO_OP;
 }
@@ -586,10 +714,10 @@ ViscoElasticDispHingeJoint::~ViscoElasticDispHingeJoint(void)
    
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 
-ViscoElasticDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
-				   doublereal dCoef, 
-				   const VectorHandler& /* XCurr */ ,
-				   const VectorHandler& /* XPrimeCurr */ )
+ViscoElasticJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef, 
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
 {
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -636,10 +764,10 @@ ViscoElasticDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 /* assemblaggio residuo */
 SubVectorHandler& 
-ViscoElasticDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
-				   doublereal /* dCoef */ ,
-				   const VectorHandler& /* XCurr */ ,
-				   const VectorHandler& /* XPrimeCurr */ )
+ViscoElasticJoint::AssRes(SubVectorHandler& WorkVec,
+		doublereal /* dCoef */ ,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
 {
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -681,8 +809,8 @@ ViscoElasticDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler& 
-ViscoElasticDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat, 
-					  const VectorHandler& /* XCurr */ )
+ViscoElasticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+		const VectorHandler& /* XCurr */ )
 {
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -738,8 +866,8 @@ ViscoElasticDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 /* Contributo al residuo durante l'assemblaggio iniziale */   
 SubVectorHandler& 
-ViscoElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
-					  const VectorHandler& /* XCurr */ )
+ViscoElasticJoint::InitialAssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& /* XCurr */ )
 {
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -778,4 +906,5 @@ ViscoElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-/* ViscoElasticDispHingeJoint - end */
+/* ViscoElasticJoint - end */
+#endif

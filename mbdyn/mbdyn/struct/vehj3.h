@@ -30,17 +30,17 @@
 
 /* Deformable hinges */
 
-#ifndef VEHJ2_H
-#define VEHJ2_H
+#ifndef VEHJ3_H
+#define VEHJ3_H
 
 #include "joint.h"
 #include "constltp.h"
 
 
-/* DeformableDispHingeJoint - begin */
+/* DeformableJoint - begin */
 
-class DeformableDispHingeJoint : 
-virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
+class DeformableJoint : 
+virtual public Elem, public Joint, public ConstitutiveLaw6DOwner {
  protected:
    const StructNode* pNode1;
    const StructNode* pNode2;
@@ -49,14 +49,12 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
    const Mat3x3 R1h;
    const Mat3x3 R2h;      
    
-   Vec3 k;
-   Vec3 kPrime;
-
+	bool bFirstRes;
  public:
    /* Costruttore non banale */
-   DeformableDispHingeJoint(unsigned int uL,
+   DeformableJoint(unsigned int uL,
 			    const DofOwner* pDO,
-			    const ConstitutiveLaw3D* pCL,
+			    const ConstitutiveLaw6D* pCL,
 			    const StructNode* pN1, 
 			    const StructNode* pN2,
 			    const Vec3& f1Tmp,
@@ -66,11 +64,11 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
 			    flag fOut);
    
    /* Distruttore */
-   virtual ~DeformableDispHingeJoint(void);
+   virtual ~DeformableJoint(void);
    
    /* Tipo di Joint */
    virtual Joint::Type GetJointType(void) const {
-      return Joint::DEFORMABLEDISPJOINT; 
+      return Joint::DEFORMABLEJOINT; 
    };
    
    /* Contributo al file di restart */
@@ -78,7 +76,7 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
 
    virtual void Output(OutputHandler& OH) const;
    
-   /* Tipo di DeformableDispHinge */
+   /* Tipo di DeformableJoint */
    virtual ConstLawType::Type GetConstLawType(void) const = 0;
    
    virtual unsigned int iGetNumDof(void) const { 
@@ -117,39 +115,49 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
    /* ************************************************ */  
 };
 
-/* DeformableDispHingeJoint - end */
+/* DeformableJoint - end */
 
 
-/* ElasticDispHingeJoint - begin */
+/* ElasticJoint - begin */
 
-class ElasticDispHingeJoint : virtual public Elem, public DeformableDispHingeJoint {
- protected:
-   void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
-   void AssVec(SubVectorHandler& WorkVec);
-   
- public:
-   ElasticDispHingeJoint(unsigned int uL, 
-			 const DofOwner* pDO, 
-			 const ConstitutiveLaw3D* pCL,
-			 const StructNode* pN1, 
-			 const StructNode* pN2,
-			 const Vec3& f1Tmp,
-			 const Vec3& f2Tmp,
-			 const Mat3x3& R1,
-			 const Mat3x3& R2,
-			 flag fOut);
-   
-   ~ElasticDispHingeJoint(void);
-   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
+class ElasticJoint : virtual public Elem, public DeformableJoint {
+protected:
+	Vec3 ThetaRef;
+	Vec3 ThetaCurr;
 
-   /* Tipo di DeformableDispHinge */
-   virtual ConstLawType::Type GetConstLawType(void) const {
-      return ConstLawType::ELASTIC; 
-   };
-   
+	Vec6 k;
+
+	Mat6x6 FDE;
+
+	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
+	void AssVec(SubVectorHandler& WorkVec);
+
+public:
+	ElasticJoint(unsigned int uL, 
+		const DofOwner* pDO, 
+		const ConstitutiveLaw6D* pCL,
+		const StructNode* pN1, 
+		const StructNode* pN2,
+		const Vec3& f1Tmp,
+		const Vec3& f2Tmp,
+		const Mat3x3& R1,
+		const Mat3x3& R2,
+		flag fOut);
+
+	~ElasticJoint(void);
+
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
+
+	/* Tipo di DeformableDispHinge */
+	virtual ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::ELASTIC; 
+	};
+
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
      AssJac(VariableSubMatrixHandler& WorkMat,
@@ -163,6 +171,9 @@ class ElasticDispHingeJoint : virtual public Elem, public DeformableDispHingeJoi
 	    doublereal dCoef,
 	    const VectorHandler& XCurr, 
 	    const VectorHandler& XPrimeCurr);
+
+	/* Aggiorna le deformazioni ecc. */
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
    virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
       *piNumRows = 12; 
@@ -180,16 +191,16 @@ class ElasticDispHingeJoint : virtual public Elem, public DeformableDispHingeJoi
 		   const VectorHandler& XCurr);   
 };
 
-/* ElasticDispHingeJoint - end */
+/* ElasticJoint - end */
 
 
-/* ViscousDispHingeJoint - begin */
+/* ViscousJoint - begin */
 
-class ViscousDispHingeJoint : virtual public Elem, public DeformableDispHingeJoint {
+class ViscousJoint : virtual public Elem, public DeformableJoint {
  public:
-   ViscousDispHingeJoint(unsigned int uL, 
+   ViscousJoint(unsigned int uL, 
 			 const DofOwner* pDO, 
-			 const ConstitutiveLaw3D* pCL,
+			 const ConstitutiveLaw6D* pCL,
 			 const StructNode* pN1, 
 			 const StructNode* pN2,
 			 const Vec3& f1Tmp,
@@ -198,7 +209,7 @@ class ViscousDispHingeJoint : virtual public Elem, public DeformableDispHingeJoi
 			 const Mat3x3& R2,
 			 flag fOut);
    
-   ~ViscousDispHingeJoint(void);
+   ~ViscousJoint(void);
    
    virtual inline void* pGet(void) const { 
       return (void*)this;
@@ -209,6 +220,9 @@ class ViscousDispHingeJoint : virtual public Elem, public DeformableDispHingeJoi
       return ConstLawType::VISCOUS; 
    };
    
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
      AssJac(VariableSubMatrixHandler& WorkMat,
@@ -222,6 +236,9 @@ class ViscousDispHingeJoint : virtual public Elem, public DeformableDispHingeJoi
 	    doublereal dCoef,
 	    const VectorHandler& XCurr, 
 	    const VectorHandler& XPrimeCurr);
+
+	/* Aggiorna le deformazioni ecc. */
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
    virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
       *piNumRows = 6; 
@@ -239,17 +256,17 @@ class ViscousDispHingeJoint : virtual public Elem, public DeformableDispHingeJoi
 		   const VectorHandler& XCurr);   
 };
 
-/* ViscousDispHingeJoint - end */
+/* ViscousJoint - end */
 
 
-/* ViscoElasticDispHingeJoint - begin */
+/* ViscoElasticJoint - begin */
 
-class ViscoElasticDispHingeJoint 
-: virtual public Elem, public DeformableDispHingeJoint {
+class ViscoElasticJoint 
+: virtual public Elem, public DeformableJoint {
  public:
-   ViscoElasticDispHingeJoint(unsigned int uL, 
+   ViscoElasticJoint(unsigned int uL, 
 			      const DofOwner* pDO, 
-			      const ConstitutiveLaw3D* pCL,
+			      const ConstitutiveLaw6D* pCL,
 			      const StructNode* pN1, 
 			      const StructNode* pN2,
 			      const Vec3& f1Tmp,
@@ -258,7 +275,7 @@ class ViscoElasticDispHingeJoint
 			      const Mat3x3& R2, 
 			      flag fOut);
    
-   ~ViscoElasticDispHingeJoint(void);
+   ~ViscoElasticJoint(void);
    
    virtual inline void* pGet(void) const { return (void*)this; };   
 
@@ -267,6 +284,9 @@ class ViscoElasticDispHingeJoint
       return ConstLawType::VISCOELASTIC; 
    };
    
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
      AssJac(VariableSubMatrixHandler& WorkMat,
@@ -280,6 +300,9 @@ class ViscoElasticDispHingeJoint
 	    doublereal dCoef,
 	    const VectorHandler& XCurr, 
 	    const VectorHandler& XPrimeCurr);
+
+	/* Aggiorna le deformazioni ecc. */
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
    virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
       *piNumRows = 6; 
@@ -297,7 +320,7 @@ class ViscoElasticDispHingeJoint
 		   const VectorHandler& XCurr);   
 };
 
-/* ViscoElasticDispHingeJoint - end */
+/* ViscoElasticJoint - end */
 
-#endif /* VEHJ2_H */
+#endif /* VEHJ3_H */
 

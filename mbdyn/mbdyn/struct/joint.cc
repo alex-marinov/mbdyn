@@ -60,6 +60,7 @@
 #include <univj.h>
 #include <vehj.h>      /* Giunti deformabili */
 #include <vehj2.h>     /* "" */
+#include <vehj3.h>     /* "" */
 #include <kinj.h>
 #include <beamslider.h>
 #include "brake.h"
@@ -144,6 +145,8 @@ Elem* ReadJoint(DataManager* pDM,
       "rod" "with" "offset",
       "deformable" "hinge",
       "deformable" "displacement" "hinge",
+      "deformable" "displacement" "joint",
+      "deformable" "joint",
       "linear" "velocity",
       "angular" "velocity",
       "linear" "acceleration",
@@ -187,7 +190,9 @@ Elem* ReadJoint(DataManager* pDM,
       ROD,
       RODWITHOFFSET,
       DEFORMABLEHINGE,
-      DEFORMABLEDISPHINGE,
+      DEFORMABLEDISPHINGE,	/* deprecated */
+      DEFORMABLEDISPJOINT,
+      DEFORMABLEJOINT,
       LINEARVELOCITY,
       ANGULARVELOCITY,
       LINEARACCELERATION,
@@ -1221,7 +1226,8 @@ Elem* ReadJoint(DataManager* pDM,
     }
       
     case DEFORMABLEHINGE:
-    case DEFORMABLEDISPHINGE: {
+    case DEFORMABLEDISPHINGE:
+    case DEFORMABLEDISPJOINT: {
        /* lettura dei dati specifici */	  
        
        /* nodo collegato 1 */
@@ -1229,7 +1235,7 @@ Elem* ReadJoint(DataManager* pDM,
        
        /* Offset if displacement hinge */
        Vec3 f1(0.);
-       if (CurrKeyWord == DEFORMABLEDISPHINGE) {
+       if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
 	  f1 = HP.GetPosRel(ReferenceFrame(pNode1));
        }	   
        
@@ -1245,7 +1251,7 @@ Elem* ReadJoint(DataManager* pDM,
 	   
        /* Offset if displacement hinge */
        Vec3 f2(Zero3);
-       if (CurrKeyWord == DEFORMABLEDISPHINGE) {
+       if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
 	  f2 = HP.GetPosRel(ReferenceFrame(pNode2));
        }	   
        
@@ -1277,7 +1283,7 @@ Elem* ReadJoint(DataManager* pDM,
 				     ElasticHingeJoint(uLabel, pDO, pCL,
 						       pNode1, pNode2, 
 						       R1, R2, fOut));
-	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE) {
+	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     ElasticDispHingeJoint,
 				     ElasticDispHingeJoint(uLabel, pDO, pCL,
@@ -1296,7 +1302,7 @@ Elem* ReadJoint(DataManager* pDM,
 				     ViscousHingeJoint(uLabel, pDO, pCL,
 						       pNode1, pNode2, 
 						       R1, R2, fOut));
-	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE) {
+	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
 	      SAFENEWWITHCONSTRUCTOR(pEl, 
 				     ViscousDispHingeJoint,
 				     ViscousDispHingeJoint(uLabel, pDO, pCL,
@@ -1315,7 +1321,7 @@ Elem* ReadJoint(DataManager* pDM,
 				     ViscoElasticHingeJoint(uLabel, pDO, pCL,
 							    pNode1, pNode2, 
 							    R1, R2, fOut));
-	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE) {
+	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     ViscoElasticDispHingeJoint,
 				     ViscoElasticDispHingeJoint(uLabel, 
@@ -1327,6 +1333,88 @@ Elem* ReadJoint(DataManager* pDM,
 	   
 	   break;
 	}
+	  
+	default: {
+	   ASSERTMSG(0, "You shouldn't have reached this point");
+	   throw DataManager::ErrGeneric();
+	}
+       }	   	   
+       
+       break;
+    }            
+      
+    case DEFORMABLEJOINT: {
+       /* lettura dei dati specifici */	  
+       
+       /* nodo collegato 1 */
+       StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+       
+       /* Offset if displacement hinge */
+       Vec3 f1(HP.GetPosRel(ReferenceFrame(pNode1)));
+       
+       Mat3x3 R1(Eye3);
+       if (HP.IsKeyWord("hinge")) {
+	  R1 = HP.GetRotRel(ReferenceFrame(pNode1));
+       }
+       
+       /* nodo collegato 2 */
+       StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+
+       /* Offset if displacement hinge */
+       Vec3 f2(HP.GetPosRel(ReferenceFrame(pNode2)));
+       
+       Mat3x3 R2(Eye3);
+       if (HP.IsKeyWord("hinge")) {
+	  R2 = HP.GetRotRel(ReferenceFrame(pNode2));
+       }
+       
+       /* Legame costitutivo */
+       ConstLawType::Type CLType;
+       ConstitutiveLaw6D* pCL = HP.GetConstLaw6D(CLType);
+       
+       if (pCL->iGetNumDof() != 0) {
+	  silent_cerr("line " << HP.GetLineData()
+		  << ": deformable joint does not support "
+		  "dynamic constitutive laws yet"
+		  << std::endl);
+	  throw ErrGeneric();
+       }
+	
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+       
+       switch (CLType) {
+	case ConstLawType::ELASTIC: {
+	   SAFENEWWITHCONSTRUCTOR(pEl,
+				     ElasticJoint,
+				     ElasticJoint(uLabel, pDO, pCL,
+							   pNode1, pNode2, 
+							   f1, f2, R1, R2, 
+							   fOut));
+	   break;
+	}
+
+#if 0
+	case ConstLawType::VISCOUS: {
+	   SAFENEWWITHCONSTRUCTOR(pEl, 
+				     ViscousJoint,
+				     ViscousJoint(uLabel, pDO, pCL,
+							   pNode1, pNode2,
+							   f1, f2, R1, R2, 
+							   fOut));
+	   break;
+	}
+	  
+	case ConstLawType::VISCOELASTIC: {
+	   SAFENEWWITHCONSTRUCTOR(pEl,
+				     ViscoElasticJoint,
+				     ViscoElasticJoint(uLabel, 
+								pDO, pCL,
+								pNode1, pNode2,
+								f1, f2, R1, R2,
+								fOut));
+	   break;
+	}
+#endif
 	  
 	default: {
 	   ASSERTMSG(0, "You shouldn't have reached this point");

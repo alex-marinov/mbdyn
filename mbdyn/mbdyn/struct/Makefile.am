@@ -74,7 +74,9 @@ univj.h \
 vehj.cc \
 vehj.h \
 vehj2.cc \
-vehj2.h
+vehj2.h \
+vehj3.cc \
+vehj3.h
 
 
 libstruct_la_LIBADD = @LIBS@
