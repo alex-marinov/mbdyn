@@ -320,7 +320,7 @@ public:
 			THROW(ErrGeneric());
 		}
 
-		F += .5*RhoFluid*AreaFluid*pow(AreaFluid/(a*Cd), 2)*EpsPrime*fabs(EpsPrime);
+		F -= .5*RhoFluid*AreaFluid*pow(AreaFluid/(a*Cd), 2)*EpsPrime*fabs(EpsPrime);
 	}
 
 	virtual void
