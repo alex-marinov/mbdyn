@@ -460,6 +460,8 @@ AerodynamicBody::Output(OutputHandler& OH) const
 	 		for (int j = 1; j <= 6; j++) {
 	    			out << ' ' << pvdOuta[i][j];
 	 		}
+			out << ' ' << pvdOuta[i][AeroData::ALF1] 
+				<< ' ' << pvdOuta[i][AeroData::ALF2];
 #endif /* AEROD_OUTPUT == AEROD_OUT_STD */
       		}
 #endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
@@ -1289,6 +1291,8 @@ AerodynamicBeam::Output(OutputHandler& OH ) const
 			for (int j = 1; j <= 6; j++) {
 				out << ' ' << pvdOuta[i][j];
 			}
+			out << ' ' << pvdOuta[i][AeroData::ALF1] 
+				<< ' ' << pvdOuta[i][AeroData::ALF2];
 #endif /* AEROD_OUTPUT == AEROD_OUT_STD */
 		}
 #endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
