@@ -12,7 +12,7 @@
 \date{}
 \maketitle
 
-\subsection*{Sommario}
+\section*{Sommario}
 Il vincolo impone ad un corpo di spostarsi lungo una linea e di assumere
 un'orientazione imposta.
 I due problemi possono essere visti separatamente.
@@ -20,20 +20,28 @@ La linea pu\`o dipendere dalla configurazione, ovvero essere rappresentata
 dalla linea di riferimento che definisce una trave.
 
 
+\section*{Supporto rigido}
+Si consideri innanzitutto un supporto rigido, dato da una linea su cui
+\`e definita una orientazione.
 
 \subsection*{Vincolo in posizione}
 Il luogo delle configurazioni che il corpo pu\`{o} assumere \`{e}
-parametrizzato in funzione di un'ascissa curvilinea $ s $; si richiede che
-sia funzione continua fino alla derivata prima.
-La posizione \`{e} data dalle coordinate $ x\plbr{s}:B\in\Re\mapsto\Re^3 $,
-mentre la giacitura \`{e} definita da una matrice di rotazione
+parametrizzato in funzione di un'ascissa curvilinea $ s $; 
+si richiede che sia funzione continua fino alla derivata prima.
+Si deve notare che, in alcuni casi, la derivata della linea pu\`o 
+non essere continua in alcuni punti; il vincolo, in tali circostanze, 
+richiede un trattamento particolare che verr\`a discusso a parte.
+La posizione della linea \`{e} data dalle coordinate 
+$ x\plbr{s}:B\in\Re\mapsto\Re^3 $,
+mentre la giacitura di ogni punto \`{e} definita da una matrice di rotazione
 $ R\plbr{s}:B\in\Re\mapsto{SO\plbr{\Re^3}} $.
 Le derivate della linea e della giacitura sono definite da
 $ x'\plbr{s}=\partial{x}/\partial{s} $ e da
 $ \rho\plbr{s}\times{}=\partial{R}/\partial{s}R^T $.
 Si consideri l'ipotesi aggiuntiva che l'asse 3 del sistema di riferimento
 che definisce l'orientazione del vincolo sia diretto come la tangente alla
-linea stessa.
+linea stessa; questa ipotesi verr\`a rimossa quando il vincolo sar\`a
+applicato ad un supporto flessibile.
 L'equazione di vincolo si scrive come
 \begin{displaymath}
     R^T \plbr{ x_b - x\plbr{s} } \ = \ 0 ,
@@ -120,51 +128,108 @@ i sistemi di riferimento coincidano.
 
 
 
-\subsection*{Supporto flessibile}
-Si consideri ora un supporto flessibile, ovvero una trave.
+\section*{Supporto flessibile}
+Si consideri ora un supporto flessibile, costituito da un modello di trave.
+
+\subsection*{Vincolo in posizione}
 Il vincolo impone che il corpo $b$ scorra lungo la linea di riferimento
 della trave, e che sia forzato a seguirne l'orientazione.
 Le equazioni scritte in precedenza si modificano per quanto riguarda la
 descrizione del supporto e della sua legge oraria.
-La posizione del supporto \`{e} definita come
+La posizione del supporto \`{e} definita in funzione delle posizioni
+dei punti di riferimento $ x_n $ della trave 
 \begin{displaymath}
-    x\plbr{s} \ = \ N_i\plbr{s} x_i
+    x\plbr{s} \ = \ x\plbr{x_n} \ = \ N_i\plbr{s}\plbr{x_i + f_i}
 \end{displaymath}
-in funzione delle funzioni di forma $N_i\plbr{s}$ e delle posizioni nodali
-$x_i$; la sua orientazione \`{e} definita dalla matrice di rotazione
+attrverso le funzioni di forma $N_i\plbr{s}$; le posizioni nodali
+$x_n$ sono date dalle posizioni dei nodi $x_i$ corrette 
+da un eventuale offset rigido $f_i$.
+L'orientazione della trave \`{e} definita dalla matrice di rotazione
 \begin{displaymath}
     R\plbr{s} \ = \ R_r R_{\Delta}\plbr{ N_i\plbr{s} g_i }
 \end{displaymath}
 in funzione della orientazione di riferimento $R_r$ e dei parametri di
 rotazione nodali $g_i$ che concorrono a descrivere la perturbazione di
 rotazione incrementale $R_{\Delta}$.
+Assume un'importanza fondamentale, nella descrizione del vincolo,
+la tangente alla linea di riferimento, $ t $.
+Essa \`e data dalla derivata della posizione della trave $ l $, definita
+come:
+\begin{displaymath}
+    l \ = \ x'\plbr{s} \ = \ N'_i\plbr{s}\plbr{x_i + f_i}
+\end{displaymath}
+da cui la tangente:
+\begin{displaymath}
+    t \ = \ \frac{l}{\nrbr{l}}
+\end{displaymath}
+In genere, per semplificare le linearizzazioni, \`e opportuno considerare
+direttamente $ l $ al posto della tangente, moltiplicando per
+$ \nrbr{l} $.
 
 \noindent
 L'equazione di vincolo in posizione rimane formalmente quella del caso
 precedente:
 \begin{displaymath}
-    x_b - N_i\plbr{s} x_i \ = \ 0 ;
+    x_b - x \ = \ 0 ;
 \end{displaymath}
 la sua linearizzazione, tuttavia, chiama in causa anche i gradi di
 libert\`{a} dell'elemento di trave.
-Si ottiene:
+Si ha infatti:
+\begin{eqnarray*}
+    \Delta{x\plbr{s}} & = &
+    \frac{\partial{x\plbr{s}}}{\partial{x_n}} \Delta{x_n}
+    + \frac{\partial{x\plbr{s}}}{\partial{s}} \Delta{s} \\
+    & = &  
+    N_i\plbr{s} \plbr{\Delta{x_i} - f_i\times\Delta{g_i}} 
+    + N'_i\plbr{s} \plbr{x_i + f_i} \Delta{s} .
+\end{eqnarray*}
+La reazione vincolare, intesa come entit\`a vettoriale, deve essere 
+ortogonale alla tangente alla linea di riferimento della trave.
+Quindi, detto $ v $ il vettore delle reazioni, si ottiene:
 \begin{displaymath}
-    \Delta{x_b} - N_i\plbr{s} \Delta{x_i} - N'\plbr{s} x_i \Delta{s} \ = \ 0 .
+    v^T t \ = \ 0
+\end{displaymath}
+e, per semplificare la linearizzazione, si pu\`o scrivere:
+\begin{displaymath}
+    v^T l \ = \ 0
+\end{displaymath}
+Le forze applicate dal vincolo sono:
+\begin{displaymath}
+    F \ = \ v
+\end{displaymath}
+Le rispettive linearizzazioni sono:
+\begin{displaymath}
+    v^T \Delta{l} + l^T \Delta{v} \ = \ 0
+\end{displaymath}
+e
+\begin{displaymath}
+    \Delta{F} \ = \ \Delta{v}
+\end{displaymath}
+La linearizzazione della derivata della linea di riferimento assume 
+una forma particolare:
+\begin{displaymath}
+    \Delta{l} \ = \ N'_i\plbr{\Delta{x_i} - f_i\times\Delta{g_i}}
+    + N''_i\plbr{x_i + f_i} \Delta{s}
 \end{displaymath}
 
-\noindent
+
+
+\subsection*{Vincolo in rotazione}
 L'equazione di vincolo alla rotazione richiede una cura particolare.
 Si possono ipotizzare tre diversi vincoli:
 \begin{enumerate}
 	\item giunto sferico: consente la libera rotazione attorno a tutti
 	gli assi; di conseguenza non si scrivono equazioni di vincolo
 	alla rotazione;
-	\item manicotto classico: consente la libera rotazione attorno
+	\item manicotto ``classico'': consente la libera rotazione attorno
 	all'asse del manicotto; si scrivono due sole equazioni di vincolo
 	alla rotazione
 	\item manicotto ``rigato'': non consente libert\`a di rotazione;
 	si scrivono tre equazioni di vincolo alla rotazione.
 \end{enumerate}
+
+
+\paragraph*{Manicotto ``classico''}
 Occorre prestare attenzione a come si definiscono i vincoli di rotazione.
 Non \`e ragionevole, in questo caso, ipotizzare che l'orientazione 
 del manicotto coincida con l'orientazione della trave all'ascissa
@@ -203,14 +268,23 @@ usare la derivata della linea media al posto della tangente:
 \begin{displaymath}
 	M \ = \ m_3 e_{b2}\times{l} + m_2 e_{b3}\times{l}
 \end{displaymath}
-Ovviamente le reazioni sono date da $M_i=\shbr{l}m_i$.
+Ovviamente le reazioni sono date da $M_i=\nrbr{l}m_i$.
 
-\noindent
-L'equazione di vincolo alla rotazione attorno all'asse della trave
-\`e un po' pi\`u complessa, e richiede la definizione della rotazione
-relativa tra manicotto e trave
+\paragraph*{Manicotto ``rigato''}
+L'equazione di vincolo alla rotazione attorno alla linea di riferimento 
+della trave \`e un po' pi\`u complessa, e richiede la definizione 
+della rotazione relativa tra manicotto e trave.
 Se la rotazione relativa \`e piccola, pu\`o essere approssimata 
-con l'\emph{assiale} della matrice; si assume quindi:
+con l'\emph{assiale} della matrice, ovvero la sua parte emisimmetrica; 
+infatti, data una matrice di rotazione
+\begin{displaymath}
+    R \ = \ I + \sin\plbr{\varphi}v\times{} 
+    	+ \plbr{1-\cos\plbr{\varphi}}v\times{v\times{}}
+\end{displaymath}
+la sua parte emisimmetrica \`e 
+$\llk{skw}\plbr{R}=\sin\plbr{\varphi}v\times{}$, e, se l'angolo \`e piccolo,
+essa \`e data da $\llk{skw}\plbr{R}\cong\varphi{v\times{}}$.
+Si assume quindi:
 \begin{displaymath}
 	R \ \cong \ I + \theta\times{}
 \end{displaymath}
@@ -224,15 +298,14 @@ deve essere nulla (o pari alla rotazione iniziale):
 \begin{displaymath}
 	\theta^T t \ = \ 0 .
 \end{displaymath}
-Se si considera la rotazione iniziale nulla, alla tangente si pu\`o 
-sostituire la derivata della linea di riferimento, semplificando cos\`{\i}
-le linearizzazioni:
+Alla tangente si pu\`o sostituire la derivata della linea di riferimento, 
+semplificando cos\`{\i} le linearizzazioni:
 \begin{displaymath}
 	\theta^T l \ = \ 0 .
 \end{displaymath}
 La linearizzazione della rotazione relativa, $\theta_{\Delta}$,
 in generale dipendente dalla parametrizzazione $\llk{p}$ attraverso
-la relazione $ \theta_{\Delta}=G\plbr{\llk{p}}\Delta{\llk{p}} $, 
+la relazione $ \theta_{\Delta}=\Gamma\plbr{\llk{p}}\Delta{\llk{p}} $, 
 \`e data da:
 \begin{eqnarray*}
 	\theta_{\Delta} & = & \Delta\llk{ax}\plbr{R_bR^T} \\
@@ -272,8 +345,8 @@ dove si sono sfruttate le propriet\`a:
 	\llk{ax}\plbr{\theta\times{}} & = & \theta
 \end{eqnarray*}
 Questo significa che la perturbazione dell'angolo relativo \`e data 
-dalla differenza tra le perturbazioni degli angoli riportate in uno 
-stesso riferimento.
+dalla differenza tra le perturbazioni degli angoli attraverso un termine 
+di trasporto dato dalla rotazione relativa tra i due sistemi di riferimento.
 
 \noindent
 La coppia risultante da questa equazione di vincolo si applica semplicemente
@@ -287,9 +360,10 @@ $m_1$:
 \begin{displaymath}
 	M \ = \ m_1 l .
 \end{displaymath}
+Anche in questo caso il modulo del momento \`e dato da $M_1=m_1\nrbr{l}$.
 
 
-\noindent
+\subsection*{Trave a volumi finiti}
 Si consideri una formulazione del modello di trave a volumi finiti
 \cite{FV-AIAA}.
 Secondo tale schema, l'elemento di trave \`{e} suddiviso nettamente in
@@ -299,27 +373,27 @@ Quindi, dette $w_i$ le funzioni di attivazione delle regioni che
 costituiscono l'elemento di trave (costanti a tratti), la reazione vincolare
 viene applicata come
 \begin{eqnarray*}
-    F_i & = & - w_i F , \\
-    M_i & = & - w_i \plbr{ x\plbr{s} - x_i }\times F 
-        - H m ,
+    F_i & = & - w_i F\delta{s} , \\
+    M_i & = & - w_i \plbr{ x\plbr{s} - x_i }\times F\delta{s} 
+        - M\delta{s} ,
 \end{eqnarray*}
-dove la matrice $ H $ \`e definita, a seconda dei tre modelli considerati,
-come:
+dove il momento \`e definito come $ M=Hm$, a seconda dei tre modelli 
+considerati, con:
 \begin{enumerate}
 	\item giunto sferico:
 	\begin{displaymath}
 		H \ = \ 0
 	\end{displaymath}
-	\item manicotto classico:
+	\item manicotto ``classico'':
 	\begin{displaymath}
 		H \ = \ \sqbr{\matr{cc}{
 			e_{b2}\times{l} & e_{b3}\times{l}
 		}}
 	\end{displaymath}
-	\item manicotto rigato:
+	\item manicotto ``rigato'':
 	\begin{displaymath}
 		H \ = \ \sqbr{\matr{ccc}{
-			e_{b2}\times{l} & e_{b3}\times{l} & t
+			e_{b2}\times{l} & e_{b3}\times{l} & l
 		}}
 	\end{displaymath}
 \end{enumerate}
@@ -358,7 +432,7 @@ dell'ascissa curvilinea.
 \bibliographystyle{ieeetr}
 \bibliography{mybib}
 
-
+\pagebreak
 \subsection*{Traccia del lavoro}
 
 \begin{itemize}
