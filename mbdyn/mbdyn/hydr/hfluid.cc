@@ -65,7 +65,7 @@ ReadHydraulicFluid(MBDynParser& HP,
       LINEARCOMPRESSIBLE,
       LINEARTHERMALCOMPRESSIBLE,
       SUPER,
-      AMESIM,
+      EXPONENTIAL,
       
       LASTKEYWORD
    };
@@ -140,7 +140,7 @@ ReadHydraulicFluid(MBDynParser& HP,
       
     case LINEARCOMPRESSIBLE: 
     case SUPER:
-    case AMESIM: {
+    case EXPONENTIAL: {
        doublereal dDensity(0.);
        doublereal dBeta(0.);
        doublereal dPres0(0.);
@@ -202,6 +202,9 @@ ReadHydraulicFluid(MBDynParser& HP,
        }
        
        switch (CurrKeyWord) {
+	default:
+	  THROW(ErrGeneric());
+
 	case LINEARCOMPRESSIBLE: 
 	  SAFENEWWITHCONSTRUCTOR(pHF,
 				 LinearCompressibleHydraulicFluid,
@@ -212,6 +215,7 @@ ReadHydraulicFluid(MBDynParser& HP,
 								  dViscosity,
 								  dTemp0));
 	  break;
+
 	case SUPER:
 	  SAFENEWWITHCONSTRUCTOR(pHF,
 				 SuperHydraulicFluid,
@@ -222,12 +226,13 @@ ReadHydraulicFluid(MBDynParser& HP,
 						     dViscosity,
 						     dTemp0));
 	  break;
-	case AMESIM:
+
+	case EXPONENTIAL:
 	  doublereal dPsat = HP.GetReal();
 	  
 	  SAFENEWWITHCONSTRUCTOR(pHF,
-				 AMESimHydraulicFluid,
-				 AMESimHydraulicFluid(uLabel, 
+				 ExpHydraulicFluid,
+				 ExpHydraulicFluid(uLabel, 
 						      dDensity, 
 						      dBeta,
 						      dPres0,

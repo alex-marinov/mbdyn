@@ -447,9 +447,9 @@ class SuperHydraulicFluid : public HydraulicFluid {
 
 /* SuperHydraulicFluid - end */
 
-/* AMESimHydraulicFluid - begin */
+/* ExpHydraulicFluid - begin */
 
-class AMESimHydraulicFluid : public HydraulicFluid {
+class ExpHydraulicFluid : public HydraulicFluid {
  protected:
    const doublereal dDensity;
    const doublereal dBeta;
@@ -457,7 +457,7 @@ class AMESimHydraulicFluid : public HydraulicFluid {
    const doublereal dPsat;
    
  public:
-   AMESimHydraulicFluid(unsigned int Label, 
+   ExpHydraulicFluid(unsigned int Label, 
 			const doublereal& dDens,
 			const doublereal& dB,
 			const doublereal& dPr0,
@@ -474,7 +474,7 @@ class AMESimHydraulicFluid : public HydraulicFluid {
       }
    };
    
-   AMESimHydraulicFluid(const AMESimHydraulicFluid& HF)
+   ExpHydraulicFluid(const ExpHydraulicFluid& HF)
      : HydraulicFluid(HF), 
    dDensity(HF.dDensity), 
    dBeta(HF.dBeta),
@@ -485,7 +485,7 @@ class AMESimHydraulicFluid : public HydraulicFluid {
       }
    };
    
-   virtual ~AMESimHydraulicFluid() {
+   virtual ~ExpHydraulicFluid() {
       NO_OP;
    };
    
@@ -493,8 +493,8 @@ class AMESimHydraulicFluid : public HydraulicFluid {
    HydraulicFluid* pCopy(void) const {
       HydraulicFluid* pHF = NULL;
       SAFENEWWITHCONSTRUCTOR(pHF,
-			     AMESimHydraulicFluid,
-			     AMESimHydraulicFluid(*this));
+			     ExpHydraulicFluid,
+			     ExpHydraulicFluid(*this));
       return pHF;
    };
 
@@ -504,6 +504,9 @@ class AMESimHydraulicFluid : public HydraulicFluid {
    };
    
    virtual doublereal dGetDensity(const doublereal& dPres) const {
+      /*
+       * Inspired by AMESim's simple saturating fluid 
+       */
       if (dPres >= dPsat) {
 	 return dDensity*exp((dPres-dPres0)/dBeta);
       } else {
@@ -559,6 +562,6 @@ class AMESimHydraulicFluid : public HydraulicFluid {
    };
 };
 
-/* AMESimHydraulicFluid - end */
+/* ExpHydraulicFluid - end */
 
 #endif /* HFLUID__H */
