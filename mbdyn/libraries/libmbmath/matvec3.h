@@ -244,6 +244,11 @@ class Vec3 {
       ASSERT(iRow >= 1 && iRow <= 3);
       return pdVec[--iRow];
    };
+
+   inline doublereal& operator [] (unsigned short int iRow) {
+      ASSERT(iRow >= 0 && iRow <= 2);
+      return pdVec[iRow];
+   };
    //@}
    
    
