@@ -127,7 +127,8 @@ x(Dim),
 b(Dim), 
 Symbolic(0),
 Numeric(0),
-HasBeenReset(true)
+HasBeenReset(true),
+CCReady(false)
 {
 	SAFENEWWITHCONSTRUCTOR(xVH, MyVectorHandler, 
 			MyVectorHandler(Dim, &(x[0])));
@@ -163,7 +164,11 @@ UmfpackSparseLUSolutionManager::~UmfpackSparseLUSolutionManager(void)
 void
 UmfpackSparseLUSolutionManager::MatrInit(const doublereal& d)
 {
-	A.Reset(d);
+	if (!CCReady) {
+		A.Reset(d);
+	} else {
+		Ac->Reset(d);
+	}
 	if (Numeric) {
 		UMFPACKWRAP_free_numeric(&Numeric);
 		ASSERT(Numeric == 0);
@@ -207,7 +212,11 @@ UmfpackSparseLUSolutionManager::Solve(void)
 #endif /* UMFPACK_REPORT */
 
 	if (HasBeenReset) {
-		A.MakeCompressedColumnForm(Ax, Ai, Ap);
+		if (!CCReady) {
+			A.MakeCompressedColumnForm(Ax, Ai, Ap);
+			Ac = new CColMatrixHandler(Ax, Ai, Ap);
+			CCReady = true;
+		}
 		const doublereal* const Axp = &(Ax[0]);
 		const int* const Aip = &(Ai[0]);
 		const int* const App = &(Ap[0]);
@@ -298,10 +307,14 @@ UmfpackSparseLUSolutionManager::BackSub(doublereal t_iniz)
 }
 
 /* Rende disponibile l'handler per la matrice */
-SpMapMatrixHandler*
+MatrixHandler*
 UmfpackSparseLUSolutionManager::pMatHdl(void) const
 {
-	return &A;
+	if (!CCReady) {
+		return &A;
+	} else {
+		return Ac;
+	}
 }
 
 /* Rende disponibile l'handler per il termine noto */

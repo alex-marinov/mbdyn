@@ -79,6 +79,8 @@ extern "C" {
 #include <mynewmem.h>
 #include <solman.h>
 #include <spmapmh.h>
+#include <ccmh.h>
+
 
 #ifdef UMFPACK3_COMPAT
 #warning "Umfpack3SparseLUSolutionManager => UmfpackSparseLUSolutionManager"
@@ -88,6 +90,7 @@ extern "C" {
 class UmfpackSparseLUSolutionManager: public SolutionManager {
 private:
 	mutable SpMapMatrixHandler A;
+	CColMatrixHandler *Ac;
 	MyVectorHandler *xVH, *bVH;
 	std::vector<doublereal> x;
 	std::vector<doublereal> b;
@@ -104,6 +107,7 @@ private:
 	void * Numeric;
 	
 	bool HasBeenReset;
+	bool CCReady;
 
 	bool PrepareSymbolic(void);
 	
@@ -135,7 +139,7 @@ public:
 	};
 	
 	/* Rende disponibile l'handler per la matrice */
-	virtual SpMapMatrixHandler* pMatHdl(void) const;
+	virtual MatrixHandler* pMatHdl(void) const;
 
 	/* Rende disponibile l'handler per il termine noto */
 	virtual MyVectorHandler* pResHdl(void) const;

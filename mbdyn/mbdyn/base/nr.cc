@@ -87,11 +87,6 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 	ASSERT(pS != NULL);
 
 	SolutionManager *pSM = pS->pGetSolutionManager();
-
-	pJac = pSM->pMatHdl();
-        pRes = pSM->pResHdl();
-        pSol = pSM->pSolHdl();
-	Size = pRes->iGetSize();
 	
 	iIterCnt = 0;
 	if (!bKeepJac || (pNLP != pPrevNLP)) {
@@ -102,6 +97,10 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 
 	while (true) {
 
+		pJac = pSM->pMatHdl();
+		pRes = pSM->pResHdl();
+		pSol = pSM->pSolHdl();
+		Size = pRes->iGetSize();
 #ifdef 	USE_EXTERNAL 	
 		SendExternal();
 #endif /* USE_EXTERNAL */
