@@ -203,6 +203,7 @@ private:
 	integer iPrecondSteps;
 	integer iIterativeMaxSteps;
 	doublereal dIterertiveEtaMax;
+	doublereal dIterertiveTau;
 
 #ifdef USE_MPI
 	flag fParallel;

@@ -52,7 +52,6 @@
 #include <unistd.h>
 #include <output.h>
 
-const doublereal defaultTau = 1.e-7;
 const doublereal defaultGamma = 0.9;
 
 MatrixFreeSolver::MatrixFreeSolver(
@@ -60,13 +59,14 @@ MatrixFreeSolver::MatrixFreeSolver(
 		const integer iPStep,
 		doublereal ITol,
 		integer MaxIt,
-		doublereal etaMx) 
+		doublereal etaMx,
+		doublereal T) 
 : pSM(NULL),
 pPM(NULL),
 pRes(NULL),
 IterTol(ITol),
 MaxLinIt(MaxIt),
-Tau(defaultTau),
+Tau(T),
 gamma(defaultGamma),
 etaMax(etaMx),
 PrecondIter(iPStep),

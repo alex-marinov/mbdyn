@@ -268,7 +268,7 @@ DerivativeSolver::EvalProd(doublereal Tau, const VectorHandler& f0,
 	
 	/* if w = 0; J * w = 0 */ 
 	ASSERT(pDM != NULL);
-        
+       	Tau = Tau*100; 
 	doublereal nw = w.Norm();
         if (nw < DBL_EPSILON) {
                 z.Reset(0.);
@@ -281,8 +281,16 @@ DerivativeSolver::EvalProd(doublereal Tau, const VectorHandler& f0,
                 Tau = copysign(Tau*xx, sigma);
         }
         Tau /= nw;
-
-        MyVectorHandler XTau(w.iGetSize());
+/*
+	nw = 1;
+	doublereal coef;
+	for(int i=1; i < w.iGetSize(); i++) {
+		coef = fabs(w.dGetCoef(i));		
+		nw = ((nw > coef) && (coef > 0.)) ? coef : nw;
+	}
+	Tau = Tau/nw;			
+ */     
+	MyVectorHandler XTau(w.iGetSize());
 	XTau.Reset(0.);
 	z.Reset(0.);
         XTau.ScalarMul(w, Tau);
@@ -478,7 +486,6 @@ StepNIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
                 z.Reset(0.);
                 return;
         }
-	
         doublereal sigma = (*pXCurr).InnerProd(w);
         sigma /=  nw;
         if (fabs(sigma) > DBL_EPSILON) {
@@ -495,6 +502,7 @@ StepNIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 	XTau.Reset(0.);
 	z.Reset(0.);
         XTau.ScalarMul(w, Tau);
+	
 	this->Update(&XTau);
 	pDM->AssRes(z, db0Differential);
 	XTau.ScalarMul(XTau, -1.);

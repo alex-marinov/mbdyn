@@ -57,8 +57,9 @@ BiCGStab::BiCGStab(const Preconditioner::PrecondType PType,
 		const integer iPStep,
 		doublereal ITol,
 		integer MaxIt,
-		doublereal etaMx) 
-: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx)
+		doublereal etaMx,
+		doublereal T) 
+: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T)
 {
 	NO_OP;
 }
@@ -94,6 +95,10 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 	
 	/* riassembla sempre lo jacobiano se l'integratore e' nuovo */
 	if (pNLP != pPrevNLP) {
+		fBuildMat = true;
+	}
+
+	if (!PrecondIter) {
 		fBuildMat = true;
 	}
 	
@@ -296,7 +301,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		}
 		/* se ha impiegato troppi passi riassembla lo jacobiano */
 		
-		if (TotalIter >= PrecondIter) {
+		if (TotalIter >= PrecondIter && PrecondIter) {
 			fBuildMat = true;
 		}
 		/* calcola il nuovo eta */

@@ -63,7 +63,8 @@ public:
 			const integer iPStep,
 			doublereal ITol,
 			integer MaxIt,
-			doublereal etaMx);
+			doublereal etaMx,
+			doublereal T);
 	
 	~Gmres(void);
 	

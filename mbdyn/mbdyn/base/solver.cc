@@ -141,7 +141,7 @@ const integer iDefaultIterativeSolversMaxSteps = 100;
 const integer iDefaultPreconditionerSteps = 20;
 const doublereal dDefaultTol = 1.e-6;
 const doublereal defaultIterativeEtaMax = 0.9;
-
+const doublereal defaultIterativeTau = 1.e-7;
 
 /* Costruttore: esegue la simulazione */
 Solver::Solver(MBDynParser& HPar,
@@ -214,6 +214,7 @@ PcType(Preconditioner::FULLJACOBIAN),
 iPrecondSteps(iDefaultPreconditionerSteps),
 iIterativeMaxSteps(iDefaultPreconditionerSteps),
 dIterertiveEtaMax(defaultIterativeEtaMax),
+dIterertiveTau(defaultIterativeTau),
 #ifdef USE_MPI
 fParallel(fPar),
 pSDM(NULL),
@@ -625,7 +626,8 @@ void Solver::Run(void)
 						iPrecondSteps,
 						dIterTol, 
 						iIterativeMaxSteps,
-						dIterertiveEtaMax));
+						dIterertiveEtaMax,
+						dIterertiveTau));
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pNLS,
 					Gmres,
@@ -633,7 +635,8 @@ void Solver::Run(void)
 						iPrecondSteps,
 						dIterTol, 
 						iIterativeMaxSteps,
-						dIterertiveEtaMax));
+						dIterertiveEtaMax,
+						dIterertiveTau));
 		}			  
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pNLS,
@@ -1339,12 +1342,20 @@ IfStepIsToBeRepeated:
 				/* output degli stati su di una riga */
 #ifdef __HACK_POD_BINARY__
 	       			PodOut.write((char *)&qX[0], iNumDofs*sizeof(doublereal));
+	       			PodOut.write((char *)&qXPrime[0], iNumDofs*sizeof(doublereal));
 #else /* !__HACK_POD_BINARY__ */
 				PodOut << qX[0]->dGetCoef(1);
 				for (integer j = 1; j < iNumDofs; j++) {
 					PodOut << "  " << qX[0]->dGetCoef(j+1);
                        		}
                        		PodOut << std::endl;
+#if 0
+				PodOut << qXPrime[0]->dGetCoef(1);
+				for (integer j = 1; j < iNumDofs; j++) {
+					PodOut << "  " << qXPrime[0]->dGetCoef(j+1);
+                       		}
+                       		PodOut << std::endl;
+#endif 
 #endif /* __HACK_POD_BINARY__ */
 			}
                      	iPODFrames++;
@@ -2595,6 +2606,11 @@ Solver::ReadData(MBDynParser& HP)
 			iIterativeMaxSteps = HP.GetInt();
 			DEBUGLCOUT(MYDEBUG_INPUT, "Maximum Number of Inner Steps for Iterative Solver : " 
 				<< iIterativeMaxSteps << std::endl);
+		}
+		if (HP.IsKeyWord("tau")) {
+			dIterertiveTau = HP.GetReal();
+			DEBUGLCOUT(MYDEBUG_INPUT, "Tau Scaling Coefficient for Iterative Solver : " 
+					<< dIterertiveTau << std::endl);
 		}
 		if (HP.IsKeyWord("eta")) {
 			dIterertiveEtaMax = HP.GetReal();

@@ -48,7 +48,8 @@ public:
 			const integer iPStep,
 			doublereal ITol,
 			integer MaxIt,
-			doublereal etaMx);
+			doublereal etaMx,
+			doublereal T);
 	~BiCGStab(void);
 	
 	virtual void Solve(const NonlinearProblem* NLP,

@@ -86,8 +86,9 @@ Gmres::Gmres(const Preconditioner::PrecondType PType,
 		const integer iPStep,
 		doublereal ITol,
 		integer MaxIt,
-		doublereal etaMx) 
-: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx)
+		doublereal etaMx,
+		doublereal T) 
+: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T)
 {
 	NO_OP;
 }
@@ -298,7 +299,12 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 #endif /* DEBUG_ITERATIVE */
 
 			pNLP->EvalProd(Tau, *pr, vHat, w);
+			
+#if 0
+			(pSM->pMatHdl())->MatVecMul(w, vHat);
 
+
+#endif
 #ifdef DEBUG_ITERATIVE
 			std::cout << "w:" << std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
@@ -356,12 +362,12 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 
 #ifdef DEBUG_ITERATIVE
 				std::cout << "v[i+1]:" << i+1 << std::endl;
-#endif /* DEBUG_ITERATIVE */
 
 	 			for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
 	    				std::cout << "Dof" << std::setw(4) << iTmpCnt << ": " 
 						<< v[i+1].dGetCoef(iTmpCnt) << std::endl;
 				}
+#endif /* DEBUG_ITERATIVE */
 			} else {
 				/* happy breakdown !! */
 
