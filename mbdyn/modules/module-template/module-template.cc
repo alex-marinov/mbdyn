@@ -110,7 +110,7 @@ ass_jac(
 	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeReset(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols);
 
 #if 0
 	module_template* p = (module_template *)pEl->pGetData();
@@ -138,10 +138,10 @@ ass_mats(
 	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
 	
 	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
-	WMA.ResizeReset(iNumRows, iNumCols, 0.);
+	WMA.ResizeReset(iNumRows, iNumCols);
 	
 	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
-	WMB.ResizeReset(iNumRows, iNumCols, 0.);
+	WMB.ResizeReset(iNumRows, iNumCols);
 
 #if 0
 	module_template* p = (module_template *)pEl->pGetData();
@@ -251,7 +251,7 @@ initial_ass_jac(
 	pEl->InitialWorkSpaceDim(&iNumRows, &iNumCols);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeReset(iNumRows, iNumCols, 0.);
+		WM.ResizeReset(iNumRows, iNumCols);
 	
 #if 0
 	module_template* p = (module_template *)pEl->pGetData();
@@ -312,7 +312,7 @@ static unsigned int
 i_get_priv_data_idx(const LoadableElem* pEl, const char *s)
 {
 	DEBUGCOUTFNAME("i_get_priv_data_idx");
-	silent_cerr("Module-template Elem(" << pEl->getLabel() << "): "
+	silent_cerr("Module-template Elem(" << pEl->GetLabel() << "): "
 		"priv data \"" << s << "\" is unknown" << std::endl);
 	throw ErrGeneric();
 
@@ -380,7 +380,7 @@ LoadableCalls lc = {
 	"template",
 	"1.1",
 	"Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano",
-	"template module; use it as a basis for new modules",
+	"template module; use it as guideline e.g. for user-defined elements",
 
 	read,
 	i_get_num_dof,
