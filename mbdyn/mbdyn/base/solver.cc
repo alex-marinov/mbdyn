@@ -766,6 +766,9 @@ Solver::Run(void)
 	catch (...) {
 		THROW(ErrGeneric());
 	}
+
+	pDM->AfterConvergence();
+
 	dTotErr  += dTest;
 	iTotIter += iStIter;
 	  	
