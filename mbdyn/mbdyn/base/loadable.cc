@@ -439,12 +439,14 @@ handle(NULL)
       		fsym[i] = dlsym(handle, func_names[i]);
       		if (fsym[i] == NULL) {
 	 		const char* err = dlerror();
-	 		if (err != NULL && !fSilent) {
-	    			cerr << sFuncName << "(" << uLabel
-	      				<< "): bind error (dlsym returns \"" 
-					<< err << "\" for \"" << func_names[i]
-	      				<< "\"); using default function"
-					<< endl;
+	 		if (err != NULL) {
+	    			silent_cerr(sFuncName << "(" << uLabel
+	      				    << "): bind error"
+					    " (dlsym returns \"" 
+					    << err << "\" for \""
+					    << func_names[i]
+					    << "\"); using default function"
+					    << endl);
 	 		}
 	 		fsym[i] = default_funcs[i];	 
       		}

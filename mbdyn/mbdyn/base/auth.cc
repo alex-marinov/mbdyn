@@ -168,7 +168,7 @@ mbdyn_conv(int num_msg, const struct pam_message **msgm,
 	 }
 	 break;
        case PAM_TEXT_INFO:
-	 if (!::fSilent) {
+	 if (::fSilent < 2) {
 	    if (fprintf(stdout, "%s\n", msgm[count]->msg) < 0) {
 	       goto failed_conversation;
 	    }
