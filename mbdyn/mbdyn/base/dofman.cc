@@ -179,4 +179,18 @@ void DataManager::DofInit(void)
    }	   	
 }  
 
+void
+DataManager::SetScale(VectorHandler& XScale) const
+{
+	for (integer iCnt = 0; iCnt < iTotDofOwners; iCnt++) {
+		integer iFirstIndex = pDofOwners[iCnt].iFirstIndex;
+		unsigned int iNumDofs = pDofOwners[iCnt].iNumDofs;
+		doublereal dScale = pDofOwners[iCnt].dScale;
+
+		for (unsigned int iDof = 1; iDof <= iNumDofs; iDof++) {
+			XScale.fPutCoef(iFirstIndex + iDof, dScale);
+		}
+	}
+}
+
 /* DataManager - end */

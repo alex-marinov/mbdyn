@@ -425,6 +425,12 @@ MultiStepIntegrator::Run(void)
    	pXPrev2->Reset(0.);
    	pXPrimePrev2->Reset(0.);
 
+#ifdef __HACK_SCALE_RES__
+	MyVectorHandler Scale(iNumDofs);
+	VectorHandler *pScale = &Scale;
+	pDM->SetScale(*pScale);
+#endif /* __HACK_SCALE_RES__ */
+
 #ifdef __HACK_POD__
 	/*
 	 * FIXME: we're hijacking the output file name with an extension
@@ -750,7 +756,11 @@ MultiStepIntegrator::Run(void)
 		MPE_Log_event(3, 0, "start");
 #endif /* MPI_PROFILING */
 
+#ifdef __HACK_SCALE_RES__
+		dTest = MakeTest(*pRes, *pXPrimeCurr, *pScale);
+#else /* !__HACK_SCALE_RES__ */
 		dTest = MakeTest(*pRes, *pXPrimeCurr);
+#endif /* !__HACK_SCALE_RES__ */
 
 #ifdef MPI_PROFILING
 		MPE_Log_event(4, 0, "end");
@@ -957,7 +967,11 @@ EndOfDerivatives:
 			MPE_Log_event(3, 0, "start");
 #endif /* MPI_PROFILING */
 
+#ifdef __HACK_SCALE_RES__
+			dTest = MakeTest(*pRes, *pXPrimeCurr, *pScale);
+#else /* !__HACK_SCALE_RES__ */
 			dTest = MakeTest(*pRes, *pXPrimeCurr);
+#endif /* !__HACK_SCALE_RES__ */
 
 #ifdef MPI_PROFILING
 			MPE_Log_event(4, 0, "end");
@@ -1152,7 +1166,11 @@ EndOfFirstFictitiousStep:
 				MPE_Log_event(3, 0, "start");
 #endif /* MPI_PROFILING */
 
-	    			dTest = MakeTest(*pRes, *pXPrimeCurr);
+#ifdef __HACK_SCALE_RES__
+				dTest = MakeTest(*pRes, *pXPrimeCurr, *pScale);
+#else /* !__HACK_SCALE_RES__ */
+				dTest = MakeTest(*pRes, *pXPrimeCurr);
+#endif /* !__HACK_SCALE_RES__ */
 
 #ifdef MPI_PROFILING
 				MPE_Log_event(4, 0, "end");
@@ -1391,7 +1409,11 @@ IfFirstStepIsToBeRepeated:
 		MPE_Log_event(3,0,"start");
 #endif /* MPI_PROFILING */
 
-      		dTest = MakeTest(*pRes, *pXPrimeCurr);
+#ifdef __HACK_SCALE_RES__
+		dTest = MakeTest(*pRes, *pXPrimeCurr, *pScale);
+#else /* !__HACK_SCALE_RES__ */
+		dTest = MakeTest(*pRes, *pXPrimeCurr);
+#endif /* !__HACK_SCALE_RES__ */
       
       		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL) || outputRes()) {
 	 		std::cout << "Residual:" << std::endl;
@@ -1517,7 +1539,11 @@ IfFirstStepIsToBeRepeated:
 
 #ifdef MBDYN_X_CONVSOL
 		if (dSolutionTol > 0.) {
-	 		dSolTest = MakeTest(*pSol, *pXPrimeCurr);
+#ifdef __HACK_SCALE_RES__
+			dSolTest = MakeTest(*pSol, *pXPrimeCurr, *pScale);
+#else /* !__HACK_SCALE_RES__ */
+			dSolTest = MakeTest(*pSol, *pXPrimeCurr);
+#endif /* !__HACK_SCALE_RES__ */
 
         		if (dSolTest < dSolutionTol) {
 				bSolConv = true;
@@ -1666,7 +1692,11 @@ IfStepIsToBeRepeated:
 #ifdef USE_EXCEPTIONS
 			try {
 #endif /* USE_EXCEPTIONS */
-	 			dTest = MakeTest(*pRes, *pXPrimeCurr);
+#ifdef __HACK_SCALE_RES__
+				dTest = MakeTest(*pRes, *pXPrimeCurr, *pScale);
+#else /* !__HACK_SCALE_RES__ */
+				dTest = MakeTest(*pRes, *pXPrimeCurr);
+#endif /* !__HACK_SCALE_RES__ */
 #ifdef USE_EXCEPTIONS
 			} catch (MultiStepIntegrator::ErrSimulationDiverged) {
 				/*
@@ -1829,7 +1859,11 @@ IfStepIsToBeRepeated:
 #ifdef USE_EXCEPTIONS
 				try {
 #endif /* USE_EXCEPTIONS */
-	 				dSolTest = MakeTest(*pSol, *pXPrimeCurr);
+#ifdef __HACK_SCALE_RES__
+					dSolTest = MakeTest(*pSol, *pXPrimeCurr, *pScale);
+#else /* !__HACK_SCALE_RES__ */
+					dSolTest = MakeTest(*pSol, *pXPrimeCurr);
+#endif /* !__HACK_SCALE_RES__ */
 #ifdef USE_EXCEPTIONS
 				} catch (MultiStepIntegrator::ErrSimulationDiverged) {
 					/*
@@ -1966,7 +2000,11 @@ MultiStepIntegrator::~MultiStepIntegrator(void)
 /* Test sul residuo */
 doublereal 
 MultiStepIntegrator::MakeTest(const VectorHandler& Res, 
-			      const VectorHandler& XP)
+			      const VectorHandler& XP
+#ifdef __HACK_SCALE_RES__
+			      , const VectorHandler& Scale
+#endif /* __HACK_SCALE_RES__ */
+			      )
 {
    	DEBUGCOUTFNAME("MultiStepIntegrator::MakeTest");
    
@@ -2020,10 +2058,23 @@ MultiStepIntegrator::MakeTest(const VectorHandler& Res,
  	  	for (int iCntp1 = 1; iCntp1 <= iNumDofs; 
 				iCntp1++, DofIterator.fGetNext(CurrDof)) {
 			doublereal d = Res.dGetCoef(iCntp1);
-			dRes += d*d;
+			doublereal d2 = d*d;
+
+#ifdef __HACK_SCALE_RES__
+			doublereal ds = Scale.dGetCoef(iCntp1);
+			doublereal ds2 = ds*ds;
+			d2 *= ds2;
+#endif /* __HACK_SCALE_RES__ */
+
+			dRes += d2;
 
 			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
 				d = XP.dGetCoef(iCntp1);
+				d2 = d*d;
+
+#ifdef __HACK_SCALE_RES__
+				d2 *= ds2;
+#endif /* __HACK_SCALE_RES__ */
 				dXPr += d*d;
 			}
 			/* else if ALGEBRAIC: non aggiunge nulla */

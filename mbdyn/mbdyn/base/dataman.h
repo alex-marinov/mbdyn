@@ -460,6 +460,8 @@ class DataManager : public SolutionDataManager {
    /* funzioni di inizializzazione */
    void DofDataInit(void);
    void DofInit(void);
+
+   void SetScale(VectorHandler& XScale) const;
 };
 
 /* DataManager - end */

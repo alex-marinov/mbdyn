@@ -343,7 +343,11 @@ private:
    	doublereal dPivotFactor;
 
    	/* Test sul residuo */
+#ifdef __HACK_SCALE_RES__
+   	doublereal MakeTest(const VectorHandler& Res, const VectorHandler& XP, const VectorHandler& Scale);
+#else /* !__HACK_SCALE_RES__ */
    	doublereal MakeTest(const VectorHandler& Res, const VectorHandler& XP);
+#endif /* !__HACK_SCALE_RES__ */
 
    	/* corregge i puntatori per un nuovo passo */
    	inline void Flip(void);
