@@ -25,6 +25,7 @@ MYLIBS = \
 ../libraries/libobjs/libobjs.la \
 ../libraries/libmbwrap/libmbwrap.la \
 @Y12_LIBS@ \
+../libraries/libcolamd/libcolamd.la \
 ../libraries/libmbmath/libmbmath.la \
 ../libraries/libmbutil/libmbutil.la \
 @HARWELL_LIBS@ \

@@ -17,8 +17,6 @@ mschwrap.cc \
 mschwrap.h \
 mthrdslv.c \
 mthrdslv.h \
-colamd.c \
-colamd.h \
 naivewrap.cc \
 naivewrap.h \
 superluwrap.cc \
@@ -35,6 +33,7 @@ libmbwrap_la_LIBADD = \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \
 ../liby12/liby12.la \
+../libcolamd/libcolamd.la \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
@@ -59,6 +58,7 @@ wraptest_LDADD = \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \
 ../liby12/liby12.la \
+../libcolamd/libcolamd.la \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
@@ -79,6 +79,7 @@ cctest_LDADD = \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \
 ../liby12/liby12.la \
+../libcolamd/libcolamd.la \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
@@ -93,6 +94,7 @@ INCLUDES = \
 -I../../mbdyn \
 -I../libmbutil \
 -I../libmbmath \
--I../liby12
+-I../liby12 \
+-I../libcolamd
 
 include $(top_srcdir)/build/bot.mk
