@@ -505,7 +505,7 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
    
    dOmegaRef = dOR;
    dRadius = dR;
-   dArea = 2.*PI*dRadius*dRadius;
+   dArea = PI*dRadius*dRadius;
    dWeight = dW;
    dCorrection = dC;
 
@@ -656,7 +656,7 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
    
    dOmegaRef = dOR;
    dRadius = dR;
-   dArea = 2.*PI*dRadius*dRadius;
+   dArea = PI*dRadius*dRadius;
    dWeight = dW;
    dCorrection = dC;
 
@@ -804,7 +804,7 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
    
    dOmegaRef = dOR;
    dRadius = dR;
-   dArea = 2.*PI*dRadius*dRadius;
+   dArea = PI*dRadius*dRadius;
    dWeight = dW;
    dCorrection = dC;
 
@@ -1008,7 +1008,7 @@ dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
    
    dOmegaRef = dOR;
    dRadius = dR;
-   dArea = 2.*PI*dRadius*dRadius;
+   dArea = PI*dRadius*dRadius;
    
    /* Significa che valuta la velocita' indotta media al passo corrente */
    dWeight = 0.;
