@@ -18,6 +18,7 @@ MBDyn 1.1-Engineering
 		- strengthen hydraulic turbulent elems at small pressure 
 		  differentials
 		- added replacement for form() method to ADAMS output
+		- loadable elements can be used in parallel solution
 	Bug fixes:
 		- fixed SIGSEGV when reading from stdin
 		- fixed SIGSEGV when including nonexisting file
