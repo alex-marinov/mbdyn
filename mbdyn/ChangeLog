@@ -12,6 +12,9 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 *** Wed Oct 30 19:09:12 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - add -W (--working-dir) switch
 
+*** Mon Oct 28 15:00:00 CET 2002 Marco Morandini <morandini@aero.polimi.it>
+ - first commit of OpenDX visualization scripts
+
 *** Thu Oct  3 10:42:15 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - implement separate induced velocity correction factors for hover
    and forward flight
