@@ -13,9 +13,10 @@ MBDyn 1.2-Engineering
 		- added third order step solver
 		- added TAUCS linear solver (eXperimental)
 		- added "ad hoc" (Radau IIA) third-order integrator
+		- added predefined drive callers
 	Known Issues:
 		- parallel is not working yet
-		- modal joint cannot be used in model inertia computation
+		- modal joint cannot be used yet in model inertia computation
 
 MBDyn 1.2-Beta.4
 	Enhancements:

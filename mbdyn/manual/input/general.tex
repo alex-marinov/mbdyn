@@ -786,6 +786,25 @@ is parsed according to the rules described
 in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
 
+\subsection{Drive Callers}\label{sec:DRIVE-CALLERS}
+\begin{verbatim}
+    <card> ::= drive caller : <label>
+        [ , name , " <name> " ]
+        (DriveCaller)<drive_caller> ;
+\end{verbatim}
+The keyword \kw{drive caller} allows to define a drive caller
+that can be subsequently reused.
+It is useful essentially in two cases:
+\begin{enumerate}
+	\renewcommand{\labelenumi}{\alph{enumi})}
+	\item to define a drive caller that will be used many times
+	throughout a model;
+	\item to define a drive caller that needs to be used
+	in a later defined part of a model, which as such 
+	can be made parametric.
+\end{enumerate}
+
+
 
 
 \section{Node Degrees of Freedom}\label{sec:NODEDOF}
@@ -850,25 +869,31 @@ The family of the \kw{DriveCaller} object is very large,
 and should require a dedicated chapter.
 The type of the \kw{DriveCaller} is declared as follows:
 \begin{verbatim}
-    <drive_caller> ::= <drive_caller_type> , <arglist>
+    <drive_caller> ::=
+        { <drive_caller_type> [ , <arglist> ]
+            | reference , <label> }
 \end{verbatim}    
-where \kw{arglist} is a comma-separated list of arguments.
+where \kw{arglist}, if any, is a comma-separated list of arguments
+that depends on \kw{drive\_caller\_type}.
 As an exception, a constant \kw{DriveCaller} (that behaves exactly as a
 numerical constant with little or no overhead depending on the optimizing
 capability of the compiler) is assumed when a numeric value is used instead
 of a keyword.
+If the alternative format is used, the keyword \kw{reference} 
+must be followed by the label of an already defined, valid drive caller
+(See Section~\ref{sec:DRIVE-CALLERS}).
 
 \subsection{Null drive}
 \begin{verbatim}
     <drive_caller> ::= null
 \end{verbatim}
-Zero valued.
+Zero valued; the \kw{arglist} is empty.
 
 \subsection{Unit drive}
 \begin{verbatim}
     <drive_caller> ::= unit
 \end{verbatim}
-Always 1.
+Always 1; the \kw{arglist} is empty.
 
 \subsection{Constant drive}
 \begin{verbatim}
@@ -882,7 +907,7 @@ value.
 \begin{verbatim}
     <drive_caller> ::= time
 \end{verbatim}
-Yields the current time.
+Yields the current time; the arglist is empty.
   
 \subsection{Linear drive}
 \begin{verbatim}
@@ -1044,7 +1069,7 @@ random number. The second optional entry, preceeded by the keyword
 \kw{seed}, sets the new seed for the random number generator. A numeric
 value can be used, or the keyword \kw{time} uses the current time from
 the internal clock. A given seed can be used to ensure that two
-simulations use exactly the same random sequency (concurrent settings 
+simulations use exactly the same random sequence (concurrent settings 
 are not managed, so it is not very reliable).
 
 \subsection{File drive}\label{sec:FILE-DRIVE}
@@ -1354,7 +1379,7 @@ However, the special card described in Section~\ref{sec:CONSTITUTIVE-LAW}
 allows to define constitutive laws stand-alone, and attach them
 to the elements by means of the following mechanism:
 \begin{verbatim}
-    <constitutive_law_input> ::=
+    <constitutive_law> ::=
         { <constitutive_law_definition>
             | <constitutive_law_reference> }
 
