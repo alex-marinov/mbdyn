@@ -718,10 +718,12 @@ void DataManager::ReadElems(MBDynParser& HP)
 			}
 
 			/*
-			 * FIXME: all the coefficients must be recomputed!
+			 * trasformazione isobara applicata all'equazione
+			 * di stato: rho * R * T = cost
+			 *
+			 * rho = rho_0 T_0 / T
 			 */
-			PRef *= pow(TRef / (TRef + T), -g0 / (a * R));
-			rhoRef *= pow(TRef / (TRef + T), -(g0 / (a * R) + 1));
+			rhoRef *= TRef / (TRef + T);
 			TRef += T;
 			
 			SAFENEWWITHCONSTRUCTOR(RhoRef, ConstDriveCaller,
