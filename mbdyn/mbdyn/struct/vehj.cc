@@ -136,7 +136,7 @@ ElasticHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -163,7 +163,7 @@ void ElasticHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 				     VectorHandler& /* XP */ )
 {
    /* Calcola le deformazioni, aggiorna il legame costitutivo e crea la FDE */
-   
+
    /* Recupera i dati */
    Mat3x3 Ra(pNode1->GetRRef()*R1h);
    Mat3x3 RaT(Ra.Transpose());
@@ -217,7 +217,7 @@ ElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
@@ -276,7 +276,7 @@ ElasticHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -305,7 +305,7 @@ ElasticHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
@@ -402,7 +402,7 @@ ViscousHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -445,7 +445,7 @@ ViscousHingeJoint::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
@@ -503,7 +503,7 @@ ViscousHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -557,7 +557,7 @@ ViscousHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
@@ -687,7 +687,7 @@ ViscoElasticHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -730,7 +730,7 @@ ViscoElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
@@ -792,7 +792,7 @@ ViscoElasticHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -847,7 +847,7 @@ ViscoElasticHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
