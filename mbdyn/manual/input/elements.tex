@@ -269,11 +269,14 @@ constitutive properties.
         <node_3> , (Vec3) <relative_offset_3> ,
         (RotationMatrix) <rotation_matrix_section_I> ,
         (ConstitutiveLaw6D) <constitutive_law_section_I> ,
-        (RotationMatrix) <rotation_matrix_section_II> ,
-        (ConstitutiveLaw6D) <constitutive_law_section_II>
+        { same | (RotationMatrix) <rotation_matrix_section_II> } ,
+        { same | (ConstitutiveLaw6D) <constitutive_law_section_II> }
 \end{verbatim}
 Based on the type of constitutive law, the simple or the viscoelastic beam
-element is used. \\
+element is used.
+The two keywords \texttt{same} respectively mean that the same orientation 
+and the same constitutive law defined for the first point will be used 
+for the second point. \\
 A piezoelectric actuator beam element is available; an arbitrary
 linear piezoelectric actuation matrix is required, together with the labels
 of the abstract nodes that represent the input signal tensions, as follows:
