@@ -348,11 +348,12 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	const char *host = NULL;
 	const char *path = NULL;
 
-	if (HP.IsKeyWord("stream" "name")) {
+	if (HP.IsKeyWord("name") || HP.IsKeyWord("stream" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == NULL) {
-			std::cerr << "unable to read  socket stream name "
-				"for SocketStreamElem(" << uLabel << ") at line "
+			std::cerr << "unable to read socket stream name "
+				"for SocketStreamElem(" << uLabel
+				<< ") at line "
 				<< HP.GetLineData() << std::endl;
 			THROW(ErrGeneric());
 
@@ -361,7 +362,8 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		SAFESTRDUP(name, m);
 
 	} else {
-		std::cerr << "missing socket stream name for SocketStreamElem(" << uLabel
+		std::cerr << "missing socket stream name "
+			"for SocketStreamElem(" << uLabel
 			<< ") at line " << HP.GetLineData() << std::endl;
 		THROW(ErrGeneric());
 	}
@@ -378,11 +380,11 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		}
 	}
 	
-	if(HP.IsKeyWord("path")){
+	if (HP.IsKeyWord("local") || HP.IsKeyWord("path")) {
 		const char *m = HP.GetStringWithDelims();
 		
 		if (m == NULL) {
-			silent_cerr("unable to read path for "
+			silent_cerr("unable to read local path for "
 				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
@@ -392,7 +394,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		SAFESTRDUP(path, m);	
 	}
 
-	if(HP.IsKeyWord("port")){
+	if (HP.IsKeyWord("port")) {
 		if (path != NULL){
 			silent_cerr("cannot specify a port "
 					"for a local socket in "
@@ -404,11 +406,14 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		int p = HP.GetInt();
 		/*Da sistemare da qui*/
 		
-		if (p <= SYSTEM_PORT) {
-			silent_cerr("illegal number of port for "
-				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-				<< "(" << uLabel << ") at line " 
-				<< HP.GetLineData() << std::endl);
+		if (p <= IPPORT_USERRESERVED) {
+			silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
+				<< "(" << uLabel << "): "
+				"cannot listen on port " << port
+				<< ": less than IPPORT_USERRESERVED=" 
+				<< IPPORT_USERRESERVED
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
 			THROW(ErrGeneric());
 		}
 		port = p;
@@ -486,3 +491,4 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 
 	return pEl;
 }
+

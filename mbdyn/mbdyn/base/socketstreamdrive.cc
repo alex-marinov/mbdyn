@@ -59,7 +59,6 @@
 
 #define UNIX_PATH_MAX    108
 #define DEFUALT_PORT	5500 /*FIXME:da defineire meglio*/
-#define SYSTEM_PORT	1000 /*FIXME:da defineire meglio*/
 #define DEFAULT_HOST 	"127.0.0.1"
 
 SocketStreamDrive::SocketStreamDrive(unsigned int uL,
@@ -71,9 +70,7 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 : StreamDrive(uL, pDH, sFileName, nd, c),
 type(AF_INET), sock(0), tmp_sock(0), connection_flag(false)
 {
-	//NO_OP;
-	//FIXME:SAFESTRDUP(host, h) oppure host(h)
-	if(h) {
+	if (h) {
 		SAFESTRDUP(host, h);
 	} else {
 		host = NULL;
@@ -345,11 +342,12 @@ ReadSocketStreamDrive(DataManager* pDM,
 	const char *path = NULL;
 
 
-	if (HP.IsKeyWord("stream" "drive" "name")) {
+	if (HP.IsKeyWord("name") || HP.IsKeyWord("stream" "drive" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == NULL) {
-			std::cerr << "unable to read stream drivie name "
-				"for SocketStreamDrive(" << uLabel << ") at line "
+			std::cerr << "unable to read socket stream drive name "
+				"for SocketStreamDrive(" << uLabel 
+				<< ") at line "
 				<< HP.GetLineData() << std::endl;
 			THROW(ErrGeneric());
 
@@ -358,7 +356,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 		SAFESTRDUP(name, m);
 
 	} else {
-		std::cerr << "missing stream drive name "
+		std::cerr << "missing socket stream drive name "
 			"for SocketStreamDrive(" << uLabel
 			<< ") at line " << HP.GetLineData() << std::endl;
 		THROW(ErrGeneric());
@@ -376,11 +374,11 @@ ReadSocketStreamDrive(DataManager* pDM,
 		}
 	}
 	
-	if(HP.IsKeyWord("path")){
+	if (HP.IsKeyWord("local") || HP.IsKeyWord("path")) {
 		const char *m = HP.GetStringWithDelims();
 		
 		if (m == NULL) {
-			silent_cerr("unable to read path for "
+			silent_cerr("unable to read local path for "
 				<< "SocketStreamDrive("
 			 	<< uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
@@ -390,7 +388,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 		SAFESTRDUP(path, m);	
 	}
 	
-	if(HP.IsKeyWord("port")){
+	if (HP.IsKeyWord("port")){
 		if (path != NULL){
 			silent_cerr("cannot specify a port "
 					"for a local socket in "
@@ -402,11 +400,13 @@ ReadSocketStreamDrive(DataManager* pDM,
 		int p = HP.GetInt();
 		/*Da sistemare da qui*/
 		
-		if (p <= SYSTEM_PORT) {
-			silent_cerr("illegal number of port for "
-				<< "SocketStreamDrive("
-			 	<< uLabel << ") at line "
-				<< HP.GetLineData() << std::endl);
+		if (p <= IPPORT_USERRESERVED) {
+			silent_cerr("SocketStreamDrive(" << uLabel << "): "
+					"cannot listen on port " << port
+					<< ": less than IPPORT_USERRESERVED=" 
+					<< IPPORT_USERRESERVED
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
 			THROW(ErrGeneric());
 		}
 		port = p;

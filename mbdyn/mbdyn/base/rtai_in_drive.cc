@@ -102,7 +102,7 @@ RTAIInDrive::ServePending(const doublereal& /* t */ )
 		}	
 
 	} else {
-			/*FIXME: error */
+		/* FIXME: error */
 	}
 }
 
@@ -134,13 +134,13 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		const char *m = HP.GetStringWithDelims();
 		if (m == NULL) {
 			std::cerr << "unable to read mailbox name "
-				"for RTAIInElem(" << uLabel << ") at line "
+				"for RTAIInDrive(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl;
 			THROW(ErrGeneric());
 
 		} else if (strlen(m) != 6) {
 			std::cerr << "illegal mailbox name \"" << m
-				<< "\" for RTAIInElem(" << uLabel 
+				<< "\" for RTAIInDrive(" << uLabel 
 				<< ") (must be 6 char) at line "
 				<< HP.GetLineData() << std::endl;
 			THROW(ErrGeneric());
@@ -149,7 +149,7 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		SAFESTRDUP(name, m);
 
 	} else {
-		std::cerr << "missing mailbox name for RTAIInElem(" << uLabel
+		std::cerr << "missing mailbox name for RTAIInDrive(" << uLabel
 			<< ") at line " << HP.GetLineData() << std::endl;
 		THROW(ErrGeneric());
 	}
@@ -166,20 +166,19 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		}
 	}
 
-	if(HP.IsKeyWord("path")){
+	if (HP.IsKeyWord("local") || HP.IsKeyWord("path")) {
 		const char *m = HP.GetStringWithDelims();
 		
-		silent_cout ( "path " << m 
-				<< " silently ignored" << std::endl);
+		silent_cout ( "local path \"" << m 
+				<< "\" silently ignored" << std::endl);
 		
 	}
 
-	if(HP.IsKeyWord("port")){
+	if (HP.IsKeyWord("port")){
 		int p = HP.GetInt();
 		
 		silent_cout ( "port " << p 
 				<< " silently ignored" << std::endl);
-		
 	}
 	
 	if (HP.IsKeyWord("host")) {
@@ -189,17 +188,14 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		h = HP.GetStringWithDelims();
 		if (h == NULL) {
 			std::cerr << "unable to read host "
-				"for RTAIInElem(" << uLabel << ") at line "
+				"for RTAIInDrive(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl;
 			THROW(ErrGeneric());
 		}
 
 		if (create) {
-			/*std::cerr << "cannot create mailbox(" << name
-				<< ") as remote on host " << h << std::endl;*/
-			//THROW(ErrGeneric());
-			silent_cout ( "host name " << h 
-					<< " silently ignored" << std::endl);
+			silent_cout ( "host name \"" << h 
+					<< "\" silently ignored" << std::endl);
 		} else {
 
 			SAFESTRDUP(host, h);
@@ -219,14 +215,14 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			}
 #endif /* ! HAVE_GETHOSTBYNAME && HAVE_INET_ATON */
 			else {
-				std::cerr << "unable to convert host "
-					<< host << " at line "
+				std::cerr << "unable to convert host \""
+					<< host << "\" at line "
 					<< HP.GetLineData() << std::endl;
 				THROW(ErrGeneric());
 			}
 #else /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
 			std::cerr << "host (RTAI RPC) not supported "
-				"for RTAIInElem(" << uLabel << ") at line "
+				"for RTAIInDrive(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl;
 				<< std::endl;
 			THROW(ErrGeneric());
@@ -237,7 +233,7 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	int idrives = HP.GetInt();
 	if (idrives <= 0) {
 		std::cerr << "illegal number of channels "
-			"for RTAIInElem(" << uLabel << ") at line "
+			"for RTAIInDrive(" << uLabel << ") at line "
 			<< HP.GetLineData() << std::endl;
 		THROW(ErrGeneric());
 	}
@@ -256,4 +252,4 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 #endif /* ! USE_RTAI */
        
 }
-   
+ 

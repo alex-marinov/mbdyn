@@ -174,7 +174,7 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	const char *name = NULL;
 	bool create = false;
 
-	if (HP.IsKeyWord("stream" "name")) {
+	if (HP.IsKeyWord("name") || HP.IsKeyWord("stream" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == NULL) {
 			std::cerr << "unable to read mailbox name "
@@ -210,19 +210,18 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		}
 	}
 	
-	if(HP.IsKeyWord("path")){
+	if (HP.IsKeyWord("local") || HP.IsKeyWord("path")) {
 		const char *m = HP.GetStringWithDelims();
-		silent_cout ( "path " << m 
+		silent_cout("local path " << m 
 				<< " silently ignored" << std::endl);
 
 	}
 
-	if(HP.IsKeyWord("port")){
+	if (HP.IsKeyWord("port")){
 		int p = HP.GetInt();
 		
-		silent_cout ( "port " << p 
+		silent_cout ("port " << p 
 				<< " silently ignored" << std::endl);
-		
 	}
 
 	if (HP.IsKeyWord("host")) {
@@ -242,8 +241,8 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			/*std::cerr << "cannot create mailbox(" << name
 				<< ") as remote on host " << h << std::endl;*/
 			//THROW(ErrGeneric());
-			silent_cout ( "host name " << h 
-					<< " silently ignored" << std::endl);			
+			silent_cout ( "host name \"" << h 
+					<< "\" silently ignored" << std::endl);			
 		} else {
 
 			SAFESTRDUP(host, h);
@@ -263,8 +262,8 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			}
 #endif /* ! HAVE_GETHOSTBYNAME && HAVE_INET_ATON */
 			else {
-				std::cerr << "unable to convert host "
-					<< host << " at line "
+				std::cerr << "unable to convert host \""
+					<< host << "\" at line "
 					<< HP.GetLineData() << std::endl;
 			THROW(ErrGeneric());
 			}

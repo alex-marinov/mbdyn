@@ -1153,6 +1153,7 @@ their syntax is:
 The following \kw{file} drivers are supported at present:
 
 
+
 \subsection{Fixed Step}
 \begin{verbatim}
     <normal_arglist> ::= fixed step , 
@@ -1164,6 +1165,8 @@ The following \kw{file} drivers are supported at present:
 \end{verbatim}
 The value at an arbitrary time is linearly interpolated from the available
 data; if the requested value is out of time bounds, zero is returned.
+
+
 
 \subsection{Socket}
 \begin{verbatim}
@@ -1217,10 +1220,12 @@ value commands to be applied for one step only. \\
     This behaviour may change in the future.
 }
 
+
+
 \subsection{RTAI Mailbox}\label{sec:RTAI_in}
-This special drive is a variant of the Socket Stream 
-(under development yet) that reads the input data from a RTAI mailbox
-in non-blocking mode.
+This special drive is a variant of the Socket Stream
+(Section~\ref{sec:Stream}; under development yet)
+that reads the input data from a RTAI mailbox in non-blocking mode.
 It is intended as a means of communication between different processes
 running in real-time.
 The syntax is:
@@ -1254,3 +1259,74 @@ future development will allow to emulate the use of these elements
 also when the simulation is not run in real-time, e.g.\ for modeling
 or model debugging purposes.}
 
+
+
+\subsection{Stream}\label{sec:Stream}
+\begin{verbatim}
+    <normal_arglist> ::= stream,
+        name , " <name> " ,
+        create , { yes | no } ,
+        [ { local , " <socket_name> " , |
+            [ port , <port_number> , ]
+            [ host , " <host_name> " , ] } ]
+        <columns_number> ;
+\end{verbatim}
+The \kw{stream} drive allows MBDyn to receive streamed inputs 
+from remote processes both during regular simulations and during 
+real-time simulations under RTAI.
+If the simulation is run in real-time, it uses RTAI mailboxes, 
+otherwise regular UNIX sockets are used, either in the \kw{local} or 
+in the \kw{internet} namespace.
+
+This drive type is intended to allow the development of real-time models
+by running regular simulations for the purpose of debugging the model
+and the control process without the overhead and the potential problems
+of running in real-time.
+Then the same model can be run in real-time without changing the details
+of the communication with the controller process.
+
+\paragraph{Non real-time simulation}
+During non real-time simulations, streams operate in blocking mode.
+The meaning of the parameters is:
+\begin{itemize}
+\item \kw{<name>} indicates the name the stream
+will be known as; it is mostly useless, and is limited to 6 characters;
+\item the instruction \kw{create} determines whether the socket will be
+created or looked for by MBDyn;
+\item the keyword \kw{local} indicates that a socket 
+in the local namespace will be used; if \kw{create} is set to \kw{yes},
+the socket is created, otherwise it must exist.
+\item either of the keywords \kw{port} or \kw{host} indicate that a socket
+in the internet namespace will be used;
+if \kw{create} is set to \kw{yes}, \kw{<host\_name>} indicates 
+the host that is allowed to connect to the socket; it defaults 
+to any host (\kw{0.0.0.0}); if \kw{create} is set to \kw{no},
+\kw{<host\_name>} indicates what host to connect to; the default 
+is localhost (\kw{127.0.0.1}); the default port is \kw{5500};
+\end{itemize}
+If no socket type is specified, i.e.\ none of the \kw{local}, \kw{port} 
+and \kw{host} keywords are given, a socket is opened by default 
+in the internet namespace with the default IP and port; the \kw{create}
+keyword is mandatory.
+
+\paragraph{Real-time simulation}
+During real-time simulations, streams wrap non-blocking RTAI mailboxes.
+The meaning of the parameters is:
+\begin{itemize}
+\item the parameter \kw{<name>} indicates the name the stream
+will be known as in RTAI's resource namespace;
+it is limited to 6 characters, and actually represents the mailbox name;
+\item the instruction \kw{create} determines whether the mailbox will be
+created or looked for by MBDyn;
+\item the keyword \kw{local} is ignored;
+\item the keyword \kw{host} indicates that a mailbox on a remote host 
+will be used; it is useless when \kw{create} is set to \kw{yes}, because
+RTAI does not provide the possibility to create remote resources;
+if none is given, a local mailbox is assumed;
+\item the keyword \kw{port} is ignored.
+\end{itemize}
+
+The parameter \kw{<columns\_number>} determines how many
+channels will be used.
+A channel is a double typed number; a \kw{stream drive} can read
+an arbitrary number of simultaneous channels.

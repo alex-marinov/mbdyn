@@ -534,6 +534,15 @@ ReadSocketDrive(DataManager* pDM,
 
 	} else if (HP.IsKeyWord("port")) {
 		port = HP.GetInt();
+		if (port < IPPORT_USERRESERVED) {
+			silent_cerr("SocketDrive(" << uLabel << "): "
+					"cannot listen on port " << port
+					<< ": less than IPPORT_USERRESERVED=" 
+					<< IPPORT_USERRESERVED
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
+			THROW(ErrGeneric());
+		}
 	}
 
 	if (path == NULL) {
