@@ -44,6 +44,9 @@ BEGIN {
 	Incr = .5e-3;
 	Start = 0.0;
 	Step = 0;
+	deg2rad = 0.017453293;
+	rad2deg = 57.29578;
+	AngleScale = deg2rad;
 }
 $1 > 10 {
 	if ($1 == FirstLabel) {
@@ -70,12 +73,12 @@ $1 > 10 {
 	Positions[Node,2] = $3;
 	Positions[Node,3] = $4;
 
-	dCosAlpha = cos($5);
-	dSinAlpha = sin($5);
-	dCosBeta = cos($6);
-	dSinBeta = sin($6);
-	dCosGamma = cos($7);
-	dSinGamma = sin($7);
+	dCosAlpha = cos($5*AngleScale);
+	dSinAlpha = sin($5*AngleScale);
+	dCosBeta = cos($6*AngleScale);
+	dSinBeta = sin($6*AngleScale);
+	dCosGamma = cos($7*AngleScale);
+	dSinGamma = sin($7*AngleScale);
 	Cosines[Node,1] = dCosBeta*dCosGamma;
 	Cosines[Node,2] = dCosAlpha*dSinGamma+dSinAlpha*dSinBeta*dCosGamma;
 	Cosines[Node,3] = dSinAlpha*dSinGamma-dCosAlpha*dSinBeta*dCosGamma;
