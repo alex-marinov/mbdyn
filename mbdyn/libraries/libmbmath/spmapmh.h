@@ -37,7 +37,7 @@
  * This code is a partial merge of HmFe and MBDyn.
  *
  * Pierangelo Masarati  <masarati@aero.polimi.it>
-21 * Paolo Mantegazza     <mantegazza@aero.polimi.it>
+ * Paolo Mantegazza     <mantegazza@aero.polimi.it>
  *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
