@@ -505,7 +505,7 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
    
    dOmegaRef = dOR;
    dRadius = dR;
-   dArea = PI*dRadius*dRadius;
+   dArea = M_PI*dRadius*dRadius;
    dWeight = dW;
    dCorrection = dC;
 
@@ -656,7 +656,7 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
    
    dOmegaRef = dOR;
    dRadius = dR;
-   dArea = PI*dRadius*dRadius;
+   dArea = M_PI*dRadius*dRadius;
    dWeight = dW;
    dCorrection = dC;
 
@@ -804,7 +804,7 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
    
    dOmegaRef = dOR;
    dRadius = dR;
-   dArea = PI*dRadius*dRadius;
+   dArea = M_PI*dRadius*dRadius;
    dWeight = dW;
    dCorrection = dC;
 
@@ -957,11 +957,11 @@ Vec3 ManglerRotor::GetInducedVelocity(const Vec3& X) const
    doublereal dd = 15./4.*dm*dr2;
    
    /* Primo coefficiente */
-   doublereal dc = -15./256.*PI*(9.*dr2-4.)*dr*da;
+   doublereal dc = -15./256.*M_PI*(9.*dr2-4.)*dr*da;
    dd -= 4.*dc*cos(dp);
    
    /* Secondo coefficiente */
-   dc = 45./256.*PI*pow(da*dr, 3);
+   dc = 45./256.*M_PI*pow(da*dr, 3);
    dd -= 4.*dc*cos(3.*dp);
    
    /* Coefficienti pari, da 2 a 10: */
@@ -982,9 +982,9 @@ Vec3 ManglerRotor::GetInducedVelocity(const Vec3& X) const
 
 
 
-const doublereal dM11 = 8./(3.*PI);
-const doublereal dM22 = -16./(45.*PI);
-const doublereal dM33 = -16./(45.*PI);
+const doublereal dM11 = 8./(3.*M_PI);
+const doublereal dM22 = -16./(45.*M_PI);
+const doublereal dM33 = -16./(45.*M_PI);
 
 /* DynamicInflowRotor - begin */
 
@@ -1008,7 +1008,7 @@ dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
    
    dOmegaRef = dOR;
    dRadius = dR;
-   dArea = PI*dRadius*dRadius;
+   dArea = M_PI*dRadius*dRadius;
    
    /* Significa che valuta la velocita' indotta media al passo corrente */
    dWeight = 0.;
@@ -1210,12 +1210,12 @@ SubVectorHandler& DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
        doublereal dSinChi2 = sin(d);
        doublereal dCosChi2 = cos(d);
        
-       d = 15./64.*PI*dSinChi2;
+       d = 15./64.*M_PI*dSinChi2;
        doublereal dDen;
        dDen = 1.+d*d;
        
        dL11 = dOmega*(2*dUt/dDen);
-       d = dOmega*(15./64.*PI*dSinChi2*dCosChi2/dDen);
+       d = dOmega*(15./64.*M_PI*dSinChi2*dCosChi2/dDen);
        dL13 = d*dUt;
        dL31 = d*dUm;
        d = dOmega*(dCosChi2*dCosChi2/2.);

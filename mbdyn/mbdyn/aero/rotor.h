@@ -44,10 +44,6 @@ extern "C" {
 #include "mpi++.h"
 #endif /* USE_MPI */
 
-#ifndef PI
-#define PI M_PI
-#endif
-
 extern const char* psRotorNames[];
 
 
