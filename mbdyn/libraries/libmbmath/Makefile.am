@@ -1,8 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 # Build libmbmath.a library
-### lib_LTLIBRARIES = libmbmath.la
-noinst_LTLIBRARIES = libmbmath.la
+lib_LTLIBRARIES = libmbmath.la
 
 libmbmath_la_SOURCES = \
 fullmh.cc \

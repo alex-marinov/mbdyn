@@ -114,7 +114,7 @@ dnl ----------------------------------------------------------------
 dnl Checks for args.
 dnl
 AC_MSG_CHECKING(configure arguments)
-AC_PREFIX_DEFAULT($HOME/local)
+AC_PREFIX_DEFAULT(/usr/local/mbdyn)
 
 dnl ----------------------------------------------------------------
 dnl --with-subdir

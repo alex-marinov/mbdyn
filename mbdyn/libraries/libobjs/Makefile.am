@@ -1,6 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 noinst_LTLIBRARIES = libobjs.la
+
 libobjs_la_SOURCES = \
 dgegv.c \
 dgegv.h  \

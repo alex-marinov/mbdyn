@@ -1,8 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 # Build liby12.a library
-### lib_LTLIBRARIES = liby12.la
-noinst_LTLIBRARIES = liby12.la
+lib_LTLIBRARIES = liby12.la
 
 liby12_la_SOURCES = \
 y12lib.h \
