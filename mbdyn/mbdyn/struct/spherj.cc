@@ -588,16 +588,8 @@ void PinJoint::Output(OutputHandler& OH) const
 	<< "Current reaction: " << std::endl << F << std::endl;   
 #endif   
    
-      /*
-      OH.Joints().write("Pin             ", 16)
-	<< std::setw(8) << GetLabel() << " " << F << " " << Vec3(0.) << std::endl;
-       */
-      
-      Mat3x3 RTmp(pNode->GetRCurr());
-      
-      Joint::Output(OH.Joints(), "Pin", GetLabel(),
-		    F, Zero3, F, Zero3) 
-	<< " " << EulerAngles(RTmp) << std::endl;      
+      Joint::Output(OH.Joints(), "Pin", GetLabel(), F, Zero3, F, Zero3) 
+	<< " " << EulerAngles(pNode->GetRCurr()) << std::endl;      
    }   
 }
 
@@ -614,7 +606,7 @@ PinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Equazioni: vedi joints.dvi */
@@ -636,7 +628,6 @@ PinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    }   
    
    /* Matrici identita' */
-   
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       /* Contributo di forza all'equazione della forza */
       WM.fPutCoef(iCnt, 12+iCnt, 1.);
