@@ -135,13 +135,13 @@ HarwellSparseLUSolutionManager::IsValid(void) const
    	ASSERT(piCol != NULL);
    
 #ifdef DEBUG_MEMMANAGER
-   	ASSERT(SMmm.fIsPointerToBlock((void*)piRow));
-   	ASSERT(SMmm.fIsPointerToBlock((void*)piCol));
-   	ASSERT(SMmm.fIsPointerToBlock((void*)pdMat));
-   	ASSERT(SMmm.fIsPointerToBlock((void*)pMH));
-   	ASSERT(SMmm.fIsPointerToBlock((void*)pVH));
-   	ASSERT(SMmm.fIsPointerToBlock((void*)pLU));
-#endif
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(piRow));
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(piCol));
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pdMat));
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pMH));
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pVH));
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pLU));
+#endif /* DEBUG_MEMMANAGER */
    
    	ASSERT((pMH->IsValid(), 1));
    	ASSERT((pVH->IsValid(), 1));
@@ -154,7 +154,7 @@ HarwellSparseLUSolutionManager::PacVec(void)
 {
 #ifdef DEBUG
    	IsValid();
-#endif
+#endif /* DEBUG */
    
    	ASSERT(fHasBeenReset == 1);
    
@@ -167,7 +167,7 @@ HarwellSparseLUSolutionManager::MatrInit(const doublereal& dResetVal)
 {
 #ifdef DEBUG
    	IsValid();
-#endif
+#endif /* DEBUG */
    
    	pMH->Init(dResetVal);
    	fHasBeenReset = flag(1);
@@ -179,7 +179,7 @@ HarwellSparseLUSolutionManager::Solve(void)
 {
 #ifdef DEBUG
    	IsValid();
-#endif
+#endif /* DEBUG */
 
    	if (fHasBeenReset == 1) {
       		this->PacVec();

@@ -36,7 +36,6 @@
 
 #include <multistp.h>
 #include <mynewmem.h>
-#include <memmans.h>
 #include <mymath.h>
 
 #include <harwrap.h>
@@ -80,10 +79,6 @@ modify_final_time_handler(int signum)
 #endif /* HAVE_SIGNAL */
 
 /* MultiStepIntegrator - begin */
-
-#ifdef DEBUG_MEMMANAGER
-clMemMan MSmm("MultiStepIntegrator");
-#endif /* DEBUG_MEMMANAGER */
 
 /* Parametri locali */
 const integer iDefaultMaxIterations = 1;
@@ -2387,14 +2382,22 @@ MultiStepIntegrator::Eig(void)
 #endif /* DEBUG */
    
 #ifdef DEBUG_MEMMANAGER
-   ASSERT(SMmm.fIsValid((void*)MatA.pdGetMat(), iSize*iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)MatB.pdGetMat(), iSize*iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)MatL.pdGetMat(), iSize*iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)MatR.pdGetMat(), iSize*iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)AlphaR.pdGetVec(), iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)AlphaI.pdGetVec(), iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)Beta.pdGetVec(), iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)WorkVec.pdGetVec(), iWorkSize*sizeof(doublereal)));
+   ASSERT(defaultMemoryManager.fIsValid(MatA.pdGetMat(), 
+			   iSize*iSize*sizeof(doublereal)));
+   ASSERT(defaultMemoryManager.fIsValid(MatB.pdGetMat(), 
+			   iSize*iSize*sizeof(doublereal)));
+   ASSERT(defaultMemoryManager.fIsValid(MatL.pdGetMat(), 
+			   iSize*iSize*sizeof(doublereal)));
+   ASSERT(defaultMemoryManager.fIsValid(MatR.pdGetMat(), 
+			   iSize*iSize*sizeof(doublereal)));
+   ASSERT(defaultMemoryManager.fIsValid(AlphaR.pdGetVec(), 
+			   iSize*sizeof(doublereal)));
+   ASSERT(defaultMemoryManager.fIsValid(AlphaI.pdGetVec(), 
+			   iSize*sizeof(doublereal)));
+   ASSERT(defaultMemoryManager.fIsValid(Beta.pdGetVec(), 
+			   iSize*sizeof(doublereal)));
+   ASSERT(defaultMemoryManager.fIsValid(WorkVec.pdGetVec(), 
+			   iWorkSize*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
      
    

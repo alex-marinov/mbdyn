@@ -33,13 +33,12 @@
 #ifndef SHAPE_H
 #define SHAPE_H
 
-#include "myf2c.h"
+#include <myf2c.h>
 
-#include "myassert.h"
-#include "mynewmem.h"
-#include "output.h"
+#include <myassert.h>
+#include <mynewmem.h>
+#include <output.h>
 
-#include "memmans.h"
 
 /* Classe base:
  * una class Shape puo' restituire un reale in funzione di un insieme di reali

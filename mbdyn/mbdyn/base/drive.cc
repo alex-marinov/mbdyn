@@ -65,11 +65,7 @@ pVar(NULL),
 pXCurr(NULL), 
 pXPrimeCurr(NULL),
 iCurrStep(0),
-#ifdef DEBUG_MEMMANAGER
-MyRandD(DMmm),
-#else /* !DEBUG_MEMMANAGER */
 MyRandD(),
-#endif /* !DEBUG_MEMMANAGER */
 MyRandLL(MyRandD),
 iRandDriveSize(0),
 ppMyRand(NULL)

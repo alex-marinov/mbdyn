@@ -49,10 +49,6 @@ extern "C" {
 #include <mynewmem.h>
 #include <except.h>
 
-#ifdef DEBUG_MEMMANAGER
-extern clMemMan SMmm;
-#endif
-
 /* viene incluso per avere le dichiarazioni dei tipi */
 
 #include <myf2c.h>

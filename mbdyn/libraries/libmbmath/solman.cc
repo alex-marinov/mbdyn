@@ -307,11 +307,11 @@ void MyVectorHandler::IsValid(void) const
    
 #ifdef DEBUG_MEMMANAGER
    if (fOwnsMemory) {      
-      ASSERT(SMmm.fIsBlock((void*)pdVec, iMaxSize*sizeof(doublereal)));
+      ASSERT(defaultMemoryManager.fIsBlock(pdVec, iMaxSize*sizeof(doublereal)));
    } else {
-      ASSERT(SMmm.fIsValid((void*)pdVec, iMaxSize*sizeof(doublereal)));
+      ASSERT(defaultMemoryManager.fIsValid(pdVec, iMaxSize*sizeof(doublereal)));
    }
-#endif
+#endif /* DEBUG_MEMMANAGER */
 }
 
 void MyVectorHandler::Reset(doublereal dResetVal)

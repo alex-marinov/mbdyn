@@ -1752,7 +1752,6 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
  * NOTA: il proprietario del puntatore alla Shape la deve distruggere */
 
 #ifdef DEBUG_MEMMANAGER
-#define TMP
 #undef DEBUG_MEMMANAGER
 #endif	   
 
@@ -1794,7 +1793,7 @@ Shape* ReadShape(MBDynParser& HP)
    if(CurrKeyWord >= 0) {      
       cout << "shape type: " << sKeyWords[CurrKeyWord] << endl;
    }   
-#endif   
+#endif /* DEBUG */
 
    Shape* pS = NULL;
    
@@ -1929,9 +1928,6 @@ Shape* ReadShape(MBDynParser& HP)
    ASSERT(pS != NULL);
    return pS;   
 } /* ReadShape */
+
 #endif /* STRUCT && AERODYNAMIC */
 
-#ifdef TMP
-#define DEBUG_MEMMANAGER
-#undef TMP
-#endif

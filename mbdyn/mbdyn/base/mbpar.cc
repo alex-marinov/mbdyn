@@ -65,27 +65,15 @@ mbdyn_warranty(ostream& out)
 MBDynParser::MBDynParser(MathParser& MP, KeyTable& KT, InputStream& streamIn)
 : IncludeParser(MP, KT, streamIn)
 #if defined(USE_STRUCT_NODES)
-#ifdef DEBUG_MEMMANAGER
-, RFHD(MPmm)
-#else
 , RFHD()
-#endif
 , RF(RFHD)
 #endif /* USE_STRUCT_NODES */
 #if defined(USE_HYDRAULIC_NODES)
-#ifdef DEBUG_MEMMANAGER
-, HFHD(MPmm)
-#else
 , HFHD()
-#endif
 , HF(HFHD)
 #endif /* USE_HYDRAULIC_NODES */
 #if defined(USE_AERODYNAMIC_ELEMS)
-#ifdef DEBUG_MEMMANAGER
-, ADHD(MPmm)
-#else
 , ADHD()
-#endif
 , AD(ADHD)
 #endif /* USE_AERODYNAMIC_ELEMS */
 {

@@ -113,13 +113,6 @@ class Y12SparseLUSolutionManager;  /* gestore della soluzione */
 class SchurSolutionManager;
 #endif /* USE_SCHUR */
 
-/* Memory managers per le classi che allocano memoria */
-#ifdef DEBUG_MEMMANAGER
-extern clMemMan SMmm;  /* memory manager per SolutionManager (mynewmem.h) */
-extern clMemMan LUmm;  /* memory manager per Y12LUSolver */
-extern clMemMan MHmm;  /* memory manager per SparseMatrixHandler */
-#endif /* DEBUG_MEMMANAGER */
-
 /* Y12LUSolver - begin */
 
 /*

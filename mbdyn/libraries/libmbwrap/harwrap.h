@@ -187,10 +187,14 @@ protected:
 		ASSERT(iN > 0);
 	
 #ifdef DEBUG_MEMMANAGER	
-		ASSERT(SMmm.fIsValid((void*)*ppiRow, iMatSize*sizeof(integer)));
-		ASSERT(SMmm.fIsValid((void*)*ppiCol, iMatSize*sizeof(integer)));
-		ASSERT(SMmm.fIsValid((void*)*ppdMat, iMatSize*sizeof(doublereal)));
-		ASSERT(SMmm.fIsValid((void*)pdRhs, iN*sizeof(doublereal)));
+		ASSERT(defaultMemoryManager.fIsValid(*ppiRow, 
+					iMatSize*sizeof(integer)));
+		ASSERT(defaultMemoryManager.fIsValid(*ppiCol, 
+					iMatSize*sizeof(integer)));
+		ASSERT(defaultMemoryManager.fIsValid(*ppdMat, 
+					iMatSize*sizeof(doublereal)));
+		ASSERT(defaultMemoryManager.fIsValid(pdRhs, 
+					iN*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
 
 		SAFENEWARR(piKeep, integer, 5*iN);
@@ -235,10 +239,14 @@ protected:
       		ASSERT(iN > 0);
       
 #ifdef DEBUG_MEMMANAGER	
-      		ASSERT(SMmm.fIsValid((void*)*ppiRow, iMatSize*sizeof(integer)));
-      		ASSERT(SMmm.fIsValid((void*)*ppiCol, iMatSize*sizeof(integer)));
-      		ASSERT(SMmm.fIsValid((void*)*ppdMat, iMatSize*sizeof(doublereal)));
-      		ASSERT(SMmm.fIsValid((void*)pdRhs, iN*sizeof(doublereal)));
+      		ASSERT(defaultMemoryManager.fIsValid(*ppiRow, 
+					iMatSize*sizeof(integer)));
+      		ASSERT(defaultMemoryManager.fIsValid(*ppiCol, 
+					iMatSize*sizeof(integer)));
+      		ASSERT(defaultMemoryManager.fIsValid(*ppdMat, 
+					iMatSize*sizeof(doublereal)));
+      		ASSERT(defaultMemoryManager.fIsValid(pdRhs, 
+					iN*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
       
       		ASSERT(piKeep != NULL);
@@ -246,9 +254,12 @@ protected:
       		ASSERT(pdW != NULL);
       
 #ifdef DEBUG_MEMMANAGER
-      		ASSERT(LUmm.fIsBlock((void*)piKeep, 5*iN*sizeof(integer)));
-      		ASSERT(LUmm.fIsBlock((void*)piW, 8*iN*sizeof(integer)));
-      		ASSERT(LUmm.fIsBlock((void*)pdW, 1*iN*sizeof(doublereal)));	
+      		ASSERT(defaultMemoryManager.fIsBlock(piKeep, 
+					5*iN*sizeof(integer)));
+      		ASSERT(defaultMemoryManager.fIsBlock(piW, 
+					8*iN*sizeof(integer)));
+      		ASSERT(defaultMemoryManager.fIsBlock(pdW, 
+					1*iN*sizeof(doublereal)));	
 #endif /* DEBUG_MEMMANAGER */
    	};
    

@@ -46,11 +46,6 @@
 class SparseData;           /* gestore di sparsita' */
 class SparseMatrixHandler;  /* gestore matrice sparsa (assemblaggio) */
 
-/* Memory managers per le classi che allocano memoria */
-#ifdef DEBUG_MEMMANAGER
-extern clMemMan MHmm;  /* memory manager per SparseMatrixHandler */
-#endif /* DEBUG_MEMMANAGER */
-
 /*
  * Union usata per impaccare il vettore di indici di riga e colonna
  * nel gestore di sparsita' (i vettori sono integer = long int, mentre 
@@ -125,9 +120,9 @@ public:
       		ASSERT(*ppiKeys != NULL);
       		ASSERT(iKey > 0);
 #ifdef DEBUG_MEMMANAGER	
-      		ASSERT(SMmm.fIsPointerToBlock((void*)*ppiTable));
-      		ASSERT(SMmm.fIsPointerToBlock((void*)*ppiKeys));
-#endif
+      		ASSERT(defaultMemoryManager.fIsPointerToBlock(*ppiTable));
+      		ASSERT(defaultMemoryManager.fIsPointerToBlock(*ppiKeys));
+#endif /* DEBUG_MEMMANAGER */
       
       		integer iFree = 0;
       		__FC_DECL__(kd01b)(*ppiTable, *ppiKeys, &iKey, &iFree);

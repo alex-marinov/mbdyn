@@ -52,8 +52,8 @@ SparseData::ResetVec(void) {
 	ASSERT(*ppiTable != NULL);
 	ASSERT(*ppiKeys != NULL);
 #ifdef DEBUG_MEMMANAGER
-	ASSERT(SMmm.fIsPointerToBlock((void*)*ppiTable));
-	ASSERT(SMmm.fIsPointerToBlock((void*)*ppiKeys));
+	ASSERT(defaultMemoryManager.fIsPointerToBlock(*ppiTable));
+	ASSERT(defaultMemoryManager.fIsPointerToBlock(*ppiKeys));
 #endif /* DEBUG_MEMMANAGER */
 
 	integer iSize = iCurSize;
@@ -83,9 +83,9 @@ ppiKeys(ppiTmpKeys) {
 	ASSERT(*ppiKeys != NULL);
 	
 #ifdef DEBUG_MEMMANAGER
-	ASSERT(SMmm.fIsPointerToBlock((void*)*ppiTable));
-	ASSERT(SMmm.fIsPointerToBlock((void*)*ppiKeys));
-#endif
+	ASSERT(defaultMemoryManager.fIsPointerToBlock(*ppiTable));
+	ASSERT(defaultMemoryManager.fIsPointerToBlock(*ppiKeys));
+#endif /* DEBUG_MEMMANAGER */
 };
 
 /* Distruttore (banalissimo: non c'e' nulla da distruggere) */
@@ -97,10 +97,6 @@ SparseData::~SparseData(void) {
 
 
 /* SparseMatrixHandler - begin */
-
-#ifdef DEBUG_MEMMANAGER
-clMemMan MHmm("SparseMatrixHandler");
-#endif
 
 SparseMatrixHandler::SparseMatrixHandler(integer iMSize, 
 				         integer** ppiTmpRow,
@@ -118,10 +114,9 @@ ppdMat(ppdTmpMat)
 {
 #ifdef DEBUG
    	IsValid();
-#endif
+#endif /* DEBUG */
 
-   	SAFENEWWITHCONSTRUCTOR(pSD,
-			       SparseData,
+   	SAFENEWWITHCONSTRUCTOR(pSD, SparseData,
 			       SparseData(iCurSize, ppiRow, ppiCol));
 }
 
@@ -130,7 +125,7 @@ SparseMatrixHandler::~SparseMatrixHandler(void)
 {
 #ifdef DEBUG
    	IsValid();
-#endif
+#endif /* DEBUG */
    
    	if (pSD != NULL) {
       		SAFEDELETE(pSD);
@@ -182,11 +177,13 @@ SparseMatrixHandler::IsValid(void) const
    	ASSERT(*ppdMat != NULL);
    
 #ifdef DEBUG_MEMMANAGER
-   	ASSERT(SMmm.fIsValid((void*)*ppiRow, iWorkSpaceSize*sizeof(integer)));
-   	ASSERT(SMmm.fIsValid((void*)*ppiCol, iWorkSpaceSize*sizeof(integer)));
-   	ASSERT(SMmm.fIsValid((void*)*ppdMat, 
-			     iWorkSpaceSize*sizeof(doublereal)));
-#endif
+   	ASSERT(defaultMemoryManager.fIsValid(*ppiRow, 
+				iWorkSpaceSize*sizeof(integer)));
+   	ASSERT(defaultMemoryManager.fIsValid(*ppiCol, 
+				iWorkSpaceSize*sizeof(integer)));
+   	ASSERT(defaultMemoryManager.fIsValid(*ppdMat, 
+				iWorkSpaceSize*sizeof(doublereal)));
+#endif /* DEBUG_MEMMANAGER */
 }
 
 void
@@ -198,7 +195,7 @@ SparseMatrixHandler::Init(const doublereal& dResetVal)
    
    	ASSERT(pSD != NULL);
 #ifdef DEBUG_MEMMANAGER
-   	ASSERT(MHmm.fIsPointerToBlock((void*)pSD));
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pSD));
 #endif /* DEBUG_MEMMANAGER */
    
    	pSD->ResetVec();
@@ -214,7 +211,7 @@ SparseMatrixHandler::iPacVec(void)
 {
 #ifdef DEBUG
 	IsValid();
-#endif  
+#endif  /* DEBUG */
 
 	ASSERT(iCurSize > 0);
 	

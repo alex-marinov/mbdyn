@@ -269,9 +269,9 @@ void FullMatrixHandler::IsValid(void) const
    ASSERT(iRawSize >= iNumRows*iNumCols);
    
 #ifdef DEBUG_MEMMANAGER       
-   ASSERT(SMmm.fIsValid((void*)pdRaw, iRawSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)ppdCols, iNumCols*sizeof(doublereal*)));
-#endif   
+   ASSERT(defaultMemoryManager.fIsValid(pdRaw, iRawSize*sizeof(doublereal)));
+   ASSERT(defaultMemoryManager.fIsValid(ppdCols, iNumCols*sizeof(doublereal*)));
+#endif /* DEBUG_MEMMANAGER */
 }
 
    

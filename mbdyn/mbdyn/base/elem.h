@@ -38,19 +38,17 @@
 #ifndef ELEM_H
 #define ELEM_H
 
-#include "myassert.h"
-#include "except.h"
+#include <myassert.h>
+#include <except.h>
 
-#include "solman.h"
-#include "submat.h"
-#include "output.h"
+#include <solman.h>
+#include <submat.h>
+#include <output.h>
 
-#include "withlab.h"
-#include "dofown.h"
+#include <withlab.h>
+#include <dofown.h>
 
-#include "memmans.h"
-
-#include "node.h"
+#include <node.h>
 
 extern const char* psElemNames[];
 extern const char* psReadControlElems[];

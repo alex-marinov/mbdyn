@@ -37,18 +37,16 @@
 #include <sstream.h>
 
 /* include per il debug */
-#include "myassert.h"
-#include "mynewmem.h"
-#include "except.h"
+#include <myassert.h>
+#include <mynewmem.h>
+#include <except.h>
 
 /* include del programma */
-#include "mathp.h"
-#include "output.h"
-#include "withlab.h"
+#include <mathp.h>
+#include <output.h>
+#include <withlab.h>
 
-#include "memmans.h"
-
-#include "drive.h"
+#include <drive.h>
 
 /* StringDriveCaller - begin */
 

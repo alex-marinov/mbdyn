@@ -62,9 +62,8 @@
 #ifndef AERODYN_H
 #define AERODYN_H
 
-#include "elem.h"
-#include "tpldrive.h"
-#include "memmans.h"
+#include <elem.h>
+#include <tpldrive.h>
 
 extern const char* psAeroNames[];
 

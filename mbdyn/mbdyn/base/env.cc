@@ -40,7 +40,6 @@
 #include <sstream.h>
 
 #include <mathp.h>
-#include <memmans.h>
 
 /* environment */
 extern char **environ;

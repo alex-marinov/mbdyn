@@ -43,7 +43,6 @@
 
 #include <schur.h>
 #include <mynewmem.h>
-#include <memmans.h>
 
 #ifdef USE_MESCHACH
 #include <mschwrap.h>
@@ -57,10 +56,6 @@ extern "C" {
 #endif /* MPI_PROFILING */
 
 /* SchurMultiStepIntegrator - begin */
-
-#ifdef DEBUG_MEMMANAGER
-clMemMan MSmm(SchurMultiStepIntegrator::sClassName());
-#endif /* DEBUG_MEMMANAGER */
 
 /* Parametri locali */
 const integer iDefaultMaxIterations = 1;

@@ -34,6 +34,3 @@
 
 #include <llist.h>
 
-#ifdef DEBUG_MEMMANAGER
-clMemMan MyLList_mm("MyLList");
-#endif

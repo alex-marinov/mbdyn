@@ -40,19 +40,17 @@ extern "C" {
 }
 
 /* include per il debug */
-#include "myassert.h"
-#include "mynewmem.h"
+#include <myassert.h>
+#include <mynewmem.h>
 
 
 /* include del programma */
-#include "mathp.h"
-#include "output.h"
-#include "solman.h"
-#include "withlab.h"
-#include "llist.h"
-#include "myf2c.h"
-
-#include "memmans.h"
+#include <mathp.h>
+#include <output.h>
+#include <solman.h>
+#include <withlab.h>
+#include <llist.h>
+#include <myf2c.h>
 
 
 /* Tipi di Drive */

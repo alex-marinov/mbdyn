@@ -61,10 +61,6 @@ const char sDMClassName[] = "DataManager";
 /* linka i singoli DriveCaller al DriveHandler posseduto dal DataManager */
 extern void SetDrvHdl(DriveHandler*);
 
-#ifdef DEBUG_MEMMANAGER
-clMemMan DMmm("DataManager");
-#endif
-
 const flag fDefaultInitialJointAssemblyToBeMade = flag(0);
 const flag fDefaultSkipInitialJointAssembly = flag(0);
 const doublereal dDefaultInitialStiffness = 1.;
@@ -468,7 +464,7 @@ DofIter()
    if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
       for (int iCnt = 0; iCnt < iTotDofs; iCnt++) {
 	 cout << "Dof " << setw(4) << iCnt+1 << ": order "
-	   << (pDofs+iCnt)->Order << endl;
+	   << pDofs[iCnt].Order << endl;
       }
    }
 #endif /* DEBUG */

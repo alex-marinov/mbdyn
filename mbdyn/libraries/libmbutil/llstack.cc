@@ -34,7 +34,3 @@
 
 #include <llstack.h>
 
-#ifdef DEBUG_MEMMANAGER
-clMemMan LLStack_mm("LLStack");
-#endif
-

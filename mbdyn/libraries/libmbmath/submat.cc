@@ -87,9 +87,9 @@ void FullSubMatrixHandler::IsValid(void) const
    ASSERT(pdMat != NULL);
    
 #ifdef DEBUG_MEMMANAGER       
-   ASSERT(SMmm.fIsValid((void*)piRow, iVecSize*sizeof(integer)));
-   ASSERT(SMmm.fIsValid((void*)pdMat, iMatSize*sizeof(doublereal)));
-#endif
+   ASSERT(defaultMemoryManager.fIsValid(piRow, iVecSize*sizeof(integer)));
+   ASSERT(defaultMemoryManager.fIsValid(pdMat, iMatSize*sizeof(doublereal)));
+#endif /* DEBUG_MEMMANAGER */
 }
 
 
@@ -467,9 +467,9 @@ void SparseSubMatrixHandler::IsValid(void) const
    ASSERT(pdMat != NULL);
    
 #ifdef DEBUG_MEMMANAGER       
-   ASSERT(SMmm.fIsValid((void*)piRow, iIntSize*sizeof(integer)));
-   ASSERT(SMmm.fIsValid((void*)pdMat, iDoubleSize*sizeof(doublereal)));
-#endif
+   ASSERT(defaultMemoryManager.fIsValid(piRow, iIntSize*sizeof(integer)));
+   ASSERT(defaultMemoryManager.fIsValid(pdMat, iDoubleSize*sizeof(doublereal)));
+#endif /* DEBUG_MEMMANAGER */
 }
 
 
@@ -814,8 +814,9 @@ void MySubVectorHandler::IsValid(void) const
    ASSERT(piRowm1+1 == piRow);	
    
 #ifdef DEBUG_MEMMANAGER  
-   ASSERT(SMmm.fIsValid((void*)piRow, VectorHandler::iMaxSize*sizeof(integer)));
-#endif
+   ASSERT(defaultMemoryManager.fIsValid(piRow, 
+			   MyVectorHandler::iMaxSize*sizeof(integer)));
+#endif /* DEBUG_MEMMANAGER */
 }
 
 VectorHandler& MySubVectorHandler::AddTo(VectorHandler& VH) const {

@@ -39,7 +39,6 @@
 #include <dataman_.h>
 
 #include <gravity.h>
-#include <memmans.h>
 #include <harwrap.h>
 #include <mschwrap.h>
 #include <y12wrap.h>
@@ -405,11 +404,8 @@ void DataManager::InitialJointAssembly(void)
 #ifdef DEBUG_MEMMANAGER
    DEBUGLCOUT(MYDEBUG_MEM|MYDEBUG_ASSEMBLY, 
 	      "After initialisation in InitialJointAssembly" << endl
-	      << SMmm << endl
-	      // << MHmm << endl
-	      << LUmm << endl
-	      << DMmm << endl);
-#endif   
+	      << defaultMemoryManager << endl);
+#endif /* DEBUG_MEMMANAGER */
    
    MyVectorHandler X(iInitialNumDofs, pdX);
    X.Reset(0.);

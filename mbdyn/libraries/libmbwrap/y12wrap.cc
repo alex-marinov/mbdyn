@@ -72,10 +72,14 @@ iFirstSol(-1)
 	ASSERT(iN > 0);
 	
 #ifdef DEBUG_MEMMANAGER
-	ASSERT(SMmm.fIsValid((void*)*ppiRow, iMatSize*sizeof(integer)));
-	ASSERT(SMmm.fIsValid((void*)*ppiCol, iMatSize*sizeof(integer)));
-	ASSERT(SMmm.fIsValid((void*)*ppdMat, iMatSize*sizeof(doublereal)));
-	ASSERT(SMmm.fIsValid((void*)pdRhs, iN*sizeof(doublereal)));
+	ASSERT(defaultMemoryManager.fIsValid(*ppiRow, 
+				iMatSize*sizeof(integer)));
+	ASSERT(defaultMemoryManager.fIsValid(*ppiCol, 
+				iMatSize*sizeof(integer)));
+	ASSERT(defaultMemoryManager.fIsValid(*ppdMat, 
+				iMatSize*sizeof(doublereal)));
+	ASSERT(defaultMemoryManager.fIsValid(pdRhs, 
+				iN*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
 
 	SAFENEWARR(piHA, integer, 11*iN);
@@ -128,19 +132,23 @@ Y12LUSolver::IsValid(void) const
 	ASSERT(iN > 0); 
 	
 #ifdef DEBUG_MEMMANAGER
-	ASSERT(SMmm.fIsValid((void*)*ppiRow, iMatSize*sizeof(integer)));
-	ASSERT(SMmm.fIsValid((void*)*ppiCol, iMatSize*sizeof(integer)));
-	ASSERT(SMmm.fIsValid((void*)*ppdMat, iMatSize*sizeof(doublereal)));
+	ASSERT(defaultMemoryManager.fIsValid(*ppiRow, 
+				iMatSize*sizeof(integer)));
+	ASSERT(defaultMemoryManager.fIsValid(*ppiCol, 
+				iMatSize*sizeof(integer)));
+	ASSERT(defaultMemoryManager.fIsValid(*ppdMat, 
+				iMatSize*sizeof(doublereal)));
 	
-	ASSERT(SMmm.fIsValid((void*)pdRhs, iN*sizeof(doublereal)));
+	ASSERT(defaultMemoryManager.fIsValid(pdRhs, 
+				iN*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
 
 	ASSERT(piHA != NULL);
 	ASSERT(pdPIVOT != NULL);
 	
 #ifdef DEBUG_MEMMANAGER
-	ASSERT(LUmm.fIsBlock((void*)piHA, 11*iN*sizeof(integer)));
-	ASSERT(LUmm.fIsBlock((void*)pdPIVOT, 1*iN*sizeof(doublereal)));
+	ASSERT(defaultMemoryManager.fIsBlock(piHA, 11*iN*sizeof(integer)));
+	ASSERT(defaultMemoryManager.fIsBlock(pdPIVOT, 1*iN*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
 }
 
@@ -590,12 +598,12 @@ Y12SparseLUSolutionManager::IsValid(void) const
    	ASSERT(piCol != NULL);
    
 #ifdef DEBUG_MEMMANAGER
-   	ASSERT(SMmm.fIsPointerToBlock((void*)piRow));
-   	ASSERT(SMmm.fIsPointerToBlock((void*)piCol));
-   	ASSERT(SMmm.fIsPointerToBlock((void*)pdMat));
-   	ASSERT(SMmm.fIsPointerToBlock((void*)pMH));
-   	ASSERT(SMmm.fIsPointerToBlock((void*)pVH));
-   	ASSERT(SMmm.fIsPointerToBlock((void*)pLU));
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(piRow));
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(piCol));
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pdMat));
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pMH));
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pVH));
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pLU));
 #endif /* DEBUG_MEMMANAGER */
    
    	ASSERT((pMH->IsValid(), 1));

@@ -35,13 +35,12 @@
 #define NODE_H
 
 
-#include "myassert.h"
+#include <myassert.h>
 
 /* include del programma */
-#include "memmans.h"
-#include "output.h"
-#include "withlab.h"
-#include "dofown.h"
+#include <output.h>
+#include <withlab.h>
+#include <dofown.h>
 
 /** 
  Array dei nomi dei nodi. 

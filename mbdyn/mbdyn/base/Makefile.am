@@ -51,7 +51,6 @@ loadable.h \
 mangled.h \
 mbpar.cc \
 mbpar.h \
-memmans.h \
 multistp.cc \
 multistp.h \
 mysleep.c \

@@ -147,6 +147,7 @@ OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], au
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
+OL_ARG_WITH(debug_mode,[  --with-debug-mode       with debug mode],none,[none memory])
 OL_ARG_WITH(tcl,[  --with-tcl              with tcl interpreters],auto,[auto yes no])
 OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}]  with f2c library],auto,[auto yes no g2c])
 OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
@@ -296,8 +297,10 @@ if test "$ol_enable_debug_mpi" != no ; then
 fi
 if test "$ol_enable_debug" != no -o "$ol_enable_debug_mpi" != no ; then
 	AC_DEFINE(DEBUG,1,[define this to add debugging code])
+	if test "$ol_with_debug_mode" = memory ; then
+		AC_DEFINE(DEBUG_MEMMANAGER,1,[define this to add memory debugging code])
+	fi
 fi
-
 
 dnl ----------------------------------------------------------------
 dnl
