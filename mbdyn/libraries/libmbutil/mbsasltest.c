@@ -68,7 +68,8 @@
 #include <sasl/sasl.h>
 #include "mbsasl.h"
 
-#include "ac/pthread.h"		/* includes POSIX semaphores */
+#include <pthread.h>
+#include <semaphore.h>
 
 static sem_t	sem;
 
