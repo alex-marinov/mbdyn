@@ -90,12 +90,6 @@ SchurDataManager::~SchurDataManager()
 }
 
 void
-SchurDataManager::PrepareOutputFileName(void)
-{
-	NO_OP;
-}
-
-void
 SchurDataManager::AssRes(VectorHandler&, doublereal) throw(ChangedEquationStructure)
 {
 	NO_OP;
