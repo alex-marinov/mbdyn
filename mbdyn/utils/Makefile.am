@@ -20,7 +20,11 @@ sockdrive
 
 LIBS = \
 ../libraries/libmbmath/libmbmath.la \
-../libraries/libmbutil/libmbutil.la
+../libraries/libmbutil/libmbutil.la \
+@HARWELL_LIBS@ \
+@Y12_LIBS@ \
+@MESCHACH_LIBS@ \
+@F2C_LIBS@
 
 autopilot_SOURCES = autopilot.cc
 cl_SOURCES = cl.cc
@@ -38,9 +42,6 @@ rot2phi_SOURCES = rot2phi.cc
 rotrel_SOURCES = rotrel.cc
 sockdrive_SOURCES = sockdrive.cc
 
-LIBS = \
-../libraries/libmbutil/libmbutil.la \
-../libraries/libmbmath/libmbmath.la @F2C_LIBS@
 intg_LDADD = -ldl
 dae_intg_LDADD = -ldl
 

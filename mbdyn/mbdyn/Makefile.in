@@ -71,6 +71,7 @@ CXX = @CXX@
 DLLTOOL = @DLLTOOL@
 F2C_LIBS = @F2C_LIBS@
 F77 = @F77@
+HARWELL_LIBS = @HARWELL_LIBS@
 LAPACK_LIBS = @LAPACK_LIBS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
@@ -85,6 +86,7 @@ PAM_LIBS = @PAM_LIBS@
 RANLIB = @RANLIB@
 TCL_LIBS = @TCL_LIBS@
 VERSION = @VERSION@
+Y12_LIBS = @Y12_LIBS@
 mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
 
@@ -95,7 +97,7 @@ bin_PROGRAMS = mbdyn
 mbdyn_SOURCES =  dummy_c.c dummy_f.f  mbdyn.cc  mbdyn.h
 
 
-mbdyn_LDADD =  	base/libbase.la 	struct/libstruct.la 	aero/libaero.la 	elec/libelec.la 	hydr/libhydr.la 	../libraries/libmbmath/libmbmath.la 	../libraries/libmbutil/libmbutil.la 	../libraries/liby12/liby12.la 	../libraries/libobjs/libobjs.la 	@MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ 	@METIS_LIBS@ @PAM_LIBS@ @TCL_LIBS@ @LIBS@
+mbdyn_LDADD =  	base/libbase.la 	struct/libstruct.la 	aero/libaero.la 	elec/libelec.la 	hydr/libhydr.la 	../libraries/libmbmath/libmbmath.la 	../libraries/libmbutil/libmbutil.la 	@Y12_LIBS@ 	@HARWELL_LIBS@ 	../libraries/libobjs/libobjs.la 	@MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ 	@METIS_LIBS@ @PAM_LIBS@ @TCL_LIBS@ @LIBS@
 
 mbdyn_LDFLAGS = -static
 
@@ -115,7 +117,7 @@ mbdyn_OBJECTS =  dummy_c.o dummy_f.o mbdyn.o
 mbdyn_DEPENDENCIES =  base/libbase.la struct/libstruct.la \
 aero/libaero.la elec/libelec.la hydr/libhydr.la \
 ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la \
-../libraries/liby12/liby12.la ../libraries/libobjs/libobjs.la
+../libraries/libobjs/libobjs.la
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -146,7 +148,7 @@ all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .cc .f .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu ./mbdyn/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu mbdyn/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -313,14 +315,14 @@ maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = ./mbdyn
+subdir = mbdyn
 
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu ./mbdyn/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu mbdyn/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \

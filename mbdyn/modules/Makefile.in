@@ -69,6 +69,7 @@ CXX = @CXX@
 DLLTOOL = @DLLTOOL@
 F2C_LIBS = @F2C_LIBS@
 F77 = @F77@
+HARWELL_LIBS = @HARWELL_LIBS@
 LAPACK_LIBS = @LAPACK_LIBS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
@@ -83,6 +84,7 @@ PAM_LIBS = @PAM_LIBS@
 RANLIB = @RANLIB@
 TCL_LIBS = @TCL_LIBS@
 VERSION = @VERSION@
+Y12_LIBS = @Y12_LIBS@
 mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
 CXXLD = @CXX@
@@ -206,7 +208,8 @@ export LTF77COMPILE = @LIBTOOL@ --mode=compile @F77@ $(AM_FFLAGS) @FFLAGS@ \
 .PHONY: all clean distclean
 
 all:
-	-for i in @MODULES_DIRS@ ; do \
+	-@for i in @MODULES_DIRS@ ; do \
+		echo "playing with $$i ..."; \
 		export MBDYN_MODULE=$$i ; \
 		cp Makefile.module $$i/Makefile ; \
 		cd $$i && $(MAKE) ; \
@@ -215,7 +218,8 @@ all:
 	done
 
 clean:
-	-for i in @MODULES_DIRS@ ; do \
+	-@for i in @MODULES_DIRS@ ; do \
+		echo "cleaning $$i ..."; \
 		export MBDYN_MODULE=$$i ; \
 		cp Makefile.module $$i/Makefile ; \
 		cd $$i && $(MAKE) clean ; \
@@ -224,7 +228,8 @@ clean:
 	done
 
 distclean:
-	-for i in @MODULES_DIRS@ ; do \
+	-@for i in @MODULES_DIRS@ ; do \
+		echo "cleaning $$i ..."; \
 		export MBDYN_MODULE=$$i ; \
 		cp Makefile.module $$i/Makefile ; \
 		cd $$i && $(MAKE) distclean ; \

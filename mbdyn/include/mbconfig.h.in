@@ -158,6 +158,9 @@
 /* define to use Y12 sparse LU library */
 #undef USE_Y12
 
+/* define to use Harwell sparse LU library */
+#undef USE_HARWELL
+
 /* define to use LAPACK libraries */
 #undef USE_LAPACK
 

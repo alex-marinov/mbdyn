@@ -71,6 +71,7 @@ CXX = @CXX@
 DLLTOOL = @DLLTOOL@
 F2C_LIBS = @F2C_LIBS@
 F77 = @F77@
+HARWELL_LIBS = @HARWELL_LIBS@
 LAPACK_LIBS = @LAPACK_LIBS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
@@ -85,6 +86,7 @@ PAM_LIBS = @PAM_LIBS@
 RANLIB = @RANLIB@
 TCL_LIBS = @TCL_LIBS@
 VERSION = @VERSION@
+Y12_LIBS = @Y12_LIBS@
 mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
 

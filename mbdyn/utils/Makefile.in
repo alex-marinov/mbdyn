@@ -71,6 +71,7 @@ CXX = @CXX@
 DLLTOOL = @DLLTOOL@
 F2C_LIBS = @F2C_LIBS@
 F77 = @F77@
+HARWELL_LIBS = @HARWELL_LIBS@
 LAPACK_LIBS = @LAPACK_LIBS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
@@ -85,13 +86,14 @@ PAM_LIBS = @PAM_LIBS@
 RANLIB = @RANLIB@
 TCL_LIBS = @TCL_LIBS@
 VERSION = @VERSION@
+Y12_LIBS = @Y12_LIBS@
 mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
 
 bin_PROGRAMS =  autopilot cl dae-intg deriv env eu2rot femgen intg loadable posrel rot2eu rot2eup rot2phi rotrel sockdrive
 
 
-LIBS =  ../libraries/libmbutil/libmbutil.la ../libraries/libmbmath/libmbmath.la @F2C_LIBS@
+LIBS =  ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la @HARWELL_LIBS@ @Y12_LIBS@ @MESCHACH_LIBS@ @F2C_LIBS@
 
 
 autopilot_SOURCES = autopilot.cc
@@ -109,6 +111,7 @@ rot2eu_SOURCES = rot2eu.cc
 rot2phi_SOURCES = rot2phi.cc
 rotrel_SOURCES = rotrel.cc
 sockdrive_SOURCES = sockdrive.cc
+
 intg_LDADD = -ldl
 dae_intg_LDADD = -ldl
 

@@ -21,7 +21,8 @@ mbdyn_LDADD = \
 	hydr/libhydr.la \
 	../libraries/libmbmath/libmbmath.la \
 	../libraries/libmbutil/libmbutil.la \
-	../libraries/liby12/liby12.la \
+	@Y12_LIBS@ \
+	@HARWELL_LIBS@ \
 	../libraries/libobjs/libobjs.la \
 	@MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ \
 	@METIS_LIBS@ @PAM_LIBS@ @TCL_LIBS@ @LIBS@

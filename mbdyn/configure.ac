@@ -146,13 +146,20 @@ OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], au
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
-OL_ARG_WITH(tcl,[  --with-tcl               with tcl interpreters],auto,[auto yes no])
+echo ""
+echo "all --with-* commands also support:"
+echo "	--with-*-dir=PATH	directory for headers and libraries"
+echo "	--with-*-incdir=PATH	directory for headers"
+echo "	--with-*-libdir=PATH	directory for libraries"
+echo ""
+OL_ARG_WITH(tcl,[  --with-tcl              with tcl interpreters],auto,[auto yes no])
 OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}]  with f2c library],auto,[auto yes no g2c])
 OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support],auto,[auto yes no])
 OL_ARG_WITH(metis,[  --with-metis            with Metis support],auto,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
-OL_ARG_WITH(y12,[  --with-y12         with Y12 math library],auto,[auto yes no])
+OL_ARG_WITH(y12,[  --with-y12              with Y12 math library],auto,[auto yes no])
+OL_ARG_WITH(harwell,[  --with-harwell          with Harwell sparse math library],no,[auto yes no])
 OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
 OL_ARG_WITH(pam,[  --with-pam              with PAM support],auto,[auto yes no])
 
@@ -194,7 +201,9 @@ dnl Initialize vars
 F2C_LIBS=
 MPI_LIBS=
 METIS_LIBS=
+Y12_LIBS=
 MESCHACH_LIBS=
+HARWELL_LIBS=
 LAPACK_LIBS=
 PAM_LIBS=
 TCL_LIBS=
@@ -627,6 +636,19 @@ dnl Check for Meschach
 dnl
 ol_link_meschach=no
 if test $ol_with_meschach != no ; then
+	if test "x:$ol_with_dir_meschach" != "x:" ; then
+		CPPFLAGS="-I$ol_with_dir_meschach $CPPFLAGS"
+		LDFLAGS="-L$ol_with_dir_meschach $LDFLAGS"
+	fi
+
+	if test "x:$ol_with_incdir_meschach" != "x:" ; then
+		CPPFLAGS="-I$ol_with_incdir_meschach $CPPFLAGS"
+	fi
+
+	if test "x:$ol_with_libdir_meschach" != "x:" ; then
+		LDFLAGS="-L$ol_with_libdir_meschach $LDFLAGS"
+	fi
+	
 	AC_CHECK_HEADERS(meschach/sparse2.h)
 
 	if test $ac_cv_header_meschach_sparse2_h = yes ; then
@@ -670,15 +692,37 @@ dnl Check for Y12
 dnl
 ol_link_y12=no
 if test $ol_with_y12 != no ; then
+	ol_link_y12=yes
 	AC_DEFINE(USE_Y12,1,[define to use Y12 sparse LU library])
+	Y12_LIBS="../libraries/liby12/liby12.la"
 fi
 
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Check for Harwell
+dnl
+ol_link_harwell=no
+if test $ol_with_harwell != no ; then
+	ol_link_harwell=yes
+	AC_DEFINE(USE_HARWELL,1,[define to use Harwell sparse LU library])
+	HARWELL_LIBS="../libraries/libharwell/libharwell.la"
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for a solver
+dnl
+if test $ol_link_meschach = no \
+	-a $ol_link_y12 = no \
+	-a $ol_link_harwell = no ; then
+	AC_MSG_ERROR([Need at least one (sparse) solver])
+fi
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for LAPACK
 dnl
-ol_link_lapack=no
 if test $ol_with_lapack != no ; then
 
 	AC_LANG_FORTRAN77
@@ -810,6 +854,8 @@ AC_SUBST(LAPACK_LIBS)
 AC_SUBST(PAM_LIBS)
 AC_SUBST(TCL_LIBS)
 
+AC_SUBST(Y12_LIBS)
+AC_SUBST(HARWELL_LIBS)
 AC_SUBST(MODULES_DIRS)
 
 
@@ -833,6 +879,7 @@ AC_OUTPUT([ \
 	libraries/libmbutil/Makefile:build/top.mk:libraries/libmbutil/Makefile.in:build/bot.mk \
 	libraries/libmbmath/Makefile:build/top.mk:libraries/libmbmath/Makefile.in:build/bot.mk \
 	libraries/liby12/Makefile:build/top.mk:libraries/liby12/Makefile.in:build/bot.mk \
+	libraries/libharwell/Makefile:build/top.mk:libraries/libharwell/Makefile.in:build/bot.mk \
 	libraries/libobjs/Makefile:build/top.mk:libraries/libobjs/Makefile.in:build/bot.mk \
 	mbdyn/Makefile:build/top.mk:mbdyn/Makefile.in:build/bot.mk \
 	mbdyn/base/Makefile:build/top.mk:mbdyn/base/Makefile.in:build/bot.mk \

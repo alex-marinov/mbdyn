@@ -18,7 +18,8 @@ export LTF77COMPILE = @LIBTOOL@ --mode=compile @F77@ $(AM_FFLAGS) @FFLAGS@ \
 .PHONY: all clean distclean
 
 all:
-	-for i in @MODULES_DIRS@ ; do \
+	-@for i in @MODULES_DIRS@ ; do \
+		echo "playing with $$i ..."; \
 		export MBDYN_MODULE=$$i ; \
 		cp Makefile.module $$i/Makefile ; \
 		cd $$i && $(MAKE) ; \
@@ -27,7 +28,8 @@ all:
 	done
 
 clean:
-	-for i in @MODULES_DIRS@ ; do \
+	-@for i in @MODULES_DIRS@ ; do \
+		echo "cleaning $$i ..."; \
 		export MBDYN_MODULE=$$i ; \
 		cp Makefile.module $$i/Makefile ; \
 		cd $$i && $(MAKE) clean ; \
@@ -36,7 +38,8 @@ clean:
 	done
 
 distclean:
-	-for i in @MODULES_DIRS@ ; do \
+	-@for i in @MODULES_DIRS@ ; do \
+		echo "cleaning $$i ..."; \
 		export MBDYN_MODULE=$$i ; \
 		cp Makefile.module $$i/Makefile ; \
 		cd $$i && $(MAKE) distclean ; \
