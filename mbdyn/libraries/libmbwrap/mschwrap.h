@@ -33,6 +33,8 @@
 
 #ifdef USE_MESCHACH
 
+#include <ac/iostream>
+
 #include <solman.h>
 #include <submat.h>
 
@@ -268,8 +270,8 @@ MeschachSparseMatrixHandler::pGetMAT(void) const
    	return mat;
 }
 
-extern ostream&
-operator << (ostream& out, const MeschachSparseMatrixHandler& MH);
+extern std::ostream&
+operator << (std::ostream& out, const MeschachSparseMatrixHandler& MH);
 
 
 

@@ -34,21 +34,24 @@
 
 #ifdef USE_HARWELL
 
+#include <ac/iostream>
+
 #include <myassert.h>
 #include <harwout.h>
 
 int
 harwell_error(int, const char* const v[])
 {
-   while (v[0] != NULL) {
-      if (*v[0] == '\n') {
-	 cerr << endl;
-      } else {
-	 cerr << v[0];
-      }
-      v++;
-   }
-   return 0;
+	while (v[0] != NULL) {
+		if (*v[0] == '\n') {
+			std::cerr << std::endl;
+		} else {
+			std::cerr << v[0];
+
+		}
+		v++;
+	}
+	return 0;
 }
 
 #endif /* USE_HARWELL */

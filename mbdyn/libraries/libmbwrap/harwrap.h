@@ -275,27 +275,27 @@ protected:
       		integer iLirn = iMatSize;
       		integer iFlag = 0;
       
-      		DEBUGCOUT("Calling ma28ad_()," << endl
-			<< "iN         = " << iN << endl
-			<< "iNonZeroes = " << iNonZeroes << endl
-			<< "pdMat      = " << *ppdMat << endl
-			<< "iLicn      = " << iLicn << endl
-			<< "piRow      = " << *ppiRow << endl
-			<< "iLirn      = " << iLirn << endl
-			<< "piCol      = " << *ppiCol << endl
-			<< "dU         = " << dU << endl
-			<< "piKeep     = " << piKeep << endl
-			<< "piW        = " << piW << endl
-			<< "iFlag      = " << iFlag << endl);
+      		DEBUGCOUT("Calling ma28ad_()," << std::endl
+			<< "iN         = " << iN << std::endl
+			<< "iNonZeroes = " << iNonZeroes << std::endl
+			<< "pdMat      = " << *ppdMat << std::endl
+			<< "iLicn      = " << iLicn << std::endl
+			<< "piRow      = " << *ppiRow << std::endl
+			<< "iLirn      = " << iLirn << std::endl
+			<< "piCol      = " << *ppiCol << std::endl
+			<< "dU         = " << dU << std::endl
+			<< "piKeep     = " << piKeep << std::endl
+			<< "piW        = " << piW << std::endl
+			<< "iFlag      = " << iFlag << std::endl);
       
       		__FC_DECL__(ma28ad)(&iN, &iNonZeroes, *ppdMat, &iLicn, *ppiRow,
 				    &iLirn, *ppiCol, &dU, piKeep, piW, pdW,
 				    &iFlag);
       
       		if (iFlag < 0) { 
-	 		cerr << sLUClassName 
+	 		std::cerr << sLUClassName 
 	   			<< ": error during factorization, code "
-				<< iFlag << endl;	 
+				<< iFlag << std::endl;	 
 	 		THROW(HarwellLUSolver::ErrFactorisation(iFlag));
       		}
       

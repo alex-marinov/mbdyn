@@ -46,7 +46,7 @@ pdVecm1(NULL)
    	if (iSize > 0) {
       		pv = v_get(iSize);
       		if (pv == VNULL) {
-	 		cerr << "out of memory?" << endl;
+	 		std::cerr << "out of memory?" << std::endl;
 	 		THROW(ErrMemory());
       		}
 		pdVecm1 = pv->ve - 1;
@@ -86,7 +86,7 @@ MeschachVectorHandler::Resize(integer iNewSize)
 	/* Note: MeschachVectorHandler owns its workspace memory */
    	VEC* p = v_resize(pv, iNewSize);
    	if (p == VNULL) {
-      		cerr << "out of memory?" << endl;
+      		std::cerr << "out of memory?" << std::endl;
       		THROW(ErrMemory());
    	}
    	pv = p;
@@ -182,7 +182,7 @@ MeschachSparseLUSolutionManager::Create(unsigned int iSize,
    	if (pivot == PNULL || pivot->size < iSize) {
       		PERM* p = px_resize(pivot, iSize);
       		if (p == PNULL) {
-	 		cerr << "out of memory?" << endl;
+	 		std::cerr << "out of memory?" << std::endl;
 	 		THROW(ErrMemory());
       		}
       		pivot = p;
@@ -320,15 +320,15 @@ MeschachSparseLUSolutionManager::pSolHdl(void) const
    	return prhs;
 }
 
-ostream&
-operator << (ostream& out, const MeschachSparseMatrixHandler& MH)
+std::ostream&
+operator << (std::ostream& out, const MeschachSparseMatrixHandler& MH)
 {
    	SPMAT* p = MH.pGetMAT();
    	for (int i = 0; i < p->m; i++) {
       		for (int j = 0; j < p->n; j++) {
-	 		cout << setw(16) << sp_get_val(p, i, j);
+	 		std::cout << std::setw(16) << sp_get_val(p, i, j);
       		}
-      		cout << endl;
+      		std::cout << std::endl;
    	}
    
    	return out;
