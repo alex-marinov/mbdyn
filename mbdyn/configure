@@ -3248,7 +3248,7 @@ cross_compiling=$ac_cv_prog_cxx_cross
 
 int main() {
 			int argc = 0;
-			char **argv = NULL;
+			char **argv = (void *)0;
 			MPI::Init(argc, argv);
 			mat = sp_get(10, 20, 10);
 		
