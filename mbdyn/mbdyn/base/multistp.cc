@@ -3504,11 +3504,25 @@ MultiStepIntegrator::Eig(void)
 #ifdef __HACK_NASTRAN_MODES__
    /* EXPERIMENTAL */
    std::ofstream f06, pch;
+   char datebuf[] = "11/14/95"; /* as in the example I used :) */
+
+#if defined(HAVE_STRFTIME) && defined(HAVE_LOCALTIME) && defined(HAVE_TIME)
+   struct tm *currtm = localtime(time(NULL));
+   if (currtm) {
+#warning "Your compiler might complain about %y"
+#warning "yielding only the last two digits of"
+#warning "the year; don't worry, it is intended :)"
+   	strftime(datebuf, sizeof(datebuf)-1, "%m/%d/%y", currtm);
+   }
+#endif /* HAVE_STRFTIME && HAVE_LOCALTIME && HAVE_TIME */
+   
    if (fOutputModes) {
 	   /* crea il file .pch */
 	   pch.open("mbdyn.bdf");
 	   pch.setf(std::ios::showpoint);
-	   pch << "$.......2.......3.......4.......5.......6.......7.......8.......9.......0......." << std::endl;
+	   pch 
+		   << "BEGIN BULK" << std::endl
+		   << "$.......2.......3.......4.......5.......6.......7.......8.......9.......0......." << std::endl;
 	   pch << "MAT1           1    1.E0    1.E0            1.E0" << std::endl;
 	   pDM->Output_pch(pch);
 	   
@@ -3519,16 +3533,17 @@ MultiStepIntegrator::Eig(void)
    }
 #endif /* __HACK_NASTRAN_MODES__ */
 
-   for (int iCnt = 1; iCnt <= iSize; iCnt++) {
+   int iPage;
+   for (iPage = 1; iPage <= iSize; iPage++) {
 
 #ifdef __HACK_NASTRAN_MODES__
       /* EXPERIMENTAL */
       flag doPlot = 0;
       if (fOutputModes) {
 
-         doublereal b = Beta.dGetCoef(iCnt);
-	 doublereal re = AlphaR.dGetCoef(iCnt);
-	 doublereal im = AlphaI.dGetCoef(iCnt);
+         doublereal b = Beta.dGetCoef(iPage);
+	 doublereal re = AlphaR.dGetCoef(iPage);
+	 doublereal im = AlphaI.dGetCoef(iPage);
 	 doublereal sigma;
 	 doublereal omega;
 	 doublereal csi;
@@ -3540,8 +3555,8 @@ MultiStepIntegrator::Eig(void)
 	    doPlot = 1;
 	      
 	    f06 
-	      << "                                                                                                 CSA/NASTRAN 11/14/95    PAGE   " 
-	      << std::setw(4) << iCnt << std::endl
+	      << "                                                                                                 CSA/NASTRAN " << datebuf << "    PAGE   " 
+	      << std::setw(4) << iPage << std::endl
 	      << "MBDyn modal analysis" << std::endl
 	      << std::endl
 	      << "    LABEL=DISPLACEMENTS, ";
@@ -3555,7 +3570,7 @@ MultiStepIntegrator::Eig(void)
 	    f06 << std::setw(l+1) << comment;
 	    f06 << sigma << " " << (omega < 0. ? "-" : "+") << " " << fabs(omega) << " j (" << csi << ", "<< freq << std::setw(80-1-l) << ")";
 	    f06.flags(iosfl);
-	    f06 << "   SUBCASE " << iCnt << std::endl
+	    f06 << "   SUBCASE " << iPage << std::endl
 	      << std::endl
 	      << "                                            D I S P L A C E M E N T  V E C T O R" << std::endl
 	      << std::endl
@@ -3564,20 +3579,20 @@ MultiStepIntegrator::Eig(void)
       }
 #endif /* __HACK_NASTRAN_MODES__ */
       
-      doublereal cmplx = AlphaI.dGetCoef(iCnt);
+      doublereal cmplx = AlphaI.dGetCoef(iPage);
       if (cmplx == 0.) {
-         Out << "Mode " << iCnt << ":" << std::endl;
+         Out << "Mode " << iPage << ":" << std::endl;
          for (int jCnt = 1; jCnt <= iSize; jCnt++) {
             Out << std::setw(12) << jCnt << ": "
-	      << std::setw(12) << MatR.dGetCoef(jCnt, iCnt) << std::endl;
+	      << std::setw(12) << MatR.dGetCoef(jCnt, iPage) << std::endl;
 	 }
 	 
 	 if (fOutputModes) {
 	    /*
 	     * per ora sono uguali; in realta' XP e' X * lambda
 	     */
-	    MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*(iCnt-1));
-	    MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*(iCnt-1));
+	    MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*(iPage-1));
+	    MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*(iPage-1));
 	    pDM->Output(X, XP);
 	    
 #ifdef __HACK_NASTRAN_MODES__
@@ -3589,11 +3604,11 @@ MultiStepIntegrator::Eig(void)
 	 }
       } else {
 	 if (cmplx > 0.) {
-            Out << "Modes " << iCnt << ", " << iCnt+1 << ":" << std::endl;
+            Out << "Modes " << iPage << ", " << iPage+1 << ":" << std::endl;
 	    for (int jCnt = 1; jCnt <= iSize; jCnt++) {
-	       doublereal im = MatR.dGetCoef(jCnt, iCnt+1);
+	       doublereal im = MatR.dGetCoef(jCnt, iPage+1);
 	       Out << std::setw(12) << jCnt << ": "
-	         << std::setw(12) << MatR.dGetCoef(jCnt, iCnt) 
+	         << std::setw(12) << MatR.dGetCoef(jCnt, iPage) 
 	         << ( im >= 0. ? " + " : " - " ) 
 	         << std::setw(12) << fabs(im) << " * j " << std::endl;
             }
@@ -3603,7 +3618,7 @@ MultiStepIntegrator::Eig(void)
             /*
 	     * uso la parte immaginaria ...
 	     */
-	    int i = iCnt - (cmplx > 0. ? 0 : 1);
+	    int i = iPage - (cmplx > 0. ? 0 : 1);
 	    MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*i);
 	    MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*i);
 	    pDM->Output(X, XP);
@@ -3619,8 +3634,15 @@ MultiStepIntegrator::Eig(void)
    }
 
 #ifdef __HACK_NASTRAN_MODES__
-   pch.close();
-   f06.close();
+   if (fOutputModes) {
+      pch 
+	      << "ENDDATA" << std::endl;
+      f06 
+	      << "                                                                                                 CSA/NASTRAN " << datebuf << "    PAGE   " 
+	      << std::setw(4) << iPage << std::endl;
+      pch.close();
+      f06.close();
+   }
 #endif /* __HACK_NASTRAN_MODES__ */      
 
    /* Non puo' arrivare qui se le due aree di lavoro non sono definite */

@@ -997,10 +997,13 @@ AC_CHECK_FUNCS([ \
 	getcwd \
 	getopt \
 	getopt_long \
+	localtime \
 	memset \
 	signal \
+	strftime \
 	strtod \
 	strtol \
+	time \
 ])
 
 
