@@ -15,7 +15,7 @@ MBDyn 1.2-Engineering
 		- added inertia properties computation of element blocks
 		- output can occur only at selected time steps
 		- disable plaintext auth if crypt is not available
-		  (this code should be trimmed off, it's useless
+		  (this code should be trimmed off, it's useless ;)
 		- RelativeFrame dummy struct nodes can have offset
 		  and orientation with respect to the reference node
 		- added ".log" file for miscellaneous logs
@@ -26,7 +26,7 @@ MBDyn 1.2-Engineering
 		- clamp joint reactions also output in node reference frame
 		- added internal forces and couples (i.e. between two nodes)
 		- added electric motor (uses electric nodes)
-		- allow output of residual and jacobian for debugging purposes
+		- allow residual/jacobian output for model debug purposes
 		- use a drive for the delay parameter of rotors
 		- allow extra amplitude scaling in file drives
 		- allow previous-step dof plugin
@@ -34,6 +34,8 @@ MBDyn 1.2-Engineering
 		- added sample'n'hold parameter
 		- non-wrapping angles in plane hinge joints priv data
 		- modal element active mode listing
+		- added revolute/universal rotation joints, e.g.
+		  revolute/universal joints with no position constraint
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
