@@ -7,6 +7,7 @@ schemes.
 modules must provide a minimal set of methods to perform:
 
 read()		data entry
+help()		provide a description (activated via -H switch)
 init()		data and state arryas initialization
 size()		size of state arryas
 grad()		computation of jacobian matrices f_{/\dot{x}} and f_{/x}
@@ -31,7 +32,7 @@ moddae-prig3.cc
 moddae-pdef.cc
 	deformable pendulum, explicit ODE rewritten as implicit
 
-massdae.cc
+moddae-mass.cc
 	linear dae system: two masses and two springs; a constraint
 		impose coincidence positions
 
