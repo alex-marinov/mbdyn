@@ -51,6 +51,7 @@ extern "C" {
 class MeschachVectorHandler : public VectorHandler {
 protected:
 	VEC* pv;
+	double* pdVecm1;
    
 public:
 	MeschachVectorHandler(int iSize = 0);   
@@ -107,7 +108,7 @@ MeschachVectorHandler::fPutCoef(integer iRow, const doublereal& dCoef)
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
-   	pv->ve[--iRow] = dCoef;
+   	pdVecm1[iRow] = dCoef;
    	return flag(1);
 }
 
@@ -117,7 +118,7 @@ MeschachVectorHandler::fIncCoef(integer iRow, const doublereal& dCoef)
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
-   	pv->ve[--iRow] += dCoef;
+   	pdVecm1[iRow] += dCoef;
    	return flag(1);
 }
 
@@ -127,7 +128,7 @@ MeschachVectorHandler::fDecCoef(integer iRow, const doublereal& dCoef)
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
-   	pv->ve[--iRow] -= dCoef;
+   	pdVecm1[iRow] -= dCoef;
    	return flag(1);
 }
 
@@ -137,7 +138,7 @@ MeschachVectorHandler::dGetCoef(integer iRow) const
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
-   	return pv->ve[--iRow];
+   	return pdVecm1[iRow];
 }
 
 /* MeschachVectorHandler - end */

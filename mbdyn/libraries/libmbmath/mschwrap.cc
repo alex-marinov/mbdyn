@@ -39,7 +39,8 @@
 /* MeschachVectorHandler - begin */
 
 MeschachVectorHandler::MeschachVectorHandler(int iSize)
-: pv(VNULL)
+: pv(VNULL),
+pdVecm1(NULL)
 {
 	/* Note: MeschachVectorHandler owns its workspace memory */
    	if (iSize > 0) {
@@ -48,6 +49,7 @@ MeschachVectorHandler::MeschachVectorHandler(int iSize)
 	 		cerr << "out of memory?" << endl;
 	 		THROW(ErrMemory());
       		}
+		pdVecm1 = pv->ve - 1;
    	}
 }
 
@@ -69,6 +71,9 @@ MeschachVectorHandler::IsValid(void) const
    	ASSERT(pv->max_dim > 0);
    	ASSERT(pv->dim > 0);
    	ASSERT(pv->max_dim >= pv->dim);
+	ASSERT(pv->ve != NULL);
+	ASSERT(pdVecm1 != NULL);
+	ASSERT(pdVecm1 == pv->ve - 1);
 }
 
 void
@@ -85,6 +90,7 @@ MeschachVectorHandler::Resize(integer iNewSize)
       		THROW(ErrMemory());
    	}
    	pv = p;
+	pdVecm1 = pv->ve - 1;
 }
 
 void
