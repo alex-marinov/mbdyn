@@ -928,6 +928,8 @@ start_parsing:
       static char s[256];
       int f = 0;
       int i = 0;
+
+      /* FIXME: need to check for overflow */
       
       s[i++] = c;
       
@@ -937,14 +939,21 @@ start_parsing:
       while ((c = in->get()) == '.' || isdigit(c)) {
 	 s[i++] = c;
 	 if (c == '.') {
+	    if (f != 0) {
+	       return (currtoken = UNKNOWNTOKEN);
+	    }
 	    f = 1;
 	 }
       }
       char e = tolower(c);
       if (e == 'e' || e == 'f' || e == 'd' || e == 'g') {
 	 f = 1;
-	 s[i++] = c;
-	 if ((c = in->get()) == '-' || c == '+' || isdigit(c)) {
+	 s[i++] = 'e';
+	 if ((c = in->get()) == '-' || c == '+') {
+	    s[i++] = c;
+	    c = in->get();
+	 }
+	 if (isdigit(c)) {
 	    s[i++] = c;
 	 } else {
 	    return (currtoken = UNKNOWNTOKEN);
@@ -955,12 +964,17 @@ start_parsing:
       }
       s[i] = '\0';
       in->putback(c);
-      if (f == 0) {       
+      char *endptr = NULL;
+      if (f == 0) {
 	 value.SetType(TypedValue::VAR_INT);
-	 value.Set(Int(atoi(s)));
+	 value.Set(Int(strtol(s, &endptr, 10)));
       } else {      
 	 value.SetType(TypedValue::VAR_REAL);
-	 value.Set(Real(atof(s)));
+	 value.Set(Real(strtod(s, &endptr)));
+      }
+
+      if (endptr && endptr[0] != '\0') {
+	 return (currtoken = UNKNOWNTOKEN);
       }
       
       return (currtoken = NUM);
