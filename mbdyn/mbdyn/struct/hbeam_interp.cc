@@ -61,12 +61,12 @@
 // 
 // Output:
 // pos		posizione del punto interpolato
-// or		orinetazione del punto interpolato
+// orient		orientazione del punto interpolato
 // or_delta_w_or	or_delta in funzione di or_delta nodali
 // delta_pos_w_or	delta_pos in funzione di or_delta nodali
 // delta_pos_w_pos	delta_pos in funzione di delta_pos nodali
 // F		derivata della posizione rispetto all'ascissa curvilinea
-// om		assiale di d(or)/d(s)*or.Transpose()
+// om		assiale di d(orient)/d(s)*or.Transpose()
 // delta_om_ws_or	delta_om in funzione di or_delta nodali
 // delta_F_ws_or	delta_F in funzione di or_delta nodali
 // delta_F_ws_pos	delta_F in funzione di delta_pos nodali
@@ -90,7 +90,7 @@ void ComputeInterpolation(const Vec3 *const node_pos,
 			const doublereal *const w,
 			const doublereal *const wder,
 			Vec3 &pos,
-			Mat3x3 &or,
+			Mat3x3 &orient,
 			Mat3x3 *const or_delta_w_or,
 			Mat3x3 *const delta_pos_w_or,
 			Mat3x3 *const delta_pos_w_pos,
@@ -108,8 +108,8 @@ void ComputeInterpolation(const Vec3 *const node_pos,
 	MatExp E12, Theta12;
 	RoTrManip::RoTrAndDRoTr(we2,E12,Theta12);
 	MatExp E(E12*n1);
-	or = E.GetVec();
-	pos = (E.GetMom()*(or.Transpose())).Ax();
+	orient = E.GetVec();
+	pos = (E.GetMom()*(orient.Transpose())).Ax();
 	
 	
 	MatExp Theta2I(RoTrManip::DRoTr_I(e2));

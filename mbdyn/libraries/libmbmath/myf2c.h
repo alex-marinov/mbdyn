@@ -50,15 +50,18 @@ extern "C" {
 typedef int integer;
 typedef float real;
 typedef double doublereal;
-typedef int flag;
-typedef int logical;
 #else /* !__alpha */
 typedef long int integer;
 typedef float real;
 typedef double doublereal;
-typedef long int flag;
-typedef long int logical;
 #endif /* !__alpha */
+
+typedef integer logical;
+typedef integer flag;
+typedef integer ftnlen;
+typedef integer ftnint;
+#warning "Controllare"
+typedef char *address;
 
 #endif /* !HAVE_F2C_H */
    
@@ -69,6 +72,16 @@ typedef long int logical;
 #endif /* USE_UNDERSCORE */
 
 extern int finite(double);
+
+
+/*
+ * ??? non so se e' __FC_DECL__ o solo FALSE_
+ * In g2c.h e' cosi':
+ */
+#warning "Controllare"
+#define FALSE_ (0)
+#define TRUE_ (1)
+
 
 #ifdef __cplusplus
 }

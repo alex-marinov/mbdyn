@@ -57,7 +57,7 @@
 // 
 // Output:
 // pos		posizione del punto interpolato
-// or		orinetazione del punto interpolato
+// orient		orientazione del punto interpolato
 // or_delta_w_or	or_delta in funzione di or_delta nodali
 // delta_pos_w_or	delta_pos in funzione di or_delta nodali
 // delta_pos_w_pos	delta_pos in funzione di delta_pos nodali
@@ -80,7 +80,7 @@ void ComputeInterpolation(const Vec3 *const node_pos,
 			const doublereal *const w,
 			const doublereal *const wder,
 			Vec3 &pos,
-			Mat3x3 &or,
+			Mat3x3 &orient,
 			Mat3x3 *const or_delta_w_or,
 			Mat3x3 *const delta_pos_w_or,
 			Mat3x3 *const delta_pos_w_pos,

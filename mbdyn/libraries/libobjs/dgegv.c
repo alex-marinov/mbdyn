@@ -59,7 +59,7 @@
 
 #ifndef HAVE_DGEGV
 
-#include "f2c.h"
+#include <myf2c.h>
 
 /* Subroutine */ int dgegv_(char *jobvl, char *jobvr, integer *n, doublereal *
 	a, integer *lda, doublereal *b, integer *ldb, doublereal *alphar, 
