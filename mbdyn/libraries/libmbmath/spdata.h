@@ -38,12 +38,14 @@ extern "C" {
 #include <ac/f2c.h>
 
 
-extern int __FC_DECL__(kd01a)(integer *maxkey, integer *itable, integer *key);
-extern int __FC_DECL__(kd01b)(integer *itable, integer *key, integer *field, 
-			      integer *ifree);
-extern int __FC_DECL__(kd01c)(integer *itable, integer *key, integer *field, 
-			      integer *ifree);
+extern int __FC_DECL__(kd01a)(integer *iv, integer *maxkey, 
+		integer *itable, integer *key);
+extern int __FC_DECL__(kd01b)(integer *iv, integer *itable, 
+		integer *key, integer *field, integer *ifree);
+extern int __FC_DECL__(kd01c)(integer *iv, integer *itable, 
+		integer *key, integer *field, integer *ifree);
 extern logical __FC_DECL__(kd01h)(integer *iprime);
+
 /* comlen kd01cm_ 12 */
 extern struct ext_kd01cm_ {
     integer length, iprime, iempty;

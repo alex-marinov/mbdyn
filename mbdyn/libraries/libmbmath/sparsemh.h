@@ -81,6 +81,8 @@ protected:
    	integer iNumItem;   	/* Numero di entries correnti */
    	integer** ppiTable; 	/* Vettore della linked list */
    	integer** ppiKeys;  	/* Vettore delle keys */
+
+	integer iv[3];		/* internal data for fortran routines :( */
    
 public:
    
@@ -130,7 +132,7 @@ public:
 #endif /* DEBUG_MEMMANAGER */
       
       		integer iFree = 0;
-      		__FC_DECL__(kd01b)(*ppiTable, *ppiKeys, &iKey, &iFree);
+      		__FC_DECL__(kd01b)(iv, *ppiTable, *ppiKeys, &iKey, &iFree);
       		if (iFree == 0) {
 			std::cerr << "SparseData: there's no room left "
 				"in matrix" << std::endl;	 

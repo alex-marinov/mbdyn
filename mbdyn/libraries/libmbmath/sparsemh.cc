@@ -65,7 +65,7 @@ SparseData::ResetVec(void) {
 	 */
 
 	integer iSize = iCurSize;
-	__FC_DECL__(kd01a)(&iSize, *ppiTable, *ppiKeys);
+	__FC_DECL__(kd01a)(iv, &iSize, *ppiTable, *ppiKeys);
 };
 
 /*
