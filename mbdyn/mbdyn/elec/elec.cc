@@ -233,30 +233,10 @@ Elem* ReadElectric(DataManager* pDM,
        if (f) {
 	  
 	  /* nodo strutturale collegato */
-	  unsigned int uNode = (unsigned int)HP.GetInt();	     
-	  DEBUGCOUT("Linked to Structural Node " << uNode << std::endl);
-	  
-	  /* verifica di esistenza del nodo strutturale */
-	  StructNode* pStrNode;
-	  if ((pStrNode = pDM->pFindStructNode(uNode)) == NULL) {
-	     std::cerr << "line " << HP.GetLineData() 
-	       << ": structural node " << uNode
-	       << " not defined" << std::endl;	  
-	     THROW(DataManager::ErrGeneric());
-	  }		  
+	  StructNode* pStrNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 	  
 	  /* nodo astratto collegato */
-	  uNode = (unsigned int)HP.GetInt();	     
-	  DEBUGCOUT("Linked to Abstract Node " << uNode << std::endl);
-	  
-	  /* verifica di esistenza del nodo astratto */
-	  AbstractNode* pAbsNode;
-	  if ((pAbsNode = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
-	     std::cerr << "line " << HP.GetLineData() 
-	       << ": abstract node " << uNode
-	       << " not defined" << std::endl;	  
-	     THROW(DataManager::ErrGeneric());
-	  }		  
+	  AbstractNode* pAbsNode = (AbstractNode*)pDM->ReadNode(HP, Node::ABSTRACT);
 	  
 	  /* Direzione */
 	  Vec3 Dir(HP.GetVecRel(ReferenceFrame(pStrNode)));
@@ -301,30 +281,10 @@ Elem* ReadElectric(DataManager* pDM,
        } else {
 	  
 	  /* nodo strutturale collegato */
-	  unsigned int uNode = (unsigned int)HP.GetInt();	     
-	  DEBUGCOUT("Linked to Structural Node " << uNode << std::endl);
-	  
-	  /* verifica di esistenza del nodo strutturale */
-	  StructNode* pStrNode;
-	  if ((pStrNode = pDM->pFindStructNode(uNode)) == NULL) {
-	     std::cerr << "line " << HP.GetLineData() 
-	       << ": structural node " << uNode
-	       << " not defined" << std::endl;	  
-	     THROW(DataManager::ErrGeneric());
-	  }		  
+	  StructNode* pStrNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 	  
 	  /* nodo astratto collegato */
-	  uNode = (unsigned int)HP.GetInt();	     
-	  DEBUGCOUT("Linked to Abstract Node " << uNode << std::endl);
-	  
-	  /* verifica di esistenza del nodo astratto */
-	  AbstractNode* pAbsNode;
-	  if ((pAbsNode = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
-	     std::cerr << "line " << HP.GetLineData() 
-	       << ": abstract node " << uNode
-	       << " not defined" << std::endl;	  
-	     THROW(DataManager::ErrGeneric());
-	  }		  
+	  AbstractNode* pAbsNode = (AbstractNode*)pDM->ReadNode(HP, Node::ABSTRACT);
 	  
 	  /* Direzione */
 	  Vec3 Dir(HP.GetVecRel(ReferenceFrame(pStrNode)));
@@ -392,49 +352,19 @@ Elem* ReadElectric(DataManager* pDM,
 #if defined(USE_STRUCT_NODES)
 	  
        /* nodo strutturale collegato 1 */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Structural Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo strutturale */
-       StructNode* pStrNode1;
-       if ((pStrNode1 = pDM->pFindStructNode(uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": structural node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       StructNode* pStrNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        /* offset 1 */
        Vec3 Tmpf1(HP.GetPosRel(ReferenceFrame(pStrNode1)));
 	  
        /* nodo strutturale collegato 2 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Structural Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo strutturale */
-       StructNode* pStrNode2;
-       if ((pStrNode2 = pDM->pFindStructNode(uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": structural node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pStrNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 	  
        /* offset 2 */
        Vec3 Tmpf2(HP.GetPosRel(ReferenceFrame(pStrNode2)));
        
        /* nodo astratto collegato */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Abstract Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo astratto */
-       AbstractNode* pAbsNode;
-       if ((pAbsNode = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": abstract node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       AbstractNode* pAbsNode = (AbstractNode*)pDM->ReadNode(HP, Node::ABSTRACT);
        
        flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
        
@@ -455,32 +385,10 @@ Elem* ReadElectric(DataManager* pDM,
 #if defined(USE_STRUCT_NODES)
 	  
        /* nodo strutturale collegato 1 */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Structural Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo strutturale */
-       StructNode* pStrNode1;
-       pStrNode1 = pDM->pFindStructNode(uNode);
-       if (pStrNode1 == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": structural node " << uNode
-	    << " not defined" << std::endl;
-	  THROW(DataManager::ErrGeneric());
-       }
+       StructNode* pStrNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 	
        /* nodo strutturale collegato 2 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Structural Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo strutturale */
-       StructNode* pStrNode2;
-       pStrNode2 = pDM->pFindStructNode(uNode);
-       if (pStrNode2 == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": structural node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pStrNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
        /* direzione */
        Vec3 TmpDir(HP.GetVecRel(ReferenceFrame(pStrNode1)));
@@ -490,33 +398,11 @@ Elem* ReadElectric(DataManager* pDM,
 	       THROW(ErrGeneric());
        }
 
-       /* nodo astratto collegato */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Abstract Node " << uNode << std::endl);
+       /* nodo elettrico1 collegato */
+       ElectricNode* pVoltage1 = (ElectricNode*)pDM->ReadNode(HP, Node::ELECTRIC);
        
-       /* verifica di esistenza del nodo astratto */
-       ElectricNode* pVoltage1;
-       pVoltage1 = (ElectricNode *)pDM->pFindNode(Node::ELECTRIC, uNode);
-       if (pVoltage1 == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": abstract node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
-       
-       /* nodo astratto collegato */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Abstract Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo astratto */
-       ElectricNode* pVoltage2;
-       pVoltage2 = (ElectricNode *)pDM->pFindNode(Node::ELECTRIC, uNode);
-       if (pVoltage2 == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": abstract node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       /* nodo elettrico2 collegato */
+       ElectricNode* pVoltage2 = (ElectricNode*)pDM->ReadNode(HP, Node::ELECTRIC);
 
        doublereal dG = HP.GetReal();
        doublereal dl = HP.GetReal();

@@ -426,19 +426,7 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     HP.PutKeyTable(K);
    
     /* nodo collegato */
-    unsigned int uNode = (unsigned int)HP.GetInt();
-   
-    DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Node " << uNode << std::endl);
-   
-    /* verifica di esistenza del nodo */
-    StructNode* pNode;
-    if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-        std::cerr << std::endl
-	    << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode
-	    << " not defined" << std::endl;
-        THROW(DataManager::ErrGeneric());
-    }
+    StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
    
     if (pNode->GetStructNodeType() != StructNode::DYNAMIC) {
         std::cerr << "Illegal structural node type for body " << uLabel << std::endl;

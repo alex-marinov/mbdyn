@@ -1246,19 +1246,7 @@ ReadStructNode(DataManager* pDM,
 
    Node* pNd = NULL;
    if (CurrType == DUMMY) {
-      unsigned int uNode = (unsigned int)HP.GetInt();
-
-      DEBUGCOUT("Linked to Node " << uNode << std::endl);
-
-      /* verifica di esistenza del nodo */
-      StructNode* pNode;
-      if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	 std::cerr << std::endl << sFuncName
-	   << " at line " << HP.GetLineData()
-	     << ": structural node " << uNode
-	   << " not defined" << std::endl;
-	 THROW(DataManager::ErrGeneric());
-      }
+      StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
       KeyWords DummyType = KeyWords(HP.GetWord());
       switch (DummyType) {
@@ -1274,19 +1262,7 @@ ReadStructNode(DataManager* pDM,
        }
 
        case RELATIVEFRAME: {
-	  unsigned int uNodeRef = (unsigned int)HP.GetInt();
-
-	  DEBUGCOUT("Linked to Node " << uNodeRef << std::endl);
-
-	  /* verifica di esistenza del nodo */
-	  StructNode* pNodeRef;
-	  if ((pNodeRef = pDM->pFindStructNode(uNodeRef)) == NULL) {
-	     std::cerr << std::endl << sFuncName
-	       << " at line " << HP.GetLineData()
-		 << ": structural node " << uNodeRef
-	       << " not defined" << std::endl;
-	     THROW(DataManager::ErrGeneric());
-	  }
+	  StructNode* pNodeRef = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
 	  ReferenceFrame RF(pNodeRef);
 

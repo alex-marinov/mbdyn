@@ -360,19 +360,7 @@ Elem* ReadForce(DataManager* pDM,
      { /* CurrType e' <structural> */
          
       /* nodo collegato */
-      unsigned int uNode = (unsigned int)HP.GetInt();
-      
-      DEBUGCOUT("Linked to Node " << uNode << std::endl);
-      
-      /* verifica di esistenza del nodo */
-      StructNode* pNode;
-      if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	 std::cerr << std::endl << sFuncName
-	   << " at line " << HP.GetLineData() 
-	   << ": structural node " << uNode
-	   << " not defined" << std::endl;	 
-	 THROW(DataManager::ErrGeneric());
-      }		        
+      StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
       
       /* direzione della forza */   	     
       Mat3x3 RNode(pNode->GetRCurr());     
@@ -408,18 +396,7 @@ Elem* ReadForce(DataManager* pDM,
       if (CurrType == CONSERVATIVEINTERNAL || CurrType == FOLLOWERINTERNAL) {
 	      
          /* nodo collegato */
-         uNode = (unsigned int)HP.GetInt();
-      
-   	 DEBUGCOUT("Linked to Node " << uNode << std::endl);
-      
-   	 /* verifica di esistenza del nodo */
-   	 if ((pNode2 = pDM->pFindStructNode(uNode)) == NULL) {
-	    std::cerr << std::endl << sFuncName
-	      << " at line " << HP.GetLineData() 
-   	      << ": structural node " << uNode
-   	      << " not defined" << std::endl;	 
-   	    THROW(DataManager::ErrGeneric());
-   	 }		        
+	 pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
       
    	 /* distanza dal nodo (vettore di 3 elementi) ( solo se e' una forza) */
    	 if (fCouple == 0) {	

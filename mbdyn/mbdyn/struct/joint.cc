@@ -157,6 +157,8 @@ Elem* ReadJoint(DataManager* pDM,
       "beam" "slider",
       "wheel2",
       
+      "friction",
+      
       NULL
    };
    
@@ -201,6 +203,8 @@ Elem* ReadJoint(DataManager* pDM,
 
       WHEEL2,
       
+      FRICTION,
+      
       LASTKEYWORD
    };
    
@@ -231,18 +235,7 @@ Elem* ReadJoint(DataManager* pDM,
        flag fOffset(0);
 
        /* nodo collegato 1 */
-       unsigned int uNode1 = (unsigned int)HP.GetInt();
-       
-       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode1;
-       if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode1
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
        Vec3 f1(0.);
        if (HP.IsKeyWord("position")) {
@@ -251,19 +244,7 @@ Elem* ReadJoint(DataManager* pDM,
        }
        
        /* nodo collegato 2 */
-       unsigned int uNode2 = (unsigned int)HP.GetInt();
-       
-       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode2;
-       if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData()
-	    << ": structural node " << uNode2
-	    << " not defined" << std::endl;
-	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        Vec3 f2(0.);
        if (HP.IsKeyWord("position")) {
@@ -314,18 +295,7 @@ Elem* ReadJoint(DataManager* pDM,
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
        
        /* nodo collegato 1 */
-       unsigned int uNode1 = (unsigned int)HP.GetInt();
-       
-       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode1;
-       if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode1
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        Vec3 f1(0.);
        if (HP.IsKeyWord("position")) {
@@ -346,18 +316,7 @@ Elem* ReadJoint(DataManager* pDM,
        
               
        /* nodo collegato 2 */
-       unsigned int uNode2 = (unsigned int)HP.GetInt();
-       
-       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode2;
-       if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode2
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        Vec3 f2(0.);
        if (HP.IsKeyWord("position")) {
@@ -415,19 +374,7 @@ Elem* ReadJoint(DataManager* pDM,
        /* lettura dei dati specifici */
        
        /* nodo collegato */
-       unsigned int uNode = (unsigned int)HP.GetInt();
-       
-       DEBUGCOUT("Linked to Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode;
-       if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode
-	    << " not defined" << std::endl;
-	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        /* posizione (vettore di 3 elementi) */
        ReferenceFrame RF(pNode);
@@ -487,17 +434,7 @@ Elem* ReadJoint(DataManager* pDM,
        /* lettura dei dati specifici */
        
        /* nodo collegato */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode;
-       if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        ReferenceFrame RF(pNode);
 
@@ -566,17 +503,7 @@ Elem* ReadJoint(DataManager* pDM,
     case AXIALROTATION:
     case PLANEDISPLACEMENT: {
        /* nodo collegato 1 */
-       unsigned int uNode1 = (unsigned int)HP.GetInt();	    
-       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode1;
-       if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode1
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        ReferenceFrame RF(pNode1);
        Vec3 d1(0.);
@@ -627,17 +554,7 @@ Elem* ReadJoint(DataManager* pDM,
        
        
        /* nodo collegato 2 */
-       unsigned int uNode2 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode2;
-       if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode2
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        /* Stessa cosa per il nodo 2 */
        
@@ -795,17 +712,7 @@ Elem* ReadJoint(DataManager* pDM,
     case REVOLUTEPIN:
     case PLANEDISPLACEMENTPIN: {
        /* nodo collegato */
-       unsigned int uNode = (unsigned int)HP.GetInt();	    
-       DEBUGCOUT("Linked to Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode;
-       if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode
-	    << " not defined" << std::endl;
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        ReferenceFrame RF(pNode);
        Vec3 d(0.);
@@ -912,17 +819,7 @@ Elem* ReadJoint(DataManager* pDM,
       
     case INPLANE: {
        /* nodo collegato 1 */
-       unsigned int uNode1 = (unsigned int)HP.GetInt();	    
-       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode1;
-       if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode1
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        ReferenceFrame RF(pNode1);
        Vec3 p(0.);
@@ -951,17 +848,7 @@ Elem* ReadJoint(DataManager* pDM,
        
        
        /* nodo collegato 2 */
-       unsigned int uNode2 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode2;
-       if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode2
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
               
        Vec3 q(0.);
        flag fOffset(0);
@@ -995,17 +882,7 @@ Elem* ReadJoint(DataManager* pDM,
       
     case INLINE: {
        /* nodo collegato 1 */
-       unsigned int uNode1 = (unsigned int)HP.GetInt();	    
-       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode1;
-       if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode1
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        ReferenceFrame RF(pNode1);
        Vec3 p(0.);
@@ -1041,17 +918,7 @@ Elem* ReadJoint(DataManager* pDM,
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
        
        /* nodo collegato 2 */
-       unsigned int uNode2 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode2;
-       if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode2
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
               
        Vec3 q(0.);
        flag fOffset(0);
@@ -1290,17 +1157,7 @@ Elem* ReadJoint(DataManager* pDM,
        /* lettura dei dati specifici */	  
        
        /* nodo collegato 1 */
-       unsigned int uNode1 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode1;
-       if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode1
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        /* Offset if displacement hinge */
        Vec3 f1(0.);
@@ -1315,17 +1172,7 @@ Elem* ReadJoint(DataManager* pDM,
        
        
        /* nodo collegato 2 */
-       unsigned int uNode2 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode2;
-       if((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode2
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
 	   
        /* Offset if displacement hinge */
@@ -1426,17 +1273,7 @@ Elem* ReadJoint(DataManager* pDM,
     case LINEARVELOCITY:
     case ANGULARVELOCITY: {
        /* nodo collegato */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode;
-       if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        Vec3 Dir(HP.GetVecRel(ReferenceFrame(pNode)));
        doublereal d = Dir.Dot();
@@ -1482,17 +1319,7 @@ Elem* ReadJoint(DataManager* pDM,
     case LINEARACCELERATION:
     case ANGULARACCELERATION: {
        /* nodo collegato */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode;
-       if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        Vec3 Dir(HP.GetVecRel(ReferenceFrame(pNode)));
        doublereal d = Dir.Dot();
@@ -1539,17 +1366,7 @@ Elem* ReadJoint(DataManager* pDM,
       
     case PRISMATIC: {	     
        /* nodo collegato 1 */
-       unsigned int uNode1 = (unsigned int)HP.GetInt();	    
-       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode1;
-       if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode1
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        Mat3x3 R1h(Eye3);
        if (HP.IsKeyWord("hinge")) {
@@ -1559,17 +1376,7 @@ Elem* ReadJoint(DataManager* pDM,
        
        
        /* nodo collegato 2 */
-       unsigned int uNode2 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode2;
-       if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode2
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        /* Stessa cosa per il nodo 2 */
        
@@ -1593,17 +1400,7 @@ Elem* ReadJoint(DataManager* pDM,
 
     case DRIVEHINGE: {
        /* nodo collegato 1 */
-       unsigned int uNode1 = (unsigned int)HP.GetInt();	    
-       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode1;
-       if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode1
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        Mat3x3 R1h(Eye3);
        if (HP.IsKeyWord("hinge")) {
@@ -1613,17 +1410,7 @@ Elem* ReadJoint(DataManager* pDM,
        
        
        /* nodo collegato 2 */
-       unsigned int uNode2 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode2;
-       if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode2
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        /* Stessa cosa per il nodo 2 */
        
@@ -1652,17 +1439,7 @@ Elem* ReadJoint(DataManager* pDM,
       
     case KINEMATIC: {
        /* nodo collegato */
-       unsigned int uNode = (unsigned int)HP.GetInt();	    
-       DEBUGCOUT("Linked to Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNode;
-       if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
        

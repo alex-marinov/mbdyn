@@ -134,18 +134,7 @@ Elem* ReadGenel(DataManager* pDM,
       /* genel piatto oscillante */
     case SWASHPLATE: {
        /* nodo Collettivo */
-       unsigned int uNode = (unsigned int)HP.GetInt();
-       
-       DEBUGCOUT("Linked to Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       AbstractNode* pCollIn;
-       if ((pCollIn = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": abstract node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       AbstractNode* pCollIn = (AbstractNode*)pDM->ReadNode(HP, Node::ABSTRACT);
        
        // DriveCaller* pColl = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
        // HP.PutKeyTable(K);
@@ -161,18 +150,7 @@ Elem* ReadGenel(DataManager* pDM,
 	   
        
        /* nodo Longitudinale */
-       uNode = (unsigned int)HP.GetInt();
-       
-       DEBUGCOUT("Linked to Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       AbstractNode* pLongIn;
-       if ((pLongIn = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": abstract node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       AbstractNode* pLongIn = (AbstractNode*)pDM->ReadNode(HP, Node::ABSTRACT);
        
        // DriveCaller* pLong = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
        // HP.PutKeyTable(K);
@@ -188,18 +166,7 @@ Elem* ReadGenel(DataManager* pDM,
        
        
        /* nodo Laterale */
-       uNode = (unsigned int)HP.GetInt();
-       
-       DEBUGCOUT("Linked to Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       AbstractNode* pLatIn;
-       if ((pLatIn = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": abstract node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  	   	  	   
+       AbstractNode* pLatIn = (AbstractNode*)pDM->ReadNode(HP, Node::ABSTRACT);
        
        // DriveCaller* pLat = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
        // HP.PutKeyTable(K);
@@ -215,47 +182,14 @@ Elem* ReadGenel(DataManager* pDM,
        
        
        /* nodo collegato 1 */
-       uNode = (unsigned int)HP.GetInt();
-       
-       DEBUGCOUT("Linked to Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       AbstractNode* pNode1;
-       if ((pNode1 = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": abstract node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       AbstractNode* pNode1 = (AbstractNode*)pDM->ReadNode(HP, Node::ABSTRACT);
               
        /* nodo collegato 2 */
-       uNode = (unsigned int)HP.GetInt();
-       
-       DEBUGCOUT("Linked to Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       AbstractNode* pNode2;
-       if ((pNode2 = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
-	  std::cerr << "line " << HP.GetLineData()
-	    << ": abstract node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       AbstractNode* pNode2 = (AbstractNode*)pDM->ReadNode(HP, Node::ABSTRACT);
        
        
        /* nodo collegato 3 */
-       uNode = (unsigned int)HP.GetInt();
-       
-       DEBUGCOUT("Linked to Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       AbstractNode* pNode3;
-       if ((pNode3 = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": abstract node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       AbstractNode* pNode3 = (AbstractNode*)pDM->ReadNode(HP, Node::ABSTRACT);
        
        doublereal dDynCoef = 0.;
        if (HP.fIsArg()) {
