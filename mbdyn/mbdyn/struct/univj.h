@@ -144,6 +144,103 @@ class UniversalHingeJoint : virtual public Elem, public Joint {
 /* UniversalHingeJoint - end */
 
 
+/* UniversalRotationJoint - begin */
+
+class UniversalRotationJoint : virtual public Elem, public Joint {
+ private:
+   /* Giunto universale: l'asse 3 del primo nodo e l'asse 2 del secondo nodo
+    * rimangono ortogonali (giunto cardanico) 
+    * I vettori F, M esprimono le reazioni vincolari di forza e coppia. */
+   const StructNode* pNode1;
+   const StructNode* pNode2;
+   Mat3x3 R1h;
+   Mat3x3 R2h;
+   doublereal dM;
+   
+ public:
+   /* Costruttore non banale */
+   UniversalRotationJoint(unsigned int uL, const DofOwner* pDO,
+		       const StructNode* pN1, const StructNode* pN2,
+		       const Mat3x3& R1hTmp, const Mat3x3& R2hTmp, flag fOut);
+   
+   /* Distruttore */
+   ~UniversalRotationJoint(void);
+
+   virtual inline void* pGet(void) const { 
+      return (void*)this;
+   };
+   
+   /* Contributo al file di restart */
+   virtual std::ostream& Restart(std::ostream& out) const;
+
+   /* Tipo di Joint */
+   virtual Joint::Type GetJointType(void) const {
+      return Joint::UNIVERSALROTATION; 
+   };
+   
+   virtual unsigned int iGetNumDof(void) const { 
+      return 1;
+   };
+   
+   DofOrder::Order SetDof(unsigned int i) const {
+      ASSERT(i >= 0 && i < 1);
+      return DofOrder::ALGEBRAIC; 
+   };
+
+   void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+      *piNumRows = 7; 
+      *piNumCols = 7; 
+   };
+   
+      
+   VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
+				    doublereal dCoef,
+				    const VectorHandler& XCurr, 
+				    const VectorHandler& XPrimeCurr);
+   SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+			    doublereal dCoef,
+			    const VectorHandler& XCurr, 
+			    const VectorHandler& XPrimeCurr);
+   
+   void Output(OutputHandler& OH) const;
+ 
+
+   /* funzioni usate nell'assemblaggio iniziale */
+   
+   virtual unsigned int iGetInitialNumDof(void) const {
+      return 2;
+   };
+   virtual void InitialWorkSpaceDim(integer* piNumRows,
+				    integer* piNumCols) const { 
+      *piNumRows = 14; 
+      *piNumCols = 14;
+   };
+   
+   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
+   VariableSubMatrixHandler& InitialAssJac(VariableSubMatrixHandler& WorkMat,
+					   const VectorHandler& XCurr);
+   
+   /* Contributo al residuo durante l'assemblaggio iniziale */   
+   SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
+				   const VectorHandler& XCurr);   
+
+   /* *******PER IL SOLUTORE PARALLELO******** */        
+   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+      utile per l'assemblaggio della matrice di connessione fra i dofs */
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
+     NumNodes = 2;
+     NdTyps[0] = pNode1->GetNodeType();
+     NdLabels[0] = pNode1->GetLabel();
+     NdTyps[1] = pNode2->GetNodeType();
+     NdLabels[1] = pNode2->GetLabel();
+   };
+   /* ************************************************ */
+   
+};
+
+/* UniversalRotationJoint - end */
+
+
 /* UniversalPinJoint - begin */
 
 /* Incastro con liberta' di rotazione su un asse */
