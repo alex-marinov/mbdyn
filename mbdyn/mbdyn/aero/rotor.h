@@ -46,8 +46,78 @@ extern "C" {
 
 extern const char* psRotorNames[];
 
+/* ResForces - begin */
+
+class ResForces {
+protected:
+	Vec3 F;
+	Vec3 C;
+
+public:
+	ResForces(void) : F(0.), C(0.) { NO_OP; };
+	virtual ~ResForces(void) { NO_OP; };
+
+	virtual void Reset(void) { F = 0.; C = 0.; };
+	void AddForce(const Vec3& f) { F += f; };
+	void AddForce(const Vec3& f, Vec3& x) { 
+		F += f; 
+		C += (x-Pole()).Cross(f); 
+	};
+	void AddCouple(const Vec3& c) { C += c; };
+	void AddForces(const Vec3& f, const Vec3& c, const Vec3& x) {
+		F += f;
+		C += c + (x-Pole()).Cross(f);
+	};
+	void PutForce(const Vec3& f) { F = f; };
+	void PutCouple(const Vec3& c) { C = c; };
+	void PutForces(const Vec3& f, const Vec3& c) { F = f; C = c; };
+	
+	const Vec3& Force(void) const { return F; };
+	const Vec3& Couple(void) const { return C; };
+	virtual const Vec3& Pole(void) const = 0;
+};
+
+class ExternResForces : public ResForces {
+protected:
+	Vec3 X;
+
+public:
+	ExternResForces(void) : X(0.) { NO_OP; };
+	virtual ~ExternResForces(void) { NO_OP; };
+
+	void Reset(void) { ResForces::Reset(); };
+	void Reset(const Vec3& x) { X = x; ResForces::Reset(); };
+	void PutPole(const Vec3& x) { X = x; };
+	
+	const Vec3& Pole(void) const { return X; };
+};
+
+class NodeResForces : public ResForces {
+protected:
+	StructNode *pNode;
+
+public:
+	NodeResForces(StructNode *n = 0) : pNode(n) { NO_OP; };
+	virtual ~NodeResForces(void) { NO_OP; };
+
+	const Vec3& Pole(void) const {
+		ASSERT(pNode); 
+		return pNode->GetXCurr(); 
+	};
+};
+
+/* ResForces - end */
 
 /* Rotor - begin */
+
+struct SetResForces : public WithLabel {
+	ResForces *pRes;
+	/* add map */
+	
+	SetResForces(unsigned int uLabel, ResForces *p) 
+	: pRes(p) { ASSERT(pRes); };
+	virtual ~SetResForces(void) { SAFEDELETE(pRes); };
+};
 
 class Rotor 
 : virtual public Elem, public AerodynamicElem, public ElemWithDofs {
@@ -92,11 +162,11 @@ class Rotor
 			      * (peso della V al passo precedente, def = 0.) */
    doublereal dCorrection;   /* Correzione (scala la velocita' indotta) */
    
-   Vec3 FTraction;           /* Trazione al passo precedente */
-   Vec3 MTraction;           /* Momento al passo precedente */
+   ExternResForces Res;	     /* force, couple and pole for resultants */
+   SetResForces **ppRes;     /* extra forces */
+
    Mat3x3 RRotTranspose;     /* Trasposta della matrice di rotazione rotore */
    Vec3 RRot3;               /* Direzione dell'asse del rotore */
-   Vec3 XCraft;              /* Posizione del rotore */
    Vec3 VCraft;              /* Velocita' di traslazione del velivolo */
    doublereal dPsi0;         /* Angolo di azimuth del rotore */
    doublereal dSinAlphad;    /* Angolo di influsso */
@@ -128,9 +198,6 @@ class Rotor
    /* Calcola la velocita' indotta media (uniforme) */
    virtual void MeanInducedVelocity(void);   
 
-   /* Azzera il vettore della trazione */
-   virtual void ResetTraction(void);   
-   
  public:
    Rotor(unsigned int uL, const DofOwner* pDO, 
 	 const StructNode* pC, const StructNode* pR, flag fOut);
@@ -226,11 +293,11 @@ class Rotor
    };
    
    virtual inline const Vec3& GetForces(void) const {
-      return FTraction;
+      return Res.Force();
    };
    
    virtual inline const Vec3& GetMoments(void) const {
-      return MTraction;
+      return Res.Couple();
    };
    
    /* Metodi per l'estrazione di dati "privati".
@@ -242,9 +309,9 @@ class Rotor
    
    virtual doublereal dGetPrivData(unsigned int i) const {
       if (i >= 1 && i <= 3) {
-	 return FTraction.dGet(i);
+	 return Res.Force().dGet(i);
       } else if (i >= 4 && i <= 6) {      
-	 return MTraction.dGet(i-3);
+	 return Res.Couple().dGet(i-3);
       } else {
 	 THROW(ErrGeneric());
       }
@@ -255,7 +322,8 @@ class Rotor
    
    
    /* Somma alla trazione il contributo di un elemento */
-   virtual void AddForce(const Vec3& F, const Vec3& M, const Vec3& X) = 0;
+   virtual void AddForce(unsigned int uL, 
+		   const Vec3& F, const Vec3& M, const Vec3& X);
    
    /* Restituisce ad un elemento la velocita' indotta in base alla posizione
     * azimuthale */
@@ -312,7 +380,8 @@ class NoRotor : virtual public Elem, public Rotor {
    };
    
    /* Somma alla trazione il contributo di un elemento */
-   virtual void AddForce(const Vec3& F, const Vec3& M, const Vec3& X);
+   virtual void AddForce(unsigned int uL,
+		   const Vec3& F, const Vec3& M, const Vec3& X);
    
    /* Restituisce ad un elemento la velocita' indotta in base alla posizione
     * azimuthale */
@@ -356,7 +425,8 @@ class UniformRotor : virtual public Elem, public Rotor {
    };
    
    /* Somma alla trazione il contributo di un elemento */
-   virtual void AddForce(const Vec3& F, const Vec3& M, const Vec3& X);
+   virtual void AddForce(unsigned int uL,
+		   const Vec3& F, const Vec3& M, const Vec3& X);
    
    /* Restituisce ad un elemento la velocita' indotta in base alla posizione
     * azimuthale */
@@ -398,7 +468,8 @@ class GlauertRotor : virtual public Elem, public Rotor {
    };
    
    /* Somma alla trazione il contributo di un elemento */
-   virtual void AddForce(const Vec3& F, const Vec3& M, const Vec3& X);
+   virtual void AddForce(unsigned int uL,
+		   const Vec3& F, const Vec3& M, const Vec3& X);
    
    /* Restituisce ad un elemento la velocita' indotta in base alla posizione
     * azimuthale */
@@ -440,7 +511,8 @@ class ManglerRotor : virtual public Elem, public Rotor {
    };
    
    /* Somma alla trazione il contributo di un elemento */
-   virtual void AddForce(const Vec3& F, const Vec3& M, const Vec3& X);
+   virtual void AddForce(unsigned int uL,
+		   const Vec3& F, const Vec3& M, const Vec3& X);
    
    /* Restituisce ad un elemento la velocita' indotta in base alla posizione
     * azimuthale */
@@ -521,7 +593,8 @@ class DynamicInflowRotor : virtual public Elem, public Rotor {
    };
    
    /* Somma alla trazione il contributo di un elemento */
-   virtual void AddForce(const Vec3& F, const Vec3& M, const Vec3& X);
+   virtual void AddForce(unsigned int uL,
+		   const Vec3& F, const Vec3& M, const Vec3& X);
    
    /* Restituisce ad un elemento la velocita' indotta in base alla posizione
     * azimuthale */

@@ -402,7 +402,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
    
    	/* Se e' definito il rotore, aggiungere il contributo alla trazione */
    	if (pRotor != NULL && !fPassiveRotor) {
-      		pRotor->AddForce(F, M, Xn);
+      		pRotor->AddForce(GetLabel(), F, M, Xn);
    	}
    
    	/* Sommare il termine al residuo */
@@ -1221,7 +1221,8 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 		 * alla trazione 
 		 */
 		if (pRotor != NULL && !fPassiveRotor) {
-			pRotor->AddForce(F[iNode], M[iNode], Xn[iNode]);
+			pRotor->AddForce(GetLabel(), 
+					F[iNode], M[iNode], Xn[iNode]);
 		}
 	
 		/* Somma il termine al residuo */
@@ -1815,7 +1816,8 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 	
 		/* Se e' definito il rotore, aggiungere il contributo alla trazione */
 		if (pRotor != NULL && !fPassiveRotor) {
-			pRotor->AddForce(F[iNode], M[iNode], Xn[iNode]);
+			pRotor->AddForce(GetLabel(),
+					F[iNode], M[iNode], Xn[iNode]);
 		}
 	
 		/* Somma il termine al residuo */

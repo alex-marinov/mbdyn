@@ -488,7 +488,7 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
 
    /* Se e' definito il rotore, aggiungere il contributo alla trazione */
    if(pRotor != NULL) {
-      pRotor->AddForce(FTot, MTot, X0);
+      pRotor->AddForce(GetLabel(), FTot, MTot, X0);
    }
 
 
