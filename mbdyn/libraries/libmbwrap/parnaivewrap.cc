@@ -298,8 +298,14 @@ ParNaiveSolver::Factor(void)
 			todo[i] = -1;
 			row_locks[i] = 0;
 	}
+
+	/* NOTE: these are for pivot_lock and sync_lock */
+	/* FIXME: bottleneck? */
 	row_locks[iSize] = 0;
 	row_locks[iSize + 1] = 0;
+
+	/* NOTE: no need to reset col_locks because they're
+	 * always left equal to zero after use */
 
 	for (unsigned t = 0; t < nThreads; t++) {
 		thread_data[t].retval = 0;
