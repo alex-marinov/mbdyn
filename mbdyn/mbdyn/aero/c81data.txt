@@ -1,4 +1,8 @@
-C81 data format:
+C81 DATA FORMAT
+
+
+
+Pattern:
 
 header NML,NAL,NMD,NAD,NMM,NAM		A30,6I2 
 ML(1),....,ML(NML)			7x,9F7.0 possibly on continuation line
@@ -13,6 +17,31 @@ MM(1),....,MM(NMM)			7x,9F7.0 possibly on continuation line
 AM(1)  CM(1,1),....,CL(1,NMM)		10F7.0/(7x,9F7.0) 
 :         :     :       : 
 AM(NAM)CM(NAM,1),....,CL(NAM,NMM)	10F7.0/(7x,9F7.0) 
+
+
+
+Definitions:
+
+NML:	[N]umber of [M]ach points for [L]ift
+NAL:	[N]umber of [A]ngle points for[L]ift
+NMD:	[N]umber of [M]ach points for [D]rag
+NAD:	[N]umber of [A]ngle points for[D]rag
+NMM:	[N]umber of [M]ach points for [M]omemt
+NAM:	[N]umber of [A]ngle points for[M]oment
+
+ML:	[M]ach value for [L]ift		(adim.)
+AL:	[A]ngle value for [L]ift	(deg.)
+CL:	[C]oefficient for [L]ift	(adim.)
+
+MD:	[M]ach value for [D]rag		(adim.)
+AD:	[A]ngle value for [D]rag	(deg.)
+CD:	[C]oefficient for [D]rag	(adim.)
+
+MM:	[M]ach value for [M]oment	(adim.)
+AM:	[A]ngle value for [M]oment	(deg.)
+CM:	[C]oefficient for [M]oment	(adim.)
+
+
 
 Example (don't use!):
 
