@@ -304,6 +304,24 @@ public:
 		return out;	
 	};
 	
+        /* Moltiplica per uno scalare e somma a una matrice */
+	MatrixHandler& MulAndSumWithShift(MatrixHandler& out, doublereal s = 1.,
+		integer drow = 0, integer dcol = 0) const {
+		if ((out.iGetNumCols() != iGetNumCols()+dcol)
+			|| (out.iGetNumRows() != iGetNumRows()+drow)) {
+			THROW(ErrGeneric());
+		}
+		for (int col=0; col<NCols; col++) {
+			row_cont_type::const_iterator ri, re;
+			re = col_indices[col].end();
+			integer newcol = col + dcol;
+			for (ri = col_indices[col].begin(); ri!=re; ri++) {
+				out.fIncCoef(ri->first+drow,newcol,ri->second*s);
+			}
+		}
+		return out;	
+	};
+	
 	VectorHandler& MatTVecMul(VectorHandler& out, const VectorHandler& in) const {
 		if (out.iGetSize() != iGetNumRows()
 				|| in.iGetSize() != iGetNumCols()) {
