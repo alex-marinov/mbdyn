@@ -479,10 +479,13 @@ where, if the convention of using $x$ as beam axis is followed:
 \end{itemize}
 
 
+
 \subsection{Beam Section Constitutive Law}
 Typically, linear elastic or viscoelastic constitutive laws are used,
 although one may want to implement specific nonlinear elastic
 or elastic-plastic constitutive laws.
+
+
 
 \subsubsection{Beam Section Characterization}
 MBDyn allows the broadest generality in defining what a linear elastic 
@@ -516,7 +519,7 @@ strains:
 those related to shear stress and strain, and those related 
 to axial stress and strain, as illustrated
 in Figure~\ref{fig:EL:BEAM:GROUPS}.
-\begin{figure}
+\begin{figure}[h]
 \centering
 \begin{tabular}{c|c|c|c|c|c|c|}
 	&
@@ -540,7 +543,7 @@ in Figure~\ref{fig:EL:BEAM:GROUPS}.
 	$M_z$ & A &   &   &   & A & A \\
 	\hline
 \end{tabular}
-\caption{Internal forces grouping (S: shear, A: axial)}
+\caption{Consitutive coefficients grouping (S: shear, A: axial)}
 \label{fig:EL:BEAM:GROUPS}
 \end{figure}
 There is no direct coupling between them, at the section level,
@@ -548,6 +551,392 @@ so the corresponding coupling coefficients are always zero.
 This is no longer true when material anisotropy must be taken 
 into account.
 
+The $3\times3$ sub-blocks can be separately transformed 
+in diagonal form by referring the corresponding properties
+to appropriate separate points in the beam section, 
+and by applying an appropriate rotation about the axis of the beam.
+
+
+
+\subsubsection{Axial Stress and Strain Properties}
+Consider first the submatrix represented by the coefficients 
+marked as A in Figure~\ref{fig:EL:BEAM:GROUPS}, under the assumption 
+that it is symmetric, as indicated Equation~(\ref{eq:EL:BEAM:AXIAL}):
+\begin{equation}
+	\cubr{\cvvect{
+		F_x \\
+		M_y \\
+		M_z
+	}} = \sqbr{\matr{ccc}{
+		A_{11} & A_{12} & A_{13} \\
+		 & A_{22} & A_{23} \\
+		\llk{sym.} & & A_{33}
+	}}\cubr{\cvvect{
+		\varepsilon_x \\
+		\kappa_y \\
+		\kappa_z
+	}}
+	\label{eq:EL:BEAM:AXIAL}
+\end{equation}
+The transformation of Equation~(\ref{eq:EL:BEAM:AXIAL-TRANSFORM})
+moves the point of application of the axial force 
+of an arbitrary amount $\cubr{y,z}$ in the beam section:
+\begin{eqnarray}
+	\cubr{\cvvect{
+		F_x \\
+		M_y \\
+		M_z
+	}}^*
+	& = & \sqbr{T_{\llk{axial}}}\cubr{\cvvect{
+		F_x \\
+		M_y \\
+		M_z
+	}}
+	\nonumber \\
+	& = & \sqbr{\matr{ccc}{
+		 1 & 0 & 0 \\
+		 z & 1 & 0 \\
+		-y & 0 & 1
+	}}\cubr{\cvvect{
+		F_x \\
+		M_y \\
+		M_z
+	}}
+	\label{eq:EL:BEAM:AXIAL-TRANSFORM}
+\end{eqnarray}
+So the transformed axial block of the constitutive matrix becomes
+\begin{eqnarray}
+	\cubr{\cvvect{
+		F_x \\
+		M_y \\
+		M_z
+	}}^*
+	& = & \sqbr{T_{\llk{axial}}}
+	\cubr{\cvvect{
+		F_x \\
+		M_y \\
+		M_z
+	}}
+	\nonumber \\
+	& = & \sqbr{T_{\llk{axial}}} \sqbr{A} \sqbr{T_{\llk{axial}}}^T
+	\cubr{\cvvect{
+		\varepsilon_x \\
+		\kappa_y \\
+		\kappa_z
+	}}^*
+	\label{eq:EL:BEAM:AXIAL-TRANSFORMED}
+	\\
+	& = &
+	\sqbr{\matr{ccc}{
+		A_{11} & A_{12} + z A_{11} & A_{13} - y A_{11} \\
+		& A_{22} + 2 z A_{12} + z^2 A_{11} & 
+			A_{23} + z A_{13} - y A_{12} - yz A_{11} \\
+		\llk{sym.} &  & A_{33} - 2 y A_{13} + y^2 A_{13}
+	}}\cubr{\cvvect{
+		\varepsilon_x \\
+		\kappa_y \\
+		\kappa_z
+	}}^*
+	\nonumber
+\end{eqnarray}
+If the position of the point is selected in such a manner 
+that the axial force and the bending moment are decoupled, i.e.,
+according to the definition of center of axial strain,
+\begin{eqnarray*}
+	y & = & \frac{A_{13}}{A_{11}} \\
+	z & = & -\frac{A_{12}}{A_{11}}
+\end{eqnarray*}
+the axial block becomes
+\begin{eqnarray*}
+	\cubr{\cvvect{
+		F_x \\
+		M_y \\
+		M_z
+	}}^*
+	& = &
+	\sqbr{\matr{ccc}{
+		A_{11} & 0 & 0 \\
+		& A_{22} - A_{12}^2/A_{11} & A_{23} - A_{12}A_{13}/A_{11} \\
+		\llk{sym.} &  & A_{33} - A_{13}^2/A_{11}
+	}}\cubr{\cvvect{
+		\varepsilon_x \\
+		\kappa_y \\
+		\kappa_z
+	}}^*
+	\\
+	& = &
+	\sqbr{\matr{ccc}{
+		A_{11}^* & 0 & 0 \\
+		& A_{22}^* & A_{23}^* \\
+		\llk{sym.} &  & A_{33}^*
+	}}\cubr{\cvvect{
+		\varepsilon_x \\
+		\kappa_y \\
+		\kappa_z
+	}}^*
+\end{eqnarray*}
+Now, a rotation about the beam section axis can be applied 
+in order to decouple the bending moments:
+\begin{eqnarray}
+	\cubr{\cvvect{
+		F_x \\
+		M_y \\
+		M_z
+	}}^{\dagger}
+	& = & \sqbr{R_{\llk{axial}}}\cubr{\cvvect{
+		F_x \\
+		M_y \\
+		M_z
+	}}^*
+	\nonumber \\
+	& = & \sqbr{\matr{ccc}{
+		 1 & 0 & 0 \\
+		 0 & \cos\alpha & -\sin\alpha \\
+		 0 & \sin\alpha & \cos\alpha
+	}}\cubr{\cvvect{
+		F_x \\
+		M_y \\
+		M_z
+	}}^*
+	\label{eq:EL:BEAM:AXIAL-ROTATION}
+\end{eqnarray}
+The angle that decouples the bending moments is
+\begin{equation*}
+	\alpha = \frac{1}{2}\llk{atan}\plbr{\frac{2 A_{23}^*}{A_{22}^* - A_{33}^*}}
+\end{equation*}
+and the resulting coefficients are
+\begin{eqnarray}
+	EA & = & A_{11} \\
+	EJ_y & = & A_{22}^* \cos^2\alpha + A_{33}^* \sin^2\alpha
+		- 2 A_{23}^* \sin\alpha \cos\alpha \\
+	EJ_z & = & A_{22}^* \sin^2\alpha + A_{33}^* \cos^2\alpha
+		+ 2 A_{23}^* \sin\alpha \cos\alpha
+\end{eqnarray}
+When the axial and bending stiffnesses, and the position 
+of the axial strain center and the orientation of the neutral axes
+are available, the axial portion of the stiffness matrix 
+can be computed by reversing the order of the transformations 
+described in
+Equations~(\ref{eq:EL:BEAM:AXIAL-TRANSFORM}--\ref{eq:EL:BEAM:AXIAL-ROTATION}),
+i.e.:
+\begin{equation}
+	\sqbr{\matr{ccc}{
+		A_{11} & A_{12} & A_{13} \\
+		& A_{22} & A_{23} \\
+		\llk{sym.} & & A_{33}
+	}} = \sqbr{T_{\llk{axial}}}^T \sqbr{R_{\llk{axial}}}^T \sqbr{\matr{ccc}{
+		EA & 0 & 0 \\
+		0 & EJ_y & 0 \\
+		0 & 0 & EJ_z
+	}} \sqbr{R_{\llk{axial}}} \sqbr{T_{\llk{axial}}}
+	\label{eq:EL:BEAM:AXIAL-TRANSFORM-REVERSED}
+\end{equation}
+
+
+
+\subsubsection{Shear Stress and Strain Properties}
+Consider now the submatrix represented by the coefficients 
+marked as S in Figure~\ref{fig:EL:BEAM:GROUPS}, under the assumption 
+that it is symmetric, as indicated Equation~(\ref{eq:EL:BEAM:SHEAR}):
+\begin{equation}
+	\cubr{\cvvect{
+		F_y \\
+		F_z \\
+		M_x
+	}} = \sqbr{\matr{ccc}{
+		S_{11} & S_{12} & S_{13} \\
+		 & S_{22} & S_{23} \\
+		\llk{sym.} & & S_{33}
+	}}\cubr{\cvvect{
+		\gamma_y \\
+		\gamma_z \\
+		\kappa_x
+	}}
+	\label{eq:EL:BEAM:SHEAR}
+\end{equation}
+The orientation of the shear force components about the section axis
+can be selected in order to decouple them; by applying the transformation
+\begin{eqnarray}
+	\cubr{\cvvect{
+		F_y \\
+		F_z \\
+		M_x
+	}}^{\dagger}
+	& = & \sqbr{R_{\llk{axial}}}\cubr{\cvvect{
+		F_y \\
+		F_z \\
+		M_x
+	}}^*
+	\nonumber \\
+	& = & \sqbr{\matr{ccc}{
+		\cos\beta & -\sin\beta & 0 \\
+		\sin\beta & \cos\beta & 0 \\
+		0 & 0 & 1
+	}}\cubr{\cvvect{
+		F_y \\
+		F_z \\
+		M_x
+	}}^*
+	\label{eq:EL:BEAM:SHEAR-ROTATION}
+\end{eqnarray}
+The angle that decouples the shear forces is
+\begin{equation*}
+	\beta = \frac{1}{2}\llk{atan}\plbr{\frac{2 S_{12}^*}{S_{22}^* - S_{11}^*}}
+\end{equation*}
+and the resulting coefficients are
+\begin{eqnarray}
+	GA_y & = & S_{11}^* \cos^2\alpha + S_{22}^* \sin^2\alpha
+		- 2 S_{12}^* \sin\alpha \cos\alpha \\
+	GA_z & = & S_{11}^* \sin^2\alpha + S_{22}^* \cos^2\alpha
+		+ 2 S_{12}^* \sin\alpha \cos\alpha
+\end{eqnarray}
+the shear block becomes
+\begin{eqnarray*}
+	\cubr{\cvvect{
+		F_y \\
+		F_x \\
+		M_x
+	}}^*
+	& = &
+	\sqbr{\matr{ccc}{
+		GA_y & 0 & S_{13}\cos\beta - S_{23}\sin\beta \\
+		& GA_z & S_{13}\sin\beta + S_{23}\cos\beta \\
+		\llk{sym.} &  & S_{33}
+	}}\cubr{\cvvect{
+		\gamma_y \\
+		\gamma_z \\
+		\kappa_x
+	}}^*
+	\\
+	& = &
+	\sqbr{\matr{ccc}{
+		GA_y & 0 & S_{13}^* \\
+		& GA_z & S_{23}^* \\
+		\llk{sym.} &  & S_{33}
+	}}\cubr{\cvvect{
+		\gamma_y \\
+		\gamma_z \\
+		\kappa_x
+	}}^*
+\end{eqnarray*}
+The transformation of Equation~(\ref{eq:EL:BEAM:SHEAR-TRANSFORM})
+moves the point of application of the shear force 
+of an arbitrary amount $\cubr{y,z}$ in the beam section:
+\begin{eqnarray}
+	\cubr{\cvvect{
+		F_y \\
+		F_z \\
+		M_x
+	}}^{\dagger}
+	& = & \sqbr{T_{\llk{shear}}}\cubr{\cvvect{
+		F_y \\
+		F_z \\
+		M_x
+	}}^*
+	\nonumber \\
+	& = & \sqbr{\matr{ccc}{
+		1 &  0 & 0 \\
+		0 &  1 & 0 \\
+		z & -y & 1
+	}}\cubr{\cvvect{
+		F_y \\
+		F_z \\
+		M_x
+	}}^*
+	\label{eq:EL:BEAM:SHEAR-TRANSFORM}
+\end{eqnarray}
+So the transformed shear block of the constitutive matrix becomes
+\begin{eqnarray}
+	\cubr{\cvvect{
+		F_y \\
+		F_z \\
+		M_x
+	}}^{\dagger}
+	& = & \sqbr{T_{\llk{shear}}}
+	\cubr{\cvvect{
+		F_y \\
+		F_z \\
+		M_x
+	}}^*
+	\nonumber \\
+	& = & \sqbr{T_{\llk{shear}}} \sqbr{A} \sqbr{T_{\llk{shear}}}^T
+	\cubr{\cvvect{
+		\gamma_y \\
+		\gamma_z \\
+		\kappa_x
+	}}^{\dagger}
+	\label{eq:EL:BEAM:SHEAR-TRANSFORMED}
+	\\
+	& = &
+	\sqbr{\matr{ccc}{
+		GA_y & 0 & S_{13}^* + z GA_y \\
+		& GA_z & S_{23}^* - y GA_z \\
+		\llk{sym.} &  & S_{33} - y S_{23}^* + z S_{13}^*
+		+z\plbr{S_{13}^* + z GA_y} - y\plbr{S_{23}^* - y GA_z}
+	}}\cubr{\cvvect{
+		\gamma_y \\
+		\gamma_z \\
+		\kappa_x
+	}}^{\dagger}
+	\nonumber
+\end{eqnarray}
+If the position of the point is selected in such a manner 
+that the shear force and the torsional moment are decoupled, i.e.,
+according to the definition of center of shear force (the point 
+in a beam section where the application of a transverse force
+results in no twist)
+\begin{eqnarray*}
+	y & = & -\frac{S_{13}^*}{GA_y} \\
+	z & = & \frac{S_{23}^*}{GA_z}
+\end{eqnarray*}
+the shear block becomes
+\begin{eqnarray*}
+	\cubr{\cvvect{
+		F_y \\
+		F_x \\
+		M_x
+	}}^{\dagger}
+	& = &
+	\sqbr{\matr{ccc}{
+		GA_y & 0 & 0 \\
+		& GA_z & 0 \\
+		\llk{sym.} &  & S_{33} - {S_{13}^*}^2/GA_y - {S_{23}^*}^2/GA_z
+	}}\cubr{\cvvect{
+		\gamma_y \\
+		\gamma_z \\
+		\kappa_x
+	}}^{\dagger}
+	\\
+	& = &
+	\sqbr{\matr{ccc}{
+		GA_y & 0 & 0 \\
+		& GA_z & 0 \\
+		\llk{sym.} &  & GJ
+	}}\cubr{\cvvect{
+		\gamma_y \\
+		\gamma_z \\
+		\kappa_x
+	}}^{\dagger}
+\end{eqnarray*}
+When the shear and torsional stiffnesses, and the position 
+of the shear strain center and the orientation of the shear axes
+are available, the shear portion of the stiffness matrix 
+can be computed by reversing the order of the transformations 
+described in
+Equations~(\ref{eq:EL:BEAM:SHEAR-ROTATION}--\ref{eq:EL:BEAM:SHEAR-TRANSFORM}),
+i.e.:
+\begin{equation}
+	\sqbr{\matr{ccc}{
+		S_{11} & S_{12} & S_{13} \\
+		& S_{22} & S_{23} \\
+		\llk{sym.} & & S_{33}
+	}} = \sqbr{R_{\llk{shear}}}^T \sqbr{T_{\llk{shear}}}^T \sqbr{\matr{ccc}{
+		GA_y & 0 & 0 \\
+		0 & GA_z & 0 \\
+		0 & 0 & GJ
+	}} \sqbr{T_{\llk{shear}}} \sqbr{R_{\llk{shear}}}
+	\label{eq:EL:BEAM:SHEAR-TRANSFORM-REVERSED}
+\end{equation}
 
 
 
@@ -584,7 +973,7 @@ to undergo large displacements and relative rotations.
 It is activated by using the keyword \kw{hbeam2} instead of \kw{beam2}.
 However, to reduce the shear-locking effect, the stiffness properties 
 still need to be manually corrected according
-to Equation~\ref{eq:2-NODE-BEAM-STIFFNESS}.
+to Equation~(\ref{eq:2-NODE-BEAM-STIFFNESS}).
 The \kw{hbeam2} element is \emph{experimental}, and should be used
 only for development purposes.
 
@@ -750,7 +1139,7 @@ matrix is presented:
             GJ, EJy, EJz;
 \end{verbatim}
 Note that the shear terms have been na\"{\i}vely inverted to eliminate
-shear locking, according to Equation~\ref{eq:2-NODE-BEAM-STIFFNESS}.
+shear locking, according to Equation~(\ref{eq:2-NODE-BEAM-STIFFNESS}).
 
 \subsection{Output}
 The output related to beam elements is contained in a file with extension 
