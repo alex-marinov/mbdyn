@@ -1208,6 +1208,152 @@ Here the standard part is described:
 Legal joint types, with relative data, are:
 
 
+
+
+\subsection{Angular acceleration}
+\begin{verbatim}
+    <joint_type> ::= angular acceleration
+    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
+                        (drive_caller) <acceleration>
+\end{verbatim}
+
+\subsection{Angular velocity}
+\begin{verbatim}
+    <joint_type> ::= angular velocity
+    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
+                        (drive_caller) <velocity>
+\end{verbatim}
+
+\subsection{Axial rotation}
+\begin{verbatim}
+    <joint_type> ::= axial rotation
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1> 
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_2> ] ,
+        (drive_caller) <angular_velocity>
+\end{verbatim}
+{\em
+    Note: this joint forces nodes 1 and 2 to rotate about relative 
+    axis 3 with imposed angular velocity.
+}
+
+\subsection{Beam slider}
+This joint implements a slider, e.g.\ it constrains a structural node 
+on a string of three-node beams, as discussed in \cite{SLIDER-AIDAA-2003}.
+\begin{verbatim}
+    <joint_type> ::= kinematic
+    <joint_arglist> ::=
+        <slider_node> ,
+        (Vec3) <relative_offset> ,
+        [ hinge , (OrientationMatrix) <relative_or_mat> ] ,
+        [ type , { spherical | classic | spline } , ]
+        <beam_number> ,
+            <3_node_beam> ,
+                { same | (Vec3) <first_node_offset> } ,
+    [ hinge , { same | (OrientationMatrix) <first_node_or_mat> ] , }
+                (Vec3) <mid_node_offset> ,
+    [ hinge , (OrientationMatrix) <mid_node_or_mat> ] ,
+                (Vec3) <end_node_offset> ,
+    [ hinge , (OrientationMatrix) <end_node_or_mat> ] ,
+                [ ... ]
+        [ , initial beam , <initial_beam> ]
+        [ , initial node, <initial_node> ]
+        [ , smearing, <smearing_factor> ]
+\end{verbatim}
+There are three types of slider:
+\begin{itemize}
+	\item the \kw{spherical} slider does not constrain
+	the orientation of the node;
+	\item the \kw{classical} slider does allow rotation
+	only about the sliding line;
+	\item the \kw{spline} slider constrain the orientation
+	of the node.
+\end{itemize}
+For each node of each beam element, the offset and the orientation
+of the slider can be defined; except for the first element, the
+offset and the orientation of the first node can be specified using
+the keyword \kw{same}, which causes the node to take the same
+value of the last node of the previous beam.
+The \kw{initial\_beam} and \kw{initial\_node} indices
+serve as hints to set the initial contact point of the sliding node.
+The \kw{smearing\_factor} determines the (nondimensional) extension
+of the interference segment when the node passes from one segment
+to another. % \cite{SLIDER}.
+
+
+
+\subsection{Brake}
+This element models a wheel brake, i.e.\ a constraint that applies
+a frictional internal torque between two nodes about an axis.
+The frictional torque depends on the normal force that is applied 
+as an external input by means of the same friction models implemented
+for regular joints.
+\begin{verbatim}
+    <joint_type> ::= brake
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1> 
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_2> ] ,
+        <friction data>
+\end{verbatim}
+The \kw{friction\_data} is undocumented yet.
+\emph{Note: a \kw{revolute hinge} between the same two nodes 
+must be defined as well, such that the only allowed relative kinematics 
+between the two nodes are a rotation about relative axis 3.}
+
+
+\subsection{Clamp}
+\begin{verbatim}
+    <joint_type> ::= clamp 
+    <joint_arglist> ::= <node>
+        [ , position ,
+            { node | (Vec3) <absolute_position> } ]
+        [ , orientation ,
+            { node | (OrientationMatrix) <absolute_orientation_matrix> } ]
+\end{verbatim}
+\emph{Note: the keyword \kw{node} forces the joint to use
+the nodal position and reference frame. Otherwise, they must be entered
+in the usual way for these entities} \\
+\emph{Note: the default value for \kw{position} and \kw{orientation}
+are the position and the orientation of the clamped node.}
+
+
+\subsection{Coincidence}
+not implemented yet, use a \kw{spherical hinge} and a \kw{prismatic} 
+instead.
+
+\subsection{Deformable displacement hinge}
+\begin{verbatim}
+    <joint_type> ::= deformable displacement hinge
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1>
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
+        (ConstitutiveLaw3D) <const_law>
+\end{verbatim}
+
+\subsection{Deformable hinge}
+\begin{verbatim}
+    <joint_type> ::= deformable hinge
+    <joint_arglist> ::= 
+        <node_1>
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2> 
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
+        (ConstitutiveLaw3D) <const_law>
+\end{verbatim}
+\emph{Note: this hinge constrains the orientations only.
+    It should be used in conjunction with a spherical hinge or any kind of
+    joint that constrains the displacements too.}
+
 \subsection{Distance}
 \begin{verbatim}
     <joint_type> ::= distance 
@@ -1256,212 +1402,33 @@ in the future.
 
 
 
-\subsection{Clamp}
+\subsection{Drive hinge}
 \begin{verbatim}
-    <joint_type> ::= clamp 
-    <joint_arglist> ::= <node>
-        [ , position ,
-            { node | (Vec3) <absolute_position> } ]
-        [ , orientation ,
-            { node | (OrientationMatrix) <absolute_orientation_matrix> } ]
-\end{verbatim}
-\emph{Note: the keyword \kw{node} forces the joint to use
-the nodal position and reference frame. Otherwise, they must be entered
-in the usual way for these entities} \\
-\emph{Note: the default value for \kw{position} and \kw{orientation}
-are the position and the orientation of the clamped node.}
-
-
-\subsection{Coincidence}
-not implemented yet, use a \kw{spherical hinge} and a \kw{prismatic} 
-instead.
-
-\subsection{Spherical hinge}
-\begin{verbatim}
-    <joint_type> ::= spherical hinge
-    <joint_arglist> ::= 
-        <node_1> , (Vec3) <relative_offset_1> 
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2> , (Vec3) <relative_offset_2>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_2> ]
-\end{verbatim}
-{\em
-    Note: the orientation matrix is used for output purposes only. 
-    A default identity matrix is assumed.
-}
-
-\subsection{Pin}
-\begin{verbatim}
-    <joint_type> ::= pin
-    <joint_arglist> ::= <node> , (Vec3) <relative_offset> ,
-                                 (Vec3) <absolute_pin_position>
-\end{verbatim}
-{\em
-    Note: this is the dual of the spherical hinge when one node is grounded.
-    An alternative way to model a grounded spherical hinge requires the use
-    of a static, clamped node.
-}
-
-\subsection{Universal hinge}
-\begin{verbatim}
-    <joint_type> ::= universal hinge
-    <joint_arglist> ::= 
-        <node_1> , (Vec3) <relative_offset_1> 
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2> , (Vec3) <relative_offset_2>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_2> ]
-\end{verbatim}
-{\em
-    Note: this joint forces the relative direction 3 of node 1 to be always 
-    normal to the relative direction 2 of node 2.
-}
-
-\subsection{Universal rotation}
-A universal joint without position constraints.
-\begin{verbatim}
-    <joint_type> ::= universal rotation
+    <joint_type> ::= drive hinge
     <joint_arglist> ::= 
         <node_1>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2> 
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
+        (Vec3_tpl_drive_caller) <hinge_orientation>
+\end{verbatim}
+\emph{Note: this element is eXperimental; now it is more reliable, 
+but it is limited to $\nrbr{\tt <hinge\_orientation>} < \pi$}.
+
+\subsection{In line}
+\begin{verbatim}
+    <joint_type> ::= in line
+    <joint_arglist> ::= 
+        <node_1> , 
+        (Vec3) <relative_line_position> ,
+        (Mat3x3) <relative_orientation> ,
         <node_2>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_2> ]
+        [ , offset , (Vec3) <relative_offset>]
 \end{verbatim}
-{\em
-    Note: this joint forces the relative direction 3 of node 1 to be always 
-    normal to the relative direction 2 of node 2.
+{\em 
+    Note: the \kw{in line} joint supersedes the former note; the orientation
+    assumes the sliding line is in direction 3.
 }
-
-\subsection{Universal pin}
-\begin{verbatim}
-    <joint_type> ::= universal pin
-    <joint_arglist> ::= 
-        <node> , (Vec3) <relative_offset>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix> ] ,
-        (Vec3) <absolute_pin_position>
-        [ , hinge , 
-            (OrientationMatrix) <absolute_pin_orientation_matrix> ]
-\end{verbatim}
-{\em
-    Note: this is the dual of the universal hinge when one node is grounded.
-}
-
-\subsection{Plane hinge}
-This joint has been renamed \kw{revolute hinge}; the old name has been
-deprecated and may not be supported in future versions.
-
-\subsection{Revolute hinge}
-\begin{verbatim}
-    <joint_type> ::= revolute hinge
-    <joint_arglist> ::= 
-        <node_1> , (Vec3) <relative_offset_1> 
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2> , (Vec3) <relative_offset_2>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_2> ]
-\end{verbatim}
-{\em
-    Note: this joint forces nodes 1 and 2 to rotate only about relative 
-    axis 3.
-}
-
-\subsection{Revolute rotation}
-A revolute joint without position constraints; this joint, in conjunction
-with an \kw{inline} joint, should be used to constrain the two nodes
-of a hydraulic actuator.
-\begin{verbatim}
-    <joint_type> ::= revolute rotation
-    <joint_arglist> ::= 
-        <node_1>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_2> ]
-\end{verbatim}
-{\em
-    Note: this joint forces nodes 1 and 2 to rotate only about relative 
-    axis 3.
-}
-
-\subsection{Plane pin}
-This joint has been renamed \kw{revolute pin}; the old name has been
-deprecated and may not be supported in future versions.
-
-\subsection{Revolute pin}
-\begin{verbatim}
-    <joint_type> ::= revolute pin
-    <joint_arglist> ::= 
-        <node> , (Vec3) <relative_offset>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix> ] ,
-        (Vec3) <absolute_pin_position>
-        [ , hinge , 
-            (OrientationMatrix) <absolute_pin_orientation_matrix> ]
-\end{verbatim}
-{\em
-    Note: this is the dual of the revolute hinge when one node is grounded.
-}
-
-\subsection{Axial rotation}
-\begin{verbatim}
-    <joint_type> ::= axial rotation
-    <joint_arglist> ::= 
-        <node_1> , (Vec3) <relative_offset_1> 
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2> , (Vec3) <relative_offset_2>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_2> ] ,
-        (drive_caller) <angular_velocity>
-\end{verbatim}
-{\em
-    Note: this joint forces nodes 1 and 2 to rotate about relative 
-    axis 3 with imposed angular velocity.
-}
-
-\subsection{Plane displacement}\label{sec:PLANE_DISPLACEMENT}
-This joint allows two nodes to move in the common relative 1--2 plane 
-and to rotate about the common relative axis 3.
-\begin{verbatim}
-    <joint_type> ::= plane displacement
-    <joint_arglist> ::= 
-        <node_1> , (Vec3) <relative_offset_1> 
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2> , (Vec3) <relative_offset_2>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_2> ]
-\end{verbatim}
-\emph{Note: this element is temporarily disabled;
-combine an \kw{in plane} and a \kw{revolute rotation} joint instead.}
-
-\subsection{Plane displacement pin}
-This joint allows a node to move in the relative 1--2 plane 
-and to rotate about the relative axis 3 with respect to an absolute point 
-and plane.
-See also Section~\ref{sec:PLANE_DISPLACEMENT}.
-\begin{verbatim}
-    <joint_type> ::= plane displacement pin
-    <joint_arglist> ::= 
-        <node> , (Vec3) <relative_offset>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix> ] ,
-        (Vec3) <absolute_pin_position>
-        [ , hinge , 
-            (OrientationMatrix) <absolute_pin_orientation_matrix> ]
-\end{verbatim}
-\emph{Note: this element is temporarily disabled;
-combine an \kw{in plane} and a \kw{revolute rotation} joint instead,
-using a grounded node.}
-
 
 \subsection{In plane}
 \begin{verbatim}
@@ -1480,130 +1447,6 @@ using a grounded node.}
     reported procedure.
 }
 
-\subsection{In line}
-\begin{verbatim}
-    <joint_type> ::= in line
-    <joint_arglist> ::= 
-        <node_1> , 
-        (Vec3) <relative_line_position> ,
-        (Mat3x3) <relative_orientation> ,
-        <node_2>
-        [ , offset , (Vec3) <relative_offset>]
-\end{verbatim}
-{\em 
-    Note: the \kw{in line} joint supersedes the former note; the orientation
-    assumes the sliding line is in direction 3.
-}
-
-\subsection{Rod}
-\begin{verbatim}
-    <joint_type> ::= rod 
-    <joint_arglist> ::= <node_1> , <node_2> , 
-        (scalar) { <rod_length> | from nodes }
-        [ , offset , (Vec3) <relative_offset_1> , 
-                     (Vec3) <relative_offset_2> ] ,
-        (ConstitutiveLaw1D) <const_law>
-\end{verbatim}
-The constitutive law \kw{<const\_law>} is used in form 
-of rod axial stiffness $EA$, i.e., for a linear constitutive law:
-\begin{displaymath}
-	F = EA \frac{l - l_0}{l_0}
-\end{displaymath}
-and in general
-\begin{displaymath}
-	F = F\plbr{\frac{l - l_0}{l_0}, \frac{\dot{l}}{l_0}}
-\end{displaymath}
-where $l_0=\kw{<rod\_length>}$.
-For further details on the constitutive laws, 
-see Section~\ref{sec:CONSTITUTIVE-LAWS}.
-See also \kw{rod with offset} in Section~\ref{sec:RD-WITH-OFFSET}.
-
-\subsection{Rod with offset}\label{sec:RD-WITH-OFFSET}.
-\begin{verbatim}
-    <joint_type> ::= rod with offset
-    <joint_arglist> ::= <node_1> , (Vec3) <relative_offset_1>
-                        <node_2> , (Vec3) <relative_offset_2>
-        (scalar) { <rod_length> | from nodes } ,
-        (ConstitutiveLaw1D) <const_law>
-\end{verbatim}
-Analogous to \kw{rod} with the optional arg \kw{offset}.
-
-\subsection{Deformable hinge}
-\begin{verbatim}
-    <joint_type> ::= deformable hinge
-    <joint_arglist> ::= 
-        <node_1>
-        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2> 
-        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
-        (ConstitutiveLaw3D) <const_law>
-\end{verbatim}
-\emph{Note: this hinge constrains the orientations only.
-    It should be used in conjunction with a spherical hinge or any kind of
-    joint that constrains the displacements too.}
-
-\subsection{Deformable displacement hinge}
-\begin{verbatim}
-    <joint_type> ::= deformable displacement hinge
-    <joint_arglist> ::= 
-        <node_1> , (Vec3) <relative_offset_1>
-        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2> , (Vec3) <relative_offset_2>
-        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
-        (ConstitutiveLaw3D) <const_law>
-\end{verbatim}
-
-\subsection{Linear velocity}
-\begin{verbatim}
-    <joint_type> ::= linear velocity
-    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
-                        (drive_caller) <velocity>
-\end{verbatim}
-
-\subsection{Angular velocity}
-\begin{verbatim}
-    <joint_type> ::= angular velocity
-    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
-                        (drive_caller) <velocity>
-\end{verbatim}
-
-\subsection{Linear acceleration}
-\begin{verbatim}
-    <joint_type> ::= linear acceleration
-    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
-                        (drive_caller) <acceleration>
-\end{verbatim}
-
-\subsection{Angular acceleration}
-\begin{verbatim}
-    <joint_type> ::= angular acceleration
-    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
-                        (drive_caller) <acceleration>
-\end{verbatim}
-
-\subsection{Prismatic}
-\begin{verbatim}
-    <joint_type> ::= prismatic
-    <joint_arglist> ::= 
-        <node_1>
-        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2> 
-        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,    
-\end{verbatim}
-
-\subsection{Drive hinge}
-\begin{verbatim}
-    <joint_type> ::= drive hinge
-    <joint_arglist> ::= 
-        <node_1>
-        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2> 
-        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
-        (Vec3_tpl_drive_caller) <hinge_orientation>
-\end{verbatim}
-\emph{Note: this element is eXperimental; now it is more reliable, 
-but it is limited to $\nrbr{\tt <hinge\_orientation>} < \pi$}.
-
 \subsection{Kinematic}
 This joint will eventually evolve into a connection with external programs
 that impose the entire motion of a node; at present, you can use it
@@ -1616,11 +1459,25 @@ by directly writing code in files \verb;mbdyn/struct/kin.cc; and
         (drive_caller) <input>
 \end{verbatim}
 \emph{Note: this element is eXperimental.}
- 
+
+ \subsection{Linear acceleration}
+\begin{verbatim}
+    <joint_type> ::= linear acceleration
+    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
+                        (drive_caller) <acceleration>
+\end{verbatim}
+
+\subsection{Linear velocity}
+\begin{verbatim}
+    <joint_type> ::= linear velocity
+    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
+                        (drive_caller) <velocity>
+\end{verbatim}
+
 \subsection{Modal}\label{ELEMS-JOINT-MODAL}
 \emph{Note: under development \\
-    Author: Felice Felippone;
-    Initial review: Giuseppe Quaranta;
+    Author: Felice Felippone; \\
+    Initial review: Giuseppe Quaranta; \\
     Current review: Pierangelo Masarati.}
 
 \begin{verbatim}
@@ -1684,12 +1541,23 @@ of the FEM node from the respective multibody node.
 
 \noindent
 The \kw{fem\_data\_file} can be generated by NASTRAN, using
-the ALTER cards provided in directory \kw{etc/modal.d/} 
+the \kw{ALTER} cards provided in directory \kw{etc/modal.d/} 
 of the distribution.
+
+The steps of the procedure are as follows:
+\begin{enumerate} % procedure
+
+\item prepare a NASTRAN input card deck, made of bulk data,
+eigenanalysis properties data and/or static loads (details about 
+this phase are currently missing and will be proided in future 
+releases of the manual).
+
+\item complete the NASTRAN input file by putting some specific
+\kw{ALTER} cards.
 In detail:
 \begin{enumerate}
 \item the file \kw{MBDyn\_NASTRAN\_alter\_1.nas} contains
-	ALTER definitions for static solutions; appropriate
+	\kw{ALTER} definitions for static solutions; appropriate
 	loading subcases for each solution must be provided
 	in the case control and in the bulk data sections
 	of the input file;
@@ -1697,7 +1565,7 @@ In detail:
 	\emph{FIXME: I don't know how to use static shapes only}.
 
 \item the file \kw{MBDyn\_NASTRAN\_alter\_2.nas} contains
-	ALTER definitions for eigenanalysis solutions;
+	\kw{ALTER} definitions for eigenanalysis solutions;
 	an appropriate eigenanalysis method, with the related
 	data card must be provided in the case control 
 	and in the bulk data sections of the input file;
@@ -1707,7 +1575,7 @@ In detail:
 		even if the matrices are complete}.
 
 \item the file \kw{MBDyn\_NASTRAN\_alter\_3.nas} contains
-	ALTER definitions for eigenanalysis solutions;
+	\kw{ALTER} definitions for eigenanalysis solutions;
 	an appropriate eigenanalysis method, with the related
 	data card must be provided in the case control 
 	and in the bulk data sections of the input file;
@@ -1715,15 +1583,36 @@ In detail:
 	\emph{Note: this works; see} \kw{tests/modal/beam.README}.
 
 \end{enumerate}
-The static solution of case (1: \kw{SOL 101}) and the eigensolution
-of case (2: \kw{SOL 103}) need to be performed in sequence; 
-if only the eigensolution is to be used, the ALTER file 
-of case (3: \kw{SOL 103}) must be used.
-The static solution of case (1) generates a binary file \kw{mbdyn.stm};
-the eigensolutions of cases (2--3) generate two binary files, 
-\kw{mbdyn.mat} and \kw{mbdyn.tab}; then, the tool \kw{utils/femgen} 
-must be executed, which transforms the binary files into 
-the \kw{fem\_data\_file}; the file name is requested as terminal input.
+Exactly one of these files must be included at the very top 
+of the NASTRAN input file;
+they already include the appropriate \kw{SOL} statement, so the
+input file must begin with
+\begin{verbatim}
+$ Replace '#' below with number that matches your needs
+INCLUDE 'MBDyn_NASTRAN_alter_#.nas'
+CEND
+$... any other executive control and bulk data card
+\end{verbatim}
+The static solution of case (a: \kw{SOL 101}) and the eigensolution
+of case (b: \kw{SOL 103}) need to be performed in sequence; 
+if only the eigensolution is to be used, the \kw{ALTER} file 
+of case (c: \kw{SOL 103}) must be used.
+The static solution of case (a) generates a binary file \kw{mbdyn.stm};
+the eigensolutions of cases (b--c) generate two binary files, 
+\kw{mbdyn.mat} and \kw{mbdyn.tab}, which, in case (b), include
+the static solutions as well.
+
+
+\item Run NASTRAN.
+
+
+\item Run the tool \kw{utils/femgen}, which transforms the above binary files
+into the \kw{fem\_data\_file}.
+The file name is currently requested as terminal input; this is the name 
+of the file that will be used in the input model for \kw{mbdyn}.
+Conventionally, the \kw{.fem} extension is used.
+
+\end{enumerate} % procedure
 
 \noindent
 It is strongly recommended that constrained modal analysis
@@ -1733,59 +1622,254 @@ that will coincide with \kw{reference\_modal\_node}, and using
 the \kw{origin node} to make that point the origin of the FEM frame.
 
 \noindent
-About reference frames ...
+\textbf{Note about reference frames:} the coincidence constraint between 
+multibody and FEM nodes is written between the local frame 
+of the FEM node and the global frame of the multibody node.
+As such, the multibody nodes must be oriented as the \kw{modal}
+node the \kw{modal} joint refers to, if any, or as the reference
+orientation of the \kw{modal} joint, if it is clamped.
 
 \noindent
-The format of the \kw{fem\_data\_file} is relatively straightforward;
+\textbf{Note about initial assembly:} it is very important that multibody 
+and FEM nodes at interfaces are given with a high degree of accuracy,
+because the initial assembly procedure of the modal element
+does not behave very well (it's on the TODO list with a very low
+priority); as a consequence, pay very much attention to the input
+of these nodes, until more robust procedures are developed.
+One trick is to build models incrementally.
+%\begin{itemize}
+%\item build the model up to the modal element
+%\item find out where a FEM node is going to end out by running
+%	mbdyn with \kw{abort after: input}
+%\item place the corresponding multibody node exactly in the position
+%	indicated by the FEM model output.
+%\end{itemize}
+Offsets between FEM and multibody nodes should be avoided
+unless strictly required.
+
+\noindent
+\textbf{Note about the FEM file:}
+the format of the \kw{fem\_data\_file} is relatively straightforward;
 each data block is commented.
 In detail, initial modal displacements and velocities can be added,
 if required, by manually editing the file; however this practice
-is discouraged.
+is discouraged, unless strictly required.
 
 
 
-\subsection{Beam slider}
-This joint implements a slider, e.g.\ it constrains a structural node 
-on a string of three-node beams, as discussed in \cite{SLIDER-AIDAA-2003}.
+\subsection{Plane displacement}\label{sec:PLANE_DISPLACEMENT}
+This joint allows two nodes to move in the common relative 1--2 plane 
+and to rotate about the common relative axis 3.
 \begin{verbatim}
-    <joint_type> ::= kinematic
-    <joint_arglist> ::=
-        <slider_node> ,
-        (Vec3) <relative_offset> ,
-        [ hinge , (OrientationMatrix) <relative_or_mat> ] ,
-        [ type , { spherical | classic | spline } , ]
-        <beam_number> ,
-            <3_node_beam> ,
-                { same | (Vec3) <first_node_offset> } ,
-    [ hinge , { same | (OrientationMatrix) <first_node_or_mat> ] , }
-                (Vec3) <mid_node_offset> ,
-    [ hinge , (OrientationMatrix) <mid_node_or_mat> ] ,
-                (Vec3) <end_node_offset> ,
-    [ hinge , (OrientationMatrix) <end_node_or_mat> ] ,
-                [ ... ]
-        [ , initial beam , <initial_beam> ]
-        [ , initial node, <initial_node> ]
-        [ , smearing, <smearing_factor> ]
+    <joint_type> ::= plane displacement
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1> 
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
 \end{verbatim}
-There are three types of slider:
-\begin{itemize}
-	\item the \kw{spherical} slider does not constrain
-	the orientation of the node;
-	\item the \kw{classical} slider does allow rotation
-	only about the sliding line;
-	\item the \kw{spline} slider constrain the orientation
-	of the node.
-\end{itemize}
-For each node of each beam element, the offset and the orientation
-of the slider can be defined; except for the first element, the
-offset and the orientation of the first node can be specified using
-the keyword \kw{same}, which causes the node to take the same
-value of the last node of the previous beam.
-The \kw{initial\_beam} and \kw{initial\_node} indices
-serve as hints to set the initial contact point of the sliding node.
-The \kw{smearing\_factor} determines the (nondimensional) extension
-of the interference segment when the node passes from one segment
-to another. % \cite{SLIDER}.
+\emph{Note: this element is temporarily disabled;
+combine an \kw{in plane} and a \kw{revolute rotation} joint instead.}
+
+\subsection{Plane displacement pin}
+This joint allows a node to move in the relative 1--2 plane 
+and to rotate about the relative axis 3 with respect to an absolute point 
+and plane.
+See also Section~\ref{sec:PLANE_DISPLACEMENT}.
+\begin{verbatim}
+    <joint_type> ::= plane displacement pin
+    <joint_arglist> ::= 
+        <node> , (Vec3) <relative_offset>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix> ] ,
+        (Vec3) <absolute_pin_position>
+        [ , hinge , 
+            (OrientationMatrix) <absolute_pin_orientation_matrix> ]
+\end{verbatim}
+\emph{Note: this element is temporarily disabled;
+combine an \kw{in plane} and a \kw{revolute rotation} joint instead,
+using a grounded node.}
+
+
+\subsection{Plane hinge}
+This joint has been renamed \kw{revolute hinge}; the old name has been
+deprecated and may not be supported in future versions.
+
+\subsection{Plane pin}
+This joint has been renamed \kw{revolute pin}; the old name has been
+deprecated and may not be supported in future versions.
+
+\subsection{Prismatic}
+\begin{verbatim}
+    <joint_type> ::= prismatic
+    <joint_arglist> ::= 
+        <node_1>
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2> 
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,    
+\end{verbatim}
+
+\subsection{Revolute hinge}
+\begin{verbatim}
+    <joint_type> ::= revolute hinge
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1> 
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
+\end{verbatim}
+{\em
+    Note: this joint forces nodes 1 and 2 to rotate only about relative 
+    axis 3.
+}
+
+\subsection{Revolute pin}
+\begin{verbatim}
+    <joint_type> ::= revolute pin
+    <joint_arglist> ::= 
+        <node> , (Vec3) <relative_offset>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix> ] ,
+        (Vec3) <absolute_pin_position>
+        [ , hinge , 
+            (OrientationMatrix) <absolute_pin_orientation_matrix> ]
+\end{verbatim}
+{\em
+    Note: this is the dual of the revolute hinge when one node is grounded.
+}
+
+\subsection{Revolute rotation}
+A revolute joint without position constraints; this joint, in conjunction
+with an \kw{inline} joint, should be used to constrain the two nodes
+of a hydraulic actuator.
+\begin{verbatim}
+    <joint_type> ::= revolute rotation
+    <joint_arglist> ::= 
+        <node_1>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
+\end{verbatim}
+{\em
+    Note: this joint forces nodes 1 and 2 to rotate only about relative 
+    axis 3.
+}
+
+\subsection{Rod}
+\begin{verbatim}
+    <joint_type> ::= rod 
+    <joint_arglist> ::= <node_1> , <node_2> , 
+        (scalar) { <rod_length> | from nodes }
+        [ , offset , (Vec3) <relative_offset_1> , 
+                     (Vec3) <relative_offset_2> ] ,
+        (ConstitutiveLaw1D) <const_law>
+\end{verbatim}
+The constitutive law \kw{<const\_law>} is used in form 
+of rod axial stiffness $EA$, i.e., for a linear constitutive law:
+\begin{displaymath}
+	F = EA \frac{l - l_0}{l_0}
+\end{displaymath}
+and in general
+\begin{displaymath}
+	F = F\plbr{\frac{l - l_0}{l_0}, \frac{\dot{l}}{l_0}}
+\end{displaymath}
+where $l_0=\kw{<rod\_length>}$.
+For further details on the constitutive laws, 
+see Section~\ref{sec:CONSTITUTIVE-LAWS}.
+See also \kw{rod with offset} in Section~\ref{sec:RD-WITH-OFFSET}.
+
+\subsection{Rod with offset}\label{sec:RD-WITH-OFFSET}.
+\begin{verbatim}
+    <joint_type> ::= rod with offset
+    <joint_arglist> ::= <node_1> , (Vec3) <relative_offset_1>
+                        <node_2> , (Vec3) <relative_offset_2>
+        (scalar) { <rod_length> | from nodes } ,
+        (ConstitutiveLaw1D) <const_law>
+\end{verbatim}
+Analogous to \kw{rod} with the optional arg \kw{offset}.
+
+\subsection{Spherical hinge}
+\begin{verbatim}
+    <joint_type> ::= spherical hinge
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1> 
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
+\end{verbatim}
+{\em
+    Note: the orientation matrix is used for output purposes only. 
+    A default identity matrix is assumed.
+}
+
+\subsection{Spherical pin}
+\begin{verbatim}
+    <joint_type> ::= spherical pin
+    <joint_arglist> ::= <node> , (Vec3) <relative_offset> ,
+                                 (Vec3) <absolute_pin_position>
+\end{verbatim}
+{\em
+    Note: this is the dual of the spherical hinge when one node is grounded.
+    An alternative way to model a grounded spherical hinge requires the use
+    of a static, clamped node.
+}
+
+\subsection{Universal hinge}
+\begin{verbatim}
+    <joint_type> ::= universal hinge
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1> 
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
+\end{verbatim}
+{\em
+    Note: this joint forces the relative direction 3 of node 1 to be always 
+    normal to the relative direction 2 of node 2.
+}
+
+\subsection{Universal pin}
+\begin{verbatim}
+    <joint_type> ::= universal pin
+    <joint_arglist> ::= 
+        <node> , (Vec3) <relative_offset>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix> ] ,
+        (Vec3) <absolute_pin_position>
+        [ , hinge , 
+            (OrientationMatrix) <absolute_pin_orientation_matrix> ]
+\end{verbatim}
+{\em
+    Note: this is the dual of the universal hinge when one node is grounded.
+}
+
+\subsection{Universal rotation}
+A universal joint without position constraints.
+\begin{verbatim}
+    <joint_type> ::= universal rotation
+    <joint_arglist> ::= 
+        <node_1>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
+\end{verbatim}
+{\em
+    Note: this joint forces the relative direction 3 of node 1 to be always 
+    normal to the relative direction 2 of node 2.
+}
+
 
 \section{Loadable Element}
 The \kw{loadable} element is a wrapper for a user-defined element that is
