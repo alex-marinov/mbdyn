@@ -213,7 +213,8 @@ ImplicitStepIntegrator::TestScale(const NonlinearSolverTest *pTest) const
 		DofIterator.bGetFirst(CurrDof); 
 
 	   	for (int iCntp1 = 1; iCntp1 <= pXPrimeCurr->iGetSize(); 
-				iCntp1++, DofIterator.bGetNext(CurrDof)) {
+				iCntp1++, DofIterator.bGetNext(CurrDof))
+		{
 
 			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
 				doublereal d = pXPrimeCurr->dGetCoef(iCntp1);
@@ -228,7 +229,7 @@ ImplicitStepIntegrator::TestScale(const NonlinearSolverTest *pTest) const
 			/* else if ALGEBRAIC: non aggiunge nulla */
 		}
 
-	   	return 1./(1.+dXPr);
+	   	return 1./(1. + dXPr);
 
 	} else {
 		return 1.;
@@ -296,27 +297,22 @@ DerivativeSolver::Jacobian(MatrixHandler* pJac) const
 	pDM->AssJac(*pJac, dCoef);
 }
 
-void DerivativeSolver::UpdateDof(const int DCount,
+void
+DerivativeSolver::UpdateDof(const int DCount,
 		const DofOrder::Order Order,
-		const VectorHandler* const pSol) const {
+		const VectorHandler* const pSol) const
+{
 	doublereal d = pSol->dGetCoef(DCount);
 	if (Order == DofOrder::DIFFERENTIAL) {
 		pXPrimeCurr->IncCoef(DCount, d);
 		
-		/* Nota: b0Differential e b0Algebraic 
-		 * possono essere distinti;
-		 * in ogni caso sono calcolati 
-		 * dalle funzioni di predizione
-		 * e sono dati globali */
-#if 0
-		/* FIXME: update state derivatives only */
+#if 1 /* FIXME: update state derivatives only */
 		pXCurr->IncCoef(DCount, dCoef*d);
 #endif
 
 	} else {
 		pXCurr->IncCoef(DCount, d);
-#if 0
-		/* FIXME: update state only */
+#if 1 /* FIXME: update state only */
 		pXPrimeCurr->IncCoef(DCount, dCoef*d);
 #endif
 	}	
@@ -371,9 +367,11 @@ StepNIntegrator::Jacobian(MatrixHandler* pJac) const
 	pDM->AssJac(*pJac, db0Differential);
 }
 
-void StepNIntegrator::UpdateDof(const int DCount,
+void
+StepNIntegrator::UpdateDof(const int DCount,
 	const DofOrder::Order Order,
-	const VectorHandler* const pSol) const {
+	const VectorHandler* const pSol) const
+{
 	doublereal d = pSol->dGetCoef(DCount);
 	if (Order == DofOrder::DIFFERENTIAL) {
 		pXPrimeCurr->IncCoef(DCount, d);
@@ -384,6 +382,7 @@ void StepNIntegrator::UpdateDof(const int DCount,
 		 * dalle funzioni di predizione
 		 * e sono dati globali */
 		pXCurr->IncCoef(DCount, db0Differential*d);
+
 	} else {
 		pXCurr->IncCoef(DCount, d);
 		pXPrimeCurr->IncCoef(DCount, db0Algebraic*d);
@@ -429,11 +428,11 @@ Step1Integrator::~Step1Integrator(void)
 
 void Step1Integrator::PredictDof(const int DCount,
 	const DofOrder::Order Order,
-	const VectorHandler* const pSol) const {
+	const VectorHandler* const pSol) const
+{
 	if (Order == DofOrder::DIFFERENTIAL) {
 		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
-		doublereal dXPnm1 = 
-			pXPrimePrev->dGetCoef(DCount);
+		doublereal dXPnm1 = pXPrimePrev->dGetCoef(DCount);
 		doublereal dXPn = dPredDer(dXnm1, dXPnm1);
 		doublereal dXn = dPredState(dXnm1, dXPn, dXPnm1);
 		pXPrimeCurr->PutCoef(DCount, dXPn);
@@ -457,7 +456,7 @@ void Step1Integrator::PredictDof(const int DCount,
 			<< DCount << std::endl);
 		throw ErrGeneric();
 	}
-};
+}
 
 
 void
@@ -554,12 +553,12 @@ Step2Integrator::~Step2Integrator(void)
   */
 void Step2Integrator::PredictDof(const int DCount,
 	const DofOrder::Order Order,
-	const VectorHandler* const pSol) const {
+	const VectorHandler* const pSol) const
+{
 	if (Order == DofOrder::DIFFERENTIAL) {
 		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
 		doublereal dXnm2 = pXPrev2->dGetCoef(DCount);
-		doublereal dXPnm1 = 
-			pXPrimePrev->dGetCoef(DCount);
+		doublereal dXPnm1 = pXPrimePrev->dGetCoef(DCount);
 
 		doublereal dXPnm2 = 
 			pXPrimePrev2->dGetCoef(DCount);
@@ -635,25 +634,25 @@ Step2Integrator::Advance(Solver* pS,
 
 
 #ifdef DEBUG
-      		integer iNumDofs = pDM->iGetNumDofs();
-		if (outputPred) {
-			std::cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  "
-				",   XPrime  ,   XPPrev  ,   XPPrev2" << std::endl;
-			for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-	    			std::cout << std::setw(4) << iTmpCnt << ": ";
-				std::cout << std::setw(12) << pX->dGetCoef(iTmpCnt);
-				for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {  
-					std::cout << std::setw(12)
+	integer iNumDofs = pDM->iGetNumDofs();
+	if (outputPred) {
+		std::cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  "
+			",   XPrime  ,   XPPrev  ,   XPPrev2" << std::endl;
+		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
+    			std::cout << std::setw(4) << iTmpCnt << ": ";
+			std::cout << std::setw(12) << pX->dGetCoef(iTmpCnt);
+			for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {
+				std::cout << std::setw(12)
 					<< (qX[ivec])->dGetCoef(iTmpCnt);
-				} 
-				std::cout << std::setw(12) << pXPrime->dGetCoef(iTmpCnt);
-				for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {  
-					std::cout << std::setw(12)
+			} 
+			std::cout << std::setw(12) << pXPrime->dGetCoef(iTmpCnt);
+			for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {  
+				std::cout << std::setw(12)
 					<< (qXPrime[ivec])->dGetCoef(iTmpCnt);
-				} 
-				std::cout << std::endl;
-	 		}
-      		}
+			} 
+			std::cout << std::endl;
+ 		}
+	}
 #endif /* DEBUG */
 
 	Err = 0.;        
@@ -709,9 +708,9 @@ CrankNicholsonIntegrator::dPredictState(const doublereal& dXm1,
 		DofOrder::Order o) const
 {
 	if (o == DofOrder::ALGEBRAIC) {
-		return db0Differential*(dXP+dXPm1);     
+		return db0Differential*(dXP + dXPm1);     
 	} /* else if (o == DofOrder::DIFFERENTIAL) */   
-	return dXm1+db0Differential*(dXP+dXPm1);
+	return dXm1 + db0Differential*(dXP + dXPm1);
 }
    
 /* Nota: usa predizione lineare per le derivate (massimo ordine possibile) */
@@ -727,7 +726,7 @@ CrankNicholsonIntegrator::dPredState(const doublereal& dXm1,
 		const doublereal& dXP,
 		const doublereal& dXPm1) const
 {
-	return dXm1+db0Differential*(dXP+dXPm1);
+	return dXm1 + db0Differential*(dXP + dXPm1);
 }
    
 doublereal 
@@ -742,7 +741,7 @@ CrankNicholsonIntegrator::dPredStateAlg(const doublereal& /* dXm1 */ ,
 		const doublereal& dXP,
 		const doublereal& dXPm1) const
 {
-	return db0Differential*(dXP+dXPm1);
+	return db0Differential*(dXP + dXPm1);
 }
 
 /* CrankNicholson - end */
@@ -789,7 +788,7 @@ ImplicitEulerIntegrator::dPredictState(const doublereal& dXm1,
 	if (o == DofOrder::ALGEBRAIC) {
 		return db0Differential*dXP;     
 	} /* else if (o == DofOrder::DIFFERENTIAL) */   
-	return dXm1+db0Differential*dXP;
+	return dXm1 + db0Differential*dXP;
 }
    
 /* Nota: usa predizione lineare per le derivate (massimo ordine possibile) */
@@ -805,7 +804,7 @@ ImplicitEulerIntegrator::dPredState(const doublereal& dXm1,
 		const doublereal& dXP,
 		const doublereal& dXPm1) const
 {
-	return dXm1+db0Differential*dXP;
+	return dXm1 + db0Differential*dXP;
 }
    
 doublereal 

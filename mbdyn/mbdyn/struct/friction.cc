@@ -580,13 +580,13 @@ BasicFriction *const ParseFriction(MBDynParser& HP,
 		doublereal sigma2 = HP.GetReal();
 		doublereal kappa = HP.GetReal();
 		const BasicScalarFunction*const sf = 
-			ParseScalarFunction(HP,pDM);
+			ParseScalarFunction(HP, pDM);
 		return new ModLugreFriction(sigma0, sigma1, sigma2, kappa, sf);
 		break;
 	}
 	case DISCRETECOULOMB: {
 		const BasicScalarFunction*const sf = 
-			ParseScalarFunction(HP,pDM);
+			ParseScalarFunction(HP, pDM);
 		doublereal sigma2 = 0.;
 		doublereal vel_ratio = 0.8;
 		if (HP.IsKeyWord("sigma2")) {
