@@ -2,7 +2,7 @@
 
 # Build mbdyn utils
 bin_PROGRAMS = rotrel eu2rot rot2eu rot2eup rot2phi \
-deriv cl loadable posrel sockdrive autopilot intg env
+deriv cl loadable posrel sockdrive autopilot intg dae-intg env
 
 LIBS = ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la
 
@@ -18,10 +18,12 @@ posrel_SOURCES = posrel.cc
 sockdrive_SOURCES = sockdrive.cc
 autopilot_SOURCES = autopilot.cc
 intg_SOURCES = intg.cc
+dae_intg_SOURCES = dae-intg.cc
 env_SOURCES = env.c
 
 LIBS = ../libraries/libmbutil/libmbutil.la ../libraries/libmbmath/libmbmath.la @F2C_LIBS@
 intg_LDADD = -ldl
+dae_intg_LDADD = -ldl
 
 INCLUDES = -I../libraries/libmbutil -I../libraries/libmbmath -I../mbdyn -I../mbdyn/base -I../mbdyn/struct -I../mbdyn/aero -I../mbdyn/elec -I../mbdyn/hydr
 
