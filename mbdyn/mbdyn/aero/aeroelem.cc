@@ -490,16 +490,41 @@ ReadUnsteadyFlag(MBDynParser& HP)
 			} else if (HP.IsKeyWord("bielawa")) {
 				iInst = AeroData::BIELAWA;
 			} else {
-				std::cerr << HP.GetLineData()
- 					<<"deprecated unsteady model given by number;"
-					" use 'harris' or 'bielawa' instead" << std::endl;
-				iInst = AeroData::UnsteadyModel(HP.GetInt());
+				silent_cerr(HP.GetLineData()
+ 					<< ": deprecated unsteady model "
+					"given by integer number;"
+					" use 'Harris' or 'Bielawa' instead"
+					<< std::endl);
+
+				int i = HP.GetInt();
+				if (i < AeroData::STEADY || i >= AeroData::LAST) {
+					std::cerr << "illegal unsteady flag "
+						"numeric value " << i
+						<< " at line "
+						<< HP.GetLineData()
+						<< std::endl;
+					THROW(ErrGeneric());
+				}
+      				iInst = AeroData::UnsteadyModel(i);
 			}
+
 		} else {
-			std::cerr << HP.GetLineData()
-				<<"deprecated unsteady model given by number;"
-				" use 'harris' or 'bielawa' instead" << std::endl;
-      			iInst = AeroData::UnsteadyModel(HP.GetInt());
+			silent_cerr(HP.GetLineData()
+				<< " deprecated unsteady model "
+				"given by integer number "
+				"without 'unsteady' keyword;"
+				" use 'Harris' or 'Bielawa' instead"
+				<< std::endl);
+
+			int i = HP.GetInt();
+			if (i < AeroData::STEADY || i >= AeroData::LAST) {
+				std::cerr << "illegal unsteady flag "
+					"numeric value " << i << " at line "
+					<< HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+      			iInst = AeroData::UnsteadyModel(i);
 		}
 
       		switch (iInst) {
@@ -637,7 +662,10 @@ ReadAeroData(DataManager* pDM,
 			if (HP.IsKeyWord("multiple")) {
 				integer nProfiles = HP.GetInt();
 				if (nProfiles <= 0) {
-					std::cerr << "Need at least one profile at line " << HP.GetLineData() << std::endl;
+					std::cerr << "Need at least "
+						"one profile at line " 
+						<< HP.GetLineData()
+						<< std::endl;
 					THROW(ErrGeneric());
 				}
 				integer *profiles = NULL;
@@ -651,18 +679,42 @@ ReadAeroData(DataManager* pDM,
 					profiles[i] = HP.GetInt();
 					upper_bounds[i] = HP.GetReal();
 					if (upper_bounds[i] <= -1.) {
-						std::cerr << "upper bound " << i+1 << " = " << upper_bounds[i] << " too small at line " << HP.GetLineData() << std::endl;
+						std::cerr << "upper bound "
+							<< i+1 << " = " 
+							<< upper_bounds[i] 
+							<< " too small "
+							"at line " 
+							<< HP.GetLineData() 
+							<< std::endl;
 						THROW(ErrGeneric());
 					} else if (upper_bounds[i] > 1.) {
-						std::cerr << "upper bound " << i+1 << " = " << upper_bounds[i] << " too large at line " << HP.GetLineData() << std::endl;
+						std::cerr << "upper bound " 
+							<< i+1 << " = " 
+							<< upper_bounds[i] 
+							<< " too large "
+							"at line " 
+							<< HP.GetLineData() 
+							<< std::endl;
 						THROW(ErrGeneric());
 					} else if (i > 0 && upper_bounds[i] <= upper_bounds[i-1]) {
-						std::cerr << "upper bound " << i+1 << " = " << upper_bounds[i] << " not in increasing order at line " << HP.GetLineData() << std::endl;
+						std::cerr << "upper bound " 
+							<< i+1 << " = " 
+							<< upper_bounds[i] 
+							<< " not in "
+							"increasing order "
+							"at line " 
+							<< HP.GetLineData() 
+							<< std::endl;
 						THROW(ErrGeneric());
 					}
 					data[i] = HP.GetC81Data(profiles[i]);
 					if (data[i] == NULL) {
-						std::cerr << "Unable to find profile " << profiles[i] << " at line "<< HP.GetLineData() << std::endl;
+						std::cerr << "Unable to find "
+							"profile " 
+							<< profiles[i] 
+							<< " at line "
+							<< HP.GetLineData() 
+							<< std::endl;
 						THROW(ErrGeneric());
 					}
 		  			DEBUGLCOUT(MYDEBUG_INPUT, 
@@ -672,7 +724,12 @@ ReadAeroData(DataManager* pDM,
 				}
 
 				if (upper_bounds[nProfiles-1] != 1.) {
-					std::cerr << "warning: the last upper bound should be 1. at line " << HP.GetLineData() << std::endl;
+					silent_cerr("warning: the last "
+							"upper bound "
+							"should be 1. "
+							"at line " 
+							<< HP.GetLineData() 
+							<< std::endl);
 				}
 				
 				profiles[nProfiles] = -1;
@@ -682,13 +739,16 @@ ReadAeroData(DataManager* pDM,
 					iInst = ReadUnsteadyFlag(HP);
 				DriveCaller *ptime = NULL;
 				if (iInst) {
-					SAFENEWWITHCONSTRUCTOR(ptime, TimeDriveCaller, 
+					SAFENEWWITHCONSTRUCTOR(ptime,
+							TimeDriveCaller, 
 							TimeDriveCaller(pDM->pGetDrvHdl()));
 				}
 				SAFENEWWITHCONSTRUCTOR(*aerodata,
 						C81MultipleAeroData,
-						C81MultipleAeroData(iInst, nProfiles, profiles, 
-							upper_bounds, data, ptime));
+						C81MultipleAeroData(iInst,
+							nProfiles, profiles, 
+							upper_bounds, data,
+							ptime));
 	
 			} else {
 	  			integer iProfile = HP.GetInt();
@@ -701,12 +761,14 @@ ReadAeroData(DataManager* pDM,
 					iInst = ReadUnsteadyFlag(HP);
 				DriveCaller *ptime = NULL;
 				if (iInst) {
-					SAFENEWWITHCONSTRUCTOR(ptime, TimeDriveCaller, 
+					SAFENEWWITHCONSTRUCTOR(ptime,
+							TimeDriveCaller, 
 							TimeDriveCaller(pDM->pGetDrvHdl()));
 				}
 	  			SAFENEWWITHCONSTRUCTOR(*aerodata,
 					C81AeroData,
-					C81AeroData(iInst, iProfile, data, ptime));
+					C81AeroData(iInst, iProfile,
+						data, ptime));
 			}
 			break;
        		}
@@ -888,7 +950,8 @@ pvdOuta(NULL)
       		catch (ErrMemory) {
 	 		SetOutputFlag(flag(0));
 	 		std::cerr << "Unable to alloc memory for output"
-				" of AerodynamicBeam " << GetLabel() << std::endl;
+				" of AerodynamicBeam " << GetLabel()
+				<< std::endl;
       		}
 #endif /* USE_EXCEPTIONS */
    	}
@@ -935,8 +998,8 @@ AerodynamicBeam::SetOutputFlag(flag f)
 	 		}
 	 		catch (ErrMemory) {
 	    			SetOutputFlag(flag(0));
-	    			std::cerr << "Unable to alloc memory for output"
-					" of AerodynamicBeam "
+	    			std::cerr << "Unable to alloc memory "
+					"for output of AerodynamicBeam "
 					<< GetLabel() << std::endl;
 	 		}
 #endif /* USE_EXCEPTIONS */

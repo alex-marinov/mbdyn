@@ -84,7 +84,9 @@ public:
 	enum UnsteadyModel {
 		STEADY = 0,
 		HARRIS = 1,
-		BIELAWA = 2
+		BIELAWA = 2,
+
+		LAST
 	};
 	
 	enum { ALF1 = 8, ALF2 = 9 };
