@@ -288,7 +288,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  THROW(DataManager::ErrGeneric());
        }		  
        
-       Vec3 f1(HP.GetPosRel(ReferenceFrame(pNode1)));	    				     
+       Vec3 f1(HP.GetPosRel(ReferenceFrame(pNode1)));
        
        DEBUGCOUT("Offset 1: " << f1 << endl);
        
@@ -311,17 +311,20 @@ Elem* ReadJoint(DataManager* pDM,
        
        DEBUGCOUT("Offset 2: " << f2 << endl);
        
-              
+ 
        /* Legge e costruisce il drivecaller */
        if (!HP.fIsArg()) {
 	  cerr << "line " << HP.GetLineData()
-	    << ": driver data expected" << endl;	  
+	    << ": driver data expected" << endl;
 	  THROW(DataManager::ErrGeneric());
        }	     
        
        DriveCaller* pDC = NULL;
        if (HP.IsKeyWord("fromnodes")) {
-	  doublereal l = (pNode2->GetXCurr()+f2-pNode1->GetXCurr()-f1).Norm();
+	  doublereal l = (pNode2->GetXCurr()
+			  +pNode2->GetRCurr()*f2
+			  -pNode1->GetXCurr()
+			  -pNode1->GetRCurr()*f1).Norm();
 	  SAFENEWWITHCONSTRUCTOR(pDC, 
 				 ConstDriveCaller, 
 				 ConstDriveCaller(pDM->pGetDrvHdl(), l),
@@ -339,7 +342,7 @@ Elem* ReadJoint(DataManager* pDM,
 			      DistanceJointWithOffset(uLabel, pDO, pNode1, pNode2,
 						      f1, f2, pDC, fOut), DMmm);
        
-       /* scrittura dei dati specifici */	     	     
+       /* scrittura dei dati specifici */
        break;
     }
       
@@ -781,7 +784,7 @@ Elem* ReadJoint(DataManager* pDM,
        break;
     }	
       
-      /* vincolo di distanza */
+      /* asta con pin alle estremita' */
     case ROD: {
        
        /*
@@ -815,7 +818,7 @@ Elem* ReadJoint(DataManager* pDM,
        /* Se si tratta di Rod con Offset, legge gli offset e poi passa 
 	* al tipo di legame costitutivo */
        if (HP.IsKeyWord("offset")) {
-	  fOffset = 1;	  
+	  fOffset = 1;
 	  f1 = HP.GetPosRel(ReferenceFrame(pNode1));	  
 	  DEBUGCOUT("Offset 1: " << f1 << endl);
 
@@ -892,9 +895,8 @@ Elem* ReadJoint(DataManager* pDM,
        /* Lunghezza iniziale */
        doublereal dL = 0.;
        if (HP.IsKeyWord("fromnodes")) {
-          Vec3 v = pNode2->GetXCurr()-pNode1->GetXCurr()
-		  +pNode2->GetRCurr()*f2-pNode1->GetRCurr()*f1;
-          dL = v.Norm();
+          dL = (pNode2->GetXCurr()-pNode1->GetXCurr()
+		+pNode2->GetRCurr()*f2-pNode1->GetRCurr()*f1).Norm();
        } else {
           dL = HP.GetReal();
        }
