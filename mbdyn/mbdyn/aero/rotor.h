@@ -70,6 +70,7 @@ class Rotor
  protected:
 #ifdef USE_MPI
    /* Communicator per il calcolo della trazione totale */
+   bool is_parallel;
    MPI::Intracomm RotorComm;  /* Gruppo di macchine su cui si scambiano dati relativi al rotore */  
    int* pBlockLenght;    
    MPI::Aint* pDispl;        /* vettore di indirizzi di dati */
