@@ -44,12 +44,13 @@
 #include <mschwrap.h>
 #include <umfpackwrap.h>
 #include <superluwrap.h>
+#include <lapackwrap.h>
 
 static void
 usage(void)
 {
 	std::cerr << "usage: wraptest [-c] [-d] [-m <solver>] [-s]" << std::endl
-		<< "\t<solver>={y12|harwell|meschach|umfpack|superlu}" << std::endl;
+		<< "\t<solver>={y12|harwell|meschach|umfpack|superlu|lapack}" << std::endl;
 	exit(EXIT_FAILURE);
 }
 
@@ -68,6 +69,8 @@ main(int argc, char *argv[])
 		"harwell"
 #elif defined(USE_MESCHACH)
 		"meschach"
+#elif defined(USE_LAPACK)
+		"lapack"
 #else
 		"no solver!!!"
 #endif /* NO SOLVER !!! */
@@ -115,6 +118,16 @@ main(int argc, char *argv[])
 	}
 
 	if (strcasecmp(solver, "superlu") == 0) {
+#ifdef USE_LAPACK
+		SAFENEWWITHCONSTRUCTOR(pSM, LapackSolutionManager,
+				LapackSolutionManager(size));
+#else /* !USE_LAPACK */
+		std::cerr << "need --with-lapack to use Lapack library dense solver" 
+			<< std::endl;
+		usage();
+#endif /* !USE_LAPACK */
+
+	} else if (strcasecmp(solver, "superlu") == 0) {
 #ifdef USE_SUPERLU
 		if (dir) {
 			typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;

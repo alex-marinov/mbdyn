@@ -11,6 +11,8 @@ harwout.h \
 harwout_.cc \
 harwrap.cc \
 harwrap.h \
+lapackwrap.cc \
+lapackwrap.h \
 mschwrap.cc \
 mschwrap.h \
 superluwrap.cc \
@@ -20,7 +22,22 @@ umfpackwrap.h \
 y12wrap.cc \
 y12wrap.h
 
-libmbwrap_la_LIBADD = @LIBS@ @F2C_LIBS@ @THREAD_LIBS@
+libmbwrap_la_LIBADD = \
+../libmbmath/libmbmath.la \
+../libmbutil/libmbutil.la \
+../libobjs/libobjs.la \
+../liby12/liby12.la \
+@UMFPACK_LIBS@ \
+@MESCHACH_LIBS@ \
+@HARWELL_LIBS@ \
+@SUPERLU_LIBS@ \
+@LAPACK_LIBS@ \
+@BLAS_LIBS@ \
+@LIBS@ \
+@F2C_LIBS@ \
+@TCL_LIBS@ \
+@THREAD_LIBS@
+
 libmbwrap_la_LDFLAGS =
 
 noinst_PROGRAMS = wraptest cctest
@@ -35,6 +52,10 @@ wraptest_LDADD = \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
+@SUPERLU_LIBS@ \
+@LAPACK_LIBS@ \
+@BLAS_LIBS@ \
+@LIBS@ \
 @F2C_LIBS@ \
 @TCL_LIBS@ \
 @THREAD_LIBS@
@@ -49,6 +70,9 @@ cctest_LDADD = \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
+@SUPERLU_LIBS@ \
+@BLAS_LIBS@ \
+@LIBS@ \
 @F2C_LIBS@ \
 @TCL_LIBS@ \
 @THREAD_LIBS@

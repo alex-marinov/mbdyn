@@ -43,6 +43,7 @@
 #include "y12wrap.h"
 #include "umfpackwrap.h"
 #include "superluwrap.h"
+#include "lapackwrap.h"
 
 #include "mbpar.h"
 
@@ -76,6 +77,10 @@ static struct solver_t {
 		LinSol::SUPERLU_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT },
+	{ "Lapack", NULL,
+		LinSol::LAPACK_SOLVER,
+		LinSol::SOLVER_FLAGS_NONE,
+		LinSol::SOLVER_FLAGS_NONE },
 	{ "Empty", NULL,
 		LinSol::EMPTY_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
@@ -100,7 +105,9 @@ LinSol::SolverType LinSol::defaultSolver =
 	LinSol::HARWELL_SOLVER
 #elif /* !USE_HARWELL */ defined(USE_MESCHACH)
 	LinSol::MESCHACH_SOLVER
-#else /* !USE_MESCHACH */
+#elif /* !USE_MESCHACK */ defined(USE_LAPACK)
+	LinSol::LAPACK_SOLVER
+#else /* !USE_LAPACK */
 	LinSol::EMPTY_SOLVER
 /* FIXME: remove this error if no solver becomes acceptable :) */
 #error "need a solver!"
@@ -132,6 +139,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::UMFPACK_SOLVER].s_name,
 		::solver[LinSol::UMFPACK_SOLVER].s_alias,
 		::solver[LinSol::SUPERLU_SOLVER].s_name,
+		::solver[LinSol::LAPACK_SOLVER].s_name,
 		::solver[LinSol::EMPTY_SOLVER].s_name,
 		NULL
 	};
@@ -143,6 +151,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		UMFPACK,
 		UMFPACK3,
 		SUPERLU,
+		LAPACK,
 		EMPTY,
 
 		LASTKEYWORD
@@ -181,6 +190,17 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using SuperLU sparse LU solver" << std::endl);
 #endif /* USE_SUPERLU */
+		break;
+
+	case LAPACK:
+#ifdef USE_LAPACK
+		/*
+		 * FIXME: use CC as default???
+		 */
+		CurrSolver = LinSol::LAPACK_SOLVER;
+		DEBUGLCOUT(MYDEBUG_INPUT,
+				"Using Lapack dense LU solver" << std::endl);
+#endif /* USE_LAPACK */
 		break;
 
 	case UMFPACK3:
@@ -392,6 +412,12 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 		CurrSolver = t;
 		return true;
 #endif /* USE_SUPERLU */
+
+	case LinSol::LAPACK_SOLVER:
+#ifdef USE_LAPACK
+		CurrSolver = t;
+		return true;
+#endif /* USE_LAPACK */
 
 	case LinSol::Y12_SOLVER:
 #ifdef USE_Y12
@@ -608,6 +634,18 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			"to enable Meschach solver" << std::endl;
       		THROW(ErrGeneric());
 #endif /* !USE_MESCHACH */
+
+	case LinSol::LAPACK_SOLVER:
+#ifdef USE_LAPACK
+		SAFENEWWITHCONSTRUCTOR(pCurrSM,
+			LapackSolutionManager,
+			LapackSolutionManager(iNLD, dPivotFactor));
+		break;
+#else /* !USE_LAPACK */
+		std::cerr << "Configure with --with-lapack "
+			"to enable Lapack dense solver" << std::endl;
+      		THROW(ErrGeneric());
+#endif /* !USE_LAPACK */
 
  	case LinSol::HARWELL_SOLVER:
 #ifdef USE_HARWELL
