@@ -86,6 +86,18 @@ PlaneHingeJoint::AfterConvergence(const VectorHandler& X,
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta += v.dGet(3);
+	if (fc) {
+		Mat3x3 R1(pNode1->GetRCurr());
+		Mat3x3 R1hTmp(R1*R1h);
+		Vec3 e3a(R1hTmp.GetVec(3));
+		Vec3 Omega1(pNode1->GetWCurr());
+		Vec3 Omega2(pNode2->GetWCurr());
+		//relative velocity
+		doublereal v = (Omega1-Omega2).Dot(e3a)*r;
+		//reaction norm
+		doublereal modF = F.Norm();
+		fc->AfterConvergence(modF,v,X,XP,iGetFirstIndex()+NumSelfDof);
+	}
 }
 
 
@@ -277,7 +289,7 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
           //reaction norm
       doublereal modF = F.Norm();
           //reaction moment
-      doublereal M3 = shc*modF*f;
+      //doublereal M3 = shc*modF*f;
       
       ExpandableRowVector dfc;
       ExpandableRowVector dF;

@@ -331,6 +331,12 @@ after_convergence(const LoadableElem* pEl,
 		const VectorHandler& XP)
 {
 	DEBUGCOUTFNAME("after_convergence");
+	module_friction* p = (module_friction*)pEl->pGetData();
+	if (p->fc) {
+		integer iFirstPositionIndex = p->pos.pNode->iGetFirstRowIndex();
+		doublereal v = XP.dGetCoef(iFirstPositionIndex+1);
+		p->fc->AfterConvergence(p->mass,v,X,XP,pEl->iGetFirstIndex());
+	}
 }
 
 static void
