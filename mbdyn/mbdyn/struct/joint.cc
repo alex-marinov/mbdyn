@@ -709,7 +709,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  /* allocazione e creazione pattino */
 	case PLANEDISPLACEMENT:
 	   std::cerr << "PlaneDispJoint(" << uLabel << "): "
-		   "no longer supported; "
+		   "temporarily supported; "
 		   "use an InPlane and a RevoluteRotation"
 		   << std::endl;
 	   THROW(ErrGeneric());
@@ -818,7 +818,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  /* allocazione e creazione cerniera piana */	     
 	case PLANEDISPLACEMENTPIN: {
 	   std::cerr << "PlaneDispJoint(" << uLabel << "): "
-		   "no longer supported; "
+		   "temporarily supported; "
 		   "use an InPlane and a RevoluteRotation"
 		   << std::endl;
 	   THROW(ErrGeneric());

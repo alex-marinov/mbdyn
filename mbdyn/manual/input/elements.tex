@@ -1407,7 +1407,7 @@ deprecated and may not be supported in future versions.
     axis 3 with imposed angular velocity.
 }
 
-\subsection{Plane displacement}
+\subsection{Plane displacement}\label{sec:PLANE_DISPLACEMENT}
 This joint allows two nodes to move in the common relative 1--2 plane 
 and to rotate about the common relative axis 3.
 \begin{verbatim}
@@ -1420,8 +1420,14 @@ and to rotate about the common relative axis 3.
         [ , hinge , 
             (OrientationMatrix) <relative_orientation_matrix_2> ]
 \end{verbatim}
+\emph{Note: this element is temporarily disabled;
+combine an \kw{in plane} and a \kw{revolute rotation} joint instead.}
 
 \subsection{Plane displacement pin}
+This joint allows a node to move in the relative 1--2 plane 
+and to rotate about the relative axis 3 with respect to an absolute point 
+and plane.
+See also Section~\ref{sec:PLANE_DISPLACEMENT}.
 \begin{verbatim}
     <joint_type> ::= plane displacement pin
     <joint_arglist> ::= 
@@ -1432,9 +1438,9 @@ and to rotate about the common relative axis 3.
         [ , hinge , 
             (OrientationMatrix) <absolute_pin_orientation_matrix> ]
 \end{verbatim}
-{\em
-    Note: this is the dual of the plane displacement when one node is grounded.
-}
+\emph{Note: this element is temporarily disabled;
+combine an \kw{in plane} and a \kw{revolute rotation} joint instead,
+using a grounded node.}
 
 
 \subsection{In plane}
