@@ -8,7 +8,7 @@ fullmh.cc    fullmh.h     harwlib.h    harwlib_.f      spdata_.f \
 harwout.c    harwout.h    harwout_.cc  harwrap.cc      harwrap.h   ldl.f \
 ldl.h        matvec3.cc   matvec3.h    matvec3n.cc     matvec3n.h  matvec6.cc \
 matvec6.h    \
-matvecexp.h  matvecexp.cc Rot.hh Rot.cc RotCoeff.hh RotCoeff.cc \
+matvecexp.h  matvecexp.cc Rot.hh Rot.cc RotCoeff.hh RotCoeff.cc Interp.cc \
 mschwrap.cc  mschwrap.h   myf2c.h         mymath.h    solman.cc \
 solman.h     submat.cc    submat.h     schsolman.cc    schsolman.h \
 sparsemh.cc  sparsemh.h   y12wrap.cc   y12wrap.h

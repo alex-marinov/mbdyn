@@ -62,16 +62,9 @@ Mat3x3 RotManip::Rot(const Vec3 & phi) {
 	doublereal coeff[COEFF_B];
 
 	CoeffB(phi.Dot(),coeff);
-#if 0
-	Mat3x3 Phi(1.);
-	Mat3x3 phi_cross(phi);
 
-	Phi+=phi_cross*coeff[0];
-	Phi+=phi_cross*(phi_cross)*coeff[1];
-#else /* 0 */
 	Mat3x3 Phi(1., phi*coeff[0]);		/* I + c[0] * phi x */
 	Phi += Mat3x3(phi, phi*coeff[1]);	/* += c[1] * phi x phi x */
-#endif /* 0 */
 
 	return Phi;
 };
@@ -81,15 +74,9 @@ Mat3x3 RotManip::DRot(const Vec3 & phi) {
 	doublereal coeff[COEFF_C];
 
 	CoeffC(phi.Dot(),coeff);
-#if 0
-	Mat3x3 Ga(1.), phi_cross(phi);
 
-	Ga+=phi_cross*coeff[1];
-	Ga+=phi_cross*(phi_cross)*coeff[2];
-#else /* 0 */
 	Mat3x3 Ga(1., phi*coeff[1]);		/* I + c[0] * phi x */
 	Ga += Mat3x3(phi, phi*coeff[2]);	/* += c[1] * phi x phi x */
-#endif /* 0 */
 
 	return Ga;
 };
@@ -99,22 +86,12 @@ void RotManip::RotAndDRot(const Vec3 & phi, Mat3x3 & Phi, Mat3x3 & Ga) {
 	doublereal coeff[COEFF_C];
 
 	CoeffC(phi.Dot(),coeff);
-#if 0
-	Mat3x3 phi_cross(phi);
-	Phi=Mat3x3(1.);
-	Ga=Mat3x3(1.);
 
-	Phi+=phi_cross*coeff[0];
-	Phi+=phi_cross*(phi_cross)*coeff[1];
-	Ga+=phi_cross*coeff[1];
-	Ga+=phi_cross*(phi_cross)*coeff[2];
-#else /* 0 */
 	Phi = Mat3x3(1., phi*coeff[0]);
 	Phi += Mat3x3(phi, phi*coeff[1]);
 
 	Ga = Mat3x3(1., phi*coeff[1]);
 	Ga += Mat3x3(phi, phi*coeff[2]);
-#endif /* 0 */
 
 	return;
 };
@@ -124,16 +101,9 @@ Mat3x3 RotManip::DRot_IT(const Vec3 & phi) {
 	doublereal coeff[COEFF_D], coeffs[COEFF_C_STAR];
 	
 	CoeffCStar(phi.Dot(),coeff,coeffs);
-#if 0
-	Mat3x3 GaIT(1.);
-	Mat3x3 phi_cross(phi);
 
-	GaIT+=phi_cross*0.5;
-	GaIT+=phi_cross*(phi_cross)*coeffs[0];
-#else /* 0 */
 	Mat3x3 GaIT(1., phi*.5);
 	GaIT += Mat3x3(phi, phi*coeffs[0]);
-#endif /* 0 */
 
 	return GaIT;
 };
@@ -143,22 +113,12 @@ void RotManip::RotAndDRot_IT(const Vec3 & phi, Mat3x3 & PhiIT, Mat3x3 & GaIT) {
 	doublereal coeff[COEFF_D], coeffs[COEFF_C_STAR];
 
 	CoeffCStar(phi.Dot(),coeff,coeffs);
-#if 0
-	PhiIT=Mat3x3(1.);
-	GaIT=Mat3x3(1.);
-	Mat3x3 phi_cross(phi);
 
-	PhiIT+=phi_cross*coeff[0];
-	PhiIT+=phi_cross*(phi_cross)*coeff[1];
-	GaIT+=phi_cross*0.5;
-	GaIT+=phi_cross*(phi_cross)*coeffs[0];
-#else /* 0 */
 	PhiIT = Mat3x3(1., phi*coeff[0]);
 	PhiIT += Mat3x3(phi, phi*coeff[1]);
 
 	GaIT = Mat3x3(1., phi*.5);
 	GaIT += Mat3x3(phi, phi*coeffs[0]);
-#endif /* 0 */
 
 	return;
 };
@@ -186,8 +146,6 @@ Vec3 RotManip::VecRot(const Mat3x3 & Phi) {
 				maxcol = 3;
 			}
 		}
-		//M> spero che GetVec mi dia la colonna e non la riga!!!!
-		//P> SI.
 		unit = (eet.GetVec(maxcol)/sqrt(eet.dGet(maxcol, maxcol)));
 		sinphi = (Mat3x3(unit)*Phi).Trace()*(-.5);
 		unit *= atan2(sinphi, cosphi);
@@ -204,8 +162,7 @@ MatExp RoTrManip::RoTr(const VecExp & eta) {
 	MatExp etaCross3(etaCross2*etaCross);
 	MatExp etaCross4(etaCross3*etaCross);
 
-	//P> Dot senza argomenti viene eseguito sempre su se stesso ...
-	phi2 = eta.Vec().Dot();
+	phi2 = eta.GetVec().Dot();	//phi2=eta.GetVec().Dot(eta.GetVec())
 	CoeffD(phi2, coeff);
 
 	H += etaCross*(coeff[0]-.5*phi2*(coeff[2]-coeff[1]));
@@ -226,7 +183,7 @@ MatExp RoTrManip::DRoTr(const VecExp & eta) {
 	MatExp etaCross3(etaCross2*etaCross);
 	MatExp etaCross4(etaCross3*etaCross);
 
-	phi2 = eta.Vec().Dot();
+	phi2 = eta.GetVec().Dot();
 	CoeffE(phi2, coeff);
 
 	Th += etaCross*(coeff[1]-.5*phi2*coeff[3]);
@@ -249,7 +206,7 @@ void RoTrManip::RoTrAndDRoTr(const VecExp & eta,
 	MatExp etaCross3(etaCross2*etaCross);
 	MatExp etaCross4(etaCross3*etaCross);
 
-	phi2 = eta.Vec().Dot();
+	phi2 = eta.GetVec().Dot();
 	CoeffE(phi2, coeff);
 
 	H += etaCross*(coeff[0]-.5*phi2*(coeff[2]-coeff[1]));
@@ -272,7 +229,7 @@ MatExp RoTrManip::DRoTr_It(const VecExp & eta) {
 	MatExp etaCross2(etaCross*etaCross);
 	MatExp etaCross4(etaCross2*etaCross2);
 
-	phi2 = eta.Vec().Dot();
+	phi2 = eta.GetVec().Dot();
 	CoeffEStar(phi2, coeff, coeffs);
 
 	ThIt += etaCross*.5;
@@ -294,7 +251,7 @@ void RoTrManip::RoTrAndDRoTr_It(const VecExp & eta,
 	MatExp etaCross3(etaCross2*etaCross);
 	MatExp etaCross4(etaCross3*etaCross);
 
-	phi2 = eta.Vec().Dot();
+	phi2 = eta.GetVec().Dot();
 	CoeffEStar(phi2, coeff, coeffs);
 
 	HIt += etaCross*(coeff[0]-.5*phi2*(coeff[2]-coeff[1]));
@@ -308,10 +265,10 @@ void RoTrManip::RoTrAndDRoTr_It(const VecExp & eta,
 };
 
 VecExp RoTrManip::Helix(const MatExp & H)  {
-	Vec3 phi(RotManip::VecRot(H.Vec()));
+	Vec3 phi(RotManip::VecRot(H.GetVec()));
 	return VecExp(phi,
 			RotManip::DRot_IT(phi).Transpose()*(
-				(H.Mom()*(H.Vec().Transpose())).Ax())
+				(H.GetMom()*(H.GetVec().Transpose())).Ax())
 			);
 };
 

@@ -67,8 +67,6 @@ public:
 		NO_OP; 
 	};
    
-	//M> Vec3 e Mat3 vengono automaticamente inizializzate a zero?
-	//P> NO: devi usare il costruttore Vec3(0.), Mat3x3(0.)!
 	~VecExp(void) { 
 		NO_OP;
 	};
@@ -78,7 +76,6 @@ public:
 		mom = vin.mom;
 	};
 
-	//P> Questo lascialo: potra' servire poi ...
 	VecExp(const Vec6& vin) {
 		vec = vin.GetVec1();
 		mom = vin.GetVec2();
@@ -102,11 +99,11 @@ public:
 	};
    
 	//M> accesso in solo lettura 
-	inline const Vec3& Vec(void) const {
+	inline const Vec3& GetVec(void) const {
 		return vec;
 	};
 
-	inline const Vec3& Mom(void) const {
+	inline const Vec3& GetMom(void) const {
 		return mom;
 	};
    
@@ -114,35 +111,21 @@ public:
 	//P> e' pericoloso: non sai mai quale viene usato. La cosa migliore
 	//P> e' fare const Vec3& get() const per sola lettura,
 	//P> e put(const Vec3&) per scrittura
-#if 1
-	inline Vec3& Vec(void) {
-		return vec;
+	//M> come vuoi
+	inline void PutVec(const Vec3& x) {
+		vec = x;
 	};
 
-	inline Vec3& Mom(void) {
-		return mom;
-	};
-#else /* */
-	inline Vec3 Vec(void) {
-		return vec;
+	inline void PutMom(const Vec3& x) {
+		mom = x;
 	};
 	
-	inline Vec3 Mom(void) {
-		return mom;
-	};
-#endif /* */
-	
-	//P> metto "const" perche' non voglio che sia modificato (vedi sotto)
 	inline const VecExp& operator = (const VecExp& v) {
 		vec = v.vec;
 		mom = v.mom;
 		return *this;
 	};
 
-	//M> visto che modifiche *this non vedo perche' ritornare un oggetto
-	//M> &const
-	//P> perche' il risultato di questa operazione in genere non deve essere
-	//P> ulteriormente utilizzato e quindi "modificabile".
 	inline const VecExp& operator += (const VecExp& v) {
 		vec += v.vec;
 		mom += v.mom;
@@ -225,6 +208,13 @@ class MatExp {
 protected:
 	//P> Che senso hanno questi nomi? perche' chiami "vec" una matrice
 	//P> e "mom" l'altra?
+	//M> residui storici a cui sono affezionato. 
+	//M> quando con ste robe a 6 (VecExp) indichi delle forze
+	//M> (anche se non e' questo il caso), vec e' la forza,
+	//M> mom il momento della forza messa in x piu' la coppia,
+	//M> mom=x.Cross(forza)+coppia
+	//M> sostanzialmente ne avevo bisogno per orientarmi, adesso
+	//M> se preferisci posso tranquillamente tornare a a e xa.
 	Mat3x3 vec;
 	Mat3x3 mom;
 
@@ -249,6 +239,12 @@ public:
 
 	//P> tutti questi costruttori potrebbero venire comodi
 	//P> in certe circostanze
+	//M> dopo aver visto come hai taroccato Rot.C penso di
+	//M> capire cosa intendi
+	//M> aspetta un attimo di vedere cosa serve e poi aggiungi
+	//M> quello che ti sembra meglio
+	//M> forse il piu' carino da fare e' MatExp(VecExp) che ti caccia
+	//M> fuori quello che adesso e' VecExp.Cross()
 
 #if 0
 	MatExp(const Vec3& vx) {
@@ -274,30 +270,24 @@ public:
 	};
 
 
-	Mat3x3 Vec(void) {
-		return vec;
-	};
-
-	Mat3x3 Mom(void) {
-		return mom;
-	};
 #endif /* 0 */
 
-	inline const Mat3x3& Vec(void) const {
+	inline const Mat3x3& GetVec(void) const {
 		return vec;
 	};
 
-	inline const Mat3x3& Mom(void) const {
+	inline const Mat3x3& GetMom(void) const {
 		return mom;
 	};
 
 	//P> Come sai, io non sono d'accordo con questo metodo ...
-	inline Mat3x3& Vec(void) {
-		return vec;
+	//M> come vuoi
+	inline void PutVec(const Mat3x3& x) {
+		vec = x;
 	};
 
-	inline Mat3x3& Mom(void) {
-		return mom;
+	inline void PutMom(const Mat3x3& x) {
+		mom = x;
 	};
 
 //M> metodi assurdi, dato MatExp x; Mat3x3 y; si fa x.Vec() = y;
@@ -328,17 +318,12 @@ public:
 	};
 #endif /* 0 */
 
-	//P> secondo me ci vuole "const" nel tipo di ritorno
 	inline const MatExp& operator = (const MatExp& m) {
 		vec = m.vec;
 		mom = m.mom;
 		return *this;
 	};
 
-	//M> visto che modifiche *this non vedo perche' ritornare
-	//un oggetto &const
-	//P> perche' il risultato di questa operazione in genere
-	//P> non deve essere ulteriormente utilizzato e quindi "modificabile".
 	inline const MatExp& operator += (const MatExp& v) {
 		vec += v.vec;
 		mom += v.mom;
@@ -361,7 +346,7 @@ public:
 	};
 
 	VecExp operator * (const VecExp& v) const {
-		return VecExp(vec*v.Vec(), vec*v.Mom()+mom*v.Vec());
+		return VecExp(vec*v.GetVec(), vec*v.GetMom()+mom*v.GetVec());
 	};
 	
 	MatExp operator * (const MatExp& m) const {

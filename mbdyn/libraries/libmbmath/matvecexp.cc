@@ -73,14 +73,14 @@ VecExp::Write(ostream& out, const char* sFill) const
 VecExp
 operator - (const VecExp& v)
 {
-	return VecExp(-v.Vec(), -v.Mom());
+	return VecExp(-v.GetVec(), -v.GetMom());
 }
 
 ostream&
 operator << (ostream& out, const VecExp& v)
 {
-	const Vec3& vec = v.Vec();
-	const Vec3& mom = v.Mom();
+	const Vec3& vec = v.GetVec();
+	const Vec3& mom = v.GetMom();
 	return out 
 		<< vec.dGet(1) << " "
 		<< vec.dGet(2) << " "
@@ -146,8 +146,8 @@ MatExp::Write(ostream& out, const char* sFill, const char* sFill2) const
 ostream&
 operator << (ostream& out, const MatExp& m)
 {
-	const Mat3x3& vec = m.Vec();
-	const Mat3x3& mom = m.Mom();
+	const Mat3x3& vec = m.GetVec();
+	const Mat3x3& mom = m.GetMom();
 	return out 
 		<< vec.dGet(1, 1) << " "
 		<< vec.dGet(1, 2) << " "
@@ -197,13 +197,13 @@ Write(ostream& out, const MatExp& m, const char* sFill, const char* sFill2)
 VecExp
 MultRV(const VecExp& v, const Mat3x3& R)
 {
-	return VecExp(R*v.Vec(),R*v.Mom());
+	return VecExp(R*v.GetVec(),R*v.GetMom());
 }
 
 MatExp
 MultRM(const MatExp& m, const Mat3x3& R)
 {
-	return MatExp(R*m.GetA(), R*m.GetXA());
+	return MatExp(R*m.GetVec(), R*m.GetMom());
 }
 
 
@@ -211,14 +211,14 @@ MatExp
 MultMRt(const MatExp& m, const Mat3x3& R)
 {
 	Mat3x3 Rt = R.Transpose();
-	return MatExp(m.GetA()*Rt, m.GetXA()*Rt);
+	return MatExp(m.GetVec()*Rt, m.GetMom()*Rt);
 }
 
 MatExp
 MultRMRt(const MatExp& m, const Mat3x3& R)
 {   
 	Mat3x3 Rt = R.Transpose();
-	return MatExp(R*m.GetA()*Rt, R*m.GetXA()*Rt);
+	return MatExp(R*m.GetVec()*Rt, R*m.GetMom()*Rt);
 }
 #endif /* 0 */
 
