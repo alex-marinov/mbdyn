@@ -38,6 +38,7 @@
 *.gif -k 'b'
 *.jpg -k 'b'
 *.bmp -k 'b'
+*.ico -k 'b'
 
 # Archives
 *.zip -k 'b'
