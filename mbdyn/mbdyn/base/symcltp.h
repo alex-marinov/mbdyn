@@ -129,6 +129,16 @@ private:
 	GiNaC::ex gExpr;		/* expression */
 	GiNaC::ex gDer;			/* derivative */
 
+#if 0
+	SymbolicElasticIsotropicConstitutiveLaw(const TplDriveCaller<doublereal>* pDC,
+			const doublereal& PStress,
+			const GiNaC::symbol& epsilon,
+			const GiNaC::ex& expression,
+			const GiNaC::ex& derivative,
+			const GiNaC::symbol **symbols = NULL,
+			doublereal *v = NULL);
+#endif
+
 public:
 	SymbolicElasticIsotropicConstitutiveLaw(const TplDriveCaller<doublereal>* pDC,
 			const doublereal& PStress, const char *epsilon,
@@ -195,6 +205,10 @@ gEps(epsilon), gSymList(0), vals(0)
 		std::cerr << "expression differentiation failed: " << e.what() << std::endl;
 		throw e;
 	}
+
+	silent_cout("Variable:         \"" << gEps << "\"" << std::endl
+		<< "Constitutive law: \"" << gExpr << "\"" << std::endl
+		<< "Derivative:       \"" << gDer << "\"" << std::endl);
 }
  
 SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>::~SymbolicElasticIsotropicConstitutiveLaw(void)
@@ -226,9 +240,8 @@ SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>::pCopy(void) con
 std::ostream& 
 SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>::Restart(std::ostream& out) const
 {
-	out << "symbolic elastic isotropic, epsilon, \"" << /* gEps.get_name() */ "EPS"
-		<< "\", expression, \"" << /* FIXME! */ "NULL" 
-		<< "\"";
+	out << "symbolic elastic isotropic, epsilon, \"" << gEps
+		<< "\", expression, \"" << gExpr << "\"";
 
 	if (gSymList) {
 		int i;
@@ -237,8 +250,7 @@ SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>::Restart(std::os
 		out << "symbols, " << i;
 
 		for (i = 0; gSymList[i]; i++) {
-			out << ", \"" << gSymList[i]->get_name()
-				<< "=" << vals[i] << "\"";
+			out << ", \"" << gSymList[i] << "=" << vals[i] << "\"";
 		}
 	}
 
