@@ -296,7 +296,6 @@ public:
 
 			F = -A0*P0*Adiab;
 			FDE = Gamma*Cint*VRatio*Adiab;
-			FDEPrime = 0.;
 		}
 
 		/*
@@ -314,13 +313,15 @@ public:
 			a += pAreaOrifices->dGet(EpsPrime);
 		}
 
-		if ( a == 0. ) {
+		if (a == 0.) {
 			cerr << "ShockAbsorberConstitutiveLaw::Update:"
 				" division by zero" << endl;
 			THROW(ErrGeneric());
 		}
-
-		F -= .5*RhoFluid*AreaFluid*pow(AreaFluid/(a*Cd), 2)*EpsPrime*fabs(EpsPrime);
+		
+		doublereal d = .5*RhoFluid*AreaFluid*pow(AreaFluid/(a*Cd), 2);
+		F += d*EpsPrime*fabs(EpsPrime);
+		FDEPrime = d*fabs(EpsPrime);
 	}
 
 	virtual void
