@@ -58,6 +58,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * Umfpack is used by permission; please read its Copyright,
+ * License and Availability note.
+ */
+
 #ifndef UmfpackSparseLUSolutionManager_hh
 #define UmfpackSparseLUSolutionManager_hh
 
