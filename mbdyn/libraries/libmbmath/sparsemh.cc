@@ -133,11 +133,11 @@ ppiCol(ppiTmpCol),
 ppdMat(ppdTmpMat),
 pdMatm1(NULL)
 {
+	pdMatm1 = *ppdMat - 1;
+
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
-
-	pdMatm1 = *ppdMat - 1;
 
    	SAFENEWWITHCONSTRUCTOR(pSD, SparseData,
 			       SparseData(iCurSize, ppiRow, ppiCol));
