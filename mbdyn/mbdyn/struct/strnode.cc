@@ -266,7 +266,7 @@ StructNode::SetDofValue(const doublereal& dValue,
 DofOrder::Order 
 StructNode::SetDof(unsigned int i) const
 {
-	ASSERT(i >= 1 && i <= iGetNumDofs());
+	ASSERT(i >= 0 && i < iGetNumDof());
 	return DofOrder::DIFFERENTIAL;
 }
 

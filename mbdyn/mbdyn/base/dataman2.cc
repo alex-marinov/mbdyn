@@ -121,9 +121,8 @@ void DataManager::DofOwnerInit(void)
    while (ppNd < ppNodes+iTotNodes) {	
       ASSERT(*ppNd != NULL);
       DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY, 
-		 "Node type " << (*ppNd)->GetNodeType()
-		 << " (" << psNodeNames[(*ppNd)->GetNodeType()] 
-		 << "(" << (*ppNd)->GetLabel() << "))" << std::endl);
+		 psNodeNames[(*ppNd)->GetNodeType()] 
+		 << "(" << (*ppNd)->GetLabel() << ")" << std::endl);
       
       unsigned int iNumDof;
       

@@ -133,7 +133,7 @@ MatrixFreeSolver::MakeTest(const VectorHandler& Vec)
 			ASSERT(Vec.iGetSize() == Size);
 #ifdef __HACK_SCALE_RES__
 			ASSERT(pScale != NULL);
-			ASSERT(pScale->iGetSize == Size);
+			ASSERT(pScale->iGetSize() == Size);
 #endif /* __HACK_SCALE_RES__ */
  	  	for (int iCntp1 = 1; iCntp1 <= Size; 
 				iCntp1++) {

@@ -33,6 +33,7 @@ MBDyn 1.2-Engineering
 		- improve private data handling
 		- added sample'n'hold parameter
 		- non-wrapping angles in plane hinge joints priv data
+		- modal element active mode listing
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
@@ -41,6 +42,7 @@ MBDyn 1.2-Engineering
 		- rotor elements do not use any more a colon ':' as separator
 		  between the keyword "induced velocity" and the induced
 		  velocity type (need to update all the models...)
+		- changed symbol table output format
 	Bug fixes:
 		- do not output RelativeFrame dummy struct nodes in ADAMS
 		  res format
@@ -49,6 +51,7 @@ MBDyn 1.2-Engineering
 		- fix rotor output when no induced velocity is used
 		- fix modal element when modal node is not in the origin
 		  of the FEM reference frame
+		- fix of beamslider joint jacobian
 
 
 MBDyn 1.1.4

@@ -752,7 +752,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		  }
 
 		  case RTAI_OUTPUT:
-		     std::cerr << psElemNames[Elem:RTAI_OUTPUT]
+		     std::cerr << psElemNames[Elem::RTAI_OUTPUT]
 	 		     << " cannot be driven" << std::endl;
 	 	     THROW(ErrGeneric());
 		    

@@ -65,11 +65,11 @@ D. Code:
 	  matrix eigenvalue analysis (eigs)
 	- add selected output streamed on sockets for interactive analysis
 		by implementing sort of "sensors", possibly based on the
-		elements' "private data"
+		elements' "private data" (under devel in RTAI)
 	- add rot2any/any2rot utilities
 	- try to rewrite hydraulic nodes as scalar differential (?)
 	- add joints like:
-		- clamp (spherical + prismatic in one joint)
+		- 2-node clamp (spherical + prismatic in one joint)
 		- universal without displacement constraints
 		- inplane and inline with only one node
 	- allow to define modules as separate entities which are later

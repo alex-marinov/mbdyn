@@ -166,6 +166,7 @@ SchurMatrixHandler::fPutCoef(integer iRow, integer iCol,
 {
 #ifdef DEBUG
 	IsValid();
+#ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
 		std::cerr << "fPutCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
@@ -173,6 +174,7 @@ SchurMatrixHandler::fPutCoef(integer iRow, integer iCol,
 			<< std::endl;
 		return flag(0);
 	}
+#endif /* DEBUG_MPI */
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) { 
@@ -198,6 +200,7 @@ SchurMatrixHandler::fIncCoef(integer iRow, integer iCol,
 {
 #ifdef DEBUG
 	IsValid();
+#ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
 		std::cerr << "fIncCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
@@ -205,6 +208,7 @@ SchurMatrixHandler::fIncCoef(integer iRow, integer iCol,
 			<< std::endl;
 		return flag(0);
 	}
+#endif /* DEBUG_MPI */
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) { 
@@ -230,6 +234,7 @@ SchurMatrixHandler::fDecCoef(integer iRow, integer iCol,
 {
 #ifdef DEBUG
 	IsValid();
+#ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
 		std::cerr << "fDecCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
@@ -237,6 +242,7 @@ SchurMatrixHandler::fDecCoef(integer iRow, integer iCol,
 			<< std::endl;
 		return flag(0);
 	}
+#endif /* DEBUG_MPI */
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) { 
@@ -261,6 +267,7 @@ SchurMatrixHandler::dGetCoef(integer iRow, integer iCol) const
 {
 #ifdef DEBUG
 	IsValid();
+#ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
 		std::cerr << "dGetCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
@@ -268,6 +275,7 @@ SchurMatrixHandler::dGetCoef(integer iRow, integer iCol) const
 			<< std::endl;
 		return ::dZero; 
 	}
+#endif /* DEBUG_MPI */
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) { 
@@ -455,6 +463,7 @@ SchurVectorHandler::fPutCoef(integer iRow, const doublereal& dCoef)
 {
 #ifdef DEBUG
 	IsValid();
+#ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
 		std::cerr << "fPutCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, VectorHandler is trying to operate "
@@ -462,6 +471,7 @@ SchurVectorHandler::fPutCoef(integer iRow, const doublereal& dCoef)
 			<< std::endl;
 		return flag(0); 
 	}
+#endif /* DEBUG_MPI */
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) {
@@ -478,6 +488,7 @@ SchurVectorHandler::fIncCoef(integer iRow, const doublereal& dCoef)
 {
 #ifdef DEBUG
 	IsValid();
+#ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
 		std::cerr <<"fIncCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, VectorHandler is trying to operate "
@@ -485,6 +496,7 @@ SchurVectorHandler::fIncCoef(integer iRow, const doublereal& dCoef)
 			<< std::endl;
 		return flag(0);
 	}
+#endif /* DEBUG_MPI */
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) {
@@ -500,6 +512,7 @@ SchurVectorHandler::fDecCoef(integer iRow, const doublereal& dCoef)
 {
 #ifdef DEBUG
 	IsValid();
+#ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
 		std::cerr <<"fDecCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, VectorHandler is trying to operate "
@@ -507,6 +520,7 @@ SchurVectorHandler::fDecCoef(integer iRow, const doublereal& dCoef)
 			<< std::endl;
 		return flag(0);
 	}
+#endif /* DEBUG_MPI */
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) {
@@ -522,13 +536,15 @@ SchurVectorHandler::dGetCoef(integer iRow) const
 {
 #ifdef DEBUG
 	IsValid();
+#ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
 		std::cerr << "dGetCoef - Process:(" << MBDynComm.Get_rank()
 			<< "): warning, VectorHandler is trying to operate "
 			"on a non local value {" << iRow << "}"
 			<< std::endl;
 		return dZero;
-	} 
+	}
+#endif /* DEBUG_MPI */
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) {
@@ -641,6 +657,7 @@ SchurMatrixHandlerUm::fPutCoef(integer iRow, integer iCol,
 {
 #ifdef DEBUG
 	IsValid();
+#ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
 		std::cerr << "fPutCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
@@ -648,6 +665,7 @@ SchurMatrixHandlerUm::fPutCoef(integer iRow, integer iCol,
 			<< std::endl;
 		return flag(0);
 	}
+#endif /* DEBUG_MPI */
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) { 
@@ -679,6 +697,7 @@ SchurMatrixHandlerUm::fIncCoef(integer iRow, integer iCol,
 {
 #ifdef DEBUG
 	IsValid();
+#ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
 		std::cerr << "fIncCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
@@ -686,6 +705,7 @@ SchurMatrixHandlerUm::fIncCoef(integer iRow, integer iCol,
 			<< std::endl;
 		return flag(0);
 	}
+#endif /* DEBUG_MPI */
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) { 
@@ -717,6 +737,7 @@ SchurMatrixHandlerUm::fDecCoef(integer iRow, integer iCol,
 {
 #ifdef DEBUG
 	IsValid();
+#ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
 		std::cerr << "fDecCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
@@ -724,6 +745,7 @@ SchurMatrixHandlerUm::fDecCoef(integer iRow, integer iCol,
 			<< std::endl;
 		return flag(0);
 	}
+#endif /* DEBUG_MPI */
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) { 
@@ -754,6 +776,7 @@ SchurMatrixHandlerUm::dGetCoef(integer iRow, integer iCol) const
 {
 #ifdef DEBUG
 	IsValid();
+#ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
 		std::cerr << "dGetCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
@@ -761,6 +784,7 @@ SchurMatrixHandlerUm::dGetCoef(integer iRow, integer iCol) const
 			<< std::endl;
 		return ::dZero; 
 	}
+#endif /* DEBUG_MPI */
 #endif /* DEBUG */
 	
 	if (pGTL[iRow] > 0) { 

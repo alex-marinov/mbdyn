@@ -1846,7 +1846,7 @@ ReadRotor(DataManager* pDM,
 	 	doublereal dCFF = 1.;
 	 	if (HP.IsKeyWord("correction")) {
 	 		dCH = HP.GetReal();
-	 		DEBUGCOUT("Hover correction: " << dC << std::endl);
+	 		DEBUGCOUT("Hover correction: " << dCH << std::endl);
 	 		if (dCH <= 0.) {
 	 			std::cerr << "warning, illegal null "
 					"or negative inflow correction "

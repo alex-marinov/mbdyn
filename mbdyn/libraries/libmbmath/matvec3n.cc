@@ -181,7 +181,7 @@ const VecN& VecN::Mult(const MatNxN& m, const VecN& n)
 {
    IsValid();
    ASSERT(iNumRows == m.iNumRows);
-   ASSERT(m.iNumCols == n.iNumRows);
+   ASSERT(m.iNumRows == n.iNumRows);
 
    for (integer i = 0; i < iNumRows; i++ ) {
       pdVec[i] = 0.;
@@ -199,7 +199,7 @@ VecN::Mult(const MatNxN& m, const ArrayView& vm,
 {
    IsValid();
    ASSERT(iNumRows == m.iNumRows);
-   ASSERT(m.iNumCols >= vm.Last());
+   ASSERT(m.iNumRows >= vm.Last());
    ASSERT(n.iNumRows >= vn.Last());
    ASSERT(vm.Number() == vm.Number());
 
@@ -484,7 +484,7 @@ Mat3xN::Mult(const ArrayView& vm, const VecN& v, const ArrayView& vv) const
 {
 	IsValid();
 	ASSERT(iNumCols >= vm.Last());
-	ASSERT(vviNumRows >= vv.Last());
+	ASSERT(v.iNumRows >= vv.Last());
 	ASSERT(vm.Number() == vv.Number());
 
 	doublereal d[3] = { 0., 0., 0. };
@@ -549,7 +549,7 @@ Mat3xN::SubVec(integer iCol, const Vec3& v)
 }
 
 Mat3x3 
-Mat3xN::GetMat3x3(integer iFirstCol)
+Mat3xN::GetMat3x3(integer iFirstCol) const
 {
 	IsValid();
 	ASSERT(iFirstCol >= 1 && iFirstCol <= iNumCols-2);
@@ -567,8 +567,74 @@ Mat3xN::GetMat3x3(integer iFirstCol)
 			pdRows[2][iFirstCol+2]);
 }
 
+void
+Mat3xN::PutMat3x3(integer iFirstCol, const Mat3x3& m)
+{
+	IsValid();
+	ASSERT(iFirstCol >= 1 && iFirstCol <= iNumCols-2);
+	
+	--iFirstCol;
+	pdRows[V1][iFirstCol] = m.pdMat[M11];
+	pdRows[V2][iFirstCol] = m.pdMat[M21];
+	pdRows[V3][iFirstCol] = m.pdMat[M31];
+
+	iFirstCol++;
+	pdRows[V1][iFirstCol] = m.pdMat[M12];
+	pdRows[V2][iFirstCol] = m.pdMat[M22];
+	pdRows[V3][iFirstCol] = m.pdMat[M32];
+
+	iFirstCol++;
+	pdRows[V1][iFirstCol] = m.pdMat[M13];
+	pdRows[V2][iFirstCol] = m.pdMat[M23];
+	pdRows[V3][iFirstCol] = m.pdMat[M33];
+}
+
+void
+Mat3xN::AddMat3x3(integer iFirstCol, const Mat3x3& m)
+{
+	IsValid();
+	ASSERT(iFirstCol >= 1 && iFirstCol <= iNumCols-2);
+	
+	--iFirstCol;
+	pdRows[V1][iFirstCol] += m.pdMat[M11];
+	pdRows[V2][iFirstCol] += m.pdMat[M21];
+	pdRows[V3][iFirstCol] += m.pdMat[M31];
+
+	iFirstCol++;
+	pdRows[V1][iFirstCol] += m.pdMat[M12];
+	pdRows[V2][iFirstCol] += m.pdMat[M22];
+	pdRows[V3][iFirstCol] += m.pdMat[M32];
+
+	iFirstCol++;
+	pdRows[V1][iFirstCol] += m.pdMat[M13];
+	pdRows[V2][iFirstCol] += m.pdMat[M23];
+	pdRows[V3][iFirstCol] += m.pdMat[M33];
+}
+
+void
+Mat3xN::SubMat3x3(integer iFirstCol, const Mat3x3& m)
+{
+	IsValid();
+	ASSERT(iFirstCol >= 1 && iFirstCol <= iNumCols-2);
+	
+	--iFirstCol;
+	pdRows[V1][iFirstCol] -= m.pdMat[M11];
+	pdRows[V2][iFirstCol] -= m.pdMat[M21];
+	pdRows[V3][iFirstCol] -= m.pdMat[M31];
+
+	iFirstCol++;
+	pdRows[V1][iFirstCol] -= m.pdMat[M12];
+	pdRows[V2][iFirstCol] -= m.pdMat[M22];
+	pdRows[V3][iFirstCol] -= m.pdMat[M32];
+
+	iFirstCol++;
+	pdRows[V1][iFirstCol] -= m.pdMat[M13];
+	pdRows[V2][iFirstCol] -= m.pdMat[M23];
+	pdRows[V3][iFirstCol] -= m.pdMat[M33];
+}
+
 Mat3x3
-Mat3xN::GetMat3x3ScalarMult(integer iFirstCol, const doublereal& d)
+Mat3xN::GetMat3x3ScalarMult(integer iFirstCol, const doublereal& d) const
 {
 	IsValid();
 	ASSERT(iFirstCol >= 1 && iFirstCol <= iNumCols-2);

@@ -242,8 +242,11 @@ class Mat3xN {
    void AddVec(integer iCol, const Vec3& v);
    void SubVec(integer iCol, const Vec3& v);
 
-   Mat3x3 GetMat3x3(integer iFirstCol);
-   Mat3x3 GetMat3x3ScalarMult(integer iFirstCol, const doublereal& d);
+   Mat3x3 GetMat3x3(integer iFirstCol) const;
+   void PutMat3x3(integer iCol, const Mat3x3& m);
+   void AddMat3x3(integer iCol, const Mat3x3& m);
+   void SubMat3x3(integer iCol, const Mat3x3& m);
+   Mat3x3 GetMat3x3ScalarMult(integer iFirstCol, const doublereal& d) const;
 
    inline doublereal & operator () (integer i, integer j);
 };

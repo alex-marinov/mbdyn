@@ -6,6 +6,16 @@ Copyright (C) 1996-2003
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Sat Apr 26 23:00:00 CEST 2003 Pierangelo Masarati <masarati@aero.polimi.it>
+ - Modal Element cleanup
+ - Modal Element active mode listing
+ - Fix of --enable-debug build
+ - Mix Solver sanity check improvements
+
+*** Fri Apr 25 16:00:00 CEST 2003 Marco Morandini <morandini@aero.polimi.it>
+				  Pierangelo Masarati <masarati@aero.polimi.it>
+ - Beam Slider jacobian bug fixes and cleanup
+
 *** Tue Apr  1 22:00:00 CEST 2003 Pierangelo Masarati <masarati@aero.polimi.it>
  - MatR2EulerAngles outputs rads now
  - revolute joint outputs non-wrapping angle as first parameter

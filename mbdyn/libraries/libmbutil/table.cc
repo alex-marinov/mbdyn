@@ -233,22 +233,42 @@ operator << (std::ostream& out, Table& T)
    for (Int i = T.size; i-- > 0; ) {      
       VarList* pn = T.v[i];
       while (pn != NULL) {
-	 out << "  " << pn->var->GetName() << '<';
+	 char *type = NULL;
+
 	 switch (pn->var->GetType()) {
-	  case TypedValue::VAR_INT:
-	    out << "int> = " << pn->var->GetVal().GetInt() << std::endl;
+	 case TypedValue::VAR_INT:
+	    type = "int";
 	    break;
-	  case TypedValue::VAR_REAL:
-	    out << "real> = " << pn->var->GetVal().GetReal() << std::endl;
+
+	 case TypedValue::VAR_REAL:
+	    type = "real";
 	    break;
-	  default:
-	    out << "unknown type!>" << std::endl;
+
+	 default:
+	    THROW(ErrGeneric());
+	 }
+	    
+	 out << "  " << type << " " << pn->var->GetName() << " = ";
+
+	 switch (pn->var->GetType()) {
+	 case TypedValue::VAR_INT:
+	    out << pn->var->GetVal().GetInt();
 	    break;
-	 }	 
+
+	 case TypedValue::VAR_REAL:
+	    out << pn->var->GetVal().GetReal();
+	    break;
+
+	 default:
+	    ASSERT(0);	/* impossible */
+	 }
+
+	 out << std::endl;
 	     
 	 pn = pn->next;  
       }   
    }
+
    return out;
 }
 

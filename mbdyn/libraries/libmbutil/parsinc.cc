@@ -58,8 +58,7 @@ sCurrFile(NULL)
 	ASSERT(sInitialFile != NULL);
 #ifdef USE_INCLUDE_PARSER
    	char s[PATHBUFSIZE];
-   	sCurrPath = getcwd(s, PATHBUFSIZE);
-   	if (sCurrPath == NULL) {
+   	if (getcwd(s, PATHBUFSIZE) == NULL) {
 		std::cerr << "Error in getcwd()" << std::endl;
       		THROW(ErrFileSystem());
    	}
@@ -248,8 +247,7 @@ IncludeParser::Include_()
 	    			THROW(ErrFileSystem());
 	 		}
 	 		char p[PATHBUFSIZE];
-	 		sCurrPath = getcwd(p, PATHBUFSIZE);
-	 		if (sCurrPath == NULL) {
+	 		if (getcwd(p, PATHBUFSIZE) == NULL) {
 				std::cerr << "Error in getcwd()" << std::endl;
 	    			SAFEDELETEARR(stmp);
 	    			THROW(ErrFileSystem());

@@ -700,15 +700,15 @@ Step1Integrator::Advance(const doublereal TStep,
 				",   XPrime  ,   XPPrev" << std::endl;
 			for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
 	    			std::cout << std::setw(4) << iTmpCnt << ": ";
-				for (int ivec = 0; ivec < pqX->size(); ivec++) {  
+				for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {  
 					std::cout << std::setw(12)
 					<< (qX[ivec])->dGetCoef(iTmpCnt);
 				} 
-				for (int ivec = 0; ivec < pqXPrime->size(); ivec++) {  
+				for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {  
 					std::cout << std::setw(12)
 					<< (qXPrime[ivec])->dGetCoef(iTmpCnt);
 				} 
-				<< std::endl;
+				std::cout << std::endl;
 	 		}
       		}
 #endif /* DEBUG */
@@ -949,15 +949,15 @@ Step2Integrator::Advance(const doublereal TStep,
 				",   XPrime  ,   XPPrev  ,   XPPrev2" << std::endl;
 			for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
 	    			std::cout << std::setw(4) << iTmpCnt << ": ";
-				for (int ivec = 0; ivec < pqX->size(); ivec++) {  
+				for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {  
 					std::cout << std::setw(12)
 					<< (qX[ivec])->dGetCoef(iTmpCnt);
 				} 
-				for (int ivec = 0; ivec < pqXPrime->size(); ivec++) {  
+				for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {  
 					std::cout << std::setw(12)
 					<< (qXPrime[ivec])->dGetCoef(iTmpCnt);
 				} 
-				<< std::endl;
+				std::cout << std::endl;
 	 		}
       		}
 #endif /* DEBUG */

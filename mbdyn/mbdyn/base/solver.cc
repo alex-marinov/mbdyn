@@ -594,6 +594,14 @@ void Solver::Run(void)
 	}
 #endif /* USE_MPI */
 	
+	/*
+	 * FIXME: at present there MUST be a pSM
+	 * (even for matrix-free nonlinear solvers)
+	 */
+	if (pSM == NULL) {
+		std::cerr << "No linear solver defined" << std::endl;
+		THROW(ErrGeneric());
+	}
 	
 	/* a questo punto si costruisce il nonlinear solver passandogli 
 	   il solution manager */
@@ -805,7 +813,7 @@ void Solver::Run(void)
       		DEBUGLCOUT(MYDEBUG_FSTEPS, "Current time step: "
 			   << dCurrTimeStep << std::endl);
 		
-	 	ASSERT(pFirstFictitiousSteps!= NULL);
+	 	ASSERT(pFirstFictitiousStep != NULL);
 		
 		try {
 	 		dTest = pFirstFictitiousStep->Advance(dRefTimeStep, 1.,
@@ -1170,7 +1178,7 @@ IfFirstStepIsToBeRepeated:
 #endif /* USE_RTAI */
    
     	/* Altri passi regolari */ 
-	ASSERT(pRegularStep!= NULL);
+	ASSERT(pRegularSteps != NULL);
 
       	while (1) {
 		StepIntegrator::StepChange CurrStep 

@@ -21,11 +21,11 @@ sockdrive \
 vec2rot
 
 LIBS = \
-../libraries/libmbutil/libmbutil.la \
 ../libraries/libobjs/libobjs.la \
 ../libraries/libmbwrap/libmbwrap.la \
 @Y12_LIBS@ \
 ../libraries/libmbmath/libmbmath.la \
+../libraries/libmbutil/libmbutil.la \
 @HARWELL_LIBS@ \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \

@@ -1457,6 +1457,7 @@ by directly writing code in files \verb;mbdyn/struct/kin.cc; and
     <joint_type> ::= modal
     <joint_arglist> ::= <reference_modal_node> ,
         <mode_number> ,
+        [ , list, <mode> [ , ... ] ]
         <fem_node_number> 
         [ , no damping 
             | proportional damping , <damping_coef>
@@ -1476,6 +1477,16 @@ is required to handle the rigid body motion of the modal joint.
 Its input is completely analogous to that of the \texttt{dynamic} structural
 nodes, see Section~\ref{sec:NODE-STRUCT}, only the keyword \texttt{dynamic} 
 must be replaced by \texttt{modal}.
+
+\noindent
+The mode count in \texttt{mode\_number} is not required to match
+the number of modes listed in the FEM data file; if a lower number
+is given, only the first \texttt{mode\_number} modes are used;
+moreover, a list of active modes can be given, to use non-consecutive
+modes; e.g., to use modes 1, 2, 3 and 6 of a set of 10 modes, use:
+\begin{verbatim}
+	4, list, 1, 2, 3, 6
+\end{verbatim}
 
 \noindent
 The \texttt{origin node} optional keyword is required to mark

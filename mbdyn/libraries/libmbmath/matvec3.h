@@ -793,7 +793,34 @@ class Mat3x3 {
    Vec3 GetVec(unsigned short int i) const {
       ASSERT(i >= 1 && i <= 3);
       return Vec3(pdMat+3*--i);
-   };   
+   };
+
+   void PutVec(unsigned short int i, const Vec3& v) {
+      ASSERT(i >= 1 && i <= 3);
+
+      i = 3*--i;
+      pdMat[i++] = v.pdVec[V1];
+      pdMat[i++] = v.pdVec[V2];
+      pdMat[i] = v.pdVec[V3];
+   };
+
+   void AddVec(unsigned short int i, const Vec3& v) {
+      ASSERT(i >= 1 && i <= 3);
+
+      i = 3*--i;
+      pdMat[i++] += v.pdVec[V1];
+      pdMat[i++] += v.pdVec[V2];
+      pdMat[i] += v.pdVec[V3];
+   };
+
+   void SubVec(unsigned short int i, const Vec3& v) {
+      ASSERT(i >= 1 && i <= 3);
+
+      i = 3*--i;
+      pdMat[i++] -= v.pdVec[V1];
+      pdMat[i++] -= v.pdVec[V2];
+      pdMat[i] -= v.pdVec[V3];
+   };
 
    /*
     Inversione. 

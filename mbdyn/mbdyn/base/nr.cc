@@ -94,7 +94,7 @@ NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 		ASSERT(Vec.iGetSize() == Size);
 #ifdef __HACK_SCALE_RES__
 		ASSERT(pScale != NULL);
-		ASSERT(pScale->iGetSize == Size);
+		ASSERT(pScale->iGetSize() == Size);
 #endif /* __HACK_SCALE_RES__ */
 
  	  	for (int iCntp1 = 1; iCntp1 <= Size; 
@@ -155,9 +155,9 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 		)
 {
 	ASSERT(pNLP != NULL);
-	ASSERT(pSM != NULL);
+	ASSERT(pSolMan != NULL);
 		
-	pSM  = pSolMan;
+	pSM = pSolMan;
 	pJac = pSM->pMatHdl();
         pRes = pSM->pResHdl();
         pSol = pSM->pSolHdl();
