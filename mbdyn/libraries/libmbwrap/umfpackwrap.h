@@ -123,9 +123,11 @@ class UmfpackSparseSolutionManager: public SolutionManager {
 protected:
 	mutable SpMapMatrixHandler A;
 
-	MyVectorHandler *xVH, *bVH;
 	std::vector<doublereal> x;
 	std::vector<doublereal> b;
+
+	mutable MyVectorHandler xVH, bVH;
+
 	std::vector<doublereal> Ax;
 	std::vector<int> Ai;
 	std::vector<int> Adummy;

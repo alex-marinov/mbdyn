@@ -304,10 +304,10 @@ UmfpackSolver::bPrepareSymbolic(void)
 UmfpackSparseSolutionManager::UmfpackSparseSolutionManager(integer Dim,
 		doublereal dPivot)
 : A(Dim),
-xVH(0),
-bVH(0), 
 x(Dim),
 b(Dim),
+xVH(Dim, &x[0]),
+bVH(Dim, &b[0]), 
 pLS(0)
 {
 	SAFENEWWITHCONSTRUCTOR(pLS, UmfpackSolver, UmfpackSolver(Dim, dPivot));
@@ -315,17 +315,11 @@ pLS(0)
 	pLS->ChangeResPoint(&(b[0]));
 	pLS->ChangeSolPoint(&(x[0]));
 	pLS->SetSolutionManager(this);
-
-	SAFENEWWITHCONSTRUCTOR(xVH, MyVectorHandler, 
-			MyVectorHandler(Dim, &(x[0])));
-	SAFENEWWITHCONSTRUCTOR(bVH, MyVectorHandler, 
-			MyVectorHandler(Dim, &(b[0])));
 }
 
 UmfpackSparseSolutionManager::~UmfpackSparseSolutionManager(void) 
 {
-	SAFEDELETE(xVH);
-	SAFEDELETE(bVH);
+	NO_OP;
 }
 
 void
@@ -366,14 +360,14 @@ UmfpackSparseSolutionManager::pMatHdl(void) const
 MyVectorHandler*
 UmfpackSparseSolutionManager::pResHdl(void) const
 {
-	return bVH;
+	return &bVH;
 }
 
 /* Rende disponibile l'handler per la soluzione */
 MyVectorHandler*
 UmfpackSparseSolutionManager::pSolHdl(void) const
 {
-	return xVH;
+	return &xVH;
 }
 
 /* UmfpackSparseSolutionManager - end */

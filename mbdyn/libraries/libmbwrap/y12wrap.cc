@@ -51,17 +51,14 @@
 
 /* Costruttore: si limita ad allocare la memoria */
 Y12Solver::Y12Solver(integer iMatOrd, integer iWorkSpaceSize,
-			 std::vector<integer>*const piTmpRow, 
-			 std::vector<integer>*const piTmpCol,
-			 std::vector<doublereal>*const pdTmpMat,
 			 doublereal* pdTmpRhs, 
 			 integer iPivotParam,
 			 bool bDupInd)
 : iMaxSize(iWorkSpaceSize),
 iCurSize(iWorkSpaceSize),
-piRow(piTmpRow),
-piCol(piTmpCol),
-pdMat(pdTmpMat),
+piRow(0),
+piCol(0),
+pdMat(0),
 pir(0),
 pic(0),
 bDuplicateIndices(bDupInd),
@@ -74,9 +71,6 @@ bFirstSol(true)
 	LinearSolver::pdRhs = pdTmpRhs;
 	LinearSolver::pdSol = pdTmpRhs;
 
-	ASSERT(piRow != NULL);
-	ASSERT(piCol != NULL);
-	ASSERT(pdMat != NULL);
 	ASSERT(pdTmpRhs != NULL);
 	ASSERT(iN > 0);
 
@@ -170,19 +164,28 @@ Y12Solver::Factor(void)
 		 *
 		 * FIXME: make it stl-ish
 		 */
-		iRow.resize(piRow->size());
-		iCol.resize(piCol->size());
-		iRow = *piRow;
-		iCol = *piCol;
+		iRow.resize(iCurSize);
+		iCol.resize(iCurSize);
 
-		pir = &(iRow[0]);
-		pic = &(iCol[0]);
+		pir = &iRow[0];
+		pic = &iCol[0];
+
+#ifdef HAVE_MEMMOVE
+		memmove(pir, piRow, sizeof(doublereal)*iCurSize);
+		memmove(pic, piCol, sizeof(doublereal)*iCurSize);
+#else /* ! HAVE_MEMMOVE */
+		for (unsigned i = iCurSize; i-- > 0; ) {
+			pir[i] = piRow[i];
+			pic[i] = piCol[i];
+		}
+#endif /* ! HAVE_MEMMOVE */
+
 	} else {
-		pir = &((*piRow)[0]);
-		pic = &((*piCol)[0]);
+		pir = piCol;
+		pic = piRow;
 	}
 
-	y12prefactor(&iN, &iNonZeroes, &((*pdMat)[0]),
+	y12prefactor(&iN, &iNonZeroes, pdMat,
 			    pic, &iCurSize,
 			    pir, &iCurSize,
 			    piHA, &iN,
@@ -197,7 +200,7 @@ Y12Solver::Factor(void)
 	}
 
 	/* actual factorization */
-	y12factor(&iN, &iNonZeroes, &((*pdMat)[0]),
+	y12factor(&iN, &iNonZeroes, pdMat,
 			    pic, &iCurSize,
 			    pir, &iCurSize,
 			    pdPIVOT, LinearSolver::pdRhs,
@@ -234,7 +237,7 @@ Y12Solver::Solve(void) const
 		
 	integer iIFAIL = 0;
 
-	y12solve(&iN, &((*pdMat)[0]), &iCurSize, LinearSolver::pdRhs,
+	y12solve(&iN, pdMat, &iCurSize, LinearSolver::pdRhs,
 			    pdPIVOT, pic,
 			    piHA, &iN,
 			    iIFLAG, &iIFAIL);
@@ -266,6 +269,10 @@ Y12Solver::MakeCompactForm(SparseMatrixHandler& mh,
 	
 	iNonZeroes = mh.MakeIndexForm(Ax, Ar, Ac, Ap, 1);
 	ASSERT(iNonZeroes > 0);
+
+	pdMat = &Ax[0];
+	piRow = &Ar[0];
+	piCol = &Ac[0];
 
 	/* iCurSize should be between 3 and 5 times iNonZeroes ... */
 	if (iCurSize > 5*iNonZeroes) {
@@ -546,8 +553,9 @@ Y12SparseSolutionManager::Y12SparseSolutionManager(integer iSize,
 		const doublereal& dPivotFactor, bool bDupInd)
 : iMatSize(iSize), 
 iColStart(iSize + 1),
+dVec(iSize),
 MH(iSize),
-pVH(NULL)
+VH(iSize, &dVec[0])
 {
    	ASSERT(iSize > 0);
    	ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
@@ -569,14 +577,6 @@ pVH(NULL)
 		iPivot = 1;
 	}
 
-   	/* Alloca arrays */
-	dVec.resize(iMatSize, 0.);
-   
-   	/* Alloca handlers ecc. */
-   	SAFENEWWITHCONSTRUCTOR(pVH,
-			       MyVectorHandler,
-			       MyVectorHandler(iMatSize, &(dVec[0])));
-
 	iRow.reserve(iWorkSpaceSize);
 	iCol.reserve(iWorkSpaceSize);
 	dMat.reserve(iWorkSpaceSize);
@@ -584,9 +584,7 @@ pVH(NULL)
    	SAFENEWWITHCONSTRUCTOR(SolutionManager::pLS, 
 			       Y12Solver,
 			       Y12Solver(iMatSize, iWorkSpaceSize,
-			       		   &iRow, &iCol,
-					   &dMat, &(dVec[0]), iPivot,
-					   bDupInd));
+					   &dVec[0], iPivot, bDupInd));
    
 	pLS->SetSolutionManager(this);
 
@@ -603,10 +601,6 @@ Y12SparseSolutionManager::~Y12SparseSolutionManager(void)
    	IsValid();
 #endif /* DEBUG */
    
-   	if (pVH != NULL) {      
-      		SAFEDELETE(pVH);
-   	}
-   
    	/* Dealloca arrays */
 }
 
@@ -618,12 +612,11 @@ Y12SparseSolutionManager::IsValid(void) const
    	ASSERT(iMatSize > 0);
    
 #ifdef DEBUG_MEMMANAGER
-   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pVH));
    	ASSERT(defaultMemoryManager.fIsPointerToBlock(pLS));
 #endif /* DEBUG_MEMMANAGER */
    
-   	ASSERT((pVH->IsValid(), 1));
-   	ASSERT((pLS->IsValid(), 1));
+   	ASSERT(VH.IsValid());
+   	ASSERT(pLS->IsValid());
 }
 #endif /* DEBUG */
 

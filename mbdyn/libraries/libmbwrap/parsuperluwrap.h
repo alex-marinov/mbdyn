@@ -68,14 +68,15 @@ struct SuperLUSolverData;
 class SuperLUSolver : public LinearSolver  {
 public:
 private:
-	std::vector<integer> *const Aip;
-	std::vector<integer> *const App;
-	std::vector<doublereal> *const Axp;
+	mutable integer *Aip;
+	mutable integer *App;
+	mutable doublereal *Axp;
 
 	mutable integer iN;     	/* ordine della matrice */
 	mutable integer iNonZeroes;
 
 	mutable bool bFirstSol;		/* true se prima backsubst */
+	mutable bool bRegenerateMatrix;	/* true se prima backsubst */
 
 	SuperLUSolverData *sld;
 
@@ -109,11 +110,7 @@ private:
 
 public:
 	/* Costruttore: si limita ad allocare la memoria */
-	SuperLUSolver(unsigned nt, integer iMatOrd,
-			std::vector<integer>*const piTmpRow, 
-			std::vector<integer>*const piTmpCol, 
-			std::vector<doublereal>*const pdTmpMat,
-			doublereal* pdTmpRhs);
+	SuperLUSolver(unsigned nt, integer iMatOrd, doublereal* pdTmpRhs);
 
 	/* Distruttore */
 	~SuperLUSolver(void);
@@ -152,16 +149,16 @@ private:
 
 protected:
 	integer iMatSize;		/* ordine della matrice */
-	std::vector<integer> iRow;	/* array di interi con
+	std::vector<integer> Ai;	/* array di interi con
 					 * indici di riga di SuperLUSolver */
-   	std::vector<integer> iCol;	/* dummy */
-   	std::vector<integer> iColStart;	/* array di interi con
+   	std::vector<integer> Adummy;	/* dummy */
+   	std::vector<integer> Ap;	/* array di interi con
 						 * indici di colonna CC */
-	std::vector<doublereal> dMat;	/* reali con la matrice */
-	std::vector<doublereal> dVec;	/* reali con residuo/soluzione */
+	std::vector<doublereal> Ax;	/* reali con la matrice */
+	std::vector<doublereal> xb;	/* reali con residuo/soluzione */
 
 	mutable SpMapMatrixHandler MH;	/* sparse MatrixHandler */
-	VectorHandler* pVH;		/* puntatore a VectorHandler */
+	mutable MyVectorHandler VH;	/* puntatore a VectorHandler */
 
 	/* Fattorizza la matrice (non viene mai chiamato direttamente, 
 	 * ma da Solve se la matrice ancora non e' stata fattorizzata) */
@@ -196,15 +193,19 @@ public:
 
 	/* Rende disponibile l'handler per il termine noto */
 	VectorHandler* pResHdl(void) const {
-		ASSERT(pVH != NULL);	
-		return pVH;
+#ifdef DEBUG
+		VH.IsValid();
+#endif /* DEBUG */
+		return &VH;
 	};
 
 	/* Rende disponibile l'handler per la soluzione (e' lo stesso 
 	 * del termine noto, ma concettualmente sono separati) */
 	VectorHandler* pSolHdl(void) const {
-		ASSERT(pVH != NULL);	
-		return pVH;
+#ifdef DEBUG
+		VH.IsValid();
+#endif /* DEBUG */
+		return &VH;
 	};
 };
 

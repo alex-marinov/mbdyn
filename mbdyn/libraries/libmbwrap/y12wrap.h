@@ -152,9 +152,9 @@ private:
 	mutable integer iMaxSize;
 	mutable integer iCurSize;
 
-	std::vector<integer> *const piRow;
-	std::vector<integer> *const piCol;
-	std::vector<doublereal> *const pdMat;
+	mutable integer *piRow;
+	mutable integer *piCol;
+	mutable doublereal *pdMat;
 
 	integer *pir, *pic;
 
@@ -165,7 +165,7 @@ private:
 	std::vector<integer> iRow;
 	mutable std::vector<integer> iCol;
 
-	mutable integer iN;     	/* ordine della matrice */
+	mutable integer iN;		/* ordine della matrice */
 	mutable integer iNonZeroes; 	/* coeff. non nulli */
 
 	integer *piHA;    		/* vettore di lavoro */
@@ -183,9 +183,6 @@ private:
 public:
 	/* Costruttore: si limita ad allocare la memoria */
 	Y12Solver(integer iMatOrd, integer iWorkSpaceSize,
-			std::vector<integer>*const piTmpRow, 
-			std::vector<integer>*const piTmpCol, 
-			std::vector<doublereal>*const  pdTmpMat,
 			doublereal*  pdTmpRhs, 
 			integer iPivotParam, bool bDupInd = false);
 	/* Distruttore */
@@ -234,7 +231,7 @@ protected:
 	std::vector<doublereal> dVec;	/* reali con residuo/soluzione */
 
 	mutable SpMapMatrixHandler MH;	/* sparse MatrixHandler */
-	VectorHandler* pVH;		/* puntatore a VectorHandler */
+	mutable MyVectorHandler VH;	/* puntatore a VectorHandler */
 
 	/* Fattorizza la matrice (non viene mai chiamato direttamente, 
 	 * ma da Solve se la matrice ancora non e' stata fattorizzata) */
@@ -270,15 +267,13 @@ public:
 
 	/* Rende disponibile l'handler per il termine noto */
 	VectorHandler* pResHdl(void) const {
-		ASSERT(pVH != NULL);	
-		return pVH;
+		return &VH;
 	};
 
 	/* Rende disponibile l'handler per la soluzione (e' lo stesso 
 	 * del termine noto, ma concettualmente sono separati) */
 	VectorHandler* pSolHdl(void) const {
-		ASSERT(pVH != NULL);	
-		return pVH;
+		return &VH;
 	};
 };
 

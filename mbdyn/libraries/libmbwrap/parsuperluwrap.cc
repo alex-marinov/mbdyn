@@ -50,7 +50,7 @@
 extern "C" {
 #include <pdsp_defs.h>
 #include <util.h>
-extern void *(*pdgstrf_thread)(void *);
+extern void *pdgstrf_thread(void *);
 extern void pdgstrf_finalize(pdgstrf_options_t *, SuperMatrix*);
 }
 
@@ -75,16 +75,14 @@ struct SuperLUSolverData {
 
 /* Costruttore: si limita ad allocare la memoria */
 SuperLUSolver::SuperLUSolver(unsigned nt, integer iMatOrd,
-			 std::vector<integer>*const piTmpRow, 
-			 std::vector<integer>*const piTmpCol,
-			 std::vector<doublereal>*const pdTmpMat,
-			 doublereal* pdTmpRhs)
-: Aip(piTmpRow),
-App(piTmpCol),
-Axp(pdTmpMat),
+		doublereal* pdTmpRhs)
+: Aip(0),
+App(0),
+Axp(0),
 iN(iMatOrd),
 iNonZeroes(0),
 bFirstSol(true),
+bRegenerateMatrix(true),
 sld(0),
 nThreads(nt),
 thread_data(0)
@@ -92,13 +90,16 @@ thread_data(0)
 	LinearSolver::pdRhs = pdTmpRhs;
 	LinearSolver::pdSol = pdTmpRhs;
 
-	ASSERT(Aip != NULL);
-	ASSERT(App != NULL);
-	ASSERT(Axp != NULL);
 	ASSERT(pdTmpRhs != NULL);
 	ASSERT(iN > 0);
 
 	SAFENEW(sld, SuperLUSolverData);
+	
+	/*
+	 * This means it's the first run
+	 * FIXME: create a dependence on the library's internals
+	 */
+	sld->A.Store = NULL;
 
 	pthread_mutex_init(&thread_mutex, NULL);
 	pthread_cond_init(&thread_cond, NULL);
@@ -130,6 +131,7 @@ thread_data(0)
 /* Distruttore */
 SuperLUSolver::~SuperLUSolver(void)
 {
+#if 0
 	/* ------------------------------------------------------------
 	 * Clean up and free storage after multithreaded factorization.
 	 * ------------------------------------------------------------*/
@@ -140,6 +142,7 @@ SuperLUSolver::~SuperLUSolver(void)
 	 * Deallocate storage after factorization.
 	 * ------------------------------------------------------------*/
 	pdgstrf_finalize(&sld->pdgstrf_options, &sld->AC);
+#endif
 	
 	thread_operation = SuperLUSolver::EXIT;
 	thread_count = nThreads - 1;
@@ -248,34 +251,53 @@ SuperLUSolver::Factor(void)
 	int		panel_size = sp_ienv(1),
 			relax = sp_ienv(2);
 
-	if (bFirstSol) {
-		/* ------------------------------------------------------------
-		 * Allocate storage and initialize statistics variables. 
-		 * ------------------------------------------------------------*/
+	if (bRegenerateMatrix) {
 		refact = NO;
+		
+		/* NOTE: we could use sld->A.Store == NULL */
+		if (bFirstSol) {
+			ASSERT(Astore == NULL);
 
-		/* Set up the sparse matrix data structure for A. */
-		dCreate_CompCol_Matrix(&sld->A, iN, iN, iNonZeroes,
-				&(*Axp)[0], &(*Aip)[0], &(*App)[0],
-				NC, _D, GE);
+			/* ------------------------------------------------------------
+			 * Allocate storage and initialize statistics variables. 
+			 * ------------------------------------------------------------*/
 
-		/* ------------------------------------------------------------
-		 * Get column permutation vector perm_c[], according to permc_spec:
-		 * permc_spec = 0: use the natural ordering 
-		 * permc_spec = 1: use minimum degree ordering on structure of A'*A
-		 * permc_spec = 2: use minimum degree ordering on structure of A'+A
-		 * !!! permc_spec = 3: use approximate minimum degree column order !!!
-		 * ------------------------------------------------------------*/
+			/* Set up the sparse matrix data structure for A. */
+			dCreate_CompCol_Matrix(&sld->A, iN, iN, iNonZeroes,
+					Axp, Aip, App, NC, _D, GE);
+
+			/* ------------------------------------------------------------
+			 * Get column permutation vector perm_c[], according to permc_spec:
+			 * permc_spec = 0: use the natural ordering 
+			 * permc_spec = 1: use minimum degree ordering on structure of A'*A
+			 * permc_spec = 2: use minimum degree ordering on structure of A'+A
+			 * !!! permc_spec = 3: use approximate minimum degree column order !!!
+			 * ------------------------------------------------------------*/
+
+			StatAlloc(iN, nThreads, panel_size, relax, &sld->Gstat);
+			StatInit(iN, nThreads, &sld->Gstat);
+			
+			sld->perm_c.resize(iN);
+			sld->perm_r.resize(iN);
+
+			bFirstSol = false;	/* never change this again */
+
+		} else {
+			NCformat *Astore = (NCformat *) sld->A.Store;
+
+			ASSERT(Astore);
+
+			Astore->nnz = iNonZeroes;
+			Astore->nzval = Axp;
+			Astore->rowind = Aip;
+			Astore->colptr = App;
+		}
+		
 		int	permc_spec = 0;
 
-		sld->perm_c.resize(iN);
-		sld->perm_r.resize(iN);
 		get_perm_c(permc_spec, &sld->A, &sld->perm_c[0]);
-
-		StatAlloc(iN, nThreads, panel_size, relax, &sld->Gstat);
 	}
 
-	StatInit(iN, nThreads, &sld->Gstat);
 
 	/* ------------------------------------------------------------
 	 * Initialize the option structure pdgstrf_options using the
@@ -288,8 +310,8 @@ SuperLUSolver::Factor(void)
 			work, lwork, &sld->A, &sld->AC,
 			&sld->pdgstrf_options, &sld->Gstat);
 
-	if (bFirstSol) {
-		bFirstSol = false;
+	if (bRegenerateMatrix) {
+		bRegenerateMatrix = false;
 
 		/* --------------------------------------------------------------
 		 * Initializes the parallel data structures for pdgstrf_thread().
@@ -297,6 +319,11 @@ SuperLUSolver::Factor(void)
 		sld->pdgstrf_threadarg = pdgstrf_thread_init(&sld->AC,
 				&sld->L, &sld->U, &sld->pdgstrf_options,
 				&sld->pxgstrf_shared, &sld->Gstat, &info);
+
+		if (info != 0) {
+			silent_cerr("SuperLUSolver::Factor: pdgstrf_thread_init failed" << std::endl);
+		}
+		
 		for (unsigned t = 0; t < nThreads; t++) {
 			thread_data[t].pdgstrf_threadarg = &sld->pdgstrf_threadarg[t];
 		}
@@ -331,12 +358,14 @@ SuperLUSolver::Solve(void) const
       		bHasBeenReset = false;
 	}
 
-#if 0
-	y12solve(&iN, &((*Axp)[0]), &iCurSize, LinearSolver::pdRhs,
-			    pdPIVOT, pic,
-			    piHA, &iN,
-			    iIFLAG, &iIFAIL);
-#endif
+	/* ------------------------------------------------------------
+	 * Solve the system A*X=B, overwriting B with X.
+	 * ------------------------------------------------------------*/
+	trans_t		trans = NOTRANS;
+	int		info = 0;
+
+	dgstrs(trans, &sld->L, &sld->U, &sld->perm_r[0], &sld->perm_c[0],
+			&sld->B, &sld->Gstat, &info);
 }
 
 /* Index Form */
@@ -346,12 +375,24 @@ SuperLUSolver::MakeCompactForm(SparseMatrixHandler& mh,
 		std::vector<int>& Ar, std::vector<int>& Ac,
 		std::vector<int>& Ap) const
 {
+	/* no need to rebuild matrix */
 	if (!bHasBeenReset) {
 		return;
 	}
 	
 	iNonZeroes = mh.MakeCompressedColumnForm(Ax, Ar, Ap, 0);
 	ASSERT(iNonZeroes > 0);
+
+	Axp = &Ax[0];
+	Aip = &Ar[0];
+	App = &Ap[0];
+
+	/* rebuild matrix ... (CC is broken) */
+	bRegenerateMatrix = true;
+
+#if 0
+	Destroy_CompCol_Matrix(&sld->A);
+#endif
 }
 
 /* SuperLUSolver - end */
@@ -365,23 +406,15 @@ SuperLUSparseSolutionManager::SuperLUSparseSolutionManager(integer iSize,
 		const doublereal& dPivotFactor,
 		unsigned nt)
 : iMatSize(iSize), 
-iColStart(iSize + 1),
+Ap(iSize + 1),
+xb(iSize),
 MH(iSize),
-pVH(NULL)
+VH(iSize, &xb[0])
 {
    	ASSERT(iSize > 0);
    	ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
 
 
-   	/* Valore di default */
-   	if (iWorkSpaceSize == 0) {
-		/*
-		 * y12 requires at least 3*numzeros to store factors
-		 * for multiple backsubs
-		 */
-      		iWorkSpaceSize = 3*iSize*iSize;
-   	}
-	
 	integer iPivot;
 	if (dPivotFactor == 0.) {
 		iPivot = 0;
@@ -389,22 +422,9 @@ pVH(NULL)
 		iPivot = 1;
 	}
 
-   	/* Alloca arrays */
-	dVec.resize(iMatSize, 0.);
-   
-   	/* Alloca handlers ecc. */
-   	SAFENEWWITHCONSTRUCTOR(pVH,
-			       MyVectorHandler,
-			       MyVectorHandler(iMatSize, &(dVec[0])));
-
-	iRow.reserve(iWorkSpaceSize);
-	dMat.reserve(iWorkSpaceSize);
-
    	SAFENEWWITHCONSTRUCTOR(SolutionManager::pLS, 
 			       SuperLUSolver,
-			       SuperLUSolver(nt, iMatSize,
-			       		   &iRow, &iColStart,
-					   &dMat, &(dVec[0])));
+			       SuperLUSolver(nt, iMatSize, &xb[0]));
    
 	pLS->SetSolutionManager(this);
 
@@ -421,10 +441,6 @@ SuperLUSparseSolutionManager::~SuperLUSparseSolutionManager(void)
    	IsValid();
 #endif /* DEBUG */
    
-   	if (pVH != NULL) {      
-      		SAFEDELETE(pVH);
-   	}
-   
    	/* Dealloca roba, tra cui i thread */
 }
 
@@ -436,11 +452,11 @@ SuperLUSparseSolutionManager::IsValid(void) const
    	ASSERT(iMatSize > 0);
    
 #ifdef DEBUG_MEMMANAGER
-   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pVH));
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(VH.pdGetVec()));
    	ASSERT(defaultMemoryManager.fIsPointerToBlock(pLS));
 #endif /* DEBUG_MEMMANAGER */
    
-   	ASSERT((pVH->IsValid(), 1));
+   	ASSERT((VH.IsValid(), 1));
    	ASSERT((pLS->IsValid(), 1));
 }
 #endif /* DEBUG */
@@ -471,7 +487,7 @@ SuperLUSparseSolutionManager::MakeCompressedColumnForm(void)
 #endif /* DEBUG */
 
 	/* FIXME: move this to the matrix handler! */
-	pLS->MakeCompactForm(MH, dMat, iRow, iCol, iColStart);
+	pLS->MakeCompactForm(MH, Ax, Ai, Adummy, Ap);
 }
 
 /* Risolve il problema */
@@ -488,16 +504,16 @@ SuperLUSparseSolutionManager::Solve(void)
 #if 0
 	std::cerr << "### after MakeIndexForm:" << std::endl
 		<< "{col Ap[col]}={" << std::endl;
-	for (unsigned i = 0; i < iColStart.size(); i++) {
-		std::cerr << i << " " << iColStart[i] << std::endl;
+	for (unsigned i = 0; i < Ap.size(); i++) {
+		std::cerr << i << " " << Ap[i] << std::endl;
 	}
 	std::cerr << "}" << std::endl;
 	
 	std::cerr << "{idx Ai[idx] col Ax[idx]}={" << std::endl;
 	unsigned c = 0;
 	for (unsigned i = 0; i < Ax.size(); i++) {
-		std::cerr << i << " " << iRow[i] << " " << c << " " << Ax[i] << std::endl;
-		if (i == iColStart[c]) {
+		std::cerr << i << " " << Ai[i] << " " << c << " " << Ax[i] << std::endl;
+		if (i == Ap[c]) {
 			c++;
 		}
 	}
@@ -509,16 +525,16 @@ SuperLUSparseSolutionManager::Solve(void)
 #if 0
 	std::cerr << "### after Solve:" << std::endl
 		<< "{col Ap[col]}={" << std::endl;
-	for (unsigned i = 0; i < iColStart.size(); i++) {
-		std::cerr << i << " " << iColStart[i] << std::endl;
+	for (unsigned i = 0; i < Ap.size(); i++) {
+		std::cerr << i << " " << Ap[i] << std::endl;
 	}
 	std::cerr << "}" << std::endl;
 	
 	std::cerr << "{idx Ai[idx] col Ax[idx]}={" << std::endl;
 	c = 0;
 	for (unsigned i = 0; i < Ax.size(); i++) {
-		std::cerr << i << " " << iRow[i] << " " << c << " " << Ax[i] << std::endl;
-		if (i == iColStart[c]) {
+		std::cerr << i << " " << Ai[i] << " " << c << " " << Ax[i] << std::endl;
+		if (i == Ap[c]) {
 			c++;
 		}
 	}
@@ -565,11 +581,11 @@ void
 SuperLUSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 {
 	if (!CCReady) {
-		pLS->MakeCompactForm(MH, dMat, iRow, iCol, iColStart);
+		pLS->MakeCompactForm(MH, Ax, Ai, Adummy, Ap);
 
 		ASSERT(Ac == 0);
 
-		SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(dMat, iRow, iColStart));
+		SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(Ax, Ai, Ap));
 
 		CCReady = true;
 	}
