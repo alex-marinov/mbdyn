@@ -56,6 +56,8 @@ MBDyn 1.2-Engineering
 		- added RTAI support for soft/hard real-time simulations
 		- allow to clamp the modal element, thus not requiring
 		  the modal node (save 18 dofs)
+		- add general framework for friction
+		- add compressed column matrix with extenal storage
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility

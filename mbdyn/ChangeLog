@@ -6,6 +6,15 @@ Copyright (C) 1996-2003
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Thu Dec  4 17:07:17 CET 2003 Marco Morandini <morandini@æero.polimi.it>
+ - add compressed column matrix form with external storage
+ - use it within umfpackwrap
+
+*** Thu Dec  4 17:07:17 CET 2003 Pierangelo Masarati <masarati@aero.polimi.it>
+                                 Marco Morandini <morandini@æero.polimi.it>
+ - change fIncCoef -> IncCoef (now return void)
+   same for similar methods
+
 *** Wed Oct 22 17:27:23 CEST 2003 Pierangelo Masarati <masarati@aero.polimi.it>
  - Reworked Drive Hinge; no longer experimental but with \pi limitation;
    needs more work...
