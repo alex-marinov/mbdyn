@@ -42,7 +42,10 @@ dummy_c(void)
 	double a, b;
 	pow_dd(&a, &b);
 
+#ifdef NEED_F77_IO
+#warning "needed for F77 I/o"
 	s_wsle();
 	do_lio();
+#endif /* NEED_F77_IO */
 }
 
