@@ -1,0 +1,219 @@
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2004
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+\documentclass[10pt,dvips]{report}
+
+%\usepackage[pdftex]{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage{ae,aecompl}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[dvips,breaklinks=true,colorlinks=false]{hyperref}
+\usepackage{html}
+
+\input{stdmacro}
+
+\newcommand{\kw}[1]{\texttt{#1}}
+%\newcommand{\kw}[1]{\fbox{\texttt{#1}}}
+\newcommand{\T}[1]{\boldsymbol{#1}}
+
+\begin{document}
+
+\begin{latexonly}
+\title{\bf MBDyn Installation Manual \\
+Version
+\input{../build/version}
+}
+\author{Pierangelo Masarati \vspace{5mm}\\
+    \sc Dipartimento di Ingegneria Aerospaziale \\
+    \sc Politecnico di Milano}
+\date{Automatically generated \today}
+\maketitle
+\end{latexonly}
+
+\begin{htmlonly}
+\begin{center}
+\textbf{\LARGE MBDyn Installation Manual}
+
+\emph{\large Pierangelo Masarati}
+
+\textsc{Dipartimento di Ingegneria Aerospaziale \\ Politecnico di Milano}
+
+\today
+\end{center}
+\end{htmlonly}
+
+
+
+
+\tableofcontents
+\newpage
+
+\chapter{Introduction}
+This document describes how to download, build, install and execute
+MBDyn --- MultiBody Analysis program, a suite of tools 
+for multibody/multidisciplinary analysis of complex systems.
+
+For any question or problem, to fix typos, bugs, for comments and
+suggestions, please contact the Development Team
+without hesitation:\vspace{10mm}\\
+
+\noindent
+\begin{tabular}{ll}
+\multicolumn{2}{l}{Pierangelo Masarati,} \\
+\multicolumn{2}{l}{MBDyn Development Team} \\
+\multicolumn{2}{l}{Dipartimento di Ingegneria Aerospaziale} \\
+\multicolumn{2}{l}{Politecnico di Milano} \\
+\multicolumn{2}{l}{via La Masa 34, 20156 Milano, Italy} \\
+Fax: & +39 02 2399 8334 \\
+E-mail: & \htmladdnormallink{\kw{mbdyn@aero.polimi.it}}{mailto:mbdyn@aero.polimi.it} \\
+Web: & \htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/}}{http://www.aero.polimi.it/~mbdyn/}
+\end{tabular}
+\vspace{10mm}
+
+
+\noindent
+This document is also available online at \\
+\htmladdnormallink{\kw{http://mbdyn.aero.polimi.it/\~{}masarati/MBDyn-input/install/}}{http://mbdyn.aero.polimi.it/~masarati/MBDyn-input/install/}
+
+
+
+\chapter{Getting the package}
+The package can be downloaded in source form from
+\begin{center}
+\htmladdnormallink{\kw{http://mbdyn.aero.polimi.it/\~{}mbdyn/}}{http://mbdyn.aero.polimi.it/\~{}mbdyn/}
+\end{center}
+
+Binary releases and snapshots are also available for Windows 2000/XP at 
+\htmladdnormallink{\kw{http://mbdyn.aero.polimi.it/\~{}masarati/Download/mbdyn/}}{http://mbdyn.aero.polimi.it/~masarati/Download/mbdyn/},
+compiled with Cygwin (see
+\htmladdnormallink{\kw{http://www.cygwin.com/}}{http://www.cygwin.com/})
+and thus require \kw{cygltdl-3.dll};
+they are provided to Windows users to save them the burden of installing
+Cygwin (very easy and straightforward, though) and to compile a package
+under an unfamiliar environment.
+However, no support is provided for those builds, unless problems 
+are easily identifiable as related to the sources and not to the OS,
+and they impact the UN*X vesion as well.
+
+MBDyn may use a wide range of packages, if available on the host system
+and correctly detected by \kw{configure}.
+
+\section{Mathematical Utilities}
+MBDyn may exploit the availability of some mathematical utilities;
+neither of them is required for a basic compilation, but they may 
+be useful or required for specific features.
+
+\subsection{ATLAS}\label{sec:DOWNLOAD:NUMERICAL:ATLAS}
+The Automatically Tunable Linear Algebra Subroutines are
+a replacement of the standard BLAS.
+They are exploited by the linear solver Umfpack
+(see Section~\ref{sec:DOWNLOAD:SOLVERS:UMFPACK})
+and can be used by Lapack (see Section~\ref{sec:DOWNLOAD:SOLVERS:LAPACK})
+and other packages that require BLAS
+(see Section~\ref{sec:DOWNLOAD:NUMERICAL:BLAS}).
+
+\subsection{BLAS}\label{sec:DOWNLOAD:NUMERICAL:BLAS}
+The Basic Linear Algebra Subroutines
+can be used by Umfpack (see Section~\ref{sec:DOWNLOAD:SOLVERS:UMFPACK})
+and other packages.
+Specially tuned binaries for each architecture (processor type,
+cache size and otehr special hardware features) are advisable;
+otherwise, instead of compiling them of your own, ATLAS
+(see Section~\ref{sec:DOWNLOAD:NUMERICAL:ATLAS}) are considered
+a better replacement.
+
+\subsection{Metis}
+
+
+\section{Linear Solvers}
+MBDyn may use a variety of linear solvers
+
+\subsection{Naive}
+The Naive solver is also native.
+It is especially meant for medium size problems (between 100 and 1000
+unknowns) and is essentially a sparse solver optimized for speed 
+instead of memory usage.
+
+\subsection{Y12}
+The Y12 solver is also builtin.
+the MBDyn Project distributes the Y12 library 
+\textbf{AS IS} and \textbf{WITHOUT ANY WARRANTY} as part 
+of the source code, with no copyright statement and no license.
+Of course credits go to the original Authors:
+Zahari Zlatev, Jerzy Wasniewski, and Kjeld Schaumburg, 
+Comp.\ Sci., Math.\ Inst., University of Aarhus, 
+Ny Munkegade, DK 8000 Aarhus.
+This solver is recommended for moderate to large problems,
+if Umfpack (see Section~\ref{sec:DOWNLOAD:SOLVERS:UMFPACK}) 
+is not available.
+
+\subsection{Umfpack}\label{sec:DOWNLOAD:SOLVERS:UMFPACK}
+The Umfpack linear sparse solver library must be downloaded separately, from
+\htmladdnormallink{\kw{http://www.cise.ufl.edu/research/sparse/umfpack/}}{http://www.cise.ufl.edu/research/sparse/umfpack/}.
+Credit goes to Timothy A.\ Davis, University of Florida.
+Umfpack is used by permission; please read its Copyright,
+License and Availability note.
+It is used as the standard sparse solver by MATLAB (see
+\htmladdnormallink{\kw{http://www.mathworks.com/}}{http://www.mathworks.com/}).
+This solver is recommended for very large problems,
+and as a general purpose solver.
+
+\subsection{Lapack}
+
+\subsection{SuperLU (experimental)}
+
+\subsection{TAUCS (experimental)}
+
+\subsection{Harwell (historical)}
+
+\subsection{Meschach (historical)}
+
+
+
+\section{Utilities}
+
+\section{Communication}
+
+\section{Real-Time}
+
+
+
+
+\chapter{Building}
+
+\chapter{Installing}
+
+\chapter{Executing}
+
+\chapter{Developers}
+
+\bibliographystyle{unsrt}
+\bibliography{mybib}
+
+
+\end{document}
