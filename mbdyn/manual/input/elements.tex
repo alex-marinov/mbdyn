@@ -39,23 +39,24 @@ Every element card has the following format:
 \end{verbatim}
 where \kw{elem\_type} is one of the following:
 \begin{itemize}
-  \item \kw{aerodynamic body}, \kw{aerodynamic beam}
-  \item \kw{air properties}
-  \item \kw{beam}
-  \item \kw{bind}
-  \item \kw{body}
-  \item \kw{bulk}
-  \item \kw{couple}
-  \item \kw{driven}
-  \item \kw{electric}
-  \item \kw{force}
-  \item \kw{genel}
-  \item \kw{gravity}
-  \item \kw{hydraulic}
-  \item \kw{joint}
-  \item \kw{loadable}
-  \item \kw{rotor}
-  \item \kw{RTAI output}
+\item \kw{aerodynamic beam}
+\item \kw{aerodynamic body}
+\item \kw{air properties}
+\item \kw{beam}
+\item \kw{bind}
+\item \kw{body}
+\item \kw{bulk}
+\item \kw{couple}
+\item \kw{electric}
+\item \kw{force}
+\item \kw{genel}
+\item \kw{gravity}
+\item \kw{hydraulic}
+\item \kw{joint}
+\item \kw{loadable}
+\item \kw{rotor}
+\item \kw{RTAI output}
+\item \kw{Miscellaneous}
 \end{itemize}
 in case of elements that can be instantiated only once, like
 the \kw{gravity} or the \kw{air properties} elements, the \kw{arglist}
@@ -408,8 +409,9 @@ and a peak velocity of 5 m/s moving downstream at the airstream speed,
 
 
 \section{Beam Element}
-The \kw{beam} element allows to model a slender deformable structural
-component with a high degree of flexibility.
+The family of finite volume beam elements implemented in MBDyn
+allows to model slender deformable structural components 
+with a high level of flexibility.
 
 \noindent
 The beam is defined by a reference line and by a manifold
@@ -487,7 +489,10 @@ in a relatively straightforward form:
 \begin{equation}\label{eq:2-NODE-BEAM-STIFFNESS}
 	\hat{\T{K}} = \plbr{\T{F} + \frac{L^2}{12}\T{T} \T{F} \T{T}^T}^{-1} ,
 \end{equation}
-where $\T{F}=\T{K}^{-1}$ is the compliance of the section, and
+where $\T{F}=\T{K}^{-1}$ is the compliance matrix of the section, 
+$L$ is the length of the beam, i.e.\ the distance between
+the two reference points obtained by adding the optional offset 
+to the nodes, and
 \begin{displaymath}
 	\T{T} \ = \ \sqbr{\matr{cc}{
 		\T{0} & \T{e}_x \times{} \\
@@ -498,13 +503,18 @@ is the ``arm'' matrix that appears in the differential equilibrium equation
 \begin{displaymath}
 	\T{\vartheta}_{/x} - \T{T}^T\vartheta + \T{f} \ = \ 0 .
 \end{displaymath}
+There are no provisions to automatically apply the correction 
+when defining the constitutive law of the section.
 The two-node beam has been reimplemented using a helicoidal interpolation
 of the nodal positions and orientations, to improve its capability
-to undergo large displacements and relative rotations; to reduce 
-the shear-locking effect, the stiffness properties still need 
-to be manually corrected according
-to Equation~\ref{eq:2-NODE-BEAM-STIFFNESS}; there is no provisions
-to do it automatically when defining the constitutive law.
+to undergo large displacements and relative rotations.
+It is activated by using the keyword \kw{hbeam2} instead of \kw{beam2}.
+However, to reduce the shear-locking effect, the stiffness properties 
+still need to be manually corrected according
+to Equation~\ref{eq:2-NODE-BEAM-STIFFNESS}.
+The \kw{hbeam2} element is \emph{experimental}, and should be used
+only for development purposes.
+
 
 \subsection{Three-node beam element}
 The three node beam element is described in detail in \cite{FV-AIAA}.
@@ -672,7 +682,7 @@ shear locking, according to Equation~\ref{eq:2-NODE-BEAM-STIFFNESS}.
 \subsection{Output}
 The output related to beam elements is contained in a file with extension 
 \kw{.act}; for each time step, the output of the required beams is
-considered.
+written.
 The internal forces and couples are computed from the interpolated strains
 along the beam by means of the constitutive law, at the two evaluation
 points. 
@@ -684,10 +694,12 @@ The format is:
     \item the three components of the force at the second evaluation point
     \item the three components of the couple at the second evaluation point    
 \end{itemize}
+The last two items (i.e.\ the last 6 columns) are generated
+only by the three-node beam element.
 
 
 
-\section{Bind}\label{sec:EL-BIND}
+\section{Bind}\label{sec:EL:BIND}
 This is not really an element; it is used to instruct a \kw{parameter node}
 about which parameter of an element it is bound to.
 The \kw{parameter node} must exist, and the element the node 
@@ -696,9 +708,9 @@ must have been already defined.
 The complete syntax is:
 \begin{verbatim}
     <arglist> ::= <element_label> , 
-                  <element_type> ,
-                  <parameter_node_label> , 
-                  { <parameter_index> | name , " <parameter_name> " }
+        <element_type> ,
+        <parameter_node_label> , 
+        { <parameter_index> | name , " <parameter_name> " }
 \end{verbatim}
 Each element makes a number of parameters available for such binding; a
 detailed list is being added to the input manual.
@@ -792,7 +804,7 @@ is assumed to be input in the node reference frame.
 
 Note: in many commercial finite element software, the off-diagonal elements 
 of the inertia matrix are defined with a minus sign; for instance, 
-NASTRAN's \kw{CONM2} lumped inertia card expects the values indicated
+NASTRAN's \kw{CONM2} lumped inertia card expects the values as indicated
 in Figure~\ref{fig:el:body:CONM2}.
 %
 \begin{figure}
@@ -810,21 +822,32 @@ CONM2   EID     G       CID     M       X1      X2      X3
 %
 However, the matrix is reconstructed as
 \begin{displaymath}
-	\sqbr{\matr{cccccc}{
+	\mathrm{NASTRAN \ ::= } \ \sqbr{\matr{cccccc}{
 		M & & & & & \\
 		& M & & \multicolumn{3}{c}{symmetric} \\
 		& & M & & & \\
 		& & & I11 & & \\
 		& & & -I21 & I22 & \\
 		& & & -I31 & -I32 & I33
-	}} ;
+	}}
 \end{displaymath}
 see for instance \emph{NASTRAN V70.5 Quick Reference Guide} for details.
 
 \noindent
 On the contrary, MBDyn directly reads the matrix 
 that will be used in the computation, i.e.\ 
-\textbf{without the minus signs in the off-diagonal terms}.
+\textbf{without the minus signs in the off-diagonal terms},
+as reported below:
+\begin{displaymath}
+	\mathrm{MBDyn \ ::= } \ \sqbr{\matr{ccc}{
+		I11 & & \\
+		I21 & I22 & \\
+		I31 & I32 & I33
+	}}
+\end{displaymath}
+The inertia properties of the model can be logged and verified
+by means of the \kw{inertia} keyword, as detailed
+in Section~\ref{sec:EL:MISC:INERTIA}.
 
 
 \section{Bulk Elements}
@@ -853,42 +876,7 @@ derivative can be used) multiplied times the stiffness. \\
 
 
 \section{Couple}
-An alias of \kw{force}; see Section~\ref{sec:EL-FORCE}.
-
-
-\section{Driven Element}
-The \kw{driven} type is not an element by itself. It is a wrapper that
-masks another element and switches it on and off depending on the (boolean)
-value of a drive. It can be used to emulate a variable topology model, where 
-some elements simply don't contribute to the residual or to the Jacobian
-matrices when their drive has a certain value. Since the drivers can be
-arbitrary functions of the time, or other parameters including the value of
-any degree of freedom, the driven elements can be ``driven'' in a very
-flexible way. Every element can be driven, except those that can be
-instantiated once only.
-The syntax for a driven element is:
-\begin{verbatim}
-    <normal_arglist> ::= (drive_caller) <element_driver> ,
-        {
-            <elem_type> : <elem_label> <elem_normal_arglist> 
-        |   
-            existing : <elem_type> , <elem_label>
-        }
-\end{verbatim}
-When the first format is used, a normal element is read, instantiated, and
-wrapped by the \kw{driven} element wrapper. Note that after the element type,
-or after the keyword \kw{existing}, a colon is used as a separator.
-This is due for compatibility with the restart module and is not likely 
-to be eliminated in the future. 
-The label of the element must math that of the driving element given at
-the beginning.
-When the second format is used, an existing element is sought, and it is
-wrapped by a driven element. In this case, no new element is instantiated.
-Again the label of the element must match that of the driving element given 
-at the beginning. For consistency with the syntax, and for more flexibility,
-even when wrapping an existing element it is possible to set at the end the
-output flags. This flag will override the previously set one.
-
+An alias of \kw{force}; see Section~\ref{sec:EL:FORCE}.
 
 
 
@@ -988,7 +976,7 @@ and $ s $ is the Laplace variable.
 
 
 
-\section{Force}\label{sec:EL-FORCE}
+\section{Force}\label{sec:EL:FORCE}
 The \kw{force} element has the following syntax:
 \begin{verbatim}
   <normal_arglist> ::= <force_type> , <force_arglist>
@@ -1377,7 +1365,7 @@ the drive of the gravity acceleration, in the global reference frame.
 
 
 
-\section{Hydraulic Element}\label{sec:EL-HYDR}
+\section{Hydraulic Element}\label{sec:EL:HYDR}
 {\em 
     Note: under development \\
     Author: Lamberto Puggelli
@@ -1436,7 +1424,7 @@ of area that leaks even when \kw{state} is zero.
 
 
 
-\subsection{Dynamic Control Valve}\label{sec:EL-HYDR-DYNAMIC_CONTROL_VALVE}
+\subsection{Dynamic Control Valve}\label{sec:EL:HYDR:DYNAMIC_CONTROL_VALVE}
 \begin{verbatim}
     <hydr_elem_type> ::= dynamic control valve ,
     <hydr_elem_data> ::= <node_1> , <node_2> ,
@@ -1489,7 +1477,7 @@ when the maximum stroke is reached.
                          <acceleration> ,
                          <hydraulic_fluid_properties>
 \end{verbatim}
-Same as Dynamic Control Valve (\ref{sec:EL-HYDR-DYNAMIC_CONTROL_VALVE}),
+Same as Dynamic Control Valve (\ref{sec:EL:HYDR:DYNAMIC_CONTROL_VALVE}),
 only the pressures at \kw{node\_5} and \kw{node\_6} are applied
 at the sides of the valve body and participate in the force balance.
 
@@ -1790,7 +1778,7 @@ by directly writing code in files \verb;mbdyn/struct/kin.cc; and
                         (drive_caller) <velocity>
 \end{verbatim}
 
-\subsection{Modal}\label{sec:EL-STRUCT-JOINT-MODAL}
+\subsection{Modal}\label{sec:EL:STRUCT:JOINT:MODAL}
 \emph{Note: under development \\
     Author: Felice Felippone; \\
     Initial review: Giuseppe Quaranta; \\
@@ -1973,7 +1961,7 @@ is discouraged, unless strictly required.
 
 
 
-\subsection{Plane displacement}\label{sec:EL-STRUCT-JOINT-PLANE_DISPLACEMENT}
+\subsection{Plane displacement}\label{sec:EL:STRUCT:JOINT:PLANE_DISPLACEMENT}
 This joint allows two nodes to move in the common relative 1--2 plane 
 and to rotate about the common relative axis 3.
 \begin{verbatim}
@@ -1993,7 +1981,7 @@ combine an \kw{in plane} and a \kw{revolute rotation} joint instead.}
 This joint allows a node to move in the relative 1--2 plane 
 and to rotate about the relative axis 3 with respect to an absolute point 
 and plane.
-See also Section~\ref{sec:EL-STRUCT-JOINT-PLANE_DISPLACEMENT}.
+See also Section~\ref{sec:EL:STRUCT:JOINT:PLANE_DISPLACEMENT}.
 \begin{verbatim}
     <joint_type> ::= plane displacement pin
     <joint_arglist> ::= 
@@ -2081,7 +2069,7 @@ of a hydraulic actuator.
     axis 3.
 }
 
-\subsection{Rod}\label{sec:EL-STRUCT-JOINT-ROD}
+\subsection{Rod}\label{sec:EL:STRUCT:JOINT:ROD}
 The \kw{rod} element represents a force between two nodes that depends
 on the relative position and velocity of the nodes.
 The direction of the force is also based on the relative position
@@ -2111,9 +2099,9 @@ see Section~\ref{sec:CONSTITUTIVE-LAWS}.
 If the optional \kw{offset} keyword is used, the element falls through
 to the more general \kw{rod with offset};
 see also \kw{rod with offset}
-in Section~\ref{sec:EL-STRUCT-JOINT-ROD-WITH-OFFSET}.
+in Section~\ref{sec:EL:STRUCT:JOINT:ROD_WITH_OFFSET}.
 
-\subsection{Rod with offset}\label{sec:EL-STRUCT-JOINT-ROD-WITH-OFFSET}
+\subsection{Rod with offset}\label{sec:EL:STRUCT:JOINT:ROD_WITH_OFFSET}
 The syntax is:
 \begin{verbatim}
     <joint_type> ::= rod with offset
@@ -2123,7 +2111,7 @@ The syntax is:
         (ConstitutiveLaw1D) <const_law>
 \end{verbatim}
 Analogous to the \kw{rod} joint with the optional arg \kw{offset};
-see Section~\ref{sec:EL-STRUCT-JOINT-ROD} for details.
+see Section~\ref{sec:EL:STRUCT:JOINT:ROD} for details.
 
 \subsection{Spherical hinge}
 The syntax is:
@@ -2201,7 +2189,7 @@ A universal joint without position constraints.
 }
 
 
-\section{Loadable Element}\label{sec:EL-BASE-LOADABLE}
+\section{Loadable Element}\label{sec:EL:BASE:LOADABLE}
 The \kw{loadable} element is a wrapper for a user-defined element that is
 compiled in a separated module and linked run-time.
 The module should provide a comprehensive set of functions with a specified
@@ -2354,7 +2342,7 @@ on \kw{csh(1)} and compatible shells.
 
 \section{Output Elements}
 
-\subsection{RTAI output}\label{sec:EL-BASE-RTAI_out}
+\subsection{RTAI output}\label{sec:EL:BASE:RTAI_out}
 This is a special element which takes care of sending generic output
 to external processes by means of RTAI mailboxes during real-time 
 simulations.
@@ -2397,7 +2385,7 @@ or model debugging purposes.}
 
 
 
-\subsection{Stream output}\label{sec:EL-BASE-STREAM_OUTPUT}
+\subsection{Stream output}\label{sec:EL:BASE:STREAM_OUTPUT}
 This is a special element which takes care of sending generic output
 to external processes by means of RTAI mailboxes during real-time 
 simulations.
@@ -2659,7 +2647,110 @@ specific simulation entity, but rather alter the behavior
 of existing entries or cause special operations to be undertaken
 during model input.
 
-\subsection{Inertia}
+
+
+\subsection{Driven Element}
+The \kw{driven} type is not an element by itself. It is a wrapper that
+masks another element and switches it on and off depending on the (boolean)
+value of a drive. It can be used to emulate a variable topology model, where 
+some elements simply don't contribute to the residual or to the Jacobian
+matrices when their drive has a certain value. Since the drivers can be
+arbitrary functions of the time, or other parameters including the value of
+any degree of freedom, the driven elements can be ``driven'' in a very
+flexible way. Every element can be driven, except those that can be
+instantiated once only.
+The syntax for a driven element is:
+\begin{verbatim}
+    <normal_arglist> ::= (drive_caller) <element_driver> ,
+        <driven_element>
+
+    <driven_element> ::= existing : <elem_type> , <elem_label>
+    <driven_element> ::= <element_card>
+\end{verbatim}
+When the first format is used, an existing element 
+of type \kw{<elem\_type>} and label \kw{<elem\_label>} is looked for, 
+and it is wrapped by the driven element.
+In this case, no new element is instantiated.
+The label of the element must match that of the driving element given 
+at the beginning.
+For consistency with the syntax, and for more flexibility, 
+even when wrapping an existing element the output flags can be set
+at the end of the card.
+This flag overrides the one set when the driven element was instantiated.
+
+When the second format is used, a new normal element is read 
+after the driving element's declaration; it is then instantiated 
+and wrapped by the \kw{driven} element wrapper.
+Note that after the element type,
+or after the keyword \kw{existing}, a colon is used as a separator.
+This is one of the very few  exception to the rule that colons 
+can only follow descriptions at the beginning of a card.
+The label of the driven element must match that of the driving element 
+given at the beginning of the card.
+
+\noindent
+Example: a pin constraint between two rigid bodies is released:
+\begin{verbatim}
+    set: integer body_1 = 1;
+    set: integer body_2 = 2;
+    # ...
+    structural: body_1, dynamic,
+        null, eye, null, null;
+    structural: body_2, dynamic,
+        null, eye, null, null;
+    # ....
+    rigid body: body_1, body_1,
+        1000., null, diag, 100.,100.,1.;
+    rigid body: body_2, body_2,
+        10., null, diag, 1.e-1,1.e-1,1.e-3;
+    # ...
+    # this constraint will be released when t = 10 s
+    driven: 1, string, "Time<10.",
+    joint: 1, spherical hinge,
+        body_1, null,
+        body_2, null;
+\end{verbatim}
+
+\noindent
+Example: an \kw{axial rotation} joint is replaced by a \kw{revolute hinge}
+when the desired spin velocity, measured as the angular velocity
+of the second node (assuming, for instance, that the first one is fixed),
+is reached.
+The value of an abstract node is used to input the angular velocity 
+to the \kw{axial rotation} joint.
+\begin{verbatim}
+    set: integer body_1 = 1;
+    set: integer body_2 = 2;
+    set: integer control_output = 3;
+    # ...
+    structural: body_1, static,
+        null, eye, null, null;
+    structural: body_2, dynamic,
+        null, eye, null, null;
+    abstract: control_output;
+    # ....
+    driven: 1, dof, body_2, structural, 6, differential,
+        string, "Var<100.",
+    joint: 1, axial rotation,
+        body_1, null,
+            hinge, 1, 1.,0.,0., 3, 0.,0.,1.,
+        body_2, null,
+            hinge, 1, 1.,0.,0., 3, 0.,0.,1.,
+        dof, control_output, abstract, algebraic,
+            linear, 0.,1.;
+    driven: 2, dof, body_2, structural, 6, differential,
+        string, "Var>=100.",
+    joint: 2, revolute hinge,
+        body_1, null,
+            hinge, 1, 1.,0.,0., 3, 0.,0.,1.,
+        body_2, null,
+            hinge, 1, 1.,0.,0., 3, 0.,0.,1.;
+\end{verbatim}
+
+
+
+
+\subsection{Inertia}\label{sec:EL:MISC:INERTIA}
 This card causes the equivalent inertia properties of a subset
 of elements to be generated.
 \begin{verbatim}
