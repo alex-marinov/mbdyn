@@ -51,30 +51,15 @@
 #include <unistd.h>
 #include <output.h>
 
+/* NonlinearSolverTest - begin */
+
 NonlinearSolverTest::~NonlinearSolverTest(void)
 {
 	NO_OP;
 }
 
-const doublereal dOne = 1.;
-
-const doublereal&
-NonlinearSolverTest::dScaleCoef(const integer& iIndex) const
-{
-	return ::dOne;
-}
-
 doublereal
-NonlinearSolverTestNone::MakeTest(Solver *pS, integer Size, 
-		const VectorHandler& Vec, bool bResidual)
-{
-   	DEBUGCOUTFNAME("NonlinearSolverTestNone::MakeTest");
-
-	return 0.;
-}
-
-doublereal
-NonlinearSolverTestNorm::MakeTest(Solver *pS, integer Size,
+NonlinearSolverTest::MakeTest(Solver *pS, const integer& Size,
 		const VectorHandler& Vec, bool bResidual)
 {
    	DEBUGCOUTFNAME("NonlinearSolverTestNorm::MakeTest");
@@ -90,10 +75,14 @@ NonlinearSolverTestNorm::MakeTest(Solver *pS, integer Size,
 		SchurDataManager *pSDM = 
 			dynamic_cast<SchurDataManager *>(pS->pGetDataManager());
 		ASSERT(pSDM);
-		integer iNumLocDof =
+
+		integer iNumLocDofs =
 			pSDM->HowManyDofs(SchurDataManager::MYINTERNAL);
-		integer *pLocDof =
+		integer *pLocDofs =
 			pSDM->GetDofsList(SchurDataManager::MYINTERNAL);
+		integer *pDofs =
+			pSDM->GetDofsList(SchurDataManager::TOTAL);
+
 
 		/*
 		 * Chiama la routine di comunicazione per la trasmissione 
@@ -102,16 +91,18 @@ NonlinearSolverTestNorm::MakeTest(Solver *pS, integer Size,
 		pSSM->StartExchInt();
 
 		/* calcola il test per i dofs locali */
-		int DCount = 0;
 		for (int iCnt = 0; iCnt < iNumLocDofs; iCnt++) {
-			DCount = pLocDofs[iCnt];
-			CurrDof = pDofs[DCount-1];
-			doublereal d = Vec.dGetCoef(DCount);
-			dRes += d*d;
+			int DCount = pLocDofs[iCnt] - 1;
+
+			TestOne(dRes, Vec, pDofs[DCount]);
 		}
 
 		/* verifica completamento trasmissioni */
-		pSSM->ComplExchInt(Vec);
+		pSSM->ComplExchInt(dRes);
+#if 0
+		/* FIXME: this should be called inside ComplExchInt() ??? */
+		TestMerge(dRes, d[0]);
+#endif
 
 		/* FIXME: operazioni su altri dof */
 		
@@ -121,13 +112,79 @@ NonlinearSolverTestNorm::MakeTest(Solver *pS, integer Size,
 		ASSERT(Vec.iGetSize() == Size);
 
  	  	for (int iCntp1 = 1; iCntp1 <= Size; iCntp1++) {
-			doublereal d = Vec.dGetCoef(iCntp1);
-			dRes += d*d;
+			TestOne(dRes, Vec, iCntp1);
 		}
 #ifdef USE_MPI
 	}
 #endif /* USE_MPI */
 
+	return TestPost(dRes);
+}
+
+doublereal
+NonlinearSolverTest::TestPost(const doublereal& dRes) const
+{
+	return dRes;
+}
+
+const doublereal dOne = 1.;
+
+const doublereal&
+NonlinearSolverTest::dScaleCoef(const integer& iIndex) const
+{
+	return ::dOne;
+}
+
+/* NonlinearSolverTest - end */
+
+/* NonlinearSolverTestNone - begin */
+
+doublereal
+NonlinearSolverTestNone::MakeTest(Solver *pS, integer Size, 
+		const VectorHandler& Vec, bool bResidual)
+{
+   	DEBUGCOUTFNAME("NonlinearSolverTestNone::MakeTest");
+
+	return 0.;
+}
+
+void
+NonlinearSolverTestNone::TestOne(doublereal& dRes, 
+		const VectorHandler& Vec, const integer& iIndex) const
+{
+	dRes = 0.;
+}
+
+void
+NonlinearSolverTestNone::TestMerge(doublereal& dResCurr, 
+		const doublereal& dResNew) const
+{
+	dResCurr = 0.;
+}
+
+/* NonlinearSolverTestNone - end */
+
+/* NonlinearSolverTestNorm - begin */
+
+void
+NonlinearSolverTestNorm::TestOne(doublereal& dRes, 
+		const VectorHandler& Vec, const integer& iIndex) const
+{
+	doublereal d = Vec.dGetCoef(iIndex);
+
+	dRes += d*d;
+}
+
+void
+NonlinearSolverTestNorm::TestMerge(doublereal& dResCurr, 
+		const doublereal& dResNew) const
+{
+	dResCurr += dResNew;
+}
+
+doublereal
+NonlinearSolverTestNorm::TestPost(const doublereal& dRes) const
+{
 	/* va qui perche' non posso fare sqrt() su !isfinite() */
 	if (!isfinite(dRes)) {      
 		THROW(NonlinearSolver::ErrSimulationDiverged());
@@ -136,78 +193,44 @@ NonlinearSolverTestNorm::MakeTest(Solver *pS, integer Size,
    	return sqrt(dRes);
 }
 
-doublereal
-NonlinearSolverTestMinMax::MakeTest(Solver *pS, integer Size,
-		const VectorHandler& Vec, bool bResidual)
+/* NonlinearSolverTestNorm - end */
+
+/* NonlinearSolverTestMinMax */
+
+void
+NonlinearSolverTestMinMax::TestOne(doublereal& dRes,
+		const VectorHandler& Vec, const integer& iIndex) const
 {
-   	DEBUGCOUTFNAME("NonlinearSolverTestMinMax::MakeTest");
+	doublereal d = fabs(Vec.dGetCoef(iIndex));
 
-   	doublereal dRes = 0.;
-	
-#ifdef USE_MPI
-#warning "NonlinearSolverTestMinMax::MakeTest parallel broken !! "	
-	ASSERT(pS != NULL);
-	SchurSolutionManager *pSSM;
-	if (bResidual && (pSSM = dynamic_cast<SchurSolutionManager*> (pS->pGetSolutionManager())) != 0) {
-		SchurDataManager *pSDM = 
-			dynamic_cast<SchurDataManager *>(pS->pGetDataManager());
-		ASSERT(pSDM);
-		integer iNumLocDof =
-			pSDM->HowManyDofs(SchurDataManager::MYINTERNAL);
-		integer *pLocDof =
-			pSDM->GetDofsList(SchurDataManager::MYINTERNAL);
-
-		/*
-		 * Chiama la routine di comunicazione per la trasmissione 
-		 * del residuo delle interfacce
-		 */
-		pSSM->StartExchInt();
-
-		/* calcola il test per i dofs locali */
-		int DCount = 0;
-		for (int iCnt = 0; iCnt < iNumLocDofs; iCnt++) {
-			DCount = pLocDofs[iCnt];
-			CurrDof = pDofs[DCount-1];
-			doublereal d = fabs(Vec.dGetCoef(DCount));
-
-			if (d > dRes) {
-				dRes = d;
-			}
-		}
-
-		/* verifica completamento trasmissioni */
-		doublereal d[2];
-		pSSM->ComplExchInt(d);
-		dRes = d[0];
-		dXPr = d[1];
-		
-		/* FIXME: operazioni su altri dof */
-	} else {
-#endif /* USE_MPI */
-		ASSERT(Vec.iGetSize() == Size);
-
- 	  	for (int iCntp1 = 1; iCntp1 <= Size; 
-				iCntp1++) {
-			doublereal d = fabs(Vec.dGetCoef(iCntp1));
-
-			if (d > dRes) {
-				dRes = d;
-			}
-		}
-#ifdef USE_MPI
+	if (d > dRes) {
+		dRes = d;
 	}
-#endif /* USE_MPI */
-
-	/* va qui perche' non posso fare sqrt() su !isfinite() */
-	if (!isfinite(dRes)) {      
-		THROW(NonlinearSolver::ErrSimulationDiverged());
-	}
-
-   	return dRes;
 }
+
+void
+NonlinearSolverTestMinMax::TestMerge(doublereal& dResCurr,
+		const doublereal& dResNew) const
+{
+	ASSERT(dResCurr >= 0.);
+	ASSERT(dResNew >= 0.);
+
+	if (dResNew > dResCurr) {
+		dResCurr = dResNew;
+	}
+}
+
+/* NonlinearSolverTestMinMax - end */
+
+/* NonlinearSolverTestScale - begin */
 
 NonlinearSolverTestScale::NonlinearSolverTestScale(const VectorHandler* pScl)
 : pScale(pScl)
+{
+	NO_OP;
+}
+
+NonlinearSolverTestScale::~NonlinearSolverTestScale(void)
 {
 	NO_OP;
 }
@@ -224,149 +247,63 @@ NonlinearSolverTestScale::dScaleCoef(const integer& iIndex) const
 	return pScale->dGetCoef(iIndex);
 }
 
-doublereal
-NonlinearSolverTestScaleNorm::MakeTest(Solver *pS, integer Size, 
-		const VectorHandler& Vec, bool bResidual)
+/* NonlinearSolverTestScale - end */
+
+/* NonlinearSolverTestScaleNorm - begin */
+
+void
+NonlinearSolverTestScaleNorm::TestOne(doublereal& dRes,
+		const VectorHandler& Vec, const integer& iIndex) const
 {
-	DEBUGCOUTFNAME("NonlinearSolverTestScaleNorm::MakeTest");
+	doublereal d = Vec.dGetCoef(iIndex) * pScale->dGetCoef(iIndex);
 
-   	doublereal dRes = 0.;
-	
-#ifdef USE_MPI
-#warning "NonlinearSolverTestScaleNorm::MakeTest parallel broken !! "	
-
-	ASSERT(pS != NULL);
-	SchurSolutionManager *pSSM;
-	if (bResidual && (pSSM = dynamic_cast<SchurSolutionManager*> (pS->pGetSolutionManager())) != 0) {
-		SchurDataManager *pSDM = 
-			dynamic_cast<SchurDataManager *>(pS->pGetDataManager());
-		ASSERT(pSDM);
-		integer iNumLocDof =
-			pSDM->HowManyDofs(SchurDataManager::MYINTERNAL);
-		integer *pLocDof =
-			pSDM->GetDofsList(SchurDataManager::MYINTERNAL);
-		
-		/*
-		 * Chiama la routine di comunicazione per la trasmissione 
-		 * del residuo delle interfacce
-		 */
-		pSSM->StartExchInt();
-
-		/* calcola il test per i dofs locali */
-		int DCount = 0;
-		for (int iCnt = 0; iCnt < iNumLocDofs; iCnt++) {
-			DCount = pLocDofs[iCnt];
-			CurrDof = pDofs[DCount-1];
-			doublereal d = Vec.dGetCoef(DCount);
-			dRes += d*d;
-		}
-
-		/* verifica completamento trasmissioni */
-		doublereal d[2];
-		pSSM->ComplExchInt(d);
-		dRes = d[0];
-		dXPr = d[1];
-		
-		/* FIXME: operazioni su altri dof */
-	} else {
-#endif /* USE_MPI */
-		ASSERT(Vec.iGetSize() == Size);
-		ASSERT(pScale != NULL);
-		ASSERT(pScale->iGetSize() == Size);
-
- 	  	for (int iCntp1 = 1; iCntp1 <= Size; 
-				iCntp1++) {
-			doublereal d = Vec.dGetCoef(iCntp1);
-			doublereal d2 = d*d;
-
-			doublereal ds = pScale->dGetCoef(iCntp1);
-			doublereal ds2 = ds*ds;
-			d2 *= ds2;
-
-			dRes += d2;
-		}
-#ifdef USE_MPI
-	}
-#endif /* USE_MPI */
-
-	/* FIXME: sicuri che va qui? */
-	if (!isfinite(dRes)) {      
-		THROW(NonlinearSolver::ErrSimulationDiverged());
-	}
-
-   	return sqrt(dRes);
+	dRes += d*d;
 }
 
-doublereal
-NonlinearSolverTestScaleMinMax::MakeTest(Solver *pS, integer Size, 
-		const VectorHandler& Vec, bool bResidual)
+void
+NonlinearSolverTestScaleNorm::TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const
 {
-	DEBUGCOUTFNAME("NonlinearSolverTestScaleMinMax::MakeTest");
-
-   	doublereal dRes = 0.;
-	
-#ifdef USE_MPI
-#warning "NonlinearSolverTestScaleMinMax::MakeTest parallel broken !! "	
-
-	ASSERT(pS != NULL);
-	SchurSolutionManager *pSSM;
-	if (bResidual && (pSSM = dynamic_cast<SchurSolutionManager*> (pS->pGetSolutionManager())) != 0) {
-		SchurDataManager *pSDM = 
-			dynamic_cast<SchurDataManager *>(pS->pGetDataManager());
-		ASSERT(pSDM);
-		integer iNumLocDof =
-			pSDM->HowManyDofs(SchurDataManager::MYINTERNAL);
-		integer *pLocDof =
-			pSDM->GetDofsList(SchurDataManager::MYINTERNAL);
-		
-		/*
-		 * Chiama la routine di comunicazione per la trasmissione 
-		 * del residuo delle interfacce
-		 */
-		pSSM->StartExchInt();
-
-		/* calcola il test per i dofs locali */
-		int DCount = 0;
-		for (int iCnt = 0; iCnt < iNumLocDofs; iCnt++) {
-
-			DCount = pLocDofs[iCnt];
-			CurrDof = pDofs[DCount-1];
-
-			doublereal d = fabs(Vec.dGetCoef(DCount));
-
-			if (d > dRes) {
-				dRes = d;
-			}
-		}
-
-		/* verifica completamento trasmissioni */
-		pSSM->ComplExchInt(dRes, dXPr);
-		
-		/* FIXME: operazioni su altri dof */
-	} else {
-#endif /* USE_MPI */
-		ASSERT(Vec.iGetSize() == Size);
-		ASSERT(pScale != NULL);
-		ASSERT(pScale->iGetSize() == Size);
-
- 	  	for (int iCntp1 = 1; iCntp1 <= Size; 
-				iCntp1++) {
-			doublereal d = fabs(Vec.dGetCoef(iCntp1))*pScale->dGetCoef(iCntp1);
-			if (d > dRes) {
-				dRes = d;
-			}
-		}
-#ifdef USE_MPI
-	}
-#endif /* USE_MPI */
-
-	/* FIXME: sicuri che va qui? */
-	if (!isfinite(dRes)) {      
-		THROW(NonlinearSolver::ErrSimulationDiverged());
-	}
-
-   	return dRes;
+	NonlinearSolverTestNorm::TestMerge(dResCurr, dResNew);
 }
+
+const doublereal&
+NonlinearSolverTestScaleNorm::dScaleCoef(const integer& iIndex) const
+{
+	return NonlinearSolverTestScale::dScaleCoef(iIndex);
+}
+
+/* NonlinearSolverTestScaleNorm - end */
+
+/* NonlinearSolverTestScaleMinMax - begin */
+
+void
+NonlinearSolverTestScaleMinMax::TestOne(doublereal& dRes,
+		const VectorHandler& Vec, const integer& iIndex) const
+{
+	doublereal d = fabs(Vec.dGetCoef(iIndex) * pScale->dGetCoef(iIndex));
+
+	if (d > dRes) {
+		dRes = d;
+	}
+}
+
+void
+NonlinearSolverTestScaleMinMax::TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const
+{
+	NonlinearSolverTestMinMax::TestMerge(dResCurr, dResNew);
+}
+
+const doublereal&
+NonlinearSolverTestScaleMinMax::dScaleCoef(const integer& iIndex) const
+{
+	return NonlinearSolverTestScale::dScaleCoef(iIndex);
+}
+
+/* NonlinearSolverTestScaleMinMax - end */
+
+/* NonlinearSolver - begin */
 
 NonlinearSolver::NonlinearSolver(void)
 : Size(0),
@@ -440,4 +377,6 @@ NonlinearSolver::SendExternal(void)
 }
 
 #endif /* USE_EXTERNAL */
+
+/* NonlinearSolver - end */
 

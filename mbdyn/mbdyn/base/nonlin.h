@@ -79,27 +79,51 @@ public:
 	};
 
 	virtual ~NonlinearSolverTest(void);
-	virtual doublereal MakeTest(Solver *pS, integer Size,
-			const VectorHandler& Vec, bool bResidual = false) = 0;
+
+	/* loops over the vector Vec */
+	virtual doublereal MakeTest(Solver *pS, const integer& Size,
+			const VectorHandler& Vec, bool bResidual = false);
+
+	/* tests a single value, and returns the measure accordingly */
+	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
+			const integer& iIndex) const = 0;
+
+	/* merges results of multiple tests */
+	virtual void TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const = 0;
+
+	/* post-processes the test */
+	virtual doublereal TestPost(const doublereal& dRes) const;
+
+	/* scales a single value */
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
 };
 
 class NonlinearSolverTestNone : public NonlinearSolverTest {
 public:
+	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
+			const integer& iIndex) const;
+	virtual void TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const;
 	virtual doublereal MakeTest(Solver *pS, integer Size,
 			const VectorHandler& Vec, bool bResidual = false);
 };
 
 class NonlinearSolverTestNorm : public NonlinearSolverTest {
 public:
-	virtual doublereal MakeTest(Solver *pS, integer Size,
-			const VectorHandler& Vec, bool bResidual = false);
+	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
+			const integer& iIndex) const;
+	virtual void TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const;
+	virtual doublereal TestPost(const doublereal& dRes) const;
 };
 
 class NonlinearSolverTestMinMax : public NonlinearSolverTest {
 public:
-	virtual doublereal MakeTest(Solver *pS, integer Size,
-			const VectorHandler& Vec, bool bResidual = false);
+	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
+			const integer& iIndex) const;
+	virtual void TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const;
 };
 
 class NonlinearSolverTestScale : public NonlinearSolverTest {
@@ -108,20 +132,29 @@ protected:
 	
 public:
 	NonlinearSolverTestScale(const VectorHandler* pScl = 0);
+	virtual ~NonlinearSolverTestScale(void);
 	virtual void SetScale(const VectorHandler* pScl);
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
 };
 
-class NonlinearSolverTestScaleNorm : public NonlinearSolverTestScale {
+class NonlinearSolverTestScaleNorm : public NonlinearSolverTestScale,
+	public NonlinearSolverTestNorm {
 public:
-	virtual doublereal MakeTest(Solver *pS, integer Size,
-			const VectorHandler& Vec, bool bResidual = false);
+	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
+			const integer& iIndex) const;
+	virtual void TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const;
+	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
 };
 
-class NonlinearSolverTestScaleMinMax : public NonlinearSolverTestScale {
+class NonlinearSolverTestScaleMinMax : public NonlinearSolverTestScale,
+	public NonlinearSolverTestMinMax {
 public:
-	virtual doublereal MakeTest(Solver *pS, integer Size,
-			const VectorHandler& Vec, bool bResidual = false);
+	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
+			const integer& iIndex) const;
+	virtual void TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const;
+	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
 };
 
 class NonlinearSolver : public SolverDiagnostics
