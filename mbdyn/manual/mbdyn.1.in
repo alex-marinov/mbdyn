@@ -9,19 +9,46 @@ mbdyn \- \fIM\fPulti\fIB\fPody \fIDyn\fPamics analysis system.
 .BR \-f
 input\-file]
 [\c
-.BR \-o
-output\-file\-prefix]
+.BR \-H
+]
+[\c
+.BR \-h
+]
+[\c
+.BR \-l
+]
 [\c
 .BR \-n
 [nice\-level]]
 [\c
-.BR \-s
-]
+.BR \-o
+output\-file\-prefix]
 [\c
 .BR \-P
 ]
 [\c
 .BR \-p
+]
+[\c
+.BR \-R
+]
+[\c
+.BR \-r
+]
+[\c
+.BR \-s
+]
+[\c
+.BR \-T
+]
+[\c
+.BR \-t
+]
+[\c
+.BR \-W
+new\-working\-dir]
+[\c
+.BR \-w
 ]
 [\c
 .BR \
@@ -38,12 +65,12 @@ including, but not limited to, the mechanical and aeroservoelastic fields.
 Read model and analysis data from file \fIinput\-file\fP; default is 
 \fIstandard input\fP.
 .TP
-.B \-h, \-\-help
-Displays usage information.
-.TP
 .B \-H, \-\-show\-table
 Shows a list of the symbols defined in the symbol table of the mathematical
 parser, with their value.
+.TP
+.B \-h, \-\-help
+Displays usage information.
 .TP
 .B \-l, \-\-license
 Show licensing info.
@@ -59,22 +86,26 @@ Write results to files with prefix \fIoutput\-file\-prefix\fP
 (extensions are content-dependent); default is \fI<input\-file>\fP, if any,
 or "\fIMBDyn\fP".
 .TP
+.B \-P, \-\-pedantic
+Issue pedantic warnings (more occurrences raise the level).
+.TP
 .B \-p, \-\-parallel
 Run in parallel mode (only if compiled with MPI); currently needs
 "parallel;" statement in "data" block.
 .TP
-.B \-P, \-\-pedantic
-Issue pedantic warnings (more occurrences raise the level).
+.B \-R, \-\-no\-redefine
+Do not allow symbols in the mathematical parser to be redefined.
 .TP
 .B \-r, \-\-redefine
 Allow symbols in the mathematical parser to be redefined; useful 
 in conjunction with \fI\-t\fP.
 .TP
-.B \-R, \-\-no\-redefine
-Do not allow symbols in the mathematical parser to be redefined.
-.TP
 .B \-s, \-\-silent
 Reduce verbosity (more occurrences reduce the verbosity level further).
+.TP
+.B \-T, \-\-no\-same\-table
+Do not preserve the existing mathematical parser symbol table when running
+multiple analyses in the same run.
 .TP
 .B \-t, \-\-same\-table
 Preserve the existing mathematical parser symbol table when running
@@ -82,16 +113,12 @@ multiple analyses in the same run (e.g. by issuing multiple input
 files on the command line).  It may require \fI\-r\fP to allow
 redefinition of symbols.
 .TP
-.B \-T, \-\-no\-same\-table
-Do not preserve the existing mathematical parser symbol table when running
-multiple analyses in the same run.
-.TP
-.B \-w, \-\-warranty
-Issue a "warranty" message.
-.TP
 .B \-W, \-\-working\-dir <new\-working\-dir>
 Use \fI<new\-working\-dir>\fP as working directory instead
 of the current
+.TP
+.B \-w, \-\-warranty
+Issue a "warranty" message.
 .LP
 .SH AUTHOR
 The MBDyn Team <http://www.aero.polimi.it/~mbdyn/, http://www.mbdyn.org/>
