@@ -2190,326 +2190,17 @@ EndOfCycle: /* esce dal ciclo di lettura */
    
 /* Estrazione autovalori, vincolata alla disponibilita' delle LAPACK */
 #ifdef __HACK_EIG__
-#ifdef USE_LAPACK
-extern "C" int __FC_DECL__(dgegv)(integer* jobvl,
-		      integer* jobvr, 
-		      integer* n, 
-		      doublereal* a,
-		      integer* lda, 
-		      doublereal* b, 
-		      integer* ldb, 
-		      doublereal* alphar, 
-		      doublereal* alphai, 
-		      doublereal* beta, 
-		      doublereal* vl, 
-		      integer* ldvl, 
-		      doublereal* vr, 
-		      integer* ldvr, 
-		      doublereal* work, 
-		      integer* lwork, 
-		      integer* info);
 
-
-int
-get_vec(istream& in, VectorHandler& vh)
-{
-   char buf[1024];
-   in.getline(buf, 1024);
-   char* p = strchr(buf, ':');
-   if (p == NULL) {
-      THROW(ErrGeneric());
-   }
-   p++;
-   
-   int iNRows = atoi(p);
-   
-   if (iNRows != vh.iGetSize()) {
-      return -1;
-   }
-   
-   for (int iRows = 1; iRows <= iNRows; iRows++) {
-      doublereal d;
-      in >> d;
-      vh.fPutCoef(iRows, d);
-   }
-   
-   while (in.get() != '\n') {
-      NO_OP;
-   }
-   
-   return 0;   
-}
-
-int
-get_mat(istream& in, MatrixHandler& mh)
-{
-   char buf[1024];
-   in.getline(buf, 1024);
-   char* p = strchr(buf, ':');
-   if (p == NULL) {
-      THROW(ErrGeneric());
-   }
-   p++;
-   
-   int iNRows = 0;
-   int iNCols = 0;
-   
-   char* q = strchr(p, 'x');      
-   if (q == NULL) {
-      THROW(ErrGeneric());
-   }
-   q = '\0';
-   iNCols = atoi(q+1);  
-   iNRows = atoi(p);
-   
-   if (iNRows != mh.iGetNumRows() || iNCols != mh.iGetNumCols()) {
-      return -1;
-   }
-   
-   for (int iRows = 1; iRows <= iNRows; iRows++) {
-      for (int iCols = 1; iCols <= iNCols; iCols++) {
-	 doublereal d;
-	 in >> d;
-	 mh.fPutCoef(iRows, iCols, d);
-      }
-   }
-   
-   while (in.get() != '\n') {
-      NO_OP;
-   }
-   
-   return 0;
-}
+#ifndef HAVE_DGEGV
+#include <dgegv.h>
+#endif /* HAVE_DGEGV */
 
 void 
 MultiStepIntegrator::Eig(void)
 {
    DEBUGCOUTFNAME("MultiStepIntegrator::Eig");   
 
-#if 0
-   /* create data structures */
-   /* Workspaces */
-   integer iSize = iNumDofs;
-   ASSERT(iSize > 0);
-   
-   /* 4 matrices iSize x iSize, 3 vectors iSize x 1 */
-   doublereal* pd = NULL;
-   SAFENEWARR(pd, doublereal, 4*(iSize*iSize)+3*iSize, SMmm);
-      
-   /* 4 pointer arrays iSize x 1 for the matrices */
-   doublereal** ppd = NULL;
-   SAFENEWARR(ppd, doublereal*, 4*iSize, SMmm);
-
-   /* Data Handlers */
-   doublereal* pdTmp = pd;
-   doublereal** ppdTmp = ppd;
-   
-   /* input */
-   doublereal* pdA = pd;
-   doublereal* pdB = pdA+iSize*iSize;
-   
-   /* output */
-   doublereal* pdVL = pdB+iSize*iSize;
-   doublereal* pdVR = pdVL+iSize*iSize;
-   doublereal* pdAlphaR = pdVR+iSize*iSize;
-   doublereal* pdAlphaI = pdAlphaR+iSize;
-   doublereal* pdBeta = pdAlphaI+iSize;
-   
-   /* create the matrices */
-   FullMatrixHandler MatA(pdA, ppdTmp, iSize*iSize, iSize, iSize);
-   MatA.Init();
-   
-   FullMatrixHandler MatB(pdB, ppdTmp+iSize, iSize*iSize, iSize, iSize);
-   MatB.Init();
-  
-   FullMatrixHandler MatL(pdVL, ppdTmp+2*iSize, iSize*iSize, iSize, iSize);
-   
-   FullMatrixHandler MatR(pdVR, ppdTmp+3*iSize, iSize*iSize, iSize, iSize);
-   
-   MyVectorHandler AlphaR(iSize, pdAlphaR);
-   
-   MyVectorHandler AlphaI(iSize, pdAlphaI);
-   
-   MyVectorHandler Beta(iSize, pdBeta);
-   
-   /* Matrices Assembly */
-   pDM->AssEig(MatA, MatB);
-
-#ifdef DEBUG
-   DEBUGCOUT(endl << "Matrix A:" << endl << MatA << endl
-	     << "Matrix B:" << endl << MatB << endl);
-#endif /* DEBUG */
-   
-#ifdef DEBUG_MEMMANAGER
-   ASSERT(SMmm.fIsValid((void*)MatA.pdGetMat(), iSize*iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)MatB.pdGetMat(), iSize*iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)MatL.pdGetMat(), iSize*iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)MatR.pdGetMat(), iSize*iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)AlphaR.pdGetVec(), iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)AlphaI.pdGetVec(), iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)Beta.pdGetVec(), iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)WorkVec.pdGetVec(), iWorkSize*sizeof(doublereal)));
-#endif /* DEBUG_MEMMANAGER */
-
-   /* get a temp file name */
-   char* tmpFileName = tempnam(NULL, "mbdyn");
-   if (tmpFileName == NULL) {
-      THROW(ErrMemory());
-   }
-   
-   char* sFileIn = NULL;
-   SAFENEWARR(sFileIn, char, strlen(tmpFileName)+3+1, SMmm);
-   strcpy(sFileIn, tmpFileName);
-   strcat(sFileIn, ".in");
-   
-   char* sFileOut = NULL;
-   SAFENEWARR(sFileOut, char, strlen(tmpFileName)+4+1, SMmm);
-   strcpy(sFileOut, tmpFileName);
-   strcat(sFileOut, ".out");
-   
-   free(tmpFileName);
-   
-   ofstream out(sFileOut);
-   
-   out.setf(ios::scientific);
-   
-   out << "# matrix A: " << iSize << "x" << iSize << endl;   
-   for (integer iCol = 1; iCol <= iSize; iCol++) {
-      for (integer iRow = 1; iRow <= iSize; iRow++) {
-	 out << setw(20) << MatA.dGetCoef(iRow, iCol) << " ";
-      }
-      out << endl;
-   }
-   out << "# matrix B: " << iSize << "x" << iSize << endl;   
-   for (integer iCol = 1; iCol <= iSize; iCol++) {
-      for (integer iRow = 1; iRow <= iSize; iRow++) {
-	 out << setw(20) << MatB.dGetCoef(iRow, iCol) << " ";
-      }
-      out << endl;
-   }
-   
-   out.close();
-   
-   execlp("eig", "eig", sFileOut, sFileIn, NULL);
-   
-   ifstream in(sFileIn);
-   
-   if (get_vec(in, AlphaR) != 0) {
-      cerr << "error while reading AlphaR" << endl;
-      THROW(ErrGeneric());
-   }
-   
-   if (get_vec(in, AlphaI) != 0) {
-      cerr << "error while reading AlphaI" << endl;
-      THROW(ErrGeneric());
-   }
-   
-   if (get_vec(in, Beta) != 0) {
-      cerr << "error while reading Beta" << endl;
-      THROW(ErrGeneric());
-   }
-   
-   if (get_mat(in, MatL) != 0) {
-      cerr << "error while reading MatL" << endl;
-      THROW(ErrGeneric());
-   }
-   
-   if (get_mat(in, MatR) != 0) {
-      cerr << "error while reading MatR" << endl;
-      THROW(ErrGeneric());
-   }
-   
-   in.close();
-   
-   SAFEDELETEARR(sFileIn, SMmm);
-   SAFEDELETEARR(sFileOut, SMmm);
-#endif /* 0 */   
-
-#if 1
-   
-#ifdef DEBUG
-   DEBUGCOUT("eigenanalysis of 2x2 test problem" << endl);
-   const integer MATSIZE = 2;
-   doublereal a[MATSIZE*MATSIZE] = { 0., 1., -1., 0. };
-   doublereal b[MATSIZE*MATSIZE] = { -1., 0., 0., -1. };
-   doublereal vl[MATSIZE*MATSIZE] = { 0., 0., 0., 0. };
-   doublereal vr[MATSIZE*MATSIZE] = { 0., 0., 0., 0. };
-   doublereal alphar[MATSIZE] = { 0., 0. };
-   doublereal alphai[MATSIZE] = { 0., 0. };
-   doublereal beta[MATSIZE] = { 0., 0. };
-   doublereal work[8*MATSIZE] = { 0., 0., 0., 0., 0., 0., 0., 0.,
- 	                          0., 0., 0., 0., 0., 0., 0., 0. };
-   integer n = MATSIZE;
-   integer lwork = 8*MATSIZE;
-   integer info = 0;
-   char* sl = "V";
-   char* sr = "V";
-   
-   cout << endl << "prima:" << endl;
-   cout << "A={" << a[0] << ", " << a[2] << endl
-     << "   " << a[1] << ", " << a[3] << "}" << endl;
-   cout << "B={" << b[0] << ", " << b[2] << endl
-     << "   " << b[1] << ", " << b[3] << "}" << endl;
-   cout << "L={" << vl[0] << ", " << vl[2] << endl
-     << "   " << vl[1] << ", " << vl[3] << "}" << endl;
-   cout << "R={" << vr[0] << ", " << vr[2] << endl
-     << "   " << vr[1] << ", " << vr[3] << "}" << endl;
-   cout << "alphar={" << alphar[0] << ", " << alphar[1] << "}" << endl;
-   cout << "alphai={" << alphai[0] << ", " << alphai[1] << "}" << endl;
-   cout << "beta  ={" << beta[0] << ", " << beta[1] << "}" << endl;
-   cout << "work={";
-   for (int i = 0; i < 8*MATSIZE; i++) {
-      cout << work[i] << ", ";
-   }
-   cout << endl;
-   cout << "n=" << n << ", lwork=" << lwork << ", info=" << info << endl;
-   
-   dgegv_(sl,
-	  sr, 
-	  &n, 
-	  a,
-	  &n,
-	  b, 
-	  &n,
-	  alphar, 
-	  alphai, 
-	  beta, 
-	  vl, 
-	  &n, 
-	  vr, 
-	  &n, 
-	  work, 
-	  &lwork, 
-	  &info);
-
-   cout << endl << "dopo:" << endl;
-   cout << "A={" << a[0] << ", " << a[2] << endl
-     << "   " << a[1] << ", " << a[3] << "}" << endl;
-   cout << "B={" << b[0] << ", " << b[2] << endl
-     << "   " << b[1] << ", " << b[3] << "}" << endl;
-   cout << "L={" << vl[0] << ", " << vl[2] << endl
-     << "   " << vl[1] << ", " << vl[3] << "}" << endl;
-   cout << "R={" << vr[0] << ", " << vr[2] << endl
-     << "   " << vr[1] << ", " << vr[3] << "}" << endl;
-   cout << "alphar={" << alphar[0] << ", " << alphar[1] << "}" << endl;
-   cout << "alphai={" << alphai[0] << ", " << alphai[1] << "}" << endl;
-   cout << "beta  ={" << beta[0] << ", " << beta[1] << "}" << endl;
-   cout << "work={";
-   for (int i = 0; i < 8*MATSIZE; i++) {
-      cout << work[i] << ", ";
-   }
-   cout << endl;
-   cout << "n=" << n << ", lwork=" << lwork << ", info=" << info << endl;   
-   
-   for (int i = 0; i < MATSIZE; i++) {
-      cout << "Eig " << setw(4) << i+1 << ": " 
-	<< "( " << alphar[i] << " + j * " << alphai[i] << " ) / "
-	<< beta[i] << endl;
-   }
-   cout.flush();
-#endif /* DEBUG */
-   
-   /**********************************************************
+   /*
     * MatA, MatB: MatrixHandlers to eigenanalysis matrices
     * MatL, MatR: MatrixHandlers to eigenvectors, if required
     * AlphaR, AlphaI Beta: eigenvalues
@@ -2519,8 +2210,8 @@ MultiStepIntegrator::Eig(void)
    
    DEBUGCOUT("MultiStepIntegrator::Eig(): performing eigenanalysis" << endl);
    
-   char sL[9] = "V";
-   char sR[9] = "V";
+   char sL[2] = "V";
+   char sR[2] = "V";
    
    /* iNumDof is a member, set after dataman constr. */
    integer iSize = iNumDofs;
@@ -2553,32 +2244,6 @@ MultiStepIntegrator::Eig(void)
    doublereal* pdBeta = pdAlphaI+iSize;
    doublereal* pdWork = pdBeta+iSize;
 
-#if 0   
-   for (int iCnt = 0; iCnt < iSize; iCnt++) {
-      pdA[iSize*iCnt+iCnt] = 1.;
-      pdB[(iSize-1)*(iCnt+1)] = iCnt*iCnt;
-   }
-   
-   /* Eigenanalysis */
-   dgegv_(sL,
-	  sR,
-	  &iSize,
-	  pdA,
-	  &iSize,
-	  pdB,
-	  &iSize,	  
-	  pdAlphaR,
-	  pdAlphaI,
-	  pdBeta,
-	  pdVL,
-	  &iSize,
-	  pdVR,
-	  &iSize,
-	  pdWork,
-	  &iWorkSize,
-	  &iInfo);
-#endif /* 0 */
-   
    FullMatrixHandler MatA(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
    MatA.Init();
    pdTmp += iSize*iSize;
@@ -2628,8 +2293,8 @@ MultiStepIntegrator::Eig(void)
      
    
    /* Eigenanalysis */
-   __FC_DECL__(dgegv)((integer*)sL,
-	  (integer*)sR,
+   __FC_DECL__(dgegv)(sL,
+	  sR,
 	  &iSize,
 	  MatA.pdGetMat(),
 	  &iSize,
@@ -2705,11 +2370,8 @@ MultiStepIntegrator::Eig(void)
    /* Non puo' arrivare qui se le due aree di lavoro non sono definite */
    SAFEDELETEARR(pd, SMmm);
    SAFEDELETEARR(ppd, SMmm);
-   
-#endif /* 0 */
 }
  
-#endif /* USE_LAPACK */
 #endif /* __HACK_EIG__ */
 
 /* MultiStepIntegrator - end */

@@ -25,5 +25,5 @@ schur.cc     schur.h      schurdataman.cc           schurdataman.h
 libbase_la_LIBADD = @LIBS@
 libbase_la_LDFLAGS = -static
 
-INCLUDES = -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../mbdyn -I../../mbdyn/base -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr
+INCLUDES = -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../libraries/libobjs -I../../mbdyn -I../../mbdyn/base -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr
 
