@@ -16,6 +16,8 @@ MBDyn 1.X-Devel
 		- template and wheel2 modules added to distribution
 		- added viscoelastic generic constitutive law
 		  with tension/torsion coupling
+		- added "fc511" aerodynamic cofficients format input
+		  (by permission)
 	Backward compatibility issues:
 		- s/solver/linear solver/
 	Known issues:
