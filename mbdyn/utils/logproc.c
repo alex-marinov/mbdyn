@@ -51,9 +51,7 @@
 
 #define KEEP_STATIC_INLINE
 
-#if defined (HAVE_RTAI_LXRT_USER_H)
-#include <rtai_lxrt_user.h>
-#elif defined (HAVE_RTAI_LXRT_H)
+#if defined (HAVE_RTAI_LXRT_H)
 #include <rtai_lxrt.h>
 #include <rtai_mbx.h>
 #else
