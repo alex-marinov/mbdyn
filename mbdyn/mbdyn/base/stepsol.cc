@@ -308,10 +308,17 @@ void DerivativeSolver::UpdateDof(const int DCount,
 		 * in ogni caso sono calcolati 
 		 * dalle funzioni di predizione
 		 * e sono dati globali */
+#if 0
+		/* FIXME: update state derivatives only */
 		pXCurr->IncCoef(DCount, dCoef*d);
+#endif
+
 	} else {
 		pXCurr->IncCoef(DCount, d);
+#if 0
+		/* FIXME: update state only */
 		pXPrimeCurr->IncCoef(DCount, dCoef*d);
+#endif
 	}	
 }
 		
