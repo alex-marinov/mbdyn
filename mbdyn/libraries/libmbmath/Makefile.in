@@ -71,6 +71,7 @@ CXX = @CXX@
 DLLTOOL = @DLLTOOL@
 F2C_LIBS = @F2C_LIBS@
 F77 = @F77@
+HARWELL_LIBS = @HARWELL_LIBS@
 LAPACK_LIBS = @LAPACK_LIBS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
@@ -85,18 +86,19 @@ PAM_LIBS = @PAM_LIBS@
 RANLIB = @RANLIB@
 TCL_LIBS = @TCL_LIBS@
 VERSION = @VERSION@
+Y12_LIBS = @Y12_LIBS@
 mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
 
 lib_LTLIBRARIES = libmbmath.la
 
-libmbmath_la_SOURCES =  fullmh.cc fullmh.h harwlib.h harwlib_.f harwout.c harwout.h harwout_.cc harwrap.cc harwrap.h ldl.f ldl.h matvec3.cc matvec3.h matvec3n.cc matvec3n.h matvec6.cc matvec6.h matvecexp.cc matvecexp.h mschwrap.cc mschwrap.h myf2c.h mymath.h Rot.cc Rot.hh RotCoeff.hc RotCoeff.hh schsolman.cc schsolman.h solman.cc solman.h sparsemh.cc sparsemh.h spdata_.f submat.cc submat.h y12wrap.cc y12wrap.h
+libmbmath_la_SOURCES =  fullmh.cc fullmh.h harwout.c harwout.h harwout_.cc harwrap.cc harwrap.h ldl.f ldl.h matvec3.cc matvec3.h matvec3n.cc matvec3n.h matvec6.cc matvec6.h matvecexp.cc matvecexp.h mschwrap.cc mschwrap.h myf2c.h mymath.h Rot.cc Rot.hh RotCoeff.hc RotCoeff.hh schsolman.cc schsolman.h solman.cc solman.h sparsemh.cc sparsemh.h spdata_.f submat.cc submat.h y12wrap.cc y12wrap.h
 
 
 libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@
 libmbmath_la_LDFLAGS = 
 
-INCLUDES =  -I../../libraries/liby12 -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../mbdyn
+INCLUDES =  -I../../libraries/liby12 -I../../libraries/libharwell -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../mbdyn
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = ../../include/mbconfig.h
@@ -109,10 +111,10 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libmbmath_la_DEPENDENCIES = 
-libmbmath_la_OBJECTS =  fullmh.lo harwlib_.lo harwout.lo harwout_.lo \
-harwrap.lo ldl.lo matvec3.lo matvec3n.lo matvec6.lo matvecexp.lo \
-mschwrap.lo Rot.lo schsolman.lo solman.lo sparsemh.lo spdata_.lo \
-submat.lo y12wrap.lo
+libmbmath_la_OBJECTS =  fullmh.lo harwout.lo harwout_.lo harwrap.lo \
+ldl.lo matvec3.lo matvec3n.lo matvec6.lo matvecexp.lo mschwrap.lo \
+Rot.lo schsolman.lo solman.lo sparsemh.lo spdata_.lo submat.lo \
+y12wrap.lo
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -135,11 +137,11 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/Rot.P .deps/fullmh.P .deps/harwlib_.P .deps/harwout.P \
-.deps/harwout_.P .deps/harwrap.P .deps/ldl.P .deps/matvec3.P \
-.deps/matvec3n.P .deps/matvec6.P .deps/matvecexp.P .deps/mschwrap.P \
-.deps/schsolman.P .deps/solman.P .deps/sparsemh.P .deps/spdata_.P \
-.deps/submat.P .deps/y12wrap.P
+DEP_FILES =  .deps/Rot.P .deps/fullmh.P .deps/harwout.P .deps/harwout_.P \
+.deps/harwrap.P .deps/ldl.P .deps/matvec3.P .deps/matvec3n.P \
+.deps/matvec6.P .deps/matvecexp.P .deps/mschwrap.P .deps/schsolman.P \
+.deps/solman.P .deps/sparsemh.P .deps/spdata_.P .deps/submat.P \
+.deps/y12wrap.P
 SOURCES = $(libmbmath_la_SOURCES)
 OBJECTS = $(libmbmath_la_OBJECTS)
 

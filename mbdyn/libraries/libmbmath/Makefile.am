@@ -6,8 +6,6 @@ lib_LTLIBRARIES = libmbmath.la
 libmbmath_la_SOURCES = \
 fullmh.cc \
 fullmh.h \
-harwlib.h \
-harwlib_.f \
 harwout.c \
 harwout.h \
 harwout_.cc \
@@ -48,6 +46,7 @@ libmbmath_la_LDFLAGS =
 
 INCLUDES = \
 -I../../libraries/liby12 \
+-I../../libraries/libharwell \
 -I../../libraries/libmbutil \
 -I../../libraries/libmbmath \
 -I../../mbdyn

@@ -38,6 +38,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_HARWELL
+
 #include <harwrap.h>
 
 /* HarwellLUSolver - begin */
@@ -207,4 +209,6 @@ HarwellSparseLUSolutionManager::Solve(void)
 }
 
 /* HarwellSparseLUSolutionManager - end */
+
+#endif /* USE_HARWELL */
 

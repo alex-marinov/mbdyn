@@ -32,6 +32,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_HARWELL
+
 #include <myassert.h>
 #include <harwout.h>
 
@@ -48,4 +50,6 @@ harwell_error(int, const char* const v[])
    }
    return 0;
 }
+
+#endif /* USE_HARWELL */
 

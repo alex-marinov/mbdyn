@@ -32,6 +32,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_HARWELL
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <harwout.h>
@@ -350,3 +352,6 @@ int __FC_DECL__(w28bd4)(integer* lp)
 }
 
 /* ma28bd - end */
+
+#endif /* USE_HARWELL */
+

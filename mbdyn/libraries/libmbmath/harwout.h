@@ -29,7 +29,9 @@
  */
 
 #ifndef HARWOUT_H
-# define HARWOUT_H
+#define HARWOUT_H
+
+#ifdef USE_HARWELL
 
 enum {
    MA28AD_99999,
@@ -72,5 +74,7 @@ enum {
 };
 
 extern int harwell_error(int, const char* const v[]);
+
+#endif /* USE_HARWELL */
 
 #endif /* HARWOUT_H */

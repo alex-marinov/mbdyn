@@ -96,6 +96,8 @@
 #ifndef HARWRAP_H
 #define HARWRAP_H
 
+#ifdef USE_HARWELL
+
 #include <myassert.h>
 #include <mynewmem.h>
 #include <except.h>
@@ -394,6 +396,8 @@ public:
 };
 
 /* HarwellSparseLUSolutionManager - end */
+
+#endif /* USE_HARWELL */
 
 #endif /* HARWRAP_H */
 
