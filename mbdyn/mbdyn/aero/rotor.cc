@@ -85,17 +85,21 @@ dMu(0.), dLambda(1.), dChi(0.),
 dVelocity(0.), dOmega(0.),
 iNumSteps(0)
 {
-   ASSERT(pC != NULL);
-   ASSERT(pC->GetNodeType() == Node::STRUCTURAL);
-   ASSERT(pR != NULL);
-   ASSERT(pR->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(pC != NULL);
+	ASSERT(pC->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(pR != NULL);
+	ASSERT(pR->GetNodeType() == Node::STRUCTURAL);
       
-   Vec3 R3C((pCraft->GetRCurr()).GetVec(3));
-   Vec3 R3R((pRotor->GetRCurr()).GetVec(3));
-   if (R3C.Dot(R3R) < 1.-DBL_EPSILON) {
-      std::cerr << "warning, possible misalignment of rotor and craft axes "
-	      "for Rotor(" << GetLabel() << ")" << std::endl;
-   }
+	Vec3 R3C((pCraft->GetRCurr()).GetVec(3));
+	Vec3 R3R((pRotor->GetRCurr()).GetVec(3));
+	if (R3C.Dot(R3R) < 1.-DBL_EPSILON) {
+		std::cerr << "warning, possible misalignment "
+			"of rotor node " << pRotor->GetLabel()
+			<< " and craft node " << pCraft->GetLabel()
+			<< "axes for Rotor(" << GetLabel() << ")"
+			<< std::endl;
+	}
+
 #ifdef USE_MPI
 	iForcesVecDim = 6;
 	for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -112,13 +116,16 @@ iNumSteps(0)
 
 Rotor::~Rotor(void)
 {
-   NO_OP;
+#ifdef USE_MPI
+	SAFEDELETEARR(pTmpVecR);
+	SAFEDELETEARR(pTmpVecS);
+#endif /* USE_MPI */
 }
 
 /* Tipo dell'elemento (usato per debug ecc.) */
 Elem::Type Rotor::GetElemType(void) const
 {
-    return Elem::ROTOR;
+	return Elem::ROTOR;
 }
 
 void 
@@ -483,26 +490,31 @@ NoRotor::NoRotor(unsigned int uLabel,
 : Elem(uLabel, Elem::ROTOR, fOut), 
 Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
 {
-  dRadius = dR; /* puo' essere richiesto dal trim */
+	dRadius = dR; /* puo' essere richiesto dal trim */
 #ifdef USE_MPI
-  if (is_parallel && fToBeOutput()) {
-    SAFENEWARR(pBlockLenght, int, 3);
-    SAFENEWARR(pDispl, MPI::Aint, 3);
-    for (int i=0; i < 3; i++) {
-      pBlockLenght[i] = 1;
-    }
-    for (int i=0; i < 3; i++) {	
-      pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i]));
-    }
-    SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(3, pBlockLenght, pDispl)));
-    pRotDataType->Commit();
-  }
+	if (is_parallel && fToBeOutput()) {
+		SAFENEWARR(pBlockLenght, int, 3);
+		SAFENEWARR(pDispl, MPI::Aint, 3);
+		for (int i = 0; i < 3; i++) {
+			pBlockLenght[i] = 1;
+		}
+		for (int i = 0; i < 3; i++) {	
+			pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i]));
+		}
+		SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype,
+				MPI::Datatype(MPI::DOUBLE.Create_hindexed(3, pBlockLenght, pDispl)));
+		pRotDataType->Commit();
+	}
 #endif /* USE_MPI */
 }
 
 NoRotor::~NoRotor(void)
 {
-   NO_OP;
+#ifdef USE_MPI
+	SAFEDELETEARR(pBlockLenght);
+	SAFEDELETEARR(pDispl);
+	SAFEDELETE(pRotDataType);
+#endif /* USE_MPI */
 }
    
 /* assemblaggio residuo */
@@ -595,40 +607,45 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 : Elem(uLabel, Elem::ROTOR, fOut), 
 Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
 {
-   ASSERT(dOR > 0.);
-   ASSERT(dR > 0.);
-   ASSERT(pdW != NULL);
+	ASSERT(dOR > 0.);
+	ASSERT(dR > 0.);
+	ASSERT(pdW != NULL);
    
-   dOmegaRef = dOR;
-   dRadius = dR;
-   dArea = M_PI*dRadius*dRadius;
-   Weight.Set(pdW);
-   dHoverCorrection = dCH;
-   dForwardFlightCorrection = dCFF;
+	dOmegaRef = dOR;
+	dRadius = dR;
+	dArea = M_PI*dRadius*dRadius;
+	Weight.Set(pdW);
+	dHoverCorrection = dCH;
+	dForwardFlightCorrection = dCFF;
 
 #ifdef USE_MPI
-   if (is_parallel) {
-      SAFENEWARR(pBlockLenght, int, 7);
-      SAFENEWARR(pDispl, MPI::Aint, 7);
-      for (int i=0; i < 7; i++) {
-        pBlockLenght[i] = 1;
-      }
-      for (int i=0; i < 3; i++) {	
-        pDispl[i] = MPI::Get_address(&(RRot3.pGetVec()[i]));	  	
-      }
-      pDispl[3] = MPI::Get_address(&dUMeanPrev);
-      for (int i=4; i <= 6; i++) {	
-        pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i-4]));	  	
-      }
-      SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(7, pBlockLenght, pDispl)));
-      pRotDataType->Commit();
-   }
+	if (is_parallel) {
+		SAFENEWARR(pBlockLenght, int, 7);
+		SAFENEWARR(pDispl, MPI::Aint, 7);
+		for (int i = 0; i < 7; i++) {
+			pBlockLenght[i] = 1;
+		}
+		for (int i = 0; i < 3; i++) {	
+			pDispl[i] = MPI::Get_address(&(RRot3.pGetVec()[i]));
+		}
+		pDispl[3] = MPI::Get_address(&dUMeanPrev);
+		for (int i = 4; i <= 6; i++) {	
+			pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i-4]));
+		}
+		SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype,
+				MPI::Datatype(MPI::DOUBLE.Create_hindexed(7, pBlockLenght, pDispl)));
+		pRotDataType->Commit();
+	}
 #endif /* USE_MPI */
 }
 
 UniformRotor::~UniformRotor(void)
 {
-   NO_OP;
+#ifdef USE_MPI
+	SAFEDELETEARR(pBlockLenght);
+	SAFEDELETEARR(pDispl);
+	SAFEDELETE(pRotDataType);
+#endif /* USE_MPI */
 }
 
 /* assemblaggio residuo */
@@ -743,48 +760,53 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 : Elem(uLabel, Elem::ROTOR, fOut),
 Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
 {
-   ASSERT(dOR > 0.);
-   ASSERT(dR > 0.);
-   ASSERT(pdW != NULL);
-   
-   dOmegaRef = dOR;
-   dRadius = dR;
-   dArea = M_PI*dRadius*dRadius;
-   Weight.Set(pdW);
-   dHoverCorrection = dCH;
-   dForwardFlightCorrection = dCFF;
+	ASSERT(dOR > 0.);
+	ASSERT(dR > 0.);
+	ASSERT(pdW != NULL);
+ 
+	dOmegaRef = dOR;
+	dRadius = dR;
+	dArea = M_PI*dRadius*dRadius;
+	Weight.Set(pdW);
+	dHoverCorrection = dCH;
+	dForwardFlightCorrection = dCFF;
 
 #ifdef USE_MPI
-   if (is_parallel) {
-      SAFENEWARR(pBlockLenght, int, 20);
-      SAFENEWARR(pDispl, MPI::Aint, 20);
-      for (int i=0; i < 20; i++) {
-        pBlockLenght[i] = 1;
-      }
-      for (int i=0; i < 3; i++) {	
-        pDispl[i] = MPI::Get_address(&(RRot3.pGetVec()[i]));	  	
-      }
-      pDispl[3] = MPI::Get_address(&dUMeanPrev);
-      pDispl[4] = MPI::Get_address(&dLambda);
-      pDispl[5] = MPI::Get_address(&dMu);
-      pDispl[6] = MPI::Get_address(&dChi);
-      pDispl[7] = MPI::Get_address(&dPsi0);
-      for (int i=8; i <= 10; i++) {	
-        pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i-8]));	  	
-      }
-      for (int i=11; i < 20; i++) {	
-        pDispl[i] = MPI::Get_address(&(RRotTranspose.pGetMat()[i-11]));	  	
-      }
-      SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)));
-      pRotDataType->Commit();
-   } 
+	if (is_parallel) {
+		SAFENEWARR(pBlockLenght, int, 20);
+		SAFENEWARR(pDispl, MPI::Aint, 20);
+		for (int i = 0; i < 20; i++) {
+			pBlockLenght[i] = 1;
+		}
+		for (int i = 0; i < 3; i++) {	
+			pDispl[i] = MPI::Get_address(&(RRot3.pGetVec()[i]));
+		}
+		pDispl[3] = MPI::Get_address(&dUMeanPrev);
+		pDispl[4] = MPI::Get_address(&dLambda);
+		pDispl[5] = MPI::Get_address(&dMu);
+		pDispl[6] = MPI::Get_address(&dChi);
+		pDispl[7] = MPI::Get_address(&dPsi0);
+		for (int i = 8; i <= 10; i++) {	
+			pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i-8]));
+		}
+		for (int i = 11; i < 20; i++) {	
+			pDispl[i] = MPI::Get_address(&(RRotTranspose.pGetMat()[i-11]));
+		}
+		SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype,
+				MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)));
+		pRotDataType->Commit();
+	} 
 #endif /* USE_MPI */
 }
 
 
 GlauertRotor::~GlauertRotor(void)
 {
-   NO_OP;
+#ifdef USE_MPI
+	SAFEDELETEARR(pBlockLenght);
+	SAFEDELETEARR(pDispl);
+	SAFEDELETE(pRotDataType);
+#endif /* USE_MPI */
 }
 
 
@@ -894,46 +916,51 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 : Elem(uLabel, Elem::ROTOR, fOut), 
 Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
 {
-   ASSERT(dOR > 0.);
-   ASSERT(dR > 0.);
-   ASSERT(pdW != NULL);
-   
-   dOmegaRef = dOR;
-   dRadius = dR;
-   dArea = M_PI*dRadius*dRadius;
-   Weight.Set(pdW);
-   dHoverCorrection = dCH;
-   dForwardFlightCorrection = dCFF;
+	ASSERT(dOR > 0.);
+	ASSERT(dR > 0.);
+	ASSERT(pdW != NULL);
+
+	dOmegaRef = dOR;
+	dRadius = dR;
+	dArea = M_PI*dRadius*dRadius;
+	Weight.Set(pdW);
+	dHoverCorrection = dCH;
+	dForwardFlightCorrection = dCFF;
 
 #ifdef USE_MPI
-   if (is_parallel) {
-      SAFENEWARR(pBlockLenght, int, 18);
-      SAFENEWARR(pDispl, MPI::Aint, 18);
-      for (int i=0; i < 18; i++) {
-        pBlockLenght[i] = 1;
-      }
-      for (int i=0; i < 3; i++) {	
-        pDispl[i] = MPI::Get_address(&(RRot3.pGetVec()[i]));	  	
-      }
-      pDispl[3] = MPI::Get_address(&dUMeanPrev);
-      pDispl[4] = MPI::Get_address(&dSinAlphad);
-      pDispl[5] = MPI::Get_address(&dPsi0);
-      for (int i=6; i <= 8; i++) {	
-        pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i-6]));	  	
-      }
-      for (int i=9; i < 18; i++) {	
-        pDispl[i] = MPI::Get_address(&(RRotTranspose.pGetMat()[i-9]));	  	
-      }
-      SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(18, pBlockLenght, pDispl)));
-      pRotDataType->Commit();
-   } 
+	if (is_parallel) {
+		SAFENEWARR(pBlockLenght, int, 18);
+		SAFENEWARR(pDispl, MPI::Aint, 18);
+		for (int i = 0; i < 18; i++) {
+			pBlockLenght[i] = 1;
+		}
+		for (int i = 0; i < 3; i++) {	
+			pDispl[i] = MPI::Get_address(&(RRot3.pGetVec()[i]));
+		}
+		pDispl[3] = MPI::Get_address(&dUMeanPrev);
+		pDispl[4] = MPI::Get_address(&dSinAlphad);
+		pDispl[5] = MPI::Get_address(&dPsi0);
+		for (int i = 6; i <= 8; i++) {	
+			pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i-6]));
+		}
+		for (int i = 9; i < 18; i++) {
+			pDispl[i] = MPI::Get_address(&(RRotTranspose.pGetMat()[i-9]));	  	
+		}
+		SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype,
+				MPI::Datatype(MPI::DOUBLE.Create_hindexed(18, pBlockLenght, pDispl)));
+		pRotDataType->Commit();
+	}
 #endif /* USE_MPI */
 }
 
 
 ManglerRotor::~ManglerRotor(void)
 {
-   NO_OP;
+#ifdef USE_MPI
+	SAFEDELETEARR(pBlockLenght);
+	SAFEDELETEARR(pDispl);
+	SAFEDELETE(pRotDataType);
+#endif /* USE_MPI */
 }
 
 
@@ -1147,7 +1174,11 @@ dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
 
 DynamicInflowRotor::~DynamicInflowRotor(void)
 {
-	NO_OP;
+#ifdef USE_MPI
+	SAFEDELETEARR(pBlockLenght);
+	SAFEDELETEARR(pDispl);
+	SAFEDELETE(pRotDataType);
+#endif /* USE_MPI */
 }
 
 
