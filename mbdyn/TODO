@@ -14,6 +14,7 @@ A. Configuration:
 	- redesign configure.in for meschach (there's a conflict
 		when checking for u_int and so)
 	- add test for pow_dd stuff (might be needed by fortran code)
+	- fix missing -lcrypt on some systems when configuring with pam
 
 
 
