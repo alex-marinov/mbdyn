@@ -662,7 +662,8 @@ void SchurSolutionManager::InitializeComm(void)
 }
 
 
-void SchurSolutionManager::StartExchInt(void)
+void
+SchurSolutionManager::StartExchInt(void)
 {
   	DEBUGCOUT("Entering SchurSolutionManager::StartExchInt()" << endl);
   
@@ -679,14 +680,17 @@ void SchurSolutionManager::StartExchInt(void)
 #ifdef MPI_PROFILING
       			MPE_Log_event(19, 0, "start");
 #endif /* MPI_PROFILING */     
-      			for( int i=0; i < SolvCommSize; i++){
-				pGRReq[i] = SolvComm.Irecv(pBuffer + pDispl[i], pRecvDim[i], MPI::DOUBLE, i, G_TAG);
+      			for (int i = 0; i < SolvCommSize; i++) {
+				pGRReq[i] = SolvComm.Irecv(pBuffer + pDispl[i],
+						pRecvDim[i], MPI::DOUBLE, 
+						i, G_TAG);
       			}
     		}
   	}
 }
 
-void SchurSolutionManager::ComplExchInt(doublereal& dR, doublereal& dXP)
+void
+SchurSolutionManager::ComplExchInt(doublereal& dR, doublereal& dXP)
 {
   	DEBUGCOUT("Entering SchurSolutionManager::ComplExchInt()" << endl);
    	if (SolvCommSize > 1) {
