@@ -190,17 +190,6 @@ A shortcut to this case is provided as
 if \texttt{modified}, the number of iterations the jacobian matrix will be
 reused is expected; otherwise a default value is used.
 
-\subsubsection{Debug flags}
-\begin{verbatim}
-    <card> ::= printres ;
-\end{verbatim}
-Switch on printing of residual vector for debugging purpose.
-\begin{verbatim}
-    <card> ::= printjac ;
-\end{verbatim}
-Switch on printing of jacobian for debugging purpose; 
-currently available only with umfpack-based solution solvers.
-
 \subsubsection{Eigenanalysis}
 Experimental, not available nor documented yet.
 
@@ -346,18 +335,23 @@ should be performed with a very short time step, to seek accuracy, and
 with a high numerical damping, to cancel as quickly as possible the high
 frequency numerical noise.
 
+\subsection{Output Data}
+Model output, e.g.\ nodes and elements output, is handled
+by the data manager; the integrator only deals with
+simulation-related output, and takes care of some debug output.
+
 \subsubsection{Output}
 This command requests special output related to the solution phase.
 \begin{verbatim}
     <card> ::= output : <item> [ , <item> ] ;
-    <item> ::= { iterations }
+    <item> ::= { iterations | residual | jacobian }
 \end{verbatim}
-Currently, only \texttt{iterations} is supported, resulting in
-detailed output of the error at each iteration inside a time step
-being written in the \texttt{.out} file.
-
-
-
+The item \texttt{iterations} logs a detailed output of the error
+at each iteration inside a time step in the \texttt{.out} file.
+The item \texttt{residual} and the item \texttt{jacobian} log
+the residual and the jacobian to standard output; they are
+currently available only for the umfpack solver, and they are
+mainly intended for last resort debugging purposes.
 
 \chapter{Control Data}
 This section is read by the manager of all the bulk simulation data, namely
