@@ -180,12 +180,12 @@ VecN::operator *= (const doublereal& d)
 const VecN& VecN::Mult(const MatNxN& m, const VecN& n)
 {
    IsValid();
-   ASSERT(iNumRows = m.iNumRows);
-   ASSERT(m.iNumCols = n.iNumRows);
+   ASSERT(iNumRows == m.iNumRows);
+   ASSERT(m.iNumCols == n.iNumRows);
 
-   for(integer i = iNumRows; i-- > 0; ) {
+   for (integer i = 0; i < iNumRows; i++ ) {
       pdVec[i] = 0.;
-      for(integer j = iNumRows; j-- > 0; ) { 
+      for (integer j = 0; j < iNumRows; j++ ) { 
          pdVec[i] += m.pdMat[j][i]*n.pdVec[j];
       }
    }
