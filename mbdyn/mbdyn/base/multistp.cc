@@ -70,6 +70,7 @@ extern "C" {
 #include <mschwrap.h>
 #include <y12wrap.h>
 #include <umfpackwrap.h>
+#include <iterwrap.h>
 
 #ifdef HAVE_SIGNAL
 static volatile sig_atomic_t keep_going = 1;
@@ -108,6 +109,7 @@ const doublereal dDefaultFictitiousStepsRho = 0.;
 const doublereal dDefaultFictitiousStepsTolerance = 1.e-6;
 const doublereal dDefaultToll = 1e-6;
 const integer iDefaultIterationsBeforeAssembly = 2;
+const integer iDefaultIterativeSolversMaxSteps = 100;
 
 /*
  * Default solver
@@ -129,7 +131,8 @@ Integrator::defaultSolver = Integrator::MESCHACH_SOLVER;
 MultiStepIntegrator::MultiStepIntegrator(MBDynParser& HPar,
 		const char* sInFName,
 		const char* sOutFName,
-		flag fPar)
+		flag fPar,
+		flag fIter)
 :
 CurrStrategy(NOCHANGE),
 CurrSolver(Integrator::defaultSolver),
@@ -168,6 +171,9 @@ iIWorkSpaceSize(0),
 dIPivotFactor(-1.),
 CurrIntSolver(Integrator::defaultSolver),
 #endif /* USE_MPI */
+fIterative(fIter),
+iIterativeMaxSteps(iDefaultIterativeSolversMaxSteps),
+dIterToll(dDefaultToll),
 dTime(0.),
 dInitialTime(0.), 
 dFinalTime(0.),
@@ -211,7 +217,7 @@ dPivotFactor(-1.)
 	if (sOutFName != NULL) {
 		SAFESTRDUP(sOutputFileName, sOutFName);
 	}
-
+	
    	/* Legge i dati relativi al metodo di integrazione */
    	ReadData(HP);
 }
@@ -414,61 +420,132 @@ MultiStepIntegrator::Run(void)
 		iNLD = iNumLocDofs;
 	}
 #endif /* USE_MPI */
-	
-   	switch (CurrSolver) {
-     	case Y12_SOLVER: 
+
+	if (fIterative) {
+   		switch (CurrSolver) {
+     		case Y12_SOLVER: 
 #ifdef USE_Y12
-      		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			Y12SparseLUSolutionManager,
-			Y12SparseLUSolutionManager(iNLD, iLWS,
-				dPivotFactor == -1. ? 1. : dPivotFactor));
-      		break;
+      			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				IterativeSolutionManager,
+				IterativeSolutionManager(iNLD, dIterToll,
+				iIterativeMaxSteps,
+				pDM, pXCurr, pXPrimeCurr,
+				(Y12SparseLUSolutionManager*)0,
+				iLWS, dPivotFactor == -1. ? 1. : dPivotFactor));
+      			break;
 #else /* !USE_Y12 */
-      		std::cerr << "Configure with --with-y12 "
-			"to enable Y12 solver" << std::endl;
-      		THROW(ErrGeneric());
+      			std::cerr << "Configure with --with-y12 "
+				"to enable Y12 solver" << std::endl;
+      			THROW(ErrGeneric());
 #endif /* !USE_Y12 */
 
-    	case MESCHACH_SOLVER:
+    		case MESCHACH_SOLVER:
 #ifdef USE_MESCHACH
-      		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			MeschachSparseLUSolutionManager,
-			MeschachSparseLUSolutionManager(iNLD, iLWS,
-				dPivotFactor == -1. ? 1. : dPivotFactor));
-      		break;
+      			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				IterativeSolutionManager,
+				IterativeSolutionManager(iNLD, dIterToll,
+				iIterativeMaxSteps,
+				pDM, pXCurr, pXPrimeCurr,
+				(MeschachSparseLUSolutionManager*)0,
+				iLWS, dPivotFactor == -1. ? 1. : dPivotFactor));
+      			break;
 #else /* !USE_MESCHACH */
-      		std::cerr << "Configure with --with-meschach "
-			"to enable Meschach solver"
-			<< std::endl;
-      		THROW(ErrGeneric());
+      			std::cerr << "Configure with --with-meschach "
+				"to enable Meschach solver"
+				<< std::endl;
+      			THROW(ErrGeneric());
 #endif /* !USE_MESCHACH */
 
-   	case HARWELL_SOLVER:
+   		case HARWELL_SOLVER:
 #ifdef USE_HARWELL
-      		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			HarwellSparseLUSolutionManager,
-			HarwellSparseLUSolutionManager(iNLD, iLWS,
-				dPivotFactor == -1. ? 1. : dPivotFactor));
-      		break;
+      			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				IterativeSolutionManager,
+				IterativeSolutionManager(iNLD, dIterToll,
+				iIterativeMaxSteps,
+				pDM, pXCurr, pXPrimeCurr,
+				(HarwellSparseLUSolutionManager*)0,
+				iLWS, dPivotFactor == -1. ? 1. : dPivotFactor));
+      			break;
 #else /* !USE_HARWELL */
-      		std::cerr << "Configure with --with-harwell "
-			"to enable Harwell solver" << std::endl;
-      		THROW(ErrGeneric());
+      			std::cerr << "Configure with --with-harwell "
+				"to enable Harwell solver" << std::endl;
+      			THROW(ErrGeneric());
 #endif /* !USE_HARWELL */
 
-   	case UMFPACK3_SOLVER:
+   		case UMFPACK3_SOLVER:
 #ifdef USE_UMFPACK3
-      		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			Umfpack3SparseLUSolutionManager,
-			Umfpack3SparseLUSolutionManager(iNLD, 
-				0, dPivotFactor));
-      		break;
+      			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				IterativeSolutionManager,
+				IterativeSolutionManager(iNLD, dIterToll,
+				iIterativeMaxSteps,
+				pDM, pXCurr, pXPrimeCurr,
+				(Umfpack3SparseLUSolutionManager*)0,
+				iLWS, dPivotFactor == -1. ? 1. : dPivotFactor));
+      			break;
 #else /* !USE_UMFPACK3 */
-      		std::cerr << "Configure with --with-umfpack3 "
-			"to enable Umfpack3 solver" << std::endl;
-      		THROW(ErrGeneric());
+      			std::cerr << "Configure with --with-umfpack3 "
+				"to enable Umfpack3 solver" << std::endl;
+      			THROW(ErrGeneric());
 #endif /* !USE_UMFPACK3 */
-   	}
+   		}
+
+	} else {	
+
+   		switch (CurrSolver) {
+     		case Y12_SOLVER: 
+#ifdef USE_Y12
+      			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				Y12SparseLUSolutionManager,
+				Y12SparseLUSolutionManager(iNLD, iLWS,
+					dPivotFactor == -1. ? 1. : dPivotFactor));
+      			break;
+#else /* !USE_Y12 */
+      			std::cerr << "Configure with --with-y12 "
+				"to enable Y12 solver" << std::endl;
+      			THROW(ErrGeneric());
+#endif /* !USE_Y12 */
+
+    		case MESCHACH_SOLVER:
+#ifdef USE_MESCHACH
+      			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				MeschachSparseLUSolutionManager,
+				MeschachSparseLUSolutionManager(iNLD, iLWS,
+					dPivotFactor == -1. ? 1. : dPivotFactor));
+      			break;
+#else /* !USE_MESCHACH */
+      			std::cerr << "Configure with --with-meschach "
+				"to enable Meschach solver"
+				<< std::endl;
+      			THROW(ErrGeneric());
+#endif /* !USE_MESCHACH */
+
+   		case HARWELL_SOLVER:
+#ifdef USE_HARWELL
+      			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				HarwellSparseLUSolutionManager,
+				HarwellSparseLUSolutionManager(iNLD, iLWS,
+					dPivotFactor == -1. ? 1. : dPivotFactor));
+      			break;
+#else /* !USE_HARWELL */
+	      		std::cerr << "Configure with --with-harwell "
+				"to enable Harwell solver" << std::endl;
+      			THROW(ErrGeneric());
+#endif /* !USE_HARWELL */
+
+   		case UMFPACK3_SOLVER:
+#ifdef USE_UMFPACK3
+      			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				Umfpack3SparseLUSolutionManager,
+				Umfpack3SparseLUSolutionManager(iNLD, 
+					0, dPivotFactor));
+      			break;
+#else /* !USE_UMFPACK3 */
+      			std::cerr << "Configure with --with-umfpack3 "
+				"to enable Umfpack3 solver" << std::endl;
+      			THROW(ErrGeneric());
+#endif /* !USE_UMFPACK3 */
+   		}
+	}
 
 	/*
 	 * This is the LOCAL solver if instantiating a parallel
@@ -679,7 +756,7 @@ MultiStepIntegrator::Run(void)
 		MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
-      		pSM->Solve();
+      		pSM->Solve(dDerivativesCoef);
       
 #ifdef DEBUG
       		/* Output della soluzione */
@@ -873,7 +950,7 @@ EndOfDerivatives:
 			MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
-	 		pSM->Solve();
+	 		pSM->Solve(db0Differential);
 	 
 #ifdef DEBUG
 	 		if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_FSTEPS)) {
@@ -1059,7 +1136,7 @@ EndOfFirstFictitiousStep:
 				MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
-	    			pSM->Solve();
+	    			pSM->Solve(db0Differential);
 	    
 #ifdef DEBUG
 	    			if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_FSTEPS)) {
@@ -1278,7 +1355,7 @@ IfFirstStepIsToBeRepeated:
       		}
       
       		/* Modified Newton-Raphson ... */
-      		if (iPerformedIterations < iIterationsBeforeAssembly) {
+		if (iPerformedIterations < iIterationsBeforeAssembly) {
 	 		iPerformedIterations++;
 
 #ifdef USE_MPI
@@ -1306,7 +1383,7 @@ IfFirstStepIsToBeRepeated:
 
 	 		pSM->MatrInit(0.);
 	 		pDM->AssJac(*pJac, db0Differential);
-
+			
 #ifdef MPI_PROFILING
 			MPE_Log_event(24,0,"end Jacobian");
 #endif /* MPI_PROFILING */
@@ -1324,7 +1401,7 @@ IfFirstStepIsToBeRepeated:
 #endif /* USE_MPI */
       		}
 
-      		pSM->Solve();   
+      		pSM->Solve(db0Differential);   
       
 #ifdef DEBUG
       		if (DEBUG_LEVEL(MYDEBUG_SOL)) {      
@@ -1543,6 +1620,8 @@ IfStepIsToBeRepeated:
 	 		}
 
 			/* Modified Newton-Raphson ... */
+      		std::cout << "iPerformedIterations " << iPerformedIterations << std::endl;
+      		std::cout << "iIterationsBeforeAssembly " << iIterationsBeforeAssembly << std::endl;
 	 		if (iPerformedIterations < iIterationsBeforeAssembly) {
 	    			iPerformedIterations++;
 
@@ -1569,6 +1648,7 @@ IfStepIsToBeRepeated:
 
 	    			pSM->MatrInit(0.);
 	    			pDM->AssJac(*pJac, db0Differential);
+			std::cout << "JACOBIAN Assembled " << std::endl;
 
 #ifdef MPI_PROFILING
 				MPE_Log_event(24,0,"end Jacobian");
@@ -1589,7 +1669,7 @@ IfStepIsToBeRepeated:
 #endif /* USE_MPI */
 	 		}
 
-	 		pSM->Solve();
+	 		pSM->Solve(db0Differential);
 
 #ifdef DEBUG
 	 		if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_MPI)) {
@@ -2341,7 +2421,9 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 			"harwell",
 			"meschach",
 			"y12",
-			"umfpack3"
+			"umfpack3",
+		"iterative" "tollerance",
+		"iterative" "max" "steps"
    	};
    
    	/* enum delle parole chiave */
@@ -2409,6 +2491,9 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		MESCHACH,
 		Y12,
 		UMFPACK3,
+		
+		ITERATIVETOLLERANCE,
+		ITERATIVEMAXSTEPS,
 	
 		LASTKEYWORD
    	};
@@ -3124,68 +3209,82 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 
        case INTERFACESOLVER: {
 #ifdef USE_MPI
-	switch(KeyWords(HP.GetWord())) {           
-	case MESCHACH:
+		switch(KeyWords(HP.GetWord())) {           
+		case MESCHACH:
 #ifdef USE_MESCHACH
-	  CurrIntSolver = MESCHACH_SOLVER;
-	  DEBUGLCOUT(MYDEBUG_INPUT, 
-		"Using meschach sparse LU solver" << std::endl);
-	  break;
+	  		CurrIntSolver = MESCHACH_SOLVER;
+	  		DEBUGLCOUT(MYDEBUG_INPUT, 
+				"Using meschach sparse LU solver" << std::endl);
+	  		break;
 #endif /* USE_MESCHACH */
 
-	case Y12:
+		case Y12:
 #ifdef USE_Y12
-	  CurrIntSolver = Y12_SOLVER;
-	  DEBUGLCOUT(MYDEBUG_INPUT,
-		"Using y12 sparse LU solver" << std::endl);
-	  break;
+	  		CurrIntSolver = Y12_SOLVER;
+	  		DEBUGLCOUT(MYDEBUG_INPUT,
+				"Using y12 sparse LU solver" << std::endl);
+	  		break;
 #endif /* USE_Y12 */
 
-	case UMFPACK3:
+		case UMFPACK3:
 #ifdef USE_UMFPACK3
-	  CurrIntSolver = UMFPACK3_SOLVER;
-	  DEBUGLCOUT(MYDEBUG_INPUT,
-		"Using umfpack3 sparse LU solver" << std::endl);
-	  break;
+	  		CurrIntSolver = UMFPACK3_SOLVER;
+	  		DEBUGLCOUT(MYDEBUG_INPUT,
+				"Using umfpack3 sparse LU solver" << std::endl);
+	  		break;
 #endif /* USE_UMFPACK3 */
 
 #ifdef USE_HARWELL
-	case HARWELL: 
-	  CurrIntSolver = MESCHACH_SOLVER;
-	  std::cerr << "Harwell solver cannot be used as interface "
-		"solver. Meschach will be used ..." << std::endl;
-	  break;
+		case HARWELL: 
+	  		CurrIntSolver = MESCHACH_SOLVER;
+	  		std::cerr << "Harwell solver cannot be used as interface "
+				"solver. Meschach will be used ..." << std::endl;
+	  		break;
 #endif /* USE_HARWELL */                       
 
-	default:
-	  DEBUGLCOUT(MYDEBUG_INPUT, 
-		"Unknown solver; switching to default" << std::endl);
-	  break;
-        }
+		default:
+	  		DEBUGLCOUT(MYDEBUG_INPUT, 
+				"Unknown solver; switching to default" << std::endl);
+	  		break;
+        	}
 	
-	if (HP.IsKeyWord("workspacesize")) {
-		iIWorkSpaceSize = HP.GetInt();
-		if (iIWorkSpaceSize < 0) {
-			iIWorkSpaceSize = 0;
+		if (HP.IsKeyWord("workspacesize")) {
+			iIWorkSpaceSize = HP.GetInt();
+			if (iIWorkSpaceSize < 0) {
+				iIWorkSpaceSize = 0;
+			}
 		}
-	}
 
-	if (HP.IsKeyWord("pivotfactor")) {
-		dIPivotFactor = HP.GetReal();
-		if (dIPivotFactor <= 0. || dIPivotFactor > 1.) {
-			dIPivotFactor = 1.;
+		if (HP.IsKeyWord("pivotfactor")) {
+			dIPivotFactor = HP.GetReal();
+			if (dIPivotFactor <= 0. || dIPivotFactor > 1.) {
+				dIPivotFactor = 1.;
+			}
 		}
-	}
 	
-	DEBUGLCOUT(MYDEBUG_INPUT, "Workspace size: " << iIWorkSpaceSize 
-		<< ", pivor factor: " << dIPivotFactor << std::endl);
-	break;
+		DEBUGLCOUT(MYDEBUG_INPUT, "Workspace size: " << iIWorkSpaceSize 
+			<< ", pivor factor: " << dIPivotFactor << std::endl);
+		break;
 #else /* !USE_MPI */
-	std::cerr << "Interface solver only allowed when compiled "
-		"with MPI support" << std::endl;
-	THROW(MultiStepIntegrator::ErrGeneric());
+		std::cerr << "Interface solver only allowed when compiled "
+			"with MPI support" << std::endl;
+		THROW(MultiStepIntegrator::ErrGeneric());
 #endif /* !USE_MPI */
        }
+       
+       case ITERATIVETOLLERANCE: {
+		dIterToll = HP.GetReal();
+		DEBUGLCOUT(MYDEBUG_INPUT, "Iterative Solver Tollerance: " 
+			<< dIterToll << std::endl);
+		break;
+        }
+       		
+       case ITERATIVEMAXSTEPS: {
+		iIterativeMaxSteps = HP.GetInt();
+		DEBUGLCOUT(MYDEBUG_INPUT, "Maximum Number of Steps for Iterative Solver : " 
+			<< iIterativeMaxSteps << std::endl);
+		break;
+        }
 
        default: {
 	  std::cerr << std::endl << "Unknown description at line " 
