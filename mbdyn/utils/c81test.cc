@@ -53,7 +53,8 @@ main(int argc, char *argv[])
 {
 #if defined(USE_AERODYNAMIC_ELEMS)
 	if (argc != 4) {
-		std::cerr << "usage: testc81 <file> <alpha> <mach>" << std::endl;
+		std::cerr << "usage: testc81 <file> <alpha (deg)> <mach>"
+			<< std::endl;
 		exit(EXIT_SUCCESS);
 	}
 
