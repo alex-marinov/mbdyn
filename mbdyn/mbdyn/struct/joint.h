@@ -83,6 +83,7 @@ class Joint
       IMPOSEDKINEMATICS,
       BEAMSLIDER,
       BRAKE,
+      GIMBAL,
       
       MODAL,
       

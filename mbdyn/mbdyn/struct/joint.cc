@@ -63,6 +63,7 @@
 #include <kinj.h>
 #include <beamslider.h>
 #include "brake.h"
+#include "gimbal.h"
 
 /* Provvisorio ?!? */
 #include <modal.h>
@@ -152,6 +153,7 @@ Elem* ReadJoint(DataManager* pDM,
       "kinematic",
       "beam" "slider",
       "brake",
+      "gimbal",
       
       "modal",
 
@@ -195,6 +197,7 @@ Elem* ReadJoint(DataManager* pDM,
       KINEMATIC,
       BEAMSLIDER,
       BRAKE,
+      GIMBAL,
       
       MODAL,
 
@@ -495,6 +498,7 @@ Elem* ReadJoint(DataManager* pDM,
     case UNIVERSALHINGE:
     case UNIVERSALROTATION:
     case AXIALROTATION:
+    case GIMBAL:
     case PLANEDISPLACEMENT: {
        /* nodo collegato 1 */
        StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
@@ -510,6 +514,7 @@ Elem* ReadJoint(DataManager* pDM,
        switch (CurrKeyWord) {
        case REVOLUTEROTATION:
        case UNIVERSALROTATION:
+       case GIMBAL:
 	  if (HP.IsKeyWord("position")) {
 	     /* currently ignored */
 	     (void)HP.GetPosRel(RF);
@@ -562,6 +567,7 @@ Elem* ReadJoint(DataManager* pDM,
        switch (CurrKeyWord) {
        case REVOLUTEROTATION:
        case UNIVERSALROTATION:
+       case GIMBAL:
 	  if (HP.IsKeyWord("position")) {
 	     /* currently ignored */
 	     (void)HP.GetPosRel(RF);
@@ -730,6 +736,16 @@ Elem* ReadJoint(DataManager* pDM,
 	   break;
 	}
 	   
+	  /* allocazione e creazione vincolo gimbal */
+	case GIMBAL: {
+	   SAFENEWWITHCONSTRUCTOR(pEl,
+				  GimbalJoint,
+				  GimbalJoint(uLabel, pDO, 
+						      pNode1, pNode2,
+						      R1h, R2h, fOut));
+	   break;
+	}
+	  
 	  /* allocazione e creazione pattino */
 	case PLANEDISPLACEMENT:
 	   silent_cerr("PlaneDispJoint(" << uLabel << "): "

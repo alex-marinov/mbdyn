@@ -28,6 +28,8 @@ friction.cc \
 friction.h \
 genj.cc \
 genj.h \
+gimbal.cc \
+gimbal.h \
 gravity.cc \
 gravity.h \
 hbeam.cc \
