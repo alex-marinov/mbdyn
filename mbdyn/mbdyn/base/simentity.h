@@ -50,7 +50,7 @@
  * 
  * pre-operation:
  *	iGetNumDof()
- *	fIsValidIndex()
+ *	bIsValidIndex()
  *	GetDofType()
  *	GetEqType()
  *	SetValue()
@@ -87,7 +87,7 @@ public:
 	 * Test di validita' di un indice. 
 	 * Nota: gli indici vanno da 1 a iGetNumDofs()
 	 */
-	virtual flag fIsValidIndex(unsigned int i) const;
+	virtual bool bIsValidIndex(unsigned int i) const;
 	
 	/*
 	 * Esegue operazioni sui DoF di proprieta' dell'elemento.

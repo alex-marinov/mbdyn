@@ -46,13 +46,13 @@ SimulationEntity::~SimulationEntity(void)
 	NO_OP;
 }
 
-flag 
-SimulationEntity::fIsValidIndex(unsigned int i) const
+bool
+SimulationEntity::bIsValidIndex(unsigned int i) const
 {
 	if (i >= 1 && i <= iGetNumDof()) {
-		return flag(1);
+		return true;
 	}
-	return flag(0);
+	return false;
 }
 
 void 

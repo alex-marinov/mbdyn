@@ -393,8 +393,8 @@ class AutomaticStructElem;
 class DynamicStructNode : public StructNode {
    friend class AutomaticStructElem;
  protected:
- 
-   /* accelerazioni lineari e angolari (da usarsi solo col nodo modale) */
+   /* Acceleration and angular acceleration; DynamicStructNode uses them
+    * only for output; ModalNode uses them to store actual unknowns */
    mutable AutomaticStructElem *pAutoStr;
    mutable Vec3 XPPCurr;   /* Accelerazione lineare  corrente */
    mutable Vec3 WPCurr;    /* Accelerazione angolare corrente */
