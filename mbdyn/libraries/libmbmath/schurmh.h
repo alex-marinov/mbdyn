@@ -540,10 +540,10 @@ SchurVectorHandler::PutCoef(integer iRow, const doublereal& dCoef)
 	IsValid();
 #ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
-		silent_cerr("PutCoef - Process(" << MBDynComm.Get_rank()
-			<< "): warning, VectorHandler is trying to operate "
-			"on a non local value {" << iRow << "}"
-			<< std::endl);
+		silent_cerr("SchurVectorHandler::PutCoef() "
+			"Process(" << MBDynComm.Get_rank() << "): "
+			"trying to operate on nonlocal index "
+			<< iRow << std::endl);
 		return flag(0); 
 	}
 #endif /* DEBUG_MPI */
@@ -565,10 +565,10 @@ SchurVectorHandler::IncCoef(integer iRow, const doublereal& dCoef)
 	IsValid();
 #ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
-		silent_cerr("IncCoef - Process(" << MBDynComm.Get_rank()
-			<< "): warning, VectorHandler is trying to operate "
-			"on a non local value {" << iRow << "}"
-			<< std::endl);
+		silent_cerr("SchurVectorHandler::IncCoef "
+			"Process(" << MBDynComm.Get_rank() << "): "
+			"trying to operate on nonlocal index "
+			<< iRow << std::endl);
 		return flag(0);
 	}
 #endif /* DEBUG_MPI */
@@ -589,10 +589,10 @@ SchurVectorHandler::DecCoef(integer iRow, const doublereal& dCoef)
 	IsValid();
 #ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
-		silent_cerr("DecCoef - Process(" << MBDynComm.Get_rank()
-			<< "): warning, VectorHandler is trying to operate "
-			"on a non local value {" << iRow << "}"
-			<< std::endl);
+		silent_cerr("SchurVectorHandler::DecCoef "
+			"Process(" << MBDynComm.Get_rank() << "): "
+			"trying to operate on nonlocal index "
+			<< iRow << std::endl);
 		return flag(0);
 	}
 #endif /* DEBUG_MPI */
@@ -613,10 +613,10 @@ SchurVectorHandler::dGetCoef(integer iRow) const
 	IsValid();
 #ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
-		silent_cerr("dGetCoef - Process:(" << MBDynComm.Get_rank()
-			<< "): warning, VectorHandler is trying to operate "
-			"on a non local value {" << iRow << "}"
-			<< std::endl);
+		silent_cerr("SchurVectorHandler::dGetCoef "
+			"Process(" << MBDynComm.Get_rank() << "): "
+			"trying to operate on nonlocal index "
+			<< iRow << std::endl);
 		return dZero;
 	}
 #endif /* DEBUG_MPI */
@@ -636,10 +636,10 @@ SchurVectorHandler::operator () (integer iRow) const
 	IsValid();
 #ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
-		silent_cerr("dGetCoef - Process:(" << MBDynComm.Get_rank()
-			<< "): warning, VectorHandler is trying to operate "
-			"on a non local value {" << iRow << "}"
-			<< std::endl);
+		silent_cerr("SchurVectorHandler::dGetCoef "
+			"Process(" << MBDynComm.Get_rank() << "): "
+			"trying to operate on nonlocal index "
+			<< iRow << std::endl);
 		return dZero;
 	}
 #endif /* DEBUG_MPI */
@@ -655,6 +655,9 @@ SchurVectorHandler::operator () (integer iRow) const
 inline doublereal&
 SchurVectorHandler::operator () (integer iRow)
 {
+	silent_cerr("SchurVectorHandler::operator() "
+		"cannot be used on nonlocal index "
+		<< iRow << std::endl);
 	throw ErrGeneric();
 }
 

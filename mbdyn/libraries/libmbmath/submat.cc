@@ -1413,7 +1413,11 @@ MySubVectorHandler::AddTo(VectorHandler& VH) const
 #endif /* DEBUG */
 
 	for (integer i = iGetSize(); i > 0; i--) {
+#if 0
+		/* FIXME: workaround for SchurVectorHandler... */
 		VH(piRowm1[i]) += pdVecm1[i];
+#endif
+		VH.IncCoef(piRowm1[i], pdVecm1[i]);
 	}
 
 	return VH;

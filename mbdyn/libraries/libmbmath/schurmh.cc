@@ -147,8 +147,7 @@ SchurMatrixHandler::IsValid(void) const
 void
 SchurMatrixHandler::Resize(integer, integer)
 {
-	silent_cerr("cannot resize a matrix handler of type SchurMatrixHandler"
-			<< std::endl);
+	silent_cerr("cannot resize a SchurMatrixHandler" << std::endl);
 	throw ErrGeneric();
 }
 
