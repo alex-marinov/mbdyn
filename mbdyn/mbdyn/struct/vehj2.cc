@@ -264,6 +264,39 @@ ElasticDispJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
+/* assemblaggio jacobiano */
+void
+ElasticDispJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
+{
+	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
+	WorkMatB.SetNullMatrix();
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WMA.ResizeReset(iNumRows, iNumCols);
+
+	/* Recupera gli indici */
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WMA.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WMA.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WMA.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+		WMA.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
+	}
+
+	AssMat(WMA, 1.);
+}
+
 void
 ElasticDispJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 {
@@ -271,8 +304,6 @@ ElasticDispJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	Vec3 f2(pNode2->GetRRef()*tilde_f2);
 	Vec3 d1(pNode2->GetXCurr() + f2 - pNode1->GetXCurr());
 
-	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
-	
 	/* F/d */
 	Mat3x3 DTmp(FDE*dCoef);
 
@@ -391,6 +422,8 @@ ElasticDispJoint::AfterPredict(VectorHandler& X, VectorHandler& XP)
 
 	ConstitutiveLaw3DOwner::Update(tilde_d);
 
+	/* FIXME: we need to be able to regenerate FDE
+	 * if the constitutive law throws ChangedEquationStructure */
 	FDE = R1h*GetFDE()*R1hT;
 
 	bFirstRes = true;
@@ -470,12 +503,19 @@ ViscousDispJoint::ViscousDispJoint(unsigned int uL,
 : Elem(uL, Elem::JOINT, fOut),
 DeformableDispJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, fOut)
 {
-	NO_OP;
-
+#if 0
 	/* Temporary */
 	silent_cerr("DeformableHingeJoint(" << GetLabel() << "): "
 			"this element is not implemented yet" << std::endl);
 	throw ErrNotImplementedYet();
+#endif
+
+	/*
+	 * Chiede la matrice tangente di riferimento
+	 * e la porta nel sistema globale
+	 */
+	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
+	FDEPrime = R1h*GetFDEPrime()*R1h.Transpose();
 }
 
 ViscousDispJoint::~ViscousDispJoint(void)
@@ -499,34 +539,153 @@ ViscousDispJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.ResizeReset(iNumRows, iNumCols);
 
 	/* Recupera gli indici */
-	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex() + 3;
-	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex() + 3;
-	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex() + 3;
-	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex() + 3;
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
 
 	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
 		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
-		WM.PutRowIndex(3 + iCnt, iNode2FirstMomIndex + iCnt);
-		WM.PutColIndex(3 + iCnt, iNode2FirstPosIndex + iCnt);
+		WM.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 	}
 
-	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
-	Vec3 Omega2(pNode2->GetWRef());
-
-	Vec3 F(R1h*GetF());
-	Mat3x3 FDEPrime(R1h*GetFDEPrime()*R1h.Transpose());
-	Mat3x3 Tmp(FDEPrime - FDEPrime*Mat3x3(Omega2*dCoef));
-
-	WM.Add(3 + 1, 3 + 1, Tmp);
-	WM.Sub(1, 3 + 1, Tmp);
-
-	Tmp += Mat3x3(F*dCoef);
-	WM.Add(1, 1, Tmp);
-	WM.Sub(3 + 1, 1, Tmp);
+	AssMats(WM, WM, dCoef);
 
 	return WorkMat;
+}
+
+/* assemblaggio jacobiano */
+void
+ViscousDispJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
+{
+	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
+	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WMA.ResizeReset(iNumRows, iNumCols);
+	WMB.ResizeReset(iNumRows, iNumCols);
+
+	/* Recupera gli indici */
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WMA.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WMA.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WMA.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+		WMA.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
+
+		WMB.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WMB.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WMB.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+		WMB.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
+	}
+
+	AssMats(WMA, WMB, 1.);
+}
+
+void
+ViscousDispJoint::AssMats(FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB,
+		doublereal dCoef)
+{
+	Vec3 f1(pNode1->GetRCurr()*tilde_f1);
+	Vec3 f2(pNode2->GetRCurr()*tilde_f2);
+
+	/* F/dot{d} */
+	WMB.Add(1, 1, FDEPrime);
+	WMB.Sub(6 + 1, 1, FDEPrime);
+	WMB.Sub(1, 6 + 1, FDEPrime);
+	WMB.Add(6 + 1, 6 + 1, FDEPrime);
+
+	Mat3x3 MTmp(Mat3x3(f1)*FDEPrime);
+
+	WMB.Sub(4, 1, MTmp);
+	WMB.Add(4, 6 + 1, MTmp);
+
+	MTmp = Mat3x3(f2)*FDEPrime;
+
+	WMB.Add(6 + 4, 1, MTmp);
+	WMB.Sub(6 + 4, 6 + 1, MTmp);
+
+	/* F/dot{d} * [ ( w1 * dCoef ) x ] */
+	Mat3x3 CTmp = FDEPrime*Mat3x3(pNode1->GetWRef()*dCoef);
+
+	WMA.Sub(1, 1, CTmp);
+	WMA.Add(6 + 1, 1, CTmp);
+	WMA.Add(1, 6 + 1, CTmp);
+	WMA.Sub(6 + 1, 6 + 1, CTmp);
+
+	MTmp = Mat3x3(f1)*CTmp;
+
+	WMA.Add(4, 1, MTmp);
+	WMA.Sub(4, 6 + 1, MTmp);
+
+	MTmp = Mat3x3(f2)*CTmp;
+
+	WMA.Sub(6 + 4, 1, MTmp);
+	WMA.Add(6 + 4, 6 + 1, MTmp);
+
+	/* F/dot{d} * [ f2 x ] */
+	MTmp = FDEPrime*Mat3x3(f2);
+
+	WMB.Add(1, 6 + 4, MTmp);
+	WMB.Sub(6 + 1, 6 + 4, MTmp);
+
+	WMB.Add(4, 6 + 4, Mat3x3(f1)*MTmp);
+	WMB.Sub(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
+
+	/* F/dot{d} * [ (x2 + f2 - x) x ] */
+	Vec3 d1(pNode2->GetXCurr() + f2 - pNode1->GetXCurr());
+	MTmp = FDEPrime*Mat3x3(d1);
+
+	WMB.Sub(1, 4, MTmp);
+	WMB.Add(6 + 1, 4, MTmp);
+
+	WMB.Sub(4, 4, Mat3x3(f1)*MTmp);
+	WMB.Add(6 + 4, 4, Mat3x3(f2)*MTmp);
+
+	/* F/dot{d} * ( [ ( f2 x w2 ) x ] - [ w1 x ] [ f2 x ] ) * dCoef */
+	MTmp = FDEPrime*(Mat3x3(f2.Cross(pNode2->GetWCurr()*dCoef))
+			- Mat3x3(pNode1->GetWCurr(), f2*dCoef));
+	WMA.Sub(1, 6 + 4, MTmp);
+	WMA.Add(6 + 1, 6 + 4, MTmp);
+
+	WMA.Sub(4, 6 + 4, Mat3x3(f1)*MTmp);
+	WMA.Add(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
+
+	/* F/dot{d} * ( [ d1Prime x ] - [ w1 x ] [ d1 x ] ) * dCoef */
+	Vec3 d1Prime(pNode2->GetVCurr() - f2.Cross(pNode2->GetWCurr()) - pNode1->GetVCurr());
+	MTmp = FDEPrime*(Mat3x3(d1Prime) - Mat3x3(pNode1->GetWCurr(), d1));
+	WMB.Sub(1, 4, MTmp);
+	WMB.Add(6 + 1, 4, MTmp);
+
+	WMB.Sub(4, 6 + 4, Mat3x3(f1)*MTmp);
+	WMB.Add(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
+
+	/* - [ F x ] * dCoef */
+	MTmp = Mat3x3(F*dCoef);
+	WMA.Add(1, 4, MTmp);
+	WMA.Sub(6 + 1, 4, MTmp);
+
+	WMA.Add(4, 6 + 4, Mat3x3(f1)*MTmp);
+	WMA.Sub(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
+
+	/* [ F x ] [ fi x ] * dCoef */
+	WMA.Sub(4, 4, Mat3x3(F, f1*dCoef));
+	WMA.Add(6 + 4, 6 + 4, Mat3x3(F, f2*dCoef));
 }
 
 /* assemblaggio residuo */
@@ -543,31 +702,65 @@ ViscousDispJoint::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.ResizeReset(iNumRows);
 
 	/* Recupera gli indici */
-	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex() + 3;
-	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex() + 3;
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
 
 	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
-		WorkVec.PutRowIndex(3 + iCnt, iNode2FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
 	}
 
+	AssVec(WorkVec);
+
+	return WorkVec;
+}
+
+void
+ViscousDispJoint::AssVec(SubVectorHandler& WorkVec)
+{
 	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
-	Vec3 Omega1(pNode1->GetWCurr());
-	Vec3 Omega2(pNode2->GetWCurr());
+	Vec3 f1(pNode1->GetRCurr()*tilde_f1);
+	Vec3 f2(pNode2->GetRCurr()*tilde_f2);
 
-	Vec3 g1(pNode1->GetgCurr());
-	Vec3 g2(pNode2->GetgCurr());
+	if (bFirstRes) {
+		bFirstRes = false;
 
-	tilde_dPrime = R1h.Transpose()*(Omega2 - Omega1);
-	IncrementalUpdate(Zero3, tilde_dPrime);
+	} else {
+		tilde_dPrime = R1h.Transpose()*(pNode2->GetVCurr() - pNode1->GetVCurr()
+				-f2.Cross(pNode2->GetWCurr())
+				- (pNode2->GetXCurr() + f2 - pNode1->GetXCurr()).Cross(pNode1->GetWCurr()));
+
+		IncrementalUpdate(Zero3, tilde_dPrime);
+	}
 
 	Vec3 F(R1h*GetF());
 
 	WorkVec.Add(1, F);
-	WorkVec.Sub(3 + 1, F);
+	WorkVec.Add(4, f1.Cross(F));
+	WorkVec.Sub(6 + 1, F);
+	WorkVec.Sub(6 + 4, f2.Cross(F));
+}
 
-	return WorkVec;
+void
+ViscousDispJoint::AfterPredict(VectorHandler& X, VectorHandler& XP)
+{
+	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
+	Mat3x3 R1hT(R1h.Transpose());
+	Vec3 f1(pNode1->GetRCurr()*tilde_f1);
+	Vec3 f2(pNode2->GetRCurr()*tilde_f2);
+
+	tilde_dPrime = R1h.Transpose()*(pNode2->GetVCurr() - pNode1->GetVCurr()
+			-f2.Cross(pNode2->GetWCurr())
+			- (pNode2->GetXCurr() + f2 - pNode1->GetXCurr()).Cross(pNode1->GetWCurr()));
+
+	ConstitutiveLaw3DOwner::IncrementalUpdate(Zero3, tilde_dPrime);
+
+	/* FIXME: we need to be able to regenerate FDE
+	 * if the constitutive law throws ChangedEquationStructure */
+	FDEPrime = R1h*GetFDEPrime()*R1hT;
+
+	bFirstRes = true;
 }
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
@@ -584,20 +777,20 @@ ViscousDispJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.ResizeReset(iNumRows, iNumCols);
 
 	/* Recupera gli indici */
-	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex() + 3;
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode1FirstVelIndex = iNode1FirstPosIndex + 6;
-	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex() + 3;
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
 	integer iNode2FirstVelIndex = iNode2FirstPosIndex + 6;
 
 	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
 		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
-		WM.PutColIndex(3+iCnt, iNode1FirstVelIndex + iCnt);
+		WM.PutColIndex(6+iCnt, iNode1FirstVelIndex + iCnt);
 
-		WM.PutRowIndex(3 + iCnt, iNode2FirstPosIndex + iCnt);
-		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
-		WM.PutColIndex(9 + iCnt, iNode2FirstVelIndex + iCnt);
+		WM.PutRowIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
+		WM.PutColIndex(12 + iCnt, iNode2FirstPosIndex + iCnt);
+		WM.PutColIndex(18 + iCnt, iNode2FirstVelIndex + iCnt);
 	}
 
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
@@ -680,10 +873,21 @@ ViscoElasticDispJoint::ViscoElasticDispJoint(unsigned int uL,
 : Elem(uL, Elem::JOINT, fOut),
 DeformableDispJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, fOut)
 {
+#if 0
 	/* Temporary */
 	silent_cerr("DeformableHingeJoint(" << GetLabel() << "): "
 			"this element is not implemented yet" << std::endl);
 	throw ErrNotImplementedYet();
+#endif
+
+	/*
+	 * Chiede la matrice tangente di riferimento
+	 * e la porta nel sistema globale
+	 */
+	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
+	Mat3x3 R1hT(R1h.Transpose());
+	FDE = R1h*GetFDE()*R1hT;
+	FDEPrime = R1h*GetFDEPrime()*R1hT;
 }
 
 ViscoElasticDispJoint::~ViscoElasticDispJoint(void)
@@ -707,37 +911,208 @@ ViscoElasticDispJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.ResizeReset(iNumRows, iNumCols);
 
 	/* Recupera gli indici */
-	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex() + 3;
-	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex() + 3;
-	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex() + 3;
-	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex() + 3;
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
 
 	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
 		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
-		WM.PutRowIndex(3 + iCnt, iNode2FirstMomIndex + iCnt);
-		WM.PutColIndex(3 + iCnt, iNode2FirstPosIndex + iCnt);
+		WM.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 	}
 
-	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
-	Mat3x3 R1hT(R1h.Transpose());
-	Vec3 Omega2(pNode2->GetWRef());
-
-	Vec3 F(R1h*GetF());
-	Mat3x3 FDE(R1h*GetFDE()*(R1hT*dCoef));
-	Mat3x3 FDEPrime(R1h*GetFDEPrime()*R1hT);
-
-	Mat3x3 Tmp(FDEPrime - FDEPrime*Mat3x3(Omega2*dCoef) + FDE);
-
-	WM.Add(3 + 1, 3 + 1, Tmp);
-	WM.Sub(1, 3 + 1, Tmp);
-
-	Tmp += Mat3x3(F*dCoef);
-	WM.Add(1, 1, Tmp);
-	WM.Sub(3 + 1, 1, Tmp);
+	AssMats(WM, WM, dCoef);
 
 	return WorkMat;
+}
+
+/* assemblaggio jacobiano */
+void
+ViscoElasticDispJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
+{
+	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
+	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WMA.ResizeReset(iNumRows, iNumCols);
+	WMB.ResizeReset(iNumRows, iNumCols);
+
+	/* Recupera gli indici */
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WMA.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WMA.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WMA.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+		WMA.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
+
+		WMB.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WMB.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WMB.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+		WMB.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
+	}
+
+	AssMats(WMA, WMB, 1.);
+}
+
+/* assemblaggio jacobiano */
+void
+ViscoElasticDispJoint::AssMats(FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB,
+		doublereal dCoef)
+{
+
+	Vec3 f1(pNode1->GetRRef()*tilde_f1);
+	Vec3 f2(pNode2->GetRRef()*tilde_f2);
+	Vec3 d1(pNode2->GetXCurr() + f2 - pNode1->GetXCurr());
+
+	/* F/d */
+	Mat3x3 DTmp(FDE*dCoef);
+
+	/* Force equations */
+
+	/* delta x1 */
+	WMA.Add(1, 1, DTmp);
+	WMA.Sub(6 + 1, 1, DTmp);
+
+	/* delta x2 */
+	WMA.Sub(1, 6 + 1, DTmp);
+	WMA.Add(6 + 1, 6 + 1, DTmp);
+
+	/* delta g1 */
+	Mat3x3 MTmp(DTmp*Mat3x3(d1));
+	WMA.Sub(1, 4, MTmp);
+	WMA.Add(6 + 1, 4, MTmp);
+
+	/* delta g2 */
+	MTmp = DTmp*Mat3x3(f2);
+	WMA.Add(1, 6 + 4, MTmp);
+	WMA.Sub(6 + 1, 6 + 4, MTmp);
+
+	/* Moment equation on node 1 */
+	MTmp = Mat3x3(f1)*DTmp;
+
+	/* delta x1 */
+	WMA.Sub(4, 1, MTmp);
+
+	/* delta x2 */
+	WMA.Add(4, 6 + 1, MTmp);
+
+	/* delta g1 */
+	WMA.Sub(4, 4, MTmp*Mat3x3(d1));
+
+	/* delta g2 */
+	WMA.Add(4, 6 + 4, MTmp*Mat3x3(f2));
+
+	/* Moment equation on node 2 */
+	MTmp = Mat3x3(f2)*DTmp;
+
+	/* delta x1 */
+	WMA.Sub(6 + 4, 1, MTmp);
+
+	/* delta x2 */
+	WMA.Add(6 + 4, 6 + 1, MTmp);
+
+	/* delta g1 */
+	WMA.Add(6 + 4, 4, MTmp*Mat3x3(d1));
+
+	/* delta g2 */
+	WMA.Sub(6 + 4, 6 + 4, MTmp*Mat3x3(f2));
+
+	/* F/dot{d} */
+	WMB.Add(1, 1, FDEPrime);
+	WMB.Sub(6 + 1, 1, FDEPrime);
+	WMB.Sub(1, 6 + 1, FDEPrime);
+	WMB.Add(6 + 1, 6 + 1, FDEPrime);
+
+	MTmp = Mat3x3(f1)*FDEPrime;
+
+	WMB.Sub(4, 1, MTmp);
+	WMB.Add(4, 6 + 1, MTmp);
+
+	MTmp = Mat3x3(f2)*FDEPrime;
+
+	WMB.Add(6 + 4, 1, MTmp);
+	WMB.Sub(6 + 4, 6 + 1, MTmp);
+
+	/* F/dot{d} * [ ( w1 * dCoef ) x ] */
+	Mat3x3 CTmp = FDEPrime*Mat3x3(pNode1->GetWRef()*dCoef);
+
+	WMA.Sub(1, 1, CTmp);
+	WMA.Add(6 + 1, 1, CTmp);
+	WMA.Add(1, 6 + 1, CTmp);
+	WMA.Sub(6 + 1, 6 + 1, CTmp);
+
+	MTmp = Mat3x3(f1)*CTmp;
+
+	WMA.Add(4, 1, MTmp);
+	WMA.Sub(4, 6 + 1, MTmp);
+
+	MTmp = Mat3x3(f2)*CTmp;
+
+	WMA.Sub(6 + 4, 1, MTmp);
+	WMA.Add(6 + 4, 6 + 1, MTmp);
+
+	/* F/dot{d} * [ f2 x ] */
+	MTmp = FDEPrime*Mat3x3(f2);
+
+	WMB.Add(1, 6 + 4, MTmp);
+	WMB.Sub(6 + 1, 6 + 4, MTmp);
+
+	WMB.Add(4, 6 + 4, Mat3x3(f1)*MTmp);
+	WMB.Sub(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
+
+	/* F/dot{d} * [ (x2 + f2 - x) x ] */
+	MTmp = FDEPrime*Mat3x3(d1);
+
+	WMB.Sub(1, 4, MTmp);
+	WMB.Add(6 + 1, 4, MTmp);
+
+	WMB.Sub(4, 4, Mat3x3(f1)*MTmp);
+	WMB.Add(6 + 4, 4, Mat3x3(f2)*MTmp);
+
+	/* F/dot{d} * ( [ ( f2 x w2 ) x ] - [ w1 x ] [ f2 x ] ) * dCoef */
+	MTmp = FDEPrime*(Mat3x3(f2.Cross(pNode2->GetWCurr()*dCoef))
+			- Mat3x3(pNode1->GetWCurr(), f2*dCoef));
+	WMA.Sub(1, 6 + 4, MTmp);
+	WMA.Add(6 + 1, 6 + 4, MTmp);
+
+	WMA.Sub(4, 6 + 4, Mat3x3(f1)*MTmp);
+	WMA.Add(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
+
+	/* F/dot{d} * ( [ d1Prime x ] - [ w1 x ] [ d1 x ] ) * dCoef */
+	Vec3 d1Prime(pNode2->GetVCurr() - f2.Cross(pNode2->GetWCurr()) - pNode1->GetVCurr());
+	MTmp = FDEPrime*(Mat3x3(d1Prime) - Mat3x3(pNode1->GetWCurr(), d1));
+	WMB.Sub(1, 4, MTmp);
+	WMB.Add(6 + 1, 4, MTmp);
+
+	WMB.Sub(4, 6 + 4, Mat3x3(f1)*MTmp);
+	WMB.Add(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
+
+	/* - [ F x ] * dCoef */
+	MTmp = Mat3x3(F*dCoef);
+	WMA.Add(1, 4, MTmp);
+	WMA.Sub(6 + 1, 4, MTmp);
+
+	WMA.Add(4, 6 + 4, Mat3x3(f1)*MTmp);
+	WMA.Sub(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
+
+	/* [ F x ] [ fi x ] * dCoef */
+	WMA.Sub(4, 4, Mat3x3(F, f1*dCoef));
+	WMA.Add(6 + 4, 6 + 4, Mat3x3(F, f2*dCoef));
 }
 
 /* assemblaggio residuo */
@@ -754,34 +1129,68 @@ ViscoElasticDispJoint::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.ResizeReset(iNumRows);
 
 	/* Recupera gli indici */
-	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex() + 3;
-	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex() + 3;
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
 
 	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
-		WorkVec.PutRowIndex(3 + iCnt, iNode2FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
 	}
 
+	AssVec(WorkVec);
+	
+	return WorkVec;
+}
+
+void
+ViscoElasticDispJoint::AssVec(SubVectorHandler& WorkVec)
+{
 	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
-	Mat3x3 R1hT(R1h.Transpose());
-	Vec3 Omega1(pNode1->GetWCurr());
-	Vec3 Omega2(pNode2->GetWCurr());
+	Vec3 f1(pNode1->GetRCurr()*tilde_f1);
+	Vec3 f2(pNode2->GetRCurr()*tilde_f2);
 
-	Vec3 g1(pNode1->GetgCurr());
-	Vec3 g2(pNode2->GetgCurr());
+	if (bFirstRes) {
+		bFirstRes = false;
 
-	/* Aggiornamento: tilde_d += R1h^T(G(g2)*g2-G(g1)*g1) */
-	tilde_d = R1hT*(g2*(4./(4. + g2.Dot())) - g1*(4./(4. + g1.Dot())));
-	tilde_dPrime = R1hT*(Omega2 - Omega1);
-	IncrementalUpdate(tilde_d, tilde_dPrime);
+	} else {
+		tilde_d = R1h.Transpose()*(pNode2->GetXCurr() + f2 - pNode1->GetXCurr() - f1);
+		tilde_dPrime = R1h.Transpose()*(pNode2->GetVCurr() - pNode1->GetVCurr()
+				-f2.Cross(pNode2->GetWCurr())
+				- (pNode2->GetXCurr() + f2 - pNode1->GetXCurr()).Cross(pNode1->GetWCurr()));
+
+		ConstitutiveLaw3DOwner::Update(tilde_d, tilde_dPrime);
+	}
 
 	Vec3 F(R1h*GetF());
 
 	WorkVec.Add(1, F);
-	WorkVec.Sub(3 + 1, F);
+	WorkVec.Add(4, f1.Cross(F));
+	WorkVec.Sub(6 + 1, F);
+	WorkVec.Sub(6 + 4, f2.Cross(F));
+}
 
-	return WorkVec;
+void
+ViscoElasticDispJoint::AfterPredict(VectorHandler& X, VectorHandler& XP)
+{
+	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
+	Mat3x3 R1hT(R1h.Transpose());
+	Vec3 f1(pNode1->GetRCurr()*tilde_f1);
+	Vec3 f2(pNode2->GetRCurr()*tilde_f2);
+
+	tilde_d = R1hT*(pNode2->GetXCurr() + f2 - pNode1->GetXCurr() - f1);
+	tilde_dPrime = R1h.Transpose()*(pNode2->GetVCurr() - pNode1->GetVCurr()
+			-f2.Cross(pNode2->GetWCurr())
+			- (pNode2->GetXCurr() + f2 - pNode1->GetXCurr()).Cross(pNode1->GetWCurr()));
+
+	ConstitutiveLaw3DOwner::Update(tilde_d, tilde_dPrime);
+
+	/* FIXME: we need to be able to regenerate FDE and FDEPrime
+	 * if the constitutive law throws ChangedEquationStructure */
+	FDE = R1h*GetFDE()*R1hT;
+	FDEPrime = R1h*GetFDEPrime()*R1hT;
+
+	bFirstRes = true;
 }
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */

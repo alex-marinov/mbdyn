@@ -158,6 +158,13 @@ public:
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
+	/* assemblaggio jacobiano */
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA,
+			VariableSubMatrixHandler& WorkMatB,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
@@ -205,6 +212,10 @@ protected:
 
 	Mat3x3 FDEPrime;
 
+	void AssMats(FullSubMatrixHandler& WMA,
+			FullSubMatrixHandler& WMB,
+			doublereal dCoef);
+
 public:
 	ViscousHingeJoint(unsigned int uL,
 			const DofOwner* pDO,
@@ -236,6 +247,13 @@ public:
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
 			doublereal dCoef,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio jacobiano */
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA,
+			VariableSubMatrixHandler& WorkMatB,
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
@@ -288,6 +306,10 @@ protected:
 	Mat3x3 FDE;
 	Mat3x3 FDEPrime;
 
+	void AssMats(FullSubMatrixHandler& WMA,
+			FullSubMatrixHandler& WMB,
+			doublereal dCoef);
+
 public:
 	ViscoElasticHingeJoint(unsigned int uL,
 			const DofOwner* pDO,
@@ -316,6 +338,12 @@ public:
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
 			doublereal dCoef,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA,
+			VariableSubMatrixHandler& WorkMatB,
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 

@@ -167,6 +167,13 @@ public:
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
+	/* assemblaggio jacobiano */
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA,
+			VariableSubMatrixHandler& WorkMatB,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
@@ -196,6 +203,14 @@ public:
 /* ViscousDispJoint - begin */
 
 class ViscousDispJoint : virtual public Elem, public DeformableDispJoint {
+protected:
+	Mat3x3 FDEPrime;
+
+	void AssMats(FullSubMatrixHandler& WMA,
+			FullSubMatrixHandler& WMB,
+			doublereal dCoef);
+	void AssVec(SubVectorHandler& WorkVec);
+
 public:
 	ViscousDispJoint(unsigned int uL,
 			const DofOwner* pDO,
@@ -219,10 +234,20 @@ public:
 		return ConstLawType::VISCOUS;
 	};
 
+	/* Aggiorna le deformazioni ecc. */
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
 	/* assemblaggio jacobiano */
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
 			doublereal dCoef,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio jacobiano */
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA,
+			VariableSubMatrixHandler& WorkMatB,
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
@@ -235,7 +260,7 @@ public:
 
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 6;
+		*piNumRows = 12;
 		*piNumCols = 12;
 	};
 
@@ -256,6 +281,15 @@ public:
 
 class ViscoElasticDispJoint
 : virtual public Elem, public DeformableDispJoint {
+protected:
+	Mat3x3 FDE;
+	Mat3x3 FDEPrime;
+
+	void AssMats(FullSubMatrixHandler& WorkMatA,
+			FullSubMatrixHandler& WorkMatB,
+			doublereal dCoef);
+	void AssVec(SubVectorHandler& WorkVec);
+
 public:
 	ViscoElasticDispJoint(unsigned int uL,
 			const DofOwner* pDO,
@@ -277,10 +311,20 @@ public:
 		return ConstLawType::VISCOELASTIC;
 	};
 
+	/* Aggiorna le deformazioni ecc. */
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
 	/* assemblaggio jacobiano */
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
 			doublereal dCoef,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio jacobiano */
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA,
+			VariableSubMatrixHandler& WorkMatB,
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 

@@ -55,11 +55,9 @@ virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
    
     /* Assembla le due matrici necessarie per il calcolo degli
      * autovalori e per lo jacobiano */  
-    void AssMat_(FullSubMatrixHandler& WorkMatA,
+    void AssMats(FullSubMatrixHandler& WorkMatA,
 		 FullSubMatrixHandler& WorkMatB,
-		 doublereal dCoef,
-		 const VectorHandler& XCurr,
-		 const VectorHandler& XPrimeCurr);
+		 doublereal dCoef);
 
     /* momento statico */
     Vec3 GetS_int(void) const;

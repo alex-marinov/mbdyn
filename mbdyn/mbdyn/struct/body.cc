@@ -119,7 +119,8 @@ Body::AssJac(VariableSubMatrixHandler& WorkMat,
         WM.PutColIndex(iCnt, iFirstPositionIndex+iCnt);   
     }
       
-    AssMat_(WM, WM, dCoef, XCurr, XPrimeCurr);
+    AssMats(WM, WM, dCoef);
+
     return WorkMat;
 }
 
@@ -157,18 +158,16 @@ Body::AssMats(VariableSubMatrixHandler& WorkMatA,
         WMB.PutColIndex(iCnt, iFirstPositionIndex+iCnt);
     }   
    
-    AssMat_(WMA, WMB, 1., XCurr, XPrimeCurr);
+    AssMats(WMA, WMB, 1.);
 }
 
 
 void
-Body::AssMat_(FullSubMatrixHandler& WMA,
+Body::AssMats(FullSubMatrixHandler& WMA,
 	      FullSubMatrixHandler& WMB,
-	      doublereal dCoef,
-	      const VectorHandler& /* XCurr */ ,
-	      const VectorHandler& /* XPrimeCurr */ )
+	      doublereal dCoef)
 {
-    DEBUGCOUTFNAME("Body::AssMat_");
+    DEBUGCOUTFNAME("Body::AssMats");
    
     Vec3 V(pNode->GetVCurr());
     Vec3 W(pNode->GetWRef());
