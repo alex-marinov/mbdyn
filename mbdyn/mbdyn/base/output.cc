@@ -46,31 +46,31 @@ const int iDefaultWidth = OUTPUT_PRECISION+6;
 const int iDefaultPrecision = OUTPUT_PRECISION;
 
 const char* psExt[] = {
-   ".out",  /*  0 */
+   ".out",		/*  0 */
    ".mov",
    ".ele",
    ".abs",
    ".ine",
-   ".jnt",  /*  5 */
+   ".jnt",		/*  5 */
    ".frc",
    ".act",
    ".rot",
    ".rst",
-   ".rst.X" /* 10 */
+   ".rst.X",		/* 10 */
    ".aer",  
    ".hyd",
    ".prs",
    ".usr",
-   ".gen",  /* 15 */
+   ".gen",		/* 15 */
    ".par",
    ".res",
    ".ada",
    ".amd",
-   ".rfm",  /* 20 */
+   ".rfm",		/* 20 */
    ".log",
    ".air",
    ".prm",
-   ".ext", 
+   ".ext",
    NULL
 };
 

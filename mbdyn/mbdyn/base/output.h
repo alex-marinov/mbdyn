@@ -56,28 +56,28 @@ class OutputHandler : public FileName {
       ELECTRIC,
       ABSTRACT,      
       INERTIA,
-      JOINTS,
+      JOINTS,			/* =  5 */
       FORCES, 
       BEAMS,
       ROTORS,
       RESTART,
-      RESTARTXSOL,	/* 10 */
+      RESTARTXSOL,		/* = 10 */
       AERODYNAMIC,
       HYDRAULIC,
       PRESNODES,
       LOADABLE,
-      GENELS,
+      GENELS,			/* = 15 */
       PARTITION,
       ADAMSRES,
       ADAMSCMD,
       AEROMODALS,
-      REFERENCEFRAMES,	/* 20 */
+      REFERENCEFRAMES,		/* = 20 */
       LOG,	
       AIRPROPS,
       PARAMETERS,
       EXTERNALS,
 
-      LASTFILE		/* 25 */
+      LASTFILE			/* = 25 */
    };   
    
  private:
@@ -90,27 +90,27 @@ class OutputHandler : public FileName {
       bool IsOpen;
    } OutData[LASTFILE];
    
-   std::ofstream ofOutput;      /*  0 */
+   std::ofstream ofOutput;      	/*  0 */
    std::ofstream ofStrNodes;
    std::ofstream ofElectric;
    std::ofstream ofAbstract;
    std::ofstream ofInertia;
-   std::ofstream ofJoints;      /*  5 */
+   std::ofstream ofJoints;      	/*  5 */
    std::ofstream ofForces;
    std::ofstream ofBeams;
    std::ofstream ofRotors;
    std::ofstream ofRestart;
-   std::ofstream ofRestartXSol; /* 10 */
+   std::ofstream ofRestartXSol; 	/* 10 */
    std::ofstream ofAerodynamic;
    std::ofstream ofHydraulic;
    std::ofstream ofPresNodes;
    std::ofstream ofLoadable;
-   std::ofstream ofGenels;	/* 15 */
+   std::ofstream ofGenels;		/* 15 */
    std::ofstream ofPartition;
    std::ofstream ofAdamsRes;
    std::ofstream ofAdamsCmd;
    std::ofstream ofAeroModals;
-   std::ofstream ofReferenceFrames;
+   std::ofstream ofReferenceFrames;	/* 20 */
    std::ofstream ofLog;
    std::ofstream ofAirProps;
    std::ofstream ofParameters;
