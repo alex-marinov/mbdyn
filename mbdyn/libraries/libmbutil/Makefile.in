@@ -89,13 +89,14 @@ mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
 
 lib_LTLIBRARIES = libmbutil.la
-libmbutil_la_SOURCES =  destr.h     except.h   filename.h  gauss.cc     gauss.h input.cc    input.h    llist.cc    llist.h      llstack.cc  llstack.h mathp.cc    mathp.h    mathtyp.h   myassert.cc  myassert.h  mynewmem.cc mynewmem.h  mystddef.h parser.cc   parser.h     parsinc.cc  parsinc.h search.h    stack.h    table.cc    table.h veciter.h   withlab.h  fn_UNIX.cc tclpgin.h tclpgin.cc dummypgin.h dummypgin.cc
+libmbutil_la_SOURCES =  destr.h dummypgin.cc dummypgin.h except.h filename.h fn_UNIX.cc gauss.cc gauss.h input.cc input.h llist.cc llist.h llstack.cc llstack.h mathp.cc mathp.h mathtyp.h myassert.cc myassert.h mynewmem.cc mynewmem.h mystddef.h parser.cc parser.h parsinc.cc parsinc.h search.h stack.h table.cc table.h tclpgin.cc tclpgin.h veciter.h withlab.h
 
 
 libmbutil_la_LIBADD = @LIBS@
 libmbutil_la_LDFLAGS = 
 
-INCLUDES = -I../../include -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../mbdyn -I../../mbdyn/base -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr
+INCLUDES =  -I../../include -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../mbdyn
+
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = ../../include/mbconfig.h
 CONFIG_CLEAN_FILES = 
@@ -107,9 +108,9 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libmbutil_la_DEPENDENCIES = 
-libmbutil_la_OBJECTS =  gauss.lo input.lo llist.lo llstack.lo mathp.lo \
-myassert.lo mynewmem.lo parser.lo parsinc.lo table.lo fn_UNIX.lo \
-tclpgin.lo dummypgin.lo
+libmbutil_la_OBJECTS =  dummypgin.lo fn_UNIX.lo gauss.lo input.lo \
+llist.lo llstack.lo mathp.lo myassert.lo mynewmem.lo parser.lo \
+parsinc.lo table.lo tclpgin.lo
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)

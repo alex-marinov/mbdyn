@@ -4,27 +4,92 @@
 lib_LTLIBRARIES = libbase.la
 
 libbase_la_SOURCES = \
-dataman5.cc  elman.cc     loadable.cc  reffrm.h \
-auth.cc      dataman_.h   loadable.h   restart.h \
-auth.h       demangled.h  mangled.h \
-bool.h       dofdrive.cc  enums.cc     mbpar.cc \
-bulk.cc      dofdrive.h   mbpar.h \
-bulk.h       dofman.cc    memmans.h \
-constltp.h   dofown.h     env.cc       multistp.cc \
-constltp_.h  dofpgin.cc   filedrv.cc   multistp.h \
-contactj.h   dofpgin.h    filedrv.h    mysleep.c    mysleep.h    shape.h \
-damper.f     drive.cc     force.cc     node.cc      sockdrv.cc \
-damper.h     drive.h      force.h      node.h       sockdrv.h \
-dataman.cc   drive_.cc    integr.h     nodeman.cc   tpldrive.cc \
-dataman.h    drive_.h     intmeth.cc   output.cc    tpldrive.h   tpldrive_.h\
-dataman2.cc  driven.h     intmeth.h    output.h     vec3drv.h \
-dataman3.cc  elem.cc      j2p.cc       posrel.h \
-dataman4.cc  elem.h       j2p.h        readclaw.h \
-schur.cc     schur.h      schurdataman.cc           schurdataman.h \
-shockabsorber.h
+auth.cc \
+auth.h \
+bool.h \
+bulk.cc \
+bulk.h \
+constltp.h \
+constltp_.h \
+contactj.h \
+damper.f \
+damper.h \
+dataman.cc \
+dataman.h \
+dataman2.cc \
+dataman3.cc \
+dataman4.cc \
+dataman5.cc \
+dataman_.h \
+demangled.h \
+dofdrive.cc \
+dofdrive.h \
+dofman.cc \
+dofown.h \
+dofpgin.cc \
+dofpgin.h \
+drive.cc \
+drive.h \
+driven.h \
+drive_.cc \
+drive_.h \
+elem.cc \
+elem.h \
+elman.cc \
+enums.cc \
+env.cc \
+filedrv.cc \
+filedrv.h \
+force.cc \
+force.h \
+integr.h \
+intmeth.cc \
+intmeth.h \
+j2p.cc \
+j2p.h \
+loadable.cc \
+loadable.h \
+mangled.h \
+mbpar.cc \
+mbpar.h \
+memmans.h \
+multistp.cc \
+multistp.h \
+mysleep.c \
+mysleep.h \
+node.cc \
+node.h \
+nodeman.cc \
+output.cc \
+output.h \
+posrel.h \
+readclaw.h \
+reffrm.h \
+restart.h \
+schur.cc \
+schur.h \
+schurdataman.cc \
+schurdataman.h \
+shape.h \
+shockabsorber.h \
+sockdrv.cc \
+sockdrv.h \
+tpldrive.cc \
+tpldrive.h \
+tpldrive_.h \
+vec3drv.h
 
 libbase_la_LIBADD = @LIBS@
 libbase_la_LDFLAGS = -static
 
-INCLUDES = -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../libraries/libobjs -I../../mbdyn -I../../mbdyn/base -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr
+INCLUDES = \
+-I../../libraries/libmbutil \
+-I../../libraries/libmbmath \
+-I../../libraries/libobjs \
+-I../../mbdyn \
+-I../../mbdyn/base \
+-I../../mbdyn/struct \
+-I../../mbdyn/aero \
+-I../../mbdyn/elec \
+-I../../mbdyn/hydr
 

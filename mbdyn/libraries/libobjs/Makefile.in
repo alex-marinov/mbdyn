@@ -87,13 +87,13 @@ mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
 
 lib_LTLIBRARIES = libobjs.la
-libobjs_la_SOURCES =  	getopt.c getopt.h 	dgegv.o dgegv.c
+libobjs_la_SOURCES =  dgegv.c dgegv.o  getopt.c getopt.h
 
 
 libobjs_la_LIBADD = @LIBS@
 libobjs_la_LDFLAGS = 
 
-INCLUDES = -I../../include -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../mbdyn -I../../mbdyn/base -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr
+INCLUDES = -I../../mbdyn 
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = ../../include/mbconfig.h
 CONFIG_CLEAN_FILES = 
@@ -105,7 +105,7 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libobjs_la_DEPENDENCIES = 
-libobjs_la_OBJECTS =  getopt.lo dgegv.lo
+libobjs_la_OBJECTS =  dgegv.lo getopt.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)

@@ -4,17 +4,50 @@
 lib_LTLIBRARIES = libmbmath.la
 
 libmbmath_la_SOURCES = \
-fullmh.cc    fullmh.h     harwlib.h    harwlib_.f      spdata_.f \
-harwout.c    harwout.h    harwout_.cc  harwrap.cc      harwrap.h   ldl.f \
-ldl.h        matvec3.cc   matvec3.h    matvec3n.cc     matvec3n.h  matvec6.cc \
-matvec6.h    \
-matvecexp.h  matvecexp.cc Rot.hh Rot.cc RotCoeff.hh RotCoeff.hc \
-mschwrap.cc  mschwrap.h   myf2c.h         mymath.h    solman.cc \
-solman.h     submat.cc    submat.h     schsolman.cc    schsolman.h \
-sparsemh.cc  sparsemh.h   y12wrap.cc   y12wrap.h
+fullmh.cc \
+fullmh.h \
+harwlib.h \
+harwlib_.f \
+harwout.c \
+harwout.h \
+harwout_.cc \
+harwrap.cc \
+harwrap.h \
+ldl.f \
+ldl.h \
+matvec3.cc \
+matvec3.h \
+matvec3n.cc \
+matvec3n.h \
+matvec6.cc \
+matvec6.h \
+matvecexp.cc \
+matvecexp.h \
+mschwrap.cc \
+mschwrap.h \
+myf2c.h \
+mymath.h \
+Rot.cc \
+Rot.hh \
+RotCoeff.hc \
+RotCoeff.hh \
+schsolman.cc \
+schsolman.h \
+solman.cc \
+solman.h \
+sparsemh.cc \
+sparsemh.h \
+spdata_.f \
+submat.cc \
+submat.h \
+y12wrap.cc \
+y12wrap.h
 
 libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@
 libmbmath_la_LDFLAGS =
 
-INCLUDES = -I../../libraries/liby12 -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../mbdyn/base -I../../mbdyn -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr
-
+INCLUDES = \
+-I../../libraries/liby12 \
+-I../../libraries/libmbutil \
+-I../../libraries/libmbmath \
+-I../../mbdyn

@@ -46,15 +46,20 @@ main(void)
 	IFLAG[3] = 0;
 	IFLAG[4] = 2;
 
-	y12mbf_(&N, &Z, A, SNR, &NN, RNR, &NN1, HA, &IHA, AFLAG, IFLAG, &IFAIL);
+	y12mbf_((integer *)&N, (integer *)&Z, A, SNR, (integer *)&NN, RNR, 
+			(integer *)&NN1, HA, (integer *)&IHA, AFLAG, IFLAG, 
+			&IFAIL);
 
 
 	B[0] = 1.;
 	B[1] = 1.;
 
-	y12mcf_(&N, &Z, A, SNR, &NN, RNR, &NN1, PIVOT, B, HA, &IHA, AFLAG, IFLAG, &IFAIL);
+	y12mcf_((integer *)&N, (integer *)&Z, A, SNR, (integer *)&NN, RNR, 
+			(integer *)&NN1, PIVOT, B, HA, (integer *)&IHA, AFLAG, 
+			IFLAG, &IFAIL);
 
-	y12mdf_(&N, A, &NN, B, PIVOT, SNR, HA, &IHA, IFLAG, &IFAIL);
+	y12mdf_((integer *)&N, A, (integer *)&NN, B, PIVOT, SNR, HA, 
+			(integer *)&IHA, IFLAG, &IFAIL);
 
 	fprintf(stdout, "B = {%e,%e}\n", B[0], B[1]);
 
@@ -63,16 +68,19 @@ main(void)
 	B[0] = 2.;
 	B[1] = 2.;
 
-	y12mdf_(&N, A, &NN, B, PIVOT, SNR, HA, &IHA, IFLAG, &IFAIL);
+	y12mdf_((integer *)&N, A, (integer *)&NN, B, PIVOT, SNR, HA, 
+			(integer *)&IHA, IFLAG, &IFAIL);
 
 	fprintf(stdout, "B = {%e,%e}\n", B[0], B[1]);
 
 	B[0] = 2.;
 	B[1] = -1.;
 
-	y12mdf_(&N, A, &NN, B, PIVOT, SNR, HA, &IHA, IFLAG, &IFAIL);
+	y12mdf_((integer *)&N, A, (integer *)&NN, B, PIVOT, SNR, HA, 
+			(integer *)&IHA, IFLAG, &IFAIL);
 
 	fprintf(stdout, "B = {%e,%e}\n", B[0], B[1]);
 
 	return 0;
 }
+
