@@ -108,6 +108,8 @@ mbdyn_usage(std::ostream& out, const char *sShortOpts)
 	<< "                             instead of '{input-file}.xxx'" << std::endl
 	<< "                            "
 	" (or 'Mbdyn.xxx' if input from stdin)" << std::endl
+	<< "  -W, --working-dir {dir}  :"
+	" sets the working directory" << std::endl
 	<< "  -m, --mail {address}     :"
 	" mails to {address} at job completion" << std::endl
 	<< "  -n, --nice [level]       :"
@@ -159,7 +161,7 @@ mbdyn_usage(std::ostream& out, const char *sShortOpts)
 }
 
 /* Dati di getopt */
-static char sShortOpts[] = "a:d:f:hHlm:n::o:pPrRstTw";
+static char sShortOpts[] = "a:d:f:hHlm:n::o:pPrRstTwW:";
 enum MyOptions {
 	MAIL = 0,
 	INPUT_FILE,
@@ -193,6 +195,7 @@ static struct option LongOpts[] = {
 	{ "same-table",     no_argument,       NULL,           int('t') },
 	{ "no-same-table",  no_argument,       NULL,           int('T') },
 	{ "warranty",       no_argument,       NULL,           int('w') },
+	{ "working-dir",    required_argument, NULL,           int('W') },
 	
 	{ NULL,             0,                 NULL,           0        }
 };
@@ -433,6 +436,15 @@ main(int argc, char* argv[])
 #else /* !USE_EXCEPTIONS */
 	        		MB_EXIT(EXIT_SUCCESS);
 #endif /* !USE_EXCEPTIONS */
+
+			case int('W'):
+      				if (chdir(optarg)) {
+					std::cerr << "Error in chdir(\""
+						<< optarg << "\")"
+						<< std::endl;
+	 				THROW(ErrFileSystem());
+      				}
+				break;
 	    
 	    		case int('?'):
 	        		std::cerr << "Unknown option -"
