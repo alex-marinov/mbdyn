@@ -48,7 +48,7 @@ int __FC_DECL__(w28ad9)(integer* lp, integer* i)
    char* v[4];
    char buf_i[256];
    
-   sprintf(buf_i, "%10ld", *i);
+   sprintf(buf_i, "%10d", *i);
    v[0] = " ERROR RETURN FROM MA28A/AD BECAUSE N OUT OF RANGE = ";
    v[1] = buf_i;
    v[2] = "\n";
@@ -56,7 +56,7 @@ int __FC_DECL__(w28ad9)(integer* lp, integer* i)
 		   
    harwell_error(MA28AD_99999, v);
 #else /* !__cplusplus */   
-   printf(" ERROR RETURN FROM MA28A/AD BECAUSE N OUT OF RANGE = %10ld\n", *i);
+   printf(" ERROR RETURN FROM MA28A/AD BECAUSE N OUT OF RANGE = %10d\n", *i);
 #endif /* !__cplusplus */
    return 0;
 }
@@ -67,7 +67,7 @@ int __FC_DECL__(w28ad8)(integer* lp, integer* i)
    char* v[4];
    char buf_i[256];
    
-   sprintf(buf_i, "%10ld", *i);
+   sprintf(buf_i, "%10d", *i);
    v[0] = " ERROR RETURN FROM MA28A/AD BECAUSE NZ NON POSITIVE = ";
    v[1] = buf_i;
    v[2] = "\n";
@@ -75,7 +75,7 @@ int __FC_DECL__(w28ad8)(integer* lp, integer* i)
 		   
    harwell_error(MA28AD_99998, v);
 #else /* !__cplusplus */   
-   printf(" ERROR RETURN FROM MA28A/AD BECAUSE NZ NON POSITIVE = %10ld\n", *i);
+   printf(" ERROR RETURN FROM MA28A/AD BECAUSE NZ NON POSITIVE = %10d\n", *i);
 #endif /* !__cplusplus */
    return 0;
 }
@@ -86,7 +86,7 @@ int __FC_DECL__(w28ad7)(integer* lp, integer* i)
    char* v[4];
    char buf_i[256];
    
-   sprintf(buf_i, "%10ld", *i);
+   sprintf(buf_i, "%10d", *i);
    v[0] = " ERROR RETURN FROM MA28A/AD BECAUSE LICN TOO SMALL = ";
    v[1] = buf_i;
    v[2] = "\n";
@@ -94,7 +94,7 @@ int __FC_DECL__(w28ad7)(integer* lp, integer* i)
 		   
    harwell_error(MA28AD_99997, v);
 #else /* !__cplusplus */   
-   printf(" ERROR RETURN FROM MA28A/AD BECAUSE LICN TOO SMALL = %10ld\n", *i);
+   printf(" ERROR RETURN FROM MA28A/AD BECAUSE LICN TOO SMALL = %10d\n", *i);
 #endif /* !__cplusplus */
    return 0;
 }
@@ -105,7 +105,7 @@ int __FC_DECL__(w28ad6)(integer* lp, integer* i)
    char* v[4];
    char buf_i[256];
    
-   sprintf(buf_i, "%10ld", *i);
+   sprintf(buf_i, "%10d", *i);
    v[0] = " ERROR RETURN FROM MA28A/AD BECAUSE LIRN TOO SMALL = ";
    v[1] = buf_i;
    v[2] = "\n";
@@ -113,7 +113,7 @@ int __FC_DECL__(w28ad6)(integer* lp, integer* i)
 		   
    harwell_error(MA28AD_99996, v);
 #else /* !__cplusplus */   
-   printf(" ERROR RETURN FROM MA28A/AD BECAUSE LIRN TOO SMALL = %10ld\n", *i);
+   printf(" ERROR RETURN FROM MA28A/AD BECAUSE LIRN TOO SMALL = %10d\n", *i);
 #endif /* !__cplusplus */
    return 0;
 }
@@ -144,10 +144,10 @@ int __FC_DECL__(w28ad4)(integer* lp,
    char buf_i2[256];
    char buf_i3[256];
    
-   sprintf(buf_i1, "%6ld", *i1);
+   sprintf(buf_i1, "%6d", *i1);
    sprintf(buf_d, "%12.4e", *d);
-   sprintf(buf_i2, "%8ld", *i2);
-   sprintf(buf_i3, "%8ld", *i3);
+   sprintf(buf_i2, "%8d", *i2);
+   sprintf(buf_i3, "%8d", *i3);
          
    v[0] = " ";
    v[1] = buf_i1;
@@ -163,8 +163,8 @@ int __FC_DECL__(w28ad4)(integer* lp,
 		   
    harwell_error(MA28AD_99994, v);
 #else /* !__cplusplus */   
-   printf(" %6ldTH ELEMENT WITH VALUE %12.4e\n"
-	  " IS OUT OF RANGE WITH INDICES %8ld, %8ld\n",
+   printf(" %6dTH ELEMENT WITH VALUE %12.4e\n"
+	  " IS OUT OF RANGE WITH INDICES %8d, %8d\n",
 	  *i1, *d, *i2, *i3);
 #endif /* !__cplusplus */
    return 0;
@@ -178,8 +178,8 @@ int __FC_DECL__(w28ad3)(integer* lp, integer* i1, integer* i2, doublereal* d)
    char buf_i2[256];
    char buf_d[256];  
    
-   sprintf(buf_i1, "%8ld", *i1);
-   sprintf(buf_i2, "%8ld", *i2);
+   sprintf(buf_i1, "%8d", *i1);
+   sprintf(buf_i2, "%8d", *i2);
    sprintf(buf_d, "%12.4e", *d);
          
    v[0] = " DUPLICATE ELEMENT IN POSITION ";
@@ -193,7 +193,7 @@ int __FC_DECL__(w28ad3)(integer* lp, integer* i1, integer* i2, doublereal* d)
 
    harwell_error(MA28AD_99993, v);
 #else /* !__cplusplus */   
-   printf(" DUPLICATE ELEMENT IN POSITION %8ld,%8ld WITH VALUE %12.4e\n",
+   printf(" DUPLICATE ELEMENT IN POSITION %8d,%8d WITH VALUE %12.4e\n",
 	  *i1, *i2, *d);
 #endif /* !__cplusplus */
    return 0;
@@ -243,8 +243,8 @@ int __FC_DECL__(w28bd9)(integer* lp, integer* i1, integer* i2)
    char buf_i1[256];
    char buf_i2[256];
    
-   sprintf(buf_i1, "%4ld", *i1);
-   sprintf(buf_i2, "%7ld", *i2);
+   sprintf(buf_i1, "%4d", *i1);
+   sprintf(buf_i2, "%7d", *i2);
          
    v[0] = " ERROR RETURN FROM MA28B/BD WITH IFLAG=";
    v[1] = buf_i1;
@@ -256,8 +256,8 @@ int __FC_DECL__(w28bd9)(integer* lp, integer* i1, integer* i2)
 
    harwell_error(MA28BD_99999, v);
 #else /* !__cplusplus */   
-   printf(" ERROR RETURN FROM MA28B/BD WITH IFLAG=%4ld\n"
-	  "%7ld ENTRIES DROPPED FROM STRUCTURE BY MA28A/AD\n",
+   printf(" ERROR RETURN FROM MA28B/BD WITH IFLAG=%4d\n"
+	  "%7d ENTRIES DROPPED FROM STRUCTURE BY MA28A/AD\n",
 	  *i1, *i2);
 #endif /* !__cplusplus */
    return 0;
@@ -269,7 +269,7 @@ int __FC_DECL__(w28bd8)(integer* lp, integer* i)
    char* v[4];
    char buf_i[256];
    
-   sprintf(buf_i, "%10ld", *i);
+   sprintf(buf_i, "%10d", *i);
    v[0] = " ERROR RETURN FROM MA28B/BD BECAUSE N OUT OF RANGE = ";
    v[1] = buf_i;
    v[2] = "\n";
@@ -277,7 +277,7 @@ int __FC_DECL__(w28bd8)(integer* lp, integer* i)
 		   
    harwell_error(MA28BD_99998, v);
 #else /* !__cplusplus */   
-   printf(" ERROR RETURN FROM MA28B/BD BECAUSE N OUT OF RANGE = %10ld\n", *i);
+   printf(" ERROR RETURN FROM MA28B/BD BECAUSE N OUT OF RANGE = %10d\n", *i);
 #endif /* !__cplusplus */
    return 0;
 }
@@ -288,7 +288,7 @@ int __FC_DECL__(w28bd7)(integer* lp, integer* i)
    char* v[4];
    char buf_i[256];
    
-   sprintf(buf_i, "%10ld", *i);
+   sprintf(buf_i, "%10d", *i);
    v[0] = " ERROR RETURN FROM MA28B/BD BECAUSE NZ NON POSITIVE = ";
    v[1] = buf_i;
    v[2] = "\n";
@@ -296,7 +296,7 @@ int __FC_DECL__(w28bd7)(integer* lp, integer* i)
 		   
    harwell_error(MA28BD_99997, v);
 #else /* !__cplusplus */   
-   printf(" ERROR RETURN FROM MA28B/BD BECAUSE NZ NON POSITIVE = %10ld\n", *i);
+   printf(" ERROR RETURN FROM MA28B/BD BECAUSE NZ NON POSITIVE = %10d\n", *i);
 #endif /* !__cplusplus */
    return 0;
 }
@@ -307,7 +307,7 @@ int __FC_DECL__(w28bd6)(integer* lp, integer* i)
    char* v[4];
    char buf_i[256];
    
-   sprintf(buf_i, "%10ld", *i);
+   sprintf(buf_i, "%10d", *i);
    v[0] = " ERROR RETURN FROM MA28B/BD BECAUSE LICN TOO SMALL = ";
    v[1] = buf_i;
    v[2] = "\n";
@@ -315,7 +315,7 @@ int __FC_DECL__(w28bd6)(integer* lp, integer* i)
 		   
    harwell_error(MA28BD_99996, v);
 #else /* !__cplusplus */   
-   printf(" ERROR RETURN FROM MA28B/BD BECAUSE LICN TOO SMALL = %10ld\n", *i);
+   printf(" ERROR RETURN FROM MA28B/BD BECAUSE LICN TOO SMALL = %10d\n", *i);
 #endif /* !__cplusplus */
    return 0;
 }
