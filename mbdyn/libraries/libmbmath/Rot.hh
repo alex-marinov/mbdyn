@@ -52,6 +52,8 @@
 #ifndef Rot_hh
 #define Rot_hh
 
+#include <matvecexp.h>
+
 namespace RotManip {
 
 Mat3x3 Rot(const Vec3 & phi);
