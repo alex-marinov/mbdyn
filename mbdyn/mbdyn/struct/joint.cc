@@ -120,6 +120,7 @@ Elem* ReadJoint(DataManager* pDM,
       "spherical" "hinge",
       "pin",
       "universal" "hinge",
+      "universal" "rotation",
       "universal" "pin",
       "plane" "hinge",
       "revolute" "hinge",
@@ -161,6 +162,7 @@ Elem* ReadJoint(DataManager* pDM,
       SPHERICALHINGE,
       PIN,
       UNIVERSALHINGE,
+      UNIVERSALROTATION,
       UNIVERSALPIN,
       PLANEHINGE,
       REVOLUTEHINGE,
@@ -549,6 +551,7 @@ Elem* ReadJoint(DataManager* pDM,
     case REVOLUTEHINGE:
     case REVOLUTEROTATION:
     case UNIVERSALHINGE:
+    case UNIVERSALROTATION:
     case AXIALROTATION:
     case PLANEDISPLACEMENT: {
        /* nodo collegato 1 */
@@ -574,6 +577,7 @@ Elem* ReadJoint(DataManager* pDM,
 #else /* MBDYN_X_COMPATIBLE_INPUT */
        switch (CurrKeyWord) {
        case REVOLUTEROTATION:
+       case UNIVERSALROTATION:
 	  if (HP.IsKeyWord("position")) {
 	     /* currently ignored */
 	     (void)HP.GetPosRel(RF);
@@ -722,6 +726,16 @@ Elem* ReadJoint(DataManager* pDM,
 				  UniversalHingeJoint(uLabel, pDO, 
 						      pNode1, pNode2,
 						      d1, d2, R1h, R2h, fOut));
+	   break;
+	}
+	  
+	  /* allocazione e creazione cerniera universale senza vincolo pos. */
+	case UNIVERSALROTATION: {
+	   SAFENEWWITHCONSTRUCTOR(pEl,
+				  UniversalRotationJoint,
+				  UniversalRotationJoint(uLabel, pDO, 
+						      pNode1, pNode2,
+						      R1h, R2h, fOut));
 	   break;
 	}
 	  
