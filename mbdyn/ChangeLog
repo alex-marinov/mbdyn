@@ -4,8 +4,13 @@ see http://www.mbdyn.org
 Copyright: 1996-2001 Paolo Mantegazza & Pierangelo Masarati
 
 *** Wed Oct 24 15:57:20 CEST 2001 Pierangelo Masarati <masarati@aero.polimi.it>
- - big leap towards distribution: wiped out HSL stuff; packed liby12 and
-   meschach stuff; cleaned up configure and build
+ - big leap towards distribution: 
+   - wiped out HSL stuff; 
+   - wiped out other proprietary stuff;
+   - packed liby12;
+   - packed meschach stuff; 
+   - cleaned up configure and build;
+ - (hopefully) fixed OpenLDAP autoconf macros licensing issue
 
 *** Tue Oct 23 16:19:25 CEST 2001 Pierangelo Masarati <masarati@aero.polimi.it>
  - added bi-stop constitutive law

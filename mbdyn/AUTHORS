@@ -1,7 +1,7 @@
 MBDyn (C) is a multibody analysis code. 
 http://www.mbdyn.org
 
-Copyright (C) 1996-2000
+Copyright (C) 1996-2001
 
 Pierangelo Masarati	<masarati@aero.polimi.it>
 Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -93,7 +93,7 @@ Giuseppe Quaranta, currently a Ph.D. student will work on integration
 Other undergrads might have had a role in the F77 version of the code, 
 that I'm not aware of.
 
-In some sense Paolo Mantegazza is the project leader,
+Paolo Mantegazza is the project leader,
 and Pierangelo Masarati (me!) is the main developer.
 
 Pierangelo Masarati.
