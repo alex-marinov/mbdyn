@@ -287,7 +287,7 @@ void Rotor::MeanInducedVelocity(void)
       } */
       
       if (dOmega/dOmegaRef > 1.e-2) {
-	 d = 2.*dGetAirDensity()*dArea*dOmega*dRadius*d;
+	 d = 2.*dGetAirDensity(GetXCurr())*dArea*dOmega*dRadius*d;
 	 if (d > 1.e-6) {
 	    dUMeanTmp = dT/d;
 	 }
@@ -1218,7 +1218,7 @@ SubVectorHandler& DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
      ResetTraction();
      
      /* Attenzione: moltiplico tutte le equazioni per dOmega */
-     doublereal d = dGetAirDensity()*dArea*dOmega*(dRadius*dRadius);
+     doublereal d = dGetAirDensity(GetXCurr())*dArea*dOmega*(dRadius*dRadius);
      if (d > DBL_EPSILON) {
        
        /* Coefficienti di trazione e momento */

@@ -175,7 +175,7 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 	doublereal dX2Prime = pvNodes[1]->dGetXPrime();
 	doublereal dX3Prime = pvNodes[2]->dGetXPrime();
 	
-	doublereal dRho = pRotor->dGetAirDensity();
+	doublereal dRho = pRotor->dGetAirDensity(pRotor->GetXCurr());
 	doublereal dOmega = pRotor->dGetOmega();
 	doublereal dRadius = pRotor->dGetRadius();
 	if (fabs(dOmega) < 1.e-6) {

@@ -216,6 +216,9 @@ LoadableElem::LoadableElem(unsigned int uLabel,
 : Elem(uLabel, Elem::LOADABLE, flag(0)),
 #ifdef USE_STRUCT_NODES
 InitialAssemblyElem(uLabel, Elem::LOADABLE, flag(0)),
+#ifdef USE_AERODYNAMIC_ELEMS
+AerodynamicElem(uLabel, AerodynamicElem::AERODYNAMICLOADABLE, flag(0)),
+#endif /* USE_AERODYNAMIC_ELEMS */
 ElemGravityOwner(uLabel, Elem::LOADABLE, flag(0)),
 #endif /* USE_STRUCT_NODES */
 ElemWithDofs(uLabel, Elem::LOADABLE, pDO, flag(0)),

@@ -212,6 +212,10 @@ class Rotor
 
    /* Tipo di rotore */
    virtual Rotor::Type GetRotorType(void) const = 0;
+
+   virtual inline const Vec3& GetXCurr(void) const {
+      return pRotor->GetXCurr();
+   };
    
    /* accesso a dati */
    virtual inline doublereal dGetOmega(void) const {

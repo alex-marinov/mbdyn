@@ -35,6 +35,9 @@
 #include <dataman.h>
 #ifdef USE_STRUCT_NODES
 #include <gravity.h>
+#ifdef USE_AERODYNAMIC_ELEMS
+#include <aerodyn.h>
+#endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
 /* #include <aerodyn.h> */
 
@@ -177,7 +180,9 @@ class LoadableElem
 : virtual public Elem,
 #ifdef USE_STRUCT_NODES
 public InitialAssemblyElem,
-/* public AerodynamicElem, */
+#ifdef USE_AERODYNAMIC_ELEMS
+public AerodynamicElem,
+#endif /* USE_AERODYNAMIC_ELEMS */
 public ElemGravityOwner,
 #endif /* USE_STRUCT_NODES */
 public ElemWithDofs {

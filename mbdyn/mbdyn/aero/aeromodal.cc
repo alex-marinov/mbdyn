@@ -301,9 +301,12 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
    Vec3 FTot(0.);
    Vec3 MTot(0.);
 
-   /* Dati "permanenti" */
-   dVAM[0] = dGetAirDensity();
-   dVAM[1] = dGetSoundSpeed();
+   /*
+    * Dati "permanenti" (uso la posizione del corpo perche'
+    * non dovrebbero cambiare "molto")
+    */
+   dVAM[0] = dGetAirDensity(X0);
+   dVAM[1] = dGetSoundSpeed(X0);
 
    doublereal** pvd = pvdOuta;
    

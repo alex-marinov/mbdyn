@@ -202,11 +202,19 @@ class AirProperties
       return Velocity;
    };
    
-   virtual doublereal dGetAirDensity(void) const {
+   virtual doublereal dGetAirDensity(const Vec3& /* X */ ) const {
       return dAirDensity;
    };
    
-   virtual doublereal dGetSoundSpeed(void) const { 
+   virtual doublereal dGetAirPressure(const Vec3& /* X */ ) const { 
+      return 0.;
+   };
+
+   virtual doublereal dGetAirTemperature(const Vec3& /* X */ ) const { 
+      return 0.;
+   };
+
+   virtual doublereal dGetSoundSpeed(const Vec3& /* X */ ) const { 
       return dSoundSpeed;
    };
 
@@ -241,12 +249,20 @@ class AirPropOwner {
       return 1;
    };
    
-   virtual doublereal dGetSoundSpeed(void) const { 
-      return pAirProperties->dGetSoundSpeed(); 
+   virtual doublereal dGetAirDensity(const Vec3& X) const { 
+      return pAirProperties->dGetAirDensity(X);
    };
    
-   virtual doublereal dGetAirDensity(void) const { 
-      return pAirProperties->dGetAirDensity();
+   virtual doublereal dGetAirPressure(const Vec3& X) const { 
+      return pAirProperties->dGetAirPressure(X); 
+   };
+   
+   virtual doublereal dGetAirTemperature(const Vec3& X) const { 
+      return pAirProperties->dGetAirTemperature(X); 
+   };
+   
+   virtual doublereal dGetSoundSpeed(const Vec3& X) const { 
+      return pAirProperties->dGetSoundSpeed(X); 
    };
 };
 
@@ -265,6 +281,8 @@ class AerodynamicElem : virtual public Elem, public AirPropOwner {
 	AERODYNAMICBODY,
 	AERODYNAMICBEAM,
         AERODYNAMICMODAL,
+
+	AERODYNAMICLOADABLE,
 	
 	LASTAEROTYPE
    };
