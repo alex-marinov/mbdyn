@@ -74,6 +74,8 @@ extern c81_data *get_c81_data(int jpro);
 static int bisec(double* v, double val, int lb, int ub);
 static double 
 get_coef(int nm, double* m, int na, double* a, double alpha, double mach);
+static double
+get_dcla(int nm, double* m, double* s, double mach);
 static int
 get_stall(int nm, double* m, double* s, double mach,
           double *dcpa, double *dasp, double *dasm);
@@ -92,7 +94,7 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	
 	double cl, cd, cd0, cm;
 	double alpha, gamma, cosgam, mach, q;
-	double dcl, dcpa, dasp, dasm;
+	double dcl, dcla, dasp, dasm;
 	
 	double ca = VAM[3];
 	double c34 = VAM[4];
@@ -163,19 +165,23 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	cd0 = get_coef(data->NMD, data->md, data->NAD, data->ad, 0., mach);
 	cm = get_coef(data->NMM, data->mm, data->NAM, data->am, OUTA[1], mach);
 
-#if 0 /* Questa parte e' palesemente errata ... */
-	get_stall(data->NML, data->ml, data->stall, mach, 
-		  &dcpa, &dasp, &dasm);
+	dcla = get_dcla(data->NML, data->ml, data->stall, mach);
 	
-	dcl = dcpa*(1.-cosgam)/cosgam;
-	if (OUTA[1] < dasm) {
-		cl += dasm*dcl;
-	} else if (OUTA[1] > dasp) {
-		cl += dasp*dcl;
-	} else {
-		cl /= cosgam;
+/* da COE0 (aerod2.f)
+	ASLRF = ASLOP0
+	IF(DABS(ALFA).LT.1.D-6) GOTO 10
+	ASLRF = CLIFT/(ALFA*COSGAM)
+	IF(ASLRF.GT.ASLOP0) ASLRF = ASLOP0
+     10 CLIFT = ASLRF*ALFA
+*/
+	dcla *= RAD2DEG;
+	if (fabs(alpha) > 1.e-6) {
+		double dclatmp = cl/(alpha*cosgam);
+		if (dclatmp < dcla) {
+			dcla = dclatmp;
+		}
 	}
-#endif /* 0 */
+	cl = dcla*alpha;
 	
 	OUTA[4] = cl;
 	OUTA[5] = cd;
@@ -189,15 +195,6 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	TNG[3] = 0.;
 	TNG[4] = -ca*TNG[2];
 	TNG[5] = -q*chord*cm-ca*TNG[1];
-	
-#if 0
-	TNG[0] = -q*(cl/cosgam*v[1]+cd*v[0])/vp;
-	TNG[1] = q*(cl/cosgam*v[0]-cd*v[1])/vp;
-	TNG[2] = -q*cd0*v[2]/vp;
-	TNG[3] = 0.;
-	TNG[4] = -ca*TNG[2];
-	TNG[5] = -q*chord*cm-ca*TNG[1];
-#endif /* 0 */
 	
 	return 0;
 }
@@ -314,6 +311,31 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach)
 	}
 	
 	return c;
+}
+
+static double
+get_dcla(int nm, double* m, double* s, double mach)
+{
+	int im;
+	
+	mach = fabs(mach);
+	
+	/*
+	 * im e' l'indice di m in cui si trova l'approssimazione per eccesso
+	 * di mach
+	 */
+	im = bisec(m, mach, 0, nm-1);
+	if (im != nm) {
+		im++;
+	}
+	
+	if (im == nm) {
+		return s[3*nm-1];
+	} else {
+		double d = (mach-m[im-1])/(m[im]-m[im-1]);
+
+		return (1.-d)*s[2*nm+im-1]+d*s[2*nm+im];
+	}
 }
 
 static int
