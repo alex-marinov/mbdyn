@@ -768,11 +768,12 @@ future.
 
 
 \section{Genel Element}
-{\sc Genel} is the compact form for {\sc \bf Gen}eral {\sc el}ement. Those
-elements cannot in general be classified in a precise way, or are just
-under development and thus are not collected in a class of their own until
-their configuration is stabilized. 
-The syntax of the {\sc Genel} elements is:
+\textsc{Genel} is the compact form for \textsc{Gen}eral \textsc{el}ement.
+Those elements that cannot in general be classified in a precise way, 
+or are just under development and thus are not collected in a class 
+of their own until their configuration is stabilized, usually are
+classified as \textsc{Genel}.
+The syntax of the \textsc{Genel} elements is:
 \begin{verbatim}
     <normal_arglist> ::= <genel_type> , <genel_arglist>
 \end{verbatim}
@@ -782,14 +783,19 @@ The output goes in a file with extension \kw{.gen}; only few elements
 actually generate output.
 
 \noindent
-At present there are very simple {\sc Genel}
-elements, plus a very particular one, that is the \kw{swash plate}.
-It is used to transform the controls of a rotor, in terms of collective
-and fore/aft and lateral cyclic pitch, into the elongations of the actuators 
-that actually move the swash plate.
-The syntax of the \kw{genel}s is:
+At present, the \textsc{Genel} class contains very basic general elements
+and some special rotorcraft elements.
+The latter could be moved to a more specific class in future releases.
 
-\subsection{Swashplate}
+\subsection{Special Rotorcraft \textsc{Genel} Elements}
+The special \textsc{Genel} elements include the \kw{swashplate}
+and the \kw{rotor trim}.
+
+\subsubsection{Swashplate}
+The \kw{swashplate} \textsc{Genel} is used to transform the controls 
+of a rotor, in terms of collective and fore/aft and lateral cyclic pitch, 
+into the elongations of the actuators that actually move the swash plate.
+The syntax of the \kw{swashplate} is:
 \begin{verbatim}
     <genel_type> ::= swash plate
     <genel_arglist> ::=
@@ -825,8 +831,38 @@ usually are dimensional parameters. The actual strokes are made of the
 collective contribution multiplied by \kw{collective\_factor}, and the
 cyclic contribution multiplied by \kw{collective\_factor} times 
 \kw{cyclic\_factor}.
+
+\subsubsection{Rotor Trim}
+The syntax of the \kw{rotor trim} is
+\begin{verbatim}
+    <genel_type> ::= rotor trim
+    <genel_arglist> ::= <rotor_label> ,
+        <thrust_node_label> ,
+        <longitudinal_moment_node_label> ,
+        <lateral_moment_node_label> ,
+        (drive_caller) <desired_thrust_coefficient> ,
+        (drive_caller) <desired_longitudinal_moment_coefficient> ,
+        (drive_caller) <desired_lateral_moment_coefficient> ,
+        <rotor_solidity> ,
+        <rotor_lock_number> ,
+        <rotor_nondimensional_flap_frequency> ,
+        <thrust_time_constant> , <moments_time_constant> ,
+	<thrust_gain> , <moments_gain>
+\end{verbatim}
+The \kw{rotor trim} is experimental; it allows to set the controls 
+of a generic helicopter, in conjunction with the \kw{swashplate}
+element, to asymptotically obtain the desired level of thrust and
+moment coefficients.
+The corresponding behavior in terms of trim values (flapping angles
+and shaft angle) has not been implemented yet.
+For details, see \cite{PETERS-TRIM90}.
+
+
+
+
+\subsection{General Purpose Elements}
    
-\subsection{Clamp}
+\subsubsection{Clamp}
 \begin{verbatim}
     <genel_type> ::= clamp
     <genel_arglist> ::= (node_dof) <clamped_node> ,
@@ -842,7 +878,7 @@ The format is:
     \item the value of the reaction unknown
 \end{itemize}
   
-\subsection{Distance}
+\subsubsection{Distance}
 \begin{verbatim}
     <genel_type> ::= distance
     <genel_arglist> ::= (node_dof) <node_1> ,
@@ -860,7 +896,7 @@ The format is:
 \end{itemize}
   
   
-\subsection{Spring}
+\subsubsection{Spring}
 \begin{verbatim}
     <genel_type> ::= spring
     <genel_arglist> ::= (node_dof) <node_1> ,
@@ -873,7 +909,7 @@ The format is:
     of freedom of different order.
 }
 
-\subsection{Spring support}
+\subsubsection{Spring support}
 \begin{verbatim}
     <genel_type> ::= spring support
     <genel_arglist> ::= (node_dof) <node> ,                      
@@ -886,7 +922,7 @@ The format is:
     constitutive law for a damper, and so on.
 }
 
-\subsection{Cross spring support}
+\subsubsection{Cross spring support}
 \begin{verbatim}
     <genel_type> ::= spring support
     <genel_arglist> ::= (node_dof) <row_node> ,                      
@@ -903,7 +939,7 @@ arbitrary manner (given by the \kw{const\_law}) to the
     constitutive law for a damper, and so on.
 }
 
-\subsection{Mass}
+\subsubsection{Mass}
 \begin{verbatim}
     <genel_type> ::= mass
     <genel_arglist> ::= (node_dof) <node> ,                     
@@ -920,7 +956,7 @@ arbitrary manner (given by the \kw{const\_law}) to the
     \end{eqnarray*}
 }
 
-\subsection{Scalar filter}
+\subsubsection{Scalar filter}
 \begin{verbatim}
     <genel_type> ::= scalar filter
     <genel_arglist> ::= (node_dof) <output_node> ,
@@ -942,7 +978,7 @@ of polynomial $ B $ are required, i.e.\ from 0 to \kw{input\_order}.
 If a gain is supplied, all the coefficients of $ B $ are multiplied by the
 gain.
 
-\subsection{State space SISO}
+\subsubsection{State space SISO}
 \begin{verbatim}
     <genel_type> ::= state space SISO
     <genel_arglist> ::= (node_dof) <output_node> ,
@@ -966,7 +1002,7 @@ $ C $ is a vector 1$\times$\kw{state\_order},
 and $ D $ is scalar, if any.
 The matrices are read row-oriented.
 
-\subsection{State space MIMO}
+\subsubsection{State space MIMO}
 \begin{verbatim}
     <genel_type> ::= state space MIMO
     <genel_arglist> ::= <num_outputs> , (node_dof) <output_node_list> ,
@@ -1741,9 +1777,9 @@ libraries listed in \kw{/etc/ld.so.cache}, and finally in
 \kw{/usr/lib} and in \kw{/lib} (see \kw{dlopen(3)}).
 At last, it is searched in the current directory, and the extension
 \kw{.so} is added if missing.
-The string \kw{calls} represents the name of the structure that contains
+The string \kw{<calls>} represents the name of the structure that contains
 the bindings to the functions.
-The default is \kw{"calls"}.
+The default is \kw{calls}.
 
 \noindent
 Refer to \kw{\$(BASE)/mbdyn/base/loadable.h} for a description of the
@@ -1753,8 +1789,57 @@ An example module is given in directory
     $(BASE)/modules/module-template/
 \end{verbatim}
 which can be used as a starting point for building a custom module.
-An analogous C/FORTRAN style interface is being planned, at the cost of
-possibly losing some of the fancy C++ features made available by the code. \\
+% An analogous C/FORTRAN style interface is being planned, at the cost of
+% possibly losing some of the fancy C++ features made available by the code.
+The \kw{loadable element} interface allows to link modules in different
+languages, e.g.\ C or FORTRAN77; simply use \kw{module-template}
+as a guideline to providing callbacks to the \kw{loadable element}
+interface and to collect required info from the main program
+(e.g.\ node positions, equation indices and everything else that is
+required for appropriate connection), then call the functions that
+actually do the work in other languages from inside the callbacks.
+Note that, in general, to call external functions from C++ one needs
+to declare them as
+\begin{verbatim}
+    #include <sys/types.h>
+    extern "C" {
+        int a_C_function(int arg, double darg);
+        int a_F77_subroutine(int32_t *iarg, double *darg);
+    }
+\end{verbatim}
+The same applies to FORTRAN 77 functions; only, the naming convention
+usually is compiler dependent; some compilers turn all the names to 
+uppercase or lowercase (remember that FORTRAN 77 is case insensitive);
+other compilers add undercores at the beginning or at the end of the
+names.
+Check what is the behavior of your compiler, by compiling a simple 
+program with your favourite FORTRAN 77 compiler, then looking at it
+with the utility \kw{nm(1)}, which will show how the symbols are represented 
+internally.
+
+\noindent
+For instance, the code
+\begin{verbatim}
+C This is a compiler test
+      SUBROUTINE F77SUB(I, D)
+      INTEGER*4 I
+      REAL*8 D(*)
+
+      D(I) = 0.0
+
+      END
+\end{verbatim}
+when compiled with \kw{g77(1)} on a Linux system, yields:
+\begin{verbatim}
+[masarati@mbdyn manual]$ g77 -c f77sub.f
+[masarati@mbdyn manual]$ nm f77sub.o
+00000000 T f77sub_
+\end{verbatim}
+That is, \kw{g77(1)} lowercases all symbols, and adds a trailing 
+underscore.
+Macros to automatically detect and take care of this behavior 
+will be added.
+
 
 \noindent
 To compile loadable modules, one needs to configure
@@ -1772,10 +1857,10 @@ one must type
 Multiple modules can be compiled by typing the list of the names
 separated by blanks.
 The modules need to resolve some of the symbols that are in the
-executable; until a full working libtool support is implemented,
+main executable; until a full working libtool support is implemented,
 this must be done by hand.
-For the \kw{g++(1)} compiler one needs
-to add \kw{-rdynamic} to the loader flags, e.g.
+For the \kw{g++(1)} compiler one requires the switch \kw{-rdynamic} 
+to be added to the loader flags, e.g.
 \begin{verbatim}
     LDFLAGS="-rdynamic" ./configure --with-module=<module_name>
 \end{verbatim}

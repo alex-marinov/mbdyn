@@ -249,24 +249,32 @@ matrix-free algorithm, is experimental.
 \end{verbatim}
 \begin{verbatim}
     <nonlinear_solver_data> ::= newton raphson : { 
-                     true | modified [ , <iterations> ] 
-                                [ , honor element requests] } ;
+        true | modified , <iterations>
+            [ , keep jacobian ]
+            [ , honor element requests ] } ;
 \end{verbatim}
 if \kw{modified}, the number of iterations the jacobian matrix will be
-reused is expected; otherwise a default value is used.
-If the option "honor element requests" is selected the preconditioned
+reused is expected.
+If the option \kw{keep jacobian} is selected, the jacobian is preserved
+for the desired \kw{<iterations>} even across time steps.
+By default, the jacobian is recomputed at the beginning of each time step.
+If the option \kw{honor element requests} is selected, the preconditioned
 is updated also when an element changes the structure of its equations.
-The default behaiour is to ignore such requests.
+The default behavior is to ignore such requests\footnote{
+	At present, only few elements that can change the structure
+	of the equations, or at least radically change the jacobian,
+	actually issue this request.
+}.
 \begin{verbatim}
     <nonlinear_solver_data> ::= matrix free, { bcgstab | gmres }
-      [ , tolerance, < tolerance > ]
-      [ , steps , <steps> ]
-      [ , tau , <tau> ]
-      [ , eta , <eta> ]
-      [ , preconditioner, {
-              full jacobian [ , steps, <steps> ] 
-	                    [ , honor element requests]
-      } ];
+        [ , tolerance, < tolerance > ]
+        [ , steps , <steps> ]
+        [ , tau , <tau> ]
+        [ , eta , <eta> ]
+        [ , preconditioner, {
+            full jacobian [ , steps, <steps> ] 
+	        [ , honor element requests ]
+    } ];
 \end{verbatim}
 Tolerance is the iterative linear solver tolerance;
 steps is the maximum number of the linear solver iteration.
@@ -282,12 +290,14 @@ The preconditioner steps fixes the maximum number of
 iterations that can be performed without requiring
 an update of the preconditioner; this parameter can heavily influence
 the performance of the matrix free solver.
-If the option "honor element requests" is selected the preconditioned
+If the option \kw{honor element requests} is selected, the preconditioned
 is updated also when an element changes the structure of its equations.
-The default behaiour is to ignore such requests.
+The default behaiour is to ignore such requests\footnote{See note above}.
+
 
 \subsubsection{Eigenanalysis}
 Experimental, not available nor documented yet.
+Will likely be disabled.
 
 \subsubsection{Abort after}
 \begin{verbatim}
@@ -297,15 +307,30 @@ Experimental, not available nor documented yet.
                              | dummy steps } ;
 \end{verbatim}
 mainly used to cleanly check models and simulations at various phases.
+When set to \kw{input}, the simulation ends after input is completed;
+when set to \kw{assembly}, the simulation ends after initial assembly,
+if required;
+when set to \kw{derivatives}, the simulation ends after the computation
+of the derivatives, i.e.\ after the system is solved at the initial
+time to compute initial momentum and momenta moment derivatives and 
+reaction forces;
+when set to \kw{dummy steps}, the simulation ends after the dummy steps
+execution, if required.
+In any case, the output is generated with the system configured 
+as resulting from the last computation phase, so this mode can be useful 
+to check how the system is actually configured after phases that are not 
+usually output.
+
 
 \subsubsection{Solver}   
 \begin{verbatim}
     <card> ::= solver :
-            { umfpack | y12 | harwell | meschach | superlu | lapack}
+            { naive | umfpack | y12 | lapack 
+                | harwell | meschach | superlu | taucs }
         [ , { map | cc | dir } ]
         [ , mt , <threads> ]
         [ , workspace size , <workspace_size> ] 
-        [ , pivot factor , <factor> ] ;
+        [ , pivot factor , <factor> ]
         [ , block size, <block_size> ] ;
 \end{verbatim}
 The default, if available, is \kw{umfpack} which dynamically
@@ -379,15 +404,50 @@ switched, so $ 0.0 $ means no pivoting, while $ 1.0 $ means switch as
 soon as the norm of the ratio is less than unity.
 
 \noindent
-Table~\ref{tab:solvers} summarizes the properties of the solvers
+Table~\ref{tab:solvers-props} summarizes the properties that can be set
+for each type of linear solver; Table~\ref{tab:solvers-memory} summarizes 
+the memory usage of the linear solvers; Table~\ref{tab:solvers-pivot}
+summarizes how each linear solver deals with pivoting policies.
 
 \begin{table}
 \centering
-\caption{Properties of the solvers}\label{tab:solvers}
-\begin{tabular}{lllll}
+\caption{Linear solvers properties}\label{tab:solvers-props}
+\begin{tabular}{lccccccc}
 \hline\hline
 	\multicolumn{1}{c}{\textbf{Solver}} &
+	\multicolumn{1}{c}{\textbf{Map}} &
+	\multicolumn{1}{c}{\textbf{Column}} &
+	\multicolumn{1}{c}{\textbf{Dir}} &
+	\multicolumn{1}{c}{\textbf{Multi-}} &
+	\multicolumn{1}{c}{\textbf{Worksp.}} &
 	\multicolumn{1}{c}{\textbf{Pivot}} &
+	\multicolumn{1}{c}{\textbf{Block}} \\
+	& & \multicolumn{1}{c}{\textbf{Compr.}} &
+	& \multicolumn{1}{c}{\textbf{Thread}}
+	& \multicolumn{1}{c}{\textbf{Size}}
+	& \multicolumn{1}{c}{\textbf{Factor}}
+	& \multicolumn{1}{c}{\textbf{Size}} \\
+\hline
+	Naive		& 	&	&	&	&	& x	&	\\
+	Umfpack		& x	& x	& x	&	&	& x	& x	\\
+	Y12m		& x	& x	& x	&	& x	& x	&	\\
+	Lapack		&	&	&	&	&	& x	&	\\
+	Harwell		&	&	&	&	&	& x	&	\\
+	Meschach	&	&	&	&	&	& x	&	\\
+	SuperLU		& x	& x	& x	& x	&	& x	&	\\
+	TAUCS		& x	& x	& x	&	&	&	&	\\
+\hline\hline
+\end{tabular}
+\end{table}
+
+\noindent
+
+\begin{table}
+\centering
+\caption{Linear solvers memory usage}\label{tab:solvers-memory}
+\begin{tabular}{llll}
+\hline\hline
+	\multicolumn{1}{c}{\textbf{Solver}} &
 	\multicolumn{1}{c}{\textbf{Workspace}} &
 	\multicolumn{1}{c}{\textbf{Memory}} &
 	\multicolumn{1}{c}{\textbf{Block Size}} \\
@@ -396,20 +456,37 @@ Table~\ref{tab:solvers} summarizes the properties of the solvers
 	\multicolumn{1}{c}{\textbf{Size}} &
 	\multicolumn{1}{c}{\textbf{Allocation}} \\
 \hline
-	Umfpack 3	& 0.0$\rightarrow$1.0 	& 			&
-		dynamic		& default=32	\\
- 			& default: 0.1 		&			&
-				&		\\
-	Y12m 		& none=0.0, 		& default=$2\times{n^2}$&
-		static		&		\\
-			& full=1.0		& $3nz \rightarrow 5nz$	&
-				&		\\
-	SuperLU		& 0.0$\rightarrow$1.0	&			&
-		dynamic 	&		\\
-	Harwell		& full: 1.0		& ?			&
-		static		&		\\
-	Meschach	& full: 1.0		& 			&
-		dynamic		&		\\
+	Naive		& 			& full		&		\\
+	Umfpack 	& 			& dynamic	& default=32	\\
+	Y12m 		& default=$2\times{n^2}$& static	&		\\
+			& $3nz \rightarrow 5nz$	&		&		\\
+	Lapack		&			& full		&		\\
+	Harwell		& ?			& static	&		\\
+	Meschach	& 			& dynamic	&		\\
+	SuperLU		& 			& dynamic 	&		\\
+	TAUCS		&			& ?		&		\\
+\hline\hline
+\end{tabular}
+\end{table}
+
+\begin{table}
+\centering
+\caption{Linear solvers pivot handling}\label{tab:solvers-pivot}
+\begin{tabular}{llll}
+\hline\hline
+	\multicolumn{1}{c}{\textbf{Solver}} &
+	\multicolumn{1}{c}{\textbf{Pivot}} &
+	\multicolumn{1}{c}{\textbf{Default}} &
+	\multicolumn{1}{c}{\textbf{Description}} \\
+\hline
+	Naive		& 1.0$\rightarrow$0.0	& 1.$e-8$	& \\
+	Umfpack 	& 0.0$\rightarrow$1.0 	& 0.1 		& \\
+	Y12m 		& none=0.0, full=1.0	& 1.0		& \\
+	Lapack		& 1.0$\rightarrow$0.0	&		& \\
+	Harwell		& full: 1.0		& 1.0		& \\
+	Meschach	& full: 1.0		& 1.0		& \\
+	SuperLU		& 0.0$\rightarrow$1.0	& 1.0		& \\
+	TAUCS		&			&		& \\
 \hline\hline
 \end{tabular}
 \end{table}
@@ -910,10 +987,10 @@ module. \\
    Note: if a node should never (\kw{no}) or always (\kw{yes}) be output,
    its output flag should be set directly on the node card. 
    The global behaviour of all the nodes of a type can be set from the 
-   \kw{control} module by adding the node type to the item list in the 
+   \kw{control data} block by adding the node type to the item list in the 
    \kw{default output} card. 
    Then, the specific output flag of sets of nodes can be altered by means 
-   of the \kw{output} card in the \kw{nodes} module. 
+   of the \kw{output} card in the \kw{nodes} block. 
    This allows a high flexibility in the selection of the desired output. 
    The same remarks apply to the output of the elements.
 }
