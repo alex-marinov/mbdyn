@@ -50,6 +50,8 @@ MBDyn 1.2-Engineering
 		- selected scaling of residual before testing
 		- specialized tests for residual and solution: 
 		  norm and minmax
+		- added ALTER file for normal modes only in
+		  "etc/modal.d/MBDyn_NASTRAN_alter_3.nas"
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
@@ -74,6 +76,10 @@ MBDyn 1.2-Engineering
 		- fix dof plugin parameter node input (+ overall improvements)
 		- fix point where airstream speed is evaluated
 		  for aerodynamic body
+	Known Issues:
+		- the static shapes extraction NASTRAN ALTER in 
+		  "etc/modal.d/MBDyn_NASTRAN_alter_1.nas" 
+		  apparently don't work
 
 
 MBDyn 1.1.4
