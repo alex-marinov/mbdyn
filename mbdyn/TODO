@@ -40,5 +40,16 @@ C. Libraries:
 
 D. Code:
 
-	- ...
+	- recover exisiting soft restart
+	- implement binary, or hard, restart
+	- add MATLAB/Octave and Simulink hooks.
+		Small project: ``shell'' element, drive and so
+		that executes unix commands including scripts,
+		and especially matlab scripts.
+		Medium project: ``matlab'' element that feeds matlab 
+		with data structures containing variables and executes
+		matlab code.
+		Large project: turn mbdyn into a module for Simulink.
+	- develop a trim control as an external command that drives
+		a simulation.
 
