@@ -278,7 +278,7 @@ DiscreteIdentProcess_Debug::~DiscreteIdentProcess_Debug(void)
 /* Returns the new control input values in array pdIn */
 void DiscreteIdentProcess_Debug::GetInput(doublereal* pdIn) 
 {
-   /* azzera per sizurezza */
+   /* azzera per sicurezza */
    for (integer i = iNumInputs; i-- > 0; ) {
       pdIn[i] = 0.;
    }
