@@ -132,6 +132,7 @@ public:
 	virtual doublereal Advance(const doublereal TStep, 
 				const doublereal dAlph, 
 				const StepChange StType,
+				SolutionManager* pSM,
 				NonlinearSolver* pNLS, 
 				std::deque<MyVectorHandler*>& qX,
 	 			std::deque<MyVectorHandler*>& qXPrime,
@@ -171,6 +172,7 @@ public:
  	doublereal Advance(const doublereal TStep, 
 				const doublereal /* dAph */, 
 				const StepChange /* StType */,
+				SolutionManager* pSM,
 				NonlinearSolver* pNLS, 
 				std::deque<MyVectorHandler*>& qX,
 	 			std::deque<MyVectorHandler*>& qXPrime,
@@ -184,6 +186,9 @@ public:
 	void Jacobian(MatrixHandler* pJac) const;
 	
 	void Update(const VectorHandler* pSol) const;
+
+	virtual void EvalProd(doublereal Tau, const VectorHandler& f0,
+			const VectorHandler& w, VectorHandler& z) const;
 
  
 };
@@ -223,6 +228,7 @@ public:
 	virtual doublereal Advance(const doublereal TStep, 
 				const doublereal dAlph, 
 				const StepChange StType,
+				SolutionManager* pSM,
 				NonlinearSolver* pNLS, 
 				std::deque<MyVectorHandler*>& qX,
 	 			std::deque<MyVectorHandler*>& qXPrime,
@@ -237,6 +243,9 @@ public:
 	virtual void Jacobian(MatrixHandler* pJac) const;
 	
 	virtual void Update(const VectorHandler* pSol) const;
+
+	virtual void EvalProd(doublereal Tau, const VectorHandler& f0,
+			const VectorHandler& w, VectorHandler& z) const;
 
 
 protected:

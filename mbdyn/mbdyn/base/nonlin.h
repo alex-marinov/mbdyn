@@ -40,8 +40,7 @@
 #define NONLIN_H
 #include<external.h>
 #include<nonlinpb.h>
-#include<solman.h> 
- 
+#include<solman.h>  
 
 class NonlinearSolver
 {
@@ -50,7 +49,7 @@ public:
  	class ErrSimulationDiverged{};
  	class NoConvergence{};
 	class ConvergenceOnSolution{};
-
+	class ErrGeneric{};
 protected:
 	integer Size;
 	
@@ -66,8 +65,8 @@ protected:
 
 
 public:
-	NonlinearSolver(const integer Dim): 
-		Size(Dim),
+	NonlinearSolver(void): 
+		Size(0),
 		foutIters(false),
 		foutRes(false),
 		foutJac(false),
@@ -76,13 +75,13 @@ public:
 		, ExtStepType(External::ERROR)  
 #endif /* USE_EXTERNAL */
 #ifdef __HACK_SCALE_RES__
-		, pScale(NULL) 
+		, VectorHandler* pScale(NULL) 
 #endif /* __HACK_SCALE_RES__ */
 		{ };
 		
 #ifdef __HACK_SCALE_RES__
 	virtual void SetScale(const VectorHandler* pScl) {
-		pScale = (VectorHandler *)pScl;
+		pScale = pScl;
 		return;
 	}  
 #endif /* __HACK_SCALE_RES__ */
@@ -98,6 +97,7 @@ public:
 	virtual ~NonlinearSolver(void) {};
 	
 	virtual void Solve(const NonlinearProblem* NLP,
+			SolutionManager* pSolMan,
 			const integer iMaxIter,
 			const doublereal Toll,
 			const doublereal SolToll,
@@ -155,14 +155,13 @@ class NewtonRaphsonSolver : public  NonlinearSolver
 
 public:
 
-	NewtonRaphsonSolver(const integer Dim,
-			SolutionManager* pSolMan, 
-			const flag fTNR, 
+	NewtonRaphsonSolver(const flag fTNR, 
 			const integer IterBfAss);
 	
 	~NewtonRaphsonSolver(void) { };
 	
 	void Solve(const NonlinearProblem* NLP,
+			SolutionManager* pSolMan,
 			const integer iMaxIter,
 			const doublereal Toll,
 			const doublereal SolToll,
@@ -188,47 +187,58 @@ public:
 	
 	virtual ~Preconditioner(void) { };
 	
-	virtual void Precond(VectorHandler& v) const = 0;
+	virtual void Precond(VectorHandler& v, 
+			SolutionManager* pSM) const = 0;
 };
 
 
 class FullJacobianPr : public Preconditioner
-{
-private:
-
-	SolutionManager* pSM;	
+{	
 
 public:
-	FullJacobianPr(SolutionManager* pSolMan) : pSM(pSolMan) {};
+	FullJacobianPr(void) {};
 	
 	~FullJacobianPr(void) {};
 	
-	void Precond(VectorHandler& v) const {
-	
+	void Precond(VectorHandler& v, 
+			SolutionManager* pSM) const {
+		pSM->ChangeResPoint(v.pdGetVec());
+		pSM->Solve();
+	   	if (pSM->pSolHdl() != &v) {
+			v = *(pSM->pSolHdl());
+		}
 	};
 	 
 };
 
-class MatrixFreeSolver : public NonlinearSolver
+const doublereal defaultTau = 1.e-7;
+const doublereal defaultGamma = 0.9;
+const doublereal defaultEtaMax = 0.9;
+
+class BiCGMatrixFreeSolver : public NonlinearSolver
 {
+	SolutionManager* pSM;
 	Preconditioner* pPM;
 	VectorHandler* 	pRes;
-	VectorHandler* 	pSol;
+	doublereal IterToll;
+	integer MaxLinIt;
+	doublereal Tau;
+	doublereal gamma;
+	doublereal etaMax; 
+	integer PrecondIter; 
+	bool fBuildMat;
+	NonlinearProblem* pPrevNLP;
 	
-
 public:
-	MatrixFreeSolver(const integer Dim,
-			SolutionManager* pSolMan, 
-			const Preconditioner::PrecondType PType, 
-			const integer iPStep) 
-	:NonlinearSolver(Dim),
-	pPM(NULL),
-	pRes(NULL),
-	pSol(NULL) {};
+	BiCGMatrixFreeSolver(const Preconditioner::PrecondType PType, 
+			const integer iPStep,
+			doublereal ITol,
+			integer MaxIt); 
 
-	~MatrixFreeSolver(void) { };
+	~BiCGMatrixFreeSolver(void) { };
 	
 	void Solve(const NonlinearProblem* NLP,
+			SolutionManager* pSolMan,
 			const integer iMaxIter,
 			const doublereal Toll,
 			const doublereal SolToll,
@@ -237,8 +247,13 @@ public:
 #ifdef MBDYN_X_CONVSOL
 			, doublereal& dSolErr
 #endif /* MBDYN_X_CONVSOL  */	
-			) { };
+			);
 
+private:
+	doublereal MakeTest(const VectorHandler& Vec);
 };
+
+
+
 
 #endif /* NONOLIN_H */

@@ -63,7 +63,6 @@
   
 #ifdef USE_MPI
 extern MPI::Intracomm MBDynComm;
-#include<schsolman.h>
 #ifdef USE_EXTERNAL
 #include<external.h>
 #endif /* USE_EXTERNAL */
@@ -208,7 +207,11 @@ pIntDofs(NULL),
 pDofs(NULL),
 iIWorkSpaceSize(0),
 dIPivotFactor(-1.),
+pLocalSM(NULL),
+pSSM(NULL),
 #endif /* USE_MPI */
+pSM(NULL),
+pCurrSM(NULL),
 pNLS(NULL)
 {
 	DEBUGCOUTFNAME("Solver::Solver");
@@ -415,17 +418,9 @@ void Solver::Run(void)
    	DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager, size = "
 		   << iNumDofs << std::endl);
 
-	/* il solution manager viene creato qui e passato al nonlin solver */
-	SolutionManager *pSM = NULL;
-	SolutionManager *pCurrSM = NULL;
-#ifdef USE_MPI
-	SolutionManager *pLocalSM = NULL;
-	SolutionManager *pSSM = NULL;
-#endif /* USE_MPI */
 	
 	integer iLWS = iWorkSpaceSize;
 	integer iNLD = iNumDofs;
-
 #ifdef USE_MPI
 	if (fParallel) {
 		iLWS = iWorkSpaceSize*iNumLocDofs/(iNumDofs*iNumDofs);
@@ -587,12 +582,15 @@ void Solver::Run(void)
 	   il solution manager */
 	if (fMatrixFree) {
 		SAFENEWWITHCONSTRUCTOR(pNLS,
-				MatrixFreeSolver,
-				MatrixFreeSolver(iNumDofs, pSM, PcType, iPrecondSteps));  
+				BiCGMatrixFreeSolver,
+				BiCGMatrixFreeSolver(PcType, 
+					iPrecondSteps,
+					dIterTol, 
+					iIterativeMaxSteps));  
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pNLS,
 				NewtonRaphsonSolver,
-				NewtonRaphsonSolver(iNumDofs, pSM, fTrueNewtonRaphson,
+				NewtonRaphsonSolver(fTrueNewtonRaphson,
 					iIterationsBeforeAssembly));  
 	}
 	
@@ -679,7 +677,7 @@ void Solver::Run(void)
 		
 		dTest = pDerivativeSteps->Advance(0., 1.,
 				StepIntegrator::NEWSTEP,
-			 	pNLS, qX, qXPrime, iStIter
+			 	pSM, pNLS, qX, qXPrime, iStIter
 #ifdef MBDYN_X_CONVSOL
 				, dSolTest
 #endif /* MBDYN_X_CONVSOL */
@@ -770,7 +768,7 @@ void Solver::Run(void)
 		try {
 	 		dTest = pFirstFictitiousStep->Advance(dRefTimeStep, 1.,
 				StepIntegrator::NEWSTEP,
-				pNLS, qX, qXPrime, iStIter
+				pSM, pNLS, qX, qXPrime, iStIter
 #ifdef MBDYN_X_CONVSOL
 				, dSolTest
 #endif /* MBDYN_X_CONVSOL */
@@ -848,7 +846,7 @@ void Solver::Run(void)
 	 			dTest = pFictitiousSteps->Advance(dRefTimeStep,
 						dCurrTimeStep/dRefTimeStep,
 					 	StepIntegrator::NEWSTEP, 
-				 		pNLS, qX, qXPrime, iStIter
+				 		pSM, pNLS, qX, qXPrime, iStIter
 #ifdef MBDYN_X_CONVSOL
 						, dSolTest
 #endif /* MBDYN_X_CONVSOL */
@@ -981,7 +979,7 @@ IfFirstStepIsToBeRepeated:
 		pDM->SetTime(dTime+dCurrTimeStep);
 		dTest = pFirstRegularStep->Advance(dRefTimeStep,
 				dCurrTimeStep/dRefTimeStep,
-			 	CurrStep, pNLS, qX, qXPrime, iStIter
+			 	CurrStep, pSM, pNLS, qX, qXPrime, iStIter
 #ifdef MBDYN_X_CONVSOL				
 				, dSolTest
 #endif /* MBDYN_X_CONVSOL */				
@@ -1111,7 +1109,7 @@ IfStepIsToBeRepeated:
 			pDM->SetTime(dTime+dCurrTimeStep);
 			dTest = pRegularSteps->Advance(dRefTimeStep,
 					dCurrTimeStep/dRefTimeStep,
-				 	CurrStep, pNLS, qX, qXPrime, iStIter
+				 	CurrStep, pSM, pNLS, qX, qXPrime, iStIter
 #ifdef MBDYN_X_CONVSOL				
 					, dSolTest
 #endif /* MBDYN_X_CONVSOL */				

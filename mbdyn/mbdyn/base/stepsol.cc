@@ -50,7 +50,9 @@
 #include<stepsol.h>
 
 doublereal DerivativeSolver::Advance(const doublereal TStep, 
-		const doublereal /* dAph */, const StepChange /* StType */,
+		const doublereal /* dAph */, 
+		const StepChange /* StType */,
+		SolutionManager* pSM,
 		NonlinearSolver* pNLS, 
 		std::deque<MyVectorHandler*>& qX,
 	 	std::deque<MyVectorHandler*>& qXPrime,
@@ -68,7 +70,7 @@ doublereal DerivativeSolver::Advance(const doublereal TStep,
 
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	doublereal dErr = 0.;        
-	pNLS->Solve(this,  MaxIters, dTol, dSolTol,
+	pNLS->Solve(this,  pSM, MaxIters, dTol, dSolTol,
 		    EffIter, dErr
 #ifdef MBDYN_X_CONVSOL
 		    , SolErr
@@ -184,6 +186,44 @@ void DerivativeSolver::Update(const VectorHandler* pSol) const
 }
 
 
+void DerivativeSolver::EvalProd(doublereal Tau, const VectorHandler& f0,
+	const VectorHandler& w, VectorHandler& z) const
+{
+	/* matrix-free product                                     
+         *                                                      
+         * J(XCurr) * w = -||w|| * (Res(XCurr + sigma * Tau * w/||w||) - f0) / (sigma * Tau)
+         * 
+         */
+	
+	/* if w = 0; J * w = 0 */ 
+	ASSERT(pDM != NULL);
+        
+	doublereal nw = w.Norm();
+        if (nw < DBL_EPSILON) {
+                z.Reset(0.);
+                return;
+        }
+        doublereal sigma = (*pXCurr).InnerProd(w);
+        sigma /=  nw;
+        if (sigma > DBL_EPSILON) {
+                doublereal xx = (fabs(sigma) <= 1.) ? 1. : fabs(sigma);
+                Tau = copysign(Tau*xx, sigma);
+        }
+        Tau /= nw;
+
+        MyVectorHandler XTau(w.iGetSize());
+	XTau.Reset(0.);
+	z.Reset(0.);
+        XTau.ScalarMul(w, Tau);
+	this->Update(&XTau);
+	pDM->AssRes(z, dCoef);
+	XTau.ScalarMul(XTau, -1.);
+	/* riporta tutto nelle condizioni inziali */
+	this->Update(&XTau);
+	z -= f0;
+	z.ScalarMul(z, -1./Tau);
+	return;
+}
 
 
 
@@ -357,7 +397,8 @@ void Step2Integrator::Predict(void)
  
 
 doublereal Step2Integrator::Advance(const doublereal TStep, 
-		const doublereal dAph, const StepChange StType ,
+		const doublereal dAph, const StepChange StType,
+		SolutionManager* pSM,
 		NonlinearSolver* pNLS, 
 		std::deque<MyVectorHandler*>& qX,
 	 	std::deque<MyVectorHandler*>& qXPrime,
@@ -403,7 +444,7 @@ doublereal Step2Integrator::Advance(const doublereal TStep,
 #endif /* DEBUG */
 
 	doublereal dErr = 0.;        
-	pNLS->Solve(this,MaxIters, dTol, dSolTol,
+	pNLS->Solve(this, pSM, MaxIters, dTol, dSolTol,
 		    EffIter, dErr
 #ifdef MBDYN_X_CONVSOL
 		    , SolErr
@@ -518,6 +559,45 @@ void Step2Integrator::Update(const VectorHandler* pSol) const
 	
 }
 
+
+void Step2Integrator::EvalProd(doublereal Tau, const VectorHandler& f0,
+	const VectorHandler& w, VectorHandler& z) const
+{
+	/* matrix-free product                                     
+         *                                                      
+         * J(XCurr) * w = -||w|| * (Res(XCurr + sigma * Tau * w/||w||) - f0) / (sigma * Tau)
+         * 
+         */
+	
+	/* if w = 0; J * w = 0 */ 
+	ASSERT(pDM != NULL);
+        
+	doublereal nw = w.Norm();
+        if (nw < DBL_EPSILON) {
+                z.Reset(0.);
+                return;
+        }
+        doublereal sigma = (*pXCurr).InnerProd(w);
+        sigma /=  nw;
+        if (sigma > DBL_EPSILON) {
+                doublereal xx = (fabs(sigma) <= 1.) ? 1. : fabs(sigma);
+                Tau = copysign(Tau*xx, sigma);
+        }
+        Tau /= nw;
+
+        MyVectorHandler XTau(w.iGetSize());
+	XTau.Reset(0.);
+	z.Reset(0.);
+        XTau.ScalarMul(w, Tau);
+	this->Update(&XTau);
+	pDM->AssRes(z, db0Differential);
+	XTau.ScalarMul(XTau, -1.);
+	/* riporta tutto nelle condizioni inziali */
+	this->Update(&XTau);
+	z -= f0;
+	z.ScalarMul(z, -1./Tau);
+	return;
+}
 
 
 

@@ -57,6 +57,7 @@
 #include <dataman.h>
 #ifdef USE_MPI
 #include <schurdataman.h>
+#include<schsolman.h>
 #endif /* USE_MPI */
 #include<deque>
 #include<integr.h>
@@ -221,7 +222,13 @@ private:
 	Dof* pDofs;
 	integer iIWorkSpaceSize;
 	doublereal dIPivotFactor;
+	SolutionManager *pLocalSM;
+        SchurSolutionManager *pSSM;
 #endif /* USE_MPI */  
+
+	/* il solution manager v*/
+	SolutionManager *pSM;
+	SolutionManager *pCurrSM;
 
 	NonlinearSolver* pNLS;
 	

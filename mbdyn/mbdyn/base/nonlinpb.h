@@ -53,6 +53,9 @@ public:
 	virtual void Jacobian(MatrixHandler* pJac) const = 0;
 	
 	virtual void Update(const VectorHandler* pSol) const = 0;
+	
+	virtual void EvalProd(doublereal Tau, const VectorHandler& f0,
+			const VectorHandler& w, VectorHandler& z) const = 0;
 
 
 };   
