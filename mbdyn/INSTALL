@@ -96,7 +96,7 @@ names has changed.
 
    The parallel implementation used to need HSL (see 
    
-	http://www.aero.polimi.it/projects/mbdyn/download
+	http://www.aero.polimi.it/~mbdyn/download/index.html
 
 for detailed instruction on how to gather it); now all the other solvers
 can be used for either the local or the interface solution; note that
@@ -105,7 +105,8 @@ can be used together.
 
    There's a library cross-dependence that skrews recent versions
 of libtool (1.3.4 is known to work well, while later versions fail).
-See "BUGS" file for a quick hack. 
+It has been temporarily fixed by exploiting a flaw in libtool's
+duplicate link check (see BUGS file for details).
 
    Other problems will be highlighted as soon as they show up.  Please
 drop a mail to mbdyn@aero.polimi.it in case you have problems compiling
