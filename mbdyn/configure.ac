@@ -144,39 +144,42 @@ AC_SUBST(mbdyn_subdir)dnl
 dnl ----------------------------------------------------------------
 dnl General "enable" options
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debugging], no)dnl
-OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
+OL_ARG_WITH(debug_mode,[  --with-debug-mode[={none|mem}]  with debug mode {none|mem}],none,[none mem])
 OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], auto)dnl
-OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver],auto,[auto yes no])dnl needs MPI and Metis or Chaco
+OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver
+                          (needs MPI and either Metis or Chaco)],auto,[auto yes no])dnl needs MPI and Metis or Chaco
 OL_ARG_ENABLE(adams,[  --enable-adams          enable MSC.ADAMS output], no)dnl
 OL_ARG_ENABLE(motionview,[  --enable-motionview     enable Altair's Motion View output], no)dnl
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
-OL_ARG_WITH(debug_mode,[  --with-debug-mode       with debug mode],none,[none memory])
 OL_ARG_WITH(tcl,[  --with-tcl              with tcl interpreters],auto,[auto yes no])
 OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}]  with f2c library],auto,[auto yes no g2c])
 OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support],auto,[auto yes no])
-OL_ARG_WITH(metis,[  --with-metis            with Metis support],auto,[auto yes no])
-OL_ARG_WITH(chaco,[  --with-chaco            with Chaco support],auto,[auto yes no])
-OL_ARG_WITH(rtai,[  --with-rtai              with RTAI support],no,[auto yes no])
-OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
-OL_ARG_WITH(umfpack,[  --with-umfpack         with Umfpack math library],auto,[auto yes no])
+OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
+OL_ARG_WITH(metis,[  --with-metis            with Metis model partitioning support],auto,[auto yes no])
+OL_ARG_WITH(chaco,[  --with-chaco            with Chaco model partitioning support],auto,[auto yes no])
+OL_ARG_WITH(rtai,[  --with-rtai             with RTAI support],no,[auto yes no])
+OL_ARG_WITH(umfpack,[       linear algebra solvers:
+  --with-umfpack          with Umfpack math library],auto,[auto yes no])
+OL_ARG_WITH(atlas,[  --with-atlas            with Atlas math library],auto,[auto yes no])
+OL_ARG_WITH(blas,[  --with-blas             with (C)BLAS math library],auto,[auto yes no])
 OL_ARG_WITH(y12,[  --with-y12              with Y12 sparse math library],auto,[auto yes no])
-OL_ARG_WITH(harwell,[  --with-hsl          with HSL (Harwell) sparse math library],auto,[auto yes no])
-OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
+OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math library],auto,[auto yes no])
+OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
+OL_ARG_WITH(lapack,[
+  --with-lapack           with LAPACK math library],auto,[auto yes no])
 OL_ARG_WITH(pam,[  --with-pam              with PAM support],auto,[auto yes no])
 OL_ARG_WITH(ginac,[  --with-ginac            with GiNaC support],auto,[auto yes no])
-
-OL_ARG_WITH(aero_output,[  --with-aero-output={std,gauss,node}  aerodynamic output mode],auto,[auto std gauss node])
-
 OL_ARG_WITH(struct,[  --with-struct           with structural elements],yes,[yes no])
 OL_ARG_WITH(elec,[  --with-elec             with electric stuff],yes,[yes no])
 OL_ARG_WITH(aero,[  --with-aero             with aerodynamic stuff],yes,[yes no])
+OL_ARG_WITH(aero_output,[  --with-aero-output={std,gauss,node}  aerodynamic output mode],auto,[auto std gauss node])
 OL_ARG_WITH(hydr,[  --with-hydr             with hydraulic stuff],yes,[yes no])
 
 dnl module with's
-AC_ARG_WITH(module,[  --with-module=modulelist	with listed modules],[
+AC_ARG_WITH(module,[  --with-module=modulelist  build listed modules],[
 	ol_arg=
 	for ol_val in $withval ; do
 		ol_arg="$ol_arg module-$ol_val"
@@ -213,6 +216,8 @@ METIS_LIBS=
 CHACO_LIBS=
 Y12_LIBS=
 UMFPACK_LIBS=
+ATLAS_LIBS=
+BLAS_LIBS=
 MESCHACH_LIBS=
 HARWELL_LIBS=
 LAPACK_LIBS=
@@ -328,7 +333,7 @@ if test "$ol_enable_debug_mpi" != no ; then
 fi
 if test "$ol_enable_debug" != no -o "$ol_enable_debug_mpi" != no ; then
 	AC_DEFINE(DEBUG,1,[define this to add debugging code])
-	if test "$ol_with_debug_mode" = memory ; then
+	if test "$ol_with_debug_mode" = "mem" ; then
 		AC_DEFINE(DEBUG_MEMMANAGER,1,[define this to add memory debugging code])
 	fi
 fi
@@ -516,7 +521,7 @@ dnl Checks for tcl
 dnl
 ol_link_tcl=no
 if test $ol_with_tcl != no ; then
-	OL_ADD_DIRS(tcl)
+	dnl OL_ADD_DIRS(tcl)
 
 	AC_CHECK_HEADERS(tcl.h)
 
@@ -662,13 +667,97 @@ else
 fi
 
 
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for BLAS
+dnl
+ol_link_blas=no
+if test $ol_with_blas != no ; then
+	dnl FIXME: any standard BLAS headers?
+	AC_MSG_CHECKING([for BLAS library])
+
+	try_blas_LIBS="-lblas -lm"
+	save_LIBS="$LIBS"
+	LIBS="$try_blas_LIBS $LIBS"
+	AC_TRY_LINK([
+		/* test for blas */
+	],[have_blas=yes],[have_blas=no])
+
+	dnl revert to original libraries; the BLAS libraries 
+	dnl will be explicitly added by those libraries that require them
+	LIBS="$save_LIBS"
+
+	try_cblas_LIBS="-lcblas -lm"
+	save_LIBS="$LIBS"
+	LIBS="$try_cblas_LIBS $LIBS"
+	AC_TRY_LINK([
+		/* test for blas */
+	],[have_cblas=yes],[have_cblas=no])
+
+	dnl revert to original libraries; the BLAS libraries 
+	dnl will be explicitly added by those libraries that require them
+	LIBS="$save_LIBS"
+
+	if test $have_blas != no -o $have_cblas != no ; then
+		AC_DEFINE(HAVE_BLAS,1,[define if BLAS library is available])
+		ol_link_blas=yes
+		dnl we arbitrarily favour CBLAS over BLAS
+		if test $have_cblas != no ; then
+			BLAS_LIBS="$try_cblas_LIBS"
+		else
+			BLAS_LIBS="$try_blas_LIBS"
+		fi
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+
+	dnl from now on, add $BLAS_LIBS to libraries that (may) depend on them
+fi
+
+
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for ATLAS
+dnl
+ol_link_atlas=no
+if test $ol_with_atlas != no ; then
+	dnl FIXME: any standard ATLAS headers?
+	AC_MSG_CHECKING([for ATLAS library])
+
+	try_blas_LIBS="-latlas"
+	save_LIBS="$LIBS"
+	LIBS="$try_atlas_LIBS $LIBS"
+	AC_TRY_LINK([
+		/* test for atlas */
+	],[have_atlas=yes],[have_atlas=no])
+
+	dnl revert to original libraries; the Atlas libraries 
+	dnl will be explicitly added by those libraries that require them
+	LIBS="$save_LIBS"
+
+	if test $have_atlas != no ; then
+		AC_DEFINE(HAVE_ATLAS,1,[define if Atlas library is available])
+		ol_link_atlas=yes
+		ATLAS_LIBS="$try_atlas_LIBS"
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+
+	dnl from now on, add $ATLAS_LIBS to libraries that (may) depend on them
+fi
+
+
 dnl ----------------------------------------------------------------
 dnl
 dnl Check for Umfpack
 dnl
 ol_link_umfpack=no
 if test $ol_with_umfpack != no ; then
-	OL_ADD_DIRS(umfpack)
+	dnl OL_ADD_DIRS(umfpack)
 	
 	AC_CHECK_HEADERS(umfpack.h)
 
@@ -799,7 +888,7 @@ dnl Check for Meschach
 dnl
 ol_link_meschach=no
 if test $ol_with_meschach != no ; then
-	OL_ADD_DIRS(meschach)
+	dnl OL_ADD_DIRS(meschach)
 	
 	AC_CHECK_HEADERS(meschach/sparse2.h)
 
@@ -892,7 +981,7 @@ dnl Check for LAPACK
 dnl
 ol_link_lapack=no
 if test $ol_with_lapack != no ; then
-	OL_ADD_DIRS(lapack)
+	dnl OL_ADD_DIRS(lapack)
 
 	AC_LANG_FORTRAN77
 	AC_CHECK_LIB(lapack,dgesvd,[have_lapack=yes],[have_lapack=no],[-lblas])
@@ -921,7 +1010,7 @@ dnl Check for PAM
 dnl
 ol_link_pam=no
 if test $ol_with_pam != no ; then
-	OL_ADD_DIRS(pam)
+	dnl OL_ADD_DIRS(pam)
 	AC_CHECK_HEADERS(security/pam_appl.h pam_misc.h security/pam_misc.h)
 	
 	if test $ac_cv_header_security_pam_appl_h = yes ; then
@@ -993,7 +1082,7 @@ dnl Check for MPI & MPI++
 dnl
 ol_link_mpi=no
 if test $ol_with_mpi != no ; then
-	OL_ADD_DIRS(mpi)
+	dnl OL_ADD_DIRS(mpi)
 	AC_CHECK_HEADER(mpi.h)
 	AC_LANG_CPLUSPLUS
 	AC_CHECK_HEADER(mpi++.h)
@@ -1051,7 +1140,7 @@ dnl
 dnl First we check for Metis
 ol_link_metis=no
 if test $ol_with_metis != no ; then
-	OL_ADD_DIRS(metis)
+	dnl OL_ADD_DIRS(metis)
 	
 	AC_CHECK_HEADERS(metis.h)
 
@@ -1086,7 +1175,7 @@ dnl Now we check for Chaco.  There is no attempt to find or test Chaco.
 dnl
 ol_link_chaco=no
 if test $ol_with_chaco != no ; then
-	OL_ADD_DIRS(chaco)
+	dnl OL_ADD_DIRS(chaco)
 	
 	AC_CHECK_LIB(chaco,interface,[have_chaco=yes],[have_chaco=no],[-lm])
 
@@ -1286,6 +1375,11 @@ AC_SUBST(MPI_LIBS)
 AC_SUBST(CHACO_LIBS)
 AC_SUBST(METIS_LIBS)
 AC_SUBST(UMFPACK_LIBS)
+dnl NOTE: at present, ATLAS_LIBS and/or BLAS_LIBS, if required, 
+dnl are added directly to UMFPACK_LIBS, since Umfpack is the sole
+dnl library that may require them.
+dnl AC_SUBST(ATLAS_LIBS)
+dnl AC_SUBST(BLAS_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
 AC_SUBST(SECURITY_LIBS)
