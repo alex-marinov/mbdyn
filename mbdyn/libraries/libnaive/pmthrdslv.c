@@ -93,7 +93,6 @@ int pnaivfct(doublereal** a,
 	
 	while (atomic_read((atomic_t *)&locks[0]) < ncpu);
 	
-//	pthread_barrier_wait(barrier);
 	for (i = 0; i < neq; i++) {
 		if (!(nr = nzr[i])) {
 			return ENULCOL + i; 
@@ -128,9 +127,7 @@ int pnaivfct(doublereal** a,
 			}
 			set_wmb(piv[i], pvr);
 			while (atomic_read((atomic_t *)locks) != 0);
-			//pthread_barrier_wait(barrier);
 		} else {
-			//pthread_barrier_wait(barrier);
 			pvr = piv[i];
 			while ((pvr = atomic_read((atomic_t *)&piv[i])) < 0);
 			papvr = a[pvr];
@@ -166,7 +163,6 @@ int pnaivfct(doublereal** a,
 				}
 			}
 		}
-//		pthread_barrier_wait(barrier);
 		atomic_inc((atomic_t *)&locks[i + 2]);
 		while (atomic_read((atomic_t *)&locks[i + 2]) < ncpu);
 		locks[i] = 0;

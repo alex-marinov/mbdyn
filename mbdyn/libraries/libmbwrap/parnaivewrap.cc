@@ -111,7 +111,7 @@ thread_data(0)
 		int fd;
 		fd = open("/dev/TASK2CPU",O_RDWR);
 		if (fd <= 0) {
-			printf("Errore opening /dev/TASK2CPU\n");
+			silent_cerr("Error opening /dev/TASK2CPU" << std::endl);
 		}
 		ioctl(fd, 0, nThreads);
 		close(fd);
@@ -182,7 +182,7 @@ ParNaiveSolver::thread_op(void *arg)
 		int fd;
 		fd = open("/dev/TASK2CPU",O_RDWR);
 		if (fd <= 0) {
-			printf("Errore opening /dev/TASK2CPU\n");
+			silent_cerr("Error opening /dev/TASK2CPU" << std::endl);
 		}
 		ioctl(fd, 0, td->threadNumber);
 		close(fd);
