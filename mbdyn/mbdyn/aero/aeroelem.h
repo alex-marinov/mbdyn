@@ -28,6 +28,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifndef AEROELEM_H
+#define AEROELEM_H
+
 /* Elementi aerodinamici stazionari */
 
 #include "aerodyn.h"
@@ -46,11 +49,10 @@
 
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 typedef struct {
-   Vec3 f;
-   doublereal alpha;
+	Vec3 f;
+	doublereal alpha;
 } Aero_output;
 #endif /* AEROD_OUTPUT */
-
 
 
 /* AerodynamicBody - begin */
@@ -70,145 +72,156 @@ typedef struct {
  * una superficie mobile equivalente */
 
 class AerodynamicBody 
-: virtual public Elem, public AerodynamicElem, public InitialAssemblyElem, 
+: virtual public Elem,
+public AerodynamicElem,
+public InitialAssemblyElem, 
 public DriveOwner {
- protected:
-   AeroData* aerodata;
-   const StructNode* pNode;
-   Rotor* pRotor;
-   
-   const Vec3 f;                /* Offset del punto di riferimento */
-   doublereal dHalfSpan;        /* Semiapertura del rettangoloide */
-   const Mat3x3 Ra;             /* Rotaz. del sistema aerodinamico al nodo */
-   const Vec3 Ra3;              /* Terza colonna della matrice Ra */
-   
-   const ShapeOwner Chord;         /* corda */
-   const ShapeOwner ForcePoint;    /* punto di applicazione della forza (1/4) */
-   const ShapeOwner VelocityPoint; /* punto di applicazione b.c. (3/4) */
-   const ShapeOwner Twist;         /* svergolamento */
-   
-   GaussDataIterator GDI;       /* Iteratore sui punti di Gauss */
-   doublereal* pdOuta;          /* Dati privati */
-   doublereal** pvdOuta;        /* */
-   
-   
-   Vec3 F;                      /* Forza */
-   Vec3 M;                      /* Momento */
-
-
+protected:
+	AeroData* aerodata;
+	const StructNode* pNode;
+	Rotor* pRotor;
+	flag fPassiveRotor;
+	
+	const Vec3 f;		/* Offset del punto di riferimento */
+	doublereal dHalfSpan;	/* Semiapertura del rettangoloide */
+	const Mat3x3 Ra;	/* Rotaz. del sistema aerodinamico al nodo */
+	const Vec3 Ra3;		/* Terza colonna della matrice Ra */
+	
+	const ShapeOwner Chord;		/* corda */
+	const ShapeOwner ForcePoint;	/* punto di app. della forza (1/4) */
+	const ShapeOwner VelocityPoint; /* punto di app. b.c. (3/4) */
+	const ShapeOwner Twist;         /* svergolamento */
+	
+	GaussDataIterator GDI;	/* Iteratore sui punti di Gauss */
+	doublereal* pdOuta;	/* Dati privati */
+	doublereal** pvdOuta;	/* */
+	
+	Vec3 F;			/* Forza */
+	Vec3 M;			/* Momento */
+	
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-   /* temporaneo, per output */
-   Aero_output* pOutput;
+	/* temporaneo, per output */
+	Aero_output* pOutput;
 #endif /* AEROD_OUTPUT */
-   /* overload della funzione di ToBeOutput();
-    * serve per allocare il vettore dei dati di output se il flag
-    * viene settato dopo la costruzione */
-   virtual void SetOutputFlag(flag f = flag(1));   
+	/*
+	 * overload della funzione di ToBeOutput();
+	 * serve per allocare il vettore dei dati di output se il flag
+	 * viene settato dopo la costruzione
+	 */
+	virtual void SetOutputFlag(flag f = flag(1));   
+	
+	/* Assemblaggio residuo */
+	void AssVec(SubVectorHandler& WorkVec);
+	
+public:
+	AerodynamicBody(unsigned int uLabel, 
+			const StructNode* pN, Rotor* pR,
+			const Vec3& fTmp, doublereal dS,
+			const Mat3x3& RaTmp,
+			const Shape* pC, const Shape* pF, 
+			const Shape* pV, const Shape* pT,
+			integer iN, AeroData* a,
+			const DriveCaller* pDC, flag fOut);
+	virtual ~AerodynamicBody(void);
+	
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
+	
+	/* Scrive il contributo dell'elemento al file di restart */
+	virtual ostream& Restart(ostream& out) const;
+	
+	/* Tipo dell'elemento (usato per debug ecc.) */
+	virtual ElemType::Type GetElemType(void) const {
+		return ElemType::AERODYNAMIC;
+	};
+	
+	/* funzioni proprie */
+	
+	/* Dimensioni del workspace */
+	virtual void
+	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 6;
+		*piNumCols = 1;
+	};
+	
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler& 
+	AssJac(VariableSubMatrixHandler& WorkMat,
+	       doublereal /* dCoef */ ,
+	       const VectorHandler& /* XCurr */ ,
+	       const VectorHandler& /* XPrimeCurr */ ) {
+	       	DEBUGCOUTFNAME("AerodynamicBody::AssJac");
+		WorkMat.SetNullMatrix();
+		return WorkMat;
+	};
+	
+	/* assemblaggio residuo */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+	       doublereal dCoef,
+	       const VectorHandler& XCurr,
+	       const VectorHandler& XPrimeCurr);
+	
+	/*
+	 * output; si assume che ogni tipo di elemento sappia, attraverso
+	 * l'OutputHandler, dove scrivere il proprio output
+	 */
+	virtual void Output(OutputHandler& OH) const;
+	
+	/* Numero di GDL iniziali */
+	virtual unsigned int iGetInitialNumDof(void) const { 
+		return 0;
+	};
+	
+	/* Dimensioni del workspace */
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 6;
+		*piNumCols = 1;
+	};
+	
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,	  
+		      const VectorHandler& /* XCurr */) {
+		DEBUGCOUTFNAME("AerodynamicBody::InitialAssJac");
+		WorkMat.SetNullMatrix();
+		return WorkMat;
+	};
+	
+	/* assemblaggio residuo */
+	virtual SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec,
+		      const VectorHandler& XCurr);
    
-   /* Assemblaggio residuo */
-   void AssVec(SubVectorHandler& WorkVec);
-   
- public:
-   AerodynamicBody(unsigned int uLabel, 
-		   const StructNode* pN, Rotor* pR,
-		   const Vec3& fTmp, doublereal dS,
-		   const Mat3x3& RaTmp,
-		   const Shape* pC, const Shape* pF, 
-		   const Shape* pV, const Shape* pT,
-		   integer iN, AeroData* a,
-		   const DriveCaller* pDC, flag fOut);
-   virtual ~AerodynamicBody(void);
-   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
-   /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const;
-   
-   /* Tipo dell'elemento (usato per debug ecc.) */
-   virtual ElemType::Type GetElemType(void) const {
-      return ElemType::AERODYNAMIC;
-   };   
-   
-   /* funzioni proprie */
-   
-   /* Dimensioni del workspace */
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-      *piNumRows = 6;
-      *piNumCols = 1;
-   };
-   
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal /* dCoef */ ,
-	    const VectorHandler& /* XCurr */ ,
-	    const VectorHandler& /* XPrimeCurr */ ) {
-	DEBUGCOUTFNAME("AerodynamicBody::AssJac");
-	WorkMat.SetNullMatrix();
-	return WorkMat;
-     };
-   
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-				    doublereal dCoef,
-				    const VectorHandler& XCurr,
-				    const VectorHandler& XPrimeCurr);
-
-   /* output; si assume che ogni tipo di elemento sappia, attraverso
-    * l'OutputHandler, dove scrivere il proprio output */
-   virtual void Output(OutputHandler& OH) const;
-
-   /* Numero di GDL iniziali */
-   virtual unsigned int iGetInitialNumDof(void) const { 
-      return 0;
-   };
-   
-   /* Dimensioni del workspace */
-   virtual void InitialWorkSpaceDim(integer* piNumRows,
-				    integer* piNumCols) const {
-      *piNumRows = 6;
-      *piNumCols = 1;
-   };
-   
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat,	  
-	    const VectorHandler& /* XCurr */) {
-	DEBUGCOUTFNAME("AerodynamicBody::InitialAssJac");
-	WorkMat.SetNullMatrix();
-	return WorkMat;
-     };
-   
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
-					   const VectorHandler& XCurr);
-   
-   
-   /* Tipo di elemento aerodinamico */
-   virtual AeroType::Type GetAeroType(void) const {
-      return AeroType::AERODYNAMICBODY;
-   };
-
-   /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 1;
-     NdTyps[0] = pNode->GetNodeType();
-     NdLabels[0] = pNode->GetLabel();
-   };
-
-   virtual integer  GetRotor(void) const {
-     if (pRotor != NULL) {
-       return (pRotor)->GetLabel();
-     } else {
-       return -1;
-     }
-   };
-   /* ************************************************ */
-
+	/* Tipo di elemento aerodinamico */
+	virtual AeroType::Type GetAeroType(void) const {
+		return AeroType::AERODYNAMICBODY;
+	};
+	
+	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/*
+	 * Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs
+	 */
+	virtual void
+	GetConnectedNodes(int& NumNodes,
+			  NodeType::Type* NdTyps,
+			  unsigned int* NdLabels) {
+		NumNodes = 1;
+		NdTyps[0] = pNode->GetNodeType();
+		NdLabels[0] = pNode->GetLabel();
+	};
+	
+	virtual integer  GetRotor(void) const {
+		if (pRotor != NULL) {
+			return (pRotor)->GetLabel();
+		} else {
+			return -1;
+		}
+	};
+	/* ************************************************ */
 };
 
 /* AerodynamicBody - end */
@@ -216,171 +229,182 @@ public DriveOwner {
 
 /* AerodynamicBeam - begin */
 
-class AerodynamicBeam 
-: virtual public Elem, public AerodynamicElem, public InitialAssemblyElem,
+class AerodynamicBeam
+: virtual public Elem,
+public AerodynamicElem,
+public InitialAssemblyElem,
 public DriveOwner {
- protected:
-   AeroData* aerodata;
-   const Beam* pBeam;
-   const StructNode* pNode1;
-   const StructNode* pNode2;
-   const StructNode* pNode3;
-   Rotor* pRotor;
-   
-   const Vec3 f1;               /* Offset del punto di riferimento */
-   const Vec3 f2;               /* Offset del punto di riferimento */
-   const Vec3 f3;               /* Offset del punto di riferimento */
-   const Mat3x3 Ra1;            /* Rotaz. del sistema aerodinamico al nodo */
-   const Mat3x3 Ra2;            /* Rotaz. del sistema aerodinamico al nodo */
-   const Mat3x3 Ra3;            /* Rotaz. del sistema aerodinamico al nodo */
-   const Vec3 Ra1_3;            /* Terza colonna della matrice Ra */
-   const Vec3 Ra2_3;            /* Terza colonna della matrice Ra */
-   const Vec3 Ra3_3;            /* Terza colonna della matrice Ra */
-   
-   const ShapeOwner Chord;         /* corda */
-   const ShapeOwner ForcePoint;    /* punto di applicazione della forza (1/4) */
-   const ShapeOwner VelocityPoint; /* punto di applicazione b.c. (3/4) */
-   const ShapeOwner Twist;         /* svergolamento */
-   
-   GaussDataIterator GDI;       /* Iteratore sui punti di Gauss */
-   doublereal* pdOuta;          /* Dati privati */
-   doublereal** pvdOuta;        /* */   
-   
-   /* Nota: li lascio distinti perche' cosi' eventualmente ne posso fare
-    * l'output in modo agevole */
-   Vec3 F1;                      /* Forza */
-   Vec3 M1;                      /* Momento */
-   Vec3 F2;                      /* Forza */
-   Vec3 M2;                      /* Momento */
-   Vec3 F3;                      /* Forza */
-   Vec3 M3;                      /* Momento */
-
+protected:
+	AeroData* aerodata;
+	const Beam* pBeam;
+	const StructNode* pNode1;
+	const StructNode* pNode2;
+	const StructNode* pNode3;
+	Rotor* pRotor;
+	flag fPassiveRotor;
+	
+	const Vec3 f1;		/* Offset del punto di riferimento */
+	const Vec3 f2;		/* Offset del punto di riferimento */
+	const Vec3 f3;		/* Offset del punto di riferimento */
+	const Mat3x3 Ra1;	/* Rotaz. del sistema aerodinamico al nodo */
+	const Mat3x3 Ra2;	/* Rotaz. del sistema aerodinamico al nodo */
+	const Mat3x3 Ra3;	/* Rotaz. del sistema aerodinamico al nodo */
+	const Vec3 Ra1_3;	/* Terza colonna della matrice Ra */
+	const Vec3 Ra2_3;	/* Terza colonna della matrice Ra */
+	const Vec3 Ra3_3;	/* Terza colonna della matrice Ra */
+	
+	const ShapeOwner Chord;		/* corda */
+	const ShapeOwner ForcePoint;    /* punto di app. della forza (1/4) */
+	const ShapeOwner VelocityPoint; /* punto di applicazione b.c. (3/4) */
+	const ShapeOwner Twist;         /* svergolamento */
+	
+	GaussDataIterator GDI;	/* Iteratore sui punti di Gauss */
+	doublereal* pdOuta;	/* Dati privati */
+	doublereal** pvdOuta;	/* */
+	
+	/*
+	 * Nota: li lascio distinti perche' cosi' eventualmente ne posso fare
+	 * l'output in modo agevole
+	 */
+	Vec3 F1;		/* Forza */
+	Vec3 M1;		/* Momento */
+	Vec3 F2;		/* Forza */
+	Vec3 M2;		/* Momento */
+	Vec3 F3;		/* Forza */
+	Vec3 M3;		/* Momento */
+	
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-   /* temporaneo, per output */
-   Aero_output* pOutput;
+	/* temporaneo, per output */
+	Aero_output* pOutput;
 #endif /* AEROD_OUTPUT */
-
-   /* overload della funzione di ToBeOutput();
-    * serve per allocare il vettore dei dati di output se il flag
-    * viene settato dopo la costruzione */
-   virtual void SetOutputFlag(flag f = flag(1));   
-   
-   /* Assemblaggio residuo */
-   void AssVec(SubVectorHandler& WorkVec);   
-   
- public:
-   AerodynamicBeam(unsigned int uLabel, 
-		   const Beam* pB, Rotor* pR,
-		   const Vec3& fTmp1, const Vec3& fTmp2, const Vec3& fTmp3,
-		   const Mat3x3& Ra1Tmp,
-		   const Mat3x3& Ra2Tmp,
-		   const Mat3x3& Ra3Tmp,
-		   const Shape* pC, const Shape* pF, 
-		   const Shape* pV, const Shape* pT,
-		   integer iN, AeroData* a,
-		   const DriveCaller* pDC, flag fOut);
-   virtual ~AerodynamicBeam(void);
-   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
-   /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const;
-   
-   /* Tipo dell'elemento (usato solo per debug ecc.) */
-   virtual ElemType::Type GetElemType(void) const {
-      return ElemType::AERODYNAMIC;
-   };
-   
-   /* funzioni proprie */
-   
-   /* Dimensioni del workspace */
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-      *piNumRows = 18;
-      *piNumCols = 1;
-   };
-   
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal /* dCoef */ ,
-	    const VectorHandler& /* XCurr */ ,
-	    const VectorHandler& /* XPrimeCurr */ ) {
-	DEBUGCOUTFNAME("AerodynamicBeam::AssJac");
-	WorkMat.SetNullMatrix();
-	return WorkMat;
-     };
-   
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-				    doublereal dCoef,
-				    const VectorHandler& XCurr,
-				    const VectorHandler& XPrimeCurr);
-
-
-   
-   /* Numero di GDL iniziali */
-   virtual unsigned int iGetInitialNumDof(void) const { 
-      return 0;
-   };
-   
-   /* Dimensioni del workspace */
-   virtual void InitialWorkSpaceDim(integer* piNumRows, 
-				    integer* piNumCols) const {
-      *piNumRows = 18;
-      *piNumCols = 1;
-   };
-   
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat,		 
-		   const VectorHandler& /* XCurr */ ) {
-	DEBUGCOUTFNAME("AerodynamicBeam::AssJac");
-	WorkMat.SetNullMatrix();
-	return WorkMat;
-     };
-   
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
-					   const VectorHandler& XCurr);
-
-   
-   
-   
-   /* output; si assume che ogni tipo di elemento sappia, attraverso
-    * l'OutputHandler, dove scrivere il proprio output */
-   virtual void Output(OutputHandler& OH) const;
-       
-   
-   /* Tipo di elemento aerodinamico */
-   virtual AeroType::Type GetAeroType(void) const {
-      return AeroType::AERODYNAMICBEAM;
-   };
-
- /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 3;
-     
-     NdTyps[0] = pNode1->GetNodeType();
-     NdLabels[0] = pNode1->GetLabel();
-     NdTyps[1] = pNode2->GetNodeType();
-     NdLabels[1] = pNode2->GetLabel();
-     NdTyps[2] = pNode3->GetNodeType();
-     NdLabels[2] = pNode3->GetLabel();
-     
-   };
-
-   virtual integer  GetRotor(void) const {
-     if (pRotor != NULL) {
-       return (pRotor)->GetLabel();
-     } else {
-       return -1;
-     }
-   };
-   /* ************************************************ */
+	
+	/*
+	 * overload della funzione di ToBeOutput();
+	 * serve per allocare il vettore dei dati di output se il flag
+	 * viene settato dopo la costruzione
+	 */
+	virtual void SetOutputFlag(flag f = flag(1));   
+	
+	/* Assemblaggio residuo */
+	void AssVec(SubVectorHandler& WorkVec);   
+	
+public:
+	AerodynamicBeam(unsigned int uLabel, 
+			const Beam* pB, Rotor* pR,
+			const Vec3& fTmp1,
+			const Vec3& fTmp2,
+			const Vec3& fTmp3,
+			const Mat3x3& Ra1Tmp,
+			const Mat3x3& Ra2Tmp,
+			const Mat3x3& Ra3Tmp,
+			const Shape* pC, const Shape* pF, 
+			const Shape* pV, const Shape* pT,
+			integer iN, AeroData* a,
+			const DriveCaller* pDC, flag fOut);
+	virtual ~AerodynamicBeam(void);
+	
+	virtual inline void* pGet(void) const {
+		return (void*)this;
+	};
+	
+	/* Scrive il contributo dell'elemento al file di restart */
+	virtual ostream& Restart(ostream& out) const;
+	
+	/* Tipo dell'elemento (usato solo per debug ecc.) */
+	virtual ElemType::Type GetElemType(void) const {
+		return ElemType::AERODYNAMIC;
+	};
+	
+	/* funzioni proprie */
+	
+	/* Dimensioni del workspace */
+	virtual void
+	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 18;
+		*piNumCols = 1;
+	};
+	
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler& 
+	AssJac(VariableSubMatrixHandler& WorkMat,
+	       doublereal /* dCoef */ ,
+	       const VectorHandler& /* XCurr */ ,
+	       const VectorHandler& /* XPrimeCurr */ ) {
+		DEBUGCOUTFNAME("AerodynamicBeam::AssJac");
+		WorkMat.SetNullMatrix();
+		return WorkMat;
+	};
+	
+	/* assemblaggio residuo */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+	       doublereal dCoef,
+	       const VectorHandler& XCurr,
+	       const VectorHandler& XPrimeCurr);
+	
+	/* Numero di GDL iniziali */
+	virtual unsigned int iGetInitialNumDof(void) const { 
+		return 0;
+	};
+	
+	/* Dimensioni del workspace */
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 18;
+		*piNumCols = 1;
+	};
+	
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,		 
+		      const VectorHandler& /* XCurr */ ) {
+		DEBUGCOUTFNAME("AerodynamicBeam::AssJac");
+		WorkMat.SetNullMatrix();
+		return WorkMat;
+	};
+	
+	/* assemblaggio residuo */
+	virtual SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec,
+		      const VectorHandler& XCurr);
+	
+	/*
+	 * output; si assume che ogni tipo di elemento sappia, attraverso
+	 * l'OutputHandler, dove scrivere il proprio output
+	 */
+	virtual void Output(OutputHandler& OH) const;
+	
+	/* Tipo di elemento aerodinamico */
+	virtual AeroType::Type GetAeroType(void) const {
+		return AeroType::AERODYNAMICBEAM;
+	};
+	
+	/*
+	 *******PER IL SOLUTORE PARALLELO********
+	 * Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs
+	 */
+	virtual void
+	GetConnectedNodes(int& NumNodes,
+			  NodeType::Type* NdTyps,
+			  unsigned int* NdLabels) {
+		NumNodes = 3;
+		NdTyps[0] = pNode1->GetNodeType();
+		NdLabels[0] = pNode1->GetLabel();
+		NdTyps[1] = pNode2->GetNodeType();
+		NdLabels[1] = pNode2->GetLabel();
+		NdTyps[2] = pNode3->GetNodeType();
+		NdLabels[2] = pNode3->GetLabel();     
+	};
+	
+	virtual integer GetRotor(void) const {
+		if (pRotor != NULL) {
+			return (pRotor)->GetLabel();
+		} else {
+			return -1;
+		}
+	};
+   	/* ************************************************ */
 };
 
 /* AerodynamicBeam - end */
@@ -388,9 +412,10 @@ public DriveOwner {
 class DataManager;
 class MBDynParser;
 
-extern Elem* ReadAerodynamicBody(DataManager* pDM,
-				 MBDynParser& HP,
-				 unsigned int uLabel);
-extern Elem* ReadAerodynamicBeam(DataManager* pDM,
-				 MBDynParser& HP,
-				 unsigned int uLabel);
+extern Elem *
+ReadAerodynamicBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+extern Elem *
+ReadAerodynamicBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+
+#endif /* AEROELEM_H */
+
