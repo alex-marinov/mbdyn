@@ -576,7 +576,7 @@ mdlOutputs(SimStruct *S, int_T tid)
 
 				/* connect */
 				if (connect(sock,(struct sockaddr *) &addr, sizeof(addr)) != -1) {
-					conn == 1;
+					conn = 1;
 					/* reimposta la socket come bloccante */
 					flags &= (~O_NONBLOCK);
 					if (fcntl(sock, F_SETFL, flags) == -1) {
@@ -594,7 +594,7 @@ mdlOutputs(SimStruct *S, int_T tid)
 			/* poll */
 			struct pollfd	ufds;
 			int		rc;
-			int		tries = 0;
+			int		retries = 0;
 
 retry:;
 			ufds.fd = sock;

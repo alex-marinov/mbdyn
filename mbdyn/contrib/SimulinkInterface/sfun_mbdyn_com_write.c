@@ -518,7 +518,7 @@ mdlOutputs(SimStruct *S, int_T tid)
 			/* poll */
 			struct pollfd	ufds;
 			int		rc;
-			int		tries = 0;
+			int		retries = 0;
 
 retry:;
 
