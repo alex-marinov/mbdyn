@@ -49,7 +49,8 @@ ReadHydraulicFluid(MBDynParser& HP,
 {
    /* tipi di fluidi */
    const char* sKeyWords[] = {
-      "uncompressible",
+      "uncompressible",		/* deprecated (typo) */
+      "incompressible",
       "linear" "compressible",
       "linear" "thermal" "compressible",
       "super",
@@ -61,7 +62,8 @@ ReadHydraulicFluid(MBDynParser& HP,
    enum KeyWords {
       UNKNOWN = -1,
       
-      UNCOMPRESSIBLE = 0,
+      UNCOMPRESSIBLE = 0,	/* deprecated (typo) */
+      INCOMPRESSIBLE,
       LINEARCOMPRESSIBLE,
       LINEARTHERMALCOMPRESSIBLE,
       SUPER,
@@ -76,13 +78,14 @@ ReadHydraulicFluid(MBDynParser& HP,
    /* lettura del tipo di drive */   
    KeyWords CurrKeyWord;
    if ((CurrKeyWord = KeyWords(HP.IsKeyWord())) == UNKNOWN) {
-      CurrKeyWord = UNCOMPRESSIBLE;
+      CurrKeyWord = INCOMPRESSIBLE;
    }
    
    HydraulicFluid* pHF = NULL;
    
    switch (CurrKeyWord) {
-    case UNCOMPRESSIBLE: {
+    case UNCOMPRESSIBLE:	/* deprecated (typo) */
+    case INCOMPRESSIBLE: {
        
        doublereal dDensity(0.);
        if (HP.IsKeyWord("density")) {

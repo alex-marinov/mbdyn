@@ -481,14 +481,14 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    
     for (int iCnt = 1; iCnt <= iNumMasses; iCnt++) {
         /* massa */
-        doublereal dmTmp = HP.GetReal();
+        doublereal dMTmp = HP.GetReal();
    
-        DEBUGLCOUT(MYDEBUG_INPUT, "Mass(" << iCnt << ") = " << dmTmp << std::endl);
-        dm += dmTmp;
+        DEBUGLCOUT(MYDEBUG_INPUT, "Mass(" << iCnt << ") = " << dMTmp << std::endl);
+        dm += dMTmp;
 
         /* posiz. c.g. */
         Vec3 XgcTmp(HP.GetPosRel(RF));
-        STmp += XgcTmp*dmTmp;
+        STmp += XgcTmp*dMTmp;
    
         DEBUGLCOUT(MYDEBUG_INPUT, "position of mass(" << iCnt 
 		   << ") center of gravity = " << XgcTmp << std::endl);
@@ -528,7 +528,7 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		       << ") in current frame =" << std::endl << JTmp << std::endl);
         }      
 
-        J += (JTmp-Mat3x3(XgcTmp, XgcTmp*dmTmp));      
+        J += (JTmp-Mat3x3(XgcTmp, XgcTmp*dMTmp));      
     }
     
     Xgc = STmp/dm;
