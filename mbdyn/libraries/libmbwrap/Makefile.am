@@ -12,6 +12,7 @@ harwrap.cc \
 harwrap.h \
 mschwrap.cc \
 mschwrap.h \
+umfpackwrap.cc \
 umfpackwrap.h \
 y12wrap.cc \
 y12wrap.h

@@ -93,7 +93,7 @@ top_builddir = @top_builddir@
 
 lib_LTLIBRARIES = libmbwrap.la
 
-libmbwrap_la_SOURCES =  harwlib.h harwout.c harwout.h harwout_.cc harwrap.cc harwrap.h mschwrap.cc mschwrap.h umfpackwrap.h y12wrap.cc y12wrap.h
+libmbwrap_la_SOURCES =  harwlib.h harwout.c harwout.h harwout_.cc harwrap.cc harwrap.h mschwrap.cc mschwrap.h umfpackwrap.cc umfpackwrap.h y12wrap.cc y12wrap.h
 
 
 libmbwrap_la_LIBADD = @LIBS@ @F2C_LIBS@
@@ -118,7 +118,7 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libmbwrap_la_DEPENDENCIES = 
 libmbwrap_la_OBJECTS =  harwout.lo harwout_.lo harwrap.lo mschwrap.lo \
-y12wrap.lo
+umfpackwrap.lo y12wrap.lo
 PROGRAMS =  $(bin_PROGRAMS)
 
 t_OBJECTS =  test.o
@@ -144,7 +144,7 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/harwout.P .deps/harwout_.P .deps/harwrap.P \
-.deps/mschwrap.P .deps/test.P .deps/y12wrap.P
+.deps/mschwrap.P .deps/test.P .deps/umfpackwrap.P .deps/y12wrap.P
 SOURCES = $(libmbwrap_la_SOURCES) $(t_SOURCES)
 OBJECTS = $(libmbwrap_la_OBJECTS) $(t_OBJECTS)
 
