@@ -6,6 +6,10 @@ Copyright (C) 1996-2003
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Fri May  2 15:00:00 CEST 2003 Pierangelo Masarati <masarati@aero.polimi.it>
+ - fix derivatives (the coef is relative to the initial time step)
+ - add universal rotation joint
+
 *** Sat Apr 26 23:00:00 CEST 2003 Pierangelo Masarati <masarati@aero.polimi.it>
  - Modal Element cleanup
  - Modal Element active mode listing

@@ -639,6 +639,7 @@ Elem* ReadJoint(DataManager* pDM,
 #else /* MBDYN_X_COMPATIBLE_INPUT */
        switch (CurrKeyWord) {
        case REVOLUTEROTATION:
+       case UNIVERSALROTATION:
 	  if (HP.IsKeyWord("position")) {
 	     /* currently ignored */
 	     (void)HP.GetPosRel(RF);

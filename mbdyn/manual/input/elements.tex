@@ -1189,6 +1189,23 @@ instead.
     normal to the relative direction 2 of node 2.
 }
 
+\subsection{Universal rotation}
+A universal joint without position constraints.
+\begin{verbatim}
+    <joint_type> ::= universal rotation
+    <joint_arglist> ::= 
+        <node_1>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
+\end{verbatim}
+{\em
+    Note: this joint forces the relative direction 3 of node 1 to be always 
+    normal to the relative direction 2 of node 2.
+}
+
 \subsection{Universal pin}
 \begin{verbatim}
     <joint_type> ::= universal pin
