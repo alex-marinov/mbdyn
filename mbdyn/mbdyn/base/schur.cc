@@ -1220,7 +1220,10 @@ SchurMultiStepIntegrator::MakeTest(const VectorHandler& Res,
   doublereal dRes = 0.;
   doublereal dXPr = 0.;
   
-  /* chiama la routine di comunicazione per la trasmissione del residuo delle interfaccie */
+  /*
+   * chiama la routine di comunicazione per la trasmissione del residuo
+   * delle interfacce
+   */
   pSM->StartExchInt();
  
   /* calcola il test per i dofs locali */

@@ -51,19 +51,8 @@
 
 #ifdef HAVE_SIGNAL
 #include <signal.h>
-#endif /* HAVE_SIGNAL */
 
-#ifdef HAVE_SIGNAL
-/* per essere usato dai signal handler */
 volatile sig_atomic_t keep_going = 1;
-
-#ifndef HAVE___SIGHANDLER_T
-#ifndef HAVE_SIGHANDLER_T
-typedef void (*__sighandler_t)(int);
-#else /* HAVE_SIGHANDLER_T */
-typedef sighandler_t __sighandler_t;
-#endif /* HAVE_SIGHANDLER_T */
-#endif /* !HAVE___SIGHANDLER_T */
 __sighandler_t sh_term = SIG_DFL;
 __sighandler_t sh_int = SIG_DFL;
 __sighandler_t sh_hup = SIG_DFL;
