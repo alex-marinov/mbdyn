@@ -72,18 +72,20 @@ private:
 
 	doublereal dMinPiv;
 	mutable std::vector<integer> piv;
+	std::vector<integer>	todo; 
+	std::vector<unsigned long> locks;
 // 	doublereal dPivotFactor;
 
 //	mutable bool bFirstSol;		/* true se prima backsubst */
 //	mutable bool bRegenerateMatrix;	/* true se prima backsubst */
 
 	NaiveMatrixHandler *const A;
-	ParNaiveSolverData *sld;
 
 	unsigned nThreads;
 
 	enum Op {
 		FACTOR,
+		SOLVE,
 		EXIT
 	};
 
@@ -92,13 +94,12 @@ private:
 		ParNaiveSolver		*pSLUS;
 		unsigned		threadNumber;
 		sem_t			sem;
-		void			*pdgstrf_threadarg;
 	} *thread_data;
 
-	Op		thread_operation;
-	unsigned	thread_count;
-	pthread_mutex_t	thread_mutex;
-	pthread_cond_t	thread_cond;
+	mutable Op	thread_operation;
+	mutable unsigned thread_count;
+	mutable pthread_mutex_t	thread_mutex;
+	mutable pthread_cond_t	thread_cond;
 
 	/* Thread process */
 	static void *thread_op(void *arg);

@@ -57,7 +57,29 @@
 
 #include "parnaivewrap.h"
 
+extern "C" {
+int naivfct(doublereal** a, 
+	integer neq, 
+	integer *nzr, integer** ri, 
+	integer *nzc, integer** ci, 
+	integer *piv, 
+	integer *todo, 
+	doublereal minpiv, 
+	unsigned long *locks, 
+	int task,
+	int NCPU);
 
+void naivslv(doublereal** a,
+	integer neq,
+	integer *nzc,
+	integer** ci,
+	doublereal *rhs,
+	integer *piv,
+	doublereal *fwd,
+	unsigned long *locks,
+	int task,
+	int NCPU);
+}
 struct ParNaiveSolverData {
 // 	SuperMatrix		A,
 // 				AC,
@@ -65,8 +87,6 @@ struct ParNaiveSolverData {
 // 				U,
 // 				B;
 // 	Gstat_t			Gstat;
-	std::vector<int>	perm_c, /* column permutation vector */
-				perm_r; /* row permutations from partial pivoting */
 // 	pdgstrf_options_t	pdgstrf_options;
 // 	pxgstrf_shared_t	pxgstrf_shared;
 // 	pdgstrf_threadarg_t	*pdgstrf_threadarg;
@@ -85,19 +105,20 @@ piv(size),
 A(a),
 //bFirstSol(true),
 //bRegenerateMatrix(true),
-sld(0),
 nThreads(nt),
 thread_data(0)
 {
 	ASSERT(iN > 0);
 
-	SAFENEW(sld, ParNaiveSolverData);
 	
 	/*
 	 * This means it's the first run
 	 * FIXME: create a dependence on the library's internals
 	 */
 // 	sld->A.Store = NULL;
+	piv.resize(iSize);
+	todo.resize(iSize);
+	locks.resize(iSize+2);
 
 	pthread_mutex_init(&thread_mutex, NULL);
 	pthread_cond_init(&thread_cond, NULL);
@@ -188,6 +209,34 @@ ParNaiveSolver::thread_op(void *arg)
 
 		switch (td->pSLUS->thread_operation) {
 		case ParNaiveSolver::FACTOR:
+			naivfct(td->pSLUS->A->ppdRows,
+				td->pSLUS->A->iSize,
+				td->pSLUS->A->piNzr,
+				td->pSLUS->A->ppiRows,
+				td->pSLUS->A->piNzc,
+				td->pSLUS->A->ppiCols,
+				&(td->pSLUS->piv[0]),
+				&(td->pSLUS->todo[0]),
+				td->pSLUS->dMinPiv,
+				&(td->pSLUS->locks[0]),
+				std::min(td->threadNumber,1U),
+				td->pSLUS->nThreads
+			);
+// 			(void)pdgstrf_thread(td->pdgstrf_threadarg);
+			break;
+
+		case ParNaiveSolver::SOLVE:
+			naivslv(td->pSLUS->A->ppdRows,
+				td->pSLUS->A->iSize,
+				td->pSLUS->A->piNzc,
+				td->pSLUS->A->ppiCols,
+				td->pSLUS->LinearSolver::pdRhs,
+				&(td->pSLUS->piv[0]),
+				td->pSLUS->LinearSolver::pdSol,
+				&(td->pSLUS->locks[0]),
+				std::min(td->threadNumber,1U),
+				td->pSLUS->nThreads
+			);
 // 			(void)pdgstrf_thread(td->pdgstrf_threadarg);
 			break;
 
@@ -249,122 +298,22 @@ ParNaiveSolver::Factor(void)
 
 	ASSERT(iNonZeroes > 0);
 
-// 	yes_no_t	refact = YES,
-// 			usepr = NO;
-// 	doublereal	u = dMinPiv,
-// 			drop_tol = 0.0;
-// 	void		*work = NULL;
-// 	int		info = 0, lwork = 0;
-// 	int		panel_size = sp_ienv(1),
-// 			relax = sp_ienv(2);
-
-// 	if (bRegenerateMatrix) {
-// 		refact = NO;
-// 		
-// 		/* NOTE: we could use sld->A.Store == NULL */
-// 		if (bFirstSol) {
-// 			ASSERT(Astore == NULL);
-// 
-// 			/* ---------------------------------------------------
-// 			 * Allocate storage and initialize statistics variables. 
-// 			 * ---------------------------------------------------*/
-// 			/* Set up the dense matrix data structure for B. */
-// 			dCreate_Dense_Matrix(&sld->B, iN, 1,
-// 					LinearSolver::pdRhs,
-// 					iN, DN, _D, GE);
-// 
-// 			/* Set up the sparse matrix data structure for A. */
-// 			dCreate_CompCol_Matrix(&sld->A, iN, iN, iNonZeroes,
-// 					Axp, Aip, App, NC, _D, GE);
-// 
-// 			StatAlloc(iN, nThreads, panel_size, relax, &sld->Gstat);
-// 			StatInit(iN, nThreads, &sld->Gstat);
-// 			
-// 			sld->perm_c.resize(iN);
-// 			sld->perm_r.resize(iN);
-// 
-// 			bFirstSol = false;	/* never change this again */
-// 
-// 		} else {
-// 			NCformat *Astore = (NCformat *) sld->A.Store;
-// 
-// 			ASSERT(Astore);
-// 
-// 			Astore->nnz = iNonZeroes;
-// 			Astore->nzval = Axp;
-// 			Astore->rowind = Aip;
-// 			Astore->colptr = App;
-// 		}
-// 
-// 		/* --------------------------------------------------
-// 		 * Get column permutation vector perm_c[], according
-// 		 * 	to permc_spec:
-// 		 * permc_spec = 0: use the natural ordering 
-// 		 * permc_spec = 1: use minimum degree ordering
-// 		 * 	on structure of A'*A
-// 		 * permc_spec = 2: use minimum degree ordering
-// 		 * 	on structure of A'+A
-// 		 * !!! permc_spec = 3: use approximate minimum
-// 		 * 	degree column order !!!
-// 		 * --------------------------------------------------*/
-// 
-// 		/*
-// 		 * According to Umfpack's use of AMD:
-// 		 *
-// 		 * symmetric matrix:
-// 		 *	AMD: A^T + A permutation
-// 		 *
-// 		 * Non symmetric matrix:
-// 		 *	COLAMD: A^T * A permutation
-// 		 *
-// 		 * so we use permc_spec = 1
-// 		 */
-// 	
-// 		int	permc_spec = 1;
-// 		int	*pc = &(sld->perm_c[0]);
-// 		get_perm_c(permc_spec, &sld->A, pc);
-// 
-// 		bRegenerateMatrix = false;
-// 	}
-
-	int		*pr = &(sld->perm_r[0]),
-			*pc = &(sld->perm_c[0]);
-
-// 	/* ------------------------------------------------------------
-// 	 * Initialize the option structure pdgstrf_options using the
-// 	 * user-input parameters;
-// 	 * Apply perm_c to the columns of original A to form AC.
-// 	 * ------------------------------------------------------------*/
-// 	pdgstrf_init(nThreads, refact, panel_size, relax,
-// 			u, usepr, drop_tol, pc, pr,
-// 			work, lwork, &sld->A, &sld->AC,
-// 			&sld->pdgstrf_options, &sld->Gstat);
-// 
-// 
-// 	/* --------------------------------------------------------------
-// 	 * Initializes the parallel data structures for pdgstrf_thread().
-// 	 * --------------------------------------------------------------*/
-// 	sld->pdgstrf_threadarg = pdgstrf_thread_init(&sld->AC,
-// 			&sld->L, &sld->U, &sld->pdgstrf_options,
-// 			&sld->pxgstrf_shared, &sld->Gstat, &info);
-
-// 	if (info != 0) {
-// 		silent_cerr("ParNaiveSolver::Factor: pdgstrf_thread_init failed"
-// 				<< std::endl);
-// 	}
-		
-	for (unsigned t = 0; t < nThreads; t++) {
-// 		thread_data[t].pdgstrf_threadarg = &sld->pdgstrf_threadarg[t];
-	}
-
 	thread_operation = ParNaiveSolver::FACTOR;
 	thread_count = nThreads - 1;
+
+	//prepara i dati
+	for (int i = 0; i < iSize; i++) {
+			piv[i] = -1;
+			todo[i] = -1;
+	}
+	for (int i = 0; i < iSize+2; i++) {
+			locks[i] = 0;
+	}
 
 	for (unsigned t = 1; t < nThreads; t++) {
 		sem_post(&thread_data[t].sem);
 	}
 
-// 	(void)pdgstrf_thread(thread_data[0].pdgstrf_threadarg);
 
 	pthread_mutex_lock(&thread_mutex);
 	if (thread_count > 0) {
@@ -372,16 +321,6 @@ ParNaiveSolver::Factor(void)
 	}
 	pthread_mutex_unlock(&thread_mutex);
 
-	/* ------------------------------------------------------------
-	 * Clean up and free storage after multithreaded factorization.
-	 * ------------------------------------------------------------*/
-	 
-	 //!!!!!!
-	 //TODO:
-	 //!!!!!!
-	 
-// 	pdgstrf_thread_finalize(sld->pdgstrf_threadarg, &sld->pxgstrf_shared, 
-// 			&sld->A, pr, &sld->L, &sld->U);
 }
 
 /* Risolve */
@@ -403,8 +342,20 @@ ParNaiveSolver::Solve(void) const
 // 	trans_t		trans = NOTRANS;
 // 	int		info = 0;
 
-	int		*pr = &(sld->perm_r[0]),
-			*pc = &(sld->perm_c[0]);
+	thread_operation = ParNaiveSolver::SOLVE;
+	thread_count = nThreads - 1;
+	
+	for (unsigned t = 1; t < nThreads; t++) {
+		sem_post(&thread_data[t].sem);
+	}
+
+// 	(void)pdgstrf_thread(thread_data[0].pdgstrf_threadarg);
+
+	pthread_mutex_lock(&thread_mutex);
+	if (thread_count > 0) {
+		pthread_cond_wait(&thread_cond, &thread_mutex);
+	}
+	pthread_mutex_unlock(&thread_mutex);
 
 // 	dgstrs(trans, &sld->L, &sld->U, pr, pc,
 // 			&sld->B, &sld->Gstat, &info);
