@@ -85,9 +85,17 @@ S0II(0.),
 J0II(0.),
 fFirstRes(1)
 {
+    ASSERT(pN1 != NULL);
+    ASSERT(pN1->GetNodeType() == Node::STRUCTURAL);
+    ASSERT(pN2 != NULL);
+    ASSERT(pN2->GetNodeType() == Node::STRUCTURAL);
+    ASSERT(pN3 != NULL);
+    ASSERT(pN3->GetNodeType() == Node::STRUCTURAL);
+
     pNode[NODE1] = pN1;
     pNode[NODE2] = pN2;
     pNode[NODE3] = pN3;
+    
     (Vec3&)f[NODE1] = F1;
     (Vec3&)f[NODE2] = F2;
     (Vec3&)f[NODE3] = F3;

@@ -74,10 +74,10 @@ BeamT(Beam::ELASTIC),
 fFirstRes(1)
 {
 	/* Validazione dati */
-	ASSERT(pNode[NODE1] != NULL);
-	ASSERT(pNode[NODE1]->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(pNode[NODE2] != NULL);
-	ASSERT(pNode[NODE2]->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(pN1 != NULL);
+	ASSERT(pN1->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(pN2 != NULL);
+	ASSERT(pN2->GetNodeType() == Node::STRUCTURAL);
    
 	pNode[NODE1] = pN1;
 	pNode[NODE2] = pN2;
