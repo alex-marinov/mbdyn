@@ -401,17 +401,28 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 std::set<unsigned int> Body_labels;
 	 Elem::Type Type = Elem::UNKNOWN;
 	 while (HP.IsArg()) {
-		 if (HP.IsKeyWord("body")) {
+		 if (HP.IsKeyWord(sKeyWords[BODY])) {
 			 Type = Elem::BODY;
+
+		 } else if (HP.IsKeyWord(sKeyWords[JOINT])) {
+			 Type = Elem::JOINT;
+
+		 } else if (HP.IsKeyWord(sKeyWords[LOADABLE])) {
+			 Type = Elem::LOADABLE;
+
 #if 0
 		 } else if (HP.IsKeyWord("...")) {
 #endif /* other types with inertia */
 		 }
 
 		 if (Type == Elem::UNKNOWN) {
-			 std::cerr << "inertia " << uIn
-				 << " at line " << HP.GetLineData()
-				 << ": missing element type" << std::endl;
+			 silent_cerr("inertia " << uIn);
+			 if (sName) {
+				silent_cerr(" (" << sName << ")");
+			 }
+			 silent_cerr(" at line " << HP.GetLineData()
+				 << ": unknown or undefined element type"
+				 << std::endl);
 			 throw ErrGeneric();
 		 }
 
@@ -458,10 +469,23 @@ void DataManager::ReadElems(MBDynParser& HP)
 				Body_labels.insert(uL);
 			 	ElemGravityOwner *pEl = 
 				 	(ElemGravityOwner *)ppTmpEl[0]->pGetElemGravityOwner();
+				ASSERT(pEl != 0);
+
+				/* FIXME: temporary... */
+				if (Type == Elem::JOINT) {
+					Joint *pJ = dynamic_cast<Joint *>(pEl);
+					if (pJ->GetJointType() != Joint::MODAL) {
+						silent_cerr("warning, Joint("
+								<< uL << ") "
+								"is not modal"
+								<< std::endl);
+					}
+				}
 
 			 	dM += pEl->dGetM();
 			 	S += pEl->GetS();
 			 	J += pEl->GetJ();
+
 		 	} else {
 				std::cerr << psElemNames[Type] << "(" << uL
 					<< "): duplicate label at line "
