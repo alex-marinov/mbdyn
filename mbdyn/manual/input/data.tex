@@ -432,9 +432,13 @@ simulation-related output, and takes care of some debug output.
 \subsubsection{Output}
 This command requests special output related to the solution phase.
 \begin{verbatim}
-    <card> ::= output : <item> [ , <item> ] ;
-    <item> ::= { none | iterations | residual
-        | solution | jacobian | messages }
+    <card> ::= output : <item> [ , <item> [ , ... ] ] ;
+    <item> ::= { iterations
+               | residual
+               | solution
+               | jacobian
+               | messages
+               | none }
 \end{verbatim}
 The item \texttt{iterations} logs a detailed output of the error
 at each iteration inside a time step 
