@@ -21,3 +21,12 @@
 #  and value is a single-quote delimited value.
 # For example:
 #*.gif -k 'b'
+
+# Rich Text Format and StarOffice Documents
+*.rtf -k 'b'
+*.sdw -k 'b'
+
+# Images
+*.gif -k 'b'
+*.jpg -k 'b'
+
