@@ -28,7 +28,7 @@ hydr/libhydr.la \
 ../libraries/libobjs/libobjs.la \
 @MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ \
 @METIS_LIBS@ @PAM_LIBS@ @TCL_LIBS@ @LIBS@
-mbdyn_LDFLAGS = -static
+#mbdyn_LDFLAGS = -static
 
 INCLUDES = \
 -I../libraries/libmbutil \

@@ -99,7 +99,7 @@ mbdyn_SOURCES =  dummy_c.c dummy_f.f  mbdyn.cc  mbdyn.h
 
 mbdyn_LDADD =  base/libbase.la struct/libstruct.la aero/libaero.la elec/libelec.la hydr/libhydr.la ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la @Y12_LIBS@ @HARWELL_LIBS@ ../libraries/libmbwrap/libmbwrap.la ../libraries/libobjs/libobjs.la @MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ @METIS_LIBS@ @PAM_LIBS@ @TCL_LIBS@ @LIBS@
 
-mbdyn_LDFLAGS = -static
+#mbdyn_LDFLAGS = -static
 
 INCLUDES =  -I../libraries/libmbutil -I../libraries/libmbmath -I../libraries/libmbwrap -I../libraries/libharwell -I../mbdyn/base -I../mbdyn/struct -I../mbdyn/aero -I../mbdyn/elec -I../mbdyn/hydr
 
@@ -119,6 +119,7 @@ aero/libaero.la elec/libelec.la hydr/libhydr.la \
 ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la \
 ../libraries/libmbutil/libmbutil.la ../libraries/libmbwrap/libmbwrap.la \
 ../libraries/libobjs/libobjs.la
+mbdyn_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
