@@ -12,6 +12,7 @@ MBDyn 1.1 Engineering
 		- merge of scalar and parallel multistep integrators
 		- detects if run by mpirun (appropriate MPI initialization;
 		  needs work)
+		- added mbdyn(1) man page
 	Bug fixes:
 		- fix unsteady Cm sign bug in unsteady c81 aerodynamics
 		- fix input file command line arg delete[] failure 

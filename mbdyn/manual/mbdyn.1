@@ -1,0 +1,45 @@
+.TH MBDYN 1 "16 January 2002" "MBDyn 1.1"
+.\" Copyright 1996-2002 The MBDyn Team All Rights Reserved.
+.\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
+.SH NAME
+mbdyn \- MultiBody Dynamics analysis system.
+.SH SYNOPSIS
+.B mbdyn 
+[\c
+.BR \-f
+input\-file]
+[\c
+.BR \-o
+output\-file\-prefix]
+[\c
+.BR \-n
+[nice\-level]]
+[input\-file [...]]
+.SH DESCRIPTION
+.I mbdyn
+is a multibody analysis tool released under GPL 
+<http://www.gnu.org/licenses/gpl.html>.
+.SH OPTIONS
+.TP
+.B \-f, \-\-input\-file \ input\-file
+Read model and analysis data from file \fIinput\-file\fP; default is 
+\fIstandard input\fP.
+.TP
+.B \-o, \-\-output\-file \ output\-file\-prefix
+Write results to files with prefix \fIoutput\-file\-prefix\fP 
+(extensions are content-dependent); default is \fIinput\-file\fP, if any,
+or \fIMbdyn\fP.
+.TP
+.B \-n, \-\-nice \ [nice\-level]
+Renice process (to level \fInice\-level\fP, if given).
+Defined on architectures that support the 
+.BR nice (2) 
+system call.
+.LP
+.SH AUTHOR
+The MBDyn Team <http://www.aero.polimi.it/~mbdyn/, http://www.mbdyn.org/>
+.SH ACKNOWLEDGEMENTS
+.B      MBDyn
+is developed and maintained by The MBDyn Team 
+(http://www.aero.polimi.it/~mbdyn/).
+
