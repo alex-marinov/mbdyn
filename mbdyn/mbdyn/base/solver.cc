@@ -3313,7 +3313,7 @@ SolutionManager *const Solver::AllocateSchurSolman(integer iStates) {
 
 #ifdef USE_MPI
 	doublereal dIPivotFactor = CurrIntSolver.dGetPivotFactor();
-	integer iIWorkSpaceSize = CurrIntSolver.iGetorkSpaceSize();
+	integer iIWorkSpaceSize = CurrIntSolver.iGetWorkSpaceSize();
 
 	switch (CurrIntSolver.GetSolver()) {
 		case LinSol::Y12_SOLVER:
@@ -3381,6 +3381,12 @@ SolutionManager *const Solver::AllocateSchurSolman(integer iStates) {
 		THROW(ErrGeneric());
 #endif /* !USE_UMFPACK */
 	case LinSol::EMPTY_SOLVER:
+
+	default: 
+		std::cerr << "Unknown interface solver. Aborting ..."
+			<< std::endl;
+		THROW(ErrGeneric());
+
 		break;
 	}
 #else /* !USE_MPI */
