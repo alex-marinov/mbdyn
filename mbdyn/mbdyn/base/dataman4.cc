@@ -402,11 +402,12 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 OutHdl.Log()
 		 << "inertia " << uIn
 		 << " (" << ( sName ? sName : "unnamed" ) << ")" << std::endl
-		 << "    mass:  " << dM << std::endl
-		 << "    Xcg:   " << Xcg << std::endl
-		 << "    Xcg-X: " << (Xcg - x) << std::endl
-		 << "    J:     " << RT*J*R << std::endl
-		 << "    Jcg:   " << RT*Jcg*R << std::endl;
+		 << "    mass:        " << dM << std::endl
+		 << "    Xcg:         " << Xcg << std::endl
+		 << "    Xcg-X:       " << (Xcg - x) << std::endl
+		 << "    R^T*(Xcg-X): " << RT*(Xcg - x) << std::endl
+		 << "    J:           " << RT*J*R << std::endl
+		 << "    Jcg:         " << RT*Jcg*R << std::endl;
 	 if (sName) {
 	    SAFEDELETEARR(sName);
 	 }
