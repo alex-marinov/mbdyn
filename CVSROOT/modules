@@ -3,6 +3,7 @@ a2m		mbdyn/mbdyn-1.0/contrib/a2m
 n2m		mbdyn/mbdyn-1.0/contrib/n2m
 mbdyn-web	mbdyn/mbdyn-web
 mbdyn-legacy	mbdyn/mbdyn-devel
+meschach	mbdyn/meschach
 
 ldap2bibtex	masarati/ldap2bibtex
 ldap-rewrite	masarati/ldap-rewrite
