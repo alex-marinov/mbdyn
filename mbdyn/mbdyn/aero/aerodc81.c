@@ -368,8 +368,9 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		return -1;
 
 	case 2: {
+		int SEGNO;
 		double A, B, A2, B2, ETA, ASN, ASM, 
-			SEGNO, SGN, SGM, SGMAX, 
+			SGN, SGM, SGMAX, 
 			DAN, DCN, DAM, DCM, 
 			S2, alphaN, alphaM, C1,
 			dcma;
@@ -474,17 +475,18 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		B = .25*chord*chord*ALF2/vp2;
 
 		ETA = sqrt(pow(A/.048, 2)+pow(B/.016, 2));
-		SEGNO = 1.;
+		SEGNO = 1;
 
 		if (alpha < 0.) {
-			SEGNO = -1.;
-		}
-		if (ETA > 1.) {
-			SEGNO /= ETA;
+			A = -A;
+			B = -B;
+			SEGNO = -1;
 		}
 
-		A *= SEGNO;
-		B *= SEGNO;
+		if (ETA > 1.) {
+			A /= ETA;
+			B /= ETA;
+		}
 
 		A2 = A*A;
 		B2 = B*B;
@@ -515,7 +517,7 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 					+B2*(QN[U_6]+QN[U12]*SGN));
 		DAM = (A*(PM[U_1]+PM[U_3]*A2+PM[U_5]*B2+PM[U10]*SGM+PM[U_7]*A)
 				+ B*(PM[U_2]+PM[U_4]*B2+PM[U_6]*A2
-					+PM[U11]*SGM+PM[U_8]*B+PM[U_9]*A))/ASM;
+					+PM[U11]*SGM+PM[U_8]*B+PM[U_9]*A))*ASM;
 
 		S2 = SGM*SGM;
 
@@ -540,18 +542,30 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		dcla = get_dcla(data->NML, data->ml, data->stall, mach);
 		dcma = get_dcla(data->NMM, data->mm, data->mstall, mach);
 
-		/* nota: qui il CLalpha e' in 1/deg */
+		/* note: cl/alpha in 1/deg */
 		if (fabs(alpha) > 1.e-6) {
-			double dclatmp = (cl-cl0)/(OUTA[1]*cosgam);
+			double dclatmp = (cl-cl0)/(alphaN*cosgam);
 			if (dclatmp < dcla) {
 				dcla = dclatmp;
 			}
 		}
 		cl = cl0+dcla*alphaN;
 
-		C1 = .9457/sqrt(1.-mach*mach);
+		/* back to 1/rad */
+		dcla *= RAD2DEG;
+		dcma *= RAD2DEG;
+
+		C1 = .9457*SEGNO/sqrt(1.-mach*mach);
+
+		/* 
+		 * I think I need to apply this contribution 
+		 * with the sign of alpha, because otherwise 
+		 * it gets discontinuous as alpha changes sign;
+		 * I definitely need the original reference :(
+		 */
 		cl = cl+dcla*DAN+DCN*C1;
 		cm = cm+dcma*DAM+DCM*C1;
+
 
 		break;
 	}

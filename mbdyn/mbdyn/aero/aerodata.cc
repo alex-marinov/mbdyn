@@ -118,6 +118,14 @@ AeroMemory::SetNumPoints(int i)
 
 		SAFENEWARR(a, doublereal, 2*s*iPoints);
 		t = a + s*iPoints;
+
+#ifdef HAVE_MEMSET
+		memset(a, 0, 2*s*iPoints*sizeof(doublereal));
+#else /* !HAVE_MEMSET */
+		for (int i = 0; i < 2*s*iPoints; i++) {
+			a[i] = 0.;
+		}
+#endif /* !HAVE_MEMSET */
 	}
 }
 
@@ -280,7 +288,7 @@ C81AeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA)
 		break;
 	}
 
-   	return c81_aerod2_u(W, VAM, TNG, OUTA, (c81_data*)data, Unsteady());
+   	return c81_aerod2_u(W, VAM, TNG, OUTA, (c81_data*)data, unsteadyflag);
 }
 
 
@@ -359,7 +367,7 @@ C81MultipleAeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal
 	}
 
    	return c81_aerod2_u(W, VAM, TNG, OUTA, (c81_data*)data[curr_data],
-			Unsteady());
+			unsteadyflag);
 }
 
 

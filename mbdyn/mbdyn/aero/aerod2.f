@@ -414,6 +414,7 @@ C
 C
 C Local:
       real*8 ALFA,ALF1,ALF2,VP,VP2,A,B,VC1,GAM,COSGAM,RMACH,ETA,SEGNO,
+     &  SEGNOE,
      &  A2,B2,ASN,ASM,SGN,SGM,SGMAX,S2,DAN,DCN,DAM,DCM,
      &  ASLOP0,CSLOP0,ASLRF,C1,
      &  ATMP
@@ -470,9 +471,10 @@ C     &	', VP=',VP,', VP2=',VP2
       ETA = DSQRT((A/.048)**2+(B/.016)**2)
       SEGNO = 1.D0
       IF(ALFA.LT.0D0) SEGNO = -1.D0
-      IF(ETA.GT.1.D0) SEGNO = SEGNO/ETA
-      A = SEGNO*A
-      B = SEGNO*B
+      SEGNOE = SEGNO
+      IF(ETA.GT.1.D0) SEGNOE = SEGNOE/ETA
+      A = SEGNOE*A
+      B = SEGNOE*B
       A2 = A*A
       B2 = B*B
       ASN = ASN0*(1.D0-RMACH)
@@ -549,8 +551,12 @@ C	print *,'ATMP = ALFA(=',ALFA,')-DAN(',DAN,')'
       IF(ASLRF.GT.ASLOP0) ASLRF = ASLOP0
  10   CLIFT = ASLRF*(ALFA-DAN)
       C1 = .9457/DSQRT(1.D0-RMACH*RMACH)
-      CLIFT = CLIFT+ASLOP0*DAN+DCN*C1
-      CMOME = CMOME+CSLOP0*DAM+DCM*C1
+
+C	print *,'COE2 ',CLIFT,ASLOP0*DAN,DCN*C1,CMOME,CSLOP0*DAM,DCM*C1
+      
+C La parte steady di CLIFT e' 0 quando alfa cambia segno!!!
+      CLIFT = CLIFT+SEGNO*(ASLOP0*DAN+DCN*C1)
+      CMOME = SEGNO*(CMOME+CSLOP0*DAM+DCM*C1)
       OUTA(5) = CLIFT
       OUTA(6) = CDRAG
       OUTA(7) = CMOME
