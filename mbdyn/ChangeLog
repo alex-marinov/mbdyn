@@ -6,6 +6,12 @@ Copyright (C) 1996-2004
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Mon Oct 18 17:26:50 CEST 2004 Pierangelo Masarati <masarati@aero.polimi.it>
+ - Add describe equations
+ - Add namespaces to MathParser
+ - Add model namespace
+ - cleanup dae-intg and modules
+
 *** Tue Aug 31 15:42:59 CEST 2004 Pierangelo Masarati <masarati@aero.polimi.it>
  - Honor describe dofs in initial assembly
 
