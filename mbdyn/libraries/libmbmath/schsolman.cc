@@ -44,8 +44,6 @@
 #ifdef USE_MPI
 #include <schsolman.h>
  
-extern MPI::Intracomm MBDynComm;
-
 #ifdef USE_MYSLEEP
 #include <mysleep.h>
 #endif /* USE_MYSLEEP */

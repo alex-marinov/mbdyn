@@ -1550,13 +1550,14 @@ Elem** ReadOneElem(DataManager* pDM,
          case AERODYNAMICEXTERNALMODAL:
 		*ppE = ReadAerodynamicExternalModal(pDM, HP, uLabel);
 		break;
-#else /* USE_AERODYNAMIC_EXTERNAL */
+#else /* !USE_AERODYNAMIC_EXTERNAL */
 	case AERODYNAMICEXTERNAL:
 	case AERODYNAMICEXTERNALMODAL:
-		std::cerr << "You should define USE_MPI and USE_AERODYNAMIC_EXTERNAL " 
-			<< "to be able to use this type of elements. Aborting ..." << std::endl;
+		std::cerr << "You need mpi and -DUSE_AERODYNAMIC_EXTERNAL " 
+			<< "to use this type of elements." << std::endl;
 		THROW(ErrGeneric());
-#endif /* USE_AERODYNAMIC_EXTERNAL */	  
+#endif /* !USE_AERODYNAMIC_EXTERNAL */	  
+
 	default:
 	   ASSERTMSG(0, "You shouldn't have reached this point");
 	   break;
