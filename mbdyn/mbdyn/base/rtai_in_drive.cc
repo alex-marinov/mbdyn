@@ -50,7 +50,7 @@ host(h), create(c), node(n), port(-1), mbx(NULL)
 {
    	ASSERT(nd > 0);
 	ASSERT(sFileName != NULL);
-	std::cout << "qui" << std::endl;
+	
 	/*
 	 * initialize mailbox and so on
 	 */
@@ -109,7 +109,6 @@ RTAIInDrive::ServePending(const doublereal& /* t */ )
 		doublereal *rbuf = (doublereal *)buf;
 		for (int i = 1; i <= iNumDrives; i++){
 			pdVal[i] = rbuf[i-1];
-			std::cout << pdVal[i] << std::endl;
 		}	
 	}else{
 			/*FIXME: error */

@@ -159,11 +159,10 @@ RTAIOutElem::AfterConvergence(const VectorHandler& X,
 
 		curbuf += sizeof(doublereal);
 	}
-
 	if (mbdyn_RT_mbx_send_if(node, port, mbx, (void *)buf, size) != size) {
 		/* error */
 	}
-	//std::cout << "pippo" << std::endl; 
+	 
 }
 
 

@@ -49,6 +49,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#define RTAI_LOG
+
 #include <unistd.h>
 #include <ac/float.h>
 #include <ac/math.h>
@@ -170,6 +172,11 @@ bRTHard(false),
 lRTPeriod(-1),
 RTSemPtr(NULL),
 RTStackSize(1024),
+#ifdef RTAI_LOG
+bRTlog(false),
+mbxlog(NULL),
+LogProcName(NULL),
+#endif /*RTAI_LOG*/
 #endif /* USE_RTAI */
 #ifdef __HACK_POD__
 bPOD(0),
@@ -476,7 +483,6 @@ void Solver::Run(void)
 	NonlinearSolverTest *pResTest = NULL;
 	if (bScale) {
 		NonlinearSolverTestScale *pResTestScale = NULL;
-		NonlinearSolverTestScale *pSolTestScale = NULL;
 
 		switch (ResTest) {
 		case NonlinearSolverTest::NORM:
@@ -879,7 +885,7 @@ void Solver::Run(void)
 			   " in " << iStIter << " iterations" << std::endl);
 #ifdef USE_EXTERNAL
 	/* comunica che gli ultimi dati inviati sono la condizione iniziale */
-	External::SendInitial();
+		External::SendInitial();
 #endif /* USE_EXTERNAL */
    	} /* Fine dei passi fittizi */
 
@@ -1034,14 +1040,25 @@ IfFirstStepIsToBeRepeated:
 #endif /* __HACK_EIG__ */
 
 #ifdef USE_RTAI
+	
+#ifdef RTAI_LOG		    
+	struct {
+		int step;
+		unsigned long time;
+	} msg;
+#endif /* RTAI_LOG */
+
 	if (bRT) {
 		/* Need timer */
 		if (!mbdyn_rt_is_hard_timer_running() ){
 			/* FIXME: ??? */
+			std::cout << "Hard timer is started by MBDyn" 
+				<< std::endl;
 			mbdyn_rt_set_oneshot_mode();
 			mbdyn_start_rt_timer(mbdyn_nano2count(1000000));
 		}
-			
+		
+		
 		if (bRTAllowNonRoot) {
 			mbdyn_rt_allow_nonroot_hrt();
 		}
@@ -1063,7 +1080,7 @@ IfFirstStepIsToBeRepeated:
 				<< "; time: " << t 
 				<< "; period: " << lRTPeriod << std::endl);
 			r = mbdyn_rt_task_make_periodic(mbdyn_rtai_task,
-					t, lRTPeriod);
+					t, mbdyn_nano2count(lRTPeriod));
 
 			if (r) {
 				std::cerr << "rt_task_make_periodic() failed ("
@@ -1085,17 +1102,45 @@ IfFirstStepIsToBeRepeated:
 			}
 		}
 
-		if (bRTHard) {
-			/*
-			 * FIXME: make hard real time here
-			 */
-			silent_cout("hard real time not supported yet"
-					<< std::endl);
-		}
-
 		/* FIXME: should check whether RTStackSize is correclty set? */
+#ifdef RTAI_LOG	
+		if (bRTlog) { 
+			char *mbxlogname = "logmb";
+			std::cout << "Mbdyn start overruns monitor" << std::endl;
+
+			if (mbdyn_rt_mbx_init(mbxlogname, sizeof(msg)*8, &mbxlog)){
+				bRTlog = false;
+				std::cerr << "Cannot init mail box log" << std::endl;
+			}
+			switch (fork()) {
+			case 0:
+				if (execl(LogProcName, LogProcName, "MBDTSK",
+						mbxlogname,NULL) == -1){
+				/* error */
+				std::cout << "Cannot start log procedure" 
+						<< std::endl;
+				}
+				break;
+
+			case -1:
+				std::cerr << "Cannot init log procedure" << std::endl;
+				bRTlog = false;
+
+			default:
+				mbdyn_rt_task_suspend(mbdyn_rtai_task);
+			}
+		}
+#endif /* RTAI_LOG */
+
 		reserve_stack(RTStackSize);
 	}
+
+	int 	RTStpFlag = 0;
+	volatile int	RTSteps = 0;
+
+        int t_tot = 0;
+	long long t0 = 0, t1;
+	int or_counter = 0;
 #endif /* USE_RTAI */
 
     	/* Altri passi regolari */ 
@@ -1109,15 +1154,48 @@ IfFirstStepIsToBeRepeated:
 				= StepIntegrator::NEWSTEP;
 	
       		if (dTime >= dFinalTime) {
+#ifdef USE_RTAI
+			if (bRT && bRTHard) {
+				mbdyn_rt_make_soft_real_time();
+			}
+#endif /* USE_RTAI */
 	 		std::cout << "End of simulation at time "
 				<< dTime << " after " 
 				<< iStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
 				<< "total Jacobians: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl;
+			if (bRT){
+				std::cout << "Total overruns:" << or_counter  << std::endl
+					  << "Total overruns time:" << t_tot << "micro s" << std::endl;
+			}
 			return;
+#ifdef USE_RTAI
+		} else if (bRT && RTStpFlag == 1){
+			if (bRTHard) {
+				mbdyn_rt_make_soft_real_time();
+			}
+			std::cout << "Simulation is stopped by RTAI task" << std::endl
+				<< "Simulation ended at time "
+				<< dTime << " after " 
+				<< iStep << " steps;" << std::endl
+				<< "total iterations: " << iTotIter << std::endl
+				<< "total Jacobians: " << pNLS->TotalAssembledJacobian() << std::endl
+				<< "total error: " << dTotErr << std::endl;
+
+			std::cout << "Total overruns:" << or_counter  << std::endl
+				<< "Total overruns time:" << t_tot << "micro s" << std::endl;
+
+			return;
+#endif /* USE_RTAI */
+
 #ifdef HAVE_SIGNAL
       		} else if (!::mbdyn_keep_going) {
+#ifdef USE_RTAI
+			if (bRT && bRTHard) {
+				mbdyn_rt_make_soft_real_time();
+			}
+#endif /* USE_RTAI */
 	 		std::cout << "Interrupted!" << std::endl
 	   			<< "Simulation ended at time "
 				<< dTime << " after " 
@@ -1128,7 +1206,7 @@ IfFirstStepIsToBeRepeated:
 	 		return;
 #endif /* HAVE_SIGNAL */
       		}
- 	
+
       		iStep++;
       		pDM->BeforePredict(*(pX), *(pXPrime),
 				*(qX[0]), *(qXPrime[0]));
@@ -1137,18 +1215,49 @@ IfFirstStepIsToBeRepeated:
 
 #ifdef USE_RTAI
 		if (bRT) {
+			mbdyn_rt_receive_if(NULL, &RTStpFlag);
+
+			t1 = mbdyn_rt_get_time();
+			if ((RTSteps >= 2) && (t1 > (t0 + mbdyn_nano2count(lRTPeriod)))) {
+				or_counter++;
+				t_tot = t_tot + (mbdyn_count2nano(t1 - t0) - lRTPeriod)/1000;
+
+#ifdef RTAI_LOG
+				if (bRTlog){
+					msg.step = RTSteps;
+					msg.time = (mbdyn_count2nano(t1 - t0) - lRTPeriod)/1000;
+
+					mbdyn_RT_mbx_send_if(0, 0, mbxlog, &msg, sizeof(msg));
+				}
+#endif /* RTAI_LOG */
+			}
+
+
 			if (RTWaitPeriod()) {
 				mbdyn_rt_task_wait_period();
+
 			} else if (RTSemaphore()) {
 				/* FIXME: semaphore must be configurable */
 				mbdyn_rt_sem_wait(RTSemPtr);
 			}
+
+
+			t0 = mbdyn_rt_get_time();
+
+			if (bRTHard) {
+				if (RTSteps == 2) {
+					/* make hard real time */ 
+					mbdyn_rt_make_hard_real_time();
+				}
+			}
+			RTSteps++;
 		}
-		
+
 #endif /* USE_RTAI */
 
 IfStepIsToBeRepeated:
-		try {   	
+		try {  
+ 	
 			pDM->SetTime(dTime+dCurrTimeStep);
 			dTest = pRegularSteps->Advance(this, dRefTimeStep,
 					dCurrTimeStep/dRefTimeStep, CurrStep,
@@ -1183,7 +1292,8 @@ IfStepIsToBeRepeated:
 					<< "aborting ..." << std::endl;
 	       			THROW(ErrMaxIterations());
 			}
-		}		   
+		}
+ 		   
 		catch (NonlinearSolver::ErrSimulationDiverged) {
 			/*
 			 * Mettere qui eventuali azioni speciali 
@@ -1215,7 +1325,7 @@ IfStepIsToBeRepeated:
 				<< " " << bSolConv
 				<< std::endl;
 		}
-      
+
      	 	DEBUGCOUT("Step " << iStep
 			<< " has been completed successfully in "
 			<< iStIter << " iterations" << std::endl);
@@ -1238,18 +1348,12 @@ IfStepIsToBeRepeated:
 					PodOut << "  " << pX->dGetCoef(j+1);
                        		}
                        		PodOut << std::endl;
-#if 0
-				PodOut << pXPrime->dGetCoef(1);
-				for (integer j = 1; j < iNumDofs; j++) {
-					PodOut << "  " << pXPrime->dGetCoef(j+1);
-                       		}
-                       		PodOut << std::endl;
-#endif 
-#endif /* __HACK_POD_BINARY__ */
+#endif /* ! __HACK_POD_BINARY__ */
 			}
                      	iPODFrames++;
                       	iPODStep = 0;
 		}
+	
 		if (iPODFrames >= pod.iFrames){
 			bPOD = false;
 		}                        
@@ -1298,6 +1402,11 @@ Solver::~Solver(void)
    	if (pDM != NULL) {	
       		SAFEDELETE(pDM);
 	}
+#if defined(USE_RTAI) && defined(RTAI_LOG)
+	if (bRTlog&&bRT){
+		mbdyn_rt_mbx_delete(&mbxlog);
+	}
+#endif /* USE_RTAI && RTAI_LOG */
 }
 	
 /* Nuovo delta t */
@@ -1342,14 +1451,7 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 	  		iStepsAfterReduction++;
 	  		iStepsAfterRaise++;
 
-#if 0
-			/* never raise after iPerformedIters > StrategyFactor.iMinIters */
-			if (iPerformedIters > iWeightedPerformedIters) {
-				iWeightedPerformedIters = iPerformedIters;
-			}
-#else
 			iWeightedPerformedIters = (10*iPerformedIters + 9*iWeightedPerformedIters)/10;
-#endif
 	  
 	  		if (iPerformedIters <= StrategyFactor.iMinIters
 	      		    && iStepsAfterReduction > StrategyFactor.iStepsBeforeReduction
@@ -2682,6 +2784,22 @@ Solver::ReadData(MBDynParser& HP)
 
 				RTStackSize = size;
 			}
+			
+			if (HP.IsKeyWord("hard" "real" "time")) {
+				bRTHard = true;
+			}
+#ifdef RTAI_LOG
+			if (HP.IsKeyWord("real" "time" "log")) {
+				if (HP.IsKeyWord("file" "name")){
+					const char *m = HP.GetFileName();
+					SAFESTRDUP(LogProcName, m);
+				} else {
+					/* FIXME */
+					SAFESTRDUP(LogProcName, "./logproc");
+				}
+				bRTlog = true;
+			}
+#endif /*RTAI_LOG*/
 
 #else /* !USE_RTAI */
 			std::cerr << "need to configure --with-rtai "

@@ -42,9 +42,7 @@
 #define KEEP_STATIC_INLINE
 #include <rtai_lxrt_user.h>
 #include <net_rpc.h>
-
 #include <assert.h>
-
 #include <mbrtai_utils.h>
 
 int
@@ -56,9 +54,8 @@ mbdyn_rt_task_init(const char *name, int priority, int stack_size,
 	assert(__task != NULL);
 	assert(*__task == NULL);
 
-	*__task = (void *)rt_task_init(nam2num(name), priority,
-			stack_size, max_msg_size);
-	
+	*__task = (void *)rt_task_init_schmod(nam2num(name), priority,
+			stack_size, max_msg_size, SCHED_FIFO, 0x2);
 	return (*__task == NULL);
 }
 
@@ -78,7 +75,16 @@ mbdyn_rt_task_delete(void **__task)
 
 	return /* rc */ 0;
 }
-
+void
+mbdyn_rt_make_hard_real_time(void)
+{
+	rt_make_hard_real_time();
+}
+void
+mbdyn_rt_make_soft_real_time(void)
+{
+	rt_make_soft_real_time();
+}
 int
 mbdyn_rt_task_make_periodic(void *__task, long long __start_time,
 		long long __period)
@@ -91,7 +97,7 @@ mbdyn_rt_task_make_periodic(void *__task, long long __start_time,
 
 	assert(__task != NULL);
 
-	return rt_task_make_periodic(task, 1, period);;
+	return rt_task_make_periodic(task, start_time, period);
 }
 
 void
@@ -165,7 +171,7 @@ mbdyn_nano2count(long long nanos)
 
 int
 mbdyn_rt_mbx_init(const char *name, int size, void **__mbx)
-{	printf("mail box init");
+{	
 	assert(name);
 	assert(strlen(name) <= 6);
 	assert(size > 0);
@@ -294,5 +300,14 @@ mbdyn_rt_sem_wait(void *__sem)
 	
 	return rt_sem_wait(sem);
 }
+
+void *
+mbdyn_rt_receive_if(void *__task, int *msg)
+{
+	RT_TASK *task = (RT_TASK *)__task;
+	
+	return (void *)rt_receive_if(task, msg);
+}
+
 #endif /* USE_RTAI */
 

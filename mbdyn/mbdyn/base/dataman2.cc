@@ -80,8 +80,8 @@ void
 DataManager::LinkToSolution(const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr)
 {
-	(VectorHandler*&)pXCurr = (VectorHandler*)&XCurr;
-	(VectorHandler*&)pXPrimeCurr = (VectorHandler*)&XPrimeCurr;
+	pXCurr = &XCurr;
+	pXPrimeCurr = &XPrimeCurr;
 	DrvHdl.LinkToSolution(XCurr, XPrimeCurr);
 }
 

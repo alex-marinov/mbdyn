@@ -46,6 +46,8 @@
 #ifndef SOLVER_H
 #define SOLVER_H  
 
+#define RTAI_LOG
+
 #include <unistd.h>
 #include <ac/float.h>
 #include <ac/math.h>
@@ -124,6 +126,11 @@ private:
 	long long lRTPeriod;		/* if RTMode == MBRTAI_WAITPERIOD */
 	void *RTSemPtr;			/* if RTMode == MBRTAI_SEMAPHORE */
 	unsigned long RTStackSize;
+#ifdef RTAI_LOG
+	bool bRTlog;
+	void *mbxlog;
+	char *LogProcName;
+#endif /*RTAI_LOG*/
 
 	bool RTWaitPeriod(void) const {
 		return (RTMode == MBRTAI_WAITPERIOD);

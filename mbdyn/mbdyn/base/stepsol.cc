@@ -594,10 +594,14 @@ Step2Integrator::Advance(Solver* pS,
 	SetCoef(TStep, dAph, StType);
 
 	/* predizione */
+
 	Predict();
+
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
+
       	pDM->AfterPredict();
-	
+
+
 #ifdef DEBUG
       		integer iNumDofs = pDM->iGetNumDofs();
 		if (outputPred) {
