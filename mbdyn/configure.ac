@@ -176,7 +176,7 @@ AC_ARG_WITH(goto,[  --with-goto=lib(s)      with Goto BLAS implementation],[
 	ol_with_goto_lib="$withval"
 ],[ol_with_goto_lib=])
 OL_ARG_WITH(ginac,[  --with-ginac            with GiNaC support
-                          (ginac-config must be in $PATH)],auto,[auto yes no])
+                          (ginac-config must be in \$PATH)],auto,[auto yes no])
 OL_ARG_WITH(y12,[
        linear algebra solvers (naive is enabled by default):
   --with-y12              with Y12 sparse math library],yes,[auto yes no])

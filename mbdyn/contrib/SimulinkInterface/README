@@ -43,15 +43,15 @@ You need:
   (see setup.m; may change in the future)
 
 Simulink procedure:
-- file->new->model
-- file->open->MBDynCom.mdl
+- File->New->Model
+- File->Open->MBDynCom.mdl
 - create the simulink model and connect it to the MBDyn
   input and output blocks
 - leave the MBDyn start block alone
 - in "Simulation->Simulation Parameters set "Type" to "Fixed Step"
   and set "Fixed Step Size" to the value of the (fixed) time step
 - hit "Simulation->Start"; some times, the first run fails; we're
-  still trying to track that down.  Simply try again...
+  still trying to track that down.  In case, just try again...
 
 Start MBDyn block:
 - set the "MBDyn path" entry to the custom executable path if required
