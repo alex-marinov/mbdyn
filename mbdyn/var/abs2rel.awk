@@ -121,7 +121,7 @@ function vec3_cross_vec3(v1, v2, r)
 function prepare(X, R, V, W)
 {
 	# add user-defined modifications to reference configuration
-	# return;
+	return;
 
 	# 45 deg rotation about z axis ...
 	euler2R(0., 0., 45., Rtmp);
@@ -142,9 +142,6 @@ function prepare(X, R, V, W)
 # Skip undesired labels
 function skip_label(l)
 {
-	if (l < 100000) {
-		return 1;
-	}
 	return 0;
 }
 
