@@ -223,9 +223,9 @@ end
 ee = log(diag(eetmp))/dt;
 B = diag(S(1:ns2))*B(1:ns2, :).*(ones(ns2, 1)*scl(gt));
 if (ord > 1),
-	vv = C*vv*C';
+	vv = C*vv;
 end
-X = zeros(ns2, c);
+X = zeros(ord*ns2, c);
 X(:, gt) = vv'*B(1:ns2, :);
 BB = zeros(ns2, c);
 BB(:, gt) = B;

@@ -201,6 +201,8 @@ function output() {
 BEGIN {
 	FirstLabel = -1;
 	FirstStep = 1;
+	# SkipSteps = 0;
+	step = 0;
 
 	deg2rad = 0.017453293;
 	rad2deg = 57.29578;
@@ -210,13 +212,20 @@ BEGIN {
 {
 	# every time a new step starts, output the previous one
 	if ($1 == FirstLabel) {
-		output();
+		if (step >= SkipSteps) {
+			output();
+		}
+		step++;
 	}
 
 	# get the first label, which marks the beginning of a new time step
 	if (FirstStep) {
 		FirstLabel = $1;
 		FirstStep = 0;
+	}
+
+	if (step < SkipSteps) {
+		next;
 	}
 
 	# specially store the reference node configuration
