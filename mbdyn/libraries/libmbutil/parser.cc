@@ -1023,12 +1023,12 @@ HighParser::GetMatR2vec(void)
    }
 
    if (IsKeyWord("euler" "parameters")) {
+#if 0 /* FIXME: this function is TODO */
       doublereal e0 = GetReal();
       doublereal e1 = GetReal();
       doublereal e2 = GetReal();
       doublereal e3 = GetReal();
 
-#if 0 /* FIXME: this function is TODO */
       return EulerParams2MatR(Vec3(e1, e2, e3));
 #else
       silent_cerr("Line " << GetLineData()
@@ -1138,6 +1138,10 @@ HighParser::GetMat3x3(const Mat3x3& mDef)
       m = Mat3x3(m11, m12, m13, m12, m22, m23, m13, m23, m33);
 
    } else {
+      if (IsKeyWord("matr")) {
+	      /* eat it; not required */
+	      NO_OP;
+      }
    
       doublereal m11 = GetReal(mDef.dGet(1, 1));
       doublereal m12 = GetReal(mDef.dGet(1, 2));
