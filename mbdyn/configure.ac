@@ -1811,12 +1811,15 @@ AC_CHECK_FUNCS([ \
 	nice \
 	pstat_getdynamic \
 	pstat_getprocessor \
+	putenv \
+	setenv \
 	signal \
 	strftime \
 	strtod \
 	strtol \
 	strtoul \
 	time \
+	unsetenv \
 ])
 
 dnl ----------------------------------------------------------------

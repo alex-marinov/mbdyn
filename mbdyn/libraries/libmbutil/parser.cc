@@ -396,7 +396,13 @@ HighParser::SetEnv_(void)
 
 	char *avasep = strchr(ava, '=');
 	if (avasep == NULL) {
-		if (unsetenv(ava)) {
+		int	rc = 0;
+#ifdef HAVE_UNSETENV
+		rc = unsetenv(ava);
+#elif defined(HAVE_PUTENV)
+		rc = putenv(ava);
+#endif	/* !HAVE_UNSETENV && !HAVE_PUTENV */
+		if (rc) {
 			silent_cerr("unable to unset the environment variable "
 					"\"" << ava << "\" at line "
 					<< GetLineData() << std::endl);
