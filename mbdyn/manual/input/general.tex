@@ -122,6 +122,140 @@ The variable \texttt{Time} is declared, defined and initialized\footnote{
 } from the beginning of the control data section, and during the solution 
 phase it is assigned the value of the current time. 
 
+\noindent
+Table~\ref{tab:MATHP-OPERATORS} shows the supported mathematical 
+operators, while Table~\ref{tab:MATHP-FUNCTIONS} shows the built-in
+mathematical functions.
+The supported types are listed in Table~\ref{tab:MATHP-TYPES}.
+Table~\ref{tab:MATHP-VARS} lists the predefined variables; notice
+that they're treated exactly as user-defined variables, so they 
+can be reassigned.
+
+\begin{table}
+	\begin{center}
+	\caption{Mathematical Operators 
+	(from higher to lower precedence)}\label{tab:MATHP-OPERATORS}
+	\begin{tabular}{lll}
+		\hline
+		\emph{Operator} & \emph{Type} & \emph{Description} \\
+		\hline
+		\texttt{\^} & Binary, right & Power \\
+		\texttt{+} & Unary, left & Plus sign \\
+		\texttt{-} & Unary, left & Minus sign \\
+		\texttt{*} & Binary, left & Multiplication \\
+		\texttt{/} & Binary, left & Division \\
+		\texttt{+} & Binary, left & Addition \\
+		\texttt{-} & Binary, left & Subtraction \\
+		\texttt{>} & Binary, left & Greater than \\
+		\texttt{>=} & Binary, left & Greater than or equal to \\
+		\texttt{==} & Binary, left & Equal to \\
+		\texttt{<=} & Binary, left & Less than or equal to \\
+		\texttt{<} & Binary, left & Less than \\
+		\texttt{!=} & Binary, left & Not equal \\
+		\texttt{!} & Unary, right & NOT \\
+		\texttt{\&\&} & Binary, left & AND \\
+		\texttt{||} & Binary, left & OR \\
+		\texttt{{~}|} & Binary, left & XOR (exclusive OR) \\
+		\texttt{=} & Binary, right & Assignment \\
+		\hline
+	\end{tabular}
+	\end{center}
+	\small
+	Note: left and right refer to the associativity of the operators
+\end{table}
+
+\begin{table}
+	\begin{center}
+	\caption{Mathematical Functions}\label{tab:MATHP-FUNCTIONS}
+	\begin{tabular}{lll}
+		\hline
+		\emph{Function Name} & \emph{Args} & \emph{Description} \\
+		\hline
+		\texttt{asin} & Real & Arc sine \\
+		\texttt{acos} & Real & Arc cosine \\
+		\texttt{atan} & Real & Arc tangent \\
+		\texttt{actan} & Real & Arc co-tangent \\
+		\texttt{atan2} & Real, Real & Arc tangent 2 (rubust) \\
+		\texttt{actan2} & Real, Real & Arc co-tangent 2 (robust) \\
+		\texttt{cos} & Real & Cosine \\
+		\texttt{sin} & Real & Sine \\
+		\texttt{tan} & Real & Tangent \\
+		\texttt{ctan} & Real & Co-tangent \\
+		\texttt{cosh} & Real & Hyperbolic cosine \\
+		\texttt{sinh} & Real & Hyperbolic sine \\
+		\texttt{tanh} & Real & Hyperbolic tangent \\
+		\texttt{ctanh} & Real & Hyperbolic co-tangent \\
+		\texttt{acosh} & Real & Hyperbolic arc cosine \\
+		\texttt{asinh} & Real & Hyperbolic arc sine \\
+		\texttt{atanh} & Real & Hyperbolic arc tangent \\
+		\texttt{actanh} & Real & Hyperbolic arc co-tangent \\
+		\texttt{exp} & Real & Exponential \\
+		\texttt{log} & Real & Natural logarithm \\
+		\texttt{log10} & Real & Base 10 logarithm \\
+		\texttt{sqrt} & Real & Square root \\
+		\texttt{abs} & Real & Absolute value \\
+		\texttt{floor} & Real & Closest integer from below \\
+		\texttt{ceil} & Real & Closest integer from above \\
+		\texttt{round} & Real & Closest integer \\
+		\texttt{rand} & & random integer 
+			$\sqbr{0,\mathrm{RAND\_MAX}}$ \\
+		\texttt{random} & & random real $\sqbr{-1.0,1.0}$ \\
+		\texttt{seed} & Integer & Seeds the random number generator \\
+		\texttt{step} & Real & Step function \\
+		\texttt{ramp} & Real & Ramp function \\
+		\texttt{par} & Real & Parabolic function \\
+		\texttt{print} & Real & Prints a value to standard output \\
+		\hline
+	\end{tabular}
+	\end{center}
+\end{table}
+
+\begin{table}
+	\begin{center}
+	\caption{Mathematical Types}\label{tab:MATHP-TYPES}
+	\begin{tabular}{ll}
+		\hline
+		\emph{Type Name} & \emph{Description} \\
+		\hline
+		\texttt{Real} & Real number \\
+		\texttt{Integer} & Integer number (promoted to \texttt{Real} 
+			whenever required) \\
+		\hline
+	\end{tabular}
+	\end{center}
+\end{table}
+
+\begin{table}
+	\begin{center}
+	\caption{Predefined Variables}\label{tab:MATHP-VARS}
+	\begin{tabular}{lll}
+		\hline
+		\emph{Variable Name} & \emph{Type} & \emph{Value} \\
+		\hline
+		\texttt{Time} & Real & Current simulation time \\
+		\texttt{Val} & Real & Set by dof driver with DOF value \\
+		\\
+		\texttt{e} & Real & Neper's number \\
+		\texttt{pi} & Real & $\pi$ \\
+		\texttt{RAND\_MAX} & Integer & Maximum random integer \\
+		\\
+		\texttt{in2m} & Real & Inch to meter ratio (0.0254) \\
+		\texttt{m2in} & Real & Meter to inch ratio (1.0/0.0254) \\
+		\texttt{in2mm} & Real & Inch to meter ratio (25.4) \\
+		\texttt{mm2in} & Real & Meter to inch ratio (1.0/25.4) \\
+		\texttt{ft2m} & Real & Foot to meter ratio (0.3048) \\
+		\texttt{m2ft} & Real & Meter to foot ratio (1.0/0.3048) \\
+		\texttt{lb2kg} & Real & Pound to kilogram ratio (0.4535) \\
+		\texttt{kg2lb} & Real & Kilogram to pound ratio (1.0/0.4535) \\
+		\texttt{deg2rad} & Real & Degree to radian ratio ($\pi$/180) \\
+		\texttt{rad2deg} & Real & Radian to degree ratio (180/$\pi$) \\
+		\hline
+	\end{tabular}
+	\end{center}
+\end{table}
+
+
+
 \section{Higher Level Structures}
 Every time a higher level structure is expected, it can be
 substituted by a keyword that influences how the structure is read.
