@@ -60,4 +60,6 @@ D. Code:
 E. Bugs/missing features:
 
 	- check for nested /* */ comments in parsers
+	- check for laminar loss coefficients
+
 

@@ -1281,7 +1281,7 @@ DynamicPipe::AssRes(SubVectorHandler& WorkVec,
 
    if ((Re < HF->dGetRe(HydraulicFluid::LOWER)) || ((turbulent == 0) 
 			   && (Re < 1.25*HF->dGetRe(HydraulicFluid::LOWER)))) {
-      /* laminar, or ascending transition ascendente (continuation) */
+      /* laminar, or ascending transition (continuation) */
       doublereal dk = dKlam*viscosity;
       
       dLoss1 = dk*qq1/dd1;
