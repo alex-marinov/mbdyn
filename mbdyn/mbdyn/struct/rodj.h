@@ -254,15 +254,9 @@ public:
 	InitialAssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& XCurr);   
 
-	virtual unsigned int iGetNumPrivData(void) const {
-		return Rod::iGetNumPrivData();
-	};
-	virtual unsigned int iGetPrivDataIdx(const char *s) const {
-		return Rod::iGetPrivDataIdx(s);
-	};
-	virtual doublereal dGetPrivData(unsigned int i) const {
-		return Rod::dGetPrivData(i);
-	};
+	virtual unsigned int iGetNumPrivData(void) const;
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+	virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 /* ViscoElasticRod - end */
@@ -342,15 +336,9 @@ public:
 	std::ostream& WriteAdamsDummyPartCmd(std::ostream& out,
 		unsigned int part, unsigned int firstId) const;
 
-	virtual unsigned int iGetNumPrivData(void) const {
-		return Rod::iGetNumPrivData();
-	};
-	virtual unsigned int iGetPrivDataIdx(const char *s) const {
-		return Rod::iGetPrivDataIdx(s);
-	};
-	virtual doublereal dGetPrivData(unsigned int i) const {
-		return Rod::dGetPrivData(i);
-	};
+	virtual unsigned int iGetNumPrivData(void) const;
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+	virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 /* RodWithOffset - end */

@@ -686,7 +686,7 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
    Vec3 F(v*(dF/dElle));
    
    WorkVec.Add(1, F);
-   WorkVec.Add(4, -F);
+   WorkVec.Sub(4, F);
    
    return WorkVec;
 }
@@ -825,9 +825,63 @@ ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
    Vec3 F(v*(dF/dElle));
    
    WorkVec.Add(1, F);
-   WorkVec.Add(4, -F);
+   WorkVec.Sub(4, F);
    
    return WorkVec;
+}
+
+unsigned int
+ViscoElasticRod::iGetNumPrivData(void) const 
+{
+	return 3 + ConstitutiveLaw1DOwner::iGetNumPrivData();
+}
+
+unsigned int
+ViscoElasticRod::iGetPrivDataIdx(const char *s) const 
+{
+	ASSERT(s != NULL);
+
+	if (strcmp(s, "F") == 0) {
+		return 1;
+	}
+
+	if (strcmp(s, "L") == 0) {
+		return 2;
+	}
+
+	if (strcmp(s, "LPrime") == 0) {
+		return 3;
+	}
+
+	size_t l = sizeof("constitutiveLaw.") - 1;
+	if (strncmp(s, "constitutiveLaw.", l) == 0) {
+		return 3 + ConstitutiveLaw1DOwner::iGetPrivDataIdx(s + l);
+	}
+
+	/* error; handle later */
+	return 0;
+}
+
+doublereal
+ViscoElasticRod::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i > 0);
+
+	switch (i) {
+	case 1:
+		return GetF();
+
+	case 2:
+		return dElle;
+
+	case 3:
+		return dL0*dEpsilonPrime;
+	}
+
+	i -= 3;
+	ASSERT(i <= ConstitutiveLaw1DOwner::iGetNumPrivData());
+
+	return ConstitutiveLaw1DOwner::dGetPrivData(i);
 }
 
 /* ViscoElasticRod - end */
@@ -1094,8 +1148,8 @@ RodWithOffset::AssRes(SubVectorHandler& WorkVec,
    
    WorkVec.Add(1, F);
    WorkVec.Add(4, f1Tmp.Cross(F));
-   WorkVec.Add(7, -F);
-   WorkVec.Add(10, F.Cross(f2Tmp));
+   WorkVec.Sub(7, F);
+   WorkVec.Sub(10, f2Tmp.Cross(F));
    
    return WorkVec;
 }
@@ -1517,6 +1571,61 @@ RodWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
      << l << " " << 0. << " " << 0. << " "
      << Zero3 << std::endl;   
 }
+
+unsigned int
+RodWithOffset::iGetNumPrivData(void) const 
+{
+	return 3 + ConstitutiveLaw1DOwner::iGetNumPrivData();
+}
+
+unsigned int
+RodWithOffset::iGetPrivDataIdx(const char *s) const 
+{
+	ASSERT(s != NULL);
+
+	if (strcmp(s, "F") == 0) {
+		return 1;
+	}
+
+	if (strcmp(s, "L") == 0) {
+		return 2;
+	}
+
+	if (strcmp(s, "LPrime") == 0) {
+		return 3;
+	}
+
+	size_t l = sizeof("constitutiveLaw.") - 1;
+	if (strncmp(s, "constitutiveLaw.", l) == 0) {
+		return 3 + ConstitutiveLaw1DOwner::iGetPrivDataIdx(s + l);
+	}
+
+	/* error; handle later */
+	return 0;
+}
+
+doublereal
+RodWithOffset::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i > 0);
+
+	switch (i) {
+	case 1:
+		return GetF();
+
+	case 2:
+		return dElle;
+
+	case 3:
+		return dL0*dEpsilonPrime;
+	}
+
+	i -= 3;
+	ASSERT(i <= ConstitutiveLaw1DOwner::iGetNumPrivData());
+
+	return ConstitutiveLaw1DOwner::dGetPrivData(i);
+}
+
 
 /* RodWithOffset - end */
 
