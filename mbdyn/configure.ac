@@ -248,6 +248,7 @@ AC_CHECK_HEADERS(float.h)
 AC_CHECK_HEADERS(values.h)
 
 AC_CHECK_HEADERS(sys/times.h)
+AC_CHECK_HEADERS(sys/types.h)
 
 AC_CHECK_HEADERS(sys/mman.h)
 

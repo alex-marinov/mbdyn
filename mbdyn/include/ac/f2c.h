@@ -43,16 +43,20 @@ extern "C" {
 #define HAVE_FLAG_T
 
 #else /* !HAVE_G2C_H && !HAVE_F2C_H */
-
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+typedef int32_t integer;
+typedef float real;
+typedef double doublereal;
+#else /* !HAVE_SYS_TYPES_H */
 #if defined(__alpha) || defined(__ia64)
 typedef int integer;
-typedef float real;
-typedef double doublereal;
 #else /* !__alpha */
 typedef long int integer;
+#endif /* !__alpha */
 typedef float real;
 typedef double doublereal;
-#endif /* !__alpha */
+#endif /* !HAVE_SYS_TYPES_H */
 
 typedef integer logical;
 #if 0	/* we define flag somewhere else (we'll get rid of f2c some day!) */
