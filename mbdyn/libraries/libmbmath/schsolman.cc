@@ -222,7 +222,7 @@ fNewMatrix(0)
 		<< ": " << iLocVecDim << std::endl);
 
 	if (!MyRank) {
-		silont_cout("Interface dimension: " << iSchurIntDim
+		silent_cout("Interface dimension: " << iSchurIntDim
 			<< std::endl);
 	}
 
@@ -829,8 +829,8 @@ SchurSolutionManager::ComplExchInt(doublereal d[])
 				pSchVH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[j]+blk*iBlkSize], pBuffer[i]);
       			}
       			for (int iCntp1 = 1; iCntp1 <= iSchurIntDim; iCntp1++) {
-				doublereal d = pSchVH->dGetCoef(iCntp1);
-				dR += d * d;
+				doublereal dTmp = pSchVH->dGetCoef(iCntp1);
+				d[0] += dTmp * dTmp;
       			}
     		}
 
@@ -867,8 +867,6 @@ SchurSolutionManager::ComplExchInt(doublereal d[])
 			mysleep(150);
 #endif /* USE_MYSLEEP */
    		}
-    		dR = d[0];
-    		dXP = d[1];
   	}
 }
 /* SchurSolutionManager - End */
