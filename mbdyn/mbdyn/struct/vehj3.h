@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2005
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -39,15 +39,15 @@
 
 /* DeformableJoint - begin */
 
-class DeformableJoint : 
+class DeformableJoint :
 virtual public Elem, public Joint, public ConstitutiveLaw6DOwner {
 protected:
 	const StructNode* pNode1;
 	const StructNode* pNode2;
-	const Vec3 f1;
-	const Vec3 f2;
-	const Mat3x3 R1h;
-	const Mat3x3 R2h;      
+	const Vec3 tilde_f1;
+	const Vec3 tilde_f2;
+	const Mat3x3 tilde_R1h;
+	const Mat3x3 tilde_R2h;
 
 	bool bFirstRes;
 
@@ -58,12 +58,12 @@ public:
 	DeformableJoint(unsigned int uL,
 		const DofOwner* pDO,
 		const ConstitutiveLaw6D* pCL,
-		const StructNode* pN1, 
+		const StructNode* pN1,
 		const StructNode* pN2,
-		const Vec3& f1Tmp,
-		const Vec3& f2Tmp,
-		const Mat3x3& R1,
-		const Mat3x3& R2,
+		const Vec3& tilde_f1,
+		const Vec3& tilde_f2,
+		const Mat3x3& tilde_R1h,
+		const Mat3x3& tilde_R2h,
 		flag fOut);
 
 	/* Distruttore */
@@ -71,7 +71,7 @@ public:
 
 	/* Tipo di Joint */
 	virtual Joint::Type GetJointType(void) const {
-		return Joint::DEFORMABLEJOINT; 
+		return Joint::DEFORMABLEJOINT;
 	};
 
 	/* Contributo al file di restart */
@@ -82,7 +82,7 @@ public:
 	/* Tipo di DeformableJoint */
 	virtual ConstLawType::Type GetConstLawType(void) const = 0;
 
-	virtual unsigned int iGetNumDof(void) const { 
+	virtual unsigned int iGetNumDof(void) const {
 		return 0;
 	};
 
@@ -90,14 +90,14 @@ public:
 		return DofOrder::UNKNOWN;
 	};
 
-	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 12; 
-		*piNumCols = 12; 
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 12;
+		*piNumCols = 12;
 	};
-         
+
 	/* funzioni usate nell'assemblaggio iniziale */
 
-	virtual unsigned int iGetInitialNumDof(void) const { 
+	virtual unsigned int iGetInitialNumDof(void) const {
 		return 0;
 	};
 
@@ -105,7 +105,7 @@ public:
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
 	virtual doublereal dGetPrivData(unsigned int i) const;
 
-	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* *******PER IL SOLUTORE PARALLELO******** */
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	   utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
@@ -115,7 +115,7 @@ public:
 		NdTyps[1] = pNode2->GetNodeType();
 		NdLabels[1] = pNode2->GetLabel();
 	};
-	/* ************************************************ */  
+	/* ************************************************ */
 };
 
 /* DeformableJoint - end */
@@ -128,6 +128,7 @@ protected:
 	Vec3 ThetaRef;
 	Vec3 ThetaCurr;
 
+	/* tilde_d, tilde_ThetaCurr */
 	Vec6 k;
 
 	Mat6x6 FDE;
@@ -136,62 +137,63 @@ protected:
 	void AssVec(SubVectorHandler& WorkVec);
 
 public:
-	ElasticJoint(unsigned int uL, 
-		const DofOwner* pDO, 
+	ElasticJoint(unsigned int uL,
+		const DofOwner* pDO,
 		const ConstitutiveLaw6D* pCL,
-		const StructNode* pN1, 
+		const StructNode* pN1,
 		const StructNode* pN2,
-		const Vec3& f1Tmp,
-		const Vec3& f2Tmp,
-		const Mat3x3& R1,
-		const Mat3x3& R2,
+		const Vec3& tilde_f1,
+		const Vec3& tilde_f2,
+		const Mat3x3& tilde_R1h,
+		const Mat3x3& tilde_R2h,
 		flag fOut);
 
 	~ElasticJoint(void);
 
-	virtual inline void* pGet(void) const { 
+	virtual inline void* pGet(void) const {
 		return (void*)this;
 	};
 
 	/* Tipo di DeformableDispHinge */
 	virtual ConstLawType::Type GetConstLawType(void) const {
-		return ConstLawType::ELASTIC; 
+		return ConstLawType::ELASTIC;
 	};
 
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal dCoef, 
-	    const VectorHandler& XCurr,
-	    const VectorHandler& XPrimeCurr);
-   
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& 
-     AssRes(SubVectorHandler& WorkVec,
-	    doublereal dCoef,
-	    const VectorHandler& XCurr, 
-	    const VectorHandler& XPrimeCurr);
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+			doublereal dCoef,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio residuo */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+			doublereal dCoef,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
 
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
-   virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 12; 
-      *piNumCols = 12;
-   };
-   
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat, 
-		   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& 
-     InitialAssRes(SubVectorHandler& WorkVec,
-		   const VectorHandler& XCurr);   
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 12;
+		*piNumCols = 12;
+	};
+
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler&
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+			const VectorHandler& XCurr);
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */
+	virtual SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec,
+			const VectorHandler& XCurr);
 };
 
 /* ElasticJoint - end */
@@ -200,63 +202,63 @@ public:
 /* ViscousJoint - begin */
 
 class ViscousJoint : virtual public Elem, public DeformableJoint {
- public:
-   ViscousJoint(unsigned int uL, 
-			 const DofOwner* pDO, 
-			 const ConstitutiveLaw6D* pCL,
-			 const StructNode* pN1, 
-			 const StructNode* pN2,
-			 const Vec3& f1Tmp,
-			 const Vec3& f2Tmp,
-			 const Mat3x3& R1,
-			 const Mat3x3& R2,
-			 flag fOut);
-   
-   ~ViscousJoint(void);
-   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
+public:
+	ViscousJoint(unsigned int uL,
+			const DofOwner* pDO,
+			const ConstitutiveLaw6D* pCL,
+			const StructNode* pN1,
+			const StructNode* pN2,
+			const Vec3& tilde_f1,
+			const Vec3& tilde_f2,
+			const Mat3x3& tilde_R1h,
+			const Mat3x3& tilde_R2h,
+			flag fOut);
 
-   /* Tipo di DeformableDispHinge */
-   virtual ConstLawType::Type GetConstLawType(void) const {
-      return ConstLawType::VISCOUS; 
-   };
-   
+	~ViscousJoint(void);
+
+	virtual inline void* pGet(void) const {
+		return (void*)this;
+	};
+
+	/* Tipo di DeformableDispHinge */
+	virtual ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOUS;
+	};
+
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal dCoef, 
-	    const VectorHandler& XCurr,
-	    const VectorHandler& XPrimeCurr);
-   
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& 
-     AssRes(SubVectorHandler& WorkVec,
-	    doublereal dCoef,
-	    const VectorHandler& XCurr, 
-	    const VectorHandler& XPrimeCurr);
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+			doublereal dCoef,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio residuo */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+			doublereal dCoef,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
 
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
-   virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 6; 
-      *piNumCols = 12;
-   };
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 6;
+		*piNumCols = 12;
+	};
 
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat, 
-		   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& 
-     InitialAssRes(SubVectorHandler& WorkVec,
-		   const VectorHandler& XCurr);   
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler&
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+			const VectorHandler& XCurr);
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */
+	virtual SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 };
 
 /* ViscousJoint - end */
@@ -264,63 +266,64 @@ class ViscousJoint : virtual public Elem, public DeformableJoint {
 
 /* ViscoElasticJoint - begin */
 
-class ViscoElasticJoint 
+class ViscoElasticJoint
 : virtual public Elem, public DeformableJoint {
- public:
-   ViscoElasticJoint(unsigned int uL, 
-			      const DofOwner* pDO, 
-			      const ConstitutiveLaw6D* pCL,
-			      const StructNode* pN1, 
-			      const StructNode* pN2,
-			      const Vec3& f1Tmp,
-			      const Vec3& f2Tmp,
-			      const Mat3x3& R1,
-			      const Mat3x3& R2, 
-			      flag fOut);
-   
-   ~ViscoElasticJoint(void);
-   
-   virtual inline void* pGet(void) const { return (void*)this; };   
+public:
+	ViscoElasticJoint(unsigned int uL,
+			const DofOwner* pDO,
+			const ConstitutiveLaw6D* pCL,
+			const StructNode* pN1,
+			const StructNode* pN2,
+			const Vec3& tilde_f1,
+			const Vec3& tilde_f2,
+			const Mat3x3& tilde_R1h,
+			const Mat3x3& tilde_R2h,
+			flag fOut);
 
-   /* Tipo di DeformableDispHinge */
-   virtual ConstLawType::Type GetConstLawType(void) const {
-      return ConstLawType::VISCOELASTIC; 
-   };
-   
+	~ViscoElasticJoint(void);
+
+	virtual inline void* pGet(void) const {
+		return (void*)this;
+	};
+
+	/* Tipo di DeformableDispHinge */
+	virtual ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC;
+	};
+
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal dCoef, 
-	    const VectorHandler& XCurr,
-	    const VectorHandler& XPrimeCurr);
-   
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& 
-     AssRes(SubVectorHandler& WorkVec,
-	    doublereal dCoef,
-	    const VectorHandler& XCurr, 
-	    const VectorHandler& XPrimeCurr);
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+			doublereal dCoef,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio residuo */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+			doublereal dCoef,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
 
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
-   virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 6; 
-      *piNumCols = 12;
-   };
+	virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 6;
+		*piNumCols = 12;
+	};
 
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat, 
-		   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& 
-     InitialAssRes(SubVectorHandler& WorkVec,
-		   const VectorHandler& XCurr);   
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler&
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+			const VectorHandler& XCurr);
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */
+	virtual SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 };
 
 /* ViscoElasticJoint - end */
