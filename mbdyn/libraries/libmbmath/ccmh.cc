@@ -232,6 +232,28 @@ CColMatrixHandler<off>::MatVecMul(VectorHandler& out,
 
 template <int off>
 VectorHandler&
+CColMatrixHandler<off>::MatVecIncMul(VectorHandler& out,
+		const VectorHandler& in) const {
+	silent_cerr("CColMatrixHandler<off>::MatTVecMul called" << std::endl);
+	throw ErrGeneric();		
+	if (in.iGetSize() != iGetNumCols()
+			|| out.iGetSize() != iGetNumRows()) {
+		throw ErrGeneric();
+	}
+
+	for (integer col = 0; col < NCols; col++) {
+		integer idx = Ap[col];
+		integer idxe = Ap[col+1];
+		for (; idx < idxe; idx++) {
+			doublereal d = Ax[idx]*in.dGetCoef(Ai[idx]+1);
+			out.IncCoef(Ai[idx]+1, d);
+		}
+	}
+	return out;
+}
+
+template <int off>
+VectorHandler&
 CColMatrixHandler<off>::MatTVecIncMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
@@ -256,28 +278,6 @@ CColMatrixHandler<off>::MatTVecIncMul(VectorHandler& out,
 	
 template <int off>
 VectorHandler&
-CColMatrixHandler<off>::MatVecIncMul(VectorHandler& out,
-		const VectorHandler& in) const {
-	silent_cerr("CColMatrixHandler<off>::MatTVecMul called" << std::endl);
-	throw ErrGeneric();		
-	if (in.iGetSize() != iGetNumCols()
-			|| out.iGetSize() != iGetNumRows()) {
-		throw ErrGeneric();
-	}
-
-	for (integer col = 0; col < NCols; col++) {
-		integer idx = Ap[col];
-		integer idxe = Ap[col+1];
-		for (; idx < idxe; idx++) {
-			doublereal d = Ax[idx]*in.dGetCoef(Ai[idx]+1);
-			out.IncCoef(Ai[idx]+1, d);
-		}
-	}
-	return out;
-}
-
-template <int off>
-VectorHandler&
 CColMatrixHandler<off>::MatVecDecMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
@@ -299,5 +299,29 @@ CColMatrixHandler<off>::MatVecDecMul(VectorHandler& out,
 	return out;
 }
 
+template <int off>
+VectorHandler&
+CColMatrixHandler<off>::MatTVecDecMul(VectorHandler& out,
+		const VectorHandler& in) const
+{
+	silent_cerr("CColMatrixHandler<off>::MatTVecMul called" << std::endl);
+	throw ErrGeneric();		
+	if (out.iGetSize() != iGetNumRows()
+			|| in.iGetSize() != iGetNumCols()) {
+		throw ErrGeneric();
+	}
+
+	for (integer col = 0; col < NCols; col++) {
+		doublereal d = 0.;
+		integer idx = Ap[col];
+		integer idxe = Ap[col+1];
+		for (; idx < idxe; idx++) {
+			d += Ax[idx]*in.dGetCoef(Ai[idx]+1);
+		}
+		out.DecCoef(col+1, d);
+	}
+	return out;
+}
+	
 template class CColMatrixHandler<0>;
 template class CColMatrixHandler<1>;

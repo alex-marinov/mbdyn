@@ -433,7 +433,7 @@ SpMapMatrixHandler::MatTVecDecMul(VectorHandler& out,
 		doublereal d = 0.;
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin(); ri != re; ri++) {
-			d -= ri->second*in(ri->first + 1);
+			d += ri->second*in(ri->first + 1);
 		}
 		out.DecCoef(col+1, d);
 	}

@@ -158,13 +158,16 @@ public:
 	VectorHandler& MatVecMul(VectorHandler& out,
 			const VectorHandler& in) const;
 
-	VectorHandler& MatTVecIncMul(VectorHandler& out,
-			const VectorHandler& in) const;
-	
 	VectorHandler& MatVecIncMul(VectorHandler& out,
 			const VectorHandler& in) const;
 
+	VectorHandler& MatTVecIncMul(VectorHandler& out,
+			const VectorHandler& in) const;
+	
 	VectorHandler& MatVecDecMul(VectorHandler& out,
+			const VectorHandler& in) const;
+
+	VectorHandler& MatTVecDecMul(VectorHandler& out,
 			const VectorHandler& in) const;
 };
 

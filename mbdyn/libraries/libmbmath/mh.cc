@@ -195,7 +195,7 @@ MatrixHandler::MatVecDecMul(VectorHandler& out, const VectorHandler& in) const
 		doublereal d = 0.;
 
 		for (integer c = 1; c <= in.iGetSize(); c++) {
-			d -= this->operator()(r, c)*in(c);
+			d += this->operator()(r, c)*in(c);
 		}
 		out(r) -= d;
 	}
@@ -214,7 +214,7 @@ MatrixHandler::MatTVecDecMul(VectorHandler& out, const VectorHandler& in) const
 		doublereal d = 0.;
 
 		for (integer c = 1; c <= in.iGetSize(); c++) {
-			d -= this->operator()(c, r)*in(c);
+			d += this->operator()(c, r)*in(c);
 		}
 		out(r) -= d;
 	}
