@@ -73,6 +73,10 @@ const int iGlobalSymbolTableInitialSize = 21;
 class DataManager : public SolutionDataManager, public SolverDiagnostics {
    friend DriveCaller* ReadDriveData(const DataManager*, MBDynParser&, const DriveHandler*);   
    friend ScalarDof ReadScalarDof(const DataManager*, MBDynParser&, flag);
+
+#ifdef MBDYN_X_MULTITHREAD
+   friend class Elem;
+#endif /* MBDYN_X_MULTITHREAD */
    
  public: 
    class ErrGeneric {};
@@ -343,8 +347,12 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
       OutputHandler::OutFiles OutFile; /* Tipo di file in output */
       
    } ElemData[Elem::LASTELEMTYPE];
-   
+
+#ifdef MBDYN_X_MULTITHREAD
+   mutable MT_VecIter<Elem*> ElemIter;
+#else /* MBDYN_X_MULTITHREAD */
    mutable VecIter<Elem*> ElemIter;
+#endif /* MBDYN_X_MULTITHREAD */
    
    Elem** ppElems;         /* puntatore all'array di puntatori agli el. */
    unsigned int iTotElem;  /* numero totale di el. definiti */

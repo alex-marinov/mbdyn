@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2003
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -34,72 +34,167 @@
 #ifndef VECITER_H
 #define VECITER_H
 
+#ifdef MBDYN_X_MULTITHREAD
+#include <signal.h>
+#include "ac/asm_system.h"
+#endif /* MBDYN_X_MULTITHREAD */
 
 #include "myassert.h"
 
-/* GetFirst ritorna 1 ed assegna a TReturn il primo item del vettore. 
+/* GetFirst ritorna true ed assegna a TReturn il primo item del vettore.
  * Si assume che il vettore contenga almeno un termine;
- * GetNext ritorna 1 ed assegna a TReturn il termine successivo se esiste,
- * altrimenti ritorna 0 e l'assegnamento a TReturn e' unpredictable. */
+ * GetNext ritorna true ed assegna a TReturn il termine successivo se esiste,
+ * altrimenti ritorna false e l'assegnamento a TReturn e' unpredictable. */
 
 
-template <class T> 
+template <class T>
 class Iter {
- public:
-   virtual ~Iter(void) { NO_OP; };
-   virtual bool bGetFirst(T& TReturn) const = 0;
-   virtual bool bGetNext(T& TReturn) const = 0;
+public:
+	virtual ~Iter(void) { NO_OP; };
+	virtual bool bGetFirst(T& TReturn) const = 0;
+	virtual bool bGetNext(T& TReturn) const = 0;
 };
 
 template<class T>
 class VecIter : public Iter<T> {
- private:
-   const T* pStart;
-   T* pCount;
-   long int iSize;
-   
- public:
-   VecIter(void) : pStart(NULL), pCount(NULL), iSize(0) { NO_OP; };
-   VecIter(const T* p, long int i) : pStart(p), pCount((T*)p), iSize(i) 
-     { 
-	ASSERT(pStart != NULL);
-	ASSERT(iSize > 0);
-     };
-   
-   virtual ~VecIter(void) { NO_OP; };
-   
-   void Init(const T* p, long int i)
-     {
-	ASSERT(p != NULL);
-	ASSERT(i > 0);
-	
-	pStart = pCount = (T*)p;
-	iSize = i;
-     };
-   
-   inline bool bGetFirst(T& TReturn) const
-     {
-	ASSERT(pStart != NULL);
-	ASSERT(iSize > 0);
-	
-	TReturn = *((T*&)pCount = (T*)pStart);
-	
-	return flag(1);
-     };
-   
-   inline bool bGetNext(T& TReturn) const
-     {
-	ASSERT(pStart != NULL);     
-	ASSERT(iSize > 0);
-	ASSERT(pCount >= (T*)pStart);
-	
-	if (++((T*&)pCount) == (T*)pStart+iSize)
-	  return flag(0);
-	
-	TReturn = *pCount;
-	
-	return flag(1);
-     };        
+protected:
+	mutable T* pStart;
+	mutable T* pCount;
+	long int iSize;
+
+public:
+	VecIter(void) : pStart(NULL), pCount(NULL), iSize(0) { NO_OP; };
+	VecIter(const T* p, long int i) : pStart(p), pCount(p), iSize(i)
+	{
+		ASSERT(pStart != NULL);
+		ASSERT(iSize > 0);
+	};
+
+	virtual ~VecIter(void)
+	{
+		NO_OP;
+	};
+
+	void Init(const T* p, long int i)
+	{
+		ASSERT(p != NULL);
+		ASSERT(i > 0);
+
+		pStart = pCount = (T*)p;
+		iSize = i;
+	};
+
+	inline bool bGetFirst(T& TReturn) const
+	{
+		ASSERT(pStart != NULL);
+		ASSERT(iSize > 0);
+
+		pCount = pStart;
+		TReturn = *pStart;
+
+		return true;
+	};
+
+	inline bool bGetNext(T& TReturn) const
+	{
+		ASSERT(pStart != NULL);
+		ASSERT(iSize > 0);
+		ASSERT(pCount >= (T*)pStart);
+
+		++pCount;
+		if (pCount == pStart + iSize) {
+			return false;
+		}
+
+		TReturn = *pCount;
+
+		return true;
+	};
 };
 
+#ifdef MBDYN_X_MULTITHREAD
+class InUse {
+public:
+	mutable int8_t	inuse;
+
+	InUse(void) : inuse(false) { NO_OP; };
+	virtual ~InUse(void) { NO_OP; };
+
+	inline bool IsInUse(void) const
+	{
+		/* FIXME: make it portable? */
+		if (mbdyn_cmpxchgb(&inuse, int8_t(true), int8_t(false))) {
+			return true;
+		}
+		return false;
+	};
+	inline void Reset(void) { inuse = false; };
+};
+
+template<class T>
+class MT_VecIter : public VecIter<T> {
+public:
+	MT_VecIter(void) : VecIter<T>() { NO_OP; };
+	MT_VecIter(const T* p, long int i) : VecIter<T>(p, i)
+	{
+		NO_OP;
+	};
+
+	virtual ~MT_VecIter(void)
+	{
+		NO_OP;
+	};
+
+	void Init(const T* p, long int i)
+	{
+		VecIter<T>::Init(p, i);
+	};
+
+	/* FIXME: it must be called only once */
+	void ResetAccessData(void)
+	{
+		for (unsigned i = 0; i < iSize; i++) {
+			pStart[i]->Reset();
+		}
+	}
+
+	inline bool bGetFirst(T& TReturn) const
+	{
+		ASSERT(pStart != NULL);
+		ASSERT(iSize > 0);
+
+		pCount = pStart - 1;
+		return bGetNext(TReturn);
+
+#if 0
+		for (pCount = pStart; pCount < pStart + iSize; pCount++) {
+			if (!pCount->IsInUse()) {
+				TReturn = *pCount;
+				return true;
+			}
+		}
+
+		return false;
 #endif
+	};
+
+	inline bool bGetNext(T& TReturn) const
+	{
+		ASSERT(pStart != NULL);
+		ASSERT(iSize > 0);
+		ASSERT(pCount >= (T *)pStart);
+
+		for (pCount++; pCount < pStart + iSize; pCount++) {
+			if (!(*pCount)->IsInUse()) {
+				TReturn = *pCount;
+				return true;
+			}
+		}
+
+		return false;
+	};
+};
+
+#endif /* MBDYN_X_MULTITHREAD */
+
+#endif /* VECITER_H */

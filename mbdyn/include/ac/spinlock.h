@@ -41,7 +41,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#if 0
+#if 1
 
 struct __xchg_dummy { unsigned long a[100]; };
 #define __xg(x) ((struct __xchg_dummy *)(x))
@@ -62,9 +62,9 @@ mbdyn_cmpxchgb(int8_t *valptr, int8_t newval, int8_t oldval)
 	int8_t	prev;
 
 	__asm__ __volatile__( LOCK_PREFIX "cmpxchgb %b1,%2"
-		: "=a"(prev)
-		: "q"(newval), "m"(*__xg(valptr)), "0"(oldval)
-		: "memory");
+			: "=a"(prev)
+			: "q"(newval), "m"(*__xg(valptr)), "0"(oldval)
+			: "memory");
 
 	return prev;
 }
@@ -75,9 +75,9 @@ mbdyn_cmpxchgw(int16_t *valptr, int16_t newval, int16_t oldval)
 	int16_t	prev;
 
 	__asm__ __volatile__(LOCK_PREFIX "cmpxchgw %w1,%2"
-			     : "=a"(prev)
-			     : "q"(new), "m"(*__xg(ptr)), "0"(old)
-			     : "memory");
+    			: "=a"(prev)
+   			: "q"(newval), "m"(*__xg(valptr)), "0"(oldval)
+			: "memory");
 
 	return prev;
 }
@@ -88,9 +88,9 @@ mbdyn_cmpxchgl(int32_t *valptr, int32_t newval, int32_t oldval)
 	int32_t	prev;
 
 	__asm__ __volatile__(LOCK_PREFIX "cmpxchgl %1,%2"
-			     : "=a"(prev)
-			     : "q"(new), "m"(*__xg(ptr)), "0"(old)
-			     : "memory");
+			: "=a"(prev)
+			: "q"(newval), "m"(*__xg(valptr)), "0"(oldval)
+			: "memory");
 
 	return prev;
 }
@@ -101,5 +101,5 @@ mbdyn_cmpxchgl(int32_t *valptr, int32_t newval, int32_t oldval)
 	
 #endif /* HAVE_CMPXCHG */
 
-#endif /* ac_asm_system_h */
 
+#endif /* ac_asm_system_h */

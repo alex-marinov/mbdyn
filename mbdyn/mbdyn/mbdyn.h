@@ -59,6 +59,11 @@ typedef sighandler_t __sighandler_t;
 #endif /* !HAVE___SIGHANDLER_T */
 #endif /* HAVE_SIGNAL */
 
+/* sig_atomic_t */
+#ifndef HAVE_SIG_ATOMIC_T
+typedef int sig_atomic_t;
+#endif /* HAVE_SIG_ATOMIC_T */
+
 /* replacement for bool */
 #ifdef HAVE_BOOL
 #ifdef NEED_BOOL_H

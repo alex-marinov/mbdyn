@@ -51,6 +51,10 @@
 #include <simentity.h>
 #include <node.h>
 
+#ifdef MBDYN_X_MULTITHREAD
+#include <veciter.h>
+#endif /* MBDYN_X_MULTITHREAD */
+
 extern const char* psElemNames[];
 extern const char* psReadControlElems[];
 extern const char* psAdamsElemCode[];
@@ -65,7 +69,11 @@ class Rotor;
 
 /* Elem - begin */
 
-class Elem : public WithLabel, public SimulationEntity, public ToBeOutput {
+class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
+#ifdef MBDYN_X_MULTITHREAD
+, public InUse
+#endif /* MBDYN_X_MULTITHREAD */
+{
    /*
     * Tipi di Elem. Lasciare sempre UNKNOWN = -1, cosi' il primo elemento
     * ha tipo zero, e l'ultima entry dell'enum, LAST...TYPE, e' uguale
@@ -103,10 +111,11 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput {
 	RTAI_OUTPUT,
 	
 	LASTELEMTYPE
-   };      
+   };
+
  private:
    Elem::Type ElemT;
-   
+
  public:
    Elem(unsigned int uL, Elem::Type T, flag fOut);
    virtual ~Elem(void);
