@@ -440,5 +440,7 @@ LoadableCalls lc = {
 	destroy
 };
 
-extern "C" void *calls = &lc;
+extern "C" {
+void *calls = &lc;
+}
 
