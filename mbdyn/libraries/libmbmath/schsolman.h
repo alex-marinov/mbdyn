@@ -150,6 +150,9 @@ public:
 	/* Inizializza il gestore delle  matrici */
 	void MatrReset(void);
 
+	/* Inizializzatore "speciale" */
+	void MatrInitialize(void);
+
 	/* Risolve i blocchi chiamando il solutore */
 	void Solve(void);
 

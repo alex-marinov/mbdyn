@@ -84,6 +84,7 @@ public:
 	virtual integer iGetNumRows(void) const;
 	virtual integer iGetNumCols(void) const;
 	MatrixHandler* GetBMat(void);
+	void SetBMat(MatrixHandler* pBM);
 	doublereal* GetCMat(void);
 
 	/* Resetta la matrice */

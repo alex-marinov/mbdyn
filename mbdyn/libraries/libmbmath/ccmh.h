@@ -77,7 +77,8 @@ public:
 
 		if (row_begin == Ap[i_col]
 				|| (Ai[row_begin] - off) > i_row
-				|| (Ai[row_end] - off) < i_row) {
+				|| (Ai[row_end] - off) < i_row)
+		{
 			/* matrix must be rebuilt */
 			throw ErrRebuildMatrix();
 		}
@@ -113,7 +114,8 @@ public:
 
 		if (row_begin == Ap[i_col]
 				|| Ai[row_begin] - off > i_row
-				|| Ai[row_end] - off < i_row) {
+				|| Ai[row_end] - off < i_row)
+		{
 			return ::dZero;
 		}
 

@@ -65,6 +65,13 @@ SchurMatrixHandler::GetBMat(void)
 	return pB;
 }
 
+/* Setta l'handler alla matrice B */
+void
+SchurMatrixHandler::SetBMat(MatrixHandler* pBM)
+{
+	pB = pBM;
+}
+
 /* Restituisce il puntatore alla alla matrice C
  * che e' un vettore doublereal contenente le righe in successione */
 doublereal*

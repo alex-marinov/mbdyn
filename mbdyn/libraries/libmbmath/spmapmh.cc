@@ -165,7 +165,7 @@ SpMapMatrixHandler::Reset(void)
 	row_cont_type::iterator ri;
 	for (integer col = 0; col < NCols; col++) {
 		re = col_indices[col].end();
-		for (ri = col_indices[col].begin();ri != re; ri++) {
+		for (ri = col_indices[col].begin(); ri != re; ri++) {
 			ri->second = 0.;
 		}
 	}
@@ -199,9 +199,10 @@ SpMapMatrixHandler::GetCol(integer icol, VectorHandler& out) const
         if (icol > iGetNumCols()) {
 		throw ErrGeneric();
 	}
+
 	row_cont_type::const_iterator ri, re;
 	re = col_indices[icol].end();
-	for (ri = col_indices[icol].begin();ri != re; ri++) {		
+	for (ri = col_indices[icol].begin(); ri != re; ri++) {
 		out.PutCoef(ri->first + 1, ri->second);
 	}
 	return out;
@@ -214,7 +215,8 @@ SpMapMatrixHandler::MatMatMul(SpMapMatrixHandler& out,
 {
 	if ((in.iGetNumCols() != iGetNumRows())
 			|| (in.iGetNumRows() != out.iGetNumRows())
-			|| (out.iGetNumCols() != iGetNumCols())) {
+			|| (out.iGetNumCols() != iGetNumCols()))
+	{
 		silent_cerr("Assertion fault "
 			"in SpMapMatrixHandler::MatMatMul" << std::endl);
 		throw ErrGeneric();
@@ -242,8 +244,9 @@ MatrixHandler &
 SpMapMatrixHandler::MulAndSumWithShift(MatrixHandler& out, doublereal s ,
 		integer drow, integer dcol) const
 {
-	if ((out.iGetNumCols() < iGetNumCols()+dcol)
-			|| (out.iGetNumRows() < iGetNumRows()+drow)) {
+	if ((out.iGetNumCols() < iGetNumCols() + dcol)
+			|| (out.iGetNumRows() < iGetNumRows() + drow))
+	{
 		silent_cerr("Assertion fault "
 			"in SpMapMatrixHandler::MulAndSumWithShift"
 			<< std::endl);
@@ -269,8 +272,9 @@ SpMapMatrixHandler::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
 		std::vector<bool> b, doublereal s, integer drow, 
 		integer dcol) const
 {
-	if ((out.iGetNumCols() < iGetNumCols()+dcol)
-			|| (out.iGetNumRows() < iGetNumRows()+drow)) {
+	if ((out.iGetNumCols() < iGetNumCols() + dcol)
+			|| (out.iGetNumRows() < iGetNumRows() + drow))
+	{
 		silent_cerr("Assertion fault "
 			"in SpMapMatrixHandler::MulAndSumWithShift"
 			<< std::endl);
@@ -299,7 +303,8 @@ SpMapMatrixHandler::MatTVecMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
 	if (out.iGetSize() != iGetNumRows()
-			|| in.iGetSize() != iGetNumCols()) {
+			|| in.iGetSize() != iGetNumCols())
+	{
 		throw ErrGeneric();
 	}
 
@@ -308,7 +313,7 @@ SpMapMatrixHandler::MatTVecMul(VectorHandler& out,
 	for (integer col = 0; col < NCols; col++) {
 		doublereal d = 0.;
 		re = col_indices[col].end();
-		for (ri = col_indices[col].begin();ri != re; ri++) {
+		for (ri = col_indices[col].begin(); ri != re; ri++) {
 			d += ri->second*in(ri->first + 1);
 		}
 		out.PutCoef(col+1, d);
@@ -322,7 +327,8 @@ SpMapMatrixHandler::MatVecMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
 	if (in.iGetSize() != iGetNumCols()
-			|| out.iGetSize() != iGetNumRows()) {
+			|| out.iGetSize() != iGetNumRows())
+	{
 		throw ErrGeneric();
   	}
 
@@ -331,7 +337,7 @@ SpMapMatrixHandler::MatVecMul(VectorHandler& out,
 
 	for (integer col = 0; col < NCols; col++) {
 		re = col_indices[col].end();
-		for (ri = col_indices[col].begin();ri != re; ri++) {
+		for (ri = col_indices[col].begin(); ri != re; ri++) {
 			doublereal d = ri->second*in(col + 1);
 			out.IncCoef(ri->first + 1, d);
 		}
@@ -345,7 +351,8 @@ SpMapMatrixHandler::MatTVecIncMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
 	if (out.iGetSize() != iGetNumRows()
-			|| in.iGetSize() != iGetNumCols()) {
+			|| in.iGetSize() != iGetNumCols())
+	{
 		throw ErrGeneric();
 	}
 
@@ -354,7 +361,7 @@ SpMapMatrixHandler::MatTVecIncMul(VectorHandler& out,
 	for (integer col = 0; col < NCols; col++) {
 		doublereal d = 0.;
 		re = col_indices[col].end();
-		for (ri = col_indices[col].begin();ri != re; ri++) {
+		for (ri = col_indices[col].begin(); ri != re; ri++) {
 			d += ri->second*in(ri->first + 1);
 		}
 		out.IncCoef(col+1, d);
@@ -368,7 +375,8 @@ SpMapMatrixHandler::MatVecIncMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
 	if (in.iGetSize() != iGetNumCols()
-			|| out.iGetSize() != iGetNumRows()) {
+			|| out.iGetSize() != iGetNumRows())
+	{
 		throw ErrGeneric();
 	}
 
@@ -376,7 +384,7 @@ SpMapMatrixHandler::MatVecIncMul(VectorHandler& out,
 
 	for (integer col = 0; col < NCols; col++) {
 		re = col_indices[col].end();
-		for (ri = col_indices[col].begin();ri != re; ri++) {
+		for (ri = col_indices[col].begin(); ri != re; ri++) {
 			doublereal d = ri->second*in(col + 1);
 			out.IncCoef(ri->first + 1, d);
 		}
@@ -390,7 +398,8 @@ SpMapMatrixHandler::MatVecDecMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
 	if (in.iGetSize() != iGetNumCols()
-			|| out.iGetSize() != iGetNumRows()) {
+			|| out.iGetSize() != iGetNumRows())
+	{
 		throw ErrGeneric();
 	}
 
@@ -398,7 +407,7 @@ SpMapMatrixHandler::MatVecDecMul(VectorHandler& out,
 
 	for (integer col = 0; col < NCols; col++) {
 		re = col_indices[col].end();
-		for (ri = col_indices[col].begin();ri != re; ri++) {
+		for (ri = col_indices[col].begin(); ri != re; ri++) {
 			doublereal d = ri->second*in(col + 1);
 			out.DecCoef(ri->first + 1, d);
 		}

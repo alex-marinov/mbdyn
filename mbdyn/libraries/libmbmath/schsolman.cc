@@ -51,7 +51,9 @@
 /* FIXME: we must move the test to libmbmath */
 #include "nonlin.h"
 
-/* define to use Wait/Waitall instead of Test/Testall */
+/* NOTE: define to use Wait/Waitall instead of Test/Testall
+ * Apparently, this results in far better performances,
+ * so we might want to extend it to all other communications */
 #define USE_MPI_WAIT
 
 /*
@@ -358,6 +360,18 @@ SchurSolutionManager::MatrReset(void)
 	bNewMatrix = true;
 }
 
+/* Inizializzatore "speciale" */
+void
+SchurSolutionManager::MatrInitialize()
+{
+	pLocalSM->MatrInitialize();
+	pMH->MatEFCReset();
+	if (MyRank == 0) {
+		pInterSM->MatrInitialize();
+	}
+	bNewMatrix = true;
+}
+	
 /* Risolve i blocchi */
 
 void
@@ -373,6 +387,13 @@ SchurSolutionManager::Solve(void)
 
 	/* Fattorizzazione matrice B */
 	pLocalSM->Solve();
+
+	/* NOTE: we need to set the matrix handler after each solution,
+	 * because when the local SM is using an optimized sparse matrix,
+	 * it may switch from a generic representation, e.g. SpMapMH,
+	 * to a compressed representation, e.g. CCMH or DirMH
+	 */
+	pMH->SetBMat(pLocalSM->pMatHdl());
 
 #ifdef MPI_PROFILING
   	MPE_Log_event(32, 0, "end");
@@ -466,17 +487,6 @@ SchurSolutionManager::Solve(void)
     			for (int i = 0; i < pDispl[SolvCommSize]; i++) {
 				int j = i%iBlkSize;
 				int blk = i/iBlkSize;
-
-#if 0
-				silent_cerr("SchurSolutionManager::Solve():"
-					<< " iBlkSize=" << iBlkSize
-					<< " i=" << i
-					<< " j=" << j
-					<< " blk=" << blk
-					<< " pDRL[" << j << "]=" << pDofsRecvdList[j]
-					<< " V(" << pDofsRecvdList[j] + blk*iBlkSize << ")=" << pBuffer[i]
-					<< std::endl);
-#endif
 
      	 			pSchVH->IncCoef(pSchGlbToLoc[pDofsRecvdList[j] + blk*iBlkSize], pBuffer[i]);
 			}
@@ -657,13 +667,6 @@ SchurSolutionManager::AssSchur(void)
 		pSchMH->Reset();
     		doublereal *pbmd = &pBuffer[-pDispl[0]];
     		for (int i = 0; i < SolvCommSize; i++) {
-
-#if 0
-			for (int k = 0; k < pRecvDim[i]*pRecvDim[i]; k++) {
-				silent_cerr("i=" << i << " pbmd[" << k << "]=" << pbmd[pDispl[i] + k] << std::endl);
-			}
-#endif
-
 			if (iPrbmBlocks == 1) {
       				for (int j = pDispl[i]; j < pDispl[i + 1]; j++) {
 					int idxC = pSchGlbToLoc[pDofsRecvdList[j]];
@@ -689,21 +692,6 @@ SchurSolutionManager::AssSchur(void)
 						int br = k/iBlkSize;
 						int idxR = pSchGlbToLoc[pDofsRecvdList[ir] + br*iBlkSize];
 
-#if 0
-						silent_cerr("SchurSolutionManager::AssSchur():"
-							<< " iBlkSize=" << iBlkSize
-							<< " i=" << i
-							<< " j=" << j
-							<< " k=" << k
-							<< " ir=" << ir
-							<< " br=" << br
-							<< " ic=" << ic
-							<< " bc=" << bc
-							<< " pDRL[" << ir << "]=" << pDofsRecvdList[ir]
-							<< " pDRL[" << ic << "]=" << pDofsRecvdList[ic]
-							<< " M(" << idxR << "," << idxC << ")=" << pbmd[k]
-							<< std::endl);
-#endif
 						pSchMH->IncCoef(idxR, idxC, pbmd[k]);
 					}
 
@@ -711,11 +699,13 @@ SchurSolutionManager::AssSchur(void)
 				}
       			}
 	
-			/* this is required to allow the innermos loop on k
-			 * to be between pDispl[i] and pDispl[i + 1]; as a
-			 * consequence, pbmd must be decreased by pDispl[i] 
-			 * at each i */
-			pbmd += pDispl[i] - pDispl[i + 1];
+			/* NOTE: this is required to allow the innermost loop
+			 * on k to be between pDispl[i] and pDispl[i + 1];
+			 * as a * consequence, pbmd must be decreased
+			 * by pDispl[i] at each i.
+			 * Note that, in general, pDispl[i + 1] - pDispl[i]
+			 * is equal to pRecvDim[i] */
+			pbmd -= pDispl[i + 1] - pDispl[i];
     		}
 
 	/* on other nodes... */
@@ -955,12 +945,10 @@ SchurSolutionManager::ComplExchIntRes(doublereal& dRes,
 {
   	DEBUGCOUT("Entering SchurSolutionManager::ComplExchIntRes()" << endl);
 
-#if 0
-	silent_cout(">> Rank=" << MyRank << " dRes=" << dRes << std::endl);
-#endif
-
-	/* right now, all we transmit is the partial result of the test,
-	 * as computed by the caller of this function */
+	/* NOTE: right now, all we transmit is the partial result
+	 * of the test, as computed by the caller of this function;
+	 * the master node is in charge of computing the contribution
+	 * of the interface residual */
 	const size_t DBLMSGSIZE = 1;
 	doublereal d[DBLMSGSIZE];
 	d[0] = dRes;
@@ -996,24 +984,10 @@ SchurSolutionManager::ComplExchIntRes(doublereal& dRes,
 				int j = i%iBlkSize;
 				int blk = i/iBlkSize;
 
-#if 0
-				silent_cerr("SchurSolutionManager::ComplExchInt():"
-					<< " i=" << iCnt
-					<< " j=" << j
-					<< " blk=" << blk
-					<< " pDRL[" << j << "]=" << pDofsRecvdList[j]
-					<< " V(" << pSchGlbToLoc[pDofsRecvdList[j] + blk*iBlkSize] << ")+=" << pBuffer[iCnt]
-					<< std::endl);
-#endif
-			
 				pSchVH->IncCoef(pSchGlbToLoc[pDofsRecvdList[j] + blk*iBlkSize],
 						pBuffer[i]);
 			}
       		}
-
-#if 0
-		silent_cerr("pSchVH: " << std::endl << *pSchVH << std::endl);
-#endif
 
 		/* interface contribution to error */
 		for (int iCntp1 = 1; iCntp1 <= iSchurIntDim; iCntp1++) {
@@ -1082,10 +1056,6 @@ SchurSolutionManager::ComplExchIntRes(doublereal& dRes,
 	}
 
 	dRes = d[0];
-
-#if 0
-	silent_cout("<< Rank=" << MyRank << " dRes=" << dRes << std::endl);
-#endif
 }
 
 void
@@ -1095,6 +1065,7 @@ SchurSolutionManager::StartExchIntSol(void)
 
 	/* FIXME: the solution interface should have alread been exchanged
 	 * during the solution process, so we don't start anything... */
+	return;
 }
 
 void
@@ -1102,10 +1073,6 @@ SchurSolutionManager::ComplExchIntSol(doublereal& dSol,
 		const NonlinearSolverTest* t)
 {
   	DEBUGCOUT("Entering SchurSolutionManager::ComplExchIntSol()" << endl);
-
-#if 0
-	silent_cout(">> Rank=" << MyRank << " dSol=" << dSol << std::endl);
-#endif
 
 	/* right now, all we transmit is the partial result of the test,
 	 * as computed by the caller of this function */
@@ -1116,10 +1083,6 @@ SchurSolutionManager::ComplExchIntSol(doublereal& dSol,
     	if (MyRank == 0) {
 		/* Note: the interface contribution should have already
 		 * been transmitted during Solve(), and stored in pgVH. */
-
-#if 0
-		silent_cerr("pgVH:" << std::endl << *pgVH << std::endl);
-#endif
 
 		/* interface contribution to error */
 		for (int iCntp1 = 1; iCntp1 <= iSchurIntDim; iCntp1++) {
@@ -1188,10 +1151,6 @@ SchurSolutionManager::ComplExchIntSol(doublereal& dSol,
 	}
 
 	dSol = d[0];
-
-#if 0
-	silent_cout("<< Rank=" << MyRank << " dSol=" << dSol << std::endl);
-#endif
 }
 
 /* SchurSolutionManager - End */
