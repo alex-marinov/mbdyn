@@ -256,7 +256,7 @@ main(int argc, char* argv[])
         	/* Stream di ingresso dati */
 		std::istream* pIn = NULL;
 		std::ifstream FileStreamIn;
-        	char* sInputFileName = NULL;
+        	char* sInputFileName = "MBDyn";
         	char* sOutputFileName = NULL;
       
         	enum InputSource {
