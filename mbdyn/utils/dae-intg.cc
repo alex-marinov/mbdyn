@@ -450,16 +450,16 @@ method_multistep(const char* module, integration_data* d,
 #if defined(USE_UMFPACK)
 	UmfpackSparseLUSolutionManager sm(size);
 #elif defined(USE_Y12)
-	Y12SparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+	Y12SparseLUSolutionManager sm(size, 10*size*(size+1)+1, 1.);
 #elif defined(USE_HARWELL)
    	HarwellSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
 #elif defined(USE_MESCHACH)
 	MeschachSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
 #endif
    
-   	MatrixHandler& Jac = *sm.pMatHdl();
-   	VectorHandler& Res = *sm.pResHdl();   
-   	VectorHandler& Sol = *sm.pSolHdl();   
+   	MatrixHandler* Jac = sm.pMatHdl();
+   	VectorHandler* Res = sm.pResHdl();   
+   	VectorHandler* Sol = sm.pSolHdl();   
 
    	// paramteri di integrazione
    	doublereal ti = d->ti;
@@ -517,9 +517,13 @@ method_multistep(const char* module, integration_data* d,
       		doublereal test;
       		doublereal coef = dt*b0;
       		do {
-	 		(*::ff->func)(p_data, Res, *pX, *pXP, t);
+			Jac = sm.pMatHdl();
+			Res = sm.pResHdl();   
+			Sol = sm.pSolHdl();   
+	 		
+			(*::ff->func)(p_data, *Res, *pX, *pXP, t);
 
-	 		test = Res.Norm();
+	 		test = Res->Norm();
 	 		if (test < tol) {
 	    			break;
 	 		}
@@ -536,14 +540,14 @@ method_multistep(const char* module, integration_data* d,
 	 		(*::ff->grad)(p_data, J, JP, *pX, *pXP, t);
 	 		for (int ir = 1; ir <= size; ir++) {
 	    			for (int ic = 1; ic <= size; ic++) {
-	       				Jac.PutCoef(ir, ic, JP.dGetCoef(ir, ic) + coef*J.dGetCoef(ir, ic));
+	       				Jac->PutCoef(ir, ic, JP.dGetCoef(ir, ic) + coef*J.dGetCoef(ir, ic));
 	    			}
 	 		}
 	 		sm.Solve();
 			
 	 		// update
 	 		for (int ir = size; ir > 0; ir--) {
-	    			doublereal dxP = Sol.dGetCoef(ir);	
+	    			doublereal dxP = Sol->dGetCoef(ir);	
 	    			pXP->IncCoef(ir, dxP);
 	    			pX->IncCoef(ir, coef*dxP);
 	 		}
@@ -636,11 +640,11 @@ method_cubic(const char* module, integration_data* d,
 	MeschachSparseLUSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
 #endif
    
-   	MatrixHandler& Jac = *sm.pMatHdl();
-   	VectorHandler& Res = *sm.pResHdl();   
-   	VectorHandler& Sol = *sm.pSolHdl();   
+   	MatrixHandler* Jac = sm.pMatHdl();
+   	VectorHandler* Res = sm.pResHdl();   
+   	VectorHandler* Sol = sm.pSolHdl();   
 
-   	MyVectorHandler Resz(size, Res.pdGetVec() + size);
+   	MyVectorHandler Resz(size, Res->pdGetVec() + size);
 
    	// paramteri di integrazione
    	doublereal ti = d->ti;
@@ -676,7 +680,7 @@ method_cubic(const char* module, integration_data* d,
    
    	// inizializza la soluzione
    	(*::ff->init)(p_data, *pX, *pXP);
-   	(*::ff->func)(p_data, Res, *pX, *pXP, t);
+   	(*::ff->func)(p_data, *Res, *pX, *pXP, t);
    	for (int k = 1; k <= size; k++) {
       		doublereal x = pX->dGetCoef(k);
       		doublereal xp = pXP->dGetCoef(k);
@@ -739,12 +743,22 @@ method_cubic(const char* module, integration_data* d,
       		int j = 0;
       		doublereal test;      
       		do {
-	 		Res.Reset();
-	 		(*::ff->func)(p_data, Res, *pX, *pXP, t);
-	 		Resz.Reset();
+
+			Jac = sm.pMatHdl();
+			Res = sm.pResHdl();   
+			Sol = sm.pSolHdl();   
+
+			Resz.Attach(size, Res->pdGetVec() + size);
+
+	 		Res->Reset();
+	 		(*::ff->func)(p_data, *Res, *pX, *pXP, t);
+			//Res->Reset() zero also Resz!
+	 		//Resz.Reset();
 	 		(*::ff->func)(p_data, Resz, Xz, XPz, t + z*dt);
 
-	 		test = Res.Norm() + Resz.Norm();
+			//Res->Norm() computes also Resz!
+	 		//test = Res->Norm() + Resz->Norm();
+	 		test = Res->Norm();
 	 		if (test < tol) {
 	    			break;
 	 		}
@@ -766,10 +780,10 @@ method_cubic(const char* module, integration_data* d,
 
 			for (int ir = 1; ir <= size; ir++) {
 				for (int ic = 1; ic <= size; ic++) {
-					Jac.IncCoef(ir, ic, j00*J0.dGetCoef(ir, ic) + JP0.dGetCoef(ir, ic));
-					Jac.IncCoef(ir, size + ic, j0z*J0.dGetCoef(ir, ic));
-					Jac.IncCoef(size + ir, ic, jz0*Jz.dGetCoef(ir, ic));
-					Jac.IncCoef(size + ir, size + ic, jzz*Jz.dGetCoef(ir, ic) + JPz.dGetCoef(ir, ic));
+					Jac->IncCoef(ir, ic, j00*J0.dGetCoef(ir, ic) + JP0.dGetCoef(ir, ic));
+					Jac->IncCoef(ir, size + ic, j0z*J0.dGetCoef(ir, ic));
+					Jac->IncCoef(size + ir, ic, jz0*Jz.dGetCoef(ir, ic));
+					Jac->IncCoef(size + ir, size + ic, jzz*Jz.dGetCoef(ir, ic) + JPz.dGetCoef(ir, ic));
 				}
 			}
 
@@ -777,8 +791,8 @@ method_cubic(const char* module, integration_data* d,
 	 
 	 		// update
 	 		for (int ir = size; ir > 0; ir--) {
-	    			doublereal dxP0 = Sol.dGetCoef(ir);
-	    			doublereal dxPz = Sol.dGetCoef(size+ir);
+	    			doublereal dxP0 = Sol->dGetCoef(ir);
+	    			doublereal dxPz = Sol->dGetCoef(size+ir);
 	    			pXP->IncCoef(ir, dxP0);
 				XPz.IncCoef(ir, dxPz);
 	    			pX->IncCoef(ir, dt*(wz*dxPz + w0*dxP0));
