@@ -86,7 +86,7 @@ else
 	ol_unset=false
 fi
 # unset CDPATH
-$ol_unset CDPATH || test "${CDPATH+set}" != set || CDPATH=: && export CDPATH
+$ol_unset CDPATH || test "${CDPATH:+set}" != set || CDPATH=: && export CDPATH
 
 AC_CONFIG_AUX_DIR(build)dnl
 
@@ -186,7 +186,7 @@ AC_ARG_WITH(module,[  --with-module=modulelist  build listed modules],[
 	for ol_val in $withval ; do
 		ol_arg="$ol_arg module-$ol_val"
 	done
-	if test "${ol_arg-set}" = set ; then
+	if test "${ol_arg:-set}" = set ; then
 		AC_MSG_ERROR(bad value $withval for --with-module)
 	fi
 	MODULES_DIRS=$ol_arg
@@ -685,8 +685,9 @@ if test $ol_with_blas != no ; then
 		ol_with_goto_lib="goto"
 	fi
 
-	try_blas_LIBS="-l$ol_with_goto_lib -lxerbla $F2C_LIBS"
+	try_blas_LIBS=
 	if test $have_blas = no ; then
+		try_blas_LIBS="-l$ol_with_goto_lib -lxerbla $F2C_LIBS -lm"
 		if test $ol_with_blas = "auto" -o $ol_with_blas = "goto" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
@@ -701,8 +702,8 @@ if test $ol_with_blas != no ; then
 		fi
 	fi
 
-	try_blas_LIBS="-lcblas -latlas"
 	if test $have_blas = no ; then
+		try_blas_LIBS="-lcblas -latlas -lm"
 		if test $ol_with_blas = "auto" -o $ol_with_blas = "atlas" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
@@ -717,8 +718,8 @@ if test $ol_with_blas != no ; then
 		fi
 	fi
 
-	try_blas_LIBS="-lcblas"
 	if test $have_blas = no ; then
+		try_blas_LIBS="-lcblas -lm"
 		if test $ol_with_blas = "auto" -o $ol_with_blas = "cblas" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
@@ -733,8 +734,8 @@ if test $ol_with_blas != no ; then
 		fi
 	fi
 
-	try_blas_LIBS="-lblas"
 	if test $have_blas = no ; then
+		try_blas_LIBS="-lblas -lm"
 		if test $ol_with_blas = "auto" -o $ol_with_blas = "blas" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
@@ -762,35 +763,41 @@ if test $ol_with_blas != no ; then
 fi
 
 
+
 dnl ----------------------------------------------------------------
 dnl
 dnl Check for Umfpack
 dnl
 ol_link_umfpack=no
-if test $ol_with_umfpack != no ; then
+if test "$ol_with_umfpack" != "no" ; then
 	dnl OL_ADD_DIRS(umfpack)
 	
 	AC_CHECK_HEADERS(umfpack.h)
 
-	if test $ac_cv_header_umfpack_h = yes ; then
+	if test "$ac_cv_header_umfpack_h" = "yes" ; then
 
+		dnl check for AMD
+		AC_MSG_CHECKING([for AMD library])
+		save_LIBS="$LIBS"
+		try_amd_LIBS="-lamd"
+		LIBS="$try_amd_LIBS $LIBS"
+
+		AC_TRY_LINK([
+		],[
+			/* test for amd */
+		],[have_amd="yes"],[have_amd="no"])
+		if test "$have_amd" = "yes" ; then
+			try_umfpack_LIBS="$try_amd_LIBS"
+			AC_MSG_RESULT([yes])
+		else
+			try_umfpack_LIBS=
+			AC_MSG_RESULT([no])
+		fi
+
+		try_umfpack_LIBS="$try_umfpack_LIBS -lumfpack $BLAS_LIBS"
 		AC_MSG_CHECKING([for umfpack library])
-		# try_umfpack_LIBS="-lumfpack -lcblas -latlas"
-		try_umfpack_LIBS="-lumfpack"
-		save_LIBS=$LIBS
-		LIBS="$try_umfpack_LIBS $LIBS"
-		AC_TRY_LINK([
-#include <umfpack.h>
-],[
-			double t;
-			t = umfpack_timer();
-		],[have_umfpack=yes],[have_umfpack=no])
-		AC_TRY_LINK([
-#include <umfpack.h>
-],[
-			double Control[UMFPACK_CONTROL];
-			umfpack_dl_defaults(Control);
-		],[have_umfpack4=yes],[have_umfpack4=no])
+		LIBS="$try_umfpack_LIBS $save_LIBS"
+		
 		AC_TRY_LINK([
 #include <umfpack.h>
 ],[
@@ -803,95 +810,80 @@ if test $ol_with_umfpack != no ; then
 			double Info[UMFPACK_INFO];
 
 			umfpack_di_symbolic(n_row, n_col, Ap, Ai, Ax, &Symbolic, Control, Info);
-		],[have_umfpack4_1=yes],[have_umfpack4_1=no])
-		LIBS=$save_LIBS
+		],[
+			have_umfpack4_1="yes"
+			have_umfpack4="yes"
+			have_umfpack="yes"
+			AC_MSG_RESULT([(>= 4.1) yes])
+		],[
+			have_umfpack4_1="no"
+			have_umfpack4="notfound"
+			have_umfpack="notfound"
+		])
+		
+		if test "$have_umfpack4" != "yes" ; then
 
-		if test $have_umfpack != no ; then
-			UMFPACK_LIBS="$try_umfpack_LIBS"
-			if test $have_umfpack4 != no ; then
-				AC_DEFINE(HAVE_UMFPACK4,1,[define if Umfpack4 is available])
-				if test $have_umfpack4_1 != no ; then
-					AC_DEFINE(HAVE_UMFPACK4_1,1,[define if Umfpack4.1 is available])
-				fi
-			fi
-			ol_link_umfpack=yes
-			if test $have_umfpack4 != no ; then
-				if test $have_umfpack4_1 != no ; then
-					AC_MSG_RESULT([(>= 4.1) yes])
-				else
-					AC_MSG_RESULT([(>= 4.0) yes])
-				fi
-			else
-				AC_MSG_RESULT([yes])
-			fi
-		else
-			try_umfpack_LIBS="-lumfpack"
-			save_LIBS=$LIBS
-			LIBS="$try_umfpack_LIBS $LIBS"
 			AC_TRY_LINK([
 #include <umfpack.h>
-],[
-				double t;
-				t = umfpack_timer();
-			],[have_umfpack=yes],[have_umfpack=no])
-			AC_TRY_LINK([
-#include <umfpack.h>
-],[
+			],[
 				double Control[UMFPACK_CONTROL];
 				umfpack_dl_defaults(Control);
-			],[have_umfpack4=yes],[have_umfpack4=no])
-			LIBS=$save_LIBS
-			AC_TRY_LINK([
-#include <umfpack.h>
-],[
-#define SIZE 2
-				int n_row = SIZE, n_col = SIZE;
-				const int Ap[SIZE], Ai[SIZE];
-				const double Ax[SIZE];
-				void *Symbolic;
-				const double Control[UMFPACK_CONTROL];
-				double Info[UMFPACK_INFO];
+			],[
+				have_umfpack4="yes"
+				have_umfpack="yes"
+				AC_MSG_RESULT([(>= 4.1) yes])
+			],[
+				have_umfpack4="no"
+				have_umfpack="notfound"
+			])
 
-				umfpack_di_symbolic(n_row, n_col, Ap, Ai, Ax, &Symbolic, Control, Info);
-			],[have_umfpack4_1=yes],[have_umfpack4_1=no])
-			LIBS=$save_LIBS
-	
-			if test $have_umfpack != no ; then
-				UMFPACK_LIBS="$try_umfpack_LIBS"
-				if test $have_umfpack4 != no ; then
-					AC_DEFINE(HAVE_UMFPACK4,1,[define if Umfpack4 is available])
-				fi
-				ol_link_umfpack=yes
-				if test $have_umfpack4 != no ; then
-					if test $have_umfpack4_1 != no ; then
-						AC_MSG_RESULT([(>= 4.1) yes])
-					else
-						AC_MSG_RESULT([(>= 4.0) yes])
-					fi
-				else
+			if test "$have_umfpack" != "yes" ; then
+				AC_TRY_LINK([
+#include <umfpack.h>
+				],[
+					double t;
+					t = umfpack_timer();
+				],[
+					have_umfpack="yes"
 					AC_MSG_RESULT([yes])
-				fi
-				AC_DEFINE(NBLAS,1,[define if BLAS/ATLAS are not available to Umfpack])
-				AC_MSG_WARN([Umfpack will be used without cblas/atlas])
-			else
-				AC_MSG_RESULT([no])
+				],[
+					have_umfpack="no"
+				])
 			fi
 		fi
-	fi
 
-	if test $ol_link_umfpack = no ; then
-		if test $ol_with_umfpack != auto ; then
-			AC_MSG_ERROR([Could not locate Umfpack])
-		else
-			AC_MSG_WARN([Could not locate Umfpack])
-			AC_MSG_WARN([Umfpack not supported!])
+		if test "$have_umfpack4_1" = "yes" ; then
+			AC_DEFINE(HAVE_UMFPACK4_1,1,[define if Umfpack4.1 is available])
 		fi
+
+		if test "$have_umfpack4" = "yes" ; then
+			AC_DEFINE(HAVE_UMFPACK4,1,[define if Umfpack4 is available])
+		fi
+
+		if test "$have_umfpack" = "yes" ; then
+			ol_link_umfpack=yes
+			UMFPACK_LIBS="$try_umfpack_LIBS"
+			if test "${BLAS_LIBS:-set}" = "set" ; then
+				AC_DEFINE(NBLAS,1,[define if BLAS/ATLAS are not available to Umfpack])
+				AC_MSG_WARN([Umfpack will be used without cblas/atlas])
+			fi
+		fi
+		LIBS="$save_LIBS"
+	fi
+fi
+
+if test $ol_link_umfpack = no ; then
+	if test $ol_with_umfpack != auto ; then
+		AC_MSG_ERROR([Could not locate Umfpack])
 	else
-		AC_DEFINE(USE_UMFPACK,1,[define if you want to use Umfpack])
+		AC_MSG_WARN([Could not locate Umfpack])
+		AC_MSG_WARN([Umfpack not supported!])
 	fi
 else
-	AC_MSG_WARN([Umfpack not supported!])
+	AC_DEFINE(USE_UMFPACK,1,[define if you want to use Umfpack])
 fi
+
+
 
 dnl ----------------------------------------------------------------
 dnl
