@@ -59,12 +59,15 @@ private:
 
 	Vec3 Dir;
 	doublereal dGain;
+	doublereal dL;
+	doublereal dR;
 
 public:
 	Motor(unsigned int uL, const DofOwner* pD, 
 			const StructNode* pN1, const StructNode* pN2,
 			const AbstractNode* pV1, const AbstractNode* pV2,
 			const Vec3& TmpDir, doublereal dG,
+			doublereal dl, doublereal dr,
 			flag fOut);
 	virtual ~Motor(void);
 
