@@ -41,13 +41,13 @@
 #include <dataman.h>
 
 /* funzioni di default */
-unsigned int 
+static unsigned int 
 __i_get_num_dof(const LoadableElem* /* pEl */ )
 {
    	return 0;
 }
 
-DofOrder::Order 
+static DofOrder::Order 
 __set_dof(const LoadableElem*, unsigned int /* i */ )
 {
    	std::cerr << "You shouldn't be here!" << std::endl;
@@ -57,20 +57,20 @@ __set_dof(const LoadableElem*, unsigned int /* i */ )
 #endif /* USE_EXCEPTIONS */
 }
 
-void
+static void
 __output(const LoadableElem* /* pEl */ , OutputHandler& /* OH */ )
 {
    	NO_OP;
 }
 
-std::ostream& 
+static std::ostream& 
 __restart(const LoadableElem* pEl , std::ostream& out)
 {
    	return out << "loadable: " << pEl->GetLabel() 
 		<< ", not implemented yet;" << std::endl;
 }
 
-void 
+static void 
 __work_space_dim(const LoadableElem* /* pEl */ ,
 		 integer* piNumRows, 
 		 integer* piNumCols)
@@ -79,7 +79,7 @@ __work_space_dim(const LoadableElem* /* pEl */ ,
    	*piNumCols = 0;
 }
 
-VariableSubMatrixHandler& 
+static VariableSubMatrixHandler& 
 __ass_jac(LoadableElem* /* pEl */ ,
 	  VariableSubMatrixHandler& WorkMat,
 	  doublereal /* dCoef */ ,
@@ -90,7 +90,7 @@ __ass_jac(LoadableElem* /* pEl */ ,
    	return WorkMat;
 }
 
-void 
+static void 
 __ass_eig(LoadableElem* /* pEl */ ,
 	  VariableSubMatrixHandler& WorkMatA,
 	  VariableSubMatrixHandler& WorkMatB,
@@ -101,7 +101,7 @@ __ass_eig(LoadableElem* /* pEl */ ,
    	WorkMatB.SetNullMatrix(); 
 }
 
-SubVectorHandler& 
+static SubVectorHandler& 
 __ass_res(LoadableElem* /* pEl */ ,
 	  SubVectorHandler& WorkVec,
 	  doublereal /* dCoef */ ,
@@ -112,7 +112,7 @@ __ass_res(LoadableElem* /* pEl */ ,
    	return WorkVec;
 }
 
-void 
+static void 
 __before_predict(const LoadableElem* /* pEl */ ,
 		 VectorHandler& /* X */ ,
 		 VectorHandler& /* XP */ ,
@@ -122,7 +122,7 @@ __before_predict(const LoadableElem* /* pEl */ ,
    	NO_OP;
 }
 
-void 
+static void 
 __after_predict(const LoadableElem* /* pEl */ ,
 		VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ )
@@ -130,7 +130,7 @@ __after_predict(const LoadableElem* /* pEl */ ,
    	NO_OP;
 }
 
-void 
+static void 
 __update(LoadableElem* /* pEl */ ,
 	 const VectorHandler& /* X */ ,
 	 const VectorHandler& /* XP */ )
@@ -138,13 +138,13 @@ __update(LoadableElem* /* pEl */ ,
    	NO_OP;
 }
 
-unsigned int 
+static unsigned int 
 __i_get_initial_num_dof(const LoadableElem* /* pEl */ )
 {
    	return 0;
 }
 
-void 
+static void 
 __initial_work_space_dim(const LoadableElem* /* pEl */ ,
 			 integer* piNumRows, 
 			 integer* piNumCols)
@@ -153,7 +153,7 @@ __initial_work_space_dim(const LoadableElem* /* pEl */ ,
    	*piNumCols = 0;   
 }
 
-VariableSubMatrixHandler& 
+static VariableSubMatrixHandler& 
 __initial_ass_jac(LoadableElem* /* pEl */ ,
 		  VariableSubMatrixHandler& WorkMat, 
 		  const VectorHandler& /* XCurr */ )
@@ -162,7 +162,7 @@ __initial_ass_jac(LoadableElem* /* pEl */ ,
    	return WorkMat;
 }
 
-SubVectorHandler& 
+static SubVectorHandler& 
 __initial_ass_res(LoadableElem* /* pEl */ ,
 		  SubVectorHandler& WorkVec, 
 		  const VectorHandler& /* XCurr */ )
@@ -171,7 +171,7 @@ __initial_ass_res(LoadableElem* /* pEl */ ,
    	return WorkVec;
 }
 
-void 
+static void 
 __set_value(const LoadableElem* /* pEl */ , 
 	    VectorHandler& /* X */ ,
 	    VectorHandler& /* XP */ )
@@ -179,19 +179,19 @@ __set_value(const LoadableElem* /* pEl */ ,
    	NO_OP;
 }
 
-void 
+static void 
 __set_initial_value(const LoadableElem* /* pEl */ , VectorHandler& /* X */ )
 {
    	NO_OP;
 }
 
-unsigned int 
+static unsigned int 
 __i_get_num_priv_data(const LoadableElem* /* pEl */ )
 {
    	return 0;
 }
 
-doublereal 
+static doublereal 
 __d_get_priv_data(const LoadableElem* /* pEl */ , unsigned int /* i */ )
 {
    	std::cerr << "You shouldn't be here!" << std::endl;
@@ -201,7 +201,24 @@ __d_get_priv_data(const LoadableElem* /* pEl */ , unsigned int /* i */ )
 #endif /* USE_EXCEPTIONS */
 }
 
-void 
+static int
+__i_get_num_connected_nodes(const LoadableElem* pEl)
+{
+	std::cerr << psElemNames[Elem::LOADABLE] << "(" << pEl->GetLabel()
+		<< ") cannot be used in parallel environment" << std::endl;
+	THROW(ErrGeneric());
+}
+
+static void
+__get_connected_nodes(const LoadableElem* pEl, 
+		int& NumNodes, 
+		Node::Type* /* NdTyps */ , 
+		unsigned int* /* NdLabels */ )
+{
+	NumNodes = __i_get_num_connected_nodes(pEl);
+}
+
+static void 
 __destroy(LoadableElem* /* pEl */ )
 {
    	NO_OP;
@@ -243,9 +260,10 @@ needsAirProperties(false)
    	if (handle == NULL) {
 		/* look for module in cwd */
 		size_t l = strlen(module_name);
-		char cwd[1024];
+		char cwd[PATH_MAX];
 
-		if (getcwd(cwd, 1024) == NULL || strlen(cwd) >= 1024-1-3-l) {
+		if (getcwd(cwd, sizeof(cwd)) == NULL 
+				|| strlen(cwd) >= sizeof(cwd)-1-3-l) {
 			std::cerr << "Loadable(" << uLabel 
 				<< "): unable to get current working directory"
 				<< std::endl;
@@ -304,6 +322,10 @@ needsAirProperties(false)
 			<< "): function \"read\" must be defined in module <"
 			<< module_name << "> data" << std::endl;
 		THROW(ErrGeneric());
+	}
+
+	if (calls->module_name == NULL) {
+		calls->module_name = module_name;
 	}
 
 	/*
@@ -383,6 +405,14 @@ needsAirProperties(false)
 
 	if (calls->d_get_priv_data == NULL) {
 		calls->d_get_priv_data = __d_get_priv_data;
+	}
+
+	if (calls->i_get_num_connected_nodes == NULL) {
+		calls->i_get_num_connected_nodes = __i_get_num_connected_nodes;
+	}
+
+	if (calls->get_connected_nodes == NULL) {
+		calls->get_connected_nodes = __get_connected_nodes;
 	}
 
 	if (calls->destroy == NULL) {
@@ -563,6 +593,22 @@ LoadableElem::dGetPrivData(unsigned int i) const
 {
    	ASSERT(calls->d_get_priv_data != NULL);
    	return (*calls->d_get_priv_data)(this, i);
+}
+
+int
+LoadableElem::GetNumConnectedNodes(void) const
+{
+	ASSERT(calls->i_get_num_connected_nodes != NULL);
+	return (*calls->i_get_num_connected_nodes)(this);
+}
+
+void
+LoadableElem::GetConnectedNodes(int& NumNodes, 
+		Node::Type* NdTyps, 
+		unsigned int* NdLabels)
+{
+	ASSERT(calls->get_connected_nodes != NULL);
+	return (*calls->get_connected_nodes)(this, NumNodes, NdTyps, NdLabels);
 }
 
 Elem* 

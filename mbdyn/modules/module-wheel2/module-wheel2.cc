@@ -296,7 +296,7 @@ read(LoadableElem* pEl,
 	return (void *)p;
 }
 
-unsigned int
+static unsigned int
 i_get_num_dof(const LoadableElem* pEl)
 {
 	DEBUGCOUTFNAME("i_get_num_dof");
@@ -330,7 +330,7 @@ output(const LoadableElem* pEl, OutputHandler& OH)
 	}
 }
 
-std::ostream&
+static std::ostream&
 restart(const LoadableElem* pEl, std::ostream& out)
 {
 	DEBUGCOUTFNAME("restart");
@@ -593,7 +593,7 @@ ass_res(LoadableElem* pEl,
 	return WorkVec;
 }
 
-void
+static void
 before_predict(const LoadableElem* pEl, 
 		VectorHandler& X,
 		VectorHandler& XP,
@@ -603,7 +603,7 @@ before_predict(const LoadableElem* pEl,
    DEBUGCOUTFNAME("before_predict");
 }
 
-void
+static void
 after_predict(const LoadableElem* pEl, 
 		VectorHandler& X,
 		VectorHandler& XP)
@@ -611,7 +611,7 @@ after_predict(const LoadableElem* pEl,
 	DEBUGCOUTFNAME("after_predict");
 }
 
-void
+static void
 update(LoadableElem* pEl, 
 		const VectorHandler& X,
 		const VectorHandler& XP)
@@ -619,14 +619,14 @@ update(LoadableElem* pEl,
 	DEBUGCOUTFNAME("update");
 }
 
-unsigned int
+static unsigned int
 i_get_initial_num_dof(const LoadableElem* pEl)
 {
 	DEBUGCOUTFNAME("i_get_initial_num_dof");
 	return 0;
 }
 
-void
+static void
 initial_work_space_dim(const LoadableElem* pEl, 
 		integer* piNumRows, 
 		integer* piNumCols)
@@ -636,7 +636,7 @@ initial_work_space_dim(const LoadableElem* pEl,
 	*piNumCols = 0;   
 }
 
-VariableSubMatrixHandler& 
+static VariableSubMatrixHandler& 
 initial_ass_jac(LoadableElem* pEl, 
 		VariableSubMatrixHandler& WorkMat, 
 		const VectorHandler& XCurr)
@@ -657,7 +657,7 @@ initial_ass_jac(LoadableElem* pEl,
 	return WorkMat;
 }
 
-SubVectorHandler& 
+static SubVectorHandler& 
 initial_ass_res(LoadableElem* pEl, 
 		SubVectorHandler& WorkVec, 
 		const VectorHandler& XCurr)
@@ -678,26 +678,27 @@ initial_ass_res(LoadableElem* pEl,
 	return WorkVec;
 }
 
-void
+static void
 set_value(const LoadableElem* pEl, VectorHandler& X, VectorHandler& XP)
 {
 	DEBUGCOUTFNAME("set_value");
 }
    
-void
+static void
 set_initial_value(const LoadableElem* pEl, VectorHandler& X)
 {
 	DEBUGCOUTFNAME("set_initial_value");
 }
 
-unsigned int
+static unsigned int
 i_get_num_priv_data(const LoadableElem* pEl)
 {
 	DEBUGCOUTFNAME("i_get_num_priv_data");
 	return 0;
 }
 
-doublereal d_get_priv_data(const LoadableElem* pEl, unsigned int i)
+static doublereal
+d_get_priv_data(const LoadableElem* pEl, unsigned int i)
 {
 	DEBUGCOUTFNAME("d_get_priv_data");
 	ASSERT(pEl->iGetNumPrivData() > 0);
@@ -721,8 +722,35 @@ destroy(LoadableElem* pEl)
 	SAFEDELETE(p);
 }
 
+static int
+i_get_num_connected_nodes(const LoadableElem* /* pEl */ )
+{
+	DEBUGCOUTFNAME("i_get_num_connected_nodes");
+	
+	/* wheel + ground */
+	return 2;
+}
+
+static void
+get_connected_nodes(const LoadableElem* pEl, 
+		int& NumNodes, Node::Type* NdTyp, unsigned int* NdLabels)
+{
+	DEBUGCOUTFNAME("get_connected_nodes");
+	module_wheel* p = (module_wheel *)pEl->pGetData();
+	
+	/* wheel + ground */
+	NumNodes = 2;
+
+	NdTyp[0] = Node::STRUCTURAL;
+	NdTyp[1] = Node::STRUCTURAL;
+
+	NdLabels[0] = p->pWheel->GetLabel();
+	NdLabels[1] = p->pGround->GetLabel();
+}
+
 static struct
 LoadableCalls lc = {
+	"wheel2",
 	read, /* */
 	NULL /* i_get_num_dof */ ,
 	NULL /* set_dof */ ,
@@ -743,6 +771,8 @@ LoadableCalls lc = {
 	NULL /* set_initial_value */ ,
 	NULL /* i_get_num_priv_data */ ,
 	NULL /* d_get_priv_data */ ,
+	i_get_num_connected_nodes,
+	get_connected_nodes,
 	destroy
 };
 

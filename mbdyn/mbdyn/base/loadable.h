@@ -39,9 +39,10 @@
 #include <aerodyn.h>
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
-/* #include <aerodyn.h> */
 
-/* Elemento caricabile dinamicamente;
+/*
+ * Dynamically loadable element
+ * 
  * fornisce l'interfaccia ad un modulo a parte e compilato come shared library
  * che deve provvedere le funzioni desiderate dell'elemento, altrimenti
  * vengono usate funzioni di default.
@@ -145,14 +146,17 @@ typedef unsigned int (* p_i_get_num_priv_data)(const LoadableElem* pEl);
 typedef doublereal
 (* p_d_get_priv_data)(const LoadableElem* pEl, 
 		      unsigned int i);
+typedef int (* p_i_get_num_connected_nodes)(const LoadableElem*);
+typedef void (* p_get_connected_nodes)(const LoadableElem*, int&, 
+		Node::Type*, unsigned int*);
 typedef void (* p_destroy)(LoadableElem*);
-
 /*
  * Struttura che contiene le chiamate alle funzioni del modulo;
  * e' l'unico contatto tra modulo ed elemento caricato runtime.
  * Se un puntatore e' vuoto, viene riempito con il metodo di default.
  */
 struct LoadableCalls {
+	const char *			module_name;
 	p_read				read;
 	p_i_get_num_dof			i_get_num_dof;
 	p_set_dof 			set_dof;
@@ -173,6 +177,8 @@ struct LoadableCalls {
 	p_set_initial_value		set_initial_value;
 	p_i_get_num_priv_data		i_get_num_priv_data;
 	p_d_get_priv_data		d_get_priv_data;
+	p_i_get_num_connected_nodes	i_get_num_connected_nodes;
+	p_get_connected_nodes		get_connected_nodes;
 	p_destroy			destroy;
 };
  
@@ -253,6 +259,17 @@ public:
 
 	bool NeedsAirProperties(void) const;
 	void NeedsAirProperties(bool yesno);
+
+	/* *******PER IL SOLUTORE BLOCK JACOBI-BROYDEN******** */
+     	/* 
+	 * Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs 
+	 */
+     	virtual int GetNumConnectedNodes(void) const;
+	virtual void GetConnectedNodes(int& NumNodes, 
+			Node::Type* /* NdTyps */ , 
+			unsigned int* /* NdLabels */ );
+     	/* ************************************************ */
 };
 
 inline void* 

@@ -201,7 +201,23 @@ destroy(LoadableElem* pEl)
    DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
 }
 
+static int
+i_get_num_connected_nodes(const LoadableElem* pEl)
+{
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   return 0;
+}
+
+static void
+get_connected_nodes(const LoadableElem* pEl, 
+		int& NumNodes, Node::Type* NdTyp, unsigned int* NdLabels)
+{
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   NumNodes = i_get_num_connected_nodes(pEl);
+}
+
 static struct LoadableCalls lc = {
+	"dummy",
 	read,
 	i_get_num_dof,
 	set_dof,
@@ -222,6 +238,8 @@ static struct LoadableCalls lc = {
 	set_initial_value,
 	i_get_num_priv_data,
 	d_get_priv_data,
+	i_get_num_connected_nodes,
+	get_connected_nodes,
 	destroy
 };
 

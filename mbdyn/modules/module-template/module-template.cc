@@ -59,7 +59,7 @@ read(
 	 * read data
 	 */
 	if (HP.IsKeyWord("help")) {
-		cout << "Module; template" << endl;
+		std::cout << "Module; template" << std::endl;
 	}
 	
 	return (void *)p;
@@ -85,11 +85,11 @@ output(const LoadableElem* pEl, OutputHandler& OH)
 	DEBUGCOUTFNAME("output");
 }
 
-static ostream&
-restart(const LoadableElem* pEl, ostream& out)
+static std::ostream&
+restart(const LoadableElem* pEl, std::ostream& out)
 {
 	DEBUGCOUTFNAME("restart");
-	return out << "not implemented yet;" << endl;
+	return out << "not implemented yet;" << std::endl;
 }
 
 static void
@@ -311,8 +311,8 @@ d_get_priv_data(const LoadableElem* pEl, unsigned int i)
 	DEBUGCOUTFNAME("d_get_priv_data");
 	ASSERT(pEl->iGetNumPrivData() > 0);
 	if (i > pEl->iGetNumPrivData()) {
-		cerr << "Module-template Elem: illegal private data index "
-			<< i << endl;      
+		std::cerr << "Module-template Elem: illegal private data index "
+			<< i << std::endl;      
 		THROW(ErrGeneric());
 	}
    
@@ -336,8 +336,32 @@ destroy(LoadableElem* pEl)
 	SAFEDELETE(p);
 }
 
+static int
+i_get_num_connected_nodes(const LoadableElem* pEl)
+{
+	DEBUGCOUTFNAME("i_get_num_connected_nodes");
+	return 0;
+}
+
+static void
+get_connected_nodes(const LoadableElem* pEl, 
+		int& NumNodes, Node::Type* NdTyp, unsigned int* NdLabels)
+{
+	DEBUGCOUTFNAME("get_connected_nodes");
+
+#if 0
+	module_template* p = (module_template *)pEl->pGetData();
+#endif /* 0 */
+
+	/*
+	 * set args according to element connections
+	 */
+	NumNodes = i_get_num_connected_nodes(pEl);
+}
+
 static struct
 LoadableCalls lc = {
+	"template",
 	read,
 	i_get_num_dof,
 	set_dof,
@@ -358,10 +382,12 @@ LoadableCalls lc = {
 	set_initial_value,
 	i_get_num_priv_data,
 	d_get_priv_data,
+	i_get_num_connected_nodes,
+	get_connected_nodes,
 	destroy
 };
 
 extern "C" {
-	void *calls = &lc;
+void *calls = &lc;
 }
 

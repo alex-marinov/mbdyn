@@ -362,6 +362,21 @@ destroy(LoadableElem* pEl)
 	SAFEDELETE(p);
 }
 
+static int
+i_get_num_connected_nodes(const LoadableElem* pEl)
+{
+	DEBUGCOUTFNAME("i_get_num_connected_nodes");
+	return 0;
+}
+
+static void
+get_connected_nodes(const LoadableElem* pEl, 
+		int& NumNodes, Node::Type* NdTyp, unsigned int* NdLabels)
+{
+	DEBUGCOUTFNAME("get_connected_nodes");
+	NumNodes = i_get_num_connected_nodes(pEl);
+}
+
 static struct
 LoadableCalls lc = {
 	read, /* */
@@ -384,6 +399,8 @@ LoadableCalls lc = {
 	NULL /* set_initial_value */ ,
 	NULL /* i_get_num_priv_data */ ,
 	NULL /* d_get_priv_data */ ,
+	i_get_num_connected_nodes,
+	get_connected_nodes,
 	destroy
 };
 
