@@ -31,6 +31,8 @@
 *.pdf -k 'b'
 *.xls -k 'b'
 
+*.exe -k 'b'
+
 # Images
 *.gif -k 'b'
 *.jpg -k 'b'
