@@ -70,16 +70,16 @@ The syntax of the module is:
 At present, there are a number of cards that can be grouped as follows, 
 based on the integration phase they refer to.
 
-\subsection{General data}
+\subsection{General Data}
 those data that refer to the main integration phase or the simulation as a
 whole. They are:
 
-\subsubsection{Initial time}
+\subsubsection{Initial Time}
 \begin{verbatim}
     <card> ::= initial time : <time> ;
 \end{verbatim}
 
-\subsubsection{Final time}
+\subsubsection{Final Time}
 \begin{verbatim}
     <card> ::= final time : <time> ;
 \end{verbatim}
@@ -111,18 +111,18 @@ than \kw{min\_iterations} are performed at a time step;
 \end{verbatim}
 the time step is change according to the \kw{time\_step\_change} law.
 
-\subsubsection{Min time step}
+\subsubsection{Min Time Step}
 \begin{verbatim}
     <card> ::= min time step : <time_step> ;
 \end{verbatim}
 
-\subsubsection{Max time step}
+\subsubsection{Max Time Step}
 \begin{verbatim}
     <card> ::= max time step : <time_step> ;
 \end{verbatim}
 both are significant only if the time step can vary.
 
-\subsubsection{Time step}
+\subsubsection{Time Step}
 \begin{verbatim}
     <card> ::= time step : <time_step> ;
 \end{verbatim}
@@ -174,12 +174,12 @@ Examples:
     tolerance: 1.e-6, null, test, norm;
 \end{verbatim}
 
-\subsubsection{Max iterations}
+\subsubsection{Max Iterations}
 \begin{verbatim}
     <card> ::= max iterations : <max_iterations> ;
 \end{verbatim}
 
-\subsubsection{Modify residual test}
+\subsubsection{Modify Residual Test}
 \begin{verbatim}
     <card> ::= modify residual test;
 \end{verbatim}
@@ -299,7 +299,7 @@ The default behaiour is to ignore such requests\footnote{See note above}.
 Experimental, not available nor documented yet.
 Will likely be disabled.
 
-\subsubsection{Abort after}
+\subsubsection{Abort After}
 \begin{verbatim}
     <card> ::= abort after : { input 
                              | assembly 
@@ -521,21 +521,21 @@ and 4 threads for solution, use
 
 
 
-\subsection{Derivatives data}
+\subsection{Derivatives Data}
 Data related to the derivatives phase. They are:
 
 
-\subsubsection{Derivatives tolerance}
+\subsubsection{Derivatives Tolerance}
 \begin{verbatim}
     <card> ::= derivatives tolerance : <tolerance> ;
 \end{verbatim}
 
-\subsubsection{Derivatives max iterations}
+\subsubsection{Derivatives Max Iterations}
 \begin{verbatim}
     <card> ::= derivatives max iterations : <max_iterations> ;
 \end{verbatim}
 
-\subsubsection{Derivatives coefficient}
+\subsubsection{Derivatives Coefficient}
 \begin{verbatim}
     <card> ::= derivatives coefficient : <coefficient> ;
 \end{verbatim}
@@ -553,15 +553,15 @@ stiffness and high inertia, the coefficient can be big, if the system
 has high stiffness and small inertia, the coefficient must be small.
 
 
-\subsection{Dummy steps data}
+\subsection{Dummy Steps Data}
 Data related to the dummy steps phase. They are:
 
-\subsubsection{Dummy steps tolerance}
+\subsubsection{Dummy Steps Tolerance}
 \begin{verbatim}
     <card> ::= dummy steps tolerance : <tolerance> ;
 \end{verbatim}
 
-\subsubsection{Dummy steps max iterations}
+\subsubsection{Dummy Steps Max Iterations}
 \begin{verbatim}
     <card> ::= dummy steps max iterations : <max iterations> ;
 \end{verbatim}    
@@ -570,20 +570,20 @@ Data related to the dummy steps phase. They are:
     during the dummy steps.
 }
 
-\subsubsection{Dummy steps number}
+\subsubsection{Dummy Steps Number}
 \begin{verbatim}
     <card> ::= dummy steps number : <number> ;
 \end{verbatim}
 number of dummy steps.
 
-\subsubsection{Dummy steps ratio}
+\subsubsection{Dummy Steps Ratio}
 \begin{verbatim}
     <card> ::= dummy steps ratio : <ratio> ;
 \end{verbatim}
 ratio of the time step to be used in the dummy steps to the regular
 time step.
 
-\subsubsection{Dummy steps method}
+\subsubsection{Dummy Steps Method}
 \begin{verbatim}
     <card> ::= method : <method_data> ;
 \end{verbatim}
@@ -636,6 +636,56 @@ and add the iterations output, use:
     output: none, iterations;
 \end{verbatim}
 
+\subsection{Special Data}
+\subsubsection{Real-Time Execution}\label{sec:REAL-TIME}
+\begin{verbatim}
+    <card> ::= real time [ : <rt-statements> ] ;
+    <rt-statements> ::= <rt-statement> [ , <rt-statements> ]
+    <rt-statement> ::= {
+        allow nonroot |
+        mode , { period | semaphore } |
+        time step , <time-step> |
+        reserve stack , <stack-size> |
+        hard real time |
+        cpu map , <cpu-map> |
+        real time log [ , file name , <command-name> ]
+\end{verbatim}
+where:
+\begin{itemize}
+\item \kw{allow nonroot} means that the program should be allowed to run
+as a regular (non-root) user while performing hard real-time operations
+with the underlying OS;
+\item when the keyword \kw{mode} is set to \kw{period}, the execution
+is scheduled periodically; when set to \kw{semaphore}, it waits 
+for an external trigger to start a new step;
+\item the \kw{time step} is the sampling time in \emph{nanoseconds} (ns); 
+usually, it should match the time step 
+of the simulation, but it can be different for other purposes.
+\item the keyword \kw{reserve stack} instructs the program 
+to statically reserve the desired stack size by means 
+of the \kw{mlockall(2)} system call; it should be used to ensure 
+that no page swapping occurs during the real-time simulation;
+\item the keyword \kw{hard real time} instructs the program to run
+in hard real-time; the default is soft real-time;
+\item the keyword \kw{cpu map} allos the program to force its
+execution on a specific subset of CPUs on multiprocessor hardware;
+the syntax of the \kw{<cpu-map>} field is a byte-sized integer 
+(between 0 and 255) whose active bits are the desired CPUs;
+\item the keyword \kw{real time log} enables logging by means 
+of RTAI mailboxes; an optional \kw{filename} argument allows 
+to set the name of the logging process that is used.
+It should be a low priority soft real-time process that communicates
+with the simulator by means of the RTAI mailbox called \kw{logmb}.
+\end{itemize}
+The keywords must be given in the sequence reported above.
+Real-time simulation is mostly useless without interaction 
+with external programs.
+The input is dealt with by the special RTAI file drivers described
+in Section~\ref{sec:RTAI_in}; the output by the special RTAI output
+element described in Section~\ref{sec:RTAI_out}.
+
+
+
 \chapter{Control Data}
 This section is read by the manager of all the bulk simulation data, namely
 the nodes, the drivers and the elements. It is used to set some global
@@ -649,7 +699,7 @@ structure. But this practice is to be considered reliable since it allows a
 sort of double-check on the entities that are inserted.
 The cards are: 
 
-\subsubsection{Skip initial joint assembly}
+\subsubsection{Skip Initial Joint Assembly}
 \begin{verbatim}
     <card> ::= skip initial joint assembly ;
 \end{verbatim}
@@ -668,25 +718,25 @@ The cards are:
 \kw{beams} are used by default, too, but can be added to the list
 essentially for backwards compatibility.
 
-\subsubsection{Initial stiffness}
+\subsubsection{Initial Stiffness}
 \begin{verbatim}
     <card> ::= initial stiffness : <position_stiffness>
                                    [ , <velocity_stiffness> ] ;
 \end{verbatim}
 
-\subsubsection{Omega rotates}
+\subsubsection{Omega Rotates}
 \begin{verbatim}
     <card> ::= omega rotates : { yes | no } ;
 \end{verbatim}
 Sets whether the imposed angular velocity should be considered attached 
 to the node or fixed in the global system during the initial assembly.
 
-\subsubsection{Initial tolerance}
+\subsubsection{Initial Tolerance}
 \begin{verbatim}
     <card> ::= initial tolerance : <tolerance> ;
 \end{verbatim}
 
-\subsubsection{Max initial iterations}
+\subsubsection{Max Initial Iterations}
 \begin{verbatim}
     <card> ::= max initial iterations : <max_iterations> ;
 \end{verbatim}
@@ -696,7 +746,7 @@ to the node or fixed in the global system during the initial assembly.
     <card> ::= title : " <simulation_title> " ;
 \end{verbatim}
 
-\subsubsection{Make restart file}
+\subsubsection{Make Restart File}
 \begin{verbatim}
     <card> ::= make restart file
         [ : { iterations , <iterations_between_restarts>
@@ -705,7 +755,7 @@ to the node or fixed in the global system during the initial assembly.
 The default (no arguments) is to make the restart file only at the end of
 the simulation.
 
-\subsubsection{Default output}
+\subsubsection{Default Output}
 \begin{verbatim}
     <card> ::= default output : <output_list> ;
     <output_list> ::= { all | none | <output_item> } 
@@ -728,7 +778,7 @@ Here the default output flag for a type of node or element can be set. It
 can be overridden for every entity both when it is created or later in
 each entity module.
 
-\subsubsection{Output precision}
+\subsubsection{Output Precision}
 Sets the desired output precision for those file types that allow it
 (currently, all the native output except the \kw{.out} file; the
 \kw{ADAMS} output, \kw{.res} files, are not affected.
@@ -1030,28 +1080,28 @@ The type of scalar function,
 \kw{scalar\_func\_type}, together 
 with relevant arguments, \kw{scalar\_func\_type},
 are as follows:
-\subsubsection{Const scalar function}
+\subsubsection{Const Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= const
     <scalar_func_args> ::= <const_coef>
 \end{verbatim}
-\subsubsection{Log scalar function}
+\subsubsection{Log Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= log
     <scalar_func_args> ::= <multiplier_coef>
 \end{verbatim}
-\subsubsection{Pow scalar function}
+\subsubsection{Pow Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= pow
     <scalar_func_args> ::= <exponent_coef>
 \end{verbatim}
-\subsubsection{Linear scalar function}
+\subsubsection{Linear Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= linear
     <scalar_func_args> ::= <point>, <point>
     <point>            ::= <x>, <y>
 \end{verbatim}
-\subsubsection{Cubic natural spline scalar function}
+\subsubsection{Cubic Natural Spline Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= cubicspline
     <scalar_func_args> ::= <point>, 
@@ -1060,7 +1110,7 @@ are as follows:
                            [, ...]
     <point>            ::= <x>, <y>
 \end{verbatim}
-\subsubsection{Multilinear scalar function}
+\subsubsection{Multilinear Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= multilinear
     <scalar_func_args> ::= <point>, 
@@ -1071,7 +1121,7 @@ are as follows:
 
 
 \chapter{Drivers}\label{sec:DRIVERS}
-The \kw{drivers} section is enclosed in the cards:
+The \kw{drivers} section is enclosed by the cards:
 \begin{verbatim}
     begin: drivers;
         ...
@@ -1081,7 +1131,7 @@ Every \kw{driver} card has the following format:
 \begin{verbatim}
     <card> ::= <driver_type> : <arglist> ;
 \end{verbatim}
-At present only \kw{file} drivers are supported.
+At present only \kw{<driver\_type>} drivers of type \kw{file} are supported.
 
 \section{File Drivers}
 A comprehensive family of \kw{file} drivers is being planned;
@@ -1112,8 +1162,8 @@ data; if the requested value is out of time bounds, zero is returned.
                            | [ , port, <port_number> ] }
                          (AuthenticationMethod)<authentication>
 \end{verbatim}
-The driver binds to a socket listening on port \kw{port\_number} 
-(defaults to 5555) or on the named pipe \kw{file\_name}; at the
+The driver binds to a socket listening on port \kw{<port\_number>} 
+(defaults to 5555) or on the named pipe \kw{<file\_name>}; at the
 beginning of each time step, in case of connection, the driver expects some
 input data in text format, consisting in an authentication token 
 (if required).
@@ -1123,8 +1173,8 @@ The authentication token is usually in the form
     password: <user_password> <new_line>
 \end{verbatim}
 {\em 
-    Note: whitespaces may be significant in \kw{user\_name}, and surely are
-    in \kw{user\_password}.
+    Note: whitespaces may be significant in \kw{<user\_name>}, 
+    and surely are in \kw{<user\_password>}.
 } \\    
 It is followed by a label token, in the form
 \begin{verbatim}
@@ -1155,4 +1205,41 @@ value commands to be applied for one step only. \\
     the value of the drive is reset to zero after one step.
     This behaviour may change in the future.
 }
+
+\subsection{RTAI Mailbox}\label{sec:RTAI_in}
+This special drive is a variant of the Socket Stream 
+(under development yet) that reads the input data from a RTAI mailbox
+in non-blocking mode.
+It is intended as a means of communication between different processes
+running in real-time.
+The syntax is:
+\begin{verbatim}
+    <normal_arglist> ::= RTAI input ,
+        mailbox name , " <mailbox_name> " ,
+        [ create , { yes | no } , ]
+        [ host , " <host_name> " , ]
+        <columns_number> ;
+\end{verbatim}
+where
+\begin{itemize}
+\item \kw{<mailbox\_name>} is the name of the mailbox (a unique string 
+not longer than six chars);
+\item the \kw{create} keyword determines whether the mailbox 
+must be created or looked-up as already existing on the system;
+\item \kw{<host\_name} is the name or the IP of the remote host where 
+the mailbox resides; note that if this field is given, \kw{create} must
+be set to \kw{no} and the mailbox must be already defined
+on the remote host;
+\item the number of channels \kw{<columns\_number>} determines how many
+columns can be accessed via the \kw{file} drive caller mechanism 
+of Section~\ref{sec:FILE-DRIVE}, as for all the other \kw{file} drivers.
+\end{itemize}
+This part of the program is rapidly evolving, so do please not expect
+too much documentation and backwards compatibility.
+
+\emph{Note: at present, these elements require that the simulation
+be run in real-time mode (see Section~\ref{sec:REAL-TIME});
+future development will allow to emulate the use of these elements
+also when the simulation is not run in real-time, e.g.\ for modeling
+or model debugging purposes.}
 

@@ -45,15 +45,17 @@ where \kw{elem\_type} is one of the following:
   \item \kw{bind}
   \item \kw{body}
   \item \kw{bulk}
+  \item \kw{couple}
   \item \kw{driven}
   \item \kw{electric}
-  \item \kw{force}, \kw{couple}
+  \item \kw{force}
   \item \kw{genel}
   \item \kw{gravity}
   \item \kw{hydraulic}
   \item \kw{joint}
   \item \kw{loadable}
   \item \kw{rotor}
+  \item \kw{RTAI output}
 \end{itemize}
 in case of elements that can be instantiatied only once, like
 the \kw{gravity} or the \kw{air properties} elements, the \kw{arglist}
@@ -535,6 +537,10 @@ derivative can be used) multiplied times the stiffness. \\
 
 
 
+\section{Couple}
+An alias of \kw{force}; see Section~\ref{sec:FORCE}.
+
+
 \section{Driven Element}
 The \kw{driven} type is not an element by itself. It is a wrapper that
 masks another element and switches it on and off depending on the (boolean)
@@ -649,7 +655,7 @@ The \kw{electric} elements implemented at present are:
 
 
 
-\section{Force and Couple Elements}
+\section{Force}\label{sec:FORCE}
 The \kw{force} element has the following syntax:
 \begin{verbatim}
   <normal_arglist> ::= <force_type> , <force_arglist>
@@ -2003,6 +2009,44 @@ corresponding to average, fore-aft and lateral inflow,
 can be explicitly initialized by means of the optional 
 entry \kw{initial value}.
 
+
+
+\section{RTAI output}\label{sec:RTAI_out}
+This is a special element which takes care of sending generic output
+to external processes by means of RTAI mailboxes during real-time 
+simulations.
+This topic is under development, so expect frequent changes, and
+please do not count too much on backward compatibility.
+The syntax is:
+\begin{verbatim}
+    <normal_arglist> ::= mailbox name , " <mailbox_name> " ,
+        [ create , { yes | no } , ]
+        [ host , " <host_name> " , ]
+        <channel_number> ,
+            (node_dof) <output_dof>
+            [ , ... ]
+\end{verbatim}
+where
+\begin{itemize}
+\item \kw{<mailbox\_name>} is the name of the RTAI mailbox where 
+the output is written  (a unique string not longer than six chars);
+\item the \kw{create} keyword determines whether the mailbox
+must be created or looked-up as already existing on the system;
+\item \kw{<host\_name} is the name or the IP of the remote host where
+the mailbox resides; note that if this field is given, \kw{create} must
+be set to \kw{no} and the mailbox must be already defined
+on the remote host;
+\item the number of channels \kw{<channel\_number>} that are written
+determines how many \kw{node\_dof} entries must be read.
+They must be valid scalar dof entries, which can be connected
+in many ways to nodal degrees of freedom or to element private data.
+\end{itemize}
+
+\emph{Note: at present, these elements require that the simulation
+be run in real-time mode (see Section~\ref{sec:REAL-TIME});
+future development will allow to emulate the use of these elements
+also when the simulation is not run in real-time, e.g.\ for modeling
+or model debugging purposes.}
 
 
 
