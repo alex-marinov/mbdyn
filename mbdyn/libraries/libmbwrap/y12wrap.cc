@@ -721,6 +721,7 @@ Y12SparseCCSolutionManager<CC>::MatrReset()
 	} else {
 		Ac->Reset();
 	}
+	pLS->Reset();
 }
 
 /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
