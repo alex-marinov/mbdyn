@@ -947,6 +947,13 @@ DynamicStructNode::dGetDofValue(int iDof, int iOrder) const
 	 throw ErrGeneric();
       }
 
+#if 1
+      /* FIXME: might need to compute them in order to be 
+       * as up to date as possible; however, elements that contribute
+       * to inertia should assemble first... */
+      pAutoStr->ComputeAccelerations(XPPCurr, WPCurr);
+#endif
+
       if (iDof >= 1 && iDof <= 3) {
 	 return XPPCurr.dGet(iDof);
       } else {

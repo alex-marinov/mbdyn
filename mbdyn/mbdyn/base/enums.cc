@@ -42,13 +42,13 @@ const char* psElemNames[] = {
 
    "Automatic Structural",
 
-   "Force",
-   
    "Gravity",
    "Rigid Body",
    "Joint",
    "Beam",
    "Plate",
+   
+   "Force",
    
    "Electric Bulk",
    "Electric",
@@ -77,13 +77,13 @@ const char* psReadElemsElems[] = {
 
    "automatic" "structural",
 
-   "force",
-   
    "gravity",
    "rigid" "body",
    "joint",
    "beam",
    "plate",
+   
+   "force",
    
    "electric" "bulk",
    "electric",
@@ -115,13 +115,13 @@ const char* psReadControlElems[] = {
 
    "automatic" "structural" "elements",
 
-   "forces",
-   
    "gravity",
    "rigid" "bodies",
    "joints",
    "beams",
    "plates",
+   
+   "forces",
    
    "electric" "bulk" "elements",
    "electric" "elements",

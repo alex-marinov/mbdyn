@@ -90,13 +90,13 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
 	
 	AUTOMATICSTRUCTURAL,
 	
-	FORCE,
-
 	GRAVITY,
 	BODY,
 	JOINT,
 	BEAM,
 	PLATE,
+
+	FORCE,
 
 	ELECTRICBULK,
 	ELECTRIC,
