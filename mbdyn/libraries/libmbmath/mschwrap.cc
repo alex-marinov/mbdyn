@@ -138,7 +138,8 @@ MeschachSparseMatrixHandler::Create(unsigned int m,
    	if (mat != SMNULL) {
       		mat = sp_resize(mat, m, n);
    	} else {
-      		mat = sp_get(m, n, maxlen);
+		/* FIXME: in case maxlen == 0, use n */
+      		mat = sp_get(m, n, maxlen ? maxlen : n);
    	}
 }
 
@@ -151,7 +152,7 @@ MeschachSparseMatrixHandler::IsValid(void) const
 void
 MeschachSparseMatrixHandler::Init(const doublereal& d)
 {
-   	/* d viene assunto == 0. sempre */
+   	/* FIXME: d is always assumed 0. */
    	sp_zero(mat);
 }
 
