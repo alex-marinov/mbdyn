@@ -37,7 +37,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_ELETRIC_NODES
+#ifdef USE_ELECTRIC_NODES
 
 #include <discctrl.h>
 

@@ -1233,6 +1233,8 @@ Elem* ReadElectric(DataManager* pDM,
 	   
 	case ADAPTIVECONTROL:  {
 	   flag f_ma = 0;
+	   doublereal dPeriodicFactor(0.);
+	   
 	   if (HP.IsKeyWord("arx")) {
 	      DEBUGCOUT("ARX adaptive control" << endl);
 	      f_ma = 0;
@@ -1240,6 +1242,10 @@ Elem* ReadElectric(DataManager* pDM,
 	      DEBUGCOUT("ARMAX adaptive control" << endl);
 	      f_ma = 1;
 	   }
+
+	   if (HP.IsKeyWord("periodic")) {
+	      dPeriodicFactor = HP.GetReal();
+           }
 	   
 	   GPCDesigner* pCD = NULL;
 	   if (HP.IsKeyWord("gpc")) {
@@ -1316,7 +1322,7 @@ Elem* ReadElectric(DataManager* pDM,
 					 iPredS, iContrS, 
 					 iPredH, iContrH,
 					 pW, pR, pLambda,
-					 f_ma),
+					 dPeriodicFactor, f_ma),
 				     DMmm);
 	      
 	   } else if (HP.IsKeyWord("deadbeat")) {
@@ -1328,7 +1334,8 @@ Elem* ReadElectric(DataManager* pDM,
 				     DeadBeat,
 				     DeadBeat(iNumOutputs, iNumInputs,
 					      iOrderA, iOrderB, 
-					      iPredS, iContrS, f_ma),
+					      iPredS, iContrS,
+					      dPeriodicFactor, f_ma),
 				     DMmm);	      
 	   }
 	   

@@ -786,7 +786,8 @@ GPC_Meschach_QRinv::Inv(integer ndima, integer nrowa,
 GPCDesigner::GPCDesigner(integer iNumOut, integer iNumIn, 
 			 integer iOrdA, integer iOrdB,
 			 integer iPredS, integer iContrS,
-			 integer iPredH, integer iContrH)
+			 integer iPredH, integer iContrH,
+			 doublereal dPF)
 : iNumOutputs(iNumOut),
 iNumInputs(iNumIn),
 iOrderA(iOrdA),
@@ -795,6 +796,7 @@ iPredStep(iPredS),
 iContrStep(iContrS),
 iPredHor(iPredH),
 iContrHor(iContrH),
+dPeriodicFactor(dPF),
 pdBase(NULL),
 pdA(NULL),
 pdB(NULL),
@@ -848,8 +850,9 @@ GPCDesigner::DesignControl(const doublereal* /* pdTheta */ ,
 
 DeadBeat::DeadBeat(integer iNumOut, integer iNumIn,
 		   integer iOrdA, integer iOrdB,
-		   integer iPredS, integer iContrS, flag f)
-: GPCDesigner(iNumOut, iNumIn, iOrdA, iOrdB, iPredS, iContrS, iContrS, 0),
+		   integer iPredS, integer iContrS, 
+		   doublereal dPF, flag f)
+: GPCDesigner(iNumOut, iNumIn, iOrdA, iOrdB, iPredS, iContrS, iContrS, 0, dPF),
 iDim(iNumOutputs*iPredStep), 
 iTmpRows(iNumOutputs*(iPredStep-iPredHor)),
 iTmpCols(iNumInputs*(iContrStep-0)),
@@ -963,14 +966,16 @@ DeadBeat::DesignControl(const doublereal* pdTheta,
    	}
 
    	/* anche ac, bc (e cc) vengono organizzate per righe */
+	doublereal cc = dPeriodicFactor*dPeriodicFactor;
    	for (integer i = iNumInputs; i-- > 0; ) {
       		doublereal* pm = pdmd+iTmpRows*i;
-      
+
       		/* ac = -md*A */
       		doublereal* p = pdac+i*iNumOutputs*iOrderA;
       		for (integer j = iNumOutputs*iOrderA; j-- > 0; ) {
 	 		doublereal* pa = pdA+iDim*j;
-	 		p[j] = 0.;
+
+			p[j] = pm[j]*cc;
 	 		for (integer k = iTmpRows; k-- > 0; ) {
 	    			/* p[j] -= pdmd[iTmpRows*i+k]*pdA[k+iDim*j]; */
 	    			p[j] -= pm[k]*pa[k];
@@ -1016,8 +1021,9 @@ GPC::GPC(integer iNumOut, integer iNumIn,
 	 integer iOrdA, integer iOrdB,
 	 integer iPredS, integer iContrS, integer iPredH, integer iContrH,
 	 doublereal* pW, doublereal* pR, DriveCaller* pDC,
-	 flag f)
-: GPCDesigner(iNumOut, iNumIn, iOrdA, iOrdB, iPredS, iContrS, iPredH, iContrH),
+	 doublereal dPF, flag f)
+: GPCDesigner(iNumOut, iNumIn, iOrdA, iOrdB, iPredS, iContrS, iPredH, iContrH,
+		dPF),
 iDim(iNumOutputs*iPredStep), 
 iTmpRows(iNumOutputs*(iPredStep-iPredHor)),
 iTmpCols(iNumInputs*iContrStep),
@@ -1253,14 +1259,15 @@ GPC::DesignControl(const doublereal* pdTheta,
 #endif /* !0 */
    
    	/* anche ac, bc (e cc) vengono organizzate per righe */
+	doublereal cc = dPeriodicFactor;
    	for (integer i = iNumInputs; i-- > 0; ) {
       		doublereal* pm = pdmd+iTmpRows*i;
-      
+
       		/* ac = -md*A */
       		doublereal* p = pdac+i*iNumOutputs*iOrderA;
       		for (integer j = iNumOutputs*iOrderA; j-- > 0; ) {
 	 		doublereal* pa = pdA+iDim*j;
-	 		p[j] = 0.;
+			p[j] = pm[j]*cc;
 	 		for (integer k = iTmpRows; k-- > 0; ) {
 	    			/* p[j] -= pdmd[iTmpRows*i+k]*pdA[k+iDim*j]; */
 	    			p[j] -= pm[k]*pa[k];
@@ -1390,7 +1397,7 @@ int main(void)
    
    DeadBeat db(nout, nin,
 	       pa, pb,
-	       s, q, 1);
+	       s, q, 1, 0.);
    
    doublereal* pac;
    doublereal* pbc;

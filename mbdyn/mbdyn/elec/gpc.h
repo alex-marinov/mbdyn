@@ -138,6 +138,8 @@ protected:
    	integer iPredHor;       /* passo iniziale della predizione */
    	integer iContrHor;      /* passo iniziale del controllo (sempre 0) */
 
+	doublereal dPeriodicFactor;
+
    	doublereal* pdBase;
 
    	doublereal* pdA;
@@ -154,7 +156,8 @@ public:
    	GPCDesigner(integer iNumOut, integer iNumIn, 
 		    integer iOrdA, integer iOrdB,
 		    integer iPredS, integer iContrS, 
-		    integer iPredH, integer iContrH);
+		    integer iPredH, integer iContrH,
+		    doublereal dPF);
    
    	virtual ~GPCDesigner(void);
    
@@ -246,7 +249,7 @@ protected:
    
 public:
    	DeadBeat(integer iNumOut, integer iNumIn, integer iOrdA, integer iOrdB,
-	    	 integer iPredS, integer iContrS, flag f);
+	    	 integer iPredS, integer iContrS, doublereal dPF, flag f);
    	virtual ~DeadBeat(void);
    
    	void DesignControl(const doublereal* pdTheta,
@@ -285,7 +288,8 @@ protected:
 public:
    	GPC(integer iNumOut, integer iNumIn, integer iOrdA, integer iOrdB,
        	    integer iPredS, integer iContrS, integer iPredH, integer iContrH,
-	    doublereal* pW, doublereal* pR, DriveCaller* pDC, flag f);
+	    doublereal* pW, doublereal* pR, DriveCaller* pDC, doublereal dPF,
+	    flag f);
    
    	virtual ~GPC(void);
    
