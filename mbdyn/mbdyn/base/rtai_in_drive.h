@@ -56,8 +56,6 @@ public:
    	/* Scrive il contributo del DriveCaller al file di restart */
    	virtual std::ostream& Restart(std::ostream& out) const;
    
-   	virtual doublereal dGet(const doublereal& t, int i = 1) const;
-   
    	virtual void ServePending(const doublereal& t);
 };
 

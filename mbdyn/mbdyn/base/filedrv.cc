@@ -48,7 +48,7 @@ FileDrive::FileDrive(unsigned int uL, const DriveHandler* pDH,
 {   
 	ASSERT(s != NULL);
 	SAFESTRDUP(sFileName, s);
-   	SAFENEWARR(pdVal, doublereal, nd+1);
+   	SAFENEWARR(pdVal, doublereal, nd + 1);
    	for (int iCnt = 0; iCnt <= nd; iCnt++) {
       		pdVal[iCnt] = 0.;
    	}
@@ -60,6 +60,7 @@ FileDrive::~FileDrive(void)
 	if (sFileName != NULL) {
 		SAFEDELETEARR(sFileName);
 	}
+
    	if (pdVal != NULL) {
       		SAFEDELETEARR(pdVal);
    	}

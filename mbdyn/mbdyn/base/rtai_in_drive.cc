@@ -43,8 +43,6 @@ pdVal(NULL)
 {
    	ASSERT(nd > 0);
    
-   	SAFENEWARR(pdVal, doublereal, nd+1);
-
 	/*
 	 * initialize mailbox and so on
 	 */
@@ -52,9 +50,10 @@ pdVal(NULL)
 
 RTAIInDrive::~RTAIInDrive(void) 
 {
-   	if (pdVal != NULL) {
-      		SAFEDELETEARR(pdVal);
-   	}
+	/*
+	 * destroy mailbox and so on
+	 */
+	NO_OP;
 }
 
 void 
@@ -79,12 +78,5 @@ RTAIInDrive::Restart(std::ostream& out) const
    	return out << "# RTAIInDrive not implemented yet" << std::endl;
 }
    
-doublereal
-RTAIInDrive::dGet(const doublereal& /* t */ , int i) const
-{
-   	ASSERT(i > 0 && i <= iNumDrives);
-   	return pdVal[i];
-}
-
 #endif /* USE_RTAI */
 
