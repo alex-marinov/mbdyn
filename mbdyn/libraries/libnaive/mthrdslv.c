@@ -56,7 +56,7 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 		integer *piv, doublereal minpiv)
 {
 	char todo[neq];
-	integer i, j, k, m, pvr, pvc, nr, nc, r;
+	integer i, j, k, pvr, pvc, nr, nc, r;
 	integer *pri, *pci;
 	char *prik;
 	doublereal den, mul, mulpiv, fapvr, fari;
