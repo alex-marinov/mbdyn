@@ -1441,8 +1441,10 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
    
    for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
       unsigned int *IntNodesm1 = IntNodes-1;
+#if 0
       unsigned int uNode1 = IntNodesm1[iStrNode];
       unsigned int uNode2 = IntNodesm1[iStrNode+NStrNodes];
+#endif
       
       Mat3xN PHIt(NModes,0), PHIr(NModes,0);
       
