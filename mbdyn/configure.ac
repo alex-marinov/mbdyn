@@ -237,20 +237,22 @@ dnl
 dnl Checks for header files.
 dnl
 AC_STDC_HEADERS
-AC_CHECK_HEADERS(string.h)
-AC_CHECK_HEADERS(signal.h)
-AC_CHECK_HEADERS(unistd.h)
-AC_CHECK_HEADERS(getopt.h)
-AC_CHECK_HEADERS(pwd.h)
-AC_CHECK_HEADERS(math.h)
-
+AC_CHECK_HEADERS(arpa/inet.h)
 AC_CHECK_HEADERS(float.h)
-AC_CHECK_HEADERS(values.h)
-
+AC_CHECK_HEADERS(getopt.h)
+AC_CHECK_HEADERS(math.h)
+AC_CHECK_HEADERS(netdb.h)
+AC_CHECK_HEADERS(netinet/in.h)
+AC_CHECK_HEADERS(pwd.h)
+AC_CHECK_HEADERS(signal.h)
+AC_CHECK_HEADERS(string.h)
+AC_CHECK_HEADERS(sys/mman.h)
+AC_CHECK_HEADERS(sys/socket.h)
 AC_CHECK_HEADERS(sys/times.h)
 AC_CHECK_HEADERS(sys/types.h)
+AC_CHECK_HEADERS(unistd.h)
+AC_CHECK_HEADERS(values.h)
 
-AC_CHECK_HEADERS(sys/mman.h)
 
 dnl ----------------------------------------------------------------
 dnl
@@ -1006,6 +1008,10 @@ dnl Check for RTAI
 dnl
 if test $ol_with_rtai != no ; then
 	dnl FIXME: LOT TODO ...
+	AC_CHECK_HEADERS(rtai.h)
+	AC_CHECK_HEADERS(rtai_sched.h)
+	AC_CHECK_HEADERS(net_rpc.h)
+
 	AC_DEFINE(USE_RTAI,1,[define to use RTAI])
 fi
 
@@ -1056,8 +1062,11 @@ AC_CHECK_FUNCS([ \
 	atol \
 	chdir \
 	getcwd \
+	gethostbyname \
+	gethostbyname2 \
 	getopt \
 	getopt_long \
+	inet_aton \
 	localtime \
 	memset \
 	mlockall \
