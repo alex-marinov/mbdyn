@@ -96,10 +96,8 @@ SphericalHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
    integer iFirstReactionIndex = iGetFirstIndex();
 
-   Mat3x3 R1(pNode1->GetRRef());
-   Mat3x3 R2(pNode2->GetRRef());
-   Vec3 dTmp1(R1*d1);
-   Vec3 dTmp2(R2*d2);
+   Vec3 dTmp1(pNode1->GetRRef()*d1);
+   Vec3 dTmp2(pNode2->GetRRef()*d2);
    
    
    /* 
@@ -126,30 +124,20 @@ SphericalHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
     * con d1 = R1*d01, d2 = R2*d02, c = dCoef
     */
 
-   /* termini di reazione sul nodo 1 */
-   for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutItem(iCnt, iNode1FirstMomIndex+iCnt, 
-		  iFirstReactionIndex+iCnt, 1.);
-   }
-   WM.fPutCross(4, iNode1FirstMomIndex+3,
-		iFirstReactionIndex, dTmp1);
-   
-   /* termini di reazione sul nodo 2 */
-   for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutItem(9+iCnt, iNode2FirstMomIndex+iCnt, 
-		  iFirstReactionIndex+iCnt, -1.);
-   }
-   WM.fPutCross(13, iNode2FirstMomIndex+3,
-		iFirstReactionIndex, -dTmp2);
-
    /* Moltiplico la forza per il coefficiente del metodo.
     * Nota: F, la reazione vincolare, e' stata aggiornata da AssRes */
    Vec3 FTmp = F*dCoef;
    
-   /* Termini diagonali del tipo: c*F/\d/\Delta_g 
-    * nota: la forza e' gia' moltiplicata per dCoef */      
-   WM.fPutMat3x3(19, iNode1FirstMomIndex+3,
+   /* termini di reazione sul nodo 1 */
+   WM.fPutDiag(1, iNode1FirstMomIndex, iFirstReactionIndex, 1.);
+   WM.fPutCross(4, iNode1FirstMomIndex+3, iFirstReactionIndex, dTmp1);
+   
+   WM.fPutMat3x3(10, iNode1FirstMomIndex+3,
 		 iNode1FirstPosIndex+3, Mat3x3(FTmp, dTmp1));
+
+   /* termini di reazione sul nodo 2 */
+   WM.fPutDiag(19, iNode2FirstMomIndex, iFirstReactionIndex, -1.);
+   WM.fPutCross(22, iNode2FirstMomIndex+3, iFirstReactionIndex, -dTmp2);
 
    WM.fPutMat3x3(28, iNode2FirstMomIndex+3,
 		 iNode2FirstPosIndex+3, Mat3x3(FTmp, -dTmp2));
@@ -157,21 +145,13 @@ SphericalHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Modifica: divido le equazioni di vincolo per dCoef */
    
    /* termini di vincolo dovuti al nodo 1 */
-   for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutItem(36+iCnt, iFirstReactionIndex+iCnt, 
-		  iNode1FirstPosIndex+iCnt, -1.);
-   }   
-   WM.fPutCross(40, iFirstReactionIndex,
-		iNode1FirstPosIndex+3, dTmp1);
+   WM.fPutDiag(37, iFirstReactionIndex, iNode1FirstPosIndex, -1.);
+   WM.fPutCross(40, iFirstReactionIndex, iNode1FirstPosIndex+3, dTmp1);
       
    /* termini di vincolo dovuti al nodo 1 */
-   for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutItem(45+iCnt, iFirstReactionIndex+iCnt, 
-		  iNode2FirstPosIndex+iCnt, 1.);
-   }
-   WM.fPutCross(49, iFirstReactionIndex,
-		iNode2FirstPosIndex+3, -dTmp2);
-   
+   WM.fPutDiag(46, iFirstReactionIndex, iNode2FirstPosIndex, 1.);
+   WM.fPutCross(49, iFirstReactionIndex, iNode2FirstPosIndex+3, -dTmp2);
+
    return WorkMat;
 }
 
@@ -187,7 +167,7 @@ SubVectorHandler& SphericalHingeJoint::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
       
@@ -210,11 +190,9 @@ SubVectorHandler& SphericalHingeJoint::AssRes(SubVectorHandler& WorkVec,
    
    Vec3 x1(pNode1->GetXCurr());
    Vec3 x2(pNode2->GetXCurr());
-   Mat3x3 R1(pNode1->GetRCurr());
-   Mat3x3 R2(pNode2->GetRCurr());
    
-   Vec3 dTmp1(R1*d1);
-   Vec3 dTmp2(R2*d2);
+   Vec3 dTmp1(pNode1->GetRCurr()*d1);
+   Vec3 dTmp2(pNode2->GetRCurr()*d2);
    
    WorkVec.Sub(1, F);
    WorkVec.Sub(4, dTmp1.Cross(F));
@@ -562,7 +540,7 @@ SubVectorHandler& PinJoint::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
       
