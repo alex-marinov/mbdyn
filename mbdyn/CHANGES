@@ -31,6 +31,8 @@ MBDyn 1.2-Engineering
 		  (known) modules
 	Known Issues:
 		- parallel is not working yet
+	Bug fixes:
+		- fixed potential bug in c81 data input
 
 MBDyn 1.2-Beta.4
 	Enhancements:
@@ -158,7 +160,7 @@ MBDyn 1.2-Beta.1
 		  for aerodynamic body
 		- fixed endless loop bug when silencing output with '-s'
 		- detect nested comments (/* ... /* ... */) and warn
-	Known Issues:
+	Known issues:
 		- the static shapes extraction NASTRAN ALTER in 
 		  "etc/modal.d/MBDyn_NASTRAN_alter_1.nas" 
 		  apparently don't work
