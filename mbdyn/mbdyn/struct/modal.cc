@@ -293,7 +293,7 @@ Modal::DescribeDof(std::ostream& out, char *prefix, int i) const
 	/* FIXME: allow to describe the i-th Dof */
 
 	out 
-		<< prefix << iModalIndex + 1 << "->" << iModalIndex + NModes << ": modal deformations" << std::endl
+		<< prefix << iModalIndex + 1 << "->" << iModalIndex + NModes << ": modal displacements" << std::endl
 		<< prefix << iModalIndex + NModes + 1 << "->" << iModalIndex + 2*NModes << ": modal velocities" << std::endl;
 	iModalIndex += 2*NModes;
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++, iModalIndex += 6) {
