@@ -243,7 +243,7 @@ ass_jac(LoadableElem* pEl,
 		dFr.Set(shc*f,1); dFr.Link(1,&dF);
 		dFr.Set(modF*f,2); dFr.Link(2,&dShc);
 		dFr.Set(shc*modF,3); dFr.Link(3,&dfc);
-		dFr.Sub(WorkMat,1,1.);
+		dFr.Add(WorkMat,1,1.);
 	}
 
 	return WorkMat;
@@ -278,7 +278,7 @@ ass_res(LoadableElem* pEl,
 	WorkVec.fPutRowIndex(2,iFirstPositionIndex+1);
 	if (p->fc) {
 	for (unsigned int i=1; i<=p->fc->iGetNumDof(); i++) {
-		WorkVec.fPutRowIndex(2+i,iFirstReactionIndex+1);
+		WorkVec.fPutRowIndex(2+i,iFirstReactionIndex+i);
 	}
 	}
 	
@@ -293,7 +293,7 @@ ass_res(LoadableElem* pEl,
 			v,XCurr,XPrimeCurr);
 		doublereal f = p->fc->fc();
 		doublereal shc = p->Sh_c->Sh_c(f,p->mass,v);
-		WorkVec.Add(1,shc*p->mass*f);
+		WorkVec.Add(1,-shc*p->mass*f);
 	}
 
 	return WorkVec;
@@ -315,8 +315,6 @@ after_predict(const LoadableElem* pEl,
 		VectorHandler& XP)
 {
 	DEBUGCOUTFNAME("after_predict");
-	
-	// std::cerr << "update; F=" << p->f->F() << std::endl;
 }
 
 static void
@@ -350,8 +348,6 @@ set_value(const LoadableElem* pEl, VectorHandler& X, VectorHandler& XP)
 	DEBUGCOUTFNAME("set_value");
 	module_friction* p = (module_friction *)pEl->pGetData();
 	if (p->fc) {
-		std::cerr << "primo indice: " << 
-			pEl->iGetFirstIndex() << std::endl;
 		p->fc->SetValue(X,XP,pEl->iGetFirstIndex());
 	}
 }

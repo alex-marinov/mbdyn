@@ -4,8 +4,10 @@ end: data;
 
 begin: multistep;
 	initial time: 0.;
-	final time: 1.;
-	time step: 1.e-3;
+#	final time: 1.;
+#	time step: 1.e-3;
+	final time: 60.;
+	time step: 60./2000.;
 
 	tolerance: 1.e-6;
 	max iterations: 20;
@@ -15,10 +17,11 @@ begin: multistep;
 	derivatives max iterations: 20;
 	derivatives coefficient: 1.e-6;
 
-	newton raphson: modified, 4;
+	newton raphson: modified, 1;
 
 	solver: umfpack3;
 	#output: residual, jacobian, solution;
+	#output: residual, jacobian;
 end: multistep;
 
 begin: control data;
@@ -49,8 +52,8 @@ begin: elements;
 	force: 1, abstract, 1, abstract,
 		sine, 
 		0., 
-		pi/.1, 
-		1.e0, 
+		1., 
+		0.35, 
 			forever, 
 			#4,
 			0.;

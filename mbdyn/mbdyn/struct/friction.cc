@@ -39,7 +39,7 @@
 #include "submat.h"
 
 int sign(const doublereal x) {
-	if (x > 0.) {
+	if (x >= 0.) {
 		return 1;
 	} else if (x < 0.) {
 		return -1;
@@ -62,7 +62,8 @@ sigma1(s1),
 sigma2(s2),
 kappa(k),
 fss(dynamic_cast<const DifferentiableScalarFunction&>(*f)),
-f(fss(0.)) {
+//f(fss(0.)) {
+f(0.) {
 };
 
 void ModLugreFriction::SetValue(VectorHandler&X, 
@@ -182,10 +183,11 @@ void ModLugreFriction::AssRes(
 	doublereal zp = XP.dGetCoef(solution_startdof+2);	
 	f = X.dGetCoef(solution_startdof+1);
 	WorkVec.fIncCoef(startdof+1,
-		sigma0*z+
-		sigma1*zp+
-		sigma2*v-f);
-	WorkVec.fIncCoef(startdof+2,-zp+v-alpha(z,v)*v*z/fs(v)*sigma0);
+		+f-
+		sigma0*z-
+		sigma1*zp-
+		sigma2*v);
+	WorkVec.fIncCoef(startdof+2,zp-v+alpha(z,v)*v*z/fs(v)*sigma0);
 };
 
 void ModLugreFriction::AssJac(
@@ -206,23 +208,23 @@ void ModLugreFriction::AssJac(
 /*
  * 	prima equazione
  */
-	WorkMat.fIncCoef(startdof+1,startdof+2,-sigma0*dCoef-sigma1);
-	dv.Add(WorkMat,startdof+1,-sigma2);
+	WorkMat.fIncCoef(startdof+1,startdof+2,+sigma0*dCoef+sigma1);
+	dv.Add(WorkMat,startdof+1,sigma2);
 	//f: algebrico
-	WorkMat.fIncCoef(startdof+1,startdof+1,1.);
+	WorkMat.fIncCoef(startdof+1,startdof+1,-1.);
 /*
  * 	seconda equazione
  */
  	doublereal alph = alpha(z,v);
 	doublereal fsc = fs(v);
-	WorkMat.fIncCoef(startdof+2,startdof+2,1.);
+	WorkMat.fIncCoef(startdof+2,startdof+2,-1.);
 	WorkMat.fIncCoef(startdof+2,startdof+2,
-		alphad_z(z,v)*v*z/fsc*sigma0*dCoef+
+		-alphad_z(z,v)*v*z/fsc*sigma0*dCoef-
 		alph*v/fsc*sigma0*dCoef);
 	dv.Add(WorkMat,startdof+2,
-		-1.+
-		alphad_v(z,v)*v*z/fsc*sigma0+
-		alph*z/fsc*sigma0-
+		1.-
+		alphad_v(z,v)*v*z/fsc*sigma0-
+		alph*z/fsc*sigma0+
 		alph*v*z/(fsc*fsc)*fsd(v)*sigma0);
 /*
  * 	callback: dfc[] = df/d{F,v,(z+dCoef,zp)}
