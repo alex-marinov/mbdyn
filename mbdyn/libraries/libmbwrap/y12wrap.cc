@@ -51,6 +51,7 @@ Y12LUSolver::Y12LUSolver(integer iMatOrd, integer iSize,
 			 doublereal** ppdTmpMat,
 			 doublereal* pdTmpRhs, integer iPivotParam)
 : iMatSize(iSize),
+iCurSize(iSize),
 ppiRow(ppiTmpRow),
 ppiCol(ppiTmpCol),
 ppdMat(ppdTmpMat),
@@ -94,16 +95,16 @@ iFirstSol(-1)
 	}
 #endif /* DEBUG */
 
-        iIFLAG[0] = 0;
-	iIFLAG[1] = 3;
-	iIFLAG[2] = iPivotParam;
-	iIFLAG[3] = 0;
-	iIFLAG[4] = 2;
+        iIFLAG[I_1] = 0;
+	iIFLAG[I_2] = 3;	/* recommended row number for pivoting */
+	iIFLAG[I_3] = iPivotParam;
+	iIFLAG[I_4] = 0;
+	iIFLAG[I_5] = 2;	/* store non-zero elements of L */
 					
-        dAFLAG[0] = 8.;         /* Should be 4.<dAFLAG[0]<16. for stability */
-	dAFLAG[1] = 0.;         /* Should be 0.<dAFLAG[1]<1.e-12 */
-	dAFLAG[2] = 1.e6;       /* Should be dAFLAG[2]>1.e5 */
-	dAFLAG[3] = 0.;  	/* FIXME: Should be 0<dAFLAG[3]<1.e-12 */
+        dAFLAG[I_1] = 8.;	/* Should be 4.<dAFLAG[0]<16. for stability */
+	dAFLAG[I_2] = 0.;	/* Should be 0.<dAFLAG[1]<1.e-12 */
+	dAFLAG[I_3] = 1.e6;	/* Should be dAFLAG[2]>1.e5 */
+	dAFLAG[I_4] = 0.;   	/* FIXME: Should be 0<dAFLAG[3]<1.e-12 */
 }
 
 /* Distruttore */
@@ -121,7 +122,7 @@ void
 Y12LUSolver::IsValid(void) const
 {
 	ASSERT(iMatSize > 0);
-	ASSERT(iMatSize > 0);
+	ASSERT(iCurSize > 0 && iCurSize <= iMatSize);
 	ASSERT(ppiRow != NULL);
 	ASSERT(ppiCol != NULL);
 	ASSERT(ppdMat != NULL);
@@ -152,6 +153,24 @@ Y12LUSolver::IsValid(void) const
 #endif /* DEBUG_MEMMANAGER */
 }
 
+bool
+Y12LUSolver::SetCurSize(integer i)
+{
+	if (i < 1 || i > iMatSize) {
+		return false;
+	}
+
+	iCurSize = i;
+
+	return true;
+}
+
+integer
+Y12LUSolver::iGetCurSize(void) const
+{
+	return iCurSize;
+}
+
 /* Fattorizza la matrice */
 flag
 Y12LUSolver::fLUFactor(void)
@@ -168,34 +187,40 @@ Y12LUSolver::fLUFactor(void)
 	
 	/* Sets parameters */
 	integer iIFAIL = 0;
-	iIFLAG[4] = 2;
 	iFirstSol = 1;
+
+	/*
+	 * must be set to 0 before the first call to a routine 
+	 * of the y12m package
+	 */
+	iIFLAG[I_1] = 0;
+	iIFLAG[I_5] = 2;
 	
 	/* Prepares for factorization */
 	__FC_DECL__(y12mbf)(&iN, &iNonZeroes, *ppdMat,
-			    *ppiCol, &iMatSize,
-			    *ppiRow, &iMatSize,
+			    *ppiCol, &iCurSize,
+			    *ppiRow, &iCurSize,
 			    piHA, &iN,
 			    dAFLAG, iIFLAG, &iIFAIL);
 			    
 	if (iIFAIL != 0) {
-		std::cerr << "Y12LUSolver: "
+		std::cerr << "Y12LUSolver (y12mbf): "
 			"error during pre-factorization, code " 
 			<< iIFAIL << ":" << std::endl;
 		PutError(std::cerr, iIFAIL);
 		THROW(Y12LUSolver::ErrFactorisation(iIFAIL));
 	}
-	
+
 	/* actual factorization */
 	__FC_DECL__(y12mcf)(&iN, &iNonZeroes, *ppdMat,
-			    *ppiCol, &iMatSize,
-			    *ppiRow, &iMatSize,
+			    *ppiCol, &iCurSize,
+			    *ppiRow, &iCurSize,
 			    pdPIVOT, pdRhs,
 			    piHA, &iN,
 			    dAFLAG, iIFLAG, &iIFAIL);
 
 	if (iIFAIL != 0) {
-		std::cerr << "Y12LUSolver: "
+		std::cerr << "Y12LUSolver (y12mcf): "
 			"error during factorization, code " 
 			<< iIFAIL << ":" << std::endl;
 		PutError(std::cerr, iIFAIL);
@@ -203,7 +228,7 @@ Y12LUSolver::fLUFactor(void)
 	}
 
 	if (dAFLAG[7] < 1.e-12) {
-		std::cerr << "Y12LUSolver:"
+		std::cerr << "Y12LUSolver (y12mcf):"
 			" warning, possible bad conditioning of matrix" 
 			<< std::endl;
 	}
@@ -221,13 +246,13 @@ Y12LUSolver::Solve(void)
 
 	integer iIFAIL = 0;
 	
-	__FC_DECL__(y12mdf)(&iN, *ppdMat, &iMatSize, pdRhs,
+	__FC_DECL__(y12mdf)(&iN, *ppdMat, &iCurSize, pdRhs,
 			    pdPIVOT, *ppiCol,
 			    piHA, &iN,
 			    iIFLAG, &iIFAIL);
 	
 	if (iIFAIL != 0) {
-		std::cerr << "Y12LUSolver: "
+		std::cerr << "Y12LUSolver (y12mdf): "
 			"error during back substitution, code "
 			<< iIFAIL << ":" << std::endl;
 		PutError(std::cerr, iIFAIL);
@@ -235,7 +260,7 @@ Y12LUSolver::Solve(void)
 	}
 	
 	if (iFirstSol == 1) {
-		iIFLAG[4] = 3;
+		iIFLAG[I_5] = 3;
 		iFirstSol = 0;
 	}
 }
@@ -513,7 +538,8 @@ pdVec(NULL),
 pMH(NULL),
 pVH(NULL),
 pLU(NULL),
-fHasBeenReset(1)
+fHasBeenReset(1),
+optimizeWorkSize(false)
 {
    	ASSERT(iSize > 0);
    	ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
@@ -521,6 +547,9 @@ fHasBeenReset(1)
    	/* Valore di default */
    	if (iWorkSpaceSize == 0) {
       		iWorkSpaceSize = 2*iSize*iSize;
+
+		optimizeWorkSize = true;
+		optimalWorkSize = iWorkSpaceSize;
    	}
 
 	integer iPivot;
@@ -530,9 +559,6 @@ fHasBeenReset(1)
 		iPivot = 1;
 	}
 
-	currWorkSize = iWorkSpaceSize;
-	optimalWorkSize = iWorkSpaceSize;
-      
    	/* Alloca arrays */
    	SAFENEWARR(piRow, integer, iWorkSpaceSize);
    	SAFENEWARR(piCol, integer, iWorkSpaceSize);
@@ -630,6 +656,36 @@ Y12SparseLUSolutionManager::PacVec(void)
 	
 	/* FIXME: move this to the matrix handler! */
    	pLU->iNonZeroes = pMH->iPacVec();
+
+	/*
+	 * This is not much important because we actually have
+	 * all the space we need; the real optimization is in reducing
+	 * the space for the sparse matrix.
+	 */
+	if (optimizeWorkSize) {
+		integer cs = pLU->iGetCurSize();
+		integer nz = pLU->iNonZeroes;
+		integer ns = -1;
+
+		/*
+		 * y12m (to save the factored LU matrices) requires 
+		 * 3 * nonzeros <= NN, NN1 <= 5 * nonzeros
+		 */
+		if (cs < 3*nz) {
+			/* compromise (tune 3 => 5 ?) */
+			ns = 5*nz;
+
+		} else {
+			/* asyntotically go to 4*nz */
+			ns = (5*nz+cs)/2;
+		}
+
+		if (ns != -1 && ns != cs) {
+			// pMH->SetCurSize(ns);	/* same as solver */
+			pLU->SetCurSize(ns);
+		}
+		pMH->SetCurSize(2*nz);	/* optimal fill? */
+	}
 }
 
 /* Inizializza il gestore delle matrici */
@@ -639,11 +695,6 @@ Y12SparseLUSolutionManager::MatrInit(const doublereal& dResetVal)
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
-
-	if (optimalWorkSize != currWorkSize) {
-		pMH->SetCurSize(optimalWorkSize);
-		currWorkSize = optimalWorkSize;
-	}
 
    	pMH->Init(dResetVal);
    	fHasBeenReset = flag(1);
@@ -658,24 +709,12 @@ Y12SparseLUSolutionManager::Solve(void)
 #endif /* DEBUG */
 
    	if (fHasBeenReset == 1) {
-      		this->PacVec();
-      		fHasBeenReset = 0;
+      		PacVec();
       		if (pLU->fLUFactor() < 0) {	 
 	 		THROW(Y12SparseLUSolutionManager::ErrGeneric());
       		}
-
-		/*
-		 * optimizes working space
-		 */
-		integer lowerOptSize = pLU->iIFLAG[7]*21/20;
-		integer upperOptSize = pLU->iIFLAG[7]*22/20;
-		if (currWorkSize > upperOptSize) {
-			DEBUGCOUT("Y12SparseLUSolutionManager: reducing size to " << upperOptSize << std::endl);
-			optimalWorkSize = upperOptSize;
-		} else if (currWorkSize < lowerOptSize) {
-			DEBUGCOUT("Y12SparseLUSolutionManager: rising size to " << lowerOptSize << std::endl);
-			optimalWorkSize = lowerOptSize;
-		}
+	
+      		fHasBeenReset = 0;
    	}
 
    	pLU->Solve();
@@ -684,3 +723,4 @@ Y12SparseLUSolutionManager::Solve(void)
 /* Y12SparseLUSolutionManager - end */
 
 #endif /* USE_Y12 */
+

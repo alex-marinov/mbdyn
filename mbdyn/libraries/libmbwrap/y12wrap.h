@@ -141,7 +141,26 @@ public:
    	};
    
 private:
+
+ 	/*
+	 * indices of array iIFLAG
+	 */
+	enum {
+		I_1 = 0,
+		I_2 = 1,
+		I_3 = 2,
+		I_4 = 3,
+		I_5 = 4,
+		I_6 = 5,
+		I_7 = 6,
+		I_8 = 7,
+		I_9 = 8,
+		I10 = 9
+	};
+
    	integer iMatSize;
+   	integer iCurSize;
+
    	integer** ppiRow;
    	integer** ppiCol;
    	doublereal** ppdMat;
@@ -157,7 +176,10 @@ private:
 
 	integer iFirstSol;      /* 1 se prima backsubst, else 0 */
 
-	void PutError(std::ostream& out, int rc) const ; /* scrive l'errore */
+	void PutError(std::ostream& out, int rc) const; /* scrive l'errore */
+
+	bool SetCurSize(integer i);
+	integer iGetCurSize(void) const;
    
 protected:
    	/* Costruttore: si limita ad allocare la memoria */
@@ -211,7 +233,7 @@ protected:
    
    	flag fHasBeenReset;   /* flag di matrice resettata */
 
-	integer currWorkSize;
+	bool optimizeWorkSize;
 	integer optimalWorkSize;
    
    	/* Prepara i vettori e la matrice per il solutore */
@@ -220,8 +242,9 @@ protected:
    	/* Fattorizza la matrice (non viene mai chiamato direttamente, 
     	 * ma da Solve se la matrice ancora non e' stata fattorizzata) */
    	void Factor(void);
-   
-public:   
+
+ 
+public:
    	/* Costruttore: usa e mette a disposizione matrici che gli sono date */
    	Y12SparseLUSolutionManager(integer iSize,
 				   integer iWorkSpaceSize = 0,
