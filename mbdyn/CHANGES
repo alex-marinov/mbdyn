@@ -10,6 +10,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.2-Engineering
 	Enhancements:
 		- added support for UMFPACK 4.0
+		- UMFPACK 4.0 is the default solver (if available)
 	Bug fixes:
 
 
