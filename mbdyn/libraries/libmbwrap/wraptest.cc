@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ac/iostream>
+#include <ac/fstream>
 
 #include <solman.h>
 #include <spmapmh.h>
@@ -47,6 +48,7 @@
 #include <lapackwrap.h>
 #include <taucswrap.h>
 #include <naivewrap.h>
+#include <parnaivewrap.h>
 
 char *solvers[] = {
 #if defined(USE_Y12)
@@ -77,8 +79,10 @@ char *solvers[] = {
 static void
 usage(int err)
 {
-	std::cerr << "usage: wraptest [-c] [-d] [-m <solver>] [-s]" << std::endl
+	std::cerr << "usage: wraptest [-c] [-d] [-m <solver>] [-s] [-t <nthreads>] [-f <filename>]" << std::endl
 		<< "\t<solver>={" << solvers[0];
+	std::cerr << "If the matrix is loaded from file the solution should be [0 0 .... 1]" << std::endl;
+	std::cerr << "The file format is: size row col x row col x etc..." << std::endl;
 	for (int i = 1; solvers[i]; i++) {
 		std::cerr << "|" << solvers[i];
 	}
@@ -112,14 +116,16 @@ main(int argc, char *argv[])
 #endif
 #endif /* NO SOLVER !!! */
 		;
+	char *filename = 0;
+	std::ifstream file;
 	bool cc(false);
 	bool dir(false);
 	unsigned nt = 1;
 	bool singular(false);
-	const int size(3);
+	int size(3);
 
 	while (1) {
-		int opt = getopt(argc, argv, "cdm:st:");
+		int opt = getopt(argc, argv, "cdm:st:f:");
 
 		if (opt == EOF) {
 			break;
@@ -149,9 +155,18 @@ main(int argc, char *argv[])
 			}
 			break;
 
+		case 'f':
+			filename = optarg;
+			break;
+
 		default:
 			usage(EXIT_FAILURE);
 		}
+	}
+
+	if (filename != 0) {
+		file.open(filename);
+		file >> size;
 	}
 
 	if (strcasecmp(solver, "taucs") == 0) {
@@ -267,13 +282,41 @@ main(int argc, char *argv[])
 
 	} else if (strcasecmp(solver, "naive") == 0) {
 		if (cc) {
-			SAFENEWWITHCONSTRUCTOR(pSM,
-				NaiveSparsePermSolutionManager,
-				NaiveSparsePermSolutionManager(size));
+			if (nt > 1) {
+#ifdef USE_NAIVE_MULTITHREAD
+				SAFENEWWITHCONSTRUCTOR(pSM,
+					ParNaiveSparsePermSolutionManager,
+					ParNaiveSparsePermSolutionManager(nt, size, 1.E-8));
+#else
+				silent_cerr("multithread naive solver support not compiled; "
+					"you can configure --enable-multithread-naive "
+					"on a linux ix86 to get it"
+					<< std::endl);
+				throw ErrGeneric();
+#endif /* USE_NAIVE_MULTITHREAD */
+			} else {
+				SAFENEWWITHCONSTRUCTOR(pSM,
+					NaiveSparsePermSolutionManager,
+					NaiveSparsePermSolutionManager(size, 1.E-8));
+			}
 		} else {
-			SAFENEWWITHCONSTRUCTOR(pSM,
-				NaiveSparseSolutionManager,
-				NaiveSparseSolutionManager(size));
+			if (nt > 1) {
+#ifdef USE_NAIVE_MULTITHREAD
+				SAFENEWWITHCONSTRUCTOR(pSM,
+					ParNaiveSparseSolutionManager,
+					ParNaiveSparseSolutionManager(nt, size, 1.E-8));
+#else
+				silent_cerr("multithread naive solver support not compiled; "
+					"you can configure --enable-multithread-naive "
+					"on a linux ix86 to get it"
+					<< std::endl);
+				throw ErrGeneric();
+#endif /* USE_NAIVE_MULTITHREAD */
+			} else {
+				SAFENEWWITHCONSTRUCTOR(pSM,
+					NaiveSparseSolutionManager,
+					NaiveSparseSolutionManager(size, 1.E-8));
+			}
 		}
 
 	} else {
@@ -291,33 +334,58 @@ main(int argc, char *argv[])
 
 	VariableSubMatrixHandler SBMH(10, 10);
 	FullSubMatrixHandler& WM = SBMH.SetFull();
+	
+	if (filename == 0) {
 
-	WM.ResizeReset(3, 3);
-	WM.PutRowIndex(1,1);
-	WM.PutRowIndex(2,2);
-	WM.PutRowIndex(3,3);
-	WM.PutColIndex(1,1);
-	WM.PutColIndex(2,2);
-	WM.PutColIndex(3,3);
-	WM.PutCoef(1, 1, 1.);
-	WM.PutCoef(2, 2, 2.);
-	WM.PutCoef(2, 3, -1.);
-	WM.PutCoef(3, 2, 11.);
-	WM.PutCoef(3, 1, 10.);
-	if (singular) {
-		WM.PutCoef(3, 3, 0.);
+		WM.ResizeReset(3, 3);
+		WM.PutRowIndex(1,1);
+		WM.PutRowIndex(2,2);
+		WM.PutRowIndex(3,3);
+		WM.PutColIndex(1,1);
+		WM.PutColIndex(2,2);
+		WM.PutColIndex(3,3);
+		WM.PutCoef(1, 1, 1.);
+		WM.PutCoef(2, 2, 2.);
+		WM.PutCoef(2, 3, -1.);
+		WM.PutCoef(3, 2, 11.);
+		WM.PutCoef(3, 1, 10.);
+		if (singular) {
+			WM.PutCoef(3, 3, 0.);
 
+		} else {
+			WM.PutCoef(3, 3, 3.);
+		}
+	
+		*pM += SBMH;
+	
+		pV->PutCoef(1, 1.);
+		pV->PutCoef(2, 1.);
+		pV->PutCoef(3, 1.);
+	
+		std::cout << *pM << "\n";
 	} else {
-		WM.PutCoef(3, 3, 3.);
+		integer count = 0;
+		integer row, col;
+		doublereal x;
+		while (file >> row >> col >> x) {
+			if (row > size || col > size) {
+				std::cerr << "Fatal read error of file" << filename << std::endl;
+				std::cerr << "size: " << size << std::endl;
+				std::cerr << "row:  " << row << std::endl;
+				std::cerr << "col:  " << col << std::endl;
+				std::cerr << "x:    " << x << std::endl;
+			}
+			(*pM)(row, col) = x;
+			count++;
+		}
+		for (integer i = 1; i <= size; i++) {
+			pV->PutCoef(i, (*pM)(i,size));
+		}
+		std::cout << "\nThe matrix has "
+			<< pM->iGetNumRows() << " rows, "
+			<< pM->iGetNumCols() << " cols "
+			<< "and " << count << " nonzeros\n" << std::endl;
 	}
-	
-	*pM += SBMH;
-	
-	pV->PutCoef(1, 1.);
-	pV->PutCoef(2, 1.);
-	pV->PutCoef(3, 1.);
-	
-	std::cout << *pM << "\n";
 	
 	try {
 		pSM->Solve();
@@ -329,26 +397,28 @@ main(int argc, char *argv[])
 			<< std::endl;
 	}
 	
-	std::cout << "\nSecond solve:\n";
-	pSM->MatrReset();
-	pM = pSM->pMatHdl();
+	if (filename == 0) {
+		std::cout << "\nSecond solve:\n";
+		pSM->MatrReset();
+		pM = pSM->pMatHdl();
 
-	pM->Reset();
+		pM->Reset();
 	
-	*pM += SBMH;
-	pV->PutCoef(1, 1.);
-	pV->PutCoef(2, 1.);
-	pV->PutCoef(3, 1.);
-	std::cout << *pM << "\n";
-	try {
-		pSM->Solve();
-	} catch (...) {
-		exit(EXIT_FAILURE);
-	}
+		*pM += SBMH;
+		pV->PutCoef(1, 1.);
+		pV->PutCoef(2, 1.);
+		pV->PutCoef(3, 1.);
+		std::cout << *pM << "\n";
+		try {
+			pSM->Solve();
+		} catch (...) {
+			exit(EXIT_FAILURE);
+		}
 	
-	for (int i = 1; i <= size; i++) {
-		std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 
-			<< std::endl;
+		for (int i = 1; i <= size; i++) {
+			std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 
+				<< std::endl;
+		}
 	}
 	
 	return 0;
