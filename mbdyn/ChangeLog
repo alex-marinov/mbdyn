@@ -6,6 +6,17 @@ Copyright (C) 1996-2003
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Wed Dec 24 00:56:31 CET 2003 Pierangelo Masarati <masarati@aero.polimi.it>
+ - fixed endless loop bug when silencing output with '-s'
+ - added support for multithreaded solution; currently works only
+   with Umfpack and column compressed form, so matrix profile changes
+   are not allowed; this will be removed in the future
+ - added support for SASL auth; preserved old auth stuff, now deprecated
+ - moved socket support into libmbutils; INET and LOCAL sockets used
+   consistently in MBDyn and utils
+ - moved fSilent/fPedantic global vars in libmbutils; now silent_c* can
+   be used everywhere; need to cleanup the whole stuff
+
 *** Thu Dec  4 17:07:17 CET 2003 Marco Morandini <morandini@æero.polimi.it>
  - add compressed column matrix form with external storage
  - use it within umfpackwrap
