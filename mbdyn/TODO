@@ -25,6 +25,9 @@ Known Bugs
    to avoid tedious recompilations
  - Restart stuff is broken
    - (22 Nov 2000) fixing drives, constitutive law and beam stuff
+   - (24 Nov 2000) now the beam restarts with correct current strains as new
+     prestrains; the already defined prestrains are discarded (recursive
+     tpldrive arrays?)
 
 
 
