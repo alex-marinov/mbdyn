@@ -73,7 +73,7 @@ SolutionManager::~SolutionManager(void)
 
 /* Inizializzatore "speciale" */
 void
-SolutionManager::MatrInitialize()
+SolutionManager::MatrInitialize(void)
 {
 	MatrReset();
 }

@@ -516,7 +516,7 @@ SchurVectorHandler::Resize(integer iNewSize)
 
 /* assegna 0. a tutti gli elementi del vettore */
 inline void
-SchurVectorHandler::Reset()
+SchurVectorHandler::Reset(void)
 {
 	pLV->Reset();
 	pIV->Reset(); 
@@ -692,7 +692,7 @@ public:
 	~SchurMatrixHandlerUm(void); 
 	
 	/* Resetta le matrici E F e C */
-	inline void MatEFCReset();
+	inline void MatEFCReset(void);
 
 	/* Resetta la matrice */
 	inline void Reset(void);
@@ -741,7 +741,7 @@ SchurMatrixHandlerUm::MatEFCReset(void)
 	pC->Reset();
 }
 
-inline void SchurMatrixHandlerUm::Reset()
+inline void SchurMatrixHandlerUm::Reset(void)
 {
 #ifdef DEBUG
 	IsValid();

@@ -1185,7 +1185,7 @@ public:
 	/*
 	 * Inizializza il vettore con d
 	 */
-	virtual void Reset() {
+	virtual void Reset(void) {
 		MyVectorHandler::Reset();
 	};
 

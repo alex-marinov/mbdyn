@@ -426,7 +426,7 @@ MyVectorHandler::IsValid(void) const
 #endif /* DEBUG */
 
 void
-MyVectorHandler::Reset()
+MyVectorHandler::Reset(void)
 {
 #ifdef DEBUG
 	IsValid();
