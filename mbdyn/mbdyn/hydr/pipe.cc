@@ -1062,6 +1062,13 @@ DynamicPipe::GetDofType(unsigned int i) const
    return DofOrder::DIFFERENTIAL;
 }
 
+DofOrder::Order 
+DynamicPipe::GetEqType(unsigned int i) const 
+{
+   ASSERT(i >= 0 && i < 4);
+   return DofOrder::DIFFERENTIAL;
+}
+
 void 
 DynamicPipe::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const 
 {

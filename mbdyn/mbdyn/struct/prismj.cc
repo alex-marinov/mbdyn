@@ -62,6 +62,15 @@ PrismaticJoint::~PrismaticJoint(void)
 };
 
 
+DofOrder::Order
+PrismaticJoint::GetEqType(unsigned int i) const
+{
+	ASSERTMSGBREAK(i < iGetNumDof(),
+		"INDEX ERROR in PrismaticJoint::GetEqType");
+	return DofOrder::ALGEBRAIC;
+}
+
+
 /* Contributo al file di restart */
 std::ostream& PrismaticJoint::Restart(std::ostream& out) const
 {
@@ -248,15 +257,6 @@ SubVectorHandler& PrismaticJoint::AssRes(SubVectorHandler& WorkVec,
    }   
 
    return WorkVec;
-}
-
-DofOrder::Order PrismaticJoint::GetEqType(unsigned int i) const {
-	ASSERTMSGBREAK((i>0) and (i<10), 
-		"INDEX ERROR in PrismaticJoint::GetEqType");
-	if ((i>6) and (i<10)) {
-		return DofOrder::ALGEBRAIC;
-	}
-	return DofOrder::DIFFERENTIAL;
 }
 
 /* Output (da mettere a punto) */

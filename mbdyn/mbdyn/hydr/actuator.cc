@@ -164,6 +164,12 @@ DofOrder::Order Actuator::GetDofType(unsigned int i) const
 }  
 
 
+DofOrder::Order Actuator::GetEqType(unsigned int i) const 
+{   
+   return DofOrder::DIFFERENTIAL;
+}  
+
+
 void 
 Actuator::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const 
 {   

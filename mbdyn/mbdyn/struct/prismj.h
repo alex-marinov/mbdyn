@@ -83,6 +83,8 @@ class PrismaticJoint : virtual public Elem, public Joint {
       return DofOrder::ALGEBRAIC; 
    };
 
+   DofOrder::Order GetEqType(unsigned int i) const;
+
    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
       *piNumRows = 9;
       *piNumCols = 9; 
@@ -97,8 +99,6 @@ class PrismaticJoint : virtual public Elem, public Joint {
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
-   
-   DofOrder::Order GetEqType(unsigned int i) const;
    
    void Output(OutputHandler& OH) const;
  

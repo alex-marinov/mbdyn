@@ -209,12 +209,9 @@ SubVectorHandler& SphericalHingeJoint::AssRes(SubVectorHandler& WorkVec,
 
 			    
 DofOrder::Order SphericalHingeJoint::GetEqType(unsigned int i) const {
-	ASSERTMSGBREAK((i>0) and (i<16), 
+	ASSERTMSGBREAK(i >=0 and i < iGetNomDof(), 
 		"INDEX ERROR in SphericalHingeJoint::GetEqType");
-	if ((i>12) and (i<16)) {
-		return DofOrder::ALGEBRAIC;
-	}
-	return DofOrder::DIFFERENTIAL;
+	return DofOrder::ALGEBRAIC;
 }
 
 
@@ -579,12 +576,9 @@ SubVectorHandler& PinJoint::AssRes(SubVectorHandler& WorkVec,
 }
 
 DofOrder::Order PinJoint::GetEqType(unsigned int i) const {
-	ASSERTMSGBREAK((i>0) and (i<10), 
+	ASSERTMSGBREAK(i >=0 and i < iGetNumDof(), 
 		"INDEX ERROR in PinJoint::GetEqType");
-	if ((i>6) and (i<10)) {
-		return DofOrder::ALGEBRAIC;
-	}
-	return DofOrder::DIFFERENTIAL;
+	return DofOrder::ALGEBRAIC;
 }
 
 /* Output (da mettere a punto) */

@@ -64,11 +64,13 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
    };   
       
    /* esegue operazioni sui dof di proprieta' dell'elemento */
-#ifdef DEBUG   
    virtual DofOrder::Order GetDofType(unsigned int i ) const {
-#else /* DEBUG */
-   virtual DofOrder::Order GetDofType(unsigned int /* i */) const {
-#endif /* DEBUG */
+      ASSERT(i == 0);
+      return DofOrder::ALGEBRAIC;
+   };
+   
+   /* esegue operazioni sui dof di proprieta' dell'elemento */
+   virtual DofOrder::Order GetEqType(unsigned int i ) const {
       ASSERT(i == 0);
       return DofOrder::ALGEBRAIC;
    };

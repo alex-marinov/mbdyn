@@ -2362,6 +2362,14 @@ PlanePinJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 	dTheta = v.dGet(3);
 }
 
+DofOrder::Order
+PlanePinJoint::GetEqType(unsigned int i) const
+{
+	ASSERTMSGBREAK(i < iGetNumDof(), 
+		"INDEX ERROR in PlanePinJoint::GetEqType");
+   return DofOrder::ALGEBRAIC; 
+}
+
 void
 PlanePinJoint::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
@@ -2547,14 +2555,6 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
    }   
    
    return WorkVec;
-}
-
-DofOrder::Order
-PlanePinJoint::GetEqType(unsigned int i) const
-{
-	ASSERTMSGBREAK(i < iGetNumDof(), 
-			"FATAL ERROR in PlanePinJoint::GetEqType");
-	return DofOrder::ALGEBRAIC;
 }
 
 /* Output (da mettere a punto) */

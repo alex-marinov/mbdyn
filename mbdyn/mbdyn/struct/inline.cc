@@ -53,6 +53,15 @@ InLineJoint::~InLineJoint(void)
 }
 
 
+DofOrder::Order
+InLineJoint::GetEqType(unsigned int i) const
+{
+	ASSERTMSGBREAK(i < iGetNumDof(),
+		"INDEX ERROR in InLineJoint::GetEqType");
+	return DofOrder::ALGEBRAIC;
+}
+
+
 /* Contributo al file di restart */
 std::ostream& InLineJoint::Restart(std::ostream& out) const
 {
@@ -180,15 +189,6 @@ InLineJoint::AssRes(SubVectorHandler& WorkVec,
    }
       
    return WorkVec;
-}
-
-DofOrder::Order InLineJoint::GetEqType(unsigned int i) const {
-	ASSERTMSGBREAK((i>0) and (i<15), 
-		"INDEX ERROR in InLineJoint::GetEqType");
-	if ((i==13) or (i==14)) {
-		return DofOrder::ALGEBRAIC;
-	}
-	return DofOrder::DIFFERENTIAL;
 }
 
 void InLineJoint::Output(OutputHandler& OH) const

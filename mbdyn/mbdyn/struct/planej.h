@@ -446,6 +446,8 @@ class PlanePinJoint : virtual public Elem, public Joint {
       return DofOrder::ALGEBRAIC;
    };
 
+	DofOrder::Order GetEqType(unsigned int i) const;
+
 	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
 
 	virtual void AfterConvergence(const VectorHandler& X, 
@@ -465,8 +467,6 @@ class PlanePinJoint : virtual public Elem, public Joint {
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
 			    
-   DofOrder::Order GetEqType(unsigned int i) const;
-   
    virtual void Output(OutputHandler& OH) const;
  
    

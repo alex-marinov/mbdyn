@@ -34,6 +34,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#if 0
+
 #include <distance.h>
 
 /* DistanceJoint - begin */
@@ -758,6 +760,8 @@ DistanceJointWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
 		<< Zero3 << std::endl;
 }
 #endif /* USE_ADAMS */
+
+#endif
 
 /* DistanceJointWithOffset - end */
 

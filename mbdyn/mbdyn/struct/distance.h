@@ -34,6 +34,8 @@
 #ifndef DISTANCE_H
 #define DISTANCE_H
 
+#if 0
+
 #include <joint.h>
 #include <drive.h>
 
@@ -268,6 +270,8 @@ public:
 };
 
 /* DistanceJointWithOffset - end */
+
+#endif
 
 #endif /* DISTANCE_H */
 
