@@ -300,7 +300,7 @@ public:
    	void IsValid(void) const;
    	void MatrInit(const doublereal& d = 0.);
    
-   	void Solve(const doublereal /* dCoef */ = 0.);
+   	void Solve(void);
    	
 	/* sposta il puntatore al vettore del residuo */
    	void ChangeResPoint(doublereal* pRes){

@@ -11,8 +11,6 @@ harwout.h \
 harwout_.cc \
 harwrap.cc \
 harwrap.h \
-iterwrap.cc \
-iterwrap.h \
 mschwrap.cc \
 mschwrap.h \
 umfpackwrap.cc \

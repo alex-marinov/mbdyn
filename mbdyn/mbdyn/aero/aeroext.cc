@@ -28,7 +28,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef USE_AERODYNAMIC_EXTERNAL 
+#ifdef USE_EXTERNAL 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
@@ -37,9 +37,8 @@
 #include <myassert.h>
 #include <except.h>
 #include <dataman.h>
-extern MPI::Intracomm MBDynComm;
- 
-/* le label delle comuncazioni vengono costruite in questo modo:
+#include <external.h>
+/* le label delle comunicazioni vengono costruite in questo modo:
  *
  *	blockID*10   +  1   label e numero nodi aggiuntivi 
  *			2   posizioni
@@ -315,26 +314,22 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			}
 		}
 	} 
+
 	
+	int comm = 0;
+	if (HP.IsKeyWord("comm")) {
+		comm = HP.GetInt();
+	}
+	std::list<MPI::Intercomm>::iterator iComm =  InterfaceComms.begin();
+	for (int i = 0; i++ < comm; iComm++) {}
+	MPI::Intercomm* pInterC = &(*(iComm));
+
 	bool VelFlag = false;
 	bool MomFlag = false;
 	
 	if (HP.IsKeyWord("velocity")) VelFlag = true;
 	if (HP.IsKeyWord("moment")) MomFlag = true;
 		  
-		
-	/* costruisce il comunicator */
-	MPI::Intercomm* pInterC = NULL;
-	SAFENEWWITHCONSTRUCTOR(pInterC, MPI::Intercomm, MPI::Intercomm());
-	
-	/* il leader locale e' la macchina master cioe' quella con rank 0 
-	 * il leader remoto e' sempre 0 perche' l'interfaccia e' composta 
-	 * da un solo processo 
-	 * la tag e' 1000 per creare il comunicatore fra MBdyn e l'interfaccia 
-	 * e 2000 fra il codice aerodinamico e l'interfaccia 
-	 */
-	*pInterC = MBDynComm.Create_intercomm(0, MPI::COMM_WORLD, 0, 1000); 
-	
    	/* per ora l'elemento non genera output */
 	flag fOut = 0;
 	
@@ -540,6 +535,14 @@ ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLa
 	      		<< " is required to be a modal joint" << std::endl;
       		THROW(DataManager::ErrGeneric());
    	}
+	int comm = 0;
+	if (HP.IsKeyWord("comm")) {
+		comm = HP.GetInt();
+	}
+	
+	std::list<MPI::Intercomm>::iterator iComm =  InterfaceComms.begin();
+	for (int i = 0; i++ < comm; iComm++) {}
+	MPI::Intercomm* pInterC = &(*(iComm));
 
 	bool VelFlag = false;
 	bool MomFlag = false;
@@ -547,19 +550,6 @@ ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLa
 	if (HP.IsKeyWord("velocity")) VelFlag = true;
 	if (HP.IsKeyWord("moment")) MomFlag = true;
 		  
-		
-	/* costruisce il comunicator */
-	MPI::Intercomm* pInterC = NULL;
-	SAFENEWWITHCONSTRUCTOR(pInterC, MPI::Intercomm, MPI::Intercomm());
-	
-	/* il leader locale e' la macchina master cioe' quella con rank 0 
-	 * il leader remoto e' sempre 0 perche' l'interfaccia e' composta 
-	 * da un solo processo 
-	 * la tag e' 1000 per creare il comunicatore fra MBdyn e l'interfaccia 
-	 * e 2000 fra il codice aerodinamico e l'interfaccia 
-	 */
-	*pInterC = MBDynComm.Create_intercomm(0, MPI::COMM_WORLD, 0, 1000); 
-		
    	/* per ora l'elemento non genera output */
 	flag fOut = 0;
 	
@@ -575,6 +565,10 @@ ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLa
  	return pEl;   		
 }
 
-#endif /* USE_AERODYNAMIC_EXTERNAL */
+
+
+
+
+#endif /* USE_EXTERNAL */
 
 /* Aerodynamic External Modal - end */

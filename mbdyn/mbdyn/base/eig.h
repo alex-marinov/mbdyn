@@ -29,7 +29,7 @@
  */
 
 /* 
- * Eigenvalue analysis by menas of POD 
+ * Eigenvalue analysis by means of POD 
  * Copyright 2002 Giuseppe Quaranta <giuquaranta@aero.polimi.it>
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  *
@@ -94,6 +94,5 @@ class PODEig
 		 
         void OutputEigenvalues(void);
 };
-
 
 #endif /* PODEIG_H */

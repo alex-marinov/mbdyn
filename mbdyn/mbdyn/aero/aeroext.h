@@ -35,7 +35,7 @@
 #ifndef AEROEXT_H
 #define AEROEXT_H
 
-#ifdef USE_AERODYNAMIC_EXTERNAL
+#ifdef USE_EXTERNAL
 #include"aerodyn.h"
 #include<mpi++.h>
 
@@ -329,5 +329,5 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
 extern Elem *
 ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
 
-#endif /* USE_AERODYNAMIC_EXTERNAL */
+#endif /* USE_EXTERNAL */
 #endif /* AEROEXT_H */

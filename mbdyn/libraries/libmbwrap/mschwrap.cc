@@ -270,7 +270,7 @@ MeschachSparseLUSolutionManager::MatrInit(const doublereal& d)
 }
 
 void
-MeschachSparseLUSolutionManager::Solve(const doublereal /* dCoef */) 
+MeschachSparseLUSolutionManager::Solve(void) 
 {
 #ifdef DEBUG
    	IsValid();

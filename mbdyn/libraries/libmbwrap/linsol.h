@@ -28,30 +28,30 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* Integratore generico */
+/* linear solver generico */
 
 #ifndef INTEGR_H
 #define INTEGR_H
 
 /* Integrator - begin */
 
-class Integrator
+class LinSol
 {
 public:
    	enum SolverType {
 		HARWELL_SOLVER,
 		MESCHACH_SOLVER,
 		Y12_SOLVER,
-                UMFPACK_SOLVER   
+                UMFPACK_SOLVER,
+		EMPTY_SOLVER   
 	};
 
 	static SolverType defaultSolver;
  
-   	virtual ~Integrator(void) {
+   	virtual ~LinSol(void) {
 		NO_OP;
 	};
 
-	virtual void Run(void) = 0;
 };
 
 /* Integrator - end */

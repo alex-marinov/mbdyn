@@ -50,9 +50,9 @@
 #include <body.h>
 #ifdef USE_AERODYNAMIC_ELEMS
 #include <aerodyn.h>   /* Classe di base degli elementi aerodinamici */
-#ifdef USE_AERODYNAMIC_EXTERNAL
+#ifdef USE_EXTERNAL
 #include <aeroext.h>
-#endif /* USE_AERODYNAMIC_EXTERNAL */
+#endif /* USE_EXTERNAL */
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
 
@@ -247,10 +247,10 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     Typ = Elem::AEROMODAL;
 	     break;
 	  }
-#ifdef USE_AERODYNAMIC_EXTERNAL
+#ifdef USE_EXTERNAL
 	  case AERODYNAMICEXTERNAL:
 	  case AERODYNAMICEXTERNALMODAL:
-#endif /* USE_AERODYNAMIC_EXTERNAL */
+#endif /* USE_EXTERNAL */
 	  case AERODYNAMICBODY:
 	  case AERODYNAMICBEAM:
 	  case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
@@ -508,10 +508,10 @@ void DataManager::ReadElems(MBDynParser& HP)
 	  case AEROMODAL:  
 	    t = Elem::AEROMODAL;
 	    break;
-#ifdef USE_AERODYNAMIC_EXTERNAL
+#ifdef USE_EXTERNAL
           case AERODYNAMICEXTERNAL:
           case AERODYNAMICEXTERNALMODAL:
-#endif /* USE_AERODYNAMIC_EXTERNAL */	  
+#endif /* USE_EXTERNAL */	  
 	  case AERODYNAMICBODY:
 	  case AERODYNAMICBEAM:	
 	  case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
@@ -1054,10 +1054,10 @@ void DataManager::ReadElems(MBDynParser& HP)
 	      case AERODYNAMICBEAM:
 	      case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 	      case AERODYNAMICBEAM2:
-#ifdef USE_AERODYNAMIC_EXTERNAL
+#ifdef USE_EXTERNAL
               case AERODYNAMICEXTERNAL:
               case AERODYNAMICEXTERNALMODAL:
-#endif /* USE_AERODYNAMIC_EXTERNAL */ 
+#endif /* USE_EXTERNAL */ 
 	      case AEROMODAL:
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
@@ -1556,7 +1556,7 @@ Elem** ReadOneElem(DataManager* pDM,
 	   *ppE = ReadAerodynamicBeam2(pDM, HP, uLabel);
 	   break;
 
-#ifdef USE_AERODYNAMIC_EXTERNAL
+#ifdef USE_EXTERNAL
          case AERODYNAMICEXTERNAL:
 		*ppE = ReadAerodynamicExternal(pDM, HP, uLabel);
 		break;
@@ -1564,13 +1564,13 @@ Elem** ReadOneElem(DataManager* pDM,
          case AERODYNAMICEXTERNALMODAL:
 		*ppE = ReadAerodynamicExternalModal(pDM, HP, uLabel);
 		break;
-#else /* !USE_AERODYNAMIC_EXTERNAL */
+#else /* !USE_EXTERNAL */
 	case AERODYNAMICEXTERNAL:
 	case AERODYNAMICEXTERNALMODAL:
 		std::cerr << "You need mpi and -DUSE_AERODYNAMIC_EXTERNAL " 
 			<< "to use this type of elements." << std::endl;
 		THROW(ErrGeneric());
-#endif /* !USE_AERODYNAMIC_EXTERNAL */	  
+#endif /* !USE_EXTERNAL */	  
 
 	default:
 	   ASSERTMSG(0, "You shouldn't have reached this point");

@@ -27,27 +27,35 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+ 
+ /* 
+  *
+  * Copyright (C) 2003
+  * Giuseppe Quaranta	<quaranta@aero.polimi.it>
+  *
+  * interfaccia dello Step intewgrator con il nonlinear solver 
+  */
+  
+#ifndef NONLINPB_H
+#define NONLINPB_H
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include <solman.h>
 
-#include <myassert.h>
-#include <integr.h>
+class NonlinearProblem
+{
 
-/*
- * Default solver
- */
-LinSol::SolverType
-#if defined(USE_UMFPACK)
-LinSol::defaultSolver = LinSol::UMFPACK_SOLVER;
-#elif /* !USE_UMFPACK */ defined(USE_Y12)
-LinSol::defaultSolver = LinSol::Y12_SOLVER;
-#elif /* !USE_Y12 */ defined(USE_HARWELL)
-LinSol::defaultSolver = LinSol::HARWELL_SOLVER;
-#elif /* !USE_HARWELL */ defined(USE_MESCHACH)
-Integrator::defaultSolver = LinSol::MESCHACH_SOLVER;
-#else /* !USE_MESCHACH */
-#error "need a solver!"
-#endif /* !USE_MESCHACH */
+public:
+	/* Distruttore */
+   	virtual ~NonlinearProblem(void) { };
 
+	virtual void Residual(VectorHandler* pRes) const = 0;
+
+	virtual void Jacobian(MatrixHandler* pJac) const = 0;
+	
+	virtual void Update(const VectorHandler* pSol) const = 0;
+
+
+};   
+   
+
+#endif /* NONLINPB_H */

@@ -28,26 +28,39 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+/* external Communications */
 
-#include <myassert.h>
-#include <integr.h>
 
-/*
- * Default solver
- */
-LinSol::SolverType
-#if defined(USE_UMFPACK)
-LinSol::defaultSolver = LinSol::UMFPACK_SOLVER;
-#elif /* !USE_UMFPACK */ defined(USE_Y12)
-LinSol::defaultSolver = LinSol::Y12_SOLVER;
-#elif /* !USE_Y12 */ defined(USE_HARWELL)
-LinSol::defaultSolver = LinSol::HARWELL_SOLVER;
-#elif /* !USE_HARWELL */ defined(USE_MESCHACH)
-Integrator::defaultSolver = LinSol::MESCHACH_SOLVER;
-#else /* !USE_MESCHACH */
-#error "need a solver!"
-#endif /* !USE_MESCHACH */
+#ifdef USE_MPI 
 
+#ifndef EXTERNAL_HH
+#define EXTERNAL_HH
+
+#include<mpi++.h>
+#include<list>
+#define INTERF_COMM_LABEL 1000
+extern std::list<MPI::Intercomm>  InterfaceComms; 
+
+namespace External {
+
+	enum ExtMessage{
+		EMPTY,
+		REGULAR,
+		CLOSE,
+		ERROR
+	};
+	
+	void SendNull(void);
+
+	void SendRegular(void);
+
+	void SendClose(void);
+
+	void SendError(void);
+
+}
+
+
+#endif /* EXTERNAL_HH */
+
+#endif /* USE_MPI */

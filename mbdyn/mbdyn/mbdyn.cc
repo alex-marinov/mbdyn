@@ -46,8 +46,23 @@ extern "C" {
 
 #ifdef USE_MPI 
 #include <mpi++.h>
-
 MPI::Intracomm MBDynComm = MPI::COMM_SELF;
+#ifdef USE_EXTERNAL
+#include<list>
+std::list<MPI::Intercomm>  InterfaceComms;
+#include<external.h>
+#include<vector>
+
+#define MB_EXIT(err) \
+	do { \
+		if (using_mpi) { \
+			External::SendClose();	\
+			MPI::Finalize(); \
+		} \
+		exit((err)); \
+	} while (0)
+
+#else /* USE_EXTERNAL */
 
 #define MB_EXIT(err) \
 	do { \
@@ -56,7 +71,7 @@ MPI::Intracomm MBDynComm = MPI::COMM_SELF;
 		} \
 		exit((err)); \
 	} while (0)
-
+#endif /* USE_EXTERNAL */
 #else /* !USE_MPI */
 
 #define MB_EXIT(err) \
@@ -68,7 +83,7 @@ MPI::Intracomm MBDynComm = MPI::COMM_SELF;
 #include <mynewmem.h>
 #include <except.h>
 
-#include <multistp.h>
+#include <solver.h>
 
 /* Note: DEBUG_* codes are declared in "mbdyn.h" */
 #ifdef DEBUG
@@ -217,7 +232,7 @@ const char* sDefaultInputFileName = "MBDyn";
 
 
 
-Integrator* RunMBDyn(MBDynParser&, const char* const, const char* const);
+Solver* RunMBDyn(MBDynParser&, const char* const, const char* const);
 #ifdef MBDYN_X_MAIL_MESSAGE
 static void SendMessage(const char* const, const char* const, time_t, time_t);
 #endif /* MBDYN_X_MAIL_MESSAGE */
@@ -650,7 +665,7 @@ main(int argc, char* argv[])
 	        		pIn = &FileStreamIn;
 	    		}
 	 	 
-	    		Integrator* pIntg = NULL;
+	    		Solver* pSolv = NULL;
 	    		switch (CurrInputFormat) {
 	    		case MBDYN: {	     
 	        		if (pT == NULL) {
@@ -676,7 +691,7 @@ main(int argc, char* argv[])
 	        		MBDynParser HP(*pMP, K, In, 
 						sInputFileName == sDefaultInputFileName ? "initial file" : sInputFileName);
 	     
-	        		pIntg = RunMBDyn(HP, sInputFileName, 
+	        		pSolv = RunMBDyn(HP, sInputFileName, 
 						 sOutputFileName);
 				if (FileStreamIn.is_open()) {
 	        			FileStreamIn.close();
@@ -694,8 +709,8 @@ main(int argc, char* argv[])
 	        		THROW(ErrGeneric());
 	    		}
 	    
-	    		if (pIntg != NULL) {
-	        		SAFEDELETE(pIntg);
+	    		if (pSolv != NULL) {
+	        		SAFEDELETE(pSolv);
 	    		}
 	 
 	    		if (fTable == 0 || argv[currarg] == NULL) {
@@ -768,20 +783,19 @@ main(int argc, char* argv[])
 }
 
 
-Integrator* 
+Solver* 
 RunMBDyn(MBDynParser& HP, 
 	 const char* const sInputFileName,
 	 const char* const sOutputFileName)
 {
     	DEBUGCOUTFNAME("RunMBDyn");
    
-    	Integrator* pIntg = NULL;
+    	Solver* pSolv = NULL;
 
 #ifdef USE_MPI
     	/* flag di parallelo */
     	flag fParallel(0);
 #endif /* USE_MPI */
-	flag fIterative(0);
 	
     	/* parole chiave */
     	const char* sKeyWords[] = { 
@@ -792,7 +806,6 @@ RunMBDyn(MBDynParser& HP,
         	"multistep",
         	"rungekutta",
         	"parallel",
-		"iterative",
         	"schur"
     	};
 
@@ -807,7 +820,6 @@ RunMBDyn(MBDynParser& HP,
         	MULTISTEP,
         	RUNGEKUTTA,
         	PARALLEL,
-		ITERATIVE,
         	SSCHUR,
         	LASTKEYWORD
     	};
@@ -874,46 +886,68 @@ RunMBDyn(MBDynParser& HP,
             		}
             		break;    
 
-        	case PARALLEL:
+        	case PARALLEL: {
 #ifdef USE_MPI
-			if (HP.fIsArg()) {
-				int size = MPI::COMM_WORLD.Get_size();
-				int NMbProc = HP.GetInt(); /* numero di porcessi assegnati ad mbdyn */
-				if (NMbProc > size) {
-					std::cerr << "WARNING: the requested number of processors is" 
-						<< "higher than the comm_world size.\n  The new processor number is "  
-						<< size << std::endl;
-					NMbProc = size;
+			unsigned int size = MPI::COMM_WORLD.Get_size();
+#ifdef USE_EXTERNAL			
+			int* pBuff = NULL;
+			SAFENEWARR(pBuff, int, size+1);
+			pBuff[0] = 0;
+			MPI::COMM_WORLD.Allgather(pBuff, 1, MPI::INT, pBuff+1, 1, MPI::INT);
+			MPI::Group WorldGroup = MPI::COMM_WORLD.Get_group();
+			int* pRan = NULL;
+			SAFENEWARR(pRan, int, size);
+			std::vector<unsigned int> iInterfaceProc(5);
+			unsigned int Bcount = 0;
+			unsigned int Icount = 0;
+			for (unsigned int i = 1; i <= size; i++) {
+				if (pBuff[i] == pBuff[0]) {
+					pRan[Bcount++] = i-1;
 				}
-				if (NMbProc == size) {
-					/* c'e' solo MBDyn */
-					MBDynComm = MPI::COMM_WORLD.Dup();
-				} else {
-					/* creo il gruppo che va da 1 a NMbProc */
-					MPI::Group WorldGroup = MPI::COMM_WORLD.Get_group();
-					int ran[3] = {1, NMbProc, 1};
-					MPI::Group MBDynGroup = WorldGroup.Range_incl(1, &ran);
-					MBDynComm = MPI::COMM_WORLD.Create(MBDynGroup);
-					MBDynGroup.Free();
-					WorldGroup.Free();
-				}
-			} else {
-			 	MBDynComm = MPI::COMM_WORLD.Dup();
+				if (pBuff[i] > 9) {
+					if (Icount <= 5) { 
+						iInterfaceProc[Icount++] = i-1;
+						
+					} else {
+						iInterfaceProc.push_back(i-1);
+					}
+				}	
 			}
-            		fParallel = 1;
+			if (Bcount == size) {
+				/* l'unica cosa che c'e' e' MBDyn */
+				MBDynComm = MPI::COMM_WORLD.Dup();
+			} else {
+				MPI::Group MBDynGroup = WorldGroup.Incl(Bcount, pRan);
+		 		MBDynComm = MPI::COMM_WORLD.Create(MBDynGroup);
+				MBDynGroup.Free();
+			}
+			WorldGroup.Free();
+			if (Icount != 0) {
+				for (unsigned int ii = 0; ii < Icount; ii++) {
+					InterfaceComms.push_back(MBDynComm.Create_intercomm(0, MPI::COMM_WORLD, iInterfaceProc[ii], INTERF_COMM_LABEL));
+				}
+			}
+			SAFEDELETEARR(pBuff);
+			SAFEDELETEARR(pRan);
+#else /* USE_EXTERNAL */
+			MBDynComm = MPI::COMM_WORLD.Dup();
+#endif /* USE_EXTERNAL */			
+			if (MBDynComm.Get_rank()) {
+				silent_cout("MBDyn will run on " << Bcount << 
+					" processors starting from processor "
+					<< std::endl);
+			}
+            		fParallel = int(MBDynComm.Get_size() != 1);
 	    		break;
 #else /* !USE_MPI */
             		std::cerr << "complile with -DUSE_MPI to enable "
 				"parallel solution" << std::endl;
 	    		THROW(ErrGeneric());
 #ifndef USE_EXCEPTIONS
-	    		break;
+			break;
 #endif /* USE_EXCEPTIONS */
 #endif /* !USE_MPI */
-		case ITERATIVE:
-			fIterative = 1;
-			break;
-
+		}	
         	case END:
 	    		if (KeyWords(HP.GetWord()) != DATA) {
 	        		std::cerr << std::endl 
@@ -940,23 +974,16 @@ endofcycle:
     	case MULTISTEP: 
 #ifdef USE_MPI
 		if (fParallel) {
-        		SAFENEWWITHCONSTRUCTOR(pIntg,
-					MultiStepIntegrator,
-					MultiStepIntegrator(HP, sInputFileName, 
+        		SAFENEWWITHCONSTRUCTOR(pSolv,
+					Solver,
+					Solver(HP, sInputFileName, 
 						sOutputFileName, fParallel));
 		} else {
 #endif /* USE_MPI */
-			if (fIterative){
-				SAFENEWWITHCONSTRUCTOR(pIntg,
-					MultiStepIntegrator,
-					MultiStepIntegrator(HP, sInputFileName,
-						sOutputFileName, 0, fIterative));
-			} else {
-				SAFENEWWITHCONSTRUCTOR(pIntg,
-					MultiStepIntegrator,
-					MultiStepIntegrator(HP, sInputFileName,
-						sOutputFileName));
-			}
+			SAFENEWWITHCONSTRUCTOR(pSolv,
+				Solver,
+				Solver(HP, sInputFileName,
+					sOutputFileName));
 #ifdef USE_MPI
 		}
 #endif /* USE_MPI */
@@ -973,9 +1000,9 @@ endofcycle:
     	}
    
     	/* Runs the simulation */
-    	pIntg->Run();
+    	pSolv->Run();
     
-    	return pIntg;
+    	return pSolv;
 }
 
 #ifdef MBDYN_X_MAIL_MESSAGE

@@ -366,7 +366,7 @@ public:
    	void MatrInit(const doublereal& dResetVal = 0.);
    
    	/* Risolve il sistema */
-   	void Solve(const doublereal /* dCoef */ = 0.);
+   	void Solve(void);
    
    	/* sposta il puntatore al vettore del residuo */
    	void ChangeResPoint(doublereal* pRes){
