@@ -175,7 +175,7 @@ fPOD(0),
 iPODStep(0),
 iPODFrames(0),
 #endif /*__HACK_POD__*/
-iNumPreviousVectors(3),
+iNumPreviousVectors(2),
 pdWorkSpace(NULL),
 qX(),
 qXPrime(),
@@ -379,29 +379,30 @@ void Solver::Run(void)
 	
    	ASSERT(iNumDofs > 0);        
 	
-	integer iNSteps = pRegularSteps->GetIntegratorNumStep();
-	integer iFSteps = pFictitiousSteps->GetIntegratorNumStep();
+	integer iNSteps = pRegularSteps->GetIntegratorNumPreviousStates();
+	integer iFSteps = pFictitiousSteps->GetIntegratorNumPreviousStates();
 	iNumPreviousVectors = (iNSteps < iFSteps) ? iFSteps : iNSteps;
 	
-	SAFENEWARR(pdWorkSpace,doublereal, 2*iNumPreviousVectors*iNumDofs);
+	SAFENEWARR(pdWorkSpace,doublereal, 2*(iNumPreviousVectors+1)*iNumDofs);
 	
 	MyVectorHandler* pX = NULL;
 	MyVectorHandler* pXPrime = NULL;
-	for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {  
+	for (int ivec = 0; ivec < iNumPreviousVectors+1; ivec++) {  
    		SAFENEWWITHCONSTRUCTOR(pX,
 			       	MyVectorHandler,
 			       	MyVectorHandler(iNumDofs, pdWorkSpace+ivec*iNumDofs));
 		qX.push_back(pX);
    		SAFENEWWITHCONSTRUCTOR(pXPrime,
 			       	MyVectorHandler,
-			       	MyVectorHandler(iNumDofs, pdWorkSpace+(iNumPreviousVectors+ivec)*iNumDofs));
+			       	MyVectorHandler(iNumDofs,
+				pdWorkSpace+((iNumPreviousVectors+1)+ivec)*iNumDofs));
 		qXPrime.push_back(pXPrime);
 		pX = NULL;
 		pXPrime = NULL;
 	}
 
 	/* Resetta i vettori */
-   	for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {
+   	for (int ivec = 0; ivec < iNumPreviousVectors+1; ivec++) {
 		qX[ivec]->Reset(0.);
 		qXPrime[ivec]->Reset(0.);
 	}
@@ -1280,7 +1281,7 @@ Solver::~Solver(void)
       		SAFEDELETEARR(sOutputFileName);
    	}
    
-	for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {  
+	for (int ivec = 0; ivec < iNumPreviousVectors+1; ivec++) {  
    		if (qX[ivec] != NULL) { 
 			SAFEDELETE(qX[ivec]);
 		}
