@@ -72,8 +72,9 @@ C DM*W da' la velocita' nel punto a 3/4 della corda
 extern c81_data *get_c81_data(int jpro);
 
 static int bisec(double* v, double val, int lb, int ub);
-static double 
-get_coef(int nm, double* m, int na, double* a, double alpha, double mach);
+static int
+get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
+		double* c, double* c0);
 static double
 get_dcla(int nm, double* m, double* s, double mach);
 static int
@@ -83,7 +84,11 @@ get_stall(int nm, double* m, double* s, double mach,
 double
 get_c81_coef(int nm, double* m, int na, double* a, double alpha, double mach)
 {
-	return get_coef(nm, m, na, a, alpha, mach);
+	double c;
+	
+	get_coef(nm, m, na, a, alpha, mach, &c, NULL);
+
+	return c;
 }
 
 int 
@@ -93,12 +98,12 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	 * velocita' del punto in cui sono calcolate le condizioni al contorno
 	 */
    	double v[3];
-   	double vp, vp2, vtot, vtot2;
+   	double vp, vp2, vtot;
 	double rho = VAM[0];
 	double cs = VAM[1];
 	double chord = VAM[2];
 	
-	double cl, cl0, cd, cd0, cm;
+	double cl = 0., cl0 = 0., cd = 0., cd0 = 0., cm = 0.;
 	double alpha, gamma, cosgam, mach, q;
 	double dcla;
 	
@@ -108,7 +113,9 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	const double RAD2DEG = 180.*M_1_PI;
 	const double M_PI_3 = M_PI/3.;
 	
-	/* porta la velocita' al punto di calcolo delle boundary conditions */
+	/* 
+	 * porta la velocita' al punto di calcolo delle boundary conditions 
+	 */
 	v[0] = W[0];
 	v[1] = W[1]+c34*W[5];
 	v[2] = W[2]-c34*W[4];
@@ -116,8 +123,7 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	vp2 = v[0]*v[0]+v[1]*v[1];
 	vp = sqrt(vp2);
 	
-	vtot2 = vp2+v[2]*v[2];
-	vtot = sqrt(vtot2);
+	vtot = sqrt(vp2+v[2]*v[2]);
 	
 	/*
 	 * non considera velocita' al di sotto di 1.e-6
@@ -156,31 +162,44 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	OUTA[2] = gamma*RAD2DEG;
 	
 	if (fabs(gamma) > M_PI_3) {
+		/* tanto ne viene preso il coseno ... */
 		gamma = M_PI_3;
 	}
 	
 	cosgam = cos(gamma);
-	mach = vtot/cs*sqrt(cosgam);
+	mach = (vtot*sqrt(cosgam))/cs;
 	OUTA[3] = mach;
 	
 	/*
-	 * Note: all angles in c81 files are in degrees
+	 * Note: all angles in c81 files MUST be in degrees
 	 */
-	cl = get_coef(data->NML, data->ml, data->NAL, data->al, OUTA[1], mach);
-	cl0 = get_coef(data->NML, data->ml, data->NAL, data->al, 0., mach);
-	cd = get_coef(data->NMD, data->md, data->NAD, data->ad, OUTA[1], mach);
-	cd0 = get_coef(data->NMD, data->md, data->NAD, data->ad, 0., mach);
-	cm = get_coef(data->NMM, data->mm, data->NAM, data->am, OUTA[1], mach);
+	get_coef(data->NML, data->ml, data->NAL, data->al, OUTA[1], mach, 
+			&cl, &cl0);
+	get_coef(data->NMD, data->md, data->NAD, data->ad, OUTA[1], mach,
+			&cd, &cd0);
+	get_coef(data->NMM, data->mm, data->NAM, data->am, OUTA[1], mach,
+			&cm, NULL);
 
 	dcla = get_dcla(data->NML, data->ml, data->stall, mach);
 	
-/* da COE0 (aerod2.f)
+/*
+ * da COE0 (aerod2.f):
+ * 
 	ASLRF = ASLOP0
 	IF(DABS(ALFA).LT.1.D-6) GOTO 10
 	ASLRF = CLIFT/(ALFA*COSGAM)
 	IF(ASLRF.GT.ASLOP0) ASLRF = ASLOP0
      10 CLIFT = ASLRF*ALFA
-*/
+ *
+ */
+
+	/*
+	 * in soldoni: se si e' oltre il tratto lineare, prende la
+	 * secante con l'angolo corretto per la freccia (fino a 60 
+	 * gradi) e poi ricalcola il cl con l'angolo vero; in questo
+	 * modo il cl viene piu' grande di circa 1/cos(gamma) ma solo
+	 * fuori del tratto lineare.
+	 */
 	dcla *= RAD2DEG;
 	if (fabs(alpha) > 1.e-6) {
 		double dclatmp = (cl-cl0)/(alpha*cosgam);
@@ -257,12 +276,12 @@ bisec(double* v, double val, int lb, int ub)
  * linearmente; infine il coefficiente corrispondente alla combinazione di
  * mach e alpha viene restituito.
  */
-static double
-get_coef(int nm, double* m, int na, double* a, double alpha, double mach)
+static int
+get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
+		double* c, double* c0)
 {
    	int im;
-   	int ia;
-  	double c = 0.;
+   	int ia, ia0;
 	
 	while (alpha < -180.) {
 		alpha += 360.;
@@ -287,6 +306,13 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach)
 	 * ia e' l'indice della prima colonna di a in cui si trova
 	 * l'approssimazione per eccesso di alpha
 	 */
+	if (c0 != NULL) {
+		ia0 = bisec(a, 0., 0, na-1);
+		if (ia0 != na) {
+			ia0++;
+		}
+	}
+
 	ia = bisec(a, alpha, 0, na-1);
 	if (ia != na) {
 		ia++;
@@ -297,27 +323,49 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach)
 	 * impossibili per vari motivi
 	 */
 	if (im == nm) {
+		if (c0 != NULL) {
+			if (ia0 == na) {
+				*c0 = a[na*(nm+1)-1];
+			} else {
+				double da = (alpha-a[ia0-1])/(a[ia0]-a[ia0-1]);
+				*c0 = (1.-da)*a[na*nm+ia0-1]+da*a[na*nm+ia0];
+			}
+		}
+		
 		if (ia == na) {
-			c = a[na*(nm+1)-1];
+			*c = a[na*(nm+1)-1];
 		} else {
 			double da = (alpha-a[ia-1])/(a[ia]-a[ia-1]);
-			c = (1.-da)*a[na*nm+ia-1]+da*a[na*nm+ia];
+			*c = (1.-da)*a[na*nm+ia-1]+da*a[na*nm+ia];
 		}
 	} else {
 		double d;
 		d = (mach-m[im-1])/(m[im]-m[im-1]);
+
+		if (c0 != NULL) {
+			if (ia0 == na) {
+				*c0 = (1.-d)*a[na*(im+1)-1]+d*a[na*(im+2)-1];
+			} else {
+				double a1, a2, da;
+				a1 = (1.-d)*a[na*im+ia0-1]+d*a[na*(im+1)+ia0-1];
+				a2 = (1.-d)*a[na*im+ia0]+d*a[na*(im+1)+ia0];
+				da = (alpha-a[ia0-1])/(a[ia0]-a[ia0-1]);
+				*c0 = (1.-da)*a1+da*a2;
+			}
+		}
+
 		if (ia == na) {
-			c = (1.-d)*a[na*(im+1)-1]+d*a[na*(im+2)-1];
+			*c = (1.-d)*a[na*(im+1)-1]+d*a[na*(im+2)-1];
 		} else {
 			double a1, a2, da;
 			a1 = (1.-d)*a[na*im+ia-1]+d*a[na*(im+1)+ia-1];
 			a2 = (1.-d)*a[na*im+ia]+d*a[na*(im+1)+ia];
 			da = (alpha-a[ia-1])/(a[ia]-a[ia-1]);
-			c = (1.-da)*a1+da*a2;
+			*c = (1.-da)*a1+da*a2;
 		}
 	}
 	
-	return c;
+	return 0;
 }
 
 static double

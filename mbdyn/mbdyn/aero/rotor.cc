@@ -77,8 +77,6 @@ dMu(0.), dLambda(1.), dChi(0.),
 dVelocity(0.), dOmega(0.),
 iNumSteps(0)
 {
-
-
    ASSERT(pC != NULL);
    ASSERT(pC->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pR != NULL);
@@ -88,7 +86,7 @@ iNumSteps(0)
    Vec3 R3R((pRotor->GetRCurr()).GetVec(3));
    if (R3C.Dot(R3R) < 1.-DBL_EPSILON) {
       cerr << "warning, possible misalignment of rotor and craft axes "
-	      "for Rotor[" << GetLabel() << "]" << endl;
+	      "for Rotor(" << GetLabel() << ")" << endl;
    }
 #ifdef USE_MPI
    RotorComm = MPI::COMM_WORLD.Dup();
@@ -181,23 +179,19 @@ doublereal Rotor::dGetPsi(const Vec3& X) const
     return dPsi0+atan2(XRel.dGet(2), XRel.dGet(1));
 }
 
-
-   /* Calcola la distanza di un punto dall'asse di rotazione in coordinate 
-    * adimensionali */
+/* Calcola la distanza di un punto dall'asse di rotazione in coordinate 
+ * adimensionali */
 doublereal Rotor::dGetPos(const Vec3& X) const
 {
    ASSERT(dRadius > 0.);
    Vec3 XRel(RRotTranspose*(X-XCraft));
-   XRel.Put(3, 0.);
-   doublereal d = XRel.Dot();
-   if (d > DBL_EPSILON) {
-      d = sqrt(d);
-   }
+   doublereal d1 = XRel.dGet(1);
+   doublereal d2 = XRel.dGet(2);
+   doublereal d = sqrt(d1*d1+d2*d2);
 
    ASSERT(dRadius > DBL_EPSILON);
    return d/dRadius;   
 }
-
 
 /* Calcola vari parametri geometrici
  * A partire dai corpi che identificano il velivolo ed il rotore
@@ -216,8 +210,7 @@ void Rotor::InitParam(void)
    XCraft = pRotor->GetXCurr();
 
    /* Velocita' angolare del rotore */
-   Vec3 Omega(pRotor->GetWCurr()-pCraft->GetWCurr());
-   dOmega = Omega.Norm();
+   dOmega = (pRotor->GetWCurr()-pCraft->GetWCurr()).Norm();
    
    /* Velocita' di traslazione del velivolo */
    VCraft = -(pRotor->GetVCurr());
@@ -225,7 +218,8 @@ void Rotor::InitParam(void)
    if (fGetAirVelocity(VTmp, pRotor->GetXCurr())) {
       VCraft += VTmp;
    }
-        
+  
+   /* Velocita' nel sistema del velivolo (del disco?) decomposta */
    VTmp = RRotTranspose*VCraft;
    doublereal dV1 = VTmp.dGet(1);
    doublereal dV2 = VTmp.dGet(2);
@@ -237,25 +231,23 @@ void Rotor::InitParam(void)
    dPsi0 = atan2(-dV2, dV1);
    
    /* Angolo di influsso */
-   dVelocity = dV3*dV3+dVV;      
+   dVelocity = sqrt(dV3*dV3+dVV);
    if (dVelocity > DBL_EPSILON) {
-      dVelocity = sqrt(dVelocity);
       dSinAlphad = -dV3/dVelocity;
       dCosAlphad = dV/dVelocity;
    } else {
-      dVelocity = 0.;
       dSinAlphad = 1.;
       dCosAlphad = 0.;
    }
 
    /* Parametri di influsso (usano il valore di dUMean al passo precedente) */
-   doublereal d = 0.;
+   doublereal dVTip = 0.;
    dMu = 0.;
    dLambda = 0.;
-   d = fabs(dOmega*dRadius);
-   if (d > DBL_EPSILON) {
-      dMu = (dVelocity*dCosAlphad)/d;
-      dLambda = (dVelocity*dSinAlphad+dUMeanPrev)/d;
+   dVTip = dOmega*dRadius;
+   if (dVTip > DBL_EPSILON) {
+      dMu = (dVelocity*dCosAlphad)/dVTip;
+      dLambda = (dVelocity*dSinAlphad+dUMeanPrev)/dVTip;
    }
    
    if (dMu == 0. && dLambda == 0.) {
@@ -265,22 +257,19 @@ void Rotor::InitParam(void)
    }
 }
 
-
 /* Velocita' indotta media (uniforme) */
 void Rotor::MeanInducedVelocity(void)
 {
    /* Trazione nel sistema rotore */
-   Vec3 T(RRotTranspose*FTraction);
-   doublereal dT = T.dGet(3);
+   doublereal dT = RRot3*FTraction;
 
    /* Velocita' indotta media */
-   doublereal dUMeanTmp = 0.;
-   doublereal d = 2.*dGetAirDensity(GetXCurr())*dArea*dOmega*dRadius*sqrt(dMu*dMu+dLambda*dLambda);
-   dUMeanTmp = dCorrection*dT/(d+1.);
+   doublereal dVRef = dOmega*dRadius*sqrt(dMu*dMu+dLambda*dLambda);
+   doublereal d = 2.*dGetAirDensity(GetXCurr())*dArea*dVRef;
+   doublereal dUMeanTmp = dCorrection*dT/(d+1.);
 
    dUMean = dUMeanTmp*(1.-dWeight)+dUMeanPrev*dWeight;
 }
-
 
 /* Azzera la trazione */
 void Rotor::ResetTraction(void)
@@ -288,7 +277,6 @@ void Rotor::ResetTraction(void)
    FTraction = Vec3(0.);
    MTraction = Vec3(0.);
 }
-
 
 /* assemblaggio jacobiano (nullo per tutti tranne che per il DynamicInflow) */
 VariableSubMatrixHandler& Rotor::AssJac(VariableSubMatrixHandler& WorkMat,
@@ -300,7 +288,6 @@ VariableSubMatrixHandler& Rotor::AssJac(VariableSubMatrixHandler& WorkMat,
    WorkMat.SetNullMatrix();
    return WorkMat;	
 }
-
 
 ostream& Rotor::Restart(ostream& out) const
 {
@@ -338,7 +325,6 @@ void Rotor::ExchangeTraction(flag fWhat)
 #endif /* MPI_PROFILING */
 }
 
-
 void Rotor::InitializeRotorComm(MPI::Intracomm* Rot)
 { 
   RotorComm = *Rot;
@@ -358,7 +344,6 @@ void Rotor::ExchangeVelocity(void)
   }
 }
 #endif /* USE_MPI */
-
    
 /* Rotor - end */
 
@@ -395,7 +380,6 @@ NoRotor::~NoRotor(void)
 {
    NO_OP;
 }
-
    
 /* assemblaggio residuo */
 SubVectorHandler& NoRotor::AssRes(SubVectorHandler& WorkVec,
@@ -433,12 +417,10 @@ SubVectorHandler& NoRotor::AssRes(SubVectorHandler& WorkVec,
   return WorkVec;
 }
 
-
 ostream& NoRotor::Restart(ostream& out) const
 {
   return Rotor::Restart(out) << "no;" << endl;
 }
-
 
 /* Somma alla trazione il contributo di forza di un elemento generico */
 void NoRotor::AddForce(const Vec3& F, const Vec3& M, const Vec3& X)
@@ -469,15 +451,12 @@ void NoRotor::AddForce(const Vec3& F, const Vec3& M, const Vec3& X)
   }   
 }
 
-
 /* Restituisce ad un elemento la velocita' indotta in base alla posizione
  * azimuthale */
 Vec3 NoRotor::GetInducedVelocity(const Vec3& /* X */ ) const
 {
   return Zero3;
 }
-
-
   
 /* NoRotor - end */
 
@@ -525,12 +504,10 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
 #endif /* USE_MPI */
 }
 
-
 UniformRotor::~UniformRotor(void)
 {
    NO_OP;
 }
-
 
 /* assemblaggio residuo */
 SubVectorHandler& UniformRotor::AssRes(SubVectorHandler& WorkVec,
@@ -574,23 +551,22 @@ SubVectorHandler& UniformRotor::AssRes(SubVectorHandler& WorkVec,
      */        
 #endif /* DEBUG */
    
-     /* Non tocca il residuo */
 #ifdef USE_MPI 
    }
    ExchangeVelocity();
 #endif /* USE_MPI */   
    ResetTraction();
+   
+     /* Non tocca il residuo */
    WorkVec.Resize(0);
    return WorkVec;  
 }
 
-
 ostream& UniformRotor::Restart(ostream& out) const
 {
   return Rotor::Restart(out) << "uniform, " << dRadius << ", " 
-			     << dWeight << ';' << endl;
+	  << dWeight << ", correction, " << dCorrection << ';' << endl;
 }
-
 
 /* Somma alla trazione il contributo di forza di un elemento generico */
 void UniformRotor::AddForce(const Vec3& F, const Vec3& M, const Vec3& X)
@@ -620,15 +596,12 @@ void UniformRotor::AddForce(const Vec3& F, const Vec3& M, const Vec3& X)
    }   
 }
 
-
 /* Restituisce ad un elemento la velocita' indotta in base alla posizione
  * azimuthale */
 Vec3 UniformRotor::GetInducedVelocity(const Vec3& /* X */ ) const
 {
   return RRot3*dUMeanPrev;
 };
-
-
 
 /* UniformRotor - end */
 
