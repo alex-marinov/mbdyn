@@ -28,13 +28,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* here goes Morandini's copyright */
+/* Copyright (C) 2003 Marco Morandini*/
 
 #ifndef FRICTION_H
 #define FRICTION_H
 
 #include "ScalarFunctions.h"
 #include "simentity.h"
+#include "JacSubMatrix.h"
 
 class BasicFriction : public SimulationEntity{
 public:
@@ -58,9 +59,25 @@ public:
 		const doublereal F,
 		const doublereal v,
 		const VectorHandler& X,
-		const VectorHandler& XP);
+		const VectorHandler& XP) = 0;
+	virtual void AssJac(
+		FullSubMatrixHandler& WorkMat,
+		ExpandableRowVector& dfc,
+		const unsigned int startdof,
+		const doublereal dCoef,
+		const doublereal F,
+		const doublereal v,
+		const VectorHandler& X,
+		const VectorHandler& XP,
+		const ExpandableRowVector& dF,
+		const ExpandableRowVector& dv) = 0;
 };
 
+/** A friction model based on 
+ * "Dupont Pierre, Hayward, Vincent, Armstrong Brian
+ * and Altpeter Friedhelm, Single state elasto-plastic friction models,
+ * IEEE Transactions on Automatic Control, scheduled for June 2002"
+ */
 class ModLugreFriction : public BasicFriction {
 private:
 	const doublereal sigma0;
@@ -70,11 +87,11 @@ private:
 	doublereal f;
 	const DifferentiableScalarFunction & fss;
 	doublereal alpha(const doublereal z,
-		const doublereal x1) const;
-	doublereal alphad_x1(const doublereal z,
-		const doublereal x1) const;
+		const doublereal v) const;
+	doublereal alphad_v(const doublereal z,
+		const doublereal v) const;
 	doublereal alphad_z(const doublereal z,
-		const doublereal x1) const;
+		const doublereal v) const;
 public:
 	ModLugreFriction(
 		const doublereal sigma0,
@@ -93,6 +110,17 @@ public:
 		const doublereal v,
 		const VectorHandler& X,
 		const VectorHandler& XP);
+	void AssJac(
+		FullSubMatrixHandler& WorkMat,
+		ExpandableRowVector& dfc,
+		const unsigned int startdof,
+		const doublereal dCoef,
+		const doublereal F,
+		const doublereal v,
+		const VectorHandler& X,
+		const VectorHandler& XP,
+		const ExpandableRowVector& dF,
+		const ExpandableRowVector& dv);
 };
 
 #endif /* FRICTION_H */

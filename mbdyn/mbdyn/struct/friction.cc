@@ -28,7 +28,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* here goes Morandini's copyright */
+/* Copyright (C) 2003 Marco Morandini*/
 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
@@ -76,16 +76,16 @@ DofOrder::Order ModLugreFriction::GetEqType(unsigned int i) const {
 };
 
 doublereal ModLugreFriction::alpha(const doublereal z,
-	const doublereal x1) const {
+	const doublereal v) const {
 	
-	doublereal zss = fss(x1)/sigma0;
+	doublereal zss = fss(v)/sigma0;
 	doublereal zba = kappa*zss;
 
-	if (sign(x1)==sign(z)) {
+	if (sign(v)==sign(z)) {
 		if (std::abs(z) <= std::abs(zba)) {
 		} else if ((std::abs(zba)<=std::abs(z)) && 
 			(std::abs(z)<=std::abs(zss))) {
-			return 0.5*std::sin(M_PI*sigma0*z/(fss(x1)*(1.-kappa))
+			return 0.5*std::sin(M_PI*sigma0*z/(fss(v)*(1.-kappa))
 				-M_PI*(1.+kappa)/(2*(1.-kappa)))+0.5;
 		} else {
 			return 1.;
@@ -94,22 +94,22 @@ doublereal ModLugreFriction::alpha(const doublereal z,
 	return 0.;
 };
 
-doublereal ModLugreFriction::alphad_x1(const doublereal z,
-	const doublereal x1) const {
+doublereal ModLugreFriction::alphad_v(const doublereal z,
+	const doublereal v) const {
 
-	doublereal zss = fss(x1)/sigma0;
+	doublereal zss = fss(v)/sigma0;
 	doublereal zba = kappa*zss;
 	doublereal der;
 
-	if (sign(x1)==sign(z)) {
+	if (sign(v)==sign(z)) {
 		if (std::fabs(z) <= std::fabs(zba)) {
 			der = 0.;
 		} else if ((std::fabs(zba) <= std::fabs(z)) &&
 			(std::fabs(z) <= std::fabs(zss))) {
-			der = -M_PI/2*std::cos(M_PI*sigma0*z/fss(x1)/(1.-kappa)
+			der = -M_PI/2*std::cos(M_PI*sigma0*z/fss(v)/(1.-kappa)
 				-M_PI*(1.+kappa)/2./(1.-kappa))
-				*sigma0*z/std::pow(fss(x1),2)/(1.-kappa)
-				*fss.ComputeDiff(x1,1);
+				*sigma0*z/std::pow(fss(v),2)/(1.-kappa)
+				*fss.ComputeDiff(v,1);
 		} else {
 			der = 0.;
 		}
@@ -120,19 +120,19 @@ doublereal ModLugreFriction::alphad_x1(const doublereal z,
 };
 
 doublereal ModLugreFriction::alphad_z(const doublereal z,
-	const doublereal x1) const {
+	const doublereal v) const {
 	
-	doublereal zss = fss(x1)/sigma0;
+	doublereal zss = fss(v)/sigma0;
 	doublereal zba = kappa*zss;
 	doublereal der;
 	
-	if (sign(x1)==sign(z)) {
+	if (sign(v)==sign(z)) {
 		if (std::fabs(z) <= std::fabs(zba)) {
 			der = 0;
 		} else if ((std::fabs(zba) <= std::fabs(z)) && 
 			(std::fabs(z) <= std::fabs(zss))) {
-			der = 0.5*M_PI*sigma0/fss(x1)/(1.-kappa)
-				*std::cos(M_PI*sigma0*z/fss(x1)/(1.-kappa)
+			der = 0.5*M_PI*sigma0/fss(v)/(1.-kappa)
+				*std::cos(M_PI*sigma0*z/fss(v)/(1.-kappa)
 				-M_PI*(1.+kappa)/2./(1.-kappa));
 		} else {
 			der = 0;
@@ -161,6 +161,47 @@ void ModLugreFriction::AssRes(
 		sigma0*z+
 		sigma1*zp+
 		sigma2*v-f);
-	WorkVec.fPutCoef(startdof+1,v-alpha(z,v)*v*z/fss(v)*sigma0);
+	WorkVec.fPutCoef(startdof+1,-zp+v-alpha(z,v)*v*z/fss(v)*sigma0);
 };
 
+void ModLugreFriction::AssJac(
+	FullSubMatrixHandler& WorkMat,
+	ExpandableRowVector& dfc,
+	const unsigned int startdof,
+	const doublereal dCoef,
+	const doublereal F,
+	const doublereal v,
+	const VectorHandler& X,
+	const VectorHandler& XP,
+	const ExpandableRowVector& dF,
+	const ExpandableRowVector& dv) {
+
+	doublereal z = X.dGetCoef(startdof+1);
+	doublereal zp = XP.dGetCoef(startdof+1);	
+/*
+ * 	prima equazione
+ */
+	WorkMat.fPutCoef(startdof,startdof+1,-sigma0*dCoef-sigma1);
+	dv.Add(WorkMat,startdof,-sigma2);
+	//f: algebrico
+	WorkMat.fPutCoef(startdof,startdof,1.);
+/*
+ * 	seconda equazione
+ */
+ 	doublereal alph = alpha(z,v);
+	doublereal fs = fss(v);
+	WorkMat.fPutCoef(startdof+1,startdof+1,1.);
+	dv.Add(WorkMat,startdof+1,
+		-1.+
+		alphad_v(z,v)*v+
+		z/fs*sigma0+
+		alph*z/fs*sigma0-
+		alph*v*z/(fs*fs)*fss.ComputeDiff(v,1)*sigma0);
+/*
+ * 	callback: dfc[] = df/d{F,v,(z+dCoef,zp)}
+ */
+ 	dfc.ReDim(3);
+	dfc.Set(0.,1);  dfc.Link(1,&dF);
+	dfc.Set(sigma2,2); dfc.Link(2,&dv);
+	dfc.Set(sigma0*dCoef+sigma1,3,startdof+1);
+};
