@@ -185,15 +185,13 @@ class Elem : public WithLabel, public ToBeOutput {
        * di nodi connessi; quindi viene chiamata la successiva con gli array
        * dimensionati opportunamente
        */
-      return 0;
+      std::cerr << psElemNames[GetElemType()] << "(" << GetLabel() 
+         << ") cannot be used in parallel environment" << std::endl;
+      THROW(ErrGeneric());
    };
    
    virtual void GetConnectedNodes(int& NumNodes, Node::Type* /* NdTyps */ , unsigned int* /* NdLabels */ ) {
-#ifdef DEBUG
-      std::cerr << "Warning: probably function Elem::GetConnectedNodes"
-        " is not defined for an element Type" << std::endl;
-#endif /* DEBUG */
-      NumNodes = 0;
+      NumNodes = GetNumConnectedNodes();
    };
    /* ************************************************ */
 

@@ -951,8 +951,8 @@ Modal::Output(OutputHandler& OH) const
       for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
 	 fOutFlex << iCnt
 	   << " " << a.dGet(iCnt)
-	     << " " << b.dGet(iCnt)
-	       << " " << bPrime.dGet(iCnt) << std::endl;
+	   << " " << b.dGet(iCnt)
+	   << " " << bPrime.dGet(iCnt) << std::endl;
       }
    }
 }

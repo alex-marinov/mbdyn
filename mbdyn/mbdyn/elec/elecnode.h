@@ -69,8 +69,8 @@ class AbstractNode : public ScalarDifferentialNode {
    
    /* Contributo del nodo astratto al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const { 
-      return out << "  abstract: " << GetLabel() << ", " 
-	<< dX << ", " << dXP << ';' << std::endl;
+      out << "  abstract: ";
+      return ScalarDifferentialNode::Restart(out);
    };
    
    /* Output del nodo */

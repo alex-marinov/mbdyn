@@ -61,10 +61,8 @@ extern const char* psReadControlNodes[];
  */
 extern const char* psReadNodesNodes[];
 
-
 /* Node - begin */
 
-// Nodi
 class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
  public:
    /* Enumerazione dei tipi di nodi */
@@ -221,7 +219,6 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
 
 /* ScalarNode - begin */
 
-// Nodo Scalare
 class ScalarNode : public Node {
  public:
    /* Costruttori */
@@ -282,7 +279,6 @@ inline unsigned int ScalarNode::iGetNumDof(void) const
 
 /* ScalarDifferentialNode - begin */
 
-// Nodo scalare differenziale
 class ScalarDifferentialNode : public ScalarNode {
  protected:
    /* Valode del DoF */
@@ -352,9 +348,18 @@ class ScalarDifferentialNode : public ScalarNode {
    virtual inline const doublereal& dGetXPrime(void) const;
 
    /* Consente di settare il valore iniziale nel vettore della soluzione*/
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
-      
+   virtual inline void SetValue(VectorHandler& X, VectorHandler& XP) const;
+
+   /* Aggiorna i valori interni */   
+   virtual inline void Update(const class VectorHandler&, const class VectorHandler&);
    
+   /* scrive l'output */
+   virtual inline std::ostream& Output(std::ostream& out) const;
+
+   /*
+    * Each node should prepend its type
+    */
+   std::ostream& Restart(std::ostream& out) const;      
 };
 
 
@@ -369,11 +374,29 @@ inline const doublereal& ScalarDifferentialNode::dGetXPrime(void) const
    return dXP;
 }
 
+void 
+ScalarDifferentialNode::Update(const class VectorHandler& X, 
+		const class VectorHandler& XP) 
+{
+   integer iFirstIndex = iGetFirstIndex()+1;
+   dX = X.dGetCoef(iFirstIndex);
+   dXP = XP.dGetCoef(iFirstIndex);
+}
+   
+std::ostream& 
+ScalarDifferentialNode::Output(std::ostream& out) const 
+{
+   if (fToBeOutput()) {
+      out << std::setw(8) << GetLabel() << " "
+   	      << dX << " " << dXP << std::endl;
+   }
+   return out;
+}
+
 /* ScalarDifferentialNode - end */
 
 /* ScalarAlgebraicNode - begin */
 
-// Nodo scalare algebrico. Non ha derivata.
 class ScalarAlgebraicNode : public ScalarNode {
  protected:
    /* Valore del DoF */
@@ -551,9 +574,9 @@ inline unsigned int ParameterNode::iGetNumDof(void) const
 /* Node2Scalar - begin */
 
 /*
- Struttura di conversione da nodo generico a nodo scalare.
- Questa struttura consente di usare un grado di liberta' di un nodo generico 
- come se fosse un nodo scalare
+ * Struttura di conversione da nodo generico a nodo scalare.
+ * Questa struttura consente di usare un grado di liberta' 
+ * di un nodo generico come se fosse un nodo scalare
  */
 struct NodeDof {
    /* Label del nodo */
@@ -707,9 +730,9 @@ inline const doublereal& Node2Scalar::dGetXPrime(void) const
 /* ScalarDof - begin */
 
 /* 
- Struttura che trasforma un nodo scalare in un grado di liberta' scalare.
- In pratica consente di accedere ad un DoF scalare o alla derivata di un
- nodo scalare in modo trasparente
+ * Struttura che trasforma un nodo scalare in un grado di liberta' scalare.
+ * In pratica consente di accedere ad un DoF scalare o alla derivata di un
+ * nodo scalare in modo trasparente
  */
 struct ScalarDof {
    /* Puntatore al nodo scalare */
@@ -736,4 +759,5 @@ struct ScalarDof {
 
 /* ScalarDof - end */
 
-#endif
+#endif /* NODE_H */
+

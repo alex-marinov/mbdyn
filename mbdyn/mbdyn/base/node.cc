@@ -243,6 +243,16 @@ void ScalarDifferentialNode::SetValue(VectorHandler& X, VectorHandler& XP) const
    XP.fPutCoef(iIndex+1, dXP);
 }
 
+/*
+ * Each node should prepend its type
+ */
+std::ostream& 
+ScalarDifferentialNode::Restart(std::ostream& out) const
+{
+	return out << ", value, " << dX 
+		<< ", derivative, " << dXP << ";" << std::endl;
+}
+
 /* ScalarDifferentialNode - end */
 
 

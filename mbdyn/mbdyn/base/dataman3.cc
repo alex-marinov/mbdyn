@@ -932,6 +932,53 @@ flag DataManager::fReadOutput(MBDynParser& HP, enum Node::Type t)
 
 /* legge i nodi e li costruisce */
 
+int
+DataManager::ReadScalarAlgebraicNode(MBDynParser& HP, 
+		unsigned int uLabel, Node::Type type,
+		doublereal& dX)
+{
+	/* verifica di esistenza del nodo */
+	if (pFindNode(type, uLabel) != NULL) {
+		std::cerr << "line " << HP.GetLineData() 
+      			<< ": " << psNodeNames[type] << "(" << uLabel
+      			<< ") already defined" << std::endl;
+		THROW(DataManager::ErrGeneric());
+	}		  
+
+	if (HP.fIsArg()) {
+		/* eat keyword "value" */
+		if (!HP.IsKeyWord("value")) {
+			std::cerr << psNodeNames[type] << "(" << uLabel 
+     				<< "): initial value specified without "
+     				"\"value\" keyword (deprecated)" << std::endl;
+		}
+		dX = HP.GetReal();
+		DEBUGLCOUT(MYDEBUG_INPUT, "Initial value x = " << dX 
+				<< " is supplied" << std::endl);
+		return 1;
+	}
+
+	return 0;
+}
+
+int
+DataManager::ReadScalarDifferentialNode(MBDynParser& HP, 
+		unsigned int uLabel, Node::Type type,
+		doublereal& dX, doublereal& dXP)
+{
+	if (ReadScalarAlgebraicNode(HP, uLabel, type, dX) == 1) {
+		if (HP.IsKeyWord("derivative")) {
+			dX = HP.GetReal();
+			DEBUGLCOUT(MYDEBUG_INPUT, 
+					"Initial derivative value xp = " 
+					<< dXP << " is supplied" << std::endl);
+			return 1;
+		}
+	}
+	
+	return 0;	
+}
+
 void DataManager::ReadNodes(MBDynParser& HP)
 {   
    DEBUGCOUTFNAME("DataManager::ReadNodes");
@@ -1169,34 +1216,24 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	  case ELECTRIC: {
 #if defined(USE_ELECTRIC_NODES)	   
 	     silent_cout("Reading electric node " << uLabel << std::endl);
-	     
-	     /* verifica che non siano gia' stati letti tutti 
-	      * quelli previsti */
+
+	     /* 
+	      * verifica che non siano gia' stati letti tutti 
+	      * quelli previsti 
+	      */
 	     if (iNumTypes[Node::ELECTRIC]-- <= 0) {
-		DEBUGCERR("");
 		std::cerr << "line " << HP.GetLineData() 
-		  << ": electric node " << uLabel
-		  << " exceedes electric nodes number" << std::endl;
-
+      			<< ": " << psNodeNames[Node::ELECTRIC] << "(" << uLabel
+      			<< ") exceeds declared number" << std::endl;
 		THROW(DataManager::ErrGeneric());
 	     }
-	     
-	     /* verifica di esistenza del nodo */
-	     if (pFindElectricNode(uLabel) != NULL) {
-		DEBUGCERR("");
-		std::cerr << "line " << HP.GetLineData() 
-		  << ": electric node " << uLabel
-		  << " already defined" << std::endl;
 
-		THROW(DataManager::ErrGeneric());
-	     }
-	     
 	     /* Initial values */
-	     doublereal dx = HP.GetReal();
-	     doublereal dxp = HP.GetReal();
-	     
+	     doublereal dx(0.);
+	     doublereal dxp(0.);
+
+	     ReadScalarDifferentialNode(HP, uLabel, Node::ELECTRIC, dx, dxp);
 	     flag fOut = fReadOutput(HP, Node::ELECTRIC);
-	     
 	     
 	     /* allocazione e creazione */
 	     int i = NodeData[Node::ELECTRIC].iNum
@@ -1221,42 +1258,21 @@ void DataManager::ReadNodes(MBDynParser& HP)
 #if defined(USE_ELECTRIC_NODES)	   
 	     silent_cout("Reading abstract node " << uLabel << std::endl);
 	     
-	     /* verifica che non siano gia' stati letti tutti 
-	      * quelli previsti */
+	     /* 
+	      * verifica che non siano gia' stati letti tutti 
+	      * quelli previsti 
+	      */
 	     if (iNumTypes[Node::ABSTRACT]-- <= 0) {
-		DEBUGCERR("");
 		std::cerr << "line " << HP.GetLineData() 
-		  << ": abstract node " << uLabel
-		  << " exceedes abstract nodes number" << std::endl;
-
+      			<< ": " << psNodeNames[Node::ABSTRACT] << "(" << uLabel
+      			<< ") exceeds declared number" << std::endl;
 		THROW(DataManager::ErrGeneric());
 	     }
-	     
-	     /* verifica di esistenza del nodo */
-	     if (pFindNode(Node::ABSTRACT, uLabel) != NULL) {
-		DEBUGCERR("");
-		std::cerr << "line " << HP.GetLineData() 
-		  << ": abstract node " << uLabel
-		  << " already defined" << std::endl;
 
-		THROW(DataManager::ErrGeneric());
-	     }		  
-	     
-	     
 	     /* lettura dei dati specifici */
-	     doublereal dX(0.);
-	     doublereal dXP(0.);
-	     if (HP.fIsArg()) {
-		dX = HP.GetReal();
-		DEBUGLCOUT(MYDEBUG_INPUT, "Initial value x = " << dX
-			   << " is supplied" << std::endl);
-		if (HP.fIsArg()) {
-		   dXP = HP.GetReal();
-		   DEBUGLCOUT(MYDEBUG_INPUT, "Initial value x' = " << dXP
-			      << " is supplied" << std::endl);
-		}		 
-	     }		  
-	     
+	     doublereal dx(0.);
+	     doublereal dxp(0.);
+	     ReadScalarDifferentialNode(HP, uLabel, Node::ABSTRACT, dx, dxp);
 	     flag fOut = fReadOutput(HP, Node::ABSTRACT);
 	     
 	     /* allocazione e creazione */
@@ -1267,7 +1283,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppN, 
 				    AbstractNode,
-				    AbstractNode(uLabel, pDO, dX, dXP, fOut));
+				    AbstractNode(uLabel, pDO, dx, dxp, fOut));
 	     
 	     break;
 #else /* USE_ELECTRIC_NODES */
@@ -1377,36 +1393,20 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	  case HYDRAULIC: {
 	     silent_cout("Reading hydraulic node " << uLabel << std::endl);
 	     
-	     /* verifica che non siano gia' stati letti tutti 
-	      * quelli previsti */
+	     /* 
+	      * verifica che non siano gia' stati letti tutti 
+	      * quelli previsti 
+	      */
 	     if (iNumTypes[Node::HYDRAULIC]-- <= 0) {
-		DEBUGCERR("");
 		std::cerr << "line " << HP.GetLineData() 
-		  << ": hydraulic node " << uLabel
-		  << " exceedes hydraulic nodes number" << std::endl;
-
+      			<< ": " << psNodeNames[Node::HYDRAULIC] << "(" << uLabel
+      			<< ") exceeds declared number" << std::endl;
 		THROW(DataManager::ErrGeneric());
 	     }
-	     
-	     /* verifica di esistenza del nodo */
-	     if (pFindNode(Node::HYDRAULIC, uLabel) != NULL) {
-		DEBUGCERR("");
-		std::cerr << "line " << HP.GetLineData() 
-		  << ": hydraulic node " << uLabel
-		  << " already defined" << std::endl;
 
-		THROW(DataManager::ErrGeneric());
-	     }		  
-	     
-	     
 	     /* lettura dei dati specifici */
-	     doublereal dX(0.);	  
-	     if (HP.fIsArg()) {
-		dX = HP.GetReal();
-		DEBUGLCOUT(MYDEBUG_INPUT, "Initial value x = " << dX
-			  << " is supplied" << std::endl);
-	     }		  
-	     
+	     doublereal dx(0.);
+	     ReadScalarAlgebraicNode(HP, uLabel, Node::ABSTRACT, dx);
 	     flag fOut = fReadOutput(HP, Node::HYDRAULIC);
 	     
 	     /* allocazione e creazione */
@@ -1417,7 +1417,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppN, 
 				    PressureNode,
-				    PressureNode(uLabel, pDO, dX, fOut));
+				    PressureNode(uLabel, pDO, dx, fOut));
 	     
 	     break;
 	  }
@@ -1691,10 +1691,14 @@ Elem* DataManager::ReadElem(MBDynParser& HP, Elem::Type type)
 
 int GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
 {
-   /* Ordine del grado di liberta' da considerare 
-    * (stato, oppure derivata se esiste) */
+   /*
+    * Ordine del grado di liberta' da considerare 
+    * (stato, oppure derivata se esiste)
+    */
    if (HP.IsKeyWord("differential")) {
-      /* Questo check e' pleonastico, viene gia' fatto dal chiamante */
+      /* 
+       * Questo check e' pleonastico, viene gia' fatto dal chiamante
+       */
       if (pNode->SetDof(iIndex-1) != DofOrder::DIFFERENTIAL) {
 	 std::cerr << sDMClassName 
 	   << " at line " << HP.GetLineData()
@@ -1704,6 +1708,7 @@ int GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
       }
       return 1;
    } 
+
    if (HP.IsKeyWord("algebraic")) {
 #ifdef DEBUG
       if ((pNode->SetDof(iIndex-1) != DofOrder::DIFFERENTIAL)
@@ -1717,10 +1722,16 @@ int GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
 #endif      
       return 0;
    } /* else */
-   std::cerr << sDMClassName
-     << " at line " << HP.GetLineData()
-       << ": unknown or illegal order for index " << iIndex
-     << " variable" << std::endl;
+
+   std::cerr 
+     << "unknown or illegal order for index " << iIndex
+     << " dof of " << psNodeNames[pNode->GetNodeType()] 
+     << "(" << pNode->GetLabel() << ")" << std::endl 
+     << "(hint: you may need to specify \"differential\" or \"algebraic\" "
+     "when referencing " << std::endl
+     << "a generic degree of freedom at line " 
+     << HP.GetLineData() << ")" << std::endl;
+
    THROW(DataManager::ErrGeneric());
 #ifndef USE_EXCEPTIONS
    return 0;

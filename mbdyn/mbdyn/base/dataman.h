@@ -191,6 +191,10 @@ class DataManager : public SolutionDataManager {
    virtual ~DataManager(void);
    
    /* helpers */
+   int ReadScalarAlgebraicNode(MBDynParser& HP, unsigned int uLabel, 
+		   Node::Type type, doublereal& dX);
+   int ReadScalarDifferentialNode(MBDynParser& HP, unsigned int uLabel, 
+		   Node::Type type, doublereal& dX, doublereal& dXP);
    Node* ReadNode(MBDynParser& HP, Node::Type type);
    Elem* ReadElem(MBDynParser& HP, Elem::Type type);
    

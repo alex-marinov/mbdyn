@@ -383,7 +383,7 @@ class Beam
                       Node::Type* NdTyps, 
 		      unsigned int* NdLabels) {
         NumNodes = NUMNODES;
-        for (int i = 0; i <= NUMNODES-1; i++) {
+        for (int i = 0; i < NUMNODES; i++) {
             NdTyps[i] = pNode[i]->GetNodeType();
             NdLabels[i] = pNode[i]->GetLabel();
         }
