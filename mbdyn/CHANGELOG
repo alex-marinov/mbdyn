@@ -14,13 +14,14 @@ MBDyn 1.X-Devel
 		- added TAUCS linear solver (experimental) (by Marco Morandini)
 		- added "ad hoc" (Radau IIA) third-order integrator
 		- template and wheel2 modules added to distribution
+		- added viscoelastic generic constitutive law
+		  with tension/torsion coupling
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
 		- fixed SuperLU memory leak
-		- fix socklen_t compilation bug under cygwin
-		- fix (mostly socket) portability issues for FreeBSD (patches
-		  from Kay Lehmann) and Cygwin.
+		- fix (mostly socket) portability issues for Cygwin
+		  and FreeBSD (patches from Kay Lehmann).
 
 MBDyn 1.2.3
 	Enhancements:

@@ -1080,6 +1080,119 @@ typedef LinearViscoElasticGenericConstitutiveLaw<Vec6, Mat6x6> LinearViscoElasti
 
 /* LinearViscoElasticGenericConstitutiveLaw - end */
 
+/* LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw - begin */
+
+template <class T, class Tder>
+class LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw
+: public ElasticConstitutiveLaw<T, Tder> {
+public:
+	LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw(const TplDriveCaller<T>* pDC,
+			const T& PStress,
+			const Tder& Stiff,
+			const Tder& StiffPrime,
+			doublereal dAxTors)
+	: ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {
+		throw (typename ConstitutiveLaw<T, Tder>::Err(std::cerr, "axial-torsion coupling constitutive law "
+					"is allowed only for beams (6x6)"));
+	};
+
+	virtual ~LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw(void) {
+		NO_OP;
+	};
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC;
+	};
+
+	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
+		return NULL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		return out;
+	};
+
+	virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
+		NO_OP;
+	};
+
+	virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.) {
+		NO_OP;
+	};
+};
+
+template <>
+class LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw<Vec6, Mat6x6>
+: public ElasticConstitutiveLaw<Vec6, Mat6x6> {
+private:
+	doublereal dRefTorsion;
+	doublereal dAxialTorsionCoupling;
+
+public:
+	LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw(const TplDriveCaller<Vec6>* pDC,
+			const Vec6& PStress,
+			const Mat6x6& Stiff,
+			const Mat6x6& StiffPrime,
+			doublereal dAxTors)
+	: ElasticConstitutiveLaw<Vec6, Mat6x6>(pDC, PStress),
+	dRefTorsion(Stiff(4, 4)),
+	dAxialTorsionCoupling(dAxTors) {
+		ConstitutiveLaw<Vec6, Mat6x6>::FDE = Stiff;
+		ConstitutiveLaw<Vec6, Mat6x6>::FDEPrime = StiffPrime;
+	};
+
+	virtual ~LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw(void) {
+		NO_OP;
+	};
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC;
+	};
+
+	virtual ConstitutiveLaw<Vec6, Mat6x6>* pCopy(void) const {
+		ConstitutiveLaw<Vec6, Mat6x6>* pCL = NULL;
+
+		typedef LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw<Vec6, Mat6x6> cl;
+		SAFENEWWITHCONSTRUCTOR(pCL,
+				cl,
+				cl(ElasticConstitutiveLaw<Vec6, Mat6x6>::pGetDriveCaller()->pCopy(),
+					ElasticConstitutiveLaw<Vec6, Mat6x6>::PreStress,
+					ConstitutiveLaw<Vec6, Mat6x6>::FDE,
+					ConstitutiveLaw<Vec6, Mat6x6>::FDEPrime,
+					dAxialTorsionCoupling));
+		return pCL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		doublereal d = FDE(4, 4);
+		out << "linear viscoelastic generic axial torsion coupling, ",
+		Write(out, ConstitutiveLaw<Vec6, Mat6x6>::FDE, ", ") << ", ",
+		Write(out, ConstitutiveLaw<Vec6, Mat6x6>::FDEPrime, ", ") << ", " << dAxialTorsionCoupling;
+		ElasticConstitutiveLaw<Vec6, Mat6x6>::Restart_(out);
+		((Mat6x6&)FDE)(4, 4) = d;
+		return out;
+	};
+
+	virtual void Update(const Vec6& Eps, const Vec6& EpsPrime = 0.) {
+		ConstitutiveLaw<Vec6, Mat6x6>::Epsilon = Eps;
+		ConstitutiveLaw<Vec6, Mat6x6>::EpsilonPrime = EpsPrime;
+		doublereal d = Epsilon.dGet(1);
+		ConstitutiveLaw<Vec6, Mat6x6>::FDE(4, 4) = dRefTorsion + d*dAxialTorsionCoupling;
+		ConstitutiveLaw<Vec6, Mat6x6>::F = ElasticConstitutiveLaw<Vec6, Mat6x6>::PreStress
+			+ ConstitutiveLaw<Vec6, Mat6x6>::FDE*(ConstitutiveLaw<Vec6, Mat6x6>::Epsilon - ElasticConstitutiveLaw<Vec6, Mat6x6>::Get())
+			+ ConstitutiveLaw<Vec6, Mat6x6>::FDEPrime*ConstitutiveLaw<Vec6, Mat6x6>::EpsilonPrime;
+	};
+
+	virtual void IncrementalUpdate(const Vec6& DeltaEps, const Vec6& EpsPrime = 0.) {
+		Update(ConstitutiveLaw<Vec6, Mat6x6>::Epsilon + DeltaEps, EpsPrime);
+	};
+};
+
+typedef LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw<Vec6, Mat6x6> LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw6D;
+
+/* LinearElasticGenericAxialTorsionCouplingConstitutiveLaw - end */
+
+
 
 /* DoubleLinearViscoElasticConstitutiveLaw - begin */
 

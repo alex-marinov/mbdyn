@@ -98,6 +98,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 		"linear" "viscoelastic",
 		"linear" "viscoelastic" "isotropic",
 		"linear" "viscoelastic" "generic",
+		"linear" "viscoelastic" "generic" "axial" "torsion" "coupling",
 		"doublelinear" "viscoelastic",
 		"turbulent" "viscoelastic",
 		"linear" "viscoelastic" "bistop",
@@ -131,6 +132,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 		LINEARVISCOELASTIC,
 		LINEARVISCOELASTICISOTROPIC,
 		LINEARVISCOELASTICGENERIC,
+		LINEARVISCOELASTICGENERICAXIALTORSIONCOUPLING,
 		DOUBLELINEARVISCOELASTIC,
 		TURBULENTVISCOELASTIC,
 		LINEARVISCOELASTICBISTOP,
@@ -542,6 +544,36 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 
 		typedef LinearViscoElasticGenericConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S, SP));
+
+		break;
+	}
+
+	case LINEARVISCOELASTICGENERICAXIALTORSIONCOUPLING: {
+		CLType = ConstLawType::VISCOELASTIC;
+
+		Tder S(0.);
+		S = HP.Get(S);
+
+		Tder SP(0.);
+		if (HP.IsKeyWord("proportional")) {
+			doublereal k = HP.GetReal();
+			SP = S*k;
+		} else {
+			SP = HP.Get(SP);
+		}
+
+		/* coefficiente di accoppiamento */
+		doublereal dCoupl = HP.GetReal();
+		DEBUGCOUT("coupling coefficient: " << dCoupl << std::endl);
+
+		/* Prestress and prestrain */
+		T PreStress(0.);
+		GetPreStress(HP, PreStress);
+		T PreStrain(0.);
+		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+
+		typedef LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw<T, Tder> L;
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S, SP, dCoupl));
 
 		break;
 	}
