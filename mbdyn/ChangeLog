@@ -6,6 +6,11 @@ Copyright (C) 1996-2003
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Tue Apr  1 22:00:00 CEST 2003 Pierangelo Masarati <masarati@aero.polimi.it>
+ - MatR2EulerAngles outputs rads now
+ - revolute joint outputs non-wrapping angle as first parameter
+ - added RTAI mailbox drive; reworking of file drives
+
 *** Sun Mar 30 17:00:00 CEST 2003 Pierangelo Masarati <masarati@aero.polimi.it>
  - spatially resolved gust
 
