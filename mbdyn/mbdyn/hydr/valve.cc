@@ -460,48 +460,54 @@ Control_valve2::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.fPutCoef(1, 5, -1.);
 	WM.fPutCoef(2, 5,  1.);
 	
-	WM.fPutCoef(5, 1, -1.);
-	WM.fPutCoef(5, 2,  1.);
+	doublereal a = A[0]*A[0];
+	WM.fPutCoef(5, 1, -a);
+	WM.fPutCoef(5, 2,  a);
 
 	/* Q34 */
 	WM.fPutCoef(3, 6, -1.);
 	WM.fPutCoef(4, 6,  1.);
 	
-	WM.fPutCoef(6, 3, -1.);
-	WM.fPutCoef(6, 4,  1.);
+	a = A[1]*A[1];
+	WM.fPutCoef(6, 3, -a);
+	WM.fPutCoef(6, 4,  a);
 	
 	/* Q13 */
 	WM.fPutCoef(1, 7, -1.);
 	WM.fPutCoef(3, 7,  1.);
 	
-	WM.fPutCoef(7, 1, -1.);
-	WM.fPutCoef(7, 3,  1.);
+	a = A[2]*A[2];
+	WM.fPutCoef(7, 1, -a);
+	WM.fPutCoef(7, 3,  a);
 	
 	/* Q24 */
 	WM.fPutCoef(2, 8, -1.);
 	WM.fPutCoef(4, 8,  1.);
 	
-	WM.fPutCoef(8, 2, -1.);
-	WM.fPutCoef(8, 4,  1.);
+	a = A[3]*A[3];
+	WM.fPutCoef(8, 2, -a);
+	WM.fPutCoef(8, 4,  a);
 
 #ifdef VALVE_6
 	/* Q14 */
 	WM.fPutCoef(1, 9, -1.);
 	WM.fPutCoef(4, 9,  1.);
 	
-	WM.fPutCoef(9, 1, -1.);
-	WM.fPutCoef(9, 4,  1.);
+	a = A[4]*A[4];
+	WM.fPutCoef(9, 1, -a);
+	WM.fPutCoef(9, 4,  a);
 	
 	/* Q23 */
 	WM.fPutCoef(2, 10, -1.);
 	WM.fPutCoef(3, 10,  1.);
 	
-	WM.fPutCoef(10, 2, -1.);
-	WM.fPutCoef(10, 3,  1.);
+	a = A[5]*A[5];
+	WM.fPutCoef(10, 2, -a);
+	WM.fPutCoef(10, 3,  a);
 #endif /* VALVE_6 */
 
 	for (int i = 0; i < LAST_Q; i++) {
-		WM.fPutCoef(5+i, 5+i, 2.*fabs(q[i])/(dKappa*A[i]*A[i]));
+		WM.fPutCoef(5+i, 5+i, 2.*fabs(q[i])/dKappa);
 	}
 	
 	return WorkMat;
@@ -531,19 +537,20 @@ Control_valve2::Prepare(void)
 #endif /* VALVE_6 */
 
 	Stato = pGetDriveCaller()->dGet();
- 
-	if (Stato > 1.) {
-		Stato = 1.;
-	} else if (Stato < -1.) {
-		Stato = -1.;
-	}
-	
 	if (Stato > 0.) { 
+		if (Stato > 1.) {
+			Stato = 1.;
+		}
+
 		A[Q12] = Stato*area_max+2.*area_min;
 		A[Q34] = Stato*area_max+2.*area_min;
 		A[Q13] = area_min;
 		A[Q24] = area_min;
 	} else {
+		if (Stato < -1.) {
+			Stato = -1.;
+		}
+
 		A[Q12] = 2.*area_min;
 		A[Q34] = 2.*area_min;
 		A[Q13] = -Stato*area_max+area_min;
@@ -604,7 +611,7 @@ Control_valve2::AssRes(SubVectorHandler& WorkVec,
 	
 	for (int i = 0; i < LAST_Q; i++) {
 		WorkVec.fPutItem(5+i, iFirstIndex+i, 
-			dp[i]-q[i]*fabs(q[i])/(dKappa*A[i]*A[i]));
+			A[i]*A[i]*dp[i]-q[i]*fabs(q[i])/dKappa);
 	}
 
 	return WorkVec;
