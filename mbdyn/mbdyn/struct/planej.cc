@@ -40,16 +40,16 @@
 
 /* Costruttore non banale */
 PlaneHingeJoint::PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
-				 const StructNode* pN1, const StructNode* pN2,
-				 const Vec3& dTmp1, const Vec3& dTmp2,
-				 const Mat3x3& R1hTmp, const Mat3x3& R2hTmp,
-				 flag fOut)
+		const StructNode* pN1, const StructNode* pN2,
+		const Vec3& dTmp1, const Vec3& dTmp2,
+		const Mat3x3& R1hTmp, const Mat3x3& R2hTmp,
+		flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
 Joint(uL, Joint::PLANEHINGE, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
-d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.)
+d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.), dTheta(0.)
 {
-   NO_OP;
+	NO_OP;
 }
 
 
@@ -58,6 +58,27 @@ PlaneHingeJoint::~PlaneHingeJoint(void)
 {
    NO_OP;
 };
+
+void
+PlaneHingeJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
+{
+	Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
+	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
+	Vec3 v(MatR2EulerAngles(RTmp));
+
+	dTheta = v.dGet(3);
+}
+
+void
+PlaneHingeJoint::AfterConvergence(const VectorHandler& X, 
+		const VectorHandler& XP)
+{
+	Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
+			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr());
+	Vec3 v(MatR2EulerAngles(RTmp));
+
+	dTheta += v.dGet(3);
+}
 
 
 /* Contributo al file di restart */
@@ -708,11 +729,11 @@ PlaneHingeJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 
-	if (strcmp(s, "rx") == 0) {
+	if (strcmp(s, "rz") == 0) {
 		return 1;
 	}
 
-	if (strcmp(s, "wx") == 0) {
+	if (strcmp(s, "wz") == 0) {
 		return 2;
 	}
 
@@ -723,17 +744,19 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
 {
    ASSERT(i >= 1 && i <= iGetNumPrivData());
    
-   Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
-   Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
-   
    switch (i) {
     case 1: {
-       Vec3 v(MatR2EulerAngles(RTmp));
-       
-       return v.dGet(3);
+	Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
+			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr());
+	Vec3 v(MatR2EulerAngles(RTmp));
+
+       return dTheta + v.dGet(3);
     }
       
     case 2: {
+       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
+       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
+   
        Mat3x3 R2TmpT(R2Tmp.Transpose());
        Vec3 v(R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()));
        
