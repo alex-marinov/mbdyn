@@ -273,7 +273,7 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       Vec3 Omega2r(pNode2->GetWRef());   
       //compute 
           //relative velocity
-      doublereal v = (Omega1-Omega2).Dot(e3a)*1.;
+      doublereal v = (Omega1-Omega2).Dot(e3a)*r;
           //reaction norm
       doublereal modF = F.Norm();
           //reaction moment
@@ -296,20 +296,14 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
           //variation of relative velocity
       dv.ReDim(6);
       Vec3 domega = Omega1-Omega2;
-      //Vec3 e3aO1(e3a*Omega1);
-      //Vec3 e3aO2(e3a*Omega2);
-      dv.Set(e3a.dGet(1)*(1.-( Omega1r.dGet(3)-Omega1r.dGet(2))*dCoef)*r,1,0+4);
-          dv.Add((R1hTmp.dGet(2,3)*domega.dGet(3)-R1hTmp.dGet(3,3)*domega.dGet(2))*dCoef*r,1);
-          //dv.Sub(e3aO1.dGet(2)*dCoef,1);
-      dv.Set(e3a.dGet(2)*(1.-(-Omega1r.dGet(3)+Omega1r.dGet(1))*dCoef)*r,2,0+5);
-          dv.Add((R1hTmp.dGet(3,3)*domega.dGet(1)-R1hTmp.dGet(1,3)*domega.dGet(3))*dCoef*r,2);
-          //dv.Add(e3aO1.dGet(1)*dCoef,2);
-      dv.Set(e3a.dGet(3)*(1.-( Omega1r.dGet(2)-Omega1r.dGet(1))*dCoef)*r,3,0+6);
-          dv.Add((R1hTmp.dGet(1,3)*domega.dGet(2)-R1hTmp.dGet(2,3)*domega.dGet(1))*dCoef*r,3);
       
-      dv.Set(-e3a.dGet(1)*(1.-( Omega2r.dGet(3)-Omega2r.dGet(2))*dCoef)*r,4,6+4);
-      dv.Set(-e3a.dGet(2)*(1.-(-Omega2r.dGet(3)+Omega2r.dGet(1))*dCoef)*r,5,6+5);
-      dv.Set(-e3a.dGet(3)*(1.-( Omega2r.dGet(2)-Omega2r.dGet(1))*dCoef)*r,6,6+6);
+      dv.Set((e3a.dGet(1)*1.-( e3a.dGet(2)*Omega1r.dGet(3)-e3a.dGet(3)*Omega1r.dGet(2))*dCoef)*r,1,0+4);
+      dv.Set((e3a.dGet(2)*1.-(-e3a.dGet(1)*Omega1r.dGet(3)+e3a.dGet(3)*Omega1r.dGet(1))*dCoef)*r,2,0+5);
+      dv.Set((e3a.dGet(3)*1.-( e3a.dGet(1)*Omega1r.dGet(2)-e3a.dGet(2)*Omega1r.dGet(1))*dCoef)*r,3,0+6);
+      
+      dv.Set(-(e3a.dGet(1)*1.-( e3a.dGet(2)*Omega2r.dGet(3)-e3a.dGet(3)*Omega2r.dGet(2))*dCoef)*r,4,6+4);
+      dv.Set(-(e3a.dGet(2)*1.-(-e3a.dGet(1)*Omega2r.dGet(3)+e3a.dGet(3)*Omega2r.dGet(1))*dCoef)*r,5,6+5);
+      dv.Set(-(e3a.dGet(3)*1.-( e3a.dGet(1)*Omega2r.dGet(2)-e3a.dGet(2)*Omega2r.dGet(1))*dCoef)*r,6,6+6);
       //assemble friction states
       fc->AssJac(WM,dfc,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,dCoef,modF,v,
       		XCurr,XPrimeCurr,dF,dv);
@@ -328,33 +322,11 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       dM3.Sub(WM,0+4,e3a.dGet(1));
       dM3.Sub(WM,0+5,e3a.dGet(2));
       dM3.Sub(WM,0+6,e3a.dGet(3));
-          // variation of node direction: $R_{\delta 1}\times$"
-      WM.fDecCoef(0+4,0+6,-R1hTmp.dGet(2,3)*M3*dCoef);
-      WM.fDecCoef(0+4,0+5, R1hTmp.dGet(3,3)*M3*dCoef);
-      WM.fDecCoef(0+5,0+6, R1hTmp.dGet(1,3)*M3*dCoef);
-      WM.fDecCoef(0+5,0+1,-R1hTmp.dGet(3,3)*M3*dCoef);
-      WM.fDecCoef(0+6,0+5,-R1hTmp.dGet(1,3)*M3*dCoef);
-      WM.fDecCoef(0+6,0+1, R1hTmp.dGet(2,3)*M3*dCoef);
-//       WM.fDecCoef(0+4,0+5,R1.dGet(1,1)*(M3*dCoef));
-//       WM.fDecCoef(0+4,0+4,R1.dGet(2,1)*(-M3*dCoef));
-//       WM.fDecCoef(0+5,0+5,R1.dGet(1,2)*(M3*dCoef));
-//       WM.fDecCoef(0+5,0+4,R1.dGet(2,2)*(-M3*dCoef));
       //assemble second node
           //variation of moment component
       dM3.Add(WM,6+4,e3a.dGet(1));
       dM3.Add(WM,6+5,e3a.dGet(2));
       dM3.Add(WM,6+6,e3a.dGet(3));
-          // variation of node direction: $R_{\delta 1}\times$"
-      WM.fIncCoef(6+4,0+6,-R1hTmp.dGet(2,3)*M3*dCoef);
-      WM.fIncCoef(6+4,0+5, R1hTmp.dGet(3,3)*M3*dCoef);
-      WM.fIncCoef(6+5,0+6, R1hTmp.dGet(1,3)*M3*dCoef);
-      WM.fIncCoef(6+5,0+1,-R1hTmp.dGet(3,3)*M3*dCoef);
-      WM.fIncCoef(6+6,0+5,-R1hTmp.dGet(1,3)*M3*dCoef);
-      WM.fIncCoef(6+6,0+1, R1hTmp.dGet(2,3)*M3*dCoef);
-//       WM.fIncCoef(6+4,0+5,R1.dGet(1,1)*(M3*dCoef));
-//       WM.fIncCoef(6+4,0+4,R1.dGet(2,1)*(-M3*dCoef));
-//       WM.fIncCoef(6+5,0+5,R1.dGet(1,2)*(M3*dCoef));
-//       WM.fIncCoef(6+5,0+4,R1.dGet(2,2)*(-M3*dCoef));
    }
    
    return WorkMat;
