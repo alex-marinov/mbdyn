@@ -7,6 +7,9 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Wed Apr 10 09:58:46 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - fix linear and parabolic shape input
+
 *** Fri Apr  5 19:38:36 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - print matrices for modal analysis if required (need to use matlab
    compatible format)
