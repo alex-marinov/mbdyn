@@ -69,7 +69,7 @@ mbdyn_METIS_PartGraph(int iTotVertices,
 			&edgecut,
 			pParAmgProcs);
 
-	return 0;
 #endif /* !USE_METIS */
+	return 0;
 }
 
