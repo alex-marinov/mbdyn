@@ -483,15 +483,20 @@ main(int argc, char* argv[])
       
         	int last = 0;
         	while (last == 0) {
-	    		if (CurrInputSource == FILE_STDIN
-			    || CurrInputSource == FILE_OPT) {
+	    		if (CurrInputSource == FILE_STDIN) {
+				silent_cout("reading from stdin" << endl);
+				last = 1;
+			} else if (CurrInputSource == FILE_OPT) {
+				silent_cout("reading from file '" 
+						<< sInputFileName 
+						<< "'" << endl);
 	        		last = 1;
 	    		} else if (CurrInputSource == FILE_ARGS) {
 	        		sInputFileName = argv[currarg];
-	        		DEBUGLCOUT(MYDEBUG_INPUT, 
-		           		   "input file: "
-					   << argv[currarg] << endl);
-	    
+				silent_cout("reading from file '"
+						<< argv[currarg] 
+						<< "'" << endl);
+				
 	        		/* incrementa il numero di argomento */
 	        		currarg++; 
 	        		if (argv[currarg] == NULL) {
