@@ -293,7 +293,7 @@ MBDynParser::C81Data_int(void)
 		}
 
 	} else if (IsKeyWord("free" "format")) {
-		if (read_onera_data(in, data) != 0) {
+		if (read_c81_data_free_format(in, data) != 0) {
 			silent_cerr("unable to read c81 data " << uLabel 
 				<< " from file '" << filename << "' "
 				"in free format at line " << GetLineData() << std::endl);
