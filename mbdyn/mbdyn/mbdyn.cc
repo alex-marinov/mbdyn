@@ -214,7 +214,9 @@ const char* sDefaultInputFileName = "MBDyn";
 
 
 Integrator* RunMBDyn(MBDynParser&, const char* const, const char* const);
-void SendMessage(const char* const, const char* const, time_t, time_t);
+#ifdef MBDYN_X_MAIL_MESSAGE
+static void SendMessage(const char* const, const char* const, time_t, time_t);
+#endif /* MBDYN_X_MAIL_MESSAGE */
 
 
 int
@@ -294,7 +296,9 @@ main(int argc, char* argv[])
       
 #ifdef HAVE_GETOPT
         	/* Dati acquisibili da linea di comando */
+#ifdef MBDYN_X_MAIL_MESSAGE
         	char* sMailToAddress = NULL;
+#endif /* MBDYN_X_MAIL_MESSAGE */
       
         	int iIndexPtr = 0;
 
@@ -318,7 +322,13 @@ main(int argc, char* argv[])
 	 
 	    		switch (iCurrOpt) {
 	    		case int('m'):
+#ifdef MBDYN_X_MAIL_MESSAGE
 	        		sMailToAddress = optarg;
+#else /* !MBDYN_X_MAIL_MESSAGE */
+				std::cerr << "warning: option -m has been "
+					"disabled because of potential "
+					"vulnerabilities" << std::endl;
+#endif /* MBDYN_X_MAIL_MESSAGE */
 	        		break;
 
 #ifdef HAVE_NICE
@@ -703,7 +713,8 @@ main(int argc, char* argv[])
 #endif /* USE_MPI */
 	    		std::cout << std::endl;
 #endif /* HAVE_TIMES_H */
-	 
+
+#ifdef MBDYN_X_MAIL_MESSAGE
 #ifdef HAVE_GETOPT
 	    		/* E-mail all'utente */
 	    		if (sMailToAddress) {
@@ -712,6 +723,7 @@ main(int argc, char* argv[])
 				sMailToAddress = NULL;
 	    		}
 #endif /* HAVE_GETOPT */
+#endif /* MBDYN_X_MAIL_MESSAGE */
         	}
 
 #ifdef USE_EXCEPTIONS
@@ -916,7 +928,11 @@ endofcycle:
     	return pIntg;
 }
 
-void 
+#ifdef MBDYN_X_MAIL_MESSAGE
+/*
+ * Plenty of potential vulnerabilities
+ */
+static void 
 SendMessage(const char* const sInputFileName,
 	    const char* const sMailToAddress,
 	    time_t tSecs,
@@ -951,4 +967,5 @@ SendMessage(const char* const sInputFileName,
     	system("rm mbdyn.msg");
     	SAFEDELETEARR(sCmd);
 }
+#endif /* MBDYN_X_MAIL_MESSAGE */
 
