@@ -102,6 +102,61 @@ DriveHingeJoint::Output(OutputHandler& OH) const
 	}
 }
 
+std::ostream&
+DriveHingeJoint::DescribeDof(std::ostream& out,
+		char *prefix, bool bInitial, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	if (i >= 0) {
+		silent_cerr("DriveHingeJoint(" << GetLabel() << "): "
+			"DescribeDof(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+			"reaction couples [mx,my,mz]" << std::endl;
+
+	if (bInitial) {
+		iIndex += 3;
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"reaction couple derivatives [mPx,mPy,mPz]" << std::endl;
+	}
+
+	return out;
+}
+
+std::ostream&
+DriveHingeJoint::DescribeEq(std::ostream& out,
+		char *prefix, bool bInitial, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	if (i >= 0) {
+		silent_cerr("DriveHingeJoint(" << GetLabel() << "): "
+			"DescribeEq(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+			"orientation constraints [gx1=gx2,gy1=gy2,gz1=gz2]" << std::endl;
+
+	if (bInitial) {
+		iIndex += 3;
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"angular velocity constraints [wx1=wx2,wy1=wy2,wz1=wz2]" << std::endl;
+	}
+
+	return out;
+
+}
+   
 /* Dati privati (aggiungere magari le reazioni vincolari) */
 unsigned int
 DriveHingeJoint::iGetNumPrivData(void) const
