@@ -2,9 +2,14 @@ mbdyn		mbdyn/mbdyn-1.0
 a2m		mbdyn/mbdyn-1.0/contrib/a2m
 n2m		mbdyn/mbdyn-1.0/contrib/n2m
 mbdyn-legacy	mbdyn/mbdyn-devel
+
 ldap2bibtex	masarati/ldap2bibtex
+
 anpa		masarati/anpa
 anpa-base	masarati/anpa/anpa-base
+
 esa		masarati/esa
 agusta		masarati/agusta
+
+dispense	masarati/docs/dispense
 
