@@ -130,6 +130,7 @@ NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 
 			dRes += d2;
 
+#if 0
 #ifdef __HACK_RES_TEST__
 			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
 				d = XP.dGetCoef(iCntp1);
@@ -144,6 +145,7 @@ NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 			}
 			/* else if ALGEBRAIC: non aggiunge nulla */ 
 #endif /* __HACK_RES_TEST__ */
+#endif /* 0 */
 		}
 #ifdef USE_MPI
 #if 0 		
@@ -151,14 +153,17 @@ NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 #endif
 #endif /* USE_MPI */
 
+#if 0
 #ifdef __HACK_RES_TEST__
 	dRes /= (1.+dXPr);
+#endif /* __HACK_RES_TEST__ */
+#endif
+
 	if (!isfinite(dRes)) {      
 		std::cerr << "The simulation diverged; aborting ..." 
 			<< std::endl;       
 		THROW(ErrSimulationDiverged());
 	}
-#endif /* __HACK_RES_TEST__ */
 
    	return sqrt(dRes);
 }
@@ -295,7 +300,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 #ifdef MBDYN_X_CONVSOL
 		if (SolTol > 0.) {
 			dSolErr = MakeTest(*pSol);
-        		if (dSolErr < dSolTol) {
+        		if (dSolErr < SolTol) {
 				THROW(ConvergenceOnSolution());
 			}
       		}

@@ -165,6 +165,7 @@ MatrixFreeSolver::MakeTest(const VectorHandler& Vec)
 
 			dRes += d2;
 
+#if 0
 #ifdef __HACK_RES_TEST__
 			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
 				d = XP.dGetCoef(iCntp1);
@@ -178,7 +179,7 @@ MatrixFreeSolver::MakeTest(const VectorHandler& Vec)
 			}
 			/* else if ALGEBRAIC: non aggiunge nulla */ 
 #endif /* __HACK_RES_TEST__ */
-		
+#endif /* 0 */		
 		}
 		
 #ifdef USE_MPI
@@ -187,9 +188,11 @@ MatrixFreeSolver::MakeTest(const VectorHandler& Vec)
 #endif
 #endif /* USE_MPI */
 
+#if 0
 #ifdef __HACK_RES_TEST__
 	dRes /= (1.+dXPr);
 #endif /* __HACK_RES_TEST__ */
+#endif
 
    	return sqrt(dRes);
 }
