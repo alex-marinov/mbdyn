@@ -126,7 +126,7 @@ public:
 	 * E' usato da tutti quelli che agiscono direttamente sui DofOwner.
 	 * Non e' virtuale in quanto ritorna NULL per tutti i tipi che non hanno
 	 * dof propri.
-	 * Il metodo SetDof() ritorna, per ogni dof dell'elemento, l'ordine.
+	 * Il metodo GetDofType() ritorna, per ogni dof dell'elemento, l'ordine.
 	 * E' usato per completare i singoli Dof relativi all'elemento.
 	 */
    

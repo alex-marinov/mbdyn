@@ -85,7 +85,7 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
       return 0;
    };
    
-   virtual DofOrder::Order SetDof(unsigned int /* i */ ) const {
+   virtual DofOrder::Order GetDofType(unsigned int /* i */ ) const {
       return DofOrder::UNKNOWN;
    };
 

@@ -75,9 +75,9 @@ class InPlaneJoint : virtual public Elem, public Joint {
    };
    
 #ifdef DEBUG
-   virtual DofOrder::Order SetDof(unsigned int i) const
+   virtual DofOrder::Order GetDofType(unsigned int i) const
 #else
-   virtual DofOrder::Order SetDof(unsigned int /* i */ ) const
+   virtual DofOrder::Order GetDofType(unsigned int /* i */ ) const
 #endif
    {
       ASSERT(i == 0);
@@ -180,9 +180,9 @@ class InPlaneWithOffsetJoint : virtual public Elem, public Joint {
    };
    
 #ifdef DEBUG
-   virtual DofOrder::Order SetDof(unsigned int i) const
+   virtual DofOrder::Order GetDofType(unsigned int i) const
 #else
-   virtual DofOrder::Order SetDof(unsigned int /* i */ ) const
+   virtual DofOrder::Order GetDofType(unsigned int /* i */ ) const
 #endif
    {
       ASSERT(i >= 0 && i < 1);

@@ -81,7 +81,7 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const;
    
 	virtual unsigned int iGetNumDof(void) const;
-	virtual DofOrder::Order SetDof(unsigned int i) const;
+	virtual DofOrder::Order GetDofType(unsigned int i) const;
 
 	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
       

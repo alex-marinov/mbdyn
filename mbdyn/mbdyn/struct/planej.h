@@ -84,7 +84,7 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
       return 5;
    };
    
-   DofOrder::Order SetDof(unsigned int i) const {
+   DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < 5);
       return DofOrder::ALGEBRAIC; 
    };
@@ -196,7 +196,7 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
       return 2;
    };
    
-   DofOrder::Order SetDof(unsigned int i) const {
+   DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < 2);
       return DofOrder::ALGEBRAIC; 
    };
@@ -316,7 +316,7 @@ public Joint, public DriveOwner {
       return 6;
    };
    
-   DofOrder::Order SetDof(unsigned int i) const {
+   DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < 6);
       return DofOrder::ALGEBRAIC; 
    };
@@ -424,7 +424,7 @@ class PlanePinJoint : virtual public Elem, public Joint {
       return 5;
    };
    
-   virtual DofOrder::Order SetDof(unsigned int i) const {
+   virtual DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < 5);
       return DofOrder::ALGEBRAIC;
    };

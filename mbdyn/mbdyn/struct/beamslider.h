@@ -155,7 +155,7 @@ public:
 		return 4+nRotConstr;
 	};
    
-	DofOrder::Order SetDof(unsigned int i) const {
+	DofOrder::Order GetDofType(unsigned int i) const {
 		ASSERT(i >= 0 && i < iGetNumDof());
 		return DofOrder::ALGEBRAIC;
 	}

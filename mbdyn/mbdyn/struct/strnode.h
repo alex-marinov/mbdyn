@@ -162,7 +162,7 @@ class StructNode : public Node {
    virtual void SetDofValue(const doublereal& dValue, 
 			    unsigned int iDof, unsigned int iOrder = 0);
 
-   virtual DofOrder::Order SetDof(unsigned int) const;
+   virtual DofOrder::Order GetDofType(unsigned int) const;
    
    /* Tipo di nodo strutturale */
    virtual StructNode::Type GetStructNodeType(void) const = 0;

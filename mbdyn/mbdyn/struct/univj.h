@@ -79,7 +79,7 @@ class UniversalHingeJoint : virtual public Elem, public Joint {
       return 4;
    };
    
-   DofOrder::Order SetDof(unsigned int i) const {
+   DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < 4);
       return DofOrder::ALGEBRAIC; 
    };
@@ -182,7 +182,7 @@ class UniversalRotationJoint : virtual public Elem, public Joint {
       return 1;
    };
    
-   DofOrder::Order SetDof(unsigned int i) const {
+   DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < 1);
       return DofOrder::ALGEBRAIC; 
    };
@@ -280,7 +280,7 @@ class UniversalPinJoint : virtual public Elem, public Joint {
       return 4;
    };
    
-   virtual DofOrder::Order SetDof(unsigned int i) const {
+   virtual DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < 4);
       return DofOrder::ALGEBRAIC;
    };

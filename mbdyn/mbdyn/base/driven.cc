@@ -96,10 +96,10 @@ DrivenElem::iGetNumDof(void) const
 
 /* esegue operazioni sui dof di proprieta' dell'elemento */
 DofOrder::Order
-DrivenElem::SetDof(unsigned int i) const
+DrivenElem::GetDofType(unsigned int i) const
 {
 	ASSERT(pElem != NULL);
-	return pElem->SetDof(i);
+	return pElem->GetDofType(i);
 }
 
 /* Dimensioni del workspace */

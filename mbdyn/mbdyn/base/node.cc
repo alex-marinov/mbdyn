@@ -116,9 +116,9 @@ ScalarDifferentialNode::~ScalarDifferentialNode(void)
  * in particolare ritorna il tipo di Dof in base all'indice i. Di default
  * i Dof dei nodi sono assunti differenziali */   
 #ifdef DEBUG
-DofOrder::Order ScalarDifferentialNode::SetDof(unsigned int i) const
+DofOrder::Order ScalarDifferentialNode::GetDofType(unsigned int i) const
 #else
-DofOrder::Order ScalarDifferentialNode::SetDof(unsigned int /* i */ ) const
+DofOrder::Order ScalarDifferentialNode::GetDofType(unsigned int /* i */ ) const
 #endif     
 { 
    ASSERT(i < iGetNumDof());
@@ -274,9 +274,9 @@ ScalarAlgebraicNode::~ScalarAlgebraicNode(void)
  * in particolare ritorna il tipo di Dof in base all'indice i. Di default
  * i Dof dei nodi sono assunti differenziali */   
 #ifdef DEBUG
-DofOrder::Order ScalarAlgebraicNode::SetDof(unsigned int i) const
+DofOrder::Order ScalarAlgebraicNode::GetDofType(unsigned int i) const
 #else
-DofOrder::Order ScalarAlgebraicNode::SetDof(unsigned int /* i */ ) const
+DofOrder::Order ScalarAlgebraicNode::GetDofType(unsigned int /* i */ ) const
 #endif     
 { 
    ASSERT(i < iGetNumDof());
@@ -418,7 +418,7 @@ unsigned int ParameterNode::iGetNumDof(void) const
 
 
 DofOrder::Order 
-ParameterNode::SetDof(unsigned int i) const
+ParameterNode::GetDofType(unsigned int i) const
 {
 	THROW(ErrGeneric());
 	return DofOrder::UNKNOWN;
@@ -512,7 +512,7 @@ unsigned int Node2Scalar::iGetNumDof(void) const
 /* esegue operazioni sui dof di proprieta' dell'elemento 
  * in particolare ritorna il tipo di Dof in base all'indice i. 
  * Di default i Dof dei nodi sono assunti differenziali */   
-DofOrder::Order Node2Scalar::SetDof(unsigned int i) const 
+DofOrder::Order Node2Scalar::GetDofType(unsigned int i) const 
 {
    ASSERT(i < iGetNumDof());
    return DofOrder::DIFFERENTIAL; 

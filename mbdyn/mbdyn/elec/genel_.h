@@ -65,9 +65,9 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
       
    /* esegue operazioni sui dof di proprieta' dell'elemento */
 #ifdef DEBUG   
-   virtual DofOrder::Order SetDof(unsigned int i ) const {
+   virtual DofOrder::Order GetDofType(unsigned int i ) const {
 #else /* DEBUG */
-   virtual DofOrder::Order SetDof(unsigned int /* i */) const {
+   virtual DofOrder::Order GetDofType(unsigned int /* i */) const {
 #endif /* DEBUG */
       ASSERT(i == 0);
       return DofOrder::ALGEBRAIC;
@@ -137,7 +137,7 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
 
       doublereal dConstr = dGet()-dVal;
       if (SD.iOrder == 0 
-		      && SD.pNode->SetDof(0) == DofOrder::DIFFERENTIAL
+		      && SD.pNode->GetDofType(0) == DofOrder::DIFFERENTIAL
      		      && dCoef != 0.) {
 	 dConstr /= dCoef;
       }
@@ -199,9 +199,9 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
       
    /* esegue operazioni sui dof di proprieta' dell'elemento */
 #ifdef DEBUG   
-   virtual DofOrder::Order SetDof(unsigned int i ) const {
+   virtual DofOrder::Order GetDofType(unsigned int i ) const {
 #else     
-   virtual DofOrder::Order SetDof(unsigned int /* i */ ) const {
+   virtual DofOrder::Order GetDofType(unsigned int /* i */ ) const {
 #endif    
       ASSERT(i == 0);
       return DofOrder::ALGEBRAIC;
@@ -819,7 +819,7 @@ class GenelSpringDamperSupport
      : Elem(uLabel, Elem::BULK, fOutput), 
      Genel(uLabel, Genel::SPRINGDAMPERSUPPORT, pDO, fOutput),
      ConstitutiveLaw1DOwner(pCL), SD(sd), dVal(0.),dValPrime(0.) {
-	ASSERT(sd.pNode->SetDof(0) == DofOrder::DIFFERENTIAL);
+	ASSERT(sd.pNode->GetDofType(0) == DofOrder::DIFFERENTIAL);
 	ASSERT(sd.iOrder == 0);
    };
    
@@ -942,9 +942,9 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
       
    /* esegue operazioni sui dof di proprieta' dell'elemento */
 #ifdef DEBUG   
-   virtual DofOrder::Order SetDof(unsigned int i ) const {
+   virtual DofOrder::Order GetDofType(unsigned int i ) const {
 #else /* DEBUG */
-   virtual DofOrder::Order SetDof(unsigned int /* i */ ) const {
+   virtual DofOrder::Order GetDofType(unsigned int /* i */ ) const {
 #endif /* DEBUG */
       ASSERT(i == 0);
       return DofOrder::DIFFERENTIAL;

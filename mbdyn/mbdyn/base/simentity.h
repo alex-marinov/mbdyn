@@ -51,7 +51,8 @@
  * pre-operation:
  *	iGetNumDof()
  *	fIsValidIndex()
- *	SetDof()
+ *	GetDofType()
+ *	GetEqType()
  *	SetValue()
  *	iGetNumPrivData()
  *	iGetPrivDataIdx()
@@ -92,7 +93,13 @@ public:
 	 * 0 < i < iGetNumDof()
 	 * @see DofOrder
 	 */   
-	virtual DofOrder::Order SetDof(unsigned int i) const = 0;
+	virtual DofOrder::Order GetDofType(unsigned int i) const = 0;
+
+	/*
+	 * Complementare di GetDofType(); dice che tipo di equazione
+	 * corrisponde al dof i (ALGEBRAIC o DIFFERENTIAL).
+	 */
+	virtual DofOrder::Order GetEqType(unsigned int i) const = 0;
 
 	/* Metodi legati all'integrazione */
 	

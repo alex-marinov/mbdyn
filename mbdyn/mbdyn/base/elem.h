@@ -118,7 +118,7 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput {
   
    /* inherited from SimulationEntity */
    virtual unsigned int iGetNumDof(void) const;
-   virtual DofOrder::Order SetDof(unsigned int) const;
+   virtual DofOrder::Order GetDofType(unsigned int) const;
    
    /* funzioni di servizio */
 
@@ -133,7 +133,7 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput {
     * E' usato da tutti quelli che agiscono direttamente sui DofOwner.
     * Non e' virtuale in quanto ritorn a NULL per tutti i tipi che non hanno
     * dof propri.
-    * Il metodo SetDof() ritorna, per ogni dof dell'elemento, l'ordine.
+    * Il metodo GetDofType() ritorna, per ogni dof dell'elemento, l'ordine.
     * E' usato per completare i singoli Dof relativi all'elemento.
     */
    

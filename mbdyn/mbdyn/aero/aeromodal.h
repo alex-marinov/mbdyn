@@ -150,7 +150,7 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
    };
       
    /* esegue operazioni sui dof di proprieta' dell'elemento */
-   DofOrder::Order SetDof(unsigned int i) const {
+   DofOrder::Order GetDofType(unsigned int i) const {
    	/* gradi di liberta' differenziali (eq. modali) */   
    	ASSERT(i < NAeroStates+NGust*2);
       	if (i < NAeroStates+NGust*2) {

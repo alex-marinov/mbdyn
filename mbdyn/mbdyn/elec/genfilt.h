@@ -61,7 +61,7 @@ class GenelFilter : public Genel {
    virtual inline void* pGet(void) const;
    
    virtual unsigned int iGetNumDof(void) const;   
-   virtual DofOrder::Order SetDof(unsigned int i) const;
+   virtual DofOrder::Order GetDofType(unsigned int i) const;
    
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
@@ -133,7 +133,7 @@ class GenelFilterEq : public Genel {
    virtual inline void* pGet(void) const;
    
    virtual unsigned int iGetNumDof(void) const;   
-   virtual DofOrder::Order SetDof(unsigned int i) const;
+   virtual DofOrder::Order GetDofType(unsigned int i) const;
    
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
@@ -220,7 +220,7 @@ class GenelStateSpaceSISO : public Genel {
    virtual unsigned int iGetNumDof(void) const;
    
    /* esegue operazioni sui dof di proprieta' dell'elemento */
-   virtual DofOrder::Order SetDof(unsigned int i) const;
+   virtual DofOrder::Order GetDofType(unsigned int i) const;
    
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
@@ -299,7 +299,7 @@ class GenelStateSpaceMIMO : public Genel {
    virtual unsigned int iGetNumDof(void) const;
    
    /* esegue operazioni sui dof di proprieta' dell'elemento */
-   virtual DofOrder::Order SetDof(unsigned int i) const;
+   virtual DofOrder::Order GetDofType(unsigned int i) const;
    
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;

@@ -110,7 +110,7 @@ public:
 	 * E' usato da tutti quelli che agiscono direttamente sui DofOwner.
 	 * Non e' virtuale in quanto ritorna NULL per tutti i tipi che non hanno
 	 * dof propri.
-	 * Il metodo SetDof() ritorna, per ogni dof dell'elemento, l'ordine.
+	 * Il metodo GetDofType() ritorna, per ogni dof dell'elemento, l'ordine.
 	 * E' usato per completare i singoli Dof relativi all'elemento.
 	 */
    
@@ -121,7 +121,7 @@ public:
 	virtual unsigned int iGetNumDof(void) const;
  
 	/* esegue operazioni sui dof di proprieta' dell'elemento */
-	virtual DofOrder::Order SetDof(unsigned int i) const;
+	virtual DofOrder::Order GetDofType(unsigned int i) const;
    
 	/* funzioni proprie */
  

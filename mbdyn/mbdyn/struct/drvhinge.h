@@ -92,9 +92,9 @@ virtual public Elem, public Joint, public TplDriveOwner<Vec3> {
    };
 
 #ifdef DEBUG
-   virtual DofOrder::Order SetDof(unsigned int i) const
+   virtual DofOrder::Order GetDofType(unsigned int i) const
 #else
-   virtual DofOrder::Order SetDof(unsigned int /* i */ ) const
+   virtual DofOrder::Order GetDofType(unsigned int /* i */ ) const
 #endif
    {
       ASSERT(i >= 0 && i <= 3);

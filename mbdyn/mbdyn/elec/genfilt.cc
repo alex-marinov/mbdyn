@@ -81,7 +81,7 @@ unsigned int GenelFilter::iGetNumDof(void) const
 
    
 /* esegue operazioni sui dof di proprieta' dell'elemento */
-DofOrder::Order GenelFilter::SetDof(unsigned int i) const
+DofOrder::Order GenelFilter::GetDofType(unsigned int i) const
 {
    ASSERT(i < iNumDofs);
    return DofOrder::DIFFERENTIAL;
@@ -288,7 +288,7 @@ unsigned int GenelFilterEq::iGetNumDof(void) const
 
    
 /* esegue operazioni sui dof di proprieta' dell'elemento */
-DofOrder::Order GenelFilterEq::SetDof(unsigned int i) const
+DofOrder::Order GenelFilterEq::GetDofType(unsigned int i) const
 {
    ASSERT(i < Na);
    return DofOrder::DIFFERENTIAL;
@@ -549,7 +549,7 @@ unsigned int GenelStateSpaceSISO::iGetNumDof(void) const
 
 
 /* esegue operazioni sui dof di proprieta' dell'elemento */
-DofOrder::Order GenelStateSpaceSISO::SetDof(unsigned int i) const 
+DofOrder::Order GenelStateSpaceSISO::GetDofType(unsigned int i) const 
 {
    ASSERT(i < iNumDofs);
    return DofOrder::DIFFERENTIAL;
@@ -752,7 +752,7 @@ unsigned int GenelStateSpaceMIMO::iGetNumDof(void) const
 
 
 /* esegue operazioni sui dof di proprieta' dell'elemento */
-DofOrder::Order GenelStateSpaceMIMO::SetDof(unsigned int i) const 
+DofOrder::Order GenelStateSpaceMIMO::GetDofType(unsigned int i) const 
 {
    ASSERT(i < iNumDofs);
    return DofOrder::DIFFERENTIAL;

@@ -124,7 +124,7 @@ public:
 		return 0;
 	};
 
-	virtual DofOrder::Order SetDof(unsigned int i) const {
+	virtual DofOrder::Order GetDofType(unsigned int i) const {
 		THROW(ErrGeneric());
 	};
 };
@@ -198,9 +198,9 @@ public:
 		return pConstLaw->iGetNumDof();
 	};
 
-	virtual DofOrder::Order SetDof(unsigned int i) const {
+	virtual DofOrder::Order GetDofType(unsigned int i) const {
 		ASSERT(pConstLaw != NULL);
-		return pConstLaw->SetDof(i);
+		return pConstLaw->GetDofType(i);
 	};
 
 	/*

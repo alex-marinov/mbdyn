@@ -220,7 +220,7 @@ unsigned int Accelerometer::iGetNumDof(void) const
 }
 
 
-DofOrder::Order Accelerometer::SetDof(unsigned int i) const
+DofOrder::Order Accelerometer::GetDofType(unsigned int i) const
 {
    ASSERT(i >= 0 && i < 3);
    return DofOrder::DIFFERENTIAL; 
@@ -363,7 +363,7 @@ unsigned int TraslAccel::iGetNumDof(void) const
 }
  
 
-DofOrder::Order TraslAccel::SetDof(unsigned int i) const 
+DofOrder::Order TraslAccel::GetDofType(unsigned int i) const 
 {
    ASSERT(i == 0);
    return DofOrder::DIFFERENTIAL; 
@@ -500,7 +500,7 @@ unsigned int RotAccel::iGetNumDof(void) const
 }
  
 
-DofOrder::Order RotAccel::SetDof(unsigned int i) const 
+DofOrder::Order RotAccel::GetDofType(unsigned int i) const 
 {
    ASSERT(i == 0);
    return DofOrder::DIFFERENTIAL; 

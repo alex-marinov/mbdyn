@@ -98,7 +98,7 @@ Motor::iGetNumDof(void) const
 }
 
 DofOrder::Order
-Motor::SetDof(unsigned int i) const
+Motor::GetDofType(unsigned int i) const
 {
 	return DofOrder::DIFFERENTIAL;
 }

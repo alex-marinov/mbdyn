@@ -475,7 +475,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  std::cerr << "Sorry, parameters are not allowed for genel spring supports" << std::endl;
 	  THROW(DataManager::ErrGeneric());	      
        } else if ((SD.iOrder != 0) 
-		  || (SD.pNode->SetDof(0) != DofOrder::DIFFERENTIAL)) {
+		  || (SD.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)) {
 	  std::cerr << "Sorry, a spring support must be linked to the algebraic value of a differential node" << std::endl;
 	  THROW(DataManager::ErrGeneric());	      
        }	         
@@ -527,7 +527,7 @@ Elem* ReadGenel(DataManager* pDM,
        
        ScalarDof SDCol = ReadScalarDof(pDM, HP, 1);
        if ((SDCol.iOrder != 0) 
-	   || (SDCol.pNode->SetDof(0) != DofOrder::DIFFERENTIAL)) {
+	   || (SDCol.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)) {
 	  std::cerr << "Sorry, a spring support must be linked to the algebraic value of a differential node" << std::endl;
 	  THROW(DataManager::ErrGeneric());	      
        }	         
@@ -575,7 +575,7 @@ Elem* ReadGenel(DataManager* pDM,
        if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for genel mass" << std::endl;
 	  THROW(DataManager::ErrGeneric());	      
-       } else if (SD.pNode->SetDof(0) != DofOrder::DIFFERENTIAL) {
+       } else if (SD.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 	  std::cerr << "Sorry, only differential dofs are allowed for genel mass" << std::endl;
 	  THROW(DataManager::ErrGeneric());
        }
@@ -600,8 +600,8 @@ Elem* ReadGenel(DataManager* pDM,
 	   || SD_u.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for genel scalar filter" << std::endl;
 	  THROW(DataManager::ErrGeneric());	      
-       } else if (SD_y.pNode->SetDof(0) != DofOrder::DIFFERENTIAL
-		  || SD_u.pNode->SetDof(0) != DofOrder::DIFFERENTIAL) {
+       } else if (SD_y.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL
+		  || SD_u.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 	  std::cerr << "Sorry, only differential dofs are allowed for genel scalar filter" << std::endl;
 	  THROW(DataManager::ErrGeneric());
        }
@@ -732,7 +732,7 @@ Elem* ReadGenel(DataManager* pDM,
        if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for genel state space SISO output" << std::endl;
 	  THROW(DataManager::ErrGeneric());	      
-       } else if (SD_y.pNode->SetDof(0) != DofOrder::DIFFERENTIAL) {
+       } else if (SD_y.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 	  std::cerr << "Sorry, only differential dofs are allowed for genel state space SISO output" << std::endl;
 	  THROW(DataManager::ErrGeneric());
        }
@@ -806,7 +806,7 @@ Elem* ReadGenel(DataManager* pDM,
 	     std::cerr << "line " << HP.GetLineData()
 	       << ": sorry, parameters are not allowed for genel state space MIMO output" << std::endl;
 	     THROW(DataManager::ErrGeneric());	      
-	  } else if (pvSD_y[i].pNode->SetDof(0) != DofOrder::DIFFERENTIAL) {
+	  } else if (pvSD_y[i].pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 	     std::cerr << "line " << HP.GetLineData() 
 	       << ": sorry, only differential dofs are allowed for genel state space MIMO output" << std::endl;
 	     THROW(DataManager::ErrGeneric());

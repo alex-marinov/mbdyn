@@ -97,7 +97,7 @@ unsigned int Pipe::iGetNumDof(void) const {
    return 1;
 }
    
-DofOrder::Order Pipe::SetDof(unsigned int i) const {
+DofOrder::Order Pipe::GetDofType(unsigned int i) const {
    ASSERT(i == 0);
    return DofOrder::ALGEBRAIC;  
 }  
@@ -513,7 +513,7 @@ unsigned int Dynamic_pipe::iGetNumDof(void) const
 }
    
 DofOrder::Order 
-Dynamic_pipe::SetDof(unsigned int i) const 
+Dynamic_pipe::GetDofType(unsigned int i) const 
 {
    ASSERT(i >= 0 && i <= 2);
    return DofOrder::DIFFERENTIAL;
@@ -1056,7 +1056,7 @@ unsigned int DynamicPipe::iGetNumDof(void) const
 }
    
 DofOrder::Order 
-DynamicPipe::SetDof(unsigned int i) const 
+DynamicPipe::GetDofType(unsigned int i) const 
 {
    ASSERT(i >= 0 && i < 4);
    return DofOrder::DIFFERENTIAL;

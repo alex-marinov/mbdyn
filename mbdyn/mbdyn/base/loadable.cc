@@ -502,7 +502,7 @@ LoadableElem::iGetNumDof(void) const
 }
 
 DofOrder::Order 
-LoadableElem::SetDof(unsigned int i) const
+LoadableElem::GetDofType(unsigned int i) const
 {
    	ASSERT(i < iGetNumDof());
 	ASSERT(calls->set_dof != NULL);

@@ -213,7 +213,7 @@ int
 DofPlugIn::ReadDofOrder(Node *pNode, unsigned int iIndex, const char *s) 
 {
 	if (strcasecmp(s, "differential") == 0) {
-		if (pNode->SetDof(iIndex-1) != DofOrder::DIFFERENTIAL) {
+		if (pNode->GetDofType(iIndex-1) != DofOrder::DIFFERENTIAL) {
 			std::cerr << "cannot take differential value of "
 				<< psNodeNames[pNode->GetNodeType()] 
 				<< "(" << pNode->GetLabel() << ")[" 

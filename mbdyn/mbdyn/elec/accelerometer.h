@@ -64,7 +64,7 @@ class Accelerometer : virtual public Elem, public Electric {
    virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual unsigned int iGetNumDof(void) const;
-   virtual DofOrder::Order SetDof(unsigned int i) const;
+   virtual DofOrder::Order GetDofType(unsigned int i) const;
 
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
       
@@ -127,7 +127,7 @@ class TraslAccel : virtual public Elem, public Electric {
    virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual unsigned int iGetNumDof(void) const;
-   virtual DofOrder::Order SetDof(unsigned int i) const;
+   virtual DofOrder::Order GetDofType(unsigned int i) const;
 
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
       
@@ -189,7 +189,7 @@ class RotAccel : virtual public Elem, public Electric {
    virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual unsigned int iGetNumDof(void) const;
-   virtual DofOrder::Order SetDof(unsigned int i) const;
+   virtual DofOrder::Order GetDofType(unsigned int i) const;
 
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
       

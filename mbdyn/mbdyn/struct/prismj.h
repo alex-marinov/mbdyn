@@ -78,7 +78,7 @@ class PrismaticJoint : virtual public Elem, public Joint {
       return 3;
    };
    
-   DofOrder::Order SetDof(unsigned int i) const {
+   DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < 5);
       return DofOrder::ALGEBRAIC; 
    };

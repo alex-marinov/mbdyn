@@ -82,7 +82,7 @@ unsigned int Minor_loss::iGetNumDof(void) const {
    return 0;
 }
    
-DofOrder::Order Minor_loss::SetDof(unsigned int i) const {
+DofOrder::Order Minor_loss::GetDofType(unsigned int i) const {
    std::cerr << "Minor_loss has no dofs!" << std::endl;
    THROW(ErrGeneric());
 }
@@ -250,7 +250,7 @@ unsigned int ThreeWayMinorLoss::iGetNumDof(void) const {
 	return 0;
 }
    
-DofOrder::Order ThreeWayMinorLoss::SetDof(unsigned int i) const {
+DofOrder::Order ThreeWayMinorLoss::GetDofType(unsigned int i) const {
 	std::cerr << "Minor_loss has no dofs!" << std::endl;
 	THROW(ErrGeneric());
 }
@@ -454,7 +454,7 @@ unsigned int Orifice::iGetNumDof(void) const
    return 0;
 }
    
-DofOrder::Order Orifice::SetDof(unsigned int i) const {
+DofOrder::Order Orifice::GetDofType(unsigned int i) const {
    std::cerr << "Orifice has no dofs!" << std::endl;
    THROW(ErrGeneric());
 }

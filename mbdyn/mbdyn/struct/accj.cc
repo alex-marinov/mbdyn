@@ -83,7 +83,7 @@ unsigned int LinearAccelerationJoint::iGetNumDof(void) const
 }
 
 
-DofOrder::Order LinearAccelerationJoint::SetDof(unsigned int i) const
+DofOrder::Order LinearAccelerationJoint::GetDofType(unsigned int i) const
 {
    ASSERT(i == 0 || i == 1);
    switch (i) {
@@ -301,7 +301,7 @@ unsigned int AngularAccelerationJoint::iGetNumDof(void) const
 }
 
 
-DofOrder::Order AngularAccelerationJoint::SetDof(unsigned int i) const
+DofOrder::Order AngularAccelerationJoint::GetDofType(unsigned int i) const
 {
    ASSERT(i == 0 || i == 1);
    switch (i) {

@@ -310,7 +310,7 @@ class DiscreteControlElem : virtual public Elem, public Electric {
     * E' usato da tutti quelli che agiscono direttamente sui DofOwner.
     * Non e' virtuale in quanto ritorna NULL per tutti i tipi che non hanno
     * dof propri.
-    * Il metodo SetDof() ritorna, per ogni dof dell'elemento, l'ordine.
+    * Il metodo GetDofType() ritorna, per ogni dof dell'elemento, l'ordine.
     * E' usato per completare i singoli Dof relativi all'elemento.
     */
    
@@ -320,7 +320,7 @@ class DiscreteControlElem : virtual public Elem, public Electric {
    };
       
    /* esegue operazioni sui dof di proprieta' dell'elemento */
-   virtual DofOrder::Order SetDof(unsigned int /* i */ ) const { 
+   virtual DofOrder::Order GetDofType(unsigned int /* i */ ) const { 
       ASSERTMSG(0, "You shouldn't have called this function");      
       return DofOrder::UNKNOWN;
    };

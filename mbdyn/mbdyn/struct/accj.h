@@ -67,7 +67,7 @@ class LinearAccelerationJoint
    virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetNumDof(void) const;
-   DofOrder::Order SetDof(unsigned int i) const;
+   DofOrder::Order GetDofType(unsigned int i) const;
    
    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
    
@@ -153,7 +153,7 @@ class AngularAccelerationJoint
    virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetNumDof(void) const;
-   DofOrder::Order SetDof(unsigned int i) const;
+   DofOrder::Order GetDofType(unsigned int i) const;
 
    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
       

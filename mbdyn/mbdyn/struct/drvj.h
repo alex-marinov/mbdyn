@@ -71,9 +71,9 @@ class LinearVelocityJoint
    };
    
 #ifdef DEBUG
-   DofOrder::Order SetDof(unsigned int i) const
+   DofOrder::Order GetDofType(unsigned int i) const
 #else
-   DofOrder::Order SetDof(unsigned int /* i */ ) const     
+   DofOrder::Order GetDofType(unsigned int /* i */ ) const     
 #endif     
    {
       ASSERT(i == 0);
@@ -178,9 +178,9 @@ class AngularVelocityJoint
    };
    
 #ifdef DEBUG
-   DofOrder::Order SetDof(unsigned int i) const
+   DofOrder::Order GetDofType(unsigned int i) const
 #else
-   DofOrder::Order SetDof(unsigned int /* i */ ) const
+   DofOrder::Order GetDofType(unsigned int /* i */ ) const
 #endif
    {
       ASSERT(i == 0);

@@ -101,7 +101,7 @@ unsigned int Control_valve::iGetNumDof(void) const
    return 0;
 }
    
-DofOrder::Order Control_valve::SetDof(unsigned int i) const 
+DofOrder::Order Control_valve::GetDofType(unsigned int i) const 
 {
    std::cerr << "Control valve has no dofs!" << std::endl;
    THROW(ErrGeneric());
@@ -393,7 +393,7 @@ Control_valve2::iGetNumDof(void) const
 	return LAST_Q;
 }
    
-DofOrder::Order Control_valve2::SetDof(unsigned int i) const 
+DofOrder::Order Control_valve2::GetDofType(unsigned int i) const 
 {
 	ASSERT(i >= 0 && i < iGetNumDof());
 	return DofOrder::ALGEBRAIC;
@@ -698,7 +698,7 @@ unsigned int Dynamic_control_valve::iGetNumDof(void) const
    return 2;
 }
    
-DofOrder::Order Dynamic_control_valve::SetDof(unsigned int i) const 
+DofOrder::Order Dynamic_control_valve::GetDofType(unsigned int i) const 
 {
    ASSERT(i >= 0 && i <= 1);
    return DofOrder::DIFFERENTIAL;
@@ -1138,7 +1138,7 @@ unsigned int Pressure_flow_control_valve::iGetNumDof(void) const
    return 2;
 }
    
-DofOrder::Order Pressure_flow_control_valve::SetDof(unsigned int i) const 
+DofOrder::Order Pressure_flow_control_valve::GetDofType(unsigned int i) const 
 {
    ASSERT(i >= 0 && i <= 1);
    return DofOrder::DIFFERENTIAL;
@@ -1542,7 +1542,7 @@ unsigned int Pressure_valve::iGetNumDof(void) const
 }
 
 
-DofOrder::Order Pressure_valve::SetDof(unsigned int i) const 
+DofOrder::Order Pressure_valve::GetDofType(unsigned int i) const 
 {   
    ASSERT(i >= 0 && i <= 1);
    return DofOrder::DIFFERENTIAL;
@@ -1896,7 +1896,7 @@ unsigned int  Flow_valve::iGetNumDof(void) const
 }
 
 
-DofOrder::Order Flow_valve::SetDof(unsigned int i) const 
+DofOrder::Order Flow_valve::GetDofType(unsigned int i) const 
 {
    ASSERT(i >= 0 && i <= 1);
    return DofOrder::DIFFERENTIAL;

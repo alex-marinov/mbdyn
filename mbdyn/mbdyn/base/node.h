@@ -249,7 +249,7 @@ class ScalarDifferentialNode : public ScalarNode {
     Esegue operazioni sui DoF di proprieta' dell'elemento.
     In particolare ritorna il tipo di DoF in base all'indice i.
     */
-   virtual DofOrder::Order SetDof(unsigned int i) const;
+   virtual DofOrder::Order GetDofType(unsigned int i) const;
    
    
    /* Metodi sui DoF */
@@ -347,7 +347,7 @@ class ScalarAlgebraicNode : public ScalarNode {
     Esegue operazioni sui DoF di proprieta' dell'elemento.
     In particolare ritorna il tipo di DoF in base all'indice i. 
     */
-   virtual DofOrder::Order SetDof(unsigned int i) const;   
+   virtual DofOrder::Order GetDofType(unsigned int i) const;   
    
    
    
@@ -454,7 +454,7 @@ class ParameterNode : public ScalarAlgebraicNode {
     Ritorna 0 perche' il parametro non ha DoFs
     */
    virtual unsigned int iGetNumDof(void) const;
-   virtual DofOrder::Order SetDof(unsigned int i) const;
+   virtual DofOrder::Order GetDofType(unsigned int i) const;
       
    /* Metodi che agiscono sul valore */
    
@@ -541,7 +541,7 @@ class Node2Scalar : public ScalarNode {
     Esegue operazioni sui DoF di proprieta' dell'elemento.
     In particolare ritorna il tipo di DoF in base all'indice i.
     */
-   virtual DofOrder::Order SetDof(unsigned int i) const;
+   virtual DofOrder::Order GetDofType(unsigned int i) const;
 
    /* 
     Ritorna gli indici di riga. 

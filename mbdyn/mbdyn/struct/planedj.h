@@ -82,7 +82,7 @@ class PlaneDispJoint : virtual public Elem, public Joint {
       return 3;
    };
    
-   DofOrder::Order SetDof(unsigned int i) const {
+   DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < 3);
       return DofOrder::ALGEBRAIC; 
    };
@@ -184,7 +184,7 @@ class PlaneDispPinJoint : virtual public Elem, public Joint {
       return 3;
    };
    
-   virtual DofOrder::Order SetDof(unsigned int i) const {
+   virtual DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < 3);
       return DofOrder::ALGEBRAIC;
    };

@@ -67,10 +67,10 @@ Elem::iGetNumDof(void) const
 }
 
 DofOrder::Order 
-Elem::SetDof(unsigned int) const
+Elem::GetDofType(unsigned int) const
 {
 	std::cerr << psElemNames[GetElemType()] << "(" << GetLabel()
-		<< "): SetDof() is undefined because element "
+		<< "): GetDofType() is undefined because element "
 		"has no degrees of freedom" << std::endl;
 	THROW(ErrGeneric());
 }

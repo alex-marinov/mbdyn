@@ -274,7 +274,7 @@ Modal::iGetNumDof(void) const
 }
 
 DofOrder::Order
-Modal::SetDof(unsigned int i) const
+Modal::GetDofType(unsigned int i) const
 {
 	ASSERT(i < 2*NModes+6*NStrNodes);
 	if (i < 2*NModes) {

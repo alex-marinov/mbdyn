@@ -61,7 +61,7 @@ class InLineJoint : virtual public Elem, public Joint {
       return 2;
    };
       
-   virtual DofOrder::Order SetDof(unsigned int i) const {
+   virtual DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < 2);
       return DofOrder::ALGEBRAIC;
    };
@@ -150,7 +150,7 @@ class InLineWithOffsetJoint : virtual public Elem, public Joint {
       return 2;
    };
       
-   virtual DofOrder::Order SetDof(unsigned int i) const {
+   virtual DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i >= 0 && i < 2);
       return DofOrder::ALGEBRAIC;
    };

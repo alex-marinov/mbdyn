@@ -87,7 +87,7 @@ class ContactJoint : virtual public Elem, public Joint {
       return 1;
    };
       
-   virtual DofOrder::Order SetDof(unsigned int i) const {
+   virtual DofOrder::Order GetDofType(unsigned int i) const {
       ASSERT(i == 0);
       return DofOrder::ALGEBRAIC;
    };

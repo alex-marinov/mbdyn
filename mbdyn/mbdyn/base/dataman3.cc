@@ -2002,7 +2002,7 @@ int GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
       /* 
        * Questo check e' pleonastico, viene gia' fatto dal chiamante
        */
-      if (pNode->SetDof(iIndex-1) != DofOrder::DIFFERENTIAL) {
+      if (pNode->GetDofType(iIndex-1) != DofOrder::DIFFERENTIAL) {
 	 std::cerr << psNodeNames[pNode->GetNodeType()] 
 		 << "(" << pNode->GetLabel() 
 		 << "): invalid order for index " << iIndex 
@@ -2080,7 +2080,7 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
    
    /* se e' richiesto l'order del dof e se il dof e' differenziale ... */
    int iOrder = 0;
-   if (fOrder && pNode->iGetNumDof() > 0 && pNode->SetDof(iIndex-1) == DofOrder::DIFFERENTIAL) {
+   if (fOrder && pNode->iGetNumDof() > 0 && pNode->GetDofType(iIndex-1) == DofOrder::DIFFERENTIAL) {
       iOrder = GetDofOrder(HP, pNode, iIndex);
    }
    DEBUGLCOUT(MYDEBUG_INPUT, "order: " << iOrder << std::endl);

@@ -112,7 +112,7 @@ Accumulator::iGetNumDof(void) const
 }
    
 DofOrder::Order  
-Accumulator::SetDof(unsigned int i) const 
+Accumulator::GetDofType(unsigned int i) const 
 {
    ASSERT(i >= 0 && i <= 1);
    return DofOrder::DIFFERENTIAL;
@@ -445,7 +445,7 @@ Tank::iGetNumDof(void) const
 
 
 DofOrder::Order 
-Tank::SetDof(unsigned int i) const 
+Tank::GetDofType(unsigned int i) const 
 {
    
    ASSERT(i >= 0 && i <= 1);

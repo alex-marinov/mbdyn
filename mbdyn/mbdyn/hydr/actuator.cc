@@ -158,7 +158,7 @@ unsigned int Actuator::iGetNumDof(void) const
 }
 
 
-DofOrder::Order Actuator::SetDof(unsigned int i) const 
+DofOrder::Order Actuator::GetDofType(unsigned int i) const 
 {   
    return DofOrder::DIFFERENTIAL;
 }  
