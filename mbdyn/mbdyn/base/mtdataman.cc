@@ -59,18 +59,36 @@ DataManager(HP, OF, dInitialTime, sInputFileName, sOutputFileName,
 nThreads(nt),
 ptd(NULL),
 op(MultiThreadDataManager::UNKNOWN_OP),
-dataman_helper_count(0)
+dataman_thread_count(0)
 {
 	MultiThreadSpawn();
 } /* End of MultiThreadDataManager::MultiThreadDataManager() */
 
 MultiThreadDataManager::~MultiThreadDataManager(void)
 {
-	NO_OP;
+	if (ptd == NULL) {
+		return;
+	}
+
+	op = MultiThreadDataManager::OP_EXIT;
+	dataman_thread_count = nThreads - 1;
+
+	for (unsigned i = 1; i < nThreads; i++) {
+		void *retval = NULL;
+
+		sem_post(&ptd[i].sem);
+		if (pthread_join(ptd[i].thread, &retval)) {
+			silent_cerr("pthread_join() failed on thread " << i
+					<< std::endl);
+			/* already shutting down ... */
+		}
+	}
+
+	dataman_thread_cleanup(&ptd[0]);
 }
 
 void *
-MultiThreadDataManager::dataman_helper(void *p)
+MultiThreadDataManager::dataman_thread(void *p)
 {
 	MultiThreadDataManager::PerThreadData *arg
 		= (MultiThreadDataManager::PerThreadData *)p;
@@ -81,8 +99,8 @@ MultiThreadDataManager::dataman_helper(void *p)
 		/* NOTE: here
 		 * - the requested operation must be set;
 		 * - the appropriate operation args must be set
-		 * - the dataman_helper_count must be set to nThreads
-		 * - the caller must be ready to wait on dataman_helper_cond
+		 * - the dataman_thread_count must be set to nThreads
+		 * - the caller must be ready to wait on dataman_thread_cond
 		 */
 		sem_wait(&arg->sem);
 
@@ -113,13 +131,7 @@ MultiThreadDataManager::dataman_helper(void *p)
 
 		case MultiThreadDataManager::OP_EXIT:
 			/* cleanup */
-			SAFEDELETE(arg->pWorkMatA);
-			SAFEDELETE(arg->pWorkMatB);
-			SAFEDELETE(arg->pWorkVec);
-			SAFEDELETEARR(arg->piWorkIndex);
-			SAFEDELETEARR(arg->pdWorkMat);
-			sem_destroy(&arg->sem);
-
+			dataman_thread_cleanup(arg);
 			bKeepGoing = false;
 			break;
 
@@ -132,7 +144,20 @@ MultiThreadDataManager::dataman_helper(void *p)
 		arg->pDM->EndOfOp();
 	}
 
-	return NULL;
+	/* all threads are joined */
+	pthread_exit(NULL);
+}
+
+void
+MultiThreadDataManager::dataman_thread_cleanup(PerThreadData *arg)
+{
+	/* cleanup */
+	SAFEDELETE(arg->pWorkMatA);
+	SAFEDELETE(arg->pWorkMatB);
+	SAFEDELETE(arg->pWorkVec);
+	SAFEDELETEARR(arg->piWorkIndex);
+	SAFEDELETEARR(arg->pdWorkMat);
+	sem_destroy(&arg->sem);
 }
 
 void
@@ -141,14 +166,14 @@ MultiThreadDataManager::EndOfOp(void)
 	bool last;
 	
 	/* decrement the thread counter */
-	pthread_mutex_lock(&dataman_helper_mutex);
-	dataman_helper_count--;
-	last = (dataman_helper_count == 0);
-	pthread_mutex_unlock(&dataman_helper_mutex);
+	pthread_mutex_lock(&dataman_thread_mutex);
+	dataman_thread_count--;
+	last = (dataman_thread_count == 0);
+	pthread_mutex_unlock(&dataman_thread_mutex);
 
 	/* if last thread, signal to restart */
 	if (last) {
-		pthread_cond_signal(&dataman_helper_cond);
+		pthread_cond_signal(&dataman_thread_cond);
 	}
 }
 
@@ -163,8 +188,8 @@ MultiThreadDataManager::MultiThreadSpawn(void)
 	for (unsigned i = 0; i < nThreads; i++) {
 		/* callback data */
 		ptd[i].pDM = this;
-		ptd[i].threadNumber = i;
 		sem_init(&ptd[i].sem, 0, 0);
+		ptd[i].threadNumber = i;
 		ptd[i].ElemIter.Init(ppElems, iTotElem);
 
 		/* thread workspace */
@@ -193,8 +218,10 @@ MultiThreadDataManager::MultiThreadSpawn(void)
 				MySubVectorHandler(iWorkIntSize,
 					ptd[i].piWorkIndex, ptd[i].pdWorkMat));
 
+		if (i == 0) continue;
+
 		/* create thread */
-		if (i && pthread_create(&ptd[i].thread, NULL, dataman_helper,
+		if (pthread_create(&ptd[i].thread, NULL, dataman_thread,
 					&ptd[i]) != 0) {
 			std::cerr << "pthread_create() failed "
 				"for thread " << i << " of " << nThreads 
@@ -224,15 +251,15 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 
 	ResetInUse(false);
 	op = MultiThreadDataManager::OP_ASSJAC;
-	dataman_helper_count = nThreads - 1;
+	dataman_thread_count = nThreads - 1;
 
-	pthread_mutex_lock(&dataman_helper_mutex);
+	pthread_mutex_lock(&dataman_thread_mutex);
 
 	for (unsigned i = 0; i < nThreads; i++) {
 		ptd[i].pJacHdl = &JacHdl;
 		ptd[i].dCoef = dCoef;
 
-		if (!i) continue;
+		if (i == 0) continue;
 	
 		sem_post(&ptd[i].sem);
 	}
@@ -241,8 +268,8 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 			(VecIter<Elem *> *)&ptd[0].ElemIter,
 			*ptd[0].pWorkMat);
 
-	pthread_cond_wait(&dataman_helper_cond, &dataman_helper_mutex);
-	pthread_mutex_unlock(&dataman_helper_mutex);
+	pthread_cond_wait(&dataman_thread_cond, &dataman_thread_mutex);
+	pthread_mutex_unlock(&dataman_thread_mutex);
 }
 
 void
@@ -252,15 +279,15 @@ MultiThreadDataManager::AssMats(MatrixHandler& MatA, MatrixHandler& MatB)
 
 	ResetInUse(false);
 	op = MultiThreadDataManager::OP_ASSMATS;
-	dataman_helper_count = nThreads - 1;
+	dataman_thread_count = nThreads - 1;
 
-	pthread_mutex_lock(&dataman_helper_mutex);
+	pthread_mutex_lock(&dataman_thread_mutex);
 
 	for (unsigned i = 0; i < nThreads; i++) {
 		ptd[i].pMatA = &MatA;
 		ptd[i].pMatB = &MatB;
 	
-		if (!i) continue;
+		if (i == 0) continue;
 	
 		sem_post(&ptd[i].sem);
 	}
@@ -269,8 +296,8 @@ MultiThreadDataManager::AssMats(MatrixHandler& MatA, MatrixHandler& MatB)
 			(VecIter<Elem *> *)&ptd[0].ElemIter,
 			*ptd[0].pWorkMatA, *ptd[0].pWorkMatB);
 
-	pthread_cond_wait(&dataman_helper_cond, &dataman_helper_mutex);
-	pthread_mutex_unlock(&dataman_helper_mutex);
+	pthread_cond_wait(&dataman_thread_cond, &dataman_thread_mutex);
+	pthread_mutex_unlock(&dataman_thread_mutex);
 }
 
 void
@@ -280,15 +307,15 @@ MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 
 	ResetInUse(false);
 	op = MultiThreadDataManager::OP_ASSRES;
-	dataman_helper_count = nThreads - 1;
+	dataman_thread_count = nThreads - 1;
 
-	pthread_mutex_lock(&dataman_helper_mutex);
+	pthread_mutex_lock(&dataman_thread_mutex);
 
 	for (unsigned i = 0; i < nThreads; i++) {
 		ptd[i].pResHdl = &ResHdl;
 		ptd[i].dCoef = dCoef;
 	
-		if (!i) continue;
+		if (i == 0) continue;
 
 		sem_post(&ptd[i].sem);
 	}
@@ -297,8 +324,8 @@ MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 			(VecIter<Elem *> *)&ptd[0].ElemIter,
 			*ptd[0].pWorkVec);
 
-	pthread_cond_wait(&dataman_helper_cond, &dataman_helper_mutex);
-	pthread_mutex_unlock(&dataman_helper_mutex);
+	pthread_cond_wait(&dataman_thread_cond, &dataman_thread_mutex);
+	pthread_mutex_unlock(&dataman_thread_mutex);
 }
 
 #endif /* USE_MULTITHREAD */

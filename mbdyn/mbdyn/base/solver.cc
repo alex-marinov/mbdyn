@@ -285,6 +285,7 @@ pNLS(NULL)
 					"with a potential of " << n
 					<< " CPUs" << std::endl);
 			nThreads = n;
+
 		} else {
 			nThreads = 1;
 		}
@@ -359,8 +360,8 @@ Solver::Run(void)
 	{
 		/* chiama il gestore dei dati generali della simulazione */
 		if (nThreads > 1) {
-			DEBUGLCOUT(MYDEBUG_MEM,
-					"creating MultiThreadDataManager"
+			silent_cout("Creating MultiThread solver "
+					"with " << nThreads << " threads"
 					<< std::endl);
 
 			SAFENEWWITHCONSTRUCTOR(pDM,

@@ -87,16 +87,17 @@ protected:
 	} op;
 
 	/* will be replaced by barriers ... */
-	unsigned dataman_helper_count;
+	unsigned dataman_thread_count;
 
 	/* this can be replaced by a barrier ... */
-	pthread_mutex_t	dataman_helper_mutex;
-	pthread_cond_t	dataman_helper_cond;
+	pthread_mutex_t	dataman_thread_mutex;
+	pthread_cond_t	dataman_thread_cond;
 
 	void EndOfOp(void);
 
 	/* thread function */
-	static void *dataman_helper(void *);
+	static void *dataman_thread(void *arg);
+	static void dataman_thread_cleanup(PerThreadData *arg);
 
 	/* starts the helper threads */
 	void MultiThreadSpawn(void);
