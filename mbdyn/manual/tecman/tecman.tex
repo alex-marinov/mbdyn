@@ -1513,8 +1513,8 @@ The complete linearized problem is
 \end{eqnarray*}
 where 
 \begin{eqnarray*}
-	\T{F}_{/\tilde{\T{\omega}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{\omega}}} \T{R}_{1h}^T \\
-	\T{F}_{/\tilde{\T{\theta}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{\theta}}} \T{R}_{1h}^T \\
+	\T{F}_{/\tilde{\dot{\T{d}}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\dot{\T{d}}}} \T{R}_{1h}^T \\
+	\T{F}_{/\tilde{\T{d}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{d}}} \T{R}_{1h}^T \\
 	\T{d}_1 & = & \T{x}_2 + \T{f}_2 - \T{x}_1 \\
 	\dot{\T{d}}_1 & = & \dot{\T{x}}_2 - \T{f}_2 \times\T{\omega}_2 - \dot{\T{x}}_1
 \end{eqnarray*}
@@ -1530,9 +1530,66 @@ velocity of the nodes through a 6D constitutive law.
 
 Although it may appear as a combination of the Deformable Hinge
 and the Deformable Displacement Joint, and despite some commonality
-of code, it is much more general because the internal force
-and moment depend on the relative displacement and orientation,
+of code, it is a bit more general because the internal force
+and moment may depend on the relative displacement and orientation,
 i.e.\ the displacements and the orientations are coupled.
+However, if a simple linear diagonal constitutive law is used,
+the same result with a bit less overhead is obtained by using
+a combination of a deformable hinge and a deformable displacement joint.
+
+\noindent
+The complete linearized problem is
+\begin{eqnarray*}
+	\sqbr{\matr{cc}{
+		\T{F}_{/\tilde{\T{d}}} & - \T{F}_{/\tilde{\T{d}}} \\
+		\T{M}_{/\tilde{\T{d}}} + \T{f}_1 \times \T{F}_{/\tilde{\T{d}}} &
+			-\plbr{\T{M}_{/\tilde{\T{d}}} + \T{f}_1 \times \T{F}_{/\tilde{\T{d}}}} \\
+		- \T{F}_{/\tilde{\T{d}}} & \T{F}_{/\tilde{\T{d}}} \\
+		- \plbr{\T{M}_{/\tilde{\T{d}}} + \T{f}_2 \times \T{F}_{/\tilde{\T{d}}}} &
+			\T{M}_{/\tilde{\T{d}}} + \T{f}_2 \times \T{F}_{/\tilde{\T{d}}}
+	}}\cubr{\cvvect{
+		\delta\T{x}_1 \\
+		\delta\T{x}_2 \\
+	}} \\
+	\mbox{} + \sqbr{\cvvect{
+		\T{F}_{/\tilde{\T{\theta}}} - \T{F}_{/\tilde{\T{d}}} \T{d}_1\times{} + \T{F}\times{} \\
+		\T{M}_{/\tilde{\T{\theta}}} - \T{M}_{/\tilde{\T{d}}} \T{d}_1\times{} 
+			+ \T{f}_1\times\T{F}_{/\tilde{\T{\theta}}}
+			- \T{f}_1\times\T{F}_{/\tilde{\T{d}}} \T{d}_1\times{}
+			+ \plbr{\T{f}_1\times\T{F}}\times{} + \T{M}\times{} \\
+		- \plbr{\T{F}_{/\tilde{\T{\theta}}} - \T{F}_{/\tilde{\T{d}}} \T{d}_1\times{} + \T{F}\times{}} \\
+		- \plbr{\T{M}_{/\tilde{\T{\theta}}} - \T{M}_{/\tilde{\T{d}}} \T{d}_1\times{}
+			+ \T{f}_2\times\T{F}_{/\tilde{\T{\theta}}}
+			- \T{f}_2\times\T{F}_{/\tilde{\T{d}}} \T{d}_1\times{}
+			+ \T{f}_2\times\T{F}\times{} + \T{M}\times{}}
+	}}\delta\T{g}_1 \\
+	\mbox{} + \sqbr{\cvvect{
+		- \plbr{\T{F}_{/\tilde{\T{\theta}}} - \T{F}_{/\tilde{\T{d}}} \T{f}_2\times{}} \\
+		- \plbr{\T{M}_{/\tilde{\T{\theta}}} - \T{M}_{/\tilde{\T{d}}} \T{f}_2\times{}
+			+ \T{f}_1\times\T{F}_{/\tilde{\T{\theta}}}
+			- \T{f}_1\times\T{F}_{/\tilde{\T{d}}} \T{f}_2\times{}} \\
+		\T{F}_{/\tilde{\T{\theta}}} - \T{F}_{/\tilde{\T{d}}} \T{f}_2\times{} \\
+		\T{M}_{/\tilde{\T{\theta}}} - \T{M}_{/\tilde{\T{d}}} \T{f}_2\times{}
+			+ \T{f}_2\times\T{F}_{/\tilde{\T{\theta}}}
+			- \T{f}_2\times\T{F}_{/\tilde{\T{d}}} \T{f}_2\times{}
+			+ \T{F}\times\T{f}_2\times{}
+	}}\delta\T{g}_2
+	& = & \\
+	\cubr{\cvvect{
+		\T{F} \\
+		\T{f}_1 \times \T{F} + \T{M} \\
+		- \T{F} \\
+		- \T{f}_2 \times \T{F} - \T{M}
+	}} & &
+\end{eqnarray*}
+where 
+\begin{eqnarray*}
+	\T{F}_{/\tilde{\T{d}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{d}}} \T{R}_{1h}^T \\
+	\T{F}_{/\tilde{\T{\theta}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{\theta}}} \T{R}_{1h}^T \\
+	\T{M}_{/\tilde{\T{d}}} & = & \T{R}_{1h} \tilde{\T{M}}_{/\tilde{\T{d}}} \T{R}_{1h}^T \\
+	\T{M}_{/\tilde{\T{\theta}}} & = & \T{R}_{1h} \tilde{\T{M}}_{/\tilde{\T{\theta}}} \T{R}_{1h}^T \\
+	\T{d}_1 & = & \T{x}_2 + \T{f}_2 - \T{x}_1
+\end{eqnarray*}
 
 
 \chapter{Hydraulic Library}

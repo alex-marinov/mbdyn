@@ -351,6 +351,7 @@ ElasticJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 {
 	Vec3 f1(pNode1->GetRRef()*tilde_f1);
 	Vec3 f2(pNode2->GetRRef()*tilde_f2);
+	Vec3 d1(pNode2->GetXCurr() + f2 - pNode1->GetXCurr());
 
 	/* D11 */
 	Mat3x3 DTmp = FDE.GetMat11()*dCoef;
@@ -360,50 +361,61 @@ ElasticJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	WM.Sub(6 + 1, 1, DTmp);
 	WM.Add(6 + 1, 6 + 1, DTmp);
 
-	/* D11 * (f1 x) */
-	Mat3x3 FTmp = DTmp*Mat3x3(f1);
+	/* D11 * [d1 x] */
+	Mat3x3 FTmp = DTmp*Mat3x3(d1);
 
 	WM.Sub(1, 4, FTmp);
 	WM.Add(6 + 1, 4, FTmp);
 
-	/* D11 * (f2 x) */
+	/* D11 * [f2 x] */
 	FTmp = DTmp*Mat3x3(f2);
 
 	WM.Add(1, 6 + 4, FTmp);
 	WM.Sub(6 + 1, 6 + 4, FTmp);
 
-	/* (f1 x) * D11 */
+	/* [f1 x] * D11 */
 	FTmp = Mat3x3(f1)*DTmp;
 
 	WM.Add(4, 1, FTmp);
 	WM.Sub(4, 6 + 1, FTmp);
 
-	/* (f2 x) * D11 */
+	WM.Sub(4, 4, FTmp*Mat3x3(d1));
+	WM.Add(4, 6 + 4, FTmp*Mat3x3(f2));
+
+	/* [f2 x] * D11 */
 	FTmp = Mat3x3(f2)*DTmp;
 
-	WM.Add(6 + 4, 1, FTmp);
-	WM.Sub(6 + 4, 6 + 1, FTmp);
+	WM.Sub(6 + 4, 1, FTmp);
+	WM.Add(6 + 4, 6 + 1, FTmp);
+
+	WM.Add(6 + 4, 4, FTmp*Mat3x3(d1));
+	WM.Sub(6 + 4, 6 + 4, FTmp*Mat3x3(f2));
 
 
-	/* D12 - (F1 x) */
-	DTmp = (FDE.GetMat12() - Mat3x3(F.GetVec1()))*dCoef;
+	/* D12 */
+	DTmp = FDE.GetMat12()*dCoef;
 
-	WM.Add(1, 4, DTmp);
 	WM.Sub(1, 6 + 4, DTmp);
-	WM.Sub(6 + 1, 4, DTmp);
 	WM.Add(6 + 1, 6 + 4, DTmp);
 
-	/* (f1 x) * D11 */
-	FTmp = Mat3x3(f1)*DTmp;
+	/* [f1 x] * D12 */
+	WM.Sub(4, 6 + 4, Mat3x3(f1)*DTmp);
 
-	WM.Add(4, 4, FTmp);
-	WM.Sub(4, 6 + 4, FTmp);
+	/* [f2 x] * D12 */
+	WM.Add(6 + 4, 6 + 4, Mat3x3(f2)*DTmp);
 
-	/* (f2 x) * D11 */
-	FTmp = Mat3x3(f2)*DTmp;
 
-	WM.Add(6 + 4, 4, FTmp);
-	WM.Sub(6 + 4, 6 + 4, FTmp);
+	/* D12 + [F x] */
+	DTmp += Mat3x3(F.GetVec1()*dCoef);
+
+	WM.Add(1, 4, DTmp);
+	WM.Sub(6 + 1, 4, DTmp);
+
+	/* [f1 x] * D12 */
+	WM.Add(4, 4, Mat3x3(f1)*DTmp);
+
+	/* [f2 x] * D12 */
+	WM.Sub(6 + 4, 4, Mat3x3(f2)*DTmp);
 
 
 	/* D21 */
@@ -414,39 +426,37 @@ ElasticJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	WM.Sub(6 + 4, 1, DTmp);
 	WM.Add(6 + 4, 6 + 1, DTmp);
 
-	/* D21 * (f1 x) */
+	/* D21 * [d1 x] */
 	FTmp = DTmp*Mat3x3(f1);
 
 	WM.Sub(4, 4, FTmp);
 	WM.Add(6 + 4, 4, FTmp);
 
-	/* D21 * (f2 x) */
+	/* D21 * [f2 x] */
 	FTmp = DTmp*Mat3x3(f2);
 
 	WM.Add(4, 6 + 4, FTmp);
 	WM.Sub(6 + 4, 6 + 4, FTmp);
 
 
-	/* D22 - (F2 x) */
-	DTmp = (FDE.GetMat22() - Mat3x3(F.GetVec2()))*dCoef;
+	/* D22 */
+	DTmp = FDE.GetMat22()*dCoef;
 
-	WM.Add(4, 4, DTmp);
 	WM.Sub(4, 6 + 4, DTmp);
-	WM.Sub(6 + 4, 4, DTmp);
 	WM.Add(6 + 4, 6 + 4, DTmp);
 
+	/* D22 + [M x] */
+	DTmp += Mat3x3(F.GetVec2()*dCoef);
 
-	/* ((F1 x f1) x) */
-	FTmp = Mat3x3(F.GetVec1().Cross(f1*dCoef));
+	WM.Add(4, 4, DTmp);
+	WM.Sub(6 + 4, 4, DTmp);
 
-	WM.Add(4, 4, FTmp);
-	WM.Sub(6 + 4, 4, FTmp);
 
-	/* ((F1 x f2) x) */
-	FTmp = Mat3x3(F.GetVec1().Cross(f2*dCoef));
+	/* [F x] [f1 x] */
+	WM.Sub(4, 4, Mat3x3((F.GetVec1())*dCoef, f1));
 
-	WM.Sub(4, 6 + 4, FTmp);
-	WM.Add(6 + 4, 6 + 4, FTmp);
+	/* [F x] [f2 x] */
+	WM.Add(6 + 4, 6 + 4, Mat3x3((F.GetVec1())*dCoef, f2));
 }
 
 /* assemblaggio residuo */
