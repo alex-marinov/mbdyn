@@ -815,7 +815,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 					ParNaiveSparsePermSolutionManager(nThreads, iNLD, dPivotFactor));
 #else
 				silent_cerr("multithread naive solver support not compiled; "
-					"you can configure --enable-multithread-naive"
+					"you can configure --enable-multithread-naive "
 					"on a linux ix86 to get it"
 					<< std::endl);
 				throw ErrGeneric();
@@ -833,7 +833,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 					ParNaiveSparseSolutionManager(nThreads, iNLD, dPivotFactor));
 #else
 				silent_cerr("multithread naive solver support not compiled; "
-					"you can configure --enable-multithread-naive"
+					"you can configure --enable-multithread-naive "
 					"on a linux ix86 to get it"
 					<< std::endl);
 				throw ErrGeneric();
