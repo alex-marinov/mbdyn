@@ -300,14 +300,17 @@ ReadSocketStreamDrive(DataManager* pDM,
 		SAFESTRDUP(host, DEFAULT_HOST);
 	}
 
-	int flags = 0;
+	/* we want to block until the whole chunk is received */
+	int flags = MSG_WAITALL;
 	while (HP.IsArg()) {
 		if (HP.IsKeyWord("no" "signal")) {
 			flags |= MSG_NOSIGNAL;
 
+#if 0
+		/* not honored by recv() */
 		} else if (HP.IsKeyWord("non" "blocking")) {
 			flags |= MSG_DONTWAIT;
-
+#endif
 		} else {
 			break;
 		}
