@@ -108,6 +108,8 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
+			    
+   DofOrder::Order GetEqType(unsigned int i) const;
    
    void Output(OutputHandler& OH) const;
  
@@ -220,6 +222,8 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
+			    
+   DofOrder::Order GetEqType(unsigned int i) const;
    
    void Output(OutputHandler& OH) const;
  
@@ -340,6 +344,8 @@ public Joint, public DriveOwner {
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
+			    
+   DofOrder::Order GetEqType(unsigned int i) const;
    
    void Output(OutputHandler& OH) const;
  
@@ -447,6 +453,8 @@ class PlanePinJoint : virtual public Elem, public Joint {
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
+			    
+   DofOrder::Order GetEqType(unsigned int i) const;
    
    virtual void Output(OutputHandler& OH) const;
  
