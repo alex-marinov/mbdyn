@@ -1858,7 +1858,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 			NullDriveCaller,
 			NullDriveCaller(NULL));
 
-	      SAFENEWWITHCONSTRUCTOR(pMethod,
+	      SAFENEWWITHCONSTRUCTOR(pFictitiousStepsMethod,
 			NostroMetodo,
 			NostroMetodo(pRho, pRhoAlgebraic));
 	      break;
