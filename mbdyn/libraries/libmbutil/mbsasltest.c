@@ -200,7 +200,7 @@ main(int argc, char *argv[])
 int
 main(void)
 {
-	printf("need pthreads and semaphores\n");
+	printf("need sasl2, pthreads and semaphores\n");
 	exit(EXIT_FAILURE);
 }
 
