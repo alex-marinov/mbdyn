@@ -122,7 +122,7 @@ public:
 	NamedValue(const char *const s);
 	virtual ~NamedValue(void);
 
-	virtual int IsVar(void) const;
+	virtual bool IsVar(void) const;
 
 	const char *GetName(void) const;
 	virtual TypedValue::Type GetType(void) const = 0;
@@ -140,7 +140,7 @@ public:
 	Var(const char* const s, const Int& v);
 	~Var(void);
 
-	int IsVar(void) const;
+	bool IsVar(void) const;
 	
 	TypedValue::Type GetType(void) const;
 	bool Const(void) const;

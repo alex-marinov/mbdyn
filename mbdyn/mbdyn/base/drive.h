@@ -148,7 +148,7 @@ class DriveHandler {
 #ifdef USE_MULTITHREAD
    mutable pthread_mutex_t parser_mutex;
 #endif /* USE_MULTITHREAD */
-   mutable MathParser Parser;
+   mutable MathParser& Parser;
    
    /* variabili predefinite: tempo e variabile generica */
    Var* pTime;
@@ -189,7 +189,7 @@ class DriveHandler {
    integer iRandInit(integer iSteps);
    
  public:
-   DriveHandler(Table& SymbolTable);
+   DriveHandler(MathParser &mp);
    ~DriveHandler(void);
    
    void PutSymbolTable(Table& T);

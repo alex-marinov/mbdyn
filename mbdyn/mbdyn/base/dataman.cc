@@ -54,6 +54,7 @@ extern "C" {
 #ifdef USE_TCL
 #include "tclpgin.h"
 #endif /* USE_TCL */
+#include "modelns.h"
 
 /* temporary? */
 #include "beam.h"
@@ -89,8 +90,7 @@ SolverDiagnostics(OF),
 nThreads(0),
 #endif /* USE_MULTITHREAD */
 MathPar(HP.GetMathParser()),
-GlobalSymbolTable((HP.GetMathParser()).GetSymbolTable()),
-DrvHdl((HP.GetMathParser()).GetSymbolTable()),
+DrvHdl(HP.GetMathParser()),
 OutHdl(),
 pTime(NULL),
 pXCurr(NULL), pXPrimeCurr(NULL),
@@ -177,9 +177,12 @@ DofIter()
    HP.GetMathParser().RegisterPlugIn("tcl", dummy_plugin,
 		   (void *)"configure with --with-tcl to use tcl plugin");
 #endif /* USE_TCL */
+
+   /* registra il namespace del modello */
+   HP.GetMathParser().RegisterNameSpace(new ModelNameSpace(this));
    
    /* Setta il tempo al valore iniziale */
-   pTime = (Var *)GlobalSymbolTable.Get("Time");
+   pTime = (Var *)MathPar.GetSymbolTable().Get("Time");
    ASSERT(pTime != NULL);
    if(pTime == NULL) {
       DEBUGCERR("");
@@ -189,8 +192,8 @@ DofIter()
    }   
    SetTime(dInitialTime);
    
-   DEBUGLCOUT(MYDEBUG_INIT, "GlobalSymbolTable:" 
-	      << GlobalSymbolTable << std::endl);
+   DEBUGLCOUT(MYDEBUG_INIT, "Global symbol table:" 
+	      << MathPar.GetSymbolTable() << std::endl);
    
    /*
     * Possiede MathParser, con relativa SymbolTable. 

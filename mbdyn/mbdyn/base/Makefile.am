@@ -68,6 +68,8 @@ metiswrap.cc \
 metiswrap.h \
 mfree.cc \
 mfree.h \
+modelns.cc \
+modelns.h \
 modules.h \
 motionview_res.cc \
 mtdataman.cc \

@@ -70,8 +70,6 @@
 
 /* DataManager - begin */
 
-const int iGlobalSymbolTableInitialSize = 21;
-
 class DataManager : public SolutionDataManager, public SolverDiagnostics {
 public:
 	class ErrGeneric {};
@@ -92,7 +90,6 @@ private:
 	
 	/* Handler vari */
 	MathParser& MathPar;      /* Received from MultiStepIntegrator */
-	Table& GlobalSymbolTable; /* note: do not invert declaration order */
 
 	/* scalar functions */
 	std::map<std::string, const BasicScalarFunction *> MapOfScalarFunctions;
@@ -104,7 +101,7 @@ protected:
 	DriveHandler DrvHdl;
 	mutable OutputHandler OutHdl;
 
-	/* Puntatore alla variabile Time nella GlobalSymbolTable */
+	/* Puntatore alla variabile Time nella symbol table di MathPar*/
 	Var* pTime;
 
 	/* Puntatori ai vettori soluzione durante il passo */

@@ -37,6 +37,8 @@
 #include <ac/math.h>
 #include <time.h>
 #include <ac/iostream>
+#include <map>
+#include <string>
 
 #include <myassert.h>
 #include <mynewmem.h>
@@ -48,17 +50,22 @@
 
 #include <stack.h>
 
+typedef Real (*MathFunc_0args_t)(void);
+typedef Real (*MathFunc_1args_t)(Real);
+typedef Real (*MathFunc_2args_t)(Real, Real);
+typedef Int (*MathFuncTest_t)(Real *);
+
 /* struttura delle funzioni built-in */
-struct mathfuncs {
+struct MathFunc_t {
 	const char* fname;		/* nome */
 	Int nargs;			/* numero di argomenti */
 	union {
-		Real (*f0)(void);
-		Real (*f1)(Real);
-		Real (*f2)(Real, Real);
+		MathFunc_0args_t	f0;
+		MathFunc_1args_t	f1;
+		MathFunc_2args_t	f2;
 		/* add more as needed */
 	} f;				/* puntatore a funzione */
-	Int (*t)(Real*);		/* puntatore a funzione di test */
+	MathFuncTest_t	t;		/* puntatore a funzione di test */
 	const char* errmsg;		/* messaggio di errore */
 };
 
@@ -66,10 +73,36 @@ struct mathfuncs {
 /* massimo numero di argomenti */
 const Int max_nargs = 2;		/* keep it updated */
 
-const char REMARK = '#';		/* carattere di inizio commento */
+const char ONE_LINE_REMARK = '#';		/* carattere di inizio commento */
 
 class MathParser {
 public:
+	/* Namespace */
+	class NameSpace {
+		const char	*name;
+
+	public:
+		NameSpace(const char *n);
+		virtual ~NameSpace(void);
+		virtual const char *sGetName(void) const;
+		virtual bool IsFunc(const char* const s) const = 0;
+		virtual MathFunc_t* GetFunc(const char* const s) const = 0;
+		virtual TypedValue EvalFunc(MathFunc_t *f, Real *d) const = 0;
+	};
+
+	/* Static namespace */
+	class StaticNameSpace : public MathParser::NameSpace {
+	private:
+		MathFunc_t	*func;
+
+	public:
+		StaticNameSpace(const char *n, MathFunc_t f[]);
+		~StaticNameSpace(void);
+
+		bool IsFunc(const char* const s) const;
+		MathFunc_t* GetFunc(const char* const s) const;
+		virtual TypedValue EvalFunc(MathFunc_t *f, Real *d) const;
+	};
 
 	/* Prototipo dei plugin */
 	class PlugIn {
@@ -182,12 +215,17 @@ public:
 		CPGIN,		/* ']'	: Chiusura di plugin statement */
 		STMTSEP,	/* ';'	: Separatore di statements */
 		ARGSEP,		/* ','	: Separatore di argomenti */
+		NAMESPACESEP,	/* '::'	: Separatore di namespace */
 		ASSIGN,		/* '='	: Assegnazione */
 		
 		LASTTOKEN	
 	};
    
 protected:
+
+	StaticNameSpace defaultNameSpace;
+	typedef std::map<std::string, NameSpace *> NameSpaceMap;
+	NameSpaceMap nameSpaceMap;
 
 	/* buffer statico reallocabile per leggere nomi */
 	char* namebuf;
@@ -231,14 +269,12 @@ protected:
 	Var* NewVar(const char* const s, TypedValue::Type t,
 			const Real& d = 0.);
 
-	mathfuncs* GetFunc(const char* const s) const;
 	TypedValue::Type GetType(const char* const s) const;
 	TypedValue::TypeModifier GetTypeModifier(const char*) const;
 
-	Int IsType(const char* const s) const;
-	Int IsTypeModifier(const char* const s) const;
-	Int IsFunc(const char* const s) const;
-	Int IsKeyWord(const char* const s) const;
+	bool IsType(const char* const s) const;
+	bool IsTypeModifier(const char* const s) const;
+	bool IsKeyWord(NameSpace *ns, const char* const s) const;
    
 	/* lexer */
 	enum Token GetToken(void);
@@ -258,7 +294,7 @@ protected:
 	TypedValue power(void);
 
 	/* helper per expr, che valuta le funzioni built-in */
-	TypedValue evalfunc(mathfuncs* f);
+	TypedValue evalfunc(MathParser::NameSpace *ns, MathFunc_t* f);
 
 	/* valuta le espressioni */
 	TypedValue expr(void);
@@ -299,6 +335,8 @@ public:
 	int RegisterPlugIn(const char *name,
 			MathParser::PlugIn * (*)(MathParser&, void *),
 			void *arg);
+
+	int RegisterNameSpace(NameSpace *ns);
 };
 
 #endif /* MATHP_H */

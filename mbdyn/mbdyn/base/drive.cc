@@ -57,9 +57,9 @@ Drive::~Drive(void) {
 
 /* DriveHandler - begin */
 
-DriveHandler::DriveHandler(Table& SymbolTable)
+DriveHandler::DriveHandler(MathParser& mp)
 : dTime(0.), 
-Parser(SymbolTable),
+Parser(mp),
 pTime(NULL), 
 pVar(NULL),
 pXCurr(NULL), 
@@ -80,9 +80,9 @@ ppMyRand(NULL)
 
    /* Inserisce la variabile Time nella tabella dei simboli; sara'
     * mantenuta aggiornata dal DriveHandler */
-   NamedValue *v = SymbolTable.Get("Time");
+   NamedValue *v = Parser.GetSymbolTable().Get("Time");
    if (v == NULL) {
-      pTime = SymbolTable.Put("Time", Real(0));  
+      pTime = Parser.GetSymbolTable().Put("Time", Real(0));  
       if (pTime == NULL) {
 	 silent_cerr("DriveHandler::DriveHandler(): "
 			 "error in Time symbol insertion" << std::endl); 
@@ -98,9 +98,9 @@ ppMyRand(NULL)
    
    /* Inserisce la variabile Var nella tabella dei simboli; sara'
     * mantenuta aggiornata dai DriveCaller attraverso il DriveHandler */
-   v = SymbolTable.Get("Var");
+   v = Parser.GetSymbolTable().Get("Var");
    if (v == NULL) {
-      pVar = SymbolTable.Put("Var", Real(0)); 
+      pVar = Parser.GetSymbolTable().Put("Var", Real(0)); 
       if (pVar == NULL) {
 	 silent_cerr("DriveHandler::DriveHandler(): "
 			 "error in Var symbol insertion" << std::endl);

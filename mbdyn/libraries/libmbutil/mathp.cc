@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2004
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -37,77 +37,79 @@
 
 
 /* helper per le funzioni built-in */
-Int 
+Int
 asin_t(Real* d)
 {
-   if (d[0] > 1. || d[0] < -1.) {
-      return 1;
-   }
-   return 0;
+	if (d[0] > 1. || d[0] < -1.) {
+		return 1;
+	}
+	return 0;
 }
 
-Int 
+Int
 tan_t(Real* d)
 {
-   Real a = d[0]-int(d[0]/M_PI)*M_PI;
-   if (fabs(fabs(a)-M_PI_2) < DBL_EPSILON) {
-      return 1;
-   }
-   return 0;
+	Real a = d[0] - int(d[0]/M_PI)*M_PI;
+	if (fabs(fabs(a)-M_PI_2) < DBL_EPSILON) {
+		return 1;
+	}
+	return 0;
 }
 
-Int 
+Int
 acosh_t(Real* d)
 {
-   if (d[0] < 0.) {
-      return 1;
-   }
-   return 0;
+	if (d[0] < 0.) {
+		return 1;
+	}
+	return 0;
 }
 
-Int 
-atanh_t(Real* d) {
-   if (d[0] >= 1. || d[0] <= -1.) {
-      return 1;
-   }
-   return 0;
+Int
+atanh_t(Real* d)
+{
+	if (d[0] >= 1. || d[0] <= -1.) {
+		return 1;
+	}
+	return 0;
 }
 
-Int 
-log_t(Real* d) {
-   if (d[0] <= 0.) {
-      return 1;
-   }
-   return 0;
+Int
+log_t(Real* d)
+{
+	if (d[0] <= 0.) {
+		return 1;
+	}
+	return 0;
 }
 
-Real 
+Real
 mp_rand(void)
 {
-   return Real(rand());
+	return Real(rand());
 }
 
-Real 
+Real
 mp_rndm(void)
 {
-   return -1.+2.*(Real(rand())/Real(RAND_MAX));
+	return -1. + 2.*(Real(rand())/Real(RAND_MAX));
 }
 
-Real 
+Real
 mp_srnd(Real s)
 {
-   srand((unsigned int)s);
-   return Real(0);
+	srand((unsigned int)s);
+	return Real(0);
 }
 
-Real 
+Real
 mp_prnt(Real s)
 {
-   silent_cout(s << std::endl);
-   return s;
+	silent_cout(s << std::endl);
+	return s;
 }
 
-Real 
+Real
 mp_stop(Real s, Real v)
 {
 	if (s != 0.) {
@@ -122,47 +124,47 @@ mp_stop(Real s, Real v)
 	return s;
 }
 
-Real 
+Real
 mp_ctg(Real s)
 {
-   return 1./tan(s);
+	return 1./tan(s);
 }
 
-Int 
+Int
 mp_ctg_t(Real* d)
 {
-   Real a = d[0]-int(d[0]/M_PI)*M_PI;
-   if (fabs(a) < DBL_EPSILON) {
-      return 1;
-   }
-   return 0;
+	Real a = d[0] - int(d[0]/M_PI)*M_PI;
+	if (fabs(a) < DBL_EPSILON) {
+		return 1;
+	}
+	return 0;
 }
 
-Real 
+Real
 mp_actg(Real s)
 {
-   return atan2(1., s);
+	return atan2(1., s);
 }
 
-Real 
+Real
 mp_actg2(Real s1, Real s2)
 {
-   return atan2(s2, s1);
+	return atan2(s2, s1);
 }
 
-Real 
-mp_ctgh(Real s) 
+Real
+mp_ctgh(Real s)
 {
-   return 1./tanh(s);
+	return 1./tanh(s);
 }
 
-Int 
+Int
 mp_ctgh_t(Real* d)
 {
-   if (fabs(d[0]) < DBL_EPSILON) {
-      return 1;
-   }
-   return 0;
+	if (fabs(d[0]) < DBL_EPSILON) {
+		return 1;
+	}
+	return 0;
 }
 
 Real
@@ -172,32 +174,32 @@ mp_sign(Real s)
 }
 
 #ifdef __USE_XOPEN
-Real 
+Real
 mp_actgh(Real s)
 {
-   return atanh(1./s);
+	return atanh(1./s);
 }
-#endif 
+#endif
 
-Real 
+Real
 mp_step(Real s)
 {
-   if (s > 0.) {
-      return 1.;
-   }
-   return 0.;
+	if (s > 0.) {
+		return 1.;
+	}
+	return 0.;
 }
 
-Real 
+Real
 mp_ramp(Real s)
 {
-   if (s > 0.) {
-      return s;
-   }
-   return 0.;
+	if (s > 0.) {
+		return s;
+	}
+	return 0.;
 }
 
-Real 
+Real
 mp_sramp(Real s, Real s_max)
 {
 	if (s <= 0.) {
@@ -209,13 +211,13 @@ mp_sramp(Real s, Real s_max)
 	return s;
 }
 
-Real 
+Real
 mp_par(Real s)
 {
-   if (s > 0.) {
-      return s*s;
-   }
-   return 0.;
+	if (s > 0.) {
+		return s*s;
+	}
+	return 0.;
 }
 
 Real max_t (Real a, Real b)
@@ -229,153 +231,153 @@ Real min_t (Real a, Real b)
 }
 
 /* tabella statica delle funzioni built-in */
-static mathfuncs FuncTable[] = {
-     { "asin",       1, { (Real (*)(void))((Real (*)(Real))asin)      }, asin_t,     ""   },
-     { "acos",       1, { (Real (*)(void))((Real (*)(Real))acos)      }, asin_t,     ""   },
-     { "atan",       1, { (Real (*)(void))((Real (*)(Real))atan)      }, NULL,       ""   },
-     { "actan",      1, { (Real (*)(void))((Real (*)(Real))mp_actg)   }, NULL,       ""   },
-     { "atan2",      2, { (Real (*)(void))((Real (*)(Real, Real))atan2)     }, NULL,       ""   },
-     { "actan2",     2, { (Real (*)(void))((Real (*)(Real, Real))mp_actg2)  }, NULL,       ""   },
-     
-     { "cos",        1, { (Real (*)(void))((Real (*)(Real))cos)       }, NULL,       ""   },
-     { "sin",        1, { (Real (*)(void))((Real (*)(Real))sin)       }, NULL,       ""   },
-     { "tan",        1, { (Real (*)(void))((Real (*)(Real))tan)       }, tan_t,      ""   },
-     { "ctan",       1, { (Real (*)(void))((Real (*)(Real))mp_ctg)    }, mp_ctg_t,   ""   },
-     
-     { "cosh",       1, { (Real (*)(void))((Real (*)(Real))cosh)      }, NULL,       ""   },
-     { "sinh",       1, { (Real (*)(void))((Real (*)(Real))sinh)      }, NULL,       ""   },
-     { "tanh",       1, { (Real (*)(void))((Real (*)(Real))tanh)      }, NULL,       ""   },
-     { "ctanh",      1, { (Real (*)(void))((Real (*)(Real))mp_ctgh)   }, mp_ctgh_t,  ""   },
-     
-#ifdef __USE_XOPEN
-     { "acosh",      1, { (Real (*)(void))((Real (*)(Real))acosh)     }, acosh_t,    ""   },
-     { "asinh",      1, { (Real (*)(void))((Real (*)(Real))asinh)     }, NULL,       ""   },
-     { "atanh",      1, { (Real (*)(void))((Real (*)(Real))atanh)     }, atanh_t,    ""   },
-     { "actanh",     1, { (Real (*)(void))((Real (*)(Real))mp_actgh)  }, NULL,       ""   },     
-#endif
-   
-     { "exp",        1, { (Real (*)(void))((Real (*)(Real))exp)       }, NULL,       ""   },
-     { "log",        1, { (Real (*)(void))((Real (*)(Real))log)       }, log_t,      ""   },
-     { "log10",      1, { (Real (*)(void))((Real (*)(Real))log10)     }, log_t,      ""   },
-     
-     { "sqrt",       1, { (Real (*)(void))((Real (*)(Real))sqrt)      }, log_t,      ""   },
-     
-     { "abs",        1, { (Real (*)(void))((Real (*)(Real))fabs)      }, NULL,       ""   },
-     { "sign",       1, { (Real (*)(void))((Real (*)(Real))mp_sign)   }, NULL,       ""   },
-     { "copysign",   2, { (Real (*)(void))((Real (*)(Real, Real))copysign)  }, NULL,       ""   },
-     { "max",        2, { (Real (*)(void))((Real (*)(Real, Real))max_t)  }, NULL,       ""   },
-     { "min",        2, { (Real (*)(void))((Real (*)(Real, Real))min_t)  }, NULL,       ""   },
-     { "floor",      1, { (Real (*)(void))((Real (*)(Real))floor)     }, NULL,       ""   },
-     { "ceil",       1, { (Real (*)(void))((Real (*)(Real))ceil)      }, NULL,       ""   },
-#ifdef __USE_XOPEN
-     { "round",      1, { (Real (*)(void))((Real (*)(Real))rint)      }, NULL,       ""   },
-#endif
+static MathFunc_t FuncTable[] = {
+	{ "asin",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)asin) },		asin_t,		"" },
+	{ "acos",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)acos) },		asin_t,		"" },
+	{ "atan",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)atan) },		0,		"" },
+	{ "actan",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_actg) },	0,		"" },
+	{ "atan2",	2,	{ (MathFunc_0args_t)((MathFunc_2args_t)atan2) },	0,		"" },
+	{ "actan2",	2,	{ (MathFunc_0args_t)((MathFunc_2args_t)mp_actg2) },	0,		"" },
 
-     { "rand",       0, { (Real (*)(void))((Real (*)(void))mp_rand)   }, NULL,       ""   },
-     { "random",     0, { (Real (*)(void))((Real (*)(void))mp_rndm)   }, NULL,       ""   },
-     { "seed",       1, { (Real (*)(void))((Real (*)(Real))mp_srnd)   }, NULL,       ""   },
+	{ "cos",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)cos) },		0,		"" },
+	{ "sin",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)sin) },		0,		"" },
+	{ "tan",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)tan) },		tan_t,		"" },
+	{ "ctan",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_ctg) },	mp_ctg_t,	"" },
 
-     { "step",       1, { (Real (*)(void))((Real (*)(Real))mp_step)   }, NULL,       ""   },
-     { "ramp",       1, { (Real (*)(void))((Real (*)(Real))mp_ramp)   }, NULL,       ""   },
-     { "sramp",      2, { (Real (*)(void))((Real (*)(Real, Real))mp_sramp)   }, NULL,       ""   },
-     { "par",        1, { (Real (*)(void))((Real (*)(Real))mp_par)    }, NULL,       ""   },
-     
-     { "print",      1, { (Real (*)(void))((Real (*)(Real))mp_prnt)   }, NULL,       ""   },
-     { "stop",       2, { (Real (*)(void))((Real (*)(Real, Real))mp_stop)    }, NULL,       ""   },
-     
+	{ "cosh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)cosh) },		0,		"" },
+	{ "sinh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)sinh) },		0,		"" },
+	{ "tanh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)tanh) },		0,		"" },
+	{ "ctanh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_ctgh) },	mp_ctgh_t,	"" },
+
+#ifdef __USE_XOPEN
+	{ "acosh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)acosh) },	acosh_t,	"" },
+	{ "asinh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)asinh) },	0,		"" },
+	{ "atanh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)atanh) },	atanh_t,	"" },
+	{ "actanh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_actgh) },	0,		"" },
+#endif /* __USE_XOPEN */
+
+	{ "exp",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)exp) },		0,		"" },
+	{ "log",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)log) },		log_t,		"" },
+	{ "log10",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)log10) },	log_t,		"" },
+
+	{ "sqrt",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)sqrt) },		log_t,		"" },
+
+	{ "abs",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)fabs) },		0,		"" },
+	{ "sign",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_sign) },	0,		"" },
+	{ "copysign",	2,	{ (MathFunc_0args_t)((MathFunc_2args_t)copysign) },	0,		"" },
+	{ "max",	2,	{ (MathFunc_0args_t)((MathFunc_2args_t)max_t) },	0,		"" },
+	{ "min",	2,	{ (MathFunc_0args_t)((MathFunc_2args_t)min_t) },	0,		"" },
+	{ "floor",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)floor) },	0,		"" },
+	{ "ceil",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)ceil) },		0,		"" },
+
+#ifdef __USE_XOPEN
+	{ "round",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)rint) },		0,		"" },
+#endif /* __USE_XOPEN */
+
+	{ "rand",	0,	{ (MathFunc_0args_t)((MathFunc_0args_t)mp_rand) },	0,		"" },
+	{ "random",	0,	{ (MathFunc_0args_t)((MathFunc_0args_t)mp_rndm) },	0,		"" },
+	{ "seed",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_srnd) },	0,		"" },
+
+	{ "step",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_step) },	0,		"" },
+	{ "ramp",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_ramp) },	0,		"" },
+	{ "sramp",	2,	{ (MathFunc_0args_t)((MathFunc_2args_t)mp_sramp) },	0,		"" },
+	{ "par",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_par) },	0,		"" },
+
+	{ "print",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_prnt) },	0,		"" },
+	{ "stop",	2,	{ (MathFunc_0args_t)((MathFunc_2args_t)mp_stop) },	0,		"" },
+
      /* add more as needed */
-     
-     { NULL,         0, { (Real (*)(void))NULL  }, NULL,     NULL }
+	{ 0,		0,	{ (MathFunc_0args_t)0 },				0,		0 }
 };
 
 
 /* tipi delle variabili */
-struct typenames {
-   const char* name;
-   TypedValue::Type type;
+struct TypeName_t {
+	const char* name;
+	TypedValue::Type type;
 };
 
-static typenames TypeNames[] = {
-     { "integer",  TypedValue::VAR_INT },
-     { "real",     TypedValue::VAR_REAL },
-     
-     { NULL,   TypedValue::VAR_UNKNOWN }
+static TypeName_t TypeNames[] = {
+	{ "integer",	TypedValue::VAR_INT },
+	{ "real",	TypedValue::VAR_REAL },
+
+	{ NULL,		TypedValue::VAR_UNKNOWN }
 };
 
 struct typemodifiernames {
-   const char* name;
-   TypedValue::TypeModifier type;
+	const char* name;
+	TypedValue::TypeModifier type;
 };
 
 static typemodifiernames TypeModifierNames[] = {
-     { "const",	   TypedValue::MOD_CONST },
-     { NULL,       TypedValue::MOD_UNKNOWN }
+	{ "const",	TypedValue::MOD_CONST },
+	{ NULL,		TypedValue::MOD_UNKNOWN }
 };
 
 
-TypedValue::TypedValue(const Int& i, bool isConst) 
+TypedValue::TypedValue(const Int& i, bool isConst)
 : type(TypedValue::VAR_INT), bConst(isConst)
 {
-   v.i = i;
+	v.i = i;
 }
 
 TypedValue::TypedValue(const Real& r, bool isConst)
 : type(TypedValue::VAR_REAL), bConst(isConst)
 {
-   v.r = r;
+	v.r = r;
 }
 
 TypedValue::TypedValue(const TypedValue::Type t, bool isConst)
 : type(t), bConst(isConst)
 {
-   switch (type) {
-    case TypedValue::VAR_INT:
-      v.i = 0;
-      break;
-    case TypedValue::VAR_REAL:
-      v.r = 0.;
-      break;
-    default:
-      throw ErrUnknownType();
-   }
+	switch (type) {
+	case TypedValue::VAR_INT:
+		v.i = 0;
+		break;
+	case TypedValue::VAR_REAL:
+		v.r = 0.;
+		break;
+	default:
+		throw ErrUnknownType();
+	}
 }
 
 TypedValue::TypedValue(const TypedValue& var)
 : type(var.type), bConst(var.bConst)
 {
-   switch (type) {
-    case TypedValue::VAR_INT:
-      v.i = var.v.i;
-      break;
-    case TypedValue::VAR_REAL:
-      v.r = var.v.r;
-      break;
-    default:
-      throw ErrUnknownType();
-   }
+	switch (type) {
+	case TypedValue::VAR_INT:
+		v.i = var.v.i;
+		break;
+	case TypedValue::VAR_REAL:
+		v.r = var.v.r;
+		break;
+	default:
+		throw ErrUnknownType();
+	}
 }
 
-const TypedValue& 
+const TypedValue&
 TypedValue::operator = (const TypedValue& var)
 {
-   switch ((type = var.type)) {
-    case TypedValue::VAR_INT:
-      Set(var.GetInt());
-      break;
-    case TypedValue::VAR_REAL:
-      Set(var.GetReal());
-      break;
-    default:
-      throw ErrUnknownType();
-   }
-   bConst = var.Const();
-   return *this;
+	switch ((type = var.type)) {
+	case TypedValue::VAR_INT:
+		Set(var.GetInt());
+		break;
+	case TypedValue::VAR_REAL:
+		Set(var.GetReal());
+		break;
+	default:
+		throw ErrUnknownType();
+	}
+	bConst = var.Const();
+	return *this;
 }
 
-TypedValue::Type 
+TypedValue::Type
 TypedValue::GetType(void) const
 {
-   return type;
+	return type;
 }
 
 bool
@@ -384,40 +386,40 @@ TypedValue::Const(void) const
 	return bConst;
 }
 
-Int 
-TypedValue::GetInt(void) const 
+Int
+TypedValue::GetInt(void) const
 {
-   switch (type) {
-    case TypedValue::VAR_INT:
-      return v.i;
-    case TypedValue::VAR_REAL:
-      return Int(v.r);
-    default:
-      throw ErrUnknownType();
-   }
-   return 0;
+	switch (type) {
+	case TypedValue::VAR_INT:
+		return v.i;
+	case TypedValue::VAR_REAL:
+		return Int(v.r);
+	default:
+		throw ErrUnknownType();
+	}
+	return 0;
 }
 
-Real 
+Real
 TypedValue::GetReal(void) const
 {
-   switch (type) {
-    case TypedValue::VAR_INT:
-      return Real(v.i);
-    case TypedValue::VAR_REAL:
-      return v.r;
-    default:
-      throw ErrUnknownType();
-   }
-   return 0.;
+	switch (type) {
+	case TypedValue::VAR_INT:
+		return Real(v.i);
+	case TypedValue::VAR_REAL:
+ 		return v.r;
+	default:
+		throw ErrUnknownType();
+	}
+	return 0.;
 }
 
-void 
+void
 TypedValue::SetType(TypedValue::Type t, bool isConst)
 {
-   type = t;
-   bConst = isConst;
-}  
+	type = t;
+	bConst = isConst;
+}
 
 void
 TypedValue::SetConst(bool isConst)
@@ -425,220 +427,229 @@ TypedValue::SetConst(bool isConst)
 	bConst = isConst;
 }
 
-const TypedValue& 
-TypedValue::Set(const Int& i) 
+const TypedValue&
+TypedValue::Set(const Int& i)
 {
-   switch(GetType()) {
-    case TypedValue::VAR_INT:
-      v.i = i;
-      break;
-    case TypedValue::VAR_REAL:
-      v.r = Real(i);
-      break;
-    default:
-      throw ErrUnknownType();
-   }
-   return *this;
+	switch (GetType()) {
+	case TypedValue::VAR_INT:
+		v.i = i;
+		break;
+	case TypedValue::VAR_REAL:
+		v.r = Real(i);
+		break;
+	default:
+		throw ErrUnknownType();
+	}
+	return *this;
 }
 
-const TypedValue& 
+const TypedValue&
 TypedValue::Set(const Real& r)
 {
-   switch(GetType()) {
-    case TypedValue::VAR_INT:
-      v.i = Int(r);
-      break;
-    case TypedValue::VAR_REAL:
-      v.r = r;
-      break;
-    default:
-      throw ErrUnknownType();
-   }
-   return *this;
+	switch (GetType()) {
+	case TypedValue::VAR_INT:
+		v.i = Int(r);
+		break;
+	case TypedValue::VAR_REAL:
+		v.r = r;
+		break;
+	default:
+		throw ErrUnknownType();
+	}
+	return *this;
 }
 
-bool 
+bool
 TypedValue::operator && (const TypedValue& v) const
 {
-   return (GetReal() && v.GetReal());
+	return (GetReal() && v.GetReal());
 }
 
-bool 
+bool
 TypedValue::operator || (const TypedValue& v) const
 {
-   return (GetReal() || v.GetReal());
+	return (GetReal() || v.GetReal());
 }
 
-bool 
+bool
 TypedValue::operator > (const TypedValue& v) const
 {
-   return (GetReal() > v.GetReal());
+	return (GetReal() > v.GetReal());
 }
 
-bool 
+bool
 TypedValue::operator >= (const TypedValue& v) const
 {
-   return (GetReal() >= v.GetReal());
+	return (GetReal() >= v.GetReal());
 }
 
-bool 
+bool
 TypedValue::operator == (const TypedValue& v) const
 {
-   return (GetReal() == v.GetReal());
+	return (GetReal() == v.GetReal());
 }
 
-bool 
+bool
 TypedValue::operator <= (const TypedValue& v) const
 {
-   return (GetReal() <= v.GetReal());
+	return (GetReal() <= v.GetReal());
 }
 
-bool 
+bool
 TypedValue::operator < (const TypedValue& v) const
 {
-   return (GetReal() < v.GetReal());
+	return (GetReal() < v.GetReal());
 }
 
-bool 
+bool
 TypedValue::operator != (const TypedValue& v) const
 {
-   return (GetReal() != v.GetReal());
+	return (GetReal() != v.GetReal());
 }
 
-TypedValue 
+TypedValue
 TypedValue::operator + (const TypedValue& v) const
 {
-   if ((GetType() == TypedValue::VAR_INT)
-       && (v.GetType() == TypedValue::VAR_INT)) {
-      return TypedValue(GetInt()+v.GetInt());
-   }
-   return TypedValue(GetReal()+v.GetReal());
+	if ((GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_INT))
+	{
+		return TypedValue(GetInt() + v.GetInt());
+	}
+	return TypedValue(GetReal() + v.GetReal());
 }
 
-TypedValue 
+TypedValue
 TypedValue::operator - (const TypedValue& v) const
 {
-   if ((GetType() == TypedValue::VAR_INT)
-       && (v.GetType() == TypedValue::VAR_INT)) {
-      return TypedValue(GetInt()-v.GetInt());
-   }
-   return TypedValue(GetReal()-v.GetReal());
+	if ((GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_INT))
+	{
+		return TypedValue(GetInt() - v.GetInt());
+	}
+	return TypedValue(GetReal() - v.GetReal());
 }
 
-TypedValue 
+TypedValue
 TypedValue::operator * (const TypedValue& v) const
 {
-   if ((GetType() == TypedValue::VAR_INT)
-       && (v.GetType() == TypedValue::VAR_INT)) {
-      return TypedValue(GetInt()*v.GetInt());
-   }
-   return TypedValue(GetReal()*v.GetReal());
+	if ((GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_INT))
+	{
+		return TypedValue(GetInt()*v.GetInt());
+	}
+	return TypedValue(GetReal()*v.GetReal());
 }
 
-TypedValue 
+TypedValue
 TypedValue::operator / (const TypedValue& v) const
 {
-   if ((GetType() == TypedValue::VAR_INT)
-       && (v.GetType() == TypedValue::VAR_INT)) {
-      return TypedValue(GetInt()/v.GetInt());
-   }
-   return TypedValue(GetReal()/v.GetReal());
+	if ((GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_INT))
+	{
+		return TypedValue(GetInt()/v.GetInt());
+	}
+	return TypedValue(GetReal()/v.GetReal());
 }
 
-const TypedValue& 
+const TypedValue&
 TypedValue::operator += (const TypedValue& v)
 {
-   if ((GetType() == TypedValue::VAR_INT)
-       && (v.GetType() == TypedValue::VAR_INT)) {
-      return Set(GetInt()+v.GetInt());
-   }
-   Real d = GetReal()+v.GetReal();
-   type = TypedValue::VAR_REAL;
-   return Set(d);
+	if ((GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_INT))
+	{
+		return Set(GetInt() + v.GetInt());
+	}
+	Real d = GetReal() + v.GetReal();
+	type = TypedValue::VAR_REAL;
+	return Set(d);
 }
 
-const TypedValue& 
+const TypedValue&
 TypedValue::operator -= (const TypedValue& v)
 {
-   if ((GetType() == TypedValue::VAR_INT)
-       && (v.GetType() == TypedValue::VAR_INT)) {
-      return Set(GetInt()-v.GetInt());
-   }
-   Real d = GetReal()-v.GetReal();
-   type = TypedValue::VAR_REAL;
-   return Set(d);
+	if ((GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_INT))
+	{
+		return Set(GetInt() - v.GetInt());
+	}
+	Real d = GetReal() - v.GetReal();
+	type = TypedValue::VAR_REAL;
+	return Set(d);
 }
 
-const TypedValue& 
+const TypedValue&
 TypedValue::operator *= (const TypedValue& v)
 {
-   if ((GetType() == TypedValue::VAR_INT)
-       && (v.GetType() == TypedValue::VAR_INT)) {
-      return Set(GetInt()*v.GetInt());
-   }
-   Real d = GetReal()*v.GetReal();
-   type = TypedValue::VAR_REAL;
-   return Set(d);
+	if ((GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_INT))
+	{
+		return Set(GetInt()*v.GetInt());
+	}
+	Real d = GetReal()*v.GetReal();
+	type = TypedValue::VAR_REAL;
+	return Set(d);
 }
 
-const TypedValue& 
+const TypedValue&
 TypedValue::operator /= (const TypedValue& v)
 {
-   if ((GetType() == TypedValue::VAR_INT)
-       && (v.GetType() == TypedValue::VAR_INT)) {
-      return Set(GetInt()/v.GetInt());
-   }
-   Real d = GetReal()/v.GetReal();
-   type = TypedValue::VAR_REAL;
-   return Set(d);
+	if ((GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_INT))
+	{
+		return Set(GetInt()/v.GetInt());
+	}
+	Real d = GetReal()/v.GetReal();
+	type = TypedValue::VAR_REAL;
+	return Set(d);
 }
 
-bool 
+bool
 operator ! (const TypedValue& v)
 {
-   return (!v.GetReal());
+	return (!v.GetReal());
 }
 
-TypedValue 
-operator - (const TypedValue& v) 
+TypedValue
+operator - (const TypedValue& v)
 {
-   switch (v.GetType()) {
-    case TypedValue::VAR_INT:
-      return TypedValue(-v.GetInt());
-    case TypedValue::VAR_REAL:
-      return TypedValue(-v.GetReal());
-    default:
-      throw TypedValue::ErrUnknownType();
-   }
-   return 0;
+	switch (v.GetType()) {
+	case TypedValue::VAR_INT:
+		return TypedValue(-v.GetInt());
+	case TypedValue::VAR_REAL:
+		return TypedValue(-v.GetReal());
+	default:
+		throw TypedValue::ErrUnknownType();
+	}
+	return 0;
 }
 
-TypedValue 
-operator + (const TypedValue& v) 
+TypedValue
+operator + (const TypedValue& v)
 {
-   return v;
+	return v;
 }
 
-std::ostream& 
-operator << (std::ostream& out, const TypedValue& v) 
+std::ostream&
+operator << (std::ostream& out, const TypedValue& v)
 {
-   switch (v.GetType()) {
-    case TypedValue::VAR_INT:
-      return out << v.GetInt();
-    case TypedValue::VAR_REAL:
-      return out << v.GetReal();
-    default:
-      throw TypedValue::ErrUnknownType();
-   }
-   return out;
+	switch (v.GetType()) {
+	case TypedValue::VAR_INT:
+		return out << v.GetInt();
+	case TypedValue::VAR_REAL:
+		return out << v.GetReal();
+	default:
+		throw TypedValue::ErrUnknownType();
+	}
+	return out;
 }
 
 /* classe per la memorizzazione delle variabili */
 
 NamedValue::NamedValue(const char *const s)
-: name(NULL) {
+: name(NULL)
+{
 	AllocName(s);
-};
+}
 
 NamedValue::~NamedValue(void)
 {
@@ -646,109 +657,109 @@ NamedValue::~NamedValue(void)
 	SAFEDELETEARR(name);
 }
 
-void 
+void
 NamedValue::AllocName(const char* const s)
 {
-   ASSERT(s != NULL);
-   SAFESTRDUP(name, s);  
+	ASSERT(s != NULL);
+	SAFESTRDUP(name, s);
 }
 
-int 
+bool
 NamedValue::IsVar(void) const
 {
-   return 0;
+	return false;
 }
 
 const char*
 NamedValue::GetName(void) const
 {
-   ASSERT(name != NULL);
-   return name;
+	ASSERT(name != NULL);
+	return name;
 }
 
 Var::Var(const char* const s, const TypedValue& v)
-: NamedValue(s), value(v) 
+: NamedValue(s), value(v)
 {
-   NO_OP;
+	NO_OP;
 }
 
 Var::Var(const char* const s, const Real& v)
-: NamedValue(s), value(v) 
+: NamedValue(s), value(v)
 {
-   NO_OP;
+	NO_OP;
 }
 
 Var::Var(const char* const s, const Int& v)
-: NamedValue(s), value(v) 
+: NamedValue(s), value(v)
 {
-   NO_OP;
+	NO_OP;
 }
 
 Var::~Var(void)
 {
-   NO_OP;
+	NO_OP;
 }
 
-int
+bool
 Var::IsVar(void) const
 {
-   return 1;
+	return true;
 }
 
-TypedValue::Type 
-Var::GetType(void) const 
+TypedValue::Type
+Var::GetType(void) const
 {
-   return value.GetType();
+	return value.GetType();
 }
 
 bool
 Var::Const(void) const
 {
-   return value.Const();
+	return value.Const();
 }
 
-TypedValue 
-Var::GetVal(void) const 
+TypedValue
+Var::GetVal(void) const
 {
-   return value;
+	return value;
 }
 
-void 
+void
 Var::SetVal(const Real& v)
 {
-   value.Set(v);
+	value.Set(v);
 }
 
-void 
+void
 Var::SetVal(const Int& v)
 {
-   value.Set(v);
+	value.Set(v);
 }
 
-void 
+void
 Var::SetVal(const TypedValue& v)
 {
-   switch (GetType()) {
-    case TypedValue::VAR_INT:
-      value.Set(v.GetInt());
-      break;    
-    case TypedValue::VAR_REAL:
-      value.Set(v.GetReal());
-      break;
-    default:
-      throw TypedValue::ErrUnknownValue();
-   }
+	switch (GetType()) {
+	case TypedValue::VAR_INT:
+		value.Set(v.GetInt());
+		break;
+	case TypedValue::VAR_REAL:
+		value.Set(v.GetReal());
+		break;
+	default:
+		throw TypedValue::ErrUnknownValue();
+	}
 }
 
 void
 MathParser::trim_arg(char *const s)
 {
 	int i, l;
-	
+
 	for (i = 0; isspace(s[i]); ++i) {
 		NO_OP;
 	}
-	
+
 	l = strlen(s+i);
 	if (i > 0) {
 		memmove(s, s+i, l+1);
@@ -785,558 +796,651 @@ MathParser::PlugInVar::Const(void) const
 	return true;
 }
 
-TypedValue 
+TypedValue
 MathParser::PlugInVar::GetVal(void) const
 {
 	return pgin->GetVal();
 }
 
-MathParser::ErrGeneric::ErrGeneric(void) 
+MathParser::ErrGeneric::ErrGeneric(void)
 {
-   NO_OP;
+	NO_OP;
 }
 
-MathParser::ErrGeneric::ErrGeneric(MathParser* p, const char* const s) 
+MathParser::ErrGeneric::ErrGeneric(MathParser* p, const char* const s)
 {
-   silent_cerr(s << " at line " << p->GetLineNumber() << std::endl);
+	silent_cerr(s << " at line " << p->GetLineNumber() << std::endl);
 }
 
 MathParser::ErrGeneric::ErrGeneric(MathParser* p,
-				   const char* const s1,
-				   const char* const s2,
-				   const char* const s3) 
+		const char* const s1,
+		const char* const s2,
+		const char* const s3)
 {
-   silent_cerr("MathParser - " << s1 << s2 << s3
-     << " at line " << p->GetLineNumber() << std::endl);
+	silent_cerr("MathParser - " << s1 << s2 << s3
+			<< " at line " << p->GetLineNumber() << std::endl);
 }
 
 /* gioca con table e stream di ingresso */
-Table& 
-MathParser::GetSymbolTable(void) const 
+Table&
+MathParser::GetSymbolTable(void) const
 {
-   return table;
+	return table;
 }
-   
-void 
+
+void
 MathParser::PutSymbolTable(Table& T)
 {
-   (Table&)table = T;
+	(Table&)table = T;
 }
 
-int 
-MathParser::GetLineNumber(void) const 
+int
+MathParser::GetLineNumber(void) const
 {
-   ASSERT(in != NULL);
-   return in->GetLineNumber();
+	ASSERT(in != NULL);
+	return in->GetLineNumber();
 }
 
-MathParser::TokenList::TokenList(Token t) 
-: t(t), value(Real(0)), name(NULL), next(NULL) 
+MathParser::TokenList::TokenList(Token t)
+: t(t), value(Real(0)), name(NULL), next(NULL)
 {
-   NO_OP;
-}
-      
-MathParser::TokenList::TokenList(const char* const s) 
-: t(NAME), value(Real(0)), name(NULL), next(NULL) 
-{
-   SAFESTRDUP(name, s);
-}
-      
-MathParser::TokenList::TokenList(const TypedValue& v) 
-: t(NUM), value(v), name(NULL), next(NULL) 
-{
-   NO_OP;
+	NO_OP;
 }
 
-MathParser::TokenList::~TokenList(void) 
+MathParser::TokenList::TokenList(const char* const s)
+: t(NAME), value(Real(0)), name(NULL), next(NULL)
 {
-   if (t == NAME) {
-      SAFEDELETEARR(name);
-   }
-}
-   
-void 
-MathParser::TokenPush(enum Token t) 
-{
-   TokenList* p = NULL;
-   if (t == NUM) {	 
-      SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(value));
-   } else if (t == NAME) {      
-      SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(namebuf));
-   } else {      
-      SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(t));
-   }      
-   p->next = tokenlist;
-   tokenlist = p;
+	SAFESTRDUP(name, s);
 }
 
-int 
-MathParser::TokenPop(void) 
+MathParser::TokenList::TokenList(const TypedValue& v)
+: t(NUM), value(v), name(NULL), next(NULL)
 {
-   if (tokenlist == NULL) {
-      /* stack is empty */
-      return 0;
-   }
-   currtoken = tokenlist->t;
-   if (currtoken == NUM) {      
-      value = tokenlist->value;
-   } else if (currtoken == NAME) {
-      ASSERT(tokenlist->name != NULL);
-      strcpy(namebuf, tokenlist->name);
-   }
-   TokenList* p = tokenlist;
-   tokenlist = tokenlist->next;
-   SAFEDELETE(p);
-   
-   return 1;
+	NO_OP;
 }
 
-NamedValue* 
-MathParser::GetVar(const char* const s) 
+MathParser::TokenList::~TokenList(void)
 {
-   for (VarList* p = varlist; p != NULL; p = p->next) {
-      if (p->var != NULL && strcmp(s, p->var->GetName()) == 0) {
-	 return p->var;
-      }
-   }
-   return NULL;
+	if (t == NAME) {
+		SAFEDELETEARR(name);
+	}
 }
 
-Var* 
-MathParser::NewVar(const char* const s, TypedValue::Type t, const Real& d) 
+void
+MathParser::TokenPush(enum Token t)
 {
-   if (GetVar(s) != NULL) {
-      DEBUGCERR("var '" << s << "' already defined!" << std::endl);
-      throw ErrGeneric(this, "var '", s, "' already defined!" );
-   }
-   Var* v = NULL;
-   switch (t) {
-    case TypedValue::VAR_INT:
-      SAFENEWWITHCONSTRUCTOR(v, Var, Var(s, Int(d)));
-      break;
-    case TypedValue::VAR_REAL:
-      SAFENEWWITHCONSTRUCTOR(v, Var, Var(s, d));
-      break;
-    default: 
-      throw TypedValue::ErrUnknownType();
-   }
-   VarList* p = NULL;
-   SAFENEW(p, VarList);
-   p->var = v;
-   p->next = varlist;
-   varlist = p;
-   return v;
+	TokenList* p = 0;
+
+	if (t == NUM) {
+		SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(value));
+	} else if (t == NAME) {
+		SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(namebuf));
+	} else {
+		SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(t));
+	}
+	p->next = tokenlist;
+	tokenlist = p;
 }
 
-mathfuncs* 
-MathParser::GetFunc(const char* const s) const 
+int
+MathParser::TokenPop(void)
 {
-   for (int i = 0; FuncTable[i].fname != NULL; i++) {
-      if (strcmp(s, FuncTable[i].fname) == 0) {
-	 return &FuncTable[i];
-      }
-   }
-   return NULL;
+	if (tokenlist == NULL) {
+		/* stack is empty */
+		return 0;
+	}
+	currtoken = tokenlist->t;
+	if (currtoken == NUM) {
+		value = tokenlist->value;
+	} else if (currtoken == NAME) {
+		ASSERT(tokenlist->name != NULL);
+		strcpy(namebuf, tokenlist->name);
+	}
+	TokenList* p = tokenlist;
+	tokenlist = tokenlist->next;
+	SAFEDELETE(p);
+
+	return 1;
 }
 
-TypedValue::Type 
+NamedValue*
+MathParser::GetVar(const char* const s)
+{
+	for (VarList* p = varlist; p != NULL; p = p->next) {
+		if (p->var != NULL && strcmp(s, p->var->GetName()) == 0) {
+			return p->var;
+		}
+	}
+	return NULL;
+}
+
+Var*
+MathParser::NewVar(const char* const s, TypedValue::Type t, const Real& d)
+{
+	if (GetVar(s) != NULL) {
+		throw ErrGeneric(this, "var '", s, "' already defined!" );
+	}
+
+	Var* v = 0;
+	switch (t) {
+	case TypedValue::VAR_INT:
+		SAFENEWWITHCONSTRUCTOR(v, Var, Var(s, Int(d)));
+		break;
+	case TypedValue::VAR_REAL:
+		SAFENEWWITHCONSTRUCTOR(v, Var, Var(s, d));
+		break;
+	default:
+		throw TypedValue::ErrUnknownType();
+	}
+	VarList* p = 0;
+	SAFENEW(p, VarList);
+	p->var = v;
+	p->next = varlist;
+	varlist = p;
+	return v;
+}
+
+MathParser::NameSpace::NameSpace(const char *const n)
+: name(0)
+{
+	ASSERT(n != 0);
+	SAFESTRDUP(name, n);
+}
+
+MathParser::NameSpace::~NameSpace(void)
+{
+	if (name) {
+		SAFEDELETEARR(name);
+	}
+}
+
+const char *
+MathParser::NameSpace::sGetName(void) const
+{
+	return name;
+}
+
+MathParser::StaticNameSpace::StaticNameSpace(const char *const n, MathFunc_t *f)
+: MathParser::NameSpace(n), func(f)
+{
+	NO_OP;
+}
+
+MathParser::StaticNameSpace::~StaticNameSpace(void)
+{
+	NO_OP;
+}
+
+bool
+MathParser::StaticNameSpace::IsFunc(const char* const s) const
+{
+	for (int i = 0; func[i].fname != NULL; i++) {
+		if (strcmp(s, func[i].fname) == 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
+MathFunc_t*
+MathParser::StaticNameSpace::GetFunc(const char* const s) const
+{
+	for (int i = 0; func[i].fname != NULL; i++) {
+		if (strcmp(s, func[i].fname) == 0) {
+			return &func[i];
+		}
+	}
+	return NULL;
+}
+
+TypedValue
+MathParser::StaticNameSpace::EvalFunc(MathFunc_t *f, Real *d) const
+{
+	switch (f->nargs) {
+	case 0:
+		return TypedValue((*(f->f.f0))());
+
+	case 1:
+		return TypedValue((*(f->f.f1))(d[0]));
+
+	case 2:
+		return TypedValue((*(f->f.f2))(d[0], d[1]));
+
+	default:
+		throw ErrGeneric();
+	}
+}
+
+TypedValue::Type
 MathParser::GetType(const char* const s) const
 {
-   for (Int i = 0; TypeNames[i].name != NULL; i++) { 
-      if (strcmp(s, TypeNames[i].name) == 0) {
-	 return TypeNames[i].type;
-      }
-   }
-   return TypedValue::VAR_UNKNOWN;
+	for (Int i = 0; TypeNames[i].name != NULL; i++) {
+		if (strcmp(s, TypeNames[i].name) == 0) {
+			return TypeNames[i].type;
+		}
+	}
+	return TypedValue::VAR_UNKNOWN;
 }
 
 TypedValue::TypeModifier
 MathParser::GetTypeModifier(const char* const s) const
 {
-   for (Int i = 0; TypeModifierNames[i].name != NULL; i++) { 
-      if (strcmp(s, TypeModifierNames[i].name) == 0) {
-	 return TypeModifierNames[i].type;
-      }
-   }
-   return TypedValue::MOD_UNKNOWN;
+	for (Int i = 0; TypeModifierNames[i].name != NULL; i++) {
+		if (strcmp(s, TypeModifierNames[i].name) == 0) {
+			return TypeModifierNames[i].type;
+		}
+	}
+	return TypedValue::MOD_UNKNOWN;
 }
 
-Int 
-MathParser::IsType(const char* const s) const 
+bool
+MathParser::IsType(const char* const s) const
 {
-   for (int i = 0; TypeNames[i].name != NULL; i++) {
-      if (strcmp(s, TypeNames[i].name) == 0) {
-	 return 1;
-      }	 
-   }
-   return 0;
+	for (int i = 0; TypeNames[i].name != NULL; i++) {
+		if (strcmp(s, TypeNames[i].name) == 0) {
+			return true;
+		}
+	}
+	return false;
 }
 
-Int 
-MathParser::IsTypeModifier(const char* const s) const 
+bool
+MathParser::IsTypeModifier(const char* const s) const
 {
-   for (int i = 0; TypeModifierNames[i].name != NULL; i++) {
-      if (strcmp(s, TypeModifierNames[i].name) == 0) {
-	 return 1;
-      }	 
-   }
-   return 0;
+	for (int i = 0; TypeModifierNames[i].name != NULL; i++) {
+		if (strcmp(s, TypeModifierNames[i].name) == 0) {
+			return true;
+		}
+	}
+	return false;
 }
 
-Int 
-MathParser::IsFunc(const char* const s) const 
+bool
+MathParser::IsKeyWord(MathParser::NameSpace *ns, const char* const s) const
 {
-   for (int i = 0; FuncTable[i].fname != NULL; i++) {
-      if (strcmp(s, FuncTable[i].fname) == 0) {
-	 return 1;
-      }
-   }
-   return 0;
+	if (IsTypeModifier(s)) {
+		return true;
+	}
+	if (IsType(s)) {
+		return true;
+	}
+	if (ns->IsFunc(s)) {
+		return true;
+	}
+	return false;
 }
 
-Int 
-MathParser::IsKeyWord(const char* const s) const 
+enum MathParser::Token
+MathParser::GetToken(void)
 {
-   if (IsTypeModifier(s)) {
-      return 1;
-   }
-   if (IsType(s)) {
-      return 1;
-   }
-   if (IsFunc(s)) {
-      return 1;
-   }
-   return 0;
-}
+	ASSERT(in != NULL);
 
-enum MathParser::Token 
-MathParser::GetToken(void) {
-   ASSERT(in != NULL);
-   
-   if (TokenPop()) { /* se lo trova! */
-      return currtoken;
-   }
-      
-   int c = 0;
-   
+	if (TokenPop()) {
+		/* se lo trova! */
+		return currtoken;
+	}
+
+	int c = 0;
+
 start_parsing:;
-   
-   /* skip spaces */
-   while ((c = in->get()), isspace(c)) {
-      NO_OP;
-   };
-   
-   if (c == EOF || in->eof()) {
-      return (currtoken = ENDOFFILE);
-   }
-   
-   if (c == REMARK) {
-      for (c = in->get(); c != '\n'; c = in->get()) {
-	 if (c == '\\') {
-	    c = in->get();
-	    if (c == '\r') {
-	       c = in->get();
-	    }
-	 }
-      }
-      goto start_parsing;
-   }
-      
-   /* number? */
-   if (c == '.' || isdigit(c)) {
-      static char s[256];
-      int f = 0;
-      int i = 0;
+	/* skip spaces */
+	while ((c = in->get()), isspace(c)) {
+		NO_OP;
+	};
 
-      /* FIXME: need to check for overflow */
-      
-      s[i++] = c;
-      
-      if (c == '.') {
-	 f = 1;
-      }      
-      while ((c = in->get()) == '.' || isdigit(c)) {
-	 s[i++] = c;
-	 if (c == '.') {
-	    if (f != 0) {
-	       return (currtoken = UNKNOWNTOKEN);
-	    }
-	    f = 1;
-	 }
-      }
-      char e = tolower(c);
-      if (e == 'e' || e == 'f' || e == 'd' || e == 'g') {
-	 f = 1;
-	 s[i++] = 'e';
-	 if ((c = in->get()) == '-' || c == '+') {
-	    s[i++] = c;
-	    c = in->get();
-	 }
-	 if (isdigit(c)) {
-	    s[i++] = c;
-	 } else {
-	    return (currtoken = UNKNOWNTOKEN);
-	 }
-	 while (isdigit((c = in->get()))) {
-	    s[i++] = c;
-	 }
-      }
-      s[i] = '\0';
-      in->putback(c);
-      char *endptr = NULL;
-      if (f == 0) {
-	 value.SetType(TypedValue::VAR_INT);
+	if (c == EOF || in->eof()) {
+		return (currtoken = ENDOFFILE);
+	}
+
+	if (c == ONE_LINE_REMARK) {
+		for (c = in->get(); c != '\n'; c = in->get()) {
+			if (c == '\\') {
+				c = in->get();
+				if (c == '\r') {
+					c = in->get();
+				}
+			}
+		}
+		goto start_parsing;
+	}
+
+	/* number? */
+	if (c == '.' || isdigit(c)) {
+		/* lot of space ... */
+		static char s[256];
+		bool f = false;
+		int i = 0;
+
+		/* FIXME: need to check for overflow */
+
+		s[i++] = c;
+
+		if (c == '.') {
+			f = true;
+		}
+		while ((c = in->get()) == '.' || isdigit(c)) {
+			s[i++] = c;
+			if (c == '.') {
+				if (f) {
+					return (currtoken = UNKNOWNTOKEN);
+				}
+				f = true;
+			}
+		}
+		char e = tolower(c);
+		if (e == 'e' || e == 'f' || e == 'd' || e == 'g') {
+			f = true;
+			s[i++] = 'e';
+			if ((c = in->get()) == '-' || c == '+') {
+				s[i++] = c;
+				c = in->get();
+			}
+			if (isdigit(c)) {
+				s[i++] = c;
+			} else {
+			       	return (currtoken = UNKNOWNTOKEN);
+			}
+			while (isdigit((c = in->get()))) {
+				s[i++] = c;
+			}
+		}
+		s[i] = '\0';
+		in->putback(c);
+		char *endptr = NULL;
+		if (!f) {
+			value.SetType(TypedValue::VAR_INT);
 #ifdef HAVE_STRTOL
-	 value.Set(Int(strtol(s, &endptr, 10)));
+			value.Set(Int(strtol(s, &endptr, 10)));
 #else /* !HAVE_STRTOL */
-	 value.Set(Int(atoi(s)));
+			value.Set(Int(atoi(s)));
 #endif /* !HAVE_STRTOL */
-      } else {      
-	 value.SetType(TypedValue::VAR_REAL);
+		} else {
+			value.SetType(TypedValue::VAR_REAL);
 #ifdef HAVE_STRTOD
-	 value.Set(Real(strtod(s, &endptr)));
+			value.Set(Real(strtod(s, &endptr)));
 #else /* !HAVE_STRTOD */
-	 value.Set(Real(atof(s)));
+			value.Set(Real(atof(s)));
 #endif /* !HAVE_STRTOD */
-      }
+		}
 
-      if (endptr && endptr[0] != '\0') {
-	 return (currtoken = UNKNOWNTOKEN);
-      }
-      
-      return (currtoken = NUM);
-   }
-   
-   /* name? */
-   if (isalpha(c) || c == '_') {
-      int l = 0;	
-      namebuf[l++] = char(c);	
-      while ((c = in->get()), isalnum(c) || c == '_') {
-	 namebuf[l++] = char(c);
-	 if (l ==  namebuflen) {
-	    IncNameBuf();
-	 }
-      }
-      namebuf[l] = '\0';
-      in->putback(c);
-      return (currtoken = NAME);
-   }
-   
-   switch (c) {
-    case '^': 
-      return (currtoken = EXP);
-    case '*':
-      return (currtoken = MULT);
-    case '/':
-      if ((c = in->get()) == '*') {
-	 for (c = in->get();; c = in->get()) {
-	    if (c == '*') {
+		if (endptr && endptr[0] != '\0') {
+			return (currtoken = UNKNOWNTOKEN);
+		}
+
+		return (currtoken = NUM);
+	}
+
+	/* name? */
+	if (isalpha(c) || c == '_') {
+		int l = 0;
+		namebuf[l++] = char(c);
+		while ((c = in->get()), isalnum(c) || c == '_') {
+			namebuf[l++] = char(c);
+			if (l ==  namebuflen) {
+				IncNameBuf();
+			}
+		}
+		namebuf[l] = '\0';
+		in->putback(c);
+		return (currtoken = NAME);
+	}
+
+	switch (c) {
+	case '^':
+		return (currtoken = EXP);
+
+	case '*':
+		return (currtoken = MULT);
+
+	case '/':
+		if ((c = in->get()) == '*') {
+			for (c = in->get();; c = in->get()) {
+				if (c == '*') {
 end_of_comment:;
-	       c = in->get();
-	       if (c == '/') {
-	          goto start_parsing;
-	       }
-	    } else if (c == '/') {
-	       c = in->get();
-	       if (c == '*') {
-		       silent_cerr("warning: '/*' inside a comment at line "
-				  << GetLineNumber() << std::endl);
-		  goto end_of_comment;
-	       }
-	    }
-	 }	 
-      } else {
-	 in->putback(c);	            
-	 return (currtoken = DIV);
-      }      
-    case '-':
-      return (currtoken = MINUS);
-    case '+':
-      return (currtoken = PLUS);
-    case '>':
-      if ((c = in->get()), c == '=') {
-	 return (currtoken = GE);
-      }
-      in->putback(c);
-      return (currtoken = GT);
-    case '=':
-      if ((c = in->get()), c == '=') {	    
-	 return (currtoken = EQ);
-      }	 
-      in->putback(c);
-      return (currtoken = ASSIGN);
-    case '<':
-      if ((c = in->get()), c == '=') {	 	    
-	 return (currtoken = LE);
-      }	 
-      in->putback(c);
-      return (currtoken = LT);
-    case '!':
-      if ((c = in->get()), c == '=') {
-	 return (currtoken = NE);
-      }
-      in->putback(c);
-      return (currtoken = NOT);
-    case '&':
-      if ((c = in->get()), c != '&') {
-	 return (currtoken = UNKNOWNTOKEN);
-      }
-      return (currtoken = AND);
-    case '|':
-      if ((c = in->get()), c != '|') {	    
-	 return (currtoken = UNKNOWNTOKEN);
-      }	 
-      return (currtoken = OR);
-    case '~':
-      if ((c = in->get()), c != '|') {	    
-	 return (currtoken = UNKNOWNTOKEN);
-      }	 
-      return (currtoken = XOR); 	    
-    case '(':
-      return (currtoken = OBR);
-    case ')':	 
-      return (currtoken = CBR);
-    case '[':
-      return (currtoken = OPGIN);
-    case ']':
-      return (currtoken = CPGIN);
-    case ';':
-      return (currtoken = STMTSEP);
-    case ',':	 
-      return (currtoken = ARGSEP);
-    default:
-      return (currtoken = UNKNOWNTOKEN);
-   }
+					c = in->get();
+					if (c == '/') {
+						goto start_parsing;
+					}
+				} else if (c == '/') {
+					c = in->get();
+					if (c == '*') {
+						silent_cerr("warning: '/*' "
+							"inside a comment at line "
+							<< GetLineNumber()
+							<< std::endl);
+						goto end_of_comment;
+					}
+				}
+			}
+
+		} else {
+			in->putback(c);
+			return (currtoken = DIV);
+		}
+
+	case '-':
+		return (currtoken = MINUS);
+
+	case '+':
+		return (currtoken = PLUS);
+
+	case '>':
+		if ((c = in->get()), c == '=') {
+			return (currtoken = GE);
+		}
+		in->putback(c);
+		return (currtoken = GT);
+
+	case '=':
+		if ((c = in->get()), c == '=') {
+			return (currtoken = EQ);
+		}
+		in->putback(c);
+		return (currtoken = ASSIGN);
+
+	case '<':
+		if ((c = in->get()), c == '=') {
+			return (currtoken = LE);
+		}
+		in->putback(c);
+		return (currtoken = LT);
+
+	case '!':
+		if ((c = in->get()), c == '=') {
+			return (currtoken = NE);
+		}
+		in->putback(c);
+		return (currtoken = NOT);
+
+	case '&':
+		if ((c = in->get()), c != '&') {
+			return (currtoken = UNKNOWNTOKEN);
+		}
+		return (currtoken = AND);
+
+	case '|':
+		if ((c = in->get()), c != '|') {
+			return (currtoken = UNKNOWNTOKEN);
+		}
+		return (currtoken = OR);
+
+	case '~':
+		if ((c = in->get()), c != '|') {
+			return (currtoken = UNKNOWNTOKEN);
+		}
+		return (currtoken = XOR);
+
+	case '(':
+		return (currtoken = OBR);
+
+	case ')':
+		return (currtoken = CBR);
+
+	case '[':
+		return (currtoken = OPGIN);
+
+	case ']':
+		return (currtoken = CPGIN);
+
+	case ';':
+		return (currtoken = STMTSEP);
+
+	case ',':
+		return (currtoken = ARGSEP);
+
+	case ':':
+		if ((c = in->get()), c != ':') {
+			return (currtoken = UNKNOWNTOKEN);
+		}
+		return (currtoken = NAMESPACESEP);
+
+	default:
+		return (currtoken = UNKNOWNTOKEN);
+	}
 }
 
-void 
-MathParser::IncNameBuf(void) 
+void
+MathParser::IncNameBuf(void)
 {
-   int oldlen = namebuflen;
-   namebuflen *= 2;
-   char* s = NULL;
-   SAFENEWARR(s, char, namebuflen+1);
-   strncpy(s, namebuf, oldlen);
-   s[oldlen] = '\0';
-   SAFEDELETEARR(namebuf);
-   namebuf = s;
+	int oldlen = namebuflen;
+	namebuflen *= 2;
+	char* s = NULL;
+	SAFENEWARR(s, char, namebuflen+1);
+	strncpy(s, namebuf, oldlen);
+	s[oldlen] = '\0';
+	SAFEDELETEARR(namebuf);
+	namebuf = s;
 }
 
-TypedValue 
-MathParser::logical(void) 
+TypedValue
+MathParser::logical(void)
 {
-   TypedValue d = relational();
-   while (true) {      
-      switch (currtoken) {
-       case AND:
-	 GetToken();
-	 d = d && relational();
-	 break;
-       case OR:
-	 GetToken();
-	 d = d || relational();
-	 break;
-       case XOR: {	  
-	  GetToken();
-	  TypedValue e = relational();
-	  d = !(d && e) && (d || e);
-	  break;
-       }
-       default:      
-	 return d;
-      }      
-   }      
+	TypedValue d = relational();
+	while (true) {
+		switch (currtoken) {
+		case AND:
+			GetToken();
+			d = (d && relational());
+			break;
+
+		case OR:
+			GetToken();
+			d = (d || relational());
+			break;
+
+		case XOR: {
+			GetToken();
+			TypedValue e = relational();
+			d = ((!(d && e)) && (d || e));
+			break;
+		}
+
+		default:
+			  return d;
+		}
+	}
 }
 
-TypedValue 
-MathParser::relational(void) 
+TypedValue
+MathParser::relational(void)
 {
-   TypedValue d = binary();
-   while (true) {      
-      switch (currtoken) {	 
-       case GT:
-	 GetToken();
-	 d = d > binary();
-	 break;
-       case GE:
-	 GetToken();
-	 d =  d >= binary();
-	 break;
-       case EQ:
-	 GetToken();
-	 d = d == binary();
-	 break;
-       case LE:
-	 GetToken();
-	 d = d <= binary();
-	 break;
-       case LT:
-	 GetToken();
-	 d = d < binary();
-	 break;
-       case NE:
-	 GetToken();
-	 d = d != binary();
-	 break;
-       default:	
-	 return d;
-      }
-   }
+	TypedValue d = binary();
+	while (true) {
+		switch (currtoken) {
+		case GT:
+			GetToken();
+			d = (d > binary());
+			break;
+
+		case GE:
+			GetToken();
+			d = (d >= binary());
+			break;
+
+		case EQ:
+			GetToken();
+			d = (d == binary());
+			break;
+
+		case LE:
+			GetToken();
+			d = (d <= binary());
+			break;
+
+		case LT:
+			GetToken();
+			d = (d < binary());
+			break;
+
+		case NE:
+			GetToken();
+			d = (d != binary());
+			break;
+
+		default:
+			return d;
+		}
+	}
 }
 
-TypedValue 
-MathParser::binary(void) {
-   TypedValue d = mult();
-   while (true) {      
-      switch (currtoken) {
-       case PLUS:
-	 GetToken();
-	 d += mult();
-	 break;
-       case MINUS:
-	 GetToken();
-	 d -= mult();
-	 break;
-       default:
-	 return d;
-      }      
-   }
+TypedValue
+MathParser::binary(void)
+{
+	TypedValue d = mult();
+	while (true) {
+		switch (currtoken) {
+		case PLUS:
+			GetToken();
+			d += mult();
+			break;
+
+		case MINUS:
+			GetToken();
+			d -= mult();
+			break;
+
+		default:
+			return d;
+		}
+	}
 }
 
-TypedValue 
+TypedValue
 MathParser::mult(void)
 {
-   TypedValue d = power();
-   while (true) {      
-      switch(currtoken) {
-       case MULT: 
-	 GetToken();
-	 d *= power();
-	 break;
-       case DIV: {	  
-	  GetToken();
-	  TypedValue e = power();
-	  if (e == 0.) {
-	     DEBUGCERR("divide by zero in mult()" << std::endl);	  
-	     throw ErrGeneric(this, "divide by zero in mult()");
-	  }
-	  d /= e;
-	  break;
-       }	 
-       default: 
-	 return d;
-      }
-   }
+	TypedValue d = power();
+	while (true) {
+		switch (currtoken) {
+		case MULT:
+			GetToken();
+			d *= power();
+			break;
+		
+		case DIV: {
+			GetToken();
+			TypedValue e = power();
+			if (e == 0.) {
+				throw ErrGeneric(this, "divide by zero in mult()");
+			}
+			d /= e;
+			break;
+		}
+
+		default:
+			return d;
+		}
+	}
 }
 
 
-TypedValue 
-MathParser::power(void) {
+TypedValue
+MathParser::power(void)
+{
 	TypedValue d = unary();
-	
+
 	if (currtoken == EXP) {
 		GetToken();
-		
+
 		/*
 		 * Per l'esponente chiamo di nuovo power cosi' richiama unary;
 		 * se per caso dopo unary c'e' di nuovo un esponente,
@@ -1345,7 +1449,7 @@ MathParser::power(void) {
 		 * 	d^e1^e2 == d^(e1^e2)
 		 */
 		TypedValue e = power();
-		
+
 		if (d < 0. && e <= 0.) {
 			DEBUGCERR("can't compute " << d << '^'
 					<< e << " in power()" << std::endl);
@@ -1358,7 +1462,8 @@ MathParser::power(void) {
 		 * correttamente)
 		 */
 		if (e.GetType() == TypedValue::VAR_INT
-				&& d.GetType() == TypedValue::VAR_INT) {
+				&& d.GetType() == TypedValue::VAR_INT)
+		{
 			Int i = e.GetInt();
 			Int j = d.GetInt();
 			Int r = j;
@@ -1388,265 +1493,273 @@ MathParser::power(void) {
 }
 
 
-TypedValue 
-MathParser::unary(void) {
-   switch(currtoken) {
-    case MINUS:
-      GetToken();
-      return -expr();
-    case PLUS:
-      GetToken();
-      return expr();
-    case NOT:
-      GetToken();
-      return !expr();
-    default:
-      return expr();
-   }
-}
-
-TypedValue 
-MathParser::evalfunc(mathfuncs* f) 
+TypedValue
+MathParser::unary(void)
 {
-   if (f->nargs == 0) {
-      return TypedValue((*(f->f.f0))());
-   }
-   Real d[max_nargs];
-   for (int i = 0; i < f->nargs-1; i++) {
-      d[i] = stmtlist().GetReal();
-      if (currtoken != ARGSEP) {	 
-	 DEBUGCERR("argument separator expected in evalfunc()" << std::endl);
-	 throw ErrGeneric(this, "argument separator expected");
-      }
-      GetToken();
-   }
-   d[f->nargs-1] = stmtlist().GetReal();
-   
-   if (f->t != NULL) {
-      if ((*(f->t))(d)) {
-	 DEBUGCERR("error in function " << f->fname << " (msg: "
-		   << f->errmsg << ')' << " in evalfunc()" << std::endl);
-	 throw ErrGeneric(this, f->fname, ": error ", f->errmsg);
-      }
-   }
-   
-   switch (f->nargs) {
-    case 1:
-      return TypedValue((*(f->f.f1))(d[0]));
-    case 2:
-      return TypedValue((*(f->f.f2))(d[0], d[1]));
-    default:
-      DEBUGCERR("unsupported feature in evalfunc()" << std::endl);
-      throw ErrGeneric(this, "unsupported number of arguments");
-   }
-   return 0;
+	switch(currtoken) {
+	case MINUS:
+		GetToken();
+		return -expr();
+
+	case PLUS:
+		GetToken();
+		return expr();
+
+	case NOT:
+		GetToken();
+		return !expr();
+
+	default:
+		return expr();
+	}
 }
 
-TypedValue 
-MathParser::expr(void) 
+TypedValue
+MathParser::evalfunc(MathParser::NameSpace *ns, MathFunc_t* f)
 {
-   if (currtoken == NUM) {
-      GetToken();
-      return value;
-   }
-   
-   if (currtoken == OBR) {
-      GetToken();
-      TypedValue d = stmtlist();
-      if (currtoken != CBR) {
-	 DEBUGCERR("closing parenthesis expected in expr()" << std::endl);
-	 throw ErrGeneric(this, "closing parenthesis expected");
-      }
-      GetToken();
-      return d;
-   }
+	Real d[max_nargs];
+	for (int i = 0; i < f->nargs; i++) {
+		d[i] = stmtlist().GetReal();
+		if (i != f->nargs - 1) {
+			if (currtoken != ARGSEP) {
+				throw ErrGeneric(this,
+						"argument separator expected");
+			}
+			GetToken();
+		}
+	}
 
-   if (currtoken == OPGIN) {
-       TypedValue d = readplugin();
-       if (currtoken != CPGIN) {
-	  DEBUGCERR("closing plugin expected in expr()" << std::endl);
-	  throw ErrGeneric(this, "closing plugin expected");
-       }
-       GetToken();
-       return d;
-   }
-   
-   if (currtoken == NAME) {
-      GetToken();	 
-      if (currtoken == OBR) {
-	 /* in futuro ci potranno essere magari i dati strutturati */
-	 if (!IsFunc(namebuf)) {
-	    throw ErrGeneric(this, "user-defined functions not supported yet!");
-	 }
-	 
-	 mathfuncs* f = GetFunc(namebuf);
-	 if (f == NULL) {
-	    throw ErrGeneric(this, "function '", namebuf, "' not found");
-	 }
-	 GetToken();
-	 TypedValue d = evalfunc(f);
-	 if (currtoken != CBR) {	   
-	    DEBUGCERR("closing parenthesis expected after function '"
-		      << f->fname << "' in expr()" << std::endl);
-	    throw ErrGeneric(this, "closing parenthesis expected after function '",
-			     f->fname, "' in expr()");
-	 }
-	 GetToken();
-	 return d;
-      } else {
-	 NamedValue* v = table.Get(namebuf);
-	 if (v != NULL) {	       
-	    return v->GetVal();
-	 }
-      }
-           
-      DEBUGCERR("unknown name '" << namebuf << "' in expr()" << std::endl);
-      throw ErrGeneric(this, "unknown name '", namebuf, "'");
-   }
-   
-   /* invalid expr */
-   if (currtoken != ENDOFFILE) {
-      DEBUGCERR("unknown token in expr()" << currtoken << std::endl);
-      throw ErrGeneric(this, "unknown token");
-   }
-   return TypedValue(0.);
+	if (f->t != NULL) {
+		if ((*(f->t))(d)) {
+			DEBUGCERR("error in function " << f->fname << " "
+					"(msg: " << f->errmsg << ")"
+					<< " in evalfunc()" << std::endl);
+			throw ErrGeneric(this, f->fname, ": error ", f->errmsg);
+		}
+	}
+
+	return ns->EvalFunc(f, d);
 }
 
-TypedValue 
-MathParser::stmt(void) 
+TypedValue
+MathParser::expr(void)
 {
-   if (currtoken == NAME) {
-      bool isTypeModifier = false;
-      bool isConst = false;
+	if (currtoken == NUM) {
+		GetToken();
+		return value;
+	}
 
-      if (IsTypeModifier(namebuf)) {
-         isTypeModifier = true;
-         TypedValue::TypeModifier mod = GetTypeModifier(namebuf);
-	 ASSERT(mod != TypedValue::MOD_UNKNOWN);
+	if (currtoken == OBR) {
+		GetToken();
+		TypedValue d = stmtlist();
+		if (currtoken != CBR) {
+			throw ErrGeneric(this, "closing parenthesis expected");
+		}
+		GetToken();
+		return d;
+	}
 
-	 if (mod == TypedValue::MOD_CONST) {
-	    isConst = true;
-	 }
+	if (currtoken == OPGIN) {
+		TypedValue d = readplugin();
+		if (currtoken != CPGIN) {
+			throw ErrGeneric(this, "closing plugin expected");
+		}
+		GetToken();
+		return d;
+	}
 
-	 if (GetToken() != NAME || !IsType(namebuf)) {
-	    silent_cerr("type expected after type modifier "
-		    "in declaration in stmt()" << std::endl);
-	    throw ErrGeneric(this, "type expected after type modifier "
-				    "in declaration");
-	 }
-      }
-	 
-      /* declaration? */
-      if (isTypeModifier || IsType(namebuf)) {
-	 TypedValue::Type type = GetType(namebuf);
-	 ASSERT(type != TypedValue::VAR_UNKNOWN);
-	 
-	 if (GetToken() != NAME) {
-	    silent_cerr("name expected after type in declaration in stmt()" 
-		    << std::endl);
-	    throw ErrGeneric(this, "name expected after type in declaration");
-	 }
-	 
-	 if (IsKeyWord(namebuf)) {
-	    throw ErrGeneric(this, "name '", namebuf, "' is a keyword");
-	 }
+	if (currtoken == NAME) {
+		GetToken();
+		MathParser::NameSpace *currNameSpace = &defaultNameSpace;
+		if (currtoken == NAMESPACESEP) {
+			std::string name(namebuf);
+			NameSpaceMap::iterator i = nameSpaceMap.find(name);
+			if (i == nameSpaceMap.end()) {
+				throw ErrGeneric(this, "unable to find namespace \"", namebuf, "\"");
+			}
+			currNameSpace = i->second;
+			GetToken();
+			if (currtoken != NAME) {
+				throw ErrGeneric(this, "name expected after namespace");
+			}
+			GetToken();
+		}
 
-	 /* with assign? */
-	 if (GetToken() == ASSIGN) {
-	    /* faccio una copia del nome! */
-	    char* varname = NULL;
-	    SAFESTRDUP(varname, namebuf);
-	    
-	    GetToken();
-	    TypedValue d = logical();
+		if (currtoken == OBR) {
+			/* in futuro ci potranno essere magari i dati strutturati */
+			if (!currNameSpace->IsFunc(namebuf)) {
+				throw ErrGeneric(this, "user-defined functions not supported yet!");
+			}
 
-	    /* cerco la variabile */
-	    NamedValue* v = table.Get(varname);
-	    
-	    if (v == NULL) {
-	       /* Se non c'e' la inserisco */
-	       v = table.Put(varname, TypedValue(type, isConst));
-	       ((Var *)v)->SetVal(d);
-	    } else {
-	       /* altrimenti, se la posso ridefinire, mi limito 
-		* ad assegnarle il nuovo valore */
-	       if (redefine_vars) {
-		  if (v->Const()) {
-		     silent_cerr("cannot redefine a const named value"
-			     << std::endl);
-		     throw MathParser::ErrGeneric(this, "cannot redefine "
-					     "a const named value '",
-					     v->GetName(), "'");
-		  }
+			MathFunc_t* f = currNameSpace->GetFunc(namebuf);
+			if (f == NULL) {
+				throw ErrGeneric(this, "function '", namebuf, "' not found");
+			}
+			GetToken();
+			TypedValue d = evalfunc(currNameSpace, f);
+			if (currtoken != CBR) {
+				throw ErrGeneric(this, "closing parenthesis "
+						"expected after function "
+						"\"", f->fname, "\" in expr()");
+			}
+			GetToken();
+			return d;
+			
+		} else {
+			NamedValue* v = table.Get(namebuf);
+			if (v != NULL) {
+				return v->GetVal();
+			}
+		}
 
-		  if (v->IsVar()) {
-		     ((Var *)v)->SetVal(d);
+		throw ErrGeneric(this, "unknown name \"", namebuf, "\"");
+	}
 
-		  } else {
-		     silent_cerr("cannot redefine a non-var named value" 
-			     << std::endl);
-		     throw MathParser::ErrGeneric(this, "cannot redefine "
-					     "non-var named value '",
-					     v->GetName(), "'");
-		  }
-	       } else {
-		  /* altrimenti la reinserisco, cosi' da provocare l'errore
-		   * di table */
-		  v = table.Put(varname, TypedValue(type));
-	       }
-	    }
-	    /* distruggo il temporaneo */
-	    SAFEDELETEARR(varname);
-	    return v->GetVal();
-	    
-	 } else if (currtoken == STMTSEP) {
-	    NamedValue* v = table.Get(namebuf);
-	    if (v == NULL || !redefine_vars) {
-	       /* se la var non esiste, la inserisco;
-		* se invece esiste e non vale la ridefinizione,
-		* tento di inserirla comunque, cosi' table da' errore */
-	       v = table.Put(namebuf, TypedValue(type));
-	    }
+	/* invalid expr */
+	if (currtoken != ENDOFFILE) {
+		throw ErrGeneric(this, "unknown token");
+	}
 
-	    return v->GetVal();
-	 }	    
-      } else {
-	 /* assignment? */
-	 NamedValue* v = table.Get(namebuf);
-	 if (v != NULL) {
-	    if (GetToken() == ASSIGN) {
-	       GetToken();
-	       TypedValue d = logical();
-	       if (v->Const()) {
-		  silent_cerr("cannot assign const named value '"
-			  << v->GetName() << "'" << std::endl);
-		  throw MathParser::ErrGeneric(this,
-					  "cannot assign const named value '",
-					  v->GetName(), "'");
-	       }
-
-	       if (v->IsVar()) {
-	          ((Var *)v)->SetVal(d);
-	       } else {
-		  silent_cerr("cannot assign non-var named value '" 
-			  << v->GetName() << "'" << std::endl);
-		  throw MathParser::ErrGeneric(this,
-		  			"cannot assign non-var named value '",
-					v->GetName(), "'");
-	       }
-	       return v->GetVal();
-
-	    } else {
-	       TokenPush(currtoken);
-	       currtoken = NAME;		 
-	    }
-	 } /* else could be a function or a variable */	  	
-      }
-   } 
-   return logical();
+	return TypedValue(0.);
 }
 
-TypedValue 
+TypedValue
+MathParser::stmt(void)
+{
+	if (currtoken == NAME) {
+		bool isTypeModifier = false;
+		bool isConst = false;
+
+		if (IsTypeModifier(namebuf)) {
+			isTypeModifier = true;
+			TypedValue::TypeModifier mod = GetTypeModifier(namebuf);
+			ASSERT(mod != TypedValue::MOD_UNKNOWN);
+
+			if (mod == TypedValue::MOD_CONST) {
+				isConst = true;
+			}
+
+			if (GetToken() != NAME || !IsType(namebuf)) {
+				throw ErrGeneric(this, "type expected "
+						"after type modifier "
+						"in declaration");
+			}
+		}
+
+		/* declaration? */
+		if (isTypeModifier || IsType(namebuf)) {
+			TypedValue::Type type = GetType(namebuf);
+			ASSERT(type != TypedValue::VAR_UNKNOWN);
+			
+			if (GetToken() != NAME) {
+				throw ErrGeneric(this, "name expected "
+						"after type in declaration");
+			}
+
+			/* FIXME: need to specialize symbol table for namespaces */
+			if (IsKeyWord(&defaultNameSpace, namebuf)) {
+				throw ErrGeneric(this, "name '", namebuf, "' "
+						"is a keyword");
+			}
+
+			/* with assign? */
+			if (GetToken() == ASSIGN) {
+				/* faccio una copia del nome! */
+				char* varname = NULL;
+				SAFESTRDUP(varname, namebuf);
+
+				GetToken();
+				TypedValue d = logical();
+
+				/* cerco la variabile */
+				NamedValue* v = table.Get(varname);
+
+				if (v == NULL) {
+					/* Se non c'e' la inserisco */
+					v = table.Put(varname, TypedValue(type, isConst));
+					((Var *)v)->SetVal(d);
+
+				} else {
+					/* altrimenti, se la posso ridefinire, mi limito
+					 * ad assegnarle il nuovo valore */
+					if (redefine_vars) {
+						if (v->Const()) {
+							silent_cerr("cannot redefine a const named value"
+									<< std::endl);
+							throw MathParser::ErrGeneric(this,
+									"cannot redefine "
+									"a const named value "
+									"\"", v->GetName(), "\"");
+						}
+
+						if (v->IsVar()) {
+							((Var *)v)->SetVal(d);
+						
+						} else {
+				   			throw MathParser::ErrGeneric(this,
+									"cannot redefine "
+									"non-var named value "
+									"\"", v->GetName(), "\"");
+						}
+					} else {
+						/* altrimenti la reinserisco,
+						 * cosi' da provocare l'errore
+						 * di table */
+						v = table.Put(varname, TypedValue(type));
+					}
+				}
+				
+				/* distruggo il temporaneo */
+				SAFEDELETEARR(varname);
+				return v->GetVal();
+
+			} else if (currtoken == STMTSEP) {
+				NamedValue* v = table.Get(namebuf);
+				if (v == NULL || !redefine_vars) {
+					/* se la var non esiste, la inserisco;
+					 * se invece esiste e non vale 
+					 * la ridefinizione, tento
+					 * di inserirla comunque, cosi'
+					 * table da' errore */
+					v = table.Put(namebuf, TypedValue(type));
+				}
+
+				return v->GetVal();
+			}
+		} else {
+			/* assignment? */
+			NamedValue* v = table.Get(namebuf);
+			if (v != NULL) {
+				if (GetToken() == ASSIGN) {
+					GetToken();
+					TypedValue d = logical();
+					if (v->Const()) {
+			      			throw MathParser::ErrGeneric(this,
+		      						"cannot assign const named value "
+								"\"", v->GetName(), "\"");
+			 		}
+
+			 		if (v->IsVar()) {
+						((Var *)v)->SetVal(d);
+					} else {
+						throw MathParser::ErrGeneric(this,
+								"cannot assign non-var named value "
+								"\"", v->GetName(), "\"");
+			 		}
+					return v->GetVal();
+
+				} else {
+					TokenPush(currtoken);
+					currtoken = NAME;
+				}
+			} /* else could be a function or a variable */
+		}
+	}
+
+	return logical();
+}
+
+TypedValue
 MathParser::readplugin(void)
 {
 	/*
@@ -1667,7 +1780,7 @@ MathParser::readplugin(void)
 	argv[0] = NULL;
 
 	/*
-	 * parserizzo la stringa: 
+	 * parserizzo la stringa:
 	 * <plugin> ::= '[' <type> ',' <var_name> <list_of_args> ']'
 	 * <type> ::= <registered_type>
 	 * <var_name> ::= <legal_var_name>
@@ -1692,7 +1805,7 @@ MathParser::readplugin(void)
 			}
 			buf[i++] = c;
 			break;
-			
+
 		case '"':
 			if (in_quotes == 0) {
 				in_quotes = 1;
@@ -1737,7 +1850,7 @@ MathParser::readplugin(void)
 			buf[i++] = c;
 			break;
 		}
-		
+
 		/*
 		 * FIXME: rendere dinamico il buffer ...
 		 */
@@ -1749,7 +1862,7 @@ MathParser::readplugin(void)
 
 last_arg:
 	if (in->eof()) {
-		silent_cerr("eof encountered while parsing plugin" 
+		silent_cerr("eof encountered while parsing plugin"
 			<< std::endl);
 		throw ErrGeneric();
 	}
@@ -1759,7 +1872,7 @@ last_arg:
 	 */
 	in->putback(c);
 	buf[i] = '\0';
-	
+
 	/*
 	 * argomenti comuni a tutti i plugin
 	 */
@@ -1777,17 +1890,17 @@ last_arg:
 	}
 
 	if (varname == NULL || *varname == '\0') {
-		silent_cerr("illegal or missing plugin variable name" 
+		silent_cerr("illegal or missing plugin variable name"
 			<< std::endl);
 		throw ErrGeneric();
 	}
-	
+
 	/*
 	 * verifica esistenza nome
 	 */
 	NamedValue* v = table.Get(varname);
 	if (v != NULL) {
-		silent_cerr("variable " << varname << " already defined" 
+		silent_cerr("variable " << varname << " already defined"
 			<< std::endl);
 		throw ErrGeneric();
 	}
@@ -1816,7 +1929,7 @@ last_arg:
 		 * riporta il parser nello stato corretto
 		 */
 		GetToken();
-	
+
 		/*
 		 * costruisce la variabile, la inserisce nella tabella
 		 * e ne ritorna il valore (prima esecuzione)
@@ -1832,7 +1945,7 @@ last_arg:
 			SAFEDELETEARR(argv[i]);
 		}
 		SAFEDELETEARR(argv);
-	
+
 		return v->GetVal();
 	}
 
@@ -1842,16 +1955,16 @@ last_arg:
 	silent_cerr("plugin '" << pginname << "' not supported" << std::endl);
 	throw ErrGeneric();
 }
-   
-TypedValue 
-MathParser::stmtlist(void) 
+
+TypedValue
+MathParser::stmtlist(void)
 {
-   TypedValue d = stmt();
-   if (currtoken == STMTSEP) {
-      GetToken();
-      return stmtlist();
-   }
-   return d;
+	TypedValue d = stmt();
+	if (currtoken == STMTSEP) {
+		GetToken();
+		return stmtlist();
+	}
+	return d;
 }
 
 
@@ -1861,205 +1974,241 @@ MathParser::MathParser(const InputStream& strm, Table& t, int redefine_vars)
 : PlugIns(NULL),
 table(t),
 redefine_vars(redefine_vars),
-in((InputStream*)&strm), 
-namebuf(NULL), 
+in((InputStream*)&strm),
+defaultNameSpace("default", FuncTable),
+namebuf(NULL),
 namebuflen(default_namebuflen),
-value(Real(0)), 
-varlist(NULL), 
-tokenlist(NULL), 
+value(Real(0)),
+varlist(NULL),
+tokenlist(NULL),
 powerstack()
 {
-   DEBUGCOUTFNAME("MathParser::MathParser");
-   
-   SAFENEWARR(namebuf, char, namebuflen+1);
-   
-   time_t tm;
-   time(&tm);
-   srand(tm);
+	DEBUGCOUTFNAME("MathParser::MathParser");
+
+	SAFENEWARR(namebuf, char, namebuflen + 1);
+
+	if (RegisterNameSpace(&defaultNameSpace)) {
+		throw ErrGeneric(this, "unable to register namespace "
+				"\"", defaultNameSpace.sGetName(), "\"");
+	}
+
+	time_t tm;
+	time(&tm);
+	srand(tm);
 }
 
 MathParser::MathParser(Table& t, int redefine_vars)
 : PlugIns(NULL),
-table(t), 
+table(t),
 redefine_vars(redefine_vars),
 in(NULL),
-namebuf(NULL), 
+defaultNameSpace("default", FuncTable),
+namebuf(NULL),
 namebuflen(default_namebuflen),
-value(Real(0)), 
-varlist(NULL), 
-tokenlist(NULL), 
+value(Real(0)),
+varlist(NULL),
+tokenlist(NULL),
 powerstack()
 {
-   DEBUGCOUTFNAME("MathParser::MathParser");
+	DEBUGCOUTFNAME("MathParser::MathParser");
 
-   SAFENEWARR(namebuf, char, namebuflen+1);
-   
-   time_t tm;
-   time(&tm);
-   srand(tm);
+	SAFENEWARR(namebuf, char, namebuflen + 1);
+
+	if (RegisterNameSpace(&defaultNameSpace)) {
+		throw ErrGeneric(this, "unable to register namespace "
+				"\"", defaultNameSpace.sGetName(), "\"");
+	}
+
+	time_t tm;
+	time(&tm);
+	srand(tm);
 }
 
-NamedValue * 
+NamedValue *
 MathParser::InsertSym(const char* const s, const Real& v, int redefine)
 {
-   /* cerco la variabile */
-   NamedValue* var = table.Get(s);
+	/* cerco la variabile */
+	NamedValue* var = table.Get(s);
 
-   if (var == NULL) {
-      /* Se non c'e' la inserisco */
-      var = table.Put(s, TypedValue(v));
-   } else {
-      /* altrimenti, se la posso ridefinire, mi limito 
-       * ad assegnarle il nuovo valore */
-      if (redefine) {
-         if (var->IsVar()) {
-            ((Var *)var)->SetVal(TypedValue(v));
-         } else {
-	    silent_cerr("cannot redefine a non-var named value" << std::endl);
-            throw MathParser::ErrGeneric(this,
-		"cannot redefine non-var named value '", var->GetName(), "'");
-         }
-      } else {
-         /* altrimenti la reinserisco, cosi' da provocare l'errore
-          * di table */
-          var = table.Put(s, TypedValue(v));
-      }
-   }
+	if (var == NULL) {
+		/* Se non c'e' la inserisco */
+		var = table.Put(s, TypedValue(v));
+	} else {
+		/* altrimenti, se la posso ridefinire, mi limito
+		 * ad assegnarle il nuovo valore */
+		if (redefine) {
+			if (var->IsVar()) {
+				((Var *)var)->SetVal(TypedValue(v));
+			} else {
+				throw MathParser::ErrGeneric(this,
+						"cannot redefine "
+						"non-var " "named value "
+						"\"", var->GetName(), "\"");
+			}
 
-   if (var == NULL) {
-      throw ErrGeneric(this, "error while adding real var '", s, "");
-   }
+		} else {
+			/* altrimenti la reinserisco, cosi' 
+			 * da provocare l'errore di table */
+			var = table.Put(s, TypedValue(v));
+		}
+	}
 
-   return var;
+	if (var == NULL) {
+		throw ErrGeneric(this, "error while adding real var '", s, "");
+	}
+
+	return var;
 }
 
 NamedValue *
 MathParser::InsertSym(const char* const s, const Int& v, int redefine)
 {
-   /* cerco la variabile */
-   NamedValue* var = table.Get(s);
+	/* cerco la variabile */
+	NamedValue* var = table.Get(s);
 
-   if (var == NULL) {
-      /* Se non c'e' la inserisco */
-      var = table.Put(s, TypedValue(v));
-   } else {
-      /* altrimenti, se la posso ridefinire, mi limito 
-       * ad assegnarle il nuovo valore */
-      if (redefine) {
-         if (var->IsVar()) {
-            ((Var *)var)->SetVal(TypedValue(v));
-         } else {
-	    silent_cerr("cannot redefine a non-var named value" << std::endl);
-            throw MathParser::ErrGeneric(this,
-		"cannot redefine non-var named value '", var->GetName(), "'");
-         }
-      } else {
-         /* altrimenti la reinserisco, cosi' da provocare l'errore
-          * di table */
-          var = table.Put(s, TypedValue(v));
-      }
-   }
+	if (var == NULL) {
+		/* Se non c'e' la inserisco */
+		var = table.Put(s, TypedValue(v));
 
-   if (var == NULL) {  
-      throw ErrGeneric(this, "error while adding integer var '", s, "");
-   }
+	} else {
+		/* altrimenti, se la posso ridefinire, mi limito
+		 * ad assegnarle il nuovo valore */
+		if (redefine) {
+			if (var->IsVar()) {
+				((Var *)var)->SetVal(TypedValue(v));
 
-   return var;
+			} else {
+				throw MathParser::ErrGeneric(this,
+						"cannot redefine "
+						"non-var named value "
+						"\"", var->GetName(), "\"");
+			}
+
+		} else {
+			/* altrimenti la reinserisco, cosi' 
+			 * da provocare l'errore di table */
+			var = table.Put(s, TypedValue(v));
+		}
+	}
+
+	if (var == NULL) {
+		throw ErrGeneric(this, "error while adding integer var '", s, "");
+	}
+
+	return var;
 }
 
-MathParser::~MathParser(void) 
+MathParser::~MathParser(void)
 {
-   DEBUGCOUTFNAME("MathParser::~MathParser");
+	DEBUGCOUTFNAME("MathParser::~MathParser");
 
-   if (namebuf != NULL) {
-      SAFEDELETEARR(namebuf);
-   }
+	if (namebuf != NULL) {
+		SAFEDELETEARR(namebuf);
+	}
 }
-     
-Real 
+
+Real
 MathParser::GetLastStmt(Real d, Token t)
 {
-   if (GetToken() == t) {     
-      return d;
-   }      
-   while (currtoken != ENDOFFILE && currtoken != t) {
-      d = stmtlist().GetReal();
-   }   
-   return d;
+	if (GetToken() == t) {
+		return d;
+	}
+	while (currtoken != ENDOFFILE && currtoken != t) {
+		d = stmtlist().GetReal();
+	}
+	return d;
 }
 
-Real 
-MathParser::GetLastStmt(const InputStream& strm, Real d, Token t) 
+Real
+MathParser::GetLastStmt(const InputStream& strm, Real d, Token t)
 {
-   const InputStream* p = in;
-   in = (InputStream*)&strm;
-   d =  GetLastStmt(d, t);
-   in = (InputStream*)p;
-   return d;
+	const InputStream* p = in;
+	in = (InputStream*)&strm;
+	d = GetLastStmt(d, t);
+	in = (InputStream*)p;
+	return d;
 }
 
-Real 
+Real
 MathParser::Get(Real d)
 {
-   GetToken();
-   d = stmt().GetReal();
-   if (currtoken != STMTSEP && currtoken != ENDOFFILE) {     
-      DEBUGCERR("stmtsep expected in Get()" << std::endl);
-      throw ErrGeneric(this, "statement separator expected");
-   }
-   return d;
+	GetToken();
+	d = stmt().GetReal();
+	if (currtoken != STMTSEP && currtoken != ENDOFFILE) {
+		throw ErrGeneric(this, "statement separator expected");
+	}
+	return d;
 }
 
-Real 
+Real
 MathParser::Get(const InputStream& strm, Real d)
 {
-   const InputStream* p = in;
-   in = (InputStream*)&strm;
-   GetToken();
-   if (currtoken != STMTSEP && currtoken != ARGSEP) {
-      d = stmt().GetReal();
-   }
-   if (currtoken == STMTSEP) {
-      in->putback(';');
-   } else if (currtoken == ARGSEP) {
-      in->putback(',');
-   } else {
-      DEBUGCERR("separator expected in Get()" << std::endl);
-      throw ErrGeneric(this, "separator expected");
-   }
-   in = (InputStream*)p;
-   return d;
+	const InputStream* p = in;
+	in = (InputStream*)&strm;
+	GetToken();
+	if (currtoken != STMTSEP && currtoken != ARGSEP) {
+		d = stmt().GetReal();
+	}
+	if (currtoken == STMTSEP) {
+		in->putback(';');
+	} else if (currtoken == ARGSEP) {
+		in->putback(',');
+	} else {
+		throw ErrGeneric(this, "separator expected");
+	}
+	in = (InputStream*)p;
+	return d;
 }
 
-void 
+void
 MathParser::GetForever(std::ostream& out, const char* const sep)
 {
-   do {
-      out << Get(0.) << sep;	
-   } while (currtoken == STMTSEP);
+	do {
+		out << Get(0.) << sep;
+	} while (currtoken == STMTSEP);
 }
 
-void 
-MathParser::GetForever(const InputStream& strm, std::ostream& out, 
+void
+MathParser::GetForever(const InputStream& strm, std::ostream& out,
 		const char* const sep)
 {
-   const InputStream* p = in;
-   in = (InputStream*)&strm;
-   GetForever(out);
-   in = (InputStream*)p;
+ 	const InputStream* p = in;
+	in = (InputStream*)&strm;
+	GetForever(out);
+	in = (InputStream*)p;
 }
 
-int 
-MathParser::RegisterPlugIn(const char *name, MathParser::PlugIn * (*constructor)(MathParser&, void *), void *arg)
+int
+MathParser::RegisterPlugIn(const char *name,
+		MathParser::PlugIn * (*constructor)(MathParser&, void *),
+		void *arg)
 {
-   PlugInRegister *p = NULL;
-   SAFENEW(p, PlugInRegister);
-   SAFESTRDUP(p->name, name);
-   p->constructor = constructor;
-   p->arg = arg;
-   p->next = PlugIns;
-   PlugIns = p;
-   
-   return 0;
+	PlugInRegister *p = NULL;
+	SAFENEW(p, PlugInRegister);
+	SAFESTRDUP(p->name, name);
+	p->constructor = constructor;
+	p->arg = arg;
+	p->next = PlugIns;
+	PlugIns = p;
+
+	return 0;
 }
 
+int
+MathParser::RegisterNameSpace(MathParser::NameSpace *ns)
+{
+	ASSERT(ns != 0);
+
+	silent_cout("registering namespace \"" << ns->sGetName() << "\""
+			<< std::endl);
+
+	std::string name(ns->sGetName());
+
+	if (nameSpaceMap.find(name) != nameSpaceMap.end()) {
+		return 1;
+	}
+
+	nameSpaceMap[name] = ns;
+
+	return 0;
+}

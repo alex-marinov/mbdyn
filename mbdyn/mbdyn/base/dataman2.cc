@@ -153,8 +153,8 @@ DataManager::SetTime(doublereal dTime)
 	pTime->SetVal(dTime);
 
 	DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
-			"GlobalSymbolTable:" << std::endl
-	  		<< GlobalSymbolTable << std::endl);
+			"Global symbol table:" << std::endl
+	  		<< MathPar.GetSymbolTable() << std::endl);
 
 	/* Setta il tempo nel DriveHandler */
 	DrvHdl.SetTime(dTime);
