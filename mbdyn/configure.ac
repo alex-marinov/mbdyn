@@ -163,8 +163,10 @@ OL_ARG_WITH(chaco,[  --with-chaco            with Chaco model partitioning suppo
 OL_ARG_WITH(rtai,[  --with-rtai             with RTAI support],no,[auto yes no])
 OL_ARG_WITH(umfpack,[       linear algebra solvers:
   --with-umfpack          with Umfpack math library],auto,[auto yes no])
-OL_ARG_WITH(atlas,[  --with-atlas            with Atlas math library],auto,[auto yes no])
-OL_ARG_WITH(blas,[  --with-blas             with (C)BLAS math library],auto,[auto yes no])
+OL_ARG_WITH(blas,[  --with-blas             with (C)BLAS math library],auto,[auto goto atlas cblas blas])
+AC_ARG_WITH(goto,[  --with-goto=lib(s)      with Goto BLAS implementation],[
+	ol_with_goto_lib="$withval"
+],[ol_with_goto_lib=])
 OL_ARG_WITH(y12,[  --with-y12              with Y12 sparse math library],auto,[auto yes no])
 OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math library],auto,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
@@ -184,7 +186,7 @@ AC_ARG_WITH(module,[  --with-module=modulelist  build listed modules],[
 	for ol_val in $withval ; do
 		ol_arg="$ol_arg module-$ol_val"
 	done
-	if test "${ol_arg+set}" != set ; then
+	if test "${ol_arg-set}" = set ; then
 		AC_MSG_ERROR(bad value $withval for --with-module)
 	fi
 	MODULES_DIRS=$ol_arg
@@ -216,7 +218,6 @@ METIS_LIBS=
 CHACO_LIBS=
 Y12_LIBS=
 UMFPACK_LIBS=
-ATLAS_LIBS=
 BLAS_LIBS=
 MESCHACH_LIBS=
 HARWELL_LIBS=
@@ -677,77 +678,87 @@ if test $ol_with_blas != no ; then
 	dnl FIXME: any standard BLAS headers?
 	AC_MSG_CHECKING([for BLAS library])
 
-	try_blas_LIBS="-lblas -lm"
 	save_LIBS="$LIBS"
-	LIBS="$try_blas_LIBS $LIBS"
-	AC_TRY_LINK([
-		/* test for blas */
-	],[have_blas=yes],[have_blas=no])
+	have_blas=no
 
-	dnl revert to original libraries; the BLAS libraries 
-	dnl will be explicitly added by those libraries that require them
-	LIBS="$save_LIBS"
+	if test "${ol_with_goto_lib-set}" = set ; then
+		ol_with_goto_lib="goto"
+	fi
 
-	try_cblas_LIBS="-lcblas -lm"
-	save_LIBS="$LIBS"
-	LIBS="$try_cblas_LIBS $LIBS"
-	AC_TRY_LINK([
-		/* test for blas */
-	],[have_cblas=yes],[have_cblas=no])
+	try_blas_LIBS="-l$ol_with_goto_lib -lxerbla"
+	if test $have_blas = no ; then
+		if test $ol_with_blas = "auto" -o $ol_with_blas = "goto" ; then
+			LIBS="$try_blas_LIBS $LIBS"
 
-	dnl revert to original libraries; the BLAS libraries 
-	dnl will be explicitly added by those libraries that require them
-	LIBS="$save_LIBS"
+			AC_TRY_LINK([
+			],[
+				/* test for blas */
+			],[have_blas=goto],[have_blas=no])
 
-	if test $have_blas != no -o $have_cblas != no ; then
-		AC_DEFINE(HAVE_BLAS,1,[define if BLAS library is available])
-		ol_link_blas=yes
-		dnl we arbitrarily favour CBLAS over BLAS
-		if test $have_cblas != no ; then
-			BLAS_LIBS="$try_cblas_LIBS"
-		else
-			BLAS_LIBS="$try_blas_LIBS"
+			if test $ol_with_blas = "goto" ; then
+				AC_MSG_ERROR([Goto blas implementation not available])
+			fi
 		fi
-		AC_MSG_RESULT([yes])
-	else
-		AC_MSG_RESULT([no])
+	fi
+
+	try_blas_LIBS="-lcblas -latlas"
+	if test $have_blas = no ; then
+		if test $ol_with_blas = "auto" -o $ol_with_blas = "atlas" ; then
+			LIBS="$try_blas_LIBS $LIBS"
+
+			AC_TRY_LINK([
+			],[
+				/* test for blas */
+			],[have_blas=atlas],[have_blas=no])
+
+			if test $ol_with_blas = "atlas" ; then
+				AC_MSG_ERROR([Atlas blas implementation not available])
+			fi
+		fi
+	fi
+
+	try_blas_LIBS="-lcblas"
+	if test $have_blas = no ; then
+		if test $ol_with_blas = "auto" -o $ol_with_blas = "cblas" ; then
+			LIBS="$try_blas_LIBS $LIBS"
+
+			AC_TRY_LINK([
+			],[
+				/* test for blas */
+			],[have_blas=cblas],[have_blas=no])
+
+			if test $ol_with_blas = "cblas" ; then
+				AC_MSG_ERROR([CBLAS not available])
+			fi
+		fi
+	fi
+
+	try_blas_LIBS="-lblas"
+	if test $have_blas = no ; then
+		if test $ol_with_blas = "auto" -o $ol_with_blas = "blas" ; then
+			LIBS="$try_blas_LIBS $LIBS"
+
+			AC_TRY_LINK([
+			],[
+				/* test for blas */
+			],[have_blas=blas],[have_blas=no])
+
+			if test $ol_with_blas = "blas" ; then
+				AC_MSG_ERROR([BLAS not available])
+			fi
+		fi
+	fi
+
+	dnl revert to original libraries; the BLAS libraries 
+	dnl will be explicitly added by those libraries that require them
+	LIBS="$save_LIBS"
+	if test $have_blas != no ; then
+		ol_link_blas=yes
+		BLAS_LIBS="$try_blas_LIBS"
 	fi
 
 	dnl from now on, add $BLAS_LIBS to libraries that (may) depend on them
-fi
-
-
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Check for ATLAS
-dnl
-ol_link_atlas=no
-if test $ol_with_atlas != no ; then
-	dnl FIXME: any standard ATLAS headers?
-	AC_MSG_CHECKING([for ATLAS library])
-
-	try_blas_LIBS="-latlas"
-	save_LIBS="$LIBS"
-	LIBS="$try_atlas_LIBS $LIBS"
-	AC_TRY_LINK([
-		/* test for atlas */
-	],[have_atlas=yes],[have_atlas=no])
-
-	dnl revert to original libraries; the Atlas libraries 
-	dnl will be explicitly added by those libraries that require them
-	LIBS="$save_LIBS"
-
-	if test $have_atlas != no ; then
-		AC_DEFINE(HAVE_ATLAS,1,[define if Atlas library is available])
-		ol_link_atlas=yes
-		ATLAS_LIBS="$try_atlas_LIBS"
-		AC_MSG_RESULT([yes])
-	else
-		AC_MSG_RESULT([no])
-	fi
-
-	dnl from now on, add $ATLAS_LIBS to libraries that (may) depend on them
+	AC_MSG_RESULT([$have_blas])
 fi
 
 
@@ -1375,10 +1386,8 @@ AC_SUBST(MPI_LIBS)
 AC_SUBST(CHACO_LIBS)
 AC_SUBST(METIS_LIBS)
 AC_SUBST(UMFPACK_LIBS)
-dnl NOTE: at present, ATLAS_LIBS and/or BLAS_LIBS, if required, 
-dnl are added directly to UMFPACK_LIBS, since Umfpack is the sole
-dnl library that may require them.
-dnl AC_SUBST(ATLAS_LIBS)
+dnl NOTE: at present, BLAS_LIBS, if required, are added directly 
+dnl to UMFPACK_LIBS, since Umfpack is the sole library that may require them.
 dnl AC_SUBST(BLAS_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
