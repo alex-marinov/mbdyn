@@ -466,7 +466,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 #else /* !MODAL_USE_INV9 */
 	 			temp1 += -2*wr.dGet(jCnt)*(R*(Inv8jTranspose)*RT).dGet(iCnt, jCnt);
 #endif /* !MODAL_USE_INV9 */
-	 			temp2 += -(R*(Inv4j+VInv5jaj)).dGet(jCnt)*wrWedge.dGet(iCnt, jCnt);
+	 			temp2 += -(R*(Inv4j+VInv5jaj)).dGet(jCnt)*wrWedge.dGet(iCnt, jCnt); 
       			}
       		WM.fIncCoef(12+NModes+iMode, 9+iCnt, dCoef*(temp1+temp2));
    		}
@@ -740,7 +740,49 @@ Modal::AssRes(SubVectorHandler& WorkVec,
    Ka.Mult(*pModalStiff, a);
    CaP.Mult(*pModalDamp, b);
    MaPP.Mult(*pModalMass, bPrime);
+#if 0
+   std::cerr << "###Stiff" << std::endl;
+   for (unsigned int i = 1; i <= NModes; i++) {
+   	for (unsigned int j = 1; j <= NModes; j++) {
+	   std::cerr << std::setw(2) << i << ", " << std::setw(2) 
+		   << j << " "
+		   << std::setw(20) << (*pModalStiff)(i,j) << std::endl;
    
+	   }
+   }
+   std::cerr << "###Damp" << std::endl;
+   for (unsigned int i = 1; i <= NModes; i++) {
+   	for (unsigned int j = 1; j <= NModes; j++) {
+	   std::cerr << std::setw(2) << i << ", " << std::setw(2) 
+		   << j << " "
+		   << std::setw(20) << (*pModalDamp)(i,j) << std::endl;
+   	}
+   }
+   std::cerr << "###Mass" << std::endl;
+   for (unsigned int i = 1; i <= NModes; i++) {
+   	for (unsigned int j = 1; j <= NModes; j++) {
+	   std::cerr << std::setw(2) << i << ", " << std::setw(2) 
+		   << j << " "
+		   << std::setw(20) << (*pModalMass)(i,j) << std::endl;
+   	}
+   }
+   std::cerr << "###a" << std::endl;
+   for (unsigned int i = 1; i <= NModes; i++) {
+	std::cerr << std::setw(2) << i <<  " "
+		   << std::setw(20) << a(i) << std::endl;
+   }
+   std::cerr << "###b" << std::endl;
+   for (unsigned int i = 1; i <= NModes; i++) {
+	std::cerr << std::setw(2) << i <<  " "
+		   << std::setw(20) << b(i) << std::endl;
+   }
+   std::cerr << "###bP" << std::endl;
+   for (unsigned int i = 1; i <= NModes; i++) {
+	std::cerr << std::setw(2) << i <<  " "
+		   << std::setw(20) << bPrime(i) << std::endl;
+   }
+#endif
+      
    Inv3jaj = *pInv3 * a;
    Inv3jaPj = *pInv3 * b;
    Vec3 Inv3jaPPj = *pInv3 * bPrime;
@@ -884,7 +926,15 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 #endif /* !MODAL_USE_INV9 */		      		      
 		-(R*VInv5jaPj).Dot(w)*2.
 		-MaPP.dGet(iMode)-CaP.dGet(iMode)-Ka.dGet(iMode));
-      
+
+#if 0      
+   std::cerr << "(R*Inv3j).Dot(vP)=" << (R*Inv3j).Dot(vP) << std::endl;   
+   std::cerr << "(R*(Inv4j+VInv5jaj)).Dot(wP)=" << (R*(Inv4j+VInv5jaj)).Dot(wP) << std::endl;   
+   std::cerr << "w.Dot(R*((Inv8jTranspose+Inv10j)*RTw))" << w.Dot(R*((Inv8jTranspose+Inv10j)*RTw))<< std::endl;  
+   std::cerr << " -(R*VInv5jaPj).Dot(w)*2." << -(R*VInv5jaPj).Dot(w)*2.<< std::endl;
+   std::cerr << " -CaP.dGet(iMode)" << -CaP.dGet(iMode)<< std::endl;
+   std::cerr << "-Ka.dGet(iMode) " << -CaP.dGet(iMode)-Ka.dGet(iMode) << std::endl;
+#endif
 #ifdef MODAL_USE_GRAVITY
       /* forza di gravita': */
       if (fGravity) {
@@ -1742,7 +1792,7 @@ ReadModal(DataManager* pDM,
    }
 
    unsigned int NFemNodes = HP.GetInt();  /* numero di nodi FEM del modello */
-   if (NModes == 0) {
+   if (NFemNodes == 0) {
       std::cerr << "Modal(" << uLabel 
 	      << "): illegal number of FEM nodes at line " << HP.GetLineData()
 	      << std::endl;
@@ -1982,8 +2032,8 @@ ReadModal(DataManager* pDM,
    
       /* Matrice di massa  modale */
       }	else if (!strncmp("** RECORD GROUP 9,", str, sizeof("** RECORD GROUP 9,") - 1)) {
-         for (iMode = 1; iMode <= NModes; iMode++) {
-	    for (jMode = 1; jMode <= NModes; jMode++) {
+         for (iMode = 1; iMode <= NModesDADS; iMode++) {
+	    for (jMode = 1; jMode <= NModesDADS; jMode++) {
 	       fdat >> d;
 	       if (iMode > NModes || jMode > NModes) {
 		  continue;
@@ -1994,8 +2044,8 @@ ReadModal(DataManager* pDM,
 
       /* Matrice di rigidezza  modale */
       } else if (!strncmp("** RECORD GROUP 10,", str, sizeof("** RECORD GROUP 10,") - 1)) {
-         for (iMode = 1; iMode <= NModes; iMode++) {
-	    for (jMode = 1; jMode <= NModes; jMode++) {
+         for (iMode = 1; iMode <= NModesDADS; iMode++) {
+	    for (jMode = 1; jMode <= NModesDADS; jMode++) {
 	       fdat >> d;
 	       if (iMode > NModes || jMode > NModes) {
 		  continue;
@@ -2042,9 +2092,35 @@ ReadModal(DataManager* pDM,
    Mat3xN* pPHItStrNode = NULL;  /* array contenente le forme modali dei nodi d'interfaccia */
    Mat3xN* pPHIrStrNode = NULL;
    
-   unsigned int NStrNodes = HP.GetInt();  /* numero di nodi d'interfaccia */
+   /* traslazione origine delle coordinate */	
+   unsigned int NFemOriginNode = HP.GetInt();  /* numero di nodi FEM del modello */
+      for (iNode = 1; iNode <= NFemNodes; iNode++) {
+	 if ( NFemOriginNode == IdFemNodes[iNode-1]) {
+	    break;
+	 }
+	 if (iNode == NFemNodes) { 
+	    std::cerr << "Modal(" << uLabel << "): FEM node " << NFemOriginNode
+	      << " at line " << HP.GetLineData() 
+		<< " not defined " << std::endl;
+	    THROW(DataManager::ErrGeneric());
+	 }
+      }
+   Vec3 Origin(0.);
+   for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+   	Origin.Put(iCnt, pXYZFemNodes->dGet(iCnt, iNode));
+   }
+   for (iStrNode = 1; iStrNode <= NFemNodes; iStrNode++) {
+      for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+	 pXYZFemNodes->Sub(iCnt, iStrNode, Origin.dGet(iCnt));
+      }
+   }
+
+   
+      unsigned int NStrNodes = HP.GetInt();  /* numero di nodi d'interfaccia */
    DEBUGCOUT("Number of Interface Nodes : " << NStrNodes << std::endl);
    
+	   
+      
    SAFENEWWITHCONSTRUCTOR(pXYZOffsetNodes, Mat3xN, Mat3xN(2*NStrNodes+1, 0.));
    SAFENEWWITHCONSTRUCTOR(pPHItStrNode, Mat3xN, Mat3xN(NStrNodes*NModes, 0.));
    SAFENEWWITHCONSTRUCTOR(pPHIrStrNode, Mat3xN, Mat3xN(NStrNodes*NModes, 0.));
