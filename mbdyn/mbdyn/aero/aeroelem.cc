@@ -37,6 +37,8 @@
 #include <aeroelem.h>
 #include <aerodata.h>
 #include <dataman.h>
+#include <shapefnc.h>
+
 extern "C" {
 #include <aerodc81.h>
 #include <c81data.h>
@@ -559,8 +561,12 @@ ReadAeroData(DataManager* pDM,
    	HP.PutKeyTable(K);
 
    	*piNumber = HP.GetInt();
-   	DEBUGLCOUT(MYDEBUG_INPUT,
-		   "Gauss points number: " << *piNumber << endl);
+	if ( *piNumber <= 0 ) {
+		cerr << "line " << HP.GetLineData() 
+			<< ": need at least 1 Gauss point" << endl;
+		THROW(ErrGeneric());
+	}
+   	DEBUGLCOUT(MYDEBUG_INPUT, "Gauss points number: " << *piNumber << endl);
   
    	if (HP.IsKeyWord("control")) {      
       		/* Driver di un'eventuale controllo */
@@ -1558,4 +1564,704 @@ ReadAerodynamicBeam(DataManager* pDM,
 	
 	return pEl;
 } /* End of DataManager::ReadAerodynamicBeam() */
+
+
+/* AerodynamicBeam2 - begin */
+
+AerodynamicBeam2::AerodynamicBeam2(
+		unsigned int uLabel,
+		const Beam2* pB, 
+		Rotor* pR,
+		const Vec3& fTmp1,
+		const Vec3& fTmp2,
+		const Mat3x3& Ra1Tmp,
+		const Mat3x3& Ra2Tmp,
+		const Shape* pC, 
+		const Shape* pF, 
+		const Shape* pV, 
+		const Shape* pT,
+		integer iN, 
+		AeroData* a,
+		const DriveCaller* pDC,
+		flag fOut
+)
+: Elem(uLabel, Elem::AERODYNAMIC, fOut),
+AerodynamicElem(uLabel, AerodynamicElem::AERODYNAMICBEAM, fOut),
+InitialAssemblyElem(uLabel, Elem::AERODYNAMIC, fOut),
+DriveOwner(pDC),
+aerodata(a),
+pBeam(pB),
+pRotor(pR),
+fPassiveRotor(0),
+f1(fTmp1),
+f2(fTmp2),
+Ra1(Ra1Tmp),
+Ra2(Ra2Tmp),
+Ra1_3(Ra1Tmp.GetVec(3)),
+Ra2_3(Ra2Tmp.GetVec(3)),
+Chord(pC),
+ForcePoint(pF),
+VelocityPoint(pV),
+Twist(pT),
+GDI(iN),
+pdOuta(NULL),
+pvdOuta(NULL),
+F1(0.),
+M1(0.),
+F2(0.),
+M2(0.)
+#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
+, pOutput(NULL)
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+{
+	DEBUGCOUTFNAME("AerodynamicBeam2::AerodynamicBeam2");
+	
+	ASSERT(pBeam != NULL);
+	ASSERT(pBeam->GetElemType() == Elem::BEAM);
+	
+	pNode1 = pBeam->pGetNode(1); 
+	pNode2 = pBeam->pGetNode(2);
+	
+	ASSERT(pNode1 != NULL);
+	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(pNode2 != NULL);
+	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
+	
+#ifdef DEBUG
+	if(pRotor != NULL) {      
+		ASSERT(pRotor->GetElemType() == Elem::ROTOR);
+	}
+#endif /* DEBUG */
+
+	SAFENEWARR(pdOuta, doublereal, 20*2*iN, DMmm);
+	SAFENEWARR(pvdOuta, doublereal*, 2*iN, DMmm);
+	for (integer i = 20*2*iN; i-- > 0; ) {
+		pdOuta[i] = 0.;
+	}
+	for (integer i = 2*iN; i-- > 0; ) {
+		pvdOuta[i] = pdOuta+20*i;
+	}
+	
+#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
+	if (fToBeOutput()) {
+#ifdef USE_EXCEPTIONS
+		try {
+#endif /* USE_EXCEPTIONS */
+			pOutput = Aero_output_alloc(2*iN);
+#ifdef USE_EXCEPTIONS
+      		}
+      		catch (ErrMemory) {
+	 		SetOutputFlag(flag(0));
+	 		cerr << "Unable to alloc memory for output"
+				" of AerodynamicBeam2(" << GetLabel() << ")" 
+				<< endl;
+      		}
+#endif /* USE_EXCEPTIONS */
+   	}
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+}
+
+AerodynamicBeam2::~AerodynamicBeam2(void)
+{
+   	DEBUGCOUTFNAME("AerodynamicBeam2::~AerodynamicBeam2");
+	
+	SAFEDELETEARR(pvdOuta, DMmm);
+	SAFEDELETEARR(pdOuta, DMmm);
+	
+#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
+	if (pOutput != NULL) {
+		SAFEDELETEARR(pOutput, DMmm);
+	}
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+
+	SAFEDELETE(aerodata, DMmm);
+}
+
+/*
+ * overload della funzione di ToBeOutput();
+ * serve per allocare il vettore dei dati di output se il flag
+ * viene settato dopo la costruzione
+ */
+void
+AerodynamicBeam2::SetOutputFlag(flag f)
+{
+	DEBUGCOUTFNAME("AerodynamicBeam2::SetOutputFlag");
+	
+	ToBeOutput::SetOutputFlag(f);
+	
+#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
+	if (fToBeOutput()) {
+		/* se non e' gia' stato allocato ... */
+		if (pOutput == NULL) {
+#ifdef USE_EXCEPTIONS
+			try {
+#endif /* USE_EXCEPTIONS */
+				pOutput = Aero_output_alloc(2*GDI.iGetNum());
+#ifdef USE_EXCEPTIONS
+	 		}
+	 		catch (ErrMemory) {
+	    			SetOutputFlag(flag(0));
+	    			cerr << "Unable to alloc memory for output"
+					" of AerodynamicBeam2("
+					<< GetLabel() << ")" << endl;
+	 		}
+#endif /* USE_EXCEPTIONS */
+      		}
+   	}
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+}
+
+/* Scrive il contributo dell'elemento al file di restart */
+ostream&
+AerodynamicBeam2::Restart(ostream& out) const
+{
+	DEBUGCOUTFNAME("AerodynamicBeam2::Restart");
+	out << "  aerodynamic beam2: " << GetLabel()
+		<< ", " << pBeam->GetLabel();
+	if (pRotor != NULL) {
+		out << ", rotor, " << pRotor->GetLabel();
+	}
+	out << ", reference, node, ", f1.Write(out, ", ") 
+		<< ", reference, node, 1, ", (Ra1.GetVec(1)).Write(out, ", ")
+		<< ", 2, ", (Ra1.GetVec(2)).Write(out, ", ")
+		<< ", reference, node, ", f2.Write(out, ", ")      
+		<< ", reference, node, 1, ", (Ra2.GetVec(1)).Write(out, ", ")
+		<< ", 2, ", (Ra2.GetVec(2)).Write(out, ", ")
+		<< ", ";
+	Chord.pGetShape()->Restart(out) << ", ";
+	ForcePoint.pGetShape()->Restart(out) << ", ";
+	VelocityPoint.pGetShape()->Restart(out) << ", ";
+	Twist.pGetShape()->Restart(out) << ", " 
+		<< GDI.iGetNum() << ", control, ";
+	pGetDriveCaller()->Restart(out) << ", ";
+	aerodata->Restart(out);
+	return out << ';' << endl;
+}
+
+/* assemblaggio residuo */
+SubVectorHandler&
+AerodynamicBeam2::AssRes(
+		SubVectorHandler& WorkVec,
+		doublereal /* dCoef */ ,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ 
+)
+{
+	DEBUGCOUTFNAME("AerodynamicBeam2::AssRes");
+	WorkVec.Resize(12);
+	WorkVec.Reset(0.);
+	
+	integer iNode1FirstIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstIndex = pNode2->iGetFirstMomentumIndex();
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.fPutRowIndex(iCnt, iNode1FirstIndex+iCnt);
+		WorkVec.fPutRowIndex(6+iCnt, iNode2FirstIndex+iCnt);
+	}
+	
+	AssVec(WorkVec);
+	
+	return WorkVec;
+}
+
+/* assemblaggio iniziale residuo */
+SubVectorHandler&
+AerodynamicBeam2::InitialAssRes(
+		SubVectorHandler& WorkVec,
+		const VectorHandler& /* XCurr */ 
+)
+{
+	DEBUGCOUTFNAME("AerodynamicBeam2::InitialAssRes");
+	WorkVec.Resize(12);
+	WorkVec.Reset(0.);
+	
+	integer iNode1FirstIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode2FirstIndex = pNode2->iGetFirstPositionIndex();
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.fPutRowIndex(iCnt, iNode1FirstIndex+iCnt);
+		WorkVec.fPutRowIndex(6+iCnt, iNode2FirstIndex+iCnt);
+	}
+	
+	AssVec(WorkVec);
+	
+	return WorkVec;
+}
+
+/* assemblaggio residuo */
+void
+AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
+{
+	DEBUGCOUTFNAME("AerodynamicBeam2::AssVec");
+	
+	doublereal dTng[6];
+	doublereal dW[6];
+	
+	/* Dati dei nodi */
+	Vec3 Xn1(pNode1->GetXCurr());
+	Mat3x3 Rn1(pNode1->GetRCurr());
+	Vec3 Vn1(pNode1->GetVCurr());
+	Vec3 Wn1(pNode1->GetWCurr());
+	
+	Vec3 Xn2(pNode2->GetXCurr());
+	Mat3x3 Rn2(pNode2->GetRCurr());
+	Vec3 Vn2(pNode2->GetVCurr());
+	Vec3 Wn2(pNode2->GetWCurr());
+	
+	Vec3 f1Tmp(Rn1*f1);
+	Vec3 f2Tmp(Rn2*f2);
+	
+	Vec3 X1Tmp(Xn1+f1Tmp);
+	Vec3 X2Tmp(Xn2+f2Tmp);
+	
+	Vec3 V1Tmp(Vn1+Wn1.Cross(f1Tmp));
+	Vec3 V2Tmp(Vn2+Wn2.Cross(f2Tmp));
+	
+	/*
+	 * Matrice di trasformazione dal sistema globale a quello aerodinamico
+	 */
+	Mat3x3 RR1(Rn1*Ra1);
+	/* Mat3x3 RR1T(RR1.Transpose()); */
+	
+	Mat3x3 RR2(Rn2*Ra2);
+	Mat3x3 RR2T(RR2.Transpose());
+
+	/*
+	 * Parametri di rotazione dai nodi 1 e 2 al punto medio (nell'ipotesi 
+	 * che tale trasformazione non dia luogo ad una singolarita')
+	 */
+	Vec3 g1 = gparam(RR2T*RR1)/2.;
+	Vec3 g2 = -g1;
+
+	/* matrice di rotazione del punto medio */
+	Mat3x3 RRm(RR2*Mat3x3(MatR, g1));
+	
+	/*
+	 * Se l'elemento e' collegato ad un rotore,
+	 * si fa dare la velocita' di rotazione
+	 */
+	doublereal dOmega = 0.;
+	if (pRotor != NULL) {
+		dOmega = pRotor->dGetOmega();
+   	}
+
+	/*
+	 * Dati "permanenti" (uso solo la posizione del nodo 2 perche'
+	 * non dovrebbero cambiare "molto")
+	 */
+	aerodata->SetAirData(dGetAirDensity(Xn2), dGetSoundSpeed(Xn2));
+	
+	/* Tratto relativo al primo nodo */
+	
+	/* Resetta i dati */
+	F1 = Vec3(0.);
+	M1 = Vec3(0.);
+	
+	doublereal dsi = -1.;
+	doublereal dsf = 0.;
+
+	doublereal dsm = (dsf+dsi)/2.;
+	doublereal dsdCsi = (dsf-dsi)/2.;
+	
+	/* OUTA */
+	doublereal** pvd = pvdOuta;
+	
+#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
+	/* per output */
+	Aero_output* pTmpOutput = pOutput;
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+
+	/* Ciclo sui punti di Gauss */
+	PntWght PW = GDI.GetFirst();
+	do {
+		doublereal dCsi = PW.dGetPnt();
+		doublereal ds = dsm+dsdCsi*dCsi;
+		doublereal dXds = DxDcsi2N(ds, Xn1, Xn2);
+		
+		doublereal dN1 = ShapeFunc2N(ds, 1);
+		doublereal dN2 = ShapeFunc2N(ds, 2);
+		
+		Vec3 Xr(X1Tmp*dN1+X2Tmp*dN2);
+		Vec3 Vr(V1Tmp*dN1+V2Tmp*dN2);
+		Vec3 Wr(Wn1*dN1+Wn2*dN2);
+		
+		/* Contributo di velocita' del vento */
+		Vec3 VTmp(0.);
+		if (fGetAirVelocity(VTmp, Xr)) {
+			Vr -= VTmp;
+		}
+		
+		/*
+		 * Se l'elemento e' collegato ad un rotore,
+		 * aggiunge alla velocita' la velocita' indotta
+		 */
+		if (pRotor != NULL) {
+			Vr += pRotor->GetInducedVelocity(Xr);
+		}
+      
+      		/* Copia i dati nel vettore di lavoro dVAM */
+		doublereal dTw = Twist.dGet(ds);
+		dTw += dGet(); /* Contributo dell'eventuale sup. mobile */
+		aerodata->SetSectionData(Chord.dGet(ds), 
+					 ForcePoint.dGet(ds),
+					 VelocityPoint.dGet(ds),
+					 dTw,
+					 dOmega);
+		
+		/*
+		 * Lo svergolamento non viene piu' trattato in aerod2_; quindi
+		 * lo uso per correggere la matrice di rotazione
+		 * dal sistema aerodinamico a quello globale
+		 */
+		doublereal dCosT = cos(dTw);
+		doublereal dSinT = sin(dTw);
+		/* Assumo lo svergolamento positivo a cabrare */
+		Mat3x3 RTw( dCosT, dSinT, 0.,
+			   -dSinT, dCosT, 0.,
+			    0.,    0.,    1.);
+		/*
+		 * Allo stesso tempo interpola le g e aggiunge lo svergolamento
+		 */
+		Mat3x3 RRloc(RRm*Mat3x3(MatR, g1*dN1+g2*dN2)*RTw);
+		Mat3x3 RRlocT(RRloc.Transpose());
+		
+		/*
+		 * Ruota velocita' e velocita' angolare nel sistema
+		 * aerodinamico e li copia nel vettore di lavoro dW
+		 */
+		Vec3 Tmp(RRlocT*Vr);
+		Tmp.PutTo(dW);
+		
+#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
+		if (fToBeOutput()) {
+			ASSERT(pOutput != NULL);
+			set_alpha(pTmpOutput, Tmp);
+		}
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+
+		Tmp = RRlocT*Wr;
+		Tmp.PutTo(dW+3);
+		
+		/* Funzione di calcolo delle forze aerodinamiche */
+		aerodata->GetForces(dW, dTng, *pvd);
+		
+		/* OUTA */
+		pvd++;
+		
+#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
+		if (fToBeOutput()) {
+			ASSERT(pOutput != NULL);
+			set_f(pTmpOutput, dTng);
+			pTmpOutput++;
+		}
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+	    
+		/* Dimensionalizza le forze */
+		doublereal dWght = dXds*dsdCsi*PW.dGetWght();
+		Vec3 FTmp(RRloc*(Vec3(dTng)*dWght));
+		F1 += FTmp;
+		M1 += RRloc*(Vec3(dTng+3)*dWght);
+		M1 += (Xr-Xn1).Cross(FTmp);
+		
+	} while (GDI.fGetNext(PW));
+	
+	/* Se e' definito il rotore, aggiungere il contributo alla trazione */
+	if (pRotor != NULL && !fPassiveRotor) {
+		pRotor->AddForce(F1, M1, Xn1);
+	}
+	
+	/* Somma il termine al residuo */
+	WorkVec.Add(1, F1);
+	WorkVec.Add(4, M1);
+	
+	
+	/* Tratto relativo al secondo nodo */
+	
+	/* Resetta i dati */
+	F2 = Vec3(0.);
+	M2 = Vec3(0.);
+	
+	dsi = 0.;
+	dsf = 1.;
+
+	dsm = (dsf+dsi)/2.;
+	dsdCsi = (dsf-dsi)/2.;
+	
+	/* Ciclo sui punti di Gauss */
+	PW = GDI.GetFirst();
+	do {
+		doublereal dCsi = PW.dGetPnt();
+		doublereal ds = dsm+dsdCsi*dCsi;
+		doublereal dXds = DxDcsi2N(ds, Xn1, Xn2);
+		
+		doublereal dN1 = ShapeFunc2N(ds, 1);
+		doublereal dN2 = ShapeFunc2N(ds, 2);
+		
+		Vec3 Xr(X1Tmp*dN1+X2Tmp*dN2);
+		Vec3 Vr(V1Tmp*dN1+V2Tmp*dN2);
+		Vec3 Wr(Wn1*dN1+Wn2*dN2);
+		
+		/* Contributo di velocita' del vento */
+		Vec3 VTmp(0.);
+		if (fGetAirVelocity(VTmp, Xr)) {
+			Vr -= VTmp;
+		}
+		
+		/*
+		 * Se l'elemento e' collegato ad un rotore,
+		 * aggiunge alla velocita' la velocita' indotta
+		 */
+		if (pRotor != NULL) {
+			Vr += pRotor->GetInducedVelocity(Xr);
+		}
+		
+		/* Copia i dati nel vettore di lavoro dVAM */
+		doublereal dTw = Twist.dGet(ds);
+		dTw += dGet(); /* Contributo dell'eventuale sup. mobile */
+		aerodata->SetSectionData(Chord.dGet(ds), 
+					 ForcePoint.dGet(ds),
+					 VelocityPoint.dGet(ds),
+					 dTw,
+					 dOmega);
+		
+		/*
+		 * Lo svergolamento non viene piu' trattato in aerod2_; quindi
+		 * lo uso per correggere la matrice di rotazione
+		 * dal sistema aerodinamico a quello globale
+		 */
+		doublereal dCosT = cos(dTw);
+		doublereal dSinT = sin(dTw);
+		/* Assumo lo svergolamento positivo a cabrare */
+		Mat3x3 RTw( dCosT, dSinT, 0.,
+			   -dSinT, dCosT, 0.,
+			    0.,    0.,    1.);
+		/*
+		 * Allo stesso tempo interpola le g e aggiunge lo svergolamento
+		 */
+		Mat3x3 RRloc(RRm*Mat3x3(MatR, g1*dN1+g2*dN2)*RTw);
+		Mat3x3 RRlocT(RRloc.Transpose());
+		
+		/*
+		 * Ruota velocita' e velocita' angolare nel sistema
+		 * aerodinamico e li copia nel vettore di lavoro dW
+		 */
+		Vec3 Tmp(RRlocT*Vr);
+		Tmp.PutTo(dW);
+
+#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
+		if (fToBeOutput()) {
+			ASSERT(pOutput != NULL);
+			set_alpha(pTmpOutput, Tmp);
+		}
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+
+		Tmp = RRlocT*Wr;
+		Tmp.PutTo(dW+3);
+		
+		/* Funzione di calcolo delle forze aerodinamiche */
+		aerodata->GetForces(dW, dTng, *pvd);
+		
+		/* OUTA */
+		pvd++;
+
+#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
+		if (fToBeOutput()) {
+			ASSERT(pOutput != NULL);
+			set_f(pTmpOutput, dTng);
+			pTmpOutput++;
+		}
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+
+		/* Dimensionalizza le forze */
+		doublereal dWght = dXds*dsdCsi*PW.dGetWght();
+		Vec3 FTmp(RRloc*(Vec3(dTng)*dWght));
+		F2 += FTmp;
+		M2 += RRloc*(Vec3(dTng+3)*dWght);
+		M2 += (Xr-Xn2).Cross(FTmp);
+		
+	} while (GDI.fGetNext(PW));
+	
+	/* Se e' definito il rotore, aggiungere il contributo alla trazione */
+	if (pRotor != NULL && !fPassiveRotor) {
+		pRotor->AddForce(F2, M2, Xn2);
+	}
+	
+	/* Somma il termine al residuo */
+	WorkVec.Add(7, F2);
+	WorkVec.Add(10, M2);
+}
+
+/*
+ * output; si assume che ogni tipo di elemento sappia, attraverso
+ * l'OutputHandler, dove scrivere il proprio output
+ */
+void
+AerodynamicBeam2::Output(OutputHandler& OH ) const
+{
+	DEBUGCOUTFNAME("AerodynamicBeam2::Output");
+	
+#ifdef __HACK_UNSTEADY_AERO__ /* Ha seri bugs */
+	/* Memoria in caso di forze instazionarie */
+	switch (aerodata->Unsteady()) {
+	case 1: {
+		doublereal d = 0.;
+		if (pRotor != NULL) {
+			d = dDA*pRotor->dGetOmega();
+		}
+		if (fabs(d) < 1.e-6) {
+			d = 1.e-6;
+		}
+		for (integer i = 0; i < 2*GDI.iGetNum(); i++) {
+			__FC_DECL__(coeprd)(&d, pvdOuta[i]);
+		}
+		break;
+	}
+	case 2:
+		for (integer i = 0; i < 2*GDI.iGetNum(); i++) {
+			__FC_DECL__(coeprd)(&dDA, pvdOuta[i]);
+		}
+		break;
+	case 0:
+		break;
+	default:
+		THROW(ErrGeneric());
+	}
+#endif /* __HACK_UNSTEADY_AERO__ */
+
+	if (fToBeOutput()) {
+#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
+		ASSERT(pOutput != NULL);
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+		ostream& out = OH.Aerodynamic() << setw(8) << GetLabel();
+		
+#if AEROD_OUTPUT == AEROD_OUT_NODE
+		out << " " << setw(8) << pBeam->GetLabel();
+		out << " ", F1.Write(out, " ") << " ", M1.Write(out, " ");
+		out << " ", F2.Write(out, " ") << " ", M2.Write(out, " ");
+#else /* AEROD_OUTPUT != AEROD_OUT_NODE */
+		for (int i = 0; i < 2*GDI.iGetNum(); i++) {
+#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
+			out << ' ' << pOutput[i]->alpha
+				<< ' ' << pOutput[i]->f;
+#elif AEROD_OUTPUT == AEROD_OUT_STD
+			for (int j = 1; j <= 6; j++) {
+				out << ' ' << pvdOuta[i][j];
+			}
+#endif /* AEROD_OUTPUT == AEROD_OUT_STD */
+		}
+#endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
+		out << endl;
+	}
+}
+
+/* AerodynamicBeam2 - end */
+
+
+/* Legge un elemento aerodinamico di trave a due nodi */
+
+Elem *
+ReadAerodynamicBeam2(
+		DataManager* pDM,
+		MBDynParser& HP,
+		unsigned int uLabel
+)
+{
+	DEBUGCOUTFNAME("ReadAerodynamicBeam2");
+	
+	/* Trave */
+	unsigned int uBeam = (unsigned int)HP.GetInt();
+	
+	DEBUGLCOUT(MYDEBUG_INPUT, "Linked to beam: " << uBeam << endl);
+	
+	/* verifica di esistenza della trave */
+	Beam2* pBeam;
+	Elem* p = (Elem *)pDM->pFindElem(Elem::BEAM, uBeam);
+	if (p == NULL) {
+		cerr << " at line " << HP.GetLineData() 
+			<< ": beam " << uBeam
+			<< " not defined" << endl;      
+		THROW(DataManager::ErrGeneric());
+	}
+	pBeam = (Beam2 *)p->pGet();
+	
+	/* Eventuale rotore */
+	Rotor* pRotor = NULL;
+	if (HP.IsKeyWord("rotor")) {
+		unsigned int uRotor = (unsigned int)HP.GetInt();
+		DEBUGLCOUT(MYDEBUG_INPUT,
+			"Linked to Rotor: " << uRotor << endl);
+		
+		/*
+		 * verifica di esistenza del rotore
+		 * NOTA: ovviamente il rotore deve essere definito 
+		 * prima dell'elemento aerodinamico
+		 */
+		Elem* p = (Elem*)(pDM->pFindElem(Elem::ROTOR, uRotor));
+		if (p == NULL) {
+			cerr << " at line " << HP.GetLineData() 
+				<< ": rotor " << uRotor
+				<< " not defined" << endl;	 
+			THROW(DataManager::ErrGeneric());
+		}
+		pRotor = (Rotor*)p->pGet();
+	}
+	
+	/* Nodo 1: */
+	
+	/* Offset del corpo aerodinamico rispetto al nodo */
+	const StructNode* pNode1 = pBeam->pGetNode(1);
+	
+	ReferenceFrame RF(pNode1);
+	Vec3 f1(HP.GetPosRel(RF));      
+	DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << endl);
+	
+	Mat3x3 Ra1(HP.GetRotRel(RF));
+	DEBUGLCOUT(MYDEBUG_INPUT,
+		   "Node 1 rotation matrix: " << endl << Ra1 << endl);
+
+	/* Nodo 2: */
+	
+	/* Offset del corpo aerodinamico rispetto al nodo */
+	const StructNode* pNode2 = pBeam->pGetNode(2);
+	
+	RF = ReferenceFrame(pNode2);
+	Vec3 f2(HP.GetPosRel(RF));    
+	DEBUGLCOUT(MYDEBUG_INPUT, "Node 2 offset: " << f2 << endl);
+	
+	Mat3x3 Ra2(HP.GetRotRel(RF));   
+	DEBUGLCOUT(MYDEBUG_INPUT,
+		   "Node 2 rotation matrix: " << endl << Ra2 << endl);
+
+	Shape* pChord = NULL;
+	Shape* pForce = NULL;
+	Shape* pVelocity = NULL;
+	Shape* pTwist = NULL;
+	
+	integer iNumber = 0;
+	DriveCaller* pDC = NULL;
+	AeroData* aerodata = NULL;
+	
+	ReadAeroData(pDM, HP, 
+		     &pChord, &pForce, &pVelocity, &pTwist,
+		     &iNumber, &pDC, &aerodata);
+	
+	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);
+	
+	Elem* pEl = NULL;
+	
+	SAFENEWWITHCONSTRUCTOR(pEl,
+		AerodynamicBeam2,
+		AerodynamicBeam2(uLabel, pBeam, pRotor, 
+				f1, f2, Ra1, Ra2,
+				pChord, pForce, pVelocity, pTwist,
+				iNumber, aerodata, pDC, fOut),
+		DMmm);
+	
+	/* Se non c'e' il punto e virgola finale */
+	if (HP.fIsArg()) {
+		cerr << ": semicolon expected at line "
+			<< HP.GetLineData() << endl;      
+		THROW(DataManager::ErrGeneric());
+	}
+	
+	return pEl;
+} /* End of DataManager::ReadAerodynamicBeam2() */
 

@@ -48,13 +48,6 @@
 
 extern const char* psBeamNames[];
 
-/* Funzioni di interpolazione */
-extern doublereal 
-ShapeFunc3N(doublereal d, integer iNode, integer iOrd = 0);
-extern doublereal 
-DxDcsi3N(doublereal d, const Vec3& X1, const Vec3& X2, const Vec3& X3);
-
-
 /* ... */
 class DataManager;
 class MBDynParser;

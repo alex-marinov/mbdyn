@@ -845,11 +845,11 @@ Beam::Output_pch(ostream& out) const
 			<< "PBEAM   "
 			<< setw(8) << label    		/* label */
 			<< setw(8) << 1                 /* material */
-			<< setw(8) << 1.                /* area */
-			<< setw(8) << 1.                /* J1 */
-			<< setw(8) << 1.                /* J2 */
-			<< setw(8) << " "               /* J12 */
-			<< setw(8) << 1.                /* Jp */
+			<< setw(8) << DRef[S_I].dGet(1, 1);	/* area */
+			<< setw(8) << DRef[S_I].dGet(5, 5);	/* J1 */
+			<< setw(8) << DRef[S_I].dGet(6, 6);     /* J2 */
+			<< setw(8) << DRef[S_I].dGet(4, 5);	/* J12 */
+			<< setw(8) << DRef[S_I].dGet(4, 4);	/* Jp */
 			<< endl
 			
 			/* CBEAM */

@@ -78,6 +78,7 @@ enum KeyWords {
    ROTOR,
    AERODYNAMICBODY,
    AERODYNAMICBEAM,
+   AERODYNAMICBEAM2,
    
    FORCE,
    
@@ -116,10 +117,11 @@ void DataManager::ReadElems(MBDynParser& HP)
       "beam2",
       "hbeam",
       
-      "airproperties",
+      "air" "properties",
       "rotor",
-      "aerodynamicbody",
-      "aerodynamicbeam",
+      "aerodynamic" "body",
+      "aerodynamic" "beam",
+      "aerodynamic" "beam2",
       
       "force",
       
@@ -216,7 +218,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     break;
 	  }
 	  case AERODYNAMICBODY:
-	  case AERODYNAMICBEAM: {
+	  case AERODYNAMICBEAM:
+	  case AERODYNAMICBEAM2: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "aerodynamic" << endl);
 	     Typ = Elem::AERODYNAMIC;
 	     break;
@@ -324,6 +327,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    break;
 	  case AERODYNAMICBODY:
 	  case AERODYNAMICBEAM:	
+	  case AERODYNAMICBEAM2:	
 	    t = Elem::AERODYNAMIC;
 	    break;
 	  case GENEL:
@@ -540,6 +544,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		  case ROTOR:
 		  case AERODYNAMICBODY:
 		  case AERODYNAMICBEAM:
+		  case AERODYNAMICBEAM2:
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
 #ifdef USE_ELECTRIC_NODES
@@ -605,7 +610,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 			break;
 		     }
 		     case AERODYNAMICBODY:
-		     case AERODYNAMICBEAM: {
+		     case AERODYNAMICBEAM:
+		     case AERODYNAMICBEAM2: {
 			ppE = ppFindElem(Elem::AERODYNAMIC, uLabel);
 			break;
 		     }
@@ -705,6 +711,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	      case ROTOR:
 	      case AERODYNAMICBODY:
 	      case AERODYNAMICBEAM:
+	      case AERODYNAMICBEAM2:
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
 #ifdef USE_ELECTRIC_NODES
@@ -1096,7 +1103,8 @@ Elem** ReadOneElem(DataManager* pDM,
       
       /* Elementi aerodinamici: rotori */
     case AERODYNAMICBODY:
-    case AERODYNAMICBEAM: {
+    case AERODYNAMICBEAM:
+    case AERODYNAMICBEAM2: {
        silent_cout("Reading aerodynamic element " << uLabel << endl);
        
        if (iNumTypes[Elem::AERODYNAMIC]-- <= 0) {
@@ -1131,6 +1139,11 @@ Elem** ReadOneElem(DataManager* pDM,
 	  
 	case AERODYNAMICBEAM: {
 	   *ppE = ReadAerodynamicBeam(pDM, HP, uLabel);
+	   break;
+	}
+	  
+	case AERODYNAMICBEAM2: {
+	   *ppE = ReadAerodynamicBeam2(pDM, HP, uLabel);
 	   break;
 	}
 	  
