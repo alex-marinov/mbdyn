@@ -126,7 +126,7 @@ read(LoadableElem* pEl,
 	 * help
 	 */
 	if (HP.IsKeyWord("help")) {
-		std::cout <<
+		silent_cout(
 "									\n"
 "Module: 	wheel2							\n"
 "Author: 	Stefania Gualdi <gualdi@aero.polimi.it>			\n"
@@ -187,7 +187,7 @@ read(LoadableElem* pEl,
 "		14)	lateral friction coefficient			\n"
 "		15)	axis relative tangential velocity		\n"
 "		16)	point of contact relative tangential velocity	\n"
-			<< std::endl;
+			<< std::endl);
 
 		if (!HP.IsArg()) {
 			/*
