@@ -49,42 +49,32 @@ class ElasticConstitutiveLaw
 protected:
 	T PreStress;
 
-	virtual std::ostream& Restart_(std::ostream& out) const;
+	virtual std::ostream&
+	Restart_(std::ostream& out) const
+	{
+		out << ", prestress, ",
+			Write(out, PreStress /* + GetF() */ , ", ");
+		if (TplDriveOwner<T>::pGetDriveCaller()) {
+			out << ", prestrain, single, ",
+				Write(out, -ConstitutiveLaw<T, Tder>::Epsilon, ", ") << ", one /* ",
+				TplDriveOwner<T>::pGetDriveCaller()->Restart(out) << " */ ";
+		}
+
+		return out;
+	};
 
 public:
-	ElasticConstitutiveLaw(const TplDriveCaller<T>* pDC, const T& PStress);
-	virtual ~ElasticConstitutiveLaw(void);
+	ElasticConstitutiveLaw(const TplDriveCaller<T>* pDC, const T& PStress)
+	: TplDriveOwner<T>(pDC), PreStress(PStress)
+	{
+		NO_OP;
+	};
+
+	virtual ~ElasticConstitutiveLaw(void)
+	{
+		NO_OP;
+	};
 };
-
-
-template <class T, class Tder>
-ElasticConstitutiveLaw::ElasticConstitutiveLaw(const TplDriveCaller<T>* pDC,
-		const T& PStress)
-: TplDriveOwner<T>(pDC), PreStress(PStress)
-{
-      NO_OP;
-}
-
-template <class T, class Tder>
-ElasticConstitutiveLaw::~ElasticConstitutiveLaw(void)
-{
-	NO_OP;
-}
-
-template <class T, class Tder>
-std::ostream&
-ElasticConstitutiveLaw::Restart_(std::ostream& out) const
-{
-	out << ", prestress, ",
-		Write(out, PreStress /* + GetF() */ , ", ");
-	if (TplDriveOwner<T>::pGetDriveCaller()) {
-		out << ", prestrain, single, ",
-			Write(out, -ConstitutiveLaw<T, Tder>::Epsilon, ", ") << ", one /* ",
-			TplDriveOwner<T>::pGetDriveCaller()->Restart(out) << " */ ";
-	}
-
-	return out;
-}
 
 typedef ElasticConstitutiveLaw<doublereal, doublereal> ElasticConstitutiveLaw1D;
 typedef ElasticConstitutiveLaw<Vec3, Mat3x3> ElasticConstitutiveLaw3D;
@@ -264,7 +254,7 @@ public:
 		typedef LinearElasticGenericAxialTorsionCouplingConstitutiveLaw<Vec6, Mat6x6> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
 				cl,
-				cl(pGetDriveCaller()->pCopy()
+				cl(pGetDriveCaller()->pCopy(),
 					PreStress,
 					Stiffness,
 					dAxialTorsionCoupling));

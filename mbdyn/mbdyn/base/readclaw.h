@@ -97,6 +97,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 		"linear" "viscous",
 		"linear" "viscous" "isotropic",
 		"linear" "viscous" "generic",
+		"symbolic" "viscous" "isotropic",
 
 		"linear" "viscoelastic",
 		"linear" "viscoelastic" "isotropic",
@@ -129,6 +130,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 		LINEARVISCOUS,
 		LINEARVISCOUSISOTROPIC,
 		LINEARVISCOUSGENERIC,
+		SYMBOLICVISCOUSISOTROPIC,
 
 		LINEARVISCOELASTIC,
 		LINEARVISCOELASTICISOTROPIC,
@@ -346,6 +348,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 	}
 
 	case SYMBOLICELASTICISOTROPIC:
+	case SYMBOLICVISCOUSISOTROPIC:
 	case SYMBOLICVISCOELASTICISOTROPIC: {
 		CLType = ConstLawType::ELASTIC;
 
@@ -359,9 +362,6 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 				THROW(DataManager::ErrGeneric());
 			}
 			SAFESTRDUP(epsilon, tmp);
-
-		} else {
-			epsilon = "epsilon";
 		}
 
 		if (HP.IsKeyWord("epsilon" "prime")) {
@@ -372,7 +372,20 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 				THROW(DataManager::ErrGeneric());
 			}
 			SAFESTRDUP(epsilonPrime, tmp);
-			CLType = ConstLawType::VISCOELASTIC;
+
+			if (epsilon == 0) {
+				CLType = ConstLawType::VISCOUS;
+			} else {
+				CLType = ConstLawType::VISCOELASTIC;
+			}
+		}
+
+		/* default - deprecated ... */
+		if (epsilon == 0 && epsilonPrime == 0) {
+			silent_cerr("need \"epsilon\" or \"epsilon prime\" "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+			THROW(ErrGeneric());
 		}
 
 		if (!HP.IsKeyWord("expression")) {
@@ -399,13 +412,37 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 		T PreStrain(0.);
 		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, pDH, PreStrain);
 
-		if (epsilonPrime) {
-			typedef SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder> L;
-			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, epsilon, epsilonPrime, expression, symbols));
-
-		} else {
+		switch (CLType) {
+		case ConstLawType::ELASTIC: {
 			typedef SymbolicElasticIsotropicConstitutiveLaw<T, Tder> L;
-			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, epsilon, expression, symbols));
+			SAFENEWWITHCONSTRUCTOR(pCL, L,
+					L(pTplDC, PreStress,
+						epsilon,
+						expression, symbols));
+			break;
+		}
+
+		case ConstLawType::VISCOUS: {
+			typedef SymbolicViscousIsotropicConstitutiveLaw<T, Tder> L;
+			SAFENEWWITHCONSTRUCTOR(pCL, L,
+					L(pTplDC, PreStress,
+						epsilonPrime,
+						expression, symbols));
+			break;
+		}
+
+		case ConstLawType::VISCOELASTIC: {
+			typedef SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder> L;
+			SAFENEWWITHCONSTRUCTOR(pCL, L,
+					L(pTplDC, PreStress,
+						epsilon, epsilonPrime,
+						expression, symbols));
+			break;
+		}
+
+		default:
+			ASSERT(0);
+			THROW(ErrGeneric());
 		}
 
 		break;

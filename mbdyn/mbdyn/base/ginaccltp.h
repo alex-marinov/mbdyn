@@ -37,9 +37,7 @@
 #ifdef HAVE_GINAC
 
 #include <symcltp.h>
-#ifdef HAVE_GINAC_GINAC_H
 #include <ginac/ginac.h>
-#endif /* HAVE_GINAC_GINAC_H */
 
 /* specialize for scalar constitutive law */
 
@@ -138,9 +136,10 @@ gEps(epsilon), gSymList(0), vals(0)
 		throw e;
 	}
 
-	silent_cout("Eps:              \"" << gEps << "\"" << std::endl
-		<< "Constitutive law: \"" << gExpr << "\"" << std::endl
-		<< "Der/Eps:          \"" << gDerEps << "\"" << std::endl);
+	silent_cout("\tSymbolicElasticIsotropicConstitutiveLaw:" << std::endl
+		<< "\t\tEps:              \"" << gEps << "\"" << std::endl
+		<< "\t\tConstitutive law: \"" << gExpr << "\"" << std::endl
+		<< "\t\tDer/Eps:          \"" << gDerEps << "\"" << std::endl);
 }
  
 SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>::~SymbolicElasticIsotropicConstitutiveLaw(void)
@@ -322,9 +321,10 @@ gEpsPrime(epsilonPrime), gSymList(0), vals(0)
 		throw e;
 	}
 
-	silent_cout("EpsPrime:         \"" << gEpsPrime << "\"" << std::endl
-		<< "Constitutive law: \"" << gExpr << "\"" << std::endl
-		<< "Der/EpsPrime:     \"" << gDerEpsPrime << "\"" << std::endl);
+	silent_cout("\tSymbolicViscousIsotropicConstitutiveLaw:" << std::endl
+		<< "\t\tEpsPrime:         \"" << gEpsPrime << "\"" << std::endl
+		<< "\t\tConstitutive law: \"" << gExpr << "\"" << std::endl
+		<< "\t\tDer/EpsPrime:     \"" << gDerEpsPrime << "\"" << std::endl);
 }
  
 SymbolicViscousIsotropicConstitutiveLaw<doublereal, doublereal>::~SymbolicViscousIsotropicConstitutiveLaw(void)
@@ -382,7 +382,6 @@ SymbolicViscousIsotropicConstitutiveLaw<doublereal, doublereal>::Update(const do
 
 	ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime = EpsPrime;
 
-	l.append(gEps == e);
 	l.append(gEpsPrime == EpsPrime);
 
 	if (gSymList) {
@@ -396,7 +395,7 @@ SymbolicViscousIsotropicConstitutiveLaw<doublereal, doublereal>::Update(const do
 		ElasticConstitutiveLaw<doublereal, doublereal>::PreStress
 		+ GiNaC::ex_to<GiNaC::numeric>(f_expr).to_double();
 
-	GiNaC::ex f_derEpsPrime = gDerEps.subs(l);
+	GiNaC::ex f_derEpsPrime = gDerEpsPrime.subs(l);
 	ConstitutiveLaw<doublereal, doublereal>::FDEPrime = GiNaC::ex_to<GiNaC::numeric>(f_derEpsPrime).to_double();
 }
 
@@ -518,11 +517,12 @@ gEps(epsilon), gEpsPrime(epsilonPrime), gSymList(0), vals(0)
 		throw e;
 	}
 
-	silent_cout("Eps:              \"" << gEps << "\"" << std::endl
-		<< "EpsPrime:         \"" << gEpsPrime << "\"" << std::endl
-		<< "Constitutive law: \"" << gExpr << "\"" << std::endl
-		<< "Der/Eps:          \"" << gDerEps << "\"" << std::endl
-		<< "Der/EpsPrime:     \"" << gDerEpsPrime << "\"" << std::endl);
+	silent_cout("\tSymbolicViscoElasticIsotropicConstitutiveLaw:" << std::endl
+		<< "\t\tEps:              \"" << gEps << "\"" << std::endl
+		<< "\t\tEpsPrime:         \"" << gEpsPrime << "\"" << std::endl
+		<< "\t\tConstitutive law: \"" << gExpr << "\"" << std::endl
+		<< "\t\tDer/Eps:          \"" << gDerEps << "\"" << std::endl
+		<< "\t\tDer/EpsPrime:     \"" << gDerEpsPrime << "\"" << std::endl);
 }
  
 SymbolicViscoElasticIsotropicConstitutiveLaw<doublereal, doublereal>::~SymbolicViscoElasticIsotropicConstitutiveLaw(void)
@@ -556,7 +556,7 @@ SymbolicViscoElasticIsotropicConstitutiveLaw<doublereal, doublereal>::Restart(st
 {
 	out << "symbolic elastic isotropic, "
 		 << "epsilon, \"" << gEps
-		"epsilon prime, \"" << gEpsPrime
+		<< "epsilon prime, \"" << gEpsPrime
 		<< "\", expression, \"" << gExpr << "\"";
 
 	if (gSymList) {
@@ -603,7 +603,7 @@ SymbolicViscoElasticIsotropicConstitutiveLaw<doublereal, doublereal>::Update(con
 	GiNaC::ex f_derEps = gDerEps.subs(l);
 	ConstitutiveLaw<doublereal, doublereal>::FDE = GiNaC::ex_to<GiNaC::numeric>(f_derEps).to_double();
 
-	GiNaC::ex f_derEpsPrime = gDerEps.subs(l);
+	GiNaC::ex f_derEpsPrime = gDerEpsPrime.subs(l);
 	ConstitutiveLaw<doublereal, doublereal>::FDEPrime = GiNaC::ex_to<GiNaC::numeric>(f_derEpsPrime).to_double();
 }
 
