@@ -1807,9 +1807,9 @@ ReadModal(DataManager* pDM,
       THROW(DataManager::ErrGeneric());
    }
    
-   while (fdat) {        /* parsing del file */ 
+   while (!fdat.eof()) {        /* parsing del file */ 
       fdat.getline(str,255);
-      
+
       if (!strncmp("** RECORD GROUP 1,", str, 18)) {  /* legge il primo blocco (HEADER) */
 	 fdat.getline(str,255);
 	 fdat >> str;
@@ -1911,51 +1911,53 @@ ReadModal(DataManager* pDM,
 	       }
 	    }
 	 }
-      }
-   }
+      }	
    
-   /* double scalfact = scalemodes*scalemodes; */
    
-   if (!strncmp("** RECORD GROUP 9,", str, 18)) {  /* Matrice di massa  modale */
-      for (iMode = 1; iMode <= NModes; iMode++) {
-	 for (jMode = 1; jMode <= NModes; jMode++) {
-	    fdat >> d;
-	    pGenMass->Put(iMode, jMode, d /**scalfact*/ );
-	 }
-      }
-   }
-   
-   if (!strncmp("** RECORD GROUP 10,", str, 19)) {  /* Matrice di rigidezza  modale */
-      for (iMode = 1; iMode <= NModes; iMode++) {
-	 for (jMode = 1; jMode <= NModes; jMode++) {
-	    fdat >> d;
-	    pGenStiff->Put(iMode, jMode, d/**scalfact*/);
-	 }
-      }
-   }
-   
-   if (!strncmp("** RECORD GROUP 11,", str, 19)) {  /* Lumped Masses  */
-      for (iNode = 1; iNode <= NFemNodes; iNode++) {
-	 for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
-	    fdat >> d;
-	    switch (jCnt) {
-	     case 1:
-	       FemMass.Put(iNode, d/**scalemasses*/);
-	       break;
-	     case 4:
-	       FemJ.Put(1, iNode, d/**scalemasses*/);
-	       break;
-	     case 5:
-	       FemJ.Put(2, iNode, d/**scalemasses*/);
-	       break;
-	     case 6:
-	       FemJ.Put(3, iNode, d/**scalemasses*/);
-	       break;
+       /* double scalfact = scalemodes*scalemodes; */
+  	 
+      if (!strncmp("** RECORD GROUP 9,", str, 18)) {  /* Matrice di massa  modale */
+         for (iMode = 1; iMode <= NModes; iMode++) {
+	    for (jMode = 1; jMode <= NModes; jMode++) {
+	       fdat >> d;
+	       pGenMass->Put(iMode, jMode, d /**scalfact*/ );
 	    }
-	 }
+         }
       }
-   } /* fine parser del file */
    
+      if (!strncmp("** RECORD GROUP 10,", str, 19)) {  /* Matrice di rigidezza  modale */
+         for (iMode = 1; iMode <= NModes; iMode++) {
+	    for (jMode = 1; jMode <= NModes; jMode++) {
+	       fdat >> d;
+	       pGenStiff->Put(iMode, jMode, d/**scalfact*/);
+	    }
+         }
+      }
+   
+      if (!strncmp("** RECORD GROUP 11,", str, 19)) {  /* Lumped Masses  */
+         for (iNode = 1; iNode <= NFemNodes; iNode++) {
+	    for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
+	       fdat >> d;
+	       switch (jCnt) {
+	       case 1:
+	          FemMass.Put(iNode, d/**scalemasses*/);
+	          break;
+	       case 4:
+	          FemJ.Put(1, iNode, d/**scalemasses*/);
+	          break;
+	       case 5:
+	          FemJ.Put(2, iNode, d/**scalemasses*/);
+		  
+		  
+	          break;
+	       case 6:
+	          FemJ.Put(3, iNode, d/**scalemasses*/);
+	          break;
+	       }
+	    }
+         }
+      } /* fine parser del file */
+   }
    fdat.close();   
    
    /* lettura dati di vincolo:

@@ -70,9 +70,6 @@ typedef char *address;
 #define __FC_DECL__(arg) arg
 #endif /* USE_UNDERSCORE */
 
-extern int finite(double);
-
-
 /*
  * FIXME: non so se e' __FC_DECL__ o solo FALSE_
  * In g2c.h e' cosi':

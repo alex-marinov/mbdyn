@@ -88,7 +88,7 @@ VERSION = @VERSION@
 mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
 
-bin_PROGRAMS = rotrel eu2rot rot2eu rot2eup rot2phi deriv cl loadable posrel sockdrive autopilot intg dae-intg env
+bin_PROGRAMS = rotrel eu2rot rot2eu rot2eup rot2phi deriv cl loadable posrel sockdrive autopilot intg dae-intg env femgen
 
 
 LIBS = ../libraries/libmbutil/libmbutil.la ../libraries/libmbmath/libmbmath.la @F2C_LIBS@
@@ -107,6 +107,7 @@ autopilot_SOURCES = autopilot.cc
 intg_SOURCES = intg.cc
 dae_intg_SOURCES = dae-intg.cc
 env_SOURCES = env.c
+femgen_SOURCES = femgen.f
 intg_LDADD = -ldl
 dae_intg_LDADD = -ldl
 
@@ -174,11 +175,20 @@ env_OBJECTS =  env.o
 env_LDADD = $(LDADD)
 env_DEPENDENCIES = 
 env_LDFLAGS = 
+femgen_OBJECTS =  femgen.o
+femgen_LDADD = $(LDADD)
+femgen_DEPENDENCIES = 
+femgen_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@
+FFLAGS = @FFLAGS@
+F77COMPILE = $(F77) $(AM_FFLAGS) $(FFLAGS)
+LTF77COMPILE = $(LIBTOOL) --mode=compile $(F77) $(AM_FFLAGS) $(FFLAGS)
+F77LD = $(F77)
+F77LINK = $(LIBTOOL) --mode=link $(F77LD) $(AM_FFLAGS) $(FFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -192,15 +202,15 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/autopilot.P .deps/cl.P .deps/dae-intg.P .deps/deriv.P \
-.deps/env.P .deps/eu2rot.P .deps/intg.P .deps/loadable.P .deps/posrel.P \
-.deps/rot2eu.P .deps/rot2eup.P .deps/rot2phi.P .deps/rotrel.P \
-.deps/sockdrive.P
-SOURCES = $(rotrel_SOURCES) $(eu2rot_SOURCES) $(rot2eu_SOURCES) $(rot2eup_SOURCES) $(rot2phi_SOURCES) $(deriv_SOURCES) $(cl_SOURCES) $(loadable_SOURCES) $(posrel_SOURCES) $(sockdrive_SOURCES) $(autopilot_SOURCES) $(intg_SOURCES) $(dae_intg_SOURCES) $(env_SOURCES)
-OBJECTS = $(rotrel_OBJECTS) $(eu2rot_OBJECTS) $(rot2eu_OBJECTS) $(rot2eup_OBJECTS) $(rot2phi_OBJECTS) $(deriv_OBJECTS) $(cl_OBJECTS) $(loadable_OBJECTS) $(posrel_OBJECTS) $(sockdrive_OBJECTS) $(autopilot_OBJECTS) $(intg_OBJECTS) $(dae_intg_OBJECTS) $(env_OBJECTS)
+.deps/env.P .deps/eu2rot.P .deps/femgen.P .deps/intg.P .deps/loadable.P \
+.deps/posrel.P .deps/rot2eu.P .deps/rot2eup.P .deps/rot2phi.P \
+.deps/rotrel.P .deps/sockdrive.P
+SOURCES = $(rotrel_SOURCES) $(eu2rot_SOURCES) $(rot2eu_SOURCES) $(rot2eup_SOURCES) $(rot2phi_SOURCES) $(deriv_SOURCES) $(cl_SOURCES) $(loadable_SOURCES) $(posrel_SOURCES) $(sockdrive_SOURCES) $(autopilot_SOURCES) $(intg_SOURCES) $(dae_intg_SOURCES) $(env_SOURCES) $(femgen_SOURCES)
+OBJECTS = $(rotrel_OBJECTS) $(eu2rot_OBJECTS) $(rot2eu_OBJECTS) $(rot2eup_OBJECTS) $(rot2phi_OBJECTS) $(deriv_OBJECTS) $(cl_OBJECTS) $(loadable_OBJECTS) $(posrel_OBJECTS) $(sockdrive_OBJECTS) $(autopilot_OBJECTS) $(intg_OBJECTS) $(dae_intg_OBJECTS) $(env_OBJECTS) $(femgen_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .cc .lo .o .s
+.SUFFIXES: .S .c .cc .f .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu ./utils/Makefile
 
@@ -321,10 +331,18 @@ dae-intg: $(dae_intg_OBJECTS) $(dae_intg_DEPENDENCIES)
 env: $(env_OBJECTS) $(env_DEPENDENCIES)
 	@rm -f env
 	$(LINK) $(env_LDFLAGS) $(env_OBJECTS) $(env_LDADD) $(LIBS)
+
+femgen: $(femgen_OBJECTS) $(femgen_DEPENDENCIES)
+	@rm -f femgen
+	$(F77LINK) $(femgen_LDFLAGS) $(femgen_OBJECTS) $(femgen_LDADD) $(LIBS)
 .cc.o:
 	$(CXXCOMPILE) -c $<
 .cc.lo:
 	$(LTCXXCOMPILE) -c $<
+.f.o:
+	$(F77COMPILE) -c $<
+.f.lo:
+	$(LTF77COMPILE) -c $<
 
 tags: TAGS
 
