@@ -40,6 +40,9 @@
 #include "matvecexp.h"
 #include "Rot.hh"
 
+/* define to use invariant residual */
+#undef MBDYN_DEFORMABLE_INVARIANT
+
 /* DeformableHingeJoint - begin */
 
 /* Costruttore non banale */
@@ -386,10 +389,16 @@ ElasticHingeJoint::AssVec(SubVectorHandler& WorkVec)
 		ConstitutiveLaw3DOwner::Update(tilde_ThetaCurr);
 	}
 
-	Vec3 F(R1h*GetF());
+#ifndef MBDYN_DEFORMABLE_INVARIANT
+	/* Couple attached to node 1 */
+	Vec3 M(R1h*GetF());
+#else /* MBDYN_DEFORMABLE_INVARIANT */
+	/* Couple in intermediate reference frame (invariant) */
+	Vec3 M(R1h*(RotManip::Rot(tilde_ThetaCurr/2.)*GetF()));
+#endif /* MBDYN_DEFORMABLE_INVARIANT */
 
-	WorkVec.Add(1, F);
-	WorkVec.Sub(4, F);
+	WorkVec.Add(1, M);
+	WorkVec.Sub(4, M);
 }
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
@@ -636,10 +645,14 @@ ViscousHingeJoint::AssRes(SubVectorHandler& WorkVec,
 		ConstitutiveLaw3DOwner::Update(Zero3, tilde_Omega);
 	}
 
-	Vec3 F(R1h*ConstitutiveLaw3DOwner::GetF());
+#ifndef MBDYN_DEFORMABLE_INVARIANT
+	Vec3 M(R1h*ConstitutiveLaw3DOwner::GetF());
+#else /* MBDYN_DEFORMABLE_INVARIANT */
+	Vec3 M(R1h*(RotManip::Rot(RotManip::VecRot(R1h.Transpose()*pNode2->GetRCurr()*tilde_R2h)/2.)*GetF()));
+#endif /* MBDYN_DEFORMABLE_INVARIANT */
 
-	WorkVec.Add(1, F);
-	WorkVec.Sub(4, F);
+	WorkVec.Add(1, M);
+	WorkVec.Sub(4, M);
 
 	return WorkVec;
 }
@@ -684,7 +697,7 @@ ViscousHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Add(4, 7, Tmp);
 	WM.Sub(1, 7, Tmp);
 
-	Tmp += R1h*ConstitutiveLaw3DOwner::GetF();
+	Tmp += Mat3x3(R1h*ConstitutiveLaw3DOwner::GetF());
 	WM.Add(1, 1, Tmp);
 	WM.Sub(4, 1, Tmp);
 
@@ -731,10 +744,10 @@ ViscousHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		ConstitutiveLaw3DOwner::Update(0., tilde_Omega);
 	}
 
-	Vec3 F(R1h*ConstitutiveLaw3DOwner::GetF());
+	Vec3 M(R1h*ConstitutiveLaw3DOwner::GetF());
 
-	WorkVec.Add(1, F);
-	WorkVec.Sub(4, F);
+	WorkVec.Add(1, M);
+	WorkVec.Sub(4, M);
 
 	return WorkVec;
 }
@@ -943,10 +956,14 @@ ViscoElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 		ConstitutiveLaw3DOwner::Update(tilde_ThetaCurr, tilde_Omega);
 	}
 
-	Vec3 F(R1h*ConstitutiveLaw3DOwner::GetF());
+#ifndef MBDYN_DEFORMABLE_INVARIANT
+	Vec3 M(R1h*ConstitutiveLaw3DOwner::GetF());
+#else /* MBDYN_DEFORMABLE_INVARIANT */
+	Vec3 M(R1h*(RotManip::Rot(tilde_ThetaCurr/2.)*GetF()));
+#endif /* MBDYN_DEFORMABLE_INVARIANT */
 
-	WorkVec.Add(1, F);
-	WorkVec.Sub(4, F);
+	WorkVec.Add(1, M);
+	WorkVec.Sub(4, M);
 
 	return WorkVec;
 }
