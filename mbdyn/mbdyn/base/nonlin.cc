@@ -67,6 +67,18 @@ SolverDiagnostics::SetOutputFlags(unsigned OF)
 	OutputFlags = OF;
 }
 
+void
+SolverDiagnostics::AddOutputFlags(unsigned OF)
+{
+	OutputFlags |= OF;
+}
+
+void
+SolverDiagnostics::DelOutputFlags(unsigned OF)
+{
+	OutputFlags &= ~OF;
+}
+
 NonlinearSolver::NonlinearSolver(void)
 : Size(0),
 TotJac(0)

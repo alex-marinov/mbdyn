@@ -246,7 +246,7 @@ pNLS(NULL)
 #if USE_RTAI
 	if (bRT) {
 		/* FIXME: if using RTAI, clear out output */
-		iOutputFlags &= ~OUTPUT_MASK;
+		SetOutputFlags(OUTPUT_NONE);
 	}
 #endif /* USE_RTAI */
 }
@@ -1872,31 +1872,33 @@ Solver::ReadData(MBDynParser& HP)
        		}
 
 		case OUTPUT: {
+			unsigned OF = OUTPUT_NONE;
+
 			while (HP.fIsArg()) {
 				KeyWords OutputFlag(KeyWords(HP.GetWord()));
 				switch (OutputFlag) {
 				case NONE:
-					OutputFlags = OUTPUT_NONE;
+					OF = OUTPUT_NONE;
 					break;
 
 				case ITERATIONS:
-					OutputFlags |= OUTPUT_ITERS;
+					OF |= OUTPUT_ITERS;
 					break;
 
 				case RESIDUAL:
-					OutputFlags |= OUTPUT_RES;
+					OF |= OUTPUT_RES;
 					break;
 
 				case SOLUTION:
-					OutputFlags |= OUTPUT_SOL;
+					OF |= OUTPUT_SOL;
 					break;
 
 				case JACOBIAN:
-					OutputFlags |= OUTPUT_JAC;
+					OF |= OUTPUT_JAC;
 					break;
 
 				case MESSAGES:
-					OutputFlags |= OUTPUT_MSG;
+					OF |= OUTPUT_MSG;
 					break;
 
 				default:
@@ -1906,6 +1908,8 @@ Solver::ReadData(MBDynParser& HP)
 					break;
 				}
 			}
+
+			SetOutputFlags(OF);
 			
 			break;
 		}

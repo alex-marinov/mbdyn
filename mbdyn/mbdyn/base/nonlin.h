@@ -87,6 +87,8 @@ public:
 	virtual ~SolverDiagnostics(void);
 	
 	void SetOutputFlags(unsigned OF);
+	void AddOutputFlags(unsigned OF);
+	void DelOutputFlags(unsigned OF);
 		
 	inline bool outputIters(void) const {
 		return (OutputFlags & OUTPUT_ITERS);
