@@ -237,7 +237,7 @@ const char* sDefaultInputFileName = "MBDyn";
 
 
 
-Solver* RunMBDyn(MBDynParser&, const char* const, const char* const);
+Solver* RunMBDyn(MBDynParser&, const char* const, const char* const, bool);
 #ifdef MBDYN_X_MAIL_MESSAGE
 static void SendMessage(const char* const, const char* const, time_t, time_t);
 #endif /* MBDYN_X_MAIL_MESSAGE */
@@ -249,7 +249,7 @@ main(int argc, char* argv[])
 	int	rc = EXIT_SUCCESS;
 
 #ifdef USE_MPI
-	int using_mpi = 0;
+	bool using_mpi = false;
 	int WorldSize = 1;
 	int myrank = 0;
 	char ProcessorName_[1024] = "localhost", *ProcessorName = ProcessorName_;
@@ -273,12 +273,12 @@ main(int argc, char* argv[])
 			int ProcessorNameLength = sizeof(ProcessorName_);
 			MPI::Get_processor_name(ProcessorName, 
 					ProcessorNameLength); 
-			using_mpi = 1;
+			using_mpi = true;
 			break;
 		}
 	}
 
-	if ( using_mpi == 1 ) {
+	if (using_mpi) {
 		std::cerr << "using MPI (required by '-p' switch)" << std::endl;
 	}
 #endif /* USE_MPI */
@@ -350,11 +350,11 @@ main(int argc, char* argv[])
 	    		case int('m'):
 #ifdef MBDYN_X_MAIL_MESSAGE
 	        		sMailToAddress = optarg;
-#else /* !MBDYN_X_MAIL_MESSAGE */
+#else /* ! MBDYN_X_MAIL_MESSAGE */
 				std::cerr << "warning: option -m has been "
 					"disabled because of potential "
 					"vulnerabilities" << std::endl;
-#endif /* MBDYN_X_MAIL_MESSAGE */
+#endif /* ! MBDYN_X_MAIL_MESSAGE */
 	        		break;
 
 #ifdef HAVE_NICE
@@ -448,7 +448,7 @@ main(int argc, char* argv[])
 
 			case int('p'):
 #ifdef USE_MPI
-				ASSERT(using_mpi == 1);
+				ASSERT(using_mpi);
 #else /* !USE_MPI */
 				std::cerr << "switch '-p' is meaningless without MPI" << std::endl;
 #endif /* !USE_MPI */
@@ -703,7 +703,7 @@ main(int argc, char* argv[])
 						sInputFileName == sDefaultInputFileName ? "initial file" : sInputFileName);
 	     
 	        		pSolv = RunMBDyn(HP, sInputFileName, 
-						 sOutputFileName);
+						 sOutputFileName, using_mpi);
 				if (FileStreamIn.is_open()) {
 	        			FileStreamIn.close();
 				}
@@ -802,9 +802,11 @@ main(int argc, char* argv[])
 
 #ifdef USE_EXCEPTIONS
         	throw NoErr();
+
     	} catch (NoErr) {     
         	silent_cout("MBDyn terminated normally" << std::endl);
         	rc = EXIT_SUCCESS;
+
     	} catch (...) {
         	std::cerr << "An error occurred during the execution of MBDyn;"
 	    		" aborting ... " << std::endl;
@@ -828,15 +830,21 @@ exit_point:;
 Solver* 
 RunMBDyn(MBDynParser& HP, 
 	 const char* const sInputFileName,
-	 const char* const sOutputFileName)
+	 const char* const sOutputFileName,
+	 bool using_mpi)
 {
     	DEBUGCOUTFNAME("RunMBDyn");
    
-    	Solver* pSolv = NULL;
+    	Solver* pSolv(0);
 
 #ifdef USE_MPI
-    	/* flag di parallelo */
-    	flag fParallel(0);
+    	/* NOTE: the flag "bParallel" states whether the analysis 
+	 * must be run in parallel or not; the flag "using_mpi" 
+	 * can be true because the "-p" switch was detected;
+	 * it can be switched on by the "parallel" keyword in the
+	 * "data" block, but the analysis can still be scalar if
+	 * only one machine is available */
+    	bool bParallel(false);
 #endif /* USE_MPI */
 	
     	/* parole chiave */
@@ -910,7 +918,7 @@ RunMBDyn(MBDynParser& HP,
 					"\"multistep\" solver instead"
 					<< std::endl;
 	        		CurrInt = MULTISTEP;
-				fParallel = 1;
+				using_mpi = true;
 #else /* !USE_MPI */
 				std::cerr << "compile with -DUSE_MPI "
 					"to enable parallel solution" 
@@ -928,54 +936,14 @@ RunMBDyn(MBDynParser& HP,
             		}
             		break;    
 
-        	case PARALLEL: {
+        	case PARALLEL:
 #ifdef USE_MPI
-			unsigned int size = MPI::COMM_WORLD.Get_size();
-			unsigned int Bcount = 0;
-#ifdef USE_EXTERNAL			
-			int* pBuff = NULL;
-			SAFENEWARR(pBuff, int, size+1);
-			pBuff[0] = 0;
-			MPI::COMM_WORLD.Allgather(pBuff, 1, MPI::INT,
-					pBuff+1, 1, MPI::INT);
-			std::vector<unsigned int> iInterfaceProc(5);
-			unsigned int Icount = 0;
-			for (unsigned int i = 1; i <= size; i++) {
-				if (pBuff[i] == pBuff[0]) {
-					Bcount++;
-				}
-				if (pBuff[i] > 9) {
-					if (Icount <= 5) { 
-						iInterfaceProc[Icount++] = i-1;
-						
-					} else {
-						iInterfaceProc.push_back(i-1);
-					}
-				}	
-			}
-			if (Bcount == size) {
-				/* l'unica cosa che c'e' e' MBDyn */
-				MBDynComm = MPI::COMM_WORLD.Dup();
-			} else {
-				MBDynComm = MPI::COMM_WORLD.Split(pBuff[0], 1);
-			}
-			if (Icount != 0) {
-				for (unsigned int ii = 0; ii < Icount; ii++) {
-					InterfaceComms.push_back(MBDynComm.Create_intercomm(0, MPI::COMM_WORLD, iInterfaceProc[ii], INTERF_COMM_LABEL));
-				}
-			}
-			SAFEDELETEARR(pBuff);
-#else /* USE_EXTERNAL */
-			MBDynComm = MPI::COMM_WORLD.Dup();
-			Bcount = size;
-#endif /* USE_EXTERNAL */
-			if (MBDynComm.Get_rank()) {
-				silent_cout("MBDyn will run on " << Bcount 
-						<< " processors starting "
-						"from processor " /* ??? */
-						<< std::endl);
-			}
-            		fParallel = int(MBDynComm.Get_size() != 1);
+			/* NOTE: use "parallel" in "data" block 
+			 * for models that should always be solved
+			 * in parallel; otherwise this directive
+			 * is superseded by the "-p" command-line
+			 * switch */
+			using_mpi = true;
 	    		break;
 #else /* !USE_MPI */
             		std::cerr << "compile with -DUSE_MPI to enable "
@@ -985,7 +953,7 @@ RunMBDyn(MBDynParser& HP,
 			break;
 #endif /* USE_EXCEPTIONS */
 #endif /* !USE_MPI */
-		}	
+
         	case END:
 	    		if (KeyWords(HP.GetWord()) != DATA) {
 	        		std::cerr << std::endl 
@@ -1007,27 +975,77 @@ RunMBDyn(MBDynParser& HP,
    
    	/* Uscita dal ciclo infinito */
 endofcycle:   
-   
+
+
+#ifdef USE_MPI
+	/* using_mpi is detected from command line switch "-p"
+	 * or set after "parallel" config statement */
+	if (using_mpi) {
+		unsigned int size = MPI::COMM_WORLD.Get_size();
+		unsigned int Bcount = 0;
+
+#ifdef USE_EXTERNAL
+		int* pBuff = NULL;
+		SAFENEWARR(pBuff, int, size+1);
+		pBuff[0] = 0;
+		MPI::COMM_WORLD.Allgather(pBuff, 1, MPI::INT, 
+				pBuff+1, 1, MPI::INT);
+		std::vector<unsigned int> iInterfaceProc(5);
+		unsigned int Icount = 0;
+		for (unsigned int i = 1; i <= size; i++) {
+			if (pBuff[i] == pBuff[0]) {
+				Bcount++;
+			}
+			if (pBuff[i] > 9) {
+				if (Icount <= 5) { 
+					iInterfaceProc[Icount++] = i-1;
+
+				} else {
+					iInterfaceProc.push_back(i-1);
+				}
+			}	
+		}
+		if (Bcount == size) {
+			/* l'unica cosa che c'e' e' MBDyn */
+			MBDynComm = MPI::COMM_WORLD.Dup();
+		} else {
+			MBDynComm = MPI::COMM_WORLD.Split(pBuff[0], 1);
+		}
+		if (Icount != 0) {
+			for (unsigned int ii = 0; ii < Icount; ii++) {
+				InterfaceComms.push_back(MBDynComm.Create_intercomm(0, MPI::COMM_WORLD, iInterfaceProc[ii], INTERF_COMM_LABEL));
+			}
+		}
+		SAFEDELETEARR(pBuff);
+#else /* ! USE_EXTERNAL */
+		MBDynComm = MPI::COMM_WORLD.Dup();
+		Bcount = size;
+#endif /* ! USE_EXTERNAL */
+		if (MBDynComm.Get_rank()) {
+			silent_cout("MBDyn will run on " << Bcount
+					<< " processors starting from "
+					"processor " /* ??? */
+					<< std::endl);
+		}
+       		bParallel = (MBDynComm.Get_size() != 1);
+	}
+#endif /* USE_MPI */
+
     	switch (CurrInt) {
     	case MULTISTEP: 
-#ifdef USE_MPI
-		if (fParallel) {
-        		SAFENEWWITHCONSTRUCTOR(pSolv,
-					Solver,
-					Solver(HP, sInputFileName, 
-						sOutputFileName, fParallel));
-		} else {
-#endif /* USE_MPI */
-			SAFENEWWITHCONSTRUCTOR(pSolv,
+        	SAFENEWWITHCONSTRUCTOR(pSolv,
 				Solver,
-				Solver(HP, sInputFileName,
-					sOutputFileName));
-#ifdef USE_MPI
-		}
-#endif /* USE_MPI */
+				Solver(HP, sInputFileName, 
+					sOutputFileName, bParallel));
         	break;
-      
+ 
     	case RUNGEKUTTA:
+		/* FIXME: this is rather obsolete, since our 
+		 * integration scheme incorporates implicit 
+		 * Runge-Kutta and multistep/single-lag methods
+		 * in one scheme; the "thirdorder" method
+		 * is actually an implicit Runge-Kutta with
+		 * tunable algorithmic dissipation */
         	std::cerr << "Sorry, implicit Runge-Kutta isn't supported yet;"
 	    		<< std::endl << "aborting ..." << std::endl;
         	THROW(ErrNotImplementedYet());
@@ -1046,9 +1064,9 @@ endofcycle:
 
 #ifdef USE_EXCEPTIONS
 	} catch (...) {
-		if (pSolv != NULL) {
+		if (pSolv) {
 			SAFEDELETE(pSolv);
-			pSolv = NULL;
+			pSolv = 0;
 		}
 		throw;
 	}
@@ -1059,7 +1077,7 @@ endofcycle:
 
 #ifdef MBDYN_X_MAIL_MESSAGE
 /*
- * Plenty of potential vulnerabilities
+ * Plenty of potential vulnerabilities; never enable
  */
 static void 
 SendMessage(const char* const sInputFileName,
@@ -1071,7 +1089,7 @@ SendMessage(const char* const sInputFileName,
    
     	/* Scrive il messaggio in un file temporaneo */
 	std::ofstream Msg("mbdyn.msg");
-    	Msg << "Mbdyn terminated job ";
+    	Msg << "MBDyn terminated job ";
     	if (sInputFileName != NULL) {
         	Msg << "'" << sInputFileName << "' ";
     	}
