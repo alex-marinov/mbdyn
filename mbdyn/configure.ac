@@ -686,6 +686,9 @@ if test $ol_with_blas != no ; then
 	fi
 
 	try_blas_LIBS="-l$ol_with_goto_lib -lxerbla"
+	if test $have_libf2c != no ; then
+		try_blas_LIBS="$try_blas_LIBS $F2C_LIBS"
+	fi
 	if test $have_blas = no ; then
 		if test $ol_with_blas = "auto" -o $ol_with_blas = "goto" ; then
 			LIBS="$try_blas_LIBS $LIBS"
