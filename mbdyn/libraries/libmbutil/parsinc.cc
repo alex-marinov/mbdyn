@@ -206,7 +206,7 @@ IncludeParser::Include_()
       		THROW(HighParser::ErrColonExpected());
    	}
    
-   	const char* sfname = this->GetFileName();
+   	const char* sfname = GetFileName();
    
    	MyInput* pmi = NULL;
 #ifdef USE_INCLUDE_PARSER
@@ -219,6 +219,8 @@ IncludeParser::Include_()
    	MyInStack.Push(pmi);
    
    	pf = NULL;
+   	pIn = NULL;
+
    	SAFENEWWITHCONSTRUCTOR(pf, std::ifstream, std::ifstream(sfname));
    	if (!(*pf)) {
 #ifdef DEBUG
@@ -233,7 +235,6 @@ IncludeParser::Include_()
       		THROW(ErrFile());
    	}
    
-   	pIn = NULL;
    	SAFENEWWITHCONSTRUCTOR(pIn, InputStream, InputStream(*pf));
    
    	/* Cambio di directory */
