@@ -33,9 +33,6 @@
 
 #if defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H)
 
-/* FIXME: temporary hack ... */
-//#undef HAVE_LTDL_H
-
 #include <string.h>
 #ifdef HAVE_LTDL_H
 #include <ltdl.h>
@@ -60,6 +57,7 @@ enum method_t {
 	METHOD_MULTISTEP,
 	METHOD_HOPE,
 	METHOD_CUBIC,
+	METHOD_RADAU_II,
 	METHOD_CRANK_NICHOLSON
 };
 	
@@ -75,6 +73,7 @@ struct integration_data {
 static int method_multistep(const char*, integration_data*, void*, const char*);
 static int method_hope(const char*, integration_data*, void*, const char*);
 static int method_cubic(const char*, integration_data*, void*, const char*);
+static int method_radau_II(const char*, integration_data*, void*, const char*);
 static int method_cn(const char*, integration_data*, void*, const char*);
 
 static void* get_method_data(method_t, const char*);
@@ -89,6 +88,7 @@ main(int argn, char *const argv[])
 		{ "ms",                METHOD_MULTISTEP         },
 		{ "hope",              METHOD_HOPE              },
 		{ "cubic",             METHOD_CUBIC             },
+		{ "radau-II",	       METHOD_RADAU_II		},
 		{ "crank-nicholson",   METHOD_CRANK_NICHOLSON   },
 	
 		{ NULL,                METHOD_UNKNOWN           }
@@ -100,7 +100,7 @@ main(int argn, char *const argv[])
    	integration_data d = { 0., 1., 1.e-3, 1.e-6, 10 };
 
    	/* opzioni */
-   	const char optstring[] = "i:m:t:T:n:r:u:h";
+   	const char optstring[] = "i:lm:t:T:n:r:u:h";
    	const struct option longopts[] = { 
 		{ "integrator",     required_argument, NULL, int('i') },
 		{ "method-data",    required_argument, NULL, int('m') },
@@ -136,9 +136,12 @@ main(int argn, char *const argv[])
 	  		break;
 			
        		case int('h'):
-	  		std::cerr << "usage: int -[imtTnruh] [module]" << std::endl
+	  		std::cerr << "usage: int -[imtTnruh] [module]"
+				<< std::endl
 	    			<< std::endl
 	    			<< " -i,--integrator   : integration method"
+				<< std::endl
+				<< " -l                : list available methods"
 				<< std::endl
 	    			<< " -m,--method-data  : method-dependent data"
 				<< std::endl
@@ -170,7 +173,13 @@ main(int argn, char *const argv[])
 	  		}
 	  		break;
        		}
-		
+
+		case 'l':
+			for (int i = 0; s_m[i].s; i++) {
+				std::cout << "    " << s_m[i].s << std::endl;
+			}
+	  		break;
+			
        		case int('m'):
 	  		method_data = get_method_data(curr_method, optarg);
 	  		break;
@@ -239,6 +248,9 @@ main(int argn, char *const argv[])
     	case METHOD_CUBIC:
       		rc = method_cubic(module, &d, method_data, user_defined);
       		break;
+    	case METHOD_RADAU_II:
+      		rc = method_radau_II(module, &d, method_data, user_defined);
+      		break;
     	case METHOD_CRANK_NICHOLSON:
       		rc = method_cn(module, &d, method_data, user_defined);
       		break;
@@ -262,6 +274,7 @@ get_method_data(method_t curr_method, const char* optarg)
 {
    	switch (curr_method) {
 	case METHOD_CUBIC:
+	case METHOD_RADAU_II:
 		if (strcasecmp(optarg, "linear") == 0) {
 			bool *pi = new bool;
 			*pi = true;
@@ -728,6 +741,282 @@ method_cubic(const char* module, integration_data* d,
 					+ cn0p(1.)*xPm1 + cn1p(1.)*xPm2;
 		 		doublereal xPz = (cm0p(1. + z)*xm1 + cm1p(1. + z)*xm2)/dt
 					+ cn0p(1. + z)*xPm1 + cn1p(1. + z)*xPm2;
+		 		doublereal x = xm1 + dt*(w1*xPm1 + wz*xPz + w0*xP);
+		 		doublereal xz = m0*x + m1*xm1 + dt*(n0*xP + n1*xPm1);
+	
+		 		pX->PutCoef(k, x);
+		 		pXP->PutCoef(k, xP);
+				Xz.PutCoef(k, xz);
+				XPz.PutCoef(k, xPz);
+			}
+      		}
+      
+     
+      		// test
+      		int j = 0;
+      		doublereal test;      
+      		do {
+
+			Jac = sm.pMatHdl();
+			Res = sm.pResHdl();   
+			Sol = sm.pSolHdl();   
+
+			Resz.Attach(size, Res->pdGetVec() + size);
+
+	 		Res->Reset();
+	 		(*::ff->func)(p_data, *Res, *pX, *pXP, t);
+			//Res->Reset() zero also Resz!
+	 		//Resz.Reset();
+	 		(*::ff->func)(p_data, Resz, Xz, XPz, t + z*dt);
+
+			//Res->Norm() computes also Resz!
+	 		//test = Res->Norm() + Resz->Norm();
+	 		test = Res->Norm();
+	 		if (test < tol) {
+	    			break;
+	 		}
+	 		if (++j > maxiter) {
+	    			std::cerr << "current iteration " << j 
+	      				<< " exceeds max iteration number "
+					<< maxiter << std::endl;
+	    			exit(EXIT_FAILURE);
+	 		}
+	 
+	 		// correct
+	 		sm.MatrInit();
+	 		Jz.Init();
+	 		JPz.Init();
+	 		J0.Init();
+	 		JP0.Init();
+	 		(*::ff->grad)(p_data, Jz, JPz, Xz, XPz, t + z*dt);
+	 		(*::ff->grad)(p_data, J0, JP0, *pX, *pXP, t);
+
+			for (int ir = 1; ir <= size; ir++) {
+				for (int ic = 1; ic <= size; ic++) {
+					Jac->IncCoef(ir, ic, j00*J0.dGetCoef(ir, ic) + JP0.dGetCoef(ir, ic));
+					Jac->IncCoef(ir, size + ic, j0z*J0.dGetCoef(ir, ic));
+					Jac->IncCoef(size + ir, ic, jz0*Jz.dGetCoef(ir, ic));
+					Jac->IncCoef(size + ir, size + ic, jzz*Jz.dGetCoef(ir, ic) + JPz.dGetCoef(ir, ic));
+				}
+			}
+
+	 		sm.Solve();
+	 
+	 		// update
+	 		for (int ir = size; ir > 0; ir--) {
+	    			doublereal dxP0 = Sol->dGetCoef(ir);
+	    			doublereal dxPz = Sol->dGetCoef(size+ir);
+	    			pXP->IncCoef(ir, dxP0);
+				XPz.IncCoef(ir, dxPz);
+	    			pX->IncCoef(ir, dt*(wz*dxPz + w0*dxP0));
+				Xz.IncCoef(ir, dt*(m0*(wz*dxPz + w0*dxP0)+n0*dxP0));
+	 		}
+     	 	} while (true);
+      
+      		// output
+      		std::cout << t << " " << test << " ";
+      		(*::ff->out)(p_data, std::cout, *pX, *pXP) << std::endl;
+      
+      		flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);            
+   	}
+   
+   	(*::ff->destroy)(&p_data);
+   	delete[] pd;
+   	delete[] ppd;
+
+   	return 0;
+}
+
+static doublereal
+radau_II_cm0(const doublereal& xi)
+{
+	return 1 - xi*xi;
+}
+
+static doublereal
+radau_II_cm0p(const doublereal& xi)
+{
+	return - 2.*xi;
+}
+
+static doublereal
+radau_II_cm1(const doublereal& xi)
+{
+	return xi*xi;
+}
+
+static doublereal
+radau_II_cm1p(const doublereal& xi)
+{
+	return 2.*xi;
+}
+
+static doublereal
+radau_II_cn0(const doublereal& xi)
+{
+	return xi + xi*xi;
+}
+
+static doublereal
+radau_II_cn0p(const doublereal& xi)
+{
+	return 1. + 2.*xi;
+}
+
+static doublereal
+radau_II_cn1(const doublereal& xi)
+{
+	return 0.;
+}
+
+static doublereal
+radau_II_cn1p(const doublereal& xi)
+{
+	return 0.;
+}
+
+static int
+method_radau_II(const char* module, integration_data* d, 
+	     void* method_data, const char* user_defined)
+{
+	bool linear = false;
+
+	if (method_data) {
+		bool *pi = (bool *)method_data;
+
+		linear = *pi;
+	}
+
+   	open_module(module);
+
+   	// prepara i dati
+   	void* p_data = NULL;
+   	(*::ff->read)(&p_data, user_defined);
+   
+   	// prepara le strutture dati per il calcolo
+   	int size = (*::ff->size)(p_data);
+   	MyVectorHandler v0(size);
+   	MyVectorHandler v1(size);
+   	MyVectorHandler v2(size);
+   	MyVectorHandler v3(size);
+   	MyVectorHandler v4(size);
+   	MyVectorHandler v5(size);
+   
+   	VectorHandler* pX = &v0;
+   	VectorHandler* pXP = &v1;
+   	VectorHandler* pXm1 = &v2;
+   	VectorHandler* pXPm1 = &v3;
+   	VectorHandler* pXm2 = &v4;
+   	VectorHandler* pXPm2 = &v5;
+   	pX->Reset();
+   	pXP->Reset();
+   	pXm1->Reset();
+   	pXPm1->Reset();
+   	pXm2->Reset();
+   	pXPm2->Reset();
+   
+   	doublereal* pd = new doublereal[4*size*size];
+   	doublereal** ppd = new doublereal*[4*size];
+   	FullMatrixHandler Jz(pd, ppd, size*size, size, size);
+   	FullMatrixHandler J0(pd+size*size, ppd+size, size*size, size, size);
+	FullMatrixHandler JPz(pd+2*size*size, ppd+2*size,
+			size*size, size, size);
+	FullMatrixHandler JP0(pd+3*size*size, ppd+3*size,
+			size*size, size, size);
+   	MyVectorHandler Xz(size);
+   	MyVectorHandler XPz(size);
+   
+#if defined(USE_UMFPACK)
+	UmfpackSparseLUSolutionManager sm(2*size);
+#elif defined(USE_Y12)
+	Y12SparseLUSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
+#elif defined(USE_HARWELL)
+   	HarwellSparseLUSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
+#elif defined(USE_MESCHACH)
+	MeschachSparseLUSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
+#endif
+   
+   	MatrixHandler* Jac = sm.pMatHdl();
+   	VectorHandler* Res = sm.pResHdl();   
+   	VectorHandler* Sol = sm.pSolHdl();   
+
+   	MyVectorHandler Resz(size, Res->pdGetVec() + size);
+
+   	// paramteri di integrazione
+   	doublereal ti = d->ti;
+   	doublereal dt = d->dt;
+   	doublereal tf = d->tf;
+   
+   	doublereal tol = d->tol;
+   	int maxiter = d->maxiter;
+   
+   	// coefficienti del metodo
+   	doublereal z = -2./3.;
+   	doublereal w1 = 0.;
+   	doublereal wz = -1./(2.*z);
+   	doublereal w0 = (1.+2.*z)/(2.*z);
+   	doublereal m0 = radau_II_cm0(z);
+   	doublereal m1 = radau_II_cm1(z);
+   	doublereal n0 = radau_II_cn0(z);
+   	doublereal n1 = radau_II_cn1(z);
+
+	doublereal jzz = 5./12.*dt;
+	doublereal jz0 = -1./12.*dt;
+	doublereal j0z = 3./4.*dt;
+	doublereal j00 = 1./4.*dt;
+
+   	doublereal t = ti;
+   
+   	// inizializza la soluzione
+   	(*::ff->init)(p_data, *pX, *pXP);
+   	(*::ff->func)(p_data, *Res, *pX, *pXP, t);
+   	for (int k = 1; k <= size; k++) {
+      		doublereal x = pX->dGetCoef(k);
+      		doublereal xp = pXP->dGetCoef(k);
+      		pXPm1->PutCoef(k, xp);
+      		pXm1->PutCoef(k, x - dt*xp);
+   	}
+   
+   	// output iniziale
+   	std::cout << ti << " " << 0. << " ";
+   	(*::ff->out)(p_data, std::cout, *pX, *pXP) << std::endl;
+   
+   	flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);
+   
+   	while (t < tf) {
+      		t += dt;
+
+		if (linear) {
+
+			std::cerr << "linear predictor" << std::endl;
+			
+	      		// predict lineare
+	      		for (int k = 1; k <= size; k++) {
+		 		doublereal xm1 = pXm1->dGetCoef(k);
+		 		doublereal xPm1 = pXPm1->dGetCoef(k);
+		 		doublereal xP = xPm1;
+		 		doublereal xPz = xPm1;
+		 		doublereal x = xm1 + dt*xP;
+		 		doublereal xz = xm1 + dt*(1.+z)*xP;
+	
+		 		pX->PutCoef(k, x);
+		 		pXP->PutCoef(k, xP);
+				Xz.PutCoef(k, xz);
+				XPz.PutCoef(k, xPz);
+      			}
+ 
+		} else {
+
+      			// predict cubico
+      			for (int k = 1; k <= size; k++) {
+		 		doublereal xm1 = pXm1->dGetCoef(k);
+		 		doublereal xPm1 = pXPm1->dGetCoef(k);
+		 		doublereal xm2 = pXm2->dGetCoef(k);
+		 		doublereal xPm2 = pXPm2->dGetCoef(k);
+		 		doublereal xP = (radau_II_cm0p(1.)*xm1 + radau_II_cm1p(1.)*xm2)/dt
+					+ radau_II_cn0p(1.)*xPm1 + radau_II_cn1p(1.)*xPm2;
+		 		doublereal xPz = (radau_II_cm0p(1. + z)*xm1 + radau_II_cm1p(1. + z)*xm2)/dt
+					+ radau_II_cn0p(1. + z)*xPm1 + radau_II_cn1p(1. + z)*xPm2;
 		 		doublereal x = xm1 + dt*(w1*xPm1 + wz*xPz + w0*xP);
 		 		doublereal xz = m0*x + m1*xm1 + dt*(n0*xP + n1*xPm1);
 	
