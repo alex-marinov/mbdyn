@@ -1466,6 +1466,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		/* DEPRECATED */ "nostro" /* END OF DEPRECATED */ ,
 		"ms",
 		"hope",
+		"bdf",
 	
 		"derivatives" "coefficient",
 		"derivatives" "tolerance",
@@ -1527,6 +1528,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		NOSTRO, 
 		MS,
 		HOPE,
+		BDF,
 	
 		DERIVATIVESCOEFFICIENT,
 		DERIVATIVESTOLERANCE,
@@ -1767,15 +1769,37 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	      			SAFENEW(pMethod,
 		      			CrankNicholson); /* no constructor */
 	      			break;
+				
+			case BDF: {
+				DriveCaller* pRho = NULL;
+				SAFENEWWITHCONSTRUCTOR(pRho,
+						NullDriveCaller, 
+						NullDriveCaller(NULL));
+				DriveCaller* pRhoAlgebraic = NULL;
+				SAFENEWWITHCONSTRUCTOR(pRhoAlgebraic,
+						NullDriveCaller, 
+						NullDriveCaller(NULL));
+
+		  		SAFENEWWITHCONSTRUCTOR(pMethod,
+				 	NostroMetodo,
+				 	NostroMetodo(pRho, pRhoAlgebraic));
+		  		break;
+			}
 			
 	   		case NOSTRO:
 	   		case MS:
 	   		case HOPE: {
 	      			DriveCaller* pRho =
 					ReadDriveData(NULL, HP, NULL);
-				HP.PutKeyTable(K);	      
-	      			DriveCaller* pRhoAlgebraic = 
-					ReadDriveData(NULL, HP, NULL);
+				HP.PutKeyTable(K);
+
+	      			DriveCaller* pRhoAlgebraic = NULL;
+				if (HP.fIsArg()) {
+					pRhoAlgebraic = 
+						ReadDriveData(NULL, HP, NULL);
+				} else {
+					pRhoAlgebraic = pRho->pCopy();
+				}
 				HP.PutKeyTable(K);
 			
 	      			switch (KMethod) {
