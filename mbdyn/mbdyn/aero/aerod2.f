@@ -305,6 +305,10 @@ C
       OUTA(2) = ABE/DEGRAD
       VC1 = DABS(VCSTR(1))
 C
+C Questa operazione e' stata spostata all'esterno (COEPRD) per consentire
+C l'uso di integratori impliciti, per i quali la correzione deve essere fatta
+C solo a processo iterativo concluso
+C 
 C      DAA = DA*RSPEED
 C      ALF1 = OUTA(9)/DAA
 C      OUTA(9) = ALF1
@@ -324,12 +328,15 @@ C
       RMACH = DSQRT(VCSTR(1)**2+VCSTR(2)**2+VCSTR(3)**2)/CS
       RMACH = RMACH*DSQRT(COSGAM)
       OUTA(4) = RMACH
+C Viene usato ALF1 per la prima volta: correzione instazionaria
       FR = .5D0*CORDA*ALF1*RSPEED/VP
       FR = DABS(FR)
       OUTA(11) = FR
+C Mach effettivo usato solo tra .3 e .6
       RMM = .3D0
       IF(RMACH.GT..3D0) RMM = RMACH
       IF(RMACH.GT..6D0) RMM = .6D0
+C
       DALF = 61.5D0*DLOG(.6D0/RMM)*DSQRT(FR)*PG/180.D0
       SEGNO = 1.D0
       IF(ALF1.LT.0.D0) SEGNO = -1.D0
@@ -340,15 +347,20 @@ C
      &  CRF, CFSLOP, DCPDM, DCRDRM, DCMDM, DCRFDM,
      &  ASLOP0, CSLOP0, JPRO, 0)
       ASLRF = ASLOP0
+C Se l'angolo di incidenza e' significativo corregge la slope di CL/alfa
       IF(DABS(AREF).LT.1.D-6) GOTO 10
       ASLRF = CLIFT/(AREF*COSGAM)
       IF(ASLRF.GT.ASLOP0) ASLRF = ASLOP0
  10   CONTINUE
+C Frequenza ridotta (spero che con VP = 0 non si entri qui ...)
       RK = .5*CORDA*RSPEED/VP
       PA = .25D0
+C Corregge l'angolo di incidenza attraverso le funzioni di Theodorsen
       ALF = THF(RK)*ABE+(.5D0*RK+THG(RK))*ALF1
       ALF = ALF+2.D0*(.75D0-PA)*THF(RK)*RK*ALF1
+C Viene usato ALF2 per la prima volta
       ALF = ALF-RK*RK*(PA-.5D0)*ALF2
+C Coefficiente di portanza corretto per Theodorsen (?)
       CLIFT = ASLRF*ALF
       OUTA(5) = CLIFT
       OUTA(6) = CDRAG
@@ -406,6 +418,10 @@ C     CON DATI SINTETIZZATI DI BIELAWA 31TH A.H.S. FORUM 1975
 C
       ALFA = DATAN2(-VCSTR(2),VCSTR(1))
       OUTA(2) = ALFA/DEGRAD
+C
+C Questa operazione e' stata spostata all'esterno (COEPRD) per consentire
+C l'uso di integratori impliciti, per i quali la correzione deve essere fatta
+C solo a processo iterativo concluso
 C
 C      ALF1 = OUTA(9)/DA
 C      OUTA(9) = ALF1
