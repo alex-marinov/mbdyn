@@ -126,6 +126,8 @@ mbdyn_usage( ostream& out, const char *sShortOpts )
         << "  -r, --redefine" << endl
         << "  -R, --no-redefine        :"
         " redefine/don't redefine symbols in table" << endl
+	<< "  -H, --show-table         :"
+	" print symbol table and exit" << endl
         << "  -s, --silent             :"
         " runs quietly" << endl
         << "  -h, --help               :"
