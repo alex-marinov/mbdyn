@@ -300,9 +300,13 @@ private:
 	integer iOutputFlags;
 	enum {
 		OUTPUT_NONE		= 0x0000,
+
 		OUTPUT_ITERS		= 0x0001,
 		OUTPUT_RES		= 0x0002,
 		OUTPUT_JAC		= 0x0004,
+		OUTPUT_MSG		= 0x0008,
+
+		OUTPUT_DEFAULT		= OUTPUT_MSG,
 
 		OUTPUT_MASK		= 0x00FF
 	};
@@ -317,6 +321,14 @@ private:
  
 	inline bool outputJac(void) const {
 		return (iOutputFlags & OUTPUT_JAC);
+	};
+
+        /*
+	 * all messages not protected behind any other condition
+	 * must be protected by a "if (outputMsg())" condition
+	 */
+	inline bool outputMsg(void) const {
+		return (iOutputFlags & OUTPUT_MSG);
 	};
  
    	/* Parametri per Newton-Raphson modificato */

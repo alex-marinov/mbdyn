@@ -798,7 +798,7 @@ void DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 
 
 /* Output dati */
-void DataManager::Output(int force) const
+void DataManager::Output(bool force) const
 { 
    /* output only at multiples of iOutputFrequency */
    if ((!force) && (iOutputCount++%iOutputFrequency)) {

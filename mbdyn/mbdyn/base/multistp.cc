@@ -78,26 +78,26 @@ extern "C" {
 #include <iterwrap.h>
 
 #ifdef HAVE_SIGNAL
-static volatile sig_atomic_t keep_going = 1;
-static __sighandler_t sh_term = SIG_DFL;
-static __sighandler_t sh_int = SIG_DFL;
-static __sighandler_t sh_hup = SIG_DFL;
+static volatile sig_atomic_t mbdyn_keep_going = 1;
+static __sighandler_t mbdyn_sh_term = SIG_DFL;
+static __sighandler_t mbdyn_sh_int = SIG_DFL;
+static __sighandler_t mbdyn_sh_hup = SIG_DFL;
 
 static void
 modify_final_time_handler(int signum)
 {
-   	::keep_going = 0;
+   	::mbdyn_keep_going = 0;
    	switch (signum) {
     	case SIGTERM:
-      		signal(signum, ::sh_term);
+      		signal(signum, ::mbdyn_sh_term);
       		break;
 	
     	case SIGINT:
-      		signal(signum, ::sh_int);
+      		signal(signum, ::mbdyn_sh_int);
       		break;
 	
     	case SIGHUP:
-      		signal(signum, ::sh_hup);
+      		signal(signum, ::mbdyn_sh_hup);
       		break;
    	}
 }
@@ -134,7 +134,7 @@ const integer iDefaultFictitiousStepsNumber = 0;
 const doublereal dDefaultFictitiousStepsRatio = 1.e-3;
 const doublereal dDefaultFictitiousStepsRho = 0.;
 const doublereal dDefaultFictitiousStepsTolerance = 1.e-6;
-const doublereal dDefaultTol = 1e-6;
+const doublereal dDefaultTol = 1.e-6;
 const integer iDefaultIterationsBeforeAssembly = 2;
 const integer iDefaultIterativeSolversMaxSteps = 100;
 
@@ -214,7 +214,7 @@ fAbortAfterInput(0),
 fAbortAfterAssembly(0),
 fAbortAfterDerivatives(0),
 fAbortAfterFictitiousSteps(0),
-iOutputFlags(OUTPUT_NONE),
+iOutputFlags(OUTPUT_DEFAULT),
 fTrueNewtonRaphson(1),
 iIterationsBeforeAssembly(0),
 iPerformedIterations(0),
@@ -241,6 +241,11 @@ dPivotFactor(-1.)
 	
    	/* Legge i dati relativi al metodo di integrazione */
    	ReadData(HP);
+
+#if USE_RTAI
+	/* FIXME: if using RTAI, clear out output */
+	iOutputFlags &= ~OUTPUT_MASK;
+#endif /* USE_RTAI */
 }
 
 void
@@ -340,14 +345,14 @@ MultiStepIntegrator::Run(void)
 
    	if (fAbortAfterInput) {
       		/* Esce */
-		pDM->Output(1);
+		pDM->Output(true);
       		Out << "End of Input; no simulation or assembly is required."
 			<< std::endl;
       		return;
 
    	} else if (fAbortAfterAssembly) {
       		/* Fa l'output dell'assemblaggio iniziale e poi esce */
-      		pDM->Output(1);
+      		pDM->Output(true);
       		Out << "End of Initial Assembly; no simulation is required."
 			<< std::endl;
       		return;
@@ -725,17 +730,17 @@ MultiStepIntegrator::Run(void)
 	/*
 	 * FIXME: don't do this if compiling with USE_RTAI
 	 */
-   	::sh_term = signal(SIGTERM, modify_final_time_handler);
-   	::sh_int = signal(SIGINT, modify_final_time_handler);
-   	::sh_hup = signal(SIGHUP, modify_final_time_handler);
+   	::mbdyn_sh_term = signal(SIGTERM, modify_final_time_handler);
+   	::mbdyn_sh_int = signal(SIGINT, modify_final_time_handler);
+   	::mbdyn_sh_hup = signal(SIGHUP, modify_final_time_handler);
    
-   	if (::sh_term == SIG_IGN) {
+   	if (::mbdyn_sh_term == SIG_IGN) {
       		signal (SIGTERM, SIG_IGN);
    	}
-   	if (::sh_int == SIG_IGN) {
+   	if (::mbdyn_sh_int == SIG_IGN) {
       		signal (SIGINT, SIG_IGN);
    	}
-   	if (::sh_hup == SIG_IGN) {
+   	if (::mbdyn_sh_hup == SIG_IGN) {
       		signal (SIGHUP, SIG_IGN);
    	}
 #endif /* HAVE_SIGNAL */
@@ -791,7 +796,7 @@ MultiStepIntegrator::Run(void)
 				<< " has been reached during initial"
 				" derivatives calculation;" << std::endl
 				<< "aborting ..." << std::endl;	 
-	 		pDM->Output(1);
+	 		pDM->Output(true);
 	 		THROW(MultiStepIntegrator::ErrMaxIterations());
       		}
 
@@ -851,11 +856,13 @@ EndOfDerivatives:
    	dTotErr += dTest;	
    	iTotIter += iIterCnt;
    	iTotJac += iJacCnt;
-   
-   	Out << "Derivatives solution step at time " << dInitialTime
-     		<< " performed in " << iIterCnt
-     		<< " iterations with " << dTest
-     		<< " error" << std::endl;
+  
+	if (outputMsg()) {	
+   		Out << "Derivatives solution step at time " << dInitialTime
+     			<< " performed in " << iIterCnt
+     			<< " iterations with " << dTest
+     			<< " error" << std::endl;
+	}
       
    	DEBUGCOUT("Derivatives solution step has been performed successfully"
 		  " in " << iIterCnt << " iterations" << std::endl);
@@ -864,16 +871,16 @@ EndOfDerivatives:
       		/*
 		 * Fa l'output della soluzione delle derivate iniziali ed esce
 		 */
-      		pDM->Output(1);
+      		pDM->Output(true);
       		Out << "End of derivatives; no simulation is required."
 			<< std::endl;
       		return;
 #ifdef HAVE_SIGNAL
-   	} else if (!::keep_going) {
+   	} else if (!::mbdyn_keep_going) {
       		/*
 		 * Fa l'output della soluzione delle derivate iniziali ed esce
 		 */
-      		pDM->Output(1);
+      		pDM->Output(true);
       		Out << "Interrupted during derivatives computation." << std::endl;
       		return;
 #endif /* HAVE_SIGNAL */
@@ -1004,7 +1011,7 @@ EndOfDerivatives:
 					<< " cannot be reduced further;"
 					<< std::endl
 					<< "aborting ..." << std::endl;
-	    			pDM->Output(1);
+	    			pDM->Output(true);
 	    			THROW(MultiStepIntegrator::ErrMaxIterations());
 	 		}
 
@@ -1074,13 +1081,13 @@ EndOfFirstFictitiousStep:
       		iTotJac += iJacCnt;
 
 #ifdef HAVE_SIGNAL
-      		if (!::keep_going) {
+      		if (!::mbdyn_keep_going) {
 	 		/*
 			 * Fa l'output della soluzione delle derivate iniziali
 			 * ed esce
 			 */
 #ifdef DEBUG_FICTITIOUS
-	   		pDM->Output(1);
+	   		pDM->Output(true);
 #endif /* DEBUG_FICTITIOUS */
 	 		Out << "Interrupted during first dummy step." << std::endl;
 	 		return;
@@ -1088,7 +1095,7 @@ EndOfFirstFictitiousStep:
 #endif /* HAVE_SIGNAL */
       
 #ifdef DEBUG_FICTITIOUS
-      		pDM->Output(1);
+      		pDM->Output(true);
 #endif /* DEBUG_FICTITIOUS */
             
        		/* Passi fittizi successivi */
@@ -1206,7 +1213,7 @@ EndOfFirstFictitiousStep:
 						<< ");" << std::endl
 						<< "aborting ..." << std::endl;
 						
-	       				pDM->Output(1);
+	       				pDM->Output(true);
 					THROW(MultiStepIntegrator::ErrMaxIterations());
 	    			}
 	    
@@ -1289,7 +1296,7 @@ EndOfFictitiousStep:
 				   << iIterCnt << " iterations" << std::endl);
 				   
 #ifdef HAVE_SIGNAL
-	 		if (!::keep_going) {
+	 		if (!::mbdyn_keep_going) {
 				/* */
 #ifdef DEBUG_FICTITIOUS
 	    			pDM->Output();
@@ -1302,11 +1309,13 @@ EndOfFictitiousStep:
 
 			dTime += dRefTimeStep;	  
       		}
-      
-      		Out << "Initial solution after dummy steps at time " << dTime
-			<< " performed in " << iIterCnt
-			<< " iterations with " << dTest 
-			<< " error" << std::endl;
+		if (outputMsg()) {	
+      			Out << "Initial solution after dummy steps "
+				"at time " << dTime
+				<< " performed in " << iIterCnt
+				<< " iterations with " << dTest 
+				<< " error" << std::endl;
+		}
 			
       		DEBUGLCOUT(MYDEBUG_FSTEPS, 
 			   "Fictitious steps have been completed successfully"
@@ -1316,19 +1325,21 @@ EndOfFictitiousStep:
    
    	/* Output delle "condizioni iniziali" */
    	pDM->Output();
-   
-   	Out << "Step " << 0
-     		<< " time " << dTime+dCurrTimeStep
-     		<< " step " << dCurrTimeStep
-     		<< " iterations " << iIterCnt
-     		<< " error " << dTest << std::endl;
+
+        if (outputMsg()) {	
+  	 	Out << "Step " << 0
+     			<< " time " << dTime+dCurrTimeStep
+     			<< " step " << dCurrTimeStep
+     			<< " iterations " << iIterCnt
+     			<< " error " << dTest << std::endl;
+	}
    
    	if (fAbortAfterFictitiousSteps) {
       		Out << "End of dummy steps; no simulation is required."
 			<< std::endl;
 		return;
 #ifdef HAVE_SIGNAL
-   	} else if (!::keep_going) {
+   	} else if (!::mbdyn_keep_going) {
       		/* Fa l'output della soluzione ed esce */
       		Out << "Interrupted during dummy steps." << std::endl;
       		return;
@@ -1453,7 +1464,7 @@ IfFirstStepIsToBeRepeated:
 					<< " cannot be reduced further;"
 					<< std::endl
 					<< "aborting ..." << std::endl;
-	    			pDM->Output(1);
+	    			pDM->Output(true);
 				THROW(MultiStepIntegrator::ErrMaxIterations());
 	 		}
       		}
@@ -1559,12 +1570,14 @@ EndOfFirstStep:
    	pDM->Output();
       
 #ifdef HAVE_SIGNAL
-   	if (!::keep_going) {
+   	if (!::mbdyn_keep_going) {
       		/* Fa l'output della soluzione al primo passo ed esce */
       		Out << "Interrupted during first step." << std::endl;
       		return;
-   	} else {
+   	}
 #endif /* HAVE_SIGNAL */
+
+	if (outputMsg()) {
       		Out << "Step " << iStep
 			<< " time " << dTime+dCurrTimeStep
 			<< " step " << dCurrTimeStep
@@ -1575,9 +1588,7 @@ EndOfFirstStep:
 			<< " " << bSolConv
 #endif /* MBDYN_X_CONVSOL */
 			<< std::endl;
-#ifdef HAVE_SIGNAL
-   	}
-#endif /* HAVE_SIGNAL */
+	}
 
 #ifdef MBDYN_X_CONVSOL
 	bSolConv = false;
@@ -1611,7 +1622,7 @@ EndOfFirstStep:
 				<< "total error: " << dTotErr << std::endl;
 			return;
 #ifdef HAVE_SIGNAL
-      		} else if (!::keep_going) {
+      		} else if (!::mbdyn_keep_going) {
 	 		std::cout << "Interrupted!" << std::endl
 	   			<< "Simulation ended at time "
 				<< dTime << " after " 
@@ -1892,17 +1903,19 @@ EndOfStep:
       		iTotJac += iJacCnt;
       
       		pDM->Output();     
-	 
-      		Out << "Step " << iStep 
-			<< " time " << dTime+dCurrTimeStep
-			<< " step " << dCurrTimeStep
-			<< " iterations " << iIterCnt
-			<< " error " << dTest 
+	
+	        if (outputMsg()) {	
+      			Out << "Step " << iStep 
+				<< " time " << dTime+dCurrTimeStep
+				<< " step " << dCurrTimeStep
+				<< " iterations " << iIterCnt
+				<< " error " << dTest 
 #ifdef MBDYN_X_CONVSOL
-			<< " " << dSolTest
-			<< " " << bSolConv 
+				<< " " << dSolTest
+				<< " " << bSolConv 
 #endif /* MBDYN_X_CONVSOL */
-			<< std::endl;
+				<< std::endl;
+		}
       
       		DEBUGCOUT("Step " << iStep
 			  << " has been completed successfully in "
@@ -2635,6 +2648,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 			"iterations",
 			"residual",
 			"jacobian",
+			"messages",
 	
 		"method",
 		/* DEPRECATED */ "fictitious" "steps" "method" /* END OF DEPRECATED */ ,
@@ -2716,6 +2730,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 			ITERATIONS,
 			RESIDUAL,
 			JACOBIAN,
+			MESSAGES,
 	
 		METHOD,
 		FICTITIOUSSTEPSMETHOD,
@@ -2975,6 +2990,10 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 
 				case JACOBIAN:
 					iOutputFlags |= OUTPUT_JAC;
+					break;
+
+				case MESSAGES:
+					iOutputFlags |= OUTPUT_MSG;
 					break;
 
 				default:
@@ -3633,8 +3652,8 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
         }
 
        case RESERVESTACK: {
-#ifdef USE_RTAI
 		unsigned long size = HP.GetInt();
+#ifdef USE_RTAI
 		if (reserve_stack(size)) {
 			std::cerr << "unable to reserve stack" << std::endl;
 			THROW(ErrGeneric());

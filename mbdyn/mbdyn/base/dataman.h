@@ -250,7 +250,7 @@ class DataManager : public SolutionDataManager {
    virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef);
    
    /* stampa i risultati */
-   virtual void Output(int force = 0) const;
+   virtual void Output(bool force = false) const;
    virtual void Output(const VectorHandler& X, const VectorHandler& XP) const;
    virtual void Output_pch(std::ostream& pch) const;
    virtual void Output_f06(std::ostream& f06, const VectorHandler& X) const;
