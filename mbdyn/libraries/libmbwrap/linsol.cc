@@ -58,47 +58,58 @@ static struct solver_t {
 	enum LinSol::SolverType	s_type;
 	unsigned		s_flags;
 	unsigned		s_default_flags;
+	doublereal		s_pivot_factor;
 } solver[] = {
 	{ "Harwell", NULL,
 		LinSol::HARWELL_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
-		LinSol::SOLVER_FLAGS_NONE },
+		LinSol::SOLVER_FLAGS_NONE,
+		-1. },
 	{ "Meschach", NULL,
 		LinSol::MESCHACH_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
-		LinSol::SOLVER_FLAGS_NONE },
+		LinSol::SOLVER_FLAGS_NONE,
+		-1. },
 	{ "Y12", NULL,
 		LinSol::Y12_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS },
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+		-1. },
 	{ "Umfpack", "umfpack3", 
 		LinSol::UMFPACK_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS },
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+		.1 },
 	{ "SuperLU", NULL, 
 		LinSol::SUPERLU_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT },
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
+		1. },
 	{ "Lapack", NULL,
 		LinSol::LAPACK_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
-		LinSol::SOLVER_FLAGS_NONE },
+		LinSol::SOLVER_FLAGS_NONE,
+		-1. },
 	{ "Taucs", NULL, 
 		LinSol::TAUCS_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP },
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP,
+       		-1. },
 	{ "Naive", NULL,
 		LinSol::NAIVE_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_COLAMD,
-		LinSol::SOLVER_FLAGS_NONE },
+		LinSol::SOLVER_FLAGS_NONE,
+		1.e-8 },
 	{ "Empty", NULL,
 		LinSol::EMPTY_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
-		LinSol::SOLVER_FLAGS_NONE },
+		LinSol::SOLVER_FLAGS_NONE,
+       		-1. },
 	{ NULL, NULL, 
 		LinSol::EMPTY_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
-		LinSol::SOLVER_FLAGS_NONE },
+		LinSol::SOLVER_FLAGS_NONE,
+		-1. }
 };
 
 /*
@@ -389,36 +400,19 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 	if (HP.IsKeyWord("pivot" "factor")) {
 		dPivotFactor = HP.GetReal();
 
-		switch (CurrSolver) {
-		case LinSol::NAIVE_SOLVER:
-			if (dPivotFactor <= 0. || dPivotFactor > 1.) {
-				dPivotFactor = 1.e-8;
-			}
-			break;
-
-		case LinSol::TAUCS_SOLVER:
-		case LinSol::EMPTY_SOLVER:
+		if (::solver[CurrSolver].s_pivot_factor == -1.) {
 			pedantic_cerr("pivot factor is meaningless for "
 					<< ::solver[CurrSolver].s_name
 					<< " solver" << std::endl);
-			break;
+			dPivotFactor = -1.;
 
-		default:
-			if (dPivotFactor <= 0. || dPivotFactor > 1.) {
-				dPivotFactor = 1.;
-			}
-			break;
+		} else if (dPivotFactor <= 0. || dPivotFactor > 1.) {
+			dPivotFactor = ::solver[CurrSolver].s_pivot_factor;
 		}
 
 	} else {
-		switch (CurrSolver) {
-		case LinSol::NAIVE_SOLVER:
-			dPivotFactor = 1.e-8;
-			break;
-
-		default:
-			dPivotFactor = 1.;
-			break;
+		if (::solver[CurrSolver].s_pivot_factor != -1.) {
+			dPivotFactor = ::solver[CurrSolver].s_pivot_factor;
 		}
 	}
 
