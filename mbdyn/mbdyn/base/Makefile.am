@@ -6,7 +6,6 @@ lib_LTLIBRARIES = libbase.la
 libbase_la_SOURCES = \
 auth.cc \
 auth.h \
-bool.h \
 bulk.cc \
 bulk.h \
 constltp.h \
