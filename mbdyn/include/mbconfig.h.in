@@ -101,6 +101,9 @@
 /* define if C++ compiler handles exceptions */
 #undef USE_EXCEPTIONS
 
+/* define if C++ compiler allows namespace std */
+#undef USING_STD
+
 /* set to 0,1,2 for std,gauss,node */
 #undef AEROD_OUTPUT
 

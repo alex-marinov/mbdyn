@@ -343,9 +343,29 @@ if test $have_exceptions != no ; then
 	AC_MSG_RESULT([yes])
 else
 	AC_MSG_RESULT([no])
-fi		
+fi
 AC_LANG_C
 
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for std namespace
+dnl
+
+AC_LANG_CPLUSPLUS
+AC_MSG_CHECKING([whether the C++ compiler allows to use namespace std])
+AC_TRY_COMPILE([
+	#include <math.h>
+	using namespace std;
+],[
+	sqrt(2.);
+],[allow_std=yes],[allow_std=no])
+if test $allow_std != no ; then
+	AC_DEFINE(USING_STD,1,[define if C++ compiler allows namespace std])
+	AC_MSG_RESULT([yes])
+else
+	AC_MSG_RESULT([no])
+fi
+AC_LANG_C
 
 dnl ----------------------------------------------------------------
 dnl
