@@ -396,8 +396,23 @@ void DataManager::ReadElems(MBDynParser& HP)
 
 	 std::set<unsigned int> Body_labels;
 	 Elem::Type Type = Elem::UNKNOWN;
+	 bool bOutput(false);
 	 while (HP.IsArg()) {
-		 if (HP.IsKeyWord(sKeyWords[BODY])) {
+		 if (HP.IsKeyWord("output")) {
+		 	if (HP.IsKeyWord("no")) {
+				bOutput = false;
+			} else if (HP.IsKeyWord("yes")) {         
+				bOutput = true;
+			} else {
+				silent_cerr("unknown output mode for inertia "
+						<< uIn << " at line "
+						<< HP.GetLineData()
+						<< std::endl);
+				throw ErrGeneric();
+			}
+			break;
+
+		 } else if (HP.IsKeyWord(sKeyWords[BODY])) {
 			 Type = Elem::BODY;
 
 		 } else if (HP.IsKeyWord(sKeyWords[JOINT])) {
@@ -408,7 +423,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 
 #if 0
 		 } else if (HP.IsKeyWord("...")) {
-#endif /* other types with inertia */
+		 /* other types with inertia */
+#endif
 		 }
 
 		 if (Type == Elem::UNKNOWN) {
@@ -494,9 +510,9 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 Vec3 Xcg(0.);
 	 Mat3x3 Jcg(J);
 	 if (dM < DBL_EPSILON) {
-	    std::cerr << "inertia " << uIn 
+	    silent_cerr("inertia " << uIn 
 		    << " at line " << HP.GetLineData()
-		    << ": mass is null" << std::endl;
+		    << ": mass is null" << std::endl);
 	 } else {
 	    Xcg = S/dM;
 	    
@@ -521,6 +537,17 @@ void DataManager::ReadElems(MBDynParser& HP)
 		 << "    R^T*(Xcg-X): " << RT*(Xcg - x) << std::endl
 		 << "    J:           " << RT*J*R << std::endl
 		 << "    Jcg:         " << RT*Jcg*R << std::endl;
+	 if (bOutput) {
+		 silent_cout("inertia " << uIn
+			 << " (" << ( sName ? sName : "unnamed" ) << ")"
+			 << std::endl
+			 << "    mass:        " << dM << std::endl
+			 << "    Xcg:         " << Xcg << std::endl
+			 << "    Xcg-X:       " << (Xcg - x) << std::endl
+			 << "    R^T*(Xcg-X): " << RT*(Xcg - x) << std::endl
+			 << "    J:           " << RT*J*R << std::endl
+			 << "    Jcg:         " << RT*Jcg*R << std::endl);
+	 }
 	 if (sName) {
 	    SAFEDELETEARR(sName);
 	 }
