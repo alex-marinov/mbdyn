@@ -14,6 +14,7 @@ fullmh.h \
 interp.h \
 interp.cc \
 JacSubMatrix.cc \
+JacSubMatrix.h \
 ldl.f \
 ldl.h \
 ls.cc \

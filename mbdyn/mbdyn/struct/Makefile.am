@@ -23,6 +23,7 @@ drvhinge.h \
 drvj.cc \
 drvj.h \
 friction.cc \
+friction.h \
 genj.cc \
 genj.h \
 gravity.cc \
