@@ -146,6 +146,7 @@ dnl General "enable" options
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debugging], no)dnl
 OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
 OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], auto)dnl
+OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver],auto,[auto yes no])dnl needs MPI and Metis or Chaco
 OL_ARG_ENABLE(adams,[  --enable-adams          enable MSC.ADAMS output], no)dnl
 OL_ARG_ENABLE(motionview,[  --enable-motionview     enable Altair's Motion View output], no)dnl
 
@@ -329,6 +330,18 @@ if test "$ol_enable_debug" != no -o "$ol_enable_debug_mpi" != no ; then
 	AC_DEFINE(DEBUG,1,[define this to add debugging code])
 	if test "$ol_with_debug_mode" = memory ; then
 		AC_DEFINE(DEBUG_MEMMANAGER,1,[define this to add memory debugging code])
+	fi
+fi
+
+dnl try to detect MPI and either Metis or Chaco
+if test "$ol_enable_schur" = yes ; then
+	if test "$ol_with_mpi" = no ; then
+		AC_MSG_ERROR([Schur parallel solver needs MPI])
+	else
+		ol_with_mpi=yes
+	fi
+	if test "$ol_with_metis" = no -a "$ol_with_chaco" = no ; then
+		AC_MSG_ERROR([Schur parallel solver needs either Metis or Chaco])
 	fi
 fi
 
@@ -1033,15 +1046,6 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Need Schur parallel solver with MPI
-dnl
-if test $ol_link_mpi = yes ; then
-	AC_DEFINE(USE_SCHUR,1,[define if you want to use Schur parallel solver])
-fi
-
-
-dnl ----------------------------------------------------------------
-dnl
 dnl Need either Metis or Chaco with MPI
 dnl
 dnl First we check for Metis
@@ -1085,10 +1089,23 @@ ol_link_chaco=no
 if test $ol_with_chaco != no ; then
 	OL_ADD_DIRS(chaco)
 	
+	AC_CHECK_LIB(chaco, interface,[have_chaco=yes],[have_chaco=no])
+
+	if test $have_chaco != no ; then
+		METIS_LIBS="-lchaco"
+		AC_DEFINE(USE_CHACO,1, [define if you want to use Chaco])
+		ol_link_chaco=yes
+	fi
+
+	if test $ol_link_chaco = no ; then
+                if test $ol_with_chaco != auto ; then
+                        AC_MSG_ERROR([Could not locate Chaco])
+                else
+                        AC_MSG_WARN([Could not locate Chaco])
+                        AC_MSG_WARN([Chaco not supported!])
+                fi
+        fi
 	CHACO_LIBS="-lchaco"
-	AC_DEFINE(USE_CHACO,1,
-		[define if you want to use Chaco])
-	ol_link_chaco=yes
 else
 	AC_MSG_WARN([Chaco not supported!])
 fi
@@ -1096,13 +1113,18 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl If neither Chaco nor Metis is available, then exit with an error.
+dnl Need Schur parallel solver with MPI
 dnl
-
-if test $ol_link_mpi = yes ; then
-        if test $ol_link_chaco = no -a $ol_link_metis = no ; then
-	        AC_MSG_ERROR([You NEED Metis or Chaco to use Schur parallel solver!])
-        fi
+if test $ol_enable_schur = yes ; then
+	if test $ol_link_mpi = yes ; then
+		if test $ol_link_metis = yes -o $ol_link_chaco=yes ; then
+			AC_DEFINE(USE_SCHUR,1,[define if you want to use Schur parallel solver])
+		else
+			AC_MSG_ERROR([Need either Metis or Chaco for Schur parallel solver])
+		fi
+	else
+		AC_MSG_ERROR([Need MPI for Schur parallel solver])
+	fi
 fi
 
 
