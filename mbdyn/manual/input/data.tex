@@ -808,13 +808,35 @@ for backwards compatibility.
 
 \subsubsection{Print}
 \begin{verbatim}
-    <card> ::= print : { dof stats | dof description | none } [ , ... ] ;
+    <card> ::= print : {
+        dof stats |
+        dof description |
+        equation desciption |
+        all |
+        none
+    } [ , ... ] ;
 \end{verbatim}
 The \kw{dof stats} keyword enables the printing of all potential
 dof owner entities at initial assembly and at regular assembly,
 so that the index of all variables can be easily identified.
-The \kw{dof description} adds extra variable description.
+The \kw{dof description} one adds extra variable description.
+The \kw{equation description} one adds extra equation description.
+The \kw{all} one enables all dof statistics printing.
 The \kw{none} disables all dof statistics printing (the default).
+Note that, apart from \kw{none}, the other values are additive, i.e.
+\begin{verbatim}
+    print: dof stats;
+    print: dof description;
+\end{verbatim}
+is equivalent to 
+\begin{verbatim}
+    print: dof stats, dof description;
+\end{verbatim}
+while a 
+\begin{verbatim}
+    print: none;
+\end{verbatim}
+disables all.
 
 \subsubsection{Make Restart File}
 \begin{verbatim}
