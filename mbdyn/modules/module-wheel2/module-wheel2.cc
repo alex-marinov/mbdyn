@@ -175,7 +175,7 @@ read(LoadableElem* pEl,
 "     -	Output:								\n"
 "		1)	element label					\n"
 "		2-4)	tire force in global reference frame		\n"
-"		5-1)	tire couple in global reference frame		\n"
+"		5-7)	tire couple in global reference frame		\n"
 "		8)	effective radius				\n"
 "		9)	tire radial deformation				\n"
 "		10)	tire radial deformation velocity		\n"
