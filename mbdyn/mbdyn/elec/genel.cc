@@ -444,6 +444,13 @@ Elem* ReadGenel(DataManager* pDM,
        
        DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
        ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
+
+       if (pCL->iGetNumDof() != 0) {
+	  std::cerr << "Error at line " << HP.GetLineData()
+	    << ": spring genel does not support dynamic constitutive laws yet"
+	    << std::endl;
+	  THROW(DataManager::ErrGeneric());
+       }
        
        if (ConstLawType != DefHingeType::ELASTIC) {
 	  std::cerr << "Error at line " << HP.GetLineData() 
@@ -475,6 +482,14 @@ Elem* ReadGenel(DataManager* pDM,
        
        DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
        ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
+       
+       if (pCL->iGetNumDof() != 0) {
+	  std::cerr << "Error at line " << HP.GetLineData()
+	    << ": spring support genel does not support "
+	    "dynamic constitutive laws yet"
+	    << std::endl;
+	  THROW(DataManager::ErrGeneric());
+       }
        
        flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
@@ -519,6 +534,14 @@ Elem* ReadGenel(DataManager* pDM,
        
        DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
        ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
+       
+       if (pCL->iGetNumDof() != 0) {
+	  std::cerr << "Error at line " << HP.GetLineData()
+	    << ": cross spring support genel does not support "
+	    "dynamic constitutive laws yet"
+	    << std::endl;
+	  THROW(DataManager::ErrGeneric());
+       }
        
        flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 

@@ -1328,6 +1328,14 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	/* Legame costitutivo */
 	DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
 	ConstitutiveLaw6D* pD = pDM->ReadConstLaw6D(HP, ConstLawType);
+
+	if (pD->iGetNumDof() != 0) {
+     		std::cerr << "line " << HP.GetLineData()
+			<< ": beam2 does not support "
+			"dynamic constitutive laws yet"
+			<< std::endl;
+		THROW(ErrGeneric());
+	}
 	
 #ifdef DEBUG   
 	Mat6x6 MTmp(pD->GetFDE());

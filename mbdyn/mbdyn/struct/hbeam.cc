@@ -1173,6 +1173,14 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
 	ConstitutiveLaw6D* pD = pDM->ReadConstLaw6D(HP, ConstLawType);
 	
+	if (pD->iGetNumDof() != 0) {
+     		std::cerr << "line " << HP.GetLineData()
+			<< ": hbeam does not support "
+			"dynamic constitutive laws yet"
+			<< std::endl;
+		THROW(ErrGeneric());
+	}
+	
 #ifdef DEBUG   
 	Mat6x6 MTmp(pD->GetFDE());
 	Mat3x3 D11(MTmp.GetMat11());

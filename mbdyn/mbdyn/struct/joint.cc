@@ -1133,6 +1133,14 @@ Elem* ReadJoint(DataManager* pDM,
        ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
        HP.PutKeyTable(K);
        
+       if (pCL->iGetNumDof() != 0) {
+	  std::cerr << "line " << HP.GetLineData()
+		  << ": rod joint does not support "
+		  "dynamic constitutive laws yet"
+		  << std::endl;
+	  THROW(ErrGeneric());
+       }
+	
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        if (fOffset == 1) {	      
@@ -1232,6 +1240,14 @@ Elem* ReadJoint(DataManager* pDM,
        ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
        HP.PutKeyTable(K);
 
+       if (pCL->iGetNumDof() != 0) {
+	  std::cerr << "line " << HP.GetLineData()
+		  << ": rod with offset joint does not support "
+		  "dynamic constitutive laws yet"
+		  << std::endl;
+	  THROW(ErrGeneric());
+       }
+	
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
        SAFENEWWITHCONSTRUCTOR(pEl,
@@ -1303,6 +1319,14 @@ Elem* ReadJoint(DataManager* pDM,
        ConstitutiveLaw3D* pCL = pDM->ReadConstLaw3D(HP, ConstLawType);
        HP.PutKeyTable(K);
        
+       if (pCL->iGetNumDof() != 0) {
+	  std::cerr << "line " << HP.GetLineData()
+		  << ": deformable hinge joint does not support "
+		  "dynamic constitutive laws yet"
+		  << std::endl;
+	  THROW(ErrGeneric());
+       }
+	
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        switch (ConstLawType) {

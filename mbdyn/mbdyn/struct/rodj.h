@@ -43,142 +43,151 @@ extern const char* psRodNames[];
 
 class Rod : 
 virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
- public:
-   /* Tipi di rods */
-   enum Type {
-      UNKNOWN = -1,
-	ELASTIC = 0,
-	VISCOELASTIC,
-	VISCOELASTICWITHOFFSET,
+public:
+	/* Tipi di rods */
+	enum Type {
+		UNKNOWN = -1,
 	
-	LASTRODTYPE
-   };
+		ELASTIC = 0,
+		VISCOELASTIC,
+		VISCOELASTICWITHOFFSET,
+	
+		LASTRODTYPE
+	};
 
- private: 
-   Rod::Type RodT;
+private: 
+	Rod::Type RodT;
    
- protected:
-   const StructNode* pNode1;
-   const StructNode* pNode2;
-   doublereal dL0;
+protected:
+	const StructNode* pNode1;
+	const StructNode* pNode2;
+	doublereal dL0;
    
-   Vec3 v;
-   doublereal dElle;
+	Vec3 v;
+	doublereal dElle;
    
-   /* Le funzioni di assemblaggio sono le stesse, cambiano gli indici 
-    * delle equazioni. Allora, dopo aver settato indi e matrici, le routines
-    * normali chiamano queste due che eseguono i calcoli 
-    *
-    * Purtroppo questa semplificazione vale solo per i Rod senza offset 
-    * e puramente elastici. Allora non dichiaro le funzioni come virtuali
-    * in quanto non devono essere usate direttamente da classi derivate
-    */
-   void AssMat(FullSubMatrixHandler& WorkMat, doublereal dCoef = 1.);
-   void AssVec(SubVectorHandler& WorkVec);
+	/* Le funzioni di assemblaggio sono le stesse, cambiano gli indici 
+	 * delle equazioni. Allora, dopo aver settato indici e matrici,
+	 * le routines normali chiamano queste due che eseguono i calcoli 
+	 *
+	 * Purtroppo questa semplificazione vale solo per i Rod senza offset 
+	 * e puramente elastici. Allora non dichiaro le funzioni come virtuali
+	 * in quanto non devono essere usate direttamente da classi derivate
+	 */
+	void AssMat(FullSubMatrixHandler& WorkMat, doublereal dCoef = 1.);
+	void AssVec(SubVectorHandler& WorkVec);
    
-   /* Sets the type */
-   void SetRodType(Rod::Type T) { 
-      RodT = T;
-   };
-   
- public:
-   /* Costruttore non banale */
-   Rod(unsigned int uL, const DofOwner* pDO, const ConstitutiveLaw1D* pCL,
-	    const StructNode* pN1, const StructNode* pN2,
-	    doublereal dLength, flag fOut,
-	    flag fHasOffsets = 0);
-   
-   /* Distruttore */
-   virtual ~Rod(void);
-   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-      
-   /* Tipo di Joint */
-   virtual Joint::Type GetJointType(void) const {
-      return Joint::ROD; 
-   };
-      
-   /* Contributo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
+	/* Sets the type */
+	void SetRodType(Rod::Type T) { 
+		RodT = T;
+	};
 
-   /* Tipo di Rod */
-   virtual Rod::Type GetRodType(void) const {
-      return Rod::ELASTIC; 
-   };
-   
-   virtual unsigned int iGetNumDof(void) const { 
-      return 0;
-   };
-   
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 6; 
-      *piNumCols = 6; 
-   };
-         
-   virtual VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat, 
-					    doublereal dCoef,
-					    const VectorHandler& XCurr, 
-					    const VectorHandler& XPrimeCurr);
+public:
+	/* Costruttore non banale */
+	Rod(unsigned int uL, const DofOwner* pDO,
+			const ConstitutiveLaw1D* pCL,
+			const StructNode* pN1, const StructNode* pN2,
+			doublereal dLength, flag fOut,
+			flag fHasOffsets = 0);
+
+	/* Distruttore */
+	virtual ~Rod(void);
+
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
+
+	/* Tipo di Joint */
+	virtual Joint::Type GetJointType(void) const {
+		return Joint::ROD; 
+	};
+      
+	/* Contributo al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* Tipo di Rod */
+	virtual Rod::Type GetRodType(void) const {
+		return Rod::ELASTIC; 
+	};
+
+	virtual unsigned int iGetNumDof(void) const { 
+		return 0;
+	};
+
+	virtual void
+	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+		*piNumRows = 6; 
+		*piNumCols = 6; 
+	};
+
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
+			const VectorHandler& XCurr, 
+			const VectorHandler& XPrimeCurr);
 	   
-   virtual void AssMats(VariableSubMatrixHandler& WorkMatA, 
-		       VariableSubMatrixHandler& WorkMatB,
-		       const VectorHandler& XCurr, 
-		       const VectorHandler& XPrimeCurr);
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA, 
+ 			VariableSubMatrixHandler& WorkMatB,
+ 			const VectorHandler& XCurr, 
+ 			const VectorHandler& XPrimeCurr);
+	
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
+			const VectorHandler& XCurr, 
+			const VectorHandler& XPrimeCurr);
    
-   virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-				    doublereal dCoef,
-				    const VectorHandler& XCurr, 
-				    const VectorHandler& XPrimeCurr);
-   
-   virtual void Output(OutputHandler& OH) const;
+	virtual void Output(OutputHandler& OH) const;
 
-   /* Output di un modello NASTRAN equivalente nella configurazione corrente */
-   virtual void Output_pch(std::ostream& out) const;
+	/* Output di un modello NASTRAN equivalente
+	 * nella configurazione corrente */
+	virtual void Output_pch(std::ostream& out) const;
 
-   /* funzioni usate nell'assemblaggio iniziale */
-   
-   virtual unsigned int iGetInitialNumDof(void) const {
-      return 0;
-   };
-   virtual void InitialWorkSpaceDim(integer* piNumRows,
-				    integer* piNumCols) const { 
-      *piNumRows = 6; 
-      *piNumCols = 6; 
-   };
-   
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat, 
-		   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
-				   const VectorHandler& XCurr);   
+	/* funzioni usate nell'assemblaggio iniziale */
+	virtual unsigned int iGetInitialNumDof(void) const {
+		return 0;
+	};
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+		*piNumRows = 6; 
+		*piNumCols = 6; 
+	};
 
-   /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = pNode1->GetNodeType();
-     NdLabels[0] = pNode1->GetLabel();
-     NdTyps[1] = pNode2->GetNodeType();
-     NdLabels[1] = pNode2->GetLabel();
-   };
-   /* ************************************************ */
-   
-   /* Adams output stuff */
-   virtual unsigned int iGetNumAdamsDummyParts(void) const {
-      return 1;
-   };
-   virtual void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
-   virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+     			const VectorHandler& XCurr);
 
-   virtual unsigned int iGetNumPrivData(void) const;
-   virtual unsigned int iGetPrivDataIdx(const char *s) const;
-   virtual doublereal dGetPrivData(unsigned int i) const;
+	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	virtual SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);   
+
+	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void
+	GetConnectedNodes(int& NumNodes, Node::Type* NdTyps,
+			unsigned int* NdLabels) {
+		NumNodes = 2;
+		NdTyps[0] = pNode1->GetNodeType();
+		NdLabels[0] = pNode1->GetLabel();
+		NdTyps[1] = pNode2->GetNodeType();
+		NdLabels[1] = pNode2->GetLabel();
+	};
+	/* ************************************************ */
+   
+	/* Adams output stuff */
+	virtual unsigned int iGetNumAdamsDummyParts(void) const {
+		return 1;
+	};
+	virtual void
+	GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
+	virtual std::ostream&
+	WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part,
+			unsigned int firstId) const;
+
+	virtual unsigned int iGetNumPrivData(void) const;
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+	virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 /* Rod - end */
@@ -187,59 +196,60 @@ virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
 /* ViscoElasticRod - begin */
 
 class ViscoElasticRod : virtual public Elem, public Rod {
- public:
-   /* Costruttore non banale */
-   ViscoElasticRod(unsigned int uL, const DofOwner* pDO,
+public:
+	/* Costruttore non banale */
+	ViscoElasticRod(unsigned int uL, const DofOwner* pDO,
 			const ConstitutiveLaw1D* pCL,
 			const StructNode* pN1, const StructNode* pN2,
 			doublereal dLength, flag fOut);
    
-   /* Distruttore */
-   virtual ~ViscoElasticRod(void);
+	/* Distruttore */
+	virtual ~ViscoElasticRod(void);
 
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
-   /* Tipo di Rod */
-   virtual Rod::Type GetRodType(void) const {
-      return Rod::VISCOELASTIC; 
-   };
-   
-   virtual VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
-					    doublereal dCoef,
-					    const VectorHandler& XCurr, 
-					    const VectorHandler& XPrimeCurr);
-	   
-   virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-				    doublereal dCoef,
-				    const VectorHandler& XCurr, 
-				    const VectorHandler& XPrimeCurr);
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
 
-   virtual void InitialWorkSpaceDim(integer* piNumRows,
-				    integer* piNumCols) const { 
-      *piNumRows = 6; 
-      *piNumCols = 12;
-   };
-   
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat, 
-		   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
-				   const VectorHandler& XCurr);   
+	/* Tipo di Rod */
+	virtual Rod::Type GetRodType(void) const {
+		return Rod::VISCOELASTIC; 
+	};
 
-   virtual unsigned int iGetNumPrivData(void) const {
-      return Rod::iGetNumPrivData();
-   };
-   virtual unsigned int iGetPrivDataIdx(const char *s) const {
-      return Rod::iGetPrivDataIdx(s);
-   };
-   virtual doublereal dGetPrivData(unsigned int i) const {
-      return Rod::dGetPrivData(i);
-   };
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
+			const VectorHandler& XCurr, 
+			const VectorHandler& XPrimeCurr);
+	
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
+			const VectorHandler& XCurr, 
+			const VectorHandler& XPrimeCurr);
+
+     	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 6; 
+		*piNumCols = 12;
+	};
+   
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+     			const VectorHandler& XCurr);
+   
+	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	virtual SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec,
+			const VectorHandler& XCurr);   
+
+	virtual unsigned int iGetNumPrivData(void) const {
+		return Rod::iGetNumPrivData();
+	};
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return Rod::iGetPrivDataIdx(s);
+	};
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return Rod::dGetPrivData(i);
+	};
 };
 
 /* ViscoElasticRod - end */
@@ -248,79 +258,82 @@ class ViscoElasticRod : virtual public Elem, public Rod {
 /* RodWithOffset - begin */
 
 class RodWithOffset : virtual public Elem, public Rod {
- protected:
-   const Vec3 f1;
-   const Vec3 f2;
-      
- public:
-   /* Costruttore non banale */
-   RodWithOffset(unsigned int uL, const DofOwner* pDO, 
-		      const ConstitutiveLaw1D* pCL,
-		      const StructNode* pN1, const StructNode* pN2,
-		      const Vec3& f1Tmp, const Vec3& f2Tmp,
-		      doublereal dLength, flag fOut);
-   
-   /* Distruttore */
-   virtual ~RodWithOffset(void);
+protected:
+	const Vec3 f1;
+	const Vec3 f2;
 
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
+public:
+	/* Costruttore non banale */
+	RodWithOffset(unsigned int uL, const DofOwner* pDO, 
+  			const ConstitutiveLaw1D* pCL,
+  			const StructNode* pN1, const StructNode* pN2,
+  			const Vec3& f1Tmp, const Vec3& f2Tmp,
+  			doublereal dLength, flag fOut);
+ 
+	/* Distruttore */
+	virtual ~RodWithOffset(void);
+
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
+
+	/* Contributo al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* Tipo di Rod */
+	virtual Rod::Type GetRodType(void) const { 
+		return Rod::VISCOELASTICWITHOFFSET; 
+	};
    
-   /* Contributo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
-   
-   /* Tipo di Rod */
-   virtual Rod::Type GetRodType(void) const { 
-      return Rod::VISCOELASTICWITHOFFSET; 
-   };
-   
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 12;
-      *piNumCols = 12; 
-   };
+	virtual void
+	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+		*piNumRows = 12;
+		*piNumCols = 12; 
+	};
          
-   virtual VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat, 
-					    doublereal dCoef,
-					    const VectorHandler& XCurr, 
-					    const VectorHandler& XPrimeCurr);
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
+			const VectorHandler& XCurr, 
+			const VectorHandler& XPrimeCurr);
 	   
-   virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-				    doublereal dCoef,
-				    const VectorHandler& XCurr, 
-				    const VectorHandler& XPrimeCurr);
-   /* Output di un modello NASTRAN equivalente nella configurazione corrente */
-   virtual void Output_pch(std::ostream& out) const;
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
+			const VectorHandler& XCurr, 
+			const VectorHandler& XPrimeCurr);
 
-   /* funzioni usate nell'assemblaggio iniziale */
-   
-   virtual void InitialWorkSpaceDim(integer* piNumRows,
-				    integer* piNumCols) const {
-      *piNumRows = 12;
-      *piNumCols = 24; 
-   };
-   
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat, 
-		   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
-				   const VectorHandler& XCurr);   
+	/* Output di un modello NASTRAN equivalente
+	 * nella configurazione corrente */
+	virtual void Output_pch(std::ostream& out) const;
 
-   void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
-   std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
+	/* funzioni usate nell'assemblaggio iniziale */
+   
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 12;
+		*piNumCols = 24; 
+	};
 
-   virtual unsigned int iGetNumPrivData(void) const {
-      return Rod::iGetNumPrivData();
-   };
-   virtual unsigned int iGetPrivDataIdx(const char *s) const {
-      return Rod::iGetPrivDataIdx(s);
-   };
-   virtual doublereal dGetPrivData(unsigned int i) const {
-      return Rod::dGetPrivData(i);
-   };
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+     			const VectorHandler& XCurr);
+   
+	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	virtual SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);   
+	void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
+	std::ostream& WriteAdamsDummyPartCmd(std::ostream& out,
+		unsigned int part, unsigned int firstId) const;
+
+	virtual unsigned int iGetNumPrivData(void) const {
+		return Rod::iGetNumPrivData();
+	};
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return Rod::iGetPrivDataIdx(s);
+	};
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return Rod::dGetPrivData(i);
+	};
 };
 
 /* RodWithOffset - end */

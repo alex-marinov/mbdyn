@@ -40,89 +40,87 @@
 
 /* Tipi di cerniere deformabili */
 class DefHingeType {
- public:
-   enum Type {
-      UNKNOWN = -1,
+public:
+	enum Type {
+		UNKNOWN = -1,
+		
+		ELASTIC = 0,
+		VISCOUS,
+		VISCOELASTIC,
 	
-	ELASTIC = 0,
-	VISCOUS,
-	VISCOELASTIC,
-	
-	LASTDEFHINGETYPE
-   };
+		LASTDEFHINGETYPE
+	};
 };
 
 /* ConstitutiveLaw - begin */
 template <class T, class Tder>
 class ConstitutiveLaw : public SimulationEntity {
- public:
-   class ErrNotAvailable {
-    public:
-      ErrNotAvailable(void) {
-	 std::cerr << "Constitutive law not available" << std::endl;
-      };
-      ErrNotAvailable(std::ostream& out) {
-	 out << "Constitutive law not available" << std::endl;
-      };
-      ErrNotAvailable(std::ostream& out, const char* const& s) {
-	 out << s << std::endl;
-      };
-   };
-   typedef typename ConstitutiveLaw<T, Tder>::ErrNotAvailable Err;   
-   
- protected:
-   T Epsilon;
-   T EpsilonPrime;
-   
-   T F;
-   Tder FDE;
-   Tder FDEPrime;
+public:
+	class ErrNotAvailable {
+	public:
+		ErrNotAvailable(void) {
+			std::cerr << "Constitutive law not available "
+				"for this dimensionality"
+				<< std::endl;
+		};
+		ErrNotAvailable(std::ostream& out) {
+			out << "Constitutive law not available "
+				"for this dimensionality"
+				<< std::endl;
+		};
+		ErrNotAvailable(std::ostream& out, const char* const& s) {
+			out << s << std::endl;
+		};
+	};
 
-   /*
-    * To allow the duplication of the constitutive laws, 
-    * a "virtual constructor-like" function must be implemented,
-    * with type resolution for the constitutive laws and
-    * for the tpldrives too.
-    */
+	typedef typename ConstitutiveLaw<T, Tder>::ErrNotAvailable Err;   
    
- public:
-   ConstitutiveLaw(void)
-     : Epsilon(0.), EpsilonPrime(0.),
-     F(0.), FDE(0.), FDEPrime(0.) {
-      NO_OP;
-   };
-   
-   virtual ~ConstitutiveLaw(void) {
-      NO_OP;
-   };
-   
-   virtual ConstitutiveLaw<T, Tder>* pCopy(void) const = 0;
-   
-   virtual std::ostream& Restart(std::ostream& out) const = 0;
-   
-   virtual void Update(const T& Eps, const T& EpsPrime = 0.) = 0;
-   virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.) = 0;
-   
-   virtual const T& GetF(void) const {
-      return F;
-   };
-   
-   virtual const Tder& GetFDE(void) const {
-      return FDE;
-   };
-   
-   virtual const Tder& GetFDEPrime(void) const {
-      return FDEPrime;
-   };
+protected:
+	T Epsilon;		/* strain */
+	T EpsilonPrime;		/* strain rate */
 
-   /* simentity */
-   virtual unsigned int iGetNumDof(void) const {
-      return 0;
-   };
+	T F;			/* force */
+	Tder FDE;		/* force strain derivative */
+	Tder FDEPrime;		/* force strain rate derivative */
 
-   virtual DofOrder::Order SetDof(unsigned int i) const {
-      THROW(ErrGeneric());
-   };
+public:
+	ConstitutiveLaw(void)
+	: Epsilon(0.), EpsilonPrime(0.),
+	F(0.), FDE(0.), FDEPrime(0.) {
+		NO_OP;
+	};
+
+	virtual ~ConstitutiveLaw(void) {
+		NO_OP;
+	};
+
+	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const = 0;
+	virtual std::ostream& Restart(std::ostream& out) const = 0;
+
+	virtual void Update(const T& Eps, const T& EpsPrime = 0.) = 0;
+	virtual void IncrementalUpdate(const T& DeltaEps,
+			const T& EpsPrime = 0.) = 0;
+   
+	virtual const T& GetF(void) const {
+		return F;
+	};
+
+	virtual const Tder& GetFDE(void) const {
+		return FDE;
+	};
+
+	virtual const Tder& GetFDEPrime(void) const {
+		return FDEPrime;
+	};
+
+	/* simentity */
+	virtual unsigned int iGetNumDof(void) const {
+		return 0;
+	};
+
+	virtual DofOrder::Order SetDof(unsigned int i) const {
+		THROW(ErrGeneric());
+	};
 };
 
 typedef ConstitutiveLaw<doublereal, doublereal> ConstitutiveLaw1D;
@@ -136,86 +134,89 @@ typedef ConstitutiveLaw<Vec6, Mat6x6> ConstitutiveLaw6D;
 
 template <class T, class Tder>
 class ConstitutiveLawOwner : public SimulationEntity {
- protected:
-   mutable ConstitutiveLaw<T, Tder>* pConstLaw;
+protected:
+	mutable ConstitutiveLaw<T, Tder>* pConstLaw;
    
- public:
-   ConstitutiveLawOwner(const ConstitutiveLaw<T, Tder>* pCL)
-     : pConstLaw((ConstitutiveLaw<T, Tder>*)pCL) { 
-      ASSERT(pCL != NULL);
-   };
+public:
+	ConstitutiveLawOwner(const ConstitutiveLaw<T, Tder>* pCL)
+	: pConstLaw((ConstitutiveLaw<T, Tder>*)pCL) { 
+		ASSERT(pCL != NULL);
+	};
    
-   virtual ~ConstitutiveLawOwner(void) {
-      ASSERT(pConstLaw != NULL);
-      if (pConstLaw != NULL) {
-	 SAFEDELETE(pConstLaw);
-      }	
-   };
-   
-   inline ConstitutiveLaw<T, Tder>* pGetConstLaw(void) const {
-      ASSERT(pConstLaw != NULL);
-      return pConstLaw; 
-   };
-   
-   inline void Update(const T& Eps, const T& EpsPrime = 0.) {
-      ASSERT(pConstLaw != NULL);
-      pConstLaw->Update(Eps, EpsPrime);
-   };
-   
-   inline void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.) {
-      ASSERT(pConstLaw != NULL);
-      pConstLaw->IncrementalUpdate(DeltaEps, EpsPrime);
-   };
-   
-   inline const T& GetF(void) const {
-      ASSERT(pConstLaw != NULL);
-      return pConstLaw->GetF();
-   };
-   
-   inline const Tder& GetFDE(void) const {	
-      ASSERT(pConstLaw != NULL);
-      return pConstLaw->GetFDE();
-   };
-   
-   inline const Tder& GetFDEPrime(void) const {
-      ASSERT(pConstLaw != NULL);
-      return pConstLaw->GetFDEPrime();
-   };
+	virtual ~ConstitutiveLawOwner(void) {
+		ASSERT(pConstLaw != NULL);
+		if (pConstLaw != NULL) {
+			SAFEDELETE(pConstLaw);
+		}	
+	};
 
-   /* simentity */
-   virtual unsigned int iGetNumDof(void) const {
-      return 0;
-   };
+	inline ConstitutiveLaw<T, Tder>* pGetConstLaw(void) const {
+		ASSERT(pConstLaw != NULL);
+		return pConstLaw; 
+	};
 
-   virtual DofOrder::Order SetDof(unsigned int i) const {
-      THROW(ErrGeneric());
-   };
+	inline void Update(const T& Eps, const T& EpsPrime = 0.) {
+		ASSERT(pConstLaw != NULL);
+		pConstLaw->Update(Eps, EpsPrime);
+	};
 
-   /*
-    * Metodi per l'estrazione di dati "privati".
-    * Si suppone che l'estrattore li sappia interpretare.
-    * Come default non ci sono dati privati estraibili
-    */
-   virtual unsigned int iGetNumPrivData(void) const {
-      return pConstLaw->iGetNumPrivData();
-   };
+	inline void IncrementalUpdate(const T& DeltaEps,
+			const T& EpsPrime = 0.) {
+		ASSERT(pConstLaw != NULL);
+		pConstLaw->IncrementalUpdate(DeltaEps, EpsPrime);
+	};
 
-   /*
-    * Maps a string (possibly with substrings) to a private data;
-    * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
-    * in case of unrecognized data; error must be handled by caller
-    */
-   virtual unsigned int iGetPrivDataIdx(const char *s) const {
-      return pConstLaw->iGetPrivDataIdx(s);
-   };
+	inline const T& GetF(void) const {
+		ASSERT(pConstLaw != NULL);
+		return pConstLaw->GetF();
+	};
 
-   /*
-    * Returns the current value of a private data
-    * with 0 < i <= iGetNumPrivData()
-    */
-   virtual doublereal dGetPrivData(unsigned int i) const {
-      return pConstLaw->dGetPrivData(i);
-   };
+	inline const Tder& GetFDE(void) const {	
+		ASSERT(pConstLaw != NULL);
+		return pConstLaw->GetFDE();
+	};
+   
+	inline const Tder& GetFDEPrime(void) const {
+		ASSERT(pConstLaw != NULL);
+		return pConstLaw->GetFDEPrime();
+	};
+
+	/* simentity */
+	virtual unsigned int iGetNumDof(void) const {
+		ASSERT(pConstLaw != NULL);
+		return pConstLaw->iGetNumDof();
+	};
+
+	virtual DofOrder::Order SetDof(unsigned int i) const {
+		ASSERT(pConstLaw != NULL);
+		return pConstLaw->SetDof(i);
+	};
+
+	/*
+	 * Metodi per l'estrazione di dati "privati".
+	 * Si suppone che l'estrattore li sappia interpretare.
+	 * Come default non ci sono dati privati estraibili
+	 */
+	virtual unsigned int iGetNumPrivData(void) const {
+		return pConstLaw->iGetNumPrivData();
+	};
+
+	/*
+	 * Maps a string (possibly with substrings) to a private data;
+	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+	 * in case of unrecognized data; error must be handled by caller
+	 */
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return pConstLaw->iGetPrivDataIdx(s);
+	};
+
+	/*
+	 * Returns the current value of a private data
+	 * with 0 < i <= iGetNumPrivData()
+	 */
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return pConstLaw->dGetPrivData(i);
+	};
 };
 
 typedef ConstitutiveLawOwner<doublereal, doublereal> ConstitutiveLaw1DOwner;
@@ -225,3 +226,4 @@ typedef ConstitutiveLawOwner<Vec6, Mat6x6> ConstitutiveLaw6DOwner;
 /* ConstitutiveLawOwner - end */
 
 #endif /* CONSTLTP_H */
+

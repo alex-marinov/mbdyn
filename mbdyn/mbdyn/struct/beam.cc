@@ -1756,6 +1756,14 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    DefHingeType::Type ConstLawType_I = DefHingeType::UNKNOWN;
    ConstitutiveLaw6D* pD_I = pDM->ReadConstLaw6D(HP, ConstLawType_I);
    
+   if (pD_I->iGetNumDof() != 0) {
+   	   std::cerr << "line " << HP.GetLineData()
+		   << ": beam does not support "
+		   "dynamic constitutive laws yet"
+		   << std::endl;
+	   THROW(ErrGeneric());
+   }
+	
 #ifdef DEBUG   
    Mat6x6 MTmp(pD_I->GetFDE());
    Mat3x3 D11(MTmp.GetMat11());
@@ -1806,6 +1814,14 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
       pDII = pD_I->pCopy();
    } else {
       pDII = pDM->ReadConstLaw6D(HP, ConstLawTypeII);
+      
+      if (pDII->iGetNumDof() != 0) {
+   	      std::cerr << "line " << HP.GetLineData()
+		      << ": beam does not support "
+		      "dynamic constitutive laws yet"
+		      << std::endl;
+	      THROW(ErrGeneric());
+      }
    }
 
 #ifdef DEBUG   
