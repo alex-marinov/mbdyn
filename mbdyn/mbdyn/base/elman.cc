@@ -162,7 +162,6 @@ void DataManager::ElemManagerDestructor(void)
    ASSERT(ppElems != NULL);
 
    if (ppElems != NULL) {
-#if defined(USE_ELEM_ITER)
       /* Usa l'iteratore built-in */
        Elem* p = NULL;
        if (ElemIter.bGetFirst(p)) {
@@ -176,19 +175,6 @@ void DataManager::ElemManagerDestructor(void)
 	     }
 	  } while (ElemIter.bGetNext(p));
        }
-#else /* !USE_ELEM_ITER */
-      Elem** pp = ppElems;
-      while (pp < ppElems+iTotElem) {
-	 ASSERT(*pp != NULL);
-	 if(*pp != NULL) {		  
-	    DEBUGCOUT("deleting element " << (*pp)->GetLabel() 
-		      << ", type " << psElemNames[(*pp)->GetElemType()]
-		      << std::endl);
-	    SAFEDELETE(*pp);		  
-	 }	     
-	 pp++;
-      }
-#endif /* !USE_ELEM_ITER */
       DEBUGCOUT("deleting elements structure" << std::endl);
       SAFEDELETEARR(ppElems);
    }   
@@ -341,33 +327,6 @@ void DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
    ASSERT(pWorkMatA != NULL);   
    ASSERT(ppElems != NULL);
 
-#if !defined(USE_ELEM_ITER)
-   /* ciclo sugli elementi */
-   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {
-      /* Nuova versione, piu' compatta.
-       * La funzione propria AssJac, comune a tutti gli elementi,
-       * scrive nella WorkMat (passata come reference) il contributo
-       * dell'elemento allo jacobiano e restituisce un reference 
-       * alla workmat stessa, che viene quindi sommata allo jacobiano.
-       * Ogni elemento deve provvedere al resizing della WorkMat e al
-       * suo reset ove occorra */
-      
-      
-      
-      
-      /* il SubMatrixHandler e' stato modificato in modo da essere
-       * in grado di trasformarsi agevolmente da Full a Sparse e quindi 
-       * viene gestito in modo automatico, e del tutto trasparente, 
-       * il passaggio da un modo all'altro. L'elemento switcha la matrice
-       * nel modo che ritiene opportuno; l'operatore += capisce di quale
-       * matrice si sta occupando ed agisce di conseguenza.
-       */
-      
-      /* Con VariableSubMatrixHandler */
-      JacHdl += (*ppTmpEl)->AssJac(*pWorkMatA, dCoef, *pXCurr, *pXPrimeCurr);
-   }	   
-#else /* USE_ELEM_ITER */
-   
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
     if (ElemIter.bGetFirst(pTmpEl)) {
@@ -375,7 +334,6 @@ void DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	  JacHdl += pTmpEl->AssJac(*pWorkMatA, dCoef, *pXCurr, *pXPrimeCurr);
        } while (ElemIter.bGetNext(pTmpEl));    
     }   
-#endif /* USE_ELEM_ITER */
 }
 
 
@@ -387,9 +345,9 @@ void DataManager::AssEig(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
    ASSERT(pWorkMatB != NULL);
    ASSERT(ppElems != NULL);
          
-#if !defined(USE_ELEM_ITER)
-   /* ciclo sugli elementi */
-   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {
+   /* Versione con iteratore: */
+    Elem* pTmpEl = NULL;
+    if (ElemIter.bGetFirst(pTmpEl)) {
       /* Nuova versione, piu' compatta.
        * La funzione propria AssJac, comune a tutti gli elementi,
        * scrive nella WorkMat (passata come reference) il contributo
@@ -410,22 +368,12 @@ void DataManager::AssEig(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
        */
       
       /* Con VariableSubMatrixHandler */
-      (*ppTmpEl)->AssMats(*pWorkMatA, *pWorkMatB, *pXCurr, *pXPrimeCurr);
-      A_Hdl += *pWorkMatA;
-      B_Hdl -= *pWorkMatB;
-   }	   
-#else /* USE_ELEM_ITER */   
-   
-   /* Versione con iteratore: */
-    Elem* pTmpEl = NULL;
-    if (ElemIter.bGetFirst(pTmpEl)) {
        do {		 
 	  pTmpEl->AssMats(*pWorkMatA, *pWorkMatB, *pXCurr, *pXPrimeCurr);
 	  A_Hdl += *pWorkMatA;
 	  B_Hdl += *pWorkMatB;
        } while (ElemIter.bGetNext(pTmpEl));    
     }   
-#endif /* USE_ELEM_ITER */
 }
 
 
@@ -440,11 +388,6 @@ void DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
    ASSERT(iWorkIntSize >= iWorkDoubleSize);
    MySubVectorHandler WorkVec(iWorkDoubleSize, piWorkIndex, pdWorkMat);
       
-#if !defined(USE_ELEM_ITER)
-   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {
-      ResHdl += (*ppTmpEl)->AssRes(WorkVec, dCoef, *pXCurr, *pXPrimeCurr);
-   }
-#else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
     if (ElemIter.bGetFirst(pTmpEl)) {       
@@ -458,17 +401,11 @@ void DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 	  ResHdl += pTmpEl->AssRes(WorkVec, dCoef, *pXCurr, *pXPrimeCurr);
        } while (ElemIter.bGetNext(pTmpEl));
     }
-#endif /* USE_ELEM_ITER */
 }
 
 
 void DataManager::ElemOutput(OutputHandler& OH) const
 {
-#if !defined(USE_ELEM_ITER)
-   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
-      (*ppTmpEl)->Output(OH);
-   }   
-#else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
     if (ElemIter.bGetFirst(pTmpEl)) {       
@@ -476,7 +413,6 @@ void DataManager::ElemOutput(OutputHandler& OH) const
 	  pTmpEl->Output(OH);
        } while (ElemIter.bGetNext(pTmpEl));
     }
-#endif /* USE_ELEM_ITER */
 }
 
 
@@ -487,11 +423,6 @@ DataManager::ElemOutput(
 		const VectorHandler& XP
 		) const
 {
-#if !defined(USE_ELEM_ITER)
-   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
-      (*ppTmpEl)->Output(OH, X, XP);
-   }   
-#else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
     if (ElemIter.bGetFirst(pTmpEl)) {       
@@ -499,7 +430,6 @@ DataManager::ElemOutput(
 	  pTmpEl->Output(OH, X, XP);
        } while (ElemIter.bGetNext(pTmpEl));
     }
-#endif /* USE_ELEM_ITER */
 }
 
 
@@ -508,11 +438,6 @@ DataManager::ElemOutput_pch(
 		std::ostream& pch
 		) const
 {
-#if !defined(USE_ELEM_ITER)
-   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
-      (*ppTmpEl)->Output_pch(pch);
-   }   
-#else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
     if (ElemIter.bGetFirst(pTmpEl)) {       
@@ -520,7 +445,6 @@ DataManager::ElemOutput_pch(
 	  pTmpEl->Output_pch(pch);
        } while (ElemIter.bGetNext(pTmpEl));
     }
-#endif /* USE_ELEM_ITER */
 }
 
 
@@ -530,11 +454,6 @@ DataManager::ElemOutput_f06(
 		const VectorHandler& X
 		) const
 {
-#if !defined(USE_ELEM_ITER)
-   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
-      (*ppTmpEl)->Output_f06(f06, X);
-   }   
-#else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
     if (ElemIter.bGetFirst(pTmpEl)) {       
@@ -542,7 +461,6 @@ DataManager::ElemOutput_f06(
 	  pTmpEl->Output_f06(f06, X);
        } while (ElemIter.bGetNext(pTmpEl));
     }
-#endif /* USE_ELEM_ITER */
 }
 
 
@@ -553,11 +471,6 @@ DataManager::ElemOutput_f06(
 		const VectorHandler& Xi
 		) const
 {
-#if !defined(USE_ELEM_ITER)
-   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
-      (*ppTmpEl)->Output_f06(f06, Xr, Xi);
-   }   
-#else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
     if (ElemIter.bGetFirst(pTmpEl)) {       
@@ -565,7 +478,6 @@ DataManager::ElemOutput_f06(
 	  pTmpEl->Output_f06(f06, Xr, Xi);
        } while (ElemIter.bGetNext(pTmpEl));
     }
-#endif /* USE_ELEM_ITER */
 }
 
 

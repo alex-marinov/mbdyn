@@ -297,12 +297,6 @@ AC_DEFINE(USE_TABLE,1,[define this to use external symbol table (default)])
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Use element iterator
-dnl
-AC_DEFINE(USE_ELEM_ITER,1,[define this to use dedicated element iterator])
-
-dnl ----------------------------------------------------------------
-dnl
 dnl Set inter-language naming convention for calling Fortran routines
 dnl
 AC_DEFINE(USE_UNDERSCORE,1,[append underscore to fortran calls])

@@ -217,57 +217,6 @@ DataManager::DofOwnerInit(void)
 	}
 
 	/* per ogni elemento */
-#if !defined(USE_ELEM_ITER)
-	Elem** ppLastElem = ppElems+iTotElem;
-	for (Elem** ppEl = ppElems; ppEl < ppLastElem; ppEl++) {
-		ASSERT(*ppEl != NULL);
-		DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
-				"Elem type " << (*ppEl)->GetElemType()
-				<< " (" << psElemNames[(*ppEl)->GetElemType()]
-				<< "(" << (*ppEl)->GetLabel() << "))"
-				<< std::endl);
-
-		unsigned int iNumDof;
-
-		/* chiede all'elemento quanti dof possiede */
-		if ((iNumDof = (*ppEl)->iGetNumDof()) > 0) {
-			ElemWithDofs* pElWD = (ElemWithDofs*)(*ppEl)->pGetElemWithDofs();
-			ASSERT(pElWD != NULL);
-
-			/* si fa passare il DofOwner */
-			Dof* pDf = pDofs+pElWD->iGetFirstIndex();
-
-#ifdef DEBUG
-			DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
-					psElemNames[pElWD->GetElemType()]
-					<< "(" << pElWD->GetLabel()
-					<< "): first dof = " << pDf->iIndex+1
-					<< std::endl);
-#else /* !DEBUG */
-			if (!silent_output && bPrintDofStats) {
-				unsigned int nd = pElWD->iGetNumDof();
-				integer fd = pDf->iIndex;
-
-				std::cout << psElemNames[pElWD->GetElemType()]
-					<< "(" << pElWD->GetLabel()
-					<< "): " << nd << " " << fd + 1;
-				if (nd > 1) {
-					std::cout << "->" << fd + nd;
-				}
-				std::cout << std::endl;
-			}
-#endif /* !DEBUG */
-
-			/* per ogni Dof, chiede all'elemento
-			 * di che tipo e' e lo setta nel DofOwner */
-			for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
-				pDf[iCnt].Order = pElWD->GetDofType(iCnt);
-				pDf[iCnt].EqOrder = pElWD->GetEqType(iCnt);
-			}
-		}
-		ppEl++;
-	}
-#else /* USE_ELEM_ITER */
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
 		do {
@@ -318,7 +267,6 @@ DataManager::DofOwnerInit(void)
 			}
 		} while (ElemIter.bGetNext(pEl));
 	}
-#endif /* USE_ELEM_ITER */
 } /* End of DataManager::DofOwnerInit() */
 
 /* Inizializzazione della struttura dei dof
@@ -841,13 +789,6 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 	}
 
 	/* Elementi */
-#if !defined(USE_ELEM_ITER)
-	Elem** ppLastElem = ppElems+iTotElem;
-	for (Elem** ppEl = ppElems; ppEl < ppLastElem; ppEl++) {
-		ASSERT(*ppEl != NULL);
-		(*ppEl)->SetValue(X, XP);
-	}
-#else /* USE_ELEM_ITER */
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
@@ -855,7 +796,6 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 			pEl->SetValue(X, XP);
 		} while (ElemIter.bGetNext(pEl));
 	}
-#endif /* USE_ELEM_ITER */
 } /* End of SetValue */
 
 
@@ -971,13 +911,6 @@ DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
 		(*ppTmp)->BeforePredict(X, XP, XPrev, XPPrev);
 	}
 
-#if !defined(USE_ELEM_ITER)
-	Elem** ppLastElem = ppElems+iTotElem;
-	for (Elem** ppTmp = ppElems; ppTmp < ppLastElem; ppTmp++) {
-		ASSERT(*ppTmp != NULL);
-		(*ppTmp)->BeforePredict(X, XP, XPrev, XPPrev);
-	}
-#else /* USE_ELEM_ITER */
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
@@ -985,7 +918,6 @@ DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
 			pEl->BeforePredict(X, XP, XPrev, XPPrev);
 		} while (ElemIter.bGetNext(pEl));
 	}
-#endif /* USE_ELEM_ITER */
 }
 
 void
@@ -998,14 +930,6 @@ DataManager::AfterPredict(void) const
 				       *(VectorHandler*)pXPrimeCurr);
 	}
 
-#if !defined(USE_ELEM_ITER)
-	Elem** ppLastElem = ppElems+iTotElem;
-	for (Elem** ppTmp = ppElems; ppTmp < ppLastElem; ppTmp++) {
-		ASSERT(*ppTmp != NULL);
-		(*ppTmp)->AfterPredict(*(VectorHandler*)pXCurr,
-				       *(VectorHandler*)pXPrimeCurr);
-	}
-#else /* USE_ELEM_ITER */
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
@@ -1014,7 +938,6 @@ DataManager::AfterPredict(void) const
 					*(VectorHandler*)pXPrimeCurr);
 		} while (ElemIter.bGetNext(pEl));
 	}
-#endif /* USE_ELEM_ITER */
 }
 
 void
@@ -1026,13 +949,6 @@ DataManager::Update(void) const
 		(*ppTmp)->Update(*pXCurr, *pXPrimeCurr);
 	}
 
-#if !defined(USE_ELEM_ITER)
-	Elem** ppLastElem = ppElems+iTotElem;
-	for (Elem** ppTmp = ppElems; ppTmp < ppLastElem; ppTmp++) {
-		ASSERT(*ppTmp != NULL);
-		(*ppTmp)->Update(*pXCurr, *pXPrimeCurr);
-	}
-#else /* USE_ELEM_ITER */
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
@@ -1040,7 +956,6 @@ DataManager::Update(void) const
 			pEl->Update(*pXCurr, *pXPrimeCurr);
 		} while (ElemIter.bGetNext(pEl));
 	}
-#endif /* USE_ELEM_ITER */
 }
 
 void
@@ -1053,14 +968,6 @@ DataManager::AfterConvergence(void) const
 					   *(VectorHandler*)pXPrimeCurr);
 	}
 
-#if !defined(USE_ELEM_ITER)
-	Elem** ppLastElem = ppElems+iTotElem;
-	for (Elem** ppTmp = ppElems; ppTmp < ppLastElem; ppTmp++) {
-		ASSERT(*ppTmp != NULL);
-		(*ppTmp)->AfterConvergence(*(VectorHandler*)pXCurr,
-					   *(VectorHandler*)pXPrimeCurr);
-	}
-#else /* USE_ELEM_ITER */
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
@@ -1069,7 +976,6 @@ DataManager::AfterConvergence(void) const
 					*(VectorHandler*)pXPrimeCurr);
 		} while (ElemIter.bGetNext(pEl));
 	}
-#endif /* USE_ELEM_ITER */
 
 	/* Restart condizionato */
 	switch (RestartEvery) {
@@ -1110,13 +1016,6 @@ DataManager::DerivativesUpdate(void) const
 		}
 	}
 
-#if !defined(USE_ELEM_ITER)
-	Elem** ppLastElem = ppElems+iTotElem;
-	for (Elem** ppTmp = ppElems; ppTmp < ppLastElem; ppTmp++) {
-		ASSERT(*ppTmp != NULL);
-		(*ppTmp)->Update(*pXCurr, *pXPrimeCurr);
-	}
-#else /* USE_ELEM_ITER */
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
@@ -1124,7 +1023,6 @@ DataManager::DerivativesUpdate(void) const
 			pEl->Update(*pXCurr, *pXPrimeCurr);
 		} while (ElemIter.bGetNext(pEl));
 	}
-#endif /* USE_ELEM_ITER */
 }
 
 /* DataManager - end */
