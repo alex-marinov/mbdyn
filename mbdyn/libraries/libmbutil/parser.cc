@@ -1019,6 +1019,7 @@ HighParser::GetMatR2vec(void)
       doublereal r32 = GetReal();
       doublereal r33 = GetReal();
 
+      /* FIXME: check for orthogonality? */
       return Mat3x3(r11, r21, r31, r12, r22, r32, r13, r23, r33);
    }
 
@@ -1319,6 +1320,11 @@ HighParser::GetMat6x6(const Mat6x6& mDef)
 		 m16, m26, m36, m46, m56, m66);
 
    } else {
+      if (IsKeyWord("matr")) {
+	      /* eat it; not required */
+	      NO_OP;
+      }
+
       doublereal m11 = GetReal(mDef.dGet(1, 1));
       doublereal m12 = GetReal(mDef.dGet(1, 2));
       doublereal m13 = GetReal(mDef.dGet(1, 3));
@@ -1389,6 +1395,10 @@ HighParser::GetMat6xN(Mat3xN& m1, Mat3xN& m2, integer iNumCols)
 	 vi[0] = 2;
 	 vi[1] = 3;
 	 vi[2] = 1;
+
+      } else if (IsKeyWord("matr")) {
+	      /* eat it; not required */
+	      NO_OP;
       }
 
       for (int i = 0; i < 3; i++) {
