@@ -38,4 +38,5 @@ extern int read_c81_data(istream& in, c81_data* data);
 extern int write_c81_data(ostream& out, c81_data* data);
 }
 
-#endif
+#endif /* C81DATA_H */
+

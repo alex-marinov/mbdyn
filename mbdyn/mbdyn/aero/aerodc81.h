@@ -53,6 +53,14 @@ extern "C" {
  * di incidenza i-esimo, al numero di mach j-esimo
  * 
  *     aX[NAX*(j+1)+i]
+ *
+ * MODIFICA 2000/10/02:
+ * angolo di stallo o fine linearita' per correzione flusso trasverso
+ *
+ * Ora si aggiunge:
+ *   - un vettore di angoli ai quali si perde linearita' (+)
+ *   - un vettore di angoli ai quali si perde linearita' (-)
+ *   - un vettore con il Cp/alpha
  */
 typedef struct c81_data {
    	char header[31];
@@ -61,6 +69,14 @@ typedef struct c81_data {
    	int NAL;
    	double *ml;
    	double *al;
+
+	/*
+	 * matrice dei dati di stallo:
+	 *  0 -> NAL-1 : 	angoli di stallo positivi
+	 *  NAL -> 2*NAL-1 :	angoli di stallo negativi
+	 *  2*NAL -> 3*NAL-1 :	Cp/alpha
+	 */
+	double *stall;
    
    	int NMD;
    	int NAD;
