@@ -311,7 +311,7 @@ output(const LoadableElem* pEl, OutputHandler& OH)
 		}
 		out << p->dVn << " " 
 			<< p->dSr << " "
-			<< p->dAlpha << " "
+			<< 180./M_PI*p->dAlpha << " "
 			<< p->dMuX << " "
 			<< p->dMuY << std::endl;
 	}
@@ -518,7 +518,7 @@ ass_res(LoadableElem* pEl,
 		/*
 		 * Angolo di deriva del mozzo
 		 */
-		p->dAlpha = atan2(dvay, dvax);
+		p->dAlpha = atan2(dvay, fabs(dvax));
 
 		/*
 		 * Coefficiente di attrito longitudinale
@@ -545,7 +545,7 @@ ass_res(LoadableElem* pEl,
 			doublereal dMuY0 = p->pMuY0->dGet(dAlpha);
 			doublereal dMuY1 = p->pMuY1->dGet(dAlpha);
 			
-			p->dMuY = dMuY0+(dMuY1-dMuY0)*fabs(p->dSr);
+			p->dMuY = dMuY0+(dMuY1-dMuY0)*p->dSr;
 
 			/*
 			 * Correggo le forze
