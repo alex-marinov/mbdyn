@@ -237,7 +237,7 @@ operator << (std::ostream& out, Table& T)
 
 	 switch (pn->var->GetType()) {
 	 case TypedValue::VAR_INT:
-	    type = "int";
+	    type = "integer";
 	    break;
 
 	 case TypedValue::VAR_REAL:
