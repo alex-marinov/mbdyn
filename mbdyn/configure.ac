@@ -151,6 +151,7 @@ OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support],auto,[auto yes no])
 OL_ARG_WITH(metis,[  --with-metis            with Metis support],auto,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
+OL_ARG_WITH(y12,[  --with-y12         with Y12 math library],auto,[auto yes no])
 OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
 OL_ARG_WITH(pam,[  --with-pam              with PAM support],auto,[auto yes no])
 
@@ -525,6 +526,16 @@ if test $ol_with_meschach != no ; then
 	fi
 else
 	AC_MSG_WARN([Meschach not supported!])
+fi
+
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for Y12
+dnl
+ol_link_y12=no
+if test $ol_with_y12 != no ; then
+	AC_DEFINE(USE_Y12,1,[define to use Y12 sparse LU library])
 fi
 
 
