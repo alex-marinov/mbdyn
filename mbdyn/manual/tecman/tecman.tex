@@ -245,6 +245,29 @@ and so $\Delta \T \omega = \Delta \dot{\T g}-
 \T \omega_{ref}\times\Delta \dot{\T g} * d_{Coef}$.
 
 \chapter{Data Structure}
+\section{ExpandableRowVector}
+\texttt{ExpandableRowVector} is a simple class that can be used to
+simplify the compute of complex Jacobians.
+An \texttt{ExpandableRowVector} is a vector with a given dimension,
+and is designed in order to carry the partial derivatives
+of a scalar quantity, say $y$, with respect to problem variables.
+
+\noindent
+Each element $v_i$ of the \texttt{ExpandableRowVector} $v$ 
+is supposed to be set to the partial derivative
+of $y$: $v_i = y_{/k_i}$, i.e. \texttt{v.Set($y_{/k_i}$,i)}.
+If $k_i$ is a problem variable then you shold set also
+the index of the variable, \texttt{v.Set($y_{/k_i}$,i,ip)}
+of \texttt{v.SetIdx($i$,ip)}. Otherwise, you can
+\emph{link} the partial derivatives to onother \texttt{ExpandableRowVector}
+giving the partial derivatives of $k$ (say $w$): \texttt{v.Set(i,\&w)}.
+
+\noindent
+After having built $v$ it is possible to assemble it 
+to a particular equation. For example,
+\texttt{v.Add(FullSubMatrixHandler\& WM, const integer eq, const doublereal c = 1.) const}
+is computed in such a way that \texttt{WM(eq,:)+=c*v}, with every linked 
+\texttt{ExpandableRowVector} taken in account.
 
 \chapter{Constraints}
 
