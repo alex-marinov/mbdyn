@@ -1365,14 +1365,22 @@ void DynamicPipe::Output(OutputHandler& OH) const
    if (fToBeOutput()) {
       std::ostream& out = OH.Hydraulic();
       out 
-	<< std::setw(8) << GetLabel()
-	<< " " << p1 << " " << p2
-	<< " " << p1p << " " << p2p
-	<< " " << q1 << " " << q2
-	<< " " << q1p << " " << q2p
-	<< " " << density1 << " " << density0 << " " << density2
-	<< " " << densityDPres1 << " " << densityDPres2
-	<< " " << Re << " " << turbulent
+	<< std::setw(8) << GetLabel()	/*  1 */
+	<< " " << p1			/*  2 */
+	<< " " << p2			/*  3 */
+	<< " " << p1p			/*  4 */
+	<< " " << p2p			/*  5 */
+	<< " " << q1			/*  6 */
+	<< " " << q2			/*  7 */
+	<< " " << q1p			/*  8 */
+	<< " " << q2p			/*  9 */
+	<< " " << density1		/* 10 */
+	<< " " << density0		/* 11 */
+	<< " " << density2		/* 12 */
+	<< " " << densityDPres1		/* 13 */
+	<< " " << densityDPres2		/* 14 */
+	<< " " << Re			/* 15 */
+	<< " " << turbulent		/* 16 */
 	<< std::endl;
    }
 }
