@@ -8,6 +8,11 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
 
+*** Fri Nov 30 15:28:39 CET 2001 Pierangelo Masarati <masarati@aero.polimi.it>
+ - added smearing
+ - "abort after: input;" outputs the current data
+ - fixed typos in manual
+
 *** Tue Nov 27 18:19:43 CET 2001 Pierangelo Masarati <masarati@aero.polimi.it>
  - Make hydraulic nodes honor the output flag
  - ITS works

@@ -10,11 +10,16 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.0 Engineering
 	Enhancements:
 		- Beam slider now works with multiple beams; the classic
-		  constraint (no transverse rotations) also works
+		  constraint (no transverse rotations) also works;
+		  added a "smearing" parameter that smooths the transition
+		  between portions of beam
 		- (For developers) Vec3 and Mat3x3 now have () operator;
 		  Vec3 also has [] operator
+		- "abort after: input;" causes the output as from 
+		  initialization after input
 	Bugs:
 		- Hydraulic nodes did not honor the output flag (always on)
+		- minor fixes in documentation
 
 
 MBDyn 1.0.1
