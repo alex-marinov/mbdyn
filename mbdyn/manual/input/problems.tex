@@ -242,9 +242,10 @@ It can also be selected using the shortcut
 
 \subsubsection{Nonlinear Solver}
 The nonlinear solver solves a nonlinear problem $F(x)=0$.
+Two nonlinear solvers are currently available:
+a Newton-Raphson iterator and a matrix-free solver.
 The first nonlinear solver, a modified Newton-Raphson, 
-is well tested. The second nonlinear solver, based on a
-matrix-free algorithm, is experimental.
+is well tested.
 \begin{verbatim}
     <card> ::= nonlinear solver : <nonlinear_solver_data> ;
 \end{verbatim}
@@ -254,8 +255,8 @@ matrix-free algorithm, is experimental.
             [ , keep jacobian ]
             [ , honor element requests ] } ;
 \end{verbatim}
-if \kw{modified}, the number of iterations the Jacobian matrix will be
-reused is expected.
+if \kw{modified}, the number of \kw{<iterations>} the same Jacobian matrix 
+will be reused, and thus factored only once, is expected.
 If the option \kw{keep jacobian} is selected, the jacobian is preserved
 for the desired \kw{<iterations>} even across time steps.
 By default, the jacobian is recomputed at the beginning of each time step.
@@ -266,6 +267,8 @@ The default behavior is to ignore such requests\footnote{
 	of the equations, or at least radically change the jacobian,
 	actually issue this request.
 }.
+The second nonlinear solver, based on a
+matrix-free algorithm, is experimental.
 \begin{verbatim}
     <nonlinear_solver_data> ::= matrix free, { bcgstab | gmres }
         [ , tolerance, < tolerance > ]
@@ -277,20 +280,22 @@ The default behavior is to ignore such requests\footnote{
 	        [ , honor element requests ]
     } ];
 \end{verbatim}
-Tolerance is the iterative linear solver tolerance;
-steps is the maximum number of the linear solver iteration.
-Tau is a measure of the configuration perturbation used
-to obtain a matrix free approximation of the product
+where \kw{<tolerance>} is the iterative linear solver tolerance;
+\kw{<steps>} is the maximum number of linear solver iterations;
+\kw{<tau>} is a measure of the configuration perturbation used
+to obtain a matrix-free approximation of the product
 of the jacobian matrix times the solution vector;
 it is seldom necessary to change the default value of this parameter,
 mainly for very ``stiff'' problems.
-Eta allows to change the convergence requirements; further reference for
-this parameter may be found in \cite{KELLEY-1995}; do not change it
-unless you know what you are doing.
-The preconditioner steps fixes the maximum number of
-iterations that can be performed without requiring
-an update of the preconditioner; this parameter can heavily influence
-the performance of the matrix free solver.
+By setting \kw{<eta>} one changes the convergence requirements; 
+further reference for this parameter may be found in \cite{KELLEY-1995}; 
+do not change it unless you know what you are doing.
+The valu \kw{<steps>} of the \kw{steps} keyword 
+of the \kw{preconditioner} sub-block 
+sets the maximum number of iterations that can be performed 
+without requiring an update of the preconditioner; 
+this parameter can heavily influence
+the performance of the matrix-free solver.
 If the option \kw{honor element requests} is selected, the preconditioned
 is updated also when an element changes the structure of its equations.
 The default behavior is to ignore such requests\footnote{See note above}.
