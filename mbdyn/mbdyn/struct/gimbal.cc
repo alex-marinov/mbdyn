@@ -90,8 +90,8 @@ GimbalJoint::Output(OutputHandler& OH) const
 
 		Vec3 d(MatR2EulerAngles(pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()));
 		Joint::Output(OH.Joints(), "Gimbal", GetLabel(),
-				Zero3, M, Zero3, Ra*M) << std::endl;
-		/* FIXME */
+				Zero3, M, Zero3, Ra*M)
+			<< " " << dTheta << " " << dPhi << std::endl;
 	}
 }
 
@@ -151,62 +151,57 @@ void
 GimbalJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 {
 	Mat3x3 Ra(pNode1->GetRRef()*R1h);
-	Mat3x3 Rb(pNode2->GetRRef()*R2h);
 	Mat3x3 RaT(Ra.Transpose());
-
-	Mat3x3 ExpTheta(RotManip::Rot(Vec3(0., dTheta, 0.)));
-	Mat3x3 ExpPhi(RotManip::Rot(Vec3(dPhi, 0., 0.)));
 
 	doublereal dCosTheta = cos(dTheta);
 	doublereal dSinTheta = sin(dTheta);
 	doublereal dCosPhi = cos(dPhi);
 	doublereal dSinPhi = sin(dPhi);
 
-	Mat3x3 MTmp(RaT*dCoef);
+	/* coppie */
+	/* termini in Delta lambda */
+	WM.Add(1, 6 + 1, Ra);
+	WM.Sub(3 + 1, 6 + 1, Ra);
+
+	/* termini in Delta g_a */
+	Mat3x3 MTmp(Ra*(M*dCoef));
+	WM.Sub(1, 1, MTmp);
+	WM.Add(3 + 1, 1, MTmp);
 
 	/* equazioni di vincolo */
 	/* termini in Delta g_a, Delta g_b */
+	MTmp = RaT*dCoef;
 	WM.Add(6 + 1, 1, MTmp);
 	WM.Sub(6 + 1, 3 + 1, MTmp);
 
 	/* termini in Delta theta */
 	WM.IncCoef(6 + 1, 9 + 1, dSinTheta*dSinPhi);
-	WM.IncCoef(6 + 2, 9 + 1, 2.);
-	WM.IncCoef(6 + 3, 9 + 1, (dCosTheta - 1.)*dSinPhi);
+	WM.IncCoef(6 + 2, 9 + 1, 1. + dCosPhi);
+	WM.IncCoef(6 + 3, 9 + 1, dCosTheta*dSinPhi);
 
 	/* termini in Delta phi */
 	WM.IncCoef(6 + 1, 9 + 2, dCosTheta);
 	WM.DecCoef(6 + 3, 9 + 2, dSinTheta);
 
-	/* coppie */
-	/* termini in Delta lambda */
-	WM.Sub(1, 6 + 1, Ra);
-	WM.Add(3 + 1, 6 + 1, Ra);
-
-	/* termini in Delta g_a, Delta g_b */
-	MTmp = Mat3x3(Ra*(M*dCoef));
-	WM.Add(1, 1, MTmp);
-	WM.Sub(3 + 1, 1, MTmp);
-
 	/* equazione in theta */
+	/* termini in Delta lambda */
+	WM.IncCoef(9 + 1, 6 + 1, dSinTheta*dSinPhi);
+	WM.IncCoef(9 + 1, 6 + 2, 1. + dCosPhi);
+	WM.IncCoef(9 + 1, 6 + 3, dCosTheta*dSinPhi);
+
 	/* termine in Delta theta */
 	WM.IncCoef(9 + 1, 9 + 1, dSinPhi*(dCosTheta*M(1) - dSinTheta*M(3)));
 
 	/* termine in Delta phi */
-	WM.IncCoef(9 + 1, 9 + 2, dCosPhi*(dSinTheta*M(1) + (dCosTheta - 1.)*M(3)));
-
-	/* termini in Delta lambda */
-	WM.IncCoef(9 + 1, 6 + 1, dSinTheta*dSinPhi);
-	WM.IncCoef(9 + 1, 6 + 2, 2.);
-	WM.IncCoef(9 + 1, 6 + 3, (dCosTheta - 1.)*dSinPhi);
+	WM.IncCoef(9 + 1, 9 + 2, dCosPhi*(dSinTheta*M(1) + dCosTheta*M(3)) - dSinPhi*M(2));
 
 	/* equazione in phi */
-	/* termine in Delta theta */
-	WM.DecCoef(9 + 2, 9 + 1, dSinTheta*M(1) + dCosTheta*M(3));
-
 	/* termini in Delta lambda */
 	WM.IncCoef(9 + 2, 6 + 1, dCosTheta);
 	WM.DecCoef(9 + 2, 6 + 3, dSinTheta);
+
+	/* termine in Delta theta */
+	WM.DecCoef(9 + 2, 9 + 1, dSinTheta*M(1) + dCosTheta*M(3));
 }
 
 
@@ -261,17 +256,18 @@ GimbalJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
 
 	doublereal dCosTheta = cos(dTheta);
 	doublereal dSinTheta = sin(dTheta);
+	doublereal dCosPhi = cos(dPhi);
 	doublereal dSinPhi = sin(dPhi);
 
 	Vec3 MTmp(Ra*M);
 
-	WorkVec.Add(1, MTmp);
-	WorkVec.Sub(3 + 1, MTmp);
+	WorkVec.Sub(1, MTmp);
+	WorkVec.Add(3 + 1, MTmp);
 
 	WorkVec.Add(6 + 1, RotManip::VecRot(Ra.Transpose()*Rb) - RotManip::VecRot(ExpTheta*ExpPhi*ExpTheta));
 
-	WorkVec.DecCoef(9 + 1, Vec3(dSinTheta*dSinPhi, 2., (dCosTheta - 1.)*dSinPhi)*M);
-	WorkVec.DecCoef(9 + 2, Vec3(dCosTheta, 0., -dSinTheta)*M);
+	WorkVec.DecCoef(9 + 1, dSinTheta*dSinPhi*M(1) + (1. + dCosPhi)*M(2) + dCosTheta*dSinPhi*M(3));
+	WorkVec.DecCoef(9 + 2, dCosTheta*M(1) - dSinTheta*M(3));
 }
 
 
