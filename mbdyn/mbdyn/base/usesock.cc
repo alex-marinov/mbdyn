@@ -114,31 +114,32 @@ UseSocket::PostConnect(void)
 void
 UseSocket::Connect(void)
 {
-	switch (mbdyn_connect(sock, GetSockaddr(), GetSocklen(), 1000)) {
-	case -1:
-		silent_cerr("UseSocket(): connect() failed "
-				<< std::endl);
-		throw ErrGeneric();
+	int	count = 1000;
+	int	timeout = 100000;
 
-	case -2:
-		silent_cerr("UseSocket(): connection timeout reached "
-				<< std::endl);
-		throw ErrGeneric();
+	for ( ; count > 0; count--) {
+		if (connect(sock, GetSockaddr(), GetSocklen()) < 0) {
+			if (errno == ECONNREFUSED) {
+				/* Socket does not exist yet; retry */
+				usleep(timeout);
+				continue;
+			}
 
-	case -3:
-		silent_cerr("UseSocket(): poll() failed "
-				<< std::endl);
-		throw ErrGeneric();
-		
-	case -4:
-		silent_cerr("UseSocket(): set socket option failed "
-				<< std::endl);
-		throw ErrGeneric();
+			/* Connect failed */
+			silent_cerr("UseSocket(): connect() failed "
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		/* Success */
+		connected = true;
+		PostConnect();
+		return;
 	}
 
-	connected = true;
-
-	PostConnect();
+	silent_cerr("UseSocket(): connection timeout reached "
+			<< std::endl);
+	throw ErrGeneric();
 }
 
 void
