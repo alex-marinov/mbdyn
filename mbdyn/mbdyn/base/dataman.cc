@@ -737,8 +737,10 @@ void DataManager::MakeRestart(void)
       ASSERT(*ppTmpEl != NULL);
       (*ppTmpEl)->Restart(OutHdl.Restart());
    }
-   OutHdl.Restart() << "end: elements;" << std::endl << std::endl << std::endl << std::endl;
+   OutHdl.Restart() << "end: elements;" << std::endl;
   }
+
+  OutHdl.Close(OutputHandler::RESTART);
 }
 
 NamedValue *
