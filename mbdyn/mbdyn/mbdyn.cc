@@ -38,9 +38,9 @@
 #include <ac/getopt.h>
 
 extern "C" {
-#ifdef HAVE_TIMES_H
+#ifdef HAVE_SYS_TIMES_H
 #include <sys/times.h>
-#endif /* HAVE_TIMES_H */
+#endif /* HAVE_SYS_TIMES_H */
 }
 
 #ifdef USE_MPI 
@@ -695,7 +695,7 @@ main(int argc, char* argv[])
 	 
 	    		time_t tSecs = 0;
 	    		time_t tCents = 0;
-#ifdef HAVE_TIMES_H	 
+#ifdef HAVE_SYS_TIMES_H	 
 	    		/* Tempo di CPU impiegato */
 	    		struct tms buf;
 	    		times(&buf);
@@ -712,7 +712,7 @@ main(int argc, char* argv[])
 			}
 #endif /* USE_MPI */
 	    		std::cout << std::endl;
-#endif /* HAVE_TIMES_H */
+#endif /* HAVE_SYS_TIMES_H */
 
 #ifdef MBDYN_X_MAIL_MESSAGE
 #ifdef HAVE_GETOPT
@@ -946,9 +946,9 @@ SendMessage(const char* const sInputFileName,
     	if (sInputFileName != NULL) {
         	Msg << "'" << sInputFileName << "' ";
     	}
-#ifdef HAVE_TIMES_H
+#ifdef HAVE_SYS_TIMES_H
     	Msg << "in " << tSecs << '.' << tCents << " seconds of CPU time";
-#endif /* HAVE_TIMES_H */
+#endif /* HAVE_SYS_TIMES_H */
     	Msg << '.' << std::endl;
     	Msg.close();
    

@@ -245,6 +245,8 @@ AC_CHECK_HEADERS(math.h)
 AC_CHECK_HEADERS(float.h)
 AC_CHECK_HEADERS(values.h)
 
+AC_CHECK_HEADERS(sys/times.h)
+
 dnl ----------------------------------------------------------------
 dnl
 dnl Checks for C++ header files (takes care of ANSI/pre-ANSI naming)
