@@ -524,7 +524,7 @@ ParNaiveSparsePermSolutionManager::Solve(void)
 			SAFEDELETE(Ap);
 		}
 		SAFENEWWITHCONSTRUCTOR(Ap, NaivePermMatrixHandler, 
-			NaivePermMatrixHandler(&A, &(perm[0])));
+				NaivePermMatrixHandler(&A, &(perm[0])));
 	} else {
 		pLS->ChangeSolPoint(VH.pdGetVec());
 	}

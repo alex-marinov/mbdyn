@@ -295,8 +295,11 @@ MultiThreadDataManager::thread(void *p)
 			break;
 
 		case MultiThreadDataManager::OP_ASSJAC_NAIVE:
-			//arg->ppNaiveJacHdl[arg->threadNumber]->Reset();
-			/* note: Naive should never throw ErrRebuildMatrix ... */
+#if 0
+			arg->ppNaiveJacHdl[arg->threadNumber]->Reset();
+#endif
+			/* NOTE: Naive should never throw
+			 * ErrRebuildMatrix ... */
 			arg->pDM->DataManager::AssJac(*arg->ppNaiveJacHdl[arg->threadNumber],
 					arg->dCoef,
 					arg->ElemIter,
@@ -503,13 +506,15 @@ retry:;
 			SAFENEWARR(thread_data[0].lock, integer, JacHdl.iGetNumRows());
 			memset(thread_data[0].lock, 0, sizeof(integer)*JacHdl.iGetNumRows());
 
-			SAFENEWARR(thread_data[0].ppNaiveJacHdl, NaiveMatrixHandler*, nThreads);
+			SAFENEWARR(thread_data[0].ppNaiveJacHdl,
+					NaiveMatrixHandler*, nThreads);
 			thread_data[0].ppNaiveJacHdl[0] = pNaiveJacHdl;
 
 			for (unsigned i = 1; i < nThreads; i++) {
 				thread_data[i].lock = thread_data[0].lock;
 				thread_data[i].ppNaiveJacHdl = thread_data[0].ppNaiveJacHdl;
 				thread_data[0].ppNaiveJacHdl[i] = 0;
+
 				SAFENEWWITHCONSTRUCTOR(thread_data[0].ppNaiveJacHdl[i],
 						NaiveMatrixHandler,
 						NaiveMatrixHandler(JacHdl.iGetNumRows()));
@@ -653,7 +658,9 @@ MultiThreadDataManager::NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	/* FIXME Right now it's already done before calling AssJac;
 	 * needs be moved here to improve parallel performances...
 	 */
-	//thread_data[0].ppNaiveJacHdl[0]->Reset();
+#if 0
+	thread_data[0].ppNaiveJacHdl[0]->Reset();
+#endif
 	DataManager::AssJac(*thread_data[0].ppNaiveJacHdl[0],
 			dCoef,
 			thread_data[0].ElemIter,

@@ -504,13 +504,13 @@ Solver::Run(void)
 
    	ASSERT(iNumDofs > 0);
 
-	integer iNSteps = pRegularSteps->GetIntegratorNumPreviousStates();
+	integer iRSteps = pRegularSteps->GetIntegratorNumPreviousStates();
 	integer iFSteps = pFictitiousSteps->GetIntegratorNumPreviousStates();
-	iNumPreviousVectors = (iNSteps < iFSteps) ? iFSteps : iNSteps;
+	iNumPreviousVectors = (iRSteps < iFSteps) ? iFSteps : iRSteps;
 
-	iNSteps = pRegularSteps->GetIntegratorNumUnknownStates();
-	iFSteps = pFictitiousSteps->GetIntegratorNumUnknownStates();
-	iUnkStates = (iNSteps < iFSteps) ? iFSteps : iNSteps;
+	integer iRUnkStates = pRegularSteps->GetIntegratorNumUnknownStates();
+	integer iFUnkStates = pFictitiousSteps->GetIntegratorNumUnknownStates();
+	iUnkStates = (iRUnkStates < iFUnkStates) ? iFUnkStates : iRUnkStates;
 
 	/* allocate workspace for previous time steps */
 	SAFENEWARR(pdWorkSpace, doublereal,

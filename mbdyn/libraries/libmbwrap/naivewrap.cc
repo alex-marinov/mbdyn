@@ -196,7 +196,7 @@ NaiveSparsePermSolutionManager::NaiveSparsePermSolutionManager(const integer Dim
 	const doublereal dMP)
 : NaiveSparseSolutionManager(Dim, dMP),
 dMinPiv(dMP),
-PermReady(false),
+bPermReady(false),
 Ap(0)
 {
 	perm.resize(Dim,0);
@@ -214,7 +214,7 @@ void
 NaiveSparsePermSolutionManager::MatrReset(void)
 {
 	if (Ap) {
-		PermReady = true;
+		bPermReady = true;
 
 		pLS->ChangeResPoint(VH.pdGetVec());
 		pLS->ChangeSolPoint(XH.pdGetVec());
@@ -255,18 +255,20 @@ NaiveSparsePermSolutionManager::BackPerm(void) {
 void
 NaiveSparsePermSolutionManager::Solve(void)
 {
-	if ((!PermReady) && (!Ap)) {
+	if ((!bPermReady) && (!Ap)) {
 		ComputePermutation();
 		if (Ap) {
 			SAFEDELETE(Ap);
 		}
+		ASSERT(Ap == 0);
 		SAFENEWWITHCONSTRUCTOR(Ap, NaivePermMatrixHandler, 
 			NaivePermMatrixHandler(&A, &(perm[0])));
 	} else {
 		pLS->ChangeSolPoint(VH.pdGetVec());
 	}
+
 	pLS->Solve();
-	if (PermReady) {
+	if (bPermReady) {
 		BackPerm();
 		pLS->ChangeSolPoint(XH.pdGetVec());
 	}
@@ -276,7 +278,7 @@ NaiveSparsePermSolutionManager::Solve(void)
 void
 NaiveSparsePermSolutionManager::MatrInitialize()
 {
-	PermReady = false;
+	bPermReady = false;
 
 	MatrReset();
 }
@@ -285,7 +287,7 @@ NaiveSparsePermSolutionManager::MatrInitialize()
 MatrixHandler*
 NaiveSparsePermSolutionManager::pMatHdl(void) const
 {
-	if (!PermReady) {
+	if (!bPermReady) {
 		return &A;
 	}
 

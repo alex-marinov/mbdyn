@@ -320,7 +320,7 @@ StepNIntegrator::StepNIntegrator(const integer MaxIt,
 		const doublereal dSolutionTol,
 		const integer stp,
 		const bool bmod_res_test)
-: ImplicitStepIntegrator(MaxIt, dT, dSolutionTol, stp , 1, bmod_res_test),
+: ImplicitStepIntegrator(MaxIt, dT, dSolutionTol, stp, 1, bmod_res_test),
 db0Differential(0.),
 db0Algebraic(0.)
 {

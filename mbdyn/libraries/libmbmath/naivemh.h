@@ -150,21 +150,26 @@ protected:
 
 public:
 	/* FIXME: always square? yes! */
+	NaivePermMatrixHandler(integer iSize,
+		const integer *const tperm);
+
 	NaivePermMatrixHandler(NaiveMatrixHandler*const nmh, 
 		const integer *const tperm);
 
 	virtual ~NaivePermMatrixHandler(void);
 
+	const integer* const pGetPerm(void) const;
+
 	virtual inline const doublereal&
 	operator () (integer iRow, integer iCol) const {
-		iCol = perm[iCol-1] + 1;
-		return NaiveMatrixHandler::operator()(iRow,iCol);
+		iCol = perm[iCol - 1] + 1;
+		return NaiveMatrixHandler::operator()(iRow, iCol);
 	};
 
 	virtual inline doublereal&
 	operator () (integer iRow, integer iCol) {
-		iCol = perm[iCol-1] + 1;
-		return NaiveMatrixHandler::operator()(iRow,iCol);
+		iCol = perm[iCol - 1] + 1;
+		return NaiveMatrixHandler::operator()(iRow, iCol);
 	};
 
 

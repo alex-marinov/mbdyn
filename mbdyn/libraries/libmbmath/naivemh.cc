@@ -56,6 +56,7 @@ ppdRows(0), ppiRows(0), ppiCols(0), piNzr(0), piNzc(0)
 		ppnonzero = nmh->ppnonzero;
 		piNzr = nmh->piNzr;
 		piNzc = nmh->piNzc;
+		
 	} else {
 		SAFENEWARR(ppiRows, integer *, iSize);
 		ppiRows[0] = 0;
@@ -366,18 +367,30 @@ void NaiveMatrixHandler::MakeCCStructure(std::vector<integer>& Ai,
 
 /* NaivePermMatrixHandler begin */
 
+NaivePermMatrixHandler::NaivePermMatrixHandler(integer iSize,
+		const integer *const tperm)
+: NaiveMatrixHandler(iSize), perm(tperm)
+{
+	NO_OP;
+}
+
 NaivePermMatrixHandler::NaivePermMatrixHandler(NaiveMatrixHandler*const nmh, 
 		const integer *const tperm)
-:  NaiveMatrixHandler(0, nmh), perm(tperm)
+: NaiveMatrixHandler(0, nmh), perm(tperm)
 {
+	NO_OP;
 }
 
 NaivePermMatrixHandler::~NaivePermMatrixHandler(void)
 {
+	NO_OP;
 }
 
-
-
+const integer* const
+NaivePermMatrixHandler::pGetPerm(void) const
+{
+	return perm;
+}
 
 /* NaivePermMatrixHandler end */
 
