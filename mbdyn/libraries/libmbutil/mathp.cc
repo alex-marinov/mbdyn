@@ -103,7 +103,7 @@ mp_srnd(Real s)
 Real 
 mp_prnt(Real s)
 {
-   std::cout << s << std::endl;
+   silent_cout(s << std::endl);
    return s;
 }
 
@@ -798,7 +798,7 @@ MathParser::ErrGeneric::ErrGeneric(void)
 
 MathParser::ErrGeneric::ErrGeneric(MathParser* p, const char* const s) 
 {
-   std::cerr << s << " at line " << p->GetLineNumber() << std::endl;
+   silent_cerr(s << " at line " << p->GetLineNumber() << std::endl);
 }
 
 MathParser::ErrGeneric::ErrGeneric(MathParser* p,
@@ -806,8 +806,8 @@ MathParser::ErrGeneric::ErrGeneric(MathParser* p,
 				   const char* const s2,
 				   const char* const s3) 
 {
-   std::cerr << "MathParser - " << s1 << s2 << s3
-     << " at line " << p->GetLineNumber() << std::endl;
+   silent_cerr("MathParser - " << s1 << s2 << s3
+     << " at line " << p->GetLineNumber() << std::endl);
 }
 
 /* gioca con table e stream di ingresso */
@@ -1529,8 +1529,8 @@ MathParser::stmt(void)
 	 }
 
 	 if (GetToken() != NAME || !IsType(namebuf)) {
-	    std::cerr << "type expected after type modifier "
-		    "in declaration in stmt()" << std::endl;
+	    silent_cerr("type expected after type modifier "
+		    "in declaration in stmt()" << std::endl);
 	    throw ErrGeneric(this, "type expected after type modifier "
 				    "in declaration");
 	 }
@@ -1542,8 +1542,8 @@ MathParser::stmt(void)
 	 ASSERT(type != TypedValue::VAR_UNKNOWN);
 	 
 	 if (GetToken() != NAME) {
-	    std::cerr << "name expected after type in declaration in stmt()" 
-		    << std::endl;
+	    silent_cerr("name expected after type in declaration in stmt()" 
+		    << std::endl);
 	    throw ErrGeneric(this, "name expected after type in declaration");
 	 }
 	 
@@ -1572,8 +1572,8 @@ MathParser::stmt(void)
 		* ad assegnarle il nuovo valore */
 	       if (redefine_vars) {
 		  if (v->Const()) {
-		     std::cerr << "cannot redefine a const named value"
-			     << std::endl;
+		     silent_cerr("cannot redefine a const named value"
+			     << std::endl);
 		     throw MathParser::ErrGeneric(this, "cannot redefine "
 					     "a const named value '",
 					     v->GetName(), "'");
@@ -1583,8 +1583,8 @@ MathParser::stmt(void)
 		     ((Var *)v)->SetVal(d);
 
 		  } else {
-		     std::cerr << "cannot redefine a non-var named value" 
-			     << std::endl;
+		     silent_cerr("cannot redefine a non-var named value" 
+			     << std::endl);
 		     throw MathParser::ErrGeneric(this, "cannot redefine "
 					     "non-var named value '",
 					     v->GetName(), "'");
@@ -1618,8 +1618,8 @@ MathParser::stmt(void)
 	       GetToken();
 	       TypedValue d = logical();
 	       if (v->Const()) {
-		  std::cerr << "cannot assign const named value '"
-			  << v->GetName() << "'" << std::endl;
+		  silent_cerr("cannot assign const named value '"
+			  << v->GetName() << "'" << std::endl);
 		  throw MathParser::ErrGeneric(this,
 					  "cannot assign const named value '",
 					  v->GetName(), "'");
@@ -1628,8 +1628,8 @@ MathParser::stmt(void)
 	       if (v->IsVar()) {
 	          ((Var *)v)->SetVal(d);
 	       } else {
-		  std::cerr << "cannot assign non-var named value '" 
-			  << v->GetName() << "'" << std::endl;
+		  silent_cerr("cannot assign non-var named value '" 
+			  << v->GetName() << "'" << std::endl);
 		  throw MathParser::ErrGeneric(this,
 		  			"cannot assign non-var named value '",
 					v->GetName(), "'");
@@ -1703,8 +1703,8 @@ MathParser::readplugin(void)
 				NO_OP;
 			}
 			if (c != ',' && c != ']') {
-				std::cerr << "need a separator "
-					"after closing quotes" << std::endl;
+				silent_cerr("need a separator "
+					"after closing quotes" << std::endl);
 				throw ErrGeneric();
 			}
 			in->putback(c);
@@ -1742,15 +1742,15 @@ MathParser::readplugin(void)
 		 * FIXME: rendere dinamico il buffer ...
 		 */
 		if (i >= sizeof(buf)) {
-			std::cerr << "buffer overflow" << std::endl;
+			silent_cerr("buffer overflow" << std::endl);
 			throw ErrGeneric();
 		}
 	}
 
 last_arg:
 	if (in->eof()) {
-		std::cerr << "eof encountered while parsing plugin" 
-			<< std::endl;
+		silent_cerr("eof encountered while parsing plugin" 
+			<< std::endl);
 		throw ErrGeneric();
 	}
 
@@ -1772,13 +1772,13 @@ last_arg:
 	 * verifiche di validita' argomenti
 	 */
 	if (pginname == NULL || *pginname == '\0') {
-		std::cerr << "illegal or missing plugin name" << std::endl;
+		silent_cerr("illegal or missing plugin name" << std::endl);
 		throw ErrGeneric();
 	}
 
 	if (varname == NULL || *varname == '\0') {
-		std::cerr << "illegal or missing plugin variable name" 
-			<< std::endl;
+		silent_cerr("illegal or missing plugin variable name" 
+			<< std::endl);
 		throw ErrGeneric();
 	}
 	
@@ -1787,8 +1787,8 @@ last_arg:
 	 */
 	NamedValue* v = table.Get(varname);
 	if (v != NULL) {
-		std::cerr << "variable " << varname << " already defined" 
-			<< std::endl;
+		silent_cerr("variable " << varname << " already defined" 
+			<< std::endl);
 		throw ErrGeneric();
 	}
 
@@ -1801,7 +1801,8 @@ last_arg:
 		}
 #ifdef DEBUG
 		for (int i = 0; argv[i] != NULL; i++) {
-			std::cout << "argv[" << i << "]=" << argv[i] << std::endl;
+			silent_cout("argv[" << i << "]=" << argv[i]
+					<< std::endl);
 		}
 #endif /* DEBUG */
 
@@ -1838,7 +1839,7 @@ last_arg:
 	/*
 	 * si arriva qui solo se il plugin non e' stato registrato
 	 */
-	std::cerr << "plugin '" << pginname << "' not supported" << std::endl;
+	silent_cerr("plugin '" << pginname << "' not supported" << std::endl);
 	throw ErrGeneric();
 }
    
@@ -1914,7 +1915,7 @@ MathParser::InsertSym(const char* const s, const Real& v, int redefine)
          if (var->IsVar()) {
             ((Var *)var)->SetVal(TypedValue(v));
          } else {
-	    std::cerr << "cannot redefine a non-var named value" << std::endl;
+	    silent_cerr("cannot redefine a non-var named value" << std::endl);
             throw MathParser::ErrGeneric(this,
 		"cannot redefine non-var named value '", var->GetName(), "'");
          }
@@ -1948,7 +1949,7 @@ MathParser::InsertSym(const char* const s, const Int& v, int redefine)
          if (var->IsVar()) {
             ((Var *)var)->SetVal(TypedValue(v));
          } else {
-	    std::cerr << "cannot redefine a non-var named value" << std::endl;
+	    silent_cerr("cannot redefine a non-var named value" << std::endl);
             throw MathParser::ErrGeneric(this,
 		"cannot redefine non-var named value '", var->GetName(), "'");
          }
