@@ -159,7 +159,6 @@ NaiveSparseSolutionManager::MatrInit(const doublereal d)
 void
 NaiveSparseSolutionManager::Solve(void)
 {
-// 	MakeNaiveForm();
 	pLS->Solve();
 }
 

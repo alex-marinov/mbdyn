@@ -39,9 +39,6 @@
 #include "myassert.h"
 #include "solman.h"
 
-// #define MBDYN_HIGH_NAIVEMH     0x80000000
-// #define MBDYN_LOW_NAIVEMH      0x7FFFFFFF
-
 class NaiveSolver;
 
 /* Sparse Matrix */

@@ -129,7 +129,6 @@ NaiveMatrixHandler::operator += (const SubMatrixHandler& SubMH)
 	integer nc = SubMH.iGetNumCols();
 	for (integer ir = 1; ir <= nr; ir++) {
 		integer iRow = SubMH.iGetRowIndex(ir);
-// 		integer iRow = SubMH.iGetRowIndex(ir) - 1;
 
 		for (integer ic = 1; ic <= nc; ic++) {
 			doublereal d = SubMH(ir, ic);
@@ -137,18 +136,6 @@ NaiveMatrixHandler::operator += (const SubMatrixHandler& SubMH)
 			if (d != 0.) {
 				integer iCol = SubMH.iGetColIndex(ic);
 				operator()(iRow,iCol) += d;
-// 				integer iCol = SubMH.iGetColIndex(ic) - 1;
-// 				if (ppdRows[iRow][iCol] == 0.) {
-// 					ppdRows[iRow][iCol] = d;
-// 
-// 					ppiRows[iCol][piNzr[iCol]] = iRow;
-// 					ppiCols[iRow][piNzc[iRow]] = iCol;
-// 					piNzr[iCol]++;
-// 					piNzc[iRow]++;
-// 
-// 				} else {
-// 					ppdRows[iRow][iCol] += d;
-// 				}
 			}
 		}
 	}
@@ -164,7 +151,6 @@ NaiveMatrixHandler::operator -= (const SubMatrixHandler& SubMH)
 	integer nc = SubMH.iGetNumCols();
 	for (integer ir = 1; ir <= nr; ir++) {
 		integer iRow = SubMH.iGetRowIndex(ir);
-// 		integer iRow = SubMH.iGetRowIndex(ir) - 1;
 
 		for (integer ic = 1; ic <= nc; ic++) {
 			doublereal d = SubMH(ir, ic);
@@ -172,18 +158,6 @@ NaiveMatrixHandler::operator -= (const SubMatrixHandler& SubMH)
 			if (d != 0.) {
 				integer iCol = SubMH.iGetColIndex(ic);
 				operator()(iRow,iCol) -= d;
-// 				integer iCol = SubMH.iGetColIndex(ic) - 1;
-// 				if (ppdRows[iRow][iCol] == 0.) {
-// 					ppdRows[iRow][iCol] = d;
-// 
-// 					ppiRows[iCol][piNzr[iCol]] = iRow;
-// 					ppiCols[iRow][piNzc[iRow]] = iCol;
-// 					piNzr[iCol]++;
-// 					piNzc[iRow]++;
-// 
-// 				} else {
-// 					ppdRows[iRow][iCol] -= d;
-// 				}
 			}
 		}
 	}
@@ -210,37 +184,24 @@ NaiveMatrixHandler::operator += (const VariableSubMatrixHandler& SubMH)
 		integer nc = SMH.iGetNumCols();
 		for (integer ir = 0; ir < nr; ir++) {
 			integer iRow = pirm1[ir + 1];
-// 			integer iRow = pirm1[ir + 1] - 1;
 
 			for (integer ic = 0; ic < nc; ic++) {
 #warning FIXME
 #warning FIXME
 #warning FIXME
 #warning
-#warning that fucking array is partially 1-based!!!!!
+#warning ppd matrix is partially 1-based!!!!!
 #warning
 #warning FIXME
 #warning FIXME
 #warning FIXME
 				//FIXME!!!!!
-				// FUCK!!!!
-				//that fucking array is partly 1-based!!!!!
+				//that array is partlially 1-based!!!!!
 				doublereal d = ppd[ic][ir+1];
 
 				if (d != 0.) {
 					integer iCol = picm1[ic + 1];
 					operator()(iRow,iCol) += d;
-// 					integer iCol = picm1[ic + 1] - 1;
-// 					if (ppdRows[iRow][iCol] == 0.) {
-// 						ppdRows[iRow][iCol] = d;
-// 
-// 						ppiRows[iRow][piNzr[iCol]] = iRow;
-// 						ppiCols[iRow][piNzc[iRow]] = iCol;
-// 						piNzr[iCol]++;
-// 						piNzc[iRow]++;
-// 					} else {
-// 						ppdRows[iRow][iCol] += d;
-// 					}
 				}
 			}
 		}
@@ -259,19 +220,6 @@ NaiveMatrixHandler::operator += (const VariableSubMatrixHandler& SubMH)
 				integer iRow = SMH.piRowm1[i];
 				integer iCol = SMH.piColm1[i];
 				operator()(iRow,iCol) += d;
-// 				integer iRow = SMH.piRowm1[i] - 1;
-// 				integer iCol = SMH.piColm1[i] - 1;
-// 				if (ppdRows[iRow][iCol] == 0.) {
-// 					ppdRows[iRow][iCol] = d;
-// 
-// 					ppiRows[iRow][piNzr[iCol]] = iRow;
-// 					ppiCols[iRow][piNzc[iRow]] = iCol;
-// 					piNzr[iCol]++;
-// 					piNzc[iRow]++;
-// 
-// 				} else {
-// 					ppdRows[iRow][iCol] += d;
-// 				}
 			}
 		}
 		break;
@@ -308,18 +256,6 @@ NaiveMatrixHandler::operator -= (const VariableSubMatrixHandler& SubMH)
 				if (d != 0.) {
 					integer iCol = picm1[ic + 1];
 					operator()(iRow,iCol) -= d;
-// 					integer iCol = picm1[ic + 1] - 1;
-// 					if (ppdRows[iRow][iCol] == 0.) {
-// 						ppdRows[iRow][iCol] = d;
-// 
-// 						ppiRows[iRow][piNzr[iCol]] = iRow;
-// 						ppiCols[iRow][piNzc[iRow]] = iCol;
-// 						piNzr[iCol]++;
-// 						piNzc[iRow]++;
-// 						
-// 					} else {
-// 						ppdRows[iRow][iCol] -= d;
-// 					}
 				}
 			}
 		}
@@ -338,20 +274,6 @@ NaiveMatrixHandler::operator -= (const VariableSubMatrixHandler& SubMH)
 				integer iRow = SMH.piRowm1[i];
 				integer iCol = SMH.piColm1[i];
 				operator()(iRow,iCol) -= d;
-// 				integer iRow = SMH.piRowm1[i] - 1;
-// 				integer iCol = SMH.piColm1[i] - 1;
-// 
-// 				if (ppdRows[iRow][iCol] == 0.) {
-// 					ppdRows[iRow][iCol] = d;
-// 
-// 					ppiRows[iRow][piNzr[iCol]] = iRow;
-// 					ppiCols[iRow][piNzc[iRow]] = iCol;
-// 					piNzr[iCol]++;
-// 					piNzc[iRow]++;
-// 
-// 				} else {
-// 					ppdRows[iRow][iCol] -= d;
-// 				}
 			}
 		}
 		break;
