@@ -102,6 +102,24 @@ VectorHandler& VectorHandler::ScalarAddMul(const VectorHandler& VH, const double
    return *this;
 }
 
+/* Somma e moltiplica per uno scalare this = VH + d * VH1 */
+VectorHandler& VectorHandler::ScalarAddMul(const VectorHandler& VH, const VectorHandler& VH1,
+				const doublereal& d) {      
+#ifdef DEBUG
+   IsValid();
+   VH.IsValid();
+   ASSERT(iGetSize() == VH.iGetSize());
+   VH1.IsValid();
+   ASSERT(iGetSize() == VH1.iGetSize());
+#endif
+   
+   for (integer i = iGetSize(); i > 0; i--) {
+      fPutCoef(i, VH.dGetCoef(i) + d*VH1.dGetCoef(i));
+   }
+   
+   return *this;
+}
+
 /* Moltiplica per uno scalare */
 VectorHandler& VectorHandler::ScalarMul(const VectorHandler& VH, const doublereal& d) {
 #ifdef DEBUG
@@ -197,6 +215,22 @@ doublereal VectorHandler::Norm(void) const {
    return sqrt(Dot());
 }
 
+/* Prodotto Scalare fra due Vettori */
+doublereal VectorHandler::InnerProd(const VectorHandler& VH) const {
+#ifdef DEBUG
+   IsValid();
+   VH.IsValid();
+   ASSERT(iGetSize() == VH.iGetSize());
+#endif
+   
+   doublereal d2 = 0.;
+   
+   for (integer i = iGetSize(); i > 0; i--) {
+      d2 += dGetCoef(i)*VH.dGetCoef(i);
+   }
+   
+   return d2;
+}
 
 
 /* VectorHandler - end */
@@ -355,6 +389,24 @@ MyVectorHandler::ScalarAddMul(const VectorHandler& VH, const doublereal& d)
       }
    }   
 
+   return *this;
+}
+
+/* Somma e moltiplica per uno scalare this = VH + d * VH1 */
+VectorHandler& MyVectorHandler::ScalarAddMul(const VectorHandler& VH, const VectorHandler& VH1,
+				const doublereal& d) {      
+#ifdef DEBUG
+   IsValid();
+   VH.IsValid();
+   ASSERT(iGetSize() == VH.iGetSize());
+   VH1.IsValid();
+   ASSERT(iGetSize() == VH1.iGetSize());
+#endif
+   
+   for (integer i = iGetSize(); i > 0; i--) {
+	 pdVecm1[i] = VH.dGetCoef(i) + d*VH1.dGetCoef(i);
+   }
+   
    return *this;
 }
 

@@ -109,7 +109,7 @@ public:
 	virtual void MatrInit(const doublereal& d = 0.);
 	
 	/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
-	virtual void Solve(void);
+	virtual void Solve(const doublereal /* dCoef */);
 
 	/* Bacward Substitution */
 	void BackSub(doublereal t_iniz = 0.);

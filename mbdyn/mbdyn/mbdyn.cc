@@ -696,7 +696,8 @@ RunMBDyn(MBDynParser& HP,
     	/* flag di parallelo */
     	flag fParallel(0);
 #endif /* USE_MPI */
-
+	flag fIterative(0);
+	
     	/* parole chiave */
     	const char* sKeyWords[] = { 
         	"begin",
@@ -706,6 +707,7 @@ RunMBDyn(MBDynParser& HP,
         	"multistep",
         	"rungekutta",
         	"parallel",
+		"iterative",
         	"schur"
     	};
 
@@ -720,6 +722,7 @@ RunMBDyn(MBDynParser& HP,
         	MULTISTEP,
         	RUNGEKUTTA,
         	PARALLEL,
+		ITERATIVE,
         	SSCHUR,
         	LASTKEYWORD
     	};
@@ -785,6 +788,9 @@ RunMBDyn(MBDynParser& HP,
 	    		break;
 #endif /* USE_EXCEPTIONS */
 #endif /* !USE_MPI */
+		case ITERATIVE:
+			fIterative = 1;
+			break;
 
         	case END:
 	    		if (KeyWords(HP.GetWord()) != DATA) {
@@ -825,10 +831,17 @@ endofcycle:
 						sOutputFileName, fParallel));
 		} else {
 #endif /* USE_MPI */
-			SAFENEWWITHCONSTRUCTOR(pIntg,
+			if (fIterative){
+				SAFENEWWITHCONSTRUCTOR(pIntg,
+					MultiStepIntegrator,
+					MultiStepIntegrator(HP, sInputFileName,
+						sOutputFileName, 0, fIterative));
+			} else {
+				SAFENEWWITHCONSTRUCTOR(pIntg,
 					MultiStepIntegrator,
 					MultiStepIntegrator(HP, sInputFileName,
 						sOutputFileName));
+			}
 #ifdef USE_MPI
 		}
 #endif /* USE_MPI */

@@ -124,7 +124,18 @@ private:
    	VecIter<Dof> DofIterator; 	/* Iteratore per la struttura dei Dof,
 					 * passato da DM */
    	integer iNumDofs;     		/* Dimensioni del problema */
-
+        
+        flag fIterative;
+	doublereal  dIterToll;          /* tolleranza per la convergenza della
+	                                   soluzione di Ax = b con metodi
+					   iterativi
+					 */
+					  
+	integer iIterativeMaxSteps;     /* Iterazioni massime per la soluzione 
+	                                   di un sistema linear con i metodi
+					   iterativi 
+					 */
+					    
 #ifdef USE_MPI
 	flag fParallel;
 
@@ -239,7 +250,8 @@ public:
    	MultiStepIntegrator(MBDynParser& HP, 
 		       	    const char* sInputFileName, 
 			    const char* sOutputFileName,
-			    flag fParallel = 0);
+			    flag fParallel = 0,
+			    flag fIter = 0);
 
    	/* esegue la simulazione */
    	virtual void Run(void);

@@ -64,7 +64,7 @@
 
 const int iGlobalSymbolTableInitialSize = 21;
 
-class DataManager {
+class DataManager : public SolutionDataManager {
    friend DriveCaller* ReadDriveData(const DataManager*, MBDynParser&, const DriveHandler*);   
    friend ScalarDof ReadScalarDof(const DataManager*, MBDynParser&, flag);
    

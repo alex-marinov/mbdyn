@@ -617,7 +617,7 @@ void DataManager::InitialJointAssembly(void)
 
 	
       /* Fattorizza e risolve con jacobiano e residuo appena calcolati */
-      pSM->Solve();
+      pSM->Solve(0.);
       
 #ifdef DEBUG
       if (DEBUG_LEVEL_MATCH(MYDEBUG_ASSEMBLY|MYDEBUG_RESIDUAL)) {

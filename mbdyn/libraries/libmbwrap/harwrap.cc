@@ -175,7 +175,7 @@ HarwellSparseLUSolutionManager::MatrInit(const doublereal& dResetVal)
 
 /* Risolve il problema */
 void
-HarwellSparseLUSolutionManager::Solve(void)
+HarwellSparseLUSolutionManager::Solve(const doublereal /* dCoef */)
 {
 #ifdef DEBUG
    	IsValid();

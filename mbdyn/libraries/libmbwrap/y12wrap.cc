@@ -727,7 +727,7 @@ Y12SparseLUSolutionManager::MatrInit(const doublereal& dResetVal)
 
 /* Risolve il problema */
 void
-Y12SparseLUSolutionManager::Solve(void)
+Y12SparseLUSolutionManager::Solve(const doublereal /* dCoef */)
 {
 #ifdef DEBUG
    	IsValid();

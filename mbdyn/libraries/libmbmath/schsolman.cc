@@ -113,11 +113,11 @@ pSolrVH(NULL),
 pGSReq(NULL), 
 pGRReq(NULL),
 pLocalSM(pLSM),
-pInterSM(NULL),  
+pInterSM(pISM),  
 fNewMatrix(0) 
 {
   DEBUGCOUT("Entering SchurSolutionManager::SchurSolutionManager()"
-		  << endl);
+		  << std::endl);
   
   ASSERT(iPrbmSize > 0);
   ASSERT(pLocDofs != NULL);
@@ -311,7 +311,7 @@ void SchurSolutionManager::MatrInit(const doublereal& dResetVal)
 
 /* Risolve i blocchi */
 
-void SchurSolutionManager::Solve(void)
+void SchurSolutionManager::Solve(const doublereal  dCoef)
 {
   	DEBUGCOUT("Entering SchurSolutionManager::Solve()" << endl);
 #ifdef DEBUG
@@ -322,7 +322,7 @@ void SchurSolutionManager::Solve(void)
 #endif /* MPI_PROFILING */
 
 	/* Fattorizzazione matrice B */
-	pLocalSM->Solve();
+	pLocalSM->Solve(dCoef);
 #ifdef MPI_PROFILING 
   	MPE_Log_event(32, 0, "end");
 #endif /* MPI_PROFILING */   
@@ -353,7 +353,7 @@ void SchurSolutionManager::Solve(void)
 			pLocalSM->ChangeSolPoint(pMH->GetEColSol(i));			
        			/* fa solo la back Substion perche' 
 			 * e' stato già lanciato il solve al precedentemente */
-			pLocalSM->Solve();
+			pLocalSM->Solve(dCoef);
      		}
 	}
    	pLocalSM->ChangeResPoint(prVH->pdGetVec());
@@ -417,7 +417,7 @@ void SchurSolutionManager::Solve(void)
 #ifdef MPI_PROFILING 
     		MPE_Log_event(35, 0, "start");
 #endif /* MPI_PROFILING */   
-    		pInterSM->Solve();
+    		pInterSM->Solve(dCoef);
 #ifdef MPI_PROFILING 
     		MPE_Log_event(36, 0, "end");
 #endif /* MPI_PROFILING */       

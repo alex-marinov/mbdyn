@@ -195,6 +195,10 @@ class VectorHandler {
    /* Somma e moltiplica per uno scalare */
    virtual VectorHandler& ScalarAddMul(const VectorHandler& VH, const doublereal& d);
    
+   /* Somma e moltiplica per uno scalare v = VH + d * VH1 */
+   virtual VectorHandler& ScalarAddMul(const VectorHandler& VH, const VectorHandler& VH1,
+   					const doublereal& d);
+
    /* Moltiplica per uno scalare */
    virtual VectorHandler& ScalarMul(const VectorHandler& VH, const doublereal& d);
    
@@ -215,6 +219,9 @@ class VectorHandler {
    
    /* Norma del vettore */
    virtual doublereal Norm(void) const;
+
+   /* Prodotto Scalare di due vettori */
+   virtual doublereal InnerProd(const VectorHandler& VH) const;
 
 };
 
@@ -286,6 +293,10 @@ class MyVectorHandler : public VectorHandler {
    /* Scrive un Vec3 nella posizione desiderata */
    virtual void Put(integer iRow, const Vec3& v);
    
+   /* Somma e moltiplica per uno scalare v = VH + d * VH1 */
+   virtual VectorHandler& ScalarAddMul(const VectorHandler& VH, const VectorHandler& VH1,
+   					const doublereal& d);
+
    /* Somma e moltiplica per uno scalare */
    virtual VectorHandler& ScalarAddMul(const VectorHandler& VH, const doublereal& d);
    
@@ -389,6 +400,21 @@ inline const doublereal& MyVectorHandler::dGetCoef(integer iRow) const {
 /* MyVectorHandler - end */
 
 
+/* SolutionDataManager - begin */
+
+class SolutionDataManager {
+public:
+	virtual ~SolutionDataManager(void) { NO_OP; };
+	
+	/* Collega il DataManager ed il DriveHandler ai vettori soluzione */
+	virtual void LinkToSolution(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr) = 0;
+
+	/* Assembla il residuo */
+	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef) = 0;
+};
+
+/* SolutionDataManager - end */
+
 
 /* SolutionManager - begin */
 
@@ -409,7 +435,7 @@ class SolutionManager {
    virtual void MatrInit(const doublereal& d = 0.) = 0;
    
    /* Risolve il sistema */
-   virtual void Solve(void) = 0;
+   virtual void Solve(const doublereal dCoef) = 0;
 
    /* sposta il puntatore al vettore del residuo */
    virtual void ChangeResPoint(doublereal* pRes) = 0;

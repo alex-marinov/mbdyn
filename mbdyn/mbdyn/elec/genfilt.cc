@@ -464,7 +464,7 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
       try {
 # endif 
 	 DEBUGCOUT("Solving ..." << std::endl);
-	 sm.Solve();
+	 sm.Solve(0.);
 # ifdef USE_EXCEPTIONS
       } 
       catch (...) {

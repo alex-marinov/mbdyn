@@ -121,7 +121,7 @@ main(int argc, char *argv[])
 #ifdef USE_EXCEPTIONS
 	try {
 #endif /* USE_EXCEPTIONS */
-	pSM->Solve();
+	pSM->Solve(0.);
 #ifdef USE_EXCEPTIONS
 	} catch (...) {
 		exit(EXIT_FAILURE);

@@ -144,7 +144,7 @@ Umfpack3SparseLUSolutionManager::PrepareSymbolic(void)
 
 /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
 void
-Umfpack3SparseLUSolutionManager::Solve(void)
+Umfpack3SparseLUSolutionManager::Solve(const doublereal /* dCoef */)
 {
 	double t = umfpack_timer() ;
 	if (HasBeenReset) {
