@@ -1474,8 +1474,8 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	  SAFENEWARR(ppDC, DriveCaller*, iNumDr);
 	  for (int i = 0; i < iNumDr; i++) {
 	     ppDC[i] = ReadDriveData(pDM, HP, pDrvHdl);
-	     HP.PutKeyTable(K);
 	  }
+	  HP.PutKeyTable(K);
 	  
 	  /* allocazione e creazione array */
 	  SAFENEWWITHCONSTRUCTOR(pDC,

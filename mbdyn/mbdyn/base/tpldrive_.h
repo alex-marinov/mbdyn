@@ -183,6 +183,64 @@ class ArrayTplDriveCaller : public TplDriveCaller<T> {
    };   
 };
 
+class ArrayTplDriveCaller<doublereal> : public TplDriveCaller<doublereal> {
+ protected:   
+   DrivesArray<doublereal>* pDrivesArray;
+   unsigned short int iNumDrives;
+   
+ public:
+   ArrayTplDriveCaller(unsigned short int i, 
+		       DrivesArray<doublereal>* pDA)
+     : pDrivesArray(pDA), iNumDrives(i) {
+	ASSERT(i > 0);
+	ASSERT(pDA != NULL);
+     };
+   
+   ~ArrayTplDriveCaller(void) {
+      for (int i = 0; i < iNumDrives; i++) {
+	 SAFEDELETE(pDrivesArray[i].pDriveCaller);
+      }
+      SAFEDELETEARR(pDrivesArray);
+   };
+   
+   /* copia */
+   virtual TplDriveCaller<doublereal>* pCopy(void) const {      
+      typedef DrivesArray<doublereal> da;
+      da* pDA = NULL;
+      
+      SAFENEWARR(pDA, da, iNumDrives);
+      
+      for (int i = 0; i < iNumDrives; i++) {
+	 pDA[i].pDriveCaller = pDrivesArray[i].pDriveCaller->pCopy();
+	 pDA[i].t = pDrivesArray[i].t;
+      }
+
+      typedef ArrayTplDriveCaller<doublereal> dc;
+      TplDriveCaller<doublereal>* pDC = NULL;
+      
+      SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(iNumDrives, pDA));
+      
+      return pDC;
+   };
+
+   /* Scrive il contributo del DriveCaller al file di restart */
+   virtual std::ostream& Restart(std::ostream& out) const {
+      out << "array, " << iNumDrives;
+      for (int i = 0; i < iNumDrives; i++) {
+         out << ", ", pDrivesArray[i].pDriveCaller->Restart(out);
+      }
+      return out;
+   };
+   
+   inline doublereal Get(void) const {
+      doublereal v = 0.;
+      for (int i = 0; i < iNumDrives; i++) {
+	 v += pDrivesArray[i].pDriveCaller->dGet();
+      }      
+      return v;
+   };
+};
+
 /* Nota: di questa classe non viene scritta esplicitamente la versione
  *       per reali in quanto il coefficiente moltiplicativo
  *       puo' essere usato per un'ulteriore pesatura del drive */
