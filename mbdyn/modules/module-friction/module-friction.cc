@@ -98,7 +98,7 @@ read(LoadableElem* pEl,
 	p->firstUpdate = true;
 
 	p->dof = ReadScalarDof(pDM, HP, 0);
-	if (p->dof.pNode->SetDof(0) != DofOrder::DIFFERENTIAL) {
+	if (p->dof.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 		std::cerr << "need a differential node" << std::endl;
 		THROW(ErrGeneric());
 	}
