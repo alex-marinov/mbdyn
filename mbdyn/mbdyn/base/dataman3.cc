@@ -684,7 +684,11 @@ void DataManager::ReadControl(MBDynParser& HP,
        case PRINT:
 	  if (HP.IsKeyWord("dof" "stats")) {
 	     bPrintDofStats = true;
+
+	  } else if (HP.IsKeyWord("none")) {
+	     bPrintDofStats = false;
 	  }
+
 	  break;
 
        case SOLVER:

@@ -105,7 +105,7 @@ iMaxInitialIterations(iDefaultMaxInitialIterations),
 #if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
 loadableElemInitialized(false),
 #endif /* HAVE_LOADABLE && HAVE_LTDL_H */
-bPrintDofStats(false),
+bPrintDofStats(true),		/* Morandini, 2003-11-17 */
 sSimulationTitle(NULL),
 RestartEvery(NEVER),
 iRestartIterations(0),

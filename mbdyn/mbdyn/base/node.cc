@@ -273,11 +273,7 @@ ScalarAlgebraicNode::~ScalarAlgebraicNode(void)
 /* esegue operazioni sui dof di proprieta' dell'elemento 
  * in particolare ritorna il tipo di Dof in base all'indice i. Di default
  * i Dof dei nodi sono assunti differenziali */   
-#ifdef DEBUG
 DofOrder::Order ScalarAlgebraicNode::GetDofType(unsigned int i) const
-#else
-DofOrder::Order ScalarAlgebraicNode::GetDofType(unsigned int /* i */ ) const
-#endif     
 { 
    ASSERT(i < iGetNumDof());
    return DofOrder::ALGEBRAIC; 
