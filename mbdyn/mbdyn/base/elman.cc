@@ -364,7 +364,7 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 	if (pIter->bGetFirst(pTmpEl)) {
 		do {
 
-#if MBDYN_X_THREADSAFE
+#ifdef MBDYN_X_THREADSAFE
 			pthread_mutex_lock(&mutex);
 #endif /* MBDYN_X_THREADSAFE */
 			
