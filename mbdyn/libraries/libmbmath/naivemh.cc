@@ -42,13 +42,7 @@
 
 NaiveMatrixHandler::NaiveMatrixHandler(const integer n)
 :  iSize(n),
-ppdRows(0), ppiRows(0), ppiCols(0), piNzr(0), piNzc(0),
-#if 0
-iHIGH(std::numeric_limits<int>::min()),
-iLOW(std::numeric_limits<int>::max())
-#endif
-iHIGH(HIGH),
-iLOW(LOW)
+ppdRows(0), ppiRows(0), ppiCols(0), piNzr(0), piNzc(0)
 {
 	SAFENEWARR(ppiRows, integer *, iSize);
 	ppiRows[0] = 0;
@@ -62,10 +56,15 @@ iLOW(LOW)
 	ppdRows[0] = NULL;
 	SAFENEWARR(ppdRows[0], doublereal, iSize*iSize);
 
+	SAFENEWARR(ppnonzero, char *, iSize);
+	ppnonzero[0] = NULL;
+	SAFENEWARR(ppnonzero[0], char, iSize*iSize);
+
 	for (integer i = 1; i < iSize; i++) {
 		ppiRows[i] = ppiRows[i - 1] + iSize;
 		ppiCols[i] = ppiCols[i - 1] + iSize;
 		ppdRows[i] = ppdRows[i - 1] + iSize;
+		ppnonzero[i] = ppnonzero[i - 1] + iSize;
 	}
 
 	SAFENEWARR(piNzr, integer, iSize);
@@ -95,6 +94,13 @@ NaiveMatrixHandler::~NaiveMatrixHandler(void)
 		SAFEDELETEARR(ppdRows);
 	}
 
+	if (ppnonzero) {
+		if (ppnonzero[0]) {
+			SAFEDELETEARR(ppnonzero[0]);
+		}
+		SAFEDELETEARR(ppnonzero);
+	}
+
 	if (piNzr) {
 		SAFEDELETEARR(piNzr);
 	}
@@ -109,13 +115,13 @@ NaiveMatrixHandler::Reset(const doublereal c)
 {
 	ASSERTMSGBREAK(c == 0., "NaiveMatrixHandler::Init(const doublereal& c) with c!= 0. is meaningless");
 #ifdef HAVE_MEMSET_H
-	memset(ppiRows[0], 0, sizeof(integer)*iSize*iSize);
+	memset(ppnonzero[0], 0, sizeof(char)*iSize*iSize);
 	memset(piNzr, 0, sizeof(integer)*iSize);
 	memset(piNzc, 0, sizeof(integer)*iSize);
 #else /* ! HAVE_MEMSET_H */
 	for (integer i = 0; i < iSize; i++) {
 		for (integer j = 0; j < iSize; j++) {
-			ppiRows[i][j] = 0;
+			ppnonzero[i][j] = 0;
 		}
 
 		piNzr[i] = 0;

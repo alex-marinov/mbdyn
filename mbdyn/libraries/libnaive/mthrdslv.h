@@ -46,14 +46,13 @@ extern "C" {
 #define ENULCOL  0x10000000
 #define ENOPIV   0x20000000
 
-#define HIGH     0x80000000
-#define LOW      0x7FFFFFFF
-
 typedef integer** IMAT;
 typedef doublereal** RMAT;
+typedef char** NZMAT;
 
 extern int naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
-		integer *nzc, IMAT ci, integer *piv, doublereal minpiv);
+		integer *nzc, IMAT ci, NZMAT nz, 
+		integer *piv, doublereal minpiv);
 
 extern void naivslv(RMAT a, integer neq, integer *nzc, IMAT ci,
 		doublereal *rhs, integer *piv);

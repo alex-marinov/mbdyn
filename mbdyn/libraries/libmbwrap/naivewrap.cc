@@ -95,9 +95,10 @@ NaiveSolver::Factor(void)
 	std::cerr << "prima: " << i << std::endl;
 #endif
 	
-	rc = naivfct(A->ppdRows, iSize, 
+	rc = naivfct(A->ppdRows, iSize,
 			A->piNzr, A->ppiRows, 
 			A->piNzc, A->ppiCols,
+			A->ppnonzero, 
 			&piv[0], dMinPiv);
 
 #if 0
@@ -131,7 +132,7 @@ NaiveSolver::Factor(void)
 /* NaiveSparseSolutionManager - begin */
 
 NaiveSparseSolutionManager::NaiveSparseSolutionManager(integer Dim,
-		const doublereal& dMP)
+		const doublereal dMP)
 : A(Dim),
 VH(Dim)
 {

@@ -48,9 +48,8 @@ protected:
 	integer iSize;
 	doublereal **ppdRows;
 	integer **ppiRows, **ppiCols;
+	char **ppnonzero;
 	integer *piNzr, *piNzc;
-	const integer iHIGH;
-	const integer iLOW;
 
 #ifdef DEBUG
 	void IsValid(void) const {
@@ -110,7 +109,7 @@ NaiveMatrixHandler::operator () (integer iRow, integer iCol) const
 {
 	--iRow;
 	--iCol;
-	if (ppiRows[iRow][iCol] & iHIGH) {
+	if (ppnonzero[iRow][iCol]) {
 		return ppdRows[iRow][iCol];
 	}
 	return ::dZero;
@@ -121,9 +120,9 @@ NaiveMatrixHandler::operator () (integer iRow, integer iCol)
 {
 	--iRow;
 	--iCol;
-	if (!(ppiRows[iRow][iCol] & iHIGH)) {
-		ppiRows[iRow][iCol] |= iHIGH;
-		ppiRows[iCol][piNzr[iCol]] |= iRow;
+	if (!(ppnonzero[iRow][iCol])) {
+		ppnonzero[iRow][iCol] = 1;
+		ppiRows[iCol][piNzr[iCol]] = iRow;
 		ppiCols[iRow][piNzc[iRow]] = iCol;
 		piNzr[iCol]++;
 		piNzc[iRow]++;

@@ -45,11 +45,13 @@
 
 int
 naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
-		integer *nzc, IMAT ci, integer *piv, doublereal minpiv)
+		integer *nzc, IMAT ci, NZMAT nz, 
+		integer *piv, doublereal minpiv)
 {
 	integer todo[neq];
 	integer i, j, k, m, pvr, pvc, nr, nc, r;
-	integer *pri, *prik, *pci;
+	integer *pri, *pci;
+	char *prik;
 	doublereal den, mul;
 	doublereal *par, *papvr;
 
@@ -66,7 +68,7 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 		mul = 0.0;
 		pri = ri[i];
 		for (k = 0; k < nr; k++) {
-			r = pri[k] & LOW;
+			r = pri[k];
 			if (todo[r] && fabs(a[r][i]) > mul) {
 				mul = fabs(a[r][i]);
 				m = nzc[pvr = r];	
@@ -76,7 +78,7 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 #if PIVMETH == SPRSPIV
 		mul *= minpiv;
 		for (k = 0; k < nr; k++) {
-			r = pri[k] & LOW;
+			r = pri[k];
 			if (todo[r] && nzc[r] < m && fabs(a[r][i]) > mul) {
 				m = nzc[pvr = r];	
 			}
@@ -89,19 +91,19 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 		nr = nzr[i];
 		nc = nzc[pvr];
 		for (k = 0; k < nr; k++) {
-			if (!todo[r = pri[k] & LOW]) { continue; }
+			if (!todo[r = pri[k]]) { continue; }
 			par = a[r];
 			mul = par[i] = par[i]*den;
-			prik = ri[r];
+			prik = nz[r];
 			pci = ci[pvr];
 			for (j = 0; j < nc; j++) {
 				if ((pvc = pci[j]) <= i) { continue; }
-				if (prik[pvc] & HIGH) {
+				if (prik[pvc]) {
 					par[pvc] -= mul*papvr[pvc];
 				} else {
 					par[pvc] = -mul*papvr[pvc];
-					prik[pvc] |= HIGH;
-					ri[pvc][nzr[pvc]++] |= r;
+					prik[pvc] = 1;
+					ri[pvc][nzr[pvc]++] = r;
 					ci[r][nzc[r]++] = pvc;
 				}
 			}

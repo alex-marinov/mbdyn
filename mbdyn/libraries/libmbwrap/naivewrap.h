@@ -81,7 +81,7 @@ protected:
 	virtual void MatrReset(const doublereal d);
 
 public:
-	NaiveSparseSolutionManager(integer Dim, const doublereal &dMP = 1.e-9);
+	NaiveSparseSolutionManager(integer Dim, const doublereal dMP = 1.e-9);
 	virtual ~NaiveSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {
