@@ -35,7 +35,7 @@
 
 #include <aeromodal.h>
 #include <dataman.h>
-#include <cmath>
+//#include <cmath>
 /* AerodynamicModal - begin */
 
 AerodynamicModal::AerodynamicModal(unsigned int uLabel, 
@@ -191,7 +191,7 @@ AerodynamicModal::AssJac(VariableSubMatrixHandler& WorkMat,
    	}
    	/* velocità nel riferimento nodale aerodinamico */
    	VTmp=RRT*Vr;
-   	doublereal nV = std::abs(VTmp.dGet(1));
+   	doublereal nV = fabs(VTmp.dGet(1));
    	doublereal qd =0.5*rho*nV*nV;	
         doublereal CV=Chord/(2*nV);
    
@@ -439,7 +439,7 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
    }
     /* velocita' nel riferimento nodale aerodinamico */
    V0=RRT*Vr;
-   doublereal nV = std::abs(V0.dGet(1));
+   doublereal nV = fabs(V0.dGet(1));
    doublereal qd =0.5*rho*nV*nV;	
    MyVectorHandler TmpA(NAeroStates);
    TmpA.Reset();
