@@ -67,9 +67,11 @@ DofPlugIn::Read(int argc, char *argv[])
 		pNode = NULL;
 		/* Chi dealloca questa memoria? ci vorrebbe l'handle */
 		SAFENEWWITHCONSTRUCTOR(pNode, Node2Scalar, Node2Scalar(nd));
-		std::cerr << "warning, possibly allocating a NodeDof "
-			"that nobody will delete until handles "
-			"will be used" << std::endl;
+		pedantic_cerr(psNodeNames[pNode->GetNodeType()] 
+				<< "(" << pNode->GetLabel() 
+				<< "): possibly allocating a NodeDof "
+		 		"that nobody will delete until handles "
+				"will be used" << std::endl);
 	} else {
 		iOrder = ReadDofOrder(pNode, 1, argv[2]);
 	}
@@ -130,7 +132,8 @@ DofPlugIn::ReadNode(unsigned int uLabel, const char *s)
 		THROW(ErrGeneric());
 	}
 	if ((pNode = pDM->pFindNode(Node::Type(i), uLabel)) == NULL) {
-		std::cerr << "node " << uLabel << " not defined" << std::endl;
+		std::cerr << psNodeNames[Node::Type(i)] 
+			<< "(" << uLabel << ") not defined" << std::endl;
 		THROW(ErrGeneric());
 	}
 	return pNode;
@@ -141,7 +144,7 @@ DofPlugIn::ReadIndex(Node *pNode, unsigned int iMaxIndex, const char *s)
 {
 	unsigned int i = ReadLabel(s);
 	if (i == 0 || i > iMaxIndex) {
-		std::cerr << "illegal index " << i << " for node "
+		std::cerr << "illegal index " << i << " for "
 			<< psNodeNames[pNode->GetNodeType()]
 			<< "(" << pNode->GetLabel() << ")" << std::endl;
 		THROW(ErrGeneric());
