@@ -116,8 +116,8 @@ ThetaRef(0.), TaCurr(0.), TbCurr(0.), FDE(0.)
    /* 
     * Chiede la matrice tangente di riferimento e la porta nel sistema globale 
     */
-   Mat3x3 R1(pNode1->GetRRef()*R1h);
-   FDE = R1*GetFDE()*R1.Transpose();   
+   Mat3x3 R(pNode1->GetRRef()*R1h);
+   FDE = R*GetFDE()*R.Transpose();   
 }
 
 
