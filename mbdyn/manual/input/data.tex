@@ -1255,18 +1255,20 @@ are as follows:
 \subsubsection{Cubic Natural Spline Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= cubicspline
-    <scalar_func_args> ::= <point>, 
-                           <point>, 
-                           <point>
-                           [, ...]
+    <scalar_func_args> ::= [ do not extrapolate , ]
+        <point>, 
+        <point>, 
+        <point>
+        [, ...]
     <point>            ::= <x>, <y>
 \end{verbatim}
 \subsubsection{Multilinear Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= multilinear
-    <scalar_func_args> ::= <point>, 
-                           <point>, 
-                           [, ...]
+    <scalar_func_args> ::= [ do not extrapolate , ]
+        <point>, 
+        <point>, 
+        [, ...]
     <point>            ::= <x>, <y>
 \end{verbatim}
 

@@ -53,8 +53,6 @@
 
 #include "ScalarFunctions.h"
 
-
-
 class ConstScalarFunction : public DifferentiableScalarFunction {
 private:
 	const doublereal y;
@@ -133,10 +131,12 @@ private:
 	std::vector<doublereal> Y_i;
 	std::vector<doublereal> X_i;
 	std::vector<doublereal> b, c, d;
+	bool doNotExtrapolate;
 public:
 	CubicSplineScalarFunction(
 		const std::vector<doublereal> y_i,
-		const std::vector<doublereal> x_i);
+		const std::vector<doublereal> x_i,
+		bool doNotExtrapolate = false);
 	virtual ~CubicSplineScalarFunction();
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
@@ -146,10 +146,12 @@ class MultiLinearScalarFunction : public DifferentiableScalarFunction {
 private:
 	std::vector<doublereal> Y_i;
 	std::vector<doublereal> X_i;
+	bool doNotExtrapolate;
 public:
 	MultiLinearScalarFunction(
 		const std::vector<doublereal> y_i,
-		const std::vector<doublereal> x_i);
+		const std::vector<doublereal> x_i,
+		bool doNotExtrapolate = false);
 	virtual ~MultiLinearScalarFunction();
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
@@ -158,4 +160,5 @@ public:
 
 
 
-#endif //ScalarFunctionsImpl_hh
+#endif /* ScalarFunctionsImpl_hh */
+

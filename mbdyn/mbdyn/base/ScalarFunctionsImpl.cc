@@ -286,7 +286,10 @@ doublereal MulScalarFunction::ComputeDiff(const doublereal x, const integer orde
 
 CubicSplineScalarFunction::CubicSplineScalarFunction(
 	const std::vector<doublereal> y_i,
-	const std::vector<doublereal> x_i) {
+	const std::vector<doublereal> x_i,
+	bool doNotExtrapolate)
+:doNotExtrapolate(doNotExtrapolate)
+{
 	Y_i = y_i;
 	X_i = x_i;
 	ASSERTMSGBREAK(Y_i.size() == X_i.size(), "CubicSplineScalarFunction error, Y_i.size() != X_i.size()");
@@ -300,36 +303,59 @@ CubicSplineScalarFunction::CubicSplineScalarFunction(
 		}
 	}
 	spline(X_i,Y_i,b,c,d);
-};
-CubicSplineScalarFunction::~CubicSplineScalarFunction() {
-};
-doublereal CubicSplineScalarFunction::operator()(const doublereal x) const {
-	return seval(x,X_i,Y_i,b,c,d);
-};
-doublereal CubicSplineScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
+}
+
+CubicSplineScalarFunction::~CubicSplineScalarFunction()
+{
+	NO_OP;
+}
+
+doublereal
+CubicSplineScalarFunction::operator()(const doublereal x) const
+{
+	if (doNotExtrapolate) {
+		if (x <= X_i[0]) {
+			return Y_i[0];
+		}
+
+		int s = X_i.size() - 1;
+		if (x >= X_i[s]) {
+			return Y_i[s];
+		}
+	}
+			
+	return seval(x, X_i, Y_i, b, c, d);
+}
+
+doublereal
+CubicSplineScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
 	ASSERTMSGBREAK(order >=0, "Error in CubicSplineScalarFunction::ComputeDiff, order<0");
 	switch (order) {
 	case 0: 
 		return this->operator()(x);
 		break;
 	case 1: 
-		return seval(x,X_i,Y_i,b,c,d,1);
+		return seval(x, X_i, Y_i, b, c, d, 1);
 		break;
 	case 2: 
-		return seval(x,X_i,Y_i,b,c,d,2);
+		return seval(x, X_i, Y_i, b, c, d, 2);
 		break;
 	case 3: 
-		return seval(x,X_i,Y_i,b,c,d,3);
+		return seval(x, X_i, Y_i, b, c, d, 3);
 		break;
 	default:
 		return 0.;
 		break;
 	}
-};
+}
 
 MultiLinearScalarFunction::MultiLinearScalarFunction(
 	const std::vector<doublereal> y_i,
-	const std::vector<doublereal> x_i) {
+	const std::vector<doublereal> x_i,
+	bool doNotExtrapolate)
+: doNotExtrapolate(doNotExtrapolate)
+{
 	Y_i = y_i;
 	X_i = x_i;
 	ASSERTMSGBREAK(X_i.size() == Y_i.size(), "MultiLinearScalarFunction error, Y_i.size() != X_i.size()");
@@ -342,13 +368,32 @@ MultiLinearScalarFunction::MultiLinearScalarFunction(
 			throw ErrGeneric();
 		}
 	}
-};
-MultiLinearScalarFunction::~MultiLinearScalarFunction() {
-};
-doublereal MultiLinearScalarFunction::operator()(const doublereal x) const {
-	return leval(x,X_i,Y_i);
-};
-doublereal MultiLinearScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
+}
+
+MultiLinearScalarFunction::~MultiLinearScalarFunction()
+{
+	NO_OP;
+}
+
+doublereal MultiLinearScalarFunction::operator()(const doublereal x) const
+{
+	if (doNotExtrapolate) {
+		if (x <= X_i[0]) {
+			return Y_i[0];
+		}
+		
+		int s = X_i.size() - 1;
+		if (x >= X_i[s]) {
+			return Y_i[s];
+		}
+	}
+
+	return leval(x, X_i, Y_i);
+}
+
+doublereal
+MultiLinearScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
 	ASSERTMSGBREAK(order >=0, "Error in MultiLinearScalarFunction::ComputeDiff, order<0");
 	switch (order) {
 	case 0: 
@@ -361,10 +406,7 @@ doublereal MultiLinearScalarFunction::ComputeDiff(const doublereal x, const inte
 		return 0.;
 		break;
 	}
-};
-
-
-
+}
 
 //---------------------------------------
 
@@ -378,7 +420,7 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 	"log",
 	"sum",
 	"mul",
-	"cubicspline",
+	"cubic" "spline",
 	"multilinear",
 	NULL
    };
@@ -433,6 +475,10 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 			break;
 		}
 		case CUBICSPLINE: {
+			bool doNotExtrapolate(false);
+			if (HP.IsKeyWord("do" "not" "extrapolate")) {
+				doNotExtrapolate = true;
+			}
 			std::vector<doublereal> y_i;
 			std::vector<doublereal> x_i;
 			y_i.resize(3);
@@ -449,10 +495,15 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 				y_i[size] = HP.GetReal();
 			}
 			pDM->SetScalarFunction(func_name,
-				new CubicSplineScalarFunction(y_i,x_i));
+				new CubicSplineScalarFunction(y_i, x_i,
+					doNotExtrapolate));
 			break;
 		}
 		case MULTILINEAR: {
+			bool doNotExtrapolate(false);
+			if (HP.IsKeyWord("do" "not" "extrapolate")) {
+				doNotExtrapolate = true;
+			}
 			std::vector<doublereal> y_i;
 			std::vector<doublereal> x_i;
 			y_i.resize(2);
@@ -469,7 +520,8 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 				y_i[size] = HP.GetReal();
 			}
 			pDM->SetScalarFunction(func_name,
-				new MultiLinearScalarFunction(y_i,x_i));
+				new MultiLinearScalarFunction(y_i, x_i,
+					doNotExtrapolate));
 			break;
 		}
 		case SUM: {
