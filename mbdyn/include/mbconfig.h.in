@@ -65,6 +65,9 @@
 /* Define if you have the <security/pam_misc.h> header file.  */
 #undef HAVE_SECURITY_PAM_MISC_H
 
+/* Define if you have the <tcl.h> header file.  */
+#undef HAVE_TCL_H
+
 /* Name of package */
 #undef PACKAGE
 

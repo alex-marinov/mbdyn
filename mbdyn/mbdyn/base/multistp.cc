@@ -2417,11 +2417,10 @@ MultiStepIntegrator::Eig(void)
 	 doublereal im = AlphaI.dGetCoef(iCnt);
 	 doublereal d;
 	 if (im != 0.) {
-	    d = sqrt(re*re+im*im);
+	    d = sqrt(re*re+im*im)/fabs(b);
 	 } else {
-	    d = fabs(re);
+	    d = fabs(re/b);
 	 }
-	 d /= fabs(b);
 	 doublereal sigma = log(d)/h;
 	 doublereal omega = atan2(im, re)/h;
 
@@ -2438,7 +2437,7 @@ MultiStepIntegrator::Eig(void)
 	 }
 
 	 d = sqrt(sigma*sigma+omega*omega);
-	 if (d > 1.e-15 && sigma/d > 1.e-15) {
+	 if (d > 1.e-15 && fabs(sigma)/d > 1.e-15) {
 	    Out << "    " << setw(12) << sigma/d;
 	 } else {
 	    Out << "    " << setw(12) << 0.;

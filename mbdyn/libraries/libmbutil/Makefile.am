@@ -8,7 +8,7 @@ input.cc    input.h    llist.cc    llist.h      llstack.cc  llstack.h \
 mathp.cc    mathp.h    mathtyp.h   myassert.cc  myassert.h  mynewmem.cc \
 mynewmem.h  mystddef.h parser.cc   parser.h     parsinc.cc  parsinc.h \
 search.h    stack.h    table.cc    table.h \
-veciter.h   withlab.h  fn_UNIX.cc
+veciter.h   withlab.h  fn_UNIX.cc  tclpgin.h
 
 libmbutil_la_LIBADD = @LIBS@
 libmbutil_la_LDFLAGS =

@@ -31,7 +31,7 @@
 #ifndef TCLPGIN_H
 #define TCLPGIN_H
 
-#ifdef WITH_TCL
+#ifdef HAVE_TCL_H
 
 #include <tcl.h>
 #include <mathp.h>
@@ -53,7 +53,7 @@ public:
 extern MathParser::PlugIn *
 tcl_plugin(MathParser& mp, void *arg);
 
-#endif /* WITH_TCL */
+#endif /* HAVE_TCL_H */
 
 #endif /* TCLPGIN_H */
 

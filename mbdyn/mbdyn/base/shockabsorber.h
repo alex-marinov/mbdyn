@@ -324,13 +324,13 @@ public:
 		if (pAreaPin) {
 			out
 				<< ", metering, ",
-				pAreaPin()->Restart(out);
+				pAreaPin->Restart(out);
 		}
 		
-		if (pOrifice) {
+		if (pAreaOrifices) {
 			out
 				<< ", orifice, ",
-				pOrifice->Restart(out);
+				pAreaOrifices->Restart(out);
 		}
 
 		/*

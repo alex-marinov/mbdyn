@@ -146,6 +146,7 @@ OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], au
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
+OL_ARG_WITH(tcl,[  --with-tcl               with tcl interpreters],auto,[auto yes no])
 OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}]  with f2c library],auto,[auto yes no g2c])
 OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support],auto,[auto yes no])
@@ -295,7 +296,6 @@ else
 	AC_MSG_WARN([socket drives not supported!])
 fi
 
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Check for bool
@@ -399,6 +399,31 @@ if test $ol_with_aero = yes ; then
 	else
         	AC_DEFINE(USE_AERODYNAMIC_ELEMS,1,[set to 1 to use electric stuff])
 	fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Checks for tcl
+dnl
+ol_link_tcl=no
+if test $ol_with_tcl != no ; then
+	AC_CHECK_HEADERS(tcl.h)
+
+	AC_MSG_CHECKING([for tcl library])
+
+	AC_CHECK_LIB(tcl,Tcl_CreateInterp,[have_libtcl=yes],[have_libtcl=no])
+	if test $have_libtcl != no ; then
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+		if test $ol_with_tcl != auto ; then
+			AC_MSG_ERROR([Could not locate tcl library])
+		else
+			AC_MSG_WARN([tcl not supported!])
+		fi
+	fi
+else
+	AC_MSG_WARN([tcl library not supported!])
 fi
 
 dnl ----------------------------------------------------------------
