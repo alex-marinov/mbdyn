@@ -23,7 +23,7 @@ private:
 	doublereal m0, m1, n0, n1;
 	
 	bool bAdvanceCalledFirstTime;
-	MyVectorHandler Res1, Res2;
+	mutable MyVectorHandler Restmp;
 	std::vector<bool> EqIsAlgebraic, EqIsDifferential;
 	SpMapMatrixHandler Jacxi_xp, Jacxi_x, Jac_xp, Jac_x;
 	MatrixHandler *pJacxi_xp, *pJacxi_x, *pJac_xp, *pJac_x;

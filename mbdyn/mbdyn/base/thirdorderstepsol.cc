@@ -59,7 +59,8 @@ ThirdOrderIntegrator::ThirdOrderIntegrator(const doublereal dT,
 pXPrev(0),
 pXPrimePrev(0),
 Rho(pRho),
-bAdvanceCalledFirstTime(true)
+bAdvanceCalledFirstTime(true),
+Restmp(pDM->iGetNumDofs())
 {
 	pJacxi_xp = &Jacxi_xp;
 	pJacxi_x  = &Jacxi_x;
@@ -325,6 +326,18 @@ void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
 	pDM->SetTime(pDM->dGetTime() + theta*dT);
 	pDM->LinkToSolution(state, stateder);
 	pDM->Update();
+#warning This trick does not work with Coulomb friction (and other elements too)
+	/*
+	 The reason is that 
+	 	a) Colomb friction residual (and other elements) can throw
+		   to signal the need of a new jacobian
+		b) Have internal states that depend on the order of residual
+		   calls
+	 However, this is needed for all the elements (almost all)
+	 that compute something during residual and use it 
+	 later during Jacobain computation
+	*/
+	pDM->AssRes(Restmp, 1.);
 	pDM->AssJac(*pJacxi_x, 1.);
 	pDM->AssJac(*pJacxi_xp, 0.);
 	
@@ -332,6 +345,7 @@ void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
 	pDM->SetTime(pDM->dGetTime() - theta*dT);
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	pDM->Update();
+	pDM->AssRes(Restmp, 1.);
 	pDM->AssJac(*pJac_x, 1.);
 	pDM->AssJac(*pJac_xp, 0.);
 	
