@@ -1068,8 +1068,8 @@ dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
       }
       SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)));
       pRotDataType->Commit();
-#endif /* USE_MPI */
    }
+#endif /* USE_MPI */
 }
 
 
