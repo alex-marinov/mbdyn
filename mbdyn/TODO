@@ -1,7 +1,7 @@
 MBDyn (C) is a multibody analysis code.
 http://www.mbdyn.org
 
-Copyright (C) 1996-2001
+Copyright (C) 1996-2002
 
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
@@ -11,7 +11,6 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 A. Configuration:
 
 	- test for '_' appended to F77 symbols
-	- eliminate horrible blank lines in '--with-*'
 	- audit all the suite for not-so-GNU systems
 	- add test for pow_dd stuff (might be needed by fortran code)
 
@@ -19,15 +18,14 @@ A. Configuration:
 
 B. Package:
 
+	- add a comprehensite test suite
 	- make compliant to GNU style
-	- make 'make dist' work
 
 
 
 C. Libraries:
 
-	- add UMFPACK3 sparse matrix library
-	- plot output in case of 'abort after: input;'
+	- add UMFPACK3 sparse matrix library to parallel solution
 
 
 
@@ -58,6 +56,4 @@ D. Code:
 E. Bugs/missing features:
 
 	- check for nested /* */ comments in parsers
-	- check laminar loss coefficients
-
 

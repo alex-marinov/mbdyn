@@ -1,14 +1,18 @@
 MBDyn (C) is a multibody analysis code.
 http://www.mbdyn.org
 
-Copyright (C) 1996-2001
+Copyright (C) 1996-2002
 
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.0 Engineering
+MBDyn 1.1.0
 	Enhancements:
+		- optimal storage detection for y12m
+		- optimization of sparsity handling
+		- explicitly referenced std namespace symbols (complying
+		  with ANSI C++)
 		- Beam slider now works with multiple beams; the classic
 		  constraint (no transverse rotations) also works;
 		  added a "smearing" parameter that smooths the transition
@@ -20,11 +24,7 @@ MBDyn 1.0 Engineering
 		- improved optional parameter input for struct nodes
 		- added helper for BDF integration scheme also in dummy steps
 		- added support for Umfpack3
-		- explicitly referenced std namespace symbols (complying
-		  with ANSI C++)
 		- better header handling/system properties detection
-		- optimal storage detection for y12m
-		- optimization of sparsity handling
 	Bug fixes:
 		- Hydraulic nodes did not honor the output flag (always on)
 		- minor fixes in documentation

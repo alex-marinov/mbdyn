@@ -119,7 +119,7 @@ ac_help="$ac_help
 ac_help="$ac_help
 "
 ac_help="$ac_help
-  --with-y12              with Y12 math library (auto)"
+  --with-y12              with Y12 sparse math library (auto)"
 ac_help="$ac_help
 "
 ac_help="$ac_help
@@ -127,7 +127,7 @@ ac_help="$ac_help
 ac_help="$ac_help
 "
 ac_help="$ac_help
-  --with-harwell          with Harwell sparse math library (auto)"
+  --with-hsl          with HSL (Harwell) sparse math library (auto)"
 ac_help="$ac_help
 "
 ac_help="$ac_help
@@ -5155,10 +5155,10 @@ EOF
 		else
 			echo "configure: warning: Could not locate MPI" 1>&2
 			echo "configure: warning: MPI not supported!" 1>&2
-#	else
-#		if test $ol_link_harwell != yes ; then
-#			AC_MSG_ERROR([Need Harwell to use Schur solver with MPI])
-#		fi
+		fi
+	else
+		if test $ol_link_harwell != yes ; then
+			{ echo "configure: error: Need Harwell to use Schur solver with MPI" 1>&2; exit 1; }
 		fi
 	fi
 else
