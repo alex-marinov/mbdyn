@@ -366,7 +366,7 @@ Control_valve2::Control_valve2(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, Elem::HYDRAULIC, fOut),
 HydraulicElem(uL, pDO, hf, fOut),
 DriveOwner(pDC),
-area_max(A_max), loss_area(Loss_A)
+area_max(A_max), loss_area(Loss_A), area_min(area_max*loss_area)
 {
 	pNode[N1] = p1;
 	pNode[N2] = p2;
@@ -382,7 +382,7 @@ area_max(A_max), loss_area(Loss_A)
 	ASSERT(pNode[N4] != NULL);
 	ASSERT(pNode[N4]->GetNodeType() == Node::HYDRAULIC);
 
-	ASSERT(A_max > DBL_EPSILON);
+	ASSERT(area_max > DBL_EPSILON);
 	ASSERT(loss_area > 1.e-9);	/* 
 					 * se = 0. occorre fare un elemento
 					 * apposta con solo 2 dof
@@ -454,7 +454,7 @@ Control_valve2::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.fPutColIndex(4+i, iFirstIndex+i);
 	}
 	
-	doublereal dKappa = 2.*(Cd*HF->dGetDensity());
+	doublereal dKappa = 2.*Cd*Cd*density;
 
 	/* Q12 */
 	WM.fPutCoef(1, 5, -1.);
@@ -501,7 +501,7 @@ Control_valve2::AssJac(VariableSubMatrixHandler& WorkMat,
 #endif /* VALVE_6 */
 
 	for (int i = 0; i < LAST_Q; i++) {
-		WM.fPutCoef(5+i, 5+i, (2./dKappa)*A[i]*q[i]);
+		WM.fPutCoef(5+i, 5+i, 2.*fabs(q[i])/(dKappa*A[i]*A[i]));
 	}
 	
 	return WorkMat;
@@ -511,12 +511,16 @@ void
 Control_valve2::Prepare(void)
 {
 	doublereal p[LAST_N];
+	doublereal pm = 0.;
+
 	for (int i = 0; i < LAST_N; i++) {
 		p[i] = pNode[i]->dGetX();
+		pm += p[i];
 	}
-	
-	Stato = pGetDriveCaller()->dGet();
+	pm /= 4.;
 
+	density = HF->dGetDensity(pm);
+	
 	dp[Q12] = p[N1]-p[N2];
 	dp[Q34] = p[N3]-p[N4];
 	dp[Q13] = p[N1]-p[N3];
@@ -526,7 +530,7 @@ Control_valve2::Prepare(void)
 	dp[Q23] = p[N2]-p[N3];
 #endif /* VALVE_6 */
 
-	doublereal Amin = area_max*loss_area;
+	Stato = pGetDriveCaller()->dGet();
  
 	if (Stato > 1.) {
 		Stato = 1.;
@@ -535,24 +539,24 @@ Control_valve2::Prepare(void)
 	}
 	
 	if (Stato > 0.) { 
-		A[Q12] = Stato*area_max+2.*Amin;
-		A[Q34] = Stato*area_max+2.*Amin;
-		A[Q13] = Amin;
-		A[Q24] = Amin;
+		A[Q12] = Stato*area_max+2.*area_min;
+		A[Q34] = Stato*area_max+2.*area_min;
+		A[Q13] = area_min;
+		A[Q24] = area_min;
 	} else {
-		A[Q12] = 2.*Amin;
-		A[Q34] = 2.*Amin;
-		A[Q13] = -Stato*area_max+Amin;
-		A[Q24] = -Stato*area_max+Amin;
+		A[Q12] = 2.*area_min;
+		A[Q34] = 2.*area_min;
+		A[Q13] = -Stato*area_max+area_min;
+		A[Q24] = -Stato*area_max+area_min;
 	}
 	
 	/*
-	 * vale sempre Amin (lo genero ogni volta perche' magari
+	 * vale sempre area_min (lo genero ogni volta perche' magari
 	 * la si puo' far dipendere da qualche parametro
 	 */
 #ifdef VALVE_6
-	A[Q14] = Amin;
-	A[Q23] = Amin;
+	A[Q14] = area_min;
+	A[Q23] = area_min;
 #endif /* VALVE_6 */
 }
 
@@ -568,7 +572,7 @@ Control_valve2::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.Resize(iNumRows);
 	
-	integer iFirstIndex = iGetFirstIndex();
+	integer iFirstIndex = iGetFirstIndex()+1;
 
 	integer iNodeRowIndex[LAST_N];
 	for (int i = 0; i < LAST_N; i++) {
@@ -576,31 +580,31 @@ Control_valve2::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	Prepare();
-	doublereal dKappa = .5/(Cd*HF->dGetDensity());
+	doublereal dKappa = 2.*Cd*Cd*density;
 	
 	for (int i = 0; i < LAST_Q; i++) {
 		q[i] = XCurr.dGetCoef(iFirstIndex+i);
 	}
 
 #ifdef VALVE_6
-	f[N1] = q[Q12]+q[Q13];
-	f[N2] = -q[Q12]+q[Q24];
-	f[N3] = -q[Q13]+q[Q34];
-	f[N4] = -q[Q24]-q[Q34];
-#else /* !VALVE_6 */
 	f[N1] = q[Q12]+q[Q13]+q[Q14];
 	f[N2] = -q[Q12]+q[Q23]+q[Q24];
 	f[N3] = -q[Q13]-q[Q23]+q[Q34];
 	f[N4] = -q[Q14]-q[Q24]-q[Q34];
+#else /* !VALVE_6 */
+	f[N1] = q[Q12]+q[Q13];
+	f[N2] = -q[Q12]+q[Q24];
+	f[N3] = -q[Q13]+q[Q34];
+	f[N4] = -q[Q24]-q[Q34];
 #endif /* !VALVE_6 */
 
 	for (int i = 0; i < LAST_N; i++) {
-		WorkVec.fPutItem(1, iNodeRowIndex[i], f[i]);
+		WorkVec.fPutItem(1+i, iNodeRowIndex[i], f[i]);
 	}
 	
 	for (int i = 0; i < LAST_Q; i++) {
-		doublereal d = copysign(q[i]*q[i]/(dKappa*A[i]*A[i]), dp[i]);
-		WorkVec.fPutItem(4+i, iFirstIndex+i, dp[i]-d);
+		WorkVec.fPutItem(5+i, iFirstIndex+i, 
+			dp[i]-q[i]*fabs(q[i])/(dKappa*A[i]*A[i]));
 	}
 
 	return WorkVec;
@@ -613,8 +617,8 @@ Control_valve2::Output(OutputHandler& OH) const
 		ostream& out = OH.Hydraulic();
 		out << setw(8) << GetLabel()
 			<< " " << Stato 
-			<< " " << f[N1] << " " << f[N2] 
-			<< " " << f[N3] << " " << f[N4] << endl;
+			<< " " << -f[N1] << " " << -f[N2] 
+			<< " " << -f[N3] << " " << -f[N4] << endl;
 	}   
 }
 
@@ -624,7 +628,6 @@ Control_valve2::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
 	integer iFirstIndex = iGetFirstIndex()+1;
 	
 	((Control_valve2*)this)->Prepare();
-	doublereal rho = HF->dGetDensity();
 
 	for (int i = 0; i < LAST_Q; i++) {
 
@@ -633,7 +636,7 @@ Control_valve2::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
 		 */
 		
 		X.fPutCoef(iFirstIndex+i, 
-			Cd*A[i]*copysign(sqrt(2.*rho*fabs(dp[i])), dp[i]));
+			Cd*A[i]*copysign(sqrt(2.*density*fabs(dp[i])), dp[i]));
 	}
 }
 

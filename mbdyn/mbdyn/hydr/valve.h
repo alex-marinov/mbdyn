@@ -121,6 +121,7 @@ class Control_valve : virtual public Elem, public HydraulicElem, public DriveOwn
 /* Control_valve2 - begin */
 
 #define VALVE_6
+// #undef VALVE_6
 
 class Control_valve2 
 : virtual public Elem, public HydraulicElem, public DriveOwner {
@@ -162,11 +163,13 @@ private:
 	const PressureNode* pNode[LAST_N];
 	doublereal q[LAST_Q];
 	doublereal dp[LAST_Q];
+	doublereal density;
 
 	doublereal Stato;
 	doublereal Cd;		/* coefficiente di perdita */
 	doublereal area_max;	/* larghezza del condotto: A=x*area_max */
 	doublereal loss_area;	/* area di trafilamento in % sull'area max */
+	doublereal area_min;	/* area di trafilamento = area_max*loss_area */
 	doublereal s_max; 
 	doublereal f[LAST_N];
 	doublereal A[LAST_Q];
