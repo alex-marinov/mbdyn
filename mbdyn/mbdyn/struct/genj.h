@@ -45,7 +45,7 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
  private:
    const StructNode* pNode1;
    const StructNode* pNode2;
-   Vec3 v;
+   mutable Vec3 v;
    doublereal dAlpha;
    
  public:

@@ -338,42 +338,49 @@ DistanceJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       Vec3 w(XCurr, iReactionPrimeIndex+1);
       Vec3 deltaXP(pNode2->GetVCurr()-pNode1->GetVCurr());
       
-      for (int iCnt = 1; iCnt <= 3; iCnt++) {	   
+      for (int iCnt = 1; iCnt <= 3; iCnt++) {
+	 doublereal d;
+
+	 d = dAlpha;
 	 /* termini di Delta_v sul nodo 1 */
 	 WM.PutItem(6+iCnt, iNode1FirstPosIndex+iCnt,
-		     iFirstReactionIndex+iCnt, -dAlpha);
+		     iFirstReactionIndex+iCnt, -d);
 	 
 	 /* termini di Delta_v sul nodo 2 */
 	 WM.PutItem(9+iCnt, iNode2FirstPosIndex+iCnt,
-		     iFirstReactionIndex+iCnt, dAlpha);
+		     iFirstReactionIndex+iCnt, d);
 	 
+	 d = v.dGet(iCnt);
 	 /* termini di Delta_alpha sul nodo 1 */
 	 WM.PutItem(12+iCnt, iNode1FirstPosIndex+iCnt,
-		     iFirstReactionIndex+4, -v.dGet(iCnt));
+		     iFirstReactionIndex+4, -d);
 	 
 	 /* termini di Delta_alpha sul nodo 2 */
 	 WM.PutItem(15+iCnt, iNode2FirstPosIndex+iCnt,
-		     iFirstReactionIndex+4, v.dGet(iCnt));
+		     iFirstReactionIndex+4, d);
 	 
+	 d = dBeta;
 	 /* termini di Delta_w sul nodo 1 */
 	 WM.PutItem(18+iCnt, iNode1FirstVelIndex+iCnt,
-		     iReactionPrimeIndex+iCnt, -dBeta);
+		     iReactionPrimeIndex+iCnt, -d);
 	 
 	 /* termini di Delta_w sul nodo 2 */
 	 WM.PutItem(21+iCnt, iNode2FirstVelIndex+iCnt,
-		     iReactionPrimeIndex+iCnt, dBeta);
+		     iReactionPrimeIndex+iCnt, d);
 	 
+	 d = w.dGet(iCnt);
 	 /* termini di Delta_beta sul nodo 1 */
 	 WM.PutItem(24+iCnt, iNode1FirstVelIndex+iCnt,
-		     iReactionPrimeIndex+4, -w.dGet(iCnt));
+		     iReactionPrimeIndex+4, -d);
 	 
 	 /* termini di Delta_beta sul nodo 2 */
 	 WM.PutItem(27+iCnt, iNode2FirstVelIndex+iCnt,
-		     iReactionPrimeIndex+4, w.dGet(iCnt));
+		     iReactionPrimeIndex+4, d);
 	 
+	 d = dDistance;
 	 /* termini diagonali di Delta_v */
 	 WM.PutItem(30+iCnt, iFirstReactionIndex+iCnt,
-		     iFirstReactionIndex+iCnt, -dDistance);
+		     iFirstReactionIndex+iCnt, -d);
 	 
 	 /* termini diagonali di Delta_w */
 	 WM.PutItem(33+iCnt, iReactionPrimeIndex+iCnt,
@@ -383,17 +390,19 @@ DistanceJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	 WM.PutItem(36+iCnt, iReactionPrimeIndex+iCnt,
 		     iFirstReactionIndex+iCnt, -1.);
 	 
+	 d = w.dGet(iCnt);
 	 /* termini di beta per Delta_x1P: w^T */
 	 WM.PutItem(39+iCnt, iReactionPrimeIndex+4,
-		     iNode1FirstVelIndex+iCnt, -w.dGet(iCnt));
+		     iNode1FirstVelIndex+iCnt, -d);
 	 
 	 /* termini di beta per Delta_x2P: w^T */
 	 WM.PutItem(42+iCnt, iReactionPrimeIndex+4,
-		     iNode2FirstVelIndex+iCnt, w.dGet(iCnt));
+		     iNode2FirstVelIndex+iCnt, d);
 	 
+	 d = deltaXP.dGet(iCnt);
 	 /* termini di beta per Delta_w: (x2P-x1P)^T */
 	 WM.PutItem(45+iCnt, iReactionPrimeIndex+4,
-		     iReactionPrimeIndex+iCnt, deltaXP.dGet(iCnt));
+		     iReactionPrimeIndex+iCnt, d);
       }
       
       
@@ -479,11 +488,11 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
       std::cerr << "Distance joint with near zero distance." << std::endl;
       throw ErrGeneric();
    } else {			
-      WorkVec.Add(1, v*dAlpha);
-      WorkVec.Add(4, w*dBeta);
-      WorkVec.Add(7, -v*dAlpha);
-      WorkVec.Add(10, -w*dBeta);
-      WorkVec.Add(13, x1-x2+v*dDistance);
+      WorkVec.Add(0+1, v*dAlpha);
+      WorkVec.Add(3+1, w*dBeta);
+      WorkVec.Add(6+1, -v*dAlpha);
+      WorkVec.Add(9+1, -w*dBeta);
+      WorkVec.Add(12+1, x1-x2+v*dDistance);
       
       doublereal d = v.Dot();
       ASSERT(d > DBL_EPSILON);
@@ -493,10 +502,10 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	d = 0.;
       }
       
-      WorkVec.PutCoef(16, 1.-d);
+      WorkVec.PutCoef(15+1, 1.-d);
       
-      WorkVec.Add(17, v-w);
-      WorkVec.PutCoef(20, (x1P-x2P).Dot(w));
+      WorkVec.Add(16+1, v-w);
+      WorkVec.PutCoef(19+1, (x1P-x2P).Dot(w));
    }
 
    return WorkVec;
@@ -513,15 +522,15 @@ void DistanceJoint::SetInitialValue(VectorHandler& X) const
       throw ErrGeneric();
    }
      
-   (Vec3&)v = ((pNode2->GetXCurr())-(pNode1->GetXCurr()));
+   v = ((pNode2->GetXCurr())-(pNode1->GetXCurr()));
    doublereal d = v.Dot();
    ASSERT(d > DBL_EPSILON);
    if (d > DBL_EPSILON) {
-      (Vec3&)v /= d;
+      v /= sqrt(d);
    }     
    
    X.Put(iFirstIndex+1, v);
-   X.Put(iFirstIndex+5, v);   
+   X.Put(iFirstIndex+4+1, v);   
 }
 
 
