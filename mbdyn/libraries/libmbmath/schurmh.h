@@ -74,10 +74,8 @@ public:
 
 	virtual inline ~SchurMatrixHandler(void); 
 
-#ifdef DEBUG	
 	/* Usata per il debug */
 	virtual inline void IsValid(void) const;
-#endif /* DEBUG */
 
 
 	virtual integer iGetNumRows(void) const;
@@ -383,10 +381,8 @@ public:
    			integer* pGlobToLoc);
 	~SchurVectorHandler(void);
 
-#ifdef DEBUG	
 	/* Usata per il debug */
 	void IsValid(void) const;
-#endif /* DEBUG */
  
 	/* restituisce il puntatore al vettore */
 	inline doublereal* pdGetVec(void) const;
@@ -436,7 +432,7 @@ SchurVectorHandler::Resize(integer iNewSize)
 
 /* assegna il dResetVal a tutti gli elementi del vettore */
 inline void
-SchurVectorHandler::Reset(doublereal dResetVal = 0.)
+SchurVectorHandler::Reset(doublereal dResetVal)
 {
 	pLV->Reset(dResetVal);
 	pIV->Reset(dResetVal); 
