@@ -169,7 +169,7 @@ protected:
 
 #ifdef USE_ADAMS
 	char *sAdamsModelName;
-	bool bAdamsVelocity;
+	bool bAdamsVelocity, bAdamsAcceleration;
 	unsigned int iAdamsOutputNodes;
 	unsigned int iAdamsOutputParts;
 	std::streambuf::pos_type adamsNoab;

@@ -869,13 +869,20 @@ DynamicStructNode::AddInertia(const doublereal& dm, const Vec3& dS,
 	}
 };
 
+void
+DynamicStructNode::AfterConvergence(const VectorHandler& X, 
+		const VectorHandler& XP)
+{
+	if (fToBeOutput()) {
+		pAutoStr->ComputeAccelerations(XPPCurr, WPCurr);
+	}
+}
+
 /* Output del nodo strutturale (da mettere a punto) */
 void
 DynamicStructNode::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		pAutoStr->ComputeAccelerations(XPPCurr, WPCurr);
-
 		OH.StrNodes()
 			<< std::setw(8) << GetLabel()
 			<< " " << XCurr

@@ -128,6 +128,7 @@ iOutputBlock(1),
 #ifdef USE_ADAMS 
 sAdamsModelName(NULL),
 bAdamsVelocity(false),
+bAdamsAcceleration(false),
 iAdamsOutputNodes(0),
 iAdamsOutputParts(0),
 adamsNoab(0),

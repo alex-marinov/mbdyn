@@ -826,6 +826,20 @@ void DataManager::ReadControl(MBDynParser& HP,
 						throw ErrGeneric();
 					}
 				}
+
+				if (HP.IsKeyWord("acceleration")) {
+					if (HP.IsKeyWord("yes")) {
+						bAdamsAcceleration = true;
+
+					} else if (HP.IsKeyWord("no")) {
+						bAdamsAcceleration = false;
+
+					} else {
+						silent_cerr("unknown value for \"acceleration\" flag at line "
+								<< HP.GetLineData() << std::endl);
+						throw ErrGeneric();
+					}
+				}
 			}
 #else /* !USE_ADAMS */
 			silent_cerr("Please rebuild with ADAMS output enabled\n"

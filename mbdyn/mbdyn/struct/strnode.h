@@ -442,6 +442,9 @@ class DynamicStructNode : public StructNode {
    virtual void AddInertia(const doublereal& dm, const Vec3& dS,
 		   const Mat3x3& dJ) const;
 
+   virtual void AfterConvergence(const VectorHandler& X, 
+		   const VectorHandler& XP);
+
    /* Output del nodo strutturale (da mettere a punto) */
    virtual void Output(OutputHandler& OH) const;
 
@@ -464,6 +467,13 @@ class DynamicStructNode : public StructNode {
    virtual void SetDofValue(const doublereal& dValue, 
 			    unsigned int iDof, unsigned int iOrder = 0);
 
+   const Vec3& GetXPPCurr(void) const {
+	   return XPPCurr;
+   }
+
+   const Vec3& GetWPCurr(void) const {
+	   return WPCurr;
+   }
 };
 
 

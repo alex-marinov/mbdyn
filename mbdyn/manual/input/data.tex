@@ -848,9 +848,18 @@ The interface is activated by the directive
 \begin{verbatim}
     output results : adams
         [ , model name , " <name> " ]
-        [ , velocity , { yes | no } ] ;
+        [ , velocity , { yes | no } ]
+        [ , acceleration , { yes | no } ] ;
 \end{verbatim}
 The model name is optional, defaulting to \kw{mbdyn}.
+By default, velocities and accelerations are not output; they can be
+explicitly enabled by using the \kw{velocity} and \kw{acceleration}
+keywords.
+Note that only the \kw{dynamic} structural nodes can output 
+the accelerations, and only if their output is explicitly selected,
+for performance reasons.
+As a consequence, only the nodes whose native output is set will add 
+their acceleration to ADAMS' output.
 The sequence is:
 \begin{itemize}
 \item compile MBDyn with ADAMS support
@@ -1069,17 +1078,22 @@ and for each time step it contains one row for each node whose output is
 required.
 The rows contain: \vspace{2mm} \\
 \begin{tabular}{ll}
-    \hline
-    1      & the label of the node \\
-    2--4   & the three components of the position of the node \\
-    5--7   & the three Euler angles that define the orientation of the node \\
-    8--10  & the three components of the velocity of the node \\
-    11--13 & the three components of the angular velocity of the node \\
-    \hline
+	\hline
+	1      & the label of the node \\
+	2--4   & the three components of the position of the node \\
+	5--7   & the three Euler angles that define the orientation of the node \\
+	8--10  & the three components of the velocity of the node \\
+	11--13 & the three components of the angular velocity of the node \\
+	\hline
+	14--16 & the three components of the linear acceleration
+		of the \kw{dynamic} nodes \\
+	17--19 & the three components of the angular acceleration
+		of the \kw{dynamic} nodes \\
+	\hline
 \end{tabular}\vspace{2mm}\\
-All of the quantities are expressed in the global frame, except in case of
-the dummy \kw{relative frame} node, where the quantities are in the
-relative frame.
+All the quantities are expressed in the global frame, except for
+the dummy \kw{relative frame} node, whose quantities are of course
+in the relative frame.
 
 \noindent
 The second output file refers only to dynamic nodes, and contains their

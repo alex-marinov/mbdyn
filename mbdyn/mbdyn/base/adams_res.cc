@@ -136,13 +136,14 @@ DataManager::AdamsResOutputInit(void)
 	adamsNoab = out.tellp();
 
 	const char *sVel = bAdamsVelocity ? "YES" : "NO ";
+	const char *sAcc = bAdamsAcceleration ? "YES" : "NO ";
 	out
 		<< std::setw(8) << 2 << std::setw(8) << 123+3*iAdamsOutputParts << std::endl
 		<< "!" << std::endl
      
 		/* Rigid Parts Map Block */
 		<< "RIGID PARTS MAP                         " << std::setw(8) << 2+iAdamsOutputParts << std::endl
-		<< std::setw(8) << iAdamsOutputParts << "YES" << sVel << "NO" << std::endl;
+		<< std::setw(8) << iAdamsOutputParts << "YES" << sVel << sAcc << std::endl;
 
 	unsigned int i;
 	unsigned int iVelOffset = iAdamsOutputParts;
@@ -584,6 +585,70 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 							<< std::setw(12) << std::setprecision(5) << w.dGet(1)
 							<< std::setw(12) << std::setprecision(5) << w.dGet(2)
 							<< std::setw(12) << std::setprecision(5) << w.dGet(3)
+							<< std::endl;
+#endif /* HAVE_FORM_IN_OSTREAM */
+					}
+				}
+			} while (ElemIter.bGetNext(p));
+		}
+	}
+
+	if (bAdamsAcceleration) {
+		for (unsigned int i = 0; i < nStrNodes; i++) {
+			Vec3 a(0.);
+			Vec3 wp(0.);
+
+			StructNode *pNode =
+				(StructNode *)NodeData[Node::STRUCTURAL].ppFirstNode[i];
+
+			/* Skip relative frame dummy nodes */
+			if (pNode->GetStructNodeType() == StructNode::DUMMY) {
+				DummyStructNode *pDmy = (DummyStructNode *)pNode;
+
+				if (pDmy->GetDummyType() == DummyStructNode::RELATIVEFRAME) {
+					continue;
+				}
+			} else if (pNode->GetStructNodeType() == StructNode::DYNAMIC) {
+				DynamicStructNode *pDSN = dynamic_cast<DynamicStructNode *>(pNode);
+				a = pDSN->GetXPPCurr();
+				wp = pDSN->GetWPCurr();
+			}
+			
+#ifdef HAVE_FORM_IN_OSTREAM
+			out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
+					a(1), a(2), a(3), wp(1), wp(2), wp(3));
+#else /* !HAVE_FORM_IN_OSTREAM */
+			out
+				<< std::setw(12) << std::setprecision(5) << a(1)
+				<< std::setw(12) << std::setprecision(5) << a(2)
+				<< std::setw(12) << std::setprecision(5) << a(3)
+				<< std::setw(12) << std::setprecision(5) << wp(1)
+				<< std::setw(12) << std::setprecision(5) << wp(2)
+				<< std::setw(12) << std::setprecision(5) << wp(3)
+				<< std::endl;
+#endif /* !HAVE_FORM_IN_OSTREAM */
+		}
+
+		Elem *p = NULL;
+		if (ElemIter.bGetFirst(p)) {
+			do {
+				ASSERT(p != NULL);
+				
+				if (p != NULL) {
+					for (unsigned int part = 1; part <= p->iGetNumDummyParts(); part++) {
+						Vec3 a(0.), wp(0.);
+						
+#ifdef HAVE_FORM_IN_OSTREAM
+						out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
+								a(1), a(2), a(3), wp(1), wp(2), wp(3));
+#else /* !HAVE_FORM_IN_OSTREAM */
+						out 
+							<< std::setw(12) << std::setprecision(5) << a.dGet(1)
+							<< std::setw(12) << std::setprecision(5) << a.dGet(2)
+							<< std::setw(12) << std::setprecision(5) << a.dGet(3)
+							<< std::setw(12) << std::setprecision(5) << wp.dGet(1)
+							<< std::setw(12) << std::setprecision(5) << wp.dGet(2)
+							<< std::setw(12) << std::setprecision(5) << wp.dGet(3)
 							<< std::endl;
 #endif /* HAVE_FORM_IN_OSTREAM */
 					}
