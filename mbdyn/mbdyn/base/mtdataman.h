@@ -35,8 +35,7 @@
 
 #ifdef USE_MULTITHREAD
 
-#include <pthread.h>
-#include <semaphore.h>
+#include "ac/pthread.h"		/* includes POSIX semaphores */
 
 #include "dataman.h"
 #include "spmapmh.h"
@@ -56,7 +55,7 @@ protected:
 	} CCReady;
 
 	/* per-thread specific data */
-	struct PerThreadData {
+	struct ThreadData {
 		MultiThreadDataManager *pDM;
 		unsigned int threadNumber;
 		pthread_t thread;
@@ -78,7 +77,7 @@ protected:
 		MatrixHandler* pMatA;
 		MatrixHandler* pMatB;
 		doublereal dCoef;
-	} *ptd;
+	} *thread_data;
 
 	enum DataManagerOp {
 		UNKNOWN_OP = -1,
@@ -96,11 +95,11 @@ protected:
 	} op;
 
 	/* will be replaced by barriers ... */
-	unsigned dataman_thread_count;
+	unsigned thread_count;
 
 	/* this can be replaced by a barrier ... */
-	pthread_mutex_t	dataman_thread_mutex;
-	pthread_cond_t	dataman_thread_cond;
+	pthread_mutex_t	thread_mutex;
+	pthread_cond_t	thread_cond;
 
 	/* this is used to propagate ErrMatrixRebuild ... */
 	sig_atomic_t	propagate_ErrMatrixRebuild;
@@ -108,8 +107,8 @@ protected:
 	void EndOfOp(void);
 
 	/* thread function */
-	static void *dataman_thread(void *arg);
-	static void dataman_thread_cleanup(PerThreadData *arg);
+	static void *thread(void *arg);
+	static void thread_cleanup(ThreadData *arg);
 
 	/* starts the helper threads */
 	void ThreadSpawn(void);

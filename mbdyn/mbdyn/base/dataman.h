@@ -280,14 +280,14 @@ public:
 protected:
 	/* specialized functions, called by above general helpers */
 	virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef,
-			VecIter<Elem *> *pIter,
+			VecIter<Elem *> &Iter,
 			VariableSubMatrixHandler& WorkMat);
 	virtual void AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl,
-			VecIter<Elem *> *pIter,
+			VecIter<Elem *> &Iter,
 			VariableSubMatrixHandler& WorkMatA,
 			VariableSubMatrixHandler& WorkMatB);
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef,
-			VecIter<Elem *> *pIter,
+			VecIter<Elem *> &Iter,
 			SubVectorHandler& WorkVec);
 
 public:

@@ -348,12 +348,12 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	ASSERT(pWorkMat != NULL);
 	ASSERT(ppElems != NULL);
 
-	AssJac(JacHdl, dCoef, &ElemIter, *pWorkMat);
+	AssJac(JacHdl, dCoef, ElemIter, *pWorkMat);
 }
 
 void
 DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
-		VecIter<Elem *> *pIter,
+		VecIter<Elem *> &Iter,
 		VariableSubMatrixHandler& WorkMat)
 {
 	DEBUGCOUT("Entering DataManager::AssJac()" << std::endl);
@@ -361,7 +361,7 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 	// int i = 0;
 
 	Elem* pTmpEl = NULL;
-	if (pIter->bGetFirst(pTmpEl)) {
+	if (Iter.bGetFirst(pTmpEl)) {
 		do {
 
 #ifdef MBDYN_X_THREADSAFE
@@ -378,7 +378,7 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 			// i++;
 			// usleep(100);
 			
-		} while (pIter->bGetNext(pTmpEl));
+		} while (Iter.bGetNext(pTmpEl));
 	}
 
 	// fprintf(stderr, "[%d]: J %d\n", pthread_self(), i);
@@ -393,12 +393,12 @@ DataManager::AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
 	ASSERT(pWorkMatB != NULL);
 	ASSERT(ppElems != NULL);
 
-	AssMats(A_Hdl, B_Hdl, &ElemIter, *pWorkMatA, *pWorkMatB);
+	AssMats(A_Hdl, B_Hdl, ElemIter, *pWorkMatA, *pWorkMatB);
 }
 
 void
 DataManager::AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl,
-		VecIter<Elem *> *pIter,
+		VecIter<Elem *> &Iter,
 		VariableSubMatrixHandler& WorkMatA,
 		VariableSubMatrixHandler& WorkMatB)
 {
@@ -406,7 +406,7 @@ DataManager::AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl,
 
 	/* Versione con iteratore: */
 	Elem* pTmpEl = NULL;
-	if (pIter->bGetFirst(pTmpEl)) {
+	if (Iter.bGetFirst(pTmpEl)) {
 		/* Nuova versione, piu' compatta.
 		 * La funzione propria AssJac, comune a tutti gli elementi,
 		 * scrive nella WorkMat (passata come reference) il contributo
@@ -430,7 +430,7 @@ DataManager::AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl,
 					*pXCurr, *pXPrimeCurr);
 			A_Hdl += WorkMatA;
 			B_Hdl += WorkMatB;
-		} while (pIter->bGetNext(pTmpEl));
+		} while (Iter.bGetNext(pTmpEl));
 	}
 }
 
@@ -440,12 +440,12 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
-	AssRes(ResHdl, dCoef, &ElemIter, *pWorkVec);
+	AssRes(ResHdl, dCoef, ElemIter, *pWorkVec);
 }
 
 void
 DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
-		VecIter<Elem *> *pIter,
+		VecIter<Elem *> &Iter,
 		SubVectorHandler& WorkVec)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
@@ -453,7 +453,7 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 	// int i = 0;
 
 	Elem* pTmpEl = NULL;
-	if (pIter->bGetFirst(pTmpEl)) {
+	if (Iter.bGetFirst(pTmpEl)) {
 		do {
 
 #ifdef MBDYN_X_THREADSAFE
@@ -470,7 +470,7 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 			// i++;
 			// usleep(100);
 			
-		} while (pIter->bGetNext(pTmpEl));
+		} while (Iter.bGetNext(pTmpEl));
 	}
 
 	// fprintf(stderr, "[%d]: R %d\n", pthread_self(), i);
