@@ -1485,8 +1485,6 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	       iIndex = pElem->iGetPrivDataIdx(s);
 	       SAFESTRDUP(sIndexName, s);
 
-	       std::cerr << "### s=" << s << ", iIndex=" << iIndex << std::endl;
-
        } else if (HP.IsKeyWord("index")) {
 	       iIndex = HP.GetInt();
 
