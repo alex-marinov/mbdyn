@@ -107,6 +107,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       "title",
       "make" "restart" "file",
       "output" "file" "name",
+      "output" "precision",
       "adams" "res" "output",
       "default" "output",
       "all",	
@@ -159,6 +160,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       TITLE,
       MAKERESTARTFILE,
       OUTPUTFILENAME,
+      OUTPUTPRECISION,
       ADAMSRESOUTPUT,
       DEFAULTOUTPUT,
       ALL,
@@ -614,6 +616,11 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  }
 	  SAFESTRDUP(sOutName, sTmp);
 	  break;
+       }
+
+       case OUTPUTPRECISION: {
+          int iPrec = HP.GetInt();
+	  OutHdl.SetPrecision(iPrec);
        }
 	 
        case ADAMSRESOUTPUT: {

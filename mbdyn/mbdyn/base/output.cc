@@ -306,7 +306,7 @@ int OutputHandler::Open(OutFiles out)
       
       /* Setta la formattazione dei campi */
       if(OutData[out].fToUseDefaultPrecision) {		        
-	 OutData[out].pof->precision(iDefaultPrecision);
+	 OutData[out].pof->precision(iCurrPrecision);
       }
       
       /* Setta la notazione */
@@ -504,7 +504,7 @@ void OutputHandler::SetPrecision(int iNewPrecision)
 {
    ASSERT(iNewPrecision > 0);
    if (iNewPrecision > 0) {
-      iCurrPrecision = iCurrPrecision;
+      iCurrPrecision = iNewPrecision;
       iCurrWidth = iNewPrecision+iWidth;
       for (int iCnt = 0; iCnt < LASTFILE; iCnt++) {
 	 if (OutData[iCnt].fToUseDefaultPrecision && *OutData[iCnt].pof) {
@@ -516,3 +516,4 @@ void OutputHandler::SetPrecision(int iNewPrecision)
 }
 
 /* OutputHandler - end */
+
