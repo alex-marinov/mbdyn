@@ -35,7 +35,8 @@
 #include <ac/iostream>
 
 #include <matvec3.h>
-
+#include <matvecexp.h>
+#include <Rot.hh>
 
 int main(int argn, const char* const argv[])
 {
@@ -56,16 +57,10 @@ int main(int argn, const char* const argv[])
       std::cin >> d[0];
       if (std::cin) {
 	 std::cin >> d[3] >> d[6] >> d[1] >> d[4] >> d[7] >> d[2] >> d[5] >> d[8];
-	 Vec3 g(gparam(Mat3x3(d, 3)));
-	 doublereal d(g.Norm());
-	 if (d > 0.) {
-	    Vec3 phi(g*(2./d*atan(d/2.)));
-	    d = phi.Norm();
-	    if (d != 0.) {
-	       std::cout << d*180./M_PI << " " << phi/d << std::endl;
-	    } else {
-	       std::cout << 0. << " " << 0. << " " << 0. << " " << 0. << std::endl;
-	    }
+	 Vec3 phi(RotManip::VecRot(Mat3x3(d, 3)));
+	 doublereal d = phi.Norm();
+	 if (d != 0.) {
+	    std::cout << d*180./M_PI << " " << phi/d << std::endl;
 	 } else {
 	    std::cout << 0. << " " << 0. << " " << 0. << " " << 0. << std::endl;
 	 }
