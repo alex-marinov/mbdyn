@@ -779,6 +779,7 @@ void SchurSolutionManager::ComplExchInt(doublereal& dR, doublereal& dXP)
 }
 /* SchurSolutionManager - End */
 
+#ifdef USE_Y12
 template SchurSolutionManager::SchurSolutionManager(integer iSize, 
 					    integer* pLocalDofs,
 					    int iDim1,
@@ -788,7 +789,8 @@ template SchurSolutionManager::SchurSolutionManager(integer iSize,
 					    Y12SparseLUSolutionManager* pISM,
 					    integer iWorkSize,
 					    const doublereal& dPivotFactor);
-					    
+#endif //USE_Y12
+#ifdef USE_MESCHACH					    
 template SchurSolutionManager::SchurSolutionManager(integer iSize, 
 					    integer* pLocalDofs,
 					    int iDim1,
@@ -798,7 +800,8 @@ template SchurSolutionManager::SchurSolutionManager(integer iSize,
 					    MeschachSparseLUSolutionManager* pISM,
 					    integer iWorkSize,
 					    const doublereal& dPivotFactor); 
-
+#endif //USE_MESCHACH
+#ifdef USE_UMFPACK3
 template SchurSolutionManager::SchurSolutionManager(integer iSize, 
 					    integer* pLocalDofs,
 					    int iDim1,
@@ -808,7 +811,7 @@ template SchurSolutionManager::SchurSolutionManager(integer iSize,
 					    Umfpack3SparseLUSolutionManager* pISM,
 					    integer iWorkSize,
 					    const doublereal& dPivotFactor); 
-
+#endif //USE_MESCHACH
 #endif /* USE_MPI */
 
 
