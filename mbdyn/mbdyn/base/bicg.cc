@@ -152,12 +152,13 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		}
 		
       		if (outputRes()) {
-	 		std::cout << "Residual (" << iIterCnt
-				<< "):" << std::endl;
+	 		silent_cout("Residual (" << iIterCnt << "):"
+					<< std::endl);
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
-	    			std::cout << "Dof " << std::setw(8)
+	    			silent_cout("Dof " << std::setw(8)
 					<< iTmpCnt << ": " 
-					<< pRes->dGetCoef(iTmpCnt) << std::endl;
+					<< pRes->dGetCoef(iTmpCnt)
+					<< std::endl);
 			}
       		}
 
@@ -171,12 +172,12 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 #ifdef USE_MPI
 			if (MBDynComm.Get_rank() == 0) {
 #endif /* USE_MPI */
-				std::cout << "\tIteration " << iIterCnt
-					<< " " << dErr;
+				silent_cout("\tIteration " << iIterCnt
+					<< " " << dErr);
 				if (bBuildMat && dErr >= Tol) {
-					std::cout << " J";
+					silent_cout(" J");
 				}
-				std::cout << std::endl;
+				silent_cout(std::endl);
 #ifdef USE_MPI
 			}
 #endif /* USE_MPI */
@@ -266,8 +267,10 @@ rebuild_matrix:;
 #endif /* DEBUG_ITERATIVE */
 
 	               		if (fabs(rho_1) < DBL_EPSILON) {
-                        		std::cout << "Bi-CGStab Iterative Solver breakdown" 
-						<<  " rho_1 = 0 " << std::endl;
+                        		silent_cout("Bi-CGStab Iterative "
+						"Solver breakdown" 
+						<<  " rho_1 = 0 "
+						<< std::endl);
 					break;
 				}
 				beta = (rho_1/rho_2) * (alpha/omega);
@@ -334,13 +337,14 @@ rebuild_matrix:;
 
 			TotalIter++;
                 	if (fabs(omega) < DBL_EPSILON) {
-                        	std::cout << "Bi-CGStab Iterative Solver breakdown" 
-					<<  " omega = 0 " << std::endl;
+                        	silent_cout("Bi-CGStab Iterative Solver "
+					"breakdown omega = 0 " << std::endl);
 				break;
 			}
 			if (It == MaxLinIt) {
-                        	std::cerr << "Iterative inner solver didn't converge."
-					<< " Continuing..." << std::endl;
+                        	silent_cerr("Iterative inner solver didn't "
+					"converge. Continuing..."
+					<< std::endl);
 			}
 		}
 		/* se ha impiegato troppi passi riassembla lo jacobiano */
@@ -365,11 +369,11 @@ rebuild_matrix:;
 #endif /* DEBUG_ITERATIVE */
 		
 		if (outputSol()) {      
-	 		std::cout << "Solution:" << std::endl;
+	 		silent_cout("Solution:" << std::endl);
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
-	    			std::cout << "Dof " << std::setw(8)
+	    			silent_cout("Dof " << std::setw(8)
 					<< iTmpCnt << ": "
-					<< dx.dGetCoef(iTmpCnt) << std::endl;
+					<< dx.dGetCoef(iTmpCnt) << std::endl);
 			}
 		}		
 		
@@ -380,8 +384,8 @@ rebuild_matrix:;
 #ifdef USE_MPI
 			if (MBDynComm.Get_rank() == 0) {
 #endif /* USE_MPI */
-				std::cout << "\t\tSolErr "
-					<< dSolErr << std::endl;
+				silent_cout("\t\tSolErr " << dSolErr
+						<< std::endl);
 #ifdef USE_MPI
 			}
 #endif /* USE_MPI */
