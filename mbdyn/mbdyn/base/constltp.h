@@ -63,7 +63,7 @@ class ConstitutiveLaw {
       ErrNotAvailable(std::ostream& out) {
 	 out << "Constitutive law not available" << std::endl;
       };
-      ErrNotAvailable(std::ostream& out, const char* const s) {
+      ErrNotAvailable(std::ostream& out, const char* const& s) {
 	 out << s << std::endl;
       };
    };
