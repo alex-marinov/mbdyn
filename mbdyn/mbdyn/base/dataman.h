@@ -151,6 +151,7 @@ class DataManager {
    friend Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
    friend Elem* ReadForce(DataManager* pDM, MBDynParser& HP, unsigned int uLabel, flag = 0);  
    friend Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+   friend Elem* ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
    friend Elem* ReadRotor(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
    friend Elem* ReadAerodynamicBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
    friend Elem* ReadAerodynamicBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);

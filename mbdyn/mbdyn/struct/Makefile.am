@@ -11,7 +11,8 @@ joint.h      joint_.h     kin.cc      kin.h        kinj.cc \
 kinj.h       modal.cc     modal.h      planedj.cc  planedj.h    planej.cc \
 planej.h     prismj.cc    prismj.h     pzbeam.cc   pzbeam.h     rodj.cc \
 rodj.h       spherj.cc    spherj.h     strnode.cc  strnode.h    univj.cc \
-univj.h      vehj.cc      vehj.h       vehj2.cc    vehj2.h
+univj.h      vehj.cc      vehj.h       vehj2.cc    vehj2.h \
+hbeam.h      hbeam.cc
 
 libstruct_la_LIBADD = @LIBS@
 libstruct_la_LDFLAGS = -static
