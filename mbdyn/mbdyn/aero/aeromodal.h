@@ -102,8 +102,15 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
    const double gustVff;               /* frequenza di taglio filtro passa basso raffica */
    const double gustXi;                /* smorzamento filtro del secondo ordine raffica */
 
-   flag RigidF;                         /* flag che indica se sono presenti i 
-   					 * dati aerodinamici relativi ai moti rigidi */
+ public:
+   enum RigidF_t {
+	   NO_RIGID = 0,
+	   RIGID = 6
+   };
+
+   protected:
+   RigidF_t RigidF;                    /* Numero di gdl del corpo rigido */
+
    /* Assemblaggio residuo */
    void AssVec(SubVectorHandler& WorkVec);
    
@@ -116,7 +123,7 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
 		   doublereal Cd,
 		   const int NModal,
 		   const int NAero,
-		   flag rgF,
+		   RigidF_t rgF,
 		   const int Gust,
 		   const double Vff,
 		   SpMapMatrixHandler* pAMat,
