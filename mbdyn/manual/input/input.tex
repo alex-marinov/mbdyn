@@ -534,6 +534,18 @@ The {\tt drive\_caller\_type}s are:
 
 \subsection{Drives}
 
+\subsubsection{Null drive}
+\begin{verbatim}
+    <drive_caller> ::= null
+\end{verbatim}
+Zero valued.
+
+\subsubsection{One drive}
+\begin{verbatim}
+    <drive_caller> ::= one
+\end{verbatim}
+Always 1.
+
 \subsubsection{Constant drive}
 \begin{verbatim}
     <drive_caller> ::= [ const , ] <const_coef>                    
@@ -541,6 +553,12 @@ The {\tt drive\_caller\_type}s are:
 The keyword {\tt const} can be omitted thus highlighting the real nature
 of this driver, that is completely equivalent to a constant, static real
 value.
+
+\subsubsection{Time drive}
+\begin{verbatim}
+    <drive_caller> ::= time
+\end{verbatim}
+Yields the current time.
   
 \subsubsection{Linear drive}
 \begin{verbatim}
@@ -562,8 +580,6 @@ value.
                                <parabolic_coef>, 
                                <cubic_coef>
 \end{verbatim}
-
-\subsubsection{Function drive: obsoleted}
 
 \subsubsection{Step drive}
 \begin{verbatim}
@@ -598,6 +614,15 @@ value.
                                      <desc_final_time> , 
                                      <initial_value>
 \end{verbatim}
+
+\subsubsection{Piecewise linear drive}
+\begin{verbatim}
+    <drive_caller> ::= piecewise linear , <num_points> ,
+                                          <point> , <value> [ , ... ]
+\end{verbatim}
+Piecewise linear function; the first and the last point/value pairs are
+extrapolated in case a value beyond the extremes is required.
+Linear interpolation between pairs is used.
 
 \subsubsection{Sine drive}
 \begin{verbatim}
@@ -1974,13 +1999,31 @@ air speed, in the global reference frame.
 
 
 \section{Beam Element}
-% {\bf 
-% The {\tt beam} element is being updated and at present is not available.
-% Since the update is going to alter the input sequence (no particular 
-% backwards compatibility is sought), nothing is to be said at present about
-% its syntax.
-% }
+Currently two beam elements are implemented: a three-node finite volume
+element, which has been historically implemented first, which uses
+conventional polynomial parabolic interpolation of the nodal displacements
+and rotations, and a two-node finite volume element, which has been
+recently introduced.
+Although this latter element presents some shear-locking, it may be overcome
+by correcting the section stiffness matrix in a straightforward form:
+\begin{displaymath}
+	\hat{K} \ = \ \plbr{F + \frac{L^2}{12}T F T^T}^{-1} ,
+\end{displaymath}
+where $F=K^{-1}$ is the compliance of the section, and
+\begin{displaymath}
+	T \ = \ sqbr{\matr{cc}{
+		0 & e_x \times{} \\
+		0 & 0
+	}}
+\end{displaymath}
+is the ``arm'' matrix that appears in the differential equilibrium equation
+\begin{displaymath}
+	\vartheta_{/x} - T^T\vartheta + f \ = \ 0 .
+\end{displaymath}
+The two-node beam will be reimplemented using helicoidal interpolation
+of the nodal displacements and rotations, to reduce the shear-locking effect.
 
+\subsection{Three-node beam element}
 The beam element is a three node one-dimensional element.
 Each ``node'' is referred to a structural node but can have an arbitrary
 offset to allow for more generality in positioning of the structural 
@@ -1995,6 +2038,7 @@ is in direction 1).
 Any of the allowed 6D constitutive laws can be supplied to define the
 constitutive properties.
 \begin{verbatim}
+    <element_type> ::= beam
     <normal_arglist> ::=
         <node_1> , (Vec3) <relative_offset_1> ,
         <node_2> , (Vec3) <relative_offset_2> ,
@@ -2020,12 +2064,26 @@ of the abstract nodes that represent the input signal tensions, as follows:
         (ConstitutiveLaw6D) <constitutive_law_section_II>
         piezoelectric actuator , 
         <electrodes_number> ,
-	<abstract_node_label_list> ,
+        <abstract_node_label_list> ,
         (Mat6xN) <piezoelectric_matrix_I> ,
-	{ same | (Mat6xN) <piezoelectric_matrix_II> }
+        { same | (Mat6xN) <piezoelectric_matrix_II> }
 \end{verbatim}
 where the {\tt abstract\_node\_label\_list} is the list of the labels of the
 abstract nodes that represent the electrodes.
+
+\subsection{Two-node beam element}
+\begin{verbatim}
+    <element_type> ::= beam2
+    <normal_arglist> ::=
+        <node_1> , (Vec3) <relative_offset_1> ,
+        <node_2> , (Vec3) <relative_offset_2> ,
+        (RotationMatrix) <rotation_matrix_section_I> ,
+        (ConstitutiveLaw6D) <constitutive_law_section_I>
+        [ , piezoelectric actuator , 
+        <electrodes_number> ,
+        <abstract_node_label_list> ,
+        (Mat6xN) <piezoelectric_matrix_I> ]
+\end{verbatim}
 
 \subsection{Output}
 The output related to beam elements is contained in a file with extension 
@@ -2802,7 +2860,9 @@ instead.
 \end{verbatim}
 {\em
     Note: to make an in-line joint, use two in-plane joints, with the
-    planes that intersect along the desired line.
+    planes that intersect along the desired line. \\
+    Note: a {\tt inline} element has been added, which automates the above
+    reported procedure.
 }
 
 \subsection{In line}
@@ -2829,6 +2889,16 @@ instead.
                      (Vec3) <relative_offset_2> ] ,
         (ConstitutiveLaw1D) <const_law>
 \end{verbatim}
+
+\subsection{Rod with offset}
+\begin{verbatim}
+    <joint_type> ::= rod with offset
+    <joint_arglist> ::= <node_1> , (Vec3) <relative_offset_1>
+                        <node_2> , (Vec3) <relative_offset_2>
+        (scalar) { <rod_length> | from nodes } ,
+        (ConstitutiveLaw1D) <const_law>
+\end{verbatim}
+Analogous to {\tt rod} with the optional arg {\tt offset}.    
 
 \subsection{Deformable hinge}
 \begin{verbatim}

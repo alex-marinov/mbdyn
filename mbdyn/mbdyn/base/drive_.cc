@@ -984,11 +984,11 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       /* driver nullo */
     case NULLDRIVE: {
        /* allocazione e creazione */
-       SAFENEWWITHCONSTRUCTOR(pDC,
+        SAFENEWWITHCONSTRUCTOR(pDC,
 			      NullDriveCaller,
 			      NullDriveCaller(pDrvHdl),
 			      DMmm);
-       
+      
        /* scrittura dei dati specifici */	     
        
        break;
@@ -997,11 +997,11 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       /* driver unitario*/
     case ONEDRIVE: {
        /* allocazione e creazione */
-       SAFENEWWITHCONSTRUCTOR(pDC,
+        SAFENEWWITHCONSTRUCTOR(pDC,
 			      OneDriveCaller,
 			      OneDriveCaller(pDrvHdl),
 			      DMmm);
-       
+      
        /* scrittura dei dati specifici */	     
        
        break;
@@ -1012,14 +1012,25 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        /* lettura dei dati specifici */
        doublereal dConst = HP.GetReal();
        DEBUGCOUT("Const value: " << dConst << endl);
-       
+
        /* allocazione e creazione */
-       SAFENEWWITHCONSTRUCTOR(pDC,
-			      ConstDriveCaller,
-			      ConstDriveCaller(pDrvHdl, dConst), 
-			      DMmm);
-       
-       /* scrittura dei dati specifici */	     
+       if (dConst == 0.) {
+          SAFENEWWITHCONSTRUCTOR(pDC,
+			         NullDriveCaller,
+			         NullDriveCaller(pDrvHdl),
+			         DMmm);
+       } else if (dConst == 1.) {
+          SAFENEWWITHCONSTRUCTOR(pDC,
+			         OneDriveCaller,
+			         OneDriveCaller(pDrvHdl),
+			         DMmm);
+      
+       } else {
+          SAFENEWWITHCONSTRUCTOR(pDC,
+	   		         ConstDriveCaller,
+			         ConstDriveCaller(pDrvHdl, dConst), 
+			         DMmm);
+       }
        
        break;
     }
