@@ -350,7 +350,7 @@ SocketDrive::ServePending(const doublereal& /* t */ )
       		const size_t bufsize = BUFSIZE;
       		char buf[bufsize];
            
-      		integer label;
+      		int label;
       		doublereal value;
       
       		cur_sock = accept(sock, 
@@ -419,7 +419,7 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 	    			p++;
 	 		}
 	 
-	 		if (sscanf(p, "%ld", &label) != 1) {
+	 		if (sscanf(p, "%d", &label) != 1) {
 	    			std::cerr << "SocketDrive(" << GetLabel() 
 					<< "): unable to read label" << std::endl;
 	    			fclose(fd);
