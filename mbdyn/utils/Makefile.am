@@ -18,14 +18,13 @@ rotrel \
 sockdrive
 
 LIBS = \
-../libraries/libmbwrap/libmbwrap.la \
-../libraries/libmbmath/libmbmath.la \
 ../libraries/libmbutil/libmbutil.la \
 ../libraries/libobjs/libobjs.la \
+../libraries/libmbwrap/libmbwrap.la \
 @Y12_LIBS@ \
+../libraries/libmbmath/libmbmath.la \
 @HARWELL_LIBS@ \
 @UMFPACK3_LIBS@ \
-../libraries/libmbwrap/libmbwrap.la \
 @MESCHACH_LIBS@ \
 @F2C_LIBS@ \
 @TCL_LIBS@
