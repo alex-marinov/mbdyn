@@ -74,11 +74,19 @@ static int read(void** pp, const char* user_defined)
       pd->x[2] = 1.;
       pd->x[3] = 0.;
    }
+
+   pd->xP[0] = pd->x[2];
+   pd->xP[1] = pd->x[3];
+   pd->xP[2] = -(2.*pd->x[2]*pd->x[3] + pd->g*sin(pd->x[0]))/pd->l;
+   pd->xP[3] = pd->l*pd->x[2]*pd->x[2] + pd->g*cos(pd->x[0])
+	   - (pd->k*pd->x[1] + pd->c*pd->x[3])/pd->m;
    
    std::cerr << "m=" << pd->m << ", c=" << pd->c << ", k=" << pd->k << std::endl
      << "l=" << pd->l << ", g=" << pd->g << std::endl
      << "x={" << pd->x[0] << "," << pd->x[1] << "," 
-     << pd->x[2] << "," << pd->x[3] << "}" << std::endl;
+     << pd->x[2] << "," << pd->x[3] << "}" << std::endl
+     << "xP={" << pd->xP[0] << "," << pd->xP[1] << "," 
+     << pd->xP[2] << "," << pd->xP[3] << "}" << std::endl;
    
    return 0;
 }
@@ -159,7 +167,7 @@ static int func(void* p, VectorHandler& R, const VectorHandler& X, const VectorH
 
    R.fPutCoef(1, phi - XP.dGetCoef(1));
    R.fPutCoef(2, w - XP.dGetCoef(2));
-   R.fPutCoef(3, (2.*phi*w + g*stheta)/l - XP.dGetCoef(3));
+   R.fPutCoef(3, - (2.*phi*w + g*stheta)/l - XP.dGetCoef(3));
    R.fPutCoef(4, (phi*phi*l - (k*u + c*w)/m + g*ctheta) - XP.dGetCoef(4));
 
    return 0;
@@ -182,23 +190,25 @@ static std::ostream& out(void* p, std::ostream& o,
    doublereal g = pd->g;
    doublereal x = l*stheta;
    doublereal y = -l*ctheta;
-   doublereal xp = w*stheta+l*ctheta*phi;
-   doublereal yp = -w*ctheta+l*stheta*phi;
+   doublereal xP = w*stheta+l*ctheta*phi;
+   doublereal yP = -w*ctheta+l*stheta*phi;
    
-   doublereal E = .5*m*(xp*xp+yp*yp)+m*g*y+.5*k*u*u;
+   doublereal E = .5*m*(xP*xP+yP*yP)+m*g*y+.5*k*u*u;
   
    
    return o
 	   << theta			/*  3 */
 	   << " " << u			/*  4 */
-	   << " " << X.dGetCoef(3)	/*  5 */
-	   << " " << X.dGetCoef(4)	/*  6 */
+	   << " " << phi		/*  5 */
+	   << " " << w			/*  6 */
 	   << " " << XP.dGetCoef(1)	/*  7 */
 	   << " " << XP.dGetCoef(2)	/*  8 */
 	   << " " << XP.dGetCoef(3)	/*  9 */
 	   << " " << XP.dGetCoef(4)	/* 10 */
 	   << " " << x 			/* 11 */
 	   << " " << y 			/* 12 */
+	   << " " << xP 		/* 11 */
+	   << " " << yP 		/* 12 */
 	   << " " << E;			/* 13 */
 }
 
