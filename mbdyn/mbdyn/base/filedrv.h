@@ -44,7 +44,7 @@ public:
 		
 		FIXEDSTEP = 0,
 		SOCKET,
-		RTAIMAILBOX,
+		RTAI_IN,
 	
 		LASTFILEDRIVE
 	};

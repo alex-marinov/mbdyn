@@ -62,7 +62,7 @@ const char* psElemNames[] = {
    "Loadable",
    "Driven",
 
-   "RTAI Output Mailbox",
+   "RTAI Output",
    
    NULL
 };

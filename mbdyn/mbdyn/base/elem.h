@@ -99,7 +99,7 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput {
 	LOADABLE,
 	DRIVEN,
 
-	RTAI_OUTPUT_MAILBOX,
+	RTAI_OUTPUT,
 	
 	LASTELEMTYPE
    };      

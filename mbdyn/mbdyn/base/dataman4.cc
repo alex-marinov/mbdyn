@@ -68,7 +68,7 @@
 #endif /* HAVE_LOADABLE */
 
 #ifdef USE_RTAI
-#include <rtai_mbox_elem.h>
+#include <rtai_out_elem.h>
 #endif /* USE_RTAI */
 
 static int iNumTypes[Elem::LASTELEMTYPE];
@@ -110,7 +110,7 @@ enum KeyWords {
    LOADABLE,
    DRIVEN,
 
-   RTAI_OUTPUT_MAILBOX,
+   RTAI_OUTPUT,
    
    INERTIA,
    
@@ -162,7 +162,7 @@ void DataManager::ReadElems(MBDynParser& HP)
       "loadable",
       "driven",
 
-      "rtai" "output" "maibox",
+      "rtai" "output",
 
       "inertia",
       
@@ -544,8 +544,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    t = Elem::LOADABLE;
 	    break;
 
-	  case RTAI_OUTPUT_MAILBOX:
-	    std::cerr << psElemNames[Elem::RTAI_OUTPUT_MAILBOX]
+	  case RTAI_OUTPUT:
+	    std::cerr << psElemNames[Elem::RTAI_OUTPUT]
 		    << " does not support bind" << std::endl;
 	  default:
 	    THROW(ErrGeneric());
@@ -751,8 +751,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 		     break;
 		  }
 
-		  case RTAI_OUTPUT_MAILBOX:
-		     std::cerr << psElemNames[Elem:RTAI_OUTPUT_MAILBOX]
+		  case RTAI_OUTPUT:
+		     std::cerr << psElemNames[Elem:RTAI_OUTPUT]
 	 		     << " cannot be driven" << std::endl;
 	 	     THROW(ErrGeneric());
 		    
@@ -926,7 +926,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 #ifdef HAVE_LOADABLE
 	      case LOADABLE:
 #endif /* HAVE_LOADABLE */
-	      case RTAI_OUTPUT_MAILBOX:
+	      case RTAI_OUTPUT:
 		  {		 
 		 /* Nome dell'elemento */
              	 const char *sName = NULL;
@@ -1625,13 +1625,13 @@ Elem** ReadOneElem(DataManager* pDM,
     }		 		                     
 #endif /* defined(HAVE_LOADABLE) */
 
-    case RTAI_OUTPUT_MAILBOX: {
+    case RTAI_OUTPUT: {
 #ifdef USE_RTAI
       int nch = HP.GetInt();
 
       if (nch <= 0) {
 	      std::cerr << "illegal number of channels for "
-		      << psElemNames[Elem::RTAI_OUTPUT_MAILBOX]
+		      << psElemNames[Elem::RTAI_OUTPUT]
 		      << "(" << uLabel << ") at line " << HP.GetLineData()
 		      << std::endl;
 	      THROW(ErrGeneric());
@@ -1643,8 +1643,8 @@ Elem** ReadOneElem(DataManager* pDM,
 	      pNodes[i] = ReadScalarDof(pDM, HP, 0);
       }
 
-      SAFENEWWITHCONSTRUCTOR(*ppE, RTAIMailboxElem,
-		      RTAIMailboxElem(uLabel, nch, pNodes));
+      SAFENEWWITHCONSTRUCTOR(*ppE, RTAIOutElem,
+		      RTAIOutElem(uLabel, nch, pNodes));
 
 #else /* ! USE_RTAI */
        std::cerr << "need USE_RTAI to allow RTAI mailboxes" << std::endl;
