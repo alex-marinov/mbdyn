@@ -57,6 +57,7 @@
  */
 #include "simstruc.h"
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
@@ -155,6 +156,9 @@ mdlStart(SimStruct *S)
 		char		output_option[] = "-o";
 		char		verbose_option[] = "-ss";
 		char		pedantic_option[] = "-P";
+		struct stat	st;
+		static char_T	errMsg[256];
+		int		executable = 1;
 
 		if (MBDYN_PATH) {
 			mxGetString(MBDYN_PATH_NAME_PARAM, mbdyn_name,
@@ -164,6 +168,49 @@ mdlStart(SimStruct *S)
 		}
 		parameter[count] = mbdyn_name;
 		count++;	
+
+		if (stat(mbdyn_name, &st) == -1) {
+			int	save_errno = errno;
+			char	*msg = strerror(errno);
+
+			if (msg == NULL) {
+				snprintf(errMsg, sizeof(errMsg),
+						"stat(%s) failed and "
+						"strerror(%d) too\n",
+						mbdyn_name, save_errno);
+			} else {
+				snprintf(errMsg, sizeof(errMsg),
+						"stat(%s) failed: %d (%s)\n",
+						mbdyn_name, save_errno, msg);
+			}
+			ssSetErrorStatus(S, errMsg);
+			fputs(errMsg, stderr);
+			exit(EXIT_FAILURE);
+		}
+
+		if (st.st_uid == getuid() && !(st.st_mode & S_IXUSR)) {
+			/* not executable by owner */
+			executable = 0;
+
+		} else if (st.st_gid == getgid() && !(st.st_mode & S_IXGRP)) {
+			/* not executable by group */
+			executable = 0;
+
+		} else if (!(st.st_mode & S_IXOTH)) {
+			/* not executable by other */
+			executable = 0;
+			
+		}
+
+		if (!executable) {
+			/* not executable */
+			snprintf(errMsg, sizeof(errMsg),
+					"program %s is not executable\n",
+					mbdyn_name);
+			ssSetErrorStatus(S, errMsg);
+			fputs(errMsg, stderr);
+			exit(EXIT_FAILURE);
+		}
 
 		mxGetString(FILE_NAME_PARAM, file_name, sizeof(file_name));
 		parameter[count] = file_option;
