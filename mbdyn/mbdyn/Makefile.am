@@ -14,19 +14,17 @@ mbdyn.h
 
 ## mbdyn_LDADD = @XLIBOBJS@
 mbdyn_LDADD = \
-base/libbase.la \
 aero/libaero.la \
+base/libbase.la \
+../libraries/libmbwrap/libmbwrap.la \
 struct/libstruct.la \
 elec/libelec.la \
 hydr/libhydr.la \
-base/libbase.la \
-../libraries/libmbwrap/libmbwrap.la \
 ../libraries/libmbmath/libmbmath.la \
 ../libraries/libmbutil/libmbutil.la \
 @Y12_LIBS@ \
 @HARWELL_LIBS@ \
 @UMFPACK3_LIBS@ \
-../libraries/libmbwrap/libmbwrap.la \
 ../libraries/libobjs/libobjs.la \
 @MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ \
 @METIS_LIBS@ @SECURITY_LIBS@ @TCL_LIBS@ @LIBS@ \
