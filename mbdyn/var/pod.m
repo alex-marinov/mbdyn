@@ -1,40 +1,106 @@
-function [S,Aout,data,A,BB,mn] = pod(file, stp, ns, novel)
+%[S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, dec)
+%
+%input:
+%	A	data (number of frames x number of outputs)
+%	ns	desired POMs
+%	dt	time lag between two frames (optional, defaults to 1.0)
+%	dec	decimation factor (Matlab only)
+%
+%output:
+%	S	singular values
+%	Aout	data after POD
+%	B	POMs
+%	mn	mean value of data
+%	scl	scale factor of data-mn
+%	ee	eigenvalues
+%	vv	eigenvectors
+%	X	physical eigenvectors
+%	H	transition matrix
+%	BB	expanded PODs
+%
+function [S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, dec)
 
-data = dlmread(file, ' ');
-[N, m] = size(data)
-if ( stp > N)
-    error('too many steps required');
+if nargin < 3,
+	dt = 1.;
 end
-if ( ns > m)
-    error('too many sv required');
+
+[r, c] = size(A);
+
+if nargin < 2,
+	ns = c;
+else 
+	if ( ns > c),
+  	  error('too many sv required');
+	end
 end
-if (novel == 1) 
-    A = [];
-    for i = 1:posgdl
-        A =[A, data(1:stp,[1+(i-1)*12, 2+(i-1)*12 , 3+(i-1)*12,   4+(i-1)*12, 5+(i-1)*12 , 6+(i-1)*12])];
-    end
-    A = [A, data(1:stp, 12*posgdl+1:end)];
+
+% detrend and normalize
+mn = mean(A);
+A = A - ones(r, 1)*mn;
+scl = max(abs(A));
+lt = find(scl <= 1.e-9);
+nlt = length(lt);
+gt = find(scl > 1.e-9);
+ngt = length(gt);
+A = A(:, gt)./(ones(r, 1)*scl(gt));
+for i = 1:nlt,
+	disp(sprintf('dof %d: output is negligible', lt(i)));
+end
+
+if ((exist('OCTAVE_HOME') == 0) & (exist('dec') == 1)),
+	if dec <= 1,
+		error(sprintf('dec = %d is illegal', dec));
+	end
+	for i = 1:ngt,
+		AA(:, i) = decimate(A(:, i), dec);
+	end
+	A = AA;
+	dt = dt*dec;
+	r = fix(r/dec);
+end
+
+if exist('OCTAVE_HOME'),
+	%%% This is the big octave drawback: no eigs() ...
+	[Utmp, Etmp] = eig(A*A');
+	Etmp = diag(Etmp);
+	[Etmp2, I] = sort(Etmp);
+	E = Etmp(I(r:-1:r-ns+1));
+	U = Utmp(:, I(r:-1:r-ns+1));
 else
-    A = data(1:stp, :);
+	[U, E] = eigs(A*A', ns);
 end
 
-[r,c] = size(A);
-for i=1:c
-    mn(i) = mean(A(:,i));
-    A(:,i) = A(:,i)-mn(i);
-    scl(i) = max(abs(A(:,i)));
-    if (scl(i) ~= 0)
-        A(:,i) = A(:,i)/scl(i);
-    end
+B = U'*A;
+for i = 1:ns,
+    S(i) = norm(B(i, :));	% S = sqrt(E)
+    B(i, :) = B(i, :)/S(i)^2;
 end
 
-[U,E] = eigs(A*A',ns);
-B =U'*A;
-for i = 1:ns
-    S(i) = norm(B(i,:));
-    BB(i,:) = B(i,:)/S(i)^2;
-end
-Aout =BB*A';
+% Aout = B*A';			% = E^-1*U'*A*A' = E^-1*U'*U*E*U' = U'
+Aout = U;
 
-% eigenvectors:
-% plot(([1 1;sqrt(-1) -sqrt(-1)]*vv(:,[6 7])'*BB(1:12,3:12:108))')
+if exist('OCTAVE_HOME'),
+	%%% This is a very rough estimate of the transition matrix ...
+	H = (Aout(1:r-1, :)\Aout(2:r, :))';
+else
+	H = ssdata(arx(Aout, ones(ns)));
+end
+
+% physical eigenvalues and eigenvectors ...
+[vv, eetmp] = eig(H);
+ee = log(diag(eetmp))/dt;
+B = B.*(ones(ns, 1)*scl(gt));
+X = zeros(ns, c);
+X(:, gt) = vv'*B;
+BB = zeros(ns, c);
+BB(:, gt) = B;
+
+%
+% node indices:
+% awk '/struct node dofs: / {printf("l=[%s];\n",substr($0,19,length($0)))}' f.log
+%
+% eigenvectors (e.g. xy):
+% k = 1.;
+% x = mn(l+1)+k*[1 1]*X([6 7], l+1);
+% y = mn(l+2)+k*[1 1]*X([6 7], l+2);
+
