@@ -61,9 +61,7 @@ piCol(piTmpCol),
 pdMat(pdTmpMat),
 pir(0),
 pic(0),
-#ifdef Y12_CC_SAFE
 bDuplicateIndices(bDupInd),
-#endif /* Y12_CC_SAFE */
 iN(iMatOrd),
 iNonZeroes(0),
 piHA(NULL),
@@ -79,7 +77,6 @@ bFirstSol(true)
 	ASSERT(pdTmpRhs != NULL);
 	ASSERT(iN > 0);
 
-#ifdef Y12_CC_SAFE
 	if (bDuplicateIndices) {
 		/*
 		 * NOTE: Y12 alters the index arrays :(
@@ -87,7 +84,6 @@ bFirstSol(true)
 		iRow.reserve(iCurSize);
 		iCol.reserve(iCurSize);
 	}
-#endif /* Y12_CC_SAFE */
 	
 	SAFENEWARR(piHA, integer, 11*iN);
 	SAFENEWARR(pdPIVOT, doublereal, iN);
@@ -165,7 +161,6 @@ Y12Solver::Factor(void)
 	iIFLAG[I_1] = 0;
 	iIFLAG[I_5] = 2;
 
-#ifdef Y12_CC_SAFE
 	if (bDuplicateIndices) {
 		/*
 		 * NOTE: Y12 alters the index arrays :(
@@ -179,9 +174,7 @@ Y12Solver::Factor(void)
 
 		pir = &(iRow[0]);
 		pic = &(iCol[0]);
-	} else
-#endif /* Y12_CC_SAFE */
-	{
+	} else {
 		pir = &((*piRow)[0]);
 		pic = &((*piCol)[0]);
 	}

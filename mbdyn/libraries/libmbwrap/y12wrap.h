@@ -110,8 +110,6 @@
 
 /* Y12Solver - begin */
 
-#define Y12_CC_SAFE
-
 /*
  * Solutore LU per matrici sparse. usa spazio messo a disposizione da altri 
  * e si aspetta le matrici gia' bell'e preparate
@@ -160,14 +158,12 @@ private:
 
 	integer *pir, *pic;
 
-#ifdef Y12_CC_SAFE
 	/*
 	 * NOTE: Y12 alters the index arrays :(
 	 */
 	bool bDuplicateIndices;		/* true if need to duplicate indices */
 	std::vector<integer> iRow;
 	mutable std::vector<integer> iCol;
-#endif /* Y12_CC_SAFE */
 
 	mutable integer iN;     	/* ordine della matrice */
 	mutable integer iNonZeroes; 	/* coeff. non nulli */
