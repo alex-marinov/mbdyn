@@ -6,6 +6,9 @@ Copyright (C) 1996-2003
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Sat Jan  3 11:17:12 CET 2004
+ - first cut at new sparse matrix handler
+
 *** Tue Dec 30 23:43:38 CET 2003 Pierangelo Masarati <masarati@aero.polimi.it>
  - fixed transition from column-compressed to sparse-map umfpack
    when the matrix is invalidated
