@@ -36,7 +36,6 @@
 
 #include <drive.h>
 
-doublereal DriveCaller::dDriveReturnValue = 0.;
 doublereal Drive::dReturnValue = 0.;
 doublereal DriveHandler::dDriveHandlerReturnValue = 0.;
 
@@ -68,9 +67,9 @@ pXPrimeCurr(NULL),
 iCurrStep(0),
 #ifdef DEBUG_MEMMANAGER
 MyRandD(DMmm),
-#else
+#else /* !DEBUG_MEMMANAGER */
 MyRandD(),
-#endif
+#endif /* !DEBUG_MEMMANAGER */
 MyRandLL(MyRandD),
 iRandDriveSize(0),
 ppMyRand(NULL)
@@ -219,9 +218,9 @@ void DriveHandler::SetVar(const doublereal& dVar)
 }
  
 
-const doublereal& DriveHandler::dGet(InputStream& InStr) const 
+doublereal DriveHandler::dGet(InputStream& InStr) const 
 {
-   return (dDriveHandlerReturnValue = ((MathParser&)Parser).GetLastStmt(InStr));
+   return ((MathParser&)Parser).GetLastStmt(InStr);
 }
 
 
@@ -357,7 +356,7 @@ void DriveOwner::Set(const DriveCaller* pDC)
    if (pDriveCaller != NULL) {
       DEBUGCERR("warning: the original pointer to a drive caller is not null!" << endl);
    }
-#endif
+#endif /* DEBUG */
    pDriveCaller = (DriveCaller*)pDC;
 }
 
@@ -368,9 +367,10 @@ DriveCaller* DriveOwner::pGetDriveCaller(void) const
 }
 
 
-const doublereal& DriveOwner::dGet(void) const
+doublereal DriveOwner::dGet(void) const
 {
    return pDriveCaller->dGet();
 }
 
 /* DriveOwner - end */
+

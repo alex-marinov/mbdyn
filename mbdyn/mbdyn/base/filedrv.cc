@@ -161,7 +161,7 @@ ostream& FixedStepFileDrive::Restart(ostream& out) const
 }
 
 
-const doublereal& FixedStepFileDrive::dGet(const doublereal& t, int i) const
+doublereal FixedStepFileDrive::dGet(const doublereal& t, int i) const
 {
    ASSERT(i > 0 && i <= iNumDrives);
 
@@ -175,7 +175,7 @@ const doublereal& FixedStepFileDrive::dGet(const doublereal& t, int i) const
    doublereal dt1 = dT0+j1*dDT;
    doublereal dt2 = dt1+dDT;
    
-   return (Drive::dReturnValue = (pvd[i][j2]*(t-dt1)-pvd[i][j1]*(t-dt2))/dDT);
+   return (pvd[i][j2]*(t-dt1)-pvd[i][j1]*(t-dt2))/dDT;
 }
 
 

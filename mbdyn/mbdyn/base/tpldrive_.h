@@ -69,8 +69,8 @@ class SingleTplDriveCaller : public TplDriveCaller<T>, public DriveOwner {
       return pGetDriveCaller()->Restart(out);
    }; 
    
-   inline const T& Get(void) const {
-      return ((T&)TplDriveCaller<T>::TReturnValue = t*dGet());
+   inline T Get(void) const {
+      return t*dGet();
    };   
 };
 
@@ -105,7 +105,7 @@ class SingleTplDriveCaller<doublereal>
       return pGetDriveCaller()->Restart(out);
    };
    
-   inline const doublereal& Get(void) const {
+   inline doublereal Get(void) const {
       return dGet();
    };   
 };
@@ -174,12 +174,12 @@ class ArrayTplDriveCaller : public TplDriveCaller<T> {
       return out;
    };
    
-   inline const T& Get(void) const {
-      (T&)TplDriveCaller<T>::TReturnValue = 0.;
+   inline T Get(void) const {
+      T v = 0.;
       for (int i = 0; i < iNumDrives; i++) {
-	 (T&)TplDriveCaller<T>::TReturnValue += (pDrivesArray[i].t)*(pDrivesArray[i].pDriveCaller->dGet());
+	 v += (pDrivesArray[i].t)*(pDrivesArray[i].pDriveCaller->dGet());
       }      
-      return TplDriveCaller<T>::TReturnValue;
+      return v;
    };   
 };
 

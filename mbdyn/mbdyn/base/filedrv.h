@@ -73,7 +73,7 @@ class FileDrive : public Drive {
    
    virtual inline integer iGetNumDrives(void) const;
    
-   virtual const doublereal& dGet(const doublereal& t, int i = 1) const = 0;
+   virtual doublereal dGet(const doublereal& t, int i = 1) const = 0;
 };
 
 
@@ -103,20 +103,14 @@ class FileDriveCaller : public DriveCaller {
    virtual ostream& Restart(ostream& out) const;
 
    /* Restituisce il valore del driver */
-   virtual inline const doublereal& dGet(const doublereal& dVal) const;
-   virtual inline const doublereal& dGet(void) const;
+   virtual inline doublereal dGet(const doublereal& dVal) const;
+   /* virtual inline doublereal dGet(void) const; */
 };
 
 
-inline const doublereal& FileDriveCaller::dGet(const doublereal& dVal) const
+inline doublereal FileDriveCaller::dGet(const doublereal& dVal) const
 {
    return pFileDrive->dGet(dVal, iNumDrive);
-}
-
-
-inline const doublereal& FileDriveCaller::dGet(void) const
-{
-   return dGet(pDrvHdl->dGetTime());
 }
 
 /* FileDriveCaller - end */
@@ -146,7 +140,7 @@ class FixedStepFileDrive : public FileDrive {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
    
-   virtual const doublereal& dGet(const doublereal& t, int i = 1) const;
+   virtual doublereal dGet(const doublereal& t, int i = 1) const;
 
    virtual void ServePending(void);
 };

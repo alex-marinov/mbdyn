@@ -39,9 +39,6 @@
 
 template <class T>
 class TplDriveCaller {
- protected:
-   T TReturnValue;
-      
  public:
    virtual ~TplDriveCaller(void) { 
       NO_OP;
@@ -54,7 +51,7 @@ class TplDriveCaller {
    virtual ostream& Restart(ostream& out) const = 0;
    
    /* Restituisce il valore del driver */
-   virtual inline const T& Get(void) const = 0;
+   virtual inline T Get(void) const = 0;
 };
 
 /* TplDriveCaller - end */
@@ -87,7 +84,7 @@ class TplDriveOwner {
       return pTplDriveCaller;
    };
    
-   const T& Get(void) const { 
+   T Get(void) const { 
       return pTplDriveCaller->Get(); 
    };
 };

@@ -67,12 +67,12 @@ class StringDriveCaller : public DriveCaller {
    /* Copia */
    virtual DriveCaller* pCopy(void) const;
    
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   inline doublereal dGet(void) const;
 };
 
 
-inline const doublereal& StringDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal StringDriveCaller::dGet(const doublereal& dVar) const
 {
    ((DriveHandler*)DriveCaller::pDrvHdl)->SetVar(dVar);
    
@@ -98,7 +98,7 @@ inline const doublereal& StringDriveCaller::dGet(const doublereal& dVar) const
    return  DriveCaller::pDrvHdl->dGet(In);
 }
 
-inline const doublereal& StringDriveCaller::dGet(void) const
+inline doublereal StringDriveCaller::dGet(void) const
 {
    istrstream in(sEvalStr);
    InputStream In(in);
@@ -121,30 +121,23 @@ class TimeDriveCaller : public DriveCaller {
    /* Copia */
    virtual DriveCaller* pCopy(void) const;
    
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   inline doublereal dGet(void) const;
 };
 
 
-inline const doublereal& TimeDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal TimeDriveCaller::dGet(const doublereal& dVar) const
 {
    return dVar;
 }
 
 
-inline const doublereal& TimeDriveCaller::dGet(void) const
+inline doublereal TimeDriveCaller::dGet(void) const
 {
    return pDrvHdl->dGetTime();
 }
 
 /* TimeDriveCaller - end */
-
-
-/* ConstDriveCaller - begin */
-
-/* moved to "drive.h" */
-
-/* ConstDriveCaller - end */
 
 
 /* LinearDriveCaller - begin */
@@ -164,20 +157,14 @@ class LinearDriveCaller : public DriveCaller {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
    
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   /* inline doublereal dGet(void) const; */
 };
 
 
-inline const doublereal& LinearDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal LinearDriveCaller::dGet(const doublereal& dVar) const
 {
-   return (dDriveReturnValue = dC0+dC1*dVar);
-}
-
-
-inline const doublereal& LinearDriveCaller::dGet(void) const
-{
-   return dGet(pDrvHdl->dGetTime()); 
+   return dC0+dC1*dVar;
 }
 
 /* LinearDriveCaller - end */
@@ -202,19 +189,14 @@ class ParabolicDriveCaller : public DriveCaller {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
    
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   /* inline doublereal dGet(void) const; */
 };
 
 
-inline const doublereal& ParabolicDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal ParabolicDriveCaller::dGet(const doublereal& dVar) const
 {
-   return (dDriveReturnValue = dC0+dVar*(dC1+dC2*dVar));
-}
-
-inline const doublereal& ParabolicDriveCaller::dGet(void) const
-{
-   return dGet(pDrvHdl->dGetTime()); 
+   return dC0+dVar*(dC1+dC2*dVar);
 }
 
 /* ParabolicDriveCaller - end */
@@ -241,20 +223,14 @@ class CubicDriveCaller : public DriveCaller {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
    
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   /* inline doublereal dGet(void) const; */
 };
 
 
-inline const doublereal& CubicDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal CubicDriveCaller::dGet(const doublereal& dVar) const
 {
-   return (dDriveReturnValue = dC0+dVar*(dC1+dVar*(dC2+dC3*dVar)));
-}
-
-
-inline const doublereal& CubicDriveCaller::dGet(void) const
-{
-   return dGet(pDrvHdl->dGetTime()); 
+   return dC0+dVar*(dC1+dVar*(dC2+dC3*dVar));
 }
 
 /* CubicDriveCaller - end */
@@ -279,24 +255,18 @@ class StepDriveCaller : public DriveCaller {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
    
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   /* inline doublereal dGet(void) const; */
 };
 
 
-inline const doublereal& StepDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal StepDriveCaller::dGet(const doublereal& dVar) const
 {
    if(dVar >= dStepTime) {
       return dStepValue;
    }
    /* else if dVar < dStepTime */
    return dInitialValue;
-}
-
-
-inline const doublereal& StepDriveCaller::dGet(void) const
-{
-   return dGet(pDrvHdl->dGetTime());
 }
 
 /* StepDriveCaller - end */
@@ -323,24 +293,18 @@ class DoubleStepDriveCaller : public DriveCaller {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
    
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   /* inline doublereal dGet(void) const; */
 };
 
 
-inline const doublereal& DoubleStepDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal DoubleStepDriveCaller::dGet(const doublereal& dVar) const
 {
    if(dVar >= dStepTime && dVar < dEndStepTime) {
       return dStepValue;
    }
    /* else if dVar < dStepTime || dVar >= dEndStepTime */
    return dInitialValue;
-}
-
-
-inline const doublereal& DoubleStepDriveCaller::dGet(void) const
-{
-   return dGet(pDrvHdl->dGetTime());
 }
 
 /* DoubleStepDriveCaller - end */
@@ -366,27 +330,20 @@ class RampDriveCaller : public DriveCaller {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
    
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   /* inline doublereal dGet(void) const; */
 };
 
 
-inline const doublereal& RampDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal RampDriveCaller::dGet(const doublereal& dVar) const
 {
    if (dVar < dStartTime) {
       return dInitialValue;
    }
    if (dVar > dEndTime) {
-      return (dDriveReturnValue = 
-	      dInitialValue+dSlope*(dEndTime-dStartTime));
+      return dInitialValue+dSlope*(dEndTime-dStartTime);
    } /* else if dVar >= dStartTime && dVar < dEndTime */
-   return (dDriveReturnValue = dInitialValue+dSlope*(dVar-dStartTime));
-}
-
-
-inline const doublereal& RampDriveCaller::dGet(void) const
-{
-   return dGet(pDrvHdl->dGetTime());
+   return dInitialValue+dSlope*(dVar-dStartTime);
 }
 
 /* RampDriveCaller - end */
@@ -417,38 +374,31 @@ class DoubleRampDriveCaller : public DriveCaller {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
 
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   /* inline doublereal dGet(void) const; */
 };
 
 
-inline const doublereal& DoubleRampDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal DoubleRampDriveCaller::dGet(const doublereal& dVar) const
 {
    if (dVar < dAscendingStartTime) {
       return dInitialValue;
    }
    if (dVar >= dAscendingStartTime && dVar < dAscendingEndTime) {
-      return (dDriveReturnValue = 
-	      dInitialValue+dAscendingSlope*(dVar-dAscendingStartTime));
+      return dInitialValue+dAscendingSlope*(dVar-dAscendingStartTime);
    }
    if (dVar >= dAscendingEndTime && dVar < dDescendingStartTime) {
-      return (dDriveReturnValue = dInitialValue
-	      +dAscendingSlope*(dAscendingEndTime-dAscendingStartTime));
+      return dInitialValue
+	      +dAscendingSlope*(dAscendingEndTime-dAscendingStartTime);
    }
    if (dVar >= dDescendingStartTime && dVar < dDescendingEndTime) {
-      return (dDriveReturnValue = dInitialValue
+      return dInitialValue
 	      +dAscendingSlope*(dAscendingEndTime-dAscendingStartTime)
-	      +dDescendingSlope*(dVar-dDescendingStartTime));
+	      +dDescendingSlope*(dVar-dDescendingStartTime);
    } /* else if dVar >= dDescendingEndTime */
-   return (dDriveReturnValue = dInitialValue
+   return dInitialValue
 	   +dAscendingSlope*(dAscendingEndTime-dAscendingStartTime)
-	   +dDescendingSlope*(dDescendingEndTime-dDescendingStartTime));
-}
-
-
-inline const doublereal& DoubleRampDriveCaller::dGet(void) const
-{
-   return dGet(pDrvHdl->dGetTime());
+	   +dDescendingSlope*(dDescendingEndTime-dDescendingStartTime);
 }
 
 /* DoubleRampDriveCaller - end */
@@ -479,30 +429,22 @@ class SineDriveCaller : public DriveCaller {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
    
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   /* inline doublereal dGet(void) const; */
 };
 
 
-inline const doublereal& SineDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal SineDriveCaller::dGet(const doublereal& dVar) const
 {
    if (dVar <= dStartTime) {
       return dInitialValue;
    }
    if (fNeverEnd || dVar < dEndTime) {
-      return (dDriveReturnValue =
-	      dInitialValue+dAmplitude*sin(dOmega*(dVar-dStartTime)));
+      return dInitialValue+dAmplitude*sin(dOmega*(dVar-dStartTime));
    }
    /* else if dVar > dEndTime */
    return dFinalValue;
 }
-
-
-inline const doublereal& SineDriveCaller::dGet(void) const
-{
-   return dGet(pDrvHdl->dGetTime());
-}
-
 
 /* SineDriveCaller - end */
 
@@ -532,27 +474,20 @@ class CosineDriveCaller : public DriveCaller {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
 
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   /* inline doublereal dGet(void) const; */
 };
 
 
-inline const doublereal& CosineDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal CosineDriveCaller::dGet(const doublereal& dVar) const
 {
    if (dVar < dStartTime) {
       return dInitialValue;
    }
    if (fNeverEnd || dVar < dEndTime) {
-      return (dDriveReturnValue = 
-	      dInitialValue+dAmplitude*(1.-cos(dOmega*(dVar-dStartTime))));
+      return dInitialValue+dAmplitude*(1.-cos(dOmega*(dVar-dStartTime)));
    } /* else if dTime > dEndTime */
    return dFinalValue;
-}
-
-
-inline const doublereal& CosineDriveCaller::dGet(void) const
-{
-   return dGet(pDrvHdl->dGetTime());
 }
 
 /* CosineDriveCaller - end */
@@ -586,28 +521,22 @@ class FreqSweepDriveCaller : public DriveCaller {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
    
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   /* inline doublereal dGet(void) const; */
 };
 
 
-inline const doublereal& FreqSweepDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal FreqSweepDriveCaller::dGet(const doublereal& dVar) const
 {
    if (dVar <= dStartTime) {
       return dInitialValue;
    }
    if (fNeverEnd || dVar < dEndTime) {
-      return (dDriveReturnValue = dInitialValue
-	      +Amplitude.dGet()*sin(Omega.dGet()*(dVar-dStartTime)));
+      return dInitialValue
+	      +Amplitude.dGet()*sin(Omega.dGet()*(dVar-dStartTime));
    }
    /* else if dVar > dEndTime */
    return dFinalValue;
-}
-
-
-inline const doublereal& FreqSweepDriveCaller::dGet(void) const
-{
-   return dGet(pDrvHdl->dGetTime());
 }
 
 /* FreqSweepDriveCaller - end */
@@ -634,24 +563,18 @@ class ExpDriveCaller : public DriveCaller {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
    
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   /* inline doublereal dGet(void) const; */
 };
 
 
-inline const doublereal& ExpDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal ExpDriveCaller::dGet(const doublereal& dVar) const
 {
    if (dVar <= dStartTime) {
       return dInitialValue;
    }
-   return (dDriveReturnValue = dInitialValue
-	   +dAmplitude*(1.-exp((dStartTime-dVar)/dTimeConst)));
-}
-
-
-inline const doublereal& ExpDriveCaller::dGet(void) const
-{
-   return dGet(pDrvHdl->dGetTime());
+   return dInitialValue
+	   +dAmplitude*(1.-exp((dStartTime-dVar)/dTimeConst));
 }
 
 /* ExpDriveCaller - end */
@@ -681,12 +604,12 @@ class RandDriveCaller : public DriveCaller {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
    
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   /* inline doublereal dGet(void) const; */
 };
 
 
-inline const doublereal& RandDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal RandDriveCaller::dGet(const doublereal& dVar) const
 {
    if (dVar < dStartTime || dVar > dEndTime) {
       return dRefVal;
@@ -694,14 +617,7 @@ inline const doublereal& RandDriveCaller::dGet(const doublereal& dVar) const
    
    doublereal dRand = doublereal( (((unsigned long)pDrvHdl->iGetRand(iRandDriveNumber))
 				   +iBase )%RAND_MAX);
-   return (dDriveReturnValue = 
-	   dRefVal+dAmplitude*(2.*dRand/doublereal(RAND_MAX)-1.));
-}
-
-
-inline const doublereal& RandDriveCaller::dGet(void) const
-{
-   return dGet(pDrvHdl->dGetTime());
+   return dRefVal+dAmplitude*(2.*dRand/doublereal(RAND_MAX)-1.);
 }
 
 /* RandDriveCaller - end */
@@ -726,30 +642,30 @@ class DriveArrayCaller : public DriveCaller {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
 
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   inline doublereal dGet(void) const;
 };
 
 
-inline const doublereal& DriveArrayCaller::dGet(const doublereal& dVar) const
+inline doublereal DriveArrayCaller::dGet(const doublereal& dVar) const
 {
    doublereal d = 0.;
    for (int i = 0; i < iNumDrivers; i++) {
       ASSERT(ppDriveCallers[i] != NULL);
       d += ppDriveCallers[i]->dGet(dVar);
    }
-   return (dDriveReturnValue = d);
+   return d;
 }
 
 
-inline const doublereal& DriveArrayCaller::dGet(void) const
+inline doublereal DriveArrayCaller::dGet(void) const
 {
    doublereal d = 0.;
    for (int i = 0; i < iNumDrivers; i++) {
       ASSERT(ppDriveCallers[i] != NULL);
       d += ppDriveCallers[i]->dGet();
    }
-   return (dDriveReturnValue = d);
+   return d;
 }
 
 /* DriveArrayCaller - end */

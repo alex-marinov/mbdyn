@@ -469,7 +469,7 @@ SocketDrive::Restart(ostream& out) const
    	return out << "SocketDrive not implemented yet" << endl;
 }
    
-const doublereal& 
+doublereal
 SocketDrive::dGet(const doublereal& /* t */ , int i) const
 {
    	ASSERT(i > 0 && i <= iNumDrives);

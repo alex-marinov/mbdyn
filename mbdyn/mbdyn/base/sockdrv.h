@@ -74,7 +74,7 @@ public:
    	/* Scrive il contributo del DriveCaller al file di restart */
    	virtual ostream& Restart(ostream& out) const;
    
-   	virtual const doublereal& dGet(const doublereal& t, int i = 1) const;
+   	virtual doublereal dGet(const doublereal& t, int i = 1) const;
    
    	virtual void ServePending(void);
 };

@@ -194,7 +194,7 @@ class DriveHandler {
    void PutSymbolTable(Table& T);
    void SetVar(const doublereal& dVar);
    
-   const doublereal& dGet(InputStream& InStr) const;
+   doublereal dGet(InputStream& InStr) const;
       
    inline const doublereal& dGetTime(void) const;
    inline long int iGetRand(integer iNumber) const;
@@ -248,7 +248,6 @@ DriveHandler::iGetRand(integer iNumber) const
 class DriveCaller {   
  protected:
    const DriveHandler* pDrvHdl;   
-   static doublereal dDriveReturnValue; // Usato per ritornare un reference 
    
  public:
    DriveCaller(const DriveHandler* pDH);
@@ -261,11 +260,17 @@ class DriveCaller {
    virtual ostream& Restart(ostream& out) const = 0;
    
    /* Restituisce il valore del driver */
-   virtual inline const doublereal& dGet(const doublereal& dVal) const = 0;
-   virtual inline const doublereal& dGet(void) const = 0;
+   virtual inline doublereal dGet(const doublereal& dVal) const = 0;
+   virtual inline doublereal dGet(void) const;
    
    virtual void SetDrvHdl(const DriveHandler* pDH);
 };
+
+inline doublereal 
+DriveCaller:: dGet(void) const 
+{
+	return dGet(pDrvHdl->dGetTime());
+}
 
 /* DriveCaller - end */
 
@@ -284,22 +289,22 @@ class NullDriveCaller : public DriveCaller {
    virtual ostream& Restart(ostream& out) const;
    
    /* Restituisce il valore del driver */
-   virtual inline const doublereal& dGet(const doublereal& dVal) const;
-   virtual inline const doublereal& dGet(void) const;
+   virtual inline doublereal dGet(const doublereal& dVal) const;
+   virtual inline doublereal dGet(void) const;
 };
 
 
-inline const doublereal& 
+inline doublereal 
 NullDriveCaller::dGet(const doublereal& /* dVal */ ) const
 {
-   return (dDriveReturnValue = 0.);
+   return 0.;
 }
 
 
-inline const doublereal& 
+inline doublereal
 NullDriveCaller::dGet(void) const
 {
-   return (dDriveReturnValue = 0.);
+   return 0.;
 }
 
 /* NullDriveCaller - end */
@@ -319,22 +324,22 @@ class OneDriveCaller : public DriveCaller {
    virtual ostream& Restart(ostream& out) const;
    
    /* Restituisce il valore del driver */
-   virtual inline const doublereal& dGet(const doublereal& dVal) const;
-   virtual inline const doublereal& dGet(void) const;
+   virtual inline doublereal dGet(const doublereal& dVal) const;
+   virtual inline doublereal dGet(void) const;
 };
 
 
-inline const doublereal& 
+inline doublereal 
 OneDriveCaller::dGet(const doublereal& /* dVal */ ) const
 {
-   return (dDriveReturnValue = 1.);
+   return 1.;
 }
 
 
-inline const doublereal& 
+inline doublereal 
 OneDriveCaller::dGet(void) const
 {
-   return (dDriveReturnValue = 1.);
+   return 1.;
 }
 
 /* OneDriveCaller - end */
@@ -356,19 +361,19 @@ class ConstDriveCaller : public DriveCaller {
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const;
    
-   inline const doublereal& dGet(const doublereal& /* dVar */ ) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& /* dVar */ ) const;
+   inline doublereal dGet(void) const;
 };
 
 
-inline const doublereal& 
+inline doublereal 
 ConstDriveCaller::dGet(const doublereal& /* dVar */ ) const 
 {
    return dConst; 
 }
  
 
-inline const doublereal& 
+inline doublereal
 ConstDriveCaller::dGet(void) const
 {
    return dConst;
@@ -391,7 +396,7 @@ class DriveOwner {
    
    void Set(const DriveCaller* pDC);
    DriveCaller* pGetDriveCaller(void) const;
-   const doublereal& dGet(void) const;
+   doublereal dGet(void) const;
 };
 
 /* DriveOwner - end */
@@ -405,4 +410,5 @@ ReadDriveData(const DataManager* pDM,
 	      MBDynParser& HP, 
 	      const DriveHandler* pDrvHdl);
 
-#endif
+#endif /* DRIVE_H */
+

@@ -38,6 +38,9 @@
  * (o della derivata, se il grado di liberta' e' differenziale).
  */
 
+#ifndef DOFDRIVE_H
+#define DOFDRIVE_H
+
 #include "drive.h"
 #include "dofown.h"
 #include "node.h"
@@ -57,19 +60,22 @@ class DofDriveCaller : public DriveCaller, public DriveOwner
    
    virtual ostream& Restart(ostream& out) const;
    
-   inline const doublereal& dGet(const doublereal& dVar) const;
-   inline const doublereal& dGet(void) const;
+   inline doublereal dGet(const doublereal& dVar) const;
+   inline doublereal dGet(void) const;
 };
 
 
-inline const doublereal& DofDriveCaller::dGet(const doublereal& dVar) const
+inline doublereal DofDriveCaller::dGet(const doublereal& dVar) const
 {
    cerr << "warning, possible improper call of dof drive with real argument" << endl;
    return DriveOwner::pGetDriveCaller()->dGet(dVar);
 }
 
 
-inline const doublereal& DofDriveCaller::dGet(void) const
+inline doublereal DofDriveCaller::dGet(void) const
 {
    return DriveOwner::pGetDriveCaller()->dGet(SD.pNode->dGetDofValue(1, SD.iOrder));
 }
+
+#endif /* DOFDRIVE_H */
+
