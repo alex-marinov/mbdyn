@@ -148,8 +148,21 @@ used by the parser.
 
 \chapter{Solvers}
 ...
+\section{Matrix classes}
+
+\section{Sparce matrices}
+
 \section{Linear solvers}
-...
+LinearSolver classes wraps linear solvers\\
+SolutionManagers classes deals with the solution of linear systems.
+They own a pointer to a LinearSolver, where they allocate
+the undelying linear solver.
+SolutionManager::MatrInitialize() is called
+when the structure of the underlying spares matrix changes.
+SolutionManager::MatrReset(), is called to delete a factorization.
+It usually calls LinearSolver::Reset(). The matrix has to be explicitly
+zeroed before a Jacobian assembly.
+
 \section{Non linear solvers}
 ...
 \section{Parallel solver}
