@@ -35,7 +35,8 @@ depend: a++.cc
 
 clean:
 	rm -f *.o ./src/a++.cc ./src/b++.cc *~ ./src/*~ *.output \
-	Makefile.bak *.err *.msg lex.log *.mbd *.ref formula.txt
+	Makefile.bak *.err *.msg lex.log *.mbd *.ref formula.txt \
+	b++.tab.h
 
 # FOR CODE EXCEPTIONS TYPE FLG = -DEXCEPTIONS
 # DO NOT DELETE
