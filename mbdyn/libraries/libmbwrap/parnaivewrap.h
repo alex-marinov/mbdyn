@@ -62,22 +62,14 @@ struct ParNaiveSolverData;
 class ParNaiveSolver : public LinearSolver  {
 public:
 private:
-// 	mutable integer *Aip;
-// 	mutable integer *App;
-// 	mutable doublereal *Axp;
 
 	integer iSize;
-// 	mutable integer iN;     	/* ordine della matrice */
-// 	mutable integer iNonZeroes;
 
 	doublereal dMinPiv;
 	mutable std::vector<integer> piv;
+	mutable std::vector<doublereal> fwd;
 	std::vector<integer>	todo; 
-	std::vector<unsigned long> locks;
-// 	doublereal dPivotFactor;
-
-//	mutable bool bFirstSol;		/* true se prima backsubst */
-//	mutable bool bRegenerateMatrix;	/* true se prima backsubst */
+	mutable std::vector<unsigned long> locks;
 
 	NaiveMatrixHandler *const A;
 
@@ -125,12 +117,6 @@ public:
 	/* Risolve */
 	void Solve(void) const;
 
-// 	/* Index Form */
-// 	void MakeCompactForm(SparseMatrixHandler& mh,
-// 			std::vector<doublereal>& Ax,
-// 			std::vector<integer>& Ar,
-// 			std::vector<integer>& Ac,
-// 			std::vector<integer>& Ap) const;
 };
 
 /* ParNaiveSolver - end */
@@ -162,10 +148,9 @@ protected:
 
 #ifdef DEBUG
 	/* Usata per il debug */
-	void IsValid(void) const;
+	virtual void IsValid(void) const;
 #endif /* DEBUG */
 
-// 	virtual void MakeCompressedColumnForm(void);
 public:
 	/* Costruttore: usa e mette a disposizione matrici che gli sono date */
 	ParNaiveSparseSolutionManager(unsigned nt, 
@@ -187,25 +172,47 @@ public:
 	};
 
 	/* Rende disponibile l'handler per il termine noto */
-	VectorHandler* pResHdl(void) const {
-#ifdef DEBUG
-		VH.IsValid();
-#endif /* DEBUG */
-		return &VH;
-	};
+	VectorHandler* pResHdl(void) const;
 
-	/* Rende disponibile l'handler per la soluzione (e' lo stesso 
-	 * del termine noto, ma concettualmente sono separati) */
-	VectorHandler* pSolHdl(void) const {
-#ifdef DEBUG
-		VH.IsValid();
-#endif /* DEBUG */
-		return &VH;
-	};
+	/* Rende disponibile l'handler per la soluzione */
+	VectorHandler* pSolHdl(void) const;
 };
 
 /* ParNaiveSparseSolutionManager - end */
 
+/* ParNaiveSparsePermSolutionManager - begin */
+
+class ParNaiveSparsePermSolutionManager: public ParNaiveSparseSolutionManager {
+private:
+	const doublereal dMinPiv;
+	void ComputePermutation();
+	void BackPerm();
+protected:
+	bool PermReady;
+	NaivePermMatrixHandler *Ap;
+	
+	mutable std::vector<integer> perm;
+	mutable std::vector<integer> invperm;
+
+	virtual void MatrReset(void);
+	
+public:
+	ParNaiveSparsePermSolutionManager(unsigned nt,
+		const integer Dim,
+		const doublereal dMP = 1.e-9);
+	virtual ~ParNaiveSparsePermSolutionManager(void);
+
+	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
+	virtual void Solve(void);
+
+	/* Inizializzatore "speciale" */
+	virtual void MatrInitialize(void);
+	
+	/* Rende disponibile l'handler per la matrice */
+	virtual MatrixHandler* pMatHdl(void) const;
+};
+
+/* ParNaiveSparsePermSolutionManager - end */
 
 
 #endif /* PARNAIVEWRAP_H */

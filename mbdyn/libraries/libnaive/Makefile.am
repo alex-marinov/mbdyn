@@ -6,7 +6,8 @@ lib_LTLIBRARIES = libnaive.la
 
 libnaive_la_SOURCES = \
 mthrdslv.c \
-mthrdslv.h
+mthrdslv.h \
+pmthrdslv.c
 
 libnaive_la_LIBADD = @LIBS@
 libnaive_la_LDFLAGS =

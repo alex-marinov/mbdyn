@@ -1,0 +1,286 @@
+#define __KERNEL__
+#define _GNU_SOURCE
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <pthread.h>
+#include <sys/poll.h>
+
+struct task_struct;
+#include <asm/system.h>
+#include <asm/atomic.h>
+#include <asm/bitops.h>
+
+#define  SPRSPIV
+
+
+// questi 2 non sono colpa mia, li ha chiesti PierMasa
+typedef int     integer;
+typedef double  doublereal;
+
+
+#define BIGINT   (1 << 30)
+#define ENULCOL  1000000
+#define ENOPIV   2000000
+
+#define MINPIV   1.0e-8
+
+
+int pnaivfct(doublereal** a,
+	integer neq,
+	integer *nzr, integer** ri,
+	integer *nzc, integer** ci,
+	char** nz,
+	integer *piv,
+	integer *todo,
+	doublereal minpiv,
+	unsigned long *locks,
+	int task,
+	int ncpu)
+{
+	integer i, j, k, m, pvr, pvc, nr, nc, r;
+	integer *pri, *pci;
+	char *pnzk;
+	doublereal den, mul;
+	doublereal *par, *papvr;
+
+	if (!minpiv) {
+		minpiv = MINPIV;
+	}
+
+	atomic_inc((atomic_t *)&locks[0]);
+	
+	while (atomic_read((atomic_t *)&locks[0]) < ncpu);
+	
+//	pthread_barrier_wait(barrier);
+	for (i = 0; i < neq; i++) {
+		if (!(nr = nzr[i])) {
+			return ENULCOL + i; 
+		}
+		pri = ri[i];
+		if (!task) {
+			m = BIGINT;	
+			mul = 0.0;
+			for (k = 0; k < nr; k++) {
+				r = pri[k];
+				if (todo[r] && fabs(a[r][i]) > mul) {
+					mul = fabs(a[r][i]);
+					m = nzc[pvr = r];	
+				}
+			}
+			if (m == BIGINT) { return ENOPIV + i; }
+#ifdef SPRSPIV
+			mul *= minpiv;
+			for (k = 0; k < nr; k++) {
+				r = pri[k];
+				if (todo[r] && nzc[r] < m && fabs(a[r][i]) > mul) {
+					m = nzc[pvr = r];
+				}
+			}
+#endif
+			todo[pvr] = 0;
+			papvr = a[pvr];
+			den = 1.0/papvr[i];
+			if (pri[i]%ncpu == task) {
+				papvr[i] = den;
+				atomic_set((atomic_t *)locks, 0);
+			}
+			set_wmb(piv[i], pvr);
+			while (atomic_read((atomic_t *)locks) != 0);
+			//pthread_barrier_wait(barrier);
+		} else {
+			//pthread_barrier_wait(barrier);
+			pvr = piv[i];
+			while ((pvr = atomic_read((atomic_t *)&piv[i])) < 0);
+			papvr = a[pvr];
+			if (pri[i]%ncpu == task) {
+				den = papvr[i] = 1./papvr[i];
+				wmb();
+				atomic_set((atomic_t *)locks, 0);
+			} else {
+				while (atomic_read((atomic_t *)locks) != 0);
+				den = papvr[i];
+			}
+		}
+		nc  = nzc[pvr];
+		pci = ci[pvr];
+		//for (k = 0; k < nr; k++) {
+		for (k = task; k < nr; k+=ncpu) {
+			//if (!todo[r = pri[k]] || r%ncpu != task) { continue; }
+			if (!todo[r = pri[k]]) { continue; }
+			pnzk = nz[r];
+			par = a[r];
+			mul = par[i] = par[i]*den;
+			for (j = 0; j < nc; j++) {
+				if ((pvc = pci[j]) <= i) { continue; }
+				if (pnzk[pvc]) {
+					par[pvc] -= mul*papvr[pvc];
+				} else {
+					par[pvc] = -mul*papvr[pvc];
+					ci[r][nzc[r]++] = pvc;
+					while (test_and_set_bit(31, &locks[pvc]));
+					pnzk[pvc] = 1;
+					ri[pvc][nzr[pvc]++] = r;
+					test_and_clear_bit(31, &locks[pvc]); 
+				}
+			}
+		}
+//		pthread_barrier_wait(barrier);
+		atomic_inc((atomic_t *)&locks[i + 2]);
+		while (atomic_read((atomic_t *)&locks[i + 2]) < ncpu);
+		locks[i] = 0;
+	}
+	locks[0] = 0;
+	locks[neq] = 0;
+	return 0;
+}
+
+void pnaivslv(doublereal** a,
+		integer neq,
+		integer *nzc,
+		integer** ci, 
+		doublereal *rhs,
+		integer *piv, 
+		doublereal *fwd,
+		doublereal *sol,
+		unsigned long *locks,
+		int task,
+		int ncpu)
+{
+
+	integer i, k, nc, r, c;
+	integer *pci;
+	doublereal s;
+	doublereal *par;
+
+	if (!task) {
+		fwd[0] = rhs[piv[0]];
+		wmb();
+		atomic_set((atomic_t *)locks, 1);
+	}
+	for (i = 1; i < neq; i++) {
+	//for (i = 1 + task; i < neq; i+=ncpu) {
+		if (i%ncpu != task) { continue; }
+		//used[task + 2]++;
+		nc = nzc[r = piv[i]];
+		s = rhs[r];
+		par = a[r];
+		pci = ci[r];
+		for (k = 0; k < nc; k++) {
+			c = pci[k];
+			if (c < i) {
+				while (!atomic_read((atomic_t *)&locks[c]));
+				s -= par[c]*fwd[c];
+			}
+		}
+		set_wmb(fwd[i], s);
+		//fwd[i] = s;
+		atomic_set((atomic_t *)&locks[i], 1);
+	}
+
+	atomic_inc((atomic_t *)&locks[neq]);
+	while (atomic_read((atomic_t *)&locks[neq]) < ncpu);
+
+	neq--;
+	r = piv[neq];
+	if (!task) {
+		sol[neq] = fwd[neq]*a[r][neq];
+		atomic_set((atomic_t *)&locks[neq], 0);
+	}
+	for (i = neq - 1; i >= 0; i--) {
+	//for (i = neq - 1 - task; i >= 0; i-=ncpu) {
+		if (i%ncpu != task) { continue; }
+		//used[task + 4]++;
+		r = piv[i];
+		nc = nzc[r];
+		s = fwd[i];
+		par = a[r];
+		pci = ci[r];
+		for (k = 0; k < nc; k++) {
+			if ((c = pci[k]) > i) {
+				while (atomic_read((atomic_t *)&locks[c]));
+				s -= par[c]*sol[c];
+			}
+		}
+		set_wmb(sol[i], s*par[i]);
+		//sol[i] = s*par[i];
+		atomic_set((atomic_t *)&locks[i], 0);
+	}
+
+	return;
+}
+
+void naivesad(doublereal** a,
+	integer** ri,
+	integer *nzr,
+	integer** ci,
+	integer *nzc,
+	char ** nz,
+	integer neq,
+	integer *rowindx,
+	integer *colindx,
+	doublereal *elmat,
+	integer elr,
+	integer elc,
+	integer eldc)
+{
+	integer i, k, r, c, er;
+	doublereal *par;
+
+	er = 0;
+	for (i = 0; i < elr; i++) {
+		if ((r = rowindx[i]) >= 0) {
+			par = a[r];
+			for (k = 0; k < elc; k++) {
+				c = colindx[k];
+				if (!elmat[er + k] && c >= 0) {
+					if (nz[r][c]) {
+						par[c] += elmat[er + k];
+					} else {
+						par[c] = elmat[er + k];
+						nz[r][c] = 1;
+						ri[c][nzr[c]++] = r;
+						ci[r][nzc[r]++] = c;
+					}
+				}
+			}
+		}
+		er += eldc;
+	}
+}
+
+void naivepsad(doublereal** ga,
+	integer** gri,
+	integer *gnzr,
+	integer** gci,
+	integer *gnzc,
+	char ** nz,
+	doublereal** a,
+	integer** ci,
+	integer *nzc,
+	integer from,
+	integer to)
+{
+	integer i, r, c, nc;
+	doublereal *pgar, *par;
+
+	for (r = from; r <= to; r++) {
+		if ((nc = nzc[r])) {
+			pgar = ga[r];
+			par  = a[r];
+			for (i = 0; i < nc; i++) {
+				if (nz[r][c = ci[r][i]]) {
+					pgar[c] += par[c];
+				} else {
+					pgar[c] = par[c];
+					nz[r][c] = 1;
+					gri[c][gnzr[c]++] = r;
+					gci[r][gnzc[r]++] = c;
+				}
+			}
+		}
+	}
+}
+

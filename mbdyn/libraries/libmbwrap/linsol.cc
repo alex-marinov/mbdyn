@@ -48,6 +48,7 @@
 #include "lapackwrap.h"
 #include "taucswrap.h"
 #include "naivewrap.h"
+#include "parnaivewrap.h"
 
 
 #include "linsol.h"
@@ -83,7 +84,7 @@ static struct solver_t {
 		-1. },
 	{ "Naive", NULL,
 		LinSol::NAIVE_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_COLAMD|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+		LinSol::SOLVER_FLAGS_ALLOWS_COLAMD|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
 		LinSol::SOLVER_FLAGS_NONE,
 		1.e-8 },
 	{ "SuperLU", NULL, 
@@ -804,15 +805,27 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 	case LinSol::NAIVE_SOLVER:
 		switch (type) {
 		case LinSol::SOLVER_FLAGS_ALLOWS_COLAMD:
-			SAFENEWWITHCONSTRUCTOR(pCurrSM,
-				NaiveSparsePermSolutionManager,
-				NaiveSparsePermSolutionManager(iNLD, dPivotFactor));
+			if (nThreads == 1) {
+				SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					NaiveSparsePermSolutionManager,
+					NaiveSparsePermSolutionManager(iNLD, dPivotFactor));
+			} else {
+				SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					ParNaiveSparsePermSolutionManager,
+					ParNaiveSparsePermSolutionManager(nThreads, iNLD, dPivotFactor));
+			}
 			break;
 		
 		default:
-			SAFENEWWITHCONSTRUCTOR(pCurrSM,
-				NaiveSparseSolutionManager,
-				NaiveSparseSolutionManager(iNLD, dPivotFactor));
+			if (nThreads == 1) {
+				SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					NaiveSparseSolutionManager,
+					NaiveSparseSolutionManager(iNLD, dPivotFactor));
+			} else {
+				SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					ParNaiveSparseSolutionManager,
+					ParNaiveSparseSolutionManager(nThreads, iNLD, dPivotFactor));
+			}
 		}
 		break;
 
