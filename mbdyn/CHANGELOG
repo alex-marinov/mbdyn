@@ -9,8 +9,6 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.2-Engineering
 	Enhancements:
-		- added support for UMFPACK 4.0
-		- UMFPACK 4.0 is the default solver (if available)
 		- implement separate induced velocity correction
 		  factors for hover and forward flight
 		- added -W (--working-dir) switch
@@ -18,7 +16,6 @@ MBDyn 1.2-Engineering
 		- output can occur only at selected time steps
 		- disable plaintext auth if crypt is not available
 		  (this code should be trimmed off, it's useless
-		- use ltdl library for loadable modules
 		- RelativeFrame dummy struct nodes can have offset
 		  and orientation with respect to the reference node
 		- added ".log" file for miscellaneous logs
@@ -28,10 +25,20 @@ MBDyn 1.2-Engineering
 		- the syntax of most nodes changed; backward compatibility
 		  is preserved; if run with -PP warnings are issued
 	Bug fixes:
-		- spherical joint did not log the reaction forces
-		  in the element's frame (structural node 2).
 		- do not output RelativeFrame dummy struct nodes in ADAMS
 		  res format
+
+
+MBDyn 1.1.4
+	Enhancements:
+		- added support for UMFPACK 4.0
+		- UMFPACK 4.0 is the default solver (if available)
+		- disable plaintext auth if crypt is not available
+		  (this code should be trimmed off, it's useless
+		- use ltdl library for loadable modules
+	Bug fixes:
+		- spherical joint did not log the reaction forces
+		  in the element's frame (structural node 2).
 		- fixed c81 steady aerodynamic moment sign
 		- fixed some build problems related to old-style C #defines
 		  (mostly in <f2c.h> and <stdlib.h>)
