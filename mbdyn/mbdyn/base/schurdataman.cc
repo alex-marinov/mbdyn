@@ -77,7 +77,7 @@ SchurDataManager::SchurDataManager(MBDynParser& HP,
 				   const char* sOutputFileName, 
 				   flag fAbortAfterInput)
 : DataManager(HP, dInitialTime, sInputFileName, 
-              sOutputFileName,fAbortAfterInput),
+              sOutputFileName, fAbortAfterInput),
 iTotVertices(0),
 pLabelsList(NULL),
 ppMyNodes(NULL),
@@ -859,7 +859,7 @@ SchurDataManager::CreatePartition(void)
        	int position;
        	iCount = iTotNodes;
        	for (int i = 0; i < iTotNodes; i++) {
-            pLabelsList[i] = (ppNodes[i])->GetLabel();
+            pLabelsList[i] = ppNodes[i]->GetLabel();
        	}
 
        	iNumRt = 0;
@@ -977,8 +977,8 @@ SchurDataManager::CreatePartition(void)
             	<< "# Nodes" << std::endl;
       	    for (int i = 0; i < iTotNodes; i++) {
             	ofMetis << "# " << i << "  Node Type: "
-          	    << "(" << psNodeNames[(ppNodes[i])->GetNodeType()] << ")"
-          	    << " Label: " << (ppNodes[i])->GetLabel() << std::endl
+          	    << "(" << psNodeNames[ppNodes[i]->GetNodeType()] << ")"
+          	    << " Label: " << ppNodes[i]->GetLabel() << std::endl
           	    << pVertexWgts[i] << " " << pCommWgts[i];
             	for (int j = Vertices.pXadj[i]; j < Vertices.pXadj[i+1]; j++) {
           	    ofMetis << " " << Vertices.pAdjncy[j];
@@ -988,8 +988,8 @@ SchurDataManager::CreatePartition(void)
             ofMetis << "# Elements" << std::endl;
       	    for (int i = 0; i < iTotElem; i++) {
             	ofMetis << "# " << i+iTotNodes << "  Element Type: "
-          	    << "("  << psElemNames[(ppElems[i])->GetElemType()] << ")"
-          	    << " Label: " << (ppElems[i])->GetLabel() << std::endl
+          	    << "("  << psElemNames[ppElems[i]->GetElemType()] << ")"
+          	    << " Label: " << ppElems[i]->GetLabel() << std::endl
           	    << pVertexWgts[i+iTotNodes] 
 		    << " " << pCommWgts[i+iTotNodes];
             	for (int j = Vertices.pXadj[i+iTotNodes]; 
@@ -1068,7 +1068,7 @@ SchurDataManager::CreatePartition(void)
 	  	if (fIsNInterf) {
 	    	    ppMyNodes[iCount] = ppNodes[i];
 	    	    iNumLocNodes++;
-	    	    iNumLocDofs += (ppMyNodes[iCount])->iGetNumDof();
+	    	    iNumLocDofs += ppMyNodes[iCount]->iGetNumDof();
 	    	    iCount++;
 	  	}
 	    }
@@ -1722,27 +1722,26 @@ SchurDataManager::Output(void) const
     DEBUGCOUT("Entering SchurDataManager::Output()" << std::endl);
 
     /* Dati intestazione */
-    ((OutputHandler&)OutHdl).Output() 
+    OutHdl.Output() 
      	<< "Time: " 
 	<< std::setw(16) << std::setprecision(8) << DrvHdl.dGetTime() << std::endl;
 
-    OutputHandler& OH = (OutputHandler&)OutHdl;
     /* Nodi */
     for (int i = 0; i < iNumLocNodes; i++) {
     	ASSERT(ppMyNodes[i] != NULL);
-    	(ppMyNodes[i])->Output(OH);
+    	ppMyNodes[i]->Output(OutHdl);
     }
 
     /* Nodi di interfaccia */
     for (int i = 0; i < iNumIntNodes; i++) {
     	ASSERT(ppIntNodes[i] != NULL);
-    	(ppIntNodes[i])->Output(OH);
+    	ppIntNodes[i]->Output(OutHdl);
     }
 
     /* Elementi */
     for (int i = 0; i < iNumLocElems; i++) {
     	ASSERT(ppMyElems[i] != NULL);
-    	(ppMyElems[i])->Output(OH);
+    	ppMyElems[i]->Output(OutHdl);
     }
   
     /* Restart condizionato */

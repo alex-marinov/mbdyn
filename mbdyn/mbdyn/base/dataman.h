@@ -84,7 +84,7 @@ class DataManager {
 
  protected:
    DriveHandler DrvHdl;
-   OutputHandler OutHdl;
+   mutable OutputHandler OutHdl;
    
    /* Puntatore alla variabile Time nella GlobalSymbolTable */
    Var* pTime;

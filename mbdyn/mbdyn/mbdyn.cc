@@ -44,7 +44,6 @@ extern "C" {
 
 #ifdef USE_MPI 
 #include <mpi++.h>
-#include <schur.h>
 
 #define MB_EXIT(err) \
 	do { \

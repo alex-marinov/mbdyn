@@ -55,6 +55,10 @@
 #include <mynewmem.h>
 #include <solman.h>
 #include <dataman.h>
+#ifdef USE_MPI
+#include <schsolman.h>
+#include <schurdataman.h>
+#endif /* USE_MPI */
 #include <integr.h>
 #include <intmeth.h>
 
