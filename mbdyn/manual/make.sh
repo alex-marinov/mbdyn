@@ -77,4 +77,15 @@ for IN in $TGT; do
 		mv -f "$IN" "$OUT"
 	fi
 done
-
+echo "Generating html source documentation...."
+which doxygen > /dev/null 2>&1
+RC1=$?
+which dot > /dev/null 2>&1
+RC2=$?
+if [ "$RC1" != 0 ] ; then
+	echo "unable to find doxygen"
+elif [ "$RC2" != 0 ] ; then
+	echo "unable to find dot"
+else
+	doxygen
+fi
