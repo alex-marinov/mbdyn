@@ -3737,7 +3737,18 @@ Solver::AllocateSolman(integer iNLD, integer iLWS)
 	case LinSol::UMFPACK_SOLVER:
 #if defined(USE_RTAI) && defined(HAVE_UMFPACK_TIC_DISABLE)
 		if (bRT) {
-			/* disable profiling, to avoid times() system call */
+			/* disable profiling, to avoid times() system call
+			 * 
+			 * This fucntion has been introduced in Umfpack 4.1
+			 * by our patch at
+			 * 
+			 * http://mbdyn.aero.polimi.it/~masarati/Download/\
+			 * 	mbdyn/umfpack-4.1-nosyscalls.patch
+			 * 
+			 * but since Umfpack 4.3 is no longer required,
+			 * provided the library is compiled with -DNO_TIMER
+			 * to disable run-time syscalls to timing routines.
+			 */
 			umfpack_tic_disable();
 		}
 #endif /* USE_RTAI && HAVE_UMFPACK_TIC_DISABLE */
