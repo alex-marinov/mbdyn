@@ -15,7 +15,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -40,179 +40,187 @@
 #include "dae-intg.h"
 
 struct private_data {
-   doublereal m1;
-   doublereal m2;
-   doublereal k;
-   doublereal f;
-   doublereal omega;
-   doublereal x[5];
-   doublereal xP[5];
+	doublereal m1;
+	doublereal m2;
+	doublereal k;
+	doublereal f;
+	doublereal omega;
+	doublereal x[5];
+	doublereal xP[5];
 };
 
-static int read(void** pp, const char* user_defined)
+static int
+read(void** pp, const char* user_defined)
 {
-   *pp = (void*)new private_data;
-   private_data* pd = (private_data*)*pp;
-   
-   if (user_defined != NULL) {
-      // cerr << "opening file \"" << user_defined << "\"" << endl;
-      std::ifstream in(user_defined);
-      if (!in) {
-	 std::cerr << "unable to open file \"" << user_defined << "\"" << std::endl;
-	 exit(EXIT_FAILURE);
-      }
-      in >> pd->m1 >> pd->m2 >> pd->k
-	      >> pd->f >> pd->omega;
-   } else {
-      pd->m1 = 1.;
-      pd->m2 = 1.;     
-      pd->k = 1.;     
-      pd->f = 1.;     
-      pd->omega = 1.;     
-   }
-   doublereal f = 1.;//std::sin(pd->omega*0.);
-   pd->x[0] = 0.;
-   pd->x[1] = 0.;
-   pd->x[2] = 0.;
-   pd->x[3] = 0.;
-   pd->x[4] = 0.;
-   pd->xP[0] = 0.;
-   pd->xP[1] = 0.;
-   pd->xP[2] = f/pd->m1;
-   pd->xP[3] = 0.;
-   pd->xP[4] = 0.;
+	*pp = (void*)new private_data;
+	private_data* pd = (private_data*)*pp;
 
-   if (fabs(pd->x[0]-pd->x[1]) > 1.e-9) {
-      std::cerr << "constraint violated" << std::endl;
-      exit(EXIT_FAILURE);
-   }
-   
-/*   doublereal psi = (pd->x[0]*pd->xP[0] + pd->x[1]*pd->xP[1])/pd->l;
-   if (fabs(psi) > 1.e-9) {
-      std::cerr << "constraint derivative violated" << std::endl;
-      exit(EXIT_FAILURE);
-   }
-*/
+	if (user_defined != NULL) {
+		std::ifstream in(user_defined);
+		if (!in) {
+			std::cerr << "unable to open file "
+				"\"" << user_defined << "\"" << std::endl;
+			exit(EXIT_FAILURE);
+		}
 
-   doublereal lambda = pd->k*(pd->x[3]-pd->x[2]);
+		in >> pd->m1 >> pd->m2 >> pd->k
+			>> pd->f >> pd->omega;
 
-   if (fabs(lambda - pd->xP[4]) > 1.e-9) {
-	   std::cerr << "constraint reaction incorrect" << std::endl;
-	   pd->xP[4] = lambda;
-   }
-      
-   return 0;
+	} else {
+		pd->m1 = 1.;
+		pd->m2 = 1.;
+		pd->k = 1.;
+		pd->f = 1.;
+		pd->omega = 1.;
+	}
+
+	doublereal f = 1.;//std::sin(pd->omega*0.);
+	pd->x[0] = 0.;
+	pd->x[1] = 0.;
+	pd->x[2] = 0.;
+	pd->x[3] = 0.;
+	pd->x[4] = 0.;
+	pd->xP[0] = 0.;
+	pd->xP[1] = 0.;
+	pd->xP[2] = f/pd->m1;
+	pd->xP[3] = 0.;
+	pd->xP[4] = 0.;
+
+	if (fabs(pd->x[0]-pd->x[1]) > 1.e-9) {
+		std::cerr << "constraint violated" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	doublereal lambda = pd->k*(pd->x[3]-pd->x[2]);
+	if (fabs(lambda - pd->xP[4]) > 1.e-9) {
+		std::cerr << "constraint reaction incorrect" << std::endl;
+		pd->xP[4] = lambda;
+	}
+
+	return 0;
 }
 
-static int size(void* p)
+static int
+size(void* p)
 {
-   /* private_data* pd = (private_data*)p; */
-   return 5;
+	return 5;
 }
 
-static int init(void* p, VectorHandler& X, VectorHandler& XP)
+static int
+init(void* p, VectorHandler& X, VectorHandler& XP)
 {
-   private_data* pd = (private_data*)p;
-   X.Reset();
-   XP.Reset();
-   for (int i = 1; i <= size(p); i++) {
-      XP.PutCoef(i, pd->xP[i-1]); /* posiz. iniziale */
-      X.PutCoef(i, pd->x[i-1]); /* posiz. iniziale */
-   }
-   return 0;
+	private_data* pd = (private_data*)p;
+
+	X.Reset();
+	XP.Reset();
+
+	for (int i = 1; i <= size(p); i++) {
+		/* velocita' iniziale */
+		XP(i) = pd->xP[i-1];
+		/* posizione iniziale */
+		X(i) = pd->x[i-1];
+	}
+
+	return 0;
 }
 
-static int grad(void* p, MatrixHandler& J, MatrixHandler& JP, 
+static int
+grad(void* p, MatrixHandler& J, MatrixHandler& JP,
 		const VectorHandler& X, const VectorHandler& XP,
 		const doublereal& t)
 {
-   private_data* pd = (private_data*)p;
-   
-   doublereal m1 = pd->m1;
-   doublereal m2 = pd->m2;
-   doublereal k = pd->k;
-   
-   J.PutCoef(1, 3, 1.);
-   J.PutCoef(2, 4, 1.);
-   J.PutCoef(3, 1, -k);
-   J.PutCoef(4, 2, -k);
-   J.PutCoef(5, 1, -1.);
-   J.PutCoef(5, 2, 1.);
+	private_data* pd = (private_data*)p;
 
-   JP.PutCoef(1, 1, -1.);
-   JP.PutCoef(2, 2, -1.);
-   JP.PutCoef(3, 3, -m1);
-   JP.PutCoef(3, 5, 1);
-   JP.PutCoef(4, 4, -m2);
-   JP.PutCoef(4, 5, -1);
+	doublereal m1 = pd->m1;
+	doublereal m2 = pd->m2;
+	doublereal k = pd->k;
 
-   return 0;
+	J(1, 3) = 1.;
+	J(2, 4) = 1.;
+	J(3, 1) = -k;
+	J(4, 2) = -k;
+	J(5, 1) = -1.;
+	J(5, 2) = 1.;
+
+	JP(1, 1) = -1.;
+	JP(2, 2) = -1.;
+	JP(3, 3) = -m1;
+	JP(3, 5) = 1;
+	JP(4, 4) = -m2;
+	JP(4, 5) = -1;
+
+	return 0;
 }
 
-static int func(void* p, VectorHandler& R, const VectorHandler& X, const VectorHandler& XP, const doublereal& t)
+static int
+func(void* p, VectorHandler& R,
+		const VectorHandler& X, const VectorHandler& XP,
+		const doublereal& t)
 {
-   private_data* pd = (private_data*)p;
-   
-   doublereal x = X.dGetCoef(1);
-   doublereal y = X.dGetCoef(2);
-   doublereal u = X.dGetCoef(3);
-   doublereal v = X.dGetCoef(4);
-   doublereal xP = XP.dGetCoef(1);
-   doublereal yP = XP.dGetCoef(2);
-   doublereal uP = XP.dGetCoef(3);
-   doublereal vP = XP.dGetCoef(4);
-   doublereal lambda = XP.dGetCoef(5);
-   
-   doublereal m1 = pd->m1;
-   doublereal m2 = pd->m2;
-   doublereal k = pd->k;
-   doublereal f = 1.;//std::sin(pd->omega*t);
+	private_data* pd = (private_data*)p;
 
-   R.PutCoef(1, xP - u);
-   R.PutCoef(2, yP - v);
-   R.PutCoef(3, m1*uP + k*x - lambda - f);
-   R.PutCoef(4, m2*vP + k*y + lambda);
-   R.PutCoef(5, x - y);
+	doublereal x = X(1);
+	doublereal y = X(2);
+	doublereal u = X(3);
+	doublereal v = X(4);
+	doublereal xP = XP(1);
+	doublereal yP = XP(2);
+	doublereal uP = XP(3);
+	doublereal vP = XP(4);
+	doublereal lambda = XP(5);
 
-   return 0;
+	doublereal m1 = pd->m1;
+	doublereal m2 = pd->m2;
+	doublereal k = pd->k;
+	doublereal f = 1.;
+
+	R(1) = xP - u;
+	R(2) = yP - v;
+	R(3) = m1*uP + k*x - lambda - f;
+	R(4) = m2*vP + k*y + lambda;
+	R(5) = x - y;
+
+	return 0;
 }
 
-static std::ostream& out(void* p, std::ostream& o, 
-	     const VectorHandler& X, const VectorHandler& XP)
+static std::ostream&
+out(void* p, std::ostream& o, const VectorHandler& X, const VectorHandler& XP)
 {
-   private_data* pd = (private_data*)p;
+	private_data* pd = (private_data*)p;
 
-   doublereal x = X.dGetCoef(1);
-   doublereal y = X.dGetCoef(2);
-   doublereal xP = X.dGetCoef(3);
-   doublereal yP = X.dGetCoef(4);
-   doublereal lambda = XP.dGetCoef(5);
-  
-   
-   doublereal E = .5*pd->k*(x*x+y*y);
-  
-   
-   return o
-	   << " " << XP.dGetCoef(1)	/*  3 */
-	   << " " << XP.dGetCoef(2)	/*  4 */
-	   << " " << x 			/*  5 */
-	   << " " << y 			/*  6 */
-	   << " " << xP			/*  7 */
-	   << " " << yP			/*  8 */
-	   << " " << E			/*  9 */
-	   << " " << lambda;		/* 10 */
+	doublereal x = X(1);
+	doublereal y = X(2);
+	doublereal xP = X(3);
+	doublereal yP = X(4);
+	doublereal lambda = XP(5);
+
+	doublereal E = .5*pd->k*(x*x+y*y);
+
+	return o
+		<< " " << XP(1)		/*  3 */
+		<< " " << XP(2)		/*  4 */
+		<< " " << x 		/*  5 */
+		<< " " << y 		/*  6 */
+		<< " " << xP		/*  7 */
+		<< " " << yP		/*  8 */
+		<< " " << E		/*  9 */
+		<< " " << lambda;	/* 10 */
 }
 
-static int destroy(void** p)
+static int
+destroy(void** p)
 {
-   private_data* pd = (private_data*)(*p);
-   delete pd;
-   *p = NULL;
-   return 0;
+	private_data* pd = (private_data*)(*p);
+
+	delete pd;
+	*p = NULL;
+
+	return 0;
 }
 
 static struct funcs funcs_handler = {
 	read,
+	0,
 	init,
 	size,
 	grad,
