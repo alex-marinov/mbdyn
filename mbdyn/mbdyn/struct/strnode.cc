@@ -930,9 +930,6 @@ RelFrameDummyStructNode::RelFrameDummyStructNode(unsigned int uL,
 {
    ASSERT(pNodeRef != NULL);
    
-   Mat3x3 RT(pNodeRef->GetRCurr().Transpose());
-   Vec3 XRel(pNode->GetXCurr()-pNodeRef->GetXCurr());
-   
    /* forzo la ricostruzione del nodo strutturale sottostante */
    __Update();
 }
