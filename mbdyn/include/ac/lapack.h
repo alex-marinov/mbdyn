@@ -58,6 +58,5 @@ __FC_DECL__(dgegv)(char *jobvl, char *jobvr, integer *n, doublereal *
 }
 #endif /* __cplusplus */
 
-
-
 #endif /* LAPACK_H */
+
