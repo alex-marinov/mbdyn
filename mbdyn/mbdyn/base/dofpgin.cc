@@ -32,7 +32,14 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#if defined(HAVE_SSTREAM)
+#include <sstream>
+#elif defined(HAVE_STRSTREAM_H)
 #include <strstream.h>
+#else /* !HAVE_SSTREAM && !HAVE_STRSTREAM_H */
+#error "need sstream or strstream.h"
+#endif /* !HAVE_SSTREAM && !HAVE_STRSTREAM_H */
+
 #include <dofpgin.h>
 
 DofPlugIn::DofPlugIn(MathParser& mp, DataManager *pDM)
@@ -104,7 +111,11 @@ DofPlugIn::ReadLabel(const char* s)
 	SAFENEWARR(stmp, char, strlen(s)+2, DMmm);
 	strcpy(stmp, s);
 	strcat(stmp, ";");
+#if defined(HAVE_SSTREAM)
+	std::istringstream in(stmp);
+#else /* HAVE_STRSTREAM_H */
 	istrstream in(stmp);
+#endif /* HAVE_STRSTREAM_H */
 	InputStream In(in);
 	rc = (unsigned int)mp.Get(In);
 	SAFEDELETEARR(stmp, DMmm);

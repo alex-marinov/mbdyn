@@ -75,11 +75,13 @@ LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 MESCHACH_LIBS = @MESCHACH_LIBS@
 METIS_LIBS = @METIS_LIBS@
+MODULES_DIRS = @MODULES_DIRS@
 MPI_LIBS = @MPI_LIBS@
 OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 PAM_LIBS = @PAM_LIBS@
 RANLIB = @RANLIB@
+TCL_LIBS = @TCL_LIBS@
 VERSION = @VERSION@
 mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
@@ -113,7 +115,7 @@ config.sub configure.in install-sh missing mkinstalldirs
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/conm2.P .deps/cord2r.P .deps/grid.P .deps/lib.P \
 .deps/n2m.P .deps/pbeam.P

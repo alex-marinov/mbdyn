@@ -36,7 +36,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#if defined(HAVE_SSTREAM)
+#include <sstream>
+#elif defined(HAVE_STRSTREAM_H)
 #include <strstream.h>
+#else /* no sstream & no strstream.h */
+#error "no sstream & no strstream.h"
+#endif /* no sstream & no strstream.h */
 
 #include <mathp.h>
 #include <memmans.h>
@@ -62,7 +69,11 @@ GetEnviron(MathParser& MP)
    
    	if (e != NULL) {
       		DEBUGCOUT("GetEnv: reading variable <" << e << ">" << endl);
+#if defined(HAVE_SSTREAM)
+		std::istringstream in(e);
+#else /* HAVE_STRSTREAM_H */
       		istrstream in(e);
+#endif /* HAVE_STRSTREAM_H */
       		InputStream In(in);	 
       		MP.GetLastStmt(In);
       		DEBUGCOUT("GetEnv: variable <" << e << "> read" << endl);

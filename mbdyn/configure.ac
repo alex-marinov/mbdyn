@@ -431,6 +431,26 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Checks for sstream
+dnl
+AC_LANG_CPLUSPLUS
+AC_CHECK_HEADERS(sstream,[have_sstream=yes],[have_sstream=no])
+AC_CHECK_HEADERS(strstream.h,[have_strstream=yes],[have_strstream=no])
+AC_MSG_CHECKING([whether the system uses sstream or strstream.h])
+if test $have_sstream != no ; then
+	AC_MSG_RESULT([sstream])
+else
+	if test $have_strstream != no ; then
+		AC_MSG_RESULT([strstream.h])
+		AC_MSG_WARN([strstream.h is deprecated])
+	else
+		AC_MSG_ERROR([No sstream or strstream.h found])
+	fi
+fi
+AC_LANG_C
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for f2c libraries
 dnl
 ol_link_libf2c=no
@@ -454,7 +474,7 @@ if test $ol_with_libf2c != no ; then
 		LIBS="$LIBS $try_libf2c_LIBS"
 		AC_TRY_LINK([#include <$top_builddir/libraries/libmbmath/myf2c.h>],[
 			doublereal i = 1., o;
-			o = d_cos(i);
+			o = d_cos(&i);
 		],[have_libf2c=yes],[have_libf2c=no])
 		LIBS=$save_LIBS
 
@@ -668,7 +688,7 @@ if test $ol_with_lapack != no ; then
 	if test $have_lapack != no ; then
 		AC_DEFINE(USE_LAPACK,1,[define to use LAPACK libraries])
 		AC_DEFINE(HAVE_DGESVD,1,[define to use LAPACK's dgesvd in GPC])
-		LAPACK_LIBS="-llapack -lblas"
+		LAPACK_LIBS="-llapack -lblas "
 	fi
 
 	AC_LANG_FORTRAN77

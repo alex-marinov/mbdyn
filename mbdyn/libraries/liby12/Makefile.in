@@ -134,7 +134,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/test.P .deps/y12cck.P .deps/y12m.P .deps/y12mae.P \
 .deps/y12maf.P .deps/y12mbe.P .deps/y12mbf.P .deps/y12mce.P \

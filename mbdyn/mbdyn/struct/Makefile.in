@@ -127,7 +127,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/accj.P .deps/autostr.P .deps/beam.P .deps/beam2.P \
 .deps/body.P .deps/drvhinge.P .deps/drvj.P .deps/genj.P .deps/gravity.P \

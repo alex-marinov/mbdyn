@@ -125,7 +125,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/dummypgin.P .deps/fn_UNIX.P .deps/gauss.P \
 .deps/input.P .deps/llist.P .deps/llstack.P .deps/mathp.P \
