@@ -326,8 +326,8 @@ CHECK THIS!!!\\
 Explicit form of friction moment contribution 
 (FIXME: remove vector $(\T R_1\cdot \T R_{h1})[3]$ and write scalar equation???):\\
 $f(\T F, \mathrm{rel\ velocity})$:
-$\T M[3] = \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * (\T R_1\cdot \T R_{h1})[3] * 
-	||\T F|| * f_{\mathrm{c}}(v,k,\dot{k})$,\\
+$\T M[3] = \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v,z,\dot{z})) * (\T R_1\cdot \T R_{h1})[3] * 
+	||\T F|| * f_{\mathrm{c}}(v,z,\dot{z})$,\\
 with $\T R_{h1}$ constant.\\
 Variation of friction moment contribution:
 \begin{eqnarray*}
@@ -339,44 +339,46 @@ Variation of friction moment contribution:
 \end{eqnarray*}
 Variation of friction moment contribution component:
 \begin{eqnarray*}
-\delta \T M[3] &=& \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * 
+\delta \T M[3] &=& \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v,z,\dot{z})) * 
+		f_{\mathrm{c}}(v,z,\dot{z}) *
 		\frac{\displaystyle\T F}{\displaystyle||\T F||} 
 		\cdot \delta \T F+\\
-	&& \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * (\T R_1\cdot \T R_{h1})[3] * 
+	&& \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v,z,\dot{z})) * (\T R_1\cdot \T R_{h1})[3] * 
 		||\T F|| *
 		\frac{\displaystyle \partial f_{\mathrm{c}}}
 			{\displaystyle \partial v} * \delta v+\\
-	&&	||\T F|| * f_{\mathrm{c}}(v) *
-			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
+	&&	||\T F|| * f_{\mathrm{c}}(v,z,\dot{z}) *
+			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v,z,\dot{z}))}
 			{\displaystyle \partial ||\T F||} 
 			\frac{\displaystyle \partial ||\T F||}{\displaystyle\partial\T F}
 			\cdot \delta \T F+\\
-	&&	||\T F|| * f_{\mathrm{c}}(v) *
-			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
-			{\displaystyle \partial f_{\mathrm{c}}(v)} *
+	&&	||\T F|| * f_{\mathrm{c}}(v,z,\dot{z}) *
+			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v,z,\dot{z}))}
+			{\displaystyle \partial f_{\mathrm{c}}(v,z,\dot{z})} *
 			\frac{\displaystyle \partial f_{\mathrm{c}}}
 				{\displaystyle \partial v} * \delta v\\
 	&=& \left (\begin{array}{l}
-		\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * 
+		\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v,z,\dot{z})) * 
+			f_{\mathrm{c}}(v,z,\dot{z})
 			\frac{\displaystyle\T F}{\displaystyle||\T F||}\\
-		||\T F|| * f_{\mathrm{c}}(v) *
-			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
+		||\T F|| * f_{\mathrm{c}}(v,z,\dot{z}) *
+			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v,z,\dot{z}))}
 			{\displaystyle \partial ||\T F||}
 		\end{array} 
 		\right )\cdot \delta \T F+\\
 	&& \left ( \begin{array}{l}
-		\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * ||\T F||\\
-		||\T F|| * f_{\mathrm{c}}(v) *
-			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
-			{\displaystyle \partial f_{\mathrm{c}}(v)}
+		\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v,z,\dot{z})) * ||\T F||\\
+		||\T F|| * f_{\mathrm{c}}(v,z,\dot{z}) *
+			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v,z,\dot{z}))}
+			{\displaystyle \partial f_{\mathrm{c}}(v,z,\dot{z})}
 		\end{array} \right ) *
 		\left\{\begin{array}{l}
 			\frac{\displaystyle \partial f_{\mathrm{c}}}
 				{\displaystyle \partial v} * \delta v\\
 			\frac{\displaystyle \partial f_{\mathrm{c}}}
-				{\displaystyle \partial k} * \delta k\\
+				{\displaystyle \partial z} * \delta z\\
 			\frac{\displaystyle \partial f_{\mathrm{c}}}
-				{\displaystyle \partial \dot{k}} * \delta \dot{k}\\			
+				{\displaystyle \partial \dot{z}} * \delta \dot{z}\\			
 		\end{array}\right\}
 \end{eqnarray*}
 dove 
@@ -392,28 +394,28 @@ e quindi
 \end{eqnarray*}
 \item
 $
-\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))=
+\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v,z,\dot{z}))=
 r * 
 C_\alpha(
 	\alpha(\mathrm{costants},
-		f_{\mathrm{c}}(v),
+		f_{\mathrm{c}}(v,z,\dot{z}),
 		||\T F||,
-		\mathrm{f_{\mathrm{c}}(v)}
+		f_{\mathrm{c}}(v,z,\dot{z})
 	)
 ) 
-\frac{\displaystyle 1}{\displaystyle \sqrt{1+f_{\mathrm{c}}^2(v)}}
+\frac{\displaystyle 1}{\displaystyle \sqrt{1+f_{\mathrm{c}}^2(v,z,\dot{z})}}
 $
 \item
 $
 \alpha(\mathrm{costants},
-	f_{\mathrm{c}}(v),
+	f_{\mathrm{c}}(v,z,\dot{z}),
 	||\T F||,
-	\mathrm{f_{\mathrm{c}}(v)}
+	f_{\mathrm{c}}(v,z,\dot{z})
 ) =
 \sin^{-1}\left(
 	\sqrt{
 		\frac{\displaystyle 2*31*||\T F||}
-			{\displaystyle E*b*\sqrt{1+f_{\mathrm{c}}^2(v)}}
+			{\displaystyle E*b*\sqrt{1+f_{\mathrm{c}}^2(v,z,\dot{z})}}
 		\frac{\displaystyle r'/r}
 			{\displaystyle r'-r}
 	}
@@ -424,20 +426,20 @@ i.e. about less that 1\% of the joint allowable load)
 we can safely assume $C_\alpha\approx 1$
 so that\\ 
 $
-\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))\approx
+\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v,z,\dot{z}))\approx
 r * 
-\frac{\displaystyle 1}{\displaystyle \sqrt{1+f_{\mathrm{c}}^2(v)}}
+\frac{\displaystyle 1}{\displaystyle \sqrt{1+f_{\mathrm{c}}^2(v,z,\dot{z})}}
 $,\\
 
 $
-\frac{\displaystyle\partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
+\frac{\displaystyle\partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v,z,\dot{z}))}
 	{\displaystyle \partial ||\T F||} = \T 0
 $\\
 and\\
 $
-\frac{\displaystyle\partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
-	{\displaystyle\partial \mathrm{f_{\mathrm{c}}(v)}} =
-	-r * (1+f_{\mathrm{c}}^2(v))^{-3/2}*f_{\mathrm{c}}(v)
+\frac{\displaystyle\partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v,z,\dot{z}))}
+	{\displaystyle\partial \mathrm{f_{\mathrm{c}}(v,z,\dot{z})}} =
+	-r * (1+f_{\mathrm{c}}^2(v,z,\dot{z}))^{-3/2}*f_{\mathrm{c}}(v,z,\dot{z})
 $
 \end{itemize}
 
