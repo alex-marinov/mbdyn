@@ -191,14 +191,30 @@ A shortcut to this case is provided as
     <method_data> ::= bdf
 \end{verbatim}
 
-
-\subsubsection{Newton-Raphson}
+\subsubsection{Nonlinear Solver}
+The nonlinear solver solves a nonlinear problem $F(x)=0$.
+The first nonlinear solver, a modified Newton-Rapson, 
+is well tested. The second nonlinear solver, based on a
+matrix-free algorithm, is experimental.
 \begin{verbatim}
-    <card> ::= newton raphson : { true 
+    <card> ::= nonlinear solver : <nonlinear_solver_data> ;
+\end{verbatim}
+\begin{verbatim}
+    <nonlinear_solver_data> ::= newton raphson : { true 
                                 | modified [ , <iterations> ] } ;
 \end{verbatim}
 if \texttt{modified}, the number of iterations the jacobian matrix will be
 reused is expected; otherwise a default value is used.
+\begin{verbatim}
+    <nonlinear_solver_data> ::= matrix free, { bcgstab | gmres }
+      [ , tolerance, < tolerance > ]
+      [ , steps , <steps> ]
+      [ , tau , <tau> ]
+      [ , eta , <eta> ]
+      [ , preconditioner, {
+              full jacobian [ , steps, <steps> ]
+      } ];
+\end{verbatim}
 
 \subsubsection{Eigenanalysis}
 Experimental, not available nor documented yet.
