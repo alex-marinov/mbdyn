@@ -255,6 +255,23 @@ MultiStepIntegrator::Run(void)
 		   << iNumDofs << endl);
    
    	switch (CurrSolver) {
+     	case Y12_SOLVER: 
+#ifndef USE_HARWELL
+	default:
+#endif /* USE_HARWELL */
+#ifdef USE_Y12
+      		SAFENEWWITHCONSTRUCTOR(pSM,
+			Y12SparseLUSolutionManager,
+			Y12SparseLUSolutionManager(iNumDofs,
+						   iWorkSpaceSize,
+						   dPivotFactor),
+			               SMmm);
+      		break;
+#else /* !USE_Y12 */
+      		cerr << "Configure with --with-y12 to enable Y12 solver" << endl;
+      		THROW(ErrGeneric());
+#endif /* !USE_Y12 */
+
     	case MESCHACH_SOLVER:
 #ifdef USE_MESCHACH
       		SAFENEWWITHCONSTRUCTOR(pSM,
@@ -265,27 +282,14 @@ MultiStepIntegrator::Run(void)
 				       SMmm);
       		break;
 #else /* !USE_MESCHACH */
-      		cerr << "Compile with USE_MESCHACH to enable Meschach solver"
+      		cerr << "Configure with --with-meschach to enable Meschach solver"
 			<< endl;
       		THROW(ErrGeneric());
 #endif /* !USE_MESCHACH */
 
-    	case Y12_SOLVER: 
-#ifdef USE_Y12
-      		SAFENEWWITHCONSTRUCTOR(pSM,
-			Y12SparseLUSolutionManager,
-			Y12SparseLUSolutionManager(iNumDofs,
-						   iWorkSpaceSize,
-						   dPivotFactor),
-			               SMmm);
-      		break;
-#else /* !USE_Y12 */
-      		cerr << "Compile with USE_Y12 to enable Y12 solver" << endl;
-      		THROW(ErrGeneric());
-#endif /* !USE_Y12 */
-
+   	case HARWELL_SOLVER:
+#ifdef USE_HARWELL
 	default:
-    	case HARWELL_SOLVER:
       		SAFENEWWITHCONSTRUCTOR(pSM,
 			HarwellSparseLUSolutionManager,
 			HarwellSparseLUSolutionManager(iNumDofs,
@@ -293,6 +297,10 @@ MultiStepIntegrator::Run(void)
 						       dPivotFactor),
 				       SMmm);
       		break;
+#else /* !USE_HARWELL */
+      		cerr << "Configure with --with-harwell to enable Harwell solver" << endl;
+      		THROW(ErrGeneric());
+#endif /* !USE_HARWELL */
    	}
    
    	/* Puntatori agli handlers del solution manager */

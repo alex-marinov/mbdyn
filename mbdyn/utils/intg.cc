@@ -4,7 +4,9 @@
 
 #include <myassert.h>
 #include <solman.h>
+#include <y12wrap.h>
 #include <harwrap.h>
+#include <mschwrap.h>
 
 #include <getopt.h>
 #include <string.h>
@@ -373,8 +375,14 @@ int method_multistep(const char* module, integration_data* d,
    doublereal** ppd = new doublereal*[size];
    FullMatrixHandler J(pd, ppd, size*size, size, size);
    MyVectorHandler R(size);
-   
+
+#if defined(USE_Y12)
+   Y12SparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+#elif defined(USE_HARWELL)
    HarwellSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+#elif defined(USE_MESCHACH)
+   MeschachSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+#endif
    
    MatrixHandler& Jac = *sm.pMatHdl();
    VectorHandler& Res = *sm.pResHdl();   
@@ -533,7 +541,13 @@ int method_cubic(const char* module, integration_data* d,
    MyVectorHandler Xz(size);
    MyVectorHandler XPz(size);
    
+#if defined(USE_Y12)
+   Y12SparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+#elif defined(USE_HARWELL)
    HarwellSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+#elif defined(USE_MESCHACH)
+   MeschachSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+#endif
    
    MatrixHandler& Jac = *sm.pMatHdl();
    VectorHandler& Res = *sm.pResHdl();   

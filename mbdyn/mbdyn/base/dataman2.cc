@@ -41,9 +41,8 @@
 #include <gravity.h>
 #include <memmans.h>
 #include <harwrap.h>
-#ifdef USE_MESCHACH
 #include <mschwrap.h>
-#endif /* USE_MESCHACH */
+#include <y12wrap.h>
 
 /* DataManager - continue */
 
@@ -383,26 +382,25 @@ void DataManager::InitialJointAssembly(void)
    
    /* Crea la struttura di calcolo */
    SolutionManager* pSM = NULL;
-#ifdef USE_MESCHACH
-   if (1) {
-      SAFENEWWITHCONSTRUCTOR(pSM,
-			     MeschachSparseLUSolutionManager,
-			     MeschachSparseLUSolutionManager(iInitialNumDofs, 
-							     0, 
-							     1.),
-			     SMmm);
-   } else {
+#if defined(USE_Y12)
+   SAFENEWWITHCONSTRUCTOR(pSM,
+		   Y12SparseLUSolutionManager,
+		   Y12SparseLUSolutionManager(iInitialNumDofs, 0, 1.),
+		   SMmm);
+#elif defined(USE_HARWELL)
+   SAFENEWWITHCONSTRUCTOR(pSM,
+		   HarwellSparseLUSolutionManager,
+		   HarwellSparseLUSolutionManager(iInitialNumDofs, 0, 1.),
+		   SMmm);
+#elif defined(USE_MESCHACH)
+   SAFENEWWITHCONSTRUCTOR(pSM,
+		   MeschachSparseLUSolutionManager,
+		   MeschachSparseLUSolutionManager(iInitialNumDofs, 0, 1.),
+		   SMmm);
+#else
+#error "no appropriate solver available"
 #endif
-      SAFENEWWITHCONSTRUCTOR(pSM,
-			     HarwellSparseLUSolutionManager,
-			     HarwellSparseLUSolutionManager(iInitialNumDofs, 
-			     				    0, 
-							    1.),
-			     SMmm);
-#ifdef USE_MESCHACH
-   }
-#endif
-      
+    
    /* Crea il vettore con lo stato del sistema durante l'assemblaggio */
    doublereal* pdX = NULL;
    SAFENEWARR(pdX, doublereal, iInitialNumDofs, SMmm);      
