@@ -104,7 +104,9 @@ symcltp.h \
 tpldrive.cc \
 tpldrive.h \
 tpldrive_.h \
-vec3drv.h
+vec3drv.h \
+thirdorderstepsol.h \
+thirdorderstepsol.cc
 
 libbase_la_LIBADD = @LIBS@ $(GINACLIB_LIBS)
 libbase_la_LDFLAGS = -static
