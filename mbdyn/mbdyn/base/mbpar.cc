@@ -287,14 +287,14 @@ MBDynParser::ConstitutiveLaw_(void)
 	
 	unsigned int uLabel(GetInt());
 	
-	/* Nome del fluido */
+	/* Constitutive law name */
 	const char *sName = NULL;
 	if (IsKeyWord("name")) {
 		const char *sTmp = GetStringWithDelims();
 		SAFESTRDUP(sName, sTmp);
 	}
 
-	unsigned dim = GetInt();
+	int dim = GetInt();
 	ConstLawType::Type clt;
 	switch (dim) {
 	case 1:
@@ -309,6 +309,11 @@ MBDynParser::ConstitutiveLaw_(void)
 			silent_cerr(" at line " << GetLineData()
 					<< std::endl);
 			THROW(MBDynParser::ErrGeneric());
+		}
+
+		pCL->PutLabel(uLabel);
+		if (sName) {
+			pCL->PutName(sName);
 		}
 	
 		if (C1D.Add(pCL)) {
@@ -337,6 +342,11 @@ MBDynParser::ConstitutiveLaw_(void)
 			THROW(MBDynParser::ErrGeneric());
 		}
 	
+		pCL->PutLabel(uLabel);
+		if (sName) {
+			pCL->PutName(sName);
+		}
+	
 		if (C3D.Add(pCL)) {
 			silent_cerr("constitutive law 3D " << uLabel);
 			if (sName) {
@@ -363,6 +373,11 @@ MBDynParser::ConstitutiveLaw_(void)
 			THROW(MBDynParser::ErrGeneric());
 		}
 	
+		pCL->PutLabel(uLabel);
+		if (sName) {
+			pCL->PutName(sName);
+		}
+	
 		if (C6D.Add(pCL)) {
 			silent_cerr("constitutive law 6D " << uLabel);
 			if (sName) {
@@ -381,11 +396,8 @@ MBDynParser::ConstitutiveLaw_(void)
 				<< std::endl);
 		THROW(ErrGeneric());
 	}
-	
-	HydraulicFluid* pHF = ReadHydraulicFluid(*this, uLabel);
 
-	if (sName != NULL) {
-		pHF->PutName(sName);
+	if (sName) {
 		SAFEDELETEARR(sName);
 	}
 }
