@@ -14,6 +14,8 @@ MBDyn 1.1 Engineering
 		- unsteady aerodynamic model selection by keywords
 		- added renice command-line switch
 		- improved approximate friction model of shock absorber
+		- penalty also on strain rate in shock absorber (WARNING:
+		  changes input syntax)
 	Bug fixes:
 		- fixed bug in tire friction force in module-wheel2
 	Known bugs:

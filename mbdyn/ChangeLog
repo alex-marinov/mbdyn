@@ -7,6 +7,9 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Wed Feb  6 17:19:42 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - added penalty on strain rate in shock absorber (changes input syntax)
+
 *** Tue Feb  5 17:30:00 CAT 2002 Pierangelo Masarati <masarati@aero.polimi.it>
 				 Stefania Gualdi <gualdi@aero.polimi.it>
  - added a couple of coefficients to allow to tune the approximate friction
