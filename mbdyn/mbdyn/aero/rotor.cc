@@ -54,7 +54,7 @@ extern "C" {
 #include <mymath.h>
 }
 
-const dOmegaRatio = 1.e-2;
+const doublereal dOmegaRatio = 0.e0;
 
 /* Rotor - begin */
 
@@ -110,49 +110,60 @@ Elem::Type Rotor::GetElemType(void) const
 
 void Rotor::Output(OutputHandler& OH) const
 {
-  /* non mi ricordo a cosa serve! */
-  ((int&)iNumSteps)++;
-  
-  (doublereal&)dUMeanPrev = dUMean; /* updates the umean at the previous step */
+    /* non mi ricordo a cosa serve! */
+    ((int&)iNumSteps)++;
 
-  if (fToBeOutput()) {
+    /* updates the umean at the previous step */
+    (doublereal&)dUMeanPrev = dUMean; 
+
+
+    if (fToBeOutput()) {
 #ifdef USE_MPI
-    if (RotorComm.Get_size() > 1) { 
-      if (!RotorComm.Get_rank()) {
-        doublereal TmpX[6];
-        for (int i=0; i <= 2; i++) { 
-	  TmpX[i] = *(FTraction.pGetVec()+i);
-	  TmpX[i+3] = *(MTraction.pGetVec()+i);
-        }
-        Mat3x3 RT((pCraft->GetRCurr()).Transpose());
-        for (int i=0; i <= 2; i++) { 
-	  FTraction.pGetVec()[i] = TmpVecR[i];
-	  MTraction.pGetVec()[i] = TmpVecR[i+3];
-        }
-        OH.Rotors() << setw(8) << GetLabel() << " " 
-        	    << (RT*FTraction) << " " << (RT*MTraction) << " " << dUMean << endl;
-        for (int i=0; i <= 2; i++) { 
- 	  FTraction.pGetVec()[i] = TmpX[i];
-	  MTraction.pGetVec()[i] = TmpX[i+3];
-        }
-      }
-    }
-    else {
-      Mat3x3 RT((pCraft->GetRCurr()).Transpose());
-	  OH.Rotors() << setw(8) << GetLabel() << " "
-		      << (RT*FTraction) << " " << (RT*MTraction) << " " << dUMean << endl;
-    }					  
+        if (RotorComm.Get_size() > 1) { 
+	    if (!RotorComm.Get_rank()) {
+		Vec3 TmpF(TmpVecR), TmpM(TmpVecR+3);
+		Mat3x3 RT((pCraft->GetRCurr()).Transpose());
+		OH.Rotors() << setw(8) << GetLabel() << " " 
+			<< (RT*TmpF) << " " << (RT*TmpM) << " " 
+			<< dUMean 
+#if 1
+			<< " "
+			<< dVelocity << " " 
+			<< dSinAlphad << " " << dCosAlphad << " "
+			<< dMu << " " << dLambda << " " << dChi << " "
+			<< dPsi0
+#endif
+			<< endl;
+	    }
+	} else {
+	    Mat3x3 RT((pCraft->GetRCurr()).Transpose());
+	    OH.Rotors() << setw(8) << GetLabel() << " "
+		    << (RT*FTraction) << " " << (RT*MTraction) << " " 
+		    << dUMean 
+#if 1
+		    << " "
+		    << dVelocity << " " 
+		    << dSinAlphad << " " << dCosAlphad << " "
+		    << dMu << " " << dLambda << " " << dChi << " "
+		    << dPsi0
+#endif 
+		    << endl;
+	}
 #else /* !USE_MPI */     
-    // #if 0
-    //      OH.Rotors() << setw(8) << GetLabel() << " " 
-    // 		 << FTraction << " " << MTraction << " " << endl;
-    // #endif
-    
-    Mat3x3 RT((pCraft->GetRCurr()).Transpose());
-    OH.Rotors() << setw(8) << GetLabel() << " " 
-		<< (RT*FTraction) << " " << (RT*MTraction) << " " << dUMean << endl;
+	Mat3x3 RT((pCraft->GetRCurr()).Transpose());
+	OH.Rotors() << setw(8) << GetLabel() << " " 
+		<< (RT*FTraction) << " " << (RT*MTraction) << " " 
+		<< dUMean 
+#if 1
+		<< " "
+		<< dVelocity << " " 
+		<< dSinAlphad << " " << dCosAlphad << " "
+		<< dMu << " " << dLambda << " " << dChi << " "
+		<< dPsi0
+#endif
+		<< endl;
 #endif /* !USE_MPI */
-  }
+    }
 }
 
 /* Calcola la posizione azimuthale di un punto generico.
@@ -168,8 +179,8 @@ void Rotor::Output(OutputHandler& OH) const
  */
 doublereal Rotor::dGetPsi(const Vec3& X) const
 {
-   Vec3 XRel(RRotTranspose*(X-XCraft));
-   return dPsi0+atan2(XRel.dGet(2), XRel.dGet(1));
+    Vec3 XRel(RRotTranspose*(X-XCraft));
+    return dPsi0+atan2(XRel.dGet(2), XRel.dGet(1));
 }
 
 
@@ -225,11 +236,9 @@ void Rotor::InitParam(void)
    doublereal dV2 = VTmp.dGet(2);
    doublereal dV3 = VTmp.dGet(3);
    doublereal dVV = dV1*dV1+dV2*dV2;
-   doublereal dV;
+   doublereal dV = 0.;
    if (dVV > DBL_EPSILON) {
       dV = sqrt(dVV);
-   } else {
-      dV = 0.;
    }        
        
    /* Angolo di azimuth del rotore */
