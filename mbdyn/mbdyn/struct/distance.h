@@ -34,7 +34,7 @@
 #ifndef DISTANCE_H
 #define DISTANCE_H
 
-#if 0
+#ifdef MBDYN_X_DISTANCE_JOINT
 
 #include <joint.h>
 #include <drive.h>

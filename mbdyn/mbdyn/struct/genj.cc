@@ -36,7 +36,7 @@
 
 #include <genj.h>
 
-#if 1
+#ifndef MBDYN_X_DISTANCE_JOINT
 
 /* DistanceJoint - begin */
 

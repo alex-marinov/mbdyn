@@ -38,7 +38,7 @@
 #include "drive.h"
 
 
-#if 1
+#ifndef MBDYN_X_DISTANCE_JOINT
 /* DistanceJoint - begin */
 
 class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
