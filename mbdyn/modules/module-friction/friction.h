@@ -31,6 +31,8 @@
 #ifndef FRICTION_H
 #define FRICTION_H
 
+#include "ac/float.h"
+
 doublereal 
 norm(const doublereal &v)
 {
@@ -105,7 +107,7 @@ public:
 	virtual void Update(const T &force,
 			const T & /* position */, 
 			const T & velocity, 
-			Friction::UpdateType = ANY) {
+			Friction<T>::UpdateType = ANY) {
 		m_F = dir(velocity)*(-norm(force)*m_mu0);
 	};
 };
@@ -126,7 +128,7 @@ public:
 	virtual void Update(const T &force,
 			const T & /* position */, 
 			const T &velocity, 
-			Friction::UpdateType = ANY) {
+			Friction<T>::UpdateType = ANY) {
 #if 0
 		m_F = dir(velocity)*(-norm(force)*m_mu0*tanh(norm(velocity)/m_vRef));
 #else
@@ -176,7 +178,7 @@ private:
 	virtual void Update(const T &force,
 			const T & position, 
 			const T &velocity, 
-			Friction::UpdateType update = ANY) {
+			Friction<T>::UpdateType update = ANY) {
 		switch (m_state) {
 		case Stick:
 			m_F = (position-m_s0)*(-m_stiffness);
