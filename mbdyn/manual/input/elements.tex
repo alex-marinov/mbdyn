@@ -1078,14 +1078,11 @@ in the future.
         [ , orientation ,
             { node | (OrientationMatrix) <absolute_orientation_matrix> } ]
 \end{verbatim}
-{\em
-    Note: the keyword \texttt{node} forces the joint to use the nodal position
-    and reference frame. Otherwise, they must be entered in the usual way
-    for these entities
-} \\
-{\em
-    Note: the default value for \texttt{position} and \texttt{orientation}
-    are the position and the orientation of the clamped node.
+\emph{Note: the keyword \texttt{node} forces the joint to use
+the nodal position and reference frame. Otherwise, they must be entered
+in the usual way for these entities} \\
+\emph{Note: the default value for \texttt{position} and \texttt{orientation}
+are the position and the orientation of the clamped node.}
 
 
 \subsection{Coincidence}
@@ -1318,11 +1315,9 @@ Analogous to \texttt{rod} with the optional arg \texttt{offset}.
         [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
         (ConstitutiveLaw3D) <const_law>
 \end{verbatim}
-{\em 
-    Note: this hinge constrains the orientations only.
+\emph{Note: this hinge constrains the orientations only.
     It should be used in conjunction with a spherical hinge or any kind of
-    joint that constrains the displacements too.
-}
+    joint that constrains the displacements too.}
 
 \subsection{Deformable displacement hinge}
 \begin{verbatim}
@@ -1383,15 +1378,25 @@ Analogous to \texttt{rod} with the optional arg \texttt{offset}.
         [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
         (Vec3_tpl_drive_caller) <hinge_orientation>
 \end{verbatim}
-{\em
-    Note: this element is eXperimental. 
-}
-  
+\emph{Note: this element is eXperimental.}
+
+\subsection{Kinematic}
+This joint will eventually evolve into a connection with external programs
+that impose the entire motion of a node; at present, you can use it
+by directly writing code in files \verb;mbdyn/struct/kin.cc; and
+\verb;mbdyn/struct/kin.h; that implement the motion you wish to impose.
+\begin{verbatim}
+    <joint_type> ::= kinematic
+    <joint_arglist> ::= 
+        <node_1> ,
+        (drive_caller) <input>
+\end{verbatim}
+\emph{Note: this element is eXperimental.}
+ 
 \subsection{Modal}\label{ELEMS-JOINT-MODAL}
-{\em 
-    Note: under development \\
-    Author: Felice Felippone
-}
+\emph{Note: under development \\
+    Author: Felice Felippone.}
+
 \begin{verbatim}
     <joint_type> ::= modal
     <joint_arglist> ::= <reference_modal_node> ,
@@ -1416,8 +1421,48 @@ nodes, see Section~\ref{sec:NODE-STRUCT}, only the keyword \texttt{dynamic}
 needs be replaced by \texttt{modal}.
 The format of the \texttt{fem\_data\_file} is not documented yet.
 
-
-
+\subsection{Beam slider}
+This joint implements a slider, e.g.\ it constrains a structural node 
+on a string of three-node beams.
+\begin{verbatim}
+    <joint_type> ::= kinematic
+    <joint_arglist> ::=
+        <slider_node> ,
+        (Vec3) <relative_offset> ,
+        [ hinge , (OrientationMatrix) <relative_orientation_matrix> ] ,
+        [ type , { spherical | classic | spline } , ]
+        <beam_number> ,
+            <3_node_beam> ,
+                { same | (Vec3) <first_node_offset> } ,
+    [ hinge , { same | (OrientationMatrix) <first_node_orientation_matrix> ] , }
+                (Vec3) <mid_node_offset> ,
+    [ hinge , (OrientationMatrix) <mid_node_orientation_matrix> ] ,
+                (Vec3) <end_node_offset> ,
+    [ hinge , (OrientationMatrix) <end_node_orientation_matrix> ] ,
+                [ ... ]
+        [ , initial beam , <initial_beam> ]
+        [ , initial node, <initial_node> ]
+        [ , smearing, <smearing_factor> ]
+\end{verbatim}
+There are three types of slider:
+\begin{itemize}
+	\item the \texttt{spherical} slider does not constrain
+	the orientation of the node;
+	\item the \texttt{classical} slider does allow rotation
+	only about the sliding line;
+	\item the \texttt{spline} slider constrain the orientation
+	of the node.
+\end{itemize}
+For each node of each beam element, the offset and the orientation
+of the slider can be defined; except for the first element, the
+offset and the orientation of the first node can be specified using
+the keyword \texttt{same}, which causes the node to take the same
+value of the last node of the previous beam.
+The \texttt{initial\_beam} and \texttt{initial\_node} indices
+serve as hints to set the initial contact point of the sliding node.
+The \texttt{smearing\_factor} determines the (nondimensional) extension
+of the interference segment when the node passes from one segment
+to another. % \cite{SLIDER}.
 
 \section{Loadable Element}
 The \texttt{loadable} element is a wrapper for a user-defined element that is
