@@ -26,6 +26,7 @@ solman.cc \
 solman.h \
 sparsemh.cc \
 sparsemh.h \
+spdata.h \
 spdata_.f \
 spmapmh.h \
 submat.cc \

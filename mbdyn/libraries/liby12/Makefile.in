@@ -93,7 +93,7 @@ top_builddir = @top_builddir@
 
 lib_LTLIBRARIES = liby12.la
 
-liby12_la_SOURCES =  y12mae.f y12maf.f y12mbe.f y12mbf.f y12mce.f y12mcf.f y12mde.f y12mdf.f y12mfe.f y12mge.f y12mhe.f
+liby12_la_SOURCES =  y12lib.h y12mae.f y12maf.f y12mbe.f y12mbf.f y12mce.f y12mcf.f y12mde.f y12mdf.f y12mfe.f y12mge.f y12mhe.f
 
 
 liby12_la_LIBADD = @LIBS@ @F2C_LIBS@
@@ -149,7 +149,7 @@ all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .f .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu ./libraries/liby12/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu libraries/liby12/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -280,14 +280,14 @@ maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = ./libraries/liby12
+subdir = libraries/liby12
 
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu ./libraries/liby12/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu libraries/liby12/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \

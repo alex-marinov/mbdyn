@@ -5509,6 +5509,14 @@ trap 'rm -fr `echo " \
 	mbdyn/hydr/Makefile:build/top.mk:mbdyn/hydr/Makefile.in:build/bot.mk \
 	mbdyn/struct/Makefile:build/top.mk:mbdyn/struct/Makefile.in:build/bot.mk \
 	modules/Makefile:build/top.mk:modules/Makefile.in:build/bot.mk \
+	utils/Makefile:build/top.mk:utils/Makefile.in:build/bot.mk
+	etc/Makefile:build/top.mk:etc/Makefile.in:build/bot.mk
+	etc/modal.d/Makefile:build/top.mk:etc/modal.d/Makefile.in:build/bot.mk
+	etc/pam.d/Makefile:build/top.mk:etc/pam.d/Makefile.in:build/bot.mk
+	var/Makefile:build/top.mk:var/Makefile.in:build/bot.mk
+	manual/Makefile:build/top.mk:manual/Makefile.in:build/bot.mk
+	include/Makefile:build/top.mk:include/Makefile.in:build/bot.mk
+	include/ac/Makefile:build/top.mk:include/ac/Makefile.in:build/bot.mk
 	build/Makefile:build/top.mk:build/Makefile.in:build/bot.mk
  include/mbconfig.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
@@ -5645,6 +5653,14 @@ CONFIG_FILES=\${CONFIG_FILES-"\
 	mbdyn/hydr/Makefile:build/top.mk:mbdyn/hydr/Makefile.in:build/bot.mk \
 	mbdyn/struct/Makefile:build/top.mk:mbdyn/struct/Makefile.in:build/bot.mk \
 	modules/Makefile:build/top.mk:modules/Makefile.in:build/bot.mk \
+	utils/Makefile:build/top.mk:utils/Makefile.in:build/bot.mk
+	etc/Makefile:build/top.mk:etc/Makefile.in:build/bot.mk
+	etc/modal.d/Makefile:build/top.mk:etc/modal.d/Makefile.in:build/bot.mk
+	etc/pam.d/Makefile:build/top.mk:etc/pam.d/Makefile.in:build/bot.mk
+	var/Makefile:build/top.mk:var/Makefile.in:build/bot.mk
+	manual/Makefile:build/top.mk:manual/Makefile.in:build/bot.mk
+	include/Makefile:build/top.mk:include/Makefile.in:build/bot.mk
+	include/ac/Makefile:build/top.mk:include/ac/Makefile.in:build/bot.mk
 	build/Makefile:build/top.mk:build/Makefile.in:build/bot.mk
 "}
 EOF

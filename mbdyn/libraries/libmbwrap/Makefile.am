@@ -4,6 +4,7 @@
 lib_LTLIBRARIES = libmbwrap.la
 
 libmbwrap_la_SOURCES = \
+harwlib.h \
 harwout.c \
 harwout.h \
 harwout_.cc \
@@ -11,9 +12,9 @@ harwrap.cc \
 harwrap.h \
 mschwrap.cc \
 mschwrap.h \
+umfpackwrap.h \
 y12wrap.cc \
-y12wrap.h \
-umfpackwrap.h
+y12wrap.h
 
 libmbwrap_la_LIBADD = @LIBS@ @F2C_LIBS@
 libmbwrap_la_LDFLAGS =

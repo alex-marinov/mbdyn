@@ -36,10 +36,6 @@
 
 #include <ac/fstream>
 
-#include <myassert.h>
-#include <mynewmem.h>
-#include <except.h>
-
 extern "C" {
 #ifdef HAVE_TIMES_H
 #include <sys/times.h>
@@ -62,6 +58,10 @@ extern "C" {
 	exit((err))
 
 #endif /* !USE_MPI */
+
+#include <myassert.h>
+#include <mynewmem.h>
+#include <except.h>
 
 #include <multistp.h>
 
