@@ -79,6 +79,9 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    virtual DofOrder::Order GetEqType(unsigned int i) const
    {
       ASSERT(i >= 0 && i < 4);
+      if (i == 3) {
+	      return DofOrder::DIFFERENTIAL;
+      }
       return DofOrder::ALGEBRAIC;
    };
    
@@ -190,6 +193,9 @@ virtual public Elem, public Joint, public DriveOwner {
    virtual DofOrder::Order GetEqType(unsigned int i) const
    {
       ASSERT(i >= 0 && i < 4);
+      if (i == 3) {
+	      return DofOrder::DIFFERENTIAL;
+      }
       return DofOrder::ALGEBRAIC;
    };
    
