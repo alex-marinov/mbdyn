@@ -24,10 +24,9 @@ INCLUDES = -I../../mbdyn
 export SH_CXXCOMPILE=$(CXXCOMPILE)
 export SH_CXXLD=$(CXXLD)
 
-all-local: FORCE
+all-local: integertest.cc FORCE
 	-@$(SHELL) integertest.sh
 
 FORCE:
-	rm -f integertest.o
 
 include $(top_srcdir)/build/bot.mk
