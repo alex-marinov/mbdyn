@@ -51,57 +51,27 @@ private:
 	Vec3 w;
 
 public:
-	ReferenceFrame(void) { NO_OP; };
+	ReferenceFrame(void);
 
 	ReferenceFrame(unsigned int uLabel, 
 			const Vec3& xIn, const Mat3x3& RIn,
-			const Vec3& vIn = 0., const Vec3& wIn = 0.)
-		: WithLabel(uLabel), x(xIn), R(RIn), v(vIn), w(wIn) {
-			NO_OP;
-		};
+			const Vec3& vIn = 0., const Vec3& wIn = 0.);
 
-	ReferenceFrame(const StructNode* pNode)
-		: WithLabel(pNode->GetLabel()),
-	x(pNode->GetXCurr()), R(pNode->GetRCurr()),
-	v(pNode->GetVCurr()), w(pNode->GetWCurr()) {
-		NO_OP;
-	};
+	ReferenceFrame(const StructNode* pNode);
 
-	~ReferenceFrame(void) { 
-		NO_OP;
-	};
+	~ReferenceFrame(void);
 	
-	const Vec3& GetX(void) const {
-		return x; 
-	};
+	const Vec3& GetX(void) const;
 	
-	const Mat3x3& GetR(void) const {
-		return R;
-	};
+	const Mat3x3& GetR(void) const;
 	
-	const Vec3& GetV(void) const {
-		return v;
-	};
+	const Vec3& GetV(void) const;
 	
-	const Vec3& GetW(void) const {
-		return w;
-	};
+	const Vec3& GetW(void) const;
 
-	ReferenceFrame& operator = (const ReferenceFrame& rf) {
-		PutLabel(rf.GetLabel());
-		x = rf.x;
-		R = rf.R;
-		v = rf.v;
-		w = rf.w;
-		return *this;
-	};
+	ReferenceFrame& operator = (const ReferenceFrame& rf);
 
-	std::ostream& Output(std::ostream& out) const {
-		return out 
-			<< std::setw(8) << GetLabel() << " "
-			<< x << " " << MatR2EulerAngles(R) << " "
-			<< v << " " << w << " " << std::endl;
-	};
+	std::ostream& Output(std::ostream& out) const;
 };
 
 #endif /* REFFRM_H */
