@@ -53,10 +53,10 @@
 #include <umfpackwrap.h>
 
 #ifdef HAVE_SIGNAL
-volatile sig_atomic_t keep_going = 1;
-__sighandler_t sh_term = SIG_DFL;
-__sighandler_t sh_int = SIG_DFL;
-__sighandler_t sh_hup = SIG_DFL;
+static volatile sig_atomic_t keep_going = 1;
+static __sighandler_t sh_term = SIG_DFL;
+static __sighandler_t sh_int = SIG_DFL;
+static __sighandler_t sh_hup = SIG_DFL;
 
 static void
 modify_final_time_handler(int signum)

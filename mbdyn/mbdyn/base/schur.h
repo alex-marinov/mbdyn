@@ -123,10 +123,10 @@ class SchurMultiStepIntegrator : public Integrator {
    VectorHandler* pXPrimePrev2; /* derivata due passi prima */
    
    /* Strutture di gestione dei dati e della soluzione */
-   SolutionManager* pSM;        /* SolutionManager Schur */
-   SchurSolutionManager* pIntSM;/* SolutionManager di interfaccia */
-   DataManager* pDM;            /* gestore dei dati */
-   SchurDataManager* pSDM;      /* gestore dei dati */
+   SolutionManager* pSM;        /* SolutionManager locale */
+   SchurSolutionManager* pIntSM;/* SolutionManager di interfaccia (schur) */
+   DataManager* pDM;            /* gestore dei dati (generico) */
+   SchurDataManager* pSDM;      /* gestore dei dati (specifico schur) */
    VecIter<Dof> DofIterator;    /* Iteratore per la struttura dei Dof, 
    			         * passato da DM */
    integer iNumDofs;            /* Dimensioni del problema */
@@ -187,19 +187,20 @@ class SchurMultiStepIntegrator : public Integrator {
    doublereal db0Algebraic;
    
 
-   /* Dimensioni del workspace (se 0, su misura per la matrice) */
-   integer iLWorkSpaceSize;
-   doublereal dLPivotFactor;
+   /* Dimensioni del workspace (se 0, su misura per la matrice) 
+    * NOTA: quello che non e' Interface e' local 
+    */
+   integer iWorkSpaceSize;
+   doublereal dPivotFactor;
    integer iIWorkSpaceSize;
    doublereal dIPivotFactor;
 
    /* Test sul residuo */
-   doublereal MakeTest(const VectorHandler& Res, 
-		       const VectorHandler& XP);
+   doublereal MakeTest(const VectorHandler& Res, const VectorHandler& XP);
 
    /* corregge i puntatori per un nuovo passo */
-   inline void Flip(void); 
-    
+   inline void Flip(void);
+   
    /* Lettura dati */
    void ReadData(MBDynParser& HP);
    
@@ -212,8 +213,8 @@ class SchurMultiStepIntegrator : public Integrator {
    /* Nuovo delta t */
    doublereal NewTimeStep(doublereal dCurrTimeStep, 
 			  integer iPerformedIters,
-			  MultiStepIntegrationMethod::StepChange Dmy 
-			  = MultiStepIntegrationMethod::NEWSTEP);
+			  MultiStepIntegrationMethod::StepChange 
+			  Dmy = MultiStepIntegrationMethod::NEWSTEP);
    
    /* Aggiornamento della soluzione nel passo fittizio */
    void DerivativesUpdate(const VectorHandler& Sol);
@@ -239,11 +240,9 @@ class SchurMultiStepIntegrator : public Integrator {
 
    /* segue la simulazione vera e propria */
    void Run(void);
-     
-   static const char* sClassName(void) {
-      return "SchurMultiStepIntegrator"; 
-   };
 };
+
+/* SchurMultiStepIntegrator - end */
 
 inline void
 SchurMultiStepIntegrator::Flip(void)
@@ -261,7 +260,5 @@ SchurMultiStepIntegrator::Flip(void)
 	pXPrimePrev = pXPrimeCurr;
 	pXPrimeCurr = p;
 }
-
-/* SchurMultiStepIntegrator - end */
 
 #endif

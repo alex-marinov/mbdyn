@@ -31,13 +31,13 @@
 /* metodo multistep */
 
 /*
- * il metodo e' strutturato nl modo seguente:
+ * il metodo e' strutturato nel modo seguente:
  * il driver costruisce un oggetto della classe MultiStepIntegrator;
  * questo comporta: la lettura dei dati, la creazione del gestore dei dati
  * e del solution manager, che sono virtualmente indipendenti dal metodo.
  * Quindi vengono preparate tutte le strutture piu' strettamente dipendenti
- * dal metodo. Infine viene avviata la soluzione vera e propria (sempre da
- * parte del costruttore!). Al termine, quando il programma si conclude, 
+ * dal metodo. Infine viene avviata la soluzione vera e propria.
+ * Al termine, quando il programma si conclude, 
  * viene invocato il distruttore della classe, che si occupa di invocare 
  * i distruttori di tutti gli oggetti dinamici contenuti. In modo del tutto
  * simile e' possibile scrivere oggetti per metodi di integrazione diversi
@@ -66,8 +66,8 @@ public:
    	class ErrGeneric {};
    	class ErrMaxIterations {};
    	class ErrSimulationDiverged {};
-   
-private:   
+ 
+private:
    	enum Strategy {
 		NOCHANGE,
 		FACTOR
@@ -108,7 +108,7 @@ private:
 	doublereal dUpperFreq;
 	doublereal dLowerFreq;
 #endif /* __HACK_EIG__ */
-   
+ 
    	/* 
 	 * puntatori alle strutture di gestione delle soluzioni ai vari passi
 	 */
@@ -160,25 +160,25 @@ private:
 	enum {
 		OUTPUT_ITERS = 0x0001
 	};
-   
+ 
    	/* Parametri per Newton-Raphson modificato */
    	flag fTrueNewtonRaphson;
    	integer iIterationsBeforeAssembly;
    	integer iPerformedIterations;
-   
+ 
    	/* Parametri per la variazione passo */
    	integer iStepsAfterReduction;
    	integer iStepsAfterRaise;
    	flag fLastChance;
-   
+ 
    	/* Parametri per il metodo */
    	MultiStepIntegrationMethod* pMethod;
    	MultiStepIntegrationMethod* pFictitiousStepsMethod;  
-   
+
    	/* Parametri di correzione (globali) */
    	doublereal db0Differential;
    	doublereal db0Algebraic;
-   
+
    	/* Dimensioni del workspace (se 0, su misura per la matrice) */
    	integer iWorkSpaceSize;
    	doublereal dPivotFactor;
@@ -188,10 +188,10 @@ private:
 
    	/* corregge i puntatori per un nuovo passo */
    	inline void Flip(void);
-    
+
    	/* Lettura dati */
    	void ReadData(MBDynParser& HP);
-   
+
    	/* Predizione al primo passo */
    	void FirstStepPredict(MultiStepIntegrationMethod* pM);
    
@@ -223,7 +223,7 @@ public:
 
    	/* esegue la simulazione */
    	virtual void Run(void);
-   
+
    	/* distruttore: esegue tutti i distruttori e libera la memoria */
    	~MultiStepIntegrator(void);
 };

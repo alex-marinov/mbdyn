@@ -66,10 +66,10 @@ extern "C" {
 #include <umfpackwrap.h>
 
 #ifdef HAVE_SIGNAL
-extern volatile sig_atomic_t keep_going;
-extern __sighandler_t sh_term;
-extern __sighandler_t sh_int;
-extern __sighandler_t sh_hup;
+static volatile sig_atomic_t keep_going = 1;
+static __sighandler_t sh_term = SIG_DFL;
+static __sighandler_t sh_int = SIG_DFL;
+static __sighandler_t sh_hup = SIG_DFL;
 
 static void
 modify_final_time_handler(int signum)
@@ -185,13 +185,13 @@ pMethod(NULL),
 pFictitiousStepsMethod(NULL),
 db0Differential(0.),
 db0Algebraic(0.),
-iLWorkSpaceSize(0),
-dLPivotFactor(1.),
+iWorkSpaceSize(0),
+dPivotFactor(1.),
 iIWorkSpaceSize(0),
 dIPivotFactor(1.),
 fParallel(fPar)
 {
-	DEBUGCOUTFNAME(sClassName() << "::SchurMultiStepIntegrator");
+	DEBUGCOUTFNAME("SchurMultiStepIntegrator::SchurMultiStepIntegrator");
 
 	if (sInFName != NULL) {
 		SAFESTRDUP(sInputFileName, sInFName);
@@ -346,7 +346,7 @@ SchurMultiStepIntegrator::Run(void)
    
 
     /* Crea il solutore locale */
-    integer iLocWorkSpaceSize = iLWorkSpaceSize/(iNumDofs*iNumDofs)* iNumLocDofs;
+    integer iLocWorkSpaceSize = iWorkSpaceSize/(iNumDofs*iNumDofs)* iNumLocDofs;
     switch (CurrSolver) {
      	case Y12_SOLVER: 
 #ifdef USE_Y12
@@ -354,7 +354,7 @@ SchurMultiStepIntegrator::Run(void)
 			Y12SparseLUSolutionManager,
 			Y12SparseLUSolutionManager(iNumLocDofs,
 				iLocWorkSpaceSize,
-				dLPivotFactor == -1. ? 1. : dLPivotFactor));
+				dPivotFactor == -1. ? 1. : dPivotFactor));
       		break;
 #else /* !USE_Y12 */
       		std::cerr << "Configure with --with-y12 "
@@ -371,7 +371,7 @@ SchurMultiStepIntegrator::Run(void)
 			HarwellSparseLUSolutionManager,
 			HarwellSparseLUSolutionManager(iNumLocDofs,
 				iLocWorkSpaceSize,
-				dLPivotFactor == -1. ? 1. : dLPivotFactor));
+				dPivotFactor == -1. ? 1. : dPivotFactor));
       		break;
 #else /* !USE_HARWELL */
       		std::cerr << "Configure with --with-harwell "
@@ -384,7 +384,7 @@ SchurMultiStepIntegrator::Run(void)
       		SAFENEWWITHCONSTRUCTOR(pSM,
 			Umfpack3SparseLUSolutionManager,
 			Umfpack3SparseLUSolutionManager(iNumLocDofs, 
-				0, dLPivotFactor));
+				0, dPivotFactor));
       		break;
 #else /* !USE_UMFPACK3 */
       		std::cerr << "Configure with --with-umfpack3 "
@@ -539,7 +539,7 @@ SchurMultiStepIntegrator::Run(void)
      	MPE_Log_event(3, 0, "start");
 #endif /* MPI_PROFILING */
 
-     	dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+     	dTest = MakeTest(*pRes, *pXPrimeCurr);
 
 #ifdef MPI_PROFILING
      	MPE_Log_event(4, 0, "end");
@@ -602,7 +602,7 @@ SchurMultiStepIntegrator::Run(void)
      	MPE_Log_event(15, 0, "start local Update");
 #endif /* MPI-PROFILING */
      
-     	this->Update(*pSol);
+     	Update(*pSol);
      	pDM->DerivativesUpdate();
      
 #ifdef MPI_PROFILING
@@ -651,7 +651,7 @@ EndOfDerivatives:
      	/* inizio integrazione: primo passo a predizione lineare con sottopassi
       	 * di correzione delle accelerazioni e delle reazioni vincolari */
      	pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *pXPrev, *pXPrimePrev);
-     	this->Flip();
+     	Flip();
      
      	/***********************************************************************
       	* primo passo fittizio
@@ -713,7 +713,7 @@ EndOfDerivatives:
         MPE_Log_event(3, 0, "start");
 #endif /* MPI_PROFILING */ 
 
-       dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+       dTest = MakeTest(*pRes, *pXPrimeCurr);
 
 #ifdef MPI_PROFILING
         MPE_Log_event(4, 0, "end");
@@ -773,7 +773,7 @@ EndOfDerivatives:
        MPE_Log_event(15, 0, "start local Update");
 #endif /* MPI-PROFILING */
        
-       this->Update(*pSol);
+       Update(*pSol);
        pDM->Update();
 
 #ifdef MPI_PROFILING
@@ -812,7 +812,7 @@ EndOfFirstFictitiousStep:
       **********************************************************************/
      for (int iSubStep = 2; iSubStep <= iFictitiousStepsNumber; iSubStep++) {
        	pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *pXPrev, *pXPrimePrev);
-       	this->Flip();
+       	Flip();
      
        	DEBUGLCOUT(MYDEBUG_FSTEPS, "Fictitious step " << iSubStep
 		  << "; current time step: " << dCurrTimeStep << std::endl);
@@ -871,7 +871,7 @@ EndOfFirstFictitiousStep:
          MPE_Log_event(3, 0, "start");
 #endif /* MPI_PROFILING */
  	 	 
-	 dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+	 dTest = MakeTest(*pRes, *pXPrimeCurr);
 
 #ifdef MPI_PROFILING
          MPE_Log_event(4, 0, "end");
@@ -928,7 +928,7 @@ EndOfFirstFictitiousStep:
 	 MPE_Log_event(15, 0, "start local Update");
 #endif /* MPI-PROFILING */
 	 
-	 this->Update(*pSol);
+	 Update(*pSol);
 	 pDM->Update();
 
 #ifdef MPI_PROFILING
@@ -1014,7 +1014,7 @@ EndOfFictitiousStep:
    
    
    pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *pXPrev, *pXPrimePrev);
-   this->Flip();
+   Flip();
 
    dRefTimeStep = dInitialTimeStep;
    dCurrTimeStep = dRefTimeStep;
@@ -1081,7 +1081,7 @@ EndOfFictitiousStep:
      MPE_Log_event(3,0,"start");
 #endif
 
-     dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+     dTest = MakeTest(*pRes, *pXPrimeCurr);
 
 #ifdef MPI_PROFILING
      MPE_Log_event(4,0,"end");
@@ -1108,7 +1108,7 @@ EndOfFictitiousStep:
      if (iIterCnt > iMaxIterations || !isfinite(dTest)) {
      if (dCurrTimeStep > dMinimumTimeStep) {
        /* Riduce il passo */
-       dCurrTimeStep = this->NewTimeStep(dCurrTimeStep,
+       dCurrTimeStep = NewTimeStep(dCurrTimeStep,
 					 iIterCnt,
 					 MultiStepIntegrationMethod::REPEATSTEP);
        dRefTimeStep = dCurrTimeStep;
@@ -1162,7 +1162,7 @@ EndOfFictitiousStep:
      MPE_Log_event(15, 0, "start local Update");
 #endif /* MPI-PROFILING */
 
-     this->Update(*pSol);
+     Update(*pSol);
      pDM->Update();
 
 #ifdef MPI_PROFILING
@@ -1235,7 +1235,7 @@ EndOfFirstStep:
      iStep++;
 
      pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *pXPrev, *pXPrimePrev);
-     this->Flip();
+     Flip();
      
 IfStepIsToBeRepeated:
      pDM->SetTime(dTime+dCurrTimeStep);
@@ -1295,7 +1295,7 @@ IfStepIsToBeRepeated:
      		MPE_Log_event(3,0,"start");
 #endif
 
-     		dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+     		dTest = MakeTest(*pRes, *pXPrimeCurr);
               
 #ifdef MPI_PROFILING
      		MPE_Log_event(4,0,"end");
@@ -1335,7 +1335,7 @@ IfStepIsToBeRepeated:
 	 if (dCurrTimeStep > dMinimumTimeStep) {
 	   /* Riduce il passo */
 	   CurrStep = MultiStepIntegrationMethod::REPEATSTEP;
-	   dCurrTimeStep = this->NewTimeStep(dCurrTimeStep,
+	   dCurrTimeStep = NewTimeStep(dCurrTimeStep,
 					     iIterCnt, CurrStep);
 	   DEBUGCOUT("Changing time step during step "
 		     << iStep << " after "
@@ -1387,7 +1387,7 @@ IfStepIsToBeRepeated:
        MPE_Log_event(15, 0, "start local Update");
 #endif /* MPI-PROFILING */
 
-       this->Update(*pSol);
+       Update(*pSol);
        pDM->Update();
 
 #ifdef MPI_PROFILING
@@ -1425,7 +1425,7 @@ EndOfStep:
      
      
      /* Calcola il nuovo timestep */
-     dCurrTimeStep = this->NewTimeStep(dCurrTimeStep, iIterCnt, CurrStep);
+     dCurrTimeStep = NewTimeStep(dCurrTimeStep, iIterCnt, CurrStep);
      DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
    }
 }
@@ -1434,7 +1434,7 @@ EndOfStep:
 /* Distruttore */
 SchurMultiStepIntegrator::~SchurMultiStepIntegrator(void)
 {
-   DEBUGCOUTFNAME(sClassName() << "::~SchurMultiStepIntegrator");
+   DEBUGCOUTFNAME("SchurMultiStepIntegrator::~SchurMultiStepIntegrator");
 #ifdef MPI_PROFILING
    MPE_Finish_log("mbdyn.mpi");
 #endif /* MPI_PROFILING */
@@ -1490,7 +1490,7 @@ doublereal
 SchurMultiStepIntegrator::MakeTest(const VectorHandler& Res,
 				     const VectorHandler& XP)
 {
-  DEBUGCOUTFNAME(sClassName() << "::MakeTest");
+  DEBUGCOUTFNAME("SchurMultiStepIntegrator::MakeTest");
    
   Dof CurrDof;
    
@@ -1547,7 +1547,7 @@ SchurMultiStepIntegrator::MakeTest(const VectorHandler& Res,
 void
 SchurMultiStepIntegrator::FirstStepPredict(MultiStepIntegrationMethod* pM)
 {
-  DEBUGCOUTFNAME(sClassName() << "::FirstStepPredict");
+  DEBUGCOUTFNAME("SchurMultiStepIntegrator::FirstStepPredict");
   
   Dof CurrDof;
   
@@ -1574,7 +1574,8 @@ SchurMultiStepIntegrator::FirstStepPredict(MultiStepIntegrationMethod* pM)
       pXPrimeCurr->fPutCoef(DCount, pM->dPredStateAlg(0., dXn, dXnm1, 0.));
       
     } else {
-      std::cerr << sClassName() << "::FirstStepPredict(): unknown dof order" << std::endl;
+      std::cerr << "SchurMultiStepIntegrator::FirstStepPredict(): "
+	      "unknown dof order" << std::endl;
       THROW(ErrGeneric());
     }
   }
@@ -1602,7 +1603,8 @@ SchurMultiStepIntegrator::FirstStepPredict(MultiStepIntegrationMethod* pM)
       pXPrimeCurr->fPutCoef(DCount, pM->dPredStateAlg(0., dXn, dXnm1, 0.));
       
     } else {
-      std::cerr << sClassName() << "::FirstStepPredict(): unknown dof order" << std::endl;
+      std::cerr << "SchurMultiStepIntegrator::FirstStepPredict(): "
+	      "unknown dof order" << std::endl;
       THROW(ErrGeneric());
     }
   }
@@ -1615,7 +1617,7 @@ SchurMultiStepIntegrator::Predict(MultiStepIntegrationMethod* pM)
 {
    // Note: pM must be initialised prior to calling Predict()
 
-   DEBUGCOUTFNAME(sClassName() << "::Predict");
+   DEBUGCOUTFNAME("SchurMultiStepIntegrator::Predict");
 
    Dof CurrDof;
   
@@ -1645,15 +1647,11 @@ SchurMultiStepIntegrator::Predict(MultiStepIntegrationMethod* pM)
        pXCurr->fPutCoef(DCount, dXn);
        pXPrimeCurr->fPutCoef(DCount, pM->dPredStateAlg(dXInm1, dXn, dXnm1, dXnm2));
        
-      } else {
-#ifdef __GNUC__
-     std::cerr << __FUNCTION__ << ": ";
-#else
-     std::cerr << sClassName() << "::Predict(): ";
-#endif /* __GNUC__ */
-     std::cerr << "unknown dof order" << std::endl;
-     THROW(ErrGeneric());
-      }
+     } else {
+       std::cerr << "SchurMultiStepIntegrator::Predict(): "
+	       "unknown dof order" << std::endl;
+       THROW(ErrGeneric());
+     }
    }
 
 
@@ -1682,12 +1680,8 @@ SchurMultiStepIntegrator::Predict(MultiStepIntegrationMethod* pM)
      pXPrimeCurr->fPutCoef(DCount, pM->dPredStateAlg(dXInm1, dXn, dXnm1, dXnm2));
 
       } else {
-#ifdef __GNUC__
-     std::cerr << __FUNCTION__ << ": ";
-#else
-     std::cerr << sClassName() << "::Predict(): ";
-#endif /* __GNUC__ */
-     std::cerr << "unknown dof order" << std::endl;
+     std::cerr << "SchurMultiStepIntegrator::Predict(): "
+	     "unknown dof order" << std::endl;
      THROW(ErrGeneric());
       }
    }
@@ -1699,7 +1693,7 @@ doublereal SchurMultiStepIntegrator::NewTimeStep(doublereal dCurrTimeStep,
 						   integer iPerformedIters,
 						   MultiStepIntegrationMethod::StepChange Why )
 {
-   DEBUGCOUTFNAME(sClassName() << "::NewTimeStep");
+   DEBUGCOUTFNAME("SchurMultiStepIntegrator::NewTimeStep");
 
    switch (CurrStrategy) {
     case FACTOR: {
@@ -1757,7 +1751,7 @@ doublereal SchurMultiStepIntegrator::NewTimeStep(doublereal dCurrTimeStep,
 void
 SchurMultiStepIntegrator::DerivativesUpdate(const VectorHandler& Sol)
 {
-  DEBUGCOUTFNAME(sClassName() << "::DerivativesUpdate");
+  DEBUGCOUTFNAME("SchurMultiStepIntegrator::DerivativesUpdate");
 
   Dof CurrDof;
   
@@ -1793,7 +1787,7 @@ SchurMultiStepIntegrator::DerivativesUpdate(const VectorHandler& Sol)
 void
 SchurMultiStepIntegrator::Update(const VectorHandler& Sol)
 {
-  DEBUGCOUTFNAME(sClassName() << "::Update");
+  DEBUGCOUTFNAME("SchurMultiStepIntegrator::Update");
   
   Dof CurrDof;
   
@@ -2640,21 +2634,21 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
 	  }
   
 	  if (HP.IsKeyWord("workspacesize")) {
-	     iLWorkSpaceSize = HP.GetInt();
-	     if (iLWorkSpaceSize < 0) {
-		iLWorkSpaceSize = 0;
+	     iWorkSpaceSize = HP.GetInt();
+	     if (iWorkSpaceSize < 0) {
+		iWorkSpaceSize = 0;
 	     }
 	  }
 	  
 	  if (HP.IsKeyWord("pivotfactor")) {
-	     dLPivotFactor = HP.GetReal();
-	     if (dLPivotFactor <= 0. || dLPivotFactor > 1.) {
-		dLPivotFactor = 1.;
+	     dPivotFactor = HP.GetReal();
+	     if (dPivotFactor <= 0. || dPivotFactor > 1.) {
+		dPivotFactor = 1.;
 	     }
 	  }
 	  
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Workspace size: " << iLWorkSpaceSize 
-		    << ", pivor factor: " << dLPivotFactor << std::endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Workspace size: " << iWorkSpaceSize 
+		    << ", pivor factor: " << dPivotFactor << std::endl);
 	  break;
        }
        case INTERFACESOLVER: {
