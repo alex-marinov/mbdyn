@@ -21,6 +21,9 @@ MBDyn 1.X-Devel
 		- added deformable joint (elastic only)
 		- added private data to deformable hinge
 		- added private data to deformable displacement joint
+		- changed default for "derivatives coefficient"; reworked
+		  diagnostics for derivatives failure (noted by Aakash Dalwani)
+		- added support for scalar SuperLU (by Marco Morandini)
 	Backward compatibility issues:
 		- s/(deformable displacement )hinge/\1joint/
 	Known issues:
