@@ -9,28 +9,32 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.X-Engineering
 	Enhancements:
-		- added matrix-free nonlinear solver (BiCGStab/GMRES)
-		- added third order step solver
+		- added matrix-free nonlinear solver (BiCGStab/GMRES
+		  by Giuseppe Quaranta)
+		- added third order step solver (by Marco Morandini)
 		- added TAUCS linear solver (eXperimental)
 		- added "ad hoc" (Radau IIA) third-order integrator
 		- honor describe dofs directive in initial assembly
 		- added support for describing equations
 		- added support for namespaces in math parser
-		- added distance() function between nodes to math parser
+		- added model:: namespace with basic functions
 	Backward compatibility issues:
 		- "output file name" statement in "control data"
 		  is no longer supported
 	Known issues:
+		- local socket drive/output need work
 	Bug fixes:
 		- fixed angular acceleration bug with ScalarDof
 		- fixed jacobian output during modified NR
 		- fixed Schur solver API bug in driven elements
 		- fixed "naive" support of parallel assembly
 		- fixed default model name for adams output
-		- fixed modal inertia computation when clamped
+		- fixed modal inertia computation when clamped (problem
+		  noted by Fabio Riva and Luca Zucchetti)
 		- fixed rigid body inertia reference point in restart
 		- fixed output file name handling (scalar and parallel)
-		- fixed modal inertia matrix computation
+		- fixed modal inertia matrix computation (problem noted
+		  by Fabio Riva and Luca Zucchetti)
 
 MBDyn 1.2.1
 	Enhancements:
@@ -76,7 +80,8 @@ MBDyn 1.2.0
 	Bug fixes:
 		- fixed .vol generation script for EasyAnim
 		- fixed potential bug in c81 data input
-		- fixed distance joint initial assembly
+		- fixed distance joint initial assembly (problem noted
+		  by Stefania Gualdi)
 
 MBDyn 1.2-Beta.4
 	Enhancements:
@@ -86,7 +91,7 @@ MBDyn 1.2-Beta.4
 
 MBDyn 1.2-Beta.3 (unannounced)
 	Enhancements:
-		- added discrete Coulomb friction model
+		- added discrete Coulomb friction model (by Marco Morandini)
 		- added constitutive law output to elements
 		- added "sramp" (saturated ramp) function to math parser
 		- added "setenv" statement
@@ -94,7 +99,7 @@ MBDyn 1.2-Beta.3 (unannounced)
 		- added separate definition of constitutive laws
 		- added "bailout" output mode (residual at divergence)
 		- added "stop" function in math parser
-		- added brake joint
+		- added brake joint (by Marco Morandini)
 		- added awk scripts to prepare input for EasyAnim
 		- added parts velocities in ADAMS/View output
 		- added first order BDF integrator
