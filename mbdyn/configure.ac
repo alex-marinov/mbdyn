@@ -178,7 +178,9 @@ AC_ARG_WITH(module,[  --with-module=modulelist	with listed modules],[
 ],[MODULES_DIRS=])dnl
 
 dnl ----------------------------------------------------------------
+dnl
 dnl Extra help
+dnl
 AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 ac_help="$ac_help
 
@@ -190,13 +192,15 @@ All --with-* commands, whenever appropriate, also support:
 AC_DIVERT_POP()dnl
 
 dnl ----------------------------------------------------------------
+dnl
 dnl Validate general "enable" options
+dnl
 
 
 dnl ----------------------------------------------------------------
+dnl
 dnl Checks for programs.
 dnl
-
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_F77
@@ -204,7 +208,9 @@ AM_DISABLE_SHARED dnl Remove when you want to build shared libs also
 AM_PROG_LIBTOOL
 
 dnl ----------------------------------------------------------------
+dnl
 dnl Initialize vars
+dnl
 F2C_LIBS=
 MPI_LIBS=
 METIS_LIBS=
@@ -219,7 +225,9 @@ dnl MODULES_DIRS=
 
 
 dnl ----------------------------------------------------------------
+dnl
 dnl MBDyn requires STDC features
+dnl
 AM_PROG_CC_STDC
 if test "X${am_cv_prog_cc_stdc}" = "Xno" ; then
 	AC_MSG_ERROR([I'm afraid MBDyn requires compiler to support STDC constructs.])
@@ -227,7 +235,9 @@ fi
 
 
 dnl ----------------------------------------------------------------
+dnl
 dnl Checks for header files.
+dnl
 AC_STDC_HEADERS
 AC_CHECK_HEADERS(signal.h)
 AC_CHECK_HEADERS(unistd.h)
@@ -235,7 +245,14 @@ AC_CHECK_HEADERS(getopt.h)
 
 
 dnl ----------------------------------------------------------------
+dnl
 dnl Sort out defines
+dnl
+
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Typedefs
 dnl
 
 
@@ -552,7 +569,9 @@ if test $ol_with_meschach != no ; then
 		try_meschach_LIBS="-lmeschach"
 		save_LIBS=$LIBS
 		LIBS="$LIBS $try_meschach_LIBS"
-		AC_TRY_LINK([#include <meschach/sparse2.h>],[
+		AC_TRY_LINK([
+#include <meschach/sparse2.h>
+],[
 			SPMAT* mat;
 			mat = sp_get(10, 20, 10);
 		],[have_meschach=yes],[have_meschach=no])
