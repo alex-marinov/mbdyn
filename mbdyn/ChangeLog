@@ -6,6 +6,10 @@ Copyright (C) 1996-2002
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Wed Mar 27 17:28:42 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - merged scalar and parallel multistep integrators
+ - detects whether it is invoked by mpirun
+
 *** Thu Mar 21 19:26:21 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - cleanup of build environment; useless stuff is not installed.
    Now: first check out the code; tailor & run "sh ./bootstrap.sh";
