@@ -1301,7 +1301,10 @@ for regular joints.
         <node_2> , (Vec3) <relative_offset_2>
         [ , hinge , 
             (OrientationMatrix) <relative_orientation_matrix_2> ] ,
-        <friction data>
+        friction , <average_radius> , 
+                   [ preload , <const_value> , ]
+                   <friction_model> , 
+                   <shape_function>
 \end{verbatim}
 The \kw{friction\_data} is undocumented yet.
 \emph{Note: a \kw{revolute hinge} between the same two nodes 
@@ -1721,6 +1724,10 @@ deprecated and may not be supported in future versions.
         <node_2> , (Vec3) <relative_offset_2>
         [ , hinge , 
             (OrientationMatrix) <relative_orientation_matrix_2> ]
+        [ , friction , <average_radius> , 
+                   [ preload , <const_value> , ]
+                   <friction_model> , 
+                   <shape_function> ]
 \end{verbatim}
 {\em
     Note: this joint forces nodes 1 and 2 to rotate only about relative 

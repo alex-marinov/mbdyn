@@ -1094,7 +1094,62 @@ template drive caller is actually costructed, thus avoiding the overhead
 related to the handling of the drive caller array.    
 
 
-
+\section{Friction}
+Any friction-enabled joint need the definition of
+at least a \kw{friction model} and of a \kw{shape function}.
+\subsection{Friction models}
+The \kw{friction model} input format is:
+\begin{verbatim}
+    <friction_model> ::= <friction_type> , <friction_arglist>
+\end{verbatim}
+Currently implemented friction models are:
+\begin{enumerate}
+    \item \kw{modlugre}\\
+    This fricion model is based on 
+    Pierre Dupont, Vincent Hayward, Brian Armstrong and
+    Friedhelm Altpeter, Single State Elasto-Plastic Friction Models,
+    IEEE Transactions on Automatic Control, June 2002. The input format is:
+    \begin{verbatim}
+    <friction_arglist> ::= <sigma0>, <sigma1>, <sigma2>, <kappa>,
+                               <friction_function>
+    <sigma0> ::= <const_value>
+    <sigma1> ::= <const_value>
+    <sigma2> ::= <const_value>
+    <friction_function> ::= <ScalarFunction>
+    \end{verbatim}
+    \item \kw{discrete coulomb}\\
+    This is a Coulomb model with viscous friction and
+    internal states to resolve stick/slip conditions.
+    \begin{verbatim}
+    <friction_arglist> ::= [sigma2,] [vel_ratio,]
+                               <friction_function>
+    <sigma2> ::= sigma2 , <const_value>
+    <vel_ratio> ::= velocity ratio , <const_value>
+    <friction_function> ::= <ScalarFunction>
+    \end{verbatim}
+    where \kw{sigma2} gives the viscous friction;
+    \kw{velocity ratio} defaults to 0.8, and is used
+    to discriminate stick/slip conditions
+\end{enumerate}
+where \kw{friction\_function} give the static friction
+as a function of sliding velocity.
+\subsection{Shape functions}
+A \kw{shape function} input format is:
+\begin{verbatim}
+    <shape_function> ::= <shape_function_type> , <shape_function_arglist>
+\end{verbatim}
+Currently implemented friction models are:
+\begin{enumerate}
+    \item \kw{simple}\\
+    This shape function is equal to one. It does not need arguments.
+    \item \kw{simple plane hinge}
+    \begin{verbatim}
+    <shape_function_arglist> ::= <radius>
+    <radius> ::= <const_value>
+    \end{verbatim}
+    This is the shape function of a \kw{revolute hinge} with radius equal to 
+    \kw{radius} and subject to small loads.
+\end{enumerate}
 \section{Shapes}
 The \kw{shape} entities are objects that return a value depending on one
 (or two, for 2D shapes) dimensionless abscissa, ranging $ \sqbr{-1,1} $.
