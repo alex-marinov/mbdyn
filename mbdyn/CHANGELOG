@@ -11,7 +11,8 @@ MBDyn 1.X-Engineering
 	Enhancements:
 		- added matrix-free nonlinear solver (BiCGStab/GMRES
 		  by Giuseppe Quaranta)
-		- added third order step solver (by Marco Morandini)
+		- added (experimental) third order step solver
+		  (by Marco Morandini)
 		- added TAUCS linear solver (eXperimental)
 		- added "ad hoc" (Radau IIA) third-order integrator
 		- honor describe dofs directive in initial assembly
