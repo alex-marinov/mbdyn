@@ -6,6 +6,9 @@ Copyright (C) 1996-2002
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Thu Nov  7 22:37:00 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - first cut at reduced output
+
 *** Mon Nov  4 13:00:00 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - struct node type does not default to dynamic any more
  - spherical joint output in local frame

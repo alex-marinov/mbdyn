@@ -109,6 +109,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       "make" "restart" "file",
       "output" "file" "name",
       "output" "precision",
+      "output" "frequency",
       "adams" "res" "output",
       "default" "output",
       "all",	
@@ -165,6 +166,8 @@ void DataManager::ReadControl(MBDynParser& HP,
       MAKERESTARTFILE,
       OUTPUTFILENAME,
       OUTPUTPRECISION,
+      OUTPUTFREQUENCY,
+
       ADAMSRESOUTPUT,
       DEFAULTOUTPUT,
       ALL,
@@ -634,6 +637,17 @@ void DataManager::ReadControl(MBDynParser& HP,
        case OUTPUTPRECISION: {
           int iPrec = HP.GetInt();
 	  OutHdl.SetPrecision(iPrec);
+	  break;
+       }
+	 
+       case OUTPUTFREQUENCY: {
+          integer iFreq = HP.GetInt();
+	  if (iFreq < 1) {
+		  std::cerr << "Illegal output frequency " << iFreq
+			  << " at line " << HP.GetLineData() << std::endl;
+		  THROW(ErrGeneric());
+	  }
+	  iOutputFrequency = iFreq;
 	  break;
        }
 	 

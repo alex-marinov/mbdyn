@@ -305,14 +305,14 @@ MultiStepIntegrator::Run(void)
 
    	if (fAbortAfterInput) {
       		/* Esce */
-		pDM->Output();
+		pDM->Output(1);
       		Out << "End of Input; no simulation or assembly is required."
 			<< std::endl;
       		return;
 
    	} else if (fAbortAfterAssembly) {
       		/* Fa l'output dell'assemblaggio iniziale e poi esce */
-      		pDM->Output();
+      		pDM->Output(1);
       		Out << "End of Initial Assembly; no simulation is required."
 			<< std::endl;
       		return;
@@ -729,7 +729,7 @@ MultiStepIntegrator::Run(void)
 				<< " has been reached during initial"
 				" derivatives calculation;" << std::endl
 				<< "aborting ..." << std::endl;	 
-	 		pDM->Output();	 
+	 		pDM->Output(1);
 	 		THROW(MultiStepIntegrator::ErrMaxIterations());
       		}
 
@@ -788,7 +788,7 @@ EndOfDerivatives:
       		/*
 		 * Fa l'output della soluzione delle derivate iniziali ed esce
 		 */
-      		pDM->Output();
+      		pDM->Output(1);
       		Out << "End of derivatives; no simulation is required."
 			<< std::endl;
       		return;
@@ -797,7 +797,7 @@ EndOfDerivatives:
       		/*
 		 * Fa l'output della soluzione delle derivate iniziali ed esce
 		 */
-      		pDM->Output();
+      		pDM->Output(1);
       		Out << "Interrupted during derivatives computation." << std::endl;
       		return;
 #endif /* HAVE_SIGNAL */
@@ -926,7 +926,7 @@ EndOfDerivatives:
 					<< " cannot be reduced further;"
 					<< std::endl
 					<< "aborting ..." << std::endl;
-	    			pDM->Output();
+	    			pDM->Output(1);
 	    			THROW(MultiStepIntegrator::ErrMaxIterations());
 	 		}
 
@@ -988,7 +988,7 @@ EndOfFirstFictitiousStep:
 			 * ed esce
 			 */
 #ifdef DEBUG_FICTITIOUS
-	   		pDM->Output();
+	   		pDM->Output(1);
 #endif /* DEBUG_FICTITIOUS */
 	 		Out << "Interrupted during first dummy step." << std::endl;
 	 		return;
@@ -996,7 +996,7 @@ EndOfFirstFictitiousStep:
 #endif /* HAVE_SIGNAL */
       
 #ifdef DEBUG_FICTITIOUS
-      		pDM->Output();
+      		pDM->Output(1);
 #endif /* DEBUG_FICTITIOUS */
             
        		/* Passi fittizi successivi */
@@ -1113,7 +1113,7 @@ EndOfFirstFictitiousStep:
 						<< ");" << std::endl
 						<< "aborting ..." << std::endl;
 						
-	       				pDM->Output();
+	       				pDM->Output(1);
 					THROW(MultiStepIntegrator::ErrMaxIterations());
 	    			}
 	    
@@ -1350,7 +1350,7 @@ IfFirstStepIsToBeRepeated:
 					<< " cannot be reduced further;"
 					<< std::endl
 					<< "aborting ..." << std::endl;
-	    			pDM->Output();
+	    			pDM->Output(1);
 				THROW(MultiStepIntegrator::ErrMaxIterations());
 	 		}
       		}

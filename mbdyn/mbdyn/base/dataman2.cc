@@ -773,8 +773,13 @@ void DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 
 
 /* Output dati */
-void DataManager::Output(void) const
+void DataManager::Output(int force) const
 { 
+   /* output only at multiples of iOutputFrequency */
+   if ((!force) && (iOutputCount++%iOutputFrequency)) {
+      return;
+   }
+
    /* Dati dei nodi */
    NodeOutput((OutputHandler&)OutHdl);
    
