@@ -1291,13 +1291,15 @@ DynamicInflowRotor::AssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUT("Entering DynamicInflowRotor::AssJac()" << std::endl);
+
+	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+	integer iFirstIndex = iGetFirstIndex();
+
 #ifdef USE_MPI 
 	if (is_parallel && RotorComm.Get_rank() == 0) {
 #endif /* USE_MPI */     
-		SparseSubMatrixHandler& WM = WorkMat.SetSparse();
 		WM.ResizeInit(5, 0, 0.);
    
-		integer iFirstIndex = iGetFirstIndex();
 		WM.fPutItem(1, iFirstIndex+1, iFirstIndex+1, dM11+dCoef*dL11);
 		WM.fPutItem(2, iFirstIndex+3, iFirstIndex+1, dCoef*dL31);
 		WM.fPutItem(3, iFirstIndex+2, iFirstIndex+2, dM22+dCoef*dL22);
@@ -1306,7 +1308,11 @@ DynamicInflowRotor::AssJac(VariableSubMatrixHandler& WorkMat,
 
 #ifdef USE_MPI
 	} else {
-		WorkMat.SetNullMatrix();
+		WM.ResizeInit(3, 0, 0.);
+   
+		WM.fPutItem(1, iFirstIndex+1, iFirstIndex+1, dM11);
+		WM.fPutItem(2, iFirstIndex+2, iFirstIndex+2, dM22);
+		WM.fPutItem(3, iFirstIndex+3, iFirstIndex+3, dM33);
 	}
 #endif /* USE_MPI */
 
@@ -1379,7 +1385,7 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 	   	doublereal dVSinePrime = XPrimeCurr.dGetCoef(iFirstIndex+2);
 	   	doublereal dVCosinePrime = XPrimeCurr.dGetCoef(iFirstIndex+3);
      
-		doublereal dCt = 0.;
+		doublereal dCT = 0.;
 		doublereal dCl = 0.;
 		doublereal dCm = 0.;
 
@@ -1412,6 +1418,10 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 			 * dUMean is just for output;
 			 */	
 		   	dUMean = dVConst*dOmega*dRadius;
+
+#if 0	/* need this to damp out oscillations */
+			dUMeanRef = dUMean;
+#endif
      
 		   	/* Trazione nel sistema rotore */
 		   	doublereal dT = RRot3*Res.Force();
@@ -1425,14 +1435,14 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		   	Vec3 M(RTmp*(RRotTranspose*Res.Couple()));
 
 		 	/* Coefficienti di trazione e momento */
-		 	dCt = dT/dDim;
+		 	dCT = dT/dDim;
 		 	dDim *= dRadius;
 		 	dCl = M.dGet(1)/dDim;
 		 	dCm = M.dGet(2)/dDim;
 
 #if 0
 			/* we can't get here if dOmega is too small ... */
-			std::cout << dCt/fabs(dOmega)
+			std::cout << dCT/fabs(dOmega)
 				<< " " << dCl/fabs(dOmega)
 				<< " " << dCm/fabs(dOmega)
 				<< " " << RRotTranspose*Res.Couple()
@@ -1441,19 +1451,24 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 #endif /* 0 */
 
 			/* Matrix coefficients */
-		 	doublereal d = dChi/2.;      
-		 	doublereal dSinChi2 = sin(d);
-		 	doublereal dCosChi2 = cos(d);
-
+			/* FIXME: divide by 0? */
 		 	doublereal dl11 = .5/dVT;
-		 	d = 15./64.*M_PI*(dSinChi2/dCosChi2);
+			/* FIXME: divide by 0? */
+		 	doublereal d = 15./64.*M_PI*tan(dChi/2.);
+			/* FIXME: divide by 0? */
 		 	doublereal dl13 = d/dVm;
+			/* FIXME: divide by 0? */
 		 	doublereal dl31 = d/dVT;
+
+		 	doublereal dCosChi2 = cos(dChi/2.);
 		 	d = 2.*dCosChi2*dCosChi2;
+			/* FIXME: divide by 0? */
 		 	doublereal dl22 = -4./(d*dVm);
+			/* FIXME: divide by 0? */
 			doublereal dl33 = -4.*(d - 1)/(d*dVm);
 
 			d = dl11*dl33 - dl31*dl13;
+			/* FIXME: divide by 0? */
 			dL11 = dOmega*dl33/d;
 			dL31 = -dOmega*dl31/d;
 			dL13 = -dOmega*dl13/d;
@@ -1468,12 +1483,22 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 			dL33 = 0.;
 	   	}
 
-		WorkVec.fPutCoef(1, dCt - dM11*dVConstPrime
+		WorkVec.fPutCoef(1, dCT - dM11*dVConstPrime
 				- dL11*dVConst - dL13*dVCosine);
-	 	WorkVec.fPutCoef(2, dCl - dM22*dVSinePrime
+	 	WorkVec.fPutCoef(2, - dCl - dM22*dVSinePrime
 				- dL22*dVSine);
 	 	WorkVec.fPutCoef(3, dCm - dM33*dVCosinePrime
 				- dL31*dVConst - dL33*dVCosine);
+
+#if 0
+		std::cout
+			<< dM22
+			<< " " << dL22
+			<< " " << dCl
+			<< " " << dVSinePrime
+			<< " " << dVSine
+			<< std:: endl;
+#endif
      
 #ifdef USE_MPI 
 
