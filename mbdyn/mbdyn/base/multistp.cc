@@ -1802,6 +1802,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	      break;
 	   }
 	   case NOSTRO:
+	   case MS:
 	   case HOPE: {	      	     
 	      DriveCaller* pRho = ReadDriveData(NULL, HP, NULL);
 	      HP.PutKeyTable(K);
@@ -1810,7 +1811,8 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	      HP.PutKeyTable(K);
 	      
 	      switch (KMethod) {
-	       case NOSTRO: {
+	       case NOSTRO:
+	       case MS: {
 		  SAFENEWWITHCONSTRUCTOR(pFictitiousStepsMethod,
 					 NostroMetodo,
 					 NostroMetodo(pRho, pRhoAlgebraic),
