@@ -2239,6 +2239,49 @@ EndOfCycle: /* esce dal ciclo di lettura */
 
 #include <dgegv.h>
 
+static int
+do_eig(doublereal b, doublereal re, doublereal im, doublereal h, doublereal& sigma, doublereal& omega, doublereal& csi, doublereal& freq)
+{
+	int isPi = 0;
+
+	if (fabs(b) > 1.e-16) {
+		doublereal d;
+		if (im != 0.) {
+			d = sqrt(re*re+im*im)/fabs(b);
+		} else {
+			d = fabs(re/b);
+		}
+		sigma = log(d)/h;
+		omega = atan2(im, re)/h;
+		
+		isPi = (fabs(im/b) < 1.e-15 && fabs(re/b+1.) < 1.e-15);
+		if (isPi) {
+			sigma = 0.;
+			omega = HUGE_VAL;
+		}
+		
+		d = sqrt(sigma*sigma+omega*omega);
+		if (d > 1.e-15 && fabs(sigma)/d > 1.e-15) {
+			csi = 100*sigma/d;
+		} else {
+			csi = 0.;
+		}
+		
+		if (isPi) {
+			freq = HUGE_VAL;
+		} else {
+			freq = omega/(2*M_PI);
+		}
+	} else {	 
+		sigma = 0.;
+		omega = 0.;
+		csi = 0.;
+		freq = 0.;
+	}
+
+	return isPi;
+}
+
 void 
 MultiStepIntegrator::Eig(void)
 {
@@ -2266,8 +2309,9 @@ MultiStepIntegrator::Eig(void)
    /* Workspaces */
    /* 4 matrices iSize x iSize, 3 vectors iSize x 1, 1 vector iWorkSize x 1 */
    doublereal* pd = NULL;
-   SAFENEWARR(pd, doublereal, 4*(iSize*iSize)+3*iSize+iWorkSize, SMmm);
-   for (int iCnt = 4*(iSize*iSize)+3*iSize+iWorkSize; iCnt-- > 0; ) {
+   int iTmpSize = 4*(iSize*iSize)+3*iSize+iWorkSize;
+   SAFENEWARR(pd, doublereal, iTmpSize, SMmm);
+   for (int iCnt = iTmpSize; iCnt-- > 0; ) {
       pd[iCnt] = 0.;
    }
       
@@ -2408,49 +2452,35 @@ MultiStepIntegrator::Eig(void)
 
    for (int iCnt = 1; iCnt <= iSize; iCnt++) {
       Out << setw(8) << iCnt << ": ";
+
       doublereal b = Beta.dGetCoef(iCnt);
-      if (fabs(b) > 1.e-16) {
-	 doublereal re = AlphaR.dGetCoef(iCnt);
-	 doublereal im = AlphaI.dGetCoef(iCnt);
-	 doublereal d;
-	 if (im != 0.) {
-	    d = sqrt(re*re+im*im)/fabs(b);
-	 } else {
-	    d = fabs(re/b);
-	 }
-	 doublereal sigma = log(d)/h;
-	 doublereal omega = atan2(im, re)/h;
+      doublereal re = AlphaR.dGetCoef(iCnt);
+      doublereal im = AlphaI.dGetCoef(iCnt);
+      doublereal sigma;
+      doublereal omega;
+      doublereal csi;
+      doublereal freq;
 
-#if 0
-	 Out << "[(" << re << ( im >= 0. ? "+" : "-" ) << "j*" << fabs(im) 
-           << ")/" << b << "] ";
-#endif
-	 
-	 int isPi = (fabs(im/b) < 1.e-15 && fabs(re/b+1.) < 1.e-15);
-	 if (isPi) {
-	    Out << setw(12) << 0. << " - " << "          PI j";
-	 } else {
-            Out << setw(12) << sigma << " + " << setw(12) << omega << " j";
-	 }
+      int isPi = do_eig(b, re, im, h, sigma, omega, csi, freq);
 
-	 d = sqrt(sigma*sigma+omega*omega);
-	 if (d > 1.e-15 && fabs(sigma)/d > 1.e-15) {
-	    Out << "    " << setw(12) << 100*sigma/d;
-	 } else {
-	    Out << "    " << setw(12) << 0.;
-	 }
-
-	 if (isPi) {
-	    Out << "    " << "PI";
-	 } else {
-	    Out << "    " << setw(12) << omega/(2*M_PI);
-	 }
-      } else {	 
-         Out << setw(12) << 0. 
-	   << " + " << setw(12) << 0.
-	   << " j    " << setw(12) << 0. 
-	   << "    " << setw(12) << 0.;
+      if (isPi) {
+	      Out << setw(12) << 0. << " - " << "          PI j";
+      } else {
+	      Out << setw(12) << sigma << " + " << setw(12) << omega << " j";
       }
+
+      if (fabs(csi) > 1.e-15) {
+	      Out << "    " << setw(12) << csi;
+      } else {
+	      Out << "    " << setw(12) << 0.;
+      }
+
+      if (isPi) {
+	      Out << "    " << "PI";
+      } else {
+	      Out << "    " << setw(12) << freq;
+      }
+
       Out << endl;
    }
 
@@ -2476,6 +2506,17 @@ MultiStepIntegrator::Eig(void)
 #ifdef __HACK_NASTRAN_MODES__
       /* EXPERIMENTAL */
       if (fOutputModes) {
+
+	      doublereal b = Beta.dGetCoef(iCnt);
+	      doublereal re = AlphaR.dGetCoef(iCnt);
+	      doublereal im = AlphaI.dGetCoef(iCnt);
+	      doublereal sigma;
+	      doublereal omega;
+	      doublereal csi;
+	      doublereal freq;
+
+	      int isPi = do_eig(b, re, im, h, sigma, omega, csi, freq);
+	      
 	f06 
 		<< "                                                                                                 CSA/NASTRAN 11/14/95    PAGE   " 
 		<< setw(4) << iCnt << endl
@@ -2483,10 +2524,10 @@ MultiStepIntegrator::Eig(void)
 		<< endl
 		<< "    LABEL=DISPLACEMENTS, ";
 	 ios::fmtflags iosfl = f06.setf(ios::left);
-	 const char *comment = "EXPERIMENTAL";
+	 const char *comment = "EXPERIMENTAL MODAL ANALYSIS";
 	 int l = strlen(comment);
 	 f06 << setw(l+1) << comment;
-	 f06 << setw(7) << "- step " << setw(80-8-l) << 0;
+	 f06 << sigma << " " << (omega < 0. ? "-" : "+") << " " << fabs(omega) << setw(80-1-l) << " j";
 	 f06.flags(iosfl);
 	 f06 << "   SUBCASE " << iCnt << endl
 		 << endl
