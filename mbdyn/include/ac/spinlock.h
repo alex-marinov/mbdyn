@@ -56,15 +56,18 @@ struct __xchg_dummy { unsigned long a[100]; };
 
 #endif
 
+#define CMPXCHG(f) \
+	__asm__ __volatile__( LOCK_PREFIX #f " %b1,%2" \
+			: "=a"(prev) \
+			: "q"(newval), "m"(*__xg(valptr)), "0"(oldval) \
+			: "memory")
+
 static inline int8_t
 mbdyn_cmpxchgb(int8_t *valptr, int8_t newval, int8_t oldval)
 {
 	int8_t	prev;
 
-	__asm__ __volatile__( LOCK_PREFIX "cmpxchgb %b1,%2"
-			: "=a"(prev)
-			: "q"(newval), "m"(*__xg(valptr)), "0"(oldval)
-			: "memory");
+	CMPXCHG(cmpxchgb);
 
 	return prev;
 }
@@ -74,10 +77,7 @@ mbdyn_cmpxchgw(int16_t *valptr, int16_t newval, int16_t oldval)
 {
 	int16_t	prev;
 
-	__asm__ __volatile__(LOCK_PREFIX "cmpxchgw %w1,%2"
-    			: "=a"(prev)
-   			: "q"(newval), "m"(*__xg(valptr)), "0"(oldval)
-			: "memory");
+	CMPXCHG(cmpxchgw);
 
 	return prev;
 }
@@ -87,10 +87,21 @@ mbdyn_cmpxchgl(int32_t *valptr, int32_t newval, int32_t oldval)
 {
 	int32_t	prev;
 
-	__asm__ __volatile__(LOCK_PREFIX "cmpxchgl %1,%2"
-			: "=a"(prev)
-			: "q"(newval), "m"(*__xg(valptr)), "0"(oldval)
-			: "memory");
+	CMPXCHG(cmpxchgl);
+
+	return prev;
+}
+
+static inline int
+mbdyn_cmpxchg(int *valptr, int newval, int oldval)
+{
+	int prev;
+
+#if __INT_MAX__ == 32767
+	CMPXCHG(cmpxchgw);
+#else 
+	CMPXCHG(cmpxchgl);
+#endif
 
 	return prev;
 }
@@ -101,12 +112,12 @@ mbdyn_cmpxchgl(int32_t *valptr, int32_t newval, int32_t oldval)
 }
 
 static inline bool
-mbdyn_compare_and_swap(int8_t *valptr, int8_t newval, int8_t oldval)
+mbdyn_compare_and_swap(int8_t &val, int8_t newval, int8_t oldval)
 {
 #if defined(HAVE_CMPXCHG)
-	return (mbdyn_cmpxchgb(valptr, newval, oldval) == oldval);
+	return (mbdyn_cmpxchgb(&val, newval, oldval) == oldval);
 #elif defined(HAVE_COMPARE_AND_SWAP)
-	atomic_p	word_addr = (atomic_p *)valptr;
+	atomic_p	word_addr = (atomic_p *)&val;
 	int		old_val = oldval;
 	int		new_val = newval;
 
@@ -117,12 +128,12 @@ mbdyn_compare_and_swap(int8_t *valptr, int8_t newval, int8_t oldval)
 }
 
 static inline bool
-mbdyn_compare_and_swap(int16_t *valptr, int16_t newval, int16_t oldval)
+mbdyn_compare_and_swap(int16_t &val, int16_t newval, int16_t oldval)
 {
 #if defined(HAVE_CMPXCHG)
-	return (mbdyn_cmpxchgw(valptr, newval, oldval) == oldval);
+	return (mbdyn_cmpxchgw(&val, newval, oldval) == oldval);
 #elif defined(HAVE_COMPARE_AND_SWAP)
-	atomic_p	word_addr = (atomic_p *)valptr;
+	atomic_p	word_addr = (atomic_p *)&val;
 	int		old_val = oldval;
 	int		new_val = newval;
 
@@ -133,12 +144,28 @@ mbdyn_compare_and_swap(int16_t *valptr, int16_t newval, int16_t oldval)
 }
 
 static inline bool
-mbdyn_compare_and_swap(int32_t *valptr, int32_t newval, int32_t oldval)
+mbdyn_compare_and_swap(int32_t &val, int32_t newval, int32_t oldval)
 {
 #if defined(HAVE_CMPXCHG)
-	return (mbdyn_cmpxchgl(valptr, newval, oldval) == oldval);
+	return (mbdyn_cmpxchgl(&val, newval, oldval) == oldval);
 #elif defined(HAVE_COMPARE_AND_SWAP)
-	atomic_p	word_addr = (atomic_p *)valptr;
+	atomic_p	word_addr = (atomic_p *)&val;
+	int		old_val = oldval;
+	int		new_val = newval;
+
+	return compare_and_swap(word_addr, &old_val, new_val);
+#else
+	/* FIXME: provide an alternative ... */
+#endif
+}
+
+static inline bool
+mbdyn_compare_and_swap(int &val, int newval, int oldval)
+{
+#if defined(HAVE_CMPXCHG)
+	return (mbdyn_cmpxchg(&val, newval, oldval) == oldval);
+#elif defined(HAVE_COMPARE_AND_SWAP)
+	atomic_p	word_addr = (atomic_p *)&val;
 	int		old_val = oldval;
 	int		new_val = newval;
 
