@@ -130,52 +130,49 @@ SocketStreamDrive::ServePending(const doublereal& t)
 		return;
 	}
 
-	if (pUS->Connected()) {
-		/* read only every InputEvery steps */
-		InputCounter++;
-		if (InputCounter != InputEvery) {
-			return;
-		}
-		InputCounter = 0;
+	ASSERT(pUS->Connected());
+	
+	/* read only every InputEvery steps */
+	InputCounter++;
+	if (InputCounter != InputEvery) {
+		return;
+	}
+	InputCounter = 0;
 
-		/* FIXME: no receive at first step? */
-		switch (recv(pUS->GetSock(), buf, size, recv_flags)) {
-		case 0:
+	/* FIXME: no receive at first step? */
+	switch (recv(pUS->GetSock(), buf, size, recv_flags)) {
+	case 0:
 do_abandon:;
-			silent_cout("SocketStreamDrive(" << sFileName << "): "
-					<< "communication closed by host" << std::endl);
-			pUS->Abandon();
-			/* FIXME: stop simulation? */
-			break;
+		silent_cout("SocketStreamDrive(" << sFileName << "): "
+				<< "communication closed by host" << std::endl);
+		pUS->Abandon();
+		break;
 
-		case -1: {
-			int save_errno = errno;
+	case -1: {
+		int save_errno = errno;
 
-			/* some errno values may be legal */
-			switch (save_errno) {
-			case ECONNRESET:
-				goto do_abandon;
-			}
-
-			char *err_msg = strerror(save_errno);
-
-			silent_cout("SocketStreamDrive(" << sFileName << ") "
-					<< "failed (" << save_errno << ": " 
-					<< err_msg << ")" << std::endl);
-			throw ErrGeneric();
+		/* some errno values may be legal */
+		switch (save_errno) {
+		case ECONNRESET:
+			goto do_abandon;
 		}
 
-		default: {	
-			doublereal *rbuf = (doublereal *)buf;
+		char *err_msg = strerror(save_errno);
 
-			for (int i = 1; i <= iNumDrives; i++) {
-				pdVal[i] = rbuf[i-1];
-			}
-		}
-		}
+		silent_cout("SocketStreamDrive(" << sFileName << ") "
+				<< "failed (" << save_errno << ": " 
+				<< err_msg << ")" << std::endl);
+		throw ErrGeneric();
+	}
 
-	} else {
-		pUS->Connect();
+	default: {	
+		doublereal *rbuf = (doublereal *)buf;
+
+		for (int i = 1; i <= iNumDrives; i++) {
+			pdVal[i] = rbuf[i-1];
+		}
+		break;
+	}
 	}
 }
 

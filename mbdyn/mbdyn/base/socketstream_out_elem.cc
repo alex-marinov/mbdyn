@@ -167,8 +167,8 @@ SocketStreamElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 void
 SocketStreamElem::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
-#if 0
-	AfterConvergence(X, XP);
+#if 1
+	((SocketStreamElem*)this)->AfterConvergence(X, XP);
 #else
 	if (send(pUS->GetSock(), (void *)buf, size, send_flags) == -1) {
 		int save_errno = errno;
@@ -179,7 +179,6 @@ SocketStreamElem::SetValue(VectorHandler& X, VectorHandler& XP) const
 				<< std::endl);
 
 		pUS->Abandon();
-		/* FIXME: stop simulation? */
 	}
 #endif
 }
@@ -193,6 +192,8 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 	if (pUS->Abandoned()) {
 		return;
 	}
+
+	ASSERT(pUS->Connected());
 
 	/* output only every OutputEvery steps */
 	OutputCounter++;
@@ -221,7 +222,6 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 				<< std::endl);
 
 		pUS->Abandon();
-		/* FIXME: stop simulation? */
 	}
 }
 
