@@ -351,7 +351,7 @@ Model {
       net		      on
       node		      "'127.0.0.1'"
       port		      "10011"
-      path		      "'/tmp/mbdyn.pendulum.out.sock'"
+      path		      "'tmp/mbdyn.pendulum.out.sock'"
       N_chan		      "2"
       Tc		      "1e-3"
     }
@@ -386,7 +386,7 @@ Model {
       net		      on
       node		      "'127.0.0.1'"
       port		      "8005"
-      path		      "'/tmp/mbdyn.pendulum.in.sock'"
+      path		      "'tmp/mbdyn.pendulum.in.sock'"
       N_chan		      "1"
       Tc		      "1e-3"
     }
