@@ -165,17 +165,6 @@ public:
 
 		pCount = pStart - 1;
 		return bGetNext(TReturn);
-
-#if 0
-		for (pCount = pStart; pCount < pStart + iSize; pCount++) {
-			if (!pCount->bIsInUse()) {
-				TReturn = *pCount;
-				return true;
-			}
-		}
-
-		return false;
-#endif
 	};
 
 	inline bool bGetNext(T& TReturn) const
@@ -186,15 +175,9 @@ public:
 
 		for (pCount++; pCount < pStart + iSize; pCount++) {
 			if (!(*pCount)->bIsInUse()) {
-
-				// std::cerr << "    " << pCount << " available" << std::endl;
-
 				TReturn = *pCount;
 				return true;
 			}
-
-			// std::cerr << "    " << pCount << " in use" << std::endl;
-			
 		}
 
 		return false;
