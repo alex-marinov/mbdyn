@@ -767,7 +767,20 @@ RunMBDyn(MBDynParser& HP,
 	        		break;
 		
             		case SSCHUR:
-	        		CurrInt = SSCHUR;
+				std::cerr << "warning: \"schur\" solver "
+					"is deprecated;" << std::endl;
+#ifdef USE_MPI
+				std::cerr << "use \"parallel\" with "
+					"\"multistep\" solver intead"
+					<< std::endl;
+	        		CurrInt = MULTISTEP;
+				fParallel = 1;
+#else /* !USE_MPI */
+				std::cerr << "compile with -DUSE_MPI "
+					"to enable parallel solution" 
+					<< std::endl;
+				THROW(ErrGeneric());
+#endif /* !USE_MPI */
 	        		break;
 		
             		default:
@@ -784,8 +797,8 @@ RunMBDyn(MBDynParser& HP,
             		fParallel = 1;
 	    		break;
 #else /* !USE_MPI */
-            		std::cerr << "complile with -DUSE_MPI to have parallel"
-				<< std::endl;
+            		std::cerr << "complile with -DUSE_MPI to enable "
+				"parallel solution" << std::endl;
 	    		THROW(ErrGeneric());
 #ifndef USE_EXCEPTIONS
 	    		break;
@@ -818,13 +831,6 @@ RunMBDyn(MBDynParser& HP,
 endofcycle:   
    
     	switch (CurrInt) {
-    	case SSCHUR:
-#ifndef USE_MPI
-		std::cerr << "compile with -DUSE_MPI to have parallel" 
-			<< std::endl;
-		THROW(ErrGeneric());
-#endif /* !USE_MPI */
-
     	case MULTISTEP: 
 #ifdef USE_MPI
 		if (fParallel) {
