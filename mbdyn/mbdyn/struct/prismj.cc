@@ -388,9 +388,9 @@ PrismaticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (v1.Dot() < DBL_EPSILON || v2.Dot() < DBL_EPSILON || v3.Dot() < DBL_EPSILON) {
-      std::cerr << "joint " << GetLabel() << ':' << std::endl
-	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << std::endl
-	<< "aborting ..." << std::endl;
+      silent_cerr("PrismaticJoint(" << GetLabel() << "): "
+	      "first and second node hinge axes are (nearly) orthogonal"
+	      << std::endl);
       throw Joint::ErrGeneric();
    }      
    

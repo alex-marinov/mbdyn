@@ -666,7 +666,8 @@ inline unsigned int DummyStructNode::iGetInitialNumDof(void) const
 /* Ritorna il primo indice (-1) di posizione */
 inline integer DummyStructNode::iGetFirstPositionIndex(void) const
 {
-   std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
+   silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs" 
+		   << std::endl);
    throw ErrGeneric();
 }
 
@@ -674,7 +675,8 @@ inline integer DummyStructNode::iGetFirstPositionIndex(void) const
 /* Ritorna il primo indice (-1) di Quantita' di moto */
 inline integer DummyStructNode::iGetFirstMomentumIndex(void) const
 {
-   std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
+   silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs"
+		   << std::endl);
    throw ErrGeneric();
 }
 

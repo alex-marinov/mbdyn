@@ -224,9 +224,9 @@ fOutFlex(sFileMod, std::ios::out /* | std::ios::noreplace */ )
 	SAFENEWARR(pM, Vec3, NStrNodes);
 
 	if (!fOutFlex) {
-		std::cerr << "Modal(" << GetLabel()
-			<< "): unable to open output file \"" << sFileMod
-			<< "\"" << std::endl;
+		silent_cerr("Modal(" << GetLabel() << "): "
+			"unable to open output file \"" << sFileMod << "\""
+			<< std::endl);
 		throw ErrGeneric();
 	}
 
@@ -1567,12 +1567,15 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 		/* Error handling: il programma si ferma,
 		 * pero' segnala dov'e' l'errore */
-		if (v1.Dot() < DBL_EPSILON || v2.Dot() < DBL_EPSILON
-				|| v3.Dot() < DBL_EPSILON) {
-			std::cerr << "Modal(" << GetLabel() << "):" 
+		if (v1.Dot() < DBL_EPSILON
+				|| v2.Dot() < DBL_EPSILON
+				|| v3.Dot() < DBL_EPSILON)
+		{
+			silent_cerr("Modal(" << GetLabel() << "):" 
 				<< "warning, first node hinge axis "
 				"and second node hinge axis "
-				"are (nearly) orthogonal;" << std::endl						<< "aborting ..." << std::endl;
+				"are (nearly) orthogonal; aborting ..."
+				<< std::endl);
 			throw Joint::ErrGeneric();
 		}
 		
@@ -2176,19 +2179,19 @@ ReadModal(DataManager* pDM,
 		/* verifica di esistenza del nodo */
 		StructNode* pTmpNode = pDM->pFindStructNode(uNode);
 		if (pTmpNode == NULL) {
-			std::cerr << "Modal(" << uLabel
-				<< "): structural node " << uNode
-				<< " at line " << HP.GetLineData()
-				<< " not defined" << std::endl;
+			silent_cerr("Modal(" << uLabel << "): "
+				"StructuralNode(" << uNode << ") "
+				"at line " << HP.GetLineData()
+				<< " not defined" << std::endl);
 			throw DataManager::ErrGeneric();
 		}
 
 		if (pTmpNode->GetStructNodeType() != StructNode::MODAL) {
-			std::cerr << "Modal(" << uLabel
-				<< "): illegal type "
-				"for StructuralNode(" << uNode
-				<< ") at line " << HP.GetLineData() 
-				<< std::endl;
+			silent_cerr("Modal(" << uLabel << "): "
+				"illegal type for "
+				"StructuralNode(" << uNode << ") "
+				"at line " << HP.GetLineData() 
+				<< std::endl);
 			throw DataManager::ErrGeneric();
 		}
 		pModalNode = dynamic_cast<ModalNode *>(pTmpNode);
@@ -2203,18 +2206,18 @@ ReadModal(DataManager* pDM,
 	}
 
 	/* Legge i dati relativi al corpo flessibile */
-	unsigned int NModes = HP.GetInt();     /* numero di modi */
-	if (NModes == 0) {
-		std::cerr << "Modal(" << uLabel << "): "
-			"illegal number of modes at line "
-			<< HP.GetLineData() << std::endl;
+	int NModes = HP.GetInt();     /* numero di modi */
+	if (NModes <= 0) {
+		silent_cerr("Modal(" << uLabel << "): "
+			"illegal number of modes " << NModes << " at line "
+			<< HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric();
 	}
 
 	unsigned int *uModeNumber = NULL;
 	SAFENEWARR(uModeNumber, unsigned int, NModes);
 	if (HP.IsKeyWord("list")) {
-		for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
+		for (int iCnt = 0; iCnt < NModes; iCnt++) {
 			int n = HP.GetInt();
 
 			if (n <= 0) {
@@ -2238,10 +2241,10 @@ ReadModal(DataManager* pDM,
 					break;
 				}
 
-				std::cerr << "Modal(" << uLabel << "): "
+				silent_cerr("Modal(" << uLabel << "): "
 					"illegal " << iCnt+1 << "'" << th 
 					<< " mode number " << n 
-					<< std::endl;
+					<< std::endl);
 				throw ErrGeneric();
 			}
 
@@ -2256,11 +2259,11 @@ ReadModal(DataManager* pDM,
 	}
 
 	/* numero di nodi FEM del modello */
-	unsigned int NFemNodes = HP.GetInt();
+	int NFemNodes = HP.GetInt();
 	if (NFemNodes == 0) {
-		std::cerr << "Modal(" << uLabel << "): "
-			"illegal number of FEM nodes at line " 
-			<< HP.GetLineData() << std::endl;
+		silent_cerr("Modal(" << uLabel << "): "
+			"illegal number of FEM nodes " << NFemNodes
+			<< " at line " << HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric();
 	}
 
@@ -2348,8 +2351,8 @@ ReadModal(DataManager* pDM,
 	/* input file */
 	const char *s = HP.GetFileName();
 	if (s == NULL) {
-		std::cerr << "Modal(" << uLabel << "): unable to get "
-			"modal data file name" << std::endl;
+		silent_cerr("Modal(" << uLabel << "): unable to get "
+			"modal data file name" << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -2359,9 +2362,9 @@ ReadModal(DataManager* pDM,
 	/* apre il file con i dati del modello FEM */
 	std::ifstream fdat(sFileFem);
 	if (!fdat) {
-		std::cerr << "Modal(" << uLabel << "): "
-			"unable to open file " << sFileFem
-			<< " at line " << HP.GetLineData() << std::endl;
+		silent_cerr("Modal(" << uLabel << "): "
+			"unable to open file \"" << sFileFem << "\""
+			"at line " << HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric();
 	}
 	DEBUGCOUT("Reading Flexible Body Data from file "
@@ -2434,12 +2437,12 @@ ReadModal(DataManager* pDM,
 		
 			/* consistency checks */
 			if (NFemNodes != NFemNodesDADS) {
-				std::cerr << "Modal(" << uLabel
-					<< "), file '" << sFileFem 
-					<< "': FEM nodes number " << NFemNodes
+				silent_cerr("Modal(" << uLabel << "), "
+					"file \"" << sFileFem << "\": "
+					"FEM nodes number " << NFemNodes
 					<< " does not match node number "
 					<< NFemNodesDADS
-					<< std::endl;
+					<< std::endl);
 				throw DataManager::ErrGeneric();
 			}
 
@@ -2463,11 +2466,11 @@ ReadModal(DataManager* pDM,
 
 			for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
 				if (uModeNumber[iCnt] > NModesDADS) {
-					std::cerr << "Modal(" << uLabel << "): "
+					silent_cerr("Modal(" << uLabel << "): "
 						"mode " << uModeNumber[iCnt]
 						<< " is not available (max = "
 						<< NModesDADS << ")"
-						<< std::endl;
+						<< std::endl);
 					throw ErrGeneric();
 				}
 				bActiveModes[uModeNumber[iCnt]] = true;
@@ -2488,10 +2491,10 @@ ReadModal(DataManager* pDM,
 			unsigned int iCnt = 1;
 
 			if (bActiveModes == NULL) {
-				std::cerr << "Modal(" << uLabel << "): "
-					"input file " << sFileFem
-					<< " is bogus (RECORD GROUP 3)"
-					<< std::endl;
+				silent_cerr("Modal(" << uLabel << "): "
+					"input file \"" << sFileFem << "\""
+					"is bogus (RECORD GROUP 3)"
+					<< std::endl);
 				throw ErrGeneric();
 			}
 
@@ -2510,10 +2513,10 @@ ReadModal(DataManager* pDM,
 			unsigned int iCnt = 1;
 
 			if (bActiveModes == NULL) {
-				std::cerr << "Modal(" << uLabel << "): "
-					"input file " << sFileFem
-					<< " is bogus (RECORD GROUP 4)"
-					<< std::endl;
+				silent_cerr("Modal(" << uLabel << "): "
+					"input file \"" << sFileFem << "\""
+					"is bogus (RECORD GROUP 4)"
+					<< std::endl);
 				throw ErrGeneric();
 			}
 
@@ -2570,10 +2573,10 @@ ReadModal(DataManager* pDM,
 			}
 			
 			if (bActiveModes == NULL) {
-				std::cerr << "Modal(" << uLabel << "): "
-					"input file " << sFileFem
-					<< " is bogus (RECORD GROUP 8)"
-					<< std::endl;
+				silent_cerr("Modal(" << uLabel << "): "
+					"input file \"" << sFileFem << "\""
+					"is bogus (RECORD GROUP 8)"
+					<< std::endl);
 				throw ErrGeneric();
 			}
 
@@ -2611,10 +2614,10 @@ ReadModal(DataManager* pDM,
 			unsigned int iCnt = 1;
 
 			if (bActiveModes == NULL) {
-				std::cerr << "Modal(" << uLabel << "): "
-					"input file " << sFileFem
-					<< " is bogus (RECORD GROUP 9)"
-					<< std::endl;
+				silent_cerr("Modal(" << uLabel << "): "
+					"input file \"" << sFileFem << "\""
+					"is bogus (RECORD GROUP 9)"
+					<< std::endl);
 				throw ErrGeneric();
 			}
 
@@ -2641,10 +2644,10 @@ ReadModal(DataManager* pDM,
 			unsigned int iCnt = 1;
 
 			if (bActiveModes == NULL) {
-				std::cerr << "Modal(" << uLabel << "): "
-					"input file " << sFileFem
-					<< " is bogus (RECORD GROUP 10)"
-					<< std::endl;
+				silent_cerr("Modal(" << uLabel << "): "
+					"input file \"" << sFileFem << "\""
+					"is bogus (RECORD GROUP 10)"
+					<< std::endl);
 				throw ErrGeneric();
 			}
 
@@ -2739,10 +2742,10 @@ ReadModal(DataManager* pDM,
 		}
 
 		if (iNode == NFemNodes) {
-			std::cerr << "Modal(" << uLabel << "): "
+			silent_cerr("Modal(" << uLabel << "): "
 				"FEM node " << NFemOriginNode
 				<< " at line " << HP.GetLineData()
-				<< " not defined " << std::endl;
+				<< " not defined " << std::endl);
 			throw DataManager::ErrGeneric();
 		}
 
@@ -2783,10 +2786,10 @@ ReadModal(DataManager* pDM,
 		}
 
 		if (iNode == NFemNodes) {
-			std::cerr << "Modal(" << uLabel << "): "
+			silent_cerr("Modal(" << uLabel << "): "
 				"FEM node " << uNode1
 				<< " at line " << HP.GetLineData()
-				<< " not defined " << std::endl;
+				<< " not defined " << std::endl);
 			throw DataManager::ErrGeneric();
 		}
 
@@ -2820,10 +2823,10 @@ ReadModal(DataManager* pDM,
 		/* verifica di esistenza del nodo 2 */
 		pInterfaceNodes[iStrNode-1] = pDM->pFindStructNode(uNode2);
 		if (pInterfaceNodes[iStrNode-1] == NULL) {
-			std::cerr << "Modal(" << uLabel << "): "
+			silent_cerr("Modal(" << uLabel << "): "
 				"StructuralNode(" << uNode2 << ") "
 				"at line " << HP.GetLineData()
-				<< " not defined" << std::endl;
+				<< " not defined" << std::endl);
 			throw DataManager::ErrGeneric();
 		}
 

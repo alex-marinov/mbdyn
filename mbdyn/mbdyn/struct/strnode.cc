@@ -187,12 +187,14 @@ StructNode::dGetDofValue(int iDof, int iOrder) const
       if (iOrder == 1) {
 	 return WCurr.dGet(iDof-3);
       } else if (iOrder == 0) {
-	 std::cerr << "Node " << GetLabel()
-	   << ": unable to return the angle." << std::endl;
+	 silent_cerr("StructNode(" << GetLabel() << "): "
+	   "unable to return angles" << std::endl);
 	 throw StructNode::ErrGeneric();
       }
    } else {
-      std::cerr << "Required dof is not available." << std::endl;
+      silent_cerr("StructNode(" << GetLabel() << "): "
+	      "required dof " << iDof << " (order " << iOrder << ") "
+	      "is not available." << std::endl);
       throw StructNode::ErrGeneric();
    }
 
@@ -218,12 +220,14 @@ StructNode::dGetDofValuePrev(int iDof, int iOrder) const
       if (iOrder == 1) {
 	 return WPrev.dGet(iDof-3);
       } else if (iOrder == 0) {
-	 std::cerr << "Node " << GetLabel()
-	   << ": unable to return the angle." << std::endl;
+	 silent_cerr("StructNode(" << GetLabel() << "): "
+		 "unable to return angles" << std::endl);
 	 throw StructNode::ErrGeneric();
       }
    } else {
-      std::cerr << "Required dof is not available." << std::endl;
+      silent_cerr("StructNode(" << GetLabel() << "): "
+	      "required dof " << iDof << " (order " << iOrder << ") "
+	      "is not available." << std::endl);
       throw StructNode::ErrGeneric();
    }
 
@@ -254,12 +258,14 @@ StructNode::SetDofValue(const doublereal& dValue,
 	 WCurr.Put(iDof, dValue);
 	 return;
       } else if (iOrder == 0) {
-	 std::cerr << "Node " << GetLabel()
-	   << ": unable to set the angle." << std::endl;
+	 silent_cerr("StructNode(" << GetLabel() << "): "
+		 "unable to set angles" << std::endl);
 	 throw StructNode::ErrGeneric();
       }
    } else {
-      std::cerr << "Required dof is not available." << std::endl;
+      silent_cerr("StructNode(" << GetLabel() << "): "
+	      "required dof " << iDof << " (order " << iOrder << ") "
+	      "is not available." << std::endl);
       throw StructNode::ErrGeneric();
    }
 }
@@ -596,7 +602,14 @@ StructNode::SetValue(VectorHandler& X, VectorHandler& XP) const
 		VPrev = R0T*(VCurr - V0 - W0.Cross(Xtmp));
 		WPrev = R0T*(WCurr - W0);
 
-		std::cout << "SetValue: X=" << XPrev << ", R=" << RPrev << ", V=" << VPrev << ", W=" << WPrev << std::endl;
+#if 0
+		std::cout << "StructNode(" << GetLabel() << "): "
+			"SetValue: X=" << XPrev 
+			<< ", R=" << RPrev 
+			<< ", V=" << VPrev 
+			<< ", W=" << WPrev 
+			<< std::endl;
+#endif
 
 	} else
 #endif /* MBDYN_X_RELATIVE_PREDICTION */
@@ -652,15 +665,21 @@ StructNode::BeforePredict(VectorHandler& X,
 		XPr.Put(iFirstPos+1, XPrev);
 		XPPr.Put(iFirstPos+1, VPrev);
 
-#if 1
-		std::cout << "BeforePredict: X=" << XCurr << ", R=" << RCurr << ", V=" << VCurr << ", W=" << WCurr << std::endl;
+#if 0
+		std::cout << "StructNode(" << GetLabel() << "): "
+			"BeforePredict: X=" << XCurr 
+			<< ", R=" << RCurr 
+			<< ", V=" << VCurr 
+			<< ", W=" << WCurr 
+			<< std::endl;
 #endif
 	}
 #endif /* MBDYN_X_RELATIVE_PREDICTION */
 
-	/* Questa e' la predizione "consistente", ovvero usa come gdl di rotazione
-	 * i parametri di rotazione "totali" per predire la configurazione al nuovo
-	 * passo, quindi ritorna in forma incrementale */
+	/* Questa e' la predizione "consistente", ovvero usa come gdl
+	 * di rotazione i parametri di rotazione "totali" per predire 
+	 * la configurazione al nuovo passo, quindi ritorna in forma 
+	 * incrementale */
 
 	/* Calcolo la matrice RDelta riferita a tutto il passo trascorso
 	 * all'indietro */
@@ -779,8 +798,13 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 		X.Put(iFirstIndex+1, XCurr);
 		XP.Put(iFirstIndex+1, VCurr);
 
-#if 1
-		std::cout << "AfterPredict: X=" << XCurr << ", R=" << RCurr << ", V=" << VCurr << ", W=" << WCurr << std::endl;
+#if 0
+		std::cout << "StructNode(" << GetLabel() << "): "
+			"AfterPredict: X=" << XCurr 
+			<< ", R=" << RCurr 
+			<< ", V=" << VCurr 
+			<< ", W=" << WCurr 
+			<< std::endl;
 #endif
 	}
 #endif /* MBDYN_X_RELATIVE_PREDICTION */
@@ -966,7 +990,8 @@ DummyStructNode::GetStructNodeType(void) const
 const
 doublereal& DummyStructNode::dGetDofValue(int iDof, int iOrder) const
 {
-   std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
+   silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs" 
+		   << std::endl);
    throw ErrGeneric();
 }
 
@@ -976,7 +1001,8 @@ doublereal& DummyStructNode::dGetDofValue(int iDof, int iOrder) const
 const
 doublereal& DummyStructNode::dGetDofValuePrev(int iDof, int iOrder) const
 {
-   std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
+   silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs"
+		   << std::endl);
    throw ErrGeneric();
 }
 
@@ -987,7 +1013,8 @@ void
 DummyStructNode::SetDofValue(const doublereal& dValue,
 			     unsigned int iDof, unsigned int iOrder)
 {
-   std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
+   silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs" 
+		   << std::endl);
    throw ErrGeneric();
 }
 
@@ -1226,8 +1253,9 @@ ReadStructNode(DataManager* pDM,
     * explicit node type required; default is no longer "DYNAMIC"
     */
    if (CurrType == UNKNOWN) {
-      std::cerr << "missing node type at line " << HP.GetLineData()
-      	      << std::endl;
+      silent_cerr("StructNode(" << uLabel << "): "
+	      "missing node type at line " << HP.GetLineData()
+      	      << std::endl);
       throw ErrGeneric();
    }
 
@@ -1286,7 +1314,9 @@ ReadStructNode(DataManager* pDM,
        }
 
        default: {
-	  std::cerr << "unknown dummy node type at line " << HP.GetLineData() << std::endl;
+	  silent_cerr("StructNode(" << uLabel << "): "
+		  "unknown dummy node type "
+		  "at line " << HP.GetLineData() << std::endl);
 	  throw ErrGeneric();
        }
       }
@@ -1335,10 +1365,11 @@ ReadStructNode(DataManager* pDM,
 		      break;
 
 	      default:
-		      std::cerr << "line " << HP.GetLineData()
-			      << ": prediction node allowed "
-			      "for static and dynamic nodes only"
-			      << std::endl;
+		      silent_cerr("StructNode(" << uLabel << "): "
+			      "prediction node allowed "
+			      "for static and dynamic nodes only, "
+			      "at line " << HP.GetLineData()
+			      << std::endl);
 		      throw ErrGeneric();
 	      }
 	      pRefNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
@@ -1382,8 +1413,8 @@ ReadStructNode(DataManager* pDM,
 
       /* Se non c'e' il punto e virgola finale */
       if (HP.IsArg()) {
-	 std::cerr << std::endl << sFuncName
-	   << ": semicolon expected at line " << HP.GetLineData() << std::endl;
+	 silent_cerr(sFuncName << ": semicolon expected "
+		 "at line " << HP.GetLineData() << std::endl);
 	 throw DataManager::ErrGeneric();
       }
 

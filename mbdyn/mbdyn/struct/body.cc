@@ -426,7 +426,9 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
    
     if (pNode->GetStructNodeType() != StructNode::DYNAMIC) {
-        std::cerr << "Illegal structural node type for body " << uLabel << std::endl;
+        silent_cerr("Body(" << uLabel << "): "
+		"illegal structural node type "
+		"at line " << HP.GetLineData() << std::endl);
         throw DataManager::ErrGeneric();
     }
       
@@ -434,7 +436,9 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     if (HP.IsKeyWord("condense")) {
         iNumMasses = HP.GetInt();
         if (iNumMasses < 1) {
-	    std::cerr << "At least one mass is required" << std::endl;
+	    silent_cerr("Body(" << uLabel << "): "
+		    "at least one mass is required in \"condense\" "
+		    "at line " << HP.GetLineData() << std::endl);
 	    throw DataManager::ErrGeneric();
         }
         DEBUGLCOUT(MYDEBUG_INPUT, 
@@ -539,8 +543,8 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
     /* Se non c'e' il punto e virgola finale */
     if (HP.IsArg()) {
-        std::cerr << std::endl
-	    << "semicolon expected at line " << HP.GetLineData() << std::endl;
+        silent_cerr("semicolon expected "
+		"at line " << HP.GetLineData() << std::endl);
         throw DataManager::ErrGeneric();
     }   
    

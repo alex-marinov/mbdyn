@@ -714,9 +714,9 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp1.Dot() <= DBL_EPSILON || Tmp2.Dot() <= DBL_EPSILON) {
-      std::cerr << "Joint(" << GetLabel() << "): first node hinge axis "
-	      "and second node hinge axis are (nearly) orthogonal"
-	      << std::endl;
+      silent_cerr("PlaneHingeJoint(" << GetLabel() << "): "
+	      "first and second node hinge axes are (nearly) orthogonal"
+	      << std::endl);
       throw Joint::ErrGeneric();
    }   
    
@@ -971,7 +971,8 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
     }
       
     default:
-      std::cerr << "Illegal private data" << std::endl;
+      silent_cerr("PlaneHingeJoint(" << GetLabel() << "): "
+	      "illegal private data " << i << std::endl);
       throw ErrGeneric();
    }
 }
@@ -1394,9 +1395,9 @@ PlaneRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp1.Dot() <= DBL_EPSILON || Tmp2.Dot() <= DBL_EPSILON) {
-      std::cerr << "Joint(" << GetLabel() << "): first node hinge axis "
-	      "and second node hinge axis are (nearly) orthogonal"
-	      << std::endl;
+      silent_cerr("PlaneRotationJoint(" << GetLabel() << "): "
+	      "first and second node hinge axes are (nearly) orthogonal"
+	      << std::endl);
       throw Joint::ErrGeneric();
    }   
    
@@ -1616,7 +1617,8 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
     }
       
     default:
-      std::cerr << "Illegal private data" << std::endl;
+      silent_cerr("PlaneRotationJoint(" << GetLabel() << "): "
+	      "illegal private data " << i << std::endl);
       throw ErrGeneric();
    }
 }
@@ -2251,9 +2253,9 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp1.Dot() <= DBL_EPSILON || Tmp2.Dot() <= DBL_EPSILON) {
-      std::cerr << "Joint(" << GetLabel() << "): first node hinge axis "
-	      "and second node hinge axis are (nearly) orthogonal" 
-	      << std::endl;
+      silent_cerr("AxialRotationJoint(" << GetLabel() << "): "
+	      "first and second node hinge axes are (nearly) orthogonal" 
+	      << std::endl);
       throw Joint::ErrGeneric();
    }   
    
@@ -2903,9 +2905,9 @@ PlanePinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp1.Dot() <= DBL_EPSILON || Tmp2.Dot() <= DBL_EPSILON) {
-      std::cerr << "Joint(" << GetLabel() << "): node hinge axis "
-	      "and fixed point hinge axis are (nearly) orthogonal" 
-	      << std::endl;
+      silent_cerr("PlanePinJoint(" << GetLabel() << "): "
+	      "node and fixed point hinge axes are (nearly) orthogonal" 
+	      << std::endl);
       throw Joint::ErrGeneric();
    }   
    
@@ -3126,7 +3128,8 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
     }
       
     default:
-      std::cerr << "Illegal private data" << std::endl;
+      silent_cerr("PlanePinJoint(" << GetLabel() << "): "
+	      "illegal private data " << i << std::endl);
       throw ErrGeneric();
    }
 }

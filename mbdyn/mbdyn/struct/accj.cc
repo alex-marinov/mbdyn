@@ -92,7 +92,7 @@ DofOrder::Order LinearAccelerationJoint::GetDofType(unsigned int i) const
     case 1:
       return DofOrder::ALGEBRAIC;
     default:
-      std::cerr << "invalid dof number" << std::endl;
+      silent_cerr("invalid dof number" << std::endl);
       throw ErrGeneric();
    }
 #ifndef USE_EXCEPTIONS
@@ -310,7 +310,7 @@ DofOrder::Order AngularAccelerationJoint::GetDofType(unsigned int i) const
     case 1:
       return DofOrder::ALGEBRAIC;
     default:
-      std::cerr << "invalid dof number" << std::endl;
+      silent_cerr("invalid dof number" << std::endl);
       throw ErrGeneric();
    }
 #ifndef USE_EXCEPTIONS

@@ -459,9 +459,9 @@ UniversalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp.Dot() < DBL_EPSILON) {
-      std::cerr << "joint " << GetLabel() << ':' << std::endl
-	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << std::endl
-	<< "aborting ..." << std::endl;
+      silent_cerr("UniversalHingeJoint(" << GetLabel() << "): "
+      	      "first and second node hinge axes are (nearly) orthogonal"
+	      << std::endl);
       throw Joint::ErrGeneric();
    }   
    
@@ -990,10 +990,9 @@ UniversalRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp.Dot() < DBL_EPSILON) {
-      std::cerr << "joint " << GetLabel() << ':' << std::endl
-	<< "warning, first node hinge axis and second node hinge axis "
-	"are (nearly) orthogonal;" << std::endl
-	<< "aborting ..." << std::endl;
+      silent_cerr("UniversalRotationJoint(" << GetLabel() << "): "
+      	      "first and second node hinge axes are (nearly) orthogonal"
+	      << std::endl);
       throw Joint::ErrGeneric();
    }   
    
@@ -1417,9 +1416,9 @@ UniversalPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp.Dot() < DBL_EPSILON) {
-      std::cerr << "joint " << GetLabel() << ':' << std::endl
-	<< "warning, node hinge axis and fixed point hinge axis are (nearly) orthogonal;" << std::endl
-	<< "aborting ..." << std::endl;
+      silent_cerr("UniversalPinJoint(" << GetLabel() << "): "
+      	      "node and fixed point hinge axes are (nearly) orthogonal"
+	      << std::endl);
       throw Joint::ErrGeneric();
    }   
    

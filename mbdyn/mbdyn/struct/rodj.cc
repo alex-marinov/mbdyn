@@ -69,8 +69,8 @@ dEpsilonPrime(0.)
    
       doublereal dDot = v.Dot();
       if (dDot <= DBL_EPSILON) {
-	 std::cerr << "Rod(" << GetLabel() << "): "
-		 "initial length must not be null" << std::endl;
+	 silent_cerr("Rod(" << GetLabel() << "): "
+		 "initial length must be non-null" << std::endl);
 	 throw ErrGeneric();
       }
 
@@ -112,10 +112,9 @@ void Rod::AssMat(FullSubMatrixHandler& WorkMat, doublereal dCoef)
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << std::endl
-	<< "aborting ..." << std::endl;
+      silent_cerr("Rod(" << GetLabel() << "): "
+	      "null distance between nodes " << pNode1->GetLabel() 
+      	      << " and " << pNode2->GetLabel() << std::endl);
       throw Joint::ErrGeneric();
    }   
 
@@ -147,10 +146,9 @@ void Rod::AssVec(SubVectorHandler& WorkVec)
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << std::endl
-	<< "aborting ..." << std::endl;
+      silent_cerr("Rod(" << GetLabel() << "): "
+	      "null distance between nodes " << pNode1->GetLabel() 
+      	      << " and " << pNode2->GetLabel() << std::endl);
       throw Joint::ErrGeneric();
    }   
    
@@ -310,7 +308,8 @@ Rod::Output_pch(std::ostream& out) const
 	if (fToBeOutput()) {
 		unsigned int label = GetLabel();
 		if (label > 9999999) {
-			std::cerr << "label of Rod(" << label <<") is too large" << std::endl;
+			silent_cerr("Rod(" << label <<"): label is too large" 
+					<< std::endl);
 			throw ErrGeneric();
 		}
 
@@ -635,10 +634,9 @@ ViscoElasticRod::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << std::endl
-	<< "aborting ..." << std::endl;
+      silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
+	      "null distance between nodes " << pNode1->GetLabel() 
+      	      << " and " << pNode2->GetLabel() << std::endl);
       throw Joint::ErrGeneric();
    }   
 
@@ -699,10 +697,9 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << std::endl
-	<< "aborting ..." << std::endl;
+      silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
+	      "null distance between nodes " << pNode1->GetLabel() 
+      	      << " and " << pNode2->GetLabel() << std::endl);
       throw Joint::ErrGeneric();
    }   
 
@@ -777,10 +774,9 @@ ViscoElasticRod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << std::endl
-	<< "aborting ..." << std::endl;
+      silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
+	      "null distance between nodes " << pNode1->GetLabel() 
+      	      << " and " << pNode2->GetLabel() << std::endl);
       throw Joint::ErrGeneric();
    }   
 
@@ -846,10 +842,9 @@ ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << std::endl
-	<< "aborting ..." << std::endl;
+      silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
+	      "null distance between nodes " << pNode1->GetLabel() 
+      	      << " and " << pNode2->GetLabel() << std::endl);
       throw Joint::ErrGeneric();
    }   
 
@@ -907,8 +902,8 @@ f2(f2Tmp)
    
    doublereal dDot = v.Dot();
    if (dDot <= DBL_EPSILON) {
-      std::cerr << "RodWithOffset(" << GetLabel() << "): "
-	      "inital length must not be null" << std::endl;
+      silent_cerr("RodWithOffset(" << GetLabel() << "): "
+	      "inital length must be non-null" << std::endl);
       throw ErrGeneric();
    }
 
@@ -994,10 +989,9 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << std::endl
-	<< "aborting ..." << std::endl;
+      silent_cerr("RodWithOffset(" << GetLabel() << "): "
+	      "null distance between nodes " << pNode1->GetLabel() 
+      	      << " and " << pNode2->GetLabel() << std::endl);
       throw Joint::ErrGeneric();
    }   
 
@@ -1113,10 +1107,9 @@ RodWithOffset::AssRes(SubVectorHandler& WorkVec,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << std::endl
-	<< "aborting ..." << std::endl;
+      silent_cerr("RodWithOffset(" << GetLabel() << "): "
+	      "null distance between nodes " << pNode1->GetLabel() 
+      	      << " and " << pNode2->GetLabel() << std::endl);
       throw Joint::ErrGeneric();
    }   
 
@@ -1164,7 +1157,8 @@ RodWithOffset::Output_pch(std::ostream& out) const
 	if (fToBeOutput()) {
 		unsigned int label = GetLabel();
 		if (label > 9999999) {
-			std::cerr << "label of Rod(" << label <<") is too large" << std::endl;
+			silent_cerr("Rod(" << label <<"): label is too large"
+					<< std::endl);
 			throw ErrGeneric();
 		}
 
@@ -1334,10 +1328,9 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << std::endl
-	<< "aborting ..." << std::endl;
+      silent_cerr("RodWithOffset(" << GetLabel() << "): "
+	      "null distance between nodes " << pNode1->GetLabel() 
+      	      << " and " << pNode2->GetLabel() << std::endl);
       throw Joint::ErrGeneric();
    }   
 
@@ -1491,10 +1484,9 @@ RodWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << std::endl
-	<< "aborting ..." << std::endl;
+      silent_cerr("RodWithOffset(" << GetLabel() << "): "
+	      "null distance between nodes " << pNode1->GetLabel() 
+      	      << " and " << pNode2->GetLabel() << std::endl);
       throw Joint::ErrGeneric();
    }   
 

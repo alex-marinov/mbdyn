@@ -61,8 +61,8 @@ DistanceJoint::~DistanceJoint(void)
 void
 DistanceJoint::Abort(void)
 {
-	std::cerr << "Joint(" << GetLabel() << "): distance is null"
-		<< std::endl;
+	silent_cerr("DistanceJoint(" << GetLabel() << "): distance is null"
+		<< std::endl);
 	throw ErrGeneric();
 }
 

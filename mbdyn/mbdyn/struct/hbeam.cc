@@ -203,12 +203,12 @@ HBeam::dGetPrivData(unsigned int i) const
 		return DefLoc.dGet(i);
 	case 2:
 	case 3:
-		std::cerr << "Beam2 " << GetLabel() 
-			<< ": not allowed to return shear strain" << std::endl;
+		silent_cerr("HBeam(" << GetLabel() << "): "
+			"not allowed to return shear strain" << std::endl);
 		throw ErrGeneric();
 	default:
-		std::cerr << "Beam2 " << GetLabel()
-			<< ": illegal private data " << i << std::endl;
+		silent_cerr("HBeam(" << GetLabel() << "): "
+			"illegal private data " << i << std::endl);
 		throw ErrGeneric();
 	}
 #ifndef USE_EXCEPTIONS
@@ -241,8 +241,8 @@ HBeam::DsDxi(void)
 	if (d > DBL_EPSILON) {
 		d = sqrt(d);
 	} else {
-		std::cerr << "warning, beam " << GetLabel() 
-			<< " has singular metric; aborting ..." << std::endl;
+		silent_cerr("HBeam(" << GetLabel() << ") "
+			"has singular metric; aborting ..." << std::endl);
 		
 		throw HBeam::ErrGeneric();
 	}
@@ -1195,10 +1195,10 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	ConstitutiveLaw6D* pD = HP.GetConstLaw6D(CLType);
 	
 	if (pD->iGetNumDof() != 0) {
-     		std::cerr << "line " << HP.GetLineData()
-			<< ": hbeam does not support "
+     		silent_cerr("line " << HP.GetLineData()
+			<< ": HBeam(" << uLabel << ") does not support "
 			"dynamic constitutive laws yet"
-			<< std::endl;
+			<< std::endl);
 		throw ErrGeneric();
 	}
 	
@@ -1234,8 +1234,11 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				<< " has " << iNumElec 
 				<< " electrodes" << std::endl);
 		if (iNumElec <= 0) {
-			std::cerr << "illegal number of electric nodes "
-				<< iNumElec << std::endl;
+			silent_cerr("HBeam(" << uLabel << "): "
+				"illegal number of electric nodes "
+				<< iNumElec 
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
 			throw ErrGeneric();
 		}
 		
@@ -1247,8 +1250,10 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					<< uL << std::endl);
 			pvElecDofs[i] = (ScalarDifferentialNode*)(pDM->pFindNode(Node::ABSTRACT, uL));
 			if (pvElecDofs[i] == NULL) {
-				std::cerr << "can't find abstract node "
-					<< uL << std::endl;
+				silent_cerr("HBeam(" << uLabel << "): "
+					"can't find AbstractNode(" << uL << ") "
+					"at line " << HP.GetLineData()
+					<< std::endl);
 				throw ErrGeneric();
 			}
 		}
@@ -1337,16 +1342,16 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 #endif /* PIEZO_BEAM */
 
 #else /* VISCOELASTIC_BEAM */
-		std::cerr << "Sorry, the ViscoElasticHBeam element"
-			" is not available yet" << std::endl;
+		silent_cerr("Sorry, the ViscoElasticHBeam element"
+			" is not available yet" << std::endl);
 		throw ErrNotImplementedYet();
 #endif /* VISCOELASTIC_BEAM */
 	}
 	
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
-		std::cerr << "semicolon expected at line "
-			<< HP.GetLineData() << std::endl;      
+		silent_cerr("semicolon expected at line "
+			<< HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric();
 	}
 	

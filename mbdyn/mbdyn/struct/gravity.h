@@ -156,12 +156,14 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
     * momento statico e momento di inerzia nel sistema globale
     */
    virtual Vec3 GetS_int(void) const {
-      std::cerr << "warning: using default GetS_int()" << std::endl;
+      silent_cerr("ElemGravityOwner(" << GetLabel() << "): "
+	      "warning, using default GetS_int()" << std::endl);
       return Vec3(0.);
    };
 
    virtual Mat3x3 GetJ_int(void) const {
-      std::cerr << "warning: using default GetJ_int()" << std::endl;
+      silent_cerr("ElemGravityOwner(" << GetLabel() << "): "
+	      "warning, using default GetJ_int()" << std::endl);
       return Mat3x3(0.);
    };
 

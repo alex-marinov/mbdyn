@@ -324,12 +324,12 @@ Beam::dGetPrivData(unsigned int i) const
 	case 3:
 	case 8:
 	case 9:
-		std::cerr << "Beam " << GetLabel() 
-			<< ": not allowed to return shear strain" << std::endl;
+		silent_cerr("Beam(" << GetLabel() << "): "
+			"not allowed to return shear strain" << std::endl);
 		throw ErrGeneric();
 	default:
-		std::cerr << "Beam " << GetLabel() << ": illegal private data " 
-			<< i << std::endl;
+		silent_cerr("Beam(" << GetLabel() << "): "
+			"illegal private data " << i << std::endl);
 		throw ErrGeneric();
 	}
 #ifndef USE_EXCEPTIONS
@@ -404,9 +404,10 @@ Beam::DsDxi(void)
         ASSERT(d > DBL_EPSILON);
         if (d > DBL_EPSILON) {
 	    dsdxi[i] = 1./sqrt(d);
+
         } else {
-	    std::cerr << "warning, beam " << GetLabel() 
-	        << " has singular metric; aborting ..." << std::endl;
+	    silent_cerr("warning, beam " << GetLabel() 
+	        << " has singular metric; aborting ..." << std::endl);
 	 
 	    throw Beam::ErrGeneric();
         }
@@ -935,7 +936,8 @@ Beam::Output_pch(std::ostream& out) const
 	if (fToBeOutput()) {
 		unsigned int label = GetLabel();
 		if (label > 9999999) {
-			std::cerr << "label of Beam(" << label <<") is too large" << std::endl;
+			silent_cerr("label of Beam(" << label <<") "
+				"is too large" << std::endl);
 			throw ErrGeneric();
 		}
 		
@@ -1762,10 +1764,10 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    ConstitutiveLaw6D* pD_I = HP.GetConstLaw6D(CLType_I);
    
    if (pD_I->iGetNumDof() != 0) {
-   	   std::cerr << "line " << HP.GetLineData()
-		   << ": beam does not support "
+   	   silent_cerr("line " << HP.GetLineData()
+		   << ": Beam(" << uLabel << ") does not support "
 		   "dynamic constitutive laws yet"
-		   << std::endl;
+		   << std::endl);
 	   throw ErrGeneric();
    }
 	
@@ -1812,19 +1814,16 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     * for the constitutive law, the drivers and so on */
    
    if (HP.IsKeyWord("same")) {
-      /*
-      std::cerr << "Sorry, 'same' is not supported any more, you must enter the constitutive law of the second section" << std::endl;
-      throw DataManager::ErrGeneric();
-       */
       pDII = pD_I->pCopy();
+
    } else {
       pDII = HP.GetConstLaw6D(CLTypeII);
       
       if (pDII->iGetNumDof() != 0) {
-   	      std::cerr << "line " << HP.GetLineData()
-		      << ": beam does not support "
+   	      silent_cerr("line " << HP.GetLineData()
+		      << ": Beam(" << uLabel << ") does not support "
 		      "dynamic constitutive laws yet"
-		      << std::endl;
+		      << std::endl);
 	      throw ErrGeneric();
       }
    }
@@ -1858,7 +1857,9 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		 "piezo actuator " << uLabel << " has " << iNumElec 
 		 << " electrodes" << std::endl);
       if (iNumElec <= 0) {
-	 std::cerr << "illegal number of electric nodes " << iNumElec << std::endl;
+	 silent_cerr("PiezoElectricBeam(" << uLabel << "): "
+		"illegal number of electric nodes " << iNumElec 
+		<< " at line " << HP.GetLineData() << std::endl);
 	 throw ErrGeneric();
       }
       
@@ -1869,7 +1870,9 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	 DEBUGLCOUT(MYDEBUG_INPUT, "linked to abstract node " << uL << std::endl);
 	 pvElecDofs[i] = (ScalarDifferentialNode*)(pDM->pFindNode(Node::ABSTRACT, uL));
 	 if (pvElecDofs[i] == NULL) {
-	    std::cerr << "can't find abstract node " << uL << std::endl;
+	    silent_cerr("PiezoElectricBeam(" << uLabel << "): "
+		    "can't find AbstractNode(" << uL << ") "
+    		    "at line " << HP.GetLineData() << std::endl);
 	    throw ErrGeneric();
 	 }
       }
@@ -2007,8 +2010,8 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
    /* Se non c'e' il punto e virgola finale */
    if (HP.IsArg()) {
-      std::cerr << std::endl
-	<< "semicolon expected at line " << HP.GetLineData() << std::endl;      
+      silent_cerr("semicolon expected "
+	      "at line " << HP.GetLineData() << std::endl);
       throw DataManager::ErrGeneric();
    }   
    

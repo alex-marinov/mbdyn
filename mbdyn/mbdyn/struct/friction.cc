@@ -327,8 +327,8 @@ void DiscreteCoulombFriction::AssRes(
 // 				<< "error: " << fabs(f)-fss(0)
 // 				<< std::endl;
 		} else {
-			std::cerr << "DiscreteCoulombFriction::AssRes logical error1"
-				<< std::endl;
+			silent_cerr("DiscreteCoulombFriction::AssRes() "
+					"logical error1" << std::endl);
 		}
 		status = sliding;
 	}
@@ -409,7 +409,8 @@ void DiscreteCoulombFriction::AssRes(
 		break;
 	}
 	default: {
-		std::cerr << "DiscreteCoulombFriction::AssRes: logical error" << std::endl;
+		silent_cerr("DiscreteCoulombFriction::AssRes() "
+			"logical error" << std::endl);
 	}
 	}
 	//update status
@@ -457,7 +458,8 @@ void DiscreteCoulombFriction::AssJac(
 		break;
 	}
 	default: {
-		std::cerr << "DiscreteCoulombFriction::AssJac: logical error" << std::endl;
+		silent_cerr("DiscreteCoulombFriction::AssJac() "
+			"logical error" << std::endl);
 	}
 	}
 };
@@ -569,8 +571,8 @@ BasicFriction *const ParseFriction(MBDynParser& HP,
 		break;
 	}
 	default: {
-		std::cerr << "Error: unrecognized friction type keyword at line "
-			<< HP.GetLineData() << std::endl;
+		silent_cerr("ParseFriction(): unrecognized friction type "
+				"at line " << HP.GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric();
 		break;
 	}
@@ -606,8 +608,9 @@ BasicShapeCoefficient *const ParseShapeCoefficient(MBDynParser& HP) {
 		break;
 	}
 	default: {
-		std::cerr << "Error: unrecognized shape coefficient type keyword at line "
-			<< HP.GetLineData() << std::endl;
+		silent_cerr("ParseShapeCoefficient(): "
+			"unrecognized shape coefficient type "
+			"at line " << HP.GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric();
 		break;
 	}
