@@ -265,7 +265,7 @@ get_connected_nodes(const LoadableElem* pEl,
 
 static struct
 LoadableCalls lc = {
-	LOADABLE_VERSION_SET(1, 1, 0),
+	LOADABLE_VERSION_SET(1, 2, 0),
 
 	"AeroDyn",
 	"1.1",
@@ -298,7 +298,11 @@ LoadableCalls lc = {
 	NULL /* d_get_priv_data */ ,
 	i_get_num_connected_nodes,
 	get_connected_nodes,
-	destroy
+	destroy,
+	NULL,
+	NULL,
+	NULL,
+	NULL
 };
 
 extern "C" {

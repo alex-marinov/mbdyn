@@ -749,10 +749,10 @@ static
 #endif /* MBDYN_MODULE */
 struct
 LoadableCalls module_wheel2_lc = {
-	LOADABLE_VERSION_SET(1, 1, 0),
+	LOADABLE_VERSION_SET(1, 2, 0),
 
 	"wheel2",
-	"1.1",
+	"1.2.0",
 	"Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano",
 	"tire force model for landing gear analysis\n"
 		"\tcontact Stefania Gualdi <gualdi@aero.polimi.it>",
@@ -781,7 +781,11 @@ LoadableCalls module_wheel2_lc = {
 	NULL /* d_get_priv_data */ ,
 	i_get_num_connected_nodes,
 	get_connected_nodes,
-	destroy
+	destroy,
+	NULL,
+	NULL,
+	NULL,
+	NULL
 };
 
 extern "C" {

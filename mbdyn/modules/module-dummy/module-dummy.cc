@@ -224,7 +224,12 @@ get_connected_nodes(const LoadableElem* pEl,
 }
 
 static struct LoadableCalls lc = {
+	LOADABLE_VERSION_SET(1, 2, 0),
+
 	"dummy",
+	"1.2",
+	"Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano",
+	"Dummy module --- does nothing, used to test the infrastructure",
 	read,
 	i_get_num_dof,
 	set_dof,
@@ -248,7 +253,11 @@ static struct LoadableCalls lc = {
 	d_get_priv_data,
 	i_get_num_connected_nodes,
 	get_connected_nodes,
-	destroy
+	destroy,
+	NULL,
+	NULL,
+	NULL,
+	NULL
 };
 
 extern "C" void *calls = &lc;
