@@ -298,7 +298,7 @@ void
 IncludeParser::Eof(void)
 {
 	if(!fCheckStack()) {
-		THROW(ErrFile());
+		THROW(EndOfFile());
 	}
 }
 

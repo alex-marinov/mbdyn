@@ -60,6 +60,7 @@ class ErrMemory {
     ErrMemory(std::ostream& out, const char* const s) { out << s << std::endl; };   
 };
 
+class EndOfFile {};
 class ErrFile {};
 class ErrFileSystem {};
 

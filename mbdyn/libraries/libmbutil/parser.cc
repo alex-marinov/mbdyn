@@ -320,7 +320,7 @@ HighParser::Remark_(void)
 void
 HighParser::Eof(void)
 {
-	 THROW(ErrFile());
+	 THROW(EndOfFile());
 }
 
 int 
@@ -355,7 +355,6 @@ restart_parsing:
       goto restart_parsing;
 
    }
-
    return iGetDescription_(s);
 }
 
