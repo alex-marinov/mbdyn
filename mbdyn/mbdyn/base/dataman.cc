@@ -314,17 +314,18 @@ DofIter()
     * quindi chiude e apre i files di output */
    HP.Close();
    
-   /* temporaneo */
+#ifdef __HACK_BEAM__
    for (unsigned int i = 0; i < ElemData[ElemType::BEAM].iNum; i++) {
       Beam* p = (Beam*)ElemData[ElemType::BEAM].ppFirstElem[i]->pGet();
       OutHdl.Output()
 	<< "beam " << p->GetLabel()
-	  << " " << p->pGetNode(1)->GetLabel()
-	    << " " << p->pGetNode(2)->GetLabel()
-	      << " " << p->pGetNode(3)->GetLabel()
-		<< endl;
+	<< " " << p->pGetNode(1)->GetLabel()
+	<< " " << p->pGetNode(2)->GetLabel()
+	<< " " << p->pGetNode(3)->GetLabel()
+	<< endl;
 	  
    }
+#endif /* __HACK_BEAM__ */
    
    for (int i = 0; i < NodeType::LASTNODETYPE; i++) {
       if(NodeData[i].iNum > 0 
