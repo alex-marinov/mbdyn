@@ -210,6 +210,9 @@ IncludeParser::Include_()
    	pf = NULL;
    	SAFENEWWITHCONSTRUCTOR(pf, ifstream, ifstream(sfname), MPmm);
    	if (!(*pf)) {
+		char *buf = getcwd(NULL, 0);
+		cerr << "Current directory <" << buf << ">" << endl;
+		free(buf);
       		cerr << "Invalid file <" << sfname << '>' << endl;
       		THROW(ErrFile());
    	}
