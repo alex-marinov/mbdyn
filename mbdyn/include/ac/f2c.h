@@ -44,7 +44,7 @@ extern "C" {
 
 #else /* !HAVE_G2C_H && !HAVE_F2C_H */
 
-#ifdef __alpha
+#if defined(__alpha) || defined(__ia64)
 typedef int integer;
 typedef float real;
 typedef double doublereal;

@@ -101,10 +101,10 @@ public:
 	void Init(const double& c = 0.) {
 		Reset(c);
 	};
-	long int iGetNumRows(void) const {
+	integer iGetNumRows(void) const {
 		return NRows;
 	}
-	long int iGetNumCols(void) const {
+	integer iGetNumCols(void) const {
 		return NCols;
 	}
 
@@ -123,7 +123,7 @@ private:
 		}
 	};
 public:
-	long int fIncCoef(long int ix, long int iy, const double& inc) {
+	flag fIncCoef(integer ix, integer iy, const double& inc) {
 		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
 		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
 		//try to keep sparsity
@@ -132,7 +132,7 @@ public:
 		}
 		return 1;
 	};
-	long int fDecCoef(long int ix, long int iy, const double& inc) {
+	flag fDecCoef(integer ix, integer iy, const double& inc) {
 		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
 		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
 		//try to keep sparsity
@@ -141,7 +141,7 @@ public:
 		}
 		return 1;
 	};
-	long int fPutCoef(long int ix, long int iy, const double& val) {
+	flag fPutCoef(integer ix, integer iy, const double& val) {
 		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
 		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
 		//try to keep sparsity
@@ -159,7 +159,7 @@ public:
 		}
 		return 1;
 	};
-	const double& dGetCoef(long int ix, long int iy) const {
+	const double& dGetCoef(integer ix, integer iy) const {
 		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
 		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
 		//try to keep sparsity
@@ -271,7 +271,7 @@ public:
 	};
 	
 	/* Estrae una colonna da una matrice */
-	VectorHandler& GetCol(long int icol, VectorHandler& out) const {
+	VectorHandler& GetCol(integer icol, VectorHandler& out) const {
 	        if (icol > iGetNumCols()) {
 			THROW(ErrGeneric());
 		}
