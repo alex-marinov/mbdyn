@@ -144,16 +144,19 @@ private:
 protected:
 	VectorHandler *pXCurr;
 	VectorHandler *pXPrimeCurr; 
+	bool bModResTest;
 public:
 	ImplicitStepIntegrator(const integer MaxIt,
 			const doublereal dT,
 			const doublereal dSolutionTol,
 			const integer stp,
-			const integer sts) :
+			const integer sts,
+			const bool bmod_res_test) :
 	StepIntegrator(MaxIt,dT,dSolutionTol,stp,sts),
 	bEvalProdCalledFirstTime(true),
 	pXCurr(0),
-	pXPrimeCurr(0)
+	pXPrimeCurr(0),
+	bModResTest(bmod_res_test)
 	{
 		NO_OP;
 	};
@@ -164,6 +167,13 @@ public:
 	virtual void
 	EvalProd(doublereal Tau, const VectorHandler& f0,
 			const VectorHandler& w, VectorHandler& z) const;
+
+	/* scale factor for tests */
+#ifdef __HACK_SCALE_RES__
+	virtual doublereal TestScale(const VectorHandler *pScale) const;
+#else /* ! __HACK_SCALE_RES__ */
+	virtual doublereal TestScale(void) const;
+#endif /* ! __HACK_SCALE_RES__ */
 
 };
 
@@ -176,7 +186,8 @@ public:
 	DerivativeSolver(const doublereal Tl, 
 			const doublereal dSolTl, 
 			const doublereal dC,
-			const integer iMaxIt);
+			const integer iMaxIt,
+			const bool bmod_res_test);
 
 	~DerivativeSolver(void);
 	
@@ -228,7 +239,8 @@ public:
 	StepNIntegrator(const integer MaxIt,
 			const doublereal dT,
 			const doublereal dSolutionTol,
-			const integer stp);
+			const integer stp,
+			const bool bmod_res_test);
 
 	virtual ~StepNIntegrator(void);
 
@@ -237,13 +249,6 @@ public:
 	virtual void Jacobian(MatrixHandler* pJac) const;
 	
 	virtual void Update(const VectorHandler* pSol) const;
-
-	/* scale factor for tests */
-#ifdef __HACK_SCALE_RES__
-	virtual doublereal TestScale(const VectorHandler *pScale) const;
-#else /* ! __HACK_SCALE_RES__ */
-	virtual doublereal TestScale(void) const;
-#endif /* ! __HACK_SCALE_RES__ */
 
 protected:
 	virtual void SetCoef(doublereal dT, 
@@ -262,7 +267,8 @@ protected:
 public:
 	Step1Integrator(const integer MaxIt,
 			const doublereal dT,
-			const doublereal dSolutionTol);
+			const doublereal dSolutionTol,
+			const bool bmod_res_test);
 
 	virtual ~Step1Integrator(void);
 
@@ -324,7 +330,8 @@ class CrankNicholsonSolver:
 public:
 	CrankNicholsonSolver(const doublereal Tl, 
 			const doublereal dSolTl, 
-			const integer iMaxIt);
+			const integer iMaxIt,
+			const bool bmod_res_test);
 
 	~CrankNicholsonSolver(void);
 
@@ -377,7 +384,8 @@ protected:
 public:
 	Step2Integrator(const integer MaxIt,
 			const doublereal dT,
-			const doublereal dSolutionTol);
+			const doublereal dSolutionTol,
+			const bool bmod_res_test);
 
 	virtual ~Step2Integrator(void);
 
@@ -464,7 +472,8 @@ public:
 			const doublereal dSolTol, 
 			const integer iMaxIt,
 			const DriveCaller* pRho,
-			const DriveCaller* pAlgRho);
+			const DriveCaller* pAlgRho,
+			const bool bmod_res_test);
 
 	~MultistepSolver(void);
 
@@ -541,7 +550,8 @@ public:
 			const doublereal dSolTol, 
 			const integer iMaxIt,
 			const DriveCaller* pRho,
-			const DriveCaller* pAlgRho);
+			const DriveCaller* pAlgRho,
+			const bool bmod_res_test);
 
 	~HopeSolver(void);
 

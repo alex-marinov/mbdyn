@@ -51,8 +51,9 @@
 ThirdOrderIntegrator::ThirdOrderIntegrator(const doublereal dT, 
 			const doublereal dSolutionTol, 
 			const integer iMaxIt,
-			const DriveCaller* pRho)
-: ImplicitStepIntegrator(iMaxIt, dT, dSolutionTol, 1, 2),
+			const DriveCaller* pRho,
+			const bool bmod_res_test)
+: ImplicitStepIntegrator(iMaxIt, dT, dSolutionTol, 1, 2, bmod_res_test),
 pXPrev(0),
 pXPrimePrev(0),
 Rho(pRho),
@@ -153,7 +154,6 @@ doublereal ThirdOrderIntegrator::Advance(const doublereal TStep,
 		Jac_x.Resize(n);
 		bAdvanceCalledFirstTime = false;
 	}
-	std::cout << "\n**********************\n";
 	pXCurr  = pX;
 	pXPrev  = qX[0];
 
@@ -416,46 +416,46 @@ void ThirdOrderIntegrator::SetDriveHandler(const DriveHandler* pDH)
 	return;
 };
 
-/* scale factor for tests */
-doublereal
-#ifdef __HACK_SCALE_RES__
-ThirdOrderIntegrator::TestScale(const VectorHandler *pScale) const
-#else /* ! __HACK_SCALE_RES__ */
-ThirdOrderIntegrator::TestScale(void) const
-#endif /* ! __HACK_SCALE_RES__ */
-{
-#ifdef __HACK_RES_TEST__
-
-#ifdef USE_MPI
-#warning "StepNIntegrator TestScale parallel broken !! "	
-#endif /* USE_MPI */
-
-   	Dof CurrDof;
-	doublereal dXPr = 0.;
-
-	DofIterator.fGetFirst(CurrDof); 
-
-   	for (int iCntp1 = 1; iCntp1 <= pXPrimeCurr->iGetSize(); 
-			iCntp1++, DofIterator.fGetNext(CurrDof)) {
-
-		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-			doublereal d = pXPrimeCurr->dGetCoef(iCntp1);
-			doublereal d2 = d*d;
-
-#ifdef __HACK_SCALE_RES__
-			doublereal ds = pScale->dGetCoef(iCntp1);
-			doublereal ds2 = ds*ds;
-			d2 *= ds2;
-#endif /* __HACK_SCALE_RES__ */
-
-			dXPr += d2;
-		}
-		/* else if ALGEBRAIC: non aggiunge nulla */
-	}
-
-   	return 1./(1.+dXPr);
-
-#else /* ! __HACK_RES_TEST__ */
-	return 1.;
-#endif /* ! __HACK_RES_TEST__ */
-}
+// /* scale factor for tests */
+// doublereal
+// #ifdef __HACK_SCALE_RES__
+// ThirdOrderIntegrator::TestScale(const VectorHandler *pScale) const
+// #else /* ! __HACK_SCALE_RES__ */
+// ThirdOrderIntegrator::TestScale(void) const
+// #endif /* ! __HACK_SCALE_RES__ */
+// {
+// #ifdef __HACK_RES_TEST__
+// 
+// #ifdef USE_MPI
+// #warning "StepNIntegrator TestScale parallel broken !! "	
+// #endif /* USE_MPI */
+// 
+//    	Dof CurrDof;
+// 	doublereal dXPr = 0.;
+// 
+// 	DofIterator.fGetFirst(CurrDof); 
+// 
+//    	for (int iCntp1 = 1; iCntp1 <= pXPrimeCurr->iGetSize(); 
+// 			iCntp1++, DofIterator.fGetNext(CurrDof)) {
+// 
+// 		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+// 			doublereal d = pXPrimeCurr->dGetCoef(iCntp1);
+// 			doublereal d2 = d*d;
+// 
+// #ifdef __HACK_SCALE_RES__
+// 			doublereal ds = pScale->dGetCoef(iCntp1);
+// 			doublereal ds2 = ds*ds;
+// 			d2 *= ds2;
+// #endif /* __HACK_SCALE_RES__ */
+// 
+// 			dXPr += d2;
+// 		}
+// 		/* else if ALGEBRAIC: non aggiunge nulla */
+// 	}
+// 
+//    	return 1./(1.+dXPr);
+// 
+// #else /* ! __HACK_RES_TEST__ */
+// 	return 1.;
+// #endif /* ! __HACK_RES_TEST__ */
+// }

@@ -31,7 +31,8 @@ public:
 	ThirdOrderIntegrator(const doublereal dT, 
 			const doublereal dSolutionTol, 
 			const integer iMaxIt,
-			const DriveCaller* pRho);
+			const DriveCaller* pRho,
+			const bool bmod_res_test);
 
 	virtual ~ThirdOrderIntegrator(void);
 
@@ -44,11 +45,11 @@ public:
 	virtual void SetDriveHandler(const DriveHandler* pDH);
 
 	/* scale factor for tests */
-#ifdef __HACK_SCALE_RES__
-	virtual doublereal TestScale(const VectorHandler *pScale) const;
-#else /* ! __HACK_SCALE_RES__ */
-	virtual doublereal TestScale(void) const;
-#endif /* ! __HACK_SCALE_RES__ */
+//#ifdef __HACK_SCALE_RES__
+//	virtual doublereal TestScale(const VectorHandler *pScale) const;
+//#else /* ! __HACK_SCALE_RES__ */
+//	virtual doublereal TestScale(void) const;
+//#endif /* ! __HACK_SCALE_RES__ */
 
 	virtual doublereal
 	Advance(const doublereal TStep, 

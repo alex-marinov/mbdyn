@@ -147,12 +147,57 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 	return;
 }
 
+/* scale factor for tests */
+doublereal
+#ifdef __HACK_SCALE_RES__
+ImplicitStepIntegrator::TestScale(const VectorHandler *pScale) const
+#else /* ! __HACK_SCALE_RES__ */
+ImplicitStepIntegrator::TestScale(void) const
+#endif /* ! __HACK_SCALE_RES__ */
+{
+
+	if (bModResTest) {
+
+#ifdef USE_MPI
+#warning "StepNIntegrator TestScale parallel broken !! "	
+#endif /* USE_MPI */
+
+		Dof CurrDof;
+		doublereal dXPr = 0.;
+
+		DofIterator.fGetFirst(CurrDof); 
+
+	   	for (int iCntp1 = 1; iCntp1 <= pXPrimeCurr->iGetSize(); 
+				iCntp1++, DofIterator.fGetNext(CurrDof)) {
+
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				doublereal d = pXPrimeCurr->dGetCoef(iCntp1);
+				doublereal d2 = d*d;
+
+#ifdef __HACK_SCALE_RES__
+				doublereal ds = pScale->dGetCoef(iCntp1);
+				doublereal ds2 = ds*ds;
+				d2 *= ds2;
+#endif /* __HACK_SCALE_RES__ */
+
+				dXPr += d2;
+			}
+			/* else if ALGEBRAIC: non aggiunge nulla */
+		}
+
+	   	return 1./(1.+dXPr);
+	} else {
+		return 1.;
+	}
+}
+
 
 DerivativeSolver::DerivativeSolver(const doublereal Tl, 
 		const doublereal dSolTl, 
 		const doublereal dC,
-		const integer iMaxIt) 
-: ImplicitStepIntegrator(iMaxIt, Tl, dSolTl, 1, 1),
+		const integer iMaxIt,
+		const bool bmod_res_test) 
+: ImplicitStepIntegrator(iMaxIt, Tl, dSolTl, 1, 1, bmod_res_test),
 dCoef(dC)
 {
 	NO_OP;
@@ -318,8 +363,9 @@ DerivativeSolver::TestScale(void) const
 StepNIntegrator::StepNIntegrator(const integer MaxIt,
 		const doublereal dT,
 		const doublereal dSolutionTol,
-		const integer stp)
-: ImplicitStepIntegrator(MaxIt, dT, dSolutionTol, stp , 1),
+		const integer stp,
+		const bool bmod_res_test)
+: ImplicitStepIntegrator(MaxIt, dT, dSolutionTol, stp , 1, bmod_res_test),
 db0Differential(0.),
 db0Algebraic(0.)
 {
@@ -429,49 +475,6 @@ StepNIntegrator::Update(const VectorHandler* pSol) const
 	return;
 }
 
-/* scale factor for tests */
-doublereal
-#ifdef __HACK_SCALE_RES__
-StepNIntegrator::TestScale(const VectorHandler *pScale) const
-#else /* ! __HACK_SCALE_RES__ */
-StepNIntegrator::TestScale(void) const
-#endif /* ! __HACK_SCALE_RES__ */
-{
-#ifdef __HACK_RES_TEST__
-
-#ifdef USE_MPI
-#warning "StepNIntegrator TestScale parallel broken !! "	
-#endif /* USE_MPI */
-
-   	Dof CurrDof;
-	doublereal dXPr = 0.;
-
-	DofIterator.fGetFirst(CurrDof); 
-
-   	for (int iCntp1 = 1; iCntp1 <= pXPrimeCurr->iGetSize(); 
-			iCntp1++, DofIterator.fGetNext(CurrDof)) {
-
-		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-			doublereal d = pXPrimeCurr->dGetCoef(iCntp1);
-			doublereal d2 = d*d;
-
-#ifdef __HACK_SCALE_RES__
-			doublereal ds = pScale->dGetCoef(iCntp1);
-			doublereal ds2 = ds*ds;
-			d2 *= ds2;
-#endif /* __HACK_SCALE_RES__ */
-
-			dXPr += d2;
-		}
-		/* else if ALGEBRAIC: non aggiunge nulla */
-	}
-
-   	return 1./(1.+dXPr);
-
-#else /* ! __HACK_RES_TEST__ */
-	return 1.;
-#endif /* ! __HACK_RES_TEST__ */
-}
 
 /* StepNIntegrator - end */
 
@@ -480,8 +483,9 @@ StepNIntegrator::TestScale(void) const
 
 Step1Integrator::Step1Integrator(const integer MaxIt,
 		const doublereal dT,
-		const doublereal dSolutionTol) 
-: StepNIntegrator(MaxIt, dT, dSolutionTol, 1),
+		const doublereal dSolutionTol,
+		const bool bmod_res_test) 
+: StepNIntegrator(MaxIt, dT, dSolutionTol, 1, bmod_res_test),
 pXPrev(NULL),
 pXPrimePrev(NULL)
 {
@@ -699,8 +703,9 @@ Step1Integrator::Advance(const doublereal TStep,
 
 Step2Integrator::Step2Integrator(const integer MaxIt,
 		const doublereal dT,
-		const doublereal dSolutionTol) 
-: StepNIntegrator(MaxIt, dT, dSolutionTol, 2),
+		const doublereal dSolutionTol,
+		const bool bmod_res_test) 
+: StepNIntegrator(MaxIt, dT, dSolutionTol, 2, bmod_res_test),
 pXPrev(NULL),
 pXPrev2(NULL),
 pXPrimePrev(NULL),
@@ -948,8 +953,9 @@ Step2Integrator::Advance(const doublereal TStep,
 
 CrankNicholsonSolver::CrankNicholsonSolver(const doublereal dTl, 
 		const doublereal dSolTl, 
-		const integer iMaxIt)
-: Step1Integrator(iMaxIt, dTl, dSolTl)  
+		const integer iMaxIt,
+		const bool bmod_res_test)
+: Step1Integrator(iMaxIt, dTl, dSolTl, bmod_res_test)  
 {
 	NO_OP;
 }
@@ -1032,8 +1038,9 @@ MultistepSolver::MultistepSolver(const doublereal Tl,
 		const doublereal dSolTl, 
 		const integer iMaxIt,
 		const DriveCaller* pRho,
-		const DriveCaller* pAlgRho)
-:Step2Integrator(iMaxIt, Tl, dSolTl), 
+		const DriveCaller* pAlgRho,
+		const bool bmod_res_test)
+:Step2Integrator(iMaxIt, Tl, dSolTl, bmod_res_test), 
 Rho(pRho), AlgebraicRho(pAlgRho)
 {
 	ASSERT(pRho != NULL);
@@ -1214,8 +1221,9 @@ HopeSolver::HopeSolver(const doublereal Tl,
 		const doublereal dSolTl, 
 		const integer iMaxIt,
 		const DriveCaller* pRho,
-		const DriveCaller* pAlgRho)
-:Step2Integrator(iMaxIt, Tl, dSolTl), 
+		const DriveCaller* pAlgRho,
+		const bool bmod_res_test)
+:Step2Integrator(iMaxIt, Tl, dSolTl, bmod_res_test), 
 Rho(pRho), AlgebraicRho(pAlgRho), fStep(0)
 {
 	ASSERT(pRho != NULL);

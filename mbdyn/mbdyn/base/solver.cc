@@ -1343,6 +1343,7 @@ Solver::ReadData(MBDynParser& HP)
 		"max" "time" "step",
 		"tolerance",
 		"max" "iterations",
+		"modify" "residual" "test",
 	
 		/* DEPRECATED */
 		"fictitious" "steps" "number",
@@ -1443,6 +1444,7 @@ Solver::ReadData(MBDynParser& HP)
 		MAXTIMESTEP,
 		TOLERANCE,
 		MAXITERATIONS,
+		MODIFY_RES_TEST,
 	
 		FICTITIOUSSTEPSNUMBER,
 		FICTITIOUSSTEPSRATIO,      
@@ -1553,6 +1555,7 @@ Solver::ReadData(MBDynParser& HP)
 	doublereal dTol = dDefaultTol;
    	doublereal dSolutionTol = 0.;
    	integer iMaxIterations = iDefaultMaxIterations;
+	bool bModResTest = false;
 
         /* Dati dei passi fittizi di trimmaggio iniziale */
    	doublereal dFictitiousStepsTolerance = dDefaultFictitiousStepsTolerance;
@@ -1563,7 +1566,6 @@ Solver::ReadData(MBDynParser& HP)
 	doublereal dDerivativesTol = dDefaultTol;
    	doublereal dDerivativesCoef = 1.;   
    	integer iDerivativesMaxIterations = iDefaultMaxIterations;
-	
 
 	DriveCaller* pRhoRegular = NULL;
 	DriveCaller* pRhoAlgebraicRegular = NULL;	
@@ -2010,6 +2012,13 @@ Solver::ReadData(MBDynParser& HP)
 	  }		       		  
 	  DEBUGLCOUT(MYDEBUG_INPUT, 
 		     "Max iterations = " << iMaxIterations << std::endl);
+	  break;
+       }
+	 
+       case MODIFY_RES_TEST: {
+          bModResTest = true;
+	  DEBUGLCOUT(MYDEBUG_INPUT, 
+		     "Modify residual test" << std::endl);
 	  break;
        }
 	 
@@ -2751,20 +2760,23 @@ EndOfCycle: /* esce dal ciclo di lettura */
 			     DerivativeSolver(dDerivativesTol,
 		  			      0.,
 		  			      dInitialTimeStep*dDerivativesCoef,
-		  			      iDerivativesMaxIterations));
+		  			      iDerivativesMaxIterations,
+					      bModResTest));
 
      /* First step prediction must always be Crank-Nicholson for accuracy */
   SAFENEWWITHCONSTRUCTOR(pFirstFictitiousStep,
 			     CrankNicholsonSolver,
 			     CrankNicholsonSolver(dFictitiousStepsTolerance,
 		  		0.,
-			        iFictitiousStepsMaxIterations));
+			        iFictitiousStepsMaxIterations,
+				bModResTest));
   
   SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
 			 CrankNicholsonSolver,
 			 CrankNicholsonSolver(dTol,
 		  			dSolutionTol,
-					iMaxIterations));
+					iMaxIterations,
+					bModResTest));
 	
 		  
   /* costruzione dello step solver fictitious */
@@ -2781,7 +2793,8 @@ EndOfCycle: /* esce dal ciclo di lettura */
 						0.,
 						iFictitiousStepsMaxIterations,
 					        pRhoFictitious,
-						pRhoAlgebraicFictitious));
+						pRhoAlgebraicFictitious,
+						bModResTest));
 		break;
 		  
 	  case INT_HOPE:
@@ -2791,7 +2804,8 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		  				dSolutionTol,
 						iFictitiousStepsMaxIterations,
 					        pRhoFictitious,
-						pRhoAlgebraicFictitious));
+						pRhoAlgebraicFictitious,
+						bModResTest));
 		break;
 		  
 	  case INT_THIRDORDER:
@@ -2800,7 +2814,8 @@ EndOfCycle: /* esce dal ciclo di lettura */
 			     		ThirdOrderIntegrator(dFictitiousStepsTolerance,
 		  				dSolutionTol,
 						iFictitiousStepsMaxIterations,
-					        pRhoFictitious));
+					        pRhoFictitious,
+						bModResTest));
 		break;
 		  
 	 default:
@@ -2825,7 +2840,8 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		  				dSolutionTol,
 						iMaxIterations,
 					        pRhoRegular,
-						pRhoAlgebraicRegular));
+						pRhoAlgebraicRegular,
+						bModResTest));
 		break;
 		  
 	  case INT_HOPE:
@@ -2835,7 +2851,8 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		  				dSolutionTol,
 						iMaxIterations,
 					        pRhoRegular,
-						pRhoAlgebraicRegular));
+						pRhoAlgebraicRegular,
+						bModResTest));
 		break;
 		  
 	  case INT_THIRDORDER:
@@ -2844,7 +2861,8 @@ EndOfCycle: /* esce dal ciclo di lettura */
 			     		ThirdOrderIntegrator(dTol,
 		  				dSolutionTol,
 						iMaxIterations,
-					        pRhoRegular));
+					        pRhoRegular,
+						bModResTest));
 		break;
 		  
 	 default:
