@@ -66,19 +66,20 @@ Pierangelo Masarati (me!) worked as an undergraduate student at developing
 	Now, as a Staff Researcher, I'm maintaining the code and developing
 	new modules.
 
-Felice Felippone, as an undergraduate student, implemented the modal body back
-	in the new version of the code.
+Felice Felippone, as an undergraduate student, implemented the modal body 
+	back in the new version of the code.
 
-Lamberto Puggelli, another undergrad, implemented the hydraulic stuff
+Lamberto Puggelli, another undergrad, implemented the hydraulic library
 
 Giuseppe Quaranta (Beppe), as an undergrad, did a very good job in 
 	parallelizing the code adding a Schur domain decomposition solver
 	and incorporating Metis as a partitioning tool, all under the
 	MPI umbrella.
 
-Leonardo Cassan, undergrad, is working at the ADAMS2MBDyn project,
+Leonardo Cassan, undergrad, worked at the ADAMS2MBDyn project,
 	a translator form ADAMS/View models in adm format into MBDyn
-	raw input files. You can find it in contrib/a2m.
+	raw input files.  You can find what's available in contrib/a2m
+	(not working yet, sorry).
 
 Future development:
 
