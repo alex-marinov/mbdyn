@@ -455,7 +455,7 @@ ass_res(LoadableElem* pEl,
 	/*
 	 * Forza
 	 */
-	doublereal dFn = (dA*dP*(1.+tanh(-p->dVn/p->dHystVRef)));
+	doublereal dFn = (dA*dP*(1.-tanh(p->dVn/p->dHystVRef)));
 	p->F = n*dFn;
 
 	if (p->fSlip) {
