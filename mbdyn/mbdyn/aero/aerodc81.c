@@ -368,7 +368,6 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		return -1;
 
 	case 2: {
-		int SEGNO;
 		double A, B, A2, B2, ETA, ASN, ASM, 
 			SGN, SGM, SGMAX, 
 			DAN, DCN, DAM, DCM, 
@@ -475,12 +474,10 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		B = .25*chord*chord*ALF2/vp2;
 
 		ETA = sqrt(pow(A/.048, 2)+pow(B/.016, 2));
-		SEGNO = 1;
 
 		if (alpha < 0.) {
 			A = -A;
 			B = -B;
-			SEGNO = -1;
 		}
 
 		if (ETA > 1.) {
@@ -529,6 +526,19 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		OUTA[12] = DCN;
 		OUTA[13] = DCM;
 
+		/* 
+		 * I think I need to apply this contribution 
+		 * with the sign of alpha, because otherwise 
+		 * it gets discontinuous as alpha changes sign;
+		 * I definitely need the original reference :(
+		 */
+		if (alpha < 0.) {
+			DAN = -DAN;
+			DCN = -DCN;
+			DAM = -DAM;
+			DCM = -DCM;
+		}
+
 		alphaN = (alpha-DAN)*RAD2DEG;
 		get_coef(data->NML, data->ml, data->NAL, data->al, 
 				alphaN, mach, &cl, &cl0);
@@ -555,17 +565,10 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		dcla *= RAD2DEG;
 		dcma *= RAD2DEG;
 
-		C1 = .9457*SEGNO/sqrt(1.-mach*mach);
+		C1 = .9457/sqrt(1.-mach*mach);
 
-		/* 
-		 * I think I need to apply this contribution 
-		 * with the sign of alpha, because otherwise 
-		 * it gets discontinuous as alpha changes sign;
-		 * I definitely need the original reference :(
-		 */
 		cl = cl+dcla*DAN+DCN*C1;
 		cm = cm+dcma*DAM+DCM*C1;
-
 
 		break;
 	}
