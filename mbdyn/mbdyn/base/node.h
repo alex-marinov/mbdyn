@@ -438,7 +438,7 @@ inline const doublereal& ScalarAlgebraicNode::dGetXPrime(void) const
  elementi elettrici e Genel che normalmente usano un DoF scalare senza farlo
  partecipare allo jacobiano.
  */
-class ParameterNode : public ScalarAlgebraicNode{   
+class ParameterNode : public ScalarAlgebraicNode {
  public:
    /* Costruttori */
    

@@ -30,7 +30,7 @@
 
 /* 
  * Eigenvalue analysis by means of POD 
- * Copyright 2003-2005 Giuseppe Quaranta <giuquaranta@aero.polimi.it>
+ * Copyright 2003-2005 Giuseppe Quaranta <quaranta@aero.polimi.it>
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  *
  */

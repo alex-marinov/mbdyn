@@ -996,7 +996,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 			doublereal a_kMode = a.dGet(kMode);
 			doublereal aP_kMode = b.dGet(kMode);
 			unsigned int iOffset = (iMode-1)*3*NModes+(kMode-1)*3+1;
-			Inv9jkajak += pInv9->GetMat3x3ScalarMult(iOffset, a_iMode*a_kMode );
+			Inv9jkajak += pInv9->GetMat3x3ScalarMult(iOffset, a_iMode*a_kMode);
 			Inv9jkajaPk += pInv9->GetMat3x3ScalarMult(iOffset, a_iMode*aP_kMode);
 		}
 #endif /* MODAL_USE_INV9 */

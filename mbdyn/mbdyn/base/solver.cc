@@ -29,7 +29,7 @@
  */
 
 /*
- * Copyright 1999-2005 Giuseppe Quaranta <giuquaranta@aero.polimi.it>
+ * Copyright 1999-2005 Giuseppe Quaranta <quaranta@aero.polimi.it>
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  *
  * This copyright statement applies to the MPI related code, which was

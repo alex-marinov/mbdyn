@@ -169,17 +169,17 @@ PlaneHingeJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta = v.dGet(3);
-	integer iFirstReactionIndex = iGetFirstIndex();
 
 #if 0
 	std::cerr << "F: " << F << std::endl;
 	std::cerr << "M: " << M << std::endl;
 #endif
 	
-	X.Put(iFirstReactionIndex+1,F);
-	X.PutCoef(iFirstReactionIndex+4,M.dGet(1));
-	X.PutCoef(iFirstReactionIndex+5,M.dGet(2));
-		
+	integer iFirstReactionIndex = iGetFirstIndex();
+	X.Put(iFirstReactionIndex + 1, F);
+	X.PutCoef(iFirstReactionIndex + 4, M.dGet(1));
+	X.PutCoef(iFirstReactionIndex + 5, M.dGet(2));
+
 	if (fc) {
 		fc->SetValue(X,XP,iGetFirstIndex()+NumSelfDof);
 	}
@@ -212,8 +212,9 @@ PlaneHingeJoint::AfterConvergence(const VectorHandler& X,
 	}
 }
 
-/*Funzione che legge lo stato iniziale dal file di input*/
-void PlaneHingeJoint::ReadIinitialState(MBDynParser& HP)
+/* Funzione che legge lo stato iniziale dal file di input */
+void
+PlaneHingeJoint::ReadIinitialState(MBDynParser& HP)
 {
 	F = Vec3(HP.GetVec3());
 	M = Vec3(HP.GetReal(), HP.GetReal(), 0.);
@@ -232,7 +233,7 @@ std::ostream& PlaneHingeJoint::Restart(std::ostream& out) const
      d2.Write(out, ", ")
      << ", hinge, reference, node, 1, ", (R2h.GetVec(1)).Write(out, ", ")
      << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ", " 
-     << "initial state, ",F.Write(out, ", ") 
+     << "initial state, ", F.Write(out, ", ") 
      << ", " << M.dGet(1) << ", " << M.dGet(2) << ';' << std::endl;
    
    return out;
