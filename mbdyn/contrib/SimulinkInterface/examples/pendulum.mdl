@@ -368,7 +368,7 @@ Model {
       input_file	      "'/home/masarati/Lavoro/mbdyn/mbdyn-mfree/contri"
 "b/SimulinkInterface/examples/pendulum'"
       enable_out	      on
-      output_file	      "'pendulum_controlled'"
+      output_file	      "'examples/pendulum_controlled'"
       verbose		      off
       pedantic		      off
     }
