@@ -500,7 +500,7 @@ SuperLUSparseSolutionManager::MatrReset()
    	IsValid();
 #endif /* DEBUG */
 
-	MH.Reset(0.);
+	MH.Reset();
 	pLS->Reset();
 }
 
@@ -594,9 +594,9 @@ void
 SuperLUSparseCCSolutionManager<CC>::MatrReset(void)
 {
 	if (!CCReady) {
-		MH.Reset(0.);
+		MH.Reset();
 	} else {
-		Ac->Reset(0.);
+		Ac->Reset();
 	}
 }
 
