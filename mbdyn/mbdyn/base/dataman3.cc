@@ -100,6 +100,9 @@ void DataManager::ReadControl(MBDynParser& HP,
       "yes",	
       "initial" "tolerance",
       "max" "initial" "iterations",
+
+      "print",
+      "dof" "stats",
       
       "title",
       "make" "restart" "file",
@@ -149,6 +152,10 @@ void DataManager::ReadControl(MBDynParser& HP,
       YES,
       INITIALTOLERANCE,
       MAXINITIALITERATIONS,
+
+      PRINT,
+      DOFSTATS,
+      
       TITLE,
       MAKERESTARTFILE,
       OUTPUTFILENAME,
@@ -548,6 +555,12 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  break;
        }
 #endif /* USE_STRUCT_NODES */
+
+       case PRINT:
+	  if (HP.IsKeyWord("dofstats")) {
+	     fPrintDofStats = 1;
+	  }
+	  break;
 	 
 	 /* Titolo */
        case TITLE: {

@@ -106,11 +106,23 @@ void DataManager::DofOwnerInit(void)
       if ((iNumDof = (*ppNd)->iGetNumDof()) > 0) {	  	     
 	 /* si fa passare il primo Dof */
 	 Dof* pDf = pDofs+(*ppNd)->iGetFirstIndex();
-	 
+	
+#ifdef DEBUG
 	 DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
 		    psNodeNames[(*ppNd)->GetNodeType()] 
 		    << "(" << (*ppNd)->GetLabel()
 		    << "): first dof = " << pDf->iIndex+1 << endl);
+#else /* !DEBUG */
+	 if (fPrintDofStats) {
+	    cout << psNodeNames[(*ppNd)->GetNodeType()]
+	      << "(" << (*ppNd)->GetLabel()
+	      << "): first dof = " << pDf->iIndex+1;
+	    if ((*ppNd)->iGetNumDof() > 1) {
+	       cout << "->" << pDf->iIndex+(*ppNd)->iGetNumDof();
+	    }
+	    cout << endl;
+	 }
+#endif /* !DEBUG */
 	 
 	 /* per ogni Dof, chiede al nodo di che tipo e' e lo 
 	  * setta nel DofOwner */
@@ -142,10 +154,18 @@ void DataManager::DofOwnerInit(void)
 	 
 	 /* si fa passare il DofOwner */
 	 Dof* pDf = pDofs+pElWD->iGetFirstIndex();
-	 
+
+#ifdef DEBUG
 	 DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY, 
-		    "element " << pElWD->GetLabel()
-		    << ": first dof = " << pDf->iIndex+1 << endl);
+		    pdElemNames[pElWD->GetElemType()]
+		    << "(" << pElWD->GetLabel()
+		    << "): first dof = " << pDf->iIndex+1 << endl);
+#else /* !DEBUG */
+	 if (fPrintDofStats) {
+	    cout << pdElemNames[pElWD->GetElemType()] 
+	      << "(" << pElWD->GetLabel()
+	      << "): first dof = " << pDf->iIndex+1 << endl
+#endif /* !DEBUG */
 	 
 	 /* per ogni Dof, chiede all'elemento di che tipo e' e lo 
 	  * setta nel DofOwner */
@@ -180,10 +200,22 @@ void DataManager::DofOwnerInit(void)
 	    /* si fa passare il DofOwner */
 	    Dof* pDf = pDofs+pElWD->iGetFirstIndex();
 	    
+#ifdef DEBUG
 	    DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
 		       psElemNames[pEl->GetElemType()] 
 		       << "(" << pElWD->GetLabel()
 		       << "): first dof = " << pDf->iIndex+1 << endl);
+#else /* !DEBUG */
+	    if (fPrintDofStats) {
+	       cout << psElemNames[pEl->GetElemType()]
+		 << "(" << pElWD->GetLabel()
+		 << "): first dof = " << pDf->iIndex+1;
+	       if (pElWD->iGetNumDof() > 1) {
+		  cout << "->" << pDf->iIndex+pElWD->iGetNumDof();
+	       }
+	       cout << endl;
+	    }
+#endif /* !DEBUG */
 	    
 	    /* per ogni Dof, chiede all'elemento di che tipo e' e lo 
 	     * setta nel DofOwner */

@@ -116,6 +116,8 @@ class DataManager {
    integer iMaxInitialIterations;
 #endif // USE_STRUCT_NODES   
 
+   flag fPrintDofStats;
+
    /* Parametri vari */
    char* sSimulationTitle;
 

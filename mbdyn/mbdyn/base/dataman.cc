@@ -95,6 +95,7 @@ fOmegaRotates(fDefaultOmegaRotates),
 dInitialAssemblyToll(dDefaultInitialAssemblyToll),
 iMaxInitialIterations(iDefaultMaxInitialIterations),
 #endif // USE_STRUCT_NODES
+fPrintDofStats(0),
 sSimulationTitle(NULL),
 RestartEvery(NEVER),
 iRestartIterations(0),
@@ -413,9 +414,9 @@ DofIter()
    if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
       /* mostra in modo succinto i DofOwners */
       int k = 0;
-      for(int i = 0; i < DofOwner::LASTDOFTYPE; i++) {	
+      for(int i = 0; i < DofOwner::LASTDOFTYPE; i++) {
 	 cout << "DofType " << i << ':' << endl;
-	 for(int j = 0; j < DofData[i].iNum; j++) {	   
+	 for(int j = 0; j < DofData[i].iNum; j++) {
 	    cout << "DofOwner " << j << ", n. of dofs: "
 	      << pDofOwners[k++].iNumDofs << endl;
 	 }
@@ -438,7 +439,7 @@ DofIter()
    
 #ifdef DEBUG
    if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
-      for (int iCnt = 0; iCnt < iTotDofs; iCnt++) {      
+      for (int iCnt = 0; iCnt < iTotDofs; iCnt++) {
 	 cout << "Dof " << setw(4) << iCnt+1 << ": order "
 	   << (pDofs+iCnt)->Order << endl;
       }
