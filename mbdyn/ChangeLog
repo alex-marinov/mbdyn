@@ -1,10 +1,14 @@
 MBDyn: Multi-Body Dynamics
 see http://www.mbdyn.org
 
-Copyright: 1996-2000 Pierangelo Masarati
+Copyright: 1996-2001 Pierangelo Masarati
+
+*** Tue Oct 23 16:19:25 CEST 2001 Pierangelo Masarati <masarati@aero.polimi.it>
+ - added bi-stop constitutive law
+ - spherical slider works on one 3 node3 node beam
 
 *** Wed Aug  1 14:10:23 CEST 2001 Pierangelo Masarati <masarati@aero.polimi.it>
- - added NASRAN output (bulk and .f06) for modes at trim point.
+ - added NASTRAN output (bulk and .f06) for modes at trim point.
 
 *** Wed Aug  1 14:10:23 CEST 2001 Giuseppe Quaranta <quaranta@aero.polimi.it>
  - fixed modal flexibility; a new utility, femgen, generates the input for
