@@ -344,11 +344,13 @@ restart:
 	/* Scrive la licenza */
 	} else if (!strcmp(s, "license")) {
 		mbdyn_license(cout);
+		CurrLowToken = LowP.GetToken(*pIn);
 		goto restart;
 	
 	/* Scrive il disclaimer */
 	} else if (!strcmp(s, "warranty")) {
 		mbdyn_warranty(cout);
+		CurrLowToken = LowP.GetToken(*pIn);
 		goto restart;
 	}
 
