@@ -292,6 +292,22 @@ This directive simply invokes the math parser to evaluate the expression
 {\tt math\_expression} and then discards the result. It can be useful
 to declare new variables, or to set the values of existing ones.
 
+\subsection{Remark}
+The {\tt remark} directive:
+\begin{verbatim}
+    <card> ::= remark : " <remark_string > [ , <math_expression> ] ;
+\end{verbatim}
+This directive simply prints to stdout the string {\tt remark\_string} and
+optionally evaluates the expression {\tt math\_expression} in a way that is
+analogous to the {\tt set} directive.
+It is used to allow rough input debugging, where the file name and line 
+is logged, followed by a message, possibly followed by the evaluation 
+of an expression. 
+Example:
+\begin{verbatim}
+    remark: "square root of 2", sqrt(2);
+\end{verbatim}
+
 \subsection{Reference}
 The {\tt reference} directive:
 \begin{verbatim}

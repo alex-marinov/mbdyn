@@ -255,6 +255,7 @@ class HighParser {
    flag fIsDescription(void);
    int iGetDescription_(const char* const s);
    void Set_(void);
+   void Remark_(void);
    
  public:   
    HighParser(MathParser& MP, KeyTable& KT, InputStream& streamIn);

@@ -281,6 +281,25 @@ HighParser::Set_(void)
 }
 
 
+void
+HighParser::Remark_(void)
+{
+	if (FirstToken() == UNKNOWN) {
+		cerr << "Parser error in MBDynParser::Remark_(),"
+			" colon expected at line "
+			<< GetLineData() << endl;
+		THROW(HighParser::ErrColonExpected());
+	}
+	
+	cout << "line " << GetLineData() << ": " << GetStringWithDelims();
+	if (fIsArg()) {
+		cout << ", " << GetReal();
+	}
+ 
+	cout << endl;
+}
+
+
 int 
 HighParser::GetDescription(void)
 {

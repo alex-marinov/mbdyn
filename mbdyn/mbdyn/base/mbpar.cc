@@ -289,11 +289,16 @@ restart:
 		Include_();
 		goto restart;      
 		
-	/* Se trova un'invocazione di MatPerser, la gestisce direttamente */
+	/* Se trova un'invocazione di MathPerser, la gestisce direttamente */
 	} else if (!strcmp(s, "set")) {
 		Set_();
 		goto restart;
 		
+	/* Se trova un remark, scrive il commento ed eventualmente quello che segue */
+	} else if (!strcmp(s, "remark")) {
+		Remark_();
+		goto restart;
+
 	/* Se trova un sistema di riferimento, lo gestisce direttamente */
 	} else if (!strcmp(s, "reference")) {
 #if defined(USE_STRUCT_NODES)      
