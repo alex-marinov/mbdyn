@@ -146,7 +146,7 @@ OL_ARG_ENABLE(debug,[  --enable-debug          enable debugging], no)dnl
 OL_ARG_WITH(debug_mode,[  --with-debug-mode[={none|mem}]  with debug mode {none|mem}],none,[none mem])
 OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], auto)dnl
 OL_ARG_ENABLE(runtime_loading,[  --enable-runtime-loading    enable runtime loading], auto)dnl
-OL_ARG_WITH(static_modules,[  --with-static-modules build (known) modules as static],auto,[no yes auto])
+OL_ARG_WITH(static_modules,[  --with-static-modules   build (known) modules as static],auto,[no yes auto])
 OL_ARG_ENABLE(crypt,[  --enable-crypt          enable crypt (deprecated)], no)dnl
 OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver
                           (needs MPI and either Metis or Chaco)],auto,[auto yes no])dnl needs MPI and Metis or Chaco
