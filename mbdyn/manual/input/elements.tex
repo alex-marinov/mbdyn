@@ -521,6 +521,7 @@ the orientation matrices from the material to the global frame (the axial force
 is in direction 1).
 Any of the allowed 6D constitutive laws can be supplied to define the
 constitutive properties.
+The traditional input format is
 \begin{verbatim}
     <element_type> ::= beam3
     <normal_arglist> ::=
@@ -537,6 +538,37 @@ element is used.
 The two keywords \kw{same} respectively mean that the same orientation 
 and the same constitutive law defined for the first point will be used 
 for the second point.
+A more complete input format is
+\begin{verbatim}
+    <element_type> ::= beam3
+    <normal_arglist> ::=
+        <node_1> ,
+            [ position , ] (Vec3) <relative_offset_1> ,
+            [ orientation , (Mat3x3) <relative_orientation_1> , ]
+        <node_2> ,
+            [ position , ] (Vec3) <relative_offset_2> ,
+            [ orientation , (Mat3x3) <relative_orientation_2> , ]
+        <node_3> ,
+            [ position , ] (Vec3) <relative_offset_3> ,
+            [ orientation , (Mat3x3) <relative_orientation_3> , ]
+        { (OrientationMatrix) <orientation_matrix_section_I>
+            | from nodes } ,
+        (ConstitutiveLaw6D) <constitutive_law_section_I> ,
+        { same
+            | (OrientationMatrix) <orientation_matrix_section_II>
+            | from nodes } ,
+        { same
+            | (ConstitutiveLaw6D) <constitutive_law_section_II> }
+\end{verbatim}
+This format is a superset of the traditional one, which is extended
+by adding the possibility to set relative node orientations
+that can be subsequently used to interpolate the orientation matrices
+at the evaluation points, by providing the keyword \kw{from nodes}
+instead of the matrix.
+If the keyword \kw{same} is used for the second evaluation point,
+the same method is used to compute the orientation matrix.
+
+\noindent
 As an example, a simple beam element, with diagonal section stiffness 
 matrix is presented:
 \begin{verbatim}
@@ -590,6 +622,23 @@ abstract nodes that represent the electrodes.
         <node_1> , (Vec3) <relative_offset_1> ,
         <node_2> , (Vec3) <relative_offset_2> ,
         (OrientationMatrix) <orientation_matrix_section_I> ,
+        (ConstitutiveLaw6D) <constitutive_law_section_I>
+        [ , piezoelectric actuator , 
+        <electrodes_number> ,
+        <abstract_node_label_list> ,
+        (Mat6xN) <piezoelectric_matrix_I> ]
+\end{verbatim}
+\begin{verbatim}
+    <element_type> ::= beam2
+    <normal_arglist> ::=
+        <node_1> ,
+            [ positions , ] (Vec3) <relative_offset_1> ,
+            [ orientation , (Mat3x3) <relative_orientation_1> , ]
+        <node_2> ,
+            [ positions , ] (Vec3) <relative_offset_2> ,
+            [ orientation , (Mat3x3) <relative_orientation_2> , ]
+        { (OrientationMatrix) <orientation_matrix_section_I>
+            | from nodes } ,
         (ConstitutiveLaw6D) <constitutive_law_section_I>
         [ , piezoelectric actuator , 
         <electrodes_number> ,
