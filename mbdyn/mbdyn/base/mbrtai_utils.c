@@ -300,7 +300,7 @@ mbdyn_rt_sem_delete(void **__sem)
 	assert(*__sem != NULL);
 
 	sem = (SEM *)*__sem;
-	rc = rt_mbx_delete(sem);
+	rc = rt_sem_delete(sem);
 
 	*__sem = NULL;
 
