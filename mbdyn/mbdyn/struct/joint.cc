@@ -34,12 +34,13 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-extern "C" {
 #include <strings.h>
-}
 
 #include <joint.h>
 #include <dataman.h>
+
+#include <tpldrive.h>
+#include <tpldrive_.h>
 
 #include <drvhinge.h>
 #include <drvj.h>      /* Vincoli di velocita' imposta */
