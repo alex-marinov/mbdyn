@@ -42,8 +42,8 @@
 class CColMatrixHandler : public MatrixHandler {
 private:
 	std::vector<doublereal>& Ax;
-	std::vector<int>& Ai;
-	std::vector<int>& Ap;
+	const std::vector<int>& Ai;
+	const std::vector<int>& Ap;
 	int NRows;
 	int NCols;
 	int NZ;
@@ -54,8 +54,8 @@ private:
 	};
 public:
 	CColMatrixHandler(std::vector<doublereal>&x,
-		std::vector<int>& i,
-		std::vector<int>& p) : Ax(x), Ai(i), Ap(p), 
+		const std::vector<int>& i,
+		const std::vector<int>& p) : Ax(x), Ai(i), Ap(p), 
 			NRows(Ap.size()-1), NCols(Ap.size()-1), 
 			NZ(Ax.size()), zero(0.) {
 	};
