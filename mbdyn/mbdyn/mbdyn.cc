@@ -796,17 +796,29 @@ RunMBDyn(MBDynParser& HP,
 endofcycle:   
    
     	switch (CurrInt) {
-    	case MULTISTEP:
-		if (fParallel == 1) {
-	    		std::cerr << "Sorry, multistep method cannot be parallel;"
-	        		" aborting ..." << std::endl;
-	    		THROW(ErrGeneric());
-        	}
-        	SAFENEWWITHCONSTRUCTOR(pIntg,
-			               MultiStepIntegrator,
-				       MultiStepIntegrator(HP, 
-				       			   sInputFileName, 
-							   sOutputFileName));
+    	case SSCHUR:
+#ifndef USE_MPI
+		std::cerr << "compile with -DUSE_MPI to have parallel" 
+			<< std::endl;
+		THROW(ErrGeneric());
+#endif /* !USE_MPI */
+
+    	case MULTISTEP: 
+#ifdef USE_MPI
+		if (fParallel) {
+        		SAFENEWWITHCONSTRUCTOR(pIntg,
+					MultiStepIntegrator,
+					MultiStepIntegrator(HP, sInputFileName, 
+						sOutputFileName, fParallel));
+		} else {
+#endif /* USE_MPI */
+			SAFENEWWITHCONSTRUCTOR(pIntg,
+					MultiStepIntegrator,
+					MultiStepIntegrator(HP, sInputFileName,
+						sOutputFileName));
+#ifdef USE_MPI
+		}
+#endif /* USE_MPI */
         	break;
       
     	case RUNGEKUTTA:
@@ -814,40 +826,7 @@ endofcycle:
 	    		<< std::endl << "aborting ..." << std::endl;
         	THROW(ErrNotImplementedYet());
 
-    	case SSCHUR:
-        	if (!fParallel) {
-	    		std::cerr << "Sorry Schur method is supported only"
-	        		" for parallel computations; aborting ..."
-				<< std::endl;
-	    		THROW(ErrNotImplementedYet());
-        	}
-#ifdef USE_MPI
-        	if (MPI::COMM_WORLD.Get_size() == 1) {
-            		std::cerr << "Schur method is inefficient"
-	        		" if used with only one processor;" << std::endl 
-				<< "multistep method will be used instead"
-				<< std::endl;
-
-            		SAFENEWWITHCONSTRUCTOR(pIntg,
-                                   	       MultiStepIntegrator,
-					       MultiStepIntegrator(HP,
-					       		sInputFileName,
-							sOutputFileName));
-	    		break;
-        	}
-        	SAFENEWWITHCONSTRUCTOR(pIntg, 
-			       	       SchurMultiStepIntegrator, 
-				       SchurMultiStepIntegrator(HP, 
-				       			sInputFileName, 
-							sOutputFileName,
-				       fParallel));
-        	break;
-#else /* !USE_MPI */
-        	std::cerr << "compile with -DUSE_MPI to have parallel" << std::endl;
-        	THROW(ErrGeneric());
-#endif /* !USE_MPI */
-    
-    	default:
+	default:
         	std::cerr << "Unknown integrator; aborting ..." << std::endl;
         	THROW(ErrGeneric());   
     	}

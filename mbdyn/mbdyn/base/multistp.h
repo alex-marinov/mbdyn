@@ -62,6 +62,7 @@
 /* MultiStepIntegrator - begin */
 
 class MultiStepIntegrator : public Integrator {
+
 public:
    	class ErrGeneric {};
    	class ErrMaxIterations {};
@@ -72,16 +73,9 @@ private:
 		NOCHANGE,
 		FACTOR
 	} CurrStrategy;
-	
-   	enum SolverType {
-		HARWELL_SOLVER,
-		MESCHACH_SOLVER,
-		Y12_SOLVER,
-                UMFPACK3_SOLVER   
-	} CurrSolver;
 
-	static SolverType defaultSolver;
-   
+	Integrator::SolverType CurrSolver;
+	
 private:
    	const char *sInputFileName;
    	const char *sOutputFileName;
@@ -122,10 +116,31 @@ private:
    
    	/* Strutture di gestione dei dati e della soluzione */
    	SolutionManager* pSM; 		/* SolutionManager generico */
-   	DataManager* pDM;     		/* gestore dei dati */
+   	DataManager* pDM;		/* gestore dei dati */
    	VecIter<Dof> DofIterator; 	/* Iteratore per la struttura dei Dof,
 					 * passato da DM */
    	integer iNumDofs;     		/* Dimensioni del problema */
+
+#ifdef USE_MPI
+	flag fParallel;
+
+	SolutionManager* pLocalSM;
+
+	SchurDataManager *pSDM;
+	SchurSolutionManager *pSSM;
+
+	/* Strutture gestione parallelo */
+	integer iNumLocDofs;		/* Dimensioni problema locale */
+	integer iNumIntDofs;		/* Dimensioni interfaccia locale */
+	integer* pLocDofs;		/* Lista dof locali (stile FORTRAN) */
+	integer* pIntDofs;		/* Lista dei dofs di interfaccia */
+	Dof* pDofs;
+
+	integer iIWorkSpaceSize;
+	doublereal dIPivotFactor;
+
+	Integrator::SolverType CurrIntSolver;
+#endif /* USE_MPI */
    
    	/* Dati della simulazione */
    	doublereal dTime;
@@ -219,7 +234,8 @@ public:
    	/* costruttore */
    	MultiStepIntegrator(MBDynParser& HP, 
 		       	    const char* sInputFileName, 
-			    const char* sOutputFileName);
+			    const char* sOutputFileName,
+			    flag fParallel = 0);
 
    	/* esegue la simulazione */
    	virtual void Run(void);

@@ -64,8 +64,6 @@ reffrm.h \
 resforces.cc \
 resforces.h \
 restart.h \
-schur.cc \
-schur.h \
 schurdataman.cc \
 schurdataman.h \
 shape.h \

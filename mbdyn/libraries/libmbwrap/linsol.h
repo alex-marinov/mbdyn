@@ -38,6 +38,15 @@
 class Integrator
 {
 public:
+   	enum SolverType {
+		HARWELL_SOLVER,
+		MESCHACH_SOLVER,
+		Y12_SOLVER,
+                UMFPACK3_SOLVER   
+	};
+
+	static SolverType defaultSolver;
+ 
    	virtual ~Integrator(void) {
 		NO_OP;
 	};

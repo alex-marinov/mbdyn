@@ -148,7 +148,7 @@ class SchurDataManager : public DataManager {
       
     default:
       std::cerr << "SchurDataManager::HowManyDofs: illegal request (" 
-	      << who << ")" << std::endl;
+	      << unsigned(who) << ")" << std::endl;
       THROW(ErrGeneric());
     } 
   };
@@ -166,7 +166,7 @@ class SchurDataManager : public DataManager {
 
     default:
       std::cerr << "SchurDataManager::GetDofsList: illegal request ("
-	      << who << ")" << std::endl;
+	      << unsigned(who) << ")" << std::endl;
       THROW(ErrGeneric());
     } 
   };

@@ -28,6 +28,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/* 
+ * Copyright 1999-2000 Giuseppe Quaranta <giuquaranta@aero.polimi.it>
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ *
+ * This copyright statement applies to the MPI related code, which was
+ * merged from files schur.h/schur.cc
+ */
+
+
 /* metodo multistep */
 
 #ifdef HAVE_CONFIG_H
@@ -44,13 +53,23 @@
 #endif /* HAVE_SIGNAL_H */
 #endif /* HAVE_SIGNAL */
 
-#include <multistp.h>
-#include <mynewmem.h>
+#ifdef USE_MPI
+#include <schsolman.h>
+#include <schurdataman.h>
+#ifdef MPI_PROFILING
+extern "C" {
+#include <mpe.h>
+#include <stdio.h>
+}
+#endif /* MPI_PROFILING */
+#endif /* USE_MPI */
 
 #include <harwrap.h>
 #include <mschwrap.h>
 #include <y12wrap.h>
 #include <umfpackwrap.h>
+
+#include <multistp.h>
 
 #ifdef HAVE_SIGNAL
 static volatile sig_atomic_t keep_going = 1;
@@ -93,26 +112,27 @@ const integer iDefaultIterationsBeforeAssembly = 2;
 /*
  * Default solver
  */
-MultiStepIntegrator::SolverType
+Integrator::SolverType
 #if defined(USE_Y12)
-MultiStepIntegrator::defaultSolver = MultiStepIntegrator::Y12_SOLVER;
+Integrator::defaultSolver = Integrator::Y12_SOLVER;
 #elif /* !USE_Y12 */ defined(USE_UMFPACK3)
-MultiStepIntegrator::defaultSolver = MultiStepIntegrator::UMFPACK3_SOLVER;
+Integrator::defaultSolver = Integrator::UMFPACK3_SOLVER;
 #elif /* !USE_UMFPACK3 */ defined(USE_HARWELL)
-MultiStepIntegrator::defaultSolver = MultiStepIntegrator::HARWELL_SOLVER;
+Integrator::defaultSolver = Integrator::HARWELL_SOLVER;
 #elif /* !USE_HARWELL */ defined(USE_MESCHACH)
-MultiStepIntegrator::defaultSolver = MultiStepIntegrator::MESCHACH_SOLVER;
+Integrator::defaultSolver = Integrator::MESCHACH_SOLVER;
 #else /* !USE_MESCHACH */
 #error "need a solver!"
 #endif /* !USE_MESCHACH */
 
 /* Costruttore: esegue la simulazione */
 MultiStepIntegrator::MultiStepIntegrator(MBDynParser& HPar,
-					 const char* sInFName,
-					 const char* sOutFName)
+		const char* sInFName,
+		const char* sOutFName,
+		flag fPar)
 :
 CurrStrategy(NOCHANGE),
-CurrSolver(defaultSolver),
+CurrSolver(Integrator::defaultSolver),
 sInputFileName(NULL),
 sOutputFileName(NULL),
 HP(HPar),
@@ -132,7 +152,22 @@ pXPrev2(NULL),
 pXPrimePrev2(NULL),
 pSM(NULL),
 pDM(NULL),
-DofIterator(), iNumDofs(0),
+DofIterator(),
+iNumDofs(0),
+#ifdef USE_MPI
+fParallel(fPar),
+pLocalSM(NULL),
+pSDM(NULL),
+pSSM(NULL),
+iNumLocDofs(0),
+iNumIntDofs(0),
+pLocDofs(NULL),
+pIntDofs(NULL),
+pDofs(NULL),
+iIWorkSpaceSize(0),
+dIPivotFactor(-1.),
+CurrIntSolver(Integrator::defaultSolver),
+#endif /* USE_MPI */
 dTime(0.),
 dInitialTime(0.), 
 dFinalTime(0.),
@@ -184,7 +219,78 @@ void
 MultiStepIntegrator::Run(void)
 {
    	DEBUGCOUTFNAME("MultiStepIntegrator::Run");
-   
+
+#ifdef USE_MPI
+	int MyRank = 0;
+	if (fParallel) {
+		
+		/*
+		 * E' necessario poter determinare in questa routine
+		 * quale e' il master in modo da far calcolare la soluzione
+		 * solo su di esso
+		 */
+		MyRank = MPI::COMM_WORLD.Get_rank();
+		/* chiama il gestore dei dati generali della simulazione */
+
+#ifdef MPI_PROFILING
+		int  err = MPE_Init_log();
+		if (err) {
+			std::cerr << "Unable to ini jumpshot log file" 
+				<< std::endl;
+			THROW(ErrGeneric());
+		}
+
+		if (MyRank == 0) {
+			MPE_Describe_state(1, 2, "Create Partition", "yellow");
+			MPE_Describe_state(3, 4, "Test Broadcast", "steel blue");
+			MPE_Describe_state(5, 6, "Initialize Communications", "blue");
+			MPE_Describe_state(7, 8, "Prediction", "midnight blue");
+			MPE_Describe_state(13, 14, "ISend", "light salmon");
+			MPE_Describe_state(15, 16, "Local Update", "green");
+			MPE_Describe_state(19, 20, "IRecv", "cyan");
+			MPE_Describe_state(23, 24, "Compute Jac", "DarkGreen");
+			MPE_Describe_state(27, 28, "Compute Res", "orchid");
+			MPE_Describe_state(29, 30, "Output", "khaki1");
+			MPE_Describe_state(31, 32, "Solve Local", "firebrick");
+			MPE_Describe_state(35, 36, "Solve Schur", "orange");
+			MPE_Describe_state(33, 34, "Rotor Trust Exchange", "grey");
+			MPE_Describe_state(41,42, "Ass. Schur", "blue");
+		}
+			    
+		MPE_Start_log();
+#endif /* MPI_PROFILING */
+
+		/* I file di output vengono stampati localmente 
+		 * da ogni processo aggiungendo al termine 
+		 * del OutputFileName il rank del processo */
+		int iOutLen;
+		char* sNewOutName = NULL;
+		if (sOutputFileName == NULL) {
+			iOutLen = strlen(sInputFileName);
+			SAFENEWARR(sNewOutName, char, iOutLen+4+1);
+			strcpy(sNewOutName, sInputFileName);
+		} else {
+			iOutLen = strlen(sOutputFileName);
+			SAFENEWARR(sNewOutName, char, iOutLen+4+1);
+			strcpy(sNewOutName, sOutputFileName);
+		}
+		sprintf(sNewOutName+iOutLen,".%.3d", MyRank);
+
+		DEBUGLCOUT(MYDEBUG_MEM, "creating ParallelDataManager" 
+				<< std::endl);
+		SAFENEWWITHCONSTRUCTOR(pSDM,
+			SchurDataManager,
+			SchurDataManager(HP,
+				dInitialTime, 
+				sInputFileName,
+				sNewOutName,
+				fAbortAfterInput));
+
+		pDM = pSDM;
+
+	} else {
+#endif /* USE_MPI */
+
    	/* chiama il gestore dei dati generali della simulazione */
    	DEBUGLCOUT(MYDEBUG_MEM, "creating DataManager" << std::endl);
    	SAFENEWWITHCONSTRUCTOR(pDM,
@@ -194,7 +300,10 @@ MultiStepIntegrator::Run(void)
 					   sInputFileName,
 					   sOutputFileName,
 					   fAbortAfterInput));
-
+#ifdef USE_MPI
+	}
+#endif /* USE_MPI */
+   
    	/* Si fa dare l'std::ostream al file di output per il log */
    	std::ostream& Out = pDM->GetOutFile();
 
@@ -204,6 +313,7 @@ MultiStepIntegrator::Run(void)
       		Out << "End of Input; no simulation or assembly is required."
 			<< std::endl;
       		return;
+
    	} else if (fAbortAfterAssembly) {
       		/* Fa l'output dell'assemblaggio iniziale e poi esce */
       		pDM->Output();
@@ -212,6 +322,19 @@ MultiStepIntegrator::Run(void)
       		return;
    	}
 
+	/* Qui crea le partizioni: principale fra i processi, se parallelo  */
+#ifdef USE_MPI
+#ifdef MPI_PROFILING
+	MPE_Log_event(1, 0, "start");
+#endif /* MPI_PROFILING */ 
+	if (fParallel) {
+		pSDM->CreatePartition();
+	}
+#ifdef MPI_PROFILING
+	MPE_Log_event(2, 0, "end");
+#endif /* MPI_PROFILING */ 
+#endif /* USE_MPI */
+
    	/* Si fa dare il DriveHandler e linka i drivers di rho ecc. */
    	const DriveHandler* pDH = pDM->pGetDrvHdl();
    	pMethod->SetDriveHandler(pDH);
@@ -219,8 +342,24 @@ MultiStepIntegrator::Run(void)
    
    	/* Costruisce i vettori della soluzione ai vari passi */
    	DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << std::endl);
-   
-   	iNumDofs = pDM->iGetNumDofs();
+
+#ifdef USE_MPI
+	if (fParallel) {
+		iNumDofs = pSDM->HowManyDofs(SchurDataManager::TOTAL);
+		pDofs = pSDM->pGetDofsList();
+		
+		iNumLocDofs = pSDM->HowManyDofs(SchurDataManager::LOCAL);
+		pLocDofs = pSDM->GetDofsList(SchurDataManager::LOCAL);
+		iNumIntDofs = pSDM->HowManyDofs(SchurDataManager::INTERNAL);
+		pIntDofs = pSDM->GetDofsList(SchurDataManager::INTERNAL);
+
+	} else {
+#endif /* USE_MPI */
+   		iNumDofs = pDM->iGetNumDofs();
+#ifdef USE_MPI
+	}
+#endif /* USE_MPI */
+	
    	ASSERT(iNumDofs > 0);        
    
    	SAFENEWARR(pdWorkSpace, doublereal, 6*iNumDofs);
@@ -261,14 +400,23 @@ MultiStepIntegrator::Run(void)
    	/* costruisce il SolutionManager */
    	DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager, size = "
 		   << iNumDofs << std::endl);
-   
+
+	SolutionManager *pCurrSM = NULL;
+	integer iLWS = iWorkSpaceSize;
+	integer iNLD = iNumDofs;
+#ifdef USE_MPI
+	if (fParallel) {
+		iLWS = iWorkSpaceSize*iNumLocDofs/(iNumDofs*iNumDofs);
+		iNLD = iNumLocDofs;
+	}
+#endif /* USE_MPI */
+	
    	switch (CurrSolver) {
      	case Y12_SOLVER: 
 #ifdef USE_Y12
-      		SAFENEWWITHCONSTRUCTOR(pSM,
+      		SAFENEWWITHCONSTRUCTOR(pCurrSM,
 			Y12SparseLUSolutionManager,
-			Y12SparseLUSolutionManager(iNumDofs,
-				iWorkSpaceSize,
+			Y12SparseLUSolutionManager(iNLD, iLWS,
 				dPivotFactor == -1. ? 1. : dPivotFactor));
       		break;
 #else /* !USE_Y12 */
@@ -279,10 +427,9 @@ MultiStepIntegrator::Run(void)
 
     	case MESCHACH_SOLVER:
 #ifdef USE_MESCHACH
-      		SAFENEWWITHCONSTRUCTOR(pSM,
+      		SAFENEWWITHCONSTRUCTOR(pCurrSM,
 			MeschachSparseLUSolutionManager,
-			MeschachSparseLUSolutionManager(iNumDofs,
-				iWorkSpaceSize,
+			MeschachSparseLUSolutionManager(iNLD, iLWS,
 				dPivotFactor == -1. ? 1. : dPivotFactor));
       		break;
 #else /* !USE_MESCHACH */
@@ -294,10 +441,9 @@ MultiStepIntegrator::Run(void)
 
    	case HARWELL_SOLVER:
 #ifdef USE_HARWELL
-      		SAFENEWWITHCONSTRUCTOR(pSM,
+      		SAFENEWWITHCONSTRUCTOR(pCurrSM,
 			HarwellSparseLUSolutionManager,
-			HarwellSparseLUSolutionManager(iNumDofs,
-				iWorkSpaceSize,
+			HarwellSparseLUSolutionManager(iNLD, iLWS,
 				dPivotFactor == -1. ? 1. : dPivotFactor));
       		break;
 #else /* !USE_HARWELL */
@@ -308,9 +454,9 @@ MultiStepIntegrator::Run(void)
 
    	case UMFPACK3_SOLVER:
 #ifdef USE_UMFPACK3
-      		SAFENEWWITHCONSTRUCTOR(pSM,
+      		SAFENEWWITHCONSTRUCTOR(pCurrSM,
 			Umfpack3SparseLUSolutionManager,
-			Umfpack3SparseLUSolutionManager(iNumDofs, 
+			Umfpack3SparseLUSolutionManager(iNLD, 
 				0, dPivotFactor));
       		break;
 #else /* !USE_UMFPACK3 */
@@ -319,7 +465,94 @@ MultiStepIntegrator::Run(void)
       		THROW(ErrGeneric());
 #endif /* !USE_UMFPACK3 */
    	}
-   
+
+	/*
+	 * This is the LOCAL solver if instantiating a parallel
+	 * integrator; otherwise it is the MAIN solver
+	 */
+#ifdef USE_MPI
+	if (fParallel) {
+		pLocalSM = pCurrSM;
+
+		/* Crea il solutore di Schu globale */
+		switch (CurrIntSolver) {
+		case Y12_SOLVER:
+#ifdef USE_Y12
+		{
+			Y12SparseLUSolutionManager* pIntSM = NULL;
+			SAFENEWWITHCONSTRUCTOR(pSSM,
+				SchurSolutionManager,
+				SchurSolutionManager(iNumDofs, pLocDofs,
+					iNumLocDofs,
+					pIntDofs, iNumIntDofs,
+					pLocalSM,
+					pIntSM,
+					iIWorkSpaceSize,
+					dIPivotFactor == -1. ? 1. : dIPivotFactor));
+					break;
+		}
+#else /* !USE_Y12 */
+			std::cerr << "Configure with --with-y12 "
+				"to enable Y12 solver" << std::endl;
+			THROW(ErrGeneric());
+#endif /* !USE_Y12 */
+
+		case HARWELL_SOLVER:
+			std::cerr << "Harwell solver cannot be used "
+				"as interface solver. Switching to Meschach" 
+				<< std::endl;
+
+		case MESCHACH_SOLVER:
+#ifdef USE_MESCHACH
+		{
+			MeschachSparseLUSolutionManager* pIntSM = NULL;
+			SAFENEWWITHCONSTRUCTOR(pSSM,
+				SchurSolutionManager,
+				SchurSolutionManager(iNumDofs, pLocDofs,
+					iNumLocDofs,
+					pIntDofs, iNumIntDofs,
+					pLocalSM,
+					pIntSM,
+					iIWorkSpaceSize,
+					dIPivotFactor == -1. ? 1. : dIPivotFactor));
+			break;
+		}
+#else /* !USE_MESCHACH */
+			std::cerr << "Configure with --with-meschach "
+				"to enable Meschach solver" << std::endl;
+			THROW(ErrGeneric());
+#endif /* !USE_MESCHACH */
+
+		case UMFPACK3_SOLVER:
+#ifdef USE_UMFPACK3
+		{
+			Umfpack3SparseLUSolutionManager* pIntSM = NULL;
+			SAFENEWWITHCONSTRUCTOR(pSSM,
+				SchurSolutionManager,
+				SchurSolutionManager(iNumDofs, pLocDofs,
+					iNumLocDofs,
+					pIntDofs, iNumIntDofs,
+					pLocalSM,
+					pIntSM,
+					0, dIPivotFactor));
+			break;
+		}
+#else /* !USE_UMFPACK3 */
+			std::cerr << "Configure with --with-umfpack3 "
+				"to enable Umfpack3 solver" << std::endl;
+			THROW(ErrGeneric());
+#endif /* !USE_UMFPACK3 */
+		}
+
+		pSM = pSSM;
+		
+	} else {
+#endif /* USE_MPI */
+		pSM = pCurrSM;
+#ifdef USE_MPI
+	}
+#endif /* USE_MPI */
+ 
    	/* Puntatori agli handlers del solution manager */
    	VectorHandler* pRes = pSM->pResHdl();
    	VectorHandler* pSol = pSM->pSolHdl(); 
@@ -383,9 +616,24 @@ MultiStepIntegrator::Run(void)
 
    	int iIterCnt = 0;
    	while (1) {
+
+#ifdef MPI_PROFILING
+		MPE_Log_event(27, 0, "start");
+#endif /* MPI_PROFILING */
+
       		pRes->Reset(0.);
       		pDM->AssRes(*pRes, dDerivativesCoef);
+
+#ifdef MPI_PROFILING
+		MPE_Log_event(28, 0, "end");
+		MPE_Log_event(3, 0, "start");
+#endif /* MPI_PROFILING */
+
       		dTest = MakeTest(*pRes, *pXPrimeCurr);
+
+#ifdef MPI_PROFILING
+		MPE_Log_event(4, 0, "end");
+#endif /* MPI_PROFILING */
       
 #ifdef DEBUG
       		if (DEBUG_LEVEL_MATCH(MYDEBUG_DERIVATIVES|MYDEBUG_RESIDUAL)) {
@@ -417,9 +665,18 @@ MultiStepIntegrator::Run(void)
 	 		pDM->Output();	 
 	 		THROW(MultiStepIntegrator::ErrMaxIterations());
       		}
-      
+
+#ifdef MPI_PROFILING
+		MPE_Log_event(23, 0, "start");
+#endif /* MPI_PROFILING */
+
       		pSM->MatrInit(0.);
       		pDM->AssJac(*pJac, dDerivativesCoef);
+
+#ifdef MPI_PROFILING
+		MPE_Log_event(24, 0, "end");
+#endif /* MPI_PROFILING */
+
       		pSM->Solve();
       
 #ifdef DEBUG
@@ -432,9 +689,17 @@ MultiStepIntegrator::Run(void)
 	 		}
       		}
 #endif /* DEBUG */
-      	
+
+#ifdef MPI_PROFILING
+		MPE_Log_event(15, 0, "start local Update");
+#endif /* MPI-PROFILING */
+
       		Update(*pSol);
-      		pDM->DerivativesUpdate();	
+      		pDM->DerivativesUpdate();
+		
+#ifdef MPI_PROFILING
+		MPE_Log_event(16, 0, "end local Update");
+#endif /* MPI_PROFILING */
    	}
    
 EndOfDerivatives:
@@ -503,7 +768,16 @@ EndOfDerivatives:
       		cn.SetCoef(dRefTimeStep, 1.,
 			   MultiStepIntegrationMethod::NEWSTEP,
 			   db0Differential, db0Algebraic);
+#ifdef MPI_PROFILING
+		MPE_Log_event(7, 0, "start Predict");
+#endif /* MPI_PROFILING */
+
       		FirstStepPredict(&cn);
+
+#ifdef MPI_PROFILING
+		MPE_Log_event(8, 0, "end Predict");
+#endif
+
       		pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
       		pDM->AfterPredict();
       
@@ -534,9 +808,24 @@ EndOfDerivatives:
       		iIterCnt = 0;   
       		while (1) {
 	 		/* l02: EM calcolo del residuo */
+
+#ifdef MPI_PROFILING
+			MPE_Log_event(27, 0, "start");
+#endif /* MPI_PROFILING */
+
 	 		pRes->Reset(0.);
 			pDM->AssRes(*pRes, db0Differential);
+
+#ifdef MPI_PROFILING
+			MPE_Log_event(28, 0, "end");
+			MPE_Log_event(3, 0, "start");
+#endif /* MPI_PROFILING */
+
 			dTest = MakeTest(*pRes, *pXPrimeCurr);
+
+#ifdef MPI_PROFILING
+			MPE_Log_event(4, 0, "end");
+#endif /* MPI_PROFILING */
 	 
 #ifdef DEBUG
 			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)) {
@@ -570,9 +859,18 @@ EndOfDerivatives:
 	    			pDM->Output();
 	    			THROW(MultiStepIntegrator::ErrMaxIterations());
 	 		}
-	 
+
+#ifdef MPI_PROFILING
+			MPE_Log_event(23, 0, "start");
+#endif /* MPI_PROFILING */
+
 	 		pSM->MatrInit(0.);
 	 		pDM->AssJac(*pJac, db0Differential);
+
+#ifdef MPI_PROFILING
+			MPE_Log_event(24, 0, "end");
+#endif /* MPI_PROFILING */
+
 	 		pSM->Solve();
 	 
 #ifdef DEBUG
@@ -588,9 +886,17 @@ EndOfDerivatives:
 	    			}
 	 		}
 #endif /* DEBUG */
-	 
+
+#ifdef MPI_PROFILING
+			MPE_Log_event(15, 0, "start local Update");
+#endif /* MPI_PROFILING */
+
 	 		Update(*pSol); 
 	 		pDM->Update();
+
+#ifdef MPI_PROFILING
+			MPE_Log_event(16, 0, "end local Update");
+#endif /* MPI_PROFILING */
       		}
       
 EndOfFirstFictitiousStep:
@@ -638,7 +944,17 @@ EndOfFirstFictitiousStep:
 				dCurrTimeStep/dRefTimeStep, 
 				MultiStepIntegrationMethod::NEWSTEP,
 				db0Differential, db0Algebraic);	
+
+#ifdef MPI_PROFILING
+			MPE_Log_event(7, 0, "start Predict");
+#endif
+
 	 		Predict(pFictitiousStepsMethod);
+
+#ifdef MPI_PROFILING
+			MPE_Log_event(8, 0, "end Predict");
+#endif
+
 	 		pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	 		pDM->AfterPredict();          
 	 
@@ -670,10 +986,25 @@ EndOfFirstFictitiousStep:
 	 
 	 		iIterCnt = 0;
 	 		while (1) { 
+
+#ifdef MPI_PROFILING
+				MPE_Log_event(27, 0, "start");
+#endif /* MPI_PROFILING */
+
 	    			pRes->Reset(0.);
 	    			pDM->AssRes(*pRes, db0Differential);
+
+#ifdef MPI_PROFILING
+				MPE_Log_event(28, 0, "end");
+				MPE_Log_event(3, 0, "start");
+#endif /* MPI_PROFILING */
+
 	    			dTest = MakeTest(*pRes, *pXPrimeCurr);
-	    
+
+#ifdef MPI_PROFILING
+				MPE_Log_event(4, 0, "end");
+#endif /* MPI_PROFILING */
+
 #ifdef DEBUG
 	    			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)) {
 	       				std::cout << "Residual:" << std::endl;
@@ -715,8 +1046,17 @@ EndOfFirstFictitiousStep:
 						<< std::endl;
 				}
 
+#ifdef MPI_PROFILING
+				MPE_Log_event(23, 0, "start");
+#endif /* MPI_PROFILING */
+
 	    			pSM->MatrInit(0.);
 	    			pDM->AssJac(*pJac, db0Differential);
+
+#ifdef MPI_PROFILING
+				MPE_Log_event(24, 0, "end");
+#endif /* MPI_PROFILING */
+
 	    			pSM->Solve();
 	    
 #ifdef DEBUG
@@ -733,9 +1073,17 @@ EndOfFirstFictitiousStep:
 	       				}
 	    			}
 #endif /* DEBUG */
-	    
+
+#ifdef MPI_PROFILING
+				MPE_Log_event(15, 0, "start local Update");
+#endif /* MPI-PROFILING */
+				
 	    			Update(*pSol); 
 	    			pDM->Update();
+
+#ifdef MPI_PROFILING
+				MPE_Log_event(16, 0, "end local Update");
+#endif /* MPI-PROFILING */
 	 		}
 	 
 EndOfFictitiousStep:
@@ -833,7 +1181,17 @@ IfFirstStepIsToBeRepeated:
    	cn.SetCoef(dRefTimeStep, 1.,
 		   MultiStepIntegrationMethod::NEWSTEP,
 		   db0Differential, db0Algebraic);
+
+#ifdef MPI_PROFILING
+	MPE_Log_event(7, 0, "start Predict");
+#endif /* MPI_PROFILING */
+
    	FirstStepPredict(&cn);
+
+#ifdef MPI_PROFILING
+	MPE_Log_event(8, 0, "end Predict");
+#endif /* MPI_PROFILING */
+
    	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
    	pDM->AfterPredict();    
 
@@ -857,8 +1215,19 @@ IfFirstStepIsToBeRepeated:
    	iIterCnt = 0;
    	iPerformedIterations = iIterationsBeforeAssembly;   
    	while (1) {
+
+#ifdef MPI_PROFILING
+		MPE_Log_event(27,0,"start Residual");
+#endif /* MPI_PROFILING */
+
       		pRes->Reset(0.);
       		pDM->AssRes(*pRes, db0Differential);      
+
+#ifdef MPI_PROFILING
+		MPE_Log_event(28,0,"end Residual");
+		MPE_Log_event(3,0,"start");
+#endif /* MPI_PROFILING */
+
       		dTest = MakeTest(*pRes, *pXPrimeCurr);
       
 #ifdef DEBUG
@@ -909,25 +1278,50 @@ IfFirstStepIsToBeRepeated:
       		/* Modified Newton-Raphson ... */
       		if (iPerformedIterations < iIterationsBeforeAssembly) {
 	 		iPerformedIterations++;
-			
-			if (iOutputFlags & OUTPUT_ITERS) {
-				Out << "\tIteration " << iIterCnt
-					<< " " << dTest << " M"
-					<< std::endl;
+
+#ifdef USE_MPI
+			/* 
+			 * stats get written only on master machine 
+			 * if solution is parallel
+			 */
+			if (MyRank == 0) {
+#endif /* USE_MPI */
+				if (iOutputFlags & OUTPUT_ITERS) {
+					Out << "\tIteration " << iIterCnt
+						<< " " << dTest << " M"
+						<< std::endl;
+				}
+#ifdef USE_MPI
 			}
+#endif /* USE_MPI */
 
       		} else {
 	 		iPerformedIterations = 0;
+
+#ifdef MPI_PROFILING
+			MPE_Log_event(23,0,"start Jacobian");
+#endif /* MPI_PROFILING */
+
 	 		pSM->MatrInit(0.);
 	 		pDM->AssJac(*pJac, db0Differential);
 
-			if (iOutputFlags & OUTPUT_ITERS) {
-				Out << "\tIteration " << iIterCnt
-					<< " " << dTest << " J"
-					<< std::endl;
-			}
+#ifdef MPI_PROFILING
+			MPE_Log_event(24,0,"end Jacobian");
+#endif /* MPI_PROFILING */
 
+#ifdef USE_MPI
+			if (MyRank == 0) {
+#endif /* USE_MPI */
+				if (iOutputFlags & OUTPUT_ITERS) {
+					Out << "\tIteration " << iIterCnt
+						<< " " << dTest << " J"
+						<< std::endl;
+				}
+#ifdef USE_MPI
+			}
+#endif /* USE_MPI */
       		}
+
       		pSM->Solve();   
       
 #ifdef DEBUG
@@ -940,9 +1334,16 @@ IfFirstStepIsToBeRepeated:
 		}
 #endif /* DEBUG */
 
+#ifdef MPI_PROFILING
+		MPE_Log_event(15, 0, "start local Update");
+#endif /* MPI_PROFILING */
 
       		Update(*pSol); 
       		pDM->Update();
+
+#ifdef MPI_PROFILING
+		MPE_Log_event(16, 0, "end local Update");
+#endif /* MPI_PROFILING */
    	}
    
 EndOfFirstStep:
@@ -1014,8 +1415,18 @@ IfStepIsToBeRepeated:
 				 dCurrTimeStep/dRefTimeStep, 
 				 CurrStep,
 				 db0Differential, 
-				 db0Algebraic);	
+				 db0Algebraic);
+
+#ifdef MPI_PROFILING
+		MPE_Log_event(7, 0, "start Predict");
+#endif /* MPI_PROFILING */
+
       		Predict(pMethod);
+
+#ifdef MPI_PROFILING
+		MPE_Log_event(8, 0, "end Predict");
+#endif /* MPI_PROFILING */
+		
       		pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
       		pDM->AfterPredict();        
    
@@ -1045,8 +1456,18 @@ IfStepIsToBeRepeated:
       		iIterCnt = 0;
       		iPerformedIterations = iIterationsBeforeAssembly;
       		while (1) {
+
+#ifdef MPI_PROFILING
+			MPE_Log_event(27,0,"start Residual");
+#endif /* MPI_PROFILING */
+
 	 		pRes->Reset(0.);
 	 		pDM->AssRes(*pRes, db0Differential);
+
+#ifdef MPI_PROFILING
+			MPE_Log_event(28,0,"end Residual");
+#endif /* MPI_PROFILING */
+
 #ifdef USE_EXCEPTIONS
 			try {
 #endif /* USE_EXCEPTIONS */
@@ -1123,24 +1544,49 @@ IfStepIsToBeRepeated:
 	 		if (iPerformedIterations < iIterationsBeforeAssembly) {
 	    			iPerformedIterations++;
 
-				if (iOutputFlags & OUTPUT_ITERS) {
-					Out << "\tIteration " << iIterCnt
-						<< " " << dTest << " M"
-						<< std::endl;
+#ifdef USE_MPI
+				if (MyRank == 0) {
+#endif /* USE_MPI */
+					if (iOutputFlags & OUTPUT_ITERS) {
+						Out << "\tIteration " 
+							<< iIterCnt
+							<< " " << dTest 
+							<< " M" 
+							<< std::endl;
+					}
+#ifdef USE_MPI
 				}
+#endif /* USE_MPI */
 
 	 		} else {
 	    			iPerformedIterations = 0;
+
+#ifdef MPI_PROFILING
+				MPE_Log_event(23,0,"start Jacobian");
+#endif /* MPI_PROFILING */
+
 	    			pSM->MatrInit(0.);
 	    			pDM->AssJac(*pJac, db0Differential);
 
-				if (iOutputFlags & OUTPUT_ITERS) {
-					Out << "\tIteration " << iIterCnt
-						<< " " << dTest << " J"
-						<< std::endl;
-				}
+#ifdef MPI_PROFILING
+				MPE_Log_event(24,0,"end Jacobian");
+#endif /* MPI_PROFILING */
 
+#ifdef USE_MPI
+				if (MyRank == 0) {
+#endif /* USE_MPI */
+					if (iOutputFlags & OUTPUT_ITERS) {
+						Out << "\tIteration " 
+							<< iIterCnt
+							<< " " << dTest 
+							<< " J"
+							<< std::endl;
+					}
+#ifdef USE_MPI
+				}
+#endif /* USE_MPI */
 	 		}
+
 	 		pSM->Solve();
 
 #ifdef DEBUG
@@ -1157,8 +1603,16 @@ IfStepIsToBeRepeated:
 	 		}
 #endif /* DEBUG */
 
+#ifdef MPI_PROFILING
+			MPE_Log_event(15, 0, "start local Update");
+#endif /* MPI_PROFILING */
+
 	 		Update(*pSol);
 	 		pDM->Update();
+
+#ifdef MPI_PROFILING
+			MPE_Log_event(16, 0, "end local Update");
+#endif /* MPI-PROFILING */
       		}
 	 
 EndOfStep:
@@ -1199,6 +1653,10 @@ EndOfStep:
 MultiStepIntegrator::~MultiStepIntegrator(void)
 {
    	DEBUGCOUTFNAME("MultiStepIntegrator::~MultiStepIntegrator");
+
+#ifdef MPI_PROFILING
+	MPE_Finish_log("mbdyn.mpi");
+#endif /* MPI_PROFILING */
 
    	if (sInputFileName != NULL) {
       		SAFEDELETEARR(sInputFileName);
@@ -1253,27 +1711,73 @@ MultiStepIntegrator::MakeTest(const VectorHandler& Res,
    	DEBUGCOUTFNAME("MultiStepIntegrator::MakeTest");
    
    	Dof CurrDof;
-   	DofIterator.fGetFirst(CurrDof);
       
    	doublereal dRes = 0.;
    	doublereal dXPr = 0.;
-   
-   	for (int iCntp1 = 1;
-	     iCntp1 <= iNumDofs; 
-	     iCntp1++, DofIterator.fGetNext(CurrDof)) {
-      		doublereal d = Res.dGetCoef(iCntp1);
-      		dRes += d*d;
-      		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-	 		d = XP.dGetCoef(iCntp1);
-	 		dXPr += d*d;
-      		}
-      		/* else if ALGEBRAIC: non aggiunge nulla */
-   	}
+
+#ifdef USE_MPI
+	if (fParallel) {
+		/*
+		 * Chiama la routine di comunicazione per la trasmissione 
+		 * del residuo delle interfacce
+		 */
+		pSSM->StartExchInt();
+
+		/* calcola il test per i dofs locali */
+		int DCount = 0;
+		for (int iCnt = 0; iCnt < iNumLocDofs; iCnt++) {
+			DCount = pLocDofs[iCnt];
+			CurrDof = pDofs[DCount-1];
+			doublereal d = Res.dGetCoef(DCount);
+			dRes += d*d;
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				d = XP.dGetCoef(DCount);
+				dXPr += d*d;
+			}
+			/* else if ALGEBRAIC: non aggiunge nulla */
+		}
+
+		integer iMI = pSDM->HowManyDofs(SchurDataManager::MYINTERNAL);
+		integer *pMI = pSDM->GetDofsList(SchurDataManager::MYINTERNAL);
+		
+		for (int iCnt = 0; iCnt < iMI; iCnt++) {
+			DCount = pMI[iCnt];
+			CurrDof = pDofs[DCount-1];
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				doublereal d = XP.dGetCoef(DCount);
+				dXPr += d*d;
+			}
+			/* else if ALGEBRAIC: non aggiunge nulla */
+		}
+		
+		/* verifica completamento trasmissioni */
+		pSSM->ComplExchInt(dRes, dXPr);
+		
+	} else {
+#endif /* USE_MPI */
+		DofIterator.fGetFirst(CurrDof); 
+
+ 	  	for (int iCntp1 = 1; iCntp1 <= iNumDofs; 
+				iCntp1++, DofIterator.fGetNext(CurrDof)) {
+			doublereal d = Res.dGetCoef(iCntp1);
+			dRes += d*d;
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				d = XP.dGetCoef(iCntp1);
+				dXPr += d*d;
+			}
+			/* else if ALGEBRAIC: non aggiunge nulla */
+		}
+
+#ifdef USE_MPI
+	}
+#endif /* USE_MPI */
+
    	dRes /= (1.+dXPr);
    	if (!isfinite(dRes)) {      
       		std::cerr << "The simulation diverged; aborting ..." << std::endl;       
       		THROW(MultiStepIntegrator::ErrSimulationDiverged());
    	}
+
    	return sqrt(dRes);
 }
 
@@ -1284,38 +1788,133 @@ MultiStepIntegrator::FirstStepPredict(MultiStepIntegrationMethod* pM)
    	DEBUGCOUTFNAME("MultiStepIntegrator::FirstStepPredict");
    
    	Dof CurrDof;
-   	DofIterator.fGetFirst(CurrDof);
-   
-   	/* Combinazione lineare di stato e derivata al passo precedente ecc. */
-   	for (int iCntp1 = 1;
-	     iCntp1 <= iNumDofs;
-	     iCntp1++, DofIterator.fGetNext(CurrDof)) {
-      		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-	 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-	 		doublereal dXPnm1 = pXPrimePrev->dGetCoef(iCntp1);
 
-	 		doublereal dXPn = pM->dPredDer(dXnm1, 0., dXPnm1, 0.);
-			doublereal dXn = pM->dPredState(dXnm1, 0.,
-							dXPn, dXPnm1, 0.);
-			
-	 		pXPrimeCurr->fPutCoef(iCntp1, dXPn);	 
-	 		pXCurr->fPutCoef(iCntp1, dXn);
-      		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
-	 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
+#ifdef USE_MPI
+	if (fParallel) {
+
+		/* dofs locali */
+		int DCount =  0;
+		for (int iCnt = 0; iCnt < iNumLocDofs; iCnt++) {
+			DCount = pLocDofs[iCnt];
+			CurrDof = pDofs[DCount-1];
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+				doublereal dXPnm1 = 
+					pXPrimePrev->dGetCoef(DCount);
+
+				doublereal dXPn = pM->dPredDer(dXnm1, 0., 
+						dXPnm1, 0.);
+				doublereal dXn = pM->dPredState(dXnm1, 0., 
+						dXPn, dXPnm1, 0.);
+
+				pXPrimeCurr->fPutCoef(DCount, dXPn);
+				pXCurr->fPutCoef(DCount, dXn);
+				
+			} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
+				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+				        
+				doublereal dXn = pM->dPredDerAlg(0., dXnm1, 0.);
+				doublereal dXIn = pM->dPredStateAlg(0., dXn, 
+						dXnm1, 0.);
+
+				pXCurr->fPutCoef(DCount, dXn);
+				pXPrimeCurr->fPutCoef(DCount, dXIn);
+				
+			} else {
+				std::cerr << "SchurMultiStepIntegrator::"
+					"FirstStepPredict(): "
+					"unknown order for local dof " 
+					<< iCnt + 1 << std::endl;
+				THROW(ErrGeneric());
+			}
+		}
 	
-	 		doublereal dXn = pM->dPredDerAlg(0., dXnm1, 0.);
-			doublereal dXIn = pM->dPredStateAlg(0., dXn,
-							    dXnm1, 0.);
-			
-	 		pXCurr->fPutCoef(iCntp1, dXn);
-	 		pXPrimeCurr->fPutCoef(iCntp1, dXIn);
+		/* 
+		 * Combinazione lineare di stato e derivata 
+		 * al passo precedente ecc. 
+		 */
+		/* dofs interfaccia */
+		
+		DCount =  0;
+		for (int iCnt = 0; iCnt < iNumIntDofs; iCnt++) {
+			DCount = pIntDofs[iCnt];
+			CurrDof = pDofs[DCount-1];
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+				doublereal dXPnm1 = 
+					pXPrimePrev->dGetCoef(DCount);
+				
+				doublereal dXPn = pM->dPredDer(dXnm1, 0., 
+						dXPnm1, 0.);
+				doublereal dXn = pM->dPredState(dXnm1, 0., 
+						dXPn, dXPnm1, 0.);
 
-      		} else {
-	 		std::cerr << "MultiStepIntegrator::FirstStepPredict():"
-				" unknown dof order" << std::endl;
-	 		THROW(ErrGeneric());
-      		}
-   	}
+				pXPrimeCurr->fPutCoef(DCount, dXPn);
+				pXCurr->fPutCoef(DCount, dXn);
+				
+			} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
+				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+				
+				doublereal dXn = pM->dPredDerAlg(0., dXnm1, 0.);
+				doublereal dXIn = pM->dPredStateAlg(0., dXn, 
+						dXnm1, 0.);
+
+				pXCurr->fPutCoef(DCount, dXn);
+				pXPrimeCurr->fPutCoef(DCount, dXIn);
+				
+			} else {
+				std::cerr << "SchurMultiStepIntegrator::"
+					"FirstStepPredict(): "
+					"unknown order for interface dof " 
+					<< iCnt + 1 << std::endl;
+				THROW(ErrGeneric());
+			}
+		}
+
+	} else {
+#endif /* USE_MPI */
+		DofIterator.fGetFirst(CurrDof);
+
+   		/* 
+		 * Combinazione lineare di stato e derivata 
+		 * al passo precedente ecc. 
+		 */
+	   	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
+				iCntp1++, DofIterator.fGetNext(CurrDof)) {
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+		 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
+		 		doublereal dXPnm1 = 
+					pXPrimePrev->dGetCoef(iCntp1);
+
+		 		doublereal dXPn = pM->dPredDer(dXnm1, 0., 
+						dXPnm1, 0.);
+				doublereal dXn = pM->dPredState(dXnm1, 0.,
+						dXPn, dXPnm1, 0.);
+			
+				pXPrimeCurr->fPutCoef(iCntp1, dXPn);	 
+				pXCurr->fPutCoef(iCntp1, dXn);
+
+			} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
+				doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
+	
+				doublereal dXn = pM->dPredDerAlg(0., dXnm1, 0.);
+				doublereal dXIn = pM->dPredStateAlg(0., dXn,
+						dXnm1, 0.);
+				
+				pXCurr->fPutCoef(iCntp1, dXn);
+				pXPrimeCurr->fPutCoef(iCntp1, dXIn);
+
+			} else {
+				std::cerr << "MultiStepIntegrator::"
+					"FirstStepPredict():"
+					" unknown order for dof " 
+					<< iCntp1 << std::endl;
+				THROW(ErrGeneric());
+			}
+		}
+#ifdef USE_MPI
+	}
+#endif /* USE_MPI */
 }
 
 /* Predizione al passo generico */
@@ -1327,43 +1926,153 @@ MultiStepIntegrator::Predict(MultiStepIntegrationMethod* pM)
    	DEBUGCOUTFNAME("MultiStepIntegrator::Predict");
    
    	Dof CurrDof;
-   	DofIterator.fGetFirst(CurrDof);
+
+#ifdef USE_MPI
+	if (fParallel) {
+		int DCount = 0;
+
+		/* 
+		 * Combinazione lineare di stato e derivata 
+		 * al passo precedente ecc. 
+		 */
+		/* Dofs locali */
+		for (int iCnt = 0; iCnt < iNumLocDofs; iCnt++) {
+			DCount = pLocDofs[iCnt];
+			CurrDof = pDofs[DCount-1];
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+				doublereal dXnm2 = pXPrev2->dGetCoef(DCount);
+				doublereal dXPnm1 = 
+					pXPrimePrev->dGetCoef(DCount);
+
+				doublereal dXPnm2 = 
+					pXPrimePrev2->dGetCoef(DCount);
+				doublereal dXPn = pM->dPredDer(dXnm1, dXnm2, 
+						dXPnm1, dXPnm2);
+				doublereal dXn = pM->dPredState(dXnm1, dXnm2, 
+						dXPn, dXPnm1, dXPnm2);
+
+				pXPrimeCurr->fPutCoef(DCount, dXPn);
+				pXCurr->fPutCoef(DCount, dXn);
+				
+			} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
+				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+				doublereal dXnm2 = pXPrev2->dGetCoef(DCount);
+				doublereal dXInm1 = 
+					pXPrimePrev->dGetCoef(DCount);
+						                                
+				doublereal dXn = pM->dPredDerAlg(dXInm1, 
+						dXnm1, dXnm2);
+				doublereal dXIn = pM->dPredStateAlg(dXInm1, 
+						dXn, dXnm1, dXnm2);
+
+				pXCurr->fPutCoef(DCount, dXn);
+				pXPrimeCurr->fPutCoef(DCount, dXIn);
+			
+			} else {
+				std::cerr << "SchurMultiStepIntegrator::"
+					"Predict(): "
+					"unknown order for local dof " 
+					<< iCnt + 1 << std::endl;
+				THROW(ErrGeneric());
+			}
+		}
+
+		/* Dofs interfaccia */
+		DCount = 0;
+		for (int iCnt = 0; iCnt < iNumIntDofs; iCnt++) {
+			DCount = pIntDofs[iCnt];
+			CurrDof = pDofs[DCount-1];
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+				doublereal dXnm2 = pXPrev2->dGetCoef(DCount);
+				doublereal dXPnm1 = 
+					pXPrimePrev->dGetCoef(DCount);
+				doublereal dXPnm2 = 
+					pXPrimePrev2->dGetCoef(DCount);
+
+
+				doublereal dXPn = pM->dPredDer(dXnm1, dXnm2, 
+						dXPnm1, dXPnm2);
+				doublereal dXn = pM->dPredState(dXnm1, dXnm2, 
+						dXPn, dXPnm1, dXPnm2);
+				
+				pXPrimeCurr->fPutCoef(DCount, dXPn);
+				pXCurr->fPutCoef(DCount, dXn);
+	
+			} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
+				doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+				doublereal dXnm2 = pXPrev2->dGetCoef(DCount);
+				doublereal dXInm1 = 
+					pXPrimePrev->dGetCoef(DCount);
+									 
+				doublereal dXn = pM->dPredDerAlg(dXInm1, 
+						dXnm1, dXnm2);
+				doublereal dXIn = pM->dPredStateAlg(dXInm1, 
+						dXn, dXnm1, dXnm2);
+
+				pXCurr->fPutCoef(DCount, dXn);
+				pXPrimeCurr->fPutCoef(DCount, dXIn);
+												 
+			} else {
+				std::cerr << "SchurMultiStepIntegrator::"
+					"Predict(): "
+					"unknown order for interface dof " 
+					<< iCnt + 1 << std::endl;
+				THROW(ErrGeneric());
+			}
+		}
+
+	} else {
+#endif /* USE_MPI */
+
+	   	DofIterator.fGetFirst(CurrDof);
    
-   	/* Combinazione lineare di stato e derivata al passo precedente ecc. */
-   	for (int iCntp1 = 1;
-	     iCntp1 <= iNumDofs;
-	     iCntp1++, DofIterator.fGetNext(CurrDof)) {
-      		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-	 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-	 		doublereal dXnm2 = pXPrev2->dGetCoef(iCntp1);
-	 		doublereal dXPnm1 = pXPrimePrev->dGetCoef(iCntp1);
-	 		doublereal dXPnm2 = pXPrimePrev2->dGetCoef(iCntp1);
-
-	 		doublereal dXPn = pM->dPredDer(dXnm1, dXnm2,
-						       dXPnm1, dXPnm2);
-			doublereal dXn = pM->dPredState(dXnm1, dXnm2, 
-							dXPn, dXPnm1, dXPnm2);
+	   	/* 
+		 * Combinazione lineare di stato e derivata 
+		 * al passo precedente ecc. 
+		 */
+   		for (int iCntp1 = 1; iCntp1 <= iNumDofs;
+				iCntp1++, DofIterator.fGetNext(CurrDof)) {
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
+		 		doublereal dXnm2 = pXPrev2->dGetCoef(iCntp1);
+		 		doublereal dXPnm1 = 
+					pXPrimePrev->dGetCoef(iCntp1);
+		 		doublereal dXPnm2 = 
+					pXPrimePrev2->dGetCoef(iCntp1);
+	
+		 		doublereal dXPn = pM->dPredDer(dXnm1, dXnm2,
+						dXPnm1, dXPnm2);
+				doublereal dXn = pM->dPredState(dXnm1, dXnm2, 
+						dXPn, dXPnm1, dXPnm2);
 			
-	 		pXPrimeCurr->fPutCoef(iCntp1, dXPn);
-	 		pXCurr->fPutCoef(iCntp1, dXn);
+		 		pXPrimeCurr->fPutCoef(iCntp1, dXPn);
+		 		pXCurr->fPutCoef(iCntp1, dXn);
 			
-      		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
-	 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
-	 		doublereal dXnm2 = pXPrev2->dGetCoef(iCntp1);
-	 		doublereal dXInm1 = pXPrimePrev->dGetCoef(iCntp1);
+	      		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
+		 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
+		 		doublereal dXnm2 = pXPrev2->dGetCoef(iCntp1);
+		 		doublereal dXInm1 = 
+					pXPrimePrev->dGetCoef(iCntp1);
 
-	 		doublereal dXn = pM->dPredDerAlg(dXInm1, dXnm1, dXnm2);
-			doublereal dXIn = pM->dPredStateAlg(dXInm1, dXn,
-							    dXnm1, dXnm2);
+		 		doublereal dXn = pM->dPredDerAlg(dXInm1, 
+						dXnm1, dXnm2);
+				doublereal dXIn = pM->dPredStateAlg(dXInm1, 
+						dXn, dXnm1, dXnm2);
 			
-	 		pXCurr->fPutCoef(iCntp1, dXn);
-	 		pXPrimeCurr->fPutCoef(iCntp1, dXIn);
+		 		pXCurr->fPutCoef(iCntp1, dXn);
+		 		pXPrimeCurr->fPutCoef(iCntp1, dXIn);
 
-      		} else {
-	 		std::cerr << "unknown dof order" << std::endl;
-	 		THROW(ErrGeneric());
-      		}
-   	}
+      			} else {
+		 		std::cerr << "unknown order for dof " 
+					<< iCntp1<< std::endl;
+		 		THROW(ErrGeneric());
+      			}
+	   	}
+#ifdef USE_MPI
+	}
+#endif /* USE_MPI */
 }
 
 /* Nuovo delta t */
@@ -1431,18 +2140,51 @@ MultiStepIntegrator::DerivativesUpdate(const VectorHandler& Sol)
    	DEBUGCOUTFNAME("MultiStepIntegrator::DerivativesUpdate");
    
    	Dof CurrDof;
-   	DofIterator.fGetFirst(CurrDof);
 
-   	for (int iCntp1 = 1;
-	     iCntp1 <= iNumDofs;
-	     iCntp1++, DofIterator.fGetNext(CurrDof)) {		
-      		doublereal d = Sol.dGetCoef(iCntp1);
-      		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-	 		pXPrimeCurr->fIncCoef(iCntp1, d);
-      		} else {
-	 		pXCurr->fIncCoef(iCntp1, d);
-      		}
-   	}
+#ifdef USE_MPI
+	if (fParallel) {
+		/* dofs locali */
+		int DCount = 0;
+		for (int iCntp1 = 0; iCntp1 < iNumLocDofs; iCntp1++) {
+			DCount = pLocDofs[iCntp1];
+			CurrDof = pDofs[DCount-1];
+			doublereal d = Sol.dGetCoef(DCount);
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				pXPrimeCurr->fIncCoef(DCount, d);
+			} else {
+				pXCurr->fIncCoef(DCount, d);
+			}
+		}
+
+		/* dofs interfaccia */
+		DCount = 0;
+		for (int iCntp1 = 0; iCntp1 < iNumIntDofs; iCntp1++) {
+			DCount = pIntDofs[iCntp1];
+			CurrDof = pDofs[DCount-1];
+			doublereal d = Sol.dGetCoef(DCount);
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				pXPrimeCurr->fIncCoef(DCount, d);
+			} else {
+				pXCurr->fIncCoef(DCount, d);
+			}
+		}
+
+	} else {
+#endif /* USE_MPI */
+	   	DofIterator.fGetFirst(CurrDof);
+
+		for (int iCntp1 = 1; iCntp1 <= iNumDofs;
+				iCntp1++, DofIterator.fGetNext(CurrDof)) {
+			doublereal d = Sol.dGetCoef(iCntp1);
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				pXPrimeCurr->fIncCoef(iCntp1, d);
+			} else {
+				pXCurr->fIncCoef(iCntp1, d);
+			}
+		}
+#ifdef USE_MPI
+	}
+#endif /* USE_MPI */
 }
 
 /* Aggiornamento normale */
@@ -1452,26 +2194,75 @@ MultiStepIntegrator::Update(const VectorHandler& Sol)
    	DEBUGCOUTFNAME("MultiStepIntegrator::Update");
 
    	Dof CurrDof;
-   	DofIterator.fGetFirst(CurrDof);
+
+#ifdef USE_MPI
+	if (fParallel) {
+		/* dofs locali */
+		int DCount = 0;
+		for (int iCntp1 = 0; iCntp1 < iNumLocDofs; iCntp1++) {
+			DCount = pLocDofs[iCntp1];
+			CurrDof = pDofs[DCount-1];
+			doublereal d = Sol.dGetCoef(DCount);
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				pXPrimeCurr->fIncCoef(DCount, d);
+				
+				/* Nota: b0Differential e b0Algebraic 
+				 * possono essere distinti;
+				 * in ogni caso sono calcolati 
+				 * dalle funzioni di predizione
+				 * e sono dati globali */
+				pXCurr->fIncCoef(DCount, db0Differential*d);
+			} else {
+				pXCurr->fIncCoef(DCount, d);
+				pXPrimeCurr->fIncCoef(DCount, db0Algebraic*d);
+			}
+		}
+
+		/* dofs interfaccia locale */
+		DCount = 0;
+		for (int iCntp1 = 0; iCntp1 < iNumIntDofs; iCntp1++) {
+			DCount = pIntDofs[iCntp1];
+			CurrDof = pDofs[DCount-1];
+			doublereal d = Sol.dGetCoef(DCount);
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				pXPrimeCurr->fIncCoef(DCount, d);
+				/* Nota: b0Differential e b0Algebraic 
+				 * possono essere distinti;
+				 * in ogni caso sono calcolati 
+				 * dalle funzioni di predizione
+				 * e sono dati globali */
+				pXCurr->fIncCoef(DCount, db0Differential*d);
+			} else {
+				pXCurr->fIncCoef(DCount, d);
+				pXPrimeCurr->fIncCoef(DCount, db0Algebraic*d);
+			}
+		}
+
+	} else {
+#endif /* USE_MPI */
+		
+   		DofIterator.fGetFirst(CurrDof);
  
-   	for (int iCntp1 = 1;
-	     iCntp1 <= iNumDofs;
-	     iCntp1++, DofIterator.fGetNext(CurrDof)) {		
-	     	doublereal d = Sol.dGetCoef(iCntp1);
-		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-			pXPrimeCurr->fIncCoef(iCntp1, d);
-			/*
-			 * Nota: b0Differential e b0Algebraic
-			 * possono essere distinti;
-			 * in ogni caso sono calcolati dalle funzioni
-			 * di predizione e sono dati globali
-			 */
-	 		pXCurr->fIncCoef(iCntp1, db0Differential*d);
-      		} else {
-	 		pXCurr->fIncCoef(iCntp1, d);
-	 		pXPrimeCurr->fIncCoef(iCntp1, db0Algebraic*d);
-      		}
-   	}
+	   	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
+				iCntp1++, DofIterator.fGetNext(CurrDof)) {
+			doublereal d = Sol.dGetCoef(iCntp1);
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				pXPrimeCurr->fIncCoef(iCntp1, d);
+				/*
+				 * Nota: b0Differential e b0Algebraic
+				 * possono essere distinti;
+				 * in ogni caso sono calcolati dalle funzioni
+				 * di predizione e sono dati globali
+				 */
+		 		pXCurr->fIncCoef(iCntp1, db0Differential*d);
+      			} else {
+		 		pXCurr->fIncCoef(iCntp1, d);
+		 		pXPrimeCurr->fIncCoef(iCntp1, db0Algebraic*d);
+      			}
+   		}
+#ifdef USE_MPI
+	}
+#endif /* USE_MPI */
 }
 
 /* Dati dell'integratore */
@@ -1543,6 +2334,8 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		"output" "modes",
 		
 		"solver",
+		"interface" "solver", 
+		
 			"harwell",
 			"meschach",
 			"y12",
@@ -1609,6 +2402,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		OUTPUTMODES,
 		
 		SOLVER,
+		INTERFACESOLVER,
 		HARWELL,
 		MESCHACH,
 		Y12,
@@ -2319,7 +3113,72 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		    << ", pivor factor: " << dPivotFactor << std::endl);
 	  break;
        }
-	 	 
+
+       case INTERFACESOLVER: {
+#ifdef USE_MPI
+	switch(KeyWords(HP.GetWord())) {           
+	case MESCHACH:
+#ifdef USE_MESCHACH
+	  CurrIntSolver = MESCHACH_SOLVER;
+	  DEBUGLCOUT(MYDEBUG_INPUT, 
+		"Using meschach sparse LU solver" << std::endl);
+	  break;
+#endif /* USE_MESCHACH */
+
+	case Y12:
+#ifdef USE_Y12
+	  CurrIntSolver = Y12_SOLVER;
+	  DEBUGLCOUT(MYDEBUG_INPUT,
+		"Using y12 sparse LU solver" << std::endl);
+	  break;
+#endif /* USE_Y12 */
+
+	case UMFPACK3:
+#ifdef USE_UMFPACK3
+	  CurrIntSolver = UMFPACK3_SOLVER;
+	  DEBUGLCOUT(MYDEBUG_INPUT,
+		"Using umfpack3 sparse LU solver" << std::endl);
+	  break;
+#endif /* USE_UMFPACK3 */
+
+#ifdef USE_HARWELL
+	case HARWELL: 
+	  CurrIntSolver = MESCHACH_SOLVER;
+	  std::cerr << "Harwell solver cannot be used as interface "
+		"solver. Meschach will be used ..." << std::endl;
+	  break;
+#endif /* USE_HARWELL */                       
+
+	default:
+	  DEBUGLCOUT(MYDEBUG_INPUT, 
+		"Unknown solver; switching to default" << std::endl);
+	  break;
+        }
+	
+	if (HP.IsKeyWord("workspacesize")) {
+		iIWorkSpaceSize = HP.GetInt();
+		if (iIWorkSpaceSize < 0) {
+			iIWorkSpaceSize = 0;
+		}
+	}
+
+	if (HP.IsKeyWord("pivotfactor")) {
+		dIPivotFactor = HP.GetReal();
+		if (dIPivotFactor <= 0. || dIPivotFactor > 1.) {
+			dIPivotFactor = 1.;
+		}
+	}
+	
+	DEBUGLCOUT(MYDEBUG_INPUT, "Workspace size: " << iIWorkSpaceSize 
+		<< ", pivor factor: " << dIPivotFactor << std::endl);
+	break;
+#else /* !USE_MPI */
+	std::cerr << "Interface solver only allowed when compiled "
+		"with MPI support" << std::endl;
+	THROW(MultiStepIntegrator::ErrGeneric());
+#endif /* !USE_MPI */
+       }
+
        default: {
 	  std::cerr << std::endl << "Unknown description at line " 
 	    << HP.GetLineData() << "; aborting ..." << std::endl;
