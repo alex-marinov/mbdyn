@@ -739,15 +739,6 @@ DummyStructNode::~DummyStructNode(void)
 }
 
 
-void 
-DummyStructNode::Err(void) const
-{
-   std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
-   THROW(ErrGeneric());   
-}
-
-
-
 /* Tipo di nodo strutturale */
 StructNode::Type 
 DummyStructNode::GetStructNodeType(void) const
@@ -761,7 +752,8 @@ DummyStructNode::GetStructNodeType(void) const
 const 
 doublereal& DummyStructNode::dGetDofValue(int iDof, int iOrder) const
 {
-   Err();
+   std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
+   THROW(ErrGeneric());   
 }
 
 
@@ -771,7 +763,8 @@ void
 DummyStructNode::SetDofValue(const doublereal& dValue,
 			     unsigned int iDof, unsigned int iOrder)
 {
-   Err();
+   std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
+   THROW(ErrGeneric());   
 }
 
    

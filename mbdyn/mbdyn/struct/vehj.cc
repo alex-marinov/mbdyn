@@ -162,27 +162,28 @@ ElasticHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 void ElasticHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 				     VectorHandler& /* XP */ )
 {
-   // Calcola le deformazioni, aggiorna il legame costitutivo e crea la FDE
+   /* Calcola le deformazioni, aggiorna il legame costitutivo e crea la FDE */
    
-   // Recupera i dati
+   /* Recupera i dati */
    Mat3x3 Ra(pNode1->GetRRef()*R1h);
    Mat3x3 RaT(Ra.Transpose());
    
    Vec3 ga(pNode1->GetgRef());
    Vec3 gb(pNode2->GetgRef());
    
-   // Aggiorna le deformazioni di riferimento nel sistema globale
-   // Nota: non occorre G*g in quanto g/\g e' zero.   
+   /* Aggiorna le deformazioni di riferimento nel sistema globale
+    * Nota: non occorre G*g in quanto g x g e' zero. */
    TaCurr = ga*(4./(4.+ga.Dot()));
    TbCurr = gb*(4./(4.+gb.Dot()));
    
-   // Calcola la deformazione corrente nel sistema locale (nodo a)
+   /* Calcola la deformazione corrente nel sistema locale (nodo a) */
    ThetaCurr = ThetaRef = RaT*(TbCurr-TaCurr)+ThetaCurr;
    
-   // Aggiorna il legame costitutivo
+   /* Aggiorna il legame costitutivo */
    ConstitutiveLaw3DOwner::Update(ThetaRef);
       
-   // Chiede la matrice tangente di riferimento e la porta nel sistema globale
+   /* Chiede la matrice tangente di riferimento e la porta 
+    * nel sistema globale */
    FDE = Ra*ConstitutiveLaw3DOwner::GetFDE()*RaT;
 						     
    fFirstRes = flag(1);						     
@@ -635,9 +636,9 @@ ViscoElasticHingeJoint::~ViscoElasticHingeJoint(void)
 void ViscoElasticHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 					  VectorHandler& /* XP */ )
 {
-   // Calcola le deformazioni, aggiorna il legame costitutivo e crea la FDE
+   /* Calcola le deformazioni, aggiorna il legame costitutivo e crea la FDE */
    
-   // Recupera i dati
+   /* Recupera i dati */
    Mat3x3 Ra(pNode1->GetRRef()*R1h);
    Mat3x3 RaT(Ra.Transpose());
    
@@ -650,26 +651,27 @@ void ViscoElasticHingeJoint::AfterPredict(VectorHandler& /* X */ ,
    Vec3 gPa(pNode1->GetgPRef());
    Vec3 gPb(pNode2->GetgPRef());
    
-   // Aggiorna le deformazioni di riferimento nel sistema globale
-   // Nota: non occorre G*g in quanto g/\g e' zero.   
+   /* Aggiorna le deformazioni di riferimento nel sistema globale
+    * Nota: non occorre G*g in quanto g x g e' zero. */
    TaCurr = ga*(4./(4.+ga.Dot()));
    TbCurr = gb*(4./(4.+gb.Dot()));
 
    TaCurrPrime = Mat3x3(MatG, ga)*gPa-Wa.Cross(TaCurr);
    TbCurrPrime = Mat3x3(MatG, gb)*gPb-Wa.Cross(TbCurr);
 
-   // Calcola la deformazione corrente nel sistema locale (nodo a)
+   /* Calcola la deformazione corrente nel sistema locale (nodo a) */
    ThetaCurr = ThetaRef = RaT*(TbCurr-TaCurr)+ThetaCurr;
-   ThetaCurrPrime = ThetaRefPrime = RaT*(TbCurrPrime-TaCurrPrime); // +ThetaCurrPrime;
+   ThetaCurrPrime = ThetaRefPrime = RaT*(TbCurrPrime-TaCurrPrime);
    
-   // Aggiorna il legame costitutivo
+   /* Aggiorna il legame costitutivo */
    ConstitutiveLaw3DOwner::Update(ThetaRef, ThetaRefPrime);
       
-   // Chiede la matrice tangente di riferimento e la porta nel sistema globale
+   /* Chiede la matrice tangente di riferimento e la porta 
+    * nel sistema globale */
    FDE = Ra*GetFDE()*RaT;
    FDEPrime = Ra*GetFDEPrime()*RaT;
 						     
-   fFirstRes = flag(1);						     
+   fFirstRes = flag(1);
 }
 
 

@@ -14,12 +14,13 @@ mbdyn.h
 
 ## mbdyn_LDADD = @XLIBOBJS@
 mbdyn_LDADD = \
-aero/libaero.la \
 base/libbase.la \
+aero/libaero.la \
 ../libraries/libmbwrap/libmbwrap.la \
 struct/libstruct.la \
 elec/libelec.la \
 hydr/libhydr.la \
+base/libbase.la \
 ../libraries/libmbmath/libmbmath.la \
 ../libraries/libmbutil/libmbutil.la \
 @Y12_LIBS@ \

@@ -567,9 +567,7 @@ class DummyStructNode : public StructNode {
  protected:
    const StructNode* pNode;
    
-   void Err(void) const;
-   
-virtual void __Update(void) = 0;
+   virtual void __Update(void) = 0;
 
  public:
    /* Costruttore definitivo */
@@ -637,16 +635,16 @@ inline unsigned int DummyStructNode::iGetInitialNumDof(void) const
 /* Ritorna il primo indice (-1) di posizione */
 inline integer DummyStructNode::iGetFirstPositionIndex(void) const
 {
-   Err();
-   return 0;
+   std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
+   THROW(ErrGeneric());
 }
 
 
 /* Ritorna il primo indice (-1) di Quantita' di moto */
 inline integer DummyStructNode::iGetFirstMomentumIndex(void) const
 {
-   Err();
-   return 0;
+   std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
+   THROW(ErrGeneric());
 }
 
 
