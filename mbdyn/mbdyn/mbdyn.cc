@@ -248,8 +248,8 @@ main(int argc, char* argv[])
 {
 	int	rc = EXIT_SUCCESS;
 
-#ifdef USE_MPI
 	bool using_mpi = false;
+#ifdef USE_MPI
 	int WorldSize = 1;
 	int myrank = 0;
 	char ProcessorName_[1024] = "localhost", *ProcessorName = ProcessorName_;
@@ -837,7 +837,6 @@ RunMBDyn(MBDynParser& HP,
    
     	Solver* pSolv(0);
 
-#ifdef USE_MPI
     	/* NOTE: the flag "bParallel" states whether the analysis 
 	 * must be run in parallel or not; the flag "using_mpi" 
 	 * can be true because the "-p" switch was detected;
@@ -845,7 +844,6 @@ RunMBDyn(MBDynParser& HP,
 	 * "data" block, but the analysis can still be scalar if
 	 * only one machine is available */
     	bool bParallel(false);
-#endif /* USE_MPI */
 	
     	/* parole chiave */
     	const char* sKeyWords[] = { 
