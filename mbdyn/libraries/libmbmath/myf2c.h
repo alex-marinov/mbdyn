@@ -38,6 +38,14 @@ extern "C" {
 #include <f2c.h>
 #else /* !HAVE_F2C_H */
 
+#ifndef min
+#define min(a,b) ((a) < (b) ? (a) : (b))
+#endif /* !min */
+#ifndef max
+#define max(a,b) ((a) > (b) ? (a) : (b))
+#endif /* !max */
+
+
 #ifdef __alpha
 typedef int integer;
 typedef float real;
