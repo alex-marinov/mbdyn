@@ -403,11 +403,11 @@ Beam::Omega0(void)
         w[i] = pNode[i]->GetWCurr();
     }
    
-    /* Calcolo i parametri di rotazione dei nodi di estreo rispetto a quello 
+    /* Calcolo i parametri di rotazione dei nodi di estremo rispetto a quello 
      * centrale, nell'ipotesi (realistica) che siano limitati */
-    Mat3x3 RTmp(R[NODE2].Transpose());
-    Vec3 g1(gparam(RTmp*R[NODE1]));
-    Vec3 g3(gparam(RTmp*R[NODE3]));
+    Mat3x3 RTmp(RNod[NODE2].Transpose());
+    Vec3 g1(gparam(RTmp*RNod[NODE1]));
+    Vec3 g3(gparam(RTmp*RNod[NODE3]));
    
     /* Calcolo le derivate dei parametri di rotazione ai nodi di estremo; in
      * quello centrale si assume che sia uguale alla velocita' di rotazione */
@@ -421,7 +421,7 @@ Beam::Omega0(void)
     }
 
 #if 0
-    /* Modo brutale: interpolo le velocita' dei nodia */
+    /* Modo brutale: interpolo le velocita' dei nodi */
     Vec3 w[NUMNODES];
     for (unsigned int i = 0; i < NUMNODES; i++) {
         w[i] = pNode[i]->GetWCurr();
