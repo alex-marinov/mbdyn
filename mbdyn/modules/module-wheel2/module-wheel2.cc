@@ -33,6 +33,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <ac/iostream>
+#include <ac/float.h>
 
 #include <loadable.h>
 
