@@ -15,8 +15,8 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * any later version.
+ * the Free Software Foundation (version 2 of the License).
+ * 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -46,7 +46,16 @@
  * The above reported copyright notice refers to the whole package, 
  * while the intellectual property of the lapack and blas libraries
  * remains with their Authors, as indicated in each subroutine's
- * copyright notice.
+ * copyright notice, here reported for completeness:
+ */
+
+/*  -- LAPACK driver routine (version 3.0) --   
+       Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,   
+       Courant Institute, Argonne National Lab, and Rice University   
+       June 30, 1999
+*/
+
+/*                       
  * 
  * The original package can be found at Netlib:
  *

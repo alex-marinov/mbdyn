@@ -15,8 +15,8 @@ C Changing this copyright notice is forbidden.
 C
 C This program is free software; you can redistribute it and/or modify
 C it under the terms of the GNU General Public License as published by
-C the Free Software Foundation; either version 2 of the License, or
-C any later version.
+C the Free Software Foundation (version 2 of the License).
+C 
 C
 C This program is distributed in the hope that it will be useful,
 C but WITHOUT ANY WARRANTY; without even the implied warranty of
