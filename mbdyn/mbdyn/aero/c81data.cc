@@ -63,14 +63,27 @@ static int
 do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall);
 
 static int 
-get_vec(std::istream& in, doublereal* v, int nrows)
+get_vec(std::istream& in, doublereal* v, int ncols)
 {
-   	if (!in || v == NULL || nrows < 1) {
+	char	buf[128];
+
+   	if (!in || v == NULL || ncols < 1) {
       		return -1;
    	}
-   
-   	for (int i = 0; i < nrows; i++) {
-      		in >> v[i];
+
+   	for (int c = 0; c < ncols; c++) {
+		char	tmp[8], *next;
+		int	i = c%9;
+
+		if (i == 0) {
+			in.getline(buf, sizeof(buf));
+		}
+
+		/* always skip first */
+		memcpy(tmp, &buf[7*(i + 1)], 7);
+		tmp[7] = '\0';
+
+		v[c] = strtod(tmp, &next);
    	}
    
    	return 0;
@@ -79,13 +92,32 @@ get_vec(std::istream& in, doublereal* v, int nrows)
 static int 
 get_mat(std::istream& in, doublereal* m, int nrows, int ncols)
 {
+	char	buf[128];
+
    	if (!in || m == NULL || nrows < 1 || ncols < 1) {
       		return -1;
    	}
-   
-   	for (int i = 0; i < nrows; i++) {
-      		for (int j = 0; j < ncols; j++) {
-	 		in >> m[i+nrows*j];
+ 
+   	for (int r = 0; r < nrows; r++) {
+		int	row = 0;
+		int	offset = 0;
+
+      		for (int c = 0; c < ncols; c++) {
+			char	tmp[8], *next;
+			int	i = (c - offset)%(9 - offset + 1);
+			
+			if (i == 0) {
+				if (++row == 2) {
+					offset = 1;
+				}
+				in.getline(buf, sizeof(buf));
+			}
+
+			/* skip first except first time */
+			memcpy(tmp, &buf[7*(i + offset)], 7);
+			tmp[7] = '\0';
+
+			m[r + nrows*c] = strtod(tmp, &next);
       		}
    	}
    
@@ -151,7 +183,7 @@ put_mat(std::ostream& out, doublereal* m, int nrows, int ncols)
 int
 read_c81_data(std::istream& in, c81_data* data)
 {
-   	char buf[1024];      
+   	char buf[128];	// 81 should suffice; let's make it 128
    
    	/* header */
    	in.getline(buf, sizeof(buf));
