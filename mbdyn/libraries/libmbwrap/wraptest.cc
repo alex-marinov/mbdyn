@@ -150,11 +150,17 @@ void SetupSystem(
 	}
 }
 
+// static inline unsigned long long rd_CPU_ts(void)
+// {
+// 	unsigned long long time;
+// 	__asm__ __volatile__( "rdtsc" : "=A" (time));
+// 	return time;
+// }
 
 static void
 usage(int err)
 {
-	std::cerr << "usage: wraptest [-c] [-d] [-m <solver>] [-s] [-t <nthreads>] [-f <filename>]" << std::endl
+	std::cerr << "usage: wraptest [-c] [-d] [-m <solver>] [-s] [-t <nthreads>] [-f <filename>] [-o]" << std::endl
 		<< "\t<solver>={" << solvers[0];
 	std::cerr << "If the matrix is loaded from file the solution should be [0 0 .... 1]" << std::endl;
 	std::cerr << "The file format is: size row col x row col x etc..." << std::endl;
@@ -200,10 +206,12 @@ main(int argc, char *argv[])
 	bool dir(false);
 	unsigned nt = 1;
 	bool singular(false);
+	bool output_solution(false);
 	int size(3);
+	long long tf;
 
 	while (1) {
-		int opt = getopt(argc, argv, "cdm:st:f:");
+		int opt = getopt(argc, argv, "cdm:st:f:o");
 
 		if (opt == EOF) {
 			break;
@@ -237,6 +245,10 @@ main(int argc, char *argv[])
 			filename = optarg;
 			break;
 
+		case 'o':
+			output_solution = true;
+			break;
+
 		default:
 			usage(EXIT_FAILURE);
 		}
@@ -247,14 +259,19 @@ main(int argc, char *argv[])
 		file >> size;
 		file.close();
 	}
+	
+	std::cerr << std::endl;
 
 	if (strcasecmp(solver, "taucs") == 0) {
 #ifdef USE_TAUCS
+		std::cerr << "Taucs solver"
 		if (dir) {
+			std::cerr << " with dir matrix"
 			typedef TaucsSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
 			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
 
 		} else if (cc) {
+			std::cerr << " with cc matrix"
 			typedef TaucsSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
 			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
 
@@ -262,6 +279,7 @@ main(int argc, char *argv[])
 			SAFENEWWITHCONSTRUCTOR(pSM, TaucsSparseSolutionManager,
 					TaucsSparseSolutionManager(size));
 		}
+		std::cerr << std::endl;
 #else /* !USE_TAUCS */
 		std::cerr << "need --with-taucs to use Taucs library sparse solver" 
 			<< std::endl;
@@ -270,6 +288,7 @@ main(int argc, char *argv[])
 
 	} else if (strcasecmp(solver, "lapack") == 0) {
 #ifdef USE_LAPACK
+		std::cerr << "Lapack solver" << std::endl;
 		SAFENEWWITHCONSTRUCTOR(pSM, LapackSolutionManager,
 				LapackSolutionManager(size));
 #else /* !USE_LAPACK */
@@ -280,11 +299,14 @@ main(int argc, char *argv[])
 
 	} else if (strcasecmp(solver, "superlu") == 0) {
 #ifdef USE_SUPERLU
+		std::cerr << "SuperLU solver";
 		if (dir) {
+			std::cerr << " with dir matrix";
 			typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
 			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size));
 
 		} else if (cc) {
+			std::cerr << " with cc matrix";
 			typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
 			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size));
 
@@ -292,6 +314,7 @@ main(int argc, char *argv[])
 			SAFENEWWITHCONSTRUCTOR(pSM, SuperLUSparseSolutionManager,
 					SuperLUSparseSolutionManager(nt, size));
 		}
+		std::cerr << " using " << nt << " threads" << std::endl;
 #else /* !USE_SUPERLU */
 		std::cerr << "need --with-superlu to use SuperLU library" 
 			<< std::endl;
@@ -300,11 +323,14 @@ main(int argc, char *argv[])
 
 	} else if (strcasecmp(solver, "y12") == 0) {
 #ifdef USE_Y12
+		std::cerr << "y12 solver";
 		if (dir) {
+			std::cerr << " with dir matrix";
 			typedef Y12SparseCCSolutionManager<DirCColMatrixHandler<1> > CCMH;
 			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
 
 		} else if (cc) {
+			std::cerr << " with cc matrix";
 			typedef Y12SparseCCSolutionManager<CColMatrixHandler<1> > CCMH;
 			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
 
@@ -312,6 +338,7 @@ main(int argc, char *argv[])
 			SAFENEWWITHCONSTRUCTOR(pSM, Y12SparseSolutionManager,
 					Y12SparseSolutionManager(size));
 		}
+		std::cerr << std::endl;
 #else /* !USE_Y12 */
 		std::cerr << "need --with-y12 to use y12m library" 
 			<< std::endl;
@@ -320,6 +347,7 @@ main(int argc, char *argv[])
 
 	} else if (strcasecmp(solver, "harwell") == 0) {
 #ifdef USE_HARWELL
+		std::cerr << "Harwell solver" << std::endl;
 		SAFENEWWITHCONSTRUCTOR(pSM, HarwellSparseSolutionManager,
 				HarwellSparseSolutionManager(size));
 #else /* !USE_HARWELL */
@@ -330,6 +358,7 @@ main(int argc, char *argv[])
 
 	} else if (strcasecmp(solver, "meschach") == 0) {
 #ifdef USE_MESCHACH
+		std::cerr << "Meschach solver" << std::endl;
 		SAFENEWWITHCONSTRUCTOR(pSM, MeschachSparseSolutionManager,
 				MeschachSparseSolutionManager(size));
 #else /* !USE_MESCHACH */
@@ -340,11 +369,14 @@ main(int argc, char *argv[])
 	} else if (strcasecmp(solver, "umfpack") == 0
 			|| strcasecmp(solver, "umfpack3") == 0) {
 #ifdef USE_UMFPACK
+		std::cerr << "Umfpack solver";
 		if (dir) {
+			std::cerr << " with dir matrix";
 			typedef UmfpackSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
 			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
 
 		} else if (cc) {
+			std::cerr << " with cc matrix";
 			typedef UmfpackSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
 			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
 
@@ -353,6 +385,7 @@ main(int argc, char *argv[])
 					UmfpackSparseSolutionManager,
 					UmfpackSparseSolutionManager(size));
 		}
+		std::cerr << std::endl;
 #else /* !USE_UMFPACK */
 		std::cerr << "need --with-umfpack to use Umfpack library" 
 			<< std::endl;
@@ -360,7 +393,9 @@ main(int argc, char *argv[])
 #endif /* !USE_UMFPACK */
 
 	} else if (strcasecmp(solver, "naive") == 0) {
+		std::cerr << "Naive solver";
 		if (cc) {
+			std::cerr << " with Colamd ordering";
 			if (nt > 1) {
 #ifdef USE_NAIVE_MULTITHREAD
 				SAFENEWWITHCONSTRUCTOR(pSM,
@@ -397,7 +432,7 @@ main(int argc, char *argv[])
 					NaiveSparseSolutionManager(size, 1.E-8));
 			}
 		}
-
+		std::cerr << " using " << nt << " threads " << std::endl;
 	} else {
 		std::cerr << "unknown solver '" << solver << "'" << std::endl;
 		usage(EXIT_FAILURE);
@@ -415,14 +450,18 @@ main(int argc, char *argv[])
 	
 	try {
 		start = clock();
+		//tf = rd_CPU_ts();
 		pSM->Solve();
+		//tf = rd_CPU_ts() - tf;
 		end = clock();
 	} catch (...) {
 		exit(EXIT_FAILURE);
 	}
-	for (int i = 1; i <= size; i++) {
-		std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 
-			<< std::endl;
+	if (output_solution) {
+		for (int i = 1; i <= size; i++) {
+			std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 
+				<< std::endl;
+		}
 	}
 	//cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 	cpu_time_used = ((double) (end - start));
@@ -441,14 +480,20 @@ main(int argc, char *argv[])
 	SetupSystem(singular, filename, pM, pV);
 	
 	try {
+		start = clock();
+		//tf = rd_CPU_ts();
 		pSM->Solve();
+		//tf = rd_CPU_ts() - tf;
+		end = clock();
 	} catch (...) {
 		exit(EXIT_FAILURE);
 	}
 	
-	for (int i = 1; i <= size; i++) {
-		std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 
-			<< std::endl;
+	if (output_solution) {
+		for (int i = 1; i <= size; i++) {
+			std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 
+				<< std::endl;
+		}
 	}
 	//cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 	cpu_time_used = ((double) (end - start));
