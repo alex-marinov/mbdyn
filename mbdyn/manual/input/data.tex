@@ -847,24 +847,28 @@ disables all.
 The default (no arguments) is to make the restart file only at the end of
 the simulation.
 
-\subsubsection{Default Output}
+\subsubsection{Default Output}\label{sec:CONTROLDATA:DEFAULTOUTPUT}
 \begin{verbatim}
     <card> ::= default output : <output_list> ;
     <output_list> ::= { all | none | <output_item> } 
                       [ , <output_list> ]
-    <output_item> ::= { structural nodes
-                      | electric nodes
-                      | abstract nodes
-                      | gravity
-                      | rigid bodies
-                      | joints
-                      | beams
-                      | air properties
-                      | rotors
-                      | aerodynamic elements
-                      | forces
-                      | genels
-                      | electric elements }
+    <output_item> ::=
+        { reference frames
+        |abstract nodes
+        | electric nodes
+        | hydraulic nodes
+        | structural nodes
+        | aerodynamic elements
+        | air properties
+        | beams
+        | electric elements
+        | forces
+        | genels
+        | gravity
+        | hydraulic elements
+        | joints
+        | rigid bodies
+        | rotors }
 \end{verbatim}
 Here the default output flag for a type of node or element can be set. It
 can be overridden for every entity both when it is created or later in
@@ -1137,7 +1141,7 @@ The following dummy types are available:
 
 \end{itemize}
 
-\subsection{Output}
+\subsection{Output}\label{sec:NODE:STRUCTURAL:OUTPUT}
 Structural nodes generate two kinds of output files. 
 The first refers to the kinematics of the node; its extension is \kw{.mov},
 and for each time step it contains one row for each node whose output is

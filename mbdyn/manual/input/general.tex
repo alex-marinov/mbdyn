@@ -640,12 +640,16 @@ to be executed; the function is assumed to perform the operations
 required by the module, eventually taking advantage of the parsing
 and of the data manager; see the technical manual for details.
 The typical use consists in registering some methods for later use;
-a clear example is given in \kw{modules/module-wheel2/module-wheel2.cc},
+a clear example is given in
+\begin{verbatim}
+        modules/module-wheel2/module-wheel2.ccù
+\end{verbatim}
 where the function registers the loadable element in the set
 of loadable element handlers which can later be retrieved by using
 the syntax described in Section~\ref{sec:EL-BASE-LOADABLE}.
 Note, however, that the execution of the \kw{module\_init} function 
-may be used for any purpose.
+may be used for any purpose; typically, to register handlers of any kind
+for subsequent use.
 
 
 \subsection{Reference}
@@ -691,16 +695,17 @@ The caller always supplies the routines a default reference structure
 the input must be referred to.
 So, depending on the caller, the entry can be in the following forms:
 \begin{enumerate}
-    \item \kw{entity}: \\ 
-    the entry is in the default reference frame
-    \item \kw{reference , <reference\_type> , <entity>}: \\
-    the entry is in \kw{reference\_type} reference frame, 
-    that is one of \kw{global}, 
-    \kw{node} or \kw{local}.
-    \item \kw{reference , <reference\_number> , <entity>}: \\
-    the entry is in \kw{reference reference\_number} reference frame. 
-    This reference frame must be already defined. 
-    % By default, the global reference frame has number 1, so it can't be redefined.    
+\item \kw{<entity>}: \\ 
+	the data supplied in \kw{<entity>} is intended 
+	in the default reference frame
+\item \kw{reference , <reference\_type> , <entity>}: \\
+	the data is in \kw{<reference\_type>} reference frame, where
+\begin{verbatim}
+        <reference_type> ::= { global | node | local }
+\end{verbatim}
+\item \kw{reference , <reference\_number> , <entity>}: \\
+	the data is in \kw{reference reference\_number} reference frame. 
+	This reference frame must be already defined. 
 \end{enumerate}
 Examples:
 \begin{itemize}
@@ -781,6 +786,21 @@ Notes:
         reference, Spindle_1, 0.,0.,Omega_1;
     \end{verbatim}
 }
+
+\subsubsection{Output}
+The reference frames are used only during the input phase, 
+where they help referring entities either absolute 
+or relative to other entities depending on their internal representation
+during the analysis.
+As such, reference frames cannot be ``used'' or ``visualized'' neither 
+directly or indirectly at any time during the analysis or by interpreting
+the output.
+To allow their debugging, however, they can be output in the global
+reference frame according to the representation of structural nodes,
+as described in Section~\ref{sec:NODE:STRUCTURAL:OUTPUT}, 
+by using the \kw{default output} directive 
+with the value \kw{reference frames}, as detailed
+in Section~\ref{sec:CONTROLDATA:DEFAULTOUTPUT}.
 
 
 
