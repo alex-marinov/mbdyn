@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cvs status -v 2>/dev/null | \
+cvs -z3 status -v 2>/dev/null | \
 awk '
 	BEGIN {
 		movetag = "MBDYN_REL_ENG";
