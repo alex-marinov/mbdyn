@@ -2088,7 +2088,7 @@ GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
 	  		throw DataManager::ErrGeneric();
 
 		} else if (iOrder == 2) {
-			DynamicStructNode *pStrNode = dynamic_cast<DynamicStructNode *>(pNode) == 0;
+			DynamicStructNode *pStrNode = dynamic_cast<DynamicStructNode *>(pNode);
 			if (pStrNode == 0) {
 				silent_cerr(psNodeNames[pNode->GetNodeType()]
 					<< "(" << pNode->GetLabel() << "): "
