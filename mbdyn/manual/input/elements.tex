@@ -2414,6 +2414,11 @@ instead.
 
 
 \subsection{Deformable displacement joint}\label{sec:EL:JOINT:DEFORMABLEDISP}
+This joint implements a configuration dependent force that is exchanged
+between two points associated to two nodes with an offset, which may depend
+on the relative position and velocity of the two points in the reference
+frame of node 1.
+The consitutive law is also associated to the orientation of node 1.
 \begin{verbatim}
     <joint_type> ::= deformable displacement hinge
     <joint_arglist> ::= 
@@ -2450,6 +2455,10 @@ description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
 
 \subsection{Deformable hinge}\label{sec:EL:JOINT:DEFORMABLEHINGE}
+This joint implements a configuration dependent moment that is exchanged
+between two nodes, which may depend on the relative orientation and angular
+velocity of the two nodes.
+The consitutive law is associated to the orientation of node 1.
 \begin{verbatim}
     <joint_type> ::= deformable hinge
     <joint_arglist> ::= 
@@ -2496,6 +2505,7 @@ A significant difference is that the \kw{deformable joint} uses a 6D
 \hyperref{\kw{constitutive law}}{\kw{constitutive law} (see Section~}{)}{sec:CONSTITUTIVE-LAWS},
 so the force and the moment both depend on the displacement
 and on the orientation.
+The consitutive law is associated to the reference frame of node 1.
 \begin{verbatim}
     <joint_type> ::= deformable joint
     <joint_arglist> ::= 
