@@ -271,6 +271,11 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
    M = Vec3(XCurr.dGetCoef(iFirstReactionIndex+4),
 	    XCurr.dGetCoef(iFirstReactionIndex+5),
 	    0.);
+
+   /*
+    * FIXME: provare a mettere "modificatori" di forza/momento sui gdl
+    * residui: attrito, rigidezze e smorzamenti, ecc.
+    */
    
    /* Recupera i dati */
    Vec3 x1(pNode1->GetXCurr());
@@ -328,7 +333,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 	<< "Hinge to node 1 relative orientation: " << endl << R1h << endl
 	<< "Hinge to node 2 relative orientation: " << endl << R2h << endl
 	<< "Current reaction couple: " << endl << M << endl;   
-#endif   
+#endif /* DEBUG */
    
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
