@@ -4,6 +4,7 @@ include $(top_srcdir)/build/top.mk
 # Build mbdyn utils
 bin_PROGRAMS = \
 autopilot \
+c81merge \
 cl \
 crypt \
 dae-intg \
@@ -38,6 +39,7 @@ MYLIBS = \
 @LIBS@
 
 autopilot_SOURCES = autopilot.c
+c81merge_SOURCES = c81merge.cc
 crypt_SOURCES = crypt.c
 cl_SOURCES = cl.cc
 dae_intg_SOURCES = dae-intg.cc dae-intg.h
@@ -56,7 +58,10 @@ rotrel_SOURCES = rotrel.cc
 sockdrive_SOURCES = sockdrive.c
 vec2rot_SOURCES = vec2rot.cc
 
+c81merge_CPPFLAGS = -I../mbdyn/aero -I../mbdyn/base
+
 autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@
+c81merge_LDADD = ../mbdyn/aero/libaero.la $(MYLIBS) @SECURITY_LIBS@
 crypt_LDADD = $(MYLIBS) @SECURITY_LIBS@
 cl_LDADD = $(MYLIBS)
 dae_intg_LDADD = $(MYLIBS)

@@ -21,6 +21,7 @@ MBDyn 1.2-Engineering
 		- added support for generic modules
 		- added generic module support for loadable elements
 		- added generic module support for joints 
+		- added c81merge utility for c81 files blending
 	Backward compatibility issues:
 		- merge columns 10 and 11 into disk angle for rotor
 		  elements output
