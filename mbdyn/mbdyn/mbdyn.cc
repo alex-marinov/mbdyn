@@ -108,7 +108,9 @@ mbdyn_usage(std::ostream& out, const char *sShortOpts)
 	<< "                            "
 	" (or 'Mbdyn.xxx' if input from stdin)" << std::endl
 	<< "  -m, --mail {address}     :"
-	" mails to {address} at job completion" << std::endl;
+	" mails to {address} at job completion" << std::endl
+	<< "  -n, --nice [level]       :"
+	" change the execution priority of the process" << std::endl;
 #ifdef DEBUG
     out
         << "  -d, --debug {level[:level[...]]} :"
@@ -150,7 +152,7 @@ mbdyn_usage(std::ostream& out, const char *sShortOpts)
 }
 
 /* Dati di getopt */
-static char sShortOpts[] = "a:d:f:hHlm:o:rRstTw";
+static char sShortOpts[] = "a:d:f:hHlm:n::o:rRstTw";
 enum MyOptions {
 	MAIL = 0,
 	INPUT_FILE,
@@ -174,6 +176,7 @@ static struct option LongOpts[] = {
 	{ "show-table",     no_argument,       NULL,           int('H') },
 	{ "license",        no_argument,       NULL,           int('l') },
 	{ "mail",           required_argument, NULL,           int('m') },
+	{ "nice",           optional_argument, NULL,           int('n') },
 	{ "output-file",    required_argument, NULL,           int('o') },
 	{ "redefine",       no_argument,       NULL,           int('r') },
 	{ "no-redefine",    no_argument,       NULL,           int('R') },
@@ -256,6 +259,10 @@ main(int argc, char* argv[])
       
         	int iIndexPtr = 0;
 
+#ifdef HAVE_NICE
+		int niceIncr = 0;
+#endif /* HAVE_NICE */
+
         	/* Parsing della linea di comando */
         	opterr = 0;
         	while (1) {
@@ -275,6 +282,16 @@ main(int argc, char* argv[])
 	        		iMailToBeSent = 1;
 	        		SAFESTRDUP(sMailToAddress, optarg);
 	        		break;
+
+#ifdef HAVE_NICE
+			case int('n'):
+				if (optarg != 0) {
+					niceIncr = atoi(optarg);
+				} else {
+					niceIncr = 10;
+				}
+				break;
+#endif /* HAVE_NICE */
 	    
 	    		case int('f'):
 	        		CurrInputFormat = MBDYN;
@@ -405,6 +422,14 @@ main(int argc, char* argv[])
 	        		THROW(ErrGeneric());
 	    		}
         	}
+		
+#ifdef HAVE_NICE
+		if (niceIncr != 0) {
+			if (nice(niceIncr)) {
+				std::cerr << "nice(" << niceIncr << ") failed; ignored" << std::endl;
+			}
+		}
+#endif /* HAVE_NICE */
       
         	/*
 		 * primo argomento utile (potenziale nome di file di ingresso)

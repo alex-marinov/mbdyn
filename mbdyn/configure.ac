@@ -359,6 +359,12 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Checks for nice
+dnl
+AC_CHECK_FUNCS(nice)
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for bool
 dnl
 AC_LANG_CPLUSPLUS

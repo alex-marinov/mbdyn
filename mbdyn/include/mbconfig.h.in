@@ -47,6 +47,9 @@
 /* Define if you have the memset function.  */
 #undef HAVE_MEMSET
 
+/* Define if you have the nice function.  */
+#undef HAVE_NICE
+
 /* Define if you have the signal function.  */
 #undef HAVE_SIGNAL
 
