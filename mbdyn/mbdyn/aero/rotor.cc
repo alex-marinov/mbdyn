@@ -71,7 +71,8 @@ dMu(0.), dLambda(1.), dChi(0.),
 dVelocity(0.), dOmega(0.),
 #ifdef USE_MPI
 pBlockLenght(NULL),
-pDispl(NULL), pRotDataType(NULL),
+pDispl(NULL),
+pRotDataType(NULL),
 ReqV(MPI::REQUEST_NULL),
 #endif /* USE_MPI */
 iNumSteps(0)
@@ -91,7 +92,7 @@ iNumSteps(0)
    }
 #ifdef USE_MPI
    RotorComm = MPI::COMM_WORLD.Dup();
-#endif
+#endif /* USE_MPI */
 }
 
 Rotor::~Rotor(void)
@@ -141,7 +142,7 @@ void Rotor::Output(OutputHandler& OH) const
 	  OH.Rotors() << setw(8) << GetLabel() << " "
 		      << (RT*FTraction) << " " << (RT*MTraction) << " " << dUMean << endl;
     }					  
-#else /* USE_MPI */     
+#else /* !USE_MPI */     
     // #if 0
     //      OH.Rotors() << setw(8) << GetLabel() << " " 
     // 		 << FTraction << " " << MTraction << " " << endl;
@@ -150,7 +151,7 @@ void Rotor::Output(OutputHandler& OH) const
     Mat3x3 RT((pCraft->GetRCurr()).Transpose());
     OH.Rotors() << setw(8) << GetLabel() << " " 
 		<< (RT*FTraction) << " " << (RT*MTraction) << " " << dUMean << endl;
-#endif /* USE_MPI */
+#endif /* !USE_MPI */
   }
 }
 
@@ -414,7 +415,7 @@ Rotor(uLabel, RotorType::NO, pDO, pCraft, pRotor, fOut)
     SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(3, pBlockLenght, pDispl)), SMmm);
     pRotDataType->Commit();
   }
-#endif   
+#endif /* USE_MPI */
 }
 
 NoRotor::~NoRotor(void)
@@ -469,8 +470,10 @@ ostream& NoRotor::Restart(ostream& out) const
 /* Somma alla trazione il contributo di forza di un elemento generico */
 void NoRotor::AddForce(const Vec3& F, const Vec3& M, const Vec3& X)
 {
-  /* Non gli serve in quanto non calcola velocita' indotta.
-   * Solo se deve fare l'output lo calcola */
+  /*
+   * Non gli serve in quanto non calcola velocita' indotta.
+   * Solo se deve fare l'output lo calcola
+   */
 #ifdef USE_MPI
   if (ReqV != MPI::REQUEST_NULL) {
     flag RecvFlag;
@@ -486,9 +489,10 @@ void NoRotor::AddForce(const Vec3& F, const Vec3& M, const Vec3& X)
     }
   }
 #endif /* USE_MPI */
+
   if (fToBeOutput()) {
     FTraction += F;
-    MTraction += M+(X-XCraft).Cross(F);
+    MTraction += M + (X - XCraft).Cross(F);
   }   
 }
 
@@ -593,7 +597,7 @@ SubVectorHandler& UniformRotor::AssRes(SubVectorHandler& WorkVec,
 	<< "sin(ad):   " << dSinAlphad << endl
 	<< "UMean:     " << dUMean << endl;
      */        
-#endif
+#endif /* DEBUG */
    
      /* Non tocca il residuo */
 #ifdef USE_MPI 
@@ -631,12 +635,13 @@ void UniformRotor::AddForce(const Vec3& F, const Vec3& M, const Vec3& X)
     }
   }
 #endif /* USE_MPI */
+
    /* Gli serve solo la trazione */
   FTraction += F;
   
   /* Solo se deve fare l'output calcola anche il momento */
    if (fToBeOutput()) {      
-     MTraction += M+(X-XCraft).Cross(F);
+     MTraction += M + (X - XCraft).Cross(F);
    }   
 }
 
@@ -719,42 +724,19 @@ SubVectorHandler& GlauertRotor::AssRes(SubVectorHandler& WorkVec,
 #ifdef USE_MPI
    ExchangeTraction(fToBeOutput());
    if (!RotorComm.Get_rank()) {
-#endif
+#endif /* USE_MPI */
 
      /* Calcola parametri vari */
      Rotor::InitParam();   
      Rotor::MeanInducedVelocity();
- 
-     
-#ifdef DEBUG   
-     /* Prova:
-	Vec3 XTmp(2.,2.,0.);
-	doublereal dPsiTmp = dGetPsi(XTmp);
-	doublereal dXTmp = dGetPos(XTmp);
-	cout 
-	<< "X rotore:  " << pRotor->GetXCurr() << endl
-	<< "V rotore:  " << VCraft << endl
-	<< "X punto:   " << XTmp << endl
-	<< "Omega:     " << dOmega << endl
-	<< "Velocita': " << dVelocity << endl
-	<< "Psi0:      " << dPsi0 << endl
-	<< "Psi punto: " << dPsiTmp << endl
-	<< "Raggio:    " << dRadius << endl
-	<< "r punto:   " << dXTmp << endl
-	<< "mu:        " << dMu << endl
-	<< "lambda:    " << dLambda << endl
-	<< "cos(ad):   " << dCosAlphad << endl
-	<< "sin(ad):   " << dSinAlphad << endl
-	<< "UMean:     " << dUMean << endl;
-     */        
-#endif
-     
-     /* Non tocca il residuo */
 #ifdef USE_MPI 
    }
+   
    ResetTraction();
    ExchangeVelocity();
-#endif /* USE_MPI */   
+#endif /* USE_MPI */
+
+   /* Non tocca il residuo */
    WorkVec.Resize(0);
    return WorkVec;  
 }
@@ -785,18 +767,21 @@ void GlauertRotor::AddForce(const Vec3& F, const Vec3& M, const Vec3& X)
     }
   }
 #endif /* USE_MPI */
+
    /* Gli serve solo la trazione */
    FTraction += F;
       
    /* Solo se deve fare l'output calcola anche il momento */
    if (fToBeOutput()) {      
-      MTraction += M+(X-XCraft).Cross(F);
+      MTraction += M + (X - XCraft).Cross(F);
    }   
 }
 
 
-/* Restituisce ad un elemento la velocita' indotta in base alla posizione
- * azimuthale */
+/*
+ * Restituisce ad un elemento la velocita' indotta in base alla posizione
+ * azimuthale
+ */
 Vec3 GlauertRotor::GetInducedVelocity(const Vec3& X) const
 {   
    if (dUMean == 0.) {
@@ -883,7 +868,7 @@ SubVectorHandler& ManglerRotor::AssRes(SubVectorHandler& WorkVec,
 #ifdef USE_MPI
    ExchangeTraction(fToBeOutput());
    if (!RotorComm.Get_rank()) {
-#endif
+#endif /* USE_MPI */
 
      /* Calcola parametri vari */
      Rotor::InitParam();   
@@ -912,14 +897,15 @@ SubVectorHandler& ManglerRotor::AssRes(SubVectorHandler& WorkVec,
        << "sin(ad):   " << dSinAlphad << endl
        << "UMean:     " << dUMean << endl
        << "iv punto:  " << IndV << endl;
-#endif    
-     
-     /* Non tocca il residuo */
+#endif /* DEBUG */
+
 #ifdef USE_MPI 
    }
    ResetTraction();
    ExchangeVelocity();
-#endif /* USE_MPI */   
+#endif /* USE_MPI */
+
+   /* Non tocca il residuo */
    WorkVec.Resize(0);
    return WorkVec;  
 }
@@ -956,7 +942,7 @@ void ManglerRotor::AddForce(const Vec3& F, const Vec3& M, const Vec3& X)
   
   /* Solo se deve fare l'output calcola anche il momento */
   if (fToBeOutput()) {      
-    MTraction += M+(X-XCraft).Cross(F);
+    MTraction += M + (X - XCraft).Cross(F);
   }   
 }
 
@@ -1109,7 +1095,7 @@ void DynamicInflowRotor::Output(OutputHandler& OH) const
 		     << (RT*FTraction) << " " << (RT*MTraction) << " " << dUMean << " "
 		     << dVConst << " " << dVCosine << " " << dVSine  << endl;
   }
-#else /* USE_MPI */     
+#else /* !USE_MPI */     
    if (fToBeOutput()) {
 // #if 0
 //        OH.Rotors() << setw(8) << GetLabel() << " " 
@@ -1121,7 +1107,7 @@ void DynamicInflowRotor::Output(OutputHandler& OH) const
 		 << (RT*FTraction) << " " << (RT*MTraction) << " " << dUMean << " "
 		 << dVConst << " " << dVCosine << " " << dVSine  << endl;
    } 
-#endif/* USE_MPI */     
+#endif /* !USE_MPI */     
 }
      
 /* assemblaggio jacobiano */
@@ -1134,25 +1120,24 @@ DynamicInflowRotor::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Entering DynamicInflowRotor::AssJac()" << endl);
 #ifdef USE_MPI 
    if (!RotorComm.Get_rank()) {
-#endif/* USE_MPI */     
-     SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-     WM.ResizeInit(5, 0, 0.);
+#endif /* USE_MPI */     
+      SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+      WM.ResizeInit(5, 0, 0.);
    
-     integer iFirstIndex = iGetFirstIndex();
-     WM.fPutItem(1, iFirstIndex+1, iFirstIndex+1, dM11+dCoef*dL11);
-     WM.fPutItem(2, iFirstIndex+3, iFirstIndex+1, dCoef*dL31);
-     WM.fPutItem(3, iFirstIndex+2, iFirstIndex+2, dM22+dCoef*dL22);
-     WM.fPutItem(4, iFirstIndex+1, iFirstIndex+3, dCoef*dL13);
-     WM.fPutItem(5, iFirstIndex+3, iFirstIndex+3, dM33+dCoef*dL33);
-     
-     return WorkMat;
+      integer iFirstIndex = iGetFirstIndex();
+      WM.fPutItem(1, iFirstIndex+1, iFirstIndex+1, dM11+dCoef*dL11);
+      WM.fPutItem(2, iFirstIndex+3, iFirstIndex+1, dCoef*dL31);
+      WM.fPutItem(3, iFirstIndex+2, iFirstIndex+2, dM22+dCoef*dL22);
+      WM.fPutItem(4, iFirstIndex+1, iFirstIndex+3, dCoef*dL13);
+      WM.fPutItem(5, iFirstIndex+3, iFirstIndex+3, dM33+dCoef*dL33);
+
 #ifdef USE_MPI
-   }
-   else {
-     WorkMat.SetNullMatrix();
-     return WorkMat;	
+   } else {
+      WorkMat.SetNullMatrix();
    }
 #endif /* USE_MPI */
+
+   return WorkMat;
 }
 
 
@@ -1166,8 +1151,9 @@ SubVectorHandler& DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
    
 #ifdef USE_MPI
    ExchangeTraction(flag(1));
+   
    if (!RotorComm.Get_rank()) {
-#endif
+#endif /* USE_MPI */
 
      /* Calcola parametri vari */
      Rotor::InitParam();   
@@ -1195,9 +1181,8 @@ SubVectorHandler& DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
        << "sin(ad):   " << dSinAlphad << endl
        << "UMean:     " << dUMean << endl
        << "iv punto:  " << IndV << endl;
-#endif
+#endif /* DEBUG */
      
-     /* Non tocca il residuo */
      WorkVec.Resize(3);
      integer iFirstIndex = iGetFirstIndex();
    
@@ -1257,15 +1242,6 @@ SubVectorHandler& DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
        doublereal dDen;
        dDen = 1.+d*d;
        
-      /*
-	try {
-	dDen = 1.+pow(d, 2.);
-	} catch (...) {
-	cerr << "An error occurred" << endl << flush;
-	exit(1);
-	}
-      */
-       
        dL11 = dOmega*(2*dUt/dDen);
        d = dOmega*(15./64.*PI*dSinChi2*dCosChi2/dDen);
        dL13 = d*dUt;
@@ -1282,19 +1258,20 @@ SubVectorHandler& DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
        WorkVec.fPutCoef(2, 0.);
        WorkVec.fPutCoef(3, 0.);
      }
+     
 #ifdef USE_MPI 
      ExchangeVelocity();
-#endif /* USE_MPI */
-     return WorkVec;
-#ifdef USE_MPI 
+
    } else {
+
      /* Ora la trazione non serve piu' */
      ResetTraction();
      ExchangeVelocity();
      WorkVec.Resize(0);
-     return WorkVec;  
    }
 #endif /* USE_MPI */
+
+   return WorkVec;
 }
    
 
@@ -1330,8 +1307,10 @@ ostream& DynamicInflowRotor::Restart(ostream& out) const
 /* Somma alla trazione il contributo di forza di un elemento generico */
 void DynamicInflowRotor::AddForce(const Vec3& F, const Vec3& M, const Vec3& X)
 {
-   /* Gli serve la trazione ed il momento rispetto al rotore, 
-    * che si calcola da se' */
+   /*
+    * Gli serve la trazione ed il momento rispetto al rotore, 
+    * che si calcola da se'
+    */
 #ifdef USE_MPI
   if (ReqV != MPI::REQUEST_NULL) {
     flag RecvFlag;
@@ -1347,8 +1326,9 @@ void DynamicInflowRotor::AddForce(const Vec3& F, const Vec3& M, const Vec3& X)
     }
   }
 #endif /* USE_MPI */
+
    FTraction += F;
-   MTraction += M+(X-XCraft).Cross(F);
+   MTraction += M + (X - XCraft).Cross(F);
 }
 
 
@@ -1363,14 +1343,10 @@ Vec3 DynamicInflowRotor::GetInducedVelocity(const Vec3& X) const
    doublereal dr = dGetPos(X);
    doublereal dp = dGetPsi(X);
    
-   // return RRot3*((dVConst+dVCosine*dr*cos(dp)+dVSine*dr*sin(dp))*dOmega*dRadius);
    return RRot3*((dRadius*dVConst+dr*(dVCosine*cos(dp)+dVSine*sin(dp)))*dOmega);
 };
 
-
-
 /* DynamicInflowRotor - end */
-
 
 
 /* Legge un rotore */
