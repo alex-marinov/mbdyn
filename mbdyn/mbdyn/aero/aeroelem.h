@@ -236,6 +236,8 @@ public AerodynamicElem,
 public InitialAssemblyElem,
 public DriveOwner {
 protected:
+	enum { NODE1 = 0, NODE2, NODE3, LASTNODE };
+	
 	AeroData* aerodata;
 	const Beam* pBeam;
 	const StructNode* pNode1;
@@ -267,12 +269,8 @@ protected:
 	 * Nota: li lascio distinti perche' cosi' eventualmente ne posso fare
 	 * l'output in modo agevole
 	 */
-	Vec3 F1;		/* Forza */
-	Vec3 M1;		/* Momento */
-	Vec3 F2;		/* Forza */
-	Vec3 M2;		/* Momento */
-	Vec3 F3;		/* Forza */
-	Vec3 M3;		/* Momento */
+	Vec3 F[LASTNODE];	/* Forza */
+	Vec3 M[LASTNODE];	/* Momento */
 	
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 	/* temporaneo, per output */
@@ -418,6 +416,7 @@ public AerodynamicElem,
 public InitialAssemblyElem,
 public DriveOwner {
 protected:
+	enum { NODE1 = 0, NODE2, LASTNODE };
 	AeroData* aerodata;
 	const Beam2* pBeam;
 	const StructNode* pNode1;
@@ -445,10 +444,8 @@ protected:
 	 * Nota: li lascio distinti perche' cosi' eventualmente ne posso fare
 	 * l'output in modo agevole
 	 */
-	Vec3 F1;		/* Forza */
-	Vec3 M1;		/* Momento */
-	Vec3 F2;		/* Forza */
-	Vec3 M2;		/* Momento */
+	Vec3 F[LASTNODE];	/* Forza */
+	Vec3 M[LASTNODE];	/* Momento */
 	
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 	/* temporaneo, per output */

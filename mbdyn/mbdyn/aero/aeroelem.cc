@@ -813,13 +813,7 @@ VelocityPoint(pV),
 Twist(pT),
 GDI(iN),
 pdOuta(NULL),
-pvdOuta(NULL),
-F1(0.),
-M1(0.),
-F2(0.),
-M2(0.),
-F3(0.),
-M3(0.)
+pvdOuta(NULL)
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 , pOutput(NULL)
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
@@ -1002,6 +996,9 @@ AerodynamicBeam::InitialAssRes(SubVectorHandler& WorkVec,
 }
 
 static const doublereal d13 = 1./sqrt(3.);
+static const doublereal pdsi3[] = { -1., -d13, d13 };
+static const doublereal pdsf3[] = { -d13, d13, 1. };
+	
 
 /* assemblaggio residuo */
 void
@@ -1011,19 +1008,22 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	
 	doublereal dTng[6];
 	doublereal dW[6];
+
+	/* array di vettori per via del ciclo sui nodi ... */
+	Vec3 Xn[3];
 	
 	/* Dati dei nodi */
-	Vec3 Xn1(pNode1->GetXCurr());
+	Xn[NODE1] = pNode1->GetXCurr();
 	Mat3x3 Rn1(pNode1->GetRCurr());
 	Vec3 Vn1(pNode1->GetVCurr());
 	Vec3 Wn1(pNode1->GetWCurr());
 	
-	Vec3 Xn2(pNode2->GetXCurr());
+	Xn[NODE2] = pNode2->GetXCurr();
 	Mat3x3 Rn2(pNode2->GetRCurr());
 	Vec3 Vn2(pNode2->GetVCurr());
 	Vec3 Wn2(pNode2->GetWCurr());
 	
-	Vec3 Xn3(pNode3->GetXCurr());
+	Xn[NODE3] = pNode3->GetXCurr();
 	Mat3x3 Rn3(pNode3->GetRCurr());
 	Vec3 Vn3(pNode3->GetVCurr());
 	Vec3 Wn3(pNode3->GetWCurr());
@@ -1032,9 +1032,9 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	Vec3 f2Tmp(Rn2*f2);
 	Vec3 f3Tmp(Rn3*f3);
 	
-	Vec3 X1Tmp(Xn1+f1Tmp);
-	Vec3 X2Tmp(Xn2+f2Tmp);
-	Vec3 X3Tmp(Xn3+f3Tmp);
+	Vec3 X1Tmp(Xn[NODE1]+f1Tmp);
+	Vec3 X2Tmp(Xn[NODE2]+f2Tmp);
+	Vec3 X3Tmp(Xn[NODE3]+f3Tmp);
 	
 	Vec3 V1Tmp(Vn1+Wn1.Cross(f1Tmp));
 	Vec3 V2Tmp(Vn2+Wn2.Cross(f2Tmp));
@@ -1072,367 +1072,141 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	 * Dati "permanenti" (uso solo la posizione del nodo 2 perche'
 	 * non dovrebbero cambiare "molto")
 	 */
-	aerodata->SetAirData(dGetAirDensity(Xn2), dGetSoundSpeed(Xn2));
-	
-	/* Tratto relativo al primo nodo */
-	
-	/* Resetta i dati */
-	F1 = Vec3(0.);
-	M1 = Vec3(0.);
-	
-	doublereal dsi = -1.;
-	doublereal dsf = -d13; /* -1./sqrt(3.) */
+	aerodata->SetAirData(dGetAirDensity(Xn[NODE2]), 
+			dGetSoundSpeed(Xn[NODE2]));
 
-	doublereal dsm = (dsf+dsi)/2.;
-	doublereal dsdCsi = (dsf-dsi)/2.;
-	
 	/* OUTA */
 	doublereal** pvd = pvdOuta;
 	
+	for (int iNode = 0; iNode < LASTNODE; iNode++) {
+		
+		/* Resetta le forze */
+		F[iNode] = Vec3(0.);
+		M[iNode] = Vec3(0.);
+		
+		doublereal dsi = pdsi3[iNode];
+		doublereal dsf = pdsf3[iNode];
+		
+		doublereal dsm = (dsf+dsi)/2.;
+		doublereal dsdCsi = (dsf-dsi)/2.;
+		
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-	/* per output */
-	Aero_output* pTmpOutput = pOutput;
+		/* per output */
+		Aero_output* pTmpOutput = pOutput;
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
-	/* Ciclo sui punti di Gauss */
-	PntWght PW = GDI.GetFirst();
-	do {
-		doublereal dCsi = PW.dGetPnt();
-		doublereal ds = dsm+dsdCsi*dCsi;
-		doublereal dXds = DxDcsi3N(ds, Xn1, Xn2, Xn3);
+		/* Ciclo sui punti di Gauss */
+		PntWght PW = GDI.GetFirst();
+		do {
+			doublereal dCsi = PW.dGetPnt();
+			doublereal ds = dsm+dsdCsi*dCsi;
+			doublereal dXds = DxDcsi3N(ds, 
+					Xn[NODE1], Xn[NODE2], Xn[NODE3]);
 		
-		doublereal dN1 = ShapeFunc3N(ds, 1);
-		doublereal dN2 = ShapeFunc3N(ds, 2);
-		doublereal dN3 = ShapeFunc3N(ds, 3);
+			doublereal dN1 = ShapeFunc3N(ds, 1);
+			doublereal dN2 = ShapeFunc3N(ds, 2);
+			doublereal dN3 = ShapeFunc3N(ds, 3);
+			
+			Vec3 Xr(X1Tmp*dN1+X2Tmp*dN2+X3Tmp*dN3);
+			Vec3 Vr(V1Tmp*dN1+V2Tmp*dN2+V3Tmp*dN3);
+			Vec3 Wr(Wn1*dN1+Wn2*dN2+Wn3*dN3);
 		
-		Vec3 Xr(X1Tmp*dN1+X2Tmp*dN2+X3Tmp*dN3);
-		Vec3 Vr(V1Tmp*dN1+V2Tmp*dN2+V3Tmp*dN3);
-		Vec3 Wr(Wn1*dN1+Wn2*dN2+Wn3*dN3);
+			/* Contributo di velocita' del vento */
+			Vec3 VTmp(0.);
+			if (fGetAirVelocity(VTmp, Xr)) {
+				Vr -= VTmp;
+			}
 		
-		/* Contributo di velocita' del vento */
-		Vec3 VTmp(0.);
-		if (fGetAirVelocity(VTmp, Xr)) {
-			Vr -= VTmp;
-		}
+			/*
+			 * Se l'elemento e' collegato ad un rotore,
+			 * aggiunge alla velocita' la velocita' indotta
+			 */
+			if (pRotor != NULL) {
+				Vr += pRotor->GetInducedVelocity(Xr);
+			}
+     	 
+      			/* Copia i dati nel vettore di lavoro dVAM */
+			doublereal dTw = Twist.dGet(ds);
+			/* Contributo dell'eventuale sup. mobile */
+			dTw += dGet();
+
+			aerodata->SetSectionData(dCsi,
+					Chord.dGet(ds), 
+					ForcePoint.dGet(ds),
+					VelocityPoint.dGet(ds),
+					dTw,
+					dOmega);
 		
-		/*
-		 * Se l'elemento e' collegato ad un rotore,
-		 * aggiunge alla velocita' la velocita' indotta
-		 */
-		if (pRotor != NULL) {
-			Vr += pRotor->GetInducedVelocity(Xr);
-		}
-      
-      		/* Copia i dati nel vettore di lavoro dVAM */
-		doublereal dTw = Twist.dGet(ds);
-		dTw += dGet(); /* Contributo dell'eventuale sup. mobile */
-		aerodata->SetSectionData(dCsi,
-				         Chord.dGet(ds), 
-					 ForcePoint.dGet(ds),
-					 VelocityPoint.dGet(ds),
-					 dTw,
-					 dOmega);
+			/*
+			 * Lo svergolamento non viene piu' trattato in aerod2_;
+			 * quindi lo uso per correggere la matrice di rotazione
+			 * dal sistema aerodinamico a quello globale
+			 */
+			doublereal dCosT = cos(dTw);
+			doublereal dSinT = sin(dTw);
+			/* Assumo lo svergolamento positivo a cabrare */
+			Mat3x3 RTw( dCosT, dSinT, 0.,
+					-dSinT, dCosT, 0.,
+					0.,    0.,    1.);
+			/*
+			 * Allo stesso tempo interpola le g 
+			 * e aggiunge lo svergolamento
+			 */
+			Mat3x3 RRloc(RR2*Mat3x3(MatR, g1*dN1+g3*dN3)*RTw);
+			Mat3x3 RRlocT(RRloc.Transpose());
 		
-		/*
-		 * Lo svergolamento non viene piu' trattato in aerod2_; quindi
-		 * lo uso per correggere la matrice di rotazione
-		 * dal sistema aerodinamico a quello globale
-		 */
-		doublereal dCosT = cos(dTw);
-		doublereal dSinT = sin(dTw);
-		/* Assumo lo svergolamento positivo a cabrare */
-		Mat3x3 RTw( dCosT, dSinT, 0.,
-			   -dSinT, dCosT, 0.,
-			    0.,    0.,    1.);
-		/*
-		 * Allo stesso tempo interpola le g e aggiunge lo svergolamento
-		 */
-		Mat3x3 RRloc(RR2*Mat3x3(MatR, g1*dN1+g3*dN3)*RTw);
-		Mat3x3 RRlocT(RRloc.Transpose());
-		
-		/*
-		 * Ruota velocita' e velocita' angolare nel sistema
-		 * aerodinamico e li copia nel vettore di lavoro dW
-		 */
-		Vec3 Tmp(RRlocT*Vr);
-		Tmp.PutTo(dW);
+			/*
+			 * Ruota velocita' e velocita' angolare nel sistema
+			 * aerodinamico e li copia nel vettore di lavoro dW
+			 */
+			Vec3 Tmp(RRlocT*Vr);
+			Tmp.PutTo(dW);
 		
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-		if (fToBeOutput()) {
-			ASSERT(pOutput != NULL);
-			set_alpha(pTmpOutput, Tmp);
-		}
+			if (fToBeOutput()) {
+				ASSERT(pOutput != NULL);
+				set_alpha(pTmpOutput, Tmp);
+			}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
-		Tmp = RRlocT*Wr;
-		Tmp.PutTo(dW+3);
+			Tmp = RRlocT*Wr;
+			Tmp.PutTo(dW+3);
 		
-		/* Funzione di calcolo delle forze aerodinamiche */
-		aerodata->GetForces(dW, dTng, *pvd);
-		
-		/* OUTA */
-		pvd++;
+			/* Funzione di calcolo delle forze aerodinamiche */
+			aerodata->GetForces(dW, dTng, *pvd);
+			
+			/* OUTA */
+			pvd++;
 		
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-		if (fToBeOutput()) {
-			ASSERT(pOutput != NULL);
-			set_f(pTmpOutput, dTng);
-			pTmpOutput++;
-		}
+			if (fToBeOutput()) {
+				ASSERT(pOutput != NULL);
+				set_f(pTmpOutput, dTng);
+				pTmpOutput++;
+			}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 	    
-		/* Dimensionalizza le forze */
-		doublereal dWght = dXds*dsdCsi*PW.dGetWght();
-		Vec3 FTmp(RRloc*(Vec3(dTng)*dWght));
-		F1 += FTmp;
-		M1 += RRloc*(Vec3(dTng+3)*dWght);
-		M1 += (Xr-Xn1).Cross(FTmp);
+			/* Dimensionalizza le forze */
+			doublereal dWght = dXds*dsdCsi*PW.dGetWght();
+			Vec3 FTmp(RRloc*(Vec3(dTng)*dWght));
+			F[iNode] += FTmp;
+			M[iNode] += RRloc*(Vec3(dTng+3)*dWght);
+			M[iNode] += (Xr-Xn[iNode]).Cross(FTmp);
 		
-	} while (GDI.fGetNext(PW));
+		} while (GDI.fGetNext(PW));
 	
-	/* Se e' definito il rotore, aggiungere il contributo alla trazione */
-	if (pRotor != NULL && !fPassiveRotor) {
-		pRotor->AddForce(F1, M1, Xn1);
+		/* 
+		 * Se e' definito il rotore, aggiungere il contributo 
+		 * alla trazione 
+		 */
+		if (pRotor != NULL && !fPassiveRotor) {
+			pRotor->AddForce(F[iNode], M[iNode], Xn[iNode]);
+		}
+	
+		/* Somma il termine al residuo */
+		WorkVec.Add(6*iNode+1, F[iNode]);
+		WorkVec.Add(6*iNode+4, M[iNode]);
 	}
-	
-	/* Somma il termine al residuo */
-	WorkVec.Add(1, F1);
-	WorkVec.Add(4, M1);
-	
-	
-	/* Tratto relativo al secondo nodo */
-	
-	/* Resetta i dati */
-	F2 = Vec3(0.);
-	M2 = Vec3(0.);
-	
-	dsi = -d13; /* -1./sqrt(3.) */
-	dsf = d13;  /* 1./sqrt(3.) */
-
-	dsm = (dsf+dsi)/2.;
-	dsdCsi = (dsf-dsi)/2.;
-	
-	/* Ciclo sui punti di Gauss */
-	PW = GDI.GetFirst();
-	do {
-		doublereal dCsi = PW.dGetPnt();
-		doublereal ds = dsm+dsdCsi*dCsi;
-		doublereal dXds = DxDcsi3N(ds, Xn1, Xn2, Xn3);
-		
-		doublereal dN1 = ShapeFunc3N(ds, 1);
-		doublereal dN2 = ShapeFunc3N(ds, 2);
-		doublereal dN3 = ShapeFunc3N(ds, 3);
-		
-		Vec3 Xr(X1Tmp*dN1+X2Tmp*dN2+X3Tmp*dN3);
-		Vec3 Vr(V1Tmp*dN1+V2Tmp*dN2+V3Tmp*dN3);
-		Vec3 Wr(Wn1*dN1+Wn2*dN2+Wn3*dN3);
-		
-		/* Contributo di velocita' del vento */
-		Vec3 VTmp(0.);
-		if (fGetAirVelocity(VTmp, Xr)) {
-			Vr -= VTmp;
-		}
-		
-		/*
-		 * Se l'elemento e' collegato ad un rotore,
-		 * aggiunge alla velocita' la velocita' indotta
-		 */
-		if (pRotor != NULL) {
-			Vr += pRotor->GetInducedVelocity(Xr);
-		}
-		
-		/* Copia i dati nel vettore di lavoro dVAM */
-		doublereal dTw = Twist.dGet(ds);
-		dTw += dGet(); /* Contributo dell'eventuale sup. mobile */
-		aerodata->SetSectionData(dCsi,
-				         Chord.dGet(ds), 
-					 ForcePoint.dGet(ds),
-					 VelocityPoint.dGet(ds),
-					 dTw,
-					 dOmega);
-		
-		/*
-		 * Lo svergolamento non viene piu' trattato in aerod2_; quindi
-		 * lo uso per correggere la matrice di rotazione
-		 * dal sistema aerodinamico a quello globale
-		 */
-		doublereal dCosT = cos(dTw);
-		doublereal dSinT = sin(dTw);
-		/* Assumo lo svergolamento positivo a cabrare */
-		Mat3x3 RTw( dCosT, dSinT, 0.,
-			   -dSinT, dCosT, 0.,
-			    0.,    0.,    1.);
-		/*
-		 * Allo stesso tempo interpola le g e aggiunge lo svergolamento
-		 */
-		Mat3x3 RRloc(RR2*Mat3x3(MatR, g1*dN1+g3*dN3)*RTw);
-		Mat3x3 RRlocT(RRloc.Transpose());
-		
-		/*
-		 * Ruota velocita' e velocita' angolare nel sistema
-		 * aerodinamico e li copia nel vettore di lavoro dW
-		 */
-		Vec3 Tmp(RRlocT*Vr);
-		Tmp.PutTo(dW);
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-		if (fToBeOutput()) {
-			ASSERT(pOutput != NULL);
-			set_alpha(pTmpOutput, Tmp);
-		}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
-
-		Tmp = RRlocT*Wr;
-		Tmp.PutTo(dW+3);
-		
-		/* Funzione di calcolo delle forze aerodinamiche */
-		aerodata->GetForces(dW, dTng, *pvd);
-		
-		/* OUTA */
-		pvd++;
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-		if (fToBeOutput()) {
-			ASSERT(pOutput != NULL);
-			set_f(pTmpOutput, dTng);
-			pTmpOutput++;
-		}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
-
-		/* Dimensionalizza le forze */
-		doublereal dWght = dXds*dsdCsi*PW.dGetWght();
-		Vec3 FTmp(RRloc*(Vec3(dTng)*dWght));
-		F2 += FTmp;
-		M2 += RRloc*(Vec3(dTng+3)*dWght);
-		M2 += (Xr-Xn2).Cross(FTmp);
-		
-	} while (GDI.fGetNext(PW));
-	
-	/* Se e' definito il rotore, aggiungere il contributo alla trazione */
-	if (pRotor != NULL && !fPassiveRotor) {
-		pRotor->AddForce(F2, M2, Xn2);
-	}
-	
-	/* Somma il termine al residuo */
-	WorkVec.Add(7, F2);
-	WorkVec.Add(10, M2);
-		
-	/* Tratto relativo al terzo nodo */
-	
-	/* Resetta i dati */
-	F3 = Vec3(0.);
-	M3 = Vec3(0.);
-	
-	dsi = d13; /* 1./sqrt(3.) */
-	dsf = 1.;
-
-	dsm = (dsf+dsi)/2.;
-	dsdCsi = (dsf-dsi)/2.;
-	
-	/* Ciclo sui punti di Gauss */
-	PW = GDI.GetFirst();
-	do {
-		doublereal dCsi = PW.dGetPnt();
-		doublereal ds = dsm+dsdCsi*dCsi;
-		doublereal dXds = DxDcsi3N(ds, Xn1, Xn2, Xn3);
-		
-		doublereal dN1 = ShapeFunc3N(ds, 1);
-		doublereal dN2 = ShapeFunc3N(ds, 2);
-		doublereal dN3 = ShapeFunc3N(ds, 3);
-		
-		Vec3 Xr(X1Tmp*dN1+X2Tmp*dN2+X3Tmp*dN3);
-		Vec3 Vr(V1Tmp*dN1+V2Tmp*dN2+V3Tmp*dN3);
-		Vec3 Wr(Wn1*dN1+Wn2*dN2+Wn3*dN3);
-		
-		/* Contributo di velocita' del vento */
-		Vec3 VTmp(0.);
-		if (fGetAirVelocity(VTmp, Xr)) {
-			Vr -= VTmp;
-		}
-		
-		/*
-		 * Se l'elemento e' collegato ad un rotore,
-		 * aggiunge alla velocita' la velocita' indotta
-		 */
-		 if (pRotor != NULL) {
-		 	Vr += pRotor->GetInducedVelocity(Xr);
-		}
-		
-		/* Copia i dati nel vettore di lavoro dVAM */
-		doublereal dTw = Twist.dGet(ds);
-		dTw += dGet(); /* Contributo dell'eventuale sup. mobile */
-		aerodata->SetSectionData(dCsi,
-				         Chord.dGet(ds), 
-					 ForcePoint.dGet(ds),
-					 VelocityPoint.dGet(ds),
-					 dTw,
-					 dOmega);
-		
-		/*
-		 * Lo svergolamento non viene piu' trattato in aerod2_; quindi
-		 * lo uso per correggere la matrice di rotazione
-		 * dal sistema aerodinamico a quello globale
-		 */
-		doublereal dCosT = cos(dTw);
-		doublereal dSinT = sin(dTw);
-		/* Assumo lo svergolamento positivo a cabrare */
-		Mat3x3 RTw( dCosT, dSinT, 0.,
-			   -dSinT, dCosT, 0.,
-			    0.,    0.,    1.);
-		/*
-		 * Allo stesso tempo interpola le g e aggiunge lo svergolamento
-		 */
-		Mat3x3 RRloc(RR2*Mat3x3(MatR, g1*dN1+g3*dN3)*RTw);
-		Mat3x3 RRlocT(RRloc.Transpose());
-		
-		/*
-		 * Ruota velocita' e velocita' angolare nel sistema
-		 * aerodinamico e li copia nel vettore di lavoro dW
-		 */
-		Vec3 Tmp(RRlocT*Vr);
-		Tmp.PutTo(dW);
-		
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-		if (fToBeOutput()) {
-			ASSERT(pOutput != NULL);
-			set_alpha(pTmpOutput, Tmp);
-		}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
-
-		Tmp = RRlocT*Wr;
-		Tmp.PutTo(dW+3);
-		
-		/* Funzione di calcolo delle forze aerodinamiche */
-		aerodata->GetForces(dW, dTng, *pvd);
-		
-		/* OUTA */
-		pvd++;
-		
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-		if (fToBeOutput()) {
-			ASSERT(pOutput != NULL);
-			set_f(pTmpOutput, dTng);
-			pTmpOutput++;
-		}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
-
-		/* Dimensionalizza le forze */
-		doublereal dWght = dXds*dsdCsi*PW.dGetWght();
-		Vec3 FTmp(RRloc*(Vec3(dTng)*dWght));
-		F3 += FTmp;
-		M3 += RRloc*(Vec3(dTng+3)*dWght);
-		M3 += (Xr-Xn3).Cross(FTmp);
-		
-	} while (GDI.fGetNext(PW));
-	
-	/* Se e' definito il rotore, aggiungere il contributo alla trazione */
-	if (pRotor != NULL && !fPassiveRotor) {
-		pRotor->AddForce(F3, M3, Xn3);
-	}
-	
-	/* Somma il termine al residuo */
-	WorkVec.Add(13, F3);
-	WorkVec.Add(16, M3);
 }
 
 /*
@@ -1480,9 +1254,9 @@ AerodynamicBeam::Output(OutputHandler& OH ) const
 		
 #if AEROD_OUTPUT == AEROD_OUT_NODE
 		out << " " << setw(8) << pBeam->GetLabel();
-		out << " ", F1.Write(out, " ") << " ", M1.Write(out, " ");
-		out << " ", F2.Write(out, " ") << " ", M2.Write(out, " ");
-		out << " ", F3.Write(out, " ") << " ", M3.Write(out, " ");
+		out << " ", F[NODE1].Write(out, " ") << " ", M[NODE1].Write(out, " ");
+		out << " ", F[NODE2].Write(out, " ") << " ", M[NODE2].Write(out, " ");
+		out << " ", F[NODE3].Write(out, " ") << " ", M[NODE3].Write(out, " ");
 #else /* AEROD_OUTPUT != AEROD_OUT_NODE */
 		for (int i = 0; i < 3*GDI.iGetNum(); i++) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
@@ -1663,11 +1437,7 @@ VelocityPoint(pV),
 Twist(pT),
 GDI(iN),
 pdOuta(NULL),
-pvdOuta(NULL),
-F1(0.),
-M1(0.),
-F2(0.),
-M2(0.)
+pvdOuta(NULL)
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 , pOutput(NULL)
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
@@ -1852,14 +1622,16 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 	
 	doublereal dTng[6];
 	doublereal dW[6];
+
+	Vec3 Xn[LASTNODE];
 	
 	/* Dati dei nodi */
-	Vec3 Xn1(pNode1->GetXCurr());
+	Xn[NODE1] = pNode1->GetXCurr();
 	Mat3x3 Rn1(pNode1->GetRCurr());
 	Vec3 Vn1(pNode1->GetVCurr());
 	Vec3 Wn1(pNode1->GetWCurr());
 	
-	Vec3 Xn2(pNode2->GetXCurr());
+	Xn[NODE2] = pNode2->GetXCurr();
 	Mat3x3 Rn2(pNode2->GetRCurr());
 	Vec3 Vn2(pNode2->GetVCurr());
 	Vec3 Wn2(pNode2->GetWCurr());
@@ -1867,8 +1639,8 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 	Vec3 f1Tmp(Rn1*f1);
 	Vec3 f2Tmp(Rn2*f2);
 	
-	Vec3 X1Tmp(Xn1+f1Tmp);
-	Vec3 X2Tmp(Xn2+f2Tmp);
+	Vec3 X1Tmp(Xn[NODE1]+f1Tmp);
+	Vec3 X2Tmp(Xn[NODE2]+f2Tmp);
 	
 	Vec3 V1Tmp(Vn1+Wn1.Cross(f1Tmp));
 	Vec3 V2Tmp(Vn2+Wn2.Cross(f2Tmp));
@@ -1902,251 +1674,139 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
    	}
 
 	/*
-	 * Dati "permanenti" (uso solo la posizione del nodo 2 perche'
+	 * Dati "permanenti" (uso solo la posizione di mezzo perche'
 	 * non dovrebbero cambiare "molto")
 	 */
-	aerodata->SetAirData(dGetAirDensity(Xn2), dGetSoundSpeed(Xn2));
-	
-	/* Tratto relativo al primo nodo */
-	
-	/* Resetta i dati */
-	F1 = Vec3(0.);
-	M1 = Vec3(0.);
-	
-	doublereal dsi = -1.;
-	doublereal dsf = 0.;
+	Vec3 Xmid = (Xn[NODE2]+Xn[NODE1])/2.;
+	aerodata->SetAirData(dGetAirDensity(Xmid), dGetSoundSpeed(Xmid));
 
-	doublereal dsm = (dsf+dsi)/2.;
-	doublereal dsdCsi = (dsf-dsi)/2.;
+	doublereal pdsi2[] = { -1., 0. };
+	doublereal pdsf2[] = { 0., 1. };
 	
-	/* OUTA */
-	doublereal** pvd = pvdOuta;
+	for (int iNode = 0; iNode < LASTNODE; iNode++) {
 	
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-	/* per output */
-	Aero_output* pTmpOutput = pOutput;
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+		/* Resetta i dati */
+		F[iNode] = Vec3(0.);
+		M[iNode] = Vec3(0.);
+	
+		doublereal dsi = pdsi2[iNode];
+		doublereal dsf = pdsi2[iNode];
 
-	/* Ciclo sui punti di Gauss */
-	PntWght PW = GDI.GetFirst();
-	do {
-		doublereal dCsi = PW.dGetPnt();
-		doublereal ds = dsm+dsdCsi*dCsi;
-		doublereal dXds = DxDcsi2N(ds, Xn1, Xn2);
-		
-		doublereal dN1 = ShapeFunc2N(ds, 1);
-		doublereal dN2 = ShapeFunc2N(ds, 2);
-		
-		Vec3 Xr(X1Tmp*dN1+X2Tmp*dN2);
-		Vec3 Vr(V1Tmp*dN1+V2Tmp*dN2);
-		Vec3 Wr(Wn1*dN1+Wn2*dN2);
-		
-		/* Contributo di velocita' del vento */
-		Vec3 VTmp(0.);
-		if (fGetAirVelocity(VTmp, Xr)) {
-			Vr -= VTmp;
-		}
-		
-		/*
-		 * Se l'elemento e' collegato ad un rotore,
-		 * aggiunge alla velocita' la velocita' indotta
-		 */
-		if (pRotor != NULL) {
-			Vr += pRotor->GetInducedVelocity(Xr);
-		}
-      
-      		/* Copia i dati nel vettore di lavoro dVAM */
-		doublereal dTw = Twist.dGet(ds);
-		dTw += dGet(); /* Contributo dell'eventuale sup. mobile */
-		aerodata->SetSectionData(dCsi,
-				         Chord.dGet(ds), 
-					 ForcePoint.dGet(ds),
-					 VelocityPoint.dGet(ds),
-					 dTw,
-					 dOmega);
-		
-		/*
-		 * Lo svergolamento non viene piu' trattato in aerod2_; quindi
-		 * lo uso per correggere la matrice di rotazione
-		 * dal sistema aerodinamico a quello globale
-		 */
-		doublereal dCosT = cos(dTw);
-		doublereal dSinT = sin(dTw);
-		/* Assumo lo svergolamento positivo a cabrare */
-		Mat3x3 RTw( dCosT, dSinT, 0.,
-			   -dSinT, dCosT, 0.,
-			    0.,    0.,    1.);
-		/*
-		 * Allo stesso tempo interpola le g e aggiunge lo svergolamento
-		 */
-		Mat3x3 RRloc(RRm*Mat3x3(MatR, g1*dN1+g2*dN2)*RTw);
-		Mat3x3 RRlocT(RRloc.Transpose());
-		
-		/*
-		 * Ruota velocita' e velocita' angolare nel sistema
-		 * aerodinamico e li copia nel vettore di lavoro dW
-		 */
-		Vec3 Tmp(RRlocT*Vr);
-		Tmp.PutTo(dW);
-		
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-		if (fToBeOutput()) {
-			ASSERT(pOutput != NULL);
-			set_alpha(pTmpOutput, Tmp);
-		}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
-
-		Tmp = RRlocT*Wr;
-		Tmp.PutTo(dW+3);
-		
-		/* Funzione di calcolo delle forze aerodinamiche */
-		aerodata->GetForces(dW, dTng, *pvd);
-		
+		doublereal dsm = (dsf+dsi)/2.;
+		doublereal dsdCsi = (dsf-dsi)/2.;
+	
 		/* OUTA */
-		pvd++;
-		
+		doublereal** pvd = pvdOuta;
+	
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-		if (fToBeOutput()) {
-			ASSERT(pOutput != NULL);
-			set_f(pTmpOutput, dTng);
-			pTmpOutput++;
-		}
+		/* per output */
+		Aero_output* pTmpOutput = pOutput;
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+
+		/* Ciclo sui punti di Gauss */
+		PntWght PW = GDI.GetFirst();
+		do {
+			doublereal dCsi = PW.dGetPnt();
+			doublereal ds = dsm+dsdCsi*dCsi;
+			doublereal dXds = DxDcsi2N(ds, Xn[NODE1], Xn[NODE2]);
+			
+			doublereal dN1 = ShapeFunc2N(ds, 1);
+			doublereal dN2 = ShapeFunc2N(ds, 2);
+			
+			Vec3 Xr(X1Tmp*dN1+X2Tmp*dN2);
+			Vec3 Vr(V1Tmp*dN1+V2Tmp*dN2);
+			Vec3 Wr(Wn1*dN1+Wn2*dN2);
+			
+			/* Contributo di velocita' del vento */
+			Vec3 VTmp(0.);
+			if (fGetAirVelocity(VTmp, Xr)) {
+				Vr -= VTmp;
+			}
+			
+			/*
+			 * Se l'elemento e' collegato ad un rotore,
+			 * aggiunge alla velocita' la velocita' indotta
+			 */
+			if (pRotor != NULL) {
+				Vr += pRotor->GetInducedVelocity(Xr);
+			}
+     	 
+      			/* Copia i dati nel vettore di lavoro dVAM */
+			doublereal dTw = Twist.dGet(ds);
+			dTw += dGet(); /* Contributo dell'eventuale sup. mobile */
+			aerodata->SetSectionData(dCsi,
+					         Chord.dGet(ds), 
+						 ForcePoint.dGet(ds),
+						 VelocityPoint.dGet(ds),
+						 dTw,
+						 dOmega);
+			
+			/*
+			 * Lo svergolamento non viene piu' trattato in aerod2_; quindi
+			 * lo uso per correggere la matrice di rotazione
+			 * dal sistema aerodinamico a quello globale
+			 */
+			doublereal dCosT = cos(dTw);
+			doublereal dSinT = sin(dTw);
+			/* Assumo lo svergolamento positivo a cabrare */
+			Mat3x3 RTw( dCosT, dSinT, 0.,
+				   -dSinT, dCosT, 0.,
+				    0.,    0.,    1.);
+			/*
+			 * Allo stesso tempo interpola le g e aggiunge lo svergolamento
+			 */
+			Mat3x3 RRloc(RRm*Mat3x3(MatR, g1*dN1+g2*dN2)*RTw);
+			Mat3x3 RRlocT(RRloc.Transpose());
+			
+			/*
+			 * Ruota velocita' e velocita' angolare nel sistema
+			 * aerodinamico e li copia nel vettore di lavoro dW
+			 */
+			Vec3 Tmp(RRlocT*Vr);
+			Tmp.PutTo(dW);
+			
+#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
+			if (fToBeOutput()) {
+				ASSERT(pOutput != NULL);
+				set_alpha(pTmpOutput, Tmp);
+			}
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+
+			Tmp = RRlocT*Wr;
+			Tmp.PutTo(dW+3);
+			
+			/* Funzione di calcolo delle forze aerodinamiche */
+			aerodata->GetForces(dW, dTng, *pvd);
+			
+			/* OUTA */
+			pvd++;
+			
+#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
+			if (fToBeOutput()) {
+				ASSERT(pOutput != NULL);
+				set_f(pTmpOutput, dTng);
+				pTmpOutput++;
+			}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 	    
-		/* Dimensionalizza le forze */
-		doublereal dWght = dXds*dsdCsi*PW.dGetWght();
-		Vec3 FTmp(RRloc*(Vec3(dTng)*dWght));
-		F1 += FTmp;
-		M1 += RRloc*(Vec3(dTng+3)*dWght);
-		M1 += (Xr-Xn1).Cross(FTmp);
+			/* Dimensionalizza le forze */
+			doublereal dWght = dXds*dsdCsi*PW.dGetWght();
+			Vec3 FTmp(RRloc*(Vec3(dTng)*dWght));
+			F[iNode] += FTmp;
+			M[iNode] += RRloc*(Vec3(dTng+3)*dWght);
+			M[iNode] += (Xr-Xn[iNode]).Cross(FTmp);
 		
-	} while (GDI.fGetNext(PW));
+		} while (GDI.fGetNext(PW));
 	
-	/* Se e' definito il rotore, aggiungere il contributo alla trazione */
-	if (pRotor != NULL && !fPassiveRotor) {
-		pRotor->AddForce(F1, M1, Xn1);
-	}
-	
-	/* Somma il termine al residuo */
-	WorkVec.Add(1, F1);
-	WorkVec.Add(4, M1);
-	
-	
-	/* Tratto relativo al secondo nodo */
-	
-	/* Resetta i dati */
-	F2 = Vec3(0.);
-	M2 = Vec3(0.);
-	
-	dsi = 0.;
-	dsf = 1.;
-
-	dsm = (dsf+dsi)/2.;
-	dsdCsi = (dsf-dsi)/2.;
-	
-	/* Ciclo sui punti di Gauss */
-	PW = GDI.GetFirst();
-	do {
-		doublereal dCsi = PW.dGetPnt();
-		doublereal ds = dsm+dsdCsi*dCsi;
-		doublereal dXds = DxDcsi2N(ds, Xn1, Xn2);
-		
-		doublereal dN1 = ShapeFunc2N(ds, 1);
-		doublereal dN2 = ShapeFunc2N(ds, 2);
-		
-		Vec3 Xr(X1Tmp*dN1+X2Tmp*dN2);
-		Vec3 Vr(V1Tmp*dN1+V2Tmp*dN2);
-		Vec3 Wr(Wn1*dN1+Wn2*dN2);
-		
-		/* Contributo di velocita' del vento */
-		Vec3 VTmp(0.);
-		if (fGetAirVelocity(VTmp, Xr)) {
-			Vr -= VTmp;
+		/* Se e' definito il rotore, aggiungere il contributo alla trazione */
+		if (pRotor != NULL && !fPassiveRotor) {
+			pRotor->AddForce(F[iNode], M[iNode], Xn[iNode]);
 		}
-		
-		/*
-		 * Se l'elemento e' collegato ad un rotore,
-		 * aggiunge alla velocita' la velocita' indotta
-		 */
-		if (pRotor != NULL) {
-			Vr += pRotor->GetInducedVelocity(Xr);
-		}
-		
-		/* Copia i dati nel vettore di lavoro dVAM */
-		doublereal dTw = Twist.dGet(ds);
-		dTw += dGet(); /* Contributo dell'eventuale sup. mobile */
-		aerodata->SetSectionData(dCsi,
-				         Chord.dGet(ds), 
-					 ForcePoint.dGet(ds),
-					 VelocityPoint.dGet(ds),
-					 dTw,
-					 dOmega);
-		
-		/*
-		 * Lo svergolamento non viene piu' trattato in aerod2_; quindi
-		 * lo uso per correggere la matrice di rotazione
-		 * dal sistema aerodinamico a quello globale
-		 */
-		doublereal dCosT = cos(dTw);
-		doublereal dSinT = sin(dTw);
-		/* Assumo lo svergolamento positivo a cabrare */
-		Mat3x3 RTw( dCosT, dSinT, 0.,
-			   -dSinT, dCosT, 0.,
-			    0.,    0.,    1.);
-		/*
-		 * Allo stesso tempo interpola le g e aggiunge lo svergolamento
-		 */
-		Mat3x3 RRloc(RRm*Mat3x3(MatR, g1*dN1+g2*dN2)*RTw);
-		Mat3x3 RRlocT(RRloc.Transpose());
-		
-		/*
-		 * Ruota velocita' e velocita' angolare nel sistema
-		 * aerodinamico e li copia nel vettore di lavoro dW
-		 */
-		Vec3 Tmp(RRlocT*Vr);
-		Tmp.PutTo(dW);
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-		if (fToBeOutput()) {
-			ASSERT(pOutput != NULL);
-			set_alpha(pTmpOutput, Tmp);
-		}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
-
-		Tmp = RRlocT*Wr;
-		Tmp.PutTo(dW+3);
-		
-		/* Funzione di calcolo delle forze aerodinamiche */
-		aerodata->GetForces(dW, dTng, *pvd);
-		
-		/* OUTA */
-		pvd++;
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-		if (fToBeOutput()) {
-			ASSERT(pOutput != NULL);
-			set_f(pTmpOutput, dTng);
-			pTmpOutput++;
-		}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
-
-		/* Dimensionalizza le forze */
-		doublereal dWght = dXds*dsdCsi*PW.dGetWght();
-		Vec3 FTmp(RRloc*(Vec3(dTng)*dWght));
-		F2 += FTmp;
-		M2 += RRloc*(Vec3(dTng+3)*dWght);
-		M2 += (Xr-Xn2).Cross(FTmp);
-		
-	} while (GDI.fGetNext(PW));
 	
-	/* Se e' definito il rotore, aggiungere il contributo alla trazione */
-	if (pRotor != NULL && !fPassiveRotor) {
-		pRotor->AddForce(F2, M2, Xn2);
-	}
-	
-	/* Somma il termine al residuo */
-	WorkVec.Add(7, F2);
-	WorkVec.Add(10, M2);
+		/* Somma il termine al residuo */
+		WorkVec.Add(6*iNode+1, F[iNode]);
+		WorkVec.Add(6*iNode+4, M[iNode]);
+	}	
 }
 
 /*
