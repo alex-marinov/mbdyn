@@ -1134,10 +1134,14 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 const char *tmpin = sInputFileName ? sInputFileName : sDefaultOutputFileName;
 	 
 	 if (S_ISDIR(s.st_mode)) {
-	    int l = strlen(sOutName)+strlen(tmpin)+1;
-	    SAFENEWARR(tmpout, char, l);
-	    strcpy(tmpout, sOutName);
-	    strcat(tmpout, tmpin);
+	    unsigned l1 = strlen(sOutName), l2 = l1 + strlen(tmpin) + 2;
+	    SAFENEWARR(tmpout, char, l2);
+	    strncpy(tmpout, sOutName, l1);
+	    if (sOutName[l1 - 1] != '/') {
+		    tmpout[l1] = '/';
+		    l1++;
+	    }
+	    strncpy(&tmpout[l1], tmpin, l2 - l1);
 	    SAFEDELETEARR(sOutName);
 	    sOutName = tmpout;
 	 }
