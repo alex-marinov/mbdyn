@@ -60,7 +60,8 @@ extern MPI::Intracomm MBDynComm;
 /* Rotor - begin */
 
 Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
-	     const StructNode* pC, const Mat3x3& rrot, const StructNode* pR, 
+	     const StructNode* pC, const Mat3x3& rrot,
+	     const StructNode* pR, const StructNode* pG, 
 	     SetResForces **ppres, flag fOut)
 : Elem(uL, Elem::ROTOR, fOut), 
 AerodynamicElem(uL, AerodynamicElem::ROTOR, fOut), 
@@ -72,7 +73,7 @@ pDispl(NULL),
 ReqV(MPI::REQUEST_NULL),
 pRotDataType(NULL),
 #endif /* USE_MPI */
-pCraft(pC), pRotor(pR), 
+pCraft(pC), pRotor(pR), pGround(pG),
 dOmegaRef(0.), dRadius(0.), dArea(0.),
 dUMean(0.), dUMeanRef(0.), dUMeanPrev(0.),
 Weight(), dWeight(0.),
@@ -89,6 +90,7 @@ iNumSteps(0)
 	ASSERT(pC->GetNodeType() == Node::STRUCTURAL);
 	ASSERT(pR != NULL);
 	ASSERT(pR->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(pG == NULL || pG->GetNodeType() == Node::STRUCTURAL);
       
 	Vec3 R3C((pCraft->GetRCurr()).GetVec(3));
 	Vec3 R3R((pRotor->GetRCurr()).GetVec(3));
@@ -368,6 +370,33 @@ void Rotor::MeanInducedVelocity(void)
    doublereal dRef = 2.*dRho*dArea*dVRef;
    dUMeanRef = dT/(dRef+1.);
 
+   if (pGround) {
+	   Vec3 p = pGround->GetRCurr().Transpose()*(pRotor->GetXCurr() - pGround->GetXCurr());
+	   doublereal z = p.dGet(3)*(4./dRadius);
+
+	   if (z < .25) {
+		   if (z <= 0.) {
+			   std::cerr << "warning, illegal negative "
+				   "normalized altitude "
+				   "z=" << z << std::endl;
+		   }
+
+		   z = .25;
+	   }
+
+	   /*
+	    * According to I.C. Cheeseman & N.E. Bennett,
+	    * "The Effect of Ground on a Helicopter Rotor
+	    * in Forward Flight", NASA TR-3021, 1955:
+	    *
+	    * U = Uref * ( 1 - ( R / ( 4 * z ) )^2 )
+	    * 
+	    * We need to make R / ( 4 * z ) <= 1, so
+	    * we must enforce z >= R / 4.
+	    */
+	   dUMeanRef *= 1. - 1./(z*z);
+   }
+
    /*
     * From Claudio Monteggia:
     *
@@ -491,7 +520,7 @@ NoRotor::NoRotor(unsigned int uLabel,
 		 doublereal dR,
 		 flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, NULL, ppres, fOut)
 {
 	dRadius = dR; /* puo' essere richiesto dal trim */
 #ifdef USE_MPI
@@ -601,6 +630,7 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 			   const StructNode* pCraft, 
 			   const Mat3x3& rrot,
 			   const StructNode* pRotor,
+			   const StructNode* pGround,
 			   SetResForces **ppres, 
 			   doublereal dOR,
 			   doublereal dR, 
@@ -609,7 +639,7 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 			   doublereal dCFF,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
@@ -754,6 +784,7 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 			   const StructNode* pCraft,
 			   const Mat3x3& rrot,
 			   const StructNode* pRotor,
+			   const StructNode* pGround,
 			   SetResForces **ppres, 
 			   doublereal dOR,
 			   doublereal dR, 
@@ -762,7 +793,7 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 			   doublereal dCFF,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
@@ -910,6 +941,7 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 			   const StructNode* pCraft, 
 			   const Mat3x3& rrot,
 			   const StructNode* pRotor,
+			   const StructNode* pGround,
 			   SetResForces **ppres, 
 			   doublereal dOR,
 			   doublereal dR, 
@@ -918,7 +950,7 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 			   doublereal dCFF,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
@@ -1120,6 +1152,7 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 				       const StructNode* pCraft, 
 				       const Mat3x3& rrot,
 				       const StructNode* pRotor,
+	    			       const StructNode* pGround,
 				       SetResForces **ppres, 
 				       doublereal dOR,
 				       doublereal dR,
@@ -1130,7 +1163,7 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 				       doublereal dVCosineTmp,
 				       flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut),
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, fOut),
 dVConst(dVConstTmp), dVSine(dVSineTmp), dVCosine(dVCosineTmp), 
 dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
 {
@@ -1700,6 +1733,21 @@ ReadRotor(DataManager* pDM,
 	 	doublereal dVCosine = 0.;
 	 	DriveCaller *pdW = NULL;
 
+		StructNode *pGround = NULL;
+		if (HP.IsKeyWord("ground")) {
+			uNode = (unsigned int)HP.GetInt();
+     			DEBUGCOUT("Ground Node: " << uNode << std::endl);
+   
+			/* verifica di esistenza del nodo */
+     			pGround = pDM->pFindStructNode(uNode);
+     			if (pGround == NULL) {
+	  			std::cerr << "ground structural node " << uNode
+					<< " not defined at line " 
+					<< HP.GetLineData()  << std::endl;     
+	  			THROW(DataManager::ErrGeneric());
+     			}
+		}
+
 	 	if (InducedType == DYNAMICINFLOW) {
 	      		if (HP.IsKeyWord("initial" "value")) {
 		   		dVConst = HP.GetReal();
@@ -1768,7 +1816,7 @@ ReadRotor(DataManager* pDM,
 			SAFENEWWITHCONSTRUCTOR(pEl, 
    					UniformRotor,
    					UniformRotor(uLabel, pDO, pCraft, rrot,
-   						pRotor,
+   						pRotor, pGround,
    						ppres, dOR, dR, pdW, dCH, dCFF,
    						fOut));
 	  		break;
@@ -1778,7 +1826,7 @@ ReadRotor(DataManager* pDM,
 	  		SAFENEWWITHCONSTRUCTOR(pEl,
    					GlauertRotor,
    					GlauertRotor(uLabel, pDO, pCraft, rrot,
-   						pRotor,
+   						pRotor, pGround,
    						ppres, dOR, dR, pdW, dCH, dCFF, 
    						fOut));
 	  		break;
@@ -1789,7 +1837,7 @@ ReadRotor(DataManager* pDM,
 	  		SAFENEWWITHCONSTRUCTOR(pEl,
    					ManglerRotor,
    					ManglerRotor(uLabel, pDO, pCraft, rrot,
-   						pRotor, 
+   						pRotor, pGround,
    						ppres, dOR, dR, pdW, dCH, dCFF, 
    						fOut));
 	  		break;
@@ -1801,7 +1849,7 @@ ReadRotor(DataManager* pDM,
        					DynamicInflowRotor,
        					DynamicInflowRotor(uLabel, pDO, 
 						pCraft, rrot, pRotor, 
-						ppres, 
+						pGround, ppres, 
 						dOR, dR,
 						dCH, dCFF,
 						dVConst, dVSine, dVCosine,

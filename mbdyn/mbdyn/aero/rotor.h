@@ -85,6 +85,7 @@ class Rotor
 #endif /* USE_MPI */
    const StructNode* pCraft;
    const StructNode* pRotor;
+   const StructNode* pGround;
 
    doublereal dOmegaRef;     /* Velocita' di rotazione di riferimento */
    
@@ -142,7 +143,7 @@ class Rotor
  public:
    Rotor(unsigned int uL, const DofOwner* pDO, 
 	 const StructNode* pC, const Mat3x3& rrot, const StructNode* pR, 
-	 SetResForces **ppres, flag fOut);
+	 const StructNode* pG, SetResForces **ppres, flag fOut);
    virtual ~Rotor(void);      
    
    /* funzioni di servizio */
@@ -285,12 +286,19 @@ class Rotor
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = pCraft->GetNodeType();
-     NdLabels[0] = pCraft->GetLabel();
-     NdTyps[1] = pRotor->GetNodeType();
-     NdLabels[1] = pRotor->GetLabel();
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps,
+		   unsigned int* NdLabels) {
+	   NumNodes = 2;
+	   NdTyps[0] = pCraft->GetNodeType();
+	   NdLabels[0] = pCraft->GetLabel();
+	   NdTyps[1] = pRotor->GetNodeType();
+	   NdLabels[1] = pRotor->GetLabel();
+	   if (pGround != NULL) {
+	      	   NumNodes++;
+		   NdTyps[2] = pGround->GetNodeType();
+		   NdLabels[2] = pGround->GetLabel();
+	   }
+
    };
    /* ************************************************ */
 #ifdef USE_MPI
@@ -357,6 +365,7 @@ class UniformRotor : virtual public Elem, public Rotor {
 		const StructNode* pCraft, 
 	   	const Mat3x3& rrot,
 		const StructNode* pRotor, 
+		const StructNode* pGround, 
 		SetResForces **ppres, 
 		doublereal dOR,
 		doublereal dR,
@@ -403,6 +412,7 @@ class GlauertRotor : virtual public Elem, public Rotor {
 		const StructNode* pCraft,
 		const Mat3x3& rrot,
 		const StructNode* pRotor,
+		const StructNode* pGround, 
 		SetResForces **ppres, 
 		doublereal dOR,
 		doublereal dR,
@@ -449,6 +459,7 @@ class ManglerRotor : virtual public Elem, public Rotor {
 		const StructNode* pCraft,
 		const Mat3x3& rrot,
 		const StructNode* pRotor,
+		const StructNode* pGround, 
 		SetResForces **ppres,
 		doublereal dOR,
 		doublereal dR,
@@ -520,6 +531,7 @@ class DynamicInflowRotor : virtual public Elem, public Rotor {
 		      const StructNode* pCraft, 
 		      const Mat3x3& rrot,
 		      const StructNode* pRotor,
+      		      const StructNode* pGround, 
 		      SetResForces **ppres, 
 		      doublereal dOR,
 		      doublereal dR,
