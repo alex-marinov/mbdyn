@@ -159,7 +159,10 @@ public:
 	};
 
 private:
-	void ConstructAndInitialize(viod);
+	void ConstructAndInitialize(void);
+	virtual void Send(VectorHandler& X  , 
+		VectorHandler&  XP  );
+
 };
 
 
@@ -178,7 +181,6 @@ protected:
 	
 	const 		   Modal* pModal;
 	int 		   ModalNodes;
-	Mat3xN*            pModalPos; /* posizioni dei punto collegati con ciascun nodo */		
 	MPI::InterComm* pInterfComm;  /* Intercomunicatore con il codice di interfaccia */
 	MPI::Prequest*     pSenReq;
 	MPI::Prequest* 	   pRecReq;
@@ -276,6 +278,9 @@ public:
 		NdLabels[0] = pMN->GetLabel();
 		}
 	};
+private:
+	virtual void Send(VectorHandler& X  , 
+		VectorHandler&  XP  );
 
 };
 
