@@ -72,6 +72,7 @@ dnl ----------------------------------------------------------------
 dnl Disable config.cache!
 define([AC_CACHE_LOAD], )dnl
 define([AC_CACHE_SAVE], )dnl
+
 dnl ================================================================
 dnl configure.in for MBDyn
 AC_INIT(build/version)
@@ -146,12 +147,6 @@ OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], au
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
-echo ""
-echo "all --with-* commands also support:"
-echo "	--with-*-dir=PATH	directory for headers and libraries"
-echo "	--with-*-incdir=PATH	directory for headers"
-echo "	--with-*-libdir=PATH	directory for libraries"
-echo ""
 OL_ARG_WITH(tcl,[  --with-tcl              with tcl interpreters],auto,[auto yes no])
 OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}]  with f2c library],auto,[auto yes no g2c])
 OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
@@ -181,6 +176,18 @@ AC_ARG_WITH(module,[  --with-module=modulelist	with listed modules],[
 	fi
 	MODULES_DIRS=$ol_arg
 ],[MODULES_DIRS=])dnl
+
+dnl ----------------------------------------------------------------
+dnl Extra help
+AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
+ac_help="$ac_help
+
+All --with-* commands, whenever appropriate, also support:
+  --with-*-dir=PATH	directory for headers and libraries
+  --with-*-incdir=PATH	directory for headers
+  --with-*-libdir=PATH	directory for libraries
+"
+AC_DIVERT_POP()dnl
 
 dnl ----------------------------------------------------------------
 dnl Validate general "enable" options
@@ -417,17 +424,17 @@ dnl Checks for tcl
 dnl
 ol_link_tcl=no
 if test $ol_with_tcl != no ; then
+	OL_ADD_DIRS(tcl)
+
 	AC_CHECK_HEADERS(tcl.h)
 
 	AC_MSG_CHECKING([for tcl library])
 
 	AC_CHECK_LIB(tcl,Tcl_CreateInterp,[have_libtcl=yes],[have_libtcl=no])
 	if test $have_libtcl != no ; then
-		AC_MSG_RESULT([yes])
 		AC_DEFINE(USE_TCL,1,[define if you want to use tcl])
 		TCL_LIBS=-ltcl
 	else
-		AC_MSG_RESULT([no])
 		if test $ol_with_tcl != auto ; then
 			AC_MSG_ERROR([Could not locate tcl library])
 		else
@@ -532,6 +539,7 @@ dnl Check for MPI & MPI++
 dnl
 ol_link_mpi=no
 if test $ol_with_mpi != no ; then
+	OL_ADD_DIRS(mpi)
 	AC_CHECK_HEADER(mpi.h)
 	AC_LANG_CPLUSPLUS
 	AC_CHECK_HEADER(mpi++.h)
@@ -589,6 +597,7 @@ dnl Need also Metis with MPI
 dnl
 ol_link_metis=no
 if test $ol_with_metis != no ; then
+	OL_ADD_DIRS(metis)
 	
 	if test $ol_link_mpi != yes -a $ol_with_metis != yes ; then
 	
@@ -636,18 +645,7 @@ dnl Check for Meschach
 dnl
 ol_link_meschach=no
 if test $ol_with_meschach != no ; then
-	if test "x:$ol_with_dir_meschach" != "x:" ; then
-		CPPFLAGS="-I$ol_with_dir_meschach $CPPFLAGS"
-		LDFLAGS="-L$ol_with_dir_meschach $LDFLAGS"
-	fi
-
-	if test "x:$ol_with_incdir_meschach" != "x:" ; then
-		CPPFLAGS="-I$ol_with_incdir_meschach $CPPFLAGS"
-	fi
-
-	if test "x:$ol_with_libdir_meschach" != "x:" ; then
-		LDFLAGS="-L$ol_with_libdir_meschach $LDFLAGS"
-	fi
+	OL_ADD_DIRS(meschach)
 	
 	AC_CHECK_HEADERS(meschach/sparse2.h)
 
@@ -724,6 +722,7 @@ dnl
 dnl Check for LAPACK
 dnl
 if test $ol_with_lapack != no ; then
+	OL_ADD_DIRS(lapack)
 
 	AC_LANG_FORTRAN77
 	AC_CHECK_LIB(lapack,dgesvd,[have_lapack=yes],[have_lapack=no],[-lblas])
@@ -751,6 +750,7 @@ dnl Check for PAM
 dnl
 ol_link_pam=no
 if test $ol_with_pam != no ; then
+	OL_ADD_DIRS(pam)
 	AC_CHECK_HEADERS(security/pam_appl.h pam_misc.h security/pam_misc.h)
 	
 	if test $ac_cv_header_security_pam_appl_h = yes ; then

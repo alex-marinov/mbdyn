@@ -86,6 +86,26 @@ dnl AC_VERBOSE(OpenLDAP --with-$1 $ol_with_$1)
 # end --with-$1
 ])dnl
 dnl
+dnl --------------------------------------------------------------------
+dnl Adds --with-*-dir, --with-*-incdir, --with-*-libdir to the variables
+dnl
+dnl $1 = name
+AC_DEFUN([OL_ADD_DIRS],[# MBDyn --with-$1-[{inc|lib}]dir
+	if test "x:$ol_with_dir_$1" != "x:" ; then
+		CPPFLAGS="-I$ol_with_dir_$1 $CPPFLAGS"
+		LDFLAGS="-L$ol_with_dir_$1 $LDFLAGS"
+	fi
+	
+	if test "x:$ol_with_incdir_$1" != "x:" ; then
+		CPPFLAGS="-I$ol_with_incdir_$1 $CPPFLAGS"
+	fi
+	
+	if test "x:$ol_with_libdir_$1" != "x:" ; then
+		LDFLAGS="-L$ol_with_libdir_$1 $LDFLAGS"
+	fi
+# end --with-$1-[{inc|lib}]dir
+])dnl
+dnl
 dnl ====================================================================
 dnl
 AC_DEFUN(AC_COMPILE_CHECK_SIZEOF,
