@@ -38,3 +38,8 @@
 *.jpg -k 'b'
 *.bmp -k 'b'
 
+# Archives
+*.zip -k 'b'
+*.Z -k 'b'
+*.gz -k 'b'
+*.bz2 -k 'b'
