@@ -146,15 +146,15 @@ mdlStart(SimStruct *S)
 	switch (pid) {
 	case 0 :
 	{
-		int count = 0;
-		char *parameter[8] = { '\0' };
-		char mbdyn_name[MAX_MBDYN_PATH_NAME_DIM] = { '\0' };
-		char file_output[MAX_FILE_OUTPUT_DIM] = { '\0' };
-		char file_name[MAX_FILE_NAME_DIM] = { '\0' };
-		char file_option[] = "-f";
-		char output_option[] = "-o";
-		char verbose_option[] = "-ss";
-		char pedantic_option[] = "-P";
+		int		count = 0;
+		char		*parameter[8] = { '\0' };
+		char		mbdyn_name[MAX_MBDYN_PATH_NAME_DIM] = { '\0' };
+		char		file_output[MAX_FILE_OUTPUT_DIM] = { '\0' };
+		char		file_name[MAX_FILE_NAME_DIM] = { '\0' };
+		char		file_option[] = "-f";
+		char		output_option[] = "-o";
+		char		verbose_option[] = "-ss";
+		char		pedantic_option[] = "-P";
 
 		if (MBDYN_PATH) {
 			mxGetString(MBDYN_PATH_NAME_PARAM, mbdyn_name,
@@ -192,20 +192,38 @@ mdlStart(SimStruct *S)
 		parameter[count] = NULL;
 		
 		if (execv(mbdyn_name, parameter) == -1) {
-			fprintf(stderr,"Cannot start child process\n");
-			exit(-1);
+			char		*msg;
+			int		save_errno = errno;
+
+			msg = strerror(save_errno);
+			if (msg == NULL) {
+				fprintf(stderr, "execv(%s) failed, "
+						"and strerror_r too\n",
+						parameter[0]);
+			} else {
+				fprintf(stderr, "execv(%s) failed: %d (%s)\n",
+						parameter[0], save_errno, msg);
+			}
+			exit(EXIT_FAILURE);
 		}
 	}
 	
 	case -1:
 	{
-		char	errbuf[256];
+		char		*msg;
+		int		save_errno = errno;
+		static char_T	errMsg[256];
 
-		if (strerror_r(errno, errbuf, sizeof(errbuf)) == 0) {
-			fprintf(stderr,"fork failed: %s\n", errbuf);
+		msg = strerror(save_errno);
+		if (msg == NULL) {
+			snprintf(errMsg, sizeof(errMsg),
+					"fork() failed, and strerror too\n");
 		} else {
-			fprintf(stderr,"fork failed, and strerror_r too\n");
+			snprintf(errMsg, sizeof(errMsg),
+					"fork() failed: %d (%s)\n",
+					save_errno, msg);
 		}
+		ssSetErrorStatus(S, errMsg);
 		break;
 	}
 
