@@ -526,11 +526,13 @@ main(int argc, char* argv[])
 	    		if (CurrInputSource == FILE_STDIN) {
 				silent_cout("reading from stdin" << std::endl);
 				last = 1;
+
 			} else if (CurrInputSource == FILE_OPT) {
 				silent_cout("reading from file '" 
 						<< sInputFileName 
 						<< "'" << std::endl);
 	        		last = 1;
+
 	    		} else if (CurrInputSource == FILE_ARGS) {
 	        		sInputFileName = argv[currarg];
 				silent_cout("reading from file '"
@@ -603,7 +605,9 @@ main(int argc, char* argv[])
 	     
 	        		pIntg = RunMBDyn(HP, sInputFileName, 
 						 sOutputFileName);
-	        		FileStreamIn.close();
+				if (FileStreamIn.is_open()) {
+	        			FileStreamIn.close();
+				}
 	        		break;
 	    		}
 	       
