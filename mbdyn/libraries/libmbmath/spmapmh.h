@@ -68,17 +68,17 @@
 #include <myassert.h>
 #include <solman.h>
 
+/* #define MBDYN_X_KEEP_SPARSITY */
+
 /* Sparse Matrix in columns form */
 class SpMapMatrixHandler : public MatrixHandler {
 private:
-//	typedef std::slist<doublereal> x_cont_type;
 	typedef std::map<int,doublereal> row_cont_type;
 	int NRows;
 	int NCols;
 	int NZ;
 	doublereal zero;
 	std::vector<row_cont_type> col_indices;
-//	x_cont_type x;	
 	
 	void IsValid(void) const {
 		NO_OP;
@@ -127,40 +127,47 @@ public:
 	void IncCoef(integer ix, integer iy, const doublereal& inc) {
 		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::IncCoef(), row index out of range");
 		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::IncCoef(), col index out of range");
-		//try to keep sparsity
-		//FIXME: disable "try to keep sparsity" in view of RTAI
-		//if (inc != 0.) {
+#ifdef MBDYN_X_KEEP_SPARSITY
+		/* try to keep sparsity */
+		if (inc != 0.) {
+#endif /* MBDYN_X_KEEP_SPARSITY */
 			operator()(ix,iy) += inc;
-		//}
+#ifdef MBDYN_X_KEEP_SPARSITY
+		}
+#endif /* MBDYN_X_KEEP_SPARSITY */
 		return;
 	};
 	void DecCoef(integer ix, integer iy, const doublereal& inc) {
 		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::DecCoef(), row index out of range");
 		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::DecCoef(), col index out of range");
-		//try to keep sparsity
-		//FIXME: disable "try to keep sparsity" in view of RTAI
-		//if (inc != 0.) {
+#ifdef MBDYN_X_KEEP_SPARSITY
+		/* try to keep sparsity */
+		if (inc != 0.) {
+#endif /* MBDYN_X_KEEP_SPARSITY */
 			operator()(ix,iy) -= inc;
-		//}
+#ifdef MBDYN_X_KEEP_SPARSITY
+		}
+#endif /* MBDYN_X_KEEP_SPARSITY */
 		return;
 	};
 	void PutCoef(integer ix, integer iy, const doublereal& val) {
 		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::PutCoef(), row index out of range");
 		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::PutCoef(), col index out of range");
-		//try to keep sparsity
-		//FIXME: disable "try to keep sparsity" in view of RTAI
-		//if (val != 0.) {
+#ifdef MBDYN_X_KEEP_SPARSITY
+		/* try to keep sparsity */
+		if (val != 0.) {
+#endif /* MBDYN_X_KEEP_SPARSITY */
 			operator()(ix,iy) = val;
-		//} else {
-		//	row_cont_type::iterator i;
-		//	row_cont_type & row = col_indices[iy-1];
-		//	i = row.find(ix-1);
-		//	if (i == row.end()) {
-		//		//do nothing
-		//	} else {
-		//		i->second = val;
-		//	}
-		//}
+#ifdef MBDYN_X_KEEP_SPARSITY
+		} else {
+			row_cont_type::iterator i;
+			row_cont_type & row = col_indices[iy-1];
+			i = row.find(ix-1);
+			if (i != row.end()) {
+				i->second = val;
+			}
+		}
+#endif /* MBDYN_X_KEEP_SPARSITY */
 		return;
 	};
 	const doublereal& dGetCoef(integer ix, integer iy) const {
@@ -468,4 +475,4 @@ public:
  */
 
 
-#endif //SpMapMatrixHandler_hh
+#endif /* SpMapMatrixHandler_hh */

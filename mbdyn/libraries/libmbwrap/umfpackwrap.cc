@@ -118,6 +118,8 @@
 
 #endif /* HAVE_UMFPACK4 */
 
+/* UmfpackSparseLUSolutionManager - begin */
+
 UmfpackSparseLUSolutionManager::UmfpackSparseLUSolutionManager(integer Dim,
 		integer dummy, doublereal dPivot)
 : A(Dim),
@@ -127,8 +129,7 @@ x(Dim),
 b(Dim), 
 Symbolic(0),
 Numeric(0),
-HasBeenReset(true),
-CCReady(false)
+HasBeenReset(true)
 {
 	SAFENEWWITHCONSTRUCTOR(xVH, MyVectorHandler, 
 			MyVectorHandler(Dim, &(x[0])));
@@ -162,13 +163,22 @@ UmfpackSparseLUSolutionManager::~UmfpackSparseLUSolutionManager(void)
 }
 
 void
+UmfpackSparseLUSolutionManager::MatrReset(const doublereal& d)
+{
+	A.Reset(d);
+}
+
+void
+UmfpackSparseLUSolutionManager::MakeCompressedColumnForm(void)
+{
+	A.MakeCompressedColumnForm(Ax, Ai, Ap);
+}
+
+void
 UmfpackSparseLUSolutionManager::MatrInit(const doublereal& d)
 {
-	if (!CCReady) {
-		A.Reset(d);
-	} else {
-		Ac->Reset(d);
-	}
+	MatrReset(d);
+
 	if (Numeric) {
 		UMFPACKWRAP_free_numeric(&Numeric);
 		ASSERT(Numeric == 0);
@@ -183,6 +193,16 @@ UmfpackSparseLUSolutionManager::PrepareSymbolic(void)
 	const int* const App = &(Ap[0]);
 	const doublereal* const Axp = &(Ax[0]);
 	int status;
+
+#if 0
+	std::cout << "b.size() = " << b.size() << std::endl
+		<< "App = " << App << std::endl
+		<< "Aip = " << Aip << std::endl
+		<< "Axp = " << Axp << std::endl
+		<< "&Symbolic = " << &Symbolic << std::endl
+		<< "Control = " << Control << std::endl
+		<< "Info = " << Info << std::endl;
+#endif
 
 	status = UMFPACKWRAP_symbolic(b.size(), App, Aip, Axp,
 			&Symbolic, Control, Info);
@@ -212,11 +232,8 @@ UmfpackSparseLUSolutionManager::Solve(void)
 #endif /* UMFPACK_REPORT */
 
 	if (HasBeenReset) {
-		if (!CCReady) {
-			A.MakeCompressedColumnForm(Ax, Ai, Ap);
-			Ac = new CColMatrixHandler(Ax, Ai, Ap);
-			CCReady = true;
-		}
+		MakeCompressedColumnForm();
+
 		const doublereal* const Axp = &(Ax[0]);
 		const int* const Aip = &(Ai[0]);
 		const int* const App = &(Ap[0]);
@@ -310,11 +327,7 @@ UmfpackSparseLUSolutionManager::BackSub(doublereal t_iniz)
 MatrixHandler*
 UmfpackSparseLUSolutionManager::pMatHdl(void) const
 {
-	if (!CCReady) {
-		return &A;
-	} else {
-		return Ac;
-	}
+	return &A;
 }
 
 /* Rende disponibile l'handler per il termine noto */
@@ -328,6 +341,94 @@ MyVectorHandler*
 UmfpackSparseLUSolutionManager::pSolHdl(void) const {
 	return xVH;
 }
+
+/* UmfpackSparseLUSolutionManager - end */
+
+/* SparseCCSolutionManager - begin */
+
+SparseCCSolutionManager::SparseCCSolutionManager(void)
+: Ac(0),
+CCReady(false)
+{
+	NO_OP;
+}
+
+SparseCCSolutionManager::~SparseCCSolutionManager(void)
+{
+	if (Ac) {
+		SAFEDELETE(Ac);
+	}
+}
+
+/* SparseCCSolutionManager - end */
+
+/* UmfpackSparseCCLUSolutionManager - begin */
+
+UmfpackSparseCCLUSolutionManager::UmfpackSparseCCLUSolutionManager(integer Dim,
+		integer dummy, doublereal dPivot)
+: UmfpackSparseLUSolutionManager(Dim, dummy, dPivot),
+SparseCCSolutionManager()
+{
+	NO_OP;
+}
+
+UmfpackSparseCCLUSolutionManager::~UmfpackSparseCCLUSolutionManager(void) 
+{
+	NO_OP;
+}
+
+void
+UmfpackSparseCCLUSolutionManager::MatrReset(const doublereal& d)
+{
+	if (!CCReady) {
+		A.Reset(d);
+	} else {
+		Ac->Reset(d);
+	}
+}
+
+/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+void
+UmfpackSparseCCLUSolutionManager::MakeCompressedColumnForm(void)
+{
+	if (!CCReady) {
+		A.MakeCompressedColumnForm(Ax, Ai, Ap);
+
+		ASSERT(Ac == 0);
+		SAFENEWWITHCONSTRUCTOR(Ac, CColMatrixHandler, 
+				CColMatrixHandler(Ax, Ai, Ap));
+
+		CCReady = true;
+	}
+}
+
+/* Inizializzatore "speciale" */
+void
+UmfpackSparseCCLUSolutionManager::MatrInitialize(const doublereal& d)
+{
+	SAFEDELETE(Ac);
+	Ac = 0;
+
+	CCReady = false;
+
+	HasBeenReset = false;
+
+	MatrInit();
+}
+	
+/* Rende disponibile l'handler per la matrice */
+MatrixHandler*
+UmfpackSparseCCLUSolutionManager::pMatHdl(void) const
+{
+	if (!CCReady) {
+		return &A;
+	}
+
+	ASSERT(Ac != 0);
+	return Ac;
+}
+
+/* UmfpackSparseCCLUSolutionManager - end */
 
 #endif /* USE_UMFPACK */
 

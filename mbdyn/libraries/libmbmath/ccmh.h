@@ -79,7 +79,9 @@ public:
 
 	/* used to sum CC matrices with identical indices */
 	void AddUnchecked(CColMatrixHandler& m) {
-		/* FIXME: put in stl-ish form */
+		/* FIXME: put in stl-ish form;
+		 * see if we can use something from optimized blas,
+		 * e.g. ATLAS, goto or so... */
 
 		/* checks - uncomment to enable */
 #if 0
@@ -99,7 +101,6 @@ public:
 			}
 		}
 #endif
-		
 		
 		doublereal *d = &Ax[0], *s = &m.Ax[0];
 		for (unsigned long i = 0; i < Ax.size(); i++) {
@@ -133,7 +134,7 @@ public:
 		integer row;
 
 		if (row_begin == Ap[i_col] || Ai[row_begin] > i_row || Ai[row_end] < i_row) {
-			THROW(ErrGeneric());
+			THROW(ErrRebuildMatrix());
 		}
 
 		while (row_end >= row_begin) {
@@ -148,7 +149,7 @@ public:
 			}
 		}
 		/* fixme: handle case */
-		THROW(ErrGeneric());
+		THROW(ErrRebuildMatrix());
 	};
 	const doublereal& operator () (integer i_row, integer i_col) const {
 		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in CColMatrixHandler::operator(), row index out of range");
@@ -181,19 +182,16 @@ public:
 		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in CColMatrixHandler::IncCoef(), row index out of range");
 		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in CColMatrixHandler::IncCoef(), col index out of range");
 		operator()(ix,iy) += inc;
-		return;
 	};
 	void DecCoef(integer ix, integer iy, const doublereal& inc) {
 		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in CColMatrixHandler::DecCoef(), row index out of range");
 		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in CColMatrixHandler::DecCoef(), col index out of range");
 		operator()(ix,iy) -= inc;
-		return;
 	};
 	void PutCoef(integer ix, integer iy, const doublereal& val) {
 		ASSERTMSGBREAK(ix-1 < NRows, "Error in CColMatrixHandler::PutCoef(), row index out of range");
 		ASSERTMSGBREAK(iy-1 < NCols, "Error in CColMatrixHandler::PutCoef(), col index out of range");
 		operator()(ix,iy) = val;
-		return;
 	};
 	const doublereal& dGetCoef(integer ix, integer iy) const {
 		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in CColMatrixHandler::dGetCoef(), row index out of range");

@@ -778,6 +778,13 @@ SolutionManager::~SolutionManager(void)
 	NO_OP;
 }
 
+/* Inizializzatore "speciale" */
+void
+SolutionManager::MatrInitialize(const doublereal& d)
+{
+	MatrInit(d);
+}
+
 void
 SolutionManager::LinkToSolution(const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr) {

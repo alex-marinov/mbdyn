@@ -71,6 +71,7 @@ class Mat3x3;
 class MatrixHandler {
 public:
 	class ErrGeneric {};
+	class ErrRebuildMatrix {};
 
 public:
 	virtual ~MatrixHandler(void);
@@ -471,6 +472,9 @@ public:
 
 	/* Inizializzatore generico */
 	virtual void MatrInit(const doublereal& d = 0.) = 0;
+
+	/* Inizializzatore "speciale" */
+	virtual void MatrInitialize(const doublereal& d = 0.);
 
 	/* Risolve il sistema */
 	virtual void Solve(void) = 0;

@@ -44,7 +44,7 @@ static void
 usage(void)
 {
 	std::cerr << "usage: wraptest "
-		"[y12|harwell|meschach|umfpack [singular]]" 
+		"[y12|harwell|meschach|{umfpack [cc]} [singular]]" 
 		<< std::endl;
 	exit(EXIT_FAILURE);
 }
@@ -89,7 +89,13 @@ main(int argc, char *argv[])
 	} else if (strcasecmp(solver, "umfpack") == 0
 			|| strcasecmp(solver, "umfpack3") == 0) {
 #ifdef USE_UMFPACK
-		pSM = new UmfpackSparseLUSolutionManager(size);
+		if (argc > 2 && strcasecmp(argv[2], "cc") == 0) {
+			pSM = new UmfpackSparseCCLUSolutionManager(size);
+			argc--;
+			argv++;
+		} else {
+			pSM = new UmfpackSparseLUSolutionManager(size);
+		}
 #else /* !USE_UMFPACK */
 		std::cerr << "need --with-umfpack to use Umfpack library" 
 			<< std::endl;
@@ -100,6 +106,8 @@ main(int argc, char *argv[])
 		std::cerr << "unknown solver '" << solver << "'" << std::endl;
 		usage();
 	}
+	argc--;
+	argv++;
 
 	pSM->MatrInit(0.);
 	
@@ -109,7 +117,7 @@ main(int argc, char *argv[])
 
 	pM->PutCoef(1, 1, 1.);
 	pM->PutCoef(2, 2, 2.);
-	if (argc > 2 && strcasecmp(argv[2], "singular") == 0) {
+	if (argc > 1 && strcasecmp(argv[1], "singular") == 0) {
 		pM->PutCoef(3, 3, 0.);
 	} else {
 		pM->PutCoef(3, 3, 3.);

@@ -88,9 +88,8 @@ extern "C" {
 #endif /* UMFPACK3_COMPAT */
 
 class UmfpackSparseLUSolutionManager: public SolutionManager {
-private:
+protected:
 	mutable SpMapMatrixHandler A;
-	CColMatrixHandler *Ac;
 	MyVectorHandler *xVH, *bVH;
 	std::vector<doublereal> x;
 	std::vector<doublereal> b;
@@ -107,9 +106,11 @@ private:
 	void * Numeric;
 	
 	bool HasBeenReset;
-	bool CCReady;
 
 	bool PrepareSymbolic(void);
+
+	virtual void MatrReset(const doublereal& d);
+	virtual void MakeCompressedColumnForm(void);
 	
 public:
 	UmfpackSparseLUSolutionManager(integer Dim, integer /* unused */ = 0, 
@@ -146,6 +147,34 @@ public:
 
 	/* Rende disponibile l'handler per la soluzione */
 	virtual MyVectorHandler* pSolHdl(void) const;
+};
+
+class SparseCCSolutionManager {
+protected:
+	CColMatrixHandler *Ac;
+	bool CCReady;
+
+public:
+	SparseCCSolutionManager(void);
+	virtual ~SparseCCSolutionManager(void);
+};
+
+class UmfpackSparseCCLUSolutionManager:
+public UmfpackSparseLUSolutionManager, public SparseCCSolutionManager {
+protected:
+	virtual void MatrReset(const doublereal& d);
+	virtual void MakeCompressedColumnForm(void);
+	
+public:
+	UmfpackSparseCCLUSolutionManager(integer Dim, integer /* unused */ = 0, 
+			doublereal dPivot = -1.);
+	virtual ~UmfpackSparseCCLUSolutionManager(void);
+
+	/* Inizializzatore "speciale" */
+	virtual void MatrInitialize(const doublereal& d = 0.);
+	
+	/* Rende disponibile l'handler per la matrice */
+	virtual MatrixHandler* pMatHdl(void) const;
 };
 
 #endif /* USE_UMFPACK */
