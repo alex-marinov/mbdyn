@@ -58,8 +58,12 @@ template <class S> IterativeSolutionManager::IterativeSolutionManager(integer iD
 				 const doublereal dPivot) 
 :
 Size(iDim),
-pDM(pdm),
 pSM(psm),
+pDM(pdm),
+pP(NULL),
+pA(NULL),
+pxVH(NULL),
+pbVH(NULL),
 pXCurr(pX),
 pXPrimeCurr(pXP),
 Toll(Tollerance),
@@ -114,7 +118,7 @@ void IterativeSolutionManager::Solve(doublereal dCoef) {
 	/* BiCGSTAB Iterative solver */
 	//std::cout << "USING BICGSTAB SOLVER" << std::endl; 
 	doublereal resid;
-	doublereal rho_1, rho_2, alpha, beta, omega; 
+	doublereal rho_1, rho_2 = 1., alpha, beta, omega; 
   	MyVectorHandler r(Size), p(Size), phat(Size), s(Size), shat(Size), t(Size), v(Size);
         
 	/* Vectors to compute the Matrix-Free Appox. of A * x */
@@ -128,7 +132,7 @@ void IterativeSolutionManager::Solve(doublereal dCoef) {
   	if (normb == 0.0) { normb = 1;}
   
   	if ((resid = r.Norm() / normb) <= Toll) {
-    		DEBUGCOUT("Iterative solver Converged in 0 steps. " <<
+    		DEBUGCOUT("Iterative solver Converged in 0 steps. "
 			<< "Residual: " << resid << std::endl);
     		return;
   	}
@@ -136,7 +140,7 @@ void IterativeSolutionManager::Solve(doublereal dCoef) {
   	for (int i = 1; i <= MaxIt; i++) {
     		rho_1 = rtilde.InnerProd(r);
     		if (rho_1 == 0) {
-    			DEBUGCOUT("Iterative Solver Converged in " <<
+    			DEBUGCOUT("Iterative Solver Converged in "
 				<< i << " Steps, with Residual: " 
 				<< r.Norm() / normb  << std::endl);
    			pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);         
@@ -167,7 +171,7 @@ void IterativeSolutionManager::Solve(doublereal dCoef) {
     		if ((resid = s.Norm()/normb) < Toll) {
    			pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);         
       			pxVH->ScalarAddMul(phat, alpha);
-    			DEBUGCOUT("Iterative Solver Converged in " <<
+    			DEBUGCOUT("Iterative Solver Converged in "
 				<< i << " Steps, with Residual: " 
 				<< resid  << std::endl);
       			return;
@@ -194,14 +198,14 @@ void IterativeSolutionManager::Solve(doublereal dCoef) {
     		rho_2 = rho_1;
     		if ((resid = r.Norm() / normb) < Toll) {
    			pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);         
-    			DEBUGCOUT("Iterative Solver Converged in " <<
+    			DEBUGCOUT("Iterative Solver Converged in "
 				<< i << " Steps, with Residual: " 
 				<< resid << std::endl);
       			return;
     		}
     		if (omega == 0) {
    			pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
-			DEBUGCOUT("Iterative Solver Converged in " <<
+			DEBUGCOUT("Iterative Solver Converged in "
 				<< i << " Steps, with Residual: " 
 				<< r.Norm() / normb  << std::endl);
       			return;
