@@ -424,6 +424,16 @@ Here the default output flag for a type of node or element can be set. It
 can be overridden for every entity both when it is created or later in
 each entity module.
 
+\subsubsection{Output precision}
+Sets the desired output precision for those file types that allow it
+(currently, all the native output except the \texttt{.out} file; the
+\texttt{ADAMS} output, \texttt{.res} files, are not affected.
+The default is 6; since the output is in formatted plain text, the higher
+precision, the larger the files and the slower the simulation.
+This will be fixed when a binary output is implemented.
+\begin{verbatim}
+    <card> ::= output precision : <number_of_digits> ;
+\end{verbatim}
 
 
 
