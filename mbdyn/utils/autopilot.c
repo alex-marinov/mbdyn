@@ -96,10 +96,8 @@ usage(void)
    keys(stderr);
 }
 
-
 /* Use this variable to remember original terminal attributes. */
 struct termios saved_attributes;
-
 
 void
 reset_input_mode (void)
