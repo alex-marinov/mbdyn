@@ -1,0 +1,673 @@
+\chapter{Data}
+The {\tt data} section is read directly by the driver program. It is
+included between the cards:
+\begin{verbatim}
+    begin: data;
+        ...
+    end: data;
+\end{verbatim}
+At present it is used only to select the integrator to be used in the
+simulation. 
+Since the only available integrator is the multistep one, the only active 
+card (optional, at present), is:
+\begin{verbatim}
+    <card> ::= integrator: multistep;
+\end{verbatim}
+Anyway, the {\tt data} section \underline{must} be present.
+
+
+
+
+
+\chapter{Integrators}
+This section is used to insert all the data related to the integrator that
+is to be used in the simulation. The section is included between the cards:
+\begin{verbatim}
+    begin : <integrator_name> ;
+        ...
+    end : <integrator_name> ;
+\end{verbatim}
+
+
+
+
+
+\section{Multi-Step Integrator}
+At present, the only available {\tt integrator\_name} is {\tt multistep}.
+The syntax of the module is:
+\begin{verbatim}
+    begin: multistep;
+        ...
+    end: multistep;
+\end{verbatim}
+At present, there are a number of cards that can be grouped as follows, 
+based on the integration phase they refer to.
+
+\subsection{General data}
+those data that refer to the main integration phase or the simulation as a
+whole. They are:
+
+\subsubsection{Initial time}
+\begin{verbatim}
+    <card> ::= initial time : <time> ;
+\end{verbatim}
+
+\subsubsection{Final time}
+\begin{verbatim}
+    <card> ::= final time : <time> ;
+\end{verbatim}
+
+\subsubsection{Strategy}
+\begin{verbatim}
+    <card> ::= strategy : <strategy_data> ;
+\end{verbatim}
+where the available strategies are:
+\begin{verbatim}
+    <strategy_data> ::= no change 
+\end{verbatim}
+obviously the step is never changed, and
+\begin{verbatim}
+    <strategy_data> ::= factor , 
+                        <reduction_factor> ,
+                        <steps_before_reduction> ,
+                        <raise_factor> ,
+                        <steps_before_raise> ,
+                        <min_iterations>
+\end{verbatim}
+the time step is reduced or raised of the proper factor not before a
+minimum number of time steps; it is reduced if more than 
+{\tt max\_iterations} are performed at a time step, it is raised if less
+than {\tt min\_iterations} are performed at a time step.
+
+\subsubsection{Min time step}
+\begin{verbatim}
+    <card> ::= min time step : <time_step> ;
+\end{verbatim}
+
+\subsubsection{Max time step}
+\begin{verbatim}
+    <card> ::= max time step : <time_step> ;
+\end{verbatim}
+both are significant only if the time step can vary.
+
+\subsubsection{Time step}
+\begin{verbatim}
+    <card> ::= time step : <time_step> ;
+\end{verbatim}
+The initial time step.
+
+\subsubsection{Tolerance}
+\begin{verbatim}
+    <card> ::= tolerance : <tolerance> ;
+\end{verbatim}
+
+\subsubsection{Max iterations}
+\begin{verbatim}
+    <card> ::= max iterations : <max_iterations> ;
+\end{verbatim}
+
+\subsubsection{Method}
+\begin{verbatim}
+    <card> ::= method : <method_data> ;
+\end{verbatim}
+there are three multistep methods at present. 
+The first is Crank-Nicholson:
+\begin{verbatim}
+    <method_data> ::= crank nicholson ;
+\end{verbatim}
+the second and the third are original methods, that are unconditionally
+stable and can be tuned to give the desired algorithmic dissipation
+by setting the value of the asynthotic spectral radius.
+The radius can be set independently for the differential
+and the algebraic variables, and a driver is used, to allow parameter 
+dependent radius variation.
+\begin{verbatim}
+    <method_data> ::= { ms | hope } ,
+        (drive_caller) <differential_radius> ,
+        (drive_caller) <algebraic_radius> ;
+\end{verbatim}
+The first method proved to be more accurate at high values of asynthotic
+radius (low dissipation), while the second proved to be more accurate
+at low values of the radius (high dissipation).
+They look nearly equivalent at radii close to 0.4, with the former
+giving the best compromise between algorithmic dissipation and accuracy 
+at about 0.6.
+
+\subsubsection{Newton raphson}
+\begin{verbatim}
+    <card> ::= newton raphson : { true 
+                                | modified [ , <iterations> ] } ;
+\end{verbatim}
+if {\tt modified}, the number of iterations the jacobian matrix will be
+reused is expected; otherwise a default value is used.
+
+\subsubsection{Eigenanalysis}
+Experimental, not available nor documented yet.
+
+\subsubsection{Abort after}
+\begin{verbatim}
+    <card> ::= abort after : { input 
+                             | assembly 
+                             | derivatives 
+                             | fictitious steps } ;
+\end{verbatim}
+mainly used to check models and simulations at various phases.
+
+\subsubsection{Solver}   
+\begin{verbatim}
+    <card> ::= solver : { meschach | harwell }
+               [ , workspace size , <size> ] 
+	       [ , pivot factor , <factor> ] ;
+\end{verbatim}
+The default is {\tt harwell} with a {\tt workspace size}
+of $ numdofs\times{numdofs} $, but in certain cases the used
+might prefer a smaller workspace, since the matrix is handled as sparse,
+while sometimes a larger space is required, since when the matrix is
+full, a little more space is required, due to extra storage needs when
+the matrix fills up.
+Pivot factor is a real, which in a heuristic sense can be regarded as
+the treshold for the ratio between two coefficients below which they are
+switched, so $ 0.0 $ means no pivoting, while $ 1.0 $ means switch as
+soon as the norm of the ratio is less than unity.
+
+
+
+\subsection{Derivatives data}
+Data related to the derivatives phase. They are:
+
+
+\subsubsection{Derivatives tolerance}
+\begin{verbatim}
+    <card> ::= derivatives tolerance : <tolerance> ;
+\end{verbatim}
+
+\subsubsection{Derivatives max iterations}
+\begin{verbatim}
+    <card> ::= derivatives max iterations : <max_iterations> ;
+\end{verbatim}
+
+\subsubsection{Derivatives coefficient}
+\begin{verbatim}
+    <card> ::= derivatives coefficient : <coefficient> ;
+\end{verbatim}
+right after the initial assembly and before the simulation starts, the
+so-called derivatives solution is performed. The system is solved with
+the kinematic unknowns constrained, in order to properly determine the
+dynamic unknowns, namely momenta and constraint reactions. For this
+purpose, the coefficient that relates the state perturabtion to the
+derivative perturbation must be set to a value that is small enough to
+allow the determination of accurate derivatives with very small change
+in the states. This coefficient should be zero, but this leads to matrix
+singularity, so it must be chosen by the user, since it is highly
+problem dependent. A rule-of-thumb is: if the system has small
+stiffness and high inertia, the coefficient can be big, if the system
+has high stiffness and small inertia, the coefficient must be small.
+
+
+\subsection{Fictitious steps data}
+Data related to the fictitious steps phase. They are:
+
+\subsubsection{Fictitious steps tolerance}
+\begin{verbatim}
+    <card> ::= fictitious steps tolerance : <tolerance> ;
+\end{verbatim}
+
+\subsubsection{Fictitious steps max iterations}
+\begin{verbatim}
+    <card> ::= fictitious steps max iterations : <max iterations> ;
+\end{verbatim}    
+{\em
+    Note: no step change, modified Newton-Raphson and so on is allowed
+    during the fictitious steps.
+}
+
+\subsubsection{Fictitious steps number}
+\begin{verbatim}
+    <card> ::= fictitious steps number : <number> ;
+\end{verbatim}
+number of fictitious steps.
+
+\subsubsection{Fictitious steps ratio}
+\begin{verbatim}
+    <card> ::= fictitious steps ratio : <ratio> ;
+\end{verbatim}
+ratio of the time step to be used in the fictitious steps to the regular
+time step.
+
+\subsubsection{Fictitious steps method}
+\begin{verbatim}
+    <card> ::= method : <method_data> ;
+\end{verbatim}
+Same as for the normal simulation method. The fictitious steps are
+intended as a sort of numerical computation of the second order
+derivatives of the constraint equations. The displacement constraint 
+equations in an index three Differential-Algebraic Equations system
+(DAE) represent the second derivative effect of the constraints on the
+kinematic unknowns. Thus, to ensure the proper initial conditions, the
+constraint equations should be derivated twice. To simplify the code,
+those equations have been derivated once only, in the initial assembly,
+the second derivation being performed numerically by the fictitious steps.
+During these steps the system converges to a solution whose error from
+the sought solution is bounded. For this reason, the fictitious steps
+should be performed with a very short time step, to seek accuracy, and
+with a high numerical damping, to cancel as quickly as possible the high
+frequency numerical noise.
+
+
+
+
+
+\chapter{Control Data}
+This section is read by the manager of all the bulk simulation data, namely
+the nodes, the drivers and the elements. It is used to set some global
+parameters closely related to the behavior of these entities, to tailor the
+initial assembly of the joints in case of structural simulations, and to
+tell the data manager how many entities of every type it should expect from
+the following sections. Historically this is due to the fact that the data
+structure for nodes and elements is allocated at the beginning with fixed
+size. This is going to change, giving raise to a ``free'' and resizable
+structure. But this practice is to be considered reliable since it allows a
+sort of double-check on the entities that are inserted.
+The cards are: 
+
+\subsubsection{Skip initial joint assembly}
+\begin{verbatim}
+    <card> ::= skip initial joint assembly ;
+\end{verbatim}
+
+\subsubsection{Use}
+\begin{verbatim}
+    <card> ::= use : <item_list> , in assembly ;
+    <item_list> ::= <item> [ , <item_list> ]
+    <item> ::= { rigid bodies 
+               | gravity
+               | forces
+               | beams
+               | aerodynamic elements } 
+\end{verbatim}
+{\tt joints} are used by default, and shouldn't be added to the list.
+{\tt beams} are used by default, too, but can be added to the list
+essentially for backwards compatibility.
+
+\subsubsection{Initial stiffness}
+\begin{verbatim}
+    <card> ::= initial stiffness : <position_stiffness>
+                                   [ , <velocity_stiffness> ] ;
+\end{verbatim}
+
+\subsubsection{Omega rotates}
+\begin{verbatim}
+    <card> ::= omega rotates : { yes | no } ;
+\end{verbatim}
+Sets wether the imposed angular velocity should be considered attached 
+to the node or fixed in the global system during the initial assembly.
+
+\subsubsection{Initial tolerance}
+\begin{verbatim}
+    <card> ::= initial tolerance : <tolerance> ;
+\end{verbatim}
+
+\subsubsection{Max initial iterations}
+\begin{verbatim}
+    <card> ::= max initial iterations : <max_iterations> ;
+\end{verbatim}
+
+\subsubsection{Title}
+\begin{verbatim}
+    <card> ::= title : " <simulation_title> " ;
+\end{verbatim}
+
+\subsubsection{Make restart file}
+\begin{verbatim}
+    <card> ::= make restart file [ , {
+        iterations , <iterations_between_restarts>
+    |
+        time , <time_between_restarts>
+    } ;    
+\end{verbatim}
+The default (no arguments) is to make the restart file only at the end of
+the simulation.
+
+\subsubsection{Default output}
+\begin{verbatim}
+    <card> ::= default output : <output_list> ;
+    <output_list> ::= { all | none | <output_item> } 
+                      [ , <output_list> ]
+    <output_item> ::= { structural nodes
+                      | electric nodes
+                      | abstract nodes
+                      | gravity
+                      | rigid bodies
+                      | joints
+                      | beams
+                      | air properties
+                      | rotors
+                      | aerodynamic elements
+                      | forces
+                      | genels
+                      | electric elements }
+\end{verbatim}
+Here the default output flag for a type of node or element can be set. It
+can be overridden for every entity both when it is created or later in
+each entity module.
+
+
+
+
+
+
+\chapter{Nodes}
+The {\tt nodes} section is enclosed in the cards:
+\begin{verbatim}
+    begin: nodes;
+        ...
+    end: nodes;
+\end{verbatim}
+Every node card has the following format:
+\begin{verbatim}
+    <card> :: = <node_type> : <node_label> ,
+                              <arglist>
+                              [ , output , { yes | no } ] ;
+\end{verbatim}
+where {\tt node\_type} is one of the following:
+\begin{itemize}
+    \item {\tt structural}
+    \item {\tt electric}
+    \item {\tt abstract}
+    \item {\tt parameter}
+    \item {\tt hydraulic}
+\end{itemize}
+The data manager reads the node type and the label and checks for
+duplication. If the node is not defined yet, the proper read function is
+called, which parses the rest of the card and costructs the node.
+The nodes are read as follows:
+
+
+
+
+\section{Structural Node}\label{sec:NODE-STRUCT}
+The historical 6 dof structural node can be both {\tt static}
+or {\tt dynamic}.
+Static means no inertia is related to it, so it must be properly grounded 
+or attached to elastic elements.
+Dynamic means inertia can be attached to it, so it provides linear and
+angular momenta dofs, and automatically generates the so-called 
+{\em automatic structural elements}.
+There is a special dynamic node that is required when a {\tt modal} joint is
+used, which accounts for the rigid body motion of the modal body; the node
+type in such case is {\tt modal}.
+See Section~\ref{ELEMS-JOINT-MODAL} for further details.
+\begin{verbatim}
+    <arglist> ::= { static | dynamic } ,
+            (Vec3)           <absolute_position> ,
+            (RotationMatrix) <absolute_rotation_matrix> ,
+            (Vec3)           <absolute_velocity> ,
+            (Vec3)           <absolute_angular_velocity>
+            [ , (scalar) <position_initial_stiffness>
+              , (scalar) <velocity_initial_stiffness>
+              , (flag)   <omega_rotates?> ]
+\end{verbatim}
+The {\tt dummy} structural node has been added to ease the visualization of
+the kinematics of arbitrary points of the system. 
+It owns no dofs, and it must be attached to another node, possibly with an
+offset and a relative orientation.
+Two dummy structural node types are available.
+\begin{verbatim}
+    <arglist> ::= dummy , <base_node> , <type> , <dummy_node_data>
+\end{verbatim}
+{\em 
+    Note: the {\tt static} and {\tt dynamic} type is optional; if not given,
+    it defaults to {\tt dynamic}. 
+    This practice is deprecated and could become unsupported in the future, 
+    so it is a good practice to enforce the type of the structural node. \\
+    The stiffness parameters, and the {\tt omega\_rotates} flag, 
+    override the default values. 
+    They are optional, but they must be supplied all together if at least
+    one is to be input. \\
+    The {\tt omega\_rotates} flag can take values 0 or 1. 
+    A boolean (string) type {\tt \{yes | no \}} may be introduced in the
+    future. 
+} \\
+Dummy nodes take the label of the {\tt base\_node} they are attached to, 
+followed by the type of dummy node, possibly followed by specific data.
+The following dummy types are available:
+
+\begin{itemize}
+
+    \item offset:
+    \begin{verbatim}
+    <type> ::= offset
+    <dummy_node_data> ::=
+            (Vec3)           <relative_offset> ,
+            (RotationMatrix) <relative_rotation_matrix>
+    \end{verbatim}
+    It outputs the configuration of a point offset from the base node.
+            
+    \item relative frame:
+    \begin{verbatim}
+    <type> ::= relative frame
+    <dummy_node_data> ::= <reference_node>
+    \end{verbatim}
+    It outputs the configuration of the base node in the frame defined
+    by the {\tt reference\_node}.\\
+    Examples:
+    \begin{verbatim}
+    set: real Omega = 1.;
+    structural: 1, static, null, eye, null, 0.,0.,Omega;
+    structural: 1000, dummy, 1, offset, 1.,0.,0., eye;
+    structural: 1001, dummy, 1, relative frame, 1000;
+    \end{verbatim}
+
+\end{itemize}
+
+\subsection{Output}
+Structural nodes generate two kinds of output files. 
+The first refers to the kinematics of the node; its extension is {\tt .mov},
+and for each time step it contains one row for each node whose output is
+required.
+The rows contain: \vspace{2mm} \\
+\begin{tabular}{ll}
+    \hline
+    1      & the label of the node \\
+    2--4   & the three components of the position of the node \\
+    5--7   & the three Euler angles that define the orientation of the node \\
+    8--10  & the three components of the velocity of the node \\
+    11--13 & the three components of the angular velocity of the node \\
+    \hline
+\end{tabular}\vspace{2mm}\\
+All of the quantities are expressed in the global frame, except in case of
+the dummy {\tt relative frame} node, where the quantities are in the
+relative frame.
+
+\noindent
+The second output file refers only to dynamic nodes, and contains their
+inertia; its extension is {\tt .ine}.
+For each time step, it contains information about the inertia of all the
+nodes whose output is required.
+Notice that more than one inertia body can be attached to one node; the
+information in this file refers to the sum of all the inertia referring to
+the node.
+The rows contain:
+\begin{itemize}
+    \item the label of the node
+    \item the three components of the momentum
+    \item the three components of the momentum moment referred to the node
+    coordinates, thus to a moving frame
+    \item the three components of the derivative of the momentum
+    \item the three components of the derivative of the momentum moment
+\end{itemize}
+
+
+\section{Electric Node}
+\begin{verbatim}
+    <arglist> ::= <initial_value> , <derivative_initial_value>
+\end{verbatim}
+
+
+
+
+\section{Abstract Node}
+\begin{verbatim}
+    <arglist> ::= <initial_value> , <derivative_initial_value>
+\end{verbatim}
+{\em
+    Note: abstract and electric nodes are derived from the same class, the
+    scalar differential node. Many {\tt genel} and {\tt electric} elements 
+    can be connected to both of them since they directly use the ancestor
+    class. 
+}
+
+\subsection{Output}
+The value of abstract nodes is output with file extension {\tt .abs}; for
+each time step the output of the required nodes is written.
+The format of each row is
+\begin{itemize}
+    \item the label of the node
+    \item the value of the node
+    \item the value of the node derivative
+\end{itemize}
+
+
+
+\section{Hydraulic Node}
+\begin{verbatim}
+    <arglist> ::= <initial_value>
+\end{verbatim}
+
+
+
+\section{Parameter Node}
+\begin{verbatim}
+    <arglist> ::= { <initial_value>
+                  | element 
+                  | straingage , y , z }
+\end{verbatim}
+The parameter node is derived from the class scalar algebraic node, but it
+is used in a rather peculiar way: it doesn't own any degree of freedom,
+so it does not participate in the solution, but is used as a sort of
+placeholder for those elements that require to be connected to a scalar node
+that is not otherwise significant to the analysis.
+Thanks to the availability of the {\tt parameter} node, these elements
+do not need be reformulated with a grounded node, while the parameter
+node value can be changed during the solution by means of a proper driving 
+force.
+When the argument list starts with the keyword {\tt element}, the parameter
+node expects to be bound to an element, and to access bulk element data 
+(see Section~\ref{sec:EL-BIND}).
+When the argument list starts with the keyword {\tt straingage}, followed by
+the coordinates of a point on the section of a beam, the {\tt parameter}
+node expectes to be bound to a beam element, and to access the measure of
+the axial strain at point {\tt x}, {\tt y} in the section plane as a
+combination of section strains and curvatures.
+
+
+
+
+
+\section{Miscellaneous}
+There is an extra card, that is used to modify the output behaviour of nodes:  
+\begin{verbatim}
+    <card> ::= output : <node_type> , <node_list> ;
+    <node_list> ::= <node_label>  [ , <node_list> ]
+\end{verbatim}
+{\tt node\_item} is a valid node type that can be read in the {\tt nodes}
+module. \\
+{\em
+   Note: if a node should never ({\tt no}) or always ({\tt yes}) be output,
+   its output flag should be set directly on the node card. 
+   The global behaviour of all the nodes of a type can be set from the 
+   {\tt control} module by adding the node type to the item list in the 
+   {\tt default output} card. 
+   Then, the specific output flag of sets of nodes can be altered by means 
+   of the {\tt output} card in the {\tt nodes} module. 
+   This allows a high flexibility in the selection of the desired output. 
+   The same remarks apply to the output of the elements.
+}
+
+
+
+
+
+
+\chapter{Drivers}\label{sec:DRIVERS}
+The {\tt drivers} section is enclosed in the cards:
+\begin{verbatim}
+    begin: drivers;
+        ...
+    end: drivers;
+\end{verbatim}
+Every {\tt driver} card has the following format:
+\begin{verbatim}
+    <card> ::= <driver_type> : <arglist> ;
+\end{verbatim}
+At present only {\tt file} drivers are supported.
+
+\section{File Drivers}
+A comprehensive family of {\tt file} drivers is being planned;
+their syntax is:
+\begin{verbatim}
+    <arglist> ::= <label> , <normal_arglist>
+\end{verbatim}
+The following {\tt file} drivers are supported at present:
+
+
+\subsection{Fixed Step}
+\begin{verbatim}
+    <normal_arglist> ::= <steps_number> ,
+                         <columns_number> ,
+                         <initial_time> ,
+                         <time_step> ,
+                         " <file_name> "
+\end{verbatim}
+The value at an arbitrary time is linearly interpolated from the available
+data; if the requested value is out of time bounds, zero is returned.
+
+\subsection{Socket}
+\begin{verbatim}
+    <normal_arglist> ::= <columns_number>
+                         [ , port, <port_number> ]
+                         (AuthenticationMethod)<authentication>
+\end{verbatim}
+The driver binds to a socket listening on port {\tt port\_number}; at the
+beginning of each time step, in case of connection, the driver expects some
+input data in text format, consisting in an authentication token 
+(if required).
+The authentication token is usually in the form
+\begin{verbatim}
+    user: <user_name> <new_line>
+    password: <user_password> <new_line>
+\end{verbatim}
+{\em 
+    Note: whitespaces may be significant in {\tt user\_name}, and surely are
+    in {\tt user\_password}.
+} \\    
+It is followed by a label token, in the form
+\begin{verbatim}
+    label: <label> <new_line>
+\end{verbatim}
+indicating the column being edited, followed by the desired changes; 
+the connection is terminated by a single mark followed by a newline:
+\begin{verbatim}
+    . <new_line>
+\end{verbatim}
+The permitted operations, at present, are:
+\begin{verbatim}
+    value: <value> <new_line>
+\end{verbatim}
+sets the value the drive will assume from the current step on
+\begin{verbatim}
+    inc: { yes | no } <new_line>
+\end{verbatim}
+tells whether to switch on or off the increment mode, resulting in
+subsequent value commands being ``set'' rather than ``add''
+\begin{verbatim}
+    imp: { yes | no } <new_line>
+\end{verbatim}
+tells whether to switch on or off the impulse mode, resulting in subsequent
+value commands to be applied for one step only. \\
+{\em 
+    Note: at present, impulse mode superseedes any incremental mode, namely
+    the value of the drive is reset to zero after one step.
+    This behaviour may change in the future.
+}
+

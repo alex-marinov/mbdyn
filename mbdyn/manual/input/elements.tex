@@ -1,0 +1,1435 @@
+\chapter{Elements}
+The \texttt{elements} section is enclosed in the cards:
+\begin{verbatim}
+    begin: elements;
+        ...
+    end: elements;
+\end{verbatim}
+Every element card has the following format:
+\begin{verbatim}
+    <card> ::= <elem_type> : <arglist>
+               [ , output , { yes | no } ] ;
+\end{verbatim}
+where \texttt{elem\_type} is one of the following:
+\begin{itemize}
+  \item \texttt{aerodynamic body}, \texttt{aerodynamic beam}
+  \item \texttt{air properties}
+  \item \texttt{beam}
+  \item \texttt{bind}
+  \item \texttt{body}
+  \item \texttt{bulk}
+  \item \texttt{driven}
+  \item \texttt{electric}
+  \item \texttt{force}, \texttt{couple}
+  \item \texttt{genel}
+  \item \texttt{gravity}
+  \item \texttt{hydraulic}
+  \item \texttt{joint}
+  \item \texttt{loadable}
+  \item \texttt{rotor}
+\end{itemize}
+in case of elements that can be instantiatied only once, like
+the \texttt{gravity} or the \texttt{air properties} elements, the \texttt{arglist}
+doesn't contain any label; otherwise, a label is expected first, to allow 
+for checks on duplicated elements, namely: 
+\begin{verbatim}
+    <arglist> ::= <label> , <normal_arglist>
+\end{verbatim}
+The data manager reads the element type and the label and checks for
+duplication. If the element is not defined yet, the proper read function is
+called, which parses the rest of the card and costructs the element.
+The elements are read as follows.
+
+
+
+\section{Aerodynamic Body and Aerodynamic Beam Elements}
+These elements share the description of the aerodynamics; the former assumes
+the aerodynamic surface to be rigid, and takes its configuration from a
+sigle node, while the latter relies on a three-node beam and uses the
+interpolation functions of the beam to compute the configuration at an 
+arbitrary point.
+The \texttt{aerodynamic body} input format is:
+\begin{verbatim}
+    <normal_arglist> ::= <node_label> 
+        [ , rotor , <rotor_label> ] ,
+        (Vec3)           <relative_surface_offset> , 
+        (RotationMatrix) <relative_surface_rotation> ,
+        (scalar)         <surface_span> ,
+        (shape_1D)       <surface_chord> ,
+        (shape_1D)       <surface_aerodynamic_center> ,
+        (shape_1D)       <surface_b_c_point> ,
+        (shape_1D)       <surface_twist> ,
+                         <unsteady_flag> ,
+                         <integration_points>
+        [ , control , (drive_caller) <control_drive> ] 
+        [ , { naca 0012 | rae 9671 } ]
+\end{verbatim}
+The \texttt{aerodynamic beam} input format is:
+\begin{verbatim}
+    <normal_arglist> ::= <beam_label> 
+        [ , rotor , <rotor_label> ] ,
+        (Vec3)           <relative_surface_offset_1> ,       
+        (RotationMatrix) <relative_surface_rotation_1> ,
+        (Vec3)           <relative_surface_offset_2> ,
+        (RotationMatrix) <relative_surface_rotation_2> ,
+        (Vec3)           <relative_surface_offset_3> ,       
+        (RotationMatrix) <relative_surface_rotation_3> ,
+        (shape_1D)       <surface_chord> ,
+        (shape_1D)       <surface_aerodynamic_center> ,
+        (shape_1D)       <surface_b_c_point> ,
+        (shape_1D)       <surface_twist> ,
+                         <unsteady_flag> ,
+                         <integration_points>
+        [ , control , (drive_caller) <control_drive> ] 
+        [ , { naca 0012 | rae 9671 } ]
+\end{verbatim}
+The field \texttt{rotor} instructs the element that it is linked to a 
+\texttt{rotor} element; this means that it can get information about the
+induced velocity and should supply information about the forces it generates.
+An arbitrary configuration and offset is allowed for both elements with
+respect to the nodes they are linked to. 
+The \texttt{shape} entities are used to compute the physical chord,
+aerodynamic center, velocity measurement point (the point where the
+kinematic boundary conditios are evaluated) and twist as functions 
+of the dimensionless abscissa along the span.
+The span of the \texttt{aerodynamic body} element is set by the user; the
+centerspan of the element is assumed to be the end of the offset vector.
+The span of the \texttt{aerodynamic beam} is computed based on the end of the
+offset vectors related to nodes 1, 3.
+The aerodynamic center and the velocity measurement points are measured
+relative to the centerline of the elements, that is the line in direction 3
+of the local frame from the end of the offset vector.
+This line is assumed to be at the 25\% of the airfoil chord when steady
+aerodynamic coefficients are used (\texttt{unsteady\_flag} = 0).
+The direction 1 is assumed to be the ``reference'' line of the airfoil, 
+from the trailing edge to the leading edge (points ``forward''),
+while direction 2 is normal to the other two and goes from the lower 
+to the upper side of the airfoil (points ``up''). 
+Figure~\ref{fig:AIRFOIL} shows the arrangement of the airfoil data.
+
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=80mm]{airfoil.eps}
+  \caption{\em Airfoil Geometry}\label{fig:AIRFOIL}
+\end{figure}
+
+
+\subsection{Output}
+Aerodynamic elements, both bodies and beams, write their output with file
+extension \texttt{.aer}; for each time step the required elements are output.
+Three different formats are available; the format can be selected only at
+compile time, and it must be the same for all the elements. 
+
+\noindent
+{\em Note: it will stabilize, eventually; if all the output formats will be
+maintained, they will be made selectable at run-time.}
+
+\noindent
+In any case the label of the element is output first.
+
+\subsubsection{Node}
+The format is:
+\begin{itemize}
+    \item the label of the node
+    \item the three components of the force applied to the node
+    \item the three components of the couple applied to the node
+\end{itemize}
+When an aerodynamic beam is considered, the output is repeated for each node
+the element is attached to.
+
+\subsubsection{Gauss --- forces}
+The output refers to each Gauss integration point; the format is:
+\begin{itemize}
+    \item the direction of the wind velocity relative to the element frame
+    \item the lift,
+    \item the drag,
+    \item and the aerodynamic moment per unit length
+\end{itemize}
+When an aerodynamic beam is considered, the output is repeated for each
+portion of beam.
+
+\subsubsection{Gauss --- properties}
+The output refers to each Gauss integration point; the format is:
+\begin{itemize}
+    \item the local incidence
+    \item the local yaw angle
+    \item the local mach number
+    \item the lift,
+    \item the drag,
+    \item and the aerodynamic moment per unit length
+\end{itemize}
+When an aerodynamic beam is considered, the output is repeated for each
+portion of beam.
+
+
+
+
+
+
+\section{Air Properties Element}
+\begin{verbatim}
+    <arglist> ::= (scalar) <air_density> , 
+                  (scalar) <sound_speed> ,
+                  (Vec3_tpl_drive_caller) <air_speed>
+\end{verbatim}
+the asymptotic air properties are characterised by the drive of the 
+air speed, in the global reference frame.
+
+
+
+
+
+\section{Beam Element}
+Currently two beam elements are implemented: a three-node finite volume
+element, which has been historically implemented first, which uses
+conventional polynomial parabolic interpolation of the nodal displacements
+and rotations, and a two-node finite volume element, which has been
+recently introduced.
+Although this latter element presents some shear-locking, it may be overcome
+by correcting the section stiffness matrix in a straightforward form:
+\begin{displaymath}
+	\hat{K} \ = \ \plbr{F + \frac{L^2}{12}T F T^T}^{-1} ,
+\end{displaymath}
+where $F=K^{-1}$ is the compliance of the section, and
+\begin{displaymath}
+	T \ = \ sqbr{\matr{cc}{
+		0 & e_x \times{} \\
+		0 & 0
+	}}
+\end{displaymath}
+is the ``arm'' matrix that appears in the differential equilibrium equation
+\begin{displaymath}
+	\vartheta_{/x} - T^T\vartheta + f \ = \ 0 .
+\end{displaymath}
+The two-node beam will be reimplemented using helicoidal interpolation
+of the nodal displacements and rotations, to reduce the shear-locking effect.
+
+\subsection{Three-node beam element}
+The beam element is a three node one-dimensional element.
+Each ``node'' is referred to a structural node but can have an arbitrary
+offset to allow for more generality in positioning of the structural 
+reference lines of the beam.
+The ``Finite Volumes'' formulation is used. 
+This implies the evaluation of the internal forces at two points 
+that are close to the middle point between nodes 1 and 2, 
+and between nodes 2 and 3 (at $ 1-1/\sqrt{3} $ from both ends).
+So the constitutive properties must be supplied in these points, as well as
+the rotation matrices from the material to the global frame (the axial force
+is in direction 1).
+Any of the allowed 6D constitutive laws can be supplied to define the
+constitutive properties.
+\begin{verbatim}
+    <element_type> ::= beam
+    <normal_arglist> ::=
+        <node_1> , (Vec3) <relative_offset_1> ,
+        <node_2> , (Vec3) <relative_offset_2> ,
+        <node_3> , (Vec3) <relative_offset_3> ,
+        (RotationMatrix) <rotation_matrix_section_I> ,
+        (ConstitutiveLaw6D) <constitutive_law_section_I> ,
+        (RotationMatrix) <rotation_matrix_section_II> ,
+        (ConstitutiveLaw6D) <constitutive_law_section_II>
+\end{verbatim}
+Based on the type of constitutive law, the simple or the viscoelastic beam
+element is used. \\
+A piezoelectric actuator beam element is available; an arbitrary
+linear piezoelectric actuation matrix is required, together with the labels
+of the abstract nodes that represent the input signal tensions, as follows:
+\begin{verbatim}
+    <normal_arglist> ::=
+        <node_1> , (Vec3) <relative_offset_1> ,
+        <node_2> , (Vec3) <relative_offset_2> ,
+        <node_3> , (Vec3) <relative_offset_3> ,
+        (RotationMatrix) <rotation_matrix_section_I> ,
+        (ConstitutiveLaw6D) <constitutive_law_section_I> ,
+        (RotationMatrix) <rotation_matrix_section_II> ,
+        (ConstitutiveLaw6D) <constitutive_law_section_II>
+        piezoelectric actuator , 
+        <electrodes_number> ,
+        <abstract_node_label_list> ,
+        (Mat6xN) <piezoelectric_matrix_I> ,
+        { same | (Mat6xN) <piezoelectric_matrix_II> }
+\end{verbatim}
+where the \texttt{abstract\_node\_label\_list} is the list of the labels of the
+abstract nodes that represent the electrodes.
+
+\subsection{Two-node beam element}
+\begin{verbatim}
+    <element_type> ::= beam2
+    <normal_arglist> ::=
+        <node_1> , (Vec3) <relative_offset_1> ,
+        <node_2> , (Vec3) <relative_offset_2> ,
+        (RotationMatrix) <rotation_matrix_section_I> ,
+        (ConstitutiveLaw6D) <constitutive_law_section_I>
+        [ , piezoelectric actuator , 
+        <electrodes_number> ,
+        <abstract_node_label_list> ,
+        (Mat6xN) <piezoelectric_matrix_I> ]
+\end{verbatim}
+
+\subsection{Output}
+The output related to beam elements is contained in a file with extension 
+\texttt{.act}; for each time step, the output of thre required beams is
+considered.
+The internal forces and couples are computed from the interpolated strains
+along the beam by means of the constitutive law, at the two evaluation
+points. 
+The format is:
+\begin{itemize}
+    \item the label of the beam
+    \item the three components of the force at the first evaluation point
+    \item the three components of the couple at the first evaluation point
+    \item the three components of the force at the second evaluation point
+    \item the three components of the couple at the second evaluation point    
+\end{itemize}
+
+
+
+\section{Bind}\label{sec:EL-BIND}
+This is not really an element; it is used to instruct a \texttt{parameter node}
+about which parameter of an element it is bound to.
+The \texttt{parameter node} must exist, and the binding element, of type 
+\texttt{element\_type} and label \texttt{element\_label}, must have been already 
+defined.
+The complete syntax is:
+\begin{verbatim}
+    <arglist> ::= <element_label> , 
+                  <element_type> ,
+                  <parameter_node_label> , 
+                  <parameter_index>
+\end{verbatim}
+Each element makes a number of parameters available for such binding; a
+detailed list will be presented in a future release of the input manual.
+The value of \texttt{parameter\_index} must be legal, i.e.\ between 1 and the
+maximum number of parameters made available by the element.
+
+
+
+
+\section{Body}
+\begin{verbatim}
+    <normal_arglist> ::= <node_label> , 
+    { 
+      (scalar) <mass> , 
+      (Vec3)   <relative_center_of_mass> ,
+      (Mat3x3) <inertia_matrix>
+      [ , inertial , 
+          { node | (RotationMatrix) <rotation_matrix> } ]
+    |
+      condense, (integer) <num_masses> ,
+          (scalar) <mass> , 
+          (Vec3)   <relative_center_of_mass> ,
+          (Mat3x3) <inertia_matrix> 
+          [ , inertial , 
+              { node | (RotationMatrix) <rotation_matrix> } ]
+          [ , ... ]
+    }
+\end{verbatim}
+the \texttt{inertia\_matrix} is always referred to the center of mass of the
+mass that is being added. It can be rotated locally by means of the extra
+\texttt{rotation\_matrix} supplied after the (optional) keyword \texttt{inertial}.
+Otherwise, if the keyword \texttt{node} is supplied after the keyword 
+\texttt{inertial}, the inertia matrix is not rotated at all, since it is
+assumed to be already in the node reference frame.
+If only one mass is defined, the first method should be used. Otherwise,
+many masses can be referred to the same element by means of the keyword
+\texttt{condense}, followed by the number of expected masses \texttt{num\_masses}.
+The format of each submass is the same as for the single mass input (actually, 
+when \texttt{condense} is not supplied, \texttt{num\_masses} is assumed to be 1).
+
+
+
+
+\section{Bulk Elements}
+The \texttt{bulk} element is intended as a sort of NASTRAN's \texttt{CELAS} card,
+that can be used to apply a stiffness term on an arbitrary degree of freedom.
+Extensions are planned to different kind of elements.
+The syntax of the \texttt{bulk} element is:
+\begin{verbatim}
+    <normal_arglist> ::= <bulk_type> , <bulk_arglist>
+\end{verbatim}
+At present only the \texttt{stiffness spring} type is available.
+
+\subsection{Stiffness spring}
+\begin{verbatim}
+    <bulk_type> ::= stiffness spring
+    <bulk_arglist> ::= (node_dof) <dof> ,
+                       (drive_caller) <stiffness_drive>
+\end{verbatim}
+The equation related to the desired dof of the linked node is added a
+contribution based on the value of the desired degree of freedom (even the
+derivative can be used) multiplied times the stiffness. \\
+{\em Note: this family of elements has been partially superseeded by the
+\texttt{genel} elements, which allow more generality.}
+
+
+
+
+\section{Driven Element}
+The \texttt{driven} type is not an element by itself. It is a wrapper that
+masks another element and switches it on and off depending on the (boolean)
+value of a drive. It can be used to emulate a variable topology model, where 
+some elements simply don't contribute to the residuial or to the jacobian
+matrices when their drive has a certain value. Since the drivers can be
+arbitrary functions of the time, or other parameters including the value of
+any degree of freedom, the driven elements can be ``driven'' in a very
+flexible way. Every element can be driven, except those that can be
+instantiated once only.
+The syntax for a driven element is:
+\begin{verbatim}
+    <normal_arglist> ::= (drive_caller) <element_driver> ,
+        {
+            <elem_type> : <elem_label> <elem_normal_arglist> 
+        |   
+            existing : <elem_type> , <elem_label>
+        }
+\end{verbatim}
+When the first format is used, a normal element is read, instantiated, and
+wrapped by the \texttt{driven} element wrapper. Note that after the element type,
+or after the keyword \texttt{existing}, a colon is used as a separator.
+This is due for compatibility with the restart module and is not likely 
+to be eliminated in the future. 
+The label of the element must math that of the driving element given at
+the beginning.
+When the second format is used, an existing element is sought, and it is
+wrapped by a driven element. In this case, no new element is instantiated.
+Again the label of the element must match that of the driving element given 
+at the beginning. For consistency with the syntax, and for more flexibility,
+even when wrapping an existing element it is possible to set at the end the
+output flags. This flag will override the previously set one.
+
+
+
+
+
+\section{Electric Elements}
+\texttt{electric} elements are those elements that model electric and electronic
+devices, dealing with abstract degrees of freedom more than with electric
+ones (from the program's point of view they are exactly the same, the
+difference is only semantic). The true electric elements, such resistors,
+switches and so on, are clessified as \texttt{electric bulk} elements.
+The syntax for \texttt{electric} elements is:
+\begin{verbatim}
+    <normal_arglist> ::= <electric_type> , <electric_arglist>
+\end{verbatim}
+The \texttt{electric} elements implemented at present are:
+
+\subsection{Accelerometer}
+  \begin{verbatim}
+    <electric_arglist> ::= <struct_node_label> ,
+        <abstract_node_label> ,
+        (Vec3) <measure_direction> ,
+        (scalar) <omega> ,
+        (scalar) <tau> ,
+        (scalar) <csi> ,
+        (scalar) <kappa>	
+  \end{verbatim}
+  The label \texttt{struct\_node\_label} defines the node whose acceleration 
+  is being measured; the label \texttt{abstract\_node\_label} defines the
+  \texttt{abstract node} that will receive the output signal. 
+  An \texttt{electric node} can be used as well (?).
+  The transfer function of the accelerometer is:
+  \begin{displaymath}
+    \frac{e_0}{a} = \texttt{kappa}\frac{\texttt{tau} \ s}{
+      \plbr{1+\texttt{tau} \ s}
+      \plbr{1+2 \ \texttt{csi}/\texttt{omega} \ s+s^2/\texttt{omega}^2}
+    }
+  \end{displaymath}
+  where $ e_0 $ is the output signal, $ a $ is the input (the acceleration)
+  and $ s $ is the Laplace variable.
+
+\subsection{Discrete control}
+  \begin{verbatim}
+    <electric_arglist> ::= <num_outputs> , <num_inputs> , <order> ,
+        <control_data> , 
+        outputs [ , (node_dof) <output_dofs> [ , ... ] ] ,
+        inputs [ , (node_dof) <input_dofs> [ , ... ] ] ,
+  \end{verbatim}
+  The lists of the output and input dofs follows. The input {\tt
+  node\_dof}s don't require the \texttt{order} field, since they are simply
+  used to compute the control forces, and thus identify an equation.
+  The \texttt{control\_data} has the following syntax:
+  \begin{verbatim}  
+        <control_data> ::= <control_type> , <control_arglist>
+  \end{verbatim}
+  At present only a simple form of control is implemented. Other types
+  to come are system identification, both recursive and one-shot, and
+  adaptive control, with different models and schemes, all based on 
+  Generalised Predictive Control (GPC) and Deadbeat Control.
+  The \texttt{control} syntax is:
+  \begin{verbatim}
+    <control_data> ::= control , " <control_matrices_file> "
+  \end{verbatim}
+  where the file \texttt{control\_matrices\_file} must contain the matrices
+  $ a_c $, $ b_c $ of the control in plain text (as generated by Matlab, for
+  instance): \\
+  \begin{tabular}{l}
+    $ a_{c1} $, \\
+    \ldots,     \\
+    $ a_{cp} $, \\
+    $ b_{c1} $, \\
+    \ldots,     \\
+    $ b_{cp} $  \\
+  \end{tabular} \\
+  where $ p $ is the \texttt{order} of the controller and the matrices $ a_c $
+  have \texttt{num\_inputs} rows and \texttt{num\_outputs} columns, while the
+  matrices $ b_c $ have \texttt{num\_inputs} rows and \texttt{num\_inputs} columns.
+
+
+
+
+
+\section{Force and Couple Elements}
+The \texttt{force} element has the following syntax:
+\begin{verbatim}
+  <normal_arglist> ::= <force_type> , <force_arglist>
+\end{verbatim}
+where \texttt{<force\_type>} can be \texttt{abstract} for an abstract force, or 
+\texttt{conservative} or \texttt{follower} for a structural force. The latter types
+apply to a \texttt{couple} element, which can be structural only.
+
+\subsection{Output}
+The output is discussed accordingly to the types of forces. 
+The label of the element is output first in all the cases.
+
+\subsection{Abstract force}
+\begin{verbatim}
+    <force_type> ::= abstract 
+    <force_arglist> ::= (node_dof) <dof> ,
+                        (drive_caller) <force_magnitude>
+\end{verbatim}
+the \texttt{dof} field is a normal \texttt{node\_dof} but no \texttt{order} is required
+since the \texttt{force} simply applies to the equation related to the node,
+regardless of the order.
+
+\subsubsection{Output}
+The format is:
+\begin{itemize}
+    \item the label of the element
+    \item the label of the abstract node the force is applied to
+    \item the value of the force
+\end{itemize}
+
+
+\subsection{Structural force}
+\begin{verbatim}
+    <force_type> ::= { conservative | follower } 
+    <force_arglist> ::= <node> , 
+                        (Vec3) <relative_direction> ,
+                        (Vec3) <relative_arm> ,
+                        (drive_caller) <force_magnitude>
+\end{verbatim}
+
+\subsubsection{Output}
+The format is:
+\begin{itemize}
+    \item the label of the element
+    \item the label of the structural node the force is applied to
+    \item the value of the force
+    \item the three components of the force
+    \item the arm of the force, in the global frame (i.e.\ referred
+          to point $ \cubr{0,0,0} $)
+\end{itemize}
+
+
+\subsection{Structural couple}
+\begin{verbatim}
+    <force_type> ::= { conservative | follower } 
+    <force_arglist> ::= <node> ,
+                        (Vec3) <relative_direction> ,  
+                        (drive_caller) <couple_magnitude>
+\end{verbatim}
+i.e.\ the arm is not required. 
+
+\subsubsection{Output}
+The format is:
+\begin{itemize}
+    \item the label of the element
+    \item the label of the structural node the couple is applied to
+    \item the value of the couple
+    \item the three components of the couple
+\end{itemize}
+
+
+\noindent
+{\em 
+Note: by using a \texttt{dof} drive, a simple feedback control can be easily
+implemented. \\
+A more general force element can be written by using a template drive
+that contains both the direction and the amplitude. This will be done in the
+future. 
+}
+
+
+
+
+
+\section{Genel Element}
+{\sc Genel} is the compact form for {\sc \bf Gen}eral {\sc el}ement. Those
+elements cannot in general be classified in a precise way, or are just
+under development and thus are not collected in a class of their own until
+their configuration is stabilized. 
+The syntax of the {\sc Genel} elements is:
+\begin{verbatim}
+    <normal_arglist> ::= <genel_type> , <genel_arglist>
+\end{verbatim}
+
+\noindent
+The output goes in a file with extension \texttt{.gen}; only few elements
+actually generate output.
+
+\noindent
+At present there are very simple {\sc Genel}
+elements, plus a very particular one, that is the \texttt{swash plate}.
+It is used to transform the controls of a rotor, in terms of collective
+and fore/aft and lateral cyclic pitch, into the elongations of the actuators 
+that actually move the swash plate.
+The syntax of the \texttt{genel}s is:
+
+\subsection{Swashplate}
+\begin{verbatim}
+    <genel_type> ::= swash plate
+    <genel_arglist> ::=
+        <collective_abstract_node> 
+        [ , limits , <min_collective> , <max_collective> ] ,
+        <fore/aft_abstract_node> 
+        [ , limits , <min_fore/aft> , <max_fore/aft> ] ,
+        <lateral_abstract_node> 
+        [ , limits , <min_lateral> , <max_lateral> ] ,
+        <actuator_1_abstract_node> ,
+        <actuator_2_abstract_node> ,
+        <actuator_3_abstract_node> 
+        [ , <dynamic_coef> , <cyclic_factor> , <collective_factor> ]
+\end{verbatim}
+The first three abstract nodes will contain the input values (they can be
+actuated by means of abstract forces), and the limits on the ``angles'' can
+be easily set. 
+The last three nodes will contain the values of the stroke of the actuators.
+It is assumed that one of the actuators is behind and the others two are in
+front of the rotor, numbered clockwise from the top. 
+The limits on the actuators will simply force the value of the control
+inputs to remain in the boundaries regardless of the input values.
+The last three optional parameters are a dynamic coefficient that is used to
+add some dynamics to the actuators' stroke, namely the input variables are
+applied a sort of \texttt{spring stiffness} \texttt{bulk} element, while the
+actuators' strokes are applied a transfer function of the first order, namely
+$ \alpha\dot{x}+x=f $, where $ \alpha=\texttt{dynamic\_coef} $ and $ f $ is
+the desired stroke, so the smaller is $ \alpha $, the more the behaviour is
+static.
+The \texttt{cyclic\_factor} and the \texttt{collective\_factor} parameters are
+used to scale the inputs from angles in the desired units to strokes, that
+usually are dimensional parameters. The actual strokes are made of the
+collective contribution multiplied by \texttt{collective\_factor}, and the
+cyclic contribution multiplied by \texttt{collective\_factor} times 
+\texttt{cyclic\_factor}.
+   
+\subsection{Clamp}
+\begin{verbatim}
+    <genel_type> ::= clamp
+    <genel_arglist> ::= (node_dof) <clamped_node> ,
+                        (drive_caller) <imposed_value>
+\end{verbatim}
+This element simply forces one arbitrary degree of freedom to assume a value
+depending on the drive.
+
+\paragraph{Output}
+The format is:
+\begin{itemize}
+    \item the label of the element
+    \item the value of the reaction unknown
+\end{itemize}
+  
+\subsection{Distance}
+\begin{verbatim}
+    <genel_type> ::= distance
+    <genel_arglist> ::= (node_dof) <node_1> ,
+                        (node_dof) <node_2> ,
+                        (drive_caller) <imposed_distance>
+\end{verbatim}
+This element forces the difference between two arbitrary degrees of freedom
+to assume the value dictated by the driver.
+
+\paragraph{Output}
+The format is:
+\begin{itemize}
+    \item the label of the element
+    \item the value of the reaction unknown
+\end{itemize}
+  
+  
+\subsection{Spring}
+\begin{verbatim}
+    <genel_type> ::= spring
+    <genel_arglist> ::= (node_dof) <node_1> ,
+                        (node_dof) <node_2> ,
+                        (ConstitutiveLaw1D) <const_law>
+\end{verbatim}
+{\em 
+    Note: the constitutive law must be \texttt{elastic}, but the \texttt{distance}
+    genel can apply to arbitrary order degrees of freedom, even between degrees 
+    of freedom of different order.
+}
+
+\subsection{Spring support}
+\begin{verbatim}
+    <genel_type> ::= spring support
+    <genel_arglist> ::= (node_dof) <node> ,                      
+                        (ConstitutiveLaw1D) <const_law>
+\end{verbatim}
+{\em
+    Note: the \texttt{spring support} must use the \texttt{algebraic} value of a 
+    \texttt{differential} node, but it can use an arbitrary constitutive law,
+    i.e.\ an elastic constitutive law for a spring, or a viscous
+    constitutive law for a damper, and so on.
+}
+
+\subsection{Cross spring support}
+\begin{verbatim}
+    <genel_type> ::= spring support
+    <genel_arglist> ::= (node_dof) <row_node> ,                      
+                        (node_dof) <col_node> ,                      
+                        (ConstitutiveLaw1D) <const_law>
+\end{verbatim}
+It writes a term depending on the \texttt{col\_node} degree of freedom in an
+arbitrary manner (given by the \texttt{const\_law}) to the 
+\texttt{row\_node} equation. \\
+{\em
+    Note: the \texttt{cross spring support} must use the \texttt{algebraic} value
+    of a \texttt{differential} node, but can use an arbitrary constitutive law,
+    i.e.\ an elastic constitutive law for a spring, or a viscous
+    constitutive law for a damper, and so on.
+}
+
+\subsection{Mass}
+\begin{verbatim}
+    <genel_type> ::= mass
+    <genel_arglist> ::= (node_dof) <node> ,                     
+                        (drive_caller) <mass>
+\end{verbatim}
+{\em
+    Note: the mass must use the \texttt{algebraic} value of a {\tt
+    differential} node. The derivative of the \texttt{differential} value of
+    the dof is differentiated in a state-space sense, and an inertial driven
+    term is applied to the equation related to the dof:
+    \begin{eqnarray*}
+        m\dot{u} + \ldots & = & f \\
+	u - \dot{x} & = & 0
+    \end{eqnarray*}
+}
+
+\subsection{Scalar filter}
+\begin{verbatim}
+    <genel_type> ::= scalar filter
+    <genel_arglist> ::= (node_dof) <output_node> ,
+                        (node_dof) <input_node> ,
+                        <output_order> [ , <output_coef_list> ] ,
+                        <input_order> , <input_coef_list>
+                        [ , gain , <gain> ]
+\end{verbatim}
+This element models a scalar filter of the form
+\begin{displaymath}
+    A\plbr{s}y = B\plbr{s}u
+\end{displaymath}
+where $ A $, $ B $ are polynomials of arbitrary order, provided it is
+causal, namely the \texttt{output\_order} is greater than or equal to 
+the \texttt{input\_order}.
+The polynomial $ A $ is assumed to be monic, so only the coefficients
+from 1 to \texttt{output\_order} must be input, while all the coefficients 
+of polynomial $ B $ are required, i.e.\ from 0 to \texttt{input\_order}.
+If a gain is supplied, all the coefficients of $ B $ are multiplied by the
+gain.
+
+\subsection{State space SISO}
+\begin{verbatim}
+    <genel_type> ::= state space SISO
+    <genel_arglist> ::= (node_dof) <output_node> ,
+                        (node_dof) <input_node> ,
+                        <state_order> ,
+                        matrix A , <coefficient_list> ,
+                        matrix B , <coefficient_list> ,
+                        matrix C , <coefficient_list>
+                        [ , matrix D , <coefficient> ]
+\end{verbatim}
+This element models a scalar (SISO) state space filter of the form
+\begin{displaymath}
+    \lvvect{ 
+        \dot{x} = Ax+Bu \\
+	y = Cx+Dx
+    }
+\end{displaymath}
+where $ A $ is a matrix \texttt{state\_order}$\times$\texttt{state\_order},
+$ B $ is a vector \texttt{state\_order}$\times$1,
+$ C $ is a vector 1$\times$\texttt{state\_order},
+and $ D $ is scalar, if any.
+The matrices are read row-oriented.
+
+\subsection{State space MIMO}
+\begin{verbatim}
+    <genel_type> ::= state space MIMO
+    <genel_arglist> ::= <num_outputs> , (node_dof) <output_node_list> ,
+                        <num_inputs> , (node_dof) <input_node_list> ,
+                        <state_order> ,
+                        matrix A , <coefficient_list> ,
+                        matrix B , <coefficient_list> ,
+                        matrix C , <coefficient_list>
+                        [ , matrix D , <coefficient_list> ]
+\end{verbatim}
+This element models a scalar (SISO) state space filter of the form
+\begin{displaymath}
+    \lvvect{ 
+        \dot{x} = Ax+Bu \\
+	y = Cx+Dx
+    }
+\end{displaymath}
+where $ A $ is a matrix \texttt{state\_order}$\times$\texttt{state\_order},
+$ B $ is a matrix \texttt{state\_order}$\times$\texttt{num\_inputs},
+$ C $ is a matrix \texttt{num\_outputs}$\times$\texttt{state\_order},
+and $ D $ is scalar \texttt{num\_outputs}$\times$\texttt{num\_inputs}.
+The matrices are read row-oriented.
+
+
+
+
+\section{Gravity Element}
+\begin{verbatim}
+    <arglist> ::= (Vec3_tpl_drive_caller) <gravity_acceleration>
+\end{verbatim}
+the drive of the gravity acceleration, in the global reference frame.
+
+
+
+
+\section{Hydraulic Element}\label{sec:HYDRAULIC-ELEMENT}
+{\em 
+    Note: under development \\
+    Author: Lamberto Puggelli
+}
+\begin{verbatim}
+    <normal_arglist> ::= <hydr_elem_type> , 
+                         <hydr_elem_data>
+\end{verbatim}
+A detailed input description will be given as soon as it is available. \\
+\texttt{hydraulic\_element\_data} usually contains information about fluid
+properties, which are handled by means of an \texttt{hydraulic\_fluid}.
+This can be directly inserted, following the syntax described in
+Section~\ref{sec:HYDRAULIC-FLUID} preceeded by the keyword \texttt{fluid}, or a
+previously defined fluid can be recalled by using the keyword 
+\texttt{reference} followed by the label of the desired fluid.
+
+\subsection{Actuator}
+\begin{verbatim}
+    <hydr_elem_type> ::= actuator ,
+    <hydr_elem_data> ::= <node_1> , <node_2> , 
+                         <struct_node_1> , (Vec3) <offset_1> ,
+                         <struct_node_2> , (Vec3) <offset_2> ,
+                         [ direction , (Vec3) <direction> , ]
+                         <area_1> ,
+                         <area_2> ,
+                         <cylinder_length> ,
+                         <hydraulic_fluid_properties_1> ,
+                         { same | <hydraulic_fluid_properties_2> }
+\end{verbatim}
+
+\subsection{Minor Loss}
+\begin{verbatim}
+    <hydr_elem_type> ::= minor loss ,
+    <hydr_elem_data> ::= <node_1> , <node_2> ,
+                         <k12> , <k21> , <area> ,
+                         <hydraulic_fluid_properties>
+\end{verbatim}
+
+\subsection{Control Valve}
+\begin{verbatim}
+    <hydr_elem_type> ::= control valve ,
+    <hydr_elem_data> ::= <node_1> , <node_2> , <node_3> , <node_4>
+                         <area> ,
+                         [ loss , <loss_factor> , ]
+                         (DriveCaller) <state> ,
+                         <hydraulic_fluid_properties>
+\end{verbatim}
+This element represrents a valve that connects
+\texttt{node\_1} to \texttt{node\_2} and \texttt{node\_3} to \texttt{node\_4}
+when \texttt{state} is positive and \texttt{node\_1} to \texttt{node\_3}
+and \texttt{node\_2} to \texttt{node\_4} when \texttt{state} is negative,
+with area proportional to \texttt{area} times the norm of \texttt{state}, 
+being the latter comprised between $-1$ and $1$.
+If \texttt{loss\_factor} is defined, it represents the fraction
+of area that leaks even when \texttt{state} is zero.
+
+
+
+\subsection{Dynamic Control Valve}\label{sec:DYNAMIC_CONTROL_VALVE}
+\begin{verbatim}
+    <hydr_elem_type> ::= dynamic control valve ,
+    <hydr_elem_data> ::= <node_1> , <node_2> ,
+                         <node_3> , <node_4> ,
+                         (DriveCaller) <force> ,
+                         <initial_displacement> ,
+                         <max_displacement> ,
+                         <duct_width> ,
+                         [ loss , <loss_factor> , ]
+                         <valve_diameter> ,
+                         <valve_density> ,
+                         <displacement> ,
+                         <velocity> ,
+                         <acceleration> ,
+                         <hydraulic_fluid_properties>
+\end{verbatim}
+This element represrents a valve that connects
+\texttt{node\_1} to \texttt{node\_2} and \texttt{node\_3} to \texttt{node\_4}
+when the displacement is positive and \texttt{node\_1} to \texttt{node\_3}
+and \texttt{node\_2} to \texttt{node\_4} when the displacement is negative,
+accounting for the dynamics of the valve body.
+The control force \texttt{force} is applied to the valve, whose 
+geometric and structural properties are described by 
+\texttt{initial\_displacement}, \texttt{max\_displacement},
+\texttt{duct\_width}, \texttt{valve\_diameter} and \texttt{valve\_density}.
+Again the \texttt{loss\_factor}, if defined, represents the fraction
+of the area that leaks when the displacement is zero.
+Finally, \texttt{displacement}, \texttt{velocity} and \texttt{acceleration}
+are the penalty coefficients for displacement, valocity and acceleration
+when the maximum stroke is reached.
+
+
+
+
+\subsection{Pressure Flow Control Valve}
+\begin{verbatim}
+    <hydr_elem_type> ::= pressure flow control valve ,
+    <hydr_elem_data> ::= <node_1> , <node_2> ,
+                         <node_3> , <node_4> ,
+                         <node_5> , <node_6> ,
+                         (DriveCaller) <force> ,
+                         <initial_displacement> ,
+                         <max_displacement> ,
+                         <duct_width> ,
+                         [ loss , <loss_factor> , ]
+                         <valve_diameter> ,
+                         <valve_density> ,
+                         <displacement> ,
+                         <velocity> ,
+                         <acceleration> ,
+                         <hydraulic_fluid_properties>
+\end{verbatim}
+Same as Dynamic Control Valve (\ref{sec:DYNAMIC_CONTROL_VALVE}),
+only the pressures at \texttt{node\_5} and \texttt{node\_6} are applied
+at the sides of the valve body and participate in the force balance.
+
+
+
+\section{Joint Element}
+Many different joints are available. A first rough classification can be
+based on which joints have internal degrees of freedom (the reactions) and
+which don't. The latter are flexible joints, that directly add their
+stiffness contribution to the dynamic system matrix. From the input point
+of view there is no difference between the two classes.
+a typical joint entry is made as follows:
+\begin{verbatim}
+    <normal_arglist> :: = <joint_type> , <joint_arglist>
+\end{verbatim}
+The output is written to a file with extension \texttt{.jnt}.
+The output is generally made of a standard part, plus some extra information
+depending on the type of joint, which, when available, is described along
+with the joint description.
+Here the standard part is described:
+\begin{itemize}
+    \item the label of the joint
+    \item the three components of the reaction force in a local reference
+    \item the three components of the reaction couple in a local frame
+    \item the three components of the reaction force in the global frame
+    \item the three components of the reaction couple, rotated into the
+          global frame
+\end{itemize}
+Legal joint types, with relative data, are:
+
+
+\subsection{Distance}
+\begin{verbatim}
+    <joint_type> ::= distance 
+    <joint_arglist> ::= <node_1> , <node_2> ,
+                        { (drive_caller) <distance> | from nodes }
+\end{verbatim}
+
+\noindent
+{\em
+    Note: in case the keywords \texttt{from nodes} are used, a constant drive
+    caller is automatically instantiated for the \texttt{distance}. 
+    Its value is computed from the initial positions of the nodes.
+}
+
+\paragraph{Output}
+The extra output is:
+\begin{itemize}
+    \item the three components of the imposed distance in the global frame
+    \item the norm of the imposed distance
+\end{itemize}
+
+
+\subsection{Distance with offset}
+\begin{verbatim}
+    <joint_type> ::= distance with offset
+    <joint_arglist> ::= <node_1> , (Vec3) <relative_offset_1> ,
+                        <node_2> , (Vec3) <relative_offset_2> , 
+                        { (drive_caller) <distance> | from nodes }
+\end{verbatim}
+{\em 
+    Note: the \texttt{relative\_offset\_*} are the distances of each end
+    of the joint from the relative nodes in the node reference frame \\
+    Both the \texttt{distance} and the \texttt{distance with offset} joints
+    allow for null distance, but the transition from null to non-null
+    distance is not smooth at all.
+} \\
+{\em
+    Note: in case of \texttt{from nodes}, the same stated for the \texttt{distance}
+    joint applies, except that the distance between the offsets is
+    considered. 
+}
+
+\subsection{Clamp}
+\begin{verbatim}
+    <joint_type> ::= clamp 
+    <joint_arglist> ::= <node> , 
+        { node | (Vec3) <absolute_position> } ,
+        { node | (RotationMatrix) <absolute_rotation_matrix> }
+\end{verbatim}
+{\em
+    Note: the keyword \texttt{node} forces the joint to use the nodal position
+    and reference frame. Otherwise, they must be entered in the usual way
+    for these entities
+}
+
+\subsection{Coincidence}
+not implemented yet, use a \texttt{spherical hinge} and a \texttt{prismatic} 
+instead.
+
+\subsection{Spherical hinge}
+\begin{verbatim}
+    <joint_type> ::= spherical hinge
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1> 
+        [ , hinge , 
+            (RotationMatrix) <relative_rotation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , 
+            (RotationMatrix) <relative_rotation_matrix_2> ]
+\end{verbatim}
+{\em
+    Note: the rotation matrix is used for output purposes only. 
+    A default identity matrix is assumed.
+}
+
+\subsection{Pin}
+\begin{verbatim}
+    <joint_type> ::= pin
+    <joint_arglist> ::= <node> , (Vec3) <relative_offset> ,
+                                 (Vec3) <absolute_pin_position>
+\end{verbatim}
+{\em
+    Note: this is the dual of the spherical hinge when one node is grounded.
+    An alternative way to model a grounded spherical hinge requires the use
+    of a static, clamped node.
+}
+
+\subsection{Universal hinge}
+\begin{verbatim}
+    <joint_type> ::= universal hinge
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1> 
+        [ , hinge , 
+            (RotationMatrix) <relative_rotation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , 
+            (RotationMatrix) <relative_rotation_matrix_2> ]
+\end{verbatim}
+{\em
+    Note: this joint forces the relative direction 3 of node 1 to be always 
+    normal to the relative direction 2 of node 2.
+}
+
+\subsection{Universal pin}
+\begin{verbatim}
+    <joint_type> ::= universal pin
+    <joint_arglist> ::= 
+        <node> , (Vec3) <relative_offset>
+        [ , hinge , 
+            (RotationMatrix) <relative_rotation_matrix> ] ,
+        (Vec3) <absolute_pin_position>
+        [ , hinge , 
+            (RotationMatrix) <absolute_pin_rotation_matrix> ]
+\end{verbatim}
+{\em
+    Note: this is the dual of the universal hinge when one node is grounded.
+}
+
+\subsection{Plane hinge}
+This joint has been renamed \texttt{revolute hinge}; the old name has been
+deprecate and may not be supported in future versions.
+
+\subsection{Revolute hinge}
+\begin{verbatim}
+    <joint_type> ::= revolute hinge
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1> 
+        [ , hinge , 
+            (RotationMatrix) <relative_rotation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , 
+            (RotationMatrix) <relative_rotation_matrix_2> ]
+\end{verbatim}
+{\em
+    Note: this joint forces nodes 1 and 2 to rotate only about relative 
+    axis 3.
+}
+
+\subsection{Plane pin}
+This joint has been renamed \texttt{revolute pin}; the old name has been
+deprecate and may not be supported in future versions.
+
+\subsection{Revolute pin}
+\begin{verbatim}
+    <joint_type> ::= revolute pin
+    <joint_arglist> ::= 
+        <node> , (Vec3) <relative_offset>
+        [ , hinge , 
+            (RotationMatrix) <relative_rotation_matrix> ] ,
+        (Vec3) <absolute_pin_position>
+        [ , hinge , 
+            (RotationMatrix) <absolute_pin_rotation_matrix> ]
+\end{verbatim}
+{\em
+    Note: this is the dual of the revolute hinge when one node is grounded.
+}
+
+\subsection{Axial rotation}
+\begin{verbatim}
+    <joint_type> ::= axial rotation
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1> 
+        [ , hinge , 
+            (RotationMatrix) <relative_rotation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , 
+            (RotationMatrix) <relative_rotation_matrix_2> ] ,
+        (drive_caller) <angular_velocity>
+\end{verbatim}
+{\em
+    Note: this joint forces nodes 1 and 2 to rotate about relative 
+    axis 3 with imposed angular velocity.
+}
+
+\subsection{In plane}
+\begin{verbatim}
+    <joint_type> ::= in plane
+    <joint_arglist> ::= 
+        <node_1> , 
+        (Vec3) <relative_plane_position> ,
+        (Vec3) <relative_normal_direction> ,
+        <node_2>
+        [ , offset , (Vec3) <relative_offset>]
+\end{verbatim}
+{\em
+    Note: to make an in-line joint, use two in-plane joints, with the
+    planes that intersect along the desired line. \\
+    Note: a \texttt{inline} element has been added, which automates the above
+    reported procedure.
+}
+
+\subsection{In line}
+\begin{verbatim}
+    <joint_type> ::= in line
+    <joint_arglist> ::= 
+        <node_1> , 
+        (Vec3) <relative_line_position> ,
+        (Mat3x3) <relative_orientation> ,
+        <node_2>
+        [ , offset , (Vec3) <relative_offset>]
+\end{verbatim}
+{\em 
+    Note: the \texttt{in line} joint supersedes the former note; the orientation
+    assumes the sliding line is in direction 3.
+}
+
+\subsection{Rod}
+\begin{verbatim}
+    <joint_type> ::= rod 
+    <joint_arglist> ::= <node_1> , <node_2> , 
+        (scalar) { <rod_length> | from nodes }
+        [ , offset , (Vec3) <relative_offset_1> , 
+                     (Vec3) <relative_offset_2> ] ,
+        (ConstitutiveLaw1D) <const_law>
+\end{verbatim}
+
+\subsection{Rod with offset}
+\begin{verbatim}
+    <joint_type> ::= rod with offset
+    <joint_arglist> ::= <node_1> , (Vec3) <relative_offset_1>
+                        <node_2> , (Vec3) <relative_offset_2>
+        (scalar) { <rod_length> | from nodes } ,
+        (ConstitutiveLaw1D) <const_law>
+\end{verbatim}
+Analogous to \texttt{rod} with the optional arg \texttt{offset}.    
+
+\subsection{Deformable hinge}
+\begin{verbatim}
+    <joint_type> ::= deformable hinge
+    <joint_arglist> ::= 
+        <node_1>
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_1> ] ,
+        <node_2> 
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_2> ] ,
+        (ConstitutiveLaw3D) <const_law>
+\end{verbatim}
+{\em 
+    Note: this hinge constrains the rotations only.
+    It should be used in conjunction with a spherical hinge or any kind of
+    joint that constrains the displacements too.
+}
+
+\subsection{Deformable displacement hinge}
+\begin{verbatim}
+    <joint_type> ::= deformable displacement hinge
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1>
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_2> ] ,
+        (ConstitutiveLaw3D) <const_law>
+\end{verbatim}
+
+\subsection{Linear velocity}
+\begin{verbatim}
+    <joint_type> ::= linear velocity
+    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
+                        (drive_caller) <velocity>
+\end{verbatim}
+
+\subsection{Angular velocity}
+\begin{verbatim}
+    <joint_type> ::= angular velocity
+    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
+                        (drive_caller) <velocity>
+\end{verbatim}
+
+\subsection{Linear acceleration}
+\begin{verbatim}
+    <joint_type> ::= linear acceleration
+    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
+                        (drive_caller) <acceleration>
+\end{verbatim}
+
+\subsection{Angular acceleration}
+\begin{verbatim}
+    <joint_type> ::= angular acceleration
+    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
+                        (drive_caller) <acceleration>
+\end{verbatim}
+
+\subsection{Prismatic}
+\begin{verbatim}
+    <joint_type> ::= prismatic
+    <joint_arglist> ::= 
+        <node_1>
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_1> ] ,
+        <node_2> 
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_2> ] ,    
+\end{verbatim}
+
+\subsection{Drive hinge}
+\begin{verbatim}
+    <joint_type> ::= drive hinge
+    <joint_arglist> ::= 
+        <node_1>
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_1> ] ,
+        <node_2> 
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_2> ] ,
+        (Vec3_tpl_drive_caller) <hinge_rotation>
+\end{verbatim}
+{\em
+    Note: this element is eXperimental. 
+}
+  
+\subsection{Modal}\label{ELEMS-JOINT-MODAL}
+{\em 
+    Note: under development \\
+    Author: Felice Felippone
+}
+\begin{verbatim}
+    <joint_type> ::= modal
+    <joint                    8e-04 -7.720ode> ,
+                        <mode_number> ,
+                        <fem_node_number> 
+                        [ , no damping 
+                          | proportional damping , <damping_coef>
+                          | diag damping , 
+                            <mode_index> , <mode_damping_coef> 
+                            [ , ... ] 
+                        ] , " <fem_data_file> " ,
+                        <interface_nodes_number> ,
+                        <fem_node_label> , (Vec3)<offset> ,
+                            <multibody_label> , (Vec3)<offset>
+			[ , ... ] ,
+                        " <output_file> "
+\end{verbatim}
+The \texttt{reference\_modal\_node} is a special dynamic structural node that
+is required to handle the rigid body motion of the modal joint.
+Its input is completely analogous th that of the \texttt{dynamic} structural
+nodes, see Section~\ref{sec:NODE-STRUCT}, only the keyword \texttt{dynamic} 
+needs be replaced by \texttt{modal}.
+The format of the \texttt{fem\_data\_file} is not documented yet.
+
+
+
+
+\section{Loadable Element}
+The \texttt{loadable} element is a wrapper for a user-defined element that is
+comipled in a separated module and linked run-time.
+The module should provide a comprehensive set of functions with a specified
+API; default functions are available if no special features are required.
+Implementation of modules can be very easy, but a deep knowledge of the
+internals of the code is required if special tasks are required. 
+There are virtually no limits on what a loadable element can do.
+The syntax is simply:
+\begin{verbatim}
+    <normal_arglist> ::= " <module_name> "
+                         [ , name, " <calls> " ] 
+                         [ , <module_data> ]
+\end{verbatim}
+where \texttt{module\_name} is the name of the module file; as soon as the file
+is checked and the binding of the structure with function bindings 
+succeeded, a function called \texttt{read} is invoked, and passed the input
+stream.
+This function is in charge of reading \texttt{module\_data} following the
+general syntax of the input file.
+It is advisable that the function \texttt{read} print some help message
+when the first field of \texttt{module\_data} is the keyword \texttt{help}.
+All the helpers and the high-level structures are available, such as
+drivers, constitutive laws, reference frames.
+Refer to each module for a description (if available) of the features and of
+the input/output format.
+\texttt{module\_name} should be a full path to the module function.
+If the name starts with a slash ``/'', the full path name is used.
+Otherwise the module is searched in the colon-separated list of directories 
+contained in the environment variable \texttt{LD\_LIBRARY}, then among the
+libraries listed in \texttt{/etc/ld.so.cache}, and finally in
+\texttt{/usr/lib} and in \texttt{/lib} (see \texttt{dlopen(3)}).
+At last, it is searched in the current directory, and the extension
+\texttt{.so} is added if missing.
+The string \texttt{calls} represents the name of the structure that contains
+the bindings to the functions.
+The default is \texttt{"calls"}.
+Refer to \texttt{\$(BASE)/mbdyn/base/loadable.h} for a description of the
+functions that are allowed.
+An example module is given in directory
+\begin{verbatim}
+    $(BASE)/modules/module-template/
+\end{verbatim}
+which can be used as a starting point for building a custom module.
+An analogous C/FORTRAN style interface is being planned, at the cost of
+possibly losing some of the fancy C++ features made available by the code.
+
+
+
+
+
+\section{Rotor Element}
+The \texttt{rotor} element is used to associate the aerodynamic elements that
+model the blades of a rotor when some inflow related computations are
+required. By means of different inflow models, and by means of the
+aerodynamic load contributions supplied by the aerodynamic elements, the
+rotor element is able to compute the induced velocity at an arbitrary point on
+the rotor disk. This velocity term on turn is used by the aerodynamic
+elements to determine a better estimate of the boundary conditions.
+The syntax of the \texttt{rotor} element is:
+\begin{verbatim}
+    <normal_arglist> ::= <craft_node> , <rotor_node> ,
+        induced velocity : <ind_velocity>
+\end{verbatim}
+{\em 
+    Note that after the keyword \texttt{induced velocity}, a colon is used as a
+    separator. This will probably be elminated in the future.
+} \\
+There are five models of induced velocity. 
+The first is no induced velocity; the syntax is:
+\begin{verbatim}
+    <induced_velocity> ::= no
+\end{verbatim}
+There is no argument list. This element doesn't compute any induced
+velocity, but still computes the rotor traction for output purposes.
+The others have a fairly common syntax. The forst three are
+\texttt{uniform}, \texttt{glauert} and \texttt{mangler} induced velocity:
+\begin{verbatim}
+    <induced_velocity> ::= { uniform | glauert | mangler } , 
+        <reference_omega> , <reference_radius> 
+        [ , <memory_factor> ]
+\end{verbatim}
+the \texttt{reference\_omega} field is used to decide wether to round off the
+dimensionless parameters if the rotor speed is very low; the
+\texttt{reference\_radius} field is used in the adimensionalisation of the
+rotor related parameters; the \texttt{memory\_factor} parameter is used to
+combine the current reference induced velocity with the induced velocity
+at the previous step. It represents the weight that is given to the value at
+the previous step; no weight means there is no memory of the previous value.
+The last one uses a dynamic inflow model, with inflow states.
+The syntax is:
+\begin{verbatim}
+    <induced_velocity> ::= dynamic inflow , 
+                           <reference_omega> , 
+                           <reference_radius> 
+                           [ , initial value , <const_vel> ,
+                                               <cosine_vel> ,
+                                               <sine_vel> ]
+\end{verbatim}
+The first two entries are the same as for the previous models. 
+
+
+
+
+\section{Miscellaneous}
+There is an extra card that is used to modify the output behaviour of 
+elements, analogous to that of the nodes:
+\begin{verbatim}
+    <card> ::= output : <elem_type> , <elem_list> ;
+    <elem_list> ::= <elem_label>  [ , <elem_list> ]
+\end{verbatim}
+\texttt{elem\_type} is a valid element type that can be read 
+as card name in the \texttt{elements} block.
+module.
+
+
+
+
+
+\chapter{Remarks}
+The input of the program MBDyn is subject to continuous changes, since the
+code is under development.
+This documentation tries to give some insight into the logics that drove
+the implementation of such an input.
+Many things are ``as they are'' only because they were made in a hurry, 
+or because no better way was at hand at the moment they were made.
+In changing the input format and syntax of many parts, an effort 
+will be made to maintain as much backwards compatibility as possible,
+or at least a reliable error check that warns for possible erroneous 
+inputs due to a change in the input format. 
+At present the input of MBDyn already warns for many possible errors 
+and makes as many cross-checks on the consistency of the data. 
+Nearly every warning and error issue shows the line of the input file 
+where the error occurred. 
+Unfortunately, now that multiple files can be scanned by means of the 
+\texttt{include} directive, the file where the error occurred is not clear 
+any more, unless a reliable C++ exception handling is supported by the
+compiler.
+This paper will be subject to changes too, so provide you always have the
+latest one, or better, a release that is up-to-date with the version of the
+code you're running. \\
+For any question or problem, to fix typos, bugs, for comments and
+suggestions, please don't hesitate, contact me:\vspace{10mm}\\
+
+\noindent
+Pierangelo Masarati \\
+Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano \\
+via La Masa 34, 20156 Milano, Italy \\
+Tel.: ++39 02 2399 8309 \\
+Fax: ++39 02 2399 8334 \\
+E-mail: \htmladdnormallink{\emph{masarati@aero.polimi.it}}{masarati@aero.polimi.it} \\
+Web: \htmladdnormallink{http://www.aero.polimi.it/~masarati/}{http://www.aero.polimi.it/~masarati/} \\
+Web: \htmladdnormallink{http://mbdyn.aero.polimi.it/~masarati/MBDyn-input/manual/index.html}{http://mbdyn.aero.polimi.it/~masarati/MBDyn-input/manual/index.html}
+

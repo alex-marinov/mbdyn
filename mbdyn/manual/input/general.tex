@@ -1,0 +1,1147 @@
+\chapter{General}
+The input is divided in blocks. 
+This is a consequence of the fact that almost every module of the code 
+needs data and each module is responsible for its data input. 
+So it is natural to make each module read and interpret its data starting 
+from the input phase.
+Every command (or card) has the following ``grammar'':
+\begin{verbatim}
+    <card> ::= <description> [ : <arglist> ] ;
+\end{verbatim}
+\texttt{arglist} is a (optional) list of arguments, that is driven by the 
+\texttt{description} that identifies the card. 
+The keyword can be made of multiple words separated by spaces or tabs; 
+the extra spaces are skipped\footnote{
+    Anything that makes the ``C'' function \texttt{isspace()} return \texttt{true}
+}, and the match is case insensitive. 
+The arguments are usually separated by commas\footnote{
+    A few exceptions require a colon to separate blocks of arguments;
+    wherever it is feasible, those exceptions will be eliminated in future
+    versions. Those cards will be marked as deprecated.
+}.
+A semicolon ends the card. 
+Many cards allow for extra arguments that assume default values 
+if not supplied by the user. 
+Usually these arguments are at the end of the card and must follow some 
+rules. 
+A check for the existence of extra args is made, and they are read in a 
+fixed sequence.
+When structured arguments like matrices, vectors, or drive callers are
+expected, they are parsed by dedicated functions.
+Anyway, the structured data always follows the rules of the general data. 
+Few exceptions are present, and will be eliminated soon.
+Every data module is surrounded by the control statements \texttt{begin} and
+\texttt{end}:
+\begin{verbatim}
+    begin: <module_name> ;
+        ...
+    end: <module_name> ;
+\end{verbatim}
+The general rules follow.
+
+
+
+\section{Output}
+The program outputs data to a set of files for each simulation.
+The contents of the file is related to the extension of the input file.
+If no input file is explicitly supplied, and input is obtained from 
+\texttt{stdin}, the output file name defaults to ``MBDyn''; otherwise, unless
+the output file name is explicitly set, the name of the input file is used.
+The contents of the output files are described accordingly to the items
+(nodes or elements) that generate them.
+Only a general information file, with extension \texttt{.out}, is described
+here. 
+The file contains general information about the simulation; it is not
+formatted. 
+In detail, for each step the current time, time step, the number of
+iterations and the error are supplied.
+
+
+
+\section{Numeric Values}
+Every time a numeric value is expected, a mathematical expression
+can be used, including variable declaration and assignment (variable names
+and values are kept in memory throughout the input phase and the
+simulation) and simple single-value math functions.
+Named variables and non-named constants are strongly typed; two types are
+available, \texttt{integer} and \texttt{real}.
+Operations account for the type and perform implicit cast when allowed.
+For instance \texttt{1+2.5} returns a \texttt{real} \texttt{3.5}, since one of the 
+two addenda is \texttt{real}, while \texttt{1/3} returns \texttt{0} because 
+the integer division is used.
+An empty field, delimited by a valid separator (a comma or a semicolon,
+depending on whether other arguments are expected or not) returns the
+(program supplied) default value for that field, if supplied by the caller, 
+otherwise the parser automatically defaults to zero.
+Multiple expressions can be used, provided they are enclosed in plain 
+brackets and are separated by semicolons.
+The result of the last expression will be used as the expected numeric value,
+but all the expressions (typically variable declarations and assigments) 
+will be evaluated.
+Example:
+\begin{verbatim}
+    1.
+    (real r = 2.*pi; integer i = 1.; sin(i*r*Time+.87))      
+\end{verbatim}
+Note that the constant \texttt{pi} is always defined
+as the machine $ \pi $, as well as the constants \texttt{e} and 
+\texttt{MAX\_RAND}.
+The variable \texttt{Time} is declared, defined and initialized\footnote{
+    A variable is \texttt{declared} when its name enters the namespace;
+    it is \texttt{defined} when it can be referenced;
+    it is \texttt{initialized} when it is first assigned a value
+} from the beginning of the control data section, and during the solution 
+phase it is assigned the value of the current time. 
+
+\section{Higher Level Structures}
+Every time a higher level structure is expected, it can be
+substituted by a keyword that influences how the structure is read.
+The main data structures are:
+\subsection{3 x 1 vectors}
+\begin{enumerate}
+    \item general case: a sequence of 3 reals, comma-separated.
+    \item null vector: keyword \texttt{null}; the vector is initialised
+    with zeros.
+\end{enumerate}
+As an example, all the following lines define an empty 3 x 1 vector:
+\begin{verbatim}
+    null
+    0.,0.,0.
+    ,,
+\end{verbatim} 
+\subsection{6 x 1 vectors}
+\begin{enumerate}
+    \item general case: a sequence of 6 reals, comma-separated.
+    \item null vector: keyword \texttt{null}; the vector is initialised 
+    with zeros.	
+\end{enumerate}
+\subsection{3 x 3 matrices}
+\begin{enumerate}
+    \item general case: a sequence of 9 reals, comma-separated, which
+    represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
+    \ldots, $ a_{32} $, $ a_{33} $.
+    \item symmetric matrix: keyword \texttt{sym}, followed by a sequence
+    of 6 reals, comma-separated, that represents the upper triangle, 
+    row-oriented coefficients of a symmetric matrix, 
+    e.g. $ a_{11} $, \ldots , $ a_{13} $, $ a_{22} $, $ a_{23} $, $ a_{33} $.
+    \item diagonal matrix: keyword \texttt{diag}, followed by a sequence
+    of 3 reals, comma-separated, that represent the diagonal coefficients 
+    of a diagonal matrix.
+    \item identity matrix: keyword \texttt{eye}; the matrix is initialized
+    as the identity matrix, that is a null matrix except for the diagonal 
+    coefficients that are 1.
+    \item null matrix: keyword \texttt{null}; the matrix is initialised 
+    with zeros.
+\end{enumerate}
+\subsection{3 x 3 rotation matrix}
+\begin{enumerate}
+    \item general case: two vectors that define an orthonormal reference
+    system, each of them preceded by its index in the final rotation 
+    matrix. The first vector is normalized and assumed to represent the
+    desired direction, while the second simply defines the plane the
+    vector that is not given is normal to, e.a.:
+    \begin{verbatim}
+    1, 1.,0.,0., 2, 0.,1.,0.
+    1, (real alpha=pi/6.; 
+       cos(alpha)), sin(alpha), 0., 3, 0.,0.,1.
+    \end{verbatim}
+    the first example represents the identity matrix (no rotation),
+    while the second one describes a rotation of $ \pi/6 $ rad.\ about
+    axis 3.
+    \item identity matrix: keyword \texttt{eye}; the identity matrix, which means
+    no rotation.
+    \item a complete rotation matrix: keyword \texttt{matr} followed by the
+    nine, row-oriented, coefficients, namely $ r_{11} $, $ r_{12} $, \ldots,
+    $ r_{33} $.
+    \item Euler angles: keyword \texttt{euler}, followed by the three
+    values, as output by structural nodes.
+\end{enumerate}
+\subsection{6 x 6 matrices}
+\begin{enumerate}
+    \item general case: a sequence of 36 reals, comma-separated, that
+    represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
+    \ldots, $ a_{65} $, $ a_{66} $.
+    \item ANBA format: keyword \texttt{anba}, followed by 36 reals, 
+    comma-separated, that represent the coefficients of the beam stiffness
+    matrix as generated by the code ANBA, namely the following
+    transformation is performed:
+    \begin{itemize}
+        \item axis $ x $, in the section plane in ANBA notation, 
+	becomes axis 2 in MBDyn notation;    
+	\item axis $ y $, in the section plane in ANBA notation, 
+	becomes axis 3 in MBDyn notation;    
+	\item axis $ z $, the beam axis in ANBA notation, 
+	becomes axis 1 in MBDyn notation;    
+    \end{itemize}
+    \item symmetric matrix: keyword \texttt{sym}, followed by a sequence
+    of 21 reals, comma-separated, that represents the upper triangle,
+    row-oriented coefficients of a symmetric matrix, 
+    e.g. $ a_{11} $, \ldots , $ a_{16} $, $ a_{22} $,
+    \ldots , $ a_{26} $, \ldots, $ a_{66} $.
+    \item diagonal matrix: keyword \texttt{diag}, followed by a sequence
+    of 6 reals, comma-separated, that represent the diagonal coefficients 
+    of a diagonal matrix.
+    \item identity matrix: keyword \texttt{eye}; the matrix is initialized
+    as the identity matrix, that is a null matrix except for the diagonal 
+    coefficients that are 1.
+    \item null matrix: keyword \texttt{null}; the matrix is initialised 
+    with zeros.
+\end{enumerate}
+\subsection{6 x N matrices}
+\begin{enumerate}
+    \item general case: a sequence of 6 x N reals, comma-separated, that
+    represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
+    \ldots, $ a_{6\plbr{N-1}} $, $ a_{6N} $.
+    \item ANBA format: keyword \texttt{anba}, followed by 6 x N reals,
+    comma-separated, that represent the coefficients of the beam stiffness
+    matrix as generated by the code ANBA, namely the following
+    transformation is performed:
+    \begin{itemize}
+        \item axis $ x $, in the section plane in ANBA notation, 
+	becomes axis 2 in MBDyn notation;    
+	\item axis $ y $, in the section plane in ANBA notation, 
+	becomes axis 3 in MBDyn notation;    
+	\item axis $ z $, the beam axis in ANBA notation, 
+	becomes axis 1 in MBDyn notation;    
+    \end{itemize}
+    \item null matrix: keyword \texttt{null}; the matrix is initialised 
+    with zeros.
+\end{enumerate}
+
+
+\section{Input Related Cards} 
+Everywhere in the input file the following statement cards can be used.
+They don't affect the solution or the input of the simulation data in a
+direct manner, because they are handled directly by the parsing object.
+They are:
+
+\subsection{Include}
+The \texttt{include} directive:
+\begin{verbatim}
+    <card> ::= include : " <file_name> " ;
+\end{verbatim}
+where \texttt{file\_name} is a valid filename for the operative system in
+use, that must be enclosed in double quotes (").
+The full (absolute or relative) path must be given if the included file 
+is not in the directory of the including one.
+There is no check for recursive \texttt{include}s, so 
+{\bf the user must take care of recursion}.
+The \texttt{include} directive forces the parser to scan the included file
+\texttt{file\_name} before continuing with the including one.
+This is very useful if, for instance, a big model can be made of many
+small models that are meaningful by themselves. It can be used to
+replicate parts of the model, by simply using parametric labels for
+nodes, elements, reference systems, and setting a bias value before 
+multiple-including the same bulk data file.
+
+\subsection{Set}
+The \texttt{set} directive:
+\begin{verbatim}
+    <card> ::= set : <math_expression> ;
+\end{verbatim}
+This directive simply invokes the math parser to evaluate the expression
+\texttt{math\_expression} and then discards the result. It can be useful
+to declare new variables, or to set the values of existing ones.
+
+\subsection{Remark}
+The \texttt{remark} directive:
+\begin{verbatim}
+    <card> ::= remark : " <remark_string > [ , <math_expression> ] ;
+\end{verbatim}
+This directive simply prints to stdout the string \texttt{remark\_string} and
+optionally evaluates the expression \texttt{math\_expression} in a way that is
+analogous to the \texttt{set} directive.
+It is used to allow rough input debugging, where the file name and line 
+is logged, followed by a message, possibly followed by the evaluation 
+of an expression. 
+Example:
+\begin{verbatim}
+    remark: "square root of 2", sqrt(2);
+\end{verbatim}
+
+\subsection{Reference}
+The \texttt{reference} directive:
+\begin{verbatim}
+    <card> ::= reference : <unique_label> , 
+                           <absolute_position> ,
+                           <absolute_rotation_matrix> ,
+                           <absolute_velocity> ,
+                           <absolute_angular_velocity> ;
+\end{verbatim}
+A \texttt{reference} system is declared and defined.
+It must be given a unique identifier, scanned by the mathparser
+(which means that any regular expression is allowed, and the result is
+rounded up to the nearest unsigned integer).
+The entries \texttt{absolute\_*} are parsed by routines that
+compute absolute (i.e.\ referring to the global frame) entities
+starting from a given entity in a given reference frame.
+These routines are very general, and make intense use of the 
+\texttt{reference} entries themselves, which means that a reference 
+can be recursively defined by means of previously defined 
+\texttt{reference} entries.
+
+\subsubsection{Use of Reference Frames}
+Every time an absolute or a relative geometric or physical entity is
+required, it is processed by a set of routines that allow the entity to be
+expressed in the desired reference frame.
+The following cases are considered:
+\begin{itemize}
+    \item relative position (physical)
+    \item absolute position (physical)
+    \item relative rotation matrix (physical)
+    \item absolute rotation matrix (physical)
+    \item relative velocity (physical)
+    \item absolute velocity (physical)
+    \item reltive angular velocity (physical)
+    \item absolute angular velocity (physical)
+    \item relative arbitrary vector (geometric)
+    \item absolute arbitrary vector (geometric)    
+\end{itemize}
+The caller is responsible for the final interpretation of the input. 
+The caller always supplies the routines a default reference structure
+the input must be referred to.
+So, depending on the caller, the entry can be in the following forms:
+\begin{enumerate}
+    \item \texttt{<entity>}: \\ 
+    the entry is in the default reference frame
+    \item \texttt{reference , <reference\_type> , <entity>}: \\
+    the entry is in \texttt{reference\_type} reference frame, 
+    that is one of \texttt{global}, 
+    \texttt{node} or \texttt{local}.
+    \item \texttt{reference , <reference\_number> , <entity>}: \\
+    the entry is in \texttt{reference reference\_number} reference frame. 
+    This reference frame must be already defined. 
+    % By default, the global reference frame has number 1, so it can't be redefined.    
+\end{enumerate}
+Examples:
+\begin{itemize}
+    \item absolute position:
+    \begin{verbatim}
+    null
+    reference, global, null
+    reference, 8, 1., sin(.3*pi), log(3.)
+    \end{verbatim}
+    \item relative rotation matrix (e.g.\ as required by many constraints and
+    thus referred to a node):
+    \begin{verbatim}
+    eye
+    reference, node, eye
+    reference, 8, 3, 0., 1., 0., 
+                  1, .5, sqrt(3)/2., 0.
+    \end{verbatim}
+\end{itemize}
+Notes: 
+\begin{itemize}
+    \item the global reference frame has position $ \cubr{0, 0, 0} $,
+    rotation matrix \texttt{eye}, velocity $ \cubr{0, 0, 0} $ and angular
+    velocity $ \cubr{0, 0, 0} $.
+    \item if the caller is not related to a node, the reference type
+    \texttt{node} shouldn't be defined. 
+    In this case it is considered equivalent to \texttt{local}.
+    \item when processing a velocity or an angular velocity, the resulting
+    value always accounts for the velocity and angular velocity of the frame
+    the entry is referred to. 
+    As an example, if a node is defined on a reference frame that has
+    non-null angular velocity $ \Omega_R $, and its position 
+    $ x_{input} $ is not in the origin $ X_R $ of the reference frame
+    it is attached to, its global velocity and angular velocity result
+    as the composition of the input values and of those of the reference 
+    frame:
+    \begin{eqnarray*}    
+        w & = & R_R\omega_{input}+\Omega_R \\
+	v & = & R_Rv_{input}+V_R+\Omega_R\times\plbr{R_Rx_{input}}
+    \end{eqnarray*}
+    This, for instance, eases the input of all the parts of a complex system
+    that is moving as a rigid body, by defining a reference frame with the
+    proper initial velocities, and then referring all the entities, e.g.\ the 
+    nodes, to that frame, with null local velocity.
+\end{itemize}  
+{\em
+    Recalling the declaration and the definition of reference frames,
+    a simple reference frame definition, with all the entries referring 
+    by default to the global system, would be:
+    \begin{verbatim}
+    reference: 1000, null,
+                     eye,
+                     null,
+                     null;			 
+    \end{verbatim}
+    which represents a redefinition of the global system.
+    A more verbose, and self-explanatory definition would be:
+    \begin{verbatim}
+    reference: 1000, reference, global, null,
+                     reference, global, eye,
+                     reference, global, null,
+                     reference, global, null;			 
+    \end{verbatim}
+    the reference frame one is referring to must be repeated for all the entries
+    since they must be allowed to refer to whatever frame is preferred 
+    by the user.
+    A fancier definition would be:
+    \begin{verbatim}
+    reference: Rotating_structure, 
+               reference, Fixed_structure, null,
+               reference, Spindle_1, 1, 0.,0.,1., 
+                                     3, 0.,1.,0.,
+               reference, Fixed_structure, null,
+               reference, Spindle_1, 0.,0.,Omega_1;
+    \end{verbatim}
+}
+
+
+\subsection{Hydraulic fluid}\label{sec:HYDRAULIC-FLUID}
+The \texttt{hydraulic fluid} directive:
+\begin{verbatim}
+    <card> ::= hydraulic fluid : <unique_label> , 
+                                 <fluid_type> , <fluid_properties> ;
+\end{verbatim}
+A \texttt{hydraulic fluid} is declared and defined.
+It is stored for later retrieval to be used in hydraulic elements,
+see Section~\ref{sec:HYDRAULIC-ELEMENT}.
+The fluid is identified by a numerical label. 
+The \texttt{fluid\_type}s, with the related \texttt{fluid\_properties}, are:
+
+\subsubsection{Uncompressible}
+\begin{verbatim}
+    <fluid_type> ::= uncompressible
+    <fluid_properties> ::= [ density , <density> ]
+                           [ , viscosity , <viscosity> ]
+                           [ , pressure , <pressure > ]
+                           [ , temperature , <temperature> ]
+\end{verbatim}
+
+\subsubsection{Linearly compressible}
+\begin{verbatim}
+    <fluid_type> ::= linear compressible
+    <fluid_properties> ::= [ density , <ref_density> , 
+                                       <beta> , 
+                                       <ref_pressure> ]
+                           [ , viscosity , <viscosity> ]
+                           [ , temperature , <temperature> ]
+\end{verbatim}
+
+\subsubsection{Linearly compressible, with thermal dependency}
+\begin{verbatim}
+    <fluid_type> ::= linear thermal compressible
+    <fluid_properties> ::= [ density , <ref_density> , 
+                                       <beta> , 
+                                       <ref_pressure> ,
+                                       <alpha> ,
+                                       <ref_temperature> ]
+                           [ , viscosity , <viscosity> ]
+\end{verbatim}
+
+\subsubsection{Super (linearly compressible, with thermal dependency)}
+\begin{verbatim}
+    <fluid_type> ::= x-super
+    <fluid_properties> ::= [ density , <ref_density> , 
+                                       <beta> , 
+                                       <ref_pressure> ,
+                                       <alpha> ,
+                                       <ref_temperature> ]
+                           [ , viscosity , <viscosity> ]
+\end{verbatim}
+according to equation
+\begin{displaymath}
+	\matr{ll}{
+		\rho \ = \ \rho_0 + \rho_{ref}\cfrac{1}{2}\plbr{
+			1 + \llk{tanh}\plbr{a\plbr{p-p_{ref}}}
+		} & p < p_{ref} \\
+		+= \ \cfrac{p-p_{ref}}{\beta} & p > p_{ref}
+	}
+\end{displaymath}
+\emph{Note: highly experimental}
+
+\subsubsection{AMESim's compressible fluid, with saturation}
+\begin{verbatim}
+    <fluid_type> ::= x-amesim
+    <fluid_properties> ::= [ density , <ref_density> , 
+                                       <beta> , 
+                                       <ref_pressure> ,
+                                       <alpha> ,
+                                       <ref_temperature> , ]
+                           [ viscosity , <viscosity> , ]
+                           <psat>
+\end{verbatim}
+where \texttt{psat} is the saturation pressure, according to equation
+\begin{displaymath}
+	\matr{ll}{
+		\rho \ = \ \rho_0 \e{\cfrac{p-p_0}{\beta}} &
+		p > p_{sat} \\
+		\rho \ = \ \rho_0 \e{1000\cfrac{p-p_0}{\beta}} &
+		p < p_{sat}
+	}
+\end{displaymath}
+
+
+
+\section{Node Degrees of Freedom}
+A node in MBDyn is nothing but an entity that owns degrees of freedom and
+can lend them to other entities. 
+Usually elements access nodal degrees of freedom through well-defined
+interfaces, at a high level. 
+But in a few cases, nodal degrees of freedom must be accessed
+at a very low level, with the bare knowledge of the node label,
+the internal number of the degree of freedom, and the order 
+(algebraic or differential, if any).
+The data that allows an entity to track a nodal degree of freedom is read as
+follows:
+\begin{verbatim}
+    <node_dof> :: = <node_label> , 
+                    <node_type> 
+                    [ , <dof_number> ] ,
+                    [ { algebraic | differential } ]
+\end{verbatim}
+In case an algebraic node is addressed (e.g.\ a pressure node), 
+the \texttt{dof\_order} field is not required.
+The label and the type of the node are used to track the pointer to the
+desired node. 
+If the node is not scalar, the \texttt{dof\_number} field is required.
+Finally, the order of the degree of freedom is checked, if required.
+It must be one of \texttt{algebraic} or \texttt{differential}.
+If the \texttt{dof\_number} degree of freedom is differential, both
+of them can be addressed, while in case of an algebraic node there is no
+choice, only the \texttt{algebraic} order can be addressed.
+The \texttt{dof\_number} must range between 1 and the number of {\em dof}s that
+belong to the node.
+The second choice is used in those cases where the order is not meaningful,
+as for instance when the node is used to address an equation (abstract
+forces, discrete control elements). 
+In those cases, the contribution to the equation is added regardless 
+of the order of the degree of freedom.
+
+\section{Drives and Drive Callers}
+Everytime some entity can be ``driven'', that is a value can be
+expressed as depedent on some ``external'' input, an object of the class 
+\texttt{DriveCaller} is created. This requires the input of the properties of
+such an object. 
+The family of the \texttt{DriveCaller} object is very populated, 
+and should require a chapter.
+The type of the \texttt{DriveCaller} is declared as follows:
+\begin{verbatim}
+    <drive_caller> ::= <drive_caller_type> , <arglist>
+\end{verbatim}    
+\texttt{arglist} is a list of arguments separated by commas.
+As an exception, a constant \texttt{DriveCaller} (that behaves exactly as a
+numerical constant with little or no overhead depending on the optimizing
+capability of the compiler) is assumed when a numeric value is used instead
+of a keyword.
+The \texttt{drive\_caller\_type}s are:
+
+\subsection{Drives}
+
+\subsubsection{Null drive}
+\begin{verbatim}
+    <drive_caller> ::= null
+\end{verbatim}
+Zero valued.
+
+\subsubsection{One drive}
+\begin{verbatim}
+    <drive_caller> ::= one
+\end{verbatim}
+Always 1.
+
+\subsubsection{Constant drive}
+\begin{verbatim}
+    <drive_caller> ::= [ const , ] <const_coef>                    
+\end{verbatim}
+The keyword \texttt{const} can be omitted thus highlighting the real nature
+of this driver, that is completely equivalent to a constant, static real
+value.
+
+\subsubsection{Time drive}
+\begin{verbatim}
+    <drive_caller> ::= time
+\end{verbatim}
+Yields the current time.
+  
+\subsubsection{Linear drive}
+\begin{verbatim}
+    <drive_caller> ::= linear , <const_coef> , 
+                                <slope_coef>
+\end{verbatim}
+
+\subsubsection{Parabolic drive}
+\begin{verbatim}
+    <drive_caller> ::= parabolic , <const_coef> , 
+                                   <linear_coef> , 
+                                   <parabolic_coef>
+\end{verbatim}
+
+\subsubsection{Cubic drive}
+\begin{verbatim}
+    <drive_caller> ::= cubic , <const_coef> , 
+                               <linear_coef> ,
+                               <parabolic_coef>, 
+                               <cubic_coef>
+\end{verbatim}
+
+\subsubsection{Step drive}
+\begin{verbatim}
+    <drive_caller> ::= step , <initial_time> , 
+                              <step_value> ,
+                              <initial_value>
+\end{verbatim}    
+
+\subsubsection{Double step drive}
+\begin{verbatim}
+    <drive_caller> ::= double step , <initial_time> , 
+                                     <final_time> ,
+                                     <step_value> , 
+                                     <initial_value>
+\end{verbatim}
+
+\subsubsection{Ramp drive}
+\begin{verbatim}
+    <drive_caller> ::= ramp , <slope> , 
+                              <initial_time> ,
+                              <final_time> , 
+                              <initial_value>
+\end{verbatim}
+  
+\subsubsection{Double ramp drive}
+\begin{verbatim}
+    <drive_caller> ::= double ramp , <asc_slope> , 
+                                     <asc_initial_time> , 
+                                     <asc_final_time> , 
+                                     <desc_slope> , 
+                                     <desc_initial_time> , 
+                                     <desc_final_time> , 
+                                     <initial_value>
+\end{verbatim}
+
+\subsubsection{Piecewise linear drive}
+\begin{verbatim}
+    <drive_caller> ::= piecewise linear , <num_points> ,
+                                          <point> , <value> [ , ... ]
+\end{verbatim}
+Piecewise linear function; the first and the last point/value pairs are
+extrapolated in case a value beyond the extremes is required.
+Linear interpolation between pairs is used.
+
+\subsubsection{Sine drive}
+\begin{verbatim}
+    <drive_caller> ::= sine , <initial_time> ,
+                              <pulsation> ,
+                              <amplitude> ,
+                              <number_of_cycles> , 
+                              <initial_value>
+\end{verbatim}
+the value of \texttt{number\_of\_cycles} determines the behavior of the
+drive. If it is positive, \texttt{number\_of\_cycles}$-1/2$ oscillations are
+performed. If it is equal to zero, the oscillations never end. If it is
+negative, the oscillations end after 
+\texttt{number\_of\_cycles}$-3/4$ cycles at the top of the sine, with null
+tangent.
+
+\subsubsection{Cosine drive}
+\begin{verbatim}
+    <drive_caller> ::= cosine , <initial_time> ,
+                                <pulsation> ,
+                                <amplitude> ,
+                                <number_of_cycles> , 
+                                <initial_value>
+\end{verbatim}
+this drive actually computes a function of the type $ 1-\llk{cos}\plbr{x} $.
+The value of \texttt{number\_of\_cycles} determines the behavior of the
+drive. If it is positive, \texttt{number\_of\_cycles} oscillations are
+performed. If it is equal to zero, the oscillations never end. If it is
+negative, the oscillations end after
+\texttt{number\_of\_cycles}$-1/2$ cycles at the top of the cosine, with null
+tangent.   
+
+\subsubsection{Frequency sweep drive}
+\begin{verbatim}
+    <drive_caller> ::= frequency sweep , <initial_time> ,
+                                         <pulsation_drive> ,
+                                         <amplitude_drive> ,
+                                         <initial_value> ,
+                                         <final_time> ,
+                                         <final_value>
+\end{verbatim}
+this drive recursively calls two other drives that supply the pulsation 
+and the amplitude of the oscillation. Any drive can be used.
+
+\subsubsection{Exponential drive}
+\begin{verbatim}
+    <drive_caller> ::= exponential , <amplitude_value> ,
+                                     <time_constant_value> ,
+                                     <initial_time> ,
+                                     <initial_value>
+\end{verbatim}
+
+\subsubsection{Random drive}
+\begin{verbatim}
+    <drive_caller> ::= random , <amplitude_value> ,
+                                <mean_value> ,
+                                <initial_time> ,
+                                <final_time> 
+                       [ , steps , <steps_to_hold_value>]
+                       [ , seed , { time | <seed_value>} ]
+\end{verbatim}
+the first optional entry, preceeded by the keyword \texttt{steps}, sets the
+number of steps a random value must be held before generating a new
+random number. The second optional entry, preceeded by the keyword
+\texttt{seed}, sets the new seed for the random number generator. A numeric
+value can be used, or the keyword \texttt{time} uses the current time from
+the internal clock. A given seed can be used to ensure that two
+simulations use exactly the same random sequency (concurrent settings 
+are not managed, so it is not very reliable).
+
+\subsubsection{File drive}
+A family of file drivers is being planned.
+At present only a multiple-valued, constant time-step file drive is
+implemented.
+The DriveCaller is attached to a file drive object that must be declared
+and defined in the \texttt{drivers} section of the input file 
+(see Section~\ref{sec:DRIVERS}).
+\begin{verbatim}
+    <drive_caller> ::= file , <drive_label> [ , <column_number> = 1 ]
+\end{verbatim}
+\texttt{drive\_label} is the label of the drive the caller is attached to, while
+\texttt{column\_number} is the number of the column the caller refers to.
+
+\subsubsection{String drive}
+\begin{verbatim}
+    <drive_caller> ::= string , " <expression_string> "
+\end{verbatim}
+\texttt{expression\_string} is a string, delimited by double quotes.
+It is parsed by the math parser every time the driver is invoked.
+The valiable \texttt{Time} is kept up to date and can be used in the 
+string to compute the return value.
+Another variable, \texttt{Var}, is set to the value provided by the caller
+in case the drive is called with an explicit argument.
+
+\subsubsection{Dof drive}
+\begin{verbatim}
+    <drive_caller> ::= dof , (node_dof) <driving_dof> ,
+                             <func_drive>
+\end{verbatim}
+a \texttt{node\_dof}, namely the reference to a degree of freedom of a node,
+is read. 
+Then a recursive call to a drive data is read. 
+The driver returns the value of the \texttt{func\_drive} using the value of the 
+\texttt{node\_dof} as input instead of the time. 
+This can be used as a sort of explicit feedback, to implement fancy
+springs (where a force is driven through a function by the displacement
+of the node it is applied to) or an active control system. 
+Refer to the description of a \texttt{node\_dof} entry for further details.
+
+\subsubsection{Array drive}
+\begin{verbatim}
+    <drive_caller> ::= array , <num_drives> ,
+                               <drive_caller> 
+                               [ , <drive_caller> [ , ... ] ]
+\end{verbatim}
+this is simply a front-end for the linear combination of \texttt{num\_drives} 
+normal drives. \\
+\texttt{num\_drives} must be at least 1, in which case a simple drive
+caller is created. 
+Otherwise an array of drive callers is created and at every call their value 
+is added to give the final value of the array drive.
+
+\subsection{Template drive}
+A particular \texttt{DriveCaller} is the template drive caller. This is made
+of a constant entity that multiplies a conventional drive to give a drive
+entity of dimensionality higher than that of a simple scalar drive.
+there are two types of template drive callers, the \texttt{single} template 
+drive caller, described above, and the \texttt{array} template drive caller, 
+that is nothing but the sum of an array of \texttt{single}
+template drive callers. They are entered as follows:
+\begin{verbatim}
+    <tpl_drive_caller> :: = {
+            single , <entity> , <drive_caller> 
+        |
+            array , <num_template_drive_callers> ,
+                    <entity> , <drive_caller>
+                    [ , <entity> , <drive_caller> [ , ... ] ]
+        }
+\end{verbatim}
+where \texttt{<entity>} is a constant of the expected type (scalar, 3 x 1 vector,
+6 x 1 vector are the types currently defined, but, since a C++ template has
+been used, the implementation of other ones is straightforward). In case of
+scalar values, the template reverts by default to a normal drive caller,
+such that no overhead is added.
+At least 1 drive caller is expected. 
+If \texttt{num\_template\_drive\_callers} is exactly 1, only a single
+template drive caller is actually costructed, thus avoiding the overhead 
+related to the handling of the drive caller array.    
+
+
+
+\section{Shapes}
+The \texttt{shape} entities are objects that return a value depending on one
+(or two, for 2D shapes) dimensionless abscissa, ranging $ \sqbr{-1,1} $.
+At present, only 1D shapes are used, by aerodynamic elements.
+A \texttt{shape} input format is:
+\begin{verbatim}
+    <shape_1D> ::= <shape_type> , <shape_arglist>
+\end{verbatim}
+The shapes currently available are:
+\begin{enumerate}
+    \item \texttt{const}
+    \begin{verbatim}
+    <shape_arglist> ::= <const_value>
+    \end{verbatim}
+    \item \texttt{linear}
+    \begin{verbatim}
+    <shape_arglist> ::= <value_at_-1> , 
+                        <value_at_1>
+    \end{verbatim}
+    \item \texttt{parabolic}
+    \begin{verbatim}
+    <shape_arglist> ::= <value_at_-1> , 
+                        <value_at_0> , 
+                        <value_at_1>
+    \end{verbatim}
+\end{enumerate}
+This form of input has been chosen since, being the shapes mainly used to
+interpolate values, it looks more ``natural'' to insert the mapping values
+at characteristic points.
+
+\section{Constitutive Laws}
+Everytime a ``deformable'' entity requires a constitutive law, a template
+constitutive law is read. This has been implemented by means of the C++
+templates in order to allow the definition of a general constitutive law
+when possible. The ``deformable elements at present are \texttt{rod}s, 1D,
+\texttt{deformable hinge}s and \texttt{deformable displacement hinge}s, 3D,  
+and \texttt{beam}s, 6D.
+The \texttt{beam} element that uses the 6D template constitutive law has not been
+implemented yet.
+Some constitutive laws are meaningful only when related to some precise
+dimension. 
+Table~\ref{tab:CONST-LAW-DIM} shows the availability of each constitutive law.
+
+\begin{table}[h]
+    \newlength{\constlawwidth}
+    \setlength{\constlawwidth}{70mm}
+    \centering
+    \caption{\em Constitutive Laws Availability}\label{tab:CONST-LAW-DIM}
+    \begin{tabular}{l|c|c|c} 
+        \hline
+        Constitutive Law & 1D & 3D & 6D \\ 
+	\hline
+	linear elastic,  linear elastic isotropic              & x & x & x \\
+	linear elastic generic                                 & x & x & x \\
+	linear elastic generic axial torsion coupling          &   &   & x \\
+	log elastic                                            & x &   &   \\
+	double linear elastic                                  & x & x &   \\
+	isotropic hardening elastic                            & x & x & x \\
+	linear viscous, linear viscous isotropic               & x & x & x \\
+	linear viscous generic                                 & x & x & x \\
+	linear viscoelastic, linear viscoelastic isotropic     & x & x & x \\
+	linear viscoelastic generic                            & x & x & x \\
+	double linear viscoelastic                             & x & x &   \\
+	turbulent viscoelastic                                 & x &   &   \\
+	GRAALL damper                                          & x &   &   \\
+	\hline
+    \end{tabular}
+\end{table}
+
+\noindent 
+The contitutive laws are entered as follows:
+\begin{verbatim}
+    <const_law> ::= <specific_const_law>                        
+            [ , prestress, (entity) <prestress>
+            [ , prestrain, (entity_tpl_driver) <prestrain> ] ]
+    <specific_const_law> ::= <const_law_name> , 
+                             <const_law_data>
+\end{verbatim}
+where \texttt{const\_law\_name} is the name of the constitutive law and
+\texttt{const\_law\_data} depend on the specific constitutive law. 
+The following fields, the type of which depends on the dimension of the
+constitutive law, usually are optional, under the assumption that the
+constitutive law is the last field in a card or that any ambiguity can be
+avoided.
+The data specific to the constitutive laws currently available must be
+entered as follows:
+
+
+\subsubsection{Linear elastic, linear elastic isotropic}
+\begin{verbatim}
+    <specific_const_law> ::= linear elastic [ isotropic ] , 
+                             (scalar) <stiffness>
+\end{verbatim}
+the isotropic stiffness coefficient
+  
+  
+\subsubsection{Linear elastic generic}
+\begin{verbatim}
+    <specific_const_law> ::= linear elastic generic ,  
+                             (derivative_of_entity) <stiffness>
+\end{verbatim}
+the stiffness matrix. In case of 1D, the type is scalar, while, in case of 
+n x 1 vectors, the type is the corrisponding n x n matrix.
+
+\subsubsection{Linear elastic generic axial torsion coupling}
+\begin{verbatim}
+    <specific_const_law> ::= 
+        linear elastic generic axial torsion coupling ,  
+            (derivative_of_entity) <stiffness> ,
+            (scalar) <coupling_coefficient>
+\end{verbatim}
+this is defined only for 6 x 1 vectors, where the torsion stiffness,
+coefficient $ a_{44} $ in the stiffness matrix, depends linearly on 
+the axial strain, $ \varepsilon_1 $, by means of 
+\texttt{coupling\_coefficient}.
+  
+\subsubsection{Log elastic}
+\begin{verbatim}
+    <specific_const_law> ::= log elastic ,
+                             (derivative_of_entity) <stiffness>      
+\end{verbatim}
+this is defined only for scalars. The force is defined as:
+\begin{displaymath}
+    f \ = \ \texttt{stiffness} \ \llk{log}\plbr{1+\varepsilon}
+\end{displaymath}
+  
+\subsubsection{Double linear elastic}
+\begin{verbatim}
+    <specific_const_law> ::= double linear elastic ,
+                             (scalar) <stiffness_1> ,
+                             (scalar) <upper_strain> ,
+                             (scalar) <lower_strain> ,
+                             (scalar) <stiffness_2>
+\end{verbatim}
+this is defined for scalar and 3 x 1 vectors. In the scalar case the
+meaning of the entries is straightforward, while in case of 3 x 1 vectors,
+the constitutive law is isotropic but in the local direction 3, where, in
+case of strain out of the upper or lower bound, the \texttt{stiffness\_2} is
+used.
+
+\subsubsection{Isotropic hardening elastic}
+\begin{verbatim}
+    <specific_const_law> ::= isotropic hardening elastic ,
+                             (scalar) <stiffness> ,
+                             (scalar) <reference_strain>
+\end{verbatim}
+this constitutive law is defined as follows:
+\begin{displaymath}
+    f \ = \ \texttt{stiffness} \ \frac{
+        \alpha\shbr{\varepsilon}^2
+    }{
+        1+\alpha\shbr{\varepsilon}^2
+    }\varepsilon
+\end{displaymath}
+where $ \alpha=3/\shbr{\texttt{reference\_strain}}^2 $. The resulting
+constitutive law, in the scalar case, is somewhat soft when
+$ \varepsilon $ is smaller than \texttt{reference\_strain}, while it grows to
+quasi-linear for higher $ \varepsilon$s
+
+\subsubsection{Linear viscous, linear viscous isotropic}
+\begin{verbatim}
+    <specific_const_law> ::= linear viscous [ isotropic ] , 
+                             (scalar) <viscosity_coefficient>
+\end{verbatim}
+the linear viscous coefficient. \\
+{\em 
+    Note: this constitutive law doesn't require any prestrain template
+    drive caller.
+}
+  
+\subsubsection{Linear viscous generic}
+\begin{verbatim}
+    <specific_const_law> ::= linear viscous generic , 
+                             (derivative_of_entity) <viscosity_matrix>
+\end{verbatim}
+the linear viscous matrix. \\
+{\em 
+    Note: this constitutive law doesn't require any prestrain template
+    drive caller.
+}
+  
+\subsubsection{Linear viscoelastic, linear viscoelastic isotropic}
+\begin{verbatim}
+    <specific_const_law> ::= linear viscoelastic [ isotropic ] ,
+                             (scalar) <stiffness> ,
+                             { (scalar) <viscosity_coefficient>
+                             | proportional, (scalar) <factor> }
+\end{verbatim}
+the isotropic stiffness and viscosity coefficients
+  
+\subsubsection{Linear viscoelastic generic}
+\begin{verbatim}
+    <specific_const_law> ::= linear viscoelastic generic ,  
+                             (derivative_of_entity) <stiffness> ,
+                             { (derivative_of_entity) <viscosity_matrix> 
+                             | proportional, (scalar) <factor> }
+\end{verbatim}
+the linear stiffness and viscosity matrices
+  
+\subsubsection{Double linear viscoelastic}
+\begin{verbatim}
+    <specific_const_law> ::= double linear elastic ,
+                             (scalar) <stiffness_1> ,
+                             (scalar) <upper_strain> ,
+                             (scalar) <lower_strain> ,
+                             (scalar) <stiffness_2> ,
+                             (scalar) <viscosity_coefficient>
+\end{verbatim}
+this is analogous to the \texttt{double linear elastic} constitutive law,
+except for the isotropic viscosity term.
+  
+\subsubsection{Turbulent viscoelastic}
+\begin{verbatim}
+    <specific_const_law> ::= turbulent viscoelastic ,
+                             (scalar) <stiffness> ,
+                             (scalar) <parabolic_viscous_coefficient>
+                             [ , (scalar) <treshold> 
+                                 [ , (scalar) <linear_viscous_coefficient> ] ]
+\end{verbatim}
+the constitutive law has the form:
+\begin{displaymath}
+    f \ = \ \texttt{stiffness} \ \varepsilon + k \ \dot{\varepsilon}
+\end{displaymath}
+where:
+\begin{displaymath}
+    k = \lcubr{\matr{lcr}{
+        \texttt{linear\_viscous\_coefficient} & & 
+            \shbr{\dot{\varepsilon}} \leq \texttt{treshold} \\
+        \texttt{parabolic\_viscous\_coefficient} & &
+            \shbr{\dot{\varepsilon}} > \texttt{treshold}
+    }}
+\end{displaymath}
+if \texttt{treshold} is null, or not defined, the constitutive law is always
+parabolic. If the \texttt{linear\_viscous\_coefficient} is not defined, it is
+computed based on \texttt{parabolic\_viscous\_coefficient} and on 
+\texttt{treshold} to give a continuous force curve (with discontinuous slope).
+Otherwise, it can be set by the user to give a discontinuous force curve,
+as observed in some fluids at intermediate Reynolds number.
+
+\subsubsection{GRAALL damper}
+This is a very experimental constitutive law, based on a nonlinear model
+for a hydraulic damper to be used in landing gear modelling.
+Basically, it requires the user to supply the name of the GRAALL-style 
+input file with damper data.
+It will be documented as soon as it reaches an appreciable level of
+stability.
+
+
+
+\section{Authentication Methods}
+Some authentication methods are defined and made available to specific
+program modules; they are used to authenticate before accessing some
+resources of the program while it is running.
+The syntax is:
+\begin{verbatim}
+    <authentication_method> ::= <method> [ , <specific_data> ]
+\end{verbatim}
+Authentication methods in general expect some authentication tokens to be
+input.
+Usually a user name and a password are required. \\
+{\em 
+    Note: no encryption is used when communicating, so the authentication
+    methods are very rough and should not be considered completely reliable.
+    Secure Socket connetion or other SSL-like communication protocol may be
+    considered in the future.
+} \\
+Available methods:
+\subsubsection{No authentication}
+\begin{verbatim}
+    <authentication_method> ::= no auth
+\end{verbatim}
+
+\subsubsection{Password}
+\begin{verbatim}
+    <authentication_method> ::= password ,
+        user , " <user_name> " ,
+        credentials , { prompt | " <user_cred> " }
+\end{verbatim}
+In case the keyword \texttt{prompt} is given as credentials, the user is
+prompted for a password.
+
+\subsubsection{PAM (Pluggable Authentication Modules)}
+\begin{verbatim}
+    <authentication_method> ::= pam 
+        [ , user , " <user_name> " ]
+\end{verbatim}
+The {\em Linux-PAM} Pluggable Authentication Modules can be used to
+authenticate a user. 
+If no user name is provided, the effective user id, as proovided by the 
+\texttt{geteuid()} system function, is used to retrieve the username of the
+owner of mbdyn process.
+the \texttt{user} nust be valid. 
+The authentication is performed through a system-dependent \texttt{pam}
+configuration file.
+No checks on the validity of the account or on the permission of opening a
+session are made; account, session and password changes should be explicitly
+denied to \texttt{mbdyn} to avoid possible security breaks (see the following
+example).
+The interested reader should consult the documentation that comes with the
+package, try for instance
+\begin{verbatim}
+    http://parc.power.net/morgan/Linux-PAM/index.html
+\end{verbatim}
+An example is provided with the pachage, in  \texttt{/etc/pam.d/mbdyn}, reading:
+\begin{verbatim}
+    ### use either of the following:
+    auth       required     /lib/security/pam_unix_auth.so
+    # auth       required     /lib/security/pam_pwdb.so
+    #
+    ### no account, session or password allowed
+    account    required     /lib/security/pam_deny.so
+    session    required     /lib/security/pam_deny.so
+    password   required     /lib/security/pam_deny.so
+\end{verbatim}
+which allows authentication by using standard Un*x or \texttt{libpwdb} based
+authentication.
+
+
+
+
+\section{Miscellaneous}
+Finally there are some miscellaneous points:
+\begin{itemize}
+    \item (UN*X systems) Enviroment variables whose name starts with MBDYN may
+    be defined and passed to an execution of the mbdyn command.
+    The following are recognised at present:
+  
+    \begin{enumerate}
+  
+        \item \texttt{MBDYNVARS=<expr\_list>}
+	where \texttt{expr\_list} is a series of mathematical expressions
+	separated by semicolons. 
+	They are parsed and evaluated; if variables are declared, they are
+	added to the symbol table to be used durig the whole execution of the
+	program.
+    
+        \item \texttt{MBDYN\_<type>\_<name>=<value>},
+	where \texttt{type} is a legal mbdyn type (\texttt{integer} or \texttt{real}),
+	\texttt{name} is a legal symbol name and \texttt{value} is a legal
+	mathematical expression.
+    
+    \end{enumerate}
+    
+    \item Newlines and indentations are not meaningful. But good indentation
+    habits can lead to better and more readable input files.
+    
+    \item Everything that follows the character \texttt{`\#'} is considered a
+    remark, and is discarded until the end of the line. 
+    This can occur everywhere in the file, even inside a math expression 
+    (if any problems occur, please let me know, because chances are 
+    it is a bug!)
+    
+    \item A new style for comments has been introduced, resembling the 
+    C programming language style: everything comprised between the marks 
+    \begin{verbatim}
+    /*
+        useful comments make input files readable!
+    */
+    \end{verbatim}
+    is regarded as a remark. 
+    This can happen everywhere in the text {\bf except} in the middle 
+    of a keyword.
+    
+    \item (UN*X systems) Whenever a file name is required, the shell-like
+    syntax for home directories (i.e.\ \verb1~/filename1
+    or \verb1~user/filename1 is automatically resolved if legal [user and]
+    filename values are inserted.
+
+    \item The \texttt{license} and the \texttt{warranty} commands
+    respectively show the license and the warranty statement under 
+    which the code is released on the standard output.
+    They do not affect the simulation.
+    
+\end{itemize}  
+ 
