@@ -372,13 +372,6 @@ DofIter()
 
    /* fine lettura elementi */     
    
-   
-   /*
-    * Qui non deve leggere piu' niente, 
-    * quindi chiude e apre i files di output
-    */
-   HP.Close();
-   
 #ifdef __HACK_BEAM__
    for (unsigned int i = 0; i < ElemData[Elem::BEAM].iNum; i++) {
       Beam* p = (Beam*)ElemData[Elem::BEAM].ppFirstElem[i]->pGet();

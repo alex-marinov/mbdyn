@@ -304,7 +304,7 @@ void Solver::Run(void)
 		}
 		sprintf(sNewOutName,"%s.%.*d", sOutName, iRankLength, MyRank);
 
-		DEBUGLCOUT(MYDEBUG_MEM, "creating parallel DataManager" 
+		DEBUGLCOUT(MYDEBUG_MEM, "creating parallel SchurDataManager" 
 				<< std::endl);
 		
 		SAFENEWWITHCONSTRUCTOR(pSDM,
@@ -315,6 +315,7 @@ void Solver::Run(void)
 				sInputFileName,
 				sNewOutName,
 				eAbortAfter == AFTER_INPUT));
+		
 		pDM = pSDM;
 
 	} else {
@@ -334,6 +335,8 @@ void Solver::Run(void)
 	}
 #endif /* USE_MPI */
 
+	HP.Close();
+	
    	/* Si fa dare l'std::ostream al file di output per il log */
    	std::ostream& Out = pDM->GetOutFile();
 
