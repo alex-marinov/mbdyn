@@ -23,6 +23,8 @@ MBDyn 1.2-Engineering
 		  and orientation with respect to the reference node
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
+		- the syntax of most nodes changed; backward compatibility
+		  is preserved; if run with -PP warnings are issued
 	Bug fixes:
 		- spherical joint did not log the reaction forces
 		  in the element's frame (structural node 2).
