@@ -110,7 +110,7 @@ AC_PREREQ(2.13)dnl Required Autoconf version
 AM_CONFIG_HEADER(include/mbconfig.h)
 
 top_builddir=`pwd`
-AC_SUBST(top_builddir)dnl
+dnl AC_SUBST(top_builddir)dnl
 
 dnl ----------------------------------------------------------------
 dnl Checks for args.
