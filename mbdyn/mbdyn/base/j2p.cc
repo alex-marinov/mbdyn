@@ -85,7 +85,7 @@ void Elem2Param::Bind(const Elem* pEl, unsigned int i)
 /* Contributo del nodo al file di restart */
 std::ostream& Elem2Param::Restart(std::ostream& out) const
 {
-   return out << "Elem2Param is not implemented yet" << std::endl;
+   return out << "# Elem2Param is not implemented yet" << std::endl;
 }
 
 
@@ -96,6 +96,13 @@ void Elem2Param::SetDofValue(const doublereal& /* dValue */ ,
 			     unsigned int /* iOrder */)
 {
    NO_OP;
+}
+
+void
+Elem2Param::SetValue(VectorHandler& /* X */,
+		VectorHandler& /* XP */ ) const
+{
+	dX = dGetX();
 }
 
 /* Elem2Param - end */

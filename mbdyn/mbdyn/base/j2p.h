@@ -64,6 +64,8 @@ class Elem2Param : public ParameterNode {
    virtual void SetDofValue(const doublereal& dValue,
 			    unsigned int iDof, 
 			    unsigned int iOrder = 0);
+
+   virtual void SetValue(VectorHandler&, VectorHandler&) const;
 };
 
 

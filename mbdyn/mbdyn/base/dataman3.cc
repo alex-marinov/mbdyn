@@ -48,6 +48,7 @@
 #include <presnode.h>
 #include <readclaw.h>
 #include <j2p.h>
+#include <sah.h>
 
 class NotAllowed {};
 
@@ -1552,6 +1553,43 @@ void DataManager::ReadNodes(MBDynParser& HP)
 				       Elem2Param(uLabel, 
 						  &DummyDofOwner, 
 						  fOut));
+
+	     } else if (HP.IsKeyWord("sample" "and" "hold") ||
+			     HP.IsKeyWord("sample'n'hold")) {
+
+		DEBUGLCOUT(MYDEBUG_INPUT, "parameter node " << uLabel 
+			   << "is a sample-and-hold" << std::endl);
+		
+		ScalarDof SD(ReadScalarDof(this, HP, 0));
+		HP.PutKeyTable(K);
+
+		DriveCaller *pDC = NULL;
+		SAFENEWWITHCONSTRUCTOR(pDC, TimeDriveCaller,
+				TimeDriveCaller(&DrvHdl));
+
+		doublereal dSP = HP.GetReal();
+		if (dSP <= 0.) {
+			std::cerr << "illegal sample period for SampleAndHold("
+				<< uLabel << ") at line " << HP.GetLineData()
+				<< std::endl;
+			THROW(ErrGeneric());
+		}
+		
+		flag fOut = fReadOutput(HP, Node::PARAMETER);
+		
+		/* allocazione e creazione */
+		int i = NodeData[Node::PARAMETER].iNum
+		  -iNumTypes[Node::PARAMETER]-1;
+		ppN = NodeData[Node::PARAMETER].ppFirstNode+i;
+		
+		SAFENEWWITHCONSTRUCTOR(*ppN, 
+				       SampleAndHold,
+				       SampleAndHold(uLabel, 
+						       &DummyDofOwner,
+						       SD.pNode,
+						       pDC,
+						       dSP,
+						       fOut));
 		
 	     /* strain gage */
 	     } else if (HP.IsKeyWord("straingage")) {
