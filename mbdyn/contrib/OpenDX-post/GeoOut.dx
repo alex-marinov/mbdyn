@@ -1,3 +1,4 @@
+# Preamble
 object "TriadLabels" class array type int rank 1 shape 1 items 3 data follows
                1        
                10
@@ -7,9 +8,6 @@ object "Beam2Connections" class array type int shape 2 items 2 data follows
  1 10
  10 15
 attribute "element type" string "lines"
-#
-#questo e' un commento
-#
 object "Beam2Labels" class array type int shape 1 items 2 data follows
  1
  5
@@ -19,9 +17,7 @@ object "Beam2Offsets" class array type float shape 6 items 2 data follows
  0.1 0.0 0.2 0. 0. 0.15
  0.0 0.0 0.0 0. 0. 0.
 attribute "dep" string "connections"
-#
-#questo e' un commento
-#
+# Step 0.0
 object "TriadPositions0.0" class array type float rank 1 shape 3 items 3 data follows
                0               0               0
                1               0               0
@@ -31,9 +27,6 @@ object "TriadCosines0.0" class array type float rank 1 shape 9 items 3 data foll
 0 1 0 1 0 0 0 0 1
 0 1 0 0 0 1 1 0 0
 attribute "dep" string "positions"
-#
-#questo e' un commento
-#
 object "OrientedTriads0.0" class field
 component "positions" "TriadPositions0.0"
 component "cosines" "TriadCosines0.0"
@@ -45,15 +38,10 @@ component "cosines" "TriadCosines0.0"
 component "labels" "Beam2Labels"
 component "nodelabels" "TriadLabels"
 component "offsets" "Beam2Offsets"
-#
-#questo e' un commento
-#
 object "MbdynSym0.0" class group
 member "OrientedTriads" value "OrientedTriads0.0"
 member "Beams2" value "Beams20.0"
-#
-#questo e' un commento
-#
+# Step 0.1
 object "TriadPositions0.1" class array type float rank 1 shape 3 items 3 data follows
                0               0.2               0
                1.1               0               0
@@ -74,15 +62,10 @@ component "cosines" "TriadCosines0.1"
 component "labels" "Beam2Labels"
 component "nodelabels" "TriadLabels"
 component "offsets" "Beam2Offsets"
-#
-#questo e' un commento
-#
 object "MbdynSym0.1" class group
 member "OrientedTriads" value "OrientedTriads0.1"
 member "Beams2" value "Beams20.1"
-#
-#questo e' un commento
-#
+# Series
 object "series" class series
 	member 0 position 0.0 value "MbdynSym0.0"
 	member 1 position 0.1 value "MbdynSym0.1"
