@@ -178,12 +178,12 @@ c81_aerod2(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA, c8
 	/*
 	 * Note: all angles in c81 files MUST be in degrees
 	 */
-	get_coef(data->NML, data->ml, data->NAL, data->al, OUTA[1], mach, 
-			&cl, &cl0);
-	get_coef(data->NMD, data->md, data->NAD, data->ad, OUTA[1], mach,
-			&cd, &cd0);
-	get_coef(data->NMM, data->mm, data->NAM, data->am, OUTA[1], mach,
-			&cm, NULL);
+	get_coef(data->NML, data->ml, data->NAL, data->al,
+			OUTA[1], mach, &cl, &cl0);
+	get_coef(data->NMD, data->md, data->NAD, data->ad,
+			OUTA[1], mach, &cd, &cd0);
+	get_coef(data->NMM, data->mm, data->NAM, data->am,
+			OUTA[1], mach, &cm, NULL);
 
 	dcla = get_dcla(data->NML, data->ml, data->stall, mach);
 	
