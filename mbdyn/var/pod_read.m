@@ -24,11 +24,7 @@ end
 nrows = fread(fid, 1, 'ulong', 0, 'native');
 ncols = fread(fid, 1, 'ulong', 0, 'native');
 
-if nargin < 2,
-	[W, cnt] = fread(fid, Inf, 'double', 0, 'native');
-else
-	[W, cnt] = fread(fid, [nrows, Inf], 'double', 0, 'native');
-end
+[W, cnt] = fread(fid, [nrows, Inf], 'double', 0, 'native');
 
 fclose(fid);
 

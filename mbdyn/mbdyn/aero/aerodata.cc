@@ -55,12 +55,15 @@ AeroMemory::~AeroMemory(void)
 	}
 }
 
-#define USE_POLCOE
+// #define USE_POLCOE
+#define USE_BDF
 void
 AeroMemory::Predict(int i, doublereal alpha, doublereal &alf1, doublereal &alf2)
 {
 	/* FIXME: this should be s, but I don't want a malloc here */
-	doublereal 	coe[4];
+#if !defined(USE_BDF)
+	doublereal 	coe[3];
+#endif /* !USE_BDF */
 	int		s = StorageSize();
 #ifdef USE_POLCOE
 	/*
@@ -74,32 +77,58 @@ AeroMemory::Predict(int i, doublereal alpha, doublereal &alf1, doublereal &alf2)
 	ASSERT(s > 0);
 	ASSERT(i < iPoints);
 
+#ifdef USE_POLCOE
 	doublereal *aa = a + s*i;
+#elif defined(USE_BDF)
+	doublereal *aa = a + 2*s*i;
+	doublereal *aa1 = aa + s;
+#endif /* !USE_POLCOE && USE_BDF */
 	doublereal *tt = t + s*i;
 
 	aa[s-1] = alpha;
 	tt[s-1] = pTime->dGet();
 
+#if defined(USE_BDF)
+	doublereal dt = tt[s-1] - tt[s-2];
+#endif /* USE_BDF */
+
 	if (numUpdates >= s) {
 #ifdef USE_POLCOE
 		__FC_DECL__(polcoe)(tt, aa, &order, coe);
-#else /* !USE_POLCOE */
+#elif !defined(USE_BDF) /* !USE_POLCOE */
 		coe[2] = ((aa[2]-aa[0])/(tt[2]-tt[0]) - (aa[1]-aa[0])/(tt[1]-tt[0]))/(tt[2]-tt[1]);
 		coe[1] = (aa[1]-aa[0])/(tt[1]-tt[0]) - (tt[1]+tt[0])*coe[2];
 
 #if 0	/* not used ... */
 		coe[1] = aa[0] - tt[0]*coe[1] - tt[0]*tt[0]*coe[2];
 #endif
-#endif /* !USE_POLCOE */
+#endif /* !USE_POLCOE && !USE_BDF */
 
 #if 0
 			std::cerr << "aa[0:2]= " << aa[0] << "," << aa[1] << "," << aa[2] << std::endl
 				<< "tt[0:2]= " << tt[0] << "," << tt[1] << "," << tt[2] << std::endl
 				<< "coe[0:2]=" << coe[0] << "," << coe[1] << "," << coe[2] << std::endl;
 #endif /* 0 */
-	
+
+#if !defined(USE_BDF)
 		alf1 = coe[1]+2.*coe[2]*tt[2];
 		alf2 = 2.*coe[2];
+#else /* USE_BDF */
+		/* FIXME: using BDF of order 2
+		aa1[2] = 1.5/dt*(aa[2]-aa[1]*4./3.+aa[0]/3.);
+		alf1 = aa1[2];
+		alf2 = 1.5/dt*(aa1[2]-aa1[1]*4./3.+aa1[0]/3.);
+		*/
+		/* FIXME: using BDF of order 1 */
+		aa1[2] = (aa[2]-aa[1])/dt;
+#ifdef USE_BDF_IMPLICIT
+		alf1 = aa1[2];
+#else /* !USE_BDF_IMPLICIT */
+		alf1 = aa1[1];	/* uso il precedente */
+#endif /* !USE_BDF_IMPLICIT */
+		alf2 = (aa1[2]-aa1[1])/dt;
+#endif /* USE_BDF */
+
 	} else {
 		alf1 = 0.;
 		alf2 = 0.;
@@ -115,13 +144,21 @@ AeroMemory::Update(int i)
 		 * shift back angle of attack and time 
 		 * for future interpolation 
 		 */
+#if !defined(USE_BDF)
 		doublereal *aa = a + s*i;
+#else /* USE_BDF */
+		doublereal *aa = a + 2*s*i;
+		doublereal *aa1 = aa + s;
+#endif /* USE_BDF */
 		doublereal *tt = t + s*i;
 
 		ASSERT(i < iPoints);
 
 		for (int j = 1; j < s; j++) {
 			aa[j-1] = aa[j];
+#ifdef USE_BDF
+			aa1[j-1] = aa1[j];
+#endif /* USE_BDF */
 			tt[j-1] = tt[j];
 		}
 
@@ -138,14 +175,27 @@ AeroMemory::SetNumPoints(int i)
 
 	if (s > 0) {
 		iPoints = i;
-
+#if !defined(USE_BDF)
 		SAFENEWARR(a, doublereal, 2*s*iPoints);
 		t = a + s*iPoints;
+#else /* USE_BDF */
+		SAFENEWARR(a, doublereal, 3*s*iPoints);
+		t = a + 2*s*iPoints;
+#endif /* USE_BDF */
 
 #ifdef HAVE_MEMSET
+#if !defined(USE_BDF)
 		memset(a, 0, 2*s*iPoints*sizeof(doublereal));
+#else /* USE_BDF */
+		memset(a, 0, 3*s*iPoints*sizeof(doublereal));
+#endif /* USE_BDF */
 #else /* !HAVE_MEMSET */
-		for (int i = 0; i < 2*s*iPoints; i++) {
+#if !defined(USE_BDF)
+		for (int i = 0; i < 2*s*iPoints; i++)
+#else /* USE_BDF */
+		for (int i = 0; i < 3*s*iPoints; i++)
+#endif /* USE_BDF */
+		{
 			a[i] = 0.;
 		}
 #endif /* !HAVE_MEMSET */
@@ -187,7 +237,7 @@ AeroData::StorageSize(void) const
 	switch (unsteadyflag) {
 	case AeroData::HARRIS:
 	case AeroData::BIELAWA:
-		return 4;
+		return 3;
 
 	case AeroData::STEADY:
 		return 0;
