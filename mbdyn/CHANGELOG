@@ -41,6 +41,7 @@ MBDyn 1.X-Devel
 		- fixed output file name handling (scalar and parallel)
 		- fixed modal inertia matrix computation (problem noted
 		  by Fabio Riva and Luca Zucchetti)
+		- fixed test for node type in Body
 
 MBDyn 1.2.1
 	Enhancements:

@@ -425,11 +425,12 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     KeyTable K(HP, sKeyWords);
    
     /* nodo collegato */
-    DynamicStructNode* pNode = dynamic_cast<DynamicStructNode*>(pDM->ReadNode(HP, Node::STRUCTURAL));
-   
-    if (pNode->GetStructNodeType() != StructNode::DYNAMIC) {
+    Node* pStrNode = pDM->ReadNode(HP, Node::STRUCTURAL);
+    DynamicStructNode* pNode = dynamic_cast<DynamicStructNode*>(pStrNode);
+    if (pNode == NULL || pNode->GetStructNodeType() != StructNode::DYNAMIC) {
         silent_cerr("Body(" << uLabel << "): "
 		"illegal structural node type "
+		"for StructNode(" << pStrNode->GetLabel() << ") "
 		"at line " << HP.GetLineData() << std::endl);
         throw DataManager::ErrGeneric();
     }
