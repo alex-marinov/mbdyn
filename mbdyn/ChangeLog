@@ -3,6 +3,23 @@ see http://www.mbdyn.org
 
 Copyright: 1996-2000 Pierangelo Masarati
 
+*** Thu Oct 12 15:01:33 CEST 2000 Pierangelo Masarati <masarati@aero.polimi.it>
+ - fixed (hopefully) the c81 coefficients in yaw (the cm is still under
+   investigation).
+ - moved RotorTrim in mbdyn/elec; still to check.
+ - found out that clapack allows dgegv to work correctly! now need
+   to define output interface and implement AssEig for ALL elements!
+ - Made a simple trick to allow aerodynamic elements to receive induced
+   velocity from rotor elements without contributing forces.
+ - Adding getopt, dgegv stuff in libraries/libobjs directory.
+
+*** Thu Oct 12 15:01:33 CEST 2000 Leonardo Cassan
+				  Pierangelo Masarati <masarati@aero.polimi.it>
+ - added ADAMS2MBDyn to the development tree in contrib/a2m; this required:
+   - addition of GetMatRel and GetMatAbs to MBDynParser (references and so);
+   - addition of "name" optional keyword to references, hydraulic fluids, 
+     c81 data and so;
+
 *** Thu Sep 21 15:20:33 CEST 2000 Pierangelo Masarati <masarati@aero.polimi.it>
  - Cleaned up Meschach wrappers.
  - Modified '-s' fSilent switch to act more strictly the higher the value.
