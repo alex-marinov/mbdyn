@@ -58,7 +58,7 @@ RTAIMailboxDrive::~RTAIMailboxDrive(void)
 }
 
 void 
-RTAIMailboxDrive::ServePending(void)
+RTAIMailboxDrive::ServePending(const doubleral& /* t */ )
 {
 	/*
 	 * store in pdVal the values of all the channels

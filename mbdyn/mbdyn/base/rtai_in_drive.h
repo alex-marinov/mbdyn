@@ -58,7 +58,7 @@ public:
    
    	virtual doublereal dGet(const doublereal& t, int i = 1) const;
    
-   	virtual void ServePending(void);
+   	virtual void ServePending(const doublereal& t);
 };
 
 /* RTAIMailboxDrive - end */

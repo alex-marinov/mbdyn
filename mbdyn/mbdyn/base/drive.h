@@ -124,7 +124,7 @@ class Drive : public WithLabel {
    /* Tipo del drive (usato solo per debug ecc.) */
    virtual Drive::Type GetDriveType(void) const = 0;
    
-   virtual void ServePending(void) = 0;
+   virtual void ServePending(const doublereal& t) = 0;
 };
 
 /* Drive - end */

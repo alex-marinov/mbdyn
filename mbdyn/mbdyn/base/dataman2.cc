@@ -67,7 +67,7 @@ void DataManager::SetTime(doublereal dTime)
    /* serve i drive pending */
    for (int iType = 0; iType < Drive::LASTDRIVETYPE; iType++) {
       for (unsigned int iCnt = 0; iCnt < DriveData[iType].iNum; iCnt++) {
-	 DriveData[iType].ppFirstDrive[iCnt]->ServePending();
+	 DriveData[iType].ppFirstDrive[iCnt]->ServePending(dTime);
       }
    }
       

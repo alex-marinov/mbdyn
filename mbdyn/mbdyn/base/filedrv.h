@@ -33,47 +33,49 @@
 #ifndef FILEDRV_H
 #define FILEDRV_H
 
-#include "drive.h"
+#include <drive.h>
 
 /* FileDrive - begin */
 
 class FileDrive : public Drive {
- public:
-   enum Type {
-      UNKNOWN = -1,
+public:
+	enum Type {
+		UNKNOWN = -1,
 		
-	FIXEDSTEP = 0,
-	SOCKET,
-	RTAIMAILBOX,
+		FIXEDSTEP = 0,
+		SOCKET,
+		RTAIMAILBOX,
 	
-	LASTFILEDRIVE
-   };
+		LASTFILEDRIVE
+	};
 
- protected: 
-   char* sFileName;
-   integer iNumDrives;
-   
- public:
-   FileDrive(unsigned int uL, const DriveHandler* pDH, 
-	     const char* const s, integer nd);
-   virtual ~FileDrive(void);
-   
-   virtual Drive::Type GetDriveType(void) const;
-   
-   virtual FileDrive::Type GetFileDriveType(void) const = 0;
+protected: 
+	char* sFileName;
+	integer iNumDrives;
+   	doublereal* pdVal;
 
-   /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual std::ostream& Restart(std::ostream& out) const = 0;
+public:
+	FileDrive(unsigned int uL, const DriveHandler* pDH, 
+			const char* const s, integer nd);
+	virtual ~FileDrive(void);
+
+	virtual Drive::Type GetDriveType(void) const;
+
+	virtual FileDrive::Type GetFileDriveType(void) const = 0;
+
+	/* Scrive il contributo del DriveCaller al file di restart */   
+	virtual std::ostream& Restart(std::ostream& out) const = 0;
    
-   virtual inline integer iGetNumDrives(void) const;
+	virtual inline integer iGetNumDrives(void) const;
    
-   virtual doublereal dGet(const doublereal& t, int i = 1) const = 0;
+	virtual doublereal dGet(const doublereal& t, int i = 1) const;
 };
 
 
-inline integer FileDrive::iGetNumDrives(void) const
+inline integer
+FileDrive::iGetNumDrives(void) const
 {
-   return iNumDrives;
+	return iNumDrives;
 }
 
 /* FileDrive - end */
@@ -82,31 +84,32 @@ inline integer FileDrive::iGetNumDrives(void) const
 /* FileDriveCaller - begin */
 
 class FileDriveCaller : public DriveCaller {
- protected:
-   FileDrive* pFileDrive;
-   integer iNumDrive;
-   doublereal dAmplitude;
+protected:
+	FileDrive* pFileDrive;
+	integer iNumDrive;
+	doublereal dAmplitude;
    
- public:
-   FileDriveCaller(const DriveHandler* pDH, const FileDrive* p,
-		   integer i, const doublereal& da);
-   virtual ~FileDriveCaller(void);
+public:
+	FileDriveCaller(const DriveHandler* pDH, const FileDrive* p,
+			integer i, const doublereal& da);
+	virtual ~FileDriveCaller(void);
    
-   /* Copia */
-   virtual DriveCaller* pCopy(void) const;
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const;
    
-   /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual std::ostream& Restart(std::ostream& out) const;
+	/* Scrive il contributo del DriveCaller al file di restart */   
+	virtual std::ostream& Restart(std::ostream& out) const;
 
-   /* Restituisce il valore del driver */
-   virtual inline doublereal dGet(const doublereal& dVal) const;
-   /* virtual inline doublereal dGet(void) const; */
+	/* Restituisce il valore del driver */
+	virtual inline doublereal dGet(const doublereal& dVal) const;
+	/* virtual inline doublereal dGet(void) const; */
 };
 
 
-inline doublereal FileDriveCaller::dGet(const doublereal& dVal) const
+inline doublereal
+FileDriveCaller::dGet(const doublereal& dVal) const
 {
-   return dAmplitude*pFileDrive->dGet(dVal, iNumDrive);
+	return dAmplitude*pFileDrive->dGet(dVal, iNumDrive);
 }
 
 /* FileDriveCaller - end */
@@ -115,30 +118,28 @@ inline doublereal FileDriveCaller::dGet(const doublereal& dVal) const
 /* FixedStepFileDrive - begin */
 
 class FixedStepFileDrive : public FileDrive {
- protected:
-   doublereal dT0;
-   doublereal dDT;
-   integer iNumSteps;  
+protected:
+	doublereal dT0;
+	doublereal dDT;
+	integer iNumSteps;  
    
-   doublereal* pd;
-   doublereal** pvd;
+	doublereal* pd;
+	doublereal** pvd;
    
- public:
-   FixedStepFileDrive(unsigned int uL, const DriveHandler* pDH, 
-		      const char* const sFileName, integer is, integer id,
-		      doublereal t0, doublereal dt);
-   virtual ~FixedStepFileDrive(void);
+public:
+	FixedStepFileDrive(unsigned int uL, const DriveHandler* pDH, 
+			const char* const sFileName, integer is, integer id,
+			doublereal t0, doublereal dt);
+	virtual ~FixedStepFileDrive(void);
    
-   virtual FileDrive::Type GetFileDriveType(void) const {
-      return FileDrive::FIXEDSTEP;
-   };
+	virtual FileDrive::Type GetFileDriveType(void) const {
+		return FileDrive::FIXEDSTEP;
+	};
 
-   /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual std::ostream& Restart(std::ostream& out) const;
+	/* Scrive il contributo del DriveCaller al file di restart */   
+	virtual std::ostream& Restart(std::ostream& out) const;
    
-   virtual doublereal dGet(const doublereal& t, int i = 1) const;
-
-   virtual void ServePending(void);
+	virtual void ServePending(const doublereal& t);
 };
 
 /* FixedStepFileDrive - end */
@@ -147,8 +148,7 @@ class DataManager;
 class MBDynParser;
 
 extern Drive* ReadFileDriver(DataManager* pDM,
-			     MBDynParser& HP,
-			     unsigned int uLabel);
+		MBDynParser& HP, unsigned int uLabel);
 
+#endif /* FILEDRV_H */
 
-#endif

@@ -43,23 +43,40 @@
 /* FileDrive - begin */
 
 FileDrive::FileDrive(unsigned int uL, const DriveHandler* pDH,
-		     const char* const s, integer nd)
-: Drive(uL, pDH), sFileName(NULL), iNumDrives(nd)
+		const char* const s, integer nd)
+: Drive(uL, pDH), sFileName(NULL), iNumDrives(nd), pdVal(NULL)
 {   
-   ASSERT(s != NULL);
-   SAFESTRDUP(sFileName, s);
+	ASSERT(s != NULL);
+	SAFESTRDUP(sFileName, s);
+   	SAFENEWARR(pdVal, doublereal, nd+1);
+   	for (int iCnt = 0; iCnt <= nd; iCnt++) {
+      		pdVal[iCnt] = 0.;
+   	}
 }
 
 
 FileDrive::~FileDrive(void)
 {
-   SAFEDELETEARR(sFileName);
+	if (sFileName != NULL) {
+		SAFEDELETEARR(sFileName);
+	}
+   	if (pdVal != NULL) {
+      		SAFEDELETEARR(pdVal);
+   	}
 }
 
 
-Drive::Type FileDrive::GetDriveType(void) const
+Drive::Type
+FileDrive::GetDriveType(void) const
 {
    return Drive::FILEDRIVE;
+}
+
+doublereal
+FileDrive::dGet(const doublereal& /* t */ , int i) const
+{
+   	ASSERT(i > 0 && i <= iNumDrives);
+   	return pdVal[i];
 }
 
 /* FileDrive - end */
@@ -184,27 +201,24 @@ std::ostream& FixedStepFileDrive::Restart(std::ostream& out) const
 }
 
 
-doublereal FixedStepFileDrive::dGet(const doublereal& t, int i) const
+void
+FixedStepFileDrive::ServePending(const doublereal& t)
 {
-   ASSERT(i > 0 && i <= iNumDrives);
-
-   integer j1 = integer(floor((t-dT0)/dDT));
-   integer j2 = j1+1;
+	integer j1 = integer(floor((t-dT0)/dDT));
+	integer j2 = j1+1;
    
-   if (j2 < 0 || j1 > iNumSteps) {
-      return (Drive::dReturnValue = 0.);
-   }
-   
-   doublereal dt1 = dT0+j1*dDT;
-   doublereal dt2 = dt1+dDT;
-   
-   return (pvd[i][j2]*(t-dt1)-pvd[i][j1]*(t-dt2))/dDT;
-}
+	if (j2 < 0 || j1 > iNumSteps) {
+		for (int i = 1; i <= iNumDrives; i++) {
+			pdVal[i] = 0.;
+		}
+	} else {
+		doublereal dt1 = dT0+j1*dDT;
+		doublereal dt2 = dt1+dDT;
 
-
-void FixedStepFileDrive::ServePending(void)
-{
-   NO_OP;
+		for (int i = 1; i <= iNumDrives; i++) {
+   			pdVal[i] = (pvd[i][j2]*(t-dt1)-pvd[i][j1]*(t-dt2))/dDT;
+		}
+	}
 }
 
 /* FixedStepFileDrive - end */

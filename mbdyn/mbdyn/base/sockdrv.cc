@@ -117,18 +117,15 @@ SocketDrive::SocketDrive(unsigned int uL, const DriveHandler* pDH,
 : FileDrive(uL, pDH, "socket", nd), 
 type(AF_INET),
 auth(a), 
-pdVal(NULL), 
 pFlags(NULL)
 {
    	ASSERT(p > 0);
    	ASSERT(auth != NULL);
    	ASSERT(nd > 0);
    
-   	SAFENEWARR(pdVal, doublereal, nd+1);
    	SAFENEWARR(pFlags, int, nd+1);
    	for (int iCnt = 0; iCnt <= nd; iCnt++) {
       		pFlags[iCnt] = SocketDrive::DEFAULT;
-      		pdVal[iCnt] = 0.;
    	}
    
    	/* Create the socket and set it up to accept connections. */
@@ -166,7 +163,6 @@ SocketDrive::SocketDrive(unsigned int uL, const DriveHandler* pDH,
 : FileDrive(uL, pDH, "socket", nd), 
 type(AF_LOCAL),
 auth(NULL), 
-pdVal(NULL), 
 pFlags(NULL)
 {
    	ASSERT(path != NULL);
@@ -174,11 +170,9 @@ pFlags(NULL)
 
 	SAFENEW(auth, NoAuth);
    
-   	SAFENEWARR(pdVal, doublereal, nd+1);
    	SAFENEWARR(pFlags, int, nd+1);
    	for (int iCnt = 0; iCnt <= nd; iCnt++) {
       		pFlags[iCnt] = SocketDrive::DEFAULT;
-      		pdVal[iCnt] = 0.;
    	}
    
    	/* Create the socket and set it up to accept connections. */
@@ -228,9 +222,6 @@ SocketDrive::~SocketDrive(void)
    
    	if (auth != NULL) {
       		SAFEDELETE(auth);
-   	}
-   	if (pdVal != NULL) {
-      		SAFEDELETEARR(pdVal);
    	}
 }
 
@@ -332,7 +323,7 @@ get_auth_token(FILE *fd, char *user, char *cred, char **nextline)
 }
 
 void 
-SocketDrive::ServePending(void)
+SocketDrive::ServePending(const doublereal& /* t */ )
 {
    	int cur_sock;
    	struct sockaddr_in client_name;
@@ -555,12 +546,5 @@ SocketDrive::Restart(std::ostream& out) const
    	return out << "SocketDrive not implemented yet" << std::endl;
 }
    
-doublereal
-SocketDrive::dGet(const doublereal& /* t */ , int i) const
-{
-   	ASSERT(i > 0 && i <= iNumDrives);
-   	return pdVal[i];
-}
-
 #endif /* USE_SOCKET_DRIVES */
 
