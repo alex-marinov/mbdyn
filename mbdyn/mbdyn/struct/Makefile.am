@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 # Build libstruct.a library
-lib_LTLIBRARIES = libstruct.la
+noinst_LTLIBRARIES = libstruct.la
 libstruct_la_SOURCES = \
 accj.cc \
 accj.h \

@@ -1,7 +1,8 @@
 ## Process this file with automake to produce Makefile.in
 
 # Build libmbutil.a library
-lib_LTLIBRARIES = libmbutil.la
+### lib_LTLIBRARIES = libmbutil.la
+noinst_LTLIBRARIES = libmbutil.la
 libmbutil_la_SOURCES = \
 destr.h \
 dummypgin.cc \

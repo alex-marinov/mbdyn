@@ -482,7 +482,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 	  SP = S*k;
        } else {	 
 	  SP = HP.Get(SP);
-       }       
+       }
        
        /* Prestress and prestrain */
        T PreStress(0.);

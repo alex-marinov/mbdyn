@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 # Build libhydr.a library
-lib_LTLIBRARIES = libhydr.la
+noinst_LTLIBRARIES = libhydr.la
 libhydr_la_SOURCES = \
 actuator.cc \
 actuator.h \

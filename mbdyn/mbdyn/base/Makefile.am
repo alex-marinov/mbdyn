@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 # Build libbase.a library
-lib_LTLIBRARIES = libbase.la
+noinst_LTLIBRARIES = libbase.la
 
 libbase_la_SOURCES = \
 auth.cc \

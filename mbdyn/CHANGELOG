@@ -23,6 +23,8 @@ MBDyn 1.1 Engineering
 		- configurable extra output for the iteration engine
 		- configurable local and interface solver for parallel build
 		- configurable output precision
+		- cleanup of the building environment (developers only)
+		- useless stuff is not installed on make install
 	Bug fixes:
 		- fixed bug in tire friction force in module-wheel2
 		- fixed bug in tire reference volume computation

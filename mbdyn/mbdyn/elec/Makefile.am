@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 # Build libelec.a library
-lib_LTLIBRARIES = libelec.la
+noinst_LTLIBRARIES = libelec.la
 libelec_la_SOURCES = \
 discctrl.cc \
 discctrl.h \
@@ -42,7 +42,7 @@ INCLUDES = \
 -I../../mbdyn/hydr
 
 # Program that tests Deadbeat Predictive Control
-bin_PROGRAMS = dpc
+noinst_PROGRAMS = dpc
 dpc_SOURCES =
 dpc_LDADD = dpc.o \
 ../base/libbase.la \

@@ -1,7 +1,8 @@
 ## Process this file with automake to produce Makefile.in
 
 # Build liby12.a library
-lib_LTLIBRARIES = liby12.la
+### lib_LTLIBRARIES = liby12.la
+noinst_LTLIBRARIES = liby12.la
 
 liby12_la_SOURCES = \
 y12lib.h \
@@ -20,11 +21,10 @@ y12mhe.f
 liby12_la_LIBADD = @LIBS@ @F2C_LIBS@
 liby12_la_LDFLAGS =
 
-bin_PROGRAMS = t
-t_SOURCES = test.c
-t_LDADD = ./liby12.la
+noinst_PROGRAMS = y12test
+y12test_SOURCES = test.c
+y12test_LDADD = ./liby12.la
 INCLUDES = \
 -I../libmbmath \
 -I../../mbdyn
-
 

@@ -13,12 +13,12 @@ export CXXLINK = @LIBTOOL@ --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	@CXXFLAGS@ @LDFLAGS@ -shared -lg2c
 export LTF77COMPILE = @LIBTOOL@ --mode=compile @F77@ $(AM_FFLAGS) @FFLAGS@ \
 	-fPIC
-
+export MODULES_DIRS=@MODULES_DIRS@
 
 .PHONY: all clean distclean
 
 all:
-	-@for i in @MODULES_DIRS@ ; do \
+	-@for i in $(MODULES_DIRS) ; do \
 		echo "playing with $$i ..."; \
 		export MBDYN_MODULE=$$i ; \
 		cp Makefile.module $$i/Makefile ; \
@@ -28,7 +28,7 @@ all:
 	done
 
 clean:
-	-@for i in @MODULES_DIRS@ ; do \
+	-@for i in $(MODULES_DIRS) ; do \
 		echo "cleaning $$i ..."; \
 		export MBDYN_MODULE=$$i ; \
 		cp Makefile.module $$i/Makefile ; \
@@ -38,7 +38,7 @@ clean:
 	done
 
 distclean:
-	-@for i in @MODULES_DIRS@ ; do \
+	-@for i in $(MODULES_DIRS) ; do \
 		echo "cleaning $$i ..."; \
 		export MBDYN_MODULE=$$i ; \
 		cp Makefile.module $$i/Makefile ; \

@@ -4,6 +4,9 @@ set -x
 aclocal 
 libtoolize --force --copy
 autoheader
-automake --foreign --add-missing --copy
+for i in `find . -name 'Makefile.am'` ; do
+	j=`echo $i | sed "s/\.am//"`
+	automake --foreign --add-missing --copy $j
+done
 autoconf
 

@@ -1,7 +1,8 @@
 ## Process this file with automake to produce Makefile.in
 
 # Build libmbwrap.a library
-lib_LTLIBRARIES = libmbwrap.la
+### lib_LTLIBRARIES = libmbwrap.la
+noinst_LTLIBRARIES = libmbwrap.la
 
 libmbwrap_la_SOURCES = \
 harwlib.h \
@@ -26,9 +27,9 @@ INCLUDES = \
 -I../../libraries/libmbutil \
 -I../../mbdyn
 
-bin_PROGRAMS = t
-t_SOURCES = test.cc
-t_LDADD = \
+noinst_PROGRAMS = wraptest
+wraptest_SOURCES = test.cc
+wraptest_LDADD = \
 ./libmbwrap.la \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \
