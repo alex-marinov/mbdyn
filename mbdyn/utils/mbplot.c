@@ -52,10 +52,12 @@ cleanup(void)
 {
 	if (gnuplot != NULL) {
 		pclose(gnuplot);
+		gnuplot = NULL;
 	}
 
 	if (interactive) {
 		tcsetattr(STDIN_FILENO, TCSANOW, &saved_attributes);
+		interactive = 0;
 	}
 }
 
