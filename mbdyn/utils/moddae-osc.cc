@@ -46,6 +46,7 @@ struct private_data {
    	doublereal c;
    	doublereal k;
    	doublereal x[2];
+   	doublereal xP[2];
 };
 
 static int
@@ -55,11 +56,12 @@ read(void** pp, const char* user_defined)
 	private_data* pd = (private_data*)*pp;
 	
 	if (user_defined != NULL) {
-		// cerr << "opening file \"" << user_defined << "\"" << endl;
-		ifstream in(user_defined);
+		// std::cerr << "opening file \"" << user_defined 
+		// 	<< "\"" << std::endl;
+		std::ifstream in(user_defined);
 		if (!in) {
-			cerr << "unable to open file \"" << user_defined
-				<< "\"" << endl;
+			std::cerr << "unable to open file \"" << user_defined
+				<< "\"" << std::endl;
 			exit(EXIT_FAILURE);
 		}
 		in >> pd->m >> pd->c >> pd->k >> pd->x[0] >> pd->x[1];
@@ -70,9 +72,13 @@ read(void** pp, const char* user_defined)
 		pd->x[0] = 0.;
 		pd->x[1] = 0.;
 	}
+
+	pd->xP[0] = pd->x[1];
+	pd->xP[1] = - (pd->k*pd->x[0] + pd->c*pd->x[1])/pd->m;
 	
-	// cerr << "m=" << pd->m << ", c=" << pd->c << ", k=" << pd->k << endl
-	//   << "x={" << pd->x[0] << "," << pd->x[1] << "}" << endl;
+	// std::cerr << "m=" << pd->m << ", c=" << pd->c 
+	// 	<< ", k=" << pd->k << std::endl
+	//      << "x={" << pd->x[0] << "," << pd->x[1] << "}" << std::endl;
 	
 	return 0;
 }
@@ -85,7 +91,7 @@ size(void* p)
 }
 
 static int
-init(void* p, VectorHandler& X)
+init(void* p, VectorHandler& X, VectorHandler& XP)
 {
 	private_data* pd = (private_data*)p;
 	X.Reset(0.);
@@ -96,29 +102,35 @@ init(void* p, VectorHandler& X)
 }
 
 static int
-grad(void* p, MatrixHandler& J, MatrixHandler& Jp,
-     const VectorHandler& X, const doublereal& t)
+grad(void* p, MatrixHandler& J, MatrixHandler& JP,
+     const VectorHandler& X, const VectorHandler& XP, const doublereal& t)
 {
 	private_data* pd = (private_data*)p;
-	J.fPutCoef(1, 2, 1.);
-	J.fPutCoef(2, 1, -(pd->k/pd->m));
-	J.fPutCoef(2, 2, -pd->c/pd->m);
+	J.fPutCoef(1, 2, -1.);
+	J.fPutCoef(2, 1, pd->k/pd->m);
+	J.fPutCoef(2, 2, pd->c/pd->m);
+
+	JP.fPutCoef(1, 1, 1.);
+	JP.fPutCoef(2, 2, 1.);
 	return 0;
 }
 
 static int
-func(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
+func(void* p, VectorHandler& R, const VectorHandler& X, 
+		const VectorHandler& XP, const doublereal& t)
 {
 	private_data* pd = (private_data*)p;
 	doublereal x = X.dGetCoef(1);
 	doublereal v = X.dGetCoef(2);
-	R.fPutCoef(1, v);
-	R.fPutCoef(2, -(pd->k*x+pd->c*v)/pd->m);
+	doublereal xP = XP.dGetCoef(1);
+	doublereal vP = XP.dGetCoef(2);
+	R.fPutCoef(1, v - xP);
+	R.fPutCoef(2, -vP - (pd->k*x + pd->c*v)/pd->m);
 	return 0;
 }
 
-static ostream&
-out(void* p, ostream& o, const VectorHandler& X, const VectorHandler& XP)
+static std::ostream&
+out(void* p, std::ostream& o, const VectorHandler& X, const VectorHandler& XP)
 {
    	// private_data* pd = (private_data*)p;
    	return o << X.dGetCoef(1) << " " << X.dGetCoef(2)
