@@ -13,12 +13,17 @@ MBDyn 1.2-Engineering
 		- added third order step solver
 		- added TAUCS linear solver (eXperimental)
 		- added "ad hoc" (Radau IIA) third-order integrator
-		- modal joint uses gravity
 	Known Issues:
 		- parallel is not working yet
 		- modal joint cannot be used in model inertia computation
 
-MBDyn 1.2-Beta.3
+MBDyn 1.2-Beta.4
+	Enhancements:
+		- modal joint uses gravity
+	Bug fixes:
+		- fixed more C++ issues to compile with gcc 3.4.0
+
+MBDyn 1.2-Beta.3 (unannounced)
 	Enhancements:
 		- added discrete Coulomb friction model
 		- added constitutive law output to elements
