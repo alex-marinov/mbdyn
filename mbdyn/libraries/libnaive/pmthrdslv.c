@@ -93,9 +93,9 @@ int pnaivfct(doublereal** a,
 		minpiv = MINPIV;
 	}
 
-	atomic_inc((atomic_t *)&sync_lock[0]);
-	while (atomic_read((atomic_t *)&sync_lock[0]) < ncpu);
-	
+/*	atomic_inc((atomic_t *)sync_lock);
+ 	while (atomic_read((atomic_t *)sync_lock) < ncpu);
+*/	
 	for (i = 0; i < neq; i++) {
 		nr = nzr[i];
 		if (nr == 0) {
@@ -133,12 +133,12 @@ int pnaivfct(doublereal** a,
 			if (pri[i]%ncpu == task) {
 				papvr[i] = den;
 				wmb();
-				atomic_set((atomic_t *)&pivot_lock[0], 0);
+				atomic_set((atomic_t *)pivot_lock, 1);
 			}
 
 			set_wmb(piv[i], pvr);
 
-			while (atomic_read((atomic_t *)&pivot_lock[0]) != 0);
+			while (atomic_read((atomic_t *)pivot_lock) != 1);
 
 		} else {
 			while ((pvr = atomic_read((atomic_t *)&piv[i])) < 0);
@@ -147,10 +147,9 @@ int pnaivfct(doublereal** a,
 			if (pri[i]%ncpu == task) {
 				den = papvr[i] = 1./papvr[i];
 				wmb();
-				atomic_set((atomic_t *)&pivot_lock[0], 0);
-			
+				atomic_set((atomic_t *)pivot_lock, 1);
 			} else {
-				while (atomic_read((atomic_t *)&pivot_lock[0]) != 0);
+				while (atomic_read((atomic_t *)pivot_lock) != 1);
 				den = papvr[i];
 			}
 		}
@@ -172,8 +171,10 @@ int pnaivfct(doublereal** a,
 					continue;
 				}
 
-				par[pvc] -= mul*papvr[pvc];
-				if (pnzk[pvc] == 0) {
+				if (pnzk[pvc]) {
+					par[pvc] -= mul*papvr[pvc];
+				} else {
+					par[pvc] = -mul*papvr[pvc];
 					ci[r][nzc[r]++] = pvc;
 					while (atomic_inc_and_test((atomic_t *)&col_locks[pvc]));
 					pnzk[pvc] = 1;
