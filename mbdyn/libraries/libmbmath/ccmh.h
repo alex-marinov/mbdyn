@@ -147,7 +147,6 @@ public:
 		doublereal *const Ax,
 		int *const Ai,
 		int *const Ap) const {
-		int x_ptr = 0;
 		std::cerr << "CColMatrixHandler::MakeCompressedColumnForm called" << std::endl;
 		THROW(ErrGeneric());		
 	};
