@@ -13633,5 +13633,5 @@ L60:
     return ret_val;
 } /* ddot_ */
 
-#endif /* HAVE_DGEGV && __HACK_EIG__ */
+#endif /* ! HAVE_DGEGV && __HACK_EIG__ */
 
