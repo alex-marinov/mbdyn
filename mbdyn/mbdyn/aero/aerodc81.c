@@ -112,30 +112,32 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	
 	const double RAD2DEG = 180.*M_1_PI;
 	const double M_PI_3 = M_PI/3.;
+
+	enum { V_X = 0, V_Y = 1, V_Z = 2, W_X = 3, W_Y = 4, W_Z = 5 };
 	
 	/* 
 	 * porta la velocita' al punto di calcolo delle boundary conditions 
 	 */
-	v[0] = W[0];
-	v[1] = W[1]+c34*W[5];
-	v[2] = W[2]-c34*W[4];
+	v[V_X] = W[V_X];
+	v[V_Y] = W[V_Y]+c34*W[W_Z];
+	v[V_Z] = W[V_Z]-c34*W[W_Y];
 	
-	vp2 = v[0]*v[0]+v[1]*v[1];
+	vp2 = v[V_X]*v[V_X]+v[V_Y]*v[V_Y];
 	vp = sqrt(vp2);
 	
-	vtot = sqrt(vp2+v[2]*v[2]);
+	vtot = sqrt(vp2+v[V_Z]*v[V_Z]);
 	
 	/*
 	 * non considera velocita' al di sotto di 1.e-6
 	 * FIXME: rendere parametrico?
 	 */
 	if (vp/cs < 1.e-6) {
-		TNG[0] = 0.;
-		TNG[1] = 0.;
-		TNG[2] = 0.;
-		TNG[3] = 0.;
-		TNG[4] = 0.;
-		TNG[5] = 0.;
+		TNG[V_X] = 0.;
+		TNG[V_Y] = 0.;
+		TNG[V_Z] = 0.;
+		TNG[W_X] = 0.;
+		TNG[W_Y] = 0.;
+		TNG[W_Z] = 0.;
 		
 		OUTA[1] = 0.;
 		OUTA[2] = 0.;
@@ -155,10 +157,10 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	 * oltre quell'angolo prendere la correzione per flusso trasverso
 	 * in un certo modo, altrimenti in un altro ?!?
 	 */
-	alpha = atan2(-v[1], v[0]);
+	alpha = atan2(-v[V_Y], v[V_X]);
 	OUTA[1] = alpha*RAD2DEG;  
-	gamma = atan2(-v[2], fabs(v[0]));	/* come in COE0 (aerod2.f) */
-	/* gamma = atan2(-v[2], vp); */		/* secondo me (?!?) */
+	gamma = atan2(-v[V_Z], fabs(v[V_X]));	/* come in COE0 (aerod2.f) */
+	/* gamma = atan2(-v[V_Z], vp); */		/* secondo me (?!?) */
 	OUTA[2] = gamma*RAD2DEG;
 	
 	if (fabs(gamma) > M_PI_3) {
@@ -215,13 +217,18 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 
 	q = .5*rho*chord*vp2;
 
-	TNG[0] = -q*(cl*v[1]+cd*v[0])/vp;
-	TNG[1] = q*(cl*v[0]-cd*v[1])/vp;
-	TNG[2] = -q*cd0*v[2]/vp;
-	TNG[3] = 0.;
-	TNG[4] = -ca*TNG[2];
-	TNG[5] = -q*chord*cm-ca*TNG[1];
+	TNG[V_X] = -q*(cl*v[V_Y]+cd*v[V_X])/vp;
+	TNG[V_Y] = q*(cl*v[V_X]-cd*v[V_Y])/vp;
+	TNG[V_Z] = -q*cd0*v[V_Z]/vp;
+	TNG[W_X] = 0.;
+	TNG[W_Y] = -ca*TNG[V_Z];
+	TNG[W_Z] = -q*chord*cm-ca*TNG[V_Y];
 	
+	/* 
+	 * Radial drag (TNG[V_Z]) consistent with Harris, JAHS 1970
+	 * and with CAMRAD strip theory section forces 
+	 */
+
 	return 0;
 }
 
