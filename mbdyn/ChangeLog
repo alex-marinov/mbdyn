@@ -7,6 +7,10 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Fri Feb  8 18:14:43 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+                                 Stefania Gualdi <gualdi@aero.polimi.it>
+ - fix reference volume computation in tire (module-wheel2)
+
 *** Wed Feb  6 17:19:42 CET 2002 Marco Morandini <morandini@aero.polimi.it>
  - cleanup of ANSI-fication also in debug mode
  
