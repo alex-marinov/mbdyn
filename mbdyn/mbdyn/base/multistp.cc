@@ -190,7 +190,8 @@ MultiStepIntegrator::Run(void)
    	ostream& Out = pDM->GetOutFile();
 
    	if (fAbortAfterInput) {
-      		/* Esce */     
+      		/* Esce */
+		pDM->Output();
       		Out << "End of Input; no simulation or assembly is required."
 			<< endl;
       		return;
