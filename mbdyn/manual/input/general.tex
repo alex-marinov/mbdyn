@@ -296,10 +296,10 @@ As an example, all the following lines define an empty 3 x 1 vector:
     \item null matrix: keyword \texttt{null}; the matrix is initialised 
     with zeros.
 \end{enumerate}
-\subsection{3 x 3 rotation matrix}
+\subsection{3 x 3 orientation matrix}
 \begin{enumerate}
     \item general case: two vectors that define an orthonormal reference
-    system, each of them preceded by its index in the final rotation 
+    system, each of them preceded by its index in the final orientation 
     matrix. The first vector is normalized and assumed to represent the
     desired direction, while the second simply defines the plane the
     vector that is not given is normal to, e.g.:
@@ -308,14 +308,16 @@ As an example, all the following lines define an empty 3 x 1 vector:
     1, (real alpha=pi/6.; 
        cos(alpha)), sin(alpha), 0., 3, 0.,0.,1.
     \end{verbatim}
-    the first example represents the identity matrix (no rotation),
+    the first example represents the identity matrix (no rotation 
+    with respect to the global reference frame),
     while the second one describes a rotation of $ \pi/6 $ rad.\ about
     axis 3.
-    \item identity matrix: keyword \texttt{eye}; the identity matrix, which means
-    no rotation.
-    \item a complete rotation matrix: keyword \texttt{matr} followed by the
-    nine, row-oriented, coefficients, namely $ r_{11} $, $ r_{12} $, \ldots,
-    $ r_{33} $.
+    \item identity matrix: keyword \texttt{eye}; the identity matrix,
+    which means there is no rotation with respect to the global reference
+    frame.
+    \item a complete orientation matrix: keyword \texttt{matr}
+    followed by the nine, row-oriented, coefficients, namely
+    $ r_{11} $, $ r_{12} $, \ldots, $ r_{33} $.
     \item Euler angles: keyword \texttt{euler}, followed by the three
     values, as output by structural nodes.
 \end{enumerate}
@@ -427,7 +429,7 @@ The \texttt{reference} directive:
 \begin{verbatim}
     <card> ::= reference : <unique_label> , 
                            <absolute_position> ,
-                           <absolute_rotation_matrix> ,
+                           <absolute_orientation_matrix> ,
                            <absolute_velocity> ,
                            <absolute_angular_velocity> ;
 \end{verbatim}
@@ -451,8 +453,8 @@ The following cases are considered:
 \begin{itemize}
     \item relative position (physical)
     \item absolute position (physical)
-    \item relative rotation matrix (physical)
-    \item absolute rotation matrix (physical)
+    \item relative orientation matrix (physical)
+    \item absolute orientation matrix (physical)
     \item relative velocity (physical)
     \item absolute velocity (physical)
     \item reltive angular velocity (physical)
@@ -484,7 +486,7 @@ Examples:
     reference, global, null
     reference, 8, 1., sin(.3*pi), log(3.)
     \end{verbatim}
-    \item relative rotation matrix (e.g.\ as required by many constraints and
+    \item relative orientation matrix (e.g.\ as required by many constraints and
     thus referred to a node):
     \begin{verbatim}
     eye
@@ -496,7 +498,7 @@ Examples:
 Notes: 
 \begin{itemize}
     \item the global reference frame has position $ \cubr{0, 0, 0} $,
-    rotation matrix \texttt{eye}, velocity $ \cubr{0, 0, 0} $ and angular
+    orientation matrix \texttt{eye}, velocity $ \cubr{0, 0, 0} $ and angular
     velocity $ \cubr{0, 0, 0} $.
     \item if the caller is not related to a node, the reference type
     \texttt{node} shouldn't be defined. 

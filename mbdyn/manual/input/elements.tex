@@ -79,33 +79,33 @@ The \texttt{aerodynamic body} input format is:
 \begin{verbatim}
     <normal_arglist> ::= <node_label> 
         [ , rotor , <rotor_label> ] ,
-        (Vec3)           <relative_surface_offset> , 
-        (RotationMatrix) <relative_surface_rotation> ,
-        (scalar)         <surface_span> ,
-        (shape_1D)       <surface_chord> ,
-        (shape_1D)       <surface_aerodynamic_center> ,
-        (shape_1D)       <surface_b_c_point> ,
-        (shape_1D)       <surface_twist> ,
-                         <integration_points>
+        (Vec3)              <relative_surface_offset> , 
+        (OrientationMatrix) <relative_surface_orientation> ,
+        (scalar)            <surface_span> ,
+        (shape_1D)          <surface_chord> ,
+        (shape_1D)          <surface_aerodynamic_center> ,
+        (shape_1D)          <surface_b_c_point> ,
+        (shape_1D)          <surface_twist> ,
+                            <integration_points>
         [ , control , (drive_caller) <control_drive> ] 
-        [ , { naca 0012 | rae 9671 | c81 , <c81_data> } ]
+        [ , <airfoil_data> ]
         [ , unsteady , { bielawa } ]
 \end{verbatim}
 The \texttt{aerodynamic beam} input format is:
 \begin{verbatim}
     <normal_arglist> ::= <beam_label> 
         [ , rotor , <rotor_label> ] ,
-        (Vec3)           <relative_surface_offset_1> ,       
-        (RotationMatrix) <relative_surface_rotation_1> ,
-        (Vec3)           <relative_surface_offset_2> ,
-        (RotationMatrix) <relative_surface_rotation_2> ,
-        (Vec3)           <relative_surface_offset_3> ,       
-        (RotationMatrix) <relative_surface_rotation_3> ,
-        (shape_1D)       <surface_chord> ,
-        (shape_1D)       <surface_aerodynamic_center> ,
-        (shape_1D)       <surface_b_c_point> ,
-        (shape_1D)       <surface_twist> ,
-                         <integration_points>
+        (Vec3)              <relative_surface_offset_1> ,       
+        (OrientationMatrix) <relative_surface_orientation_1> ,
+        (Vec3)              <relative_surface_offset_2> ,
+        (OrientationMatrix) <relative_surface_orientation_2> ,
+        (Vec3)              <relative_surface_offset_3> ,       
+        (OrientationMatrix) <relative_surface_orientation_3> ,
+        (shape_1D)          <surface_chord> ,
+        (shape_1D)          <surface_aerodynamic_center> ,
+        (shape_1D)          <surface_b_c_point> ,
+        (shape_1D)          <surface_twist> ,
+                            <integration_points>
         [ , control , (drive_caller) <control_drive> ] 
         [ , <airfoil_data> ]
         [ , unsteady , { bielawa } ]
@@ -226,7 +226,7 @@ air speed, in the global reference frame.
 Currently two beam elements are implemented: a three-node finite volume
 element, which has been historically implemented first, which uses
 conventional polynomial parabolic interpolation of the nodal displacements
-and rotations, and a two-node finite volume element, which has been
+and orientations, and a two-node finite volume element, which has been
 recently introduced.
 Although this latter element presents some shear-locking, it may be overcome
 by correcting the section stiffness matrix in a straightforward form:
@@ -245,7 +245,7 @@ is the ``arm'' matrix that appears in the differential equilibrium equation
 	\vartheta_{/x} - T^T\vartheta + f \ = \ 0 .
 \end{displaymath}
 The two-node beam will be reimplemented using a helicoidal interpolation
-of the nodal displacements and rotations, to reduce the shear-locking effect.
+of the nodal positions and orientations, to reduce the shear-locking effect.
 
 \subsection{Three-node beam element}
 The beam element is a three node one-dimensional element.
@@ -257,7 +257,7 @@ This implies the evaluation of the internal forces at two points
 that are close to the middle point between nodes 1 and 2, 
 and between nodes 2 and 3 (at $ 1-1/\sqrt{3} $ from both ends).
 So the constitutive properties must be supplied in these points, as well as
-the rotation matrices from the material to the global frame (the axial force
+the orientation matrices from the material to the global frame (the axial force
 is in direction 1).
 Any of the allowed 6D constitutive laws can be supplied to define the
 constitutive properties.
@@ -267,9 +267,9 @@ constitutive properties.
         <node_1> , (Vec3) <relative_offset_1> ,
         <node_2> , (Vec3) <relative_offset_2> ,
         <node_3> , (Vec3) <relative_offset_3> ,
-        (RotationMatrix) <rotation_matrix_section_I> ,
+        (OrientationMatrix) <orientation_matrix_section_I> ,
         (ConstitutiveLaw6D) <constitutive_law_section_I> ,
-        { same | (RotationMatrix) <rotation_matrix_section_II> } ,
+        { same | (OrientationMatrix) <orientation_matrix_section_II> } ,
         { same | (ConstitutiveLaw6D) <constitutive_law_section_II> }
 \end{verbatim}
 Based on the type of constitutive law, the simple or the viscoelastic beam
@@ -285,9 +285,9 @@ of the abstract nodes that represent the input signal tensions, as follows:
         <node_1> , (Vec3) <relative_offset_1> ,
         <node_2> , (Vec3) <relative_offset_2> ,
         <node_3> , (Vec3) <relative_offset_3> ,
-        (RotationMatrix) <rotation_matrix_section_I> ,
+        (OrientationMatrix) <orientation_matrix_section_I> ,
         (ConstitutiveLaw6D) <constitutive_law_section_I> ,
-        (RotationMatrix) <rotation_matrix_section_II> ,
+        (OrientationMatrix) <orientation_matrix_section_II> ,
         (ConstitutiveLaw6D) <constitutive_law_section_II>
         piezoelectric actuator , 
         <electrodes_number> ,
@@ -304,7 +304,7 @@ abstract nodes that represent the electrodes.
     <normal_arglist> ::=
         <node_1> , (Vec3) <relative_offset_1> ,
         <node_2> , (Vec3) <relative_offset_2> ,
-        (RotationMatrix) <rotation_matrix_section_I> ,
+        (OrientationMatrix) <orientation_matrix_section_I> ,
         (ConstitutiveLaw6D) <constitutive_law_section_I>
         [ , piezoelectric actuator , 
         <electrodes_number> ,
@@ -359,20 +359,20 @@ maximum number of parameters made available by the element.
       (Vec3)   <relative_center_of_mass> ,
       (Mat3x3) <inertia_matrix>
       [ , inertial , 
-          { node | (RotationMatrix) <rotation_matrix> } ]
+          { node | (OrientationMatrix) <orientation_matrix> } ]
     |
       condense, (integer) <num_masses> ,
           (scalar) <mass> , 
           (Vec3)   <relative_center_of_mass> ,
           (Mat3x3) <inertia_matrix> 
           [ , inertial , 
-              { node | (RotationMatrix) <rotation_matrix> } ]
+              { node | (OrientationMatrix) <orientation_matrix> } ]
           [ , ... ]
     }
 \end{verbatim}
 the \texttt{inertia\_matrix} is always referred to the center of mass of the
 mass that is being added. It can be rotated locally by means of the extra
-\texttt{rotation\_matrix} supplied after the (optional) keyword \texttt{inertial}.
+\texttt{orientation\_matrix} supplied after the (optional) keyword \texttt{inertial}.
 Otherwise, if the keyword \texttt{node} is supplied after the keyword 
 \texttt{inertial}, the inertia matrix is not rotated at all, since it is
 assumed to be already in the node reference frame.
@@ -1076,7 +1076,7 @@ in the future.
         [ , position ,
             { node | (Vec3) <absolute_position> } ]
         [ , orientation ,
-            { node | (RotationMatrix) <absolute_rotation_matrix> } ]
+            { node | (OrientationMatrix) <absolute_orientation_matrix> } ]
 \end{verbatim}
 {\em
     Note: the keyword \texttt{node} forces the joint to use the nodal position
@@ -1098,13 +1098,13 @@ instead.
     <joint_arglist> ::= 
         <node_1> , (Vec3) <relative_offset_1> 
         [ , hinge , 
-            (RotationMatrix) <relative_rotation_matrix_1> ] ,
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
         <node_2> , (Vec3) <relative_offset_2>
         [ , hinge , 
-            (RotationMatrix) <relative_rotation_matrix_2> ]
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
 \end{verbatim}
 {\em
-    Note: the rotation matrix is used for output purposes only. 
+    Note: the orientation matrix is used for output purposes only. 
     A default identity matrix is assumed.
 }
 
@@ -1126,10 +1126,10 @@ instead.
     <joint_arglist> ::= 
         <node_1> , (Vec3) <relative_offset_1> 
         [ , hinge , 
-            (RotationMatrix) <relative_rotation_matrix_1> ] ,
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
         <node_2> , (Vec3) <relative_offset_2>
         [ , hinge , 
-            (RotationMatrix) <relative_rotation_matrix_2> ]
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
 \end{verbatim}
 {\em
     Note: this joint forces the relative direction 3 of node 1 to be always 
@@ -1142,10 +1142,10 @@ instead.
     <joint_arglist> ::= 
         <node> , (Vec3) <relative_offset>
         [ , hinge , 
-            (RotationMatrix) <relative_rotation_matrix> ] ,
+            (OrientationMatrix) <relative_orientation_matrix> ] ,
         (Vec3) <absolute_pin_position>
         [ , hinge , 
-            (RotationMatrix) <absolute_pin_rotation_matrix> ]
+            (OrientationMatrix) <absolute_pin_orientation_matrix> ]
 \end{verbatim}
 {\em
     Note: this is the dual of the universal hinge when one node is grounded.
@@ -1161,10 +1161,29 @@ deprecated and may not be supported in future versions.
     <joint_arglist> ::= 
         <node_1> , (Vec3) <relative_offset_1> 
         [ , hinge , 
-            (RotationMatrix) <relative_rotation_matrix_1> ] ,
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
         <node_2> , (Vec3) <relative_offset_2>
         [ , hinge , 
-            (RotationMatrix) <relative_rotation_matrix_2> ]
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
+\end{verbatim}
+{\em
+    Note: this joint forces nodes 1 and 2 to rotate only about relative 
+    axis 3.
+}
+
+\subsection{Revolute rotation}
+A revolute joint without position constraints; this joint, in conjunction
+with an \texttt{inline} joint, should be used to constrain the two nodes
+of a hydraulic actuator.
+\begin{verbatim}
+    <joint_type> ::= revolute rotation
+    <joint_arglist> ::= 
+        <node_1>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
 \end{verbatim}
 {\em
     Note: this joint forces nodes 1 and 2 to rotate only about relative 
@@ -1181,10 +1200,10 @@ deprecated and may not be supported in future versions.
     <joint_arglist> ::= 
         <node> , (Vec3) <relative_offset>
         [ , hinge , 
-            (RotationMatrix) <relative_rotation_matrix> ] ,
+            (OrientationMatrix) <relative_orientation_matrix> ] ,
         (Vec3) <absolute_pin_position>
         [ , hinge , 
-            (RotationMatrix) <absolute_pin_rotation_matrix> ]
+            (OrientationMatrix) <absolute_pin_orientation_matrix> ]
 \end{verbatim}
 {\em
     Note: this is the dual of the revolute hinge when one node is grounded.
@@ -1196,16 +1215,46 @@ deprecated and may not be supported in future versions.
     <joint_arglist> ::= 
         <node_1> , (Vec3) <relative_offset_1> 
         [ , hinge , 
-            (RotationMatrix) <relative_rotation_matrix_1> ] ,
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
         <node_2> , (Vec3) <relative_offset_2>
         [ , hinge , 
-            (RotationMatrix) <relative_rotation_matrix_2> ] ,
+            (OrientationMatrix) <relative_orientation_matrix_2> ] ,
         (drive_caller) <angular_velocity>
 \end{verbatim}
 {\em
     Note: this joint forces nodes 1 and 2 to rotate about relative 
     axis 3 with imposed angular velocity.
 }
+
+\subsection{Plane displacement}
+This joint allows two nodes to move in the common relative 1--2 plane 
+and to rotate about the common relative axis 3.
+\begin{verbatim}
+    <joint_type> ::= plane displacement
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1> 
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
+\end{verbatim}
+
+\subsection{Plane displacement pin}
+\begin{verbatim}
+    <joint_type> ::= plane displacement pin
+    <joint_arglist> ::= 
+        <node> , (Vec3) <relative_offset>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix> ] ,
+        (Vec3) <absolute_pin_position>
+        [ , hinge , 
+            (OrientationMatrix) <absolute_pin_orientation_matrix> ]
+\end{verbatim}
+{\em
+    Note: this is the dual of the plane displacement when one node is grounded.
+}
+
 
 \subsection{In plane}
 \begin{verbatim}
@@ -1264,13 +1313,13 @@ Analogous to \texttt{rod} with the optional arg \texttt{offset}.
     <joint_type> ::= deformable hinge
     <joint_arglist> ::= 
         <node_1>
-        [ , hinge , (RotationMatrix) <relative_rotation_matrix_1> ] ,
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
         <node_2> 
-        [ , hinge , (RotationMatrix) <relative_rotation_matrix_2> ] ,
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
         (ConstitutiveLaw3D) <const_law>
 \end{verbatim}
 {\em 
-    Note: this hinge constrains the rotations only.
+    Note: this hinge constrains the orientations only.
     It should be used in conjunction with a spherical hinge or any kind of
     joint that constrains the displacements too.
 }
@@ -1280,9 +1329,9 @@ Analogous to \texttt{rod} with the optional arg \texttt{offset}.
     <joint_type> ::= deformable displacement hinge
     <joint_arglist> ::= 
         <node_1> , (Vec3) <relative_offset_1>
-        [ , hinge , (RotationMatrix) <relative_rotation_matrix_1> ] ,
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
         <node_2> , (Vec3) <relative_offset_2>
-        [ , hinge , (RotationMatrix) <relative_rotation_matrix_2> ] ,
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
         (ConstitutiveLaw3D) <const_law>
 \end{verbatim}
 
@@ -1319,9 +1368,9 @@ Analogous to \texttt{rod} with the optional arg \texttt{offset}.
     <joint_type> ::= prismatic
     <joint_arglist> ::= 
         <node_1>
-        [ , hinge , (RotationMatrix) <relative_rotation_matrix_1> ] ,
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
         <node_2> 
-        [ , hinge , (RotationMatrix) <relative_rotation_matrix_2> ] ,    
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,    
 \end{verbatim}
 
 \subsection{Drive hinge}
@@ -1329,10 +1378,10 @@ Analogous to \texttt{rod} with the optional arg \texttt{offset}.
     <joint_type> ::= drive hinge
     <joint_arglist> ::= 
         <node_1>
-        [ , hinge , (RotationMatrix) <relative_rotation_matrix_1> ] ,
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
         <node_2> 
-        [ , hinge , (RotationMatrix) <relative_rotation_matrix_2> ] ,
-        (Vec3_tpl_drive_caller) <hinge_rotation>
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
+        (Vec3_tpl_drive_caller) <hinge_orientation>
 \end{verbatim}
 {\em
     Note: this element is eXperimental. 
