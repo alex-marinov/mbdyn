@@ -295,6 +295,11 @@ class ClampJoint : virtual public Elem, public Joint {
       ASSERT(i >= 0 && i < 6);
       return DofOrder::ALGEBRAIC; 
    };
+   
+   virtual DofOrder::Order GetEqType(unsigned int i) const {
+      ASSERT(i >= 0 && i < 6);
+      return DofOrder::ALGEBRAIC; 
+   }
 
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const 
      { *piNumRows = 12; *piNumCols = 12; };
