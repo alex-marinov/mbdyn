@@ -600,14 +600,8 @@ MBDynParser::ModuleLoad_int(void)
 bool
 MBDynParser::GetDescription_int(const char *s)
 {
-	/* Se trova un remark, scrive il commento ed eventualmente
-	 * quello che segue */
-	if (!strcmp(s, "remark")) {
-		Remark_int();
-		return true;
-
 	/* Se trova un sistema di riferimento, lo gestisce direttamente */
-	} else if (!strcmp(s, "reference")) {
+	if (!strcmp(s, "reference")) {
 #if defined(USE_STRUCT_NODES)      
 		Reference_int();
 		return true;
