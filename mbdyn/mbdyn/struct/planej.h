@@ -96,6 +96,7 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    };
    
    virtual unsigned int iGetNumDof(void) const;
+   virtual std::ostream& DescribeDof(std::ostream& out, char *prefix = "", int i = -1) const;
    
    DofOrder::Order GetDofType(unsigned int i) const;
 

@@ -77,8 +77,9 @@ unsigned int ModLugreFriction::iGetNumDof(void) const {
 };
 
 std::ostream&
-ModLugreFriction::DescribeDof(std::ostream& out, int i) const
+ModLugreFriction::DescribeDof(std::ostream& out, char *prefix, int i) const
 {
+	out << prefix << "[" << 1 << "]: ModLugreFriction state" << std::endl;
 	return out;
 }
 
@@ -259,8 +260,9 @@ unsigned int DiscreteCoulombFriction::iGetNumDof(void) const {
 };
 
 std::ostream&
-DiscreteCoulombFriction::DescribeDof(std::ostream& out, int i) const
+DiscreteCoulombFriction::DescribeDof(std::ostream& out, char *prefix, int i) const
 {
+	out << prefix << "[" << 1 << "]: DiscreteCoulombFriction state" << std::endl;
 	return out;
 }
 

@@ -81,7 +81,7 @@ public:
 	/*
 	 * Describe the degrees of freedom
 	 */
-	virtual std::ostream& DescribeDof(std::ostream& out, int i = -1) const = 0;
+	virtual std::ostream& DescribeDof(std::ostream& out, char *prefix = "", int i = -1) const = 0;
 	 
 	/*
 	 * Test di validita' di un indice. 

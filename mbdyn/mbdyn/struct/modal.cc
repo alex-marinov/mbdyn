@@ -286,20 +286,20 @@ Modal::iGetNumDof(void) const
 }
 
 std::ostream&
-Modal::DescribeDof(std::ostream& out, int i) const
+Modal::DescribeDof(std::ostream& out, char *prefix, int i) const
 {
 	integer iModalIndex = iGetFirstIndex();
 
 	/* FIXME: allow to describe the i-th Dof */
 
 	out 
-		<< "        " << iModalIndex + 1 << "->" << iModalIndex + NModes << ": modal deformations" << std::endl
-		<< "        " << iModalIndex + NModes + 1 << "->" << iModalIndex + 2*NModes << ": modal velocities" << std::endl;
+		<< prefix << iModalIndex + 1 << "->" << iModalIndex + NModes << ": modal deformations" << std::endl
+		<< prefix << iModalIndex + NModes + 1 << "->" << iModalIndex + 2*NModes << ": modal velocities" << std::endl;
 	iModalIndex += 2*NModes;
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++, iModalIndex += 6) {
 		out
-			<< "        " << iModalIndex + 1 << "->" << iModalIndex + 6 << ": "
-				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") reactions" << std::endl;
+			<< prefix << iModalIndex + 1 << "->" << iModalIndex + 6 << ": "
+				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") reactions [Fx,Fy,Fz,mx,my,mz]" << std::endl;
 	}
 
 	return out;

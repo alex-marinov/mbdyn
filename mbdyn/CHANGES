@@ -13,6 +13,7 @@ MBDyn 1.2-Engineering
 		- added third order step solver
 		- added TAUCS linear solver (eXperimental)
 		- added "ad hoc" (Radau IIA) third-order integrator
+		- added provisions for detailed dof stats
 	Backward compatibility issues:
 	Known issues:
 		- parallel is not working yet

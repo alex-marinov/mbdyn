@@ -268,7 +268,7 @@ DataManager::DofOwnerInit(void)
 					std::cout << "->" << fd + nd;
 				}
 				std::cout << std::endl;
-				(*ppNd)->DescribeDof(std::cout);
+				(*ppNd)->DescribeDof(std::cout, "        ");
 			}
 #endif /* !DEBUG */
 
@@ -320,7 +320,7 @@ DataManager::DofOwnerInit(void)
 						std::cout << "->" << fd + nd;
 					}
 					std::cout << std::endl;
-					pElWD->DescribeDof(std::cout);
+					pElWD->DescribeDof(std::cout, "        ");
 				}
 #endif /* !DEBUG */
 
