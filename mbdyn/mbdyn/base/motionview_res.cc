@@ -65,7 +65,11 @@ void
 DataManager::MotionViewResOutputInit(const char *sOutputFileName)
 {
 	/* FIXME: need initial time, final time and number of steps :( */
+#if (MOTIONVIEW_VER_MAJ >= 6)
+	mrfOpenResult();
+#else /* MOTIONVIEW_VER_MAJ < 6 */
 	mrfOpenResult(0., 1., 1);
+#endif /* MOTIONVIEW_VER_MAJ < 6 */
 
 	/* FIXME: need a file name */
 	char mrf_buf[1024];
@@ -200,7 +204,12 @@ DataManager::MotionViewResOutputFini(void) const
 #ifdef MIMIC_MOTIONVIEW
 
 int
+#if (MOTIONVIEW_VER_MAJ >= 6)
+mrfOpenResult(void)
+#else /* MOTIONVIEW_VER_MAJ < 6 */
 mrfOpenResult(const float start_time, const float end_time, int num_time_steps)
+#endif /* MOTIONVIEW_VER_MAJ < 6 */
+
 {
 	return 0;
 }
