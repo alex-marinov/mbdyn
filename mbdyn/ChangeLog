@@ -3,9 +3,13 @@ see http://www.mbdyn.org
 
 Copyright: 1996-2001 Pierangelo Masarati
 
+*** Wed Oct 24 15:57:20 CEST 2001 Pierangelo Masarati <masarati@aero.polimi.it>
+ - big leap towards distribution: wiped out HSL stuff; packed liby12 and
+   meschach stuff; cleaned up configure and build
+
 *** Tue Oct 23 16:19:25 CEST 2001 Pierangelo Masarati <masarati@aero.polimi.it>
  - added bi-stop constitutive law
- - spherical slider works on one 3 node3 node beam
+ - spherical slider works on one 3 node beam
 
 *** Wed Aug  1 14:10:23 CEST 2001 Pierangelo Masarati <masarati@aero.polimi.it>
  - added NASTRAN output (bulk and .f06) for modes at trim point.
