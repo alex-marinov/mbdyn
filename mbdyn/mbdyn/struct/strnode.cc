@@ -572,7 +572,12 @@ void
 StructNode::SetInitialValue(VectorHandler& X) const
 {
 	/* FIXME: why is this called? */
-	NO_OP;
+	integer iIndex = iGetFirstIndex();
+
+	X.Put(iIndex + 1, XCurr);
+	X.Put(iIndex + 4, Zero3);
+	X.Put(iIndex + 7, VCurr);
+	X.Put(iIndex + 10, WCurr);
 }
 
 
