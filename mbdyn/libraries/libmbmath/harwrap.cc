@@ -170,7 +170,6 @@ HarwellSparseLUSolutionManager::PacVec(void)
    	IsValid();
 #endif
    
-   	ASSERT(pMH->iCurSize > 0);   
    	ASSERT(fHasBeenReset == 1);
    
    	pLU->iNonZeroes = pMH->iPacVec();

@@ -30,7 +30,7 @@
 
 /*****************************************************************************
  *                                                                           *
- *                            HARWLIB C++ WRAPPER                            *
+ *                            Y12 C++ WRAPPER                                *
  *                                                                           *
  *****************************************************************************/
 
@@ -88,7 +88,16 @@ iFirstSol(-1)
 	}
 #endif /* DEBUG */
 
+        iIFLAG[0] = 0;
+	iIFLAG[1] = 3;
 	iIFLAG[2] = iPivotParam;
+	iIFLAG[3] = 0;
+	iIFLAG[4] = 2;
+					
+        dAFLAG[0] = 8.;         /* Should be 4.<dAFLAG[0]<16. for stability */
+	dAFLAG[1] = 0.;         /* Should be 0.<dAFLAG[1]<1.e-12 */
+	dAFLAG[2] = 1.e6;       /* Should be dAFLAG[2]>1.e5 */
+	dAFLAG[3] = 1.e-12;     /* Should be 0<dAFLAG[3]<1.e-12 */
 }
 
 /* Distruttore */
@@ -105,6 +114,7 @@ Y12LUSolver::~Y12LUSolver(void)
 void 
 Y12LUSolver::IsValid(void) const
 {
+	ASSERT(iMatSize > 0);
 	ASSERT(iMatSize > 0);
 	ASSERT(ppiRow != NULL);
 	ASSERT(ppiCol != NULL);
@@ -124,7 +134,7 @@ Y12LUSolver::IsValid(void) const
 #endif /* DEBUG_MEMMANAGER */
 
 	ASSERT(piHA != NULL);
-	ASSERT(piPIVOT != NULL);
+	ASSERT(pdPIVOT != NULL);
 	
 #ifdef DEBUG_MEMMANAGER
 	ASSERT(LUmm.fIsBlock((void*)piHA, 11*iN*sizeof(integer)));
@@ -140,44 +150,47 @@ Y12LUSolver::fLUFactor(void)
 	IsValid();
 #endif /* DEBUG */
 
+	/*
+	 * FIXME: This is set by Y12SparseLUSolutionManager in PacVec;
+	 * better move such info to the matrix handler!
+	 */
 	ASSERT(iNonZeroes > 0);
 	
 	/* Sets parameters */
 	integer iIFAIL = 0;
-	
-	iIFLAG[0] = 0;
-	iIFLAG[1] = 3;
-	/* iIFLAG[2] = iPivotParam; */
-	iIFLAG[3] = 0;
 	iIFLAG[4] = 2;
-	
 	iFirstSol = 1;
 	
-	/* Prepares for fatorization */
+	/* Prepares for factorization */
 	__FC_DECL__(y12mbf)(&iN, &iNonZeroes, *ppdMat,
-			    &iMatSize, *ppiCol,
-			    &iMatSize, *ppiRow,
+			    *ppiCol, &iMatSize,
+			    *ppiRow, &iMatSize,
 			    piHA, &iN,
 			    dAFLAG, iIFLAG, &iIFAIL);
 			    
 	if (iIFAIL != 0) {
-		cerr << "Y12LUSolver: error during factorisation, code "
+		cerr << "Y12LUSolver: error during pre-factorization, code "
 			<< iIFAIL << endl;
 		THROW(Y12LUSolver::ErrFactorisation(iIFAIL));
 	}
 	
 	/* actual factorization */
 	__FC_DECL__(y12mcf)(&iN, &iNonZeroes, *ppdMat,
-			    &iMatSize, *ppiCol,
-			    &iMatSize, *ppiRow,
+			    *ppiCol, &iMatSize,
+			    *ppiRow, &iMatSize,
 			    pdPIVOT, pdRhs,
 			    piHA, &iN,
 			    dAFLAG, iIFLAG, &iIFAIL);
 
 	if (iIFAIL != 0) {
-		cerr << "Y12LUSolver: error during factorisation, code "
+		cerr << "Y12LUSolver: error during factorization, code "
 			<< iIFAIL << endl;
 		THROW(Y12LUSolver::ErrFactorisation(iIFAIL));
+	}
+
+	if (dAFLAG[7] < 1.e-12) {
+		cerr << "Y12LUSolver:"
+			" warning, possible bad conditioning of matrix" << endl;
 	}
 	
 	return iIFAIL;
@@ -189,7 +202,7 @@ Y12LUSolver::Solve(void)
 {
 #ifdef DEBUG
 	IsValid();
-#endif
+#endif /* DEBUG */
 
 	integer iIFAIL = 0;
 	
@@ -199,7 +212,7 @@ Y12LUSolver::Solve(void)
 			    iIFLAG, &iIFAIL);
 	
 	if (iIFAIL != 0) {
-		cerr << "Y12LUSolver: error during factorisation, code "
+		cerr << "Y12LUSolver: error during back substitution, code "
 			<< iIFAIL << endl;
 		THROW(Y12LUSolver::ErrFactorisation(iIFAIL));
 	}
@@ -235,7 +248,7 @@ fHasBeenReset(1)
 
    	/* Valore di default */
    	if (iWorkSpaceSize == 0) {
-      		iWorkSpaceSize = iSize*iSize;
+      		iWorkSpaceSize = 2*iSize*iSize;
    	}
 
 	integer iPivot;
@@ -265,13 +278,13 @@ fHasBeenReset(1)
    	SAFENEWWITHCONSTRUCTOR(pLU, 
 			       Y12LUSolver,
 			       Y12LUSolver(iMatSize, iWorkSpaceSize,
-			       		   &piRow, &piCol, 
+			       		   &piRow, &piCol,
 					   &pdMat, pdVec, iPivot),
 			       SMmm);
    
 #ifdef DEBUG
    	IsValid();
-#endif      
+#endif /* DEBUG */
 }
 
 
@@ -280,7 +293,7 @@ Y12SparseLUSolutionManager::~Y12SparseLUSolutionManager(void)
 {
 #ifdef DEBUG
    	IsValid();
-#endif      
+#endif /* DEBUG */
    
    	/* Dealloca oggetti strani */
    	if (pLU != NULL) {	
@@ -326,7 +339,7 @@ Y12SparseLUSolutionManager::IsValid(void) const
    	ASSERT(SMmm.fIsPointerToBlock((void*)pMH));
    	ASSERT(SMmm.fIsPointerToBlock((void*)pVH));
    	ASSERT(SMmm.fIsPointerToBlock((void*)pLU));
-#endif
+#endif /* DEBUG_MEMMANAGER */
    
    	ASSERT((pMH->IsValid(), 1));
    	ASSERT((pVH->IsValid(), 1));
@@ -339,11 +352,11 @@ Y12SparseLUSolutionManager::PacVec(void)
 {
 #ifdef DEBUG
    	IsValid();
-#endif
+#endif /* DEBUG */
    
-   	ASSERT(pMH->iCurSize > 0);   
    	ASSERT(fHasBeenReset == 1);
-   
+	
+	/* FIXME: move this to the matrix handler! */
    	pLU->iNonZeroes = pMH->iPacVec();
 }
 
@@ -353,7 +366,7 @@ Y12SparseLUSolutionManager::MatrInit(const doublereal& dResetVal)
 {
 #ifdef DEBUG
    	IsValid();
-#endif
+#endif /* DEBUG */
    
    	pMH->Init(dResetVal);
    	fHasBeenReset = flag(1);
@@ -365,13 +378,12 @@ Y12SparseLUSolutionManager::Solve(void)
 {
 #ifdef DEBUG
    	IsValid();
-#endif
+#endif /* DEBUG */
 
    	if (fHasBeenReset == 1) {
       		this->PacVec();
-      		fHasBeenReset = flag(0);
-      		flag fReturnFlag = pLU->fLUFactor();
-      		if (fReturnFlag < 0) {	 
+      		fHasBeenReset = 0;
+      		if (pLU->fLUFactor() < 0) {	 
 	 		THROW(Y12SparseLUSolutionManager::ErrGeneric());
       		}
    	}
@@ -379,5 +391,4 @@ Y12SparseLUSolutionManager::Solve(void)
 }
 
 /* Y12SparseLUSolutionManager - end */
-
 

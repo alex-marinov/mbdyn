@@ -288,7 +288,7 @@ protected:
       
       		if (iFlag < 0) { 
 	 		cerr << sLUClassName 
-	   			<< ": error during factorisation, code "
+	   			<< ": error during factorization, code "
 				<< iFlag << endl;	 
 	 		THROW(HarwellLUSolver::ErrFactorisation(iFlag));
       		}

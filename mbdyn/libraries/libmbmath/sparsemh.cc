@@ -141,6 +141,8 @@ SparseMatrixHandler::~SparseMatrixHandler(void)
 integer 
 SparseMatrixHandler::PacMat(void)
 {
+	ASSERT(iCurSize > 0);
+
    	doublereal* pdMatNew = *ppdMat;
    	integer* piRowNew = *ppiRow;
    	integer* piColNew = *ppiCol;
@@ -215,7 +217,7 @@ SparseMatrixHandler::iPacVec(void)
 	IsValid();
 #endif  
 
-	ASSERT(pSD->iCurSize > 0);
+	ASSERT(iCurSize > 0);
 	
 	doublereal* pdMatNew = *ppdMat;
 	integer* piRowNew = *ppiRow;
