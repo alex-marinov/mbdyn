@@ -201,6 +201,16 @@ public:
 	/* Contributo al residuo durante l'assemblaggio iniziale */   
 	virtual SubVectorHandler& 
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);   
+
+	virtual unsigned int iGetNumPrivData(void) const {
+		return DeformableHingeJoint::iGetNumPrivData();
+	};
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return DeformableHingeJoint::iGetPrivDataIdx(s);
+	};
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return DeformableHingeJoint::dGetPrivData(i);
+	};
 };
 
 /* ElasticHingeJoint - end */
@@ -273,6 +283,16 @@ public:
 	/* Contributo al residuo durante l'assemblaggio iniziale */   
 	virtual SubVectorHandler& 
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);   
+
+	virtual unsigned int iGetNumPrivData(void) const {
+		return DeformableHingeJoint::iGetNumPrivData();
+	};
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return DeformableHingeJoint::iGetPrivDataIdx(s);
+	};
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return DeformableHingeJoint::dGetPrivData(i);
+	};
 };
 
 /* ViscousHingeJoint - end */
@@ -353,6 +373,16 @@ public:
 	/* Contributo al residuo durante l'assemblaggio iniziale */   
 	virtual SubVectorHandler& 
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+
+	virtual unsigned int iGetNumPrivData(void) const {
+		return DeformableHingeJoint::iGetNumPrivData();
+	};
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return DeformableHingeJoint::iGetPrivDataIdx(s);
+	};
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return DeformableHingeJoint::dGetPrivData(i);
+	};
 };
 
 /* ViscoElasticHingeJoint - end */
