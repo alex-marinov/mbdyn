@@ -479,7 +479,80 @@ where, if the convention of using $x$ as beam axis is followed:
 \end{itemize}
 
 
-The 3 node finite volume element has been implemented first, 
+\subsection{Beam Section Constitutive Law}
+Typically, linear elastic or viscoelastic constitutive laws are used,
+although one may want to implement specific nonlinear elastic
+or elastic-plastic constitutive laws.
+
+\subsubsection{Beam Section Characterization}
+MBDyn allows the broadest generality in defining what a linear elastic 
+constitutive law contains, since the entire $6\times{6}$ constitutive
+matrix can be input.
+This means that internal forces and couples can be arbitrarily related
+to generalized strains and curvatures.
+However, to make sense, a constitutive matrix at the section level,
+must satisfy some constraints, e.g.\ it is expected to be symmetric, 
+although this is not strictly enforced by the code.
+
+However, most of the info about the extra-diagonal terms 
+of the stiffness matrix are not usually available.
+One easy way to work this around is to resort to any so-called
+composite beam section characterization analysis available 
+in the literature.
+For details, the reader is referred to \cite{HODGES-REVIEW90} 
+for a review of the topic, to \cite{ANBA-GIAVOTTO-83}
+for an early work on the subject, and to \cite{MASARATI-2001}
+for a recent review of the original formulation.
+
+\subsubsection{Equivalent $6\times6$ Section of Isotropic Beam}
+When an isotropic beam section is considered, the $6\times$ 
+constitutive matrix can always be written in terms of elementary
+stiffness and geometrical properties.
+These are the properties that are usually available in tabular form
+either from simplified beam section analysis or by experiments.
+Isotropic uniform beam sections allow to group the internal forces 
+and couples in two groups, together with their conjugated generalized 
+strains:
+those related to shear stress and strain, and those related 
+to axial stress and strain, as illustrated
+in Figure~\ref{fig:EL:BEAM:GROUPS}.
+\begin{figure}
+\centering
+\begin{tabular}{c|c|c|c|c|c|c|}
+	&
+		$\varepsilon_x$ &
+		$\gamma_y$ &
+		$\gamma_z$ &
+		$\kappa_x$ &
+		$\kappa_y$ &
+		$\kappa_z$ \\
+	\hline
+	$F_x$ & A &   &   &   & A & A \\
+	\hline
+	$F_y$ &   & S & S & S &   &   \\
+	\hline
+	$F_z$ &   & S & S & S &   &   \\
+	\hline
+	$M_x$ &   & S & S & S &   &   \\
+	\hline
+	$M_y$ & A &   &   &   & A & A \\
+	\hline
+	$M_z$ & A &   &   &   & A & A \\
+	\hline
+\end{tabular}
+\caption{Internal forces grouping (S: shear, A: axial)}
+\label{fig:EL:BEAM:GROUPS}
+\end{figure}
+There is no direct coupling between them, at the section level,
+so the corresponding coupling coefficients are always zero.
+This is no longer true when material anisotropy must be taken 
+into account.
+
+
+
+
+\subsubsection{Locking Correction for Two-Node Beam}
+The three-node finite volume element has been implemented first, 
 and uses conventional polynomial parabolic interpolation 
 of the nodal displacements and orientations;
 the two-node finite volume element has been introduced later.

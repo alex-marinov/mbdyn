@@ -68,6 +68,7 @@ for IN in $TGT; do
 		echo "unable to find latex2html"
 	else
 		latex2html \
+			-no_math -html_version 3.2,math \
 			-split 4 \
 			-toc_depth 3 \
 			-local_icons \
