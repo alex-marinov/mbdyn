@@ -186,6 +186,8 @@ class MBDynParser : public IncludeParser {
    Vec3 GetOmeAbs(const ReferenceFrame& rf);
    Vec3 GetVecRel(const ReferenceFrame& rf);
    Vec3 GetVecAbs(const ReferenceFrame& rf);
+   Mat3x3 GetMatRel(const ReferenceFrame& rf);
+   Mat3x3 GetMatAbs(const ReferenceFrame& rf);
    Mat3x3 GetRotRel(const ReferenceFrame& rf);
    Mat3x3 GetRotAbs(const ReferenceFrame& rf);
 #endif /* USE_STRUCT_NODES */
