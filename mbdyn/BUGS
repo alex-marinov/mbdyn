@@ -14,8 +14,7 @@ http://www.aero.polimi.it
 1.1.1
 	- There's a library cross-dependency that's not appropriately 
 	  handled by recent versions of libtool (e.g. 1.4.1).
-	  The file "mbdyn/Makefile" can be hand-crafted by linking twice 
-	  the "base/.libs/libbase.a" library in the "mbdyn" target, 
-	  before and after the "libaero/libstruct/libelec/libhydr" block.
+	  The file "mbdyn/Makefile" can be hand-crafted by adding
+	  "base/.libs/libbase.a" at the end of the LDFLAGS macro.
 	  Everything works fine with libtool 1.3.4.
 
