@@ -6,6 +6,8 @@ Copyright (C) 1996-2002
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Wed May 15 16:39:30 CEST 2002 marco Morandini <morandini@aero.polimi.it>
+ - fix default argument in iterwrap.cc
 
 *** Fri May 10 15:56:08 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - log reference frames on dedicated file (only if required)

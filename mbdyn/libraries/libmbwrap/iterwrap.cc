@@ -100,7 +100,7 @@ IterativeSolutionManager::~IterativeSolutionManager(void){
 	}
 };
 
-void IterativeSolutionManager::MatrInit(const doublereal& d = 0.) {
+void IterativeSolutionManager::MatrInit(const doublereal& d) {
 
 	pSM->MatrInit(d);
 	return;
