@@ -33,6 +33,5 @@
 @BOTTOM@
 
 /* this file must be included by every .c/.cc file */
-#include <mbdefs.h>
 #include <mbdyn.h>
 
