@@ -223,12 +223,30 @@ Forces:
 \end{eqnarray*}
 Linearization:
 
+\subsection{Revolute hinge (PlaneHingeJoint)}
+Joint data
+\begin{displaymath}
+d_1, d_2, R_{h1}, R_{h2}
+\end{displaymath}
+where:\\
+$d_1$, $d_2$: offset of nodes 1,2 in node reference;\\
+$R_{h1}$, $R_{h2}$: joint relative orientation wrt. nodes 1,2.\\
+
+\noindent
+Equations
+\begin{eqnarray*}
+	(x_1+R_1\cdot d_1) - (x_2+R_1\cdot d_2)& = & 0 \\
+	(R_1\cdot R_{h1})[3]\cdot (R_2\cdot R_{h2})[2] & = & 0 \\
+	(R_1\cdot R_{h1})[3]\cdot (R_2\cdot R_{h2})[1] & = & 0 \\
+\end{eqnarray*}
+where:\\
+$x_1$, $x_2$: positions of nodes 1,2;\\
+$R_{1}$, $R_{2}$: orientation of nodes 1,2.\\
 
 
 \section{Deformable Constraints}
 
 \subsection{Deformable Hinge}
-\emph{Author: Marco Morandini} \htmladdnormallink{\texttt{<morandini@aero.polimi.it>}}{mailto:morandini@aero.polimi.it}
 
 
 
