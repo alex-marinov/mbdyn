@@ -122,9 +122,11 @@ public:
 
 	inline bool bIsInUse(void) const
 	{
-		/* FIXME: make it portable? */
-		return mbdyn_compare_and_swap(&inuse,
+		/* FIXME: make it portable */
+		bool b = mbdyn_compare_and_swap(&inuse,
 				sig_atomic_t(true), sig_atomic_t(false));
+
+		return b;
 	};
 	inline void SetInUse(bool b = false) { inuse = b; };
 };
@@ -180,7 +182,7 @@ public:
 	{
 		ASSERT(pStart != NULL);
 		ASSERT(iSize > 0);
-		ASSERT(pCount >= (T *)pStart);
+		ASSERT(pCount >= (T *)pStart - 1 && pCount < pStart + iSize);
 
 		for (pCount++; pCount < pStart + iSize; pCount++) {
 			if (!(*pCount)->bIsInUse()) {
