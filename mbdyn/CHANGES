@@ -13,6 +13,13 @@ MBDyn 1.2-Engineering
 		- added third order step solver
 		- added TAUCS linear solver (eXperimental)
 		- added "ad hoc" (Radau IIA) third-order integrator
+	Backward compatibility issues:
+	Known issues:
+		- parallel is not working yet
+	Bug fixes:
+
+MBDyn 1.2.0
+	Enhancements:
 		- added predefined drive callers
 		- added support for inertia log to modal joint
 		- added inertia log supports joints and loadable elements
@@ -33,11 +40,9 @@ MBDyn 1.2-Engineering
 	Known issues:
 		- parallel is not working yet
 	Bug fixes:
-		- fixed potential bug in c81 data input
-
-MBDyn 1.2-Beta.Engineering
-	Bug fixes:
 		- fixed .vol generation script for EasyAnim
+		- fixed potential bug in c81 data input
+		- fixed distance joint initial assembly
 
 MBDyn 1.2-Beta.4
 	Enhancements:
