@@ -39,7 +39,6 @@
 
 #include "dataman.h"
 #include "spmh.h"
-// #include "spmapmh.h"
 
 /* MultiThreadDataManager - begin */
 
@@ -130,8 +129,10 @@ public:
 	/* Assembla lo jacobiano */
 	virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef);
 
+#ifdef MBDYN_X_MT_ASSRES
 	/* Assembla il residuo */
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef);
+#endif /* MBDYN_X_MT_ASSRES */
 
 	/* additional CPU time, if any */
 	virtual clock_t GetCPUTime(void) const;

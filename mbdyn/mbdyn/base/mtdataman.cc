@@ -214,6 +214,7 @@ MultiThreadDataManager::thread(void *p)
 			}
 			break;
 
+#ifdef MBDYN_X_MT_ASSRES
 		case MultiThreadDataManager::OP_ASSRES:
 			arg->pResHdl->Reset();
 			arg->pDM->DataManager::AssRes(*(arg->pResHdl),
@@ -221,6 +222,7 @@ MultiThreadDataManager::thread(void *p)
 					arg->ElemIter,
 					*arg->pWorkVec);
 			break;
+#endif /* MBDYN_X_MT_ASSRES */
 
 		case MultiThreadDataManager::OP_EXIT:
 			/* cleanup */
@@ -472,6 +474,7 @@ retry:;
 	}
 }
 
+#ifdef MBDYN_X_MT_ASSRES
 void
 MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 {
@@ -500,6 +503,7 @@ MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 		ResHdl += *thread_data[i].pResHdl;
 	}
 }
+#endif /* MBDYN_X_MT_ASSRES */
 
 clock_t
 MultiThreadDataManager::GetCPUTime(void) const

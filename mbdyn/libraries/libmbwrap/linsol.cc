@@ -69,16 +69,16 @@ static struct solver_t {
 		LinSol::SOLVER_FLAGS_NONE },
 	{ "Y12", NULL,
 		LinSol::Y12_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP },
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS },
 	{ "Umfpack", "umfpack3", 
 		LinSol::UMFPACK_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP },
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS },
 	{ "SuperLU", NULL, 
 		LinSol::SUPERLU_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT },
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT },
 	{ "Lapack", NULL,
 		LinSol::LAPACK_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
@@ -273,7 +273,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		break;
 	}
 
-	solverFlags |= ::solver[CurrSolver].s_default_flags;
+	solverFlags = ::solver[CurrSolver].s_default_flags;
 
 	/* map? */
 	if (HP.IsKeyWord("map")) {
@@ -340,8 +340,8 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 	if (HP.IsKeyWord("multi" "thread") || HP.IsKeyWord("mt")) {
 		nThreads = HP.GetInt();
 
-		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT) {
-			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_MT;
+		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) {
+			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT;
 			if (nThreads < 1) {
 				silent_cerr("illegal thread number, using 1" << std::endl);
 				nThreads = 1;
@@ -354,7 +354,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 			nThreads = 1;
 		}
 	} else {
-		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT) {
+		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) {
 			int n = get_nprocs();
 
 			if (n > 1) {
@@ -581,12 +581,12 @@ LinSol::MaskSolverFlags(unsigned f)
 bool
 LinSol::SetNumThreads(unsigned nt)
 {
-	if (GetSolverFlags(CurrSolver) & LinSol::SOLVER_FLAGS_ALLOWS_MT) {
+	if (GetSolverFlags(CurrSolver) & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) {
 		if (nt == 0) {
-			solverFlags &= ~LinSol::SOLVER_FLAGS_ALLOWS_MT;
+			solverFlags &= ~LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT;
 
 		} else {
-			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_MT;
+			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT;
 		}
 
 		nThreads = nt;
@@ -614,7 +614,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 {
 	SolutionManager *pCurrSM = NULL;
 	unsigned type = (solverFlags & LinSol::SOLVER_FLAGS_TYPE_MASK);
-	bool mt = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_MT);
+	bool mt = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT);
 
 	ASSERT((::solver[CurrSolver].s_flags & solverFlags) == solverFlags);
 

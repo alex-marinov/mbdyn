@@ -85,7 +85,7 @@ class Rotor
 				   dei dati da scambiare ad ogni passo */
 #endif /* USE_MPI */
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
    mutable pthread_mutex_t forces_mutex;
 
    mutable pthread_mutex_t induced_velocity_mutex;
@@ -94,7 +94,7 @@ class Rotor
 
    void Wait(void) const;
    void Done(void) const;
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES*/
 
    const StructNode* pCraft;
    const StructNode* pRotor;
@@ -250,37 +250,37 @@ class Rotor
    
    /* accesso a dati */
    virtual inline doublereal dGetOmega(void) const {
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
       Wait();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES*/
       return dOmega;
    };
    
    virtual inline doublereal dGetRadius(void) const {
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
       Wait();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
       return dRadius;
    };
    
    virtual inline doublereal dGetMu(void) const {
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
       Wait();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
       return dMu;
    };
    
    virtual inline const Vec3& GetForces(void) const {
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
       Wait();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
       return Res.Force();
    };
    
    virtual inline const Vec3& GetMoments(void) const {
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
       Wait();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
       return Res.Couple();
    };
    

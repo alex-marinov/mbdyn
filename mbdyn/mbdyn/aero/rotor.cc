@@ -52,12 +52,6 @@ extern "C" {
 #include <rotor.h>
 #include <dataman.h>
 
-#if 0
-#undef USE_MULTITHREAD
-void Rotor::Wait(void) const {};
-void Rotor::Done(void) const {};
-#endif
-
 /* Rotor - begin */
 
 Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
@@ -124,11 +118,11 @@ iNumSteps(0)
 	}
 #endif /* USE_MPI */
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	pthread_mutex_init(&induced_velocity_mutex, NULL);
 	pthread_cond_init(&induced_velocity_cond, NULL);
 	pthread_mutex_init(&forces_mutex, NULL);
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 }
 
 Rotor::~Rotor(void)
@@ -138,11 +132,11 @@ Rotor::~Rotor(void)
 	SAFEDELETEARR(pTmpVecS);
 #endif /* USE_MPI */
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	pthread_mutex_destroy(&induced_velocity_mutex);
 	pthread_cond_destroy(&induced_velocity_cond);
 	pthread_mutex_destroy(&forces_mutex);
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 }
 
 unsigned int
@@ -246,10 +240,10 @@ Rotor::AfterConvergence(const VectorHandler& /* X */ ,
 	    }
     }
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
     ASSERT(bDone);
     bDone = false;
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 }
 
 void
@@ -635,7 +629,7 @@ Rotor::ResetForce(void)
 	}
 }
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 void
 Rotor::Wait(void) const
 {
@@ -656,7 +650,7 @@ Rotor::Done(void) const
 	pthread_cond_broadcast(&induced_velocity_cond);
 	pthread_mutex_unlock(&induced_velocity_mutex);
 }
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
 /* Rotor - end */
 
@@ -733,9 +727,9 @@ SubVectorHandler& NoRotor::AssRes(SubVectorHandler& WorkVec,
    ResetForce();
    WorkVec.Resize(0);
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
    Done();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
    return WorkVec;
 }
@@ -762,19 +756,19 @@ NoRotor::AddForce(unsigned int uL,
 	}
 #endif /* USE_MPI */
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	pthread_mutex_lock(&forces_mutex);
 	Wait();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
 		Rotor::AddForce(uL, F, M, X);
 	}
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	pthread_mutex_unlock(&forces_mutex);
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 }
 
 /* Restituisce ad un elemento la velocita' indotta in base alla posizione
@@ -898,9 +892,9 @@ SubVectorHandler& UniformRotor::AssRes(SubVectorHandler& WorkVec,
    /* Non tocca il residuo */
    WorkVec.Resize(0);
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
    Done();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
    return WorkVec;  
 }
@@ -926,10 +920,10 @@ UniformRotor::AddForce(unsigned int uL,
 	}
 #endif /* USE_MPI */
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	pthread_mutex_lock(&forces_mutex);
 	Wait();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
 	/* Solo se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {      
@@ -939,18 +933,18 @@ UniformRotor::AddForce(unsigned int uL,
 		Res.AddForce(F);
 	}
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	pthread_mutex_unlock(&forces_mutex);
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 }
 
 /* Restituisce ad un elemento la velocita' indotta in base alla posizione
  * azimuthale */
 Vec3 UniformRotor::GetInducedVelocity(const Vec3& /* X */ ) const
 {
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	Wait();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
 	return RRot3*dUMeanPrev;
 };
@@ -1054,9 +1048,9 @@ SubVectorHandler& GlauertRotor::AssRes(SubVectorHandler& WorkVec,
    ResetForce();
    WorkVec.Resize(0);
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
    Done();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
    return WorkVec;  
 }
@@ -1084,10 +1078,10 @@ GlauertRotor::AddForce(unsigned int uL,
 	}
 #endif /* USE_MPI */
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	pthread_mutex_lock(&forces_mutex);
 	Wait();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
 	/* Solo se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {      
@@ -1097,9 +1091,9 @@ GlauertRotor::AddForce(unsigned int uL,
 		Res.AddForce(F);
 	}
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	pthread_mutex_unlock(&forces_mutex);
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 }
 
 
@@ -1113,9 +1107,9 @@ Vec3 GlauertRotor::GetInducedVelocity(const Vec3& X) const
 		return Vec3(0.);
 	}
    
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	Wait();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
 	if (fabs(dLambda) < 1.e-9) {
 		return RRot3*dUMeanPrev;
@@ -1251,9 +1245,9 @@ SubVectorHandler& ManglerRotor::AssRes(SubVectorHandler& WorkVec,
    ResetForce();
    WorkVec.Resize(0);
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
    Done();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
    return WorkVec;  
 }
@@ -1281,10 +1275,10 @@ ManglerRotor::AddForce(unsigned int uL,
 	}
 #endif /* USE_MPI */
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	pthread_mutex_lock(&forces_mutex);
 	Wait();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
 	/* Solo se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {      
@@ -1294,9 +1288,9 @@ ManglerRotor::AddForce(unsigned int uL,
 		Res.AddForce(F);
 	}
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	pthread_mutex_unlock(&forces_mutex);
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 }
 
 
@@ -1308,9 +1302,9 @@ Vec3 ManglerRotor::GetInducedVelocity(const Vec3& X) const
 		return Vec3(0.);
 	}
    
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	Wait();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
 	doublereal dr, dp;
 	GetPos(X, dr, dp);
@@ -1748,9 +1742,9 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 	/* Ora la trazione non serve piu' */
 	ResetForce();
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	Done();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
      	return WorkVec;
 }
@@ -1806,19 +1800,19 @@ DynamicInflowRotor::AddForce(unsigned int uL,
 	}
 #endif /* USE_MPI */
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	pthread_mutex_lock(&forces_mutex);
 	Wait();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
 	Res.AddForces(F, M, X);
 	if (fToBeOutput()) {
 		Rotor::AddForce(uL, F, M, X);
 	}
 
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	pthread_mutex_unlock(&forces_mutex);
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 }
 
 
@@ -1827,9 +1821,9 @@ DynamicInflowRotor::AddForce(unsigned int uL,
 Vec3
 DynamicInflowRotor::GetInducedVelocity(const Vec3& X) const
 {
-#ifdef USE_MULTITHREAD
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	Wait();
-#endif /* USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
 	doublereal dr, dp;
 	GetPos(X, dr, dp);

@@ -367,22 +367,17 @@ Solver::Run(void)
 		/* chiama il gestore dei dati generali della simulazione */
 #ifdef USE_MULTITHREAD
 		if (nThreads > 1) {
-			silent_cout("Creating MultiThread solver "
-					"with " << nThreads << " threads"
-					<< std::endl);
-
-			unsigned f = (LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR);
-			if (!(CurrLinearSolver.GetSolverFlags() & f)) {
+			if (!(CurrLinearSolver.GetSolverFlags() & LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS)) {
 				/* conservative: dir may use too much memory */
-				if (!CurrLinearSolver.SetSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_CC)) {
+				if (!CurrLinearSolver.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS)) {
 					bool b;
 
 #if defined(USE_UMFPACK)
 					b = CurrLinearSolver.SetSolver(LinSol::UMFPACK_SOLVER,
-							LinSol::SOLVER_FLAGS_ALLOWS_CC);
-#elif defined (USE_Y12)
+							LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS);
+#elif defined(USE_Y12)
 					b = CurrLinearSolver.SetSolver(LinSol::Y12_SOLVER,
-							LinSol::SOLVER_FLAGS_ALLOWS_CC);
+							LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS);
 #else
 					b = false;
 #endif
@@ -393,6 +388,13 @@ Solver::Run(void)
 					}
 				}
 			}
+
+			silent_cout("Creating multithread solver "
+					"with " << nThreads << " threads "
+					"and "
+					<< CurrLinearSolver.GetSolverName()
+					<< " linear solver"
+					<< std::endl);
 
 			SAFENEWWITHCONSTRUCTOR(pDM,
 					MultiThreadDataManager,
@@ -408,6 +410,12 @@ Solver::Run(void)
 #endif /* USE_MULTITHREAD */
 		{
 			DEBUGLCOUT(MYDEBUG_MEM, "creating DataManager"
+					<< std::endl);
+
+			silent_cout("Creating scalar solver "
+					"with "
+					<< CurrLinearSolver.GetSolverName()
+					<< " linear solver"
 					<< std::endl);
 
 			SAFENEWWITHCONSTRUCTOR(pDM,
