@@ -105,6 +105,8 @@ struct module_wheel {
 	doublereal dAlphaThreshold;
 	doublereal dMuX;
 	doublereal dMuY;
+	doublereal dVa;
+	doublereal dVc;
 };
 
 /* funzioni di default */
@@ -183,6 +185,8 @@ read(LoadableElem* pEl,
 "		12)	slip angle					\n"
 "		13)	longitudinal friction coefficient		\n"
 "		14)	lateral friction coefficient			\n"
+"		15)	axis relative tangential velocity		\n"
+"		16)	point of contact relative tangential velocity	\n"
 			<< std::endl;
 
 		if (!HP.IsArg()) {
@@ -312,21 +316,19 @@ output(const LoadableElem* pEl, OutputHandler& OH)
 		module_wheel* p = (module_wheel *)pEl->pGetData();      
 		std::ostream& out = OH.Loadable();
 
-		out << std::setw(8) << pEl->GetLabel() << " ",
-			p->F.Write(out, " ") << " ",
-			p->M.Write(out, " ") << " ";
-		if (p->dDeltaL > 0.) {
-			out << p->dInstRadius << " "
-				<< p->dDeltaL << " ";
-		} else {
-			out << p->dRadius << " "
-				<< 0. << " ";
-		}
-		out << p->dVn << " " 
-			<< p->dSr << " "
-			<< 180./M_PI*p->dAlpha << " "
-			<< p->dMuX << " "
-			<< p->dMuY << std::endl;
+		out << std::setw(8) << pEl->GetLabel()	/* 1:	label */
+			<< " ", p->F.Write(out, " ")	/* 2-4:	force */
+			<< " ", p->M.Write(out, " ")	/* 5-7:	moment */
+			<< " " << p->dInstRadius	/* 8:	inst. radius */
+			<< " " << p->dDeltaL		/* 9:	radial deformation */
+			<< " " << p->dVn 		/* 10:	radial deformation velocity */
+			<< " " << p->dSr		/* 11:	slip ratio */
+			<< " " << 180./M_PI*p->dAlpha	/* 12:	slip angle */
+			<< " " << p->dMuX		/* 13:	longitudinal friction coefficient */
+			<< " " << p->dMuY		/* 14:	lateral friction coefficient */
+			<< " " << p->dVa		/* 15:	axis relative velocity */
+			<< " " << p->dVc		/* 16:	POC relative velocity */
+			<< std::endl;
 	}
 }
 
@@ -398,10 +400,16 @@ ass_res(LoadableElem* pEl,
 	p->dMuX = 0.;
 	p->dMuY = 0.;
 
+	p->dVa = 0.;
+	p->dVc = 0.;
+
 	if (dDeltaL < 0.) {
 		
 		p->F = Zero3;
 		p->M = Zero3;
+
+		p->dInstRadius = p->dRadius;
+		p->dDeltaL = 0.;
 		
 		/*
 		 * Non assemblo neppure il vettore ;)
@@ -439,6 +447,9 @@ ass_res(LoadableElem* pEl,
 		-p->pGround->GetVCurr()-(p->pGround->GetWCurr()).Cross(
 			p->pGround->GetRCurr()*p->GroundPosition
 			);
+
+	p->dVa = (va - n*(n*va)).Norm();
+	
 	/*
 	 * Velocita' tra Wheel (nel punto di contatto) 
 	 * e Ground nel sistema assoluto
@@ -450,6 +461,8 @@ ass_res(LoadableElem* pEl,
 	 * (positiva se la ruota si allontana dal terreno)
 	 */
 	p->dVn = n*v;
+	
+	p->dVc = (v - n*p->dVn).Norm();
 	
 	/*
 	 * Stima dell'area di contatto
