@@ -623,6 +623,55 @@ inline doublereal RandDriveCaller::dGet(const doublereal& dVar) const
 /* RandDriveCaller - end */
 
 
+/* PiecewiseLinearDriveCaller - begin */
+
+class PiecewiseLinearDriveCaller : public DriveCaller {
+private:
+	unsigned int iNumPoints;
+	doublereal *pPoints;
+	doublereal *pVals;
+
+public:
+	PiecewiseLinearDriveCaller(const DriveHandler* pDH,
+			unsigned int i, doublereal *p);
+	virtual ~PiecewiseLinearDriveCaller(void);
+
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const;
+	
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual ostream& Restart(ostream& out) const;
+	
+	inline doublereal dGet(const doublereal& dVar) const;
+};
+
+inline doublereal
+PiecewiseLinearDriveCaller::dGet(const doublereal& dVar) const
+{
+	if (dVar <= pPoints[0]) {
+		return pVals[0];
+	}
+
+	if (dVar >= pPoints[iNumPoints-1]) {
+		return pVals[iNumPoints-1];
+	}
+
+	for (unsigned int i = 1; i < iNumPoints; i++) {
+		if (dVar == pPoints[i]) {
+			return pVals[i];
+		}
+		if (dVar < pPoints[i]) {
+			doublereal dx = pPoints[i]-pPoints[i-1];
+			return ((dVar-pPoints[i-1])*pVals[i]
+				+(pPoints[i]-dVar)*pVals[i-1])/dx;
+		}
+	}
+
+	THROW(ErrGeneric());
+}
+
+/* PiecewiseLinearDriveCaller - end */
+
 /* DriveArrayCaller - begin */
 
 class DriveArrayCaller : public DriveCaller {

@@ -770,6 +770,57 @@ ostream& RandDriveCaller::Restart(ostream& out) const
 /* RandDriveCaller - end */
 
 
+/* PiecewiseLinearDriveCaller - begin */
+
+PiecewiseLinearDriveCaller::PiecewiseLinearDriveCaller(const DriveHandler* pDH,
+		unsigned int i,
+		doublereal *p)
+: DriveCaller(pDH), iNumPoints(i), pPoints(p), pVals(p+i)
+{
+	ASSERT(i > 0);
+	ASSERT(p != NULL);
+}
+
+PiecewiseLinearDriveCaller::~PiecewiseLinearDriveCaller(void)
+{
+	if (pPoints != NULL) {
+		SAFEDELETEARR(pPoints, DMmm);
+	}
+}
+
+/* Copia */
+DriveCaller* PiecewiseLinearDriveCaller::pCopy(void) const
+{
+	doublereal *p = NULL;
+	SAFENEWARR(p, doublereal, 2*iNumPoints, DMmm);
+	for (unsigned int i = 0; i < 2*iNumPoints; i++) {
+		p[i] = pPoints[i];
+	}
+	
+	DriveCaller* pDC = NULL;
+	SAFENEWWITHCONSTRUCTOR(pDC,
+			PiecewiseLinearDriveCaller,
+			PiecewiseLinearDriveCaller(pDrvHdl, iNumPoints, p),
+			DMmm);
+
+	return pDC;
+}
+
+/* Scrive il contributo del DriveCaller al file di restart */
+ostream& PiecewiseLinearDriveCaller::Restart(ostream& out) const
+{
+	out << "piecewise linear, " << iNumPoints;
+
+	for (unsigned int i = 0; i < iNumPoints; i++) {
+		out << ", " << pPoints[i] << ", " << pVals[i];
+	}
+
+	return out;
+}
+
+/* PiecewiseLinearDriveCaller - end */
+
+
 /* DriveArrayCaller - begin */
 
 DriveArrayCaller::DriveArrayCaller(const DriveHandler* pDH, 
@@ -861,6 +912,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	"frequencysweep",
 	"exponential",
 	"random",
+	"piecewise" "linear",
 	"file",       
 	"string",
 	"dof",
@@ -887,6 +939,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	FREQUENCYSWEEP,
 	EXPONENTIAL,
 	RANDOM,
+	PIECEWISELINEAR,
 	FILEDRIVE,      
 	STRING,
 	DOF,
@@ -1340,6 +1393,41 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 			      DMmm);
        break;
     }
+
+      /* Lineare a pezzi */
+    case PIECEWISELINEAR: {
+       unsigned int n = HP.GetInt();
+       DEBUGCOUT("number of points: " << n << endl);
+
+       if (n < 2) {
+	  cerr << "Need at least two points for piecewise linear drive at line "
+	    << HP.GetLineData() << endl;
+	  THROW(DataManager::ErrGeneric());
+       }
+
+       doublereal *p = NULL;
+       SAFENEWARR(p, doublereal, 2*n, DMmm);
+       p[0] = HP.GetReal();
+       p[n] = HP.GetReal();
+       for (unsigned int i = 1; i < n; i++) {
+	  p[i] = HP.GetReal();
+	  if (p[i] <= p[i-1]) {
+	     cerr << "point " << p[i]
+	       << " is smaller than preceding point " << p[i-1]
+	       << " at line " << HP.GetLineData();
+	     THROW(DataManager::ErrGeneric());
+	  }
+	  p[i+n] = HP.GetReal();
+       }
+
+       /* allocazione e creazione */
+       SAFENEWWITHCONSTRUCTOR(pDC,
+		       PiecewiseLinearDriveCaller,
+		       PiecewiseLinearDriveCaller(pDrvHdl, n, p),
+		       DMmm);
+       
+       break;
+    }
       
       /* driver stringa da valutare */
     case STRING: {	     
@@ -1352,7 +1440,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 			      StringDriveCaller,
 			      StringDriveCaller(pDrvHdl, sTmp), 
 			      DMmm);
-       
+
        break;
     }
       
