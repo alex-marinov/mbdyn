@@ -823,18 +823,31 @@ are builtin.
 \item \textbf{MSC.ADAMS:}
 must be enabled at configure time, by using the directive
 \kw{--enable-adams}.
-It generates a \kw{.ada} file, which must be processed by 
-the utility \kw{ada2cmd} (under development) to generate
-a \kw{.cmd} file that ADAMS/View interprets to build the model,
-and a \kw{.res} file in text form (very verbose) which contains
-the results.
-It is activated by the directive
+MBDyn generates a \kw{.ada} file and a \kw{.res} file.
+The \kw{.ada} file must be processed by the utility \kw{ada2cmd} 
+(under development), along with some user-defined data to improve
+the representation of the entities (e.g.\ shapes, colors, sizes
+and so on) to generate a \kw{.cmd} file.
+ADAMS/View interprets the \kw{.cmd} file to build the model,
+and reads the \kw{.res} file in text form (very verbose),
+which contains the analysis results.
+The interface is activated by the directive
 \begin{verbatim}
     output results : adams
         [ , model name , " <name> " ]
         [ , velocity , { yes | no } ] ;
 \end{verbatim}
 The model name is otional, defaulting to \kw{mbdyn}.
+The sequence is:
+\begin{itemize}
+\item compile MBDyn with ADAMS support
+\item add the \kw{output results : adams} directive
+\item run the analysis
+\item generate the \kw{.cmd} file from the resulting \kw{.ada} file
+\item run ADAMS/View
+\item import the \kw{.cmd} file
+\item import the \kw{.res} file
+\end{itemize}
 The \kw{velocity} flag enables the output of the velocities 
 of the parts; it defaults to \kw{no} because the output 
 is very verbose, and they are not required to animate
@@ -864,9 +877,15 @@ It is activated by the directive
 No special parameters are available at the moment; 
 this interface is under development.
 
-\item \textbf{OpenDX Native postprocessor:}
+\item \textbf{OpenDX native postprocessor:}
 the preparation of the output is done via \kw{awk} scripts
 based on \kw{.log} and \kw{.mov} files.
+Use
+\begin{verbatim}
+    awk -f <TBD>.awk $FILE.log > $FILE.geo
+\end{verbatim}
+to prepare the files for the native postprocessor.
+
 
 \end{itemize}
 
