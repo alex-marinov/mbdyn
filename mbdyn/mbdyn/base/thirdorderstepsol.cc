@@ -43,6 +43,7 @@
 
 
 #include "thirdorderstepsol.h"
+#include <schurdataman.h> 
 
 
 ThirdOrderIntegrator::ThirdOrderIntegrator(const doublereal dT, 
@@ -59,8 +60,11 @@ bAdvanceCalledFirstTime(true)
 	pJacxi_x  = &Jacxi_x;
 	pJac_xp   = &Jac_xp;
 	pJac_x    = &Jac_x;
-}
+};
 
+ThirdOrderIntegrator::~ThirdOrderIntegrator(){
+	NO_OP;
+};
 
 void ThirdOrderIntegrator::SetCoef(doublereal dt,
 		doublereal dAlpha,
@@ -118,13 +122,23 @@ doublereal ThirdOrderIntegrator::Advance(const doublereal TStep,
 	pDM->AfterPredict();
 	
 	return dErr;
-}
+};
 
 void ThirdOrderIntegrator::Predict(void) {
    	DEBUGCOUTFNAME("ThirdOrderIntegrator::Predict");
    	ASSERT(pDM != NULL);
    	Dof CurrDof;
+
+	std::cerr << "Sono dentro  predict" << std::endl;
 	
+	{SchurDataManager* pSDM;
+	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
+		std::cerr << "Fatal error: ThirdOrderIntegrator currently does "
+			<< "not support the parallel solver\n";
+		THROW(ErrGeneric());
+	}}
+	
+
 	DofIterator.fGetFirst(CurrDof);
 	integer iNumDofs = pDM->iGetNumDofs();
    	/* 
@@ -167,6 +181,7 @@ void ThirdOrderIntegrator::Predict(void) {
 	/*
 	 * Vero Predict
 	 */
+	DofIterator.fGetFirst(CurrDof);
 	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
 		iCntp1++, DofIterator.fGetNext(CurrDof)) {
 		//simple copy of predicted state
@@ -191,10 +206,12 @@ void ThirdOrderIntegrator::Predict(void) {
 	 		THROW(ErrGeneric());
 		}
    	}
-}
+	return;
+};
 
 void ThirdOrderIntegrator::Residual(VectorHandler* pRes) const
 {
+   	DEBUGCOUTFNAME("ThirdOrderIntegrator::Residual");
 	ASSERT(pDM != NULL);
 	
 	integer iNumDofs = pDM->iGetNumDofs();
@@ -218,11 +235,13 @@ void ThirdOrderIntegrator::Residual(VectorHandler* pRes) const
 	pDM->LinkToSolution(state, stateder);
 	pDM->Update();
 	pDM->AssRes(res, 1.);
+	return;
 	
-}
+};
 
 void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
 {
+   	DEBUGCOUTFNAME("ThirdOrderIntegrator::Jacobian");
 	ASSERT(pDM != NULL);
 	
 	integer iNumDofs = pDM->iGetNumDofs();
@@ -275,6 +294,106 @@ void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
 	doublereal J11_x = (2.*rho-1.)/(6.*rho)*dT;
 	Jac_x.MulAndSumWithShift(*pJac,J11_x,0,0);
 	Jac_xp.MulAndSumWithShift(*pJac,1.-J11_x,0,0);
+
+	return;
+};
+
+void ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
+{
+   	DEBUGCOUTFNAME("ThirdOrderIntegrator::Predict");
+   	ASSERT(pDM != NULL);
+   	Dof CurrDof;
+	
+	{SchurDataManager* pSDM;
+	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
+		std::cerr << "Fatal error: ThirdOrderIntegrator currently does "
+			<< "not support the parallel solver\n";
+		THROW(ErrGeneric());
+	}}
+	
+
+	DofIterator.fGetFirst(CurrDof);
+	integer iNumDofs = pDM->iGetNumDofs();
+   	/* 
+	 * Combinazione lineare di stato e derivata 
+	 * al passo precedente ecc. 
+	 */
+	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
+		iCntp1++, DofIterator.fGetNext(CurrDof)) {
+		doublereal dxp = pSol->dGetCoef(iCntp1);
+		doublereal dxp_xi = pSol->dGetCoef(iCntp1+iNumDofs);
+		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+			
+	 		pXPrimeCurr->fIncCoef(iCntp1, dxp);
+	 		pXPrimeCurr->fIncCoef(iCntp1+iNumDofs, dxp_xi);
+			
+	 		pXCurr->fIncCoef(iCntp1, dT*(w[1]*dxp_xi+w[0]*dxp));
+	 		pXCurr->fIncCoef(iCntp1+iNumDofs, 
+				dT*(m[1]*w[1]*dxp_xi+(m[1]*w[0]+n[1])*dxp));
+		
+      		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
+	 		pXCurr->fIncCoef(iCntp1, dxp);
+	 		pXCurr->fIncCoef(iCntp1+iNumDofs, dxp_xi);
+			
+	 		pXPrimeCurr->fIncCoef(iCntp1, dT*(w[1]*dxp_xi+w[0]*dxp));
+	 		pXPrimeCurr->fIncCoef(iCntp1+iNumDofs, 
+				dT*(m[1]*w[1]*dxp_xi+(m[1]*w[0]+n[1])*dxp));
+		} else {
+	 		std::cerr << "unknown order for dof " 
+				<< iCntp1<< std::endl;
+	 		THROW(ErrGeneric());
+		}
+   	}	
+	pDM->Update();
+	return;
+};
+
+void ThirdOrderIntegrator::SetDriveHandler(const DriveHandler* pDH)
+{
+	Rho.pGetDriveCaller()->SetDrvHdl(pDH);
+	return;
+};
+
+/* scale factor for tests */
+doublereal
+#ifdef __HACK_SCALE_RES__
+ThirdOrderIntegrator::TestScale(const VectorHandler *pScale) const
+#else /* ! __HACK_SCALE_RES__ */
+ThirdOrderIntegrator::TestScale(void) const
+#endif /* ! __HACK_SCALE_RES__ */
+{
+#ifdef __HACK_RES_TEST__
+
+#ifdef USE_MPI
+#warning "StepNIntegrator TestScale parallel broken !! "	
+#endif /* USE_MPI */
+
+   	Dof CurrDof;
+	doublereal dXPr = 0.;
+
+	DofIterator.fGetFirst(CurrDof); 
+
+   	for (int iCntp1 = 1; iCntp1 <= pXPrimeCurr->iGetSize(); 
+			iCntp1++, DofIterator.fGetNext(CurrDof)) {
+
+		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+			doublereal d = pXPrimeCurr->dGetCoef(iCntp1);
+			doublereal d2 = d*d;
+
+#ifdef __HACK_SCALE_RES__
+			doublereal ds = pScale->dGetCoef(iCntp1);
+			doublereal ds2 = ds*ds;
+			d2 *= ds2;
+#endif /* __HACK_SCALE_RES__ */
+
+			dXPr += d2;
+		}
+		/* else if ALGEBRAIC: non aggiunge nulla */
+	}
+
+   	return 1./(1.+dXPr);
+
+#else /* ! __HACK_RES_TEST__ */
+	return 1.;
+#endif /* ! __HACK_RES_TEST__ */
 }
-
-

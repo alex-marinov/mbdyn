@@ -1,4 +1,5 @@
 #ifndef THIRD_ORDER_STEPSOL_H
+
 #define THIRD_ORDER_STEPSOL_H
 
 #include "stepsol.h"
@@ -40,6 +41,8 @@ public:
 	virtual void Jacobian(MatrixHandler* pJac) const;
 	
 	virtual void Update(const VectorHandler* pSol) const;
+
+	virtual void SetDriveHandler(const DriveHandler* pDH);
 
 	/* scale factor for tests */
 #ifdef __HACK_SCALE_RES__
