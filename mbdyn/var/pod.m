@@ -1,4 +1,4 @@
-%[S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, dec)
+%[S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, uu, dec, ord)
 %
 %input:
 %	A	data (number of frames x number of outputs)
@@ -6,6 +6,7 @@
 %	dt	time lag between two frames (optional, defaults to 1.0)
 %       uu      input signals (number of frames x number of input signals; Matlab only) 
 %	dec	decimation factor (Matlab only)
+%	ord	model order (default 1)
 %
 %output:
 %	S	singular values
@@ -19,7 +20,7 @@
 %	H	transition matrix
 %	BB	expanded POMs
 %
-function [S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, uu, dec)
+function [S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, uu, dec, ord)
 
 % MBDyn (C) is a multibody analysis code. 
 % http://www.mbdyn.org
@@ -54,18 +55,30 @@ function [S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, uu, dec)
 %		Pierangelo Masarati	<masarati@aero.polimi.it>
 %
 
+if (nargin < 6),
+	ord = 1;
+end
+
+if (nargin < 5),
+	dec = 0;
+end
+
 if (nargin < 3),
 	dt = 1.;
 end
-
-[r, c] = size(A);
 
 if (nargin < 2),
 	ns = 0;
 end
 
+[r, c] = size(A);
+
 if ( ns > min(r,c)),
  	error('too many sv required');
+end
+
+if (ord < 1),
+	error(sprintf('illegal order %d', ord));
 end
 
 % detrend and normalize
@@ -73,7 +86,7 @@ mn = mean(A);
 A = A - ones(r, 1)*mn;
 % scl = max(abs(A));
 scl = std(A);
-thr = 1.e-9;
+thr = 1.e-16;
 lt = find(scl <= thr);
 nlt = length(lt);
 gt = find(scl > thr);
@@ -91,10 +104,7 @@ if (ns == 0),
 	return
 end
 
-if ((exist('dec') == 1)),
-	if dec <= 1,
-		error(sprintf('dec = %d is illegal', dec));
-	end
+if (dec > 1),
 	for i = 1:ngt,
 		AA(:, i) = decimate(A(:, i), dec);
 	end
@@ -163,15 +173,25 @@ Aout = U;
 
 if exist('OCTAVE_HOME'),
 	%%% This is a very rough estimate of the transition matrix ...
-	H = (Aout(1:r-1, :)\Aout(2:r, :))';
+	%%% H = (Aout(1:r-1, :)\Aout(2:r, :))';
+
+	hh = [];
+	for i = 1:ord,
+		hh(:, ns*(i-1)+1:ns*i) = Aout(ord-i+1:r-i, :);
+	end
+	H = (hh\Aout(ord+1:r, :))';
+	if (ord > 1),
+		H(ns+1:ord*ns, 1:(ord-1)*ns) = eye((ord-1)*ns);
+		C = [eye(ns), zeros(ns, (ord-1)*ns)];
+	end
 else
        if (exist('uu') & ~isempty(uu)),
                 [ru, cu] = size(uu);
                 yu = iddata(Aout, uu);
 		%% si potrebbe dare la struttura della B noto il nodo eccitato... 
-                H = ssdata(arx(yu, [ones(ns), ones(ns, cu), zeros(ns, cu)], 'Covariance', 'None'));
+                [H, Btmp, C] = ssdata(arx(yu, [ord*ones(ns), ones(ns, cu), zeros(ns, cu)], 'Covariance', 'None'));
     	else
-		H = ssdata(arx(Aout, ones(ns), 'Covariance', 'None'));
+		[H, Btmp, C] = ssdata(arx(Aout, ord*ones(ns), 'Covariance', 'None'));
 	end
 end
 
@@ -179,6 +199,9 @@ end
 [vv, eetmp] = eig(H);
 ee = log(diag(eetmp))/dt;
 B = diag(S)*B.*(ones(ns, 1)*scl(gt));
+if (ord > 1),
+	vv = C*vv*C';
+end
 X = zeros(ns, c);
 X(:, gt) = vv'*B;
 BB = zeros(ns, c);
