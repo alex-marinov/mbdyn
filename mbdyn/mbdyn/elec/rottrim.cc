@@ -184,7 +184,8 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 	doublereal d = 
 		M_PI*pow(dRadius, 4)*dRho*dOmega*dOmega*(dSigma*dCpAlpha);
 	doublereal dTraction = pRotor->GetForces().dGet(3)/d;
-	doublereal dRollMoment = pRotor->GetMoments().dGet(1)/(d *= dRadius);
+	d *= dRadius;
+	doublereal dRollMoment = pRotor->GetMoments().dGet(1)/d;
 	doublereal dPitchMoment = pRotor->GetMoments().dGet(2)/d;
 	
 	doublereal f = dC/(1+dC2);
