@@ -97,7 +97,7 @@ iFirstSol(-1)
         dAFLAG[0] = 8.;         /* Should be 4.<dAFLAG[0]<16. for stability */
 	dAFLAG[1] = 0.;         /* Should be 0.<dAFLAG[1]<1.e-12 */
 	dAFLAG[2] = 1.e6;       /* Should be dAFLAG[2]>1.e5 */
-	dAFLAG[3] = 1.e-12;     /* Should be 0<dAFLAG[3]<1.e-12 */
+	dAFLAG[3] = 0.;  	/* FIXME: Should be 0<dAFLAG[3]<1.e-12 */
 }
 
 /* Distruttore */
