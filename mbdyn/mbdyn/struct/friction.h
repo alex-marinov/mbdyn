@@ -84,6 +84,7 @@ public:
  */
 class BasicShapeCoefficient {
 public:
+	virtual ~BasicShapeCoefficient(void){};
 /** Return last computed shape coefficient
  */
 	virtual doublereal Sh_c(void) const = 0;

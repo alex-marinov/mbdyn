@@ -254,8 +254,7 @@ BasicFriction *const ParseFriction(MBDynParser& HP,
       NULL
    };
 	enum KeyWords { 
-	   CONST = 0,
-	     MODLUGRE,
+	     MODLUGRE = 0,
 	     LASTKEYWORD
 	};
 	/* token corrente */
@@ -268,7 +267,7 @@ BasicFriction *const ParseFriction(MBDynParser& HP,
 	
 	FuncType = KeyWords(HP.IsKeyWord());
 	switch (FuncType) {
-	case CONST: {
+	case MODLUGRE: {
 		doublereal sigma0 = HP.GetReal();
 		doublereal sigma1 = HP.GetReal();
 		doublereal sigma2 = HP.GetReal();
@@ -289,14 +288,13 @@ BasicFriction *const ParseFriction(MBDynParser& HP,
 };
 
 BasicShapeCoefficient *const ParseShapeCoefficient(MBDynParser& HP) {
-   const char* sKeyWords[] = { 
-      "simple" "plane" "hinge",
-      NULL
-   };
+	const char* sKeyWords[] = { 
+		"simple" "plane" "hinge",
+ 		NULL
+	};
 	enum KeyWords { 
-	   CONST = 0,
-	     SIMPLEPLANEHINGE,
-	     LASTKEYWORD
+		SIMPLEPLANEHINGE = 0,
+		LASTKEYWORD
 	};
 	/* token corrente */
 	KeyWords CurrDesc;
