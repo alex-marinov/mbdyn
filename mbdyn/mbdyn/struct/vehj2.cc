@@ -172,7 +172,6 @@ DeformableDispJoint::dGetPrivData(unsigned int i) const
 		Vec3 f2(pNode2->GetRCurr()*tilde_f2);
 		Mat3x3 R1hT((pNode1->GetRCurr()*tilde_R1h).Transpose());
 		Vec3 tilde_d(R1hT*(pNode2->GetXCurr() + f2 - pNode1->GetXCurr() - f1));
-
 		return tilde_d(i);
 	}
 
@@ -338,10 +337,10 @@ ElasticDispJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	MTmp = Mat3x3(f1)*DTmp;
 
 	/* delta x1 */
-	WM.Sub(4, 1, MTmp);
+	WM.Add(4, 1, MTmp);
 
 	/* delta x2 */
-	WM.Add(4, 6 + 1, MTmp);
+	WM.Sub(4, 6 + 1, MTmp);
 
 	/* delta g1 */
 	WM.Sub(4, 4, MTmp*Mat3x3(d1) - Mat3x3(f1.Cross(F*dCoef)));
@@ -362,7 +361,7 @@ ElasticDispJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	WM.Add(6 + 4, 4, MTmp*Mat3x3(d1) - Mat3x3(f2, F*dCoef));
 
 	/* delta g2 */
-	WM.Add(6 + 4, 6 + 4, Mat3x3(F*dCoef, f2) - MTmp*Mat3x3(f2));
+	WM.Sub(6 + 4, 6 + 4, MTmp*Mat3x3(f2) - Mat3x3(F*dCoef, f2));
 }
 
 /* assemblaggio residuo */
@@ -698,8 +697,8 @@ ViscousDispJoint::AssMats(FullSubMatrixHandler& WMA,
 	WMA.Sub(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
 
 	/* [ F x ] [ fi x ] * dCoef */
-	WMA.Sub(4, 4, Mat3x3(F, f1*dCoef));
-	WMA.Add(6 + 4, 6 + 4, Mat3x3(F, f2*dCoef));
+	WMA.Sub(4, 4, Mat3x3(F*dCoef, f1));
+	WMA.Add(6 + 4, 6 + 4, Mat3x3(F*dCoef, f2));
 }
 
 /* assemblaggio residuo */
@@ -999,19 +998,19 @@ ViscoElasticDispJoint::AssMats(FullSubMatrixHandler& WMA,
 	Vec3 f1(pNode1->GetRRef()*tilde_f1);
 	Vec3 f2(pNode2->GetRRef()*tilde_f2);
 	Vec3 d1(pNode2->GetXCurr() + f2 - pNode1->GetXCurr());
-
+ 
 	/* F/d */
 	Mat3x3 DTmp(FDE*dCoef);
 
 	/* Force equations */
 
 	/* delta x1 */
-	WMA.Add(1, 1, DTmp);
-	WMA.Sub(6 + 1, 1, DTmp);
+	WMA.Sub(1, 1, DTmp);
+	WMA.Add(6 + 1, 1, DTmp);
 
 	/* delta x2 */
-	WMA.Sub(1, 6 + 1, DTmp);
-	WMA.Add(6 + 1, 6 + 1, DTmp);
+	WMA.Add(1, 6 + 1, DTmp);
+	WMA.Sub(6 + 1, 6 + 1, DTmp);
 
 	/* delta g1 */
 	Mat3x3 MTmp(DTmp*Mat3x3(d1));
@@ -1132,8 +1131,8 @@ ViscoElasticDispJoint::AssMats(FullSubMatrixHandler& WMA,
 	WMA.Sub(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
 
 	/* [ F x ] [ fi x ] * dCoef */
-	WMA.Sub(4, 4, Mat3x3(F, f1*dCoef));
-	WMA.Add(6 + 4, 6 + 4, Mat3x3(F, f2*dCoef));
+	WMA.Sub(4, 4, Mat3x3(F*dCoef, f1));
+	WMA.Add(6 + 4, 6 + 4, Mat3x3(F*dCoef, f2));
 }
 
 /* assemblaggio residuo */
