@@ -31,7 +31,7 @@
 /* Solutore Schur */
  
 /* 
- * Copyright 1999-2000 Giuseppe Quaranta <giuquaranta@tiscalinet.it>
+ * Copyright 1999-2000 Giuseppe Quaranta <quaranta@aero.polimi.it>
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  */
 
@@ -42,8 +42,13 @@
 #include <mynewmem.h>
 #include <except.h>
 #include <solman.h>
+#ifdef USE_HARWELL
 #include <harwrap.h> 		/* includes <sparsemh.h> */
 #include <mschwrap.h>
+#else
+#error "Sorry, Parallel MBDyn can not be compiled without Harwell!"
+#endif  
+
 #include <mpi++.h>
 
 void InitializeList(int* list, integer dim, integer  value);
@@ -434,11 +439,14 @@ class SchurSolutionManager : public SolutionManager {
 
   /* vettore r (residuo locale) */
   doublereal* pdrVec;
-#ifndef USE_HARWELL
-#error "cannot use SchurSolutionManager without Harwell"
-#endif /* !USE_HARWELL */
-  HarwellLUSolver* pLU;           /* Solutore sparso Harwell  */
   
+
+#ifdef USE_HARWELL
+ HarwellLUSolver* pLU;           /* Solutore sparso Harwell  */
+#else
+#error "You need to use either Harwell  main parallel solver"
+#endif /* USE_HARWELL */
+
   /* Matrice E */
   doublereal* pdEMat;
   
@@ -452,10 +460,12 @@ class SchurSolutionManager : public SolutionManager {
   doublereal* pdgVec;
 
   /* Matrice di Schur (master) */
-#ifndef USE_MESCHACH
-#error "cannot use SchurSolutionManager without meschach"
-#endif /* !USE_MESCHACH */
+#if USE_MESCHACH
   MeschachSparseLUSolutionManager* pSchSM;
+#else 
+#error "You need either Meschach"
+#endif /*USE_Y12*/
+
   MatrixHandler* pSchMH;
 
  /* vettore Schur */

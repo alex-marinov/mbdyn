@@ -33,7 +33,7 @@
     SchurSolutionManager */
     
 /* 
- * Copyright 1999-2000 Giuseppe Quaranta <giuquaranta@tiscalinet.it>
+ * Copyright 1999-2000 Giuseppe Quaranta <quaranta@aero.polimi.it>
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  */
 
@@ -47,7 +47,6 @@
 #ifdef USE_MYSLEEP
 #include <mysleep.h>
 #endif /* USE_MYSLEEP */
-
 /* 
  * Le occorrenze della routine 'mysleep' vanno commentate quando 
  * si opera su di una macchina dove le comunicazioni sono efficienti
@@ -167,9 +166,9 @@ pdgVec(NULL),
 pMH(NULL), pRVH(NULL),
 pSchSM(NULL), pSchMH(NULL), pSchVH(NULL),
 pGSReq(NULL), pGRReq(NULL),  
-iWorkSpaceSize(0), fNewMatrix(0) 
+iWorkSpaceSize(iWorkSize), fNewMatrix(0) 
 {
-  DEBUGCOUT("Entering BroySchSolutionManager::BroySchSolutionManager()"
+  DEBUGCOUT("Entering SchurSolutionManager::SchurSolutionManager()"
 		  << endl);
   
   ASSERT(iPrbmSize > 0);
@@ -198,24 +197,28 @@ iWorkSpaceSize(0), fNewMatrix(0)
 
 
   /* Valore di default */
-  
-  iWorkSpaceSize = LocVecDim;
-
+  if (iWorkSpaceSize != 0) {
+  	iWorkSpaceSize = static_cast<integer>(sqrt(iWorkSpaceSize) + 1);
+  } else {	
+        iWorkSpaceSize = LocVecDim;
+  }
   /* Alloca arrays per la matrice B e il vettore r */
-  SAFENEWARR(pdBMat, doublereal, LocVecDim * LocVecDim);
+  SAFENEWARR(pdBMat, doublereal, iWorkSpaceSize*iWorkSpaceSize);
   SAFENEWARR(piBRow, integer, iWorkSpaceSize*iWorkSpaceSize);
   SAFENEWARR(piBCol, integer, iWorkSpaceSize*iWorkSpaceSize);
   SAFENEWARR(pdrVec, doublereal, iWorkSpaceSize);
 
   /* Alloca arrays per il solutore */
   
-  
+
   SAFENEWWITHCONSTRUCTOR(pBMH, 
                          SparseMatrixHandler, 
 			 SparseMatrixHandler(iWorkSpaceSize, &piBRow, 
 			 		     &piBCol, &pdBMat,
  					     iWorkSpaceSize*iWorkSpaceSize));
-  
+
+	 
+  DEBUGCOUT(" Using Harwell math library as local solver" << endl);  
   SAFENEWWITHCONSTRUCTOR(pLU, 
 			 HarwellLUSolver,
 			 HarwellLUSolver(iWorkSpaceSize, 
@@ -223,6 +226,7 @@ iWorkSpaceSize(0), fNewMatrix(0)
 				 &piBRow, &piBCol, 
 				 &pdBMat, pdrVec, dPivotFactor));
   
+
 
   /* Alloca la matrice E  per colonne */
   SAFENEWARR(pdEMat, doublereal, LocVecDim * IntVecDim);
@@ -236,9 +240,10 @@ iWorkSpaceSize(0), fNewMatrix(0)
   
   /* matrice di Shur sul master */
   if(!MyRank) {
+     DEBUGCOUT(" Using Meschach math library as interface solver" << endl);  
      SAFENEWWITHCONSTRUCTOR(pSchSM, MeschachSparseLUSolutionManager,
 			    MeschachSparseLUSolutionManager(iSchurIntDim, 
-				    iSchurIntDim));
+				    iSchurIntDim));			    
      pSchMH = pSchSM->pMatHdl();
      pSchVH = pSchSM->pResHdl();
   }
@@ -391,12 +396,6 @@ SchurSolutionManager::~SchurSolutionManager(void)
   if(pSchVH != NULL) {
     SAFEDELETEARR(pSchVH);
   }
-  if(pGSReq != NULL) {
-    SAFEDELETEARR(pGSReq);
-  }
-  if(pGRReq != NULL) {
-    SAFEDELETEARR(pGRReq);
-  }
 #endif /* 0 */
 }
 
@@ -435,7 +434,7 @@ void SchurSolutionManager::Solve(void)
     pLU->iNonZeroes = iCount;
     flag fReturnFlag = pLU->fLUFactor();
     if (fReturnFlag < 0) {	 
-      THROW(HarwellSparseLUSolutionManager::ErrGeneric());
+      THROW(HarwellSparseLUSolutionManager::ErrGeneric());   
     }
   } 
   
@@ -564,6 +563,7 @@ void SchurSolutionManager::Solve(void)
 #ifdef MPI_PROFILING
    MPE_Log_event(19, 0, "start");
 #endif /* MPI_PROFILING */   
+
   pGSReq[0] = SolvComm.Irecv(pdgVec, IntVecDim, MPI::DOUBLE, 0, G_TAG);
   
   /* Verifica completamento trasmissioni */
@@ -643,6 +643,7 @@ void SchurSolutionManager::AssSchur(void)
    MPE_Log_event(13, 0, "start");
    MPE_Log_send(0, S_TAG, IntVecDim*IntVecDim);
 #endif /* MPI_PROFILING */   
+  
   pGSReq[0] = SolvComm.Isend(pdCMat, IntVecDim*IntVecDim, MPI::DOUBLE, 0, S_TAG);
   int iOffset = 0;
   if(!MyRank) { 
@@ -717,6 +718,8 @@ void SchurSolutionManager::AssSchur(void)
 
 void SchurSolutionManager::InitializeComm(void)
 {
+  DEBUGCOUT("Entering SchurSolutionManager::InitializeComm()" << endl);
+
   if (!MyRank) {
     SAFENEWARR(pRecvDim, int, SolvCommSize);
     SAFENEWARR(pDispl, int, SolvCommSize+1);
@@ -745,9 +748,9 @@ void SchurSolutionManager::InitializeComm(void)
     }
     
     /*ordino gli indici dei residulocali*/
-    sort(pSchurDofs, pSchurDofs + pDispl[SolvCommSize]);
+    std::sort(pSchurDofs, pSchurDofs + pDispl[SolvCommSize]);
     /* elimino le ripetizioni */
-    integer* p = unique(pSchurDofs, pSchurDofs + pDispl[SolvCommSize]);
+    integer* p = std::unique(pSchurDofs, pSchurDofs + pDispl[SolvCommSize]);
     /* dimensione effettiva del residuo locale */
     iSchurIntDim = p - pSchurDofs;
   }
@@ -797,19 +800,24 @@ void SchurSolutionManager::InitializeComm(void)
    }
   }
  
-
   if (!MyRank){
     SAFENEWARR(pGSReq, MPI::Request, SolvCommSize);
     SAFENEWARR(pGRReq, MPI::Request, SolvCommSize);
+    for (int i=0; i < SolvCommSize; i++) { 
+    }
   } else {
     SAFENEWARR(pGSReq, MPI::Request, 1);
     SAFENEWARR(pGRReq, MPI::Request, 1);
   }
+
+
 }
 
 
 void SchurSolutionManager::StartExchInt(void)
 {
+  DEBUGCOUT("Entering SchurSolutionManager::StartExchInt()" << endl);
+  
   if (SolvCommSize > 1) {
     /* Inizializza Trasmissione di g */
     
@@ -833,10 +841,12 @@ void SchurSolutionManager::StartExchInt(void)
 
 void SchurSolutionManager::ComplExchInt(doublereal& dR, doublereal& dXP)
 {
-
-  if (SolvCommSize > 1) {
+  DEBUGCOUT("Entering SchurSolutionManager::ComplExchInt()" << endl);
+  if (!MyRank) {
+    }
+   if (SolvCommSize > 1) {
     /* verifica completamento ricezioni e trasmissione */
-    flag SentFlag = 0;
+      flag SentFlag = 0;
     while (1) {
       SentFlag = pGSReq->Test();
       if (SentFlag) {

@@ -108,6 +108,7 @@ pRotorComm(NULL)
     DataCommSize = DataComm.Get_size();
     MyRank = DataComm.Get_rank();
 
+
     DEBUGCOUT("Communicator Size: " << DataCommSize << endl);
 
     iTotVertices = iTotNodes + iTotElem;
@@ -183,10 +184,11 @@ pRotorComm(NULL)
     HP.PutKeyTable(K);
   
     /* legge la distribuzione degli elementi sulle diverse CPU */
+
     if (KeyWords(HP.GetDescription()) != BEGIN) {
-        cerr << endl 
-	     << "Warning: no explicit connection declared"
-	     " for this input file " << endl;
+    cerr << endl 
+	 << "Warning: no explicit connection declared"
+	 << " for this input file " << endl;
         return;
     } else {
         int iNumElems = 0;
@@ -834,9 +836,10 @@ SchurDataManager::CreatePartition(void)
     int iNumberOfNodes;
     Node::Type* pMyTypes = NULL;
     unsigned int* pMyLabels = NULL;
-    SAFENEWARR(pRotPos, int, ElemData[Elem::ROTOR].iNum);
-    SAFENEWARR(pRotLab, integer, ElemData[Elem::ROTOR].iNum);
-
+    if (ElemData[Elem::ROTOR].iNum != 0) {
+    	SAFENEWARR(pRotPos, int, ElemData[Elem::ROTOR].iNum);
+    	SAFENEWARR(pRotLab, integer, ElemData[Elem::ROTOR].iNum);
+    }
     SAFENEWARR(pMyTypes, Node::Type, iDefaultMaxNodesPerElem);
     SAFENEWARR(pMyLabels, unsigned int, iDefaultMaxNodesPerElem);
     SAFENEWARR(pLabelsList, unsigned int, iTotNodes);
@@ -1093,8 +1096,10 @@ SchurDataManager::CreatePartition(void)
     MPI::Request* pSReq = NULL;
     SAFENEWARR(pRReq, MPI::Request, DataCommSize);
     SAFENEWARR(pSReq, MPI::Request, DataCommSize);
-    pRReq[MyRank] = MPI::REQUEST_NULL;
-    pSReq[MyRank] = MPI::REQUEST_NULL;
+    for (int i=0; i < DataCommSize; i++) { 
+    	pRReq[i] = MPI::REQUEST_NULL;
+    	pSReq[i] = MPI::REQUEST_NULL;
+    }
     const int DIM_TAG = 10;
     
     for (int i = 0; i <= DataCommSize-1; i++) {
@@ -1216,10 +1221,10 @@ SchurDataManager::CreatePartition(void)
     }
     
     /* ordino  i nodi interfaccia */
-    sort(InterfNodes.pAdjncy, 
+    std::sort(InterfNodes.pAdjncy, 
          InterfNodes.pAdjncy + iMaxInterfNodes * 2 * DataCommSize);
     /* elimino le ripetizioni */
-    int* p = unique(InterfNodes.pAdjncy, 
+    int* p = std::unique(InterfNodes.pAdjncy, 
                     InterfNodes.pAdjncy + iMaxInterfNodes * 2 * DataCommSize);
     /* dimensione effettiva dell'interfaccia locale 
      * il -1 e' dovuto al primo valore che è sempre pari a -1 */
@@ -1254,7 +1259,7 @@ SchurDataManager::CreatePartition(void)
             	    (ppMyElems[i])->GetConnectedNodes(iNumberOfNodes, pMyTypes, pMyLabels);
                     for (int j = 0; j < iNumberOfNodes; j++) {
               	    	unsigned int* p = 
-			    find(llabels, llabels+iNumIntNodes, pMyLabels[j]);
+			    std::find(llabels, llabels+iNumIntNodes, pMyLabels[j]);
               		if (p != llabels+iNumIntNodes) {
                 	    ppMyIntElems[iNumIntElems] =  ppMyElems[i];
                 	    iNumIntDofs += ppMyElems[i]->iGetNumDof();
@@ -1278,7 +1283,7 @@ SchurDataManager::CreatePartition(void)
 						  pMyLabels);
                 for (int j = 0; j < iNumberOfNodes; j++) {
             	    unsigned int* p = 
-		    	find(llabels, llabels+iNumIntNodes, pMyLabels[j]);
+		    	std::find(llabels, llabels+iNumIntNodes, pMyLabels[j]);
             	    if (p != llabels+iNumIntNodes) {
               		ppMyIntElems[iNumIntElems] =  ppMyElems[i];
               		iNumIntDofs += ppMyElems[i]->iGetNumDof();
@@ -1385,12 +1390,6 @@ SchurDataManager::CreatePartition(void)
     if (pMyLabels != NULL) {  
       	SAFEDELETE(pMyLabels);
     }
-    if (pRReq != NULL) {  
-      	SAFEDELETEARR(pRReq);
-    }
-    if (pSReq != NULL) {  
-      	SAFEDELETEARR(pSReq);
-    }
     if ( Vertices.pXadj != NULL) {
       	SAFEDELETEARR(Vertices.pXadj);
     }
@@ -1424,9 +1423,9 @@ SchurDataManager::CreatePartition(void)
     if ( llabels != NULL) {
       	SAFEDELETEARR(llabels);
     }
-
-    OutputPartition();
-}
+    
+   OutputPartition();
+ }
   
 
 void
@@ -1565,7 +1564,7 @@ Node**
 SchurDataManager::SearchNode(Node** ppFirst, int dim, unsigned int& label)
 {
     unsigned int* pbegin = pLabelsList + (ppFirst - ppNodes);
-    unsigned int* p = find(pbegin, pbegin + dim, label);
+    unsigned int* p = std::find(pbegin, pbegin + dim, label);
     return ppNodes + (p - pLabelsList);
 }
 
