@@ -275,7 +275,6 @@ main(int argc, char* argv[])
       
 #ifdef HAVE_GETOPT
         	/* Dati acquisibili da linea di comando */
-        	int iMailToBeSent = 0;
         	char* sMailToAddress = NULL;
       
         	int iIndexPtr = 0;
@@ -300,8 +299,7 @@ main(int argc, char* argv[])
 	 
 	    		switch (iCurrOpt) {
 	    		case int('m'):
-	        		iMailToBeSent = 1;
-	        		SAFESTRDUP(sMailToAddress, optarg);
+	        		sMailToAddress = optarg;
 	        		break;
 
 #ifdef HAVE_NICE
@@ -317,11 +315,7 @@ main(int argc, char* argv[])
 	    		case int('f'):
 	        		CurrInputFormat = MBDYN;
 	        		CurrInputSource = FILE_OPT;
-				if (sInputFileName != NULL) {
-					SAFEDELETEARR(sInputFileName);
-					sInputFileName = NULL;
-				}
-	        		SAFESTRDUP(sInputFileName, optarg);
+	        		sInputFileName = optarg;
 	        		FileStreamIn.open(sInputFileName);
 	        		if (!FileStreamIn) {
 		    			std::cerr 
@@ -345,7 +339,7 @@ main(int argc, char* argv[])
 #ifdef USE_ADAMS_PP
 	        		CurrInputFormat = ADAMS;
 	        		CurrInputSource = FILE_OPT;
-	        		SAFESTRDUP(sInputFileName, optarg);
+	        		sInputFileName = optarg;
 	     
 	        		std::cerr << "ADAMS input not implemented yet,"
 		    			" cannot open file '"
@@ -359,11 +353,7 @@ main(int argc, char* argv[])
 #endif /* !USE_ADAMS_PP */
 	    
 	    		case int('o'):
-	        		if (sOutputFileName != NULL) {
-	            			SAFEDELETEARR(sOutputFileName);
-	            			sOutputFileName = NULL;
-	        		}
-	        		SAFESTRDUP(sOutputFileName, optarg);
+	        		sOutputFileName = optarg;
 	        		break;
 
 	    		case int('d'):
@@ -544,7 +534,7 @@ main(int argc, char* argv[])
 	    		} else if (CurrInputSource == FILE_ARGS) {
 	        		sInputFileName = argv[currarg];
 				silent_cout("reading from file '"
-						<< argv[currarg] 
+						<< sInputFileName
 						<< "'" << std::endl);
 				
 	        		/* incrementa il numero di argomento */
@@ -665,24 +655,13 @@ main(int argc, char* argv[])
 	 
 #ifdef HAVE_GETOPT
 	    		/* E-mail all'utente */
-	    		if (iMailToBeSent) {
+	    		if (sMailToAddress) {
 	        		SendMessage(sInputFileName, sMailToAddress,
 					    tSecs, tCents);
+				sMailToAddress = NULL;
 	    		}
-#endif /* HAVE_GETOPT */	    
-        	}
-
-#ifdef HAVE_GETOPT
-		if (sMailToAddress) {
-			SAFEDELETEARR(sMailToAddress);
-		}
 #endif /* HAVE_GETOPT */
-		if (sInputFileName) {
-			SAFEDELETEARR(sInputFileName);
-		}
-		if (sOutputFileName) {
-			SAFEDELETEARR(sOutputFileName);
-		}
+        	}
 
 #ifdef USE_EXCEPTIONS
         	throw NoErr();

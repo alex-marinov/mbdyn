@@ -18,14 +18,13 @@ A. Configuration:
 
 B. Package:
 
-	- add a comprehensite test suite
+	- add a comprehensive test suite
 	- make compliant to GNU style
 
 
 
 C. Libraries:
 
-	- add UMFPACK3 sparse matrix library to parallel solution
 
 
 
@@ -37,12 +36,13 @@ D. Code:
 		Large project: turn mbdyn into a module for Simulink.
 
 	Medium Projects:
-	- recover exisiting soft restart
+	- recover existing soft restart
 	- add MATLAB/Octave and Simulink hooks.
 		``matlab'' element that feeds matlab with data structures 
 		containing variables and executes matlab code.
 	- develop a trim control as an external command that drives
 		a simulation.
+	- add friction to all joints
 
 	Small Projects:
 	- add MATLAB/Octave and Simulink hooks.

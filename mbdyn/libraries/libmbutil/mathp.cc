@@ -1011,10 +1011,10 @@ start_parsing:
       return (currtoken = MULT);
     case '/':  
       if ((c = in->get()) == '*') {
-	 for (;; c = in->get()) {
+	 for (c = in->get();; c = in->get()) {
 	    if (c == '*' && (c = in->get()) == '/') {
 	       goto start_parsing;
-	    }	    
+	    }
 	 }	 
       } else {
 	 in->putback(c);	            

@@ -182,20 +182,6 @@ AC_ARG_WITH(module,[  --with-module=modulelist	with listed modules],[
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Extra help
-dnl
-AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
-ac_help="$ac_help
-
-All --with-* commands, whenever appropriate, also support:
-  --with-*-dir=PATH	directory for headers and libraries
-  --with-*-incdir=PATH	directory for headers
-  --with-*-libdir=PATH	directory for libraries
-"
-AC_DIVERT_POP()dnl
-
-dnl ----------------------------------------------------------------
-dnl
 dnl Validate general "enable" options
 dnl
 

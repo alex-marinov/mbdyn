@@ -43,7 +43,8 @@
 static void
 usage(void)
 {
-	std::cerr << "usage: t [y12|harwell|meschach|umfpack3 [singular]]" 
+	std::cerr << "usage: wraptest "
+		"[y12|harwell|meschach|umfpack3 [singular]]" 
 		<< std::endl;
 	exit(EXIT_FAILURE);
 }
