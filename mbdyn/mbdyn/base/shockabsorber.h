@@ -154,7 +154,8 @@ private:
 	/*
 	 * Dissipazione
 	 */
-	DriveCaller *pAreaPin;
+	DriveCaller *pAreaPinPlus;
+	DriveCaller *pAreaPinMinus;
 	DriveCaller *pAreaOrifices;
 
 	doublereal AreaFluid;
@@ -193,7 +194,8 @@ private:
 		FMax = p->FMax;
 		FMin = p->FMin;
 
-		pAreaPin = p->pAreaPin->pCopy();
+		pAreaPinPlus = p->pAreaPinPlus->pCopy();
+		pAreaPinMinus = p->pAreaPinMinus->pCopy();
 		pAreaOrifices = p->pAreaOrifices->pCopy();
 
 		AreaFluid = p->AreaFluid;
@@ -212,7 +214,7 @@ public:
 	) : ElasticConstitutiveLaw<doublereal, doublereal>(pDC, 0.),
 	EpsMax(defaultEpsMax), EpsMin(defaultEpsMin), 
 	Penalty(defaultPenalty), PenaltyPrime(defaultPenaltyPrime),
-	pAreaPin(NULL), pAreaOrifices(NULL),
+	pAreaPinPlus(NULL), pAreaPinMinus(NULL), pAreaOrifices(NULL),
 	EpsPrimeRef(1.), FrictionAmpl(0.), dPressure(0.) {
 		if (HP.IsKeyWord("help")) {
 
@@ -231,7 +233,8 @@ public:
 "\t[ epsilon min , <lower strain bound, < prestrain; defaults to " << defaultEpsMin << ")> , ]\n"
 "\t[ penalty , <penalty factor for strain bound enforcement, defaults to " << defaultPenalty << "> ,\n"
 "\t\t<penalty factor for strain rate, active only when strain bounds are violated; defaults to " << defaultPenaltyPrime << "> ]\n"
-"\t[ metering , <metering area (drive, strain dependent)> , ]\n"
+"\t[ metering , <metering area (drive, strain dependent)> ,\n"
+"\t\t[ negative , <metering area for negative strain rate (drive, strain dependent); same as above if not given> , ] ]\n"
 "\t[ orifice , <orifice area (drive, strain rate dependent)> , ]\n"
 "\t<fluid area> ,\n"
 "\t<fluid density> ,\n"
@@ -281,14 +284,19 @@ public:
 		}
 
 		if (HP.IsKeyWord("metering")) { 
-			pAreaPin = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+			pAreaPinPlus = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+			if (HP.IsKeyWord("negative")) { 
+				pAreaPinMinus = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+			} else {
+				pAreaPinMinus = pAreaPinPlus->pCopy();
+			}
 		}
 
 		if (HP.IsKeyWord("orifice")) {
 			pAreaOrifices = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
 		}
 
-		if (pAreaPin == NULL && pAreaOrifices == NULL) {
+		if (pAreaPinPlus == NULL && pAreaOrifices == NULL) {
 			std::cerr << "line " << HP.GetLineData()
 				<< ": at least one area (metering or orifice)"
 				" must be defined" << std::endl;
@@ -362,10 +370,12 @@ public:
 		/*
 		 * drive delle aree (solo quelli definiti)
 		 */
-		if (pAreaPin) {
+		if (pAreaPinPlus) {
 			out
 				<< ", metering, ",
-				pAreaPin->Restart(out);
+				pAreaPinPlus->Restart(out)
+				<< ", negative, ",
+				pAreaPinMinus->Restart(out);
 		}
 		
 		if (pAreaOrifices) {
@@ -439,8 +449,12 @@ public:
 		 * (basta metterla in Cd!!!)
 		 */
 		dArea = 0.;
-		if (pAreaPin != NULL) {
-			dArea += pAreaPin->dGet(CurrEpsilon);
+		if (pAreaPinPlus != NULL) {
+			if (copysign(1., EpsPrime) == 1.) {
+				dArea += pAreaPinPlus->dGet(CurrEpsilon);
+			} else {
+				dArea += pAreaPinMinus->dGet(CurrEpsilon);
+			}
 		}
 		
 		if (pAreaOrifices != NULL) {
