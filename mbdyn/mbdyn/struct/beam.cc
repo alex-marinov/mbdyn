@@ -1690,10 +1690,14 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    /* Nodo 1 */
    StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
    
-   Mat3x3 R1(pNode1->GetRCurr());   
+   Mat3x3 R1(pNode1->GetRCurr());
+   if (HP.IsKeyWord("position")) {
+      /* just eat it! */
+      NO_OP;
+   }
    Vec3 f1(HP.GetPosRel(ReferenceFrame(pNode1)));
    Mat3x3 Rn1(Eye3);
-   if (HP.IsKeyWord("rot")) {
+   if (HP.IsKeyWord("orientation") || HP.IsKeyWord("rot")) {
 	   Rn1 = HP.GetRotRel(ReferenceFrame(pNode1));
    }
         
@@ -1706,9 +1710,13 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
    
    Mat3x3 R2(pNode2->GetRCurr());
+   if (HP.IsKeyWord("position")) {
+      /* just eat it! */
+      NO_OP;
+   }
    Vec3 f2(HP.GetPosRel(ReferenceFrame(pNode2)));
    Mat3x3 Rn2(Eye3);
-   if (HP.IsKeyWord("rot")) {
+   if (HP.IsKeyWord("orientation") || HP.IsKeyWord("rot")) {
 	   Rn2 = HP.GetRotRel(ReferenceFrame(pNode2));
    }
          
@@ -1721,9 +1729,13 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    StructNode* pNode3 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
    
    Mat3x3 R3(pNode3->GetRCurr());   
+   if (HP.IsKeyWord("position")) {
+      /* just eat it! */
+      NO_OP;
+   }
    Vec3 f3(HP.GetPosRel(ReferenceFrame(pNode3)));
    Mat3x3 Rn3(Eye3);
-   if (HP.IsKeyWord("rot")) {
+   if (HP.IsKeyWord("orientation") || HP.IsKeyWord("rot")) {
 	   Rn3 = HP.GetRotRel(ReferenceFrame(pNode3));
    }
    
@@ -1739,7 +1751,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    /*     Matrice R */
    Mat3x3 R_I;
    flag f_I(0);
-   if (HP.IsKeyWord("node")) {	
+   if (HP.IsKeyWord("from" "nodes") || HP.IsKeyWord("node")) {	
       f_I = flag(1);
    } else {     
       R_I = HP.GetRotAbs(AbsRefFrame);
@@ -1784,7 +1796,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	 RII = R_I;
       }	
    } else {
-      if (HP.IsKeyWord("node")) {	     
+      if (HP.IsKeyWord("from" "nodes") || HP.IsKeyWord("node")) {
 	 fII = flag(1);
       } else {	            
 	 RII = HP.GetRotAbs(AbsRefFrame);
