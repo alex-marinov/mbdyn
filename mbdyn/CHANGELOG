@@ -33,7 +33,7 @@ MBDyn 1.2-Engineering
 		- do not output RelativeFrame dummy struct nodes in ADAMS
 		  res format
 		- fixed c81 steady aerodynamic moment sign
-		- fixe dsome build problems related to old-style C #defines
+		- fixed some build problems related to old-style C #defines
 		  (mostly in <f2c.h> and <stdlib.h>)
 
 
