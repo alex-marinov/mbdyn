@@ -623,7 +623,11 @@ if test $ol_with_umfpack != no ; then
 				AC_DEFINE(HAVE_UMFPACK4,1,[define if Umfpack4 is available])
 			fi
 			ol_link_umfpack=yes
-			AC_MSG_RESULT([yes])
+			if test $have_umfpack4 != no ; then
+				AC_MSG_RESULT([(>= 4.0) yes])
+			else
+				AC_MSG_RESULT([yes])
+			fi
 		else
 			try_umfpack_LIBS="-lumfpack"
 			save_LIBS=$LIBS
@@ -649,7 +653,11 @@ if test $ol_with_umfpack != no ; then
 					AC_DEFINE(HAVE_UMFPACK4,1,[define if Umfpack4 is available])
 				fi
 				ol_link_umfpack=yes
-				AC_MSG_RESULT([yes])
+				if test $have_umfpack4 != no ; then
+					AC_MSG_RESULT([(>= 4.0) yes])
+				else
+					AC_MSG_RESULT([yes])
+				fi
 				AC_DEFINE(NBLAS,1,[define if BLAS/ATLAS are not available to Umfpack])
 				AC_MSG_WARN([Umfpack will be used without cblas/atlas])
 			else
