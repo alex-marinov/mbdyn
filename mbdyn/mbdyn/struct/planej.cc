@@ -2287,7 +2287,7 @@ AxialRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
 unsigned int
 AxialRotationJoint::iGetNumPrivData(void) const
 {
-	return 3;
+	return 8;
 }
 
 unsigned int
@@ -2303,8 +2303,29 @@ AxialRotationJoint::iGetPrivDataIdx(const char *s) const
 		return 2;
 	}
 
-	if (strcmp(s, "mz") == 0) {
+	if (strcmp(s, "fx") == 0) {
 		return 3;
+	}
+
+	if (strcmp(s, "fy") == 0) {
+		return 4;
+	}
+
+	if (strcmp(s, "fz") == 0) {
+		return 5;
+	}
+
+	if (strcmp(s, "mx") == 0) {
+		return 6;
+	}
+
+
+	if (strcmp(s, "my") == 0) {
+		return 7;
+	}
+
+	if (strcmp(s, "mz") == 0) {
+		return 8;
 	}
 
 	return 0;
@@ -2324,7 +2345,23 @@ AxialRotationJoint::dGetPrivData(unsigned int i) const
 		return dGet();
       
 	case 3:
+		return F.dGet(1);
+      
+	case 4:
+		return F.dGet(2);
+      
+	case 5:
+		return F.dGet(3);
+      
+	case 6:
+		return M.dGet(1);
+      
+	case 7:
+		return M.dGet(2);
+      
+	case 8:
 		return M.dGet(3);
+      
 	}
 
 	THROW(ErrGeneric());
