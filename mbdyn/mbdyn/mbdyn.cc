@@ -744,8 +744,8 @@ main(int argc, char* argv[])
 	    		/* Tempo di CPU impiegato */
 	    		struct tms tmsbuf;
 	    		times(&tmsbuf);
-	    		clock_t ct = tmsbuf.tms_utime+tmsbuf.tms_cutime
-				+tmsbuf.tms_stime+tmsbuf.tms_cstime;
+	    		clock_t ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
+				+ tmsbuf.tms_stime + tmsbuf.tms_cstime;
 			long clk_tck = sysconf(_SC_CLK_TCK);
 	    		tSecs = ct/clk_tck;
 	    		tMils = ((ct*1000)/clk_tck)%1000;
