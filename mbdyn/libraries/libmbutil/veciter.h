@@ -123,12 +123,9 @@ public:
 	inline bool IsInUse(void) const
 	{
 		/* FIXME: make it portable? */
-		if (mbdyn_cmpxchgb(&inuse, int8_t(true), int8_t(false))) {
-			return true;
-		}
-		return false;
+		return mbdyn_compare_and_swap(&inuse, int8_t(true), int8_t(false));
 	};
-	inline void Reset(void) { inuse = false; };
+	inline void SetInUse(bool b = false) { inuse = b; };
 };
 
 template<class T>
@@ -150,11 +147,11 @@ public:
 		VecIter<T>::Init(p, i);
 	};
 
-	/* FIXME: it must be called only once */
+	/* NOTE: it must be called only once */
 	void ResetAccessData(void)
 	{
 		for (unsigned i = 0; i < iSize; i++) {
-			pStart[i]->Reset();
+			pStart[i]->SetInUse();
 		}
 	}
 
