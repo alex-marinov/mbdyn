@@ -128,6 +128,9 @@
 /* set to 1 to use electric stuff */
 #undef USE_AERODYNAMIC_ELEMS
 
+/* define if you want to use tcl */
+#undef USE_TCL
+
 /* define this to use UNIX-style filenames */
 #undef USE_UNIX_FILE
 

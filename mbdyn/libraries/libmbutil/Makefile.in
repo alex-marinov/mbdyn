@@ -83,12 +83,13 @@ OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 PAM_LIBS = @PAM_LIBS@
 RANLIB = @RANLIB@
+TCL_LIBS = @TCL_LIBS@
 VERSION = @VERSION@
 mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
 
 lib_LTLIBRARIES = libmbutil.la
-libmbutil_la_SOURCES =  destr.h     except.h   filename.h  gauss.cc     gauss.h input.cc    input.h    llist.cc    llist.h      llstack.cc  llstack.h mathp.cc    mathp.h    mathtyp.h   myassert.cc  myassert.h  mynewmem.cc mynewmem.h  mystddef.h parser.cc   parser.h     parsinc.cc  parsinc.h search.h    stack.h    table.cc    table.h veciter.h   withlab.h  fn_UNIX.cc  tclpgin.h
+libmbutil_la_SOURCES =  destr.h     except.h   filename.h  gauss.cc     gauss.h input.cc    input.h    llist.cc    llist.h      llstack.cc  llstack.h mathp.cc    mathp.h    mathtyp.h   myassert.cc  myassert.h  mynewmem.cc mynewmem.h  mystddef.h parser.cc   parser.h     parsinc.cc  parsinc.h search.h    stack.h    table.cc    table.h veciter.h   withlab.h  fn_UNIX.cc  tclpgin.h tclpgin.cc
 
 
 libmbutil_la_LIBADD = @LIBS@
@@ -107,7 +108,8 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libmbutil_la_DEPENDENCIES = 
 libmbutil_la_OBJECTS =  gauss.lo input.lo llist.lo llstack.lo mathp.lo \
-myassert.lo mynewmem.lo parser.lo parsinc.lo table.lo fn_UNIX.lo
+myassert.lo mynewmem.lo parser.lo parsinc.lo table.lo fn_UNIX.lo \
+tclpgin.lo
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -127,7 +129,7 @@ TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/fn_UNIX.P .deps/gauss.P .deps/input.P .deps/llist.P \
 .deps/llstack.P .deps/mathp.P .deps/myassert.P .deps/mynewmem.P \
-.deps/parser.P .deps/parsinc.P .deps/table.P
+.deps/parser.P .deps/parsinc.P .deps/table.P .deps/tclpgin.P
 SOURCES = $(libmbutil_la_SOURCES)
 OBJECTS = $(libmbutil_la_OBJECTS)
 

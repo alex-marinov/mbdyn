@@ -80,6 +80,12 @@ DofPlugIn::Read(int argc, char *argv[])
 	return 0;
 }
 
+TypedValue::Type
+DofPlugIn::GetType(void) const 
+{
+	return TypedValue::VAR_REAL;
+}
+
 TypedValue 
 DofPlugIn::GetVal(void) const 
 {

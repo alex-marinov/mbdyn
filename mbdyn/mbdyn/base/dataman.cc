@@ -43,7 +43,11 @@ extern "C" {
 
 #include <constltp.h>
 #include <dataman_.h>
+/* plugins per math parser */
 #include <dofpgin.h>
+#ifdef USE_TCL
+#include <tclpgin.h>
+#endif /* USE_TCL */
 
 /* temporaneo? */
 #include <beam.h>
@@ -145,6 +149,11 @@ DofIter()
 
    /* registra il plugin per i dofs */
    HP.GetMathParser().RegisterPlugIn("dof", dof_plugin, this);
+
+#ifdef USE_TCL
+   /* registra il plugin per il tcl */
+   HP.GetMathParser().RegisterPlugIn("tcl", tcl_plugin, NULL);
+#endif /* USE_TCL */
    
    /* Setta il tempo al valore iniziale */
    pTime = (Var *)GlobalSymbolTable.Get("Time");

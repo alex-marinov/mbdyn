@@ -101,6 +101,7 @@ public:
 		virtual ~PlugIn() {};
 		virtual const char *sName(void) const = 0;
 		virtual int Read(int argc, char *argv[]) = 0;
+		virtual TypedValue::Type GetType(void) const = 0;
 		virtual TypedValue GetVal(void) const = 0;
 	};
 

@@ -37,59 +37,61 @@ typedef int Int;
 
 /* valori con tipo */
 class TypedValue {
- public:
-   class ErrUnknownType {};
-   class ErrWrongType {};
-   class ErrUnknownValue {};
+public:
+	class ErrUnknownType {};
+	class ErrWrongType {};
+	class ErrUnknownValue {};
 
-   enum Type {
-      VAR_UNKNOWN = -1,
-	VAR_INT,
-	VAR_REAL,
-	VAR_LAST
-   };
+	enum Type {
+		VAR_UNKNOWN = -1,
+		
+		VAR_INT,
+		VAR_REAL,
+
+		VAR_LAST
+	};
    
- protected:
-   TypedValue::Type type;
-   union {
-      Int i;
-      Real r;
-   } v;
-   
- public:
-   TypedValue(const Int& i);
-   TypedValue(const Real& r);
-   TypedValue(const TypedValue::Type t);
-   TypedValue(const TypedValue& var);
-   
-   const TypedValue& operator = (const TypedValue& var);
+protected:
+	TypedValue::Type type;
+	union {
+		Int i;
+		Real r;
+	} v;
 
-   TypedValue::Type GetType(void) const;
-   Int GetInt(void) const;
-   Real GetReal(void) const;
+public:
+	TypedValue(const Int& i);
+	TypedValue(const Real& r);
+	TypedValue(const TypedValue::Type t);
+	TypedValue(const TypedValue& var);
+	
+	const TypedValue& operator = (const TypedValue& var);
+	
+	TypedValue::Type GetType(void) const;
+	Int GetInt(void) const;
+	Real GetReal(void) const;
+	
+	void SetType(TypedValue::Type t);
+	const TypedValue& Set(const Int& i);
+	const TypedValue& Set(const Real& r);
+	
+	bool operator && (const TypedValue& v) const;
+	bool operator || (const TypedValue& v) const;
+	bool operator > (const TypedValue& v) const;
+	bool operator >= (const TypedValue& v) const;
+	bool operator == (const TypedValue& v) const;
+	bool operator <= (const TypedValue& v) const;
+	bool operator < (const TypedValue& v) const;
+	bool operator != (const TypedValue& v) const;
 
-   void SetType(TypedValue::Type t);
-   const TypedValue& Set(const Int& i);
-   const TypedValue& Set(const Real& r);
-      
-   bool operator && (const TypedValue& v) const;
-   bool operator || (const TypedValue& v) const;
-   bool operator > (const TypedValue& v) const;
-   bool operator >= (const TypedValue& v) const;
-   bool operator == (const TypedValue& v) const;
-   bool operator <= (const TypedValue& v) const;
-   bool operator < (const TypedValue& v) const;
-   bool operator != (const TypedValue& v) const;
-
-   TypedValue operator + (const TypedValue& v) const;
-   TypedValue operator - (const TypedValue& v) const;
-   TypedValue operator * (const TypedValue& v) const;
-   TypedValue operator / (const TypedValue& v) const;
-
-   const TypedValue& operator += (const TypedValue& v);
-   const TypedValue& operator -= (const TypedValue& v);
-   const TypedValue& operator *= (const TypedValue& v);
-   const TypedValue& operator /= (const TypedValue& v);
+	TypedValue operator + (const TypedValue& v) const;
+	TypedValue operator - (const TypedValue& v) const;
+	TypedValue operator * (const TypedValue& v) const;
+	TypedValue operator / (const TypedValue& v) const;
+	
+	const TypedValue& operator += (const TypedValue& v);
+	const TypedValue& operator -= (const TypedValue& v);
+	const TypedValue& operator *= (const TypedValue& v);
+	const TypedValue& operator /= (const TypedValue& v);
 };
 
 extern bool operator ! (const TypedValue& v);
@@ -100,47 +102,50 @@ extern ostream& operator << (ostream& out, const TypedValue& v);
 
 /* classe per la memorizzazione delle variabili */
 class NamedValue {
- private:
-   char *name;
+private:
+	char *name;
 
-   void AllocName(const char *const s);
+	void AllocName(const char *const s);
+	
+public:
+	NamedValue(const char *const s);
+	virtual ~NamedValue(void);
 
- public:
-   NamedValue(const char *const s);
-   virtual ~NamedValue(void);
+	virtual int IsVar(void) const;
 
-   virtual int IsVar(void) const;
-
-   const char *GetName(void) const;
-   virtual TypedValue::Type GetType(void) const = 0;
-   virtual TypedValue GetVal(void) const = 0;
+	const char *GetName(void) const;
+	virtual TypedValue::Type GetType(void) const = 0;
+	virtual TypedValue GetVal(void) const = 0;
 };
 
 class Var : public NamedValue {
- private:
-   TypedValue value;
+private:
+	TypedValue value;
 
- public:
-   Var(const char* const s, const TypedValue& v);
-   Var(const char* const s, const Real& v);
-   Var(const char* const s, const Int& v);
-   ~Var(void);
+public:
+	Var(const char* const s, const TypedValue& v);
+	Var(const char* const s, const Real& v);
+	Var(const char* const s, const Int& v);
+	~Var(void);
 
-   int IsVar(void) const;
-   
-   TypedValue::Type GetType(void) const;
-   TypedValue GetVal(void) const;
-   
-   void SetVal(const Real& v);
-   void SetVal(const Int& v);
-   void SetVal(const TypedValue& v);
+	int IsVar(void) const;
+	
+	TypedValue::Type GetType(void) const;
+	TypedValue GetVal(void) const;
+	
+	void SetVal(const Real& v);
+	void SetVal(const Int& v);
+	void SetVal(const TypedValue& v);
 };
 
-/* lista delle variabili, sara' sostituita da Table (che la usa per le sue liste) */
+/*
+ * lista delle variabili, sara' sostituita da Table
+ */
 struct VarList {
-   NamedValue* var;
-   
-   VarList* next;
+	NamedValue* var;
+	
+	VarList* next;
 };
 
-#endif // MATHTYP_H
+#endif /* MATHTYP_H */
+

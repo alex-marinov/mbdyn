@@ -83,6 +83,7 @@ OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 PAM_LIBS = @PAM_LIBS@
 RANLIB = @RANLIB@
+TCL_LIBS = @TCL_LIBS@
 VERSION = @VERSION@
 mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
@@ -92,7 +93,7 @@ SUBDIRS = base struct aero elec hydr
 # Build mbdyn executable
 bin_PROGRAMS = mbdyn
 mbdyn_SOURCES = mbdyn.cc mbdyn.h
-mbdyn_LDADD =  	base/libbase.la 	struct/libstruct.la 	aero/libaero.la 	elec/libelec.la 	hydr/libhydr.la 	../libraries/libmbmath/libmbmath.la 	../libraries/libmbutil/libmbutil.la 	../libraries/liby12/liby12.la 	../libraries/libobjs/libobjs.la 	@MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ 	@METIS_LIBS@ @PAM_LIBS@ @LIBS@
+mbdyn_LDADD =  	base/libbase.la 	struct/libstruct.la 	aero/libaero.la 	elec/libelec.la 	hydr/libhydr.la 	../libraries/libmbmath/libmbmath.la 	../libraries/libmbutil/libmbutil.la 	../libraries/liby12/liby12.la 	../libraries/libobjs/libobjs.la 	@MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ 	@METIS_LIBS@ @PAM_LIBS@ @TCL_LIBS@ @LIBS@
 
 mbdyn_LDFLAGS = -static
 

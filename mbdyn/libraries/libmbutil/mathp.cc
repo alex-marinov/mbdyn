@@ -556,7 +556,7 @@ operator << (ostream& out, const TypedValue& v)
    return out;
 }
 
-/* classe per la memorizzazione delle variabili (modificare per usare Table) */
+/* classe per la memorizzazione delle variabili */
 
 NamedValue::NamedValue(const char *const s)
 : name(NULL) {
@@ -657,6 +657,30 @@ Var::SetVal(const TypedValue& v)
    }
 }
 
+MathParser::PlugInVar::PlugInVar(const char *const s, MathParser::PlugIn *p)
+: NamedValue(s), pgin(p)
+{
+	NO_OP;
+}
+
+MathParser::PlugInVar::~PlugInVar(void)
+{
+	if (pgin) {
+		SAFEDELETE(pgin, MPmm);
+	}
+}
+
+TypedValue::Type
+MathParser::PlugInVar::GetType(void) const
+{
+	return pgin->GetType();
+}
+
+TypedValue 
+MathParser::PlugInVar::GetVal(void) const
+{
+	return pgin->GetVal();
+}
 
 MathParser::ErrGeneric::ErrGeneric(void) 
 {
@@ -1296,15 +1320,12 @@ MathParser::expr(void)
 			     f->fname, "' in expr()"));
 	 }
 	 GetToken();
-	 return d;	    
+	 return d;
       } else {
 	 NamedValue* v = table.Get(namebuf);
 	 if (v != NULL) {	       
 	    return v->GetVal();
 	 }
-
-	 /* try to get a plugin */
-
       }
            
       DEBUGCERR("unknown name '" << namebuf << "' in expr()" << endl);
@@ -1394,8 +1415,11 @@ MathParser::stmt(void)
 	       if (v->IsVar()) {
 	          ((Var *)v)->SetVal(d);
 	       } else {
-		  cerr << "cannot assign a non-val named value" << endl;
-		  THROW(MathParser::ErrGeneric(this, "cannot assign non-val named value '", v->GetName(), "'"));
+		  cerr << "cannot assign non-var named value '" 
+			  << v->GetName() << "'" << endl;
+		  THROW(MathParser::ErrGeneric(this,
+		  			"cannot assign non-var named value '",
+					v->GetName(), "'"));
 	       }
 	       return v->GetVal();
 	    } else {
@@ -1411,7 +1435,90 @@ MathParser::stmt(void)
 TypedValue 
 MathParser::readplugin(void)
 {
-   THROW(MathParser::ErrGeneric(this, "plugins not supported yet"));
+	/*
+	 * parse plugin:
+	 * 	- arg[0]: nome plugin
+	 * 	- arg[1]: nome variabile
+	 * 	- arg[2]: tipo {integer|real}
+	 * 	- arg[3]->arg[n]: dati da passare al costrutture
+	 */
+	char **argv = NULL, **tmp;
+	char c, buf[1024];
+	int argc = 0, i = 0;
+
+	SAFENEWARR(argv, char *, 1, MPmm);
+	while ((c = in->get()) != CPGIN && !in->eof()) {
+		switch (c) {
+		case '\\':
+			c = in->get();
+			break;
+		case ',':
+			buf[i] = '\0';
+			tmp = argv;
+			argv = NULL;
+			SAFENEWARR(argv, char *, argc+2, MPmm);
+			memcpy(argv, tmp, sizeof(char *)*argc);
+			SAFEDELETEARR(tmp, MPmm);
+			argv[argc] = NULL;
+			SAFESTRDUP(argv[argc], buf, MPmm);
+			++argc;
+			i = 0;
+			c = in->get();
+			break;
+		}
+		buf[i++] = c;
+	}
+	
+	if (in->eof()) {
+		cerr << "eof encountered while parsing plugin" << endl;
+		THROW(ErrGeneric());
+	}
+	
+	in->putback(c);
+	
+	char *pginname = argv[0];
+	char *varname = argv[1];
+	TypedValue::Type type = TypedValue::VAR_UNKNOWN;
+	if (strcasecmp(argv[2], "integer") == 0) {
+		type = TypedValue::VAR_INT;
+	} else if (strcasecmp(argv[2], "real") == 0) {
+		type = TypedValue::VAR_REAL;
+	} else {
+		cerr << "illegal plugin variable type '" << argv[2] 
+			<< "'" << endl;
+		THROW(ErrGeneric());
+	}
+
+	if (pginname == NULL || *pginname == '\0') {
+		cerr << "illegal or missing plugin name" << endl;
+		THROW(ErrGeneric());
+	}
+
+	if (varname == NULL || *varname == '\0') {
+		cerr << "illegal or missing plugin variable name" << endl;
+                THROW(ErrGeneric());
+        }
+	
+	NamedValue* v = table.Get(varname);
+	if (v != NULL) {
+		cerr << "variable " << varname << " already defined" << endl;
+		THROW(ErrGeneric());
+	}
+
+	for (struct PlugInRegister *p = PlugIns; p != NULL; p = p->next) {
+		if (strcasecmp(p->name, pginname) == 0) {
+			MathParser::PlugIn *pgin = 
+				(*p->constructor)(*this, p->arg);
+			SAFENEWWITHCONSTRUCTOR(v, PlugInVar,
+					PlugInVar(varname, pgin), MPmm);
+			table.Put(v);
+
+			return v->GetVal();
+		}
+	}
+
+	cerr << "plugin '" << pginname << "' not supported" << endl;
+	THROW(ErrGeneric());
 }
    
 TypedValue 

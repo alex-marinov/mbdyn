@@ -31,29 +31,32 @@
 #ifndef TCLPGIN_H
 #define TCLPGIN_H
 
-#ifdef HAVE_TCL_H
+#ifdef USE_TCL
 
+#ifdef HAVE_TCL_H
 #include <tcl.h>
+#endif /* HAVE_TCL_H */
 #include <mathp.h>
 
 class TclPlugIn : public MathParser::PlugIn {
 protected:
+	TypedValue::Type type;
 	Tcl_Interp *interp;
 	Tcl_Obj *cmd;
 
 public:
-	TclPlugIn(MathParser& mp);
+	TclPlugIn(MathParser& mp, TypedValue::Type t);
 	~TclPlugIn(void);
 	const char *sName(void) const;
 	int Read(int argc, char *argv[]);
-
+	TypedValue::Type GetType(void) const;
 	TypedValue GetVal(void) const;
 };
 
 extern MathParser::PlugIn *
 tcl_plugin(MathParser& mp, void *arg);
 
-#endif /* HAVE_TCL_H */
+#endif /* USE_TCL */
 
 #endif /* TCLPGIN_H */
 

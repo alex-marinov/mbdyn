@@ -19,7 +19,7 @@ mbdyn_LDADD = \
 	../libraries/liby12/liby12.la \
 	../libraries/libobjs/libobjs.la \
 	@MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ \
-	@METIS_LIBS@ @PAM_LIBS@ @LIBS@
+	@METIS_LIBS@ @PAM_LIBS@ @TCL_LIBS@ @LIBS@
 mbdyn_LDFLAGS = -static
 
 INCLUDES = -I../libraries/libmbutil -I../libraries/libmbmath -I../mbdyn/base -I../mbdyn/struct -I../mbdyn/aero -I../mbdyn/elec -I../mbdyn/hydr

@@ -202,6 +202,8 @@ ostream& AerodynamicModal::Restart(ostream& out) const
       out << "RAE9671";
    }
    return out << ';' << endl;
+#else
+   return out << "  /* aerodynamic modal: not implemented yet */" << endl;
 #endif
 }
 

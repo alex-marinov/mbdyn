@@ -44,7 +44,7 @@ public:
 	~DofPlugIn(void);
 	const char *sName(void) const;
 	int Read(int argc, char *argv[]);
-
+	TypedValue::Type GetType(void) const;
 	TypedValue GetVal(void) const;
 
 private:

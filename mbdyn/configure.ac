@@ -197,6 +197,7 @@ METIS_LIBS=
 MESCHACH_LIBS=
 LAPACK_LIBS=
 PAM_LIBS=
+TCL_LIBS=
 
 dnl MODULES_DIRS=
 
@@ -414,6 +415,8 @@ if test $ol_with_tcl != no ; then
 	AC_CHECK_LIB(tcl,Tcl_CreateInterp,[have_libtcl=yes],[have_libtcl=no])
 	if test $have_libtcl != no ; then
 		AC_MSG_RESULT([yes])
+		AC_DEFINE(USE_TCL,1,[define if you want to use tcl])
+		TCL_LIBS=-ltcl
 	else
 		AC_MSG_RESULT([no])
 		if test $ol_with_tcl != auto ; then
@@ -786,6 +789,7 @@ AC_SUBST(METIS_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
 AC_SUBST(PAM_LIBS)
+AC_SUBST(TCL_LIBS)
 
 AC_SUBST(MODULES_DIRS)
 

@@ -83,6 +83,7 @@ OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 PAM_LIBS = @PAM_LIBS@
 RANLIB = @RANLIB@
+TCL_LIBS = @TCL_LIBS@
 VERSION = @VERSION@
 mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
