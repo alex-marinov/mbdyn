@@ -45,6 +45,8 @@ external.h \
 external.cc \
 filedrv.cc \
 filedrv.h \
+fixedstep.cc \
+fixedstep.h \
 force.cc \
 force.h \
 gmres.cc \
@@ -96,6 +98,10 @@ simentity.cc \
 simentity.h \
 sockdrv.cc \
 sockdrv.h \
+socketstreamdrive.cc \
+socketstreamdrive.h \
+streamdrive.cc \
+streamdrive.h \
 solver.cc \
 solver.h \
 solverdiagnostics.cc \

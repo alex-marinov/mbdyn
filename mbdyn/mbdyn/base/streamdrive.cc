@@ -28,55 +28,40 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* socket driver */
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
-#ifndef RTAI_IN_DRIVE_H
-#define RTAI_IN_DRIVE_H
+#include <netdb.h>
 
-/* include del programma */
+#include <dataman.h>
+#include <filedrv.h>
+#include <streamdrive.h>
 
-#include "streamdrive.h"
-
-#ifdef USE_RTAI
-
-/* RTAIInDrive - begin */
-
-class RTAIInDrive : public StreamDrive {
-protected:
-	
-	/* FIXME: store restart info as well */
-	const char *host;
-	unsigned long node;
-	int port;
-	void *mbx;
-
-public:
-   	RTAIInDrive(unsigned int uL,
+StreamDrive::StreamDrive(unsigned int uL,
 			 const DriveHandler* pDH,
 			 const char* const sFileName,
-			 const char *h,
-			 integer nd, bool c, int n);
-   
-   	virtual ~RTAIInDrive(void);
-   
-   	virtual FileDrive::Type GetFileDriveType(void) const;
+			 integer nd, bool c)
+: FileDrive(uL, pDH, sFileName, nd),
+create(c)
+{
+   	ASSERT(nd > 0);
+	ASSERT(sFileName != NULL);
+	
+	/*
+	 * initialize mailbox and so on
+	 */
+	size = sizeof(double)*nd;
+	SAFENEWARR(buf, char, size);
+}
 
-   	/* Scrive il contributo del DriveCaller al file di restart */
-   	virtual std::ostream& Restart(std::ostream& out) const;
-   
-   	virtual void ServePending(const doublereal& t);
-};
-
-/* RTAIInDrive - end */
-
-#endif /* USE_RTAI */
-
-class DataManager;
-class MBDynParser;
-
-extern Drive *
-ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
-
-
-#endif /* RTAI_IN_DRIVE_H */
+StreamDrive::~StreamDrive(void) 
+{
+	/*
+	 * destroy buffer
+	 */
+	if (buf) {
+		SAFEDELETEARR(buf);
+	}
+}
 

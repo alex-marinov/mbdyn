@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2003
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -41,21 +41,22 @@ class FileDrive : public Drive {
 public:
 	enum Type {
 		UNKNOWN = -1,
-		
+
 		FIXEDSTEP = 0,
 		SOCKET,
+		SOCKETSTREAM,
 		RTAI_IN,
-	
+
 		LASTFILEDRIVE
 	};
 
-protected: 
+protected:
 	char* sFileName;
 	integer iNumDrives;
    	doublereal* pdVal;
 
 public:
-	FileDrive(unsigned int uL, const DriveHandler* pDH, 
+	FileDrive(unsigned int uL, const DriveHandler* pDH,
 			const char* const s, integer nd);
 	virtual ~FileDrive(void);
 
@@ -63,11 +64,11 @@ public:
 
 	virtual FileDrive::Type GetFileDriveType(void) const = 0;
 
-	/* Scrive il contributo del DriveCaller al file di restart */   
+	/* Scrive il contributo del DriveCaller al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const = 0;
-   
+
 	virtual inline integer iGetNumDrives(void) const;
-   
+
 	virtual doublereal dGet(const doublereal& t, int i = 1) const;
 };
 
@@ -88,16 +89,16 @@ protected:
 	FileDrive* pFileDrive;
 	integer iNumDrive;
 	doublereal dAmplitude;
-   
+
 public:
 	FileDriveCaller(const DriveHandler* pDH, const FileDrive* p,
 			integer i, const doublereal& da);
 	virtual ~FileDriveCaller(void);
-   
+
 	/* Copia */
 	virtual DriveCaller* pCopy(void) const;
-   
-	/* Scrive il contributo del DriveCaller al file di restart */   
+
+	/* Scrive il contributo del DriveCaller al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	/* Restituisce il valore del driver */
@@ -113,36 +114,6 @@ FileDriveCaller::dGet(const doublereal& dVal) const
 }
 
 /* FileDriveCaller - end */
-
-
-/* FixedStepFileDrive - begin */
-
-class FixedStepFileDrive : public FileDrive {
-protected:
-	doublereal dT0;
-	doublereal dDT;
-	integer iNumSteps;  
-   
-	doublereal* pd;
-	doublereal** pvd;
-   
-public:
-	FixedStepFileDrive(unsigned int uL, const DriveHandler* pDH, 
-			const char* const sFileName, integer is, integer id,
-			doublereal t0, doublereal dt);
-	virtual ~FixedStepFileDrive(void);
-   
-	virtual FileDrive::Type GetFileDriveType(void) const {
-		return FileDrive::FIXEDSTEP;
-	};
-
-	/* Scrive il contributo del DriveCaller al file di restart */   
-	virtual std::ostream& Restart(std::ostream& out) const;
-   
-	virtual void ServePending(const doublereal& t);
-};
-
-/* FixedStepFileDrive - end */
 
 class DataManager;
 class MBDynParser;

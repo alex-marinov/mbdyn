@@ -28,55 +28,60 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* socket driver */
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
-#ifndef RTAI_IN_DRIVE_H
-#define RTAI_IN_DRIVE_H
+#include <netdb.h>
 
-/* include del programma */
+#include <dataman.h>
+#include <filedrv.h>
+#include <streamdrive.h>
+#include <socketstreamdrive.h>
 
-#include "streamdrive.h"
+SocketStreamDrive::SocketStreamDrive(unsigned int uL,
+		const DriveHandler* pDH,
+		const char* const sFileName,
+		integer nd, bool c)
+: StreamDrive(uL, pDH, sFileName, nd, c)
+{
+	NO_OP;
+}
 
-#ifdef USE_RTAI
+SocketStreamDrive::~SocketStreamDrive(void)
+{
+	NO_OP;
+}
 
-/* RTAIInDrive - begin */
+FileDrive::Type
+SocketStreamDrive::GetFileDriveType(void) const
+{
+	return FileDrive::SOCKETSTREAM;
+}
 
-class RTAIInDrive : public StreamDrive {
-protected:
-	
-	/* FIXME: store restart info as well */
-	const char *host;
-	unsigned long node;
-	int port;
-	void *mbx;
-
-public:
-   	RTAIInDrive(unsigned int uL,
-			 const DriveHandler* pDH,
-			 const char* const sFileName,
-			 const char *h,
-			 integer nd, bool c, int n);
+/* Scrive il contributo del DriveCaller al file di restart */   
+std::ostream&
+SocketStreamDrive::Restart(std::ostream& out) const
+{
+   	return out << "0. /* SocketStreamDrive not implemented yet */"
+		<< std::endl;
+}
    
-   	virtual ~RTAIInDrive(void);
-   
-   	virtual FileDrive::Type GetFileDriveType(void) const;
+void
+SocketStreamDrive::ServePending(const doublereal& t)
+{
+	NO_OP;
+}
 
-   	/* Scrive il contributo del DriveCaller al file di restart */
-   	virtual std::ostream& Restart(std::ostream& out) const;
-   
-   	virtual void ServePending(const doublereal& t);
-};
+/* legge i drivers tipo stream */
 
-/* RTAIInDrive - end */
+Drive*
+ReadSocketStreamDrive(DataManager* pDM,
+		MBDynParser& HP,
+		unsigned int uLabel)
+{
+	Drive* pDr = NULL;
 
-#endif /* USE_RTAI */
-
-class DataManager;
-class MBDynParser;
-
-extern Drive *
-ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
-
-
-#endif /* RTAI_IN_DRIVE_H */
+	return pDr;
+} /* End of ReadStreamDrive */
 

@@ -32,11 +32,11 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_RTAI
-
 #include <netdb.h>
 
 #include <dataman.h>
+
+#ifdef USE_RTAI
 #include <rtai_in_drive.h>
 #include <mbrtai_utils.h>
 
@@ -44,19 +44,10 @@ RTAIInDrive::RTAIInDrive(unsigned int uL,
 			 const DriveHandler* pDH,
 			 const char* const sFileName,
 			 const char *h,
-			 integer nd ,bool c, int n)
-: FileDrive(uL, pDH, sFileName, nd),//host 
-host(h), create(c), node(n), port(-1), mbx(NULL)
+			 integer nd, bool c, int n)
+: StreamDrive(uL, pDH, sFileName, ndi, c),
+host(h), node(n), port(-1), mbx(NULL)
 {
-   	ASSERT(nd > 0);
-	ASSERT(sFileName != NULL);
-	
-	/*
-	 * initialize mailbox and so on
-	 */
-	size = sizeof(double)*nd;
-	SAFENEWARR(buf, char, size);
-
 	if (create) {
 		ASSERT(node == 0);
 
@@ -94,7 +85,6 @@ RTAIInDrive::~RTAIInDrive(void)
 	if (host) {
 		SAFEDELETEARR(host);
 	}
-	NO_OP;
 }
 
 void 
@@ -110,10 +100,10 @@ RTAIInDrive::ServePending(const doublereal& /* t */ )
 		for (int i = 1; i <= iNumDrives; i++){
 			pdVal[i] = rbuf[i-1];
 		}	
-	}else{
+
+	} else {
 			/*FIXME: error */
 	}
-	
 }
 
 FileDrive::Type 
@@ -126,8 +116,10 @@ RTAIInDrive::GetFileDriveType(void) const
 std::ostream&
 RTAIInDrive::Restart(std::ostream& out) const
 {
-   	return out << "# RTAIInDrive not implemented yet" << std::endl;
+   	return out << "0. /* RTAIInDrive not implemented yet */" << std::endl;
 }
+
+#endif /* ! USE_RTAI */
 
 Drive *
 ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
@@ -137,6 +129,7 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	const char *name = NULL;
 	bool create = false;
 
+#ifdef USE_RTAI
 	if (HP.IsKeyWord("mailbox" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == NULL) {
@@ -239,7 +232,11 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			name, host, idrives, create, node));
 	
 	return pDr;
+#else /* ! USE_RTAI */
+       std::cerr << "Sorry, RTAI input requires configure --with-rtai"
+	       << std::endl;
+       THROW(ErrGeneric());
+#endif /* ! USE_RTAI */
+       
 }
    
-#endif /* USE_RTAI */
-

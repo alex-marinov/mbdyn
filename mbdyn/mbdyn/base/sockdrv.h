@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2003
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -38,7 +38,6 @@
 const unsigned short int MBDynSocketDrivePort = 5555;
 extern const char *MBDynSocketDrivePath;
 
-
 /* include del programma */
 
 #include "auth.h"
@@ -48,7 +47,7 @@ extern const char *MBDynSocketDrivePath;
 
 class SocketDrive : public FileDrive {
 protected:
-   	enum { 
+   	enum {
       		DEFAULT     = 0x0000,
       		INCREMENTAL = 0x0001,
       		IMPULSIVE   = 0x0002
@@ -60,32 +59,38 @@ protected:
 		const char *Path;
 	} data;
    	AuthMethod* auth;
-   
+
    	doublereal* pdVal;
    	int* pFlags;
-   
+
    	int sock;
-   
+
 public:
    	SocketDrive(unsigned int uL, const DriveHandler* pDH,
 	            unsigned short int p, AuthMethod* a, integer nd);
-   
+
    	SocketDrive(unsigned int uL, const DriveHandler* pDH,
 	            const char *path, integer nd);
-   
+
    	virtual ~SocketDrive(void);
-   
+
    	virtual FileDrive::Type GetFileDriveType(void) const;
 
    	/* Scrive il contributo del DriveCaller al file di restart */
    	virtual std::ostream& Restart(std::ostream& out) const;
-   
+
    	virtual void ServePending(const doublereal& t);
 };
 
 /* SocketDrive - end */
 
 #endif /* USE_SOCKET_DRIVES */
+
+class DataManager;
+class MBDynParser;
+
+extern Drive* ReadSocketDrive(DataManager* pDM,
+		MBDynParser& HP, unsigned int uLabel);
 
 #endif /* SOCKDRV_H */
 

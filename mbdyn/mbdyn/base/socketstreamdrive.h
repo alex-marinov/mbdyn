@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2003
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,53 +30,39 @@
 
 /* socket driver */
 
-#ifndef RTAI_IN_DRIVE_H
-#define RTAI_IN_DRIVE_H
+#ifndef SOCKETSTREAMDRIVE_H
+#define SOCKETSTREAMDRIVE_H
 
-/* include del programma */
+#include <streamdrive.h>
 
-#include "streamdrive.h"
+/* SocketStreamDrive - begin */
 
-#ifdef USE_RTAI
-
-/* RTAIInDrive - begin */
-
-class RTAIInDrive : public StreamDrive {
+class SocketStreamDrive : public StreamDrive {
 protected:
-	
-	/* FIXME: store restart info as well */
-	const char *host;
-	unsigned long node;
-	int port;
-	void *mbx;
 
 public:
-   	RTAIInDrive(unsigned int uL,
-			 const DriveHandler* pDH,
-			 const char* const sFileName,
-			 const char *h,
-			 integer nd, bool c, int n);
-   
-   	virtual ~RTAIInDrive(void);
-   
-   	virtual FileDrive::Type GetFileDriveType(void) const;
+	SocketStreamDrive(unsigned int uL,
+			const DriveHandler* pDH,
+			const char* const sFileName,
+			integer nd, bool c);
 
-   	/* Scrive il contributo del DriveCaller al file di restart */
-   	virtual std::ostream& Restart(std::ostream& out) const;
-   
-   	virtual void ServePending(const doublereal& t);
+	virtual ~SocketStreamDrive(void);
+
+	virtual FileDrive::Type GetFileDriveType(void) const;
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	virtual void ServePending(const doublereal& t);
 };
 
-/* RTAIInDrive - end */
-
-#endif /* USE_RTAI */
+/* SocketStreamDrive - end */
 
 class DataManager;
 class MBDynParser;
 
-extern Drive *
-ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
+extern Drive* ReadSocketStreamDrive(DataManager* pDM,
+		MBDynParser& HP, unsigned int uLabel);
 
-
-#endif /* RTAI_IN_DRIVE_H */
+#endif /* SOCKETSTREAMDRIVE_H */
 
