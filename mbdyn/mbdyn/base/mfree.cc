@@ -48,7 +48,6 @@
 #endif /* USE_MPI */
 
 #include <dofown.h>
-#include <umfpackwrap.h>
 #include <unistd.h>
 #include <output.h>
 
