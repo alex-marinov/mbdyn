@@ -261,7 +261,7 @@ class SparseMatrixHandler : public MatrixHandler {
    
    integer iMatSize; /* Ordine della matrice (supposta quadrata) */
 
-   SparseData* pHS;  /* Puntatore all'oggetto SparseData da utilizzare */
+   SparseData* pSD;  /* Puntatore all'oggetto SparseData da utilizzare */
    
    const doublereal dZero;
    
@@ -352,7 +352,7 @@ inline flag SparseMatrixHandler::fPutCoef(integer iRow,
       uPV.sRC.ic = (unsigned short int)(iCol);
       
       integer iField = uPV.iInt;
-      integer iReturnFlag = pHS->iGetIndex(iField);
+      integer iReturnFlag = pSD->iGetIndex(iField);
       iReturnFlag = abs(iReturnFlag)-1;
       (*ppdMat)[iReturnFlag] = dCoef;
       
@@ -380,7 +380,7 @@ inline flag SparseMatrixHandler::fIncCoef(integer iRow,
       uPV.sRC.ic = (unsigned short int)(iCol);
       
       integer iField = uPV.iInt;
-      integer iReturnFlag = pHS->iGetIndex(iField);
+      integer iReturnFlag = pSD->iGetIndex(iField);
       iReturnFlag = abs(iReturnFlag)-1;
       (*ppdMat)[iReturnFlag] += dCoef;
       
@@ -408,7 +408,7 @@ inline flag SparseMatrixHandler::fDecCoef(integer iRow,
       uPV.sRC.ic = (unsigned short int)(iCol);
       
       integer iField = uPV.iInt;
-      integer iReturnFlag = pHS->iGetIndex(iField);
+      integer iReturnFlag = pSD->iGetIndex(iField);
       iReturnFlag = abs(iReturnFlag)-1;
       (*ppdMat)[iReturnFlag] -= dCoef;
       
@@ -434,7 +434,7 @@ SparseMatrixHandler::dGetCoef(integer iRow, integer iCol) const
    uPV.sRC.ic = short(iCol);
 	
    integer iField = uPV.iInt;
-   integer iReturnFlag = pHS->iGetIndex(iField);
+   integer iReturnFlag = pSD->iGetIndex(iField);
    if (iReturnFlag != 0) {
       iReturnFlag = abs(iReturnFlag)-1;
       return (*ppdMat)[iReturnFlag];

@@ -54,7 +54,7 @@ SparseMatrixHandler::SparseMatrixHandler(integer iMSize,
 : iWorkSpaceSize(iWSSize),
 iCurSize(iWSSize), 
 iNumItem(0), iMatSize(iMSize),
-pHS(NULL), dZero(0.),
+pSD(NULL), dZero(0.),
 ppiRow(ppiTmpRow),
 ppiCol(ppiTmpCol), 
 ppdMat(ppdTmpMat)
@@ -63,7 +63,7 @@ ppdMat(ppdTmpMat)
    IsValid();
 #endif
 
-   SAFENEWWITHCONSTRUCTOR(pHS,
+   SAFENEWWITHCONSTRUCTOR(pSD,
 			  SparseData,
 			  SparseData(iCurSize, ppiRow, ppiCol), 
 			  MHmm);
@@ -76,8 +76,8 @@ SparseMatrixHandler::~SparseMatrixHandler(void)
    IsValid();
 #endif
    
-   if (pHS != NULL) {
-      SAFEDELETE(pHS, MHmm);
+   if (pSD != NULL) {
+      SAFEDELETE(pSD, MHmm);
    }
 }
 
@@ -93,7 +93,7 @@ integer SparseMatrixHandler::PacMat(void)
    integer* piRowOld = *ppiRow;
    integer* piColOld = *ppiCol;
    
-   integer iEmpty = -(this->pHS->iCurSize+1);
+   integer iEmpty = -(this->pSD->iCurSize+1);
    integer iCount = 0;
    
    for (; piRowOld < *ppiRow+this->iCurSize; pdMatOld++, piRowOld++, piColOld++) {
@@ -135,12 +135,12 @@ void SparseMatrixHandler::Init(const doublereal& dResetVal)
    IsValid();
 #endif
    
-   ASSERT(pHS != NULL);
+   ASSERT(pSD != NULL);
 #ifdef DEBUG_MEMMANAGER
-   ASSERT(MHmm.fIsPointerToBlock((void*)pHS));
+   ASSERT(MHmm.fIsPointerToBlock((void*)pSD));
 #endif
    
-   pHS->ResetVec();
+   pSD->ResetVec();
    doublereal* pdTmp = *ppdMat;
    while ( pdTmp < *ppdMat+iCurSize ) {
       *pdTmp++ = dResetVal; 
@@ -313,7 +313,7 @@ void HSLUSolutionManager::PacVec(void)
    integer* piRowOld = piRow;
    integer* piColOld = piCol;
    
-   integer iEmpty = -(pMH->pHS->iCurSize+1);
+   integer iEmpty = -(pMH->pSD->iCurSize+1);
    integer iCount = 0;
    
    for (; piRowOld < piRow+pMH->iCurSize; pdMatOld++, piRowOld++, piColOld++) {
