@@ -120,6 +120,8 @@ class Control_valve : virtual public Elem, public HydraulicElem, public DriveOwn
 
 /* Control_valve2 - begin */
 
+#define VALVE_6
+
 class Control_valve2 
 : virtual public Elem, public HydraulicElem, public DriveOwner {
 private:
@@ -148,8 +150,15 @@ private:
 		Q34 = 1,
 		Q13 = 2,
 		Q24 = 3,
+#ifdef VALVE_6
+		Q14 = 4,
+		Q23 = 5,
+		LAST_Q = 6
+#else /* !VALVE_6 */
 		LAST_Q = 4
+#endif /* !VALVE_6 */
 	};
+
 	const PressureNode* pNode[LAST_N];
 	doublereal q[LAST_Q];
 	doublereal dp[LAST_Q];
@@ -161,6 +170,9 @@ private:
 	doublereal s_max; 
 	doublereal f[LAST_N];
 	doublereal A[LAST_Q];
+
+	/* gathers data from nodes and computes intermediate member data */
+	void Prepare(void);
    
 public:
 	Control_valve2(unsigned int uL, const DofOwner* pD, HydraulicFluid* hf,

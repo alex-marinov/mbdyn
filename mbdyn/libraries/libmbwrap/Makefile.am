@@ -24,3 +24,24 @@ INCLUDES = \
 -I../../libraries/libmbutil \
 -I../../mbdyn
 
+bin_PROGRAMS = t
+t_SOURCES = test.cc
+t_LDADD = \
+./libmbwrap.la \
+../libmbmath/libmbmath.la \
+../libmbutil/libmbutil.la \
+../libobjs/libobjs.la \
+../liby12/liby12.la \
+../libharwell/libharwell.la \
+./libmbwrap.la \
+@MESCHACH_LIBS@ \
+@F2C_LIBS@ \
+@TCL_LIBS@
+
+INCLUDES = \
+-I../../mbdyn \
+-I../libmbutil \
+-I../libmbmath \
+-I../liby12 \
+-I../libharwell
+

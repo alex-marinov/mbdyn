@@ -11,22 +11,22 @@ main(void)
 	const integer Z = 3;	/* non-zeroes */
 
 	const integer NN = 3*Z;	/* size of A and SNR */
-	doublereal A[NN];	/* matrix */
-	integer SNR[NN];	/* column indices */
+	doublereal A[9];	/* matrix NN = 3*Z */
+	integer SNR[9];		/* column indices NN = 3*Z */
 
-	const integer NN1 = 3*Z;	/* size of RNR */
-	integer RNR[NN1];	/* row indices */
+	const integer NN1 = 3*Z;/* size of RNR */
+	integer RNR[9];		/* row indices NN1 = 3*Z */
 
 	const integer IHA = N;	/* size of HA */
-	integer HA[IHA*11];	/* work array IHA*11 */
+	integer HA[22];		/* work array IHA*11 */
 
 	doublereal AFLAG[8];	/* ? */
 	integer IFLAG[10];	/* ? */
 
 	integer IFAIL = 0;	/* diagnostics */
 
-	doublereal PIVOT[N];	/* pivot factors */
-	doublereal B[N];	/* RHS of problem */
+	doublereal PIVOT[2];	/* pivot factors N */
+	doublereal B[2];	/* RHS of problem N */
 
 	A[0] = 2.;	/* 1, 1 */
 	A[1] = 1.;      /* 2, 1 */
