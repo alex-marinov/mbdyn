@@ -381,8 +381,8 @@ void Solver::Run(void)
 	
    	ASSERT(iNumDofs > 0);        
 	
-	integer iNSteps = pRegularSteps->GetIntegratorStepSize();
-	integer iFSteps = pFictitiousSteps->GetIntegratorStepSize();
+	integer iNSteps = pRegularSteps->GetIntegratorNumStep();
+	integer iFSteps = pFictitiousSteps->GetIntegratorNumStep();
 	iNumPreviousVectors = (iNSteps < iFSteps) ? iFSteps : iNSteps;
 	
 	SAFENEWARR(pdWorkSpace,doublereal, 2*iNumPreviousVectors*iNumDofs);

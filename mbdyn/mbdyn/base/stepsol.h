@@ -103,7 +103,7 @@ public:
 
 	void SetDataManager(DataManager* pDatMan);
 		
-	virtual integer GetIntegratorStepSize(void) const;
+	virtual integer GetIntegratorNumStep(void) const;
 	
 	virtual void OutputTypes(const bool fpred);
 	

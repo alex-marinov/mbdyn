@@ -77,7 +77,7 @@ StepIntegrator::SetDataManager(DataManager* pDatMan)
 }
 
 integer
-StepIntegrator::GetIntegratorStepSize(void) const
+StepIntegrator::GetIntegratorNumStep(void) const
 {
 	return steps+1;
 }
