@@ -95,6 +95,7 @@ public:
 };
 
 
+template<>
 class ShockAbsorberConstitutiveLaw<doublereal, doublereal> 
 : public ElasticConstitutiveLaw<doublereal, doublereal> {
 private:

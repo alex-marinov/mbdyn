@@ -36,7 +36,7 @@ StepIntegrator::UpdateLoop(
 		const T* const t,
 		void (T::* pUpd)(const int DCount,
 			const DofOrder::Order Order,
-			const VectorHandler* const pSol = 0) const,
+			const VectorHandler* const pSol) const,
 		const VectorHandler* const pSol
 	) const
 {

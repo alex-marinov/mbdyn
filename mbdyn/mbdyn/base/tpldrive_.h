@@ -77,6 +77,7 @@ class SingleTplDriveCaller : public TplDriveCaller<T>, public DriveOwner {
 /* Nota: in caso di reale, viene semplificata la classe in modo da
  *       usare solo il drive senza pesatura che viene assunta unitaria */
 
+template<>
 class SingleTplDriveCaller<doublereal>
 : public TplDriveCaller<doublereal>, public DriveOwner {
  public:
@@ -183,6 +184,7 @@ class ArrayTplDriveCaller : public TplDriveCaller<T> {
    };   
 };
 
+template<>
 class ArrayTplDriveCaller<doublereal> : public TplDriveCaller<doublereal> {
  protected:   
    DrivesArray<doublereal>* pDrivesArray;
