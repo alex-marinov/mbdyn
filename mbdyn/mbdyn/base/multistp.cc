@@ -3778,7 +3778,7 @@ MultiStepIntegrator::Eig(void)
       
       doublereal cmplx = AlphaI.dGetCoef(iCnt);
       if (cmplx == 0.) {
-         Out << "Mode " << iMode << ":" << std::endl;
+         Out << "Mode " << iCnt << ":" << std::endl;
          for (int jCnt = 1; jCnt <= iSize; jCnt++) {
             Out << std::setw(12) << jCnt << ": "
 	      << std::setw(12) << MatR.dGetCoef(jCnt, iCnt) << std::endl;
@@ -3802,7 +3802,7 @@ MultiStepIntegrator::Eig(void)
 	 }
       } else {
 	 if (cmplx > 0.) {
-            Out << "Modes " << iMode << ", " << iMode+1 << ":" << std::endl;
+            Out << "Modes " << iCnt << ", " << iCnt+1 << ":" << std::endl;
 	    for (int jCnt = 1; jCnt <= iSize; jCnt++) {
 	       doublereal im = MatR.dGetCoef(jCnt, iCnt+1);
 	       Out << std::setw(12) << jCnt << ": "
@@ -3814,9 +3814,9 @@ MultiStepIntegrator::Eig(void)
 
 	 if (fOutputModes) {
             /*
-	     * uso la parte immaginaria ...
+	     * uso la parte reale ...
 	     */
-	    int i = iCnt - (cmplx > 0. ? 0 : 1);
+	    int i = iCnt - (cmplx > 0. ? 1 : 2);
 	    MyVectorHandler Xr(iSize, MatR.pdGetMat()+iSize*i);
 	    MyVectorHandler X0(iSize);
 	    pDM->Output(Xr, X0);
