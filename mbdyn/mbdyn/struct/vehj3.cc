@@ -103,21 +103,56 @@ DeformableJoint::Output(OutputHandler& OH) const
 unsigned int
 DeformableJoint::iGetNumPrivData(void) const
 {
-	return ConstitutiveLaw6DOwner::iGetNumPrivData();
+	return 12 + ConstitutiveLaw6DOwner::iGetNumPrivData();
 }
 
 unsigned int
 DeformableJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
-
-	size_t l = sizeof("constitutiveLaw.") - 1;
-	if (strncmp(s, "constitutiveLaw.", l) == 0) {
-		return ConstitutiveLaw6DOwner::iGetPrivDataIdx(s + l);
+	
+	unsigned idx = 0;
+	
+	switch (s[0]) {
+	case 'x':
+		break;
+	case 'r':
+		idx += 3;
+		break;
+	case 'F':
+		idx += 6;
+		break;
+	case 'M':
+		idx += 9;
+		break;
+	default: {
+		size_t l = sizeof("constitutiveLaw.") - 1;
+		if (strncmp(s, "constitutiveLaw.", l) == 0) {
+			return ConstitutiveLaw6DOwner::iGetPrivDataIdx(s + l);
+		}
+		return 0;
+		}
 	}
-
-	/* error; handle later */
-	return 0;
+	
+	switch (s[1]) {
+	case 'x':
+		idx += 1;
+		break;
+	case 'y':
+		idx += 2;
+		break;
+	case 'z':
+		idx += 3;
+		break;
+	default:
+		return 0;
+	}
+	
+	if (s[2] != '\0') {
+		return 0;
+	}
+	
+	return idx;
 }
 
 doublereal
@@ -126,8 +161,39 @@ DeformableJoint::dGetPrivData(unsigned int i) const
 	ASSERT(i > 0);
 
 	ASSERT(i <= ConstitutiveLaw6DOwner::iGetNumPrivData());
-
-	return ConstitutiveLaw6DOwner::dGetPrivData(i);
+	
+	switch (i) {
+	case 1:
+	case 2:
+	case 3:
+	{
+		return 0.;
+	}
+	
+	case 4:
+	case 5:
+	case 6:
+	{
+		return 0.;
+	}
+	
+	case 7:
+	case 8:
+	case 9:
+	{
+		return 0.;
+	}
+	
+	case 10:
+	case 11:
+	case 12:
+	{
+		return 0.;
+	}
+	
+	default:
+		return ConstitutiveLaw6DOwner::dGetPrivData(i - 12);
+	}
 }
 
 /* DeformableJoint - end */
