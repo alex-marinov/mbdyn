@@ -322,49 +322,54 @@ direction $(\T R_1\cdot \T R_{h1})[3]$. We choose to disregard this error.
 The friction moment should be along $(\T R_1\cdot \T R_{h1})[3]$.\\
 $r$ is the joint radius.\\
 CHECK THIS!!!\\
-Partial derivative of the term $f(\T F, \mathrm{rel\ velocity})$:
-$\T M[3] = \mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v)) * (\T R_1\cdot \T R_{h1})[3] * 
-	\sqrt{\T F \cdot \T F} * f_{\mathrm{c}}(v)$,
-with $\T R_{h1}$ constant.
+Explicit form of friction moment contribution 
+(FIXME: remove vector $(\T R_1\cdot \T R_{h1})[3]$ and write scalar equation???):\\
+$f(\T F, \mathrm{rel\ velocity})$:
+$\T M[3] = \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * (\T R_1\cdot \T R_{h1})[3] * 
+	||\T F|| * f_{\mathrm{c}}(v)$,\\
+with $\T R_{h1}$ constant.\\
+Variation of friction moment contribution:
 \begin{eqnarray*}
-\delta M[3] &=& \mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v)) * \sqrt{\T F \cdot \T F} *
+\delta \T M[3] &=& \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * ||\T F|| *
 	f_{\mathrm{c}}(d, \T \omega_{1}, \T \omega_{2}, \T R_1, \T R_{h1}) *
 		(\T R_{\delta 1} \times \T R_1)[3]+\\
-	&& \mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v)) *(\T R_1\cdot \T R_{h1})[3] * 
-		\frac{\displaystyle\T F}{\displaystyle\sqrt{\T F \cdot \T F}} 
+	&& \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) *(\T R_1\cdot \T R_{h1})[3] * 
+		\frac{\displaystyle\T F}{\displaystyle||\T F||} 
 		\cdot \delta \T F+\\
-	&& \mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v)) * (\T R_1\cdot \T R_{h1})[3] * 
-		\sqrt{\T F \cdot \T F} *
+	&& \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * (\T R_1\cdot \T R_{h1})[3] * 
+		||\T F|| *
 		\frac{\displaystyle \partial f_{\mathrm{c}}}
 			{\displaystyle \partial v} * \delta v+\\
 	&&	(\T R_1\cdot \T R_{h1})[3] * 
-			\sqrt{\T F \cdot \T F} * f_{\mathrm{c}}(v) *
-			\frac{\displaystyle \partial \mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v))}
-			{\displaystyle \partial \T F} \cdot \delta \T F+\\
+			||\T F|| * f_{\mathrm{c}}(v) *
+			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
+			{\displaystyle \partial ||\T F||} 
+			\frac{\displaystyle \partial ||\T F||}{\displaystyle\partial\T F}
+			\cdot \delta \T F+\\
 	&&	(\T R_1\cdot \T R_{h1})[3] * 
-			\sqrt{\T F \cdot \T F} * f_{\mathrm{c}}(v) *
-			\frac{\displaystyle \partial \mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v))}
+			||\T F|| * f_{\mathrm{c}}(v) *
+			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
 			{\displaystyle \partial f_{\mathrm{c}}(v)} *
 			\frac{\displaystyle \partial f_{\mathrm{c}}}
 				{\displaystyle \partial v} * \delta v\\
-	&=& \mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v)) * \sqrt{\T F \cdot \T F} *
+	&=& \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * ||\T F|| *
 		f_{\mathrm{c}}(d, \T \omega_{1}, \T \omega_{2}, \T R_1, \T R_{h1}) *
 		\T R_1^T \cdot (\T R_{\delta 1} \times )[3]+\\
 	&& \left (\begin{array}{l}
-		\mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v)) *(\T R_1\cdot \T R_{h1})[3] * 
-		\frac{\displaystyle\T F}{\displaystyle\sqrt{\T F \cdot \T F}}\\
+		\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) *(\T R_1\cdot \T R_{h1})[3] * 
+		\frac{\displaystyle\T F}{\displaystyle||\T F||}\\
 		(\T R_1\cdot \T R_{h1})[3] * 
-			\sqrt{\T F \cdot \T F} * f_{\mathrm{c}}(v) *
-			\frac{\displaystyle \partial \mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v))}
-			{\displaystyle \partial \T F}
+			||\T F|| * f_{\mathrm{c}}(v) *
+			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
+			{\displaystyle \partial ||\T F||}
 		\end{array} 
 		\right )\cdot \delta \T F+\\
 	&& \left ( \begin{array}{l}
-		\mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v)) * (\T R_1\cdot \T R_{h1})[3] * 
-		\sqrt{\T F \cdot \T F}\\
+		\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * (\T R_1\cdot \T R_{h1})[3] * 
+		||\T F||\\
 		(\T R_1\cdot \T R_{h1})[3] * 
-			\sqrt{\T F \cdot \T F} * f_{\mathrm{c}}(v) *
-			\frac{\displaystyle \partial \mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v))}
+			||\T F|| * f_{\mathrm{c}}(v) *
+			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
 			{\displaystyle \partial f_{\mathrm{c}}(v)}
 		\end{array} \right ) *
 		\frac{\displaystyle \partial f_{\mathrm{c}}}
@@ -383,12 +388,12 @@ e quindi
 \end{eqnarray*}
 \item
 $
-\mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v))=
+\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))=
 r * 
 C_\alpha(
 	\alpha(\mathrm{costants},
 		f_{\mathrm{c}}(v),
-		\sqrt{\T F \cdot \T F},
+		||\T F||,
 		\mathrm{f_{\mathrm{c}}(v)}
 	)
 ) 
@@ -398,12 +403,12 @@ $
 $
 \alpha(\mathrm{costants},
 	f_{\mathrm{c}}(v),
-	\sqrt{\T F \cdot \T F},
+	||\T F||,
 	\mathrm{f_{\mathrm{c}}(v)}
 ) =
 \sin^{-1}\left(
 	\sqrt{
-		\frac{\displaystyle 2*31*\sqrt{\T F \cdot \T F}}
+		\frac{\displaystyle 2*31*||\T F||}
 			{\displaystyle E*b*\sqrt{1+f_{\mathrm{c}}^2(v)}}
 		\frac{\displaystyle r'/r}
 			{\displaystyle r'-r}
@@ -415,20 +420,20 @@ i.e. about less that 1\% of the joint allowable load)
 we can safely assume $C_\alpha\approx 1$
 so that\\ 
 $
-\mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v))\approx
+\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))\approx
 r * 
 \frac{\displaystyle 1}{\displaystyle \sqrt{1+f_{\mathrm{c}}^2(v)}}
 $,\\
 
 $
-\frac{\displaystyle\partial \mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v))}
-	{\displaystyle\partial \T F} = \T 0
+\frac{\displaystyle\partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
+	{\displaystyle \partial ||\T F||} = \T 0
 $\\
 and\\
 $
-\frac{\displaystyle\partial \mathrm{sh\_c}(\T F, f_{\mathrm{c}}(v))}
+\frac{\displaystyle\partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
 	{\displaystyle\partial \mathrm{f_{\mathrm{c}}(v)}} =
-	-(1+f_{\mathrm{c}}^2(v))^{-3/2}*f_{\mathrm{c}}(v)
+	-r * (1+f_{\mathrm{c}}^2(v))^{-3/2}*f_{\mathrm{c}}(v)
 $
 \end{itemize}
 
