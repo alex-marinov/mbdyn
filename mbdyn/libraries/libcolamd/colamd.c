@@ -9,7 +9,7 @@
 /*
     colamd:  an approximate minimum degree column ordering algorithm,
     	for LU factorization of symmetric or unsymmetric matrices,
-	QR factorization, least squares, interior pointeger methods for
+	QR factorization, least squares, interior point methods for
 	linear programming problems, and other related problems.
 
     symamd:  an approximate minimum degree ordering algorithm for Cholesky
@@ -18,7 +18,7 @@
     Purpose:
 
 	Colamd computes a permutation Q such that the Cholesky factorization of
-	(AQ)'(AQ) has less fill-in and requires fewer floating pointeger operations
+	(AQ)'(AQ) has less fill-in and requires fewer floating point operations
 	than A'A.  This also provides a good ordering for sparse partial
 	pivoting methods, P(AQ) = LU, where Q is computed prior to numerical
 	factorization, and P is computed during numerical factorization via
@@ -33,7 +33,7 @@
 
     	Symamd computes a permutation P of a symmetric matrix A such that the
 	Cholesky factorization of PAP' has less fill-in and requires fewer
-	floating pointeger operations than A.  Symamd constructs a matrix M such
+	floating point operations than A.  Symamd constructs a matrix M such
 	that M'M has the same nonzero pattern of A, and then orders the columns
 	of M using colmmd.  The column ordering of M is then returned as the
 	row and column ordering P of A. 
@@ -856,7 +856,7 @@ PRIVATE void print_report
 /* colamd_debug is the *ONLY* global variable, and is only */
 /* present when debugging */
 
-PRIVATE integer colamd_debug ;	/* debug printeger level */
+PRIVATE integer colamd_debug ;	/* debug print level */
 
 #define DEBUG0(params) { (void) PRINTF params ; }
 #define DEBUG1(params) { if (colamd_debug >= 1) (void) PRINTF params ; }
@@ -870,7 +870,7 @@ PRIVATE integer colamd_debug ;	/* debug printeger level */
 #define ASSERT(expression) (assert (expression))
 #endif /* MATLAB_MEX_FILE */
 
-PRIVATE void colamd_get_debug	/* gets the debug printeger level from getenv */
+PRIVATE void colamd_get_debug	/* gets the debug print level from getenv */
 (
     char *method
 ) ;
@@ -1543,7 +1543,7 @@ PUBLIC void symamd_report
 /* === NON-USER-CALLABLE ROUTINES: ========================================== */
 /* ========================================================================== */
 
-/* There are no user-callable routines beyond this pointeger in the file */
+/* There are no user-callable routines beyond this point in the file */
 
 
 /* ========================================================================== */
@@ -1908,7 +1908,7 @@ PRIVATE void init_scoring
 
     /* === Compute initial column scores ==================================== */
 
-    /* At this pointeger the row degrees are accurate.  They reflect the number */
+    /* At this point the row degrees are accurate.  They reflect the number */
     /* of "live" (non-dense) columns in each row.  No empty rows exist. */
     /* Some "live" columns may contain only dead rows, however.  These are */
     /* pruned in the code below. */

@@ -12,6 +12,11 @@ MBDyn 1.2-Engineering
 		- added matrix-free nonlinear solver (BiCGStab/GMRES)
 		- added third order step solver
 		- added TAUCS linear solver (eXperimental)
+	Known Issues:
+		- parallel is not working yet
+
+MBDyn 1.2-Beta.3
+	Enhancements:
 		- added discrete Coulomb friction model
 		- added constitutive law output to elements
 		- added "sramp" (saturated ramp) function to math parser
@@ -22,14 +27,12 @@ MBDyn 1.2-Engineering
 		- added "stop" function in math parser
 		- added brake joint
 		- added awk scripts to prepare input for EasyAnim
-		- added parts velocities in ADAMS/View ouuput
+		- added parts velocities in ADAMS/View output
 		- added first order BDF integrator
 	Bug fixes:
 		- fixed aeromodal bug for v=0
 		- fixed solver diagnostics incremental activation
 		- fixed 3 node beam constitutive law type selection
-	Known Issues:
-		- parallel is not working yet
 	Backward compatibility issues:
 		- bind now uses "name" instead of "string";
 		  compatibility preserved
@@ -37,13 +40,13 @@ MBDyn 1.2-Engineering
 		  so output appended by the constitutive laws is now
 		  shifted by 1
 
-MBDyn 1.2-beta.2
+MBDyn 1.2-Beta.2
 	Bug fixes:
 		- fixed dof count in initial assembly dof stats print
 		- fixed element drive input
 		- fixed ADAMS res output
 
-MBDyn 1.2-beta.1
+MBDyn 1.2-Beta.1
 	Enhancements:
 		- implement separate induced velocity correction
 		  factors for hover and forward flight
