@@ -731,6 +731,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	
 		/* require support for ADAMS/View .res output */
 	  	if (HP.IsKeyWord("adams")) {
+#if defined USE_ADAMS 
 	 	 	ResMode |= RES_ADAMS;
 
 	  		if (HP.fIsArg() && HP.IsKeyWord("model" "name")) {
@@ -744,14 +745,24 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  		} else {
 	     			SAFESTRDUP(sAdamsModelName, "mbdyn");
 	  		}
-
+#else /* !USE_ADAMS */
+			std::cerr << "Please rebuild with Adams output enabled\n"
+				<< std::endl;
+			THROW(ErrGeneric());
+#endif /* USE_ADAMS */
 		/* require support for MotionView output */
 		} else if (HP.IsKeyWord("motion" "view")) {
+#if defined USE_MOTIONVIEW
 			ResMode |= RES_MOTIONVIEW;
 
 			/*
 			 * add output info
 			 */
+#else /* !USE_MOTIONVIEW */
+			std::cerr << "Please rebuild with MotionView output enabled\n"
+				<< std::endl;
+			THROW(ErrGeneric());
+#endif /* USE_MOTIONVIEW */
 		}
 	}
 	break;

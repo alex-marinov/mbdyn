@@ -114,10 +114,12 @@ dLastRestartTime(dInitialTime),
 iOutputFrequency(1),
 iOutputCount(0),
 ResMode(RES_NATIVE),
+#ifdef USE_ADAMS 
 sAdamsModelName(NULL),
 iAdamsOutputBlock(1),
 iAdamsOutputNodes(0),
 iAdamsOutputParts(0),
+#endif /* USE_ADAMS */
 
 /* ElemManager */
 ElemIter(), 
