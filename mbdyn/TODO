@@ -119,7 +119,10 @@ D. Code:
 	- generate a binary form of the .fem data for the modal element
 		that can be loaded instead of the text version according
 		to time stamps, to speed-up large models input (DONE)
-
+	- add an optional configuration-dependent constitutive law
+	  to the unconstrained displacements/rotations of selected joints:
+	  - the revolute family
+	  - ...
 
 
 
