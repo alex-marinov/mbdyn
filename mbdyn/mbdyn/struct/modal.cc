@@ -1447,8 +1447,8 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
    Vec3 Omega1(pModalNode->GetWCurr());
    
    for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
-      unsigned int *IntNodesm1 = IntNodes-1;
 #if 0
+      unsigned int *IntNodesm1 = IntNodes-1;
       unsigned int uNode1 = IntNodesm1[iStrNode];
       unsigned int uNode2 = IntNodesm1[iStrNode+NStrNodes];
 #endif
@@ -1725,7 +1725,7 @@ ReadModal(DataManager* pDM,
    } else if (HP.IsKeyWord("proportional" "damping")) {
       cdamp = HP.GetReal();    
    } else if (HP.IsKeyWord("diag" "damping"))  {
-      for (int iCnt = 1; iCnt <= NModes; iCnt ++) {
+      for (unsigned int iCnt = 1; iCnt <= NModes; iCnt ++) {
          iDampFlag = 1;
          integer iDampedMode =  HP.GetInt();
          cdamp = HP.GetReal();
@@ -1771,7 +1771,7 @@ ReadModal(DataManager* pDM,
    VecN *a = NULL;           /* spostamenti e velocita' modali */
    VecN *aP = NULL; 
    
-   int iNode, iMode, jMode, iStrNode;
+   unsigned int iNode, iMode, jMode, iStrNode;
    
    const char *sFileFem = HP.GetFileName();
    
