@@ -25,6 +25,7 @@ demangled.h \
 dofdrive.cc \
 dofdrive.h \
 dofman.cc \
+dofown.cc \
 dofown.h \
 dofpgin.cc \
 dofpgin.h \
@@ -42,6 +43,7 @@ filedrv.cc \
 filedrv.h \
 force.cc \
 force.h \
+integr.cc \
 integr.h \
 intmeth.cc \
 intmeth.h \

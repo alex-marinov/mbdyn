@@ -111,22 +111,6 @@ const doublereal dDefaultTol = 1e-6;
 const integer iDefaultIterationsBeforeAssembly = 2;
 const integer iDefaultIterativeSolversMaxSteps = 100;
 
-/*
- * Default solver
- */
-Integrator::SolverType
-#if defined(USE_Y12)
-Integrator::defaultSolver = Integrator::Y12_SOLVER;
-#elif /* !USE_Y12 */ defined(USE_UMFPACK)
-Integrator::defaultSolver = Integrator::UMFPACK_SOLVER;
-#elif /* !USE_UMFPACK */ defined(USE_HARWELL)
-Integrator::defaultSolver = Integrator::HARWELL_SOLVER;
-#elif /* !USE_HARWELL */ defined(USE_MESCHACH)
-Integrator::defaultSolver = Integrator::MESCHACH_SOLVER;
-#else /* !USE_MESCHACH */
-#error "need a solver!"
-#endif /* !USE_MESCHACH */
-
 /* Costruttore: esegue la simulazione */
 MultiStepIntegrator::MultiStepIntegrator(MBDynParser& HPar,
 		const char* sInFName,
@@ -673,6 +657,7 @@ MultiStepIntegrator::Run(void)
 #endif /* __HACK_EIG__ */
    
    	integer iTotIter = 0;
+   	integer iTotJac = 0;
    	doublereal dTotErr = 0.;
    
 	/* calcolo delle derivate */
@@ -696,6 +681,7 @@ MultiStepIntegrator::Run(void)
 #endif /* HAVE_SIGNAL */
 
    	int iIterCnt = 0;
+   	int iJacCnt = 0;
    	while (1) {
 
 #ifdef MPI_PROFILING
@@ -753,6 +739,7 @@ MultiStepIntegrator::Run(void)
 
       		pSM->MatrInit(0.);
       		pDM->AssJac(*pJac, dDerivativesCoef);
+		iJacCnt++;
 
 #ifdef MPI_PROFILING
 		MPE_Log_event(24, 0, "end");
@@ -787,6 +774,7 @@ EndOfDerivatives:
    
    	dTotErr += dTest;	
    	iTotIter += iIterCnt;
+   	iTotJac += iJacCnt;
    
    	Out << "Derivatives solution step at time " << dInitialTime
      		<< " performed in " << iIterCnt
@@ -887,6 +875,7 @@ EndOfDerivatives:
 #endif /* DEBUG */
       
       		iIterCnt = 0;   
+      		iJacCnt = 0;   
       		while (1) {
 	 		/* l02: EM calcolo del residuo */
 
@@ -947,6 +936,7 @@ EndOfDerivatives:
 
 	 		pSM->MatrInit(0.);
 	 		pDM->AssJac(*pJac, db0Differential);
+			iJacCnt++;
 
 #ifdef MPI_PROFILING
 			MPE_Log_event(24, 0, "end");
@@ -989,6 +979,7 @@ EndOfFirstFictitiousStep:
       
       		dTotErr += dTest;
       		iTotIter += iIterCnt;
+      		iTotJac += iJacCnt;
 
 #ifdef HAVE_SIGNAL
       		if (!::keep_going) {
@@ -1068,6 +1059,7 @@ EndOfFirstFictitiousStep:
 #endif /* DEBUG */
 	 
 	 		iIterCnt = 0;
+      			iJacCnt = 0;   
 	 		while (1) { 
 
 #ifdef MPI_PROFILING
@@ -1137,6 +1129,7 @@ EndOfFirstFictitiousStep:
 
 	    			pSM->MatrInit(0.);
 	    			pDM->AssJac(*pJac, db0Differential);
+				iJacCnt++;
 
 #ifdef MPI_PROFILING
 				MPE_Log_event(24, 0, "end");
@@ -1177,6 +1170,7 @@ EndOfFictitiousStep:
 
 	 		dTotErr += dTest;	
 	 		iTotIter += iIterCnt;
+	 		iTotJac += iJacCnt;
 	 
 #ifdef DEBUG
 	 		if (DEBUG_LEVEL(MYDEBUG_FSTEPS)) {
@@ -1298,6 +1292,7 @@ IfFirstStepIsToBeRepeated:
 #endif /* DEBUG */
       
    	iIterCnt = 0;
+      	iJacCnt = 0;   
    	iPerformedIterations = iIterationsBeforeAssembly;   
    	while (1) {
 
@@ -1389,6 +1384,7 @@ IfFirstStepIsToBeRepeated:
 
 	 		pSM->MatrInit(0.);
 	 		pDM->AssJac(*pJac, db0Differential);
+			iJacCnt++;
 			
 #ifdef MPI_PROFILING
 			MPE_Log_event(24,0,"end Jacobian");
@@ -1457,6 +1453,7 @@ EndOfFirstStep:
    
    	dTotErr += dTest;
    	iTotIter += iIterCnt;
+   	iTotJac += iJacCnt;
    
 #ifdef __HACK_EIG__  
    	if (fEigenAnalysis && OneEig.dTime <= dTime && !OneEig.fDone) {
@@ -1475,6 +1472,7 @@ EndOfFirstStep:
 				<< dTime << " after " 
 				<< iStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
+				<< "total Jacobians: " << iTotJac << std::endl
 				<< "total error: " << dTotErr << std::endl;
 			return;
 #ifdef HAVE_SIGNAL
@@ -1484,6 +1482,7 @@ EndOfFirstStep:
 				<< dTime << " after " 
 				<< iStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
+				<< "total Jacobians: " << iTotJac << std::endl
 				<< "total error: " << dTotErr << std::endl;
 	 		return;
 #endif /* HAVE_SIGNAL */
@@ -1540,6 +1539,7 @@ IfStepIsToBeRepeated:
 #endif /* DEBUG */
 
       		iIterCnt = 0;
+      		iJacCnt = 0;   
       		iPerformedIterations = iIterationsBeforeAssembly;
       		while (1) {
 
@@ -1658,6 +1658,7 @@ IfStepIsToBeRepeated:
 
 	    			pSM->MatrInit(0.);
 	    			pDM->AssJac(*pJac, db0Differential);
+				iJacCnt++;
 #ifdef DEBUG_MULTISTEP
 				std::cout << "JACOBIAN Assembled " << std::endl;
 #endif /* DEBUG_MULTISTEP */
@@ -1715,6 +1716,7 @@ EndOfStep:
 
       		dTotErr += dTest;	
       		iTotIter += iIterCnt;
+      		iTotJac += iJacCnt;
       
       		pDM->Output();     
 	 
@@ -1857,6 +1859,7 @@ MultiStepIntegrator::MakeTest(const VectorHandler& Res,
 				iCntp1++, DofIterator.fGetNext(CurrDof)) {
 			doublereal d = Res.dGetCoef(iCntp1);
 			dRes += d*d;
+
 			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
 				d = XP.dGetCoef(iCntp1);
 				dXPr += d*d;
@@ -1870,7 +1873,8 @@ MultiStepIntegrator::MakeTest(const VectorHandler& Res,
 
    	dRes /= (1.+dXPr);
    	if (!isfinite(dRes)) {      
-      		std::cerr << "The simulation diverged; aborting ..." << std::endl;       
+      		std::cerr << "The simulation diverged; aborting ..." 
+			<< std::endl;       
       		THROW(MultiStepIntegrator::ErrSimulationDiverged());
    	}
 
