@@ -1,0 +1,168 @@
+//
+// time: Fri Nov 19 10:46:48 2004
+//
+// version: 3.1.2 (format), 4.2.0 (DX)
+//
+//
+// Begin MDF
+// MODULE ScalePositions
+// CATEGORY Mbdyn
+// DESCRIPTION Scale Positions
+// INPUT input_1; field; (none); DeformedTimeData
+// INPUT UndeformedData; field; (none); UndeformedData
+// INPUT DisplScaleFactor; value list or field or string or string list; (none); DisplScaleFactor
+// INPUT ReferenceNode; integer or integer list or string or string list; (no default); ReferenceNode
+// OUTPUT output_1; object;  
+// End MDF
+// workspace: width = 688, height = 594
+// layout: snap = 0, width = 50, height = 50, align = NN
+//
+macro ScalePositions(
+ input_1
+,UndeformedData
+,DisplScaleFactor
+,ReferenceNode
+) -> (
+ output_1
+) {
+    // 
+    // node Input[1]: x = 190, y = 69, inputs = 0, label = Input
+    // parameter: position = 1, name = 'input_1', value = '(none)', descriptive = 1, description = 'DeformedTimeData', required = 1, visible = 1
+    //
+ScalePositions_Input_1_out_1 = input_1;
+    // 
+    // node Mark[14]: x = 200, y = 155, inputs = 2, label = Mark
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "positions"
+    //
+ScalePositions_Mark_14_out_1 = 
+    Mark(
+    ScalePositions_Input_1_out_1,
+    "positions"
+    ) [instance: 14, cache: 1];
+    // 
+    // node Input[2]: x = 290, y = 69, inputs = 0, label = Input
+    // parameter: position = 2, name = 'UndeformedData', value = '(none)', descriptive = 1, description = 'UndeformedData', required = 1, visible = 1
+    //
+ScalePositions_Input_2_out_1 = UndeformedData;
+    // 
+    // node Mark[13]: x = 281, y = 156, inputs = 2, label = Mark
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "positions"
+    //
+ScalePositions_Mark_13_out_1 = 
+    Mark(
+    ScalePositions_Input_2_out_1,
+    "positions"
+    ) [instance: 13, cache: 1];
+    // 
+    // node Input[3]: x = 377, y = 70, inputs = 0, label = Input
+    // parameter: position = 3, name = 'DisplScaleFactor', value = '(none)', descriptive = 1, description = 'DisplScaleFactor', required = 1, visible = 1
+    //
+ScalePositions_Input_3_out_1 = DisplScaleFactor;
+    // 
+    // node Compute[17]: x = 251, y = 272, inputs = 4, label = Compute
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "$1+(($0-$1)*$2)"
+    // expression: value = b+((a-b)*c)
+    // name[2]: value = a
+    // name[3]: value = b
+    // name[4]: value = c
+    //
+ScalePositions_Compute_17_out_1[cache: 0] = 
+    Compute(
+    "$1+(($0-$1)*$2)",
+    ScalePositions_Mark_14_out_1,
+    ScalePositions_Mark_13_out_1,
+    ScalePositions_Input_3_out_1
+    ) [instance: 17, cache: 1];
+    // 
+    // node Unmark[2]: x = 361, y = 300, inputs = 2, label = Unmark
+    //
+ScalePositions_Unmark_2_out_1[cache: 0] = 
+    Unmark(
+    ScalePositions_Compute_17_out_1,
+    NULL
+    ) [instance: 2, cache: 1];
+    // 
+    // node Extract[4]: x = 590, y = 342, inputs = 2, label = Extract
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "positions"
+    //
+ScalePositions_Extract_4_out_1 = 
+    Extract(
+    ScalePositions_Unmark_2_out_1,
+    "positions"
+    ) [instance: 4, cache: 1];
+    // 
+    // node Input[4]: x = 472, y = 79, inputs = 0, label = Input
+    // parameter: position = 4, name = 'ReferenceNode', value = '(no default)', descriptive = 1, description = 'ReferenceNode', required = 0, visible = 1
+    //
+ScalePositions_Input_4_out_1 = ReferenceNode;
+    // 
+    // node Select[15]: x = 639, y = 412, inputs = 3, label = Select
+    // input[2]: defaulting = 1, visible = 1, type = 1, value = 2
+    //
+ScalePositions_Select_15_out_1 = 
+    Select(
+    ScalePositions_Extract_4_out_1,
+    ScalePositions_Input_4_out_1,
+    NULL
+    ) [instance: 15, cache: 1];
+    // 
+    // node Compute[18]: x = 461, y = 419, inputs = 3, label = Compute
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "$0-$1"
+    // expression: value = a-b
+    // name[2]: value = a
+    // name[3]: value = b
+    //
+ScalePositions_Compute_18_out_1 = 
+    Compute(
+    "$0-$1",
+    ScalePositions_Compute_17_out_1,
+    ScalePositions_Select_15_out_1
+    ) [instance: 18, cache: 1];
+    // 
+    // node Inquire[1]: x = 414, y = 156, inputs = 3, label = Inquire
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "is null +1"
+    //
+ScalePositions_Inquire_1_out_1 = 
+    Inquire(
+    ScalePositions_Input_4_out_1,
+    "is null +1",
+    NULL
+    ) [instance: 1, cache: 1];
+    // 
+    // node Unmark[3]: x = 371, y = 421, inputs = 2, label = Unmark
+    //
+ScalePositions_Unmark_3_out_1 = 
+    Unmark(
+    ScalePositions_Compute_18_out_1,
+    NULL
+    ) [instance: 3, cache: 1];
+    // 
+    // node Switch[8]: x = 249, y = 446, inputs = 3, label = Switch
+    //
+ScalePositions_Switch_8_out_1 = 
+    Switch(
+    ScalePositions_Inquire_1_out_1,
+    ScalePositions_Unmark_3_out_1,
+    ScalePositions_Unmark_2_out_1
+    ) [instance: 8, cache: 1];
+    // 
+    // node Output[1]: x = 343, y = 532, inputs = 1, label = Output
+    // parameter: position = 1, name = 'output_1', value = ' ', descriptive = 0, description = ' ', required = 0, visible = 1
+    //
+output_1 = ScalePositions_Switch_8_out_1;
+// network: end of macro body
+}
+ScalePositions_Input_1_out_1 = NULL;
+ScalePositions_Mark_14_out_1 = NULL;
+ScalePositions_Input_2_out_1 = NULL;
+ScalePositions_Mark_13_out_1 = NULL;
+ScalePositions_Input_3_out_1 = NULL;
+ScalePositions_Compute_17_out_1 = NULL;
+ScalePositions_Unmark_2_out_1 = NULL;
+ScalePositions_Extract_4_out_1 = NULL;
+ScalePositions_Input_4_out_1 = NULL;
+ScalePositions_Select_15_out_1 = NULL;
+ScalePositions_Compute_18_out_1 = NULL;
+ScalePositions_Inquire_1_out_1 = NULL;
+ScalePositions_Unmark_3_out_1 = NULL;
+ScalePositions_Switch_8_out_1 = NULL;
