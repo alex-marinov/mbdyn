@@ -14,6 +14,7 @@ MBDyn 1.1-Engineering
 		- added velocity threshold to module-wheel2 when computing
 		  slip angle
 		- log reference frames on dedicated file (if required)
+		- removed last COMMON from F77 code in sparse matrix handling
 	Bug fixes:
 		- fixed SIGSEGV when reading from stdin
 

@@ -10,7 +10,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 A. Configuration:
 
-	- test for '_' appended to F77 symbols
+	- test for '_' appended to F77 symbols (recent autoconf does that)
 	- audit all the suite for not-so-GNU systems
 	- add test for pow_dd stuff (might be needed by fortran code)
 
@@ -34,6 +34,8 @@ D. Code:
 	- implement binary, or hard, restart
 	- add MATLAB/Octave and Simulink hooks.
 		Large project: turn mbdyn into a module for Simulink.
+	- remove node/element type listing from "control data" block;
+	  use STL containers to keep track of model components
 
 	Medium Projects:
 	- recover existing soft restart
@@ -43,16 +45,23 @@ D. Code:
 	- develop a trim control as an external command that drives
 		a simulation.
 	- add friction to all joints
+	- add Arnoldi-like eigenvalue extraction module
+	- review output to allow selective ascii/binary output
+	- replace MyLList and LLStack with STL containers
 
 	Small Projects:
 	- add MATLAB/Octave and Simulink hooks.
 		``shell'' element, drive and so that executes unix commands 
-		including scripts, and especially matlab scripts.
+		including scripts, significantly matlab scripts.
 	- move critical Reynolds numbers from constants to fluid properties
 		with pressure/temperature dependencies.
 	- improve symbolic constitutive law (based on GiNaC)
 	- move exception handling towards <stdexcept>
 	- review/improve user-configurable statistics output
+	- add Matlab-compatible sparse matrix generation for sparse
+	  matrix eigenvalue analysis (eigs)
+	- add selected output streamed on sockets for interactive analysis
+	- add rot2any/any2rot utilities
 
 
 
@@ -60,4 +69,13 @@ E. Bugs/missing features:
 
 	- check for nested /* */ comments in parsers
 	- eliminate nasty dependence from f2c typedefs (doublereal and so)
+	- review deformable viscous/viscoelastic hinge according
+	  to the elastic one
+
+
+
+F. Documentation:
+
+	- document the utilities in a separate man page
+	- audit the user manual
 
