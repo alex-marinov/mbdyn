@@ -334,7 +334,7 @@ main(int argc, char* argv[])
 
         	/* Parsing della linea di comando */
         	opterr = 0;
-        	while (1) {
+        	while (true) {
 #ifdef HAVE_GETOPT_LONG
 	    		int iCurrOpt = getopt_long(argc, argv, sShortOpts, 
 						   LongOpts, &iIndexPtr);
@@ -890,7 +890,7 @@ RunMBDyn(MBDynParser& HP,
     	KeyWords CurrInt = MULTISTEP;
    
     	/* Ciclo infinito */
-    	while (1) {	
+    	while (true) {	
         	switch (KeyWords(HP.GetDescription())) {
         	case INTEGRATOR:
             		switch (KeyWords(HP.GetWord())) {
@@ -931,13 +931,14 @@ RunMBDyn(MBDynParser& HP,
         	case PARALLEL: {
 #ifdef USE_MPI
 			unsigned int size = MPI::COMM_WORLD.Get_size();
+			unsigned int Bcount = 0;
 #ifdef USE_EXTERNAL			
 			int* pBuff = NULL;
 			SAFENEWARR(pBuff, int, size+1);
 			pBuff[0] = 0;
-			MPI::COMM_WORLD.Allgather(pBuff, 1, MPI::INT, pBuff+1, 1, MPI::INT);
+			MPI::COMM_WORLD.Allgather(pBuff, 1, MPI::INT,
+					pBuff+1, 1, MPI::INT);
 			std::vector<unsigned int> iInterfaceProc(5);
-			unsigned int Bcount = 0;
 			unsigned int Icount = 0;
 			for (unsigned int i = 1; i <= size; i++) {
 				if (pBuff[i] == pBuff[0]) {
@@ -956,7 +957,7 @@ RunMBDyn(MBDynParser& HP,
 				/* l'unica cosa che c'e' e' MBDyn */
 				MBDynComm = MPI::COMM_WORLD.Dup();
 			} else {
-				MBDynComm = MPI::COMM_WORLD.Split(pBuff[0],1);
+				MBDynComm = MPI::COMM_WORLD.Split(pBuff[0], 1);
 			}
 			if (Icount != 0) {
 				for (unsigned int ii = 0; ii < Icount; ii++) {
@@ -966,11 +967,13 @@ RunMBDyn(MBDynParser& HP,
 			SAFEDELETEARR(pBuff);
 #else /* USE_EXTERNAL */
 			MBDynComm = MPI::COMM_WORLD.Dup();
-#endif /* USE_EXTERNAL */			
+			Bcount = size;
+#endif /* USE_EXTERNAL */
 			if (MBDynComm.Get_rank()) {
-				silent_cout("MBDyn will run on " << Bcount << 
-					" processors starting from processor "
-					<< std::endl);
+				silent_cout("MBDyn will run on " << Bcount 
+						<< " processors starting "
+						"from processor " /* ??? */
+						<< std::endl);
 			}
             		fParallel = int(MBDynComm.Get_size() != 1);
 	    		break;
