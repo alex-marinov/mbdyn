@@ -29,7 +29,7 @@ MBDyn 1.2-Engineering
 		  by --enable-runtime-loading
 		- --with-static-modules added to statically link
 		  (known) modules
-	Known Issues:
+	Known issues:
 		- parallel is not working yet
 	Bug fixes:
 		- fixed potential bug in c81 data input
