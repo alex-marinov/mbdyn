@@ -194,7 +194,12 @@ reused is expected; otherwise a default value is used.
 \begin{verbatim}
     <card> ::= printres ;
 \end{verbatim}
-switch on printing of residual vector for debugging purpose.
+Switch on printing of residual vector for debugging purpose.
+\begin{verbatim}
+    <card> ::= printjac ;
+\end{verbatim}
+Switch on printing of jacobian for debugging purpose; 
+currently available only with umfpack-based solution solvers.
 
 \subsubsection{Eigenanalysis}
 Experimental, not available nor documented yet.

@@ -86,6 +86,7 @@ const debug_array da[] = {
     { "mpi",            MYDEBUG_MPI             },
     { "pred",           MYDEBUG_PRED            },
     { "residual",       MYDEBUG_RESIDUAL        },
+    { "jacobian",       MYDEBUG_JAC             },
     { "init",           MYDEBUG_INIT            },
     { "output",         MYDEBUG_OUTPUT          },
      

@@ -309,6 +309,7 @@ private:
 
         /* Parametri per debug */
  	flag fPrintRes;
+ 	flag fPrintJac;
 
    	/* Parametri per la variazione passo */
    	integer iStepsAfterReduction;

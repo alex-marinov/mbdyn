@@ -132,6 +132,7 @@ static const long int MYDEBUG_RESIDUAL            = 0x00008000;
 static const long int MYDEBUG_SOL                 = 0x00010000;
 static const long int MYDEBUG_INIT                = 0x00020000;
 static const long int MYDEBUG_OUTPUT              = 0x00040000;
+static const long int MYDEBUG_JAC                 = 0x00080000;
 
 #endif /* MBDYN_H */
 

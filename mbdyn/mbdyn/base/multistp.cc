@@ -219,6 +219,7 @@ fTrueNewtonRaphson(1),
 iIterationsBeforeAssembly(0),
 iPerformedIterations(0),
 fPrintRes(false),
+fPrintJac(false),
 iStepsAfterReduction(0),
 iStepsAfterRaise(0),
 iWeightedPerformedIters(0),
@@ -807,6 +808,14 @@ MultiStepIntegrator::Run(void)
 		MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
+      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC)||fPrintJac) {
+	 		std::cout << "Jacobian:" << std::endl;
+			if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
+				std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
+			} else {
+				std::cout << *(pSM->pMatHdl());
+	 		}
+      		}
       		pSM->Solve(dDerivativesCoef);
       
 #ifdef DEBUG
@@ -1011,6 +1020,14 @@ EndOfDerivatives:
 			MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
+	      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC)||fPrintJac) {
+		 		std::cout << "Jacobian:" << std::endl;
+				if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
+					std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
+				} else {
+					std::cout << *(pSM->pMatHdl());
+		 		}
+      			}
 	 		pSM->Solve(db0Differential);
 	 
 #ifdef DEBUG
@@ -1205,6 +1222,14 @@ EndOfFirstFictitiousStep:
 				MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
+		      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC)||fPrintJac) {
+			 		std::cout << "Jacobian:" << std::endl;
+					if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
+						std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
+					} else {
+						std::cout << *(pSM->pMatHdl());
+			 		}
+      				}
 	    			pSM->Solve(db0Differential);
 	    
 #ifdef DEBUG
@@ -1473,6 +1498,14 @@ IfFirstStepIsToBeRepeated:
 #endif /* USE_MPI */
       		}
 
+      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC)||fPrintJac) {
+	 		std::cout << "Jacobian:" << std::endl;
+			if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
+				std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
+			} else {
+				std::cout << *(pSM->pMatHdl());
+	 		}
+      		}
       		pSM->Solve(db0Differential);   
       
 #ifdef DEBUG
@@ -1772,6 +1805,14 @@ IfStepIsToBeRepeated:
 #endif /* USE_MPI */
 	 		}
 
+	      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC)||fPrintJac) {
+		 		std::cout << "Jacobian:" << std::endl;
+				if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
+					std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
+				} else {
+					std::cout << *(pSM->pMatHdl());
+		 		}
+      			}
 	 		pSM->Solve(db0Differential);
 
 #ifdef DEBUG
@@ -2577,6 +2618,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 			"modified",
 		
 		"PrintRes",
+		"PrintJac",
 	
 		"strategy",
 			"factor",
@@ -2657,6 +2699,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		MODIFIED,
 
 		PRINTRES,
+		PRINTJAC,
 			
 		STRATEGY,
 		STRATEGYFACTOR,
@@ -3196,6 +3239,10 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 
        case PRINTRES: {
           fPrintRes = true;
+          break;
+       }   
+       case PRINTJAC: {
+          fPrintJac = true;
           break;
        }   
 	 
