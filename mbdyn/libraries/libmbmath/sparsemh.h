@@ -253,7 +253,8 @@ public:
       		return iMatSize;
    	};
 
-	std::ostream& SparseOutput(std::ostream& out) const;
+	std::ostream& SparseOutput(std::ostream& out, 
+			int w = 20) const;
 };
 
 

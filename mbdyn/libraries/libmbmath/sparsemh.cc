@@ -39,8 +39,8 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <string.h>	/* for memset() */
-
 #include <sparsemh.h>
+#include <ac/iomanip>
 
 /* SparseData - begin */
 
@@ -335,7 +335,7 @@ SparseMatrixHandler::iPacVec(void)
 }
 
 std::ostream& 
-SparseMatrixHandler::SparseOutput(std::ostream& out) const
+SparseMatrixHandler::SparseOutput(std::ostream& out, int w) const
 {
 #ifdef DEBUG
 	IsValid();
@@ -343,43 +343,31 @@ SparseMatrixHandler::SparseOutput(std::ostream& out) const
 
 	ASSERT(iCurSize > 0);
 
-#if 0	
-	doublereal* pdMatNew = *ppdMat;
-	integer* piRowNew = *ppiRow;
-	integer* piColNew = *ppiCol;
-	
-	doublereal* pdMatOld = *ppdMat;
-	integer* piRowOld = *ppiRow;
-	integer* piColOld = *ppiCol;
-#endif
-	
 	integer iEmpty = -(iCurSize+1);
 
-#if 0
-	for ( ;
-	     piRowOld < *ppiRow+iCurSize;
-	     pdMatOld++, piRowOld++, piColOld++) {	     
-	     	if (*piRowOld != iEmpty) {
-			SparseData::uPacVec uPV;
-			uPV.iInt = *piColOld;		
-			*pdMatNew++ = *pdMatOld;
-			*piRowNew++ = integer(uPV.sRC.ir);
-			*piColNew++ = integer(uPV.sRC.ic);
-			iNew++;
-		}
-	}
-#endif
-	
+	int cW = out.width(max(w, 10));
+	int cP = out.precision(max(w-8, 2));	
+
+#ifdef HAVE_FMTFLAGS_IN_IOS
+	std::ios::fmtflags oldbits = out.setf(std::ios::scientific);
+#else /* !HAVE_FMTFLAGS_IN_IOS */
+	long oldbits = out.setf(ios::scientific);
+#endif /* !HAVE_FMTFLAGS_IN_IOS */
+	      
 	for (integer iCnt = 0; iCnt < iCurSize; iCnt++) {
 		if ((*ppiRow)[iCnt] != iEmpty) {
 			SparseData::uPacVec uPV;
 			uPV.iInt = (*ppiCol)[iCnt];
 			out 
-				<< integer(uPV.sRC.ir) << " "
-				<< integer(uPV.sRC.ic) << " "
+				<< std::setw(8) << integer(uPV.sRC.ir) << " "
+				<< std::setw(8) << integer(uPV.sRC.ic) << " "
 				<< (*ppdMat)[iCnt] << std::endl;
 		}
 	}
+
+	out.width(cW);
+	out.precision(cP);
+	out.flags(oldbits);
 
 	return out;
 }
