@@ -418,46 +418,46 @@ Elem* ReadJoint(DataManager* pDM,
        
        /* posizione (vettore di 3 elementi) */
        ReferenceFrame RF(pNode);
-       Vec3 X0(Zero3);
-       if (HP.IsKeyWord("node")) { /* stessa posizione del nodo */
-	  X0 = pNode->GetXCurr();
-       } else {                     /* posizione arbitraria */
-	  if (HP.IsKeyWord("position")) {
+       /* stessa posizione del nodo */
+       Vec3 X0(pNode->GetXCurr());
+       if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
-		  NO_OP;
-	  } else {
-		  pedantic_cerr("Joint(" << uLabel
-				  << "): missing keyword \"position\" at line "
-				  << HP.GetLineData());
-	  }
+	       NO_OP;
+       } else {
+	       pedantic_cerr("Joint(" << uLabel
+			       << "): missing keyword \"position\" at line "
+			       << HP.GetLineData());
+       }
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
+          if (!HP.IsKeyWord("node")) {
+	     /* posizione arbitraria */
 	     X0 = HP.GetPosAbs(RF);
+          }	   	       	     	       
 #ifndef MBDYN_X_COMPATIBLE_INPUT
-          }
+       }
 #endif /* !MBDYN_X_COMPATIBLE_INPUT */
-       }	   	       	     	       
        
        DEBUGCOUT("X0 =" << std::endl << X0 << std::endl);
        
        /* sistema di riferimento (trucco dei due vettori) */
-       Mat3x3 R0(Eye3);
-       if (HP.IsKeyWord("node")) { /* stessa giacitura del nodo */
-	  R0 = pNode->GetRCurr();
-       } else {                     /* giacitura arbitraria */
-	  if (HP.IsKeyWord("orientation")) {
+       /* stessa giacitura del nodo */
+       Mat3x3 R0(pNode->GetRCurr());
+       if (HP.IsKeyWord("orientation")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
-		  NO_OP;
-	  } else {
-		  pedantic_cerr("Joint(" << uLabel
-				  << "): missing keyword \"orientation\" at line "
-				  << HP.GetLineData());
-	  }
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
-	     R0 = HP.GetRotAbs(RF);
-#ifndef MBDYN_X_COMPATIBLE_INPUT
-          }
-#endif /* !MBDYN_X_COMPATIBLE_INPUT */
+	       NO_OP;
+       } else {
+	       pedantic_cerr("Joint(" << uLabel
+			       << "): missing keyword \"orientation\" at line "
+			       << HP.GetLineData());
        }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+          if (!HP.IsKeyWord("node")) {
+	     /* giacitura arbitraria */
+	     R0 = HP.GetRotAbs(RF);
+          }
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+       }
+#endif /* !MBDYN_X_COMPATIBLE_INPUT */
        
        DEBUGCOUT("R0 =" << std::endl << R0 << std::endl);
        

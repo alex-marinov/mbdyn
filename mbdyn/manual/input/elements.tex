@@ -991,16 +991,34 @@ Legal joint types, with relative data, are:
 \subsection{Distance}
 \begin{verbatim}
     <joint_type> ::= distance 
-    <joint_arglist> ::= <node_1> , <node_2> ,
+    <joint_arglist> ::= <node_1> , 
+                        [ position , <relative_offset_1> , ]
+                        <node_2> ,
+                        [ position , <relative_offset_2> , ]
                         { (drive_caller) <distance> | from nodes }
 \end{verbatim}
 
 \noindent
+{\em 
+    Note: the \texttt{relative\_offset\_*} are the distances of each end
+    of the joint from the relative nodes in the node reference frame \\
+    Both the \texttt{distance} and the \texttt{distance with offset} joints
+    allow for null distance, but the transition from null to non-null
+    distance is not smooth at all.
+} \\
 {\em
     Note: in case the keywords \texttt{from nodes} are used, a constant drive
     caller is automatically instantiated for the \texttt{distance}. 
-    Its value is computed from the initial positions of the nodes.
+    Its value is computed from the initial positions of the nodes;
+    if defined, the distance between the offsets is considered. 
+} \\
+{\em
+    Note: the \texttt{distance with offset} element is deprecated
+    in favour of the \texttt{distance} with the new syntax, which
+    offers the same capabilities.
 }
+ 
+
 
 \paragraph{Output}
 The extra output is:
@@ -1010,38 +1028,32 @@ The extra output is:
 \end{itemize}
 
 
+
 \subsection{Distance with offset}
-\begin{verbatim}
-    <joint_type> ::= distance with offset
-    <joint_arglist> ::= <node_1> , (Vec3) <relative_offset_1> ,
-                        <node_2> , (Vec3) <relative_offset_2> , 
-                        { (drive_caller) <distance> | from nodes }
-\end{verbatim}
-{\em 
-    Note: the \texttt{relative\_offset\_*} are the distances of each end
-    of the joint from the relative nodes in the node reference frame \\
-    Both the \texttt{distance} and the \texttt{distance with offset} joints
-    allow for null distance, but the transition from null to non-null
-    distance is not smooth at all.
-} \\
-{\em
-    Note: in case of \texttt{from nodes}, the same stated for the \texttt{distance}
-    joint applies, except that the distance between the offsets is
-    considered. 
-}
+This element has been deprecated in favour of the \texttt{distance}
+element, which now supports offsets.  It may be not supported any more
+in the future.
+
+
 
 \subsection{Clamp}
 \begin{verbatim}
     <joint_type> ::= clamp 
-    <joint_arglist> ::= <node> , 
-        { node | (Vec3) <absolute_position> } ,
-        { node | (RotationMatrix) <absolute_rotation_matrix> }
+    <joint_arglist> ::= <node>
+        [ , position ,
+            { node | (Vec3) <absolute_position> } ]
+        [ , orientation ,
+            { node | (RotationMatrix) <absolute_rotation_matrix> } ]
 \end{verbatim}
 {\em
     Note: the keyword \texttt{node} forces the joint to use the nodal position
     and reference frame. Otherwise, they must be entered in the usual way
     for these entities
-}
+} \\
+{\em
+    Note: the default value for \texttt{position} and \texttt{orientation}
+    are the position and the orientation of the clamped node.
+
 
 \subsection{Coincidence}
 not implemented yet, use a \texttt{spherical hinge} and a \texttt{prismatic} 
