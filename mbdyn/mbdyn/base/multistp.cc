@@ -2492,7 +2492,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		Y12,
 		UMFPACK3,
 		
-		ITERATIVETOLLERANCE,
+		ITERATIVETOLERANCE,
 		ITERATIVEMAXSTEPS,
 	
 		LASTKEYWORD
@@ -3177,10 +3177,12 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 #endif /* USE_UMFPACK3 */
 
 	   case HARWELL: 
+#ifdef USE_HARWELL
 	     CurrSolver = HARWELL_SOLVER;
 	     DEBUGLCOUT(MYDEBUG_INPUT, 
 			"Using harwell sparse LU solver" << std::endl);	 
 	     break;	   
+#endif /* USE_HARWELL */
 
 	   default:
 	     DEBUGLCOUT(MYDEBUG_INPUT, 
@@ -3234,11 +3236,12 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  		break;
 #endif /* USE_UMFPACK3 */
 
-#ifdef USE_HARWELL
 		case HARWELL: 
+#ifdef USE_HARWELL
 	  		CurrIntSolver = MESCHACH_SOLVER;
-	  		std::cerr << "Harwell solver cannot be used as interface "
-				"solver. Meschach will be used ..." << std::endl;
+	  		std::cerr << "Harwell solver cannot be used "
+				"as interface solver; Meschach will be used"
+				<< std::endl;
 	  		break;
 #endif /* USE_HARWELL */                       
 
@@ -3272,7 +3275,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 #endif /* !USE_MPI */
        }
        
-       case ITERATIVETOLLERANCE: {
+       case ITERATIVETOLERANCE: {
 		dIterToll = HP.GetReal();
 		DEBUGLCOUT(MYDEBUG_INPUT, "Iterative Solver Tollerance: " 
 			<< dIterToll << std::endl);
