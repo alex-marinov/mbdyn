@@ -1560,9 +1560,12 @@ The syntax of the \texttt{rotor} element is:
     <normal_arglist> ::= <craft_node> , <rotor_node> ,
         induced velocity : <ind_velocity>
 \end{verbatim}
-{\em 
-    Note that after the keyword \texttt{induced velocity}, a colon is used as a
-    separator. This will probably be elminated in the future.
+\emph{Note: after the keyword \texttt{induced velocity} there used to be
+a colon is used as separator.
+This changed for uniformity with the rest of the syntax.
+No backwards compatibility is provided, so users are urged to update
+their models.
+A warning is issued.
 } \\
 There are five models of induced velocity. 
 The first is no induced velocity; the syntax is:
@@ -1570,9 +1573,11 @@ The first is no induced velocity; the syntax is:
     <induced_velocity> ::= no
 \end{verbatim}
 There is no argument list. This element doesn't compute any induced
-velocity, but still computes the rotor traction for output purposes.
-The others have a fairly common syntax. The forst three are
-\texttt{uniform}, \texttt{glauert} and \texttt{mangler} induced velocity:
+velocity, but still computes the rotor traction for output purposes,
+if output is required.
+The others have a fairly common syntax.  The first three are
+\texttt{uniform}, \texttt{glauert} and \texttt{mangler} induced velocity
+models:
 \begin{verbatim}
     <induced_velocity> ::= { uniform | glauert | mangler } , 
         <reference_omega> , <reference_radius> 
@@ -1580,10 +1585,10 @@ The others have a fairly common syntax. The forst three are
         [ , correction , <hover_correction_factor> ,
                         <ff_correction_factor> ]
 \end{verbatim}
-the \texttt{reference\_omega} field is used to decide wether to round off the
-dimensionless parameters if the rotor speed is very low; the
-\texttt{reference\_radius} field is used in the adimensionalisation of the
-rotor related parameters. \\
+the \texttt{reference\_omega} field is used to decide whether to inhibit
+or not the induced velocity computation if the rotor speed is very low;
+the \texttt{reference\_radius} field is used in the adimensionalization
+of the rotor related parameters. \\
 The \texttt{memory\_factor}, the \texttt{hover\_correction\_factor} 
 and the \texttt{ff\_correction\_factor} (forward flight) are
 used to correct the nominal induced velocity, according to the formula
@@ -1609,8 +1614,8 @@ with
 The \texttt{memory\_factor} parameter is used to
 combine the current reference induced velocity with the induced velocity
 at the previous step; no delay means there is no memory of the previous value 
-(\emph{Note: for historical reasons, \texttt{weight} can be used 
-instead of \texttt{delay}}). \\
+(\emph{Note: for historical reasons, the keyword \texttt{weight}
+can be used instead of \texttt{delay}}). \\
 The \texttt{memory\_factor} parameter defaults to 0; 
 the \texttt{hover\_correction\_factor} 
 and the \texttt{ff\_correction\_factor} parameters default to 1. \\
