@@ -113,26 +113,46 @@ public:
 };
 
 #ifdef USE_MULTITHREAD
+/*
+ * The user's class must inherit from InUse to be used by the MT_VecIter
+ * the user must reset the inuse flag by using SetInUse() before 
+ * concurrently iterating over the array; the iterator provides a 
+ * helper routine for this; provide it is called only once and not
+ * concurrently.
+ */
 class InUse {
-public:
+private:
 	mutable sig_atomic_t	inuse;
 
+public:
 	InUse(void) : inuse(false) { NO_OP; };
 	virtual ~InUse(void) { NO_OP; };
 
 	inline bool bIsInUse(void) const
 	{
+		/*
+		 * If inuse is...
+		 * 	true:	leave it as is; return false
+		 * 	false:	make it true; return true
+		 */
 		/* FIXME: make it portable */
 		bool b = mbdyn_compare_and_swap(&inuse,
 				sig_atomic_t(true), sig_atomic_t(false));
 
-		return b;
+		return !b;
 	};
 	inline void SetInUse(bool b = false) { inuse = b; };
 };
 
+//#define DEBUG_VECITER
+
 template<class T>
 class MT_VecIter : public VecIter<T> {
+protected:
+#ifdef DEBUG_VECITER
+	mutable long int iCount;
+#endif /* DEBUG_VECITER */
+
 public:
 	MT_VecIter(void) : VecIter<T>() { NO_OP; };
 	MT_VecIter(const T* p, long int i) : VecIter<T>(p, i)
@@ -145,14 +165,12 @@ public:
 		NO_OP;
 	};
 
-	void Init(const T* p, long int i)
-	{
-		VecIter<T>::Init(p, i);
-	};
-
 	/* NOTE: it must be called only once */
 	void ResetAccessData(void)
 	{
+		ASSERT(pStart != NULL);
+		ASSERT(iSize > 0);
+
 		for (unsigned i = 0; i < iSize; i++) {
 			pStart[i]->SetInUse();
 		}
@@ -163,7 +181,12 @@ public:
 		ASSERT(pStart != NULL);
 		ASSERT(iSize > 0);
 
+#ifdef DEBUG_VECITER
+		iCount = 0;
+#endif /* DEBUG_VECITER */
+
 		pCount = pStart - 1;
+
 		return bGetNext(TReturn);
 	};
 
@@ -176,10 +199,17 @@ public:
 		for (pCount++; pCount < pStart + iSize; pCount++) {
 			if (!(*pCount)->bIsInUse()) {
 				TReturn = *pCount;
+#ifdef DEBUG_VECITER
+				iCount++;
+#endif /* DEBUG_VECITER */
 				return true;
 			}
 		}
 
+#ifdef DEBUG_VECITER
+		silent_cerr("[" << pthread_self() << "]: total=" << iCount
+				<< std::endl);
+#endif /* DEBUG_VECITER */
 		return false;
 	};
 };
