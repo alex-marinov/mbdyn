@@ -64,7 +64,7 @@ bTrueNewtonRaphson(bTNR),
 IterationBeforeAssembly(IterBfAss),
 bKeepJac(bKJ),
 iPerformedIterations(0),
-pPrevNLP(NULL)
+pPrevNLP(0)
 {
 	NO_OP;
 }
@@ -89,7 +89,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 	SolutionManager *pSM = pS->pGetSolutionManager();
 	
 	iIterCnt = 0;
-	if (!bKeepJac || (pNLP != pPrevNLP)) {
+	if ((!bKeepJac) || (pNLP != pPrevNLP)) {
 		iPerformedIterations = 0;
 	}
 	pPrevNLP = pNLP;
