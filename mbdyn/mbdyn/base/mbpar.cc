@@ -565,8 +565,27 @@ MBDynParser::GetVecRel(const ReferenceFrame& rf)
 	case GLOBAL:
 		return (rf.GetR()).Transpose()*GetVec3();
 	
+	case UNKNOWNFRAME: /* global */
+		if (IsKeyWord("fromnode")) {
+			/* FIXME */
+			cerr << "'from node' at line " << GetLineData()
+				<< " not implemented yet :)" << endl;
+			THROW(MBDynParser::ErrGeneric());
+			
+			unsigned int uLabel = GetInt();
+			StructNode *pNode1 = NULL; /* get node 1 */
+			if (IsKeyWord("tonode")) {
+				cerr << "missing keyword 'to node' at line "
+					<< GetLineData() << endl;
+				THROW(MBDynParser::ErrGeneric());
+			}
+			uLabel = GetInt();
+			StructNode *pNode2 = NULL; /* get node 2 */
+
+			Vec3 v = pNode2->GetXCurr()-pNode1->GetXCurr();
+			return (rf.GetR()).Transpose()*v;
+		} /* else local */
 	case NODE:
-	case UNKNOWNFRAME:
 		return GetVec3();
 	
 	case LOCAL: {
@@ -592,8 +611,26 @@ MBDynParser::GetVecAbs(const ReferenceFrame& rf)
 {   
 	ReferenceFrame rfOut;
 	switch (GetRef(rfOut)) {
+	case UNKNOWNFRAME: /* global */
+		if (IsKeyWord("fromnode")) {
+			/* FIXME */
+			cerr << "'from node' at line " << GetLineData()
+				<< " not implemented yet :)" << endl;
+			THROW(MBDynParser::ErrGeneric());
+			
+			unsigned int uLabel = GetInt();
+			StructNode *pNode1 = NULL; /* get node 1 */
+			if (IsKeyWord("tonode")) {
+				cerr << "missing keyword 'to node' at line "
+					<< GetLineData() << endl;
+				THROW(MBDynParser::ErrGeneric());
+			}
+			uLabel = GetInt();
+			StructNode *pNode2 = NULL; /* get node 2 */
+
+			return pNode2->GetXCurr()-pNode1->GetXCurr();
+		} /* else global */
 	case GLOBAL:
-	case UNKNOWNFRAME:
 		return GetVec3();
 	
 	case NODE:
