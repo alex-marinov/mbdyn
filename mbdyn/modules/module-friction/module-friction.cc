@@ -120,6 +120,7 @@ read(LoadableElem* pEl,
 	} else if (HP.IsKeyWord("discretestate")) {
 		doublereal maxForce = HP.GetReal();
 		doublereal stiffness = HP.GetReal();
+		doublereal damping = HP.GetReal();
 		doublereal velTreshold = HP.GetReal();
 
 		DiscStateFriction<doublereal>::State state = DiscStateFriction<doublereal>::Stick;
@@ -135,7 +136,8 @@ read(LoadableElem* pEl,
 		}
 		
 		typedef DiscStateFriction<doublereal> S;
-		SAFENEWWITHCONSTRUCTOR(p->f, S, S(maxForce, stiffness, velTreshold, state));
+		SAFENEWWITHCONSTRUCTOR(p->f, S, S(maxForce, stiffness, 
+					damping, velTreshold, state));
 
 	} else {
 		std::cerr << "unknown friction model" << std::endl;
@@ -249,6 +251,13 @@ after_predict(const LoadableElem* pEl,
 		VectorHandler& XP)
 {
 	DEBUGCOUTFNAME("after_predict");
+
+	module_friction* p = (module_friction*)pEl->pGetData();
+
+	p->firstUpdate = true;
+	p->f->Update(1., p->dof.pNode->dGetX(), p->dof.pNode->dGetXPrime(), Friction<doublereal>::FIRST);
+
+	// std::cerr << "update; F=" << p->f->F() << std::endl;
 }
 
 static void
@@ -257,13 +266,6 @@ update(LoadableElem* pEl,
 		const VectorHandler& XP)
 {
 	DEBUGCOUTFNAME("update");
-
-	module_friction* p = (module_friction*)pEl->pGetData();
-
-	p->firstUpdate = true;
-	p->f->Update(1., p->dof.pNode->dGetX(), p->dof.pNode->dGetXPrime(), Friction<doublereal>::FIRST);
-
-	std::cerr << "update; F=" << p->f->F() << std::endl;
 }
 
 static unsigned int
@@ -372,8 +374,8 @@ LoadableCalls lc = {
 	NULL /* ass_eig */ ,
 	ass_res, /* */
 	NULL /* before_predict */ ,
-	NULL /* after_predict */ ,
-	update /* update */ ,
+	after_predict /* */ ,
+	NULL /* update */ ,
 	NULL /* i_get_initial_num_dof */ ,
 	NULL /* initial_work_space_dim */ ,
 	NULL /* initial_ass_jac */ ,

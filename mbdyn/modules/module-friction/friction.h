@@ -71,6 +71,16 @@ tanh(const Vec3& v)
 	return v*(tanh(d)/d);
 }
 
+Vec3
+sin(const Vec3& v)
+{
+	doublereal d = v.Norm();
+	if (d < DBL_EPSILON) {
+		return Zero3;
+	}
+	return v*(sin(d)/d);
+}
+
 template <class T>
 class Friction {
 public:
@@ -149,17 +159,20 @@ private:
 	State		m_state;
 	T		m_maxForce;
 	doublereal	m_stiffness;
+	doublereal	m_damping;
 	T		m_s0;
 	doublereal 	m_velTreshold;
 
 public:
 	DiscStateFriction(const doublereal &maxForce, 
 			const doublereal &stiffness, 
+			const doublereal &damping, 
 			const doublereal &velTreshold, 
 			DiscStateFriction::State initialState = Stick)
 	: m_state(initialState),
 	m_maxForce(maxForce),
 	m_stiffness(stiffness),
+	m_damping(damping),
 	m_s0(0.),
 	m_velTreshold(velTreshold) {
 		NO_OP;
@@ -179,9 +192,12 @@ private:
 			const T & position, 
 			const T &velocity, 
 			Friction<T>::UpdateType update = ANY) {
+
+		// std::cerr << ">>> state: " << S() << "; p=" << position << "; v=" << velocity << "; m_s0=" << m_s0 << "; F=" << m_F << std::endl;
+		
 		switch (m_state) {
 		case Stick:
-			m_F = (position-m_s0)*(-m_stiffness);
+			m_F = (m_s0-position)*m_stiffness;
 			if (position > m_s0) {
 				if (m_F < -m_maxForce) {
 					m_F = -m_maxForce;
@@ -197,29 +213,31 @@ private:
 					}
 				}
 			}
+
+			m_F -= velocity*m_damping;
+
 			break;
 
 		case Slip: {
-			doublereal s = dir(velocity);
+			doublereal vs = dir(velocity);
+			doublereal vn = norm(velocity);
 			
-			if (update == FIRST) {
-				doublereal v = norm(velocity);
-
-				if (v < m_velTreshold) {
-					m_s0 = position - m_maxForce*(s/m_stiffness);
-					m_F = m_maxForce*(-s);
+			if (vn < m_velTreshold) {
+				if (update == FIRST) {
+					m_s0 = position + m_maxForce*(vs/m_stiffness);
 					m_state = Stick;
-				} else {
-					m_F = m_maxForce*(-s);
 				}
+				m_F = m_maxForce*(-vs*sin(M_PI_2*vn/m_velTreshold));
+
 			} else {
-				m_F = m_maxForce*(-s);
+				m_F = m_maxForce*(-vs);
 			}
+
 			break;
 		}
 		}
 
-		std::cerr << "state: " << S() << "; p=" << position << "; v=" << velocity << "; m_s0=" << m_s0 << "; F=" << m_F << std::endl;
+		// std::cerr << "<<< state: " << S() << "; p=" << position << "; v=" << velocity << "; m_s0=" << m_s0 << "; F=" << m_F << std::endl;
 	};
 		
 };
