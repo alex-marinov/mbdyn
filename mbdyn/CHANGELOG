@@ -10,6 +10,8 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.0 Engineering
 	Enhancements:
 		- Beam slider now works with multiple beams
+		- (For developers) Vec3 and Mat3x3 now have () operator;
+		  Vec3 also has [] operator
 	Bugs:
 
 
