@@ -92,6 +92,8 @@ class SphericalHingeJoint : virtual public Elem, public Joint {
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
+			    
+   DofOrder::Order GetEqType(unsigned int i) const;
    
    virtual void Output(OutputHandler& OH) const;
  
@@ -190,6 +192,8 @@ class PinJoint : virtual public Elem, public Joint {
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
+			    
+   DofOrder::Order GetEqType(unsigned int i) const;
    
    virtual void Output(OutputHandler& OH) const;
  
