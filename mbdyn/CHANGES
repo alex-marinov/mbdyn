@@ -29,7 +29,7 @@ MBDyn 1.0 Engineering
 		- Hydraulic nodes did not honor the output flag (always on)
 		- minor fixes in documentation
 	Known bugs:
-		- parallel build broken
+		- parallel build still requires HSL library
 
 
 MBDyn 1.0.1

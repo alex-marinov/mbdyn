@@ -155,8 +155,8 @@ OL_ARG_WITH(mpi,[  --with-mpi              with MPI support],auto,[auto yes no])
 OL_ARG_WITH(metis,[  --with-metis            with Metis support],auto,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
 OL_ARG_WITH(umfpack3,[  --with-umfpack3         with Umfpack3 math library],auto,[auto yes no])
-OL_ARG_WITH(y12,[  --with-y12              with Y12 math library],auto,[auto yes no])
-OL_ARG_WITH(harwell,[  --with-harwell          with Harwell sparse math library],auto,[auto yes no])
+OL_ARG_WITH(y12,[  --with-y12              with Y12 sparse math library],auto,[auto yes no])
+OL_ARG_WITH(harwell,[  --with-hsl          with HSL (Harwell) sparse math library],auto,[auto yes no])
 OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
 OL_ARG_WITH(pam,[  --with-pam              with PAM support],auto,[auto yes no])
 
@@ -879,10 +879,10 @@ if test $ol_with_mpi != no ; then
 			AC_MSG_WARN([Could not locate MPI])
 			AC_MSG_WARN([MPI not supported!])
 		fi
-#	else
-#		if test $ol_link_harwell != yes ; then
-#			AC_MSG_ERROR([Need Harwell to use Schur solver with MPI])
-#		fi
+	else
+		if test $ol_link_harwell != yes ; then
+			AC_MSG_ERROR([Need Harwell to use Schur solver with MPI])
+		fi
 	fi
 else
 	AC_MSG_WARN([MPI not supported!])
