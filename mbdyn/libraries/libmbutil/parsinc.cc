@@ -208,6 +208,8 @@ IncludeParser::Include_()
    
 	std::ifstream *pf_old = pf;
 	InputStream *pIn_old = pIn;
+	char *sOldPath = sCurrPath;
+	char *sOldFile = sCurrFile;
    
    	const char* sfname = GetFileName();
 
@@ -286,7 +288,7 @@ IncludeParser::Include_()
 #ifdef USE_INCLUDE_PARSER
    	SAFENEWWITHCONSTRUCTOR(pmi, 
 			       MyInput,
-			       MyInput(pf_old, pIn_old, sCurrPath, sCurrFile));
+			       MyInput(pf_old, pIn_old, sOldPath, sOldFile));
 #else /* !USE_INCLUDE_PARSER */
    	SAFENEWWITHCONSTRUCTOR(pmi, MyInput, MyInput(pf_old, pIn_old));
 #endif /* !USE_INCLUDE_PARSER */
