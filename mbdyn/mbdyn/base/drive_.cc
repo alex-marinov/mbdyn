@@ -612,7 +612,8 @@ FreqSweepDriveCaller::FreqSweepDriveCaller(const DriveHandler* pDH,
 					   doublereal d3,
 					   doublereal d4)
 : DriveCaller(pDH),
-dStartTime(d1), pOmega(pOmega), pAmplitude(pAmplitude),
+dStartTime(d1), pOmega((DriveCaller*)pOmega),
+pAmplitude((DriveCaller*)pAmplitude),
 dInitialValue(d2), dEndTime(d3), dFinalValue(d4), 
 fNeverEnd(0)
 {

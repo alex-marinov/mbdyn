@@ -60,7 +60,6 @@ typedef integer logical;
 typedef integer flag;
 typedef integer ftnlen;
 typedef integer ftnint;
-#warning "Controllare"
 typedef char *address;
 
 #endif /* !HAVE_F2C_H */
@@ -75,10 +74,9 @@ extern int finite(double);
 
 
 /*
- * ??? non so se e' __FC_DECL__ o solo FALSE_
+ * FIXME: non so se e' __FC_DECL__ o solo FALSE_
  * In g2c.h e' cosi':
  */
-#warning "Controllare"
 #define FALSE_ (0)
 #define TRUE_ (1)
 
