@@ -8,7 +8,11 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
 
-*** Thu Nov  8 21:00:00 CEST 2001 Pierangelo Masarati <masarati@aero.polimi.it>
+*** Fri Nov  9 21:56:01 CET 2001 Pierangelo Masarati <masarati@aero.polimi.it>
+ - added "bdf" option to integration methods (updated manuals)
+ - the asymptotic radius for algebraic unknowns is optional
+
+*** Thu Nov  8 21:00:00 CET 2001 Pierangelo Masarati <masarati@aero.polimi.it>
  - keywords for number of cycles in sine/cosine drives
  - strtol/d in parser; better parsing of reals
  - configure checks for crypt library
