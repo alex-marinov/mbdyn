@@ -122,6 +122,9 @@ public:
 	/* Inizializzatore generico */
 	virtual void MatrInit(const doublereal& d = 0.) {
 		A.Reset(d);
+		if (Numeric) {
+			umfpack_free_numeric(&Numeric);
+		}
 		HasBeenReset = true;
 	};
 	
@@ -152,13 +155,14 @@ public:
 			t1 = umfpack_timer() - t;
 			status = umfpack_numeric(App, Aip, Axp, Symbolic, 
 					&Numeric, Control, Info);
+			umfpack_free_symbolic(&Symbolic);
 			if (status != UMFPACK_OK) {
 				umfpack_report_info(Control, Info);
 				umfpack_report_status(Control, status);
 				std::cerr << "umfpack_numeric failed" 
 					<< std::endl;
 				/* de-allocate memory */
-				umfpack_free_symbolic(&Symbolic);
+				umfpack_free_numeric(&Numeric);
 				return;
 			}
 
@@ -193,7 +197,6 @@ public:
 			std::cerr << "umfpack_solve failed" << std::endl;
 
 			/* de-allocate memory */
-			umfpack_free_symbolic(&Symbolic);
 			umfpack_free_numeric(&Numeric);
 			return;
 		}
