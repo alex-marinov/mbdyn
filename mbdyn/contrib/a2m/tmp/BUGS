@@ -1,3 +1,19 @@
+Fri Oct  6 11:04:28 CEST 2000
+
+Mettere 1.e-6 come default di `derivatives coefficient'
+
+Quando si genera una `force' a partire da una `SFORCE',
+mettere `/* drive */ const, ' prima del valore costante, cosi' e' evidente
+che si tratta di un drive modificabile dall'utilizzatore.
+
+Possibilita' di mettere `name, "<commento>", ' dopo le `label' di nodi ed
+elementi; vengono poi riportate come commento nell'output per ADAMS.
+
+Mettere `eye' al posto di `null' come default per la matrice di orientazione
+delle sezioni di travi.
+
+
+
 Thu Oct  5 17:08:30 CEST 2000
 
 src/translate.cc:122
