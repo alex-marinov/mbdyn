@@ -49,7 +49,7 @@ class ForgettingFactor {
    virtual ~ForgettingFactor(void);
      
    virtual void Update(const doublereal* pErr = NULL) = 0;
-   virtual inline doublereal dGet(void) const = 0;
+   virtual doublereal dGet(void) const = 0;
 };
 
 

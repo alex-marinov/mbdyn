@@ -69,7 +69,7 @@ class PosRel {
    
    inline const StructNode* pGetNode(void) const;
    
-   virtual inline const Vec3& GetPosRel(void) const = 0;
+   virtual const Vec3& GetPosRel(void) const = 0;
    
    virtual inline const Vec3& GetPosAbs(void) const;
    virtual inline const Vec3& GetPosGlob(void) const;   

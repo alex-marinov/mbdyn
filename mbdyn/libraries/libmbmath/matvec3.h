@@ -456,14 +456,14 @@ class _Mat3x3_Manip {
     derivato da questa classe che implementa la trasformazione da
     vettore a matrice.
     */
-   virtual inline Mat3x3 operator << (const Vec3& v) const = 0;
+   virtual Mat3x3 operator << (const Vec3& v) const = 0;
    
    /*
     Metodo che trasforma il vettore v nella matrice m.
     Viene usato da un costruttore di Mat3x3 che riceve come
     argomenti un manipolatore e un vettore di parametri di rotazione.
     */
-   virtual inline void Make(Mat3x3& m, const Vec3& v) const = 0;
+   virtual void Make(Mat3x3& m, const Vec3& v) const = 0;
 };
 
 /* _Mat3x3_Manip - end */

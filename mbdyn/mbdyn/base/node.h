@@ -192,7 +192,7 @@ class ScalarNode : public Node {
    virtual void SetX(const doublereal& d) = 0;
       
    /* Ottiene il valore del DoF */
-   virtual inline const doublereal& dGetX(void) const = 0;
+   virtual const doublereal& dGetX(void) const = 0;
    
    /* 
     Setta il valore della derivata.
@@ -204,7 +204,7 @@ class ScalarNode : public Node {
     Ottiene il valore della derivata.
     Definito solo per nodi differenziali 
     */
-   virtual inline const doublereal& dGetXPrime(void) const = 0;
+   virtual const doublereal& dGetXPrime(void) const = 0;
    
 };
 

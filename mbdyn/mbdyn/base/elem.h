@@ -179,7 +179,7 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput {
    /* ************************************************ */
 
    /* Funzioni di casting sicuro verso elementi derivati */
-   virtual inline void* pGet(void) const = 0;
+   virtual void* pGet(void) const = 0;
    
    virtual Elem* pGetElem(void) const;
    virtual ElemWithDofs* pGetElemWithDofs(void) const;

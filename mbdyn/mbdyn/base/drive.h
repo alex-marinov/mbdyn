@@ -257,7 +257,7 @@ class DriveCaller {
    virtual std::ostream& Restart(std::ostream& out) const = 0;
    
    /* Restituisce il valore del driver */
-   virtual inline doublereal dGet(const doublereal& dVal) const = 0;
+   virtual doublereal dGet(const doublereal& dVal) const = 0;
    virtual inline doublereal dGet(void) const;
    
    virtual void SetDrvHdl(const DriveHandler* pDH);

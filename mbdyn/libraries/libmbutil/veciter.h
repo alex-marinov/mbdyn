@@ -47,8 +47,8 @@ template <class T>
 class Iter {
  public:
    virtual ~Iter(void) { NO_OP; };
-   virtual inline flag fGetFirst(T& TReturn) const = 0;
-   virtual inline flag fGetNext(T& TReturn) const = 0;
+   virtual flag fGetFirst(T& TReturn) const = 0;
+   virtual flag fGetNext(T& TReturn) const = 0;
 };
 
 template<class T>

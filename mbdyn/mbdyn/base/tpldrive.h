@@ -51,7 +51,7 @@ class TplDriveCaller {
    virtual std::ostream& Restart(std::ostream& out) const = 0;
    
    /* Restituisce il valore del driver */
-   virtual inline T Get(void) const = 0;
+   virtual T Get(void) const = 0;
 };
 
 /* TplDriveCaller - end */

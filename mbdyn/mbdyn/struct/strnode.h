@@ -174,7 +174,7 @@ class StructNode : public Node {
    virtual inline integer iGetFirstPositionIndex(void) const;
    
    /* Ritorna il primo indice (-1) di Quantita' di moto */
-   virtual inline integer iGetFirstMomentumIndex(void) const = 0;
+   virtual integer iGetFirstMomentumIndex(void) const = 0;
      
    /* Restituiscono i dati correnti */
    /* Attenzione: restituiscono un reference ai dati veri, per limitare 

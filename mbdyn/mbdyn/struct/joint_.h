@@ -168,7 +168,7 @@ class Joint_NNodes
 		flag fOut);
    virtual ~Joint_NNodes(void);
    
-   virtual inline int iGetNNodes(void) const = 0;
+   virtual int iGetNNodes(void) const = 0;
 
    virtual SubVectorHandler& 
      AssRes(SubVectorHandler& WorkVec,

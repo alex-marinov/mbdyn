@@ -106,16 +106,16 @@ class MatrixHandler {
    };
    
    /* Inserisce un coefficiente */
-   virtual inline flag fPutCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
+   virtual flag fPutCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
    
    /* Incrementa un coefficiente - se non esiste lo crea */
-   virtual inline flag fIncCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
+   virtual flag fIncCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
    
    /* Decrementa un coefficiente - se non esiste lo crea */
-   virtual inline flag fDecCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
+   virtual flag fDecCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
    
    /* Restituisce un coefficiente - zero se non e' definito */
-   virtual inline const doublereal& dGetCoef(integer iRow, integer iCol) const = 0;
+   virtual const doublereal& dGetCoef(integer iRow, integer iCol) const = 0;
    
    /* dimensioni */
    virtual integer iGetNumRows(void) const = 0;
@@ -167,21 +167,21 @@ class VectorHandler {
    /* Usata per il debug */
    virtual void IsValid(void) const = 0;
   
-   virtual inline doublereal* pdGetVec(void) const = 0;
+   virtual doublereal* pdGetVec(void) const = 0;
    
-   virtual inline integer iGetSize(void) const = 0;
+   virtual integer iGetSize(void) const = 0;
    
    virtual void Resize(integer iNewSize) = 0;
    
    virtual void Reset(doublereal dResetVal = 0.) = 0;
 
-   virtual inline flag fPutCoef(integer iRow, const doublereal& dCoef) = 0;
+   virtual flag fPutCoef(integer iRow, const doublereal& dCoef) = 0;
    
-   virtual inline flag fIncCoef(integer iRow, const doublereal& dCoef) = 0;
+   virtual flag fIncCoef(integer iRow, const doublereal& dCoef) = 0;
    
-   virtual inline flag fDecCoef(integer iRow, const doublereal& dCoef) = 0;
+   virtual flag fDecCoef(integer iRow, const doublereal& dCoef) = 0;
    
-   virtual inline const doublereal& dGetCoef(integer iRow) const = 0;
+   virtual const doublereal& dGetCoef(integer iRow) const = 0;
    
    /* Somma un Vec3 nella posizione desiderata */
    virtual void Add(integer iRow, const Vec3& v);

@@ -109,22 +109,22 @@ class SubMatrixHandler : public MatrixHandler {
    /* 
     Scrive l'indice di riga.
     */
-   virtual inline flag fPutRowIndex(integer, integer) = 0;
+   virtual flag fPutRowIndex(integer, integer) = 0;
       
    /* 
     Scrive l'indice di colonna.
     */
-   virtual inline flag fPutColIndex(integer, integer) = 0;
+   virtual flag fPutColIndex(integer, integer) = 0;
    
    /* 
     Ottiene l'indice di riga.
     */
-   virtual inline integer iGetRowIndex(integer) = 0;
+   virtual integer iGetRowIndex(integer) = 0;
 
    /* 
     Ottiene l'indice di colonna.
     */
-   virtual inline integer iGetColIndex(integer) = 0;
+   virtual integer iGetColIndex(integer) = 0;
    
 
    /*Funzioni di interazione con le matrici */
@@ -1086,7 +1086,7 @@ class SubVectorHandler : public VectorHandler {
    
    
    /*
-    Distruttore virtuale.
+    * Distruttore virtuale.
     */
    virtual ~SubVectorHandler(void) { 
       NO_OP;
@@ -1097,27 +1097,27 @@ class SubVectorHandler : public VectorHandler {
    
       
    /*
-    Routine di verifica della validita' dell'oggetto.
-    Usata per il debug.
+    * Routine di verifica della validita' dell'oggetto.
+    * Usata per il debug.
     */
    virtual void IsValid(void) const = 0;
    
    
-   /*Operazioni su indici e coefficienti */
+   /* Operazioni su indici e coefficienti */
    
       
    /*
-    Scrive un indice di riga 
+    * Scrive un indice di riga 
     */
-   virtual inline flag fPutRowIndex(integer iSubRow, integer iRow) = 0;
+   virtual flag fPutRowIndex(integer iSubRow, integer iRow) = 0;
    
    /*
-    Ottiene un indice di riga
+    * Ottiene un indice di riga
     */
-   virtual inline integer iGetRowIndex(integer iSubRow) const = 0;
+   virtual integer iGetRowIndex(integer iSubRow) const = 0;
    
    /*
-    Scrive una entry completa.
+    * Scrive una entry completa.
     @param iSubRow numero della entry (indice del sotto-vettore)
     @param iRow    indice della entry
     @param dCoef   coefficiente della entry
@@ -1129,11 +1129,11 @@ class SubVectorHandler : public VectorHandler {
    };
    
    
-   /*Interazione con i vettori */
+   /* Interazione con i vettori */
    
   
    /* 
-    Si somma ad un vettore con metodi generici 
+    * Si somma ad un vettore con metodi generici 
     */
    virtual VectorHandler& AddTo(VectorHandler& VH) const = 0;
    

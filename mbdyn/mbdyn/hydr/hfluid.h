@@ -87,8 +87,8 @@ class HydraulicFluid : public WithLabel {
    enum Re { UPPER, LOWER };
    virtual inline doublereal dGetRe(Re which);
 #if 0
-   virtual inline doublereal dGetRe(Re which, const doublereal& dPres) = 0;
-   virtual inline doublereal dGetRe(Re which, const doublereal& dPres,
+   virtual doublereal dGetRe(Re which, const doublereal& dPres) = 0;
+   virtual doublereal dGetRe(Re which, const doublereal& dPres,
 		   const doublereal& dTemp) = 0;
 #endif
    
