@@ -224,13 +224,11 @@ DofIter()
 	OUTPUT,
 	LASTKEYWORD
    };
-   /* token corrente */
-   KeyWords CurrDesc;
    
    /* tabella delle parole chiave */
    KeyTable K(HP, sKeyWords);
       
-   CurrDesc = KeyWords(HP.GetDescription());    
+   KeyWords CurrDesc = KeyWords(HP.GetDescription());    
    /* legge i dati di controllo */
    if(CurrDesc != BEGIN) {
       DEBUGCERR("");
