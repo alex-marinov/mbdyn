@@ -763,6 +763,18 @@ class Mat3x3 {
 		      );
    };
 
+   Mat3x3 Symm2(void) const {
+      doublereal m12 = pdMat[M21]+pdMat[M12];
+      doublereal m13 = pdMat[M31]+pdMat[M13];
+      doublereal m23 = pdMat[M32]+pdMat[M23];
+
+      return Mat3x3(
+		      2.*pdMat[M11], m12, m13,
+		      m12, 2.*pdMat[M22], m23,
+		      m13, m23, 2.*pdMat[M33]
+		      );
+   };
+
    const Mat3x3& Symm(const Mat3x3& m) {
       pdMat[M11] = m.pdMat[M11];
       pdMat[M22] = m.pdMat[M22];

@@ -43,7 +43,6 @@ class VecN {
  private:
    
    /* not defined */
-   VecN(const VecN&);
    const VecN& operator = (const VecN&);
    
  protected:
@@ -59,6 +58,8 @@ class VecN {
    VecN(void);
    VecN(integer ns);
    VecN(integer ns, const doublereal& d);
+
+   VecN(const VecN&);
  
   /* costruttore da VectorHandler (Aggiunta) */
    VecN(const VectorHandler& vh, integer ns, integer iFirstIndex);
@@ -74,6 +75,8 @@ class VecN {
    inline void Add(integer i, const doublereal& d);
    inline void Sub(integer i, const doublereal& d);   
    inline const doublereal& dGet(integer i) const;
+
+   const VecN& Copy(const VectorHandler& vh, integer iFirstIndex);
   
    void RightMult(const MatNx3& n, const Vec3& v);
    const VecN& Mult(const MatNxN& m, const VecN& n); 

@@ -82,21 +82,42 @@ VecN::VecN(integer ns, const doublereal& d)
    Reset(d);
 }
 
+VecN::VecN(const VecN& v)
+: iMaxRows(v.iNumRows), iNumRows(v.iNumRows), pdVec(NULL) 
+{
+   Create_(v.iNumRows);
+   for (integer iCnt = 0; iCnt < iNumRows; iCnt++) {
+      pdVec[iCnt] = v.pdVec[iCnt];
+   }
+}
+
 /*
   Costruttore da VectorHandler. Prende i valori da iFirstIndex 
   a iFirstIndex+ns. Nota: gli indici del VectorHandler partono da 1, 
   in stile FORTRAN.
 */
 
- VecN::VecN(const VectorHandler& vh, integer ns, integer iFirstIndex)
-   :iMaxRows(ns), iNumRows(ns), pdVec(NULL)
- {
-      ASSERT(iFirstIndex > 0 && iFirstIndex <= vh.iGetSize()-(ns-1));
-      Create_(ns);
-      for(integer iCnt = 0; iCnt < ns; iCnt++) {
-        pdVec[iCnt] = vh.dGetCoef(iFirstIndex+iCnt);
-      }
- }
+VecN::VecN(const VectorHandler& vh, integer ns, integer iFirstIndex)
+:iMaxRows(ns), iNumRows(ns), pdVec(NULL)
+{
+   ASSERT(iFirstIndex > 0 && iFirstIndex + ns - 1 <= vh.iGetSize());
+   Create_(ns);
+   for(integer iCnt = 0; iCnt < ns; iCnt++) {
+      pdVec[iCnt] = vh.dGetCoef(iFirstIndex+iCnt);
+   }
+}
+
+
+const VecN& 
+VecN::Copy(const VectorHandler& vh, integer iFirstIndex)
+{
+   ASSERT(iFirstIndex > 0 && iFirstIndex + iNumRows - 1 <= vh.iGetSize());
+   for (integer iCnt = 0; iCnt < iNumRows; iCnt++) {
+      pdVec[iCnt] = vh.dGetCoef(iFirstIndex+iCnt);
+   }
+
+   return *this;
+}
 
 
 VecN::~VecN(void)
