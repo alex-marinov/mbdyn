@@ -1393,19 +1393,22 @@ The others have a fairly common syntax. The forst three are
 the \texttt{reference\_omega} field is used to decide wether to round off the
 dimensionless parameters if the rotor speed is very low; the
 \texttt{reference\_radius} field is used in the adimensionalisation of the
-rotor related parameters
+rotor related parameters. \\
+The \texttt{memory\_factor} and the \texttt{correction\_factor} are
+used to correct the nominal induced velocity, according to the formula
+\begin{eqnarray*}
+	U_{effective} & = &
+	\plbr{1 - \texttt{<memory\_factor>}} 
+		\texttt{<correction\_factor>} \ U_{nominal} \\
+	& & \mbox{} + \texttt{<memory\_factor>} \ U_{previous}
+\end{eqnarray*}
 The \texttt{memory\_factor} parameter is used to
 combine the current reference induced velocity with the induced velocity
-at the previous step, according to
-\begin{displaymath}
-	U_{effective} = \plbr{1 - \texttt{<memory\_factor>}} U_{nominal}
-			+ \texttt{<memory\_factor>} U_{previous}
-\end{displaymath}
-no delay means there is no memory of the previous value 
+at the previous step; no delay means there is no memory of the previous value 
 (\emph{Note: for historical reasons, \texttt{weight} can be used 
-instead of \texttt{delay}}).
-The \texttt{correction\_factor} multiplies the nominal induced velocity;
-it defaults to 1.
+instead of \texttt{delay}}). \\
+The \texttt{memory\_factor} parameter defaults to 0; 
+the \texttt{correction\_factor} parameter defaults to 1.
 
 \noindent
 The last one uses a dynamic inflow model, with inflow states.
@@ -1418,7 +1421,9 @@ The syntax is:
                                                <cosine_vel> ,
                                                <sine_vel> ]
 \end{verbatim}
-The first two entries are the same as for the previous models. 
+The first two entries are the same as for the previous models;
+the three states, corresponding to average, fore-aft amd lateral inflow,
+can be initialized.
 
 
 
