@@ -59,18 +59,19 @@ protected:
 
 	const char *name;
 	int send_flags;
+	bool bSendFirst;
 	
 public:
    	SocketStreamElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
 			unsigned int oe,
 			DataManager *pDM,
 			const char *h, const char *m, unsigned short int p,
-			bool c, int flags);
+			bool c, int flags, bool bSendFirst);
    	SocketStreamElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
 			unsigned int oe,
 			DataManager *pDM,
 			const char *m, const char* const Path,
-			bool c, int flags);
+			bool c, int flags, bool bSendFirst);
 			
    	virtual ~SocketStreamElem(void);
 

@@ -64,11 +64,11 @@ SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch,
 		unsigned int oe,
 		DataManager *pDM,
 		const char *h, const char *m, unsigned short int p, bool c,
-		int flags)
+		int flags, bool bSF)
 : Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(0),
 OutputEvery(oe), OutputCounter(0), 
-pUS(0), name(m), send_flags(flags)
+pUS(0), name(m), send_flags(flags), bSendFirst(bSF)
 {
 	ASSERT(OutputEvery > 0);
 
@@ -89,11 +89,12 @@ SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch,
 		ScalarDof *& pn,
 		unsigned int oe,
 		DataManager *pDM,
-		const char *m, const char* const p, bool c, int flags)
+		const char *m, const char* const p, bool c,
+		int flags, bool bSF)
 : Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(0),
 OutputEvery(oe), OutputCounter(0), 
-pUS(0), name(m), send_flags(flags)
+pUS(0), name(m), send_flags(flags), bSendFirst(bSF)
 {
 	ASSERT(OutputEvery > 0);
 
@@ -167,20 +168,23 @@ SocketStreamElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 void
 SocketStreamElem::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
+	if (bSendFirst) {
 #if 1
-	((SocketStreamElem*)this)->AfterConvergence(X, XP);
+		((SocketStreamElem*)this)->AfterConvergence(X, XP);
 #else
-	if (send(pUS->GetSock(), (void *)buf, size, send_flags) == -1) {
-		int save_errno = errno;
-		char *msg = strerror(save_errno);
+		if (send(pUS->GetSock(), (void *)buf, size, send_flags) == -1) {
+			int save_errno = errno;
+			char *msg = strerror(save_errno);
 		
-		silent_cerr("SocketStreamElem(" << name << "): send() failed "
-				"(" << save_errno << ": " << msg << ")"
-				<< std::endl);
+			silent_cerr("SocketStreamElem(" << name << "): "
+					"send() failed "
+					"(" << save_errno << ": " << msg << ")"
+					<< std::endl);
 
-		pUS->Abandon();
-	}
+			pUS->Abandon();
+		}
 #endif
+	}
 }
 
 void
@@ -344,12 +348,16 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 
 	int flags = 0;
+	bool bSendFirst = true;
 	while (HP.IsArg()) {
 		if (HP.IsKeyWord("no" "signal")) {
 			flags |= MSG_NOSIGNAL;
 
 		} else if (HP.IsKeyWord("non" "blocking")) {
 			flags |= MSG_DONTWAIT;
+
+		} else if (HP.IsKeyWord("no" "send" "first")) {
+			bSendFirst = false;
 
 		} else {
 			break;
@@ -400,13 +408,15 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				SocketStreamElem(uLabel, nch, pNodes,
 					OutputEvery,
 					pDM,
-					host, name, port, create, flags));
+					host, name, port, create, flags,
+					bSendFirst));
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
 				SocketStreamElem(uLabel, nch, pNodes,
 					OutputEvery,
 					pDM,
-					name, path, create, flags));
+					name, path, create, flags,
+					bSendFirst));
 	}
 
 	return pEl;
