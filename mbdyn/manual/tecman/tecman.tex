@@ -264,12 +264,12 @@ the initial configuration.
 
 The problem can be stated as follows:
 \begin{eqnarray*}
-	k_x x + \Phi_{/x}^T \lambda_{\Phi} + \Psi_{/x}^T \lambda_{\Psi} 
-		& = & F \\
-	k_v v + \Phi_{/x}^T \nu + \Psi_{/v}^T \lambda_{\Psi} & = & 0 \\
+	k x + \Phi_{/x}^T \lambda_{\Phi} + \Psi_{/\dot{x}}^T \lambda_{\Psi}
+		& = & k x_0 + F \\
+	c v + \Phi_{/x}^T \mu & = & c v_0 \\
 	\Phi\plbr{x, t} & = & 0 \\
-	\Psi\plbr{x, v, t} & = & 0 \\
-	\Phi_{/x} \dot{x} + \Phi_{/t} & = & 0
+	\Psi\plbr{v, x, t} & = & 0 \\
+	\Phi_{/x} v + \Phi_{/t} & = & 0
 \end{eqnarray*}
 The solution of this problem leads to the direct determination
 of an initial configuration and velocity that complies 
@@ -281,13 +281,13 @@ of the algebraic constraints that depend only on the configuration.
 A new procedure is being considered, wich requires only the use 
 of the constraint equation $\Phi$ and its jacobian $\Phi_{/x}$.
 
-The problem that is solved with the new procedure is
+The problem that is solved with the new procedure is (FIXME):
 \begin{eqnarray*}
-	m_v x + v & = & 0 \\
-	k_x x + c_v v + \Phi_{/x}^T \lambda_{\Phi} + \Psi_{/x}^T \lambda_{\Psi} 
-		& = & F \\
+	k x + \Phi_{/x}^T \lambda_{\Phi} + \Psi_{/x}^T \lambda_{\Psi} 
+		& = & k x_0 + F \\
+	c v + \Psi_{/\dot{x}}^T \lambda_{\Psi} & = & c v_0 \\
 	\Phi\plbr{x, t} & = & 0 \\
-	\Psi\plbr{x, v, t} & = & 0
+	\Psi\plbr{v, x, t} & = & 0
 \end{eqnarray*}
 so that only the configuration is required to comply 
 with the constraint equations, and the same constraint 
