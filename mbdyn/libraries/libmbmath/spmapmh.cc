@@ -346,30 +346,7 @@ SpMapMatrixHandler::MatVecMul(VectorHandler& out,
 	return out;
 }
 
-VectorHandler &
-SpMapMatrixHandler::MatTVecIncMul(VectorHandler& out,
-		const VectorHandler& in) const
-{
-	if (out.iGetSize() != iGetNumRows()
-			|| in.iGetSize() != iGetNumCols())
-	{
-		throw ErrGeneric();
-	}
 
-	row_cont_type::const_iterator ri, re;
-
-	for (integer col = 0; col < NCols; col++) {
-		doublereal d = 0.;
-		re = col_indices[col].end();
-		for (ri = col_indices[col].begin(); ri != re; ri++) {
-			d += ri->second*in(ri->first + 1);
-		}
-		out.IncCoef(col+1, d);
-	}
-
-	return out;
-}
-	
 VectorHandler &
 SpMapMatrixHandler::MatVecIncMul(VectorHandler& out,
 		const VectorHandler& in) const
@@ -394,6 +371,30 @@ SpMapMatrixHandler::MatVecIncMul(VectorHandler& out,
 }
 
 VectorHandler &
+SpMapMatrixHandler::MatTVecIncMul(VectorHandler& out,
+		const VectorHandler& in) const
+{
+	if (out.iGetSize() != iGetNumRows()
+			|| in.iGetSize() != iGetNumCols())
+	{
+		throw ErrGeneric();
+	}
+
+	row_cont_type::const_iterator ri, re;
+
+	for (integer col = 0; col < NCols; col++) {
+		doublereal d = 0.;
+		re = col_indices[col].end();
+		for (ri = col_indices[col].begin(); ri != re; ri++) {
+			d += ri->second*in(ri->first + 1);
+		}
+		out.IncCoef(col+1, d);
+	}
+
+	return out;
+}
+
+VectorHandler &
 SpMapMatrixHandler::MatVecDecMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
@@ -411,6 +412,30 @@ SpMapMatrixHandler::MatVecDecMul(VectorHandler& out,
 			doublereal d = ri->second*in(col + 1);
 			out.DecCoef(ri->first + 1, d);
 		}
+	}
+
+	return out;
+}
+
+VectorHandler &
+SpMapMatrixHandler::MatTVecDecMul(VectorHandler& out,
+		const VectorHandler& in) const
+{
+	if (out.iGetSize() != iGetNumRows()
+			|| in.iGetSize() != iGetNumCols())
+	{
+		throw ErrGeneric();
+	}
+
+	row_cont_type::const_iterator ri, re;
+
+	for (integer col = 0; col < NCols; col++) {
+		doublereal d = 0.;
+		re = col_indices[col].end();
+		for (ri = col_indices[col].begin(); ri != re; ri++) {
+			d -= ri->second*in(ri->first + 1);
+		}
+		out.DecCoef(col+1, d);
 	}
 
 	return out;

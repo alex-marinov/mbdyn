@@ -143,6 +143,10 @@ public:
 	MatVecIncMul(VectorHandler& out, const VectorHandler& in) const;
 	virtual VectorHandler&
 	MatTVecIncMul(VectorHandler& out, const VectorHandler& in) const;
+	virtual VectorHandler&
+	MatVecDecMul(VectorHandler& out, const VectorHandler& in) const;
+	virtual VectorHandler&
+	MatTVecDecMul(VectorHandler& out, const VectorHandler& in) const;
 };
 
 /* Restituisce un puntatore all'array di reali della matrice */

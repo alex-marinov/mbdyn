@@ -244,19 +244,22 @@ public:
 			std::vector<bool> b, doublereal s = 1.,
 			integer drow = 0, integer dcol = 0) const;
 	
-	VectorHandler& MatTVecMul(VectorHandler& out,
-			const VectorHandler& in) const;
-	
 	VectorHandler& MatVecMul(VectorHandler& out,
 			const VectorHandler& in) const;
 
-	VectorHandler& MatTVecIncMul(VectorHandler& out,
+	VectorHandler& MatTVecMul(VectorHandler& out,
 			const VectorHandler& in) const;
 	
 	VectorHandler& MatVecIncMul(VectorHandler& out,
 			const VectorHandler& in) const;
 
+	VectorHandler& MatTVecIncMul(VectorHandler& out,
+			const VectorHandler& in) const;
+	
 	VectorHandler& MatVecDecMul(VectorHandler& out,
+			const VectorHandler& in) const;
+	
+	VectorHandler& MatTVecDecMul(VectorHandler& out,
 			const VectorHandler& in) const;
 };
 

@@ -183,6 +183,44 @@ MatrixHandler::MatTVecIncMul(VectorHandler& out, const VectorHandler& in) const
 	return out;
 }
 
+VectorHandler&
+MatrixHandler::MatVecDecMul(VectorHandler& out, const VectorHandler& in) const
+{
+	if (out.iGetSize() != iGetNumRows()
+			|| in.iGetSize() != iGetNumCols()) {
+		throw ErrGeneric();
+	}
+
+	for (integer r = 1; r <= iGetNumRows(); r++) {
+		doublereal d = 0.;
+
+		for (integer c = 1; c <= in.iGetSize(); c++) {
+			d -= this->operator()(r, c)*in(c);
+		}
+		out(r) -= d;
+	}
+	return out;
+}
+
+VectorHandler&
+MatrixHandler::MatTVecDecMul(VectorHandler& out, const VectorHandler& in) const
+{
+	if (out.iGetSize() != iGetNumCols()
+			|| in.iGetSize() != iGetNumRows()) {
+		throw ErrGeneric();
+	}
+
+	for (integer r = 1; r <= iGetNumCols(); r++) {
+		doublereal d = 0.;
+
+		for (integer c = 1; c <= in.iGetSize(); c++) {
+			d -= this->operator()(c, r)*in(c);
+		}
+		out(r) -= d;
+	}
+	return out;
+}
+
 void 
 MatrixHandler::IncCoef(integer ix, integer iy, const doublereal& inc) {
 	operator()(ix,iy) += inc;
