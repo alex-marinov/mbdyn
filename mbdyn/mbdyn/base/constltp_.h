@@ -1169,7 +1169,7 @@ public:
 		Write(out, ConstitutiveLaw<Vec6, Mat6x6>::FDE, ", ") << ", ",
 		Write(out, ConstitutiveLaw<Vec6, Mat6x6>::FDEPrime, ", ") << ", " << dAxialTorsionCoupling;
 		ElasticConstitutiveLaw<Vec6, Mat6x6>::Restart_(out);
-		((Mat6x6&)FDE)(4, 4) = d;
+		((Mat6x6&)ConstitutiveLaw<Vec6, Mat6x6>::FDE)(4, 4) = d;
 		return out;
 	};
 
@@ -1177,7 +1177,7 @@ public:
 		ConstitutiveLaw<Vec6, Mat6x6>::Epsilon = Eps;
 		ConstitutiveLaw<Vec6, Mat6x6>::EpsilonPrime = EpsPrime;
 		doublereal d = Epsilon.dGet(1);
-		ConstitutiveLaw<Vec6, Mat6x6>::FDE(4, 4) = dRefTorsion + d*dAxialTorsionCoupling;
+		((Mat6x6&)ConstitutiveLaw<Vec6, Mat6x6>::FDE)(4, 4) = dRefTorsion + d*dAxialTorsionCoupling;
 		ConstitutiveLaw<Vec6, Mat6x6>::F = ElasticConstitutiveLaw<Vec6, Mat6x6>::PreStress
 			+ ConstitutiveLaw<Vec6, Mat6x6>::FDE*(ConstitutiveLaw<Vec6, Mat6x6>::Epsilon - ElasticConstitutiveLaw<Vec6, Mat6x6>::Get())
 			+ ConstitutiveLaw<Vec6, Mat6x6>::FDEPrime*ConstitutiveLaw<Vec6, Mat6x6>::EpsilonPrime;
