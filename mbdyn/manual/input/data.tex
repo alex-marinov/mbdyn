@@ -675,6 +675,11 @@ of RTAI mailboxes; an optional \kw{filename} argument allows
 to set the name of the logging process that is used.
 It should be a low priority soft real-time process that communicates
 with the simulator by means of the RTAI mailbox called \kw{logmb}.
+Note: if no \kw{<command-name>} is given, to guarantee the detection 
+of the default log command the process \kw{PATH} environment variable 
+is augmented by prepending ``\kw{.:BINPATH}''; by default,
+\kw{BINPATH} is the \verb;${bindir}; directory of the build environment,
+so it can be set by using the \verb;--bindir; configure switch.
 \end{itemize}
 The keywords must be given in the sequence reported above.
 Real-time simulation is mostly useless without interaction 
