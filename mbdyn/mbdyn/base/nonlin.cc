@@ -58,8 +58,10 @@ extern MPI::Intracomm MBDynComm;
 doublereal NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 {
    	DEBUGCOUTFNAME("NewtonRaphsonSolver::MakeTest");
-   
-//   	Dof CurrDof;
+
+#if 0
+   	Dof CurrDof;
+#endif 
       
    	doublereal dRes = 0.;
 	ASSERT(pSM != NULL);
@@ -92,15 +94,16 @@ doublereal NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 
 		integer iMI = pSDM->HowManyDofs(SchurDataManager::MYINTERNAL);
 		integer *pMI = pSDM->GetDofsList(SchurDataManager::MYINTERNAL);
-		
-/*		for (int iCnt = 0; iCnt < iMI; iCnt++) {
+
+#ifdef __HACK_RES_TEST__
+		for (int iCnt = 0; iCnt < iMI; iCnt++) {
 			DCount = pMI[iCnt];
 			CurrDof = pDofs[DCount-1];
 			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
 				doublereal d = XP.dGetCoef(DCount);
 				dXPr += d*d;
 			}
-*/
+#endif /* __HACK_RES_TEST__ */
 			/* else if ALGEBRAIC: non aggiunge nulla */
 		}
 		
@@ -128,19 +131,20 @@ doublereal NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 
 			dRes += d2;
 
-/*			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+#ifdef __HACK_RES_TEST__
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
 				d = XP.dGetCoef(iCntp1);
 				d2 = d*d;
 
-			#ifdef __HACK_SCALE_RES__
+#ifdef __HACK_SCALE_RES__
 				d2 *= ds2;         
-*/
-			//#endif /* __HACK_SCALE_RES__ */
-/*
+
+#endif /* __HACK_SCALE_RES__ */
+
 				dXPr += d2;
 			}
-*/
 			/* else if ALGEBRAIC: non aggiunge nulla */ 
+#endif /* __HACK_RES_TEST__ */
 		}
 #ifdef USE_MPI
 #if 0 		
@@ -148,26 +152,21 @@ doublereal NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 #endif
 #endif /* USE_MPI */
 
-//   	dRes /= (1.+dXPr);
-//   	if (!isfinite(dRes)) {      
-//      		std::cerr << "The simulation diverged; aborting ..." 
-//			<< std::endl;       
-//      		THROW(ErrSimulationDiverged());
-//   	}
+#ifdef __HACK_RES_TEST__
+	dRes /= (1.+dXPr);
+	if (!isfinite(dRes)) {      
+		std::cerr << "The simulation diverged; aborting ..." 
+			<< std::endl;       
+		THROW(ErrSimulationDiverged());
+	}
+#endif /* __HACK_RES_TEST__ */
 
    	return sqrt(dRes);
 }
 
-
-
-
-
-
-
-NewtonRaphsonSolver::
-	NewtonRaphsonSolver(const flag fTNR, 
-			const integer IterBfAss)
-:pSM(NULL),
+NewtonRaphsonSolver::NewtonRaphsonSolver(const flag fTNR, 
+		const integer IterBfAss)
+: pSM(NULL),
 pRes(NULL),
 pSol(NULL),
 pJac(NULL),
@@ -175,8 +174,8 @@ fTrueNewtonRaphson(fTNR),
 IterationBeforeAssembly(IterBfAss) { };
 
 
-void NewtonRaphsonSolver::
-	Solve(const NonlinearProblem* pNLP,
+void
+NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 		SolutionManager* pSolMan,
 		const integer iMaxIter,
 		const doublereal Toll,
@@ -550,8 +549,10 @@ void BiCGMatrixFreeSolver::Solve(const NonlinearProblem* pNLP,
 doublereal BiCGMatrixFreeSolver::MakeTest(const VectorHandler& Vec)
 {
    	DEBUGCOUTFNAME("BiCGMatrixFreeSolver::MakeTest");
-   
-//   	Dof CurrDof;
+  
+#if 0	
+	Dof CurrDof;
+#endif
       
    	doublereal dRes = 0.;
 	ASSERT(pSM != NULL);
@@ -584,16 +585,17 @@ doublereal BiCGMatrixFreeSolver::MakeTest(const VectorHandler& Vec)
 
 		integer iMI = pSDM->HowManyDofs(SchurDataManager::MYINTERNAL);
 		integer *pMI = pSDM->GetDofsList(SchurDataManager::MYINTERNAL);
-		
-/*		for (int iCnt = 0; iCnt < iMI; iCnt++) {
+
+#ifdef __HACK_RES_TEST__		
+		for (int iCnt = 0; iCnt < iMI; iCnt++) {
 			DCount = pMI[iCnt];
 			CurrDof = pDofs[DCount-1];
 			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
 				doublereal d = XP.dGetCoef(DCount);
 				dXPr += d*d;
 			}
-*/
 			/* else if ALGEBRAIC: non aggiunge nulla */
+#endif /* __HACK_RES_TEST__ */
 		}
 		
 		/* verifica completamento trasmissioni */
@@ -620,19 +622,19 @@ doublereal BiCGMatrixFreeSolver::MakeTest(const VectorHandler& Vec)
 
 			dRes += d2;
 
-/*			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+#ifdef __HACK_RES_TEST__
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
 				d = XP.dGetCoef(iCntp1);
 				d2 = d*d;
 
-			#ifdef __HACK_SCALE_RES__
+#ifdef __HACK_SCALE_RES__
 				d2 *= ds2;         
-*/
-			//#endif /* __HACK_SCALE_RES__ */
-/*
+#endif /* __HACK_SCALE_RES__ */
+
 				dXPr += d2;
 			}
-*/
 			/* else if ALGEBRAIC: non aggiunge nulla */ 
+#endif /* __HACK_RES_TEST__ */
 		}
 #ifdef USE_MPI
 #if 0 		
@@ -640,12 +642,15 @@ doublereal BiCGMatrixFreeSolver::MakeTest(const VectorHandler& Vec)
 #endif
 #endif /* USE_MPI */
 
-//   	dRes /= (1.+dXPr);
-//   	if (!isfinite(dRes)) {      
-//      		std::cerr << "The simulation diverged; aborting ..." 
-//			<< std::endl;       
-//      		THROW(ErrSimulationDiverged());
-//   	}
+#ifdef __HACK_RES_TEST__
+	dRes /= (1.+dXPr);
+	if (!isfinite(dRes)) {      
+		std::cerr << "The simulation diverged; aborting ..." 
+			<< std::endl;       
+		THROW(ErrSimulationDiverged());
+	}
+#endif /* __HACK_RES_TEST__ */
 
    	return sqrt(dRes);
 }
+
