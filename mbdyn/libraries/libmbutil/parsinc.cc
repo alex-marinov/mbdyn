@@ -38,7 +38,7 @@
 #include <unistd.h>
 #include <pwd.h>
 
-const int PATHBUFSIZE = MAXPATHLEN;
+const int PATHBUFSIZE = 1024;
 
 /* IncludeParser - begin */
 
