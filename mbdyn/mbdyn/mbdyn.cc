@@ -286,7 +286,7 @@ main(int argc, char* argv[])
 		        			<< "Unable to open file '"
 						<< sInputFileName
 #ifdef USE_MPI
-		        			<< " on " << ProcessorName
+		        			<< "' on " << ProcessorName
 #endif /* USE_MPI */
 						<< ";" << endl 
 						<< "aborting ..." << endl;
