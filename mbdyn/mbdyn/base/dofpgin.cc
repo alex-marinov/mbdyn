@@ -81,7 +81,7 @@ DofPlugIn::Read(int argc, char *argv[])
 
 	/* legge i parametri (<param>=<value>, separati da '&') */
 	if (argc == iParams + 1) {
-		char *parm = NULL, *p, *v, *end;
+		char *parm = NULL, *p, *end;
 
 		SAFESTRDUP(parm, argv[iParams]);
 
