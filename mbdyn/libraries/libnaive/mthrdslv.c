@@ -28,6 +28,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+neq:		is the matrix size;
+a:		is used to store matrix elements; a[row][col] is the element in row
+  		row and column col;
+nzr and nzc:	are vectors of size neq, used to count the nonzero elements of a particular row or
+		column, respectively;
+ri and ci:	are neq x neq matrices used to store nonzero element indices; ri[col][i]
+		(resp. ci[row][i]), with i < nzr[col] (i < nzc[row]), is the row (column)
+		index of one of the nzr[col] (nzc[row]) nonzero elements in
+		column col (row row); note that indices in ri[col] and ci[row] are
+		not ordered;
+nz:		nz[row][col] is true if the element in row row and column col is
+		nonzero, false otherwise;
+piv:		is a vector of size neq. 
+
+
+The subroutine naivfct perform the LU factorization, naivslv the back-solve.
+
+*/
+
+
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 
@@ -37,6 +58,7 @@
 #else /* !HAVE_CONFIG_H */
 /* to ease compilation outside of MBDyn...
  * replace long and double with the preferred types */
+#include "math.h"
 typedef long int integer;
 typedef double doublereal;
 #endif /* !HAVE_CONFIG_H */
