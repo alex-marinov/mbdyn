@@ -116,6 +116,7 @@ private:
 	flag fOmegaRotates;
 	doublereal dInitialAssemblyTol;
 	integer iMaxInitialIterations;
+	doublereal dEpsilon;
 	LinSol CurrSolver;
 #endif /* USE_STRUCT_NODES */
 

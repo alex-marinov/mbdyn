@@ -104,6 +104,7 @@ dInitialVelocityStiffness(dDefaultInitialStiffness),
 fOmegaRotates(fDefaultOmegaRotates),
 dInitialAssemblyTol(dDefaultInitialAssemblyTol),
 iMaxInitialIterations(iDefaultMaxInitialIterations),
+dEpsilon(1.),
 #endif /* USE_STRUCT_NODES */
 #if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
 loadableElemInitialized(false),

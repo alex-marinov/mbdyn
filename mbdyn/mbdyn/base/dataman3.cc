@@ -106,11 +106,13 @@ void DataManager::ReadControl(MBDynParser& HP,
       "use",
       "in" "assembly",
       "initial" "stiffness",
+      "stiffness",
       "omega" "rotates",
-      "no",
-      "yes",	
       "initial" "tolerance",
+      "tolerance",
       "max" "initial" "iterations",
+      "max" "iterations",
+      "epsilon",
 
       "solver",
 
@@ -173,11 +175,13 @@ void DataManager::ReadControl(MBDynParser& HP,
       USE,
       INASSEMBLY,
       INITIALSTIFFNESS,
+      STIFFNESS,
       OMEGAROTATES,
-      NO,
-      YES,
       INITIALTOLERANCE,
+      TOLERANCE,
       MAXINITIALITERATIONS,
+      MAXITERATIONS,
+      EPSILON,
 
       SOLVER,
 
@@ -625,7 +629,11 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  * che per velocita';
 	  * se ne vengono forniti due, il primo vale per la posizione ed
 	  * il secondo per la velocita' */
-       case INITIALSTIFFNESS: {
+       case INITIALSTIFFNESS:
+          pedantic_cout("\"initial stiffness\" deprecated at line "
+			  << HP.GetLineData() << "; use \"stiffness\""
+			  << std::endl);
+       case STIFFNESS:
 	  dInitialPositionStiffness = 
 	    HP.GetReal(dDefaultInitialStiffness);
 	  
@@ -642,10 +650,9 @@ void DataManager::ReadControl(MBDynParser& HP,
 		     << dInitialVelocityStiffness << std::endl);
 	  
 	  break;
-       }
 	 
 	 /* Omega solidale con il nodo o con il rif. globale */
-       case OMEGAROTATES: {
+       case OMEGAROTATES:
 	  if (HP.IsKeyWord("yes")) {
 	     fOmegaRotates = flag(1);
 	  } else if (HP.IsKeyWord("no")) {
@@ -657,29 +664,44 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  }
 	  
 	  break;
-       }
 	 
 	 /* Tolleranza nell'assemblaggio iniziale; viene calcolata come:
 	  * sqrt(sum(res^2)/(1.+sum(sol^2)) */
-       case INITIALTOLERANCE: {
+       case INITIALTOLERANCE:
+          pedantic_cout("\"initial tolerance\" deprecated at line "
+			  << HP.GetLineData() << "; use \"tolerance\""
+			  << std::endl);
+       case TOLERANCE:
 	  dInitialAssemblyTol = 
 	    HP.GetReal(dDefaultInitialAssemblyTol);
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Initial assembly tolerance: " 
 		     << dInitialAssemblyTol << std::endl);
 	  break;
-       }	     
 	 
 	 /* Numero massimo di iterazioni nell'assemblaggio iniziale;
 	  * di default ne e' consentita solo una, indice di condizioni 
 	  * iniziali corrette */
-       case MAXINITIALITERATIONS: {
+       case MAXINITIALITERATIONS:
+       case MAXITERATIONS:
+          pedantic_cout("\"max initial iterations\" deprecated at line "
+			  << HP.GetLineData() << "; use \"max iterations\""
+			  << std::endl);
 	  iMaxInitialIterations = 
 	    HP.GetInt(iDefaultMaxInitialIterations);
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Max initial iterations: " 
 		     << iMaxInitialIterations << std::endl);
 	  break;
-       }
 #endif /* USE_STRUCT_NODES */
+
+       case EPSILON:
+	  dEpsilon = HP.GetReal();
+	  if (dEpsilon <= 0.) {
+		  silent_cerr("illegal \"epsilon\"=" << dEpsilon
+				  << " at line " << HP.GetLineData()
+				  << std::endl);
+		  THROW(ErrGeneric());
+	  }
+	  break;
 
        case PRINT:
 	  if (HP.IsKeyWord("dof" "stats")) {

@@ -672,8 +672,11 @@ DataManager::InitialJointAssembly(void)
 		}
 
 		/* Aggiorno la soluzione */
+		if (dEpsilon != 1.) {
+			*pSolHdl *= dEpsilon;
+		}
 		X += *pSolHdl;
-
+		
 		/* Correggo i nodi */
 		for (StructNode** ppTmpNode = ppFirstNode;
 				ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++) {
