@@ -91,7 +91,7 @@ mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
 
 lib_LTLIBRARIES = libmbutil.la
-libmbutil_la_SOURCES =  destr.h dummypgin.cc dummypgin.h except.h filename.h fn_UNIX.cc gauss.cc gauss.h input.cc input.h llist.cc llist.h llstack.cc llstack.h mathp.cc mathp.h mathtyp.h myassert.cc myassert.h mynewmem.cc mynewmem.h mystddef.h parser.cc parser.h parsinc.cc parsinc.h search.h stack.h table.cc table.h tclpgin.cc tclpgin.h veciter.h withlab.h
+libmbutil_la_SOURCES =  destr.h dummypgin.cc dummypgin.h except.h filename.h fn_UNIX.cc gauss.cc gauss.h input.cc input.h llist.cc llist.h llstack.cc llstack.h mathp.cc mathp.h mathtyp.h myassert.cc myassert.h mynewmem.cc mynewmem.h mysleep.c mysleep.h mystddef.h parser.cc parser.h parsinc.cc parsinc.h search.h stack.h table.cc table.h tclpgin.cc tclpgin.h veciter.h withlab.h
 
 
 libmbutil_la_LIBADD = @LIBS@
@@ -111,8 +111,8 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libmbutil_la_DEPENDENCIES = 
 libmbutil_la_OBJECTS =  dummypgin.lo fn_UNIX.lo gauss.lo input.lo \
-llist.lo llstack.lo mathp.lo myassert.lo mynewmem.lo parser.lo \
-parsinc.lo table.lo tclpgin.lo
+llist.lo llstack.lo mathp.lo myassert.lo mynewmem.lo mysleep.lo \
+parser.lo parsinc.lo table.lo tclpgin.lo
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -128,12 +128,12 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/dummypgin.P .deps/fn_UNIX.P .deps/gauss.P \
 .deps/input.P .deps/llist.P .deps/llstack.P .deps/mathp.P \
-.deps/myassert.P .deps/mynewmem.P .deps/parser.P .deps/parsinc.P \
-.deps/table.P .deps/tclpgin.P
+.deps/myassert.P .deps/mynewmem.P .deps/mysleep.P .deps/parser.P \
+.deps/parsinc.P .deps/table.P .deps/tclpgin.P
 SOURCES = $(libmbutil_la_SOURCES)
 OBJECTS = $(libmbutil_la_OBJECTS)
 
@@ -141,7 +141,7 @@ all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .cc .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --foreign ./libraries/libmbutil/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu libraries/libmbutil/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -243,14 +243,14 @@ maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = ./libraries/libmbutil
+subdir = libraries/libmbutil
 
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign ./libraries/libmbutil/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu libraries/libmbutil/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \

@@ -53,8 +53,6 @@ mbpar.cc \
 mbpar.h \
 multistp.cc \
 multistp.h \
-mysleep.c \
-mysleep.h \
 node.cc \
 node.h \
 nodeman.cc \
