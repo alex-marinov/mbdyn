@@ -185,6 +185,10 @@ mp_par(Real s)
    return 0.;
 }
 
+Real max_t (Real a, Real b)
+{
+	return std::max(a,b);
+}
 
 /* tabella statica delle funzioni built-in */
 static mathfuncs FuncTable[] = {
@@ -219,6 +223,7 @@ static mathfuncs FuncTable[] = {
      { "sqrt",       1, { (Real (*)(void))((Real (*)(Real))sqrt)      }, log_t,      ""   },
      
      { "abs",        1, { (Real (*)(void))((Real (*)(Real))fabs)      }, NULL,       ""   },
+     { "max",        2, { (Real (*)(void))((Real (*)(Real, Real))max_t)  }, NULL,       ""   },
      { "floor",      1, { (Real (*)(void))((Real (*)(Real))floor)     }, NULL,       ""   },
      { "ceil",       1, { (Real (*)(void))((Real (*)(Real))ceil)      }, NULL,       ""   },
 #ifdef __USE_XOPEN
