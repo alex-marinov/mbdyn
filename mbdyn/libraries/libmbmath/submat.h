@@ -123,12 +123,12 @@ public:
 	/*
 	 * Ottiene l'indice di riga.
 	 */
-	virtual integer iGetRowIndex(integer) = 0;
+	virtual integer iGetRowIndex(integer) const = 0;
 
 	/*
 	 * Ottiene l'indice di colonna.
 	 */
-	virtual integer iGetColIndex(integer) = 0;
+	virtual integer iGetColIndex(integer) const = 0;
 
 	/* Funzioni di interazione con le matrici */
 
@@ -165,6 +165,8 @@ class FullSubMatrixHandler :
 public SubMatrixHandler, public FullMatrixHandler {
 	friend std::ostream&
 	operator << (std::ostream& out, const FullSubMatrixHandler& m);
+
+	friend class NaiveMatrixHandler;
 
 
 protected:
@@ -319,7 +321,7 @@ public:
 	 * Legge un indice di riga
 	 */
 	inline integer
-	iGetRowIndex(integer iSubRow) {
+	iGetRowIndex(integer iSubRow) const {
 #ifdef DEBUG
 		IsValid();
 #endif /* DEBUG */
@@ -333,7 +335,7 @@ public:
 	 * Legge un indice di colonna
 	 */
 	inline integer
-	iGetColIndex(integer iSubCol) {
+	iGetColIndex(integer iSubCol) const {
 #ifdef DEBUG
 		IsValid();
 #endif /* DEBUG */
@@ -525,6 +527,7 @@ FullSubMatrixHandler::operator () (integer iRow, integer iCol)
 class SparseSubMatrixHandler : public SubMatrixHandler {
 	friend class SparseMatrixHandler;
 	friend class FullMatrixHandler;
+	friend class NaiveMatrixHandler;
 
 public:
 	/* Errori */
@@ -740,7 +743,7 @@ public:
 	 * Ottiene un indice di riga
 	 */
 	inline integer
-	iGetRowIndex(integer iSubIt) {
+	iGetRowIndex(integer iSubIt) const {
 #ifdef DEBUG
 		IsValid();
 #endif /* DEBUG */
@@ -754,7 +757,7 @@ public:
 	 * Ottiene un indice di colonna
 	 */
 	inline integer
-	iGetColIndex(integer iSubIt) {
+	iGetColIndex(integer iSubIt) const {
 #ifdef DEBUG
 		IsValid();
 #endif /* DEBUG */
@@ -870,6 +873,7 @@ public:
 
 class VariableSubMatrixHandler
 : public FullSubMatrixHandler, public SparseSubMatrixHandler {
+	friend class NaiveMatrixHandler;
 private:
 	/*
 	 * Stato della matrice.

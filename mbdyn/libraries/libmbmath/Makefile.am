@@ -29,6 +29,8 @@ matvecexp.h \
 mbcomm.h \
 mh.cc \
 mh.h \
+naivemh.cc \
+naivemh.h \
 Rot.cc \
 Rot.hh \
 RotCoeff.hc \
