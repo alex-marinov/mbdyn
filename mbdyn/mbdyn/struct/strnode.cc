@@ -1025,13 +1025,13 @@ ReadStructNode(DataManager* pDM,
    /* lettura dati specifici */
    KeyWords CurrType((KeyWords)HP.IsKeyWord());
 
+   /*
+    * explicit node type required; default is no longer "DYNAMIC"
+    */
    if (CurrType == UNKNOWN) {
-#ifdef __GNUC__
-#warning "deprecated default node = DYNAMIC"
-#endif
-      std::cerr << "missing node type at line " << HP.GetLineData() 
-	      << " (default = \"dynamic\")" << std::endl;
-      CurrType = DYNAMIC;
+      std::cerr << "missing node type at line " << HP.GetLineData()
+      	      << std::endl;
+      THROW(ErrGeneric());
    }   
    
 #ifdef DEBUG

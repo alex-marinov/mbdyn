@@ -15,6 +15,8 @@ MBDyn 1.2-Engineering
 		  factors for hover and forward flight
 		- added -W (--working-dir) switch
 		- added inertia properties computation of element blocks
+	Backward compatibility:
+		- struct node type does not default to dynamic any more
 	Bug fixes:
 
 
