@@ -64,6 +64,7 @@ const char* psExt[] = {
    ".par",  /* 15 */
    ".res",
    ".ada",
+   ".amd",
    
    NULL
 };
@@ -90,6 +91,7 @@ ofGenels(),
 ofPartition(),
 ofAdamsRes(),
 ofAdamsCmd(),
+ofAeroModals(),
 iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
 {
    OutData[OUTPUT].fToUseDefaultPrecision = flag(0);
@@ -163,6 +165,10 @@ iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
    OutData[ADAMSCMD].fToUseDefaultPrecision = flag(1);
    OutData[ADAMSCMD].fToUseScientific = flag(1);
    OutData[ADAMSCMD].pof = &ofAdamsCmd;
+
+   OutData[AEROMODALS].fToUseDefaultPrecision = flag(1);
+   OutData[AEROMODALS].fToUseScientific = flag(1);
+   OutData[AEROMODALS].pof = &ofAeroModals;
 }
 
 
@@ -188,6 +194,7 @@ ofGenels(),
 ofPartition(),
 ofAdamsRes(),
 ofAdamsCmd(),
+ofAeroModals(),
 iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
 {
    OutData[OUTPUT].fToUseDefaultPrecision = flag(0);
@@ -263,6 +270,10 @@ iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
    OutData[ADAMSCMD].fToUseDefaultPrecision = flag(1);
    OutData[ADAMSCMD].fToUseScientific = flag(1);
    OutData[ADAMSCMD].pof = &ofAdamsCmd;
+   
+   OutData[AEROMODALS].fToUseDefaultPrecision = flag(1);
+   OutData[AEROMODALS].fToUseScientific = flag(1);
+   OutData[AEROMODALS].pof = &ofAeroModals;
 }
 
 

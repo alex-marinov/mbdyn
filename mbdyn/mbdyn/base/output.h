@@ -69,8 +69,9 @@ class OutputHandler : public FileName {
       PARTITION   = 15,
       ADAMSRES    = 16,
       ADAMSCMD    = 17,
+      AEROMODALS  = 18,
       
-      LASTFILE    /* = 18 */
+      LASTFILE    /* = 19 */
    };   
    
  private:
@@ -100,6 +101,7 @@ class OutputHandler : public FileName {
    std::ofstream ofPartition;   /* 15 */
    std::ofstream ofAdamsRes;
    std::ofstream ofAdamsCmd;
+   std::ofstream ofAeroModals;
    
    int iCurrWidth;
    int iCurrPrecision;
@@ -283,6 +285,13 @@ class OutputHandler : public FileName {
 #endif /* HAVE_ISOPEN */
       return (std::ostream&)ofAdamsCmd;
    };
+
+   inline std::ostream& AeroModals(void) const {
+#if HAVE_ISOPEN
+      ASSERT(ofAeroModals.is_open());
+#endif /* HAVE_ISOPEN */
+      return (std::ostream&)ofAeroModals;	  
+   };   
 
    inline int iW(void) const { 
       return iCurrWidth; 

@@ -63,6 +63,7 @@ void DataManager::ElemManager(void)
    ElemData[Elem::ELECTRICBULK].DofOwnerType = DofOwner::ELECTRICBULK;
    ElemData[Elem::GENEL].DofOwnerType = DofOwner::GENEL;
    ElemData[Elem::ROTOR].DofOwnerType = DofOwner::ROTOR;
+   ElemData[Elem::AEROMODAL].DofOwnerType = DofOwner::AEROMODAL;
    ElemData[Elem::HYDRAULIC].DofOwnerType = DofOwner::HYDRAULIC;
    ElemData[Elem::LOADABLE].DofOwnerType = DofOwner::LOADABLE;
    
@@ -72,6 +73,7 @@ void DataManager::ElemManager(void)
    ElemData[Elem::FORCE].OutFile = OutputHandler::FORCES;
    ElemData[Elem::BEAM].OutFile = OutputHandler::BEAMS;
    ElemData[Elem::ROTOR].OutFile = OutputHandler::ROTORS;   
+   ElemData[Elem::AEROMODAL].OutFile = OutputHandler::AEROMODALS;   
    ElemData[Elem::AERODYNAMIC].OutFile = OutputHandler::AERODYNAMIC;
    ElemData[Elem::HYDRAULIC].OutFile = OutputHandler::HYDRAULIC;
    ElemData[Elem::LOADABLE].OutFile = OutputHandler::LOADABLE;
@@ -88,6 +90,7 @@ void DataManager::ElemManager(void)
    ElemData[Elem::PLATE].iDerivation = ELEM | INITIALASSEMBLY;
    ElemData[Elem::AIRPROPERTIES].iDerivation = ELEM | INITIALASSEMBLY;
    ElemData[Elem::ROTOR].iDerivation = ELEM | DOFOWNER | AIRPROPOWNER;
+   ElemData[Elem::AEROMODAL].iDerivation = ELEM | DOFOWNER | AIRPROPOWNER;
    ElemData[Elem::AERODYNAMIC].iDerivation = ELEM | AIRPROPOWNER |INITIALASSEMBLY;
    ElemData[Elem::ELECTRIC].iDerivation = ELEM | DOFOWNER;
    ElemData[Elem::ELECTRICBULK].iDerivation = ELEM | DOFOWNER;
@@ -112,6 +115,7 @@ void DataManager::ElemManager(void)
    /* Aggiungere qui se un tipo usa le proprieta' dell'aria e quindi
     * deve essere collegato all'elemento proprieta' dell'aria */
    ElemData[Elem::ROTOR].fUsesAirProperties = flag(1);
+   ElemData[Elem::AEROMODAL].fUsesAirProperties = flag(1);
    ElemData[Elem::AERODYNAMIC].fUsesAirProperties = flag(1);
    
    

@@ -80,6 +80,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       psReadControlElems[Elem::PLATE],      
       psReadControlElems[Elem::AIRPROPERTIES],
       psReadControlElems[Elem::ROTOR],
+      psReadControlElems[Elem::AEROMODAL],
       psReadControlElems[Elem::AERODYNAMIC],      
       psReadControlElems[Elem::FORCE],      
       psReadControlElems[Elem::GENEL],
@@ -134,6 +135,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       PLATES,
       AIRPROPERTIES,
       ROTORS,
+      AEROMODALS,
       AERODYNAMICELEMENTS,
       FORCES,
       GENELS,
@@ -326,6 +328,14 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  ElemData[Elem::ROTOR].iNum = iDmy;	     
 	  DofData[DofOwner::ROTOR].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Rotors: " << iDmy << std::endl);
+	  break;
+       }	     	     
+	 
+       case AEROMODALS: {
+	  int iDmy = HP.GetInt();
+	  ElemData[Elem::AEROMODAL].iNum = iDmy;	     
+	  DofData[DofOwner::AEROMODAL].iNum = iDmy;
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Aeromodals: " << iDmy << std::endl);
 	  break;
        }	     	     
 	 
@@ -728,6 +738,10 @@ void DataManager::ReadControl(MBDynParser& HP,
 		 break;
 	      }
 		
+	      case AEROMODALS: {			 
+		 ElemData[Elem::AEROMODAL].fDefaultOut = flag(1);
+		 break;
+	      }
 	      case AERODYNAMICELEMENTS: {			 
 		 ElemData[Elem::AERODYNAMIC].fDefaultOut = flag(1);
 		 break;

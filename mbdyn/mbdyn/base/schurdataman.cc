@@ -128,6 +128,7 @@ pRotorComm(NULL)
 	"beam",
 	"plate",
 	"rotor",
+	"aeromodal",
 	"aerodynamic" "element", 
 	"electric" "bulk",
 	"electric",
@@ -160,6 +161,7 @@ pRotorComm(NULL)
         BEAM,
         PLATE,    
         ROTOR,
+	AEROMODAL,
         AERODYNAMICELEMENT,
         ELECTRICBULK,
         ELECTRIC,
@@ -408,6 +410,30 @@ pRotorComm(NULL)
 				iNumElems++;
 				break;
 		
+	      		    case AEROMODAL:
+				ActualElType = Elem::AEROMODAL;
+		
+				if (HP.fIsArg()) {
+		  		    j = HP.GetInt();
+				} else {
+		  		    std::cerr << std::endl 
+				        << "Error: Label expected at line "  
+					<< HP.GetLineData() 
+					<< "; aborting ..." << std::endl;
+		  		    THROW(ErrGeneric());
+				}
+				ppExpCntElems[iNumElems] = 
+				    *(ppFindElem(ActualElType, j));
+				if (ppExpCntElems[iNumElems] == NULL ) {
+		  		    std::cerr << "Error: at line " 
+				        << HP.GetLineData() 
+					<< " undefined element; aborting ..." 
+					<< std::endl;
+		  		    THROW(ErrGeneric());
+				}
+				iNumElems++;
+				break;
+
 	      		    case AERODYNAMICELEMENT:
 				ActualElType = Elem::AERODYNAMIC;
 		

@@ -49,6 +49,7 @@ const char* psElemNames[] = {
    
    "Air Properties",
    "Rotor",
+   "Aeromodal",
    "Aerodynamic Element",
    
    "Electric Bulk",
@@ -80,6 +81,7 @@ const char* psReadControlElems[] = {
    
    "air" "properties",
    "rotors",
+   "aeromodals",
    "aerodynamic" "elements",
    
    "electric" "bulk" "elements",
@@ -252,6 +254,7 @@ extern const char* psBeamNames[] = {
 /* Tipi di Aero */
 extern const char* psAeroNames[] = {
    "Rotor",
+   "Aeromodal",
    "Aerodynamic Body",
    "Aerodynamic Beam",
    

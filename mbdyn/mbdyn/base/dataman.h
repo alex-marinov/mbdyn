@@ -147,7 +147,7 @@ class DataManager {
    friend Elem* ReadAerodynamicBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
    friend Elem* ReadAerodynamicBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
    friend Elem* ReadAerodynamicBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
-   friend Elem* ReadAerodynamicModal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+   friend Elem* ReadAerodynamicModal(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
    friend Elem* ReadHydraulicElem(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
    friend Drive* ReadFileDriver(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);   
    

@@ -79,6 +79,7 @@ enum KeyWords {
    AERODYNAMICBODY,
    AERODYNAMICBEAM,
    AERODYNAMICBEAM2,
+   AEROMODAL,
    
    FORCE,
    
@@ -122,6 +123,7 @@ void DataManager::ReadElems(MBDynParser& HP)
       "aerodynamic" "body",
       "aerodynamic" "beam",
       "aerodynamic" "beam2",
+      "aero" "modal",
       
       "force",
       
@@ -217,9 +219,14 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     Typ = Elem::ROTOR;
 	     break;
 	  }
+	  case AEROMODAL: {
+	     DEBUGLCOUT(MYDEBUG_INPUT, "aeromodal" << std::endl);
+	     Typ = Elem::AEROMODAL;
+	     break;
+	  }
 	  case AERODYNAMICBODY:
 	  case AERODYNAMICBEAM:
-	  case AERODYNAMICBEAM2: {
+	  case AERODYNAMICBEAM2:{
 	     DEBUGLCOUT(MYDEBUG_INPUT, "aerodynamic" << std::endl);
 	     Typ = Elem::AERODYNAMIC;
 	     break;
@@ -231,6 +238,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 #ifdef USE_STRUCT_NODES
 	  case COUPLE:
 #endif /* USE_STRUCT_NODES */
+
 	  {		 
 	     DEBUGLCOUT(MYDEBUG_INPUT, "forces" << std::endl);
 	     Typ = Elem::FORCE;
@@ -324,6 +332,9 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    break;
 	  case ROTOR:
 	    t = Elem::ROTOR;
+	    break;
+	  case AEROMODAL:  
+	    t = Elem::AEROMODAL;
 	    break;
 	  case AERODYNAMICBODY:
 	  case AERODYNAMICBEAM:	
@@ -534,6 +545,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		  case AERODYNAMICBODY:
 		  case AERODYNAMICBEAM:
 		  case AERODYNAMICBEAM2:
+		  case AEROMODAL:
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
 #ifdef USE_ELECTRIC_NODES
@@ -597,10 +609,14 @@ void DataManager::ReadElems(MBDynParser& HP)
 		     case ROTOR: {
 			ppE = ppFindElem(Elem::ROTOR, uLabel);
 			break;
+		     }		     
+		     case AEROMODAL: {
+			ppE = ppFindElem(Elem::AEROMODAL, uLabel);
+			break;
 		     }
 		     case AERODYNAMICBODY:
 		     case AERODYNAMICBEAM:
-		     case AERODYNAMICBEAM2: {
+		     case AERODYNAMICBEAM2:{
 			ppE = ppFindElem(Elem::AERODYNAMIC, uLabel);
 			break;
 		     }
@@ -700,6 +716,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	      case AERODYNAMICBODY:
 	      case AERODYNAMICBEAM:
 	      case AERODYNAMICBEAM2:
+	      case AEROMODAL:
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
 #ifdef USE_ELECTRIC_NODES
@@ -1090,6 +1107,41 @@ Elem** ReadOneElem(DataManager* pDM,
     }	 
       
       /* Elementi aerodinamici: rotori */
+      /* Elementi aerodinamici: modale */
+    case AEROMODAL: {
+       silent_cout("Reading aero modal " << uLabel << std::endl);
+       
+       if (iNumTypes[Elem::AEROMODAL]-- <= 0) {
+	  DEBUGCERR("");
+	  std::cerr << "line " << HP.GetLineData() 
+	    << ": aromodal " << uLabel
+	    << " exceedes aeromodal elements number" << std::endl;
+	  
+	  THROW(DataManager::ErrGeneric());
+       }
+       
+       /* verifica che non sia gia' definito */
+       if (pDM->pFindElem(Elem::AEROMODAL, uLabel) != NULL) {
+	  DEBUGCERR("");
+	  std::cerr << "line " << HP.GetLineData() 
+	    << ": raeromodal " << uLabel
+	    << " already defined" << std::endl;
+	  
+	  THROW(DataManager::ErrGeneric());
+       }
+       
+       /* allocazione e creazione */
+       int i = pDM->ElemData[Elem::AEROMODAL].iNum
+	 -iNumTypes[Elem::AEROMODAL]-1;
+       ppE = pDM->ElemData[Elem::AEROMODAL].ppFirstElem+i;
+       DofOwner* pDO = pDM->DofData[DofOwner::AEROMODAL].pFirstDofOwner+i;
+       
+       *ppE = ReadAerodynamicModal(pDM, HP, pDO, uLabel);     
+       
+       break;
+    }	 
+      
+      /* Elementi aerodinamici: aeromodal */
     case AERODYNAMICBODY:
     case AERODYNAMICBEAM:
     case AERODYNAMICBEAM2: {

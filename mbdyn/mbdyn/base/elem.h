@@ -85,6 +85,7 @@ class Elem : public WithLabel, public ToBeOutput {
 
 	AIRPROPERTIES,
 	ROTOR,
+        AEROMODAL,
 	AERODYNAMIC,
 
 	ELECTRICBULK,

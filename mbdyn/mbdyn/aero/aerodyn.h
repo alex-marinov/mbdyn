@@ -273,9 +273,9 @@ class AerodynamicElem : virtual public Elem, public AirPropOwner {
       UNKNOWN = -1,
 
 	ROTOR = 0,
+	AEROMODAL,
 	AERODYNAMICBODY,
 	AERODYNAMICBEAM,
-        AERODYNAMICMODAL,
 
 	AERODYNAMICLOADABLE,
 	
