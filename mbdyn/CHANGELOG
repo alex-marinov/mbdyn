@@ -16,6 +16,10 @@ MBDyn 1.2-Engineering
 		- added provisions for detailed dof stats
 		- added linear and angular acceleration to dynamic
 		  structural nodes output
+		- enabled dynamic structural nodes acceleration for
+		  dof plugin and drive
+		- added momentum and momenta moment and their derivatives
+		  as automatic structural element private data
 	Backward compatibility issues:
 	Known issues:
 		- parallel is not working yet

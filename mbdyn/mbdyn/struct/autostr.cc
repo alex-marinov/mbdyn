@@ -252,3 +252,87 @@ AutomaticStructElem::SetValue(VectorHandler& /* X */ , VectorHandler& XP) const
    XP.Put(iIndex + 3 + 1, GP);
 }
 
+/* Dati privati */
+unsigned int
+AutomaticStructElem::iGetNumPrivData(void) const
+{
+	return 12;
+}
+
+unsigned int
+AutomaticStructElem::iGetPrivDataIdx(const char *s) const
+{
+	/*
+	 * beta[1]
+	 * beta[2]
+	 * beta[3]
+	 * gamma[1]
+	 * gamma[2]
+	 * gamma[3]
+	 * betaP[1]
+	 * betaP[2]
+	 * betaP[3]
+	 * gammaP[1]
+	 * gammaP[2]
+	 * gammaP[3]
+	 */
+	unsigned int idx = 0;
+	if (strncmp(s, "beta", sizeof("beta") - 1) == 0) {
+		s += sizeof("beta") - 1;
+	} else if (strncmp(s, "gamma", sizeof("gamma") - 1) == 0) {
+		s += sizeof("gamma") - 1;
+		idx += 3;
+	} else {
+		return 0;
+	}
+
+	if (s[0] == 'P') {
+		s++;
+		idx += 6;
+	}
+
+	if (s[0] != '[') {
+		return 0;
+	}
+	s++;
+
+	switch (s[0]) {
+	case '1':
+	case '2':
+	case '3':
+		idx += s[0] - '0';
+		break;
+
+	default:
+		return 0;
+	}
+
+	if (s[0] != ']' && s[1] != '\0') {
+		return 0;
+	}
+
+	return idx;
+}
+
+doublereal
+AutomaticStructElem::dGetPrivData(unsigned int i) const
+{
+	unsigned int der = (i - 1)/6;
+	i -= 6*der;
+	unsigned int type = (i - 1)/3;
+	i -= 3*type;
+
+	if (der) {
+		if (type) {
+			return GP(i);
+		}
+		return QP(i);
+
+	} else {
+		if (type) {
+			return G(i);
+		}
+		return Q(i);
+	}
+}
+

@@ -2033,12 +2033,12 @@ Modal::iGetPrivDataIdx(const char *s) const
 	}
 #else /* !HAVE_STRTOUL */
 	long n = atol(buf);
-	if (n < 0) {
+	if (n <= 0) {
 		return 0;
 	}
 #endif /* !HAVE_STRTOUL */
 
-	if (n > NModes) {
+	if (n <= 0 || n > NModes) {
 		return 0;
 	}
 
