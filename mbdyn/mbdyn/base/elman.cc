@@ -625,7 +625,7 @@ void* DataManager::pFindElem(Elem::Type Typ, unsigned int uL,
 }
 
 
-/* Usata dalle due funazioni precedenti */
+/* Usata dalle due funzioni precedenti */
 void* DataManager::pChooseElem(Elem* p, unsigned int iDeriv) const
 {
    ASSERT(p != NULL);

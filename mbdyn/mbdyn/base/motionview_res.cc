@@ -30,7 +30,7 @@
 
 /* 
  * These routines are part of DataManager, but are especially meant
- * to prepare textual output for ADAMS/View
+ * to prepare textual output for Altair's MotionView
  */
 
 #ifdef HAVE_CONFIG_H
