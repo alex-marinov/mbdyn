@@ -623,7 +623,8 @@ ol_link_harwell=no
 if test $ol_with_harwell != no ; then
 	ol_link_harwell=yes
 	AC_DEFINE(USE_HARWELL,1,[define to use Harwell sparse LU library])
-	HARWELL_LIBS="../libraries/libharwell/libharwell.la"
+	dnl HARWELL_LIBS="../libraries/libharwell/libharwell.la"
+	HARWELL_LIBS="-lhsl"
 fi
 
 

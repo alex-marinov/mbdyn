@@ -3921,7 +3921,7 @@ ol_link_harwell=no
 		cat >> confdefs.h <<\EOF
 #define USE_HARWELL 1
 EOF
-	HARWELL_LIBS="../libraries/libharwell/libharwell.la"
+		HARWELL_LIBS="-lhsl"
 	fi
 fi
 
