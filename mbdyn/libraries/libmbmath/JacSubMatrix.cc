@@ -121,4 +121,26 @@ void ExpandableRowVector::Sub(FullSubMatrixHandler& WM,
 	}
 };
 
+#include<iomanip>
+std::ostream & ExpandableRowVector::Write(std::ostream &out, const char *sFill) const {
+	out << "LocalDof: ";
+	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
+		if (idx[i] != 0) {
+			out << sFill << std::setw(12) << idx[i];
+		} else {
+			out << sFill << std::setw(12) << "linked";
+		}		
+	}
+	out << std::endl;
+	out << "   Value: ";
+	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
+		out << sFill << std::setw(12) << x[i];
+	}
+	out << std::endl;
+	return out;
+}
+
+std::ostream & operator << (std::ostream & s, const ExpandableRowVector & z) {
+	return z.Write(s);	
+};
 

@@ -60,8 +60,11 @@ public:
 	void Sub(SubVectorHandler& WorkVec, const doublereal c = 1.) const;
 	void Add(FullSubMatrixHandler& WM, const integer eq, const doublereal c = 1.) const;
 	void Sub(FullSubMatrixHandler& WM, const integer eq, const doublereal c = 1.) const;
+	std::ostream & Write(std::ostream &out, 
+		const char *sFill="") const;
 };
 
+std::ostream & operator << (std::ostream & s, const ExpandableRowVector & z);
 
 #endif /* JacSubMatrix_hh */
 
