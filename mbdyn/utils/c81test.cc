@@ -52,38 +52,106 @@ int
 main(int argc, char *argv[])
 {
 #if defined(USE_AERODYNAMIC_ELEMS)
-	if (argc != 4) {
-		std::cerr << "usage: testc81 <file> <alpha (deg)> <mach>"
+	char	mode = 'c';
+	char	*dump_fname = NULL;
+	bool	dump(false);
+	
+	while (1) {
+		int opt = getopt(argc, argv, "cd::fo");
+
+		if (opt == EOF) {
+			break;
+		}
+
+		switch (opt) {
+		case 'c':
+			mode = 'c';
+			break;
+
+		case 'd':
+			dump = true;
+			if (optarg) {
+				dump_fname = optarg;
+			}
+			break;
+
+		case 'f':
+			mode = 'f';
+			break;
+
+		case 'o':
+			mode = 'o';
+			break;
+
+		default:
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	argv += optind;
+	argc -= optind;
+		
+	if (argc != 3 && !dump) {
+		std::cerr << "usage: testc81 [<options>] <file> [<alpha (deg)> <mach>]"
 			<< std::endl;
 		exit(EXIT_SUCCESS);
 	}
 
-	std::ifstream in(argv[1]);
+	std::ifstream in(argv[0]);
 	if (!in) {
-		std::cerr << "unable to open file '" << argv[1] 
+		std::cerr << "unable to open file '" << argv[0] 
 			<< "'" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
 	c81_data* data = new C81Data(1);
 
-	if (read_c81_data(in, data)) {
-		std::cerr << "unable to read c81 data from file '" 
-			<< argv[1] << "'" << std::endl;
+	int rc;
+
+	switch (mode) {
+	case 'c':
+		rc = read_c81_data(in, data);
+		break;
+
+	case 'f':
+		rc = read_c81_data_free_format(in, data);
+		break;
+
+	case 'o':
+		rc = read_onera_data(in, data);
+		break;
+
+	default:
 		exit(EXIT_FAILURE);
 	}
 
-	doublereal alpha(atof(argv[2])), mach(atof(argv[3]));
+	if (rc) {
+		std::cerr << "unable to read c81 data from file "
+			"'" << argv[0] << "'" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 
-	std::cout 
-		<< "alpha: " << alpha << std::endl
-		<< "mach: " << mach << std::endl
-		<< "cl: " << get_c81_coef(data->NML, data->ml, data->NAL, 
-				data->al, alpha, mach) << std::endl
-		<< "cd: " << get_c81_coef(data->NMD, data->md, data->NAD, 
-				data->ad, alpha, mach) << std::endl
-		<< "cm: " << get_c81_coef(data->NMM, data->mm, data->NAM, 
-				data->am, alpha, mach) << std::endl;
+	if (dump_fname) {
+		std::ofstream out(dump_fname);
+		write_c81_data_free_format(out, data);
+
+	} else if (dump) {
+		write_c81_data_free_format(std::cout, data);
+	}
+
+	if (argc == 3) {
+		doublereal alpha(atof(argv[1])), mach(atof(argv[2]));
+
+		std::cout 
+			<< "alpha: " << alpha << std::endl
+			<< "mach: " << mach << std::endl
+			<< "cl: " << get_c81_coef(data->NML, data->ml, data->NAL, 
+					data->al, alpha, mach) << std::endl
+			<< "cd: " << get_c81_coef(data->NMD, data->md, data->NAD, 
+					data->ad, alpha, mach) << std::endl
+			<< "cm: " << get_c81_coef(data->NMM, data->mm, data->NAM, 
+					data->am, alpha, mach) << std::endl;
+	}
 
 #else /* !USE_AERODYNAMIC_ELEMS */
 	std::cerr << "compile with --with-aero to enable aerodynamic stuff" 

@@ -24,6 +24,7 @@ MBDyn 1.X-Devel
 		- changed default for "derivatives coefficient"; reworked
 		  diagnostics for derivatives failure (noted by Aakash Dalwani)
 		- added support for scalar SuperLU (by Marco Morandini)
+		- improved support for aerodynamic coefficients
 	Backward compatibility issues:
 		- s/(deformable displacement )hinge/\1joint/
 	Known issues:

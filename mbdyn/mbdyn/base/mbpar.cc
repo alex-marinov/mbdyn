@@ -283,12 +283,30 @@ MBDynParser::C81Data_int(void)
 	
 	C81Data* data = NULL;
 	SAFENEWWITHCONSTRUCTOR(data, C81Data, C81Data(uLabel));
-	
-	if (read_c81_data(in, data) != 0) {
-		silent_cerr("unable to read c81 data " << uLabel 
-			<< " from file '" << filename 
-			<< "' at line " << GetLineData() << std::endl);
-		throw ErrGeneric();
+
+	if (IsKeyWord("onera")) {
+		if (read_onera_data(in, data) != 0) {
+			silent_cerr("unable to read c81 data " << uLabel 
+				<< " from file '" << filename << "' "
+				"in ONERA format at line " << GetLineData() << std::endl);
+			throw ErrGeneric();
+		}
+
+	} else if (IsKeyWord("free" "format")) {
+		if (read_onera_data(in, data) != 0) {
+			silent_cerr("unable to read c81 data " << uLabel 
+				<< " from file '" << filename << "' "
+				"in free format at line " << GetLineData() << std::endl);
+			throw ErrGeneric();
+		}
+
+	} else {
+		if (read_c81_data(in, data) != 0) {
+			silent_cerr("unable to read c81 data " << uLabel 
+				<< " from file '" << filename << "' "
+				"at line " << GetLineData() << std::endl);
+			throw ErrGeneric();
+		}
 	}
 	
 #ifdef DEBUG
