@@ -140,8 +140,8 @@ static void pam_misc_conv_delete_binary(void **delete_me)
     }
 }
 
-int (*pam_binary_handler_fn)(const void *send, void **receive) = NULL;
-void (*pam_binary_handler_free)(void **packet_p) = pam_misc_conv_delete_binary;
+int (*mb_pam_bh_fn)(const void *send, void **receive) = NULL;
+void (*mb_pam_bh_free)(void **packet_p) = pam_misc_conv_delete_binary;
 
 /* 
  * Uso una funzione di conversazione che si limita a restituire il valore
@@ -190,8 +190,8 @@ mbdyn_conv(int num_msg, const struct pam_message **msgm,
 	  void *pack_out = NULL;
 	  const void *pack_in = msgm[count]->msg;
 	  
-	  if (!pam_binary_handler_fn
-	      || pam_binary_handler_fn(pack_in, &pack_out) != PAM_SUCCESS
+	  if (!mb_pam_bh_fn
+	      || mb_pam_bh_fn(pack_in, &pack_out) != PAM_SUCCESS
 	      || pack_out == NULL) {
 	     goto failed_conversation;
 	  }
@@ -246,7 +246,7 @@ failed_conversation:
 	    free(reply[count].resp);
 	    break;
 	  case PAM_BINARY_PROMPT:
-	    pam_binary_handler_free((void **) &reply[count].resp);
+	    mb_pam_bh_free((void **) &reply[count].resp);
 	    break;
 	  case PAM_ERROR_MSG:
 	  case PAM_TEXT_INFO:
