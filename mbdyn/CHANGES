@@ -8,7 +8,10 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
 MBDyn 1.1-Engineering
-
+	Enhancements:
+		- more improved Mat3x3 and Mat3xN APIs
+	Bug fixes:
+		- fixed SIGSEGV when reading from stdin
 
 MBDyn 1.1.2
 	Enhancements:
