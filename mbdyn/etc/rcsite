@@ -3,7 +3,7 @@
 CPPFLAGS="-I/home/masarati/Math/Meschach \
 	-I/usr/share/mpi/include -I/usr/share/mpi/include/c++ \
 	-I/home/masarati/Math/metis-4.0/Lib \
-	-DHAVE_LOADABLE"
+	-DHAVE_LOADABLE -D__HACK_EIG__"
 CFLAGS="-g -march=pentiumpro"
 CXXFLAGS=$CFLAGS
 CC=gcc
@@ -11,7 +11,8 @@ CXX=g++
 F77=g77
 LDFLAGS="-L/home/masarati/Math/Meschach/meschach \
 	-L/usr/share/mpi/lib \
-	-L/home/masarati/Math/metis-4.0"
+	-L/home/masarati/Math/metis-4.0 \
+	-L/home/masarati/Math/clapack/CLAPACK"
 
 export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS CC CXX F77 LDFLAGS
 
