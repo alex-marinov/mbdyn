@@ -7,6 +7,9 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Wed Apr 17 15:44:46 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - rotors can be arbitrarily oriented wrt the craft (ITS#5)
+
 *** Tue Apr 16 10:26:48 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - fix bug in scalar template array drive
 

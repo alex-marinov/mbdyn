@@ -89,7 +89,7 @@ class Rotor
    doublereal dRadius;       /* Raggio del rotore */
    doublereal dArea;         /* Area del disco */
    doublereal dUMean;        /* Velocita' indotta media */
-   doublereal dUMeanPrev;    /* Vel. indotta media al passo prec. */
+   mutable doublereal dUMeanPrev;    /* Vel. indotta media al passo prec. */
    doublereal dWeight;       /* Peso della velocita' indotta media 
 			      * (peso della V al passo precedente, def = 0.) */
    doublereal dCorrection;   /* Correzione (scala la velocita' indotta) */
@@ -98,6 +98,7 @@ class Rotor
    SetResForces **ppRes;     /* extra forces */
 
    Mat3x3 RRotTranspose;     /* Trasposta della matrice di rotazione rotore */
+   Mat3x3 RRot;
    Vec3 RRot3;               /* Direzione dell'asse del rotore */
    Vec3 VCraft;              /* Velocita' di traslazione del velivolo */
    doublereal dPsi0;         /* Angolo di azimuth del rotore */
@@ -132,7 +133,7 @@ class Rotor
 
  public:
    Rotor(unsigned int uL, const DofOwner* pDO, 
-	 const StructNode* pC, const StructNode* pR, 
+	 const StructNode* pC, const Mat3x3& rrot, const StructNode* pR, 
 	 SetResForces **ppres, flag fOut);
    virtual ~Rotor(void);      
    
@@ -296,6 +297,7 @@ class NoRotor : virtual public Elem, public Rotor {
    NoRotor(unsigned int uLabel,
 	   const DofOwner* pDO,
 	   const StructNode* pCraft, 
+	   const Mat3x3& rrot,
 	   const StructNode* pRotor, 
 	   SetResForces **ppres, 
 	   doublereal dR, 
@@ -339,6 +341,7 @@ class UniformRotor : virtual public Elem, public Rotor {
    UniformRotor(unsigned int uLabel, 
 		const DofOwner* pDO,
 		const StructNode* pCraft, 
+	   	const Mat3x3& rrot,
 		const StructNode* pRotor, 
 		SetResForces **ppres, 
 		doublereal dOR,
@@ -383,6 +386,7 @@ class GlauertRotor : virtual public Elem, public Rotor {
    GlauertRotor(unsigned int uLabel, 
 		const DofOwner* pDO,
 		const StructNode* pCraft,
+		const Mat3x3& rrot,
 		const StructNode* pRotor,
 		SetResForces **ppres, 
 		doublereal dOR,
@@ -427,6 +431,7 @@ class ManglerRotor : virtual public Elem, public Rotor {
    ManglerRotor(unsigned int uLabel, 
 		const DofOwner* pDO,
 		const StructNode* pCraft,
+		const Mat3x3& rrot,
 		const StructNode* pRotor,
 		SetResForces **ppres,
 		doublereal dOR,
@@ -481,6 +486,7 @@ class DynamicInflowRotor : virtual public Elem, public Rotor {
    DynamicInflowRotor(unsigned int uLabel,
 		      const DofOwner* pDO,
 		      const StructNode* pCraft, 
+		      const Mat3x3& rrot,
 		      const StructNode* pRotor,
 		      SetResForces **ppres, 
 		      doublereal dOR,
@@ -553,4 +559,5 @@ extern Elem* ReadRotor(DataManager* pDM,
 		       const DofOwner* pDO, 
 		       unsigned int uLabel);
 
-#endif
+#endif /* ROTOR_H */
+

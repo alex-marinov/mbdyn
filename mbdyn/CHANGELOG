@@ -13,6 +13,7 @@ MBDyn 1.1 Engineering
 		- detects if run by mpirun (appropriate MPI initialization;
 		  needs work)
 		- added mbdyn(1) man page
+		- rotors can be arbitrarily oriented wrt the craft (ITS#5)
 	Bug fixes:
 		- fix unsteady Cm sign bug in unsteady c81 aerodynamics
 		- fix input file command line arg delete[] failure 

@@ -56,7 +56,7 @@ extern "C" {
 /* Rotor - begin */
 
 Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
-	     const StructNode* pC, const StructNode* pR, 
+	     const StructNode* pC, const Mat3x3& rrot, const StructNode* pR, 
 	     SetResForces **ppres, flag fOut)
 : Elem(uL, Elem::ROTOR, fOut), 
 AerodynamicElem(uL, AerodynamicElem::ROTOR, fOut), 
@@ -72,7 +72,7 @@ pCraft(pC), pRotor(pR),
 dOmegaRef(0.), dRadius(0.), dArea(0.), dUMean(0.), dUMeanPrev(0.), 
 dWeight(0.), dCorrection(1.),
 ppRes(ppres),
-RRotTranspose(0.), RRot3(0.), 
+RRotTranspose(0.), RRot(rrot), RRot3(0.), 
 VCraft(0.),
 dPsi0(0.), dSinAlphad(1.), dCosAlphad(0.),
 dMu(0.), dLambda(1.), dChi(0.),
@@ -121,7 +121,7 @@ void Rotor::Output(OutputHandler& OH) const
     iNumSteps++;
 
     /* updates the umean at the previous step */
-    (doublereal&)dUMeanPrev = dUMean; 
+    dUMeanPrev = dUMean; 
 
 
     if (fToBeOutput()) {
@@ -129,7 +129,7 @@ void Rotor::Output(OutputHandler& OH) const
         if (is_parallel && RotorComm.Get_size() > 1) { 
 	    if (RotorComm.Get_rank() == 0) {
 		Vec3 TmpF(pTmpVecR), TmpM(pTmpVecR+3);
-		Mat3x3 RT((pCraft->GetRCurr()).Transpose());
+		Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
 		OH.Rotors() << std::setw(8) << GetLabel() << " " 
 			<< (RT*TmpF) << " " << (RT*TmpM) << " " 
 			<< dUMean 
@@ -150,7 +150,7 @@ void Rotor::Output(OutputHandler& OH) const
 		}
 	    }
 	} else {
-	    Mat3x3 RT((pCraft->GetRCurr()).Transpose());
+	    Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
 	    OH.Rotors() << std::setw(8) << GetLabel() << " "
 		    << (RT*Res.Force()) << " " << (RT*Res.Couple()) << " " 
 		    << dUMean 
@@ -170,7 +170,7 @@ void Rotor::Output(OutputHandler& OH) const
 	    }
 	}
 #else /* !USE_MPI */     
-	Mat3x3 RT((pCraft->GetRCurr()).Transpose());
+	Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
 	OH.Rotors() << std::setw(8) << GetLabel() << " " 
 		<< (RT*Res.Force()) << " " << (RT*Res.Couple()) << " " 
 		<< dUMean 
@@ -234,7 +234,7 @@ void Rotor::InitParam(void)
    ASSERT(pRotor != NULL);
    
    /* Trasposta della matrice di rotazione del rotore */
-   RRotTranspose = pCraft->GetRCurr();
+   RRotTranspose = pCraft->GetRCurr()*RRot;
    RRot3 = RRotTranspose.GetVec(3);
    RRotTranspose = RRotTranspose.Transpose();
    
@@ -402,16 +402,17 @@ Rotor::ResetForce(void)
 NoRotor::NoRotor(unsigned int uLabel,
 		 const DofOwner* pDO,
 		 const StructNode* pCraft, 
+		 const Mat3x3& rrot,
 		 const StructNode* pRotor,
 		 SetResForces **ppres, 
 		 doublereal dR,
 		 flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
-Rotor(uLabel, pDO, pCraft, pRotor, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
 {
   dRadius = dR; /* puo' essere richiesto dal trim */
 #ifdef USE_MPI
-  if (fToBeOutput()) {
+  if (is_parallel && fToBeOutput()) {
     SAFENEWARR(pBlockLenght, int, 3);
     SAFENEWARR(pDispl, MPI::Aint, 3);
     for (int i=0; i < 3; i++) {
@@ -515,6 +516,7 @@ Vec3 NoRotor::GetInducedVelocity(const Vec3& /* X */ ) const
 UniformRotor::UniformRotor(unsigned int uLabel,
 			   const DofOwner* pDO,
 			   const StructNode* pCraft, 
+			   const Mat3x3& rrot,
 			   const StructNode* pRotor,
 			   SetResForces **ppres, 
 			   doublereal dOR,
@@ -523,7 +525,7 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 			   doublereal dC,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
-Rotor(uLabel, pDO, pCraft, pRotor, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
 {
    ASSERT(dOR > 0.);
    ASSERT(dR > 0.);
@@ -664,6 +666,7 @@ Vec3 UniformRotor::GetInducedVelocity(const Vec3& /* X */ ) const
 GlauertRotor::GlauertRotor(unsigned int uLabel,
 			   const DofOwner* pDO,
 			   const StructNode* pCraft,
+			   const Mat3x3& rrot,
 			   const StructNode* pRotor,
 			   SetResForces **ppres, 
 			   doublereal dOR,
@@ -672,7 +675,7 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 			   doublereal dC,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut),
-Rotor(uLabel, pDO, pCraft, pRotor, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
 {
    ASSERT(dOR > 0.);
    ASSERT(dR > 0.);
@@ -816,6 +819,7 @@ Vec3 GlauertRotor::GetInducedVelocity(const Vec3& X) const
 ManglerRotor::ManglerRotor(unsigned int uLabel,
 			   const DofOwner* pDO,
 			   const StructNode* pCraft, 
+			   const Mat3x3& rrot,
 			   const StructNode* pRotor,
 			   SetResForces **ppres, 
 			   doublereal dOR,
@@ -824,7 +828,7 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 			   doublereal dC,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
-Rotor(uLabel, pDO, pCraft, pRotor, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
 {
    ASSERT(dOR > 0.);
    ASSERT(dR > 0.);
@@ -1022,6 +1026,7 @@ const doublereal dM33 = -16./(45.*M_PI);
 DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 				       const DofOwner* pDO,
 				       const StructNode* pCraft, 
+				       const Mat3x3& rrot,
 				       const StructNode* pRotor,
 				       SetResForces **ppres, 
 				       doublereal dOR,
@@ -1031,7 +1036,7 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 				       doublereal dVSineTmp,
 				       flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut),
-Rotor(uLabel, pDO, pCraft, pRotor, ppres, fOut),
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut),
 dVConst(dVConstTmp), dVCosine(dVCosineTmp), dVSine(dVSineTmp), 
 dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
 {
@@ -1094,7 +1099,7 @@ void DynamicInflowRotor::Output(OutputHandler& OH) const
  	if (is_parallel && RotorComm.Get_size() > 1) {
    		if (RotorComm.Get_rank() == 0) {
        			Vec3 TmpF(pTmpVecR), TmpM(pTmpVecR+3);
-       			Mat3x3 RT((pCraft->GetRCurr()).Transpose());
+       			Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
        			OH.Rotors() << std::setw(8) << GetLabel() << " " 
 		   		<< (RT*TmpF) << " " << (RT*TmpM) << " " << dUMean << " "
 		   		<< dVConst << " " << dVCosine << " " << dVSine  << std::endl; 
@@ -1107,7 +1112,7 @@ void DynamicInflowRotor::Output(OutputHandler& OH) const
        			}
      		}
    	} else {
-    		Mat3x3 RT((pCraft->GetRCurr()).Transpose());
+    		Mat3x3 RT((pCraft->GetRCurr()).Transpose()*RRot);
 	 	OH.Rotors() << std::setw(8) << GetLabel() << " "
 		     	<< (RT*Res.Force()) << " " << (RT*Res.Couple()) << " " << dUMean << " "
 		     	<< dVConst << " " << dVCosine << " " << dVSine  << std::endl;
@@ -1119,7 +1124,7 @@ void DynamicInflowRotor::Output(OutputHandler& OH) const
 	    	}
   	}
 #else /* !USE_MPI */
-     	Mat3x3 RT((pCraft->GetRCurr()).Transpose());
+     	Mat3x3 RT((pCraft->GetRCurr()).Transpose()*RRot);
      	OH.Rotors() << std::setw(8) << GetLabel() << " " 
 		 << (RT*Res.Force()) << " " << (RT*Res.Couple()) << " " 
 		 << dUMean << " "
@@ -1428,7 +1433,13 @@ Elem* ReadRotor(DataManager* pDM,
 	<< ": craft structural node " << uNode
 	<< " not defined" << std::endl;     
       THROW(DataManager::ErrGeneric());
-   }		     
+   }
+
+   Mat3x3 rrot(Eye3);
+   if (HP.IsKeyWord("hinge")) {
+	   ReferenceFrame RF(pCraft);
+	   rrot = HP.GetRotRel(RF);
+   }
    
    uNode = (unsigned int)HP.GetInt();
    
@@ -1472,7 +1483,7 @@ Elem* ReadRotor(DataManager* pDM,
        
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      NoRotor,
-			      NoRotor(uLabel, pDO, pCraft, pRotor, 
+			      NoRotor(uLabel, pDO, pCraft, rrot, pRotor, 
 				      ppres, dR, fOut));
        break;
     }
@@ -1518,7 +1529,7 @@ Elem* ReadRotor(DataManager* pDM,
 	  SAFENEWWITHCONSTRUCTOR(pEl, 
 				 DynamicInflowRotor,
 				 DynamicInflowRotor(uLabel, pDO, 
-						    pCraft, pRotor, 
+						    pCraft, rrot, pRotor, 
 						    ppres, 
 						    dOR, dR,
 						    dVConst, dVCosine, dVSine,
@@ -1580,7 +1591,8 @@ Elem* ReadRotor(DataManager* pDM,
 	      DEBUGCOUT("Uniform induced velocity is considered" << std::endl);
 	      SAFENEWWITHCONSTRUCTOR(pEl, 
 				     UniformRotor,
-				     UniformRotor(uLabel, pDO, pCraft, pRotor,
+				     UniformRotor(uLabel, pDO, pCraft, rrot,
+					     pRotor,
 					     ppres, dOR, dR, dW, dC, fOut));
 	      break;
 	   }
@@ -1589,7 +1601,8 @@ Elem* ReadRotor(DataManager* pDM,
 	      DEBUGCOUT("Glauert induced velocity is considered" << std::endl);
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     GlauertRotor,
-				     GlauertRotor(uLabel, pDO, pCraft, pRotor,
+				     GlauertRotor(uLabel, pDO, pCraft, rrot,
+					     pRotor,
 					     ppres, dOR, dR, dW, dC, fOut));
 	      break;
 	   }
@@ -1599,7 +1612,8 @@ Elem* ReadRotor(DataManager* pDM,
 	      
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     ManglerRotor,
-				     ManglerRotor(uLabel, pDO, pCraft, pRotor, 
+				     ManglerRotor(uLabel, pDO, pCraft, rrot,
+					     pRotor, 
 					     ppres, dOR, dR, dW, dC, fOut));
 	      break;
 	   }
