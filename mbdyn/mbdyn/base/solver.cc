@@ -1165,11 +1165,16 @@ IfFirstStepIsToBeRepeated:
 				<< "total iterations: " << iTotIter << std::endl
 				<< "total Jacobians: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl;
+
+#ifdef USE_RTAI
 			if (bRT){
-				std::cout << "Total overruns:" << or_counter  << std::endl
-					  << "Total overruns time:" << t_tot << "micro s" << std::endl;
+				std::cout << "total overruns: " << or_counter  << std::endl
+					  << "total overrun time: " << t_tot << " micro s" << std::endl;
 			}
+#endif /* USE_RTAI */
+
 			return;
+
 #ifdef USE_RTAI
 		} else if (bRT && RTStpFlag == 1){
 			if (bRTHard) {
@@ -1196,6 +1201,7 @@ IfFirstStepIsToBeRepeated:
 				mbdyn_rt_make_soft_real_time();
 			}
 #endif /* USE_RTAI */
+
 	 		std::cout << "Interrupted!" << std::endl
 	   			<< "Simulation ended at time "
 				<< dTime << " after " 
