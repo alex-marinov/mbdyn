@@ -87,8 +87,8 @@ iNumSteps(0)
    Vec3 R3C((pCraft->GetRCurr()).GetVec(3));
    Vec3 R3R((pRotor->GetRCurr()).GetVec(3));
    if (R3C.Dot(R3R) < 1.-DBL_EPSILON) {
-      cerr << "warning, possible misalignment of rotor and craft axes at rotor "
-	<< GetLabel() << endl;
+      cerr << "warning, possible misalignment of rotor and craft axes "
+	      "for Rotor[" << GetLabel() << "]" << endl;
    }
 #ifdef USE_MPI
    RotorComm = MPI::COMM_WORLD.Dup();
@@ -261,7 +261,7 @@ void Rotor::InitParam(void)
    d = dOmega*dRadius;
    if (d > DBL_EPSILON) {
       dMu = (dVelocity*dCosAlphad)/d;
-      dLambda = (dVelocity*dSinAlphad+dUMean)/d;
+      dLambda = (dVelocity*dSinAlphad+dUMeanPrev)/d;
    }
    
    if (dMu == 0. && dLambda == 0.) {
@@ -337,17 +337,14 @@ void Rotor::ExchangeTraction(flag fWhat)
   if (RotorComm.Get_size() > 1){
     if (fWhat) {
       /* Scambia F e M */
-      for (int i=0; i <= 2; i++) { 
-	TmpVecS[i] = FTraction.pGetVec()[i];
-	TmpVecS[i+3] = MTraction.pGetVec()[i];
-      }
+      FTraction.PutTo(TmpVecS);
+      MTraction.PutTo(TmpVecS+3);
       RotorComm.Allreduce(TmpVecS, TmpVecR, 6, MPI::DOUBLE, MPI::SUM);
       for (int i=0; i <= 2; i++) { 
         FTraction.pGetVec()[i] = TmpVecR[i];
         MTraction.pGetVec()[i] = TmpVecR[i+3];
       }
-    } 
-    else {
+    } else {
       RotorComm.Allreduce(FTraction.pGetVec(), TmpVecR, 3, MPI::DOUBLE, MPI::SUM);
       for (int i=0; i <= 2; i++) { 
         FTraction.pGetVec()[i] = TmpVecR[i];
@@ -536,7 +533,7 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
   for (int i=0; i < 3; i++) {	
     pDispl[i] = MPI::Get_address(&(RRot3.pGetVec()[i]));	  	
   }
-  pDispl[3] = MPI::Get_address(&dUMean);
+  pDispl[3] = MPI::Get_address(&dUMeanPrev);
   for (int i=4; i <= 6; i++) {	
     pDispl[i] = MPI::Get_address(&(XCraft.pGetVec()[i-4]));	  	
   }
@@ -646,7 +643,7 @@ void UniformRotor::AddForce(const Vec3& F, const Vec3& M, const Vec3& X)
  * azimuthale */
 Vec3 UniformRotor::GetInducedVelocity(const Vec3& /* X */ ) const
 {
-  return RRot3*dUMean;
+  return RRot3*dUMeanPrev;
 };
 
 
@@ -687,7 +684,7 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
   for (int i=0; i < 3; i++) {	
     pDispl[i] = MPI::Get_address(&(RRot3.pGetVec()[i]));	  	
   }
-  pDispl[3] = MPI::Get_address(&dUMean);
+  pDispl[3] = MPI::Get_address(&dUMeanPrev);
   pDispl[4] = MPI::Get_address(&dLambda);
   pDispl[5] = MPI::Get_address(&dMu);
   pDispl[6] = MPI::Get_address(&dChi);
@@ -782,19 +779,19 @@ void GlauertRotor::AddForce(const Vec3& F, const Vec3& M, const Vec3& X)
  */
 Vec3 GlauertRotor::GetInducedVelocity(const Vec3& X) const
 {   
-   if (dUMean == 0.) {
+   if (dUMeanPrev == 0.) {
       return Vec3(0.);
    }
    
    if (fabs(dLambda) < 1.e-9) {
-      return RRot3*dUMean;
+      return RRot3*dUMeanPrev;
    }
    
    doublereal dr = dGetPos(X);
    doublereal dp = dGetPsi(X);
    doublereal dd = 1.+4./3.*(1.-1.8*dMu*dMu)*tan(dChi/2.)*dr*cos(dp);
    
-   return RRot3*(dd*dUMean);
+   return RRot3*(dd*dUMeanPrev);
 };
 
 
@@ -835,7 +832,7 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
   for (int i=0; i < 3; i++) {	
     pDispl[i] = MPI::Get_address(&(RRot3.pGetVec()[i]));	  	
   }
-  pDispl[3] = MPI::Get_address(&dUMean);
+  pDispl[3] = MPI::Get_address(&dUMeanPrev);
   pDispl[4] = MPI::Get_address(&dSinAlphad);
   pDispl[5] = MPI::Get_address(&dPsi0);
   for (int i=6; i <= 8; i++) {	
@@ -951,7 +948,7 @@ void ManglerRotor::AddForce(const Vec3& F, const Vec3& M, const Vec3& X)
  * azimuthale */
 Vec3 ManglerRotor::GetInducedVelocity(const Vec3& X) const
 {
-   if (dUMean == 0.) {
+   if (dUMeanPrev == 0.) {
       return Vec3(0.);
    }
    
@@ -990,7 +987,7 @@ Vec3 ManglerRotor::GetInducedVelocity(const Vec3& X) const
       dd -= 4.*dc*cos(i*dp);
    }
          
-   return RRot3*(dd*dUMean);
+   return RRot3*(dd*dUMeanPrev);
 };
 
 
@@ -1076,20 +1073,14 @@ void DynamicInflowRotor::Output(OutputHandler& OH) const
  if (RotorComm.Get_size() > 1) {
    if (!RotorComm.Get_rank()) {
      if (fToBeOutput()) {
+       Vec3 TmpF(TmpVecR), TmpM(TmpVecR+3);
        Mat3x3 RT((pCraft->GetRCurr()).Transpose());
-       FTraction.PutTo((doublereal *)TmpVecS);
-       MTraction.PutTo((doublereal *)TmpVecS+3);
-       ((Vec3&)FTraction) = Vec3(TmpVecR);
-       ((Vec3&)MTraction) = Vec3(TmpVecR+3);
        OH.Rotors() << setw(8) << GetLabel() << " " 
-		   << (RT*FTraction) << " " << (RT*MTraction) << " " << dUMean << " "
+		   << (RT*TmpF) << " " << (RT*TmpM) << " " << dUMean << " "
 		   << dVConst << " " << dVCosine << " " << dVSine  << endl; 
-	((Vec3&)FTraction) = Vec3(TmpVecS);
-	((Vec3&)MTraction) = Vec3(TmpVecS+3);
      }
    }
-  }
-  else {
+  } else {
     Mat3x3 RT((pCraft->GetRCurr()).Transpose());
 	 OH.Rotors() << setw(8) << GetLabel() << " "
 		     << (RT*FTraction) << " " << (RT*MTraction) << " " << dUMean << " "
@@ -1097,14 +1088,10 @@ void DynamicInflowRotor::Output(OutputHandler& OH) const
   }
 #else /* !USE_MPI */     
    if (fToBeOutput()) {
-// #if 0
-//        OH.Rotors() << setw(8) << GetLabel() << " " 
-// 		   << FTraction << " " << MTraction << " " << endl;
-// #endif
-       
      Mat3x3 RT((pCraft->GetRCurr()).Transpose());
      OH.Rotors() << setw(8) << GetLabel() << " " 
-		 << (RT*FTraction) << " " << (RT*MTraction) << " " << dUMean << " "
+		 << (RT*FTraction) << " " << (RT*MTraction) << " " 
+		 << dUMean << " "
 		 << dVConst << " " << dVCosine << " " << dVSine  << endl;
    } 
 #endif /* !USE_MPI */     
