@@ -95,33 +95,39 @@ struct DofOwner {
 class DofOwnerOwner {
  private:
    const DofOwner* pDofOwner;
+   static doublereal one;
    
  public:   
-   DofOwnerOwner(const DofOwner* pDO) : pDofOwner(pDO) { 
-      ASSERT(pDofOwner != NULL);
-   };
+   DofOwnerOwner(const DofOwner* pDO);
    
    inline const DofOwner* pGetDofOwner(void) const {
       ASSERT(pDofOwner != NULL);
       return pDofOwner; 
    };
    
-   /* Restituisce l'indice (-1) del primo Dof del nodo. Per ipotesi, 
+   /* 
+    * Restituisce l'indice (-1) del primo Dof del nodo. Per ipotesi, 
     * gli indici di eventuali altri Dof sono consecutivi.
     * Il primo Dof viene indirizzato nel modo seguente: 
     * - doublereal::X[Node::iGetFirstIndex()]   se si usa un array c,
     * - VectorHandler::dGetCoef(Node::iGetFirstIndex()+1) se si usa un handler
     * questa convenzione e' stata assunta per compatibilita' con le
-    * porzioni di codice scritte in FORTRAN */
+    * porzioni di codice scritte in FORTRAN
+    */
    inline integer iGetFirstIndex(void) const { 
       return pDofOwner->iFirstIndex; 
    };   
-   
-   virtual void SetInitialValue(VectorHandler& /* X */ ) const { 
-      NO_OP; 
+
+   /*
+    * Scale coefficient used in normalization of dof value,
+    * residual and so on; must be positive and > 0. (DBL_EPSILON)
+    */
+   virtual inline const doublereal& dGetScale(unsigned int /* iDof */ ) const {
+      return one;
    };
-   
-   // virtual void SetValue(VectorHandler& X, VectorHandler& XP) const = 0;
+
+   virtual void DofOwnerOwner::SetInitialValue(VectorHandler& /* X */ ) const;
 };
 
-#endif
+#endif /* DOFOWN_H */
+
