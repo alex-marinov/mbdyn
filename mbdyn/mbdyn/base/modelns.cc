@@ -42,6 +42,24 @@ typedef Real (*ModelFunc_2args_t)(DataManager *, Real, Real);
 /*
  * Computes the distance between two structural nodes
  */
+template <unsigned IDX>
+static Real
+position(DataManager *pDM, Real n)
+{
+	unsigned uLabel = unsigned(n);
+
+	StructNode *pNode = pDM->pFindStructNode(uLabel);
+	if (pNode == 0) {
+		silent_cerr("position<" << IDX << ">(" << uLabel << "): "
+				"unable to find StructNode(" << uLabel << ")"
+				<< std::endl);
+		throw ErrGeneric();
+	}
+
+	return pNode->GetXCurr()(IDX);
+}
+
+template <unsigned IDX>
 static Real
 distance(DataManager *pDM, Real n1, Real n2)
 {
@@ -64,14 +82,26 @@ distance(DataManager *pDM, Real n1, Real n2)
 		throw ErrGeneric();
 	}
 
-	return (pNode2->GetXCurr() - pNode1->GetXCurr()).Norm();
+	Vec3 d = pNode2->GetXCurr() - pNode1->GetXCurr();
+
+	if (IDX == 0) {
+		return d.Norm();
+	}
+
+	return d(IDX);
 }
 
 static MathFunc_t	ModelFunc[] = {
-	{ "distance",	2,	{ (MathFunc_0args_t)distance },	0,	"" },
+	{ "xposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<1>) },	0,	"" },
+	{ "yposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<2>) },	0,	"" },
+	{ "zposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<3>) },	0,	"" },
+	{ "distance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<0>) },		0,	"" },
+	{ "xdistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<1>) },	0,	"" },
+	{ "ydistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<2>) },	0,	"" },
+	{ "zdistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<3>) },	0,	"" },
 
      /* add more as needed */
-	{ 0,		0,	{ (MathFunc_0args_t)0 },	0,	0 }
+	{ 0,		0,	{ (MathFunc_0args_t)0 },		0,	0 }
 };
 
 ModelNameSpace::ModelNameSpace(DataManager *pdm)
