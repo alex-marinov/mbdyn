@@ -661,6 +661,27 @@ GenelStateSpaceSISO::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+/*
+ * output; si assume che ogni tipo di elemento sappia, attraverso
+ * l'OutputHandler, dove scrivere il proprio output
+ */
+void
+GenelStateSpaceSISO::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) {
+		std::ostream &out(OH.Genels());
+		out << std::setw(8) << GetLabel();
+		for (unsigned int i = 0; i < iNumDofs; i++) {
+			out << " " << pdX[i];
+		}
+		for (unsigned int i = 0; i < iNumDofs; i++) {
+			out << " " << pdXP[i];
+		}
+		out << "\n";
+	}
+}
+
+
 /* GenelStateSpaceSISO - end */
 
 

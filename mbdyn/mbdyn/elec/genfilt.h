@@ -246,6 +246,10 @@ class GenelStateSpaceSISO : public Genel {
 				    const VectorHandler& XCurr,
 				    const VectorHandler& XPrimeCurr);
 
+    /* output; si assume che ogni tipo di elemento sappia, attraverso
+     * l'OutputHandler, dove scrivere il proprio output */
+    virtual void Output(OutputHandler& OH) const;   
+
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
