@@ -80,6 +80,7 @@ public:
 	bool SetSolverFlags(unsigned f);
 	bool AddSolverFlags(unsigned f);
 	bool MaskSolverFlags(unsigned f);
+	bool SetNumThreads(unsigned nt);
 	integer iGetWorkSpaceSize(void) const;
 	const doublereal& dGetPivotFactor(void) const;
 

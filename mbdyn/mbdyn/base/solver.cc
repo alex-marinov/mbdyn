@@ -1850,6 +1850,10 @@ Solver::ReadData(MBDynParser& HP)
 	
 	StepIntegratorType RegularType = INT_UNKNOWN, FictitiousType = INT_UNKNOWN; 
 	
+#ifdef USE_MULTITHREAD
+	bool bSolverThreads(false);
+	unsigned nSolverThreads = 0;
+#endif /* USE_MULTITHREAD */
 	
 	 	
    	/* Ciclo infinito */
@@ -2970,7 +2974,30 @@ Solver::ReadData(MBDynParser& HP)
 				
 			} else {
 #ifdef USE_MULTITHREAD
-				nThreads = HP.GetInt();
+				bool bAssembly = false;
+				bool bSolver = false;
+				bool bAll = true;
+				unsigned nt;
+
+				if (HP.IsKeyWord("assembly")) {
+					bAll = false;
+					bAssembly = true;
+
+				} else if (HP.IsKeyWord("solver")) {
+					bAll = false;
+					bSolver = true;
+				}
+
+				nt = HP.GetInt();
+
+				if (bAll || bAssembly) {
+					nThreads = nt;
+				}
+
+				if (bAll || bSolver) {
+					bSolverThreads = true;
+					nSolverThreads = nt;
+				}
 #else /* ! USE_MULTITHREAD */
 				(void)HP.GetInt();
 				silent_cerr("configure with "
@@ -3143,7 +3170,18 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		std::cerr << "Unknown integration method" << std::endl;
 		THROW(ErrGeneric());
 		break;
-	}	
+	}
+
+#ifdef USE_MULTITHREAD
+	if (bSolverThreads) {
+		if (CurrLinearSolver.SetNumThreads(nSolverThreads)) {
+			silent_cerr("linear solver "
+					<< CurrLinearSolver.GetSolverName()
+					<< " does not support "
+					"threaded solution" << std::endl);
+		}
+	}
+#endif /* USE_MULTITHREAD */
 }
 
 /* Estrazione autovalori, vincolata alla disponibilita' delle LAPACK */

@@ -430,6 +430,25 @@ LinSol::MaskSolverFlags(unsigned f)
 	return false;
 }
 
+bool
+LinSol::SetNumThreads(unsigned nt)
+{
+	if (GetSolverFlags(CurrSolver) & LinSol::SOLVER_FLAGS_ALLOWS_MT) {
+		if (nt == 0) {
+			solverFlags &= ~LinSol::SOLVER_FLAGS_ALLOWS_MT;
+
+		} else {
+			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_MT;
+		}
+
+		nThreads = nt;
+
+		return true;
+	}
+
+	return false;
+}
+
 integer
 LinSol::iGetWorkSpaceSize(void) const
 {
