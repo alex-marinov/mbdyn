@@ -433,14 +433,25 @@ simulation-related output, and takes care of some debug output.
 This command requests special output related to the solution phase.
 \begin{verbatim}
     <card> ::= output : <item> [ , <item> ] ;
-    <item> ::= { iterations | residual | jacobian }
+    <item> ::= { none | iterations | residual
+        | solution | jacobian | messages }
 \end{verbatim}
 The item \texttt{iterations} logs a detailed output of the error
-at each iteration inside a time step in the \texttt{.out} file.
-The item \texttt{residual} and the item \texttt{jacobian} log
-the residual and the jacobian to standard output; they are
+at each iteration inside a time step 
+% in the \texttt{.out} file.
+on the standard output.
+The items \texttt{residual}, \texttt{solution} and \texttt{jacobian} log
+the residual, the solution and the jacobian to standard output; they are
 currently available only for the umfpack solver, and they are
 mainly intended for last resort debugging purposes.
+The item \texttt{messages} refers to all messaging 
+on the \texttt{.out} file; by default, it is on.
+The special item \texttt{none} clears the output flags; the items
+are additive, so, for instance, to clear out the default 
+and add the iterations output, use:
+\begin{verbatim}
+    output: none, iterations;
+\end{verbatim}
 
 \chapter{Control Data}
 This section is read by the manager of all the bulk simulation data, namely
