@@ -309,7 +309,7 @@ SuperLUSolver::Factor(void)
 		sem_post(&thread_data[t].sem);
 	}
 
-	(void)pdgstrf_thread(&thread_data[0].pdgstrf_threadarg);
+	(void)pdgstrf_thread(thread_data[0].pdgstrf_threadarg);
 
 	pthread_mutex_lock(&thread_mutex);
 	if (thread_count > 0) {
