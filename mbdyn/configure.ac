@@ -695,6 +695,7 @@ if test $ol_with_blas != no ; then
 			],[
 				/* test for blas */
 			],[have_blas=goto],[have_blas=no])
+			LIBS="$save_LIBS"
 
 			if test $ol_with_blas = "goto" ; then
 				AC_MSG_ERROR([Goto blas implementation not available])
@@ -711,6 +712,7 @@ if test $ol_with_blas != no ; then
 			],[
 				/* test for blas */
 			],[have_blas=atlas],[have_blas=no])
+			LIBS="$save_LIBS"
 
 			if test $ol_with_blas = "atlas" ; then
 				AC_MSG_ERROR([Atlas blas implementation not available])
@@ -727,6 +729,7 @@ if test $ol_with_blas != no ; then
 			],[
 				/* test for blas */
 			],[have_blas=cblas],[have_blas=no])
+			LIBS="$save_LIBS"
 
 			if test $ol_with_blas = "cblas" ; then
 				AC_MSG_ERROR([CBLAS not available])
@@ -743,6 +746,7 @@ if test $ol_with_blas != no ; then
 			],[
 				/* test for blas */
 			],[have_blas=blas],[have_blas=no])
+			LIBS="$save_LIBS"
 
 			if test $ol_with_blas = "blas" ; then
 				AC_MSG_ERROR([BLAS not available])
@@ -752,7 +756,6 @@ if test $ol_with_blas != no ; then
 
 	dnl revert to original libraries; the BLAS libraries 
 	dnl will be explicitly added by those libraries that require them
-	LIBS="$save_LIBS"
 	if test $have_blas != no ; then
 		ol_link_blas=yes
 		BLAS_LIBS="$try_blas_LIBS"
