@@ -102,7 +102,10 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
          * J(XCurr) * w = -||w|| * (Res(XCurr + sigma * Tau * w/||w||) - f0) / (sigma * Tau)
          * 
          */
-		
+	if (bEvalProdCalledFirstTime) {
+		XTau.Resize(w.iGetSize());
+		bEvalProdCalledFirstTime = false;
+	}
 	/* if w = 0; J * w = 0 */ 
 	ASSERT(pDM != NULL);
         
@@ -121,9 +124,7 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 #ifdef DEBUG_ITERATIVE
 	std::cout << "Tau " << Tau << std::endl;
 #endif /* DEBUG_ITERATIVE */
-		
-        MyVectorHandler XTau(w.iGetSize());
-
+	
 	XTau.Reset(0.);
 	z.Reset(0.);
         XTau.ScalarMul(w, Tau);

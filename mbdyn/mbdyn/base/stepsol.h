@@ -135,6 +135,10 @@ class ImplicitStepIntegrator:
 	public StepIntegrator,
 	public NonlinearProblem
 {
+private:
+	/* needed by EvalProd */
+	mutable MyVectorHandler XTau;
+	mutable bool bEvalProdCalledFirstTime;
 protected:
 	VectorHandler *pXCurr;
 	VectorHandler *pXPrimeCurr; 
@@ -146,7 +150,8 @@ public:
 			const integer sts) :
 	StepIntegrator(MaxIt,dT,dSolutionTol,stp,sts),
 	pXCurr(0),
-	pXPrimeCurr(0)
+	pXPrimeCurr(0),
+	bEvalProdCalledFirstTime(true)
 	{
 		NO_OP;
 	};
