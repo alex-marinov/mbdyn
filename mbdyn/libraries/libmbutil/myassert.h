@@ -2,7 +2,7 @@
  * This library comes with MBDyn (C), a multibody analysis code.
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2004
+ * Copyright (C) 1996-2005
  *
  * Pierangelo Masarati  <masarati@aero.polimi.it>
  *
