@@ -3,21 +3,9 @@
 #include <loadable.h>
 
 /*
- *	2 corpi: 
- *	-	Wheel
- *	-	Ground
+ * Usage:
  *
- *	Note: 
- *	-	Axle e Wheel sono collegati da un giunto che consente
- *		solo rotazione relativa attorno ad un asse (axle)
- *	-	Si assume che il centro della ruota coincida con
- *		la posizione del corpo ruota
- *	-	Ground supporta un piano definito dalla normale e da
- *		un punto (potra' essere reso deformabile e "non piano"
- *		in futuro)
- *	-	Le forze sono applicate nel "punto di contatto", che viene
- *		calcolato in base a considerazioni geometriche sulla
- *		posizione ed orientazione relativa tra Wheel e Ground.
+ *	loadable: <label>, <module name>, help [ , <module data> ] ;
  */
 
 struct module_wheel {
@@ -101,6 +89,15 @@ read(LoadableElem* pEl,
 	if (HP.IsKeyWord("help")) {
 		cout <<
 "									\n"
+"Module: 	wheel2							\n"
+"Author: 	Stefania Gualdi <gualdi@aero.polimi.it>			\n"
+"		Pierangelo Masarati <masarati@aero.polimi.it>		\n"
+"Organization:	Dipartimento di Ingegneria Aerospaziale			\n"
+"		Politecnico di Milano					\n"
+"		http://www.aero.polimi.it				\n"
+"									\n"
+"	All rights reserved						\n"
+"									\n"
 "2 corpi:								\n"
 "     -	Wheel								\n"
 "     -	Ground								\n"
@@ -147,7 +144,12 @@ read(LoadableElem* pEl,
 "		14)	coefficiente di attrito laterale		\n"
 			<< endl;
 
-		THROW(NoErr());
+		if (!HP.fIsArg()) {
+			/*
+			 * Exit quietly if nothing else is provided
+			 */
+			THROW(NoErr());
+		}
 	}
 
 	/*

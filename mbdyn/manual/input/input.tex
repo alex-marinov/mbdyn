@@ -690,7 +690,9 @@ and defined in the {\tt drivers} section of the input file
 {\tt expression\_string} is a string, delimited by double quotes.
 It is parsed by the math parser every time the driver is invoked.
 The valiable {\tt Time} is kept up to date and can be used in the 
-string to compute the return value.  
+string to compute the return value.
+Another variable, {\tt Var}, is set to the value provided by the caller
+in case the drive is called with an explicit argument.
 
 \subsubsection{Dof drive}
 \begin{verbatim}
@@ -2961,6 +2963,8 @@ succeeded, a function called {\tt read} is invoked, and passed the input
 stream.
 This function is in charge of reading {\tt module\_data} following the
 general syntax of the input file.
+It is advisable that the function {\tt read} print some help message
+when the first field of {\tt module\_data} is the keyword {\tt help}.
 All the helpers and the high-level structures are available, such as
 drivers, constitutive laws, reference frames.
 Refer to each module for a description (if available) of the features and of
