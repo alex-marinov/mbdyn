@@ -2605,7 +2605,7 @@ ReadModal(DataManager* pDM,
 		unsigned int	NRejModes = 0;
 		char		str[BUFSIZ];
 
-		while (!fdat.eof()) {        /* parsing del file */
+		while (fdat && !fdat.eof()) {        /* parsing del file */
 			fdat.getline(str, sizeof(str));
 	
 			/* legge il primo blocco (HEADER) */
