@@ -441,7 +441,7 @@ StructNode::InitialUpdate(const VectorHandler& X)
    Mat3x3 RDelta(MatR, gCurr);
 #else
    /* Nuovo manipolatore (e' meno efficiente) */
-   RDelta = MatR << gCurr;
+   Mat3x3 RDelta(MatR << gCurr);
 #endif
    
    RCurr = RDelta*RRef;
