@@ -34,59 +34,60 @@
 #include "node.h"
 #include "elem.h"
 
-
 /* Elem2Param - begin */
 
 class Elem2Param : public ParameterNode {
- protected:   
-   Elem* pElem;  
-   unsigned int iNum;
-   
- public:
-   Elem2Param(unsigned int uL, const DofOwner* pDO, flag fOut);
-   virtual ~Elem2Param(void);
-   
-   virtual void Bind(const Elem* pEl, unsigned int i);
-   
-   /* Contributo del nodo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
+protected:   
+	Elem* pElem;  
+	unsigned int iNum;
 
-   /* Restituisce il valore del dof iDof;
-    * se differenziale, iOrder puo' essere = 1 per la derivata */
-   virtual inline const doublereal& 
-     dGetDofValue(int iDof, int iOrder = 0) const;
-
-   /* virtual void SetX(const doublereal& d); */
-   virtual inline const doublereal& dGetX(void) const;
+public:
+	Elem2Param(unsigned int uL, const DofOwner* pDO, flag fOut);
+	virtual ~Elem2Param(void);
    
-   /* Setta il valore del dof iDof a dValue;
-    * se differenziale, iOrder puo' essere = 1 per la derivata */
-   virtual void SetDofValue(const doublereal& dValue,
-			    unsigned int iDof, 
-			    unsigned int iOrder = 0);
+	virtual void Bind(const Elem* pEl, unsigned int i);
 
-   virtual void SetValue(VectorHandler&, VectorHandler&) const;
+	/* Contributo del nodo al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* Restituisce il valore del dof iDof;
+	 * se differenziale, iOrder puo' essere = 1 per la derivata */
+	virtual inline const doublereal& 
+	dGetDofValue(int iDof, int iOrder = 0) const;
+
+	/* virtual void SetX(const doublereal& d); */
+	virtual inline const doublereal& dGetX(void) const;
+
+	/* Setta il valore del dof iDof a dValue;
+	 * se differenziale, iOrder puo' essere = 1 per la derivata */
+	virtual void SetDofValue(const doublereal& dValue,
+			unsigned int iDof, 
+			unsigned int iOrder = 0);
+
+	virtual void SetValue(VectorHandler&, VectorHandler&) const;
 };
 
 
 /* Restituisce il valore del dof iDof;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
+inline const doublereal&
 #ifdef DEBUG
-inline const doublereal& Elem2Param::dGetDofValue(int iDof, int iOrder) const
-#else
-inline const doublereal& Elem2Param::dGetDofValue(int /* iDof */ , int /* iOrder */ ) const
-#endif
+Elem2Param::dGetDofValue(int iDof, int iOrder) const
+#else /* !DEBUG */
+Elem2Param::dGetDofValue(int /* iDof */ , int /* iOrder */ ) const
+#endif /* !DEBUG */
 {
-   ASSERT(iDof == 1);
-   ASSERT(iOrder == 0);
-   return dGetX();
+	ASSERT(iDof == 1);
+	ASSERT(iOrder == 0);
+	return dGetX();
 }
 
 /* Restituisce il valore del dof */
-inline const doublereal& Elem2Param::dGetX(void) const
+inline const doublereal&
+Elem2Param::dGetX(void) const
 {
-   dX = pElem->dGetPrivData(iNum);
-   return dX;
+	dX = pElem->dGetPrivData(iNum);
+	return dX;
 }
 
 /* Elem2Param - end */
@@ -95,35 +96,27 @@ inline const doublereal& Elem2Param::dGetX(void) const
 /* StrainGageParam - begin */
 
 class StrainGageParam : public Elem2Param {
- protected:  
-   doublereal dY;
-   doublereal dZ;
+protected:  
+	doublereal dY;
+	doublereal dZ;
    
- public:
-   StrainGageParam(unsigned int uL, const DofOwner* pDO,
-		   doublereal dy, doublereal dz, flag fOut);
-   virtual ~StrainGageParam(void);
-   
-   virtual void Bind(const Elem* pEl, unsigned int i);
-   
-   /* Contributo del nodo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
+public:
+	StrainGageParam(unsigned int uL, const DofOwner* pDO,
+     			doublereal dy, doublereal dz, flag fOut);
+	virtual ~StrainGageParam(void);
 
-   /* Restituisce il valore del dof iDof;
-    * se differenziale, iOrder puo' essere = 1 per la derivata */
-   virtual inline const doublereal& 
-     dGetDofValue(int iDof, int iOrder = 0) const;
+	virtual void Bind(const Elem* pEl, unsigned int i);
 
-   /* virtual void SetX(const doublereal& d); */
-   virtual inline const doublereal& dGetX(void) const;   
-   
-   /* Setta il valore del dof iDof a dValue;
-    * se differenziale, iOrder puo' essere = 1 per la derivata
-    * (usa quella di Elem2Param)
-   virtual void SetDofValue(const doublereal& dValue,
-			    unsigned int iDof, 
-			    unsigned int iOrder = 0);
-    */
+	/* Contributo del nodo al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* Restituisce il valore del dof iDof;
+	 * se differenziale, iOrder puo' essere = 1 per la derivata */
+	virtual inline const doublereal& 
+	dGetDofValue(int iDof, int iOrder = 0) const;
+
+	/* virtual void SetX(const doublereal& d); */
+	virtual inline const doublereal& dGetX(void) const;   
 };
 
 
@@ -132,26 +125,29 @@ class StrainGageParam : public Elem2Param {
 inline const doublereal&
 #ifdef DEBUG
 StrainGageParam::dGetDofValue(int iDof, int iOrder) const
-#else
+#else /* !DEBUG */
 StrainGageParam::dGetDofValue(int /* iDof */ , int /* iOrder */ ) const
-#endif
+#endif /* !DEBUG */
 {
-   ASSERT(iDof == 1);
-   ASSERT(iOrder == 0);
-   return dGetX();
+	ASSERT(iDof == 1);
+	ASSERT(iOrder == 0);
+	return dGetX();
 }
 
 
 /* Restituisce il valore del dof iDof;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
-inline const doublereal& StrainGageParam::dGetX(void) const
+inline const doublereal&
+StrainGageParam::dGetX(void) const
 {  
-   unsigned int i = iNum-1;
-   return ((doublereal&)dX = pElem->dGetPrivData(6*i+1)
-           +dZ*pElem->dGetPrivData(6*i+5)
-	   -dY*pElem->dGetPrivData(6*i+6));
+	unsigned int i = 6 * (iNum - 1);
+
+	return ((doublereal&)dX = pElem->dGetPrivData(i+1)
+		+dZ*pElem->dGetPrivData(i+5)
+		-dY*pElem->dGetPrivData(i+6));
 }
 
 /* StrainGageParam - end */
 
-#endif // J2P_H
+#endif /* J2P_H */
+
