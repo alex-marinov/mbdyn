@@ -27,55 +27,25 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef AC_F2C_H
-#define AC_F2C_H
+#ifndef AC_F2C_INT_H
+#define AC_F2C_INT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#ifdef HAVE_F2C_H
-#include <f2c.h>
-#define HAVE_FLAG_T
-#else /* !HAVE_F2C_H */
+#include <ac/f2c.h>
 
-#ifdef __alpha
-typedef int integer;
-typedef float real;
-typedef double doublereal;
-#else /* !__alpha */
-typedef long int integer;
-typedef float real;
-typedef double doublereal;
-#endif /* !__alpha */
-
-typedef integer logical;
-#if 0	/* we define flag somewhere else (we'll get rid of f2c some day!) */
-typedef integer flag;
-#endif
-typedef integer ftnlen;
-typedef integer ftnint;
-typedef char *address;
-
-#endif /* !HAVE_F2C_H */
-   
-#ifdef USE_UNDERSCORE
-#define __FC_DECL__(arg) arg ##_
-#else /* USE_UNDERSCORE */
-#define __FC_DECL__(arg) arg
-#endif /* USE_UNDERSCORE */
-
-/*
- * FIXME: non so se e' __FC_DECL__ o solo FALSE_
- * In g2c.h e' cosi':
- */
-#define FALSE_ (0)
-#define TRUE_ (1)
-
+#ifndef min
+#define min(a,b) ((a) < (b) ? (a) : (b))
+#endif /* !min */
+#ifndef max
+#define max(a,b) ((a) > (b) ? (a) : (b))
+#endif /* !max */
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* AC_F2C_H */
+#endif /* AC_F2C_INT_H */
 

@@ -39,6 +39,7 @@
 #include <termios.h>
 
 #include <ac/getopt.h>
+#include <ac/f2c-int.h>
 
 /* haldler to piped gnuplot */
 FILE *gnuplot = NULL;
