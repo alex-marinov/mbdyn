@@ -134,7 +134,8 @@ pJac(NULL),
 bTrueNewtonRaphson(bTNR),
 IterationBeforeAssembly(IterBfAss),
 bKeepJac(bKJ),
-iPerformedIterations(0)
+iPerformedIterations(0),
+pPrevNLP(NULL)
 {
 	NO_OP;
 }
@@ -167,9 +168,11 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 	Size = pRes->iGetSize();
 	
 	iIterCnt = 0;
-	if (!bKeepJac) {
+	if (!bKeepJac || (pNLP != pPrevNLP)) {
 		iPerformedIterations = 0;
 	}
+	pPrevNLP = pNLP;
+
 #ifdef MBDYN_X_CONVSOL
 	dSolErr = 0.;
 #endif /* MBDYN_X_CONVSOL  */	

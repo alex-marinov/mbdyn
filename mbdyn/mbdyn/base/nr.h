@@ -51,7 +51,7 @@ class NewtonRaphsonSolver : public NonlinearSolver
 	integer IterationBeforeAssembly;
 	bool bKeepJac;
 	integer iPerformedIterations;
-	
+	const NonlinearProblem* pPrevNLP;	
 
 public:
 	NewtonRaphsonSolver(const bool bTNR,
