@@ -2117,14 +2117,27 @@ Modal::dGetM(void) const
 Vec3
 Modal::GetS_int(void) const
 {
-	return Zero3;
+	Mat3x3 R = pModalNode->GetRCurr();
+
+	Vec3 S = R*(Inv2+Inv3jaj);
+
+	return S;
 }
 
 /* momento d'inerzia */
 Mat3x3
 Modal::GetJ_int(void) const
 {
-	return Zero3x3;
+	Mat3x3 R = pModalNode->GetRCurr();
+	Mat3x3 RT = R.Transpose();
+
+	Mat3x3 J = R*(Inv7+Inv8jaj.Symm2()
+#ifdef MODAL_USE_INV9
+			-Inv9jkajak
+#endif /* MODAL_USE_INV9 */
+			)*RT;
+
+	return J;
 }
 
 
