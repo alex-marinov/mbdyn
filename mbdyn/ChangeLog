@@ -6,6 +6,10 @@ Copyright (C) 1996-2003
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Wed Oct 22 17:27:23 CEST 2003 Pierangelo Masarati <masarati@aero.polimi.it>
+ - Reworked Drive Hinge; no longer experimental but with \pi limitation;
+   needs more work...
+
 *** Sun Oct 12 23:16:50 CEST 2003 Walter Landry <wlandry@ucsd.edu>,
 				  Pierangelo Masarati <masarati@aero.polimi.it>
  - Reworking of parallel partitioning; added support for Chaco
