@@ -99,7 +99,7 @@ read_part(HighParser& HP)
     enum KeyWord { KEYWORD1, KEYWORD2, KEYWORD_LAST };
     char *key_table_array[] = { "keyword1", "keyword2", 0 };
     /* build KeyTable class */
-    KeyTable k(HP, keytable);
+    KeyTable k(HP, key_table_array);
     Part *returned_object = 0;
     /* parse input */
     do {
