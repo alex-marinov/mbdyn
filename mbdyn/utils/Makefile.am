@@ -53,9 +53,9 @@ sockdrive_SOURCES = sockdrive.cc
 vec2rot_SOURCES = vec2rot.cc
 
 cl_LDADD = $(MYLIBS)
-dae_intg_LDADD = $(MYLIBS) -ldl
+dae_intg_LDADD = $(MYLIBS)
 eu2rot_LDADD = $(MYLIBS)
-intg_LDADD = $(MYLIBS) -ldl
+intg_LDADD = $(MYLIBS)
 posrel_LDADD = $(MYLIBS)
 rot2eup_LDADD = $(MYLIBS)
 rot2eu_LDADD = $(MYLIBS)
