@@ -1960,6 +1960,22 @@ if required, by manually editing the file; however this practice
 is discouraged, unless strictly required.
 
 
+\noindent
+\textbf{Note about the structural damping:}
+structural damping can be provided by specifying any of the
+\kw{no damping}, \kw{proportional damping} or \kw{diag damping}.
+In the last two cases, a damping factor is required.
+The corresponding damping for the $i$-th mode is computed as
+\begin{displaymath}
+	c_i = \mathrm{factor}_i \sqrt{k_i m_i}
+\end{displaymath}
+where $\mathrm{factor}_i$ is the value provided
+for \kw{proportional damping} (same for all modes) or the list 
+of values provided for \kw{diag damping} (for each mode).
+For example, a factor of 0.01 means 1\% damping.
+
+
+
 
 \subsection{Plane displacement}\label{sec:EL:STRUCT:JOINT:PLANE_DISPLACEMENT}
 This joint allows two nodes to move in the common relative 1--2 plane 
