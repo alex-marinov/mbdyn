@@ -88,7 +88,7 @@ C     legge la prima matrice in modo da conoscere il numero di modi
       call GETIDS(m,ncol,nrow,name,maxmod,maxmod,m,1,in4f,err)
       nmodes = nrow
       
-      write(outfil,'(A24)') '** MBdyn MODAL DATA FILE'
+      write(outfil,'(A24)') '** MBDyn MODAL DATA FILE'
       write(outfil,'(A18)') '** NODE SET "ALL" '
       write(outfil,*) ' '
       write(outfil,*) ' '
