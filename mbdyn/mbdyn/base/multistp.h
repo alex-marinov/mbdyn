@@ -65,16 +65,27 @@
 #include <ac/fstream>
  
 class PODMat {
- 
        doublereal* A;
        unsigned long Rows, Cols, Cnt;
        mutable bool bOutput;
+       char *sfname;
  
  public:
  
-       PODMat(unsigned long rows, unsigned long cols)
-       : Rows(rows), Cols(cols), Cnt(0), bOutput(false) {
+       PODMat(unsigned long rows, unsigned long cols, const char *sfn = NULL)
+       : Rows(rows), Cols(cols), Cnt(0), bOutput(false), sfname(NULL) {
                SAFENEWARR(A, doublereal, rows*cols);
+
+	       if (sfn == NULL) {
+		       SAFESTRDUP(sfname, "MBDyn.POD");
+	       } else {
+		       size_t l = strlen(sfn);
+
+		       SAFENEWARR(sfname, char, l+sizeof(".POD"));
+
+		       memcpy(sfname, sfn, l);
+		       memcpy(sfname+l, ".POD", sizeof(".POD"));
+	       }
        };
  
        ~PODMat(void) {
@@ -82,6 +93,7 @@ class PODMat {
 		       Output();
 	       }
                SAFEDELETEARR(A);
+	       SAFEDELETEARR(sfname);
        }
  
        void AddTVec(VectorHandler* Vec, unsigned long pos) {
@@ -99,26 +111,32 @@ class PODMat {
 				       << " frames computed" << std::endl);
 	       }
 
-               std::ofstream out("mbdyn.POD");
+	       std::ofstream out(sfname);
+	       if (!out) {
+		       std::cerr << "unable to open file \"" << sfname
+			       << "\"" << std::endl;
+		       THROW(ErrGeneric());
+	       }
+
 #ifdef __HACK_POD_BINARY__
 	       out.write((char *)A, Cols*Rows*sizeof(doublereal));
 #else /* !__HACK_POD_BINARY__ */
 	       doublereal *d = A;
-               for (int i = 0; i < Cnt; i++) {         
+               for (unsigned long i = 0; i < Cnt; i++) {         
                        out << d[0];
-                       for (int j = 1; j < Rows; j++) {
+                       for (unsigned long j = 1; j < Rows; j++) {
                                out << "  " << d[j];
                        }
                        out << std::endl;
 		       d += Rows;
                }
 #endif /* __HACK_POD_BINARY__ */
-	       out.close();
-
 	       bOutput = true;
+
+	       out.close();
        };
 };
-        
+ 
 #endif /* __HACK_POD__ */
 
 /* MultiStepIntegrator - begin */
@@ -156,20 +174,6 @@ private:
    	/* Dati per strategia DRIVER_CHANGE */
 	DriveCaller* pStrategyChangeDrive;
  
-#ifdef __HACK_POD__
-        /* Dati per il cacole delle matrici delle covarianze */
-       struct PODData {
-               doublereal dTime;
-               int iSteps;
-               int iFrames;
-       } pod;
-       flag fPOD;
-       int iPODStep;
-       int iPODFrames;
-#endif /*__HACK_POD__*/
- 
-
-
 #ifdef __HACK_EIG__
    	/* Dati per esecuzione di eigenanalysis */
    	struct WhenEigen {
@@ -182,7 +186,20 @@ private:
 	doublereal dUpperFreq;
 	doublereal dLowerFreq;
 #endif /* __HACK_EIG__ */
- 
+
+#ifdef __HACK_POD__
+        /* Dati per il cacole delle matrici delle covarianze */
+       struct PODData {
+               doublereal dTime;
+               int iSteps;
+               int iFrames;
+       } pod;
+
+       flag fPOD;
+       int iPODStep;
+       int iPODFrames;
+#endif /*__HACK_POD__*/
+
    	/* 
 	 * puntatori alle strutture di gestione delle soluzioni ai vari passi
 	 */

@@ -396,7 +396,12 @@ MultiStepIntegrator::Run(void)
    	pXPrimePrev2->Reset(0.);
 
 #ifdef __HACK_POD__
-        PODMat APOD(iNumDofs, pod.iFrames); 
+	/*
+	 * FIXME: we're hijacking the output file name with an extension
+	 * that might be already in use by the OutputHandler; however,
+	 * this is a hack ...
+	 */
+        PODMat APOD(iNumDofs, pod.iFrames, sOutputFileName); 
 #endif /*__HACK_POD__*/
 
    	/* Subito collega il DataManager alla soluzione corrente */

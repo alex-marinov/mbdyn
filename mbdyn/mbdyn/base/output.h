@@ -73,7 +73,7 @@ class OutputHandler : public FileName {
       REFERENCEFRAMES	= 19,
       LOG         = 20,
       AIRPROPS	  = 21,
-      
+
       LASTFILE    /* = 22 */
    };   
    
