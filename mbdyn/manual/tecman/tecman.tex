@@ -283,7 +283,7 @@ Friction:
 		friction coeff and $\T F$
 	\item impose null relative velocity
 	\end{itemize}
-\item optionally add internal states dinamic (for friction)
+\item optionally add internal states dynamic $k$ (for friction)
 \end{itemize}
 \subsubsection{add third component of constraint moment $\T M$}
 Residual vector:
@@ -313,6 +313,7 @@ Residual vector:
 	\mathrm{friction:}\ 18& = &  \T M[3] -f(\T F, \mathrm{rel\ velocity}, 
 			\mathrm{friction\ coef})\\
 		& = &  (\mathrm{rel\ velocity})[3]
+	\mathrm{friction states:}\ 19...& = &  k - g(
 \end{eqnarray*}
 The relative velocity
 $v = r * (\T \omega_{1}-\T \omega_{2})\cdot(\T R_1\cdot \T R_{h1})[3]$.
@@ -330,45 +331,42 @@ $\T M[3] = \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * (\T R_1\cdot \T R_{h1})
 with $\T R_{h1}$ constant.\\
 Variation of friction moment contribution:
 \begin{eqnarray*}
-\delta \T M[3] &=& \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * ||\T F|| *
-	f_{\mathrm{c}}(d, \T \omega_{1}, \T \omega_{2}, \T R_1, \T R_{h1}) *
-		(\T R_{\delta 1} \times \T R_1)[3]+\\
-	&& \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) *(\T R_1\cdot \T R_{h1})[3] * 
+\delta (\T M[3] (\T R_1\cdot \T R_{h1})[3])
+	&=& \T M[3] * (\T R_{\delta 1} \times \T R_1)[3]+\\
+	&& (\T R_1\cdot \T R_{h1})[3]) * \delta \T M[3]\\
+	&=& \T M[3] * \T R_1^T \cdot (\T R_{\delta 1} \times )[3]+\\
+	&& (\T R_1\cdot \T R_{h1})[3]) * \delta \T M[3]
+\end{eqnarray*}
+Variation of friction moment contribution component:
+\begin{eqnarray*}
+\delta \T M[3] &=& \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * 
 		\frac{\displaystyle\T F}{\displaystyle||\T F||} 
 		\cdot \delta \T F+\\
 	&& \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * (\T R_1\cdot \T R_{h1})[3] * 
 		||\T F|| *
 		\frac{\displaystyle \partial f_{\mathrm{c}}}
 			{\displaystyle \partial v} * \delta v+\\
-	&&	(\T R_1\cdot \T R_{h1})[3] * 
-			||\T F|| * f_{\mathrm{c}}(v) *
+	&&	||\T F|| * f_{\mathrm{c}}(v) *
 			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
 			{\displaystyle \partial ||\T F||} 
 			\frac{\displaystyle \partial ||\T F||}{\displaystyle\partial\T F}
 			\cdot \delta \T F+\\
-	&&	(\T R_1\cdot \T R_{h1})[3] * 
-			||\T F|| * f_{\mathrm{c}}(v) *
+	&&	||\T F|| * f_{\mathrm{c}}(v) *
 			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
 			{\displaystyle \partial f_{\mathrm{c}}(v)} *
 			\frac{\displaystyle \partial f_{\mathrm{c}}}
 				{\displaystyle \partial v} * \delta v\\
-	&=& \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * ||\T F|| *
-		f_{\mathrm{c}}(d, \T \omega_{1}, \T \omega_{2}, \T R_1, \T R_{h1}) *
-		\T R_1^T \cdot (\T R_{\delta 1} \times )[3]+\\
-	&& \left (\begin{array}{l}
-		\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) *(\T R_1\cdot \T R_{h1})[3] * 
-		\frac{\displaystyle\T F}{\displaystyle||\T F||}\\
-		(\T R_1\cdot \T R_{h1})[3] * 
-			||\T F|| * f_{\mathrm{c}}(v) *
+	&=& \left (\begin{array}{l}
+		\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * 
+			\frac{\displaystyle\T F}{\displaystyle||\T F||}\\
+		||\T F|| * f_{\mathrm{c}}(v) *
 			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
 			{\displaystyle \partial ||\T F||}
 		\end{array} 
 		\right )\cdot \delta \T F+\\
 	&& \left ( \begin{array}{l}
-		\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * (\T R_1\cdot \T R_{h1})[3] * 
-		||\T F||\\
-		(\T R_1\cdot \T R_{h1})[3] * 
-			||\T F|| * f_{\mathrm{c}}(v) *
+		\mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * ||\T F||\\
+		||\T F|| * f_{\mathrm{c}}(v) *
 			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
 			{\displaystyle \partial f_{\mathrm{c}}(v)}
 		\end{array} \right ) *
