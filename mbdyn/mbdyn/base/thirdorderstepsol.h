@@ -14,11 +14,13 @@ private:
 	VectorHandler *pXPrimePrev; 
 	DriveOwner Rho;
 	
+	doublereal dT;
 	doublereal rho;
 	doublereal theta;
 	doublereal w[3];
 	doublereal jx[2][2];
 	doublereal jxp[2][2];
+	doublereal m[2], n[2];
 	
 	bool bAdvanceCalledFirstTime;
 	MyVectorHandler Res1, Res2;
