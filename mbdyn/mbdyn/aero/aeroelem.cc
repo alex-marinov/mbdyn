@@ -400,7 +400,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
       
 		iPnt++;
 
-   	} while(GDI.fGetNext(PW));
+   	} while (GDI.fGetNext(PW));
    
    	/* Se e' definito il rotore, aggiungere il contributo alla trazione */
    	if (pRotor != NULL && !fPassiveRotor) {
