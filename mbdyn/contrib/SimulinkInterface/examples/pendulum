@@ -90,7 +90,7 @@ begin: drivers;
         file: 1, stream,
         	stream drive name, "MBXOUT",
         	create, yes,
-		# path, "../tmp/mbdyn..pendulum.out.sock",
+		# path, "../tmp/mbdyn.pendulum.out.sock",
 		port, 8005,
 		1;
 end: drivers;
@@ -112,7 +112,7 @@ begin: elements;
 	stream output: 1,
 		stream name, "MBXINN",
 		create, yes,
-		# path, "../tmp/mbdyn.in.pendulum..sock",
+		# path, "../tmp/mbdyn.in.pendulum.sock",
 		port, 10011,
 		2,
 			1, parameter,
