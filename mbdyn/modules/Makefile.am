@@ -10,7 +10,7 @@ export LTCXXCOMPILE = @LIBTOOL@ --mode=compile @CXX@ @DEFS@ \
 	$(AM_CPPFLAGS) @CPPFLAGS@ $(AM_CXXFLAGS) @CXXFLAGS@
 CXXLD = @CXX@
 export CXXLINK = @LIBTOOL@ --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	@CXXFLAGS@ @LDFLAGS@ -shared
+	@CXXFLAGS@ @LDFLAGS@ -shared -lg2c
 export LTF77COMPILE = @LIBTOOL@ --mode=compile @F77@ $(AM_FFLAGS) @FFLAGS@ \
 	-fPIC
 

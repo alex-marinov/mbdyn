@@ -6,7 +6,7 @@ SUBDIRS = base struct aero elec hydr
 
 # Build mbdyn executable
 bin_PROGRAMS = mbdyn
-mbdyn_SOURCES = mbdyn.cc mbdyn.h
+mbdyn_SOURCES = mbdyn.cc mbdyn.h dummy_f.f dummy_c.c
 ## mbdyn_LDADD = @XLIBOBJS@
 mbdyn_LDADD = \
 	base/libbase.la \

@@ -92,7 +92,7 @@ SUBDIRS = base struct aero elec hydr
 
 # Build mbdyn executable
 bin_PROGRAMS = mbdyn
-mbdyn_SOURCES = mbdyn.cc mbdyn.h
+mbdyn_SOURCES = mbdyn.cc mbdyn.h dummy_f.f dummy_c.c
 mbdyn_LDADD =  	base/libbase.la 	struct/libstruct.la 	aero/libaero.la 	elec/libelec.la 	hydr/libhydr.la 	../libraries/libmbmath/libmbmath.la 	../libraries/libmbutil/libmbutil.la 	../libraries/liby12/liby12.la 	../libraries/libobjs/libobjs.la 	@MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ 	@METIS_LIBS@ @PAM_LIBS@ @TCL_LIBS@ @LIBS@
 
 mbdyn_LDFLAGS = -static
@@ -108,7 +108,7 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-mbdyn_OBJECTS =  mbdyn.o
+mbdyn_OBJECTS =  mbdyn.o dummy_f.o dummy_c.o
 mbdyn_DEPENDENCIES =  base/libbase.la struct/libstruct.la \
 aero/libaero.la elec/libelec.la hydr/libhydr.la \
 ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la \
@@ -118,6 +118,11 @@ CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@
+FFLAGS = @FFLAGS@
+F77COMPILE = $(F77) $(AM_FFLAGS) $(FFLAGS)
+LTF77COMPILE = $(LIBTOOL) --mode=compile $(F77) $(AM_FFLAGS) $(FFLAGS)
+F77LD = $(F77)
+F77LINK = $(LIBTOOL) --mode=link $(F77LD) $(AM_FFLAGS) $(FFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -130,13 +135,13 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/mbdyn.P
+DEP_FILES =  .deps/dummy_c.P .deps/dummy_f.P .deps/mbdyn.P
 SOURCES = $(mbdyn_SOURCES)
 OBJECTS = $(mbdyn_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .cc .lo .o .s
+.SUFFIXES: .S .c .cc .f .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu ./mbdyn/Makefile
 
@@ -209,6 +214,10 @@ mbdyn: $(mbdyn_OBJECTS) $(mbdyn_DEPENDENCIES)
 	$(CXXCOMPILE) -c $<
 .cc.lo:
 	$(LTCXXCOMPILE) -c $<
+.f.o:
+	$(F77COMPILE) -c $<
+.f.lo:
+	$(LTF77COMPILE) -c $<
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
