@@ -210,9 +210,13 @@ IncludeParser::Include_()
    	pf = NULL;
    	SAFENEWWITHCONSTRUCTOR(pf, ifstream, ifstream(sfname), MPmm);
    	if (!(*pf)) {
+#ifdef DEBUG
 		char *buf = getcwd(NULL, 0);
-		cerr << "Current directory <" << buf << ">" << endl;
-		free(buf);
+		if (buf != NULL) {
+			DEBUGCERR("Current directory <" << buf << ">" << endl);
+			free(buf);
+		}
+#endif /* DEBUG */
       		cerr << "Invalid file <" << sfname << '>' << endl;
       		THROW(ErrFile());
    	}
