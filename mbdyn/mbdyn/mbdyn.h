@@ -38,7 +38,9 @@ typedef long int mbLong;
 typedef long int mbFlag;
 
 /* Math typedefs (deprecated; will be obsoleted) */
-typedef long int flag; /* boolean return value; will be obsoleted by "bool" */
+#ifndef HAVE_F2C_H	/* defined in "f2c.h" */
+typedef long int flag;	/* boolean return value; will be obsoleted by "bool" */
+#endif /* !HAVE_F2C_H */
 #if 0
 typedef unsigned int  Index;
 #endif

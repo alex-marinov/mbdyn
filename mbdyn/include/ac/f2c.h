@@ -36,6 +36,7 @@ extern "C" {
 
 #ifdef HAVE_F2C_H
 #include <f2c.h>
+#define HAVE_FLAG_T
 #else /* !HAVE_F2C_H */
 
 #ifndef min
@@ -57,7 +58,9 @@ typedef double doublereal;
 #endif /* !__alpha */
 
 typedef integer logical;
+#if 0	/* we define flag somewhere else (we'll get rid of f2c some day!) */
 typedef integer flag;
+#endif
 typedef integer ftnlen;
 typedef integer ftnint;
 typedef char *address;
