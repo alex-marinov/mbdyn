@@ -36,7 +36,8 @@ spmapmh.h \
 submat.cc \
 submat.h \
 interp.h \
-interp.cc
+interp.cc \
+JacSubMatrix.cc
 
 libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@
 libmbmath_la_LDFLAGS =
