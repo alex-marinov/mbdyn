@@ -495,17 +495,10 @@ StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
    XCurr = Vec3(X, iFirstIndex+1);
    VCurr = Vec3(XP, iFirstIndex+1);
     
-   /* Nota: i g, gP vengono incrementati */
-   gCurr += Vec3(X, iFirstIndex+4);
-   gPCurr += Vec3(XP, iFirstIndex+4);
+   /* Nota: i g, gP non vengono incrementati */
+   gCurr = Vec3(X, iFirstIndex+4);
+   gPCurr = Vec3(XP, iFirstIndex+4);
    
-   /*
-    * resetto i parametri di rotazione nei vettori soluzione
-    * FIXME: probabilmente non occorre ...
-    */
-   ((VectorHandler&)X).Put(iFirstIndex+4, Vec3(0.));
-   ((VectorHandler&)XP).Put(iFirstIndex+4, Vec3(0.));
-
 #if 1
    /* Matrice RDelta, incremento di rotazione da predetto a corrente;
     Questo e' piu' efficiente */
@@ -563,11 +556,8 @@ StructNode::InitialUpdate(const VectorHandler& X)
    VCurr = Vec3(X, iFirstIndex+7);
    
    /* Nota: g viene incrementato */
-   gCurr += Vec3(X, iFirstIndex+4);
+   gCurr = Vec3(X, iFirstIndex+4);
    
-   /* resetto i parametri di rotazione */
-   ((VectorHandler&)X).Put(iFirstIndex+4, Vec3(0.));
-
 #if 1
    /* Questo manipolatore e' piu' efficiente */
    Mat3x3 RDelta(MatR, gCurr);
