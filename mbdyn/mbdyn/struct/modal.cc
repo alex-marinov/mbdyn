@@ -2157,9 +2157,14 @@ Modal::dGetM(void) const
 Vec3
 Modal::GetS_int(void) const
 {
-	Mat3x3 R = pModalNode->GetRCurr();
+	Mat3x3 Rtmp;
+	if (pModalNode != 0) {
+		Rtmp = pModalNode->GetRCurr();
+	} else {
+		Rtmp = R;
+	}
 
-	Vec3 S = R*(Inv2+Inv3jaj);
+	Vec3 S = Rtmp*(Inv2+Inv3jaj);
 
 	return S;
 }
@@ -2168,10 +2173,15 @@ Modal::GetS_int(void) const
 Mat3x3
 Modal::GetJ_int(void) const
 {
-	Mat3x3 R = pModalNode->GetRCurr();
-	Mat3x3 RT = R.Transpose();
+	Mat3x3 Rtmp;
+	if (pModalNode != 0) {
+		Rtmp = pModalNode->GetRCurr();
+	} else {
+		Rtmp = R;
+	}
+	Mat3x3 RT = Rtmp.Transpose();
 
-	Mat3x3 J = R*(Inv7+Inv8jaj.Symm2()
+	Mat3x3 J = Rtmp*(Inv7+Inv8jaj.Symm2()
 #ifdef MODAL_USE_INV9
 			-Inv9jkajak
 #endif /* MODAL_USE_INV9 */
