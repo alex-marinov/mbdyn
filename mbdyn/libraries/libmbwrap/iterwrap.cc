@@ -112,7 +112,7 @@ void IterativeSolutionManager::Solve(doublereal dCoef) {
 	ComputeTau();
 	
 	/* BiCGSTAB Iterative solver */
-	std::cout << "USING BICGSTAB SOLVER" << std::endl; 
+	//std::cout << "USING BICGSTAB SOLVER" << std::endl; 
 	doublereal resid;
 	doublereal rho_1, rho_2, alpha, beta, omega; 
   	MyVectorHandler r(Size), p(Size), phat(Size), s(Size), shat(Size), t(Size), v(Size);
