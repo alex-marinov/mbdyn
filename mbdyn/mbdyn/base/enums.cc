@@ -222,6 +222,7 @@ extern const char* psForceNames[] = {
 const char* psElectricNames[] = {
    "Accelerometer",
    "Discrete Control",
+   "Motor",
    
    NULL
 };
