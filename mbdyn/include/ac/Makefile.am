@@ -12,6 +12,7 @@ iomanip \
 iostream \
 lapack.h \
 math.h \
+pthread.h \
 spinlock.h \
 sstream \
 sys_sysinfo.h
