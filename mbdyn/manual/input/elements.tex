@@ -308,7 +308,7 @@ air speed, in the global reference frame.
 
 \section{Beam Element}
 Currently two beam elements are implemented: a three-node finite volume
-element, which has been historically implemented first, which uses
+element, which has been historically implemented first, and uses
 conventional polynomial parabolic interpolation of the nodal displacements
 and orientations, and a two-node finite volume element, which has been
 recently introduced.
@@ -332,14 +332,16 @@ The two-node beam will be reimplemented using a helicoidal interpolation
 of the nodal positions and orientations, to reduce the shear-locking effect.
 
 \subsection{Three-node beam element}
-The beam element is a three node one-dimensional element.
+The beam element is a three node one-dimensional element; it is described 
+in deatil in \cite{FV-AIAA}.
 Each ``node'' is referred to a structural node but can have an arbitrary
 offset to allow for more generality in positioning of the structural 
 reference lines of the beam.
 The ``Finite Volumes'' formulation is used. 
-This implies the evaluation of the internal forces at two points 
-that are close to the middle point between nodes 1 and 2, 
-and between nodes 2 and 3 (at $ 1-1/\sqrt{3} $ from both ends).
+As a consequence, the internal forces and moments are evaluated 
+at two points that are at about midpoint between nodes 1 and 2, 
+and nodes 2 and 3 (at $ -1/\sqrt{3} $ and $1/\sqrt{3}$ considering
+a nondimensional abscissa running from -1 at node 1 to 1 at node 3).
 So the constitutive properties must be supplied in these points, as well as
 the orientation matrices from the material to the global frame (the axial force
 is in direction 1).
