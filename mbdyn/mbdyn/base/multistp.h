@@ -62,6 +62,43 @@
 #include <integr.h>
 #include <intmeth.h>
 
+#ifdef __POD__
+#include <fstream>
+ 
+class PODMat {
+ 
+       doublereal* A;
+       int Rows, Cols;
+ 
+ public:
+ 
+       PODMat(int rows, int cols): Rows(rows), Cols(cols) {
+               A = new doublereal[rows*cols];    
+       };
+ 
+       ~PODMat(void) {
+               delete A;
+       }
+ 
+       void AddTVec(VectorHandler* Vec, int pos) {
+               for (int i = 0; i < Rows; i++) {
+                       A[i+pos*Rows] = Vec->dGetCoef(i+1);
+               }
+       };
+ 
+       void Output(void) {
+               std::ofstream out;
+               out.open("mbdyn.POD");
+               for (int i = 0; i < Cols; i++) {         
+                       for (int j = 0; j < Rows; j++) {
+                               out << A[i*Rows+j] << "  ";
+                       }
+                       out << std::endl;
+               }
+       };
+ };     
+        
+ #endif /* __POD__ */
 
 /* MultiStepIntegrator - begin */
 
@@ -97,6 +134,20 @@ private:
 
    	/* Dati per strategia DRIVER_CHANGE */
 	DriveCaller* pStrategyChangeDrive;
+ 
+#ifdef __POD__
+        /* Dati per il cacole delle matrici delle covarianze */
+       struct PODData {
+               doublereal dTime;
+               int iSteps;
+               int iFrames;
+       } pod;
+       flag fPOD;
+       int iPODStep;
+       int iPODFrames;
+#endif /*__POD__*/
+ 
+
 
 #ifdef __HACK_EIG__
    	/* Dati per esecuzione di eigenanalysis */
