@@ -299,19 +299,24 @@ void Rotor::MeanInducedVelocity(void)
 {
    /* Trazione nel sistema rotore */
    doublereal dT = RRot3*Res.Force();
+   doublereal dRho = dGetAirDensity(GetXCurr());
 
    /* Velocita' indotta media */
    doublereal dVRef = dOmega*dRadius*sqrt(dMu*dMu+dLambda*dLambda);
-   doublereal dRef = 2.*dGetAirDensity(GetXCurr())*dArea*dVRef;
+   doublereal dRef = 2.*dRho*dArea*dVRef;
    dUMeanRef = dT/(dRef+1.);
 
+#if 0
    doublereal dMuTmp = dMu/(dHoverCorrection*dHoverCorrection);
    doublereal dLambdaTmp = dLambda/dForwardFlightCorrection;
+#else
+   doublereal dMuTmp = dMu/dForwardFlightCorrection;
+   doublereal dLambdaTmp = dLambda/(dHoverCorrection*dHoverCorrection);
+#endif
    doublereal dV = dOmega*dRadius*sqrt(dMuTmp*dMuTmp+dLambdaTmp*dLambdaTmp);
-   doublereal d = 2.*dGetAirDensity(GetXCurr())*dArea*dV;
-   doublereal dUMeanTmp = dT/(d+1.);
+   doublereal d = 2.*dRho*dArea*dV;
 
-   dUMean = dUMeanTmp*(1.-dWeight)+dUMeanPrev*dWeight;
+   dUMean = (1.-dWeight)*dT/(d+1.)+dWeight*dUMeanPrev;
 }
 
 /* assemblaggio jacobiano (nullo per tutti tranne che per il DynamicInflow) */
