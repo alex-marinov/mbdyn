@@ -673,7 +673,7 @@ forces, discrete control elements).
 In those cases, the contribution to the equation is added regardless 
 of the order of the degree of freedom.
 
-\section{Drives and Drive Callers}
+\section{Drives and Drive Callers}\label{sec:DRIVES}
 Everytime some entity can be ``driven'', that is a value can be
 expressed as depedent on some ``external'' input, an object of the class 
 \texttt{DriveCaller} is created. This requires the input of the properties of
@@ -689,7 +689,7 @@ As an exception, a constant \texttt{DriveCaller} (that behaves exactly as a
 numerical constant with little or no overhead depending on the optimizing
 capability of the compiler) is assumed when a numeric value is used instead
 of a keyword.
-The \texttt{drive\_caller\_type}s are:
+The \texttt{DriveCaller} types are:
 
 \subsection{Drives}
 
@@ -856,14 +856,14 @@ are not managed, so it is not very reliable).
 A family of file drivers is being planned.
 At present only a multiple-valued, constant time-step file drive is
 implemented.
-The DriveCaller is attached to a file drive object that must be declared
-and defined in the \texttt{drivers} section of the input file 
-(see Section~\ref{sec:DRIVERS}).
+The \texttt{DriveCaller} is attached to a file drive object that must be declared
+and defined in the \hyperref{\texttt{drivers}}{\texttt{drive}}{}{sec:DRIVERS} section 
+of the input file (see Section~\ref{sec:DRIVERS}).
 \begin{verbatim}
-    <drive_caller> ::= file , <drive_label> [ , <column_number> = 1 ]
+    <drive_caller> ::= file , <drive_label> [ , <column_number> ]
 \end{verbatim}
 \texttt{drive\_label} is the label of the drive the caller is attached to, while
-\texttt{column\_number} is the number of the column the caller refers to.
+\texttt{column\_number} is the number of the column the caller refers to (defaults to 1).
 
 \subsubsection{String drive}
 \begin{verbatim}
@@ -904,14 +904,16 @@ caller is created.
 Otherwise an array of drive callers is created and at every call their value 
 is added to give the final value of the array drive.
 
-\subsection{Template drive}
+\subsection{Template drive}\label{sec:TPL-DRIVES}
 A particular \texttt{DriveCaller} is the template drive caller. This is made
-of a constant entity that multiplies a conventional drive to give a drive
-entity of dimensionality higher than that of a simple scalar drive.
+of a constant entity that multiplies a conventional 
+\hyperref{\texttt{drive}}{\texttt{drive} (see Section~}{)}{sec:DRIVES} to give a drive
+entity of dimensionality different from that of a simple scalar \texttt{drive}.
 there are two types of template drive callers, the \texttt{single} template 
-drive caller, described above, and the \texttt{array} template drive caller, 
+drive caller and the \texttt{array} template drive caller, 
 that is nothing but the sum of an array of \texttt{single}
-template drive callers. They are entered as follows:
+template drive callers. 
+They are entered as follows:
 \begin{verbatim}
     <tpl_drive_caller> :: = {
             single , <entity> , <drive_caller> 
