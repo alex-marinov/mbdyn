@@ -159,7 +159,7 @@ and properties.
   \centering
     %\includegraphics[width=80mm]{airfoil.pdf}
     \includegraphics[width=80mm]{airfoil.eps}
-  \caption{\em Airfoil Geometry}\label{fig:AIRFOIL}
+  \caption{Airfoil geometry}\label{fig:AIRFOIL}
 \end{figure}
 
 The \kw{airfoil\_data} defaults to a builtin NACA 0012 semi-analytical
@@ -766,36 +766,65 @@ for special purposes.
 
 \section{Body}
 \begin{verbatim}
-    <normal_arglist> ::= <node_label> , 
-    { 
-      (scalar) <mass> , 
-      (Vec3)   <relative_center_of_mass> ,
-      (Mat3x3) <inertia_matrix>
-      [ , inertial , 
-          { node | (OrientationMatrix) <orientation_matrix> } ]
-    |
-      condense, (integer) <num_masses> ,
-          (scalar) <mass> , 
-          (Vec3)   <relative_center_of_mass> ,
-          (Mat3x3) <inertia_matrix> 
-          [ , inertial , 
-              { node | (OrientationMatrix) <orientation_matrix> } ]
-          [ , ... ]
-    }
+    <one_body> ::=
+        (scalar) <mass> , 
+        (Vec3)   <relative_center_of_mass> ,
+        (Mat3x3) <inertia_matrix>
+        [ , inertial , 
+            { node | (OrientationMatrix) <orientation_matrix> } ]
+
+    <normal_arglist> ::= <node_label> ,
+        { <one_body>
+        | condense, (integer) <num_masses> ,
+            <one_body> [ , ... ] }
 \end{verbatim}
-the \kw{inertia\_matrix} is always referred to the center of mass of the
-mass that is being added. It can be rotated locally by means of the extra
-\kw{orientation\_matrix} supplied after the (optional) keyword \kw{inertial}.
-Otherwise, if the keyword \kw{node} is supplied after the keyword 
-\kw{inertial}, the inertia matrix is not rotated at all, since it is
-assumed to be already in the node reference frame.
 If only one mass is defined, the first method should be used. Otherwise,
 many masses can be referred to the same element by means of the keyword
 \kw{condense}, followed by the number of expected masses \kw{num\_masses}.
 The format of each sub-mass is the same as for the single mass input (actually, 
 when \kw{condense} is not supplied, \kw{num\_masses} is assumed to be 1).
 
+The \kw{inertia\_matrix} is always referred to the center of mass of the
+mass that is being added. It can be rotated locally by means of the extra
+\kw{orientation\_matrix} supplied after the (optional) keyword \kw{inertial}.
+The keyword \kw{node} corresponds to the default, i.e.\ the inertia matrix
+is assumed to be input in the node reference frame.
 
+Note: in many commercial finite element software, the off-diagonal elements 
+of the inertia matrix are defined with a minus sign; for instance, 
+NASTRAN's \kw{CONM2} lumped inertia card expects the values indicated
+in Figure~\ref{fig:el:body:CONM2}.
+%
+\begin{figure}
+\centering
+\begin{minipage}{120mm}
+\begin{verbatim}
+$.......2.......3.......4.......5.......6.......7.......8.......
+CONM2   EID     G       CID     M       X1      X2      X3
+        I11     I21     I22     I31     I32     I33
+\end{verbatim}
+\end{minipage}
+\caption{NASTRAN \kw{CONM2} card}
+\label{fig:el:body:CONM2}
+\end{figure}
+%
+However, the matrix is reconstructed as
+\begin{displaymath}
+	\sqbr{\matr{cccccc}{
+		M & & & & & \\
+		& M & & \multicolumn{3}{c}{symmetric} \\
+		& & M & & & \\
+		& & & I11 & & \\
+		& & & -I21 & I22 & \\
+		& & & -I31 & -I32 & I33
+	}} ;
+\end{displaymath}
+see for instance \emph{NASTRAN V70.5 Quick Reference Guide} for details.
+
+\noindent
+On the contrary, MBDyn directly reads the matrix 
+that will be used in the computation, i.e.\ 
+\textbf{without the minus signs in the off-diagonal terms}.
 
 
 \section{Bulk Elements}
