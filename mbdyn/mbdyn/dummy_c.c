@@ -41,5 +41,8 @@ dummy_c(void)
 {
 	double a, b;
 	pow_dd(&a, &b);
+
+	s_wsle();
+	do_lio();
 }
 

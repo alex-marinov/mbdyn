@@ -77,10 +77,19 @@ AeroData::SetSectionData(const doublereal& abscissa,
    	Omega = omega;
 }
    
-STAHRAeroData::STAHRAeroData(integer u, integer p) 
-: AeroData(u), profile(p)
+STAHRAeroData::STAHRAeroData(integer u, integer p, DriveCaller *ptime) 
+: AeroData(u), profile(p), a(NULL), t(NULL), iPoints(0), pTime(ptime)
 {
-   	NO_OP;
+	ASSERT(u ? ptime : 1);
+}
+
+STAHRAeroData::~STAHRAeroData(void)
+{
+	if (unsteadyflag) {
+		ASSERT(ptime);
+		SAFEDELETE(pTime);
+		SAFEDELETEARR(a);
+	}
 }
    
 std::ostream& 
@@ -103,11 +112,72 @@ STAHRAeroData::Restart(std::ostream& out) const
 }
    
 int 
-STAHRAeroData::GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA) 
+STAHRAeroData::GetForces(int i, doublereal* W, doublereal* TNG, 
+		doublereal* OUTA) 
 {
+	if (unsteadyflag) {
+		doublereal 	coe[3];
+		integer		order = 3;
+
+		ASSERT(i < iPoints);
+
+		doublereal *aa = a + 3*i;
+		doublereal *tt = t + 3*i;
+
+		aa[2] = atan2(-W[1], W[0]);
+		tt[2] = pTime->dGet();
+
+		if (tt[2] > tt[1] && tt[1] > tt[0]) {
+	
+			__FC_DECL__(polcoe)(tt, aa, &order, coe);
+
+			std::cerr << "aa[0:2]= " << aa[0] << "," << aa[1] << "," << aa[2] << std::endl
+				<< "tt[0:2]= " << tt[0] << "," << tt[1] << "," << tt[2] << std::endl
+				<< "coe[0:2]=" << coe[0] << "," << coe[1] << "," << coe[2] << std::endl;
+			
+		
+			OUTA[ALF1] = coe[1]+2.*coe[2]*tt[2];
+			OUTA[ALF2] = 2.*coe[2];
+		} else {
+			OUTA[ALF1] = 0.;
+			OUTA[ALF2] = 0.;
+		}
+	}
+
    	__FC_DECL__(aerod2)(W, VAM, TNG, OUTA, 
 			    &unsteadyflag, &Omega, &profile);
    	return 0;
+}
+
+void
+STAHRAeroData::Update(int i)
+{
+	/* shift back angle of attack and time for future interpolation */
+	doublereal *aa = a + 3*i;
+	doublereal *tt = t + 3*i;
+
+	ASSERT(i < iPoints);
+
+	aa[0] = aa[1];
+	aa[1] = aa[2];
+	tt[0] = tt[1];
+	tt[1] = tt[2];
+}
+
+void
+STAHRAeroData::SetNumPoints(int i)
+{
+	iPoints = i;
+
+	switch (Unsteady()) {
+	case 2:
+		SAFENEWARR(a, doublereal, 2*3*iPoints);
+		t = a + 3*iPoints;
+		break;
+		
+	default:
+		break;
+	}
 }
 
 C81AeroData::C81AeroData(integer u, integer p, const c81_data* d)
@@ -123,7 +193,7 @@ C81AeroData::Restart(std::ostream& out) const
 }
 
 int
-C81AeroData::GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA) 
+C81AeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA) 
 {
    	return c81_aerod2(W, VAM, TNG, OUTA, (c81_data*)data);
 }
@@ -188,7 +258,7 @@ C81MultipleAeroData::SetSectionData(
 }
 
 int
-C81MultipleAeroData::GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA) 
+C81MultipleAeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA) 
 {
    	return c81_aerod2(W, VAM, TNG, OUTA, (c81_data*)data[curr_data]);
 }

@@ -52,6 +52,12 @@ extern int __FC_DECL__(aerod2)(doublereal* w,       /* velocita' nel sistema loc
 extern int __FC_DECL__(coeprd)(doublereal* da,      /* passo, delta t? */
 			       doublereal* outa);   /* vettore di lavoro, 20 */
 
+/* Da Max Lanz 2002/01/18 */
+extern int __FC_DECL__(polcoe)(doublereal *x, 
+			       doublereal *y, 
+			       integer *n, 
+			       doublereal *cof);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

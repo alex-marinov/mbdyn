@@ -378,6 +378,7 @@ C=    COMPILER (LINK=IBJ$)
      &  CRF, CFSLOP, DCPDM, DCRDRM, DCMDM, DCRFDM, JPRO)
 
       implicit none
+      integer*4 i
 C      IMPLICIT REAL*8(A-H,O-Z)
 C
 C Input:
@@ -446,19 +447,18 @@ C Questa operazione e' stata spostata all'esterno (COEPRD) per consentire
 C l'uso di integratori impliciti, per i quali la correzione deve essere fatta
 C solo a processo iterativo concluso
 C
-C      ALF1 = OUTA(9)/DA
-C      OUTA(9) = ALF1
-C      ALF2 = OUTA(10)/(DA*DA)
-C      OUTA(10) = ALF2
-C
 C Coefficienti usati per il ritardo instazionario
       ALF1 = OUTA(9)
       ALF2 = OUTA(10)
 C
       VP2 = VCSTR(1)**2+VCSTR(2)**2
       VP = DSQRT(VP2)
+
+	print *,'CORDA=',CORDA,', ALF1=',ALF1,', ALF2=',ALF2,
+     &	', VP=',VP,', VP2=',VP2
+      
       A = .5*CORDA*ALF1/VP
-      B = .25*CORDA*CORDA*ALF2/(VP*VP)
+      B = .25*CORDA*CORDA*ALF2/VP2
       VC1 = DABS(VCSTR(1))
       GAM = DATAN2(-VCSTR(3),VC1)
       OUTA(3) = GAM/DEGRAD
@@ -483,11 +483,26 @@ C
       IF(SGMAX.GT.1.86D0) SGMAX = 1.86D0
       IF(SGN.GT.SGMAX) SGN = SGMAX
       IF(SGM.GT.SGMAX) SGM = SGMAX
+
+	print *,'A=',A,', B=',B,', SGN=',SGN,', PN(1:6)=',(PN(i),i=1,6)
+      
       DAN = A*(PN(1)+PN(5)*SGN)+B*(PN(2)+PN(6)*SGN)
+
+	print *,'1) DAN=',DAN
+
       DAN = DAN+DEXP(-1072.52*A2)*(A*(PN(3)+PN(7)*SGN)+
      &  A2*(PN(9)+PN(10)*SGN))
+
+	print *,'2) DAN=',DAN
+
       DAN = DAN+DEXP(-40316.42D0*B2)*B*(PN(4)+PN(8)*SGN)
+
+	print *,'3) DAN=',DAN
+
       DAN = DAN*ASN
+
+	print *,'4) DAN=',DAN
+
       DCN = A*(QN(1)+QN(3)*A2+SGN*(QN(7)+QN(9)*A2+QN(13)*SGN)+
      &  B2*(QN(5)+QN(11)*SGN))
       DCN = DCN+B*(QN(2)+QN(4)*A2+SGN*(QN(8)+QN(10)*A2+QN(14)*SGN)+
@@ -510,6 +525,8 @@ C e le loro derivate vengono usati i coeff di portanza e le loro derivate
 C ecc, quindi passando DUM come segnaposto, si ottengono risultati
 C unpredictable.
 C
+	print *,'ATMP = ALFA(=',ALFA,')-DAN(',DAN,')'
+
       ATMP = ALFA-DAN
       CALL CPCRCM(ATMP, RMACH,
      &  CLIFT, CDRAG, DUM, ASLOP, BSLOP, DUM,
@@ -601,6 +618,7 @@ C
      &         .55,-.30426D1/
       DATA B3 /.3,.40357D1,.4,.67937D1,.45,.91332D1,.5,.62569D1,
      &         .55,.12049D2/
+      DATA PG /3.14159265358979323846D0/
 C**** APHIJ  = ANGOLO INCIDENZA
 C**** EMIJ   = NUMERO DI MACH
 C**** CLIFT  = COEFFICIENTE DI PORTANZA
@@ -618,7 +636,6 @@ C**** DCMDM  = DERIVATA DI CMOME RISPETTO NUMERO DI MACH
 C**** DCRFDM = DERIVATA DI CRF RISPETTO NUMERO DI MACH
 C**** AS0    = PENDENZA CURVA PORTANZA PER ALFA=0
 C**** CS0    = PENDENZA CURVA MOMENTO PER ALFA=0
-      PG = 3.14159265358979323846D0
       CFSLOP = 0.
       CRF = .006
       DCRFDM = 0.
@@ -628,6 +645,9 @@ C**** CS0    = PENDENZA CURVA MOMENTO PER ALFA=0
       C1 = 1.-EMIJ
       C2 = .22689*C1
       C5 = EMIJ/(SQT*SQT)
+
+	print *,'APHIJ: ',APHIJ
+      
 97    IF(APHIJ) 181, 182, 182
 181   APHIJ = -APHIJ
       NEG = -1*NEG
@@ -1547,6 +1567,40 @@ C*************************          DZERO            ********************
       DO I=1,N
         A(I)=0.D0
       END DO
+      RETURN
+      END
+
+C*************************          POLCOE           ********************
+      SUBROUTINE POLCOE(X,Y,N,COF)
+
+      IMPLICIT NONE
+      
+      REAL*8 X(1),Y(1),COF(1),S(10)
+      REAL*8 PHI,B,FF
+      INTEGER*4 N,I,J,K
+      DO I=1,N
+       S(i)=0.
+       COF(i)=0.
+      ENDDO
+      S(N)=-X(1)
+      DO I=2,N
+       DO J=N+1-I,N-1
+        S(J)=S(J)-X(I)*S(J+1)
+       ENDDO
+       S(N)=S(N)-X(I)
+      ENDDO
+      DO J=1,N
+       PHI=N
+       DO K=N-1,1,-1
+        PHI=K*S(K+1)+X(J)*PHI
+       ENDDO
+       FF=Y(J)/PHI
+       B=1.
+       DO K=N,1,-1
+        COF(K)=COF(K)+B*FF
+        B=S(K)+X(J)*B
+       ENDDO
+      ENDDO
       RETURN
       END
 

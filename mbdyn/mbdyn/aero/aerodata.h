@@ -34,10 +34,12 @@
 #include <ac/f2c.h>
 
 #include <myassert.h>
+#include <withlab.h>
+#include <drive.h>
+
 extern "C" {
 #include <aerodc81.h>
 }
-#include <withlab.h>
 
 /* C81Data - begin */
 
@@ -72,7 +74,9 @@ public:
 			    const doublereal& omega = 0.);
    
    	virtual int
-	GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA) = 0;
+	GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA) = 0;
+	virtual void Update(int i) { NO_OP; };
+	virtual void SetNumPoints(int i) { NO_OP; };
 	inline integer Unsteady(void) const;
 };
 
@@ -90,13 +94,22 @@ AeroData::Unsteady(void) const
 
 class STAHRAeroData : public AeroData {
 protected:
-   	integer profile;
+   	integer 	profile;
+	doublereal	*a;
+	doublereal	*t;
+	integer		iPoints;
+	DriveCaller	*pTime;
+
+	enum { ALF1 = 8, ALF2 = 9 };
    
 public: 
-   	STAHRAeroData(integer u, integer p);
+   	STAHRAeroData(integer u, integer p, DriveCaller *ptime = NULL);
+	virtual ~STAHRAeroData(void);
    
 	std::ostream& Restart(std::ostream& out) const;   
-   	int GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA);
+   	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
+	void Update(int i);
+	void SetNumPoints(int i);
 };
 
 /* STAHRAeroData - end */
@@ -113,7 +126,7 @@ public:
    	C81AeroData(integer u, integer p, const c81_data* d);
 
 	std::ostream& Restart(std::ostream& out) const;
-   	int GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA);
+   	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
 };
 
 /* C81AeroData - end */
@@ -146,7 +159,7 @@ public:
 			    const doublereal& twist,
 			    const doublereal& omega = 0.);
    
-   	int GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA);
+   	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
 };
 
 /* C81AeroData - end */

@@ -38,6 +38,7 @@
 #include <aerodata.h>
 #include <dataman.h>
 #include <shapefnc.h>
+#include <drive_.h>
 
 extern "C" {
 #include <aerodc81.h>
@@ -318,6 +319,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
    
    	/* Ciclo sui punti di Gauss */
    	PntWght PW = GDI.GetFirst();
+	int iPnt = 0;
    	do {
       		doublereal dCsi = PW.dGetPnt();
       		Vec3 Xr(Rn*(f+Ra3*(dHalfSpan*dCsi)));
@@ -378,7 +380,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
       		Tmp.PutTo(dW+3);
       
       		/* Funzione di calcolo delle forze aerodinamiche */
-      		aerodata->GetForces(dW, dTng, *pvd);
+      		aerodata->GetForces(iPnt, dW, dTng, *pvd);
 
       		/* OUTA */
       		pvd++;
@@ -398,6 +400,8 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
       		M += RRloc*(Vec3(dTng+3)*(dHalfSpan*dWght));
       		M += Xr.Cross(FTmp);
       
+		iPnt++;
+
    	} while(GDI.fGetNext(PW));
    
    	/* Se e' definito il rotore, aggiungere il contributo alla trazione */
@@ -420,26 +424,19 @@ AerodynamicBody::Output(OutputHandler& OH) const
    	/* Memoria in caso di forze instazionarie */
 #ifdef __HACK_UNSTEADY_AERO__ /* E' molto bacato */
    	switch (aerodata->Unsteady()) {
-	case 1: {
-      		doublereal d = 0.;
-      		if (pRotor != NULL) {
-	 		d = dDA*pRotor->dGetOmega();
-      		}
-      		if (fabs(d) < 1.e-6) {
-	 		d = 1.e-6;
-      		}
-      		for (integer i = 0; i < GDI.iGetNum(); i++) {
-	 		__FC_DECL__(coeprd)(&d, pvdOuta[i]);
-      		}
-		break;
-   	}
-	case 2:
-      		for (integer i = 0; i < GDI.iGetNum(); i++) {
-	 		__FC_DECL__(coeprd)(&dDA, pvdOuta[i]);
-      		}
-		break;
 	case 0:
 		break;
+
+	case 1:
+		THROW(ErrGeneric());
+		break;
+
+	case 2:
+      		for (integer i = 0; i < GDI.iGetNum(); i++) {
+	 		aerodata->Update(i);
+      		}
+		break;
+		
 	default:
 		THROW(ErrGeneric());
    	}
@@ -496,7 +493,7 @@ ReadUnsteadyFlag(MBDynParser& HP)
 				iInst = HP.GetInt();
 			}
 		} else {
-      		iInst = HP.GetInt();
+      			iInst = HP.GetInt();
 		}
 
       		if (iInst != 0) {
@@ -508,6 +505,14 @@ ReadUnsteadyFlag(MBDynParser& HP)
 	    		std::cerr << HP.GetLineData() << ": warning:"
 				" unsteady aerodynamics are not tested yet"
 				<< std::endl;
+
+			if (iInst == 1) {
+				std::cerr << HP.GetLineData() << ": 'Harris'"
+					" unsteady aerodynamics"
+					" are not available"
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
       		}
 		/*
 		 * unsteady flag
@@ -579,7 +584,7 @@ ReadAeroData(DataManager* pDM,
 			NullDriveCaller(pDM->pGetDrvHdl()));
    	}
  
-   	if (HP.fIsArg()) {            
+   	if (HP.fIsArg()) {
       		switch (HP.IsKeyWord()) {
        		default:
 	  		std::cerr << "unknown profile type at line "
@@ -591,9 +596,14 @@ ReadAeroData(DataManager* pDM,
 				   "profile is NACA0012" << std::endl);
 	  
 	  		integer iInst = ReadUnsteadyFlag(HP);
+			DriveCaller *ptime = NULL;
+			if (iInst) {
+				SAFENEWWITHCONSTRUCTOR(ptime, TimeDriveCaller, 
+						TimeDriveCaller(pDM->pGetDrvHdl()));
+			}
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				STAHRAeroData,
-				STAHRAeroData(iInst, 1));
+				STAHRAeroData(iInst, 1, ptime));
 	  		break;
        		}
 	 
@@ -602,9 +612,14 @@ ReadAeroData(DataManager* pDM,
 				"profile is RAE9671" << std::endl);
 	  
 	  		integer iInst = ReadUnsteadyFlag(HP);
+			DriveCaller *ptime = NULL;
+			if (iInst) {
+				SAFENEWWITHCONSTRUCTOR(ptime, TimeDriveCaller, 
+						TimeDriveCaller(pDM->pGetDrvHdl()));
+			}
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				STAHRAeroData,
-				STAHRAeroData(iInst, 2));
+				STAHRAeroData(iInst, 2, ptime));
 	  		break;
        		}
 	 
@@ -686,8 +701,7 @@ ReadAeroData(DataManager* pDM,
       
       		integer iInst = ReadUnsteadyFlag(HP);
       		SAFENEWWITHCONSTRUCTOR(*aerodata,
-			STAHRAeroData,
-			STAHRAeroData(iInst, 1));
+			STAHRAeroData, STAHRAeroData(iInst, 1));
    	}
 }
 
@@ -748,6 +762,8 @@ ReadAerodynamicBody(DataManager* pDM,
 	ReadAeroData(pDM, HP, 
 		     &pChord, &pForce, &pVelocity, &pTwist,
 		     &iNumber, &pDC, &aerodata);
+
+	aerodata->SetNumPoints(iNumber);
 	
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 	
@@ -1071,6 +1087,7 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 
 	/* OUTA */
 	doublereal** pvd = pvdOuta;
+	int iPnt = 0;
 	
 	for (int iNode = 0; iNode < LASTNODE; iNode++) {
 		
@@ -1167,7 +1184,7 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 			Tmp.PutTo(dW+3);
 		
 			/* Funzione di calcolo delle forze aerodinamiche */
-			aerodata->GetForces(dW, dTng, *pvd);
+			aerodata->GetForces(iPnt, dW, dTng, *pvd);
 			
 			/* OUTA */
 			pvd++;
@@ -1187,6 +1204,8 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 			M[iNode] += RRloc*(Vec3(dTng+3)*dWght);
 			M[iNode] += (Xr-Xn[iNode]).Cross(FTmp);
 		
+			iPnt++;
+
 		} while (GDI.fGetNext(PW));
 	
 		/* 
@@ -1215,22 +1234,12 @@ AerodynamicBeam::Output(OutputHandler& OH ) const
 #ifdef __HACK_UNSTEADY_AERO__ /* Ha seri bugs */
 	/* Memoria in caso di forze instazionarie */
 	switch (aerodata->Unsteady()) {
-	case 1: {
-		doublereal d = 0.;
-		if (pRotor != NULL) {
-			d = dDA*pRotor->dGetOmega();
-		}
-		if (fabs(d) < 1.e-6) {
-			d = 1.e-6;
-		}
-		for (integer i = 0; i < 3*GDI.iGetNum(); i++) {
-			__FC_DECL__(coeprd)(&d, pvdOuta[i]);
-		}
-		break;
-	}
+	case 1:
+		THROW(ErrGeneric());
+
 	case 2:
 		for (integer i = 0; i < 3*GDI.iGetNum(); i++) {
-			__FC_DECL__(coeprd)(&dDA, pvdOuta[i]);
+			aerodata->Update(i);
 		}
 		break;
 	case 0:
@@ -1368,6 +1377,8 @@ ReadAerodynamicBeam(DataManager* pDM,
 	ReadAeroData(pDM, HP, 
 		     &pChord, &pForce, &pVelocity, &pTwist,
 		     &iNumber, &pDC, &aerodata);
+
+	aerodata->SetNumPoints(3*iNumber);
 	
 	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);
 	
@@ -1675,6 +1686,10 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 
 	doublereal pdsi2[] = { -1., 0. };
 	doublereal pdsf2[] = { 0., 1. };
+
+	/* OUTA */
+	doublereal** pvd = pvdOuta;
+	int iPnt = 0;
 	
 	for (int iNode = 0; iNode < LASTNODE; iNode++) {
 	
@@ -1687,9 +1702,6 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 
 		doublereal dsm = (dsf+dsi)/2.;
 		doublereal dsdCsi = (dsf-dsi)/2.;
-	
-		/* OUTA */
-		doublereal** pvd = pvdOuta;
 	
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 		/* per output */
@@ -1769,7 +1781,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 			Tmp.PutTo(dW+3);
 			
 			/* Funzione di calcolo delle forze aerodinamiche */
-			aerodata->GetForces(dW, dTng, *pvd);
+			aerodata->GetForces(iPnt, dW, dTng, *pvd);
 			
 			/* OUTA */
 			pvd++;
@@ -1789,6 +1801,8 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 			M[iNode] += RRloc*(Vec3(dTng+3)*dWght);
 			M[iNode] += (Xr-Xn[iNode]).Cross(FTmp);
 		
+			iPnt++;
+			
 		} while (GDI.fGetNext(PW));
 	
 		/* Se e' definito il rotore, aggiungere il contributo alla trazione */
@@ -1955,6 +1969,8 @@ ReadAerodynamicBeam2(
 	ReadAeroData(pDM, HP, 
 		     &pChord, &pForce, &pVelocity, &pTwist,
 		     &iNumber, &pDC, &aerodata);
+
+	aerodata->SetNumPoints(2*iNumber);
 	
 	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);
 	
