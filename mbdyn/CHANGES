@@ -21,6 +21,7 @@ MBDyn 1.2-Engineering
 		- added "bailout" output mode (residual at divergence)
 		- added "stop" function in math parser
 		- added brake joint
+		- added awk scripts to prepare input for EasyAnim
 	Bug fixes:
 		- fixed aeromodal bug for v=0
 		- fixed solver diagnostics incremental activation
