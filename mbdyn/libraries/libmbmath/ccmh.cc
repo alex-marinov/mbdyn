@@ -40,8 +40,8 @@
 
 template <int off>
 CColMatrixHandler<off>::CColMatrixHandler(std::vector<doublereal>& x,
-		const std::vector<int>& i,
-		const std::vector<int>& p)
+		const std::vector<integer>& i,
+		const std::vector<integer>& p)
 : CompactSparseMatrixHandler(p.size() - 1, p.size() - 1, x, i, p)
 {
 	NO_OP;
@@ -67,25 +67,25 @@ CColMatrixHandler<off>::Copy(void) const
 }
 
 template <int off>
-int
+integer
 CColMatrixHandler<off>::MakeCompressedColumnForm(doublereal *const Ax,
-		int *const Ai, int *const Ap,
+		integer *const Ai, integer *const Ap,
 		int offset) const
 {
 	return Nz();
 }
 
 template <int off>
-int
+integer
 CColMatrixHandler<off>::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
-		std::vector<int>& Ai, std::vector<int>& Ap,
+		std::vector<integer>& Ai, std::vector<integer>& Ap,
 		int offset) const
 {
 	return Nz();
 }
 
 template <int off>
-int
+integer
 CColMatrixHandler<off>::MakeIndexForm(doublereal *const rAx,
 		integer *const Arow, integer *const Acol,
 		integer *const AcolSt, int offset) const
@@ -115,7 +115,7 @@ CColMatrixHandler<off>::MakeIndexForm(doublereal *const rAx,
 }
 
 template <int off>
-int
+integer
 CColMatrixHandler<off>::MakeIndexForm(std::vector<doublereal>& rAx,
                 std::vector<integer>& Arow, std::vector<integer>& Acol,
 		std::vector<integer>& AcolSt, int offset) const
@@ -170,26 +170,28 @@ CColMatrixHandler<off>::MatMatMul(SpMapMatrixHandler& out,
 {
 	silent_cerr("CColMatrixHandler<off>::MatMatMul called" << std::endl);
 	THROW(ErrGeneric());		
-/*
- * 	if ((in.iGetNumCols() != iGetNumRows())
- * 			|| (in.iGetNumRows() != out.iGetNumRows())
- * 			|| (out.iGetNumCols() != iGetNumCols())) {
- * 		silent_cerr("Assertion fault in SpMapMatrixHandler::MatMatMul"
- * 			<< std::endl);
- * 		THROW(ErrGeneric());
- * 	}
- * 	out.Reset(0.);
- * 	for (int col=0; col<NCols; col++) {
- * 		row_cont_type::const_iterator ri, re;
- * 		re = col_indices[col].end();
- * 		for (ri = col_indices[col].begin(); ri!=re; ri++) {
- * 			int iend = in.iGetNumCols();
- * 			for (int col2=0; col2<iend;  col2++) {
- * 				out.IncCoef(ri->first,col2,ri->second*in.dGetCoef(col,col2));
- * 			}
- * 		}
- * 	}
- */
+
+#if 0
+	if ((in.iGetNumCols() != iGetNumRows())
+ 			|| (in.iGetNumRows() != out.iGetNumRows())
+ 			|| (out.iGetNumCols() != iGetNumCols())) {
+ 		silent_cerr("Assertion fault in SpMapMatrixHandler::MatMatMul"
+ 			<< std::endl);
+ 		THROW(ErrGeneric());
+ 	}
+ 	out.Reset(0.);
+ 	for (integer col=0; col<NCols; col++) {
+ 		row_cont_type::const_iterator ri, re;
+ 		re = col_indices[col].end();
+ 		for (ri = col_indices[col].begin(); ri!=re; ri++) {
+ 			integer iend = in.iGetNumCols();
+ 			for (integer col2=0; col2<iend;  col2++) {
+ 				out.IncCoef(ri->first,col2,ri->second*in.dGetCoef(col,col2));
+ 			}
+ 		}
+ 	}
+#endif
+
 	return out;	
 }
 	

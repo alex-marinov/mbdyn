@@ -94,9 +94,9 @@ LinearSolver::ChangeSolPoint(doublereal* pd)
 void
 LinearSolver::MakeCompactForm(SparseMatrixHandler& mh,
 		std::vector<doublereal>& Ax,
-		std::vector<int>& Ar,
-		std::vector<int>& Ac,
-		std::vector<int>& Ap) const
+		std::vector<integer>& Ar,
+		std::vector<integer>& Ac,
+		std::vector<integer>& Ap) const
 {
 	NO_OP;
 }

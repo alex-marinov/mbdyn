@@ -74,7 +74,7 @@
 /* Sparse Matrix in columns form */
 class SpMapMatrixHandler : public SparseMatrixHandler {
 private:
-	typedef std::map<int, doublereal> row_cont_type;
+	typedef std::map<integer, doublereal> row_cont_type;
 	mutable std::vector<row_cont_type> col_indices;
 
 #ifdef DEBUG
@@ -84,7 +84,7 @@ private:
 #endif /* DEBUG */
 
 public:
-	SpMapMatrixHandler(const int &n = 0,const int &nn = 0);
+	SpMapMatrixHandler(const integer &n = 0,const integer &nn = 0);
 
 	virtual ~SpMapMatrixHandler();
 
@@ -206,20 +206,20 @@ public:
 		}
 	};
 
-	int MakeCompressedColumnForm(doublereal *const Ax,
-			int *const Ai, int *const Ap,
+	integer MakeCompressedColumnForm(doublereal *const Ax,
+			integer *const Ai, integer *const Ap,
 			int offset = 0) const;
 
-        int MakeCompressedColumnForm(std::vector<doublereal>& Ax,
-                	std::vector<int>& Ai, std::vector<int>& Ap,
+        integer MakeCompressedColumnForm(std::vector<doublereal>& Ax,
+                	std::vector<integer>& Ai, std::vector<integer>& Ap,
 			int offset = 0) const;
 
-	int MakeIndexForm(doublereal *const Ax,
+	integer MakeIndexForm(doublereal *const Ax,
 			integer *const Arow, integer *const Acol,
 			integer *const AcolSt,
 			int offset = 0) const;
 
-        int MakeIndexForm(std::vector<doublereal>& Ax,
+        integer MakeIndexForm(std::vector<doublereal>& Ax,
 			std::vector<integer>& Arow, std::vector<integer>& Acol,
 			std::vector<integer>& AcolSt,
 			int offset = 0) const;

@@ -40,17 +40,17 @@
 
 template <int off>
 DirCColMatrixHandler<off>::DirCColMatrixHandler(std::vector<doublereal>& x,
-		const std::vector<int>& i,
-		const std::vector<int>& p)
+		const std::vector<integer>& i,
+		const std::vector<integer>& p)
 : CompactSparseMatrixHandler(p.size() - 1, p.size() - 1, x, i, p),
   pindices(NCols + 1), indices(NRows*NCols, -1)
 {
 	for (integer col = 1; col <= NCols; col++) {
 		pindices[col] = &indices[(col - 1)*NRows] - 1;
 
-		int row_begin = p[col - 1], row_end = p[col];
+		integer row_begin = p[col - 1], row_end = p[col];
 
-		for (int r = row_begin; r < row_end; r++) {
+		for (integer r = row_begin; r < row_end; r++) {
 			pindices[col][i[r] + 1 - off] = r;
 		}
 	}
@@ -78,7 +78,7 @@ DirCColMatrixHandler<off>::Copy(void) const
 template <int off>
 int
 DirCColMatrixHandler<off>::MakeCompressedColumnForm(doublereal *const Ax,
-		int *const Ai, int *const Ap,
+		integer *const Ai, integer *const Ap,
 		int offset) const
 {
 	return Nz();
@@ -87,7 +87,7 @@ DirCColMatrixHandler<off>::MakeCompressedColumnForm(doublereal *const Ax,
 template <int off>
 int
 DirCColMatrixHandler<off>::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
-		std::vector<int>& Ai, std::vector<int>& Ap,
+		std::vector<integer>& Ai, std::vector<integer>& Ap,
 		int offset) const
 {
 	return Nz();
@@ -188,12 +188,12 @@ DirCColMatrixHandler<off>::MatMatMul(SpMapMatrixHandler& out,
  * 		THROW(ErrGeneric());
  * 	}
  * 	out.Reset(0.);
- * 	for (int col=0; col<NCols; col++) {
+ * 	for (integer col=0; col<NCols; col++) {
  * 		row_cont_type::const_iterator ri, re;
  * 		re = col_indices[col].end();
  * 		for (ri = col_indices[col].begin(); ri!=re; ri++) {
- * 			int iend = in.iGetNumCols();
- * 			for (int col2=0; col2<iend;  col2++) {
+ * 			integer iend = in.iGetNumCols();
+ * 			for (integer col2=0; col2<iend;  col2++) {
  * 				out.IncCoef(ri->first,col2,ri->second*in.dGetCoef(col,col2));
  * 			}
  * 		}

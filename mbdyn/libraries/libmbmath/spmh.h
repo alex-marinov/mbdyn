@@ -41,9 +41,9 @@
 /* Sparse Matrix */
 class SparseMatrixHandler : public MatrixHandler {
 protected:
-	int NRows;
-	int NCols;
-	int NZ;
+	integer NRows;
+	integer NCols;
+	integer NZ;
 
 #ifdef DEBUG
 	void IsValid(void) const {
@@ -51,13 +51,13 @@ protected:
 	};
 #endif /* DEBUG */
 
-	const int Nz() const {
+	const integer Nz() const {
 		return NZ;
 	};
 	
 public:
 	/* FIXME: always square? */
-	SparseMatrixHandler(const int &n, const int &nn = 0);
+	SparseMatrixHandler(const integer &n, const integer &nn = 0);
 
 	virtual ~SparseMatrixHandler(void);
 
@@ -72,23 +72,23 @@ public:
 	void Init(const doublereal &r = 0.);
 
 	virtual
-	int MakeCompressedColumnForm(doublereal *const Ax,
-			int *const Ai, int *const Ap,
+	integer MakeCompressedColumnForm(doublereal *const Ax,
+			integer *const Ai, integer *const Ap,
 			int offset = 0) const = 0;
 
 	virtual
-        int MakeCompressedColumnForm(std::vector<doublereal>& Ax,
-                	std::vector<int>& Ai, std::vector<int>& Ap,
+        integer MakeCompressedColumnForm(std::vector<doublereal>& Ax,
+                	std::vector<integer>& Ai, std::vector<integer>& Ap,
 			int offset = 0) const = 0;
 
 	virtual
-	int MakeIndexForm(doublereal *const Ax,
+	integer MakeIndexForm(doublereal *const Ax,
 			integer *const Arow, integer *const Acol,
 			integer *const AcolSt,
 			int offset = 0) const = 0;
 
 	virtual
-        int MakeIndexForm(std::vector<doublereal>& Ax,
+        integer MakeIndexForm(std::vector<doublereal>& Ax,
 			std::vector<integer>& Arow, std::vector<integer>& Acol,
 			std::vector<integer>& AcolSt,
 			int offset = 0) const = 0;
@@ -103,8 +103,8 @@ class CompactSparseMatrixHandler : public SparseMatrixHandler {
 protected:
 	bool bMatDuplicate;
 	std::vector<doublereal>& Ax;
-	const std::vector<int>& Ai;
-	const std::vector<int>& Ap;
+	const std::vector<integer>& Ai;
+	const std::vector<integer>& Ap;
 
 #ifdef DEBUG
 	void IsValid(void) const {
@@ -113,10 +113,10 @@ protected:
 #endif /* DEBUG */
 
 public:
-	CompactSparseMatrixHandler(const int &n, const int &nn,
+	CompactSparseMatrixHandler(const integer &n, const integer &nn,
 			std::vector<doublereal>& x,
-			const std::vector<int>& i,
-			const std::vector<int>& p);
+			const std::vector<integer>& i,
+			const std::vector<integer>& p);
 
 	virtual ~CompactSparseMatrixHandler();
 

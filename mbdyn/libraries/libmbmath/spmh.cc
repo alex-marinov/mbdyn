@@ -36,7 +36,7 @@
 
 #include "spmh.h"
 
-SparseMatrixHandler::SparseMatrixHandler(const int &n, const int &nn)
+SparseMatrixHandler::SparseMatrixHandler(const integer &n, const integer &nn)
 :  NRows(n), NCols(nn == 0 ? n : nn), NZ(0)
 {
 	NO_OP;
@@ -53,11 +53,11 @@ SparseMatrixHandler::Init(const doublereal& c)
 	Reset(c);
 }
 
-CompactSparseMatrixHandler::CompactSparseMatrixHandler(const int &n,
-		const int &nn,
+CompactSparseMatrixHandler::CompactSparseMatrixHandler(const integer &n,
+		const integer &nn,
 		std::vector<doublereal>&x,
-		const std::vector<int>& i,
-		const std::vector<int>& p)
+		const std::vector<integer>& i,
+		const std::vector<integer>& p)
 : SparseMatrixHandler(n, nn),
 bMatDuplicate(false),
 Ax(x),

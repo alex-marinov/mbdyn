@@ -52,8 +52,8 @@ private:
 
 public:
 	CColMatrixHandler(std::vector<doublereal>& x,
-			const std::vector<int>& i,
-			const std::vector<int>& p);
+			const std::vector<integer>& i,
+			const std::vector<integer>& p);
 
 	virtual ~CColMatrixHandler();
 
@@ -76,8 +76,8 @@ public:
 		integer row;
 
 		if (row_begin == Ap[i_col]
-				|| Ai[row_begin] - off > i_row
-				|| Ai[row_end] - off < i_row) {
+				|| (Ai[row_begin] - off) > i_row
+				|| (Ai[row_end] - off) < i_row) {
 			/* matrix must be rebuilt */
 			THROW(ErrRebuildMatrix());
 		}
@@ -132,20 +132,20 @@ public:
 		return ::dZero;
 	};
 
-	int MakeCompressedColumnForm(doublereal *const Ax,
-			int *const Ai, int *const Ap,
+	integer MakeCompressedColumnForm(doublereal *const Ax,
+			integer *const Ai, integer *const Ap,
 			int offset = 0) const;
 
-        int MakeCompressedColumnForm(std::vector<doublereal>& Ax,
-                	std::vector<int>& Ai, std::vector<int>& Ap,
+        integer MakeCompressedColumnForm(std::vector<doublereal>& Ax,
+                	std::vector<integer>& Ai, std::vector<integer>& Ap,
 			int offset = 0) const;
 
-	int MakeIndexForm(doublereal *const rAx,
+	integer MakeIndexForm(doublereal *const rAx,
 			integer *const Arow, integer *const Acol,
 			integer *const AcolSt,
 			int offset = 0) const;
 
-        int MakeIndexForm(std::vector<doublereal>& rAx,
+        integer MakeIndexForm(std::vector<doublereal>& rAx,
                 	std::vector<integer>& Arow, std::vector<integer>& Acol,
 			std::vector<integer>& AcolSt,
 			int offset = 0) const;

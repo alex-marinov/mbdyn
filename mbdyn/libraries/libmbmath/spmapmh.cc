@@ -66,7 +66,7 @@
 
 #include "spmapmh.h"
 
-SpMapMatrixHandler::SpMapMatrixHandler(const int &n, const int &nn)
+SpMapMatrixHandler::SpMapMatrixHandler(const integer &n, const integer &nn)
 : SparseMatrixHandler(n, nn)
 {
 	col_indices.resize(NCols);
@@ -77,16 +77,16 @@ SpMapMatrixHandler::~SpMapMatrixHandler()
 	NO_OP;
 }
 
-int
+integer
 SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
-		int *const Ai, int *const Ap, int offset) const
+		integer *const Ai, integer *const Ap, int offset) const
 {
-	int x_ptr = 0;
+	integer x_ptr = 0;
 		
 	row_cont_type::iterator ri;
 	row_cont_type::const_iterator re;
 		
-	for (int col = 0; col < NCols; col++) {
+	for (integer col = 0; col < NCols; col++) {
 		Ap[col] = x_ptr;
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin(); ri != re; ri++) {
@@ -106,7 +106,8 @@ SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
 
 int
 SpMapMatrixHandler::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
-                std::vector<int>& Ai, std::vector<int>& Ap, int offset) const
+                std::vector<integer>& Ai, std::vector<integer>& Ap,
+		int offset) const
 {
 	Ax.resize(Nz());
 	Ai.resize(Nz());
@@ -125,7 +126,7 @@ SpMapMatrixHandler::MakeIndexForm(doublereal *const Ax,
 	row_cont_type::iterator ri;		
 	row_cont_type::const_iterator re;		
 		
-	for (int col = 0; col < NCols; col++) {
+	for (integer col = 0; col < NCols; col++) {
 		Ap[col] = x_ptr;
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin(); ri != re; ri++) {
@@ -162,7 +163,7 @@ SpMapMatrixHandler::Reset(const doublereal &r)
 {
 	row_cont_type::const_iterator re;
 	row_cont_type::iterator ri;
-	for (int col = 0; col < NCols; col++) {
+	for (integer col = 0; col < NCols; col++) {
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin();ri != re; ri++) {
 			ri->second = r;
@@ -173,7 +174,7 @@ SpMapMatrixHandler::Reset(const doublereal &r)
 void
 SpMapMatrixHandler::Resize(integer n, integer nn)
 {
-	int nnn;
+	integer nnn;
 
 	if (nn == 0) {
 		nnn = n;
@@ -181,7 +182,7 @@ SpMapMatrixHandler::Resize(integer n, integer nn)
 		nnn = nn;
 	}
 
-	for (int col = 0; col < NCols; col++) {
+	for (integer col = 0; col < NCols; col++) {
 		col_indices[col].clear();
 	}
 
@@ -221,12 +222,12 @@ SpMapMatrixHandler::MatMatMul(SpMapMatrixHandler& out,
 
 	out.Reset(0.);
 
-	for (int col = 0; col < NCols; col++) {
+	for (integer col = 0; col < NCols; col++) {
 		row_cont_type::const_iterator ri, re;
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin(); ri != re; ri++) {
-			int iend = in.iGetNumCols();
-			for (int col2 = 0; col2 < iend;  col2++) {
+			integer iend = in.iGetNumCols();
+			for (integer col2 = 0; col2 < iend;  col2++) {
 				out.IncCoef(ri->first,col2,
 						ri->second*in(col, col2));
 			}
@@ -251,7 +252,7 @@ SpMapMatrixHandler::MulAndSumWithShift(MatrixHandler& out, doublereal s ,
 
 	drow = drow + 1;
 
-	for (int col = 0; col < NCols; col++) {
+	for (integer col = 0; col < NCols; col++) {
 		row_cont_type::const_iterator ri, re;
 		re = col_indices[col].end();
 		integer newcol = col + dcol + 1;
@@ -278,7 +279,7 @@ SpMapMatrixHandler::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
 
 	drow = drow + 1;
 
-	for (int col = 0; col < NCols; col++) {
+	for (integer col = 0; col < NCols; col++) {
 		row_cont_type::const_iterator ri, re;
 		re = col_indices[col].end();
 		integer newcol = col + dcol + 1;
@@ -304,7 +305,7 @@ SpMapMatrixHandler::MatTVecMul(VectorHandler& out,
 
 	row_cont_type::const_iterator ri, re;
 
-	for (int col = 0; col < NCols; col++) {
+	for (integer col = 0; col < NCols; col++) {
 		doublereal d = 0.;
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin();ri != re; ri++) {
@@ -328,7 +329,7 @@ SpMapMatrixHandler::MatVecMul(VectorHandler& out,
 	row_cont_type::const_iterator ri, re;
 	out.Reset(0.);
 
-	for (int col = 0; col < NCols; col++) {
+	for (integer col = 0; col < NCols; col++) {
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin();ri != re; ri++) {
 			doublereal d = ri->second*in(col + 1);
@@ -350,7 +351,7 @@ SpMapMatrixHandler::MatTVecIncMul(VectorHandler& out,
 
 	row_cont_type::const_iterator ri, re;
 
-	for (int col = 0; col < NCols; col++) {
+	for (integer col = 0; col < NCols; col++) {
 		doublereal d = 0.;
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin();ri != re; ri++) {
@@ -373,7 +374,7 @@ SpMapMatrixHandler::MatVecIncMul(VectorHandler& out,
 
 	row_cont_type::const_iterator ri, re;
 
-	for (int col = 0; col < NCols; col++) {
+	for (integer col = 0; col < NCols; col++) {
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin();ri != re; ri++) {
 			doublereal d = ri->second*in(col + 1);
@@ -395,7 +396,7 @@ SpMapMatrixHandler::MatVecDecMul(VectorHandler& out,
 
 	row_cont_type::const_iterator ri, re;
 
-	for (int col = 0; col < NCols; col++) {
+	for (integer col = 0; col < NCols; col++) {
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin();ri != re; ri++) {
 			doublereal d = ri->second*in(col + 1);
