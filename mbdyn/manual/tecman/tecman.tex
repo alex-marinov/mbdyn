@@ -244,6 +244,100 @@ so that $\Delta \T \omega = \Delta \dot{\T g}-\T \omega_{ref}\times\Delta \T g$
 and so $\Delta \T \omega = \Delta \dot{\T g}-
 \T \omega_{ref}\times\Delta \dot{\T g} * d_{Coef}$.
 
+
+\chapter{Solution Phases}
+\section{Initial Assembly}
+This phase only involves some of the structural elements.
+It is intended to ensure that the innitial configuration and velocity 
+complies with the constraint equations.
+It is not performed if the \texttt{control data} block contains 
+the statement \texttt{skip initial joint assembly}.
+
+To allow non-compliant system analysis, the initial configuration 
+and velocity can be changed by this phase.
+To this purpose, the nodal positions, orientations, velocities
+and angular velocities are grounded by dummy springs, acting 
+as penalty functions.
+The springs can be set on a node basis, and separately 
+for configuration and velocity, to allow to selectively enforce 
+the initial configuration.
+
+The problem can be stated as follows:
+\begin{eqnarray*}
+	k_x x + \Phi_{/x}^T \lambda_{\Phi} + \Psi_{/x}^T \lambda_{\Psi} 
+		& = & F \\
+	k_v v + \Phi_{/x}^T \nu + \Psi_{/v}^T \lambda_{\Psi} & = & 0 \\
+	\Phi\plbr{x, t} & = & 0 \\
+	\Psi\plbr{x, v, t} & = & 0 \\
+	\Phi_{/x} \dot{x} + \Phi_{/t} & = & 0
+\end{eqnarray*}
+The solution of this problem leads to the direct determination
+of an initial configuration and velocity that complies 
+with the constraints.
+
+Unfortunately, this requires the implementation of more constraints
+than required by the regular solution phases, namely the time derivative
+of the algebraic constraints that depend only on the configuration.
+A new procedure is being considered, wich requires only the use 
+of the constraint equation $\Phi$ and its jacobian $\Phi_{/x}$.
+
+The problem that is solved with the new procedure is
+\begin{eqnarray*}
+	m_v x + v & = & 0 \\
+	k_x x + c_v v + \Phi_{/x}^T \lambda_{\Phi} + \Psi_{/x}^T \lambda_{\Psi} 
+		& = & F \\
+	\Phi\plbr{x, t} & = & 0 \\
+	\Psi\plbr{x, v, t} & = & 0
+\end{eqnarray*}
+so that only the configuration is required to comply 
+with the constraint equations, and the same constraint 
+jacobian and residual of the regular steps are required;
+then, after convergence, the following equation is considered:
+\begin{displaymath}
+	\Phi_{/x} v + \Phi_{/t} = 0
+\end{displaymath}
+which uses the jacobian of the constraint equations; 
+only the derivative of the time-dependent contraints is required.
+
+The number of rows of matrix $\Phi_{/x}$ is equal to the number 
+of degrees of freedom that are constrained, so typically the matrix 
+must be underdetermined.
+It can be decomposed as
+\begin{displaymath}
+	\Phi_{/x}^T = Q R
+		= \sqbr{\matr{cc}{Q_1 & Q_2}}\sqbr{\cvvect{R_1 \\ 0}}
+\end{displaymath}
+so
+\begin{displaymath}
+	Q_1^T v + R_1^{-T} \Phi_{/t} = 0
+\end{displaymath}
+becomes a compatibility test for the initial velocities.
+There are two possible choices:
+\begin{enumerate}
+\item the initial configuration assessment fails if the given 
+initial velocities, after the correction occuring during the position 
+and orientation assessment and correction phase, do not pass 
+the above test;
+\item the initial velocities $v$ are corrected into $v_c$ 
+by projecting them in the space that is compatible with the constraints, 
+e.g.:
+\begin{displaymath}
+	v_c = v - Q_1 \plbr{Q_1^T v + R_1^{-T}\Phi_{/t}}
+\end{displaymath}
+\end{enumerate}
+A consistent implementation of this approach is not available yet;
+it requires the availability of the time derivatives 
+of the constraint equations, which is an open issue since it is not
+well understood what is the physical meaning of knowing 
+the time derivatives of a constraint.
+Implementation issues are still open as well.
+
+
+
+\section{Initial Derivatives}
+\section{Dummy Steps}
+\section{Regular Steps}
+
 \chapter{Data Structure}
 \section{ExpandableRowVector}
 \texttt{ExpandableRowVector} is a class that can be used to
