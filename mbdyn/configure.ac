@@ -233,7 +233,7 @@ dnl
 dnl Check for exceptions
 dnl
 AC_LANG_CPLUSPLUS
-AC_MSG_CHECKING([whether C++ compiler handles exceptions])
+AC_MSG_CHECKING([whether the C++ compiler handles exceptions])
 AC_TRY_COMPILE([],[
 	try {
 		(void *)0;
