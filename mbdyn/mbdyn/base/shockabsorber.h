@@ -206,7 +206,7 @@ public:
 "\t[ prestrain , <value> , ]\n"
 "\t<reference pressure> ,\n"
 "\t<reference area for force computation> ,\n"
-"\t<interpolation coefficient (kinematic scale * ( L * A / V0 ) )> ,\n"
+"\t<interaction coefficient (kinematic scale * ( L * A / V0 ) )> ,\n"
 "\t<gamma (polytropic exponent)> ,\n"
 "\t[ epsilon max , <upper strain bound, > prestrain; defaults to " << defaultEpsMax << ")> , ]\n"
 "\t[ epsilon min , <lower strain bound, < prestrain; defaults to " << defaultEpsMin << ")> , ]\n"
