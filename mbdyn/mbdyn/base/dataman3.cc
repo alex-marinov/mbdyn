@@ -1772,6 +1772,7 @@ Shape* ReadShape(MBDynParser& HP)
    const char* sKeyWords[] = {
       "const",
 	"linear",
+	"piecewise" "linear",
 	"parabolic",
    };
    
@@ -1780,6 +1781,7 @@ Shape* ReadShape(MBDynParser& HP)
       UNKNOWN = -1,
 	CONST = 0,
 	LINEAR,
+	PIECEWISELINEAR,
 	PARABOLIC,
 	LASTKEYWORD
    };
@@ -1825,10 +1827,23 @@ Shape* ReadShape(MBDynParser& HP)
       /* forma lineare */
     case LINEAR: {
        /* lettura dei dati specifici */
-       doublereal dm = HP.GetReal();
-       doublereal dp = HP.GetReal();
-       doublereal da0 = (dp+dm)/2.;
-       doublereal da1 = (dp-dm)/2;
+       doublereal da0;
+       doublereal da1;
+       if (HP.IsKeyWord("coefficients")) {
+          da0 = HP.GetReal();
+	  da1 = HP.GetReal();
+       } else {
+	  doublereal dm = HP.GetReal();
+	  doublereal dp = HP.GetReal();
+	  if (dm < 0 || dp) {
+             cerr << "Illegal chord boundaries {" << dm << "," << dp
+	       << "} for linear shape at line " << HP.GetLineData() << endl;
+	     THROW(ErrGeneric());
+	  }
+          da0 = (dp+dm)/2.;
+          da1 = (dp-dm)/2;
+       }
+
        DEBUGLCOUT(MYDEBUG_INPUT, "Coefficients: " << da0 << ", " << da1 << endl);
        
        /* allocazione e creazione */
@@ -1841,13 +1856,65 @@ Shape* ReadShape(MBDynParser& HP)
        
        break;
     }
-      
+
+      /* forma lineare a tratti (costante al di fuori del dominio definito) */
+    case PIECEWISELINEAR: {
+       int np = HP.GetInt();
+       if (np <= 0) {
+	  cerr << "Illegal number of points " << np 
+            << " for piecewise linear shape at line " 
+	    << HP.GetLineData() << endl;
+	  THROW(ErrGeneric());
+       }
+
+       doublereal *px = NULL;
+       doublereal *pv = NULL;
+
+       SAFENEWARR(px, doublereal, np, EMmm);
+       SAFENEWARR(pv, doublereal, np, EMmm);
+
+       px[0] = HP.GetReal();
+       if (px[0] < -1. || px[0] > 1.) {
+	  cerr << "Illegal value " << px[0] 
+	    << "for first point abscissa (must be -1. < x < 1.) "
+	    "in piecewise linear shape at line " << HP.GetLineData() << endl;
+	  THROW(ErrGeneric());
+       }
+       pv[0] = HP.GetReal();
+
+       for (int i = 1; i < np; i++) {
+	  px[i] = HP.GetReal();
+	  if (px[i] <= px[i-1] || px[i] > 1.) {
+             cerr << "Illegal value " << px[i]
+	       << "for point " << i+1 << " abscissa (must be " << px[i-1]
+	       << " < x < 1.) in piecewise linear shape at line "
+	       << HP.GetLineData() << endl;
+	     THROW(ErrGeneric());
+	  }
+	  pv[i] = HP.GetReal();
+       }
+
+       /* allocazione e creazione */
+       SAFENEWWITHCONSTRUCTOR(pS,
+		       PiecewiseLinearShape1D,
+		       PiecewiseLinearShape1D(np, px, pv),
+		       DMmm);
+  
+       break;
+    }
+
       /* forma lineare */
     case PARABOLIC: {
        /* lettura dei dati specifici */
        doublereal dm = HP.GetReal();
        doublereal da0 = HP.GetReal();
        doublereal dp = HP.GetReal();
+       if (dm < 0. || da0 < 0. || dp < 0.) {
+             cerr << "Illegal chord boundaries {" 
+	       << dm << "," << da0 << "," << dp
+	       << "} for parabolic shape at line " << HP.GetLineData() << endl;
+	     THROW(ErrGeneric());
+       }
        doublereal da1 = (dp-dm)/2.;
        doublereal da2 = (dp+dm)/2.-da0;
        DEBUGLCOUT(MYDEBUG_INPUT, "Coefficients: " << da0 << ", " << da1 << ", " << da2 <<endl);

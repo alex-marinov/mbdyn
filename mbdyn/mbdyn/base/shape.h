@@ -155,6 +155,47 @@ class LinearShape1D : public Shape1D {
    };
 };
 
+class PiecewiseLinearShape1D : public Shape1D {
+ protected:
+   int nPoints;
+   doublereal *pdX;
+   doublereal *pdV;
+ public:
+   PiecewiseLinearShape1D(int n, doublereal *x, doublereal *v)
+     : nPoints(n), pdX(x), pdV(v) {
+      ASSERT(nPoints > 0);
+      ASSERT(pdX != NULL);
+      ASSERT(pdV != NULL);
+   };
+
+   ~PiecewiseLinearShape1D(void) {
+      SAFEDELETEARR(pdX, EMmm);
+      SAFEDELETEARR(pdV, EMmm);
+   };
+
+   doublereal dGet(doublereal d, doublereal = 0.) const {
+      if (d <= pdX[0]) {
+	 return pdV[0];
+      }
+      for (int i = 1; i < nPoints; i++) {
+	 if (d <= pdX[i]) {
+	    doublereal dl = pdX[i]-pdX[i-1];
+	    return (pdV[i]*(d-pdX[i-1])+pdV[i-1]*(pdX[i]-d))/dl;
+	 }
+      }
+
+      return pdV[nPoints-1];
+   };
+
+   ostream& Restart(ostream& out) const {
+      out << "piecewise linear, " << nPoints;
+      for (int i = 0; i < nPoints; i++) {
+	 out << ", " << pdX[i] << ", " << pdV[i];
+      }
+      return out;
+   };
+};
+
 class ParabolicShape1D : public Shape1D {
  protected:
    doublereal da0;
@@ -178,7 +219,6 @@ class ParabolicShape1D : public Shape1D {
       return out << "parabolic, " << da0 << ", " << da1 << ", " << da2; 
    };
 };
-
 
 /* Classe base delle forme bidimensionali:
  * una forma monodimensionale restituisce un reale in funzione
@@ -243,4 +283,5 @@ class BilinearShape2D : public Shape2D {
    };
 };
 
-#endif
+#endif /* SHAPE_H */
+
