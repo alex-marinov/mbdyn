@@ -219,9 +219,12 @@ The \kw{<aircraft\_node>} represents the aircraft; it is assumed
 that the ``nose'' of the aircraft is towards the positive $x$ direction
 of the node, and the ``top'' of the aircraft is towards the positive 
 $z$ direction of the node.
-The available measures are accessed by defining appropriate 
-\kw{parameter} nodes, and by binding the \kw{aircraft instruments} 
-element private data to the nodes by means of the \kw{bind} mechanism.
+The available measures are accessed during the simulation 
+by defining appropriate \kw{parameter} nodes, and by binding
+the \kw{aircraft instruments} element private data to the nodes 
+by means of the \kw{bind} mechanism, or directly by means
+of the 
+\hyperref{\kw{element} drive}{\kw{element} drive (see Section~}{)}{sec:DRIVE-ELEMENT}.
 The measures are:
 \begin{itemize}
 	\item \kw{airspeed}
@@ -356,15 +359,84 @@ and a peak velocity of 5 m/s moving downstream at the airstream speed,
 
 
 \section{Beam Element}
-Currently two beam elements are implemented: a three-node finite volume
-element, which has been historically implemented first, and uses
-conventional polynomial parabolic interpolation of the nodal displacements
-and orientations, and a two-node finite volume element, which has been
-recently introduced.
-Although this latter element presents some shear-locking, it may be overcome
-by correcting the section stiffness matrix in a straightforward form:
+The \kw{beam} element allows to model a slender deformable structural
+component with a high degree of flexibility.
+
+\noindent
+The beam is defined by a reference line and by a manifold
+of orientations attached to the line.
+It is assumed that the direction 1 of the orientations lies along
+the reference line, but it is not strictly required to be tangent
+to it even in the reference configuration.
+
+\noindent
+The beam element is defined by its nodes; currently, 2 and 3 node 
+beam elements are implemented.
+Each node of the beam is related to a \kw{structural node} by an offset
+and a relative orientation, to provide topological flexibility.
+The beam element is modeled by means of an original Finite Volume approach
+\cite{FV-AIAA}, which computes the internal forces as functions 
+of the straining of the reference line and orientation at selected points
+along the line itself, called \emph{evaluation points},
+which lie somewhere between two pairs of beam nodes.
+At each evaluation point, a 6D constitutive law must be defined,
+which defines the relationship between the strains, the curvatures
+of the beam and their time derivatives
+and the internal forces and moments at the evaluation points.
+The strains and curvatures and their time derivatives are obtained 
+from the nodal positions and orientations by differentiating
+the interpolation functions.
+The 6D constitutive laws are defined as
+\begin{displaymath}
+	\cubr{\cvvect{
+		F_x \\
+		F_y \\
+		F_z \\
+		M_x \\
+		M_y \\
+		M_z
+	}} = \T{f}\plbr{
+		\cubr{\cvvect{
+			\varepsilon_x \\
+			\gamma_y \\
+			\gamma_z \\
+			\kappa_x \\
+			\kappa_y \\
+			\kappa_z
+		}},
+		\cubr{\cvvect{
+			\dot{\varepsilon}_x \\
+			\dot{\gamma}_y \\
+			\dot{\gamma}_z \\
+			\dot{\kappa}_x \\
+			\dot{\kappa}_y \\
+			\dot{\kappa}_z
+		}}
+	}
+\end{displaymath}
+where, if the convention of using $x$ as beam axis is followed:
+\begin{itemize}
+\item $F_x$ is the axial force component;
+\item $F_y$ and $F_z$ are the shear force components;
+\item $M_x$ is the torsional moment component;
+\item $M_y$ and $M_z$ are the bending moment components;
+\item $\varepsilon_x$ is the axial strain component;
+\item $\gamma_y$ and $\gamma_z$ are the shear strain components;
+\item $\kappa_x$ is the torsional curvature component;
+\item $\kappa_y$ and $\kappa_z$ are the bending curvature component;
+\item $\T{f}$ is an arbitrary function that defines the constitutive law.
+\end{itemize}
+
+
+The 3 node finite volume element has been implemented first, 
+and uses conventional polynomial parabolic interpolation 
+of the nodal displacements and orientations;
+the two-node finite volume element has been introduced later.
+This latter element presents some shear-locking, which, for linear elastic
+consitutive laws, may be overcome by correcting the section stiffness matrix
+in a relatively straightforward form:
 \begin{equation}\label{eq:2-NODE-BEAM-STIFFNESS}
-	\hat{\T{K}} \ = \ \plbr{\T{F} + \frac{L^2}{12}\T{T} \T{F} \T{T}^T}^{-1} ,
+	\hat{\T{K}} = \plbr{\T{F} + \frac{L^2}{12}\T{T} \T{F} \T{T}^T}^{-1} ,
 \end{equation}
 where $\T{F}=\T{K}^{-1}$ is the compliance of the section, and
 \begin{displaymath}
@@ -377,17 +449,21 @@ is the ``arm'' matrix that appears in the differential equilibrium equation
 \begin{displaymath}
 	\T{\vartheta}_{/x} - \T{T}^T\vartheta + \T{f} \ = \ 0 .
 \end{displaymath}
-The two-node beam will be reimplemented using a helicoidal interpolation
-of the nodal positions and orientations, to reduce the shear-locking effect.
+The two-node beam has been reimplemented using a helicoidal interpolation
+of the nodal positions and orientations, to improve its capability
+to undergo large displacements and relative rotations; to reduce 
+the shear-locking effect, the stiffness properties still need 
+to be manually corrected according
+to Equation~\ref{eq:2-NODE-BEAM-STIFFNESS}; there is no provisions
+to do it automatically when defining the constitutive law.
 
 \subsection{Three-node beam element}
-The beam element is a three node one-dimensional element; it is described 
-in detail in \cite{FV-AIAA}.
+The three node beam element is described in detail in \cite{FV-AIAA}.
 Each ``node'' is referred to a structural node but can have an arbitrary
-offset to allow for more generality in positioning of the structural 
-reference lines of the beam.
-The ``Finite Volumes'' formulation is used. 
-As a consequence, the internal forces and moments are evaluated 
+offset to allow high generality in the positioning of the structural 
+reference line of the beam.
+A finite volume formulation is used;
+as a consequence, the internal forces and moments are evaluated 
 at two points that are at about midpoint between nodes 1 and 2, 
 and nodes 2 and 3 (at $ -1/\sqrt{3} $ and $1/\sqrt{3}$ considering
 a non-dimensional abscissa running from -1 at node 1 to 1 at node 3).
@@ -397,7 +473,7 @@ is in direction 1).
 Any of the allowed 6D constitutive laws can be supplied to define the
 constitutive properties.
 \begin{verbatim}
-    <element_type> ::= beam
+    <element_type> ::= beam3
     <normal_arglist> ::=
         <node_1> , (Vec3) <relative_offset_1> ,
         <node_2> , (Vec3) <relative_offset_2> ,
@@ -484,7 +560,7 @@ matrix is presented:
     set: real GJ = 1.e3;  # Nm^2
     set: real EJy = 2.e3; # Nm^2
     set: real EJz = 1.e4; # Nm^2
-    beam3: beam_label,
+    beam2: beam_label,
         beam_node1, reference, node, null,
         beam_node2, reference, node, null,
         eye,
@@ -516,9 +592,9 @@ The format is:
 \section{Bind}\label{sec:EL-BIND}
 This is not really an element; it is used to instruct a \kw{parameter node}
 about which parameter of an element it is bound to.
-The \kw{parameter node} must exist, and the binding element, of type 
-\kw{element\_type} and label \kw{element\_label}, must have been already 
-defined.
+The \kw{parameter node} must exist, and the element the node 
+is being bound to, of type \kw{element\_type} and label \kw{element\_label},
+must have been already defined.
 The complete syntax is:
 \begin{verbatim}
     <arglist> ::= <element_label> , 
@@ -527,7 +603,7 @@ The complete syntax is:
                   { <parameter_index> | name , " <parameter_name> " }
 \end{verbatim}
 Each element makes a number of parameters available for such binding; a
-detailed list will be presented in a future release of the input manual.
+detailed list is being added to the input manual.
 The value of \kw{parameter\_index} must be legal, i.e.\ between 1 and the
 maximum number of parameters made available by the element.
 The alternative form, which will become the default, allows more
@@ -546,13 +622,14 @@ of a revolute hinge.
     # ... integrator
     begin: control data;
         structural nodes: 2;
-        parameter nodes: 2;
+        parameter nodes: 1;
+        forces: 2;
         # ... other control data
     end: control data;
 
     set: integer node1 = 1000;
     set: integer node2 = 2000;
-    set integer angle = 5000;
+    set: integer angle = 5000;
 
     begin: nodes;
         structural: node1, dynamic, null, eye, null, null;
@@ -569,11 +646,23 @@ of a revolute hinge.
             node2, reference, node, null,
                 hinge, reference, node, eye;
         bind: 1, 1, joint, angle, string, "rx";
+        couple: 1, node1, 0.,0.,1.,
+            dof, 1, parameter, linear, 0.,1.;
+        couple: 2, node2, 0.,0.,1.,
+            element, 1, joint, string, "rx", linear, 0.,1.;
 
         # ... other elements
     end: elements;
 \end{verbatim}
-
+Note that the same element data, i.e.\ the revolute joint 
+relative rotation angle, is used to drive a couple in two different
+ways; the latter, by means of the 
+\hyperref{\kw{element} drive}{\kw{element} drive (see Section~}{)}{sec:DRIVE-ELEMENT}
+is more direct, but the former, by means of the 
+\hyperref{\kw{dof} drive}{\kw{dof} drive (see Section~}{)}{sec:DRIVE-DOF}
+through the \kw{bind} mechanism has the additional effect of updating
+the \kw{parameter} node, which can be used to connect \kw{genel} elements 
+for special purposes.
 
 
 
