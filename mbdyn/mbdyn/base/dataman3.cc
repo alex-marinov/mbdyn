@@ -886,6 +886,11 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 
 	 
        case DEFAULTSCALE: {
+#ifndef __HACK_SCALE_RES__
+	  std::cerr << "warning: residual and solution scaling is disabled"
+		  << std::endl;
+#endif /* !__HACK_SCALE_RES__ */
+
 	  while (HP.fIsArg()) {
 	     KeyWords CurrDefOut(KeyWords(HP.GetWord()));
 	     doublereal dScale = HP.GetReal(1.);
@@ -1121,6 +1126,11 @@ doublereal
 DataManager::dReadScale(MBDynParser& HP, enum DofOwner::Type t)
 {
 	doublereal d = dGetDefaultScale(t);
+
+#ifndef __HACK_SCALE_RES__
+	std::cerr << "warning: residual and solution scaling is disabled"
+		<< std::endl;
+#endif /* !__HACK_SCALE_RES__ */
 
 	if (!HP.IsKeyWord("scale")) {
 		return d;
