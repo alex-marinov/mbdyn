@@ -1416,7 +1416,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* allocazione e creazione */
        int i = ElemData[Elem::EXTERNAL].iNum
 	 -iNumTypes[Elem::EXTERNAL]-1;
-       ppE = pElemData[Elem::EXTERNAL].ppFirstElem+i;
+       ppE = ElemData[Elem::EXTERNAL].ppFirstElem+i;
        
        switch(KeyWords(CurrType)) {
          case AERODYNAMICEXTERNAL:
