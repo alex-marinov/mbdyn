@@ -54,18 +54,18 @@ function [S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, uu, dec)
 %		Pierangelo Masarati	<masarati@aero.polimi.it>
 %
 
-if nargin < 3,
+if (nargin < 3),
 	dt = 1.;
 end
 
 [r, c] = size(A);
 
-if nargin < 2,
-	ns = c;
-else 
-	if ( ns > c),
-  		error('too many sv required');
-	end
+if (nargin < 2),
+	ns = 0;
+end
+
+if ( ns > min(r,c)),
+ 	error('too many sv required');
 end
 
 % detrend and normalize
@@ -83,6 +83,13 @@ for i = 1:nlt,
 	disp(sprintf('dof %d: output is negligible', lt(i)));
 end
 disp(sprintf('using %d dofs (out of %d)', ngt, c));
+
+if (ns == 0),
+	S = [];
+	Aout = [];
+	B = [];
+	return
+end
 
 if ((exist('dec') == 1)),
 	if dec <= 1,
