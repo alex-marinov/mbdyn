@@ -25,6 +25,9 @@ moddae-prig.cc
 moddae-prig2.cc
 	rigid pendulum, DAE
 
+moddae-prig3.cc
+	rigid pendulum, DAE with constraint stabilization
+
 moddae-pdef.cc
 	deformable pendulum, explicit ODE rewritten as implicit
 
