@@ -225,7 +225,7 @@ doublereal LogScalarFunction::ComputeDiff(const doublereal x, const integer orde
 		std::cerr << "Error, LogScalarFunction::ComputeDiff "
 			<< "with diff order " << order
 			<< " while the maximum implemented is 4\n";
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 		break;
 	}
 };
@@ -296,7 +296,7 @@ CubicSplineScalarFunction::CubicSplineScalarFunction(
 	for (; xi != xe; xi++) {
 		if (*xi >= *(xi+1)) {
 			std::cerr << "CubicSplineScalarFunction error, X_i is not ordered\n";
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 	spline(X_i,Y_i,b,c,d);
@@ -339,7 +339,7 @@ MultiLinearScalarFunction::MultiLinearScalarFunction(
 	for (; xi != xe; xi++) {
 		if (*xi >= *(xi+1)) {
 			std::cerr << "MultiLinearScalarFunction error, X_i is not ordered\n";
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 };
@@ -493,7 +493,7 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 		default: {
 			std::cerr << "unknown ScalarFunction type"
 			<< " at line " << HP.GetLineData() << std::endl;       
-			THROW(DataManager::ErrGeneric());
+			throw DataManager::ErrGeneric();
 			break;
 		}
 		} 

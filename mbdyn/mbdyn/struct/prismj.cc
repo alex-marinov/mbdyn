@@ -391,7 +391,7 @@ PrismaticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       std::cerr << "joint " << GetLabel() << ':' << std::endl
 	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << std::endl
 	<< "aborting ..." << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }      
    
    MWedge = Mat3x3(v1, v2, v3);

@@ -567,7 +567,7 @@ DataManager::InitialJointAssembly(void)
 		doublereal dTest = pResHdl->Dot()/(1.+X.Dot());
 		if (!isfinite(dTest)) {
 			std::cerr << "Assembly diverged; aborting ..." << std::endl;
-			THROW(DataManager::ErrAssemblyDiverged());
+			throw DataManager::ErrAssemblyDiverged();
 		}
 		dTest = sqrt(dTest);
 
@@ -598,7 +598,7 @@ DataManager::InitialJointAssembly(void)
 				"reached maximum number "
 				<< iMaxInitialIterations << "; aborting ..."
 				<< std::endl;
-			THROW(DataManager::ErrAssemblyMaxIters());
+			throw DataManager::ErrAssemblyMaxIters();
 		}
 
 		/* Assemblo lo jacobiano e risolvo */

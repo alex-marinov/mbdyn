@@ -111,7 +111,7 @@ MatrixHandler::MatVecMul(VectorHandler& out, const VectorHandler& in) const
 {
 	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	for (integer r = 1; r <= iGetNumRows(); r++) {
@@ -131,7 +131,7 @@ MatrixHandler::MatTVecMul(VectorHandler& out, const VectorHandler& in) const
 {
 	if (out.iGetSize() != iGetNumCols()
 			|| in.iGetSize() != iGetNumRows()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	for (integer r = 1; r <= iGetNumCols(); r++) {
@@ -150,7 +150,7 @@ MatrixHandler::MatVecIncMul(VectorHandler& out, const VectorHandler& in) const
 {
 	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	for (integer r = 1; r <= iGetNumRows(); r++) {
@@ -169,7 +169,7 @@ MatrixHandler::MatTVecIncMul(VectorHandler& out, const VectorHandler& in) const
 {
 	if (out.iGetSize() != iGetNumCols()
 			|| in.iGetSize() != iGetNumRows()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	for (integer r = 1; r <= iGetNumCols(); r++) {

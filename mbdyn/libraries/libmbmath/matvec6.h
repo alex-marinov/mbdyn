@@ -135,7 +135,7 @@ class Vec6 {
 	 return *this; /* No operations */
       }
       if (d == 0.) {
-	 THROW(ErrDivideByZero()); /* error */
+	 throw ErrDivideByZero(); /* error */
 #if 0	 
 	 exit(1);
 #endif /* 0 */
@@ -182,7 +182,7 @@ class Vec6 {
    inline const doublereal& dGet(unsigned short int i) const {
       ASSERT(i > 0 && i < 7);
       if (i < 1 || i > 6) {
-	 THROW(ErrOutOfRange());
+	 throw ErrOutOfRange();
       }
       unsigned short int j = (i-1)/3;
       return v[j].dGet(i-3*j);
@@ -191,7 +191,7 @@ class Vec6 {
    inline void Put(unsigned short int i, const doublereal& d) {
       ASSERT(i > 0 && i < 7);
       if (i < 1 || i > 6) {
-	 THROW(ErrOutOfRange());
+	 throw ErrOutOfRange();
       }
       unsigned short int j = (i-1)/3;
       v[j].Put(i-3*j, d);
@@ -500,7 +500,7 @@ class Mat6x6 {
    const doublereal& dGet(unsigned short int ir, unsigned short int ic) const {
       ASSERT((ir > 0 && ir < 7) && (ic > 0 && ic < 7));
       if ((ir < 1 || ir > 6) || (ic < 1 || ic > 6)) {
-	 THROW(ErrOutOfRange());
+	 throw ErrOutOfRange();
       }
       unsigned short int jr = (ir-1)/3;
       unsigned short int jc = (ic-1)/3;
@@ -510,7 +510,7 @@ class Mat6x6 {
    void Put(unsigned short int ir, unsigned short int ic, const doublereal& d) {
       ASSERT((ir > 0 && ir < 7) && (ic > 0 && ic < 7));
       if ((ir < 1 || ir > 6) || (ic < 1 || ic > 6)) {
-	 THROW(ErrOutOfRange());
+	 throw ErrOutOfRange();
       }
       unsigned short int jr = (ir-1)/3;
       unsigned short int jc = (ic-1)/3;

@@ -113,7 +113,7 @@ HydraulicFluid::dGetRe(HydraulicFluid::Re which)
 		return 4000.;
 
 	default:
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 }
 

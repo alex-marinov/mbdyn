@@ -74,7 +74,7 @@ public:
 		integer idx = pindices[i_col][i_row];
 		if (idx == -1) {
 			/* matrix must be rebuilt */
-			THROW(ErrRebuildMatrix());
+			throw ErrRebuildMatrix();
 		} else  {
 			return Ax[idx];
 		}

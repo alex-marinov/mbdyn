@@ -187,7 +187,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 	 		return;
       		}
       		if (!isfinite(dErr)) {
-			THROW(ErrSimulationDiverged());
+			throw ErrSimulationDiverged();
 		}
 		if (iIterCnt > iMaxIter) {
 			if (outputBailout()) {
@@ -200,7 +200,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 						<< std::endl);
 				}
 			}
-			THROW(NoConvergence());
+			throw NoConvergence();
 		}
           	rateo = dErr*dErr/Fnorm;
 		Fnorm = dErr*dErr;
@@ -401,7 +401,7 @@ rebuild_matrix:;
 #endif /* USE_MPI */
 		}
 		if (dSolErr < SolTol) {
-			THROW(ConvergenceOnSolution());
+			throw ConvergenceOnSolution();
 		}
 	}
 }

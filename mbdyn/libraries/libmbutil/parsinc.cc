@@ -59,7 +59,7 @@ sCurrFile(NULL)
    	char s[PATHBUFSIZE];
    	if (getcwd(s, PATHBUFSIZE) == NULL) {
 		std::cerr << "Error in getcwd()" << std::endl;
-      		THROW(ErrFileSystem());
+      		throw ErrFileSystem();
    	}
 	SAFESTRDUP(sCurrPath, s);
    	DEBUGCOUT("Current directory is <" << sCurrPath << '>' << std::endl);
@@ -122,7 +122,7 @@ void IncludeParser::Close(void)
       		if (chdir(sCurrPath)) {
 			std::cerr << "Error in chdir, path = " 
 				<< sCurrPath << std::endl;
-	 		THROW(ErrFileSystem());
+	 		throw ErrFileSystem();
       		}
 #endif /* USE_INCLUDE_PARSER */
 
@@ -182,7 +182,7 @@ IncludeParser::fCheckStack(void)
       		if (chdir(sCurrPath)) {
 			std::cerr << "Error in chdir, path = " 
 				<< sCurrPath << std::endl;
-	 		THROW(ErrFileSystem());
+	 		throw ErrFileSystem();
       		}
 #endif /* USE_INCLUDE_PARSER */
       
@@ -200,7 +200,7 @@ IncludeParser::Include_()
 		std::cerr << "Parser error in IncludeParser::Include_(),"
 			" colon expected at line " << GetLineData() 
 			<< std::endl;
-      		THROW(HighParser::ErrColonExpected());
+      		throw HighParser::ErrColonExpected();
    	}
    
 	std::ifstream *pf_old = pf;
@@ -224,7 +224,7 @@ IncludeParser::Include_()
 		}
 #endif /* DEBUG */
 		std::cerr << "Invalid file <" << sfname << '>' << std::endl;
-      		THROW(ErrFile());
+      		throw ErrFile();
    	}
    
    	SAFENEWWITHCONSTRUCTOR(pIn, InputStream, InputStream(*pf));
@@ -243,13 +243,13 @@ IncludeParser::Include_()
 	 		if (chdir(stmp)) {
 				std::cerr << "Error in chdir, path = " 
 					<< stmp << std::endl;
-	    			THROW(ErrFileSystem());
+	    			throw ErrFileSystem();
 	 		}
 	 		char p[PATHBUFSIZE];
 	 		if (getcwd(p, PATHBUFSIZE) == NULL) {
 				std::cerr << "Error in getcwd()" << std::endl;
 	    			SAFEDELETEARR(stmp);
-	    			THROW(ErrFileSystem());
+	    			throw ErrFileSystem();
 	 		}
 			SAFESTRDUP(sCurrPath, p);
 	 		DEBUGCOUT("Current directory is <" << sCurrPath 
@@ -269,7 +269,7 @@ IncludeParser::Include_()
       		char s[PATHBUFSIZE];
       		if (getcwd(s, PATHBUFSIZE) == NULL) {
 			std::cerr << "Error in getcwd()" << std::endl;
-	 		THROW(ErrFileSystem());
+	 		throw ErrFileSystem();
       		}
 		SAFESTRDUP(sCurrPath, s);
       		DEBUGCOUT("Current directory is <" << sCurrPath 
@@ -296,7 +296,7 @@ void
 IncludeParser::Eof(void)
 {
 	if(!fCheckStack()) {
-		THROW(EndOfFile());
+		throw EndOfFile();
 	}
 }
 
@@ -314,7 +314,7 @@ IncludeParser::GetDescription_int(const char *s)
 				"in IncludeParser::Include_(), "
 				"colon expected at line " << GetLineData() 
 				<< std::endl;
-      			THROW(HighParser::ErrColonExpected());
+      			throw HighParser::ErrColonExpected();
    		}
    
    		const char* sfname = GetFileName();
@@ -322,7 +322,7 @@ IncludeParser::GetDescription_int(const char *s)
       		if (chdir(sfname)) {
 			std::cerr << "Error in chdir, path = " 
 				<< sfname << std::endl;
-	 		THROW(ErrFileSystem());
+	 		throw ErrFileSystem();
       		}
       		return true;
 

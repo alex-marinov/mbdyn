@@ -314,7 +314,7 @@ SchurMatrixHandler::operator () (integer iRow, integer iCol)
 			<< "): error, MatrixHandler is trying to operate "
 			"on a non local value {"<< iRow << "," << iCol << "}"
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 #endif /* DEBUG_MPI */
 #endif /* DEBUG */
@@ -656,7 +656,7 @@ SchurVectorHandler::operator () (integer iRow) const
 inline doublereal&
 SchurVectorHandler::operator () (integer iRow)
 {
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 inline void

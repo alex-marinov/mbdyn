@@ -161,7 +161,7 @@ LowParser::PackWords(InputStream& In)
 		}
 	}
 
-	THROW(EndOfFile());
+	throw EndOfFile();
 
 end_of_word:;
 
@@ -352,7 +352,7 @@ HighParser::iGetDescription_(const char* const s)
 		silent_cerr("Parser error in HighParser::iGetDescription_(), "
 			"semicolon expected at line "
 			<< GetLineData() << std::endl);
-	  	THROW(HighParser::ErrSemicolonExpected());
+	  	throw HighParser::ErrSemicolonExpected();
      	}
 
      	return i;
@@ -366,7 +366,7 @@ HighParser::Set_(void)
      		silent_cerr("Parser error in HighParser::Set_(), "
      			"colon expected at line "
      			<< GetLineData() << std::endl);
-     		THROW(HighParser::ErrColonExpected());
+     		throw HighParser::ErrColonExpected();
 	}
 
 	GetReal();
@@ -379,7 +379,7 @@ HighParser::SetEnv_(void)
      		silent_cerr("Parser error in HighParser::SetEnv_(), "
      			"colon expected at line "
      			<< GetLineData() << std::endl);
-     		THROW(HighParser::ErrColonExpected());
+     		throw HighParser::ErrColonExpected();
 	}
 
 	int overwrite = 0;
@@ -391,7 +391,7 @@ HighParser::SetEnv_(void)
 	if (ava == NULL) {
 		silent_cerr("unable to get AVA for \"setenv\" at line "
 				<< GetLineData() << std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	char *avasep = strchr(ava, '=');
@@ -406,7 +406,7 @@ HighParser::SetEnv_(void)
 			silent_cerr("unable to unset the environment variable "
 					"\"" << ava << "\" at line "
 					<< GetLineData() << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 
@@ -415,7 +415,7 @@ HighParser::SetEnv_(void)
 			silent_cerr("illegal AVA \"" << ava
 					<< "\" at line "
 					<< GetLineData() << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		unsigned l = avasep - ava;
@@ -428,7 +428,7 @@ HighParser::SetEnv_(void)
 					<< buf << "\" to \"" << avasep 
 					<< "\" at line " << GetLineData()
 					<< std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 }
@@ -440,7 +440,7 @@ HighParser::Remark_(void)
 		silent_cerr("Parser error in MBDynParser::Remark_(),"
 			" colon expected at line "
 			<< GetLineData() << std::endl);
-		THROW(HighParser::ErrColonExpected());
+		throw HighParser::ErrColonExpected();
 	}
 
 	/* eat it anyway ;) */
@@ -459,7 +459,7 @@ HighParser::Remark_(void)
 void
 HighParser::Eof(void)
 {
-	 THROW(EndOfFile());
+	 throw EndOfFile();
 }
 
 int
@@ -470,7 +470,7 @@ HighParser::GetDescription(void)
 		silent_cerr("Parser error in HighParser::GetDescription, "
 			"invalid call to GetDescription at line "
 			<< GetLineData() << std::endl);
-		THROW(HighParser::ErrInvalidCallToGetDescription());
+		throw HighParser::ErrInvalidCallToGetDescription();
 	}
 
 restart_parsing:;
@@ -486,7 +486,7 @@ restart_parsing:;
 		silent_cerr("Parser error in HighParser::GetDescription, "
 			<< "keyword expected at line "
 			<< GetLineData() << std::endl);
-		THROW(HighParser::ErrKeyWordExpected());
+		throw HighParser::ErrKeyWordExpected();
 	}
 
 	/* Description corrente */
@@ -518,7 +518,7 @@ HighParser::GetDescription_int(const char *s)
 
 	/* exits with no error */
 	} else if (strcmp(s, "exit") == 0) {
-		THROW(NoErr());
+		throw NoErr();
 	}
 
 	return false;
@@ -600,7 +600,7 @@ HighParser::NextToken(const char* sFuncName)
 		silent_cerr("Parser error in "
 			<< sFuncName << ", missing separator at line "
 			<< GetLineData() << std::endl);
-		THROW(HighParser::ErrMissingSeparator());
+		throw HighParser::ErrMissingSeparator();
 	}
 }
 
@@ -728,7 +728,7 @@ HighParser::GetInt(int iDefval)
 	silent_cerr("Parser error in "
 	<< sFuncName << ", integer arg expected at line "
 	<< GetLineData() << std::endl);
-      THROW(HighParser::ErrIntegerExpected());
+      throw HighParser::ErrIntegerExpected();
    }
 
    integer iReturnValue;
@@ -762,7 +762,7 @@ HighParser::GetReal(const doublereal& dDefval)
       silent_cerr("Parser error in "
 	<< sFuncName << ", real arg expected at line "
 	<< GetLineData() << std::endl);
-      THROW(HighParser::ErrRealExpected());
+      throw HighParser::ErrRealExpected();
    }
 
    doublereal dReturnValue;
@@ -795,14 +795,14 @@ HighParser::GetWord(void)
       silent_cerr("Parser error in "
 	<< sFuncName << ", keyword arg expected at line "
 	<< GetLineData() << std::endl);
-      THROW(HighParser::ErrKeyWordExpected());
+      throw HighParser::ErrKeyWordExpected();
    }
 
    if ((CurrLowToken = LowP.GetToken(*pIn)) != LowParser::WORD) {
       silent_cerr("Parser error in "
 	<< sFuncName << ", keyword expected at line "
 	<< GetLineData() << std::endl);
-      THROW(HighParser::ErrKeyWordExpected());
+      throw HighParser::ErrKeyWordExpected();
    }
 
    int i = -1;
@@ -827,7 +827,7 @@ HighParser::GetString(void)
       silent_cerr("Parser error in "
 	<< sFuncName << ", string arg expected at line "
 	<< GetLineData() << std::endl);
-      THROW(HighParser::ErrStringExpected());
+      throw HighParser::ErrStringExpected();
    }
 
    char* s = sStringBuf;
@@ -874,7 +874,7 @@ HighParser::GetStringWithDelims(enum Delims Del)
       silent_cerr("Parser error in "
 	<< sFuncName << ", string arg expected at line "
 	<< GetLineData() << std::endl);
-      THROW(HighParser::ErrStringExpected());
+      throw HighParser::ErrStringExpected();
    }
 
    char* s = sStringBuf;
@@ -952,7 +952,7 @@ HighParser::GetStringWithDelims(enum Delims Del)
 	<< sFuncName << std::endl
 	<< "first non-blank char at line "
 	<< GetLineData() << " isn't a valid left-delimiter;" << std::endl);
-      THROW(HighParser::ErrIllegalDelimiter());
+      throw HighParser::ErrIllegalDelimiter();
    }
 
    /* Mette zero al termine della stringa */
@@ -1034,7 +1034,7 @@ HighParser::GetMatR2vec(void)
 #else
       silent_cerr("Line " << GetLineData()
 	      << ": Euler parameters not allowed yet" << std::endl);
-      THROW(ErrGeneric());
+      throw ErrGeneric();
 #endif
    }
 

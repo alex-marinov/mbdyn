@@ -180,7 +180,7 @@ public:
 			  unsigned int* NdLabels) {
 		if (NumNodes != NodeN) {
 			std::cerr << "Parallel Connection Computation, wrong array size. Aborting ...\n";
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		for (int i=0; i < NodeN; i++) {
 			NdTyps[i] = ppNode[i]->GetNodeType();

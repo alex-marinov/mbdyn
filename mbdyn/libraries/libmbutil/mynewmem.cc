@@ -148,7 +148,7 @@ clMemMan::_remove(const void *pvToRemove, clMemMan::eRemoveMode eMode, flag fArr
 	 		std::cerr << " to array";
       		}
       		std::cerr << " not found in _remove()" << std::endl;
-      		THROW(clMemMan::ErrNotFound());
+      		throw clMemMan::ErrNotFound();
    	}
    
    	stList *pstN = pstL->pstNext;
@@ -450,7 +450,7 @@ clMemMan::add(const void *pvIn, size_t sizeIn, flag fArr)
    	if (pstN == NULL) {
       		CERR << std::endl << "clMemMan " << sName 
 			<< ": error in allocation in add()" << std::endl;
-      		THROW(ErrMemory());
+      		throw ErrMemory();
    	}
    
    	pstN->pstNext = pstL->pstNext;

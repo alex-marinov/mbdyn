@@ -205,8 +205,8 @@ public:
 			const Tder& = 0.,
 			doublereal = 0.)
 	: ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {
-		THROW((typename ConstitutiveLaw<T, Tder>::Err(std::cerr, "axial-torsion coupling constitutive law "
-						"is allowed only for beams (6x6)")));
+		throw (typename ConstitutiveLaw<T, Tder>::Err(std::cerr, "axial-torsion coupling constitutive law "
+						"is allowed only for beams (6x6)"));
 	};
 
 	virtual ~LinearElasticGenericAxialTorsionCouplingConstitutiveLaw(void) {
@@ -298,7 +298,7 @@ public:
 			const T& PStress,
 			doublereal = 0.)
 	: ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {
-		THROW((typename ElasticConstitutiveLaw<T, Tder>::Err(std::cerr, "log constitutive law is allowed only for rods")));
+		throw (typename ElasticConstitutiveLaw<T, Tder>::Err(std::cerr, "log constitutive law is allowed only for rods"));
 	};
 
 	virtual ~LogConstitutiveLaw(void) {
@@ -367,7 +367,7 @@ public:
 		ASSERT(dCurrEps > DBL_EPSILON);
 
 		if (dCurrEps < DBL_EPSILON) {
-			// THROW(ErrGeneric());
+			// throw ErrGeneric();
 			dCurrEps = DBL_EPSILON;
 		}
 
@@ -396,8 +396,8 @@ public:
 			doublereal = 0.,
 			doublereal = 0.)
 	: ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {
-		THROW((typename ElasticConstitutiveLaw<T, Tder>::Err(std::cerr, "double linear elastic constitutive law "
-						"is allowed only for rods and 3D hinges")));
+		throw (typename ElasticConstitutiveLaw<T, Tder>::Err(std::cerr, "double linear elastic constitutive law "
+						"is allowed only for rods and 3D hinges"));
 	};
 
 	virtual ~DoubleLinearElasticConstitutiveLaw(void) {
@@ -674,8 +674,8 @@ public:
 			const doublereal = 0.,
 			const doublereal = 0.)
 	: ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {
-		THROW((typename ElasticConstitutiveLaw<T, Tder>::Err(std::cerr, "contact constitutive law "
-						"is allowed only for rods")));
+		throw (typename ElasticConstitutiveLaw<T, Tder>::Err(std::cerr, "contact constitutive law "
+						"is allowed only for rods"));
 	};
 
 	virtual ~ContactConstitutiveLaw(void) {
@@ -1095,8 +1095,8 @@ class DoubleLinearViscoElasticConstitutiveLaw
 					   doublereal = 0.,
 					   doublereal = 0.)
      : ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {
-      THROW((typename ElasticConstitutiveLaw<T, Tder>::Err(std::cerr, "doublelinear viscoelastic constitutive law "
-			      "is allowed only for rods ad 3D hinges")));
+      throw (typename ElasticConstitutiveLaw<T, Tder>::Err(std::cerr, "doublelinear viscoelastic constitutive law "
+			      "is allowed only for rods ad 3D hinges"));
    };
 
    virtual ~DoubleLinearViscoElasticConstitutiveLaw(void) {
@@ -1333,8 +1333,8 @@ class TurbulentViscoElasticConstitutiveLaw
 					doublereal = 0.,
 					doublereal = 0.)
      : ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {
-      THROW((typename ElasticConstitutiveLaw<T, Tder>::Err(std::cerr, "Turbulent viscoelastic constitutive law "
-			      "is allowed only for rods")));
+      throw (typename ElasticConstitutiveLaw<T, Tder>::Err(std::cerr, "Turbulent viscoelastic constitutive law "
+			      "is allowed only for rods"));
    };
 
    virtual ~TurbulentViscoElasticConstitutiveLaw(void) {

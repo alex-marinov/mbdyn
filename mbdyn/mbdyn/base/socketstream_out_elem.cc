@@ -80,21 +80,21 @@ create(c), connection_flag(false)
 		if (sock == -1) {
       			silent_cerr("SocketStreamElem(" << name
 				<< "): socket failed" << std::endl);
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
    		} else if (sock == -2) {
       			silent_cerr("SocketStreamElem(" << name
 				<< "): bind failed" << std::endl);
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
    		} else if (sock == -3) {
       			silent_cerr("SocketStreamElem(" << name
 				<< "): illegal host name" << std::endl);
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
    		}
 		
    		if (listen(sock, 1) < 0) {
       			silent_cerr("SocketStreamElem(" << name
 				<< "): listen failed" << std::endl);
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
    		}
 	}
 }
@@ -120,17 +120,17 @@ create(c), connection_flag(false)
 		if (sock == -1) {
       			silent_cerr("SocketStreamElem(" << name
 				<< "): socket failed" << std::endl);
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
    		} else if (sock == -2) {
       			silent_cerr("SocketStreamElem(" << name
 				<< "): bind failed" << std::endl);
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
    		}
 		
    		if (listen(sock, 1) < 0) {
       			silent_cerr("SocketStreamElem(" << name
 				<< "): listen failed" << std::endl);
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
    		}
 	}
 
@@ -216,7 +216,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 					if (sock == -1) {
                 				std::cerr <<"SocketStreamElem(" << name << ") "
 							"accept failed" << std::endl;
-						THROW(ErrGeneric());
+						throw ErrGeneric();
         				}
       					silent_cout("SocketStreamElem(" << GetLabel()
 		  				<< "): connect from " << client_addr.sun_path
@@ -241,7 +241,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 					if (sock == -1) {
                 				std::cerr <<"SocketStreamElem(" << name << ") "
 							"accept failed" << std::endl;
-						THROW(ErrGeneric());
+						throw ErrGeneric();
         				}
       					silent_cout("SocketStreamElem(" << GetLabel()
 		  				<< "): connect from " << inet_ntoa(client_addr.sin_addr)
@@ -266,7 +266,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 					if (sock < 0){
 						std::cerr <<"SocketStreamElem(" << name << ") "
 							"socket failed " << host << std::endl;
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 					}
 					addr.sun_family = AF_UNIX;
 					strncpy(addr.sun_path, data.Path, UNIX_PATH_MAX);
@@ -278,7 +278,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
 						std::cerr <<"SocketStreamElem(" << name << ") "
 							"connect failed " << std::endl;
-						THROW(ErrGeneric());									
+						throw ErrGeneric();									
 					}//da sistemare in modo da rendere non bloccante il connect					
 					break;
 				}
@@ -291,7 +291,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 					if (sock < 0){
 						std::cerr <<"SocketStreamElem(" << name << ") "
 							"socket failed " << host << std::endl;
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 					}				
 					addr.sin_family = AF_INET;
 					addr.sin_port = htons (data.Port);
@@ -299,7 +299,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 					if (inet_aton(host, &(addr.sin_addr)) == 0) {
 						std::cerr <<"SocketStreamElem(" << name << ") "
 							"unknow host " << host << std::endl;
-						THROW(ErrGeneric());	
+						throw ErrGeneric();	
 					}
 					pedantic_cout("connecting to inet socket \""
 							<< name << "\" (" 
@@ -310,7 +310,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
 						std::cerr <<"SocketStreamElem(" << name << "): "
 							"connect failed " << std::endl;
-						THROW(ErrGeneric());					
+						throw ErrGeneric();					
 					}//da sistemare in modo da rendere non bloccante il connect
 					break;
 				}
@@ -328,7 +328,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 		if (setsockopt(sock, SOL_SOCKET, SO_LINGER, &lin, sizeof(lin))){
       			std::cerr << "SocketStreamElem(" << name
 				<< "): setsockopt failed" << std::endl;
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
 			
 		}
 		connection_flag = true;
@@ -367,7 +367,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				"for SocketStreamElem(" << uLabel
 				<< ") at line "
 				<< HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 
 		} 
 		
@@ -377,7 +377,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		std::cerr << "missing socket stream name "
 			"for SocketStreamElem(" << uLabel
 			<< ") at line " << HP.GetLineData() << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	if (HP.IsKeyWord("create")) {
@@ -388,7 +388,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		} else {
 			std::cerr << "\"create\" must be \"yes\" or \"no\" "
 				"at line " << HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 	
@@ -400,7 +400,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		
 		SAFESTRDUP(path, m);	
@@ -413,7 +413,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
-			THROW(ErrGeneric());		
+			throw ErrGeneric();		
 		}
 		int p = HP.GetInt();
 		/*Da sistemare da qui*/
@@ -426,7 +426,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				<< IPPORT_USERRESERVED
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		port = p;
 	}
@@ -438,7 +438,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
-			THROW(ErrGeneric());		
+			throw ErrGeneric();		
 		}
 
 		const char *h;
@@ -449,7 +449,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		SAFESTRDUP(host, h);
@@ -470,7 +470,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 			<< "(" << uLabel << ") at line " << HP.GetLineData()
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	ScalarDof *pNodes = NULL;
@@ -485,7 +485,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsArg()) {
 		std::cerr << "semicolon expected at line " << HP.GetLineData()
 			<< std::endl;      
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
       
       /* costruzione del nodo */

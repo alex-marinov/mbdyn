@@ -380,7 +380,7 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
       if(!(*OutData[out].pof)) {
 	 std::cerr << "Unable to open file '" << _sPutExt((char*)(psExt[out]))
 	   << '\'' << std::endl;
-	 THROW(ErrFile());
+	 throw ErrFile();
       }
 
       OutData[out].IsOpen = true;

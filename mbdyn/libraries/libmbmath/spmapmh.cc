@@ -197,7 +197,7 @@ VectorHandler&
 SpMapMatrixHandler::GetCol(integer icol, VectorHandler& out) const
 {
         if (icol > iGetNumCols()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	row_cont_type::const_iterator ri, re;
 	re = col_indices[icol].end();
@@ -217,7 +217,7 @@ SpMapMatrixHandler::MatMatMul(SpMapMatrixHandler& out,
 			|| (out.iGetNumCols() != iGetNumCols())) {
 		std::cerr << "Assertion fault "
 			"in SpMapMatrixHandler::MatMatMul" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	out.Reset();
@@ -247,7 +247,7 @@ SpMapMatrixHandler::MulAndSumWithShift(MatrixHandler& out, doublereal s ,
 		std::cerr << "Assertion fault "
 			"in SpMapMatrixHandler::MulAndSumWithShift"
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	drow = drow + 1;
@@ -274,7 +274,7 @@ SpMapMatrixHandler::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
 		std::cerr << "Assertion fault "
 			"in SpMapMatrixHandler::MulAndSumWithShift"
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	drow = drow + 1;
@@ -300,7 +300,7 @@ SpMapMatrixHandler::MatTVecMul(VectorHandler& out,
 {
 	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	row_cont_type::const_iterator ri, re;
@@ -323,7 +323,7 @@ SpMapMatrixHandler::MatVecMul(VectorHandler& out,
 {
 	if (in.iGetSize() != iGetNumCols()
 			|| out.iGetSize() != iGetNumRows()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
   	}
 
 	row_cont_type::const_iterator ri, re;
@@ -346,7 +346,7 @@ SpMapMatrixHandler::MatTVecIncMul(VectorHandler& out,
 {
 	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	row_cont_type::const_iterator ri, re;
@@ -369,7 +369,7 @@ SpMapMatrixHandler::MatVecIncMul(VectorHandler& out,
 {
 	if (in.iGetSize() != iGetNumCols()
 			|| out.iGetSize() != iGetNumRows()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	row_cont_type::const_iterator ri, re;
@@ -391,7 +391,7 @@ SpMapMatrixHandler::MatVecDecMul(VectorHandler& out,
 {
 	if (in.iGetSize() != iGetNumCols()
 			|| out.iGetSize() != iGetNumRows()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	row_cont_type::const_iterator ri, re;

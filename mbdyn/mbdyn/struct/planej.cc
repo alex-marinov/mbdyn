@@ -717,7 +717,7 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       std::cerr << "Joint(" << GetLabel() << "): first node hinge axis "
 	      "and second node hinge axis are (nearly) orthogonal"
 	      << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
    
    Vec3 TmpPrime1(e2b.Cross(Omega1.Cross(e3a))-e3a.Cross(Omega2.Cross(e2b)));
@@ -972,7 +972,7 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
       
     default:
       std::cerr << "Illegal private data" << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
 }
 
@@ -1395,7 +1395,7 @@ PlaneRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       std::cerr << "Joint(" << GetLabel() << "): first node hinge axis "
 	      "and second node hinge axis are (nearly) orthogonal"
 	      << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
    
    Vec3 TmpPrime1(e2b.Cross(Omega1.Cross(e3a))-e3a.Cross(Omega2.Cross(e2b)));
@@ -1615,7 +1615,7 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
       
     default:
       std::cerr << "Illegal private data" << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
 }
 
@@ -2252,7 +2252,7 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       std::cerr << "Joint(" << GetLabel() << "): first node hinge axis "
 	      "and second node hinge axis are (nearly) orthogonal" 
 	      << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
    
    Vec3 TmpPrime1(e2b.Cross(Omega1.Cross(e3a))-e3a.Cross(Omega2.Cross(e2b)));
@@ -2573,7 +2573,7 @@ AxialRotationJoint::dGetPrivData(unsigned int i) const
       
 	}
 
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 /* AxialRotationJoint - end */
@@ -2904,7 +2904,7 @@ PlanePinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       std::cerr << "Joint(" << GetLabel() << "): node hinge axis "
 	      "and fixed point hinge axis are (nearly) orthogonal" 
 	      << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
    
    Vec3 TmpPrime1(e3.Cross(e2.Cross(Omega)));
@@ -3125,7 +3125,7 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
       
     default:
       std::cerr << "Illegal private data" << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
 }
 

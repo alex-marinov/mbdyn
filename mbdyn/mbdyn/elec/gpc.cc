@@ -706,27 +706,27 @@ pivot(PNULL)
 	
    	if ((A = m_get(m, n)) == MNULL) {
       		std::cerr << "A = m_get(" << m << ',' << n << ") failed" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
 	
    	if ((diag = v_get(std::min(m, n))) == VNULL) {
       		std::cerr << "diag = v_get(" << std::min(m, n) << ") failed" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
 	
    	if ((x = v_get(n)) == VNULL) {
       		std::cerr << "x = v_get(" << n << ") failed" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
 	
    	if ((b = v_get(m)) == VNULL) {
       		std::cerr << "b = v_get(" << m << ") failed" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
 	
    	if ((pivot = px_get(n)) == PNULL) {
       		std::cerr << "pivot = px_get(" << n << ") failed" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
 }
 
@@ -947,10 +947,10 @@ DeadBeat::DesignControl(const doublereal* pdTheta,
    	if (info < 0) {
       		std::cerr << "DeadBeat::DesignControl(): illegal value in " 
 			<< -info << "-th argument of dgesvd()" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	} else if (info > 0) {
       		std::cerr << "DeadBeat::DesignControl(): error in dgesvd()" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	} /* else: OK */
      
    	/* recupero delle matrici (pinv(P) e' organizzata per righe) */
@@ -1059,7 +1059,7 @@ pInv(NULL)
       
    	if (pInv == NULL) {
       		std::cerr << "unable to create GPCInv" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
    
    	/* note that iPredHor == iContrStep */
@@ -1219,10 +1219,10 @@ GPC::DesignControl(const doublereal* pdTheta,
    	if (info < 0) {
       		std::cerr << "GPC::DesignControl(): illegal value in " 
 			<< -info << "-th argument of dgesvd()" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	} else if (info > 0) {
       		std::cerr << "GPC::DesignControl(): error in dgesvd()" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	} /* else: OK */
      
    	/* recupero delle matrici (pinv(P) e' organizzata per righe) */

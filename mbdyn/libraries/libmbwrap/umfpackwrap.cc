@@ -230,7 +230,7 @@ UmfpackSolver::Solve(void) const
 		UMFPACKWRAP_free_numeric(&Numeric);
 		ASSERT(Numeric == 0);
 
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	
 #ifdef UMFPACK_REPORT
@@ -249,7 +249,7 @@ UmfpackSolver::Factor(void)
 	 */
 		
 	if (Symbolic == 0 && !bPrepareSymbolic()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 #ifdef UMFPACK_REPORT
@@ -264,7 +264,7 @@ UmfpackSolver::Factor(void)
 	if (status == UMFPACK_ERROR_different_pattern) {
 		UMFPACKWRAP_free_symbolic(&Symbolic);
 		if (!bPrepareSymbolic()) {
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		status = UMFPACKWRAP_numeric(App, Aip, Axp, Symbolic, 
 				&Numeric, Control, Info);
@@ -280,7 +280,7 @@ UmfpackSolver::Factor(void)
 		UMFPACKWRAP_free_numeric(&Numeric);
 		ASSERT(Numeric == 0);
 
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 		
 #ifdef UMFPACK_REPORT

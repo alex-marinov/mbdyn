@@ -229,7 +229,7 @@ Elem* ReadGenel(DataManager* pDM,
        if (pRot == NULL) {
 	  std::cerr << "line " << HP.GetLineData() << ": can't find rotor "
 	    << uL << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }       
        
        ScalarDifferentialNode* pvNodes[3];
@@ -238,21 +238,21 @@ Elem* ReadGenel(DataManager* pDM,
        if (pvNodes[0] == NULL) {
 	  std::cerr << "line " << HP.GetLineData() << ": can't find abstract node "
 	    << uL << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
        uL = HP.GetInt();
        pvNodes[1] = (AbstractNode*)pDM->pFindNode(Node::ABSTRACT, uL);
        if (pvNodes[1] == NULL) {
 	  std::cerr << "line " << HP.GetLineData() << ": can't find abstract node "
 	    << uL << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
        uL = HP.GetInt();
        pvNodes[2] = (AbstractNode*)pDM->pFindNode(Node::ABSTRACT, uL);
        if (pvNodes[2] == NULL) {
 	  std::cerr << "line " << HP.GetLineData() << ": can't find abstract node "
 	    << uL << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
        
        DEBUGCOUT("Rotor trim " << uLabel 
@@ -299,7 +299,7 @@ Elem* ReadGenel(DataManager* pDM,
 
 #else /* !USE_AERODYNAMIC_ELEMS */
        std::cerr << "can't use a rotor trim element without rotors" << std::endl;
-       THROW(ErrGeneric());       
+       throw ErrGeneric();       
 #endif /* !USE_AERODYNAMIC_ELEMS */
        
        break;
@@ -309,7 +309,7 @@ Elem* ReadGenel(DataManager* pDM,
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
        if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for genel clamp" << std::endl;
-	  THROW(DataManager::ErrGeneric());	      
+	  throw DataManager::ErrGeneric();	      
        }	     	  
        
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
@@ -329,13 +329,13 @@ Elem* ReadGenel(DataManager* pDM,
        ScalarDof SD1 = ReadScalarDof(pDM, HP, 1);
        if (SD1.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for genel distance" << std::endl;
-	  THROW(DataManager::ErrGeneric());	      
+	  throw DataManager::ErrGeneric();	      
        }	     	  
 
        ScalarDof SD2 = ReadScalarDof(pDM, HP, 1);
        if (SD2.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for genel distance" << std::endl;
-	  THROW(DataManager::ErrGeneric());	      
+	  throw DataManager::ErrGeneric();	      
        }	     	  
        
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
@@ -356,13 +356,13 @@ Elem* ReadGenel(DataManager* pDM,
        ScalarDof SD1 = ReadScalarDof(pDM, HP, 1);
        if (SD1.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for genel springs" << std::endl;
-	  THROW(DataManager::ErrGeneric());	      
+	  throw DataManager::ErrGeneric();	      
        }	     	  
        
        ScalarDof SD2 = ReadScalarDof(pDM, HP, 1);
        if (SD2.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for genel springs" << std::endl;
-	  THROW(DataManager::ErrGeneric());	      
+	  throw DataManager::ErrGeneric();	      
        }	     	  
        
        ConstLawType::Type CLType = ConstLawType::UNKNOWN;
@@ -372,13 +372,13 @@ Elem* ReadGenel(DataManager* pDM,
 	  std::cerr << "Error at line " << HP.GetLineData()
 	    << ": spring genel does not support dynamic constitutive laws yet"
 	    << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        if (CLType != ConstLawType::ELASTIC) {
 	  std::cerr << "Error at line " << HP.GetLineData() 
 	    << ": elastic constitutive laws only are allowed" << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
@@ -396,11 +396,11 @@ Elem* ReadGenel(DataManager* pDM,
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
        if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for genel spring supports" << std::endl;
-	  THROW(DataManager::ErrGeneric());	      
+	  throw DataManager::ErrGeneric();	      
        } else if ((SD.iOrder != 0) 
 		  || (SD.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)) {
 	  std::cerr << "Sorry, a spring support must be linked to the algebraic value of a differential node" << std::endl;
-	  THROW(DataManager::ErrGeneric());	      
+	  throw DataManager::ErrGeneric();	      
        }	         
        
        ConstLawType::Type CLType = ConstLawType::UNKNOWN;
@@ -411,7 +411,7 @@ Elem* ReadGenel(DataManager* pDM,
 	    << ": spring support genel does not support "
 	    "dynamic constitutive laws yet"
 	    << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
@@ -434,7 +434,7 @@ Elem* ReadGenel(DataManager* pDM,
 	}
 	default: {
 	   std::cerr << "You shouldn't be here!" << std::endl;
-	   THROW(DataManager::ErrGeneric());
+	   throw DataManager::ErrGeneric();
 	}	  
        }
        
@@ -445,14 +445,14 @@ Elem* ReadGenel(DataManager* pDM,
        ScalarDof SDRow = ReadScalarDof(pDM, HP, 1);
        if (SDRow.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for genel spring supports" << std::endl;
-	  THROW(DataManager::ErrGeneric());	      
+	  throw DataManager::ErrGeneric();	      
        } 
        
        ScalarDof SDCol = ReadScalarDof(pDM, HP, 1);
        if ((SDCol.iOrder != 0) 
 	   || (SDCol.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)) {
 	  std::cerr << "Sorry, a spring support must be linked to the algebraic value of a differential node" << std::endl;
-	  THROW(DataManager::ErrGeneric());	      
+	  throw DataManager::ErrGeneric();	      
        }	         
        
        ConstLawType::Type CLType = ConstLawType::UNKNOWN;
@@ -463,7 +463,7 @@ Elem* ReadGenel(DataManager* pDM,
 	    << ": cross spring support genel does not support "
 	    "dynamic constitutive laws yet"
 	    << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
@@ -486,7 +486,7 @@ Elem* ReadGenel(DataManager* pDM,
 	}
 	default: {
 	   std::cerr << "You shouldn't be here!" << std::endl;
-	   THROW(DataManager::ErrGeneric());
+	   throw DataManager::ErrGeneric();
 	}	  
        }
        
@@ -497,10 +497,10 @@ Elem* ReadGenel(DataManager* pDM,
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
        if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for genel mass" << std::endl;
-	  THROW(DataManager::ErrGeneric());	      
+	  throw DataManager::ErrGeneric();	      
        } else if (SD.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 	  std::cerr << "Sorry, only differential dofs are allowed for genel mass" << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
 
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
@@ -522,11 +522,11 @@ Elem* ReadGenel(DataManager* pDM,
        if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER
 	   || SD_u.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for genel scalar filter" << std::endl;
-	  THROW(DataManager::ErrGeneric());	      
+	  throw DataManager::ErrGeneric();	      
        } else if (SD_y.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL
 		  || SD_u.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 	  std::cerr << "Sorry, only differential dofs are allowed for genel scalar filter" << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        unsigned int na = HP.GetInt();
@@ -577,7 +577,7 @@ Elem* ReadGenel(DataManager* pDM,
        ScalarDof SD_y = ReadScalarDof(pDM, HP, 1);
        if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for genel scalar filter output" << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        /* input */
@@ -605,7 +605,7 @@ Elem* ReadGenel(DataManager* pDM,
        if (nb > na) {
 	  std::cerr << "illegal (non proper) transfer function for scalar filter " 
 	    << uLabel << " at line " << HP.GetLineData() << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
 
        DEBUGCOUT("GenelFilter " << uLabel << " has a " << nb 
@@ -654,10 +654,10 @@ Elem* ReadGenel(DataManager* pDM,
        ScalarDof SD_u = ReadScalarDof(pDM, HP, 1);
        if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for genel state space SISO output" << std::endl;
-	  THROW(DataManager::ErrGeneric());	      
+	  throw DataManager::ErrGeneric();	      
        } else if (SD_y.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 	  std::cerr << "Sorry, only differential dofs are allowed for genel state space SISO output" << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        unsigned int Order = HP.GetInt();       
@@ -665,7 +665,7 @@ Elem* ReadGenel(DataManager* pDM,
        
        if (!HP.IsKeyWord("matrixA")) {
 	  std::cerr << "matrix A expected at line " << HP.GetLineNumber() << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
        doublereal* pdA = NULL;
        SAFENEWARR(pdA, doublereal, Order*Order);
@@ -676,7 +676,7 @@ Elem* ReadGenel(DataManager* pDM,
               
        if (!HP.IsKeyWord("matrixB")) {
 	  std::cerr << "matrix B expected at line " << HP.GetLineNumber() << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
        doublereal* pdB = NULL;
        SAFENEWARR(pdB, doublereal, Order);
@@ -687,7 +687,7 @@ Elem* ReadGenel(DataManager* pDM,
               
        if (!HP.IsKeyWord("matrixC")) {
 	  std::cerr << "matrix C expected at line " << HP.GetLineNumber() << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
        doublereal* pdC = NULL;
        SAFENEWARR(pdC, doublereal, Order);
@@ -718,7 +718,7 @@ Elem* ReadGenel(DataManager* pDM,
        if (iNumOutputs <= 0) {
 	  std::cerr << "illegal number of outputs for state space MIMO " << uLabel
 	    << " at line " << HP.GetLineData() << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }       
        
        ScalarDof* pvSD_y = NULL;
@@ -728,11 +728,11 @@ Elem* ReadGenel(DataManager* pDM,
 	  if (pvSD_y[i].pNode->GetNodeType() ==  Node::PARAMETER) {
 	     std::cerr << "line " << HP.GetLineData()
 	       << ": sorry, parameters are not allowed for genel state space MIMO output" << std::endl;
-	     THROW(DataManager::ErrGeneric());	      
+	     throw DataManager::ErrGeneric();	      
 	  } else if (pvSD_y[i].pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 	     std::cerr << "line " << HP.GetLineData() 
 	       << ": sorry, only differential dofs are allowed for genel state space MIMO output" << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }
        }
        
@@ -740,7 +740,7 @@ Elem* ReadGenel(DataManager* pDM,
        if (iNumInputs <= 0) {
 	  std::cerr << "illegal number of inputs for state space MIMO " << uLabel
 	    << " at line " << HP.GetLineData() << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }       
        
        ScalarDof* pvSD_u = NULL;
@@ -754,7 +754,7 @@ Elem* ReadGenel(DataManager* pDM,
        
        if (!HP.IsKeyWord("matrixA")) {
 	  std::cerr << "matrix A expected at line " << HP.GetLineNumber() << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
        doublereal* pdA = NULL;
        SAFENEWARR(pdA, doublereal, Order*Order);
@@ -765,7 +765,7 @@ Elem* ReadGenel(DataManager* pDM,
               
        if (!HP.IsKeyWord("matrixB")) {
 	  std::cerr << "matrix B expected at line " << HP.GetLineNumber() << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
        doublereal* pdB = NULL;
        SAFENEWARR(pdB, doublereal, Order*iNumInputs);
@@ -776,7 +776,7 @@ Elem* ReadGenel(DataManager* pDM,
               
        if (!HP.IsKeyWord("matrixC")) {
 	  std::cerr << "matrix C expected at line " << HP.GetLineNumber() << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
        doublereal* pdC = NULL;
        SAFENEWARR(pdC, doublereal, iNumOutputs*Order);
@@ -818,14 +818,14 @@ Elem* ReadGenel(DataManager* pDM,
        std::cerr << "unknown genel type in genel " << uLabel
 	 << " at line " << HP.GetLineData() << std::endl;
        
-       THROW(DataManager::ErrGeneric());
+       throw DataManager::ErrGeneric();
     }	
    }
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.IsArg()) {
       std::cerr << "semicolon expected at line " << HP.GetLineData() << std::endl;      
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }      
    
    return pEl;

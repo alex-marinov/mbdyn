@@ -149,7 +149,7 @@ SchurMatrixHandler::Resize(integer, integer)
 {
 	silent_cerr("cannot resize a matrix handler of type SchurMatrixHandler"
 			<< std::endl);
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 /* SchurMatrixHandler - End */

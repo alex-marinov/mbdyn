@@ -205,11 +205,11 @@ HBeam::dGetPrivData(unsigned int i) const
 	case 3:
 		std::cerr << "Beam2 " << GetLabel() 
 			<< ": not allowed to return shear strain" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	default:
 		std::cerr << "Beam2 " << GetLabel()
 			<< ": illegal private data " << i << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 #ifndef USE_EXCEPTIONS
 	return 0.;
@@ -244,7 +244,7 @@ HBeam::DsDxi(void)
 		std::cerr << "warning, beam " << GetLabel() 
 			<< " has singular metric; aborting ..." << std::endl;
 		
-		THROW(HBeam::ErrGeneric());
+		throw HBeam::ErrGeneric();
 	}
 	
 	dsdxi = dsdxi*d;
@@ -699,7 +699,7 @@ HBeam::pGetNode(unsigned int i) const
 	case 2:
 		return pNode[i-1];
 	default:
-		THROW(HBeam::ErrGeneric());
+		throw HBeam::ErrGeneric();
 	}
 #ifndef USE_EXCEPTIONS
 	return NULL;
@@ -1191,7 +1191,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			<< ": hbeam does not support "
 			"dynamic constitutive laws yet"
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	
 #ifdef DEBUG   
@@ -1228,7 +1228,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		if (iNumElec <= 0) {
 			std::cerr << "illegal number of electric nodes "
 				<< iNumElec << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		
 		SAFENEWARR(pvElecDofs, ScalarDifferentialNode*, iNumElec);
@@ -1241,7 +1241,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			if (pvElecDofs[i] == NULL) {
 				std::cerr << "can't find abstract node "
 					<< uL << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 		}
 		
@@ -1331,7 +1331,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 #else /* VISCOELASTIC_BEAM */
 		std::cerr << "Sorry, the ViscoElasticHBeam element"
 			" is not available yet" << std::endl;
-		THROW(ErrNotImplementedYet());
+		throw ErrNotImplementedYet();
 #endif /* VISCOELASTIC_BEAM */
 	}
 	
@@ -1339,7 +1339,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsArg()) {
 		std::cerr << "semicolon expected at line "
 			<< HP.GetLineData() << std::endl;      
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	}
 	
 	return pEl;

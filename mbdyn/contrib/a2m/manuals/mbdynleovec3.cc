@@ -25,7 +25,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       CONTROLLA CHE LA NORMA DEL VETTORE PROIEZIONE SIA != 0
       if (d <= DBL_EPSILON) {
 	 cerr << endl << sFuncName << ": vectors must be distinct" << endl;
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }	
       */
 
@@ -45,7 +45,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       CONTROLLA CHE LA NORMA DEL VETTORE PROIEZIONE SIA != 0
       if (d <= DBL_EPSILON) {
 	 cerr << endl << sFuncName << ": vectors must be distinct" << endl;
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }	
       */
 
@@ -58,7 +58,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       return Mat3x3(r[0], r[1], r[2]);
    } else {
       cerr << endl << sFuncName << ": second index is illegal" << endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
    
    return Zero3x3; // phony call, not reachable

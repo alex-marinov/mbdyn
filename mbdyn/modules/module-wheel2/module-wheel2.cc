@@ -193,7 +193,7 @@ read(LoadableElem* pEl,
 			/*
 			 * Exit quietly if nothing else is provided
 			 */
-			THROW(NoErr());
+			throw NoErr();
 		}
 	}
 
@@ -226,7 +226,7 @@ read(LoadableElem* pEl,
 	doublereal d = p->GroundDirection.Dot();
 	if (d <= DBL_EPSILON) {
 		std::cerr << "null direction at line " << HP.GetLineData() << std::endl;
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	}
 	p->GroundDirection /= sqrt(d);
 
@@ -507,7 +507,7 @@ ass_res(LoadableElem* pEl,
 		if (d < DBL_EPSILON) {
 			std::cerr << "wheel axle is orthogonal to the ground"
 				<< std::endl;
-			THROW(DataManager::ErrGeneric());
+			throw DataManager::ErrGeneric();
 		}
 		fwd /= sqrt(d);
 

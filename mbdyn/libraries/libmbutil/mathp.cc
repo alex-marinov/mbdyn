@@ -113,10 +113,10 @@ mp_stop(Real s, Real v)
 	if (s != 0.) {
 		if (int(v) == 0) {
 			silent_cout("mp_stop(SUCCESS)" << std::endl);
-			THROW(NoErr());
+			throw NoErr();
 		} else {
 			silent_cout("mp_stop(FAILURE)" << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 	return s;
@@ -336,7 +336,7 @@ TypedValue::TypedValue(const TypedValue::Type t, bool isConst)
       v.r = 0.;
       break;
     default:
-      THROW(ErrUnknownType());
+      throw ErrUnknownType();
    }
 }
 
@@ -351,7 +351,7 @@ TypedValue::TypedValue(const TypedValue& var)
       v.r = var.v.r;
       break;
     default:
-      THROW(ErrUnknownType());
+      throw ErrUnknownType();
    }
 }
 
@@ -366,7 +366,7 @@ TypedValue::operator = (const TypedValue& var)
       Set(var.GetReal());
       break;
     default:
-      THROW(ErrUnknownType());
+      throw ErrUnknownType();
    }
    bConst = var.Const();
    return *this;
@@ -393,7 +393,7 @@ TypedValue::GetInt(void) const
     case TypedValue::VAR_REAL:
       return Int(v.r);
     default:
-      THROW(ErrUnknownType());
+      throw ErrUnknownType();
    }
    return 0;
 }
@@ -407,7 +407,7 @@ TypedValue::GetReal(void) const
     case TypedValue::VAR_REAL:
       return v.r;
     default:
-      THROW(ErrUnknownType());
+      throw ErrUnknownType();
    }
    return 0.;
 }
@@ -436,7 +436,7 @@ TypedValue::Set(const Int& i)
       v.r = Real(i);
       break;
     default:
-      THROW(ErrUnknownType());
+      throw ErrUnknownType();
    }
    return *this;
 }
@@ -452,7 +452,7 @@ TypedValue::Set(const Real& r)
       v.r = r;
       break;
     default:
-      THROW(ErrUnknownType());
+      throw ErrUnknownType();
    }
    return *this;
 }
@@ -608,7 +608,7 @@ operator - (const TypedValue& v)
     case TypedValue::VAR_REAL:
       return TypedValue(-v.GetReal());
     default:
-      THROW(TypedValue::ErrUnknownType());
+      throw TypedValue::ErrUnknownType();
    }
    return 0;
 }
@@ -628,7 +628,7 @@ operator << (std::ostream& out, const TypedValue& v)
     case TypedValue::VAR_REAL:
       return out << v.GetReal();
     default:
-      THROW(TypedValue::ErrUnknownType());
+      throw TypedValue::ErrUnknownType();
    }
    return out;
 }
@@ -736,7 +736,7 @@ Var::SetVal(const TypedValue& v)
       value.Set(v.GetReal());
       break;
     default:
-      THROW(TypedValue::ErrUnknownValue());
+      throw TypedValue::ErrUnknownValue();
    }
 }
 
@@ -907,7 +907,7 @@ MathParser::NewVar(const char* const s, TypedValue::Type t, const Real& d)
 {
    if (GetVar(s) != NULL) {
       DEBUGCERR("var '" << s << "' already defined!" << std::endl);
-      THROW(ErrGeneric(this, "var '", s, "' already defined!" ));
+      throw ErrGeneric(this, "var '", s, "' already defined!" );
    }
    Var* v = NULL;
    switch (t) {
@@ -918,7 +918,7 @@ MathParser::NewVar(const char* const s, TypedValue::Type t, const Real& d)
       SAFENEWWITHCONSTRUCTOR(v, Var, Var(s, d));
       break;
     default: 
-      THROW(TypedValue::ErrUnknownType());
+      throw TypedValue::ErrUnknownType();
    }
    VarList* p = NULL;
    SAFENEW(p, VarList);
@@ -1318,7 +1318,7 @@ MathParser::mult(void)
 	  TypedValue e = power();
 	  if (e == 0.) {
 	     DEBUGCERR("divide by zero in mult()" << std::endl);	  
-	     THROW(ErrGeneric(this, "divide by zero in mult()"));
+	     throw ErrGeneric(this, "divide by zero in mult()");
 	  }
 	  d /= e;
 	  break;
@@ -1349,7 +1349,7 @@ MathParser::power(void) {
 		if (d < 0. && e <= 0.) {
 			DEBUGCERR("can't compute " << d << '^'
 					<< e << " in power()" << std::endl);
-			THROW(ErrGeneric(this, "invalid operands in power()"));
+			throw ErrGeneric(this, "invalid operands in power()");
 		}
 
 		/*
@@ -1416,7 +1416,7 @@ MathParser::evalfunc(mathfuncs* f)
       d[i] = stmtlist().GetReal();
       if (currtoken != ARGSEP) {	 
 	 DEBUGCERR("argument separator expected in evalfunc()" << std::endl);
-	 THROW(ErrGeneric(this, "argument separator expected"));
+	 throw ErrGeneric(this, "argument separator expected");
       }
       GetToken();
    }
@@ -1426,7 +1426,7 @@ MathParser::evalfunc(mathfuncs* f)
       if ((*(f->t))(d)) {
 	 DEBUGCERR("error in function " << f->fname << " (msg: "
 		   << f->errmsg << ')' << " in evalfunc()" << std::endl);
-	 THROW(ErrGeneric(this, f->fname, ": error ", f->errmsg));
+	 throw ErrGeneric(this, f->fname, ": error ", f->errmsg);
       }
    }
    
@@ -1437,7 +1437,7 @@ MathParser::evalfunc(mathfuncs* f)
       return TypedValue((*(f->f.f2))(d[0], d[1]));
     default:
       DEBUGCERR("unsupported feature in evalfunc()" << std::endl);
-      THROW(ErrGeneric(this, "unsupported number of arguments"));
+      throw ErrGeneric(this, "unsupported number of arguments");
    }
    return 0;
 }
@@ -1455,7 +1455,7 @@ MathParser::expr(void)
       TypedValue d = stmtlist();
       if (currtoken != CBR) {
 	 DEBUGCERR("closing parenthesis expected in expr()" << std::endl);
-	 THROW(ErrGeneric(this, "closing parenthesis expected"));
+	 throw ErrGeneric(this, "closing parenthesis expected");
       }
       GetToken();
       return d;
@@ -1465,7 +1465,7 @@ MathParser::expr(void)
        TypedValue d = readplugin();
        if (currtoken != CPGIN) {
 	  DEBUGCERR("closing plugin expected in expr()" << std::endl);
-	  THROW(ErrGeneric(this, "closing plugin expected"));
+	  throw ErrGeneric(this, "closing plugin expected");
        }
        GetToken();
        return d;
@@ -1476,20 +1476,20 @@ MathParser::expr(void)
       if (currtoken == OBR) {
 	 /* in futuro ci potranno essere magari i dati strutturati */
 	 if (!IsFunc(namebuf)) {
-	    THROW(ErrGeneric(this, "user-defined functions not supported yet!"));
+	    throw ErrGeneric(this, "user-defined functions not supported yet!");
 	 }
 	 
 	 mathfuncs* f = GetFunc(namebuf);
 	 if (f == NULL) {
-	    THROW(ErrGeneric(this, "function '", namebuf, "' not found"));
+	    throw ErrGeneric(this, "function '", namebuf, "' not found");
 	 }
 	 GetToken();
 	 TypedValue d = evalfunc(f);
 	 if (currtoken != CBR) {	   
 	    DEBUGCERR("closing parenthesis expected after function '"
 		      << f->fname << "' in expr()" << std::endl);
-	    THROW(ErrGeneric(this, "closing parenthesis expected after function '",
-			     f->fname, "' in expr()"));
+	    throw ErrGeneric(this, "closing parenthesis expected after function '",
+			     f->fname, "' in expr()");
 	 }
 	 GetToken();
 	 return d;
@@ -1501,13 +1501,13 @@ MathParser::expr(void)
       }
            
       DEBUGCERR("unknown name '" << namebuf << "' in expr()" << std::endl);
-      THROW(ErrGeneric(this, "unknown name '", namebuf, "'"));
+      throw ErrGeneric(this, "unknown name '", namebuf, "'");
    }
    
    /* invalid expr */
    if (currtoken != ENDOFFILE) {
       DEBUGCERR("unknown token in expr()" << currtoken << std::endl);
-      THROW(ErrGeneric(this, "unknown token"));
+      throw ErrGeneric(this, "unknown token");
    }
    return TypedValue(0.);
 }
@@ -1531,8 +1531,8 @@ MathParser::stmt(void)
 	 if (GetToken() != NAME || !IsType(namebuf)) {
 	    std::cerr << "type expected after type modifier "
 		    "in declaration in stmt()" << std::endl;
-	    THROW(ErrGeneric(this, "type expected after type modifier "
-				    "in declaration"));
+	    throw ErrGeneric(this, "type expected after type modifier "
+				    "in declaration");
 	 }
       }
 	 
@@ -1544,11 +1544,11 @@ MathParser::stmt(void)
 	 if (GetToken() != NAME) {
 	    std::cerr << "name expected after type in declaration in stmt()" 
 		    << std::endl;
-	    THROW(ErrGeneric(this, "name expected after type in declaration"));
+	    throw ErrGeneric(this, "name expected after type in declaration");
 	 }
 	 
 	 if (IsKeyWord(namebuf)) {
-	    THROW(ErrGeneric(this, "name '", namebuf, "' is a keyword"));
+	    throw ErrGeneric(this, "name '", namebuf, "' is a keyword");
 	 }
 
 	 /* with assign? */
@@ -1574,9 +1574,9 @@ MathParser::stmt(void)
 		  if (v->Const()) {
 		     std::cerr << "cannot redefine a const named value"
 			     << std::endl;
-		     THROW(MathParser::ErrGeneric(this, "cannot redefine "
+		     throw MathParser::ErrGeneric(this, "cannot redefine "
 					     "a const named value '",
-					     v->GetName(), "'"));
+					     v->GetName(), "'");
 		  }
 
 		  if (v->IsVar()) {
@@ -1585,9 +1585,9 @@ MathParser::stmt(void)
 		  } else {
 		     std::cerr << "cannot redefine a non-var named value" 
 			     << std::endl;
-		     THROW(MathParser::ErrGeneric(this, "cannot redefine "
+		     throw MathParser::ErrGeneric(this, "cannot redefine "
 					     "non-var named value '",
-					     v->GetName(), "'"));
+					     v->GetName(), "'");
 		  }
 	       } else {
 		  /* altrimenti la reinserisco, cosi' da provocare l'errore
@@ -1620,9 +1620,9 @@ MathParser::stmt(void)
 	       if (v->Const()) {
 		  std::cerr << "cannot assign const named value '"
 			  << v->GetName() << "'" << std::endl;
-		  THROW(MathParser::ErrGeneric(this,
+		  throw MathParser::ErrGeneric(this,
 					  "cannot assign const named value '",
-					  v->GetName(), "'"));
+					  v->GetName(), "'");
 	       }
 
 	       if (v->IsVar()) {
@@ -1630,9 +1630,9 @@ MathParser::stmt(void)
 	       } else {
 		  std::cerr << "cannot assign non-var named value '" 
 			  << v->GetName() << "'" << std::endl;
-		  THROW(MathParser::ErrGeneric(this,
+		  throw MathParser::ErrGeneric(this,
 		  			"cannot assign non-var named value '",
-					v->GetName(), "'"));
+					v->GetName(), "'");
 	       }
 	       return v->GetVal();
 
@@ -1705,7 +1705,7 @@ MathParser::readplugin(void)
 			if (c != ',' && c != ']') {
 				std::cerr << "need a separator "
 					"after closing quotes" << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 			in->putback(c);
 			break;
@@ -1743,7 +1743,7 @@ MathParser::readplugin(void)
 		 */
 		if (i >= sizeof(buf)) {
 			std::cerr << "buffer overflow" << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 
@@ -1751,7 +1751,7 @@ last_arg:
 	if (in->eof()) {
 		std::cerr << "eof encountered while parsing plugin" 
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	/*
@@ -1773,13 +1773,13 @@ last_arg:
 	 */
 	if (pginname == NULL || *pginname == '\0') {
 		std::cerr << "illegal or missing plugin name" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	if (varname == NULL || *varname == '\0') {
 		std::cerr << "illegal or missing plugin variable name" 
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	
 	/*
@@ -1789,7 +1789,7 @@ last_arg:
 	if (v != NULL) {
 		std::cerr << "variable " << varname << " already defined" 
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	/*
@@ -1839,7 +1839,7 @@ last_arg:
 	 * si arriva qui solo se il plugin non e' stato registrato
 	 */
 	std::cerr << "plugin '" << pginname << "' not supported" << std::endl;
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
    
 TypedValue 
@@ -1915,8 +1915,8 @@ MathParser::InsertSym(const char* const s, const Real& v, int redefine)
             ((Var *)var)->SetVal(TypedValue(v));
          } else {
 	    std::cerr << "cannot redefine a non-var named value" << std::endl;
-            THROW(MathParser::ErrGeneric(this,
-		"cannot redefine non-var named value '", var->GetName(), "'"));
+            throw MathParser::ErrGeneric(this,
+		"cannot redefine non-var named value '", var->GetName(), "'");
          }
       } else {
          /* altrimenti la reinserisco, cosi' da provocare l'errore
@@ -1926,7 +1926,7 @@ MathParser::InsertSym(const char* const s, const Real& v, int redefine)
    }
 
    if (var == NULL) {
-      THROW(ErrGeneric(this, "error while adding real var '", s, ""));
+      throw ErrGeneric(this, "error while adding real var '", s, "");
    }
 
    return var;
@@ -1949,8 +1949,8 @@ MathParser::InsertSym(const char* const s, const Int& v, int redefine)
             ((Var *)var)->SetVal(TypedValue(v));
          } else {
 	    std::cerr << "cannot redefine a non-var named value" << std::endl;
-            THROW(MathParser::ErrGeneric(this,
-		"cannot redefine non-var named value '", var->GetName(), "'"));
+            throw MathParser::ErrGeneric(this,
+		"cannot redefine non-var named value '", var->GetName(), "'");
          }
       } else {
          /* altrimenti la reinserisco, cosi' da provocare l'errore
@@ -1960,7 +1960,7 @@ MathParser::InsertSym(const char* const s, const Int& v, int redefine)
    }
 
    if (var == NULL) {  
-      THROW(ErrGeneric(this, "error while adding integer var '", s, ""));
+      throw ErrGeneric(this, "error while adding integer var '", s, "");
    }
 
    return var;
@@ -2004,7 +2004,7 @@ MathParser::Get(Real d)
    d = stmt().GetReal();
    if (currtoken != STMTSEP && currtoken != ENDOFFILE) {     
       DEBUGCERR("stmtsep expected in Get()" << std::endl);
-      THROW(ErrGeneric(this, "statement separator expected"));
+      throw ErrGeneric(this, "statement separator expected");
    }
    return d;
 }
@@ -2024,7 +2024,7 @@ MathParser::Get(const InputStream& strm, Real d)
       in->putback(',');
    } else {
       DEBUGCERR("separator expected in Get()" << std::endl);
-      THROW(ErrGeneric(this, "separator expected"));
+      throw ErrGeneric(this, "separator expected");
    }
    in = (InputStream*)p;
    return d;

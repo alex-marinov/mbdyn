@@ -1179,7 +1179,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	    << " is less than or equal to ascending initial time " 
 	    << dAscendingInitialTime 
 	    << " in double ramp func drive" << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
        
        doublereal dDescendingSlope = HP.GetReal(-1.);
@@ -1195,7 +1195,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	    << " is less than ascending final time " 
 	    << dAscendingFinalTime 
 	    << " in double ramp func drive" << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }	   
        
        doublereal dDescendingFinalTime = HP.GetReal();
@@ -1208,7 +1208,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	    << " is less than descending initial time " 
 	    << dDescendingInitialTime 
 	    << " in double ramp func drive" << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }	   
        
        doublereal dInitialValue = HP.GetReal();	   
@@ -1390,7 +1390,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        if (n < 2) {
 	  std::cerr<< "Need at least two points for piecewise linear drive at line "
 	    << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
 
        doublereal *p = NULL;
@@ -1403,7 +1403,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	     std::cerr<< "point " << p[i]
 	       << " is smaller than or equal to preceding point " << p[i-1]
 	       << " at line " << HP.GetLineData();
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }
 	  p[i+n] = HP.GetReal();
        }
@@ -1436,7 +1436,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	  std::cerr<< "sorry, since the driver is not owned by a DataManager" << std::endl
 	    << "no DOF dependent drivers are allowed;" << std::endl
 	    << "aborting ...";	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
 
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
@@ -1467,7 +1467,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	  std::cerr<< "sorry, since the driver is not owned by a DataManager" << std::endl
 	    << "no element dependent drivers are allowed;" << std::endl
 	    << "aborting ...";	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
 
        unsigned uLabel = HP.GetInt();
@@ -1498,7 +1498,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 			       << psElemNames[pElem->GetElemType()] 
 			       << "(" << pElem->GetLabel() << ") "
 			       "at line " << HP.GetLineData() << std::endl);
-	       THROW(ErrGeneric());
+	       throw ErrGeneric();
        }
 
        if (iIndex < 1 || iIndex > iMaxIndex) {
@@ -1506,7 +1506,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 			       << psElemNames[pElem->GetElemType()] 
 			       << "(" << pElem->GetLabel() << ") "
 			       "at line " << HP.GetLineData() << std::endl);
-	       THROW(ErrGeneric());
+	       throw ErrGeneric();
        }
 
 #ifdef USE_MPI
@@ -1539,7 +1539,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        unsigned short int iNumDr = (unsigned short int)HP.GetInt();
        if (iNumDr == 0) {	      
 	  std::cerr<< "Sorry, at least one driver is required" << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        } else if (iNumDr == 1) {
 	  /* creazione di un driver normale mediante chiamata ricorsiva */
 	  pDC = ReadDriveData(pDM, HP, pDrvHdl);
@@ -1570,7 +1570,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        if (pDrv == NULL) {
 	  std::cerr<< "line " << HP.GetLineData() 
 	    << ": can't find FileDrive(" << uL << ")" << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
               
        integer id = 1;
@@ -1593,7 +1593,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       
     default: {
        std::cerr<< "unknown drive type at line " << HP.GetLineData() << std::endl;       
-       THROW(DataManager::ErrGeneric());
+       throw DataManager::ErrGeneric();
     }	
    }
    

@@ -76,7 +76,7 @@ ShapeFunc2N(doublereal d, integer iNode, enum Order Ord)
 			return .5*(1.+d);
 			
 		default:
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		
 	case ORD_D1:
@@ -88,7 +88,7 @@ ShapeFunc2N(doublereal d, integer iNode, enum Order Ord)
 			return .5;
 			
 		default:
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		
 	case ORD_D2:
@@ -100,7 +100,7 @@ ShapeFunc2N(doublereal d, integer iNode, enum Order Ord)
 			return 0.;
 			
 		default:
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 	
@@ -186,7 +186,7 @@ ShapeFunc3N(doublereal d, integer iNode, enum Order Ord)
 			return .5*d*(d+1.);
 			
 		default:
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		
 	case ORD_D1:
@@ -201,7 +201,7 @@ ShapeFunc3N(doublereal d, integer iNode, enum Order Ord)
 			return d+.5;
 			
 		default:
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	case ORD_D2:
 		switch (iNode) {
@@ -215,7 +215,7 @@ ShapeFunc3N(doublereal d, integer iNode, enum Order Ord)
 			return 1.;
 			
 		default:
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 	

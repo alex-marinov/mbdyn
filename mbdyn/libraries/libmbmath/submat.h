@@ -1042,12 +1042,12 @@ public:
 
 	const doublereal&
 	operator () (integer iRow, integer iCol) const {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	};
 
 	doublereal&
 	operator () (integer iRow, integer iCol) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	};
 };
 

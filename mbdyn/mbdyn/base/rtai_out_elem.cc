@@ -71,7 +71,7 @@ host(h), name(m), create(c), node(n), port(-1), mbx(NULL)
 		if (mbdyn_rt_mbx_init(name, size, &mbx)) {
 			std::cerr << "RTAI mailbox(" << name << ") "
 				"init failed" << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 	} else {
@@ -84,7 +84,7 @@ host(h), name(m), create(c), node(n), port(-1), mbx(NULL)
 		if (mbdyn_RT_get_adr(node, port, name, &mbx)) {
 			std::cerr << "RTAI mailbox(" << name << ") "
 				"get_adr failed" << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 }
@@ -180,14 +180,14 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			std::cerr << "unable to read mailbox name "
 				"for RTAIOutElem(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 
 		} else if (strlen(m) != 6) {
 			std::cerr << "illegal mailbox name \"" << m
 				<< "\" for RTAIOutElem(" << uLabel 
 				<< ") (must be 6 char) at line "
 				<< HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		SAFESTRDUP(name, m);
@@ -195,7 +195,7 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	} else {
 		std::cerr << "missing mailbox name for RTAIOutElem(" << uLabel
 			<< ") at line " << HP.GetLineData() << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	if (HP.IsKeyWord("create")) {
@@ -206,7 +206,7 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		} else {
 			std::cerr << "\"create\" must be \"yes\" or \"no\" "
 				"at line " << HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 	
@@ -234,13 +234,13 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		if (create) {
 			/*std::cerr << "cannot create mailbox(" << name
 				<< ") as remote on host " << h << std::endl;*/
-			//THROW(ErrGeneric());
+			//throw ErrGeneric();
 			silent_cout ( "host name \"" << h 
 					<< "\" silently ignored" << std::endl);			
 		} else {
@@ -265,14 +265,14 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				std::cerr << "unable to convert host \""
 					<< host << "\" at line "
 					<< HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 			}
 #else /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
 			std::cerr << "host (RTAI RPC) not supported for "
 				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 				<< "(" << uLabel << ") at line " << HP.GetLineData()
 				<< std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 #endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
 		}
 	}
@@ -283,7 +283,7 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 			<< "(" << uLabel << ") at line " << HP.GetLineData()
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	ScalarDof *pNodes = NULL;
@@ -298,7 +298,7 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsArg()) {
 		std::cerr << "semicolon expected at line " << HP.GetLineData()
 			<< std::endl;      
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
       
       /* costruzione del nodo */

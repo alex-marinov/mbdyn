@@ -262,7 +262,7 @@ Elem* ReadForce(DataManager* pDM,
    if (CurrType == UNKNOWN) {
       std::cerr << std::endl << sFuncName << " at line " << HP.GetLineData() 
 	<< ": unknown force type" << std::endl;      
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }   
    
 #ifdef DEBUG
@@ -298,7 +298,7 @@ Elem* ReadForce(DataManager* pDM,
 #endif /* USE_ELECTRIC_NODES */
       
     default:
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
 #endif /* DEBUG */
 
@@ -488,7 +488,7 @@ Elem* ReadForce(DataManager* pDM,
    if (HP.IsArg()) {
       std::cerr << std::endl << sFuncName
 	<< ": semicolon expected at line " << HP.GetLineData() << std::endl;      
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }      
    
    return pEl;

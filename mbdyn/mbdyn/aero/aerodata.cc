@@ -165,7 +165,7 @@ AeroData::AeroData(AeroData::UnsteadyModel u, DriveCaller *ptime)
 {
    	if (u != AeroData::STEADY) {
 		if (ptime == 0) {
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 }
@@ -194,7 +194,7 @@ AeroData::StorageSize(void) const
 		return 0;
 
 	default:
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 }
 
@@ -257,7 +257,7 @@ STAHRAeroData::Restart(std::ostream& out) const
       		break;
 	
     	default: 
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
 	
 	return RestartUnsteady(out);

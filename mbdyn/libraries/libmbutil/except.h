@@ -34,6 +34,7 @@
 
 #include <ac/iostream>
 
+#if 0
 #ifdef USE_EXCEPTIONS
 #define THROW(cl) \
     do {          \
@@ -47,6 +48,7 @@
         exit(EXIT_FAILURE);                                         \
     } while (0)
 #endif /* !USE_EXCEPTIONS */
+#endif
 
 class NoErr {};
 class ErrGeneric {};

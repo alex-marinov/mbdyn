@@ -578,7 +578,7 @@ Tank::AssRes(SubVectorHandler& WorkVec,
   
    if (s < 0.) {
       std::cerr << "Livello dell'olio " << s << " negativo: IMPOSSIBILE " << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
      
    doublereal jumpPres1S = fabs(p1-press);

@@ -104,7 +104,7 @@ unsigned int Control_valve::iGetNumDof(void) const
 DofOrder::Order Control_valve::GetDofType(unsigned int i) const 
 {
    std::cerr << "Control valve has no dofs!" << std::endl;
-   THROW(ErrGeneric());
+   throw ErrGeneric();
 }
 
 

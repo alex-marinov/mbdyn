@@ -300,7 +300,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 		if (dE <= 0.) {
 			silent_cerr("error, null or negative reference strain at line "
 				<< HP.GetLineData() << std::endl);
-			THROW(DataManager::ErrGeneric());
+			throw DataManager::ErrGeneric();
 		}
 
 		/* Prestress and prestrain */
@@ -332,7 +332,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 		if (dGamma < 1.) {
 			silent_cerr("error, exponent < 1. at line "
 				<< HP.GetLineData() << std::endl);
-			THROW(DataManager::ErrGeneric());
+			throw DataManager::ErrGeneric();
 		}
 
 		/* Prestress and prestrain */
@@ -359,7 +359,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 
 			if (tmp == 0) {
 				silent_cerr("unable to get \"epsilon\" symbol at line " << HP.GetLineData() << std::endl);
-				THROW(DataManager::ErrGeneric());
+				throw DataManager::ErrGeneric();
 			}
 			SAFESTRDUP(epsilon, tmp);
 		}
@@ -369,7 +369,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 
 			if (tmp == 0) {
 				silent_cerr("unable to get \"epsilonPrime\" symbol at line " << HP.GetLineData() << std::endl);
-				THROW(DataManager::ErrGeneric());
+				throw DataManager::ErrGeneric();
 			}
 			SAFESTRDUP(epsilonPrime, tmp);
 
@@ -385,18 +385,18 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 			silent_cerr("need \"epsilon\" or \"epsilon prime\" "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		if (!HP.IsKeyWord("expression")) {
 			silent_cerr("keyword \"expression\" expected at line " << HP.GetLineData() << std::endl);
-			THROW(DataManager::ErrGeneric());
+			throw DataManager::ErrGeneric();
 		}
 
 		const char *tmp = HP.GetStringWithDelims();
 		if (tmp == 0) {
 			silent_cerr("unable to get \"expression\" at line " << HP.GetLineData() << std::endl);
-			THROW(DataManager::ErrGeneric());
+			throw DataManager::ErrGeneric();
 		}
 		const char *expression = 0;
 		SAFESTRDUP(expression, tmp);
@@ -442,7 +442,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 
 		default:
 			ASSERT(0);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		break;
@@ -694,7 +694,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 			} else {
 				silent_cerr("unknown initial status at line "
 					<< HP.GetLineData() << std::endl);
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 		}
 
@@ -742,7 +742,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 		break;
 #else /* USE_GRAALLDAMPER */
 		silent_cerr("can't use GRAALL Damper" << std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 #endif /* USE_GRAALLDAMPER */
 	}
 
@@ -772,7 +772,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 		silent_cerr("Unknown constitutive law type at line "
 			<< HP.GetLineData() << std::endl);
 
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	ASSERT(pCL != NULL);

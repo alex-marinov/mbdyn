@@ -339,7 +339,7 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				<< "): structural node " << NodeL
 				<< " at line " << HP.GetLineData()
 				<< " not defined" << std::endl;
-      			THROW(DataManager::ErrGeneric());
+      			throw DataManager::ErrGeneric();
 		} else {
 		 	ppNodeList[iN] = pTmpNode;
 		}
@@ -380,7 +380,7 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
                    std::cerr << "Aerodynamic External(" << uLabel
                                 << "): there are no external communicators " 
                                 << "Aborting." << std::endl;
-                   THROW(DataManager::ErrGeneric());
+                   throw DataManager::ErrGeneric();
 	}
 
 	for (int i = 0; i++ < comm; iComm++) {
@@ -389,7 +389,7 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
                                 << "): external communicator " << comm 
 				<< "does not exist. Last communicator is " << i-1     
                                 << ". Aborting." << std::endl;
-                   THROW(DataManager::ErrGeneric());
+                   throw DataManager::ErrGeneric();
 		}
 	}
 	MPI::Intercomm* pInterC = &(*(iComm));
@@ -621,7 +621,7 @@ ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLa
    	if (pModalJoint->GetJointType() != Joint::MODAL) {
       		std::cerr << "Joint " << pModalJoint->GetLabel()
 	      		<< " is required to be a modal joint" << std::endl;
-      		THROW(DataManager::ErrGeneric());
+      		throw DataManager::ErrGeneric();
    	}
 	int comm = 0;
 	if (HP.IsKeyWord("comm")) {

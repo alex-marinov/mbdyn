@@ -102,7 +102,7 @@ ReadHydraulicFluid(MBDynParser& HP,
 		  std::cerr << "line " << HP.GetLineData() 
 	            << ": illegal viscosity " << dViscosity
 		    << std::endl;
-		  THROW(ErrGeneric());
+		  throw ErrGeneric();
 	       }
        
        doublereal dPres0(-1.);
@@ -150,7 +150,7 @@ ReadHydraulicFluid(MBDynParser& HP,
 		std::cerr << "line " << HP.GetLineData()
 			<< ": illegal sound celerity " << sound
 		        << std::endl;
-		THROW(ErrGeneric());		
+		throw ErrGeneric();		
 	     } 
 	     dBeta = sound*sound*dDensity;
 	  } else { 
@@ -159,7 +159,7 @@ ReadHydraulicFluid(MBDynParser& HP,
 		std::cerr << "line " << HP.GetLineData()
 			  << ": illegal bulk modulus " << dBeta 
 		          << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	     }
 	  }
 	   
@@ -186,7 +186,7 @@ ReadHydraulicFluid(MBDynParser& HP,
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": illegal viscosity " << dViscosity
 	    << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
        
        doublereal dTemp0(-1.);
@@ -201,7 +201,7 @@ ReadHydraulicFluid(MBDynParser& HP,
        
        switch (CurrKeyWord) {
 	default:
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
 
 	case LINEARCOMPRESSIBLE: 
 	  SAFENEWWITHCONSTRUCTOR(pHF,
@@ -257,14 +257,14 @@ ReadHydraulicFluid(MBDynParser& HP,
 	     if (sound < DBL_EPSILON) {
 		std::cerr << "line " << HP.GetLineData() << ": illegal sound velocity " << sound
 		  << std::endl;
-		THROW(ErrGeneric());		
+		throw ErrGeneric();		
 	     } 
 	     dBeta = sound*sound*dDensity;
 	  } else {
 	     dBeta = HP.GetReal();
 	     if (fabs(dBeta) < DBL_EPSILON) {
 		std::cerr << "line " << HP.GetLineData() << ": illegal bulk modulus " << dBeta << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	     }
 	  }
 	  
@@ -300,7 +300,7 @@ ReadHydraulicFluid(MBDynParser& HP,
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": illegal viscosity " << dViscosity
 	    << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
        
        SAFENEWWITHCONSTRUCTOR(pHF,
@@ -317,7 +317,7 @@ ReadHydraulicFluid(MBDynParser& HP,
 
     default:
       std::cerr << "line " << HP.GetLineData() << ": unknown hydraulic fluid type" << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
    
    return pHF;

@@ -86,21 +86,21 @@ type(AF_INET), sock(0), connection_flag(false)
 		if (sock == -1) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): socket failed" << std::endl);
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
    		} else if (sock == -2) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): bind failed" << std::endl);
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
    		} else if (sock == -3) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): illegal host name" << std::endl);
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
    		}
 		
    		if (listen(sock, 1) < 0) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): listen failed" << std::endl);
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
    		}
 	}
 	 
@@ -126,17 +126,17 @@ host(NULL), type(AF_LOCAL), sock(0), connection_flag(false)
 		if (sock == -1) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): socket failed" << std::endl);
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
    		} else if (sock == -2) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): bind failed" << std::endl);
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
    		}
 		
    		if (listen(sock, 1) < 0) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): listen failed" << std::endl);
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
    		}
 	}
 
@@ -215,7 +215,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 					if (sock == -1) {
                					std::cerr <<"SocketStreamDrive(" << sFileName << ") "
 							"accept failed " << std::endl;
-						THROW(ErrGeneric());
+						throw ErrGeneric();
      					}
 					silent_cout("SocketStreamDrive(" << GetLabel()
   							<< "): connect from " << client_addr.sun_path
@@ -240,7 +240,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 					if (sock == -1) {
                 				std::cerr <<"SocketStreamDrive(" << sFileName << ") "
 							"accept failed " << std::endl;
-						THROW(ErrGeneric());
+						throw ErrGeneric();
         				}
       					silent_cout("SocketStreamDrive(" << GetLabel()
 	  					<< "): connect from " << inet_ntoa(client_addr.sin_addr)
@@ -264,7 +264,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 					if (sock < 0){
 						std::cerr <<"SocketStreamDrive(" << sFileName << ") "
 							"socket failed " << host << std::endl;
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 					}
 					addr.sun_family = AF_UNIX;
 					memcpy(addr.sun_path, data.Path, UNIX_PATH_MAX);
@@ -276,7 +276,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
 						std::cerr <<"SocketStreamDrive(" << sFileName << ") "
 								"connect failed " << std::endl;
-							THROW(ErrGeneric());									
+							throw ErrGeneric();									
 					}					
 					break;
 				}
@@ -289,14 +289,14 @@ SocketStreamDrive::ServePending(const doublereal& t)
 						if (sock < 0){
 						std::cerr <<"SocketStreamDrive(" << sFileName << ") "
 							"socket failed " << host << std::endl;
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 						}				
 					addr.sin_family = AF_INET;
 					addr.sin_port = htons (data.Port);
 					if (inet_aton(host, &(addr.sin_addr)) == 0) {
 							std::cerr <<"SocketStreamDrive(" << sFileName << ") "
 							"unknow host " << host << std::endl;
-						THROW(ErrGeneric());	
+						throw ErrGeneric();	
 					}
 
 						pedantic_cout("connecting to inet socket \""
@@ -308,7 +308,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
 						std::cerr <<"SocketStreamDrive(" << sFileName << ") "
 							"connect failed " << std::endl;
-						THROW(ErrGeneric());					
+						throw ErrGeneric();					
 						}
 					break;
 				}
@@ -327,7 +327,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 		if (setsockopt(sock, SOL_SOCKET, SO_LINGER, &lin, sizeof(lin))){
       			std::cerr << "SocketStreamDrive(" << sFileName
 				<< "): setsockopt failed" << std::endl;
-      			THROW(ErrGeneric());
+      			throw ErrGeneric();
 			
 		}
 		connection_flag = true;
@@ -357,7 +357,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				"for SocketStreamDrive(" << uLabel 
 				<< ") at line "
 				<< HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 
 		} 
 
@@ -367,7 +367,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 		std::cerr << "missing socket stream drive name "
 			"for SocketStreamDrive(" << uLabel
 			<< ") at line " << HP.GetLineData() << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	if (HP.IsKeyWord("create")) {
@@ -378,7 +378,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 		} else {
 			std::cerr << "\"create\" must be \"yes\" or \"no\" "
 				"at line " << HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 	
@@ -390,7 +390,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				<< "SocketStreamDrive("
 			 	<< uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		
 		SAFESTRDUP(path, m);	
@@ -403,7 +403,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				<< "SocketStreamDrive("
 			 	<< uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
-			THROW(ErrGeneric());		
+			throw ErrGeneric();		
 		}
 		int p = HP.GetInt();
 		/*Da sistemare da qui*/
@@ -415,7 +415,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 					<< IPPORT_USERRESERVED
 					<< " at line " << HP.GetLineData()
 					<< std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		port = p;
 	}
@@ -428,7 +428,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				<< "SocketStreamDrive("
 			 	<< uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
-			THROW(ErrGeneric());		
+			throw ErrGeneric();		
 		}
 
 		const char *h;
@@ -439,7 +439,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				<< "SocketStreamDrive("
 			 	<< uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		SAFESTRDUP(host, h);
@@ -460,7 +460,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				<< "SocketStreamDrive("
 			 	<< uLabel << ") at line "
 			<< std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	Drive* pDr = NULL;

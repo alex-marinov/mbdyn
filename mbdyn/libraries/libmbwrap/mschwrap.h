@@ -333,14 +333,14 @@ public:
    	void ChangeResPoint(doublereal* pRes){
 		std::cerr << "Sorry Meschach is not available as local parallel solver. "
 			<< "Aborting" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	};
    
    	/* sposta il puntatore al vettore del residuo */
    	void ChangeSolPoint(doublereal* pSol) {
 		std::cerr << "Sorry Meschach is not available as local parallel solver. "
 			<< "Aborting" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	};   
    	
 	/* Rende disponibile l'handler per la matrice */

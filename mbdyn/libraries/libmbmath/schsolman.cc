@@ -692,7 +692,7 @@ SchurSolutionManager::ChangeResPoint(doublereal* pRes)
 	std::cerr << "SchurSolutionManager::ChangeResPoint(): "
 		"you should not be here!! "
 		"Aborting..." << std::endl;
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 /* sposta il puntatore al vettore del residuo */
@@ -702,7 +702,7 @@ SchurSolutionManager::ChangeSolPoint(doublereal* pSol)
 	std::cerr << "SchurSolutionManager::ChangeSolPoint(): "
 		"you should not be here!! "
 		"Aborting..." << std::endl;\
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 /* Rende disponibile l'handler per la matrice */

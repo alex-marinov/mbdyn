@@ -189,11 +189,11 @@ StructNode::dGetDofValue(int iDof, int iOrder) const
       } else if (iOrder == 0) {
 	 std::cerr << "Node " << GetLabel()
 	   << ": unable to return the angle." << std::endl;
-	 THROW(StructNode::ErrGeneric());
+	 throw StructNode::ErrGeneric();
       }
    } else {
       std::cerr << "Required dof is not available." << std::endl;
-      THROW(StructNode::ErrGeneric());
+      throw StructNode::ErrGeneric();
    }
 
    /* dummy return value to workaround compiler complains */
@@ -220,11 +220,11 @@ StructNode::dGetDofValuePrev(int iDof, int iOrder) const
       } else if (iOrder == 0) {
 	 std::cerr << "Node " << GetLabel()
 	   << ": unable to return the angle." << std::endl;
-	 THROW(StructNode::ErrGeneric());
+	 throw StructNode::ErrGeneric();
       }
    } else {
       std::cerr << "Required dof is not available." << std::endl;
-      THROW(StructNode::ErrGeneric());
+      throw StructNode::ErrGeneric();
    }
 
    /* dummy return value to workaround compiler complains */
@@ -256,11 +256,11 @@ StructNode::SetDofValue(const doublereal& dValue,
       } else if (iOrder == 0) {
 	 std::cerr << "Node " << GetLabel()
 	   << ": unable to set the angle." << std::endl;
-	 THROW(StructNode::ErrGeneric());
+	 throw StructNode::ErrGeneric();
       }
    } else {
       std::cerr << "Required dof is not available." << std::endl;
-      THROW(StructNode::ErrGeneric());
+      throw StructNode::ErrGeneric();
    }
 }
 
@@ -967,7 +967,7 @@ const
 doublereal& DummyStructNode::dGetDofValue(int iDof, int iOrder) const
 {
    std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
-   THROW(ErrGeneric());
+   throw ErrGeneric();
 }
 
 
@@ -977,7 +977,7 @@ const
 doublereal& DummyStructNode::dGetDofValuePrev(int iDof, int iOrder) const
 {
    std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
-   THROW(ErrGeneric());
+   throw ErrGeneric();
 }
 
 
@@ -988,7 +988,7 @@ DummyStructNode::SetDofValue(const doublereal& dValue,
 			     unsigned int iDof, unsigned int iOrder)
 {
    std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
-   THROW(ErrGeneric());
+   throw ErrGeneric();
 }
 
 
@@ -1228,7 +1228,7 @@ ReadStructNode(DataManager* pDM,
    if (CurrType == UNKNOWN) {
       std::cerr << "missing node type at line " << HP.GetLineData()
       	      << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
 
 #ifdef DEBUG
@@ -1286,7 +1286,7 @@ ReadStructNode(DataManager* pDM,
 
        default: {
 	  std::cerr << "unknown dummy node type at line " << HP.GetLineData() << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
       }
    } else {
@@ -1338,7 +1338,7 @@ ReadStructNode(DataManager* pDM,
 			      << ": prediction node allowed "
 			      "for static and dynamic nodes only"
 			      << std::endl;
-		      THROW(ErrGeneric());
+		      throw ErrGeneric();
 	      }
 	      pRefNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
@@ -1383,7 +1383,7 @@ ReadStructNode(DataManager* pDM,
       if (HP.IsArg()) {
 	 std::cerr << std::endl << sFuncName
 	   << ": semicolon expected at line " << HP.GetLineData() << std::endl;
-	 THROW(DataManager::ErrGeneric());
+	 throw DataManager::ErrGeneric();
       }
 
       std::ostream& out = pDM->GetLogFile();

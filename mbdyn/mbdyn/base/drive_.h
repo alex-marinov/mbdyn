@@ -679,7 +679,7 @@ PiecewiseLinearDriveCaller::dGet(const doublereal& dVar) const
 		}
 	}
 
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 /* PiecewiseLinearDriveCaller - end */

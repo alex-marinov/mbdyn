@@ -79,7 +79,7 @@ public:
 				|| (Ai[row_begin] - off) > i_row
 				|| (Ai[row_end] - off) < i_row) {
 			/* matrix must be rebuilt */
-			THROW(ErrRebuildMatrix());
+			throw ErrRebuildMatrix();
 		}
 
 		while (row_end >= row_begin) {
@@ -95,7 +95,7 @@ public:
 		}
 
 		/* matrix must be rebuilt */
-		THROW(ErrRebuildMatrix());
+		throw ErrRebuildMatrix();
 	};
 
 	const doublereal& operator () (integer i_row, integer i_col) const {

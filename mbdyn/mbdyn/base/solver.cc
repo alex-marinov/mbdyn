@@ -117,7 +117,7 @@ really_exit_handler(int signum)
       		break;
    	}
 
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 static void
@@ -309,13 +309,13 @@ Solver::Run(void)
 		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, RTCpuMap,
 					&mbdyn_rtai_task)) {
 			silent_cerr("unable to init RTAI task" << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		if (lRTPeriod < 0) {
 			silent_cerr("illegal real-time time step"
 					<< std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 #endif /* USE_RTAI */
@@ -395,7 +395,7 @@ Solver::Run(void)
 					if (!b) {
 						silent_cerr("unable to select a CC-capable solver"
 									<< std::endl);
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 					}
 				}
 			}
@@ -553,7 +553,7 @@ Solver::Run(void)
 		if (!PodOut) {
 			std::cerr << "unable to open file \"" << PODFileName
 				<< "\"" << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		SAFEDELETEARR(PODFileName);
 
@@ -756,7 +756,7 @@ Solver::Run(void)
 			<< " does not converge;" << std::endl
 			<< "aborting ..." << std::endl;
 	 	pDM->Output(true);
-	 	THROW(ErrMaxIterations());
+	 	throw ErrMaxIterations();
 
 	}
 	catch (NonlinearSolver::ErrSimulationDiverged) {
@@ -764,7 +764,7 @@ Solver::Run(void)
 		 * Mettere qui eventuali azioni speciali
 		 * da intraprendere in caso di errore ...
 		 */
-		THROW(SimulationDiverged());
+		throw SimulationDiverged();
 	}
 	catch (NonlinearSolver::ConvergenceOnSolution) {
 		bSolConv = true;
@@ -857,14 +857,14 @@ Solver::Run(void)
 				<< std::endl
 				<< "aborting ..." << std::endl;
 	 		pDM->Output(true);
-	 		THROW(ErrMaxIterations());
+	 		throw ErrMaxIterations();
 		}
 		catch (NonlinearSolver::ErrSimulationDiverged) {
 			/*
 		 	 * Mettere qui eventuali azioni speciali
 		 	 * da intraprendere in caso di errore ...
 		 	 */
-			THROW(SimulationDiverged());
+			throw SimulationDiverged();
 		}
 		catch (NonlinearSolver::ConvergenceOnSolution) {
 			bSolConv = true;
@@ -934,7 +934,7 @@ Solver::Run(void)
 					<< std::endl
 					<< "aborting ..." << std::endl;
 	 			pDM->Output(true);
-	 			THROW(ErrMaxIterations());
+	 			throw ErrMaxIterations();
 			}
 
 			catch (NonlinearSolver::ErrSimulationDiverged) {
@@ -942,7 +942,7 @@ Solver::Run(void)
 		 		 * Mettere qui eventuali azioni speciali
 		 		 * da intraprendere in caso di errore ...
 		 		 */
-				THROW(SimulationDiverged());
+				throw SimulationDiverged();
 			}
 			catch (NonlinearSolver::ConvergenceOnSolution) {
 				bSolConv = true;
@@ -1095,7 +1095,7 @@ IfFirstStepIsToBeRepeated:
 			<< "aborting ..." << std::endl;
 	    	pDM->Output(true);
 
-		THROW(Solver::ErrMaxIterations());
+		throw Solver::ErrMaxIterations();
       	}
 	catch (NonlinearSolver::ErrSimulationDiverged) {
 		/*
@@ -1103,7 +1103,7 @@ IfFirstStepIsToBeRepeated:
 		 * da intraprendere in caso di errore ...
 		 */
 
-		THROW(SimulationDiverged());
+		throw SimulationDiverged();
 	}
 	catch (NonlinearSolver::ConvergenceOnSolution) {
 		bSolConv = true;
@@ -1196,7 +1196,7 @@ IfFirstStepIsToBeRepeated:
 			if (r) {
 				std::cerr << "rt_task_make_periodic() failed ("
 					<< r << ")" << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 		}
 #if 0
@@ -1211,7 +1211,7 @@ IfFirstStepIsToBeRepeated:
 			if (r) {
 				std::cerr << "rt_sem_init() failed ("
 					<< r << ")" << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 		}
 
@@ -1227,7 +1227,7 @@ IfFirstStepIsToBeRepeated:
 			if (r) {
 				std::cerr << "rt_sem_init() failed ("
 					<< r << ")" << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}*/
 		}
 #endif
@@ -1470,7 +1470,7 @@ IfStepIsToBeRepeated:
 					<< " cannot be reduced"
 					" further;" << std::endl
 					<< "aborting ..." << std::endl;
-	       			THROW(ErrMaxIterations());
+	       			throw ErrMaxIterations();
 			}
 		}
 
@@ -1479,7 +1479,7 @@ IfStepIsToBeRepeated:
 			 * Mettere qui eventuali azioni speciali
 			 * da intraprendere in caso di errore ...
 			 */
-			THROW(SimulationDiverged());
+			throw SimulationDiverged();
 		}
 		catch (NonlinearSolver::ConvergenceOnSolution) {
 			bSolConv = true;
@@ -1645,7 +1645,7 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 
     	default:
        		std::cerr << "You shouldn't have reached this point!" << std::endl;
-       		THROW(Solver::ErrGeneric());
+       		throw Solver::ErrGeneric();
    	}
 
    	return dCurrTimeStep;
@@ -1863,13 +1863,13 @@ Solver::ReadData(MBDynParser& HP)
    	if (KeyWords(HP.GetDescription()) != BEGIN) {
       		std::cerr << std::endl << "Error: <begin> expected at line "
 			<< HP.GetLineData() << "; aborting ..." << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
 
    	if (KeyWords(HP.GetWord()) != MULTISTEP) {
       		std::cerr << std::endl << "Error: <begin: multistep;> expected at line "
 			<< HP.GetLineData() << "; aborting ..." << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
 
    	bool bMethod(false);
@@ -1966,7 +1966,7 @@ Solver::ReadData(MBDynParser& HP)
 	  		if (dMinimumTimeStep == 0.) {
 	     			std::cerr << "warning, null minimum time step"
 					" is not allowed" << std::endl;
-	     			THROW(ErrGeneric());
+	     			throw ErrGeneric();
 			} else if (dMinimumTimeStep < 0.) {
 				dMinimumTimeStep = -dMinimumTimeStep;
 				std::cerr << "warning, negative minimum time step"
@@ -2090,7 +2090,7 @@ Solver::ReadData(MBDynParser& HP)
 	      			std::cerr << std::endl
 					<< "Don't know when to abort,"
 					" so I'm going to abort now" << std::endl;
-	      			THROW(ErrGeneric());
+	      			throw ErrGeneric();
 	  		}
 	  		break;
        		}
@@ -2153,7 +2153,7 @@ Solver::ReadData(MBDynParser& HP)
 	     			std::cerr << "error: multiple definition"
 					" of integration method at line "
 					<< HP.GetLineData() << std::endl;
-	     			THROW(ErrGeneric());
+	     			throw ErrGeneric();
 	  		}
 	  		bMethod = true;
 
@@ -2180,7 +2180,7 @@ Solver::ReadData(MBDynParser& HP)
 
 					default:
 						silent_cerr("unhandled BDF order " << iOrder << std::endl);
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 					}
 				}
 
@@ -2222,7 +2222,7 @@ Solver::ReadData(MBDynParser& HP)
 		  			break;
 
 	       			default:
-	          			THROW(ErrGeneric());
+	          			throw ErrGeneric();
 	      			}
 	      			break;
 
@@ -2242,7 +2242,7 @@ Solver::ReadData(MBDynParser& HP)
 	   		default:
 	      			std::cerr << "Unknown integration method at line "
 					<< HP.GetLineData() << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 	  		}
 	  		break;
        		}
@@ -2254,7 +2254,7 @@ Solver::ReadData(MBDynParser& HP)
 					"of dummy steps integration method "
 					"at line " << HP.GetLineData()
 					<< std::cerr;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 			bFictitiousStepsMethod = true;
 
@@ -2281,7 +2281,7 @@ Solver::ReadData(MBDynParser& HP)
 
 					default:
 						silent_cerr("unhandled BDF order " << iOrder << std::endl);
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 					}
 				}
 
@@ -2317,7 +2317,7 @@ Solver::ReadData(MBDynParser& HP)
 					break;
 
 	       			default:
-	          			THROW(ErrGeneric());
+	          			throw ErrGeneric();
 				}
 	      			break;
 
@@ -2336,7 +2336,7 @@ Solver::ReadData(MBDynParser& HP)
 
 			default:
 				std::cerr << "Unknown integration method at line " << HP.GetLineData() << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 			break;
 		}
@@ -2580,7 +2580,7 @@ Solver::ReadData(MBDynParser& HP)
 				std::cerr << "<end: multistep;> expected "
 					"at line " << HP.GetLineData()
 					<< "; aborting ..." << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 			goto EndOfCycle;
 
@@ -2688,7 +2688,7 @@ Solver::ReadData(MBDynParser& HP)
 				std::cerr << "unknown time step control "
 					"strategy at line "
 					<< HP.GetLineData() << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 			break;
 		}
@@ -2836,7 +2836,7 @@ Solver::ReadData(MBDynParser& HP)
 				std::cerr << "unknown nonlinear solver "
 					"at line " << HP.GetLineData()
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 				break;
 			}
 
@@ -2894,7 +2894,7 @@ Solver::ReadData(MBDynParser& HP)
 						"solver at line "
 						<< HP.GetLineData()
 						<< std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
 
 				if (HP.IsKeyWord("tolerance")) {
@@ -2970,7 +2970,7 @@ Solver::ReadData(MBDynParser& HP)
 							"at line "
 							<< HP.GetLineData()
 							<< std::endl;
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 					}
 					break;
 				}
@@ -2978,7 +2978,7 @@ Solver::ReadData(MBDynParser& HP)
 
 			default:
 				ASSERT(0);
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 			break;
 
@@ -2994,7 +2994,7 @@ Solver::ReadData(MBDynParser& HP)
 						<< p << " at line "
 						<< HP.GetLineData()
 						<< std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
 				lRTPeriod = mbdyn_nano2count(p);
 
@@ -3002,7 +3002,7 @@ Solver::ReadData(MBDynParser& HP)
 				std::cerr << "need a time step for real time "
 					"at line " << HP.GetLineData()
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			if (HP.IsKeyWord("allow" "nonroot")) {
@@ -3022,7 +3022,7 @@ Solver::ReadData(MBDynParser& HP)
 					std::cerr << "unknown realtime mode "
 						"at line " << HP.GetLineData()
 						<< std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
 			}
 
@@ -3034,7 +3034,7 @@ Solver::ReadData(MBDynParser& HP)
 						<< size << " at line "
 						<< HP.GetLineData()
 						<< std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
 
 				RTStackSize = size;
@@ -3057,7 +3057,7 @@ Solver::ReadData(MBDynParser& HP)
 						<< cpumap << " at line "
 						<< HP.GetLineData()
 						<< std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
 				RTCpuMap = newcpumap;
 			}
@@ -3077,7 +3077,7 @@ Solver::ReadData(MBDynParser& HP)
 #else /* !USE_RTAI */
 			std::cerr << "need to configure --with-rtai "
 				"to use realtime" << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 #endif /* !USE_RTAI */
 			break;
 
@@ -3152,7 +3152,7 @@ Solver::ReadData(MBDynParser& HP)
 			std::cerr << "unknown description at line "
 				<< HP.GetLineData() << "; aborting ..."
 				<< std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 
@@ -3278,7 +3278,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 	default:
 		std::cerr << "unknown dummy steps integration method"
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 		break;
 	}
 
@@ -3340,7 +3340,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 
 	default:
 		std::cerr << "Unknown integration method" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 		break;
 	}
 
@@ -3876,7 +3876,7 @@ Solver::AllocateSchurSolman(integer iStates)
 				<< CurrIntSolver.GetSolverName()
 				<< " is not allowed as interface solver "
 				"for SchurSolutionManager" << std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	SAFENEWWITHCONSTRUCTOR(pSSM,
@@ -3903,7 +3903,7 @@ Solver::AllocateSchurSolman(integer iStates)
 #else /* !USE_Y12 */
 		std::cerr << "Configure with --with-y12 "
 			"to enable Y12 solver" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 #endif /* !USE_Y12 */
 
 	case LinSol::HARWELL_SOLVER:
@@ -3914,7 +3914,7 @@ Solver::AllocateSchurSolman(integer iStates)
 #endif /* USE_MESCHACH */
 			<< std::endl;
 #ifndef USE_MESCHACH
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 #endif /* !USE_MESCHACH */
 
 	case LinSol::MESCHACH_SOLVER:
@@ -3933,7 +3933,7 @@ Solver::AllocateSchurSolman(integer iStates)
 #else /* !USE_MESCHACH */
 		std::cerr << "Configure with --with-meschach "
 		"to enable Meschach solver" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 #endif /* !USE_MESCHACH */
 
 	case LinSol::UMFPACK_SOLVER:
@@ -3952,14 +3952,14 @@ Solver::AllocateSchurSolman(integer iStates)
 #else /* !USE_UMFPACK */
 		std::cerr << "Configure --with-umfpack "
 			"to enable Umfpack solver" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 #endif /* !USE_UMFPACK */
 	case LinSol::EMPTY_SOLVER:
 
 	default:
 		std::cerr << "Unknown interface solver; aborting..."
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 
 		break;
 	}
@@ -3967,7 +3967,7 @@ Solver::AllocateSchurSolman(integer iStates)
 
 #else /* !USE_MPI */
 	std::cerr << "Configure --with-mpi to enable Schur solver" << std::endl;
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 #endif /* !USE_MPI */
 
 	return pSSM;
@@ -4077,7 +4077,7 @@ Solver::SetupSolmans(integer iStates)
 	 */
 	if (pSM == NULL) {
 		std::cerr << "No linear solver defined" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 }
 

@@ -422,7 +422,7 @@ StdAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 		if (rhoRef < 0.) {
 			std::cerr << "illegal reference density "
 				<< rhoRef << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		rho = rhoRef * pow(T / TRef, -(g0 / (a * R) + 1));
 	} else {
@@ -434,7 +434,7 @@ StdAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 		if (rhoRef < 0.) {
 			std::cerr << "illegal reference density "
 				<< rhoRef << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		doublereal rho1 = rhoRef * pow(T / TRef, -(g0 / (a * R) + 1));
 		rho = rho1 * exp(-(g0 / (R*T) * (z - z1)));
@@ -483,7 +483,7 @@ ReadAirstreamData(DataManager *pDM, MBDynParser& HP,
 		} else {
 			std::cerr << "unknown gust type at line "
 				<< HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 }
@@ -537,7 +537,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 					"pressure" << PRef 
 					<< " at line " << HP.GetLineData()
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			RhoRef = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
@@ -549,7 +549,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 					"temperature " << TRef 
 					<< " at line " << HP.GetLineData()
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			a = HP.GetReal();
@@ -558,7 +558,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 				std::cerr << "illegal temperature gradient "
 					<< a << " at line " << HP.GetLineData()
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			R = HP.GetReal();
@@ -566,7 +566,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 				std::cerr << "illegal gas constant " << R
 					<< " at line " << HP.GetLineData()
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			g0 = HP.GetReal();
@@ -575,7 +575,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 					"gravity acceleration " << g0
 					<< " at line " << HP.GetLineData()
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			z1 = HP.GetReal();
@@ -584,7 +584,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 					<< z1
 					<< " at line " << HP.GetLineData()
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			z2 = HP.GetReal();
@@ -593,7 +593,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 					<< z2
 					<< " at line " << HP.GetLineData()
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 		}
 	
@@ -607,7 +607,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 						<< " at line " 
 						<< HP.GetLineData()
 						<< std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
 
 				/*
@@ -653,7 +653,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 			std::cerr << "illegal null or negative sound speed "
 				"at line " << HP.GetLineData() << std::endl;
 		
-			THROW(DataManager::ErrGeneric());
+			throw DataManager::ErrGeneric();
 	     	}	      
 	     
 	     	/* Driver multiplo */	   

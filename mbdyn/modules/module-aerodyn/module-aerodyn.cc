@@ -50,7 +50,7 @@ read(
 	if (::module_aerodyn != NULL) {
 		std::cerr << "Another module-aerodyn might be running; error"
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	
 	/*
@@ -77,7 +77,7 @@ read(
 		std::cerr << "line " << HP.GetLineData() 
 			<< ": structural node " << uNode
 			<< " not defined" << std::endl;	  
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	/*

@@ -80,7 +80,7 @@ void
 DirCColMatrixHandler<off>::Resize(integer n, integer nn)
 {
 	silent_cerr("DirCColMatrixHandler<off>::Resize called" << std::endl);
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 /* Estrae una colonna da una matrice */
@@ -93,7 +93,7 @@ DirCColMatrixHandler<off>::GetCol(integer icol, VectorHandler& out) const
 	 */
 	
         if (icol > iGetNumCols()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	integer idx = Ap[icol - 1];
@@ -113,14 +113,14 @@ DirCColMatrixHandler<off>::MatMatMul(SpMapMatrixHandler& out,
 		const SpMapMatrixHandler& in) const
 {
 	silent_cerr("DirCColMatrixHandler<off>::MatMatMul called" << std::endl);
-	THROW(ErrGeneric());		
+	throw ErrGeneric();		
 /*
  * 	if ((in.iGetNumCols() != iGetNumRows())
  * 			|| (in.iGetNumRows() != out.iGetNumRows())
  * 			|| (out.iGetNumCols() != iGetNumCols())) {
  * 		silent_cerr("Assertion fault in SpMapMatrixHandler::MatMatMul"
  * 			<< std::endl);
- * 		THROW(ErrGeneric());
+ * 		throw ErrGeneric();
  * 	}
  * 	out.Reset(0.);
  * 	for (integer col=0; col<NCols; col++) {
@@ -145,13 +145,13 @@ DirCColMatrixHandler<off>::MulAndSumWithShift(MatrixHandler& out, doublereal s,
 {
 	silent_cerr("DirCColMatrixHandler<off>::MulAndSumWithShift called"
 			<< std::endl);
-	THROW(ErrGeneric());		
+	throw ErrGeneric();		
 	if ((out.iGetNumCols() < iGetNumCols()+dcol)
 		|| (out.iGetNumRows() < iGetNumRows()+drow)) {
 		silent_cerr("Assertion fault "
 				"in DirCColMatrixHandler<off>::MulAndSumWithShift"
 				<< std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	drow = drow + 1;
 	for (integer col = 0; col < NCols; col++) {
@@ -175,13 +175,13 @@ DirCColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
 {
 	silent_cerr("DirCColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift "
 			"called" << std::endl);
-	THROW(ErrGeneric());		
+	throw ErrGeneric();		
 	if ((out.iGetNumCols() < iGetNumCols()+dcol)
 			|| (out.iGetNumRows() < iGetNumRows()+drow)) {
 		silent_cerr("Assertion fault "
 				"in DirCColMatrixHandler<off>::MulAndSumWithShift"
 				<< std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	drow = drow + 1;
 	for (integer col = 0; col < NCols; col++) {
@@ -203,10 +203,10 @@ DirCColMatrixHandler<off>::MatTVecMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
 	silent_cerr("DirCColMatrixHandler<off>::MatTVecMul called" << std::endl);
-	THROW(ErrGeneric());		
+	throw ErrGeneric();		
 	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	for (integer col = 0; col < NCols; col++) {
@@ -227,10 +227,10 @@ DirCColMatrixHandler<off>::MatVecMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
 	silent_cerr("DirCColMatrixHandler<off>::MatTVecMul called" << std::endl);
-	THROW(ErrGeneric());		
+	throw ErrGeneric();		
 	if (in.iGetSize() != iGetNumCols() 
 			|| out.iGetSize() != iGetNumRows()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
   	}
 
 	out.Reset();
@@ -243,10 +243,10 @@ DirCColMatrixHandler<off>::MatTVecIncMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
 	silent_cerr("DirCColMatrixHandler<off>::MatTVecMul called" << std::endl);
-	THROW(ErrGeneric());		
+	throw ErrGeneric();		
 	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	for (integer col = 0; col < NCols; col++) {
@@ -266,10 +266,10 @@ VectorHandler&
 DirCColMatrixHandler<off>::MatVecIncMul(VectorHandler& out,
 		const VectorHandler& in) const {
 	silent_cerr("DirCColMatrixHandler<off>::MatTVecMul called" << std::endl);
-	THROW(ErrGeneric());		
+	throw ErrGeneric();		
 	if (in.iGetSize() != iGetNumCols()
 			|| out.iGetSize() != iGetNumRows()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	for (integer col = 0; col < NCols; col++) {
@@ -289,10 +289,10 @@ DirCColMatrixHandler<off>::MatVecDecMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
 	silent_cerr("DirCColMatrixHandler<off>::MatTVecMul called" << std::endl);
-	THROW(ErrGeneric());		
+	throw ErrGeneric();		
 	if (in.iGetSize() != iGetNumCols()
 			|| out.iGetSize() != iGetNumRows()) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	for (integer col = 0; col < NCols; col++) {

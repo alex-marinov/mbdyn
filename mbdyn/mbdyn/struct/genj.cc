@@ -88,7 +88,7 @@ DistanceJoint::dGetPrivData(unsigned int i) const
 		return dGet();
 	}
 
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 /* Contributo al file di restart */
@@ -236,7 +236,7 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
    /* Distanza nulla */
    if (fabs(dDistance) <= DBL_EPSILON) {	
       std::cerr << "Distance joint with near zero distance." << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    } else {	
       Vec3 TmpVec(v*dAlpha);
       WorkVec.Add(1, TmpVec);
@@ -477,7 +477,7 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Distanza nulla */
    if (fabs(dDistance) <= DBL_EPSILON) {
       std::cerr << "Distance joint with near zero distance." << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    } else {			
       WorkVec.Add(1, v*dAlpha);
       WorkVec.Add(4, w*dBeta);
@@ -510,7 +510,7 @@ void DistanceJoint::SetInitialValue(VectorHandler& X) const
    doublereal dDistance = pGetDriveCaller()->dGet();
    if (fabs(dDistance) <= DBL_EPSILON) {
       std::cerr << "Distance joint with near zero distance." << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
      
    (Vec3&)v = ((pNode2->GetXCurr())-(pNode1->GetXCurr()));
@@ -533,7 +533,7 @@ void DistanceJoint::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
     * in caso di distanza nulla */
    if (fabs(dDistance) <= DBL_EPSILON) {	
       std::cerr << "Distance joint with near zero distance." << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    } else {      
    
    /* Scrive la direzione della distanza. Se e' stata ottenuta con 
@@ -549,7 +549,7 @@ void DistanceJoint::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
 	      << "Initial joint assembly is recommended; aborting ... " 
 	      << std::endl;
 	    
-	    THROW(ErrGeneric());
+	    throw ErrGeneric();
 	 }
 	 (Vec3&)v /= sqrt(d);	     
       }
@@ -681,7 +681,7 @@ DistanceJointWithOffset::dGetPrivData(unsigned int i) const
 		return dGet();
 	}
 
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 
@@ -855,7 +855,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
    /* Distanza nulla */
    if (fabs(dDistance) <= DBL_EPSILON) {	
       std::cerr << "Distance joint with near zero distance." << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    } else {	
       Vec3 TmpVec(v*dAlpha);
       WorkVec.Add(1, TmpVec);
@@ -1106,7 +1106,7 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
    
    if (fabs(dDistance) <= DBL_EPSILON) {
       std::cerr << "Distance joint with near zero distance." << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    } else {
       Vec3 Tmp(v*dAlpha);
       WorkVec.Put(1, Tmp);
@@ -1143,7 +1143,7 @@ void DistanceJointWithOffset::SetInitialValue(VectorHandler& X) const
    doublereal dDistance = pGetDriveCaller()->dGet();
    if (fabs(dDistance) <= DBL_EPSILON) {
       std::cerr << "Distance joint with near zero distance." << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
    
    Vec3 x1(pNode1->GetXCurr());
@@ -1176,7 +1176,7 @@ void DistanceJointWithOffset::SetValue(VectorHandler& X,
     * in caso di distanza nulla */
    if (fabs(dDistance) <= DBL_EPSILON) {	
       std::cerr << "Distance joint with near zero distance." << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    } else {
       doublereal d = v.Dot();
       if (d <= DBL_EPSILON) {
@@ -1190,7 +1190,7 @@ void DistanceJointWithOffset::SetValue(VectorHandler& X,
 	      << "This is now unsupported " 
 	      << std::endl;
 	    
-	    THROW(ErrGeneric());
+	    throw ErrGeneric();
 	 }
 	 (Vec3&)v /= sqrt(d);
       }
@@ -1655,7 +1655,7 @@ ClampJoint::dGetPrivData(unsigned int i) const
 		return M.dGet(i-3);
 	}
 
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 
 #ifndef USE_EXCEPTIONS
 	return 0.;

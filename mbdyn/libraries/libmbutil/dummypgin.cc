@@ -38,8 +38,7 @@ DummyPlugIn::DummyPlugIn(MathParser& mp, void *arg)
 : MathParser::PlugIn(mp)
 {
 	ASSERT(arg != NULL);
-	THROW(MathParser::ErrGeneric(&mp, "error: '", (const char *const)arg,
-			"'"));
+	throw MathParser::ErrGeneric(&mp, "error: '", (const char *const)arg, "'");
 }
 
 DummyPlugIn::~DummyPlugIn(void)

@@ -273,7 +273,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 	case EMPTY:
 		if (!bAllowEmpty) {
 			std::cerr << "empty solver not allowed at line " << HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		CurrSolver = LinSol::EMPTY_SOLVER;
@@ -648,7 +648,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_Y12 */
       		std::cerr << "Configure with --with-y12 "
 			"to enable Y12 solver" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
 #endif /* !USE_Y12 */
 
      	case LinSol::SUPERLU_SOLVER: 
@@ -684,7 +684,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_SUPERLU */
       		std::cerr << "Configure with --with-superlu "
 			"to enable superlu solver" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
 #endif /* !USE_SUPERLU */
 
 	case LinSol::MESCHACH_SOLVER:
@@ -697,7 +697,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_MESCHACH */
 		std::cerr << "Configure with --with-meschach "
 			"to enable Meschach solver" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
 #endif /* !USE_MESCHACH */
 
 	case LinSol::LAPACK_SOLVER:
@@ -709,7 +709,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_LAPACK */
 		std::cerr << "Configure with --with-lapack "
 			"to enable Lapack dense solver" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
 #endif /* !USE_LAPACK */
 
      	case LinSol::TAUCS_SOLVER: 
@@ -737,7 +737,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_TAUCS */
 		std::cerr << "Configure with --with-taucs "
 			"to enable Taucs sparse solver" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
 #endif /* !USE_TAUCS */
 
  	case LinSol::HARWELL_SOLVER:
@@ -750,7 +750,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_HARWELL */
       		std::cerr << "Configure with --with-harwell "
 			"to enable Harwell solver" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 #endif /* !USE_HARWELL */
 
 	case LinSol::UMFPACK_SOLVER:
@@ -781,7 +781,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_UMFPACK */
       		std::cerr << "Configure with --with-umfpack "
 			"to enable Umfpack solver" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
 #endif /* !USE_UMFPACK */
 
 	case LinSol::NAIVE_SOLVER:
@@ -804,7 +804,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		
    	default:
 		ASSERT(0);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 
 	}
 

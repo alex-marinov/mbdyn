@@ -319,7 +319,7 @@ i_get_priv_data_idx(const LoadableElem* pEl, const char *s)
 	DEBUGCOUTFNAME("i_get_priv_data_idx");
 	std::cerr << "Module-template Elem: priv data \"" << s
 		<< "\" is unknown" << std::endl;
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 
 	return 0;
 }
@@ -332,7 +332,7 @@ d_get_priv_data(const LoadableElem* pEl, unsigned int i)
 	if (i > pEl->iGetNumPrivData()) {
 		std::cerr << "Module-template Elem: illegal private data index "
 			<< i << std::endl;      
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
    
 	/*

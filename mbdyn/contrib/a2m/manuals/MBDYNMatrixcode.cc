@@ -17,7 +17,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
    
    if (ia < 1 || ia > 3) {
       cerr << endl << sFuncName << ": first index is illegal" << endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
    
    int i1 = ia-1;
@@ -30,7 +30,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       double d = r[i3].Dot();
       if (d <= DBL_EPSILON) {
 	 cerr << endl << sFuncName << ": vectors must be distinct" << endl;
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }	
       d = sqrt(d);
       r[i3] /= d;
@@ -45,7 +45,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       double d = r[i2].Dot();
       if (d <= DBL_EPSILON) {
 	 cerr << endl << sFuncName << ": vectors must be distinct" << endl;
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }	
       d = sqrt(d);
       r[i2] /= d;
@@ -56,7 +56,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       return Mat3x3(r[0], r[1], r[2]);
    } else {
       cerr << endl << sFuncName << ": second index is illegal" << endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
    
    return Zero3x3; // phony call, not reachable

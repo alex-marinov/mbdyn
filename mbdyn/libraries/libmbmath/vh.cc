@@ -319,7 +319,7 @@ MyVectorHandler::Resize(integer iSize)
 {
 	if (iSize < 0) {
 		std::cerr << "Negative size!" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	if (pdVecm1 == NULL || bOwnsMemory) {
@@ -358,14 +358,14 @@ MyVectorHandler::Resize(integer iSize)
 				std::cerr << "Can't resize to " << iSize
 					<< ": larger than "
 					"max size " << iMaxSize << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			
 			} else {
 				iCurSize = iSize;
 			}
 		} else {
 			std::cerr << "internal error!" << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 }
@@ -399,7 +399,7 @@ MyVectorHandler::Attach(integer iSize, doublereal* pd, integer iMSize)
 			iMaxSize = iMSize;
 
 		} else if (iMSize < iSize) {
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 

@@ -91,7 +91,7 @@ GetEnviron(MathParser& MP)
 	 		if (v == NULL) {
 	    			std::cerr << "parse error in envvar <" 
 					<< p << ">" << std::endl;	  
-	    			THROW(ErrGeneric());
+	    			throw ErrGeneric();
 	 		}
 
 	 		*v = '\0';
@@ -109,7 +109,7 @@ GetEnviron(MathParser& MP)
 							" error in insertion"
 							" of real symbol <"
 		    					<< n << ">" << std::endl;
-		  				THROW(ErrGeneric());
+		  				throw ErrGeneric();
 	       				}
 	    			}
 	    
@@ -122,7 +122,7 @@ GetEnviron(MathParser& MP)
 					std::cerr << "SetEnv: unable to read "
 						"integer <" << v << ">"
 						<< std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
 #else /* !HAVE_STRTOL */
 	    			i = atol(v);
@@ -136,7 +136,7 @@ GetEnviron(MathParser& MP)
 							" error in insertion"
 							" of integer symbol <"
 		    					<< n << ">" << std::endl;
-		  				THROW(ErrGeneric());
+		  				throw ErrGeneric();
 	       				}
 	    			}
 	    

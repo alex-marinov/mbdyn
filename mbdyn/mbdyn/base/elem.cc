@@ -72,7 +72,7 @@ Elem::GetDofType(unsigned int) const
 	std::cerr << psElemNames[GetElemType()] << "(" << GetLabel()
 		<< "): GetDofType() is undefined because element "
 		"has no degrees of freedom" << std::endl;
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 

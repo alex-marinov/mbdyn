@@ -75,7 +75,7 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
        if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  std::cerr << "Sorry, parameters are not allowed for bulk spring" 
 		  << std::endl;
-	  THROW(DataManager::ErrGeneric());	      
+	  throw DataManager::ErrGeneric();	      
        }	     	  
        
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
@@ -93,7 +93,7 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     default: {
        std::cerr << "unknown bulk element type in bulk element " << uLabel
 	 << " at line " << HP.GetLineData() << std::endl;
-       THROW(DataManager::ErrGeneric());
+       throw DataManager::ErrGeneric();
     }	
    }
    
@@ -101,7 +101,7 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    if (HP.IsArg()) {
       std::cerr << "semicolon expected at line " 
 	      << HP.GetLineData() << std::endl;     
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }   
    
    return pEl;

@@ -115,7 +115,7 @@ extern std::ostream& _Out(std::ostream& out, const char* file, const int line);
     do { \
         if (!(expr)) { \
             _Assert(__FILE__, __LINE__); \
-            THROW(MyAssert::ErrGeneric()); \
+            throw MyAssert::ErrGeneric(); \
         } \
     } while (0)
 
@@ -130,7 +130,7 @@ extern std::ostream& _Out(std::ostream& out, const char* file, const int line);
     do { \
         if (!(expr)) { \
             _Assert(__FILE__, __LINE__, (msg)); \
-            THROW(MyAssert::ErrGeneric()); \
+            throw MyAssert::ErrGeneric(); \
         } \
     } while (0)
 

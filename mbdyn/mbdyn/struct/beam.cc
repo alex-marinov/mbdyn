@@ -326,11 +326,11 @@ Beam::dGetPrivData(unsigned int i) const
 	case 9:
 		std::cerr << "Beam " << GetLabel() 
 			<< ": not allowed to return shear strain" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	default:
 		std::cerr << "Beam " << GetLabel() << ": illegal private data " 
 			<< i << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 #ifndef USE_EXCEPTIONS
 	return 0.;
@@ -408,7 +408,7 @@ Beam::DsDxi(void)
 	    std::cerr << "warning, beam " << GetLabel() 
 	        << " has singular metric; aborting ..." << std::endl;
 	 
-	    THROW(Beam::ErrGeneric());
+	    throw Beam::ErrGeneric();
         }
     }
 
@@ -936,7 +936,7 @@ Beam::Output_pch(std::ostream& out) const
 		unsigned int label = GetLabel();
 		if (label > 9999999) {
 			std::cerr << "label of Beam(" << label <<") is too large" << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		
 		const char *name = GetName();
@@ -1178,7 +1178,7 @@ const StructNode* Beam::pGetNode(unsigned int i) const
     case 3:
       return pNode[i-1];
     default:
-      THROW(Beam::ErrGeneric());
+      throw Beam::ErrGeneric();
    }
 #ifndef USE_EXCEPTIONS
    return NULL;
@@ -1754,7 +1754,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		   << ": beam does not support "
 		   "dynamic constitutive laws yet"
 		   << std::endl;
-	   THROW(ErrGeneric());
+	   throw ErrGeneric();
    }
 	
 #ifdef DEBUG   
@@ -1802,7 +1802,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    if (HP.IsKeyWord("same")) {
       /*
       std::cerr << "Sorry, 'same' is not supported any more, you must enter the constitutive law of the second section" << std::endl;
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
        */
       pDII = pD_I->pCopy();
    } else {
@@ -1813,7 +1813,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		      << ": beam does not support "
 		      "dynamic constitutive laws yet"
 		      << std::endl;
-	      THROW(ErrGeneric());
+	      throw ErrGeneric();
       }
    }
 
@@ -1847,7 +1847,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		 << " electrodes" << std::endl);
       if (iNumElec <= 0) {
 	 std::cerr << "illegal number of electric nodes " << iNumElec << std::endl;
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }
       
       SAFENEWARR(pvElecDofs, ScalarDifferentialNode*, iNumElec);
@@ -1858,7 +1858,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	 pvElecDofs[i] = (ScalarDifferentialNode*)(pDM->pFindNode(Node::ABSTRACT, uL));
 	 if (pvElecDofs[i] == NULL) {
 	    std::cerr << "can't find abstract node " << uL << std::endl;
-	    THROW(ErrGeneric());
+	    throw ErrGeneric();
 	 }
       }
 
@@ -1997,7 +1997,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    if (HP.IsArg()) {
       std::cerr << std::endl
 	<< "semicolon expected at line " << HP.GetLineData() << std::endl;      
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }   
    
    return pEl;

@@ -55,7 +55,7 @@ host(h), node(n), port(-1), mbx(NULL)
 		if (mbdyn_rt_mbx_init(sFileName, size, &mbx)) {
 			std::cerr << "RTAI mailbox(" << sFileName << ") "
 				"init failed" << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	} else {
 		if (node) {
@@ -67,7 +67,7 @@ host(h), node(n), port(-1), mbx(NULL)
 		if (mbdyn_RT_get_adr(node, port, sFileName, &mbx)) {
 			std::cerr << "RTAI mailbox(" << sFileName << ") "
 				"get_adr failed" << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 	
@@ -136,14 +136,14 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			std::cerr << "unable to read mailbox name "
 				"for RTAIInDrive(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 
 		} else if (strlen(m) != 6) {
 			std::cerr << "illegal mailbox name \"" << m
 				<< "\" for RTAIInDrive(" << uLabel 
 				<< ") (must be 6 char) at line "
 				<< HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		SAFESTRDUP(name, m);
@@ -151,7 +151,7 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	} else {
 		std::cerr << "missing mailbox name for RTAIInDrive(" << uLabel
 			<< ") at line " << HP.GetLineData() << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	if (HP.IsKeyWord("create")) {
@@ -162,7 +162,7 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		} else {
 			std::cerr << "\"create\" must be \"yes\" or \"no\" "
 				"at line " << HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 
@@ -190,7 +190,7 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			std::cerr << "unable to read host "
 				"for RTAIInDrive(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		if (create) {
@@ -218,14 +218,14 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				std::cerr << "unable to convert host \""
 					<< host << "\" at line "
 					<< HP.GetLineData() << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 #else /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
 			std::cerr << "host (RTAI RPC) not supported "
 				"for RTAIInDrive(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl;
 				<< std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 #endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
 		}
 	}
@@ -235,7 +235,7 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		std::cerr << "illegal number of channels "
 			"for RTAIInDrive(" << uLabel << ") at line "
 			<< HP.GetLineData() << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	Drive* pDr = NULL;
@@ -248,7 +248,7 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 #else /* ! USE_RTAI */
        std::cerr << "Sorry, RTAI input requires configure --with-rtai"
 	       << std::endl;
-       THROW(ErrGeneric());
+       throw ErrGeneric();
 #endif /* ! USE_RTAI */
        
 }

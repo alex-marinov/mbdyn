@@ -164,7 +164,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 						<< std::endl);
 				}
 			}
-			THROW(NoConvergence());
+			throw NoConvergence();
 		}
           
       		iIterCnt++;
@@ -225,7 +225,7 @@ rebuild_matrix:;
 #endif /* USE_MPI */
 		}
 		if (dSolErr < SolTol) {
-			THROW(ConvergenceOnSolution());
+			throw ConvergenceOnSolution();
 		}
 	}
 }

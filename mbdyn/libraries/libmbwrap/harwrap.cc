@@ -157,7 +157,7 @@ HarwellSparseSolutionManager::Solve(void)
       		PacVec();
       		fHasBeenReset = flag(0);
       		if (!pLU->bLUFactor()) {
-	 		THROW(HarwellSparseSolutionManager::ErrGeneric());
+	 		throw HarwellSparseSolutionManager::ErrGeneric();
       		}
    	}
    	pLU->Solve();

@@ -190,7 +190,7 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
        */
       std::cerr << psElemNames[GetElemType()] << "(" << GetLabel() 
          << ") cannot be used in parallel environment" << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    };
    
    virtual void GetConnectedNodes(int& NumNodes, Node::Type* /* NdTyps */ , unsigned int* /* NdLabels */ ) {
@@ -212,14 +212,14 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
       return 0;
    };
    virtual void GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const {
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    };
    virtual void GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const {
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    };
 #ifdef USE_ADAMS
    virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const {
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    };
 #endif /* USE_ADAMS */
 };

@@ -108,7 +108,7 @@ Mat3x3 Mat3x3::Inv(void) const
    
    if (fabs(d) < DBL_EPSILON) {
       std::cerr << "matrix is singular" << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
    
    return Mat3x3((p[M22]*p[M33]-p[M23]*p[M32])/d,
@@ -135,7 +135,7 @@ Vec3 Mat3x3::Inv(const Vec3& v) const
    
    if (fabs(d) < DBL_EPSILON) {
       std::cerr << "matrix is singular" << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
    return Vec3((pv[V1]*(p[M22]*p[M33]-p[M23]*p[M32])
 		+pv[V2]*(p[M13]*p[M32]-p[M12]*p[M33])
@@ -275,7 +275,7 @@ Vec3 gparam(const Mat3x3& m)
    if (d == 0.) {
       std::cerr << "gparam(): divide by zero,"
         " probably due to singularity in rotation parameters" << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
    
    return m.Ax()*(4./d);
@@ -302,7 +302,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
    if (ia < 1 || ia > 3) {
       std::cerr << sFuncName << ": first index is illegal" 
 	      << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
    
    int i1 = ia-1;
@@ -316,7 +316,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       if (d <= DBL_EPSILON) {
 	 std::cerr << sFuncName << ": vectors must be distinct" 
 		 << std::endl;
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }	
       d = sqrt(d);
       r[i3] /= d;
@@ -332,7 +332,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       if (d <= DBL_EPSILON) {
 	 std::cerr << sFuncName << ": vectors must be distinct" 
 		 << std::endl;
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }	
       d = sqrt(d);
       r[i2] /= d;
@@ -343,7 +343,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       return Mat3x3(r[0], r[1], r[2]);
    } else {
       std::cerr << sFuncName << ": second index is illegal" << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
    
    return Zero3x3; // phony call, not reachable

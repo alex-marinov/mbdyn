@@ -430,7 +430,7 @@ void Step1Integrator::PredictDof(const int DCount,
 			"PredictDof(): "
 			"unknown order for local dof " 
 			<< DCount << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 };
 
@@ -565,7 +565,7 @@ void Step2Integrator::PredictDof(const int DCount,
 			"PredictDof(): "
 			"unknown order for local dof " 
 			<< DCount << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 }
 
@@ -1018,7 +1018,7 @@ HopeSolver::SetCoef(doublereal dT,
 #if 0
 	if (dAlpha != 1.) {
 		cerr << "HOPE time step integrator is not implemented yet in variable step form" << std::endl;
-		THROW(ErrNotImplementedYet());
+		throw ErrNotImplementedYet();
 	}
 #endif
  

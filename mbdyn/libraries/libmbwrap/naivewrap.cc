@@ -112,17 +112,17 @@ NaiveSolver::Factor(void)
 		if (rc & ENULCOL) {
 			silent_cerr("NaiveSolver: ENULCOL("
 					<< (rc & ~ENULCOL) << ")" << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		if (rc & ENOPIV) {
 			silent_cerr("NaiveSolver: ENOPIV("
 					<< (rc & ~ENOPIV) << ")" << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		/* default */
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 }
 
@@ -236,7 +236,7 @@ NaiveSparsePermSolutionManager::ComputePermutation(void) {
 	if (!colamd(A.iGetNumRows(), A.iGetNumCols(), Alen,
 		&(Ai[0]), &(invperm[0]), knobs, stats)) {
 		silent_cerr("colamd permutation failed" << std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	for (integer i = 0; i < A.iGetNumRows(); i++) {
 		perm[invperm[i]] = i;

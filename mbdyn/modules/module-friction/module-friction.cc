@@ -91,7 +91,7 @@ read(LoadableElem* pEl,
 			/*
 			 * Exit quietly if nothing else is provided
 			 */
-			THROW(NoErr());
+			throw NoErr();
 		}
 	}
 
@@ -100,7 +100,7 @@ read(LoadableElem* pEl,
 	p->dof = ReadScalarDof(pDM, HP, 0);
 	if (p->dof.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 		std::cerr << "need a differential node" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	p->f = NULL;
@@ -131,7 +131,7 @@ read(LoadableElem* pEl,
 				state = DiscStateFriction<doublereal>::Slip;
 			} else {
 				std::cerr << "unknown state for discrete state friction model" << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 		}
 		
@@ -141,7 +141,7 @@ read(LoadableElem* pEl,
 
 	} else {
 		std::cerr << "unknown friction model" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	return (void *)p;

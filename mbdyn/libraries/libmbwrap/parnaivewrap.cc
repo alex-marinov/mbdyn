@@ -117,7 +117,7 @@ thread_data(0)
 			silent_cerr("ParNaiveSolver: pthread_create() failed "
 					"for thread " << t
 					<< " of " << nThreads << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 }
@@ -198,7 +198,7 @@ ParNaiveSolver::thread_op(void *arg)
 		default:
 			silent_cerr("ParNaiveSolver: unhandled op"
 					<< std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		td->pSLUS->EndOfOp();

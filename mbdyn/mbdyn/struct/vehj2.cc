@@ -331,7 +331,7 @@ DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
    /* Temporary */
    std::cerr << "DeformableHingeJoint(): "
 	   "warning, this element is not implemented yet" << std::endl;
-   THROW(ErrNotImplementedYet());
+   throw ErrNotImplementedYet();
 }
 
 
@@ -544,7 +544,7 @@ DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
    /* Temporary */
    std::cerr << "DeformableHingeJoint(): "
 	   "warning, this element is not implemented yet" << std::endl;
-   THROW(ErrNotImplementedYet());
+   throw ErrNotImplementedYet();
 }
 
 

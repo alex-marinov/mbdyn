@@ -82,7 +82,7 @@ SchurDataManager::SchurDataManager(MBDynParser& HP,
 		"Something weird is happening\n" <<
 		"Anyway, please compile with -DUSE_MPI\n" <<
 		"to enable paralle solution\n";
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 SchurDataManager::~SchurDataManager()
@@ -298,7 +298,7 @@ iTotalExpConnections(0)
 		std::cerr
 			<< "Error: <begin: parallel;> expected at line "
 			<< HP.GetLineData() << "; aborting..." << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	while (true) {
@@ -308,7 +308,7 @@ iTotalExpConnections(0)
 				std::cerr << "Error: Weight flag expected "
 					"at line " << HP.GetLineData()
 					<< "; aborting ..." << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 			wgtflag = HP.GetInt();
 			break;
@@ -324,7 +324,7 @@ iTotalExpConnections(0)
 						"at line " << HP.GetLineData()
 						<< "; aborting ..." 
 						<< std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
 				pParAmgProcs[i] = HP.GetInt();
 			}
@@ -336,7 +336,7 @@ iTotalExpConnections(0)
 				Partitioner = PARTITIONER_METIS;
 #else /* ! USE_METIS */
 				std::cerr << "METIS partitioner not available; aborting..." << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 #endif /* ! USE_METIS */
 
 			} else if (HP.IsKeyWord("chaco")) {
@@ -344,13 +344,13 @@ iTotalExpConnections(0)
 				Partitioner = PARTITIONER_CHACO;
 #else /* ! USE_CHACO */
 				std::cerr << "CHACO partitioner not available; aborting..." << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 #endif /* ! USE_CHACO */
 
 			} else {
 				std::cerr << "unknown partitioner at line " << HP.GetLineData()
 					<< "; aborting..." << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 			break;
 
@@ -359,7 +359,7 @@ iTotalExpConnections(0)
 				std::cerr << "Error: <end: parallel;> expected "
 					"at line " << HP.GetLineData()
 					<< "; aborting ..." << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 			goto endcycle;
 
@@ -367,7 +367,7 @@ iTotalExpConnections(0)
 			std::cerr << "Unknown input at line "
 				<< HP.GetLineData() << "; aborting ..." 
 				<< std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 
 		case NUMBEROFCONNECTIONS:
 			iTotalExpConnections = HP.GetInt();
@@ -385,7 +385,7 @@ iTotalExpConnections(0)
 						<< HP.GetLineData() 
 						<< "; aborting ..." 
 						<< std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
 
 				for (int k = 0; k < 2; k++) {
@@ -457,7 +457,7 @@ iTotalExpConnections(0)
 								<< HP.GetLineData()
 								<< " not valid; aborting ..."
 								<< std::endl;
-							THROW(ErrGeneric());
+							throw ErrGeneric();
 						}
 
 						if (HP.IsArg()) {
@@ -469,7 +469,7 @@ iTotalExpConnections(0)
 								<< " element at line "
 								<< HP.GetLineData()
 								<< "; aborting ..." << std::endl;
-							THROW(ErrGeneric());
+							throw ErrGeneric();
 						}
 
 						ppExpCntElems[iNumElems] =
@@ -480,7 +480,7 @@ iTotalExpConnections(0)
 								<< psElemNames[CurrElType]
 								<< "(" << j << ") undefined; "
 								"aborting ..." << std::endl;
-							THROW(ErrGeneric());
+							throw ErrGeneric();
 						}
 						iNumElems++;
 						break;
@@ -511,7 +511,7 @@ iTotalExpConnections(0)
 							std::cerr << "Error: node type on line "
 								<< HP.GetLineData() << " not valid"
 								<< "; aborting ..." << std::endl;
-							THROW(ErrGeneric());
+							throw ErrGeneric();
 						}
 
 						if (HP.IsArg()) {
@@ -521,7 +521,7 @@ iTotalExpConnections(0)
 								<< "Error: Label expected at line "
 								<< HP.GetLineData()
 								<< "; aborting ..." << std::endl;
-							THROW(ErrGeneric());
+							throw ErrGeneric();
 						}
 
 						ppExpCntNodes[iNumNodes] =
@@ -531,7 +531,7 @@ iTotalExpConnections(0)
 								<< HP.GetLineData()
 								<< " undefined node; aborting ..."
 								<< std::endl;
-							THROW(ErrGeneric());
+							throw ErrGeneric();
 						}
 						iNumNodes++;
 						break;
@@ -540,7 +540,7 @@ iTotalExpConnections(0)
 						std::cerr << " Unknown input at line "
 							<< HP.GetLineData()
 							<< "; aborting ..." << std::endl;
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 					}
 				}
 			}
@@ -552,7 +552,7 @@ iTotalExpConnections(0)
 					" in the parallel section at line "
 					<< HP.GetLineData()
 					<< " is not consistent; aborting ..." << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 			break;
 		}
@@ -619,7 +619,7 @@ SchurDataManager::HowManyDofs(DofType who) const
 		std::cerr << "SchurDataManager::HowManyDofs: "
 			"illegal request (" << unsigned(who) << ")"
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 }
 
@@ -640,7 +640,7 @@ SchurDataManager::GetDofsList(DofType who) const
 		std::cerr << "SchurDataManager::GetDofsList: "
 			"illegal request (" << unsigned(who) << ")"
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 }
 
@@ -910,7 +910,7 @@ SchurDataManager::CreatePartition(void)
 				<< std::endl
 				<< "No other partition library is implemented yet."
 				" Aborting ..." << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 

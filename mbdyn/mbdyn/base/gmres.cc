@@ -227,7 +227,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 	 		return;
       		}
       		if (!isfinite(dErr)) {
-			THROW(ErrSimulationDiverged());
+			throw ErrSimulationDiverged();
 		}
 		if (iIterCnt > iMaxIter) {
 			if (outputBailout()) {
@@ -240,7 +240,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 						<< std::endl);
 				}
 			}
-			THROW(NoConvergence());
+			throw NoConvergence();
 		}
           	rateo = dErr*dErr/Fnorm;
 
@@ -505,7 +505,7 @@ rebuild_matrix:;
 #endif /* USE_MPI */
 		}
        		if (dSolErr < SolTol) {
-			THROW(ConvergenceOnSolution());
+			throw ConvergenceOnSolution();
       		}
 	}
 }

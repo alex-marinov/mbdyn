@@ -74,7 +74,7 @@ void _Assert(const char* file, const int line, const char* msg)
    std::cerr << std::endl;
    
 #ifdef DEBUG_STOP
-   THROW(MyAssert::ErrGeneric());
+   throw MyAssert::ErrGeneric();
 #endif   
    
    return;

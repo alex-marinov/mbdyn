@@ -347,14 +347,14 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    
 	  case UNKNOWNKEYWORD: {
 	     std::cerr << "Error: unknown element type, cannot modify output" << std::endl;	     
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }
 	    
 	  default: {
 	     std::cerr << "Error: element type " << sKeyWords[CurrDesc] 
 	       << " at line " << HP.GetLineData() << " is not allowed"
 	       << std::endl;
-	     THROW(DataManager::ErrGeneric());	    
+	     throw DataManager::ErrGeneric();	    
 	  }
 	 }
 	 
@@ -412,7 +412,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 			 std::cerr << "inertia " << uIn
 				 << " at line " << HP.GetLineData()
 				 << ": missing element type" << std::endl;
-			 THROW(ErrGeneric());
+			 throw ErrGeneric();
 		 }
 
 		/*
@@ -452,7 +452,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 					 	<< " at line " << HP.GetLineData()
 					 	<< ": unable to find " << psElemNames[Type]
 					 	<< "( " << uL << ")" << std::endl;
-				 	THROW(ErrGeneric());
+				 	throw ErrGeneric();
 			 	}
 
 				Body_labels.insert(uL);
@@ -510,7 +510,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		 << " available only if structural nodes are enabled" 
 		 << std::endl;
 #if 0	/* not critical ... */
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
 #endif
 #endif /* !USE_STRUCT_NODES */
 
@@ -580,14 +580,14 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    std::cerr << psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 		    << " does not support bind" << std::endl;
 	  default:
-	    THROW(ErrGeneric());
+	    throw ErrGeneric();
 	 }
 	 
 	 Elem* pEl = ((Elem*)pFindElem(t, uL));
 	 if (pEl == NULL) {
 	    std::cerr << "can't find " << psElemNames[t] << " (" << uL 
 	      << ") at line " << HP.GetLineData() << std::endl;
-	    THROW(ErrGeneric());
+	    throw ErrGeneric();
 	 }
       
 	 /* Label del nodo parameter */
@@ -597,7 +597,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 if (pNd == NULL) {
 	    std::cerr << "can't find parameter node (" << uL
 	      << ") at line " << HP.GetLineData() << std::endl;
-	    THROW(ErrGeneric());
+	    throw ErrGeneric();
 	 }
 
 	 	/* Numero d'ordine del dato privato a cui fare il binding */
@@ -622,7 +622,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    std::cerr << "error in private data number " << i << " for element "
 	      << psElemNames[t] << " (" << pEl->GetLabel() 
 	      << ") at line " << HP.GetLineData() << std::endl;
-	    THROW(ErrGeneric());
+	    throw ErrGeneric();
 	 }
 	 
 	 /* fa il binding del ParameterNode all'elemento */
@@ -642,7 +642,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    std::cerr << "line " << HP.GetLineData() 
 	      << ": unable to find automatic structural element " 
 	      << uLabel << std::endl;
-	    THROW(ErrGeneric());
+	    throw ErrGeneric();
 	 }
 	 
 	 DEBUGCOUT("reading automatic structural element " << uLabel << std::endl);
@@ -686,7 +686,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		std::cerr << "line " << HP.GetLineData() 
 		  << ": gravity acceleration element is not defined" << std::endl;
 		
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	     }
 	     
 	     ppE = ElemData[Elem::GRAVITY].ppFirstElem;
@@ -715,7 +715,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		std::cerr << "line " << HP.GetLineData() 
 		  << ": air properties element is not defined" << std::endl;
 		
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	     }
 	     
 	     ppE = ElemData[Elem::AIRPROPERTIES].ppFirstElem;
@@ -785,7 +785,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		  case SOCKETSTREAM_OUTPUT:
 		     std::cerr << psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 	 		     << " cannot be driven" << std::endl;
-	 	     THROW(ErrGeneric());
+	 	     throw ErrGeneric();
 		    
 		  default: {
 		     DEBUGCERR("warning, this element can't be driven" << std::endl);
@@ -801,7 +801,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		    if (uL != uLabel) {
 		       std::cerr << "Error: the driving element must have the same label of the driven" << std::endl;
 		       
-		       THROW(DataManager::ErrGeneric());
+		       throw DataManager::ErrGeneric();
 		    }
 		    
 		    switch (CurrDriven) {
@@ -881,7 +881,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		       std::cerr << "Error: element " << uLabel 
 			 << "cannot be driven since it doesn't exist" << std::endl;
 		       
-		       THROW(DataManager::ErrGeneric());
+		       throw DataManager::ErrGeneric();
 		    }
 		    
 		    
@@ -894,7 +894,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		    if (uDummy != uLabel) {
 		       std::cerr << "Error: the element label must be the same of the driving element" << std::endl;
 		       
-		       THROW(DataManager::ErrGeneric());
+		       throw DataManager::ErrGeneric();
 		    }
 		    
 		    /* Reads the true element */
@@ -905,7 +905,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		       std::cerr << "error in allocation of element "
 			 << uLabel << std::endl;
 		       
-		       THROW(ErrMemory());
+		       throw ErrMemory();
 		    }		  
 		 }
 		 
@@ -973,7 +973,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		    if (loadableElemInitialized == false) {
 		       if (lt_dlinit()) {
 	   		  std::cerr << "unable to initialize loadable elements" << std::endl;
-      			  THROW(ErrGeneric());
+      			  throw ErrGeneric();
       		       }
 
 		       /*
@@ -1005,7 +1005,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		 std::cerr << "error - unknown element type at line " 
 		   << HP.GetLineData() << std::endl;
 		 
-		 THROW(DataManager::ErrGeneric());
+		 throw DataManager::ErrGeneric();
 	      }
 		
 	      default: {
@@ -1014,7 +1014,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		   << " at line " << HP.GetLineData() 
 		   << " is not allowed " << std::endl;
 		 
-		 THROW(DataManager::ErrGeneric());
+		 throw DataManager::ErrGeneric();
 	      }        
 	     }	      	      	      
 	  }        
@@ -1049,7 +1049,7 @@ void DataManager::ReadElems(MBDynParser& HP)
       std::cerr << "<end: elements;> expected at line" 
 	<< HP.GetLineData() << std::endl;
            
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }
    
    /* Se non c'e' il punto e virgola finale */
@@ -1057,7 +1057,7 @@ void DataManager::ReadElems(MBDynParser& HP)
       DEBUGCERR("");
       std::cerr << "semicolon expected at line " << HP.GetLineData() << std::endl;
      
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }   
    
    if (iMissingElems > 0) {
@@ -1071,7 +1071,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 }	 
       }      
       
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }
    
 #ifdef USE_STRUCT_NODES
@@ -1142,7 +1142,7 @@ void DataManager::ReadElems(MBDynParser& HP)
       if (fStop) {
 	 std::cerr << "while no air properties are defined; aborting ..." << std::endl;
 	 
-	 THROW(DataManager::ErrGeneric());
+	 throw DataManager::ErrGeneric();
       }
    }
 #endif /* USE_AERODYNAMIC_ELEMS */
@@ -1184,7 +1184,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": force " << uLabel
 	    << " exceeds force elements number" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        /* verifica che non sia gia' definito */
@@ -1194,7 +1194,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": force " << uLabel
 	    << " already defined" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        
@@ -1218,7 +1218,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": rigid body " << uLabel
 	    << " exceeds rigid body elements number" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        /* verifica che non sia gia' definito */		    
@@ -1228,7 +1228,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": rigid body " << uLabel
 	    << " already defined" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        
@@ -1251,7 +1251,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": joint " << uLabel
 	    << " exceeds joint elements number" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	  
        
        /* verifica che non sia gia' definito */		      
@@ -1261,7 +1261,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": joint " << uLabel
 	    << " already defined" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        
@@ -1291,7 +1291,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": beam " << uLabel
 	    << " exceeds beam elements number" << std::endl;
 	 
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        /* verifica che non sia gia' definito */
@@ -1301,7 +1301,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": beam " << uLabel
 	    << " already defined" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        /* allocazione e creazione */
@@ -1324,7 +1324,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  break;
 
        default:
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        break;
@@ -1341,7 +1341,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": rotor " << uLabel
 	    << " exceeds rotor elements number" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        /* verifica che non sia gia' definito */
@@ -1351,7 +1351,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": rotor " << uLabel
 	    << " already defined" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        /* allocazione e creazione */
@@ -1376,7 +1376,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": aromodal " << uLabel
 	    << " exceeds aeromodal elements number" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        /* verifica che non sia gia' definito */
@@ -1386,7 +1386,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": raeromodal " << uLabel
 	    << " already defined" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        /* allocazione e creazione */
@@ -1412,7 +1412,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": external element " << uLabel
 	    << " exceeds external elements number" << std::endl;
 	 
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        /* verifica che non sia gia' definito */
@@ -1422,7 +1422,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": external element " << uLabel
 	    << " already defined" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        /* allocazione e creazione */
        int i = ElemData[Elem::EXTERNAL].iNum
@@ -1445,7 +1445,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 #else /* !USE_EXTERNAL */
        std::cerr << "You need mpi and -DUSE_AERODYNAMIC_EXTERNAL " 
        		<< "to use this type of elements." << std::endl;
-       THROW(ErrGeneric());
+       throw ErrGeneric();
 #endif /* !USE_EXTERNAL */	  
        break;
     }
@@ -1462,7 +1462,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": aerodynamic element " << uLabel
 	    << " exceeds aerodynamic elements number" << std::endl;
 	 
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        /* verifica che non sia gia' definito */
@@ -1472,7 +1472,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": aerodynamic element " << uLabel
 	    << " already defined" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        /* allocazione e creazione */
@@ -1522,7 +1522,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": genel " << uLabel
 	    << " exceeds genel elements number" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	  
        
        /* verifica che non sia gia' definito */		      
@@ -1532,7 +1532,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": genel " << uLabel
 	    << " already defined" << std::endl;
 	 
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        
@@ -1558,7 +1558,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": hydraulic element " << uLabel
 	    << " exceeds hydraulic elements number" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	  
        
        /* verifica che non sia gia' definito */
@@ -1568,7 +1568,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": hydraulic element " << uLabel
 	    << " already defined" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        
@@ -1598,7 +1598,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": electric element " << uLabel
 	    << " exceeds electric elements number" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	  
        
        /* verifica che non sia gia' definito */
@@ -1608,7 +1608,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": electric element " << uLabel
 	    << " already defined" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        
@@ -1637,7 +1637,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": bulk element " << uLabel
 	    << " exceeds bulk elements number" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	  
        
        /* verifica che non sia gia' definito */
@@ -1647,7 +1647,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": bulk element " << uLabel
 	    << " already defined" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        
@@ -1672,7 +1672,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": loadable element " << uLabel
 	    << " exceeds loadable elements number" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	  
        
        /* verifica che non sia gia' definito */
@@ -1682,7 +1682,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": loadable element " << uLabel
 	    << " already defined" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        /* allocazione e creazione */		     
@@ -1708,7 +1708,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": Socket Stream output element " << uLabel
 	    << " exceeds Socket Stream output elements number" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	  
        
        /* verifica che non sia gia' definito */
@@ -1718,7 +1718,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	    << ": Socket Stream output element " << uLabel
 	    << " already defined" << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        /* allocazione e creazione */		     
@@ -1746,7 +1746,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
     default: {
        std::cerr << "You shouldn't be here" << std::endl;
        
-       THROW(DataManager::ErrGeneric());
+       throw DataManager::ErrGeneric();
     }
    }
    

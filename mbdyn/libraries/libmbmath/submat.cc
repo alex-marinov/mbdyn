@@ -154,7 +154,7 @@ FullSubMatrixHandler::Resize(integer iNewRow, integer iNewCol) {
 		silent_cerr("FullSubMatrixHandler::Resize() - error"
 				<< std::endl);
 
-		THROW(SubMatrixHandler::ErrResize());
+		throw SubMatrixHandler::ErrResize();
 	}
 
 	iNumRows = iNewRow;
@@ -820,7 +820,7 @@ SparseSubMatrixHandler::Resize(integer iNewRow, integer iNewCol)
 			|| iNewRow > iDoubleSize) {
 		silent_cerr("SparseSubMatrixHandler::Resize() - error"
 				<< std::endl);
-		THROW(SparseSubMatrixHandler::ErrResize());
+		throw SparseSubMatrixHandler::ErrResize();
 	}
 
 	iNumItems = iNewRow;
@@ -1278,7 +1278,7 @@ MySubVectorHandler::Resize(integer iSize)
 {
 	if (iSize < 0) {
 		std::cerr << "Negative size!" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	ASSERT((piRowm1 == NULL && pdVecm1 == NULL)
@@ -1289,7 +1289,7 @@ MySubVectorHandler::Resize(integer iSize)
 			std::cerr << "Can't resize to " << iSize
 				<< ": larger than max size " << iMaxSize
 				<< std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		iCurSize = iSize;
 

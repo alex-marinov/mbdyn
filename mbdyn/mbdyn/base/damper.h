@@ -55,7 +55,7 @@ class GRAALLDamperConstitutiveLaw
 			      const doublereal&,
 			      const char* const)
      : ElasticConstitutiveLaw<T, Tder>(pDC, 0.) {
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    };
    
    virtual ~GRAALLDamperConstitutiveLaw(void) {

@@ -78,7 +78,7 @@ public:
 
 	/* Ridimensiona la matrice */
 	virtual void Resize(integer, integer) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	};
 
 	virtual inline const doublereal&

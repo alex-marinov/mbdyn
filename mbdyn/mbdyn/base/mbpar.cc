@@ -121,7 +121,7 @@ MBDynParser::Reference_(void)
 		std::cerr << "Parser error in MBDynParser::Reference_(),"
 			" colon expected at line " 
 			<< GetLineData() << std::endl;
-		THROW(HighParser::ErrColonExpected());
+		throw HighParser::ErrColonExpected();
 	}
 	
 	unsigned int uLabel(GetInt());
@@ -158,7 +158,7 @@ MBDynParser::Reference_(void)
 		std::cerr << "Reference frame " << uLabel
 			<< " already defined at line " << GetLineData()
 			<< std::endl;
-		THROW(MBDynParser::ErrReferenceAlreadyDefined());
+		throw MBDynParser::ErrReferenceAlreadyDefined();
 	}
 	
 	if (sName != NULL) {
@@ -176,7 +176,7 @@ MBDynParser::HydraulicFluid_(void)
 		std::cerr << "Parser error in MBDynParser::HydraulicFluid_(),"
 			" colon expected at line "
 			<< GetLineData() << std::endl;
-		THROW(HighParser::ErrColonExpected());
+		throw HighParser::ErrColonExpected();
 	}
 	
 	unsigned int uLabel(GetInt());
@@ -191,14 +191,14 @@ MBDynParser::HydraulicFluid_(void)
 	HydraulicFluid* pHF = ReadHydraulicFluid(*this, uLabel);
 	if (pHF == NULL) {
 		std::cerr << "unable to read hydraulic fluid " << uLabel << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	
 	if (HF.Add(pHF)) {
 		std::cerr << "hydraulic fluid " << uLabel
 			<< " already defined at line " << GetLineData()
 			<< std::endl;
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	
 	if (sName != NULL) {
@@ -215,7 +215,7 @@ MBDynParser::C81Data_(void)
 	if (FirstToken() == UNKNOWN) {
 		std::cerr << "Parser error in MBDynParser::C81Data_(),"
 			" colon expected at line " << GetLineData() << std::endl;
-		THROW(HighParser::ErrColonExpected());
+		throw HighParser::ErrColonExpected();
 	}
 	
 	unsigned int uLabel(GetInt());
@@ -232,7 +232,7 @@ MBDynParser::C81Data_(void)
 	if (!in) {
 		std::cerr << "unable to open file '" << filename << "' at line " 
 			<< GetLineData() << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "reading c81 data " << uLabel 
@@ -245,7 +245,7 @@ MBDynParser::C81Data_(void)
 		std::cerr << "unable to read c81 data " << uLabel 
 			<< " from file '" << filename 
 			<< "' at line " << GetLineData() << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	
 #ifdef DEBUG
@@ -258,7 +258,7 @@ MBDynParser::C81Data_(void)
 		std::cerr << "c81 data " << uLabel
 			<< " already defined at line " << GetLineData()
 			<< std::endl;
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	
 	if (sName != NULL) {
@@ -275,14 +275,14 @@ MBDynParser::ConstitutiveLaw_(void)
 		std::cerr << "Parser error in MBDynParser::ConstitutiveLaw_(),"
 			" colon expected at line "
 			<< GetLineData() << std::endl;
-		THROW(HighParser::ErrColonExpected());
+		throw HighParser::ErrColonExpected();
 	}
 
 	if (pDM == 0) {
 		silent_cerr("consitutive law parsing at line "
 				<< GetLineData() << " allowed "
 				"only after control data block" << std::endl);
-		THROW(HighParser::ErrColonExpected());
+		throw HighParser::ErrColonExpected();
 	}
 	
 	unsigned int uLabel(GetInt());
@@ -308,7 +308,7 @@ MBDynParser::ConstitutiveLaw_(void)
 			}
 			silent_cerr(" at line " << GetLineData()
 					<< std::endl);
-			THROW(MBDynParser::ErrGeneric());
+			throw MBDynParser::ErrGeneric();
 		}
 
 		pCL->PutLabel(uLabel);
@@ -323,7 +323,7 @@ MBDynParser::ConstitutiveLaw_(void)
 			}
 			silent_cerr(" already defined at line " 
 					<< GetLineData() << std::endl);
-			THROW(MBDynParser::ErrGeneric());
+			throw MBDynParser::ErrGeneric();
 		}
 		break;
 	}
@@ -339,7 +339,7 @@ MBDynParser::ConstitutiveLaw_(void)
 			}
 			silent_cerr(" at line " << GetLineData()
 					<< std::endl);
-			THROW(MBDynParser::ErrGeneric());
+			throw MBDynParser::ErrGeneric();
 		}
 	
 		pCL->PutLabel(uLabel);
@@ -354,7 +354,7 @@ MBDynParser::ConstitutiveLaw_(void)
 			}
 			silent_cerr(" already defined at line " 
 					<< GetLineData() << std::endl);
-			THROW(MBDynParser::ErrGeneric());
+			throw MBDynParser::ErrGeneric();
 		}
 		break;
 	}
@@ -370,7 +370,7 @@ MBDynParser::ConstitutiveLaw_(void)
 			}
 			silent_cerr(" at line " << GetLineData()
 					<< std::endl);
-			THROW(MBDynParser::ErrGeneric());
+			throw MBDynParser::ErrGeneric();
 		}
 	
 		pCL->PutLabel(uLabel);
@@ -385,7 +385,7 @@ MBDynParser::ConstitutiveLaw_(void)
 			}
 			silent_cerr(" already defined at line " 
 					<< GetLineData() << std::endl);
-			THROW(MBDynParser::ErrGeneric());
+			throw MBDynParser::ErrGeneric();
 		}
 		break;
 	}
@@ -394,7 +394,7 @@ MBDynParser::ConstitutiveLaw_(void)
 		silent_cerr("unknown constitutive law dimensionality " 
 				<< dim << " at line " << GetLineData()
 				<< std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	if (sName) {
@@ -416,7 +416,7 @@ MBDynParser::GetDescription_int(const char *s)
 		Reference_();
 		return true;
 #else /* USE_STRUCT_NODES */
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 #endif /* USE_STRUCT_NODES */
 
 	/* Se trova un fluido idraulico, lo gestisce direttamente */
@@ -425,7 +425,7 @@ MBDynParser::GetDescription_int(const char *s)
 		HydraulicFluid_();
 		return true;
 #else /* USE_HYDRAULIC_NODES */
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 #endif /* USE_HYDRAULIC_NODES */
 
 	/* Se trova dati aerodinamici c81, li gestisce direttamente */
@@ -434,7 +434,7 @@ MBDynParser::GetDescription_int(const char *s)
 		C81Data_();
 		return true;
 #else /* USE_AERODYNAMIC_ELEMS */
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 #endif /* USE_AERODYNAMIC_ELEMS */
 
 	} else if (!strcmp(s, "constitutive" "law")) {
@@ -483,7 +483,7 @@ MBDynParser::GetRef(ReferenceFrame& rf)
 	if (pRF == NULL) {
 		std::cerr << "reference " << uLabel << " is undefined at line " 
 			<< GetLineData() << std::endl;
-		THROW(MBDynParser::ErrReferenceUndefined());
+		throw MBDynParser::ErrReferenceUndefined();
 	}
 	
 	rf = *pRF;
@@ -527,7 +527,7 @@ MBDynParser::GetPosRel(const ReferenceFrame& rf)
 			
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	
 # ifndef USE_EXCEPTIONS
@@ -557,7 +557,7 @@ MBDynParser::GetPosAbs(const ReferenceFrame& rf)
 	
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	
 # ifndef USE_EXCEPTIONS
@@ -595,7 +595,7 @@ MBDynParser::GetVelRel(const ReferenceFrame& rf, const Vec3& x)
 	
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	
 # ifndef USE_EXCEPTIONS
@@ -628,7 +628,7 @@ MBDynParser::GetVelAbs(const ReferenceFrame& rf, const Vec3& x)
 	
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	
 # ifndef USE_EXCEPTIONS
@@ -660,7 +660,7 @@ MBDynParser::GetOmeRel(const ReferenceFrame& rf)
 	
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 # ifndef USE_EXCEPTIONS
 	return Zero3;
@@ -689,7 +689,7 @@ MBDynParser::GetOmeAbs(const ReferenceFrame& rf)
 	
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	
 # ifndef USE_EXCEPTIONS
@@ -710,14 +710,14 @@ MBDynParser::GetVecRel(const ReferenceFrame& rf)
 			/* FIXME */
 			std::cerr << "'from node' at line " << GetLineData()
 				<< " not implemented yet :)" << std::endl;
-			THROW(MBDynParser::ErrGeneric());
+			throw MBDynParser::ErrGeneric();
 			
 			unsigned int uLabel = GetInt();
 			StructNode *pNode1 = NULL; /* get node 1 */
 			if (IsKeyWord("tonode")) {
 				std::cerr << "missing keyword 'to node' at line "
 					<< GetLineData() << std::endl;
-				THROW(MBDynParser::ErrGeneric());
+				throw MBDynParser::ErrGeneric();
 			}
 			uLabel = GetInt();
 			StructNode *pNode2 = NULL; /* get node 2 */
@@ -738,7 +738,7 @@ MBDynParser::GetVecRel(const ReferenceFrame& rf)
 	
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	
 # ifndef USE_EXCEPTIONS
@@ -756,14 +756,14 @@ MBDynParser::GetVecAbs(const ReferenceFrame& rf)
 			/* FIXME */
 			std::cerr << "'from node' at line " << GetLineData()
 				<< " not implemented yet :)" << std::endl;
-			THROW(MBDynParser::ErrGeneric());
+			throw MBDynParser::ErrGeneric();
 			
 			unsigned int uLabel = GetInt();
 			StructNode *pNode1 = NULL; /* get node 1 */
 			if (IsKeyWord("tonode")) {
 				std::cerr << "missing keyword 'to node' at line "
 					<< GetLineData() << std::endl;
-				THROW(MBDynParser::ErrGeneric());
+				throw MBDynParser::ErrGeneric();
 			}
 			uLabel = GetInt();
 			StructNode *pNode2 = NULL; /* get node 2 */
@@ -786,7 +786,7 @@ MBDynParser::GetVecAbs(const ReferenceFrame& rf)
 	
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	
 # ifndef USE_EXCEPTIONS
@@ -815,7 +815,7 @@ MBDynParser::GetMatRel(const ReferenceFrame& rf)
 	
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	
 # ifndef USE_EXCEPTIONS
@@ -841,7 +841,7 @@ MBDynParser::GetMatAbs(const ReferenceFrame& rf)
 
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	
 # ifndef USE_EXCEPTIONS
@@ -867,7 +867,7 @@ MBDynParser::GetRotRel(const ReferenceFrame& rf)
 	
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	
 # ifndef USE_EXCEPTIONS
@@ -893,7 +893,7 @@ MBDynParser::GetRotAbs(const ReferenceFrame& rf)
 	
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	
 # ifndef USE_EXCEPTIONS
@@ -910,7 +910,7 @@ MBDynParser::GetHydraulicFluid(void)
 	if (!IsKeyWord("hydraulic" "fluid") && !IsKeyWord("fluid")) {
 		std::cerr << "hydraulic fluid expected at line "
 			<< GetLineData() << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	
 	/* se non trova "reference", legge direttamente un fluido */
@@ -924,7 +924,7 @@ MBDynParser::GetHydraulicFluid(void)
 	if (pHF == NULL) {
 		std::cerr << "hydraulic fluid " << uLabel
 			<< " is undefined at line " << GetLineData() << std::endl;
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	return pHF->pCopy();
 }
@@ -940,7 +940,7 @@ MBDynParser::GetC81Data(integer profile)
 	if (data == NULL) {
 		std::cerr << "c81 data " << profile << " is undefined at line " 
 			<< GetLineData() << std::endl;
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 	return data;
 }
@@ -953,7 +953,7 @@ MBDynParser::GetConstLaw1D(ConstLawType::Type& clt)
 		silent_cerr("consitutive law parsing at line "
 				<< GetLineData() << " allowed "
 				"only after control data block" << std::endl);
-		THROW(HighParser::ErrColonExpected());
+		throw HighParser::ErrColonExpected();
 	}
 
 	if (!IsKeyWord("reference")) {
@@ -966,7 +966,7 @@ MBDynParser::GetConstLaw1D(ConstLawType::Type& clt)
 		silent_cerr("constitutive law 1D " << uLabel
 				<< " is undefined at line "
 				<< GetLineData() << std::endl);
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 
 	clt = pCL->GetConstLawType();
@@ -980,7 +980,7 @@ MBDynParser::GetConstLaw3D(ConstLawType::Type& clt)
 		silent_cerr("consitutive law parsing at line "
 				<< GetLineData() << " allowed "
 				"only after control data block" << std::endl);
-		THROW(HighParser::ErrColonExpected());
+		throw HighParser::ErrColonExpected();
 	}
 
 	if (!IsKeyWord("reference")) {
@@ -993,7 +993,7 @@ MBDynParser::GetConstLaw3D(ConstLawType::Type& clt)
 		silent_cerr("constitutive law 3D " << uLabel
 				<< " is undefined at line "
 				<< GetLineData() << std::endl);
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 
 	clt = pCL->GetConstLawType();
@@ -1007,7 +1007,7 @@ MBDynParser::GetConstLaw6D(ConstLawType::Type& clt)
 		silent_cerr("consitutive law parsing at line "
 				<< GetLineData() << " allowed "
 				"only after control data block" << std::endl);
-		THROW(HighParser::ErrColonExpected());
+		throw HighParser::ErrColonExpected();
 	}
 
 	if (!IsKeyWord("reference")) {
@@ -1020,7 +1020,7 @@ MBDynParser::GetConstLaw6D(ConstLawType::Type& clt)
 		silent_cerr("constitutive law 6D " << uLabel
 				<< " is undefined at line "
 				<< GetLineData() << std::endl);
-		THROW(MBDynParser::ErrGeneric());
+		throw MBDynParser::ErrGeneric();
 	}
 
 	clt = pCL->GetConstLawType();

@@ -83,11 +83,11 @@ pFlags(NULL)
    	if (sock == -1) {
       		silent_cerr("SocketDrive(" << GetLabel()
 			<< "): socket failed" << std::endl);
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	} else if (sock == -2) {
       		silent_cerr("SocketDrive(" << GetLabel()
 			<< "): bind failed" << std::endl);
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
 
    	Init();
@@ -111,11 +111,11 @@ pFlags(NULL)
    	if (sock == -1) {
       		std::cerr << "SocketDrive(" << GetLabel()
 			<< "): socket failed" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	} else if (sock == -2) {
       		std::cerr << "SocketDrive(" << GetLabel()
 			<< "): bind failed" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
 
 	Init();
@@ -130,20 +130,20 @@ SocketDrive::Init(void)
 		silent_cerr("SocketDrive(" << GetLabel()
 				<< ": unable to get socket flags"
 				<< std::endl);
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
    	oldflags |= O_NONBLOCK;
    	if (fcntl(sock, F_SETFL, oldflags) == -1) {
 		silent_cerr("SocketDrive(" << GetLabel()
 				<< ": unable to set socket flags"
 				<< std::endl);
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
 
    	if (listen(sock, 1) < 0) {
       		silent_cerr("SocketDrive(" << GetLabel()
 			<< "): listen failed" << std::endl);
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
 
    	SAFENEWARR(pFlags, int, iNumDrives + 1);
@@ -541,7 +541,7 @@ ReadSocketDrive(DataManager* pDM,
 					<< IPPORT_USERRESERVED
 					<< " at line " << HP.GetLineData()
 					<< std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 
@@ -552,7 +552,7 @@ ReadSocketDrive(DataManager* pDM,
 			std::cerr << "need an authentication method "
 				"at line " << HP.GetLineData()
 				<< std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		SAFENEWWITHCONSTRUCTOR(pDr,
@@ -572,7 +572,7 @@ ReadSocketDrive(DataManager* pDM,
 #else /* ! USE_SOCKET_DRIVES */
 	std::cerr << "Sorry, socket drives not supported at line"
 		<< HP.GetLineData() << std::endl;
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 #endif /* USE_SOCKET_DRIVES */
 }
 

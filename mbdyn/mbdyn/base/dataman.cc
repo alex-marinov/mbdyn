@@ -187,7 +187,7 @@ DofIter()
       DEBUGCERR("");
       std::cerr << "error in setting Time symbol" << std::endl;
 
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }   
    SetTime(dInitialTime);
    
@@ -236,14 +236,14 @@ DofIter()
       std::cerr << "<begin> expected at line "
 	<< HP.GetLineData() << std::endl;
 
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }
    if(KeyWords(HP.GetWord()) != CONTROLDATA) {
       DEBUGCERR("");
       std::cerr << "<begin: control data;> expected at line " 
 	<< HP.GetLineData() << std::endl;
 
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }
 
    ReadControl(HP, sInputFileName, sOutputFileName);
@@ -278,14 +278,14 @@ DofIter()
 	 std::cerr << "<begin> expected at line " 
 	   << HP.GetLineData() << std::endl;
 
-	 THROW(DataManager::ErrGeneric());
+	 throw DataManager::ErrGeneric();
       }
       if(KeyWords(HP.GetWord()) != NODES) {
 	 DEBUGCERR("");
 	 std::cerr << "<begin: nodes;> expected at line " 
 	   << HP.GetLineData() << std::endl;
 
-	 THROW(DataManager::ErrGeneric());
+	 throw DataManager::ErrGeneric();
       }
       
       ReadNodes(HP);
@@ -317,14 +317,14 @@ DofIter()
 	 std::cerr << "<begin> expected at line "
 	   << HP.GetLineData() << std::endl;
 
-	 THROW(DataManager::ErrGeneric());
+	 throw DataManager::ErrGeneric();
       }
       if(KeyWords(HP.GetWord()) != DRIVERS) {
 	 DEBUGCERR("");
 	 std::cerr << "<begin: drivers;> expected at line " 
 	   << HP.GetLineData() << std::endl;
 
-	 THROW(DataManager::ErrGeneric());
+	 throw DataManager::ErrGeneric();
       }
       
       ReadDrivers(HP);
@@ -348,14 +348,14 @@ DofIter()
 	 std::cerr << "<begin> expected at line " 
 	   << HP.GetLineData() << std::endl;
 
-	 THROW(DataManager::ErrGeneric());
+	 throw DataManager::ErrGeneric();
       }
       if(KeyWords(HP.GetWord()) != ELEMENTS) {
 	 DEBUGCERR("");
 	 std::cerr << "<begin: elements;> expected at line " 
 	   << HP.GetLineData() << std::endl;
 
-	 THROW(DataManager::ErrGeneric());
+	 throw DataManager::ErrGeneric();
       }
 	
       ReadElems(HP);
@@ -578,7 +578,7 @@ DataManager::~DataManager(void)
    if (loadableElemInitialized) {
       if (lt_dlexit()) {
 	 std::cerr << "lt_dlexit failed" << std::endl;
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }
    }
 #endif /* HAVE_LOADABLE && HAVE_LTDL_H */

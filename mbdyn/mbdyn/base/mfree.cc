@@ -74,7 +74,7 @@ pPrevNLP(NULL)
 	default:
 		std::cerr << "Unknown Preconditioner type; aborting"
 			<< std::endl;
-		THROW(ErrGeneric()); 
+		throw ErrGeneric(); 
 	}
 }
 

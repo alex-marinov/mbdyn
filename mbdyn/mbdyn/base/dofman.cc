@@ -152,7 +152,7 @@ void DataManager::DofInit(void)
       DEBUGCERR("");
       std::cerr << "no dof owners are defined" << std::endl;
       
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }	   	
    
    	
@@ -175,7 +175,7 @@ void DataManager::DofInit(void)
       DEBUGCERR("");
       std::cerr << "no dofs are defined" << std::endl;
       
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }	   	
 }  
 

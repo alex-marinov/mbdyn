@@ -208,11 +208,11 @@ Beam2::dGetPrivData(unsigned int i) const
 	case 3:
 		std::cerr << "Beam2 " << GetLabel() 
 			<< ": not allowed to return shear strain" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	default:
 		std::cerr << "Beam2 " << GetLabel()
 			<< ": illegal private data " << i << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 #ifndef USE_EXCEPTIONS
 	return 0.;
@@ -264,7 +264,7 @@ Beam2::DsDxi(void)
 		std::cerr << "warning, beam " << GetLabel() 
 			<< " has singular metric; aborting ..." << std::endl;
 		
-		THROW(Beam2::ErrGeneric());
+		throw Beam2::ErrGeneric();
 	}
 
 	/* Calcola le deformazioni iniziali */
@@ -844,7 +844,7 @@ Beam2::pGetNode(unsigned int i) const
 	case 2:
 		return pNode[i-1];
 	default:
-		THROW(Beam2::ErrGeneric());
+		throw Beam2::ErrGeneric();
 	}
 #ifndef USE_EXCEPTIONS
 	return NULL;
@@ -1328,7 +1328,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			<< ": beam2 does not support "
 			"dynamic constitutive laws yet"
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	
 #ifdef DEBUG   
@@ -1364,7 +1364,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		if (iNumElec <= 0) {
 			std::cerr << "illegal number of electric nodes "
 				<< iNumElec << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		
 		SAFENEWARR(pvElecDofs, ScalarDifferentialNode*, iNumElec);
@@ -1377,7 +1377,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			if (pvElecDofs[i] == NULL) {
 				std::cerr << "can't find abstract node "
 					<< uL << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 		}
 		
@@ -1479,7 +1479,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsArg()) {
 		std::cerr << "semicolon expected at line "
 			<< HP.GetLineData() << std::endl;      
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	}
 	
 	return pEl;

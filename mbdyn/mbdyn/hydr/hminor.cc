@@ -84,7 +84,7 @@ unsigned int Minor_loss::iGetNumDof(void) const {
    
 DofOrder::Order Minor_loss::GetDofType(unsigned int i) const {
    std::cerr << "Minor_loss has no dofs!" << std::endl;
-   THROW(ErrGeneric());
+   throw ErrGeneric();
 }
 
 void Minor_loss::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -252,7 +252,7 @@ unsigned int ThreeWayMinorLoss::iGetNumDof(void) const {
    
 DofOrder::Order ThreeWayMinorLoss::GetDofType(unsigned int i) const {
 	std::cerr << "Minor_loss has no dofs!" << std::endl;
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 void
@@ -448,7 +448,7 @@ area_pipe(A_pipe),  ReCr(ReCr), turbulent(false)
 	doublereal rad = 1.-base*base;
 	if (rad < 1.e3*DBL_EPSILON) {
 		silent_cerr("Orifice(" << GetLabel() << "): error computing Cd" << std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	doublereal Cv = .98; /* costante adimensionale */
@@ -484,7 +484,7 @@ DofOrder::Order
 Orifice::GetDofType(unsigned int i) const
 {
 	std::cerr << "Orifice has no dofs!" << std::endl;
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 void

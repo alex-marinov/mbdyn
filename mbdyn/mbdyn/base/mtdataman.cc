@@ -139,7 +139,7 @@ propagate_ErrMatrixRebuild(sig_atomic_t(false))
 	rc = sched_getparam(0, &sp);
 	if (rc != 0) {
 		silent_cerr("sched_getparam() failed: " << errno << std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	int pmin = sched_get_priority_min(policy);
@@ -158,20 +158,20 @@ propagate_ErrMatrixRebuild(sig_atomic_t(false))
 				"to set SCHED_FIFO scheduling policy: "
 				<< errno
 				<< std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 #endif
 
 	if (pthread_mutex_init(&thread_mutex, NULL)) {
 		silent_cerr("MultiThreadDataManager::MultiThreadDataManager(): "
 				"mutex init failed" << std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 		
 	if (pthread_cond_init(&thread_cond, NULL)) {
 		silent_cerr("MultiThreadDataManager::MultiThreadDataManager(): "
 				"cond init failed" << std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	ThreadSpawn();
@@ -321,7 +321,7 @@ MultiThreadDataManager::thread(void *p)
 		default:
 			silent_cerr("MultiThreadDataManager: unhandled op"
 					<< std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		/* decrease counter and signal if last
@@ -436,7 +436,7 @@ MultiThreadDataManager::ThreadSpawn(void)
 			silent_cerr("pthread_create() failed "
 					"for thread " << i
 					<< " of " << nThreads << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 }
@@ -545,7 +545,7 @@ retry:;
 		break;
 
 	default:
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 
 	}
 

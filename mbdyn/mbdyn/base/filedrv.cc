@@ -204,7 +204,7 @@ ReadFileDriver(DataManager* pDM,
 	default:
 		std::cerr << "unknown file drive at line " << HP.GetLineData()
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	return pDr;

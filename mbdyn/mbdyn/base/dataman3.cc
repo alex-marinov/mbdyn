@@ -242,7 +242,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 #else /* USE_STRUCT_NODES */
 	  std::cerr << "you're not allowed to use structural nodes" 
 		  << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
 #endif /* USE_STRUCT_NODES */
        }
 	 
@@ -256,7 +256,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  break;
 #else /* USE_ELECTRIC_NODES */
 	  std::cerr << "you're not allowed to use electric nodes" << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
 #endif /* USE_ELECTRIC_NODES */
        }	     
 	 
@@ -270,7 +270,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  break;
 #else /* USE_ELECTRIC_NODES */
 	  std::cerr << "you're not allowed to use abstract nodes" << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
 #endif /* USE_ELECTRIC_NODES */
        }
 	 
@@ -292,7 +292,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  break;
 #else /* defined(USE_HYDRAULIC_NODES) */
 	  std::cerr << "you're not allowed to use hydraulic nodes" << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
 #endif /* defined(USE_HYDRAULIC_NODES) */
        }	     
 	 
@@ -460,7 +460,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  if (loadableElemInitialized == false) {
 	     if (lt_dlinit()) {
 	  	std::cerr << "unable to initialize loadable elements" << std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
 	     }
 	     loadableElemInitialized = true;
 	  }
@@ -475,7 +475,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  if (s == NULL) {
 	     std::cerr << "missing path in \"loadable path\" statement "
 		     "at line " << HP.GetLineData() << std::endl;
-	     THROW(ErrGeneric());
+	     throw ErrGeneric();
 	  }
 
 	  if (mode == 0) {
@@ -483,14 +483,14 @@ void DataManager::ReadControl(MBDynParser& HP,
 	        std::cerr << "unable to set path \"" << s 
 			<< "in \"loadable path\" statement at line "
 			<< HP.GetLineData() << std::endl;
-	        THROW(ErrGeneric());
+	        throw ErrGeneric();
 	     }
 	  } else {
 	     if (lt_dladdsearchdir(s) != 0) {
 	        std::cerr << "unable to add path \"" << s 
 			<< "\" in \"loadable path\" statement at line "
 			<< HP.GetLineData() << std::endl;
-	        THROW(ErrGeneric());
+	        throw ErrGeneric();
 	     }
 	  }
 
@@ -610,7 +610,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 		   << HP.GetLineData() 
 		     << " is not allowed; aborting ..." << std::endl;
 		 
-		 THROW(DataManager::ErrElemNotAllowedInAssembly());
+		 throw DataManager::ErrElemNotAllowedInAssembly();
 	      }		       
 		
 		/* Errore */
@@ -618,7 +618,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 		 std::cerr << "Unknown element type at line "
 		   << HP.GetLineData() << "; aborting ..." << std::endl;
 		 
-		 THROW(DataManager::ErrUnknownElem());
+		 throw DataManager::ErrUnknownElem();
 	      }		       			      		       
 	     }
 	  }		  
@@ -665,7 +665,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  } else {
 	     std::cerr << "Invalid option at line " 
 		     << HP.GetLineData() << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }
 	  
 	  break;
@@ -704,7 +704,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 		  silent_cerr("illegal \"epsilon\"=" << dEpsilon
 				  << " at line " << HP.GetLineData()
 				  << std::endl);
-		  THROW(ErrGeneric());
+		  throw ErrGeneric();
 	  }
 	  break;
 
@@ -751,7 +751,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 		std::cerr << "Error: unrecognized restart option at line "
 		  << HP.GetLineData() << std::endl;
 
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	     }
 	  } else {
 	     RestartEvery = ATEND;
@@ -768,7 +768,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  if (sTmp == NULL) {
 	     std::cerr << "Null file name at line "
 		     << HP.GetLineData() << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }
 	  SAFESTRDUP(sOutName, sTmp);
 	  break;
@@ -785,7 +785,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  if (iFreq < 1) {
 		  std::cerr << "Illegal output frequency " << iFreq
 			  << " at line " << HP.GetLineData() << std::endl;
-		  THROW(ErrGeneric());
+		  throw ErrGeneric();
 	  }
 	  iOutputFrequency = iFreq;
 	  break;
@@ -828,14 +828,14 @@ void DataManager::ReadControl(MBDynParser& HP,
 					} else {
 						silent_cerr("unknown value for \"velocity\" flag at line "
 								<< HP.GetLineData() << std::endl);
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 					}
 				}
 			}
 #else /* !USE_ADAMS */
 			std::cerr << "Please rebuild with ADAMS output enabled\n"
 				<< std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 #endif /* USE_ADAMS */
 		/* require support for MotionView output */
 		} else if (HP.IsKeyWord("motion" "view")) {
@@ -848,7 +848,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 #else /* !USE_MOTIONVIEW */
 			std::cerr << "Please rebuild with MotionView output enabled\n"
 				<< std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 #endif /* USE_MOTIONVIEW */
 		}
 	}
@@ -1145,7 +1145,7 @@ void DataManager::ReadControl(MBDynParser& HP,
        default: {
 	  std::cerr << "case " << sKeyWords[CurrDesc] << " at line " 
 	    << HP.GetLineData() << " is not allowed" << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	 
       }
    }
@@ -1154,7 +1154,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       DEBUGCERR("");
       std::cerr << "<end: control data;> expected at line " 
 	<< HP.GetLineData() << std::endl;
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }
    
    /* Se non c'e' il punto e virgola finale */
@@ -1162,7 +1162,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       DEBUGCERR("");
       std::cerr << "semicolon expected at line "
 	      << HP.GetLineData() << std::endl;
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }   
    
    /* Inizializza l'OutputHandler */
@@ -1224,7 +1224,7 @@ flag DataManager::fReadOutput(MBDynParser& HP, enum Elem::Type t)
    } else {    
       std::cerr << "Unknown output flag for element \""
 	<< psElemNames[t] << "\" at line " << HP.GetLineData() << std::endl;
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }
 #ifndef USE_EXCEPTIONS
    return fDef;
@@ -1248,7 +1248,7 @@ flag DataManager::fReadOutput(MBDynParser& HP, enum Node::Type t)
    } else {    
       std::cerr << "Unknown output flag for node \"" 
 	<< psNodeNames[t] << "\" at line " << HP.GetLineData() << std::endl;
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }
 #ifndef USE_EXCEPTIONS
    return fDef;
@@ -1285,7 +1285,7 @@ DataManager::ReadScalarAlgebraicNode(MBDynParser& HP,
 		std::cerr << "line " << HP.GetLineData() 
       			<< ": " << psNodeNames[type] << "(" << uLabel
       			<< ") already defined" << std::endl;
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	}		  
 
 	if (HP.IsArg()) {
@@ -1388,7 +1388,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 #else /* USE_STRUCT_NODES */
 	     std::cerr << "you're not allowed to use structural nodes"
 		     << std::endl;
-	     THROW(ErrGeneric());
+	     throw ErrGeneric();
 #endif /* USE_STRUCT_NODES */
 	  }
 	    
@@ -1400,7 +1400,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 #else /* USE_ELECTRIC_NODES */
 	     std::cerr << "you're not allowed to use electric nodes" 
 		     << std::endl;
-	     THROW(ErrGeneric());
+	     throw ErrGeneric();
 #endif /* USE_ELECTRIC_NODES */
 	  }
 	    
@@ -1412,7 +1412,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 #else /* USE_ELECTRIC_NODES */
 	     std::cerr << "you're not allowed to use abstract nodes" 
 		     << std::endl;
-	     THROW(ErrGeneric());
+	     throw ErrGeneric();
 #endif /* USE_ELECTRIC_NODES */
 	  }
 	    
@@ -1430,7 +1430,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 #else /* defined (USE_HYDRAULIC_NODES) */
 	     std::cerr << "you're not allowed to use hydraulic nodes" 
 		     << std::endl;
-	     THROW(ErrGeneric());
+	     throw ErrGeneric();
 #endif /* defined (USE_HYDRAULIC_NODES) */
 	  }
 	    
@@ -1438,7 +1438,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     std::cerr << "Error: unknown node type, cannot modify output" 
 		     << std::endl;
 
-	     THROW(DataManager::ErrUnknownNode());
+	     throw DataManager::ErrUnknownNode();
 	  }
 	 }
 	 
@@ -1519,7 +1519,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 		  << ": structural node " << uLabel 
 		  << " exceeds structural nodes number" << std::endl;
 
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	     }
 	     
 	     /* verifica di esistenza del nodo */
@@ -1529,7 +1529,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 		  << ": structural node " << uLabel
 		  << " already defined" << std::endl;
 
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	     }		  
 	     
 	     
@@ -1547,7 +1547,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 #else /* USE_STRUCT_NODES */
 	     std::cerr << "you're not allowed to use structural nodes" 
 		     << std::endl;
-	     THROW(ErrGeneric());
+	     throw ErrGeneric();
 #endif /* USE_STRUCT_NODES */
 	  }
 	    
@@ -1564,7 +1564,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 		std::cerr << "line " << HP.GetLineData() 
       			<< ": " << psNodeNames[Node::ELECTRIC] << "(" << uLabel
       			<< ") exceeds declared number" << std::endl;
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	     }
 
 	     /* Initial values */
@@ -1590,7 +1590,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 #else /* USE_ELECTRIC_NODES */
 	     std::cerr << "you're not allowed to use electric nodes" 
 		     << std::endl;
-	     THROW(ErrGeneric());
+	     throw ErrGeneric();
 #endif /* USE_ELECTRIC_NODES */
 	  }
 	    
@@ -1607,7 +1607,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 		std::cerr << "line " << HP.GetLineData() 
       			<< ": " << psNodeNames[Node::ABSTRACT] << "(" << uLabel
       			<< ") exceeds declared number" << std::endl;
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	     }
 
 	     /* lettura dei dati specifici */
@@ -1632,7 +1632,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 #else /* USE_ELECTRIC_NODES */
 	     std::cerr << "you're not allowed to use abstract nodes" 
 		     << std::endl;
-	     THROW(ErrGeneric());
+	     throw ErrGeneric();
 #endif /* USE_ELECTRIC_NODES */
 	  }
 	    
@@ -1648,7 +1648,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 		  << ": parameter " << uLabel
 		  << " exceeds parameters number" << std::endl;
 
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	     }
 	     
 	     /* verifica di esistenza del nodo */
@@ -1658,7 +1658,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 		  << ": parameter " << uLabel
 		  << " already defined" << std::endl;
 		
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	     }		  
 	     
 	     /* bound a elemento */
@@ -1695,7 +1695,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 			std::cerr << "illegal sample period for SampleAndHold("
 				<< uLabel << ") at line " << HP.GetLineData()
 				<< std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 		
 		flag fOut = fReadOutput(HP, Node::PARAMETER);
@@ -1780,7 +1780,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 		std::cerr << "line " << HP.GetLineData() 
       			<< ": " << psNodeNames[Node::HYDRAULIC] << "(" << uLabel
       			<< ") exceeds declared number" << std::endl;
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	     }
 
 	     /* lettura dei dati specifici */
@@ -1813,7 +1813,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     DEBUGCERR("");
 	     std::cerr << "unknown node type at line " 
 		     << HP.GetLineData() << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }
 	    
 	  default: {
@@ -1822,7 +1822,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	       << " at line " << HP.GetLineData() << " is not allowed" 
 	       << std::endl;
 
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }
 	 }
 	 
@@ -1833,7 +1833,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 		    "item DataManager::*ppNodes, node " 
 		    << uLabel << std::endl;
 
-	    THROW(ErrMemory());
+	    throw ErrMemory();
 	 }
 
 	 if (sName != NULL) {
@@ -1851,7 +1851,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
       std::cerr << "<end: nodes;> expected at line "
 	<< HP.GetLineData() << std::endl;
 
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }
    
    /* Se non c'e' il punto e virgola finale */
@@ -1860,7 +1860,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
       std::cerr << "semicolon expected at line " 
 	      << HP.GetLineData() << std::endl;
 
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }   
    
    if (iMissingNodes > 0) {
@@ -1874,7 +1874,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	 }	 
       }      
 
-      THROW(DataManager::ErrMissingNodes());
+      throw DataManager::ErrMissingNodes();
    }      
    
    DEBUGLCOUT(MYDEBUG_INPUT, "End of nodes data" << std::endl);
@@ -1942,7 +1942,7 @@ void DataManager::ReadDrivers(MBDynParser& HP)
 	     std::cerr << "line " << HP.GetLineData() 
 	       << ": driver " << uLabel
 	       << " exceeds file drivers number" << std::endl;	     
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }	  
 	  
 	  /* allocazione e creazione */
@@ -1961,7 +1961,7 @@ void DataManager::ReadDrivers(MBDynParser& HP)
 	  DEBUGCERR("");
 	  std::cerr << "unknown drive type at line " 
 		  << HP.GetLineData() << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
       }  
       
@@ -1971,7 +1971,7 @@ void DataManager::ReadDrivers(MBDynParser& HP)
 	 std::cerr << "error in allocation, "
 		 "item DataManager::*ppDrive, element " 
 		 << uLabel << std::endl;
-	 THROW(ErrMemory());
+	 throw ErrMemory();
       }
       
       /* decrementa il totale degli elementi mancanti */
@@ -1982,7 +1982,7 @@ void DataManager::ReadDrivers(MBDynParser& HP)
       DEBUGCERR("");
       std::cerr << "<end: drivers;> expected at line " 
 	<< HP.GetLineData() << std::endl;
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }
    
    /* Se non c'e' il punto e virgola finale */
@@ -1990,13 +1990,13 @@ void DataManager::ReadDrivers(MBDynParser& HP)
       DEBUGCERR("");
       std::cerr << "semicolon expected at line " 
 	      << HP.GetLineData() << std::endl;
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }   
    
    if (iMissingDrivers > 0) {
       std::cerr << "warning, " << iMissingDrivers
 	<< " drivers are missing" << std::endl;
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }      
    
    DEBUGLCOUT(MYDEBUG_INPUT, "End of drivers data" << std::endl);
@@ -2040,7 +2040,7 @@ Node* DataManager::ReadNode(MBDynParser& HP, Node::Type type)
 		std::cerr << ": " << psNodeNames[type] << " node " << uNode
 			<< " not defined at line " 
 			<< HP.GetLineData() << std::endl;
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	}
 
 	return pNode;
@@ -2059,7 +2059,7 @@ Elem* DataManager::ReadElem(MBDynParser& HP, Elem::Type type)
 		std::cerr << ": " << psElemNames[type] << uElem
 			<< " not defined at line " 
 			<< HP.GetLineData() << std::endl;
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	}
 	
 	return pElem;
@@ -2082,7 +2082,7 @@ int GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
 		 << "): invalid order for index " << iIndex 
       		 << " variable at line " << HP.GetLineData()
 	   << std::endl;
-	 THROW(DataManager::ErrGeneric());
+	 throw DataManager::ErrGeneric();
       }
       return 1;
    } 
@@ -2100,7 +2100,7 @@ int GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
       	   << "a generic degree of freedom at line " 
       	   << HP.GetLineData() << ")" << std::endl;
 
-   THROW(DataManager::ErrGeneric());
+   throw DataManager::ErrGeneric();
 #ifndef USE_EXCEPTIONS
    return 0;
 #endif /* USE_EXCEPTIONS */
@@ -2121,7 +2121,7 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
    if (Type == Node::UNKNOWN) {
 	   std::cerr << "line " << HP.GetLineData() 
 		   << ": unknown node type" << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }   
    DEBUGLCOUT(MYDEBUG_INPUT, "Node type: " << psNodeNames[Type] << std::endl);
    
@@ -2130,7 +2130,7 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
    if ((pNode = pDM->pFindNode(Type, uNode)) == NULL) {
       std::cerr << psNodeNames[Type] << "(" << uNode << ") not defined" 
 	" at line " << HP.GetLineData() << std::endl;	 
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }
 
    /* si procura il numero di dof del nodo */
@@ -2146,7 +2146,7 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
 	   << psNodeNames[Type] << "(" << uNode << ") has only " 
 	   << iMaxIndex << " dofs at line " 
 	   << HP.GetLineData() << std::endl;
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }
       DEBUGLCOUT(MYDEBUG_INPUT, "index: " << iIndex << std::endl);
    }
@@ -2280,7 +2280,7 @@ Shape* ReadShape(MBDynParser& HP)
 	  std::cerr << "Illegal number of points " << np 
             << " for piecewise linear shape at line " 
 	    << HP.GetLineData() << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
 
        doublereal *px = NULL;
@@ -2295,7 +2295,7 @@ Shape* ReadShape(MBDynParser& HP)
 	    << "for first point abscissa (must be -1. < x < 1.) "
 	    "in piecewise linear shape at line " 
 	    << HP.GetLineData() << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
        pv[0] = HP.GetReal();
 
@@ -2306,7 +2306,7 @@ Shape* ReadShape(MBDynParser& HP)
 	       << "for point " << i+1 << " abscissa (must be " << px[i-1]
 	       << " < x < 1.) in piecewise linear shape at line "
 	       << HP.GetLineData() << std::endl;
-	     THROW(ErrGeneric());
+	     throw ErrGeneric();
 	  }
 	  pv[i] = HP.GetReal();
        }
@@ -2344,7 +2344,7 @@ Shape* ReadShape(MBDynParser& HP)
        * pari a CONST */
     default: {
        ASSERTMSG(0, "You shouldn't have reached this point");
-       THROW(ErrGeneric());       
+       throw ErrGeneric();       
     }
    }
    

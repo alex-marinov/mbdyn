@@ -417,7 +417,7 @@ main(int argc, char* argv[])
 							"parse nice level <" 
 							<< optarg << ">"
 							<< std::endl);
-		    				THROW(ErrGeneric());
+		    				throw ErrGeneric();
 					}
 #else /* !HAVE_STRTOL */
 					niceIncr = atoi(optarg);
@@ -446,7 +446,7 @@ main(int argc, char* argv[])
 					silent_cerr(";" << std::endl 
 						<< "aborting ..."
 						<< std::endl);
-		    			THROW(ErrGeneric());
+		    			throw ErrGeneric();
 	        		}
 	        		pIn = (std::istream*)&FileStreamIn;
 	        		break;
@@ -460,11 +460,11 @@ main(int argc, char* argv[])
 	        		silent_cerr("ADAMS input not implemented yet,"
 		    			" cannot open file '"
 					<< sInputFileName << "'" << std::endl);
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 	        		break;
 #else /* !USE_ADAMS_PP */
 	        		silent_cerr("Illegal option -a" << std::endl);
-	        		THROW(ErrGeneric());
+	        		throw ErrGeneric();
 				break;
 #endif /* !USE_ADAMS_PP */
 	    
@@ -479,7 +479,7 @@ main(int argc, char* argv[])
 						" option argument;"
 						" using default" << std::endl);
 		    			::debug_level = DEFAULT_DEBUG_LEVEL;
-		    			/* THROW(ErrGeneric()); */
+		    			/* throw ErrGeneric(); */
 	        		}
 #else /* !DEBUG */
 	        		silent_cerr("Compile with '-DDEBUG'"
@@ -558,7 +558,7 @@ main(int argc, char* argv[])
 					silent_cerr("Error in chdir(\""
 						<< optarg << "\")"
 						<< std::endl);
-	 				THROW(ErrFileSystem());
+	 				throw ErrFileSystem();
       				}
 #else /* !HAVE_CHDIR */
 				silent_cerr("chdir() not available"
@@ -593,7 +593,7 @@ main(int argc, char* argv[])
 	        		silent_cerr(std::endl 
 	            			<< "Unrecoverable error; aborting ..."
 					<< std::endl);
-	        		THROW(ErrGeneric());
+	        		throw ErrGeneric();
 	    		}
         	}
 		
@@ -721,7 +721,7 @@ main(int argc, char* argv[])
 							"cannot open file '"
 							<< sInputFileName 
 							<< "'" << std::endl);
-	            			THROW(ErrGeneric());
+	            			throw ErrGeneric();
 	        		} else {
 #endif /* USE_ADAMS_PP */
 	            			CurrInputFormat = MBDYN;
@@ -734,7 +734,7 @@ main(int argc, char* argv[])
 							<< sInputFileName 
 			    				<< "'; aborting ..."
 							<< std::endl);
-		        			THROW(ErrGeneric());
+		        			throw ErrGeneric();
 	            			}
 #ifdef USE_ADAMS_PP
 	        		}
@@ -776,12 +776,12 @@ main(int argc, char* argv[])
 	    		case ADAMS:
 	        		silent_cerr("ADAMS input not implemented yet!"
 					<< std::endl);
-	        		THROW(ErrNotImplementedYet());
+	        		throw ErrNotImplementedYet();
 	    
 	    		default:
 	        		silent_cerr("You shouldn't be here!"
 						<< std::endl);
-	        		THROW(ErrGeneric());
+	        		throw ErrGeneric();
 	    		}
 	    
 			clock_t ct = 0;
@@ -833,7 +833,7 @@ main(int argc, char* argv[])
 				if (tSecs > 3600) {
 					n = snprintf(s, l, "%ldh ", tSecs/3600);
 					if (n >= l) {
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 					}
 					s += n;
 					l -= n;
@@ -952,14 +952,14 @@ RunMBDyn(MBDynParser& HP,
 	try {
 		cd = KeyWords(HP.GetDescription());
 	} catch (EndOfFile) {
-		THROW(NoErr());
+		throw NoErr();
 	}
 	/* looking for "begin"... */	
 	if (cd != BEGIN) {
         	silent_cerr(std::endl 
 	    		<< "Error: <begin> expected at line " 
 	    		<< HP.GetLineData() << "; aborting ..." << std::endl);
-        	THROW(ErrGeneric());
+        	throw ErrGeneric();
     	}
 
 	/* looking for "data"... */	
@@ -967,7 +967,7 @@ RunMBDyn(MBDynParser& HP,
         	silent_cerr(std::endl 
 	    		<< "Error: <begin: data;> expected at line " 
 	    		<< HP.GetLineData() << "; aborting ..." << std::endl);
-        	THROW(ErrGeneric());
+        	throw ErrGeneric();
     	}
    
     	KeyWords CurrInt = MULTISTEP;
@@ -998,7 +998,7 @@ RunMBDyn(MBDynParser& HP,
 				silent_cerr("compile with -DUSE_MPI "
 					"to enable parallel solution" 
 					<< std::endl);
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 #endif /* !USE_MPI */
 	        		break;
 		
@@ -1007,7 +1007,7 @@ RunMBDyn(MBDynParser& HP,
 		    			<< "Unknown integrator at line " 
 	            			<< HP.GetLineData()
 					<< "; aborting ..." << std::endl);
-	        		THROW(ErrGeneric());
+	        		throw ErrGeneric();
             		}
             		break;    
 
@@ -1023,7 +1023,7 @@ RunMBDyn(MBDynParser& HP,
 #else /* !USE_MPI */
             		silent_cerr("compile with -DUSE_MPI to enable "
 				"parallel solution" << std::endl);
-	    		THROW(ErrGeneric());
+	    		throw ErrGeneric();
 #ifndef USE_EXCEPTIONS
 			break;
 #endif /* USE_EXCEPTIONS */
@@ -1035,7 +1035,7 @@ RunMBDyn(MBDynParser& HP,
 		    			<< "Error: <end: data;> expected"
 					" at line " << HP.GetLineData()
 					<< "; aborting ..." << std::endl);
-	        		THROW(ErrGeneric());
+	        		throw ErrGeneric();
 	    		}
 	    		goto endofcycle;        
 	 
@@ -1044,7 +1044,7 @@ RunMBDyn(MBDynParser& HP,
 	        		<< "Unknown description at line " 
 	        		<< HP.GetLineData()
 				<< "; aborting ..." << std::endl);
-	    		THROW(ErrGeneric());      
+	    		throw ErrGeneric();      
         	}
     	}
    
@@ -1123,11 +1123,11 @@ endofcycle:
 		 * tunable algorithmic dissipation */
         	silent_cerr("Sorry, implicit Runge-Kutta isn't supported yet;"
 	    		<< std::endl << "aborting ..." << std::endl);
-        	THROW(ErrNotImplementedYet());
+        	throw ErrNotImplementedYet();
 
 	default:
         	silent_cerr("Unknown integrator; aborting ..." << std::endl);
-        	THROW(ErrGeneric());   
+        	throw ErrGeneric();   
     	}
 
 #ifdef USE_EXCEPTIONS

@@ -187,7 +187,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	  doublereal d = axis.Norm();
 	  if (d < DBL_EPSILON) {
 	     std::cerr << "need a definite direction, not " << axis << "!" << std::endl;
-	     THROW(ErrGeneric());
+	     throw ErrGeneric();
 	  }
 	  axis /= d;
        } 
@@ -197,7 +197,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area1 <= DBL_EPSILON) {		  
 	  std::cerr << "null or negative area1 in actuator"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	 
        DEBUGCOUT("Area1: " << area1 << std::endl);
        
@@ -206,7 +206,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area2 <= DBL_EPSILON) {		  
 	  std::cerr << "null or negative area2 in actuator"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	 
        DEBUGCOUT("Area2: " << area2 << std::endl);
        
@@ -215,7 +215,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (dl <= DBL_EPSILON) {		  
 	  std::cerr << "null or negative dl in actuator"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	 
        DEBUGCOUT("dl: " << dl << std::endl);
        
@@ -247,7 +247,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
       
 #else /* defined(USE_STRUCT_NODES) */
       std::cerr << "you are not allowed to use actuators" << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
 #endif /* defined(USE_STRUCT_NODES) */
       
     case MINOR_LOSS: {
@@ -263,7 +263,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (dKappa1 < 0.) {		  
 	  std::cerr << "negative Kappa1 in minor loss"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Kappa1: " << dKappa1 << std::endl);
        
@@ -272,7 +272,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (dKappa2 < 0.) {		  
 	  std::cerr << "negative Kappa2 in minor loss"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Kappa2: " << dKappa2 << std::endl);
        
@@ -281,7 +281,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area <= DBL_EPSILON) {		  
 	  std::cerr << "null or negative area in minor loss"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	 
        DEBUGCOUT("Area: " << area << std::endl);
        
@@ -314,7 +314,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (dKappa1 < 0.) {		  
 	  std::cerr << "negative Kappa1 in minor loss"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Kappa1: " << dKappa1 << std::endl);
        
@@ -323,7 +323,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (dKappa2 < 0.) {		  
 	  std::cerr << "negative Kappa2 in minor loss"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Kappa2: " << dKappa2 << std::endl);
        
@@ -332,7 +332,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area1 <= DBL_EPSILON) {		  
 	  std::cerr << "null or negative area in minor loss"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	 
        DEBUGCOUT("Area: " << area1 << std::endl);
        
@@ -341,7 +341,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area1 <= DBL_EPSILON) {		  
 	  std::cerr << "null or negative area in minor loss"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	 
        DEBUGCOUT("Area: " << area2 << std::endl);
        
@@ -379,7 +379,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area_max <= 0.) {		  
 	  std::cerr << "null or negative area_max in control valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Area_max: " << area_max << std::endl);
        
@@ -390,7 +390,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	  if (loss_area  < 0.) {		  
 	     std::cerr << "negative loss_area in control valve "
 	       << uLabel << " at " << HP.GetLineData() << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }	  
 	  DEBUGCOUT("Loss_area in %= " << loss_area << std::endl); 
        }
@@ -421,7 +421,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        break;
 
        default:
-          THROW(ErrGeneric());
+          throw ErrGeneric();
        }
        
        break;
@@ -453,7 +453,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (s_max < 0.) {		  
 	  std::cerr << "negative s_max in dynamic control valve"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("S_max: " << s_max << std::endl);
        
@@ -462,7 +462,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (width <= 0.) {		  
 	  std::cerr << "null or negative width in dynamic control valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Width: " << width << std::endl);
        
@@ -473,7 +473,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	  if (loss_area < 0.) {		  
 	     std::cerr << "negative loss_area in dynamic control valve "
 	       << uLabel << " at " << HP.GetLineData() << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }
 	  DEBUGCOUT("Loss_area in %= " << loss_area << std::endl); 
        }
@@ -483,7 +483,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (valve_diameter <= 0.) {		  
 	  std::cerr << "null or negative valve diameter in dynamic control valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Valve diameter: " << valve_diameter << std::endl);
        
@@ -492,7 +492,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (valve_density <= 0.) {		  
 	  std::cerr << "null or negative valve density in dynamic control valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Valve density: " << valve_density << std::endl);
        
@@ -556,7 +556,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (start < 0.) {		  
 	  std::cerr << "negative start in pressure flow control valve"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        } 
        DEBUGCOUT("Start: " << start << std::endl);
        
@@ -565,7 +565,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (s_max < 0.) {		  
 	  std::cerr << "negative s_max in pressure flow control valve"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("S_max: " << s_max << std::endl);
        
@@ -574,7 +574,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (width <= 0.) {		  
 	  std::cerr << "null or negative width in pressure flow control valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Width: " << width << std::endl);
        
@@ -585,7 +585,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	  if (loss_area < 0.) {		  
 	     std::cerr << "negative loss_area in pressure flow control valve "
 	       << uLabel << " at " << HP.GetLineData() << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }
 	  DEBUGCOUT("Loss_area in %= " << loss_area << std::endl); 
        }
@@ -595,7 +595,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (valve_diameter <= 0.) {		  
 	  std::cerr << "null or negative valve diameter in pressure flow control valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Valve diameter: " << valve_diameter << std::endl);
        
@@ -604,7 +604,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (valve_density <= 0.) {		  
 	  std::cerr << "null or negative valve density in pressure flow control valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Valve density: " << valve_density << std::endl);
        
@@ -655,7 +655,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area_diaf <= 0.) {		  
 	  std::cerr << "null or negative area_diaf in pressure valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Area_diaf: " << area_diaf << std::endl);
        
@@ -664,7 +664,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (mass <= 0.) {		  
 	  std::cerr << "null or negative valve mass in pressure valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Valve mass: " << mass << std::endl);
        
@@ -673,7 +673,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area_max <= 0.) {		  
 	  std::cerr << "null or negative area_max in pressure valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Area_max: " << area_max << std::endl);
        
@@ -682,7 +682,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (s_max < 0.) {		  
 	  std::cerr << "negative s_max in pressure valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("S_max: " << s_max << std::endl);
        
@@ -691,7 +691,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (Kappa < 0.) {		  
 	  std::cerr << "negative Kappa in  pressure valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Kappa: " << Kappa << std::endl);
        
@@ -700,7 +700,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (force0 < 0.) {		  
 	  std::cerr << "negative force0 in  pressure valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	 
        DEBUGCOUT("Force0: " << force0 << std::endl);
        
@@ -709,7 +709,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (width <= 0.) {		  
 	  std::cerr << "null or negative width in pressure valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Width: " << width << std::endl);
        
@@ -757,7 +757,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area_diaf <= 0.) {		  
 	  std::cerr << "null or negative area_diaf in flow valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Area_diaf: " << area_diaf << std::endl);
        
@@ -766,7 +766,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (mass <= 0.) {
 	  std::cerr << "null or negative valve mass in flow valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Valve mass: " << mass << std::endl);
        
@@ -775,7 +775,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area_pipe <= 0.) {
 	  std::cerr << "null or negative area_pipe in flow valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Area_pipe: " << area_pipe << std::endl);
             
@@ -784,7 +784,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area_max <= 0.) {
 	  std::cerr << "null or negative area_max in flow valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Area_max: " << area_max << std::endl);
        
@@ -793,7 +793,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (Kappa <= 0.) {
 	  std::cerr << "null or negative Kappa in  flow valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Kappa: " << Kappa << std::endl);
        
@@ -802,7 +802,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (force0 < 0.) {		  
 	  std::cerr << "negative force0 in  flow valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	 
        DEBUGCOUT("Force0: " << force0 << std::endl);
        
@@ -811,7 +811,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (width <= 0.) {		  
 	  std::cerr << "null or negative width in flow valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Width: " << width << std::endl);
        
@@ -820,7 +820,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (s_max < 0.) {		  
 	  std::cerr << "negative s_max in flow valve "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("s_max: " << s_max << std::endl);
        
@@ -866,7 +866,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (diameter <= 0.) {		  
 	  std::cerr << "null or negative diameter in orifice"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Diameter: " << diameter << std::endl);
        
@@ -875,7 +875,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area_diaf <= 0.) {		  
 	  std::cerr << "null or negative area_diaf in orifice"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	 
        DEBUGCOUT("Area_diaf: " << area_diaf << std::endl);
   
@@ -888,7 +888,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	      {		  
 		 std::cerr << "null or negative area_pipe in orifice"
 		   << uLabel << " at " << HP.GetLineData() << std::endl;
-		 THROW(DataManager::ErrGeneric());
+		 throw DataManager::ErrGeneric();
 	      }	 
 	 }
        DEBUGCOUT("Area_pipe: " << area_pipe << std::endl);
@@ -901,7 +901,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	      {		  
 		 std::cerr << "null or negative Reynold's number in orifice"
 		   << uLabel << " at " << HP.GetLineData() << std::endl;
-		 THROW(DataManager::ErrGeneric());
+		 throw DataManager::ErrGeneric();
 	      }	 
 	 }
        DEBUGCOUT("Reynold critico: " << ReCr << std::endl);
@@ -930,7 +930,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (stroke <= 0.) {		  
 	  std::cerr << "null or negative stroke in accumulator "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Stroke: " << stroke << std::endl);
           
@@ -942,7 +942,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	    {		  
 	       std::cerr << "Accumulator: stroke minor then inizial position"
 		 << uLabel << " at " << HP.GetLineData() << std::endl;
-	       THROW(DataManager::ErrGeneric());
+	       throw DataManager::ErrGeneric();
 	    }
        }	    	  
        DEBUGCOUT("start: " << start << std::endl);
@@ -952,7 +952,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area <= 0.) {		  
 	  std::cerr << "null or negative area in accumulator "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Area: " << area << std::endl);
        
@@ -961,7 +961,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area_pipe <= 0.) {		  
 	  std::cerr << "null or negative area_pipe in accumulator "
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("area_pipe: " << area_pipe << std::endl); 
        
@@ -970,7 +970,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (mass <= 0.) {		  
 	  std::cerr << "null or negative mass in accumulator"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	 
        DEBUGCOUT("Mass: " << mass << std::endl);
          
@@ -982,7 +982,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	    {		  
 	       std::cerr << "Negative loss_in in accumulator"
 		      << uLabel << " at " << HP.GetLineData() << std::endl;
-	       THROW(DataManager::ErrGeneric());
+	       throw DataManager::ErrGeneric();
 	    }
        }	    	  
        DEBUGCOUT("Loss_in: " << h_in << std::endl);
@@ -995,7 +995,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 		 {		  
 		    std::cerr << "Negative loss_out in accumulator"
 		      << uLabel << " at " << HP.GetLineData() << std::endl;
-		    THROW(DataManager::ErrGeneric());
+		    throw DataManager::ErrGeneric();
 		 }
 	    }	    	  
 	    DEBUGCOUT("loss_out: " << h_out << std::endl);
@@ -1011,7 +1011,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	  if (press0 <= 0.) {		  
 	     std::cerr << "null or negative pressure0 in accumulator"
 	       << uLabel << " at " << HP.GetLineData() << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }	    	  
 	  DEBUGCOUT("press0: " << press0 << std::endl);
 	  
@@ -1020,7 +1020,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	  if (press_max <= 0.) {		  
 	     std::cerr << "null or negative pressure max in accumulator"
 	       << uLabel << " at " << HP.GetLineData() << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }	     
 	  DEBUGCOUT("Pressure max: " << press_max << std::endl);
 	  
@@ -1028,7 +1028,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	  if (Kappa < 0.) {		  
 	     std::cerr << "negative Kappa in accumulator"
 	       << uLabel << " at " << HP.GetLineData() << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }	 
 	  DEBUGCOUT("Kappa: " << Kappa << std::endl);
        }
@@ -1039,7 +1039,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	  if (weight <= 0.) {		  
 	     std::cerr << "null or negative weight in accumulator"
 	       << uLabel << " at " << HP.GetLineData() << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }	  
 	  DEBUGCOUT("weight: " << weight << std::endl);
        }
@@ -1051,14 +1051,14 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	  if (spring < 0.) {		  
 	     std::cerr << "negative spring in accumulator"
 	       << uLabel << " at " << HP.GetLineData() << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }
 	  
 	  force0 = HP.GetReal();
 	  if (force0 < 0.) {		  
 	     std::cerr << "negative force0 in accumulator"
 	       << uLabel << " at " << HP.GetLineData() << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }
 	  DEBUGCOUT("spring: " << spring << std::endl);
 	  DEBUGCOUT("force0: " << force0 << std::endl);
@@ -1105,7 +1105,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (press <= 0.) {		  
 	  std::cerr << "null or negative pressure in tank"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Pressure: " << press << std::endl);
        
@@ -1114,7 +1114,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area_pipe <= 0.) {		  
 	  std::cerr << "null or negative area_pipe in tank"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Area_pipe: " << area_pipe << std::endl); 
        
@@ -1123,7 +1123,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (area_serb <= 0.) {		  
 	  std::cerr << "null or negative area_serb in tank"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Area serbatoio: " << area_serb << std::endl);
        
@@ -1132,7 +1132,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (s_max < 0.) {		  
 	  std::cerr << "negative s_max in tank"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Livello massimo dell'olio: " << s_max << std::endl);
        
@@ -1144,7 +1144,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	  if (level < 0.) {		  
 	     std::cerr << "negative level in tank"
 	       << uLabel << " at " << HP.GetLineData() << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }	     
 	  DEBUGCOUT("Livello iniziale: " << level << std::endl);
        }
@@ -1156,7 +1156,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	  if (s_min < 0.) {
 	     std::cerr << "negative s_min in tank"
 	       << uLabel << " at " << HP.GetLineData() << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }	     
 	  DEBUGCOUT("Soglia di allarme: " << s_min << std::endl);
        }
@@ -1191,7 +1191,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (diameter <= 0.) {		  
 	  std::cerr << "null or negative diameter in pipe"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Diameter: " << diameter << std::endl);
        
@@ -1204,7 +1204,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	      {		  
 		 std::cerr << "null or negative area in pipe"
 		   << uLabel << " at " << HP.GetLineData() << std::endl;
-		 THROW(DataManager::ErrGeneric());
+		 throw DataManager::ErrGeneric();
 	      }	
 	      }
        DEBUGCOUT("Area: " << area << std::endl);
@@ -1214,7 +1214,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (lenght <= 0.) {		  
 	  std::cerr << "null or negative lenght in pipe"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Lenght: " << lenght << std::endl); 
        
@@ -1255,7 +1255,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (diameter <= 0.) {		  
 	  std::cerr << "null or negative diameter in dynamic pipe"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Diameter: " << diameter << std::endl);
        
@@ -1268,7 +1268,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 		   {		  
 		      std::cerr << "null or negative area in pipe"
 			<< uLabel << " at " << HP.GetLineData() << std::endl;
-		      THROW(DataManager::ErrGeneric());
+		      throw DataManager::ErrGeneric();
 		   }	
 	      }
        DEBUGCOUT("Area: " << area << std::endl);
@@ -1278,7 +1278,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (lenght <= 0.) {		  
 	  std::cerr << "null or negative lenght in dynamic pipe"
 	    << uLabel << " at " << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	     
        DEBUGCOUT("Lenght: " << lenght << std::endl); 
        
@@ -1320,14 +1320,14 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     default: {
        std::cerr << "unknown hydraulic element type in hydraulic element " << uLabel
 	 << " at line " << HP.GetLineData() << std::endl;       
-       THROW(DataManager::ErrGeneric());
+       throw DataManager::ErrGeneric();
     }	
    }
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.IsArg()) {
       std::cerr << "semicolon expected at line " << HP.GetLineData() << std::endl;     
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }
    
    return pEl;

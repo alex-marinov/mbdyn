@@ -71,7 +71,7 @@ dEpsilonPrime(0.)
       if (dDot <= DBL_EPSILON) {
 	 std::cerr << "Rod(" << GetLabel() << "): "
 		 "initial length must not be null" << std::endl;
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }
 
       dElle = sqrt(dDot);
@@ -116,7 +116,7 @@ void Rod::AssMat(FullSubMatrixHandler& WorkMat, doublereal dCoef)
 	<< " and " << pNode2->GetLabel() 
 	<< " in Rod Joint " << uLabel << ';' << std::endl
 	<< "aborting ..." << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
 
    /* Lunghezza corrente */
@@ -151,7 +151,7 @@ void Rod::AssVec(SubVectorHandler& WorkVec)
 	<< " and " << pNode2->GetLabel() 
 	<< " in Rod Joint " << uLabel << ';' << std::endl
 	<< "aborting ..." << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
    
    /* Deformazione */
@@ -311,7 +311,7 @@ Rod::Output_pch(std::ostream& out) const
 		unsigned int label = GetLabel();
 		if (label > 9999999) {
 			std::cerr << "label of Rod(" << label <<") is too large" << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		const char *name = GetName();
@@ -639,7 +639,7 @@ ViscoElasticRod::AssJac(VariableSubMatrixHandler& WorkMat,
 	<< " and " << pNode2->GetLabel() 
 	<< " in Rod Joint " << uLabel << ';' << std::endl
 	<< "aborting ..." << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
 
    /* Lunghezza corrente */
@@ -703,7 +703,7 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
 	<< " and " << pNode2->GetLabel() 
 	<< " in Rod Joint " << uLabel << ';' << std::endl
 	<< "aborting ..." << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
 
    /* Lunghezza corrente */
@@ -781,7 +781,7 @@ ViscoElasticRod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	<< " and " << pNode2->GetLabel() 
 	<< " in Rod Joint " << uLabel << ';' << std::endl
 	<< "aborting ..." << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
 
    /* Lunghezza corrente */
@@ -850,7 +850,7 @@ ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
 	<< " and " << pNode2->GetLabel() 
 	<< " in Rod Joint " << uLabel << ';' << std::endl
 	<< "aborting ..." << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
 
    /* Lunghezza corrente */
@@ -909,7 +909,7 @@ f2(f2Tmp)
    if (dDot <= DBL_EPSILON) {
       std::cerr << "RodWithOffset(" << GetLabel() << "): "
 	      "inital length must not be null" << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
 
    dElle = sqrt(dDot);
@@ -998,7 +998,7 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 	<< " and " << pNode2->GetLabel() 
 	<< " in Rod Joint " << uLabel << ';' << std::endl
 	<< "aborting ..." << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
 
    /* Lunghezza corrente */
@@ -1117,7 +1117,7 @@ RodWithOffset::AssRes(SubVectorHandler& WorkVec,
 	<< " and " << pNode2->GetLabel() 
 	<< " in Rod Joint " << uLabel << ';' << std::endl
 	<< "aborting ..." << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
 
    /* Lunghezza corrente */
@@ -1165,7 +1165,7 @@ RodWithOffset::Output_pch(std::ostream& out) const
 		unsigned int label = GetLabel();
 		if (label > 9999999) {
 			std::cerr << "label of Rod(" << label <<") is too large" << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		const char *name = GetName();
@@ -1338,7 +1338,7 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	<< " and " << pNode2->GetLabel() 
 	<< " in Rod Joint " << uLabel << ';' << std::endl
 	<< "aborting ..." << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
 
    /* Lunghezza corrente */
@@ -1495,7 +1495,7 @@ RodWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
 	<< " and " << pNode2->GetLabel() 
 	<< " in Rod Joint " << uLabel << ';' << std::endl
 	<< "aborting ..." << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
 
    /* Lunghezza corrente */

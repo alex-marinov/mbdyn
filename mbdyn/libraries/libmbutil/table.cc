@@ -129,7 +129,7 @@ Table::Table(Int s, Int f) : size(s), v(NULL)
       if (n == NULL) { 
 	 std::cerr << func_name << ": unable to insert " << p->name 
 		 << std::endl;
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }
       p++;
    }
@@ -175,7 +175,7 @@ Table::Put(const char* const name, const TypedValue& x)
    if (pVar != NULL) {
       std::cerr << func_name << ": name \"" << name 
 	<< "\" already defined" << std::endl;
-      THROW(Table::ErrNameAlreadyDefined());
+      throw Table::ErrNameAlreadyDefined();
    }
    
    int ii = FindRow(name);
@@ -197,7 +197,7 @@ Table::Put(NamedValue *p)
    if (pVar != NULL) {
       std::cerr << func_name << ": name \"" << p->GetName()
 	<< "\" already defined" << std::endl;
-      THROW(Table::ErrNameAlreadyDefined());
+      throw Table::ErrNameAlreadyDefined();
    }
 
    int ii = FindRow(p->GetName());
@@ -245,7 +245,7 @@ operator << (std::ostream& out, Table& T)
 	    break;
 
 	 default:
-	    THROW(ErrGeneric());
+	    throw ErrGeneric();
 	 }
 	    
 	 out << "  " << type << " " << pn->var->GetName() << " = ";

@@ -420,7 +420,7 @@ AerodynamicBody::AfterConvergence(const VectorHandler& /* X */ ,
 		break;
 
 	case AeroData::HARRIS:
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 
 	case AeroData::BIELAWA:
       		for (integer i = 0; i < GDI.iGetNum(); i++) {
@@ -429,7 +429,7 @@ AerodynamicBody::AfterConvergence(const VectorHandler& /* X */ ,
 		break;
 		
 	default:
-		THROW(ErrGeneric());
+		throw ErrGeneric();
    	}
 }
 
@@ -503,7 +503,7 @@ ReadUnsteadyFlag(MBDynParser& HP)
 						<< " at line "
 						<< HP.GetLineData()
 						<< std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
       				iInst = AeroData::UnsteadyModel(i);
 			}
@@ -522,7 +522,7 @@ ReadUnsteadyFlag(MBDynParser& HP)
 					"numeric value " << i << " at line "
 					<< HP.GetLineData()
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
       			iInst = AeroData::UnsteadyModel(i);
 		}
@@ -537,12 +537,12 @@ ReadUnsteadyFlag(MBDynParser& HP)
 				" unsteady aerodynamics"
 				" are not available"
 				<< std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 
 		default:
 	    		std::cerr << "illegal unsteady flag at line "
 				<< HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
       		}
 
 		/*
@@ -600,7 +600,7 @@ ReadAeroData(DataManager* pDM,
 	if ( *piNumber <= 0 ) {
 		std::cerr << "line " << HP.GetLineData() 
 			<< ": need at least 1 Gauss point" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
    	DEBUGLCOUT(MYDEBUG_INPUT, "Gauss points number: " << *piNumber << std::endl);
   
@@ -665,7 +665,7 @@ ReadAeroData(DataManager* pDM,
 						"one profile at line " 
 						<< HP.GetLineData()
 						<< std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
 				integer *profiles = NULL;
 				SAFENEWARR(profiles, integer, nProfiles+1);
@@ -685,7 +685,7 @@ ReadAeroData(DataManager* pDM,
 							"at line " 
 							<< HP.GetLineData() 
 							<< std::endl;
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 					} else if (upper_bounds[i] > 1.) {
 						std::cerr << "upper bound " 
 							<< i+1 << " = " 
@@ -694,7 +694,7 @@ ReadAeroData(DataManager* pDM,
 							"at line " 
 							<< HP.GetLineData() 
 							<< std::endl;
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 					} else if (i > 0 && upper_bounds[i] <= upper_bounds[i-1]) {
 						std::cerr << "upper bound " 
 							<< i+1 << " = " 
@@ -704,7 +704,7 @@ ReadAeroData(DataManager* pDM,
 							"at line " 
 							<< HP.GetLineData() 
 							<< std::endl;
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 					}
 					data[i] = HP.GetC81Data(profiles[i]);
 					if (data[i] == NULL) {
@@ -714,7 +714,7 @@ ReadAeroData(DataManager* pDM,
 							<< " at line "
 							<< HP.GetLineData() 
 							<< std::endl;
-						THROW(ErrGeneric());
+						throw ErrGeneric();
 					}
 		  			DEBUGLCOUT(MYDEBUG_INPUT, 
 						"profile data " << i+1 
@@ -814,7 +814,7 @@ ReadAerodynamicBody(DataManager* pDM,
 				<< " at line " << HP.GetLineData() 
 				<< ": rotor " << uNode
 				<< " not defined" << std::endl;	
-				THROW(DataManager::ErrGeneric());
+				throw DataManager::ErrGeneric();
 		}
 		pRotor = (Rotor*)p->pGet();
 	}
@@ -857,7 +857,7 @@ ReadAerodynamicBody(DataManager* pDM,
 	if (HP.IsArg()) {
 		std::cerr << ": semicolon expected at line "
 			<< HP.GetLineData() << std::endl;      
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	}
 	
 	return pEl;
@@ -1312,7 +1312,7 @@ AerodynamicBeam::AfterConvergence(const VectorHandler& /* X */ ,
 		break;
 
 	case AeroData::HARRIS:
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 
 	case AeroData::BIELAWA:
 		for (integer i = 0; i < 3*GDI.iGetNum(); i++) {
@@ -1321,7 +1321,7 @@ AerodynamicBeam::AfterConvergence(const VectorHandler& /* X */ ,
 		break;
 
 	default:
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 }
 
@@ -1387,7 +1387,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 		std::cerr << " at line " << HP.GetLineData() 
 			<< ": beam " << uBeam
 			<< " not defined" << std::endl;      
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	}
 	pBeam = (Beam*)p->pGet();
 	
@@ -1408,7 +1408,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 			std::cerr << " at line " << HP.GetLineData() 
 				<< ": rotor " << uRotor
 				<< " not defined" << std::endl;	 
-			THROW(DataManager::ErrGeneric());
+			throw DataManager::ErrGeneric();
 		}
 		pRotor = (Rotor*)p->pGet();
 	}
@@ -1482,7 +1482,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 	if (HP.IsArg()) {
 		std::cerr << ": semicolon expected at line "
 			<< HP.GetLineData() << std::endl;      
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	}
 	
 	return pEl;
@@ -1914,7 +1914,7 @@ AerodynamicBeam2::AfterConvergence(const VectorHandler& /* X */ ,
 		break;
 
 	case AeroData::HARRIS:
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 
 	case AeroData::BIELAWA:
       		for (integer i = 0; i < 2*GDI.iGetNum(); i++) {
@@ -1923,7 +1923,7 @@ AerodynamicBeam2::AfterConvergence(const VectorHandler& /* X */ ,
 		break;
 		
 	default:
-		THROW(ErrGeneric());
+		throw ErrGeneric();
    	}
 }
 
@@ -1988,7 +1988,7 @@ ReadAerodynamicBeam2(
 		std::cerr << " at line " << HP.GetLineData() 
 			<< ": beam " << uBeam
 			<< " not defined" << std::endl;      
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	}
 	pBeam = (Beam2 *)p->pGet();
 	
@@ -2009,7 +2009,7 @@ ReadAerodynamicBeam2(
 			std::cerr << " at line " << HP.GetLineData() 
 				<< ": rotor " << uRotor
 				<< " not defined" << std::endl;	 
-			THROW(DataManager::ErrGeneric());
+			throw DataManager::ErrGeneric();
 		}
 		pRotor = (Rotor*)p->pGet();
 	}
@@ -2070,7 +2070,7 @@ ReadAerodynamicBeam2(
 	if (HP.IsArg()) {
 		std::cerr << ": semicolon expected at line "
 			<< HP.GetLineData() << std::endl;      
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	}
 	
 	return pEl;

@@ -227,7 +227,7 @@ fOutFlex(sFileMod, std::ios::out /* | std::ios::noreplace */ )
 		std::cerr << "Modal(" << GetLabel()
 			<< "): unable to open output file \"" << sFileMod
 			<< "\"" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	for (unsigned int i = 0; i < NStrNodes; i++) {
@@ -1573,7 +1573,7 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				<< "warning, first node hinge axis "
 				"and second node hinge axis "
 				"are (nearly) orthogonal;" << std::endl						<< "aborting ..." << std::endl;
-			THROW(Joint::ErrGeneric());
+			throw Joint::ErrGeneric();
 		}
 		
 		MWedge = Mat3x3(v1, v2, v3);
@@ -2167,7 +2167,7 @@ ReadModal(DataManager* pDM,
 				<< "): structural node " << uNode
 				<< " at line " << HP.GetLineData()
 				<< " not defined" << std::endl;
-			THROW(DataManager::ErrGeneric());
+			throw DataManager::ErrGeneric();
 		}
 
 		if (pTmpNode->GetStructNodeType() != StructNode::MODAL) {
@@ -2176,7 +2176,7 @@ ReadModal(DataManager* pDM,
 				"for StructuralNode(" << uNode
 				<< ") at line " << HP.GetLineData() 
 				<< std::endl;
-			THROW(DataManager::ErrGeneric());
+			throw DataManager::ErrGeneric();
 		}
 		pModalNode = dynamic_cast<ModalNode *>(pTmpNode);
 
@@ -2195,7 +2195,7 @@ ReadModal(DataManager* pDM,
 		std::cerr << "Modal(" << uLabel << "): "
 			"illegal number of modes at line "
 			<< HP.GetLineData() << std::endl;
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	}
 
 	unsigned int *uModeNumber = NULL;
@@ -2229,7 +2229,7 @@ ReadModal(DataManager* pDM,
 					"illegal " << iCnt+1 << "'" << th 
 					<< " mode number " << n 
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			/* FIXME: check for duplicates? */
@@ -2248,7 +2248,7 @@ ReadModal(DataManager* pDM,
 		std::cerr << "Modal(" << uLabel << "): "
 			"illegal number of FEM nodes at line " 
 			<< HP.GetLineData() << std::endl;
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	}
 
 #ifdef MODAL_SCALE_DATA
@@ -2337,7 +2337,7 @@ ReadModal(DataManager* pDM,
 	if (s == NULL) {
 		std::cerr << "Modal(" << uLabel << "): unable to get "
 			"modal data file name" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	const char *sFileFem = NULL;
@@ -2349,7 +2349,7 @@ ReadModal(DataManager* pDM,
 		std::cerr << "Modal(" << uLabel << "): "
 			"unable to open file " << sFileFem
 			<< " at line " << HP.GetLineData() << std::endl;
-		THROW(DataManager::ErrGeneric());
+		throw DataManager::ErrGeneric();
 	}
 	DEBUGCOUT("Reading Flexible Body Data from file "
 			<< sFileFem << std::endl);
@@ -2427,7 +2427,7 @@ ReadModal(DataManager* pDM,
 					<< " does not match node number "
 					<< NFemNodesDADS
 					<< std::endl;
-				THROW(DataManager::ErrGeneric());
+				throw DataManager::ErrGeneric();
 			}
 
 			if (NModes != NModesDADS) {
@@ -2439,7 +2439,7 @@ ReadModal(DataManager* pDM,
 			}
 
 			if (bActiveModes != NULL) {
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			SAFENEWARR(bActiveModes, bool, NModesDADS+1);
@@ -2455,7 +2455,7 @@ ReadModal(DataManager* pDM,
 						<< " is not available (max = "
 						<< NModesDADS << ")"
 						<< std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
 				bActiveModes[uModeNumber[iCnt]] = true;
 			}
@@ -2479,7 +2479,7 @@ ReadModal(DataManager* pDM,
 					"input file " << sFileFem
 					<< " is bogus (RECORD GROUP 3)"
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			for (iMode = 1; iMode <= NModesDADS; iMode++) {
@@ -2501,7 +2501,7 @@ ReadModal(DataManager* pDM,
 					"input file " << sFileFem
 					<< " is bogus (RECORD GROUP 4)"
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			for (iMode = 1; iMode <= NModesDADS; iMode++) {
@@ -2561,7 +2561,7 @@ ReadModal(DataManager* pDM,
 					"input file " << sFileFem
 					<< " is bogus (RECORD GROUP 8)"
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			unsigned int iCnt = 1;
@@ -2602,7 +2602,7 @@ ReadModal(DataManager* pDM,
 					"input file " << sFileFem
 					<< " is bogus (RECORD GROUP 9)"
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			for (iMode = 1; iMode <= NModesDADS; iMode++) {
@@ -2632,7 +2632,7 @@ ReadModal(DataManager* pDM,
 					"input file " << sFileFem
 					<< " is bogus (RECORD GROUP 10)"
 					<< std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			for (iMode = 1; iMode <= NModesDADS; iMode++) {
@@ -2730,7 +2730,7 @@ ReadModal(DataManager* pDM,
 				"FEM node " << NFemOriginNode
 				<< " at line " << HP.GetLineData()
 				<< " not defined " << std::endl;
-			THROW(DataManager::ErrGeneric());
+			throw DataManager::ErrGeneric();
 		}
 
 		iNode++;
@@ -2774,7 +2774,7 @@ ReadModal(DataManager* pDM,
 				"FEM node " << uNode1
 				<< " at line " << HP.GetLineData()
 				<< " not defined " << std::endl;
-			THROW(DataManager::ErrGeneric());
+			throw DataManager::ErrGeneric();
 		}
 
 		iNode++;
@@ -2811,7 +2811,7 @@ ReadModal(DataManager* pDM,
 				"StructuralNode(" << uNode2 << ") "
 				"at line " << HP.GetLineData()
 				<< " not defined" << std::endl;
-			THROW(DataManager::ErrGeneric());
+			throw DataManager::ErrGeneric();
 		}
 
 		/* offset del nodo Multi-Body */

@@ -333,7 +333,7 @@ restart:
 	  if (iNumDr == 0) {
 	     std::cerr << "At least one drive is required "
 		     "in array template drive" << std::endl;
-	     THROW(ErrGeneric());
+	     throw ErrGeneric();
 	  } else if (iNumDr == 1) {
 	     CurrKeyWord = ReadTplDriveKeyWords<T>::SINGLE;
 	     goto restart;
@@ -358,14 +358,14 @@ restart:
 	 
        default: {
 	  std::cerr << "Unknown template drive type" << std::endl;
-	  THROW(ErrGeneric());
+	  throw ErrGeneric();
        }
       }
    }
    
    if (pTplDC == NULL) {
       std::cerr << "Error in allocation of template drive" << std::endl;
-      THROW(ErrMemory());
+      throw ErrMemory();
    }
    
    return pTplDC;

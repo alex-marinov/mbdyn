@@ -462,7 +462,7 @@ UniversalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       std::cerr << "joint " << GetLabel() << ':' << std::endl
 	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << std::endl
 	<< "aborting ..." << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
    
    Vec3 TmpPrime(e2b.Cross(Omega1.Cross(e3a))-e3a.Cross(Omega2.Cross(e2b)));
@@ -994,7 +994,7 @@ UniversalRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	<< "warning, first node hinge axis and second node hinge axis "
 	"are (nearly) orthogonal;" << std::endl
 	<< "aborting ..." << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
    
    Vec3 TmpPrime(e2b.Cross(Omega1.Cross(e3a))-e3a.Cross(Omega2.Cross(e2b)));
@@ -1420,7 +1420,7 @@ UniversalPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       std::cerr << "joint " << GetLabel() << ':' << std::endl
 	<< "warning, node hinge axis and fixed point hinge axis are (nearly) orthogonal;" << std::endl
 	<< "aborting ..." << std::endl;
-      THROW(Joint::ErrGeneric());
+      throw Joint::ErrGeneric();
    }   
    
    Vec3 TmpPrime(e3.Cross(e2.Cross(Omega)));

@@ -88,7 +88,7 @@ read(LoadableElem* pEl,
 			/*
 			 * Exit quietly if nothing else is provided
 			 */
-			THROW(NoErr());
+			throw NoErr();
 		}
 	}
 
@@ -98,11 +98,11 @@ read(LoadableElem* pEl,
 	p->pos = ReadScalarDof(pDM, HP, 0);
 	if (p->mom.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 		std::cerr << "need a differential node" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	if (p->pos.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 		std::cerr << "need a differential node" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	p->mass = HP.GetReal();
 

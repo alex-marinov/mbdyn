@@ -94,7 +94,7 @@ class RefCount {
       SAFENEW(piCount, unsigned int);
       if (piCount == NULL) {
 	 cerr << "Out of memory" << endl;
-	 THROW(ErrMemory());
+	 throw ErrMemory();
       }
       *piCount = 1;
    };
@@ -157,7 +157,7 @@ class RefCount {
       SAFENEW(piCount, unsigned int);
       if (piCount == NULL) {
 	 cerr << "Out of memory" << endl;
-	 THROW(ErrMemory());
+	 throw ErrMemory();
       }
       *piCount = 1;
       return *this;

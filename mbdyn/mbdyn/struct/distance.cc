@@ -63,7 +63,7 @@ DistanceJoint::Abort(void)
 {
 	std::cerr << "Joint(" << GetLabel() << "): distance is null"
 		<< std::endl;
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 /* Dati privati */
@@ -98,7 +98,7 @@ DistanceJoint::dGetPrivData(unsigned int i) const
 		return dGet();
 	}
 
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 /* Contributo al file di restart */

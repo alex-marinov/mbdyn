@@ -112,7 +112,7 @@ gEps(epsilon), gSymList(0), vals(0)
 				if (next == NULL || next[0] != '\0') {
 					std::cerr << "unable to parse value "
 						<< &v[1] << std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
 			}
 
@@ -297,7 +297,7 @@ gEpsPrime(epsilonPrime), gSymList(0), vals(0)
 				if (next == NULL || next[0] != '\0') {
 					std::cerr << "unable to parse value "
 						<< &v[1] << std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
 			}
 
@@ -486,7 +486,7 @@ gEps(epsilon), gEpsPrime(epsilonPrime), gSymList(0), vals(0)
 				if (next == NULL || next[0] != '\0') {
 					std::cerr << "unable to parse value "
 						<< &v[1] << std::endl;
-					THROW(ErrGeneric());
+					throw ErrGeneric();
 				}
 			}
 

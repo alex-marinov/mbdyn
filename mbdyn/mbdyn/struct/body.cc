@@ -427,7 +427,7 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    
     if (pNode->GetStructNodeType() != StructNode::DYNAMIC) {
         std::cerr << "Illegal structural node type for body " << uLabel << std::endl;
-        THROW(DataManager::ErrGeneric());
+        throw DataManager::ErrGeneric();
     }
       
     integer iNumMasses = 1;
@@ -435,7 +435,7 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
         iNumMasses = HP.GetInt();
         if (iNumMasses < 1) {
 	    std::cerr << "At least one mass is required" << std::endl;
-	    THROW(DataManager::ErrGeneric());
+	    throw DataManager::ErrGeneric();
         }
         DEBUGLCOUT(MYDEBUG_INPUT, 
 	           iNumMasses << " masses will be condensed" << std::endl);
@@ -541,7 +541,7 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     if (HP.IsArg()) {
         std::cerr << std::endl
 	    << "semicolon expected at line " << HP.GetLineData() << std::endl;
-        THROW(DataManager::ErrGeneric());
+        throw DataManager::ErrGeneric();
     }   
    
     return pEl;   

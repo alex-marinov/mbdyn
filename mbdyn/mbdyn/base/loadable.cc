@@ -47,7 +47,7 @@ static DofOrder::Order
 int_set_dof(const LoadableElem*, unsigned int /* i */ )
 {
    	std::cerr << "You shouldn't be here!" << std::endl;
-   	THROW(ErrGeneric());
+   	throw ErrGeneric();
 #ifndef USE_EXCEPTIONS
    	return DofOrder::UNKNOWN;
 #endif /* USE_EXCEPTIONS */
@@ -199,7 +199,7 @@ static unsigned int
 int_i_get_priv_data_idx(const LoadableElem* /* pEl */ , const char *s)
 {
    	std::cerr << "You shouldn't be here!" << std::endl;
-   	THROW(ErrGeneric());
+   	throw ErrGeneric();
 #ifndef USE_EXCEPTIONS
         return 0;
 #endif /* USE_EXCEPTIONS */
@@ -209,7 +209,7 @@ static doublereal
 int_d_get_priv_data(const LoadableElem* /* pEl */ , unsigned int /* i */ )
 {
    	std::cerr << "You shouldn't be here!" << std::endl;
-   	THROW(ErrGeneric());
+   	throw ErrGeneric();
 #ifndef USE_EXCEPTIONS
         return 0.;
 #endif /* USE_EXCEPTIONS */
@@ -220,7 +220,7 @@ int_i_get_num_connected_nodes(const LoadableElem* pEl)
 {
 	std::cerr << psElemNames[Elem::LOADABLE] << "(" << pEl->GetLabel()
 		<< ") cannot be used in parallel environment" << std::endl;
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 static void
@@ -334,7 +334,7 @@ LoadableElem::GetCalls(MBDynParser& HP)
 	if (s == NULL) {
 		std::cerr << "Loadable(" << GetLabel()
 			<< "): unable to get module name" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
    	SAFESTRDUP(module_name, s);
@@ -353,7 +353,7 @@ LoadableElem::GetCalls(MBDynParser& HP)
 			<< "> (dlopen returns \"" << dlerror() << "\")" 
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 			<< std::endl;
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
 
 	/* default LoadableCalls struct */
@@ -391,7 +391,7 @@ LoadableElem::GetCalls(MBDynParser& HP)
 	   			<< "> (\"" << err 
 				<< "\")" << std::endl;
       		}
-      		THROW(ErrGeneric());
+      		throw ErrGeneric();
    	}
 
 	calls = *tmpcalls;
@@ -407,14 +407,14 @@ LoadableElem::BindCalls(DataManager* pDM, MBDynParser& HP)
 			<< ", got " 
 			<< LOADABLE_VERSION_OUT(calls->loadable_version) 
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
    
 	if (calls->read == NULL) {
 		std::cerr << "Loadable(" << uLabel
 			<< "): function \"read\" must be defined in module <"
 			<< module_name << "> data" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	if (calls->name == NULL) {
@@ -571,7 +571,7 @@ LoadableElem::~LoadableElem(void)
    		if (dlclose(handle) != 0) {
 			std::cerr << "unable to dlclose module \"" 
 				<< module_name << "\"" << std::endl;
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 	}
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */

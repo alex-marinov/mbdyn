@@ -667,7 +667,7 @@ inline unsigned int DummyStructNode::iGetInitialNumDof(void) const
 inline integer DummyStructNode::iGetFirstPositionIndex(void) const
 {
    std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
-   THROW(ErrGeneric());
+   throw ErrGeneric();
 }
 
 
@@ -675,7 +675,7 @@ inline integer DummyStructNode::iGetFirstPositionIndex(void) const
 inline integer DummyStructNode::iGetFirstMomentumIndex(void) const
 {
    std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
-   THROW(ErrGeneric());
+   throw ErrGeneric();
 }
 
 

@@ -74,7 +74,7 @@ ppMyRand(NULL)
    if (pthread_mutex_init(&parser_mutex, NULL)) {
       silent_cerr("DriveHandler::DriveHandler(): mutex init failed"
 		      << std::endl);
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
 #endif /* USE_MULTITHREAD */
 
@@ -85,12 +85,12 @@ ppMyRand(NULL)
       pTime = SymbolTable.Put("Time", Real(0));  
       if (pTime == NULL) {
 	 std::cerr << "DriveHandler::DriveHandler(): error in insertion Time symbol" << std::endl;	 
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }
    } else {
       if (!v->IsVar()) {
 	 std::cerr << "Symbol 'Time' must be a variable" << std::endl;
-         THROW(ErrGeneric());
+         throw ErrGeneric();
       }
       pTime = (Var *)v;
    }
@@ -102,13 +102,13 @@ ppMyRand(NULL)
       pVar = SymbolTable.Put("Var", Real(0)); 
       if (pVar == NULL) {
 	 std::cerr << "DriveHandler::DriveHandler(): error in insertion Var symbol" << std::endl;	 
-	 THROW(ErrGeneric());      
+	 throw ErrGeneric();      
       }
       // pVar->SetVal(Real(0));
    } else {
       if (!v->IsVar()) {
 	 std::cerr << "Symbol 'Var' must be a variable" << std::endl;
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }
       pVar = (Var *)v;
    }
@@ -182,7 +182,7 @@ integer DriveHandler::iRandInit(integer iSteps)
       if (!MyRandLL.GetFirst(pmr)) {
 	 std::cerr << "Error in getting first random drive data" << std::endl;
 	 
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }
       
 #ifdef DEBUG
@@ -205,7 +205,7 @@ integer DriveHandler::iRandInit(integer iSteps)
    
    if (MyRandLL.Add(pmr)) {
       std::cerr << "Error in insertion of random driver data" << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
    
    return iNumber;

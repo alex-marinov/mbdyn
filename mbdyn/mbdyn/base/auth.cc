@@ -122,7 +122,7 @@ PasswordAuth::PasswordAuth(const char *u, const char *c, const char *salt_format
 
 	char *tmp = crypt(c, make_salt(salt, sizeof(salt), salt_format));
 	if (tmp == NULL) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	strncpy(Cred, tmp, sizeof(Cred));
@@ -138,7 +138,7 @@ PasswordAuth::Auth(const char *user, const char *cred) const
 
 	char *tmp = crypt(cred, Cred);
 	if (tmp == NULL) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	if (strcmp(User, user) == 0 && strcmp(Cred, tmp) == 0) {
@@ -151,7 +151,7 @@ PasswordAuth::Auth(const char *user, const char *cred) const
 AuthMethod::AuthRes
 PasswordAuth::Auth(int sock) const
 {
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 #endif /* HAVE_CRYPT */
@@ -331,7 +331,7 @@ PAM_Auth::PAM_Auth(const char *u)
 
 		if (pw == NULL) {
 			silent_cerr("PAM_Auth: cannot determine the effective user!" << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		u = pw->pw_name;
@@ -354,7 +354,7 @@ PAM_Auth::PAM_Auth(const char *u)
 			silent_cerr("PAM_Auth: unable to release PAM authenticator" << std::endl);
 		}
 		
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	if (pam_end(pamh, retval) != PAM_SUCCESS) {
@@ -405,7 +405,7 @@ PAM_Auth::Auth(const char *user, const char *cred) const
 AuthMethod::AuthRes
 PAM_Auth::Auth(int sock) const
 {
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 #endif /* USE_PAM */
@@ -453,14 +453,14 @@ SASL2_Auth::SASL2_Auth(const mbdyn_sasl_t *ms)
 	log_server_f = mbdyn_sasl_log;
 
 	if (mbdyn_sasl_init(&mbdyn_sasl) != SASL_OK) {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 }
 
 AuthMethod::AuthRes
 SASL2_Auth::Auth(const char *user, const char *cred) const
 {
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 
 AuthMethod::AuthRes
@@ -525,14 +525,14 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 		if (!HP.IsKeyWord("user")) {
 			silent_cerr("ReadAuthMethod: user expected at line "
 					<< HP.GetLineData() << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		const char* tmp = HP.GetStringWithDelims();
 		if (strlen(tmp) == 0) {
 			silent_cerr("ReadAuthMethod: Need a legal user id at line "
 					<< HP.GetLineData() << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		char* user = NULL;
@@ -541,7 +541,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 		if (!HP.IsKeyWord("credentials")) {
 			silent_cerr("ReadAuthMethod: credentials expected at line "
 					<< HP.GetLineData() << std::endl);
-			THROW(ErrGeneric());
+			throw ErrGeneric();
 		}
 
 		if (HP.IsKeyWord("prompt")) {
@@ -570,7 +570,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 #else /* !HAVE_CRYPT */
 		silent_cerr("ReadAuthMethod: line " << HP.GetLineData()
 				<< ": no working crypt(3)" << std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 #endif /* !HAVE_CRYPT */
 	}
 
@@ -582,7 +582,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 			if (strlen(tmp) == 0) {
 				silent_cerr("ReadAuthMethod: Need a legal user id at line "
 						<< HP.GetLineData() << std::endl);
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 
 			SAFESTRDUP(user, tmp);
@@ -593,7 +593,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 #else /* !USE_PAM */
 		silent_cerr("ReadAuthMethod: line " << HP.GetLineData()
 			<< ": no PAM support" << std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 #endif /* !USE_PAM */
 	}
 
@@ -617,7 +617,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 #else /* !HAVE_SASL2 */
 		silent_cerr("ReadAuthMethod: line " << HP.GetLineData()
 			<< ": no SASL2 support" << std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 #endif /* !HAVE_SASL2 */
 	}
 
@@ -625,7 +625,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 		silent_cerr("ReadAuthMethod: PWDB not implemented yet" << std::endl);
 
 	default:
-		THROW(ErrNotImplementedYet());
+		throw ErrNotImplementedYet();
 	}
 
 	return pAuth;

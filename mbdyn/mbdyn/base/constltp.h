@@ -129,7 +129,7 @@ public:
 	};
 
 	virtual DofOrder::Order GetDofType(unsigned int i) const {
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	};
 };
 

@@ -287,7 +287,7 @@ protected:
 	 		std::cerr << sLUClassName 
 	   			<< ": error during factorization, code "
 				<< iFlag << std::endl;	 
-	 		THROW(HarwellSolver::ErrFactorization(iFlag));
+	 		throw HarwellSolver::ErrFactorization(iFlag);
       		}
       
 		/* FIXME: handle iFlag > 0 ??? */

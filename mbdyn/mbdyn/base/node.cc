@@ -330,7 +330,7 @@ void
 ScalarAlgebraicNode::SetXPrime(const doublereal& /* d */ ) 
 {
    DEBUGCERR("Error, setting derivative from algebraic dof" << std::endl);      
-   THROW(Node::ErrGeneric());
+   throw Node::ErrGeneric();
 }
 
 
@@ -416,7 +416,7 @@ unsigned int ParameterNode::iGetNumDof(void) const
 DofOrder::Order 
 ParameterNode::GetDofType(unsigned int i) const
 {
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 	return DofOrder::UNKNOWN;
 }
 
@@ -538,7 +538,7 @@ integer Node2Scalar::iGetFirstColIndex(void) const
 const doublereal& Node2Scalar::dGetDofValue(int iDof, int iOrder) const
 {
    if (iDof != 1) {
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
    return ND.pNode->dGetDofValue(ND.iDofNumber+1, iOrder);
 }
@@ -549,7 +549,7 @@ const doublereal& Node2Scalar::dGetDofValue(int iDof, int iOrder) const
 const doublereal& Node2Scalar::dGetDofValuePrev(int iDof, int iOrder) const
 {
    if (iDof != 1) {
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
    return ND.pNode->dGetDofValuePrev(ND.iDofNumber+1, iOrder);
 }
@@ -565,7 +565,7 @@ void Node2Scalar::SetDofValue(const doublereal& dValue,
    if (iDof == 1) {
       ((Node*)ND.pNode)->SetDofValue(dValue, ND.iDofNumber+1, iOrder);
    } 
-   THROW(ErrGeneric());    
+   throw ErrGeneric();    
 }
 
    

@@ -63,7 +63,7 @@ PrivPlugIn::Read(int argc, char *argv[])
 		std::cerr << "PrivPlugIn::Read(): "
 			"illegal number of parameters " << argc
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	uLabel = ReadLabel(argv[0]);
 
@@ -71,7 +71,7 @@ PrivPlugIn::Read(int argc, char *argv[])
 		std::cerr << "PrivPlugIn::Read(" << argv[0] 
 			<< "): illegal number of parameters " << argc
 			<< std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 	ReadElem(uLabel, argv[1]);
 
@@ -81,7 +81,7 @@ PrivPlugIn::Read(int argc, char *argv[])
 		silent_cerr(psElemNames[pElem->GetElemType()]
 				<< "(" << pElem->GetLabel() << ") "
 				"allows no private data" << std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 
 	case 1:
 		iIndex = 1;
@@ -159,13 +159,13 @@ PrivPlugIn::ReadElem(unsigned int uLabel, const char *ss)
 	
 	if (i == Elem::LASTELEMTYPE) {
 		std::cerr << "unknown element type '" << ss << "'" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	if ((pElem = (Elem *)pDM->pFindElem(Elem::Type(i), uLabel)) == NULL) {
 		std::cerr << psElemNames[Elem::Type(i)] 
 			<< "(" << uLabel << ") not defined" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 }
 
@@ -187,7 +187,7 @@ PrivPlugIn::ReadIndex(unsigned int iMaxIndex, const char *s)
 			<< psElemNames[pElem->GetElemType()]
 			<< "(" << pElem->GetLabel() << ")"
 			<< std::endl);
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	if (bIsName) {

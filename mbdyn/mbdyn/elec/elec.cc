@@ -114,7 +114,7 @@ ForgettingFactor* ReadFF(MBDynParser& HP, integer iNumOutputs)
       } else {	      
 	 std::cerr << "line " << HP.GetLineData() 
 	   << ": unknown forgetting factor" << std::endl;
-	 THROW(ErrGeneric());
+	 throw ErrGeneric();
       }	      
    } else {
       /* default */
@@ -271,7 +271,7 @@ Elem* ReadElectric(DataManager* pDM,
 
 	   default:
 	      std::cerr << "you shouldn't be here!" << std::endl;
-	      THROW(ErrGeneric());
+	      throw ErrGeneric();
 	  }	  
 
        } else {
@@ -298,28 +298,28 @@ Elem* ReadElectric(DataManager* pDM,
 	  if (dOmega <= 0.) {		  
 	     std::cerr << "Warning, illegal Omega in accelerometer " 
 	       << uLabel << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }
 	  
 	  doublereal dTau = HP.GetReal();
 	  if (dTau <= 0.) {		  
 	     std::cerr << "Warning, illegal Tau in accelerometer " 
 	       << uLabel << "; aborting ..." << std::endl;	  
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }
 	  
 	  doublereal dCsi = HP.GetReal();
 	  if (dCsi <= 0. || dCsi > 1.) {		  
 	     std::cerr << "Warning, illegal Csi in accelerometer " 
 	       << uLabel << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }
 	  
 	  doublereal dKappa = HP.GetReal();
 	  if (dKappa == 0.) {		  
 	     std::cerr << "Warning, null Kappa in accelerometer " 
 	       << uLabel << std::endl;
-	     THROW(DataManager::ErrGeneric());
+	     throw DataManager::ErrGeneric();
 	  }	     
 	  
 	  DEBUGCOUT("Omega: " << dOmega 
@@ -340,7 +340,7 @@ Elem* ReadElectric(DataManager* pDM,
        
 #else /* USE_STRUCT_NODES */
        std::cerr << "you're not allowed to use accelerometer elements" << std::endl;
-       THROW(ErrGeneric());
+       throw ErrGeneric();
 #endif /* USE_STRUCT_NODES */
     }
       
@@ -373,7 +373,7 @@ Elem* ReadElectric(DataManager* pDM,
        
 #else /* USE_STRUCT_NODES */
        std::cerr << "you're not allowed to use displacement measure elements" << std::endl;
-       THROW(ErrGeneric());
+       throw ErrGeneric();
 #endif /* USE_STRUCT_NODES */
     }
 
@@ -391,7 +391,7 @@ Elem* ReadElectric(DataManager* pDM,
        if (TmpDir.Norm() < DBL_EPSILON) {
 	       std::cerr << "motor direction is illegal at line "
 		       << HP.GetLineData() << std::endl;
-	       THROW(ErrGeneric());
+	       throw ErrGeneric();
        }
 
        /* nodo elettrico1 collegato */
@@ -413,7 +413,7 @@ Elem* ReadElectric(DataManager* pDM,
        
 #else /* USE_STRUCT_NODES */
        std::cerr << "you're not allowed to use electric motors" << std::endl;
-       THROW(ErrGeneric());
+       throw ErrGeneric();
 #endif /* USE_STRUCT_NODES */
     }
 
@@ -454,7 +454,7 @@ Elem* ReadElectric(DataManager* pDM,
 	   if (!iFIn) {
 	      std::cerr << "Error in opening control file <" 
 		<< sControlFile << '>' << std::endl;	      
-	      THROW(DataManager::ErrGeneric());
+	      throw DataManager::ErrGeneric();
 	   }
 	   
 	   /* Construction of controller */
@@ -536,23 +536,23 @@ Elem* ReadElectric(DataManager* pDM,
 	      if (iPredS < 0) {
 		 std::cerr << "Prediction advancing horizon (" << iPredS 
 		   << ") must be positive" << std::endl;
-		 THROW(ErrGeneric());
+		 throw ErrGeneric();
 	      }
 	      if (iPredH < 0) {
 		 std::cerr << "Prediction receding horizon (" << iPredH
 		   << ") must be positive" << std::endl;
-		 THROW(ErrGeneric());
+		 throw ErrGeneric();
 	      }
 	      if (iPredH >= iPredS) {
 		 std::cerr << "Prediction receding horizon (" << iPredH 
 		   << ") must be smaller than prediction advancing horizon ("
 		   << iPredS << ")" << std::endl;
-		 THROW(ErrGeneric());
+		 throw ErrGeneric();
 	      }
 	      if (iContrS < 0) {
 		 std::cerr << "Control advancing horizon (" << iContrS
 		   << ") must be positive" << std::endl;
-		 THROW(ErrGeneric());
+		 throw ErrGeneric();
 	      }
 	      
 	      doublereal* pW = NULL;
@@ -664,7 +664,7 @@ Elem* ReadElectric(DataManager* pDM,
 	   break;
 #else /* !USE_DBC */
 	      std::cerr << "GPC/deadbeat control is not available" << std::endl;
-	      THROW(ErrGeneric());
+	      throw ErrGeneric();
 #endif /* !USE_DBC */
 	}	   
 
@@ -672,7 +672,7 @@ Elem* ReadElectric(DataManager* pDM,
 	  
 	default: {
 	   std::cerr << "Sorry, not implemented yed" << std::endl;	   
-	   THROW(ErrNotImplementedYet());
+	   throw ErrNotImplementedYet();
 	}
        }
        
@@ -682,7 +682,7 @@ Elem* ReadElectric(DataManager* pDM,
 	  std::cerr << "Error, outputs expected at line " 
 	    << HP.GetLineData() << std::endl;
 	  
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }
        
        ScalarDof* pOutputs = NULL;
@@ -706,7 +706,7 @@ Elem* ReadElectric(DataManager* pDM,
        if (!HP.IsKeyWord("inputs")) {
 	  std::cerr << "Error, inputs expected at line "
 	    << HP.GetLineData() << std::endl;
-	  THROW(DataManager::ErrGeneric());
+	  throw DataManager::ErrGeneric();
        }	   
        
        /* Same thing for input nodes */
@@ -719,7 +719,7 @@ Elem* ReadElectric(DataManager* pDM,
 	  if (pInputs[i].pNode->GetNodeType() ==  Node::PARAMETER) {
 	     std::cerr << "Sorry, parameters are not allowed as input nodes" 
 	       << std::endl;	     
-	     THROW(DataManager::ErrGeneric());	      
+	     throw DataManager::ErrGeneric();	      
 	  }	      
        }
        
@@ -745,14 +745,14 @@ Elem* ReadElectric(DataManager* pDM,
     default: {
        std::cerr << "unknown electric element type in electric element " << uLabel 
 	 << " at line " << HP.GetLineData() << std::endl;       
-       THROW(DataManager::ErrGeneric());
+       throw DataManager::ErrGeneric();
     }	
    }
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.IsArg()) {
       std::cerr << "semicolon expected at line " << HP.GetLineData() << std::endl;     
-      THROW(DataManager::ErrGeneric());
+      throw DataManager::ErrGeneric();
    }   
    
    return pEl;

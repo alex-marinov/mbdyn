@@ -103,6 +103,6 @@ __FC_DECL__(usrmes)(F_LOGICAL *Logical, F_CHAR msg[],
 extern "C" int
 __FC_DECL__(abort)(void)
 {
-	THROW(ErrGeneric());
+	throw ErrGeneric();
 }
 

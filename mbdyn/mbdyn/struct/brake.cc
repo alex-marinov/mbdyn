@@ -523,7 +523,7 @@ doublereal Brake::dGetPrivData(unsigned int i) const
       
     default:
       std::cerr << "Illegal private data" << std::endl;
-      THROW(ErrGeneric());
+      throw ErrGeneric();
    }
 }
 

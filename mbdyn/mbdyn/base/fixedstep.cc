@@ -59,7 +59,7 @@ dT0(t0), dDT(dt), iNumSteps(is), pd(NULL), pvd(NULL)
 	if (!in) {
 		std::cerr << "can't open file \""
 			<< sFileName << "\"" << std::endl;
-		THROW(ErrGeneric());
+		throw ErrGeneric();
 	}
 
 	SAFENEWARR(pd, doublereal, iNumDrives*iNumSteps);
@@ -94,7 +94,7 @@ dT0(t0), dDT(dt), iNumSteps(is), pd(NULL), pvd(NULL)
 			if (in.eof()) {
 				std::cerr << "unexpected end of file '"
 					<< sFileName << '\'' << std::endl;
-				THROW(ErrGeneric());
+				throw ErrGeneric();
 			}
 		}
 	}

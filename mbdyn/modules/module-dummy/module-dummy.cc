@@ -199,7 +199,7 @@ static doublereal
 d_get_priv_data(const LoadableElem* pEl, unsigned int i)
 {
    cerr << "You shouldn't be here!" << endl;
-   THROW(ErrGeneric());
+   throw ErrGeneric();
 }
 
 static void
