@@ -71,7 +71,15 @@ public:
    
    	virtual int
 	GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA) = 0;
+	inline integer Unsteady(void) const;
 };
+
+
+inline integer
+AeroData::Unsteady(void) const
+{
+	return unsteadyflag;
+}
 
 /* AeroData - end */
 

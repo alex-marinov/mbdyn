@@ -105,7 +105,7 @@ int
 STAHRAeroData::GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA) 
 {
    	__FC_DECL__(aerod2)(W, VAM, TNG, OUTA, 
-			    &unsteadyflag,  &Omega, &profile);
+			    &unsteadyflag, &Omega, &profile);
    	return 0;
 }
 

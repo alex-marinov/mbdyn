@@ -42,9 +42,9 @@ extern "C" {
 #include <c81data.h>
 }
 
-#if 0
-static doublereal dDA = 1.; /* diventera' parente del Delta_t (memoria) */
-#endif
+#ifdef __HACK_UNSTEADY_AERO__
+static doublereal dDA = 1.e-3; /* diventera' parente del Delta_t (memoria) */
+#endif /* __HACK_UNSTEADY_AERO__ */
 
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 Aero_output *
@@ -412,8 +412,9 @@ void
 AerodynamicBody::Output(OutputHandler& OH) const
 {
    	/* Memoria in caso di forze instazionarie */
-#if 0 /* E' molto bacato */
-   	if (iInst == 1) {
+#ifdef __HACK_UNSTEADY_AERO__ /* E' molto bacato */
+   	switch (aerodata->Unsteady()) {
+	case 1: {
       		doublereal d = 0.;
       		if (pRotor != NULL) {
 	 		d = dDA*pRotor->dGetOmega();
@@ -421,19 +422,22 @@ AerodynamicBody::Output(OutputHandler& OH) const
       		if (fabs(d) < 1.e-6) {
 	 		d = 1.e-6;
       		}
-#if 0
       		for (integer i = 0; i < GDI.iGetNum(); i++) {
 	 		__FC_DECL__(coeprd)(&d, pvdOuta[i]);
       		}
-#endif /* 0 */
-   	} else if (iInst == 2) {
-#if 0
+		break;
+   	}
+	case 2:
       		for (integer i = 0; i < GDI.iGetNum(); i++) {
 	 		__FC_DECL__(coeprd)(&dDA, pvdOuta[i]);
       		}
-#endif /* 0 */
+		break;
+	case 0:
+		break;
+	default:
+		THROW(ErrGeneric());
    	}
-#endif /* 0 */
+#endif /* __HACK_UNSTEADY_AERO__ */
 
    	/* Output delle forze aerodinamiche F, M su apposito file */
    	if (fToBeOutput()) {
@@ -470,13 +474,24 @@ static integer
 ReadUnsteadyFlag(MBDynParser& HP)
 {
    	if (HP.fIsArg()) {
+		integer iInst = 0;
 		if (HP.IsKeyWord("unsteady")) {
 			/*
 			 * swallow "unsteady" keyword
 			 */
+			if (HP.IsKeyWord("harris")) {
+				iInst = 1;
+			} else if (HP.IsKeyWord("bielawa")) {
+				iInst = 2;
+			} else {
+				cerr << HP.GetLineData()
+ 					<<"deprecated unsteady model given by number;"
+					" use 'harris' or 'bielawa' instead" << endl;
+				iInst = HP.GetInt();
+			}
+		} else {
+      		iInst = HP.GetInt();
 		}
-
-      		integer iInst = HP.GetInt();
 
       		if (iInst != 0) {
 	 		if (iInst < 0 || iInst > 2) {
@@ -587,7 +602,8 @@ ReadAeroData(DataManager* pDM,
 	 
 	 	/*
 		 * uso tabelle standard, che vengono cercate in base all'indice
-		 * (sistemare) */
+		 * (sistemare)
+		 */
        		case C81: {
 	  		integer iProfile = HP.GetInt();
 	  		const c81_data* data = HP.GetC81Data(iProfile);
@@ -1358,9 +1374,10 @@ AerodynamicBeam::Output(OutputHandler& OH ) const
 {
 	DEBUGCOUTFNAME("AerodynamicBeam::Output");
 	
-#if 0 /* Ha seri bugs */
+#ifdef __HACK_UNSTEADY_AERO__ /* Ha seri bugs */
 	/* Memoria in caso di forze instazionarie */
-	if (iInst == 1) {
+	switch (aerodata->Unsteady()) {
+	case 1: {
 		doublereal d = 0.;
 		if (pRotor != NULL) {
 			d = dDA*pRotor->dGetOmega();
@@ -1368,19 +1385,22 @@ AerodynamicBeam::Output(OutputHandler& OH ) const
 		if (fabs(d) < 1.e-6) {
 			d = 1.e-6;
 		}
-#if 0
 		for (integer i = 0; i < 3*GDI.iGetNum(); i++) {
 			__FC_DECL__(coeprd)(&d, pvdOuta[i]);
 		}
-#endif /* 0 */
-	} else if (iInst == 2) {
-#if 0
+		break;
+	}
+	case 2:
 		for (integer i = 0; i < 3*GDI.iGetNum(); i++) {
 			__FC_DECL__(coeprd)(&dDA, pvdOuta[i]);
 		}
-#endif /* 0 */
+		break;
+	case 0:
+		break;
+	default:
+		THROW(ErrGeneric());
 	}
-#endif 
+#endif /* __HACK_UNSTEADY_AERO__ */
 
 	if (fToBeOutput()) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS

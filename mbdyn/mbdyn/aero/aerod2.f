@@ -467,7 +467,7 @@ C
 C
 C Questa parte e' sbagliata, perche' per calcolare i coeff. di momento
 C e le loro derivate vengono usati i coeff di portanza e le loro derivate
-C ecc, quaindi passando DUM come segnaposto, si ottengono risultati
+C ecc, quindi passando DUM come segnaposto, si ottengono risultati
 C unpredictable.
 C
       ATMP = ALFA-DAN
