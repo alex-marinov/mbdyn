@@ -39,7 +39,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <malloc.h>
+#include <stddef.h>
 #include <ctype.h>
 #include <unistd.h>
 #include <fcntl.h>

@@ -38,7 +38,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <malloc.h>
+#include <stddef.h>
 #include <ctype.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -551,6 +551,7 @@ ReadSocketDrive(DataManager* pDM,
 
 	} else if (HP.IsKeyWord("port")) {
 		port = HP.GetInt();
+#ifdef IPPORT_USERRESERVED
 		if (port < IPPORT_USERRESERVED) {
 			silent_cerr("SocketDrive(" << uLabel << "): "
 					"cannot listen on port " << port
@@ -560,6 +561,9 @@ ReadSocketDrive(DataManager* pDM,
 					<< std::endl);
 			throw ErrGeneric();
 		}
+		/* if #undef'd, don't bother checking;
+		 * the OS will do it for us */
+#endif /* IPPORT_USERRESERVED */
 	}
 
 	if (path == NULL) {

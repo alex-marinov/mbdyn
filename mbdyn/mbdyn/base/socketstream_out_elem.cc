@@ -302,7 +302,8 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		}
 		int p = HP.GetInt();
 		/* Da sistemare da qui */
-		
+
+#ifdef IPPORT_USERRESERVED
 		if (p <= IPPORT_USERRESERVED) {
 			silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 				<< "(" << uLabel << "): "
@@ -313,6 +314,9 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				<< std::endl);
 			throw ErrGeneric();
 		}
+		/* if #undef'd, don't bother checking;
+		 * the OS will do it for us */
+#endif /* IPPORT_USERRESERVED */
 		port = p;
 	}
 

@@ -249,8 +249,8 @@ ReadSocketStreamDrive(DataManager* pDM,
 			throw ErrGeneric();		
 		}
 		int p = HP.GetInt();
-		/*Da sistemare da qui*/
-		
+		/* Da sistemare da qui */
+#ifdef IPPORT_USERRESERVED
 		if (p <= IPPORT_USERRESERVED) {
 			silent_cerr("SocketStreamDrive(" << uLabel << "): "
 					"cannot listen on port " << port
@@ -260,6 +260,9 @@ ReadSocketStreamDrive(DataManager* pDM,
 					<< std::endl);
 			throw ErrGeneric();
 		}
+		/* if #undef'd, don't bother checking;
+		 * the OS will do it for us */
+#endif /* IPPORT_USERRESERVED */
 		port = p;
 	}
 

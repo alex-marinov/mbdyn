@@ -46,6 +46,19 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
 extern int
 mbdyn_make_named_socket(const char *path, int dobind, int *perror);
 
+/* These have been erased from FreeBSD's headers, so we have to 
+ * work around with this ugly hack. This is not exactly the same,
+ * but it seems to work.
+ * I chose this place for the definitions, since there are different
+ * files using these macros and so we just need to deine them once.
+ */
+#ifndef IPPORT_USERRESERVED
+#define IPPORT_USERRESERVED IPPORT_RESERVED
+#endif /* ! IPPORT_USERRESERVED */
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL SO_NOSIGPIPE
+#endif /* ! MSG_NOSIGNAL */
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
