@@ -76,6 +76,103 @@
  * rimane da studiare la questione dei diritti di accesso.
  */
 
+class LoadableElem;
+
+typedef void *
+(* p_read)(LoadableElem*,
+	   DataManager*,
+	   MBDynParser&,
+	   const DriveHandler*);
+typedef unsigned int (* p_i_get_num_dof)(const LoadableElem*);
+typedef DofOrder::Order (* p_set_dof)(const LoadableElem*, unsigned int);
+typedef void (* p_output)(const LoadableElem*, OutputHandler&);
+typedef ostream& (* p_restart)(const LoadableElem*, ostream&);
+typedef void (* p_work_space_dim)(const LoadableElem*, integer*, integer*);
+typedef VariableSubMatrixHandler& 
+(* p_ass_jac)(LoadableElem*,
+	      VariableSubMatrixHandler&,
+	      doublereal,
+	      const VectorHandler&,
+	      const VectorHandler&);
+typedef void
+(* p_ass_eig)(LoadableElem*,
+	      VariableSubMatrixHandler&,
+	      VariableSubMatrixHandler&,
+	      const VectorHandler&,
+	      const VectorHandler&);
+typedef SubVectorHandler&
+(* p_ass_res)(LoadableElem*,
+	      SubVectorHandler&,
+	      doublereal,
+	      const VectorHandler&,
+	      const VectorHandler&);
+typedef void
+(* p_before_predict)(const LoadableElem* pEl, 
+		     VectorHandler& X,
+		     VectorHandler& XP,
+		     VectorHandler& XPrev,
+		     VectorHandler& XPPrev);
+typedef void
+(* p_after_predict)(const LoadableElem* pEl, 
+		    VectorHandler& X,
+		    VectorHandler& XP);
+typedef void
+(* p_update)(LoadableElem* pEl, 
+	     const VectorHandler& X,
+	     const VectorHandler& XP);
+typedef unsigned int (* p_i_get_initial_num_dof)(const LoadableElem*);
+typedef void
+(* p_initial_work_space_dim)(const LoadableElem*, 
+			     integer*, 
+			     integer*);
+typedef VariableSubMatrixHandler&
+(* p_initial_ass_jac)(LoadableElem*,
+		      VariableSubMatrixHandler &, 
+		      const VectorHandler&);
+typedef SubVectorHandler&
+(* p_initial_ass_res)(LoadableElem*,
+		      SubVectorHandler&,
+		      const VectorHandler&);
+typedef void
+(* p_set_value)(const LoadableElem*,
+		VectorHandler&,
+		VectorHandler&);
+typedef void (* p_set_initial_value)(const LoadableElem*, VectorHandler&);
+typedef unsigned int (* p_i_get_num_priv_data)(const LoadableElem* pEl);
+typedef doublereal
+(* p_d_get_priv_data)(const LoadableElem* pEl, 
+		      unsigned int i);
+typedef void (* p_destroy)(LoadableElem*);
+
+/*
+ * Struttura che contiene le chiamate alle funzioni del modulo;
+ * e' l'unico contatto tra modulo ed elemento caricato runtime.
+ * Se un puntatore e' vuoto, viene riempito con il metodo di default.
+ */
+struct LoadableCalls {
+	p_read				read;
+	p_i_get_num_dof			i_get_num_dof;
+	p_set_dof 			set_dof;
+	p_output 			output;
+	p_restart 			restart;
+	p_work_space_dim 		work_space_dim;
+	p_ass_jac			ass_jac;
+	p_ass_eig			ass_eig;
+	p_ass_res			ass_res;
+	p_before_predict		before_predict;
+	p_after_predict			after_predict;
+	p_update			update;
+	p_i_get_initial_num_dof		i_get_initial_num_dof;
+	p_initial_work_space_dim	initial_work_space_dim;
+	p_initial_ass_jac		initial_ass_jac;
+	p_initial_ass_res		initial_ass_res;
+	p_set_value			set_value;
+	p_set_initial_value		set_initial_value;
+	p_i_get_num_priv_data		i_get_num_priv_data;
+	p_d_get_priv_data		d_get_priv_data;
+	p_destroy			destroy;
+};
+ 
 class LoadableElem
 : virtual public Elem,
 #ifdef USE_STRUCT_NODES
@@ -85,48 +182,10 @@ public ElemGravityOwner,
 #endif /* USE_STRUCT_NODES */
 public ElemWithDofs {
 protected:
-   	void* priv_data;
-   	char* module_name;
-   	void* handle;
-
-   	/* Funzioni attese */
-   	enum Funcs {     
-		READ = 0,
-      
-		IGETNUMDOF,
-		SETDOF,
-      
-		OUTPUT,
-		RESTART,
-      
-		WORKSPACEDIM,
-		ASSJAC,
-        	ASSEIG,
-		ASSRES,
-      
-        	BEFOREPREDICT,
-        	AFTERPREDICT,
-        	UPDATE,
-      
-		IGETINITIALNUMDOF,
-		INITIALWORKSPACEDIM,
-		INITIALASSJAC,
-		INITIALASSRES,
-
-		SETVALUE,
-		SETINITIALVALUE,
-
-        	IGETNUMPRIVDATA,
-        	DGETPRIVDATA,            
-
-		/* ... */
-
-		DESTROY,
-		LASTFUNC
-   	};
-
-   	/* Simboli delle funzioni attese */
-   	void * fsym[LASTFUNC];
+   	void* priv_data;	/* Dati privati passati alle funzioni */
+   	char* module_name;	/* Nome del modulo */
+   	void* handle;		/* Handle del modulo (usato per chiusura) */
+	LoadableCalls *calls;	/* Simboli delle funzioni attese */
    
 public:
    	LoadableElem(unsigned int uLabel, const DofOwner* pDO,

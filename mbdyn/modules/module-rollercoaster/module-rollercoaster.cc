@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
+
 /* 
  * vincolo che obbliga a giacere su una linea.
  * usa un set di funzioni, che devono essere consistenti,
@@ -19,7 +23,7 @@ struct module_rollercoaster {
 /* nota: la curva e' un cerchio nel piano x z,
  * e s e' la coordinata polare di azimuth */
 
-const doublereal R = 1.;
+static const doublereal R = 1.;
 
 static Vec3
 get_x(doublereal s)
@@ -52,7 +56,8 @@ get_rho(doublereal s)
 }
 
 /* funzioni di default */
-void* read(LoadableElem* pEl,
+static void*
+read(LoadableElem* pEl,
 	   DataManager* pDM,
 	   MBDynParser& HP,
 	   const DriveHandler* pDH)
@@ -79,19 +84,22 @@ void* read(LoadableElem* pEl,
    return (void *)p;
 }
 
-unsigned int i_get_num_dof(const LoadableElem* pEl)
+static unsigned int
+i_get_num_dof(const LoadableElem* pEl)
 {
    DEBUGCOUTFNAME("i_get_num_dof");
    return 6;
 }
 
-DofOrder::Order set_dof(const LoadableElem*, unsigned int i)
+static DofOrder::Order
+set_dof(const LoadableElem*, unsigned int i)
 {
    DEBUGCOUTFNAME("set_dof");
    return DofOrder::ALGEBRAIC;
 }
 
-void output(const LoadableElem* pEl, OutputHandler& OH)
+static void
+output(const LoadableElem* pEl, OutputHandler& OH)
 {
    DEBUGCOUTFNAME("output");
    
@@ -105,13 +113,15 @@ void output(const LoadableElem* pEl, OutputHandler& OH)
      << p->s << endl;
 }
 
-ostream& restart(const LoadableElem* pEl, ostream& out)
+static ostream&
+restart(const LoadableElem* pEl, ostream& out)
 {
    DEBUGCOUTFNAME("restart");
    return out << "not implemented yet;" << endl;
 }
 
-void work_space_dim(const LoadableElem* pEl, 
+static void
+work_space_dim(const LoadableElem* pEl, 
 		    integer* piNumRows, 
 		    integer* piNumCols)
 {
@@ -120,7 +130,7 @@ void work_space_dim(const LoadableElem* pEl,
    *piNumCols = 12;
 }
 
-VariableSubMatrixHandler& 
+static VariableSubMatrixHandler& 
 ass_jac(LoadableElem* pEl, 
 	VariableSubMatrixHandler& WorkMat,
 	doublereal dCoef, 
@@ -202,7 +212,7 @@ ass_jac(LoadableElem* pEl,
    return WorkMat;
 }
 
-void
+static void
 ass_eig(LoadableElem* pEl, 
 	VariableSubMatrixHandler& WorkMatA,
 	VariableSubMatrixHandler& WorkMatB,
@@ -225,7 +235,7 @@ ass_eig(LoadableElem* pEl,
    // set sub-matrix indices and coefs
 }
 
-SubVectorHandler& 
+static SubVectorHandler& 
 ass_res(LoadableElem* pEl, 
 	SubVectorHandler& WorkVec,
 	doublereal dCoef,
@@ -279,7 +289,8 @@ ass_res(LoadableElem* pEl,
    return WorkVec;
 }
 
-void before_predict(const LoadableElem* pEl, 
+static void
+before_predict(const LoadableElem* pEl, 
 		    VectorHandler& X,
 		    VectorHandler& XP,
 		    VectorHandler& XPrev,
@@ -288,27 +299,31 @@ void before_predict(const LoadableElem* pEl,
    DEBUGCOUTFNAME("before_predict");
 }
 
-void after_predict(const LoadableElem* pEl, 
+static void
+after_predict(const LoadableElem* pEl, 
 		   VectorHandler& X,
 		   VectorHandler& XP)
 {
    DEBUGCOUTFNAME("after_predict");
 }
 
-void update(LoadableElem* pEl, 
+static void
+update(LoadableElem* pEl, 
 	    const VectorHandler& X,
 	    const VectorHandler& XP)
 {
    DEBUGCOUTFNAME("update");
 }
 
-unsigned int i_get_initial_num_dof(const LoadableElem* pEl)
+static unsigned int
+i_get_initial_num_dof(const LoadableElem* pEl)
 {
    DEBUGCOUTFNAME("i_get_initial_num_dof");
    return 0;
 }
 
-void initial_work_space_dim(const LoadableElem* pEl, 
+static void
+initial_work_space_dim(const LoadableElem* pEl, 
 			    integer* piNumRows, 
 			    integer* piNumCols)
 {
@@ -317,7 +332,7 @@ void initial_work_space_dim(const LoadableElem* pEl,
    *piNumCols = 0;   
 }
 
-VariableSubMatrixHandler& 
+static VariableSubMatrixHandler& 
 initial_ass_jac(LoadableElem* pEl, 
 		VariableSubMatrixHandler& WorkMat, 
 		const VectorHandler& XCurr)
@@ -337,7 +352,7 @@ initial_ass_jac(LoadableElem* pEl,
    return WorkMat;
 }
 
-SubVectorHandler& 
+static SubVectorHandler& 
 initial_ass_res(LoadableElem* pEl, 
 		SubVectorHandler& WorkVec, 
 		const VectorHandler& XCurr)
@@ -356,7 +371,8 @@ initial_ass_res(LoadableElem* pEl,
    return WorkVec;
 }
 
-void set_value(const LoadableElem* pEl, VectorHandler& X, VectorHandler& XP)
+static void
+set_value(const LoadableElem* pEl, VectorHandler& X, VectorHandler& XP)
 {
    DEBUGCOUTFNAME("set_value");
    
@@ -364,18 +380,21 @@ void set_value(const LoadableElem* pEl, VectorHandler& X, VectorHandler& XP)
    X.fPutCoef(iIndex+3, -M_PI/2.);
 }
    
-void set_initial_value(const LoadableElem* pEl, VectorHandler& X)
+static void
+set_initial_value(const LoadableElem* pEl, VectorHandler& X)
 {
    DEBUGCOUTFNAME("set_initial_value");
 }
 
-unsigned int i_get_num_priv_data(const LoadableElem* pEl)
+static unsigned int
+i_get_num_priv_data(const LoadableElem* pEl)
 {
    DEBUGCOUTFNAME("i_get_num_priv_data");
    return 0;
 }
 
-doublereal d_get_priv_data(const LoadableElem* pEl, unsigned int i)
+static doublereal
+d_get_priv_data(const LoadableElem* pEl, unsigned int i)
 {
    DEBUGCOUTFNAME("d_get_priv_data");
    ASSERT(pEl->iGetNumPrivData() > 0);
@@ -388,9 +407,38 @@ doublereal d_get_priv_data(const LoadableElem* pEl, unsigned int i)
    return 0.;
 }
 
-void destroy(LoadableElem* pEl)
+static void
+destroy(LoadableElem* pEl)
 {
    DEBUGCOUTFNAME("destroy");
    module_rollercoaster* p = (module_rollercoaster *)pEl->pGetData();
    SAFEDELETE(p, EMmm);
 }
+
+static struct
+LoadableCalls lc = {
+	read,
+	i_get_num_dof,
+	set_dof,
+	output,
+	restart,
+	work_space_dim,
+	ass_jac,
+	ass_eig,
+	ass_res,
+	before_predict,
+	after_predict,
+	update,
+	i_get_initial_num_dof,
+	initial_work_space_dim,
+	initial_ass_jac,
+	initial_ass_res,
+	set_value,
+	set_initial_value,
+	i_get_num_priv_data,
+	d_get_priv_data,
+	destroy
+};
+
+extern "C" void *calls = &lc;
+

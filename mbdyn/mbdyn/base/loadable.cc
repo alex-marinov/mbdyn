@@ -34,8 +34,10 @@
 
 #ifdef HAVE_LOADABLE
 
-#include <loadable.h>
 #include <dlfcn.h>
+#include <unistd.h>
+
+#include <loadable.h>
 #include <dataman.h>
 
 /* funzioni di default */
@@ -205,180 +207,7 @@ __destroy(LoadableElem* /* pEl */ )
    	NO_OP;
 }
 
-
-const char* const 
-demangled_func_names[] = {
-#if 0
-   	"read",   
-   	"i_get_num_dof",
-   	"set_dof",
-   	"output",
-   	"restart",
-   	"work_space_dim",
-   	"ass_jac",
-   	"ass_eig",
-   	"ass_res",
-   	"before_predict",
-   	"after_predict",
-   	"update",
-   	"i_get_initial_num_dof",
-   	"initial_work_space_dim",
-   	"initial_ass_jac",
-   	"initial_ass_res",
-   	"set_value",
-   	"set_initial_value",
-   	"i_get_num_priv_data",
-   	"d_get_priv_data",
- 	"destroy",
-   	NULL
-#else /* !0 */
-#include "demangled.h"
-#endif /* !0 */
-};
-
-const char* const 
-mangled_func_names[] = {
-#if 0 /* g++ as of 2.7.3 */
-   	"read__FP12LoadableElemP11DataManagerR11MBDynParserPC12DriveHandler",
-   	"i_get_num_dof__FPC12LoadableElem",
-   	"set_dof__FPC12LoadableElemUi",
-   	"output__FPC12LoadableElemR13OutputHandler",
-   	"restart__FPC12LoadableElemR7ostream",
-   	"work_space_dim__FPC12LoadableElemPlT1",
-   	"ass_jac__FP12LoadableElemR24VariableSubMatrixHandlerdRC13VectorHandlerT3",
-   	"ass_eig__FP12LoadableElemR24VariableSubMatrixHandlerT1RC13VectorHandlerT3",
-   	"ass_res__FP12LoadableElemR16SubVectorHandlerdRC13VectorHandlerT3",
-   	"before_predict__FPC12LoadableElemR13VectorHandlerN31",
-   	"after_predict__FPC12LoadableElemR13VectorHandlerT1",
-   	"update__FP12LoadableElemRC13VectorHandlerT1",
-   	"i_get_initial_num_dof__FPC12LoadableElem",
-   	"initial_work_space_dim__FPC12LoadableElemPlT1",
-   	"initial_ass_jac__FP12LoadableElemR24VariableSubMatrixHandlerRC13VectorHandler",
-   	"initial_ass_res__FP12LoadableElemR16SubVectorHandlerRC13VectorHandler",
-   	"set_value__FPC12LoadableElemR13VectorHandlerT1",
-   	"set_initial_value__FPC12LoadableElemR13VectorHandler",
-   	"i_get_num_priv_data__FPC12LoadableElem",
-   	"d_get_priv_data__FPC12LoadableElemUi",
-   	"destroy__FP12LoadableElem",
-   	NULL
-#else /* !0 */
-/* extracted by nm */
-#include "mangled.h"
-#endif /* !0 */
-};
-
-const char* const *func_names = mangled_func_names;
-
-void* 
-default_funcs[] = {
-   	NULL,
-   
-   	(void*)__i_get_num_dof,
-   	(void*)__set_dof,
-   
-   	(void*)__output,
-   	(void*)__restart,
-   
-   	(void*)__work_space_dim,
-   	(void*)__ass_jac,
-   	(void*)__ass_eig,
-   	(void*)__ass_res,
-   
-   	(void*)__before_predict,
-   	(void*)__after_predict,
-   	(void*)__update,
-   
-   	(void*)__i_get_initial_num_dof,
-   	(void*)__initial_work_space_dim,
-   	(void*)__initial_ass_jac,
-   	(void*)__initial_ass_res,
-   
-   	(void*)__set_value,
-   	(void*)__set_initial_value,
-   
-   	(void*)__i_get_num_priv_data,
-   	(void*)__d_get_priv_data,
-   
-   	(void*)__destroy
-};
-
-typedef void * (* p_read)(LoadableElem*,
-			  DataManager*,
-			  MBDynParser&,
-			  const DriveHandler*);
-
-typedef unsigned int (* p_i_get_num_dof)(const LoadableElem*);
-
-typedef DofOrder::Order (* p_set_dof)(const LoadableElem*, unsigned int);
-
-typedef void (* p_output)(const LoadableElem*, OutputHandler&);
-
-typedef ostream& (* p_restart)(const LoadableElem*, ostream&);
-
-typedef void (* p_work_space_dim)(const LoadableElem*, integer*, integer*);
-
-typedef VariableSubMatrixHandler& (* p_ass_jac)(LoadableElem*,
-						VariableSubMatrixHandler&,
-						doublereal,
-						const VectorHandler&,
-						const VectorHandler&);
-
-typedef void (* p_ass_eig)(LoadableElem*,
-			   VariableSubMatrixHandler&,
-			   VariableSubMatrixHandler&,
-			   const VectorHandler&,
-			   const VectorHandler&);
-
-typedef SubVectorHandler& (* p_ass_res)(LoadableElem*,
-					SubVectorHandler&,
-					doublereal,
-					const VectorHandler&,
-					const VectorHandler&);
-
-typedef void (* p_before_predict)(const LoadableElem* pEl, 
-				  VectorHandler& X,
-				  VectorHandler& XP,
-				  VectorHandler& XPrev,
-				  VectorHandler& XPPrev);
-
-typedef void (* p_after_predict)(const LoadableElem* pEl, 
-				 VectorHandler& X,
-				 VectorHandler& XP);
-
-typedef void (* p_update)(LoadableElem* pEl, 
-			  const VectorHandler& X,
-			  const VectorHandler& XP);
-
-typedef unsigned int (* p_i_get_initial_num_dof)(const LoadableElem*);
-
-typedef void (* p_initial_work_space_dim)(const LoadableElem*, 
-					  integer*, 
-					  integer*);
-
-typedef VariableSubMatrixHandler& (* p_initial_ass_jac)(LoadableElem*,
-							VariableSubMatrixHandler&, 
-							const VectorHandler&);
-
-typedef SubVectorHandler& (* p_initial_ass_res)(LoadableElem*,
-						SubVectorHandler&,
-						const VectorHandler&);
-
-typedef void (* p_set_value)(const LoadableElem*, 
-			     VectorHandler&,
-			     VectorHandler&);
-
-typedef void (* p_set_initial_value)(const LoadableElem*, VectorHandler&);
-
-typedef unsigned int (* p_i_get_num_priv_data)(const LoadableElem* pEl);
-
-typedef doublereal (* p_d_get_priv_data)(const LoadableElem* pEl, 
-					 unsigned int i);
-
-typedef void (* p_destroy)(LoadableElem*);
-
-		    
-
-/* metodi effettivi */
+/* metodi della classe */
 
 LoadableElem::LoadableElem(unsigned int uLabel, 
 			   const DofOwner* pDO, 
@@ -392,75 +221,178 @@ ElemGravityOwner(uLabel, ElemType::LOADABLE, flag(0)),
 ElemWithDofs(uLabel, ElemType::LOADABLE, pDO, flag(0)),
 priv_data(NULL),
 module_name(NULL),
-handle(NULL)
-
+handle(NULL),
+calls(NULL)
 {
-   	const char sFuncName[] = "LoadableElem::LoadableElem";
-   
    	ASSERT(pDM != NULL);
    
    	/* nome del modulo */
    	const char* s = HP.GetFileName();
+	if (s == NULL) {
+		cerr << "Loadable(" << uLabel
+			<< "): unable to get module name" << endl;
+		THROW(ErrGeneric());
+	}
+
    	SAFESTRDUP(module_name, s, DMmm);
-   
    	handle = dlopen(module_name, RTLD_NOW /* RTLD_LAZY */ );
    	if (handle == NULL) {
-      		cerr << sFuncName << "(" << uLabel 
-			<< "): unable to open module <" << module_name 
-			<< "> (dlopen returns \"" << dlerror() << "\")" 
-			<< endl;
-      		THROW(ErrGeneric());
+		/* look for module in cwd */
+		size_t l = strlen(module_name);
+		char cwd[1024];
+
+		if (getcwd(cwd, 1024) == NULL || strlen(cwd) >= 1024-1-3-l) {
+			cerr << "Loadable(" << uLabel 
+				<< "): unable to get current working directory"
+				<< endl;
+	                THROW(ErrGeneric());
+		}
+
+		strcat(cwd, "/");
+		strcat(cwd, module_name);
+		if (strcmp(module_name+l-3, ".so") != 0) {
+			strcat(cwd, ".so");
+		}
+
+		handle = dlopen(cwd, RTLD_NOW /* RTLD_LAZY */ );
+		if (handle == NULL) {
+      			cerr << "Loadable(" << uLabel 
+				<< "): unable to open module <" << module_name 
+				<< "> (dlopen returns \"" << dlerror() << "\")" 
+				<< endl;
+      			THROW(ErrGeneric());
+		}
    	}
 
-   	DEBUGCOUT("binding to function \"" << func_names[READ] 
-	     	<< "\" (must be def'd!)" << endl);
-   	fsym[READ] = dlsym(handle, func_names[READ]);
-   	if (fsym[READ] == NULL) {
+	const char *data_name = NULL;
+	LoadableCalls **tmpcalls = NULL;
+	if (HP.IsKeyWord("name")) {
+		data_name = HP.GetStringWithDelims();
+	} else {
+		data_name = "calls";
+	}
+   	DEBUGCOUT("binding to data \"" << data_name
+     		<< "\" (must be def'd!)" << endl);
+	tmpcalls = (LoadableCalls **)dlsym(handle, data_name);
+	
+   	if (tmpcalls == NULL) {
       		const char* err = dlerror();
       		if (err == NULL) {
-	 		cerr << sFuncName << "(" << uLabel 
-	   			<< "): function \"" << func_names[READ]
+	 		cerr << "Loadable(" << uLabel 
+	   			<< "): data \"" << data_name
 	   			<< "\" must be defined in module <" 
 				<< module_name << ">" << endl;
       		} else {
-	 		cerr << sFuncName << "(" << uLabel 
-	   			<< "): error while binding to function \"" 
-				<< func_names[READ]
+	 		cerr << "Loadable(" << uLabel
+	   			<< "): error while binding to data \"" 
+				<< data_name
 	   			<< "\" in module <" << module_name
 	   			<< "> (dlsym returns \"" << err 
 				<< "\")" << endl;
       		}
       		THROW(ErrGeneric());
    	}
-   
-   	for (int i = 1; i < LASTFUNC; i++) {
-      		DEBUGCOUT("binding to function \"" << func_names[i]
-			<< "\" (default function available)" << endl);
-      		fsym[i] = dlsym(handle, func_names[i]);
-      		if (fsym[i] == NULL) {
-	 		const char* err = dlerror();
-	 		if (err != NULL) {
-	    			silent_cerr(sFuncName << "(" << uLabel
-	      				    << "): bind error"
-					    " (dlsym returns \"" 
-					    << err << "\" for \""
-					    << func_names[i]
-					    << "\"); using default function"
-					    << endl);
-	 		}
-	 		fsym[i] = default_funcs[i];	 
-      		}
-   	}
-   
-   	priv_data = (*((p_read)fsym[READ]))(this, pDM, HP, pDM->pGetDrvHdl());
 
+	calls = *tmpcalls;
+   
+	if (calls->read == NULL) {
+		cerr << "Loadable(" << uLabel
+			<< "): function \"read\" must be defined in module <"
+			<< module_name << "> data" << endl;
+		THROW(ErrGeneric());
+	}
+
+	/*
+	 * Mette i default ove servono
+	 */
+	if (calls->i_get_num_dof == NULL) {
+		calls->i_get_num_dof = __i_get_num_dof;
+	}
+
+	if (calls->set_dof == NULL) {
+		calls->set_dof = __set_dof;
+	}
+
+	if (calls->output == NULL) {
+		calls->output = __output;
+	}
+
+	if (calls->restart == NULL) {
+		calls->restart = __restart;
+	}
+
+	if (calls->work_space_dim == NULL) {
+		calls->work_space_dim = __work_space_dim;
+	}
+
+	if (calls->ass_jac == NULL) {
+		calls->ass_jac = __ass_jac;
+	}
+
+	if (calls->ass_eig == NULL) {
+		calls->ass_eig = __ass_eig;
+	}
+
+	if (calls->ass_res == NULL) {
+		calls->ass_res = __ass_res;
+	}
+
+	if (calls->before_predict == NULL) {
+		calls->before_predict = __before_predict;
+	}
+
+	if (calls->after_predict == NULL) {
+		calls->after_predict = __after_predict;
+	}
+
+	if (calls->update == NULL) {
+		calls->update = __update;
+	}
+
+	if (calls->i_get_initial_num_dof == NULL) {
+		calls->i_get_initial_num_dof = __i_get_initial_num_dof;
+	}
+
+	if (calls->initial_work_space_dim == NULL) {
+		calls->initial_work_space_dim = __initial_work_space_dim;
+	}
+
+	if (calls->initial_ass_jac == NULL) {
+		calls->initial_ass_jac = __initial_ass_jac;
+	}
+
+	if (calls->initial_ass_res == NULL) {
+		calls->initial_ass_res = __initial_ass_res;
+	}
+
+	if (calls->set_value == NULL) {
+		calls->set_value = __set_value;
+	}
+
+	if (calls->set_initial_value == NULL) {
+		calls->set_initial_value = __set_initial_value;
+	}
+
+	if (calls->i_get_num_priv_data == NULL) {
+		calls->i_get_num_priv_data = __i_get_num_priv_data;
+	}
+
+	if (calls->d_get_priv_data == NULL) {
+		calls->d_get_priv_data = __d_get_priv_data;
+	}
+
+	if (calls->destroy == NULL) {
+		calls->destroy = __destroy;
+	}
+	
+   	priv_data = (*calls->read)(this, pDM, HP, pDM->pGetDrvHdl());
    	SetOutputFlag(pDM->fReadOutput(HP, ElemType::LOADABLE)); 
 }
 
 LoadableElem::~LoadableElem(void)
 {
-   	ASSERT(fsym[DESTROY] != NULL);
-   	(*((p_destroy)fsym[DESTROY]))(this);
+	ASSERT(calls->destroy != NULL);
+   	(*calls->destroy)(this);
    
    	ASSERT(handle != NULL);
    	dlclose(handle);
@@ -476,39 +408,39 @@ LoadableElem::GetElemType(void) const
 unsigned int 
 LoadableElem::iGetNumDof(void) const
 {
-   	ASSERT(fsym[IGETNUMDOF] != NULL);
-   	return (*((p_i_get_num_dof)fsym[IGETNUMDOF]))(this);
+	ASSERT(calls->i_get_num_dof != NULL);
+   	return (*calls->i_get_num_dof)(this);
 }
 
 DofOrder::Order 
 LoadableElem::SetDof(unsigned int i) const
 {
-   	ASSERT(fsym[SETDOF] != NULL);
    	ASSERT(i < iGetNumDof());
-   	return (*((p_set_dof)fsym[SETDOF]))(this, i);
+	ASSERT(calls->set_dof != NULL);
+   	return (*calls->set_dof)(this, i);
 }
 
 void 
 LoadableElem::Output(OutputHandler& OH) const
 {
-   	ASSERT(fsym[OUTPUT] != NULL);
-   	(*((p_output)fsym[OUTPUT]))(this, OH);
+	ASSERT(calls->output != NULL);
+   	(*calls->output)(this, OH);
 }
 
 ostream& 
 LoadableElem::Restart(ostream& out) const
 {
+	ASSERT(calls->restart != NULL);
    	out << "    loadable: " << GetLabel() << ", \"" 
 		<< module_name << "\", ";
-   	ASSERT(fsym[RESTART] != NULL);
-   	return (*((p_restart)fsym[RESTART]))(this, out) << ';' << endl;
+   	return (*calls->restart)(this, out) << ';' << endl;
 }
 
 void 
 LoadableElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-   	ASSERT(fsym[WORKSPACEDIM] != NULL);
-   	(*((p_work_space_dim)fsym[WORKSPACEDIM]))(this, piNumRows, piNumCols);
+	ASSERT(calls->work_space_dim != NULL);
+   	(*calls->work_space_dim)(this, piNumRows, piNumCols);
 }
 
 VariableSubMatrixHandler& 
@@ -517,9 +449,8 @@ LoadableElem::AssJac(VariableSubMatrixHandler& WorkMat,
 		     const VectorHandler& XCurr,
 		     const VectorHandler& XPCurr)
 {
-   	ASSERT(fsym[ASSJAC] != NULL);
-   	return (*((p_ass_jac)fsym[ASSJAC]))(this, WorkMat, 
-					    dCoef, XCurr, XPCurr);
+	ASSERT(calls->ass_jac != NULL);
+   	return (*calls->ass_jac)(this, WorkMat, dCoef, XCurr, XPCurr);
 }
 
 void
@@ -528,8 +459,8 @@ LoadableElem::AssEig(VariableSubMatrixHandler& WorkMatA,
 		     const VectorHandler& XCurr,
 		     const VectorHandler& XPCurr)
 {
-   	ASSERT(fsym[ASSEIG] != NULL);
-   	(*((p_ass_eig)fsym[ASSEIG]))(this, WorkMatA, WorkMatB, XCurr, XPCurr);
+   	ASSERT(calls->ass_eig != NULL);
+   	(*calls->ass_eig)(this, WorkMatA, WorkMatB, XCurr, XPCurr);
 }
 
 SubVectorHandler& 
@@ -538,8 +469,8 @@ LoadableElem::AssRes(SubVectorHandler& WorkVec,
 		     const VectorHandler& XCurr, 
 		     const VectorHandler& XPCurr)
 {
-   	ASSERT(fsym[ASSRES] != NULL);
-   	return (*((p_ass_res)fsym[ASSRES]))(this, WorkVec, 
+   	ASSERT(calls->ass_res != NULL);
+   	return (*calls->ass_res)(this, WorkVec, 
 					    dCoef, XCurr, XPCurr);
 }
 
@@ -549,16 +480,16 @@ LoadableElem::BeforePredict(VectorHandler& X,
 			    VectorHandler& XPrev,
 			    VectorHandler& XPPrev) const
 {
-   	ASSERT(fsym[BEFOREPREDICT] != NULL);
-   	(*((p_before_predict)fsym[BEFOREPREDICT]))(this, X, XP, XPrev, XPPrev);
+   	ASSERT(calls->before_predict != NULL);
+   	(*calls->before_predict)(this, X, XP, XPrev, XPPrev);
 }
 
 void 
 LoadableElem::AfterPredict(VectorHandler& X,
 			   VectorHandler& XP)
 {
-   	ASSERT(fsym[AFTERPREDICT] != NULL);
-   	(*((p_after_predict)fsym[AFTERPREDICT]))(this, X, XP);
+   	ASSERT(calls->after_predict != NULL);
+   	(*calls->after_predict)(this, X, XP);
 }
 
 
@@ -566,72 +497,68 @@ void
 LoadableElem::Update(const VectorHandler& XCurr, 
 		     const VectorHandler& XPrimeCurr)
 {
-   	ASSERT(fsym[UPDATE] != NULL);
-   	(*((p_update)fsym[UPDATE]))(this, XCurr, XPrimeCurr);
+   	ASSERT(calls->update != NULL);
+   	(*calls->update)(this, XCurr, XPrimeCurr);
 }
 
 #ifdef USE_STRUCT_NODES
 unsigned int 
 LoadableElem::iGetInitialNumDof(void) const
 {
-   	ASSERT(fsym[IGETINITIALNUMDOF] != NULL);
-   	return (*((p_i_get_initial_num_dof)fsym[IGETINITIALNUMDOF]))(this);
+   	ASSERT(calls->i_get_initial_num_dof != NULL);
+   	return (*calls->i_get_initial_num_dof)(this);
 }
 
 void 
 LoadableElem::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-   	ASSERT(fsym[INITIALWORKSPACEDIM] != NULL);
-   	(*((p_initial_work_space_dim)fsym[INITIALWORKSPACEDIM]))(this,  
-							    	 piNumRows, 
-							    	 piNumCols);
+   	ASSERT(calls->initial_work_space_dim != NULL);
+   	(*calls->initial_work_space_dim)(this, piNumRows, piNumCols);
 }
 
 VariableSubMatrixHandler& 
 LoadableElem::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			    const VectorHandler& XCurr)
 {
-   	ASSERT(fsym[INITIALASSJAC] != NULL);
-   	return (*((p_initial_ass_jac)fsym[INITIALASSJAC]))(this, 
-							   WorkMat, XCurr);
+   	ASSERT(calls->initial_ass_jac != NULL);
+   	return (*calls->initial_ass_jac)(this, WorkMat, XCurr);
 }
 
 SubVectorHandler& 
 LoadableElem::InitialAssRes(SubVectorHandler& WorkVec, 
 			    const VectorHandler& XCurr)
 {
-   	ASSERT(fsym[INITIALASSRES] != NULL);
-   	return (*((p_initial_ass_res)fsym[INITIALASSRES]))(this, 
-							   WorkVec, XCurr);
+   	ASSERT(calls->initial_ass_res != NULL);
+   	return (*calls->initial_ass_res)(this, WorkVec, XCurr);
 }
 
 void 
 LoadableElem::SetInitialValue(VectorHandler& X) const
 {   
-   	ASSERT(fsym[SETINITIALVALUE] != NULL);
-   	(*((p_set_initial_value)fsym[SETINITIALVALUE]))(this, X);
+   	ASSERT(calls->set_initial_value != NULL);
+   	(*calls->set_initial_value)(this, X);
 }
 #endif /* USE_STRUCT_NODES */
 
 void 
 LoadableElem::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
-   	ASSERT(fsym[SETVALUE] != NULL);
-   	(*((p_set_value)fsym[SETVALUE]))(this, X, XP);
+   	ASSERT(calls->set_value != NULL);
+   	(*calls->set_value)(this, X, XP);
 }
 
 unsigned int 
 LoadableElem::iGetNumPrivData(void) const
 {
-   	ASSERT(fsym[IGETNUMPRIVDATA] != NULL);
-   	return (*((p_i_get_num_priv_data)fsym[IGETNUMPRIVDATA]))(this);
+   	ASSERT(calls->i_get_num_priv_data != NULL);
+   	return (*calls->i_get_num_priv_data)(this);
 }
 
 doublereal 
 LoadableElem::dGetPrivData(unsigned int i) const
 {
-   	ASSERT(fsym[DGETPRIVDATA] != NULL);
-   	return (*((p_d_get_priv_data)fsym[DGETPRIVDATA]))(this, i);
+   	ASSERT(calls->d_get_priv_data != NULL);
+   	return (*calls->d_get_priv_data)(this, i);
 }
 
 Elem* 
