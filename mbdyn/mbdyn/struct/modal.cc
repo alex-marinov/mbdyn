@@ -109,6 +109,10 @@
 /* FIXME: gravity in modal elements is eXperimental; undefine to disable */
 #define MODAL_USE_GRAVITY
 
+#include <unistd.h>
+#include <errno.h>
+#include <sys/stat.h>
+
 #include <modal.h>
 #include <dataman.h>
 
@@ -2373,14 +2377,16 @@ ReadModal(DataManager* pDM,
 	/* Legge i coefficienti di smorzamento */
 	doublereal cdamp = 0.;
 	VecN DampRatios(NModes, 0.);
-	integer iDampFlag = 0;
+	bool bDampFlag = false;
 
 	if (HP.IsKeyWord("no" "damping")) {
 		cdamp = 0.;
+
 	} else if (HP.IsKeyWord("proportional" "damping")) {
 		cdamp = HP.GetReal();
+
 	} else if (HP.IsKeyWord("diag" "damping"))  {
-		iDampFlag = 1;
+		bDampFlag = true;
 		
 		for (unsigned int iCnt = 1; iCnt <= NModes; iCnt ++) {
 			integer iDampedMode =  HP.GetInt();
@@ -2442,24 +2448,89 @@ ReadModal(DataManager* pDM,
 	const char *sFileFem = NULL;
 	SAFESTRDUP(sFileFem, s);
 
-	/* apre il file con i dati del modello FEM */
-	std::ifstream fdat(sFileFem);
-	if (!fdat) {
-		silent_cerr("Modal(" << uLabel << "): "
-			"unable to open file \"" << sFileFem << "\""
-			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+	/* loop for binary keywords */
+	bool bCreateBinary = false;
+	bool bUseBinary = false;
+	bool bUpdateBinary = false;
+	while (true) {
+		if (HP.IsKeyWord("create" "binary")) {
+			bCreateBinary = true;
+
+		} else if (HP.IsKeyWord("use" "binary")) {
+			bUseBinary = true;
+
+		} else if (HP.IsKeyWord("update" "binary")) {
+			bUpdateBinary = true;
+
+		} else {
+			break;
+		}
 	}
-	DEBUGCOUT("Reading Flexible Body Data from file "
-			<< sFileFem << std::endl);
 
-	/* carica i dati relativi a coordinate nodali, massa, momenti statici
-	 * e d'inerzia, massa e rigidezza generalizzate dal file nomefile.
-	 */
+	/* stuff for binary FEM file handling */
+	char		*sBinFileFem = 0;
+	struct stat	stFEM, stBIN;
+	bool		bReadFEM = true,
+			bWriteBIN = false,
+			bCheckBIN = false;
 
-	doublereal d;
-	unsigned int NFemNodesDADS = 0, NModesDADS = 0, NRejModes = 0;
-	char str[BUFSIZ];
+	if (stat(sFileFem, &stFEM) == -1) {
+		int	save_errno = errno;
+		char	*errmsg = strerror(save_errno);
+
+		silent_cerr("Modal(" << uLabel << "): "
+				"unable to stat(\"" << sFileFem << "\") "
+				"(" << save_errno << ": " << errmsg << ")"
+				<< std::endl);
+		throw ErrGeneric();
+	}
+
+	if (bUseBinary || bCreateBinary || bUpdateBinary) {
+		unsigned len = strlen(sFileFem);
+
+		SAFENEWARR(sBinFileFem, char, len + sizeof(".bin"));
+		snprintf(sBinFileFem, len + sizeof(".bin"),
+				"%s.bin", sFileFem);
+
+		if (stat(sBinFileFem, &stBIN) == -1) {
+			int	save_errno = errno;
+			char	*errmsg = strerror(save_errno);
+
+			if (save_errno == ENOENT && (bCreateBinary || bUpdateBinary)) {
+				silent_cerr("Modal(" << uLabel << "): "
+						"creating binary file "
+						"\"" << sBinFileFem << "\" "
+						"from file "
+						"\"" << sFileFem << "\""
+						<< std::endl);
+
+			} else {
+				silent_cerr("Modal(" << uLabel << "): "
+						"unable to stat(\"" << sBinFileFem << "\") "
+						"(" << save_errno << ": " << errmsg << ")"
+						<< std::endl);
+				throw ErrGeneric();
+			}
+			
+		} else {
+			/* can check bin */
+			bCheckBIN = true;
+		}
+	}
+
+	if (bUseBinary && bCheckBIN) {
+		/* if timestamp of binary is later than of ASCII use binary */
+		if (stBIN.st_mtime > stFEM.st_mtime) {
+			bReadFEM = false;
+
+		/* otherwise, if requested, update binary */
+		} else if (bUpdateBinary) {
+			bWriteBIN = true;
+		}
+
+	} else if (bCreateBinary || bUpdateBinary) {
+		bWriteBIN = true;
+	}
 
 	/* alloca la memoria per le matrici necessarie a memorizzare i dati
 	 * relativi al corpo flessibile
@@ -2486,317 +2557,800 @@ ReadModal(DataManager* pDM,
 	SAFENEWWITHCONSTRUCTOR(pInv11,Mat3xN, Mat3xN(NModes, 0.));
 	SAFENEWWITHCONSTRUCTOR(a,  VecN, VecN(NModes, 0.));
 	SAFENEWWITHCONSTRUCTOR(aP, VecN, VecN(NModes, 0.));
-
+	
 	/* array contenente le label dei nodi FEM */
 	unsigned int *IdFemNodes = NULL;
 	SAFENEWARR(IdFemNodes, unsigned int, NFemNodes);
-
+	
 	bool *bActiveModes = NULL;
 
-	while (!fdat.eof()) {        /* parsing del file */
-		fdat.getline(str, sizeof(str));
+	/* increment this each time the binary format changes! */
+	unsigned	BinVersion = 1,
+			currBinVersion;
+	char		checkPoint;
+	unsigned int	NFemNodesFEM = 0, NModesFEM = 0;
 
-		/* legge il primo blocco (HEADER) */
-		if (!strncmp("** RECORD GROUP 1,", str,
-					sizeof("** RECORD GROUP 1,") - 1)) {
-	 		fdat.getline(str, sizeof(str));
-			fdat >> str;
+	if (bReadFEM) {
+		/* apre il file con i dati del modello FEM */
+		std::ifstream fdat(sFileFem);
+		if (!fdat) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"unable to open file \"" << sFileFem << "\""
+				"at line " << HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric();
+		}
+		silent_cout("Modal(" << uLabel << "): "
+			"reading flexible body data from file "
+			"\"" << sFileFem << "\"" << std::endl);
 
-			/* FEM nodes number */
-			fdat >> NFemNodesDADS;
-
-			/* add to modes number */
-			fdat >> NModesDADS;
-
-			unsigned int i;
-			fdat >> i;
-			NModesDADS += i;
-			fdat >> i;
-			NModesDADS += i;
-
-			/* "rejected" modes (subtract from modes number) */
-			fdat >> NRejModes;
-			NModesDADS -= NRejModes;
-		
-			/* consistency checks */
-			if (NFemNodes != NFemNodesDADS) {
-				silent_cerr("Modal(" << uLabel << "), "
-					"file \"" << sFileFem << "\": "
-					"FEM nodes number " << NFemNodes
-					<< " does not match node number "
-					<< NFemNodesDADS
-					<< std::endl);
+		std::ofstream fbin;
+		if (bWriteBIN) {
+			fbin.open(sBinFileFem);
+			if (!fbin) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"unable to open file \"" << sBinFileFem << "\""
+					"at line " << HP.GetLineData() << std::endl);
 				throw DataManager::ErrGeneric();
 			}
 
-			if (NModes != NModesDADS) {
-				silent_cout("Modal(" << uLabel
-						<< "), file '" << sFileFem
-						<< "': using " << NModes
-						<< " of " << NModesDADS
-						<< " modes" << std::endl);
-			}
+			currBinVersion = BinVersion;
+			fbin.write((char *)&currBinVersion, sizeof(currBinVersion));
+		}
 
-			if (bActiveModes != NULL) {
-				throw ErrGeneric();
-			}
+		/* carica i dati relativi a coordinate nodali, massa, momenti statici
+		 * e d'inerzia, massa e rigidezza generalizzate dal file nomefile.
+		 */
+	
+		doublereal	d;
+		unsigned int	NRejModes = 0;
+		char		str[BUFSIZ];
 
-			SAFENEWARR(bActiveModes, bool, NModesDADS+1);
+		while (!fdat.eof()) {        /* parsing del file */
+			fdat.getline(str, sizeof(str));
+	
+			/* legge il primo blocco (HEADER) */
+			if (!strncmp("** RECORD GROUP 1,", str,
+						sizeof("** RECORD GROUP 1,") - 1)) {
+		 		fdat.getline(str, sizeof(str));
+				fdat >> str;
+	
+				/* FEM nodes number */
+				fdat >> NFemNodesFEM;
+	
+				/* add to modes number */
+				fdat >> NModesFEM;
+	
+				unsigned int i;
+				fdat >> i;
+				NModesFEM += i;
+				fdat >> i;
+				NModesFEM += i;
 
-			for (unsigned int iCnt = 1; iCnt <= NModesDADS; iCnt++) {
-				bActiveModes[iCnt] = false;
-			}
+				/* "rejected" modes (subtract from modes number) */
+				fdat >> NRejModes;
+				NModesFEM -= NRejModes;
+		
+				/* consistency checks */
+				if (NFemNodes != NFemNodesFEM) {
+					silent_cerr("Modal(" << uLabel << "), "
+						"file \"" << sFileFem << "\": "
+						"FEM nodes number " << NFemNodes
+						<< " does not match node number "
+						<< NFemNodesFEM
+						<< std::endl);
+					throw DataManager::ErrGeneric();
+				}
 
-			for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
-				if (uModeNumber[iCnt] > NModesDADS) {
+				if (NModes != NModesFEM) {
+					silent_cout("Modal(" << uLabel
+							<< "), file '" << sFileFem
+							<< "': using " << NModes
+							<< " of " << NModesFEM
+							<< " modes" << std::endl);
+				}
+
+				if (bActiveModes != NULL) {
+					throw ErrGeneric();
+				}
+
+				SAFENEWARR(bActiveModes, bool, NModesFEM+1);
+
+				for (unsigned int iCnt = 1; iCnt <= NModesFEM; iCnt++) {
+					bActiveModes[iCnt] = false;
+				}
+
+				for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
+					if (uModeNumber[iCnt] > NModesFEM) {
+						silent_cerr("Modal(" << uLabel << "): "
+							"mode " << uModeNumber[iCnt]
+							<< " is not available (max = "
+							<< NModesFEM << ")"
+							<< std::endl);
+						throw ErrGeneric();
+					}
+					bActiveModes[uModeNumber[iCnt]] = true;
+				}
+				SAFEDELETEARR(uModeNumber);
+				uModeNumber = NULL;
+
+				if (bWriteBIN) {
+					checkPoint = 1;
+					fbin.write(&checkPoint, sizeof(checkPoint));
+					fbin.write((char *)&NFemNodesFEM, sizeof(NFemNodesFEM));
+					fbin.write((char *)&NModesFEM, sizeof(NModesFEM));
+				}
+
+			/* legge il secondo blocco (Id.nodi) */
+			} else if (!strncmp("** RECORD GROUP 2,", str,
+						sizeof("** RECORD GROUP 2,") - 1)) {
+				for (iNode = 1; iNode <= NFemNodes; iNode++) {
+					fdat >> IdFemNodes[iNode-1];
+				}
+
+				if (bWriteBIN) {
+					checkPoint = 2;
+					fbin.write(&checkPoint, sizeof(checkPoint));
+					fbin.write((char *)IdFemNodes, sizeof(IdFemNodes[0])*NFemNodes);
+				}
+
+			/* deformate iniziali dei modi */
+			} else if (!strncmp("** RECORD GROUP 3,", str,
+						sizeof("** RECORD GROUP 3,") - 1)) {
+				unsigned int iCnt = 1;
+
+				if (bActiveModes == NULL) {
 					silent_cerr("Modal(" << uLabel << "): "
-						"mode " << uModeNumber[iCnt]
-						<< " is not available (max = "
-						<< NModesDADS << ")"
+						"input file \"" << sFileFem << "\""
+						"is bogus (RECORD GROUP 3)"
 						<< std::endl);
 					throw ErrGeneric();
 				}
-				bActiveModes[uModeNumber[iCnt]] = true;
-			}
-			SAFEDELETEARR(uModeNumber);
-			uModeNumber = NULL;
 
-		/* legge il secondo blocco (Id.nodi) */
-		} else if (!strncmp("** RECORD GROUP 2,", str,
-					sizeof("** RECORD GROUP 2,") - 1)) {
-			for (iNode = 1; iNode <= NFemNodes; iNode++) {
-				fdat >> IdFemNodes[iNode-1];
-			}
-
-		/* deformate iniziali dei modi */
-		} else if (!strncmp("** RECORD GROUP 3,", str,
-					sizeof("** RECORD GROUP 3,") - 1)) {
-			unsigned int iCnt = 1;
-
-			if (bActiveModes == NULL) {
-				silent_cerr("Modal(" << uLabel << "): "
-					"input file \"" << sFileFem << "\""
-					"is bogus (RECORD GROUP 3)"
-					<< std::endl);
-				throw ErrGeneric();
-			}
-
-			for (iMode = 1; iMode <= NModesDADS; iMode++) {
-				fdat >> d;
-				if (!bActiveModes[iMode]) {
-					continue;
+				if (bWriteBIN) {
+					checkPoint = 3;
+					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
-				a->Put(iCnt, d);
-				iCnt++;
-			}
 
-		/* velocita' iniziali dei modi */
-		} else if (!strncmp("** RECORD GROUP 4,", str,
-					sizeof("** RECORD GROUP 4,") - 1)) {
-			unsigned int iCnt = 1;
+				for (iMode = 1; iMode <= NModesFEM; iMode++) {
+					fdat >> d;
 
-			if (bActiveModes == NULL) {
-				silent_cerr("Modal(" << uLabel << "): "
-					"input file \"" << sFileFem << "\""
-					"is bogus (RECORD GROUP 4)"
-					<< std::endl);
-				throw ErrGeneric();
-			}
-
-			for (iMode = 1; iMode <= NModesDADS; iMode++) {
-				fdat >> d;
-				if (!bActiveModes[iMode]) {
-					continue;
-				}
-				aP->Put(iCnt, d);
-				iCnt++;
-			}
-
-		/* Coordinate X dei nodi*/
-		} else if (!strncmp("** RECORD GROUP 5,", str,
-					sizeof("** RECORD GROUP 5,") - 1)) {
-			for (iNode = 1; iNode <= NFemNodes; iNode++) {
-				fdat >> d;
-#ifdef MODAL_SCALE_DATA
-				d *= scalemodes;
-#endif /* MODAL_SCALE_DATA */
-				pXYZFemNodes->Put(1, iNode, d);
-			}
-
-		/* Coordinate Y dei nodi*/
-		} else if (!strncmp("** RECORD GROUP 6,", str,
-					sizeof("** RECORD GROUP 6,") - 1)) {
-			for (iNode = 1; iNode <= NFemNodes; iNode++) {
-				fdat >> d;
-#ifdef MODAL_SCALE_DATA
-				d *= scalemodes;
-#endif /* MODAL_SCALE_DATA */
-				pXYZFemNodes->Put(2, iNode, d);
-			}
-
-		/* Coordinate Z dei nodi*/
-		} else if (!strncmp("** RECORD GROUP 7,", str,
-					sizeof("** RECORD GROUP 7,") - 1)) {
-			for (iNode = 1; iNode <= NFemNodes; iNode++) {
-				fdat >> d;
-#ifdef MODAL_SCALE_DATA
-				d *= scalemodes;
-#endif /* MODAL_SCALE_DATA */
-				pXYZFemNodes->Put(3, iNode, d);
-			}
-
-		/* Forme modali */
-		} else if (!strncmp("** RECORD GROUP 8,", str,
-					sizeof("** RECORD GROUP 8,") - 1)) {
-			for (iMode = 1; iMode <= NRejModes; iMode++) {
-				/* FIXME: siamo sicuri di avere 
-				 * raggiunto '\n'? */
-				fdat.getline(str, sizeof(str));
-				fdat.getline(str, sizeof(str));
-			}
-			
-			if (bActiveModes == NULL) {
-				silent_cerr("Modal(" << uLabel << "): "
-					"input file \"" << sFileFem << "\""
-					"is bogus (RECORD GROUP 8)"
-					<< std::endl);
-				throw ErrGeneric();
-			}
-
-			unsigned int iCnt = 1;
-			for (iMode = 1; iMode <= NModesDADS; iMode++) {
-				fdat.getline(str, sizeof(str));
-				for (iNode = 1; iNode <= NFemNodes; iNode++) {
-					doublereal t1, t2, t3, r1, r2, r3;
-
-					fdat >> t1 >> t2 >> t3
-						>> r1 >> r2 >> r3;
-
+					if (bWriteBIN) {
+						fbin.write((char *)&d, sizeof(d));
+					}
+					
 					if (!bActiveModes[iMode]) {
 						continue;
 					}
+					a->Put(iCnt, d);
+					iCnt++;
+				}
+	
+			/* velocita' iniziali dei modi */
+			} else if (!strncmp("** RECORD GROUP 4,", str,
+						sizeof("** RECORD GROUP 4,") - 1)) {
+				unsigned int iCnt = 1;
+	
+				if (bActiveModes == NULL) {
+					silent_cerr("Modal(" << uLabel << "): "
+						"input file \"" << sFileFem << "\""
+						"is bogus (RECORD GROUP 4)"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+	
+				if (bWriteBIN) {
+					checkPoint = 4;
+					fbin.write(&checkPoint, sizeof(checkPoint));
+				}
+
+				for (iMode = 1; iMode <= NModesFEM; iMode++) {
+					fdat >> d;
+
+					if (bWriteBIN) {
+						fbin.write((char *)&d, sizeof(d));
+					}
+					
+					if (!bActiveModes[iMode]) {
+						continue;
+					}
+					aP->Put(iCnt, d);
+					iCnt++;
+				}
+	
+			/* Coordinate X dei nodi */
+			} else if (!strncmp("** RECORD GROUP 5,", str,
+						sizeof("** RECORD GROUP 5,") - 1)) {
+				if (bWriteBIN) {
+					checkPoint = 5;
+					fbin.write(&checkPoint, sizeof(checkPoint));
+				}
+
+				for (iNode = 1; iNode <= NFemNodes; iNode++) {
+					fdat >> d;
+					
+					if (bWriteBIN) {
+						fbin.write((char *)&d, sizeof(d));
+					}
 
 #ifdef MODAL_SCALE_DATA
-					t1 *= scalemodes;
-					t2 *= scalemodes;
-					t3 *= scalemodes;
+					d *= scalemodes;
 #endif /* MODAL_SCALE_DATA */
-					pModeShapest->PutVec((iCnt-1)*NFemNodes+iNode, Vec3(t1, t2, t3));
-					pModeShapesr->PutVec((iCnt-1)*NFemNodes+iNode, Vec3(r1, r2, r3));
+					pXYZFemNodes->Put(1, iNode, d);
 				}
 
-				if (bActiveModes[iMode]) {
-					iCnt++;
+			/* Coordinate Y dei nodi*/
+			} else if (!strncmp("** RECORD GROUP 6,", str,
+						sizeof("** RECORD GROUP 6,") - 1)) {
+				if (bWriteBIN) {
+					checkPoint = 6;
+					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
-				fdat.getline(str, sizeof(str));
-			}
 
-		/* Matrice di massa  modale */
-		} else if (!strncmp("** RECORD GROUP 9,", str,
-					sizeof("** RECORD GROUP 9,") - 1)) {
-			unsigned int iCnt = 1;
-
-			if (bActiveModes == NULL) {
-				silent_cerr("Modal(" << uLabel << "): "
-					"input file \"" << sFileFem << "\""
-					"is bogus (RECORD GROUP 9)"
-					<< std::endl);
-				throw ErrGeneric();
-			}
-
-			for (iMode = 1; iMode <= NModesDADS; iMode++) {
-				unsigned int jCnt = 1;
-
-				for (jMode = 1; jMode <= NModesDADS; jMode++) {
+				for (iNode = 1; iNode <= NFemNodes; iNode++) {
 					fdat >> d;
-					if (!bActiveModes[iMode] || !bActiveModes[jMode]) {
-						continue;
+
+					if (bWriteBIN) {
+						fbin.write((char *)&d, sizeof(d));
 					}
-					pGenMass->Put(iCnt, jCnt, d);
-					jCnt++;
+
+#ifdef MODAL_SCALE_DATA
+					d *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+					pXYZFemNodes->Put(2, iNode, d);
+				}
+	
+			/* Coordinate Z dei nodi*/
+			} else if (!strncmp("** RECORD GROUP 7,", str,
+						sizeof("** RECORD GROUP 7,") - 1)) {
+				if (bWriteBIN) {
+					checkPoint = 7;
+					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
-				if (bActiveModes[iMode]) {
-					iCnt++;
-				}
-			}
+				for (iNode = 1; iNode <= NFemNodes; iNode++) {
+					fdat >> d;
 
+					if (bWriteBIN) {
+						fbin.write((char *)&d, sizeof(d));
+					}
+
+#ifdef MODAL_SCALE_DATA
+					d *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+					pXYZFemNodes->Put(3, iNode, d);
+				}
+	
+			/* Forme modali */
+			} else if (!strncmp("** RECORD GROUP 8,", str,
+						sizeof("** RECORD GROUP 8,") - 1)) {
+				if (bWriteBIN) {
+					checkPoint = 8;
+					fbin.write(&checkPoint, sizeof(checkPoint));
+				}
+
+				for (iMode = 1; iMode <= NRejModes; iMode++) {
+					/* FIXME: siamo sicuri di avere 
+					 * raggiunto '\n'? */
+					fdat.getline(str, sizeof(str));
+					fdat.getline(str, sizeof(str));
+				}
+				
+				if (bActiveModes == NULL) {
+					silent_cerr("Modal(" << uLabel << "): "
+						"input file \"" << sFileFem << "\""
+						"is bogus (RECORD GROUP 8)"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+	
+				unsigned int iCnt = 1;
+				for (iMode = 1; iMode <= NModesFEM; iMode++) {
+					fdat.getline(str, sizeof(str));
+					for (iNode = 1; iNode <= NFemNodes; iNode++) {
+						doublereal n[6];
+	
+						fdat >> n[0] >> n[1] >> n[2]
+							>> n[3] >> n[4] >> n[5];
+
+						if (bWriteBIN) {
+							fbin.write((char *)n, sizeof(n));
+						}
+	
+						if (!bActiveModes[iMode]) {
+							continue;
+						}
+
+#ifdef MODAL_SCALE_DATA
+						n[0] *= scalemodes;
+						n[1] *= scalemodes;
+						n[2] *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+						pModeShapest->PutVec((iCnt-1)*NFemNodes+iNode, Vec3(&n[0]));
+						pModeShapesr->PutVec((iCnt-1)*NFemNodes+iNode, Vec3(&n[3]));
+					}
+
+					if (bActiveModes[iMode]) {
+						iCnt++;
+					}
+					fdat.getline(str, sizeof(str));
+				}
+
+			/* Matrice di massa  modale */
+			} else if (!strncmp("** RECORD GROUP 9,", str,
+						sizeof("** RECORD GROUP 9,") - 1)) {
+				if (bActiveModes == NULL) {
+					silent_cerr("Modal(" << uLabel << "): "
+						"input file \"" << sFileFem << "\""
+						"is bogus (RECORD GROUP 9)"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
+				if (bWriteBIN) {
+					checkPoint = 9;
+					fbin.write(&checkPoint, sizeof(checkPoint));
+				}
+
+				unsigned int iCnt = 1;
+				for (iMode = 1; iMode <= NModesFEM; iMode++) {
+					unsigned int jCnt = 1;
+	
+					for (jMode = 1; jMode <= NModesFEM; jMode++) {
+						fdat >> d;
+
+						if (bWriteBIN) {
+							fbin.write((char *)&d, sizeof(d));
+						}
+						
+						if (!bActiveModes[iMode] || !bActiveModes[jMode]) {
+							continue;
+						}
+						pGenMass->Put(iCnt, jCnt, d);
+						jCnt++;
+					}
+	
+					if (bActiveModes[iMode]) {
+						iCnt++;
+					}
+				}
+	
 			/* Matrice di rigidezza  modale */
-		} else if (!strncmp("** RECORD GROUP 10,", str,
-					sizeof("** RECORD GROUP 10,") - 1)) {
-			unsigned int iCnt = 1;
+			} else if (!strncmp("** RECORD GROUP 10,", str,
+						sizeof("** RECORD GROUP 10,") - 1)) {
+				if (bActiveModes == NULL) {
+					silent_cerr("Modal(" << uLabel << "): "
+						"input file \"" << sFileFem << "\""
+						"is bogus (RECORD GROUP 10)"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+	
+				if (bWriteBIN) {
+					checkPoint = 10;
+					fbin.write(&checkPoint, sizeof(checkPoint));
+				}
 
-			if (bActiveModes == NULL) {
-				silent_cerr("Modal(" << uLabel << "): "
-					"input file \"" << sFileFem << "\""
-					"is bogus (RECORD GROUP 10)"
-					<< std::endl);
-				throw ErrGeneric();
-			}
-
-			for (iMode = 1; iMode <= NModesDADS; iMode++) {
-				unsigned int jCnt = 1;
-
-				for (jMode = 1; jMode <= NModesDADS; jMode++) {
-					fdat >> d;
-					if (!bActiveModes[iMode] || !bActiveModes[jMode]) {
-						continue;
+				unsigned int iCnt = 1;
+				for (iMode = 1; iMode <= NModesFEM; iMode++) {
+					unsigned int jCnt = 1;
+	
+					for (jMode = 1; jMode <= NModesFEM; jMode++) {
+						fdat >> d;
+						
+						if (bWriteBIN) {
+							fbin.write((char *)&d, sizeof(d));
+						}
+						
+						if (!bActiveModes[iMode] || !bActiveModes[jMode]) {
+							continue;
+						}
+						pGenStiff->Put(iCnt, jCnt, d);
+						jCnt++;
 					}
-					pGenStiff->Put(iCnt, jCnt, d);
-					jCnt++;
-				}
 
-				if (bActiveModes[iMode]) {
-					iCnt++;
+					if (bActiveModes[iMode]) {
+						iCnt++;
+					}
 				}
-			}
 
 			/* Lumped Masses */
-		} else if (!strncmp("** RECORD GROUP 11,", str,
-					sizeof("** RECORD GROUP 11,") - 1)) {
-			for (iNode = 1; iNode <= NFemNodes; iNode++) {
-				for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
-					fdat >> d;
-					switch (jCnt) {
-					case 1:
-#ifdef MODAL_SCALE_DATA
-						d *= scalemass;
-#endif /* MODAL_SCALE_DATA */
-						FemMass.Put(iNode, d);
-						break;
-					
-					case 4:
-#ifdef MODAL_SCALE_DATA
-						d *= scaleinertia;
-#endif /* MODAL_SCALE_DATA */
-						FemJ.Put(1, iNode, d);
-						break;
+			} else if (!strncmp("** RECORD GROUP 11,", str,
+						sizeof("** RECORD GROUP 11,") - 1)) {
+				if (bWriteBIN) {
+					checkPoint = 11;
+					fbin.write(&checkPoint, sizeof(checkPoint));
+				}
 
-					case 5:
+				for (iNode = 1; iNode <= NFemNodes; iNode++) {
+					for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
+						fdat >> d;
+
+						if (bWriteBIN) {
+							fbin.write((char *)&d, sizeof(d));
+						}
+						
+						switch (jCnt) {
+						case 1:
 #ifdef MODAL_SCALE_DATA
-						d *= scaleinertia;
+							d *= scalemass;
 #endif /* MODAL_SCALE_DATA */
-						FemJ.Put(2, iNode, d);
-						break;
+							FemMass.Put(iNode, d);
+							break;
 					
-					case 6:
+						case 4:
 #ifdef MODAL_SCALE_DATA
-						d *= scaleinertia;
+							d *= scaleinertia;
 #endif /* MODAL_SCALE_DATA */
-						FemJ.Put(3, iNode, d);
-						break;
+							FemJ.Put(1, iNode, d);
+							break;
+
+						case 5:
+#ifdef MODAL_SCALE_DATA
+							d *= scaleinertia;
+#endif /* MODAL_SCALE_DATA */
+							FemJ.Put(2, iNode, d);
+							break;
+					
+						case 6:
+#ifdef MODAL_SCALE_DATA
+							d *= scaleinertia;
+#endif /* MODAL_SCALE_DATA */
+							FemJ.Put(3, iNode, d);
+							break;
+						}
 					}
 				}
+			} /* fine parser del file */
+		}
+		SAFEDELETEARR(bActiveModes);
+		bActiveModes = NULL;
+
+		fdat.close();
+		if (bWriteBIN) {
+			fbin.close();
+		}
+
+	} else {
+		std::ifstream fbin(sBinFileFem);
+		if (!fbin) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"unable to open file \"" << sBinFileFem << "\""
+				"at line " << HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric();
+		}
+		silent_cout("Modal(" << uLabel << "): "
+			"reading flexible body data from file "
+			"\"" << sBinFileFem << "\"" << std::endl);
+
+		/* check version */
+		fbin.read((char *)&currBinVersion, sizeof(currBinVersion));
+		if (currBinVersion != BinVersion) {
+			silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFem << "\" "
+					"version does not match" << std::endl);
+			throw ErrGeneric();
+		}
+
+		/* legge il primo blocco (HEADER) */
+		fbin.read(&checkPoint, sizeof(checkPoint));
+		if (checkPoint != 1) {
+			silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFem << "\" "
+					"looks broken (expecting checkpoint 1)"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		fbin.read((char *)&NFemNodesFEM, sizeof(NFemNodesFEM));
+		fbin.read((char *)&NModesFEM, sizeof(NModesFEM));
+
+		/* consistency checks */
+		if (NFemNodes != NFemNodesFEM) {
+			silent_cerr("Modal(" << uLabel << "), "
+				"file \"" << sFileFem << "\": "
+				"FEM nodes number " << NFemNodes
+				<< " does not match node number "
+				<< NFemNodesFEM
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		if (NModes != NModesFEM) {
+			silent_cout("Modal(" << uLabel
+					<< "), file '" << sFileFem
+					<< "': using " << NModes
+					<< " of " << NModesFEM
+					<< " modes" << std::endl);
+		}
+
+		if (bActiveModes != NULL) {
+			throw ErrGeneric();
+		}
+
+		SAFENEWARR(bActiveModes, bool, NModesFEM+1);
+
+		for (unsigned int iCnt = 1; iCnt <= NModesFEM; iCnt++) {
+			bActiveModes[iCnt] = false;
+		}
+
+		for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
+			if (uModeNumber[iCnt] > NModesFEM) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"mode " << uModeNumber[iCnt]
+					<< " is not available (max = "
+					<< NModesFEM << ")"
+					<< std::endl);
+				throw ErrGeneric();
 			}
-		} /* fine parser del file */
+			bActiveModes[uModeNumber[iCnt]] = true;
+		}
+		SAFEDELETEARR(uModeNumber);
+		uModeNumber = NULL;
+
+		/* legge il secondo blocco (Id.nodi) */
+		fbin.read(&checkPoint, sizeof(checkPoint));
+		if (checkPoint != 2) {
+			silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFem << "\" "
+					"looks broken (expecting checkpoint 2)"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		fbin.read((char *)IdFemNodes, sizeof(IdFemNodes[0])*NFemNodes);
+
+		/* deformate iniziali dei modi */
+		fbin.read(&checkPoint, sizeof(checkPoint));
+		if (checkPoint != 3) {
+			silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFem << "\" "
+					"looks broken (expecting checkpoint 3)"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		unsigned int	iCnt;
+		doublereal	d;
+
+		for (iCnt = 1, iMode = 1; iMode <= NModesFEM; iMode++) {
+			fbin.read((char *)&d, sizeof(d));
+				
+			if (!bActiveModes[iMode]) {
+				continue;
+			}
+
+			a->Put(iCnt, d);
+			iCnt++;
+		}
+	
+		/* velocita' iniziali dei modi */
+		fbin.read(&checkPoint, sizeof(checkPoint));
+		if (checkPoint != 4) {
+			silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFem << "\" "
+					"looks broken (expecting checkpoint 4)"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		for (iCnt = 1, iMode = 1; iMode <= NModesFEM; iMode++) {
+			fbin.read((char *)&d, sizeof(d));
+				
+			if (!bActiveModes[iMode]) {
+				continue;
+			}
+
+			aP->Put(iCnt, d);
+			iCnt++;
+		}
+	
+		/* Coordinate X dei nodi */
+		fbin.read(&checkPoint, sizeof(checkPoint));
+		if (checkPoint != 5) {
+			silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFem << "\" "
+					"looks broken (expecting checkpoint 5)"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		for (iNode = 1; iNode <= NFemNodes; iNode++) {
+			fbin.read((char *)&d, sizeof(d));
+
+#ifdef MODAL_SCALE_DATA
+			d *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+
+			pXYZFemNodes->Put(1, iNode, d);
+		}
+
+		/* Coordinate Y dei nodi*/
+		fbin.read(&checkPoint, sizeof(checkPoint));
+		if (checkPoint != 6) {
+			silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFem << "\" "
+					"looks broken (expecting checkpoint 6)"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		for (iNode = 1; iNode <= NFemNodes; iNode++) {
+			fbin.read((char *)&d, sizeof(d));
+
+#ifdef MODAL_SCALE_DATA
+			d *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+
+			pXYZFemNodes->Put(2, iNode, d);
+		}
+
+		/* Coordinate Z dei nodi*/
+		fbin.read(&checkPoint, sizeof(checkPoint));
+		if (checkPoint != 7) {
+			silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFem << "\" "
+					"looks broken (expecting checkpoint 7)"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		for (iNode = 1; iNode <= NFemNodes; iNode++) {
+			fbin.read((char *)&d, sizeof(d));
+
+#ifdef MODAL_SCALE_DATA
+			d *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+
+			pXYZFemNodes->Put(3, iNode, d);
+		}
+
+		/* Forme modali */
+		fbin.read(&checkPoint, sizeof(checkPoint));
+		if (checkPoint != 8) {
+			silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFem << "\" "
+					"looks broken (expecting checkpoint 8)"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		for (iCnt = 1, iMode = 1; iMode <= NModesFEM; iMode++) {
+			for (iNode = 1; iNode <= NFemNodes; iNode++) {
+				doublereal n[6];
+	
+				fbin.read((char *)n, sizeof(n));
+	
+				if (!bActiveModes[iMode]) {
+					continue;
+				}
+
+#ifdef MODAL_SCALE_DATA
+				n[0] *= scalemodes;
+				n[1] *= scalemodes;
+				n[2] *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+				pModeShapest->PutVec((iCnt-1)*NFemNodes+iNode, Vec3(&n[0]));
+				pModeShapesr->PutVec((iCnt-1)*NFemNodes+iNode, Vec3(&n[3]));
+			}
+
+			if (bActiveModes[iMode]) {
+				iCnt++;
+			}
+		}
+
+		/* Matrice di massa  modale */
+		fbin.read(&checkPoint, sizeof(checkPoint));
+		if (checkPoint != 9) {
+			silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFem << "\" "
+					"looks broken (expecting checkpoint 9)"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		for (iCnt = 1, iMode = 1; iMode <= NModesFEM; iMode++) {
+			unsigned int jCnt = 1;
+	
+			for (jMode = 1; jMode <= NModesFEM; jMode++) {
+				fbin.read((char *)&d, sizeof(d));
+
+				if (!bActiveModes[iMode] || !bActiveModes[jMode]) {
+					continue;
+				}
+				pGenMass->Put(iCnt, jCnt, d);
+				jCnt++;
+			}
+	
+			if (bActiveModes[iMode]) {
+				iCnt++;
+			}
+		}
+
+		/* Matrice di rigidezza  modale */
+		fbin.read(&checkPoint, sizeof(checkPoint));
+		if (checkPoint != 10) {
+			silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFem << "\" "
+					"looks broken (expecting checkpoint 10)"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		for (iCnt = 1, iMode = 1; iMode <= NModesFEM; iMode++) {
+			unsigned int jCnt = 1;
+	
+			for (jMode = 1; jMode <= NModesFEM; jMode++) {
+				fbin.read((char *)&d, sizeof(d));
+
+				if (!bActiveModes[iMode] || !bActiveModes[jMode]) {
+					continue;
+				}
+				pGenStiff->Put(iCnt, jCnt, d);
+				jCnt++;
+			}
+	
+			if (bActiveModes[iMode]) {
+				iCnt++;
+			}
+		}
+
+		/* Lumped Masses */
+		fbin.read(&checkPoint, sizeof(checkPoint));
+		if (checkPoint != 11) {
+			silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFem << "\" "
+					"looks broken (expecting checkpoint 11)"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+		for (iNode = 1; iNode <= NFemNodes; iNode++) {
+			for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
+				fbin.read((char *)&d, sizeof(d));
+						
+				switch (jCnt) {
+				case 1:
+#ifdef MODAL_SCALE_DATA
+					d *= scalemass;
+#endif /* MODAL_SCALE_DATA */
+					FemMass.Put(iNode, d);
+					break;
+
+				case 4:
+#ifdef MODAL_SCALE_DATA
+					d *= scaleinertia;
+#endif /* MODAL_SCALE_DATA */
+					FemJ.Put(1, iNode, d);
+					break;
+
+				case 5:
+#ifdef MODAL_SCALE_DATA
+					d *= scaleinertia;
+#endif /* MODAL_SCALE_DATA */
+					FemJ.Put(2, iNode, d);
+					break;
+					
+				case 6:
+#ifdef MODAL_SCALE_DATA
+					d *= scaleinertia;
+#endif /* MODAL_SCALE_DATA */
+					FemJ.Put(3, iNode, d);
+					break;
+				}
+			}
+		}
+
+		fbin.close();
 	}
-	SAFEDELETEARR(bActiveModes);
-	bActiveModes = NULL;
 
 	SAFEDELETEARR(sFileFem);
 	sFileFem = NULL;
 
-	fdat.close();
+	if (sBinFileFem) {
+		SAFEDELETEARR(sBinFileFem);
+		sBinFileFem = NULL;
+	}
+
 
 	/* lettura dati di vincolo:
 	 * l'utente specifica la label del nodo FEM e del nodo rigido
@@ -3040,10 +3594,11 @@ ReadModal(DataManager* pDM,
 		doublereal d = sqrt(pGenStiff->dGet(iCnt, iCnt)
 				*pGenMass->dGet(iCnt, iCnt ));
 
-		if (!iDampFlag) {
-			pGenDamp->Put(iCnt, iCnt, 2.*cdamp*d);
-		} else {
+		if (bDampFlag) {
 			pGenDamp->Put(iCnt, iCnt, 2.*DampRatios.dGet(iCnt)*d);
+
+		} else {
+			pGenDamp->Put(iCnt, iCnt, 2.*cdamp*d);
 		}
 	}
 
