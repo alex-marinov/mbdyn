@@ -21,6 +21,8 @@ MBDyn 1.2-Engineering
 		- added ".log" file for miscellaneous logs
 		- added ".air" file for air properties output
 		- added standard air provisions
+		- set default load path to module install dir (libexec)
+		- improve modules installation
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
