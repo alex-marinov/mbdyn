@@ -1285,8 +1285,8 @@ Elem* ReadJoint(DataManager* pDM,
 						       R1, R2, fOut));
 	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
 	      SAFENEWWITHCONSTRUCTOR(pEl,
-				     ElasticDispHingeJoint,
-				     ElasticDispHingeJoint(uLabel, pDO, pCL,
+				     ElasticDispJoint,
+				     ElasticDispJoint(uLabel, pDO, pCL,
 							   pNode1, pNode2, 
 							   f1, f2, R1, R2, 
 							   fOut));
@@ -1304,8 +1304,8 @@ Elem* ReadJoint(DataManager* pDM,
 						       R1, R2, fOut));
 	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
 	      SAFENEWWITHCONSTRUCTOR(pEl, 
-				     ViscousDispHingeJoint,
-				     ViscousDispHingeJoint(uLabel, pDO, pCL,
+				     ViscousDispJoint,
+				     ViscousDispJoint(uLabel, pDO, pCL,
 							   pNode1, pNode2,
 							   f1, f2, R1, R2, 
 							   fOut));
@@ -1323,8 +1323,8 @@ Elem* ReadJoint(DataManager* pDM,
 							    R1, R2, fOut));
 	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
 	      SAFENEWWITHCONSTRUCTOR(pEl,
-				     ViscoElasticDispHingeJoint,
-				     ViscoElasticDispHingeJoint(uLabel, 
+				     ViscoElasticDispJoint,
+				     ViscoElasticDispJoint(uLabel, 
 								pDO, pCL,
 								pNode1, pNode2,
 								f1, f2, R1, R2,

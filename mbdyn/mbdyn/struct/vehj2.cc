@@ -37,10 +37,10 @@
 #include "dataman.h"
 #include "vehj2.h"
 
-/* DeformableDispHingeJoint - begin */
+/* DeformableDispJoint - begin */
 
 /* Costruttore non banale */
-DeformableDispHingeJoint::DeformableDispHingeJoint(unsigned int uL,
+DeformableDispJoint::DeformableDispJoint(unsigned int uL,
 		const DofOwner* pDO,
 		const ConstitutiveLaw3D* pCL,
 		const StructNode* pN1,
@@ -56,7 +56,8 @@ ConstitutiveLaw3DOwner(pCL),
 pNode1(pN1), pNode2(pN2),
 tilde_f1(tilde_f1), tilde_f2(tilde_f2),
 tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h),
-tilde_d(0.), tilde_dPrime(0.)
+tilde_d(0.), tilde_dPrime(0.),
+bFirstRes(true), F(0.)
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);
@@ -65,14 +66,14 @@ tilde_d(0.), tilde_dPrime(0.)
 }
 
 /* Distruttore */
-DeformableDispHingeJoint::~DeformableDispHingeJoint(void)
+DeformableDispJoint::~DeformableDispJoint(void)
 {
 	NO_OP;
 }
 
 /* Contributo al file di restart */
 std::ostream&
-DeformableDispHingeJoint::Restart(std::ostream& out) const
+DeformableDispJoint::Restart(std::ostream& out) const
 {
 	Joint::Restart(out) << ", deformable displacement joint, "
 		<< pNode1->GetLabel() << ", reference, node, ",
@@ -88,7 +89,7 @@ DeformableDispHingeJoint::Restart(std::ostream& out) const
 }
 
 void
-DeformableDispHingeJoint::Output(OutputHandler& OH) const
+DeformableDispJoint::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
 		Vec3 v(GetF());
@@ -98,13 +99,13 @@ DeformableDispHingeJoint::Output(OutputHandler& OH) const
 }
 
 unsigned int
-DeformableDispHingeJoint::iGetNumPrivData(void) const
+DeformableDispJoint::iGetNumPrivData(void) const
 {
 	return 9 + ConstitutiveLaw3DOwner::iGetNumPrivData();
 }
 
 unsigned int
-DeformableDispHingeJoint::iGetPrivDataIdx(const char *s) const
+DeformableDispJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 
@@ -154,7 +155,7 @@ DeformableDispHingeJoint::iGetPrivDataIdx(const char *s) const
 }
 
 doublereal
-DeformableDispHingeJoint::dGetPrivData(unsigned int i) const
+DeformableDispJoint::dGetPrivData(unsigned int i) const
 {
 	ASSERT(i > 0);
 
@@ -198,12 +199,12 @@ DeformableDispHingeJoint::dGetPrivData(unsigned int i) const
 	}
 }
 
-/* DeformableDispHingeJoint - end */
+/* DeformableDispJoint - end */
 
 
-/* ElasticDispHingeJoint - begin */
+/* ElasticDispJoint - begin */
 
-ElasticDispHingeJoint::ElasticDispHingeJoint(unsigned int uL,
+ElasticDispJoint::ElasticDispJoint(unsigned int uL,
 		const DofOwner* pDO,
 		const ConstitutiveLaw3D* pCL,
 		const StructNode* pN1,
@@ -214,19 +215,24 @@ ElasticDispHingeJoint::ElasticDispHingeJoint(unsigned int uL,
 		const Mat3x3& tilde_R2h,
 		flag fOut)
 : Elem(uL, Elem::JOINT, fOut),
-DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, fOut)
+DeformableDispJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, fOut)
 {
-	NO_OP;
+	/*
+	 * Chiede la matrice tangente di riferimento
+	 * e la porta nel sistema globale
+	 */
+	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
+	FDE = R1h*GetFDE()*R1h.Transpose();
 }
 
-ElasticDispHingeJoint::~ElasticDispHingeJoint(void)
+ElasticDispJoint::~ElasticDispJoint(void)
 {
 	NO_OP;
 }
 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler&
-ElasticDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+ElasticDispJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		doublereal dCoef,
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ )
@@ -259,51 +265,71 @@ ElasticDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 void
-ElasticDispHingeJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
+ElasticDispJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 {
 	Vec3 f1(pNode1->GetRRef()*tilde_f1);
 	Vec3 f2(pNode2->GetRRef()*tilde_f2);
 	Vec3 d1(pNode2->GetXCurr() + f2 - pNode1->GetXCurr());
 
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
-	Vec3 F(R1h*(GetF()*dCoef));
-	Mat3x3 MatF(F);
-	/* F/e */
-	Mat3x3 FDE(R1h*GetFDE()*(R1h.Transpose()*dCoef));
+	
+	/* F/d */
+	Mat3x3 DTmp(FDE*dCoef);
 
-	WM.Add(1, 1, FDE);
-	WM.Add(7, 7, FDE);
-	WM.Sub(1, 7, FDE);
-	WM.Sub(7, 1, FDE);
+	/* Force equations */
 
-	Mat3x3 MTmp;
-	MTmp = FDE*Mat3x3(f2); /* F/e * f2/\ */
-	WM.Add(1, 10, MTmp);
-	WM.Sub(7, 10, MTmp);
+	/* delta x1 */
+	WM.Add(1, 1, DTmp);
+	WM.Sub(6 + 1, 1, DTmp);
 
-	WM.Add(4, 10, Mat3x3(f1)*MTmp); /* f1/\ F/e f2/\ */
+	/* delta x2 */
+	WM.Sub(1, 6 + 1, DTmp);
+	WM.Add(6 + 1, 6 + 1, DTmp);
 
-	MTmp = Mat3x3(f2)*FDE; /* f2/\ F/e */
-	WM.Add(10, 7, MTmp);
-	WM.Sub(10, 1, MTmp);
-
-	WM.Add(10, 10, (MatF - MTmp)*Mat3x3(f2)); /* (F/\ - f2/\ F/e) f2/\ */
-
-	MTmp = Mat3x3(f1)*FDE; /* f1/\ F/e */
-	WM.Add(4, 1, MTmp);
-	WM.Sub(4, 7, MTmp);
-
-	MTmp = FDE*Mat3x3(d1) - MatF; /* F/e * d1/\ - F/\ */
-	WM.Add(7, 4, MTmp);
+	/* delta g1 */
+	Mat3x3 MTmp(DTmp*Mat3x3(d1) - Mat3x3(F*dCoef));
 	WM.Sub(1, 4, MTmp);
-	WM.Add(10, 4, Mat3x3(f2)*MTmp); /* f2/\ (F/e * d1/\ - F/\) */
+	WM.Add(6 + 1, 4, MTmp);
 
-	WM.Add(4, 4, Mat3x3(f1, F) - Mat3x3(f1)*FDE*Mat3x3(d1)); /* ... */
+	/* delta g2 */
+	MTmp = DTmp*Mat3x3(f2);
+	WM.Add(1, 6 + 4, MTmp);
+	WM.Sub(6 + 1, 6 + 4, MTmp);
+
+	/* Moment equation on node 1 */
+	MTmp = Mat3x3(f1)*DTmp;
+
+	/* delta x1 */
+	WM.Sub(4, 1, MTmp);
+
+	/* delta x2 */
+	WM.Add(4, 6 + 1, MTmp);
+
+	/* delta g1 */
+	WM.Sub(4, 4, MTmp*Mat3x3(d1) - Mat3x3(f1.Cross(F*dCoef)));
+
+	/* delta g2 */
+	WM.Add(4, 6 + 4, MTmp*Mat3x3(f2));
+
+	/* Moment equation on node 2 */
+	MTmp = Mat3x3(f2)*DTmp;
+
+	/* delta x1 */
+	WM.Sub(6 + 4, 1, MTmp);
+
+	/* delta x2 */
+	WM.Add(6 + 4, 6 + 1, MTmp);
+
+	/* delta g1 */
+	WM.Add(6 + 4, 4, MTmp*Mat3x3(d1) - Mat3x3(f2, F*dCoef));
+
+	/* delta g2 */
+	WM.Add(6 + 4, 6 + 4, Mat3x3(F*dCoef, f2) - MTmp*Mat3x3(f2));
 }
 
 /* assemblaggio residuo */
 SubVectorHandler&
-ElasticDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
+ElasticDispJoint::AssRes(SubVectorHandler& WorkVec,
 		doublereal /* dCoef */ ,
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ )
@@ -330,16 +356,22 @@ ElasticDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
-ElasticDispHingeJoint::AssVec(SubVectorHandler& WorkVec)
+ElasticDispJoint::AssVec(SubVectorHandler& WorkVec)
 {
 	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
 	Vec3 f1(pNode1->GetRCurr()*tilde_f1);
 	Vec3 f2(pNode2->GetRCurr()*tilde_f2);
 
-	tilde_d = R1h.Transpose()*(pNode2->GetXCurr() + f2 - pNode1->GetXCurr() - f1);
-	ConstitutiveLaw3DOwner::Update(tilde_d);
+	if (bFirstRes) {
+		bFirstRes = false;
 
-	Vec3 F(R1h*GetF());
+	} else {
+		tilde_d = R1h.Transpose()*(pNode2->GetXCurr() + f2 - pNode1->GetXCurr() - f1);
+
+		ConstitutiveLaw3DOwner::Update(tilde_d);
+	}
+
+	F = R1h*GetF();
 
 	WorkVec.Add(1, F);
 	WorkVec.Add(4, f1.Cross(F));
@@ -347,9 +379,26 @@ ElasticDispHingeJoint::AssVec(SubVectorHandler& WorkVec)
 	WorkVec.Sub(6 + 4, f2.Cross(F));
 }
 
+void
+ElasticDispJoint::AfterPredict(VectorHandler& X, VectorHandler& XP)
+{
+	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
+	Mat3x3 R1hT(R1h.Transpose());
+	Vec3 f1(pNode1->GetRCurr()*tilde_f1);
+	Vec3 f2(pNode2->GetRCurr()*tilde_f2);
+
+	tilde_d = R1hT*(pNode2->GetXCurr() + f2 - pNode1->GetXCurr() - f1);
+
+	ConstitutiveLaw3DOwner::Update(tilde_d);
+
+	FDE = R1h*GetFDE()*R1hT;
+
+	bFirstRes = true;
+}
+
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler&
-ElasticDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+ElasticDispJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& /* XCurr */ )
 {
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
@@ -379,7 +428,7 @@ ElasticDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 /* Contributo al residuo durante l'assemblaggio iniziale */
 SubVectorHandler&
-ElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
+ElasticDispJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& /* XCurr */ )
 {
 	/* Dimensiona e resetta la matrice di lavoro */
@@ -403,12 +452,12 @@ ElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-/* ElasticDispHingeJoint - end */
+/* ElasticDispJoint - end */
 
 
-/* ViscousDispHingeJoint - begin */
+/* ViscousDispJoint - begin */
 
-ViscousDispHingeJoint::ViscousDispHingeJoint(unsigned int uL,
+ViscousDispJoint::ViscousDispJoint(unsigned int uL,
 		const DofOwner* pDO,
 		const ConstitutiveLaw3D* pCL,
 		const StructNode* pN1,
@@ -419,7 +468,7 @@ ViscousDispHingeJoint::ViscousDispHingeJoint(unsigned int uL,
 		const Mat3x3& tilde_R2h,
 		flag fOut)
 : Elem(uL, Elem::JOINT, fOut),
-DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, fOut)
+DeformableDispJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, fOut)
 {
 	NO_OP;
 
@@ -429,14 +478,14 @@ DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, 
 	throw ErrNotImplementedYet();
 }
 
-ViscousDispHingeJoint::~ViscousDispHingeJoint(void)
+ViscousDispJoint::~ViscousDispJoint(void)
 {
 	NO_OP;
 }
 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler&
-ViscousDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+ViscousDispJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		doublereal dCoef,
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ )
@@ -468,7 +517,7 @@ ViscousDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	Vec3 F(R1h*GetF());
 	Mat3x3 FDEPrime(R1h*GetFDEPrime()*R1h.Transpose());
-	Mat3x3 Tmp(FDEPrime-FDEPrime*Mat3x3(Omega2*dCoef));
+	Mat3x3 Tmp(FDEPrime - FDEPrime*Mat3x3(Omega2*dCoef));
 
 	WM.Add(3 + 1, 3 + 1, Tmp);
 	WM.Sub(1, 3 + 1, Tmp);
@@ -482,7 +531,7 @@ ViscousDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 /* assemblaggio residuo */
 SubVectorHandler&
-ViscousDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
+ViscousDispJoint::AssRes(SubVectorHandler& WorkVec,
 		doublereal /* dCoef */ ,
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ )
@@ -523,7 +572,7 @@ ViscousDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler&
-ViscousDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+ViscousDispJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& /* XCurr */ )
 {
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
@@ -573,7 +622,7 @@ ViscousDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 /* Contributo al residuo durante l'assemblaggio iniziale */
 SubVectorHandler&
-ViscousDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
+ViscousDispJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& /* XCurr */ )
 {
 	/* Dimensiona e resetta la matrice di lavoro */
@@ -613,12 +662,12 @@ ViscousDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-/* ViscousDispHingeJoint - end */
+/* ViscousDispJoint - end */
 
 
-/* ViscoElasticDispHingeJoint - begin */
+/* ViscoElasticDispJoint - begin */
 
-ViscoElasticDispHingeJoint::ViscoElasticDispHingeJoint(unsigned int uL,
+ViscoElasticDispJoint::ViscoElasticDispJoint(unsigned int uL,
 		const DofOwner* pDO,
 		const ConstitutiveLaw3D* pCL,
 		const StructNode* pN1,
@@ -629,7 +678,7 @@ ViscoElasticDispHingeJoint::ViscoElasticDispHingeJoint(unsigned int uL,
 		const Mat3x3& tilde_R2h,
 		flag fOut)
 : Elem(uL, Elem::JOINT, fOut),
-DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, fOut)
+DeformableDispJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, fOut)
 {
 	/* Temporary */
 	silent_cerr("DeformableHingeJoint(" << GetLabel() << "): "
@@ -637,14 +686,14 @@ DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, 
 	throw ErrNotImplementedYet();
 }
 
-ViscoElasticDispHingeJoint::~ViscoElasticDispHingeJoint(void)
+ViscoElasticDispJoint::~ViscoElasticDispJoint(void)
 {
 	NO_OP;
 }
 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler&
-ViscoElasticDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+ViscoElasticDispJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		doublereal dCoef,
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ )
@@ -693,7 +742,7 @@ ViscoElasticDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 /* assemblaggio residuo */
 SubVectorHandler&
-ViscoElasticDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
+ViscoElasticDispJoint::AssRes(SubVectorHandler& WorkVec,
 		doublereal /* dCoef */ ,
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ )
@@ -737,7 +786,7 @@ ViscoElasticDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler&
-ViscoElasticDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+ViscoElasticDispJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& /* XCurr */ )
 {
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
@@ -793,7 +842,7 @@ ViscoElasticDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 /* Contributo al residuo durante l'assemblaggio iniziale */
 SubVectorHandler&
-ViscoElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
+ViscoElasticDispJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& /* XCurr */ )
 {
 	/* Dimensiona e resetta la matrice di lavoro */
@@ -833,4 +882,4 @@ ViscoElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-/* ViscoElasticDispHingeJoint - end */
+/* ViscoElasticDispJoint - end */

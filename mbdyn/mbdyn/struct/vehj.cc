@@ -212,8 +212,8 @@ tilde_ThetaRef(0.), FDE(0.)
 	 * Chiede la matrice tangente di riferimento
 	 * e la porta nel sistema globale
 	 */
-	Mat3x3 R(pNode1->GetRRef()*tilde_R1h);
-	FDE = R*GetFDE()*R.Transpose();
+	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
+	FDE = R1h*GetFDE()*R1h.Transpose();
 }
 
 ElasticHingeJoint::~ElasticHingeJoint(void)
@@ -431,8 +431,8 @@ ViscousHingeJoint::ViscousHingeJoint(unsigned int uL,
 : Elem(uL, Elem::JOINT, fOut),
 DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut)
 {
-	Mat3x3 R(pNode1->GetRRef());
-	FDEPrime = R*ConstitutiveLaw3DOwner::GetFDEPrime()*R.Transpose();
+	Mat3x3 R1h(pNode1->GetRRef());
+	FDEPrime = R1h*ConstitutiveLaw3DOwner::GetFDEPrime()*R1h.Transpose();
 }
 
 ViscousHingeJoint::~ViscousHingeJoint(void)
@@ -668,10 +668,10 @@ ViscoElasticHingeJoint::ViscoElasticHingeJoint(unsigned int uL,
 DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut),
 tilde_ThetaRef(0.)
 {
-	Mat3x3 R(pNode1->GetRRef());
-	Mat3x3 RT(R.Transpose());
-	FDE = R*ConstitutiveLaw3DOwner::GetFDE()*RT;
-	FDEPrime = R*ConstitutiveLaw3DOwner::GetFDEPrime()*RT;
+	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
+	Mat3x3 R1hT(R1h.Transpose());
+	FDE = R1h*ConstitutiveLaw3DOwner::GetFDE()*R1hT;
+	FDEPrime = R1h*ConstitutiveLaw3DOwner::GetFDEPrime()*R1hT;
 }
 
 ViscoElasticHingeJoint::~ViscoElasticHingeJoint(void)
