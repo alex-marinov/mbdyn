@@ -281,7 +281,7 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
 		double* c, double* c0)
 {
    	int im;
-   	int ia, ia0;
+   	int ia, ia0 = -1;
 	
 	while (alpha < -180.) {
 		alpha += 360.;
