@@ -4,6 +4,7 @@ n2m		mbdyn/mbdyn-1.0/contrib/n2m
 mbdyn-legacy	mbdyn/mbdyn-devel
 
 ldap2bibtex	masarati/ldap2bibtex
+ldap-rewrite	masarati/ldap-rewrite
 
 anba		masarati/anba/C++
 
