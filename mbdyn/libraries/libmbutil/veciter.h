@@ -159,7 +159,7 @@ public:
 	inline void SetInUse(bool b = false) { inuse = b; };
 };
 
-#define DEBUG_VECITER
+/* #define DEBUG_VECITER */
 
 template<class T>
 class MT_VecIter : public VecIter<T> {
