@@ -57,14 +57,6 @@ pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2), fFirstRes(1)
    ASSERT(pNode2 != NULL);
    ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
-   
-   /* Temporary */
-   // cerr << "DeformableHingeJoint(): warning, don't use this element until the new updated rotations are implemented" << endl;
-   // THROW(ErrNotImplementedYet());
-   cerr << "DeformableHingeJoint " << GetLabel() 
-     << ": warning, don't use this element if initial assembly is required" << endl;
-   /*  */
-   
 }
 
    
