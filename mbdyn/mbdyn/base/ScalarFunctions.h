@@ -58,10 +58,13 @@ public:
 };
 
 class DifferentiableScalarFunction : public BasicScalarFunction {
+private:
+	virtual doublereal ComputeDiff(const doublereal t, const int order = 1) const{return 0.;};
+	virtual doublereal ComputeDiff(const doublereal t, const long int order = 1) const{return 0.;};
 public:
 	virtual ~DifferentiableScalarFunction();
 	virtual doublereal operator()(const doublereal x) const = 0;
-	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const = 0;
+	virtual doublereal ComputeDiff(const doublereal t, const unsigned int order = 1) const = 0;
 };
 
 #include "mbpar.h"

@@ -128,7 +128,7 @@ ConstScalarFunction::ConstScalarFunction(const doublereal v) : y(v) {
 
 ConstScalarFunction::~ConstScalarFunction() {};
 doublereal ConstScalarFunction::operator()(const doublereal x) const {return y;};
-doublereal ConstScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
+doublereal ConstScalarFunction::ComputeDiff(const doublereal x, const unsigned int order) const {
 	ASSERTMSGBREAK(order >=0, "Error in ConstScalarFunction::ComputeDiff, order<0");
 	switch (order) {
 	case 0: 
@@ -153,8 +153,7 @@ LinearScalarFunction::~LinearScalarFunction() {};
 doublereal LinearScalarFunction::operator()(const doublereal x) const {
 	return (y0+m*x);
 };
-doublereal LinearScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
-	ASSERTMSGBREAK(order >=0, "Error in LinearScalarFunction::ComputeDiff, order<0");
+doublereal LinearScalarFunction::ComputeDiff(const doublereal x, const unsigned int order) const {
 	switch (order) {
 	case 0: 
 		return this->operator()(x);
@@ -174,15 +173,14 @@ PowScalarFunction::~PowScalarFunction() {};
 doublereal PowScalarFunction::operator()(const doublereal x) const {
 	return (pow(x,pw));
 };
-doublereal PowScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
-	ASSERTMSGBREAK(order >=0, "Error in PowScalarFunction::ComputeDiff, order<0");
+doublereal PowScalarFunction::ComputeDiff(const doublereal x, const unsigned int order) const {
 	switch (order) {
 	case 0: 
 		return this->operator()(x);
 		break;
 	default:
 		doublereal mul = 1.;
-		for (integer i=0; i<order; i++) {
+		for (unsigned int i=0; i<order; i++) {
 			mul *= (pw-i);
 		}
 		return mul*pow(x,pw-order);
@@ -203,8 +201,7 @@ doublereal LogScalarFunction::operator()(const doublereal x) const {
 	//will never reach this point :(
 	return log(x)*mul_const;
 };
-doublereal LogScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
-	ASSERTMSGBREAK(order >=0, "Error in LogScalarFunction::ComputeDiff, order<0");
+doublereal LogScalarFunction::ComputeDiff(const doublereal x, const unsigned int order) const {
 	switch (order) {
 	case 0: 
 		return this->operator()(x);
@@ -244,8 +241,7 @@ doublereal SumScalarFunction::operator()(const doublereal x) const {
 	t += a2->operator()(x);
 	return t;
 };
-doublereal SumScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
-	ASSERTMSGBREAK(order >=0, "Error in SumScalarFunction::ComputeDiff, order<0");
+doublereal SumScalarFunction::ComputeDiff(const doublereal x, const unsigned int order) const {
 	switch (order) {
 	case 0: 
 		return operator()(x);
@@ -271,8 +267,7 @@ doublereal MulScalarFunction::operator()(const doublereal x) const {
 	t *= a2->operator()(x);
 	return t;
 };
-doublereal MulScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
-	ASSERTMSGBREAK(order >=0, "Error in MulScalarFunction::ComputeDiff, order<0");
+doublereal MulScalarFunction::ComputeDiff(const doublereal x, const unsigned int order) const {
 	switch (order) {
 	case 0: 
 		return this->operator()(x);
@@ -306,8 +301,7 @@ CubicSplineScalarFunction::~CubicSplineScalarFunction() {
 doublereal CubicSplineScalarFunction::operator()(const doublereal x) const {
 	return seval(x,X_i,Y_i,b,c,d);
 };
-doublereal CubicSplineScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
-	ASSERTMSGBREAK(order >=0, "Error in CubicSplineScalarFunction::ComputeDiff, order<0");
+doublereal CubicSplineScalarFunction::ComputeDiff(const doublereal x, const unsigned int order) const {
 	switch (order) {
 	case 0: 
 		return this->operator()(x);
@@ -348,8 +342,7 @@ MultiLinearScalarFunction::~MultiLinearScalarFunction() {
 doublereal MultiLinearScalarFunction::operator()(const doublereal x) const {
 	return leval(x,X_i,Y_i);
 };
-doublereal MultiLinearScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
-	ASSERTMSGBREAK(order >=0, "Error in MultiLinearScalarFunction::ComputeDiff, order<0");
+doublereal MultiLinearScalarFunction::ComputeDiff(const doublereal x, const unsigned int order) const {
 	switch (order) {
 	case 0: 
 		return operator()(x);
