@@ -28,6 +28,8 @@
 \documentclass[10pt,dvips]{report}
 
 %\usepackage[pdftex]{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage{ae,aecompl}
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{html}
@@ -37,7 +39,10 @@
 \begin{document}
 
 \begin{latexonly}
-\title{\bf MBDyn Input File Format}
+\title{\bf MBDyn Input File Format \\
+V
+\input{version}
+}
 \author{Pierangelo Masarati \vspace{5mm}\\
     \sc Dipartimento di Ingegneria Aerospaziale \\
     \sc Politecnico di Milano}
@@ -86,8 +91,48 @@ programming language casting style, by prepending a (usually
 self-explanatory) type enclosed in plain brackets \texttt{()}.
 }
 
+
+
 \input{general}
 \input{data}
 \input{elements}
+
+
+
+\chapter{Remarks}
+The input of the program MBDyn is subject to continuous changes, since the
+code is under development.
+This documentation tries to give some insight into the logics that drove
+the implementation of such an input.
+Many things are ``as they are'' only because they were made in a hurry, 
+or because no better way was at hand at the moment they were made.
+In changing the input format and syntax of many parts, an effort 
+will be made to maintain as much backwards compatibility as possible,
+or at least a reliable error check that warns for possible erroneous 
+inputs due to a change in the input format. 
+At present the input of MBDyn already warns for many possible errors 
+and makes as many cross-checks on the consistency of the data. 
+Nearly every warning and error issue shows the line of the input file 
+where the error occurred. 
+Unfortunately, now that multiple files can be scanned by means of the 
+\texttt{include} directive, the file where the error occurred is not clear 
+any more, unless a reliable C++ exception handling is supported by the
+compiler.
+This paper will be subject to changes too, so provide you always have the
+latest one, or better, a release that is up-to-date with the version of the
+code you're running. \\
+For any question or problem, to fix typos, bugs, for comments and
+suggestions, please don't hesitate, contact me:\vspace{10mm}\\
+
+\noindent
+Pierangelo Masarati \\
+Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano \\
+via La Masa 34, 20156 Milano, Italy \\
+Tel.: ++39 02 2399 8309 \\
+Fax: ++39 02 2399 8334 \\
+E-mail: \htmladdnormallink{\emph{masarati@aero.polimi.it}}{masarati@aero.polimi.it} \\
+Web: \htmladdnormallink{http://www.aero.polimi.it/~mbdyn/}{http://www.aero.polimi.it/~mbdyn/} \\
+Web: \htmladdnormallink{http://www.aero.polimi.it/~masarati/}{http://www.aero.polimi.it/~masarati/} \\
+Web: \htmladdnormallink{http://mbdyn.aero.polimi.it/~masarati/MBDyn-input/manual/index.html}{http://mbdyn.aero.polimi.it/~masarati/MBDyn-input/manual/index.html}
 
 \end{document}
