@@ -55,8 +55,9 @@ MeschachVectorHandler::~MeschachVectorHandler(void)
 {
 	/* Note: MeschachVectorHandler owns its workspace memory */
    	if (pv != VNULL) {
-		/* FIXME: no error handling ? */
-      		v_free(pv);
+      		if (v_free(pv) != 0) {
+			/* FIXME: hanlde error */
+		}
    	}
 }
 

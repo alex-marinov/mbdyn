@@ -246,3 +246,4 @@ operator << (ostream& out, Table& T)
    }
    return out;
 }
+
