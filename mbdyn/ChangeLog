@@ -7,6 +7,9 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Sat Jan 12 10:47:06 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - memset allows some 0.5% speedup!
+
 *** Fri Jan 11 17:38:50 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
 				 Marco Morandini <morandini@aero.polimi.it>
  - optimal storage allocation for y12m wrapper (dramatic performance 

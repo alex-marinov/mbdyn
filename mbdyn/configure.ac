@@ -958,6 +958,7 @@ AC_CHECK_FUNCS([ \
 	signal \
 	getcwd \
 	chdir \
+	memset \
 ])
 
 
