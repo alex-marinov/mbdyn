@@ -82,6 +82,8 @@ ppdRows(0), ppiRows(0), ppiCols(0), piNzr(0), piNzc(0)
 
 		SAFENEWARR(piNzr, integer, iSize);
 		SAFENEWARR(piNzc, integer, iSize);
+		
+		Reset();
 	}
 }
 
