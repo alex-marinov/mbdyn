@@ -59,4 +59,8 @@ INCLUDES = \
 -I../libraries/libmbwrap \
 -I../mbdyn
 
+# Rule to compile modules; run "make <module-name>.so"
+%.so: %.o
+	$(CXXLINK) -shared -o $@ $<
+
 include $(top_srcdir)/build/bot.mk
