@@ -168,11 +168,11 @@ const doublereal dN3PP[2][3] = {
 };
 
 doublereal 
-ShapeFunc3N(doublereal d, integer iNode, enum Order iOrd)
+ShapeFunc3N(doublereal d, integer iNode, enum Order Ord)
 {
 	ASSERT(iNode == 1 || iNode == 2 || iNode == 3);
 	
-	switch (iOrd) {
+	switch (Ord) {
 	case ORD_ALG:
 		switch (iNode) {
 		case 1:		
