@@ -121,11 +121,13 @@ Modal::Modal(unsigned int uL,
 		MatNxN *pGenMass,
 		MatNxN *pGenStiff,
 		MatNxN *pGenDamp,
-		unsigned int* IdFemNodes, /* label dei nodi FEM */
-		unsigned int* IntNodes,   /* label dei nodi d'interfaccia */
+		unsigned int *IdFemNodes, /* label nodi FEM */
+		unsigned int *intFEMNodes,/* label nodi FEM d'interfaccia */
+		unsigned int *intMBNodes, /* label nodi MB d'interfaccia */
 		Mat3xN *pN,               /* posizione dei nodi FEM */
 		Mat3xN *pOffsetfemNodes,
 		Mat3xN *pOffsetmbNodes,
+		Mat3xN *pRotmbNodes,
 		const StructNode** pIN,   /* nodi d'interfaccia */
 		Mat3xN *pPHItStrNode,     /* forme modali nodi d'interfaccia */
 		Mat3xN *pPHIrStrNode,
@@ -157,10 +159,12 @@ pModalMass(pGenMass),
 pModalStiff(pGenStiff),
 pModalDamp(pGenDamp),
 IdFemNodes(IdFemNodes),
-IntNodes(IntNodes),
+IntFEMNodes(intFEMNodes),
+IntMBNodes(intMBNodes),
 pXYZFemNodes(pN),
 pOffsetFEMNodes(pOffsetfemNodes),
 pOffsetMBNodes(pOffsetmbNodes),
+pRotMBNodes(pRotmbNodes),
 pInterfaceNodes(pIN),
 pPHIt(pPHItStrNode),
 pPHIr(pPHIrStrNode),
@@ -556,7 +560,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 
 		/* termini di vincolo dovuti ai nodi */
 		for (int iCnt = 1; iCnt <= 3; iCnt++) {
-			WM.fIncCoef(iReactionIndex+iCnt, iCnt, -1.);
+			WM.fDecCoef(iReactionIndex+iCnt, iCnt, 1.);
 			WM.fIncCoef(iReactionIndex+iCnt, iStrNodeIndex+iCnt, 1);
 		}
 		WM.Add(iReactionIndex+1, 4, dTmp1Wedge);
@@ -827,22 +831,20 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		doublereal a_iMode = a.dGet(iMode);
 		doublereal aP_iMode = b.dGet(iMode);
 
-		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-			for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
-				unsigned int iMjC = (iMode-1)*3+jCnt;
+		for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
+			unsigned int iMjC = (iMode-1)*3+jCnt;
 
-				Inv8jajTmp.Put(iCnt, jCnt, pInv8->dGet(iCnt, iMjC));
-				Inv10jaPjTmp.Put(iCnt, jCnt, pInv10->dGet(iCnt, iMjC)*aP_iMode);
-			}
-
-			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-				doublereal d = pInv5->dGet(iCnt, (iMode-1)*NModes+jMode);
-
-				Inv5jaj.Add(iCnt, jMode, d*a_iMode);
-				Inv5jaPj.Add(iCnt, jMode, d*aP_iMode);
-			}
+			Inv8jajTmp.PutVec(jCnt, pInv8->GetVec(iMjC));
+			Inv10jaPjTmp.PutVec(jCnt, pInv10->GetVec(iMjC)*aP_iMode);
 		}
 
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+			Vec3 v = pInv5->GetVec((iMode-1)*NModes+jMode);
+
+			Inv5jaj.AddVec(jMode, v*a_iMode);
+			Inv5jaPj.AddVec(jMode, v*aP_iMode);
+		}
+				
 		Inv8jaj += Inv8jajTmp * a_iMode;
 		Inv8jaPj += Inv8jajTmp * aP_iMode;
 		Inv10jaPj += Inv10jaPjTmp;
@@ -1192,13 +1194,11 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		Mat3xN PHIt(NModes,0), PHIr(NModes, 0);
 		MatNx3 PHItT(NModes, 0), PHIrT(NModes, 0);
 
-		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-			for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
-				PHIt.Put(iCnt, iMode, pPHIt->dGet(iCnt, (iMode-1)*NStrNodes+iStrNode));
-				PHIr.Put(iCnt, iMode, pPHIr->dGet(iCnt, (iMode-1)*NStrNodes+iStrNode));
-			}
+		for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
+			PHIt.PutVec(iMode, pPHIt->GetVec((iMode-1)*NStrNodes+iStrNode));
+			PHIr.PutVec(iMode, pPHIr->GetVec((iMode-1)*NStrNodes+iStrNode));
 		}
-		
+
 		PHItT.Transpose(PHIt);
 		PHIrT.Transpose(PHIr);
 
@@ -1820,12 +1820,13 @@ Modal::iGetPrivDataIdx(const char *s) const
 	}
 
 	/* buffer per numero (dimensione massima: 32 bit) */
-	char buf[sizeof("4000000000")];
+	char buf[] = "18446744073709551615UL";
+	size_t		len = end - s;
 
-	ASSERT(end - s < sizeof(buf));
+	ASSERT(len < sizeof(buf));
 
-	strncpy(buf, s, end - s);
-	buf[end - s] = '\0';
+	strncpy(buf, s, len);
+	buf[len] = '\0';
 
 	/* leggi il numero */
 #ifdef HAVE_STRTOUL
@@ -1869,7 +1870,7 @@ Modal::GetCurrFemNodesPosition(void)
 		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
       			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 				pCurrXYZ->Add(iCnt, iNode,
-					pXYZFemNodes->dGet(iCnt,iNode) + pModeShapest->dGet(iCnt,(iMode-1)*NFemNodes+iNode) * a.dGet(iMode) );
+					pXYZFemNodes->dGet(iCnt, iNode) + pModeShapest->dGet(iCnt,(iMode-1)*NFemNodes+iNode) * a.dGet(iMode) );
 			}
 		}
 	}
@@ -1923,657 +1924,871 @@ ReadModal(DataManager* pDM,
 		const DofOwner* pDO,
 		unsigned int uLabel)
 {
-   /* legge i dati d'ingresso e li passa al costruttore dell'elemento */
-   Joint* pEl = NULL;
-   unsigned int uNode = HP.GetInt();
+	/* legge i dati d'ingresso e li passa al costruttore dell'elemento */
+	Joint* pEl = NULL;
+	unsigned int uNode = HP.GetInt();
 
-   DEBUGCOUT("Linked to Modal Node: " << uNode << std::endl);
+	DEBUGCOUT("Linked to Modal Node: " << uNode << std::endl);
 
-   /* verifica di esistenza del nodo */
-   StructNode* pTmpNode;
-   ModalNode* pModalNode;
+	/* verifica di esistenza del nodo */
+	StructNode* pTmpNode = pDM->pFindStructNode(uNode);
+	if (pTmpNode == NULL) {
+		std::cerr << "Modal(" << uLabel
+			<< "): structural node " << uNode
+			<< " at line " << HP.GetLineData()
+			<< " not defined" << std::endl;
+		THROW(DataManager::ErrGeneric());
+	}
 
-   if ((pTmpNode = pDM->pFindStructNode(uNode)) == NULL) {
-      std::cerr << "Modal(" << uLabel
-	<< "): structural node " << uNode
-	<< " at line " << HP.GetLineData()
-	<< " not defined" << std::endl;
-      THROW(DataManager::ErrGeneric());
-   }
+	if (pTmpNode->GetStructNodeType() != StructNode::MODAL) {
+		std::cerr << "Modal(" << uLabel
+			<< "): illegal type for StructuralNode(" << uNode
+			<< ") at line " << HP.GetLineData() << std::endl;
+		THROW(DataManager::ErrGeneric());
+	}
+	ModalNode* pModalNode = (ModalNode *)pTmpNode;
 
-   if (pTmpNode->GetStructNodeType() != StructNode::MODAL) {
-      std::cerr << "Modal(" << uLabel
-	      << "): illegal type for StructuralNode(" << uNode
-	      << ") at line " << HP.GetLineData() << std::endl;
-      THROW(DataManager::ErrGeneric());
-   }
-   pModalNode = (ModalNode *)pTmpNode;
+	/* la posizione del nodo modale e' quella dell'origine del SdR
+	 * del corpo flessibile */
+	Vec3 X0(pModalNode->GetXCurr());
 
-   /* la posizione del nodo modale e' quella dell'origine del SdR
-    * del corpo flessibile */
-   Vec3 X0(pModalNode->GetXCurr());
+	/* orientazione del corpo flessibile, data come orientazione
+	 * del nodo modale collegato */
+	Mat3x3 R(pModalNode->GetRCurr());
 
-   /* orientazione del corpo flessibile, data come orientazione
-    * del nodo modale collegato */
-   Mat3x3 R(pModalNode->GetRCurr());
+	/* Legge i dati relativi al corpo flessibile */
+	unsigned int NModes = HP.GetInt();     /* numero di modi */
+	if (NModes == 0) {
+		std::cerr << "Modal(" << uLabel << "): "
+			"illegal number of modes at line "
+			<< HP.GetLineData() << std::endl;
+		THROW(DataManager::ErrGeneric());
+	}
 
-   /* Legge i dati relativi al corpo flessibile */
-   unsigned int NModes = HP.GetInt();     /* numero di modi */
-   if (NModes == 0) {
-      std::cerr << "Modal(" << uLabel
-	      << "): illegal number of modes at line " << HP.GetLineData()
-	      << std::endl;
-      THROW(DataManager::ErrGeneric());
-   }
+	unsigned int *uModeNumber = NULL;
+	SAFENEWARR(uModeNumber, unsigned int, NModes);
+	if (HP.IsKeyWord("list")) {
+		for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
+			int n = HP.GetInt();
 
-   unsigned int NFemNodes = HP.GetInt();  /* numero di nodi FEM del modello */
-   if (NFemNodes == 0) {
-      std::cerr << "Modal(" << uLabel
-	      << "): illegal number of FEM nodes at line " << HP.GetLineData()
-	      << std::endl;
-      THROW(DataManager::ErrGeneric());
-   }
+			if (n <= 0) {
+				char *th = NULL;
+
+				switch ((iCnt+1)%10) {
+				case 1:
+					th = "st";
+					break;
+
+				case 2:
+					th = "nd";
+					break;
+
+				case 3:
+					th = "rd";
+					break;
+
+				default:
+					th = "th";
+					break;
+				}
+
+				std::cerr << "Modal(" << uLabel << "): "
+					"illegal " << iCnt+1 << "'" << th 
+					<< " mode number " << n 
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			/* FIXME: check for duplicates? */
+			uModeNumber[iCnt] = n;
+		}
+
+	} else {
+		for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
+			uModeNumber[iCnt] = iCnt+1;
+		}
+	}
+
+	/* numero di nodi FEM del modello */
+	unsigned int NFemNodes = HP.GetInt();
+	if (NFemNodes == 0) {
+		std::cerr << "Modal(" << uLabel << "): "
+			"illegal number of FEM nodes at line " 
+			<< HP.GetLineData() << std::endl;
+		THROW(DataManager::ErrGeneric());
+	}
 
 #ifdef MODAL_SCALE_DATA
-   /* Legge gli eventuali fattori di scala per le masse nodali (scale masses)
-    * e per i modi (scale modes)   */
+	/* Legge gli eventuali fattori di scala per le masse nodali
+	 * (scale masses) e per i modi (scale modes)   */
 
-   /* NOTA: E' COMMENTATO PERCHE' AL MOMENTO NON SERVE */
-   doublereal scalemasses = 1.;
-   doublereal scalemodes = 1.;
+	/* NOTA: AL MOMENTO NON E' USATO */
+	doublereal scalemasses = 1.;
+	doublereal scaleinertia = 1.;
+	doublereal scalemodes = 1.;
 
-   if (HP.IsKeyWord("scalemasses")) {
-      scalemasses = HP.GetReal();
-   }
+	if (HP.IsKeyWord("scale" "masses")) {
+		scalemasses = HP.GetReal();
+	}
 
-   if (HP.IsKeyWord("scalemodes")) {
-      scalemodes = HP.GetReal();
-   }
+	if (HP.IsKeyWord("scale" "modes")) {
+		scalemodes = HP.GetReal();
+	}
+
+	scaleinertia = scalemasses*(scalemodes*scalemodes);
 #endif /* MODAL_SCALE_DATA */
 
-   /* Legge i coefficienti di smorzamento */
-   doublereal cdamp = 0.;
-   VecN DampRatios(NModes, 0.);
-   integer iDampFlag = 0;
-
-   if (HP.IsKeyWord("no" "damping")) {
-      cdamp = 0.;
-   } else if (HP.IsKeyWord("proportional" "damping")) {
-      cdamp = HP.GetReal();
-   } else if (HP.IsKeyWord("diag" "damping"))  {
-      iDampFlag = 1;
-      for (unsigned int iCnt = 1; iCnt <= NModes; iCnt ++) {
-         integer iDampedMode =  HP.GetInt();
-         cdamp = HP.GetReal();
-         DampRatios.Put(iDampedMode, cdamp);
-      }
-   } else {
-      silent_cout("Modal(" << uLabel << "): no damping is assumed at line "
-		  << HP.GetLineData() << " (deprecated)" << std::endl);
-   }
-
-   DEBUGCOUT("Number of Modes Imported : " << NModes << std::endl);
-   DEBUGCOUT("Number of FEM Nodes Imported : " << NFemNodes << std::endl);
-   DEBUGCOUT("Origin of FEM Model : " << X0 << std::endl);
-   DEBUGCOUT("Orientation of FEM Model : " << R << std::endl);
-   /* DEBUGCOUT("Damping coefficient: "<< cdamp << std::endl); */
-
-   doublereal dMass = 0;              /* massa totale */
-   Vec3 STmp(0.);                     /* momenti statici  */
-   Mat3x3 JTmp(0.);                   /* inerzia totale  */
-   VecN   FemMass(NFemNodes, 0.);     /* masse nodali   */
-   Mat3xN FemJ(NFemNodes, 0.);        /* inerzie nodali (sono diagonali) */
-
-   Mat3xN *pModeShapest = NULL;       /* forme modali di traslazione e rotaz. */
-   Mat3xN *pModeShapesr = NULL;
-   Mat3xN PHIti(NModes, 0.);          /* forme modali nodo i-esimo: 3*nmodi */
-   Mat3xN PHIri(NModes, 0.);
-   Vec3   PHItij(0.);                 /* j-esima forma del nodo i-esimo */
-   Vec3   PHIrij(0.);
-   Mat3xN *pXYZFemNodes = NULL;       /* puntatore alle coordinate nodali */
-   Mat3xN *pOffsetFEMNodes = NULL;    /* punt. offset FEM (per vincoli) */
-   Mat3xN *pOffsetMBNodes = NULL;     /* punt. offset MB (per vincoli) */
-   MatNxN *pGenMass = NULL;           /* punt. masse e rigidezze modali */
-   MatNxN *pGenStiff = NULL;
-   MatNxN *pGenDamp = NULL;
-
-   Mat3xN *pInv3 = NULL;     	      /* invarianti d'inerzia */
-   Mat3xN *pInv4 = NULL;
-   Mat3xN *pInv5 = NULL;
-   Mat3xN *pInv8 = NULL;
-   Mat3xN *pInv9 = NULL;
-   Mat3xN *pInv10 = NULL;
-   Mat3xN *pInv11 = NULL;
-
-   VecN *a = NULL;                    /* spostamenti e velocita' modali */
-   VecN *aP = NULL;
-
-   unsigned int iNode, iMode, jMode, iStrNode;
-
-   /* input file */
-   const char *sFileFem = HP.GetFileName();
-
-   /* apre il file con i dati del modello FEM */
-   std::ifstream fdat(sFileFem);
-   if (!fdat) {
-      std::cerr << "Modal(" << uLabel << "): unable to open file " << sFileFem
-	      << " at line " << HP.GetLineData() << std::endl;
-      THROW(DataManager::ErrGeneric());
-   }
-   DEBUGCOUT("Reading Flexible Body Data from file " << sFileFem << std::endl);
-
-   /* carica i dati relativi a coordinate nodali, massa, momenti statici
-    * e d'inerzia, massa e rigidezza generalizzate dal file nomefile.flex.
-    * Questo file e' quello generato da DADS */
-
-   doublereal d;
-   unsigned int i, NFemNodesDADS = 0, NModesDADS = 0, NRejModes = 0;
-   char str[BUFSIZ];
-
-   /* alloca la memoria per le matrici necessarie a memorizzare i dati
-    * relativi al corpo flessibile
-    * nota: devo usare i puntatori perche' altrimenti non si riesce
-    * a passarli al costruttore       */
-   SAFENEWWITHCONSTRUCTOR(pXYZFemNodes, Mat3xN, Mat3xN(NFemNodes, 0.));
-   SAFENEWWITHCONSTRUCTOR(pGenMass,  MatNxN, MatNxN(NModes, 0.));
-   SAFENEWWITHCONSTRUCTOR(pGenStiff, MatNxN, MatNxN(NModes, 0.));
-   SAFENEWWITHCONSTRUCTOR(pGenDamp,  MatNxN, MatNxN(NModes, 0.));
-   SAFENEWWITHCONSTRUCTOR(pModeShapest, Mat3xN, Mat3xN(NFemNodes*NModes, 0.));
-   SAFENEWWITHCONSTRUCTOR(pModeShapesr, Mat3xN, Mat3xN(NFemNodes*NModes, 0.));
-   SAFENEWWITHCONSTRUCTOR(pInv3, Mat3xN, Mat3xN(NModes, 0.));
-   SAFENEWWITHCONSTRUCTOR(pInv4, Mat3xN, Mat3xN(NModes, 0.));
-   SAFENEWWITHCONSTRUCTOR(pInv5, Mat3xN, Mat3xN(NModes*NModes, 0.));   /* Inv5 e' un 3xMxM */
-   SAFENEWWITHCONSTRUCTOR(pInv8, Mat3xN, Mat3xN(3*NModes, 0.));        /* Inv8 e' un 3x3xM */
-   SAFENEWWITHCONSTRUCTOR(pInv9, Mat3xN, Mat3xN(3*NModes*NModes, 0.)); /* Inv9 e' un 3x3xMxM */
-   SAFENEWWITHCONSTRUCTOR(pInv10,Mat3xN, Mat3xN(3*NModes, 0.));        /* Inv10 e' un 3x3xM */
-   SAFENEWWITHCONSTRUCTOR(pInv11,Mat3xN, Mat3xN(NModes, 0.));
-   SAFENEWWITHCONSTRUCTOR(a,  VecN, VecN(NModes, 0.));
-   SAFENEWWITHCONSTRUCTOR(aP, VecN, VecN(NModes, 0.));
-
-   unsigned int *IdFemNodes = NULL; /* array contenente le label dei nodi FEM */
-   SAFENEWARR(IdFemNodes, unsigned int, NFemNodes);
-
-#if 0
-   doublereal scalfact = scalemodes*scalemodes;
-#endif
-
-   while (!fdat.eof()) {        /* parsing del file */
-      fdat.getline(str, sizeof(str));
-
-      /* legge il primo blocco (HEADER) */
-      if (!strncmp("** RECORD GROUP 1,", str, sizeof("** RECORD GROUP 1,") - 1)) {
-	 fdat.getline(str, sizeof(str));
-	 fdat >> str;
-	 for (unsigned int iCnt = 0; iCnt < 5; iCnt++)  {
-	    fdat >> i;
-	    if (iCnt == 0) {
-	       NFemNodesDADS = i;
-	    } else if (iCnt >= 1 && iCnt <=3) {
-	       NModesDADS += i;
-	    } else if (iCnt == 4) {
-	       NRejModes = i;
-	       NModesDADS -= NRejModes;
-	    }
-	 }
-	 if (NFemNodes != NFemNodesDADS) {
-	    std::cerr << "Modal(" << uLabel
-		    << "), file '" << sFileFem << "': FEM nodes " << NFemNodes
-		    << " do not match node number " << NFemNodesDADS
-		    << std::endl;
-	    THROW(DataManager::ErrGeneric());
-	 }
-	 if (NModes != NModesDADS) {
-	    silent_cout("Modal(" << uLabel
-		    << "), file '" << sFileFem << "': using " << NModes
-		    << " of " << NModesDADS
-		    << " modes" << std::endl);
-	 }
-
-      /* legge il secondo blocco (Id.nodi) */
-      } else if (!strncmp("** RECORD GROUP 2,", str, sizeof("** RECORD GROUP 2,") - 1)) {
-	 unsigned int ui;
-	 for (iNode = 1; iNode <= NFemNodes; iNode++) {
-	    fdat >> ui;
-	    IdFemNodes[iNode-1] = ui;
-	 }
-
-      /* deformate iniziali dei modi */
-      } else if (!strncmp("** RECORD GROUP 3,", str, sizeof("** RECORD GROUP 3,") - 1)) {
-	 for (iMode = 1; iMode <= NModesDADS; iMode++) {
-	    fdat >> d;
-	    if (iMode > NModes) {
-	       continue;
-	    }
-	    a->Put(iMode, d);
-	 }
-
-      /* velocita' iniziali dei modi */
-      } else if (!strncmp("** RECORD GROUP 4,", str, sizeof("** RECORD GROUP 4,") - 1)) {
-	 for (iMode = 1; iMode <= NModesDADS; iMode++) {
-	    fdat >> d;
-	    if (iMode > NModes) {
-	       continue;
-	    }
-	    aP->Put(iMode, d);
-	 }
-
-      /* Coordinate X dei nodi*/
-      } else if (!strncmp("** RECORD GROUP 5,", str, sizeof("** RECORD GROUP 5,") - 1)) {
-	 for (iNode = 1; iNode <= NFemNodes; iNode++) {
-	    fdat >> d;
-	    pXYZFemNodes->Put(1, iNode, d /**scalemodes*/ );
-	 }
-
-      /* Coordinate Y dei nodi*/
-      } else if (!strncmp("** RECORD GROUP 6,", str, sizeof("** RECORD GROUP 6,") - 1)) {
-	 for (iNode = 1; iNode <= NFemNodes; iNode++) {
-	    fdat >> d;
-	    pXYZFemNodes->Put(2, iNode, d /**scalemodes*/ );
-	 }
-
-      /* Coordinate Z dei nodi*/
-      } else if (!strncmp("** RECORD GROUP 7,", str, sizeof("** RECORD GROUP 7,") - 1)) {
-	 for (iNode = 1; iNode <= NFemNodes; iNode++) {
-	    fdat >> d;
-	    pXYZFemNodes->Put(3, iNode, d /**scalemodes*/ );
-	 }
-
-      /* Forme modali */
-      } else if (!strncmp("** RECORD GROUP 8,", str, sizeof("** RECORD GROUP 8,") - 1)) {
-	 for (iMode = 1; iMode <= NRejModes; iMode++) {
-     		fdat.getline(str,sizeof(str));
-     		fdat.getline(str,sizeof(str));
-	 }
-	 for (iMode = 1; iMode <= NModesDADS; iMode++) {
-     	    fdat.getline(str,sizeof(str));
-	    for (iNode = 1; iNode <= NFemNodes; iNode++) {
-	       for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		  fdat >> d;
-		  if (iMode > NModes) {
-		     continue;
-		  }
-		  pModeShapest->Put(iCnt, (iMode-1)*NFemNodes+iNode,
-				  d /* *scalemodes */ );
-	       }
-	       for (int iCnt = 1; iCnt <= 3; iCnt++) {
-	          fdat >> d;
-		  if (iMode > NModes) {
-		     continue;
-		  }
-		  pModeShapesr->Put(iCnt, (iMode-1)*NFemNodes+iNode, d);
-	       }
-	    }
-	    fdat.getline(str,sizeof(str));
-	 }
-
-      /* Matrice di massa  modale */
-      }	else if (!strncmp("** RECORD GROUP 9,", str, sizeof("** RECORD GROUP 9,") - 1)) {
-         for (iMode = 1; iMode <= NModesDADS; iMode++) {
-	    for (jMode = 1; jMode <= NModesDADS; jMode++) {
-	       fdat >> d;
-	       if (iMode > NModes || jMode > NModes) {
-		  continue;
-	       }
-	       pGenMass->Put(iMode, jMode, d /* *scalfact */ );
-	    }
-         }
-
-      /* Matrice di rigidezza  modale */
-      } else if (!strncmp("** RECORD GROUP 10,", str, sizeof("** RECORD GROUP 10,") - 1)) {
-         for (iMode = 1; iMode <= NModesDADS; iMode++) {
-	    for (jMode = 1; jMode <= NModesDADS; jMode++) {
-	       fdat >> d;
-	       if (iMode > NModes || jMode > NModes) {
-		  continue;
-	       }
-	       pGenStiff->Put(iMode, jMode, d/* *scalfact */);
-	    }
-         }
-
-      /* Lumped Masses */
-      } else if (!strncmp("** RECORD GROUP 11,", str, sizeof("** RECORD GROUP 11,") - 1)) {
-         for (iNode = 1; iNode <= NFemNodes; iNode++) {
-	    for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
-	       fdat >> d;
-	       switch (jCnt) {
-	       case 1:
-	          FemMass.Put(iNode, d/**scalemasses*/);
-	          break;
-	       case 4:
-	          FemJ.Put(1, iNode, d/**scalemasses*/);
-	          break;
-	       case 5:
-	          FemJ.Put(2, iNode, d/**scalemasses*/);
-
-
-	          break;
-	       case 6:
-	          FemJ.Put(3, iNode, d/**scalemasses*/);
-	          break;
-	       }
-	    }
-         }
-      } /* fine parser del file */
-   }
-   fdat.close();
-
-   /* lettura dati di vincolo:
-    * l'utente specifica la label del nodo FEM e del nodo rigido
-    * d'interfaccia.
-    * L'orientamento del nodo FEM e' quello del nodo modale, la
-    * posizione e' la somma di quella modale e di quella FEM   */
-
-   const StructNode** pInterfaceNodes = NULL; /* puntatori ai nodi multibody */
-   unsigned int *IntNodes = NULL; /* array contenente le label dei nodi d'interfaccia */
-   Mat3xN* pPHItStrNode = NULL;  /* array contenente le forme modali dei nodi d'interfaccia */
-   Mat3xN* pPHIrStrNode = NULL;
-
-   /* traslazione origine delle coordinate */
-   if (HP.IsKeyWord("origin" "node")) {
-      /* numero di nodi FEM del modello */
-      unsigned int NFemOriginNode = HP.GetInt();
-
-      for (iNode = 0; iNode < NFemNodes; iNode++) {
-	 if (NFemOriginNode == IdFemNodes[iNode]) {
-	    break;
-	 }
-      }
-      if (iNode == NFemNodes) {
-	 std::cerr << "Modal(" << uLabel << "): FEM node " << NFemOriginNode
-	   << " at line " << HP.GetLineData()
-	   << " not defined " << std::endl;
-	 THROW(DataManager::ErrGeneric());
-      }
-
-      iNode++;
-      Vec3 Origin(pXYZFemNodes->GetVec(iNode));
-
-      for (iStrNode = 1; iStrNode <= NFemNodes; iStrNode++) {
-	 pXYZFemNodes->SubVec(iStrNode, Origin);
-      }
-   }
-
-   unsigned int NStrNodes = HP.GetInt();  /* numero di nodi d'interfaccia */
-   DEBUGCOUT("Number of Interface Nodes : " << NStrNodes << std::endl);
-
-   SAFENEWWITHCONSTRUCTOR(pOffsetFEMNodes, Mat3xN, Mat3xN(NStrNodes+1, 0.));
-   SAFENEWWITHCONSTRUCTOR(pOffsetMBNodes, Mat3xN, Mat3xN(NStrNodes+1, 0.));
-   SAFENEWWITHCONSTRUCTOR(pPHItStrNode, Mat3xN, Mat3xN(NStrNodes*NModes, 0.));
-   SAFENEWWITHCONSTRUCTOR(pPHIrStrNode, Mat3xN, Mat3xN(NStrNodes*NModes, 0.));
-
-   SAFENEWARR(pInterfaceNodes, const StructNode*, NStrNodes);
-   SAFENEWARR(IntNodes, unsigned int, 2*NStrNodes);
-
-   for (iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
-
-      /* nodo collegato 1 (è il nodo FEM) */
-      unsigned int uNode1 = (unsigned int)HP.GetInt();
-      DEBUGCOUT("Linked to FEM Node " << uNode1 << std::endl);
-
-      /* verifica di esistenza del nodo 1*/
-      for (iNode = 1; iNode <= NFemNodes; iNode++) {
-	 if (uNode1 == IdFemNodes[iNode-1]) {
-	    break;
-	 }
-	 if (iNode == NFemNodes) {
-	    std::cerr << "Modal(" << uLabel << "): FEM node " << uNode1
-	      << " at line " << HP.GetLineData()
-		<< " not defined " << std::endl;
-	    THROW(DataManager::ErrGeneric());
-	 }
-      }
-
-      int iNodeCurr = iNode;
-
-      /* recupera la posizione del nodo FEM, somma di posizione
-       * e eventuale offset;
-       *
-       * HEADS UP: non piu' offset per i nodi FEM !!!!!!!!!
-       * 
-       * nota: iNodeCurr contiene la posizione a cui si trova
-       * il nodo FEM d'interfaccia nell'array pXYZNodes */
-      pOffsetFEMNodes->PutVec(iStrNode, pXYZFemNodes->GetVec(iNodeCurr));
-
-      /* salva le forme modali del nodo d'interfaccia nell'array pPHIStrNode */
-      for (iMode = 1; iMode <= NModes; iMode++) {
-	 pPHItStrNode->PutVec((iMode-1)*NStrNodes+iStrNode,
-			 pModeShapest->GetVec((iMode-1)*NFemNodes+iNodeCurr));
-	 pPHIrStrNode->PutVec((iMode-1)*NStrNodes+iStrNode,
-			 pModeShapesr->GetVec((iMode-1)*NFemNodes+iNodeCurr));
-      }
-
-      /* nodo collegato 2 (e' il nodo multibody) */
-      unsigned int uNode2 = (unsigned int)HP.GetInt();
-      DEBUGCOUT("Linked to Multi-Body Node " << uNode2 << std::endl);
-
-      /* verifica di esistenza del nodo 2 */
-      pInterfaceNodes[iStrNode-1] = pDM->pFindStructNode(uNode2);
-      if (pInterfaceNodes[iStrNode-1] == NULL) {
-         std::cerr << "Modal(" << uLabel << "): StructuralNode(" << uNode2
-           << ") at line " << HP.GetLineData()
-	     << " not defined" << std::endl;
-         THROW(DataManager::ErrGeneric());
-      }
-
-      /* offset del nodo Multi-Body */
-      ReferenceFrame RF = ReferenceFrame(pInterfaceNodes[iStrNode-1]);
-      Vec3 d2(HP.GetPosRel(RF));
-
-      pOffsetMBNodes->PutVec(iStrNode, d2);
-
-      DEBUGCOUT("Multibody Node reference frame d2:" << std::endl << d2 << std::endl);
-
-      /* salva le label dei nodi vincolati nell'array IntNodes
-       * non serve piu' ricordarsi di toglierlo */
-      IntNodes[iStrNode-1] = uNode1;
-      IntNodes[NStrNodes+iStrNode-1] = uNode2;
-
-   }  /* fine ciclo sui nodi d'interfaccia */
-
-
-   /* fine ciclo caricamento dati */
-
-   doublereal mi;
-   Vec3 ui;
-
-   /*
-    * calcola gli invarianti d'inerzia (massa, momenti statici e d'inerzia,
-    * termini di accoppiamento nel SdR locale)
-    */
-
-   /* inizio ciclo scansione nodi */
-   for (iNode = 1; iNode <= NFemNodes; iNode++) {
-      mi = FemMass.dGet(iNode);
-      /* massa totale (Inv 1) */
-      dMass += mi;
-
-      for (unsigned int iCnt = 1; iCnt <= 3;iCnt++) {
-      	 /* vettore posizione indeformata del nodo {ui} */
-	 ui.Put(iCnt, pXYZFemNodes->dGet(iCnt, iNode));
-      }
-
-      Mat3x3 uivett(ui);
-      Mat3x3 JiNodeTmp(0.);
-      JiNodeTmp.Put(1, 1, FemJ.dGet(1, iNode));
-      JiNodeTmp.Put(2, 2, FemJ.dGet(2, iNode));
-      JiNodeTmp.Put(3, 3, FemJ.dGet(3, iNode));
-
-      JTmp += JiNodeTmp-Mat3x3(ui, ui*mi);
-      STmp += ui*mi;
-
-      /* estrae le forme modali del nodo i-esimo */
-      for (iMode = 1; iMode <= NModes; iMode++) {
-	 unsigned int iOffset = (iMode-1)*NFemNodes+iNode;
-	 for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	    PHIti.Put(iCnt, iMode, pModeShapest->dGet(iCnt, iOffset));
-	    PHIri.Put(iCnt, iMode, pModeShapesr->dGet(iCnt, iOffset));
-	 }
-      }
-
-      Mat3xN Inv3Tmp(NModes, 0.);
-      Mat3xN Inv4Tmp(NModes, 0.);
-      Mat3xN Inv4JTmp(NModes, 0.);
-      Inv3Tmp.Copy(PHIti);
-
-      /* Inv3 = mi*PHIti,      i = 1,...nnodi */
-      Inv3Tmp *= mi;
-
-      /* Inv4 = mi*ui/\*PHIti+Ji*PHIri, i = 1,...nnodi */
-      Inv4Tmp.LeftMult(uivett*mi, PHIti);
-      Inv4JTmp.LeftMult(JiNodeTmp, PHIri);
-      Inv4Tmp += Inv4JTmp;
-      *pInv3 += Inv3Tmp;
-      *pInv4 += Inv4Tmp;
-      *pInv11 += Inv4JTmp;
-
-      /* inizio ciclo scansione modi */
-      for (iMode = 1; iMode <= NModes; iMode++) {
-	 for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	    /* estrae la j-esima funzione di forma del nodo i-esimo */
-	    PHItij.Put(iCnt, PHIti.dGet(iCnt, iMode));
-	    PHIrij.Put(iCnt, PHIri.dGet(iCnt, iMode));
-	 }
-
-	 Mat3x3 PHItijvett_mi(PHItij*mi);
-	 Mat3xN Inv5jTmp(NModes, 0);
-
-    	 /* Inv5 = mi*PHItij/\*PHIti, i = 1,...nnodi, j = 1,...nmodi */
-	 Inv5jTmp.LeftMult(PHItijvett_mi, PHIti);
-	 for (jMode = 1; jMode <= NModes; jMode++)  {
-	    for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	       pInv5->Add(iCnt, (iMode-1)*NModes+jMode,
-			       Inv5jTmp.dGet(iCnt, jMode));
-	    }
-	 }
-
-	 /* Inv8 = -mi*ui/\*PHItij/\, i = 1,...nnodi, j = 1,...nmodi */
-	 Mat3x3 Inv8jTmp = -uivett*PHItijvett_mi;
-	 for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	    for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
-	       pInv8->Add(iCnt, (iMode-1)*3+jCnt, Inv8jTmp.dGet(iCnt,jCnt));
-	    }
-	 }
-
-	 /* Inv9 = mi*PHItij/\*PHItik/\, i = 1,...nnodi, j, k = 1...nmodi */
-	 Vec3 PHItik;
-	 for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
-	    for (unsigned int kCnt = 1; kCnt <= 3; kCnt++) {
-	       PHItik.Put(kCnt, PHIti.dGet(kCnt, kMode));
-	    }
-	    Mat3x3 PHItikvett(PHItik);
-	    Mat3x3 Inv9jkTmp = PHItijvett_mi*PHItikvett;
-	    for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	       for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
-		  pInv9->Add(iCnt, (iMode-1)*3*NModes+(kMode-1)*3+jCnt,
-				  Inv9jkTmp.dGet(iCnt,jCnt));
-	       }
-	    }
-	 }
-
-         /* Inv10 = [PHIrij/\][J0i], i = 1,...nnodi, j = 1,...nmodi */
-	 Mat3x3 Inv10jTmp = Mat3x3(PHIrij)*JiNodeTmp;
-	 for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	    for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
-	       pInv10->Add(iCnt, (iMode-1)*3+jCnt, Inv10jTmp.dGet(iCnt,jCnt));
-	    }
-	 }
-      } /*  fine ciclo scansione modi */
-   } /* fine ciclo scansione nodi */
-
-   /*
-    * costruisce la matrice di smorzamento:
-    * il termine diagonale i-esimo e' pari a
-    * cii = 2*cdampi*(ki*mi)^.5
-    */
-   for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-      doublereal d = sqrt(pGenStiff->dGet(iCnt, iCnt)
-		      *pGenMass->dGet(iCnt, iCnt ));
-
-      if (!iDampFlag) {
-	 pGenDamp->Put(iCnt, iCnt, 2.*cdamp*d);
-      } else {
-	 pGenDamp->Put(iCnt, iCnt, 2.*DampRatios.dGet(iCnt)*d);
-      }
-   }
+	/* Legge i coefficienti di smorzamento */
+	doublereal cdamp = 0.;
+	VecN DampRatios(NModes, 0.);
+	integer iDampFlag = 0;
+
+	if (HP.IsKeyWord("no" "damping")) {
+		cdamp = 0.;
+	} else if (HP.IsKeyWord("proportional" "damping")) {
+		cdamp = HP.GetReal();
+	} else if (HP.IsKeyWord("diag" "damping"))  {
+		iDampFlag = 1;
+		
+		for (unsigned int iCnt = 1; iCnt <= NModes; iCnt ++) {
+			integer iDampedMode =  HP.GetInt();
+			cdamp = HP.GetReal();
+			DampRatios.Put(iDampedMode, cdamp);
+		}
+	} else {
+		silent_cout("Modal(" << uLabel << "): "
+				"no damping is assumed at line "
+				<< HP.GetLineData() << " (deprecated)"
+				<< std::endl);
+	}
+
+	DEBUGCOUT("Number of Modes Imported : " << NModes << std::endl);
+	DEBUGCOUT("Number of FEM Nodes Imported : " << NFemNodes << std::endl);
+	DEBUGCOUT("Origin of FEM Model : " << X0 << std::endl);
+	DEBUGCOUT("Orientation of FEM Model : " << R << std::endl);
+	/* DEBUGCOUT("Damping coefficient: "<< cdamp << std::endl); */
+
+	doublereal dMass = 0;              /* massa totale */
+	Vec3 STmp(0.);                     /* momenti statici  */
+	Mat3x3 JTmp(0.);                   /* inerzia totale  */
+	VecN FemMass(NFemNodes, 0.);       /* masse nodali   */
+	Mat3xN FemJ(NFemNodes, 0.);        /* inerzie nodali (sono diagonali) */
+
+	Mat3xN *pModeShapest = NULL;       /* forme di traslaz. e rotaz. */
+	Mat3xN *pModeShapesr = NULL;
+	Mat3xN PHIti(NModes, 0.);          /* forme nodo i-esimo: 3*nmodi */
+	Mat3xN PHIri(NModes, 0.);
+	Mat3xN *pXYZFemNodes = NULL;       /* punt. alle coordinate nodali */
+	Mat3xN *pOffsetFEMNodes = NULL;    /* punt. offset FEM (per vincoli) */
+	Mat3xN *pOffsetMBNodes = NULL;     /* punt. offset MB (per vincoli) */
+	Mat3xN *pRotMBNodes = NULL;        /* punt. orient. MB (per vincoli) */
+	MatNxN *pGenMass = NULL;           /* punt. masse e rigidezze modali */
+	MatNxN *pGenStiff = NULL;
+	MatNxN *pGenDamp = NULL;
+
+	Mat3xN *pInv3 = NULL;     	      /* invarianti d'inerzia */
+	Mat3xN *pInv4 = NULL;
+	Mat3xN *pInv5 = NULL;
+	Mat3xN *pInv8 = NULL;
+	Mat3xN *pInv9 = NULL;
+	Mat3xN *pInv10 = NULL;
+	Mat3xN *pInv11 = NULL;
+
+	VecN *a = NULL;                    /* spostamenti e velocita' modali */
+	VecN *aP = NULL;
+
+	unsigned int iNode, iMode, jMode, iStrNode;
+
+	/* input file */
+	const char *s = HP.GetFileName();
+	if (s == NULL) {
+		std::cerr << "Modal(" << uLabel << "): unable to get "
+			"modal data file name" << std::endl;
+		THROW(ErrGeneric());
+	}
+
+	const char *sFileFem = NULL;
+	SAFESTRDUP(sFileFem, s);
+
+	/* apre il file con i dati del modello FEM */
+	std::ifstream fdat(sFileFem);
+	if (!fdat) {
+		std::cerr << "Modal(" << uLabel << "): "
+			"unable to open file " << sFileFem
+			<< " at line " << HP.GetLineData() << std::endl;
+		THROW(DataManager::ErrGeneric());
+	}
+	DEBUGCOUT("Reading Flexible Body Data from file "
+			<< sFileFem << std::endl);
+
+	/* carica i dati relativi a coordinate nodali, massa, momenti statici
+	 * e d'inerzia, massa e rigidezza generalizzate dal file nomefile.
+	 */
+
+	doublereal d;
+	unsigned int NFemNodesDADS = 0, NModesDADS = 0, NRejModes = 0;
+	char str[BUFSIZ];
+
+	/* alloca la memoria per le matrici necessarie a memorizzare i dati
+	 * relativi al corpo flessibile
+	 * nota: devo usare i puntatori perche' altrimenti non si riesce
+	 * a passarli al costruttore       */
+	SAFENEWWITHCONSTRUCTOR(pXYZFemNodes, Mat3xN, Mat3xN(NFemNodes, 0.));
+	SAFENEWWITHCONSTRUCTOR(pGenMass,  MatNxN, MatNxN(NModes, 0.));
+	SAFENEWWITHCONSTRUCTOR(pGenStiff, MatNxN, MatNxN(NModes, 0.));
+	SAFENEWWITHCONSTRUCTOR(pGenDamp,  MatNxN, MatNxN(NModes, 0.));
+	SAFENEWWITHCONSTRUCTOR(pModeShapest, Mat3xN,
+			Mat3xN(NFemNodes*NModes, 0.));
+	SAFENEWWITHCONSTRUCTOR(pModeShapesr, Mat3xN,
+			Mat3xN(NFemNodes*NModes, 0.));
+	SAFENEWWITHCONSTRUCTOR(pInv3, Mat3xN, Mat3xN(NModes, 0.));
+	SAFENEWWITHCONSTRUCTOR(pInv4, Mat3xN, Mat3xN(NModes, 0.));
+	/* Inv5 e' un 3xMxM */
+	SAFENEWWITHCONSTRUCTOR(pInv5, Mat3xN, Mat3xN(NModes*NModes, 0.));
+	/* Inv8 e' un 3x3xM */
+	SAFENEWWITHCONSTRUCTOR(pInv8, Mat3xN, Mat3xN(3*NModes, 0.));
+	/* Inv9 e' un 3x3xMxM */
+	SAFENEWWITHCONSTRUCTOR(pInv9, Mat3xN, Mat3xN(3*NModes*NModes, 0.));
+	/* Inv10 e' un 3x3xM */
+	SAFENEWWITHCONSTRUCTOR(pInv10,Mat3xN, Mat3xN(3*NModes, 0.));
+	SAFENEWWITHCONSTRUCTOR(pInv11,Mat3xN, Mat3xN(NModes, 0.));
+	SAFENEWWITHCONSTRUCTOR(a,  VecN, VecN(NModes, 0.));
+	SAFENEWWITHCONSTRUCTOR(aP, VecN, VecN(NModes, 0.));
+
+	/* array contenente le label dei nodi FEM */
+	unsigned int *IdFemNodes = NULL;
+	SAFENEWARR(IdFemNodes, unsigned int, NFemNodes);
+
+	bool *bActiveModes = NULL;
+
+	while (!fdat.eof()) {        /* parsing del file */
+		fdat.getline(str, sizeof(str));
+
+		/* legge il primo blocco (HEADER) */
+		if (!strncmp("** RECORD GROUP 1,", str,
+					sizeof("** RECORD GROUP 1,") - 1)) {
+	 		fdat.getline(str, sizeof(str));
+			fdat >> str;
+
+			/* FEM nodes number */
+			fdat >> NFemNodesDADS;
+
+			/* add to modes number */
+			fdat >> NModesDADS;
+
+			unsigned int i;
+			fdat >> i;
+			NModesDADS += i;
+			fdat >> i;
+			NModesDADS += i;
+
+			/* "rejected" modes (subtract from modes number) */
+			fdat >> NRejModes;
+			NModesDADS -= NRejModes;
+		
+			/* consistency checks */
+			if (NFemNodes != NFemNodesDADS) {
+				std::cerr << "Modal(" << uLabel
+					<< "), file '" << sFileFem 
+					<< "': FEM nodes number " << NFemNodes
+					<< " does not match node number "
+					<< NFemNodesDADS
+					<< std::endl;
+				THROW(DataManager::ErrGeneric());
+			}
+
+			if (NModes != NModesDADS) {
+				silent_cout("Modal(" << uLabel
+						<< "), file '" << sFileFem
+						<< "': using " << NModes
+						<< " of " << NModesDADS
+						<< " modes" << std::endl);
+			}
+
+			if (bActiveModes != NULL) {
+				THROW(ErrGeneric());
+			}
+
+			SAFENEWARR(bActiveModes, bool, NModesDADS+1);
+
+			for (unsigned int iCnt = 1; iCnt <= NModesDADS; iCnt++) {
+				bActiveModes[iCnt] = false;
+			}
+
+			for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
+				if (uModeNumber[iCnt] > NModesDADS) {
+					std::cerr << "Modal(" << uLabel << "): "
+						"mode " << uModeNumber[iCnt]
+						<< " is not available (max = "
+						<< NModesDADS << ")"
+						<< std::endl;
+					THROW(ErrGeneric());
+				}
+				bActiveModes[uModeNumber[iCnt]] = true;
+			}
+			SAFEDELETEARR(uModeNumber);
+			uModeNumber = NULL;
+
+		/* legge il secondo blocco (Id.nodi) */
+		} else if (!strncmp("** RECORD GROUP 2,", str,
+					sizeof("** RECORD GROUP 2,") - 1)) {
+			for (iNode = 1; iNode <= NFemNodes; iNode++) {
+				fdat >> IdFemNodes[iNode-1];
+			}
+
+		/* deformate iniziali dei modi */
+		} else if (!strncmp("** RECORD GROUP 3,", str,
+					sizeof("** RECORD GROUP 3,") - 1)) {
+			unsigned int iCnt = 1;
+
+			if (bActiveModes == NULL) {
+				std::cerr << "Modal(" << uLabel << "): "
+					"input file " << sFileFem
+					<< " is bogus (RECORD GROUP 3)"
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			for (iMode = 1; iMode <= NModesDADS; iMode++) {
+				fdat >> d;
+				if (!bActiveModes[iMode]) {
+					continue;
+				}
+				a->Put(iCnt, d);
+				iCnt++;
+			}
+
+		/* velocita' iniziali dei modi */
+		} else if (!strncmp("** RECORD GROUP 4,", str,
+					sizeof("** RECORD GROUP 4,") - 1)) {
+			unsigned int iCnt = 1;
+
+			if (bActiveModes == NULL) {
+				std::cerr << "Modal(" << uLabel << "): "
+					"input file " << sFileFem
+					<< " is bogus (RECORD GROUP 4)"
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			for (iMode = 1; iMode <= NModesDADS; iMode++) {
+				fdat >> d;
+				if (!bActiveModes[iMode]) {
+					continue;
+				}
+				aP->Put(iCnt, d);
+				iCnt++;
+			}
+
+		/* Coordinate X dei nodi*/
+		} else if (!strncmp("** RECORD GROUP 5,", str,
+					sizeof("** RECORD GROUP 5,") - 1)) {
+			for (iNode = 1; iNode <= NFemNodes; iNode++) {
+				fdat >> d;
+#ifdef MODAL_SCALE_DATA
+				d *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+				pXYZFemNodes->Put(1, iNode, d);
+			}
+
+		/* Coordinate Y dei nodi*/
+		} else if (!strncmp("** RECORD GROUP 6,", str,
+					sizeof("** RECORD GROUP 6,") - 1)) {
+			for (iNode = 1; iNode <= NFemNodes; iNode++) {
+				fdat >> d;
+#ifdef MODAL_SCALE_DATA
+				d *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+				pXYZFemNodes->Put(2, iNode, d);
+			}
+
+		/* Coordinate Z dei nodi*/
+		} else if (!strncmp("** RECORD GROUP 7,", str,
+					sizeof("** RECORD GROUP 7,") - 1)) {
+			for (iNode = 1; iNode <= NFemNodes; iNode++) {
+				fdat >> d;
+#ifdef MODAL_SCALE_DATA
+				d *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+				pXYZFemNodes->Put(3, iNode, d);
+			}
+
+		/* Forme modali */
+		} else if (!strncmp("** RECORD GROUP 8,", str,
+					sizeof("** RECORD GROUP 8,") - 1)) {
+			for (iMode = 1; iMode <= NRejModes; iMode++) {
+				/* FIXME: siamo sicuri di avere 
+				 * raggiunto '\n'? */
+				fdat.getline(str, sizeof(str));
+				fdat.getline(str, sizeof(str));
+			}
+			
+			if (bActiveModes == NULL) {
+				std::cerr << "Modal(" << uLabel << "): "
+					"input file " << sFileFem
+					<< " is bogus (RECORD GROUP 8)"
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			unsigned int iCnt = 1;
+			for (iMode = 1; iMode <= NModesDADS; iMode++) {
+				fdat.getline(str, sizeof(str));
+				for (iNode = 1; iNode <= NFemNodes; iNode++) {
+					doublereal t1, t2, t3, r1, r2, r3;
+
+					fdat >> t1 >> t2 >> t3
+						>> r1 >> r2 >> r3;
+
+					if (!bActiveModes[iMode]) {
+						continue;
+					}
+
+#ifdef MODAL_SCALE_DATA
+					t1 *= scalemodes;
+					t2 *= scalemodes;
+					t3 *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+					pModeShapest->PutVec((iCnt-1)*NFemNodes+iNode, Vec3(t1, t2, t3));
+					pModeShapesr->PutVec((iCnt-1)*NFemNodes+iNode, Vec3(r1, r2, r3));
+				}
+
+				if (bActiveModes[iMode]) {
+					iCnt++;
+				}
+				fdat.getline(str, sizeof(str));
+			}
+
+		/* Matrice di massa  modale */
+		} else if (!strncmp("** RECORD GROUP 9,", str,
+					sizeof("** RECORD GROUP 9,") - 1)) {
+			unsigned int iCnt = 1;
+
+			if (bActiveModes == NULL) {
+				std::cerr << "Modal(" << uLabel << "): "
+					"input file " << sFileFem
+					<< " is bogus (RECORD GROUP 9)"
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			for (iMode = 1; iMode <= NModesDADS; iMode++) {
+				unsigned int jCnt = 1;
+
+				for (jMode = 1; jMode <= NModesDADS; jMode++) {
+					fdat >> d;
+					if (!bActiveModes[iMode] || !bActiveModes[jMode]) {
+						continue;
+					}
+					pGenMass->Put(iCnt, jCnt, d);
+					jCnt++;
+				}
+
+				if (bActiveModes[iMode]) {
+					iCnt++;
+				}
+			}
+
+			/* Matrice di rigidezza  modale */
+		} else if (!strncmp("** RECORD GROUP 10,", str,
+					sizeof("** RECORD GROUP 10,") - 1)) {
+			unsigned int iCnt = 1;
+
+			if (bActiveModes == NULL) {
+				std::cerr << "Modal(" << uLabel << "): "
+					"input file " << sFileFem
+					<< " is bogus (RECORD GROUP 10)"
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			for (iMode = 1; iMode <= NModesDADS; iMode++) {
+				unsigned int jCnt = 1;
+
+				for (jMode = 1; jMode <= NModesDADS; jMode++) {
+					fdat >> d;
+					if (!bActiveModes[iMode] || !bActiveModes[jMode]) {
+						continue;
+					}
+					pGenStiff->Put(iCnt, jCnt, d);
+					jCnt++;
+				}
+
+				if (bActiveModes[iMode]) {
+					iCnt++;
+				}
+			}
+
+			/* Lumped Masses */
+		} else if (!strncmp("** RECORD GROUP 11,", str,
+					sizeof("** RECORD GROUP 11,") - 1)) {
+			for (iNode = 1; iNode <= NFemNodes; iNode++) {
+				for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
+					fdat >> d;
+					switch (jCnt) {
+					case 1:
+#ifdef MODAL_SCALE_DATA
+						d *= scalemass;
+#endif /* MODAL_SCALE_DATA */
+						FemMass.Put(iNode, d);
+						break;
+					
+					case 4:
+#ifdef MODAL_SCALE_DATA
+						d *= scaleinertia;
+#endif /* MODAL_SCALE_DATA */
+						FemJ.Put(1, iNode, d);
+						break;
+
+					case 5:
+#ifdef MODAL_SCALE_DATA
+						d *= scaleinertia;
+#endif /* MODAL_SCALE_DATA */
+						FemJ.Put(2, iNode, d);
+						break;
+					
+					case 6:
+#ifdef MODAL_SCALE_DATA
+						d *= scaleinertia;
+#endif /* MODAL_SCALE_DATA */
+						FemJ.Put(3, iNode, d);
+						break;
+					}
+				}
+			}
+		} /* fine parser del file */
+	}
+	SAFEDELETEARR(bActiveModes);
+	bActiveModes = NULL;
+
+	SAFEDELETEARR(sFileFem);
+	sFileFem = NULL;
+
+	fdat.close();
+
+	/* lettura dati di vincolo:
+	 * l'utente specifica la label del nodo FEM e del nodo rigido
+	 * d'interfaccia.
+	 * L'orientamento del nodo FEM e' quello del nodo modale, la
+	 * posizione e' la somma di quella modale e di quella FEM   */
+
+	/* puntatori ai nodi multibody */
+	const StructNode** pInterfaceNodes = NULL;
+	/* array contenente le label dei nodi d'interfaccia */
+	unsigned int *IntFEMNodes = NULL;
+	unsigned int *IntMBNodes = NULL;
+	/* array contenente le forme modali dei nodi d'interfaccia */
+	Mat3xN* pPHItStrNode = NULL;
+	Mat3xN* pPHIrStrNode = NULL;
+
+	/* traslazione origine delle coordinate */
+	if (HP.IsKeyWord("origin" "node")) {
+		/* numero di nodi FEM del modello */
+		unsigned int NFemOriginNode = HP.GetInt();
+
+		for (iNode = 0; iNode < NFemNodes; iNode++) {
+			if (NFemOriginNode == IdFemNodes[iNode]) {
+				break;
+			}
+		}
+
+		if (iNode == NFemNodes) {
+			std::cerr << "Modal(" << uLabel << "): "
+				"FEM node " << NFemOriginNode
+				<< " at line " << HP.GetLineData()
+				<< " not defined " << std::endl;
+			THROW(DataManager::ErrGeneric());
+		}
+
+		iNode++;
+		Vec3 Origin(pXYZFemNodes->GetVec(iNode));
+
+		for (iStrNode = 1; iStrNode <= NFemNodes; iStrNode++) {
+			pXYZFemNodes->SubVec(iStrNode, Origin);
+		}
+	}
+
+	/* numero di nodi d'interfaccia */
+	unsigned int NStrNodes = HP.GetInt();
+	DEBUGCOUT("Number of Interface Nodes : " << NStrNodes << std::endl);
+
+	SAFENEWWITHCONSTRUCTOR(pOffsetFEMNodes, Mat3xN, Mat3xN(NStrNodes, 0.));
+	SAFENEWWITHCONSTRUCTOR(pOffsetMBNodes, Mat3xN, Mat3xN(NStrNodes, 0.));
+	SAFENEWWITHCONSTRUCTOR(pRotMBNodes, Mat3xN, Mat3xN(3*NStrNodes, 0.));
+	SAFENEWWITHCONSTRUCTOR(pPHItStrNode, Mat3xN,
+			Mat3xN(NStrNodes*NModes, 0.));
+	SAFENEWWITHCONSTRUCTOR(pPHIrStrNode, Mat3xN,
+			Mat3xN(NStrNodes*NModes, 0.));
+
+	SAFENEWARR(pInterfaceNodes, const StructNode*, NStrNodes);
+	SAFENEWARR(IntFEMNodes, unsigned int, NStrNodes);
+	SAFENEWARR(IntMBNodes, unsigned int, NStrNodes);
+
+	for (iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
+		/* nodo collegato 1 (è il nodo FEM) */
+		unsigned int uNode1 = (unsigned int)HP.GetInt();
+		DEBUGCOUT("Linked to FEM Node " << uNode1 << std::endl);
+
+		/* verifica di esistenza del nodo 1*/
+		for (iNode = 0; iNode < NFemNodes; iNode++) {
+			if (uNode1 == IdFemNodes[iNode]) {
+				break;
+			}
+		}
+
+		if (iNode == NFemNodes) {
+			std::cerr << "Modal(" << uLabel << "): "
+				"FEM node " << uNode1
+				<< " at line " << HP.GetLineData()
+				<< " not defined " << std::endl;
+			THROW(DataManager::ErrGeneric());
+		}
+
+		iNode++;
+		
+		int iNodeCurr = iNode;
+
+		/* recupera la posizione del nodo FEM, somma di posizione
+		 * e eventuale offset;
+		 *
+		 * HEADS UP: non piu' offset per i nodi FEM !!!!!!!!!
+		 * 
+		 * nota: iNodeCurr contiene la posizione a cui si trova
+		 * il nodo FEM d'interfaccia nell'array pXYZNodes */
+		pOffsetFEMNodes->PutVec(iStrNode,
+				pXYZFemNodes->GetVec(iNodeCurr));
+
+		/* salva le forme modali del nodo d'interfaccia
+		 * nell'array pPHIStrNode */
+		for (iMode = 0; iMode < NModes; iMode++) {
+			pPHItStrNode->PutVec(iMode*NStrNodes+iStrNode,
+					pModeShapest->GetVec(iMode*NFemNodes+iNodeCurr));
+			pPHIrStrNode->PutVec(iMode*NStrNodes+iStrNode,
+					pModeShapesr->GetVec(iMode*NFemNodes+iNodeCurr));
+		}
+
+		/* nodo collegato 2 (e' il nodo multibody) */
+		unsigned int uNode2 = (unsigned int)HP.GetInt();
+		DEBUGCOUT("Linked to Multi-Body Node " << uNode2 << std::endl);
+
+		/* verifica di esistenza del nodo 2 */
+		pInterfaceNodes[iStrNode-1] = pDM->pFindStructNode(uNode2);
+		if (pInterfaceNodes[iStrNode-1] == NULL) {
+			std::cerr << "Modal(" << uLabel << "): "
+				"StructuralNode(" << uNode2 << ") "
+				"at line " << HP.GetLineData()
+				<< " not defined" << std::endl;
+			THROW(DataManager::ErrGeneric());
+		}
+
+		/* offset del nodo Multi-Body */
+		ReferenceFrame RF = ReferenceFrame(pInterfaceNodes[iStrNode-1]);
+		Vec3 d2(HP.GetPosRel(RF));
+		Mat3x3 R2(Eye3);
+		if (HP.IsKeyWord("hinge") || HP.IsKeyWord("orientation")) {
+			R2 = HP.GetRotRel(RF);
+		}
+
+		pOffsetMBNodes->PutVec(iStrNode, d2);
+		pRotMBNodes->PutMat3x3(3*(iStrNode-1)+1, R2);
+
+		DEBUGCOUT("Multibody Node reference frame d2:" << std::endl
+				<< d2 << std::endl);
+
+		/* salva le label dei nodi vincolati nell'array IntNodes;
+		 * puo' servire per il restart? */
+		IntFEMNodes[iStrNode-1] = uNode1;
+		IntMBNodes[iStrNode-1] = uNode2;
+	}  /* fine ciclo sui nodi d'interfaccia */
+
+	/* fine ciclo caricamento dati */
+
+	/*
+	 * calcola gli invarianti d'inerzia (massa, momenti statici
+	 * e d'inerzia, termini di accoppiamento nel SdR locale)
+	 */
+
+	/* inizio ciclo scansione nodi */
+	for (iNode = 1; iNode <= NFemNodes; iNode++) {
+		doublereal mi = FemMass.dGet(iNode);
+
+		/* massa totale (Inv 1) */
+		dMass += mi;
+
+		/* posizione nodi FEM */
+		Vec3 ui = pXYZFemNodes->GetVec(iNode);
+
+		Mat3x3 uivett(ui);
+		Mat3x3 JiNodeTmp(0.);
+
+		JiNodeTmp.Put(1, 1, FemJ.dGet(1, iNode));
+		JiNodeTmp.Put(2, 2, FemJ.dGet(2, iNode));
+		JiNodeTmp.Put(3, 3, FemJ.dGet(3, iNode));
+
+		JTmp += JiNodeTmp-Mat3x3(ui, ui*mi);
+		STmp += ui*mi;
+
+		/* estrae le forme modali del nodo i-esimo */
+		for (iMode = 1; iMode <= NModes; iMode++) {
+			unsigned int iOffset = (iMode-1)*NFemNodes+iNode;
+
+			PHIti.PutVec(iMode, pModeShapest->GetVec(iOffset));
+			PHIri.PutVec(iMode, pModeShapesr->GetVec(iOffset));
+		}
+
+		Mat3xN Inv3Tmp(NModes, 0.);
+		Mat3xN Inv4Tmp(NModes, 0.);
+		Mat3xN Inv4JTmp(NModes, 0.);
+		Inv3Tmp.Copy(PHIti);
+
+		/* Inv3 = mi*PHIti,      i = 1,...nnodi */
+		Inv3Tmp *= mi;
+
+		/* Inv4 = mi*ui/\*PHIti+Ji*PHIri, i = 1,...nnodi */
+		Inv4Tmp.LeftMult(uivett*mi, PHIti);
+		Inv4JTmp.LeftMult(JiNodeTmp, PHIri);
+		Inv4Tmp += Inv4JTmp;
+		*pInv3 += Inv3Tmp;
+		*pInv4 += Inv4Tmp;
+		*pInv11 += Inv4JTmp;
+
+		/* inizio ciclo scansione modi */
+		for (iMode = 1; iMode <= NModes; iMode++) {
+			Vec3 PHItij = PHIti.GetVec(iMode);
+			Vec3 PHIrij = PHIri.GetVec(iMode);
+
+			Mat3x3 PHItijvett_mi(PHItij*mi);
+			Mat3xN Inv5jTmp(NModes, 0);
+
+			/* Inv5 = mi*PHItij/\*PHIti,
+			 * i = 1,...nnodi, j = 1,...nmodi */
+			Inv5jTmp.LeftMult(PHItijvett_mi, PHIti);
+			for (jMode = 1; jMode <= NModes; jMode++)  {
+				pInv5->AddVec((iMode-1)*NModes+jMode,
+						Inv5jTmp.GetVec(jMode));
+			}
+
+			/* Inv8 = -mi*ui/\*PHItij/\,
+			 * i = 1,...nnodi, j = 1,...nmodi */
+			Mat3x3 Inv8jTmp = -uivett*PHItijvett_mi;
+			pInv8->AddMat3x3((iMode-1)*3+1, Inv8jTmp);
+
+			/* Inv9 = mi*PHItij/\*PHItik/\,
+			 * i = 1,...nnodi, j, k = 1...nmodi */
+			for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
+				Mat3x3 PHItikvett(PHIti.GetVec(kMode));
+				Mat3x3 Inv9jkTmp = PHItijvett_mi*PHItikvett;
+
+				pInv9->AddMat3x3((iMode-1)*3*NModes+(kMode-1)*3+1, Inv9jkTmp);
+			}
+
+			/* Inv10 = [PHIrij/\][J0i],
+			 * i = 1,...nnodi, j = 1,...nmodi */
+			Mat3x3 Inv10jTmp = Mat3x3(PHIrij)*JiNodeTmp;
+			pInv10->AddMat3x3((iMode-1)*3+1, Inv10jTmp);
+		} /*  fine ciclo scansione modi */
+	} /* fine ciclo scansione nodi */
+
+	/*
+	 * costruisce la matrice di smorzamento:
+	 * il termine diagonale i-esimo e' pari a
+	 * cii = 2*cdampi*(ki*mi)^.5
+	 */
+	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+		doublereal d = sqrt(pGenStiff->dGet(iCnt, iCnt)
+				*pGenMass->dGet(iCnt, iCnt ));
+
+		if (!iDampFlag) {
+			pGenDamp->Put(iCnt, iCnt, 2.*cdamp*d);
+		} else {
+			pGenDamp->Put(iCnt, iCnt, 2.*DampRatios.dGet(iCnt)*d);
+		}
+	}
 
 #ifdef DEBUG
-   DEBUGCOUT("Total Mass : " << dMass << std::endl);
-   DEBUGCOUT("Inertia Matrix : " << std::endl << JTmp << std::endl);
-   DEBUGCOUT("Static Moment Vector : " << STmp << std::endl);
-   DEBUGCOUT("Generalized Stiffness: " << std::endl);
+	DEBUGCOUT("Total Mass : " << dMass << std::endl);
+	DEBUGCOUT("Inertia Matrix : " << std::endl << JTmp << std::endl);
+	DEBUGCOUT("Static Moment Vector : " << STmp << std::endl);
 
+	DEBUGCOUT("Generalized Stiffness: " << std::endl);
+	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+		for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
+			std::cout << " " << pGenStiff->dGet(iCnt, jCnt);
+		}
+		std::cout << std::endl;
+	}
 
-    for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-      for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-	 std::cout << " " << pGenStiff->dGet(iCnt, jCnt);
-      }
-      std::cout << std::endl;
-   }
-   DEBUGCOUT("Generalized Mass: " << std::endl);
-   for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-      for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-	 std::cout << " " << pGenMass->dGet(iCnt,jCnt);
-      }
-      std::cout << std::endl;
-   }
-   DEBUGCOUT("Generalized Damping: " << std::endl);
-   for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-      for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-	 std::cout << " " << pGenDamp->dGet(iCnt,jCnt);
-      }
-      std::cout << std::endl;
-   }
-   DEBUGCOUT("Inv3 : " << std::endl);
-   for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-      for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-	 std::cout << " " << pInv3->dGet(iCnt,jCnt);
-      }
-      std::cout << std::endl;
-   }
-   DEBUGCOUT("Inv4 : " << std::endl);
-   for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-      for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-	 std::cout << " " << pInv4->dGet(iCnt,jCnt);
-      }
-      std::cout << std::endl;
-   }
-   for (iMode = 1; iMode <= NModes; iMode++) {
-      DEBUGCOUT("Inv5j : " << " j = " << iMode << std::endl);
-      for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	 for (jMode = 1; jMode <= NModes; jMode++) {
-	    std::cout << " " << pInv5->dGet(iCnt, (iMode-1)*NModes+jMode);
-	 }
-	 std::cout << std::endl;
-      }
-   }
-   for (iMode = 1; iMode <= NModes; iMode++) {
-      DEBUGCOUT("Inv8j : " << " j = " << iMode << std::endl);
-      for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	 for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
-	    std::cout << " " << pInv8->dGet(iCnt, (iMode-1)*3+jCnt);
-	 }
-	 std::cout << std::endl;
-      }
-   }
-   for (iMode = 1; iMode <= NModes; iMode++) {
-      for (jMode = 1; jMode <= NModes; jMode++) {
-	 DEBUGCOUT("Inv9jk : " << " j = " << iMode << " k = " << jMode << std::endl);
-	 for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	    for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
-	       std::cout << " " << pInv9->dGet(iCnt, (iMode-1)*3*NModes+(jMode-1)*3+jCnt);
-	    }
-	    std::cout << std::endl;
-	 }
-      }
-   }
+	DEBUGCOUT("Generalized Mass: " << std::endl);
+	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+		for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
+			std::cout << " " << pGenMass->dGet(iCnt,jCnt);
+		}
+		std::cout << std::endl;
+	}
+
+	DEBUGCOUT("Generalized Damping: " << std::endl);
+	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+		for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
+			std::cout << " " << pGenDamp->dGet(iCnt,jCnt);
+		}
+		std::cout << std::endl;
+	}
+
+	DEBUGCOUT("Inv3 : " << std::endl);
+	for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+		for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
+			std::cout << " " << pInv3->dGet(iCnt,jCnt);
+		}
+		std::cout << std::endl;
+	}
+
+	DEBUGCOUT("Inv4 : " << std::endl);
+	for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+		for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
+			std::cout << " " << pInv4->dGet(iCnt,jCnt);
+		}
+		std::cout << std::endl;
+	}
+	
+	for (iMode = 1; iMode <= NModes; iMode++) {
+		DEBUGCOUT("Inv5j : " << " j = " << iMode << std::endl);
+		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+			for (jMode = 1; jMode <= NModes; jMode++) {
+				std::cout << " " << pInv5->dGet(iCnt, (iMode-1)*NModes+jMode);
+			}
+			std::cout << std::endl;
+		}
+	}
+	
+	for (iMode = 1; iMode <= NModes; iMode++) {
+		DEBUGCOUT("Inv8j : " << " j = " << iMode << std::endl);
+		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+			for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
+				std::cout << " " << pInv8->dGet(iCnt, (iMode-1)*3+jCnt);
+			}
+			std::cout << std::endl;
+		}
+	}
+
+	for (iMode = 1; iMode <= NModes; iMode++) {
+		for (jMode = 1; jMode <= NModes; jMode++) {
+			DEBUGCOUT("Inv9jk : " << " j = " << iMode << " k = " << jMode << std::endl);
+			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+				for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
+					std::cout << " " << pInv9->dGet(iCnt, (iMode-1)*3*NModes+(jMode-1)*3+jCnt);
+				}
+				std::cout << std::endl;
+			}
+		}
+	}
 #endif /* DEBUG */
 
-   const char *sFileMod = HP.GetFileName();
-   flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+	const char *sFileMod = HP.GetFileName();
+	flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
-   SAFENEWWITHCONSTRUCTOR(pEl,
-			  Modal,
-			  Modal(uLabel,
+	SAFENEWWITHCONSTRUCTOR(pEl,
+			Modal,
+			Modal(uLabel,
 				pModalNode,
 				pDO,
 				NModes,
@@ -2586,10 +2801,12 @@ ReadModal(DataManager* pDM,
 				pGenStiff,
 				pGenDamp,
 				IdFemNodes,
-				IntNodes,
+				IntFEMNodes,
+				IntMBNodes,
 				pXYZFemNodes,
 				pOffsetFEMNodes,
 				pOffsetMBNodes,
+				pRotMBNodes,
 				pInterfaceNodes,
 				pPHItStrNode,
 				pPHIrStrNode,
@@ -2609,6 +2826,6 @@ ReadModal(DataManager* pDM,
 				HP,
 				fOut));
 
-  return pEl;
+	return pEl;
 }
 

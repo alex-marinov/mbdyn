@@ -62,7 +62,6 @@
  * puo' darsi che venga creata una classe apposta
  */
 
-
 class Modal : virtual public Elem, public Joint {
 protected:
 	const ModalNode* pModalNode;
@@ -76,10 +75,12 @@ protected:
 	MatNxN *pModalStiff;
 	MatNxN *pModalDamp;
 	unsigned int* IdFemNodes;
-	unsigned int* IntNodes;
+	unsigned int* IntFEMNodes;
+	unsigned int* IntMBNodes;
 	Mat3xN *pXYZFemNodes;
 	Mat3xN *pOffsetFEMNodes;   
 	Mat3xN *pOffsetMBNodes;   
+	Mat3xN *pRotMBNodes;
 	const StructNode** pInterfaceNodes;
  
 	Mat3xN *pPHIt;
@@ -141,10 +142,12 @@ public:
 			MatNxN *pGenStiff,
 			MatNxN *pGenDamp,
 			unsigned int* IdFemNodes,
-			unsigned int* IntNodes,
+			unsigned int* IntFEMNodes,
+			unsigned int* IntMBNodes,
 			Mat3xN *pN,
 			Mat3xN *pOffsetfemNodes,
 			Mat3xN *pOffsetmbNodes,
+			Mat3xN *pRotmbNodes,
 			const StructNode** pN2,
 			Mat3xN *pPHIt,
 			Mat3xN *pPHIr,
