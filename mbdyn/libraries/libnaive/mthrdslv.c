@@ -52,7 +52,7 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 	integer i, j, k, m, pvr, pvc, nr, nc, r;
 	integer *pri, *pci;
 	char *prik;
-	doublereal den, mul;
+	doublereal den, mul, mulpiv, fapvr,fari;
 	doublereal *par, *papvr;
 
 	if (!minpiv) {
@@ -63,33 +63,46 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 	}
 	for (i = 0; i < neq; i++) {
 		if (!nzr[i]) { return ENULCOL + i; }
-		m = BIGINT;	
+		nc = BIGINT;	
 		nr = nzr[i];
 		mul = 0.0;
 		pri = ri[i];
+		pvr = pri[0];
+		fapvr = 0.;
+		mulpiv = 0.;
 		for (k = 0; k < nr; k++) {
 			r = pri[k];
-			if (todo[r] && fabs(a[r][i]) > mul) {
-				mul = fabs(a[r][i]);
-				m = nzc[pvr = r];	
+			if (todo[r]) {
+				fari = fabs(a[r][i]);
+				if (fari > mul) {
+					mul = fari;
+					mulpiv = mul*minpiv;
+					if (nzc[r] <= nc  || mul > fapvr) {
+						nc = nzc[pvr = r];
+						fapvr = mul/minpiv;
+					}
+				} else if (nzc[r] < nc && fari > mulpiv) {
+					nc = nzc[pvr = r];
+				}
 			}
 		}
-		if (m == BIGINT) { return ENOPIV + i; }
-#if PIVMETH == SPRSPIV
-		mul *= minpiv;
-		for (k = 0; k < nr; k++) {
-			r = pri[k];
-			if (todo[r] && nzc[r] < m && fabs(a[r][i]) > mul) {
-				m = nzc[pvr = r];	
-			}
-		}
-#endif /* PIVMETH == SPRSPIV */
+		if (nc == BIGINT) { return ENOPIV + i; }
+		//printf("i = %d, pvr = %d\n",i,pvr);
+/*// #if PIVMETH == SPRSPIV
+// 		mul *= minpiv;
+// 		for (k = 0; k < nr; k++) {
+// 			r = pri[k];
+// 			if (todo[r] && nzc[r] < m && fabs(a[r][i]) > mul) {
+// 				m = nzc[pvr = r];	
+// 			}
+// 		}
+// #endif *//* PIVMETH == SPRSPIV */
 		piv[i] = pvr;
 		todo[pvr] = 0;
 		papvr = a[pvr];
 		den = papvr[i] = 1.0/papvr[i];
-		nr = nzr[i];
-		nc = nzc[pvr];
+		//nr = nzr[i];
+		//nc = nzc[pvr];
 		for (k = 0; k < nr; k++) {
 			if (!todo[r = pri[k]]) { continue; }
 			par = a[r];
