@@ -1349,6 +1349,21 @@ ClampJoint::~ClampJoint(void)
 }
 
 
+std::ostream&
+ClampJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	if (i >= 0) {
+		silent_cerr("DescribeDof(" << i << ") not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	out << prefix << iIndex + 1 << "->" << iIndex + 6 << ": reactions [Fx,Fy,Fz,mx,my,mz]" << std::endl;
+
+	return out;
+}
+
 /* Contributo al file di restart */
 std::ostream& ClampJoint::Restart(std::ostream& out) const
 {
