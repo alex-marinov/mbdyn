@@ -273,7 +273,7 @@ ass_res(LoadableElem* pEl,
    WorkVec.Put(1, R*p->F);
    WorkVec.Put(4, Mat3x3(e2n.Cross(e3), e3n.Cross(e1), e1n.Cross(e2))*p->M);
    
-   WorkVec.Put(7, /* R.Transpose()* */ (Xn-X));
+   WorkVec.Put(7, /* R.Transpose()*( */ Xn-X /* ) */ );
    WorkVec.Put(10, Vec3(e2n.Dot(e3), e3n.Dot(e1), e1n.Dot(e2)));
    
    return WorkVec;
