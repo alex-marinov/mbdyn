@@ -174,10 +174,8 @@ Y12Solver::Factor(void)
 		 */
 		iRow.resize(piRow->size());
 		iCol.resize(piCol->size());
-		for (unsigned i = 0; i < piRow->size(); i++) {
-			iRow[i] = (*piRow)[i];
-			iCol[i] = (*piCol)[i];
-		}
+		iRow = *piRow;
+		iCol = *piCol;
 
 		pir = &(iRow[0]);
 		pic = &(iCol[0]);
