@@ -41,9 +41,13 @@ extern "C" {
 #ifdef HAVE_SYS_TIMES_H
 #include <sys/times.h>
 #endif /* HAVE_SYS_TIMES_H */
+#ifdef HAVE_SCHED_H
+#include <sched.h>
+#endif /* HAVE_SCHED_H */
 }
 
 #include "mtdataman.h"
+#include "umfpackwrap.h"
 
 /* MultiThreadDataManager - begin */
 
@@ -64,10 +68,41 @@ MultiThreadDataManager::MultiThreadDataManager(MBDynParser& HP,
 DataManager(HP, OF, dInitialTime, sInputFileName, sOutputFileName,
 		bAbortAfterInput),
 nThreads(nt),
+CCReady(CC_NO),
 ptd(NULL),
 op(MultiThreadDataManager::UNKNOWN_OP),
 dataman_thread_count(0)
 {
+#if 0	/* no effects ... */
+	struct sched_param	sp;
+	int			policy = SCHED_FIFO;
+	int			rc;
+
+	rc = sched_getparam(0, &sp);
+	if (rc != 0) {
+		silent_cerr("sched_getparam() failed: " << errno << std::endl);
+		THROW(ErrGeneric());
+	}
+
+	int pmin = sched_get_priority_min(policy);
+	int pmax = sched_get_priority_max(policy);
+
+	silent_cout("current priority is " << sp.sched_priority
+			<< " {" << pmin << "," << pmax << "}" << std::endl);
+
+	if (sp.sched_priority > pmax || sp.sched_priority < pmin) {
+		sp.sched_priority = pmax;
+	}
+
+	rc = sched_setscheduler(0, policy, &sp);
+	if (rc != 0) {
+		silent_cerr("sched_setscheduler() unable "
+				"to set SCHED_FIFO scheduling policy: "
+				<< errno
+				<< std::endl);
+		THROW(ErrGeneric());
+	}
+#endif
 	ThreadSpawn();
 }
 
@@ -131,20 +166,15 @@ MultiThreadDataManager::dataman_thread(void *p)
 		/* select requested operation */
 		switch (arg->pDM->op) {
 		case MultiThreadDataManager::OP_ASSJAC:
+			arg->pJacHdl->Reset(0.);
 			arg->pDM->DataManager::AssJac(*(arg->pJacHdl),
 					arg->dCoef,
 					(VecIter<Elem *> *)&arg->ElemIter,
 					*arg->pWorkMat);
 			break;
 
-		case MultiThreadDataManager::OP_ASSMATS:
-			arg->pDM->DataManager::AssMats(*(arg->pMatA),
-					*(arg->pMatB),
-					(VecIter<Elem *> *)&arg->ElemIter,
-					*arg->pWorkMatA, *arg->pWorkMatB);
-			break;
-
 		case MultiThreadDataManager::OP_ASSRES:
+			arg->pResHdl->Reset(0.);
 			arg->pDM->DataManager::AssRes(*(arg->pResHdl),
 					arg->dCoef,
 					(VecIter<Elem *> *)&arg->ElemIter,
@@ -162,7 +192,8 @@ MultiThreadDataManager::dataman_thread(void *p)
 			THROW(ErrGeneric());
 		}
 
-		/* decrease counter and signal if last */
+		/* decrease counter and signal if last
+		 * (mutex + cond) */
 		arg->pDM->EndOfOp();
 	}
 
@@ -179,9 +210,11 @@ MultiThreadDataManager::dataman_thread_cleanup(PerThreadData *arg)
 	SAFEDELETE(arg->pWorkVec);
 	SAFEDELETEARR(arg->piWorkIndex);
 	SAFEDELETEARR(arg->pdWorkMat);
+	SAFEDELETE(arg->pJacHdl);
+	SAFEDELETE(arg->pResHdl);
 	sem_destroy(&arg->sem);
 
-#ifdef HAVE_SYS_TIMES_H	 
+#ifdef HAVE_SYS_TIMES_H	
 	/* Tempo di CPU impiegato */
 	struct tms tmsbuf;
 	times(&tmsbuf);
@@ -259,6 +292,12 @@ MultiThreadDataManager::ThreadSpawn(void)
 
 		if (i == 0) continue;
 
+		/* set by AssJac when in CC form */
+		ptd[i].pJacHdl = NULL;
+
+		SAFENEWWITHCONSTRUCTOR(ptd[i].pResHdl,
+				MyVectorHandler, MyVectorHandler(iTotDofs));
+
 		/* create thread */
 		if (pthread_create(&ptd[i].thread, NULL, dataman_thread,
 					&ptd[i]) != 0) {
@@ -288,55 +327,63 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
 	ASSERT(ptd != NULL);
 
+	switch (CCReady) {
+	case CC_NO:
+		if (dynamic_cast<SpMapMatrixHandler *>(&JacHdl) == NULL) {
+			THROW(ErrGeneric());
+		}
+
+		DataManager::AssJac(JacHdl, dCoef, &ElemIter, *pWorkMat);
+		CCReady = CC_FIRST;
+		// std::cerr << "CC_NO => CC_FIRST" << std::endl;
+		return;
+
+	case CC_FIRST: {
+		CColMatrixHandler *pMH = dynamic_cast<CColMatrixHandler *>(&JacHdl);
+		if (pMH == NULL) {
+			THROW(ErrGeneric());
+		}
+
+		for (unsigned i = 1; i < nThreads; i++) {
+			ptd[i].pJacHdl = pMH->Copy();
+		}
+		CCReady = CC_YES;
+		// std::cerr << "CC_FIRST => CC_YES" << std::endl;
+		break;
+	}
+
+	case CC_YES:
+		// std::cerr << "CC_YES" << std::endl;
+		break;
+
+	default:
+		THROW(ErrGeneric());
+
+	}
+
 	ResetInUse(false);
 	op = MultiThreadDataManager::OP_ASSJAC;
 	dataman_thread_count = nThreads - 1;
 
 	pthread_mutex_lock(&dataman_thread_mutex);
 
-	for (unsigned i = 0; i < nThreads; i++) {
-		ptd[i].pJacHdl = &JacHdl;
+	for (unsigned i = 1; i < nThreads; i++) {
 		ptd[i].dCoef = dCoef;
-
-		if (i == 0) continue;
 	
 		sem_post(&ptd[i].sem);
 	}
 
-	DataManager::AssJac(*ptd[0].pJacHdl, ptd[0].dCoef,
+	DataManager::AssJac(JacHdl, dCoef,
 			(VecIter<Elem *> *)&ptd[0].ElemIter,
 			*ptd[0].pWorkMat);
 
 	pthread_cond_wait(&dataman_thread_cond, &dataman_thread_mutex);
 	pthread_mutex_unlock(&dataman_thread_mutex);
-}
 
-void
-MultiThreadDataManager::AssMats(MatrixHandler& MatA, MatrixHandler& MatB)
-{
-	ASSERT(ptd != NULL);
-
-	ResetInUse(false);
-	op = MultiThreadDataManager::OP_ASSMATS;
-	dataman_thread_count = nThreads - 1;
-
-	pthread_mutex_lock(&dataman_thread_mutex);
-
-	for (unsigned i = 0; i < nThreads; i++) {
-		ptd[i].pMatA = &MatA;
-		ptd[i].pMatB = &MatB;
-	
-		if (i == 0) continue;
-	
-		sem_post(&ptd[i].sem);
+	CColMatrixHandler *pMH = dynamic_cast<CColMatrixHandler *>(&JacHdl);
+	for (unsigned t = 1; t < nThreads; t++) {
+		pMH->AddUnchecked(*ptd[t].pJacHdl);
 	}
-
-	DataManager::AssMats(*ptd[0].pMatA, *ptd[0].pMatB,
-			(VecIter<Elem *> *)&ptd[0].ElemIter,
-			*ptd[0].pWorkMatA, *ptd[0].pWorkMatB);
-
-	pthread_cond_wait(&dataman_thread_cond, &dataman_thread_mutex);
-	pthread_mutex_unlock(&dataman_thread_mutex);
 }
 
 void
@@ -350,21 +397,22 @@ MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 
 	pthread_mutex_lock(&dataman_thread_mutex);
 
-	for (unsigned i = 0; i < nThreads; i++) {
-		ptd[i].pResHdl = &ResHdl;
+	for (unsigned i = 1; i < nThreads; i++) {
 		ptd[i].dCoef = dCoef;
 	
-		if (i == 0) continue;
-
 		sem_post(&ptd[i].sem);
 	}
 
-	DataManager::AssRes(*ptd[0].pResHdl, ptd[0].dCoef,
+	DataManager::AssRes(ResHdl, dCoef,
 			(VecIter<Elem *> *)&ptd[0].ElemIter,
 			*ptd[0].pWorkVec);
 
 	pthread_cond_wait(&dataman_thread_cond, &dataman_thread_mutex);
 	pthread_mutex_unlock(&dataman_thread_mutex);
+
+	for (unsigned t = 1; t < nThreads; t++) {
+		ResHdl += *ptd[t].pResHdl;
+	}
 }
 
 clock_t

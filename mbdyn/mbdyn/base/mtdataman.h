@@ -39,6 +39,8 @@
 #include <semaphore.h>
 
 #include "dataman.h"
+#include "spmapmh.h"
+#include "ccmh.h"
 
 /* MultiThreadDataManager - begin */
 
@@ -46,6 +48,12 @@ class MultiThreadDataManager : public DataManager {
 protected:
 	/* from input file, or auto-detected */
 	unsigned int nThreads;
+
+	enum {
+		CC_NO,
+		CC_FIRST,
+		CC_YES
+	} CCReady;
 
 	/* per-thread specific data */
 	struct PerThreadData {
@@ -65,7 +73,7 @@ protected:
 		VariableSubMatrixHandler *pWorkMat;
 		MySubVectorHandler *pWorkVec;
 
-		MatrixHandler* pJacHdl;
+		CColMatrixHandler* pJacHdl;
 		VectorHandler* pResHdl;
 		MatrixHandler* pMatA;
 		MatrixHandler* pMatB;
@@ -122,9 +130,6 @@ public:
 
 	/* Assembla lo jacobiano */
 	virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef);
-
-	/* Assembla le matrici per gli autovalori */
-	virtual void AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl);
 
 	/* Assembla il residuo */
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef);
