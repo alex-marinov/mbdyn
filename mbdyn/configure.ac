@@ -703,6 +703,13 @@ if test $ol_with_umfpack != no ; then
 			if test $have_umfpack4 != no ; then
 				if test $have_umfpack4_1 != no ; then
 					AC_MSG_RESULT([(>= 4.1) yes])
+
+					dnl check for umfpack_tic_disable()
+					dnl (patch to Umfpack 4.1)
+					save_LIBS="$LIBS"
+					LIBS="$UMFPACK_LIBS $LIBS"
+					AC_CHECK_FUNCS(umfpack_tic_disable)
+					LIBS="$save_LIBS"
 				else
 					AC_MSG_RESULT([(>= 4.0) yes])
 				fi

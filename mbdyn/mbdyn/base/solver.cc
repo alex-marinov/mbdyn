@@ -456,7 +456,7 @@ void Solver::Run(void)
 	}
 #endif /* USE_MPI */
 
-	SolutionManager *pCurrSM = AllocateSolman(iNLD,iLWS);
+	SolutionManager *pCurrSM = AllocateSolman(iNLD, iLWS);
 
 	/*
 	 * This is the LOCAL solver if instantiating a parallel
@@ -3338,8 +3338,10 @@ Solver::Eig(void)
 #endif /* __HACK_EIG__ */
 
 
-SolutionManager *const Solver::AllocateSolman(integer iNLD, integer iLWS) {
-	SolutionManager *pCurrSM(NULL);
+SolutionManager *const
+Solver::AllocateSolman(integer iNLD, integer iLWS)
+{
+	SolutionManager *pCurrSM = NULL;
 
    	switch (CurrSolver) {
      	case LinSol::Y12_SOLVER: 
@@ -3387,6 +3389,12 @@ SolutionManager *const Solver::AllocateSolman(integer iNLD, integer iLWS) {
 			UmfpackSparseLUSolutionManager,
 			UmfpackSparseLUSolutionManager(iNLD, 
 				0, dPivotFactor));
+#if defined(USE_RTAI) && defined(HAVE_UMFPACK_TIC_DISABLE)
+		if (bRT) {
+			/* disable profiling, to avoid times() system call */
+			umfpack_tic_disable();
+		}
+#endif /* USE_RTAI && HAVE_UMFPACK_TIC_DISABLE */
       		break;
 #else /* !USE_UMFPACK */
       		std::cerr << "Configure with --with-umfpack "
@@ -3396,12 +3404,13 @@ SolutionManager *const Solver::AllocateSolman(integer iNLD, integer iLWS) {
 
 	case LinSol::EMPTY_SOLVER:
 		break;
-				
+		
    	default:
 		ASSERT(0);
 		THROW(ErrGeneric());
 
 	}
+
 	return pCurrSM;
 };
 
