@@ -71,7 +71,8 @@ type(AF_INET),
 auth(a),
 pFlags(NULL)
 {
-	struct sockaddr_in name;
+	struct sockaddr_in	name;
+	int			save_errno;
 	
    	ASSERT(p > 0);
    	ASSERT(auth != NULL);
@@ -79,14 +80,23 @@ pFlags(NULL)
 
    	/* Create the socket and set it up to accept connections. */
 	data.Port = p;
-   	sock = make_inet_socket(&name, NULL, data.Port, 1);
+   	sock = make_inet_socket(&name, NULL, data.Port, 1, &save_errno);
    	if (sock == -1) {
+		const char	*err_msg = strerror(save_errno);
+
       		silent_cerr("SocketDrive(" << GetLabel()
-			<< "): socket failed" << std::endl);
+			<< "): socket failed "
+			"(" << save_errno << ": "<< err_msg << ")"
+			<< std::endl);
       		throw ErrGeneric();
+
    	} else if (sock == -2) {
+		const char	*err_msg = strerror(save_errno);
+
       		silent_cerr("SocketDrive(" << GetLabel()
-			<< "): bind failed" << std::endl);
+			<< "): bind failed "
+			"(" << save_errno << ": "<< err_msg << ")"
+			<< std::endl);
       		throw ErrGeneric();
    	}
 
@@ -100,6 +110,8 @@ type(AF_LOCAL),
 auth(NULL),
 pFlags(NULL)
 {
+	int			save_errno;
+
    	ASSERT(path != NULL);
    	ASSERT(nd > 0);
 
@@ -107,14 +119,23 @@ pFlags(NULL)
 
    	/* Create the socket and set it up to accept connections. */
 	SAFESTRDUP(data.Path, path);
-   	sock = make_named_socket(data.Path, 1);
+   	sock = make_named_socket(data.Path, 1, &save_errno);
    	if (sock == -1) {
+		const char	*err_msg = strerror(save_errno);
+
       		silent_cerr("SocketDrive(" << GetLabel()
-			<< "): socket failed" << std::endl);
+			<< "): socket failed "
+			"(" << save_errno << ": "<< err_msg << ")"
+			<< std::endl);
       		throw ErrGeneric();
+
    	} else if (sock == -2) {
+		const char	*err_msg = strerror(save_errno);
+
       		silent_cerr("SocketDrive(" << GetLabel()
-			<< "): bind failed" << std::endl);
+			<< "): bind failed "
+			"(" << save_errno << ": "<< err_msg << ")"
+			<< std::endl);
       		throw ErrGeneric();
    	}
 

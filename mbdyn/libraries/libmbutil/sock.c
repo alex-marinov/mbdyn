@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 #include <malloc.h>
 #include <ctype.h>
@@ -51,13 +52,25 @@
 
 int
 make_inet_socket(struct sockaddr_in *name, const char *hostname,
-		unsigned short int port, int dobind)
+		unsigned short int port, int dobind, int *perrno)
 {
    	int			sock;
+#ifdef HAVE_SOCKLEN_T
+	socklen_t		size;
+#else /* !HAVE_SOCKLEN_T */
+	int			size;
+#endif /* !HAVE_SOCKLEN_T */
+
+	if (perrno) {
+		*perrno = 0;
+	}
 
    	/* Create the socket. */
    	sock = socket(PF_INET, SOCK_STREAM, 0);
    	if (sock < 0) {
+		if (perrno) {
+			*perrno = errno;
+		}
       		return -1;
    	}
 
@@ -69,6 +82,7 @@ make_inet_socket(struct sockaddr_in *name, const char *hostname,
 
 		hostinfo = gethostbyname(hostname);
 		if (hostinfo == NULL) {
+			*perrno = h_errno;
 			return -3;
 		}
 
@@ -77,7 +91,12 @@ make_inet_socket(struct sockaddr_in *name, const char *hostname,
 		name->sin_addr.s_addr = htonl(INADDR_ANY);
 	}
 
-	if (dobind && bind(sock, (struct sockaddr *) name, sizeof(struct sockaddr_in)) < 0) {
+	size = sizeof(struct sockaddr_in);
+	if (dobind && bind(sock, (struct sockaddr *) name, size) < 0)
+	{
+		if (perrno) {
+			*perrno = errno;
+		}
 		return -2;
    	}
 
@@ -85,15 +104,26 @@ make_inet_socket(struct sockaddr_in *name, const char *hostname,
 }
 
 int
-make_named_socket(const char *path, int dobind)
+make_named_socket(const char *path, int dobind, int *perrno)
 {
-   	int sock;
-   	struct sockaddr_un name;
-	size_t size;
+   	int			sock;
+   	struct sockaddr_un	name;
+#ifdef HAVE_SOCKLEN_T
+	socklen_t		size;
+#else /* !HAVE_SOCKLEN_T */
+	int			size;
+#endif /* !HAVE_SOCKLEN_T */
+
+	if (perrno) {
+		*perrno = 0;
+	}
 
    	/* Create the socket. */
    	sock = socket(PF_LOCAL, SOCK_STREAM, 0);
    	if (sock < 0) {
+		if (perrno) {
+			*perrno = errno;
+		}
       		return -1;
    	}
 
@@ -103,6 +133,9 @@ make_named_socket(const char *path, int dobind)
 	size = (offsetof(struct sockaddr_un, sun_path)
 			+ strlen(name.sun_path) + 1);
    	if (dobind && bind(sock, (struct sockaddr *) &name, size) < 0) {
+		if (perrno) {
+			*perrno = errno;
+		}
       		return -2;
    	}
 

@@ -37,10 +37,10 @@ extern "C" {
 
 extern int
 make_inet_socket(struct sockaddr_in *name, const char *hostname,
-		unsigned short int port, int dobind);
+		unsigned short int port, int dobind, int *perror);
 
 extern int
-make_named_socket(const char *path, int dobind);
+make_named_socket(const char *path, int dobind, int *perror);
 
 #ifdef __cplusplus
 }

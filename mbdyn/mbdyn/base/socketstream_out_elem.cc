@@ -43,6 +43,7 @@
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/un.h>
@@ -74,26 +75,46 @@ create(c), connection_flag(false)
    	ASSERT(p > 0);
 	data.Port = p;
 	if(create){
-		struct sockaddr_in addr_name;	
-   		sock = make_inet_socket(&addr_name, host, data.Port, 1);
+		struct sockaddr_in	addr_name;
+		int			save_errno;
+
+   		sock = make_inet_socket(&addr_name, host, data.Port, 1,
+				&save_errno);
 		
 		if (sock == -1) {
+			const char	*err_msg = strerror(save_errno);
+
       			silent_cerr("SocketStreamElem(" << name
-				<< "): socket() failed" << std::endl);
+				<< "): socket() failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
       			throw ErrGeneric();
+
    		} else if (sock == -2) {
+			const char	*err_msg = strerror(save_errno);
+
       			silent_cerr("SocketStreamElem(" << name
-				<< "): bind() failed" << std::endl);
+				<< "): bind() failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
       			throw ErrGeneric();
+
    		} else if (sock == -3) {
       			silent_cerr("SocketStreamElem(" << name
-				<< "): illegal host name" << std::endl);
+				<< "): illegal host name "
+				"(" << save_errno << ")"
+				<< std::endl);
       			throw ErrGeneric();
    		}
 		
    		if (listen(sock, 1) < 0) {
+			save_errno = errno;
+			const char	*err_msg = strerror(save_errno);
+
       			silent_cerr("SocketStreamElem(" << name
-				<< "): listen failed" << std::endl);
+				<< "): listen failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
       			throw ErrGeneric();
    		}
 	}
@@ -115,21 +136,37 @@ create(c), connection_flag(false)
 	SAFESTRDUP(data.Path, Path);
 	
 	if(create){
-		sock = make_named_socket(data.Path, 1);
+		int			save_errno;
+
+		sock = make_named_socket(data.Path, 1, &save_errno);
 		
 		if (sock == -1) {
+			const char	*err_msg = strerror(save_errno);
+
       			silent_cerr("SocketStreamElem(" << name
-				<< "): socket() failed" << std::endl);
+				<< "): socket() failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
       			throw ErrGeneric();
+
    		} else if (sock == -2) {
+			const char	*err_msg = strerror(save_errno);
+
       			silent_cerr("SocketStreamElem(" << name
-				<< "): bind() failed" << std::endl);
+				<< "): bind() failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
       			throw ErrGeneric();
    		}
 		
    		if (listen(sock, 1) < 0) {
+			save_errno = errno;
+			const char	*err_msg = strerror(save_errno);
+
       			silent_cerr("SocketStreamElem(" << name
-				<< "): listen failed" << std::endl);
+				<< "): listen failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
       			throw ErrGeneric();
    		}
 	}
@@ -205,12 +242,13 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 			case AF_LOCAL:
 				{
    					struct sockaddr_un client_addr;
-					socklen = sizeof(struct sockaddr_un);
 
 					pedantic_cout("accepting connection on local socket \""
 							<< name << "\" (" << data.Path << ") ..." 
 							<< std::endl);
 
+					socklen = sizeof(struct sockaddr_un);
+					client_addr.sun_path[0] = '\0';
 					sock = accept(tmp_sock,
 							(struct sockaddr *)&client_addr, &socklen);
 					if (sock == -1) {
@@ -223,6 +261,9 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 							<< std::endl);
 						throw ErrGeneric();
         				}
+					if (client_addr.sun_path[0] == '\0') {
+						strncpy(client_addr.sun_path, data.Path, sizeof(client_addr.sun_path));
+					}
       					silent_cout("SocketStreamElem(" << GetLabel()
 		  				<< "): connect from " << client_addr.sun_path
 							<< std::endl);
@@ -234,7 +275,6 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 			case AF_INET:
 				{
    					struct sockaddr_in client_addr;
-					socklen = sizeof(struct sockaddr_in);
 
 					pedantic_cout("accepting connection on inet socket \""
 							<< name << "\" (" 
@@ -242,6 +282,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 							<< ":" << ntohs(client_addr.sin_port)
 							<< ") ..." << std::endl);
 							
+					socklen = sizeof(struct sockaddr_in);
 					sock = accept(tmp_sock,
 							(struct sockaddr *)&client_addr, &socklen);
 					if (sock == -1) {

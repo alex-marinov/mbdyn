@@ -52,6 +52,7 @@
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/un.h>
@@ -79,28 +80,47 @@ type(AF_INET), sock(0), connection_flag(false)
    	ASSERT(p > 0);
 	data.Port = p;
 	
-	if(create){
-		struct sockaddr_in addr_name;
-   		sock = make_inet_socket(&addr_name, host, data.Port, 1);
+	if (create){
+		struct sockaddr_in	addr_name;
+		int			save_errno;
+
+   		sock = make_inet_socket(&addr_name, host, data.Port, 1, 
+				&save_errno);
 		
 		if (sock == -1) {
+			const char	*err_msg = strerror(save_errno);
+
       			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): socket() failed" << std::endl);
+				<< "): socket() failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
       			throw ErrGeneric();
+
    		} else if (sock == -2) {
+			const char	*err_msg = strerror(save_errno);
+
       			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): bind() failed" << std::endl);
+				<< "): bind() failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
       			throw ErrGeneric();
+
    		} else if (sock == -3) {
       			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): illegal host name \"" << host << "\""
+				<< "): illegal host name \"" << host << "\" "
+				"(" << save_errno << ")"
 				<< std::endl);
       			throw ErrGeneric();
    		}
 		
    		if (listen(sock, 1) < 0) {
+			save_errno = errno;
+			const char	*err_msg = strerror(save_errno);
+
       			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): listen() failed" << std::endl);
+				<< "): listen() failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
       			throw ErrGeneric();
    		}
 	}
@@ -121,22 +141,38 @@ host(NULL), type(AF_LOCAL), sock(0), connection_flag(false)
 
 	SAFESTRDUP(data.Path, Path);
 	
-	if(create){
-		sock = make_named_socket(data.Path, 1);
+	if (create){
+		int			save_errno;
+
+		sock = make_named_socket(data.Path, 1, &save_errno);
 		
 		if (sock == -1) {
+			const char	*err_msg = strerror(save_errno);
+
       			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): socket() failed" << std::endl);
+				<< "): socket() failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
       			throw ErrGeneric();
+
    		} else if (sock == -2) {
+			const char	*err_msg = strerror(save_errno);
+
       			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): bind() failed" << std::endl);
+				<< "): bind() failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
       			throw ErrGeneric();
    		}
 		
    		if (listen(sock, 1) < 0) {
+			save_errno = errno;
+			const char	*err_msg = strerror(save_errno);
+
       			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): listen() failed" << std::endl);
+				<< "): listen() failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
       			throw ErrGeneric();
    		}
 	}
@@ -187,7 +223,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 	
 		} else {	
 			silent_cout("SocketStreamDrive(" << sFileName << ") "
-					<< "Comunication closed by host" << std::endl);
+					<< "Communication closed by host" << std::endl);
 			// stop simulation?
 		}
 	}
@@ -196,12 +232,12 @@ SocketStreamDrive::ServePending(const doublereal& t)
 	if (!connection_flag) {
 		if (create) {
 			int tmp_sock = sock;
-			//accept
 #ifdef HAVE_SOCKLEN_T
 	   		socklen_t socklen;
 #else /* !HAVE_SOCKLEN_T */
 			int socklen;
 #endif /* !HAVE_SOCKLEN_T */
+
 			switch (type) {
 			case AF_LOCAL:
 				{
@@ -211,6 +247,8 @@ SocketStreamDrive::ServePending(const doublereal& t)
 							<< sFileName << "\" (" << data.Path << ") ..." 
 							<< std::endl);
 
+					socklen = sizeof(struct sockaddr_un);
+					client_addr.sun_path[0] = '\0';
 					sock = accept(tmp_sock,
 							(struct sockaddr *)&client_addr, &socklen);
 					if (sock == -1) {
@@ -218,6 +256,9 @@ SocketStreamDrive::ServePending(const doublereal& t)
 							"accept() failed " << std::endl);
 						throw ErrGeneric();
      					}
+					if (client_addr.sun_path[0] == '\0') {
+						strncpy(client_addr.sun_path, data.Path, sizeof(client_addr.sun_path));
+					}
 					silent_cout("SocketStreamDrive(" << GetLabel()
   							<< "): connect from " << client_addr.sun_path
 							<< std::endl);
@@ -236,6 +277,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 							<< ":" << ntohs(client_addr.sin_port)
 							<< ") ..." << std::endl);
 						
+					socklen = sizeof(struct sockaddr_in);
 					sock = accept(tmp_sock,
 							(struct sockaddr *)&client_addr, &socklen);
 					if (sock == -1) {
