@@ -102,7 +102,8 @@ private:
 	void Factor(void);
 
 public:
-	UmfpackSolver(const integer &size, const doublereal &dPivot);
+	UmfpackSolver(const integer &size, const doublereal &dPivot,
+			const unsigned& blockSize);
 	~UmfpackSolver(void);
 
 	void Init(void);
@@ -144,7 +145,8 @@ protected:
 	void BackSub(doublereal t_iniz = 0.);
    
 public:
-	UmfpackSparseSolutionManager(integer Dim, doublereal dPivot = -1.);
+	UmfpackSparseSolutionManager(integer Dim, doublereal dPivot = -1.,
+			const unsigned& blockSize = 0);
 	virtual ~UmfpackSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {
@@ -182,7 +184,8 @@ protected:
 	virtual void MakeCompressedColumnForm(void);
 	
 public:
-	UmfpackSparseCCSolutionManager(integer Dim, doublereal dPivot = -1.);
+	UmfpackSparseCCSolutionManager(integer Dim, doublereal dPivot = -1.,
+			const unsigned& blockSize = 0);
 	virtual ~UmfpackSparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */

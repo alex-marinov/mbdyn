@@ -35,9 +35,7 @@
 
 /* Integrator - begin */
 
-class LinSol
-{
-
+class LinSol {
 public:
    	enum SolverType {
 		HARWELL_SOLVER = 0,
@@ -62,8 +60,31 @@ public:
 protected:
 	SolverType CurrSolver;
 	unsigned solverFlags;
+	/*
+	 * number of threads
+	 * currently used by:
+	 * 	SparseLU
+	 */
 	unsigned nThreads;
+	/*
+	 * max workspace size
+	 * currently used by:
+	 * 	Y12
+	 */
 	integer iWorkSpaceSize;
+	/*
+	 * block size
+	 * currently used by:
+	 * 	Umfpack
+	 */
+	unsigned blockSize;
+	/*
+	 * pivot factor
+	 * currently used by:
+	 * 	SparseLU	0.0 -> 1.0
+	 * 	Y12		0.0=no, 1.0=full
+	 * 	Umfpack		0.0 -> 1.0
+	 */
    	doublereal dPivotFactor;
 
 public:

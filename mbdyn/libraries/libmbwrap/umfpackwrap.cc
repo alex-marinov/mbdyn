@@ -124,7 +124,8 @@
 
 /* UmfpackSolver - begin */
 	
-UmfpackSolver::UmfpackSolver(const integer &size, const doublereal &dPivot)
+UmfpackSolver::UmfpackSolver(const integer &size, const doublereal &dPivot,
+		const unsigned& blockSize)
 : LinearSolver(0),
 iSize(size),
 Axp(0),
@@ -143,6 +144,10 @@ Numeric(0)
 		 * default: 0.1
 		 */
 		Control[UMFPACK_PIVOT_TOLERANCE] = dPivot;
+	}
+
+	if (blockSize > 0) {
+		Control[UMFPACK_BLOCK_SIZE] = blockSize;
 	}
 }
 
@@ -304,14 +309,16 @@ UmfpackSolver::bPrepareSymbolic(void)
 /* UmfpackSparseSolutionManager - begin */
 
 UmfpackSparseSolutionManager::UmfpackSparseSolutionManager(integer Dim,
-		doublereal dPivot)
+		doublereal dPivot,
+		const unsigned& blockSize)
 : A(Dim),
 x(Dim),
 b(Dim),
 xVH(Dim, &x[0]),
 bVH(Dim, &b[0])
 {
-	SAFENEWWITHCONSTRUCTOR(pLS, UmfpackSolver, UmfpackSolver(Dim, dPivot));
+	SAFENEWWITHCONSTRUCTOR(pLS, UmfpackSolver,
+			UmfpackSolver(Dim, dPivot, blockSize));
 
 	(void)pLS->ChangeResPoint(&(b[0]));
 	(void)pLS->ChangeSolPoint(&(x[0]));
@@ -375,8 +382,9 @@ UmfpackSparseSolutionManager::pSolHdl(void) const
 
 template <class CC>
 UmfpackSparseCCSolutionManager<CC>::UmfpackSparseCCSolutionManager(integer Dim,
-		doublereal dPivot)
-: UmfpackSparseSolutionManager(Dim, dPivot),
+		doublereal dPivot,
+		const unsigned& blockSize)
+: UmfpackSparseSolutionManager(Dim, dPivot, blockSize),
 CCReady(false),
 Ac(0)
 {
@@ -409,9 +417,9 @@ UmfpackSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 	if (!CCReady) {
 		pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
 
-		ASSERT(Ac == 0);
-
-		SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(Ax, Ai, Ap));
+		if (Ac == 0) {
+			SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(Ax, Ai, Ap));
+		}
 
 		CCReady = true;
 	}
@@ -422,9 +430,6 @@ template <class CC>
 void
 UmfpackSparseCCSolutionManager<CC>::MatrInitialize(const doublereal& d)
 {
-	SAFEDELETE(Ac);
-	Ac = 0;
-
 	CCReady = false;
 
 	MatrInit();

@@ -742,9 +742,10 @@ Y12SparseCCSolutionManager<CC>::MakeIndexForm(void)
 	if (!CCReady) {
 		pLS->MakeCompactForm(MH, dMat, iRow, iCol, iColStart);
 
-		ASSERT(Ac == 0);
-
-		SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(dMat, iRow, iColStart));
+		if (Ac == 0) {
+			SAFENEWWITHCONSTRUCTOR(Ac, CC,
+					CC(dMat, iRow, iColStart));
+		}
 
 		CCReady = true;
 	}
@@ -755,9 +756,6 @@ template <class CC>
 void
 Y12SparseCCSolutionManager<CC>::MatrInitialize(const doublereal& d)
 {
-	SAFEDELETE(Ac);
-	Ac = 0;
-
 	CCReady = false;
 
 	MatrInit();

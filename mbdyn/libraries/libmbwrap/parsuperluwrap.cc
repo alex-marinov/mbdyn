@@ -614,9 +614,9 @@ SuperLUSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 	if (!CCReady) {
 		pLS->MakeCompactForm(MH, Ax, Ai, Adummy, Ap);
 
-		ASSERT(Ac == 0);
-
-		SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(Ax, Ai, Ap));
+		if (Ac == 0) {
+			SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(Ax, Ai, Ap));
+		}
 
 		CCReady = true;
 	}
@@ -627,9 +627,6 @@ template <class CC>
 void
 SuperLUSparseCCSolutionManager<CC>::MatrInitialize(const doublereal& d)
 {
-	SAFEDELETE(Ac);
-	Ac = 0;
-
 	CCReady = false;
 
 	MatrInit();

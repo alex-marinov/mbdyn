@@ -341,8 +341,27 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		}
 	}
 
-	DEBUGLCOUT(MYDEBUG_INPUT, "Workspace size: " << iWorkSpaceSize
-			<< ", pivor factor: " << dPivotFactor << std::endl);
+	if (HP.IsKeyWord("block" "size")) {
+		integer i = HP.GetInt();
+		if (i < 1) {
+			silent_cerr("illegal negative block size; "
+					"using default" << std::endl);
+			blockSize = 0;
+		} else {
+			blockSize = (unsigned)i;
+		}
+
+		switch (CurrSolver) {
+		case LinSol::UMFPACK_SOLVER:
+			break;
+
+		default:
+			pedantic_cerr("workspace size is meaningless for "
+					<< ::solver[CurrSolver].s_name
+					<< " solver" << std::endl);
+			break;
+		}
+	}
 }
 
 LinSol::SolverType
@@ -609,21 +628,22 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
 			typedef UmfpackSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, dPivotFactor));
+					CCSM(iNLD, dPivotFactor, blockSize));
 			break;
 		}
 
 		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
 			typedef UmfpackSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, dPivotFactor));
+					CCSM(iNLD, dPivotFactor, blockSize));
 			break;
 		}
 
 		default:
 			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				UmfpackSparseSolutionManager,
-				UmfpackSparseSolutionManager(iNLD, dPivotFactor));
+				UmfpackSparseSolutionManager(iNLD,
+					dPivotFactor, blockSize));
 			break;
 		}
       		break;
