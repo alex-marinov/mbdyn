@@ -1,0 +1,58 @@
+begin: data;
+	integrator: multistep;
+end: data;
+
+begin: multistep;
+	initial time: 0.;
+	final time: 1.;
+	time step: 1.e-3;
+
+	tolerance: 1.e-6;
+	max iterations: 20;
+	method: ms, .6, .6;
+
+	derivatives tolerance: 1.e-5;
+	derivatives max iterations: 20;
+	derivatives coefficient: 1.e-6;
+
+	newton raphson: modified, 4;
+
+	solver: umfpack3;
+	#output: residual, jacobian, solution;
+end: multistep;
+
+begin: control data;
+	default output: all;
+	abstract nodes: 2;
+	loadable elements: 1;
+	forces: 1;
+end: control data;
+
+begin: nodes;
+	abstract: 1, value, 0., derivative, 0.;
+	abstract: 2, value, 0., derivative, 0.;
+end: nodes;
+
+scalar function: "constfriction", const, 0.3;
+
+begin: elements;
+	loadable: 1000, 
+	"/home2/marco/mbdyn/modules/module-friction3/module-friction3.so", help,
+		1, abstract,
+		2, abstract,
+		1.,
+		friction, 
+			modlugre, 2000, 2.8,0.,0.71, "constfriction", 
+			simple
+#			simple plane hinge, 0.1
+		;
+	force: 1, abstract, 1, abstract,
+		sine, 
+		0., 
+		pi/.1, 
+		1.e0, 
+			forever, 
+			#4,
+			0.;
+end: elements;
+
