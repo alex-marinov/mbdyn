@@ -253,6 +253,10 @@ Elem* ReadJoint(DataManager* pDM,
 			  -pNode1->GetXCurr()
 			  +pNode2->GetRCurr()*f2
 			  -pNode1->GetRCurr()*f1).Norm();
+
+	  pedantic_cout("Distance(" << uLabel << "): "
+			  "length from nodes = " << l << std::endl);
+
 	  SAFENEWWITHCONSTRUCTOR(pDC, 
 				 ConstDriveCaller,
 				 ConstDriveCaller(pDM->pGetDrvHdl(), l));
@@ -297,8 +301,8 @@ Elem* ReadJoint(DataManager* pDM,
 	       NO_OP;
        } else {
 	       pedantic_cerr("Joint(" << uLabel
-			       << "): missing keyword \"podition\" at line "
-			       << HP.GetLineData());
+			       << "): missing keyword \"position\" at line "
+			       << HP.GetLineData() << std::endl);
        }
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
           f1 = HP.GetPosRel(ReferenceFrame(pNode1));
@@ -318,8 +322,8 @@ Elem* ReadJoint(DataManager* pDM,
 	       NO_OP;
        } else {
 	       pedantic_cerr("Joint(" << uLabel
-			       << "): missing keyword \"podition\" at line "
-			       << HP.GetLineData());
+			       << "): missing keyword \"position\" at line "
+			       << HP.GetLineData() << std::endl);
        }
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
           f2 = HP.GetPosRel(ReferenceFrame(pNode2));
@@ -343,6 +347,10 @@ Elem* ReadJoint(DataManager* pDM,
 			  +pNode2->GetRCurr()*f2
 			  -pNode1->GetXCurr()
 			  -pNode1->GetRCurr()*f1).Norm();
+
+	  pedantic_cout("DistanceWithOffset(" << uLabel << "): "
+			  "length from nodes = " << l << std::endl);
+
 	  SAFENEWWITHCONSTRUCTOR(pDC, 
 				 ConstDriveCaller, 
 				 ConstDriveCaller(pDM->pGetDrvHdl(), l));
@@ -379,7 +387,7 @@ Elem* ReadJoint(DataManager* pDM,
        } else {
 	       pedantic_cerr("Joint(" << uLabel
 			       << "): missing keyword \"position\" at line "
-			       << HP.GetLineData());
+			       << HP.GetLineData() << std::endl);
        }
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
           if (!HP.IsKeyWord("node")) {
@@ -883,7 +891,7 @@ Elem* ReadJoint(DataManager* pDM,
        } else {
 	       pedantic_cerr("Joint(" << uLabel
 			       << "): missing keyword \"position\" at line "
-			       << HP.GetLineData());
+			       << HP.GetLineData() << std::endl);
        }
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
           p = HP.GetPosRel(RF);
@@ -1009,6 +1017,15 @@ Elem* ReadJoint(DataManager* pDM,
 	     v += pNode2->GetRCurr()*f2-pNode1->GetRCurr()*f1;
 	  }
 	  dL = v.Norm();
+	  
+	  if (fOffset) {
+	  	pedantic_cout("RodWithOffset(" << uLabel << "): "
+				  "length from nodes = " << dL << std::endl);
+	  } else {
+	  	pedantic_cout("Rod(" << uLabel << "): "
+				  "length from nodes = " << dL << std::endl);
+	  }
+
 	  DEBUGCOUT("Initial length = " << dL << std::endl);	  
        }
        
@@ -1076,7 +1093,7 @@ Elem* ReadJoint(DataManager* pDM,
        } else {
 	       pedantic_cerr("Joint(" << uLabel
 			       << "): missing keyword \"position\" at line "
-			       << HP.GetLineData());
+			       << HP.GetLineData() << std::endl);
        }
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
           f1 = HP.GetPosRel(ReferenceFrame(pNode1));
@@ -1097,7 +1114,7 @@ Elem* ReadJoint(DataManager* pDM,
        } else {
 	       pedantic_cerr("Joint(" << uLabel
 			       << "): missing keyword \"position\" at line "
-			       << HP.GetLineData());
+			       << HP.GetLineData() << std::endl);
        }
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 	  f2 = HP.GetPosRel(ReferenceFrame(pNode2));
@@ -1113,6 +1130,10 @@ Elem* ReadJoint(DataManager* pDM,
        if (HP.IsKeyWord("from" "nodes")) {
           dL = (pNode2->GetXCurr()-pNode1->GetXCurr()
 		+pNode2->GetRCurr()*f2-pNode1->GetRCurr()*f1).Norm();
+
+	  pedantic_cout("RodWithOffset(" << uLabel << "): "
+			  "length from nodes = " << dL << std::endl);
+
        } else {
           dL = HP.GetReal();
        }
