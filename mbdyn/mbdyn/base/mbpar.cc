@@ -59,7 +59,7 @@ void
 mbdyn_license(void)
 {
 	silent_cout("license not available yet;"
-		" see GPL" << std::endl);
+		" see GPL at http://www.gnu.org/" << std::endl);
 }
 
 void
