@@ -102,6 +102,9 @@ protected:
 	pthread_mutex_t	dataman_thread_mutex;
 	pthread_cond_t	dataman_thread_cond;
 
+	/* this is used to propagate ErrMatrixRebuild ... */
+	sig_atomic_t	propagate_ErrMatrixRebuild;
+
 	void EndOfOp(void);
 
 	/* thread function */

@@ -71,7 +71,8 @@ nThreads(nt),
 CCReady(CC_NO),
 ptd(NULL),
 op(MultiThreadDataManager::UNKNOWN_OP),
-dataman_thread_count(0)
+dataman_thread_count(0),
+propagate_ErrMatrixRebuild(false)
 {
 #if 0	/* no effects ... */
 	struct sched_param	sp;
@@ -167,10 +168,19 @@ MultiThreadDataManager::dataman_thread(void *p)
 		switch (arg->pDM->op) {
 		case MultiThreadDataManager::OP_ASSJAC:
 			arg->pJacHdl->Reset(0.);
-			arg->pDM->DataManager::AssJac(*(arg->pJacHdl),
-					arg->dCoef,
-					(VecIter<Elem *> *)&arg->ElemIter,
-					*arg->pWorkMat);
+			try {
+				arg->pDM->DataManager::AssJac(*(arg->pJacHdl),
+						arg->dCoef,
+						(VecIter<Elem *> *)&arg->ElemIter,
+						*arg->pWorkMat);
+
+			} catch (MatrixHandler::ErrRebuildMatrix) {
+				mbdyn_compare_and_swap(&arg->pDM->propagate_ErrMatrixRebuild,
+						sig_atomic_t(true), sig_atomic_t(false));
+
+			} catch (...) {
+				throw;
+			}
 			break;
 
 		case MultiThreadDataManager::OP_ASSRES:
@@ -327,6 +337,8 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
 	ASSERT(ptd != NULL);
 
+	propagate_ErrMatrixRebuild = false;
+
 	switch (CCReady) {
 	case CC_NO:
 		if (dynamic_cast<SpMapMatrixHandler *>(&JacHdl) == NULL) {
@@ -335,7 +347,8 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 
 		DataManager::AssJac(JacHdl, dCoef, &ElemIter, *pWorkMat);
 		CCReady = CC_FIRST;
-		// std::cerr << "CC_NO => CC_FIRST" << std::endl;
+
+		DEBUGCERR("CC_NO => CC_FIRST" << std::endl);
 		return;
 
 	case CC_FIRST: {
@@ -348,12 +361,13 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 			ptd[i].pJacHdl = pMH->Copy();
 		}
 		CCReady = CC_YES;
-		// std::cerr << "CC_FIRST => CC_YES" << std::endl;
+
+		DEBUGCERR("CC_FIRST => CC_YES" << std::endl);
 		break;
 	}
 
 	case CC_YES:
-		// std::cerr << "CC_YES" << std::endl;
+		DEBUGCERR("CC_YES" << std::endl);
 		break;
 
 	default:
@@ -373,12 +387,25 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 		sem_post(&ptd[i].sem);
 	}
 
-	DataManager::AssJac(JacHdl, dCoef,
-			(VecIter<Elem *> *)&ptd[0].ElemIter,
-			*ptd[0].pWorkMat);
+	try {
+		DataManager::AssJac(JacHdl, dCoef,
+				(VecIter<Elem *> *)&ptd[0].ElemIter,
+				*ptd[0].pWorkMat);
+
+	} catch (MatrixHandler::ErrRebuildMatrix) {
+		mbdyn_compare_and_swap(&propagate_ErrMatrixRebuild,
+				sig_atomic_t(true), sig_atomic_t(false));
+
+	} catch (...) {
+		throw;
+	}
 
 	pthread_cond_wait(&dataman_thread_cond, &dataman_thread_mutex);
 	pthread_mutex_unlock(&dataman_thread_mutex);
+
+	if (propagate_ErrMatrixRebuild) {
+		throw MatrixHandler::ErrRebuildMatrix();
+	}
 
 	CColMatrixHandler *pMH = dynamic_cast<CColMatrixHandler *>(&JacHdl);
 	for (unsigned t = 1; t < nThreads; t++) {
