@@ -615,7 +615,7 @@ Beam2::Output_pch(ostream& out) const
 			<< setw(8) << F2.dGet(1)
 			<< setw(8) << F2.dGet(2)
 			<< setw(8) << F2.dGet(3)
-			<< enld;
+			<< endl;
 #elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED16__
 		out << endl
 			/* PBEAM */

@@ -869,6 +869,7 @@ Beam::Output_pch(ostream& out) const
 			<< setw(8) << F2.dGet(1)
 			<< setw(8) << F2.dGet(2)
 			<< setw(8) << F2.dGet(3)
+			<< endl
 
 			/* CBEAM */
 			<< "CBEAM   "
@@ -887,7 +888,7 @@ Beam::Output_pch(ostream& out) const
 			<< setw(8) << F3.dGet(1)
 			<< setw(8) << F3.dGet(2)
 			<< setw(8) << F3.dGet(3)
-			<< enld;
+			<< endl;
 #elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED16__
 		out << endl
 			/* PBEAM */
@@ -927,6 +928,7 @@ Beam::Output_pch(ostream& out) const
 			<< setw(16) << F2.dGet(1)
 			<< setw(16) << F2.dGet(2)
 			<< setw(16) << F2.dGet(3)
+			<< endl
 			
 			/* CBEAM */
 			<< "CBEAM*  "
@@ -978,6 +980,7 @@ Beam::Output_pch(ostream& out) const
 			<< ","
 #endif
 			<< " ,,", F1.Write(out, ",") << ",", F2.Write(out, ",")
+			<< endl
 			
 			/* CBEAM */
 			<< "CBEAM,"
