@@ -28,7 +28,7 @@ dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 dnl
 dnl *** Borrowed from:
 dnl
-dnl Copyright 1998-2005 The OpenLDAP Foundation,  All Rights Reserved.
+dnl Copyright 1998-2004 The OpenLDAP Foundation,  All Rights Reserved.
 dnl COPYING RESTRICTIONS APPLY, See COPYRIGHT file
 dnl
 dnl OpenLDAP Autoconf Macros
