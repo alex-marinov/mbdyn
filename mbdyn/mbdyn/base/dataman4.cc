@@ -1174,7 +1174,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": force " << uLabel
-	    << " exceedes force elements number" << std::endl;
+	    << " exceeds force elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1208,7 +1208,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": rigid body " << uLabel
-	    << " exceedes rigid body elements number" << std::endl;
+	    << " exceeds rigid body elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1241,7 +1241,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": joint " << uLabel
-	    << " exceedes joint elements number" << std::endl;
+	    << " exceeds joint elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }	  
@@ -1281,7 +1281,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": beam " << uLabel
-	    << " exceedes beam elements number" << std::endl;
+	    << " exceeds beam elements number" << std::endl;
 	 
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1328,7 +1328,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": rotor " << uLabel
-	    << " exceedes rotor elements number" << std::endl;
+	    << " exceeds rotor elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1363,7 +1363,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": aromodal " << uLabel
-	    << " exceedes aeromodal elements number" << std::endl;
+	    << " exceeds aeromodal elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1399,7 +1399,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": external element " << uLabel
-	    << " exceedes external elements number" << std::endl;
+	    << " exceeds external elements number" << std::endl;
 	 
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1449,7 +1449,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": aerodynamic element " << uLabel
-	    << " exceedes aerodynamic elements number" << std::endl;
+	    << " exceeds aerodynamic elements number" << std::endl;
 	 
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1509,7 +1509,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": genel " << uLabel
-	    << " exceedes genel elements number" << std::endl;
+	    << " exceeds genel elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }	  
@@ -1545,7 +1545,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": hydraulic element " << uLabel
-	    << " exceedes hydraulic elements number" << std::endl;
+	    << " exceeds hydraulic elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }	  
@@ -1585,7 +1585,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": electric element " << uLabel
-	    << " exceedes electric elements number" << std::endl;
+	    << " exceeds electric elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }	  
@@ -1624,7 +1624,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": bulk element " << uLabel
-	    << " exceedes bulk elements number" << std::endl;
+	    << " exceeds bulk elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }	  
@@ -1659,7 +1659,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": loadable element " << uLabel
-	    << " exceedes loadable elements number" << std::endl;
+	    << " exceeds loadable elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }	  
@@ -1694,7 +1694,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	  DEBUGCERR("");
 	  std::cerr << "line " << HP.GetLineData() 
 	    << ": RTAI output element " << uLabel
-	    << " exceedes RTAI output elements number" << std::endl;
+	    << " exceeds RTAI output elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }	  

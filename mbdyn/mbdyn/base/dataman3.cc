@@ -1464,7 +1464,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 		DEBUGCERR("");
 		std::cerr << "line " << HP.GetLineData() 
 		  << ": structural node " << uLabel 
-		  << " exceedes structural nodes number" << std::endl;
+		  << " exceeds structural nodes number" << std::endl;
 
 		THROW(DataManager::ErrGeneric());
 	     }
@@ -1593,7 +1593,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 		DEBUGCERR("");
 		std::cerr << "line " << HP.GetLineData() 
 		  << ": parameter " << uLabel
-		  << " exceedes parameters number" << std::endl;
+		  << " exceeds parameters number" << std::endl;
 
 		THROW(DataManager::ErrGeneric());
 	     }
@@ -1888,7 +1888,7 @@ void DataManager::ReadDrivers(MBDynParser& HP)
 	     DEBUGCERR("");
 	     std::cerr << "line " << HP.GetLineData() 
 	       << ": driver " << uLabel
-	       << " exceedes file drivers number" << std::endl;	     
+	       << " exceeds file drivers number" << std::endl;	     
 	     THROW(DataManager::ErrGeneric());
 	  }	  
 	  
