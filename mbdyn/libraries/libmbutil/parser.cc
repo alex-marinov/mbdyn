@@ -115,7 +115,7 @@ end_of_comment:;
 }
 
 LowParser::LowParser(HighParser& hp)
-: HP(hp), iBufSize(iDefaultBufSize), sCurrWordBuf(0)
+: HP(hp), sCurrWordBuf(0), iBufSize(iDefaultBufSize)
 {
 	SAFENEWARR(sCurrWordBuf, char, iBufSize);
 }
