@@ -1,7 +1,7 @@
 MBDyn: Multi-Body Dynamics
 see http://www.mbdyn.org
 
-Copyright: 1996-2001 Pierangelo Masarati
+Copyright: 1996-2001 Paolo Mantegazza & Pierangelo Masarati
 
 *** Wed Oct 24 15:57:20 CEST 2001 Pierangelo Masarati <masarati@aero.polimi.it>
  - big leap towards distribution: wiped out HSL stuff; packed liby12 and
