@@ -170,8 +170,11 @@ PlaneHingeJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 
 	dTheta = v.dGet(3);
 	integer iFirstReactionIndex = iGetFirstIndex();
+
+#if 0
 	std::cerr << "F: " << F << std::endl;
 	std::cerr << "M: " << M << std::endl;
+#endif
 	
 	X.Put(iFirstReactionIndex+1,F);
 	X.PutCoef(iFirstReactionIndex+4,M.dGet(1));
