@@ -34,8 +34,7 @@
  * 
  * 		http://www.openldap.org
  * 
- * implementation of the getopt function for those systems that do not
- * have a native implementation.
+ * implementation for those systems that do not have a native one.
  * The intellectual property of the OpenLDAP implementation remains 
  * with the original Authors, whose contribution is kindly appreciated.
  */
