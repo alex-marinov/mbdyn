@@ -6,6 +6,9 @@ Copyright (C) 1996-2004
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Thu Jan  8 21:31:38 CET 2004 Pierangelo Masarati <masarati@aero.polimi.it>
+ - SuperLU works
+
 *** Mon Jan  5 11:18:32 CET 2004 Pierangelo Masarati <masarati@aero.polimi.it>
  - Compact form allowed also for Y12; works in multithread mode
 
