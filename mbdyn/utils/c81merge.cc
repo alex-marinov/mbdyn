@@ -32,6 +32,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <ac/iostream>
 #include <ac/fstream>
