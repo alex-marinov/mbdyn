@@ -214,11 +214,7 @@ UmfpackSparseLUSolutionManager::Solve(void)
 #ifdef UMFPACK_REPORT
 		UMFPACKWRAP_report_symbolic ("Symbolic factorization of A",
 				Symbolic, Control) ;
-#endif /* UMFPACK_REPORT */
-
 		UMFPACKWRAP_report_info(Control, Info);
-
-#ifdef UMFPACK_REPORT
 		double t1 = umfpack_timer() - t;
 #endif /* UMFPACK_REPORT */
 
@@ -249,11 +245,7 @@ UmfpackSparseLUSolutionManager::Solve(void)
 #ifdef UMFPACK_REPORT
 		UMFPACKWRAP_report_numeric ("Numeric factorization of A",
 				Numeric, Control);
-#endif /* UMFPACK_REPORT */
-
 		UMFPACKWRAP_report_info(Control, Info);
-
-#ifdef UMFPACK_REPORT
 		t1 = umfpack_timer() - t;
 #endif /* UMFPACK_REPORT */
 
@@ -294,9 +286,8 @@ UmfpackSparseLUSolutionManager::BackSub(doublereal t_iniz)
 		THROW(ErrGeneric());
 	}
 	
-	UMFPACKWRAP_report_info(Control, Info);
-
 #ifdef UMFPACK_REPORT
+	UMFPACKWRAP_report_info(Control, Info);
 	double t1 = umfpack_timer() - t;
 #endif /* UMFPACK_REPORT */
 }
