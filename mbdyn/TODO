@@ -52,10 +52,12 @@ D. Code:
 		with pressure/temperature dependencies.
 	- add symbolic constitutive law (based on GiNaC)
 	- move exception handling towards <stdexcept>
+	- review/improve user-configurable statistics output
 
 
 
 E. Bugs/missing features:
 
 	- check for nested /* */ comments in parsers
+	- eliminate nasty dependence from f2c typedefs (doublereal and so)
 
