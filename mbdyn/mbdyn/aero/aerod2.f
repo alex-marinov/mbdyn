@@ -454,8 +454,8 @@ C
       VP2 = VCSTR(1)**2+VCSTR(2)**2
       VP = DSQRT(VP2)
 
-	print *,'CORDA=',CORDA,', ALF1=',ALF1,', ALF2=',ALF2,
-     &	', VP=',VP,', VP2=',VP2
+C	print *,'CORDA=',CORDA,', ALF1=',ALF1,', ALF2=',ALF2,
+C     &	', VP=',VP,', VP2=',VP2
       
       A = .5*CORDA*ALF1/VP
       B = .25*CORDA*CORDA*ALF2/VP2
@@ -484,24 +484,24 @@ C
       IF(SGN.GT.SGMAX) SGN = SGMAX
       IF(SGM.GT.SGMAX) SGM = SGMAX
 
-	print *,'A=',A,', B=',B,', SGN=',SGN,', PN(1:6)=',(PN(i),i=1,6)
+C	print *,'A=',A,', B=',B,', SGN=',SGN,', PN(1:6)=',(PN(i),i=1,6)
       
       DAN = A*(PN(1)+PN(5)*SGN)+B*(PN(2)+PN(6)*SGN)
 
-	print *,'1) DAN=',DAN
+C	print *,'1) DAN=',DAN
 
       DAN = DAN+DEXP(-1072.52*A2)*(A*(PN(3)+PN(7)*SGN)+
      &  A2*(PN(9)+PN(10)*SGN))
 
-	print *,'2) DAN=',DAN
+C	print *,'2) DAN=',DAN
 
       DAN = DAN+DEXP(-40316.42D0*B2)*B*(PN(4)+PN(8)*SGN)
 
-	print *,'3) DAN=',DAN
+C	print *,'3) DAN=',DAN
 
       DAN = DAN*ASN
 
-	print *,'4) DAN=',DAN
+C	print *,'4) DAN=',DAN
 
       DCN = A*(QN(1)+QN(3)*A2+SGN*(QN(7)+QN(9)*A2+QN(13)*SGN)+
      &  B2*(QN(5)+QN(11)*SGN))
@@ -525,7 +525,7 @@ C e le loro derivate vengono usati i coeff di portanza e le loro derivate
 C ecc, quindi passando DUM come segnaposto, si ottengono risultati
 C unpredictable.
 C
-	print *,'ATMP = ALFA(=',ALFA,')-DAN(',DAN,')'
+C	print *,'ATMP = ALFA(=',ALFA,')-DAN(',DAN,')'
 
       ATMP = ALFA-DAN
       CALL CPCRCM(ATMP, RMACH,
@@ -646,7 +646,7 @@ C**** CS0    = PENDENZA CURVA MOMENTO PER ALFA=0
       C2 = .22689*C1
       C5 = EMIJ/(SQT*SQT)
 
-	print *,'APHIJ: ',APHIJ
+C	print *,'APHIJ: ',APHIJ
       
 97    IF(APHIJ) 181, 182, 182
 181   APHIJ = -APHIJ

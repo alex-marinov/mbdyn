@@ -131,10 +131,11 @@ STAHRAeroData::GetForces(int i, doublereal* W, doublereal* TNG,
 	
 			__FC_DECL__(polcoe)(tt, aa, &order, coe);
 
+#if 0
 			std::cerr << "aa[0:2]= " << aa[0] << "," << aa[1] << "," << aa[2] << std::endl
 				<< "tt[0:2]= " << tt[0] << "," << tt[1] << "," << tt[2] << std::endl
 				<< "coe[0:2]=" << coe[0] << "," << coe[1] << "," << coe[2] << std::endl;
-			
+#endif
 		
 			OUTA[ALF1] = coe[1]+2.*coe[2]*tt[2];
 			OUTA[ALF2] = 2.*coe[2];
