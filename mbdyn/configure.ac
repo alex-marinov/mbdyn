@@ -369,8 +369,12 @@ if test "$ol_enable_schur" = yes ; then
 		ol_with_mpi=yes
 		;;
 	esac
-	if test "$ol_with_metis" = no -a "$ol_with_chaco" = no ; then
-		AC_MSG_WARN([No partitioning library available; Schur parallel solver will allow manual partitioning only...])
+
+	dnl add further partitioning package detection code here
+	if test "$ol_with_metis" = no \
+			-a "$ol_with_chaco" = no \
+			; then
+		AC_MSG_WARN([No partitioning library available; Schur parallel solver will only allow manual partitioning.])
 	fi
 fi
 
@@ -746,19 +750,6 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl MULTITHREAD/MPI compatibility
-dnl
-if test "$ol_with_mpi" != "no" -a "$ol_with_mpi" != "auto" ; then
-	if test "$ol_enable_multithread" = "yes" \
-			-o "$ol_enable_multithread" = "force" ; then
-		AC_MSG_ERROR([MPI and multithread cannot coexist; pick one])
-	else
-		ol_enable_multithread="no"
-	fi
-fi
-
-dnl ----------------------------------------------------------------
-dnl
 dnl Check for threads (check anyway...)
 dnl
 have_threads="no"
@@ -883,9 +874,6 @@ if test "$ol_enable_multithread" != no ; then
 		ol_link_multithread=yes
 		AC_DEFINE(USE_MULTITHREAD,1,[define to enable multithread assembly])
 		AC_MSG_RESULT([yes])
-
-		dnl MULTITHREAD/MPI compatibility
-		ol_with_mpi="no"
 	fi
 fi
 
@@ -930,23 +918,6 @@ if test "$ol_enable_multithread_naive" != no ; then
 		ol_link_multithread_naive=yes
 		AC_DEFINE(USE_NAIVE_MULTITHREAD,1,[define to enable multithread naive solver])
 		AC_MSG_RESULT([yes])
-
-		dnl MULTITHREAD/MPI compatibility
-		ol_with_mpi="no"
-	fi
-fi
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Check for threads
-dnl
-dnl MULTITHREAD/MPI compatibility
-if test "$ol_with_mpi" = "yes" ; then
-	if test "$ol_enable_multithread" = "yes" \
-			-o "$ol_enable_multithread" = "force" ; then
-		AC_MSG_ERROR([MPI and multithread cannot coexist; pick one])
-	else
-		ol_enable_multithread="no"
 	fi
 fi
 
@@ -1001,9 +972,6 @@ if test "$ol_enable_multithread" != no ; then
 		ol_link_multithread=yes
 		AC_DEFINE(USE_MULTITHREAD,1,[define to enable multithreaded solution])
 		AC_MSG_RESULT([yes])
-
-		dnl MULTITHREAD/MPI compatibility
-		ol_with_mpi="no"
 	fi
 fi
 
@@ -1650,6 +1618,8 @@ fi
 dnl ----------------------------------------------------------------
 dnl
 dnl Check for MPI & MPI++
+dnl
+dnl FIXME: needs to be reworked for MPI2
 dnl
 ol_link_mpi=no
 if test $ol_with_mpi != no ; then
