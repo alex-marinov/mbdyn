@@ -110,7 +110,7 @@ private:
 
 public:
 	/* Costruttore: si limita ad allocare la memoria */
-	SuperLUSolver(unsigned nt, integer iMatOrd, doublereal* pdTmpRhs);
+	SuperLUSolver(unsigned nt, integer iMatOrd);
 
 	/* Distruttore */
 	~SuperLUSolver(void);

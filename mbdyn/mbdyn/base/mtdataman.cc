@@ -164,7 +164,8 @@ MultiThreadDataManager::thread(void *p)
 	MultiThreadDataManager::ThreadData *arg
 		= (MultiThreadDataManager::ThreadData *)p;
 
-	silent_cout("thread " << arg->threadNumber 
+	silent_cout("MultiThreadDataManager: thread " << arg->threadNumber
+			<< "[" << pthread_self() << "," << getpid() << "]"
 			<< " starting..." << std::endl);
 	
 	bool bKeepGoing = true;

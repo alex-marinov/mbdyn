@@ -74,8 +74,7 @@ struct SuperLUSolverData {
 /* SuperLUSolver - begin */
 
 /* Costruttore: si limita ad allocare la memoria */
-SuperLUSolver::SuperLUSolver(unsigned nt, integer iMatOrd,
-		doublereal* pdTmpRhs)
+SuperLUSolver::SuperLUSolver(unsigned nt, integer iMatOrd)
 : Aip(0),
 App(0),
 Axp(0),
@@ -87,10 +86,6 @@ sld(0),
 nThreads(nt),
 thread_data(0)
 {
-	LinearSolver::pdRhs = pdTmpRhs;
-	LinearSolver::pdSol = pdTmpRhs;
-
-	ASSERT(pdTmpRhs != NULL);
 	ASSERT(iN > 0);
 
 	SAFENEW(sld, SuperLUSolverData);
@@ -103,10 +98,6 @@ thread_data(0)
 
 	pthread_mutex_init(&thread_mutex, NULL);
 	pthread_cond_init(&thread_cond, NULL);
-
-	/* Set up the dense matrix data structure for B. */
-	dCreate_Dense_Matrix(&sld->B, iN, 1, pdTmpRhs, iN, DN, _D, GE);
-
 
 	SAFENEWARR(thread_data, thread_data_t, nThreads);
 
@@ -170,6 +161,10 @@ SuperLUSolver::thread_op(void *arg)
 {
 	thread_data_t *td = (thread_data_t *)arg;
 
+	silent_cout("SuperLUSolver: thread " << td->threadNumber
+			<< "[" << pthread_self() << "," << getpid() << "]"
+			<< " starting..." << std::endl);
+
 	/* deal with signals ... */
 	sigset_t newset /* , oldset */ ;
 	sigemptyset(&newset);
@@ -217,8 +212,9 @@ SuperLUSolver::EndOfOp(void)
 	/* if last thread, signal to restart */
 	if (last) {
 		pthread_cond_signal(&thread_cond);
-		pthread_mutex_unlock(&thread_mutex);
+		// pthread_cond_broadcast(&thread_cond);
 	}
+	pthread_mutex_unlock(&thread_mutex);
 }
 
 #ifdef DEBUG
@@ -258,21 +254,17 @@ SuperLUSolver::Factor(void)
 		if (bFirstSol) {
 			ASSERT(Astore == NULL);
 
-			/* ------------------------------------------------------------
+			/* ---------------------------------------------------
 			 * Allocate storage and initialize statistics variables. 
-			 * ------------------------------------------------------------*/
+			 * ---------------------------------------------------*/
+			/* Set up the dense matrix data structure for B. */
+			dCreate_Dense_Matrix(&sld->B, iN, 1,
+					LinearSolver::pdRhs,
+					iN, DN, _D, GE);
 
 			/* Set up the sparse matrix data structure for A. */
 			dCreate_CompCol_Matrix(&sld->A, iN, iN, iNonZeroes,
 					Axp, Aip, App, NC, _D, GE);
-
-			/* ------------------------------------------------------------
-			 * Get column permutation vector perm_c[], according to permc_spec:
-			 * permc_spec = 0: use the natural ordering 
-			 * permc_spec = 1: use minimum degree ordering on structure of A'*A
-			 * permc_spec = 2: use minimum degree ordering on structure of A'+A
-			 * !!! permc_spec = 3: use approximate minimum degree column order !!!
-			 * ------------------------------------------------------------*/
 
 			StatAlloc(iN, nThreads, panel_size, relax, &sld->Gstat);
 			StatInit(iN, nThreads, &sld->Gstat);
@@ -292,10 +284,35 @@ SuperLUSolver::Factor(void)
 			Astore->rowind = Aip;
 			Astore->colptr = App;
 		}
-		
-		int	permc_spec = 0;
 
+		/* --------------------------------------------------
+		 * Get column permutation vector perm_c[], according
+		 * 	to permc_spec:
+		 * permc_spec = 0: use the natural ordering 
+		 * permc_spec = 1: use minimum degree ordering
+		 * 	on structure of A'*A
+		 * permc_spec = 2: use minimum degree ordering
+		 * 	on structure of A'+A
+		 * !!! permc_spec = 3: use approximate minimum
+		 * 	degree column order !!!
+		 * --------------------------------------------------*/
+
+		/*
+		 * According to Umfpack's use of AMD:
+		 *
+		 * symmetric matrix:
+		 *	AMD: A^T + A permutation
+		 *
+		 * Non symmetric matrix:
+		 *	COLAMD: A^T * A permutation
+		 *
+		 * so we use permc_spec = 1
+		 */
+	
+		int	permc_spec = 1;
 		get_perm_c(permc_spec, &sld->A, &sld->perm_c[0]);
+
+		bRegenerateMatrix = false;
 	}
 
 
@@ -310,23 +327,21 @@ SuperLUSolver::Factor(void)
 			work, lwork, &sld->A, &sld->AC,
 			&sld->pdgstrf_options, &sld->Gstat);
 
-	if (bRegenerateMatrix) {
-		bRegenerateMatrix = false;
 
-		/* --------------------------------------------------------------
-		 * Initializes the parallel data structures for pdgstrf_thread().
-		 * --------------------------------------------------------------*/
-		sld->pdgstrf_threadarg = pdgstrf_thread_init(&sld->AC,
-				&sld->L, &sld->U, &sld->pdgstrf_options,
-				&sld->pxgstrf_shared, &sld->Gstat, &info);
+	/* --------------------------------------------------------------
+	 * Initializes the parallel data structures for pdgstrf_thread().
+	 * --------------------------------------------------------------*/
+	sld->pdgstrf_threadarg = pdgstrf_thread_init(&sld->AC,
+			&sld->L, &sld->U, &sld->pdgstrf_options,
+			&sld->pxgstrf_shared, &sld->Gstat, &info);
 
-		if (info != 0) {
-			silent_cerr("SuperLUSolver::Factor: pdgstrf_thread_init failed" << std::endl);
-		}
+	if (info != 0) {
+		silent_cerr("SuperLUSolver::Factor: pdgstrf_thread_init failed"
+				<< std::endl);
+	}
 		
-		for (unsigned t = 0; t < nThreads; t++) {
-			thread_data[t].pdgstrf_threadarg = &sld->pdgstrf_threadarg[t];
-		}
+	for (unsigned t = 0; t < nThreads; t++) {
+		thread_data[t].pdgstrf_threadarg = &sld->pdgstrf_threadarg[t];
 	}
 
 	thread_operation = SuperLUSolver::FACTOR;
@@ -343,6 +358,12 @@ SuperLUSolver::Factor(void)
 		pthread_cond_wait(&thread_cond, &thread_mutex);
 	}
 	pthread_mutex_unlock(&thread_mutex);
+
+	/* ------------------------------------------------------------
+	 * Clean up and free storage after multithreaded factorization.
+	 * ------------------------------------------------------------*/
+	pdgstrf_thread_finalize(sld->pdgstrf_threadarg, &sld->pxgstrf_shared, 
+			&sld->A, &sld->perm_r[0], &sld->L, &sld->U);
 }
 
 /* Risolve */
@@ -364,7 +385,10 @@ SuperLUSolver::Solve(void) const
 	trans_t		trans = NOTRANS;
 	int		info = 0;
 
-	dgstrs(trans, &sld->L, &sld->U, &sld->perm_r[0], &sld->perm_c[0],
+	int		*pr = &(sld->perm_r[0]),
+			*pc = &(sld->perm_c[0]);
+
+	dgstrs(trans, &sld->L, &sld->U, pr, pc,
 			&sld->B, &sld->Gstat, &info);
 }
 
@@ -424,8 +448,10 @@ VH(iSize, &xb[0])
 
    	SAFENEWWITHCONSTRUCTOR(SolutionManager::pLS, 
 			       SuperLUSolver,
-			       SuperLUSolver(nt, iMatSize, &xb[0]));
+			       SuperLUSolver(nt, iMatSize));
    
+	pLS->ChangeResPoint(&(xb[0]));
+	pLS->ChangeSolPoint(&(xb[0]));
 	pLS->SetSolutionManager(this);
 
 #ifdef DEBUG
@@ -549,7 +575,7 @@ SuperLUSparseSolutionManager::Solve(void)
 template <class CC>
 SuperLUSparseCCSolutionManager<CC>::SuperLUSparseCCSolutionManager(integer Dim,
 		integer dummy, doublereal dPivot, unsigned nt)
-: SuperLUSparseSolutionManager(Dim, dummy, dPivot, true),
+: SuperLUSparseSolutionManager(Dim, dummy, dPivot, nt),
 CCReady(false),
 Ac(0)
 {

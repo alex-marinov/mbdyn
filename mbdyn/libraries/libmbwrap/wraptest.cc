@@ -208,6 +208,8 @@ main(int argc, char *argv[])
 
 	pM->PutCoef(1, 1, 1.);
 	pM->PutCoef(2, 2, 2.);
+	pM->PutCoef(2, 3, -1.);
+	pM->PutCoef(3, 2, -1.);
 	if (singular) {
 		pM->PutCoef(3, 3, 0.);
 
