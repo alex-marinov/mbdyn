@@ -204,9 +204,10 @@ dPivotFactor(-1.)
 {
 	DEBUGCOUTFNAME("MultiStepIntegrator::MultiStepIntegrator");
 
-	if (sInFName != NULL) {
-		SAFESTRDUP(sInputFileName, sInFName);
-	}
+	ASSERT(sInFName != NULL);
+
+	SAFESTRDUP(sInputFileName, sInFName);
+
 	if (sOutFName != NULL) {
 		SAFESTRDUP(sOutputFileName, sOutFName);
 	}
@@ -260,23 +261,27 @@ MultiStepIntegrator::Run(void)
 		MPE_Start_log();
 #endif /* MPI_PROFILING */
 
-		/* I file di output vengono stampati localmente 
+		/* 
+		 * I file di output vengono stampati localmente 
 		 * da ogni processo aggiungendo al termine 
-		 * del OutputFileName il rank del processo */
-		int iOutLen;
+		 * dell'OutputFileName il rank del processo 
+		 */
+		int iRankLength = 3;	/* should be configurable? */
 		char* sNewOutName = NULL;
-		if (sOutputFileName == NULL) {
-			iOutLen = strlen(sInputFileName);
-			SAFENEWARR(sNewOutName, char, iOutLen+4+1);
-			strcpy(sNewOutName, sInputFileName);
-		} else {
-			iOutLen = strlen(sOutputFileName);
-			SAFENEWARR(sNewOutName, char, iOutLen+4+1);
-			strcpy(sNewOutName, sOutputFileName);
-		}
-		sprintf(sNewOutName+iOutLen,".%.3d", MyRank);
+		char* sOutName = NULL;
 
-		DEBUGLCOUT(MYDEBUG_MEM, "creating ParallelDataManager" 
+		if (sOutputFileName == NULL) {
+			int iOutLen = strlen(sInputFileName);
+			SAFENEWARR(sNewOutName, char, iOutLen+1+iRankLength+1);
+			sOutName = sInputFileName;
+		} else {
+			int iOutLen = strlen(sOutputFileName);
+			SAFENEWARR(sNewOutName, char, iOutLen+1+iRankLength+1);
+			sOutName = sOutputFileName;
+		}
+		sprintf(sNewOutName,"%s.%.*d", sOutName, iRankLength, MyRank);
+
+		DEBUGLCOUT(MYDEBUG_MEM, "creating parallel DataManager" 
 				<< std::endl);
 		SAFENEWWITHCONSTRUCTOR(pSDM,
 			SchurDataManager,
@@ -285,21 +290,20 @@ MultiStepIntegrator::Run(void)
 				sInputFileName,
 				sNewOutName,
 				fAbortAfterInput));
-
 		pDM = pSDM;
 
 	} else {
 #endif /* USE_MPI */
 
-   	/* chiama il gestore dei dati generali della simulazione */
-   	DEBUGLCOUT(MYDEBUG_MEM, "creating DataManager" << std::endl);
-   	SAFENEWWITHCONSTRUCTOR(pDM,
-			       DataManager,
-			       DataManager(HP, 
-			       		   dInitialTime, 
-					   sInputFileName,
-					   sOutputFileName,
-					   fAbortAfterInput));
+		/* chiama il gestore dei dati generali della simulazione */
+		DEBUGLCOUT(MYDEBUG_MEM, "creating DataManager" << std::endl);
+		SAFENEWWITHCONSTRUCTOR(pDM,
+ 				DataManager,
+ 				DataManager(HP, 
+					dInitialTime, 
+					sInputFileName,
+					sOutputFileName,
+					fAbortAfterInput));
 #ifdef USE_MPI
 	}
 #endif /* USE_MPI */
@@ -318,7 +322,7 @@ MultiStepIntegrator::Run(void)
       		/* Fa l'output dell'assemblaggio iniziale e poi esce */
       		pDM->Output();
       		Out << "End of Initial Assembly; no simulation is required."
-		<< std::endl;
+			<< std::endl;
       		return;
    	}
 
@@ -478,19 +482,16 @@ MultiStepIntegrator::Run(void)
 		switch (CurrIntSolver) {
 		case Y12_SOLVER:
 #ifdef USE_Y12
-		{
-			Y12SparseLUSolutionManager* pIntSM = NULL;
 			SAFENEWWITHCONSTRUCTOR(pSSM,
 				SchurSolutionManager,
 				SchurSolutionManager(iNumDofs, pLocDofs,
 					iNumLocDofs,
 					pIntDofs, iNumIntDofs,
 					pLocalSM,
-					pIntSM,
+					(Y12SparseLUSolutionManager*)0,
 					iIWorkSpaceSize,
 					dIPivotFactor == -1. ? 1. : dIPivotFactor));
-					break;
-		}
+			break;
 #else /* !USE_Y12 */
 			std::cerr << "Configure with --with-y12 "
 				"to enable Y12 solver" << std::endl;
@@ -499,24 +500,27 @@ MultiStepIntegrator::Run(void)
 
 		case HARWELL_SOLVER:
 			std::cerr << "Harwell solver cannot be used "
-				"as interface solver. Switching to Meschach" 
+				"as interface solver"
+#ifdef USE_MESCHACH
+				"; switching to Meschach" 
+#endif /* USE_MESCHACH */
 				<< std::endl;
+#ifndef USE_MESCHACH
+			THROW(ErrGeneric());
+#endif /* !USE_MESCHACH */
 
 		case MESCHACH_SOLVER:
 #ifdef USE_MESCHACH
-		{
-			MeschachSparseLUSolutionManager* pIntSM = NULL;
 			SAFENEWWITHCONSTRUCTOR(pSSM,
 				SchurSolutionManager,
 				SchurSolutionManager(iNumDofs, pLocDofs,
 					iNumLocDofs,
 					pIntDofs, iNumIntDofs,
 					pLocalSM,
-					pIntSM,
+					(MeschachSparseLUSolutionManager*)0,
 					iIWorkSpaceSize,
 					dIPivotFactor == -1. ? 1. : dIPivotFactor));
 			break;
-		}
 #else /* !USE_MESCHACH */
 			std::cerr << "Configure with --with-meschach "
 				"to enable Meschach solver" << std::endl;
@@ -525,18 +529,16 @@ MultiStepIntegrator::Run(void)
 
 		case UMFPACK3_SOLVER:
 #ifdef USE_UMFPACK3
-		{
-			Umfpack3SparseLUSolutionManager* pIntSM = NULL;
 			SAFENEWWITHCONSTRUCTOR(pSSM,
 				SchurSolutionManager,
 				SchurSolutionManager(iNumDofs, pLocDofs,
 					iNumLocDofs,
 					pIntDofs, iNumIntDofs,
 					pLocalSM,
-					pIntSM,
-					0, dIPivotFactor));
+					(Umfpack3SparseLUSolutionManager*)0,
+					0, 
+					dIPivotFactor));
 			break;
-		}
 #else /* !USE_UMFPACK3 */
 			std::cerr << "Configure with --with-umfpack3 "
 				"to enable Umfpack3 solver" << std::endl;
