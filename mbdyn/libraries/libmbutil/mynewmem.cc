@@ -491,5 +491,6 @@ operator << (ostream& rout, const clMemMan& rm)
 }
 
 #endif /* DEBUG_MEMMANAGER */
+
 #endif /* DEBUG */
 
