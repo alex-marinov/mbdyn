@@ -381,90 +381,50 @@ TypedValue::Set(const Real& r)
    return *this;
 }
 
-#if _G_HAVE_BOOL 
 bool 
 TypedValue::operator && (const TypedValue& v) const
-#else /* _G_HAVE_BOOL */
-int 
-TypedValue::operator && (const TypedValue& v) const
-#endif /* _G_HAVE_BOOL */
 {
    return (GetReal() && v.GetReal());
 }
 
-#if _G_HAVE_BOOL 
 bool 
 TypedValue::operator || (const TypedValue& v) const
-#else /* _G_HAVE_BOOL */
-int 
-TypedValue::operator || (const TypedValue& v) const
-#endif /* _G_HAVE_BOOL */
 {
    return (GetReal() || v.GetReal());
 }
 
-#if _G_HAVE_BOOL 
 bool 
 TypedValue::operator > (const TypedValue& v) const
-#else /* _G_HAVE_BOOL */
-int 
-TypedValue::operator > (const TypedValue& v) const
-#endif /* _G_HAVE_BOOL */
 {
    return (GetReal() > v.GetReal());
 }
 
-#if _G_HAVE_BOOL 
 bool 
 TypedValue::operator >= (const TypedValue& v) const
-#else /* _G_HAVE_BOOL */
-int 
-TypedValue::operator >= (const TypedValue& v) const
-#endif /* _G_HAVE_BOOL */
 {
    return (GetReal() >= v.GetReal());
 }
 
-#if _G_HAVE_BOOL
 bool 
 TypedValue::operator == (const TypedValue& v) const
-#else /* _G_HAVE_BOOL */
-int 
-TypedValue::operator == (const TypedValue& v) const
-#endif /* _G_HAVE_BOOL */
 {
    return (GetReal() == v.GetReal());
 }
 
-#if _G_HAVE_BOOL 
 bool 
 TypedValue::operator <= (const TypedValue& v) const
-#else /* _G_HAVE_BOOL */
-int 
-TypedValue::operator <= (const TypedValue& v) const
-#endif /* _G_HAVE_BOOL */
 {
    return (GetReal() <= v.GetReal());
 }
 
-#if _G_HAVE_BOOL 
 bool 
 TypedValue::operator < (const TypedValue& v) const
-#else /* _G_HAVE_BOOL */
-int 
-TypedValue::operator < (const TypedValue& v) const
-#endif /* _G_HAVE_BOOL */
 {
    return (GetReal() < v.GetReal());
 }
 
-#if _G_HAVE_BOOL 
 bool 
 TypedValue::operator != (const TypedValue& v) const
-#else /* _G_HAVE_BOOL */
-int 
-TypedValue::operator != (const TypedValue& v) const
-#endif /* _G_HAVE_BOOL */
 {
    return (GetReal() != v.GetReal());
 }
@@ -556,13 +516,8 @@ TypedValue::operator /= (const TypedValue& v)
    return Set(d);
 }
 
-#if _G_HAVE_BOOL 
 bool 
 operator ! (const TypedValue& v)
-#else /* _G_HAVE_BOOL */
-int 
-operator ! (const TypedValue& v)
-#endif /* _G_HAVE_BOOL */
 {
    return (!v.GetReal());
 }

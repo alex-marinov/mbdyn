@@ -72,7 +72,6 @@ class TypedValue {
    const TypedValue& Set(const Int& i);
    const TypedValue& Set(const Real& r);
       
-#if _G_HAVE_BOOL 
    bool operator && (const TypedValue& v) const;
    bool operator || (const TypedValue& v) const;
    bool operator > (const TypedValue& v) const;
@@ -81,16 +80,6 @@ class TypedValue {
    bool operator <= (const TypedValue& v) const;
    bool operator < (const TypedValue& v) const;
    bool operator != (const TypedValue& v) const;
-#else // _G_HAVE_BOOL
-   int operator && (const TypedValue& v) const;
-   int operator || (const TypedValue& v) const;
-   int operator > (const TypedValue& v) const;
-   int operator >= (const TypedValue& v) const;
-   int operator == (const TypedValue& v) const;
-   int operator <= (const TypedValue& v) const;
-   int operator < (const TypedValue& v) const;
-   int operator != (const TypedValue& v) const;
-#endif // _G_HAVE_BOOL 
 
    TypedValue operator + (const TypedValue& v) const;
    TypedValue operator - (const TypedValue& v) const;
@@ -103,12 +92,7 @@ class TypedValue {
    const TypedValue& operator /= (const TypedValue& v);
 };
 
-#if _G_HAVE_BOOL
 extern bool operator ! (const TypedValue& v);
-#else // _G_HAVE_BOOL
-extern int operator ! (const TypedValue& v);
-#endif // _G_HAVE_BOOL
-
 extern TypedValue operator - (const TypedValue& v);
 extern TypedValue operator + (const TypedValue& v);
 extern ostream& operator << (ostream& out, const TypedValue& v);

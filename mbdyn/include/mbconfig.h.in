@@ -104,6 +104,12 @@
 /* define if typedef socklen_t is defined */
 #undef HAVE_SOCKLEN_T
 
+/* define if bool is defined */
+#undef HAVE_BOOL
+
+/* define if bool needs bool.h */
+#undef NEED_BOOL_H
+
 /* define if C++ compiler handles exceptions */
 #undef USE_EXCEPTIONS
 

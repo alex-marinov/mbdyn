@@ -40,9 +40,6 @@
 
 /* include generali */
 #include <myf2c.h>
-#if _G_HAVE_BOOL
-#include <bool.h>
-#endif
 
 /* include del programma */
 #include <solman.h>
@@ -406,16 +403,11 @@ class Vec3 {
    /**
     Operatore booleano di uguaglianza tra vettori.
     */
-#if _G_HAVE_BOOL    
-      bool operator == (const Vec3& v) const
-#else // _G_HAVE_BOOL
-      int operator == (const Vec3& v) const
-#endif // _G_HAVE_BOOL
-	{
-	   return (pdVec[V1] == v.pdVec[V1] 
-		   && pdVec[V2] == v.pdVec[V2] 
-		   && pdVec[V3] == v.pdVec[V3]);
-	};
+      bool operator == (const Vec3& v) const {
+	 return (pdVec[V1] == v.pdVec[V1] 
+		 && pdVec[V2] == v.pdVec[V2] 
+		 && pdVec[V3] == v.pdVec[V3]);
+      };
    //@}
       
    /**@name Input/Output */

@@ -78,11 +78,7 @@ class InputStream {
    inline unsigned long int GetLineNumber(void) const;
    
    /* eof */
-#if _G_HAVE_BOOL
    inline bool eof(void) const;
-#else // _G_HAVE_BOOL
-   inline int eof(void) const;
-#endif // _G_HAVE_BOOL
    
    /* Restituisce l'istream */
    inline istream& GetStream(void) const;
@@ -137,11 +133,7 @@ inline unsigned long int InputStream::GetLineNumber(void) const
 }
 
 /* eof */
-#if _G_HAVE_BOOL
 inline bool InputStream::eof(void) const
-#else // _G_HAVE_BOOL
-inline int InputStream::eof(void) const
-#endif // _G_HAVE_BOOL
 {
    return iStrm.eof();
 }

@@ -47,6 +47,14 @@ typedef sighandler_t __sighandler_t;
 #endif /* !HAVE___SIGHANDLER_T */
 #endif /* HAVE_SIGNAL_H */
 
+#ifdef HAVE_BOOL
+#ifdef NEED_BOOL_H
+#include <bool.h>
+#endif /* NEED_BOOL_H */
+#else /* !HAVE_BOOL */
+typedef char bool
+#endif /* !HAVE_BOOL */
+
 /* Global variables */
 extern int fSilent;
 

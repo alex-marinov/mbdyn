@@ -280,6 +280,34 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Check for bool
+dnl
+AC_LANG_CPLUSPLUS
+AC_MSG_CHECKING([whether bool is defined])
+AC_TRY_COMPILE([],[
+	bool b;
+],[have_bool=yes],[have_bool=no])
+if test $have_bool != no ; then
+	AC_DEFINE(HAVE_BOOL,1,[define if bool is defined])
+	AC_MSG_RESULT([yes])
+else
+	AC_MSG_RESULT([no])
+	AC_MSG_CHECKING([whether bool needs bool.h])
+	AC_TRY_COMPILE([],[
+	#include <bool.h>
+	bool b;
+	],[need_bool_h=yes],[need_bool_h=no])
+	if test $need_bool_h != no ; then
+	        AC_DEFINE(NEED_BOOL_H,1,[define if bool needs bool.h])
+		AC_MSG_RESULT([yes])
+	else
+	        AC_MSG_RESULT([no])
+	fi
+fi
+AC_LANG_C
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for exceptions
 dnl
 AC_LANG_CPLUSPLUS
