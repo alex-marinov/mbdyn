@@ -165,29 +165,29 @@ read_c81_data(std::istream& in, c81_data* data)
 	}
    	buf[40] = '\0';
 
-   	data->NAM = strtol(buf + 38, &endptr, 10);
+   	data->NMM = strtol(buf + 38, &endptr, 10);
 	if (endptr != NULL && endptr[0] != '\0') {
 		return -1;
 	}
    	buf[38] = '\0';
    
-   	data->NAM = strtol(buf + 36, &endptr, 10);
+   	data->NAD = strtol(buf + 36, &endptr, 10);
 	if (endptr != NULL && endptr[0] != '\0') {
 		return -1;
 	}
    	buf[36] = '\0';
-   	data->NAM = strtol(buf + 34, &endptr, 10);
+   	data->NMD = strtol(buf + 34, &endptr, 10);
 	if (endptr != NULL && endptr[0] != '\0') {
 		return -1;
 	}
    	buf[34] = '\0';
    
-   	data->NAM = strtol(buf + 32, &endptr, 10);
+   	data->NAL = strtol(buf + 32, &endptr, 10);
 	if (endptr != NULL && endptr[0] != '\0') {
 		return -1;
 	}
    	buf[32] = '\0';
-   	data->NAM = strtol(buf + 30, &endptr, 10);
+   	data->NML = strtol(buf + 30, &endptr, 10);
 	if (endptr != NULL && endptr[0] != '\0') {
 		return -1;
 	}
