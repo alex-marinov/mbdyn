@@ -253,6 +253,18 @@ public:
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& XCurr);   
+
+#ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual unsigned int iGetNumPrivData(void) const {
+		return Rod::iGetNumPrivData();
+	};
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return Rod::iGetPrivDataIdx(s);
+	};
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return dGetPrivData(i);
+	};
+#endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 };
 
 /* ViscoElasticRod - end */
@@ -334,6 +346,18 @@ public:
 	std::ostream& WriteAdamsDummyPartCmd(std::ostream& out,
 		unsigned int part, unsigned int firstId) const;
 #endif /* USE_ADAMS */
+
+#ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual unsigned int iGetNumPrivData(void) const {
+		return Rod::iGetNumPrivData();
+	};
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return Rod::iGetPrivDataIdx(s);
+	};
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return dGetPrivData(i);
+	};
+#endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 };
 
 /* RodWithOffset - end */
