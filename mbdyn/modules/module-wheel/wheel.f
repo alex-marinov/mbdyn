@@ -1,3 +1,8 @@
+C
+C Copyright (C)
+C
+C Prof. Vittorio Giavotto (Vedyac)	<giavotto@aero.polimi.it>
+C
 C ----------------------------------------------------------------------
 C ----------------------------------------------------------------------
 C                   14- 1-82                      SUBROUTINE WVEFR

@@ -28,6 +28,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * Copyright (C) 1985-2000 GRAALL
+ *
+ * Gian Luca Ghiringhelli        <ghiringhelli@aero.polimi.it>
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ */
+
 #ifndef DAMPER_H
 #define DAMPER_H
 
