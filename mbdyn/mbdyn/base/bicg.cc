@@ -76,7 +76,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		integer& iIterCnt,
 		doublereal& dErr
 #ifdef MBDYN_X_CONVSOL
-		, const doublereal SolTol,
+		, const doublereal& SolTol,
 		doublereal& dSolErr
 #endif /* MBDYN_X_CONVSOL  */	
 	       )
