@@ -326,6 +326,15 @@ should be performed with a very short time step, to seek accuracy, and
 with a high numerical damping, to cancel as quickly as possible the high
 frequency numerical noise.
 
+\subsubsection{Output}
+This command requests special output related to the solution phase.
+\begin{verbatim}
+    <card> ::= output : <item> [ , <item> ] ;
+    <item> ::= { iterations }
+\end{verbatim}
+Currently, only \texttt{iterations} is supported, resulting in
+detailed output of the error at each iteration inside a time step
+being written in the \texttt{.out} file.
 
 
 
