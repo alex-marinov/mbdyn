@@ -1,16 +1,49 @@
-object "TriadPositions" class array type float rank 1 shape 3 items 2 data follows
-               0               0               0
-               1               0               0
-object "TriadCosines" class array type float rank 1 shape 9 items 2 data follows
-1 0 0 0 1 0 0 0 1
-0 1 0 1 0 0 0 0 1
-attribute "dep" string "positions"
 object "TriadLabels" class array type int rank 1 shape 1 items 2 data follows
                1        
                15
 attribute "dep" string "positions"
-object "OrientedTriads" class field
-component "positions" "TriadPositions"
-component "cosines" "TriadCosines"
+object "TriadPositions0.0" class array type float rank 1 shape 3 items 2 data follows
+               0               0               0
+               1               0               0
+object "TriadCosines0.0" class array type float rank 1 shape 9 items 2 data follows
+1 0 0 0 1 0 0 0 1
+0 1 0 1 0 0 0 0 1
+attribute "dep" string "positions"
+#
+#questo e' un commento
+#
+object "OrientedTriads0.0" class field
+component "positions" "TriadPositions0.0"
+component "cosines" "TriadCosines0.0"
 component "labels" "TriadLabels"
+#
+#questo e' un commento
+#
+object "MbdynSym0.0" class group
+member "OrientedTriads" value "OrientedTriads0.0"
+#
+#questo e' un commento
+#
+object "TriadPositions0.1" class array type float rank 1 shape 3 items 2 data follows
+               0               0.2               0
+               1.1               0               0
+object "TriadCosines0.1" class array type float rank 1 shape 9 items 2 data follows
+0 1 0 1 0 0 0 0 1
+0 1 0 1 0 0 0 0 1
+attribute "dep" string "positions"
+object "OrientedTriads0.1" class field
+component "positions" "TriadPositions0.1"
+component "cosines" "TriadCosines0.1"
+component "labels" "TriadLabels"
+#
+#questo e' un commento
+#
+object "MbdynSym0.1" class group
+member "OrientedTriads" value "OrientedTriads0.1"
+#
+#questo e' un commento
+#
+object "series" class series
+	member 0 position 0.0 value "MbdynSym0.0"
+	member 1 position 0.1 value "MbdynSym0.1"
 end
