@@ -114,7 +114,7 @@ private:
 	void BackPerm();
 protected:
 	bool PermReady;
-	NaivePermMatrixHandler *Ac;
+	NaivePermMatrixHandler *Ap;
 	
 	mutable std::vector<integer> perm;
 	mutable std::vector<integer> invperm;
