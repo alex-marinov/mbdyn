@@ -1872,12 +1872,6 @@ Shape* ReadShape(MBDynParser& HP)
        } else {
 	  doublereal dm = HP.GetReal();
 	  doublereal dp = HP.GetReal();
-	  if (dm < 0 || dp) {
-	     std::cerr << "Illegal chord boundaries {" << dm << "," << dp
-	       << "} for linear shape at line " 
-	       << HP.GetLineData() << std::endl;
-	     THROW(ErrGeneric());
-	  }
           da0 = (dp+dm)/2.;
           da1 = (dp-dm)/2;
        }
@@ -1947,13 +1941,6 @@ Shape* ReadShape(MBDynParser& HP)
        doublereal dm = HP.GetReal();
        doublereal da0 = HP.GetReal();
        doublereal dp = HP.GetReal();
-       if (dm < 0. || da0 < 0. || dp < 0.) {
-	  std::cerr << "Illegal chord boundaries {" 
-	     << dm << "," << da0 << "," << dp
-	     << "} for parabolic shape at line " 
-	     << HP.GetLineData() << std::endl;
-	  THROW(ErrGeneric());
-       }
        doublereal da1 = (dp-dm)/2.;
        doublereal da2 = (dp+dm)/2.-da0;
        DEBUGLCOUT(MYDEBUG_INPUT, "Coefficients: " 
