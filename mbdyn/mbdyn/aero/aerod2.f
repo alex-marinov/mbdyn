@@ -1588,31 +1588,35 @@ C*************************          POLCOE           ********************
 
       IMPLICIT NONE
       
-      REAL*8 X(1),Y(1),COF(1),S(10)
-      REAL*8 PHI,B,FF
-      INTEGER*4 N,I,J,K
+      REAL*8 X(1),Y(1),COF(1)
+      INTEGER*4 N
+C
+      REAL*8 PHI,B,FF,S(10)
+      INTEGER*4 I,J,K
+C
+C Fixme: check for N <= 10?
       DO I=1,N
-       S(i)=0.
-       COF(i)=0.
+        S(I)=0.
+        COF(I)=0.
       ENDDO
       S(N)=-X(1)
       DO I=2,N
-       DO J=N+1-I,N-1
-        S(J)=S(J)-X(I)*S(J+1)
-       ENDDO
-       S(N)=S(N)-X(I)
+        DO J=N+1-I,N-1
+          S(J)=S(J)-X(I)*S(J+1)
+        ENDDO
+        S(N)=S(N)-X(I)
       ENDDO
       DO J=1,N
-       PHI=N
-       DO K=N-1,1,-1
-        PHI=K*S(K+1)+X(J)*PHI
-       ENDDO
-       FF=Y(J)/PHI
-       B=1.
-       DO K=N,1,-1
-        COF(K)=COF(K)+B*FF
-        B=S(K)+X(J)*B
-       ENDDO
+        PHI=N
+        DO K=N-1,1,-1
+          PHI=K*S(K+1)+X(J)*PHI
+        ENDDO
+        FF=Y(J)/PHI
+        B=1.
+        DO K=N,1,-1
+          COF(K)=COF(K)+B*FF
+          B=S(K)+X(J)*B
+        ENDDO
       ENDDO
       RETURN
       END
