@@ -150,9 +150,9 @@ RTAIOutElem::AfterConvergence(const VectorHandler& X,
 {
 	char *curbuf = buf;
 	
-	for (unsigned int i; i < NumChannels; i++) {
+	for (unsigned int i = 0; i < NumChannels; i++) {
 		/* assign value somewhere into mailbox buffer */
-		doublereal v = pNodes[i].pNode->dGetDofValue(1, pNodes[i].iOrder);
+		doublereal v = pNodes[i].dGetValue();
 
 		doublereal *dbuf = (doublereal *)curbuf;
 		dbuf[0] = v;
