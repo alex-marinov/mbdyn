@@ -83,13 +83,13 @@ static struct solver_t {
 		LinSol::LAPACK_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
 		LinSol::SOLVER_FLAGS_NONE },
-	{ "Taucs", "NULL", 
+	{ "Taucs", NULL, 
 		LinSol::TAUCS_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP },
 	{ "Naive", NULL,
 		LinSol::NAIVE_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_CC,
+		LinSol::SOLVER_FLAGS_ALLOWS_COLAMD,
 		LinSol::SOLVER_FLAGS_NONE },
 	{ "Empty", NULL,
 		LinSol::EMPTY_SOLVER,
@@ -316,6 +316,21 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 
 		} else {
 			pedantic_cerr("direct is meaningless for "
+					<< ::solver[CurrSolver].s_name
+					<< " solver" << std::endl);
+		}
+	}
+
+	/* colamd? */
+	if (HP.IsKeyWord("colamd")) {
+		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) {
+			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_COLAMD;
+			pedantic_cout("using colamd preordering for "
+					<< ::solver[CurrSolver].s_name
+					<< " solver" << std::endl);
+
+		} else {
+			pedantic_cerr("colamd preordering is meaningless for "
 					<< ::solver[CurrSolver].s_name
 					<< " solver" << std::endl);
 		}
@@ -773,7 +788,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 
 	case LinSol::NAIVE_SOLVER:
 		switch (type) {
-		case LinSol::SOLVER_FLAGS_ALLOWS_CC:
+		case LinSol::SOLVER_FLAGS_ALLOWS_COLAMD:
 			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				NaiveSparseCCSolutionManager,
 				NaiveSparseCCSolutionManager(iNLD, dPivotFactor));
