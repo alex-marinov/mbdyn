@@ -753,7 +753,7 @@ dnl Check for threads (check anyway...)
 dnl
 have_threads=no
 AC_MSG_CHECKING([for usable threads])
-if test "${ac_cv_header_pthread_h:+set}" = "set" ; then
+if test "$ac_cv_header_pthread_h" = "yes" ; then
 	save_LIBS="$LIBS"
 	have_threads="no"
 	if test "$have_threads" = no ; then
@@ -842,7 +842,7 @@ dnl
 ol_link_multithread=no
 if test "$ol_enable_multithread" != no ; then
 	AC_MSG_CHECKING([whether to enable multithread])
-	if test "${ac_cv_header_pthread_h:+set}" != "set" ; then
+	if test "$ac_cv_header_pthread_h" != "yes" ; then
 		AC_MSG_ERROR([need pthreads.h])
 	fi
 
@@ -890,7 +890,7 @@ fi
 ol_link_multithread=no
 if test "$ol_enable_multithread" != no ; then
 	AC_MSG_CHECKING([for usable threads])
-	if test "${ac_cv_header_pthread_h:+set}" != "set" ; then
+	if test "$ac_cv_header_pthread_h" != "yes" ; then
 		AC_MSG_ERROR([need pthreads.h])
 	fi
 
@@ -1235,7 +1235,7 @@ if test $ol_with_meschach != no ; then
 	
 	AC_CHECK_HEADERS(meschach/sparse2.h)
 
-	if test $ac_cv_header_meschach_sparse2_h = yes ; then
+	if test "$ac_cv_header_meschach_sparse2_h" = "yes" ; then
 
 		AC_MSG_CHECKING([for meschach library])
 		try_meschach_LIBS="-lmeschach"
@@ -1485,9 +1485,9 @@ if test $ol_with_pam != no ; then
 	dnl OL_ADD_DIRS(pam)
 	AC_CHECK_HEADERS(security/pam_appl.h pam_misc.h security/pam_misc.h)
 	
-	if test $ac_cv_header_security_pam_appl_h = yes ; then
-		if test $ac_cv_header_pam_misc_h = yes \
-			-o $ac_cv_header_security_pam_misc_h = yes ; then
+	if test "$ac_cv_header_security_pam_appl_h" = "yes" ; then
+		if test "$ac_cv_header_pam_misc_h" = "yes" \
+				-o "$ac_cv_header_security_pam_misc_h" = "yes" ; then
 			AC_CHECK_LIB(pam,pam_start,
 				[have_pam=yes],[have_pam=no],
 				[-lcrypt -lpam_misc -ldl])
@@ -1762,25 +1762,51 @@ dnl
 dnl Check for RTAI
 dnl
 if test $ol_with_rtai != no ; then
-	dnl FIXME: LOT TODO ...
+	use_rtai=no
+
+	dnl RTAI >= 3.0
 	AC_CHECK_HEADERS(rtai_lxrt.h)
 	AC_CHECK_HEADERS(rtai_netrpc.h)
-	AC_CHECK_HEADERS(rtai_lxrt_user.h)
-	AC_CHECK_HEADERS(net_rpc.h)
 
-	if test "${ac_cv_header_rtai_lxrt_h:+set}" = "set" -a \
-		"${ac_cv_header_rtai_netrpc_h:-set}" = "set" ; then
-		AC_MSG_WARN([possible RTAI version mismatch])
-	elif test "${ac_cv_header_rtai_lxrt_user_h:+set}" = "set" -a \
-		"${ac_cv_header_net_rpc_h:-set}" = "set" ; then
-		AC_MSG_WARN([possible RTAI version mismatch])
+	if test "$ac_cv_header_rtai_lxrt_h" = "yes" -a \
+			"$ac_cv_header_rtai_netrpc_h" = "yes" ; then
+		use_rtai=yes
+	else
+		dnl RTAI ~ 2.4.13
+		AC_CHECK_HEADERS(rtai_lxrt_user.h)
+		AC_CHECK_HEADERS(net_rpc.h)
+		if test "$ac_cv_header_rtai_lxrt_user_h" = "yes" -a \
+				"$ac_cv_header_net_rpc_h" = "yes" ; then
+			use_rtai=yes
+		else
+			rtai_mismatch=no
+			if test "$ac_cv_header_rtai_lxrt_h" = "yes" -a \
+					"$ac_cv_header_rtai_netrpc_h" = "no" ; then
+				rtai_mismatch=yes
+			elif test "$ac_cv_header_rtai_lxrt_user_h" = "yes" -a \
+					"$ac_cv_header_net_rpc_h" = "no" ; then
+				rtai_mismatch=yes
+			fi
+
+			if test "$rtai_mismatch" = "yes" ; then
+				AC_MSG_WARN([possible RTAI version mismatch])
+			fi
+
+		fi
 	fi
 
 	dnl FIXME: is this correct for >= 3.0 as well?
 	AC_CHECK_HEADERS(rtai_usp_posix.h)
 	AC_CHECK_HEADERS(rtai_posix.h)
-
-	AC_DEFINE(USE_RTAI,1,[define to use RTAI])
+	dnl if test "$ac_cv_header_rtai_usp_posix_h" = "no" -o \
+	dnl 		"$ac_cv_header_rtai_posix_h" = "no" ; then
+	dnl 	use_rtai=no
+	dnl fi
+	if test "$use_rtai" = "yes" ; then
+		AC_DEFINE(USE_RTAI,1,[define to use RTAI])
+	elif test "$ol_with_rtai" = "yes" ; then
+		AC_MSG_ERROR([RTAI is not available])
+	fi
 fi
 
 dnl ----------------------------------------------------------------
@@ -1860,8 +1886,8 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Checks if we can detect how many processors can be used on smp arch
 dnl
-if test "${ac_cv_func_get_nprocs:-set}" = "set" ; then
-	if test "${ac_cv_header_sys_sysinfo_h:+set}" = "set" ; then
+if test "$ac_cv_func_get_nprocs" = "no" ; then
+	if test "$ac_cv_header_sys_sysinfo_h" = "yes" ; then
 	        AC_TRY_LINK([
 #include <sys/sysinfo.h>
        		],[
