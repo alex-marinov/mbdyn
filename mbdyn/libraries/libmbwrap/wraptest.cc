@@ -349,6 +349,12 @@ usage(int err)
 	exit(err);
 }
 
+
+enum {
+	COLAMD_PREORD,
+	MMDATA_PREORD
+};
+
 int
 main(int argc, char *argv[])
 {
@@ -394,9 +400,10 @@ main(int argc, char *argv[])
 	bool output_solution(false);
 	int size = 3;
 	long long tf;
+	unsigned preord = COLAMD_PREORD;
 	
 	while (1) {
-		int opt = getopt(argc, argv, "cdf:m:oO:p:r::st:w:");
+		int opt = getopt(argc, argv, "cdf:m:oO:p:P:r::st:w:");
 
 		if (opt == EOF) {
 			break;
@@ -429,6 +436,31 @@ main(int argc, char *argv[])
 		case 'p':
 			dpivot = atof(optarg);
 			break;
+		case 'P':
+		{
+			if (strncasecmp(optarg, "colamd", sizeof("colamd") - 1) == 0) {
+				if ((strcasecmp(solver, "umfpack") != 0) && 
+					(strcasecmp(solver, "naive") != 0) &&
+					(strcasecmp(solver, "superlu") != 0)
+				) {
+					std::cerr << "colamd preordering meaningful only for umfpack"
+					", naive and superlu solvers" << std::endl;
+					exit(1);
+				}
+				preord = COLAMD_PREORD;
+			} else if (strncasecmp(optarg, "mmdata", sizeof("mmdata") - 1) == 0) {
+				if (strcasecmp(solver, "superlu") != 0) {
+					std::cerr << "mmdata preordering meaningful only for superlu solver" << std::endl;
+					exit(1);
+				}
+				preord = MMDATA_PREORD;
+			} else {
+				std::cerr << "unrecognized option \"" << optarg << "\"" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+
+			break;
+		}
 
 		case 'O':
 		{
@@ -550,20 +582,37 @@ main(int argc, char *argv[])
 
 	} else if (strcasecmp(solver, "superlu") == 0) {
 #ifdef USE_SUPERLU
+		if (dpivot == -1.) {
+			dpivot = 1.;
+		}
+		unsigned pre = SuperLUSolver::SUPERLU_COLAMD;
+		if (preord == MMDATA_PREORD) {
+			pre = SuperLUSolver::SUPERLU_MMDATA;
+			std::cerr << "Using MMDATA preordering" << std::endl;
+		} else {
+			pre = SuperLUSolver::SUPERLU_COLAMD;
+			std::cerr << "Using colamd preordering" << std::endl;
+		}
 		if (nt > 1) {
 #ifdef USE_SUPERLU_MT
 			std::cerr << "Multi-threaded SuperLU solver";
+			if (pre != SuperLUSolver::SUPERLU_COLAMD) {
+				std::cerr << std::end << 
+					"ERROR, mmdata preordering available only for scalar superlu" << 
+					std::endl;
+				exit(1);
+			}
 			if (dir) {
 				std::cerr << " with dir matrix";
 				typedef ParSuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
-				SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size));
+				SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size, dpivot));
 			} else if (cc) {
 				std::cerr << " with cc matrix";
 				typedef ParSuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
-				SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size));
+				SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size, dpivot));
 			} else {
 				SAFENEWWITHCONSTRUCTOR(pSM, ParSuperLUSparseSolutionManager,
-						ParSuperLUSparseSolutionManager(nt, size));
+						ParSuperLUSparseSolutionManager(nt, size, dpivot));
 			}
 			std::cerr << " using " << nt << " threads" << std::endl;
 #else /* !USE_SUPERLU_MT */
@@ -575,14 +624,14 @@ main(int argc, char *argv[])
 			if (dir) {
 				std::cerr << " with dir matrix";
 				typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
-				SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+				SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, dpivot, pre));
 			} else if (cc) {
 				std::cerr << " with cc matrix";
 				typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
-				SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+				SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, dpivot, pre));
 			} else {
 				SAFENEWWITHCONSTRUCTOR(pSM, SuperLUSparseSolutionManager,
-					SuperLUSparseSolutionManager(size));
+					SuperLUSparseSolutionManager(size, dpivot, pre));
 			}
 #endif /* !USE_SUPERLU_MT */
 		}
@@ -692,13 +741,16 @@ main(int argc, char *argv[])
 
 	} else if (strcasecmp(solver, "naive") == 0) {
 		std::cerr << "Naive solver";
+		if (dpivot == -1.) {
+			dpivot = 1.E-8;
+		}
 		if (cc) {
 			std::cerr << " with Colamd ordering";
 			if (nt > 1) {
 #ifdef USE_NAIVE_MULTITHREAD
 				SAFENEWWITHCONSTRUCTOR(pSM,
 					ParNaiveSparsePermSolutionManager,
-					ParNaiveSparsePermSolutionManager(nt, size, 1.E-8));
+					ParNaiveSparsePermSolutionManager(nt, size, dpivot));
 #else
 				silent_cerr("multithread naive solver support not compiled; "
 					"you can configure --enable-multithread-naive "
@@ -709,14 +761,14 @@ main(int argc, char *argv[])
 			} else {
 				SAFENEWWITHCONSTRUCTOR(pSM,
 					NaiveSparsePermSolutionManager,
-					NaiveSparsePermSolutionManager(size, 1.E-8));
+					NaiveSparsePermSolutionManager(size, dpivot));
 			}
 		} else {
 			if (nt > 1) {
 #ifdef USE_NAIVE_MULTITHREAD
 				SAFENEWWITHCONSTRUCTOR(pSM,
 					ParNaiveSparseSolutionManager,
-					ParNaiveSparseSolutionManager(nt, size, 1.E-8));
+					ParNaiveSparseSolutionManager(nt, size, dpivot));
 #else
 				silent_cerr("multithread naive solver support not compiled; "
 					"you can configure --enable-multithread-naive "
@@ -727,7 +779,7 @@ main(int argc, char *argv[])
 			} else {
 				SAFENEWWITHCONSTRUCTOR(pSM,
 					NaiveSparseSolutionManager,
-					NaiveSparseSolutionManager(size, 1.E-8));
+					NaiveSparseSolutionManager(size, dpivot));
 			}
 		}
 		std::cerr << " using " << nt << " threads " << std::endl;
