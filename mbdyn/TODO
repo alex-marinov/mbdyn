@@ -25,6 +25,7 @@ B. Package:
 
 C. Libraries:
 
+	- make the libraries installable
 
 
 
@@ -70,14 +71,15 @@ D. Code:
 	- try to rewrite hydraulic nodes as scalar differential (?)
 	- add joints like:
 		- 2-node clamp (spherical + prismatic in one joint)
-		- universal without displacement constraints
-		- inplane and inline with only one node
+		- universal without displacement constraints (done)
+		- inplane and inline between a node and the ground
 	- allow to define modules as separate entities which are later
 		referred to by labels, like c81 data or hydraulic fluids.
 		(this is no longer required, since using ltdl one can set
 		the module path and then use the file name as a label;
 		the underlying library will open modules exactly once
-		despite they're loaded many times)
+		despite they're loaded many times; however, this would
+		allow to use statically linked modules as loadable elements)
 	- link to Taucs sparse solver: http://www.tau.ac.il/~stoledo/taucs
 	- add aircraft instruments as sensors (e.g. writing measures
 		to parameter nodes; refer to
@@ -95,6 +97,8 @@ D. Code:
 			bank=atan2(e2(3),e2(2));
 		+:	turn=Omega(3);
 			slip=?
+		(partially done: the "aircraft instruments" element provides
+		measures as private data, and as output to .aer files).
 	- allow the FEM data filename as command-line arg in utils/femgen
 	- add orthogonality test when reading orientation matrix
 	- append constitutive law output, if any, to elements' output
@@ -106,7 +110,7 @@ D. Code:
 
 E. Bugs/missing features:
 
-	- check for nested /* */ comments in parsers
+	- check for nested /* */ comments in parsers (DONE)
 	- eliminate nasty dependence from f2c typedefs (doublereal and so)
 	- review deformable viscous/viscoelastic hinge according
 	  to the elastic one
@@ -123,7 +127,7 @@ E. Bugs/missing features:
 F. Documentation:
 
 	- document the utilities in a separate man page
-	- update and audit the user manual
+	- update and audit the input manual
 	- document output
-	- document element private data
+	- document element private data names
 
