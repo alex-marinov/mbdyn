@@ -124,12 +124,12 @@ RTAIInDrive::Restart(std::ostream& out) const
 Drive *
 ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 {
+#ifdef USE_RTAI
 	unsigned long node = 0;
 	const char *host = NULL;
 	const char *name = NULL;
 	bool create = false;
 
-#ifdef USE_RTAI
 	if (HP.IsKeyWord("mailbox" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == NULL) {
