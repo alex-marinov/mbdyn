@@ -77,7 +77,7 @@ PlaneHingeJoint::DescribeDof(std::ostream& out, char *prefix, int i) const
 		throw ErrGeneric();
 	}
 
-	out << prefix << iIndex + 1 << "->" << iIndex + NumSelfDof << ": reaction forces [Fx,Fy,Fz,mx,my]" << std::endl;
+	out << prefix << iIndex + 1 << "->" << iIndex + NumSelfDof << ": reactions [Fx,Fy,Fz,mx,my]" << std::endl;
 	if (fc) {
 		integer iFCDofs = fc->iGetNumDof();
 		if (iFCDofs > 0) {
