@@ -19,6 +19,7 @@ MBDyn 1.X-Engineering
 		- added support for equation description
 		- added support for namespaces in math parser
 		- added model:: namespace with basic functions
+		- added self-generating binary input for modal element
 	Backward compatibility issues:
 		- "output file name" statement in "control data"
 		  is no longer supported
