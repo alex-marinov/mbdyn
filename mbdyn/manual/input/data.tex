@@ -109,7 +109,7 @@ than \texttt{min\_iterations} are performed at a time step;
     <strategy_data> ::= change , 
                         (drive_caller) <time_step_change>
 \end{verbatim}
-the time step is change according to the time_step_change law.
+the time step is change according to the \texttt{<time\_step\_change>} law.
 
 \subsubsection{Min time step}
 \begin{verbatim}
@@ -617,6 +617,7 @@ resulting in a warning while \texttt{derivative} is required.
 The same applies to the \texttt{abstract node} 
 and to the \texttt{hydraulic node}; the latter is an algebraic
 node, so only \texttt{value} is allowed.
+}
 
 
 
