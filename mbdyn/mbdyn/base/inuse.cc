@@ -28,6 +28,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
+
+#include <stdlib.h>
+#include <ac/iostream>
+
+#ifdef USE_MULTITHREAD
+
 #include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>
@@ -174,4 +183,15 @@ main(int argc, char* argv[])
 
 	return 0;
 }
+
+#else /* ! USE_MULTITHREAD */
+
+int
+main(void)
+{
+	std::cerr << "need --enable-multithread" << std::endl;
+	exit(EXIT_FAILURE);
+}
+
+#endif /* ! USE_MULTITHREAD */
 
