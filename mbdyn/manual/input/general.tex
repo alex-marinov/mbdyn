@@ -901,8 +901,8 @@ this is defined only for scalars. The force is defined as:
 \subsubsection{Linear elastic bi-stop generic}
 \begin{verbatim}
     <specific_const_law> ::= linear elastic bistop,
-                             (derivative_of_entity) <stiffness>
-                             [ , initial state, { inactive | active } ]
+                             (derivative_of_entity) <stiffness> ,
+                             [ initial state , { inactive | active } , ]
                              (DriveCaller)<activating_condition> ,
                              (DriveCaller)<deactivating_condition>
 \end{verbatim}
@@ -1023,9 +1023,9 @@ as observed in some fluids at intermediate Reynolds number.
 \subsubsection{Linear viscoelastic bi-stop generic}
 \begin{verbatim}
     <specific_const_law> ::= linear viscoelastic bistop,
-                             (derivative_of_entity) <stiffness>
-                             (derivative_of_entity) <viscosity_coefficient>
-                             [ , initial state, { inactive | active } ]
+                             (derivative_of_entity) <stiffness> ,
+                             (derivative_of_entity) <viscosity_coefficient> ,
+                             [ initial state , { inactive | active } , ]
                              (DriveCaller)<activating_condition> ,
                              (DriveCaller)<deactivating_condition>
 \end{verbatim}
