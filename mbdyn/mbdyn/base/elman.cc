@@ -413,7 +413,7 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 	if (Iter.bGetFirst(pTmpEl)) {
 		do {
 			try {
-			ResHdl += pTmpEl->AssRes(WorkVec, dCoef,
+				ResHdl += pTmpEl->AssRes(WorkVec, dCoef,
 					*pXCurr, *pXPrimeCurr);
 			}
 			catch(Elem::ChangedEquationStructure) {
