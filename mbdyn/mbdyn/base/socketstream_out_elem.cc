@@ -361,7 +361,13 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			flags |= MSG_NOSIGNAL;
 
 		} else if (HP.IsKeyWord("non" "blocking")) {
+#ifdef MSG_DONTWAIT
 			flags |= MSG_DONTWAIT;
+#else /* !MSG_DONTWAIT */
+			silent_cerr("SocketStreamElem(" << uLabel << "): "
+				"MSG_DONTWAIT undefined; "
+				"your mileage may vary" << std::endl);
+#endif /* !MSG_DONTWAIT */
 
 		} else if (HP.IsKeyWord("no" "send" "first")) {
 			bSendFirst = false;
