@@ -1,8 +1,10 @@
 #!/bin/sh
 
+VERSIONFILE=../build/version
+
 DATE=`date "+%a %b %e, %Y"`
-if [ -r version.tex ] ; then
-	VERSION="`cat version.tex`"
+if [ -r $VERSIONFILE ] ; then
+	VERSION="`cat $VERSIONFILE`"
 	VV="-$VERSION"
 fi
 LOG="make.log"
