@@ -64,61 +64,73 @@ NonlinearSolverTest::MakeTest(Solver *pS, const integer& Size,
 {
    	DEBUGCOUTFNAME("NonlinearSolverTestNorm::MakeTest");
 
-   	doublereal dRes = 0.;
-	
-#ifdef USE_MPI
-#warning "NonlinearSolverTestNorm::MakeTest parallel broken !! "	
+   	doublereal dTest = 0.;
 
+#ifdef USE_MPI
+	/* Only residual test is parallelized; the master node
+	 * always knows the entire solution */
 	ASSERT(pS != NULL);
-	SchurSolutionManager *pSSM;
-	if (bResidual && (pSSM = dynamic_cast<SchurSolutionManager *>(pS->pGetSolutionManager())) != 0) {
+	SchurSolutionManager *pSSM = dynamic_cast<SchurSolutionManager *>(pS->pGetSolutionManager());
+	if (pSSM) {
 		SchurDataManager *pSDM = 
 			dynamic_cast<SchurDataManager *>(pS->pGetDataManager());
 		ASSERT(pSDM);
 
-		integer iNumLocDofs =
-			pSDM->HowManyDofs(SchurDataManager::MYINTERNAL);
-		integer *pLocDofs =
-			pSDM->GetDofsList(SchurDataManager::MYINTERNAL);
+		integer iNumLocDofs = pSDM->HowManyDofs(SchurDataManager::LOCAL);
+		integer *pLocDofs = pSDM->GetDofsList(SchurDataManager::LOCAL);
 
-		/* FIXME: this is wrong:
-		 * GetDofsList(SchurDataManager::TOTAL) is illegal */
-		integer *pDofs =
-			pSDM->GetDofsList(SchurDataManager::TOTAL);
+#if 0
+		silent_cout("NonlinearSolverTest::MakeTest("
+				<< MBDynComm.Get_rank() << ") "
+				"iNumLocDofs=" << iNumLocDofs << std::endl);
+#endif
+	
+		if (bResidual) {
+			/*
+			 * Chiama la routine di comunicazione per la trasmissione 
+			 * del residuo delle interfacce
+			 */
+			pSSM->StartExchIntRes();
 
-		/*
-		 * Chiama la routine di comunicazione per la trasmissione 
-		 * del residuo delle interfacce
-		 */
-		pSSM->StartExchInt();
+			/* calcola il test per i dofs locali */
+			for (int iCnt = 0; iCnt < iNumLocDofs; iCnt++) {
+				TestOne(dTest, Vec, pLocDofs[iCnt]);
+			}
 
-		/* calcola il test per i dofs locali */
-		for (int iCnt = 0; iCnt < iNumLocDofs; iCnt++) {
-			int DCount = pLocDofs[iCnt] - 1;
+			/* collect contributions from other nodes,
+			 * plus that of the interface; merge them according
+			 * to the NonlinearSolverTest type */
+			pSSM->ComplExchIntRes(dTest, this);
 
-			TestOne(dRes, Vec, pDofs[DCount]);
+		} else {
+			/*
+			 * Chiama la routine di comunicazione per la trasmissione 
+			 * del residuo delle interfacce
+			 */
+			pSSM->StartExchIntSol();
+
+			/* calcola il test per i dofs locali */
+			for (int iCnt = 0; iCnt < iNumLocDofs; iCnt++) {
+				TestOne(dTest, Vec, pLocDofs[iCnt]);
+			}
+
+			/* collect contributions from other nodes,
+			 * plus that of the interface; merge them according
+			 * to the NonlinearSolverTest type */
+			pSSM->ComplExchIntSol(dTest, this);
 		}
 
-		/* verifica completamento trasmissioni */
-		pSSM->ComplExchInt(dRes);
-#if 0
-		/* FIXME: this should be called inside ComplExchInt() ??? */
-		TestMerge(dRes, d[0]);
-#endif
-
-		/* FIXME: operazioni su altri dof */
-		
 	} else
 #endif /* USE_MPI */
 	{
 		ASSERT(Vec.iGetSize() == Size);
 
  	  	for (int iCntp1 = 1; iCntp1 <= Size; iCntp1++) {
-			TestOne(dRes, Vec, iCntp1);
+			TestOne(dTest, Vec, iCntp1);
 		}
 	}
 
-	return TestPost(dRes);
+	return TestPost(dTest);
 }
 
 doublereal
@@ -170,7 +182,7 @@ void
 NonlinearSolverTestNorm::TestOne(doublereal& dRes, 
 		const VectorHandler& Vec, const integer& iIndex) const
 {
-	doublereal d = Vec.dGetCoef(iIndex);
+	doublereal d = Vec(iIndex);
 
 	dRes += d*d;
 }
@@ -201,7 +213,7 @@ void
 NonlinearSolverTestMinMax::TestOne(doublereal& dRes,
 		const VectorHandler& Vec, const integer& iIndex) const
 {
-	doublereal d = fabs(Vec.dGetCoef(iIndex));
+	doublereal d = fabs(Vec(iIndex));
 
 	if (d > dRes) {
 		dRes = d;
@@ -255,7 +267,7 @@ void
 NonlinearSolverTestScaleNorm::TestOne(doublereal& dRes,
 		const VectorHandler& Vec, const integer& iIndex) const
 {
-	doublereal d = Vec.dGetCoef(iIndex) * pScale->dGetCoef(iIndex);
+	doublereal d = Vec(iIndex) * (*pScale)(iIndex);
 
 	dRes += d*d;
 }
@@ -281,7 +293,7 @@ void
 NonlinearSolverTestScaleMinMax::TestOne(doublereal& dRes,
 		const VectorHandler& Vec, const integer& iIndex) const
 {
-	doublereal d = fabs(Vec.dGetCoef(iIndex) * pScale->dGetCoef(iIndex));
+	doublereal d = fabs(Vec(iIndex) * (*pScale)(iIndex));
 
 	if (d > dRes) {
 		dRes = d;
@@ -309,7 +321,8 @@ NonlinearSolver::NonlinearSolver(bool JacReq)
 : Size(0),
 TotJac(0),
 honorJacRequest(JacReq),
-pResTest(0)
+pResTest(0),
+pSolTest(0)
 #ifdef USE_EXTERNAL
 , ExtStepType(External::ERROR)  
 #endif /* USE_EXTERNAL */

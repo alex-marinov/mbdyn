@@ -491,6 +491,7 @@ Solver::Run(void)
 
 		iNumLocDofs = pSDM->HowManyDofs(SchurDataManager::LOCAL);
 		pLocDofs = pSDM->GetDofsList(SchurDataManager::LOCAL);
+
 		iNumIntDofs = pSDM->HowManyDofs(SchurDataManager::INTERNAL);
 		pIntDofs = pSDM->GetDofsList(SchurDataManager::INTERNAL);
 
@@ -1335,7 +1336,7 @@ IfFirstStepIsToBeRepeated:
 	ASSERT(pRegularSteps != NULL);
 
 	/* Setup SolutionManager(s) */
-	SetupSolmans(pRegularSteps->GetIntegratorNumUnknownStates());
+	SetupSolmans(pRegularSteps->GetIntegratorNumUnknownStates(), true);
       	while (true) {
 
 		StepIntegrator::StepChange CurrStep
@@ -2486,12 +2487,18 @@ Solver::ReadData(MBDynParser& HP)
 			break;
 		}
 
-		case MODIFY_RES_TEST: {
-			bModResTest = true;
-			DEBUGLCOUT(MYDEBUG_INPUT,
+		case MODIFY_RES_TEST:
+			if (bParallel) {
+				silent_cerr("\"modify residual test\" "
+					"not supported by schur data manager "
+					"at line " << HP.GetLineData()
+					<< "; ignored" << std::endl);
+			} else {
+				bModResTest = true;
+				DEBUGLCOUT(MYDEBUG_INPUT,
 					"Modify residual test" << std::endl);
+			}
 			break;
-		}
 
 		case DERIVATIVESMAXITERATIONS: {
 			iDerivativesMaxIterations = HP.GetInt();
@@ -3946,14 +3953,14 @@ Solver::AllocateNonlinearSolver()
 }
 
 void
-Solver::SetupSolmans(integer iStates)
+Solver::SetupSolmans(integer iStates, bool bCanBeParallel)
 {
    	DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager\n\tsize = "
 		   << iNumDofs*iUnkStates <<
 		   "\n\tnumdofs = " << iNumDofs
 		   << "\n\tnumstates = " << iStates << std::endl);
 
-	/*delete previous solmans*/
+	/* delete previous solmans */
 	if (pSM != 0) {
 		SAFEDELETE(pSM);
 		pSM = 0;
@@ -3966,10 +3973,10 @@ Solver::SetupSolmans(integer iStates)
 	integer iWorkSpaceSize = CurrLinearSolver.iGetWorkSpaceSize();
 	integer iLWS = iWorkSpaceSize;
 	integer iNLD = iNumDofs*iStates;
-	if (bParallel) {
-		/*FIXME BEPPE!*/
+	if (bCanBeParallel && bParallel) {
+		/* FIXME BEPPE! */
 		iLWS = iWorkSpaceSize*iNumLocDofs/(iNumDofs*iNumDofs);
-		/*FIXME: GIUSTO QUESTO?*/
+		/* FIXME: GIUSTO QUESTO? */
 		iNLD = iNumLocDofs*iStates;
 	}
 
@@ -3979,7 +3986,7 @@ Solver::SetupSolmans(integer iStates)
 	 * This is the LOCAL solver if instantiating a parallel
 	 * integrator; otherwise it is the MAIN solver
 	 */
-	if (bParallel) {
+	if (bCanBeParallel && bParallel) {
 		pLocalSM = pCurrSM;
 
 		/* Crea il solutore di Schur globale */

@@ -148,7 +148,7 @@ public:
 	void BeforePredict(VectorHandler& X, VectorHandler& XP, 
 			VectorHandler& XPrev, VectorHandler& XPPrev) const;
 	void AfterPredict(void) const;
-	void Update(void)const;
+	void Update(void) const;
 	void AfterConvergence(void) const;
 
 	/* stampa i risultati */

@@ -292,7 +292,7 @@ main(int argc, char* argv[])
 
 #ifdef USE_MPI
 	int	WorldSize = 1;
-	int	myrank = 0;
+	int	MyRank = 0;
 	char	ProcessorName_[1024] = "localhost",
 		*ProcessorName = ProcessorName_;
 	int	parallel_fSilent = 0,
@@ -315,9 +315,9 @@ main(int argc, char* argv[])
 	if (using_mpi) {
 		MPI::Init(argc, argv);	   
 		WorldSize = MPI::COMM_WORLD.Get_size();
-		myrank = MPI::COMM_WORLD.Get_rank();
+		MyRank = MPI::COMM_WORLD.Get_rank();
 
-		if (myrank > 0) {
+		if (MyRank > 0) {
 			/*
 			 * need a second take because MPI::Init()
 			 * restores the inital args, so if Get_rank() > 0
@@ -565,7 +565,7 @@ main(int argc, char* argv[])
 							s = &next[1];
 						}
 
-						if (using_mpi && r != myrank) {
+						if (using_mpi && r != MyRank) {
 							break;
 						}
 #else /* ! USE_MPI */
@@ -646,8 +646,8 @@ main(int argc, char* argv[])
 		mbdyn_welcome();
 #ifdef USE_MPI
 		if (using_mpi) {
-        		silent_cerr("Process " << myrank 
-	    			<< " (" << myrank+1 << " of " << WorldSize
+        		silent_cerr("Process " << MyRank 
+	    			<< " (" << MyRank + 1 << " of " << WorldSize
             			<< ") is alive on " << ProcessorName
 				<< std::endl);
 		}
@@ -656,7 +656,7 @@ main(int argc, char* argv[])
       		/* Mostra la tabella dei simboli ed esce */
         	if (fShowSymbolTable > 0) {
 #ifdef USE_MPI
-	    		if (myrank == 0) {
+	    		if (MyRank == 0) {
 #endif /* USE_MPI */
 	        		Table t(31, 1);
 				MathParser mp(t);
@@ -868,7 +868,9 @@ main(int argc, char* argv[])
 			}
 #ifdef USE_MPI
 			if (using_mpi) {
-	    			silent_cout(" on " << ProcessorName);
+	    			silent_cout(" on " << ProcessorName
+					<< " (" << MyRank + 1 
+					<< " of " << WorldSize << ")");
 			}
 #endif /* USE_MPI */
 	    		silent_cout(std::endl);

@@ -683,7 +683,7 @@ SchurDataManager::CreatePartition(void)
 	
 	/* Costruisco e inizializzo le due strutture */
 	SAFENEWARR(Vertices.pXadj, int, iTotVertices + 1);
-	SAFENEWARR(pVertexWgts, int, iTotVertices * 2);
+	SAFENEWARR(pVertexWgts, int, iTotVertices*2);
 	SAFENEWARR(pCommWgts, int, iTotVertices);
 	memset(Vertices.pXadj, 0, (iTotVertices + 1)*sizeof(int));
 	memset(pVertexWgts, 0, iTotVertices*2*sizeof(int));
@@ -967,7 +967,7 @@ SchurDataManager::CreatePartition(void)
 			bIsNInterf = true;
 
 			if (pParAmgProcs[i] == MyRank) {
-				/* se uno dei nodi è connesso ad un elemento non appartenente
+				/* se uno dei nodi e' connesso ad un elemento non appartenente
 				 * a questo processo e' un nodo di interfaccia */
 				for (int j = Vertices.pXadj[i]; j < Vertices.pXadj[i+1]; j++) {
 					TmpPrc = pParAmgProcs[Vertices.pAdjncy[j]];
@@ -1022,7 +1022,10 @@ SchurDataManager::CreatePartition(void)
 	const int DIM_TAG = 10;
 
 	for (int i = 0; i < DataCommSize; i++) {
-		if (i != MyRank) {
+#if 0
+		if (i != MyRank)
+#endif
+		{
 			pRReq[i] = DataComm.Irecv(InterfNodes.pAdjncy + iMaxInterfNodes + i*iMaxInterfNodes*2,
 					iMaxInterfNodes, MPI::INT, i, DIM_TAG);
 			pSReq[i] = DataComm.Isend(InterfNodes.pAdjncy + i*iMaxInterfNodes*2,
@@ -1111,7 +1114,9 @@ SchurDataManager::CreatePartition(void)
 				}
 			}
 			pRotorComm[i] = MBDynComm.Split(color, key);
-			/* RotorComm[i] = MPI::COMM_WORLD.Split(color, key); */
+#if 0
+			RotorComm[i] = MPI::COMM_WORLD.Split(color, key);
+#endif
 			Rotor *r = (Rotor *)ppElems[pRotPos[i]]->pGet();
 			r->InitializeRotorComm(pRotorComm + i);
 		}
@@ -1140,14 +1145,20 @@ SchurDataManager::CreatePartition(void)
 	MyElemIter.Init(ppMyElems, iNumLocElems);
 
 	/* Verifico la ricezione dei nodi di interfaccia */
-	bool bRecvFlag, bSentFlag;
+	bool bRecvFlag = false, bSentFlag = false;
 	while (true) {
-		bRecvFlag = MPI::Request::Testall(DataCommSize, pRReq);
-		bSentFlag = MPI::Request::Testall(DataCommSize, pSReq);
+		if (!bRecvFlag) {
+			bRecvFlag = MPI::Request::Testall(DataCommSize, pRReq);
+		}
+
+		if (!bSentFlag) {
+			bSentFlag = MPI::Request::Testall(DataCommSize, pSReq);
+		}
 		
 		if (bRecvFlag && bSentFlag) {
 			break;
 		}
+
 		MYSLEEP(1000);
 	}
 
@@ -1542,9 +1553,20 @@ SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef) throw(ChangedE
 
 	try {
 		DataManager::AssRes(ResHdl, dCoef, MyElemIter, *pWorkVec);
+
 	} catch (ChangedEquationStructure) {
-		silent_cerr("Jacobian reassembly requested by an element. "
-				"Currently unsopported with MPI" << std::endl);
+		Elem *pEl = NULL;
+
+		silent_cerr("Jacobian reassembly requested by ");
+		if (MyElemIter.bGetCurr(pEl) == true) {
+			silent_cerr(psElemNames[pEl->GetElemType()]
+				<< "(" << pEl->GetLabel() << ")");
+
+		} else {
+			silent_cerr("an element");
+		}
+		silent_cerr("; currently unsupported by Schur data manager." << std::endl);
+
 		throw ErrGeneric();
 	}
 }

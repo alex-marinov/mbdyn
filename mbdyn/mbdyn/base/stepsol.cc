@@ -186,7 +186,7 @@ ImplicitStepIntegrator::TestScale(const NonlinearSolverTest *pTest) const
 {
 	if (bModResTest) {
 #ifdef USE_MPI
-#warning "ImplicitStepIntegrator::TestScale() parallel broken !! "	
+#warning "ImplicitStepIntegrator::TestScale() not available with Schur solution"
 #endif /* USE_MPI */
 
 		Dof CurrDof;
