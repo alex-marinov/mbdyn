@@ -194,7 +194,7 @@ MultiThreadDataManager::thread(void *p)
 		/* select requested operation */
 		switch (arg->pDM->op) {
 		case MultiThreadDataManager::OP_ASSJAC:
-			arg->pJacHdl->Reset(0.);
+			arg->pJacHdl->Reset();
 			try {
 				arg->pDM->DataManager::AssJac(*(arg->pJacHdl),
 						arg->dCoef,
@@ -215,7 +215,7 @@ MultiThreadDataManager::thread(void *p)
 			break;
 
 		case MultiThreadDataManager::OP_ASSRES:
-			arg->pResHdl->Reset(0.);
+			arg->pResHdl->Reset();
 			arg->pDM->DataManager::AssRes(*(arg->pResHdl),
 					arg->dCoef,
 					arg->ElemIter,
