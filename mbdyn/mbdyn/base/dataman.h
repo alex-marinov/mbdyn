@@ -82,6 +82,7 @@ public:
 	class ErrUnknownFunction {};
 	class ErrUnknownNode {};
 	class ErrMissingNodes {};
+	class ErrNeedDataManager {};
 
 private:
 #ifdef USE_MULTITHREAD

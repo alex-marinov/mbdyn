@@ -431,7 +431,16 @@ MBDynParser::DriveCaller_int(void)
 		SAFESTRDUP(sName, sTmp);
 	}
 
-	DriveCaller *pDC = ReadDriveData(pDM, *this);
+	DriveCaller *pDC = 0;
+	try {
+		pDC = ReadDriveData(pDM, *this);
+	}
+	catch (DataManager::ErrNeedDataManager) {
+		silent_cerr("the \"drive caller\" statement must appear "
+				"inside or after the \"control data\" block"
+				<< std::endl);
+		throw DataManager::ErrNeedDataManager();
+	}
 	if (pDC == NULL) {
 		silent_cerr("unable to read drive caller " << uLabel);
 		if (sName) {
@@ -1192,7 +1201,17 @@ DriveCaller *
 MBDynParser::GetDriveCaller(void)
 {
 	if (!IsKeyWord("reference")) {
-		return ReadDriveData(pDM, *this);
+		DriveCaller *pDC = 0;
+		try {
+			pDC = ReadDriveData(pDM, *this);
+		}
+		catch (DataManager::ErrNeedDataManager) {
+			silent_cerr("the required drive caller must appear "
+					"inside or after the \"control data\" "
+					"block"
+					<< std::endl);
+			throw DataManager::ErrNeedDataManager();
+		}
 	}
 
 	unsigned int uLabel = GetInt();

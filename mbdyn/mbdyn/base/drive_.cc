@@ -122,8 +122,8 @@ std::ostream& TimeDriveCaller::Restart(std::ostream& out) const
 
 /* ConstDriveCaller - begin */
 
-ConstDriveCaller::ConstDriveCaller(const DriveHandler* pDH, doublereal d)
-: DriveCaller(pDH), dConst(d)
+ConstDriveCaller::ConstDriveCaller(doublereal d)
+: DriveCaller(0), dConst(d)
 {
    NO_OP;
 }
@@ -139,7 +139,7 @@ ConstDriveCaller::~ConstDriveCaller(void)
 DriveCaller* ConstDriveCaller::pCopy(void) const
 {
    DriveCaller* pDC = NULL;
-   SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(pDrvHdl, dConst));
+   SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(dConst));
    
    return pDC;
 }
@@ -966,38 +966,55 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP)
    }   
 #endif   
 
+   if (pDrvHdl == 0) { 
+      switch (CurrKeyWord) {
+       case NULLDRIVE:
+       case ONEDRIVE:
+       case UNITDRIVE:
+       case CONST:
+       case ARRAY:
+
+       /* leave the checks for later... */
+       case UNKNOWN:
+	 /* drives that don't need the data manager... */
+	 break;
+
+       default:
+	 silent_cerr(sKeyWords[CurrKeyWord] << " drive needs data manager "
+			 "at line " << HP.GetLineData() << std::endl);
+	 throw DataManager::ErrNeedDataManager();
+      }
+   }
+   
    DriveCaller* pDC = NULL;
    
    switch (CurrKeyWord) {
 
       /* time */
-    case TIME: {
-       /* allocazione e creazione */
-       SAFENEWWITHCONSTRUCTOR(pDC, TimeDriveCaller, TimeDriveCaller(pDrvHdl));
+    case TIME:
+     /* allocazione e creazione */
+     SAFENEWWITHCONSTRUCTOR(pDC, TimeDriveCaller, TimeDriveCaller(pDrvHdl));
      break;  
-    }
       
       /* driver nullo */
-    case NULLDRIVE: {
+    case NULLDRIVE:
        /* allocazione e creazione */
         SAFENEW(pDC, NullDriveCaller);
       
        /* scrittura dei dati specifici */	     
        
        break;
-    }
       
       /* driver unitario*/
     case ONEDRIVE:
-    case UNITDRIVE: {
+    case UNITDRIVE:
        /* allocazione e creazione */
-        SAFENEWWITHCONSTRUCTOR(pDC, OneDriveCaller, OneDriveCaller(pDrvHdl));
+        SAFENEW(pDC, OneDriveCaller);
       
        /* scrittura dei dati specifici */	     
        
        break;
-    }
-      
+ 
       /* driver costante */
     case CONST: {
        /* lettura dei dati specifici */
@@ -1008,12 +1025,11 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP)
        if (dConst == 0.) {
           SAFENEW(pDC, NullDriveCaller);
        } else if (dConst == 1.) {
-          SAFENEWWITHCONSTRUCTOR(pDC, OneDriveCaller, OneDriveCaller(pDrvHdl));
+          SAFENEW(pDC, OneDriveCaller);
       
        } else {
-          SAFENEWWITHCONSTRUCTOR(pDC,
-	   		         ConstDriveCaller,
-			         ConstDriveCaller(pDrvHdl, dConst));
+	  SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller,
+  			  ConstDriveCaller(dConst));
        }
        
        break;

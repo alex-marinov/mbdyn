@@ -697,9 +697,7 @@ Elem* ReadElectric(DataManager* pDM,
 	     ppOutScaleFact[i] = HP.GetDriveCaller();
 	  } else {
 	     ppOutScaleFact[i] = NULL;
-	     SAFENEWWITHCONSTRUCTOR(ppOutScaleFact[i], 
-				    OneDriveCaller, 
-				    OneDriveCaller(pDM->pGetDrvHdl()));
+	     SAFENEW(ppOutScaleFact[i], OneDriveCaller);
 	  }
        }
                             

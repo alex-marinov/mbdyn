@@ -313,8 +313,8 @@ std::ostream& NullDriveCaller::Restart(std::ostream& out) const
 
 /* OneDriveCaller - begin */
 
-OneDriveCaller::OneDriveCaller(const DriveHandler* pDH)
-: DriveCaller(pDH)
+OneDriveCaller::OneDriveCaller(void)
+: DriveCaller(0)
 {
    NO_OP;
 }
@@ -330,7 +330,7 @@ OneDriveCaller::~OneDriveCaller(void)
 DriveCaller* OneDriveCaller::pCopy(void) const
 {
    DriveCaller* pDC = NULL;
-   SAFENEWWITHCONSTRUCTOR(pDC, OneDriveCaller, OneDriveCaller(pDrvHdl));
+   SAFENEW(pDC, OneDriveCaller);
    
    return pDC;
 }

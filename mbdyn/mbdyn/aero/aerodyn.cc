@@ -626,8 +626,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 			}
 			
 			SAFENEWWITHCONSTRUCTOR(RhoRef, ConstDriveCaller,
-					ConstDriveCaller(pDM->pGetDrvHdl(),
-						rhoRef));
+					ConstDriveCaller(rhoRef));
 		}
 
 		if (HP.IsKeyWord("reference" "altitude")) {

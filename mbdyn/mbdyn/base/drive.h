@@ -315,7 +315,7 @@ NullDriveCaller::dGet(void) const
 
 class OneDriveCaller : public DriveCaller {   
  public:
-   OneDriveCaller(const DriveHandler* pDH);
+   OneDriveCaller(void);
    virtual ~OneDriveCaller(void);
    
    /* Copia */
@@ -353,7 +353,7 @@ class ConstDriveCaller : public DriveCaller {
    doublereal dConst;
    
  public:
-   ConstDriveCaller(const DriveHandler* pDH, doublereal d);
+   ConstDriveCaller(doublereal d);
    virtual ~ConstDriveCaller(void);
    
    /* Copia */

@@ -252,9 +252,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  pedantic_cout("Distance(" << uLabel << "): "
 			  "length from nodes = " << l << std::endl);
 
-	  SAFENEWWITHCONSTRUCTOR(pDC, 
-				 ConstDriveCaller,
-				 ConstDriveCaller(pDM->pGetDrvHdl(), l));
+	  SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(l));
        } else {
 	  pDC = HP.GetDriveCaller();
        }
@@ -346,9 +344,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  pedantic_cout("DistanceWithOffset(" << uLabel << "): "
 			  "length from nodes = " << l << std::endl);
 
-	  SAFENEWWITHCONSTRUCTOR(pDC, 
-				 ConstDriveCaller, 
-				 ConstDriveCaller(pDM->pGetDrvHdl(), l));
+	  SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(l));
        } else {
 	  pDC = HP.GetDriveCaller();
        }
