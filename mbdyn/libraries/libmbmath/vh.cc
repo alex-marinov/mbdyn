@@ -349,6 +349,7 @@ MyVectorHandler::Resize(integer iSize)
 			SAFENEWARR(pdVecm1, doublereal, iSize);
 			pdVecm1--;
 			iMaxSize = iCurSize = iSize;
+			bOwnsMemory = true;
 		}
 
 	} else {
