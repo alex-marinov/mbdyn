@@ -111,6 +111,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
    
    const char* sKeyWords[] = {
       "minor" "loss",
+      "three" "way" "minor" "loss",
       "control" "valve",
       "dynamic" "control" "valve",
       "pressure" "flow" "control",
@@ -128,6 +129,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
    enum KeyWords {
       UNKNOWN = -1,
       MINOR_LOSS = 0, 
+      THREEWAYMINORLOSS,
       CONTROL_VALVE,
       DYNAMIC_CONTROL_VALVE,
       PRESSURE_FLOW_CONTROL_VALVE,
@@ -362,6 +364,98 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 			      Minor_loss,
                               Minor_loss(uLabel, pDO, hf, pNode1, pNode2, 
 					 dKappa1, dKappa2, area, fOut), 
+			      DMmm);
+       
+       break;
+    }
+
+    case THREEWAYMINORLOSS: {
+       
+       /* nodo 0 */
+       unsigned int uNode = (unsigned int)HP.GetInt();	     
+       DEBUGCOUT("Linked to Hydraulic Node " << uNode << endl);
+       
+       /* verifica di esistenza del nodo idraulico */
+       PressureNode* pNode0;
+       if ((pNode0 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
+	  cerr << "line " << HP.GetLineData() 
+	      << ": hydraulic node " << uNode
+	    << " not defined" << endl;	  
+	  THROW(DataManager::ErrGeneric());
+       }		  
+       
+       /* nodo 1 */
+       uNode = (unsigned int)HP.GetInt();	     
+       DEBUGCOUT("Linked to Hydraulic Node " << uNode << endl);
+       
+       /* verifica di esistenza del nodo idraulico */
+       PressureNode* pNode1;
+       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
+	  cerr << "line " << HP.GetLineData() 
+	      << ": hydraulic node " << uNode
+	    << " not defined" << endl;	  
+	  THROW(DataManager::ErrGeneric());
+       }		  
+       
+       /* nodo 2 */
+       uNode = (unsigned int)HP.GetInt();	     
+       DEBUGCOUT("Linked to Hydraulic Node " << uNode << endl);
+       
+       /* verifica di esistenza del nodo idraulico */
+       PressureNode* pNode2;
+       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
+	  cerr << "line " << HP.GetLineData() 
+	      << ": hydraulic node " << uNode
+	    << " not defined" << endl;	  
+	  THROW(DataManager::ErrGeneric());
+       }
+       
+       /* Kappa1 diretto */
+       doublereal dKappa1 = HP.GetReal();
+       if (dKappa1 < 0.) {		  
+	  cerr << "negative Kappa1 in minor loss"
+	    << uLabel << " at " << HP.GetLineData() << endl;
+	  THROW(DataManager::ErrGeneric());
+       }	     
+       DEBUGCOUT("Kappa1: " << dKappa1 << endl);
+       
+       /* Kappa2 inverso */
+       doublereal dKappa2 = HP.GetReal();
+       if (dKappa2 < 0.) {		  
+	  cerr << "negative Kappa2 in minor loss"
+	    << uLabel << " at " << HP.GetLineData() << endl;
+	  THROW(DataManager::ErrGeneric());
+       }	     
+       DEBUGCOUT("Kappa2: " << dKappa2 << endl);
+       
+       /* Area 1 */
+       doublereal area1 = HP.GetReal();
+       if (area1 <= DBL_EPSILON) {		  
+	  cerr << "null or negative area in minor loss"
+	    << uLabel << " at " << HP.GetLineData() << endl;
+	  THROW(DataManager::ErrGeneric());
+       }	 
+       DEBUGCOUT("Area: " << area1 << endl);
+       
+       /* Area 2 */
+       doublereal area2 = HP.GetReal();
+       if (area1 <= DBL_EPSILON) {		  
+	  cerr << "null or negative area in minor loss"
+	    << uLabel << " at " << HP.GetLineData() << endl;
+	  THROW(DataManager::ErrGeneric());
+       }	 
+       DEBUGCOUT("Area: " << area2 << endl);
+       
+       HydraulicFluid* hf = HP.GetHydraulicFluid();
+       ASSERT(hf != NULL);
+
+       flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
+       
+       SAFENEWWITHCONSTRUCTOR(pEl, 
+			      ThreeWayMinorLoss,
+                              ThreeWayMinorLoss(uLabel, pDO, hf, 
+				      pNode0, pNode1, pNode2, 
+				      dKappa1, dKappa2, area1, area2, fOut), 
 			      DMmm);
        
        break;
@@ -1132,13 +1226,13 @@ Elem* ReadHydraulicElem(DataManager* pDM,
       
     case ACCUMULATOR: {
        
-       /* nodo 1 */
+       /* nodo */
        unsigned int uNode = (unsigned int)HP.GetInt();	     
        DEBUGCOUT("Linked to Hydraulic Node " << uNode << endl);
        
        /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
+       PressureNode* pNode;
+       if ((pNode = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -1303,7 +1397,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Accumulator,
-			      Accumulator(uLabel, pDO, hf, pNode1, 
+			      Accumulator(uLabel, pDO, hf, pNode, 
 					  stroke, start, area, area_pipe, 
 					  mass,h_in, h_out,
 					  press0, press_max,

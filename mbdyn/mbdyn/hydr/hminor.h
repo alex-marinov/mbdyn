@@ -106,6 +106,81 @@ class Minor_loss : virtual public Elem, public HydraulicElem {
 /* Minor_loss - end */
 
 
+/* ThreeWayMinorLoss - begin */
+
+class ThreeWayMinorLoss : virtual public Elem, public HydraulicElem {
+private:
+	const PressureNode* pNode0;
+	const PressureNode* pNode1;
+	const PressureNode* pNode2;
+	const PressureNode* pNodeN;
+
+	doublereal dKappa1;
+	doublereal dKappa2;
+	doublereal area1;
+	doublereal area2;
+	doublereal area;
+	
+	doublereal flow;  /* utilizzato per l'output */
+	doublereal vel;   /* utilizzato per l'output */
+	doublereal dKappa;
+
+public:
+	ThreeWayMinorLoss(unsigned int uL, const DofOwner* pD,
+		HydraulicFluid* hf, const PressureNode* p0,
+		const PressureNode* p1, const PressureNode* p2,
+		doublereal dK1,	doublereal dK2, 
+		doublereal A1, doublereal A2, flag fOut);
+
+	~ThreeWayMinorLoss(void);
+
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
+   
+	/* Tipo di elemento idraulico (usato solo per debug ecc.) */
+	virtual HydraulicElem::Type GetHydraulicType(void) const;
+
+	/* Contributo al file di restart */
+	virtual ostream& Restart(ostream& out) const;
+
+	virtual unsigned int iGetNumDof(void) const;
+	virtual DofOrder::Order SetDof(unsigned int i) const;
+	
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+	
+	VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
+			doublereal dCoef,
+			const VectorHandler& XCurr, 
+			const VectorHandler& XPrimeCurr);
+
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+			doublereal dCoef,
+			const VectorHandler& XCurr, 
+			const VectorHandler& XPrimeCurr);
+	
+	virtual void Output(OutputHandler& OH) const;
+	
+	virtual void SetValue(VectorHandler& X, VectorHandler& XP ) const;
+	
+	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
+		NumNodes = 3;
+		NdTyps[0] = pNode0->GetNodeType();
+		NdLabels[0] = pNode0->GetLabel();
+		NdTyps[1] = pNode1->GetNodeType();
+		NdLabels[1] = pNode1->GetLabel();
+		NdTyps[2] = pNode2->GetNodeType();
+		NdLabels[2] = pNode2->GetLabel();
+	};
+	/* ************************************************ */
+};
+
+/* ThreeWayMinorLoss - end */
+
+
 /* Orifice - begin */
 
 class Orifice : virtual public Elem, public HydraulicElem {

@@ -57,6 +57,7 @@ class HydraulicElem : virtual public Elem, public ElemWithDofs {
       UNKNOWN = -1,
 	
 	MINOR_LOSS = 0,
+	THREEWAYMINORLOSS,
 	CONTROL_VALVE,
 	DYNAMIC_CONTROL_VALVE,
         PRESSURE_FLOW_CONTROL_VALVE,

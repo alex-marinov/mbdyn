@@ -207,6 +207,201 @@ void Minor_loss::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) con
 /* Minor_loss - end */
 
 
+/* ThreeWayMinorLoss - begin */
+
+ThreeWayMinorLoss::ThreeWayMinorLoss(
+		unsigned int uL, const DofOwner* pDO,
+		HydraulicFluid* hf, const PressureNode* p0,
+		const PressureNode* p1, const PressureNode* p2,
+		doublereal dK1, doublereal dK2, 
+		doublereal A1, doublereal A2, flag fOut)
+: Elem(uL, Elem::HYDRAULIC, fOut),
+HydraulicElem(uL, pDO, hf, fOut),
+pNode0(p0), pNode1(p1), pNode2(p2), pNodeN(NULL),
+dKappa1(dK1), dKappa2(dK2), area1(A1), area2(A2)
+{
+	ASSERT(pNode0 != NULL);
+	ASSERT(pNode0->GetNodeType() == Node::HYDRAULIC);
+	ASSERT(pNode1 != NULL);
+	ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
+	ASSERT(pNode2 != NULL);
+	ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
+	ASSERT(dK1 >= 0.);
+	ASSERT(dK2 >= 0.);
+	ASSERT(A1 > DBL_EPSILON);
+	ASSERT(A2 > DBL_EPSILON);
+}
+
+ThreeWayMinorLoss::~ThreeWayMinorLoss(void)
+{
+	NO_OP;
+}
+   
+/* Tipo di elemento idraulico (usato solo per debug ecc.) */
+HydraulicElem::Type ThreeWayMinorLoss::GetHydraulicType(void) const {
+	return HydraulicElem::THREEWAYMINORLOSS;
+}
+
+/* Contributo al file di restart */
+ostream& ThreeWayMinorLoss::Restart(ostream& out) const
+{
+	return out << "ThreeWayMinorLoss not implemented yet!" << endl;
+}
+ 
+unsigned int ThreeWayMinorLoss::iGetNumDof(void) const { 
+	return 0;
+}
+   
+DofOrder::Order ThreeWayMinorLoss::SetDof(unsigned int i) const {
+	cerr << "Minor_loss has no dofs!" << endl;
+	THROW(ErrGeneric());
+}
+
+void
+ThreeWayMinorLoss::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
+	*piNumRows = 2;
+	*piNumCols = 2;
+}
+      
+VariableSubMatrixHandler& 
+ThreeWayMinorLoss::AssJac(
+		VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr
+		)
+{
+	DEBUGCOUT("Entering Minor_loss::AssJac()" << endl);
+   
+	ASSERT(pNodeN != NULL);
+	
+	FullSubMatrixHandler& WM = WorkMat.SetFull();
+	WM.Resize(2, 2);
+	
+	integer iNode0RowIndex = pNode0->iGetFirstRowIndex()+1;
+	integer iNodeNRowIndex = pNodeN->iGetFirstRowIndex()+1;
+	integer iNode0ColIndex = pNode0->iGetFirstColIndex()+1;
+	integer iNodeNColIndex = pNodeN->iGetFirstColIndex()+1;
+	
+	WM.fPutRowIndex(1, iNode0RowIndex);
+	WM.fPutRowIndex(2, iNodeNRowIndex);
+	WM.fPutColIndex(1, iNode0ColIndex);
+	WM.fPutColIndex(2, iNodeNColIndex);
+
+	doublereal p0 = pNode0->dGetX();
+	doublereal p = pNodeN->dGetX();
+	
+	doublereal jumpPres = fabs(p0-p);
+	
+	/* evito di dividere per un numero troppo piccolo */
+	if (jumpPres < 1.e8*DBL_EPSILON) {
+		jumpPres = 1.e8*DBL_EPSILON;
+	}
+	/*
+	 * se voglio usare un fluido comprimibile, metto la pressione
+	 * media nel condotto:
+         */
+
+	doublereal density = HF->dGetDensity((p0+p)/2.);
+	
+	/* 
+	 * altrimenti lascio la densita' di riferimento 
+	 * doublereal density = HF->dGetDensity();
+	 */
+	doublereal Jac = -density*.5*area*sqrt(2./(dKappa*density*jumpPres));
+	
+	WM.fPutCoef(1, 1, Jac);
+	WM.fPutCoef(1, 2, -Jac);
+	WM.fPutCoef(2, 1, -Jac);
+	WM.fPutCoef(2, 2, Jac);
+	
+	return WorkMat;
+}
+
+SubVectorHandler& 
+ThreeWayMinorLoss::AssRes(
+		SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr
+		)
+{
+	DEBUGCOUT("Entering ThreeWayMinorLoss::AssRes()" << endl);
+	
+	WorkVec.Resize(2);
+	
+	doublereal p0 = pNode0->dGetX();
+	doublereal p1 = pNode1->dGetX();
+	doublereal p2 = pNode2->dGetX();
+	doublereal p;
+
+	pNodeN = NULL;
+
+	if (p1 > p2) {
+		pNodeN = pNode1;
+		p = p1;
+		area = area1;
+	} else {
+		pNodeN = pNode2;
+		p = p2;
+		area = area2;
+	}
+	
+	doublereal jumpPres = fabs(p0-p); 
+	
+	if (p0 > p) {
+		dKappa = dKappa1;  /* flusso diretto da 0 a n */
+	} else { 
+		dKappa = dKappa2;  /* flusso diretto da n a 0 */
+	}
+	
+	doublereal density = HF->dGetDensity((p0+p)/2.);
+	flow = density*area*sqrt(2./(dKappa*density))*copysign(sqrt(jumpPres), p0-p);
+	vel = flow/(density*area);
+	
+#ifdef HYDR_DEVEL
+	DEBUGCOUT("RES area :           " << area << endl);
+	DEBUGCOUT("RES flow:            " << flow << endl);
+	DEBUGCOUT("RES p0:              " << p0 << endl);
+	DEBUGCOUT("RES p:               " << p << endl);
+	DEBUGCOUT("RES dKappa:          " << dKappa << endl);
+	DEBUGCOUT("****************************************************" << endl);
+	DEBUGCOUT("RES velocita':       " << vel << endl);
+	DEBUGCOUT("    se positiva il fluido va dal nodo 0 al nodo n " << endl);
+	DEBUGCOUT("RES portata (nodo n):" << flow << endl);
+	DEBUGCOUT("****************************************************" << endl);
+#endif
+	integer iNode0RowIndex = pNode0->iGetFirstRowIndex()+1;
+	integer iNodeNRowIndex = pNodeN->iGetFirstRowIndex()+1;
+	
+	WorkVec.fPutItem(1, iNode0RowIndex, flow);
+	WorkVec.fPutItem(2, iNodeNRowIndex, -flow);         
+	
+	return WorkVec;
+}
+
+void 
+ThreeWayMinorLoss::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) { 
+		ostream& out = OH.Hydraulic();
+		out << setw(8) << GetLabel() 
+			<< " " << vel  << " " << flow << endl;
+	}
+}
+
+void 
+ThreeWayMinorLoss::SetValue(
+		VectorHandler& /* X */ , 
+		VectorHandler& /* XP */ 
+		) const {
+	NO_OP;
+}
+
+/* ThreeWayMinorLoss - end */
+
+
 /* Orifice - begin */
 
 /* se Re < Rec avrò sicuramente moto laminare
