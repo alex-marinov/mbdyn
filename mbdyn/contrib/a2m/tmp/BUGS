@@ -1,0 +1,27 @@
+Thu Oct  5 17:08:30 CEST 2000
+
+src/translate.cc:122
+        mettere `method' invece di `methods'.
+
+Nota: i reference dei markers vengono scritti prima di quelli delle
+parti a cui si riferiscono ...
+
+src/mbdyn.cc:1026
+        aggiungere ` << "assembly, "' alla fine.
+
+Nota: occorre aggiungere `gravity;' nei `control data' se si usa l'elemento
+`gravity'.
+
+Nota: nelle card `body', non si puo' mettere `reference, <label>' prima della
+matrice di inerzia.
+
+Nota: in src/matrix.cc ci sono una serie di `if' con `&' (bitwise AND)
+al posto del piu' probabile `&&' (logical AND).
+
+Nota: in file src/joint.cc mancano i `#' all'inizio dei commenti.
+
+Nota: succede una cosa strana con il file bipendolo.mbd, una volta sistemate
+le cose sopra scritte: il joint 2 (Adams REVOLUTE 1) viene scritto senza 
+offset tra i corpi, cosa illegale in mbdyn.
+
+
