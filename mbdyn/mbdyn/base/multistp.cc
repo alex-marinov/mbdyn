@@ -99,7 +99,15 @@ MultiStepIntegrator::MultiStepIntegrator(MBDynParser& HPar,
 					 const char* sOutFName)
 :
 CurrStrategy(NOCHANGE),
+#ifdef USE_Y12
+CurrSolver(Y12_SOLVER),
+#else /* !USE_Y12 */
+#ifdef USE_HARWELL
 CurrSolver(HARWELL_SOLVER),
+#else /* !USE_HARWELL */
+CurrSolver(MESCHACH_SOLVER),
+#endif /* !USE_HARWELL */
+#endif /* !USE_Y12 */
 sInputFileName(NULL),
 sOutputFileName(NULL),
 HP(HPar),
@@ -256,9 +264,6 @@ MultiStepIntegrator::Run(void)
    
    	switch (CurrSolver) {
      	case Y12_SOLVER: 
-#ifndef USE_HARWELL
-	default:
-#endif /* USE_HARWELL */
 #ifdef USE_Y12
       		SAFENEWWITHCONSTRUCTOR(pSM,
 			Y12SparseLUSolutionManager,
@@ -268,7 +273,8 @@ MultiStepIntegrator::Run(void)
 			               SMmm);
       		break;
 #else /* !USE_Y12 */
-      		cerr << "Configure with --with-y12 to enable Y12 solver" << endl;
+      		cerr << "Configure with --with-y12 "
+			"to enable Y12 solver" << endl;
       		THROW(ErrGeneric());
 #endif /* !USE_Y12 */
 
@@ -282,14 +288,14 @@ MultiStepIntegrator::Run(void)
 				       SMmm);
       		break;
 #else /* !USE_MESCHACH */
-      		cerr << "Configure with --with-meschach to enable Meschach solver"
+      		cerr << "Configure with --with-meschach "
+			"to enable Meschach solver"
 			<< endl;
       		THROW(ErrGeneric());
 #endif /* !USE_MESCHACH */
 
    	case HARWELL_SOLVER:
 #ifdef USE_HARWELL
-	default:
       		SAFENEWWITHCONSTRUCTOR(pSM,
 			HarwellSparseLUSolutionManager,
 			HarwellSparseLUSolutionManager(iNumDofs,
@@ -298,7 +304,8 @@ MultiStepIntegrator::Run(void)
 				       SMmm);
       		break;
 #else /* !USE_HARWELL */
-      		cerr << "Configure with --with-harwell to enable Harwell solver" << endl;
+      		cerr << "Configure with --with-harwell "
+			"to enable Harwell solver" << endl;
       		THROW(ErrGeneric());
 #endif /* !USE_HARWELL */
    	}
