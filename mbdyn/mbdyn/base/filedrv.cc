@@ -39,6 +39,9 @@
 #include <dataman.h>
 #include <filedrv.h>
 #include <sockdrv.h>
+#ifdef USE_RTAI
+#include <rtai_in_drive.h>
+#endif /* USE_RTAI */
 
 /* FileDrive - begin */
 
@@ -318,7 +321,7 @@ Drive* ReadFileDriver(DataManager* pDM,
 
     case RTAIINPUT: {
 #ifdef USE_RTAI
-
+       pDr = ReadRTAIInDrive(pDM, HP, uLabel);
 #else /* ! USE_RTAI */
        std::cerr << "Sorry, RTAI input requires configure --with-rtai"
 	       << std::endl;
@@ -326,7 +329,7 @@ Drive* ReadFileDriver(DataManager* pDM,
 #endif /* ! USE_RTAI */
        break;
     }
- 
+     
     default:     
       std::cerr << "unknown file drive at line " << HP.GetLineData() << std::endl;
       THROW(ErrGeneric());

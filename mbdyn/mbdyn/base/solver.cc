@@ -163,9 +163,11 @@ dLowerFreq(0.),
 #endif /* __HACK_EIG__ */
 #ifdef USE_RTAI
 bRT(false),
-bRTWaitPeriod(true),
+bRTAllowNonRoot(false),
+RTMode(MBRTAI_UNKNOWN),
 bRTHard(false),
 lRTPeriod(-1),
+RTSemPtr(NULL),
 RTStackSize(1024),
 #endif /* USE_RTAI */
 #ifdef __HACK_POD__
@@ -722,6 +724,15 @@ void Solver::Run(void)
 	pNLS->SetExternal(External::EMPTY);
 #endif /* USE_EXTERNAL */
 
+#ifdef USE_RTAI
+	if (bRT) {
+		/* Init RTAI; if init'ed, it will be shut down at exit */
+		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, &mbdyn_rtai_task)) {
+			std::cerr << "unable to init RTAI task" << std::endl;
+			THROW(ErrGeneric());
+		}
+	}
+#endif /* USE_RTAI */
 	
 	try {
 		
@@ -1061,15 +1072,6 @@ IfFirstStepIsToBeRepeated:
 			<< "aborting ..." << std::endl;
 	    	pDM->Output(true);
 
-#ifdef USE_RTAI
-		if (bRTHard) {
-			/*
-			 * FIXME: make soft real time
-			 * before doing any error handling
-			 */
-		}
-#endif /* USE_RTAI */
-
 		THROW(Solver::ErrMaxIterations());
       	}
 	catch (NonlinearSolver::ErrSimulationDiverged) {
@@ -1077,15 +1079,6 @@ IfFirstStepIsToBeRepeated:
 		 * Mettere qui eventuali azioni speciali 
 		 * da intraprendere in caso di errore ...
 		 */
-
-#ifdef USE_RTAI
-		if (bRTHard) {
-			/*
-			 * FIXME: make soft real time
-			 * before doing any error handling
-			 */
-		}
-#endif /* USE_RTAI */
 
 		THROW(SimulationDiverged());
 	}
@@ -1096,16 +1089,6 @@ IfFirstStepIsToBeRepeated:
 #endif /* MBDYN_X_CONVSOL */
 	}
 	catch (...) {
-
-#ifdef USE_RTAI
-		if (bRTHard) {
-			/*
-			 * FIXME: make soft real time
-			 * before doing any error handling
-			 */
-		}
-#endif /* USE_RTAI */
-
 		THROW(ErrGeneric());
 	}
 
@@ -1151,27 +1134,54 @@ IfFirstStepIsToBeRepeated:
 #endif /* __HACK_EIG__ */
 
 #ifdef USE_RTAI
+
 	if (bRT) {
-
-		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, &mbdyn_rtai_task)) {
-			std::cerr << "unable to init RTAI task" << std::endl;
-			THROW(ErrGeneric());
+		/* Need timer */
+		if (!mbdyn_rt_is_hard_timer_running() ){
+			/* FIXME: ??? */
+			mbdyn_rt_set_oneshot_mode();
+			mbdyn_start_rt_timer(mbdyn_nano2count(1000000));
 		}
-
-		/* FIXME: configurable? */
-		if (1) {
+			
+		if (bRTAllowNonRoot) {
 			mbdyn_rt_allow_nonroot_hrt();
 		}
 
-		if (bRTWaitPeriod) {
+		/*
+		 * MBDyn can work in two ways:
+		 * - internaal timer
+		 * - scheduled by an external signal
+		 * only the first case is currently implemented
+		 */
+		if (RTWaitPeriod()) {
 			long long t = mbdyn_rt_get_time();
 			int r;
 
-			r = mbdyn_rt_task_make_periodic(mbdyn_rtai_task, t, lRTPeriod);
+			/* Timer should be init'ed */
+			ASSERT(t);
+
+			DEBUGCOUT("Task: " << mbdyn_rtai_task 
+				<< "; time: " << t 
+				<< "; period: " << lRTPeriod << std::endl);
+			r = mbdyn_rt_task_make_periodic(mbdyn_rtai_task,
+					t, lRTPeriod);
 
 			if (r) {
-				std::cerr << "rt_task_make_periodic() failed"
-					<< std::endl;
+				std::cerr << "rt_task_make_periodic() failed ("
+					<< r << ")" << std::endl;
+				THROW(ErrGeneric());
+			}
+		} else {
+			int r;
+
+			/* FIXME: check args 
+			 * name should be configurable?
+			 * initial value 0: non-blocking
+			 */
+			r = mbdyn_rt_sem_init("MBDSEM", 0, &RTSemPtr);
+			if (r) {
+				std::cerr << "rt_sem_init() failed ("
+					<< r << ")" << std::endl;
 				THROW(ErrGeneric());
 			}
 		}
@@ -1184,17 +1194,19 @@ IfFirstStepIsToBeRepeated:
 					<< std::endl);
 		}
 
+		/* FIXME: should check whether RTStackSize is correclty set? */
 		reserve_stack(RTStackSize);
 	}
 #endif /* USE_RTAI */
-   
+
     	/* Altri passi regolari */ 
 	ASSERT(pRegularSteps != NULL);
-
+	
       	while (1) {
+		
 		StepIntegrator::StepChange CurrStep 
 				= StepIntegrator::NEWSTEP;
-
+	
       		if (dTime >= dFinalTime) {
 	 		std::cout << "End of simulation at time "
 				<< dTime << " after " 
@@ -1215,7 +1227,7 @@ IfFirstStepIsToBeRepeated:
 	 		return;
 #endif /* HAVE_SIGNAL */
       		}
-	 
+ 	
       		iStep++;
       		pDM->BeforePredict(*(qX[0]), *(qXPrime[0]),
 				*(qX[1]), *(qXPrime[1]));
@@ -1223,16 +1235,15 @@ IfFirstStepIsToBeRepeated:
 		Flip();
 
 #ifdef USE_RTAI
-		/*
-		 * TODO: mettere qui l'attesa in caso di real-time
-		 */
 		if (bRT) {
-			if (bRTWaitPeriod) {
+			if (RTWaitPeriod()) {
 				mbdyn_rt_task_wait_period();
-			} else {
+			} else if (RTSemaphore()) {
 				/* FIXME: semaphore must be configurable */
+				mbdyn_rt_sem_wait(RTSemPtr);
 			}
 		}
+		
 #endif /* USE_RTAI */
 
 IfStepIsToBeRepeated:
@@ -1240,12 +1251,14 @@ IfStepIsToBeRepeated:
 			pDM->SetTime(dTime+dCurrTimeStep);
 			dTest = pRegularSteps->Advance(dRefTimeStep,
 					dCurrTimeStep/dRefTimeStep,
-				 	CurrStep, pSM, pNLS, qX, qXPrime, iStIter
+				 	CurrStep, pSM, pNLS,
+					qX, qXPrime, iStIter
 #ifdef MBDYN_X_CONVSOL				
 					, dSolTest
 #endif /* MBDYN_X_CONVSOL */				
-				);					
+				);
 		}
+
 		catch (NonlinearSolver::NoConvergence) {
 			if (dCurrTimeStep > dMinimumTimeStep) {
 				/* Riduce il passo */
@@ -2617,12 +2630,22 @@ Solver::ReadData(MBDynParser& HP)
        case REALTIME: {
 #ifdef USE_RTAI
          bRT = true;
-	 if (HP.IsKeyWord("wait")) {
+
+	 if (HP.IsKeyWord("allow" "nonroot")) {
+	    bRTAllowNonRoot = true;
+	 }
+
+	 /* FIXME: use a sae default? */
+	 if (HP.IsKeyWord("mode")) {
 	    if (HP.IsKeyWord("period")) {
-	       bRTWaitPeriod = true;
-	    } else if (HP.IsKeyWord("signal")) {
+	       RTMode = MBRTAI_WAITPERIOD;
+	    } else if (HP.IsKeyWord("semaphore")) {
 	       /* FIXME: not implemented yet ... */
-	       bRTWaitPeriod = false;
+	       RTMode = MBRTAI_SEMAPHORE;
+	    } else {
+		std::cerr << "unknown realtime mode at line "
+			<< HP.GetLineData() << std::endl;
+		THROW(ErrGeneric());
 	    }
 	 }
 

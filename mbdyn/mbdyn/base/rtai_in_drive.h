@@ -42,9 +42,25 @@
 /* RTAIInDrive - begin */
 
 class RTAIInDrive : public FileDrive {
+protected:
+	unsigned int NumChannels;
+   	
+	/* MBox buffer */
+	int size;
+	char *buf;
+	
+	/* FIXME: store restart info as well */
+	const char *host;
+	unsigned long node;
+	bool create;
+	int port;
+	void *mbx;
 public:
-   	RTAIInDrive(unsigned int uL, const DriveHandler* pDH,
-	            integer nd);
+   	RTAIInDrive(unsigned int uL,
+			 const DriveHandler* pDH,
+			 const char* const sFileName,
+			 const char *h,
+			 integer nd ,bool c, int n);
    
    	virtual ~RTAIInDrive(void);
    
@@ -57,6 +73,12 @@ public:
 };
 
 /* RTAIInDrive - end */
+
+class DataManager;
+class MBDynParser;
+
+extern Drive *
+ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
 
 #endif /* USE_RTAI */
 

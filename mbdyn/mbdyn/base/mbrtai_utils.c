@@ -43,7 +43,6 @@
 #include <rtai_lxrt_user.h>
 #include <net_rpc.h>
 
-//#define NDEBUG
 #include <assert.h>
 
 #include <mbrtai_utils.h>
@@ -84,13 +83,15 @@ int
 mbdyn_rt_task_make_periodic(void *__task, long long __start_time,
 		long long __period)
 {
+	
+	
 	RT_TASK		*task = (RT_TASK *)__task;
 	RTIME		start_time = (RTIME)__start_time;
 	RTIME		period = (RTIME)__period;
 
 	assert(__task != NULL);
 
-	return rt_task_make_periodic(task, start_time, period);
+	return rt_task_make_periodic(task, 1, period);;
 }
 
 void
@@ -113,33 +114,64 @@ mbdyn_rt_request_port(unsigned long node)
 	return rt_request_port(node);
 }
 
+void
+mbdyn_rt_set_oneshot_mode(void)
+{
+	rt_set_oneshot_mode();
+}
+
+void
+mbdyn_rt_set_periodic_mode(void)
+{
+	rt_set_periodic_mode();
+}
+
+int
+mbdyn_rt_is_hard_timer_running(void)
+{
+	return rt_is_hard_timer_running();
+}
+
+long long
+mbdyn_start_rt_timer(long long __period)
+{
+	RTIME period = (RTIME)__period;
+	return start_rt_timer(period);
+}
+
+void
+mbdyn_stop_rt_timer(void)
+{
+	stop_rt_timer();
+}
+
 long long
 mbdyn_rt_get_time(void)
-{
+{	
 	return (long long)rt_get_time();
 }
 
 long long
 mbdyn_count2nano(long long count)
 {
-	return (RTIME)count2nano((RTIME)count);
+	return (long long)count2nano((RTIME)count);
 }
 
 long long
 mbdyn_nano2count(long long nanos)
 {
-	return (RTIME)nano2count((RTIME)nanos);
+	return (long long)nano2count((RTIME)nanos);
 }
 
 int
 mbdyn_rt_mbx_init(const char *name, int size, void **__mbx)
 {
 	assert(name);
-	assert(strlen(name) == 6);
+	assert(strlen(name) <= 6);
 	assert(size > 0);
 	assert(__mbx != NULL);
 	assert(*__mbx == NULL);		/* questa e' bastarda */
-
+	
 	*__mbx = (void *)rt_mbx_init(nam2num(name), size);
 
 	return (*__mbx == NULL);
@@ -159,7 +191,7 @@ mbdyn_rt_mbx_delete(void **__mbx)
 
 	*__mbx = NULL;
 
-	return /* rc */ 0;
+	return rc;
 }
 
 int
@@ -172,6 +204,7 @@ mbdyn_RT_get_adr(unsigned long node, int port, const char *name, void **__task)
 	assert(__task != NULL);
 	assert(*__task == NULL);	/* questa e' bastarda */
 
+	/* non ci va nam2num(name) */
 	*__task = (void *)RT_get_adr(node, port, name);
 
 	return (*__task == NULL);
@@ -182,13 +215,83 @@ mbdyn_RT_mbx_send_if(unsigned long node, int port, void *__mbx,
 		void *msg, int msg_size)
 {
 	MBX	*mbx = (MBX *)__mbx;
-
+	
 	assert(__mbx != NULL);
 	assert(msg != NULL);
 	assert(msg_size > 0);
 	
-	return RT_mbx_send_if(node, port, mbx, msg, msg_size);
+	return RT_mbx_send_if(node, 0, mbx, msg, msg_size);
+	
 }
 
+int
+mbdyn_RT_mbx_receive_if(unsigned long node, int port, void *__mbx,
+		void *msg, int msg_size)
+{
+	MBX	*mbx = (MBX *)__mbx;
+
+	assert(__mbx != NULL);
+	assert(msg != NULL);
+	assert(msg_size > 0);
+
+	return RT_mbx_receive_if(node, port, mbx, msg, msg_size);
+	
+}
+int
+mbdyn_rt_task_suspend(void *__task)
+{
+	RT_TASK		*task = (RT_TASK *)__task;
+	
+	assert(__task != NULL);
+
+	return rt_task_suspend(task);
+
+}
+void
+mbdyn_rt_sleep(long long count)
+{
+		rt_sleep((RTIME)count);
+}
+int
+mbdyn_rt_sem_init(char *name, int value, void **__sem)
+{	
+	assert(strlen(name) == 6);
+	assert(__sem != NULL);
+	assert(*__sem == NULL);	/* questa e' bastarda */
+	*__sem = (void *)rt_sem_init(nam2num(name),value);
+
+	return (*__sem == NULL);
+}
+
+int
+mbdyn_rt_sem_delete(void **__sem)
+{
+	SEM	*sem;
+	int	rc;
+
+	assert(__sem != NULL);
+	assert(*__sem != NULL);
+
+	sem = (SEM *)*__sem;
+	rc = rt_mbx_delete(sem);
+
+	*__sem = NULL;
+
+	return rc;
+}
+int
+mbdyn_rt_sem_signal(void *__sem)
+{
+	SEM	*sem = (SEM *)__sem;
+	
+	return rt_sem_signal(sem);
+}
+int
+mbdyn_rt_sem_wait(void *__sem)
+{
+	SEM	*sem=(SEM *)__sem;
+	
+	return rt_sem_wait(sem);
+}
 #endif /* USE_RTAI */
 

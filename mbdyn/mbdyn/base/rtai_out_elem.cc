@@ -163,6 +163,7 @@ RTAIOutElem::AfterConvergence(const VectorHandler& X,
 	if (mbdyn_RT_mbx_send_if(node, port, mbx, (void *)buf, size) != size) {
 		/* error */
 	}
+	//std::cout << "pippo" << std::endl; 
 }
 
 

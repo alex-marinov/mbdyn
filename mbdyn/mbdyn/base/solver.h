@@ -111,10 +111,25 @@ private:
 
 #ifdef USE_RTAI
 	bool bRT;
-	bool bRTWaitPeriod;
+	bool bRTAllowNonRoot;
+	enum {
+		MBRTAI_UNKNOWN,
+		MBRTAI_WAITPERIOD,
+		MBRTAI_SEMAPHORE,
+		MBRTAI_LASTMODE
+	} RTMode;
 	bool bRTHard;
-	long long lRTPeriod;
+	long long lRTPeriod;		/* if RTMode == MBRTAI_WAITPERIOD */
+	void *RTSemPtr;			/* if RTMode == MBRTAI_SEMAPHORE */
 	unsigned long RTStackSize;
+
+	bool RTWaitPeriod(void) const {
+		return (RTMode == MBRTAI_WAITPERIOD);
+	};
+
+	bool RTSemaphore(void) const {
+		return (RTMode == MBRTAI_SEMAPHORE);
+	};
 #endif /* USE_RTAI */
 
 #ifdef __HACK_POD__
