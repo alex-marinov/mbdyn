@@ -1492,7 +1492,18 @@ entered as follows:
     <specific_const_law> ::= linear elastic [ isotropic ] , 
         (scalar) <stiffness>
 \end{verbatim}
-the isotropic stiffness coefficient
+the isotropic stiffness coefficient; the word \kw{isotropic}
+can be omitted, essentially because it has no meaning
+for scalar constitutive laws.
+Example:
+\begin{verbatim}
+    constitutive law: 1, name, "scalar isotropic law",
+        1, linear elastic, 1.e9;
+    constitutive law: 2, name, "3D isotropic law",
+        3, linear elastic isotropic, 1.e9;
+    constitutive law: 3, name, "6D isotropic law",
+        6, linear elastic isotropic, 1.e9;
+\end{verbatim}
   
   
 \subsection{Linear elastic generic}
@@ -1504,6 +1515,20 @@ the stiffness matrix. In case of 1D, the type is scalar,
 and there is no distinction between \kw{generic} and \kw{isotropic}, 
 while, in case of \kw{n x 1} vectors, the type is the corresponding 
 \kw{n x n} matrix.
+Example:
+\begin{verbatim}
+    constitutive law: 1, name, "scalar isotropic law",
+        1, linear elastic generic, 1.e9;
+    constitutive law: 2, name, "3D isotropic law",
+        3, linear elastic generic,
+            sym, 1.e9,  0.,    0.,
+                        1.e6, -1.e5,
+                               1.e6;
+    constitutive law: 3, name, "6D isotropic law",
+        6, linear elastic generic,
+            diag, 1.e9, 1.e9, 1.e9, 1.e6, 1.e6, 1.e6;
+\end{verbatim}
+  
 
 \subsection{Linear elastic generic axial torsion coupling}
 \begin{verbatim}

@@ -1466,7 +1466,7 @@ derivative can be used) multiplied times the stiffness. \\
 
 
 \section{Couple}
-An alias of \kw{force}; see Section~\ref{sec:EL:FORCE}.
+A variant of \kw{force}; see Section~\ref{sec:EL:FORCE} for details.
 
 
 
@@ -1567,16 +1567,24 @@ and $ s $ is the Laplace variable.
 
 
 \section{Force}\label{sec:EL:FORCE}
+The \kw{force} element, in MBDyn, is a general means to introduce 
+a right-hand side to the equations, i.e.\ a contribution to the equations.
+A basic distinction is between abstract and structural forces: the
+former apply to an arbitrary equation, while the latter are specific
+to structural nodes and have a spatial description.
 The \kw{force} element has the following syntax:
 \begin{verbatim}
   <normal_arglist> ::= <force_type> , <force_arglist>
 \end{verbatim}
 where \kw{force\_type} can be \kw{abstract} for an abstract force, or 
-\kw{conservative} or \kw{follower} for a structural force. The latter types
-apply to a \kw{couple} element, which can be structural only.
+\kw{conservative} or \kw{follower} for a structural force.
+The latter types also apply to the \kw{couple} element,
+which can be structural only.
+It is discussed in this section because of its input syntax commonality 
+with the structural force elements.
 
 \subsection{Output}
-The output is discussed accordingly to the types of forces. 
+The output is discussed according to the types of forces. 
 The label of the element is output first in all the cases.
 
 \subsection{Abstract force}
