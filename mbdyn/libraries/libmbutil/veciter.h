@@ -60,11 +60,11 @@ class VecIter : public Iter<T> {
 protected:
 	mutable T* pStart;
 	mutable T* pCount;
-	long int iSize;
+	unsigned iSize;
 
 public:
 	VecIter(void) : pStart(NULL), pCount(NULL), iSize(0) { NO_OP; };
-	VecIter(const T* p, long int i) : pStart(p), pCount(p), iSize(i)
+	VecIter(const T* p, unsigned i) : pStart(p), pCount(p), iSize(i)
 	{
 		ASSERT(pStart != NULL);
 		ASSERT(iSize > 0);
@@ -75,7 +75,7 @@ public:
 		NO_OP;
 	};
 
-	void Init(const T* p, long int i)
+	void Init(const T* p, unsigned i)
 	{
 		ASSERT(p != NULL);
 		ASSERT(i > 0);
@@ -150,12 +150,12 @@ template<class T>
 class MT_VecIter : public VecIter<T> {
 protected:
 #ifdef DEBUG_VECITER
-	mutable long int iCount;
+	mutable unsigned iCount;
 #endif /* DEBUG_VECITER */
 
 public:
 	MT_VecIter(void) : VecIter<T>() { NO_OP; };
-	MT_VecIter(const T* p, long int i) : VecIter<T>(p, i)
+	MT_VecIter(const T* p, unsigned i) : VecIter<T>(p, i)
 	{
 		NO_OP;
 	};
