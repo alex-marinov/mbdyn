@@ -605,7 +605,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 
 	     if (HP.IsKeyWord("std")) {
 		doublereal PRef(0.);
-		DriveCaller *RhoRef = NULL;
+		doublereal rhoRef(0.);
+		DriveCaller *RhoRef(NULL);
 		doublereal TRef(0.);
 		doublereal a(0.);
 		doublereal R(0.);
@@ -619,11 +620,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 			Std = true;
 
 			PRef = 101325.;		/* Pa */
-
-			/* kg/m^3 */
-			SAFENEWWITHCONSTRUCTOR(RhoRef, ConstDriveCaller,
-					ConstDriveCaller(&DrvHdl, 1.2250));
-
+			rhoRef = 1.2250;	/* kg/m^3 */
 			TRef = 288.16;		/* K */
 			a = -6.5e-3;		/* K/m */
 			R = 287.;		/* J/kgK */
@@ -633,13 +630,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 
 		} else if (HP.IsKeyWord("british")) {
 			Std = true;
-
 			PRef = 2116.2; 		/* lb/ft^2 */
-
-			/* slug/ft3 */
-			SAFENEWWITHCONSTRUCTOR(RhoRef, ConstDriveCaller,
-					ConstDriveCaller(&DrvHdl, 0.002377));
-
+			rhoRef = 0.002377;	/* slug/ft3 */
 			TRef = 518.69;		/* R */
 			a = -3.566e-3;		/* R/ft */
 			R = 1716;		/* ft lb/slug R */
@@ -715,14 +707,25 @@ void DataManager::ReadElems(MBDynParser& HP)
 		}
 	
 		if (Std && HP.IsKeyWord("temperature" "deviation")) {
-			TRef += HP.GetReal();
-			if (TRef <= 0.) {
+			doublereal T = HP.GetReal();
+
+			if (TRef + T <= 0.) {
 				std::cerr << "illegal reference "
 					"temperature " << TRef 
 					<< " at line " << HP.GetLineData()
 					<< std::endl;
 				THROW(ErrGeneric());
 			}
+
+			/*
+			 * FIXME: all the coefficients must be recomputed!
+			 */
+			PRef *= pow(TRef / (TRef + T), -g0 / (a * R));
+			rhoRef *= pow(TRef / (TRef + T), -(g0 / (a * R) + 1));
+			TRef += T;
+			
+			SAFENEWWITHCONSTRUCTOR(RhoRef, ConstDriveCaller,
+					ConstDriveCaller(&DrvHdl, rhoRef));
 		}
 
 	     	/* Driver multiplo */	   
