@@ -57,6 +57,7 @@
 #include <vehj.h>      /* Giunti deformabili */
 #include <vehj2.h>     /* "" */
 #include <kinj.h>
+#include <beamslider.h>
 
 /* Provvisorio ?!? */
 #include <modal.h>
@@ -154,6 +155,8 @@ Elem* ReadJoint(DataManager* pDM,
       "kinematic",
       
       "modal",
+
+      "beam" "slider",
       
       NULL
    };
@@ -192,6 +195,8 @@ Elem* ReadJoint(DataManager* pDM,
       KINEMATIC,
       
       MODAL,
+
+      BEAMSLIDER,
       
       LASTKEYWORD
    };
@@ -1303,7 +1308,112 @@ Elem* ReadJoint(DataManager* pDM,
        pEl = ReadModal(pDM, HP, pDO, uLabel);
        break;
     }
-      
+
+    case BEAMSLIDER: {
+       /* Corpo slittante */
+       StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+       
+       /* FIXME: non usato al momento !!!! */
+       ReferenceFrame RF(pNode);
+       Vec3 f(HP.GetPosRel(RF));
+       DEBUGCOUT("Linked to Node " << pNode->GetLabel()
+		       << "with offset " << f << endl);
+       
+       Mat3x3 R = Eye3;
+       if (HP.IsKeyWord("hinge")) {
+	       R = HP.GetRotRel(RF);
+       }
+       DEBUGLCOUT(MYDEBUG_INPUT,
+		       "Slider rotation matrix: " << endl << R << endl);
+
+       unsigned int nB = HP.GetInt();
+       if (nB != 1) {
+	       cerr << "Exactly one beam is required at present" << endl;
+	       THROW(ErrGeneric());
+       }
+       
+       BeamConn **bc = NULL;
+       SAFENEWARR(bc, BeamConn *, nB);
+
+       for (unsigned int i = 0; i < nB; i++) {
+          /* trave di appoggio */
+	  unsigned int uBeam = HP.GetInt();
+       
+	  Beam* pBeam;
+	  Elem* p = (Elem*)(pDM->pFindElem(Elem::BEAM, uBeam));
+	  if (p == NULL) {
+		  cerr << " at line " << HP.GetLineData()
+			  << ": Beam(" << uBeam
+			  << ") not defined" << endl;
+		  THROW(DataManager::ErrGeneric());
+	  }
+	  pBeam = (Beam*)p->pGet();
+       
+	  /* Nodo 1: */
+	  
+	  /* Offset del punto rispetto al nodo */
+	  const StructNode* pNode1 = pBeam->pGetNode(1);
+       
+	  RF = ReferenceFrame(pNode1);
+	  Vec3 f1(HP.GetPosRel(RF));
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << endl);
+	  
+	  Mat3x3 R1(Eye3);
+	  if (HP.IsKeyWord("hinge")) {
+		  R1 = HP.GetRotRel(RF);
+		  DEBUGLCOUT(MYDEBUG_INPUT,
+				  "Node 1 rotation matrix: " << endl 
+				  << R1 << endl);
+	  }
+       
+	  /* Nodo 2: */
+       
+	  /* Offset del punto rispetto al nodo */
+	  const StructNode* pNode2 = pBeam->pGetNode(2);
+       
+	  RF = ReferenceFrame(pNode2);
+	  Vec3 f2(HP.GetPosRel(RF));
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Node 2 offset: " << f2 << endl);
+       
+	  Mat3x3 R2(Eye3);
+	  if (HP.IsKeyWord("hinge")) {
+		  R2 = HP.GetRotRel(RF);
+		  DEBUGLCOUT(MYDEBUG_INPUT,
+				  "Node 2 rotation matrix: " << endl 
+				  << R2 << endl);
+	  }
+       
+	  /* Nodo 3: */
+       
+	  /* Offset del punto rispetto al nodo */
+	  const StructNode* pNode3 = pBeam->pGetNode(3);
+       
+	  RF = ReferenceFrame(pNode3);
+	  Vec3 f3(HP.GetPosRel(RF));
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Node 3 offset: " << f3 << endl);
+	  
+	  Mat3x3 R3(Eye3);
+	  if (HP.IsKeyWord("hinge")) {
+		  R3 = HP.GetRotRel(RF);
+		  DEBUGLCOUT(MYDEBUG_INPUT,
+				  "Node 3 rotation matrix: " << endl 
+				  << R3 << endl);
+	  }
+       
+	  bc[i] = NULL;
+	  SAFENEWWITHCONSTRUCTOR(bc[i], BeamConn, 
+			  BeamConn(pBeam, f1, f2, f3, R1, R2, R3));
+       }
+       
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+       SAFENEWWITHCONSTRUCTOR(pEl, BeamSliderJoint,
+		       BeamSliderJoint(uLabel, pDO, 
+			       pNode, 
+			       BeamSliderJoint::SPHERICAL,
+			       nB, bc, 
+			       f, R, fOut));
+       break;
+    }
       
       /* Aggiungere altri vincoli */
       

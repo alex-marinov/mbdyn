@@ -43,6 +43,52 @@
 #include <beam.h>
 #include <joint.h>
 
+/*
+ * Beam connection: 
+ * struttura che contiene i nodi e gli offset di una trave a tre nodi
+ *
+ * BeamConn - begin
+ */
+class BeamConn {
+protected:
+	const Beam *m_pBeam;
+	Vec3 m_f[3];
+	Mat3x3 m_R[3];
+public:
+	BeamConn(const Beam *pB, 
+			const Vec3& f1, const Vec3& f2, const Vec3& f3,
+			const Mat3x3& R1 = Eye3, 
+			const Mat3x3& R2 = Eye3, 
+			const Mat3x3& R3 = Eye3);
+
+	virtual ~BeamConn(void);
+	
+	const Beam *
+	pGetBeam(void) const { 
+		return m_pBeam; 
+	};
+	
+	const StructNode *
+	pGetNode(unsigned int i) const { 
+		return m_pBeam->pGetNode(i); 
+	};
+
+	const Vec3 &
+	Getf(unsigned int i) const {
+		ASSERT(i >= 1 && i <= 3);
+		return m_f[--i];
+	};
+
+	const Mat3x3 &
+	GetR(unsigned int i) const {
+		ASSERT(i >= 1 && i <= 3);
+		return m_R[--i];
+	};
+};
+
+/* BeamConn - end */
+
+
 /* BeamSliderJoint - begin */
 
 class BeamSliderJoint: virtual public Elem, public Joint {
@@ -52,20 +98,32 @@ private:
 	unsigned int nRotConstr;
 	unsigned int nBeams;
 	unsigned int iCurrBeam;
+
 	enum Type iType;
 
 	const StructNode* pNode;
-	const Beam** ppBeam;
+	const BeamConn **ppBeam;
 	Vec3 f;
 	Mat3x3 R;
 	Vec3 F;
 	Vec3 M;
+	doublereal s;
+	int activeNode;
+
+	Vec3 xNod[Beam::NUMNODES];
+	Vec3 fTmp[Beam::NUMNODES];
+	Vec3 xTmp[Beam::NUMNODES];
+	doublereal dN[Beam::NUMNODES];
+	doublereal dNp[Beam::NUMNODES];
+	doublereal dNpp[Beam::NUMNODES];
+	Vec3 x;
+	Vec3 l;
    
 public:
 	/* Costruttore non banale */
 	BeamSliderJoint(unsigned int uL, const DofOwner* pDO,
 			const StructNode* pN, enum Type iT,
-			unsigned int nB, const Beam** ppB,
+			unsigned int nB, const BeamConn **pB,
 			const Vec3& fTmp, const Mat3x3& RTmp, flag fOut);
    
 	/* Distruttore */
@@ -84,16 +142,16 @@ public:
 	};
    
 	virtual unsigned int iGetNumDof(void) const { 
-		return 3+nRotConstr;
+		return 4+nRotConstr;
 	};
    
 	DofOrder::Order SetDof(unsigned int i) const {
-		ASSERT(i >= 0 && i < 3);
+		ASSERT(i >= 0 && i < iGetNumDof());
 		return DofOrder::ALGEBRAIC;
 	}
 
 	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 24+iGetNumDof();
+		*piNumRows = 6*(1+Beam::NUMNODES)+iGetNumDof();
 		*piNumCols = *piNumRows;
 	};
    
@@ -113,11 +171,11 @@ public:
 	
 	/* funzioni usate nell'assemblaggio iniziale */
 	virtual unsigned int iGetInitialNumDof(void) const { 
-		return 6+2*nRotConstr;
+		return 8+2*nRotConstr;
 	};
 	virtual void 
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 48+iGetInitialNumDof(); 
+		*piNumRows = 12*(1+Beam::NUMNODES)+iGetInitialNumDof(); 
 		*piNumCols = *piNumRows;
 	};
 
@@ -153,7 +211,8 @@ public:
 		for (unsigned int i = 0; i < nBeams; i++) {
 			/* for each node */
 			for (int j = 1; j <= Beam::NUMNODES; j++) {
-				const StructNode *pN = ppBeam[i]->pGetNode(j);
+				const StructNode *pN = 
+					ppBeam[i]->pGetNode(j);
 				NdTyps[Beam::NUMNODES*i+j] = pN->GetNodeType();
 				NdLabels[Beam::NUMNODES*i+j] = pN->GetLabel();
 			}
