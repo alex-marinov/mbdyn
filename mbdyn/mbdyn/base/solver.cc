@@ -462,34 +462,7 @@ void Solver::Run(void)
 
 
    	/* costruisce il SolutionManager */
-   	DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager, size = "
-		   << iNumDofs << std::endl);
-
-	
-	integer iLWS = iWorkSpaceSize;
-	integer iNLD = iNumDofs*iUnkStates;
-	if (fParallel) {
-		/*FIXME BEPPE!*/
-		iLWS = iWorkSpaceSize*iNumLocDofs/(iNumDofs*iNumDofs);
-		/*FIXME: GIUSTO QUESTO?*/
-		iNLD = iNumLocDofs*iUnkStates;
-	}
-
-	SolutionManager *pCurrSM = AllocateSolman(iNLD, iLWS);
-
-	/*
-	 * This is the LOCAL solver if instantiating a parallel
-	 * integrator; otherwise it is the MAIN solver
-	 */
-	if (fParallel) {
-		pLocalSM = pCurrSM;
-
-		/* Crea il solutore di Schur globale */
-		pSM = AllocateSchurSolman(iUnkStates);
-
-	} else {
-		pSM = pCurrSM;
-	}
+	AllocateSolmans(iUnkStates);
 	
 	/*
 	 * FIXME: at present there MUST be a pSM
@@ -3518,3 +3491,35 @@ NonlinearSolver *const Solver::AllocateNonlinearSolver() {
 	return pNLS;
 }
 
+void Solver::AllocateSolmans(integer iStates) {
+   	DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager\n\tsize = "
+		   << iNumDofs*iUnkStates << 
+		   "\n\tnumdofs = " << iNumDofs <<
+		   "\n\tnumstates = " iStates << std::endl);
+
+	
+	integer iLWS = iWorkSpaceSize;
+	integer iNLD = iNumDofs*iStates;
+	if (fParallel) {
+		/*FIXME BEPPE!*/
+		iLWS = iWorkSpaceSize*iNumLocDofs/(iNumDofs*iNumDofs);
+		/*FIXME: GIUSTO QUESTO?*/
+		iNLD = iNumLocDofs*iStates;
+	}
+
+	SolutionManager *pCurrSM = AllocateSolman(iNLD, iLWS);
+
+	/*
+	 * This is the LOCAL solver if instantiating a parallel
+	 * integrator; otherwise it is the MAIN solver
+	 */
+	if (fParallel) {
+		pLocalSM = pCurrSM;
+
+		/* Crea il solutore di Schur globale */
+		pSM = AllocateSchurSolman(iStates);
+
+	} else {
+		pSM = pCurrSM;
+	}
+};

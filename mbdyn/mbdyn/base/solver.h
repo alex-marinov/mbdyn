@@ -239,13 +239,14 @@ private:
 			       integer iPerformedIters,
 			       StepIntegrator::StepChange Dmy 
 			       = StepIntegrator::NEWSTEP);
-	
 	/* Alloca Solman */
 	SolutionManager *const AllocateSolman(integer iNLD, integer iLWS = 0);
 	/* Alloca SchurSolman */
 	SolutionManager *const AllocateSchurSolman(integer iStates);
 	/* Alloca Nonlinear Solver */
 	NonlinearSolver *const AllocateNonlinearSolver();
+	/* Alloca tutti i solman*/
+	void AllocateSolmans(integer iStates);
    
 
 public:   
