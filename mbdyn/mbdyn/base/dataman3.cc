@@ -428,8 +428,8 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  break;
        }
 
-#if defined(HAVE_LTDL_H)
        case LOADABLEPATH: {
+#if defined(HAVE_LTDL_H)
           int mode = 0;
 
 	  if (loadableElemInitialized == false) {
@@ -469,9 +469,12 @@ void DataManager::ReadControl(MBDynParser& HP,
 	     }
 	  }
 
+#else /* HAVE_LTDL_H */
+	  silent_cerr("loadable path allowed only in presence of libltdl (ignored)" << std::endl);
+	  (void)HP.GetStringWithDelims();
+#endif /* HAVE_LTDL_H */
 	  break;
        }
-#endif /* HAVE_LTDL_H */
 #endif /* defined(HAVE_LOADABLE) */
 
        case RTAIOUTPUTELEMENTS: {
