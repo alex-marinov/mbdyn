@@ -1597,12 +1597,13 @@ ClampJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 
 /* assemblaggio matrici per autovalori */
-void ClampJoint::AssEig(VariableSubMatrixHandler& WorkMatA,
+void ClampJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
 			VariableSubMatrixHandler& WorkMatB,
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering ClampJoint::AssEig(); will result in call to AssJac()" << std::endl);
+   DEBUGCOUT("Entering ClampJoint::AssMats(); will result in call to AssJac()"
+		   << std::endl);
    
    WorkMatA.SetNullMatrix();
    AssJac(WorkMatB, 1., XCurr, XPrimeCurr);

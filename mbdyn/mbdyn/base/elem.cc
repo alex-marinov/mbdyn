@@ -50,14 +50,13 @@ Elem::~Elem(void)
 
 
 /* assemblaggio matrici per autovalori */
-void Elem::AssEig(VariableSubMatrixHandler& /* WorkMatA */ ,
+void Elem::AssMats(VariableSubMatrixHandler& /* WorkMatA */ ,
 		  VariableSubMatrixHandler& /* WorkMatB */ ,
 		  const VectorHandler& /* XCurr */ ,
 		  const VectorHandler& /* XPrimeCurr */ ) 
 {
-   std::cerr<< psElemNames[GetElemType()] 
-     << "(" << GetLabel() << "): sorry, AssEig not implemented yet" << std::endl;
-   // THROW(ErrNotImplementedYet());
+   std::cerr << psElemNames[GetElemType()] << "(" << GetLabel()
+	   << "): AssMats() not implemented yet" << std::endl;
 }
 
 

@@ -107,7 +107,7 @@ typedef VariableSubMatrixHandler&
 	      const VectorHandler&,
 	      const VectorHandler&);
 typedef void
-(* p_ass_eig)(LoadableElem*,
+(* p_ass_mats)(LoadableElem*,
 	      VariableSubMatrixHandler&,
 	      VariableSubMatrixHandler&,
 	      const VectorHandler&,
@@ -176,7 +176,7 @@ struct LoadableCalls {
 	p_restart 			restart;
 	p_work_space_dim 		work_space_dim;
 	p_ass_jac			ass_jac;
-	p_ass_eig			ass_eig;
+	p_ass_mats			ass_mats;
 	p_ass_res			ass_res;
 	p_before_predict		before_predict;
 	p_after_predict			after_predict;
@@ -239,7 +239,7 @@ public:
 	       const VectorHandler& XCurr,
 	       const VectorHandler& XPrimeCurr);
 	virtual void
-     	AssEig(VariableSubMatrixHandler& WorkMatA,
+     	AssMats(VariableSubMatrixHandler& WorkMatA,
 	       VariableSubMatrixHandler& WorkMatB,
 	       const VectorHandler& XCurr,
 	       const VectorHandler& XPrimeCurr);

@@ -141,7 +141,7 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput {
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const = 0;
    
    /* assemblaggio matrici per autovalori */
-   virtual void AssEig(VariableSubMatrixHandler& WorkMatA,
+   virtual void AssMats(VariableSubMatrixHandler& WorkMatA,
 		       VariableSubMatrixHandler& WorkMatB,
 		       const VectorHandler& XCurr,
 		       const VectorHandler& XPrimeCurr);

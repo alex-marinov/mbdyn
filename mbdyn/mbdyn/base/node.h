@@ -37,7 +37,6 @@
 
 #include <myassert.h>
 
-/* include del programma */
 #include <output.h>
 #include <withlab.h>
 #include <dofown.h>

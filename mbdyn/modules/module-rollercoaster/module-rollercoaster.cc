@@ -242,13 +242,13 @@ ass_jac(LoadableElem* pEl,
 }
 
 static void
-ass_eig(LoadableElem* pEl, 
+ass_mats(LoadableElem* pEl, 
 	VariableSubMatrixHandler& WorkMatA,
 	VariableSubMatrixHandler& WorkMatB,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {  
-   DEBUGCOUTFNAME("ass_eig");
+   DEBUGCOUTFNAME("ass_mats");
    integer iNumRows = 0;
    integer iNumCols = 0;
    pEl->WorkSpaceDim(&iNumRows, &iNumCols);
@@ -454,11 +454,12 @@ LoadableCalls lc = {
 	restart,
 	work_space_dim,
 	ass_jac,
-	ass_eig,
+	ass_mats,
 	ass_res,
 	before_predict,
 	after_predict,
 	update,
+	NULL, /* after_convergence */
 	i_get_initial_num_dof,
 	initial_work_space_dim,
 	initial_ass_jac,

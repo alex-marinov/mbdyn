@@ -30,6 +30,7 @@ dofpgin.cc \
 dofpgin.h \
 drive.cc \
 drive.h \
+driven.cc \
 driven.h \
 drive_.cc \
 drive_.h \

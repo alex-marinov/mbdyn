@@ -387,7 +387,7 @@ LoadableCalls lc = {
 	NULL /* restart */ ,
 	work_space_dim, /* */
 	ass_jac, /* */
-	NULL /* ass_eig */ ,
+	NULL /* ass_mats */ ,
 	ass_res, /* */
 	NULL /* before_predict */ ,
 	after_predict /* */ ,

@@ -190,12 +190,12 @@ VariableSubMatrixHandler& Rod::AssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 
-void Rod::AssEig(VariableSubMatrixHandler& WorkMatA,
+void Rod::AssMats(VariableSubMatrixHandler& WorkMatA,
 		      VariableSubMatrixHandler& WorkMatB,
 		      const VectorHandler& /* XCurr */ ,
 		      const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering Rod::AssEig()" << std::endl);
+   DEBUGCOUT("Entering Rod::AssMats()" << std::endl);
    
    WorkMatB.SetNullMatrix();   
    FullSubMatrixHandler& WMA = WorkMatA.SetFull();

@@ -88,7 +88,7 @@ __ass_jac(LoadableElem* /* pEl */ ,
 }
 
 static void 
-__ass_eig(LoadableElem* /* pEl */ ,
+__ass_mats(LoadableElem* /* pEl */ ,
 	  VariableSubMatrixHandler& WorkMatA,
 	  VariableSubMatrixHandler& WorkMatB,
 	  const VectorHandler& /* XCurr */ ,
@@ -357,8 +357,8 @@ needsAirProperties(false)
 		calls->ass_jac = __ass_jac;
 	}
 
-	if (calls->ass_eig == NULL) {
-		calls->ass_eig = __ass_eig;
+	if (calls->ass_mats == NULL) {
+		calls->ass_mats = __ass_mats;
 	}
 
 	if (calls->ass_res == NULL) {
@@ -501,13 +501,13 @@ LoadableElem::AssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 void
-LoadableElem::AssEig(VariableSubMatrixHandler& WorkMatA,
+LoadableElem::AssMats(VariableSubMatrixHandler& WorkMatA,
 		     VariableSubMatrixHandler& WorkMatB,
 		     const VectorHandler& XCurr,
 		     const VectorHandler& XPCurr)
 {
-   	ASSERT(calls->ass_eig != NULL);
-   	(*calls->ass_eig)(this, WorkMatA, WorkMatB, XCurr, XPCurr);
+   	ASSERT(calls->ass_mats != NULL);
+   	(*calls->ass_mats)(this, WorkMatA, WorkMatB, XCurr, XPCurr);
 }
 
 SubVectorHandler& 

@@ -102,7 +102,7 @@ virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
 				     const VectorHandler& XCurr, 
 				     const VectorHandler& XPrimeCurr);
    
-    void AssEig(VariableSubMatrixHandler& WorkMatA,
+    void AssMats(VariableSubMatrixHandler& WorkMatA,
 	        VariableSubMatrixHandler& WorkMatB,
 	        const VectorHandler& XCurr,
 	        const VectorHandler& XPrimeCurr);

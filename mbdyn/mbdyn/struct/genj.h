@@ -322,7 +322,7 @@ class ClampJoint : virtual public Elem, public Joint {
 				    const VectorHandler& XPrimeCurr);
 
    /* assemblaggio matrici per autovalori */
-   void AssEig(VariableSubMatrixHandler& WorkMatA,
+   void AssMats(VariableSubMatrixHandler& WorkMatA,
 	       VariableSubMatrixHandler& WorkMatB,
 	       const VectorHandler& XCurr,
 	       const VectorHandler& XPrimeCurr);

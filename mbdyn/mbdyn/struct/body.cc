@@ -125,12 +125,12 @@ Body::AssJac(VariableSubMatrixHandler& WorkMat,
 
 
 void
-Body::AssEig(VariableSubMatrixHandler& WorkMatA,
+Body::AssMats(VariableSubMatrixHandler& WorkMatA,
 	     VariableSubMatrixHandler& WorkMatB,	       
 	     const VectorHandler& XCurr,
 	     const VectorHandler& XPrimeCurr)
 {
-    DEBUGCOUTFNAME("Body::AssEig");
+    DEBUGCOUTFNAME("Body::AssMats");
 
     /* Casting di WorkMat */
     FullSubMatrixHandler& WMA = WorkMatA.SetFull();

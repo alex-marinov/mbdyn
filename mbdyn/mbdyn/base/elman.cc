@@ -409,7 +409,7 @@ void DataManager::AssEig(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
        */
       
       /* Con VariableSubMatrixHandler */
-      (*ppTmpEl)->AssEig(*pWorkMatA, *pWorkMatB, *pXCurr, *pXPrimeCurr);
+      (*ppTmpEl)->AssMats(*pWorkMatA, *pWorkMatB, *pXCurr, *pXPrimeCurr);
       A_Hdl += *pWorkMatA;
       B_Hdl -= *pWorkMatB;
    }	   
@@ -419,7 +419,7 @@ void DataManager::AssEig(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
     Elem* pTmpEl = NULL;
     if (ElemIter.fGetFirst(pTmpEl)) {
        do {		 
-	  pTmpEl->AssEig(*pWorkMatA, *pWorkMatB, *pXCurr, *pXPrimeCurr);
+	  pTmpEl->AssMats(*pWorkMatA, *pWorkMatB, *pXCurr, *pXPrimeCurr);
 	  A_Hdl += *pWorkMatA;
 	  B_Hdl += *pWorkMatB;
        } while (ElemIter.fGetNext(pTmpEl));    

@@ -112,12 +112,12 @@ AutomaticStructElem::AssJac(VariableSubMatrixHandler& WorkMat,
 
 /* assemblaggio autoval */
 void 
-AutomaticStructElem::AssEig(VariableSubMatrixHandler& WorkMatA,
+AutomaticStructElem::AssMats(VariableSubMatrixHandler& WorkMatA,
 			    VariableSubMatrixHandler& WorkMatB,
 			    const VectorHandler& /* XCurr */ ,
 			    const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUTFNAME("AutomaticStructElem::AssEig");
+   DEBUGCOUTFNAME("AutomaticStructElem::AssMats");
 
    /* Casting di WorkMat */
    SparseSubMatrixHandler& WMA = WorkMatA.SetSparse();

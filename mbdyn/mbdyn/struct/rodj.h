@@ -126,7 +126,7 @@ virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
 					    const VectorHandler& XCurr, 
 					    const VectorHandler& XPrimeCurr);
 	   
-   virtual void AssEig(VariableSubMatrixHandler& WorkMatA, 
+   virtual void AssMats(VariableSubMatrixHandler& WorkMatA, 
 		       VariableSubMatrixHandler& WorkMatB,
 		       const VectorHandler& XCurr, 
 		       const VectorHandler& XPrimeCurr);

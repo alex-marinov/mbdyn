@@ -282,7 +282,7 @@ class Beam
 
     /* assemblaggio matrici per autovalori */
     void 
-    AssEig(VariableSubMatrixHandler& WorkMatA,
+    AssMats(VariableSubMatrixHandler& WorkMatA,
 	   VariableSubMatrixHandler& WorkMatB,
 	   const VectorHandler& XCurr,
 	   const VectorHandler& XPrimeCurr);

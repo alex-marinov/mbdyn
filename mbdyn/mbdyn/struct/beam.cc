@@ -612,12 +612,12 @@ VariableSubMatrixHandler& Beam::AssJac(VariableSubMatrixHandler& WorkMat,
 
 
 /* assemblaggio matrici per autovalori */
-void Beam::AssEig(VariableSubMatrixHandler& WorkMatA,
+void Beam::AssMats(VariableSubMatrixHandler& WorkMatA,
 		  VariableSubMatrixHandler& WorkMatB,		  
 		  const VectorHandler& XCurr,
 		  const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUTFNAME("Beam::AssEig => AssStiffnessMat");
+   DEBUGCOUTFNAME("Beam::AssMats => AssStiffnessMat");
    
    integer iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
    integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
