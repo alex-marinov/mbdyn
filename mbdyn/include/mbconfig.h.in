@@ -59,6 +59,9 @@
 /* Define if you have the strtol function.  */
 #undef HAVE_STRTOL
 
+/* Define if you have the <exception> header file.  */
+#undef HAVE_EXCEPTION
+
 /* Define if you have the <f2c.h> header file.  */
 #undef HAVE_F2C_H
 
@@ -112,6 +115,9 @@
 
 /* Define if you have the <sstream> header file.  */
 #undef HAVE_SSTREAM
+
+/* Define if you have the <stdexcept> header file.  */
+#undef HAVE_STDEXCEPT
 
 /* Define if you have the <string.h> header file.  */
 #undef HAVE_STRING_H

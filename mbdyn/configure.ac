@@ -263,6 +263,9 @@ AC_CHECK_HEADERS(iomanip)
 AC_CHECK_HEADERS(iomanip.h)
 AC_CHECK_HEADERS(fstream)
 AC_CHECK_HEADERS(fstream.h)
+
+AC_CHECK_HEADERS(exception)
+AC_CHECK_HEADERS(stdexcept)
 AC_LANG_C
 
 
