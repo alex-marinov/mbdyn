@@ -46,20 +46,6 @@ extern "C" {
 #ifdef HAVE_TIMES_H
 #include <sys/times.h>
 #endif /* HAVE_TIMES_H */
-
-/* Per il parsing della linea di comando */
-#include <unistd.h>
-#ifdef HAVE_GETOPT
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
-#else /* !HAVE_GETOPT_H */ 
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#else /* !HAVE_UNISTD_H */
-extern int getopt(int argc, char * const argv[], const char *optstring);
-#endif /* !HAVE_UNISTD_H */
-#endif /* !HAVE_GETOPT_H */ 
-#endif /* HAVE_GETOPT */ 
 }
 
 #include <fstream.h>
@@ -67,7 +53,19 @@ extern int getopt(int argc, char * const argv[], const char *optstring);
 #ifdef USE_MPI 
 #include <mpi++.h>
 #include <schur.h>
-#endif /* USE_MPI */
+
+#define MB_EXIT(err) \
+	do { \
+		MPI::Finalize(); \
+		exit((err)); \
+	} while (0)
+
+#else /* !USE_MPI */
+
+#define MB_EXIT(err) \
+	exit((err))
+
+#endif /* !USE_MPI */
 
 #include <multistp.h>
 
@@ -367,35 +365,26 @@ main(int argc, char* argv[])
 	        		break;
 
 	    		case int('l'):
-	        		cout << "license not available yet;"
-					" see GPL" << endl;
+	        		mbdyn_license(cout);
 #ifdef USE_EXCEPTIONS
 	        		throw NoErr();
 #else /* !USE_EXCEPTIONS */
-#ifdef USE_MPI
-	        		MPI::Finalize();
-#endif /* USE_MPI */
-	        		exit(EXIT_SUCCESS);
+	        		MB_EXIT(EXIT_SUCCESS);
 #endif /* !USE_EXCEPTIONS */
 	    
 	    		case int('w'):
-	        		cout << "warranty not available yet;"
-	            			" see warranty coming with GPL"
-					<< endl;
+				mbdyn_warranty(cout);
 #ifdef USE_EXCEPTIONS
 	        		throw NoErr();
 #else /* !USE_EXCEPTIONS */
-#ifdef USE_MPI
-	        		MPI::Finalize();
-#endif /* USE_MPI */
-	        		exit(EXIT_SUCCESS);
+	        		MB_EXIT(EXIT_SUCCESS);
 #endif /* !USE_EXCEPTIONS */
 	    
 	    		case int('?'):
 	        		cerr << "Unknown option -"
 					<< char(optopt) << endl;
+
 	    		case int('h'):
-	     
 #ifdef USE_MPI
 	        		if (myrank == 0) {
 #endif /* USE_MPI */
@@ -406,10 +395,7 @@ main(int argc, char* argv[])
 #ifdef USE_EXCEPTIONS
 	        		throw NoErr();
 #else /* !USE_EXCEPTIONS */
-#ifdef USE_MPI
-	        		MPI::Finalize();
-#endif /* USE_MPI */
-	        		exit(EXIT_SUCCESS);
+	        		MB_EXIT(EXIT_SUCCESS);
 #endif /* !USE_EXCEPTIONS */
 	    
 	    		case int('H'):
@@ -471,10 +457,7 @@ main(int argc, char* argv[])
 #ifdef USE_EXCEPTIONS
 	    		throw NoErr();
 #else /* !USE_EXCEPTIONS */
-#ifdef USE_MPI
-	    		MPI::Finalize();
-#endif /* USE_MPI */
-	    		exit(EXIT_SUCCESS);
+	    		MB_EXIT(EXIT_SUCCESS);
 #endif /* !USE_EXCEPTIONS */
         	}
             
@@ -648,31 +631,18 @@ main(int argc, char* argv[])
 
 #ifdef USE_EXCEPTIONS
 #warning "/* FIXME: causes core dump on Linux RH 6.2 !?! */"
-        	/* throw NoErr(); */
-    	}
-   
-    	catch (NoErr) {     
+        	throw NoErr();
+    	} catch (NoErr) {     
         	silent_cout("MBDyn terminated normally" << endl);
-#ifdef USE_MPI 
-        	MPI::Finalize();
-#endif /* USE_MPI */
-      
-        	exit(EXIT_SUCCESS);
-    	}
-    	catch (...) {
+        	MB_EXIT(EXIT_SUCCESS);
+    	} catch (...) {
         	cerr << "An error occurred during the execution of MBDyn;"
 	    		" aborting ... " << endl;
-#ifdef USE_MPI
-        	MPI::Finalize();
-#endif /* USE_MPI */
-        	exit(EXIT_FAILURE);
+        	MB_EXIT(EXIT_FAILURE);
     	}
 #endif /* USE_EXCEPTIONS */
    
-#ifdef USE_MPI 
-    	MPI::Finalize();
-#endif /* USE_MPI */
-    	return EXIT_SUCCESS;
+    	MB_EXIT(EXIT_SUCCESS);
 }
 
 

@@ -120,7 +120,9 @@ extern const ReferenceFrame AbsRefFrame;
 #include <aerodata.h>
 #endif /* USE_AERODYNAMIC_ELEMS */
 
-
+/* Deals with license and disclaimer output */
+extern void mbdyn_license(ostream& out);
+extern void mbdyn_warranty(ostream& out);
 
 /* MBDynParser - begin */
 

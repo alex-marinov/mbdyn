@@ -47,6 +47,12 @@ typedef sighandler_t __sighandler_t;
 #endif /* !HAVE___SIGHANDLER_T */
 #endif /* HAVE_SIGNAL */
 
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#else /* !HAVE_GETOPT_H */
+#include <../libraries/libobjs/getopt.h>
+#endif /* !HAVE_GETOPT_H */
+
 #ifdef HAVE_BOOL
 #ifdef NEED_BOOL_H
 #include <bool.h>

@@ -538,112 +538,6 @@ esac
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Check for MPI & MPI++
-dnl
-ol_link_mpi=no
-if test $ol_with_mpi != no ; then
-	OL_ADD_DIRS(mpi)
-	AC_CHECK_HEADER(mpi.h)
-	AC_LANG_CPLUSPLUS
-	AC_CHECK_HEADER(mpi++.h)
-	AC_LANG_C
-	
-	if test $ac_cv_header_mpi_h = yes -a $ac_cv_header_mpipp_h = yes ; then
-		AC_MSG_CHECKING([for mpi libraries])
-		AC_LANG_CPLUSPLUS
-		try_mpi_LIBS="-lmpich++ -lmpich -lnsl"
-		save_LIBS=$LIBS
-		LIBS="$LIBS $try_mpi_LIBS"
-		AC_TRY_LINK([#include <mpi++.h>],[
-			int argc = 0;
-			char **argv = (void *)0;
-			MPI::Init(argc, argv);
-		],[have_mpi=yes],[have_mpi=no])
-		LIBS=$save_LIBS
-		AC_LANG_C
-
-		if test $have_mpi != no ; then
-			MPI_LIBS=$try_mpi_LIBS
-			AC_DEFINE(USE_MPI,1,[define if you want to use MPI])
-			ol_link_mpi=yes
-			AC_MSG_RESULT([yes])
-		else
-			AC_MSG_RESULT([no])
-		fi
-	fi
-
-	if test $ol_link_mpi = no ; then	
-		if test $ol_with_mpi != auto ; then
-			AC_MSG_ERROR([Could not locate MPI])
-		else
-			AC_MSG_WARN([Could not locate MPI])
-			AC_MSG_WARN([MPI not supported!])
-		fi
-	fi
-else
-	AC_MSG_WARN([MPI not supported!])
-fi
-
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Need Schur parallel solver with MPI
-dnl
-if test $ol_link_mpi = yes ; then
-	AC_DEFINE(USE_SCHUR,1,[define if you want to use Schur parallel solver])
-fi
-
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Need also Metis with MPI
-dnl
-ol_link_metis=no
-if test $ol_with_metis != no ; then
-	OL_ADD_DIRS(metis)
-	
-	if test $ol_link_mpi != yes -a $ol_with_metis != yes ; then
-	
-		AC_MSG_WARN([You need Metis only with MPI])
-	else
-	
-		AC_CHECK_HEADERS(metis.h)
-
-		if test $ac_cv_header_metis_h = yes ; then
-			AC_CHECK_LIB(metis, METIS_PartGraphVKway,
-				[have_metis=yes],[have_metis=no])
-
-			if test $have_metis != no ; then
-				METIS_LIBS="-lmetis -lm"
-				AC_DEFINE(USE_METIS,1,
-					[define if you want to use Metis])
-				ol_link_metis=yes
-			fi
-		fi
-
-		if test $ol_link_metis = no ; then
-			if test $ol_with_metis != auto ; then
-				AC_MSG_ERROR([Could not locate Metis])
-			else
-				AC_MSG_WARN([Could not locate Metis])
-				AC_MSG_WARN([Metis not supported!])
-			fi
-
-			if test $ol_link_mpi = yes ; then
-				AC_MSG_ERROR([You NEED Metis \
-					to use Schur parallel solver!])
-			fi
-		fi
-	fi
-else
-	AC_MSG_WARN([Metis not supported!])
-fi
-
-
-
-
-dnl ----------------------------------------------------------------
-dnl
 dnl Check for Meschach
 dnl
 ol_link_meschach=no
@@ -710,6 +604,7 @@ if test $ol_with_harwell != no ; then
 	HARWELL_LIBS="../libraries/libharwell/libharwell.la"
 fi
 
+
 dnl ----------------------------------------------------------------
 dnl
 dnl Check for a solver
@@ -719,6 +614,7 @@ if test $ol_link_meschach = no \
 	-a $ol_link_harwell = no ; then
 	AC_MSG_ERROR([Need at least one (sparse) solver])
 fi
+
 
 dnl ----------------------------------------------------------------
 dnl
@@ -786,13 +682,111 @@ fi
 		
 	
 dnl ----------------------------------------------------------------
-dnl Checks for libraries.
 dnl
+dnl Check for MPI & MPI++
+dnl
+ol_link_mpi=no
+if test $ol_with_mpi != no ; then
+	OL_ADD_DIRS(mpi)
+	AC_CHECK_HEADER(mpi.h)
+	AC_LANG_CPLUSPLUS
+	AC_CHECK_HEADER(mpi++.h)
+	AC_LANG_C
+	
+	if test $ac_cv_header_mpi_h = yes -a $ac_cv_header_mpipp_h = yes ; then
+		AC_MSG_CHECKING([for mpi libraries])
+		AC_LANG_CPLUSPLUS
+		try_mpi_LIBS="-lmpich++ -lmpich -lnsl"
+		save_LIBS=$LIBS
+		LIBS="$LIBS $try_mpi_LIBS"
+		AC_TRY_LINK([#include <mpi++.h>],[
+			int argc = 0;
+			char **argv = (void *)0;
+			MPI::Init(argc, argv);
+		],[have_mpi=yes],[have_mpi=no])
+		LIBS=$save_LIBS
+		AC_LANG_C
 
-dnl meschach
-dnl metis
-dnl lapack
-dnl ...
+		if test $have_mpi != no ; then
+			MPI_LIBS=$try_mpi_LIBS
+			AC_DEFINE(USE_MPI,1,[define if you want to use MPI])
+			ol_link_mpi=yes
+			AC_MSG_RESULT([yes])
+		else
+			AC_MSG_RESULT([no])
+		fi
+	fi
+
+	if test $ol_link_mpi = no ; then	
+		if test $ol_with_mpi != auto ; then
+			AC_MSG_ERROR([Could not locate MPI])
+		else
+			AC_MSG_WARN([Could not locate MPI])
+			AC_MSG_WARN([MPI not supported!])
+		fi
+	else
+		if test $ol_link_harwell != yes ; then
+			AC_MSG_ERROR([Need Harwell to use Schur solver with MPI])
+		fi
+	fi
+else
+	AC_MSG_WARN([MPI not supported!])
+fi
+
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Need Schur parallel solver with MPI
+dnl
+if test $ol_link_mpi = yes ; then
+	AC_DEFINE(USE_SCHUR,1,[define if you want to use Schur parallel solver])
+fi
+
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Need also Metis with MPI
+dnl
+ol_link_metis=no
+if test $ol_with_metis != no ; then
+	OL_ADD_DIRS(metis)
+	
+	if test $ol_link_mpi != yes -a $ol_with_metis != yes ; then
+	
+		AC_MSG_WARN([You need Metis only with MPI])
+	else
+	
+		AC_CHECK_HEADERS(metis.h)
+
+		if test $ac_cv_header_metis_h = yes ; then
+			AC_CHECK_LIB(metis, METIS_PartGraphVKway,
+				[have_metis=yes],[have_metis=no])
+
+			if test $have_metis != no ; then
+				METIS_LIBS="-lmetis -lm"
+				AC_DEFINE(USE_METIS,1,
+					[define if you want to use Metis])
+				ol_link_metis=yes
+			fi
+		fi
+
+		if test $ol_link_metis = no ; then
+			if test $ol_with_metis != auto ; then
+				AC_MSG_ERROR([Could not locate Metis])
+			else
+				AC_MSG_WARN([Could not locate Metis])
+				AC_MSG_WARN([Metis not supported!])
+			fi
+
+			if test $ol_link_mpi = yes ; then
+				AC_MSG_ERROR([You NEED Metis \
+					to use Schur parallel solver!])
+			fi
+		fi
+	fi
+else
+	AC_MSG_WARN([Metis not supported!])
+fi
 
 
 dnl ----------------------------------------------------------------
@@ -834,7 +828,7 @@ dnl
 AC_LANG_CPLUSPLUS
 AC_MSG_CHECKING([whether class ios has fmtflags type])
 AC_TRY_COMPILE([#include <iostream.h>],[
-	ios::fmtflags flag;
+	ios::fmtflags f;
 ],[have_fmtflags=yes],[have_fmtflags=no])
 AC_LANG_C
 

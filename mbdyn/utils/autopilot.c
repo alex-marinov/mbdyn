@@ -19,8 +19,6 @@
 #include <netdb.h>
 
 #include <string.h>
-#include <getopt.h>
-#include <signal.h>
 
 const unsigned short int PORT = 5555;
 const char* SERVERHOST = "localhost";

@@ -22,7 +22,7 @@ LIBS = \
 ../libraries/libmbwrap/libmbwrap.la \
 ../libraries/libmbmath/libmbmath.la \
 ../libraries/libmbutil/libmbutil.la \
-../libraries/libmbutil/libobjs.la \
+../libraries/libobjs/libobjs.la \
 @Y12_LIBS@ \
 @HARWELL_LIBS@ \
 ../libraries/libmbwrap/libmbwrap.la \
@@ -50,7 +50,6 @@ intg_LDADD = -ldl
 dae_intg_LDADD = -ldl
 
 INCLUDES = \
--I../libraries/libobjs \
 -I../libraries/libmbutil \
 -I../libraries/libmbmath \
 -I../libraries/libmbwrap \

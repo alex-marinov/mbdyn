@@ -66,8 +66,18 @@ main(int argc, const char* const argv[])
 			if (verbose) {
 	    			cout << "argv[" << i << "] = ";
 			}
+
+#ifdef USE_EXCEPTIONS
+			try {
+#endif /* USE_EXCEPTIONS */
 	    		mp.GetForever(cout, "; ");
 	    		cout << endl;
+#ifdef USE_EXCEPTIONS
+			} catch (...) {
+      				cout << endl;
+				exit(EXIT_FAILURE);
+			}
+#endif /* USE_EXCEPTIONS */
 	 	}
 	 	exit(EXIT_SUCCESS);
       	}
@@ -86,9 +96,18 @@ main(int argc, const char* const argv[])
 	mp.RegisterPlugIn("tcl", dummy_plugin,
 			(void *)"configure with --with-tcl to use tcl plugin");
 #endif /* USE_TCL */
-	
-      	mp.GetForever(cout, "\n");
+
+#ifdef USE_EXCEPTIONS
+	try {	
+#endif /* USE_EXCEPTIONS */
+	mp.GetForever(cout, "\n");
       	cout << endl;
       	exit(EXIT_SUCCESS);
+#ifdef USE_EXCEPTIONS
+	} catch (...) {
+      		cout << endl;
+		exit(EXIT_FAILURE);
+	}
+#endif /* USE_EXCEPTIONS */
 }
 

@@ -6,7 +6,6 @@
 #include <iostream.h>
 #include <iomanip.h>
 #include <fstream.h>
-#include <getopt.h>
 
 extern "C" {
 #include <aerodc81.h>

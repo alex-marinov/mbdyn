@@ -86,7 +86,6 @@ INCLUDES = \
 -I../../libraries/libmbmath \
 -I../../libraries/libmbwrap \
 -I../../libraries/libharwell \
--I../../libraries/libobjs \
 -I../../mbdyn \
 -I../../mbdyn/base \
 -I../../mbdyn/struct \

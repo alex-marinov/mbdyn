@@ -47,6 +47,21 @@
 
 /* MBDynParser - begin */
 
+void
+mbdyn_license(ostream& out)
+{
+	out << "license not available yet;"
+		" see GPL" << endl;
+}
+
+void
+mbdyn_warranty(ostream& out)
+{
+	out << "warranty not available yet;"
+		" see warranty coming with GPL"
+		<< endl;
+}
+
 MBDynParser::MBDynParser(MathParser& MP, KeyTable& KT, InputStream& streamIn)
 : IncludeParser(MP, KT, streamIn)
 #if defined(USE_STRUCT_NODES)
@@ -325,6 +340,16 @@ restart:
 #else /* USE_AERODYNAMIC_ELEMS */
 		THROW(MBDynParser::ErrGeneric());
 #endif /* USE_AERODYNAMIC_ELEMS */
+
+	/* Scrive la licenza */
+	} else if (!strcmp(s, "license")) {
+		mbdyn_license(cout);
+		goto restart;
+	
+	/* Scrive il disclaimer */
+	} else if (!strcmp(s, "warranty")) {
+		mbdyn_warranty(cout);
+		goto restart;
 	}
 
 	/* altrimenti e' una description normale */

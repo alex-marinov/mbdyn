@@ -9,7 +9,6 @@
 #include <harwrap.h>
 #include <mschwrap.h>
 
-#include <getopt.h>
 #include <string.h>
 #include <dlfcn.h>
 
