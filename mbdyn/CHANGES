@@ -25,6 +25,7 @@ MBDyn 1.2-Engineering
 		- improve modules installation
 		- clamp joint reactions also output in node reference frame
 		- added internal forces and couples (i.e. between two nodes)
+		- added electric motor
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility

@@ -37,8 +37,12 @@
 #ifdef USE_ELECTRIC_NODES
 
 #include <elec.h>
+#include <elecnode.h>
+#include <drive.h>
+#include <strnode.h>
 #include <accelerometer.h>
 #include <displacement.h>
+#include <motor.h>
 #include <dataman.h>
 #include <discctrl.h>
 
@@ -167,6 +171,7 @@ Elem* ReadElectric(DataManager* pDM,
    const char* sKeyWords[] = {
       "accelerometer",
       "displacement",
+      "motor",
       "discretecontrol",	
       "identification",
           "const",
@@ -181,6 +186,9 @@ Elem* ReadElectric(DataManager* pDM,
 	
       ACCELEROMETER = 0,
       DISPLACEMENT,
+
+      MOTOR,
+
       DISCRETECONTROL,	
       IDENTIFICATION,
           CONST,
@@ -442,7 +450,91 @@ Elem* ReadElectric(DataManager* pDM,
        THROW(ErrGeneric());
 #endif /* USE_STRUCT_NODES */
     }
-      
+
+    case MOTOR: {
+#if defined(USE_STRUCT_NODES)
+	  
+       /* nodo strutturale collegato 1 */
+       unsigned int uNode = (unsigned int)HP.GetInt();	     
+       DEBUGCOUT("Linked to Structural Node " << uNode << std::endl);
+       
+       /* verifica di esistenza del nodo strutturale */
+       StructNode* pStrNode1;
+       pStrNode1 = pDM->pFindStructNode(uNode);
+       if (pStrNode1 == NULL) {
+	  std::cerr << "line " << HP.GetLineData() 
+	      << ": structural node " << uNode
+	    << " not defined" << std::endl;
+	  THROW(DataManager::ErrGeneric());
+       }
+	
+       /* nodo strutturale collegato 2 */
+       uNode = (unsigned int)HP.GetInt();	     
+       DEBUGCOUT("Linked to Structural Node " << uNode << std::endl);
+       
+       /* verifica di esistenza del nodo strutturale */
+       StructNode* pStrNode2;
+       pStrNode2 = pDM->pFindStructNode(uNode);
+       if (pStrNode2 == NULL) {
+	  std::cerr << "line " << HP.GetLineData() 
+	      << ": structural node " << uNode
+	    << " not defined" << std::endl;	  
+	  THROW(DataManager::ErrGeneric());
+       }		  
+
+       /* direzione */
+       Vec3 TmpDir(HP.GetVecRel(ReferenceFrame(pStrNode1)));
+       if (TmpDir.Norm() < DBL_EPSILON) {
+	       std::cerr << "motor direction is illegal at line "
+		       << HP.GetLineData() << std::endl;
+	       THROW(ErrGeneric());
+       }
+
+       /* nodo astratto collegato */
+       uNode = (unsigned int)HP.GetInt();	     
+       DEBUGCOUT("Linked to Abstract Node " << uNode << std::endl);
+       
+       /* verifica di esistenza del nodo astratto */
+       AbstractNode* pVoltage1;
+       pVoltage1 = (AbstractNode*)pDM->pFindNode(Node::ABSTRACT, uNode);
+       if (pVoltage1 == NULL) {
+	  std::cerr << "line " << HP.GetLineData() 
+	      << ": abstract node " << uNode
+	    << " not defined" << std::endl;	  
+	  THROW(DataManager::ErrGeneric());
+       }
+       
+       /* nodo astratto collegato */
+       uNode = (unsigned int)HP.GetInt();	     
+       DEBUGCOUT("Linked to Abstract Node " << uNode << std::endl);
+       
+       /* verifica di esistenza del nodo astratto */
+       AbstractNode* pVoltage2;
+       pVoltage2 = (AbstractNode*)pDM->pFindNode(Node::ABSTRACT, uNode);
+       if (pVoltage2 == NULL) {
+	  std::cerr << "line " << HP.GetLineData() 
+	      << ": abstract node " << uNode
+	    << " not defined" << std::endl;	  
+	  THROW(DataManager::ErrGeneric());
+       }
+
+       doublereal dG = HP.GetReal();
+       doublereal dl = HP.GetReal();
+       doublereal dr = HP.GetReal();
+       
+       flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
+       
+       SAFENEWWITHCONSTRUCTOR(pEl, Motor, Motor(uLabel, pDO, 
+	       		       pStrNode1, pStrNode2, pVoltage1, pVoltage2,
+			       TmpDir, dG, dl, dr, fOut));
+       break;
+       
+#else /* USE_STRUCT_NODES */
+       std::cerr << "you're not allowed to use electric motors" << std::endl;
+       THROW(ErrGeneric());
+#endif /* USE_STRUCT_NODES */
+    }
+
       /*  */
     case DISCRETECONTROL: {
        /* lettura dei dati specifici */
@@ -769,7 +861,7 @@ Elem* ReadElectric(DataManager* pDM,
        
        break;
     }
-                        
+
       /* Aggiungere altri elementi elettrici */
       
     default: {

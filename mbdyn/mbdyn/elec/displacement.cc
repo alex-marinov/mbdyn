@@ -36,6 +36,8 @@
 
 #if defined(USE_ELECTRIC_NODES) && defined(USE_STRUCT_NODES)
 
+#include <strnode.h>
+#include <elecnode.h>
 #include <displacement.h>
 
 /* DispMeasure - begin */

@@ -25,6 +25,8 @@ gpc.cc \
 gpc.h \
 id.cc \
 id.h \
+motor.cc \
+motor.h \
 px.cc \
 px.h \
 rottrim.cc \

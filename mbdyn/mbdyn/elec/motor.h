@@ -50,7 +50,7 @@
  
  */
 
-class Motor : virtual public Elem, public ElectricElem {
+class Motor : virtual public Elem, public Electric {
 private:
 	const StructNode *pStrNode1;
 	const StructNode *pStrNode2;
@@ -102,13 +102,15 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
      	virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps,
 			unsigned int* NdLabels) {
-		NumNodes = 3;
+		NumNodes = 4;
 		NdTyps[0] = pStrNode1->GetNodeType();
 		NdLabels[0] = pStrNode1->GetLabel();
 		NdTyps[1] = pStrNode2->GetNodeType();
 		NdLabels[1] = pStrNode2->GetLabel();
-		NdTyps[2] = pAbsNode->GetNodeType();
-		NdLabels[2] = pAbsNode->GetLabel();
+		NdTyps[2] = pVoltage1->GetNodeType();
+		NdLabels[2] = pVoltage1->GetLabel();
+		NdTyps[3] = pVoltage2->GetNodeType();
+		NdLabels[3] = pVoltage2->GetLabel();
 	};
 	/* ************************************************ */
 };

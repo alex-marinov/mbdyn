@@ -34,9 +34,6 @@
 #define ELEC_H
 
 #include "elem.h"
-#include "elecnode.h"
-#include "strnode.h"
-#include "drive.h"
       
 extern const char* psElectricNames[];
 
@@ -51,6 +48,7 @@ class Electric : virtual public Elem, public ElemWithDofs {
       ACCELEROMETER = 0,
       DISPLACEMENT,
       DISCRETECONTROL,
+      MOTOR,
       
       LASTELECTRICTYPE
    };
