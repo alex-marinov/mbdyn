@@ -239,7 +239,7 @@ TaucsSparseSolutionManager::~TaucsSparseSolutionManager(void)
 }
 
 void
-TaucsSparseSolutionManager::MatrReset()
+TaucsSparseSolutionManager::MatrReset(void)
 {
 	A.Reset();
 	pLS->Reset();
@@ -301,7 +301,7 @@ TaucsSparseCCSolutionManager<CC>::~TaucsSparseCCSolutionManager(void)
 
 template <class CC>
 void
-TaucsSparseCCSolutionManager<CC>::MatrReset()
+TaucsSparseCCSolutionManager<CC>::MatrReset(void)
 {
 	if (!CCReady) {
 		A.Reset();

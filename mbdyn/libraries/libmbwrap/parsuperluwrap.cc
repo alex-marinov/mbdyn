@@ -494,7 +494,7 @@ SuperLUSparseSolutionManager::IsValid(void) const
 
 /* Inizializza il gestore delle matrici */
 void
-SuperLUSparseSolutionManager::MatrReset()
+SuperLUSparseSolutionManager::MatrReset(void)
 {
 #ifdef DEBUG
    	IsValid();

@@ -152,7 +152,7 @@ LapackSolutionManager::~LapackSolutionManager(void)
 }
 
 void
-LapackSolutionManager::MatrReset()
+LapackSolutionManager::MatrReset(void)
 {
 	A.Reset();
 	pLS->Reset();
