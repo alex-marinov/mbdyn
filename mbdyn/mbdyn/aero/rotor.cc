@@ -54,8 +54,6 @@ extern "C" {
 #include <mymath.h>
 }
 
-const doublereal dOmegaRatio = 0.e0;
-
 /* Rotor - begin */
 
 Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
@@ -259,18 +257,15 @@ void Rotor::InitParam(void)
    /* Parametri di influsso (usano il valore di dUMean al passo precedente) */
    doublereal d = 0.;
    dMu = 0.;
-   dLambda = 1.e-3; /* non si puo' metterlo a zero! */
-   if (dOmega/dOmegaRef > dOmegaRatio) {
-      d = dOmega*dRadius;
-      if (d > DBL_EPSILON) {
-         dMu = (dVelocity*dCosAlphad)/d;
-         dLambda = (dVelocity*dSinAlphad+dUMean)/d;
-      }
+   dLambda = 0.;
+   d = dOmega*dRadius;
+   if (d > DBL_EPSILON) {
+      dMu = (dVelocity*dCosAlphad)/d;
+      dLambda = (dVelocity*dSinAlphad+dUMean)/d;
    }
    
    if (dMu == 0. && dLambda == 0.) {
       dChi = 0.;
-      dLambda = 1.e-3; /* non si puo' metterlo a zero! */
    } else {      
       dChi = atan2(dMu, dLambda);
    }
@@ -297,12 +292,8 @@ void Rotor::MeanInducedVelocity(void)
 	 THROW(Rotor::ErrInfiniteMeanInducedVelocity());	
       } */
       
-      if (dOmega/dOmegaRef > dOmegaRatio) {
-	 d = 2.*dGetAirDensity(GetXCurr())*dArea*dOmega*dRadius*d;
-	 if (d > 1.e-6) {
-	    dUMeanTmp = dCorrection*dT/d;
-	 }
-      }      	      
+      d = 2.*dGetAirDensity(GetXCurr())*dArea*dOmega*dRadius*d;
+      dUMeanTmp = dCorrection*dT/(d+1.);
    } /* else dUMeanTmp is already 0. */
 
    dUMean = dUMeanTmp*(1.-dWeight)+dUMeanPrev*dWeight;
