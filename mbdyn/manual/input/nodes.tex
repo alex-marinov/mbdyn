@@ -93,19 +93,20 @@ Two dummy structural node types are available.
 \begin{verbatim}
     <arglist> ::= dummy , <base_node> , <type> , <dummy_node_data>
 \end{verbatim}
-{\em 
-    Note: the \kw{static} and \kw{dynamic} type is optional; if not given,
-    it defaults to \kw{dynamic}. 
-    This practice is deprecated and could become unsupported in the future, 
-    so it is a good practice to enforce the type of the structural node. \\
-    The stiffness parameters, and the \kw{omega\_rotates} flag, 
-    override the default values. 
-    They are optional, but they must be supplied all together if at least
-    one is to be input.
-} \\
+The stiffness parameters, and the \kw{omega\_rotates} flag, 
+override the default values. 
+They are optional, but they must be supplied all together if at least
+one is to be input. \\
 The \kw{omega\_rotates} flag can take values \kw{yes} or \kw{no};
 a numerical value of 0 (no) or 1 (yes) is supported for backwards
-compatibility, but its use is deprecated.
+compatibility, but its use is deprecated. \\
+The \kw{dynamic} node type allows the optional output keyword
+\kw{accelerations} after the standard node output paramters
+to enable the computation of the linear and angular accelerations
+of the node.  Since this is a postprocessing, it is not required
+by the regular analysis, so it should be enabled only when strictly
+required.  Also note that accelerations may be inaccurate.
+%FIXME: elaborate on this.
 
 Dummy nodes take the label of the \kw{base\_node} they are attached to, 
 followed by the type of dummy node, possibly followed by specific data.
@@ -139,6 +140,12 @@ The following dummy types are available:
     structural: 1, static, null, eye, null, 0.,0.,Omega;
     structural: 1000, dummy, 1, offset, 1.,0.,0., eye;
     structural: 1001, dummy, 1, relative frame, 1000;
+    structural: 2000, dynamic,
+        0.,0.,1.,
+        1, 1.,0.,0., 2, 0.,0.,1.,
+        null,
+        null,
+        accelerations;
     \end{verbatim}
 
 \end{itemize}
@@ -158,9 +165,9 @@ The rows contain: \vspace{2mm} \\
 	11--13 & the three components of the angular velocity of the node \\
 	\hline
 	14--16 & the three components of the linear acceleration
-		of the \kw{dynamic} nodes \\
+		of the \kw{dynamic} nodes (optional) \\
 	17--19 & the three components of the angular acceleration
-		of the \kw{dynamic} nodes \\
+		of the \kw{dynamic} nodes (optional) \\
 	\hline
 \end{tabular}\vspace{2mm}\\
 All the quantities are expressed in the global frame, except for
@@ -280,5 +287,11 @@ module. \\
    of the \kw{output} card in the \kw{nodes} block. 
    This allows high flexibility in the selection of the desired output. 
    The same remarks apply to the output of the elements.
+}
+
+{\em
+    Note: for dynamic structural nodes, the optional keyword \kw{accelerations}
+    can be used right after the \kw{node\_type} to enable the output
+    of the accelerations.
 }
 

@@ -20,6 +20,7 @@ MBDyn 1.X-Devel
 		  (by permission)
 	Backward compatibility issues:
 		- s/solver/linear solver/
+		- dynamic structural node accelerations are now off by default
 	Known issues:
 	Bug fixes:
 		- fixed "derivatives" update
