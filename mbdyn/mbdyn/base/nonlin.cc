@@ -96,3 +96,33 @@ NonlinearSolver::TotalAssembledJacobian(void)
 	return TotJac;
 }
 
+
+#ifdef USE_EXTERNAL
+void NonlinearSolver::SetExternal(const External::ExtMessage Ty)
+{
+	ExtStepType = Ty;
+	return;
+}
+
+void  NonlinearSolver::SendExternal(void)
+{
+	switch (ExtStepType) {
+		case (External::EMPTY):
+			External::SendNull();
+			break;
+
+		case (External::REGULAR):
+			External::SendRegular();
+			break;
+
+		case (External::CLOSE):
+			External::SendClose();
+			break;
+
+		case (External::ERROR):
+		default:
+			External::SendError();
+	}
+	return;
+}
+#endif /* USE_EXTERNAL */
