@@ -83,6 +83,8 @@ read(LoadableElem* pEl,
 "									\n"
 "	All rights reserved						\n"
 "									\n"
+"	EXPERIMENTAL: used to test different friction models		\n"
+"									\n"
 			<< std::endl;
 
 		if (!HP.fIsArg()) {
