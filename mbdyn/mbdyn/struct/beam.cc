@@ -234,7 +234,7 @@ Beam::~Beam(void)
 unsigned int
 Beam::iGetNumPrivData(void) const
 {
-	return 12;
+	return 24;
 }
 
 unsigned int
@@ -248,18 +248,24 @@ Beam::iGetPrivDataIdx(const char *s) const
 
 	unsigned int idx = 0;
 
-	if (strncmp(s, "pII.", sizeof("pII.") - 1) == 0) {
-		s += sizeof("pII.") - 1;
-		idx += 6;
-
-	} else if (strncmp(s, "pI.", sizeof("pI.") - 1) == 0) {
-		s += sizeof("pI.") - 1;
-
-	} else {
+	if (strncmp(s, "pI", sizeof("pI") - 1) != 0) {
 		return 0;
 	}
+	s += sizeof("pI") - 1;
+	
+	if (s[0] == 'I') {
+		idx += 12;
+		s++;
+	}
+
+	if (s[0] != '.') {
+		return 0;
+	}
+	s++;
 
 	switch (s[0]) {
+	case 'F':
+		idx += 6;
 	case 'e':
 		switch (s[1]) {
 		case 'x':
@@ -275,6 +281,8 @@ Beam::iGetPrivDataIdx(const char *s) const
 		}
 		break;
 
+	case 'M':
+		idx += 6;
 	case 'k':
 		idx += 3;
 		switch (s[1]) {
@@ -315,18 +323,42 @@ Beam::dGetPrivData(unsigned int i) const
 	case 4:
 	case 5:
 	case 6:
+
+	case 13:
+	case 16:
+	case 17:
+	case 18:
+		return DefLoc[(i - 1)/12].dGet((i - 1)%12 + 1);
+
 	case 7:
 	case 10:
 	case 11:
 	case 12:
-		return DefLoc[(i-1)/6].dGet((i-1)%6+1);
+
+	case 19:
+	case 22:
+	case 23:
+	case 24:
+		return AzLoc[(i - 1)/12].dGet((i - 1)%12 + 1);
+
 	case 2:
 	case 3:
-	case 8:
-	case 9:
+
+	case 14:
+	case 15:
 		silent_cerr("Beam(" << GetLabel() << "): "
 			"not allowed to return shear strain" << std::endl);
 		throw ErrGeneric();
+
+	case 8:
+	case 9:
+
+	case 20:
+	case 21:
+		silent_cerr("Beam(" << GetLabel() << "): "
+			"not allowed to return shear force" << std::endl);
+		throw ErrGeneric();
+
 	default:
 		silent_cerr("Beam(" << GetLabel() << "): "
 			"illegal private data " << i << std::endl);

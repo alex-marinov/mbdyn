@@ -96,6 +96,36 @@ void DeformableDispHingeJoint::Output(OutputHandler& OH) const
    }     
 }
 
+unsigned int
+DeformableDispHingeJoint::iGetNumPrivData(void) const
+{
+	return ConstitutiveLaw3DOwner::iGetNumPrivData();
+}
+
+unsigned int
+DeformableDispHingeJoint::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+
+	size_t l = sizeof("constitutiveLaw.") - 1;
+	if (strncmp(s, "constitutiveLaw.", l) == 0) {
+		return ConstitutiveLaw3DOwner::iGetPrivDataIdx(s + l);
+	}
+
+	/* error; handle later */
+	return 0;
+}
+
+doublereal
+DeformableDispHingeJoint::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i > 0);
+
+	ASSERT(i <= ConstitutiveLaw3DOwner::iGetNumPrivData());
+
+	return ConstitutiveLaw3DOwner::dGetPrivData(i);
+}
+
 /* DeformableDispHingeJoint - end */
 
 
@@ -168,15 +198,15 @@ void ElasticDispHingeJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
    Mat3x3 R1(pNode1->GetRRef()*R1h);
    Vec3 F(R1*(GetF()*dCoef));
    Mat3x3 MatF(F);
+   /* F/e */
    Mat3x3 FDE(R1*GetFDE()*(R1.Transpose()*dCoef));
    
-   Mat3x3 MTmp(FDE); /* F/e */
-   WM.Add(1, 1, MTmp);
-   WM.Add(7, 7, MTmp);
-   MTmp = -MTmp; /* -F/e */
-   WM.Add(1, 7, MTmp);
-   WM.Add(7, 1, MTmp);
+   WM.Add(1, 1, FDE);
+   WM.Add(7, 7, FDE);
+   WM.Sub(1, 7, FDE);
+   WM.Sub(7, 1, FDE);
    
+   Mat3x3 MTmp;
    MTmp = FDE*Mat3x3(f2Tmp); /* F/e * f2/\ */
    WM.Add(1, 10, MTmp);   
    WM.Sub(7, 10, MTmp);
@@ -187,18 +217,18 @@ void ElasticDispHingeJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
    WM.Add(10, 7, MTmp);
    WM.Sub(10, 1, MTmp);
    
-   WM.Add(10, 10, (MatF-MTmp)*Mat3x3(f2Tmp)); /* (F/\ - f2/\ F/e) f2/\ */
+   WM.Add(10, 10, (MatF - MTmp)*Mat3x3(f2Tmp)); /* (F/\ - f2/\ F/e) f2/\ */
    
    MTmp = Mat3x3(f1Tmp)*FDE; /* f1/\ F/e */
    WM.Add(4, 1, MTmp);
    WM.Sub(4, 7, MTmp);
    
-   MTmp = FDE*Mat3x3(d1)-MatF; /* F/e * d1/\ - F/\ */
+   MTmp = FDE*Mat3x3(d1) - MatF; /* F/e * d1/\ - F/\ */
    WM.Add(7, 4, MTmp);
    WM.Sub(1, 4, MTmp);
    WM.Add(10, 4, Mat3x3(f2Tmp)*MTmp); /* f2/\ (F/e * d1/\ - F/\) */
    
-   WM.Add(4, 4, Mat3x3(f1Tmp, F)-Mat3x3(f1Tmp)*FDE*Mat3x3(d1)); /* ... */
+   WM.Add(4, 4, Mat3x3(f1Tmp, F) - Mat3x3(f1Tmp)*FDE*Mat3x3(d1)); /* ... */
 }
 
 
@@ -236,10 +266,10 @@ void ElasticDispHingeJoint::AssVec(SubVectorHandler& WorkVec)
    Mat3x3 R1(pNode1->GetRCurr()*R1h);
    Vec3 f1Tmp(pNode1->GetRCurr()*f1);
    Vec3 f2Tmp(pNode2->GetRCurr()*f2);
-   Vec3 d1(pNode2->GetXCurr()+f2Tmp-pNode1->GetXCurr());   
+   Vec3 d1(pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr());   
 
    /* k = R1^T*(d1-f1) */   
-   k = R1.Transpose()*(d1-f1Tmp);
+   k = R1.Transpose()*(d1 - f1Tmp);
    ConstitutiveLaw3DOwner::Update(k);
    
    Vec3 F(R1*GetF());
@@ -247,7 +277,7 @@ void ElasticDispHingeJoint::AssVec(SubVectorHandler& WorkVec)
    WorkVec.Add(1, F);
    WorkVec.Add(4, f1Tmp.Cross(F));
    WorkVec.Sub(7, F);   
-   WorkVec.Add(10, F.Cross(f2Tmp));
+   WorkVec.Sub(10, f2Tmp.Cross(F));
 }
 
 

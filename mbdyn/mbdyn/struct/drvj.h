@@ -110,19 +110,9 @@ class LinearVelocityJoint
 				   const VectorHandler& XCurr);   
 
    /* dati privati */
-   virtual unsigned int iGetNumPrivData(void) const {
-      return 1;
-   };   
-   
-#ifdef DEBUG   
-   virtual doublereal dGetPrivData(unsigned int i = 0) const
-#else
-   virtual doublereal dGetPrivData(unsigned int /* i */ = 0) const
-#endif
-   {
-      ASSERT(i == 1);
-      return dGet();
-   };
+   virtual unsigned int iGetNumPrivData(void) const;   
+   virtual unsigned int iGetPrivDataIdx(const char *s) const;
+   virtual doublereal dGetPrivData(unsigned int i = 0) const;
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -216,19 +206,9 @@ class AngularVelocityJoint
 				   const VectorHandler& XCurr);   
 
    /* Dati privati */
-   virtual unsigned int iGetNumPrivData(void) const {
-      return 1;
-   };   
-   
-#ifdef DEBUG
-   virtual doublereal dGetPrivData(unsigned int i = 0) const
-#else
-   virtual doublereal dGetPrivData(unsigned int /* i */ = 0) const
-#endif
-   {
-      ASSERT(i == 1);
-      return dGet();
-   };
+   virtual unsigned int iGetNumPrivData(void) const;
+   virtual unsigned int iGetPrivDataIdx(const char *s) const;
+   virtual doublereal dGetPrivData(unsigned int i = 0) const;
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento

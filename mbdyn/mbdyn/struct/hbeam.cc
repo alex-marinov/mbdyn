@@ -129,7 +129,7 @@ HBeam::~HBeam(void)
 unsigned int
 HBeam::iGetNumPrivData(void) const
 {
-	return 6;
+	return 12;
 }
 
 unsigned int
@@ -144,6 +144,8 @@ HBeam::iGetPrivDataIdx(const char *s) const
 	unsigned int idx = 0;
 
 	switch (s[0]) {
+	case 'F':
+		idx += 6;
 	case 'e':
 		switch (s[1]) {
 		case 'x':
@@ -159,6 +161,8 @@ HBeam::iGetPrivDataIdx(const char *s) const
 		}
 		break;
 
+	case 'M':
+		idx += 6;
 	case 'k':
 		idx += 3;
 		switch (s[1]) {
@@ -201,11 +205,25 @@ HBeam::dGetPrivData(unsigned int i) const
 	case 5:
 	case 6:
 		return DefLoc.dGet(i);
+
+	case 7:
+	case 10:
+	case 11:
+	case 12:
+		return AzLoc.dGet(i);
+
 	case 2:
 	case 3:
 		silent_cerr("HBeam(" << GetLabel() << "): "
 			"not allowed to return shear strain" << std::endl);
 		throw ErrGeneric();
+
+	case 8:
+	case 9:
+		silent_cerr("HBeam(" << GetLabel() << "): "
+			"not allowed to return shear force" << std::endl);
+		throw ErrGeneric();
+
 	default:
 		silent_cerr("HBeam(" << GetLabel() << "): "
 			"illegal private data " << i << std::endl);

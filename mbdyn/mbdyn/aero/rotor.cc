@@ -152,37 +152,22 @@ Rotor::iGetPrivDataIdx(const char *s) const
 	unsigned int idx = 0;
 
 	switch (s[0]) {
-	case 'T':
-		break;
-		
 	case 'M':
-		idx = 3;
-		break;
-
-	default:
-		/* error; handled later */
-		return 0;
-	}
-
-	switch (s[1]) {
-	case 'x':
-		idx += 1;
-		break;
-
-	case 'y':
-		idx += 2;
-		break;
-
-	case 'z':
 		idx += 3;
-		break;
+	case 'T':
+		switch (s[1]) {
+		case 'x':
+			return idx + 1;
 
-	default:
-		/* error; handled later */
-		return 0;
+		case 'y':
+			return idx + 2;
+
+		case 'z':
+			return idx + 3;
+		}
 	}
 
-	return idx;
+	return 0;
 }
 
 doublereal
@@ -190,15 +175,19 @@ Rotor::dGetPrivData(unsigned int i) const
 {
 	ASSERT(i > 0 && i <= 6);
 
-	if (i >= 1 && i <= 3) {
+	switch (i) {
+	case 1:
+	case 2:
+	case 3:
 		return Res.Force().dGet(i);
 
-	} else if (i >= 4 && i <= 6) {      
-		return Res.Couple().dGet(i-3);
-
-	} else {
-		throw ErrGeneric();
+	case 4:
+	case 5:
+	case 6:
+		return Res.Couple().dGet(i - 3);
 	}
+
+	throw ErrGeneric();
 }
  
 /* Tipo dell'elemento (usato per debug ecc.) */

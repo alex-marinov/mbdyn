@@ -139,14 +139,11 @@ public:
 			const VectorHandler& XCurr);
    
 	/* Dati privati (aggiungere magari le reazioni vincolari) */
-	virtual unsigned int iGetNumPrivData(void) const {
-		return 3;
-	};
+	virtual unsigned int iGetNumPrivData(void) const;
 
-	virtual doublereal dGetPrivData(unsigned int i = 0) const {
-		ASSERT(i >= 1 && i <= 3);
-		return Get().dGet(i);
-	};
+	unsigned int iGetPrivDataIdx(const char *s) const;
+
+	virtual doublereal dGetPrivData(unsigned int i = 0) const;
 
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento

@@ -1,4 +1,8 @@
 % MBDyn (C) is a multibody analysis code.
+
+
+
+
 % http://www.mbdyn.org
 %
 % Copyright (C) 1996-2005
@@ -42,6 +46,7 @@ where \kw{elem\_type} is one of the following:
 \item \kw{aerodynamic beam}
 \item \kw{aerodynamic body}
 \item \kw{air properties}
+\item \kw{automatic structural}
 \item \kw{beam}
 \item \kw{bind}
 \item \kw{body}
@@ -275,17 +280,26 @@ the \kw{aircraft instruments} element private data to the nodes
 by means of the \kw{bind} mechanism, or directly by means
 of the 
 \hyperref{\kw{element} drive}{\kw{element} drive (see Section~}{)}{sec:DRIVE-ELEMENT}.
-The measures are:
+
+\paragraph{Private Data}
+The following data is available:
 \begin{itemize}
-	\item \kw{airspeed}
-	\item \kw{groundspeed}
-	\item \kw{altitude}
-	\item \kw{attitude}
-	\item \kw{bank}
-	\item \kw{turn}
-	\item \kw{slip}
-	\item \kw{verticalspeed}
-	\item \kw{angleofattack}
+\item \kw{"airspeed"} the airspeed as seen by the reference 
+	point on the aircraft, i.e. the combination 
+	of the airstream speed and of the node speed
+\item \kw{"groundspeed"} the absolute value of the projection
+	of the node speed in the $xy$ plane.
+\item \kw{"altitude"} the $z$ component of the node position
+\item \kw{"attitude"} $\arctan\plbr{r_{31}, r_{11}}$
+	(FIXME: better $\arcsin\plbr{r_{31}}$?)
+\item \kw{"bank"} $\arctan\plbr{r_{32}, r_{22}}$
+	(FIXME: better $\arcsin\plbr{r_{32}}$?)
+\item \kw{"turn"} (not available yet)
+\item \kw{"slip"} (not available yet)
+\item \kw{"verticalspeed"} the $z$ component of the node velocity
+\item \kw{"angleofattack"} the angle between the $z$ 
+	and the $x$ component of the node velocity 
+	in the local frame
 \end{itemize}
 
 \noindent
@@ -404,6 +418,51 @@ and a peak velocity of 5 m/s moving downstream at the airstream speed,
             V_inf,               # front moving at V_inf
             cosine, 0., pi/waveLength, V_g/2., one, 0.;
 \end{verbatim}
+
+
+
+
+\section{Automatic structural}
+The so called \kw{automatic structural} element is automtically generated
+when a dynamic structural node is insantiated.
+As such, when defined in the \kw{elements} block,
+the element already exists.
+The only reason to repeat its defnition is to modify the values
+of the momentum and of the momenta moment, and to initialize
+their derivatives.
+The label must match that of the node it refers to.
+\begin{verbatim}
+    <element_type> ::= beam3
+    <normal_arglist> ::=
+        (Vec3) <momentum> ,
+        (Vec3) <momenta_moment> ,
+        (Vec3) <momentum_derivative> ,
+        (Vec3) <momenta_moment_derivative>
+\end{verbatim}
+All the provided values are recomputed during the initial derivatives phase,
+so they should be intended as initial values for the Newton iteration.
+In general, there is no need to provide this data; they can speed up
+initial convergence in case of systems that are not at rest in the initial
+configuration, with kinematic constraints that strongly affect
+the motion.
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"beta[1]"} momentum in global direction 1
+\item \kw{"beta[2]"} momentum in global direction 2
+\item \kw{"beta[3]"} momentum in global direction 3
+\item \kw{"gamma[1]"} momenta moment in global direction 1
+\item \kw{"gamma[2]"} momenta moment in global direction 2
+\item \kw{"gamma[3]"} momenta moment in global direction 3
+\item \kw{"betaP[1]"} momentum derivative in global direction 1
+\item \kw{"betaP[2]"} momentum derivative in global direction 2
+\item \kw{"betaP[3]"} momentum derivative in global direction 3
+\item \kw{"gammaP[1]"} momenta moment derivative in global direction 1
+\item \kw{"gammaP[2]"} momenta moment derivative in global direction 2
+\item \kw{"gammaP[3]"} momenta moment derivative in global direction 3
+\end{enumerate}
+
 
 
 
@@ -1215,6 +1274,40 @@ of the abstract nodes that represent the input signal tensions, as follows:
 where the \kw{abstract\_node\_label\_list} is the list of the labels of the
 abstract nodes that represent the electrodes.
 
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"pI.ex"} point I axial strain
+\setcounter{enumi}{3}
+\item \kw{"pI.kx"} point I curvature about local axis 1 (torsional)
+\item \kw{"pI.ky"} point I curvature about local axis 2 (bending)
+\item \kw{"pI.kz"} point I curvature about local axis 3 (bending)
+\item \kw{"pI.Fx"} point I axial force
+\setcounter{enumi}{9}
+\item \kw{"pI.Mx"} point I moment about local axis 1 (torsional)
+\item \kw{"pI.My"} point I moment about local axis 2 (bending)
+\item \kw{"pI.Mz"} point I moment about local axis 3 (bending)
+\item \kw{"pII.ex"} point II axial strain
+\setcounter{enumi}{15}
+\item \kw{"pII.kx"} point II curvature about local axis 1 (torsional)
+\item \kw{"pII.ky"} point II curvature about local axis 2 (bending)
+\item \kw{"pII.kz"} point II curvature about local axis 3 (bending)
+\item \kw{"pII.Fx"} point II axial force
+\setcounter{enumi}{21}
+\item \kw{"pII.Mx"} point II moment about local axis 1 (torsional)
+\item \kw{"pII.My"} point II moment about local axis 2 (bending)
+\item \kw{"pII.Mz"} point II moment about local axis 3 (bending)
+\end{enumerate}
+
+
+
+
+
+
+
+
+
 \subsection{Two-node beam element}
 \begin{verbatim}
     <element_type> ::= beam2
@@ -1245,6 +1338,25 @@ abstract nodes that represent the electrodes.
         <abstract_node_label_list> ,
         (Mat6xN) <piezoelectric_matrix_I> ]
 \end{verbatim}
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"ex"} axial strain
+\setcounter{enumi}{3}
+\item \kw{"kx"} curvature about local axis 1 (torsional)
+\item \kw{"ky"} curvature about local axis 2 (bending)
+\item \kw{"kz"} curvature about local axis 3 (bending)
+\item \kw{"Fx"} axial force
+\setcounter{enumi}{9}
+\item \kw{"Mx"} moment about local axis 1 (torsional)
+\item \kw{"My"} moment about local axis 2 (bending)
+\item \kw{"Mz"} moment about local axis 3 (bending)
+\end{enumerate}
+
+
+
+
 As an example, a simple beam element, with diagonal section stiffness 
 matrix is presented:
 \begin{verbatim}
@@ -1830,7 +1942,6 @@ The format is:
     \item the value of the reaction unknown
 \end{itemize}
   
-  
 \subsubsection{Spring}
 \begin{verbatim}
     <genel_type> ::= spring
@@ -2126,12 +2237,28 @@ Legal joint types, with relative data, are:
                         (drive_caller) <acceleration>
 \end{verbatim}
 
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"M"} constraint reaction moment along joint direction
+\item \kw{"wp"} imposed angular acceleration along joint direction
+\end{enumerate}
+
+
+
+
 \subsection{Angular velocity}
 \begin{verbatim}
     <joint_type> ::= angular velocity
     <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
                         (drive_caller) <velocity>
 \end{verbatim}
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"w"} imposed angular velocity about joint direction
+\end{enumerate}
 
 \subsection{Axial rotation}
 \begin{verbatim}
@@ -2149,6 +2276,23 @@ Legal joint types, with relative data, are:
     Note: this joint forces nodes 1 and 2 to rotate about relative 
     axis 3 with imposed angular velocity.
 }
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"rz"} relative rotation angle about revolute axis
+\item \kw{"wz"} relative angular velocity about revolute axis
+\item \kw{"Fx"} constraint reaction force in node 1 local direction 1
+\item \kw{"Fy"} constraint reaction force in node 1 local direction 2
+\item \kw{"Fz"} constraint reaction force in node 1 local direction 3
+\item \kw{"Mx"} constraint reaction moment about node 1 local direction 1
+\item \kw{"My"} constraint reaction moment about node 1 local direction 2
+\item \kw{"Mz"} constraint reaction moment about node 1 local direction 3
+\end{enumerate}
+
+
+
+
 
 \subsection{Beam slider}
 This joint implements a slider, e.g.\ it constrains a structural node 
@@ -2220,6 +2364,15 @@ for regular joints.
 must be defined as well, such that the only allowed relative kinematics 
 between the two nodes are a rotation about relative axis 3.}
 
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"rz"} relative rotation angle about brake axis
+\item \kw{"wz"} relative angular velocity about brake axis
+\end{enumerate}
+
+
+
 
 \subsection{Clamp}
 \begin{verbatim}
@@ -2236,6 +2389,19 @@ in the usual way for these entities} \\
 \emph{Note: the default value for \kw{position} and \kw{orientation}
 are the position and the orientation of the clamped node.}
 
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"Fx"} constraint reaction force in global direction 1
+\item \kw{"Fy"} constraint reaction force in global direction 2
+\item \kw{"Fz"} constraint reaction force in global direction 3
+\item \kw{"Mx"} constraint reaction moment in local direction 1
+\item \kw{"My"} constraint reaction moment in local direction 2
+\item \kw{"Mz"} constraint reaction moment in local direction 3
+\end{enumerate}
+
+
+
 
 \subsection{Coincidence}
 not implemented yet, use a \kw{spherical hinge} and a \kw{prismatic} 
@@ -2251,6 +2417,19 @@ instead.
         [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
         (ConstitutiveLaw3D) <const_law>
 \end{verbatim}
+\emph{Note: this joint is experimental; it only works with elastic 
+or viscous constitutive laws, the use with viscoelastic laws 
+is untested yet, and thus it is disabled.}
+
+\paragraph{Private Data}
+This joint does not provide any specific data; however, it provides
+access to the private data provided by the constitutive law.
+It is accessed by prefixing the name of the data with the string
+\kw{"constitutiveLaw."}; see the specific constitutive law
+description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
+
+
+
 
 \subsection{Deformable hinge}
 \begin{verbatim}
@@ -2266,6 +2445,16 @@ instead.
     It should be used in conjunction with a spherical hinge or any kind of
     joint that constrains the displacements too.}
 
+\paragraph{Private Data}
+This joint does not provide any specific data; however, it provides
+access to the private data provided by the constitutive law.
+It is accessed by prefixing the name of the data with the string
+\kw{"constitutiveLaw."}; see the specific constitutive law
+description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
+
+
+
+
 \subsection{Distance}
 \begin{verbatim}
     <joint_type> ::= distance 
@@ -2279,7 +2468,7 @@ instead.
 \noindent
 {\em 
     Note: the \kw{relative\_offset\_*} are the distances of each end
-    of the joint from the relative nodes in the node reference frame \\
+    of the joint from the relative nodes in the node reference frame.
     Both the \kw{distance} and the \kw{distance with offset} joints
     allow for null distance, but the transition from null to non-null
     distance is not smooth at all.
@@ -2289,14 +2478,7 @@ instead.
     caller is automatically instantiated for the \kw{distance}. 
     Its value is computed from the initial positions of the nodes;
     if defined, the distance between the offsets is considered. 
-} \\
-{\em
-    Note: the \kw{distance with offset} element is deprecated
-    in favor of the \kw{distance} with the new syntax, which
-    offers the same capabilities.
 }
- 
-
 
 \paragraph{Output}
 The extra output is:
@@ -2305,12 +2487,21 @@ The extra output is:
     \item the norm of the imposed distance
 \end{itemize}
 
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"d"} enforced distance
+\end{enumerate}
+
 
 
 \subsection{Distance with offset}
 This element has been deprecated in favor of the \kw{distance}
-element, which now supports offsets.  It may be not supported any more
-in the future.
+joint element, which now supports offsets.
+It may be dropped in future releases.
+
+\paragraph{Private Data}
+See the \kw{distance} joint element.
 
 
 
@@ -2326,6 +2517,14 @@ in the future.
 \end{verbatim}
 \emph{Note: this element is eXperimental; now it is more reliable, 
 but it is limited to $\nrbr{\tt <hinge\_orientation>} < \pi$}.
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"rx"} imposed rotation about node 1 hinge axis 1
+\item \kw{"ry"} imposed rotation about node 1 hinge axis 2
+\item \kw{"rz"} imposed rotation about node 1 hinge axis 3
+\end{enumerate}
 
 \subsection{Gimbal rotation}
 A constant velocity joint without position constraints;
@@ -2357,6 +2556,20 @@ The three components of the reaction couple in the local frame,
 and the angles $\vartheta$ and $\varphi$ are also available
 as private data of the element under the names \kw{lambda[1-3]},
 \kw{theta} and \kw{phi}.
+For a description of the formulation and of the angles describe above,
+see the Technical Manual.
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"lambda[1]"} constraint reaction moment about node 1 local axis 1
+\item \kw{"lambda[2]"} constraint reaction moment about node 1 local axis 2
+\item \kw{"lambda[3]"} constraint reaction moment about node 1 local axis 3
+\item \kw{"theta"} relative angle $\vartheta$
+\item \kw{"phi"} relative angle $\varphi$
+\end{enumerate}
+
+
 
 \subsection{In line}
 \begin{verbatim}
@@ -2410,12 +2623,25 @@ by directly writing code in files \verb;mbdyn/struct/kin.cc; and
                         (drive_caller) <acceleration>
 \end{verbatim}
 
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"F"} constraint reaction force along joint direction
+\item \kw{"a"} imposed acceleration along joint direction
+\end{enumerate}
+
 \subsection{Linear velocity}
 \begin{verbatim}
     <joint_type> ::= linear velocity
     <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
                         (drive_caller) <velocity>
 \end{verbatim}
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"v"} imposed velocity along joint direction
+\end{enumerate}
 
 \subsection{Modal}\label{sec:EL:STRUCT:JOINT:MODAL}
 \emph{Note: under development \\
@@ -2627,6 +2853,14 @@ for \kw{proportional damping} (same for all modes) or the list
 of values provided for \kw{diag damping} (for each mode).
 For example, a factor of 0.01 means 1\% damping.
 
+\paragraph{Private Data}
+The following data is available, for each mode:
+\begin{enumerate}
+\item \kw{"x[<i>]"} mode \kw{<i>} value
+\item \kw{"xP[<i>]"} mode \kw{<i>} derivative value
+\item \kw{"xPP[<i>]"} mode \kw{<i>} second derivative value
+\end{enumerate}
+
 
 
 
@@ -2704,6 +2938,22 @@ deprecated and may not be supported in future versions.
     axis 3.
 }
 
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"rz"} relative rotation angle about revolute axis
+\item \kw{"wz"} relative angular velocity about revolute axis
+\item \kw{"Fx"} constraint reaction force in node 1 local direction 1
+\item \kw{"Fy"} constraint reaction force in node 1 local direction 2
+\item \kw{"Fz"} constraint reaction force in node 1 local direction 3
+\item \kw{"Mx"} constraint reaction moment about node 1 local direction 1
+\item \kw{"My"} constraint reaction moment about node 1 local direction 2
+\item \kw{"Mz"} constraint reaction moment about node 1 local direction 3
+\end{enumerate}
+
+
+
+
 \subsection{Revolute pin}
 \begin{verbatim}
     <joint_type> ::= revolute pin
@@ -2718,6 +2968,24 @@ deprecated and may not be supported in future versions.
 {\em
     Note: this is the dual of the revolute hinge when one node is grounded.
 }
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"rz"} relative rotation angle about revolute axis
+\item \kw{"wz"} relative angular velocity about revolute axis
+\item \kw{"Fx"} constraint reaction force in node 1 local direction 1
+\item \kw{"Fy"} constraint reaction force in node 1 local direction 2
+\item \kw{"Fz"} constraint reaction force in node 1 local direction 3
+\item \kw{"Mx"} constraint reaction moment about node 1 local direction 1
+\item \kw{"My"} constraint reaction moment about node 1 local direction 2
+\item \kw{"Mz"} constraint reaction moment about node 1 local direction 3
+\end{enumerate}
+
+
+
+
+
 
 \subsection{Revolute rotation}
 A revolute joint without position constraints; this joint, in conjunction
@@ -2737,6 +3005,20 @@ of a hydraulic actuator.
     Note: this joint forces nodes 1 and 2 to rotate only about relative 
     axis 3.
 }
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"rz"} relative rotation angle about revolute axis
+\item \kw{"wz"} relative angular velocity about revolute axis
+\item \kw{"Mx"} constraint reaction moment about node 1 local direction 1
+\item \kw{"My"} constraint reaction moment about node 1 local direction 2
+\item \kw{"Mz"} constraint reaction moment about node 1 local direction 3
+\end{enumerate}
+
+
+
+
 
 \subsection{Rod}\label{sec:EL:STRUCT:JOINT:ROD}
 The \kw{rod} element represents a force between two nodes that depends
@@ -2769,6 +3051,23 @@ If the optional \kw{offset} keyword is used, the element falls through
 to the more general \kw{rod with offset};
 see also \kw{rod with offset}
 in Section~\ref{sec:EL:STRUCT:JOINT:ROD_WITH_OFFSET}.
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"F"} constraint force between the two nodes/connection points
+\item \kw{"L"} distance between the two nodes/connection points
+\item \kw{"LPrime"} distance rate between the two nodes/connection points
+\end{enumerate}
+The rod joint can also access the private data provided 
+by the constitutive law.
+It is accessed by prefixing the name of the data with the string
+\kw{"constitutiveLaw."}; see the specific constitutive law
+description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
+
+
+
+
 
 \subsection{Rod with offset}\label{sec:EL:STRUCT:JOINT:ROD_WITH_OFFSET}
 The syntax is:
@@ -3301,12 +3600,12 @@ The \kw{dynamic inflow} model adds the columns
 \paragraph{Private Data}
 The following data is available:
 \begin{enumerate}
-\item \kw{Tx} rotor force in \kw{x} direction (longitudinal force)
-\item \kw{Ty} rotor force in \kw{y} direction (lateral force)
-\item \kw{Tz} rotor force in \kw{z} direction (thrust)
-\item \kw{Mx} rotor moment about \kw{x} direction (roll moment)
-\item \kw{My} rotor moment about \kw{y} direction (pitch moment)
-\item \kw{Mz} rotor moment about \kw{z} direction (torque)
+\item \kw{"Tx"} rotor force in \kw{x} direction (longitudinal force)
+\item \kw{"Ty"} rotor force in \kw{y} direction (lateral force)
+\item \kw{"Tz"} rotor force in \kw{z} direction (thrust)
+\item \kw{"Mx"} rotor moment about \kw{x} direction (roll moment)
+\item \kw{"My"} rotor moment about \kw{y} direction (pitch moment)
+\item \kw{"Mz"} rotor moment about \kw{z} direction (torque)
 \end{enumerate}
 
 

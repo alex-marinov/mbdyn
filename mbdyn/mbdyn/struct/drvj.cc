@@ -60,7 +60,6 @@ LinearVelocityJoint::~LinearVelocityJoint(void)
    NO_OP;
 }
    
-
 /* Contributo al file di restart */
 std::ostream& LinearVelocityJoint::Restart(std::ostream& out) const
 {
@@ -69,8 +68,34 @@ std::ostream& LinearVelocityJoint::Restart(std::ostream& out) const
       Dir.Write(out, ", ") << ", ";
    return pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
-   
-      
+ 
+/* dati privati */
+unsigned int
+LinearVelocityJoint::iGetNumPrivData(void) const
+{
+	return 1;
+}
+ 
+unsigned int
+LinearVelocityJoint::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+
+	if (strcmp(s, "v") == 0) {
+		return 1;
+	}
+
+	return 0;
+}
+
+doublereal
+LinearVelocityJoint::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i == 1);
+
+	return dGet();
+}
+
 VariableSubMatrixHandler& 
 LinearVelocityJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			    doublereal /* dCoef */ ,
@@ -257,7 +282,33 @@ std::ostream& AngularVelocityJoint::Restart(std::ostream& out) const
    return pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
    
-      
+/* dati privati */
+unsigned int
+AngularVelocityJoint::iGetNumPrivData(void) const
+{
+	return 1;
+}
+ 
+unsigned int
+AngularVelocityJoint::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+
+	if (strcmp(s, "w") == 0) {
+		return 1;
+	}
+
+	return 0;
+}
+
+doublereal
+AngularVelocityJoint::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i == 1);
+
+	return dGet();
+}
+
 VariableSubMatrixHandler& 
 AngularVelocityJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			    doublereal dCoef,

@@ -78,12 +78,14 @@ AircraftInstruments::Update(void)
 	dMeasure[GROUNDSPEED] = VTmp.Norm();
 
 	/* altitude */
-	dMeasure[ALTITUDE] = e3.Dot(X);
+	dMeasure[ALTITUDE] = X(3);
 
 	/* attitude */
+	/* FIXME: better asin(e1(3)) ? */
 	dMeasure[ATTITUDE] = atan2(e1(3), e1(1));
 
 	/* bank */
+	/* FIXME: better asin(e2(3)) ? */
 	dMeasure[BANK] = atan2(e2(3), e2(2));
 
 	/* turn */
@@ -93,7 +95,7 @@ AircraftInstruments::Update(void)
 	dMeasure[SLIP] = 0.;	/* FIXME */
 
 	/* vertical speed */
-	dMeasure[VERTICALSPEED] = e3.Dot(VV);
+	dMeasure[VERTICALSPEED] = VV(3);
 
 	/* angle of attack */
 	VTmp = R.Transpose()*VV;

@@ -1049,7 +1049,7 @@ PlaneHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 unsigned int
 PlaneHingeJoint::iGetNumPrivData(void) const
 {
-	return 2;
+	return 8;
 }
 
 unsigned int
@@ -1057,14 +1057,34 @@ PlaneHingeJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 
-	if (strcmp(s, "rz") == 0) {
-		return 1;
-	}
+	unsigned int idx = 0;
 
-	if (strcmp(s, "wz") == 0) {
-		return 2;
-	}
+	switch (s[0]) {
+	case 'w':
+		idx++;
+	case 'r':
+		idx++;
+		if (s[1] == 'z') {
+			return idx;
+		}
+		break;
 
+	case 'M':
+		idx += 3;
+	case 'F':
+		idx += 2;
+
+		switch (s[1]) {
+		case 'x':
+			return idx + 1;
+
+		case 'y':
+			return idx + 2;
+
+		case 'z':
+			return idx + 3;
+		}
+	}
 
 	return 0;
 }
@@ -1090,6 +1110,16 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
        
        return v(3);
     }
+
+    case 3:
+    case 4:
+    case 5:
+	    return F(i - 2);
+
+    case 6:
+    case 7:
+    case 8:
+	    return M(i - 5);
    }
       
    silent_cerr("PlaneHingeJoint(" << GetLabel() << "): "
@@ -1749,7 +1779,7 @@ PlaneRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
 unsigned int
 PlaneRotationJoint::iGetNumPrivData(void) const
 {
-	return 2;
+	return 5;
 }
 
 unsigned int
@@ -1757,12 +1787,31 @@ PlaneRotationJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 
-	if (strcmp(s, "rz") == 0) {
-		return 1;
-	}
+	unsigned int idx = 0;
 
-	if (strcmp(s, "wz") == 0) {
-		return 2;
+	switch (s[0]) {
+	case 'w':
+		idx++;
+	case 'r':
+		idx++;
+		if (s[1] == 'z') {
+			return idx;
+		}
+		break;
+
+	case 'M':
+		idx += 2;
+
+		switch (s[1]) {
+		case 'x':
+			return idx + 1;
+
+		case 'y':
+			return idx + 2;
+
+		case 'z':
+			return idx + 3;
+		}
 	}
 
 	return 0;
@@ -1789,6 +1838,11 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
        
        return v(3);
     }
+
+    case 3:
+    case 4:
+    case 5:
+	    return M(i - 2);
    }
       
    silent_cerr("PlaneRotationJoint(" << GetLabel() << "): "
@@ -2767,37 +2821,33 @@ AxialRotationJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 
-	if (strcmp(s, "rz") == 0) {
-		return 1;
-	}
+	unsigned int idx = 0;
 
-	if (strcmp(s, "wz") == 0) {
-		return 2;
-	}
+	switch (s[0]) {
+	case 'w':
+		idx++;
+	case 'r':
+		idx++;
+		if (s[1] == 'z') {
+			return idx;
+		}
+		break;
 
-	if (strcmp(s, "fx") == 0) {
-		return 3;
-	}
+	case 'M':
+		idx += 3;
+	case 'F':
+		idx += 2;
 
-	if (strcmp(s, "fy") == 0) {
-		return 4;
-	}
+		switch (s[1]) {
+		case 'x':
+			return idx + 1;
 
-	if (strcmp(s, "fz") == 0) {
-		return 5;
-	}
+		case 'y':
+			return idx + 2;
 
-	if (strcmp(s, "mx") == 0) {
-		return 6;
-	}
-
-
-	if (strcmp(s, "my") == 0) {
-		return 7;
-	}
-
-	if (strcmp(s, "mz") == 0) {
-		return 8;
+		case 'z':
+			return idx + 3;
+		}
 	}
 
 	return 0;
@@ -2823,22 +2873,14 @@ AxialRotationJoint::dGetPrivData(unsigned int i) const
 		return dGet();
       
 	case 3:
-		return F.dGet(1);
-      
 	case 4:
-		return F.dGet(2);
-      
 	case 5:
-		return F.dGet(3);
+		return F(i - 2);
       
 	case 6:
-		return M.dGet(1);
-      
 	case 7:
-		return M.dGet(2);
-      
 	case 8:
-		return M.dGet(3);
+		return M(i - 5);
 	}
 
 	silent_cerr("AxialRotationJoint(" << GetLabel() << "): "
@@ -3422,12 +3464,33 @@ PlanePinJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 
-	if (strcmp(s, "rz") == 0) {
-		return 1;
-	}
+	unsigned int idx = 0;
 
-	if (strcmp(s, "wz") == 0) {
-		return 2;
+	switch (s[0]) {
+	case 'w':
+		idx++;
+	case 'r':
+		idx++;
+		if (s[1] == 'z') {
+			return idx;
+		}
+		break;
+
+	case 'M':
+		idx += 3;
+	case 'F':
+		idx += 2;
+
+		switch (s[1]) {
+		case 'x':
+			return idx + 1;
+
+		case 'y':
+			return idx + 2;
+
+		case 'z':
+			return idx + 3;
+		}
 	}
 
 	return 0;
@@ -3452,6 +3515,16 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
        
        return v(3);
     }
+
+    case 3:
+    case 4:
+    case 5:
+	    return F(i - 2);
+
+    case 6:
+    case 7:
+    case 8:
+	    return M(i - 5);
    }
       
    silent_cerr("PlanePinJoint(" << GetLabel() << "): "

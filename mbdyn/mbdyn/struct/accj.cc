@@ -206,16 +206,16 @@ LinearAccelerationJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-
 /* Dati privati */
-unsigned int LinearAccelerationJoint::iGetNumPrivData(void) const
+unsigned int
+LinearAccelerationJoint::iGetNumPrivData(void) const
 {
    return 2;
 }
 
-
 /* Dati privati */
-unsigned int LinearAccelerationJoint::iGetPrivDataIdx(const char *s) const
+unsigned int
+LinearAccelerationJoint::iGetPrivDataIdx(const char *s) const
 {
    ASSERT(s != NULL);
 
@@ -230,8 +230,8 @@ unsigned int LinearAccelerationJoint::iGetPrivDataIdx(const char *s) const
    return 0;
 }
 
-
-doublereal LinearAccelerationJoint::dGetPrivData(unsigned int i) const
+doublereal
+LinearAccelerationJoint::dGetPrivData(unsigned int i) const
 {
    switch (i) {
     case 1:
@@ -420,15 +420,32 @@ AngularAccelerationJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-
 /* Dati privati */
-unsigned int AngularAccelerationJoint::iGetNumPrivData(void) const
+unsigned int
+AngularAccelerationJoint::iGetNumPrivData(void) const
 {
    return 2;
 }
 
+/* Dati privati */
+unsigned int
+AngularAccelerationJoint::iGetPrivDataIdx(const char *s) const
+{
+   ASSERT(s != NULL);
 
-doublereal AngularAccelerationJoint::dGetPrivData(unsigned int i) const
+   if (strcmp(s, "M") == 0) {
+	   return 1;
+   }
+
+   if (strcmp(s, "wp") == 0) {
+	   return 2;
+   }
+
+   return 0;
+}
+
+doublereal
+AngularAccelerationJoint::dGetPrivData(unsigned int i) const
 {
    switch (i) {
     case 1:

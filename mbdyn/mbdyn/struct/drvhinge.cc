@@ -102,6 +102,41 @@ DriveHingeJoint::Output(OutputHandler& OH) const
 	}
 }
 
+/* Dati privati (aggiungere magari le reazioni vincolari) */
+unsigned int
+DriveHingeJoint::iGetNumPrivData(void) const
+{
+	return 3;
+};
+
+unsigned int
+DriveHingeJoint::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+	ASSERT(s[0] != '\0');
+
+	if (s[0] != 'r' || s[2] != '\0') {
+		return 0;
+	}
+
+	switch (s[1]) {
+	case 'x':
+		return 1;
+	case 'y':
+		return 2;
+	case 'z':
+		return 3;
+	}
+
+	return 0;
+}
+
+doublereal
+DriveHingeJoint::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i >= 1 && i <= 3);
+	return Get().dGet(i);
+}
 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 
