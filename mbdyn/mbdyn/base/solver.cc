@@ -54,6 +54,7 @@
 #include <ac/math.h>
 
 #include <solver.h>
+#include "thirdorderstepsol.h"
 #include <nr.h>
 #include <bicg.h>
 #include <gmres.h>
@@ -1380,6 +1381,7 @@ Solver::ReadData(MBDynParser& HP)
 			"ms",
 			"hope",
 			"bdf",
+			"thirdorder",
 	
 		"derivatives" "coefficient",
 		"derivatives" "tolerance",
@@ -1475,6 +1477,7 @@ Solver::ReadData(MBDynParser& HP)
 		MS,
 		HOPE,
 		BDF,
+		THIRDORDER,
 	
 		DERIVATIVESCOEFFICIENT,
 		DERIVATIVESTOLERANCE,
@@ -1571,6 +1574,7 @@ Solver::ReadData(MBDynParser& HP)
 			INT_CRANKNICHOLSON,
 			INT_MS2,
 			INT_HOPE,
+			INT_THIRDORDER,
 			INT_UNKNOWN
 	};
 	
@@ -1862,6 +1866,13 @@ Solver::ReadData(MBDynParser& HP)
 	      			}
 	      			break;
 	   		}
+			case THIRDORDER: {
+	      			pRhoRegular =
+					ReadDriveData(NULL, HP, NULL);
+				HP.PutKeyTable(K);
+				RegularType = INT_THIRDORDER;
+				break;
+			}
 	   		default:
 	      			std::cerr << "Unknown integration method at line "
 					<< HP.GetLineData() << std::endl;
@@ -1925,7 +1936,11 @@ Solver::ReadData(MBDynParser& HP)
 	          			THROW(ErrGeneric());
 				}
 	      			break;	      
-	   		
+	   		case THIRDORDER:
+				pRhoFictitious = ReadDriveData(NULL, HP, NULL);
+				HP.PutKeyTable(K);
+				FictitiousType = INT_THIRDORDER;
+				break;
 			default: {
 				std::cerr << "Unknown integration method at line " << HP.GetLineData() << std::endl;
 				THROW(ErrGeneric());
@@ -2779,6 +2794,15 @@ EndOfCycle: /* esce dal ciclo di lettura */
 						pRhoAlgebraicFictitious));
 		break;
 		  
+	  case INT_THIRDORDER:
+  		SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+			     		ThirdOrderIntegrator,
+			     		ThirdOrderIntegrator(dFictitiousStepsTolerance,
+		  				dSolutionTol,
+						iFictitiousStepsMaxIterations,
+					        pRhoFictitious));
+		break;
+		  
 	 default:
  	  	std::cerr << "Unknown dummy steps integration method" << std::endl;
 	      	THROW(ErrGeneric());
@@ -2812,6 +2836,15 @@ EndOfCycle: /* esce dal ciclo di lettura */
 						iMaxIterations,
 					        pRhoRegular,
 						pRhoAlgebraicRegular));
+		break;
+		  
+	  case INT_THIRDORDER:
+  		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+			     		ThirdOrderIntegrator,
+			     		ThirdOrderIntegrator(dTol,
+		  				dSolutionTol,
+						iMaxIterations,
+					        pRhoRegular));
 		break;
 		  
 	 default:
