@@ -651,7 +651,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
      	case LinSol::SUPERLU_SOLVER: 
 #ifdef USE_SUPERLU
 		if (!mt) {
-			silent_cerr("warning: SuperLU supperted only in multithread form" << std::endl);
+			silent_cerr("warning: SuperLU supported only "
+					"in multithread form" << std::endl);
 		}
 
 		switch (type) {
