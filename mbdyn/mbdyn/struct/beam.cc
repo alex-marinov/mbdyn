@@ -1675,25 +1675,6 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 {
    DEBUGCOUTFNAME("ReadBeam");
    
-   const char* sKeyWords[] = {
-      "elastic",
-	"viscoelastic",
-	"piezoelectric",
-	NULL
-   };
-   
-   /* enum delle parole chiave */
-   enum KeyWords {
-      UNKNOWN = -1,
-	ELASTIC = 0,
-	VISCOELASTIC,
-	PIEZOELECTRIC,
-	LASTKEYWORD 
-   };
-   
-   /* tabella delle parole chiave */
-   KeyTable K(HP, sKeyWords);
-   
    /* Per ogni nodo: */
    
    /* Nodo 1 */
