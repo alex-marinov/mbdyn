@@ -39,25 +39,16 @@
 #ifndef GMRES_H
 #define GMRES_H
 
+#include <fullmh.h>
 #include <mfree.h>
-
-class UpHessMatrix 
-{
-	std::vector<doublereal> M;
-	integer Size;
-
-public:	
-	UpHessMatrix(integer n);
-	~UpHessMatrix(void);
-
-	void Reset(doublereal d = 0.);
-
-	doublereal& operator() (const integer i, const integer j);
-	doublereal operator() (const integer i, const integer j) const;
-};
 
 class Gmres : public MatrixFreeSolver
 {
+private:
+	MyVectorHandler	*v;
+	MyVectorHandler s, cs, sn, w, vHat, dx; 
+	FullMatrixHandler H;
+
 public:
 	Gmres(const Preconditioner::PrecondType PType, 
 			const integer iPStep,
@@ -86,8 +77,12 @@ private:
 			
 	void ApplyPlaneRotation(doublereal &dx, doublereal &dy, 
 			const doublereal &cs, const doublereal &sn) const;
-			
-	void Backsolve(VectorHandler& x, integer sz,  UpHessMatrix& H, 
+
+	/*
+	 * FIXME: we could eliminate x, s and v,
+	 * since they are now members of the class
+	 */	
+	void Backsolve(VectorHandler& x, integer sz,
 			VectorHandler& s, MyVectorHandler* v);
 };
 

@@ -648,6 +648,7 @@ void Solver::Run(void)
 						dIterertiveTau));
 			break;
 		}
+		break;
 
 	default:
 		pedantic_cout("unknown nonlinear solver type; using default"

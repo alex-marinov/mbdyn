@@ -43,6 +43,9 @@
 
 class BiCGStab : public MatrixFreeSolver
 {
+private:
+	MyVectorHandler rHat, p, pHat, s, sHat, t, v, dx; 
+
 public:
 	BiCGStab(const Preconditioner::PrecondType PType, 
 			const integer iPStep,

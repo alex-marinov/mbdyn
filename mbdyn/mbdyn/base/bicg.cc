@@ -118,8 +118,23 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 	doublereal beta;
 	doublereal omega;
 	VectorHandler* pr;
-	MyVectorHandler rHat(Size), p(Size), pHat(Size), s(Size), sHat(Size), t(Size), v(Size);
-	MyVectorHandler dx(Size); 
+
+	/*
+	 * these will be resized (actually allocated)
+	 * only the first time they're used, unless
+	 * the size of the problem changes
+	 *
+	 * FIXME: need to review this code.
+	 */
+	rHat.Resize(Size);
+	p.Resize(Size);
+	pHat.Resize(Size);
+	s.Resize(Size);
+	sHat.Resize(Size);
+	t.Resize(Size);
+	v.Resize(Size);
+	dx.Resize(Size); 
+
 	integer TotalIter = 0;
 
 #ifdef DEBUG_ITERATIVE
@@ -180,6 +195,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		
 		pr = pRes;
         	doublereal LocTol = eta * dErr;
+
         	rHat = *pr;
 
 #ifdef DEBUG_ITERATIVE		
@@ -294,7 +310,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 					<<  " omega = 0 " << std::endl;
 				break;
 			}
-			if ( It == MaxLinIt) {
+			if (It == MaxLinIt) {
                         	std::cerr << "Iterative inner solver didn't converge."
 					<< " Continuing..." << std::endl;
 			}

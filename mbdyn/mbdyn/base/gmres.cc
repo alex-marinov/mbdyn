@@ -51,51 +51,29 @@
 #include <unistd.h>
 #include <output.h>
 
-UpHessMatrix::UpHessMatrix(integer n)
-: M(n*n+1), Size(n)
-{
-	NO_OP;
-}
-
-UpHessMatrix::~UpHessMatrix(void)
-{
-	NO_OP;
-}
-	
-void
-UpHessMatrix::Reset(doublereal d)
-{
-	for (unsigned int i = 0; i < M.size(); i++) {
-		M[i] = 0;
-	}
-}
-
-doublereal&
-UpHessMatrix::operator() (const integer i, const integer j)
-{
-	return M[i*Size+j];
-}
-	
-doublereal
-UpHessMatrix::operator() (const integer i, const integer j) const
-{
-	return M[i*Size+j];
-}
-
 Gmres::Gmres(const Preconditioner::PrecondType PType, 
 		const integer iPStep,
 		doublereal ITol,
 		integer MaxIt,
 		doublereal etaMx,
 		doublereal T) 
-: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T)
+: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T),
+v(NULL)
 {
-	NO_OP;
+	SAFENEWARR(v, MyVectorHandler, MaxLinIt+1); 
+
+	s.Resize(MaxLinIt+1);
+	cs.Resize(MaxLinIt+1);
+	sn.Resize(MaxLinIt+1);
 }
 	
 Gmres::~Gmres(void)
 {
-	NO_OP;
+	for (int i = 0; i <= MaxLinIt; i++) {
+		v[i].Detach();
+	}
+
+	SAFEDELETEARR(v);
 }
 	
 void
@@ -126,13 +104,14 @@ Gmres::ApplyPlaneRotation(doublereal &dx, doublereal &dy,
 }
 
 void
-Gmres::Backsolve(VectorHandler& x, integer sz,  UpHessMatrix& H, 
+Gmres::Backsolve(VectorHandler& x, integer sz,
 		VectorHandler& s, MyVectorHandler* v) 
 { 
-	for (int i = sz; i >= 0; i--) {
-    		s.fPutCoef(i+1, s.dGetCoef(i+1) / H(i,i));
-    		for (int j = i - 1; j >= 0; j--)
-      			s.fDecCoef(j+1, H(j,i) * s.dGetCoef(i+1));
+	for (int i = sz+1; i > 0; i--) {
+    		s.fPutCoef(i, s.dGetCoef(i) / H(i, i));
+    		for (int j = i - 1; j > 0; j--) {
+      			s.fDecCoef(j, H(j, i) * s.dGetCoef(i));
+		}
   	}
 
   	for (int j = 0; j <= sz; j++) {
@@ -171,7 +150,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 	
 	pPrevNLP = pNLP;
 	
-	pSM  = pSolMan;
+	pSM = pSolMan;
         pRes = pSM->pResHdl();
 	Size = pRes->iGetSize();
 
@@ -181,12 +160,20 @@ Gmres::Solve(const NonlinearProblem* pNLP,
         doublereal resid;
 	doublereal norm1, norm2;
 	VectorHandler* pr;
-	MyVectorHandler s(MaxLinIt+1), cs(MaxLinIt+1), sn(MaxLinIt+1), w(Size);
-	MyVectorHandler* v = NULL;
-	SAFENEWARR(v, MyVectorHandler, MaxLinIt+1); 
-	MyVectorHandler vHat(Size); 
-	MyVectorHandler dx(Size); 
-	UpHessMatrix H(MaxLinIt+1);
+
+	/*
+	 * these will be resized (actually allocated)
+	 * only the first time they're used, unless
+	 * the size of the problem changes
+	 *
+	 * FIXME: need to review this code.
+	 */
+	w.Resize(Size);
+	vHat.Resize(Size);
+	dx.Resize(Size);
+
+	H.Resize(Size, MaxLinIt+1);
+
 	integer TotalIter = 0;
 
 #ifdef DEBUG_ITERATIVE
@@ -320,22 +307,22 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 #endif /* DEBUG_ITERATIVE */
 
 			for (int k = 0; k <= i; k++) {
-        			H(k, i) = w.InnerProd(v[k]);
+        			H(k+1, i+1) = w.InnerProd(v[k]);
 
 #ifdef DEBUG_ITERATIVE
-				std::cerr << "H(k,i): " << k << " " << i << " "<< H(k,i) << std::endl; 
+				std::cerr << "H(k, i): " << k+1 << " " << i+1 << " "<< H(k+1, i+1) << std::endl; 
 #endif /* DEBUG_ITERATIVE */
 
-				w.ScalarAddMul(v[k], -H(k, i));
+				w.ScalarAddMul(v[k], -H(k+1, i+1));
       			}
-			H(i+1, i) = w.Norm();
+			H(i+2, i+1) = w.Norm();
 
 #ifdef DEBUG_ITERATIVE
 			std::cerr << "w.Norm(): " << w.Norm() << std::endl;
-			std::cerr << "H(i+1, i): " << i+1 << " " << i << " " << H(i+1, i) << std::endl;
+			std::cerr << "H(i+1, i): " << i+2 << " " << i+1 << " " << H(i+2, i+1) << std::endl;
 #endif /* DEBUG_ITERATIVE */
 
-			norm2 = H(i+1, i); 
+			norm2 = H(i+2, i+1); 
 
 #ifdef DEBUG_ITERATIVE
 			std::cerr << "norm2: " << norm2 << std::endl;
@@ -347,7 +334,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 			if  (.001*norm2/norm1 < DBL_EPSILON) {
     				for (int k = 0;  k <= i; k++) {       
 					doublereal hr = v[k].InnerProd(w);
-        				H(k,i) = H(k,i)+hr;
+        				H(k+1, i+1) += hr;
         				w.ScalarAddMul(v[k], -hr);
 
 #ifdef DEBUG_ITERATIVE
@@ -355,10 +342,10 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 #endif /* DEBUG_ITERATIVE */
 
 				}
-				H(i+1, i) = w.Norm();
+				H(i+2, i+1) = w.Norm();
 			}
-			if (fabs(H(i+1, i)) > DBL_EPSILON) { 
-				v[i+1].ScalarMul(w, 1./H(i+1, i));
+			if (fabs(H(i+2, i+1)) > DBL_EPSILON) { 
+				v[i+1].ScalarMul(w, 1./H(i+2, i+1));
 
 #ifdef DEBUG_ITERATIVE
 				std::cout << "v[i+1]:" << i+1 << std::endl;
@@ -378,32 +365,36 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 				v[i+1].Reset(0.);
 			} 
 			for (int k = 0; k < i; k++) {
-        			ApplyPlaneRotation(H(k,i), H(k+1,i), cs.dGetCoef(k+1), sn.dGetCoef(k+1));
+        			ApplyPlaneRotation(H(k+1, i+1), H(k+2, i+1),
+						cs.dGetCoef(k+1),
+						sn.dGetCoef(k+1));
 
 #ifdef DEBUG_ITERATIVE
-				std::cerr << "H(k, i): " << k << " " << i << " " << H(k, i) << std::endl;
-				std::cerr << "H(k+1, i): " << k+1 << " " << i << " " << H(k+1, i) << std::endl;
+				std::cerr << "H(k, i): " << k+1 << " " << i+1 << " " << H(k+1, i+1) << std::endl;
+				std::cerr << "H(k+1, i): " << k+2 << " " << i+1 << " " << H(k+2, i+1) << std::endl;
 #endif /* DEBUG_ITERATIVE */
 
 			}
 							
-			GeneratePlaneRotation(H(i,i), H(i+1,i), cs(i+1), sn(i+1));
+			GeneratePlaneRotation(H(i+1, i+1), H(i+2, i+1),
+					cs(i+1), sn(i+1));
 
 #ifdef DEBUG_ITERATIVE
 			std::cerr << "cs(i): " << cs.dGetCoef(i+1) << std::endl;
 			std::cerr << "sn(i): " << sn.dGetCoef(i+1) << std::endl;
 #endif /* DEBUG_ITERATIVE */
 
-      			ApplyPlaneRotation(H(i,i), H(i+1,i), cs(i+1), sn(i+1));
+      			ApplyPlaneRotation(H(i+1, i+1), H(i+2, i+1),
+					cs(i+1), sn(i+1));
       			ApplyPlaneRotation(s(i+1), s(i+2), cs(i+1), sn(i+1));
-				
+
 			if ((resid = fabs(s.dGetCoef(i+2))) < LocTol) {
 
 #ifdef DEBUG_ITERATIVE
 				std::cerr << "resid 1: " << resid  << std::endl;
 #endif /* DEBUG_ITERATIVE */
 
-				Backsolve(dx, i, H, s, v);
+				Backsolve(dx, i, s, v);
 				pPM->Precond(dx, dx, pSM); 
 
 #ifdef DEBUG_ITERATIVE
@@ -425,7 +416,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 			i++;
 		}
 		if (i == MaxLinIt) {
-			Backsolve(dx, MaxLinIt, H, s, v);
+			Backsolve(dx, MaxLinIt, s, v);
 			pPM->Precond(dx, dx, pSM);				
 		        std::cerr << "Iterative inner solver didn't converge."
 				<< " Continuing..." << std::endl;
@@ -484,7 +475,5 @@ Gmres::Solve(const NonlinearProblem* pNLP,
       		}
 #endif /* MBDYN_X_CONVSOL */
 	}
-
-	SAFEDELETEARR(v);
 }
 
