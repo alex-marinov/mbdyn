@@ -214,6 +214,7 @@ MultiThreadDataManager::ThreadDestroy(void)
 	thread_cleanup(&thread_data[0]);
 
 	SAFEDELETEARR(thread_data);
+	thread_data = 0;
 
 	return cputime;
 }
@@ -419,13 +420,22 @@ MultiThreadDataManager::ThreadSpawn(void)
 				MySubVectorHandler,
 				MySubVectorHandler(iMaxWorkNumRows));
 
-		if (i == 0) continue;
-
 		/* set by AssJac when in CC form */
 		thread_data[i].pJacHdl = 0;
 
 		/* set by AssJac when in Naive form */
 		thread_data[i].ppNaiveJacHdl = 0;
+
+		/* set below */
+		thread_data[i].pResHdl = 0;	
+
+		/* to be sure... */
+		thread_data[i].pMatA = 0;
+		thread_data[i].pMatB = 0;
+
+		if (i == 0) {
+			continue;
+		}
 
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pResHdl,
 				MyVectorHandler, MyVectorHandler(iTotDofs));
