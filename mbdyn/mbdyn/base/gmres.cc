@@ -125,21 +125,15 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 		const integer iMaxIter,
 		const doublereal& Tol,
 		integer& iIterCnt,
-		doublereal& dErr
-#ifdef MBDYN_X_CONVSOL
-		, const doublereal& SolTol,
-		doublereal& dSolErr
-#endif /* MBDYN_X_CONVSOL  */	
-	    )
+		doublereal& dErr ,
+		const doublereal& SolTol,
+		doublereal& dSolErr)
 {
 	ASSERT(pNLP != NULL);
 	ASSERT(pSM != NULL);
 	
 	iIterCnt = 0;
-
-#ifdef MBDYN_X_CONVSOL
 	dSolErr = 0.;
-#endif /* MBDYN_X_CONVSOL  */	
 
 	/* external nonlinear iteration */	
 	
@@ -198,11 +192,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 			}
       		}
 
-#ifdef __HACK_SCALE_RES__
-		dErr = pNLP->TestScale(pScale)*MakeTest(*pRes);		
-#else /* ! __HACK_SCALE_RES__ */
-		dErr = pNLP->TestScale()*MakeTest(*pRes);		
-#endif /* ! __HACK_SCALE_RES__ */
+		dErr = MakeResTest(*pRes)*pNLP->TestScale(pResTest);
 
 #ifdef DEBUG_ITERATIVE
       		std::cerr << "dErr " << dErr << std::endl;
@@ -465,9 +455,8 @@ Gmres::Solve(const NonlinearProblem* pNLP,
       		pNLP->Update(&dx);
 		
 		
-#ifdef MBDYN_X_CONVSOL
 		if (SolTol > 0.) {
-			dSolErr = MakeTest(dx);
+			dSolErr = MakeSolTest(dx);
 			if (outputIters()) {
 #ifdef USE_MPI
 				if (MBDynComm.Get_rank() == 0) {
@@ -481,7 +470,6 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 				THROW(ConvergenceOnSolution());
 			}
       		}
-#endif /* MBDYN_X_CONVSOL */
 	}
 }
 

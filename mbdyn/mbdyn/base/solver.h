@@ -197,7 +197,13 @@ private:
    	StepIntegrator* pFirstFictitiousStep;
 	StepIntegrator* pFictitiousSteps;
 	
+	/* Type of linear solver */
 	LinSol CurrSolver;
+
+	/* Parameters for convergence tests */
+	NonlinearSolverTest::Type ResTest;
+	NonlinearSolverTest::Type SolTest;
+	bool bScale;
 
    	/* Parametri per Newton-Raphson modificato */
    	bool bTrueNewtonRaphson;
@@ -212,7 +218,7 @@ private:
 	doublereal dIterertiveEtaMax;
 	doublereal dIterertiveTau;
 
-/* FOR PARALLEL SOLVERS*/
+/* FOR PARALLEL SOLVERS */
 	bool bParallel;
 	SchurDataManager *pSDM;
 	LinSol CurrIntSolver;

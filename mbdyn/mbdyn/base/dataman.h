@@ -58,7 +58,7 @@
 #include <strnode.h>
 #include <elecnode.h>
 
-#include <nonlin.h>
+#include <solverdiagnostics.h>
 #include <integr.h>
 
 /* DataManager - begin */

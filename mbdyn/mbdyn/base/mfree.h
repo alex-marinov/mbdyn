@@ -78,9 +78,6 @@ public:
 			doublereal T); 
 
 	~MatrixFreeSolver(void);
-
-protected:
-	doublereal MakeTest(const VectorHandler& Vec);
 };
 
 #endif /* MFREE_H */

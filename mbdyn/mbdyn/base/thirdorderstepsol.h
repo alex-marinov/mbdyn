@@ -45,11 +45,7 @@ public:
 	virtual void SetDriveHandler(const DriveHandler* pDH);
 
 	/* scale factor for tests */
-//#ifdef __HACK_SCALE_RES__
-//	virtual doublereal TestScale(const VectorHandler *pScale) const;
-//#else /* ! __HACK_SCALE_RES__ */
-//	virtual doublereal TestScale(void) const;
-//#endif /* ! __HACK_SCALE_RES__ */
+//	virtual doublereal TestScale(const NonlinearSolverTest *pTest) const;
 
 	virtual doublereal
 	Advance(const doublereal TStep, 
@@ -61,11 +57,8 @@ public:
 	 		std::deque<MyVectorHandler*>& qXPrime,
 			MyVectorHandler*const pX,
  			MyVectorHandler*const pXPrime,
-			integer& EffIter
-#ifdef MBDYN_X_CONVSOL
-			, doublereal& SolErr
-#endif /* MBDYN_X_CONVSOL */
-			);
+			integer& EffIter,
+			doublereal& SolErr);
 
 protected:
 	virtual void SetCoef(doublereal dT, 

@@ -98,6 +98,8 @@ sockdrv.cc \
 sockdrv.h \
 solver.cc \
 solver.h \
+solverdiagnostics.cc \
+solverdiagnostics.h \
 stepsol.cc \
 stepsol.h \
 symcltp.h \

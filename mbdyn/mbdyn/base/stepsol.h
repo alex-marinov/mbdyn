@@ -123,11 +123,8 @@ public:
  			std::deque<MyVectorHandler*>& qXPrime,
 			MyVectorHandler*const pX,
  			MyVectorHandler*const pXPrime,
-			integer& EffIter
-#ifdef MBDYN_X_CONVSOL
-			, doublereal& SolErr
-#endif /* MBDYN_X_CONVSOL */
-			) = 0;
+			integer& EffIter,
+			doublereal& SolErr) = 0;
 };
 
 
@@ -169,11 +166,7 @@ public:
 			const VectorHandler& w, VectorHandler& z) const;
 
 	/* scale factor for tests */
-#ifdef __HACK_SCALE_RES__
-	virtual doublereal TestScale(const VectorHandler *pScale) const;
-#else /* ! __HACK_SCALE_RES__ */
-	virtual doublereal TestScale(void) const;
-#endif /* ! __HACK_SCALE_RES__ */
+	virtual doublereal TestScale(const NonlinearSolverTest *pTest) const;
 
 };
 
@@ -203,11 +196,8 @@ public:
  			std::deque<MyVectorHandler*>& qXPrime,
 			MyVectorHandler*const pX,
  			MyVectorHandler*const pXPrime,
-			integer& EffIter
-#ifdef MBDYN_X_CONVSOL
-			, doublereal& SolErr
-#endif /* MBDYN_X_CONVSOL */
-			);
+			integer& EffIter,
+			doublereal& SolErr);
 
  	void Residual(VectorHandler* pRes) const;
 
@@ -216,13 +206,7 @@ public:
 	void Update(const VectorHandler* pSol) const;
 
 	/* scale factor for tests */
-#ifdef __HACK_SCALE_RES__
-	virtual doublereal TestScale(const VectorHandler *pScale) const;
-#else /* ! __HACK_SCALE_RES__ */
-	virtual doublereal TestScale(void) const;
-#endif /* ! __HACK_SCALE_RES__ */
-
- 
+	virtual doublereal TestScale(const NonlinearSolverTest *pTest) const;
 };
 
 
@@ -282,11 +266,8 @@ public:
 	 		std::deque<MyVectorHandler*>& qXPrime,
 			MyVectorHandler*const pX,
  			MyVectorHandler*const pXPrime,
-			integer& EffIter
-#ifdef MBDYN_X_CONVSOL
-			, doublereal& SolErr
-#endif /* MBDYN_X_CONVSOL */
-			);
+			integer& EffIter,
+			doublereal& SolErr);
 
 protected:
 	virtual void Predict(void);
@@ -398,11 +379,8 @@ public:
 	 		std::deque<MyVectorHandler*>& qXPrime,
 			MyVectorHandler*const pX,
  			MyVectorHandler*const pXPrime,
-			integer& EffIter
-#ifdef MBDYN_X_CONVSOL
-			, doublereal& SolErr
-#endif /* MBDYN_X_CONVSOL */
-			);
+			integer& EffIter,
+			doublereal& SolErr);
 
 protected:
 	virtual void Predict(void);

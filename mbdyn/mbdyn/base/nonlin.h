@@ -39,11 +39,12 @@
 #ifndef NONLIN_H
 #define NONLIN_H
 
-#include<external.h>
-#include<nonlinpb.h>
-#include<solman.h>  
+#include <solverdiagnostics.h>
+#include <external.h>
+#include <nonlinpb.h>
+#include <solman.h>  
 #include <ac/float.h>
-#include<vector>
+#include <vector>
 
 /*
  * Directory tree rationale:
@@ -64,58 +65,50 @@
  *      |--- gmres.h		Gmres, UpHessMatrix
  */
 
-class SolverDiagnostics {
-protected:
- 	unsigned OutputFlags;
-
-	enum {
-		OUTPUT_NONE		= 0x0000,
-
-		OUTPUT_ITERS		= 0x0001,
-		OUTPUT_RES		= 0x0002,
-		OUTPUT_SOL		= 0x0004,
-		OUTPUT_JAC		= 0x0008,
-		OUTPUT_MSG		= 0x0010,
-
-		OUTPUT_DEFAULT		= OUTPUT_MSG,
-
-		OUTPUT_MASK		= 0x00FF
-	};
+class NonlinearSolverTest {
 public:
+	enum Type {
+		NORM,
+		MINMAX,
 
-	SolverDiagnostics(unsigned OF = OUTPUT_DEFAULT);
-	virtual ~SolverDiagnostics(void);
-	
-	void SetOutputFlags(unsigned OF);
-	void AddOutputFlags(unsigned OF);
-	void DelOutputFlags(unsigned OF);
-		
-	inline bool outputIters(void) const {
-		return (OutputFlags & OUTPUT_ITERS);
-	};
- 
-	inline bool outputRes(void) const {
-		return (OutputFlags & OUTPUT_RES);
-	};
- 
-	inline bool outputSol(void) const {
-		return (OutputFlags & OUTPUT_SOL);
-	};
- 
-	inline bool outputJac(void) const {
-		return (OutputFlags & OUTPUT_JAC);
+		LASTNONLINEARSOLVERTEST
 	};
 
-        /*
-	 * all messages not protected behind any other condition
-	 * must be protected by a "if (outputMsg())" condition
-	 */
-	inline bool outputMsg(void) const {
-		return (OutputFlags & OUTPUT_MSG);
-	};
+	virtual ~NonlinearSolverTest(void);
+	virtual doublereal MakeTest(integer Size, const VectorHandler& Vec) = 0;
+	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
 };
 
- 
+class NonlinearSolverTestNorm : public NonlinearSolverTest {
+public:
+	virtual doublereal MakeTest(integer Size, const VectorHandler& Vec);
+};
+
+class NonlinearSolverTestMinMax : public NonlinearSolverTest {
+public:
+	virtual doublereal MakeTest(integer Size, const VectorHandler& Vec);
+};
+
+class NonlinearSolverTestScale : public NonlinearSolverTest {
+protected:
+	const VectorHandler* pScale; 
+	
+public:
+	NonlinearSolverTestScale(const VectorHandler* pScl = 0);
+	virtual void SetScale(const VectorHandler* pScl);
+	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
+};
+
+class NonlinearSolverTestScaleNorm : public NonlinearSolverTestScale {
+public:
+	virtual doublereal MakeTest(integer Size, const VectorHandler& Vec);
+};
+
+class NonlinearSolverTestScaleMinMax : public NonlinearSolverTestScale {
+public:
+	virtual doublereal MakeTest(integer Size, const VectorHandler& Vec);
+};
+
 class NonlinearSolver : public SolverDiagnostics
 {
 public:
@@ -138,23 +131,20 @@ public:
 protected:
 	integer Size;
 	integer TotJac;	
+	NonlinearSolverTest *pResTest;
+	NonlinearSolverTest *pSolTest;
 #ifdef USE_EXTERNAL	
 	External::ExtMessage ExtStepType;
 #endif /* USE_EXTERNAL */
 
-#ifdef __HACK_SCALE_RES__
-	VectorHandler* pScale; 
-#endif /* __HACK_SCALE_RES__ */
-
-	virtual doublereal MakeTest(const VectorHandler& Vec) = 0;
+	virtual doublereal MakeResTest(const VectorHandler& Vec);
+	virtual doublereal MakeSolTest(const VectorHandler& Vec);
 
 public:
 	NonlinearSolver(void);
-		
-#ifdef __HACK_SCALE_RES__
-	virtual void SetScale(const VectorHandler* pScl);
-#endif /* __HACK_SCALE_RES__ */
 
+	virtual void SetTest(NonlinearSolverTest *pr, NonlinearSolverTest *ps);
+		
 	virtual ~NonlinearSolver(void);
 
 	virtual void Solve(const NonlinearProblem* NLP,
@@ -162,12 +152,9 @@ public:
 			const integer iMaxIter,
 			const doublereal& Tol,
 			integer& iIterCnt,
-			doublereal& dErr
-#ifdef MBDYN_X_CONVSOL
-			, const doublereal& SolTol,
-			doublereal& dSolErr
-#endif /* MBDYN_X_CONVSOL  */	
-			) = 0;
+			doublereal& dErr,
+			const doublereal& SolTol,
+			doublereal& dSolErr) = 0;
 
 	virtual integer TotalAssembledJacobian(void);
 	

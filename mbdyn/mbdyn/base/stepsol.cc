@@ -151,17 +151,13 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 
 /* scale factor for tests */
 doublereal
-#ifdef __HACK_SCALE_RES__
-ImplicitStepIntegrator::TestScale(const VectorHandler *pScale) const
-#else /* ! __HACK_SCALE_RES__ */
-ImplicitStepIntegrator::TestScale(void) const
-#endif /* ! __HACK_SCALE_RES__ */
+ImplicitStepIntegrator::TestScale(const NonlinearSolverTest *pTest) const
 {
 
 	if (bModResTest) {
 
 #ifdef USE_MPI
-#warning "StepNIntegrator TestScale parallel broken !! "	
+#warning "ImplicitStepIntegrator::TestScale parallel broken !! "	
 #endif /* USE_MPI */
 
 		Dof CurrDof;
@@ -176,11 +172,9 @@ ImplicitStepIntegrator::TestScale(void) const
 				doublereal d = pXPrimeCurr->dGetCoef(iCntp1);
 				doublereal d2 = d*d;
 
-#ifdef __HACK_SCALE_RES__
-				doublereal ds = pScale->dGetCoef(iCntp1);
+				doublereal ds = pTest->dScaleCoef(iCntp1);
 				doublereal ds2 = ds*ds;
 				d2 *= ds2;
-#endif /* __HACK_SCALE_RES__ */
 
 				dXPr += d2;
 			}
@@ -188,6 +182,7 @@ ImplicitStepIntegrator::TestScale(void) const
 		}
 
 	   	return 1./(1.+dXPr);
+
 	} else {
 		return 1.;
 	}
@@ -226,11 +221,8 @@ DerivativeSolver::Advance(const doublereal TStep,
 	 	std::deque<MyVectorHandler*>& qXPrime,
 		MyVectorHandler*const pX,
  		MyVectorHandler*const pXPrime,
-		integer& EffIter
-#ifdef MBDYN_X_CONVSOL
-		, doublereal& SolErr
-#endif /* MBDYN_X_CONVSOL  */
-		)
+		integer& EffIter,
+		doublereal& SolErr)
 {
 	/* no predizione */
 	ASSERT(pDM != NULL);
@@ -241,11 +233,7 @@ DerivativeSolver::Advance(const doublereal TStep,
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	doublereal dErr = 0.;        
 	pNLS->Solve(this,  pSM, MaxIters, dTol,
-    			EffIter, dErr
-#ifdef MBDYN_X_CONVSOL
-			, dSolTol, SolErr
-#endif /* MBDYN_X_CONVSOL  */	
-			);
+    			EffIter, dErr, dSolTol, SolErr);
 
 	return dErr;
 }
@@ -352,11 +340,7 @@ DerivativeSolver::Update(const VectorHandler* pSol) const
 
 /* scale factor for tests */
 doublereal
-#ifdef __HACK_SCALE_RES__
-DerivativeSolver::TestScale(const VectorHandler * /* pScale */ ) const
-#else /* ! __HACK_SCALE_RES__ */
-DerivativeSolver::TestScale(void) const
-#endif /* ! __HACK_SCALE_RES__ */
+DerivativeSolver::TestScale(const NonlinearSolverTest *pTest) const
 {
 	return 1.;
 }
@@ -646,11 +630,8 @@ Step1Integrator::Advance(const doublereal TStep,
 	 	std::deque<MyVectorHandler*>& qXPrime,
 		MyVectorHandler*const pX,
  		MyVectorHandler*const pXPrime,
-		integer& EffIter
-#ifdef MBDYN_X_CONVSOL
-		, doublereal& SolErr
-#endif /* MBDYN_X_CONVSOL */
-		)
+		integer& EffIter,
+		doublereal& SolErr)
 {
 	ASSERT(pDM != NULL);
 	pXCurr  = pX;
@@ -689,11 +670,7 @@ Step1Integrator::Advance(const doublereal TStep,
 
 	doublereal dErr = 0.;
 	pNLS->Solve(this, pSM, MaxIters, dTol,
-    			EffIter, dErr
-#ifdef MBDYN_X_CONVSOL
-			, dSolTol, SolErr
-#endif /* MBDYN_X_CONVSOL  */	
-			);
+    			EffIter, dErr , dSolTol, SolErr);
 	
 	return dErr;
 }
@@ -894,11 +871,8 @@ Step2Integrator::Advance(const doublereal TStep,
 	 	std::deque<MyVectorHandler*>& qXPrime,
 		MyVectorHandler*const pX,
 		MyVectorHandler*const pXPrime,
-		integer& EffIter
-#ifdef MBDYN_X_CONVSOL
-		, doublereal& SolErr
-#endif /* MBDYN_X_CONVSOL */
-		)
+		integer& EffIter,
+		doublereal& SolErr)
 {
 	ASSERT(pDM != NULL);
 	pXCurr  = pX;
@@ -939,11 +913,7 @@ Step2Integrator::Advance(const doublereal TStep,
 
 	doublereal dErr = 0.;        
 	pNLS->Solve(this, pSM, MaxIters, dTol,
-    			EffIter, dErr
-#ifdef MBDYN_X_CONVSOL
-			, dSolTol, SolErr
-#endif /* MBDYN_X_CONVSOL  */	
-			);
+    			EffIter, dErr , dSolTol, SolErr);
 	
 	return dErr;
 }

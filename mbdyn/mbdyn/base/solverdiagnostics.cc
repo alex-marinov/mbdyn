@@ -40,53 +40,34 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <precond_.h>
-#include <mfree.h>
-#ifdef USE_MPI
-#include <mbcomm.h>
-#include <schsolman.h>
-#endif /* USE_MPI */
-
-#include <dofown.h>
-#include <unistd.h>
-#include <ac/math.h>
-
-const doublereal defaultGamma = 0.9;
-
-MatrixFreeSolver::MatrixFreeSolver(
-		const Preconditioner::PrecondType PType, 
-		const integer iPStep,
-		doublereal ITol,
-		integer MaxIt,
-		doublereal etaMx,
-		doublereal T) 
-: pSM(NULL),
-pPM(NULL),
-pRes(NULL),
-IterTol(ITol),
-MaxLinIt(MaxIt),
-Tau(T),
-gamma(defaultGamma),
-etaMax(etaMx),
-PrecondIter(iPStep),
-fBuildMat(true),
-pPrevNLP(NULL)
+#include <myassert.h>
+#include <solverdiagnostics.h>
+ 
+SolverDiagnostics::SolverDiagnostics(unsigned OF)
 {
-	
-	switch(PType) {
-	case Preconditioner::FULLJACOBIAN:
-		SAFENEW(pPM, FullJacobianPr);
-		break;
-	
-	default:
-		std::cerr << "Unknown Preconditioner type; aborting"
-			<< std::endl;
-		THROW(ErrGeneric()); 
-	}
+	SetOutputFlags(OF);
 }
 
-MatrixFreeSolver::~MatrixFreeSolver(void)
+SolverDiagnostics::~SolverDiagnostics(void)
 {
-	NO_OP;
+	SetOutputFlags(0);
+}
+	
+void
+SolverDiagnostics::SetOutputFlags(unsigned OF)
+{
+	OutputFlags = OF;
+}
+
+void
+SolverDiagnostics::AddOutputFlags(unsigned OF)
+{
+	OutputFlags |= OF;
+}
+
+void
+SolverDiagnostics::DelOutputFlags(unsigned OF)
+{
+	OutputFlags &= ~OF;
 }
 

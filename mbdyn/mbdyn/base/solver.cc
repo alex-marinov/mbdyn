@@ -206,6 +206,9 @@ pDerivativeSteps(NULL),
 pFirstRegularStep(NULL),
 pRegularSteps(NULL),
 pFictitiousSteps(NULL),
+ResTest(NonlinearSolverTest::NORM),
+SolTest(NonlinearSolverTest::NORM),
+bScale(false),
 bTrueNewtonRaphson(1),
 iIterationsBeforeAssembly(0),
 NonlinearSolverType(NonlinearSolver::UNKNOWN),
@@ -453,19 +456,84 @@ void Solver::Run(void)
 
    	/* Immediately link DataManager to current solution              */
 	/*                                                               */
-	/* this shuold work as long as the last unknown time step is put */
+	/* this should work as long as the last unknown time step is put */
 	/* at the beginning of pX, pXPrime                               */
    	pDM->LinkToSolution(*(pX), *(pXPrime));         
 
 	/* a questo punto si costruisce il nonlinear solver */
 	pNLS = AllocateNonlinearSolver();
 
-#ifdef __HACK_SCALE_RES__
 	MyVectorHandler Scale(iNumDofs);
 	VectorHandler *pScale = &Scale;
-	pDM->SetScale(*pScale);
-	pNLS->SetScale(pScale);
-#endif /* __HACK_SCALE_RES__ */
+	if (bScale) {
+		/* collects scale factors from data manager */
+		pDM->SetScale(*pScale);
+	}
+
+	/*
+	 * prepare tests for nonlinear solver;
+	 *
+	 * test on residual may allow pre-scaling;
+	 * test on solution (difference between two iterations) does not
+	 */
+	NonlinearSolverTest *pResTest = NULL;
+	if (bScale) {
+		NonlinearSolverTestScale *pResTestScale = NULL;
+		NonlinearSolverTestScale *pSolTestScale = NULL;
+
+		switch (ResTest) {
+		case NonlinearSolverTest::NORM:
+			SAFENEW(pResTestScale, NonlinearSolverTestScaleNorm);
+			break;
+
+		case NonlinearSolverTest::MINMAX:
+			SAFENEW(pResTestScale, NonlinearSolverTestScaleMinMax);
+			break;
+
+		default:
+			ASSERT(0);
+			throw ErrGeneric();
+		}
+
+		/* registers scale factors at nonlinear solver */
+		pResTestScale->SetScale(pScale);
+
+		pResTest = pResTestScale;
+		
+
+	} else {
+		switch (ResTest) {
+		case NonlinearSolverTest::NORM:
+			SAFENEW(pResTest, NonlinearSolverTestNorm);
+			break;
+
+		case NonlinearSolverTest::MINMAX:
+			SAFENEW(pResTest, NonlinearSolverTestMinMax);
+			break;
+
+		default:
+			ASSERT(0);
+			throw ErrGeneric();
+		}
+	}
+
+	NonlinearSolverTest *pSolTest = NULL;
+	switch (SolTest) {
+	case NonlinearSolverTest::NORM:
+		SAFENEW(pSolTest, NonlinearSolverTestNorm);
+		break;
+
+	case NonlinearSolverTest::MINMAX:
+		SAFENEW(pSolTest, NonlinearSolverTestMinMax);
+		break;
+
+	default:
+		ASSERT(0);
+		throw ErrGeneric();
+	}
+
+	/* registers tests in nonlinear solver */
+	pNLS->SetTest(pResTest, pSolTest);
 
    	/*
 	 * Dell'assemblaggio iniziale dei vincoli se ne occupa il DataManager 
@@ -492,10 +560,9 @@ void Solver::Run(void)
 	integer iStIter = 0;
    	doublereal dTotErr = 0.;
 	doublereal dTest = DBL_MAX;
-#ifdef MBDYN_X_CONVSOL
    	doublereal dSolTest = DBL_MAX;
 	bool bSolConv = false;
-#endif /* MBDYN_X_CONVSOL */	/* calcolo delle derivate */
+	/* calcolo delle derivate */
    	DEBUGLCOUT(MYDEBUG_DERIVATIVES, "derivatives solution step"
 			<< std::endl);
 
@@ -559,11 +626,7 @@ void Solver::Run(void)
 		dTest = pDerivativeSteps->Advance(0., 1.,
 				StepIntegrator::NEWSTEP,
 			 	pSM, pNLS, qX, qXPrime, pX, pXPrime,
-				iStIter
-#ifdef MBDYN_X_CONVSOL
-				, dSolTest
-#endif /* MBDYN_X_CONVSOL */
-				);
+				iStIter, dSolTest);
 	}
 	catch (NonlinearSolver::NoConvergence) {
 		std::cerr << std::endl
@@ -582,9 +645,7 @@ void Solver::Run(void)
 		THROW(SimulationDiverged());
 	}
 	catch (NonlinearSolver::ConvergenceOnSolution) {
-#ifdef MBDYN_X_CONVSOL
 		bSolConv = true;
-#endif /* MBDYN_X_CONVSOL */
 	}
 	catch (...) {
 		THROW(ErrGeneric());
@@ -660,11 +721,8 @@ void Solver::Run(void)
 		try {
 	 		dTest = pFirstFictitiousStep->Advance(dRefTimeStep, 1.,
 				StepIntegrator::NEWSTEP,
-				pSM, pNLS, qX, qXPrime, pX, pXPrime, iStIter
-#ifdef MBDYN_X_CONVSOL
-				, dSolTest
-#endif /* MBDYN_X_CONVSOL */
-				);					
+				pSM, pNLS, qX, qXPrime, pX, pXPrime, iStIter,
+				dSolTest);					
 		}
 		catch (NonlinearSolver::NoConvergence) {
 			std::cerr << std::endl
@@ -685,9 +743,7 @@ void Solver::Run(void)
 			THROW(SimulationDiverged());
 		}
 		catch (NonlinearSolver::ConvergenceOnSolution) {
-#ifdef MBDYN_X_CONVSOL
 			bSolConv = true;
-#endif /* MBDYN_X_CONVSOL */
 		}
 		catch (...) {
 			THROW(ErrGeneric());
@@ -743,11 +799,7 @@ void Solver::Run(void)
 					 	StepIntegrator::NEWSTEP, 
 				 		pSM, pNLS, 
 						qX, qXPrime, pX, pXPrime,
-						iStIter
-#ifdef MBDYN_X_CONVSOL
-						, dSolTest
-#endif /* MBDYN_X_CONVSOL */
-						);						
+						iStIter, dSolTest);						
 			}
 			catch (NonlinearSolver::NoConvergence) {
 				std::cerr << std::endl
@@ -769,9 +821,7 @@ void Solver::Run(void)
 				THROW(SimulationDiverged());
 			}			
 			catch (NonlinearSolver::ConvergenceOnSolution) {
-#ifdef MBDYN_X_CONVSOL
 				bSolConv = true;
-#endif /* MBDYN_X_CONVSOL */
 			}
 			catch (...) {
 				THROW(ErrGeneric());
@@ -886,11 +936,7 @@ IfFirstStepIsToBeRepeated:
 		dTest = pFirstRegularStep->Advance(dRefTimeStep,
 				dCurrTimeStep/dRefTimeStep,
 			 	CurrStep, pSM, pNLS, 
-				qX, qXPrime, pX, pXPrime, iStIter
-#ifdef MBDYN_X_CONVSOL				
-				, dSolTest
-#endif /* MBDYN_X_CONVSOL */				
-				);
+				qX, qXPrime, pX, pXPrime, iStIter, dSolTest);
 	}
 	catch (NonlinearSolver::NoConvergence) {
 		if (dCurrTimeStep > dMinimumTimeStep) {
@@ -929,10 +975,7 @@ IfFirstStepIsToBeRepeated:
 		THROW(SimulationDiverged());
 	}
 	catch (NonlinearSolver::ConvergenceOnSolution) {
-#ifdef MBDYN_X_CONVSOL
-		/* FIXME: handle the case of #undef MBDYN_X_CONVSOL */
 		bSolConv = true;
-#endif /* MBDYN_X_CONVSOL */
 	}
 	catch (...) {
 		THROW(ErrGeneric());
@@ -955,16 +998,14 @@ IfFirstStepIsToBeRepeated:
 			<< " step " << dCurrTimeStep
 			<< " iterations " << iStIter
 			<< " error " << dTest
-#ifdef MBDYN_X_CONVSOL
-			<< " " << dSolTest
-			<< " " << bSolConv
-#endif /* MBDYN_X_CONVSOL */
-			<< std::endl;
+			<< " solution error " << dSolTest;
+		if (bSolConv) {
+			Out << " convergence on solution";
+		}
+		Out << std::endl;
 	}
 
-#ifdef MBDYN_X_CONVSOL
 	bSolConv = false;
-#endif /* MBDYN_X_CONVSOL */
 
    	dRefTimeStep = dCurrTimeStep;
    	dTime += dRefTimeStep;
@@ -1099,11 +1140,8 @@ IfStepIsToBeRepeated:
 			dTest = pRegularSteps->Advance(dRefTimeStep,
 					dCurrTimeStep/dRefTimeStep,
 				 	CurrStep, pSM, pNLS,
-					qX, qXPrime, pX, pXPrime, iStIter
-#ifdef MBDYN_X_CONVSOL				
-					, dSolTest
-#endif /* MBDYN_X_CONVSOL */				
-				);
+					qX, qXPrime, pX, pXPrime, iStIter,
+					dSolTest);
 		}
 
 		catch (NonlinearSolver::NoConvergence) {
@@ -1142,9 +1180,7 @@ IfStepIsToBeRepeated:
 			THROW(SimulationDiverged());
 		}
 		catch (NonlinearSolver::ConvergenceOnSolution) {
-#ifdef MBDYN_X_CONVSOL
 			bSolConv = true;
-#endif /* MBDYN_X_CONVSOL */
 		}
 		catch (...) {
 			THROW(ErrGeneric());
@@ -1163,11 +1199,11 @@ IfStepIsToBeRepeated:
 				<< " step " << dCurrTimeStep
 				<< " iterations " << iStIter
 				<< " error " << dTest 
-#ifdef MBDYN_X_CONVSOL
-				<< " " << dSolTest
-				<< " " << bSolConv 
-#endif /* MBDYN_X_CONVSOL */
-				<< std::endl;
+				<< " soluton error " << dSolTest;
+			if (bSolConv) {
+				Out << " convergence on solution";
+			}
+			Out << std::endl;
 		}
       
      	 	DEBUGCOUT("Step " << iStep
@@ -1177,9 +1213,7 @@ IfStepIsToBeRepeated:
 	      	dRefTimeStep = dCurrTimeStep;
       		dTime += dRefTimeStep;
 
-#ifdef MBDYN_X_CONVSOL
 		bSolConv = false;
-#endif /* MBDYN_X_CONVSOL */
 
 #ifdef __HACK_POD__
 		if (fPOD && dTime >= pod.dTime) {
@@ -1955,11 +1989,43 @@ Solver::ReadData(MBDynParser& HP)
 				std::cerr << "warning, tolerance <= 0. is illegal; "
 					"using default value " << dTol << std::endl;
 			}
-#ifdef MBDYN_X_CONVSOL
+
 			dSolutionTol = dTol;
+
+			if (HP.fIsArg()) {
+				if (HP.IsKeyWord("test")) {
+					if (HP.IsKeyWord("norm")) {
+						ResTest = NonlinearSolverTest::NORM;
+					} else if (HP.IsKeyWord("minmax")) {
+						ResTest = NonlinearSolverTest::MINMAX;
+					} else {
+						std::cerr << "unknown test method at line " << HP.GetLineData() << std::endl;
+						throw ErrGeneric();
+					}
+
+					if (HP.IsKeyWord("scale")) {
+						bScale = true;
+					}
+				}
+			}
+
 			if (HP.fIsArg()) {
 				dSolutionTol = HP.GetReal();
 			}
+
+			if (HP.fIsArg()) {
+				if (HP.IsKeyWord("test")) {
+					if (HP.IsKeyWord("norm")) {
+						SolTest = NonlinearSolverTest::NORM;
+					} else if (HP.IsKeyWord("minmax")) {
+						SolTest = NonlinearSolverTest::MINMAX;
+					} else {
+						std::cerr << "unknown test method at line " << HP.GetLineData() << std::endl;
+						throw ErrGeneric();
+					}
+				}
+			}
+
 			if (dSolutionTol <= 0.) {
 				dSolutionTol = 0.;
 				std::cerr << "warning, tolerance <= 0. is illegal; "
@@ -1969,14 +2035,6 @@ Solver::ReadData(MBDynParser& HP)
 
 			DEBUGLCOUT(MYDEBUG_INPUT, "tolerance = " << dTol
 					<< ", " << dSolutionTol << std::endl);
-#else /* !MBDYN_X_CONVSOL */
-			if (HP.fIsArg()) {
-				pedantic_cerr("define MBDYN_X_SOLCONV to enable "
-						"convergence test on solution" << std::endl);
-				(void)HP.GetReal();
-			}
-#endif /* !MBDYN_X_CONVSOL */
-			DEBUGLCOUT(MYDEBUG_INPUT, "tolerance = " << dTol << std::endl);
 			break;
 		}	
 

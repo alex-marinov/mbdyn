@@ -60,12 +60,9 @@ public:
 			const integer iMaxIter,
 			const doublereal& Tol,
 			integer& iIterCnt,
-			doublereal& dErr
-#ifdef MBDYN_X_CONVSOL
-			, const doublereal& SolTol,
-			doublereal& dSolErr
-#endif /* MBDYN_X_CONVSOL  */	
-			);
+			doublereal& dErr,
+			const doublereal& SolTol,
+			doublereal& dSolErr);
 };
 
 #endif /* BICG_H */

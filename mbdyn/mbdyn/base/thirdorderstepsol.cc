@@ -121,20 +121,19 @@ void ThirdOrderIntegrator::SetCoef(doublereal dt,
 	
 };
 
-doublereal ThirdOrderIntegrator::Advance(const doublereal TStep, 
-			const doublereal dAlph, 
-			const StepChange StType,
-			SolutionManager* pSM,
-			NonlinearSolver* pNLS, 
-			std::deque<MyVectorHandler*>& qX,
-	 		std::deque<MyVectorHandler*>& qXPrime,
-			MyVectorHandler*const pX,
- 			MyVectorHandler*const pXPrime,
-			integer& EffIter
-#ifdef MBDYN_X_CONVSOL
-			, doublereal& SolErr
-#endif /* MBDYN_X_CONVSOL */
-			){
+doublereal
+ThirdOrderIntegrator::Advance(const doublereal TStep, 
+		const doublereal dAlph, 
+		const StepChange StType,
+		SolutionManager* pSM,
+		NonlinearSolver* pNLS, 
+		std::deque<MyVectorHandler*>& qX,
+		std::deque<MyVectorHandler*>& qXPrime,
+		MyVectorHandler* const pX,
+		MyVectorHandler* const pXPrime,
+		integer& EffIter,
+		doublereal& SolErr)
+{
 	if (bAdvanceCalledFirstTime) {
 		integer n = pDM->iGetNumDofs();
 		EqIsAlgebraic.resize(n);
@@ -167,11 +166,7 @@ doublereal ThirdOrderIntegrator::Advance(const doublereal TStep,
 	
 	doublereal dErr = 0.;        
 	pNLS->Solve(this, pSM, MaxIters, dTol,
-    			EffIter, dErr
-#ifdef MBDYN_X_CONVSOL
-			, dSolTol, SolErr
-#endif /* MBDYN_X_CONVSOL  */	
-			);
+    			EffIter, dErr , dSolTol, SolErr);
 	
 	return dErr;
 };
@@ -418,11 +413,7 @@ void ThirdOrderIntegrator::SetDriveHandler(const DriveHandler* pDH)
 
 // /* scale factor for tests */
 // doublereal
-// #ifdef __HACK_SCALE_RES__
-// ThirdOrderIntegrator::TestScale(const VectorHandler *pScale) const
-// #else /* ! __HACK_SCALE_RES__ */
-// ThirdOrderIntegrator::TestScale(void) const
-// #endif /* ! __HACK_SCALE_RES__ */
+// ThirdOrderIntegrator::TestScale(const NonlinearSolverTest *pResTest) const
 // {
 // #ifdef __HACK_RES_TEST__
 // 
@@ -442,11 +433,9 @@ void ThirdOrderIntegrator::SetDriveHandler(const DriveHandler* pDH)
 // 			doublereal d = pXPrimeCurr->dGetCoef(iCntp1);
 // 			doublereal d2 = d*d;
 // 
-// #ifdef __HACK_SCALE_RES__
-// 			doublereal ds = pScale->dGetCoef(iCntp1);
+// 			doublereal ds = pResTest->dScaleCoef(iCntp1);
 // 			doublereal ds2 = ds*ds;
 // 			d2 *= ds2;
-// #endif /* __HACK_SCALE_RES__ */
 // 
 // 			dXPr += d2;
 // 		}

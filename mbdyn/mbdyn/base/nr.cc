@@ -53,78 +53,6 @@
 #include <ac/float.h>
 #include <ac/math.h>
 
-doublereal
-NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
-{
-   	DEBUGCOUTFNAME("NewtonRaphsonSolver::MakeTest");
-
-   	doublereal dRes = 0.;
-	ASSERT(pSM != NULL);
-	
-#ifdef USE_MPI
-#warning "NonlinSolver MakeTest parallel broken !! "	
-#if 0
-	SchurSolutionManager *pSSM;
-	if ((pSSM = dynamic_cast<SchurSolutionManager*> (pSM)) != 0) {
-		
-		/*
-		 * Chiama la routine di comunicazione per la trasmissione 
-		 * del residuo delle interfacce
-		 */
-		pSSM->StartExchInt();
-
-		/* calcola il test per i dofs locali */
-		int DCount = 0;
-		for (int iCnt = 0; iCnt < iNumLocDofs; iCnt++) {
-			DCount = pLocDofs[iCnt];
-			CurrDof = pDofs[DCount-1];
-			doublereal d = Res.dGetCoef(DCount);
-			dRes += d*d;
-		}
-
-		integer iMI = pSDM->HowManyDofs(SchurDataManager::MYINTERNAL);
-		integer *pMI = pSDM->GetDofsList(SchurDataManager::MYINTERNAL);
-
-		/* verifica completamento trasmissioni */
-		pSSM->ComplExchInt(dRes, dXPr);
-		
-	} else {
-#endif
-
-#endif /* USE_MPI */
-		ASSERT(Vec.iGetSize() == Size);
-#ifdef __HACK_SCALE_RES__
-		ASSERT(pScale != NULL);
-		ASSERT(pScale->iGetSize() == Size);
-#endif /* __HACK_SCALE_RES__ */
-
- 	  	for (int iCntp1 = 1; iCntp1 <= Size; 
-				iCntp1++) {
-			doublereal d = Vec.dGetCoef(iCntp1);
-			doublereal d2 = d*d;
-
-#ifdef __HACK_SCALE_RES__
-			doublereal ds = pScale->dGetCoef(iCntp1);
-			doublereal ds2 = ds*ds;
-			d2 *= ds2;
-#endif /* __HACK_SCALE_RES__ */
-
-			dRes += d2;
-		}
-#ifdef USE_MPI
-#if 0 
-	}
-#endif
-#endif /* USE_MPI */
-
-	/* FIXME: sicuri che va qui? */
-	if (!isfinite(dRes)) {      
-		THROW(ErrSimulationDiverged());
-	}
-
-   	return sqrt(dRes);
-}
-
 NewtonRaphsonSolver::NewtonRaphsonSolver(const bool bTNR,
 		const bool bKJ, 
 		const integer IterBfAss)
@@ -152,12 +80,9 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 		const integer iMaxIter,
 		const doublereal& Tol,
 		integer& iIterCnt,
-		doublereal& dErr
-#ifdef MBDYN_X_CONVSOL
-		, const doublereal& SolTol,
-		doublereal& dSolErr
-#endif /* MBDYN_X_CONVSOL  */	
-		)
+		doublereal& dErr ,
+		const doublereal& SolTol,
+		doublereal& dSolErr)
 {
 	ASSERT(pNLP != NULL);
 	ASSERT(pSolMan != NULL);
@@ -173,10 +98,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 		iPerformedIterations = 0;
 	}
 	pPrevNLP = pNLP;
-
-#ifdef MBDYN_X_CONVSOL
 	dSolErr = 0.;
-#endif /* MBDYN_X_CONVSOL  */	
 
 	while (1) {
 
@@ -197,19 +119,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 			}
       		}
 
-		dErr = MakeTest(*pRes);
-
-#if 0 /* this check goes inside MakeTest */
-		if (!isfinite(dErr)) {
-			THROW(ErrSimulationDiverged());
-		}
-#endif /* 0 */
-		
-#ifdef __HACK_SCALE_RES__
-		dErr *= pNLP->TestScale(pScale);
-#else /* ! __HACK_SCALE_RES__ */
-		dErr *= pNLP->TestScale();
-#endif /* ! __HACK_SCALE_RES__ */
+		dErr = MakeResTest(*pRes)*pNLP->TestScale(pResTest);
 
       		if (dErr < Tol) {
 	 		return;
@@ -271,9 +181,8 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
       		pNLP->Update(pSol);
 
 		
-#ifdef MBDYN_X_CONVSOL
 		if (SolTol > 0.) {
-			dSolErr = MakeTest(*pSol);
+			dSolErr = MakeSolTest(*pSol);
                         if (outputIters()) {
 #ifdef USE_MPI
                                 if (MBDynComm.Get_rank() == 0) {
@@ -287,7 +196,6 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 				THROW(ConvergenceOnSolution());
 			}
       		}
-#endif /* MBDYN_X_CONVSOL */
 	}
 }
 
