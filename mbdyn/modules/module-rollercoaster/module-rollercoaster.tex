@@ -211,6 +211,12 @@ una forma particolare:
     \Delta{l} \ = \ N'_i\plbr{\Delta{x_i} - f_i\times\Delta{g_i}}
     + N''_i\plbr{x_i + f_i} \Delta{s}
 \end{displaymath}
+e, definendo $l'=N''_i\plbr{x_i + f_i}$, con implicita la sommatoria 
+sugli indici,
+\begin{displaymath}
+    \Delta{l} \ = \ N'_i\plbr{\Delta{x_i} - f_i\times\Delta{g_i}}
+    + l' \Delta{s}
+\end{displaymath}
 Quindi la linearizzazione di quest'ultima equazione \`e:
 \begin{displaymath}
 	l^T \Delta{v} 
@@ -280,24 +286,29 @@ Ovviamente le reazioni sono date da $M_i=\nrbr{l}m_i$.
 
 \noindent
 La linearizzazione delle equazioni di vincolo d\`a:
-\begin{displaymath}
-	\plbr{e_{bj}\times{l}}^T \Delta{g_b}
+\begin{eqnarray*}
+	0 & = & \plbr{e_{bj}\times{l}}^T \theta_{\Delta{b}}
+	+ e_{bj}^T \Delta{l} \\
+	& \cong & \plbr{e_{bj}\times{l}}^T \Delta{g_b}
 	+ e_{bj}^T\plbr{
 		N'_i \plbr{\Delta{x_i} - f_i\times\Delta{g_i}}
 		+ N''_i \plbr{x_i + f_i} \Delta{s}
-	} \ = \ 0
-\end{displaymath}
+	} 
+\end{eqnarray*}
 con $j=2,3$, dove, in accordo con l'approssimazione aggiornata-aggiornata,
 si \`e confuso $\theta_{\Delta{b}}$ con $\Delta{g_b}$; 
 la linearizzazione delle reazioni vincolari d\`a:
 \begin{eqnarray*}
-	e_{b2}\times{l} \Delta{m_2} + e_{b3}\times{l} \Delta{m_3} & & \\
-	+ \plbr{m_2 e_{b2} + m_3 e_{b3}}\times \plbr{
+	0 & = & e_{b2}\times{l} \Delta{m_2} + e_{b3}\times{l} \Delta{m_3} 
+	+ \plbr{m_2 e_{b2} + m_3 e_{b3}}\times \Delta{l} \\
+	& & \mbox{} 
+	+ l\times\plbr{m_2 e_{b2} + m_3 e_{b3}}\times \theta_{\Delta{b}} \\
+	& \cong & e_{b2}\times{l} \Delta{m_2} + e_{b3}\times{l} \Delta{m_3} \\
+	&& \mbox{} + \plbr{m_2 e_{b2} + m_3 e_{b3}}\times \plbr{
 		N'_i \plbr{\Delta{x_i} - f_i\times\Delta{g_i}}
 		+ N''_i \plbr{x_i + f_i} \Delta{s}
-	} & & \\
-	+ l\times\plbr{m_2 e_{b2} + m_3 e_{b3}}\times \Delta{g_b}
-	& = & 0
+	} \\
+	& & \mbox{} + l\times\plbr{m_2 e_{b2} + m_3 e_{b3}}\times \Delta{g_b}
 \end{eqnarray*}
 
 \paragraph*{Manicotto ``rigato''}

@@ -106,6 +106,7 @@ private:
 	Vec3 f;
 	Mat3x3 R;
 	Vec3 F;
+	Vec3 m;
 	Vec3 M;
 	doublereal sRef;
 	doublereal s;
