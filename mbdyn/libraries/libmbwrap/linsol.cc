@@ -373,13 +373,14 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 
 	if (HP.IsKeyWord("pivot" "factor")) {
 		dPivotFactor = HP.GetReal();
-		if (dPivotFactor <= 0. || dPivotFactor > 1.) {
-			dPivotFactor = 1.;
-		}
 
 		switch (CurrSolver) {
-		case LinSol::TAUCS_SOLVER:
 		case LinSol::NAIVE_SOLVER:
+			if (dPivotFactor <= 0. || dPivotFactor > 1.) {
+				dPivotFactor = 1.E-8;
+			}
+			break;
+		case LinSol::TAUCS_SOLVER:
 		case LinSol::EMPTY_SOLVER:
 			pedantic_cerr("pivot factor is meaningless for "
 					<< ::solver[CurrSolver].s_name
@@ -387,6 +388,9 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 			break;
 
 		default:
+			if (dPivotFactor <= 0. || dPivotFactor > 1.) {
+				dPivotFactor = 1.;
+			}
 			break;
 		}
 	}
