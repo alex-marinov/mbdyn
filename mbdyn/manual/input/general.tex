@@ -1390,7 +1390,7 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	double linear viscoelastic                             & x & x &   \\
 	turbulent viscoelastic                                 & x &   &   \\
 	linear viscoelastic generic bi-stop                    & x & x & x \\
-	GRAALL damper                                          & x &   &   \\
+	shock absorber                                         & x &   &   \\
 	\hline
     \end{tabular}
 \end{table}
@@ -1578,7 +1578,7 @@ as observed in some fluids at intermediate Reynolds number.
 
 \subsection{Linear viscoelastic bi-stop generic}
 \begin{verbatim}
-    <specific_const_law> ::= linear viscoelastic bistop,
+    <specific_const_law> ::= linear viscoelastic bistop ,
         (derivative_of_entity) <stiffness> ,
         (derivative_of_entity) <viscosity_coefficient> ,
         [ initial state , { inactive | active } , ]
@@ -1588,11 +1588,90 @@ as observed in some fluids at intermediate Reynolds number.
   
 \subsection{GRAALL damper}
 This is a very experimental constitutive law, based on a nonlinear model
-for a hydraulic damper to be used in landing gear modelling.
+for a hydraulic damper to be used in landing gear modeling.
 Basically, it requires the user to supply the name of the GRAALL-style 
 input file with damper data.
 It will be documented as soon as it reaches an appreciable level of
 stability.
+See also the 
+\htmlref{\kw{shock absorber}}{sec:CL-SHOCK-ABSORBER}
+constitutive law.
+
+
+\subsection{shock absorber}\label{sec:CL-SHOCK-ABSORBER}
+This constitutive law implements a landing gear hydraulic shock absorber:
+\begin{verbatim}
+    <specific_const_law> ::= shock absorber ,
+        [ prestrain , <value> , ]
+        <reference pressure> ,
+        <reference area for force computation> ,
+        <interaction coefficient> ,
+        <polytropic exponent> ,
+        [ epsilon max , <upper strain bound> , ]
+        [ epsilon min , <lower strain bound> , ]
+        [ penalty , <penalty factor for strain> , 
+            <penalty factor for strain rate> , ]
+        [ metering , <metering area> ,
+            [ negative , <metering area for negative strain rate> , ]
+        [ orifice , <orifice area> , ]
+        <fluid area> ,
+        <fluid density> ,
+        <drag coefficient / reference length
+                (scales strain rate to velocity)>
+        [ , friction, <reference epsilon prime> ,
+                 <friction amplitude coefficient> ]
+\end{verbatim}
+where
+\begin{itemize}
+\item the \kw{interaction coefficient} is represented by
+\begin{displaymath}
+	\kw{kinematic scale} \frac{L A}{V_0}
+\end{displaymath}
+where \kw{kinematic scale} is the ratio betweent the stroke
+of the shock absorber and that of the gas;
+\item \kw{epsilon max} is the upper strain bound; it must be
+at least larger than the prestrain, and defaults to 0,
+i.e.\ the shock absorber, at rest, is assumed to be fully
+extended;
+\item \kw{epsilon min} is the lower strain bound; it must be
+at least smaller than the prestrain, and defaults to -0.5, 
+i.e.\ the shock absorber is assumed to allow a contraction
+equal to half its full length;
+\item the \kw{penalty factor for strain} defaults to 1e+9;
+it is active only when strain bounds are violated;
+\item the \kw{penalty factor for strain rate} defaults to 0;
+it is active only when strain bounds are violated;
+\item the \kw{metering area} is given by a \kw{drive} 
+and is strain dependent; if the keyword \kw{negative} is used, 
+then the \kw{metering area for negative strain rate} is used
+when the strain rate is negative, i.e.\ the shock absorber
+is being compressed, while the \kw{metering area} is used only
+when the shock absorber is extending;
+\item the \kw{<orifice>} drive determines the area of an
+additional orifice, which essentially depends on the sign
+of the strain rate; it is used to implement relief valves;
+\item ...
+\end{itemize}
+This constitutive law adds the entities described
+in Table~\ref{tab:CL-SHOCK-ABSORBER-OUTPUT} to the output of the
+element it is used for.
+The table also indicates the names that can be used to reference
+the entities as element private data.
+
+\begin{table}
+\centering
+\caption{Shock absorber output data}\label{tab:CL-SHOCK-ABSORBER-OUTPUT}
+\begin{tabular}{ll}
+\hline
+\multicolumn{1}{c}{\textbf{entity}} & \multicolumn{1}{c}{\textbf{name}} \\
+\hline
+gas pressure	& \kw{p} \\
+metering area	& \kw{A} \\
+elastic force	& \kw{Fe} \\
+viscous force	& \kw{Fv} \\
+\hline
+\end{tabular}
+\end{table}
 
 
 \section{Authentication Methods}
