@@ -348,6 +348,69 @@ Implementation issues are still open as well.
 
 
 \section{Initial Derivatives}
+The so-called "derivatives" phase can be thought as computing the initial value of the highest order derivatives at t=t0 before any iteration starts.  For simplifity, think of an explicit Ordinary Differential Equation (ODE) problem like
+\begin{displaymath}
+  \dot{y} = f(y, t)
+\end{displaymath}
+with the initial value of $t(0) = t_0$ and $y(0) = y_0$; 
+then, the computation of $\dot{y}(0)$ is trivial.  
+Now, the actual problem is Differential Agebraic (DAE) and implicit, 
+i.e. something like
+\begin{displaymath}
+  F(\dot{y}, y, t) = 0
+\end{displaymath}
+(actually, it's a bit more complicated, since it's index 3), 
+and we still need to compute $\dot{y}(0)$ 
+(and the algebraic variables as well, 
+which in the above representation are hidden in the $\dot{y}$).
+During the regular solution phase (i.e. the Newton iteration) 
+we solve a problem of the form
+\begin{displaymath}
+  F/_{\dot{y}} \Delta \dot{y} + F_{/y} \Delta y = - F
+\end{displaymath}
+and, according to the integration formula that we're using,
+\begin{displaymath}
+  \Delta y = Coef * Delta \dot{y}
+\end{displaymath}
+where Coef is essentially the time step times some number that is specific to the integration formula; it's 1/2 for Crank-Nicholson, it's 2/3 for BDF and so on.
+So the real iteration is
+\begin{displaymath}
+  ( F_{/\dot{y}} + Coef F_{/y} ) \Delta \dot{y} = - F
+\end{displaymath}
+
+To avoid the need to implement a dedicated routine to compute 
+the initial value of $\dot{y}$, we iterate over the above reported problem, 
+ideally with a time step of $0$, which means that $F_{/y}$ is not considered.  
+However, since the problem is differential algebraic, 
+matrix $F_{/\dot{y}}$ is structurally singular, so the time step 
+must be different from $0$, but small enough to let the correction
+\begin{displaymath}
+  \Delta y = Coef * \Delta \dot{y}
+\end{displaymath}
+be negligible with respect to $\Delta \dot{y}$.  
+To conclude, the "derivatives coefficient" defined in the imput file 
+is this ``Coef'', 
+which can be interpreted as the time step of a "fake" 
+initial step that is used to compute the initial value of 
+the highest order derivatives.  
+It should be as small as possible, but too small makes 
+the problem ill-conditioned (and $0$ makes it structurally singular).  
+The default value is usually fine 
+(it is rarely needed to set one, unless something 
+really strange is going on).\\
+
+\noindent
+If the initial derivatives phase requires
+more than one iteration  
+this may mean that he 
+the system is impulsively loaded  with inappropriate 
+initial values of states; 
+In this case, it is possible to increase the number of iterations, e.g.:
+\begin{verbatim}
+  derivatives coefficient: 1e-9;
+  derivatives tolerance: 1e-6;
+  derivatives max iterations: 10; 
+\end{verbatim}
 \section{Dummy Steps}
 \section{Regular Steps}
 
