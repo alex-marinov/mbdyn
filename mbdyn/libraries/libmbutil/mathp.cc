@@ -321,6 +321,12 @@ TypedValue::TypedValue(const Int& i, bool isConst)
 	v.i = i;
 }
 
+TypedValue::TypedValue(const bool& i, bool isConst)
+: type(TypedValue::VAR_INT), bConst(isConst)
+{
+	v.i = i;
+}
+
 TypedValue::TypedValue(const Real& r, bool isConst)
 : type(TypedValue::VAR_REAL), bConst(isConst)
 {

@@ -70,6 +70,7 @@ protected:
 public:
 	TypedValue(const Int& i, bool isConst = false);
 	TypedValue(const Real& r, bool isConst = false);
+	TypedValue(const bool& r, bool isConst = false);
 	TypedValue(const TypedValue::Type t, bool isConst = false);
 	TypedValue(const TypedValue& var);
 	
