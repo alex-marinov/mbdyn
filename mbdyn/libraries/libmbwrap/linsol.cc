@@ -54,7 +54,7 @@
 #include "linsol.h"
 
 /* solver data */
-LinSol::solver_t solver[] = {
+const LinSol::solver_t solver[] = {
 	{ "Empty", NULL,
 		LinSol::EMPTY_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
@@ -344,6 +344,27 @@ LinSol::SetPivotFactor(const doublereal& d)
 	}
 
 	dPivotFactor = d;
+
+	return true;
+}
+
+unsigned
+LinSol::GetBlockSize(void) const
+{
+	return blockSize;
+}
+
+bool
+LinSol::SetBlockSize(unsigned bs)
+{
+	switch (currSolver) {
+	case LinSol::UMFPACK_SOLVER:
+		blockSize = bs;
+		break;
+
+	default:
+		return false;
+	}
 
 	return true;
 }

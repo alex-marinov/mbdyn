@@ -81,14 +81,14 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			throw ErrGeneric();
 		}
 
-		cs.currSolver = LinSol::EMPTY_SOLVER;
+		cs.SetSolver(LinSol::EMPTY_SOLVER);
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"No LU solver" << std::endl);
 		bGotIt = true;
 		break;
 
 	case HARWELL:
-		cs.currSolver = LinSol::HARWELL_SOLVER;
+		cs.SetSolver(LinSol::HARWELL_SOLVER);
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using harwell sparse LU solver" << std::endl);
 #ifdef USE_HARWELL
@@ -97,7 +97,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		break;
 
 	case LAPACK:
-		cs.currSolver = LinSol::LAPACK_SOLVER;
+		cs.SetSolver(LinSol::LAPACK_SOLVER);
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using Lapack dense LU solver" << std::endl);
 #ifdef USE_LAPACK
@@ -106,7 +106,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		break;
 
 	case MESCHACH:
-		cs.currSolver = LinSol::MESCHACH_SOLVER;
+		cs.SetSolver(LinSol::MESCHACH_SOLVER);
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using meschach sparse LU solver"
 				<< std::endl);
@@ -116,7 +116,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		break;
 
 	case NAIVE:
-		cs.currSolver = LinSol::NAIVE_SOLVER;
+		cs.SetSolver(LinSol::NAIVE_SOLVER);
 		bGotIt = true;
 		break;
 
@@ -124,7 +124,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		/*
 		 * FIXME: use CC as default???
 		 */
-		cs.currSolver = LinSol::SUPERLU_SOLVER;
+		cs.SetSolver(LinSol::SUPERLU_SOLVER);
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using SuperLU sparse LU solver" << std::endl);
 #ifdef USE_SUPERLU
@@ -136,7 +136,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		/*
 		 * FIXME: use CC as default???
 		 */
-		cs.currSolver = LinSol::TAUCS_SOLVER;
+		cs.SetSolver(LinSol::TAUCS_SOLVER);
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using Taucs sparse solver" << std::endl);
 #ifdef USE_TAUCS
@@ -151,7 +151,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		/*
 		 * FIXME: use CC as default???
 		 */
-		cs.currSolver = LinSol::UMFPACK_SOLVER;
+		cs.SetSolver(LinSol::UMFPACK_SOLVER);
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using umfpack sparse LU solver" << std::endl);
 #ifdef USE_UMFPACK
@@ -163,7 +163,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		/*
 		 * FIXME: use CC as default???
 		 */
-		cs.currSolver = LinSol::Y12_SOLVER;
+		cs.SetSolver(LinSol::Y12_SOLVER);
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using y12 sparse LU solver" << std::endl);
 #ifdef USE_Y12
@@ -176,164 +176,173 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		throw ErrGeneric();
 	}
 
+	const LinSol::solver_t	currSolver = ::solver[cs.GetSolver()];
+
 	if (!bGotIt) {
-		silent_cerr(::solver[cs.currSolver].s_name << " solver "
+		silent_cerr(currSolver.s_name << " solver "
 			"not available at line " << HP.GetLineData()
 			<< std::endl);
 		throw ErrGeneric();
 	}
 
-	cs.solverFlags = ::solver[cs.currSolver].s_default_flags;
+	cs.SetSolverFlags(currSolver.s_default_flags);
 
 	/* map? */
 	if (HP.IsKeyWord("map")) {
-		if (::solver[cs.currSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MAP) {
-			cs.solverFlags &= ~LinSol::SOLVER_FLAGS_TYPE_MASK;
-			cs.solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_MAP;
+		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MAP) {
+			cs.MaskSolverFlags(LinSol::SOLVER_FLAGS_TYPE_MASK);
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MAP);
 			pedantic_cout("using map matrix handling for "
-					<< ::solver[cs.currSolver].s_name
+					<< currSolver.s_name
 					<< " solver" << std::endl);
 
 		} else {
 			pedantic_cerr("map is meaningless for "
-					<< ::solver[cs.currSolver].s_name
+					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
 
 	/* CC? */
 	} else if (HP.IsKeyWord("column" "compressed") || HP.IsKeyWord("cc")) {
-		if (::solver[cs.currSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_CC) {
-			cs.solverFlags &= ~LinSol::SOLVER_FLAGS_TYPE_MASK;
-			cs.solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_CC;
+		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_CC) {
+			cs.MaskSolverFlags(LinSol::SOLVER_FLAGS_TYPE_MASK);
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_CC);
 			pedantic_cout("using column compressed matrix handling for "
-					<< ::solver[cs.currSolver].s_name
+					<< currSolver.s_name
 					<< " solver" << std::endl);
 
 		} else {
 			pedantic_cerr("column compressed is meaningless for "
-					<< ::solver[cs.currSolver].s_name
+					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
 
 	/* direct? */
 	} else if (HP.IsKeyWord("direct" "access") || HP.IsKeyWord("dir")) {
-		if (::solver[cs.currSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_DIR) {
-			cs.solverFlags &= ~LinSol::SOLVER_FLAGS_TYPE_MASK;
-			cs.solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_DIR;
+		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_DIR) {
+			cs.MaskSolverFlags(LinSol::SOLVER_FLAGS_TYPE_MASK);
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_DIR);
 			pedantic_cout("using direct access matrix handling for "
-					<< ::solver[cs.currSolver].s_name
+					<< currSolver.s_name
 					<< " solver" << std::endl);
 
 		} else {
 			pedantic_cerr("direct is meaningless for "
-					<< ::solver[cs.currSolver].s_name
+					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
 	}
 
 	/* colamd? */
 	if (HP.IsKeyWord("colamd")) {
-		if (::solver[cs.currSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) {
-			cs.solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_COLAMD;
+		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) {
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_COLAMD);
 			pedantic_cout("using colamd preordering for "
-					<< ::solver[cs.currSolver].s_name
+					<< currSolver.s_name
 					<< " solver" << std::endl);
 
 		} else {
 			pedantic_cerr("colamd preordering is meaningless for "
-					<< ::solver[cs.currSolver].s_name
+					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
 	}
 
 	/* multithread? */
 	if (HP.IsKeyWord("multi" "thread") || HP.IsKeyWord("mt")) {
-		cs.nThreads = HP.GetInt();
+		int nThreads = HP.GetInt();
 
-		if (::solver[cs.currSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) {
-			cs.solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT;
-			if (cs.nThreads < 1) {
+		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) {
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT);
+			if (nThreads < 1) {
 				silent_cerr("illegal thread number, using 1" << std::endl);
-				cs.nThreads = 1;
+				nThreads = 1;
 			}
+			cs.SetNumThreads(nThreads);
 
 		} else {
 			pedantic_cerr("multithread is meaningless for "
-					<< ::solver[cs.currSolver].s_name
+					<< currSolver.s_name
 					<< " solver" << std::endl);
-			cs.nThreads = 1;
 		}
+
+
 	} else {
-		if (::solver[cs.currSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) {
-			int n = get_nprocs();
+		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) {
+			int nThreads = get_nprocs();
 
-			if (n > 1) {
+			if (nThreads > 1) {
 				silent_cout("no multithread requested "
-						"with a potential of " << n
-						<< " CPUs" << std::endl);
-				cs.nThreads = n;
-
-			} else {
-				cs.nThreads = 1;
+						"with a potential "
+						"of " << nThreads << " CPUs"
+						<< std::endl);
 			}
+
+			cs.SetNumThreads(nThreads);
 		}
 	}
 
 	if (HP.IsKeyWord("workspace" "size")) {
-		cs.iWorkSpaceSize = HP.GetInt();
-		if (cs.iWorkSpaceSize < 0) {
-			cs.iWorkSpaceSize = 0;
+		integer iWorkSpaceSize = HP.GetInt();
+		if (iWorkSpaceSize < 0) {
+			iWorkSpaceSize = 0;
 		}
 
-		switch (cs.currSolver) {
+		switch (cs.GetSolver()) {
 		case LinSol::Y12_SOLVER:
+			cs.SetWorkSpaceSize(iWorkSpaceSize);
 			break;
 
 		default:
 			pedantic_cerr("workspace size is meaningless for "
-					<< ::solver[cs.currSolver].s_name
+					<< currSolver.s_name
 					<< " solver" << std::endl);
 			break;
 		}
 	}
 
 	if (HP.IsKeyWord("pivot" "factor")) {
-		cs.dPivotFactor = HP.GetReal();
+		doublereal dPivotFactor = HP.GetReal();
 
-		if (::solver[cs.currSolver].s_pivot_factor == -1.) {
+		if (currSolver.s_pivot_factor == -1.) {
 			pedantic_cerr("pivot factor is meaningless for "
-					<< ::solver[cs.currSolver].s_name
+					<< currSolver.s_name
 					<< " solver" << std::endl);
-			cs.dPivotFactor = -1.;
 
-		} else if (cs.dPivotFactor <= 0. || cs.dPivotFactor > 1.) {
-			cs.dPivotFactor = ::solver[cs.currSolver].s_pivot_factor;
+		} else {
+			if (dPivotFactor <= 0. || dPivotFactor > 1.) {
+				silent_cerr("pivot factor " << dPivotFactor
+						<< " is out of bounds; "
+						"using default "
+						"(" << currSolver.s_pivot_factor << ")"
+						<< std::endl);
+				dPivotFactor = currSolver.s_pivot_factor;
+			}
+			cs.SetPivotFactor(dPivotFactor);
 		}
 
 	} else {
-		if (::solver[cs.currSolver].s_pivot_factor != -1.) {
-			cs.dPivotFactor = ::solver[cs.currSolver].s_pivot_factor;
+		if (currSolver.s_pivot_factor != -1.) {
+			cs.SetPivotFactor(currSolver.s_pivot_factor);
 		}
 	}
 
 	if (HP.IsKeyWord("block" "size")) {
-		integer i = HP.GetInt();
-		if (i < 1) {
+		integer blockSize = HP.GetInt();
+		if (blockSize < 1) {
 			silent_cerr("illegal negative block size; "
 					"using default" << std::endl);
-			cs.blockSize = 0;
-
-		} else {
-			cs.blockSize = (unsigned)i;
+			blockSize = 0;
 		}
 
-		switch (cs.currSolver) {
+		switch (cs.GetSolver()) {
 		case LinSol::UMFPACK_SOLVER:
+			cs.SetBlockSize(blockSize);
 			break;
 
 		default:
 			pedantic_cerr("block size is meaningless for "
-					<< ::solver[cs.currSolver].s_name
+					<< currSolver.s_name
 					<< " solver" << std::endl);
 			break;
 		}

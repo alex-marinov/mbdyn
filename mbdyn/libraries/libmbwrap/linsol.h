@@ -36,9 +36,6 @@
 /* Integrator - begin */
 
 class LinSol {
-	friend void
-	ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty);
-
 public:
    	enum SolverType {
 		EMPTY_SOLVER = 0,
@@ -118,6 +115,7 @@ public:
 	unsigned GetNumThreads(void) const;
 	integer iGetWorkSpaceSize(void) const;
 	const doublereal& dGetPivotFactor(void) const;
+	unsigned GetBlockSize(void) const;
 
 	const char *const GetSolverName(SolverType t) const;
 	unsigned GetSolverFlags(SolverType t) const;
@@ -129,12 +127,13 @@ public:
 	bool SetNumThreads(unsigned nt);
 	bool SetWorkSpaceSize(integer);
 	bool SetPivotFactor(const doublereal &d);
+	bool SetBlockSize(unsigned bs);
 
 	SolutionManager *const
 	GetSolutionManager(integer iNLD, integer iLWS = 0) const;
 };
 
-extern LinSol::solver_t solver[];
+extern const LinSol::solver_t solver[];
 
 /* LinSol - end */
 
