@@ -25,72 +25,14 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-\chapter{General}
-The input is divided in blocks. 
-This is a consequence of the fact that almost every module of the code 
-needs data and each module is responsible for its data input. 
-So it is natural to make each module read and interpret its data starting 
-from the input phase.
-Every command (or card) has the following ``grammar'':
-\begin{verbatim}
-    <card> ::= <description> [ : <arglist> ] ;
-\end{verbatim}
-\kw{arglist} is a(n optional) list of arguments, that is driven by the 
-\kw{description} that identifies the card. 
-The keyword can be made of multiple words separated by spaces or tabs; 
-the extra spaces are skipped\footnote{
-	Anything that makes the C function \kw{isspace()} 
-	return \kw{true}
-}, and the match is case insensitive. 
-The arguments are usually separated by commas\footnote{
-	A few exceptions require a colon to separate blocks of arguments;
-	wherever it is feasible, those exceptions will be eliminated 
-	in future versions.
-	Those cards will be marked as deprecated.
-}.
-A semicolon ends the card. 
-Many cards allow extra arguments that assume default values 
-if not supplied by the user. 
-Usually these arguments are at the end of the card
-and must follow some rules. 
-A check for the existence of extra args is made,
-and they are usually read in a fixed sequence.
-When structured arguments like matrices, vectors, or drive callers are
-expected, they are parsed by dedicated functions.
-Anyway, the structured data always follows the rules of the general data. 
-Few exceptions are present, and will be eliminated soon.
-Every data block is surrounded by the control statements \kw{begin} and
-\kw{end}:
-\begin{verbatim}
-    begin: <block_name> ;
-        ...
-    end: <block_name> ;
-\end{verbatim}
-The general rules follow.
-
-
-
-\section{Output}
-The program outputs data to a set of files for each simulation.
-The contents of each file is related to the file extension,
-which is appended to the input file if no output file name 
-is explicitly supplied.
-If also no input file is explicitly supplied, and input is obtained from 
-\kw{stdin}, the output file name defaults to ``MBDyn''; otherwise, 
-unless the output file name is explicitly set, the name 
-of the input file is used.
-The contents of the output files are described accordingly 
-to the items (nodes or elements) that generate them.
-Only a general information file, with extension \kw{.out}, 
-is described here. 
-The file contains general information about the simulation; 
-it is not formatted. 
-In detail, for each step the current time, time step, the number of
-iterations and the error are supplied.
-There is also a supplementary file, with \kw{.log} extension,
-that may contain extra (logging) information.
-Its contents are not documented since they are very experimental
-and may be subject to changes.
+\chapter{General}\label{sec:GENERAL}
+This chapter describes how data structures are read 
+and how they participate, as building blocks, to the definition
+of specific cards.
+Consistency across the software and the input file has been 
+a driving principle in designing the input of MBDyn.
+As such, the very same elementary data structures are present
+in very different contexts.
 
 
 
@@ -310,18 +252,47 @@ can be reassigned.
 		\kw{m2ft} & Real & Meter to foot ratio (1.0/0.3048) \\
 		\kw{lb2kg} & Real & Pound to kilogram ratio (0.4535) \\
 		\kw{kg2lb} & Real & Kilogram to pound ratio (1.0/0.4535) \\
-		\kw{deg2rad} & Real & Degree to radian ratio ($\pi$/180) \\
-		\kw{rad2deg} & Real & Radian to degree ratio (180/$\pi$) \\
+		\kw{deg2rad} & Real & Degree to radiant ratio ($\pi$/180) \\
+		\kw{rad2deg} & Real & Radiant to degree ratio (180/$\pi$) \\
+		\hline
+	\end{tabular}
+	\end{center}
+\end{table}
+
+\subsection{Namespaces}
+The math parser uses the notion of \emph{namespace} to separate
+functions.
+The functions listed in Table~\ref{tab:MATHP-FUNCTIONS}
+are implicitly defined in the \kw{default} namespace, 
+i.e.\ they should be referenced by writing
+\begin{verbatim}
+    default::sqrt(2.)
+\end{verbatim}
+Other namespaces may be defined by the user, and loaded by means
+of the \kw{module load} card described
+in Section~\ref{sec:GENERAL:MODULE-LOAD}.
+The namespace that refers to the current model is loaded by default.
+Its name is \kw{model}, and contains the functions 
+defined in Table~\ref{tab:MODEL-NS-FUNCS}.
+
+\begin{table}
+	\begin{center}
+	\caption{Mathematical Functions in \kw{model} namespace}
+	\label{tab:MODEL-NS-FUNCS}
+	\begin{tabular}{lll}
+		\hline
+		\emph{Function Name} & \emph{Arg[s]} & \emph{Description} \\
+		\hline
+		\kw{distance} & Int, Int & distance between structural nodes \\
 		\hline
 	\end{tabular}
 	\end{center}
 \end{table}
 
 
-
 \section{Higher Level Structures}
 Every time a higher level structure is expected, it can be
-preceeded by a keyword that influences how the structure is read.
+preceded by a keyword that influences how the structure is read.
 All of the available structures support the keyword \kw{null}
 which causes the structure to be initialized with zeros.
 When a non-null value is input, it can be followed by the keyword
@@ -361,7 +332,7 @@ The following rescales an arbitrary vector
     \item general case: a sequence of 9 reals, comma-separated, which
     represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
     \ldots, $ a_{32} $, $ a_{33} $.
-    \emph{Note: the 9 coefficients can pre preceded by the keyword
+    \emph{Note: the 9 coefficients can be preceded by the keyword
     \kw{matr} for consistency with other entities; its use is recommended
     whenever an ambiguity is possible.}
     \item symmetric matrix: keyword \kw{sym}, followed by a sequence
@@ -538,7 +509,7 @@ with the first field filled with blanks;
 	\begin{itemize}
 	\item a record with the first field blank, followed by
 	the \kw{ML} \emph{Mach} values for the $C_l$;
-	\item \kw{NL} records contatining the angle of attack
+	\item \kw{NL} records containing the angle of attack
 	in the first field, followed by \kw{ML} values of $C_l$
 	for each \emph{Mach} number; angles of attack wrap around 
 	360 deg, starting from -180.
@@ -623,7 +594,7 @@ Examples of this usage are given in the tutorials
 
 
 
-\subsection{Module Load}\label{sec:MODULE-LOAD}
+\subsection{Module Load}\label{sec:GENERAL:MODULE-LOAD}
 The \kw{module load} directive:
 \begin{verbatim}
     <card> ::= module load : " <file_name> "
@@ -1122,9 +1093,9 @@ and the amplitude of the oscillation. Any drive can be used.
         [ , steps , <steps_to_hold_value>]
         [ , seed , { time | <seed_value>} ]
 \end{verbatim}
-the first optional entry, preceeded by the keyword \kw{steps}, sets the
+the first optional entry, preceded by the keyword \kw{steps}, sets the
 number of steps a random value must be held before generating a new
-random number. The second optional entry, preceeded by the keyword
+random number. The second optional entry, preceded by the keyword
 \kw{seed}, sets the new seed for the random number generator. A numeric
 value can be used, or the keyword \kw{time} uses the current time from
 the internal clock. A given seed can be used to ensure that two
@@ -1761,9 +1732,9 @@ viscous force	& \kw{Fv} \\
 \section{Hydraulic fluid}\label{sec:HYDRAULIC-FLUID-DATA}
 Hydraulic fluid data defines the constitutive properties
 of hydraulic fluids, which are generally required by hydraulic elements.
-Hycraulic fluid data can be defined in two ways, according to the BNF:
+Hydraulic fluid data can be defined in two ways, according to the BNF:
 \begin{verbatim}
-    <hydraulic_flid> ::=
+    <hydraulic_fluid> ::=
         { <fluid_type> , <fluid_properties>
             | reference, <label> }
 \end{verbatim}
@@ -1771,9 +1742,9 @@ The latter references a previously defined hydraulic fluid dataset,
 described in Section~\ref{sec:HYDRAULIC-FLUID}.
 The \kw{fluid\_type}s, with the related \kw{fluid\_properties}, are:
 
-\subsection{Uncompressible}
+\subsection{Incompressible}
 \begin{verbatim}
-    <fluid_type> ::= uncompressible
+    <fluid_type> ::= incompressible
     <fluid_properties> ::=
         [ density , <density> ]
         [ , viscosity , <viscosity> ]
@@ -1898,7 +1869,7 @@ formats for the \kw{salt}, for those \kw{crypt(3)} extensions
 that support more sophisticated encryption mechanisms (e.g.\ MD5).
 See \kw{crypt(3)} for details.
 If the credentials are preceded by the string \kw{\{CRYPT\}},
-they are assumed to be already encypted, and the remaining portion is used.
+they are assumed to be already encrypted, and the remaining portion is used.
 
 \subsection{PAM (Pluggable Authentication Modules)}
 \begin{verbatim}

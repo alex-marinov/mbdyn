@@ -1,0 +1,284 @@
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2004
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+\chapter{Nodes}\label{sec:NODES}
+The \kw{nodes} section is enclosed in the cards:
+\begin{verbatim}
+    begin: nodes;
+        ...
+    end: nodes;
+\end{verbatim}
+Every node card has the following format:
+\begin{verbatim}
+    <card> :: = <node_type> : <node_label> ,
+                              <arglist>
+                              [ , output , { yes | no } ] ;
+\end{verbatim}
+where \kw{node\_type} is one of the following:
+\begin{itemize}
+    \item \kw{structural}
+    \item \kw{electric}
+    \item \kw{abstract}
+    \item \kw{parameter}
+    \item \kw{hydraulic}
+\end{itemize}
+The data manager reads the node type and the label and checks for
+duplication. If the node is not defined yet, the proper read function is
+called, which parses the rest of the card and constructs the node.
+The nodes are read as follows:
+
+
+
+
+\section{Structural Node}\label{sec:NODE:STRUCTURAL}
+The historical 6 dof structural node can be \kw{static},
+\kw{dynamic}, \kw{\bf modal} or \kw{dummy}.
+The \kw{static} keyword means no inertia is related to that node, 
+so it must be appropriately constrained or attached to elastic elements.
+Static nodes are useful when there is no need to apply inertia
+to them, thus saving 6 degrees of freedom.
+The \kw{dynamic} keyword means inertia can be attached to the node, 
+so it provides linear and angular momenta degrees of freedom, 
+and automatically generates the so-called \kw{automatic structural}
+elements.
+The \kw{modal} node is a regular \kw{dynamic} node that must be used 
+to describe the rigid reference motion of a \kw{modal} joint.
+See Section~\ref{sec:EL:STRUCT:JOINT:MODAL} for further details.
+\begin{verbatim}
+    <arglist> ::= { static | dynamic | modal } ,
+            (Vec3)              <absolute_position> ,
+            (OrientationMatrix) <absolute_orientation_matrix> ,
+            (Vec3)              <absolute_velocity> ,
+            (Vec3)              <absolute_angular_velocity>
+            [ , assembly
+              , (scalar) <position_initial_stiffness>
+              , (scalar) <velocity_initial_stiffness>
+              , (flag)   <omega_rotates?> ]
+\end{verbatim}
+The \kw{omega\_rotates} parameter determines whether 
+the initial angular velocity should follow or not the node 
+as it is rotated by the initial assembly procedure; it may assume 
+the values \kw{yes}/\kw{no} or 0/nonzero.
+
+\noindent
+The \kw{dummy} structural node has been added to ease the visualization of
+the kinematics of arbitrary points of the system. 
+It owns no dofs, and it must be attached to another node, possibly with an
+offset and a relative orientation.
+Two dummy structural node types are available.
+\begin{verbatim}
+    <arglist> ::= dummy , <base_node> , <type> , <dummy_node_data>
+\end{verbatim}
+{\em 
+    Note: the \kw{static} and \kw{dynamic} type is optional; if not given,
+    it defaults to \kw{dynamic}. 
+    This practice is deprecated and could become unsupported in the future, 
+    so it is a good practice to enforce the type of the structural node. \\
+    The stiffness parameters, and the \kw{omega\_rotates} flag, 
+    override the default values. 
+    They are optional, but they must be supplied all together if at least
+    one is to be input.
+} \\
+The \kw{omega\_rotates} flag can take values \kw{yes} or \kw{no};
+a numerical value of 0 (no) or 1 (yes) is supported for backwards
+compatibility, but its use is deprecated.
+
+Dummy nodes take the label of the \kw{base\_node} they are attached to, 
+followed by the type of dummy node, possibly followed by specific data.
+The following dummy types are available:
+
+\begin{itemize}
+
+    \item offset:
+    \begin{verbatim}
+    <type> ::= offset
+    <dummy_node_data> ::=
+            (Vec3)              <relative_offset> ,
+            (OrientationMatrix) <relative_orientation_matrix>
+    \end{verbatim}
+    It outputs the configuration of a point offset from the base node.
+            
+    \item relative frame:
+    \begin{verbatim}
+    <type> ::= relative frame
+    <dummy_node_data> ::= <reference_node>
+            [ , position, <reference_offset> ]
+            [ , orientation, <reference_orientation_matrix> ]
+    \end{verbatim}
+    It outputs the configuration of the base node in the frame defined
+    by the \kw{reference\_node}, optionally offset 
+    by \kw{reference\_offset} and with relative orientation 
+    \kw{reference\_orientation\_matrix}.\\
+    Examples:
+    \begin{verbatim}
+    set: real Omega = 1.;
+    structural: 1, static, null, eye, null, 0.,0.,Omega;
+    structural: 1000, dummy, 1, offset, 1.,0.,0., eye;
+    structural: 1001, dummy, 1, relative frame, 1000;
+    \end{verbatim}
+
+\end{itemize}
+
+\subsection{Output}\label{sec:NODE:STRUCTURAL:OUTPUT}
+Structural nodes generate two kinds of output files. 
+The first refers to the kinematics of the node; its extension is \kw{.mov},
+and for each time step it contains one row for each node whose output is
+required.
+The rows contain: \vspace{2mm} \\
+\begin{tabular}{ll}
+	\hline
+	1      & the label of the node \\
+	2--4   & the three components of the position of the node \\
+	5--7   & the three Euler angles that define the orientation of the node \\
+	8--10  & the three components of the velocity of the node \\
+	11--13 & the three components of the angular velocity of the node \\
+	\hline
+	14--16 & the three components of the linear acceleration
+		of the \kw{dynamic} nodes \\
+	17--19 & the three components of the angular acceleration
+		of the \kw{dynamic} nodes \\
+	\hline
+\end{tabular}\vspace{2mm}\\
+All the quantities are expressed in the global frame, except for
+the dummy \kw{relative frame} node, whose quantities are of course
+in the relative frame.
+
+\noindent
+The second output file refers only to dynamic nodes, and contains their
+inertia; its extension is \kw{.ine}.
+For each time step, it contains information about the inertia of all the
+nodes whose output is required.
+Notice that more than one inertia body can be attached to one node; the
+information in this file refers to the sum of all the inertia referring to
+the node.
+The rows contain:
+\begin{itemize}
+    \item the label of the node
+    \item the three components of the momentum
+    \item the three components of the momentum moment referred to the node
+    coordinates, thus to a moving frame
+    \item the three components of the derivative of the momentum
+    \item the three components of the derivative of the momentum moment
+\end{itemize}
+
+
+\section{Electric Node}
+\begin{verbatim}
+    <arglist> ::= "value" , <initial_value> 
+        [ , "derivative" , <derivative_initial_value> ]
+\end{verbatim}
+\emph{Note: the keywords \kw{value} and \kw{derivative}
+have been introduced recently; \kw{value}is not mandatory,
+resulting in a warning while \kw{derivative} is required.
+The same applies to the \kw{abstract node} 
+and to the \kw{hydraulic node}; the latter is an algebraic
+node, so only \kw{value} is allowed.
+}
+
+
+
+
+
+\section{Abstract Node}
+\begin{verbatim}
+    <arglist> ::= "value" , <initial_value>
+        [ , "derivative" , <derivative_initial_value> ]
+\end{verbatim}
+{\em
+    Note: abstract and electric nodes are derived from the same class, the
+    scalar differential node. Many \kw{genel} and \kw{electric} elements 
+    can be connected to both of them since they directly use the ancestor
+    class. 
+}
+
+\subsection{Output}
+The value of abstract nodes is output with file extension \kw{.abs}; for
+each time step the output of the required nodes is written.
+The format of each row is
+\begin{itemize}
+    \item the label of the node
+    \item the value of the node
+    \item the value of the node derivative
+\end{itemize}
+
+
+
+\section{Hydraulic Node}
+\begin{verbatim}
+    <arglist> ::= "value" , <initial_value>
+\end{verbatim}
+
+
+
+\section{Parameter Node}
+\begin{verbatim}
+    <arglist> ::= { <initial_value>
+                  | element 
+                  | straingage , y , z }
+\end{verbatim}
+The parameter node is derived from the class scalar algebraic node, but it
+is used in a rather peculiar way: it doesn't own any degree of freedom,
+so it does not participate in the solution, but is used as a sort of
+placeholder for those elements that require to be connected to a scalar node
+that is not otherwise significant to the analysis.
+Thanks to the availability of the \kw{parameter} node, these elements
+do not need be reformulated with a grounded node, while the parameter
+node value can be changed during the solution by means of a proper driving 
+force.
+When the argument list starts with the keyword \kw{element}, the parameter
+node expects to be bound to an element, and to access bulk element data 
+(see Section~\ref{sec:EL:BIND}).
+When the argument list starts with the keyword \kw{straingage}, followed by
+the coordinates of a point on the section of a beam, the \kw{parameter}
+node expects to be bound to a beam element, and to access the measure of
+the axial strain at point \kw{x}, \kw{y} in the section plane as a
+combination of section strains and curvatures.
+
+
+
+
+
+\section{Miscellaneous}
+There is an extra card, that is used to modify the output behavior of nodes:  
+\begin{verbatim}
+    <card> ::= output : <node_type> , <node_list> ;
+    <node_list> ::= <node_label>  [ , <node_list> ]
+\end{verbatim}
+\kw{node\_item} is a valid node type that can be read in the \kw{nodes}
+module. \\
+{\em
+   Note: if a node should never (\kw{no}) or always (\kw{yes}) be output,
+   its output flag should be set directly on the node card. 
+   The global behavior of all the nodes of a type can be set from the 
+   \kw{control data} block by adding the node type to the item list in the 
+   \kw{default output} card. 
+   Then, the specific output flag of sets of nodes can be altered by means 
+   of the \kw{output} card in the \kw{nodes} block. 
+   This allows a high flexibility in the selection of the desired output. 
+   The same remarks apply to the output of the elements.
+}
+

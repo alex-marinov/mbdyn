@@ -1,0 +1,226 @@
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2004
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+\chapter{Drivers}\label{sec:DRIVERS}
+The \kw{drivers} section is enclosed by the cards:
+\begin{verbatim}
+    begin: drivers;
+        ...
+    end: drivers;
+\end{verbatim}
+Every \kw{driver} card has the following format:
+\begin{verbatim}
+    <card> ::= <driver_type> : <arglist> ;
+\end{verbatim}
+At present only \kw{<driver\_type>} drivers of type \kw{file} are supported.
+
+\section{File Drivers}
+A comprehensive family of \kw{file} drivers is being planned;
+their syntax is:
+\begin{verbatim}
+    <arglist> ::= <label> , <normal_arglist>
+\end{verbatim}
+The following \kw{file} drivers are supported at present:
+
+
+
+\subsection{Fixed Step}
+\begin{verbatim}
+    <normal_arglist> ::= fixed step , 
+                         <steps_number> ,
+                         <columns_number> ,
+                         <initial_time> ,
+                         <time_step> ,
+                         " <file_name> "
+\end{verbatim}
+The value at an arbitrary time is linearly interpolated from the available
+data; if the requested value is out of time bounds, zero is returned.
+
+
+
+\subsection{Socket}
+\begin{verbatim}
+    <normal_arglist> ::= socket , 
+                         <columns_number>
+                         { , local, " <file_name> " 
+                           | [ , port, <port_number> ] }
+                         (AuthenticationMethod)<authentication>
+\end{verbatim}
+The driver binds to a socket listening on port \kw{<port\_number>} 
+(defaults to 5555) or on the named pipe \kw{<file\_name>}; at the
+beginning of each time step, in case of connection, the driver expects some
+input data in text format, consisting in an authentication token 
+(if required).
+The authentication token is usually in the form
+\begin{verbatim}
+    user: <user_name> <new_line>
+    password: <user_password> <new_line>
+\end{verbatim}
+{\em 
+    Note: white-spaces may be significant in \kw{<user\_name>}, 
+    and surely are in \kw{<user\_password>}.
+} \\    
+It is followed by a label token, in the form
+\begin{verbatim}
+    label: <label> <new_line>
+\end{verbatim}
+indicating the column being edited, followed by the desired changes; 
+the connection is terminated by a single mark followed by a newline:
+\begin{verbatim}
+    . <new_line>
+\end{verbatim}
+The permitted operations, at present, are:
+\begin{verbatim}
+    value: <value> <new_line>
+\end{verbatim}
+sets the value the drive will assume from the current step on
+\begin{verbatim}
+    inc: { yes | no } <new_line>
+\end{verbatim}
+tells whether to switch on or off the increment mode, resulting in
+subsequent value commands being ``set'' rather than ``add''
+\begin{verbatim}
+    imp: { yes | no } <new_line>
+\end{verbatim}
+tells whether to switch on or off the impulse mode, resulting in subsequent
+value commands to be applied for one step only. \\
+{\em 
+    Note: at present, impulse mode supersedes any incremental mode, namely
+    the value of the drive is reset to zero after one step.
+    This behavior may change in the future.
+}
+
+
+
+\subsection{RTAI Mailbox}\label{sec:RTAI_in}
+This special drive is a variant of the Socket Stream
+(Section~\ref{sec:Stream}; under development yet)
+that reads the input data from a RTAI mailbox in non-blocking mode.
+It is intended as a means of communication between different processes
+running in real-time.
+The syntax is:
+\begin{verbatim}
+    <normal_arglist> ::= RTAI input ,
+        mailbox name , " <mailbox_name> " ,
+        [ create , { yes | no } , ]
+        [ host , " <host_name> " , ]
+        <columns_number> ;
+\end{verbatim}
+where
+\begin{itemize}
+\item \kw{<mailbox\_name>} is the name of the mailbox (a unique string 
+not longer than six chars);
+\item the \kw{create} keyword determines whether the mailbox 
+must be created or looked-up as already existing on the system;
+\item \kw{<host\_name} is the name or the IP of the remote host where 
+the mailbox resides; note that if this field is given, \kw{create} must
+be set to \kw{no} and the mailbox must be already defined
+on the remote host;
+\item the number of channels \kw{<columns\_number>} determines how many
+columns can be accessed via the \kw{file} drive caller mechanism 
+of Section~\ref{sec:FILE-DRIVE}, as for all the other \kw{file} drivers.
+\end{itemize}
+This part of the program is rapidly evolving, so do please not expect
+too much documentation and backwards compatibility.
+
+\emph{Note: at present, these elements require that the simulation
+be run in real-time mode (see Section~\ref{sec:REAL-TIME});
+future development will allow to emulate the use of these elements
+also when the simulation is not run in real-time, e.g.\ for modeling
+or model debugging purposes.}
+
+
+
+\subsection{Stream}\label{sec:Stream}
+\begin{verbatim}
+    <normal_arglist> ::= stream,
+        name , " <name> " ,
+        create , { yes | no } ,
+        [ { local , " <socket_name> " , |
+            [ port , <port_number> , ]
+            [ host , " <host_name> " , ] } ]
+        <columns_number> ;
+\end{verbatim}
+The \kw{stream} drive allows MBDyn to receive streamed inputs 
+from remote processes both during regular simulations and during 
+real-time simulations under RTAI.
+If the simulation is run in real-time, it uses RTAI mailboxes, 
+otherwise regular UNIX sockets are used, either in the \kw{local} or 
+in the \kw{internet} namespace.
+
+This drive type is intended to allow the development of real-time models
+by running regular simulations for the purpose of debugging the model
+and the control process without the overhead and the potential problems
+of running in real-time.
+Then the same model can be run in real-time without changing the details
+of the communication with the controller process.
+
+\paragraph{Non real-time simulation}
+During non real-time simulations, streams operate in blocking mode.
+The meaning of the parameters is:
+\begin{itemize}
+\item \kw{<name>} indicates the name the stream
+will be known as; it is mostly useless, and is limited to 6 characters;
+\item the instruction \kw{create} determines whether the socket will be
+created or looked for by MBDyn;
+\item the keyword \kw{local} indicates that a socket 
+in the local namespace will be used; if \kw{create} is set to \kw{yes},
+the socket is created, otherwise it must exist.
+\item either of the keywords \kw{port} or \kw{host} indicate that a socket
+in the internet namespace will be used;
+if \kw{create} is set to \kw{yes}, \kw{<host\_name>} indicates 
+the host that is allowed to connect to the socket; it defaults 
+to any host (\kw{0.0.0.0}); if \kw{create} is set to \kw{no},
+\kw{<host\_name>} indicates what host to connect to; the default 
+is localhost (\kw{127.0.0.1}); the default port is \kw{5500};
+\end{itemize}
+If no socket type is specified, i.e.\ none of the \kw{local}, \kw{port} 
+and \kw{host} keywords are given, a socket is opened by default 
+in the internet namespace with the default IP and port; the \kw{create}
+keyword is mandatory.
+
+\paragraph{Real-time simulation}
+During real-time simulations, streams wrap non-blocking RTAI mailboxes.
+The meaning of the parameters is:
+\begin{itemize}
+\item the parameter \kw{<name>} indicates the name the stream
+will be known as in RTAI's resource namespace;
+it is limited to 6 characters, and actually represents the mailbox name;
+\item the instruction \kw{create} determines whether the mailbox will be
+created or looked for by MBDyn;
+\item the keyword \kw{local} is ignored;
+\item the keyword \kw{host} indicates that a mailbox on a remote host 
+will be used; it is useless when \kw{create} is set to \kw{yes}, because
+RTAI does not provide the possibility to create remote resources;
+if none is given, a local mailbox is assumed;
+\item the keyword \kw{port} is ignored.
+\end{itemize}
+
+The parameter \kw{<columns\_number>} determines how many
+channels will be used.
+A channel is a double typed number; a \kw{stream drive} can read
+an arbitrary number of simultaneous channels.

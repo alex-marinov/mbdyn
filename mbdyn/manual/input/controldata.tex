@@ -1,0 +1,338 @@
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2004
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+\chapter{Control Data}\label{sec:CONTROL-DATA}
+This section is read by the manager of all the bulk simulation data, namely
+the nodes, the drivers and the elements. It is used to set some global
+parameters closely related to the behavior of these entities, to tailor the
+initial assembly of the joints in case of structural simulations, and to
+tell the data manager how many entities of every type it should expect from
+the following sections. Historically this is due to the fact that the data
+structure for nodes and elements is allocated at the beginning with fixed
+size. This is going to change, giving raise to a ``free'' and resizable
+structure. But this practice is to be considered reliable since it allows a
+sort of double-check on the entities that are inserted.
+
+\section{Model Control Cards}
+The cards are: 
+
+\subsubsection{Skip Initial Joint Assembly}
+\begin{verbatim}
+    <card> ::= skip initial joint assembly ;
+\end{verbatim}
+This directive inhibits the execution of the initial joint assembly.
+Note that for a model to behave correctly, the initial joint assembly
+should always succeed.
+A correct model succeeds with 0 iterations, i.e.\ it intrinsically 
+satisfies the constraints from the beginning.
+However, the initial joint assembly is more than a simple compliance
+test; it represents a static preprocessor for models.
+See the directives \kw{use} in Section~\ref{sec:CONTROLDATA:USE}
+and \kw{initial stiffness} in Section~\ref{sec:CONTROLDATA:INITIALSTIFFNESS}
+for more details on performing appropriate initial joint assembly.
+
+
+
+\subsubsection{Use}\label{sec:CONTROLDATA:USE}
+\begin{verbatim}
+    <card> ::= use : <item_list> , in assembly ;
+    <item_list> ::= <item> [ , <item_list> ]
+    <item> ::= { rigid bodies 
+               | gravity
+               | forces
+               | beams
+               | aerodynamic elements
+               | loadable elements } 
+\end{verbatim}
+\kw{joints} are used by default, and cannot be added to the list.
+\kw{beams} are used by default, too, but can be added to the list
+essentially for backwards compatibility.
+
+\subsubsection{Initial Stiffness}\label{sec:CONTROLDATA:INITIALSTIFFNESS}
+\begin{verbatim}
+    <card> ::= initial stiffness : <position_stiffness>
+                                   [ , <velocity_stiffness> ] ;
+\end{verbatim}
+This directive affects the stiffness of the dummy springs thaat constrain
+the position and the orientation (\kw{<position\_stiffness>})
+and the linear and angular velocity (\kw{<velocity\_stiffness>})
+of the structural nodes (either \kw{static} or \kw{dynamic}) 
+during the initial assembly; the default is 1.0 for both.
+Note that each node can use a specific value; 
+see Section~\ref{sec:NODE:STRUCTURAL} for details. \\
+\emph{Note that the same value is used for the position and the orientation,
+so this stiffness is dimensionally inconsistent; It should really 
+be intended as a penalty coefficient.
+The same considerations apply to the penalty value for linear 
+and angular velocities.}
+
+\subsubsection{Omega Rotates}
+\begin{verbatim}
+    <card> ::= omega rotates : { yes | no } ;
+\end{verbatim}
+Sets whether the imposed angular velocity should be considered attached 
+to the node or fixed in the global system during the initial assembly.
+
+\subsubsection{Tolerance}
+\begin{verbatim}
+    <card> ::= tolerance : <tolerance> ;
+\end{verbatim}
+The tolerance that applies to the initial joint assembly; 
+this tolerance is used to test the norm 2 of the residual,
+because it is very important, for a correct start of the simulation,
+that the algebraic constraints be satisfied as much as possible.
+The alternate statement \kw{initial tolerance} is tolerated 
+for backwards compatibility.
+
+\subsubsection{Max Iterations}
+\begin{verbatim}
+    <card> ::= max iterations : <max_iterations> ;
+\end{verbatim}
+The number of iterations that are allowed during the initial assembly.
+The alternate statement \kw{max initial iterations} is tolerated
+for backwards compatibility.
+
+\subsubsection{Title}
+\begin{verbatim}
+    <card> ::= title : " <simulation_title> " ;
+\end{verbatim}
+
+\subsubsection{Print}
+\begin{verbatim}
+    <card> ::= print : {
+        dof stats |
+        dof description |
+        equation desciption |
+        all |
+        none
+    } [ , ... ] ;
+\end{verbatim}
+The \kw{dof stats} keyword enables the printing of all potential
+dof owner entities at initial assembly and at regular assembly,
+so that the index of all variables can be easily identified.
+The \kw{dof description} one adds extra variable description.
+The \kw{equation description} one adds extra equation description.
+The \kw{all} one enables all dof statistics printing.
+The \kw{none} disables all dof statistics printing (the default).
+Note that, apart from \kw{none}, the other values are additive, i.e.
+\begin{verbatim}
+    print: dof stats;
+    print: dof description;
+\end{verbatim}
+is equivalent to 
+\begin{verbatim}
+    print: dof stats, dof description;
+\end{verbatim}
+while a 
+\begin{verbatim}
+    print: none;
+\end{verbatim}
+disables all.
+
+\subsubsection{Make Restart File}
+\begin{verbatim}
+    <card> ::= make restart file
+        [ : { iterations , <iterations_between_restarts>
+            | time , <time_between_restarts> } ] ;
+\end{verbatim}
+The default (no arguments) is to make the restart file only at the end of
+the simulation.
+
+\subsubsection{Default Output}\label{sec:CONTROLDATA:DEFAULTOUTPUT}
+\begin{verbatim}
+    <card> ::= default output : <output_list> ;
+    <output_list> ::= { all | none | <output_item> } 
+                      [ , <output_list> ]
+    <output_item> ::=
+        { reference frames
+        |abstract nodes
+        | electric nodes
+        | hydraulic nodes
+        | structural nodes
+        | aerodynamic elements
+        | air properties
+        | beams
+        | electric elements
+        | forces
+        | genels
+        | gravity
+        | hydraulic elements
+        | joints
+        | rigid bodies
+        | rotors }
+\end{verbatim}
+Here the default output flag for a type of node or element can be set. It
+can be overridden for every entity both when it is created or later in
+each entity module.
+
+\subsubsection{Output Precision}
+Sets the desired output precision for those file types that allow it
+(currently, all the native output except the \kw{.out} file; the
+\kw{ADAMS} output, \kw{.res} files, are not affected.
+The default is 6; since the output is in formatted plain text, the higher
+precision, the larger the files and the slower the simulation.
+This will be fixed when a binary output is implemented.
+\begin{verbatim}
+    <card> ::= output precision : <number_of_digits> ;
+\end{verbatim}
+
+\subsubsection{Output results}
+Sets the desired mode for the output of results in a form
+compatible with other pre/post processing packages.
+Note that, in most of the cases, the preparation of the 
+results can be done as a post-processing, starting from
+raw MBDyn output files.
+This is true, for instance, for the native OpenDX postprocessor 
+and for EasyAnim (see
+\htmladdnormallink{\texttt{http://mecara.fpms.ac.be/EasyDyn/}}{http://mecara.fpms.ac.be/EasyDyn/}
+for details; available scripts are 
+\kw{\$PACKAGE/var/mbdyn2vol.awk}
+and \kw{\$PACKAGE/var/mbdyn2van.awk}).
+
+\noindent
+Some post-processing preparation instructions are available
+for those packages that require special handling and thus
+are builtin.
+\begin{itemize}
+\item \textbf{MSC.ADAMS:}
+must be enabled at configure time, by using the directive
+\kw{--enable-adams}.
+MBDyn generates a \kw{.ada} file and a \kw{.res} file.
+The \kw{.ada} file must be processed by the utility \kw{ada2cmd} 
+(under development), along with some user-defined data to improve
+the representation of the entities (e.g.\ shapes, colors, sizes
+and so on) to generate a \kw{.cmd} file.
+ADAMS/View interprets the \kw{.cmd} file to build the model,
+and reads the \kw{.res} file in text form (very verbose),
+which contains the analysis results.
+The interface is activated by the directive
+\begin{verbatim}
+    output results : adams
+        [ , model name , " <name> " ]
+        [ , velocity , { yes | no } ]
+        [ , acceleration , { yes | no } ] ;
+\end{verbatim}
+The model name is optional, defaulting to \kw{mbdyn}.
+By default, velocities and accelerations are not output; they can be
+explicitly enabled by using the \kw{velocity} and \kw{acceleration}
+keywords.
+Note that only the \kw{dynamic} structural nodes can output 
+the accelerations, and only if their output is explicitly selected,
+for performance reasons.
+As a consequence, only the nodes whose native output is set will add 
+their acceleration to ADAMS' output.
+The sequence is:
+\begin{itemize}
+\item compile MBDyn with ADAMS support
+\item add the \kw{output results : adams} directive
+\item run the analysis
+\item generate the \kw{.cmd} file from the resulting \kw{.ada} file
+\item run ADAMS/View
+\item import the \kw{.cmd} file
+\item import the \kw{.res} file
+\end{itemize}
+The \kw{velocity} flag enables the output of the velocities 
+of the parts; it defaults to \kw{no} because the output 
+is very verbose, and they are not required to animate
+the model; they can be useful to plot diagrams in the plotting
+facility of ADAMS/View.
+
+\item \textbf{EasyAnim:}
+the preparation of the output is done via \kw{awk} scripts
+based on \kw{.log} and \kw{.mov} files.
+Use
+\begin{verbatim}
+    awk -f mbdyn2vol.awk $FILE.log > $FILE.vol
+    awk -f mbdyn2van.awk $FILE.mov > $FILE.van
+\end{verbatim}
+to prepare the files for EasyAnim.
+
+\item \textbf{Altair MotionView:}
+must be enabled at configure time, by using the directive
+\kw{--enable-motionview}; the specific client libraries 
+are required.
+It should generate a binary model and results file compatible
+with MotionView.
+It is activated by the directive
+\begin{verbatim}
+    output results : motion view ;
+\end{verbatim}
+No special parameters are available at the moment; 
+this interface is under development.
+
+\item \textbf{OpenDX native postprocessor:}
+the preparation of the output is done via \kw{awk} scripts
+based on \kw{.log} and \kw{.mov} files.
+Use
+\begin{verbatim}
+    awk -f <TBD>.awk $FILE.log > $FILE.geo
+\end{verbatim}
+to prepare the files for the native postprocessor.
+
+
+\end{itemize}
+
+
+\section{Model Counter Cards}
+The following counters can be defined:
+\subsection{Nodes}
+\begin{itemize}
+\item \kw{abstract nodes}
+\item \kw{electric nodes}
+\item \kw{hydraulic nodes}
+\item \kw{parameter nodes}
+\item \kw{structural nodes}
+\end{itemize}
+
+\subsection{Drivers}
+\begin{itemize}
+\item \kw{file drivers}
+\end{itemize}
+
+\subsection{Elements}
+\begin{itemize}
+\item \kw{aerodynamic elements}
+\item \kw{aeromodals}
+\item \kw{air properties}
+\item \kw{automatic structural elements}
+\item \kw{beams}
+\item \kw{bulk elements}
+\item \kw{electric bulk elements}
+\item \kw{electric elements}
+\item \kw{external elements}
+\item \kw{forces}
+\item \kw{genels}
+\item \kw{gravity}
+\item \kw{hydraulic elements}
+\item \kw{joints}
+\item \kw{loadable elements}
+\item \kw{output elements}
+\item \kw{rigid bodies}
+\item \kw{rotors}
+\end{itemize}
+
+

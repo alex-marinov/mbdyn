@@ -1,0 +1,152 @@
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2004
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+\chapter{Overview}\label{sec:OVERVIEW}
+This chapter gives a global overview of the structure of the input file.
+
+
+\section{Input File Structure}
+The input is divided in blocks.
+This is a consequence of the fact that almost every module of the code 
+needs data and each module is responsible for its data input. 
+So it is natural to make each module read and interpret its data starting 
+from the input phase.
+Every command (or card) has the following ``grammar'':
+\begin{verbatim}
+    <card> ::= <description> [ : <arglist> ] ;
+\end{verbatim}
+\kw{<arglist>} is a(n optional) list of arguments, that is driven by the 
+\kw{<description>} that identifies the card. 
+The keyword can be made of multiple words separated by spaces or tabs; 
+the extra spaces are skipped\footnote{
+	Anything that makes the C function \kw{isspace()} 
+	return \kw{true}
+}, and the match is case insensitive. 
+The arguments are usually separated by commas\footnote{
+	A few exceptions require a colon to separate blocks of arguments;
+	wherever it is feasible, those exceptions will be eliminated 
+	in future versions.
+	Those cards will be marked as deprecated.
+}.
+A semicolon ends the card. 
+Many cards allow extra arguments that assume default values 
+if not supplied by the user. 
+Usually these arguments are at the end of the card
+and must follow some rules. 
+A check for the existence of extra args is made,
+and they are usually read in a fixed sequence.
+When structured arguments like matrices, vectors, or drive callers are
+expected, they are parsed by dedicated functions.
+Anyway, the structured data always follows the rules of the general data. 
+Few exceptions are present, and will be eliminated soon.
+Every data block is surrounded by the control statements \kw{begin} and
+\kw{end}:
+\begin{verbatim}
+    begin: <block_name> ;
+        ...
+    end: <block_name> ;
+\end{verbatim}
+The block sequence is:
+\begin{verbatim}
+    begin: data;
+        # select an integrator
+    end: data;
+
+    begin: <integrator>;
+        # integrator data
+    end: <integrator>;
+
+    begin: control data;
+        # model control data
+    end: control data;
+
+    begin: nodes;
+        # nodes data
+    end: nodes;
+
+    begin: drivers;
+        # special drivers data
+    end: drivers;
+
+    begin: elements;
+        # elements data
+    end: elements;
+\end{verbatim}
+The \kw{drivers} block is optional.
+The Schur solver allows an extra block after that of the elements:
+\begin{verbatim}
+    begin: parallel;
+        # parallel data
+    end: parallel;
+\end{verbatim}
+where data specific to the partitioning and the connectivity
+of the Schur solver is provided.
+This is yet undocumented, and will likely be described 
+in a future chapter.
+
+Chapter~\ref{sec:GENERAL} describes the basic and aggregate
+data structures that concur in building up the cards.
+Chapter~\ref{sec:DATA} describes integrator selection options.
+Chapter~\ref{sec:INTEGRATORS} describes the cards dedicated
+to the specification of the parameters of the simulation
+and of the selected integration scheme.
+Chapter~\ref{sec:CONTROL-DATA} describes the model control data.
+Chapter~\ref{sec:NODES} describes the cards related to the input
+of nodes.
+Nodes come first because they are the elementary blocks 
+of the connectivity graph of the model, so historically 
+they had to be defined before any element could be introduced.
+Chapter~\ref{sec:DRIVERS} describes the cards related 
+to special drivers.
+Chapter~\ref{sec:ELEMENTS} describes the cards related to the input
+of elements.
+
+
+
+\section{Output}
+The program outputs data to a set of files for each simulation.
+The contents of each file is related to the file extension,
+which is appended to the input file if no output file name 
+is explicitly supplied.
+If also no input file is explicitly supplied, and input is obtained from 
+\kw{stdin}, the output file name defaults to ``MBDyn''; otherwise, 
+unless the output file name is explicitly set, the name 
+of the input file is used.
+The contents of the output files are described accordingly 
+to the items (nodes or elements) that generate them.
+Only a general information file, with extension \kw{.out}, 
+is described here. 
+The file contains general information about the simulation; 
+it is not formatted. 
+In detail, for each step the current time, time step, the number of
+iterations and the error are supplied.
+There is also a supplementary file, with \kw{.log} extension,
+that may contain extra (logging) information.
+Its contents are not documented since they are very experimental
+and may be subject to changes.
+
+
