@@ -200,10 +200,12 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 #else /* !HAVE_SOCKLEN_T */
    			int socklen;
 #endif /* !HAVE_SOCKLEN_T */
+
 			switch (type) {
 			case AF_LOCAL:
 				{
    					struct sockaddr_un client_addr;
+					socklen = sizeof(struct sockaddr_un);
 
 					pedantic_cout("accepting connection on local socket \""
 							<< name << "\" (" << data.Path << ") ..." 
@@ -212,8 +214,13 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 					sock = accept(tmp_sock,
 							(struct sockaddr *)&client_addr, &socklen);
 					if (sock == -1) {
+						int		save_errno = errno;
+						const char	*err_msg = strerror(save_errno);
+
                 				silent_cerr("SocketStreamElem(" << name << ") "
-							"accept failed" << std::endl);
+							"accept(" << tmp_sock << ") failed ("
+							<< save_errno << ": " << err_msg << ")"
+							<< std::endl);
 						throw ErrGeneric();
         				}
       					silent_cout("SocketStreamElem(" << GetLabel()
@@ -227,6 +234,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 			case AF_INET:
 				{
    					struct sockaddr_in client_addr;
+					socklen = sizeof(struct sockaddr_in);
 
 					pedantic_cout("accepting connection on inet socket \""
 							<< name << "\" (" 
@@ -237,8 +245,13 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 					sock = accept(tmp_sock,
 							(struct sockaddr *)&client_addr, &socklen);
 					if (sock == -1) {
+						int		save_errno = errno;
+						const char	*err_msg = strerror(save_errno);
+
                 				silent_cerr("SocketStreamElem(" << name << ") "
-							"accept failed" << std::endl);
+							"accept(" << tmp_sock << ") failed ("
+							<< save_errno << ": " << err_msg << ")"
+							<< std::endl);
 						throw ErrGeneric();
         				}
       					silent_cout("SocketStreamElem(" << GetLabel()
