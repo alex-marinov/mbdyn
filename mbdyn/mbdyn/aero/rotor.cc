@@ -1339,37 +1339,6 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 	   	Rotor::InitParam();   
 	   	Rotor::MeanInducedVelocity();
      
-#ifdef DEBUG
-	   	/* Prova: */
-		static int i = -1;
-		int iv[] = { 0, 1, 0, -1, 0 };
-		if (++i == 4) {
-			i = 0;
-		}
-	   	Vec3 XTmp(pRotor->GetXCurr()+pCraft->GetRCurr()*Vec3(dRadius*iv[i],dRadius*iv[i+1],0.));
-	   	doublereal dPsiTmp, dXTmp;
-	   	GetPos(XTmp, dXTmp, dPsiTmp);
-	   	Vec3 IndV = GetInducedVelocity(XTmp);
-	   	std::cout 
-		 	<< "X rotore:  " << pRotor->GetXCurr() << std::endl
-		 	<< "V rotore:  " << VCraft << std::endl
-		 	<< "X punto:   " << XTmp << std::endl
-		 	<< "Omega:     " << dOmega << std::endl
-		 	<< "Velocita': " << dVelocity << std::endl
-		 	<< "Psi0:      " << dPsi0 
-				<< " (" << dPsi0*180./M_PI << " deg)" << std::endl
-		 	<< "Psi punto: " << dPsiTmp
-				<< " (" << dPsiTmp*180./M_PI << " deg)" << std::endl
-		 	<< "Raggio:    " << dRadius << std::endl
-		 	<< "r punto:   " << dXTmp << std::endl
-		 	<< "mu:        " << dMu << std::endl
-		 	<< "lambda:    " << dLambda << std::endl
-		 	<< "cos(ad):   " << dCosAlphad << std::endl
-		 	<< "sin(ad):   " << dSinAlphad << std::endl
-		 	<< "UMean:     " << dUMean << std::endl
-		 	<< "iv punto:  " << IndV << std::endl;
-#endif /* DEBUG */
-
        	   	WorkVec.Resize(3);
 	   	integer iFirstIndex = iGetFirstIndex();
      	
@@ -1419,36 +1388,23 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 			 */	
 		   	dUMean = dVConst*dOmega*dRadius;
 
-#if 0	/* need this to damp out oscillations */
-			dUMeanRef = dUMean;
-#endif
-     
 		   	/* Trazione nel sistema rotore */
 		   	doublereal dT = RRot3*Res.Force();
      
 		   	/* Momento nel sistema rotore-vento */
 		   	doublereal dCosP = cos(dPsi0);
 		   	doublereal dSinP = sin(dPsi0);
-		   	Mat3x3 RTmp( dCosP, dSinP, 0., 
-		      			-dSinP, dCosP, 0.,
+		   	Mat3x3 RTmp( dCosP, -dSinP, 0., 
+		      			dSinP, dCosP, 0.,
 		      			0., 0., 1.);
+			
 		   	Vec3 M(RTmp*(RRotTranspose*Res.Couple()));
 
-		 	/* Coefficienti di trazione e momento */
+		 	/* Thrust, roll and pitch coefficients */
 		 	dCT = dT/dDim;
 		 	dDim *= dRadius;
-		 	dCl = M.dGet(1)/dDim;
-		 	dCm = M.dGet(2)/dDim;
-
-#if 0
-			/* we can't get here if dOmega is too small ... */
-			std::cout << dCT/fabs(dOmega)
-				<< " " << dCl/fabs(dOmega)
-				<< " " << dCm/fabs(dOmega)
-				<< " " << RRotTranspose*Res.Couple()
-				<< " " << M
-				<< std::endl;
-#endif /* 0 */
+		 	dCl = - M.dGet(1)/dDim;
+		 	dCm = - M.dGet(2)/dDim;
 
 			/* Matrix coefficients */
 			/* FIXME: divide by 0? */
@@ -1483,23 +1439,44 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 			dL33 = 0.;
 	   	}
 
+#ifdef DEBUG
+	   	/* Prova: */
+		static int i = -1;
+		int iv[] = { 0, 1, 0, -1, 0 };
+		if (++i == 4) {
+			i = 0;
+		}
+	   	Vec3 XTmp(pRotor->GetXCurr()+pCraft->GetRCurr()*Vec3(dRadius*iv[i],dRadius*iv[i+1],0.));
+	   	doublereal dPsiTmp, dXTmp;
+	   	GetPos(XTmp, dXTmp, dPsiTmp);
+	   	Vec3 IndV = GetInducedVelocity(XTmp);
+	   	std::cout 
+		 	<< "X rotore:  " << pRotor->GetXCurr() << std::endl
+		 	<< "V rotore:  " << VCraft << std::endl
+		 	<< "X punto:   " << XTmp << std::endl
+		 	<< "Omega:     " << dOmega << std::endl
+		 	<< "Velocita': " << dVelocity << std::endl
+		 	<< "Psi0:      " << dPsi0 << " ("
+				<< dPsi0*180./M_PI << " deg)" << std::endl
+		 	<< "Psi punto: " << dPsiTmp << " ("
+				<< dPsiTmp*180./M_PI << " deg)" << std::endl
+		 	<< "Raggio:    " << dRadius << std::endl
+		 	<< "r punto:   " << dXTmp << std::endl
+		 	<< "mu:        " << dMu << std::endl
+		 	<< "lambda:    " << dLambda << std::endl
+		 	<< "cos(ad):   " << dCosAlphad << std::endl
+		 	<< "sin(ad):   " << dSinAlphad << std::endl
+		 	<< "UMean:     " << dUMean << std::endl
+		 	<< "iv punto:  " << IndV << std::endl;
+#endif /* DEBUG */
+
 		WorkVec.fPutCoef(1, dCT - dM11*dVConstPrime
 				- dL11*dVConst - dL13*dVCosine);
-	 	WorkVec.fPutCoef(2, - dCl - dM22*dVSinePrime
+	 	WorkVec.fPutCoef(2, dCl - dM22*dVSinePrime
 				- dL22*dVSine);
 	 	WorkVec.fPutCoef(3, dCm - dM33*dVCosinePrime
 				- dL31*dVConst - dL33*dVCosine);
 
-#if 0
-		std::cout
-			<< dM22
-			<< " " << dL22
-			<< " " << dCl
-			<< " " << dVSinePrime
-			<< " " << dVSine
-			<< std:: endl;
-#endif
-     
 #ifdef USE_MPI 
 
      	} else {
