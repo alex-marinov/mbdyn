@@ -23,6 +23,7 @@ RotCoeff.hc \
 RotCoeff.hh \
 schsolman.cc \
 schsolman.h \
+schurmh.h \
 solman.cc \
 solman.h \
 sparsemh.cc \
