@@ -62,7 +62,8 @@ char *solvers[] = {
 static void
 usage(void)
 {
-	std::cerr << "usage: cctest [-d] [-m <solver>]" << std::endl;
+	std::cerr << "usage: cctest [-d] [-m <solver>] [-t <nthreads>]"
+		<< std::endl;
 
 	if (!solvers[0]) {
 		std::cerr << "\tno solvers available!!!" << std::endl;

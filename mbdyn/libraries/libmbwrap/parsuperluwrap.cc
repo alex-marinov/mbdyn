@@ -40,6 +40,8 @@
 
 #ifdef USE_SUPERLU_MT
 
+#include <sys/types.h>
+#include <unistd.h>
 #include <signal.h>
 
 #include "spmh.h"

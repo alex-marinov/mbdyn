@@ -66,7 +66,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifndef HAVE_DGEGV
+#if !defined(HAVE_DGEGV) && defined(__HACK_EIG__)
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -13633,5 +13633,5 @@ L60:
     return ret_val;
 } /* ddot_ */
 
-#endif /* HAVE_DGEGV */
+#endif /* HAVE_DGEGV && __HACK_EIG__ */
 

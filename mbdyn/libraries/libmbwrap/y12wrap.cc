@@ -65,8 +65,7 @@ bDuplicateIndices(bDupInd),
 iN(iMatOrd),
 iNonZeroes(0),
 piHA(NULL),
-pdPIVOT(NULL),
-bFirstSol(true)
+pdPIVOT(NULL)
 {
 	LinearSolver::pdRhs = pdTmpRhs;
 	LinearSolver::pdSol = pdTmpRhs;
@@ -89,6 +88,7 @@ bFirstSol(true)
 	for (int iCnt = 0; iCnt < 11*iN; iCnt++) {
 		piHA[iCnt] = 0;
 	}
+
 	for (int iCnt = 0; iCnt < iN; iCnt++) {
 		pdPIVOT[iCnt] = 0;
 	}
@@ -149,7 +149,6 @@ Y12Solver::Factor(void)
 	
 	/* Sets parameters */
 	integer iIFAIL = 0;
-	bFirstSol = true;
 
 	/*
 	 * must be set to 0 before the first call to a routine 
@@ -232,7 +231,6 @@ Y12Solver::Solve(void) const
 	
 	if (bHasBeenReset) {
       		((Y12Solver *)this)->Factor();
-      		bHasBeenReset = false;
 	}
 		
 	integer iIFAIL = 0;
@@ -250,9 +248,9 @@ Y12Solver::Solve(void) const
 		THROW(Y12Solver::ErrFactorization(iIFAIL));
 	}
 	
-	if (bFirstSol) {
+	if (bHasBeenReset) {
 		iIFLAG[I_5] = 3;
-		bFirstSol = false;
+      		bHasBeenReset = false;
 	}
 }
 
@@ -573,6 +571,7 @@ VH(iSize, &dVec[0])
 	integer iPivot;
 	if (dPivotFactor == 0.) {
 		iPivot = 0;
+
 	} else {
 		iPivot = 1;
 	}
