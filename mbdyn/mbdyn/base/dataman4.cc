@@ -1627,12 +1627,37 @@ Elem** ReadOneElem(DataManager* pDM,
 
     case RTAI_OUTPUT: {
 #ifdef USE_RTAI
+       silent_cout("Reading RTAI output element " << uLabel << std::endl);
+       
+       if (iNumTypes[Elem::RTAI_OUTPUT]-- <= 0) {
+	  DEBUGCERR("");
+	  std::cerr << "line " << HP.GetLineData() 
+	    << ": RTAI output element " << uLabel
+	    << " exceedes RTAI output elements number" << std::endl;
+	  
+	  THROW(DataManager::ErrGeneric());
+       }	  
+       
+       /* verifica che non sia gia' definito */
+       if (pDM->pFindElem(Elem::RTAI_OUTPUT, uLabel) != NULL) {
+	  DEBUGCERR("");
+	  std::cerr << "line " << HP.GetLineData() 
+	    << ": RTAI output element " << uLabel
+	    << " already defined" << std::endl;
+	  
+	  THROW(DataManager::ErrGeneric());
+       }
+       
+       /* allocazione e creazione */		     
+       int i = pDM->ElemData[Elem::RTAI_OUTPUT].iNum
+	 -iNumTypes[Elem::RTAI_OUTPUT]-1;
+       ppE = pDM->ElemData[Elem::RTAI_OUTPUT].ppFirstElem+i;
+              
        *ppE = ReadRTAIOutElem(pDM, HP, uLabel);      
 #else /* ! USE_RTAI */
        std::cerr << "need USE_RTAI to allow RTAI mailboxes" << std::endl;
        THROW(ErrGeneric());
 #endif /* USE_RTAI */
-
        break;
     }
       

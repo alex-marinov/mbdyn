@@ -46,6 +46,7 @@ extern int mbdyn_rt_task_delete(void **__task);
 extern int mbdyn_rt_task_make_periodic(void *task, long long start_time,
 	long long period);
 extern void mbdyn_rt_task_wait_period(void);
+extern void mbdyn_rt_allow_nonroot_hrt(void);
 
 extern long long mbdyn_rt_get_time(void);
 extern long long mbdyn_count2nano(long long count);

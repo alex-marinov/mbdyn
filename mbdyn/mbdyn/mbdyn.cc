@@ -253,6 +253,7 @@ main(int argc, char* argv[])
 		std::cerr << "unable to init RTAI task" << std::endl;
 		THROW(ErrGeneric());
 	}
+	mbdyn_rt_allow_nonroot_hrt();
 #endif /* USE_RTAI */
 
 #ifdef USE_MPI

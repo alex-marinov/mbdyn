@@ -272,9 +272,19 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	ScalarDof *pNodes = NULL;
 	SAFENEWARR(pNodes, ScalarDof, nch);
 	for (int i = 0; i < nch; i++) {
-		pNodes[i] = ReadScalarDof(pDM, HP, 0);
+		pNodes[i] = ReadScalarDof(pDM, HP, 1);
 	}
 
+   	(void)pDM->fReadOutput(HP, Elem::LOADABLE); 
+
+	/* Se non c'e' il punto e virgola finale */
+	if (HP.fIsArg()) {
+		std::cerr << "semicolon expected at line " << HP.GetLineData()
+			<< std::endl;      
+		THROW(ErrGeneric());
+	}
+      
+      /* costruzione del nodo */
 	Elem *pEl = NULL;
 	SAFENEWWITHCONSTRUCTOR(pEl, RTAIOutElem,
 			RTAIOutElem(uLabel, nch, pNodes,

@@ -99,6 +99,12 @@ mbdyn_rt_task_wait_period(void)
 	rt_task_wait_period();
 }
 
+void
+mbdyn_rt_allow_nonroot_hrt(void)
+{
+	rt_allow_nonroot_hrt();
+}
+
 int
 mbdyn_rt_request_port(unsigned long node)
 {
