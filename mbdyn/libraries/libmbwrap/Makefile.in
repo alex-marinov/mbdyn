@@ -98,12 +98,12 @@ libmbwrap_la_SOURCES =  harwout.c harwout.h harwout_.cc harwrap.cc harwrap.h msc
 libmbwrap_la_LIBADD = @LIBS@ @F2C_LIBS@
 libmbwrap_la_LDFLAGS = 
 
-INCLUDES =  -I../../mbdyn -I../libmbutil -I../libmbmath -I../liby12 -I../libharwell
+INCLUDES =  -I../../mbdyn -I../libmbutil -I../libmbmath -I../liby12
 
 
 bin_PROGRAMS = t
 t_SOURCES = test.cc
-t_LDADD =  ./libmbwrap.la ../libmbmath/libmbmath.la ../libmbutil/libmbutil.la ../libobjs/libobjs.la ../liby12/liby12.la ../libharwell/libharwell.la ./libmbwrap.la @MESCHACH_LIBS@ @F2C_LIBS@ @TCL_LIBS@
+t_LDADD =  ./libmbwrap.la ../libmbmath/libmbmath.la ../libmbutil/libmbutil.la ../libobjs/libobjs.la ../liby12/liby12.la ./libmbwrap.la @MESCHACH_LIBS@ @HARWELL_LIBS@ @F2C_LIBS@ @TCL_LIBS@
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = ../../include/mbconfig.h
@@ -123,7 +123,7 @@ PROGRAMS =  $(bin_PROGRAMS)
 t_OBJECTS =  test.o
 t_DEPENDENCIES =  ./libmbwrap.la ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la ../libobjs/libobjs.la ../liby12/liby12.la \
-../libharwell/libharwell.la ./libmbwrap.la
+./libmbwrap.la
 t_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)

@@ -19,7 +19,6 @@ libmbwrap_la_LDFLAGS =
 
 INCLUDES = \
 -I../../libraries/liby12 \
--I../../libraries/libharwell \
 -I../../libraries/libmbmath \
 -I../../libraries/libmbutil \
 -I../../mbdyn
@@ -32,9 +31,9 @@ t_LDADD = \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \
 ../liby12/liby12.la \
-../libharwell/libharwell.la \
 ./libmbwrap.la \
 @MESCHACH_LIBS@ \
+@HARWELL_LIBS@ \
 @F2C_LIBS@ \
 @TCL_LIBS@
 
@@ -42,6 +41,5 @@ INCLUDES = \
 -I../../mbdyn \
 -I../libmbutil \
 -I../libmbmath \
--I../liby12 \
--I../libharwell
+-I../liby12
 
