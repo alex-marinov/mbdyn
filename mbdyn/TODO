@@ -82,14 +82,19 @@ D. Code:
 	- add aircraft instruments as sensors (e.g. writing measures
 		to parameter nodes; refer to
 		http://www.allstar.fiu.edu/aero/FlightIns.htm ):
-		- airspeed indicator
-		- ground speed indicator
-		- altimeter
-		- attitude indicator (pitch and bank)
-		- turn and slip indicator
-		- altimeter
-		- vertical speed indicator
-		- angle of attack indicator
+		- airspeed indicator		(V-Vinf).Norm()
+		- ground speed indicator	((I-e3.Tens(e3))*V).Norm()
+		- altimeter			e3.Dot(X)
+		- attitude indicator (pitch and bank)	*
+		- turn and slip indicator		+
+		- vertical speed indicator	e3.Dot(V-Vinf)
+		- angle of attack indicator	v=R.Transpose()*(V-Vinf);
+						atan2(v(3),v(1))
+
+		*:	pitch=atan2(e1(3),e1(1));
+			bank=atan2(e2(3),e2(2));
+		+:	turn=Omega(3);
+			slip=?
 
 
 
