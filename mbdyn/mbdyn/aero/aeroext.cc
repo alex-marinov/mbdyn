@@ -190,7 +190,7 @@ void AerodynamicExternal::Send(const VectorHandler& X  ,
 	if(!SentFlag) {
 		//std::cout << "AerodynamicExternal::Send " <<  SentFlag << std::endl;
 		Vec3 Vinf(0.);
-		Vec3 Xc(0.), V;
+		Vec3 Xc(0.), V, W, Xt;
 		Mat3x3 R;
 		doublereal rho, c, p, T;
 		GetAirProps(Xc, rho, c, p, T); 
@@ -207,16 +207,21 @@ void AerodynamicExternal::Send(const VectorHandler& X  ,
 		for (int i=0; i < NodeN; i++) {
 			Xc = ppNode[i]->GetXCurr();
 			pdBuffer->Put(8+i*(OffN+1)*3+1, Xc);
+                        //std::cout << "Block " << (this->GetLabel()) << " Node " << i << " Pos " << Xc << std::endl;
 			if (VelFlag) {
 				V = ppNode[i]->GetVCurr();
+                                W = ppNode[i]->GetWCurr();
 				pdBufferVel->Put(i*(OffN+1)*3+1, V);
 			}
+			R = ppNode[i]->GetRCurr();
+                        //std::cout <<  "Vel " << V  << " R " << R << " W " << W << std::endl;
 			for (int j=1; j <= OffN; j++) {
-				R = ppNode[i]->GetRCurr();
 				MatTmp.LeftMult(R, *pOffsetVectors);
 				MatTmp *= pRefLength[i];
-				pdBuffer->Put(8+i*(OffN+1)*3+j*3+1, Xc + MatTmp.GetVec(j));
-				if (VelFlag) pdBufferVel->Put(i*(OffN+1)*3+j*3+1, V + ( Mat3x3(ppNode[i]->GetWCurr()) * R)* MatTmp.GetVec(j));
+				Xt = MatTmp.GetVec(j);
+				pdBuffer->Put(8+i*(OffN+1)*3+j*3+1, Xc + Xt);
+				if (VelFlag) pdBufferVel->Put(i*(OffN+1)*3+j*3+1, V + W.Cross(Xt));
+				//std::cout << " OffVec " << j << ": Pos " << Xt << " Vel " << V + W.Cross(Xt) << std::endl; 
 			}
 		}
 		pInterfComm->Send(pdBuffer->pdGetVec(), 8+3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+2);
