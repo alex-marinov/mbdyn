@@ -38,6 +38,59 @@
 #include <autostr.h>
 #include <dataman.h>
 
+/*
+ * StructNodeOutput - begin
+ */
+StructNodeOutput::~StructNodeOutput(void)
+{
+	NO_OP;
+}
+
+BasicStructNodeOutput::~BasicStructNodeOutput(void)
+{
+	NO_OP;
+}
+
+std::ostream&
+BasicStructNodeOutput::Output(std::ostream& out, const StructNode *pN) const
+{
+	return out << pN->GetXCurr()
+		<< " " << MatR2EulerAngles(pN->GetRCurr())
+		<< " " << pN->GetVCurr()
+		<< " " << pN->GetWCurr()
+		<< std::endl;
+}
+
+	StructNode *pBaseNode;
+
+RelativeStructNodeOutput::RelativeStructNodeOutput(StructNode *pN)
+: pBaseNode(pN)
+{
+	ASSERT(pBaseNode != NULL);
+}
+
+RelativeStructNodeOutput::~RelativeStructNodeOutput(void)
+{
+	NO_OP;
+}
+
+std::ostream&
+RelativeStructNodeOutput::Output(std::ostream& out, const StructNode *pN) const
+{
+	Vec3 Xr = pN->GetXCurr() - pBaseNode->GetXCurr();
+	Mat3x3 RT = pBaseNode->GetRCurr().Transpose();
+
+	return out << RT*Xr
+		<< " " << MatR2EulerAngles(RT*pN->GetRCurr())
+		<< " " << RT*(pN->GetVCurr() - pBaseNode->GetVCurr() - pBaseNode->GetWCurr().Cross(Xr))
+		<< " " << RT*(pN->GetWCurr() - pBaseNode->GetWCurr())
+		<< std::endl;
+}
+
+/*
+ * StructNodeOutput - end
+ */
+
 /* StructNode - begin */
 
 /* Costruttore definitivo */
