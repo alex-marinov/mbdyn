@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2004
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -41,16 +41,16 @@
 /* GimbalJoint - begin */
 
 /* Costruttore non banale */
-GimbalJoint::GimbalJoint(unsigned int uL,			      
-				 const DofOwner* pDO, 
-				 const StructNode* pN1, 
+GimbalJoint::GimbalJoint(unsigned int uL,
+				 const DofOwner* pDO,
+				 const StructNode* pN1,
 				 const StructNode* pN2,
 				 const Mat3x3& R1,
 				 const Mat3x3& R2,
 				 flag fOut)
-: Elem(uL, Elem::JOINT, fOut), 
-Joint(uL, Joint::GIMBAL, pDO, fOut), 
-pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2), 
+: Elem(uL, Elem::JOINT, fOut),
+Joint(uL, Joint::GIMBAL, pDO, fOut),
+pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2),
 M(0.), dTheta(0.), dPhi(0.)
 {
 	ASSERT(pNode1 != NULL);
@@ -59,7 +59,7 @@ M(0.), dTheta(0.), dPhi(0.)
 	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
 }
 
-   
+
 /* Distruttore */
 GimbalJoint::~GimbalJoint(void)
 {
@@ -84,7 +84,7 @@ GimbalJoint::Restart(std::ostream& out) const
 
 void
 GimbalJoint::Output(OutputHandler& OH) const
-{   
+{
 	if (fToBeOutput()) {
 		Mat3x3 Ra(pNode1->GetRCurr());
 
@@ -97,9 +97,9 @@ GimbalJoint::Output(OutputHandler& OH) const
 
 
 /* assemblaggio jacobiano */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 GimbalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef, 
+		doublereal dCoef,
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ )
 {
@@ -123,7 +123,7 @@ GimbalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	/* Setta gli indici della matrice */
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
-		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);	
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
 		WM.PutRowIndex(3 + iCnt, iNode2FirstMomIndex + iCnt);
 		WM.PutColIndex(3 + iCnt, iNode2FirstPosIndex + iCnt);
 	}
@@ -132,7 +132,7 @@ GimbalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutRowIndex(6 + iCnt, iFirstReactionIndex + iCnt);
 		WM.PutColIndex(6 + iCnt, iFirstReactionIndex + iCnt);
 	}
-   
+
 	AssMat(WM, dCoef);
 
 	return WorkMat;
@@ -148,7 +148,7 @@ GimbalJoint::AfterPredict(VectorHandler& /* X */ ,
 
 
 void
-GimbalJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)   
+GimbalJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 {
 	Mat3x3 Ra(pNode1->GetRRef()*R1h);
 	Mat3x3 Rb(pNode2->GetRRef()*R2h);
@@ -211,13 +211,13 @@ GimbalJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 
 
 /* assemblaggio residuo */
-SubVectorHandler& 
+SubVectorHandler&
 GimbalJoint::AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
 		const VectorHandler& XCurr,
 		const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering GimbalJoint::AssRes()" << std::endl);   
+	DEBUGCOUT("Entering GimbalJoint::AssRes()" << std::endl);
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
@@ -275,16 +275,18 @@ GimbalJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
 }
 
 
+/*
+ * FIXME: the initial assembly is flawed:
+ * there is no constraint derivative...
+ */
+
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 GimbalJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr)
 {
 	DEBUGCOUT("Entering GimbalJoint::InitialAssJac()" << std::endl);
 
-	WorkMat.SetNullMatrix();
-
-#if 0
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
 	/* Dimensiona e resetta la matrice di lavoro */
@@ -294,77 +296,36 @@ GimbalJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.ResizeReset(iNumRows, iNumCols);
 
 	/* Recupera gli indici */
-	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
-	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex()+3;
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex() + 3;
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex() + 3;
 	integer iFirstReactionIndex = iGetFirstIndex();
-	integer iNode1FirstVelIndex = iNode1FirstPosIndex+6;   
-	integer iNode2FirstVelIndex = iNode2FirstPosIndex+6;   
-	integer iReactionPrimeIndex = iFirstReactionIndex+3;   
 
 	/* Setta gli indici della matrice */
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WM.PutRowIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
-		WM.PutColIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
-		WM.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-		WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-		WM.PutRowIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
-		WM.PutColIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
-		WM.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
-		WM.PutColIndex(12+iCnt, iFirstReactionIndex+iCnt);
-		WM.PutRowIndex(15+iCnt, iReactionPrimeIndex+iCnt);
-		WM.PutColIndex(15+iCnt, iReactionPrimeIndex+iCnt);
+		WM.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WM.PutRowIndex(3 + iCnt, iNode2FirstPosIndex + iCnt);
+		WM.PutColIndex(3 + iCnt, iNode2FirstPosIndex + iCnt);
 	}
 
-	Mat3x3 Ra(pNode1->GetRRef()*R1h);
-	Mat3x3 RaT(Ra.Transpose());
-	Vec3 Wa(pNode1->GetWRef());
-	Vec3 Wb(pNode2->GetWRef());
+	for (int iCnt = 1; iCnt <= 5; iCnt++) {
+		WM.PutRowIndex(6 + iCnt, iFirstReactionIndex + iCnt);
+		WM.PutColIndex(6 + iCnt, iFirstReactionIndex + iCnt);
+	}
 
-	Mat3x3 MTmp(M);
-	Mat3x3 MPrimeTmp(Ra*Vec3(XCurr, iReactionPrimeIndex+1));
-
-	WM.Add(1, 1, MTmp);
-	WM.Add(4, 4, MTmp);   
-	WM.Sub(7, 1, MTmp);
-	WM.Sub(10, 4, MTmp);
-
-	MTmp = Mat3x3(Wa)*MTmp+MPrimeTmp;
-	WM.Add(4, 1, MTmp);
-	WM.Sub(10, 1, MTmp);
-
-	WM.Add(7, 13, Ra);
-	WM.Add(10, 16, Ra);
-	WM.Sub(1, 13, Ra);
-	WM.Sub(4, 16, Ra);
-
-	MTmp = Mat3x3(Wa)*Ra;
-	WM.Add(10, 13, MTmp);
-	WM.Sub(4, 13, MTmp);
-
-	WM.Add(13, 7, RaT);
-	WM.Add(16, 10, RaT);
-	WM.Sub(13, 1, RaT);
-	WM.Sub(16, 4, RaT);
-	WM.Add(16, 1, RaT*Mat3x3(Wb));
-	WM.Sub(16, 7, RaT*Mat3x3(Wa));
-#endif
+	AssMat(WM, 1.);
 
 	return WorkMat;
 }
 
-					   
-/* Contributo al residuo durante l'assemblaggio iniziale */   
-SubVectorHandler& 
+
+/* Contributo al residuo durante l'assemblaggio iniziale */
+SubVectorHandler&
 GimbalJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr)
 {
-	DEBUGCOUT("Entering GimbalJoint::InitialAssRes()" << std::endl);   
+	DEBUGCOUT("Entering GimbalJoint::InitialAssRes()" << std::endl);
 
-	WorkVec.ResizeReset(0);
-	
-#if 0
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
 	integer iNumCols = 0;
@@ -372,47 +333,78 @@ GimbalJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.ResizeReset(iNumRows);
 
 	/* Recupera gli indici */
-	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
-	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex()+3;
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex() + 3;
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex() + 3;
 	integer iFirstReactionIndex = iGetFirstIndex();
-	integer iNode1FirstVelIndex = iNode1FirstPosIndex+6;   
-	integer iNode2FirstVelIndex = iNode2FirstPosIndex+6;   
-	integer iReactionPrimeIndex = iFirstReactionIndex+3;   
 
 	/* Setta gli indici del vettore */
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WorkVec.PutRowIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
-		WorkVec.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-		WorkVec.PutRowIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
-		WorkVec.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
-		WorkVec.PutRowIndex(15+iCnt, iReactionPrimeIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WorkVec.PutRowIndex(3 + iCnt, iNode2FirstPosIndex + iCnt);
 	}
 
-	Mat3x3 R1(pNode1->GetRCurr()*R1h);
-	Mat3x3 R1T(R1.Transpose());
-	Vec3 Wa(pNode1->GetWCurr());
-	Vec3 Wb(pNode2->GetWCurr());
+	for (int iCnt = 1; iCnt <= 5; iCnt++) {
+		WorkVec.PutRowIndex(6 + iCnt, iFirstReactionIndex + iCnt);
+	}
 
-	M = Vec3(XCurr, iFirstReactionIndex+1);
-	Vec3 MPrime = Vec3(XCurr, iReactionPrimeIndex+1);
-
-	Vec3 MPrimeTmp(Wa.Cross(R1*M)+R1*MPrime);
-
-	Mat3x3 R2(pNode2->GetRCurr()*R2h);
-	ThetaCurr = RotManip::VecRot(R1.Transpose()*R2);
-
-	Vec3 ThetaPrime = R1T*(Wa.Cross(ThetaCurr)-Wb+Wa);
-
-	WorkVec.Add(1, MPrimeTmp);
-	WorkVec.Add(4, MPrimeTmp);
-	WorkVec.Sub(7, MPrimeTmp);
-	WorkVec.Sub(10, MPrimeTmp);
-	WorkVec.Add(13, Get()-ThetaCurr);
-	WorkVec.Add(16, ThetaPrime);   
-#endif
+	AssVec(WorkVec, 1);
 
 	return WorkVec;
 }
-					   
+
+/* Dati privati (aggiungere magari le reazioni vincolari) */
+unsigned int
+GimbalJoint::iGetNumPrivData(void) const
+{
+	return 5;
+}
+
+unsigned int
+GimbalJoint::iGetPrivDataIdx(const char *s) const
+{
+	if (strncmp(s, "lambda[", sizeof("lambda[") - 1) == 0) {
+		s += sizeof("lambda[") - 1;
+		if (s[1] != ']') {
+			return 0;
+		}
+
+		switch (s[0]) {
+		case '1':
+		case '2':
+		case '3':
+			return s[0] - '0';
+
+		default:
+			return 0;
+		}
+
+	} else if (strcmp(s, "theta") == 0) {
+		return 4;
+
+	} else if (strcmp(s, "phi") == 0) {
+		return 5;
+	}
+
+	return 0;
+}
+
+doublereal
+GimbalJoint::dGetPrivData(unsigned int i) const
+{
+	switch (i) {
+	case 1:
+	case 2:
+	case 3:
+		return M(i);
+
+	case 4:
+		return dTheta;
+
+	case 5:
+		return dPhi;
+	}
+
+	throw ErrGeneric();
+}
+
 /* GimbalJoint - end */

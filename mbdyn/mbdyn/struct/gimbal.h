@@ -114,13 +114,13 @@ public:
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);           
 	/* funzioni usate nell'assemblaggio iniziale */
 	virtual unsigned int iGetInitialNumDof(void) const { 
-		return 0;
+		return 5;
 	};
 
 	virtual void InitialWorkSpaceDim(integer* piNumRows,
 			integer* piNumCols) const { 
-		*piNumRows = 0; 
-		*piNumCols = 0;
+		*piNumRows = 11; 
+		*piNumCols = 11;
 	};
 
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
@@ -134,14 +134,9 @@ public:
 			const VectorHandler& XCurr);
    
 	/* Dati privati (aggiungere magari le reazioni vincolari) */
-	virtual unsigned int iGetNumPrivData(void) const {
-		return 0;
-	};
-
-	virtual doublereal dGetPrivData(unsigned int i = 0) const {
-		ASSERT(i >= 1 && i <= 2);
-		return 0.;
-	};
+	virtual unsigned int iGetNumPrivData(void) const;
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+	virtual doublereal dGetPrivData(unsigned int i = 0) const;
 
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
