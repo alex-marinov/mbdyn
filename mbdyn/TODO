@@ -79,6 +79,17 @@ D. Code:
 		the underlying library will open modules exactly once
 		despite they're loaded many times)
 	- link to Taucs sparse solver: http://www.tau.ac.il/~stoledo/taucs
+	- add aircraft instruments as sensors (e.g. writing measures
+		to parameter nodes; refer to
+		http://www.allstar.fiu.edu/aero/FlightIns.htm ):
+		- airspeed indicator
+		- ground speed indicator
+		- altimeter
+		- attitude indicator (pitch and bank)
+		- turn and slip indicator
+		- altimeter
+		- vertical speed indicator
+		
 
 
 
