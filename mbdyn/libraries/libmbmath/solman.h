@@ -284,6 +284,7 @@ class MyVectorHandler : public VectorHandler {
    
    virtual inline const doublereal& dGetCoef(integer iRow) const;
 
+
    /* Somma un Vec3 nella posizione desiderata */
    virtual void Add(integer iRow, const Vec3& v);
    
@@ -339,6 +340,16 @@ class MyVectorHandler : public VectorHandler {
    /* Norma del vettore */
    doublereal Norm(void) const {
       return sqrt(Dot());
+   };
+
+   doublereal& operator () (integer iRow) const {
+
+#ifdef DEBUG
+   	IsValid();
+   	ASSERT((iRow > 0) && (iRow <= iCurSize));
+#endif
+
+   	return pdVecm1[iRow];
    };
 };
 
