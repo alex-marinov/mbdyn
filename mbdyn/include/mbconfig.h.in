@@ -209,6 +209,9 @@
 /* define this to use DOS-style filenames */
 #undef USE_DOS_FILE
 
+/* define if you want to use loadable modules */
+#undef HAVE_LOADABLE
+
 /* define if you want to use Umfpack3 */
 #undef USE_UMFPACK3
 

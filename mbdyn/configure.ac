@@ -589,6 +589,16 @@ case "$ol_with_fs" in
 		;;
 esac
 
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for dlopen
+dnl
+AC_CHECK_LIB(dl, dlopen,[have_dlopen_in_ldl=yes],[have_dlopen_in_ldl=no], -ldl)
+if test $have_dlopen_in_ldl = "yes" ; then
+	AC_DEFINE(HAVE_LOADABLE,1,[define if you want to use loadable modules])
+	LIBS="$LIBS -ldl"
+fi
+
 
 dnl ----------------------------------------------------------------
 dnl
@@ -979,12 +989,14 @@ if test $ol_with_ginac != no ; then
 	dnl AC_LANG_CPLUSPLUS
 	dnl AM_PATH_GINAC(0.7.0,[ol_link_ginac=yes],[ol_link_ginac=no])
 	dnl AC_LANG_C
+	AC_MSG_CHECKING([for GiNaC library])
 	which ginac-config >/dev/null 2>&1
 	if test $? = 0 ; then
 		GINACLIB_CONFIG="ginac-config"
 		GINACLIB_LIBS=`$GINACLIB_CONFIG --libs`
 		GINACLIB_CPPFLAGS=`$GINACLIB_CONFIG --cppflags`
 		AC_DEFINE(HAVE_GINAC,1,[define if GiNaC is available])
+		AC_MSG_RESULT([yes])
 	else 
 		if test $ol_with_ginac != yes ; then
 			AC_MSG_WARN([GiNaC support not available])
