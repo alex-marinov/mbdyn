@@ -15,6 +15,7 @@ MBDyn 1.1 Engineering
 		- added mbdyn(1) man page
 		- rotors can be arbitrarily oriented wrt the craft (ITS#5)
 		- improved Mat3x3 and Mat3xN APIs (Need critical redesign)
+		- modal element can use a portion of the available modes
 	Bug fixes:
 		- fix unsteady Cm sign bug in unsteady c81 aerodynamics
 		- fix input file command line arg delete[] failure 
