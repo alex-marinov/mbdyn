@@ -216,8 +216,7 @@ Library {
       MaskIconOpaque	      on
       MaskIconRotate	      "none"
       MaskIconUnits	      "autoscale"
-      MaskValueString	      "off|'/home/attolico/mbdyn-devel1/mbdyn/mbdyn'|'"
-"../mbdyn-devel1/tests/rtai/rigidrob'|off|'pippo_pipino'|off|off"
+      MaskValueString	      "off|'../../mbdyn/mbdyn'|''|off|''|off|off"
     }
     Block {
       BlockType		      "S-Function"

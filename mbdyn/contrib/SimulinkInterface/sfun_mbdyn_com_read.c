@@ -594,7 +594,9 @@ mdlOutputs(SimStruct *S, int_T tid)
 			/* poll */
 			struct pollfd	ufds;
 			int		rc;
+			int		tries = 0;
 
+retry:;
 			ufds.fd = sock;
 			ufds.events = (POLLIN | POLLOUT);
 			rc = poll(&ufds, 1, TIME_OUT);
@@ -616,6 +618,12 @@ mdlOutputs(SimStruct *S, int_T tid)
 			default :
 			{
 				int flags;
+
+				if ((ufds.revents & POLLHUP) && ++retries < 200) {
+					usleep(10000);
+					goto retry;
+				}
+
 				if (ufds.revents & (POLLERR | POLLHUP | POLLNVAL)) {
 					snprintf(errMsg, sizeof(errMsg),
 							"\nREAD sfunction: POLL error "
