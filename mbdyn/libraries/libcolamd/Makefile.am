@@ -11,4 +11,7 @@ colamd.h
 libcolamd_la_LIBADD = @LIBS@
 libcolamd_la_LDFLAGS =
 
+INCLUDES = \
+-I../../mbdyn
+
 include $(top_srcdir)/build/bot.mk
