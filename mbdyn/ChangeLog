@@ -7,6 +7,9 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Wed Apr 24 15:21:53 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - 1.1.2 released
+
 *** Tue Apr 23 18:41:18 CEST 2002 Giuseppe Quaranta <quaranta@aero.polimi.it>
  - iterative BGGSTAB solver added to repository; needs work
 
