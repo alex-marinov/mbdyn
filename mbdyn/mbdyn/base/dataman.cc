@@ -47,16 +47,15 @@ extern "C" {
 
 #include <constltp.h>
 #include <dataman_.h>
-/* plugins per math parser */
+/* add-ons for math parser */
 #include <dofpgin.h>
 #include <dummypgin.h>
 #ifdef USE_TCL
 #include <tclpgin.h>
 #endif /* USE_TCL */
 
-/* temporaneo? */
+/* temporary? */
 #include <beam.h>
-		
 
 /* DataManager - begin */
 
@@ -85,11 +84,10 @@ DataManager::DataManager(MBDynParser& HP,
 		const char* sOutputFileName,
 		bool bAbortAfterInput)
 :
+SolverDiagnostics(OF),
 #ifdef USE_MULTITHREAD
 nThreads(0),
-ptd(NULL),
 #endif /* USE_MULTITHREAD */
-SolverDiagnostics(OF),
 MathPar(HP.GetMathParser()),
 GlobalSymbolTable((HP.GetMathParser()).GetSymbolTable()),
 DrvHdl((HP.GetMathParser()).GetSymbolTable()),
@@ -142,6 +140,8 @@ piWorkIndex(NULL),
 pdWorkMat(NULL),
 pWorkMatA(NULL),
 pWorkMatB(NULL),
+pWorkMat(NULL),
+pWorkVec(NULL),
 
 /* NodeManager */
 NodeIter(), 

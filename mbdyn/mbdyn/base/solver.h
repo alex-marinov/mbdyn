@@ -73,6 +73,10 @@ public:
 	class SimulationDiverged{};
 
 private:
+#ifdef USE_MULTITHREAD
+	unsigned nThreads;
+#endif /* USE_MULTITHREAD */
+
    	enum Strategy {
 		NOCHANGE,
 		CHANGE,

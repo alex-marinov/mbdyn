@@ -71,22 +71,6 @@
 const int iGlobalSymbolTableInitialSize = 21;
 
 class DataManager : public SolutionDataManager, public SolverDiagnostics {
-
-protected:
-
-#ifdef USE_MULTITHREAD
-	/* from input file, or auto-detected */
-	unsigned int nThreads;
-
-	/* per-thread specific data */
-	struct PerThreadData {
-		unsigned int threadNumber;
-		pthread_t thread;
-		integer	*piWorkIndex;    /* array di lavoro */
-		doublereal *pdWorkMat;   /* matrice di lavoro */
-	} *ptd;
-#endif /* USE_MULTITHREAD */
-
 public:
 	class ErrGeneric {};
 	class ErrAssemblyDiverged {};
@@ -98,6 +82,11 @@ public:
 	class ErrMissingNodes {};
 
 private:
+#ifdef USE_MULTITHREAD
+	/* from input file, or auto-detected */
+	unsigned int nThreads;
+#endif /* USE_MULTITHREAD */
+	
 	/* Handler vari */
 	MathParser& MathPar;      /* Received from MultiStepIntegrator */
 	Table& GlobalSymbolTable; /* note: do not invert declaration order */
@@ -278,11 +267,25 @@ public:
 	virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef);
 
 	/* Assembla le matrici per gli autovalori */
-	virtual void AssEig(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl);
+	virtual void AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl);
 
 	/* Assembla il residuo */
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef);
 
+protected:
+	/* specialized functions, called by above general helpers */
+	virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef,
+			VecIter<Elem *> *pIter,
+			VariableSubMatrixHandler& WorkMat);
+	virtual void AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl,
+			VecIter<Elem *> *pIter,
+			VariableSubMatrixHandler& WorkMatA,
+			VariableSubMatrixHandler& WorkMatB);
+	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef,
+			VecIter<Elem *> *pIter,
+			SubVectorHandler& WorkVec);
+
+public:
 	/* stampa i risultati */
 	virtual void Output(bool force = false) const;
 	virtual void Output(const VectorHandler& X,
@@ -362,11 +365,7 @@ protected:
 
 	} ElemData[Elem::LASTELEMTYPE];
 
-#ifdef MBDYN_X_MULTITHREAD
-	mutable MT_VecIter<Elem *> ElemIter;
-#else /* MBDYN_X_MULTITHREAD */
 	mutable VecIter<Elem *> ElemIter;
-#endif /* MBDYN_X_MULTITHREAD */
 
 	Elem** ppElems;         /* puntatore all'array di puntatori agli el. */
 	unsigned int iTotElem;  /* numero totale di el. definiti */
@@ -388,8 +387,10 @@ protected:
 	integer* piWorkIndex;    /* puntatore ad interi - array di lavoro */
 	doublereal* pdWorkMat;   /* puntatore a double - matrice di lavoro */
 
-	VariableSubMatrixHandler* pWorkMatA;  /* SubMatrix di lavoro */
-	VariableSubMatrixHandler* pWorkMatB;
+	VariableSubMatrixHandler *pWorkMatA;  /* SubMatrix di lavoro */
+	VariableSubMatrixHandler *pWorkMatB;
+	VariableSubMatrixHandler *pWorkMat;
+	MySubVectorHandler *pWorkVec;
 
 	/* ricerca elementi*/
 	void* pFindElem(Elem::Type Typ, unsigned int uL,

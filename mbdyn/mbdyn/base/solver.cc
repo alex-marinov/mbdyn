@@ -55,16 +55,18 @@
 #define RTAI_LOG
 
 #include <unistd.h>
-#include <ac/float.h>
-#include <ac/math.h>
-#include <ac/sys_sysinfo.h>
+#include "ac/float.h"
+#include "ac/math.h"
+#include "ac/sys_sysinfo.h"
 
-#include <solver.h>
+#include "solver.h"
+#include "dataman.h"
+#include "mtdataman.h"
 #include "thirdorderstepsol.h"
-#include <nr.h>
-#include <bicg.h>
-#include <gmres.h>
-#include <solman.h>
+#include "nr.h"
+#include "bicg.h"
+#include "gmres.h"
+#include "solman.h"
 #include <vector>
 
 #if defined(HAVE_SIGNAL) && defined(HAVE_SIGNAL_H)
@@ -72,24 +74,24 @@
 #endif /* HAVE_SIGNAL && HAVE_SIGNAL_H */
   
 #ifdef USE_MPI
-#include <mbcomm.h>
+#include "mbcomm.h"
 #ifdef USE_EXTERNAL
-#include <external.h>
+#include "external.h"
 #endif /* USE_EXTERNAL */
 #endif /* USE_MPI */
 
 
 #if defined(USE_RTAI) 
-#include <mbrtai_utils.h>
+#include "mbrtai_utils.h"
 #if defined(HAVE_SYS_MMAN_H)
 #include <sys/mman.h>
 #endif /* HAVE_SYS_MMAN_H */
 #endif /* USE_RTAI */
 
-#include <harwrap.h>
-#include <mschwrap.h>
-#include <y12wrap.h>
-#include <umfpackwrap.h>
+#include "harwrap.h"
+#include "mschwrap.h"
+#include "y12wrap.h"
+#include "umfpackwrap.h"
 
 #ifdef HAVE_SIGNAL
 static volatile sig_atomic_t mbdyn_keep_going = 1;
@@ -165,6 +167,9 @@ Solver::Solver(MBDynParser& HPar,
 		const char* sOutFName,
 		bool bPar)
 :
+#ifdef USE_MULTITHREAD
+nThreads(0),
+#endif /* USE_MULTITHREAD */
 CurrStrategy(NOCHANGE),
 sInputFileName(NULL),
 sOutputFileName(NULL),
@@ -269,6 +274,21 @@ pNLS(NULL)
 		SetOutputFlags(OUTPUT_NONE);
 	}
 #endif /* USE_RTAI */
+
+#ifdef USE_MULTITHREAD
+	/* check for thread potential */
+	if (nThreads == 0) {
+		int n = get_nprocs();
+
+		if (n > 1) {
+			silent_cout("no multithread requested "
+					"with a potential of " << n
+					<< " CPUs" << std::endl);
+		}
+
+		nThreads = 1;
+	}
+#endif /* USE_MULTITHREAD */
 }
 
 void
@@ -336,17 +356,35 @@ Solver::Run(void)
 	} else
 #endif /* USE_MPI */
 	{
-
 		/* chiama il gestore dei dati generali della simulazione */
-		DEBUGLCOUT(MYDEBUG_MEM, "creating DataManager" << std::endl);
-		SAFENEWWITHCONSTRUCTOR(pDM,
- 				DataManager,
- 				DataManager(HP, 
-					OutputFlags,
-					dInitialTime, 
-					sInputFileName,
-					sOutputFileName,
-					eAbortAfter == AFTER_INPUT));
+		if (nThreads > 1) {
+			DEBUGLCOUT(MYDEBUG_MEM,
+					"creating MultiThreadDataManager"
+					<< std::endl);
+
+			SAFENEWWITHCONSTRUCTOR(pDM,
+					MultiThreadDataManager,
+					MultiThreadDataManager(HP, 
+						OutputFlags,
+						dInitialTime, 
+						sInputFileName,
+						sOutputFileName,
+						eAbortAfter == AFTER_INPUT,
+						nThreads));
+
+		} else {
+			DEBUGLCOUT(MYDEBUG_MEM, "creating DataManager"
+					<< std::endl);
+
+			SAFENEWWITHCONSTRUCTOR(pDM,
+					DataManager,
+					DataManager(HP, 
+						OutputFlags,
+						dInitialTime, 
+						sInputFileName,
+						sOutputFileName,
+						eAbortAfter == AFTER_INPUT));
+		}
 	}
 
 	HP.Close();
@@ -1633,6 +1671,9 @@ Solver::ReadData(MBDynParser& HP)
 		/* RTAI stuff */
 		"real" "time",
 
+		/* multithread stuff */
+		"threads",
+
 		NULL
    	};
    
@@ -1722,6 +1763,8 @@ Solver::ReadData(MBDynParser& HP)
 
 		/* RTAI stuff */
 		REALTIME,
+
+		THREADS,
 	
 		LASTKEYWORD
    	};
@@ -2865,6 +2908,40 @@ Solver::ReadData(MBDynParser& HP)
 			THROW(ErrGeneric());
 #endif /* !USE_RTAI */
 			break;
+
+		case THREADS:
+			if (HP.IsKeyWord("auto")) {
+#ifdef USE_MULTITHREAD
+				int n = get_nprocs();
+				/* sanity checks ... */
+				if (n <= 0) {
+					silent_cerr("got " << n << " CPUs "
+							"at line "
+							<< HP.GetLineData()
+							<< std::endl);
+					nThreads = 1;
+				} else {
+					nThreads = n;
+				}
+#else /* ! USE_MULTITHREAD */
+				silent_cerr("configure with "
+						"--enable-multithread "
+						"for multithreaded assembly"
+						<< std::endl);
+#endif /* ! USE_MULTITHREAD */
+			} else {
+#ifdef USE_MULTITHREAD
+				nThreads = HP.GetInt();
+#else /* ! USE_MULTITHREAD */
+				(void)HP.GetInt();
+				silent_cerr("configure with "
+						"--enable-multithread "
+						"for multithreaded assembly"
+						<< std::endl);
+#endif /* ! USE_MULTITHREAD */
+			}
+			break;
+
 
 		default:
 			std::cerr << "unknown description at line " 

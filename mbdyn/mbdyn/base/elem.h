@@ -51,9 +51,9 @@
 #include <simentity.h>
 #include <node.h>
 
-#ifdef MBDYN_X_MULTITHREAD
+#ifdef USE_MULTITHREAD
 #include <veciter.h>
-#endif /* MBDYN_X_MULTITHREAD */
+#endif /* USE_MULTITHREAD */
 
 extern const char* psElemNames[];
 extern const char* psReadControlElems[];
@@ -70,9 +70,9 @@ class Rotor;
 /* Elem - begin */
 
 class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
-#ifdef MBDYN_X_MULTITHREAD
+#ifdef USE_MULTITHREAD
 , public InUse
-#endif /* MBDYN_X_MULTITHREAD */
+#endif /* USE_MULTITHREAD */
 {
    /*
     * Tipi di Elem. Lasciare sempre UNKNOWN = -1, cosi' il primo elemento

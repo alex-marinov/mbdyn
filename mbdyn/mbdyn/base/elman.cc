@@ -144,6 +144,11 @@ DataManager::ElemManagerDestructor(void)
 		SAFEDELETE(pWorkMatA);
 	}
 
+	if (pWorkVec != NULL) {
+		DEBUGCOUT("deleting assembly structure, SubVector" << std::endl);
+		SAFEDELETE(pWorkVec);
+	}
+
 	if (pdWorkMat != NULL) {
 		DEBUGCOUT("deleting assembly structure, double workspace" << std::endl);
 		SAFEDELETEARR(pdWorkMat);
@@ -306,6 +311,13 @@ DataManager::ElemAssInit(void)
 					piWorkIndex+iWorkIntSize,
 					pdWorkMat+iWorkDoubleSize));
 
+		pWorkMat = pWorkMatA;
+
+		SAFENEWWITHCONSTRUCTOR(pWorkVec,
+				MySubVectorHandler,
+				MySubVectorHandler(iWorkIntSize,
+					piWorkIndex, pdWorkMat));
+
 		DEBUGCOUT("Creating working matrices: work int size = "
 				<< iWorkIntSize << ", work double size = "
 				<< iWorkDoubleSize << std::endl
@@ -326,29 +338,55 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
 	DEBUGCOUT("Entering DataManager::AssJac()" << std::endl);
 
-	ASSERT(pWorkMatA != NULL);
+	ASSERT(pWorkMat != NULL);
 	ASSERT(ppElems != NULL);
 
+	AssJac(JacHdl, dCoef, &ElemIter, *pWorkMat);
+}
+
+void
+DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
+		VecIter<Elem *> *pIter,
+		VariableSubMatrixHandler& WorkMat)
+{
+	DEBUGCOUT("Entering DataManager::AssJac()" << std::endl);
+
 	Elem* pTmpEl = NULL;
-	if (ElemIter.bGetFirst(pTmpEl)) {
+	if (pIter->bGetFirst(pTmpEl)) {
 		do {
-			JacHdl += pTmpEl->AssJac(*pWorkMatA, dCoef, *pXCurr, *pXPrimeCurr);
-		} while (ElemIter.bGetNext(pTmpEl));
+			
+			// std::cerr << pIter << " " << psElemNames[pTmpEl->GetElemType()] << "(" << pTmpEl->GetLabel() << ")" << std::endl;
+
+
+			JacHdl += pTmpEl->AssJac(WorkMat, dCoef,
+					*pXCurr, *pXPrimeCurr);
+		} while (pIter->bGetNext(pTmpEl));
 	}
 }
 
 void
-DataManager::AssEig(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
+DataManager::AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
 {
-	DEBUGCOUT("Entering DataManager::AssEig()" << std::endl);
+	DEBUGCOUT("Entering DataManager::AssMats()" << std::endl);
 
 	ASSERT(pWorkMatA != NULL);
 	ASSERT(pWorkMatB != NULL);
 	ASSERT(ppElems != NULL);
 
+	AssMats(A_Hdl, B_Hdl, &ElemIter, *pWorkMatA, *pWorkMatB);
+}
+
+void
+DataManager::AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl,
+		VecIter<Elem *> *pIter,
+		VariableSubMatrixHandler& WorkMatA,
+		VariableSubMatrixHandler& WorkMatB)
+{
+	DEBUGCOUT("Entering DataManager::AssMats()" << std::endl);
+
 	/* Versione con iteratore: */
 	Elem* pTmpEl = NULL;
-	if (ElemIter.bGetFirst(pTmpEl)) {
+	if (pIter->bGetFirst(pTmpEl)) {
 		/* Nuova versione, piu' compatta.
 		 * La funzione propria AssJac, comune a tutti gli elementi,
 		 * scrive nella WorkMat (passata come reference) il contributo
@@ -368,10 +406,11 @@ DataManager::AssEig(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
 
 		/* Con VariableSubMatrixHandler */
 		do {
-			pTmpEl->AssMats(*pWorkMatA, *pWorkMatB, *pXCurr, *pXPrimeCurr);
-			A_Hdl += *pWorkMatA;
-			B_Hdl += *pWorkMatB;
-		} while (ElemIter.bGetNext(pTmpEl));
+			pTmpEl->AssMats(WorkMatA, WorkMatB,
+					*pXCurr, *pXPrimeCurr);
+			A_Hdl += WorkMatA;
+			B_Hdl += WorkMatB;
+		} while (pIter->bGetNext(pTmpEl));
 	}
 }
 
@@ -381,25 +420,22 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
-	/* Vedi quanto scritto per lo jacobiano */
+	AssRes(ResHdl, dCoef, &ElemIter, *pWorkVec);
+}
 
-	ASSERT(iWorkIntSize >= iWorkDoubleSize);
-	MySubVectorHandler WorkVec(iWorkDoubleSize, piWorkIndex, pdWorkMat);
+void
+DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
+		VecIter<Elem *> *pIter,
+		SubVectorHandler& WorkVec)
+{
+	DEBUGCOUT("Entering AssRes()" << std::endl);
 
 	Elem* pTmpEl = NULL;
-	if (ElemIter.bGetFirst(pTmpEl)) {
+	if (pIter->bGetFirst(pTmpEl)) {
 		do {
-			DEBUGCOUT(psElemNames[pTmpEl->GetElemType()]
-					<< "(" << pTmpEl->GetLabel() << ")"
-					<< std::endl);
-#if 0
-			std::cout << psElemNames[pTmpEl->GetElemType()]
-				<< "(" << pTmpEl->GetLabel() << ")"
-				<< std::endl;
-#endif
-
-			ResHdl += pTmpEl->AssRes(WorkVec, dCoef, *pXCurr, *pXPrimeCurr);
-		} while (ElemIter.bGetNext(pTmpEl));
+			ResHdl += pTmpEl->AssRes(WorkVec, dCoef,
+					*pXCurr, *pXPrimeCurr);
+		} while (pIter->bGetNext(pTmpEl));
 	}
 }
 

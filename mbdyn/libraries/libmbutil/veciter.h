@@ -120,7 +120,7 @@ public:
 	InUse(void) : inuse(false) { NO_OP; };
 	virtual ~InUse(void) { NO_OP; };
 
-	inline bool IsInUse(void) const
+	inline bool bIsInUse(void) const
 	{
 		/* FIXME: make it portable? */
 		return mbdyn_compare_and_swap(&inuse,
@@ -166,7 +166,7 @@ public:
 
 #if 0
 		for (pCount = pStart; pCount < pStart + iSize; pCount++) {
-			if (!pCount->IsInUse()) {
+			if (!pCount->bIsInUse()) {
 				TReturn = *pCount;
 				return true;
 			}
@@ -183,10 +183,16 @@ public:
 		ASSERT(pCount >= (T *)pStart);
 
 		for (pCount++; pCount < pStart + iSize; pCount++) {
-			if (!(*pCount)->IsInUse()) {
+			if (!(*pCount)->bIsInUse()) {
+
+				// std::cerr << "    " << pCount << " available" << std::endl;
+
 				TReturn = *pCount;
 				return true;
 			}
+
+			// std::cerr << "    " << pCount << " in use" << std::endl;
+			
 		}
 
 		return false;
