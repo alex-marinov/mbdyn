@@ -507,14 +507,44 @@ for a review of the topic, to \cite{ANBA-GIAVOTTO-83}
 for an early work on the subject, and to \cite{MASARATI-2001}
 for a recent review of the original formulation.
 
+
+\subsubsection{Disclaimer}
+The following paragraphs are intended as a means to help users
+preparing data for MBDyn models in a consistent manner.
+By no means they indicate that the beam section stiffness properties
+must be provided in a specific reference frame.
+On the contrary, MBDyn allows as much generality as possible,
+and actually the variety of choices is redundant, since equivalent
+properties can be input in different ways.
+This is intended to allow the code to suit the user's needs
+regardless of the original format of the input data.
+As such, all the transformations reported in the following 
+are only intended as suggestions and should not be taken literally.
+For instance, rotations and transportation of reference points
+could be reversed, changing the values of the offsets, without
+affecting the final result.
+The most important aspect of MBDyn notion of beam section properties
+is that the reference point and orientation, although arbitrary,
+must be unique, and the common notions of center of axial strain,
+shear center (and center of mass) have no special meaning.
+
+
+
 \subsubsection{Equivalent $6\times6$ Section of Isotropic Beam}
 When an isotropic beam section is considered, the $6\times$ 
-constitutive matrix can always be written in terms of elementary
-stiffness and geometrical properties.
+constitutive matrix, referred to an arbitrary point in the section,
+with an arbitrary orientation, can always be written in terms 
+of elementary stiffness and geometrical properties.
 These are the properties that are usually available in tabular form
 either from simplified beam section analysis or by experiments.
+A sketch of a generic section is shown
+in Figure~\ref{fig:EL:BEAM:SECTION},
+where the arbitrary reference frame indicated by axes 
+$x$, $y$ and $z$ originates from an arbitrary reference point
+on the section.
+
 Isotropic uniform beam sections allow to group the internal forces 
-and couples in two groups, together with their conjugated generalized 
+and couples in two sets, together with their conjugated generalized 
 strains:
 those related to shear stress and strain, and those related 
 to axial stress and strain, as illustrated
@@ -546,7 +576,7 @@ in Figure~\ref{fig:EL:BEAM:GROUPS}.
 \caption{Consitutive coefficients grouping (S: shear, A: axial)}
 \label{fig:EL:BEAM:GROUPS}
 \end{figure}
-There is no direct coupling between them, at the section level,
+There is no direct coupling between the two group, at the section level,
 so the corresponding coupling coefficients are always zero.
 This is no longer true when material anisotropy must be taken 
 into account.
@@ -561,7 +591,7 @@ and by applying an appropriate rotation about the axis of the beam.
 \subsubsection{Axial Stress and Strain Properties}
 Consider first the submatrix represented by the coefficients 
 marked as A in Figure~\ref{fig:EL:BEAM:GROUPS}, under the assumption 
-that it is symmetric, as indicated Equation~(\ref{eq:EL:BEAM:AXIAL}):
+that it is symmetric, as indicated in Equation~(\ref{eq:EL:BEAM:AXIAL}):
 \begin{equation}
 	\cubr{\cvvect{
 		F_x \\
@@ -580,7 +610,8 @@ that it is symmetric, as indicated Equation~(\ref{eq:EL:BEAM:AXIAL}):
 \end{equation}
 The transformation of Equation~(\ref{eq:EL:BEAM:AXIAL-TRANSFORM})
 moves the point of application of the axial force 
-of an arbitrary amount $\cubr{y,z}$ in the beam section:
+of an arbitrary amount $\cubr{y,z}$ in the beam section, to the point
+indicated as $as$ (axial strain) in Figure~\ref{fig:EL:BEAM:SECTION}:
 \begin{eqnarray}
 	\cubr{\cvvect{
 		F_x \\
@@ -704,6 +735,8 @@ The angle that decouples the bending moments is
 \begin{equation*}
 	\alpha = \frac{1}{2}\llk{atan}\plbr{\frac{2 A_{23}^*}{A_{22}^* - A_{33}^*}}
 \end{equation*}
+representing a rotation about the beam axis $x$ at point $as$
+(axial strain) in Figure~\ref{fig:EL:BEAM:SECTION},
 and the resulting coefficients are
 \begin{eqnarray}
 	EA & = & A_{11} \\
@@ -749,7 +782,7 @@ The resulting coefficients are
 \subsubsection{Shear Stress and Strain Properties}
 Consider now the submatrix represented by the coefficients 
 marked as S in Figure~\ref{fig:EL:BEAM:GROUPS}, under the assumption 
-that it is symmetric, as indicated Equation~(\ref{eq:EL:BEAM:SHEAR}):
+that it is symmetric, as indicated in Equation~(\ref{eq:EL:BEAM:SHEAR}):
 \begin{equation}
 	\cubr{\cvvect{
 		F_y \\
@@ -795,6 +828,9 @@ The angle that decouples the shear forces is
 \begin{equation*}
 	\beta = \frac{1}{2}\llk{atan}\plbr{\frac{2 S_{12}^*}{S_{22}^* - S_{11}^*}}
 \end{equation*}
+representing a rotation about the axis $x$ of the beam with respect
+to the origin of the initial reference frame as shown 
+in Figure~\ref{fig:EL:BEAM:SECTION},
 and the resulting coefficients are
 \begin{eqnarray}
 	GA_y & = & S_{11}^* \cos^2\alpha + S_{22}^* \sin^2\alpha
@@ -833,7 +869,10 @@ the shear block becomes
 \end{eqnarray*}
 The transformation of Equation~(\ref{eq:EL:BEAM:SHEAR-TRANSFORM})
 moves the point of application of the shear force 
-of an arbitrary amount $\cubr{y,z}$ in the beam section:
+of an arbitrary amount $\cubr{y,z}$ in the beam section,
+with respect to the reference frame rotated by $\beta$ about 
+the axis $x$ of the beam, as indicated
+in Figure~\ref{fig:EL:BEAM:SECTION}:
 \begin{eqnarray}
 	\cubr{\cvvect{
 		F_y \\
@@ -962,6 +1001,12 @@ The resulting coefficients are
 	S_{33} & = & GJ + z^2 GA_y + y^2 GA_z
 \end{eqnarray*}
 
+\begin{figure}
+\centering
+\includegraphics[width=.7\textwidth]{beamsect}
+\caption{Beam section}
+\label{fig:EL:BEAM:SECTION}
+\end{figure}
 
 
 
@@ -1089,6 +1134,46 @@ matrix is presented:
         same,
         same;
 \end{verbatim}
+
+\noindent
+A not-so-simple beam section, where the center of axial strain 
+and the shear center are not coincident, is illustrated below.
+The node offset is used to align the reference line 
+with the shear center, and the axial strain center offset 
+is used in the constitutive matrix:
+\begin{verbatim}
+    set: integer beam_label = 1000;
+    set: integer beam_node1 = 2001;
+    set: integer beam_node2 = 2002;
+    set: integer beam_node3 = 2003;
+    set: real EA = 1e6;    # N
+    set: real GAy = .6e6;  # N
+    set: real GAy = .6e6;  # N
+    set: real GJ = 1.e3;   # Nm^2
+    set: real EJy = 2.e3;  # Nm^2
+    set: real EJz = 1.e4;  # Nm^2
+    set: real yas = 2.e-2; # m
+    set: real zas = 1.e-2; # m
+    set: real ysc = 4.e-2; # m
+    set: real zsc = 2.e-2; # m
+    set: real y = yas-ysc; # compute the axial strain center
+    set: real z = zas-zsc; # wrt/ the shear center
+    beam3: beam_label,
+        beam_node1, reference, node, 0.,ysc,zsc,
+        beam_node2, reference, node, 0.,ysc,zsc,
+        beam_node3, reference, node, 0.,ysc,zsc,
+        eye,
+        linear elastic generic, sym,
+            EA, 0.,  0.,  0., z*EA,       -y*EA,
+                GAy, 0.,  0., 0.,          0.,
+                     GAz, 0., 0.,          0.,
+                          GJ, 0.,          0.,
+                              EJy+z^2*EA, -z*y*EA,
+                                           EJz+y^2*EA,
+        same,
+        same;
+\end{verbatim}
+
 
 \noindent
 A piezoelectric actuator beam element is available; an arbitrary
