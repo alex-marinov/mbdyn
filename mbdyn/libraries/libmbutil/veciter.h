@@ -168,39 +168,42 @@ public:
 	/* NOTE: it must be called only once */
 	void ResetAccessData(void)
 	{
-		ASSERT(pStart != NULL);
-		ASSERT(iSize > 0);
+		ASSERT(VecIter<T>::pStart != NULL);
+		ASSERT(VecIter<T>::iSize > 0);
 
-		for (unsigned i = 0; i < iSize; i++) {
-			pStart[i]->SetInUse();
+		for (unsigned i = 0; i < VecIter<T>::iSize; i++) {
+			VecIter<T>::pStart[i]->SetInUse();
 		}
 	}
 
 	inline bool bGetFirst(T& TReturn) const
 	{
-		ASSERT(pStart != NULL);
-		ASSERT(iSize > 0);
+		ASSERT(VecIter<T>::pStart != NULL);
+		ASSERT(VecIter<T>::iSize > 0);
 
 #ifdef DEBUG_VECITER
 		iCount = 0;
 #endif /* DEBUG_VECITER */
 
-		pCount = pStart - 1;
+		VecIter<T>::pCount = VecIter<T>::pStart - 1;
 
 		return bGetNext(TReturn);
 	};
 
 	inline bool bGetNext(T& TReturn) const
 	{
-		ASSERT(pStart != NULL);
-		ASSERT(iSize > 0);
-		ASSERT(pCount >= (T *)pStart - 1 && pCount < pStart + iSize);
+		ASSERT(VecIter<T>::pStart != NULL);
+		ASSERT(VecIter<T>::iSize > 0);
+		ASSERT(VecIter<T>::pCount >= (T *)VecIter<T>::pStart - 1 && 
+			VecIter<T>::pCount < VecIter<T>::pStart + VecIter<T>::iSize);
 
-		for (pCount++; pCount < pStart + iSize; pCount++) {
-			if (!(*pCount)->bIsInUse()) {
-				TReturn = *pCount;
+		for (VecIter<T>::pCount++; 
+			VecIter<T>::pCount < VecIter<T>::pStart + VecIter<T>::iSize; 
+			VecIter<T>::pCount++) {
+			if (!(*VecIter<T>::pCount)->bIsInUse()) {
+				TReturn = *VecIter<T>::pCount;
 #ifdef DEBUG_VECITER
-				iCount++;
+				VecIter<T>::iCount++;
 #endif /* DEBUG_VECITER */
 				return true;
 			}
