@@ -79,6 +79,22 @@ private:
 	int wgtflag;
 	int* pParAmgProcs; 
 
+	enum PartitionLibrary {
+		PARTITIONER_UNKNOWN,
+		PARTITIONER_METIS,
+		PARTITIONER_CHACO,
+
+#if defined(USE_CHACO)
+		PARTITIONER_DEFAULT = PARTITIONER_CHACO,
+#elif defined(USE_METIS)
+		PARTITIONER_DEFAULT = PARTITIONER_METIS,
+#else /* ! USE_CHACO && ! USE_METIS */
+		PARTITIONER_DEFAULT = PARTITIONER_UNKNOWN,
+#endif /* ! USE_CHACO && ! USE_METIS */
+
+		PARTITIONER_LAST
+	} Partitioner;
+
 protected:
 #ifdef USE_MPI
 	MPI::Intracomm DataComm; 
@@ -134,7 +150,7 @@ public:
 	void AfterConvergence(void) const;
 
 	/* stampa i risultati */
-	void Output(void) const;
+	void Output(bool force = false) const;
 
 	enum DofType { TOTAL = 1, LOCAL = 2, INTERNAL = 3, MYINTERNAL = 4 };
 

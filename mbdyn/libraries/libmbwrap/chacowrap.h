@@ -25,8 +25,7 @@
 
 void chaco_interface(const int iTotVertices, int *start, int *adjacency,
                      int *vertex_weights, float *edge_weights,
-                     const int num_processors, const int edgecut,
-                     int *pParAmgProcs);
+                     const int num_processors, int *pParAmgProcs);
 
 #endif /* CHACO_INTERFACE */
 

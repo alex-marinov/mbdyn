@@ -39,7 +39,6 @@ mbdyn_METIS_PartGraph(int piTotVertices,
 		int *pCommWgts,
 		int wgtflag,
 		int DataCommSize,
-		int edgecut,
 		int *pParAmgProcs);
 
 #endif /* METISWRAP_H */

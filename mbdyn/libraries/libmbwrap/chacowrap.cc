@@ -52,8 +52,7 @@ long      seed			/* for random graph mutations */
 
 void chaco_interface(const int iTotVertices, int *start, int *adjacency,
                      int *vertex_weights, float *edge_weights,
-                     const int num_processors, const int edgecut,
-                     int *pParAmgProcs)
+                     const int num_processors, int *pParAmgProcs)
 {
 #ifdef USE_CHACO
   vector<short> set_assignment(iTotVertices);

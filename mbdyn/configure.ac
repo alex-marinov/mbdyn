@@ -1091,7 +1091,7 @@ if test $ol_with_chaco != no ; then
 	AC_CHECK_LIB(chaco,interface,[have_chaco=yes],[have_chaco=no],[-lm])
 
 	if test $have_chaco != no ; then
-		METIS_LIBS="-lchaco -lm"
+		CHACO_LIBS="-lchaco -lm"
 		AC_DEFINE(USE_CHACO,1,[define if you want to use Chaco])
 		ol_link_chaco=yes
 	fi

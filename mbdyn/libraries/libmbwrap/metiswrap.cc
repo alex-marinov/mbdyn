@@ -49,13 +49,13 @@ mbdyn_METIS_PartGraph(int iTotVertices,
 		int *pCommWgts,
 		int wgtflag,
 		int DataCommSize,
-		int edgecut,
 		int *pParAmgProcs)
 {
 #ifdef USE_METIS
 	/* required by METIS_PartGraphVKway API, but otherwise ignored */
-	int	numflag;
-	int	options;
+	int	numflag = 0;
+	int	options = 0;
+	int	edgecut = 0;
 
 	METIS_PartGraphVKway(&iTotVertices,
 			pXadj,
