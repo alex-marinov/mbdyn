@@ -64,13 +64,13 @@ Procedura di documentazione con Doc++.
    */
 
 - Classi C++:
-  Appena prima della dischiarazione di classe, mettere un commento generale
+  Appena prima della dichiarazione di classe, mettere un commento generale
   sulla classe, su quello che fa, note particolari, side-effects, commenti
   sulla generalita' o specificita' della classe ecc., consigli al
   programmatore, esempi di impiego ecc.
 - Evidenziare e raggruppare sempre almeno i costruttori, il distruttore 
   e le funzioni di inizializzazione, separandole dalle funzioni di uso comune.
   La prassi consigliata e' di raggruppare i metodi e/o i dati in una sequenza
-  logica di utilizzo, ad sempio inizializzazione, uso normale, usi
+  logica di utilizzo, ad esempio inizializzazione, uso normale, usi
   particolari, funzioni di servizio, ecc.
   
