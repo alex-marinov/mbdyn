@@ -99,7 +99,6 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
 
 	ELECTRICBULK,
 	ELECTRIC,
-	GENEL,
 
 	HYDRAULIC,
 	
@@ -112,6 +111,8 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
 	AIRPROPERTIES,
         AEROMODAL,
 	AERODYNAMIC,
+
+	GENEL,
 
 	RTAI_OUTPUT,
 	

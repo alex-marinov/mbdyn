@@ -170,6 +170,7 @@ DrivenElem::AssJac(VariableSubMatrixHandler& WorkMat,
 	unsigned int iNumDofs = pElem->iGetNumDof();
 	if (iNumDofs == 0) {
 		WorkMat.SetNullMatrix();
+
 	} else {
 		SparseSubMatrixHandler& WM = WorkMat.SetSparse();
 		WM.ResizeInit(iNumDofs, 0, 0.);

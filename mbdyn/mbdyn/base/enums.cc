@@ -51,7 +51,6 @@ const char* psElemNames[] = {
    
    "Electric Bulk",
    "Electric",
-   "GENEL",
    
    "Hydraulic",
    
@@ -63,6 +62,8 @@ const char* psElemNames[] = {
    "Air Properties",
    "Aeromodal",
    "Aerodynamic Element",
+
+   "GENEL",
 
    "RTAI Output",
    
@@ -84,7 +85,6 @@ const char* psReadElemsElems[] = {
    
    "electric" "bulk",
    "electric",
-   "genel",
    
    "hydraulic",
    
@@ -97,6 +97,8 @@ const char* psReadElemsElems[] = {
    "aeromodal",
    "aerodynamic Element",
    
+   "genel",
+
    "rtai" "output",
    
    NULL
@@ -120,7 +122,6 @@ const char* psReadControlElems[] = {
    
    "electric" "bulk" "elements",
    "electric" "elements",
-   "genels",
    
    "hydraulic" "elements",
    
@@ -133,6 +134,8 @@ const char* psReadControlElems[] = {
    "aeromodals",
    "aerodynamic" "elements",
    
+   "genels",
+
    "rtai" "output" "elements",
    
    NULL
@@ -154,7 +157,6 @@ const char *psAdamsElemCode[] = {
    
    "ELBK",
    "ELEC",
-   "GENL",
    
    "HYDR",
    
@@ -169,6 +171,10 @@ const char *psAdamsElemCode[] = {
    "AERO",
    "AERM",
    
+   "GENL",
+
+   "RTAI",
+
    NULL
 };
 
