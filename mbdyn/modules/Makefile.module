@@ -39,7 +39,7 @@ all: $(MBDYN_MODULE).so
 
 $(MBDYN_MODULE).so: $(MODULE_DEPENDENCIES) $(MBDYN_MODULE).o 
 	rm -f $@
-	$(CXXLINK) $(MODULE_LINK) -o $@ $^
+	$(CXXLINK) -o $@ $^ $(MODULE_LINK)
 
 .cc.o: 
 	$(MAKE) clean-so
