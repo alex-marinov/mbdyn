@@ -1,0 +1,44 @@
+\documentclass[12pt,dvips,fleqn]{article}
+
+%\usepackage{fancyhdr}
+%\usepackage{fancybox}
+\usepackage{amsmath}
+\usepackage{times,mathptm}
+%\usepackage{fancybox}
+%\usepackage{fancyhdr}
+
+\input{stdmacro}
+
+\begin{document}
+
+\title{Deformable Hinge}
+\author{Marco Morandini and Pierangelo Masarati}
+\date{}
+\maketitle
+
+\section*{Elastic Joint}
+Moment:
+\begin{displaymath}
+	M = R_1 \Phi\plbr{\theta}
+\end{displaymath}
+Angle:
+\begin{displaymath}
+	\theta = \theta\plbr{R_1^T R_2}
+\end{displaymath}
+Perturbation:
+\begin{displaymath}
+	\Delta\theta = \Gamma\plbr{\theta}^{-1} \theta_{\Delta}
+\end{displaymath}
+\begin{eqnarray*}
+	\theta_{\Delta} & = & \Delta \llk{ax}\plbr{R_1^T R_2} \\
+	& = & \llk{ax}\plbr{\Delta\plbr{R_1^T R_2}\plbr{R_1^T R_2}^T} \\
+	& = & \llk{ax}\plbr{R_1^T\plbr{
+		\Gamma\plbr{p_2}\Delta{p_2} - \Gamma\plbr{p_1}\Delta{p_1}
+	}\times{R_1}}
+\end{eqnarray*}
+\begin{displaymath}
+	\Delta\theta = \Gamma\plbr{\theta}^{-1} R_1^T\plbr{
+		\Gamma\plbr{p_2}\Delta{p_2} - \Gamma\plbr{p_1}\Delta{p_1}
+	}
+\end{displaymath}
+\end{document}
