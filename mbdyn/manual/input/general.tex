@@ -114,7 +114,7 @@ Multiple expressions can be used, provided they are enclosed in plain
 brackets and are separated by semicolons; the result 
 of the last expression will be used as the expected numeric value,
 but all the expressions (which may have persistent effects, 
-like variable declarations and assigments) will be evaluated.
+like variable declarations and assignments) will be evaluated.
 Example:
 \begin{verbatim}
     1.
@@ -234,7 +234,7 @@ can be reassigned.
 		\kw{acos} & Real & Arc cosine \\
 		\kw{atan} & Real & Arc tangent \\
 		\kw{actan} & Real & Arc co-tangent \\
-		\kw{atan2} & Real, Real & Arc tangent 2 (rubust) \\
+		\kw{atan2} & Real, Real & Arc tangent 2 (robust) \\
 		\kw{actan2} & Real, Real & Arc co-tangent 2 (robust) \\
 		\kw{cos} & Real & Cosine \\
 		\kw{sin} & Real & Sine \\
@@ -332,7 +332,7 @@ The main data structures are:
 \subsection{\kw{3 x 1} vectors}
 \begin{enumerate}
     \item general case: a sequence of 3 reals, comma-separated.
-    \item null vector: keyword \kw{null}; the vector is initialised
+    \item null vector: keyword \kw{null}; the vector is initialized
 	with zeros.
 \end{enumerate}
 As an example, all the following lines define an empty \kw{3 x 1} vector:
@@ -352,7 +352,7 @@ The following rescales an arbitrary vector
 \subsection{\kw{6 x 1} vectors}
 \begin{enumerate}
     \item general case: a sequence of 6 reals, comma-separated.
-    \item null vector: keyword \kw{null}; the vector is initialised 
+    \item null vector: keyword \kw{null}; the vector is initialized 
     with zeros.	
 \end{enumerate}
 \subsection{\kw{3 x 3} matrices}
@@ -373,7 +373,7 @@ The following rescales an arbitrary vector
     \item identity matrix: keyword \kw{eye}; the matrix is initialized
     as the identity matrix, that is a null matrix except for the diagonal 
     coefficients that are 1.
-    \item null matrix: keyword \kw{null}; the matrix is initialised 
+    \item null matrix: keyword \kw{null}; the matrix is initialized 
     with zeros.
 \end{enumerate}
 For example, the identity matrix can be defined as:
@@ -422,7 +422,7 @@ For example, the identity matrix can be defined as:
     values, as output by structural nodes.
     \emph{Note: the definition of the three angles that are used 
     by the code to express orientations may vary between versions.
-    Currently, Briant-Cardano angles are used in place of Euler
+    Currently, Bryant-Cardano angles are used in place of Euler
     angles.  The code will remain consistent, i.e. the same angle
     definition will be used for input and output, but models
     over versions may become incompatible, so this syntax should 
@@ -457,7 +457,7 @@ For example, the identity matrix can be defined as:
     \item identity matrix: keyword \kw{eye}; the matrix is initialized
     as the identity matrix, that is a null matrix except for the diagonal 
     coefficients that are 1.
-    \item null matrix: keyword \kw{null}; the matrix is initialised 
+    \item null matrix: keyword \kw{null}; the matrix is initialized 
     with zeros.
 \end{enumerate}
 \subsection{\kw{6 x N} matrices}
@@ -477,7 +477,7 @@ For example, the identity matrix can be defined as:
 	\item axis $ z $, the beam axis in ANBA notation, 
 	becomes axis 1 in MBDyn notation;    
     \end{itemize}
-    \item null matrix: keyword \kw{null}; the matrix is initialised 
+    \item null matrix: keyword \kw{null}; the matrix is initialized 
     with zeros.
 \end{enumerate}
 
@@ -557,7 +557,7 @@ The \kw{reference} directive:
         <absolute_angular_velocity> ;
 \end{verbatim}
 A \kw{reference} system is declared and defined.
-It must be given a unique identifier, scanned by the mathparser
+It must be given a unique identifier, scanned by the math parser
 (which means that any regular expression is allowed, and the result is
 rounded up to the nearest unsigned integer).
 The entries \kw{absolute\_*} are parsed by routines that
@@ -580,7 +580,7 @@ The following cases are considered:
     \item absolute orientation matrix (physical)
     \item relative velocity (physical)
     \item absolute velocity (physical)
-    \item reltive angular velocity (physical)
+    \item relative angular velocity (physical)
     \item absolute angular velocity (physical)
     \item relative arbitrary vector (geometric)
     \item absolute arbitrary vector (geometric)    
@@ -780,7 +780,7 @@ airfoil tables that are used by aerodynamic elements.
         [ , name , " <name> " ]
         <dim> , (ConstitutiveLaw<dim>D) <constitutive_law> ;
 \end{verbatim}
-Constitutive laws are gouped by their dimensionality \kw{<dim>},
+Constitutive laws are grouped by their dimensionality \kw{<dim>},
 which can be any of 1, 3 and 6; the \kw{<constitutive\_law>}
 is parsed according to the rules described
 in Section~\ref{sec:CONSTITUTIVE-LAWS}.
@@ -825,8 +825,8 @@ and \kw{differential} is meaningless, and thus this filed is not required.
 
 
 \section{Drives and Drive Callers}\label{sec:DRIVE}
-Everytime some entity can be ``driven'', i.e.\ a value can be
-expressed as depedent on some ``external'' input, an object of the class 
+Every time some entity can be ``driven'', i.e.\ a value can be
+expressed as dependent on some ``external'' input, an object of the class 
 \kw{DriveCaller} is used. 
 The \kw{drive} essentially represents a scalar function, whose
 value can change over time or, through some more sophisticated
@@ -1075,7 +1075,7 @@ the drive value (defaults to 1.0).
 \kw{expression\_string} is a string, delimited by double quotes.
 It is parsed by the math parser every time 
 the \htmlref{\kw{drive}}{sec:DRIVE} is invoked.
-The valiable \kw{Time} is kept up to date and can be used in the 
+The variable \kw{Time} is kept up to date and can be used in the 
 string to compute the return value.
 Another variable, \kw{Var}, is set to the value provided by the caller
 in case the drive is called with an explicit argument as, for instance,
@@ -1208,7 +1208,7 @@ In case of scalar values, the template reverts by default to a normal
 drive caller, such that no overhead is added.
 At least 1 drive caller is expected. 
 If \kw{num\_template\_drive\_callers} is exactly 1, only a single
-template drive caller is actually costructed, thus avoiding the overhead 
+template drive caller is actually constructed, thus avoiding the overhead 
 related to the handling of the drive caller array.    
 
 
@@ -1227,7 +1227,7 @@ The \kw{friction model} input format is:
 Currently implemented friction models are:
 \begin{enumerate}
     \item \kw{modlugre}\\
-    This fricion model is based on 
+    This friction model is based on 
     Pierre Dupont, Vincent Hayward, Brian Armstrong and
     Friedhelm Altpeter, Single State Elasto-Plastic Friction Models,
     IEEE Transactions on Automatic Control, June 2002. The input format is:
@@ -1335,7 +1335,7 @@ must be in the range $\sqbr{-1,1}$, in strict ascending order.
 
 
 \section{Constitutive Laws}\label{sec:CONSTITUTIVE-LAWS}
-Everytime a ``deformable'' entity requires a constitutive law, a template
+Every time a ``deformable'' entity requires a constitutive law, a template
 constitutive law is read. This has been implemented by means of the C++
 templates in order to allow the definition of a general constitutive law
 when possible. The ``deformable elements at present are \kw{rod}s, 1D,
@@ -1361,7 +1361,7 @@ to the elements by means of the following mechanism:
     <constitutive_law_reference> ::= reference , <label>
 \end{verbatim}
 where \kw{<constitutive\_law\_definition>} is described in the following,
-while \kw{<label>} is the label of a previously defined consitutive law
+while \kw{<label>} is the label of a previously defined constitutive law
 of the appropriate dimensionality, as described
 in Section~\ref{sec:CONSTITUTIVE-LAW}.
 
@@ -1396,7 +1396,7 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 \end{table}
 
 \noindent 
-The contitutive laws are entered as follows:
+The constitutive laws are entered as follows:
 \begin{verbatim}
     <const_law> ::= <specific_const_law>                        
         [ , prestress, (entity) <prestress> ]
@@ -1429,7 +1429,7 @@ the isotropic stiffness coefficient
 \end{verbatim}
 the stiffness matrix. In case of 1D, the type is scalar, 
 and there is no distinction between \kw{generic} and \kw{isotropic}, 
-while, in case of \kw{n x 1} vectors, the type is the corrisponding 
+while, in case of \kw{n x 1} vectors, the type is the corresponding 
 \kw{n x n} matrix.
 
 \subsection{Linear elastic generic axial torsion coupling}
@@ -1553,7 +1553,7 @@ except for the isotropic viscosity term.
     <specific_const_law> ::= turbulent viscoelastic ,
         (scalar) <stiffness> ,
         (scalar) <parabolic_viscous_coefficient>
-        [ , (scalar) <treshold> 
+        [ , (scalar) <threshold> 
             [ , (scalar) <linear_viscous_coefficient> ] ]
 \end{verbatim}
 the constitutive law has the form:
@@ -1564,15 +1564,15 @@ where:
 \begin{displaymath}
     k = \lcubr{\matr{lcr}{
         \kw{linear\_viscous\_coefficient} & & 
-            \shbr{\dot{\varepsilon}} \leq \kw{treshold} \\
+            \shbr{\dot{\varepsilon}} \leq \kw{threshold} \\
         \kw{parabolic\_viscous\_coefficient} & &
-            \shbr{\dot{\varepsilon}} > \kw{treshold}
+            \shbr{\dot{\varepsilon}} > \kw{threshold}
     }}
 \end{displaymath}
-if \kw{treshold} is null, or not defined, the constitutive law is always
+if \kw{threshold} is null, or not defined, the constitutive law is always
 parabolic. If the \kw{linear\_viscous\_coefficient} is not defined, it is
 computed based on \kw{parabolic\_viscous\_coefficient} and on 
-\kw{treshold} to give a continuous force curve (with discontinuous slope).
+\kw{threshold} to give a continuous force curve (with discontinuous slope).
 Otherwise, it can be set by the user to give a discontinuous force curve,
 as observed in some fluids at intermediate Reynolds number.
 
@@ -1627,7 +1627,7 @@ where
 \begin{displaymath}
 	\kw{kinematic scale} \frac{L A}{V_0}
 \end{displaymath}
-where \kw{kinematic scale} is the ratio betweent the stroke
+where \kw{kinematic scale} is the ratio between the stroke
 of the shock absorber and that of the gas;
 \item \kw{epsilon max} is the upper strain bound; it must be
 at least larger than the prestrain, and defaults to 0,
@@ -1688,7 +1688,7 @@ Usually a user name and a password are required. \\
 {\em 
     Note: no encryption is used when communicating, so the authentication
     methods are very rough and should not be considered completely reliable.
-    Secure Socket connetion or other SSL-like communication protocol may be
+    Secure Socket connection or other SSL-like communication protocol may be
     considered in the future.
 } \\
 Available methods:
@@ -1713,10 +1713,10 @@ prompted for a password.
 \end{verbatim}
 The {\em Linux-PAM} Pluggable Authentication Modules can be used to
 authenticate a user. 
-If no user name is provided, the effective user id, as proovided by the 
+If no user name is provided, the effective user id, as provided by the 
 \kw{geteuid()} system function, is used to retrieve the username of the
 owner of mbdyn process.
-the \kw{user} nust be valid. 
+the \kw{user} must be valid. 
 The authentication is performed through a system-dependent \kw{pam}
 configuration file.
 No checks on the validity of the account or on the permission of opening a
@@ -1728,7 +1728,7 @@ package, try for instance
 \begin{verbatim}
     http://parc.power.net/morgan/Linux-PAM/index.html
 \end{verbatim}
-An example is provided with the pachage, in  \kw{/etc/pam.d/mbdyn}, reading:
+An example is provided with the package, in  \kw{/etc/pam.d/mbdyn}, reading:
 \begin{verbatim}
     ### use either of the following:
     auth       required     /lib/security/pam_unix_auth.so
@@ -1748,9 +1748,9 @@ authentication.
 \section{Miscellaneous}
 Finally there are some miscellaneous points:
 \begin{itemize}
-    \item (UN*X systems) Enviroment variables whose name starts with MBDYN may
+    \item (UN*X systems) Environment variables whose name starts with MBDYN may
     be defined and passed to an execution of the mbdyn command.
-    The following are recognised at present:
+    The following are recognized at present:
   
     \begin{enumerate}
   

@@ -254,7 +254,7 @@ It can also be selected using the shortcut
 
 \subsubsection{Nonlinear Solver}
 The nonlinear solver solves a nonlinear problem $F(x)=0$.
-The first nonlinear solver, a modified Newton-Rapson, 
+The first nonlinear solver, a modified Newton-Raphson, 
 is well tested. The second nonlinear solver, based on a
 matrix-free algorithm, is experimental.
 \begin{verbatim}
@@ -266,7 +266,7 @@ matrix-free algorithm, is experimental.
             [ , keep jacobian ]
             [ , honor element requests ] } ;
 \end{verbatim}
-if \kw{modified}, the number of iterations the jacobian matrix will be
+if \kw{modified}, the number of iterations the Jacobian matrix will be
 reused is expected.
 If the option \kw{keep jacobian} is selected, the jacobian is preserved
 for the desired \kw{<iterations>} even across time steps.
@@ -291,7 +291,7 @@ The default behavior is to ignore such requests\footnote{
 \end{verbatim}
 Tolerance is the iterative linear solver tolerance;
 steps is the maximum number of the linear solver iteration.
-Tau is a measure of the configuration pertubation used
+Tau is a measure of the configuration perturbation used
 to obtain a matrix free approximation of the product
 of the jacobian matrix times the solution vector;
 it is seldom necessary to change the default value of this parameter,
@@ -305,7 +305,7 @@ an update of the preconditioner; this parameter can heavily influence
 the performance of the matrix free solver.
 If the option \kw{honor element requests} is selected, the preconditioned
 is updated also when an element changes the structure of its equations.
-The default behaiour is to ignore such requests\footnote{See note above}.
+The default behavior is to ignore such requests\footnote{See note above}.
 
 
 \subsubsection{Eigenanalysis}
@@ -353,7 +353,7 @@ parameter, if given, is ignored.
 The \kw{umfpack} solver honors the \kw{block size} keyword,
 which refers to an internal parameter.
 The default value (32) is usually good for most problems; however,
-it has been observed that alower value can slightly improve
+it has been observed that a lower value can slightly improve
 performances on small problems (e.g.\ a rigid rotorcraft model
 with some 180 degrees of freedom showed a 10\% speedup with 
 a block size of 4, while a rigid robot showed eve higher speedups,
@@ -375,10 +375,10 @@ while sometimes a larger space is required, since when the matrix is
 full, a little more space is required, due to extra storage needs when
 the matrix fills up.
 Finally, \kw{superlu} is an experimental solver that is able to perform
-the factorization in a multithreaded environment.
+the factorization in a multi-threaded environment.
 If more than one CPU is available, it automatically uses all the CPUs;
 the keyword \kw{mt} allows to enforce the desired number of threads.
-See also the \kw{threads} keyword for more details on multithreaded
+See also the \kw{threads} keyword for more details on multi-threaded
 solution.
 The keywords \kw{map} (Sparse Map), \kw{cc} (Column Compressed)
 and \kw{dir} (Direct Access) can be used to modify the way
@@ -387,11 +387,11 @@ the sparse matrix is handled:
 \item \kw{map} uses an array of binary trees to store the matrix
 coefficients; right before the factorization, the matrix is transformed
 in the form required by each solver, usually Column Compressed
-(also known as Harwell-Boieng format) or Index (as used by \kw{y12}).
+(also known as Harwell-Boeing format) or Index (as used by \kw{y12}).
 The matrix is regenerated each time an assembly is required.
-\item \kw{cc} uses the compact format resulting from the trasformation
+\item \kw{cc} uses the compact format resulting from the transformation
 required by the solver to store the coefficients in subsequent assemblies,
-thus saving the tiem required to transform the matrix.
+thus saving the time required to transform the matrix.
 If the profile of the matrix changes, the compact form is invalidated,
 and the matrix is reset to \kw{map} form.  As a consequence, this matrix
 form allows faster access and reduced factorization cost, but in certain
@@ -405,7 +405,7 @@ is a very small fraction of the factorization time.
 If the problem is quite large, the memory consumption might
 become unacceptable; if the problem is quite small, the access time
 of \kw{cc} is quite limited ($\log_2\plbr{\mathrm{<nz>}}$, where
-\kw{<nz>} is the number of nonzeroes in a column) so it is definitely
+\kw{<nz>} is the number of non-zeroes in a column) so it is definitely
 comparable to that of \kw{cc}.
 \end{itemize}
 Only \kw{umfpack}, \kw{y12} and \kw{superlu} solvers allow these
@@ -518,7 +518,7 @@ summarizes how each linear solver deals with pivoting policies.
         { auto | disable | [ { assembly | solver } , ] <threads> }
 \end{verbatim}
 By default, if enabled at compile time, the assembly is performed
-in a multithreaded environment if more than one CPU is available 
+in a multi-threaded environment if more than one CPU is available 
 and the selected solver allows it (e.g.\ if it supports any form 
 of compressed matrix handling, \kw{cc} or \kw{dir}).
 However, this behavior can be influenced by the \kw{threads} directive.
@@ -563,7 +563,7 @@ right after the initial assembly and before the simulation starts, the
 so-called derivatives solution is performed. The system is solved with
 the kinematic unknowns constrained, in order to properly determine the
 dynamic unknowns, namely momenta and constraint reactions. For this
-purpose, the coefficient that relates the state perturabtion to the
+purpose, the coefficient that relates the state perturbation to the
 derivative perturbation must be set to a value that is small enough to
 allow the determination of accurate derivatives with very small change
 in the states. This coefficient should be zero, but this leads to matrix
@@ -686,7 +686,7 @@ that no page swapping occurs during the real-time simulation;
 a minimal default value is set in any case;
 \item the keyword \kw{hard real time} instructs the program to run
 in hard real-time; the default is soft real-time;
-\item the keyword \kw{cpu map} allos the program to force its
+\item the keyword \kw{cpu map} allows the program to force its
 execution on a specific subset of CPUs on multiprocessor hardware;
 the syntax of the \kw{<cpu-map>} field is a byte-sized integer 
 (between 0 and 255) whose active bits are the desired CPUs;
@@ -829,7 +829,7 @@ for details; available scripts are
 and \kw{\$PACKAGE/var/mbdyn2van.awk}).
 
 \noindent
-Some postprocessing preparation instructions are available
+Some post-processing preparation instructions are available
 for those packages that require special handling and thus
 are builtin.
 \begin{itemize}
@@ -850,7 +850,7 @@ The interface is activated by the directive
         [ , model name , " <name> " ]
         [ , velocity , { yes | no } ] ;
 \end{verbatim}
-The model name is otional, defaulting to \kw{mbdyn}.
+The model name is optional, defaulting to \kw{mbdyn}.
 The sequence is:
 \begin{itemize}
 \item compile MBDyn with ADAMS support
@@ -967,7 +967,7 @@ where \kw{node\_type} is one of the following:
 \end{itemize}
 The data manager reads the node type and the label and checks for
 duplication. If the node is not defined yet, the proper read function is
-called, which parses the rest of the card and costructs the node.
+called, which parses the rest of the card and constructs the node.
 The nodes are read as follows:
 
 
@@ -1168,7 +1168,7 @@ node expects to be bound to an element, and to access bulk element data
 (see Section~\ref{sec:EL-BIND}).
 When the argument list starts with the keyword \kw{straingage}, followed by
 the coordinates of a point on the section of a beam, the \kw{parameter}
-node expectes to be bound to a beam element, and to access the measure of
+node expects to be bound to a beam element, and to access the measure of
 the axial strain at point \kw{x}, \kw{y} in the section plane as a
 combination of section strains and curvatures.
 
@@ -1177,7 +1177,7 @@ combination of section strains and curvatures.
 
 
 \section{Miscellaneous}
-There is an extra card, that is used to modify the output behaviour of nodes:  
+There is an extra card, that is used to modify the output behavior of nodes:  
 \begin{verbatim}
     <card> ::= output : <node_type> , <node_list> ;
     <node_list> ::= <node_label>  [ , <node_list> ]
@@ -1187,7 +1187,7 @@ module. \\
 {\em
    Note: if a node should never (\kw{no}) or always (\kw{yes}) be output,
    its output flag should be set directly on the node card. 
-   The global behaviour of all the nodes of a type can be set from the 
+   The global behavior of all the nodes of a type can be set from the 
    \kw{control data} block by adding the node type to the item list in the 
    \kw{default output} card. 
    Then, the specific output flag of sets of nodes can be altered by means 
@@ -1200,7 +1200,7 @@ module. \\
 
 \chapter{Scalar functions}\label{sec:SCALARFUNCS}
 A \kw{ScalarFunction} object allows to compute the value of a function.
-Almost every scalar function is of type \kw{DifferentialbeScalarFunction},
+Almost every scalar function is of type \kw{DifferentiableScalarFunction},
 derived from \kw{ScalarFunction}, and allows to compute the derivatives of
 the function as well. Currently implemented scalar functions are
 \begin{itemize}
@@ -1209,7 +1209,7 @@ the function as well. Currently implemented scalar functions are
 \item \kw{pow}: $f(x)=x^p$
 \item \kw{linear}: linear interpolation between the two points $(x_1,y_1)$
 and $(x_1,y_1)$
-\item \kw{cubicspline}: cubic natual spline interpolation between the 
+\item \kw{cubicspline}: cubic natural spline interpolation between the 
 set of points $\{(x_i,y_i), i\in[1,k\geq3]\}$
 \item \kw{multilinear}: multilinear interpolation between the 
 set of points $\{(x_i,y_i), i\in[1,k\geq2]\}$
@@ -1327,7 +1327,7 @@ The authentication token is usually in the form
     password: <user_password> <new_line>
 \end{verbatim}
 {\em 
-    Note: whitespaces may be significant in \kw{<user\_name>}, 
+    Note: white-spaces may be significant in \kw{<user\_name>}, 
     and surely are in \kw{<user\_password>}.
 } \\    
 It is followed by a label token, in the form
@@ -1355,9 +1355,9 @@ subsequent value commands being ``set'' rather than ``add''
 tells whether to switch on or off the impulse mode, resulting in subsequent
 value commands to be applied for one step only. \\
 {\em 
-    Note: at present, impulse mode superseedes any incremental mode, namely
+    Note: at present, impulse mode supersedes any incremental mode, namely
     the value of the drive is reset to zero after one step.
-    This behaviour may change in the future.
+    This behavior may change in the future.
 }
 
 

@@ -57,7 +57,7 @@ where \kw{elem\_type} is one of the following:
   \item \kw{rotor}
   \item \kw{RTAI output}
 \end{itemize}
-in case of elements that can be instantiatied only once, like
+in case of elements that can be instantiated only once, like
 the \kw{gravity} or the \kw{air properties} elements, the \kw{arglist}
 doesn't contain any label; otherwise, a label is expected first, to allow 
 for checks on duplicated elements, namely: 
@@ -66,7 +66,7 @@ for checks on duplicated elements, namely:
 \end{verbatim}
 The data manager reads the element type and the label and checks for
 duplication. If the element is not defined yet, the proper read function is
-called, which parses the rest of the card and costructs the element.
+called, which parses the rest of the card and constructs the element.
 The elements are read as follows.
 
 
@@ -74,7 +74,7 @@ The elements are read as follows.
 \section{Aerodynamic Body and Aerodynamic Beam Elements}
 These elements share the description of the aerodynamics; the former assumes
 the aerodynamic surface to be rigid, and takes its configuration from a
-sigle node, while the latter relies on a three-node beam and uses the
+single node, while the latter relies on a three-node beam and uses the
 interpolation functions of the beam to compute the configuration at an 
 arbitrary point.
 The \kw{aerodynamic body} input format is:
@@ -129,10 +129,10 @@ An arbitrary configuration and offset is allowed for both elements with
 respect to the nodes they are linked to. 
 The \kw{shape} entities are used to compute the physical chord,
 aerodynamic center, velocity measurement point (the point where the
-kinematic boundary conditios are evaluated) and twist as functions 
+kinematic boundary conditions are evaluated) and twist as functions 
 of the dimensionless abscissa along the span.
 The span of the \kw{aerodynamic body} element is set by the user; the
-centerspan of the element is assumed to be the end of the offset vector.
+center-span of the element is assumed to be the end of the offset vector.
 The span of the \kw{aerodynamic beam} is computed based on the end of the
 offset vectors related to nodes 1, 3.
 The aerodynamic center and the velocity measurement points are measured
@@ -154,7 +154,7 @@ and properties.
   \caption{\em Airfoil Geometry}\label{fig:AIRFOIL}
 \end{figure}
 
-The \kw{airfoil\_ data} defaults to a builtin NACA 0012 semianalytical
+The \kw{airfoil\_ data} defaults to a builtin NACA 0012 semi-analytical
 model (FIXME: the unsteady correction is buggy; use the \kw{c81} 
 mode instead).
 
@@ -198,7 +198,7 @@ The output refers to each Gauss integration point; the format is:
 \begin{itemize}
     \item the local incidence
     \item the local yaw angle
-    \item the local mach number
+    \item the local Mach number
     \item the lift,
     \item the drag,
     \item and the aerodynamic coefficient
@@ -333,7 +333,7 @@ of the nodal positions and orientations, to reduce the shear-locking effect.
 
 \subsection{Three-node beam element}
 The beam element is a three node one-dimensional element; it is described 
-in deatil in \cite{FV-AIAA}.
+in detail in \cite{FV-AIAA}.
 Each ``node'' is referred to a structural node but can have an arbitrary
 offset to allow for more generality in positioning of the structural 
 reference lines of the beam.
@@ -341,7 +341,7 @@ The ``Finite Volumes'' formulation is used.
 As a consequence, the internal forces and moments are evaluated 
 at two points that are at about midpoint between nodes 1 and 2, 
 and nodes 2 and 3 (at $ -1/\sqrt{3} $ and $1/\sqrt{3}$ considering
-a nondimensional abscissa running from -1 at node 1 to 1 at node 3).
+a non-dimensional abscissa running from -1 at node 1 to 1 at node 3).
 So the constitutive properties must be supplied in these points, as well as
 the orientation matrices from the material to the global frame (the axial force
 is in direction 1).
@@ -400,7 +400,7 @@ abstract nodes that represent the electrodes.
 
 \subsection{Output}
 The output related to beam elements is contained in a file with extension 
-\kw{.act}; for each time step, the output of thre required beams is
+\kw{.act}; for each time step, the output of the required beams is
 considered.
 The internal forces and couples are computed from the interpolated strains
 along the beam by means of the constitutive law, at the two evaluation
@@ -508,7 +508,7 @@ assumed to be already in the node reference frame.
 If only one mass is defined, the first method should be used. Otherwise,
 many masses can be referred to the same element by means of the keyword
 \kw{condense}, followed by the number of expected masses \kw{num\_masses}.
-The format of each submass is the same as for the single mass input (actually, 
+The format of each sub-mass is the same as for the single mass input (actually, 
 when \kw{condense} is not supplied, \kw{num\_masses} is assumed to be 1).
 
 
@@ -533,7 +533,7 @@ At present only the \kw{stiffness spring} type is available.
 The equation related to the desired dof of the linked node is added a
 contribution based on the value of the desired degree of freedom (even the
 derivative can be used) multiplied times the stiffness. \\
-{\em Note: this family of elements has been partially superseeded by the
+{\em Note: this family of elements has been partially superseded by the
 \kw{genel} elements, which allow more generality.}
 
 
@@ -547,7 +547,7 @@ An alias of \kw{force}; see Section~\ref{sec:EL-FORCE}.
 The \kw{driven} type is not an element by itself. It is a wrapper that
 masks another element and switches it on and off depending on the (boolean)
 value of a drive. It can be used to emulate a variable topology model, where 
-some elements simply don't contribute to the residuial or to the jacobian
+some elements simply don't contribute to the residual or to the Jacobian
 matrices when their drive has a certain value. Since the drivers can be
 arbitrary functions of the time, or other parameters including the value of
 any degree of freedom, the driven elements can be ``driven'' in a very
@@ -585,7 +585,7 @@ output flags. This flag will override the previously set one.
 devices, dealing with abstract degrees of freedom more than with electric
 ones (from the program's point of view they are exactly the same, the
 difference is only semantic). The true electric elements, such resistors,
-switches and so on, are clessified as \kw{electric bulk} elements.
+switches and so on, are classified as \kw{electric bulk} elements.
 The syntax for \kw{electric} elements is:
 \begin{verbatim}
     <normal_arglist> ::= <electric_type> , <electric_arglist>
@@ -849,7 +849,7 @@ add some dynamics to the actuators' stroke, namely the input variables are
 applied a sort of \kw{spring stiffness} \kw{bulk} element, while the
 actuators' strokes are applied a transfer function of the first order, namely
 $ \alpha\dot{x}+x=f $, where $ \alpha=\kw{dynamic\_coef} $ and $ f $ is
-the desired stroke, so the smaller is $ \alpha $, the more the behaviour is
+the desired stroke, so the smaller is $ \alpha $, the more the behavior is
 static.
 The \kw{cyclic\_factor} and the \kw{collective\_factor} parameters are
 used to scale the inputs from angles in the desired units to strokes, that
@@ -1112,7 +1112,7 @@ previously defined fluid can be recalled by using the keyword
                          (DriveCaller) <state> ,
                          <hydraulic_fluid_properties>
 \end{verbatim}
-This element represrents a valve that connects
+This element represents a valve that connects
 \kw{node\_1} to \kw{node\_2} and \kw{node\_3} to \kw{node\_4}
 when \kw{state} is positive and \kw{node\_1} to \kw{node\_3}
 and \kw{node\_2} to \kw{node\_4} when \kw{state} is negative,
@@ -1140,7 +1140,7 @@ of area that leaks even when \kw{state} is zero.
                          <acceleration> ,
                          <hydraulic_fluid_properties>
 \end{verbatim}
-This element represrents a valve that connects
+This element represents a valve that connects
 \kw{node\_1} to \kw{node\_2} and \kw{node\_3} to \kw{node\_4}
 when the displacement is positive and \kw{node\_1} to \kw{node\_3}
 and \kw{node\_2} to \kw{node\_4} when the displacement is negative,
@@ -1152,7 +1152,7 @@ geometric and structural properties are described by
 Again the \kw{loss\_factor}, if defined, represents the fraction
 of the area that leaks when the displacement is zero.
 Finally, \kw{displacement}, \kw{velocity} and \kw{acceleration}
-are the penalty coefficients for displacement, valocity and acceleration
+are the penalty coefficients for displacement, velocity and acceleration
 when the maximum stroke is reached.
 
 
@@ -1280,7 +1280,7 @@ the keyword \kw{same}, which causes the node to take the same
 value of the last node of the previous beam.
 The \kw{initial\_beam} and \kw{initial\_node} indices
 serve as hints to set the initial contact point of the sliding node.
-The \kw{smearing\_factor} determines the (nondimensional) extension
+The \kw{smearing\_factor} determines the (non-dimensional) extension
 of the interference segment when the node passes from one segment
 to another. % \cite{SLIDER}.
 
@@ -1383,7 +1383,7 @@ instead.
 } \\
 {\em
     Note: the \kw{distance with offset} element is deprecated
-    in favour of the \kw{distance} with the new syntax, which
+    in favor of the \kw{distance} with the new syntax, which
     offers the same capabilities.
 }
  
@@ -1399,7 +1399,7 @@ The extra output is:
 
 
 \subsection{Distance with offset}
-This element has been deprecated in favour of the \kw{distance}
+This element has been deprecated in favor of the \kw{distance}
 element, which now supports offsets.  It may be not supported any more
 in the future.
 
@@ -1552,7 +1552,7 @@ The steps of the procedure are as follows:
 
 \item prepare a NASTRAN input card deck, made of bulk data,
 eigenanalysis properties data and/or static loads (details about 
-this phase are currently missing and will be proided in future 
+this phase are currently missing and will be provided in future 
 releases of the manual).
 
 \item complete the NASTRAN input file by putting some specific
@@ -1880,7 +1880,7 @@ A universal joint without position constraints.
 
 \section{Loadable Element}
 The \kw{loadable} element is a wrapper for a user-defined element that is
-comipled in a separated module and linked run-time.
+compiled in a separated module and linked run-time.
 The module should provide a comprehensive set of functions with a specified
 API; default functions are available if no special features are required.
 Implementation of modules can be very easy, but a deep knowledge of the
@@ -1946,10 +1946,10 @@ to declare them as
 The same applies to FORTRAN 77 functions; only, the naming convention
 usually is compiler dependent; some compilers turn all the names to 
 uppercase or lowercase (remember that FORTRAN 77 is case insensitive);
-other compilers add undercores at the beginning or at the end of the
+other compilers add underscores at the beginning or at the end of the
 names.
 Check what is the behavior of your compiler, by compiling a simple 
-program with your favourite FORTRAN 77 compiler, then looking at it
+program with your favorite FORTRAN 77 compiler, then looking at it
 with the utility \kw{nm(1)}, which will show how the symbols are represented 
 internally.
 
@@ -2228,7 +2228,7 @@ after \kw{max\_iterations}, or when the absolute value
 of the difference between two iterations of the nominal induced 
 velocity is less than \kw{tolerance}, the cycle breaks.
 Only a fraction \kw{eta} of the difference between two
-interations of the nominal induced velocity is actually
+iterations of the nominal induced velocity is actually
 used; \kw{eta} defaults to one.
 The default is to make only one iteration, which is backward-compatible
 with the original behavior.
@@ -2300,7 +2300,7 @@ oriented as \kw{reference\_orientation}.
 
 
 \subsection{Output}
-There is an extra card that is used to modify the output behaviour of 
+There is an extra card that is used to modify the output behavior of 
 elements, analogous to that of the nodes:
 \begin{verbatim}
     <card> ::= output : <elem_type> , <elem_list> ;
