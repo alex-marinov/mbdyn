@@ -38,6 +38,9 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+/* FIXME: incompatible with RTAI at present */
+#ifndef USE_RTAI
+
 #include <sys/types.h>
 #include <unistd.h>
 #include <signal.h>
@@ -523,5 +526,4 @@ ParNaiveSparseSolutionManager::Solve(void)
 
 /* ParNaiveSparseSolutionManager - end */
 
-
-
+#endif /* ! USE_RTAI */
