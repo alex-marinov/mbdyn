@@ -107,6 +107,8 @@ HP(HPar),
 fEigenAnalysis(0),
 dEigParam(1.),
 fOutputModes(0),
+dUpperFreq(FLT_MAX),
+dLowerFreq(0.),
 #endif /* __HACK_EIG__ */
 pdWorkSpace(NULL),
 pXCurr(NULL),
@@ -2107,6 +2109,27 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  if (HP.IsKeyWord("yes")) {
 #ifdef __HACK_EIG__
 	     fOutputModes = flag(1);
+	     if (HP.fIsArg()) {
+		dUpperFreq = HP.GetReal();
+		if (dUpperFreq < 0.) {
+			cerr << "line "<< HP.GetLineData()
+				<< ": illegal upper frequency limit " 
+				<< dUpperFreq << "; using " 
+				<< -dUpperFreq << endl;
+			dUpperFreq = -dUpperFreq;
+		}
+		if (HP.fIsArg()) {
+			dLowerFreq = HP.GetReal();
+			if (dLowerFreq > dUpperFreq) {
+				cerr << "line "<< HP.GetLineData()
+					<< ": illegal lower frequency limit "
+					<< dLowerFreq 
+					<< " higher than upper frequency limit; using " 
+					<< 0. << endl;
+				dLowerFreq = 0.;
+			}
+		}
+	     }
 #endif /* !__HACK_EIG__ */
 	  } else if (HP.IsKeyWord("no")) {
 #ifdef __HACK_EIG__
@@ -2492,6 +2515,7 @@ MultiStepIntegrator::Eig(void)
 	   pch.open("mbdyn.bdf");
 	   pch.setf(ios::showpoint);
 	   pch << "$.......2.......3.......4.......5.......6.......7.......8.......9.......0......." << endl;
+	   pch << "MAT1           1    1.E0    1.E0            1.E0" << endl;
 	   pDM->Output_pch(pch);
 	   
 	   /* crea il file .f06 */
@@ -2505,35 +2529,41 @@ MultiStepIntegrator::Eig(void)
 
 #ifdef __HACK_NASTRAN_MODES__
       /* EXPERIMENTAL */
+      flag doPlot = 0;
       if (fOutputModes) {
 
-	      doublereal b = Beta.dGetCoef(iCnt);
-	      doublereal re = AlphaR.dGetCoef(iCnt);
-	      doublereal im = AlphaI.dGetCoef(iCnt);
-	      doublereal sigma;
-	      doublereal omega;
-	      doublereal csi;
-	      doublereal freq;
+         doublereal b = Beta.dGetCoef(iCnt);
+	 doublereal re = AlphaR.dGetCoef(iCnt);
+	 doublereal im = AlphaI.dGetCoef(iCnt);
+	 doublereal sigma;
+	 doublereal omega;
+	 doublereal csi;
+	 doublereal freq;
 
-	      int isPi = do_eig(b, re, im, h, sigma, omega, csi, freq);
+	 do_eig(b, re, im, h, sigma, omega, csi, freq);
+
+	 doublereal af = fabs(freq);
+	 if (af >= dLowerFreq && af <= dUpperFreq) {
+	    doPlot = 1;
 	      
-	f06 
-		<< "                                                                                                 CSA/NASTRAN 11/14/95    PAGE   " 
-		<< setw(4) << iCnt << endl
-		<< "MBDyn modal analysis" << endl
-		<< endl
-		<< "    LABEL=DISPLACEMENTS, ";
-	 ios::fmtflags iosfl = f06.setf(ios::left);
-	 const char *comment = "EXPERIMENTAL MODAL ANALYSIS";
-	 int l = strlen(comment);
-	 f06 << setw(l+1) << comment;
-	 f06 << sigma << " " << (omega < 0. ? "-" : "+") << " " << fabs(omega) << setw(80-1-l) << " j";
-	 f06.flags(iosfl);
-	 f06 << "   SUBCASE " << iCnt << endl
-		 << endl
-		 << "                                            D I S P L A C E M E N T  V E C T O R" << endl
-		 << endl
-		 << "     POINT ID.   TYPE          T1             T2             T3             R1             R2             R3" << endl;
+	    f06 
+	      << "                                                                                                 CSA/NASTRAN 11/14/95    PAGE   " 
+	      << setw(4) << iCnt << endl
+	      << "MBDyn modal analysis" << endl
+	      << endl
+	      << "    LABEL=DISPLACEMENTS, ";
+	    ios::fmtflags iosfl = f06.setf(ios::left);
+	    const char *comment = "(EXPERIMENTAL) MODAL ANALYSIS";
+	    int l = strlen(comment);
+	    f06 << setw(l+1) << comment;
+	    f06 << sigma << " " << (omega < 0. ? "-" : "+") << " " << fabs(omega) << setw(80-1-l) << " j";
+	    f06.flags(iosfl);
+	    f06 << "   SUBCASE " << iCnt << endl
+	      << endl
+	      << "                                            D I S P L A C E M E N T  V E C T O R" << endl
+	      << endl
+	      << "     POINT ID.   TYPE          T1             T2             T3             R1             R2             R3" << endl;
+	 }
       }
 #endif /* __HACK_NASTRAN_MODES__ */
       
@@ -2555,7 +2585,9 @@ MultiStepIntegrator::Eig(void)
 	    
 #ifdef __HACK_NASTRAN_MODES__
 	    /* EXPERIMENTAL */
-	    pDM->Output_f06(f06, X);
+	    if (doPlot) {
+	       pDM->Output_f06(f06, X);
+	    }
 #endif /* __HACK_NASTRAN_MODES__ */
 	 }
       } else {
@@ -2581,7 +2613,9 @@ MultiStepIntegrator::Eig(void)
 
 #ifdef __HACK_NASTRAN_MODES__
 	    /* EXPERIMENTAL */
-	    pDM->Output_f06(f06, X);
+	    if (doPlot) {
+	       pDM->Output_f06(f06, X);
+	    }
 #endif /* __HACK_NASTRAN_MODES__ */
 	 }
       }

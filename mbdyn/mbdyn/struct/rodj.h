@@ -137,7 +137,9 @@ virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
 				    const VectorHandler& XPrimeCurr);
    
    virtual void Output(OutputHandler& OH) const;
- 
+
+   /* Output di un modello NASTRAN equivalente nella configurazione corrente */
+   virtual void Output_pch(ostream& out) const;
 
    /* funzioni usate nell'assemblaggio iniziale */
    
@@ -279,7 +281,9 @@ class RodWithOffset : virtual public Elem, public Rod {
 				    const VectorHandler& XPrimeCurr);
    
    virtual void Output(OutputHandler& OH) const;
- 
+
+   /* Output di un modello NASTRAN equivalente nella configurazione corrente */
+   virtual void Output_pch(ostream& out) const;
 
    /* funzioni usate nell'assemblaggio iniziale */
    

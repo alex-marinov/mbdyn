@@ -277,6 +277,93 @@ void Rod::Output(OutputHandler& OH) const
 	<< " " << dElle << " " << vTmp << endl;
    }
 }
+
+
+/* Output di un modello NASTRAN equivalente nella configurazione corrente */
+void
+Rod::Output_pch(ostream& out) const
+{
+	if (fToBeOutput()) {
+		unsigned int label = GetLabel();
+		if (label > 9999999) {
+			cerr << "label of Rod(" << label <<") is too large" << endl;
+			THROW(ErrGeneric());
+		}
+
+		const char *name = GetName();
+		out << "$ Rod " << GetLabel();
+		if (name) {
+			out << " (" << name << ")";
+		}
+
+#define __NASTRAN_FORMAT__ __HACK_NASTRAN_MODES__
+
+#if __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED__
+		out << endl
+			/* PBEAM */
+			<< "PBEAM   "
+			<< setw(8) << 20000000+label	/* label */
+			<< setw(8) << 1			/* material */
+			<< setw(8) << 1.		/* area */
+			<< setw(8) << 1.		/* J1 */
+			<< setw(8) << 1.		/* J2 */
+			<< setw(8) << ""		/* J12 */
+			<< setw(8) << 1.		/* Jp */
+			<< endl
+
+			/* CBEAM */
+			<< "CBEAM   "
+			<< setw(8) << 20000000+label	/* label */
+			<< setw(8) << 20000000+label	/* prop */
+			<< setw(8) << pNode1->GetLabel()	/* node 1 */
+			<< setw(8) << pNode2->GetLabel()	/* node 2 */
+			<< enld;
+#elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED16__
+		out << endl
+			/* PBEAM */
+			<< "PBEAM*  "
+			<< setw(16) << 20000000+label	/* label */
+			<< setw(16) << 1		/* material */
+			<< setw(16) << 1.		/* area */
+			<< setw(16) << 1.		/* J1 */
+			<< "+" << setw(7) << 1
+			<< endl
+			<< "+" << setw(7) << 1
+			<< setw(16) << 1.		/* J2 */
+			<< setw(16) << " "		/* J12 */
+			<< setw(16) << 1.		/* Jp */
+			<< endl
+
+			/* CBEAM */
+			<< "CBEAM*  "
+			<< setw(16) << 20000000+label 	/* label */
+			<< setw(16) << 20000000+label	/* prop */
+			<< setw(16) << pNode1->GetLabel()	/* node 1 */
+			<< setw(16) << pNode2->GetLabel()	/* node 2 */
+			<< endl;
+#elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FREE__
+		out << endl
+			/* PBEAM */
+			<< "PBEAM," 
+			<< 20000000+label << ","
+			<< 1 << ","
+			<< 1. << ","
+			<< 1. << ","
+			<< 1. << ","
+			<< ","
+			<< 1. << endl
+
+			/* CBEAM */
+			<< "CBEAM,"
+			<< 20000000+label << ","
+			<< 20000000+label << ","
+			<< pNode1->GetLabel() << ","
+			<< pNode2->GetLabel() << endl;
+#else
+#error "unknown NASTRAN format"
+#endif
+	}
+}
  
 
 VariableSubMatrixHandler& 
@@ -961,7 +1048,133 @@ void RodWithOffset::Output(OutputHandler& OH) const
    }
 } 
 
-   
+
+/* Output di un modello NASTRAN equivalente nella configurazione corrente */
+void
+RodWithOffset::Output_pch(ostream& out) const
+{
+	if (fToBeOutput()) {
+		unsigned int label = GetLabel();
+		if (label > 9999999) {
+			cerr << "label of Rod(" << label <<") is too large" << endl;
+			THROW(ErrGeneric());
+		}
+
+		const char *name = GetName();
+		out << "$ Rod " << GetLabel();
+		if (name) {
+			out << " (" << name << ")";
+		}
+
+#define __NASTRAN_FORMAT__ __HACK_NASTRAN_MODES__
+		Vec3 F1(pNode1->GetRCurr()*f1);
+		Vec3 F2(pNode2->GetRCurr()*f2);
+
+#if __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED__
+		out << endl
+			/* PBEAM */
+			<< "PBEAM   "
+			<< setw(8) << 20000000+label	/* label */
+			<< setw(8) << 1			/* material */
+			<< setw(8) << 1.		/* area */
+			<< setw(8) << 1.		/* J1 */
+			<< setw(8) << 1.		/* J2 */
+			<< setw(8) << " "		/* J12 */
+			<< setw(8) << 1.		/* Jp */
+			<< endl
+
+			/* CBEAM */
+			<< "CBEAM   "
+			<< setw(8) << 20000000+label	/* label */
+			<< setw(8) << 20000000+label	/* prop */
+			<< setw(8) << pNode1->GetLabel()	/* node 1 */
+			<< setw(8) << pNode2->GetLabel()	/* node 2 */
+			<< setw(32) << " " 
+			<< "+" << setw(7) << 1
+			<< endl
+			<< "+" << setw(7) << 1
+			<< setw(16) << " "
+			<< setw(8) << F1.dGet(1)
+			<< setw(8) << F1.dGet(2)
+			<< setw(8) << F1.dGet(3)
+			<< setw(8) << F2.dGet(1)
+			<< setw(8) << F2.dGet(2)
+			<< setw(8) << F2.dGet(3)
+			<< enld;
+#elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED16__
+		out << endl
+			/* PBEAM */
+			<< "PBEAM*  "
+			<< setw(16) << 20000000+label	/* label */
+			<< setw(16) << 1		/* material */
+			<< setw(16) << 1.		/* area */
+			<< setw(16) << 1.		/* J1 */
+			<< "+" << setw(7) << 1
+			<< endl
+			<< "+" << setw(7) << 1
+			<< setw(16) << 1.		/* J2 */
+			<< setw(16) << " "		/* J12 */
+			<< setw(16) << 1.		/* Jp */
+			<< endl
+
+			/* CBEAM */
+			<< "CBEAM*  "
+			<< setw(16) << 20000000+label 	/* label */
+			<< setw(16) << 20000000+label	/* prop */
+			<< setw(16) << pNode1->GetLabel()	/* node 1 */
+			<< setw(16) << pNode2->GetLabel()	/* node 2 */
+			<< "+" << setw(7) << 1
+			<< endl
+			<< "+" << setw(7) << 1
+			<< setw(64) << " "
+			<< "+" << setw(7) << 2
+			<< endl
+			<< "+" << setw(7) << 2
+			<< setw(32) << " "
+			<< setw(16) << F1.dGet(1)
+			<< setw(16) << F1.dGet(2)
+			<< "+" << setw(7) << 3
+			<< endl
+			<< "+" << setw(7) << 3
+			<< setw(16) << F1.dGet(3)
+			<< setw(16) << F2.dGet(1)
+			<< setw(16) << F2.dGet(2)
+			<< setw(16) << F2.dGet(3)
+			<< endl;
+#elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FREE__
+		out << endl
+			/* PBEAM */
+			<< "PBEAM," 
+			<< 20000000+label << ","
+			<< 1 << ","
+			<< 1. << ","
+			<< 1. << ","
+			<< 1. << ","
+			<< ","
+			<< 1. << endl
+
+			/* CBEAM */
+			<< "CBEAM,"
+			<< 20000000+label << ","
+			<< 20000000+label << ","
+			<< pNode1->GetLabel() << ","
+			<< pNode2->GetLabel() << ",,,,"
+#if 0
+			<< "," 
+#endif
+			<< endl
+#if 1
+			<< "," 
+#endif
+			<< " ,,", F1.Write(out, ",") << ",", F2.Write(out, ",")
+			<< endl;
+#else
+#error "unknown NASTRAN format"
+#endif
+	}
+}
+
+
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler& 
 RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat, 

@@ -235,9 +235,6 @@ StructNode::Output_pch(
 		if (name) {
 			out << " (" << name << ")";
 		}
-#define __NASTRAN_FORMAT_FIXED__ 1
-#define __NASTRAN_FORMAT_FIXED16__ 2
-#define __NASTRAN_FORMAT_FREE__ 3
 		
 #define __NASTRAN_FORMAT__ __HACK_NASTRAN_MODES__
 

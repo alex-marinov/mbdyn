@@ -103,6 +103,8 @@ private:
 	flag fEigenAnalysis;
 	doublereal dEigParam;
 	flag fOutputModes;
+	doublereal dUpperFreq;
+	doublereal dLowerFreq;
 #endif /* __HACK_EIG__ */
    
    	/* 

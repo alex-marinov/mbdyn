@@ -329,6 +329,9 @@ class ToBeOutput {
    };
 
    /* Output of modes in NASTRAN's pch/f06 format */
+#define __NASTRAN_FORMAT_FIXED__	1
+#define __NASTRAN_FORMAT_FIXED16__	2
+#define __NASTRAN_FORMAT_FREE__		3
    virtual void Output_pch(ostream &pch) const {
 	   NO_OP;
    };
