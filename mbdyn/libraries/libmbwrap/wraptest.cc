@@ -48,12 +48,42 @@
 #include <taucswrap.h>
 #include <naivewrap.h>
 
+char *solvers[] = {
+#if defined(USE_Y12)
+		"y12",
+#endif
+#if defined(USE_UMFPACK)
+		"umfpack",
+#endif
+#if defined(USE_SUPERLU)
+		"superlu",
+#endif
+#if defined(USE_HARWELL)
+		"harwell",
+#endif
+#if defined(USE_MESCHACH)
+		"meschach",
+#endif
+#if defined(USE_LAPACK)
+		"lapack",
+#endif
+#if defined(USE_TAUCS)
+		"taucs",
+#endif
+		"naive",
+		NULL
+};
+
 static void
-usage(void)
+usage(int err)
 {
 	std::cerr << "usage: wraptest [-c] [-d] [-m <solver>] [-s]" << std::endl
-		<< "\t<solver>={y12|harwell|meschach|umfpack|superlu|lapack|taucs|naive}" << std::endl;
-	exit(EXIT_FAILURE);
+		<< "\t<solver>={" << solvers[0];
+	for (int i = 1; solvers[i]; i++) {
+		std::cerr << "|" << solvers[i];
+	}
+	std::cerr << "}" << std::endl;
+	exit(err);
 }
 
 int
@@ -120,7 +150,7 @@ main(int argc, char *argv[])
 			break;
 
 		default:
-			usage();
+			usage(EXIT_FAILURE);
 		}
 	}
 
@@ -141,7 +171,7 @@ main(int argc, char *argv[])
 #else /* !USE_TAUCS */
 		std::cerr << "need --with-taucs to use Taucs library sparse solver" 
 			<< std::endl;
-		usage();
+		usage(EXIT_FAILURE);
 #endif /* !USE_LAPACK */
 
 	} else if (strcasecmp(solver, "lapack") == 0) {
@@ -151,7 +181,7 @@ main(int argc, char *argv[])
 #else /* !USE_LAPACK */
 		std::cerr << "need --with-lapack to use Lapack library dense solver" 
 			<< std::endl;
-		usage();
+		usage(EXIT_FAILURE);
 #endif /* !USE_LAPACK */
 
 	} else if (strcasecmp(solver, "superlu") == 0) {
@@ -171,7 +201,7 @@ main(int argc, char *argv[])
 #else /* !USE_SUPERLU */
 		std::cerr << "need --with-superlu to use SuperLU library" 
 			<< std::endl;
-		usage();
+		usage(EXIT_FAILURE);
 #endif /* !USE_SUPERLU */
 
 	} else if (strcasecmp(solver, "y12") == 0) {
@@ -191,7 +221,7 @@ main(int argc, char *argv[])
 #else /* !USE_Y12 */
 		std::cerr << "need --with-y12 to use y12m library" 
 			<< std::endl;
-		usage();
+		usage(EXIT_FAILURE);
 #endif /* !USE_Y12 */
 
 	} else if (strcasecmp(solver, "harwell") == 0) {
@@ -201,7 +231,7 @@ main(int argc, char *argv[])
 #else /* !USE_HARWELL */
 		std::cerr << "need --with-harwell to use HSL library" 
 			<< std::endl;
-		usage();
+		usage(EXIT_FAILURE);
 #endif /* !USE_HARWELL */
 
 	} else if (strcasecmp(solver, "meschach") == 0) {
@@ -211,7 +241,7 @@ main(int argc, char *argv[])
 #else /* !USE_MESCHACH */
 		std::cerr << "need --with-meschach to use Meschach library" 
 			<< std::endl;
-		usage();
+		usage(EXIT_FAILURE);
 #endif /* !USE_MESCHACH */
 	} else if (strcasecmp(solver, "umfpack") == 0
 			|| strcasecmp(solver, "umfpack3") == 0) {
@@ -232,7 +262,7 @@ main(int argc, char *argv[])
 #else /* !USE_UMFPACK */
 		std::cerr << "need --with-umfpack to use Umfpack library" 
 			<< std::endl;
-		usage();
+		usage(EXIT_FAILURE);
 #endif /* !USE_UMFPACK */
 
 	} else if (strcasecmp(solver, "naive") == 0) {
@@ -248,7 +278,7 @@ main(int argc, char *argv[])
 
 	} else {
 		std::cerr << "unknown solver '" << solver << "'" << std::endl;
-		usage();
+		usage(EXIT_FAILURE);
 	}
 
 	pSM->MatrReset();
