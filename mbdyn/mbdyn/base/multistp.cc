@@ -93,11 +93,11 @@ MultiStepIntegrator::MultiStepIntegrator(MBDynParser& HPar,
 					 const char* sOutFName)
 :
 CurrStrategy(NOCHANGE),
-#if defined(USE_UMFPACK3)
+#if defined(USE_Y12)
+CurrSolver(Y12_SOLVER),
+#elif /* !USE_Y12 */ defined(USE_UMFPACK3)
 CurrSolver(UMFPACK3_SOLVER),
 #elif /* !USE_UMFPACK3 */ defined(USE_Y12)
-CurrSolver(Y12_SOLVER),
-#elif /* !USE_Y12 */ defined(USE_HARWELL)
 CurrSolver(HARWELL_SOLVER),
 #else /* !USE_HARWELL */
 CurrSolver(MESCHACH_SOLVER),

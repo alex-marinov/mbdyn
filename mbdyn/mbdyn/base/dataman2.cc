@@ -385,6 +385,10 @@ void DataManager::InitialJointAssembly(void)
    SAFENEWWITHCONSTRUCTOR(pSM,
 		   Y12SparseLUSolutionManager,
 		   Y12SparseLUSolutionManager(iInitialNumDofs, 0, 1.));
+#elif defined(USE_UMFPACK3)
+   SAFENEWWITHCONSTRUCTOR(pSM,
+		   Umfpack3SparseLUSolutionManager,
+		   Umfpack3SparseLUSolutionManager(iInitialNumDofs, 0, 1.));
 #elif defined(USE_HARWELL)
    SAFENEWWITHCONSTRUCTOR(pSM,
 		   HarwellSparseLUSolutionManager,
