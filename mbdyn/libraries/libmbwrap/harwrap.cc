@@ -140,7 +140,9 @@ HarwellSparseSolutionManager::MatrReset()
    	IsValid();
 #endif /* DEBUG */
    
-   	MH.Reset();
+   	// MH.Reset();
+	/* FIXME: TOTALLY UNTESTED */
+	pLS->Reset();
    	fHasBeenReset = flag(1);
 }
 

@@ -95,7 +95,7 @@ protected:
 	enum DataManagerOp {
 		OP_UNKNOWN = -1,
 
-		OP_ASSJAC,
+		OP_ASSJAC_CC,
 
 		OP_ASSJAC_NAIVE,
 		OP_SUM_NAIVE,

@@ -331,6 +331,8 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 {
 	DEBUGCOUT("Entering DataManager::AssJac()" << std::endl);
 
+	JacHdl.Reset();
+
 	Elem* pTmpEl = NULL;
 	if (Iter.bGetFirst(pTmpEl)) {
 		do {

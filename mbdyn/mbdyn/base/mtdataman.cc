@@ -62,14 +62,15 @@ do_unlock(integer &p)
 {
 	mbdyn_compare_and_swap(p, 0, 1);
 }
+
 static void
-naivepsad(doublereal ** ga, integer ** gri, 
-		integer *gnzr, integer ** gci, integer *gnzc, char ** gnz,
-		doublereal ** a, integer ** ci, integer *nzc,
+naivepsad(doublereal **ga, integer **gri, 
+		integer *gnzr, integer **gci, integer *gnzc, char **gnz,
+		doublereal **a, integer **ci, integer *nzc,
 		integer from, integer to, integer *lock)
 {
 
-	for (integer r = from; r <= to; r++) {
+	for (integer r = from; r < to; r++) {
 		integer nc = nzc[r];
 			
 		if (nc) {
@@ -207,7 +208,6 @@ MultiThreadDataManager::ThreadDestroy(void)
 		cputime += thread_data[i].cputime;
 	}
 
-	// if ass == NAIVE, thread_data[0].lock != 0
 	if (thread_data[0].lock) {
 		SAFEDELETEARR(thread_data[0].lock);
 	}
@@ -255,10 +255,10 @@ MultiThreadDataManager::thread(void *p)
 
 		/* select requested operation */
 		switch (arg->pDM->op) {
-		case MultiThreadDataManager::OP_ASSJAC:
-			arg->pJacHdl->Reset();
+		case MultiThreadDataManager::OP_ASSJAC_CC:
+			//arg->pJacHdl->Reset();
 			try {
-				arg->pDM->DataManager::AssJac(*(arg->pJacHdl),
+				arg->pDM->DataManager::AssJac(*arg->pJacHdl,
 						arg->dCoef,
 						arg->ElemIter,
 						*arg->pWorkMat);
@@ -277,9 +277,9 @@ MultiThreadDataManager::thread(void *p)
 			break;
 
 		case MultiThreadDataManager::OP_ASSJAC_NAIVE:
-			arg->ppNaiveJacHdl[arg->threadNumber]->Reset();
+			//arg->ppNaiveJacHdl[arg->threadNumber]->Reset();
 			/* note: Naive should never throw ErrRebuildMatrix ... */
-			arg->pDM->DataManager::AssJac(*(arg->ppNaiveJacHdl[arg->threadNumber]),
+			arg->pDM->DataManager::AssJac(*arg->ppNaiveJacHdl[arg->threadNumber],
 					arg->dCoef,
 					arg->ElemIter,
 					*arg->pWorkMat);
@@ -290,7 +290,7 @@ MultiThreadDataManager::thread(void *p)
 			NaiveMatrixHandler* to = arg->ppNaiveJacHdl[0];
 			integer nn = to->iGetNumRows();
 			integer iFrom = (nn*(arg->threadNumber))/arg->pDM->nThreads;
-			integer iTo = (nn*(arg->threadNumber + 1))/arg->pDM->nThreads - 1;
+			integer iTo = (nn*(arg->threadNumber + 1))/arg->pDM->nThreads;
 			for (unsigned int matrix = 1; matrix < arg->pDM->nThreads; matrix++) {
 				NaiveMatrixHandler* from = arg->ppNaiveJacHdl[matrix];
 				naivepsad(to->ppdRows, 
@@ -305,7 +305,7 @@ MultiThreadDataManager::thread(void *p)
 #ifdef MBDYN_X_MT_ASSRES
 		case MultiThreadDataManager::OP_ASSRES:
 			arg->pResHdl->Reset();
-			arg->pDM->DataManager::AssRes(*(arg->pResHdl),
+			arg->pDM->DataManager::AssRes(*arg->pResHdl,
 					arg->dCoef,
 					arg->ElemIter,
 					*arg->pWorkVec);
@@ -455,7 +455,9 @@ retry:;
 		break;
 
 	case ASS_UNKNOWN:
-		if (dynamic_cast<NaiveMatrixHandler *>(&JacHdl)) {
+	{
+		NaiveMatrixHandler *pNaiveJacHdl = dynamic_cast<NaiveMatrixHandler *>(&JacHdl);	
+		if (pNaiveJacHdl) {
 			AssMode = ASS_NAIVE;
 
 			/* TODO: use JacHdl as matrix for the first thread,
@@ -464,7 +466,7 @@ retry:;
 			memset(thread_data[0].lock, 0, sizeof(integer)*JacHdl.iGetNumRows());
 
 			SAFENEWARR(thread_data[0].ppNaiveJacHdl, NaiveMatrixHandler*, nThreads);
-			thread_data[0].ppNaiveJacHdl[0] = dynamic_cast<NaiveMatrixHandler *>(&JacHdl);
+			thread_data[0].ppNaiveJacHdl[0] = pNaiveJacHdl;
 
 			for (unsigned i = 1; i < nThreads; i++) {
 				thread_data[i].lock = thread_data[0].lock;
@@ -474,12 +476,12 @@ retry:;
 						NaiveMatrixHandler,
 						NaiveMatrixHandler(JacHdl.iGetNumRows()));
 			}
-
 			goto retry;
 		}
 
 		AssMode = ASS_CC;
 		goto retry;
+	}
 
 	default:
 		silent_cerr("unable to detect jacobian matrix type "
@@ -548,7 +550,7 @@ retry:;
 	}
 
 	thread_data[0].ElemIter.ResetAccessData();
-	op = MultiThreadDataManager::OP_ASSJAC;
+	op = MultiThreadDataManager::OP_ASSJAC_CC;
 	thread_count = nThreads - 1;
 
 	for (unsigned i = 1; i < nThreads; i++) {
@@ -599,6 +601,7 @@ MultiThreadDataManager::NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
 	ASSERT(thread_data != NULL);
 
+	/* Assemble per-thread matrix */
 	thread_data[0].ElemIter.ResetAccessData();
 	op = MultiThreadDataManager::OP_ASSJAC_NAIVE;
 	thread_count = nThreads - 1;
@@ -609,7 +612,13 @@ MultiThreadDataManager::NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 		sem_post(&thread_data[i].sem);
 	}
 
-	DataManager::AssJac(JacHdl, dCoef, thread_data[0].ElemIter,
+	/* FIXME Right now it's already done before calling AssJac;
+	 * needs be moved here to improve parallel performances...
+	 */
+	//thread_data[0].ppNaiveJacHdl[0]->Reset();
+	DataManager::AssJac(*thread_data[0].ppNaiveJacHdl[0],
+			dCoef,
+			thread_data[0].ElemIter,
 			*thread_data[0].pWorkMat);
 
 	pthread_mutex_lock(&thread_mutex);
@@ -618,6 +627,7 @@ MultiThreadDataManager::NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	}
 	pthread_mutex_unlock(&thread_mutex);
 
+	/* Sum per-thread matrices */
 	op = MultiThreadDataManager::OP_SUM_NAIVE;
 	thread_count = nThreads - 1;
 	for (unsigned i = 1; i < nThreads; i++) {
@@ -627,7 +637,7 @@ MultiThreadDataManager::NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	NaiveMatrixHandler* to = thread_data[0].ppNaiveJacHdl[0];
 	integer nn = to->iGetNumRows();
 	integer iFrom = 0;
-	integer iTo = nn/nThreads - 1;
+	integer iTo = nn/nThreads;
 	for (unsigned matrix = 1; matrix < nThreads; matrix++) {
 		NaiveMatrixHandler* from = thread_data[0].ppNaiveJacHdl[matrix];
 		naivepsad(to->ppdRows, 

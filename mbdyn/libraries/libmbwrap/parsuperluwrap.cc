@@ -500,7 +500,7 @@ SuperLUSparseSolutionManager::MatrReset(void)
    	IsValid();
 #endif /* DEBUG */
 
-	MH.Reset();
+	//MH.Reset();
 	pLS->Reset();
 }
 
