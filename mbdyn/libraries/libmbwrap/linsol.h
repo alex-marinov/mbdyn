@@ -42,7 +42,7 @@ public:
 		HARWELL_SOLVER,
 		MESCHACH_SOLVER,
 		Y12_SOLVER,
-                UMFPACK3_SOLVER   
+                UMFPACK_SOLVER   
 	};
 
 	static SolverType defaultSolver;

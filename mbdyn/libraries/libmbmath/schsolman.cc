@@ -799,18 +799,18 @@ template SchurSolutionManager::SchurSolutionManager(integer iSize,
 					    MeschachSparseLUSolutionManager* pISM,
 					    integer iWorkSize,
 					    const doublereal& dPivotFactor); 
-#endif //USE_MESCHACH
-#ifdef USE_UMFPACK3
+#endif /* USE_MESCHACH */
+#ifdef USE_UMFPACK
 template SchurSolutionManager::SchurSolutionManager(integer iSize, 
 					    integer* pLocalDofs,
 					    int iDim1,
 					    integer* pInterfDofs,
 					    int iDim2,
 					    SolutionManager* pLSM,
-					    Umfpack3SparseLUSolutionManager* pISM,
+					    UmfpackSparseLUSolutionManager* pISM,
 					    integer iWorkSize,
 					    const doublereal& dPivotFactor); 
-#endif //USE_MESCHACH
+#endif /* USE_UMFPACK */
 #endif /* USE_MPI */
 
 

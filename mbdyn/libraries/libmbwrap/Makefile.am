@@ -31,7 +31,7 @@ wraptest_LDADD = \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \
 ../liby12/liby12.la \
-@UMFPACK3_LIBS@ \
+@UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @F2C_LIBS@ \

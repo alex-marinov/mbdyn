@@ -117,9 +117,9 @@ const integer iDefaultIterativeSolversMaxSteps = 100;
 Integrator::SolverType
 #if defined(USE_Y12)
 Integrator::defaultSolver = Integrator::Y12_SOLVER;
-#elif /* !USE_Y12 */ defined(USE_UMFPACK3)
-Integrator::defaultSolver = Integrator::UMFPACK3_SOLVER;
-#elif /* !USE_UMFPACK3 */ defined(USE_HARWELL)
+#elif /* !USE_Y12 */ defined(USE_UMFPACK)
+Integrator::defaultSolver = Integrator::UMFPACK_SOLVER;
+#elif /* !USE_UMFPACK */ defined(USE_HARWELL)
 Integrator::defaultSolver = Integrator::HARWELL_SOLVER;
 #elif /* !USE_HARWELL */ defined(USE_MESCHACH)
 Integrator::defaultSolver = Integrator::MESCHACH_SOLVER;
@@ -474,21 +474,21 @@ MultiStepIntegrator::Run(void)
       			THROW(ErrGeneric());
 #endif /* !USE_HARWELL */
 
-   		case UMFPACK3_SOLVER:
-#ifdef USE_UMFPACK3
+   		case UMFPACK_SOLVER:
+#ifdef USE_UMFPACK
       			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				IterativeSolutionManager,
 				IterativeSolutionManager(iNLD, dIterTol,
 				iIterativeMaxSteps,
 				pDM, pXCurr, pXPrimeCurr,
-				(Umfpack3SparseLUSolutionManager*)0,
+				(UmfpackSparseLUSolutionManager*)0,
 				iLWS, dPivotFactor == -1. ? 1. : dPivotFactor));
       			break;
-#else /* !USE_UMFPACK3 */
-      			std::cerr << "Configure with --with-umfpack3 "
-				"to enable Umfpack3 solver" << std::endl;
+#else /* !USE_UMFPACK */
+      			std::cerr << "Configure with --with-umfpack "
+				"to enable Umfpack solver" << std::endl;
       			THROW(ErrGeneric());
-#endif /* !USE_UMFPACK3 */
+#endif /* !USE_UMFPACK */
    		}
 
 	} else {	
@@ -534,18 +534,18 @@ MultiStepIntegrator::Run(void)
       			THROW(ErrGeneric());
 #endif /* !USE_HARWELL */
 
-   		case UMFPACK3_SOLVER:
-#ifdef USE_UMFPACK3
+   		case UMFPACK_SOLVER:
+#ifdef USE_UMFPACK
       			SAFENEWWITHCONSTRUCTOR(pCurrSM,
-				Umfpack3SparseLUSolutionManager,
-				Umfpack3SparseLUSolutionManager(iNLD, 
+				UmfpackSparseLUSolutionManager,
+				UmfpackSparseLUSolutionManager(iNLD, 
 					0, dPivotFactor));
       			break;
-#else /* !USE_UMFPACK3 */
-      			std::cerr << "Configure with --with-umfpack3 "
-				"to enable Umfpack3 solver" << std::endl;
+#else /* !USE_UMFPACK */
+      			std::cerr << "Configure with --with-umfpack "
+				"to enable Umfpack solver" << std::endl;
       			THROW(ErrGeneric());
-#endif /* !USE_UMFPACK3 */
+#endif /* !USE_UMFPACK */
    		}
 	}
 
@@ -606,23 +606,23 @@ MultiStepIntegrator::Run(void)
 			THROW(ErrGeneric());
 #endif /* !USE_MESCHACH */
 
-		case UMFPACK3_SOLVER:
-#ifdef USE_UMFPACK3
+		case UMFPACK_SOLVER:
+#ifdef USE_UMFPACK
 			SAFENEWWITHCONSTRUCTOR(pSSM,
 				SchurSolutionManager,
 				SchurSolutionManager(iNumDofs, pLocDofs,
 					iNumLocDofs,
 					pIntDofs, iNumIntDofs,
 					pLocalSM,
-					(Umfpack3SparseLUSolutionManager*)0,
+					(UmfpackSparseLUSolutionManager*)0,
 					0, 
 					dIPivotFactor));
 			break;
-#else /* !USE_UMFPACK3 */
-			std::cerr << "Configure with --with-umfpack3 "
-				"to enable Umfpack3 solver" << std::endl;
+#else /* !USE_UMFPACK */
+			std::cerr << "Configure with --with-umfpack "
+				"to enable Umfpack solver" << std::endl;
 			THROW(ErrGeneric());
-#endif /* !USE_UMFPACK3 */
+#endif /* !USE_UMFPACK */
 		}
 
 		pSM = pSSM;
@@ -2449,6 +2449,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 			"harwell",
 			"meschach",
 			"y12",
+			"umfpack",
 			"umfpack3",
 		"iterative" "tollerance",
 		"iterative" "max" "steps"
@@ -2519,6 +2520,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		HARWELL,
 		MESCHACH,
 		Y12,
+		UMFPACK,
 		UMFPACK3,
 		
 		ITERATIVETOLERANCE,
@@ -3214,12 +3216,15 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 #endif /* USE_Y12 */
 							       
 	   case UMFPACK3:
-#ifdef USE_UMFPACK3
-             CurrSolver = UMFPACK3_SOLVER;
+	     pedantic_cerr("\"umfpack3\" is deprecated; "
+			     "use \"umfpack\" instead" << std::endl);
+	   case UMFPACK:
+#ifdef USE_UMFPACK
+             CurrSolver = UMFPACK_SOLVER;
 	     DEBUGLCOUT(MYDEBUG_INPUT,
-			"Using umfpack3 sparse LU solver" << std::endl);
+			"Using umfpack sparse LU solver" << std::endl);
 	     break;
-#endif /* USE_UMFPACK3 */
+#endif /* USE_UMFPACK */
 
 	   case HARWELL: 
 #ifdef USE_HARWELL
@@ -3274,12 +3279,16 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 #endif /* USE_Y12 */
 
 		case UMFPACK3:
-#ifdef USE_UMFPACK3
-	  		CurrIntSolver = UMFPACK3_SOLVER;
+	   		pedantic_cerr("\"umfpack3\" is deprecated; "
+	   				"use \"umfpack\" instead" 
+					<< std::endl);
+		case UMFPACK:
+#ifdef USE_UMFPACK
+	  		CurrIntSolver = UMFPACK_SOLVER;
 	  		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using umfpack3 sparse LU solver" << std::endl);
+				"Using umfpack sparse LU solver" << std::endl);
 	  		break;
-#endif /* USE_UMFPACK3 */
+#endif /* USE_UMFPACK */
 
 		case HARWELL: 
 #ifdef USE_HARWELL

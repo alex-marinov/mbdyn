@@ -27,7 +27,7 @@ LIBS = \
 @Y12_LIBS@ \
 ../libraries/libmbmath/libmbmath.la \
 @HARWELL_LIBS@ \
-@UMFPACK3_LIBS@ \
+@UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
 @F2C_LIBS@ \
 @TCL_LIBS@

@@ -154,7 +154,7 @@ OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support],auto,[auto yes no])
 OL_ARG_WITH(metis,[  --with-metis            with Metis support],auto,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
-OL_ARG_WITH(umfpack3,[  --with-umfpack3         with Umfpack3 math library],auto,[auto yes no])
+OL_ARG_WITH(umfpack,[  --with-umfpack         with Umfpack math library],auto,[auto yes no])
 OL_ARG_WITH(y12,[  --with-y12              with Y12 sparse math library],auto,[auto yes no])
 OL_ARG_WITH(harwell,[  --with-hsl          with HSL (Harwell) sparse math library],auto,[auto yes no])
 OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
@@ -204,7 +204,7 @@ F2C_LIBS=
 MPI_LIBS=
 METIS_LIBS=
 Y12_LIBS=
-UMFPACK3_LIBS=
+UMFPACK_LIBS=
 MESCHACH_LIBS=
 HARWELL_LIBS=
 LAPACK_LIBS=
@@ -588,68 +588,68 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Check for Umfpack3
+dnl Check for Umfpack
 dnl
-ol_link_umfpack3=no
-if test $ol_with_umfpack3 != no ; then
-	OL_ADD_DIRS(umfpack3)
+ol_link_umfpack=no
+if test $ol_with_umfpack != no ; then
+	OL_ADD_DIRS(umfpack)
 	
 	AC_CHECK_HEADERS(umfpack.h)
 
 	if test $ac_cv_header_umfpack_h = yes ; then
 
-		AC_MSG_CHECKING([for umfpack3 library])
-		try_umfpack3_LIBS="-lumfpack -lcblas -latlas"
+		AC_MSG_CHECKING([for umfpack library])
+		try_umfpack_LIBS="-lumfpack -lcblas -latlas"
 		save_LIBS=$LIBS
-		LIBS="$LIBS $try_umfpack3_LIBS"
+		LIBS="$LIBS $try_umfpack_LIBS"
 		AC_TRY_LINK([
 #include <umfpack.h>
 ],[
 			double t;
 			t = umfpack_timer();
-		],[have_umfpack3=yes],[have_umfpack3=no])
+		],[have_umfpack=yes],[have_umfpack=no])
 		LIBS=$save_LIBS
 
-		if test $have_umfpack3 != no ; then
-			UMFPACK3_LIBS="$try_umfpack3_LIBS"
-			AC_DEFINE(USE_UMFPACK3,1,[define if you want to use Umfpack3])
-			ol_link_umfpack3=yes
+		if test $have_umfpack != no ; then
+			UMFPACK_LIBS="$try_umfpack_LIBS"
+			AC_DEFINE(USE_UMFPACK,1,[define if you want to use Umfpack])
+			ol_link_umfpack=yes
 			AC_MSG_RESULT([yes])
 		else
-			try_umfpack3_LIBS="-lumfpack"
+			try_umfpack_LIBS="-lumfpack"
 			save_LIBS=$LIBS
-			LIBS="$LIBS $try_umfpack3_LIBS"
+			LIBS="$LIBS $try_umfpack_LIBS"
 			AC_TRY_LINK([
 #include <umfpack.h>
 ],[
 				double t;
 				t = umfpack_timer();
-			],[have_umfpack3=yes],[have_umfpack3=no])
+			],[have_umfpack=yes],[have_umfpack=no])
 			LIBS=$save_LIBS
 	
-			if test $have_umfpack3 != no ; then
-				UMFPACK3_LIBS="$try_umfpack3_LIBS"
-				AC_DEFINE(USE_UMFPACK3,1,[define if you want to use Umfpack3])
-				ol_link_umfpack3=yes
+			if test $have_umfpack != no ; then
+				UMFPACK_LIBS="$try_umfpack_LIBS"
+				AC_DEFINE(USE_UMFPACK,1,[define if you want to use Umfpack])
+				ol_link_umfpack=yes
 				AC_MSG_RESULT([yes])
-				AC_DEFINE(NBLAS,1,[define if BLAS/ATLAS are not available to Umfpack3])
-				AC_MSG_WARN([Umfpack3 will be used without cblas/atlas])
+				AC_DEFINE(NBLAS,1,[define if BLAS/ATLAS are not available to Umfpack])
+				AC_MSG_WARN([Umfpack will be used without cblas/atlas])
 			else
 				AC_MSG_RESULT([no])
 			fi
 		fi
 	fi
 
-	if test $ol_link_umfpack3 = no ; then
-		if test $ol_with_umfpack3 != auto ; then
-			AC_MSG_ERROR([Could not locate Umfpack3])
+	if test $ol_link_umfpack = no ; then
+		if test $ol_with_umfpack != auto ; then
+			AC_MSG_ERROR([Could not locate Umfpack])
 		else
-			AC_MSG_WARN([Could not locate Umfpack3])
-			AC_MSG_WARN([Umfpack3 not supported!])
+			AC_MSG_WARN([Could not locate Umfpack])
+			AC_MSG_WARN([Umfpack not supported!])
 		fi
 	fi
 else
-	AC_MSG_WARN([Umfpack3 not supported!])
+	AC_MSG_WARN([Umfpack not supported!])
 fi
 
 dnl ----------------------------------------------------------------
@@ -1085,7 +1085,7 @@ dnl
 AC_SUBST(F2C_LIBS)
 AC_SUBST(MPI_LIBS)
 AC_SUBST(METIS_LIBS)
-AC_SUBST(UMFPACK3_LIBS)
+AC_SUBST(UMFPACK_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
 AC_SUBST(SECURITY_LIBS)

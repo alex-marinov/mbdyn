@@ -26,7 +26,7 @@ base/libbase.la \
 ../libraries/libmbutil/libmbutil.la \
 @Y12_LIBS@ \
 @HARWELL_LIBS@ \
-@UMFPACK3_LIBS@ \
+@UMFPACK_LIBS@ \
 ../libraries/libobjs/libobjs.la \
 @MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ \
 @METIS_LIBS@ @SECURITY_LIBS@ @TCL_LIBS@ @LIBS@ \

@@ -62,10 +62,10 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_UMFPACK3
+#ifdef USE_UMFPACK
 #include <umfpackwrap.h>
 
-Umfpack3SparseLUSolutionManager::Umfpack3SparseLUSolutionManager(integer Dim,
+UmfpackSparseLUSolutionManager::UmfpackSparseLUSolutionManager(integer Dim,
 		integer dummy, doublereal dPivot)
 : A(Dim),
 xVH(0),
@@ -95,7 +95,7 @@ HasBeenReset(true)
 	}
 }
 
-Umfpack3SparseLUSolutionManager::~Umfpack3SparseLUSolutionManager(void) 
+UmfpackSparseLUSolutionManager::~UmfpackSparseLUSolutionManager(void) 
 {
 	umfpack_free_symbolic(&Symbolic);
 	ASSERT(Symbolic == 0);
@@ -108,7 +108,7 @@ Umfpack3SparseLUSolutionManager::~Umfpack3SparseLUSolutionManager(void)
 }
 
 void
-Umfpack3SparseLUSolutionManager::MatrInit(const doublereal& d)
+UmfpackSparseLUSolutionManager::MatrInit(const doublereal& d)
 {
 	A.Reset(d);
 	if (Numeric) {
@@ -119,7 +119,7 @@ Umfpack3SparseLUSolutionManager::MatrInit(const doublereal& d)
 }
 
 bool 
-Umfpack3SparseLUSolutionManager::PrepareSymbolic(void)
+UmfpackSparseLUSolutionManager::PrepareSymbolic(void)
 {
 	const int* const Aip = &(Ai[0]);
 	const int* const App = &(Ap[0]);
@@ -144,7 +144,7 @@ Umfpack3SparseLUSolutionManager::PrepareSymbolic(void)
 
 /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
 void
-Umfpack3SparseLUSolutionManager::Solve(const doublereal /* dCoef */)
+UmfpackSparseLUSolutionManager::Solve(const doublereal /* dCoef */)
 {
 	double t = umfpack_timer() ;
 	if (HasBeenReset) {
@@ -211,7 +211,7 @@ Umfpack3SparseLUSolutionManager::Solve(const doublereal /* dCoef */)
 
 /* Bacward Substitution */
 void
-Umfpack3SparseLUSolutionManager::BackSub(doublereal t_iniz)
+UmfpackSparseLUSolutionManager::BackSub(doublereal t_iniz)
 {
 	const double* const Axp = &(Ax[0]);
 	const int* const Aip = &(Ai[0]);
@@ -247,22 +247,22 @@ Umfpack3SparseLUSolutionManager::BackSub(doublereal t_iniz)
 
 /* Rende disponibile l'handler per la matrice */
 SpMapMatrixHandler*
-Umfpack3SparseLUSolutionManager::pMatHdl(void) const
+UmfpackSparseLUSolutionManager::pMatHdl(void) const
 {
 	return &A;
 }
 
 /* Rende disponibile l'handler per il termine noto */
 MyVectorHandler*
-Umfpack3SparseLUSolutionManager::pResHdl(void) const {
+UmfpackSparseLUSolutionManager::pResHdl(void) const {
 	return bVH;
 }
 
 /* Rende disponibile l'handler per la soluzione */
 MyVectorHandler*
-Umfpack3SparseLUSolutionManager::pSolHdl(void) const {
+UmfpackSparseLUSolutionManager::pSolHdl(void) const {
 	return xVH;
 }
 
-#endif /* USE_UMFPACK3 */
+#endif /* USE_UMFPACK */
 

@@ -29,7 +29,7 @@
 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>
-#endif
+#endif /* HAVE_CONFIG */
 
 #include <stdlib.h>
 #include <ac/iostream>
@@ -44,7 +44,7 @@ static void
 usage(void)
 {
 	std::cerr << "usage: wraptest "
-		"[y12|harwell|meschach|umfpack3 [singular]]" 
+		"[y12|harwell|meschach|umfpack [singular]]" 
 		<< std::endl;
 	exit(EXIT_FAILURE);
 }
@@ -63,37 +63,38 @@ main(int argc, char *argv[])
 	if (strcasecmp(solver, "y12") == 0) {
 #ifdef USE_Y12
 		pSM = new Y12SparseLUSolutionManager(size);
-#else 
+#else /* !USE_Y12 */
 		std::cerr << "need --with-y12 to use y12m library" 
 			<< std::endl;
 		usage();
-#endif
+#endif /* !USE_Y12 */
 
 	} else if (strcasecmp(solver, "harwell") == 0) {
 #ifdef USE_HARWELL
 		pSM = new HarwellSparseLUSolutionManager(size);
-#else
+#else /* !USE_HARWELL */
 		std::cerr << "need --with-harwell to use HSL library" 
 			<< std::endl;
 		usage();
-#endif
+#endif /* !USE_HARWELL */
 
 	} else if (strcasecmp(solver, "meschach") == 0) {
 #ifdef USE_MESCHACH
 		pSM = new MeschachSparseLUSolutionManager(size);
-#else
+#else /* !USE_MESCHACH */
 		std::cerr << "need --with-meschach to use Meschach library" 
 			<< std::endl;
 		usage();
-#endif
-	} else if (strcasecmp(solver, "umfpack3") == 0) {
-#ifdef USE_UMFPACK3
-		pSM = new Umfpack3SparseLUSolutionManager(size);
-#else
-		std::cerr << "need --with-umfpack3 to use Umfpack3 library" 
+#endif /* !USE_MESCHACH */
+	} else if (strcasecmp(solver, "umfpack") == 0
+			|| strcasecmp(solver, "umfpack3") == 0) {
+#ifdef USE_UMFPACK
+		pSM = new UmfpackSparseLUSolutionManager(size);
+#else /* !USE_UMFPACK */
+		std::cerr << "need --with-umfpack to use Umfpack library" 
 			<< std::endl;
 		usage();
-#endif
+#endif /* !USE_UMFPACK */
 
 	} else {
 		std::cerr << "unknown solver '" << solver << "'" << std::endl;

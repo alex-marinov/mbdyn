@@ -204,11 +204,11 @@ mainly used to check models and simulations at various phases.
 
 \subsubsection{Solver}   
 \begin{verbatim}
-    <card> ::= solver : { umfpack3 | y12 | harwell | meschach }
+    <card> ::= solver : { umfpack | y12 | harwell | meschach }
                [ , workspace size , <size> ] 
 	       [ , pivot factor , <factor> ] ;
 \end{verbatim}
-The default, if available, is \texttt{umfpack3} which dynamically
+The default, if available, is \texttt{umfpack} which dynamically
 allocates memory as required, so the \texttt{workspace size} 
 parameter is ignored.
 The \texttt{y12} solver requires static allocation of the workspace;

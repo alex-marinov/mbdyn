@@ -4,10 +4,10 @@ begin: data;
 end: data;
 
 begin: multistep;
-	solver: {y12 | umfpack3 | harwell | meschach}, 
+	solver: {y12 | umfpack | harwell | meschach}, 
 		workspace size, <int>, Pivot Factor, <double> ;
 		 
-	interface solver: {y12 | umfpack3 | meschach}, 
+	interface solver: {y12 | umfpack | meschach}, 
 		workspace size, <int>, Pivot Factor, <double> ;
 end: multistep;
 

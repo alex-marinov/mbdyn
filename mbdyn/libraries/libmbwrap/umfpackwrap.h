@@ -58,10 +58,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef Umfpack3SparseLUSolutionManager_hh
-#define Umfpack3SparseLUSolutionManager_hh
+#ifndef UmfpackSparseLUSolutionManager_hh
+#define UmfpackSparseLUSolutionManager_hh
 
-#ifdef USE_UMFPACK3
+#ifdef USE_UMFPACK
 
 #include <ac/iostream>
 #include <vector>
@@ -75,7 +75,10 @@ extern "C" {
 #include <solman.h>
 #include <spmapmh.h>
 
-class Umfpack3SparseLUSolutionManager: public SolutionManager {
+#warning "Umfpack3SparseLUSolutionManager => UmfpackSparseLUSolutionManager"
+#define Umfpack3SparseLUSolutionManager UmfpackSparseLUSolutionManager
+
+class UmfpackSparseLUSolutionManager: public SolutionManager {
 private:
 	mutable SpMapMatrixHandler A;
 	MyVectorHandler *xVH, *bVH;
@@ -98,9 +101,9 @@ private:
 	bool PrepareSymbolic(void);
 	
 public:
-	Umfpack3SparseLUSolutionManager(integer Dim, integer /* unused */ = 0, 
+	UmfpackSparseLUSolutionManager(integer Dim, integer /* unused */ = 0, 
 			doublereal dPivot = -1.);
-	virtual ~Umfpack3SparseLUSolutionManager(void);
+	virtual ~UmfpackSparseLUSolutionManager(void);
 	virtual void IsValid(void) const {
 		NO_OP;
 	};
@@ -134,7 +137,7 @@ public:
 	virtual MyVectorHandler* pSolHdl(void) const;
 };
 
-#endif /* USE_UMFPACK3 */
+#endif /* USE_UMFPACK */
 
-#endif /* Umfpack3SparseLUSolutionManager_hh */
+#endif /* UmfpackSparseLUSolutionManager_hh */
 

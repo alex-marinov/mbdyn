@@ -255,14 +255,14 @@ template IterativeSolutionManager::IterativeSolutionManager(integer iDim,
 				 doublereal dPivot);
 #endif /* USE_HARWELL */ 
 
-#ifdef USE_UMFPACK3
+#ifdef USE_UMFPACK
 template IterativeSolutionManager::IterativeSolutionManager(integer iDim,
 	                         doublereal Tollerance,
 				 int max,
 				 SolutionDataManager* pdm,
 				 VectorHandler* pX,
 				 VectorHandler* pXP, 			 
-				 Umfpack3SparseLUSolutionManager * psm,
+				 UmfpackSparseLUSolutionManager * psm,
 				 integer WorkSpaceSize,
 				 doublereal dPivot);
-#endif /* USE_UMFPACK3 */ 
+#endif /* USE_UMFPACK */ 
