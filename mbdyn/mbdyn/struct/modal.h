@@ -78,7 +78,8 @@ protected:
 	unsigned int* IdFemNodes;
 	unsigned int* IntNodes;
 	Mat3xN *pXYZFemNodes;
-	Mat3xN *pOffsetNodes;   
+	Mat3xN *pOffsetFEMNodes;   
+	Mat3xN *pOffsetMBNodes;   
 	const StructNode** pInterfaceNodes;
  
 	Mat3xN *pPHIt;
@@ -142,7 +143,8 @@ public:
 			unsigned int* IdFemNodes,
 			unsigned int* IntNodes,
 			Mat3xN *pN,
-			Mat3xN *pXYZOffsetNodes,
+			Mat3xN *pOffsetfemNodes,
+			Mat3xN *pOffsetmbNodes,
 			const StructNode** pN2,
 			Mat3xN *pPHIt,
 			Mat3xN *pPHIr,

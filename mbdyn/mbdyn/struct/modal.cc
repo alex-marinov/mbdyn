@@ -124,7 +124,8 @@ Modal::Modal(unsigned int uL,
 		unsigned int* IdFemNodes, /* label dei nodi FEM */
 		unsigned int* IntNodes,   /* label dei nodi d'interfaccia */
 		Mat3xN *pN,               /* posizione dei nodi FEM */
-		Mat3xN *pXYZOffsetNodes,
+		Mat3xN *pOffsetfemNodes,
+		Mat3xN *pOffsetmbNodes,
 		const StructNode** pIN,   /* nodi d'interfaccia */
 		Mat3xN *pPHItStrNode,     /* forme modali nodi d'interfaccia */
 		Mat3xN *pPHIrStrNode,
@@ -158,7 +159,8 @@ pModalDamp(pGenDamp),
 IdFemNodes(IdFemNodes),
 IntNodes(IntNodes),
 pXYZFemNodes(pN),
-pOffsetNodes(pXYZOffsetNodes),
+pOffsetFEMNodes(pOffsetfemNodes),
+pOffsetMBNodes(pOffsetmbNodes),
 pInterfaceNodes(pIN),
 pPHIt(pPHItStrNode),
 pPHIr(pPHIrStrNode),
@@ -979,8 +981,8 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		integer iStrNodeIndex = iReactionIndex + 6*NStrNodes;
 
 		/* nodo 1 (FEM) e 2 (Multi - Body): recupera la posizione */
-		Vec3 d1rig(pOffsetNodes->GetVec(iStrNode));
-		pd2[iStrNodem1] = pOffsetNodes->GetVec(NStrNodes+iStrNode);
+		Vec3 d1rig(pOffsetFEMNodes->GetVec(iStrNode));
+		pd2[iStrNodem1] = pOffsetMBNodes->GetVec(iStrNode);
 
 		/* recupero le forme modali del nodo vincolato */
 		/* FIXME: what about using Blitz++ ? :) */
@@ -1200,8 +1202,8 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		PHItT.Transpose(PHIt);
 		PHIrT.Transpose(PHIr);
 
-		Vec3 d1rig(pOffsetNodes->GetVec(iStrNode));
-		Vec3 d2(pOffsetNodes->GetVec(NStrNodes+iStrNode));
+		Vec3 d1rig(pOffsetFEMNodes->GetVec(iStrNode));
+		Vec3 d2(pOffsetMBNodes->GetVec(iStrNode));
 
 		Vec3 d1tot = d1rig+PHIt*a;
 		Mat3x3 R1tot = R1*Mat3x3(1., PHIr*a);
@@ -1596,8 +1598,8 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 		PHItT.Transpose(PHIt);
 		PHIrT.Transpose(PHIr);
 
-		Vec3 d1rig(pOffsetNodes->GetVec(iStrNode));
-		Vec3 d2(pOffsetNodes->GetVec(NStrNodes+iStrNode));
+		Vec3 d1rig(pOffsetFEMNodes->GetVec(iStrNode));
+		Vec3 d2(pOffsetMBNodes->GetVec(iStrNode));
 
 		Vec3 d1tot = d1rig+PHIt*a;
 		Mat3x3 R1tot = R1*Mat3x3(1., PHIr*a);
@@ -2029,7 +2031,8 @@ ReadModal(DataManager* pDM,
    Vec3   PHItij(0.);                 /* j-esima forma del nodo i-esimo */
    Vec3   PHIrij(0.);
    Mat3xN *pXYZFemNodes = NULL;       /* puntatore alle coordinate nodali */
-   Mat3xN *pXYZOffsetNodes = NULL;    /* punt. offset nodali (per vincoli) */
+   Mat3xN *pOffsetFEMNodes = NULL;    /* punt. offset FEM (per vincoli) */
+   Mat3xN *pOffsetMBNodes = NULL;     /* punt. offset MB (per vincoli) */
    MatNxN *pGenMass = NULL;           /* punt. masse e rigidezze modali */
    MatNxN *pGenStiff = NULL;
    MatNxN *pGenDamp = NULL;
@@ -2267,33 +2270,34 @@ ReadModal(DataManager* pDM,
 
    /* traslazione origine delle coordinate */
    if (HP.IsKeyWord("origin" "node")) {
-      unsigned int NFemOriginNode = HP.GetInt();  /* numero di nodi FEM del modello */
-      for (iNode = 1; iNode <= NFemNodes; iNode++) {
-	 if ( NFemOriginNode == IdFemNodes[iNode-1]) {
+      /* numero di nodi FEM del modello */
+      unsigned int NFemOriginNode = HP.GetInt();
+
+      for (iNode = 0; iNode < NFemNodes; iNode++) {
+	 if (NFemOriginNode == IdFemNodes[iNode]) {
 	    break;
 	 }
-	 if (iNode == NFemNodes) {
-	    std::cerr << "Modal(" << uLabel << "): FEM node " << NFemOriginNode
-	      << " at line " << HP.GetLineData()
-		<< " not defined " << std::endl;
-	    THROW(DataManager::ErrGeneric());
-	 }
       }
-      Vec3 Origin(0.);
-      for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-   	 Origin.Put(iCnt, pXYZFemNodes->dGet(iCnt, iNode));
+      if (iNode == NFemNodes) {
+	 std::cerr << "Modal(" << uLabel << "): FEM node " << NFemOriginNode
+	   << " at line " << HP.GetLineData()
+	   << " not defined " << std::endl;
+	 THROW(DataManager::ErrGeneric());
       }
+
+      iNode++;
+      Vec3 Origin(pXYZFemNodes->GetVec(iNode));
+
       for (iStrNode = 1; iStrNode <= NFemNodes; iStrNode++) {
-         for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	    pXYZFemNodes->Sub(iCnt, iStrNode, Origin.dGet(iCnt));
-         }
+	 pXYZFemNodes->SubVec(iStrNode, Origin);
       }
    }
 
    unsigned int NStrNodes = HP.GetInt();  /* numero di nodi d'interfaccia */
    DEBUGCOUT("Number of Interface Nodes : " << NStrNodes << std::endl);
 
-   SAFENEWWITHCONSTRUCTOR(pXYZOffsetNodes, Mat3xN, Mat3xN(2*NStrNodes+1, 0.));
+   SAFENEWWITHCONSTRUCTOR(pOffsetFEMNodes, Mat3xN, Mat3xN(NStrNodes+1, 0.));
+   SAFENEWWITHCONSTRUCTOR(pOffsetMBNodes, Mat3xN, Mat3xN(NStrNodes+1, 0.));
    SAFENEWWITHCONSTRUCTOR(pPHItStrNode, Mat3xN, Mat3xN(NStrNodes*NModes, 0.));
    SAFENEWWITHCONSTRUCTOR(pPHIrStrNode, Mat3xN, Mat3xN(NStrNodes*NModes, 0.));
 
@@ -2305,12 +2309,6 @@ ReadModal(DataManager* pDM,
       /* nodo collegato 1 (è il nodo FEM) */
       unsigned int uNode1 = (unsigned int)HP.GetInt();
       DEBUGCOUT("Linked to FEM Node " << uNode1 << std::endl);
-
-      /* offset del nodo FEM */
-      ReferenceFrame RF(pModalNode);
-      Vec3 d1(HP.GetPosRel(RF));
-
-      DEBUGCOUT("Fem Node reference frame d1:" << std::endl << d1 << std::endl);
 
       /* verifica di esistenza del nodo 1*/
       for (iNode = 1; iNode <= NFemNodes; iNode++) {
@@ -2329,23 +2327,19 @@ ReadModal(DataManager* pDM,
 
       /* recupera la posizione del nodo FEM, somma di posizione
        * e eventuale offset;
+       *
+       * HEADS UP: non piu' offset per i nodi FEM !!!!!!!!!
+       * 
        * nota: iNodeCurr contiene la posizione a cui si trova
        * il nodo FEM d'interfaccia nell'array pXYZNodes */
-      for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	 pXYZOffsetNodes->Put(iCnt, iStrNode, pXYZFemNodes->dGet(iCnt, iNodeCurr)+d1.dGet(iCnt));
-      }
+      pOffsetFEMNodes->PutVec(iStrNode, pXYZFemNodes->GetVec(iNodeCurr));
+
       /* salva le forme modali del nodo d'interfaccia nell'array pPHIStrNode */
-
       for (iMode = 1; iMode <= NModes; iMode++) {
-         for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	    pPHItStrNode->Put(iCnt, (iMode-1)*NStrNodes+iStrNode,
-				pModeShapest->dGet(iCnt, (iMode-1)*NFemNodes+iNodeCurr));
-	 }
-
-         for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	      pPHIrStrNode->Put(iCnt, (iMode-1)*NStrNodes+iStrNode,
-				pModeShapesr->dGet(iCnt, (iMode-1)*NFemNodes+iNodeCurr));
-	 }
+	 pPHItStrNode->PutVec((iMode-1)*NStrNodes+iStrNode,
+			 pModeShapest->GetVec((iMode-1)*NFemNodes+iNodeCurr));
+	 pPHIrStrNode->PutVec((iMode-1)*NStrNodes+iStrNode,
+			 pModeShapesr->GetVec((iMode-1)*NFemNodes+iNodeCurr));
       }
 
       /* nodo collegato 2 (e' il nodo multibody) */
@@ -2362,12 +2356,10 @@ ReadModal(DataManager* pDM,
       }
 
       /* offset del nodo Multi-Body */
-      RF = ReferenceFrame(pInterfaceNodes[iStrNode-1]);
+      ReferenceFrame RF = ReferenceFrame(pInterfaceNodes[iStrNode-1]);
       Vec3 d2(HP.GetPosRel(RF));
 
-      for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	 pXYZOffsetNodes->Put(iCnt, NStrNodes+iStrNode, d2.dGet(iCnt));
-      }
+      pOffsetMBNodes->PutVec(iStrNode, d2);
 
       DEBUGCOUT("Multibody Node reference frame d2:" << std::endl << d2 << std::endl);
 
@@ -2596,7 +2588,8 @@ ReadModal(DataManager* pDM,
 				IdFemNodes,
 				IntNodes,
 				pXYZFemNodes,
-				pXYZOffsetNodes,
+				pOffsetFEMNodes,
+				pOffsetMBNodes,
 				pInterfaceNodes,
 				pPHItStrNode,
 				pPHIrStrNode,
