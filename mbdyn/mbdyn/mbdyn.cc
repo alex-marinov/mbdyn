@@ -739,24 +739,46 @@ main(int argc, char* argv[])
 	    		time_t tMils = 0;
 #ifdef HAVE_SYS_TIMES_H	 
 	    		/* Tempo di CPU impiegato */
-	    		struct tms buf;
-	    		times(&buf);
-	    		clock_t ct = buf.tms_utime+buf.tms_cutime
-				+buf.tms_stime+buf.tms_cstime;
+	    		struct tms tmsbuf;
+	    		times(&tmsbuf);
+	    		clock_t ct = tmsbuf.tms_utime+tmsbuf.tms_cutime
+				+tmsbuf.tms_stime+tmsbuf.tms_cstime;
 			long clk_tck = sysconf(_SC_CLK_TCK);
 	    		tSecs = ct/clk_tck;
 	    		tMils = ((ct*1000)/clk_tck)%1000;
+
+			char timebuf[] = " (1000000000h 59m 59s 999ms)";
+			char *s = timebuf;
+			size_t l = sizeof(timebuf), n;
+
+			n = snprintf(s, l, "%d.%03d", tSecs, tMils);
+
 	    		std::cout << std::endl << "The simulation required " 
-	        		<< tSecs << '.' << tMils 
-	        		<< " seconds of CPU time";
+	        		<< timebuf << " seconds of CPU time";
+
 			if (tSecs > 60) {
-				std::cout << " (";
+				n = snprintf(s, l, " (" /* ) */ );
+				s += n;
+				l -= n;
+
 				if (tSecs > 3600) {
-					std::cout << tSecs/3600 << "h ";
+					n = snprintf(s, l, "%dh ", tSecs/3600);
+					if (n >= l) {
+						THROW(ErrGeneric());
+					}
+					s += n;
+					l -= n;
 				}
-				std::cout << (tSecs%3600)/60 << "m "
-					<< (tSecs%3600)%60 << "s "
-					<< tMils << "ms)";
+
+				n = snprintf(s, l,
+						/* ( */ "%02dm %02ds %03dms)",
+						(tSecs%3600)/60,
+						(tSecs%3600)%60, tMils);
+
+				s += n;
+				l -= n;
+
+				std::cout << timebuf;
 			}
 #ifdef USE_MPI
 			if (using_mpi) {
@@ -795,6 +817,7 @@ exit_point:;
 #ifdef USE_RTAI
 	if (mbdyn_rtai_task) {
 		(void)mbdyn_rt_task_delete(&mbdyn_rtai_task);
+		mbdyn_rtai_task = NULL;
 	}
 #endif /* USE_RTAI */
    
