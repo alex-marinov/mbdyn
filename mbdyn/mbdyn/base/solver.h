@@ -97,13 +97,17 @@ private:
  
 #ifdef __HACK_EIG__
    	/* Dati per esecuzione di eigenanalysis */
-   	struct WhenEigen {
+   	struct {
       		doublereal dTime;
-      		flag fDone;
+      		bool bDone;
    	} OneEig;
-	flag fEigenAnalysis;
+	enum {
+		EIG_NO,
+		EIG_YES,
+		EIG_OUTPUTMATRICES
+	} eEigenAnalysis;
 	doublereal dEigParam;
-	flag fOutputModes;
+	bool bOutputModes;
 	doublereal dUpperFreq;
 	doublereal dLowerFreq;
 	void Eig(void);
@@ -193,9 +197,8 @@ private:
    	StepIntegrator* pFirstFictitiousStep;
 	StepIntegrator* pFictitiousSteps;
 	
-	LinSol::SolverType CurrSolver;
-	integer iWorkSpaceSize;
-   	doublereal dPivotFactor;
+	LinSol CurrSolver;
+
    	/* Parametri per Newton-Raphson modificato */
    	bool bTrueNewtonRaphson;
    	bool bKeepJac;
@@ -210,16 +213,14 @@ private:
 	doublereal dIterertiveTau;
 
 /* FOR PARALLEL SOLVERS*/
-	flag fParallel;
+	bool bParallel;
 	SchurDataManager *pSDM;
-	LinSol::SolverType CurrIntSolver;
+	LinSol CurrIntSolver;
 	integer iNumLocDofs;		/* Dimensioni problema locale */
 	integer iNumIntDofs;		/* Dimensioni interfaccia locale */
 	integer* pLocDofs;		/* Lista dof locali (stile FORTRAN) */
 	integer* pIntDofs;		/* Lista dei dofs di interfaccia */
 	Dof* pDofs;
-	integer iIWorkSpaceSize;
-	doublereal dIPivotFactor;
 	SolutionManager *pLocalSM;
 /* end of FOR PARALLEL SOLVERS */
 
@@ -254,7 +255,7 @@ public:
    	Solver(MBDynParser& HP, 
 		       	    const char* sInputFileName, 
 			    const char* sOutputFileName,
-			    flag fParallel = 0);
+			    bool bParallel = false);
 
    	/* esegue la simulazione */
    	void Run(void);

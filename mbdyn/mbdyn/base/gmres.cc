@@ -190,10 +190,11 @@ Gmres::Solve(const NonlinearProblem* pNLP,
       		pNLP->Residual(pRes);
 		
       		if (outputRes()) {
-	 		std::cout << "Residual:" << std::endl;
-	 		std::cout << iIterCnt <<std::endl;
+	 		std::cout << "Residual (" << iIterCnt 
+				<< "):" << std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
-	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": " 
+	    			std::cout << "Dof " << std::setw(8)
+					<< iTmpCnt << ": " 
 					<< pRes->dGetCoef(iTmpCnt) << std::endl;
 			}
       		}
@@ -445,7 +446,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 		if (outputSol()) {      
 	 		std::cout << "Solution:" << std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
-	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": "
+	    			std::cout << "Dof " << std::setw(8) << iTmpCnt << ": "
 					<< dx.dGetCoef(iTmpCnt) << std::endl;
 			}
 		}		
@@ -455,7 +456,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 #ifdef USE_MPI
 			if (dynamic_cast<SchurSolutionManager*> (pSM) && (MBDynComm.Get_rank() == 0)) {
 #endif /* USE_MPI */
-				std::cerr << "\tIteration " << iIterCnt
+				std::cout << "\tIteration " << iIterCnt
 					<< " " << dErr << " J"
 					<< std::endl;
 #ifdef USE_MPI

@@ -73,12 +73,14 @@ const int ADJ_UNDEFINED = -1;
 
 #ifndef USE_MPI
 SchurDataManager::SchurDataManager(MBDynParser& HP, 
-				   doublereal dInitialTime,
-				   const char* sInputFileName,
-				   const char* sOutputFileName, 
-				   flag fAbortAfterInput)
-: DataManager(HP, dInitialTime, sInputFileName, 
-              sOutputFileName, fAbortAfterInput) {
+		unsigned OF,
+		doublereal dInitialTime,
+		const char* sInputFileName,
+		const char* sOutputFileName, 
+		flag fAbortAfterInput)
+: DataManager(HP, OF, dInitialTime, sInputFileName, 
+              sOutputFileName, fAbortAfterInput)
+{
 	std::cerr << "fatal error: you are building SchurDataManager,\n" <<
 		"but mbdyn was compiled without MPI.\n" <<
 		"Something weird is happening\n" <<
@@ -86,9 +88,11 @@ SchurDataManager::SchurDataManager(MBDynParser& HP,
 		"to enable paralle solution\n";
 	THROW(ErrGeneric());
 };
+
 SchurDataManager::~SchurDataManager() {
 	NO_OP;
 };
+
 void SchurDataManager::AssRes(VectorHandler&, double) {NO_OP;};
 void SchurDataManager::AssJac(MatrixHandler&, double) {NO_OP;};
 void SchurDataManager::DerivativesUpdate() const {NO_OP;};
@@ -100,11 +104,12 @@ void SchurDataManager::AfterConvergence() const {NO_OP;};
 
  /* Costruttore - begin */
 SchurDataManager::SchurDataManager(MBDynParser& HP, 
-				   doublereal dInitialTime,
-				   const char* sInputFileName,
-				   const char* sOutputFileName, 
-				   flag fAbortAfterInput)
-: DataManager(HP, dInitialTime, sInputFileName, 
+		unsigned OF,
+		doublereal dInitialTime,
+		const char* sInputFileName,
+		const char* sOutputFileName, 
+		flag fAbortAfterInput)
+: DataManager(HP, OF, dInitialTime, sInputFileName, 
               sOutputFileName, fAbortAfterInput),
 iTotVertices(0),
 ppMyElems(NULL),

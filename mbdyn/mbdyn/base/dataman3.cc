@@ -110,6 +110,8 @@ void DataManager::ReadControl(MBDynParser& HP,
       "initial" "tolerance",
       "max" "initial" "iterations",
 
+      "solver",
+
       "print",
       "dof" "stats",
       
@@ -173,6 +175,8 @@ void DataManager::ReadControl(MBDynParser& HP,
       YES,
       INITIALTOLERANCE,
       MAXINITIALITERATIONS,
+
+      SOLVER,
 
       PRINT,
       DOFSTATS,
@@ -656,8 +660,13 @@ void DataManager::ReadControl(MBDynParser& HP,
 
        case PRINT:
 	  if (HP.IsKeyWord("dof" "stats")) {
-	     fPrintDofStats = 1;
+	     bPrintDofStats = true;
 	  }
+	  break;
+
+       case SOLVER:
+	  CurrSolver.Read(HP);
+	  HP.PutKeyTable(K);
 	  break;
 	 
 	 /* Titolo */

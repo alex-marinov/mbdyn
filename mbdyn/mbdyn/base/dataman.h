@@ -58,11 +58,14 @@
 #include <strnode.h>
 #include <elecnode.h>
 
+#include <nonlin.h>
+#include <integr.h>
+
 /* DataManager - begin */
 
 const int iGlobalSymbolTableInitialSize = 21;
 
-class DataManager : public SolutionDataManager {
+class DataManager : public SolutionDataManager, public SolverDiagnostics {
    friend DriveCaller* ReadDriveData(const DataManager*, MBDynParser&, const DriveHandler*);   
    friend ScalarDof ReadScalarDof(const DataManager*, MBDynParser&, flag);
    
@@ -102,13 +105,14 @@ class DataManager : public SolutionDataManager {
    flag fOmegaRotates;
    doublereal dInitialAssemblyTol;
    integer iMaxInitialIterations;
+   LinSol CurrSolver;
 #endif /* USE_STRUCT_NODES */
 
 #if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
    bool loadableElemInitialized;
 #endif /* HAVE_LOADABLE && HAVE_LTDL_H */
 
-   flag fPrintDofStats;
+   bool bPrintDofStats;
 
    /* Parametri vari */
    char* sSimulationTitle;
@@ -212,6 +216,7 @@ class DataManager : public SolutionDataManager {
    
    /* costruttore - legge i dati e costruisce le relative strutture */
    DataManager(MBDynParser& HP, 
+	       unsigned OF,
 	       doublereal dInitialTime,
 	       const char* sInputFileName,
 	       const char* sOutputFileName, 

@@ -39,20 +39,36 @@ class LinSol
 {
 public:
    	enum SolverType {
-		HARWELL_SOLVER,
+		HARWELL_SOLVER = 0,
 		MESCHACH_SOLVER,
 		Y12_SOLVER,
                 UMFPACK_SOLVER,
-		EMPTY_SOLVER   
+		EMPTY_SOLVER,
+
+		LAST_SOLVER
 	};
 
+protected:
+	SolverType CurrSolver;
+	integer iWorkSpaceSize;
+   	doublereal dPivotFactor;
+
+public:
 	static SolverType defaultSolver;
- 
-   	virtual ~LinSol(void) {
-		NO_OP;
-	};
 
+	LinSol(void);
+   	virtual ~LinSol(void);
+	void Read(MBDynParser &HP, bool bAllowEmpty = false);
+ 
+	SolverType GetSolver(void) const;
+	integer iGetWorkSpaceSize(void) const;
+	const doublereal& dGetPivotFactor(void) const;
+
+	SolutionManager *const
+	LinSol::GetSolutionManager(integer iNLD, integer iLWS = 0) const;
 };
+
+extern const char *psSolverNames[];
 
 /* Integrator - end */
 

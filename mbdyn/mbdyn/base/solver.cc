@@ -148,7 +148,7 @@ const doublereal defaultIterativeTau = 1.e-7;
 Solver::Solver(MBDynParser& HPar,
 		const char* sInFName,
 		const char* sOutFName,
-		flag fPar)
+		bool bPar)
 :
 CurrStrategy(NOCHANGE),
 sInputFileName(NULL),
@@ -156,9 +156,9 @@ sOutputFileName(NULL),
 HP(HPar),
 pStrategyChangeDrive(NULL),
 #ifdef __HACK_EIG__
-fEigenAnalysis(0),
+eEigenAnalysis(EIG_NO),
 dEigParam(1.),
-fOutputModes(0),
+bOutputModes(false),
 dUpperFreq(FLT_MAX),
 dLowerFreq(0.),
 #endif /* __HACK_EIG__ */
@@ -206,9 +206,6 @@ pDerivativeSteps(NULL),
 pFirstRegularStep(NULL),
 pRegularSteps(NULL),
 pFictitiousSteps(NULL),
-CurrSolver(LinSol::defaultSolver),
-iWorkSpaceSize(0),
-dPivotFactor(-1.),
 bTrueNewtonRaphson(1),
 iIterationsBeforeAssembly(0),
 NonlinearSolverType(NonlinearSolver::UNKNOWN),
@@ -220,16 +217,13 @@ iIterativeMaxSteps(iDefaultPreconditionerSteps),
 dIterertiveEtaMax(defaultIterativeEtaMax),
 dIterertiveTau(defaultIterativeTau),
 /* FOR PARALLEL SOLVERS*/
-fParallel(fPar),
+bParallel(bPar),
 pSDM(NULL),
-CurrIntSolver(LinSol::defaultSolver),
 iNumLocDofs(0),
 iNumIntDofs(0),
 pLocDofs(NULL),
 pIntDofs(NULL),
 pDofs(NULL),
-iIWorkSpaceSize(0),
-dIPivotFactor(-1.),
 pLocalSM(NULL),
 /* end of FOR PARALLEL SOLVERS */
 pSM(NULL),
@@ -273,7 +267,7 @@ void Solver::Run(void)
 
 #ifdef USE_MPI
 	int MyRank = 0;
-	if (fParallel) {
+	if (bParallel) {
 		
 		/*
 		 * E' necessario poter determinare in questa routine
@@ -309,6 +303,7 @@ void Solver::Run(void)
 		SAFENEWWITHCONSTRUCTOR(pSDM,
 			SchurDataManager,
 			SchurDataManager(HP,
+				OutputFlags,
 				dInitialTime, 
 				sInputFileName,
 				sNewOutName,
@@ -323,6 +318,7 @@ void Solver::Run(void)
 		SAFENEWWITHCONSTRUCTOR(pDM,
  				DataManager,
  				DataManager(HP, 
+					OutputFlags,
 					dInitialTime, 
 					sInputFileName,
 					sOutputFileName,
@@ -351,7 +347,7 @@ void Solver::Run(void)
 
 	/* Qui crea le partizioni: principale fra i processi, se parallelo  */
 #ifdef USE_MPI
-	if (fParallel) {
+	if (bParallel) {
 		pSDM->CreatePartition();
 	}
 #endif /* USE_MPI */
@@ -364,7 +360,7 @@ void Solver::Run(void)
    	/* Costruisce i vettori della soluzione ai vari passi */
    	DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << std::endl);
 
-	if (fParallel) {
+	if (bParallel) {
 		iNumDofs = pSDM->HowManyDofs(SchurDataManager::TOTAL);
 		pDofs = pSDM->pGetDofsList();
 		
@@ -486,9 +482,9 @@ void Solver::Run(void)
 	pDM->SetValue(*(pX), *(pXPrime));
 	
 #ifdef __HACK_EIG__  
-   	if (fEigenAnalysis && OneEig.dTime <= dTime && !OneEig.fDone) {
+   	if (eEigenAnalysis != EIG_NO && OneEig.dTime <= dTime && !OneEig.bDone) {
 	 	Eig();
-	 	OneEig.fDone = flag(1);
+	 	OneEig.bDone = true;
    	}
 #endif /* __HACK_EIG__ */
    
@@ -977,9 +973,9 @@ IfFirstStepIsToBeRepeated:
    	iTotIter += iStIter;
    
 #ifdef __HACK_EIG__  
-   	if (fEigenAnalysis && OneEig.dTime <= dTime && !OneEig.fDone) {
+   	if (eEigenAnalysis != EIG_NO && OneEig.dTime <= dTime && !OneEig.bDone) {
 	 	Eig();
-		OneEig.fDone = flag(1);
+		OneEig.bDone = true;
       	}
 #endif /* __HACK_EIG__ */
 
@@ -1216,9 +1212,9 @@ IfStepIsToBeRepeated:
 #endif /*__HACK_POD__ */
 
 #ifdef __HACK_EIG__
-      		if (fEigenAnalysis && OneEig.dTime <= dTime && !OneEig.fDone) {
+      		if (eEigenAnalysis != EIG_NO && OneEig.dTime <= dTime && !OneEig.bDone) {
 			Eig();
-			OneEig.fDone = flag(1);
+			OneEig.bDone = true;
 		}
 #endif /* __HACK_EIG__ */
       
@@ -1419,13 +1415,6 @@ Solver::ReadData(MBDynParser& HP)
 		"solver",
 		"interface" "solver", 
 		
-			"harwell",
-			"meschach",
-			"y12",
-			"umfpack",
-			"umfpack3",
-			"empty",
-
 		/* DEPRECATED */	
 		"preconditioner",
 		/* END OF DEPRECATED */
@@ -1515,12 +1504,6 @@ Solver::ReadData(MBDynParser& HP)
 		
 		SOLVER,
 		INTERFACESOLVER,
-		HARWELL,
-		MESCHACH,
-		Y12,
-		UMFPACK,
-		UMFPACK3,
-		EMPTY,
 		
 		/* DEPRECATED */
 		PRECONDITIONER,
@@ -2264,20 +2247,20 @@ Solver::ReadData(MBDynParser& HP)
 	  if (HP.IsKeyWord("parameter")) {
              dEigParam = HP.GetReal();
 	  }
-	  OneEig.fDone = flag(0);
-	  fEigenAnalysis = flag(1);
+	  OneEig.bDone = false;
+	  eEigenAnalysis = EIG_YES;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Eigenanalysis will be performed at time "
 	  	     << OneEig.dTime << " (parameter: " << dEigParam << ")" 
 		     << std::endl);
-	  if (HP.IsKeyWord("outputmatrices")) {
-	     fEigenAnalysis = flag(2);
+	  if (HP.IsKeyWord("output" "matrices")) {
+	     eEigenAnalysis = EIG_OUTPUTMATRICES;
 	  }
 #else /* !__HACK_EIG__ */
 	  HP.GetReal();
 	  if (HP.IsKeyWord("parameter")) {
 	     HP.GetReal();
 	  }
-	  if (HP.IsKeyWord("outputmatrices")) {
+	  if (HP.IsKeyWord("output" "matrices")) {
 	     NO_OP;
 	  }
 	  std::cerr << HP.GetLineData()
@@ -2293,7 +2276,7 @@ Solver::ReadData(MBDynParser& HP)
 #endif /* !__HACK_EIG__ */
 	  if (HP.IsKeyWord("yes") || HP.IsKeyWord("nastran")) {
 #ifdef __HACK_EIG__
-	     fOutputModes = flag(1);
+	     bOutputModes = true;
 	     if (HP.fIsArg()) {
 		dUpperFreq = HP.GetReal();
 		if (dUpperFreq < 0.) {
@@ -2318,7 +2301,7 @@ Solver::ReadData(MBDynParser& HP)
 #endif /* !__HACK_EIG__ */
 	  } else if (HP.IsKeyWord("no")) {
 #ifdef __HACK_EIG__
-	     fOutputModes = flag(0);
+	     bOutputModes = false;
 #endif /* !__HACK_EIG__ */
 	  } else {
 	     std::cerr << HP.GetLineData()
@@ -2327,146 +2310,23 @@ Solver::ReadData(MBDynParser& HP)
 	  }
 	  break;
 
-       case SOLVER: {
-	  switch(KeyWords(HP.GetWord())) {	     
-	   case MESCHACH:
-#ifdef USE_MESCHACH
-	     CurrSolver = LinSol::MESCHACH_SOLVER;
-	     DEBUGLCOUT(MYDEBUG_INPUT, 
-			"Using meschach sparse LU solver" << std::endl);
-	     break;
-#endif /* USE_MESCHACH */
+       case SOLVER:
+	  CurrSolver.Read(HP);
+	  /* ripristina la tabella del parser */
+	  HP.PutKeyTable(K);
 
-	   case Y12:
-#ifdef USE_Y12
-             CurrSolver = LinSol::Y12_SOLVER;
-	     DEBUGLCOUT(MYDEBUG_INPUT,
-			"Using y12 sparse LU solver" << std::endl);
-	     break;
-#endif /* USE_Y12 */
-							       
-	   case UMFPACK3:
-	     pedantic_cerr("\"umfpack3\" is deprecated; "
-			     "use \"umfpack\" instead" << std::endl);
-	   case UMFPACK:
-#ifdef USE_UMFPACK
-             CurrSolver = LinSol::UMFPACK_SOLVER;
-	     DEBUGLCOUT(MYDEBUG_INPUT,
-			"Using umfpack sparse LU solver" << std::endl);
-	     break;
-#endif /* USE_UMFPACK */
-
-	   case HARWELL: 
-#ifdef USE_HARWELL
-	     CurrSolver = LinSol::HARWELL_SOLVER;
-	     DEBUGLCOUT(MYDEBUG_INPUT, 
-			"Using harwell sparse LU solver" << std::endl);	 
-	     break;	   
-#endif /* USE_HARWELL */
-
-	   case EMPTY: 
-	     CurrSolver = LinSol::EMPTY_SOLVER;
-	     DEBUGLCOUT(MYDEBUG_INPUT, 
-			"No LU solver" << std::endl);	 
-	     break;	   
-
-	   default:
-	     DEBUGLCOUT(MYDEBUG_INPUT, 
-			"Unknown solver; switching to default" << std::endl);
-	     break;
-	  }
-	  
-	  if (HP.IsKeyWord("workspacesize")) {
-	     iWorkSpaceSize = HP.GetInt();
-	     if (iWorkSpaceSize < 0) {
-		iWorkSpaceSize = 0;
-	     }
-	  }
-	  
-	  if (HP.IsKeyWord("pivotfactor")) {
-	     dPivotFactor = HP.GetReal();
-	     if (dPivotFactor <= 0. || dPivotFactor > 1.) {
-		dPivotFactor = 1.;
-	     }
-	  }
-	  
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Workspace size: " << iWorkSpaceSize 
-		    << ", pivor factor: " << dPivotFactor << std::endl);
 	  break;
-       }
 
-       case INTERFACESOLVER: {
-		switch(KeyWords(HP.GetWord())) {           
-		case MESCHACH:
-#ifdef USE_MESCHACH
-	  		CurrIntSolver = MESCHACH_SOLVER;
-	  		DEBUGLCOUT(MYDEBUG_INPUT, 
-				"Using meschach sparse LU solver" << std::endl);
-	  		break;
-#endif /* USE_MESCHACH */
+       case INTERFACESOLVER:
+	  CurrIntSolver.Read(HP, true);
+	  /* ripristina la tabella del parser */
+	  HP.PutKeyTable(K);
 
-		case Y12:
-#ifdef USE_Y12
-	  		CurrIntSolver = LinSol::Y12_SOLVER;
-	  		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using y12 sparse LU solver" << std::endl);
-	  		break;
-#endif /* USE_Y12 */
-
-		case UMFPACK3:
-	   		pedantic_cerr("\"umfpack3\" is deprecated; "
-	   				"use \"umfpack\" instead" 
-					<< std::endl);
-		case UMFPACK:
-#ifdef USE_UMFPACK
-	  		CurrIntSolver = LinSol::UMFPACK_SOLVER;
-	  		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using umfpack sparse LU solver" << std::endl);
-	  		break;
-#endif /* USE_UMFPACK */
-
-		case HARWELL: 
-#ifdef USE_HARWELL
-	  		CurrIntSolver = LinSol::MESCHACH_SOLVER;
-	  		std::cerr << "Harwell solver cannot be used "
-				"as interface solver; Meschach will be used"
-				<< std::endl;
-	  		break;
-#endif /* USE_HARWELL */                       
-
-	   	case EMPTY: 
-	     		CurrSolver = LinSol::EMPTY_SOLVER;
-	     		DEBUGLCOUT(MYDEBUG_INPUT, 
-				"No LU interface solver" << std::endl);	 
-	     		break;	   
-	
-		default:
-	  		DEBUGLCOUT(MYDEBUG_INPUT, 
-				"Unknown solver; switching to default" << std::endl);
-	  		break;
-        	}
-	
-		if (HP.IsKeyWord("workspacesize")) {
-			iIWorkSpaceSize = HP.GetInt();
-			if (iIWorkSpaceSize < 0) {
-				iIWorkSpaceSize = 0;
-			}
-		}
-
-		if (HP.IsKeyWord("pivotfactor")) {
-			dIPivotFactor = HP.GetReal();
-			if (dIPivotFactor <= 0. || dIPivotFactor > 1.) {
-				dIPivotFactor = 1.;
-			}
-		}
-	
-		DEBUGLCOUT(MYDEBUG_INPUT, "Workspace size: " << iIWorkSpaceSize 
-			<< ", pivor factor: " << dIPivotFactor << std::endl);
-		break;
-		std::cerr << "Interface solver only allowed when compiled "
+#ifndef USE_MPI
+	  std::cerr << "Interface solver only allowed when compiled "
 			"with MPI support" << std::endl;
-		THROW(ErrGeneric());
-       }
+#endif /* ! USE_MPI */
+	  break;
       
 #if 0 
        case MATRIXFREE: {
@@ -2534,6 +2394,7 @@ Solver::ReadData(MBDynParser& HP)
 		break;
         }
 #endif
+
        case NONLINEARSOLVER: {
 	  switch (KeyWords(HP.GetWord())) {
           case DEFAULT:
@@ -3026,7 +2887,7 @@ Solver::Eig(void)
 	     << "Matrix B:" << std::endl << MatB << std::endl);
 #endif /* DEBUG */
 
-   if (fEigenAnalysis == 2) {
+   if (eEigenAnalysis == EIG_OUTPUTMATRICES) {
       char *tmpFileName = NULL;
       const char *srcFileName = NULL;
       if (sOutputFileName == NULL) {
@@ -3205,7 +3066,7 @@ Solver::Eig(void)
    }
 #endif /* HAVE_STRFTIME && HAVE_LOCALTIME && HAVE_TIME */
    
-   if (fOutputModes) {
+   if (bOutputModes) {
 	   /* crea il file .pch */
 	   char *tmp = NULL;
 
@@ -3236,7 +3097,7 @@ Solver::Eig(void)
 #ifdef __HACK_NASTRAN_MODES__
       /* EXPERIMENTAL */
       flag doPlot = 0;
-      if (fOutputModes) {
+      if (bOutputModes) {
 
          doublereal b = Beta.dGetCoef(iPage);
 	 doublereal re = AlphaR.dGetCoef(iPage);
@@ -3284,7 +3145,7 @@ Solver::Eig(void)
 	      << std::setw(12) << MatR.dGetCoef(jCnt, iPage) << std::endl;
 	 }
 	 
-	 if (fOutputModes) {
+	 if (bOutputModes) {
 	    /*
 	     * per ora sono uguali; in realta' XP e' X * lambda
 	     */
@@ -3311,7 +3172,7 @@ Solver::Eig(void)
             }
 	 }
 
-	 if (fOutputModes) {
+	 if (bOutputModes) {
             /*
 	     * uso la parte immaginaria ...
 	     */
@@ -3331,7 +3192,7 @@ Solver::Eig(void)
    }
 
 #ifdef __HACK_NASTRAN_MODES__
-   if (fOutputModes) {
+   if (bOutputModes) {
       pch 
 	      << "ENDDATA" << std::endl;
       f06 
@@ -3354,8 +3215,10 @@ SolutionManager *const
 Solver::AllocateSolman(integer iNLD, integer iLWS)
 {
 	SolutionManager *pCurrSM = NULL;
+#if 0
+	doublereal dPivotFactor = CurrSolver.dGetPivotFactor();
 
-   	switch (CurrSolver) {
+   	switch (CurrSolver.GetSolver()) {
      	case LinSol::Y12_SOLVER: 
 #ifdef USE_Y12
       		SAFENEWWITHCONSTRUCTOR(pCurrSM,
@@ -3422,6 +3285,24 @@ Solver::AllocateSolman(integer iNLD, integer iLWS)
 		THROW(ErrGeneric());
 
 	}
+#endif /* 0 */
+
+	pCurrSM = CurrSolver.GetSolutionManager(iNLD, iLWS);
+	
+	/* special extra parameters if required */
+	switch (CurrSolver.GetSolver()) {
+	case LinSol::UMFPACK_SOLVER:
+#if defined(USE_RTAI) && defined(HAVE_UMFPACK_TIC_DISABLE)
+		if (bRT) {
+			/* disable profiling, to avoid times() system call */
+			umfpack_tic_disable();
+		}
+#endif /* USE_RTAI && HAVE_UMFPACK_TIC_DISABLE */
+		break;
+
+	default:
+		break;
+	}
 
 	return pCurrSM;
 };
@@ -3429,8 +3310,12 @@ Solver::AllocateSolman(integer iNLD, integer iLWS)
 
 SolutionManager *const Solver::AllocateSchurSolman(integer iStates) {
 	SolutionManager *pSSM(NULL);
+
 #ifdef USE_MPI
-	switch (CurrIntSolver) {
+	doublereal dIPivotFactor = CurrIntSolver.dGetPivotFactor();
+	integer iIWorkSpaceSize = CurrIntSolver.iGetorkSpaceSize();
+
+	switch (CurrIntSolver.GetSolver()) {
 		case LinSol::Y12_SOLVER:
 #ifdef USE_Y12
 		SAFENEWWITHCONSTRUCTOR(pSSM, 
@@ -3571,9 +3456,10 @@ void Solver::SetupSolmans(integer iStates) {
 		pLocalSM = 0;
 	}
 	
+	integer iWorkSpaceSize = CurrSolver.iGetWorkSpaceSize();
 	integer iLWS = iWorkSpaceSize;
 	integer iNLD = iNumDofs*iStates;
-	if (fParallel) {
+	if (bParallel) {
 		/*FIXME BEPPE!*/
 		iLWS = iWorkSpaceSize*iNumLocDofs/(iNumDofs*iNumDofs);
 		/*FIXME: GIUSTO QUESTO?*/
@@ -3586,7 +3472,7 @@ void Solver::SetupSolmans(integer iStates) {
 	 * This is the LOCAL solver if instantiating a parallel
 	 * integrator; otherwise it is the MAIN solver
 	 */
-	if (fParallel) {
+	if (bParallel) {
 		pLocalSM = pCurrSM;
 
 		/* Crea il solutore di Schur globale */

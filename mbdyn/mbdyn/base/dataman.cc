@@ -80,11 +80,13 @@ const char sDefaultOutputFileName[] = "MBDyn";
  */
 
 DataManager::DataManager(MBDynParser& HP, 
-			 doublereal dInitialTime,
-			 const char* sInputFileName, 
-			 const char* sOutputFileName,
-			 flag fAbortAfterInput)
+		unsigned OF,
+		doublereal dInitialTime,
+		const char* sInputFileName, 
+		const char* sOutputFileName,
+		flag fAbortAfterInput)
 :
+SolverDiagnostics(OF),
 MathPar(HP.GetMathParser()),
 GlobalSymbolTable((HP.GetMathParser()).GetSymbolTable()),
 DrvHdl((HP.GetMathParser()).GetSymbolTable()),
@@ -104,7 +106,7 @@ iMaxInitialIterations(iDefaultMaxInitialIterations),
 #if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
 loadableElemInitialized(false),
 #endif /* HAVE_LOADABLE && HAVE_LTDL_H */
-fPrintDofStats(0),
+bPrintDofStats(false),
 sSimulationTitle(NULL),
 RestartEvery(NEVER),
 iRestartIterations(0),

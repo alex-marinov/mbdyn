@@ -106,10 +106,11 @@ class SchurDataManager : public DataManager {
  public:
   /* Costruttore Inizializza i dati */
   SchurDataManager(MBDynParser& HP, 
-		     doublereal dInitialTime,
-		     const char* sInputFileName,
-		     const char* sOutputFileName,
-		     flag fAbortAfterInput);
+		  unsigned OF,
+		  doublereal dInitialTime,
+		  const char* sInputFileName,
+		  const char* sOutputFileName,
+		  flag fAbortAfterInput);
 
   /* Distruttore libera la memoria */
   ~SchurDataManager(void);
