@@ -7,7 +7,7 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.1 Engineering
+MBDyn 1.1.1
 	Enhancements:
 		- unsteady aerodynamics from Bielawa 31th A.H.S. Forum 1975
 		  for C81 aerodynamics
