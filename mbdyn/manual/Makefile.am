@@ -5,7 +5,7 @@ include $(top_srcdir)/build/top.mk
 man_MANS = mbdyn.1
 
 EXTRA_DIST = \
-mbdyn.1 \
+mbdyn.1.in \
 data.tex \
 elements.tex \
 general.tex \
