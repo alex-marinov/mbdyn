@@ -94,21 +94,21 @@ MultiThreadDataManager::dataman_helper(void *p)
 			arg->pDM->DataManager::AssJac(*(arg->pJacHdl),
 					arg->dCoef,
 					(VecIter<Elem *> *)&arg->ElemIter,
-					*(arg->pWorkMat));
+					*arg->pWorkMat);
 			break;
 
 		case MultiThreadDataManager::OP_ASSMATS:
 			arg->pDM->DataManager::AssMats(*(arg->pMatA),
 					*(arg->pMatB),
 					(VecIter<Elem *> *)&arg->ElemIter,
-					*(arg->pWorkMatA), *(arg->pWorkMatB));
+					*arg->pWorkMatA, *arg->pWorkMatB);
 			break;
 
 		case MultiThreadDataManager::OP_ASSRES:
 			arg->pDM->DataManager::AssRes(*(arg->pResHdl),
 					arg->dCoef,
 					(VecIter<Elem *> *)&arg->ElemIter,
-					*(arg->pWorkVec));
+					*arg->pWorkVec);
 			break;
 
 		case MultiThreadDataManager::OP_EXIT:
@@ -194,7 +194,7 @@ MultiThreadDataManager::MultiThreadSpawn(void)
 					ptd[i].piWorkIndex, ptd[i].pdWorkMat));
 
 		/* create thread */
-		if (pthread_create(&ptd[i].thread, NULL, dataman_helper,
+		if (i && pthread_create(&ptd[i].thread, NULL, dataman_helper,
 					&ptd[i]) != 0) {
 			std::cerr << "pthread_create() failed "
 				"for thread " << i << " of " << nThreads 
@@ -224,16 +224,22 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 
 	ResetInUse(false);
 	op = MultiThreadDataManager::OP_ASSJAC;
-	dataman_helper_count = nThreads;
+	dataman_helper_count = nThreads - 1;
 
 	pthread_mutex_lock(&dataman_helper_mutex);
 
 	for (unsigned i = 0; i < nThreads; i++) {
 		ptd[i].pJacHdl = &JacHdl;
 		ptd[i].dCoef = dCoef;
+
+		if (!i) continue;
 	
 		sem_post(&ptd[i].sem);
 	}
+
+	DataManager::AssJac(*ptd[0].pJacHdl, ptd[0].dCoef,
+			(VecIter<Elem *> *)&ptd[0].ElemIter,
+			*ptd[0].pWorkMat);
 
 	pthread_cond_wait(&dataman_helper_cond, &dataman_helper_mutex);
 	pthread_mutex_unlock(&dataman_helper_mutex);
@@ -246,7 +252,7 @@ MultiThreadDataManager::AssMats(MatrixHandler& MatA, MatrixHandler& MatB)
 
 	ResetInUse(false);
 	op = MultiThreadDataManager::OP_ASSMATS;
-	dataman_helper_count = nThreads;
+	dataman_helper_count = nThreads - 1;
 
 	pthread_mutex_lock(&dataman_helper_mutex);
 
@@ -254,8 +260,14 @@ MultiThreadDataManager::AssMats(MatrixHandler& MatA, MatrixHandler& MatB)
 		ptd[i].pMatA = &MatA;
 		ptd[i].pMatB = &MatB;
 	
+		if (!i) continue;
+	
 		sem_post(&ptd[i].sem);
 	}
+
+	DataManager::AssMats(*ptd[0].pMatA, *ptd[0].pMatB,
+			(VecIter<Elem *> *)&ptd[0].ElemIter,
+			*ptd[0].pWorkMatA, *ptd[0].pWorkMatB);
 
 	pthread_cond_wait(&dataman_helper_cond, &dataman_helper_mutex);
 	pthread_mutex_unlock(&dataman_helper_mutex);
@@ -268,7 +280,7 @@ MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 
 	ResetInUse(false);
 	op = MultiThreadDataManager::OP_ASSRES;
-	dataman_helper_count = nThreads;
+	dataman_helper_count = nThreads - 1;
 
 	pthread_mutex_lock(&dataman_helper_mutex);
 
@@ -276,11 +288,18 @@ MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 		ptd[i].pResHdl = &ResHdl;
 		ptd[i].dCoef = dCoef;
 	
+		if (!i) continue;
+
 		sem_post(&ptd[i].sem);
 	}
+
+	DataManager::AssRes(*ptd[0].pResHdl, ptd[0].dCoef,
+			(VecIter<Elem *> *)&ptd[0].ElemIter,
+			*ptd[0].pWorkVec);
 
 	pthread_cond_wait(&dataman_helper_cond, &dataman_helper_mutex);
 	pthread_mutex_unlock(&dataman_helper_mutex);
 }
 
 #endif /* USE_MULTITHREAD */
+

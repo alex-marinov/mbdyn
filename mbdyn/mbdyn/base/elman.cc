@@ -354,7 +354,7 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 {
 	DEBUGCOUT("Entering DataManager::AssJac()" << std::endl);
 
-	int i = 0;
+	// int i = 0;
 
 	Elem* pTmpEl = NULL;
 	if (pIter->bGetFirst(pTmpEl)) {
@@ -367,13 +367,13 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 
 			pthread_mutex_unlock(&mutex);
 			
-			i++;
+			// i++;
 			// usleep(100);
 			
 		} while (pIter->bGetNext(pTmpEl));
 	}
 
-	fprintf(stderr, "[%d]: J %d\n", pthread_self(), i);
+	// fprintf(stderr, "[%d]: J %d\n", pthread_self(), i);
 }
 
 void
@@ -442,7 +442,7 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
-	int i = 0;
+	// int i = 0;
 
 	Elem* pTmpEl = NULL;
 	if (pIter->bGetFirst(pTmpEl)) {
@@ -455,13 +455,13 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 
 			pthread_mutex_unlock(&mutex);
 
-			i++;
+			// i++;
 			// usleep(100);
 			
 		} while (pIter->bGetNext(pTmpEl));
 	}
 
-	fprintf(stderr, "[%d]: R %d\n", pthread_self(), i);
+	// fprintf(stderr, "[%d]: R %d\n", pthread_self(), i);
 }
 
 void
