@@ -495,8 +495,8 @@ Elem* ReadElectric(DataManager* pDM,
        DEBUGCOUT("Linked to Abstract Node " << uNode << std::endl);
        
        /* verifica di esistenza del nodo astratto */
-       AbstractNode* pVoltage1;
-       pVoltage1 = (AbstractNode*)pDM->pFindNode(Node::ABSTRACT, uNode);
+       ElectricNode* pVoltage1;
+       pVoltage1 = (ElectricNode *)pDM->pFindNode(Node::ELECTRIC, uNode);
        if (pVoltage1 == NULL) {
 	  std::cerr << "line " << HP.GetLineData() 
 	      << ": abstract node " << uNode
@@ -509,8 +509,8 @@ Elem* ReadElectric(DataManager* pDM,
        DEBUGCOUT("Linked to Abstract Node " << uNode << std::endl);
        
        /* verifica di esistenza del nodo astratto */
-       AbstractNode* pVoltage2;
-       pVoltage2 = (AbstractNode*)pDM->pFindNode(Node::ABSTRACT, uNode);
+       ElectricNode* pVoltage2;
+       pVoltage2 = (ElectricNode *)pDM->pFindNode(Node::ELECTRIC, uNode);
        if (pVoltage2 == NULL) {
 	  std::cerr << "line " << HP.GetLineData() 
 	      << ": abstract node " << uNode

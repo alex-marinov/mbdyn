@@ -54,8 +54,8 @@ class Motor : virtual public Elem, public Electric {
 private:
 	const StructNode *pStrNode1;
 	const StructNode *pStrNode2;
-	const AbstractNode *pVoltage1;
-	const AbstractNode *pVoltage2;
+	const ElectricNode *pVoltage1;
+	const ElectricNode *pVoltage2;
 
 	Vec3 Dir;
 	doublereal dGain;
@@ -65,7 +65,7 @@ private:
 public:
 	Motor(unsigned int uL, const DofOwner* pD, 
 			const StructNode* pN1, const StructNode* pN2,
-			const AbstractNode* pV1, const AbstractNode* pV2,
+			const ElectricNode* pV1, const ElectricNode* pV2,
 			const Vec3& TmpDir, doublereal dG,
 			doublereal dl, doublereal dr,
 			flag fOut);
