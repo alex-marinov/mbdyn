@@ -92,6 +92,9 @@ class PODMat {
        void Output(void) {
                std::ofstream out;
                out.open("mbdyn.POD");
+#ifdef __HACK_POD_BINARY__
+	       out.write((char *)A, Cols*Rows*sizeof(doublereal));
+#else /* !__HACK_POD_BINARY__ */
 	       doublereal *d = A;
                for (int i = 0; i < Cols; i++) {         
                        out << d[0];
@@ -101,6 +104,8 @@ class PODMat {
                        out << std::endl;
 		       d += Rows;
                }
+#endif /* __HACK_POD_BINARY__ */
+	       out.close();
 
 	       bOutput = true;
        };
