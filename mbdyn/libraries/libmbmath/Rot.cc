@@ -52,9 +52,11 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include "matvecexp.h"
-#include "RotCoeff.hh"
-#include "Rot.hh"
+#include <ac/iostream>
+#include <mathtyp.h>
+#include <matvecexp.h>
+#include <RotCoeff.hh>
+#include <Rot.hh>
 
 using namespace RotCoeff;
 
