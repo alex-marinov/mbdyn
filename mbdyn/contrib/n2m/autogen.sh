@@ -1,6 +1,6 @@
 #!/bin/sh
 
-automake --foreign Makefile
 autoheader
+automake --foreign Makefile
 autoconf
 
