@@ -413,6 +413,38 @@ public:
 
 		dPressure = P0*Adiab;
 
+		/* FIXME */
+		F = -A0*dPressure;
+
+		dFelastic = F;
+
+		if (FrictionAmpl != 0.) {
+			F *= (1.-FrictionAmpl*tanh(EpsPrime/EpsPrimeRef));
+		}
+
+		FDE = Gamma*Cint*VRatio*F;
+
+		if (CurrEpsilon > EpsMax) {
+			doublereal dFP = Penalty*(CurrEpsilon-EpsMax)
+				+PenaltyPrime*EpsPrime;
+			FDE += Penalty;
+			FDEPrime = PenaltyPrime;
+
+			dFelastic += dFP;
+			F += dFP;
+	
+		} else if (CurrEpsilon < EpsMin) {
+			doublereal dFP = Penalty*(CurrEpsilon-EpsMin)
+				+PenaltyPrime*EpsPrime;
+			FDE += Penalty;
+			FDEPrime = PenaltyPrime;
+
+			dFelastic += dFP;
+			F += dFP;
+		}
+
+#if 0
+
 		if (CurrEpsilon > EpsMax) {
 			F = FMin+Penalty*(CurrEpsilon-EpsMax)
 				+PenaltyPrime*EpsPrime;
@@ -440,6 +472,7 @@ public:
 
 			FDE = Gamma*Cint*VRatio*F;
 		}
+#endif
 
 
 		/*
