@@ -233,7 +233,7 @@ public:
                 Acol.resize(Nz());
                 return MakeIndexForm(&(Ax[0]),&(Arow[0]),&(Acol[0]),offset);
         };
-	void Reset(Real r = 0.) {
+	void Reset(doublereal r = 0.) {
 		row_cont_type::const_iterator re;
 		row_cont_type::iterator ri;
 		for (int col=0; col<NCols; col++) {
