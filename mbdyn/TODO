@@ -63,6 +63,8 @@ D. Code:
 	  matrix eigenvalue analysis (eigs)
 	- add selected output streamed on sockets for interactive analysis
 	- add rot2any/any2rot utilities
+	- rewrite hydraulic nodes as scalar differential
+
 
 
 
