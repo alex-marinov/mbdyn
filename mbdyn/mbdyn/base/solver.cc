@@ -769,7 +769,7 @@ Solver::Run(void)
 		bSolConv = true;
 	}
 	catch (...) {
-		THROW(ErrGeneric());
+		throw;
 	}
 
 	dTotErr  += dTest;
@@ -869,7 +869,7 @@ Solver::Run(void)
 			bSolConv = true;
 		}
 		catch (...) {
-			THROW(ErrGeneric());
+			throw;
 		}
 
       		dRefTimeStep = dCurrTimeStep;
@@ -947,7 +947,7 @@ Solver::Run(void)
 				bSolConv = true;
 			}
 			catch (...) {
-				THROW(ErrGeneric());
+				throw;
 			}
       
       			dTotErr += dTest;
@@ -1108,7 +1108,7 @@ IfFirstStepIsToBeRepeated:
 		bSolConv = true;
 	}
 	catch (...) {
-		THROW(ErrGeneric());
+		throw;
 	}
 
    	pDM->Output();
@@ -1484,7 +1484,7 @@ IfStepIsToBeRepeated:
 			bSolConv = true;
 		}
 		catch (...) {
-			THROW(ErrGeneric());
+			throw;
 		}
 
 	      	dTotErr += dTest;
