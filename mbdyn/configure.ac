@@ -698,7 +698,6 @@ if test $ol_with_lapack != no ; then
 	if test $have_lapack != no ; then
 		AC_DEFINE(HAVE_DGEGV,1,[define to use LAPACK's dgegv in Eig])
 	fi
-	
 fi
 
 

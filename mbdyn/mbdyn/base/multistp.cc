@@ -2237,11 +2237,8 @@ EndOfCycle: /* esce dal ciclo di lettura */
 /* Estrazione autovalori, vincolata alla disponibilita' delle LAPACK */
 #ifdef __HACK_EIG__
 
-#ifndef HAVE_DGEGV
 #include <dgegv.h>
-#endif /* HAVE_DGEGV */
 
-#if 1 /* !orig */
 void 
 MultiStepIntegrator::Eig(void)
 {
@@ -2457,7 +2454,50 @@ MultiStepIntegrator::Eig(void)
       Out << endl;
    }
 
+#ifdef __HACK_NASTRAN_MODES__
+   /* EXPERIMENTAL */
+   ofstream f06, pch;
+   if (fOutputModes) {
+	   /* crea il file .pch */
+	   pch.open("mbdyn.bdf");
+	   pch.setf(ios::showpoint);
+
+	   pch << "$.......2.......3.......4.......5.......6.......7.......8.......9.......0......." << endl;
+
+	   pDM->Output_pch(pch);
+	   
+	   /* crea il file .f06 */
+	   f06.open("mbdyn.f06");
+	   f06.setf(ios::showpoint);
+	   f06.setf(ios::scientific);
+   }
+#endif /* __HACK_NASTRAN_MODES__ */
+
    for (int iCnt = 1; iCnt <= iSize; iCnt++) {
+
+#ifdef __HACK_NASTRAN_MODES__
+      /* EXPERIMENTAL */
+      if (fOutputModes) {
+	f06 
+		<< "                                                                                                 CSA/NASTRAN 11/14/95    PAGE   " 
+		<< setw(4) << iCnt << endl
+		<< "MBDyn modal analysis" << endl
+		<< endl
+		<< "    LABEL=DISPLACEMENTS, ";
+	 ios::fmtflags iosfl = f06.setf(ios::left);
+	 const char *comment = "EXPERIMENTAL";
+	 int l = strlen(comment);
+	 f06 << setw(l+1) << comment;
+	 f06 << setw(7) << "- step " << setw(80-8-l) << 0;
+	 f06.flags(iosfl);
+	 f06 << "   SUBCASE " << iCnt << endl
+		 << endl
+		 << "                                            D I S P L A C E M E N T  V E C T O R" << endl
+		 << endl
+		 << "     POINT ID.   TYPE          T1             T2             T3             R1             R2             R3" << endl;
+      }
+#endif /* __HACK_NASTRAN_MODES__ */
+      
       doublereal cmplx = AlphaI.dGetCoef(iCnt);
       if (cmplx == 0.) {
          Out << "Mode " << iCnt << ":" << endl;
@@ -2473,6 +2513,11 @@ MultiStepIntegrator::Eig(void)
 	    MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*(iCnt-1));
 	    MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*(iCnt-1));
 	    pDM->Output(X, XP);
+	    
+#ifdef __HACK_NASTRAN_MODES__
+	    /* EXPERIMENTAL */
+	    pDM->Output_f06(f06, X);
+#endif /* __HACK_NASTRAN_MODES__ */
 	 }
       } else {
 	 if (cmplx > 0.) {
@@ -2494,221 +2539,25 @@ MultiStepIntegrator::Eig(void)
 	    MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*i);
 	    MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*i);
 	    pDM->Output(X, XP);
+
+#ifdef __HACK_NASTRAN_MODES__
+	    /* EXPERIMENTAL */
+	    pDM->Output_f06(f06, X);
+#endif /* __HACK_NASTRAN_MODES__ */
 	 }
       }
    }
+
+#ifdef __HACK_NASTRAN_MODES__
+   pch.close();
+   f06.close();
+#endif /* __HACK_NASTRAN_MODES__ */      
 
    /* Non puo' arrivare qui se le due aree di lavoro non sono definite */
    SAFEDELETEARR(pd, SMmm);
    SAFEDELETEARR(ppd, SMmm);
 }
 
-
-#else /* orig */
-void 
-MultiStepIntegrator::Eig(void)
-{
-   DEBUGCOUTFNAME("MultiStepIntegrator::Eig");   
-
-   /*
-    * MatA, MatB: MatrixHandlers to eigenanalysis matrices
-    * MatL, MatR: MatrixHandlers to eigenvectors, if required
-    * AlphaR, AlphaI Beta: eigenvalues
-    * WorkVec:    Workspace
-    * iWorkSize:  Size of the workspace
-    */
-   
-   DEBUGCOUT("MultiStepIntegrator::Eig(): performing eigenanalysis" << endl);
-   
-   char sL[2] = "V";
-   char sR[2] = "V";
-   
-   /* iNumDof is a member, set after dataman constr. */
-   integer iSize = iNumDofs;
-   /* Minimum workspace size. To be improved */
-   integer iWorkSize = 8*iNumDofs;
-   integer iInfo = 0;
-
-   /* Workspaces */
-   /* 4 matrices iSize x iSize, 3 vectors iSize x 1, 1 vector iWorkSize x 1 */
-   doublereal* pd = NULL;
-   SAFENEWARR(pd, doublereal, 4*(iSize*iSize)+3*iSize+iWorkSize, SMmm);
-   for (int iCnt = 4*(iSize*iSize)+3*iSize+iWorkSize; iCnt-- > 0; ) {
-      pd[iCnt] = 0.;
-   }
-      
-   /* 4 pointer arrays iSize x 1 for the matrices */
-   doublereal** ppd = NULL;
-   SAFENEWARR(ppd, doublereal*, 4*iSize, SMmm);
-
-   /* Data Handlers */
-   doublereal* pdTmp = pd;
-   doublereal** ppdTmp = ppd;
-   
-   doublereal* pdA = pd;
-   doublereal* pdB = pdA+iSize*iSize;
-   doublereal* pdVL = pdB+iSize*iSize;
-   doublereal* pdVR = pdVL+iSize*iSize;
-   doublereal* pdAlphaR = pdVR+iSize*iSize;
-   doublereal* pdAlphaI = pdAlphaR+iSize;
-   doublereal* pdBeta = pdAlphaI+iSize;
-   doublereal* pdWork = pdBeta+iSize;
-
-   FullMatrixHandler MatA(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
-   MatA.Init();
-   pdTmp += iSize*iSize;
-   ppdTmp += iSize;
-  
-   FullMatrixHandler MatB(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
-   MatB.Init();
-   pdTmp += iSize*iSize;
-   ppdTmp += iSize;
-  
-   FullMatrixHandler MatL(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);  
-   pdTmp += iSize*iSize;
-   ppdTmp += iSize;
-   
-   FullMatrixHandler MatR(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);    
-   pdTmp += iSize*iSize;
-   
-   MyVectorHandler AlphaR(iSize, pdTmp);
-   pdTmp += iSize;
-   
-   MyVectorHandler AlphaI(iSize, pdTmp);
-   pdTmp += iSize;
-   
-   MyVectorHandler Beta(iSize, pdTmp);
-   pdTmp += iSize;
-   
-   MyVectorHandler WorkVec(iWorkSize, pdTmp);
-   
-   /* Matrices Assembly */
-   pDM->AssEig(MatA, MatB);
-
-#ifdef DEBUG
-   DEBUGCOUT(endl << "Matrix A:" << endl << MatA << endl
-	     << "Matrix B:" << endl << MatB << endl);
-#endif /* DEBUG */
-   
-#ifdef DEBUG_MEMMANAGER
-   ASSERT(SMmm.fIsValid((void*)MatA.pdGetMat(), iSize*iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)MatB.pdGetMat(), iSize*iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)MatL.pdGetMat(), iSize*iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)MatR.pdGetMat(), iSize*iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)AlphaR.pdGetVec(), iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)AlphaI.pdGetVec(), iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)Beta.pdGetVec(), iSize*sizeof(doublereal)));
-   ASSERT(SMmm.fIsValid((void*)WorkVec.pdGetVec(), iWorkSize*sizeof(doublereal)));
-#endif /* DEBUG_MEMMANAGER */
-     
-   
-   /* Eigenanalysis */
-   __FC_DECL__(dgegv)(sL,
-	  sR,
-	  &iSize,
-	  MatA.pdGetMat(),
-	  &iSize,
-	  MatB.pdGetMat(),
-	  &iSize,	  
-	  AlphaR.pdGetVec(),
-	  AlphaI.pdGetVec(),
-	  Beta.pdGetVec(),
-	  MatL.pdGetMat(), 
-	  &iSize,
-	  MatR.pdGetMat(), 
-	  &iSize,
-	  WorkVec.pdGetVec(),
-	  &iWorkSize,
-	  &iInfo);
-   
-   ostream& Out = pDM->GetOutFile();
-   Out << "Info: " << iInfo << ", ";
-   
-   const char* const sErrs[] = {
-      "DGGBAL",
-	"DGEQRF",
-	"DORMQR",
-	"DORGQR",
-	"DGGHRD",
-	"DHGEQZ (other than failed iteration)",
-	"DTGEVC",
-	"DGGBAK (computing VL)",
-	"DGGBAK (computing VR)",
-	"DLASCL (various calls)"
-   };
-   
-   if (iInfo == 0) {
-      /* = 0:  successful exit */
-      Out << "success" << endl;
-   } else if (iInfo < 0) {         
-      /* < 0:  if INFO = -i, the i-th argument had an illegal value. */
-      Out << "the " << -iInfo << "-th argument had illegal value" << endl;
-   } else if (iInfo > 0 && iInfo <= iSize) {
-      /* = 1,...,N:   
-       * The QZ iteration failed.  No eigenvectors have been   
-       * calculated, but ALPHAR(j), ALPHAI(j), and BETA(j)   
-       * should be correct for j=INFO+1,...,N. */
-      Out << "the QZ iteration failed, but eigenvalues " 
-	<< iInfo+1 << "->" << iSize << "should be correct" << endl;
-   } else if (iInfo > iSize) {
-      /* > N:  errors that usually indicate LAPACK problems:   
-       * =N+1: error return from DGGBAL
-       * =N+2: error return from DGEQRF
-       * =N+3: error return from DORMQR
-       * =N+4: error return from DORGQR   
-       * =N+5: error return from DGGHRD   
-       * =N+6: error return from DHGEQZ (other than failed iteration)   
-       * =N+7: error return from DTGEVC   
-       * =N+8: error return from DGGBAK (computing VL)   
-       * =N+9: error return from DGGBAK (computing VR)   
-       * =N+10: error return from DLASCL (various calls) */
-      Out << "error return from " << sErrs[iInfo-iSize-1] << endl;	      
-   }
-   
-   /* Output? */
-   Out << "Mode n. " "  " "    Real    " "   " "    Imag    " "  " "    " "   Damp %   " "  Freq Hz" << endl;
-
-   for (int iCnt = 1; iCnt <= iSize; iCnt++) {
-#if 0
-      Out << setw(8) << iCnt 
-	<< ": ( " << AlphaR.dGetCoef(iCnt) << " + j * "
-	<< AlphaI.dGetCoef(iCnt) << " ) / " << Beta.dGetCoef(iCnt);
-      if (fabs(Beta.dGetCoef(iCnt)) > 1.e-16) {
-         Out << " (" << AlphaR.dGetCoef(iCnt)/Beta.dGetCoef(iCnt)
-	   << " + j * " << AlphaI.dGetCoef(iCnt)/Beta.dGetCoef(iCnt) << ")";
-      }
-      Out << endl;
-#else /* 0 */
-      Out << setw(8) << iCnt << ": ";
-      if (fabs(Beta.dGetCoef(iCnt)) > 1.e-16) {
-         Out << setw(12) << AlphaR.dGetCoef(iCnt)/Beta.dGetCoef(iCnt)
-	   << " + " << setw(12) << AlphaI.dGetCoef(iCnt)/Beta.dGetCoef(iCnt)
-	   << " j";
-	 doublereal d = sqrt(pow(AlphaR.dGetCoef(iCnt), 2) + pow(AlphaI.dGetCoef(iCnt), 2));
-	 if (d > 1.e-16) {
-	    Out << "    " << setw(12) << AlphaR.dGetCoef(iCnt)/d;
-	 } else {
-	    Out << "    " << setw(12) << 0.;
-	 }
-	 Out << "    " << setw(12) << AlphaI.dGetCoef(iCnt)/(2*M_PI*Beta.dGetCoef(iCnt));
-      } else {
-         Out << setw(12) << 0. 
-	   << " + " << setw(12) << 0.
-	   << " j    " << setw(12) << 0. 
-	   << "    " << setw(12) << 0.;
-      }
-      Out << endl;
-
-#endif /* 0 */
-   }
-
-   /* Non puo' arrivare qui se le due aree di lavoro non sono definite */
-   SAFEDELETEARR(pd, SMmm);
-   SAFEDELETEARR(ppd, SMmm);
-}
-
-#endif /* orig */
- 
 #endif /* __HACK_EIG__ */
 
 /* MultiStepIntegrator - end */

@@ -244,6 +244,8 @@ class DataManager {
    /* stampa i risultati */
    virtual void Output(void) const;
    virtual void Output(const VectorHandler& X, const VectorHandler& XP) const;
+   virtual void Output_pch(ostream& pch) const;
+   virtual void Output_f06(ostream& f06, const VectorHandler& X) const;
    
    /* Adams output */
    flag fAdamsOutput(void) const;
@@ -352,6 +354,8 @@ class DataManager {
    void ElemOutput(OutputHandler& OH) const;
    void ElemOutput(OutputHandler& OH,
 		   const VectorHandler& X, const VectorHandler& XP) const;
+   void ElemOutput_pch(ostream& pch) const;
+   void ElemOutput_f06(ostream& f06, const VectorHandler& X) const;
    
    
    /* da NodeManager */
@@ -404,6 +408,8 @@ class DataManager {
    void NodeOutput(OutputHandler& OH) const;
    void NodeOutput(OutputHandler& OH, 
 		   const VectorHandler& X, const VectorHandler& XP) const;
+   void NodeOutput_pch(ostream& pch) const;
+   void NodeOutput_f06(ostream& f06, const VectorHandler& X) const;
    
    
    /* da DofManager */

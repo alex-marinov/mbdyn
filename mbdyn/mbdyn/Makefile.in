@@ -133,7 +133,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/dummy_c.P .deps/dummy_f.P .deps/mbdyn.P
 SOURCES = $(mbdyn_SOURCES)

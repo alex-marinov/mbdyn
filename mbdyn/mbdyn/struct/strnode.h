@@ -185,6 +185,10 @@ class StructNode : public Node {
    /* Output della soluzione perturbata (modi ...) */
    virtual void Output(OutputHandler& OH, 
 		   const VectorHandler& X, const VectorHandler& XP) const;
+
+   /* Output di un modello NASTRAN equivalente nella configurazione corrente */
+   virtual void Output_pch(ostream& out) const;
+   virtual void Output_f06(ostream& out, const VectorHandler& X) const;
    
    /* Aggiorna dati in base alla soluzione */
    virtual void Update(const VectorHandler& X,

@@ -1778,7 +1778,7 @@ ReadModal(DataManager* pDM,
     * Questo file e' quello generato da DADS */
    
    doublereal d;
-   unsigned int i, NFemNodesDADS, NModesDADS=0, NRejModes;
+   unsigned int i, NFemNodesDADS = 0, NModesDADS = 0, NRejModes = 0;
    char str[255];
    
    /* alloca la memoria per le matrici necessarie a memorizzare i dati 

@@ -501,6 +501,51 @@ DataManager::ElemOutput(
 }
 
 
+void
+DataManager::ElemOutput_pch(
+		ostream& pch
+		) const
+{
+#if !defined(USE_ELEM_ITER)
+   for(Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
+      (*ppTmpEl)->Output_pch(pch);
+   }   
+#else /* USE_ELEM_ITER */
+   /* Versione con iteratore: */
+    Elem* pTmpEl = NULL;
+    VecIter<Elem*>& ElIter = (VecIter<Elem*>&)ElemIter;
+    if(ElIter.fGetFirst(pTmpEl)) {       
+       do {	
+	  pTmpEl->Output_pch(pch);
+       } while(ElIter.fGetNext(pTmpEl));
+    }
+#endif /* USE_ELEM_ITER */
+}
+
+
+void
+DataManager::ElemOutput_f06(
+		ostream& f06,
+		const VectorHandler& X
+		) const
+{
+#if !defined(USE_ELEM_ITER)
+   for(Elem** ppTmpEl = ppElems; ppTmpEl < ppElems+iTotElem; ppTmpEl++) {      
+      (*ppTmpEl)->Output_f06(f06, X);
+   }   
+#else /* USE_ELEM_ITER */
+   /* Versione con iteratore: */
+    Elem* pTmpEl = NULL;
+    VecIter<Elem*>& ElIter = (VecIter<Elem*>&)ElemIter;
+    if(ElIter.fGetFirst(pTmpEl)) {       
+       do {	
+	  pTmpEl->Output_f06(f06, X);
+       } while(ElIter.fGetNext(pTmpEl));
+    }
+#endif /* USE_ELEM_ITER */
+}
+
+
 /* cerca un elemento qualsiasi */
 void* DataManager::pFindElem(Elem::Type Typ, unsigned int uL) const
 {

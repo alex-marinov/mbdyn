@@ -222,6 +222,139 @@ StructNode::Output(
    }
 }
 
+/* Output di un modello NASTRAN equivalente nella configurazione corrente */
+void 
+StructNode::Output_pch(
+		ostream& out
+		) const
+{
+	if (fToBeOutput()) {
+		const char *name = GetName();
+
+		out << "$ Node " << GetLabel();
+		if (name) {
+			out << " (" << name << ")";
+		}
+#define __NASTRAN_FORMAT_FIXED__ 1
+#define __NASTRAN_FORMAT_FIXED16__ 2
+#define __NASTRAN_FORMAT_FREE__ 3
+		
+#define __NASTRAN_FORMAT__ __HACK_NASTRAN_MODES__
+
+		Vec3 eZ = XCurr+RCurr.GetVec(3);
+		Vec3 eX = XCurr+RCurr.GetVec(1);
+
+#if __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED__
+		out << endl
+			/* CORD2R with node position and orientation */
+			<< "CORD2R  " 
+			<< setw(8) << GetLabel()
+			<< setw(8) << 0
+			<< setw(8) << XCurr.dGet(1)
+			<< setw(8) << XCurr.dGet(2)
+			<< setw(8) << XCurr.dGet(3)
+			<< setw(8) << eZ.dGet(1)
+			<< setw(8) << eZ.dGet(2)
+			<< setw(8) << eZ.dGet(3)
+			<< "+" << setw(1) << 1
+			<< endl
+			<< "+" << setw(7) << 1
+			<< setw(8) << eX.dGet(1)
+			<< setw(8) << eX.dGet(2)
+			<< setw(8) << eX.dGet(3)
+			<< endl
+			<< "GRID    "
+			<< setw(8) << GetLabel()
+			<< setw(8) << GetLabel()
+			<< setw(8) << 0.
+			<< setw(8) << 0.
+			<< setw(8) << 0.
+			<< endl;
+#elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED16__
+		out << endl
+			/* CORD2R with node position and orientation */
+			<< "CORD2R* " 
+			<< setw(16) << GetLabel()
+			<< setw(16) << 0
+			<< setw(16) << XCurr.dGet(1)
+			<< setw(16) << XCurr.dGet(2)
+			<< "+" << setw(7) << 1
+			<< endl
+			<< "+" << setw(7) << 1
+			<< setw(16) << XCurr.dGet(3)
+			<< setw(16) << eZ.dGet(1)
+			<< setw(16) << eZ.dGet(2)
+			<< setw(16) << eZ.dGet(3)
+			<< "+" << setw(7) << 2
+			<< endl
+			<< "+" << setw(7) << 2
+			<< setw(16) << eX.dGet(1)
+			<< setw(16) << eX.dGet(2)
+			<< setw(16) << eX.dGet(3)
+			<< endl
+			<< "GRID*   "
+			<< setw(16) << GetLabel()
+			<< setw(16) << GetLabel()
+			<< setw(16) << 0.
+			<< setw(16) << 0.
+			<< "+" << setw(7) << 1
+			<< endl
+			<< "+" << setw(7) << 1
+			<< setw(16) << 0.
+			<< endl;
+#elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FREE__
+		out << endl
+			/* CORD2R with node position and orientation */
+			<< "CORD2R," << GetLabel()
+			<< ",0,", XCurr.Write(out, ",")
+			<< ",", eZ.Write(out, ",")
+#if 0
+			<< "," 
+#endif
+			<< endl
+#if 1
+			<< "," 
+#endif
+			<< " ", eX.Write(out, ",")
+			<< endl
+			/* grid in CORD2R */
+			<< "GRID," << GetLabel() 
+			<< "," << GetLabel()
+			<< ",0.,0.,0." << endl;
+#else
+#error "unknown NASTRAN format"
+#endif
+	}
+}
+
+
+void 
+StructNode::Output_f06(
+		ostream& out,
+		const VectorHandler& X
+		) const
+{
+	if (fToBeOutput()) {
+		integer iFirstIndex = iGetFirstIndex();
+		
+		out << setw(13) << GetLabel() << "      G" 
+			<< setw(18) << setprecision(6) 
+			<< X.dGetCoef(iFirstIndex+1)
+			<< setw(15) << setprecision(6) 
+			<< X.dGetCoef(iFirstIndex+2)
+			<< setw(15) << setprecision(6) 
+			<< X.dGetCoef(iFirstIndex+3)
+
+			<< setw(15) << setprecision(6) 
+			<< X.dGetCoef(iFirstIndex+4)
+			<< setw(15) << setprecision(6) 
+			<< X.dGetCoef(iFirstIndex+5)
+			<< setw(15) << setprecision(6) 
+			<< X.dGetCoef(iFirstIndex+6)
+			<< endl;
+	}
+}
+
 
 /* Aggiorna dati in base alla soluzione */
 void 

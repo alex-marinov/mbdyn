@@ -199,7 +199,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/autopilot.P .deps/cl.P .deps/dae-intg.P .deps/deriv.P \
 .deps/env.P .deps/eu2rot.P .deps/femgen.P .deps/intg.P .deps/loadable.P \

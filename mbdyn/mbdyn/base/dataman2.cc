@@ -842,6 +842,30 @@ DataManager::Output(const VectorHandler& X, const VectorHandler& XP) const
 };
 
 
+/* Output dati pch */
+void
+DataManager::Output_pch(ostream& pch) const
+{
+   /* Dati dei nodi */
+   NodeOutput_pch(pch);
+   
+   /* Dati degli elementi */
+   ElemOutput_pch(pch);
+};
+
+
+/* Output dati f06 */
+void
+DataManager::Output_f06(ostream& f06, const VectorHandler& X) const
+{
+   /* Dati dei nodi */
+   NodeOutput_f06(f06, X);
+   
+   /* Dati degli elementi */
+   ElemOutput_f06(f06, X);
+};
+
+
 void DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
 				VectorHandler& XPrev, 
 				VectorHandler& XPPrev) const

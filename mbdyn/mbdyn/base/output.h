@@ -319,6 +319,7 @@ class ToBeOutput {
    ToBeOutput(flag fOut = fDefaultOut) : fOutput(fOut) { NO_OP; };
    virtual ~ToBeOutput(void) { NO_OP; };
    
+   /* Regular output */
    virtual void Output(OutputHandler& OH) const = 0;
 
    /* Output of perturbed solution (modes ...) */
@@ -326,6 +327,15 @@ class ToBeOutput {
 		   const VectorHandler& X, const VectorHandler& XP) const {
 	   NO_OP;
    };
+
+   /* Output of modes in NASTRAN's pch/f06 format */
+   virtual void Output_pch(ostream &pch) const {
+	   NO_OP;
+   };
+   virtual void Output_f06(ostream &f06, const VectorHandler& X) const {
+	   NO_OP;
+   };
+
    /* virtual void AdamsOutput(void) const; */
       
    virtual flag fToBeOutput(void) const {

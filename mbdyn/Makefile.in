@@ -99,7 +99,7 @@ configure.in include/mbconfig.h.in include/stamp-h.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 all: all-redirect
 .SUFFIXES:
