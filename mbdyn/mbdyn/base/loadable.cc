@@ -33,10 +33,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #ifdef HAVE_LOADABLE
-
-#include <dlfcn.h>
 #include <unistd.h>
-
 #include <loadable.h>
 #include <dataman.h>
 
@@ -264,14 +261,20 @@ needsAirProperties(false)
 	}
 
    	SAFESTRDUP(module_name, s);
+#ifdef HAVE_LTDL_H
+	handle = lt_dlopen(module_name);
+#elif defined(HAVE_DLFCN_H)
    	handle = dlopen(module_name, RTLD_NOW /* RTLD_LAZY */ );
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+
+#ifdef HAVE_GETCWD
    	if (handle == NULL) {
 		/* look for module in cwd */
 		size_t l = strlen(module_name);
 		char cwd[PATH_MAX];
 
 		if (getcwd(cwd, sizeof(cwd)) == NULL 
-				|| strlen(cwd) >= sizeof(cwd)-1-3-l) {
+				|| strlen(cwd) >= (sizeof(cwd) - sizeof("/.so") - l)) {
 			std::cerr << "Loadable(" << uLabel 
 				<< "): unable to get current working directory"
 				<< std::endl;
@@ -280,33 +283,52 @@ needsAirProperties(false)
 
 		strcat(cwd, "/");
 		strcat(cwd, module_name);
-		if (strcmp(module_name+l-3, ".so") != 0) {
+		if (strcmp(module_name + l - 3, ".so") != 0) {
 			strcat(cwd, ".so");
 		}
 
+#ifdef HAVE_LTDL_H
+		handle = lt_dlopen(cwd);
+#elif defined(HAVE_DLFCN_H)
 		handle = dlopen(cwd, RTLD_NOW /* RTLD_LAZY */ );
-		if (handle == NULL) {
-      			std::cerr << "Loadable(" << uLabel 
-				<< "): unable to open module <" << module_name 
-				<< "> (dlopen returns \"" << dlerror() << "\")" 
-				<< std::endl;
-      			THROW(ErrGeneric());
-		}
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+	}
+#endif /* HAVE_GETCWD */
+	
+	if (handle == NULL) {
+      		std::cerr << "Loadable(" << uLabel 
+			<< "): unable to open module <" << module_name 
+#ifdef HAVE_LTDL_H
+			<< "> (lt_dlopen returns \"" << lt_dlerror() << "\")"
+#elif defined(HAVE_DLFCN_H)
+			<< "> (dlopen returns \"" << dlerror() << "\")" 
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+			<< std::endl;
+      		THROW(ErrGeneric());
    	}
 
-	const char *data_name = NULL;
+	/* default LoadableCalls struct */
+	const char *data_name = "calls";
+
 	LoadableCalls **tmpcalls = NULL;
 	if (HP.IsKeyWord("name")) {
 		data_name = HP.GetStringWithDelims();
-	} else {
-		data_name = "calls";
 	}
    	DEBUGCOUT("binding to data \"" << data_name
      		<< "\" (must be def'd!)" << std::endl);
+#ifdef HAVE_LTDL_H
+	tmpcalls = (LoadableCalls **)lt_dlsym(handle, data_name);
+#elif defined(HAVE_DLFCN_H)
 	tmpcalls = (LoadableCalls **)dlsym(handle, data_name);
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 	
    	if (tmpcalls == NULL) {
-      		const char* err = dlerror();
+      		const char* err =
+#ifdef HAVE_LTDL_H
+			lt_dlerror();
+#elif defined(HAVE_DLFCN_H)
+			dlerror();
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
       		if (err == NULL) {
 	 		std::cerr << "Loadable(" << uLabel 
 	   			<< "): data \"" << data_name
@@ -317,7 +339,7 @@ needsAirProperties(false)
 	   			<< "): error while binding to data \"" 
 				<< data_name
 	   			<< "\" in module <" << module_name
-	   			<< "> (dlsym returns \"" << err 
+	   			<< "> (\"" << err 
 				<< "\")" << std::endl;
       		}
       		THROW(ErrGeneric());
@@ -441,7 +463,14 @@ LoadableElem::~LoadableElem(void)
    	(*calls->destroy)(this);
    
    	ASSERT(handle != NULL);
-   	dlclose(handle);
+#if !defined(HAVE_LTDL_H) && defined(HAVE_DLFCN_H)
+   	if (dlclose(handle) != 0) {
+		std::cerr << "unable to dlclose module \"" << module_name 
+			<< "\"" << std::endl;
+		THROW(ErrGeneric());
+	}
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+	
    	SAFEDELETEARR(module_name);
 }
 

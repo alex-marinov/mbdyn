@@ -41,6 +41,10 @@ extern "C" {
 #include <time.h>
 }
 
+#if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
+#include <ltdl.h>
+#endif /* HAVE_LOADABLE && HAVE_LTDL_H */
+
 #include <constltp.h>
 #include <dataman_.h>
 /* plugins per math parser */
@@ -97,6 +101,9 @@ fOmegaRotates(fDefaultOmegaRotates),
 dInitialAssemblyToll(dDefaultInitialAssemblyToll),
 iMaxInitialIterations(iDefaultMaxInitialIterations),
 #endif /* USE_STRUCT_NODES */
+#if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
+loadableElemInitialized(false),
+#endif /* HAVE_LOADABLE && HAVE_LTDL_H */
 fPrintDofStats(0),
 sSimulationTitle(NULL),
 RestartEvery(NEVER),
@@ -507,6 +514,15 @@ DataManager::~DataManager(void)
    ElemManagerDestructor();
    NodeManagerDestructor();
    DofManagerDestructor();
+
+#if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
+   if (loadableElemInitialized) {
+      if (lt_dlexit()) {
+	 std::cerr << "lt_dlexit failed" << std::endl;
+	 THROW(ErrGeneric());
+      }
+   }
+#endif /* HAVE_LOADABLE && HAVE_LTDL_H */
 } /* End of DataManager::DataManager() */
 
 

@@ -68,6 +68,8 @@ class NoAuth : public AuthMethod {
 
 /* simple password comparison */
 
+#ifdef HAVE_CRYPT
+
 class PasswordAuth: public AuthMethod {
  protected:
    char User[9];
@@ -79,6 +81,8 @@ class PasswordAuth: public AuthMethod {
    AuthMethod::AuthRes
      Auth(const char *user, const char *cred) const;
 };
+
+#endif /* HAVE_CRYPT */
 
 /* PasswordAuth - end */
 

@@ -579,10 +579,31 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check for dlopen
 dnl
-AC_CHECK_LIB(dl, dlopen,[have_dlopen_in_ldl=yes],[have_dlopen_in_ldl=no], -ldl)
-if test $have_dlopen_in_ldl = "yes" ; then
+have_loadable=no
+AC_CHECK_HEADER(ltdl.h,[have_ltdl_h=yes],[have_ltdl_h=no])
+if test $have_ltdl_h = "yes" ; then
+	AC_DEFINE(HAVE_LTDL_H,1,[define if you have <ltdl.h>])
+	AC_CHECK_LIB(ltdl, lt_dlinit,[have_lt_dlinit=yes],[have_lt_dlinit=no])
+	if test $have_lt_dlinit = "yes" ; then
+		LIBS="$LIBS -lltdl"
+		have_loadable=yes
+	fi
+fi
+if test $have_loadable = no ; then
+	AC_CHECK_HEADER(dlfcn.h,[have_dlfcn_h=yes],[have_dlfcn_h=no])
+	if test $have_dlfcn_h="yes" ; then
+		AC_DEFINE(HAVE_DLFCN_H,1,[define if you have <dlfcn.h>])
+		AC_CHECK_LIB(dl, dlopen,[have_dlopen_in_ldl=yes],[have_dlopen_in_ldl=no], -ldl)
+		if test $have_dlopen_in_ldl = "yes" ; then
+			LIBS="$LIBS -ldl"
+			have_loadable=yes
+		fi
+	fi
+fi
+if test $have_loadable=yes ; then
 	AC_DEFINE(HAVE_LOADABLE,1,[define if you want to use loadable modules])
-	LIBS="$LIBS -ldl"
+else
+	AC_MSG_WARN([no dynamic linking library detected; loadable elements will be disabled])
 fi
 
 
@@ -862,6 +883,7 @@ for i in $crypt_pool ; do
 			AC_MSG_RESULT([with $i])
 			SECURITY_LIBS="$SECURITY_LIBS $i"
 		fi
+		AC_DEFINE(HAVE_CRYPT,1,[define if crypt(3) can be linked])
 		break
 	fi
 done

@@ -16,7 +16,10 @@ MBDyn 1.2-Engineering
 		- added -W (--working-dir) switch
 		- added inertia properties computation of element blocks
 		- output can occur only at selected time steps
-	Backward compatibility:
+		- disable plaintext auth if crypt is not available
+		  (this code should be trimmed off, it's useless
+		- use ltdl library for loadable modules
+	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 	Bug fixes:
 		- spherical joint did not log the reaction forces

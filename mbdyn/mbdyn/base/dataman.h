@@ -30,8 +30,6 @@
 
 /* gestore dei dati */
 
-
-
 #ifndef DATAMAN_H
 #define DATAMAN_H
 
@@ -105,6 +103,10 @@ class DataManager : public SolutionDataManager {
    doublereal dInitialAssemblyToll;
    integer iMaxInitialIterations;
 #endif /* USE_STRUCT_NODES */
+
+#if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
+   bool loadableElemInitialized;
+#endif /* HAVE_LOADABLE && HAVE_LTDL_H */
 
    flag fPrintDofStats;
 

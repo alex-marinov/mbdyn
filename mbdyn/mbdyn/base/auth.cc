@@ -51,6 +51,8 @@ NoAuth::Auth(const char * /* user */ , const char * /* cred */ ) const
 
 /* PasswordAuth - begin */
 
+#ifdef HAVE_CRYPT
+
 static char *
 make_salt(void)
 {
@@ -103,6 +105,8 @@ PasswordAuth::Auth(const char *user, const char *cred) const
 
    return AuthMethod::AUTH_FAIL;
 }
+
+#endif /* HAVE_CRYPT */
 
 /* PasswordAuth - end */
 
@@ -393,7 +397,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
        * 
        */
     case PASSWORD: {
-       
+#ifdef HAVE_CRYPT
        if (!HP.IsKeyWord("user")) {
 	  std::cerr << "user expected at line " 
 		  << HP.GetLineData() << std::endl;
@@ -437,6 +441,12 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
        SAFEDELETEARR(cred);
        
        break;
+#else /* !HAVE_CRYPT */
+       std::cerr << "line " << HP.GetLineData() 
+	 << ": sorry, this system seems to have no working crypt(3)"
+	 << std::endl;
+       THROW(ErrGeneric());
+#endif /* !HAVE_CRYPT */
     }
       
     case PAM: {

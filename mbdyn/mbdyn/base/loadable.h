@@ -31,6 +31,14 @@
 #ifndef LOADABLE_H
 #define LOADABLE_H
 
+#ifdef HAVE_LTDL_H
+#include <ltdl.h>
+#elif defined(HAVE_DLFCN_H)
+#include <dlfcn.h>
+#else /* !HAVE_LTDL_H && !HAVE_DLFCN_H */
+#error "no dynamic linking headers, sorry"
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+
 #include <elem.h>
 #include <dataman.h>
 #ifdef USE_STRUCT_NODES
@@ -186,7 +194,7 @@ struct LoadableCalls {
 	p_get_connected_nodes		get_connected_nodes;
 	p_destroy			destroy;
 };
- 
+
 class LoadableElem
 : virtual public Elem,
 #ifdef USE_STRUCT_NODES
@@ -200,7 +208,11 @@ public ElemWithDofs {
 protected:
    	void* priv_data;	/* Dati privati passati alle funzioni */
    	char* module_name;	/* Nome del modulo */
+#ifdef HAVE_LTDL_H
+	lt_dlhandle handle;
+#elif defined(HAVE_DLFCN_H)
    	void* handle;		/* Handle del modulo (usato per chiusura) */
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 	LoadableCalls *calls;	/* Simboli delle funzioni attese */
 	bool needsAirProperties;
    

@@ -860,6 +860,18 @@ void DataManager::ReadElems(MBDynParser& HP)
 	            const char *sTmp = HP.GetStringWithDelims();
 	            SAFESTRDUP(sName, sTmp);
 	         }
+
+#if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
+		 if (CurrDesc == LOADABLE) {
+		    if (loadableElemInitialized == false) {
+		       if (lt_dlinit()) {
+	   		  std::cerr << "unable to initialize loadable elements" << std::endl;
+      			  THROW(ErrGeneric());
+      		       }
+		       loadableElemInitialized = true;
+		    }
+		 }
+#endif /* HAVE_LOADABLE && HAVE_LTDL_H */
 		 
 		 ppE = ReadOneElem(this, HP, uLabel, CurrDesc);
 		 HP.PutKeyTable(K);
