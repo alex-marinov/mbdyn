@@ -47,7 +47,7 @@ AeroMemory::AeroMemory(DriveCaller *pt)
 AeroMemory::~AeroMemory(void)
 {
 	if (iPoints > 0) {
-		ASSERT(ptime);
+		ASSERT(pTime);
 		ASSERT(a);
 
 		SAFEDELETE(pTime);
@@ -212,7 +212,7 @@ STAHRAeroData::STAHRAeroData(AeroData::UnsteadyModel u, integer p,
 		DriveCaller *ptime) 
 : AeroData(u, ptime), profile(p)
 {
-	ASSERT(u != AeroData::STEADY ? ptime : 1);
+	ASSERT(u != AeroData::STEADY ? (ptime != 0) : 1);
 }
 
 STAHRAeroData::~STAHRAeroData(void)
