@@ -697,22 +697,6 @@ i_get_num_priv_data(const LoadableElem* pEl)
 	return 0;
 }
 
-static doublereal
-d_get_priv_data(const LoadableElem* pEl, unsigned int i)
-{
-	DEBUGCOUTFNAME("d_get_priv_data");
-	ASSERT(pEl->iGetNumPrivData() > 0);
-	if (i > pEl->iGetNumPrivData()) {
-		std::cerr << "Module-template Elem: illegal private data index "
-			<< i << std::endl;      
-		THROW(ErrGeneric());
-	}
-	
-	/* return i-th priv data */
-
-	return 0.;
-}
-
 static void
 destroy(LoadableElem* pEl)
 {
@@ -750,7 +734,7 @@ get_connected_nodes(const LoadableElem* pEl,
 
 static struct
 LoadableCalls lc = {
-	LOADABLE_VERSION_SET(1, 0, 0),
+	LOADABLE_VERSION_SET(1, 1, 0),
 
 	"wheel2",
 	"1.1",
@@ -777,7 +761,8 @@ LoadableCalls lc = {
 	NULL /* initial_ass_res */ ,
 	NULL /* set_value */ ,
 	NULL /* set_initial_value */ ,
-	NULL /* i_get_num_priv_data */ ,
+	i_get_num_priv_data,
+	NULL /* i_get_priv_data_idx */ ,
 	NULL /* d_get_priv_data */ ,
 	i_get_num_connected_nodes,
 	get_connected_nodes,

@@ -188,6 +188,13 @@ i_get_num_priv_data(const LoadableElem* pEl)
    return 0;
 }
 
+static unsigned int
+i_get_priv_data_idx(const LoadableElem* pEl, const char *s)
+{
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   return 0;
+}
+
 static doublereal
 d_get_priv_data(const LoadableElem* pEl, unsigned int i)
 {

@@ -313,6 +313,17 @@ i_get_num_priv_data(const LoadableElem* pEl)
 	return 0;
 }
 
+static unsigned int
+i_get_priv_data_idx(const LoadableElem* pEl, const char *s)
+{
+	DEBUGCOUTFNAME("i_get_priv_data_idx");
+	std::cerr << "Module-template Elem: priv data \"" << s
+		<< "\" is unknown" << std::endl;
+	THROW(ErrGeneric());
+
+	return 0;
+}
+
 static doublereal
 d_get_priv_data(const LoadableElem* pEl, unsigned int i)
 {
@@ -369,7 +380,7 @@ get_connected_nodes(const LoadableElem* pEl,
 
 static struct
 LoadableCalls lc = {
-	LOADABLE_VERSION_SET(1, 0, 0),
+	LOADABLE_VERSION_SET(1, 1, 0),
 
 	"template",
 	"1.1",
@@ -396,6 +407,7 @@ LoadableCalls lc = {
 	set_value,
 	set_initial_value,
 	i_get_num_priv_data,
+	i_get_priv_data_idx,
 	d_get_priv_data,
 	i_get_num_connected_nodes,
 	get_connected_nodes,
