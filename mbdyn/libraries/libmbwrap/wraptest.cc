@@ -45,13 +45,14 @@
 #include <umfpackwrap.h>
 #include <superluwrap.h>
 #include <lapackwrap.h>
+#include <taucswrap.h>
 #include <naivewrap.h>
 
 static void
 usage(void)
 {
 	std::cerr << "usage: wraptest [-c] [-d] [-m <solver>] [-s]" << std::endl
-		<< "\t<solver>={y12|harwell|meschach|umfpack|superlu|lapack|naive}" << std::endl;
+		<< "\t<solver>={y12|harwell|meschach|umfpack|superlu|lapack|taucs|naive}" << std::endl;
 	exit(EXIT_FAILURE);
 }
 
@@ -72,6 +73,8 @@ main(int argc, char *argv[])
 		"meschach"
 #elif defined(USE_LAPACK)
 		"lapack"
+#elif defined(USE_TAUCS)
+		"taucs"
 #else
 		"naive"
 #if 0
@@ -121,7 +124,27 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (strcasecmp(solver, "lapack") == 0) {
+	if (strcasecmp(solver, "taucs") == 0) {
+#ifdef USE_TAUCS
+		if (dir) {
+			typedef TaucsSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+
+		} else if (cc) {
+			typedef TaucsSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+
+		} else {
+			SAFENEWWITHCONSTRUCTOR(pSM, TaucsSparseSolutionManager,
+					TaucsSparseSolutionManager(size));
+		}
+#else /* !USE_TAUCS */
+		std::cerr << "need --with-taucs to use Taucs library sparse solver" 
+			<< std::endl;
+		usage();
+#endif /* !USE_LAPACK */
+
+	} else if (strcasecmp(solver, "lapack") == 0) {
 #ifdef USE_LAPACK
 		SAFENEWWITHCONSTRUCTOR(pSM, LapackSolutionManager,
 				LapackSolutionManager(size));

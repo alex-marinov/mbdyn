@@ -877,7 +877,15 @@ if test $ol_with_blas != no ; then
 			],[
 	/* test for blas */
 	return cblas_dgemm();
-			],[have_blas="atlas"],[
+			],[have_blas="atlas"
+				LIBS="-lcblas -lf77blas -latlas -lm $F2C_LIBS $LIBS"
+				AC_TRY_LINK([
+					/* FIXME: some architectures might use different
+					 * naming conventions, e.g. uppercase, no underscore
+					 */
+					extern int dgemm_(void);],[return dgemm_();
+				],[try_blas_LIBS="-lcblas -lf77blas -latlas -lm"],[])
+			],[
 				have_blas="no"
 				if test "$ol_with_blas" = "atlas" ; then
 					AC_MSG_ERROR([Atlas blas implementation not available])
@@ -1166,7 +1174,7 @@ if test $ol_with_lapack != no ; then
 
 	save_LIBS="$LIBS"
 	try_lapack_LIBS="-llapack"
-	LIBS="$try_lapack_LIBS $BLAS_LIBS $LIBS"
+	LIBS="$try_lapack_LIBS $BLAS_LIBS $F2C_LIBS $LIBS"
 	AC_TRY_LINK([
 	extern double dgesvd(double *);
 		],[
@@ -1206,40 +1214,6 @@ if test $ol_with_lapack != no ; then
 	fi
 
 	if test "$have_lapack" = "yes" ; then
-		AC_MSG_RESULT([yes])
-	else
-		AC_MSG_RESULT([no])	
-	fi
-	LIBS="$save_LIBS"
-fi
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Check for TAUCS
-dnl
-ol_link_taucs=no
-if test $ol_with_taucs != no ; then
-	dnl OL_ADD_DIRS(taucs)
-	AC_MSG_CHECKING([for taucs])
-
-	save_LIBS="$LIBS"
-	try_taucs_LIBS="-ltaucs"
-	LIBS="$try_taucs_LIBS $BLAS_LIBS $LIBS"
-	AC_TRY_LINK([#include "taucs.h"
-		],[
-	taucs_ccs_matrix* A; 
-	void* x; 
-	void* aux;
-	taucs_ccs_times_vec(A,x,aux);
-		],[have_taucs=yes],
-		   [have_taucs=no])
-	
-	if test $have_taucs != no ; then
-		AC_DEFINE(USE_TAUCS,1,[define to use Taucs libraries])
-		TAUCS_LIBS="$try_taucs_LIBS"
-	fi
-
-	if test "$have_taucs" = "yes" ; then
 		AC_MSG_RESULT([yes])
 	else
 		AC_MSG_RESULT([no])	
@@ -1419,24 +1393,22 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Need either Metis or Chaco with MPI
+dnl Need either Metis or Chaco with MPI and Taucs
 dnl
 dnl First we check for Metis
 ol_link_metis=no
 if test $ol_with_metis != no ; then
 	dnl OL_ADD_DIRS(metis)
 	
+	AC_CHECK_LIB(metis, METIS_PartGraphVKway,
+		[ol_link_metis=yes],[ol_link_metis=no],[-lm])
+	
 	AC_CHECK_HEADERS(metis.h)
 
 	if test $ac_cv_header_metis_h = yes ; then
-		AC_CHECK_LIB(metis, METIS_PartGraphVKway,
-			[have_metis=yes],[have_metis=no],[-lm])
-
 		if test $have_metis != no ; then
-			METIS_LIBS="-lmetis -lm"
 			AC_DEFINE(USE_METIS,1,
 				[define if you want to use Metis])
-			ol_link_metis=yes
 		fi
 	fi
 
@@ -1446,6 +1418,8 @@ if test $ol_with_metis != no ; then
 		else
 			AC_MSG_WARN([Could not locate Metis; not supported])
 		fi
+	else
+		METIS_LIBS="-lmetis -lm"
 	fi
 else
 	AC_MSG_WARN([Metis not supported!])
@@ -1495,6 +1469,64 @@ if test $ol_enable_schur != no ; then
 		if test $ol_enable_schur = yes ; then
 			AC_MSG_ERROR([Need MPI for Schur parallel solver])
 		fi
+	fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for TAUCS
+dnl
+ol_link_taucs=no
+if test $ol_with_taucs != no ; then
+	dnl OL_ADD_DIRS(taucs)
+	AC_MSG_CHECKING([for taucs])
+
+	if test $ol_link_metis = no ; then
+		have_taucs=no
+		if test $ol_with_taucs != auto ; then
+			AC_MSG_ERROR([Need Metis library for Taucs solver])
+		else
+                        AC_MSG_WARN([Could not locate Metis library; Taucs not supported])
+		fi
+	elif test $have_lapack = no ; then
+		have_taucs=no
+		if test $ol_with_taucs != auto ; then
+			AC_MSG_ERROR([Need Lapack library for Taucs solver])
+		else
+                        AC_MSG_WARN([Could not locate Lapack library; Taucs not supported])
+		fi
+	elif test $have_blas = no ; then
+		have_taucs=no
+		if test $ol_with_taucs != auto ; then
+			AC_MSG_ERROR([Need Blas library for Taucs solver])
+		else
+                        AC_MSG_WARN([Could not locate Blas library; Taucs not supported])
+		fi
+	else
+		save_LIBS="$LIBS"
+		try_taucs_LIBS="-ltaucs"
+		LIBS="$try_taucs_LIBS $METIS_LIBS $LAPACK_LIBS $BLAS_LIBS $LIBS"
+		AC_TRY_LINK([#include "taucs.h"
+			],[
+			taucs_ccs_matrix* A;
+			void**            F;
+			int		  nrhs;
+			void*		  X;
+			void*		  B;
+			char**		  options;
+			void**		  opt_arg;
+			int taucs_linsolve(A, F, nrhs, X, B, options, opt_arg);
+		],[have_taucs=yes],[have_taucs=no])
+		LIBS="$save_LIBS"
+	fi
+	if test $have_taucs != no ; then
+		AC_DEFINE(USE_TAUCS,1,[define to use Taucs libraries])
+		TAUCS_LIBS="$try_taucs_LIBS"
+	fi
+	if test "$have_taucs" = "yes" ; then
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])	
 	fi
 fi
 

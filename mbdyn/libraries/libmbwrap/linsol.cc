@@ -44,6 +44,7 @@
 #include "umfpackwrap.h"
 #include "superluwrap.h"
 #include "lapackwrap.h"
+#include "taucswrap.h"
 #include "naivewrap.h"
 
 #include "mbpar.h"
@@ -82,6 +83,10 @@ static struct solver_t {
 		LinSol::LAPACK_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
 		LinSol::SOLVER_FLAGS_NONE },
+	{ "Taucs", "NULL", 
+		LinSol::TAUCS_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP },
 	{ "Naive", NULL,
 		LinSol::NAIVE_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
@@ -112,7 +117,9 @@ LinSol::SolverType LinSol::defaultSolver =
 	LinSol::MESCHACH_SOLVER
 #elif /* !USE_MESCHACK */ defined(USE_LAPACK)
 	LinSol::LAPACK_SOLVER
-#else /* !USE_LAPACK */
+#elif /* !USE_LAPACK */ defined(USE_TAUCS)
+	LinSol::TAUCS_SOLVER
+#else /* !USE_TAUCS */
 	LinSol::NAIVE_SOLVER
 #if 0
 	LinSol::EMPTY_SOLVER
@@ -148,6 +155,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::UMFPACK_SOLVER].s_alias,
 		::solver[LinSol::SUPERLU_SOLVER].s_name,
 		::solver[LinSol::LAPACK_SOLVER].s_name,
+		::solver[LinSol::TAUCS_SOLVER].s_name,
 		::solver[LinSol::NAIVE_SOLVER].s_name,
 		::solver[LinSol::EMPTY_SOLVER].s_name,
 		NULL
@@ -161,6 +169,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		UMFPACK3,
 		SUPERLU,
 		LAPACK,
+		TAUCS,
 		NAIVE,
 		EMPTY,
 
@@ -204,13 +213,21 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 
 	case LAPACK:
 #ifdef USE_LAPACK
-		/*
-		 * FIXME: use CC as default???
-		 */
 		CurrSolver = LinSol::LAPACK_SOLVER;
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using Lapack dense LU solver" << std::endl);
 #endif /* USE_LAPACK */
+		break;
+
+	case TAUCS:
+#ifdef USE_TAUCS
+		/*
+		 * FIXME: use CC as default???
+		 */
+		CurrSolver = LinSol::TAUCS_SOLVER;
+		DEBUGLCOUT(MYDEBUG_INPUT,
+				"Using Taucs sparse solver" << std::endl);
+#endif /* USE_TAUCS */
 		break;
 
 	case UMFPACK3:
@@ -346,7 +363,6 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		switch (CurrSolver) {
 		case LinSol::Y12_SOLVER:
 			break;
-
 		default:
 			pedantic_cerr("workspace size is meaningless for "
 					<< ::solver[CurrSolver].s_name
@@ -362,6 +378,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		}
 
 		switch (CurrSolver) {
+		case LinSol::TAUCS_SOLVER:
 		case LinSol::NAIVE_SOLVER:
 		case LinSol::EMPTY_SOLVER:
 			pedantic_cerr("pivot factor is meaningless for "
@@ -431,6 +448,12 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 		CurrSolver = t;
 		return true;
 #endif /* USE_LAPACK */
+
+	case LinSol::TAUCS_SOLVER:
+#ifdef USE_TAUCS
+		CurrSolver = t;
+		return true;
+#endif /* USE_TAUCS */
 
 	case LinSol::Y12_SOLVER:
 #ifdef USE_Y12
@@ -633,11 +656,11 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			break;
 		}
       		break;
-#else /* !USE_Y12 */
-      		std::cerr << "Configure with --with-y12 "
-			"to enable Y12 solver" << std::endl;
+#else /* !USE_SUPERLU */
+      		std::cerr << "Configure with --with-superlu "
+			"to enable superlu solver" << std::endl;
       		THROW(ErrGeneric());
-#endif /* !USE_Y12 */
+#endif /* !USE_SUPERLU */
 
 	case LinSol::MESCHACH_SOLVER:
 #ifdef USE_MESCHACH
@@ -663,6 +686,34 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			"to enable Lapack dense solver" << std::endl;
       		THROW(ErrGeneric());
 #endif /* !USE_LAPACK */
+
+     	case LinSol::TAUCS_SOLVER: 
+#ifdef USE_TAUCS
+		switch (type) {
+		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
+			typedef TaucsSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
+	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM, CCSM(iNLD));
+			break;
+		}
+
+		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
+			typedef TaucsSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
+	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM, CCSM(iNLD));
+			break;
+		}
+
+		default:
+      			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				TaucsSparseSolutionManager,
+				TaucsSparseSolutionManager(iNLD));
+			break;
+		}
+      		break;
+#else /* !USE_TAUCS */
+		std::cerr << "Configure with --with-taucs "
+			"to enable Taucs sparse solver" << std::endl;
+      		THROW(ErrGeneric());
+#endif /* !USE_TAUCS */
 
  	case LinSol::HARWELL_SOLVER:
 #ifdef USE_HARWELL

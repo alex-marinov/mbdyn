@@ -28,6 +28,7 @@ base/libbase.la \
 @UMFPACK_LIBS@ \
 ../libraries/libobjs/libobjs.la \
 @MESCHACH_LIBS@ \
+@TAUCS_LIBS@ \
 @LAPACK_LIBS@ \
 @MPI_LIBS@ \
 @BLAS_LIBS@ \

@@ -1,0 +1,366 @@
+/* 
+ * HmFe (C) is a FEM analysis code. 
+ *
+ * Copyright (C) 1996-2004
+ *
+ * Marco Morandini  <morandini@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ */
+/* December 2001 
+ * Modified to add a Sparse matrix in row form and to implement methods
+ * to be used in the parallel MBDyn Solver.
+ *
+ * Copyright (C) 1996-2004
+ *
+ * Giuseppe Quaranta  <quaranta@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *      
+ */
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2004
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/*
+ * Taucs is used by permission; please read its Copyright,
+ * License and Availability note.
+ */
+
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
+
+#ifdef USE_TAUCS
+#include "solman.h"
+#include "spmapmh.h"
+#include "ccmh.h"
+#include "dirccmh.h"
+#include "taucswrap.h"
+
+
+/* TaucsSolver - begin */
+	
+TaucsSolver::TaucsSolver(const integer &size)
+: LinearSolver(0),
+iSize(size),
+Axp(0),
+Aip(0),
+App(0),
+Symbolic(false),
+Factorization(0)
+{
+	NO_OP;
+}
+
+TaucsSolver::~TaucsSolver(void)
+{
+	if (Factorization) {
+		/* de-allocate factorization */
+		taucs_linsolve(NULL,&Factorization,0, NULL,NULL,NULL,NULL);
+		Factorization = 0;
+	}
+}
+
+void
+TaucsSolver::Init(void)
+{
+	if (Factorization) {
+		/* de-allocate factorization */
+		taucs_linsolve(NULL,&Factorization,0, NULL,NULL,NULL,NULL);
+		Factorization = 0;
+	}
+
+	bHasBeenReset = true;
+}
+
+void
+TaucsSolver::Solve(void) const
+{
+	if (bHasBeenReset) {
+      		((TaucsSolver *)this)->Factor();
+      		bHasBeenReset = false;
+	}
+		
+	int status;
+// 	char* solve [] = {
+// 		"taucs.factor=false",
+// 		"taucs.factor.ordering=colamd",
+// 		NULL};
+	
+	/*
+	 * NOTE: Axp, Aip, App should have been set by * MakeCompactForm()
+	 */
+	status = taucs_linsolve(&A, &Factorization, 1, 
+		LinearSolver::pdSol, 
+		LinearSolver::pdRhs, 
+		NULL, 
+		NULL);
+	if (status != TAUCS_SUCCESS) {
+		silent_cerr("Taucs back-solve failed" << std::endl);
+		THROW(ErrGeneric());
+	}
+}
+
+void
+TaucsSolver::Factor(void)
+{
+	int status;
+
+	/*
+	 * NOTE: Axp, Aip, App should have been set by * MakeCompactForm()
+	 */
+// 	A.n = iSize;
+// 	A.m = iSize;
+// 	A.flags = TAUCS_DOUBLE;
+// 	A.colptr = App;
+// 	A.rowind = Aip;
+// 	A.values.d = Axp;
+	
+// 	if (Factorization) {
+// 		/* de-allocate factorization */
+// 		taucs_linsolve(NULL,&Factorization,0, NULL,NULL,NULL,NULL);
+// 	}
+	//if (Symbolic == 0 && !bPrepareSymbolic()) {
+	char * options_factor_prevordering[] = { 
+		"taucs.factor.mf=true", 
+		"taucs.factor.ordering=colamd",
+		"taucs.factor.symbolic=false",
+		0};
+	char * options_factor_ordering[] = { 
+		"taucs.factor.mf=true", 
+		"taucs.factor.ordering=colamd",
+		"taucs.factor.symbolic=true",
+		0};
+	char ** opts;
+	if (Symbolic) {
+		opts = options_factor_prevordering;
+	} else {
+		opts = options_factor_ordering;
+	}
+	/* factor */
+	status = taucs_linsolve(&A, &Factorization, 0, NULL, NULL, opts, NULL);
+	if (status != TAUCS_SUCCESS) {
+		if (Symbolic == true) {
+			/* try to re-do symbolic analisys */
+			Symbolic = false;
+			((TaucsSolver *)this)->Factor();
+		} else {
+			/* bail out */
+			silent_cerr("Taucs factorization failed" << std::endl);
+			THROW(ErrGeneric());
+		}
+	}
+	Symbolic = true;
+}
+
+void
+TaucsSolver::MakeCompactForm(SparseMatrixHandler& mh,
+		std::vector<doublereal>& Ax,
+		std::vector<integer>& Ai,
+		std::vector<integer>& Ac,
+		std::vector<integer>& Ap) const
+{
+	if (!bHasBeenReset) {
+		return;
+	}
+	
+	mh.MakeCompressedColumnForm(Ax, Ai, Ap, 0);
+
+	Axp = &(Ax[0]);
+	Aip = &(Ai[0]);
+	App = &(Ap[0]);
+	
+	A.n = iSize;
+	A.m = iSize;
+	A.flags = TAUCS_DOUBLE;
+	A.colptr = App;
+	A.rowind = Aip;
+	A.values.d = Axp;
+}
+
+/* TaucsSolver - end */
+
+/* TaucsSparseSolutionManager - begin */
+
+TaucsSparseSolutionManager::TaucsSparseSolutionManager(integer Dim)
+: A(Dim),
+x(Dim),
+b(Dim),
+xVH(Dim, &x[0]),
+bVH(Dim, &b[0])
+{
+	SAFENEWWITHCONSTRUCTOR(pLS, TaucsSolver, TaucsSolver(Dim));
+
+	(void)pLS->ChangeResPoint(&(b[0]));
+	(void)pLS->ChangeSolPoint(&(x[0]));
+	pLS->SetSolutionManager(this);
+}
+
+TaucsSparseSolutionManager::~TaucsSparseSolutionManager(void) 
+{
+	NO_OP;
+}
+
+void
+TaucsSparseSolutionManager::MatrReset(const doublereal& d)
+{
+	A.Reset(d);
+}
+
+void
+TaucsSparseSolutionManager::MakeCompressedColumnForm(void)
+{
+	pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
+}
+
+void
+TaucsSparseSolutionManager::MatrInit(const doublereal& d)
+{
+	MatrReset(d);
+	pLS->Init();
+}
+
+/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+void
+TaucsSparseSolutionManager::Solve(void)
+{
+	MakeCompressedColumnForm();
+	pLS->Solve();
+}
+
+/* Rende disponibile l'handler per la matrice */
+MatrixHandler*
+TaucsSparseSolutionManager::pMatHdl(void) const
+{
+	return &A;
+}
+
+/* Rende disponibile l'handler per il termine noto */
+MyVectorHandler*
+TaucsSparseSolutionManager::pResHdl(void) const
+{
+	return &bVH;
+}
+
+/* Rende disponibile l'handler per la soluzione */
+MyVectorHandler*
+TaucsSparseSolutionManager::pSolHdl(void) const
+{
+	return &xVH;
+}
+
+/* UmfpackSparseSolutionManager - end */
+
+template <class CC>
+TaucsSparseCCSolutionManager<CC>::TaucsSparseCCSolutionManager(integer Dim)
+: TaucsSparseSolutionManager(Dim),
+CCReady(false),
+Ac(0)
+{
+	NO_OP;
+}
+
+template <class CC>
+TaucsSparseCCSolutionManager<CC>::~TaucsSparseCCSolutionManager(void) 
+{
+	if (Ac) {
+		SAFEDELETE(Ac);
+	}
+}
+
+template <class CC>
+void
+TaucsSparseCCSolutionManager<CC>::MatrReset(const doublereal& d)
+{
+	if (!CCReady) {
+		A.Reset(d);
+	} else {
+		Ac->Reset(d);
+	}
+}
+
+template <class CC>
+void
+TaucsSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
+{
+	if (!CCReady) {
+		pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
+
+		ASSERT(Ac == 0);
+
+		SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(Ax, Ai, Ap));
+
+		CCReady = true;
+	}
+}
+
+/* Inizializzatore "speciale" */
+template <class CC>
+void
+TaucsSparseCCSolutionManager<CC>::MatrInitialize(const doublereal& d)
+{
+	SAFEDELETE(Ac);
+	Ac = 0;
+
+	CCReady = false;
+
+	MatrInit();
+}
+	
+/* Rende disponibile l'handler per la matrice */
+template <class CC>
+MatrixHandler*
+TaucsSparseCCSolutionManager<CC>::pMatHdl(void) const
+{
+	if (!CCReady) {
+		return &A;
+	}
+
+	ASSERT(Ac != 0);
+	return Ac;
+}
+
+template class TaucsSparseCCSolutionManager<CColMatrixHandler<0> >;
+template class TaucsSparseCCSolutionManager<DirCColMatrixHandler<0> >;
+
+/* UmfpackSparseCCSolutionManager - end */
+
+#endif /* USE_UMFPACK */
+
