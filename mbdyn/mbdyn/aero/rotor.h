@@ -71,9 +71,6 @@ class Rotor
  public:
    class ErrInfiniteMeanInducedVelocity {};
    
- private:
-   Rotor::Type RotorT;
-   
  protected:
 #ifdef USE_MPI
    /* Communicator per il calcolo della trazione totale */
@@ -95,7 +92,9 @@ class Rotor
    doublereal dArea;         /* Area del disco */
    doublereal dUMean;        /* Velocita' indotta media */
    doublereal dUMeanPrev;    /* Vel. indotta media al passo prec. */
-   doublereal dWeight;       /* Peso della velocita' indotta media */
+   doublereal dWeight;       /* Peso della velocita' indotta media 
+			      * (peso della V al passo precedente, def = 0.) */
+   doublereal dCorrection;   /* Correzione (scala la velocita' indotta) */
    
    Vec3 FTraction;           /* Trazione al passo precedente */
    Vec3 MTraction;           /* Momento al passo precedente */
@@ -137,14 +136,14 @@ class Rotor
    virtual void ResetTraction(void);   
    
  public:
-   Rotor(unsigned int uL, Rotor::Type T, const DofOwner* pDO, 
+   Rotor(unsigned int uL, const DofOwner* pDO, 
 	 const StructNode* pC, const StructNode* pR, flag fOut);
    virtual ~Rotor(void);      
    
    /* funzioni di servizio */
 
    /* Tipo dell'elemento (usato per debug ecc.) */
-   virtual Elem::Type GetElemType(void) const;   
+   virtual Elem::Type GetElemType(void) const;
    
    /* Il metodo iGetNumDof() serve a ritornare il numero di gradi di liberta'
     * propri che l'elemento definisce. Non e' virtuale in quanto serve a 
@@ -342,6 +341,7 @@ class UniformRotor : virtual public Elem, public Rotor {
 		doublereal dOR,
 		doublereal dR,
 		doublereal dW,
+		doublereal dC,
 		flag fOut);
    virtual ~UniformRotor(void);
    virtual inline void* pGet(void) const { return (void*)this; };
@@ -383,6 +383,7 @@ class GlauertRotor : virtual public Elem, public Rotor {
 		doublereal dOR,
 		doublereal dR,
 		doublereal dW,
+		doublereal dC,
 		flag fOut);
    virtual ~GlauertRotor(void);
    virtual inline void* pGet(void) const { return (void*)this; };
@@ -424,6 +425,7 @@ class ManglerRotor : virtual public Elem, public Rotor {
 		doublereal dOR,
 		doublereal dR,
 		doublereal dW,
+		doublereal dC,
 		flag fOut);
    virtual ~ManglerRotor(void);
    virtual inline void* pGet(void) const { return (void*)this; };

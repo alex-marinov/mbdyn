@@ -56,25 +56,25 @@ extern "C" {
 
 /* Rotor - begin */
 
-Rotor::Rotor(unsigned int uL, Rotor::Type T, const DofOwner* pDO,
+Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
 	     const StructNode* pC, const StructNode* pR, flag fOut)
 : Elem(uL, Elem::ROTOR, fOut), 
 AerodynamicElem(uL, AerodynamicElem::ROTOR, fOut), 
 ElemWithDofs(uL, Elem::ROTOR, pDO, fOut),
-RotorT(T), 
+#ifdef USE_MPI
+pBlockLenght(NULL),
+pDispl(NULL),
+ReqV(MPI::REQUEST_NULL),
+pRotDataType(NULL),
+#endif /* USE_MPI */
 pCraft(pC), pRotor(pR), 
-dOmegaRef(0.), dRadius(0.), dArea(0.), dUMean(0.), dUMeanPrev(0.), dWeight(0.),
+dOmegaRef(0.), dRadius(0.), dArea(0.), dUMean(0.), dUMeanPrev(0.), 
+dWeight(0.), dCorrection(1.),
 FTraction(0.), MTraction(0.),
 RRotTranspose(0.), RRot3(0.), XCraft(0.), VCraft(0.),
 dPsi0(0.), dSinAlphad(1.), dCosAlphad(0.),
 dMu(0.), dLambda(1.), dChi(0.),
 dVelocity(0.), dOmega(0.),
-#ifdef USE_MPI
-pBlockLenght(NULL),
-pDispl(NULL),
-pRotDataType(NULL),
-ReqV(MPI::REQUEST_NULL),
-#endif /* USE_MPI */
 iNumSteps(0)
 {
 
@@ -100,14 +100,12 @@ Rotor::~Rotor(void)
    NO_OP;
 }
 
-
 /* Tipo dell'elemento (usato per debug ecc.) */
 Elem::Type Rotor::GetElemType(void) const
 {
-   return Elem::ROTOR;
+    return Elem::ROTOR;
 }
 
-   
 void Rotor::Output(OutputHandler& OH) const
 {
   /* non mi ricordo a cosa serve! */
@@ -289,20 +287,12 @@ void Rotor::MeanInducedVelocity(void)
       if (dOmega/dOmegaRef > 1.e-2) {
 	 d = 2.*dGetAirDensity(GetXCurr())*dArea*dOmega*dRadius*d;
 	 if (d > 1.e-6) {
-	    dUMeanTmp = dT/d;
+	    dUMeanTmp = dCorrection*dT/d;
 	 }
       }      	      
    } /* else dUMeanTmp is already 0. */
 
    dUMean = dUMeanTmp*(1.-dWeight)+dUMeanPrev*dWeight;
-   
-   /* non giova molto
-   if (iNumSteps < 20) {
-      dUMean = 0.;
-   } else if (iNumSteps < 40) {
-      dUMean = dUMean*(doublereal(iNumSteps)-20.)/20.;
-   } 
-    */
 }
 
 
@@ -399,7 +389,7 @@ NoRotor::NoRotor(unsigned int uLabel,
 		 doublereal dR,
 		 flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
-Rotor(uLabel, Rotor::NO, pDO, pCraft, pRotor, fOut)
+Rotor(uLabel, pDO, pCraft, pRotor, fOut)
 {
   dRadius = dR; /* puo' essere richiesto dal trim */
 #ifdef USE_MPI
@@ -518,9 +508,10 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 			   doublereal dOR,
 			   doublereal dR, 
 			   doublereal dW,
+			   doublereal dC,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
-Rotor(uLabel, Rotor::UNIFORM, pDO, pCraft, pRotor, fOut)
+Rotor(uLabel, pDO, pCraft, pRotor, fOut)
 {
    ASSERT(dOR > 0.);
    ASSERT(dR > 0.);
@@ -530,6 +521,7 @@ Rotor(uLabel, Rotor::UNIFORM, pDO, pCraft, pRotor, fOut)
    dRadius = dR;
    dArea = 2.*PI*dRadius*dRadius;
    dWeight = dW;
+   dCorrection = dC;
 
 #ifdef USE_MPI
   SAFENEWARR(pBlockLenght, int, 7, DMmm);
@@ -667,9 +659,10 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 			   doublereal dOR,
 			   doublereal dR, 
 			   doublereal dW,
+			   doublereal dC,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut),
-Rotor(uLabel, Rotor::GLAUERT, pDO, pCraft, pRotor, fOut)
+Rotor(uLabel, pDO, pCraft, pRotor, fOut)
 {
    ASSERT(dOR > 0.);
    ASSERT(dR > 0.);
@@ -679,6 +672,7 @@ Rotor(uLabel, Rotor::GLAUERT, pDO, pCraft, pRotor, fOut)
    dRadius = dR;
    dArea = 2.*PI*dRadius*dRadius;
    dWeight = dW;
+   dCorrection = dC;
 
 #ifdef USE_MPI
   SAFENEWARR(pBlockLenght, int, 20, DMmm);
@@ -813,9 +807,10 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 			   doublereal dOR,
 			   doublereal dR, 
 			   doublereal dW,
+			   doublereal dC,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
-Rotor(uLabel, Rotor::MANGLER, pDO, pCraft, pRotor, fOut)
+Rotor(uLabel, pDO, pCraft, pRotor, fOut)
 {
    ASSERT(dOR > 0.);
    ASSERT(dR > 0.);
@@ -825,6 +820,7 @@ Rotor(uLabel, Rotor::MANGLER, pDO, pCraft, pRotor, fOut)
    dRadius = dR;
    dArea = 2.*PI*dRadius*dRadius;
    dWeight = dW;
+   dCorrection = dC;
 
 #ifdef USE_MPI
   SAFENEWARR(pBlockLenght, int, 18, DMmm);
@@ -1017,7 +1013,7 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 				       doublereal dVSineTmp,
 				       flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut),
-Rotor(uLabel, Rotor::DYNAMICINFLOW, pDO, pCraft, pRotor, fOut),
+Rotor(uLabel, pDO, pCraft, pRotor, fOut),
 dVConst(dVConstTmp), dVCosine(dVCosineTmp), dVSine(dVSineTmp), 
 dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
 {
@@ -1494,7 +1490,7 @@ Elem* ReadRotor(DataManager* pDM,
        } else {   	      	   	      	  
 	  /* Legge il coefficiente di peso della velocita' indotta */
 	  doublereal dW = 0.;
-	  if (HP.fIsArg()) {
+	  if (HP.IsKeyWord("weight")) {
 	     dW = HP.GetReal();
 	     DEBUGCOUT("Weight: " << dW << endl);
 	     if (dW < 0.) {
@@ -1511,6 +1507,20 @@ Elem* ReadRotor(DataManager* pDM,
 		dW = 1.;
 	     }
 	  }
+
+	  /* Legge la correzione della velocita' indotta */
+	  doublereal dC = 1.;
+	  if (HP.IsKeyWord("correction")) {
+	     dC = HP.GetReal();
+	     DEBUGCOUT("Correction: " << dC << endl);
+	     if (dC <= 0.) {
+		cerr 
+		  << "warning, illegal null or negative correction"
+		  " for uniform rotor " << uLabel << ", switching to 1" 
+		  << endl;
+		dW = 1.;
+	     }
+	  }
 	  
 	  flag fOut = pDM->fReadOutput(HP, Elem::ROTOR);
 	  
@@ -1520,7 +1530,7 @@ Elem* ReadRotor(DataManager* pDM,
 	      SAFENEWWITHCONSTRUCTOR(pEl, 
 				     UniformRotor,
 				     UniformRotor(uLabel, pDO, pCraft, pRotor,
-						  dOR, dR, dW, fOut), 
+						  dOR, dR, dW, dC, fOut), 
 				     DMmm);
 	      break;
 	   }
@@ -1530,7 +1540,7 @@ Elem* ReadRotor(DataManager* pDM,
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     GlauertRotor,
 				     GlauertRotor(uLabel, pDO, pCraft, pRotor,
-						  dOR, dR, dW, fOut), 
+						  dOR, dR, dW, dC, fOut), 
 				     DMmm);
 	      break;
 	   }
@@ -1541,7 +1551,7 @@ Elem* ReadRotor(DataManager* pDM,
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     ManglerRotor,
 				     ManglerRotor(uLabel, pDO, pCraft, pRotor, 
-						  dOR, dR, dW, fOut), 
+						  dOR, dR, dW, dC, fOut), 
 				     DMmm);
 	      break;
 	   }
