@@ -765,8 +765,9 @@ i.e.:
 	\label{eq:EL:BEAM:AXIAL-TRANSFORM-REVERSED}
 \end{equation}
 This expression implies that the stiffness properties are referred
-to an arbitrary point at $\cubr{-y,-z}$ after that they are rotated 
-into the section reference frame, i.e.\ by an amount $-\alpha$.
+to an arbitrary point at $\cubr{-y,-z}$ from the axial strain center,
+after that they are rotated into the section reference frame, 
+i.e.\ by an amount $-\alpha$.
 The resulting coefficients are
 \begin{eqnarray*}
 	A_{11} & = & EA \\
@@ -989,8 +990,9 @@ i.e.:
 	\label{eq:EL:BEAM:SHEAR-TRANSFORM-REVERSED}
 \end{equation}
 This expression implies that the stiffness properties are referred
-to an arbitrary point at $\cubr{-y,-z}$ after that they are rotated 
-into the section reference frame, i.e.\ by an amount $-\beta$.
+to an arbitrary point at $\cubr{-y,-z}$ from the shear center,
+in the shear reference frame, followed by a rotation
+into the section reference frame by an amount $-\beta$.
 The resulting coefficients are
 \begin{eqnarray*}
 	S_{11} & = & GA_y \cos^2\beta + GA_z \sin^2\beta \\
@@ -1000,9 +1002,25 @@ The resulting coefficients are
 	S_{23} & = & y GA_z \cos\beta + z GA_y \sin\beta \\
 	S_{33} & = & GJ + z^2 GA_y + y^2 GA_z
 \end{eqnarray*}
+Note that the order of the rotation and reference point transportation 
+is reversed with respect to the axial properties; this is mostly done
+for convenience in computing the coefficients, because the opposite
+would result in more complicated formulas; however, their development
+the other way 'round is straightforward.
 
 \begin{figure}
 \centering
+\psfrag{alpha}{\hspace{0cm}\large $\alpha$}
+\psfrag{beta}{\hspace{0cm}\large $\beta$}
+\psfrag{sc}{\hspace{0cm}\large s.c.}
+\psfrag{a.s.}{\hspace{0cm}\large a.s.}
+\psfrag{x}{\hspace{0cm}\large $x$}
+\psfrag{y}{\hspace{0cm}\large $y$}
+\psfrag{z}{\hspace{0cm}\large $z$}
+\psfrag{ysc}{\hspace{0cm}\large $y_{sc}$}
+\psfrag{zsc}{\hspace{0cm}\large $z_{sc}$}
+\psfrag{yas}{\hspace{0cm}\large $y_{as}$}
+\psfrag{zas}{\hspace{0cm}\large $z_{as}$}
 \includegraphics[width=.7\textwidth]{beamsect}
 \caption{Beam section}
 \label{fig:EL:BEAM:SECTION}
