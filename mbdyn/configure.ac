@@ -433,8 +433,12 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Checks for socket
 dnl
+AC_CHECK_FUNC(socket,[have_socket=yes],[have_socket=no])
+if test "$have_socket" = "yes" ; then
+	AC_DEFINE(HAVE_SOCKET,1,[define if socket() is available])
+fi
+	
 if test "$ol_enable_socket_drives" != no ; then
-	AC_CHECK_FUNC(socket,[have_socket=yes],[have_socket=no])
 
 	if test $have_socket != no ; then
 		AC_DEFINE(USE_SOCKET_DRIVES,1,[define to enable socket drives])
