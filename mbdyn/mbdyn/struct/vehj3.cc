@@ -104,7 +104,7 @@ DeformableJoint::Output(OutputHandler& OH) const
 unsigned int
 DeformableJoint::iGetNumPrivData(void) const
 {
-	return 12 + ConstitutiveLaw6DOwner::iGetNumPrivData();
+	return 18 + ConstitutiveLaw6DOwner::iGetNumPrivData();
 }
 
 unsigned int
@@ -117,20 +117,32 @@ DeformableJoint::iGetPrivDataIdx(const char *s) const
 	switch (s[0]) {
 	case 'd':
 		break;
+
 	case 'r':
 		idx += 3;
 		break;
-	case 'F':
+
+	case 'v':
 		idx += 6;
 		break;
-	case 'M':
+
+	case 'w':
 		idx += 9;
 		break;
+
+	case 'F':
+		idx += 12;
+		break;
+
+	case 'M':
+		idx += 15;
+		break;
+
 	default:
 	{
 		size_t l = sizeof("constitutiveLaw.") - 1;
 		if (strncmp(s, "constitutiveLaw.", l) == 0) {
-			return ConstitutiveLaw6DOwner::iGetPrivDataIdx(s + l);
+			return 18 + ConstitutiveLaw6DOwner::iGetPrivDataIdx(s + l);
 		}
 		return 0;
 	}
@@ -171,8 +183,8 @@ DeformableJoint::dGetPrivData(unsigned int i) const
 	{
 		Vec3 f1Tmp(pNode1->GetRCurr()*f1);
 		Vec3 f2Tmp(pNode2->GetRCurr()*f2);
-		Mat3x3 R1T(pNode1->GetRCurr().Transpose());
-		Vec3 d(R1T*(pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr() - f1Tmp));   
+		Mat3x3 R1T((pNode1->GetRCurr()*R1h).Transpose());
+		Vec3 d(R1T*(pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr() - f1Tmp));
 
 		return d(i);
 	}
@@ -181,10 +193,10 @@ DeformableJoint::dGetPrivData(unsigned int i) const
 	case 5:
 	case 6:
 	{
-		Mat3x3 R1HT((pNode1->GetRCurr()*R1h).Transpose());
-		Mat3x3 R2H(pNode2->GetRCurr()*R2h);
+		Mat3x3 R1T((pNode1->GetRCurr()*R1h).Transpose());
+		Mat3x3 R2(pNode2->GetRCurr()*R2h);
 
-		Vec3 v(RotManip::VecRot(R1HT*R2H));
+		Vec3 v(RotManip::VecRot(R1T*R2));
 
 		return v(i - 3);
 	}
@@ -192,13 +204,38 @@ DeformableJoint::dGetPrivData(unsigned int i) const
 	case 7:
 	case 8:
 	case 9:
+	{
+		Vec3 f2Tmp(pNode2->GetRCurr()*f2);
+		Mat3x3 R1T(pNode1->GetRCurr().Transpose());
+		Vec3 v(R1T*(pNode2->GetVCurr() - pNode1->GetVCurr()
+					+ (pNode2->GetXCurr() - pNode1->GetXCurr()).Cross(pNode1->GetWCurr())
+					- f2Tmp.Cross(pNode2->GetWCurr() - pNode1->GetWCurr())));
+
+		return v(i - 6);
+	}
+	
 	case 10:
 	case 11:
 	case 12:
-		return F(i - 6);
+	{
+		Mat3x3 R1T((pNode1->GetRCurr()*R1h).Transpose());
+		Vec3 W1(pNode1->GetWCurr());
+		Vec3 W2(pNode2->GetWCurr());
+		Vec3 w = R1T*(W2 - W1);
+
+		return w(i - 9);
+	}
+
+	case 13:
+	case 14:
+	case 15:
+	case 16:
+	case 17:
+	case 18:
+		return GetF()(i - 12);
 	
 	default:
-		return ConstitutiveLaw6DOwner::dGetPrivData(i - 12);
+		return ConstitutiveLaw6DOwner::dGetPrivData(i - 18);
 	}
 }
 
