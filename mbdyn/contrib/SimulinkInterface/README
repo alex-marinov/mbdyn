@@ -37,3 +37,12 @@ You need:
 - a working Matlab/Simulink installation; see http://www.mathworks.com
 - the "mex" compiler in your PATH; on my system it's in /opt/matlab/bin
 - MBDyn 1.2.0 or later
+- once for all, you can set MBDyn's install path in Matlab's global path
+  (see setup.m; may change in the future)
+
+Simulink procedure:
+- file->new->model
+- file->open->MBDynCom.mdl
+
+- simulink currently connects to sockets created by MBDyn,
+  so always set "create, yes" in MBDyn models.

@@ -159,9 +159,19 @@ static void mdlStart(SimStruct *S)
 	case -1: 
 		fprintf(stderr,"Cannot fork\n");
 		break;
-	default: 
-		printf("Simulink start MBDyn task!\n");
-		sleep(1);
+
+	default:
+		{
+		int sleeptime = 1;
+		printf("Simulink start MBDyn task\n", sleeptime);
+		if (sleeptime) {
+			printf("\tsleeping %d s\n", sleeptime);
+			while (sleeptime) {
+				sleeptime = sleep(sleeptime);
+			}
+		}
+		break;
+		}
 	}
 	ssGetIWork(S)[0] = (int_T)pid;
 #endif /*MATLAB_MEX_FILE*/

@@ -235,8 +235,8 @@ printf("\nread ()GOT hard_port %ld\n", ptrstr -> port);
 	}
 
 	/******************************************************************
-	*find mbdyn task
-	******************************************************************/
+	 *find mbdyn task
+	 ******************************************************************/
 	count = 0;
 printf("\nread: nam2num(mbd_name) %x\n", nam2num(mbd_name));
 	while(count < MAX_MBDYN_TASK){
@@ -288,8 +288,8 @@ printf("\nread: RT_GOT MBDYN_task addy!\n");
 	
 	
 	/******************************************************************
-	*find mailbox 
-	******************************************************************/
+	 *find mailbox 
+	 ******************************************************************/
 	
 	i = WAIT_LOOP;
 
@@ -310,8 +310,8 @@ printf("\nread: RT_GOT MBDYN_task addy!\n");
 
 	
 	/******************************************************************
-	*alloc buffer memory 
-	******************************************************************/
+	 *alloc buffer memory 
+	 ******************************************************************/
 	/*i = mbd_read_cnt;
 	
 	for (i = mbd_read_cnt; i < 999; i++) {
@@ -403,9 +403,9 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 	int sock = ssGetIWork(S)[0];
 	int conn = ssGetIWork(S)[1];
 	static char_T errMsg[256];
-	if(conn == 0) {
+	if (conn == 0) {
 		if (sock == 0) {
-			if(NET) {
+			if (NET) {
 				/*usa il protocollo tcp/ip*/
 				struct sockaddr_in addr;
 				char host[MAXHOSTNAMELEN];
@@ -463,6 +463,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 						return;								
 					}
 				}
+
 			} else {
 				/*usa le socket local*/
 				struct sockaddr_un addr;
@@ -513,46 +514,48 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 		} else {
 			/*poll*/
 			struct pollfd	ufds;
+			int		rc;
 			
 			ufds.fd = sock;
 			ufds.events = (POLLIN | POLLOUT);
-			switch (poll(&ufds ,1 , TIME_OUT)) {
+			rc = poll(&ufds, 1, TIME_OUT);
+			switch (rc) {
 			case -1:
-				sprintf(errMsg, "\nREAD sfunction: POLL error\n");
+				sprintf(errMsg, "\nREAD sfunction: POLL error (-1)\n");
 				ssSetErrorStatus(S, errMsg);
-				printf("1\n");
-				printf("%s",errMsg);
+				printf("%s", errMsg);
 				return;
 			case 0:
 				sprintf(errMsg, "\nREAD sfunction: timeout connection reached\n");
 				ssSetErrorStatus(S, errMsg);
-				printf("%s",errMsg);			
+				printf("%s", errMsg);
 				return;
 			default :
 				{
 				int flags;
-				if(ufds.revents & (POLLERR | POLLHUP | POLLNVAL)) {
-					sprintf(errMsg, "\nREAD sfunction: POLL error\n");
+				if (ufds.revents & (POLLERR | POLLHUP | POLLNVAL)) {
+					sprintf(errMsg, "\nREAD sfunction: POLL error (%d ERR=%d HUP=%d NVAL=%d)\n",
+							rc, ufds.revents & POLLERR, ufds.revents & POLLHUP, ufds.revents & POLLNVAL);
 					ssSetErrorStatus(S, errMsg);
-					printf("2\n");
-					printf("%s",errMsg);
+					printf("%s", errMsg);
 					return;
-				}
-				conn = 1;
-				/*reimposta la socket come bloccante*/
-        			flags = fcntl(sock, F_GETFL, 0);
-        			if (flags == -1) {
-					sprintf(errMsg, "\nREAD sfunction: unable to get socket flags\n");
-					ssSetErrorStatus(S, errMsg);
-					printf("%s",errMsg);
-					return;				
-				}
-				flags &= (~O_NONBLOCK);
-				if (fcntl(sock, F_SETFL, flags) == -1){
-					sprintf(errMsg, "\nREAD sfunction: unable to set socket flags\n");
-					ssSetErrorStatus(S, errMsg);
-					printf("%s",errMsg);
-					return;
+				} else {
+					conn = 1;
+					/*reimposta la socket come bloccante*/
+        				flags = fcntl(sock, F_GETFL, 0);
+        				if (flags == -1) {
+						sprintf(errMsg, "\nREAD sfunction: unable to get socket flags\n");
+						ssSetErrorStatus(S, errMsg);
+						printf("%s", errMsg);
+						return;				
+					}
+					flags &= (~O_NONBLOCK);
+					if (fcntl(sock, F_SETFL, flags) == -1){
+						sprintf(errMsg, "\nREAD sfunction: unable to set socket flags\n");
+						ssSetErrorStatus(S, errMsg);
+						printf("%s", errMsg);
+						return;
+					}
 				}
 				}							
 			}
@@ -564,10 +567,10 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 	
 	if (conn) {
 		/*legge dalla socket*/
-		if(recv(sock, y, sizeof(double)*MBX_N_CHN, 0) == -1){
+		if (recv(sock, y, sizeof(double)*MBX_N_CHN, 0) == -1){
 			sprintf(errMsg, "\nComunication closed by host\n");
 			ssSetStopRequested(S, 1);
-			printf("%s",errMsg);
+			printf("%s", errMsg);
 			return;
 		}				
 	
