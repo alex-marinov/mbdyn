@@ -34,11 +34,11 @@
 
 #ifdef USE_RTAI
 
-#include <rtai_mbox_drive.h>
+#include <rtai_in_drive.h>
 
-RTAIMailboxDrive::RTAIMailboxDrive(unsigned int uL, const DriveHandler* pDH,
+RTAIInDrive::RTAIInDrive(unsigned int uL, const DriveHandler* pDH,
 			 integer nd)
-: FileDrive(uL, pDH, "rtai_mailbox", nd), 
+: FileDrive(uL, pDH, "rtai_in", nd), 
 pdVal(NULL)
 {
    	ASSERT(nd > 0);
@@ -50,7 +50,7 @@ pdVal(NULL)
 	 */
 }
 
-RTAIMailboxDrive::~RTAIMailboxDrive(void) 
+RTAIInDrive::~RTAIInDrive(void) 
 {
    	if (pdVal != NULL) {
       		SAFEDELETEARR(pdVal);
@@ -58,7 +58,7 @@ RTAIMailboxDrive::~RTAIMailboxDrive(void)
 }
 
 void 
-RTAIMailboxDrive::ServePending(const doubleral& /* t */ )
+RTAIInDrive::ServePending(const doublereal& /* t */ )
 {
 	/*
 	 * store in pdVal the values of all the channels
@@ -67,20 +67,20 @@ RTAIMailboxDrive::ServePending(const doubleral& /* t */ )
 }
 
 FileDrive::Type 
-RTAIMailboxDrive::GetFileDriveType(void) const
+RTAIInDrive::GetFileDriveType(void) const
 {
-   	return FileDrive::RTAI_MAILBOX;
+   	return FileDrive::RTAI_IN;
 }
 
 /* Scrive il contributo del DriveCaller al file di restart */
 std::ostream&
-RTAIMailboxDrive::Restart(std::ostream& out) const
+RTAIInDrive::Restart(std::ostream& out) const
 {
-   	return out << "# RTAIMailboxDrive not implemented yet" << std::endl;
+   	return out << "# RTAIInDrive not implemented yet" << std::endl;
 }
    
 doublereal
-RTAIMailboxDrive::dGet(const doublereal& /* t */ , int i) const
+RTAIInDrive::dGet(const doublereal& /* t */ , int i) const
 {
    	ASSERT(i > 0 && i <= iNumDrives);
    	return pdVal[i];

@@ -30,8 +30,8 @@
 
 /* socket driver */
 
-#ifndef RTAI_MBOX_DRIVE_H
-#define RTAI_MBOX_DRIVE_H
+#ifndef RTAI_IN_DRIVE_H
+#define RTAI_IN_DRIVE_H
 
 #ifdef USE_RTAI
 
@@ -39,17 +39,17 @@
 
 #include "filedrv.h"
 
-/* RTAIMailboxDrive - begin */
+/* RTAIInDrive - begin */
 
-class RTAIMailboxDrive : public FileDrive {
+class RTAIInDrive : public FileDrive {
 protected:
    	doublereal* pdVal;
    
 public:
-   	RTAIMailboxDrive(unsigned int uL, const DriveHandler* pDH,
+   	RTAIInDrive(unsigned int uL, const DriveHandler* pDH,
 	            integer nd);
    
-   	virtual ~RTAIMailboxDrive(void);
+   	virtual ~RTAIInDrive(void);
    
    	virtual FileDrive::Type GetFileDriveType(void) const;
 
@@ -61,9 +61,9 @@ public:
    	virtual void ServePending(const doublereal& t);
 };
 
-/* RTAIMailboxDrive - end */
+/* RTAIInDrive - end */
 
 #endif /* USE_RTAI */
 
-#endif /* RTAI_MBOX_DRIVE_H */
+#endif /* RTAI_IN_DRIVE_H */
 

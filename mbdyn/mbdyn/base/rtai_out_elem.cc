@@ -38,44 +38,44 @@
 
 /* include del programma */
 
-#include <rtai_mbox_elem.h>
+#include <rtai_out_elem.h>
 
-/* RTAIMailboxElem - begin */
+/* RTAIOutElem - begin */
 
-RTAIMailboxElem::RTAIMailboxElem(unsigned int uL, unsigned int nmb,
+RTAIOutElem::RTAIOutElem(unsigned int uL, unsigned int nmb,
 		ScalarDof *& pn)
-: Elem(uL, Elem::RTAI_OUTPUT_MAILBOX, flag(0)),
+: Elem(uL, Elem::RTAI_OUTPUT, flag(0)),
 NumChannels(nmb), pNodes(pn)
 {
 	NO_OP;
 }
 
-RTAIMailboxElem::~RTAIMailboxElem(void)
+RTAIOutElem::~RTAIOutElem(void)
 {
 	SAFEDELETEARR(pNodes);
 }
 
 std::ostream&
-RTAIMailboxElem::Restart(std::ostream& out) const
+RTAIOutElem::Restart(std::ostream& out) const
 {
 	return out << "# not implemented yet" << std::endl;
 }
 
 Elem::Type
-RTAIMailboxElem::GetElemType(void) const
+RTAIOutElem::GetElemType(void) const
 {
-	return Elem::RTAI_OUTPUT_MAILBOX;
+	return Elem::RTAI_OUTPUT;
 }
 
 void
-RTAIMailboxElem::WorkSpaceDim(integer* piRows, integer* piCols) const
+RTAIOutElem::WorkSpaceDim(integer* piRows, integer* piCols) const
 {
 	*piRows = 0;
 	*piCols = 0;
 }
 
 SubVectorHandler&
-RTAIMailboxElem::AssRes(SubVectorHandler& WorkVec, double dCoef,
+RTAIOutElem::AssRes(SubVectorHandler& WorkVec, double dCoef,
 		const VectorHandler& X, const VectorHandler& XP)
 {
 	WorkVec.Resize(0);
@@ -83,7 +83,7 @@ RTAIMailboxElem::AssRes(SubVectorHandler& WorkVec, double dCoef,
 }
 
 VariableSubMatrixHandler& 
-RTAIMailboxElem::AssJac(VariableSubMatrixHandler& WorkMat, double dCoef,
+RTAIOutElem::AssJac(VariableSubMatrixHandler& WorkMat, double dCoef,
 		const VectorHandler& X, const VectorHandler& XP)
 {
 	WorkMat.SetNullMatrix();
@@ -91,7 +91,7 @@ RTAIMailboxElem::AssJac(VariableSubMatrixHandler& WorkMat, double dCoef,
 }
 
 void
-RTAIMailboxElem::AfterConvergence(const VectorHandler& X, 
+RTAIOutElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
 	for (unsigned int i; i < NumChannels; i++) {

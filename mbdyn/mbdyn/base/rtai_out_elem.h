@@ -30,8 +30,8 @@
 
 /* socket driver */
 
-#ifndef RTAI_MBOX_ELEM_H
-#define RTAI_MBOX_ELEM_H
+#ifndef RTAI_OUT_ELEM_H
+#define RTAI_OUT_ELEM_H
 
 #ifdef USE_RTAI
 
@@ -40,16 +40,16 @@
 #include <elem.h>
 #include <node.h>
 
-/* RTAIMailboxElem - begin */
+/* RTAIOutElem - begin */
 
-class RTAIMailboxElem : virtual public Elem {
+class RTAIOutElem : virtual public Elem {
 protected:
 	unsigned int NumChannels;
    	ScalarDof* pNodes;
    
 public:
-   	RTAIMailboxElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn);
-   	virtual ~RTAIMailboxElem(void);
+   	RTAIOutElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn);
+   	virtual ~RTAIOutElem(void);
 
 	virtual inline void* pGet(void) const;
 
@@ -68,14 +68,14 @@ public:
 };
 
 inline void*
-RTAIMailboxElem::pGet(void) const
+RTAIOutElem::pGet(void) const
 { 
 	return (void *)this;
 }
 
-/* RTAIMailboxElem - end */
+/* RTAIOutElem - end */
 
 #endif /* USE_RTAI */
 
-#endif /* RTAI_MBOX_ELEM_H */
+#endif /* RTAI_OUT_ELEM_H */
 
