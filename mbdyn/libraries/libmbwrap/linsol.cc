@@ -67,8 +67,8 @@ static struct solver_t {
 	{ "Umfpack", "umfpack3", 
 		LinSol::UMFPACK_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR },
-	{ "Umfpack", "umfpack3", 
-		LinSol::UMFPACK_SOLVER,
+	{ "SuperLU", NULL, 
+		LinSol::SUPERLU_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT },
 	{ "Empty", NULL,
 		LinSol::EMPTY_SOLVER,
@@ -98,16 +98,6 @@ LinSol::SolverType LinSol::defaultSolver =
 #error "need a solver!"
 #endif /* !USE_MESCHACH */
 	;
-
-const char *psSolverNames[] = {
-	"Harwell",
-	"Meschach",
-	"Y12",
-	"Umfpack",
-	"SuperLU",
-	"Empty",
-	NULL
-};
 
 LinSol::LinSol(void)
 : CurrSolver(LinSol::defaultSolver),
@@ -292,8 +282,8 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		case LinSol::MESCHACH_SOLVER:
 		case LinSol::UMFPACK_SOLVER:
 			pedantic_cerr("workspace size is meaningless for "
-					<< psSolverNames[CurrSolver] << " solver" 
-					<< std::endl);
+					<< ::solver[CurrSolver].s_name
+					<< " solver" << std::endl);
 			break;
 
 		default:
@@ -310,8 +300,8 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		switch (CurrSolver) {
 		case LinSol::EMPTY_SOLVER:
 			pedantic_cerr("pivot factor is meaningless for "
-					<< psSolverNames[CurrSolver] << " solver" 
-					<< std::endl);
+					<< ::solver[CurrSolver].s_name
+					<< " solver" << std::endl);
 			break;
 
 		default:
@@ -371,7 +361,7 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 #endif /* USE_MESCHACH */
 
 		/* else */
-		silent_cerr(psSolverNames[t] << " unavailable" << std::endl);
+		silent_cerr(::solver[t].s_name << " unavailable" << std::endl);
 		return false;
 
 	case LinSol::EMPTY_SOLVER:
