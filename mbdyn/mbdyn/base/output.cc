@@ -334,7 +334,7 @@ OutputHandler::~OutputHandler(void)
 {
    for(int iCnt = 0; iCnt < LASTFILE; iCnt++) {
       if (OutData[iCnt].IsOpen) {
-#if HAVE_ISOPEN
+#ifdef HAVE_ISOPEN
 	 ASSERT(OutData[iCnt].pof->is_open());
 #endif /* HAVE_ISOPEN */
 	 OutData[iCnt].pof->close();
@@ -349,7 +349,7 @@ bool
 OutputHandler::Open(const OutputHandler::OutFiles out)
 {
    if(!OutData[out].IsOpen) {
-#if HAVE_ISOPEN
+#ifdef HAVE_ISOPEN
       ASSERT(!OutData[out].pof->is_open());
 #endif /* HAVE_ISOPEN */
 
@@ -396,7 +396,7 @@ OutputHandler::OutputOpen(void)
 bool
 OutputHandler::RestartOpen(void)
 { 
-#if HAVE_ISOPEN
+#ifdef HAVE_ISOPEN
    ASSERT(!ofRestart.is_open());
 #endif /* HAVE_ISOPEN */
    return Open(RESTART);
@@ -405,7 +405,7 @@ OutputHandler::RestartOpen(void)
 bool
 OutputHandler::PartitionOpen(void)
 { 
-#if HAVE_ISOPEN
+#ifdef HAVE_ISOPEN
   ASSERT(!ofPartition.is_open());
 #endif /* HAVE_ISOPEN */
   return Open(PARTITION);
@@ -414,7 +414,7 @@ OutputHandler::PartitionOpen(void)
 bool
 OutputHandler::AdamsResOpen(void)
 { 
-#if HAVE_ISOPEN
+#ifdef HAVE_ISOPEN
   ASSERT(!ofAdamsRes.is_open());
 #endif /* HAVE_ISOPEN */
   return Open(ADAMSRES);
@@ -423,7 +423,7 @@ OutputHandler::AdamsResOpen(void)
 bool
 OutputHandler::AdamsCmdOpen(void)
 {
-#if HAVE_ISOPEN
+#ifdef HAVE_ISOPEN
    ASSERT(!ofAdamsCmd.is_open());
 #endif /* HAVE_ISOPEN */
    return Open(ADAMSCMD);
@@ -432,7 +432,7 @@ OutputHandler::AdamsCmdOpen(void)
 bool
 OutputHandler::LogOpen(void) 
 {
-#if HAVE_ISOPEN
+#ifdef HAVE_ISOPEN
    ASSERT(!ofLog.is_open());
 #endif /* HAVE_ISOPEN */
    return Open(LOG);

@@ -42,6 +42,8 @@
 #include <tpldrive.h>
 #include <tpldrive_.h>
 
+#include <distance.h>
+
 #include <drvhinge.h>
 #include <drvj.h>      /* Vincoli di velocita' imposta */
 #include <accj.h>      /* Vincoli di accelerazione imposta */

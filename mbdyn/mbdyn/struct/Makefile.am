@@ -16,6 +16,8 @@ beamslider.h \
 beamslider.cc \
 body.cc \
 body.h \
+distance.h \
+distance.cc \
 drvhinge.cc \
 drvhinge.h \
 drvj.cc \

@@ -36,6 +36,8 @@
 
 #include <genj.h>
 
+#if 0
+
 /* DistanceJoint - begin */
 
 /* Costruttore non banale */
@@ -1557,6 +1559,8 @@ DistanceJointWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
 #endif /* USE_ADAMS */
 
 /* DistanceJointWithOffset - end */
+
+#endif
 
 
 /* ClampJoint - begin */

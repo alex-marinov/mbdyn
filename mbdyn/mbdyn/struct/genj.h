@@ -38,6 +38,7 @@
 #include "drive.h"
 
 
+#if 0
 /* DistanceJoint - begin */
 
 class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
@@ -69,11 +70,13 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
       return 4;
    };
 
-#ifdef DEBUG
    virtual DofOrder::Order GetDofType(unsigned int i) const
-#else
-   virtual DofOrder::Order GetDofType(unsigned int /* i */ ) const
-#endif
+   {
+      ASSERT(i >= 0 && i < 4);
+      return DofOrder::ALGEBRAIC;
+   };
+   
+   virtual DofOrder::Order GetEqType(unsigned int i) const
    {
       ASSERT(i >= 0 && i < 4);
       return DofOrder::ALGEBRAIC;
@@ -177,11 +180,14 @@ virtual public Elem, public Joint, public DriveOwner {
    virtual unsigned int iGetNumDof(void) const { 
       return 4;
    };
-#ifdef DEBUG      
+
    virtual DofOrder::Order GetDofType(unsigned int i) const
-#else
-   virtual DofOrder::Order GetDofType(unsigned int /* i */ ) const
-#endif
+   {
+      ASSERT(i >= 0 && i < 4);
+      return DofOrder::ALGEBRAIC;
+   };
+   
+   virtual DofOrder::Order GetEqType(unsigned int i) const
    {
       ASSERT(i >= 0 && i < 4);
       return DofOrder::ALGEBRAIC;
@@ -251,6 +257,7 @@ virtual public Elem, public Joint, public DriveOwner {
 };
 
 /* DistanceJointWithOffset - end */
+#endif
 
 
 /* ClampJoint - begin */
@@ -286,11 +293,7 @@ class ClampJoint : virtual public Elem, public Joint {
       return 6; 
    };
 
-#ifdef DEBUG
    virtual DofOrder::Order GetDofType(unsigned int i) const
-#else
-   virtual DofOrder::Order GetDofType(unsigned int /* i */ ) const
-#endif
    {
       ASSERT(i >= 0 && i < 6);
       return DofOrder::ALGEBRAIC; 
