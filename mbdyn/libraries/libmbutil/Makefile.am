@@ -22,6 +22,8 @@ llstack.h \
 mathp.cc \
 mathp.h \
 mathtyp.h \
+mbsasl.c \
+mbsasl.h \
 myassert.cc \
 myassert.h \
 mynewmem.cc \
@@ -50,5 +52,8 @@ INCLUDES = \
 -I../../libraries/libmbmath \
 -I../../mbdyn
 
+noinst_PROGRAMS = mbsasltest
+mbsasltest_SOURCES = mbsasl.c mbsasl.h mbsasltest.c
+mbsasltest_LDADD = @THREAD_LIBS@ @SECURITY_LIBS@
 
 include $(top_srcdir)/build/bot.mk

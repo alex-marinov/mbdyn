@@ -140,7 +140,6 @@ esac
 ])dnl
 AC_SUBST(mbdyn_subdir)dnl
 
-
 dnl ----------------------------------------------------------------
 dnl General "enable" options
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debugging], no)dnl
@@ -148,6 +147,7 @@ OL_ARG_WITH(debug_mode,[  --with-debug-mode[={none|mem}]  with debug mode {none|
 OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], auto)dnl
 OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver
                           (needs MPI and either Metis or Chaco)],auto,[auto yes no])dnl needs MPI and Metis or Chaco
+OL_ARG_ENABLE(multithread,[  --enable-multithread    enable multithread solution], no,[auto yes no force])dnl
 OL_ARG_ENABLE(adams,[  --enable-adams          enable MSC.ADAMS output], no)dnl
 OL_ARG_ENABLE(motionview,[  --enable-motionview     enable Altair's Motion View output], no)dnl
 
@@ -173,6 +173,7 @@ OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto
 OL_ARG_WITH(lapack,[
   --with-lapack           with LAPACK math library],auto,[auto yes no])
 OL_ARG_WITH(pam,[  --with-pam              with PAM support],auto,[auto yes no])
+OL_ARG_WITH(sasl2,[  --with-sasl2            with Cyrus SASL2 support],auto,[auto yes no])
 OL_ARG_WITH(ginac,[  --with-ginac            with GiNaC support],auto,[auto yes no])
 OL_ARG_WITH(struct,[  --with-struct           with structural elements],yes,[yes no])
 OL_ARG_WITH(elec,[  --with-elec             with electric stuff],yes,[yes no])
@@ -191,12 +192,6 @@ AC_ARG_WITH(module,[  --with-module=modulelist  build listed modules],[
 	fi
 	MODULES_DIRS=$ol_arg
 ],[MODULES_DIRS=])dnl
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Validate general "enable" options
-dnl
-
 
 dnl ----------------------------------------------------------------
 dnl
@@ -219,6 +214,7 @@ CHACO_LIBS=
 Y12_LIBS=
 UMFPACK_LIBS=
 BLAS_LIBS=
+THREAD_LIBS=
 MESCHACH_LIBS=
 HARWELL_LIBS=
 LAPACK_LIBS=
@@ -232,7 +228,6 @@ GINACLIB_CPPFLAGS=
 dnl MODULES_DIRS=
 MODULE_LOADPATH=
 
-
 dnl ----------------------------------------------------------------
 dnl
 dnl MBDyn requires STDC features
@@ -241,7 +236,6 @@ AM_PROG_CC_STDC
 if test "X${am_cv_prog_cc_stdc}" = "Xno" ; then
 	AC_MSG_ERROR([I'm afraid MBDyn requires compiler to support STDC constructs.])
 fi
-
 
 dnl ----------------------------------------------------------------
 dnl
@@ -255,6 +249,8 @@ AC_CHECK_HEADERS(math.h)
 AC_CHECK_HEADERS(netdb.h)
 AC_CHECK_HEADERS(netinet/in.h)
 AC_CHECK_HEADERS(pwd.h)
+AC_CHECK_HEADERS(pthread.h)
+AC_CHECK_HEADERS(semaphore.h)
 AC_CHECK_HEADERS(signal.h)
 AC_CHECK_HEADERS(string.h)
 AC_CHECK_HEADERS(sys/mman.h)
@@ -266,7 +262,6 @@ AC_CHECK_HEADERS(sys/times.h)
 AC_CHECK_HEADERS(sys/types.h)
 AC_CHECK_HEADERS(unistd.h)
 AC_CHECK_HEADERS(values.h)
-
 
 dnl ----------------------------------------------------------------
 dnl
@@ -284,18 +279,15 @@ AC_CHECK_HEADERS(exception)
 AC_CHECK_HEADERS(stdexcept)
 AC_LANG_C
 
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Sort out defines
 dnl
 
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Typedefs
 dnl
-
 
 dnl ----------------------------------------------------------------
 dnl
@@ -303,20 +295,17 @@ dnl Set symbol table for Math Parser
 dnl
 AC_DEFINE(USE_TABLE,1,[define this to use external symbol table (default)])
 
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Use element iterator
 dnl
 AC_DEFINE(USE_ELEM_ITER,1,[define this to use dedicated element iterator])
 
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Set inter-language naming convention for calling Fortran routines
 dnl
 AC_DEFINE(USE_UNDERSCORE,1,[append underscore to fortran calls])
-
 
 dnl ----------------------------------------------------------------
 dnl
@@ -326,7 +315,6 @@ dnl AC_DEFINE(USE_STRUCT_NODES,1,[use structural nodes])
 dnl AC_DEFINE(USE_AERODYNAMIC_ELEMS,1,[use aerodynamic elements (requires USE_STRUCT_NODES)])
 dnl AC_DEFINE(USE_ELECTRIC_NODES,1,[use electric nodes])
 dnl AC_DEFINE(USE_HYDRAULIC_NODES,1,[use hydraulic nodes])
-
 
 dnl ----------------------------------------------------------------
 dnl
@@ -354,10 +342,18 @@ if test "$ol_enable_schur" = yes ; then
 	fi
 fi
 
+dnl ----------------------------------------------------------------
+dnl
+dnl Enable ADAMS/View compatible output (no need to detect stuff)
+dnl
 if test "$ol_enable_adams" != no ; then
 	AC_DEFINE(USE_ADAMS,1,[define this to enable ADAMS/View output])
 fi
 
+dnl ----------------------------------------------------------------
+dnl
+dnl Enable MotionView compatible output (detect result library?)
+dnl
 if test "$ol_enable_motionview" != no ; then
 	AC_CHECK_HEADER(mbs_result_api.h,[have_mbs_result_api_h=yes],[have_mbs_result_api_h=no])
 	if test $have_mbs_result_api_h = "yes" ; then
@@ -413,6 +409,20 @@ if test "$ol_enable_socket_drives" != no ; then
 else
 	AC_MSG_WARN([socket drives not supported!])
 fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for sig_atomic_t
+dnl
+AC_MSG_CHECKING([for sig_atomic_t])
+AC_TRY_COMPILE([#include <signal.h>],[
+	sig_atomic_t	atom;
+	],[
+		AC_DEFINE(HAVE_SIG_ATOMIC_T,1,[define if sig_atomic_t is available])
+		AC_MSG_RESULT([yes])
+	],[
+		AC_MSG_RESULT([no])
+	])
 
 dnl ----------------------------------------------------------------
 dnl
@@ -672,7 +682,92 @@ else
 	AC_MSG_WARN([no dynamic linking library detected; loadable elements will be disabled])
 fi
 
+dnl ----------------------------------------------------------------
+dnl
+dnl MULTITHREAD/MPI compatibility
+dnl
+if test "$ol_with_mpi" = "yes" ; then
+	if test "$ol_enable_multithread" = "yes" \
+			-o "$ol_enable_multithread" = "force" ; then
+		AC_MSG_ERROR([MPI and multithread cannot coexist; pick one])
+	else
+		ol_enable_multithread="no"
+	fi
+fi
 
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for threads (check anyway...)
+dnl
+have_threads=no
+AC_MSG_CHECKING([for usable threads])
+if test "${ac_cv_header_pthread_h:+set}" = "set" ; then
+	save_LIBS="$LIBS"
+	have_threads="no"
+	if test "$have_threads" = no ; then
+		AC_TRY_LINK([
+		/* Check whether threads are linked by default */
+#include <pthread.h>
+			],[
+	return pthread_create(0, 0, 0, 0);
+			],[have_threads="yes"])
+		LIBS="$save_LIBS"
+	fi
+
+	if test "$have_threads" = no ; then
+		THREAD_LIBS="-lpthread"
+		LIBS="$save_LIBS $THREAD_LIBS"
+		AC_TRY_LINK([
+		/* Check whether threads need -lpthread */
+#include <pthread.h>
+			],[
+	return pthread_create(0, 0, 0, 0);
+			],[have_threads="yes"])
+		LIBS="$save_LIBS"
+	fi
+
+	if test "$have_threads" = "yes" ; then
+		AC_MSG_RESULT([yes])
+	fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for multithreads (use previous check)
+dnl
+ol_link_multithread=no
+if test "$ol_enable_multithread" != no ; then
+	AC_MSG_CHECKING([whether to enable multithread])
+	if test "${ac_cv_header_pthread_h:+set}" != "set" ; then
+		AC_MSG_ERROR([need pthreads.h])
+	fi
+
+	if test "$have_threads" = no ; then
+		case "$ol_enable_multithread" in
+		yes)
+			AC_MSG_ERROR([No threads available])
+			;;
+			
+		force)
+			have_threads=yes
+			;;
+
+		*)
+			;; dnl do nothing ...
+		esac
+	fi
+
+	if test "$have_threads" = no ; then
+		AC_MSG_RESULT([no])
+	else
+		ol_link_multithread=yes
+		AC_DEFINE(USE_MULTITHREAD,1,[define to enable multithreaded solution])
+		AC_MSG_RESULT([yes])
+
+		dnl MULTITHREAD/MPI compatibility
+		ol_with_mpi="no"
+	fi
+fi
 
 dnl ----------------------------------------------------------------
 dnl
@@ -789,8 +884,6 @@ if test $ol_with_blas != no ; then
 	dnl from now on, add $BLAS_LIBS to libraries that (may) depend on them
 	AC_MSG_RESULT([$have_blas])
 fi
-
-
 
 dnl ----------------------------------------------------------------
 dnl
@@ -913,8 +1006,6 @@ else
 	AC_DEFINE(USE_UMFPACK,1,[define if you want to use Umfpack])
 fi
 
-
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Check for Meschach
@@ -961,7 +1052,6 @@ else
 	AC_MSG_WARN([Meschach not supported!])
 fi
 
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Check for Y12
@@ -972,7 +1062,6 @@ if test $ol_with_y12 != no ; then
 	AC_DEFINE(USE_Y12,1,[define to use Y12 sparse LU library])
 	Y12_LIBS="../libraries/liby12/liby12.la"
 fi
-
 
 dnl ----------------------------------------------------------------
 dnl
@@ -998,7 +1087,6 @@ if test $ol_with_harwell != no ; then
 	fi
 fi
 
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Check for a solver
@@ -1009,7 +1097,6 @@ if test $ol_link_umfpack = no \
 	-a $ol_link_meschach = no ; then
 	AC_MSG_ERROR([Need at least one (sparse) solver])
 fi
-
 
 dnl ----------------------------------------------------------------
 dnl
@@ -1039,6 +1126,37 @@ if test $ol_with_lapack != no ; then
 	fi
 fi
 
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for SASL2
+dnl
+ol_link_sasl2="no"
+if test "$ol_with_sasl2" != "no" ; then
+	AC_CHECK_HEADERS(sasl.h sasl/sasl.h)
+
+	have_sasl_h="no"
+	if test "$ac_cv_header_sasl_h" = "yes" ; then
+		have_sasl_h="yes"
+	elif test "$ac_cv_header_sasl_sasl_h" = "yes" ; then
+		have_sasl_h="yes"
+	fi
+	if test "$have_sasl_h" = "yes" ; then
+		AC_CHECK_LIB(sasl2,sasl_client_start,[have_sasl2=yes],[have_sasl2=no])
+		if test "$have_sasl2" != "no" ; then
+			SECURITY_LIBS="$SECURITY_LIBS -lsasl2"
+			AC_DEFINE(HAVE_SASL2,1,[define to use Cyrus SASL2])
+			ol_link_sasl2="yes"
+		fi
+	fi
+
+	if test "$ol_link_sasl2" = "no" ; then
+		if test "$ol_with_sasl2" != "auto" ; then
+			AC_MSG_ERROR([Could not locate SASL2])
+		else
+			AC_MSG_WARN([Could not locate SASL2])
+		fi
+	fi
+fi
 
 dnl ----------------------------------------------------------------
 dnl
@@ -1057,7 +1175,7 @@ if test $ol_with_pam != no ; then
 				[-lcrypt -lpam_misc -ldl])
 			
 			if test $have_pam != no ; then
-				SECURITY_LIBS="-lcrypt -lpam -lpam_misc -ldl"
+				SECURITY_LIBS="$SECURITY_LIBS -lcrypt -lpam -lpam_misc -ldl"
 				AC_DEFINE(USE_PAM,1,
 					[define if you want to use PAM])
 				ol_link_pam=yes
@@ -1076,7 +1194,6 @@ if test $ol_with_pam != no ; then
 else
 	AC_MSG_WARN([PAM not supported!])
 fi
-
 
 dnl ----------------------------------------------------------------
 dnl
@@ -1172,7 +1289,6 @@ else
 	AC_MSG_WARN([MPI not supported!])
 fi
 
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Need either Metis or Chaco with MPI
@@ -1207,11 +1323,9 @@ else
 	AC_MSG_WARN([Metis not supported!])
 fi
 
-
-
 dnl ----------------------------------------------------------------
 dnl
-dnl Now we check for Chaco.  There is no attempt to find or test Chaco.
+dnl Now we check for Chaco.
 dnl
 ol_link_chaco=no
 if test $ol_with_chaco != no ; then
@@ -1236,7 +1350,6 @@ else
 	AC_MSG_WARN([Chaco not supported!])
 fi
 
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Need Schur parallel solver with MPI
@@ -1256,7 +1369,6 @@ if test $ol_enable_schur != no ; then
 		fi
 	fi
 fi
-
 
 dnl ----------------------------------------------------------------
 dnl
@@ -1403,7 +1515,6 @@ else
 	AC_MSG_RESULT([no])
 fi
 
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Checks whether ios has fmtflags type
@@ -1434,7 +1545,6 @@ else
 fi
 AC_LANG_C
 
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Variable substituion
@@ -1447,6 +1557,7 @@ AC_SUBST(UMFPACK_LIBS)
 dnl NOTE: at present, BLAS_LIBS, if required, are added directly 
 dnl to UMFPACK_LIBS, since Umfpack is the sole library that may require them.
 dnl AC_SUBST(BLAS_LIBS)
+AC_SUBST(THREAD_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
 AC_SUBST(SECURITY_LIBS)
@@ -1463,7 +1574,6 @@ AC_SUBST(GINACLIB_LIBS)
 
 AC_SUBST(DATE)
 
-
 dnl ----------------------------------------------------------------
 dnl
 dnl Prepare for libtool output:
@@ -1474,37 +1584,35 @@ dnl AC_SUBST(LTLIBOBJS)
 dnl LTALLOCA=`echo "$ALLOCA" | sed 's/\.o/\.lo/g'`
 dnl AC_SUBST(LTALLOCA)
 
-
 dnl ----------------------------------------------------------------
 dnl
 dnl final output
 dnl
-
 AC_OUTPUT([ \
 	Makefile:Makefile.in
-	libraries/Makefile:libraries/Makefile.in
-	libraries/libmbutil/Makefile:libraries/libmbutil/Makefile.in
-	libraries/libmbmath/Makefile:libraries/libmbmath/Makefile.in
-	libraries/libmbwrap/Makefile:libraries/libmbwrap/Makefile.in
-	libraries/liby12/Makefile:libraries/liby12/Makefile.in
-	libraries/libobjs/Makefile:libraries/libobjs/Makefile.in
-	mbdyn/Makefile:mbdyn/Makefile.in
-	mbdyn/base/Makefile:mbdyn/base/Makefile.in
-	mbdyn/aero/Makefile:mbdyn/aero/Makefile.in
-	mbdyn/elec/Makefile:mbdyn/elec/Makefile.in
-	mbdyn/hydr/Makefile:mbdyn/hydr/Makefile.in
-	mbdyn/struct/Makefile:mbdyn/struct/Makefile.in
-	modules/Makefile:modules/Makefile.in
-	utils/Makefile:utils/Makefile.in
-	etc/Makefile:etc/Makefile.in
-	etc/modal.d/Makefile:etc/modal.d/Makefile.in
-	etc/pam.d/Makefile:etc/pam.d/Makefile.in
-	var/Makefile:var/Makefile.in
-	manual/Makefile:manual/Makefile.in
-	manual/mbdyn.1:manual/mbdyn.1.in
-	include/Makefile:include/Makefile.in
-	include/ac/Makefile:include/ac/Makefile.in
-	build/Makefile:build/Makefile.in
+	./libraries/Makefile:libraries/Makefile.in
+	./libraries/libmbutil/Makefile:libraries/libmbutil/Makefile.in
+	./libraries/libmbmath/Makefile:libraries/libmbmath/Makefile.in
+	./libraries/libmbwrap/Makefile:libraries/libmbwrap/Makefile.in
+	./libraries/liby12/Makefile:libraries/liby12/Makefile.in
+	./libraries/libobjs/Makefile:libraries/libobjs/Makefile.in
+	./mbdyn/Makefile:mbdyn/Makefile.in
+	./mbdyn/base/Makefile:mbdyn/base/Makefile.in
+	./mbdyn/aero/Makefile:mbdyn/aero/Makefile.in
+	./mbdyn/elec/Makefile:mbdyn/elec/Makefile.in
+	./mbdyn/hydr/Makefile:mbdyn/hydr/Makefile.in
+	./mbdyn/struct/Makefile:mbdyn/struct/Makefile.in
+	./modules/Makefile:modules/Makefile.in
+	./utils/Makefile:utils/Makefile.in
+	./etc/Makefile:etc/Makefile.in
+	./etc/modal.d/Makefile:etc/modal.d/Makefile.in
+	./etc/pam.d/Makefile:etc/pam.d/Makefile.in
+	./var/Makefile:var/Makefile.in
+	./manual/Makefile:manual/Makefile.in
+	./manual/mbdyn.1:manual/mbdyn.1.in
+	./include/Makefile:include/Makefile.in
+	./include/ac/Makefile:include/ac/Makefile.in
+	./build/Makefile:build/Makefile.in
 ],[
 	date > stamp-h
 ])
