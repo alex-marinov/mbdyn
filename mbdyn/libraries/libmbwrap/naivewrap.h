@@ -48,20 +48,20 @@
 	
 /* NaiveSolver - begin */
 
+template<class S>
 class NaiveSolver: public LinearSolver {
 private:
 	integer iSize;
 	doublereal dMinPiv;
 	
-	NaiveMatrixHandler *const A;
-
 	mutable std::vector<integer> piv;
 
 	void Factor(void);
 
+	S * A;
 public:
 	NaiveSolver(const integer &size, const doublereal &dMP,
-			NaiveMatrixHandler *const a);
+			S *const a);
 	~NaiveSolver(void);
 
 	void Reset(void);
@@ -76,9 +76,10 @@ class NaiveSparseSolutionManager: public SolutionManager {
 protected:
 	mutable NaiveMatrixHandler A;
 	mutable MyVectorHandler VH;
+	mutable MyVectorHandler XH;
 
 public:
-	NaiveSparseSolutionManager(integer Dim, const doublereal dMP = 1.e-9);
+	NaiveSparseSolutionManager(const integer Dim, const doublereal dMP = 1.e-9);
 	virtual ~NaiveSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {
@@ -103,6 +104,40 @@ public:
 };
 
 /* NaiveSparseSolutionManager - end */
+
+
+/* UmfpackSparseCCSolutionManager - begin */
+
+class NaiveSparseCCSolutionManager: public NaiveSparseSolutionManager {
+private:
+	const doublereal dMinPiv;
+	void ComputePermutation();
+	void BackPerm();
+protected:
+	bool CCReady;
+	NaivePermMatrixHandler *Ac;
+	
+	mutable std::vector<integer> perm;
+	mutable std::vector<integer> invperm;
+
+	virtual void MatrReset(void);
+	
+public:
+	NaiveSparseCCSolutionManager(const integer Dim, const doublereal dMP = 1.e-9);
+	virtual ~NaiveSparseCCSolutionManager(void);
+
+	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
+	virtual void Solve(void);
+
+	/* Inizializzatore "speciale" */
+	virtual void MatrInitialize(void);
+	
+	/* Rende disponibile l'handler per la matrice */
+	virtual MatrixHandler* pMatHdl(void) const;
+};
+
+/* UmfpackSparseCCSolutionManager - end */
+
 
 #endif /* NaiveSolutionManager_hh */
 

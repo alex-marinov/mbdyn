@@ -162,6 +162,7 @@ public SubMatrixHandler, public FullMatrixHandler {
 	operator << (std::ostream& out, const FullSubMatrixHandler& m);
 
 	friend class NaiveMatrixHandler;
+	friend class NaivePermMatrixHandler;
 
 
 protected:
@@ -523,6 +524,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
 	friend class SparseMatrixHandler;
 	friend class FullMatrixHandler;
 	friend class NaiveMatrixHandler;
+	friend class NaivePermMatrixHandler;
 
 public:
 	/* Errori */
@@ -866,6 +868,7 @@ public:
 class VariableSubMatrixHandler
 : public FullSubMatrixHandler, public SparseSubMatrixHandler {
 	friend class NaiveMatrixHandler;
+	friend class NaivePermMatrixHandler;
 private:
 	/*
 	 * Stato della matrice.

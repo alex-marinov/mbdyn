@@ -236,9 +236,15 @@ main(int argc, char *argv[])
 #endif /* !USE_UMFPACK */
 
 	} else if (strcasecmp(solver, "naive") == 0) {
-		SAFENEWWITHCONSTRUCTOR(pSM,
+		if (cc) {
+			SAFENEWWITHCONSTRUCTOR(pSM,
+				NaiveSparseCCSolutionManager,
+				NaiveSparseCCSolutionManager(size));
+		} else {
+			SAFENEWWITHCONSTRUCTOR(pSM,
 				NaiveSparseSolutionManager,
 				NaiveSparseSolutionManager(size));
+		}
 
 	} else {
 		std::cerr << "unknown solver '" << solver << "'" << std::endl;
@@ -280,6 +286,28 @@ main(int argc, char *argv[])
 	
 	std::cout << *pM << "\n";
 	
+#ifdef USE_EXCEPTIONS
+	try {
+#endif /* USE_EXCEPTIONS */
+	pSM->Solve();
+#ifdef USE_EXCEPTIONS
+	} catch (...) {
+		exit(EXIT_FAILURE);
+	}
+#endif /* USE_EXCEPTIONS */
+	for (int i = 1; i <= size; i++) {
+		std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 
+			<< std::endl;
+	}
+	
+	std::cout << "\nSecond solve:\n";
+	pM = pSM->pMatHdl();
+	pSM->MatrReset();
+	*pM += SBMH;
+	pV->PutCoef(1, 1.);
+	pV->PutCoef(2, 1.);
+	pV->PutCoef(3, 1.);
+	std::cout << *pM << "\n";
 #ifdef USE_EXCEPTIONS
 	try {
 #endif /* USE_EXCEPTIONS */

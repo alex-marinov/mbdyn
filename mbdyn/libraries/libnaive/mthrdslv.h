@@ -55,7 +55,7 @@ extern int naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 		integer *piv, doublereal minpiv);
 
 extern void naivslv(RMAT a, integer neq, integer *nzc, IMAT ci,
-		doublereal *rhs, integer *piv);
+		doublereal *rhs, doublereal *sol, integer *piv);
 
 #ifdef __cplusplus
 }

@@ -47,31 +47,34 @@
 #include "mthrdslv.h"
 
 /* NaiveSolver - begin */
-	
-NaiveSolver::NaiveSolver(const integer &size, const doublereal& dMP,
-		NaiveMatrixHandler *const a)
+template<class S>	
+NaiveSolver<S>::NaiveSolver(const integer &size, const doublereal& dMP,
+		S *const a)
 : LinearSolver(0),
 iSize(size),
 dMinPiv(dMP),
-A(a),
-piv(size)
+piv(size),
+A(a)
 {
 	NO_OP;
 }
 
-NaiveSolver::~NaiveSolver(void)
+template<class S>	
+NaiveSolver<S>::~NaiveSolver(void)
 {
 	NO_OP;
 }
 
+template<class S>	
 void
-NaiveSolver::Reset(void)
+NaiveSolver<S>::Reset(void)
 {
 	bHasBeenReset = true;
 }
 
+template<class S>	
 void
-NaiveSolver::Solve(void) const
+NaiveSolver<S>::Solve(void) const
 {
 	if (bHasBeenReset) {
       		((NaiveSolver *)this)->Factor();
@@ -79,11 +82,12 @@ NaiveSolver::Solve(void) const
 	}
 
 	naivslv(A->ppdRows, iSize, A->piNzc, A->ppiCols,
-			LinearSolver::pdRhs, &piv[0]);
+			LinearSolver::pdRhs, LinearSolver::pdSol, &piv[0]);
 }
 
+template<class S>	
 void
-NaiveSolver::Factor(void)
+NaiveSolver<S>::Factor(void)
 {
 	int		rc;
 
@@ -131,15 +135,17 @@ NaiveSolver::Factor(void)
 
 /* NaiveSparseSolutionManager - begin */
 
-NaiveSparseSolutionManager::NaiveSparseSolutionManager(integer Dim,
+NaiveSparseSolutionManager::NaiveSparseSolutionManager(const integer Dim,
 		const doublereal dMP)
 : A(Dim),
-VH(Dim)
+VH(Dim),
+XH(Dim)
 {
-	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver, NaiveSolver(Dim, dMP, &A));
+	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver<NaiveMatrixHandler>, 
+		NaiveSolver<NaiveMatrixHandler>(Dim, dMP, &A));
 
-	(void)pLS->ChangeResPoint(VH.pdGetVec());
-	(void)pLS->ChangeSolPoint(VH.pdGetVec());
+	pLS->ChangeResPoint(VH.pdGetVec());
+	pLS->ChangeSolPoint(XH.pdGetVec());
 
 	pLS->SetSolutionManager(this);
 }
@@ -181,8 +187,127 @@ NaiveSparseSolutionManager::pResHdl(void) const
 MyVectorHandler*
 NaiveSparseSolutionManager::pSolHdl(void) const
 {
-	return &VH;
+	return &XH;
 }
 
 /* NaiveSparseSolutionManager - end */
 
+/* NaivePermSparseSolutionManager - begin */
+
+extern "C" {
+#include "colamd.h"
+}
+
+NaiveSparseCCSolutionManager::NaiveSparseCCSolutionManager(const integer Dim, 
+	const doublereal dMP)
+: NaiveSparseSolutionManager(Dim, dMP),
+dMinPiv(dMP),
+CCReady(false),
+Ac(0)
+{
+	perm.resize(Dim,0);
+	invperm.resize(Dim,0);
+}
+
+NaiveSparseCCSolutionManager::~NaiveSparseCCSolutionManager(void) 
+{
+	if (Ac) {
+		SAFEDELETE(Ac);
+	}
+}
+
+void
+NaiveSparseCCSolutionManager::MatrReset(void)
+{
+	if (!Ac) {
+		A.Reset();
+	} else {
+		CCReady = true;
+		Ac->Reset();
+		if (pLS) {
+			SAFEDELETE(pLS);
+		}
+		SAFENEWWITHCONSTRUCTOR(pLS, 
+			NaiveSolver<NaivePermMatrixHandler>, 
+			NaiveSolver<NaivePermMatrixHandler>(Ac->iGetNumCols(), dMinPiv, Ac));
+
+		pLS->ChangeResPoint(VH.pdGetVec());
+		pLS->ChangeSolPoint(XH.pdGetVec());
+
+		pLS->SetSolutionManager(this);
+	}
+	pLS->Reset();
+}
+
+void
+NaiveSparseCCSolutionManager::ComputePermutation(void) {
+	std::vector<integer> Ai;
+	A.MakeCCStructure(Ai, invperm);
+	doublereal knobs [COLAMD_KNOBS];
+	integer stats [COLAMD_STATS];
+	integer Alen = colamd_recommended (Ai.size(), A.iGetNumRows(), A.iGetNumCols());
+	Ai.resize(Alen);
+	colamd_set_defaults(knobs);
+	if (!colamd(A.iGetNumRows(), A.iGetNumCols(), Alen,
+		&(Ai[0]), &(invperm[0]), knobs, stats)) {
+		silent_cerr("colamd permutation failed" << std::endl);
+		THROW(ErrGeneric());
+	}
+	for (integer i = 0; i < A.iGetNumRows(); i++) {
+		perm[invperm[i]] = i;
+	}
+}
+
+void
+NaiveSparseCCSolutionManager::BackPerm(void) {
+	for (integer i = 0; i < A.iGetNumCols(); i++) {
+		XH.PutCoef(invperm[i] + 1, VH.dGetCoef(i + 1));
+	}
+}
+
+
+/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+void
+NaiveSparseCCSolutionManager::Solve(void)
+{
+	if ((!CCReady) && (!Ac)) {
+		ComputePermutation();
+		if (Ac) {
+			SAFEDELETE(Ac);
+		}
+		SAFENEWWITHCONSTRUCTOR(Ac, NaivePermMatrixHandler, 
+			NaivePermMatrixHandler(A, &(perm[0])));
+	} else {
+		pLS->ChangeSolPoint(VH.pdGetVec());
+	}
+	pLS->Solve();
+	if (CCReady) {
+		BackPerm();
+		pLS->ChangeSolPoint(XH.pdGetVec());
+	}
+}
+
+/* Inizializzatore "speciale" */
+void
+NaiveSparseCCSolutionManager::MatrInitialize()
+{
+	CCReady = false;
+
+	MatrReset();
+}
+	
+/* Rende disponibile l'handler per la matrice */
+MatrixHandler*
+NaiveSparseCCSolutionManager::pMatHdl(void) const
+{
+	if (!CCReady) {
+		return &A;
+	}
+
+	ASSERT(Ac != 0);
+	return Ac;
+}
+
+
+
+/* NaivePermSparseSolutionManager - end */

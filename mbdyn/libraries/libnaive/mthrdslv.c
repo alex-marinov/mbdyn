@@ -113,7 +113,8 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 }
 
 void
-naivslv(RMAT a, integer neq, integer *nzc, IMAT ci, doublereal *rhs,
+naivslv(RMAT a, integer neq, integer *nzc, IMAT ci, 
+		doublereal *rhs, doublereal * sol,
 		integer *piv)
 {
 	doublereal fwd[neq];
@@ -138,7 +139,7 @@ naivslv(RMAT a, integer neq, integer *nzc, IMAT ci, doublereal *rhs,
 	}
 
 	r = piv[--neq];
-	rhs[neq] = fwd[neq]*a[r][neq];
+	sol[neq] = fwd[neq]*a[r][neq];
 	for (i = neq - 1; i >= 0; i--) {
 		nc = nzc[r = piv[i]];
 		s = fwd[i];
@@ -146,10 +147,10 @@ naivslv(RMAT a, integer neq, integer *nzc, IMAT ci, doublereal *rhs,
 		pci = ci[r];
 		for (k = 0; k < nc; k++) {
 			if ((c = pci[k]) > i) {
-				s -= par[c]*rhs[c];
+				s -= par[c]*sol[c];
 			}
 		}
-		rhs[i] = s*par[i];
+		sol[i] = s*par[i];
 	}
 
 	return;

@@ -17,6 +17,8 @@ mschwrap.cc \
 mschwrap.h \
 mthrdslv.c \
 mthrdslv.h \
+colamd.c \
+colamd.h \
 naivewrap.cc \
 naivewrap.h \
 superluwrap.cc \

@@ -89,7 +89,7 @@ static struct solver_t {
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP },
 	{ "Naive", NULL,
 		LinSol::NAIVE_SOLVER,
-		LinSol::SOLVER_FLAGS_NONE,
+		LinSol::SOLVER_FLAGS_ALLOWS_CC,
 		LinSol::SOLVER_FLAGS_NONE },
 	{ "Empty", NULL,
 		LinSol::EMPTY_SOLVER,
@@ -772,9 +772,18 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #endif /* !USE_UMFPACK */
 
 	case LinSol::NAIVE_SOLVER:
-		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			NaiveSparseSolutionManager,
-			NaiveSparseSolutionManager(iNLD, dPivotFactor));
+		switch (type) {
+		case LinSol::SOLVER_FLAGS_ALLOWS_CC:
+			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				NaiveSparseCCSolutionManager,
+				NaiveSparseCCSolutionManager(iNLD, dPivotFactor));
+			break;
+		
+		default:
+			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				NaiveSparseSolutionManager,
+				NaiveSparseSolutionManager(iNLD, dPivotFactor));
+		}
 		break;
 
 	case LinSol::EMPTY_SOLVER:

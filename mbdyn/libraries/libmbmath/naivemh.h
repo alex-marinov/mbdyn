@@ -39,12 +39,14 @@
 #include "myassert.h"
 #include "solman.h"
 
+template<class S>
 class NaiveSolver;
 
 /* Sparse Matrix */
 class NaiveMatrixHandler : public MatrixHandler {
 protected:
-	friend class NaiveSolver;
+	friend class NaiveSolver<NaiveMatrixHandler>;
+	friend class NaivePermMatrixHandler;
 	integer iSize;
 	doublereal **ppdRows;
 	integer **ppiRows, **ppiCols;
@@ -97,6 +99,9 @@ public:
 	operator += (const VariableSubMatrixHandler& SubMH);
 	virtual MatrixHandler&
 	operator -= (const VariableSubMatrixHandler& SubMH);
+	
+	void MakeCCStructure(std::vector<integer>& Ai,
+		std::vector<integer>& Ap);
 
 };
 
@@ -128,6 +133,75 @@ NaiveMatrixHandler::operator () (integer iRow, integer iCol)
 
 	return ppdRows[iRow][iCol];
 }
+
+/* Sparse Matrix with unknowns permutation*/
+class NaivePermMatrixHandler : public MatrixHandler {
+protected:
+	friend class NaiveSolver<NaivePermMatrixHandler>;
+	mutable NaiveMatrixHandler & NMH;
+	const integer* const perm;
+	integer iSize;
+	doublereal **ppdRows;
+	integer **ppiRows, **ppiCols;
+	char **ppnonzero;
+	integer *piNzr, *piNzc;
+
+#ifdef DEBUG
+	void IsValid(void) const {
+		NO_OP;
+	};
+#endif /* DEBUG */
+
+public:
+	/* FIXME: always square? yes! */
+	NaivePermMatrixHandler(NaiveMatrixHandler& nmh, 
+		const integer *const tperm);
+
+	virtual ~NaivePermMatrixHandler(void);
+
+	integer iGetNumRows(void) const {
+		return iSize;
+	};
+
+	integer iGetNumCols(void) const {
+		return iSize;
+	};
+
+	void Reset(void);
+
+	/* Ridimensiona la matrice */
+	virtual void Resize(integer, integer) {
+		THROW(ErrGeneric());
+	};
+
+	virtual inline const doublereal&
+	operator () (integer iRow, integer iCol) const {
+		iCol = perm[iCol-1] + 1;
+		return NMH(iRow,iCol);
+	};
+
+	virtual inline doublereal&
+	operator () (integer iRow, integer iCol) {
+		iCol = perm[iCol-1] + 1;
+		return NMH(iRow,iCol);
+	};
+
+	/* Overload di += usato per l'assemblaggio delle matrici */
+	virtual MatrixHandler& operator += (const SubMatrixHandler& SubMH);
+
+	/* Overload di -= usato per l'assemblaggio delle matrici */
+	virtual MatrixHandler& operator -= (const SubMatrixHandler& SubMH);
+
+	/* Overload di += usato per l'assemblaggio delle matrici
+	 * questi li vuole ma non so bene perche'; force per la doppia
+	 * derivazione di VariableSubMatrixHandler */
+	virtual MatrixHandler&
+	operator += (const VariableSubMatrixHandler& SubMH);
+	virtual MatrixHandler&
+	operator -= (const VariableSubMatrixHandler& SubMH);
+
+};
+
 
 #endif /* NAIVEMH_H */
 
