@@ -41,6 +41,7 @@
 #include <dataman.h>
 #include <drive_.h>
 #include <dofdrive.h>
+#include <privdrive.h>
 #include <filedrv.h>
 
 /* StringDriveCaller - begin */
@@ -906,6 +907,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	"file", 
 	"string",
 	"dof",
+	"element",
 	"array",
 	NULL
    };
@@ -935,6 +937,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	FILEDRIVE,      
 	STRING,
 	DOF,
+	ELEMENT,
 	ARRAY,
 
 	LASTKEYWORD
@@ -1437,7 +1440,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        
 #ifdef USE_MPI
        if (MPI::Is_initialized() && MBDynComm.Get_size() > 1) {
-          std::cerr<< "warning: add explicit connection entry for the "
+          std::cerr<< "warning: add explicit connection entry for "
             << psNodeNames[SD.pNode->GetNodeType()] 
 	    << "(" << SD.pNode->GetLabel() << ") dof drive"
             " at line " << HP.GetLineData() << std::endl;
@@ -1452,7 +1455,80 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 			      DofDriveCaller,
 			      DofDriveCaller(pDrvHdl, pTmp, SD));
        
-       // HP.PutKeyTable(K);
+       break;
+    }
+
+      /* driver legato ai dati privati di un elemento */
+    case ELEMENT: {
+       if (pDM == NULL) {
+	  std::cerr<< "sorry, since the driver is not owned by a DataManager" << std::endl
+	    << "no element dependent drivers are allowed;" << std::endl
+	    << "aborting ...";	  
+	  THROW(DataManager::ErrGeneric());
+       }
+
+       unsigned uLabel = HP.GetInt();
+       KeyTable Kel(HP, psReadElemsElems);
+       int k = HP.IsKeyWord();
+       if (k == -1) {
+
+       }
+       Elem *pElem = (Elem*)pDM->pFindElem(Elem::Type(k), uLabel);
+       if (pElem ==  NULL) {
+
+       }
+       unsigned int iMaxIndex = pElem->iGetNumPrivData();
+       unsigned int iIndex = 0;
+       const char *sIndexName = NULL;
+       if (HP.IsKeyWord("name")) {
+	       const char *s = HP.GetStringWithDelims();
+	       iIndex = pElem->iGetPrivDataIdx(s);
+	       SAFESTRDUP(sIndexName, s);
+
+       } else if (HP.IsKeyWord("index")) {
+	       iIndex = HP.GetInt();
+
+       }
+       
+       if (iIndex == 0 && iMaxIndex != 1) {
+	       silent_cerr("need a private data index for " 
+			       << psElemNames[pElem->GetElemType()] 
+			       << "(" << pElem->GetLabel() << ") "
+			       "at line " << HP.GetLineData() << std::endl);
+	       THROW(ErrGeneric());
+       } else {
+	       iIndex = 1;
+       }
+
+       if (iIndex < 1 || iIndex > iMaxIndex) {
+	       silent_cerr("illegal index " << iIndex << " for "
+			       << psElemNames[pElem->GetElemType()] 
+			       << "(" << pElem->GetLabel() << ") "
+			       "at line " << HP.GetLineData() << std::endl);
+	       THROW(ErrGeneric());
+       }
+
+#ifdef USE_MPI
+       /* FIXME: todo ... */
+       if (MPI::Is_initialized() && MBDynComm.Get_size() > 1) {
+          std::cerr<< "warning: add explicit connection entry for "
+            << psElemNames[pElem->GetElemType()] 
+	    << "(" << pElem->GetLabel() << ") element drive"
+            " at line " << HP.GetLineData() << std::endl;
+       }
+#endif /* USE_MPI */
+       
+       /* Chiamata ricorsiva a leggere il drive supplementare */
+       DriveCaller* pTmp = ReadDriveData(pDM, HP, pDrvHdl);
+       
+       /* allocazione e creazione */
+       SAFENEWWITHCONSTRUCTOR(pDC,
+			      PrivDriveCaller,
+			      PrivDriveCaller(pDrvHdl, pTmp,
+				      pElem, iIndex, sIndexName));
+       if (sIndexName) {
+	       SAFEDELETEARR(sIndexName);
+       }
        break;
     }
 
@@ -1497,7 +1573,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        }
               
        integer id = 1;
-       if (HP.fIsArg()) {
+       if (HP.IsArg()) {
 	  id = HP.GetInt(id);
        }
 

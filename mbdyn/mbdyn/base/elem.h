@@ -57,6 +57,7 @@
 
 extern const char* psElemNames[];
 extern const char* psReadControlElems[];
+extern const char* psReadElemsElems[];
 extern const char* psAdamsElemCode[];
 
 

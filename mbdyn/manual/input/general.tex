@@ -942,7 +942,7 @@ generates a cosine modulated by an exponential.
 \subsubsection{Dof drive}\label{sec:DOF-DRIVE-CALLER}
 \begin{verbatim}
     <drive_caller> ::= dof , (node_dof) <driving_dof> ,
-                             (drive_caller) <func_drive>
+        (drive_caller) <func_drive>
 \end{verbatim}
 a \hyperref{\kw{node\_dof}}{\kw{node\_dof} (see Section~}{)}{sec:node_dof}, 
 namely the reference to a degree of freedom of a node, is read. 
@@ -969,6 +969,51 @@ a string expression.
 Refer to the description of a 
 \hyperref{\kw{node\_dof}}{\kw{node\_dof} (see Section~}{)}{sec:node_dof}
 entry for further details.
+
+\subsubsection{Element drive}\label{sec:ELEMENT-DRIVE-CALLER}
+\begin{verbatim}
+    <drive_caller> ::= element , <label> , <type>
+        [ , { name , "<name>" | index , <index> } ]
+        (drive_caller) <func_drive>
+\end{verbatim}
+a reference to the private data of an element is read.
+This is made of: the element's \kw{label}, the element's \kw{type}
+and a specification of which private data is being referred;
+the \kw{index} can be directly given, prepended by the keyword
+\kw{index}, or the symbolic name can be used, prepended by 
+the keyword \kw{index}.
+If that element allows only one private data, the specification 
+can be omitted.
+Then a recursive call to a drive data is read. 
+The driver returns the value of the \kw{func\_drive} 
+\htmlref{\kw{drive}}{sec:DRIVES} using the value of the 
+element's private data as input instead of the time. 
+This can be used as a sort of explicit feedback, to implement fancy
+springs (where a force is driven through a function by the rotation
+of a joint) or an active control system; e.g.:
+\begin{verbatim}
+    element, 1000, joint, name, "rz",
+        linear, 0., 1.
+\end{verbatim}
+uses the value of the rotation about axis $z$ of a revolute hinge
+as is (that is, in a linear expression with null constant coefficient 
+and unit linear coefficient, while
+\begin{verbatim}
+    element, 1000, joint, index, 1
+        string, "2.*exp(-100.*Var)"
+\end{verbatim}
+uses the same value, addressed in an alternative manner, in computing
+a string expression.
+The same effect can be obtained by using the element plugin as follows:
+\begin{verbatim}
+    set: [elem,x,1000,joint,name=rz];
+    # ...
+    couple: 1, conservative, 1, 0.,0.,1., string, "2.*exp(-100.*x)";
+\end{verbatim}
+which applies a couple whose amplitude is computed by evaluating
+a \kw{string} drive which depends on variable $x$; this, on turn,
+is defined as an \kw{element} plugin, which causes its evaluation
+in terms of the element's private data at each invocation.
 
 \subsubsection{Array drive}
 \begin{verbatim}

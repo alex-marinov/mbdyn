@@ -67,6 +67,37 @@ const char* psElemNames[] = {
    NULL
 };
 
+/* Tipi di elementi */
+const char* psReadElemsElems[] = {
+   "force",
+   
+   "automatic" "structural",
+   "gravity",
+   "rigid" "body",
+   "joint",
+   "beam",
+   "plate",
+   
+   "air" "properties",
+   "rotor",
+   "aeromodal",
+   "aerodynamic Element",
+   
+   "electric" "bulk",
+   "electric",
+   "genel",
+   
+   "hydraulic",
+   
+   "bulk",
+   "loadable",
+   "driven",
+   "external",
+   "rtai" "output",
+   
+   NULL
+};
+
 
 /* Nomi degli elementi quando vengono dichiarati nel blocco dati di controllo;
  * hanno lo stesso numero progressivo degli elementi, quindi vi si accede con 

@@ -31,10 +31,10 @@
 /* datamanager */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <dataman.h>
+#include "dataman.h"
 
 extern "C" {
 #include <strings.h>
@@ -45,17 +45,18 @@ extern "C" {
 #include <ltdl.h>
 #endif /* HAVE_LOADABLE && HAVE_LTDL_H */
 
-#include <constltp.h>
-#include <dataman_.h>
+#include "constltp.h"
+#include "dataman_.h"
 /* add-ons for math parser */
-#include <dofpgin.h>
-#include <dummypgin.h>
+#include "dofpgin.h"
+#include "privpgin.h"
+#include "dummypgin.h"
 #ifdef USE_TCL
-#include <tclpgin.h>
+#include "tclpgin.h"
 #endif /* USE_TCL */
 
 /* temporary? */
-#include <beam.h>
+#include "beam.h"
 
 /* DataManager - begin */
 
@@ -164,6 +165,9 @@ DofIter()
 
    /* registra il plugin per i dofs */
    HP.GetMathParser().RegisterPlugIn("dof", dof_plugin, this);
+
+   /* registra il plugin per i dati privati degli elementi */
+   HP.GetMathParser().RegisterPlugIn("element", priv_plugin, this);
 
 #ifdef USE_TCL
    /* registra il plugin per il tcl */

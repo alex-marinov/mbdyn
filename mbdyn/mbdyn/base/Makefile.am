@@ -84,6 +84,10 @@ posrel.h \
 precond.cc \
 precond.h \
 precond_.h \
+privdrive.cc \
+privdrive.h \
+privpgin.cc \
+privpgin.h \
 readclaw.h \
 reffrm.cc \
 reffrm.h \
