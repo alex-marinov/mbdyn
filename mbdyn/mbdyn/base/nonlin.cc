@@ -307,9 +307,10 @@ NonlinearSolverTestScaleMinMax::dScaleCoef(const integer& iIndex) const
 
 /* NonlinearSolver - begin */
 
-NonlinearSolver::NonlinearSolver(void)
+NonlinearSolver::NonlinearSolver(bool JacReq)
 : Size(0),
 TotJac(0),
+honorJacRequest(JacReq),
 pResTest(0)
 #ifdef USE_EXTERNAL
 , ExtStepType(External::ERROR)  

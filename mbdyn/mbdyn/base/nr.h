@@ -54,7 +54,8 @@ class NewtonRaphsonSolver : public NonlinearSolver
 public:
 	NewtonRaphsonSolver(const bool bTNR,
 			const bool bKJ, 
-			const integer IterBfAss);
+			const integer IterBfAss,
+			bool JacReq = false);
 	
 	~NewtonRaphsonSolver(void);
 	

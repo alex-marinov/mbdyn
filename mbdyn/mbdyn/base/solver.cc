@@ -2751,6 +2751,14 @@ Solver::ReadData(MBDynParser& HP)
 							<< iIterationsBeforeAssembly
 							<< " iterations"
 							<< std::endl);
+					if (HP.IsKeyWord("honor" "element" "requests")) {
+						honorJacRequest = true;
+						DEBUGLCOUT(MYDEBUG_INPUT,
+								"honor elements' "
+								"request to update "
+								"the preconditioner"
+								<< std::endl);
+					}
 				}
 				break;
 
@@ -3830,7 +3838,7 @@ Solver::AllocateNonlinearSolver()
 						iIterativeMaxSteps,
 						dIterertiveEtaMax,
 						dIterertiveTau,
-						iPrecondSteps));
+						honorJacRequest));
 			break;
 
 		default:
@@ -3847,7 +3855,7 @@ Solver::AllocateNonlinearSolver()
 						iIterativeMaxSteps,
 						dIterertiveEtaMax,
 						dIterertiveTau,
-						iPrecondSteps));
+						honorJacRequest));
 			break;
 		}
 		break;
@@ -3861,7 +3869,8 @@ Solver::AllocateNonlinearSolver()
 				NewtonRaphsonSolver,
 				NewtonRaphsonSolver(bTrueNewtonRaphson,
 					bKeepJac,
-					iIterationsBeforeAssembly));  
+					iIterationsBeforeAssembly,
+					honorJacRequest));  
 		break;
 	}
 	return pNLS;

@@ -179,6 +179,7 @@ public:
 protected:
 	integer Size;
 	integer TotJac;	
+	bool honorJacRequest;
 	NonlinearSolverTest *pResTest;
 	NonlinearSolverTest *pSolTest;
 #ifdef USE_EXTERNAL	
@@ -189,7 +190,7 @@ protected:
 	virtual doublereal MakeSolTest(Solver* pS, const VectorHandler& Vec);
 
 public:
-	NonlinearSolver(void);
+	NonlinearSolver(bool JacReq = false);
 
 	virtual void SetTest(NonlinearSolverTest *pr, NonlinearSolverTest *ps);
 		

@@ -57,8 +57,9 @@
 
 NewtonRaphsonSolver::NewtonRaphsonSolver(const bool bTNR,
 		const bool bKJ, 
-		const integer IterBfAss)
-: pRes(NULL),
+		const integer IterBfAss,
+		bool JacReq)
+: NonlinearSolver(JacReq), pRes(NULL),
 pSol(NULL),
 bTrueNewtonRaphson(bTNR),
 IterationBeforeAssembly(IterBfAss),
@@ -109,7 +110,9 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 	      		pNLP->Residual(pRes);
 		}
 		catch (SolutionDataManager::ChangedEquationStructure) {
-			forceJacobian = true;
+			if (honorJacRequest) {
+				forceJacobian = true;
+			}
 		}
 		
       		if (outputRes()) {

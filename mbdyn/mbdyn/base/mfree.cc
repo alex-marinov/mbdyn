@@ -53,7 +53,8 @@ MatrixFreeSolver::MatrixFreeSolver(
 		doublereal etaMx,
 		doublereal T,
 		bool JacReq) 
-: pPM(NULL),
+: NonlinearSolver(JacReq),
+pPM(NULL),
 pRes(NULL),
 IterTol(ITol),
 MaxLinIt(MaxIt),
@@ -62,7 +63,6 @@ gamma(defaultGamma),
 etaMax(etaMx),
 PrecondIter(iPStep),
 bBuildMat(true),
-honorJacRequest(JacReq),
 pPrevNLP(NULL)
 {
 	

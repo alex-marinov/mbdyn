@@ -66,7 +66,6 @@ protected:
 	doublereal etaMax; 
 	integer PrecondIter; 
 	bool bBuildMat;
-	bool honorJacRequest;
 	const NonlinearProblem* pPrevNLP;
 	
 public:

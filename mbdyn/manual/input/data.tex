@@ -248,11 +248,15 @@ matrix-free algorithm, is experimental.
     <card> ::= nonlinear solver : <nonlinear_solver_data> ;
 \end{verbatim}
 \begin{verbatim}
-    <nonlinear_solver_data> ::= newton raphson : { true 
-                                | modified [ , <iterations> ] } ;
+    <nonlinear_solver_data> ::= newton raphson : { 
+                     true | modified [ , <iterations> ] 
+                                [ , honor element requests] } ;
 \end{verbatim}
 if \kw{modified}, the number of iterations the jacobian matrix will be
 reused is expected; otherwise a default value is used.
+If the option "honor element requests" is selected the preconditioned
+is updated also when an element changes the structure of its equations.
+The default behaiour is to ignore such requests.
 \begin{verbatim}
     <nonlinear_solver_data> ::= matrix free, { bcgstab | gmres }
       [ , tolerance, < tolerance > ]
