@@ -110,7 +110,7 @@ void ThirdOrderIntegrator::SetCoef(doublereal dt,
 	jxp[1][0] = 0.;
 	jxp[0][1] = 0.;
 	jxp[0][0] = 1.;
-	DEBUGCOUT("ThirdOrder integrator coefficients:" << std::endl <<
+	DEBUGCOUT("ThirdOrder integrator coefficients:" << std::endl
 		<< "\t  rho: " << rho << std::endl
 		<< "\ttheta: " << theta << std::endl
 		<< "\t w[0]: " << w[0] << std::endl
@@ -119,7 +119,7 @@ void ThirdOrderIntegrator::SetCoef(doublereal dt,
 		<< "\t   m0: " << m0 << std::endl
 		<< "\t   m1: " << m1 << std::endl
 		<< "\t   n0: " << n0 << std::endl
-		<< "\t   n1: " << n1 << std::endl;);
+		<< "\t   n1: " << n1 << std::endl);
 	
 };
 
@@ -149,10 +149,10 @@ ThirdOrderIntegrator::Advance(Solver* pS,
 			EqIsDifferential[iCntm1] = (!EqIsAlgebraic[iCntm1]);
 		}
 		DofIterator.bGetFirst(CurrDof);
-		Jacxi_xp.Resize(n);
-		Jacxi_x.Resize(n);
-		Jac_xp.Resize(n);
-		Jac_x.Resize(n);
+		Jacxi_xp.Resize(n, n);
+		Jacxi_x.Resize(n, n);
+		Jac_xp.Resize(n, n);
+		Jac_x.Resize(n, n);
 		bAdvanceCalledFirstTime = false;
 	}
 	pXCurr  = pX;
