@@ -409,14 +409,6 @@ void Solver::Run(void)
 #endif /* __HACK_POD__ */
 
 
-#ifdef __HACK_SCALE_RES__
-	MyVectorHandler Scale(iNumDofs);
-	VectorHandler *pScale = &Scale;
-	pDM->SetScale(*pScale);
-	pNLS->SetScale(pScale);
-#endif /* __HACK_SCALE_RES__ */
-
-
    	/* Subito collega il DataManager alla soluzione corrente */
    	pDM->LinkToSolution(*(qX[0]), *(qXPrime[0]));         
 
@@ -601,7 +593,14 @@ void Solver::Run(void)
 				NewtonRaphsonSolver(fTrueNewtonRaphson,
 					iIterationsBeforeAssembly));  
 	}
-	
+
+#ifdef __HACK_SCALE_RES__
+	MyVectorHandler Scale(iNumDofs);
+	VectorHandler *pScale = &Scale;
+	pDM->SetScale(*pScale);
+	pNLS->SetScale(pScale);
+#endif /* __HACK_SCALE_RES__ */
+
    	/*
 	 * Dell'assemblaggio iniziale dei vincoli se ne occupa il DataManager 
 	 * in quanto e' lui il responsabile dei dati della simulazione,
