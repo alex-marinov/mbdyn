@@ -4,7 +4,7 @@
 lib_LTLIBRARIES = libmbmath.la
 
 libmbmath_la_SOURCES = \
-fullmh.cc    fullmh.h     harwlib.h    harwlib_.f \
+fullmh.cc    fullmh.h     harwlib.h    harwlib_.f      spdata_.f \
 harwout.c    harwout.h    harwout_.cc  harwrap.cc      harwrap.h   ldl.f \
 ldl.h        matvec3.cc   matvec3.h    matvec3n.cc     matvec3n.h  matvec6.cc \
 matvec6.h    mschwrap.cc  mschwrap.h   myf2c.h         mymath.h    solman.cc \

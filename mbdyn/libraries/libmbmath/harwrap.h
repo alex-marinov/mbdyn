@@ -36,10 +36,13 @@
 
 /* Pierangelo Masarati */
 
-/* Wrapper for Harwell sparse matrix managing and LU solution 
- * C/C++ porting by means of f2c */
+/*
+ * Wrapper for Harwell sparse matrix managing and LU solution 
+ * C/C++ porting by means of f2c
+ */
 
-/* Uso:
+/*
+ * Uso:
  * l'HSLUSolutionManager rende disponibile lo spazio per la matrice, 
  * la soluzione ed il termine noto. Inoltre rende disponibili
  * metodi per l'handling della matrice e dei vettori 
@@ -90,29 +93,21 @@
  *         <harwrap.cc> wrapper in C++
  *         <harwrap.h>  header per <harwrap.cc>. 
  *                      E' sufficiente includere questo per usare il wrapper.
-*/
+ */
 
 
 #ifndef HARWRAP_H
 #define HARWRAP_H
 
-
-/* include di debug */
-#include "myassert.h"
-#include "mynewmem.h"
-#include "except.h"
-
-/* include generali */
-
-/* include del programma */
-#include "harwlib.h"
-#include "solman.h"
-#include "submat.h"
-
-
+#include <myassert.h>
+#include <mynewmem.h>
+#include <except.h>
+#include <spdata.h>
+#include <harwlib.h>
+#include <solman.h>
+#include <submat.h>
 
 /* classi dichiarate in questo file */
-
 class SparseData;           /* gestore di sparsita' */
 class SparseMatrixHandler;      /* gestore matrice sparsa (assemblaggio) */
 class VectorHandler;        /* gestore vettore (pieno, assemblaggio) */
@@ -126,15 +121,17 @@ class SchurSolutionManager;
 /* Memory managers per le classi che allocano memoria */
 
 #ifdef DEBUG_MEMMANAGER
-extern clMemMan SMmm;  /* memory manager per SolutionManager (vedi mynewmem.h) */
+extern clMemMan SMmm;  /* memory manager per SolutionManager (mynewmem.h) */
 extern clMemMan LUmm;  /* memory manager per HarwellLUSolver */
 extern clMemMan MHmm;  /* memory manager per SparseMatrixHandler */
-#endif
+#endif /* DEBUG_MEMMANAGER */
 
 
-/* Unione usata per impaccare il vettore di indici di riga e colonna
+/*
+ * Union usata per impaccare il vettore di indici di riga e colonna
  * nel gestore di sparsita' (i vettori sono integer = long int, mentre 
- * in questo modo gli indici massimi sono 65535) */			     
+ * in questo modo gli indici massimi sono 65535)
+ */
 
 union uPacVec { 
    integer iInt;
@@ -147,8 +144,10 @@ union uPacVec {
 
 /* SparseData - begin */
 
-/* Gestore di entita' sparse con hash + linked list. 
- * usa spazio di lavoro messo a disposizione da altri. */
+/*
+ * Gestore di entita' sparse con hash + linked list. 
+ * usa spazio di lavoro messo a disposizione da altri.
+ */
 
 class SparseData {
    friend class HSLUSolutionManager;
@@ -176,7 +175,7 @@ class SparseData {
 #ifdef DEBUG_MEMMANAGER	
       ASSERT(SMmm.fIsPointerToBlock((void*)*ppiTable));
       ASSERT(SMmm.fIsPointerToBlock((void*)*ppiKeys));
-#endif
+#endif /* DEBUG_MEMMANAGER */
       
       integer iSize = iCurSize;
       __FC_DECL__(kd01a)(&iSize, *ppiTable, *ppiKeys);	
@@ -184,8 +183,8 @@ class SparseData {
    
  public:
    
-   /* Costruttore (banale) */
-   /* Viene chiamato da chi lo utilizza; gli vengono passati:
+   /*
+    * Costruttore.
     * iSize -   dimensione degli spazi di lavoro
     * piTable - puntatore a punt. ad un array di interi di dimensioni iSize, 
     *           che viene usato come tabella di stato del campo,
@@ -206,13 +205,14 @@ class SparseData {
 #endif	
      };
    
-   /* Distruttore (banalissimo): non c'e' nulla da distruggere  */
+   /* Distruttore (banalissimo: non c'e' nulla da distruggere) */
    ~SparseData(void) { 
       NO_OP;
    };
    
-   /* Trova la posizione del termine dato da iKey */
-   /* Ritorna un termine che rappresenta la posizione della key di ingresso
+   /*
+    * Trova la posizione del termine dato da iKey
+    * Ritorna un termine che rappresenta la posizione della key di ingresso
     * nel vettore piKey; 
     * - se il termine e' positivo, la key esiste ed e' valida, 
     *   oppure l'inserzione e' riuscita correttamente;
@@ -248,8 +248,10 @@ class SparseData {
 
 /* SparseMatrixHandler - begin */
 
-/* Gestore di matrici sparse; usa spazio messo a disposizione da altri;
- * usa il gestore di sparsita' SparseData */
+/*
+ * Gestore di matrici sparse; usa spazio messo a disposizione da altri;
+ * usa il gestore di sparsita' SparseData
+ */
  
 class SparseMatrixHandler : public MatrixHandler {
    friend class HSLUSolutionManager;
@@ -273,7 +275,8 @@ class SparseMatrixHandler : public MatrixHandler {
 
  public:
    
-   /* Costruttore; gli vengono passati:
+   /*
+    * Costruttore
     * iMSize   - ordine della matrice;
     * ppiRow   - puntatore ad array di interi di dimensione iSize,
     *            contiene la tabella usata da SparseData;
@@ -294,8 +297,10 @@ class SparseMatrixHandler : public MatrixHandler {
    /* Usato per il debug */
    virtual void IsValid(void) const;
 
-   /* Inizializzazione della matrice: la riempe con il valore desiderato
-    * ed inizializza il gestore di sparsita' */
+   /*
+    * Inizializzazione della matrice: la riempe con il valore desiderato
+    * ed inizializza il gestore di sparsita'
+    */
    void Init(const doublereal& dResetVal = 0.);
 
    /* Restituisce un puntatore all'array di reali della matrice */
@@ -307,7 +312,10 @@ class SparseMatrixHandler : public MatrixHandler {
    /* Restituisce un puntatore al vettore delle colonne */
    inline integer* piGetCols(void) const { return *ppiCol; };
 
-   /* Impacchetta la matrice; restituisce il numero di elementi diversi da zero */
+   /*
+    * Impacchetta la matrice; restituisce il numero di elementi
+    * diversi da zero
+    */
    integer PacMat(void);
 
    /* Inserisce un coefficiente */
@@ -340,7 +348,7 @@ inline flag SparseMatrixHandler::fPutCoef(integer iRow,
 {
 #ifdef DEBUG
    IsValid();
-#endif
+#endif /* DEBUG */
     
   
    ASSERT((iRow > 0) && (iRow <= iMatSize));
@@ -369,7 +377,7 @@ inline flag SparseMatrixHandler::fIncCoef(integer iRow,
 {
 #ifdef DEBUG
    IsValid();
-#endif
+#endif /* DEBUG */
   
    ASSERT((iRow > 0) && (iRow <= iMatSize));
    ASSERT((iCol > 0) && (iCol <= iMatSize));
@@ -397,7 +405,7 @@ inline flag SparseMatrixHandler::fDecCoef(integer iRow,
 {
 #ifdef DEBUG
    IsValid();
-#endif
+#endif /* DEBUG */
 
    ASSERT((iRow > 0) && (iRow <= iMatSize));
    ASSERT((iCol > 0) && (iCol <= iMatSize));
@@ -424,7 +432,7 @@ SparseMatrixHandler::dGetCoef(integer iRow, integer iCol) const
 {
 #ifdef DEBUG
    IsValid();
-#endif
+#endif /* DEBUG */
 
    ASSERT((iRow > 0) && (iRow <= iMatSize));
    ASSERT((iCol > 0) && (iCol <= iMatSize));
@@ -454,8 +462,10 @@ SparseMatrixHandler::dGetCoef(integer iRow, integer iCol) const
 
 /* HarwellLUSolver - begin*/
 
-/* Solutore LU per matrici sparse. usa spazio messo a disposizione da altri 
- * e si aspetta le matrici gia' bell'e preparate */
+/*
+ * Solutore LU per matrici sparse. usa spazio messo a disposizione da altri 
+ * e si aspetta le matrici gia' bell'e preparate
+ */
 
 static char sLUClassName[] = "HarwellLUSolver";
 
@@ -517,7 +527,7 @@ class HarwellLUSolver {
 	ASSERT(SMmm.fIsValid((void*)*ppiCol, iMatSize*sizeof(integer)));
 	ASSERT(SMmm.fIsValid((void*)*ppdMat, iMatSize*sizeof(doublereal)));
 	ASSERT(SMmm.fIsValid((void*)pdRhs, iN*sizeof(doublereal)));
-#endif
+#endif /* DEBUG_MEMMANAGER */
 
 	SAFENEWARR(piKeep, integer, 5*iN, LUmm);
 	SAFENEWARR(piW, integer, 8*iN, LUmm);
@@ -525,15 +535,15 @@ class HarwellLUSolver {
 	
 #ifdef DEBUG	
 	for (int iCnt = 0; iCnt < 5*iN; iCnt++) {
-	   *(piKeep+iCnt) = 0;
+	   piKeep[iCnt] = 0;
 	}
 	for (int iCnt = 0; iCnt < 8*iN; iCnt++) {
-	   *(piW+iCnt) = 0;
+	   piW[iCnt] = 0;
 	}
 	for (int iCnt = 0; iCnt < 1*iN; iCnt++) {
-	   *(pdW+iCnt) = 0.;
+	   pdW[iCnt] = 0.;
 	}
-#endif	
+#endif /* DEBUG */
      };
    
    /* Distruttore */
@@ -565,7 +575,7 @@ class HarwellLUSolver {
       ASSERT(SMmm.fIsValid((void*)*ppiCol, iMatSize*sizeof(integer)));
       ASSERT(SMmm.fIsValid((void*)*ppdMat, iMatSize*sizeof(doublereal)));
       ASSERT(SMmm.fIsValid((void*)pdRhs, iN*sizeof(doublereal)));
-#endif
+#endif /* DEBUG_MEMMANAGER */
       
       ASSERT(piKeep != NULL);
       ASSERT(piW != NULL);
@@ -575,43 +585,16 @@ class HarwellLUSolver {
       ASSERT(LUmm.fIsBlock((void*)piKeep, 5*iN*sizeof(integer)));
       ASSERT(LUmm.fIsBlock((void*)piW, 8*iN*sizeof(integer)));
       ASSERT(LUmm.fIsBlock((void*)pdW, 1*iN*sizeof(doublereal)));	
-#endif
+#endif /* DEBUG_MEMMANAGER */
    };
    
    /* Fattorizza la matrice */
    flag fLUFactor(void) {
 #ifdef DEBUG
       IsValid();
-#endif
+#endif /* DEBUG */
       
-      /*
-      ASSERT(iMatSize > 0);
-      ASSERT(ppiRow != NULL);
-      ASSERT(ppiCol != NULL);
-      ASSERT(ppdMat != NULL);
-      ASSERT(*ppiRow != NULL);
-      ASSERT(*ppiCol != NULL);
-      ASSERT(*ppdMat != NULL);   
-#ifdef DEBUG_MEMMANAGER	
-      ASSERT(SMmm.fIsPointerToBlock((void*)*ppiRow));
-      ASSERT(SMmm.fIsPointerToBlock((void*)*ppiCol));
-      ASSERT(SMmm.fIsPointerToBlock((void*)*ppdMat));
-#endif
-      ASSERT(iN > 0);
-       */
-	
       ASSERT(iNonZeroes > 0);
-      
-      /*
-      ASSERT(piKeep != NULL);
-      ASSERT(piW != NULL);
-      ASSERT(pdW != NULL);
-#ifdef DEBUG_MEMMANAGER	
-      ASSERT(LUmm.fIsPointerToBlock((void*)piKeep));
-      ASSERT(LUmm.fIsPointerToBlock((void*)piW));
-      ASSERT(LUmm.fIsPointerToBlock((void*)pdW));
-#endif
-      */
       
       integer iLicn = iMatSize;
       integer iLirn = iMatSize;
@@ -648,25 +631,6 @@ class HarwellLUSolver {
       IsValid();
 #endif
       
-      /*
-      ASSERT(iMatSize > 0);
-      ASSERT(ppiCol != NULL);
-      ASSERT(ppdMat != NULL);
-      ASSERT(*ppiCol != NULL);
-      ASSERT(*ppdMat != NULL);
-#ifdef DEBUG_MEMMANAGER	
-      ASSERT(SMmm.fIsPointerToBlock((void*)*ppiCol));
-      ASSERT(SMmm.fIsPointerToBlock((void*)*ppdMat));
-#endif
-      ASSERT(iN > 0);
-      ASSERT(pdRhs != NULL);
-      ASSERT(piKeep != NULL);
-#ifdef DEBUG_MEMMANAGER	
-      ASSERT(SMmm.fIsPointerToBlock((void*)pdRhs));
-      ASSERT(LUmm.fIsPointerToBlock((void*)piKeep));
-#endif
-       */
-   		
       integer iLicn = iMatSize;
       integer iMtype = 1;
       __FC_DECL__(ma28cd)(&iN, *ppdMat, &iLicn, *ppiCol, piKeep, pdRhs, pdW, &iMtype);
