@@ -223,7 +223,6 @@ private:
 
 	/* il solution manager v*/
 	SolutionManager *pSM;
-	SolutionManager *pCurrSM;
 
 	NonlinearSolver* pNLS;
 	

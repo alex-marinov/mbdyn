@@ -230,7 +230,6 @@ pLocalSM(NULL),
 pSSM(NULL),
 #endif /* USE_MPI */
 pSM(NULL),
-pCurrSM(NULL),
 pNLS(NULL)
 {
 	DEBUGCOUTFNAME("Solver::Solver");
@@ -457,6 +456,8 @@ void Solver::Run(void)
 		iNLD = iNumLocDofs;
 	}
 #endif /* USE_MPI */
+
+	SolutionManager *pCurrSM(NULL);
 
    	switch (CurrSolver) {
      	case LinSol::Y12_SOLVER: 
