@@ -117,6 +117,7 @@ void DataManager::ElemManager(void)
    ElemData[Elem::ROTOR].fUsesAirProperties = flag(1);
    ElemData[Elem::AEROMODAL].fUsesAirProperties = flag(1);
    ElemData[Elem::AERODYNAMIC].fUsesAirProperties = flag(1);
+   ElemData[Elem::LOADABLE].fUsesAirProperties = flag(1);
    
    
    /* Reset della struttura DriveData */
