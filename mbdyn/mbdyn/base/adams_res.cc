@@ -436,7 +436,7 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 
 	out 
 		<< "ANALYSIS OUTPUT BLOCK                   " << std::setw(8) << 5+iAdamsOutputParts << std::endl
-		<< std::setw(8) << iAdamsOutputBlock;
+		<< std::setw(8) << iBlock;
 #ifdef HAVE_FORM_IN_OSTREAM
 	out.form("%-20s", type);
 #else /* !HAVE_FORM_IN_OSTREAM */
