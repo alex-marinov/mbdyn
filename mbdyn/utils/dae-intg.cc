@@ -55,6 +55,14 @@
 #include <mschwrap.h>
 #include <umfpackwrap.h>
 
+enum method_t {
+	METHOD_UNKNOWN,
+	METHOD_MULTISTEP,
+	METHOD_HOPE,
+	METHOD_CUBIC,
+	METHOD_CRANK_NICHOLSON
+};
+	
 struct integration_data {
    	doublereal ti;
    	doublereal tf;
@@ -69,22 +77,14 @@ static int method_hope(const char*, integration_data*, void*, const char*);
 static int method_cubic(const char*, integration_data*, void*, const char*);
 static int method_cn(const char*, integration_data*, void*, const char*);
 
-static void* get_method_data(int, const char*);
+static void* get_method_data(method_t, const char*);
 
 int 
 main(int argn, char *const argv[])
 {
-   	enum {
-      		METHOD_UNKNOWN,
-		METHOD_MULTISTEP,
-		METHOD_HOPE,
-		METHOD_CUBIC,
-		METHOD_CRANK_NICHOLSON
-   	};
-	
    	struct s_method {
       		const char* s;
-      		int m;
+      		method_t m;
    	} s_m[] = {
 		{ "ms",                METHOD_MULTISTEP         },
 		{ "hope",              METHOD_HOPE              },
@@ -93,7 +93,7 @@ main(int argn, char *const argv[])
 	
 		{ NULL,                METHOD_UNKNOWN           }
    	};
-   	int curr_method = METHOD_UNKNOWN;   
+   	method_t curr_method = METHOD_UNKNOWN;   
    	char* module = "intg-default.so";
    	char* user_defined = NULL;
    	void* method_data = NULL;
@@ -258,9 +258,25 @@ main(int argn, char *const argv[])
 }
 
 static void* 
-get_method_data(int curr_method, const char* optarg)
+get_method_data(method_t curr_method, const char* optarg)
 {
    	switch (curr_method) {
+	case METHOD_CUBIC:
+		if (strcasecmp(optarg, "linear") == 0) {
+			bool *pi = new bool;
+			*pi = true;
+			return pi;
+		} else if (strcasecmp(optarg, "cubic") == 0) {
+			bool *pi = new bool;
+			*pi = false;
+			return pi;
+		} else {
+      			std::cerr << "unknown data \"" << optarg << "\"" 
+				<< std::endl;
+			return NULL;
+		}
+		break;
+
     	default:
       		std::cerr << "not implemented yet" << std::endl;
       		exit(EXIT_FAILURE);
@@ -563,6 +579,14 @@ static int
 method_cubic(const char* module, integration_data* d, 
 	     void* method_data, const char* user_defined)
 {
+	bool linear = false;
+
+	if (method_data) {
+		bool *pi = (bool *)method_data;
+
+		linear = *pi;
+	}
+
    	open_module(module);
 
    	// prepara i dati
@@ -668,26 +692,49 @@ method_cubic(const char* module, integration_data* d,
    
    	while (t < tf) {
       		t += dt;
-		
-      		// predict cubico
-      		for (int k = 1; k <= size; k++) {
-	 		doublereal xm1 = pXm1->dGetCoef(k);
-	 		doublereal xPm1 = pXPm1->dGetCoef(k);
-	 		doublereal xm2 = pXm2->dGetCoef(k);
-	 		doublereal xPm2 = pXPm2->dGetCoef(k);
-	 		doublereal xP = cm0p(1.)*xm1 + cm1p(1.)*xm2
-				+dt*(cn0p(1.)*xPm1 + cn1p(1.)*xPm2);
-	 		doublereal xPz = cm0p(1. + z)*xm1 + cm1p(1. + z)*xm2
-				+dt*(cn0p(1. + z)*xPm1 + cn1p(1. + z)*xPm2);
-	 		doublereal x = xm1 + dt*(w1*xPm1 + wz*xPz + w0*xP);
-	 		doublereal xz = m0*x + m1*xm1 + dt*(n0*xP + n1*xPm1);
 
-	 		pX->fPutCoef(k, x);
-	 		pXP->fPutCoef(k, xP);
-			Xz.fPutCoef(k, xz);
-			XPz.fPutCoef(k, xPz);
+		if (linear) {
+
+			std::cerr << "linear predictor" << std::endl;
+			
+	      		// predict lineare
+	      		for (int k = 1; k <= size; k++) {
+		 		doublereal xm1 = pXm1->dGetCoef(k);
+		 		doublereal xPm1 = pXPm1->dGetCoef(k);
+		 		doublereal xP = xPm1;
+		 		doublereal xPz = xPm1;
+		 		doublereal x = xm1 + dt*xP;
+		 		doublereal xz = xm1 + dt*(1.+z)*xP;
+	
+		 		pX->fPutCoef(k, x);
+		 		pXP->fPutCoef(k, xP);
+				Xz.fPutCoef(k, xz);
+				XPz.fPutCoef(k, xPz);
+      			}
+ 
+		} else {
+
+      			// predict cubico
+      			for (int k = 1; k <= size; k++) {
+		 		doublereal xm1 = pXm1->dGetCoef(k);
+		 		doublereal xPm1 = pXPm1->dGetCoef(k);
+		 		doublereal xm2 = pXm2->dGetCoef(k);
+		 		doublereal xPm2 = pXPm2->dGetCoef(k);
+		 		doublereal xP = (cm0p(1.)*xm1 + cm1p(1.)*xm2)/dt
+					+ cn0p(1.)*xPm1 + cn1p(1.)*xPm2;
+		 		doublereal xPz = (cm0p(1. + z)*xm1 + cm1p(1. + z)*xm2)/dt
+					+ cn0p(1. + z)*xPm1 + cn1p(1. + z)*xPm2;
+		 		doublereal x = xm1 + dt*(w1*xPm1 + wz*xPz + w0*xP);
+		 		doublereal xz = m0*x + m1*xm1 + dt*(n0*xP + n1*xPm1);
+	
+		 		pX->fPutCoef(k, x);
+		 		pXP->fPutCoef(k, xP);
+				Xz.fPutCoef(k, xz);
+				XPz.fPutCoef(k, xPz);
+			}
       		}
       
+     
       		// test
       		int j = 0;
       		doublereal test;      
