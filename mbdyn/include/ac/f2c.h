@@ -34,12 +34,41 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#ifdef HAVE_F2C_H
+#if 0 /* #if defined(HAVE_G2C_H) */
+#include <g2c.h>
+#define HAVE_FLAG_T
+	
+#elif defined(HAVE_F2C_H) /* !HAVE_G2C_H */
 #include <f2c.h>
+#define HAVE_FLAG_T
+
+#else /* !HAVE_G2C_H && !HAVE_F2C_H */
+
+#ifdef __alpha
+typedef int integer;
+typedef float real;
+typedef double doublereal;
+#else /* !__alpha */
+typedef long int integer;
+typedef float real;
+typedef double doublereal;
+#endif /* !__alpha */
+
+typedef integer logical;
+#if 0	/* we define flag somewhere else (we'll get rid of f2c some day!) */
+typedef integer flag;
+#endif
+typedef integer ftnlen;
+typedef integer ftnint;
+typedef char *address;
+
+#endif /* !HAVE_G2C_H && !HAVE_F2C_H */
+
 /*
  * Quoting gcc 3.2.1's cstdlib ...
+ *
+Get rid of those macros defined in <stdlib.h> in lieu of real functions.
  */
-// Get rid of those macros defined in <stdlib.h> in lieu of real functions.
 #undef abort
 #undef abs
 #undef atexit
@@ -68,35 +97,17 @@ extern "C" {
 #undef system
 #undef wcstombs
 #undef wctomb
-
-#define HAVE_FLAG_T
-#else /* !HAVE_F2C_H */
-
-#ifdef __alpha
-typedef int integer;
-typedef float real;
-typedef double doublereal;
-#else /* !__alpha */
-typedef long int integer;
-typedef float real;
-typedef double doublereal;
-#endif /* !__alpha */
-
-typedef integer logical;
-#if 0	/* we define flag somewhere else (we'll get rid of f2c some day!) */
-typedef integer flag;
-#endif
-typedef integer ftnlen;
-typedef integer ftnint;
-typedef char *address;
-
-#endif /* !HAVE_F2C_H */
-   
+  
 #ifdef USE_UNDERSCORE
 #define __FC_DECL__(arg) arg ##_
 #else /* USE_UNDERSCORE */
 #define __FC_DECL__(arg) arg
 #endif /* USE_UNDERSCORE */
+
+#ifdef __cplusplus
+#undef max
+#undef min
+#endif /* __cplusplus */
 
 /*
  * FIXME: non so se e' __FC_DECL__ o solo FALSE_
@@ -104,7 +115,6 @@ typedef char *address;
  */
 #define FALSE_ (0)
 #define TRUE_ (1)
-
 
 #ifdef __cplusplus
 }

@@ -515,7 +515,7 @@ dnl Check for f2c libraries
 dnl
 ol_link_libf2c=no
 if test $ol_with_libf2c != no ; then
-	AC_CHECK_HEADERS(f2c.h)
+	AC_CHECK_HEADERS(g2c.h f2c.h)
 
 	AC_MSG_CHECKING([for f2c library])
 	AC_MSG_RESULT([])
