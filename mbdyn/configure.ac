@@ -704,7 +704,7 @@ if test $ol_with_blas != no ; then
 	fi
 
 	if test $have_blas = no ; then
-		try_blas_LIBS="-lcblas -latlas -lm"
+		try_blas_LIBS="-lcblas -latlas $F2C_LIBS -lm"
 		if test $ol_with_blas = "auto" -o $ol_with_blas = "atlas" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
@@ -721,7 +721,7 @@ if test $ol_with_blas != no ; then
 	fi
 
 	if test $have_blas = no ; then
-		try_blas_LIBS="-lcblas -lm"
+		try_blas_LIBS="-lcblas $F2C_LIBS -lm"
 		if test $ol_with_blas = "auto" -o $ol_with_blas = "cblas" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
@@ -738,7 +738,7 @@ if test $ol_with_blas != no ; then
 	fi
 
 	if test $have_blas = no ; then
-		try_blas_LIBS="-lblas -lm"
+		try_blas_LIBS="-lblas $F2C_LIBS -lm"
 		if test $ol_with_blas = "auto" -o $ol_with_blas = "blas" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
