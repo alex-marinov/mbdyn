@@ -754,4 +754,5 @@ inline const doublereal& DriveArrayCaller::dGet(void) const
 
 /* DriveArrayCaller - end */
 
-#endif
+#endif /* DRIVE__H */
+
