@@ -7,7 +7,7 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.1 Engineering
+MBDyn 1.1.2
 	Enhancements:
 		- merge of scalar and parallel multistep integrators
 		- detects if run by mpirun (appropriate MPI initialization;
