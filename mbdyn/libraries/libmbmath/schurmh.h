@@ -40,6 +40,7 @@
 
 #ifndef SCHURMH_H
 #define SCHURMH_H
+
 #include <myassert.h>
 #include <mynewmem.h>
 #include <except.h>
