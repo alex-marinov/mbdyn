@@ -1526,11 +1526,9 @@ last_arg:
 	}
 
 	/*
-	 * put the close plugin token back, and get a new token to
-	 * restore the correct parsing state
+	 * put the close plugin token back
 	 */
 	in->putback(c);
-	GetToken();
 	buf[i] = '\0';
 	
 	/*
@@ -1581,12 +1579,26 @@ last_arg:
 		pgin->Read(argc-2, argv+2);
 
 		/*
+		 * riporta il parser nello stato corretto
+		 */
+		GetToken();
+	
+		/*
 		 * costruisce la variabile, la inserisce nella tabella
 		 * e ne ritorna il valore (prima esecuzione)
 		 */
 		SAFENEWWITHCONSTRUCTOR(v, PlugInVar,
 				PlugInVar(varname, pgin), MPmm);
 		table.Put(v);
+
+		/*
+		 * pulizia ...
+		 */
+		for (int i = 0; argv[i] != NULL; i++) {
+			SAFEDELETEARR(argv[i], MPmm);
+		}
+		SAFEDELETEARR(argv, MPmm);
+	
 		return v->GetVal();
 	}
 

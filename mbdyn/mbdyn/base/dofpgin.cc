@@ -95,9 +95,21 @@ DofPlugIn::GetVal(void) const
 unsigned int 
 DofPlugIn::ReadLabel(const char* s) 
 {
-	istrstream in(s);
+	unsigned int rc;
+	char *stmp = NULL;
+
+	/*
+	 * deve essere terminato da ';' per essere letto da math parser :(
+	 */
+	SAFENEWARR(stmp, char, strlen(s)+2, DMmm);
+	strcpy(stmp, s);
+	strcat(stmp, ";");
+	istrstream in(stmp);
 	InputStream In(in);
-	return (unsigned int)mp.Get(In);
+	rc = (unsigned int)mp.Get(In);
+	SAFEDELETEARR(stmp, DMmm);
+
+	return rc;
 }
 
 Node *
