@@ -352,6 +352,7 @@ const Mat3xN& Mat3xN::LeftMult(const Mat3x3& m, const Mat3xN& n)
    n.IsValid();
    if (iNumCols != n.iNumCols) {
       Resize(n.iNumCols);
+      //FIXME: sicuri di voler fare resize? non si azzera?
    }   
    
    for (integer i = iNumCols; i-- > 0; ) {
