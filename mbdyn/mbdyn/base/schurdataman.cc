@@ -41,16 +41,17 @@
 
 #ifdef USE_MPI
 
-#include <schurdataman.h>
-#include <mysleep.h>
-#include <except.h>
-
 /* libreria per il calcolo delle partizioni */
 #ifdef USE_METIS
 extern "C" {
 #include <metis.h>
 }
+#undef ASSERT /* kill annoying redefiniton message */
 #endif /* USE_METIS */
+
+#include <schurdataman.h>
+#include <mysleep.h>
+#include <except.h>
 
 #undef min
 #undef max
@@ -79,13 +80,12 @@ SchurDataManager::SchurDataManager(MBDynParser& HP,
 : DataManager(HP, dInitialTime, sInputFileName, 
               sOutputFileName, fAbortAfterInput),
 iTotVertices(0),
-pLabelsList(NULL),
-ppMyNodes(NULL),
-iNumLocNodes(0),
 ppMyElems(NULL),
 iNumLocElems(0),
 ppMyIntElems(NULL),
 iNumIntElems(0),
+ppMyNodes(NULL),
+iNumLocNodes(0),
 LocalDofs(NULL),
 iNumLocDofs(0),
 LocalIntDofs(NULL),
@@ -94,12 +94,13 @@ ppIntNodes(NULL),
 iNumIntNodes(0),
 iNumMyInt(0),
 pMyIntDofs(NULL),
-iTotalExpConnections(0),
+pLabelsList(NULL),
+wgtflag(1),
+pParAmgProcs(NULL),
+pRotorComm(NULL),
 ppExpCntNodes(NULL),
 ppExpCntElems(NULL),
-pParAmgProcs(NULL),
-wgtflag(1),
-pRotorComm(NULL)
+iTotalExpConnections(0)
 {
     DEBUGCOUT("Entering SchurDataManager" << std::endl);
 
@@ -884,7 +885,7 @@ SchurDataManager::CreatePartition(void)
          * al nodo nell'array ppNodes */
        	int position;
        	iCount = iTotNodes;
-       	for (int i = 0; i < iTotNodes; i++) {
+       	for (unsigned int i = 0; i < iTotNodes; i++) {
             pLabelsList[i] = ppNodes[i]->GetLabel();
        	}
 

@@ -435,7 +435,7 @@ class SolutionManager {
    virtual void MatrInit(const doublereal& d = 0.) = 0;
    
    /* Risolve il sistema */
-   virtual void Solve(const doublereal dCoef) = 0;
+   virtual void Solve(const doublereal dCoef = 0.) = 0;
 
    /* sposta il puntatore al vettore del residuo */
    virtual void ChangeResPoint(doublereal* pRes) = 0;

@@ -135,7 +135,7 @@ class SchurSolutionManager : public SolutionManager {
   void MatrInit(const doublereal& dResetVal);
 
   /* Risolve i blocchi chiamando il solutore */
-  void Solve(const doublereal dCoef);
+  void Solve(const doublereal dCoef = 0.);
 
   /* sposta il puntatore al vettore del residuo */
    void ChangeResPoint(doublereal* pRes){

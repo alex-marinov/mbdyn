@@ -124,17 +124,18 @@ public:
 
 class Preconditioner {
 private:
+       int Size;
        MatrixHandler* pA;
        SolutionManager* pSM;
-       int Size;
 public:
 
       	Preconditioner(integer iDim, MatrixHandler *pa, 
 		SolutionManager* psm)
-	:Size(iDim),
+	: Size(iDim),
 	pA(pa),
-	pSM(psm) 
-	{};
+	pSM(psm) {
+		NO_OP;
+	};
        	
 	~Preconditioner(void){
 		NO_OP;

@@ -10,6 +10,8 @@ harwout.h \
 harwout_.cc \
 harwrap.cc \
 harwrap.h \
+iterwrap.cc \
+iterwrap.h \
 mschwrap.cc \
 mschwrap.h \
 umfpackwrap.cc \
@@ -19,12 +21,6 @@ y12wrap.h
 
 libmbwrap_la_LIBADD = @LIBS@ @F2C_LIBS@
 libmbwrap_la_LDFLAGS =
-
-INCLUDES = \
--I../../libraries/liby12 \
--I../../libraries/libmbmath \
--I../../libraries/libmbutil \
--I../../mbdyn
 
 noinst_PROGRAMS = wraptest
 wraptest_SOURCES = test.cc
