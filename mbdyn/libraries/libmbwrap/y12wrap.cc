@@ -544,13 +544,38 @@ optimizeWorkSize(false)
    	ASSERT(iSize > 0);
    	ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
 
+	integer iWMatSize;
+
    	/* Valore di default */
    	if (iWorkSpaceSize == 0) {
-      		iWorkSpaceSize = 2*iSize*iSize;
+		/*
+		 * y12 requires at least 3*numzeros to store factors
+		 * for multiple backsubs
+		 */
+      		iWorkSpaceSize = 3*iSize*iSize;
 
+		/*
+		 * hash table requires an optimal size to reduce 
+		 * collisions; the size is tuned based on matrix
+		 * filling at previous iteration
+		 */
+		iWMatSize = 2*iSize*iSize;
+
+		/*
+		 * work size will be optimized
+		 */
 		optimizeWorkSize = true;
-		optimalWorkSize = iWorkSpaceSize;
-   	}
+
+   	} else if (iWorkSpaceSize > 2*iSize*iSize) {
+		/*
+		 * If work size is specified, limit matrix size 
+		 * to trade collision reduction with reset time
+		 */
+		iWMatSize = 2*iSize*iSize;
+		
+	} else {
+		iWMatSize = iWorkSpaceSize;
+	}
 
 	integer iPivot;
 	if (dPivotFactor == 0.) {
@@ -570,7 +595,7 @@ optimizeWorkSize(false)
 			       SparseMatrixHandler,
 			       SparseMatrixHandler(iMatSize, &piRow, 
 			       			   &piCol, &pdMat,
-			       			   iWorkSpaceSize));
+			       			   iWMatSize));
    	SAFENEWWITHCONSTRUCTOR(pVH,
 			       MyVectorHandler,
 			       MyVectorHandler(iMatSize, pdVec));

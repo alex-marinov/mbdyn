@@ -34,11 +34,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#if defined(HAVE_IOMANIP)
-#include <iomanip>
-#elif defined(HAVE_IOMANIP_H)
-#include <iomanip.h>
-#endif
+#include <string.h>	/* for memset() */
+#include <ac/iomanip>
 
 #include <submat.h>
 
@@ -97,6 +94,37 @@ void FullSubMatrixHandler::IsValid(void) const
 #endif /* DEBUG_MEMMANAGER */
 }
 
+
+void 
+FullSubMatrixHandler::Init(const doublereal& dResetVal)
+{
+#ifdef DEBUG	
+      IsValid();
+#endif
+      
+#ifdef HAVE_MEMSET
+      if (dResetVal == 0.) {
+	      memset(pdMat, 0, iNumRows*iNumCols*sizeof(doublereal));
+      } else {
+#endif /* HAVE_MEMSET */
+      for (integer i = iNumRows*iNumCols; i-- > 0; ) {
+	 pdMat[i] = dResetVal;
+      }
+#ifdef HAVE_MEMSET
+      }
+#endif /* HAVE_MEMSET */
+     
+#if 0 
+      /* 
+       * this is not strictly required, because all the indices should
+       * be explicitly set before the matrix is used
+       */
+      for (integer i = iNumRows+iNumCols; i-- > 0; ) {
+	 piRow[i] = 0;
+      }	
+#endif
+}   
+   
 
 /* somma una matrice di tipo Mat3x3 in una data posizione */
 void FullSubMatrixHandler::Add(integer iRow, integer iCol, const Mat3x3& m)
@@ -555,6 +583,29 @@ flag SparseSubMatrixHandler::fPutCross(integer iSubIt, integer iFirstRow,
    return flag(0);
 }
 
+
+void 
+SparseSubMatrixHandler::Init(const doublereal& dCoef)
+{
+#ifdef DEBUG
+      IsValid();
+#endif	
+      
+      ASSERT(iNumItems > 0);	
+      
+#ifdef HAVE_MEMSET
+      if (dCoef == 0.) {
+	      memset(pdMat, 0, iNumItems*sizeof(doublereal));
+      } else {
+#endif /* HAVE_MEMSET */
+      for (integer i = 0; i < iNumItems; i++) {
+	      pdMat[i] = dCoef;
+      }
+#ifdef HAVE_MEMSET
+      }
+#endif /* HAVE_MEMSET */
+}
+   
 
 /* Inserisce una matrice 3x3; 
  * si noti che non ci sono Add, Sub, ecc. perche' la filosofia 

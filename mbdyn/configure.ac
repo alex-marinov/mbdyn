@@ -156,7 +156,7 @@ OL_ARG_WITH(metis,[  --with-metis            with Metis support],auto,[auto yes 
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
 OL_ARG_WITH(umfpack3,[  --with-umfpack3         with Umfpack3 math library],auto,[auto yes no])
 OL_ARG_WITH(y12,[  --with-y12              with Y12 math library],auto,[auto yes no])
-OL_ARG_WITH(harwell,[  --with-harwell          with Harwell sparse math library],no,[auto yes no])
+OL_ARG_WITH(harwell,[  --with-harwell          with Harwell sparse math library],auto,[auto yes no])
 OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
 OL_ARG_WITH(pam,[  --with-pam              with PAM support],auto,[auto yes no])
 
@@ -553,7 +553,6 @@ if test $ol_with_libf2c != no ; then
 		if test $ol_with_libf2c != auto ; then
 			AC_MSG_ERROR([Could not locate f2c library])
 		else
-			AC_MSG_WARN([Could not locate f2c library])
 			AC_MSG_WARN([f2c library not supported!])
 		fi
 	fi
@@ -681,7 +680,6 @@ if test $ol_with_meschach != no ; then
 		if test $ol_with_meschach != auto ; then
 			AC_MSG_ERROR([Could not locate Meschach])
 		else
-			AC_MSG_WARN([Could not locate Meschach])
 			AC_MSG_WARN([Meschach not supported!])
 		fi
 	fi
@@ -708,10 +706,21 @@ dnl Check for Harwell
 dnl
 ol_link_harwell=no
 if test $ol_with_harwell != no ; then
-	ol_link_harwell=yes
-	AC_DEFINE(USE_HARWELL,1,[define to use Harwell sparse LU library])
-	dnl HARWELL_LIBS="../libraries/libharwell/libharwell.la"
-	HARWELL_LIBS="-lhsl"
+	AC_CHECK_LIB(hsl,ma28ad,[have_libhsl=yes],[have_libhsl=no],[${F2C_LIBS} -lm])
+	if test $have_libhsl = no ; then
+		AC_CHECK_LIB(hsl,ma28ad_,[have_libhsl=yes],[have_libhsl=no],[${F2C_LIBS} -lm])
+	fi
+	if test $have_libhsl = yes ; then
+		ol_link_harwell=yes
+		AC_DEFINE(USE_HARWELL,1,[define to use Harwell sparse LU library])
+		HARWELL_LIBS=-lhsl
+	else
+		if test $ol_with_harwell != auto ; then
+			AC_MSG_ERROR([Could not locate Harwell lib (-lhsl)])
+		else
+			AC_MSG_WARN([Harwell lib (-lhsl) not supported])
+		fi
+	fi
 fi
 
 

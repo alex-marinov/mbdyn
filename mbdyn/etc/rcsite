@@ -10,15 +10,14 @@ CPPFLAGS="\
 	-D__HACK_EIG__ \
 	-D__HACK_UNSTEADY_AERO__ \
 	-D__HACK_NASTRAN_MODES__=2"
-CFLAGS="-g -Wall -O6 -march=pentiumpro -pg -fprofile-arcs -ftest-coverage"
+CFLAGS="-g -Wall -O6 -march=pentiumpro"
 CXXFLAGS=$CFLAGS
 CC=gcc
 CXX=g++
-F77="g77 -O -pg -fprofile-arcs -ftest-coverage"
+F77="g77 -O"
 
 # -rdynamic required to allow dynamic resolution of symbols in modules
 LDFLAGS="-rdynamic \
-	-pg -fprofile-arcs -ftest-coverage \
 	-L/home/masarati/Math/Meschach/meschach \
 	-L/home/masarati/Math/mpich-1.2/lib \
 	-L/home/masarati/Math/metis-4.0 \

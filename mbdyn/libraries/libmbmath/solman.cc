@@ -34,6 +34,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <string.h>	/* for memset() */
+
 #include <solman.h>
 #include <submat.h>
 #include <matvec3.h>

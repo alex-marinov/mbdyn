@@ -244,34 +244,8 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    /**
     Inizializza la porzione utilizzata con il valore desiderato
     */
-   void Init(const doublereal& dResetVal = 0.) {
-#ifdef DEBUG	
-      IsValid();
-#endif
-      
-#ifdef HAVE_MEMSET
-      if (dResetVal == 0.) {
-	      memset(pdMat, 0, iNumRows*iNumCols*sizeof(doublereal));
-      } else {
-#endif /* HAVE_MEMSET */
-      for (integer i = iNumRows*iNumCols; i-- > 0; ) {
-	 pdMat[i] = dResetVal;
-      }
-#ifdef HAVE_MEMSET
-      }
-#endif /* HAVE_MEMSET */
-     
-#if 0 
-      /* 
-       * this is not strictly required, because all the indices should
-       * be explicitly set before the matrix is used
-       */
-      for (integer i = iNumRows+iNumCols; i-- > 0; ) {
-	 piRow[i] = 0;
-      }	
-#endif
-   };   
-   
+   void Init(const doublereal& dResetVal = 0.);
+  
    /**
     Modifica le dimensioni correnti
     */
@@ -639,26 +613,8 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    /**
     Inizializza la matrice con d.
     */
-   void Init(const doublereal& dCoef = 0.) {
-#ifdef DEBUG
-      IsValid();
-#endif	
-      
-      ASSERT(iNumItems > 0);	
-      
-#ifdef HAVE_MEMSET
-      if (dCoef == 0.) {
-	      memset(pdMat, 0, iNumItems*sizeof(doublereal));
-      } else {
-#endif /* HAVE_MEMSET */
-      for (integer i = 0; i < iNumItems; i++) {
-	      pdMat[i] = dCoef;
-      }
-#ifdef HAVE_MEMSET
-      }
-#endif /* HAVE_MEMSET */
-   };
-   
+   void Init(const doublereal& dCoef = 0.);
+  
    /** 
     Ridimensiona la matrice.
     Nota: solo il primo argomento viene considerato, e rappresenta il numero

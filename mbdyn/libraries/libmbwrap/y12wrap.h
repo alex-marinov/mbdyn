@@ -234,7 +234,6 @@ protected:
    	flag fHasBeenReset;   /* flag di matrice resettata */
 
 	bool optimizeWorkSize;
-	integer optimalWorkSize;
    
    	/* Prepara i vettori e la matrice per il solutore */
    	void PacVec(void); 
