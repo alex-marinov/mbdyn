@@ -19,5 +19,8 @@ wrats		masarati/wrats
 
 dispense	masarati/docs/dispense
 
+# articoli
+slider		masarati/docs/articoli/multibody/slider
+
 Latex-tools	masarati/Latex-tools
 
