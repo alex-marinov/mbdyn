@@ -21,6 +21,7 @@ MBDyn 1.2-Engineering
 	Bug fixes:
 		- fixed dof count in initial assembly dof stats print
 		- fixed element drive input
+		- fixed aeromodal bug for v=0
 	Known Issues:
 		- parallel is not working yet
 	Backward compatibility issues:
