@@ -9,8 +9,6 @@ class ThirdOrderIntegrator :
 	public ImplicitStepIntegrator
 {
 private:
-	VectorHandler *pXCurr;
-	VectorHandler *pXPrimeCurr; 
 	VectorHandler *pXPrev;
 	VectorHandler *pXPrimePrev; 
 	DriveOwner Rho;
@@ -21,7 +19,7 @@ private:
 	doublereal w[3];
 	doublereal jx[2][2];
 	doublereal jxp[2][2];
-	doublereal m[2][2], n[2][2];
+	doublereal m0, m1, n0, n1;
 	
 	bool bAdvanceCalledFirstTime;
 	MyVectorHandler Res1, Res2;
