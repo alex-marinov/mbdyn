@@ -449,11 +449,6 @@ DofIter()
    }
 #endif /* DEBUG */
 
-   if(bAbortAfterInput) {
-      silent_cout("Only input is required" << std::endl);
-      return;
-   }
-
 #ifdef USE_ADAMS 
    /* Se richiesto, inizializza il file di output AdamsRes */
    if (bAdamsOutput()) {
@@ -469,6 +464,11 @@ DofIter()
    }
 #endif /* USE_MOTIONVIEW */
    
+   if (bAbortAfterInput) {
+      silent_cout("Only input is required" << std::endl);
+      return;
+   }
+
    /* Qui intercetto la struttura dei Dof prima che venga costruita e modifico
     * in modo che sia adatta all'assemblaggio dei vincoli; quindi la resetto 
     * e la lascio generare correttamente.
