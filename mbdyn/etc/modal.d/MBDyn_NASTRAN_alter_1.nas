@@ -1,6 +1,14 @@
 $ Alters for MSC/NASTRAN v 70.7
 $ ALTERS for SOL 101 STATIC MODES ANALYSIS
 $
+$ MBDyn (C) is a multibody analysis code.
+$ http://www.mbdyn.org
+$
+$ Copyright (C) 1996-2001
+$
+$ Pierangelo Masarati     <masarati@aero.polimi.it>
+$ Paolo Mantegazza        <mantegazza@aero.polimi.it>
+$
 $ Author: Giuseppe Quaranta <quaranta@aero.polimi.it>
 $         Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
 $
