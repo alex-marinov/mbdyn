@@ -27,6 +27,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#if defined(AC_MATH_H) && defined(__CYGWIN__)
+#ifndef isfinite
+#include <math.h>
+#define isfinite(x)     finite(x)
+#endif /* !isfinite */
+#endif /* AC_MATH_H && __CYGWIN__ */
+
 #ifndef AC_MATH_H
 #define AC_MATH_H
 
