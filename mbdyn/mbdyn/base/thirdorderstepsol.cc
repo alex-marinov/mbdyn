@@ -71,19 +71,44 @@ void ThirdOrderIntegrator::SetCoef(doublereal dt,
 		enum StepChange /* NewStep */)
 {
 	dT = dt;
-	doublereal rho = Rho.dGet();
+	/* from "Unconditionally stable multistep integration of ordinary
+	 * differential and differential-algebraic equations with
+	 * controlled algorithmic dissipation for multibody dynamic
+	 * applications", pp 8-9
+	 */
+	rho = Rho.dGet();
 	theta = -rho/(1.+rho);
-	w[0] = (2.+3.*theta)/(6*(1+theta));
+	w[0] = (1.+3*theta)/(6.*theta);
 	w[1] = -1./(6*theta*(1+theta));
-	w[2] = (1.+3*theta)/(6.*theta);
-	jx[0][0] = (1+3.*rho)/(6*rho*(1+rho))*dT;
-	jx[0][1] = -1./(6*rho*std::pow(1+rho,2.))*dT;
-	jx[1][0] = std::pow(1+rho,2.)/(6.*rho)*dT;
-	jx[1][1] = (2.*rho-1.)/(6.*rho)*dT;
-	jxp[0][0] = 1.;
-	jxp[0][1] = 0.;
-	jxp[1][0] = 0.;
+	w[2] = (2.+3.*theta)/(6*(1+theta));
+	/* from "Unconditionally stable multistep integration of ordinary
+	 * differential and differential-algebraic equations with
+	 * controlled algorithmic dissipation for multibody dynamic
+	 * applications", pp 3
+	 */
+	m[0][0] = 1.;
+	m[1][0] = 0.;
+	m[0][1] = 1.-theta*theta*(3.+2*theta);
+	m[1][1] = theta*theta*(3.+2*theta);
+	n[0][0] = 0.;
+	n[1][0] = 0.;
+	n[0][1] = theta*(1.+theta)*(1.+theta);
+	n[1][1] = theta*theta*(1.+theta);
+	/* Attenzione: a differenza di quanto riportato a p. 16,
+	 * "Unconditionally stable multistep integration of ordinary
+	 * differential and differential-algebraic equations with
+	 * controlled algorithmic dissipation for multibody dynamic
+	 * applications"
+	 * qui il tempo finale e' in cima, il tempo theta in basso
+	 */ 
+	jx[1][1] = (1+3.*rho)/(6*rho*(1+rho))*dT;
+	jx[1][0] = -1./(6*rho*std::pow(1+rho,2.))*dT;
+	jx[0][1] = std::pow(1+rho,2.)/(6.*rho)*dT;
+	jx[0][0] = (2.*rho-1.)/(6.*rho)*dT;
 	jxp[1][1] = 1.;
+	jxp[1][0] = 0.;
+	jxp[0][1] = 0.;
+	jxp[0][0] = 1.;
 	
 };
 
@@ -101,7 +126,6 @@ doublereal ThirdOrderIntegrator::Advance(const doublereal TStep,
 			, doublereal& SolErr
 #endif /* MBDYN_X_CONVSOL */
 			){
-	doublereal dErr = 0.;
 	if (bAdvanceCalledFirstTime) {
 		integer n = pDM->iGetNumDofs();
 // 		Res1.Resize(n);
@@ -117,9 +141,20 @@ doublereal ThirdOrderIntegrator::Advance(const doublereal TStep,
 
 	pXPrimeCurr  = pXPrime;
 	pXPrimePrev  = qXPrime[0];
+	
+	SetCoef(TStep, dAlph, StType);	
+
 	Predict();
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	pDM->AfterPredict();
+	
+	doublereal dErr = 0.;        
+	pNLS->Solve(this, pSM, MaxIters, dTol,
+    			EffIter, dErr
+#ifdef MBDYN_X_CONVSOL
+			, dSolTol, SolErr
+#endif /* MBDYN_X_CONVSOL  */	
+			);
 	
 	return dErr;
 };
@@ -152,7 +187,7 @@ void ThirdOrderIntegrator::Predict(void) {
 			doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
 	 		doublereal dXPnm1 = 
 				pXPrimePrev->dGetCoef(iCntp1);
-
+			
 	 		doublereal dXn = dXnm1+dXPnm1*dT;
 			doublereal dXPn = dXPnm1;
 		
@@ -226,15 +261,12 @@ void ThirdOrderIntegrator::Residual(VectorHandler* pRes) const
 	pDM->AssRes(res, 1.);
 	
 	/* dT */
-	state.Attach(iNumDofs,pXCurr->pdGetVec());
-	stateder.Attach(iNumDofs,pXPrimeCurr->pdGetVec());
-	res.Attach(iNumDofs,pRes->pdGetVec());
 	pDM->SetTime(pDM->dGetTime()+(1.-theta)*dT);
-	pDM->LinkToSolution(state, stateder);
+	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	pDM->Update();
-	pDM->AssRes(res, 1.);
+	pDM->AssRes(*pRes, 1.);
+
 	return;
-	
 };
 
 void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
@@ -256,17 +288,15 @@ void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
 	pDM->AssJac(*pJacxi_xp, 0.);
 	
 	/* dT */
-	state.Attach(iNumDofs,pXCurr->pdGetVec());
-	stateder.Attach(iNumDofs,pXPrimeCurr->pdGetVec());
 	pDM->SetTime(pDM->dGetTime()+(1.-theta)*dT);
-	pDM->LinkToSolution(state, stateder);
+	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	pDM->Update();
 	pDM->AssJac(*pJac_x, 1.);
 	pDM->AssJac(*pJac_xp, 0.);
 	
 	
 	/* Attenzione: a differenza di quanto riportato a p. 16,
-	 * "Unconditionally stable multistep integration of oridnary
+	 * "Unconditionally stable multistep integration of ordinary
 	 * differential and differential-algebraic equations with
 	 * controlled algorithmic dissipation for multibody dynamic
 	 * applications"
@@ -292,7 +322,7 @@ void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
 	doublereal J11_x = (2.*rho-1.)/(6.*rho)*dT;
 	Jac_x.MulAndSumWithShift(*pJac,J11_x,0,0);
 	Jac_xp.MulAndSumWithShift(*pJac,1.-J11_x,0,0);
-
+	
 	return;
 };
 
@@ -327,7 +357,7 @@ void ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
 			
 	 		pXCurr->fIncCoef(iCntp1, dT*(w[1]*dxp_xi+w[0]*dxp));
 	 		pXCurr->fIncCoef(iCntp1+iNumDofs, 
-				dT*(m[1]*w[1]*dxp_xi+(m[1]*w[0]+n[1])*dxp));
+				dT*(m[0][1]*w[1]*dxp_xi+(m[0][1]*w[0]+n[0][1])*dxp));
 		
       		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
 	 		pXCurr->fIncCoef(iCntp1, dxp);
@@ -335,7 +365,7 @@ void ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
 			
 	 		pXPrimeCurr->fIncCoef(iCntp1, dT*(w[1]*dxp_xi+w[0]*dxp));
 	 		pXPrimeCurr->fIncCoef(iCntp1+iNumDofs, 
-				dT*(m[1]*w[1]*dxp_xi+(m[1]*w[0]+n[1])*dxp));
+				dT*(m[0][1]*w[1]*dxp_xi+(m[0][1]*w[0]+n[0][1])*dxp));
 		} else {
 	 		std::cerr << "unknown order for dof " 
 				<< iCntp1<< std::endl;

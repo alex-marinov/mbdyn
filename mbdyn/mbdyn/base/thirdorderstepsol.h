@@ -21,7 +21,7 @@ private:
 	doublereal w[3];
 	doublereal jx[2][2];
 	doublereal jxp[2][2];
-	doublereal m[2], n[2];
+	doublereal m[2][2], n[2][2];
 	
 	bool bAdvanceCalledFirstTime;
 	MyVectorHandler Res1, Res2;
