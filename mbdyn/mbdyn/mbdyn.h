@@ -111,14 +111,14 @@ extern int fPedantic;
 
 #define pedantic_cout(arg) \
     	do { \
-        	if (::fPedantic > 2) { \
+        	if (::fPedantic > 1) { \
             		std::cout << arg; \
         	} \
     	} while (0)
 
 #define pedantic_cerr(arg) \
 	do { \
-		if (::fPedantic > 1) { \
+		if (::fPedantic > 0) { \
 			std::cerr << arg; \
 		} \
 	} while (0)
