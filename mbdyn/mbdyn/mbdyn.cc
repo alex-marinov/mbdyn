@@ -946,13 +946,23 @@ RunMBDyn(MBDynParser& HP,
     	KeyTable K(HP, sKeyWords);
    
     	/* legge i dati della simulazione */
-    	if (KeyWords(HP.GetDescription()) != BEGIN) {
+	/* NOTE: if the first GetDescription() fails because
+	 * of an end-of-file, don't treat it as an error */
+	KeyWords cd;
+	try {
+		cd = KeyWords(HP.GetDescription());
+	} catch (EndOfFile) {
+		THROW(NoErr());
+	}
+	/* looking for "begin"... */	
+	if (cd != BEGIN) {
         	silent_cerr(std::endl 
 	    		<< "Error: <begin> expected at line " 
 	    		<< HP.GetLineData() << "; aborting ..." << std::endl);
         	THROW(ErrGeneric());
     	}
-   
+
+	/* looking for "data"... */	
     	if (KeyWords(HP.GetWord()) != DATA) {
         	silent_cerr(std::endl 
 	    		<< "Error: <begin: data;> expected at line " 
