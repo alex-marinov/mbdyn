@@ -1055,28 +1055,26 @@ if test "$ol_with_umfpack" != "no" ; then
 #include <umfpack.h>
 			],[
 #define SIZE 2
-	int32_t n_row = SIZE, n_col = SIZE;
+	int32_t sys;
 	int32_t Ap[SIZE], Ai[SIZE];
-	double Ax[SIZE];
-	void *Symbolic;
+	double Ax[SIZE], X[SIZE], B[SIZE];
+	void *Numeric;
 	double Control[UMFPACK_CONTROL];
 	double Info[UMFPACK_INFO];
-
-	umfpack_di_symbolic(n_row, n_col, Ap, Ai, Ax, &Symbolic, Control, Info);
+	umfpack_di_solve(sys, Ap, Ai, Ax, X, B, &Numeric, Control, Info);
 			],[],[
 				AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <umfpack.h>
 				],[
 #define SIZE 2
-	int32_t n_row = SIZE, n_col = SIZE;
+	int32_t sys;
 	int32_t Ap[SIZE], Ai[SIZE];
-	double Ax[SIZE];
-	void *Symbolic;
+	double Ax[SIZE], X[SIZE], B[SIZE];
+	void *Numeric;
 	double Control[UMFPACK_CONTROL];
 	double Info[UMFPACK_INFO];
-
-	umfpack_dl_symbolic(n_row, n_col, Ap, Ai, Ax, &Symbolic, Control, Info);
+	umfpack_dl_solve(sys, Ap, Ai, Ax, X, B, &Numeric, Control, Info);
 				],[
 					AC_DEFINE(USE_UMFPACK_LONG,1,[define if need to use umfpack_dl_* calls])
 				],[
@@ -1658,6 +1656,7 @@ if test $ol_with_rtai != no ; then
 
 	dnl FIXME: is this correct for >= 3.0 as well?
 	AC_CHECK_HEADERS(rtai_usp_posix.h)
+	AC_CHECK_HEADERS(rtai_posix.h)
 
 	AC_DEFINE(USE_RTAI,1,[define to use RTAI])
 fi
