@@ -679,16 +679,16 @@ if test $ol_with_blas != no ; then
 	AC_MSG_CHECKING([for BLAS library])
 
 	save_LIBS="$LIBS"
-	have_blas=no
+	have_blas="no"
 
 	if test "${ol_with_goto_lib:-set}" = set ; then
 		ol_with_goto_lib="goto"
 	fi
 
 	try_blas_LIBS=
-	if test $have_blas = no ; then
+	if test "$have_blas" = "no" ; then
 		try_blas_LIBS="-l$ol_with_goto_lib -lxerbla $F2C_LIBS -lm"
-		if test $ol_with_blas = "auto" -o $ol_with_blas = "goto" ; then
+		if test "$ol_with_blas" = "auto" -o "$ol_with_blas" = "goto" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
 			AC_TRY_LINK([
@@ -702,15 +702,15 @@ if test $ol_with_blas != no ; then
 			],[have_blas=goto],[have_blas=no])
 			LIBS="$save_LIBS"
 
-			if test $ol_with_blas = "goto" ; then
+			if test "$ol_with_blas" = "goto" ; then
 				AC_MSG_ERROR([Goto blas implementation not available])
 			fi
 		fi
 	fi
 
-	if test $have_blas = no ; then
+	if test "$have_blas" = "no" ; then
 		try_blas_LIBS="-lcblas -latlas -lm"
-		if test $ol_with_blas = "auto" -o $ol_with_blas = "atlas" ; then
+		if test "$ol_with_blas" = "auto" -o "$ol_with_blas" = "atlas" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
 			AC_TRY_LINK([
@@ -718,18 +718,18 @@ if test $ol_with_blas != no ; then
 			],[
 				/* test for blas */
 				return dgemm();
-			],[have_blas=atlas],[have_blas=no])
+			],[have_blas="atlas"],[have_blas="no"])
 			LIBS="$save_LIBS"
 
-			if test $ol_with_blas = "atlas" ; then
+			if test "$ol_with_blas" = "atlas" ; then
 				AC_MSG_ERROR([Atlas blas implementation not available])
 			fi
 		fi
 	fi
 
-	if test $have_blas = no ; then
+	if test "$have_blas" = "no" ; then
 		try_blas_LIBS="-lcblas -lm"
-		if test $ol_with_blas = "auto" -o $ol_with_blas = "cblas" ; then
+		if test "$ol_with_blas" = "auto" -o "$ol_with_blas" = "cblas" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
 			AC_TRY_LINK([
@@ -737,18 +737,18 @@ if test $ol_with_blas != no ; then
 			],[
 				/* test for blas */
 				return dgemm();
-			],[have_blas=cblas],[have_blas=no])
+			],[have_blas="cblas"],[have_blas="no"])
 			LIBS="$save_LIBS"
 
-			if test $ol_with_blas = "cblas" ; then
+			if test "$ol_with_blas" = "cblas" ; then
 				AC_MSG_ERROR([CBLAS not available])
 			fi
 		fi
 	fi
 
-	if test $have_blas = no ; then
+	if test "$have_blas" = "no" ; then
 		try_blas_LIBS="-lblas $F2C_LIBS -lm"
-		if test $ol_with_blas = "auto" -o $ol_with_blas = "blas" ; then
+		if test "$ol_with_blas" = "auto" -o "$ol_with_blas" = "blas" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
 			AC_TRY_LINK([
@@ -759,10 +759,10 @@ if test $ol_with_blas != no ; then
 			],[
 				/* test for blas */
 				return dgemm_();
-			],[have_blas=blas],[have_blas=no])
+			],[have_blas="blas"],[have_blas="no"])
 			LIBS="$save_LIBS"
 
-			if test $ol_with_blas = "blas" ; then
+			if test "$ol_with_blas" = "blas" ; then
 				AC_MSG_ERROR([BLAS not available])
 			fi
 		fi
@@ -770,14 +770,14 @@ if test $ol_with_blas != no ; then
 
 	dnl revert to original libraries; the BLAS libraries 
 	dnl will be explicitly added by those libraries that require them
-	if test $have_blas != no ; then
-		ol_link_blas=yes
+	if test "$have_blas" != "no" ; then
+		ol_link_blas="yes"
 		BLAS_LIBS="$try_blas_LIBS"
 		AC_DEFINE(HAVE_BLAS,1,[define if BLAS are available])
 	fi
 
 	dnl from now on, add $BLAS_LIBS to libraries that (may) depend on them
-	AC_MSG_RESULT([$have_blas])
+	AC_MSG_RESULT(["$have_blas"])
 fi
 
 
