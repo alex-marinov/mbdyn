@@ -71,16 +71,18 @@ class Rotor
 #ifdef USE_MPI
    /* Communicator per il calcolo della trazione totale */
    bool is_parallel;
-   MPI::Intracomm RotorComm;  /* Gruppo di macchine su cui si scambiano dati relativi al rotore */  
+   MPI::Intracomm RotorComm;  	/* Gruppo di macchine su cui si scambiano
+				   dati relativi al rotore */  
    int* pBlockLenght;    
-   MPI::Aint* pDispl;        /* vettore di indirizzi di dati */
-   MPI::Request ReqV;        /* request per le comunicazioni Send Receive */
-   integer iForcesVecDim;    /* dimensioni del vettore forze scambiato fra i processi */ 
-   doublereal*  pTmpVecR;     /* vettori temporanei per lo scambio delle forze */
+   MPI::Aint* pDispl;        	/* vettore di indirizzi di dati */
+   MPI::Request ReqV;        	/* request per le comunicazioni Send Receive */
+   integer iForcesVecDim;    	/* dimensioni vettore forze scambiato
+				   fra i processi */ 
+   doublereal*  pTmpVecR;	/* vettori temporanei per scambio forze */
    doublereal*  pTmpVecS;
-   MPI::Datatype* pRotDataType; /* datatype che contiene le posizioni dei dati da scambiare 
-				 * ad ogni passo */
-#endif /* USE_MPI */             
+   MPI::Datatype* pRotDataType; /* datatype che contiene le posizioni 
+				   dei dati da scambiare ad ogni passo */
+#endif /* USE_MPI */
    const StructNode* pCraft;
    const StructNode* pRotor;
 
@@ -485,8 +487,8 @@ class ManglerRotor : virtual public Elem, public Rotor {
 class DynamicInflowRotor : virtual public Elem, public Rotor {
  protected:
    doublereal dVConst;
-   doublereal dVCosine;
    doublereal dVSine;
+   doublereal dVCosine;
 
    doublereal dL11;
    doublereal dL13;
@@ -506,8 +508,8 @@ class DynamicInflowRotor : virtual public Elem, public Rotor {
 		      doublereal dCH,
 		      doublereal dCFF,
 		      doublereal dVConstTmp,
-		      doublereal dVCosineTmp,
 		      doublereal dVSineTmp,
+		      doublereal dVCosineTmp,
 		      flag fOut);
    virtual ~DynamicInflowRotor(void);
    virtual inline void* pGet(void) const { return (void*)this; };

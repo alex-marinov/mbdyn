@@ -150,79 +150,102 @@ Rotor::AfterConvergence(const VectorHandler& /* X */ ,
     }
 }
 
-void Rotor::Output(OutputHandler& OH) const
+void
+Rotor::Output(OutputHandler& OH) const
 {
-    if (fToBeOutput()) {
+    	if (fToBeOutput()) {
 #ifdef USE_MPI
-        if (is_parallel && RotorComm.Get_size() > 1) { 
-	    if (RotorComm.Get_rank() == 0) {
-		Vec3 TmpF(pTmpVecR), TmpM(pTmpVecR+3);
-		Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
-		OH.Rotors() << std::setw(8) << GetLabel()
-			<< " " << (RT*TmpF) << " " << (RT*TmpM)
-			<< " " << dUMean 
+		if (is_parallel && RotorComm.Get_size() > 1) { 
+	    		if (RotorComm.Get_rank() == 0) {
+				Vec3 TmpF(pTmpVecR);
+				Vec3 TmpM(pTmpVecR+3);
+				Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
+				OH.Rotors() 
+					<< std::setw(8) << GetLabel()	/* 1 */
+					<< " " << (RT*TmpF)	/* 2-4 */
+					<< " " << (RT*TmpM)	/* 5-7 */
+					<< " " << dUMean 	/* 8 */
 #if 1
-			<< " " << dVelocity
-			<< " " << dSinAlphad << " " << dCosAlphad
-			<< " " << dMu
-			<< " " << dLambda << " " << dChi
-			<< " " << dPsi0
+					<< " " << dVelocity	/* 9 */
+					<< " " << dSinAlphad	/* 10 */
+					<< " " << dCosAlphad	/* 11 */
+					<< " " << dMu		/* 12 */
+					<< " " << dLambda	/* 13 */
+					<< " " << dChi		/* 14 */
+					<< " " << dPsi0		/* 15 */
+#endif
+					<< std::endl;
+
+				for (int i = 0; ppRes && ppRes[i]; i++) {
+					Vec3 TmpF(pTmpVecR+6+6*i);
+					Vec3 TmpM(pTmpVecR+9+6*i);
+					OH.Rotors()
+						<< std::setw(8) << GetLabel() 
+						<< ":" << ppRes[i]->GetLabel()
+						<< " " << TmpF
+						<< " " << TmpM
+						<< std::endl;
+				}
+	    		}
+		} else {
+	    		Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
+
+	    		OH.Rotors()
+				<< std::setw(8) << GetLabel()
+	    			<< " " << (RT*Res.Force())
+				<< " " << (RT*Res.Couple())
+	    			<< " " << dUMean 
+#if 1
+	    			<< " " << dVelocity
+	    			<< " " << dSinAlphad
+				<< " " << dCosAlphad
+	    			<< " " << dMu
+	    			<< " " << dLambda
+				<< " " << dChi
+	    			<< " " << dPsi0
+#endif
+	    			<< std::endl;
+
+	    		for (int i = 0; ppRes && ppRes[i]; i++) {
+				OH.Rotors()
+					<< std::setw(8) << GetLabel() 
+	    				<< ":" << ppRes[i]->GetLabel()
+	    				<< " " << ppRes[i]->pRes->Force()
+	    				<< " " << ppRes[i]->pRes->Couple()
+	    				<< std::endl;
+	    		}
+		}
+
+#else /* !USE_MPI */     
+		Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
+
+		OH.Rotors()
+			<< std::setw(8) << GetLabel()	/* 1 */
+			<< " " << (RT*Res.Force())	/* 2-4 */
+			<< " " << (RT*Res.Couple())	/* 5-7 */
+			<< " " << dUMean		/* 8 */
+#if 1
+			<< " " << dVelocity		/* 9 */
+			<< " " << dSinAlphad		/* 10 */
+			<< " " << dCosAlphad		/* 11 */
+			<< " " << dMu			/* 12 */
+			<< " " << dLambda		/* 13 */
+			<< " " << dChi			/* 14 */
+			<< " " << dPsi0			/* 15 */
 #endif
 			<< std::endl;
-	        for (int i = 0; ppRes && ppRes[i]; i++) {
-			Vec3 TmpF(pTmpVecR+6+6*i), TmpM(pTmpVecR+9+6*i);
-			OH.Rotors() << std::setw(8) << GetLabel() 
+
+		/* FIXME: check for parallel stuff ... */
+		for (int i = 0; ppRes && ppRes[i]; i++) {
+			OH.Rotors()
+				<< std::setw(8) << GetLabel() 
 				<< ":" << ppRes[i]->GetLabel()
-				<< " " << TmpF << " " << TmpM
+				<< " " << ppRes[i]->pRes->Force()
+				<< " " << ppRes[i]->pRes->Couple()
 				<< std::endl;
 		}
-	    }
-	} else {
-	    Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
-	    OH.Rotors() << std::setw(8) << GetLabel()
-		    << " " << (RT*Res.Force()) << " " << (RT*Res.Couple())
-		    << " " << dUMean 
-#if 1
-		    << " " << dVelocity
-		    << " " << dSinAlphad << " " << dCosAlphad
-		    << " " << dMu
-		    << " " << dLambda << " " << dChi
-		    << " " << dPsi0
-#endif 
-		    << std::endl;
-
-	    for (int i = 0; ppRes && ppRes[i]; i++) {
-		OH.Rotors() << std::setw(8) << GetLabel() 
-			    << ":" << ppRes[i]->GetLabel()
-			    << " " << ppRes[i]->pRes->Force()
-			    << " " << ppRes[i]->pRes->Couple()
-			    << std::endl;
-	    }
-	}
-#else /* !USE_MPI */     
-	Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
-	OH.Rotors() << std::setw(8) << GetLabel() << " " 
-		<< (RT*Res.Force()) << " " << (RT*Res.Couple())
-		<< " " << dUMean 
-#if 1
-		<< " " << dVelocity
-		<< " " << dSinAlphad << " " << dCosAlphad
-		<< " " << dMu
-		<< " " << dLambda << " " << dChi
-		<< " " << dPsi0
-#endif
-		<< std::endl;
-
-	/* FIXME: check for parallel stuff ... */
-	for (int i = 0; ppRes && ppRes[i]; i++) {
-		OH.Rotors() << std::setw(8) << GetLabel() 
-			<< ":" << ppRes[i]->GetLabel()
-			<< " " << ppRes[i]->pRes->Force()
-			<< " " << ppRes[i]->pRes->Couple()
-			<< std::endl;
-	}
 #endif /* !USE_MPI */
-    }
+    	}
 }
 
 /* Calcola la posizione azimuthale di un punto generico.
@@ -803,7 +826,9 @@ SubVectorHandler& GlauertRotor::AssRes(SubVectorHandler& WorkVec,
 std::ostream& GlauertRotor::Restart(std::ostream& out) const
 {
    return Rotor::Restart(out) << "Glauert, " << dRadius << ", ",
-     Weight.pGetDriveCaller()->Restart(out) << ';' << std::endl;
+	  Weight.pGetDriveCaller()->Restart(out) 
+	  << ", correction, " << dHoverCorrection
+	  << ", " << dForwardFlightCorrection << ';' << std::endl;
 }
 
 
@@ -980,8 +1005,10 @@ SubVectorHandler& ManglerRotor::AssRes(SubVectorHandler& WorkVec,
 
 std::ostream& ManglerRotor::Restart(std::ostream& out) const
 {
-  return Rotor::Restart(out) << "Mangler, " << dRadius << ", ",
-          Weight.pGetDriveCaller()->Restart(out) << ';' << std::endl;
+   return Rotor::Restart(out) << "Mangler, " << dRadius << ", ",
+	  Weight.pGetDriveCaller()->Restart(out) 
+	  << ", correction, " << dHoverCorrection
+	  << ", " << dForwardFlightCorrection << ';' << std::endl;
 }
 
 
@@ -1086,109 +1113,143 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 	    			       doublereal dCH,
 	    			       doublereal dCFF,
 				       doublereal dVConstTmp,
-				       doublereal dVCosineTmp,
 				       doublereal dVSineTmp,
+				       doublereal dVCosineTmp,
 				       flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut),
 Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut),
-dVConst(dVConstTmp), dVCosine(dVCosineTmp), dVSine(dVSineTmp), 
+dVConst(dVConstTmp), dVSine(dVSineTmp), dVCosine(dVCosineTmp), 
 dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
 {
-   ASSERT(dOR > 0.);
-   ASSERT(dR > 0.);
+	ASSERT(dOR > 0.);
+	ASSERT(dR > 0.);
    
-   dOmegaRef = dOR;
-   dRadius = dR;
-   dArea = M_PI*dRadius*dRadius;
-   
-   dHoverCorrection = dCH;
-   dForwardFlightCorrection = dCFF;
+	dOmegaRef = dOR;
+	dRadius = dR;
+	dArea = M_PI*dRadius*dRadius;
+ 
+	dHoverCorrection = dCH;
+	dForwardFlightCorrection = dCFF;
 
-   /* Significa che valuta la velocita' indotta media al passo corrente */
-   dWeight = 0.;
+	/* Significa che valuta la velocita' indotta media al passo corrente */
+	dWeight = 0.;
 
 #ifdef USE_MPI
-   if (is_parallel) {
-      SAFENEWARR(pBlockLenght, int, 20);
-      SAFENEWARR(pDispl, MPI::Aint, 20);
-      for (int i=0; i < 20; i++) {
-        pBlockLenght[i] = 1;
-      }
-      for (int i=0; i < 3; i++) {	
-        pDispl[i] = MPI::Get_address(RRot3.pGetVec()+i);	  	
-      }
-      pDispl[3] = MPI::Get_address(&dVConst);
-      pDispl[4] = MPI::Get_address(&dVCosine);
-      pDispl[5] = MPI::Get_address(&dVSine);
-      pDispl[6] = MPI::Get_address(&dOmega);
-      pDispl[7] = MPI::Get_address(&dPsi0);
-      for (int i=8; i <= 10; i++) {	
-        pDispl[i] = MPI::Get_address(Res.Pole().pGetVec()+i-8);	  	
-      }
-      for (int i=11; i < 20; i++) {	
-        pDispl[i] = MPI::Get_address(RRotTranspose.pGetMat()+i-11);	  	
-      }
-      SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)));
-      pRotDataType->Commit();
-   }
+	if (is_parallel) {
+		SAFENEWARR(pBlockLenght, int, 20);
+		SAFENEWARR(pDispl, MPI::Aint, 20);
+		for (int i = 0; i < 20; i++) {
+			pBlockLenght[i] = 1;
+		}
+		for (int i = 0; i < 3; i++) {	
+			pDispl[i] = MPI::Get_address(RRot3.pGetVec()+i);
+		}
+		pDispl[3] = MPI::Get_address(&dVConst);
+		pDispl[4] = MPI::Get_address(&dVSine);
+		pDispl[5] = MPI::Get_address(&dVCosine);
+		pDispl[6] = MPI::Get_address(&dOmega);
+		pDispl[7] = MPI::Get_address(&dPsi0);
+		for (int i = 8; i <= 10; i++) {	
+			pDispl[i] = MPI::Get_address(Res.Pole().pGetVec()+i-8);
+		}
+		for (int i = 11; i < 20; i++) {	
+			pDispl[i] = MPI::Get_address(RRotTranspose.pGetMat()+i-11);
+		}
+		SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype,
+				MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)));
+		pRotDataType->Commit();
+	}
 #endif /* USE_MPI */
 }
 
 
 DynamicInflowRotor::~DynamicInflowRotor(void)
 {
-   NO_OP;
+	NO_OP;
 }
 
 
-void DynamicInflowRotor::Output(OutputHandler& OH) const
+void
+DynamicInflowRotor::Output(OutputHandler& OH) const
 {
-   /* FIXME: posso usare dei temporanei per il calcolo della trazione
-    * totale per l'output, cosi' evito il giro dei cast */
-   if (fToBeOutput()) {
-
+     	/*
+	 * FIXME: posso usare dei temporanei per il calcolo della trazione
+	 * totale per l'output, cosi' evito il giro dei cast
+	 */
+	if (fToBeOutput()) {
 #ifdef USE_MPI
- 	if (is_parallel && RotorComm.Get_size() > 1) {
-   		if (RotorComm.Get_rank() == 0) {
-       			Vec3 TmpF(pTmpVecR), TmpM(pTmpVecR+3);
-       			Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
-       			OH.Rotors() << std::setw(8) << GetLabel() << " " 
-		   		<< (RT*TmpF) << " " << (RT*TmpM) << " " << dUMean << " "
-		   		<< dVConst << " " << dVCosine << " " << dVSine  << std::endl; 
-       			for (int i = 0; ppRes && ppRes[i]; i++) {
-				Vec3 TmpF(pTmpVecR+6+6*i), TmpM(pTmpVecR+9+6*i);
-				OH.Rotors() << std::setw(8) << GetLabel() 
-			    		<< ":" << ppRes[i]->GetLabel() << " "
-			    		<< TmpF << " "
-			    		<< TmpM << std::endl;
-       			}
-     		}
-   	} else {
-    		Mat3x3 RT((pCraft->GetRCurr()).Transpose()*RRot);
-	 	OH.Rotors() << std::setw(8) << GetLabel() << " "
-		     	<< (RT*Res.Force()) << " " << (RT*Res.Couple()) << " " << dUMean << " "
-		     	<< dVConst << " " << dVCosine << " " << dVSine  << std::endl;
-  	        for (int i = 0; ppRes && ppRes[i]; i++) {
-			OH.Rotors() << std::setw(8) << GetLabel() 
-			    << ":" << ppRes[i]->GetLabel() << " "
-			    << ppRes[i]->pRes->Force() << " "
-			    << ppRes[i]->pRes->Couple() << std::endl;
-	    	}
-  	}
+		if (is_parallel && RotorComm.Get_size() > 1) {
+			if (RotorComm.Get_rank() == 0) {
+				Vec3 TmpF(pTmpVecR), TmpM(pTmpVecR+3);
+				Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
+				OH.Rotors() 
+					<< std::setw(8) << GetLabel()
+					<< " " << (RT*TmpF)
+					<< " " << (RT*TmpM)
+					<< " " << dUMean
+					<< " " << dVConst
+					<< " " << dVSine
+					<< " " << dVCosine
+					<< std::endl; 
+
+				for (int i = 0; ppRes && ppRes[i]; i++) {
+					Vec3 TmpF(pTmpVecR+6+6*i);
+					Vec3 TmpM(pTmpVecR+9+6*i);
+	
+					OH.Rotors()
+						<< std::setw(8) << GetLabel() 
+						<< ":" << ppRes[i]->GetLabel()
+						<< " " << TmpF
+						<< " " << TmpM
+						<< std::endl;
+				}
+			}
+		} else {
+			Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
+	
+			OH.Rotors()
+				<< std::setw(8) << GetLabel()
+				<< " " << (RT*Res.Force())
+				<< " " << (RT*Res.Couple())
+				<< " " << dUMean
+				<< " " << dVConst
+				<< " " << dVSine
+				<< " " << dVCosine
+				<< std::endl;
+
+			for (int i = 0; ppRes && ppRes[i]; i++) {
+				OH.Rotors()
+					<< std::setw(8) << GetLabel() 
+	    				<< ":" << ppRes[i]->GetLabel()
+					<< " " << ppRes[i]->pRes->Force()
+					<< " " << ppRes[i]->pRes->Couple()
+					<< std::endl;
+			}
+		}
+
 #else /* !USE_MPI */
-     	Mat3x3 RT((pCraft->GetRCurr()).Transpose()*RRot);
-     	OH.Rotors() << std::setw(8) << GetLabel() << " " 
-		 << (RT*Res.Force()) << " " << (RT*Res.Couple()) << " " 
-		 << dUMean << " "
-		 << dVConst << " " << dVCosine << " " << dVSine  << std::endl;
- 	for (int i = 0; ppRes && ppRes[i]; i++) {
-		OH.Rotors() << std::setw(8) << GetLabel() 
-			    << ":" << ppRes[i]->GetLabel() << " "
-			    << ppRes[i]->pRes->Force() << " "
-			    << ppRes[i]->pRes->Couple() << std::endl;
-	}  	 
+		Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
+
+		OH.Rotors()
+			<< std::setw(8) << GetLabel()
+			<< " " << (RT*Res.Force())
+			<< " " << (RT*Res.Couple())
+			<< " " << dUMean
+			<< " " << dVConst
+			<< " " << dVSine
+			<< " " << dVCosine
+			<< std::endl;
+
+		for (int i = 0; ppRes && ppRes[i]; i++) {
+			OH.Rotors()
+				<< std::setw(8) << GetLabel() 
+    				<< ":" << ppRes[i]->GetLabel()
+				<< " " << ppRes[i]->pRes->Force()
+				<< " " << ppRes[i]->pRes->Couple()
+				<< std::endl;
+		}
 #endif /* !USE_MPI */     
-   }
+	}
 }
 
 
@@ -1274,12 +1335,12 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 	   	WorkVec.fPutRowIndex(3, iFirstIndex+3);
      
 	   	dVConst = XCurr.dGetCoef(iFirstIndex+1);
-	   	dVCosine = XCurr.dGetCoef(iFirstIndex+2);
-	   	dVSine = XCurr.dGetCoef(iFirstIndex+3);
+	   	dVSine = XCurr.dGetCoef(iFirstIndex+2);
+	   	dVCosine = XCurr.dGetCoef(iFirstIndex+3);
      
 	   	doublereal dVConstPrime = XPrimeCurr.dGetCoef(iFirstIndex+1);
-	   	doublereal dVCosinePrime = XPrimeCurr.dGetCoef(iFirstIndex+2);
-	   	doublereal dVSinePrime = XPrimeCurr.dGetCoef(iFirstIndex+3);
+	   	doublereal dVSinePrime = XPrimeCurr.dGetCoef(iFirstIndex+2);
+	   	doublereal dVCosinePrime = XPrimeCurr.dGetCoef(iFirstIndex+3);
      
 		doublereal dCt = 0.;
 		doublereal dCl = 0.;
@@ -1399,11 +1460,11 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 	   	}
 
 		WorkVec.fPutCoef(1, dCt - dM11*dVConstPrime
-				- dL11*dVConst - dL13*dVSine);
-	 	WorkVec.fPutCoef(2, dCl - dM22*dVCosinePrime
-				- dL22*dVCosine);
-	 	WorkVec.fPutCoef(3, dCm - dM33*dVSinePrime
-				- dL31*dVConst - dL33*dVSine);
+				- dL11*dVConst - dL13*dVCosine);
+	 	WorkVec.fPutCoef(2, dCl - dM22*dVSinePrime
+				- dL22*dVSine);
+	 	WorkVec.fPutCoef(3, dCm - dM33*dVCosinePrime
+				- dL31*dVConst - dL33*dVCosine);
      
 #ifdef USE_MPI 
 
@@ -1439,15 +1500,17 @@ void DynamicInflowRotor::SetValue(VectorHandler& X, VectorHandler& XP) const
   }   
   
   X.fPutCoef(iFirstIndex+1, dVConst);
-  X.fPutCoef(iFirstIndex+2, dVCosine);
-  X.fPutCoef(iFirstIndex+3, dVSine);
+  X.fPutCoef(iFirstIndex+2, dVSine);
+  X.fPutCoef(iFirstIndex+3, dVCosine);
 }
 
 
 /* Restart */
 std::ostream& DynamicInflowRotor::Restart(std::ostream& out) const
 {
-   return Rotor::Restart(out) << "dynamic inflow, " << dRadius << ';' << std::endl;
+   return Rotor::Restart(out) << "dynamic inflow, " << dRadius
+	  << ", correction, " << dHoverCorrection
+	  << ", " << dForwardFlightCorrection << ';' << std::endl;
 }
 
 
@@ -1629,15 +1692,15 @@ ReadRotor(DataManager* pDM,
 	 	}
        
 	 	doublereal dVConst = 0.;
-	 	doublereal dVCosine = 0.;
 	 	doublereal dVSine = 0.;
+	 	doublereal dVCosine = 0.;
 	 	DriveCaller *pdW = NULL;
 
 	 	if (InducedType == DYNAMICINFLOW) {
 	      		if (HP.IsKeyWord("initial" "value")) {
 		   		dVConst = HP.GetReal();
-		   		dVCosine = HP.GetReal();
 		   		dVSine = HP.GetReal();
+		   		dVCosine = HP.GetReal();
 	      		}
 	  
 	 	} else {   	      	   	      	  
@@ -1737,7 +1800,7 @@ ReadRotor(DataManager* pDM,
 						ppres, 
 						dOR, dR,
 						dCH, dCFF,
-						dVConst, dVCosine, dVSine,
+						dVConst, dVSine, dVCosine,
 						fOut));
 			break;
 			
