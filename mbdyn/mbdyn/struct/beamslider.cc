@@ -75,6 +75,7 @@ const doublereal dS = 1./sqrt(3.);
 BeamSliderJoint::BeamSliderJoint(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pN, enum Type iT,
 		unsigned int nB, const BeamConn *const * ppB,
+		unsigned int uIB, unsigned int uIN,
 		const Vec3& fTmp, const Mat3x3& RTmp, flag fOut)
 : Elem(uL, Elem::JOINT, fOut),
 Joint(uL, Joint::BEAMSLIDER, pDO, fOut),
@@ -82,12 +83,30 @@ nRotConstr(0), nBeams(nB), iCurrBeam(0), iType(iT),
 pNode(pN), ppBeam(ppB),
 f(fTmp), R(RTmp),
 F(0.), M(0.),
-s(0.), activeNode(Beam::NODE2),
+s(0.),
 x(0.), l(0.)
 {
 	ASSERT(pNode != NULL);
 	ASSERT(nBeams > 0);
 	ASSERT(ppBeam != NULL);
+	ASSERT(uIB > 0 && uIB <= nBeams);
+	ASSERT(uIN > 0 && uIN <= 3);
+
+	iCurrBeam = uIB-1;
+
+	switch (uIN) {
+	case 1:
+		activeNode = Beam::NODE1;
+		break;
+
+	case 2:
+		activeNode = Beam::NODE2;
+		break;
+
+	case 3:
+		activeNode = Beam::NODE3;
+		break;
+	}
 
 	switch (iType) {
 	case CLASSIC:

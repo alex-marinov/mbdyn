@@ -125,6 +125,7 @@ public:
 	BeamSliderJoint(unsigned int uL, const DofOwner* pDO,
 			const StructNode* pN, enum Type iT,
 			unsigned int nB, const BeamConn *const *pB,
+			unsigned int uIB, unsigned int uIN,
 			const Vec3& fTmp, const Mat3x3& RTmp, flag fOut);
    
 	/* Distruttore */

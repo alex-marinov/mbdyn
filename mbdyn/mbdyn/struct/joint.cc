@@ -1327,14 +1327,16 @@ Elem* ReadJoint(DataManager* pDM,
 		       "Slider rotation matrix: " << endl << R << endl);
 
        unsigned int nB = HP.GetInt();
-       if (nB != 1) {
-	       cerr << "Exactly one beam is required at present" << endl;
+       if (nB < 1) {
+	       cerr << "At least one beam is required at line " 
+		       << HP.GetLineData() << endl;
 	       THROW(ErrGeneric());
        }
        
        BeamConn **bc = NULL;
        SAFENEWARR(bc, BeamConn *, nB);
 
+       const StructNode* pLastNode = NULL;
        for (unsigned int i = 0; i < nB; i++) {
           /* trave di appoggio */
 	  unsigned int uBeam = HP.GetInt();
@@ -1353,17 +1355,64 @@ Elem* ReadJoint(DataManager* pDM,
 	  
 	  /* Offset del punto rispetto al nodo */
 	  const StructNode* pNode1 = pBeam->pGetNode(1);
-       
 	  RF = ReferenceFrame(pNode1);
-	  Vec3 f1(HP.GetPosRel(RF));
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << endl);
-	  
-	  Mat3x3 R1(Eye3);
-	  if (HP.IsKeyWord("hinge")) {
-		  R1 = HP.GetRotRel(RF);
-		  DEBUGLCOUT(MYDEBUG_INPUT,
-				  "Node 1 rotation matrix: " << endl 
-				  << R1 << endl);
+	  Vec3 f1;
+	  Mat3x3 R1 = Eye3;
+	  if (i != 0) {
+		  if (pNode1 != pLastNode) {
+			cerr 
+				<< "line " << HP.GetLineData()
+				<< ": Beam(" << pBeam->GetLabel() 
+				<< ").Node1(" << pNode1->GetLabel()
+ 				<< ") and Beam(" 
+				<< bc[i-1]->pGetBeam()->GetLabel() 
+				<< ").Node3(" << pLastNode->GetLabel()
+				<< ") do not match" << endl;
+			THROW(ErrGeneric());
+		  }
+		  
+  		  if (HP.IsKeyWord("same")) {
+			  f1 = bc[i-1]->Getf(3);
+		  } else {
+			  f1 = HP.GetPosRel(RF);
+			  if (f1 != bc[i-1]->Getf(3)) {
+				cerr 
+					<< "line " << HP.GetLineData()
+					<< ": Beam(" << pBeam->GetLabel()
+					<< ").f1 and Beam("
+					<< bc[i-1]->pGetBeam()->GetLabel()
+					<< ").f3 do not match" << endl;
+				THROW(ErrGeneric());
+			  }
+		  }
+	  	  DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << endl);
+
+	  	  if (HP.IsKeyWord("hinge")) {
+  			  if (HP.IsKeyWord("same")) {
+				  R1 = bc[i-1]->GetR(3);
+			  } else {
+				  R1 = HP.GetRotRel(RF);
+				  if (R1 != bc[i-1]->GetR(3)) {
+					cerr 
+						<< "line " << HP.GetLineData()
+						<< ": Beam(" << pBeam->GetLabel()
+						<< ").R1 and Beam("
+						<< bc[i-1]->pGetBeam()->GetLabel()
+						<< ").R3 do not match" << endl;
+					THROW(ErrGeneric());
+				  }
+			  }
+		  	  DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 rotation matrix: " 
+					  << endl << R1 << endl);
+		  }
+
+	  } else {
+		f1 = HP.GetPosRel(RF);
+		if (HP.IsKeyWord("hinge")) {
+			R1 = HP.GetRotRel(RF);
+		  	DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 rotation matrix: " 
+					<< endl << R1 << endl);
+		}
 	  }
        
 	  /* Nodo 2: */
@@ -1399,18 +1448,43 @@ Elem* ReadJoint(DataManager* pDM,
 				  "Node 3 rotation matrix: " << endl 
 				  << R3 << endl);
 	  }
-       
+	  
+	  pLastNode = pNode3;
+
 	  bc[i] = NULL;
 	  SAFENEWWITHCONSTRUCTOR(bc[i], BeamConn, 
 			  BeamConn(pBeam, f1, f2, f3, R1, R2, R3));
        }
-       
+
+       unsigned uIB = 1;
+       if (HP.IsKeyWord("initialbeam")) {
+	       uIB = HP.GetInt();
+
+	       if (uIB < 1 || uIB > nB) {
+		       cerr << "illebal initial beam " << uIB
+			       << " at line " << HP.GetLineData() << endl;
+		       THROW(ErrGeneric());
+	       }
+       }
+      
+       unsigned uIN = 2;
+       if (HP.IsKeyWord("initialnode")) {
+	       uIN = HP.GetInt();
+
+	       if (uIN < 1 || uIN > 3) {
+		       cerr << "illebal initial node " << uIN
+			       << " at line " << HP.GetLineData() << endl;
+		       THROW(ErrGeneric());
+	       }
+       }
+      
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        SAFENEWWITHCONSTRUCTOR(pEl, BeamSliderJoint,
 		       BeamSliderJoint(uLabel, pDO, 
 			       pNode, 
 			       BeamSliderJoint::SPHERICAL,
-			       nB, bc, 
+			       nB, bc,
+			       uIB, uIN,
 			       f, R, fOut));
        break;
     }
