@@ -24,6 +24,10 @@ MBDyn 1.2-Engineering
 	Backward compatibility issues:
 		- merge columns 10 and 11 into disk angle for rotor
 		  elements output
+		- --enable-loadable has been replaced
+		  by --enable-runtime-loading
+		- --with-static-modules added to statically link
+		  (known) modules
 	Known Issues:
 		- parallel is not working yet
 
