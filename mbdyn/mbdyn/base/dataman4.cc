@@ -474,15 +474,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     ppE = ElemData[Elem::AIRPROPERTIES].ppFirstElem;
 	     uLabel = 1;
 	     
-	     doublereal dRho = HP.GetReal();
-	     DEBUGLCOUT(MYDEBUG_INPUT, "Air density: " << dRho << std::endl);
-	     if (dRho <= 0.) {
-		std::cerr << "illegal null or negative air density at line "
-		  << HP.GetLineData() << std::endl;
-		
-		THROW(DataManager::ErrGeneric());
-	     }
-	     
+	     DriveCaller *pRho = ReadDriveData(this, HP, &DrvHdl);
+
 	     doublereal dSS = HP.GetReal();
 	     DEBUGLCOUT(MYDEBUG_INPUT, "Sound speed: " << dSS << std::endl);
 	     if (dSS <= 0.) {
@@ -501,7 +494,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppE, 
 				    AirProperties,
-				    AirProperties(pDC, dRho, dSS, fOut));
+				    AirProperties(pDC, pRho, dSS, fOut));
 	     
 	     break;
 	  }

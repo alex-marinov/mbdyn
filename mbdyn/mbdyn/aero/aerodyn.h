@@ -74,16 +74,16 @@ class AirProperties
 : virtual public Elem, public InitialAssemblyElem, public TplDriveOwner<Vec3> {
  protected:
    Vec3 Velocity;
-   doublereal dAirDensity;
+   DriveCaller *pAirDensity;
    doublereal dSoundSpeed;
    
  public:
    AirProperties(const TplDriveCaller<Vec3>* pDC,
-		 doublereal dRho, doublereal dSS, flag fOut)
+		 DriveCaller *pRho, doublereal dSS, flag fOut)
      : Elem(1, Elem::AIRPROPERTIES, fOut),
      InitialAssemblyElem(1, Elem::AIRPROPERTIES, fOut),
      TplDriveOwner<Vec3>(pDC),    
-     Velocity(0.), dAirDensity(dRho), dSoundSpeed(dSS) {
+     Velocity(0.), pAirDensity(pRho), dSoundSpeed(dSS) {
 	NO_OP;
      };
    
@@ -97,8 +97,8 @@ class AirProperties
    
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const {
-      return out << "  air properties: " 
-	<< dAirDensity << ", " << dSoundSpeed << ", ",
+      return out << "  air properties: ",
+	pAirDensity->Restart(out) << ", " << dSoundSpeed << ", ",
 	pGetDriveCaller()->Restart(out) << ';' << std::endl;	   
    };
    
@@ -202,7 +202,7 @@ class AirProperties
    };
    
    virtual doublereal dGetAirDensity(const Vec3& /* X */ ) const {
-      return dAirDensity;
+      return pAirDensity->dGet();
    };
    
    virtual doublereal dGetAirPressure(const Vec3& /* X */ ) const { 
@@ -216,10 +216,6 @@ class AirProperties
    virtual doublereal dGetSoundSpeed(const Vec3& /* X */ ) const { 
       return dSoundSpeed;
    };
-
-#ifdef DEBUG
-   virtual const char* sClassName(void) const { return "AirProperties"; };
-#endif   
 };
 
 /* AirProperties - end */
