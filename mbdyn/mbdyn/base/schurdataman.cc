@@ -40,7 +40,6 @@
 #endif /* HAVE_CONFIG_H */
 
 #ifdef USE_MPI
-
 /* libreria per il calcolo delle partizioni */
 #ifdef USE_METIS
 extern "C" {
@@ -50,6 +49,7 @@ extern "C" {
 #endif /* USE_METIS */
 
 #include <schurdataman.h>
+extern MPI::Intracomm MBDynComm;
 #include <mysleep.h>
 #include <except.h>
 
@@ -105,7 +105,7 @@ iTotalExpConnections(0)
     DEBUGCOUT("Entering SchurDataManager" << std::endl);
 
     /* Inizializza il communicator */ 
-    DataComm = MPI::COMM_WORLD.Dup();
+    DataComm = MBDynComm.Dup();
     DataCommSize = DataComm.Get_size();
     MyRank = DataComm.Get_rank();
 
@@ -859,13 +859,13 @@ SchurDataManager::CreatePartition(void)
       : iDefaultMaxConnectionsPerVertex;
     int GravityPos = 0, AirPropPos = 0;
     int* pRotPos = NULL;
-    integer* pRotLab = NULL;
+    unsigned int* pRotLab = NULL;
     int iNumberOfNodes;
     Node::Type* pMyTypes = NULL;
     unsigned int* pMyLabels = NULL;
     if (ElemData[Elem::ROTOR].iNum != 0) {
     	SAFENEWARR(pRotPos, int, ElemData[Elem::ROTOR].iNum);
-    	SAFENEWARR(pRotLab, integer, ElemData[Elem::ROTOR].iNum);
+    	SAFENEWARR(pRotLab, unsigned int, ElemData[Elem::ROTOR].iNum);
     }
     SAFENEWARR(pMyTypes, Node::Type, iDefaultMaxNodesPerElem);
     SAFENEWARR(pMyLabels, unsigned int, iDefaultMaxNodesPerElem);
@@ -1211,7 +1211,7 @@ SchurDataManager::CreatePartition(void)
 	    	    key = MyRank+1;
 	  	}
 	    }
-	    pRotorComm[i] = MPI::COMM_WORLD.Split(color,key);
+	    pRotorComm[i] = MBDynComm.Split(color,key);
 	    /* RotorComm[i] = MPI::COMM_WORLD.Split(color,key); */
 	    Rotor *r = (Rotor *)ppElems[pRotPos[i]]->pGet();
 	    r->InitializeRotorComm(pRotorComm + i);

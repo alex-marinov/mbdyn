@@ -27,15 +27,18 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
+#ifdef USE_AERODYNAMIC_EXTERNAL 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include"aeroext.h"
+#include "aeroext.h"
 #include <myassert.h>
 #include <except.h>
-
+#include <dataman.h>
+extern MPI::Intracomm MBDynComm;
+ 
 /* le label delle comuncazioni vengono costruite in questo modo:
  *
  *	blockID*10   +  1   label e numero nodi aggiuntivi 
@@ -49,7 +52,7 @@
 /* Aerodynamic External - begin */
 AerodynamicExternal::AerodynamicExternal(unsigned int uLabel,
 					int NN,
-			    		const StructNodes** ppN,
+			    		const StructNode** ppN,
 			    		const doublereal* pRefL,
 			    		MPI::Intercomm* pIC,
 					flag fOut,
@@ -72,7 +75,7 @@ MomFlag(MF)
 {
 	/* costruisce la mat 3xN degli offset */
 	SAFENEWWITHCONSTRUCTOR(pOffsetVectors, Mat3xN, Mat3xN(OffN, 0.));
-	for (int i=0; i<3; i++) pOffsetVectors(i,i,1.);
+	for (int i=0; i<3; i++) pOffsetVectors->Put(i,i,1.);
 	ConstructAndInitialize();
 	
 		
@@ -80,7 +83,7 @@ MomFlag(MF)
 
 AerodynamicExternal::AerodynamicExternal(unsigned int uLabel,
 					int NN,
-			    		const StructNodes** ppN,
+			    		const StructNode** ppN,
 			    		const doublereal* pRefL,
 			    		MPI::Intercomm* pIC,
 					int	ON,
@@ -89,7 +92,7 @@ AerodynamicExternal::AerodynamicExternal(unsigned int uLabel,
 			    		bool VF,
 					bool MF)
 :Elem(uLabel, Elem::AERODYNAMIC, fOut), 
-AerodynamicElem(uLabel, AerodynamicElem::AERODYNAMICEXTERENAL, fOut),
+AerodynamicElem(uLabel, AerodynamicElem::AERODYNAMICEXTERNAL, fOut),
 pdBuffer(NULL),
 pdBufferVel(NULL),
 NodeN(NN),
@@ -114,6 +117,7 @@ AerodynamicExternal::~AerodynamicExternal(void)
 	if (pRefLength != NULL) SAFEDELETEARR(pRefLength);
 	if (pSenReq != NULL) SAFEDELETEARR(pSenReq);
 	if (pRecReq != NULL) SAFEDELETEARR(pRecReq);
+	if (pInterfComm != NULL) SAFEDELETE(pInterfComm);
 }
 		
 void AerodynamicExternal::ConstructAndInitialize(void) 
@@ -158,11 +162,11 @@ void AerodynamicExternal::ConstructAndInitialize(void)
 	}			
 	if (MomFlag) {
 		SAFENEWARR(pRecReq, MPI::Prequest, 2);
-		RecReq[0] = pInterfComm->Recv_init(pdBuffer->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+4);
-		RecReq[1] = pInterfComm->Recv_init(pdBufferVel->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+5);
+		pRecReq[0] = pInterfComm->Recv_init(pdBuffer->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+4);
+		pRecReq[1] = pInterfComm->Recv_init(pdBufferVel->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+5);
 	}else {
 		SAFENEWARR(pRecReq, MPI::Prequest, 1);
-		RecReq[0] = pInterfComm->Recv_init(pdBuffer->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+4);
+		pRecReq[0] = pInterfComm->Recv_init(pdBuffer->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+4);
 	}
 	SAFEDELETEARR(pLabList);	
 }
@@ -177,32 +181,31 @@ void AerodynamicExternal::AfterPredict(VectorHandler& X  ,
 }
 
 /* invia posizione e velocita' predetti */ 
-void AerodynamicExternal::Update(VectorHandler& X  , 
-					VectorHandler&  XP  )
+void AerodynamicExternal::Update(const VectorHandler& X  , 
+					const VectorHandler&  XP  )
 {
 	DEBUGCOUTFNAME("AerodynamicExternal::Update");
 	Send(X, XP);
 }
 
-void AerodynamicExternal::Send(VectorHandler& X  , 
-					VectorHandler&  XP  )
+void AerodynamicExternal::Send(const VectorHandler& X  , 
+					const VectorHandler&  XP  )
 {
 	
 	Mat3xN MatTmp(OffN,0.);
 	for (int i=0; i < NodeN; i++) {
 		pdBuffer->Put(i*(OffN+1)*3+1, ppNode[i]->GetXCurr());
-		if (FlagVel) pdBufferVel->Put(i*(OffN+1)*3+1, ppNode[i]->GetVCurr());
+		if (VelFlag) pdBufferVel->Put(i*(OffN+1)*3+1, ppNode[i]->GetVCurr());
 		for (int j=0; j < OffN; j++) {
 			MatTmp.LeftMult(ppNode[i]->GetRCurr(), *pOffsetVectors);
 			MatTmp *= pRefLength[i];
 			pdBuffer->Put(i*(OffN+1)*3+(j+1)*3+1, ppNode[i]->GetXCurr() + MatTmp.GetVec(j));
-			(ppNode[i]->GetXCurr() + MatTmp.GetVec(j)).PutTo(pBuffer[i*(OffN+1)*3+(j+1)*3]);
-			if (FlagVel) pdBufferVel->Put(i*(OffN+1)*3+(j+1)*3+1, ppNode[i]->GetVCurr() + ( Mat3x3(ppNode[i]->GetWCurr()) * ppNode[i]->GetRCurr() )* MatTmp.GetVec(j));
+			if (VelFlag) pdBufferVel->Put(i*(OffN+1)*3+(j+1)*3+1, ppNode[i]->GetVCurr() + ( Mat3x3(ppNode[i]->GetWCurr()) * ppNode[i]->GetRCurr() )* MatTmp.GetVec(j));
 		}
 	}
 	MPI::Prequest::Startall(1 + VelFlag, pSenReq);
 	/* attiva la ricezione delle forze */
-	MPI::Prequest::Startall(1 , *RecReq);
+	MPI::Prequest::Startall(1 , pRecReq);
  
 }
 
@@ -228,32 +231,33 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 	}
 		
 	/* attende il completamento dei receive */
-	MPI::Request::Waitall(1 + MomFlag, *RecReq);
+	MPI::Request::Waitall(1 + MomFlag, pRecReq);
 	
 	/* calcola le forze su ciascun nodo */
 	/* le forze e i momenti sono gia' espressi nel sistema di riferimento global */
 	Vec3 F(0.);
 	Vec3 M(0.);
 	for (int i=0; i < NodeN; i++) {
-		F[0] +=  pdBuffer->dGet(i*(OffN+1)*3+1);
-		F[1] +=  pdBuffer->dGet(i*(OffN+1)*3+2);
-		F[2] +=  pdBuffer->dGet(i*(OffN+1)*3+3);
+		F[0] +=  pdBuffer->dGetCoef(i*(OffN+1)*3+1);
+		F[1] +=  pdBuffer->dGetCoef(i*(OffN+1)*3+2);
+		F[2] +=  pdBuffer->dGetCoef(i*(OffN+1)*3+3);
 		if (MomFlag) {
-			M[0] +=  pdBufferVel->dGet(i*(OffN+1)*3+1);
-			M[1] +=  pdBufferVel->dGet(i*(OffN+1)*3+2);
-			M[2] +=  pdBufferVel->dGet(i*(OffN+1)*3+3);
+			M[0] +=  pdBufferVel->dGetCoef(i*(OffN+1)*3+1);
+			M[1] +=  pdBufferVel->dGetCoef(i*(OffN+1)*3+2);
+			M[2] +=  pdBufferVel->dGetCoef(i*(OffN+1)*3+3);
 		}
 		for (int j=0; j < OffN; j++) {
-			F[0] +=  pdBuffer->dGet(i*(OffN+1)*3+(j+1)*3+1);
-			F[1] +=  pdBuffer->dGet(i*(OffN+1)*3+(j+1)*3+2);
-			F[2] +=  pdBuffer->dGet(i*(OffN+1)*3+(j+1)*3+3);			
+			F[0] +=  pdBuffer->dGetCoef(i*(OffN+1)*3+(j+1)*3+1);
+			F[1] +=  pdBuffer->dGetCoef(i*(OffN+1)*3+(j+1)*3+2);
+			F[2] +=  pdBuffer->dGetCoef(i*(OffN+1)*3+(j+1)*3+3);			
 			if (MomFlag) {
-				M[0] +=  pdBufferVel->dGet(i*(OffN+1)*3+(j+1)*3+1);
-				M[1] +=  pdBufferVel->dGet(i*(OffN+1)*3+(j+1)*3+2);
-				M[2] +=  pdBufferVel->dGet(i*(OffN+1)*3+(j+1)*3+3);
+				M[0] +=  pdBufferVel->dGetCoef(i*(OffN+1)*3+(j+1)*3+1);
+				M[1] +=  pdBufferVel->dGetCoef(i*(OffN+1)*3+(j+1)*3+2);
+				M[2] +=  pdBufferVel->dGetCoef(i*(OffN+1)*3+(j+1)*3+3);
 			}
-			Vec3 TmpF(*pdBuffer, i*(OffN+1)*3+(j+1)*3+1);
-			M += TmpF.Cross( ppNode[i]->GetRCurr() * MatTmp.GetVec(j) );
+			//Vec3 TmpF(*pdBuffer, i*(OffN+1)*3+(j+1)*3+1);
+			
+			M += F.Cross( ppNode[i]->GetRCurr() * pOffsetVectors->GetVec(j) * pRefLength[i]);
 		}
 		WorkVec.Add(i*6+1, F);
    		WorkVec.Add(i*6+4, M);
@@ -267,19 +271,19 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    	/* legge i dati d'ingresso e li passa al costruttore dell'elemento */
    	AerodynamicExternal* pEl = NULL;
    
-   	int NodeN = HP.GetInt(); 
+   	unsigned int NodeN = HP.GetInt(); 
    
    	DEBUGCOUT("Aerodynamic External Block made of : " << NodeN << " Nodes." << std::endl);    
    	
-	StructNode** ppNodeList = NULL;
-	SAFENEWARR(pNodeList, StructNode*, NodeN);
+	const StructNode** ppNodeList = NULL;
+	SAFENEWARR(ppNodeList, const StructNode*, NodeN);
 	
 	StructNode* pTmpNode; 
    	for (unsigned int iN=0; iN < NodeN; iN++) {
 		unsigned int NodeL = HP.GetInt(); 
    		if ((pTmpNode = pDM->pFindStructNode(NodeL)) == NULL) {
       			std::cerr << "Modal(" << uLabel 
-				<< "): structural node " << uNode
+				<< "): structural node " << NodeL
 				<< " at line " << HP.GetLineData()
 				<< " not defined" << std::endl;
       			THROW(DataManager::ErrGeneric());
@@ -319,7 +323,17 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsKeyWord("moment")) MomFlag = true;
 		  
 		
-	/* costruisce i comunicators */
+	/* costruisce il comunicator */
+	MPI::Intercomm* pInterC = NULL;
+	SAFENEWWITHCONSTRUCTOR(pInterC, MPI::Intercomm, MPI::Intercomm());
+	
+	/* il leader locale e' la macchina master cioe' quella con rank 0 
+	 * il leader remoto e' sempre 0 perche' l'interfaccia e' composta 
+	 * da un solo processo 
+	 * la tag e' 1000 per creare il comunicatore fra MBdyn e l'interfaccia 
+	 * e 2000 fra il codice aerodinamico e l'interfaccia 
+	 */
+	*pInterC = MBDynComm.Create_intercomm(0, MPI::COMM_WORLD, 0, 1000); 
 	
    	/* per ora l'elemento non genera output */
 	flag fOut = 0;
@@ -355,20 +369,17 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 }
 
    
-   
-   	
-}
 /* Aerodynamic External - end */
 
 
 /* Aerodynamic External Modal - begin */
 
 AerodynamicExternalModal::AerodynamicExternalModal(unsigned int uLabel,
-			    				const Modal* pM,
+			    				Modal* pM,
 			    				MPI::Intercomm* IC,
 			    				flag fOut,
-			    				bool VelFlag,
-							bool MomFlag)
+			    				bool VF,
+							bool MF)
 :Elem(uLabel, Elem::AERODYNAMIC, fOut), 
 AerodynamicElem(uLabel, AerodynamicElem::AERODYNAMICEXTERNALMODAL, fOut),
 pdBuffer(NULL),
@@ -382,10 +393,10 @@ VelFlag(VF),
 MomFlag(MF)
 {
 	SAFENEWWITHCONSTRUCTOR(pdBuffer, MyVectorHandler,
-			MyVectorHandler(3*ModalNode));
+			MyVectorHandler(3*ModalNodes));
 	
 	if (VelFlag || MomFlag) SAFENEWWITHCONSTRUCTOR(pdBufferVel, MyVectorHandler,
-			MyVectorHandler(3*ModalNode));
+			MyVectorHandler(3*ModalNodes));
 	
 	unsigned int*  pLabList = NULL; 
 	SAFENEWARR(pLabList, unsigned int, 2);
@@ -412,13 +423,22 @@ MomFlag(MF)
 	}			
 	if (MomFlag) {
 		SAFENEWARR(pRecReq, MPI::Prequest, 2);
-		RecReq[0] = pInterfComm->Recv_init(pdBuffer->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+4);
-		RecReq[1] = pInterfComm->Recv_init(pdBufferVel->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+5);
+		pRecReq[0] = pInterfComm->Recv_init(pdBuffer->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+4);
+		pRecReq[1] = pInterfComm->Recv_init(pdBufferVel->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+5);
 	}else {
 		SAFENEWARR(pRecReq, MPI::Prequest, 1);
-		RecReq[0] = pInterfComm->Recv_init(pdBuffer->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+4);
+		pRecReq[0] = pInterfComm->Recv_init(pdBuffer->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+4);
 	}
 
+}
+
+AerodynamicExternalModal::~AerodynamicExternalModal(void)
+{
+	if (pdBuffer != NULL) SAFEDELETE(pdBuffer);
+	if (pdBufferVel != NULL) SAFEDELETE(pdBufferVel);
+	if (pSenReq != NULL) SAFEDELETEARR(pSenReq);
+	if (pRecReq != NULL) SAFEDELETEARR(pRecReq);
+	if (pInterfComm != NULL) SAFEDELETE(pInterfComm);
 }
 
 /* invia posizione e velocita' predetti */ 
@@ -430,26 +450,27 @@ void AerodynamicExternalModal::AfterPredict(VectorHandler& X  ,
 }
 
 /* invia posizione e velocita' predetti */ 
-void AerodynamicExternalModal::Send(VectorHandler& X  , 
-					VectorHandler&  XP  )
+void AerodynamicExternalModal::Update(const VectorHandler& X  , 
+					const VectorHandler&  XP  )
 {
 	DEBUGCOUTFNAME("AerodynamicExternalModal::Update");
 	Send(X, XP);
 }
 
-void AerodynamicExternalModal::Send(VectorHandler& X  , 
-					VectorHandler&  XP  )
+void AerodynamicExternalModal::Send(const VectorHandler& X  , 
+					const VectorHandler&  XP  )
 {	
 	Mat3xN* pNodePos = pModal->GetCurrFemNodesPosition();
-	if (FlagVel) Mat3xN* pNodeVel = pModal->GetCurrFemNodesVelocity();
+	Mat3xN* pNodeVel = NULL;
+	if (VelFlag) pNodeVel = pModal->GetCurrFemNodesVelocity();
 	for (int i=0; i < ModalNodes; i++) {
 		pdBuffer->Put(i*3, pNodePos->GetVec(i+1));
-		if (FlagVel) pdBufferVel->Put(i*3, pNodeVel->GetVec(i+1));
+		if (VelFlag) pdBufferVel->Put(i*3, pNodeVel->GetVec(i+1));
 	}
 		
 	MPI::Prequest::Startall(1 + VelFlag, pSenReq);
 	/* attiva la ricezione delle forze */
-	MPI::Prequest::Startall(1 , *RecReq);
+	MPI::Prequest::Startall(1 , pRecReq);
  
 }
 
@@ -470,11 +491,11 @@ AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
 	
 	integer iFirstIndex = pModal->iGetFirstIndex();
 	for (int iCnt=0; iCnt < NModes; iCnt++) {
-      		WorkVec.fPutRowIndex(iCnt, iFirstIndex+size+iCnt);
+      		WorkVec.fPutRowIndex(iCnt, iFirstIndex+NModes+iCnt);
 	}
 		
 	/* attende il completamento dei receive */
-	MPI::Request::Waitall(1 + MomFlag, *RecReq);
+	MPI::Request::Waitall(1 + MomFlag, pRecReq);
 	
 	/* calcola le forze su ciascun nodo 
 	 * le forze e i momenti sono espressi nel sistema di riferimento global 
@@ -484,22 +505,21 @@ AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
 		
 	Vec3 F(0.);
 	Vec3 M(0.);
-   	integer NModes = pModal->uGetNModes();
 	Mat3x3 R((pModal->pGetModalNode())->GetRCurr());
 	Mat3x3 RT = R.Transpose();
 
 	for (int iNode=0; iNode < ModalNodes; iNode++) {
-		F[0] +=  pdBuffer->dGet(iNode*(ModalNodes)*3+1);
-		F[1] +=  pdBuffer->dGet(iNode*(ModalNodes)*3+2);
-		F[2] +=  pdBuffer->dGet(iNode*(ModalNodes)*3+3);
+		F[0] +=  pdBuffer->dGetCoef(iNode*(ModalNodes)*3+1);
+		F[1] +=  pdBuffer->dGetCoef(iNode*(ModalNodes)*3+2);
+		F[2] +=  pdBuffer->dGetCoef(iNode*(ModalNodes)*3+3);
 		if (MomFlag) {
-			M[0] +=  pdBufferVel->dGet(iNode*(ModalNodes)*3+1);
-			M[1] +=  pdBufferVel->dGet(iNode*(ModalNodes)*3+2);
-			M[2] +=  pdBufferVel->dGet(iNode*(ModalNodes)*3+3);
+			M[0] +=  pdBufferVel->dGetCoef(iNode*(ModalNodes)*3+1);
+			M[1] +=  pdBufferVel->dGetCoef(iNode*(ModalNodes)*3+2);
+			M[2] +=  pdBufferVel->dGetCoef(iNode*(ModalNodes)*3+3);
 		}
 		for (int iMode=0; iMode < NModes; iMode++) {
-			WorkVec.Add(iMode+1, RT*F*((pModal->pGetPHIt)->GetVec(iMode*ModalNodes+iNode+1)));
-			if (MomFlag) WorkVec.Add(iMode+1, RT*M*((pModal->pGetPHIr)->GetVec(iMode*ModalNodes+iNode+1)));
+			WorkVec.Add(iMode+1, RT*F*((pModal->pGetPHIt())->GetVec(iMode*ModalNodes+iNode+1)));
+			if (MomFlag) WorkVec.Add(iMode+1, RT*M*((pModal->pGetPHIr())->GetVec(iMode*ModalNodes+iNode+1)));
 		}	
 	}
 	return WorkVec;			
@@ -528,8 +548,18 @@ ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLa
 	if (HP.IsKeyWord("moment")) MomFlag = true;
 		  
 		
-	/* costruisce i comunicators */
+	/* costruisce il comunicator */
+	MPI::Intercomm* pInterC = NULL;
+	SAFENEWWITHCONSTRUCTOR(pInterC, MPI::Intercomm, MPI::Intercomm());
 	
+	/* il leader locale e' la macchina master cioe' quella con rank 0 
+	 * il leader remoto e' sempre 0 perche' l'interfaccia e' composta 
+	 * da un solo processo 
+	 * la tag e' 1000 per creare il comunicatore fra MBdyn e l'interfaccia 
+	 * e 2000 fra il codice aerodinamico e l'interfaccia 
+	 */
+	*pInterC = MBDynComm.Create_intercomm(0, MPI::COMM_WORLD, 0, 1000); 
+		
    	/* per ora l'elemento non genera output */
 	flag fOut = 0;
 	
@@ -544,5 +574,7 @@ ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLa
 						
  	return pEl;   		
 }
+
+#endif /* USE_AERODYNAMIC_EXTERNAL */
 
 /* Aerodynamic External Modal - end */

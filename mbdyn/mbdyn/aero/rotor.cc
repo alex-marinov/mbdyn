@@ -52,6 +52,9 @@ extern "C" {
 #include <rotor.h>
 #include <dataman.h>
 
+#ifdef USE_MPI
+extern MPI::Intracomm MBDynComm;
+#endif /* USE_MPI */
 
 /* Rotor - begin */
 
@@ -100,7 +103,7 @@ iNumSteps(0)
 	SAFENEWARR(pTmpVecS, doublereal, iForcesVecDim);
 	if (MPI::Is_initialized()) {
 		is_parallel = true;
-   		RotorComm = MPI::COMM_WORLD.Dup();
+   		RotorComm = MBDynComm.Dup();
 	}
 #endif /* USE_MPI */
 }

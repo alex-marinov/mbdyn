@@ -155,6 +155,10 @@ class DataManager : public SolutionDataManager {
    friend Elem* ReadAerodynamicBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
    friend Elem* ReadAerodynamicBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
    friend Elem* ReadAerodynamicModal(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
+#ifdef USE_AERODYNAMIC_EXTERNAL
+   friend Elem* ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+   friend Elem* ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+#endif /*  USE_AERODYNAMIC_EXTERNAL */
    friend Elem* ReadHydraulicElem(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
    friend Drive* ReadFileDriver(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);   
    

@@ -47,6 +47,8 @@ extern "C" {
 #ifdef USE_MPI 
 #include <mpi++.h>
 
+MPI::Intracomm MBDynComm = MPI::COMM_SELF;
+
 #define MB_EXIT(err) \
 	do { \
 		if (using_mpi) { \
@@ -838,7 +840,7 @@ RunMBDyn(MBDynParser& HP,
 					"is deprecated;" << std::endl;
 #ifdef USE_MPI
 				std::cerr << "use \"parallel\" with "
-					"\"multistep\" solver intead"
+					"\"multistep\" solver instead"
 					<< std::endl;
 	        		CurrInt = MULTISTEP;
 				fParallel = 1;
@@ -861,6 +863,30 @@ RunMBDyn(MBDynParser& HP,
 
         	case PARALLEL:
 #ifdef USE_MPI
+			if (HP.fIsArg()) {
+				int size = MPI::COMM_WORLD.Get_size();
+				int NMbProc = HP.GetInt(); /* numero di porcessi assegnati ad mbdyn */
+				if (NMbProc > size) {
+					std::cerr << "WARNING: the requested number of processors is" 
+						<< "higher than the comm_world size.\n  The new processor number is "  
+						<< size << std::endl;
+					NMbProc = size;
+				}
+				if (NMbProc == size) {
+					/* c'e' solo MBDyn */
+					MBDynComm = MPI::COMM_WORLD.Dup();
+				} else {
+					/* creo il gruppo che va da 1 a NMbProc */
+					MPI::Group WorldGroup = MPI::COMM_WORLD.Get_group();
+					int ran[3] = {1, NMbProc, 1};
+					MPI::Group MBDynGroup = WorldGroup.Range_incl(1, &ran);
+					MBDynComm = MPI::COMM_WORLD.Create(MBDynGroup);
+					MBDynGroup.Free();
+					WorldGroup.Free();
+				}
+			} else {
+			 	MBDynComm = MPI::COMM_WORLD.Dup();
+			}
             		fParallel = 1;
 	    		break;
 #else /* !USE_MPI */

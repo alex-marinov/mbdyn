@@ -31,15 +31,19 @@
  /* Aerodynmic External Element by Giuseppe Quaranta(C) -  December 2002
   * <quaranta@aero.polimi.it>	
   */
- 
+
 #ifndef AEROEXT_H
 #define AEROEXT_H
 
+#ifdef USE_AERODYNAMIC_EXTERNAL
 #include"aerodyn.h"
 #include<mpi++.h>
 
-/* AerodynamicExternal  */
+#include "myassert.h"
+#include "except.h"
 
+#include "modal.h"
+/* AerodynamicExternal  */
 
 
 class AerodynamicExternal
@@ -66,16 +70,16 @@ public:
 	
 	AerodynamicExternal(unsigned int uLabel,
 			    int NN,
-			    const StructNodes** ppN,
+			    const StructNode** ppN,
 			    const doublereal* RefL,
 			    MPI::Intercomm* IC,
 			    flag fOut,
-			    bool VF
+			    bool VF,
 			    bool MF);
 
 	AerodynamicExternal(unsigned int uLabel, 
 			    int NN,
-			    const StructNodes** ppN,
+			    const StructNode** ppN,
 			    const doublereal* RefL,
 			    MPI::Intercomm* IC,
 			    int	ON,
@@ -93,10 +97,27 @@ public:
    	Elem::Type GetElemType(void) const 
 	{ return Elem::AERODYNAMIC;};  
 	
+	void* pGet(void) const { 
+      		return (void*)this;
+   	};
+
+	   /* Contributo al file di restart */
+   	virtual std::ostream& Restart(std::ostream& out) const 
+	{ return out << std::endl; };
+	
+	virtual void BeforePredict(VectorHandler& /* X */ ,
+		VectorHandler& /* XP */ ,
+		VectorHandler& /* XPrev */ ,
+		VectorHandler& /* XPPrev */ ) const { NO_OP; };
+		
+		
+	virtual void AfterPredict(VectorHandler& X  , 
+		VectorHandler&  XP  );
+		
 	virtual void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = (NodeN*6);
-		*piNumCols = 1;
+		*piNumRows = 0;
+		*piNumCols = 0;
 	};
 	
 	/* assemblaggio jacobiano */
@@ -117,6 +138,9 @@ public:
 	       const VectorHandler& XCurr,
 	       const VectorHandler& XPrimeCurr);
 	
+	virtual void Update(const VectorHandler&  XCurr  , 
+		const VectorHandler& XPrimeCurr );
+	
 	/*
 	 * Elaborazione stato interno dopo la convergenza
 	 */
@@ -127,7 +151,8 @@ public:
 	 * output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output
 	 */
-	virtual void Output(OutputHandler& OH) const;
+	virtual void Output(OutputHandler& OH) const
+	{ NO_OP; };
  
  	/* Tipo di elemento aerodinamico */
 	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const {
@@ -160,8 +185,9 @@ public:
 
 private:
 	void ConstructAndInitialize(void);
-	virtual void Send(VectorHandler& X  , 
-		VectorHandler&  XP  );
+	
+	void Send(const VectorHandler& X  , 
+		const VectorHandler&  XP  );
 
 };
 
@@ -179,9 +205,9 @@ protected:
 				           le posizioni e le forze */
 	MyVectorHandler*   pdBufferVel; /* buffer per lo scambio dei dati riguardanti le velocita' */
 	
-	const 		   Modal* pModal;
+	Modal* 	   	   pModal;
 	int 		   ModalNodes;
-	MPI::InterComm* pInterfComm;  /* Intercomunicatore con il codice di interfaccia */
+	MPI::Intercomm*    pInterfComm;  /* Intercomunicatore con il codice di interfaccia */
 	MPI::Prequest*     pSenReq;
 	MPI::Prequest* 	   pRecReq;
 	bool               VelFlag;
@@ -190,7 +216,7 @@ protected:
 public:
 	
 	AerodynamicExternalModal(unsigned int uLabel,
-			    const Modal* pM,
+			    Modal* pM,
 			    MPI::Intercomm* IC,
 			    flag fOut,
 			    bool VelFlag,
@@ -208,10 +234,18 @@ public:
 	
 	virtual void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = (NodeN*3);
-		*piNumCols = 1;
+		*piNumRows = 0;
+		*piNumCols = 0;
 	};
 	
+	void* pGet(void) const { 
+      		return (void*)this;
+   	};
+
+	   /* Contributo al file di restart */
+   	virtual std::ostream& Restart(std::ostream& out) const 
+	{ return out << std::endl; };
+
 	virtual void BeforePredict(VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ ,
 		VectorHandler& /* XPrev */ ,
@@ -246,13 +280,15 @@ public:
 	 * Elaborazione stato interno dopo la convergenza
 	 */ 
 	virtual void AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP);
+			const VectorHandler& XP)
+			{ NO_OP; };
 
 	/*
 	 * output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output
 	 */
-	virtual void Output(OutputHandler& OH) const;
+	virtual void Output(OutputHandler& OH) const
+	{ NO_OP; };
  
  	/* Tipo di elemento aerodinamico */
 	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const {
@@ -273,14 +309,14 @@ public:
 	GetConnectedNodes(int& NumNodes,
 			  Node::Type* NdTyps,
 			  unsigned int* NdLabels) {
-		ModalNode* pMN = pModal->pGetModalNode();
+		const ModalNode* pMN = pModal->pGetModalNode();
 		NdTyps[0] = pMN->GetNodeType();
 		NdLabels[0] = pMN->GetLabel();
-		}
 	};
-private:
-	virtual void Send(VectorHandler& X  , 
-		VectorHandler&  XP  );
+	
+   private:
+	void Send(const VectorHandler& X  , 
+		const VectorHandler&  XP  );
 
 };
 
@@ -293,4 +329,5 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
 extern Elem *
 ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
 
+#endif /* USE_AERODYNAMIC_EXTERNAL */
 #endif /* AEROEXT_H */

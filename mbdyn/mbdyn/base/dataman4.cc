@@ -50,6 +50,9 @@
 #include <body.h>
 #ifdef USE_AERODYNAMIC_ELEMS
 #include <aerodyn.h>   /* Classe di base degli elementi aerodinamici */
+#ifdef USE_AERODYNAMIC_EXTERNAL
+#include <aeroext.h>
+#endif /* USE_AERODYNAMIC_EXTERNAL */
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
 
@@ -88,6 +91,8 @@ enum KeyWords {
    AERODYNAMICBEAM,
    AERODYNAMICBEAM3,	/* same as AERODYNAMICBEAM */
    AERODYNAMICBEAM2,
+   AERODYNAMICEXTERNAL,
+   AERODYNAMICEXTERNALMODAL,
    AEROMODAL,
    
    FORCE,
@@ -136,6 +141,8 @@ void DataManager::ReadElems(MBDynParser& HP)
       "aerodynamic" "beam",
       "aerodynamic" "beam3",
       "aerodynamic" "beam2",
+      "aerodynamic" "external",
+      "aerodynamic" "external" "modal",
       "aero" "modal",
       
       "force",
@@ -240,10 +247,14 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     Typ = Elem::AEROMODAL;
 	     break;
 	  }
+#ifdef USE_AERODYNAMIC_EXTERNAL
+	  case AERODYNAMICEXTERNAL:
+	  case AERODYNAMICEXTERNALMODAL:
+#endif /* USE_AERODYNAMIC_EXTERNAL */
 	  case AERODYNAMICBODY:
 	  case AERODYNAMICBEAM:
 	  case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
-	  case AERODYNAMICBEAM2:{
+	  case AERODYNAMICBEAM2: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "aerodynamic" << std::endl);
 	     Typ = Elem::AERODYNAMIC;
 	     break;
@@ -497,6 +508,10 @@ void DataManager::ReadElems(MBDynParser& HP)
 	  case AEROMODAL:  
 	    t = Elem::AEROMODAL;
 	    break;
+#ifdef USE_AERODYNAMIC_EXTERNAL
+          case AERODYNAMICEXTERNAL:
+          case AERODYNAMICEXTERNALMODAL:
+#endif /* USE_AERODYNAMIC_EXTERNAL */	  
 	  case AERODYNAMICBODY:
 	  case AERODYNAMICBEAM:	
 	  case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
@@ -855,7 +870,6 @@ void DataManager::ReadElems(MBDynParser& HP)
 		  case AERODYNAMICBEAM:
 		  case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 		  case AERODYNAMICBEAM2:
-		  case AEROMODAL:
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
 #ifdef USE_ELECTRIC_NODES
@@ -921,10 +935,6 @@ void DataManager::ReadElems(MBDynParser& HP)
 			ppE = ppFindElem(Elem::ROTOR, uLabel);
 			break;
 		     }		     
-		     case AEROMODAL: {
-			ppE = ppFindElem(Elem::AEROMODAL, uLabel);
-			break;
-		     }
 		     case AERODYNAMICBODY:
 		     case AERODYNAMICBEAM:
 		     case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
@@ -1030,6 +1040,10 @@ void DataManager::ReadElems(MBDynParser& HP)
 	      case AERODYNAMICBEAM:
 	      case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 	      case AERODYNAMICBEAM2:
+#ifdef USE_AERODYNAMIC_EXTERNAL
+              case AERODYNAMICEXTERNAL:
+              case AERODYNAMICEXTERNALMODAL:
+#endif /* USE_AERODYNAMIC_EXTERNAL */ 
 	      case AEROMODAL:
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
@@ -1527,7 +1541,22 @@ Elem** ReadOneElem(DataManager* pDM,
 	case AERODYNAMICBEAM2:
 	   *ppE = ReadAerodynamicBeam2(pDM, HP, uLabel);
 	   break;
-	  
+
+#ifdef USE_AERODYNAMIC_EXTERNAL
+         case AERODYNAMICEXTERNAL:
+		*ppE = ReadAerodynamicExternal(pDM, HP, uLabel);
+		break;
+
+         case AERODYNAMICEXTERNALMODAL:
+		*ppE = ReadAerodynamicExternalModal(pDM, HP, uLabel);
+		break;
+#else /* USE_AERODYNAMIC_EXTERNAL */
+	case AERODYNAMICEXTERNAL:
+	case AERODYNAMICEXTERNALMODAL:
+		std::cerr << "You should define USE_MPI and USE_AERODYNAMIC_EXTERNAL " 
+			<< "to be able to use this type of elements. Aborting ..." << std::endl;
+		THROW(ErrGeneric());
+#endif /* USE_AERODYNAMIC_EXTERNAL */	  
 	default:
 	   ASSERTMSG(0, "You shouldn't have reached this point");
 	   break;

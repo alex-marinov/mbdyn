@@ -36,6 +36,7 @@
 
 #ifdef USE_MPI
 #include <mpi++.h>
+extern MPI::Intracomm MBDynComm;
 #endif /* USE_MPI */
 
 #include <dataman.h>
@@ -1438,7 +1439,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
        
 #ifdef USE_MPI
-       if (MPI::Is_initialized() && MPI::COMM_WORLD.Get_size() > 1) {
+       if (MPI::Is_initialized() && MBDynComm.Get_size() > 1) {
           std::cerr<< "warning: add explicit connection entry for the "
             << psNodeNames[SD.pNode->GetNodeType()] 
 	    << "(" << SD.pNode->GetLabel() << ") dof drive"

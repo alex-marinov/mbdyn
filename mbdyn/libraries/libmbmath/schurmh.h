@@ -46,6 +46,7 @@
 #include <spmapmh.h>
 #include <solman.h>
 
+extern MPI::Intracomm MBDynComm;
 
 class SchurMatrixHandler : public MatrixHandler {
 
@@ -260,7 +261,7 @@ inline flag SchurMatrixHandler::fPutCoef(integer iRow,
 #ifdef DEBUG
   IsValid();
   if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-    cerr << "fPutCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
+    cerr << "fPutCoef " << "Process: " << MBDynComm.Get_rank()
       << " Warning, you are trying to operate on a non local value !!!"
       " (Matrix Handler) "<< iRow << " " << iCol  << endl;
     return flag(0);
@@ -292,7 +293,7 @@ inline flag SchurMatrixHandler::fIncCoef(integer iRow,
 #ifdef DEBUG
   IsValid();
   if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-    cerr << "fIncCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
+    cerr << "fIncCoef " << "Process: " << MBDynComm.Get_rank()
       << " Warning, you are trying to operate on a non local value !!!"
       " (Matrix Handler) "<< iRow << " " << iCol  << endl;
     return  flag(0);
@@ -325,7 +326,7 @@ inline flag SchurMatrixHandler::fDecCoef(integer iRow,
 #ifdef DEBUG
   IsValid();
   if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-    cerr << "fDecCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
+    cerr << "fDecCoef " << "Process: " << MBDynComm.Get_rank()
       << " Warning, you are trying to operate on a non local value !!!"
       " (Matrix Handler) "<< iRow << " " << iCol << endl;
     return  flag(0);
@@ -355,7 +356,7 @@ inline const doublereal& SchurMatrixHandler::dGetCoef(integer iRow, integer iCol
 #ifdef DEBUG
   IsValid();
   if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-    cerr << "dGetCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
+    cerr << "dGetCoef " << "Process: " << MBDynComm.Get_rank()
       << " Warning, you are trying to operate on a non local value !!!"
       " (Matrix Handler) "<< iRow << " " << iCol << endl;
     return ::dZero; 
@@ -552,7 +553,7 @@ inline flag SchurVectorHandler::fPutCoef(integer iRow, const doublereal& dCoef)
 #ifdef DEBUG
   IsValid();
   if (pGTL[iRow] == 0) {
-    std::cerr << "fIncCoef "<< "Process: " << MPI::COMM_WORLD.Get_rank()
+    std::cerr << "fIncCoef "<< "Process: " << MBDynComm.Get_rank()
       << " Warning, you are trying to operate on a non local value !!!"
       " (Vector Handler) " << iRow << std::endl;
     return flag(0); 
@@ -573,7 +574,7 @@ inline flag SchurVectorHandler::fIncCoef(integer iRow, const doublereal& dCoef)
 #ifdef DEBUG
   IsValid();
   if (pGTL[iRow] == 0) {
-    std::cerr <<"fDecCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
+    std::cerr <<"fDecCoef " << "Process: " << MBDynComm.Get_rank()
       << " Warning, you are trying to operate on a non local value !!!"
       " (Vector Handler) " << iRow << std::endl;
     return  flag(0);
@@ -616,7 +617,7 @@ inline const doublereal& SchurVectorHandler::dGetCoef(integer iRow) const
 #ifdef DEBUG
   IsValid();
   if (pGTL[iRow] == 0) {
-    std::cerr <<"dGetCoef "  << "Process: " << MPI::COMM_WORLD.Get_rank()
+    std::cerr <<"dGetCoef "  << "Process: " << MBDynComm.Get_rank()
       << " Warning, you are trying to operate on a non local value !!!"
       " (Vector Handler) " << iRow << std::endl;
     return dZero;
@@ -754,7 +755,7 @@ inline flag SchurMatrixHandlerUm::fPutCoef(integer iRow,
 #ifdef DEBUG
   IsValid();
   if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-    cerr << "fPutCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
+    cerr << "fPutCoef " << "Process: " << MBDynComm.Get_rank()
       << " Warning, you are trying to operate on a non local value !!!"
       " (Matrix Handler) "<< iRow << " " << iCol  << endl;
     return flag(0);
@@ -787,7 +788,7 @@ inline flag SchurMatrixHandlerUm::fIncCoef(integer iRow,
 #ifdef DEBUG
   IsValid();
   if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-    cerr << "fIncCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
+    cerr << "fIncCoef " << "Process: " << MBDynComm.Get_rank()
       << " Warning, you are trying to operate on a non local value !!!"
       " (Matrix Handler) "<< iRow << " " << iCol  << endl;
     return  flag(0);
@@ -821,7 +822,7 @@ inline flag SchurMatrixHandlerUm::fDecCoef(integer iRow,
 #ifdef DEBUG
   IsValid();
   if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-    cerr << "fDecCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
+    cerr << "fDecCoef " << "Process: " << MBDynComm.Get_rank()
       << " Warning, you are trying to operate on a non local value !!!"
       " (Matrix Handler) "<< iRow << " " << iCol << endl;
     return  flag(0);
@@ -852,7 +853,7 @@ inline const doublereal& SchurMatrixHandlerUm::dGetCoef(integer iRow, integer iC
 #ifdef DEBUG
   IsValid();
   if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-    cerr << "dGetCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
+    cerr << "dGetCoef " << "Process: " << MBDynComm.Get_rank()
       << " Warning, you are trying to operate on a non local value !!!"
       " (Matrix Handler) "<< iRow << " " << iCol << endl;
     return ::dZero; 

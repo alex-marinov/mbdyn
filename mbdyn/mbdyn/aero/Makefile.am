@@ -19,7 +19,9 @@ aeromodal.h \
 c81data.cc \
 c81data.h \
 rotor.cc \
-rotor.h
+rotor.h	\
+aeroext.h \
+aeroext.cc
 
 libaero_la_LIBADD = @LIBS@
 libaero_la_LDFLAGS = -static

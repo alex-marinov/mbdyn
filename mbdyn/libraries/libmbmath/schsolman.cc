@@ -42,8 +42,10 @@
 #endif /* HAVE_CONFIG_H */
 
 #ifdef USE_MPI
-
 #include <schsolman.h>
+ 
+extern MPI::Intracomm MBDynComm;
+
 #ifdef USE_MYSLEEP
 #include <mysleep.h>
 #endif /* USE_MYSLEEP */
@@ -123,7 +125,7 @@ fNewMatrix(0)
   ASSERT(pLocDofs != NULL);
   
   /* inizializzo il communicator */
-  SolvComm = MPI::COMM_WORLD.Dup();
+  SolvComm = MBDynComm.Dup();
   SolvCommSize = SolvComm.Get_size();
   MyRank = SolvComm.Get_rank();
   

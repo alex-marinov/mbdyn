@@ -263,6 +263,8 @@ extern const char* psAeroNames[] = {
    "Aeromodal",
    "Aerodynamic Body",
    "Aerodynamic Beam",
+   "Aerodynamic External",
+   "Aerodynamic External Modal",
    
    NULL
 };
