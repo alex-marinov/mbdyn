@@ -15,7 +15,8 @@ rot2eu \
 rot2eup \
 rot2phi \
 rotrel \
-sockdrive
+sockdrive \
+vec2rot
 
 LIBS = \
 ../libraries/libmbutil/libmbutil.la \
@@ -43,6 +44,7 @@ rot2eu_SOURCES = rot2eu.cc
 rot2phi_SOURCES = rot2phi.cc
 rotrel_SOURCES = rotrel.cc
 sockdrive_SOURCES = sockdrive.cc
+vec2rot_SOURCES = vec2rot.cc
 
 intg_LDADD = -ldl
 dae_intg_LDADD = -ldl
