@@ -57,7 +57,6 @@ public:
 	};	
 
 protected:
-	SolutionManager* pSM;
 	Preconditioner* pPM;
 	VectorHandler* 	pRes;
 	doublereal IterTol;
@@ -66,7 +65,7 @@ protected:
 	doublereal gamma;
 	doublereal etaMax; 
 	integer PrecondIter; 
-	bool fBuildMat;
+	bool bBuildMat;
 	const NonlinearProblem* pPrevNLP;
 	
 public:

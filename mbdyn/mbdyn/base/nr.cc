@@ -39,7 +39,8 @@
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
-  
+
+#include <solver.h>
 #include <nr.h>  
 #ifdef USE_MPI
 #include <mbcomm.h>
@@ -56,8 +57,7 @@
 NewtonRaphsonSolver::NewtonRaphsonSolver(const bool bTNR,
 		const bool bKJ, 
 		const integer IterBfAss)
-: pSM(NULL),
-pRes(NULL),
+: pRes(NULL),
 pSol(NULL),
 pJac(NULL),
 bTrueNewtonRaphson(bTNR),
@@ -75,8 +75,8 @@ NewtonRaphsonSolver::~NewtonRaphsonSolver(void)
 }
 
 void
-NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
-		SolutionManager* pSolMan,
+NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
+		Solver *pS,
 		const integer iMaxIter,
 		const doublereal& Tol,
 		integer& iIterCnt,
@@ -84,10 +84,10 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 		const doublereal& SolTol,
 		doublereal& dSolErr)
 {
-	ASSERT(pNLP != NULL);
-	ASSERT(pSolMan != NULL);
-		
-	pSM = pSolMan;
+	ASSERT(pS != NULL);
+
+	SolutionManager *pSM = pS->pGetSolutionManager();
+
 	pJac = pSM->pMatHdl();
         pRes = pSM->pResHdl();
         pSol = pSM->pSolHdl();
@@ -125,7 +125,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 		 * in the output (maybe we could conditionally disable 
 		 * it? */
 
-		dErr = MakeResTest(pSolMan, *pRes)*pNLP->TestScale(pResTest);
+		dErr = MakeResTest(pS, *pRes)*pNLP->TestScale(pResTest);
 
       		if (dErr < Tol) {
 	 		return;
@@ -187,7 +187,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
       		pNLP->Update(pSol);
 
 		
-		dSolErr = MakeSolTest(pSolMan, *pSol);
+		dSolErr = MakeSolTest(pS, *pSol);
 		if (outputIters()) {
 #ifdef USE_MPI
 			if (MBDynComm.Get_rank() == 0) {

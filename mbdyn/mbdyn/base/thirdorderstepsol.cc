@@ -124,11 +124,10 @@ void ThirdOrderIntegrator::SetCoef(doublereal dt,
 };
 
 doublereal
-ThirdOrderIntegrator::Advance(const doublereal TStep, 
+ThirdOrderIntegrator::Advance(Solver* pS, 
+		const doublereal TStep, 
 		const doublereal dAlph, 
 		const StepChange StType,
-		SolutionManager* pSM,
-		NonlinearSolver* pNLS, 
 		std::deque<MyVectorHandler*>& qX,
 		std::deque<MyVectorHandler*>& qXPrime,
 		MyVectorHandler* const pX,
@@ -168,8 +167,8 @@ ThirdOrderIntegrator::Advance(const doublereal TStep,
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	
 	Err = 0.;        
-	pNLS->Solve(this, pSM, MaxIters, dTol,
-    			EffIter, Err , dSolTol, SolErr);
+	pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol, 
+			EffIter, Err , dSolTol, SolErr);
 	
 	return Err;
 };

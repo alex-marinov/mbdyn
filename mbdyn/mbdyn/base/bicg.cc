@@ -40,7 +40,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
   
-  
+#include <solver.h>
 #include <bicg.h>  
 #ifdef USE_MPI
 #include <mbcomm.h>
@@ -70,7 +70,7 @@ BiCGStab::~BiCGStab(void)
 
 void
 BiCGStab::Solve(const NonlinearProblem* pNLP,
-		SolutionManager* pSolMan,
+		Solver* pS,
 		const integer iMaxIter,
 		const doublereal& Tol,
 		integer& iIterCnt,
@@ -79,7 +79,9 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		doublereal& dSolErr)
 {
 	ASSERT(pNLP != NULL);
-	ASSERT(pSM != NULL);
+	ASSERT(pS != NULL);
+
+	SolutionManager *pSM = pS->pGetSolutionManager();
 	
 	iIterCnt = 0;
 	dSolErr = 0.;
@@ -88,16 +90,14 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 	
 	/* riassembla sempre lo jacobiano se l'integratore e' nuovo */
 	if (pNLP != pPrevNLP) {
-		fBuildMat = true;
+		bBuildMat = true;
 	}
 
 	if (!PrecondIter) {
-		fBuildMat = true;
+		bBuildMat = true;
 	}
 	
 	pPrevNLP = pNLP;
-	
-	pSM  = pSolMan;
         pRes = pSM->pResHdl();
 	Size = pRes->iGetSize();
 
@@ -153,7 +153,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 			}
       		}
 
-		dErr = MakeResTest(pSolMan, *pRes) * pNLP->TestScale(pResTest);
+		dErr = MakeResTest(pS, *pRes) * pNLP->TestScale(pResTest);
 
 #ifdef DEBUG_ITERATIVE
 		std::cerr << "dErr " << dErr << std::endl;
@@ -197,10 +197,10 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		p.Reset(0.);
 		dx.Reset(0.);
 		
-		if (fBuildMat) {
+		if (bBuildMat) {
 			pSM->MatrInit(0.);
 			pNLP->Jacobian(pSM->pMatHdl());
-			fBuildMat = false;
+			bBuildMat = false;
 			TotalIter = 0;
 			TotJac++;
 
@@ -241,7 +241,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 			/* right preconditioning */
 			pPM->Precond(p, pHat, pSM);
 			pNLP->EvalProd(Tau, rHat, pHat, v);
-# if 0			
+#if 0			
 			(pSM->pMatHdl())->MatVecMul(v,pHat);
 #endif			
 #ifdef DEBUG_ITERATIVE
@@ -306,7 +306,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		/* se ha impiegato troppi passi riassembla lo jacobiano */
 		
 		if (TotalIter >= PrecondIter && PrecondIter) {
-			fBuildMat = true;
+			bBuildMat = true;
 		}
 		/* calcola il nuovo eta */
 		
@@ -348,7 +348,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		
       		pNLP->Update(&dx);
 
-		dSolErr = MakeSolTest(pSolMan, dx);
+		dSolErr = MakeSolTest(pS, dx);
 		if (outputIters()) {
 #ifdef USE_MPI
 			if (MBDynComm.Get_rank() == 0) {

@@ -95,15 +95,15 @@ private:
  
 #ifdef __HACK_EIG__
    	/* Dati per esecuzione di eigenanalysis */
-   	struct {
-      		doublereal dTime;
-      		bool bDone;
-   	} OneEig;
 	enum {
 		EIG_NO,
 		EIG_YES,
 		EIG_OUTPUTMATRICES
 	} eEigenAnalysis;
+   	struct {
+      		doublereal dTime;
+      		bool bDone;
+   	} OneEig;
 	doublereal dEigParam;
 	bool bOutputModes;
 	doublereal dUpperFreq;
@@ -142,7 +142,7 @@ private:
 	       PODData(void) : dTime(0.), iSteps(0), iFrames(0) {};
        } pod;
 
-       flag fPOD;
+       bool bPOD;
        unsigned int iPODStep;
        unsigned int iPODFrames;
 #endif /*__HACK_POD__*/
@@ -155,10 +155,6 @@ private:
   	std::deque<MyVectorHandler*> qXPrime; /* queque vett. stati der. */ 
 	MyVectorHandler* pX;                  /* queque vett. stati inc. */
   	MyVectorHandler* pXPrime;             /* queque vett. stati d. inc. */ 
-
-	DataManager* pDM;		/* gestore dei dati */
-   	
-   	integer iNumDofs;     		/* Dimensioni del problema */
 
    	/* Dati della simulazione */
    	doublereal dTime;
@@ -174,16 +170,20 @@ private:
    	doublereal dFictitiousStepsRatio;
    
    	/* Flags vari */
-   	flag fAbortAfterInput;
-   	flag fAbortAfterAssembly;
-   	flag fAbortAfterDerivatives;
-   	flag fAbortAfterFictitiousSteps;
+	enum AbortAfter {
+		AFTER_UNKNOWN,
+		AFTER_INPUT,
+		AFTER_ASSEMBLY,
+		AFTER_DERIVATIVES,
+		AFTER_DUMMY_STEPS
+	};
+	AbortAfter eAbortAfter;
 
 	/* Parametri per la variazione passo */
    	integer iStepsAfterReduction;
    	integer iStepsAfterRaise;
 	integer iWeightedPerformedIters;
-   	flag fLastChance;
+   	flag bLastChance;
 
    	/* Parametri per il metodo */
    	StepIntegrator* pDerivativeSteps;
@@ -200,7 +200,7 @@ private:
 	NonlinearSolverTest::Type SolTest;
 	bool bScale;
 
-   	/* Parametri per Newton-Raphson modificato */
+   	/* Parametri per solutore nonlineare */
    	bool bTrueNewtonRaphson;
    	bool bKeepJac;
    	integer iIterationsBeforeAssembly;
@@ -225,9 +225,13 @@ private:
 	SolutionManager *pLocalSM;
 /* end of FOR PARALLEL SOLVERS */
 
+	/* gestore dei dati */
+	DataManager* pDM;
+     	/* Dimensioni del problema; FIXME: serve ancora? */
+   	integer iNumDofs;
+
 	/* il solution manager v*/
 	SolutionManager *pSM;
-
 	NonlinearSolver* pNLS;
 	
 	/* corregge i puntatori per un nuovo passo */
@@ -263,6 +267,18 @@ public:
 
    	/* distruttore: esegue tutti i distruttori e libera la memoria */
    	~Solver(void);
+
+	/* EXPERIMENTAL */
+	/* FIXME: better const'ify? */
+	DataManager *pGetDataManager(void) const {
+		return pDM;
+	};
+	SolutionManager *pGetSolutionManager(void) const {
+		return pSM;
+	};
+	NonlinearSolver *pGetNonlinearSolver(void) const {
+		return pNLS;
+	};
 };
 
 inline void
@@ -276,6 +292,7 @@ Solver::Flip(void)
 	qX.pop_back();
 	qXPrime.push_front(qXPrime.back());
 	qXPrime.pop_back();
+
 	/* copy from pX, pXPrime to qx[0], qxPrime[0] */
 	MyVectorHandler* x = qX[0];
 	MyVectorHandler* xp = qXPrime[0];
@@ -288,7 +305,4 @@ Solver::Flip(void)
 /* Solver - end */
 
 #endif /* SOLVER_H */
-
-
-
 

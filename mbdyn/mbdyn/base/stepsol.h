@@ -72,6 +72,9 @@
 #include "drive.h"
 #include <nonlinpb.h>
 #include <nonlin.h>
+
+/* Needed for callback declaration; defined in <mbdyn/base/solver.h> */
+class Solver;
  
 class StepIntegrator
 {
@@ -122,11 +125,10 @@ public:
 	virtual void SetDriveHandler(const DriveHandler* pDH) = 0;
 
 	virtual doublereal
-	Advance(const doublereal TStep, 
+	Advance(Solver* pS, 
+			const doublereal TStep, 
 			const doublereal dAlph, 
 			const StepChange StType,
-			SolutionManager* pSM,
-			NonlinearSolver* pNLS, 
 			std::deque<MyVectorHandler*>& qX,
  			std::deque<MyVectorHandler*>& qXPrime,
 			MyVectorHandler*const pX,
@@ -190,11 +192,10 @@ public:
 	void SetDriveHandler(const DriveHandler* /* pDH */ );
 	
  	doublereal
-	Advance(const doublereal TStep, 
+	Advance(Solver* pS, 
+			const doublereal TStep, 
 			const doublereal /* dAph */, 
 			const StepChange /* StType */,
-			SolutionManager* pSM,
-			NonlinearSolver* pNLS, 
 			std::deque<MyVectorHandler*>& qX,
  			std::deque<MyVectorHandler*>& qXPrime,
 			MyVectorHandler*const pX,
@@ -264,11 +265,10 @@ public:
 	virtual ~Step1Integrator(void);
 
 	virtual doublereal
-	Advance(const doublereal TStep, 
+	Advance(Solver* pS, 
+			const doublereal TStep, 
 			const doublereal dAlph, 
 			const StepChange StType,
-			SolutionManager* pSM,
-			NonlinearSolver* pNLS, 
 			std::deque<MyVectorHandler*>& qX,
 	 		std::deque<MyVectorHandler*>& qXPrime,
 			MyVectorHandler*const pX,
@@ -382,11 +382,11 @@ public:
 
 	virtual ~Step2Integrator(void);
 
-	virtual doublereal Advance(const doublereal TStep, 
+	virtual doublereal
+	Advance(Solver* pS, 
+			const doublereal TStep, 
 			const doublereal dAlph, 
 			const StepChange StType,
-			SolutionManager* pSM,
-			NonlinearSolver* pNLS, 
 			std::deque<MyVectorHandler*>& qX,
 	 		std::deque<MyVectorHandler*>& qXPrime,
 			MyVectorHandler*const pX,
@@ -532,7 +532,7 @@ protected:
 	DriveOwner Rho;
 	DriveOwner AlgebraicRho;
    
-	flag fStep;
+	bool bStep;
    
 	doublereal a[2][2];
 	doublereal b[2][2];

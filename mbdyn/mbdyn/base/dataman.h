@@ -220,7 +220,7 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
 	       doublereal dInitialTime,
 	       const char* sInputFileName,
 	       const char* sOutputFileName, 
-	       flag fAbortAfterInput);
+	       bool bAbortAfterInput);
    
    /* distruttore */
    virtual ~DataManager(void);

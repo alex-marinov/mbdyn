@@ -84,7 +84,7 @@ DataManager::DataManager(MBDynParser& HP,
 		doublereal dInitialTime,
 		const char* sInputFileName, 
 		const char* sOutputFileName,
-		flag fAbortAfterInput)
+		bool bAbortAfterInput)
 :
 SolverDiagnostics(OF),
 MathPar(HP.GetMathParser()),
@@ -419,7 +419,7 @@ DofIter()
    }
 #endif /* DEBUG */
 
-   if(fAbortAfterInput) {
+   if(bAbortAfterInput) {
       silent_cout("Only input is required" << std::endl);
       return;
    }

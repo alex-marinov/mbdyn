@@ -110,7 +110,7 @@ public:
 			doublereal dInitialTime,
 			const char* sInputFileName,
 			const char* sOutputFileName,
-			flag fAbortAfterInput);
+			bool bAbortAfterInput);
 
 	/* Distruttore libera la memoria */
 	~SchurDataManager(void);

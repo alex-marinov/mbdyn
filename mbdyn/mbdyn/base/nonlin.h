@@ -65,6 +65,9 @@
  *      |--- gmres.h		Gmres, UpHessMatrix
  */
 
+/* Needed for callback declaration; defined in <mbdyn/base/solver.h> */
+class Solver;
+ 
 class NonlinearSolverTest {
 public:
 	enum Type {
@@ -76,27 +79,27 @@ public:
 	};
 
 	virtual ~NonlinearSolverTest(void);
-	virtual doublereal MakeTest(SolutionManager *pSM,
-			integer Size, const VectorHandler& Vec) = 0;
+	virtual doublereal MakeTest(Solver *pS, integer Size,
+			const VectorHandler& Vec, bool bResidual = false) = 0;
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
 };
 
 class NonlinearSolverTestNone : public NonlinearSolverTest {
 public:
-	virtual doublereal MakeTest(SolutionManager *pSM,
-			integer Size, const VectorHandler& Vec);
+	virtual doublereal MakeTest(Solver *pS, integer Size,
+			const VectorHandler& Vec, bool bResidual = false);
 };
 
 class NonlinearSolverTestNorm : public NonlinearSolverTest {
 public:
-	virtual doublereal MakeTest(SolutionManager *pSM,
-			integer Size, const VectorHandler& Vec);
+	virtual doublereal MakeTest(Solver *pS, integer Size,
+			const VectorHandler& Vec, bool bResidual = false);
 };
 
 class NonlinearSolverTestMinMax : public NonlinearSolverTest {
 public:
-	virtual doublereal MakeTest(SolutionManager *pSM,
-			integer Size, const VectorHandler& Vec);
+	virtual doublereal MakeTest(Solver *pS, integer Size,
+			const VectorHandler& Vec, bool bResidual = false);
 };
 
 class NonlinearSolverTestScale : public NonlinearSolverTest {
@@ -111,14 +114,14 @@ public:
 
 class NonlinearSolverTestScaleNorm : public NonlinearSolverTestScale {
 public:
-	virtual doublereal MakeTest(SolutionManager *pSM,
-			integer Size, const VectorHandler& Vec);
+	virtual doublereal MakeTest(Solver *pS, integer Size,
+			const VectorHandler& Vec, bool bResidual = false);
 };
 
 class NonlinearSolverTestScaleMinMax : public NonlinearSolverTestScale {
 public:
-	virtual doublereal MakeTest(SolutionManager *pSM,
-			integer Size, const VectorHandler& Vec);
+	virtual doublereal MakeTest(Solver *pS, integer Size,
+			const VectorHandler& Vec, bool bResidual = false);
 };
 
 class NonlinearSolver : public SolverDiagnostics
@@ -149,10 +152,8 @@ protected:
 	External::ExtMessage ExtStepType;
 #endif /* USE_EXTERNAL */
 
-	virtual doublereal MakeResTest(SolutionManager *pSM,
-			const VectorHandler& Vec);
-	virtual doublereal MakeSolTest(SolutionManager *pSM,
-			const VectorHandler& Vec);
+	virtual doublereal MakeResTest(Solver* pS, const VectorHandler& Vec);
+	virtual doublereal MakeSolTest(Solver* pS, const VectorHandler& Vec);
 
 public:
 	NonlinearSolver(void);
@@ -161,8 +162,8 @@ public:
 		
 	virtual ~NonlinearSolver(void);
 
-	virtual void Solve(const NonlinearProblem* NLP,
-			SolutionManager* pSolMan,
+	virtual void Solve(const NonlinearProblem *pNLP,
+			Solver *pS,
 			const integer iMaxIter,
 			const doublereal& Tol,
 			integer& iIterCnt,

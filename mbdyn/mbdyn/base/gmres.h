@@ -60,7 +60,7 @@ public:
 	~Gmres(void);
 	
 	virtual void Solve(const NonlinearProblem* NLP,
-			SolutionManager* pSolMan,
+			Solver* pS,
 			const integer iMaxIter,
 			const doublereal& Tol,
 			integer& iIterCnt,

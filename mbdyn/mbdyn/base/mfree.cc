@@ -52,8 +52,7 @@ MatrixFreeSolver::MatrixFreeSolver(
 		integer MaxIt,
 		doublereal etaMx,
 		doublereal T) 
-: pSM(NULL),
-pPM(NULL),
+: pPM(NULL),
 pRes(NULL),
 IterTol(ITol),
 MaxLinIt(MaxIt),
@@ -61,7 +60,7 @@ Tau(T),
 gamma(defaultGamma),
 etaMax(etaMx),
 PrecondIter(iPStep),
-fBuildMat(true),
+bBuildMat(true),
 pPrevNLP(NULL)
 {
 	

@@ -77,9 +77,9 @@ SchurDataManager::SchurDataManager(MBDynParser& HP,
 		doublereal dInitialTime,
 		const char* sInputFileName,
 		const char* sOutputFileName, 
-		flag fAbortAfterInput)
+		bool bAbortAfterInput)
 : DataManager(HP, OF, dInitialTime, sInputFileName, 
-              sOutputFileName, fAbortAfterInput)
+              sOutputFileName, bAbortAfterInput)
 {
 	std::cerr << "fatal error: you are building SchurDataManager,\n" <<
 		"but mbdyn was compiled without MPI.\n" <<
@@ -112,9 +112,9 @@ SchurDataManager::SchurDataManager(MBDynParser& HP,
 		doublereal dInitialTime,
 		const char* sInputFileName,
 		const char* sOutputFileName, 
-		flag fAbortAfterInput)
+		bool bAbortAfterInput)
 : DataManager(HP, OF, dInitialTime, sInputFileName, 
-              sOutputFileName, fAbortAfterInput),
+              sOutputFileName, bAbortAfterInput),
 iTotVertices(0),
 ppMyElems(NULL),
 iNumLocElems(0),

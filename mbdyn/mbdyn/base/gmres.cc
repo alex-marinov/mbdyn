@@ -39,7 +39,8 @@
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
- 
+
+#include <solver.h>
 #include <gmres.h>  
 #ifdef USE_MPI
 #include <mbcomm.h>
@@ -121,7 +122,7 @@ Gmres::Backsolve(VectorHandler& x, integer sz,
 
 void
 Gmres::Solve(const NonlinearProblem* pNLP,
-		SolutionManager* pSolMan,
+		Solver* pS,
 		const integer iMaxIter,
 		const doublereal& Tol,
 		integer& iIterCnt,
@@ -130,7 +131,9 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 		doublereal& dSolErr)
 {
 	ASSERT(pNLP != NULL);
-	ASSERT(pSM != NULL);
+	ASSERT(pS != NULL);
+
+	SolutionManager *pSM = pS->pGetSolutionManager();
 	
 	iIterCnt = 0;
 	dSolErr = 0.;
@@ -139,12 +142,11 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 	
 	/* riassembla sempre lo jacobiano se l'integratore e' nuovo */
 	if (pNLP != pPrevNLP) {
-		fBuildMat = true;
+		bBuildMat = true;
 	}
 	
 	pPrevNLP = pNLP;
 	
-	pSM = pSolMan;
         pRes = pSM->pResHdl();
 	Size = pRes->iGetSize();
 
@@ -192,7 +194,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 			}
       		}
 
-		dErr = MakeResTest(pSolMan, *pRes)*pNLP->TestScale(pResTest);
+		dErr = MakeResTest(pS, *pRes)*pNLP->TestScale(pResTest);
 
 #ifdef DEBUG_ITERATIVE
       		std::cerr << "dErr " << dErr << std::endl;
@@ -235,10 +237,10 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 		resid = dErr;
 		dx.Reset(0.);
 		
-		if (fBuildMat) {
+		if (bBuildMat) {
 			pSM->MatrInit(0.);
 			pNLP->Jacobian(pSM->pMatHdl());
-			fBuildMat = false;
+			bBuildMat = false;
 			TotalIter = 0;
 			TotJac++;
 			
@@ -414,7 +416,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 		/* se ha impiegato troppi passi riassembla lo jacobiano */
 		
 		if (TotalIter >= PrecondIter) {
-			fBuildMat = true;
+			bBuildMat = true;
 		}
 		/* calcola il nuovo eta */
 		doublereal etaNew = gamma * rateo;
@@ -455,7 +457,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
       		pNLP->Update(&dx);
 		
 		
-		dSolErr = MakeSolTest(pSolMan, dx);
+		dSolErr = MakeSolTest(pS, dx);
 		if (outputIters()) {
 #ifdef USE_MPI
 			if (MBDynComm.Get_rank() == 0) {

@@ -172,7 +172,7 @@ RTSemPtr(NULL),
 RTStackSize(1024),
 #endif /* USE_RTAI */
 #ifdef __HACK_POD__
-fPOD(0),
+bPOD(0),
 iPODStep(0),
 iPODFrames(0),
 #endif /*__HACK_POD__*/
@@ -183,8 +183,6 @@ qX(),
 qXPrime(),
 pX(NULL),
 pXPrime(NULL),
-pDM(NULL),
-iNumDofs(0),
 dTime(0.),
 dInitialTime(0.), 
 dFinalTime(0.),
@@ -194,14 +192,11 @@ dMinimumTimeStep(1.),
 dMaxTimeStep(1.),
 iFictitiousStepsNumber(iDefaultFictitiousStepsNumber),
 dFictitiousStepsRatio(dDefaultFictitiousStepsRatio),
-fAbortAfterInput(0),
-fAbortAfterAssembly(0),
-fAbortAfterDerivatives(0),
-fAbortAfterFictitiousSteps(0),
+eAbortAfter(AFTER_UNKNOWN),
 iStepsAfterReduction(0),
 iStepsAfterRaise(0),
 iWeightedPerformedIters(0),
-fLastChance(0),
+bLastChance(0),
 pDerivativeSteps(NULL),
 pFirstRegularStep(NULL),
 pRegularSteps(NULL),
@@ -229,6 +224,8 @@ pIntDofs(NULL),
 pDofs(NULL),
 pLocalSM(NULL),
 /* end of FOR PARALLEL SOLVERS */
+pDM(NULL),
+iNumDofs(0),
 pSM(NULL),
 pNLS(NULL)
 {
@@ -310,7 +307,7 @@ void Solver::Run(void)
 				dInitialTime, 
 				sInputFileName,
 				sNewOutName,
-				fAbortAfterInput));
+				eAbortAfter == AFTER_INPUT));
 		pDM = pSDM;
 
 	} else {
@@ -325,7 +322,7 @@ void Solver::Run(void)
 					dInitialTime, 
 					sInputFileName,
 					sOutputFileName,
-					fAbortAfterInput));
+					eAbortAfter == AFTER_INPUT));
 #ifdef USE_MPI
 	}
 #endif /* USE_MPI */
@@ -333,14 +330,14 @@ void Solver::Run(void)
    	/* Si fa dare l'std::ostream al file di output per il log */
    	std::ostream& Out = pDM->GetOutFile();
 
-   	if (fAbortAfterInput) {
+   	if (eAbortAfter == AFTER_INPUT) {
       		/* Esce */
 		pDM->Output(true);
       		Out << "End of Input; no simulation or assembly is required."
 			<< std::endl;
       		return;
 
-   	} else if (fAbortAfterAssembly) {
+   	} else if (eAbortAfter == AFTER_ASSEMBLY) {
       		/* Fa l'output dell'assemblaggio iniziale e poi esce */
       		pDM->Output(true);
       		Out << "End of Initial Assembly; no simulation is required."
@@ -424,7 +421,7 @@ void Solver::Run(void)
 
 #ifdef __HACK_POD__
 	std::ofstream PodOut;
-	if (fPOD) {
+	if (bPOD) {
 		char *PODFileName = NULL;
 		
 		if (sOutputFileName == NULL) {
@@ -631,9 +628,9 @@ void Solver::Run(void)
 	/* Derivative steps */
 	try {
 		
-		dTest = pDerivativeSteps->Advance(0., 1.,
-				StepIntegrator::NEWSTEP,
-			 	pSM, pNLS, qX, qXPrime, pX, pXPrime,
+		dTest = pDerivativeSteps->Advance(this,
+				0., 1., StepIntegrator::NEWSTEP,
+			 	qX, qXPrime, pX, pXPrime,
 				iStIter, dTest, dSolTest);
 	}
 	catch (NonlinearSolver::NoConvergence) {
@@ -678,7 +675,7 @@ void Solver::Run(void)
 	}
 #endif /* USE_EXTERNAL */
 
-   	if (fAbortAfterDerivatives) {
+   	if (eAbortAfter == AFTER_DERIVATIVES) {
       		/*
 		 * Fa l'output della soluzione delle derivate iniziali ed esce
 		 */
@@ -727,10 +724,11 @@ void Solver::Run(void)
 		SetupSolmans(pFirstFictitiousStep->GetIntegratorNumUnknownStates());
 		/* pFirstFictitiousStep */
 		try {
-	 		dTest = pFirstFictitiousStep->Advance(dRefTimeStep, 1.,
-				StepIntegrator::NEWSTEP,
-				pSM, pNLS, qX, qXPrime, pX, pXPrime, iStIter,
-				dTest, dSolTest);
+	 		dTest = pFirstFictitiousStep->Advance(this,
+					dRefTimeStep, 1.,
+					StepIntegrator::NEWSTEP,
+					qX, qXPrime, pX, pXPrime, 
+					iStIter, dTest, dSolTest);
 		}
 		catch (NonlinearSolver::NoConvergence) {
 			std::cerr << std::endl
@@ -802,10 +800,10 @@ void Solver::Run(void)
 	 		ASSERT(pFictitiousSteps!= NULL);
 			try {
 	 			pDM->SetTime(dTime+dCurrTimeStep);
-	 			dTest = pFictitiousSteps->Advance(dRefTimeStep,
+	 			dTest = pFictitiousSteps->Advance(this,
+						dRefTimeStep,
 						dCurrTimeStep/dRefTimeStep,
 					 	StepIntegrator::NEWSTEP, 
-				 		pSM, pNLS, 
 						qX, qXPrime, pX, pXPrime,
 						iStIter, dTest, dSolTest);
 			}
@@ -906,7 +904,7 @@ void Solver::Run(void)
 	}
    
 
-   	if (fAbortAfterFictitiousSteps) {
+   	if (eAbortAfter == AFTER_DUMMY_STEPS) {
       		Out << "End of dummy steps; no simulation is required."
 			<< std::endl;
 		return;
@@ -949,11 +947,10 @@ void Solver::Run(void)
 IfFirstStepIsToBeRepeated:
 	try {   	
 		pDM->SetTime(dTime+dCurrTimeStep);
-		dTest = pFirstRegularStep->Advance(dRefTimeStep,
-				dCurrTimeStep/dRefTimeStep,
-			 	CurrStep, pSM, pNLS, 
-				qX, qXPrime, pX, pXPrime, iStIter,
-				dTest, dSolTest);
+		dTest = pFirstRegularStep->Advance(this, dRefTimeStep,
+				dCurrTimeStep/dRefTimeStep, CurrStep, 
+				qX, qXPrime, pX, pXPrime,
+				iStIter, dTest, dSolTest);
 	}
 	catch (NonlinearSolver::NoConvergence) {
 		if (dCurrTimeStep > dMinimumTimeStep) {
@@ -1153,9 +1150,8 @@ IfFirstStepIsToBeRepeated:
 IfStepIsToBeRepeated:
 		try {   	
 			pDM->SetTime(dTime+dCurrTimeStep);
-			dTest = pRegularSteps->Advance(dRefTimeStep,
-					dCurrTimeStep/dRefTimeStep,
-				 	CurrStep, pSM, pNLS,
+			dTest = pRegularSteps->Advance(this, dRefTimeStep,
+					dCurrTimeStep/dRefTimeStep, CurrStep,
 					qX, qXPrime, pX, pXPrime, iStIter,
 					dTest, dSolTest);
 		}
@@ -1230,7 +1226,7 @@ IfStepIsToBeRepeated:
 		bSolConv = false;
 
 #ifdef __HACK_POD__
-		if (fPOD && dTime >= pod.dTime) {
+		if (bPOD && dTime >= pod.dTime) {
 			if (++iPODStep == pod.iSteps) {
 				/* output degli stati su di una riga */
 #ifdef __HACK_POD_BINARY__
@@ -1255,7 +1251,7 @@ IfStepIsToBeRepeated:
                       	iPODStep = 0;
 		}
 		if (iPODFrames >= pod.iFrames){
-			fPOD = flag(0);
+			bPOD = false;
 		}                        
 #endif /*__HACK_POD__ */
 
@@ -1323,14 +1319,14 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
        		if (Why == StepIntegrator::REPEATSTEP) {
 	  		if (dCurrTimeStep*StrategyFactor.dReductionFactor 
 	      		    >= dMinimumTimeStep) {
-	     			if (fLastChance == flag(1)) {
-					fLastChance = flag(0);
+	     			if (bLastChance == true) {
+					bLastChance = false;
 	     			}
 	     			iStepsAfterReduction = 0;
 	     			return dCurrTimeStep*StrategyFactor.dReductionFactor;
 	  		} else {
-	     			if (fLastChance == flag(0)) {
-					fLastChance = flag(1);
+	     			if (bLastChance == false) {
+					bLastChance = true;
 					return StrategyFactor.dRaiseFactor*dCurrTimeStep;
 	     			} else {
 					/*
@@ -1590,8 +1586,8 @@ Solver::ReadData(MBDynParser& HP)
       		THROW(ErrGeneric());
    	}
 
-   	flag fMethod(0);
-   	flag fFictitiousStepsMethod(0);      
+   	bool bMethod(false);
+   	bool bFictitiousStepsMethod(false);      
 	
 	/* dati letti qui ma da passare alle classi
 	 *	StepIntegration e NonlinearSolver
@@ -1771,21 +1767,21 @@ Solver::ReadData(MBDynParser& HP)
 	  		KeyWords WhenToAbort(KeyWords(HP.GetWord()));
 	  		switch (WhenToAbort) {
 	   		case INPUT:
-	      			fAbortAfterInput = flag(1);
+	      			eAbortAfter = AFTER_INPUT;
 	      			DEBUGLCOUT(MYDEBUG_INPUT, 
 			 		"Simulation will abort after"
 					" data input" << std::endl);
 	      			break;
 			
 	   		case ASSEMBLY:
-	     			fAbortAfterAssembly = flag(1);
+	     			eAbortAfter = AFTER_ASSEMBLY;
 	      			DEBUGLCOUT(MYDEBUG_INPUT,
 			 		   "Simulation will abort after"
 					   " initial assembly" << std::endl);
 	      			break;	  
 	     
 	   		case DERIVATIVES:
-	      			fAbortAfterDerivatives = flag(1);
+	      			eAbortAfter = AFTER_DERIVATIVES;
 	      			DEBUGLCOUT(MYDEBUG_INPUT, 
 			 		   "Simulation will abort after"
 					   " derivatives solution" << std::endl);
@@ -1793,7 +1789,7 @@ Solver::ReadData(MBDynParser& HP)
 	     
 	   		case FICTITIOUSSTEPS:
 	   		case DUMMYSTEPS:
-	      			fAbortAfterFictitiousSteps = flag(1);
+	      			eAbortAfter = AFTER_DUMMY_STEPS;
 	      			DEBUGLCOUT(MYDEBUG_INPUT, 
 			 		   "Simulation will abort after"
 					   " dummy steps solution" << std::endl);
@@ -1852,13 +1848,13 @@ Solver::ReadData(MBDynParser& HP)
 		}
 	 
        		case METHOD: {
-	  		if (fMethod) {
+	  		if (bMethod) {
 	     			std::cerr << "error: multiple definition"
 					" of integration method at line "
 					<< HP.GetLineData() << std::endl;
 	     			THROW(ErrGeneric());
 	  		}
-	  		fMethod = flag(1);
+	  		bMethod = true;
 	        	  
 	  		KeyWords KMethod = KeyWords(HP.GetWord());
 	  		switch (KMethod) {
@@ -1930,14 +1926,14 @@ Solver::ReadData(MBDynParser& HP)
 
 		case FICTITIOUSSTEPSMETHOD:
 		case DUMMYSTEPSMETHOD: {
-			if (fFictitiousStepsMethod) {
+			if (bFictitiousStepsMethod) {
 				std::cerr << "error: multiple definition "
 					"of dummy steps integration method "
 					"at line " << HP.GetLineData()
 					<< std::cerr;
 				THROW(ErrGeneric());
 			}
-			fFictitiousStepsMethod = flag(1);	  	
+			bFictitiousStepsMethod = true;	  	
  
 			KeyWords KMethod = KeyWords(HP.GetWord());
 			switch (KMethod) {
@@ -2363,7 +2359,7 @@ Solver::ReadData(MBDynParser& HP)
 				pod.iFrames = HP.GetInt();
 			}
 
-			fPOD = flag(1);
+			bPOD = true;
 			DEBUGLCOUT(MYDEBUG_INPUT, "POD analysis will be "
 					"performed since time " << pod.dTime
 					<< " for " << pod.iFrames 
@@ -2705,15 +2701,15 @@ Solver::ReadData(MBDynParser& HP)
 EndOfCycle: /* esce dal ciclo di lettura */
 
 	if (dFinalTime < dInitialTime) {      
-		fAbortAfterAssembly = flag(1);
+		eAbortAfter = AFTER_ASSEMBLY;
 	}
 
 	if (dFinalTime == dInitialTime) {      
-		fAbortAfterDerivatives = flag(1);
+		eAbortAfter = AFTER_DERIVATIVES;
 	}
 
 	/* Metodo di integrazione di default */
-	if (!fMethod || pRhoRegular == NULL) {
+	if (!bMethod || pRhoRegular == NULL) {
 		ASSERT(RegularType == INT_UNKNOWN);
 		
 		SAFENEWWITHCONSTRUCTOR(pRhoRegular,
@@ -2729,7 +2725,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 	}
 
 	/* Metodo di integrazione di default */
-	if (!fFictitiousStepsMethod || pRhoFictitious == NULL) {
+	if (!bFictitiousStepsMethod || pRhoFictitious == NULL) {
 		ASSERT(FictitiousType == INT_UNKNOWN);
 
 		SAFENEWWITHCONSTRUCTOR(pRhoFictitious,
@@ -3208,7 +3204,7 @@ Solver::Eig(void)
 
 #ifdef __HACK_NASTRAN_MODES__
       /* EXPERIMENTAL */
-      flag doPlot = 0;
+      bool doPlot = false;
       if (bOutputModes) {
 
          doublereal b = Beta.dGetCoef(iPage);
@@ -3222,7 +3218,7 @@ Solver::Eig(void)
 	 do_eig(b, re, im, h, sigma, omega, csi, freq);
 
 	 if (freq >= dLowerFreq && freq <= dUpperFreq) {
-	    doPlot = 1;
+	    doPlot = true;
 	      
 	    f06 
 	      << "                                                                                                 CSA/NASTRAN " << datebuf << "    PAGE   " 

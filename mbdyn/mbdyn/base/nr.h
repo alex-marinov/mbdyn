@@ -43,7 +43,6 @@
 
 class NewtonRaphsonSolver : public NonlinearSolver
 {
-	SolutionManager* pSM;
 	VectorHandler* 	pRes;
 	VectorHandler* 	pSol;
 	MatrixHandler*  pJac;
@@ -60,8 +59,8 @@ public:
 	
 	~NewtonRaphsonSolver(void);
 	
-	void Solve(const NonlinearProblem* NLP,
-			SolutionManager* pSolMan,
+	void Solve(const NonlinearProblem *pNLP,
+			Solver *pS,
 			const integer iMaxIter,
 			const doublereal& Tol,
 			integer& iIterCnt,

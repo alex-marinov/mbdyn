@@ -2,8 +2,9 @@
 
 #define THIRD_ORDER_STEPSOL_H
 
-#include "stepsol.h"
-#include "spmapmh.h"
+#include <solver.h>
+#include <stepsol.h>
+#include <spmapmh.h>
 
 class ThirdOrderIntegrator :  
 	public ImplicitStepIntegrator
@@ -58,11 +59,10 @@ public:
 //	virtual doublereal TestScale(const NonlinearSolverTest *pTest) const;
 
 	virtual doublereal
-	Advance(const doublereal TStep, 
+	Advance(Solver* pS, 
+			const doublereal TStep, 
 			const doublereal dAlph, 
 			const StepChange StType,
-			SolutionManager* pSM,
-			NonlinearSolver* pNLS, 
 			std::deque<MyVectorHandler*>& qX,
 	 		std::deque<MyVectorHandler*>& qXPrime,
 			MyVectorHandler*const pX,
