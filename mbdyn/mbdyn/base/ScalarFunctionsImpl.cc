@@ -382,7 +382,8 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 	"sum",
 	"mul",
 	"cubicspline",
-	"multilinear"
+	"multilinear",
+	NULL
    };
 	enum KeyWords { 
 	   CONST = 0,
