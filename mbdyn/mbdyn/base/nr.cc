@@ -168,6 +168,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
           
       		iIterCnt++;
 
+		bool bJacBuilt(false);
 		if (bTrueNewtonRaphson
 				|| (iPerformedIterations%IterationBeforeAssembly == 0)
 				|| forceJacobian)
@@ -191,13 +192,18 @@ rebuild_matrix:;
 			}
 
 			TotJac++;
+			bJacBuilt = true;
 		}
 		
 		iPerformedIterations++;
 		
 		if (outputJac()) {
-			silent_cout("Jacobian:" << std::endl
-					<< *(pSM->pMatHdl()));
+			if (bJacBuilt) {
+				silent_cout("Jacobian:" << std::endl
+						<< *(pSM->pMatHdl()));
+			} else {
+				silent_cout("Jacobian: unchanged" << std::endl);
+			}
 		}		
 		
 		pSM->Solve();
