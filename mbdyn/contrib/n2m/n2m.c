@@ -203,6 +203,9 @@ main(int argc, char *const argv[])
 				do_cord2r_cont(&b, f, &form, coords);
 				cont = 0;
 				break;
+			case NASTRAN_CARD_PBEAM:
+				do_pbeam_cont(&b, f, &cont);
+				break;
 			default:
 				fprintf(f[NASTRAN_FILE_OUT_ERR],
 					"### unable to handle continuation card\n%s\nbailing out ...\n", 
@@ -224,6 +227,10 @@ main(int argc, char *const argv[])
 		} else if (strncasecmp(b.buf, "GRID", 4) == 0) {
 			type = NASTRAN_CARD_GRID;
 			do_grid(&b, f);
+		} else if (strncasecmp(b.buf, "PBEAM", 5) == 0) {
+			type = NASTRAN_CARD_PBEAM;
+			do_pbeam(&b, f);
+			cont = 1;
 		}
 
 		cards[type].num++;

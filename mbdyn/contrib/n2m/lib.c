@@ -126,6 +126,35 @@ get_token(struct n2m_buffer *b, char *token, int size, int number)
 	return N2M_GOT_TOKEN;
 }
 
+char *
+get_string(struct n2m_buffer *b, int number, struct n2m_buffer *buf, char *def)
+{
+	char token[9];
+	switch (get_token(b, token, sizeof(token), number)) {
+	case N2M_GOT_TOKEN:
+		trim(token);
+		strncpy(buf->buf, token, sizeof(buf->buf));
+		return buf->buf;
+	case N2M_USE_DEFAULT:
+		if (def == NULL) {
+			fprintf(stderr,
+				"### no default value is allowed for string token n. %d of line\n%s\nbailing out ...\n",
+				number+1, b->buf);
+			exit(EXIT_FAILURE);
+		}
+		strncpy(buf->buf, def, sizeof(buf->buf));
+		return buf->buf;
+	case N2M_OUT_OF_RANGE:
+	case N2M_INSUFFICIENT_TOKEN_SIZE:
+	default:
+		fprintf(stderr,
+			"### internal error while reading int value from token n. %d of line\n%s\nbailing out ...\n", 
+			number+1, b->buf);
+		exit(EXIT_FAILURE);
+	}
+}
+
+
 int
 get_int(struct n2m_buffer *b, int number, int *def)
 {

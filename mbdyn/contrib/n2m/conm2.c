@@ -69,12 +69,12 @@ do_conm2(struct n2m_buffer *b, FILE **f, struct n2m_buffer *form)
 		
 	M = get_double(b, NASTRAN_FIFTH, NULL);
 
-	X1 = get_double(b, NASTRAN_FIFTH, NULL);
-	X2 = get_double(b, NASTRAN_SIXTH, NULL);
-	X3 = get_double(b, NASTRAN_SEVENTH, NULL);
+	X1 = get_double(b, NASTRAN_SIXTH, NULL);
+	X2 = get_double(b, NASTRAN_SEVENTH, NULL);
+	X3 = get_double(b, NASTRAN_EIGHTH, NULL);
 	
 	fprintf(f[NASTRAN_FILE_OUT_ELEM],
-		"%sbody: /* CONM2 = */ %8d, /* GRID = */ %8d,\n",
+		"\t%sbody: /* CONM2 = */ %8d, /* GRID = */ %8d,\n",
 		(make_rigid_bodies ? "" : "#"), EID, G);
 	fprintf(f[NASTRAN_FILE_OUT_ELEM],
 		"\t%14.7e, # CONM2=%d, GRID=%d\n", M, EID, G);

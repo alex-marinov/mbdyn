@@ -3,6 +3,6 @@
 
 bin_PROGRAMS = n2m
 
-n2m_SOURCES = n2m.c n2m.h \
-	conm2.c cord2r.c grid.c lib.c
+n2m_SOURCES = n2m.c n2m.h lib.c \
+	conm2.c cord2r.c grid.c pbeam.c
 

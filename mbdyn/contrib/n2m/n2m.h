@@ -39,6 +39,7 @@ enum {
 	NASTRAN_CARD_GRID = 0,
 	NASTRAN_CARD_CONM2,
 	NASTRAN_CARD_CORD2R,
+	NASTRAN_CARD_PBEAM,
 
 	NASTRAN_CARD_LAST		/* always goes last */
 };
@@ -77,6 +78,7 @@ extern int reference_offset;
 
 /* helpers */
 extern int get_buf(FILE *fin, struct n2m_buffer *b);
+extern char *get_string(struct n2m_buffer *b, int number, struct n2m_buffer *buf, char *def);
 extern int get_int(struct n2m_buffer *b, int number, int *def);
 extern double get_double(struct n2m_buffer *b, int number, double *def);
 
@@ -90,6 +92,10 @@ int do_cord2r_cont(struct n2m_buffer *b, FILE **f, struct n2m_buffer *form, doub
 
 /* GRID */
 extern int do_grid(struct n2m_buffer *b, FILE **f);
+
+/* PBEAM */
+int do_pbeam_cont(struct n2m_buffer *b, FILE **f, int *cont);
+int do_pbeam(struct n2m_buffer *b, FILE **f);
 
 #endif /* N2M_H */
 
