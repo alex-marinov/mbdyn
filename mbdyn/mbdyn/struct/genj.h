@@ -151,7 +151,6 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
 /* DistanceJoint - end */
 
 
-
 /* DistanceJointWithOffset - begin */
 
 class DistanceJointWithOffset : 
