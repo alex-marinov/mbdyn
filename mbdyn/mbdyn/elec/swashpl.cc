@@ -64,8 +64,8 @@ SwashPlate::SwashPlate(unsigned int uL, const DofOwner* pDO,
 		       doublereal dLMin,	      
 		       doublereal dLMax,
 		       flag fOut)
-: Elem(uL, ElemType::GENEL, fOut), 
-Genel(uL, GenelType::SWASHPLATE, pDO, fOut),
+: Elem(uL, Elem::GENEL, fOut), 
+Genel(uL, Genel::SWASHPLATE, pDO, fOut),
 pCollectiveIn(pCollIn),   // Collective(pColl),
 pLongitudinalIn(pLongIn), // Longitudinal(pLong),
 pLateralIn(pLatIn),       // Lateral(pLat),
@@ -78,18 +78,18 @@ fForeAftLimits(fFL), dForeAftMax(dFMax), dForeAftMin(dFMin),
 fLatLimits(fLL), dLatMax(dLMax), dLatMin(dLMin)
 {
    ASSERT(pCollectiveIn != NULL);
-   ASSERT(pCollectiveIn->GetNodeType() == NodeType::ABSTRACT);
+   ASSERT(pCollectiveIn->GetNodeType() == Node::ABSTRACT);
    ASSERT(pLongitudinalIn != NULL);
-   ASSERT(pLongitudinalIn->GetNodeType() == NodeType::ABSTRACT);
+   ASSERT(pLongitudinalIn->GetNodeType() == Node::ABSTRACT);
    ASSERT(pLateralIn != NULL);
-   ASSERT(pLateralIn->GetNodeType() == NodeType::ABSTRACT);
+   ASSERT(pLateralIn->GetNodeType() == Node::ABSTRACT);
    
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::ABSTRACT);
+   ASSERT(pNode1->GetNodeType() == Node::ABSTRACT);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == NodeType::ABSTRACT);
+   ASSERT(pNode2->GetNodeType() == Node::ABSTRACT);
    ASSERT(pNode3 != NULL);
-   ASSERT(pNode3->GetNodeType() == NodeType::ABSTRACT);
+   ASSERT(pNode3->GetNodeType() == Node::ABSTRACT);
    
    ASSERT(dCyclicFactor != 0.);
    ASSERT(dCollectiveFactor != 0.);

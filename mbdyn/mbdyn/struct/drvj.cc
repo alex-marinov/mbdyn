@@ -45,8 +45,8 @@ LinearVelocityJoint::LinearVelocityJoint(unsigned int uL,
 					 const Vec3& TmpDir,
 					 const DriveCaller* pDC,
 					 flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::LINEARVELOCITY, pDO, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::LINEARVELOCITY, pDO, fOut), 
 DriveOwner(pDC),
 pNode(pN), Dir(TmpDir), dF(0.)
 {
@@ -149,7 +149,7 @@ void LinearVelocityJoint::Output(OutputHandler& OH) const
    if (fToBeOutput()) {      
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[JointType::LINEARVELOCITY]
+	<< psJointNames[Joint::LINEARVELOCITY]
 	<< "\", linked to node " << pNode->GetLabel() << endl
 	<< "Current force reaction: " << dF << endl
 	<< "Current imposed speed: " << dGet() << endl;
@@ -247,8 +247,8 @@ AngularVelocityJoint::AngularVelocityJoint(unsigned int uL,
 					   const Vec3& TmpDir,
 					   const DriveCaller* pDC,
 					   flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::ANGULARVELOCITY, pDO, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::ANGULARVELOCITY, pDO, fOut), 
 DriveOwner(pDC), 
 pNode(pN), Dir(TmpDir), dM(0.)
 {
@@ -355,7 +355,7 @@ void AngularVelocityJoint::Output(OutputHandler& OH) const
    if(fToBeOutput()) {      
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[JointType::ANGULARVELOCITY]
+	<< psJointNames[Joint::ANGULARVELOCITY]
 	<< "\", linked to node " << pNode->GetLabel() << endl
 	<< "Current couple reaction: " << dM << endl
 	<< "Current imposed speed: " << dGet() << endl;

@@ -66,7 +66,7 @@ class Minor_loss : virtual public Elem, public HydraulicElem {
    };
    
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-   virtual HydraulicType::Type GetHydraulicType(void) const;
+   virtual HydraulicElem::Type GetHydraulicType(void) const;
 
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -93,7 +93,7 @@ class Minor_loss : virtual public Elem, public HydraulicElem {
   /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = pNode1->GetNodeType();
      NdLabels[0] = pNode1->GetLabel();
@@ -138,7 +138,7 @@ class Orifice : virtual public Elem, public HydraulicElem {
    };
    
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-   virtual HydraulicType::Type GetHydraulicType(void) const;
+   virtual HydraulicElem::Type GetHydraulicType(void) const;
 
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -165,7 +165,7 @@ class Orifice : virtual public Elem, public HydraulicElem {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = pNode1->GetNodeType();
      NdLabels[0] = pNode1->GetLabel();

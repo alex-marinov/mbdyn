@@ -50,15 +50,15 @@ Minor_loss::Minor_loss(unsigned int uL, const DofOwner* pDO,
 			   const PressureNode* p1, const PressureNode* p2,
 			   doublereal dK1, doublereal dK2, doublereal A,
 			   flag fOut)
-: Elem(uL, ElemType::HYDRAULIC, fOut),
+: Elem(uL, Elem::HYDRAULIC, fOut),
 HydraulicElem(uL, pDO, hf, fOut),
 pNode1(p1), pNode2(p2),
 dKappa1(dK1), dKappa2(dK2), area(A)
 {
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
    ASSERT(dK1 >= 0.);
    ASSERT(dK2 >= 0.);
    ASSERT(A > DBL_EPSILON);
@@ -70,8 +70,8 @@ Minor_loss::~Minor_loss(void)
 }
    
 /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-HydraulicType::Type Minor_loss::GetHydraulicType(void) const {
-   return HydraulicType::MINOR_LOSS;
+HydraulicElem::Type Minor_loss::GetHydraulicType(void) const {
+   return HydraulicElem::MINOR_LOSS;
 }
 
 /* Contributo al file di restart */
@@ -216,16 +216,16 @@ Orifice::Orifice(unsigned int uL, const DofOwner* pDO,
 		 HydraulicFluid* hf,
 		 const PressureNode* p1, const PressureNode* p2,
 		 doublereal Dh, doublereal A_diaf, doublereal A_pipe, doublereal ReCr, flag fOut)
-: Elem(uL, ElemType::HYDRAULIC, fOut), 
+: Elem(uL, Elem::HYDRAULIC, fOut), 
 HydraulicElem(uL, pDO, hf, fOut),
 pNode1(p1), pNode2(p2),
 diameter(Dh), area_diaf(A_diaf),
 area_pipe(A_pipe),  ReCr(ReCr)
 {
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
    ASSERT(Dh > DBL_EPSILON);
    ASSERT(A_diaf > DBL_EPSILON);
    ASSERT(A_pipe > DBL_EPSILON);
@@ -245,9 +245,9 @@ Orifice::~Orifice(void)
 }
    
 /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-HydraulicType::Type Orifice::GetHydraulicType(void) const 
+HydraulicElem::Type Orifice::GetHydraulicType(void) const 
 {
-   return HydraulicType::ORIFICE;
+   return HydraulicElem::ORIFICE;
 }
 
 /* Contributo al file di restart */

@@ -48,9 +48,14 @@ extern "C" {
 #define PI M_PI
 #endif
 
+extern const char* psRotorNames[];
 
+
+/* Rotor - begin */
+
+class Rotor 
+: virtual public Elem, public AerodynamicElem, public ElemWithDofs {
 /* Tipi di rotori */
-class RotorType {
  public:
    enum Type {
       UNKNOWN = -1,
@@ -62,21 +67,12 @@ class RotorType {
 	
 	LASTROTORTYPE
    };
-};
 
-extern const char* psRotorNames[];
-
-
-/* Rotor - begin */
-
-class Rotor 
-: virtual public Elem, public AerodynamicElem, public ElemWithDofs {
-   
  public:
    class ErrInfiniteMeanInducedVelocity {};
    
  private:
-   RotorType::Type RotorT;
+   Rotor::Type RotorT;
    
  protected:
 #ifdef USE_MPI
@@ -141,14 +137,14 @@ class Rotor
    virtual void ResetTraction(void);   
    
  public:
-   Rotor(unsigned int uL, RotorType::Type T, const DofOwner* pDO, 
+   Rotor(unsigned int uL, Rotor::Type T, const DofOwner* pDO, 
 	 const StructNode* pC, const StructNode* pR, flag fOut);
    virtual ~Rotor(void);      
    
    /* funzioni di servizio */
 
    /* Tipo dell'elemento (usato per debug ecc.) */
-   virtual ElemType::Type GetElemType(void) const;   
+   virtual Elem::Type GetElemType(void) const;   
    
    /* Il metodo iGetNumDof() serve a ritornare il numero di gradi di liberta'
     * propri che l'elemento definisce. Non e' virtuale in quanto serve a 
@@ -215,9 +211,7 @@ class Rotor
    };   
 
    /* Tipo di rotore */
-   virtual RotorType::Type GetRotorType(void) const {
-      return RotorT;
-   };
+   virtual Rotor::Type GetRotorType(void) const = 0;
    
    /* accesso a dati */
    virtual inline doublereal dGetOmega(void) const {
@@ -275,7 +269,7 @@ class Rotor
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = pCraft->GetNodeType();
      NdLabels[0] = pCraft->GetLabel();
@@ -314,12 +308,9 @@ class NoRotor : virtual public Elem, public Rotor {
    /* Contributo al file di Restart */
    virtual ostream& Restart(ostream& out) const;
    
-   /*
-   virtual RotorType::Type GetRotorType(void) const
-     {
-	return RotorType::NO;
-     }
-    */
+   virtual Rotor::Type GetRotorType(void) const {
+     return Rotor::NO;
+   };
    
    /* Somma alla trazione il contributo di un elemento */
    virtual void AddForce(const Vec3& F, const Vec3& M, const Vec3& X);
@@ -360,12 +351,9 @@ class UniformRotor : virtual public Elem, public Rotor {
    /* Contributo al file di Restart */
    virtual ostream& Restart(ostream& out) const;
    
-   /*
-   RotorType::Type GetRotorType(void) const 
-     {
-	return RotorType::UNIFORM;
-     };
-    */
+   Rotor::Type GetRotorType(void) const {
+      return Rotor::UNIFORM;
+   };
    
    /* Somma alla trazione il contributo di un elemento */
    virtual void AddForce(const Vec3& F, const Vec3& M, const Vec3& X);
@@ -404,12 +392,9 @@ class GlauertRotor : virtual public Elem, public Rotor {
    /* Contributo al file di Restart */
    virtual ostream& Restart(ostream& out) const;   
    
-   /*
-   RotorType::Type GetRotorType(void) const 
-     {
-	return RotorType::GLAUERT;
-     };
-    */
+   Rotor::Type GetRotorType(void) const {
+      return Rotor::GLAUERT;
+   };
    
    /* Somma alla trazione il contributo di un elemento */
    virtual void AddForce(const Vec3& F, const Vec3& M, const Vec3& X);
@@ -448,12 +433,9 @@ class ManglerRotor : virtual public Elem, public Rotor {
    /* Contributo al file di Restart */
    virtual ostream& Restart(ostream& out) const;   
 
-   /*
-   RotorType::Type GetRotorType(void) const 
-     {
-	return RotorType::MANGLER;
-     };
-    */
+   Rotor::Type GetRotorType(void) const {
+      return Rotor::MANGLER;
+   };
    
    /* Somma alla trazione il contributo di un elemento */
    virtual void AddForce(const Vec3& F, const Vec3& M, const Vec3& X);
@@ -532,12 +514,9 @@ class DynamicInflowRotor : virtual public Elem, public Rotor {
    /* Relativo ai ...WithDofs */
    virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;   
 
-   /*
-   RotorType::Type GetRotorType(void) const 
-     {
-	return RotorType::DYNAMICINFLOW;
-     };
-    */
+   Rotor::Type GetRotorType(void) const {
+      return Rotor::DYNAMICINFLOW;
+   };
    
    /* Somma alla trazione il contributo di un elemento */
    virtual void AddForce(const Vec3& F, const Vec3& M, const Vec3& X);

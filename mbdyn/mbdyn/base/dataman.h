@@ -159,8 +159,8 @@ class DataManager {
    friend Drive* ReadFileDriver(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);   
    
  public:
-   flag fReadOutput(MBDynParser& HP, enum ElemType::Type t);
-   flag fReadOutput(MBDynParser& HP, enum NodeType::Type t);
+   flag fReadOutput(MBDynParser& HP, enum Elem::Type t);
+   flag fReadOutput(MBDynParser& HP, enum Node::Type t);
    
  private:
    /* legge i legami costitutivi */
@@ -273,7 +273,7 @@ class DataManager {
    struct ElemDataStructure {
       Elem** ppFirstElem; /* puntatore al puntatore al primo el. del tipo */
       unsigned int iNum;          /* numero di elementi del tipo */
-      DofType::Type DofOwnerType; /* Tipo di DofOwner */
+      DofOwner::Type DofOwnerType; /* Tipo di DofOwner */
       unsigned int iDerivation;   /* Tabella delle derivazioni */
       flag fIsUnique;             /* Flag di elemento unico */
       flag fToBeUsedInAssembly;   /* Se deve essere usato nell'assemblaggio */
@@ -283,7 +283,7 @@ class DataManager {
       
       OutputHandler::OutFiles OutFile; /* Tipo di file in output */
       
-   } ElemData[ElemType::LASTELEMTYPE];
+   } ElemData[Elem::LASTELEMTYPE];
    
    VecIter<Elem*> ElemIter;
    
@@ -294,7 +294,7 @@ class DataManager {
    struct {
       Drive** ppFirstDrive; 
       unsigned int iNum;
-   } DriveData[DriveType::LASTDRIVETYPE];
+   } DriveData[Drive::LASTDRIVETYPE];
    
    Drive** ppDrive;         /* puntatore ai drivers */
    unsigned int iTotDrive;  /* numero totale dei drivers */
@@ -313,17 +313,17 @@ class DataManager {
 
 
    /* ricerca elementi*/
-   void* pFindElem(ElemType::Type Typ, unsigned int uL) const;
-   void* pFindElem(ElemType::Type Typ, unsigned int uL, unsigned int iDeriv) const;
+   void* pFindElem(Elem::Type Typ, unsigned int uL) const;
+   void* pFindElem(Elem::Type Typ, unsigned int uL, unsigned int iDeriv) const;
    void* pChooseElem(Elem* p, unsigned int iDeriv) const;
    
-   Elem** ppFindElem(ElemType::Type Typ, unsigned int uL) const;
+   Elem** ppFindElem(Elem::Type Typ, unsigned int uL) const;
    
    /* ricerca drives */
-   void* pFindDrive(DriveType::Type Typ, unsigned int uL) const;
+   void* pFindDrive(Drive::Type Typ, unsigned int uL) const;
    
    
-   flag fGetDefaultOutputFlag(const ElemType::Type& t) const;
+   flag fGetDefaultOutputFlag(const Elem::Type& t) const;
    
  public:
    /* pseudocostruttore */
@@ -356,7 +356,7 @@ class DataManager {
       
       OutputHandler::OutFiles OutFile; /* Tipo di file in output */
       
-   } NodeData[NodeType::LASTNODETYPE];
+   } NodeData[Node::LASTNODETYPE];
    
    VecIter<Node*> NodeIter;
    
@@ -368,9 +368,9 @@ class DataManager {
    
  public:
 
-  Node** ppFindNode(NodeType::Type Typ, unsigned int uL) const;
+  Node** ppFindNode(Node::Type Typ, unsigned int uL) const;
    /* ricerca di nodi */
-   Node* pFindNode(NodeType::Type Typ, unsigned int uL) const;
+   Node* pFindNode(Node::Type Typ, unsigned int uL) const;
 #if defined(USE_STRUCT_NODES)   
    StructNode* pFindStructNode(unsigned int uL) const;
 #endif // USE_STRUCT_NODES
@@ -380,7 +380,7 @@ class DataManager {
 #endif // USE_ELECTRIC_NODES
 
  protected:   
-   flag fGetDefaultOutputFlag(const NodeType::Type& t) const;
+   flag fGetDefaultOutputFlag(const Node::Type& t) const;
    
  public:
    /* Pseudocostruttore */
@@ -403,7 +403,7 @@ class DataManager {
       DofOwner* pFirstDofOwner;     /* punt. al primo DofOwner di ogni tipo */
       integer iNum;                 /* numero di DofOwners per ogni tipo */
       integer iSize;                /* numero di Dof (se fisso, es. nodi) */
-   } DofData[DofType::LASTDOFTYPE]; 
+   } DofData[DofOwner::LASTDOFTYPE]; 
    
    /* struttura dei dati dei dof di ogni ente possessore: 
     * totale dei possessori; per ognuno: indice del primo dof,
@@ -439,15 +439,15 @@ class DataManager {
 
 class InitialAssemblyIterator {
  private:
-   const DataManager::ElemDataStructure (*pElemData)[ElemType::LASTELEMTYPE];
-   const ElemType::Type FirstType;
+   const DataManager::ElemDataStructure (*pElemData)[Elem::LASTELEMTYPE];
+   const Elem::Type FirstType;
    const Elem** ppFirst;
-   ElemType::Type CurrType;
+   Elem::Type CurrType;
    Elem** ppCurr;
  
  public:
    InitialAssemblyIterator(const DataManager::ElemDataStructure 
-			   (*pED)[ElemType::LASTELEMTYPE]);
+			   (*pED)[Elem::LASTELEMTYPE]);
    InitialAssemblyElem* GetFirst(void) const;
    InitialAssemblyElem* GetNext(void) const;
 };

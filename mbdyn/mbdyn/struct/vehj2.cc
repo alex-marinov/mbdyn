@@ -50,15 +50,15 @@ DeformableDispHingeJoint::DeformableDispHingeJoint(unsigned int uL,
 						   const Mat3x3& R1,
 						   const Mat3x3& R2,
 						   flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::DEFORMABLEHINGE, pDO, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::DEFORMABLEHINGE, pDO, fOut), 
 ConstitutiveLaw3DOwner(pCL), DefHingeT(T),
 pNode1(pN1), pNode2(pN2), f1(f1Tmp), f2(f2Tmp), R1h(R1), R2h(R2)
 {
    ASSERT(pNode1 != NULL);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::STRUCTURAL);
-   ASSERT(pNode2->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
+   ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
 }
 
    
@@ -111,7 +111,7 @@ ElasticDispHingeJoint::ElasticDispHingeJoint(unsigned int uL,
 					     const Mat3x3& R1,
 					     const Mat3x3& R2,
 					     flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
 DeformableDispHingeJoint(uL, DefHingeType::ELASTIC, 
 			 pDO, pCL, pN1, pN2, 
 			 f1Tmp, f2Tmp, R1, R2, fOut)
@@ -327,7 +327,7 @@ ViscousDispHingeJoint::ViscousDispHingeJoint(unsigned int uL,
 					     const Mat3x3& R1,
 					     const Mat3x3& R2,
 					     flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
 DeformableDispHingeJoint(uL, DefHingeType::VISCOUS, 
 			 pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
 {
@@ -546,7 +546,7 @@ ViscoElasticDispHingeJoint::ViscoElasticDispHingeJoint(unsigned int uL,
 						       const Mat3x3& R1,
 						       const Mat3x3& R2, 
 						       flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
 DeformableDispHingeJoint(uL, DefHingeType::VISCOELASTIC, 
 			 pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
 {

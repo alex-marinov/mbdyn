@@ -40,7 +40,7 @@
 
 Gravity::Gravity(const TplDriveCaller<Vec3>* pDC, 
 		 flag fOut)
-: Elem(1, ElemType::GRAVITY, fOut), TplDriveOwner<Vec3>(pDC)
+: Elem(1, Elem::GRAVITY, fOut), TplDriveOwner<Vec3>(pDC)
 {
    Acc = Get();
 }
@@ -82,7 +82,7 @@ SubVectorHandler& Gravity::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Resize(0);
    
    /* Approfitto del fatto che Gravity viene aggiornato prima 
-    * degli altri elementi (vedi l'enum ElemType e la sequenza di
+    * degli altri elementi (vedi l'enum Elem::Type e la sequenza di
     * assemblaggio) per fargli calcolare Acc una volta per tutte.
     * Quindi, quando viene chiamata GetAcceleration(void), 
     * questa restituisce un reference all'accelerazione con il
@@ -132,7 +132,7 @@ flag GravityOwner::fGetAcceleration(const Vec3& X, Vec3& Acc) const
 
 /* ElemGravityOwner - begin */
 
-ElemGravityOwner::ElemGravityOwner(unsigned int uL, ElemType::Type T, 
+ElemGravityOwner::ElemGravityOwner(unsigned int uL, Elem::Type T, 
 				   flag fOut)
 : Elem(uL, T, fOut), GravityOwner()
 {

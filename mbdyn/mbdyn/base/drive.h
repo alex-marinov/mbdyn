@@ -58,14 +58,6 @@ extern "C" {
 /* Tipi di Drive */
 class DriveType {
  public:
-   enum Type {
-      UNKNOWN = -1,
-	
-	FILEDRIVE = 0,
-	
-	LASTDRIVETYPE
-   };
-   
    enum Func {
       UNKNOWNFUNC = -1,
 	
@@ -116,6 +108,16 @@ extern const char* psFuncNames[];
 class DriveHandler;
 
 class Drive : public WithLabel {
+   /* Tipi di drive */
+ public:
+   enum Type {
+      UNKNOWN = -1,
+	
+	FILEDRIVE = 0,
+	
+	LASTDRIVETYPE
+   };
+   
  protected:
    const DriveHandler* pDrvHdl;   
    static doublereal dReturnValue;
@@ -125,7 +127,7 @@ class Drive : public WithLabel {
    virtual ~Drive(void);
    
    /* Tipo del drive (usato solo per debug ecc.) */
-   virtual DriveType::Type GetDriveType(void) const = 0;
+   virtual Drive::Type GetDriveType(void) const = 0;
    
    virtual void ServePending(void) = 0;
 };

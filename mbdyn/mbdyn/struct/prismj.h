@@ -69,11 +69,10 @@ class PrismaticJoint : virtual public Elem, public Joint {
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
 
-   /* Tipo di Joint 
-   virtual JointType::Type GetJointType(void) const { 
-      return JointType::PRISMATIC; 
+   /* Tipo di Joint */
+   virtual Joint::Type GetJointType(void) const { 
+      return Joint::PRISMATIC; 
    };
-    */
    
    virtual unsigned int iGetNumDof(void) const { 
       return 3;
@@ -131,7 +130,7 @@ class PrismaticJoint : virtual public Elem, public Joint {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = pNode1->GetNodeType();
      NdLabels[0] = pNode1->GetLabel();

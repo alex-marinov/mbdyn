@@ -123,8 +123,8 @@ public DriveOwner {
    virtual ostream& Restart(ostream& out) const;
    
    /* Tipo dell'elemento (usato per debug ecc.) */
-   virtual ElemType::Type GetElemType(void) const {
-      return ElemType::AERODYNAMIC;
+   virtual Elem::Type GetElemType(void) const {
+      return Elem::AERODYNAMIC;
    };   
    
    /* funzioni proprie */
@@ -183,8 +183,8 @@ public DriveOwner {
    
    
    /* Tipo di elemento aerodinamico */
-   virtual AeroType::Type GetAeroType(void) const {
-      return AeroType::AERODYNAMICMODAL;
+   virtual AerodynamicElem::Type GetAerodynamicElemType(void) const {
+      return AerodynamicElem::AERODYNAMICMODAL;
    };
    
 };

@@ -47,11 +47,11 @@
 /* genel - begin */
 
 Genel::Genel(unsigned int uL,
-	     GenelType::Type T, 
+	     Genel::Type T, 
 	     const DofOwner* pDO, 
 	     flag fOut)
-: Elem(uL, ElemType::GENEL, fOut), 
-ElemWithDofs(uL, ElemType::GENEL, pDO, fOut),
+: Elem(uL, Elem::GENEL, fOut), 
+ElemWithDofs(uL, Elem::GENEL, pDO, fOut),
 GenelT(T)
 {
    NO_OP;
@@ -140,7 +140,7 @@ Elem* ReadGenel(DataManager* pDM,
        
        /* verifica di esistenza del nodo */
        AbstractNode* pCollIn;
-       if ((pCollIn = (AbstractNode*)(pDM->pFindNode(NodeType::ABSTRACT, uNode))) == NULL) {
+       if ((pCollIn = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	    << ": abstract node " << uNode
 	    << " not defined" << endl;	  
@@ -167,7 +167,7 @@ Elem* ReadGenel(DataManager* pDM,
        
        /* verifica di esistenza del nodo */
        AbstractNode* pLongIn;
-       if ((pLongIn = (AbstractNode*)(pDM->pFindNode(NodeType::ABSTRACT, uNode))) == NULL) {
+       if ((pLongIn = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	    << ": abstract node " << uNode
 	    << " not defined" << endl;	  
@@ -194,7 +194,7 @@ Elem* ReadGenel(DataManager* pDM,
        
        /* verifica di esistenza del nodo */
        AbstractNode* pLatIn;
-       if ((pLatIn = (AbstractNode*)(pDM->pFindNode(NodeType::ABSTRACT, uNode))) == NULL) {
+       if ((pLatIn = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	    << ": abstract node " << uNode
 	    << " not defined" << endl;	  
@@ -221,7 +221,7 @@ Elem* ReadGenel(DataManager* pDM,
        
        /* verifica di esistenza del nodo */
        AbstractNode* pNode1;
-       if ((pNode1 = (AbstractNode*)(pDM->pFindNode(NodeType::ABSTRACT, uNode))) == NULL) {
+       if ((pNode1 = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	    << ": abstract node " << uNode
 	    << " not defined" << endl;	  
@@ -235,7 +235,7 @@ Elem* ReadGenel(DataManager* pDM,
        
        /* verifica di esistenza del nodo */
        AbstractNode* pNode2;
-       if ((pNode2 = (AbstractNode*)(pDM->pFindNode(NodeType::ABSTRACT, uNode))) == NULL) {
+       if ((pNode2 = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
 	  cerr << "line " << HP.GetLineData()
 	    << ": abstract node " << uNode
 	    << " not defined" << endl;	  
@@ -250,7 +250,7 @@ Elem* ReadGenel(DataManager* pDM,
        
        /* verifica di esistenza del nodo */
        AbstractNode* pNode3;
-       if ((pNode3 = (AbstractNode*)(pDM->pFindNode(NodeType::ABSTRACT, uNode))) == NULL) {
+       if ((pNode3 = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	    << ": abstract node " << uNode
 	    << " not defined" << endl;	  
@@ -272,7 +272,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  dCollFact = HP.GetReal(dCollFact);
        }
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::GENEL);
+       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
        
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      SwashPlate,
@@ -303,7 +303,7 @@ Elem* ReadGenel(DataManager* pDM,
     case ROTORTRIM: {
 #ifdef USE_AERODYNAMIC_ELEMS
        unsigned int uL = HP.GetInt();
-       Rotor* pRot = (Rotor*)(((Elem*)pDM->pFindElem(ElemType::ROTOR, uL))->pGet());
+       Rotor* pRot = (Rotor*)(((Elem*)pDM->pFindElem(Elem::ROTOR, uL))->pGet());
        if (pRot == NULL) {
 	  cerr << "line " << HP.GetLineData() << ": can't find rotor "
 	    << uL << endl;
@@ -312,21 +312,21 @@ Elem* ReadGenel(DataManager* pDM,
        
        ScalarDifferentialNode* pvNodes[3];
        uL = HP.GetInt();
-       pvNodes[0] = (AbstractNode*)pDM->pFindNode(NodeType::ABSTRACT, uL);
+       pvNodes[0] = (AbstractNode*)pDM->pFindNode(Node::ABSTRACT, uL);
        if (pvNodes[0] == NULL) {
 	  cerr << "line " << HP.GetLineData() << ": can't find abstract node "
 	    << uL << endl;
 	  THROW(ErrGeneric());
        }
        uL = HP.GetInt();
-       pvNodes[1] = (AbstractNode*)pDM->pFindNode(NodeType::ABSTRACT, uL);
+       pvNodes[1] = (AbstractNode*)pDM->pFindNode(Node::ABSTRACT, uL);
        if (pvNodes[1] == NULL) {
 	  cerr << "line " << HP.GetLineData() << ": can't find abstract node "
 	    << uL << endl;
 	  THROW(ErrGeneric());
        }
        uL = HP.GetInt();
-       pvNodes[2] = (AbstractNode*)pDM->pFindNode(NodeType::ABSTRACT, uL);
+       pvNodes[2] = (AbstractNode*)pDM->pFindNode(Node::ABSTRACT, uL);
        if (pvNodes[2] == NULL) {
 	  cerr << "line " << HP.GetLineData() << ": can't find abstract node "
 	    << uL << endl;
@@ -386,7 +386,7 @@ Elem* ReadGenel(DataManager* pDM,
       
     case CLAMP: {
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
-       if (SD.pNode->GetNodeType() ==  NodeType::PARAMETER) {
+       if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  cerr << "Sorry, parameters are not allowed for genel clamp" << endl;
 	  THROW(DataManager::ErrGeneric());	      
        }	     	  
@@ -394,7 +394,7 @@ Elem* ReadGenel(DataManager* pDM,
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
        // DEBUGCOUT("Stiffness: " << dK << endl);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::GENEL);
+       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
@@ -407,13 +407,13 @@ Elem* ReadGenel(DataManager* pDM,
       
     case DISTANCE: {
        ScalarDof SD1 = ReadScalarDof(pDM, HP, 1);
-       if (SD1.pNode->GetNodeType() ==  NodeType::PARAMETER) {
+       if (SD1.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  cerr << "Sorry, parameters are not allowed for genel distance" << endl;
 	  THROW(DataManager::ErrGeneric());	      
        }	     	  
 
        ScalarDof SD2 = ReadScalarDof(pDM, HP, 1);
-       if (SD2.pNode->GetNodeType() ==  NodeType::PARAMETER) {
+       if (SD2.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  cerr << "Sorry, parameters are not allowed for genel distance" << endl;
 	  THROW(DataManager::ErrGeneric());	      
        }	     	  
@@ -421,7 +421,7 @@ Elem* ReadGenel(DataManager* pDM,
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
        // DEBUGCOUT("Stiffness: " << dK << endl);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::GENEL);
+       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
@@ -435,13 +435,13 @@ Elem* ReadGenel(DataManager* pDM,
       
     case SPRING: {
        ScalarDof SD1 = ReadScalarDof(pDM, HP, 1);
-       if (SD1.pNode->GetNodeType() ==  NodeType::PARAMETER) {
+       if (SD1.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  cerr << "Sorry, parameters are not allowed for genel springs" << endl;
 	  THROW(DataManager::ErrGeneric());	      
        }	     	  
        
        ScalarDof SD2 = ReadScalarDof(pDM, HP, 1);
-       if (SD2.pNode->GetNodeType() ==  NodeType::PARAMETER) {
+       if (SD2.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  cerr << "Sorry, parameters are not allowed for genel springs" << endl;
 	  THROW(DataManager::ErrGeneric());	      
        }	     	  
@@ -455,7 +455,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  THROW(DataManager::ErrGeneric());
        }
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::GENEL);
+       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
@@ -469,7 +469,7 @@ Elem* ReadGenel(DataManager* pDM,
       
     case SPRINGSUPPORT: {
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
-       if (SD.pNode->GetNodeType() ==  NodeType::PARAMETER) {
+       if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  cerr << "Sorry, parameters are not allowed for genel spring supports" << endl;
 	  THROW(DataManager::ErrGeneric());	      
        } else if ((SD.iOrder != 0) 
@@ -481,7 +481,7 @@ Elem* ReadGenel(DataManager* pDM,
        DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
        ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::GENEL);
+       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
        switch (ConstLawType) {
 	case DefHingeType::ELASTIC: {
@@ -512,7 +512,7 @@ Elem* ReadGenel(DataManager* pDM,
       
     case CROSSSPRINGSUPPORT: {
        ScalarDof SDRow = ReadScalarDof(pDM, HP, 1);
-       if (SDRow.pNode->GetNodeType() ==  NodeType::PARAMETER) {
+       if (SDRow.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  cerr << "Sorry, parameters are not allowed for genel spring supports" << endl;
 	  THROW(DataManager::ErrGeneric());	      
        } 
@@ -527,7 +527,7 @@ Elem* ReadGenel(DataManager* pDM,
        DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
        ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::GENEL);
+       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
        switch (ConstLawType) {
 	case DefHingeType::ELASTIC: {
@@ -558,7 +558,7 @@ Elem* ReadGenel(DataManager* pDM,
       
     case MASS: {
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
-       if (SD.pNode->GetNodeType() ==  NodeType::PARAMETER) {
+       if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  cerr << "Sorry, parameters are not allowed for genel mass" << endl;
 	  THROW(DataManager::ErrGeneric());	      
        } else if (SD.pNode->SetDof(0) != DofOrder::DIFFERENTIAL) {
@@ -568,7 +568,7 @@ Elem* ReadGenel(DataManager* pDM,
 
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::GENEL);
+       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      GenelMass,
@@ -583,8 +583,8 @@ Elem* ReadGenel(DataManager* pDM,
     case SCALARFILTER: {
        ScalarDof SD_y = ReadScalarDof(pDM, HP, 1);
        ScalarDof SD_u = ReadScalarDof(pDM, HP, 1);
-       if (SD_y.pNode->GetNodeType() ==  NodeType::PARAMETER
-	   || SD_u.pNode->GetNodeType() ==  NodeType::PARAMETER) {
+       if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER
+	   || SD_u.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  cerr << "Sorry, parameters are not allowed for genel scalar filter" << endl;
 	  THROW(DataManager::ErrGeneric());	      
        } else if (SD_y.pNode->SetDof(0) != DofOrder::DIFFERENTIAL
@@ -625,7 +625,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  }
        }
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::GENEL);
+       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
        
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      GenelFilter,
@@ -635,12 +635,12 @@ Elem* ReadGenel(DataManager* pDM,
               
        break;
     }
-#endif // 0
+#endif /* 0 */
       
     case SCALARFILTER: {
        /* output */
        ScalarDof SD_y = ReadScalarDof(pDM, HP, 1);
-       if (SD_y.pNode->GetNodeType() ==  NodeType::PARAMETER) {
+       if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  cerr << "Sorry, parameters are not allowed for genel scalar filter output" << endl;
 	  THROW(DataManager::ErrGeneric());
        }
@@ -701,7 +701,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  }
        }
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::GENEL);
+       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
        
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      GenelFilterEq,
@@ -716,7 +716,7 @@ Elem* ReadGenel(DataManager* pDM,
     case STATESPACESISO: {
        ScalarDof SD_y = ReadScalarDof(pDM, HP, 1);
        ScalarDof SD_u = ReadScalarDof(pDM, HP, 1);
-       if (SD_y.pNode->GetNodeType() ==  NodeType::PARAMETER) {
+       if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  cerr << "Sorry, parameters are not allowed for genel state space SISO output" << endl;
 	  THROW(DataManager::ErrGeneric());	      
        } else if (SD_y.pNode->SetDof(0) != DofOrder::DIFFERENTIAL) {
@@ -765,7 +765,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  dD = HP.GetReal();
        }
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::GENEL);
+       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
        
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      GenelStateSpaceSISO,
@@ -790,7 +790,7 @@ Elem* ReadGenel(DataManager* pDM,
        SAFENEWARR(pvSD_y, ScalarDof, iNumOutputs, DMmm);
        for (int i = 0; i < iNumOutputs; i++) {	  
 	  pvSD_y[i] = ReadScalarDof(pDM, HP, 1);
-	  if (pvSD_y[i].pNode->GetNodeType() ==  NodeType::PARAMETER) {
+	  if (pvSD_y[i].pNode->GetNodeType() ==  Node::PARAMETER) {
 	     cerr << "line " << HP.GetLineData()
 	       << ": sorry, parameters are not allowed for genel state space MIMO output" << endl;
 	     THROW(DataManager::ErrGeneric());	      
@@ -859,7 +859,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  }
        }       
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::GENEL);
+       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
        
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      GenelStateSpaceMIMO,

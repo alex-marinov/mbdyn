@@ -28,7 +28,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* vincoli, tipo: ElemType JOINT */
+/* vincoli, tipo: Elem::Type JOINT */
 
 #ifndef JOINT__H
 #define JOINT__H
@@ -54,7 +54,7 @@ class Joint_
    
  public:
    Joint_(unsigned int uL,
-	  JointType::Type T,
+	  Joint::Type T,
 	  const DofOwner* pD,
 	  flag fOut);
    virtual ~Joint_(void);
@@ -88,7 +88,7 @@ class Joint_1Node
    
  public:
    Joint_1Node(unsigned int uL,
-	       JointType::Type T,
+	       Joint::Type T,
 	       const DofOwner* pD,
 	       flag fOut);
    virtual ~Joint_1Node(void);
@@ -127,7 +127,7 @@ class Joint_2Nodes
    
  public:
    Joint_2Nodes(unsigned int uL,
-		JointType::Type T,
+		Joint::Type T,
 		const DofOwner* pD,
 		flag fOut);
    virtual ~Joint_2Nodes(void);
@@ -165,7 +165,7 @@ class Joint_NNodes
    
  public:
    Joint_NNodes(unsigned int uL,
-		JointType::Type T,
+		Joint::Type T,
 		const DofOwner* pD,
 		flag fOut);
    virtual ~Joint_NNodes(void);

@@ -48,15 +48,15 @@ DeformableHingeJoint::DeformableHingeJoint(unsigned int uL,
 					   const Mat3x3& R1,
 					   const Mat3x3& R2,
 					   flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::DEFORMABLEHINGE, pDO, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::DEFORMABLEHINGE, pDO, fOut), 
 ConstitutiveLaw3DOwner(pCL), DefHingeT(T),
 pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2), fFirstRes(1)
 {
    ASSERT(pNode1 != NULL);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::STRUCTURAL);
-   ASSERT(pNode2->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
+   ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
    
    /* Temporary */
    // cerr << "DeformableHingeJoint(): warning, don't use this element until the new updated rotations are implemented" << endl;
@@ -113,7 +113,7 @@ ElasticHingeJoint::ElasticHingeJoint(unsigned int uL,
 				     const Mat3x3& R1,
 				     const Mat3x3& R2,
 				     flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
 DeformableHingeJoint(uL, DefHingeType::ELASTIC, 
 		     pDO, pCL, pN1, pN2, R1, R2, fOut),
 ThetaRef(0.), TaCurr(0.), TbCurr(0.), FDE(0.)
@@ -345,7 +345,7 @@ ViscousHingeJoint::ViscousHingeJoint(unsigned int uL,
 				     const Mat3x3& R1,
 				     const Mat3x3& R2,
 				     flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
 DeformableHingeJoint(uL, DefHingeType::VISCOUS, 
 		     pDO, pCL, pN1, pN2, R1, R2, fOut),
 ThetaRefPrime(0.), ThetaCurrPrime(0.), TaCurrPrime(0.), TbCurrPrime(0.)
@@ -621,7 +621,7 @@ ViscoElasticHingeJoint::ViscoElasticHingeJoint(unsigned int uL,
 					       const Mat3x3& R1,
 					       const Mat3x3& R2, 
 					       flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
 DeformableHingeJoint(uL, DefHingeType::VISCOELASTIC, 
 		     pDO, pCL, pN1, pN2, R1, R2, fOut),
 ThetaRef(0.), ThetaCurr(0.), ThetaRefPrime(0.), ThetaCurrPrime(0.),

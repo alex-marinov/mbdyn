@@ -28,13 +28,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* vincoli, tipo: ElemType JOINT */
-
+/* vincoli, tipo: Elem::Type JOINT */
 
 
 #ifndef JOINT_H
 #define JOINT_H
-
 
 /* include per derivazione della classe */
 
@@ -45,10 +43,15 @@ extern "C" {
 #include <float.h>
 }
 
+extern const char* psJointNames[];
 
-/* Tipi di Joint */
-class JointType {
+
+/* Joint - begin */
+
+class Joint 
+: virtual public Elem, public ElemWithDofs, public InitialAssemblyElem {
  public:
+   /* Tipi di Joint */
    enum Type {
       UNKNOWN = -1,
       
@@ -81,34 +84,26 @@ class JointType {
       
       LASTJOINTTYPE
    };
-};
 
-extern const char* psJointNames[];
-
-
-/* Joint - begin */
-
-class Joint 
-: virtual public Elem, public ElemWithDofs, public InitialAssemblyElem {
  public: 
    class ErrGeneric {};
    
  private:
-   JointType::Type JointT;
+   Joint::Type JointT;
    
  public:
-   Joint(unsigned int uL, JointType::Type T, const DofOwner* pD, flag fOut);
+   Joint(unsigned int uL, Joint::Type T, const DofOwner* pD, flag fOut);
    virtual ~Joint(void);
 
    /* Derivate da Elem */
    
    /* Tipo dell'elemento (usato solo per debug ecc.) */
-   virtual ElemType::Type GetElemType(void) const { 
-      return ElemType::JOINT; 
+   virtual Elem::Type GetElemType(void) const { 
+      return Elem::JOINT; 
    };   
    
    /* Tipo di joint */
-   virtual JointType::Type GetJointType(void) const {
+   virtual Joint::Type GetJointType(void) const {
       return JointT;
    };
 

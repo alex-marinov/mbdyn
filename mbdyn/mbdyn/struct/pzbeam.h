@@ -121,7 +121,7 @@ class PiezoActuatorBeam : public Beam {
  /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) { 
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) { 
      Beam::GetConnectedNodes(NumNodes, NdTyps, NdLabels);
      for(int i=0; i <= iNumElec-1; i++) {
        NdTyps[NumNodes+i] = pvElecDofs[i]->GetNodeType();
@@ -222,7 +222,7 @@ class PiezoActuatorVEBeam : public ViscoElasticBeam {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) { 
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) { 
      ViscoElasticBeam::GetConnectedNodes(NumNodes, NdTyps, NdLabels);
      for(int i=0; i <= iNumElec-1; i++) {
        NdTyps[NumNodes+i] = pvElecDofs[i]->GetNodeType();

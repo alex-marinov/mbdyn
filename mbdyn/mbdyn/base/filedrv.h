@@ -42,7 +42,7 @@
 
 /* FileDrive - begin */
 
-class FileDriveType {
+class FileDrive : public Drive {
  public:
    enum Type {
       UNKNOWN = -1,
@@ -52,9 +52,7 @@ class FileDriveType {
 	
 	LASTFILEDRIVE
    };
-};
 
-class FileDrive : public Drive {
  protected: 
    char* sFileName;
    integer iNumDrives;
@@ -64,9 +62,9 @@ class FileDrive : public Drive {
 	     const char* const s, integer nd);
    virtual ~FileDrive(void);
    
-   virtual DriveType::Type GetDriveType(void) const;
+   virtual Drive::Type GetDriveType(void) const;
    
-   virtual FileDriveType::Type GetFileDriveType(void) const = 0;
+   virtual FileDrive::Type GetFileDriveType(void) const = 0;
 
    /* Scrive il contributo del DriveCaller al file di restart */   
    virtual ostream& Restart(ostream& out) const = 0;
@@ -133,8 +131,8 @@ class FixedStepFileDrive : public FileDrive {
 		      doublereal t0, doublereal dt);
    virtual ~FixedStepFileDrive(void);
    
-   virtual FileDriveType::Type GetFileDriveType(void) const {
-      return FileDriveType::FIXEDSTEP;
+   virtual FileDrive::Type GetFileDriveType(void) const {
+      return FileDrive::FIXEDSTEP;
    };
 
    /* Scrive il contributo del DriveCaller al file di restart */   

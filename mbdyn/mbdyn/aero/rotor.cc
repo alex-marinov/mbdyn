@@ -56,11 +56,11 @@ extern "C" {
 
 /* Rotor - begin */
 
-Rotor::Rotor(unsigned int uL, RotorType::Type T, const DofOwner* pDO,
+Rotor::Rotor(unsigned int uL, Rotor::Type T, const DofOwner* pDO,
 	     const StructNode* pC, const StructNode* pR, flag fOut)
-: Elem(uL, ElemType::ROTOR, fOut), 
-AerodynamicElem(uL, AeroType::ROTOR, fOut), 
-ElemWithDofs(uL, ElemType::ROTOR, pDO, fOut),
+: Elem(uL, Elem::ROTOR, fOut), 
+AerodynamicElem(uL, AerodynamicElem::ROTOR, fOut), 
+ElemWithDofs(uL, Elem::ROTOR, pDO, fOut),
 RotorT(T), 
 pCraft(pC), pRotor(pR), 
 dOmegaRef(0.), dRadius(0.), dArea(0.), dUMean(0.), dUMeanPrev(0.), dWeight(0.),
@@ -80,9 +80,9 @@ iNumSteps(0)
 
 
    ASSERT(pC != NULL);
-   ASSERT(pC->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pC->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pR != NULL);
-   ASSERT(pR->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pR->GetNodeType() == Node::STRUCTURAL);
       
    Vec3 R3C((pCraft->GetRCurr()).GetVec(3));
    Vec3 R3R((pRotor->GetRCurr()).GetVec(3));
@@ -102,9 +102,9 @@ Rotor::~Rotor(void)
 
 
 /* Tipo dell'elemento (usato per debug ecc.) */
-ElemType::Type Rotor::GetElemType(void) const
+Elem::Type Rotor::GetElemType(void) const
 {
-   return ElemType::ROTOR;
+   return Elem::ROTOR;
 }
 
    
@@ -398,8 +398,8 @@ NoRotor::NoRotor(unsigned int uLabel,
 		 const StructNode* pRotor,
 		 doublereal dR,
 		 flag fOut)
-: Elem(uLabel, ElemType::ROTOR, fOut), 
-Rotor(uLabel, RotorType::NO, pDO, pCraft, pRotor, fOut)
+: Elem(uLabel, Elem::ROTOR, fOut), 
+Rotor(uLabel, Rotor::NO, pDO, pCraft, pRotor, fOut)
 {
   dRadius = dR; /* puo' essere richiesto dal trim */
 #ifdef USE_MPI
@@ -519,8 +519,8 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 			   doublereal dR, 
 			   doublereal dW,
 			   flag fOut)
-: Elem(uLabel, ElemType::ROTOR, fOut), 
-Rotor(uLabel, RotorType::UNIFORM, pDO, pCraft, pRotor, fOut)
+: Elem(uLabel, Elem::ROTOR, fOut), 
+Rotor(uLabel, Rotor::UNIFORM, pDO, pCraft, pRotor, fOut)
 {
    ASSERT(dOR > 0.);
    ASSERT(dR > 0.);
@@ -668,8 +668,8 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 			   doublereal dR, 
 			   doublereal dW,
 			   flag fOut)
-: Elem(uLabel, ElemType::ROTOR, fOut),
-Rotor(uLabel, RotorType::GLAUERT, pDO, pCraft, pRotor, fOut)
+: Elem(uLabel, Elem::ROTOR, fOut),
+Rotor(uLabel, Rotor::GLAUERT, pDO, pCraft, pRotor, fOut)
 {
    ASSERT(dOR > 0.);
    ASSERT(dR > 0.);
@@ -814,8 +814,8 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 			   doublereal dR, 
 			   doublereal dW,
 			   flag fOut)
-: Elem(uLabel, ElemType::ROTOR, fOut), 
-Rotor(uLabel, RotorType::MANGLER, pDO, pCraft, pRotor, fOut)
+: Elem(uLabel, Elem::ROTOR, fOut), 
+Rotor(uLabel, Rotor::MANGLER, pDO, pCraft, pRotor, fOut)
 {
    ASSERT(dOR > 0.);
    ASSERT(dR > 0.);
@@ -1016,8 +1016,8 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 				       doublereal dVCosineTmp,
 				       doublereal dVSineTmp,
 				       flag fOut)
-: Elem(uLabel, ElemType::ROTOR, fOut),
-Rotor(uLabel, RotorType::DYNAMICINFLOW, pDO, pCraft, pRotor, fOut),
+: Elem(uLabel, Elem::ROTOR, fOut),
+Rotor(uLabel, Rotor::DYNAMICINFLOW, pDO, pCraft, pRotor, fOut),
 dVConst(dVConstTmp), dVCosine(dVCosineTmp), dVSine(dVSineTmp), 
 dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
 {
@@ -1438,7 +1438,7 @@ Elem* ReadRotor(DataManager* pDM,
 	  dR = HP.GetReal();
        }
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::ROTOR);
+       flag fOut = pDM->fReadOutput(HP, Elem::ROTOR);
        
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      NoRotor,
@@ -1480,7 +1480,7 @@ Elem* ReadRotor(DataManager* pDM,
 	     dVSine = HP.GetReal();
 	  }	  
 	  
-	  flag fOut = pDM->fReadOutput(HP, ElemType::ROTOR);
+	  flag fOut = pDM->fReadOutput(HP, Elem::ROTOR);
 	  
 	  /* Mettere qui il caso di Dynamic Inflow */
 	  SAFENEWWITHCONSTRUCTOR(pEl, 
@@ -1512,7 +1512,7 @@ Elem* ReadRotor(DataManager* pDM,
 	     }
 	  }
 	  
-	  flag fOut = pDM->fReadOutput(HP, ElemType::ROTOR);
+	  flag fOut = pDM->fReadOutput(HP, Elem::ROTOR);
 	  
 	  switch (InducedType) {
 	   case UNIFORM: {		      

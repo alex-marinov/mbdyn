@@ -51,8 +51,8 @@
 
 HydraulicElem::HydraulicElem(unsigned int uL, const DofOwner* pDO,
 			     HydraulicFluid* hf, flag fOut)
-: Elem(uL, ElemType::HYDRAULIC, fOut), 
-ElemWithDofs(uL, ElemType::HYDRAULIC, pDO, fOut), 
+: Elem(uL, Elem::HYDRAULIC, fOut), 
+ElemWithDofs(uL, Elem::HYDRAULIC, pDO, fOut), 
 HF(hf)
 {
    if (HF == NULL) {
@@ -72,9 +72,9 @@ HydraulicElem::~HydraulicElem(void)
 
 
 /* Tipo dell'elemento (usato per debug ecc.) */
-ElemType::Type HydraulicElem::GetElemType(void) const
+Elem::Type HydraulicElem::GetElemType(void) const
 {
-   return ElemType::HYDRAULIC;
+   return Elem::HYDRAULIC;
 }
 
 
@@ -174,7 +174,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNodeHyd1;
-       if ((pNodeHyd1 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNodeHyd1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -187,7 +187,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNodeHyd2;
-       if ((pNodeHyd2 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNodeHyd2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -278,7 +278,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        }
        ASSERT(hf2 != NULL);
 
-       flag fOut = pDM->fReadOutput(HP, ElemType::HYDRAULIC);
+       flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Actuator,
@@ -306,7 +306,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -319,7 +319,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -356,7 +356,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        HydraulicFluid* hf = HP.GetHydraulicFluid();
        ASSERT(hf != NULL);
 
-       flag fOut = pDM->fReadOutput(HP, ElemType::HYDRAULIC);
+       flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Minor_loss,
@@ -375,7 +375,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -388,7 +388,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -401,7 +401,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode3;
-       if ((pNode3 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode3 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -414,7 +414,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode4;
-       if ((pNode4 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode4 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -448,7 +448,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        HydraulicFluid* hf = HP.GetHydraulicFluid();
        ASSERT(hf != NULL);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::HYDRAULIC);
+       flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Control_valve,
@@ -468,7 +468,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -481,7 +481,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -494,7 +494,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode3;
-       if ((pNode3 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode3 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -507,7 +507,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode4;
-       if ((pNode4 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode4 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -584,7 +584,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        HydraulicFluid* hf = HP.GetHydraulicFluid();
        ASSERT(hf != NULL);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::HYDRAULIC);
+       flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Dynamic_control_valve,
@@ -610,7 +610,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -623,7 +623,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -636,7 +636,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode3;
-       if ((pNode3 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode3 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -649,7 +649,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode4;
-       if ((pNode4 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode4 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -662,7 +662,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode5;
-       if ((pNode5 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode5 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -675,7 +675,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode6;
-       if ((pNode6 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode6 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -759,7 +759,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        HydraulicFluid* hf = HP.GetHydraulicFluid();
        ASSERT(hf != NULL);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::HYDRAULIC);
+       flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Pressure_flow_control_valve,
@@ -787,7 +787,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -800,7 +800,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -885,7 +885,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        HydraulicFluid* hf = HP.GetHydraulicFluid();
        ASSERT(hf != NULL);
 	       
-       flag fOut = pDM->fReadOutput(HP, ElemType::HYDRAULIC);
+       flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Pressure_valve,
@@ -907,7 +907,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -920,7 +920,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -933,7 +933,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode3;
-       if ((pNode3 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode3 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -1027,7 +1027,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        HydraulicFluid* hf = HP.GetHydraulicFluid();
        ASSERT(hf != NULL);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::HYDRAULIC);
+       flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Flow_valve,
@@ -1050,7 +1050,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -1063,7 +1063,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -1118,7 +1118,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        HydraulicFluid* hf = HP.GetHydraulicFluid();
        ASSERT(hf != NULL);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::HYDRAULIC);
+       flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Orifice,
@@ -1138,7 +1138,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -1299,7 +1299,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        HydraulicFluid* hf = HP.GetHydraulicFluid();
        ASSERT(hf != NULL);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::HYDRAULIC);
+       flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Accumulator,
@@ -1321,7 +1321,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -1334,7 +1334,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -1409,7 +1409,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        HydraulicFluid* hf = HP.GetHydraulicFluid();
        ASSERT(hf != NULL);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::HYDRAULIC);
+       flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Tank,
@@ -1428,7 +1428,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -1441,7 +1441,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -1495,7 +1495,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        HydraulicFluid* hf = HP.GetHydraulicFluid();
        ASSERT(hf != NULL);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::HYDRAULIC);
+       flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Pipe,
@@ -1514,7 +1514,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -1527,7 +1527,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* verifica di esistenza del nodo idraulico */
        PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(NodeType::HYDRAULIC, uNode)) == NULL) {
+       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": hydraulic node " << uNode
 	    << " not defined" << endl;	  
@@ -1580,7 +1580,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        HydraulicFluid* hf = HP.GetHydraulicFluid();
        ASSERT(hf != NULL);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::HYDRAULIC);
+       flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
 
 #if 0
        SAFENEWWITHCONSTRUCTOR(pEl, 

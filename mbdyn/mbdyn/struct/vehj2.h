@@ -69,11 +69,10 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
    /* Distruttore */
    virtual ~DeformableDispHingeJoint(void);
    
-   /* Tipo di Joint 
-   virtual JointType::Type GetJointType(void) const {
-      return JointType::DEFORMABLEHINGE; 
+   /* Tipo di Joint */
+   virtual Joint::Type GetJointType(void) const {
+      return Joint::DEFORMABLEHINGE; 
    };
-    */
    
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -111,7 +110,7 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = pNode1->GetNodeType();
      NdLabels[0] = pNode1->GetLabel();

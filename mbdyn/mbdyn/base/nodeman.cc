@@ -43,7 +43,7 @@ const char sNMClassName[] = "DataManager";
 
 void DataManager::NodeManager(void)
 {
-   for(int i = 0; i < NodeType::LASTNODETYPE; i++) {
+   for(int i = 0; i < Node::LASTNODETYPE; i++) {
       NodeData[i].ppFirstNode = NULL;
       NodeData[i].iNum = 0;
       NodeData[i].fDefaultOut = fDefaultOut; /* Da "output.h" */
@@ -51,10 +51,10 @@ void DataManager::NodeManager(void)
    }
    
    /* Se un tipo scrive su un file di output, aggiungere qui il tipo di file */
-   NodeData[NodeType::ABSTRACT].OutFile = OutputHandler::ABSTRACT;
-   NodeData[NodeType::STRUCTURAL].OutFile = OutputHandler::STRNODES;   
-   NodeData[NodeType::ELECTRIC].OutFile = OutputHandler::ELECTRIC;   
-   NodeData[NodeType::HYDRAULIC].OutFile = OutputHandler::PRESNODES;   
+   NodeData[Node::ABSTRACT].OutFile = OutputHandler::ABSTRACT;
+   NodeData[Node::STRUCTURAL].OutFile = OutputHandler::STRNODES;   
+   NodeData[Node::ELECTRIC].OutFile = OutputHandler::ELECTRIC;   
+   NodeData[Node::HYDRAULIC].OutFile = OutputHandler::PRESNODES;   
 }
 
 
@@ -86,7 +86,7 @@ void DataManager::NodeManagerDestructor(void)
 
 void DataManager::NodeDataInit(void)
 {
-   for(int iCnt = 0; iCnt < NodeType::LASTNODETYPE; iCnt++) {      
+   for(int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {      
       iTotNodes += NodeData[iCnt].iNum;
    }
 
@@ -113,7 +113,7 @@ void DataManager::NodeDataInit(void)
       
 	
       NodeData[0].ppFirstNode = ppNodes;
-      for(int iCnt = 0; iCnt < NodeType::LASTNODETYPE-1; iCnt++) {	 
+      for(int iCnt = 0; iCnt < Node::LASTNODETYPE-1; iCnt++) {	 
 	 NodeData[iCnt+1].ppFirstNode =
 	   NodeData[iCnt].ppFirstNode+NodeData[iCnt].iNum;
       }      
@@ -141,14 +141,14 @@ void DataManager::NodeOutput(OutputHandler& OH) const
 }
 
 
-flag DataManager::fGetDefaultOutputFlag(const NodeType::Type& t) const
+flag DataManager::fGetDefaultOutputFlag(const Node::Type& t) const
 {
    return NodeData[t].fDefaultOut;
 }
 
 
 /* cerca un nodo qualsiasi */
-Node* DataManager::pFindNode(NodeType::Type Typ, unsigned int uL) const
+Node* DataManager::pFindNode(Node::Type Typ, unsigned int uL) const
 {
    ASSERT(NodeData[Typ].ppFirstNode != NULL);
    ASSERT(NodeData[Typ].iNum > 0);
@@ -162,11 +162,11 @@ Node* DataManager::pFindNode(NodeType::Type Typ, unsigned int uL) const
 #if defined(USE_STRUCT_NODES)   
 StructNode* DataManager::pFindStructNode(unsigned int uL) const
 {
-   ASSERT(NodeData[NodeType::STRUCTURAL].ppFirstNode != NULL);
-   ASSERT(NodeData[NodeType::STRUCTURAL].iNum > 0);
+   ASSERT(NodeData[Node::STRUCTURAL].ppFirstNode != NULL);
+   ASSERT(NodeData[Node::STRUCTURAL].iNum > 0);
    ASSERT(uL > 0);
   
-   return (StructNode*)pLabelSearch(NodeData[NodeType::STRUCTURAL].ppFirstNode, NodeData[NodeType::STRUCTURAL].iNum, uL);
+   return (StructNode*)pLabelSearch(NodeData[Node::STRUCTURAL].ppFirstNode, NodeData[Node::STRUCTURAL].iNum, uL);
 }
 #endif // USE_STRUCT_NODES
 
@@ -174,11 +174,11 @@ StructNode* DataManager::pFindStructNode(unsigned int uL) const
 #if defined(USE_ELECTRIC_NODES)   
 ElectricNode* DataManager::pFindElectricNode(unsigned int uL) const
 {
-   ASSERT(NodeData[NodeType::ELECTRIC].ppFirstNode != NULL);
-   ASSERT(NodeData[NodeType::ELECTRIC].iNum > 0);
+   ASSERT(NodeData[Node::ELECTRIC].ppFirstNode != NULL);
+   ASSERT(NodeData[Node::ELECTRIC].iNum > 0);
    ASSERT(uL > 0);
   
-   return (ElectricNode*)pLabelSearch(NodeData[NodeType::ELECTRIC].ppFirstNode, NodeData[NodeType::ELECTRIC].iNum, uL);
+   return (ElectricNode*)pLabelSearch(NodeData[Node::ELECTRIC].ppFirstNode, NodeData[Node::ELECTRIC].iNum, uL);
 }
 #endif // USE_ELECTRIC_NODES
 

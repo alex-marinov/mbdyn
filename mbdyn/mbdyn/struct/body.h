@@ -28,7 +28,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* elementi di massa, tipo: ElemType BODY */
+/* elementi di massa, tipo: Elem::Type BODY */
 
 #ifndef BODY_H
 #define BODY_H
@@ -76,8 +76,8 @@ virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
     virtual ostream& Restart(ostream& out) const;
    
     /* Tipo dell'elemento (usato solo per debug ecc.) */
-    virtual ElemType::Type GetElemType(void) const {
-        return ElemType::BODY; 
+    virtual Elem::Type GetElemType(void) const {
+        return Elem::BODY; 
     };
    
     void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
@@ -137,7 +137,7 @@ virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
      * utile per l'assemblaggio della matrice di connessione fra i dofs */
     virtual void 
     GetConnectedNodes(int& NumNodes, 
-                      NodeType::Type* NdTyps, 
+                      Node::Type* NdTyps, 
 		      unsigned int* NdLabels) {
         NumNodes = 1;
         NdTyps[0] = pNode->GetNodeType();

@@ -66,29 +66,29 @@ void DataManager::ReadControl(MBDynParser& HP,
       "end",
       "controldata",
       
-      psReadControlNodes[NodeType::STRUCTURAL],      
-      psReadControlNodes[NodeType::ELECTRIC],
-      psReadControlNodes[NodeType::ABSTRACT],      
-      psReadControlNodes[NodeType::PARAMETER],      
-      psReadControlNodes[NodeType::HYDRAULIC],      
+      psReadControlNodes[Node::STRUCTURAL],      
+      psReadControlNodes[Node::ELECTRIC],
+      psReadControlNodes[Node::ABSTRACT],      
+      psReadControlNodes[Node::PARAMETER],      
+      psReadControlNodes[Node::HYDRAULIC],      
       
-      psReadControlElems[ElemType::AUTOMATICSTRUCTURAL],
-      psReadControlElems[ElemType::GRAVITY],	
-      psReadControlElems[ElemType::BODY],
-      psReadControlElems[ElemType::JOINT],
-      psReadControlElems[ElemType::BEAM],
-      psReadControlElems[ElemType::PLATE],      
-      psReadControlElems[ElemType::AIRPROPERTIES],
-      psReadControlElems[ElemType::ROTOR],
-      psReadControlElems[ElemType::AERODYNAMIC],      
-      psReadControlElems[ElemType::FORCE],      
-      psReadControlElems[ElemType::GENEL],
-      psReadControlElems[ElemType::ELECTRICBULK],
-      psReadControlElems[ElemType::ELECTRIC],      
-      psReadControlElems[ElemType::HYDRAULIC],      
-      psReadControlElems[ElemType::BULK],
-      psReadControlElems[ElemType::LOADABLE],
-      psReadControlDrivers[DriveType::FILEDRIVE],       
+      psReadControlElems[Elem::AUTOMATICSTRUCTURAL],
+      psReadControlElems[Elem::GRAVITY],	
+      psReadControlElems[Elem::BODY],
+      psReadControlElems[Elem::JOINT],
+      psReadControlElems[Elem::BEAM],
+      psReadControlElems[Elem::PLATE],      
+      psReadControlElems[Elem::AIRPROPERTIES],
+      psReadControlElems[Elem::ROTOR],
+      psReadControlElems[Elem::AERODYNAMIC],      
+      psReadControlElems[Elem::FORCE],      
+      psReadControlElems[Elem::GENEL],
+      psReadControlElems[Elem::ELECTRICBULK],
+      psReadControlElems[Elem::ELECTRIC],      
+      psReadControlElems[Elem::HYDRAULIC],      
+      psReadControlElems[Elem::BULK],
+      psReadControlElems[Elem::LOADABLE],
+      psReadControlDrivers[Drive::FILEDRIVE],       
       
       
       "skip" "initial" "joint" "assembly",
@@ -175,48 +175,48 @@ void DataManager::ReadControl(MBDynParser& HP,
        case STRUCTURALNODES: {
 #if defined(USE_STRUCT_NODES)	 
 	  int iDmy = HP.GetInt();
-	  NodeData[NodeType::STRUCTURAL].iNum = iDmy;
-	  DofData[DofType::STRUCTURALNODE].iNum = iDmy;
+	  NodeData[Node::STRUCTURAL].iNum = iDmy;
+	  DofData[DofOwner::STRUCTURALNODE].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Structural nodes: " << iDmy << endl);
 	  break;
-#else // USE_STRUCT_NODES
+#else /* USE_STRUCT_NODES */
 	  cerr << "you're not allowed to use structural nodes" << endl;
 	  THROW(ErrGeneric());
-#endif // USE_STRUCT_NODES	 
+#endif /* USE_STRUCT_NODES */
        }
 	 
 	 /* Numero di nodi elettrici attesi */
        case ELECTRICNODES: {
 #if defined(USE_ELECTRIC_NODES)	  
 	  int iDmy = HP.GetInt();
-	  NodeData[NodeType::ELECTRIC].iNum = iDmy;
-	  DofData[DofType::ELECTRICNODE].iNum = iDmy;
+	  NodeData[Node::ELECTRIC].iNum = iDmy;
+	  DofData[DofOwner::ELECTRICNODE].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Electric nodes: " << iDmy << endl);
 	  break;
-#else // USE_ELECTRIC_NODES	  
+#else /* USE_ELECTRIC_NODES */
 	  cerr << "you're not allowed to use electric nodes" << endl;
 	  THROW(ErrGeneric());
-#endif // USE_ELECTRIC_NODES	  
+#endif /* USE_ELECTRIC_NODES */
        }	     
 	 
 	 /* Numero di nodi astratti attesi */
        case ABSTRACTNODES: {
 #if defined(USE_ELECTRIC_NODES)	  
 	  int iDmy = HP.GetInt();
-	  NodeData[NodeType::ABSTRACT].iNum = iDmy;
-	  DofData[DofType::ABSTRACTNODE].iNum = iDmy;
+	  NodeData[Node::ABSTRACT].iNum = iDmy;
+	  DofData[DofOwner::ABSTRACTNODE].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Abstract nodes: " << iDmy << endl);
 	  break;
-#else // USE_ELECTRIC_NODES
+#else /* USE_ELECTRIC_NODES */
 	  cerr << "you're not allowed to use abstract nodes" << endl;
 	  THROW(ErrGeneric());
-#endif // USE_ELECTRIC_NODES
+#endif /* USE_ELECTRIC_NODES */
        }
 	 
 	 /* Numero di nodi astratti attesi */
        case PARAMETERNODES: {		  
 	  int iDmy = HP.GetInt();
-	  NodeData[NodeType::PARAMETER].iNum = iDmy;	     	     
+	  NodeData[Node::PARAMETER].iNum = iDmy;	     	     
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Parameter nodes: " << iDmy << endl);
 	  break;
        }	     
@@ -225,14 +225,14 @@ void DataManager::ReadControl(MBDynParser& HP,
        case HYDRAULICNODES: {
 #if defined(USE_HYDRAULIC_NODES)
 	  int iDmy = HP.GetInt();
-	  NodeData[NodeType::HYDRAULIC].iNum = iDmy;
-	  DofData[DofType::HYDRAULICNODE].iNum = iDmy;
+	  NodeData[Node::HYDRAULIC].iNum = iDmy;
+	  DofData[DofOwner::HYDRAULICNODE].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Hydraulic nodes: " << iDmy << endl);
 	  break;
-#else // defined(USE_HYDRAULIC_NODES)
+#else /* defined(USE_HYDRAULIC_NODES) */
 	  cerr << "you're not allowed to use hydraulic nodes" << endl;
 	  THROW(ErrGeneric());
-#endif // defined(USE_HYDRAULIC_NODES)
+#endif /* defined(USE_HYDRAULIC_NODES) */
        }	     
 	 
 	 
@@ -243,7 +243,9 @@ void DataManager::ReadControl(MBDynParser& HP,
        case AUTOMATICSTRUCTURAL: {
 	  int iDmy = HP.GetInt();
 #ifdef DEBUG
-	  // ElemData[ElemType::AUTOMATICSTRUCTURAL].iNum = iDmy;
+#if 0
+	  ElemData[Elem::AUTOMATICSTRUCTURAL].iNum = iDmy;
+#endif /* 0 */
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Automatic structural elements expected: " 
 		    << iDmy << endl);
 #else
@@ -254,12 +256,12 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 
 	 /* Accelerazione di gravita' */
        case GRAVITY: {
-	  if(ElemData[ElemType::GRAVITY].iNum > 0) {
+	  if(ElemData[Elem::GRAVITY].iNum > 0) {
 	     cerr
 	       << "warning: gravity acceleration already defined;" << endl
 	       << "only one definition will be considered" << endl;
 	  }
-	  ElemData[ElemType::GRAVITY].iNum = 1;
+	  ElemData[Elem::GRAVITY].iNum = 1;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Gravity acceleration expected in elements data" << endl);
 	  break;
        }
@@ -267,7 +269,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 /* Numero di corpi rigidi attesi */
        case RIGIDBODIES: {
 	  int iDmy = HP.GetInt();
-	  ElemData[ElemType::BODY].iNum = iDmy;
+	  ElemData[Elem::BODY].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Rigid bodies: " << iDmy << endl);
 	  break;
        }	     
@@ -275,8 +277,8 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 /* Numero di vincoli attesi */
        case JOINTS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[ElemType::JOINT].iNum = iDmy;	     
-	  DofData[DofType::JOINT].iNum = iDmy;
+	  ElemData[Elem::JOINT].iNum = iDmy;	     
+	  DofData[DofOwner::JOINT].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Joints: " << iDmy << endl);
 	  if (iDmy > 0 ) {		       
 	     fInitialJointAssemblyToBeMade = flag(1);
@@ -287,7 +289,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 /* Numero di travi attese */
        case BEAMS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[ElemType::BEAM].iNum = iDmy;	     
+	  ElemData[Elem::BEAM].iNum = iDmy;	     
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Beams: " << iDmy << endl);
 	  if (iDmy > 0 ) {		       
 	     fInitialJointAssemblyToBeMade = flag(1);
@@ -298,12 +300,12 @@ void DataManager::ReadControl(MBDynParser& HP,
 #if defined(USE_AERODYNAMIC_ELEMS)
 	 /* Elementi aerodinamici: proprieta' dell'aria */
        case AIRPROPERTIES: {
-	  if (ElemData[ElemType::AIRPROPERTIES].iNum > 0) {
+	  if (ElemData[Elem::AIRPROPERTIES].iNum > 0) {
 	     cerr
 	       << "warning: air properties already defined;" << endl
 	       << "only one definition will be considered" << endl;
 	  }
-	  ElemData[ElemType::AIRPROPERTIES].iNum = 1;
+	  ElemData[Elem::AIRPROPERTIES].iNum = 1;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Air properties expected in elements data" << endl);
 	  break;
        }
@@ -311,8 +313,8 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 /* Elementi aerodinamici: rotori */
        case ROTORS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[ElemType::ROTOR].iNum = iDmy;	     
-	  DofData[DofType::ROTOR].iNum = iDmy;
+	  ElemData[Elem::ROTOR].iNum = iDmy;	     
+	  DofData[DofOwner::ROTOR].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Rotors: " << iDmy << endl);
 	  break;
        }	     	     
@@ -320,17 +322,17 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 /* Elementi aerodinamici: vari elementi aerodinamici senza dof */
        case AERODYNAMICELEMENTS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[ElemType::AERODYNAMIC].iNum = iDmy;	     
+	  ElemData[Elem::AERODYNAMIC].iNum = iDmy;	     
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Aerodynamic Elements: " << iDmy << endl);
 	  break;
        }
-#endif // USE_AERODYNAMIC_ELEMS
-#endif // USE_STRUCT_NODES
+#endif /* USE_AERODYNAMIC_ELEMS */
+#endif /* USE_STRUCT_NODES */
 
 	 /* Numero di forze e coppie attese */
        case FORCES: {
 	  int iDmy = HP.GetInt();
-	  ElemData[ElemType::FORCE].iNum = iDmy;	     
+	  ElemData[Elem::FORCE].iNum = iDmy;	     
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Forces: " << iDmy << endl);
 	  break;
        }	     
@@ -339,8 +341,8 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 /* Numero di vincoli attesi */
        case GENELS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[ElemType::GENEL].iNum = iDmy;	     
-	  DofData[DofType::GENEL].iNum = iDmy;
+	  ElemData[Elem::GENEL].iNum = iDmy;	     
+	  DofData[DofOwner::GENEL].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Genels: " << iDmy << endl);
 	  break;
        }	     
@@ -348,18 +350,18 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 /* Numero di elementi elettrici attesi */
        case ELECTRICELEMENTS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[ElemType::ELECTRIC].iNum = iDmy;	     
-	  DofData[DofType::ELECTRIC].iNum = iDmy;
+	  ElemData[Elem::ELECTRIC].iNum = iDmy;	     
+	  DofData[DofOwner::ELECTRIC].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Electric elements: " << iDmy << endl);
 	  break;
        }	     
-#endif // USE_ELECTRIC_NODES
+#endif /* USE_ELECTRIC_NODES */
 	 
 	 /* Numero di elementi idraulici attesi */
        case HYDRAULICELEMENTS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[ElemType::HYDRAULIC].iNum = iDmy;	     
-	  DofData[DofType::HYDRAULIC].iNum = iDmy;
+	  ElemData[Elem::HYDRAULIC].iNum = iDmy;	     
+	  DofData[DofOwner::HYDRAULIC].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Hydraulic elements: " << iDmy << endl);
 	  break;
        }	     
@@ -367,7 +369,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 /* Numero di elementi elettrici attesi */
        case BULKELEMENTS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[ElemType::BULK].iNum = iDmy;	     	    
+	  ElemData[Elem::BULK].iNum = iDmy;	     	    
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Bulk elements: " << iDmy << endl);
 	  break;
        }	     
@@ -376,17 +378,17 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 /* Numero di elementi elettrici attesi */
        case LOADABLEELEMENTS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[ElemType::LOADABLE].iNum = iDmy;	     	    
-	  DofData[DofType::LOADABLE].iNum = iDmy;
+	  ElemData[Elem::LOADABLE].iNum = iDmy;	     	    
+	  DofData[DofOwner::LOADABLE].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Loadable elements: " << iDmy << endl);
 	  break;
        }
-#endif // defined(HAVE_LOADABLE)
+#endif /* defined(HAVE_LOADABLE) */
 	 	 
 	 /* Numero di drivers attesi */
        case FILEDRIVERS: {
 	  int iDmy = HP.GetInt();
-	  DriveData[DriveType::FILEDRIVE].iNum = iDmy;	     
+	  DriveData[Drive::FILEDRIVE].iNum = iDmy;	     
 	  DEBUGLCOUT(MYDEBUG_INPUT, "File drivers: " << iDmy << endl);
 	  break;
        }	     
@@ -413,50 +415,52 @@ void DataManager::ReadControl(MBDynParser& HP,
 	      }
 		
 	      case RIGIDBODIES: {			    
-		 ElemData[ElemType::BODY].fToBeUsedInAssembly = flag(1);
+		 ElemData[Elem::BODY].fToBeUsedInAssembly = flag(1);
 		 DEBUGLCOUT(MYDEBUG_INPUT, "Rigid bodies will be used in initial joint assembly" << endl);
 		 break;
 	      }
 		
 	      case GRAVITY: {			    
-		 ElemData[ElemType::GRAVITY].fToBeUsedInAssembly = flag(1);
+		 ElemData[Elem::GRAVITY].fToBeUsedInAssembly = flag(1);
 		 DEBUGLCOUT(MYDEBUG_INPUT, "Gravity will be used in initial joint assembly" << endl);
 		 break;
 	      }
 		
 	      case FORCES: {
-		 ElemData[ElemType::FORCE].fToBeUsedInAssembly = flag(1);
+		 ElemData[Elem::FORCE].fToBeUsedInAssembly = flag(1);
 		 DEBUGLCOUT(MYDEBUG_INPUT, "Forces will be used in initial joint assembly" << endl);
 		 break;
 	      }
 		
 		/* Lo lascio per backwards compatibility */
 	      case BEAMS: {			    
-		 // ElemData[ElemType::BEAM].fToBeUsedInAssembly = flag(1);
+#if 0
+		 ElemData[Elem::BEAM].fToBeUsedInAssembly = flag(1);
+#endif /* 0 */
 		 DEBUGLCOUT(MYDEBUG_INPUT, "Beams are used in initial joint assembly by default" << endl);
 		 break;
 	      }			    
 
 #if defined(USE_AERODYNAMIC_ELEMS)
 	      case AERODYNAMICELEMENTS: {
-		 ElemData[ElemType::AERODYNAMIC].fToBeUsedInAssembly = flag(1);
+		 ElemData[Elem::AERODYNAMIC].fToBeUsedInAssembly = flag(1);
 		 DEBUGLCOUT(MYDEBUG_INPUT, "Aerodynamic Elements will be used in initial joint assembly" << endl);
 		 
-		 if (ElemData[ElemType::AIRPROPERTIES].fToBeUsedInAssembly == flag(0)) {
-		    ElemData[ElemType::AIRPROPERTIES].fToBeUsedInAssembly = flag(1);
+		 if (ElemData[Elem::AIRPROPERTIES].fToBeUsedInAssembly == flag(0)) {
+		    ElemData[Elem::AIRPROPERTIES].fToBeUsedInAssembly = flag(1);
 		 }
 		 
 		 break;
 	      }
-#endif // USE_AERODYNAMIC_ELEMS
+#endif /* USE_AERODYNAMIC_ELEMS */
 		
 #if defined(HAVE_LOADABLE)
 	      case LOADABLEELEMENTS: {
-		 ElemData[ElemType::LOADABLE].fToBeUsedInAssembly = flag(1);
+		 ElemData[Elem::LOADABLE].fToBeUsedInAssembly = flag(1);
 		 DEBUGLCOUT(MYDEBUG_INPUT, "Loadable Elements will be used in initial joint assembly" << endl);
 		 break;
 	      }
-#endif // defined(HAVE_LOADABLE)
+#endif /* defined(HAVE_LOADABLE) */
 		
 		
 		
@@ -543,7 +547,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 		     << iMaxInitialIterations << endl);
 	  break;
        }
-#endif // USE_STRUCT_NODES
+#endif /* USE_STRUCT_NODES */
 	 
 	 /* Titolo */
        case TITLE: {
@@ -617,124 +621,124 @@ void DataManager::ReadControl(MBDynParser& HP,
 	     KeyWords CurrDefOut(KeyWords(HP.GetWord()));
 	     switch (CurrDefOut) {
 	      case ALL: {
-		 for (int iCnt = 0; iCnt < ElemType::LASTELEMTYPE; iCnt++) {
+		 for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 		    ElemData[iCnt].fDefaultOut = flag(1);
 		 }			 
-		 for (int iCnt = 0; iCnt < NodeType::LASTNODETYPE; iCnt++) {
+		 for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
 		    NodeData[iCnt].fDefaultOut = flag(1);
 		 }			 
 		 break;
 	      }
 		
 	      case NONE: {
-		 for (int iCnt = 0; iCnt < ElemType::LASTELEMTYPE; iCnt++) {
+		 for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 		    ElemData[iCnt].fDefaultOut = flag(0);
 		 }			 
-		 for (int iCnt = 0; iCnt < NodeType::LASTNODETYPE; iCnt++) {
+		 for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
 		    NodeData[iCnt].fDefaultOut = flag(0);
 		 }			 
 		 break;
 	      }
 
-#if defined(USE_STRUCT_NODES)		
+#if defined(USE_STRUCT_NODES)
 	      case STRUCTURALNODES: {
-		 NodeData[NodeType::STRUCTURAL].fDefaultOut = flag(1);
+		 NodeData[Node::STRUCTURAL].fDefaultOut = flag(1);
 		 break;
 	      }
-#endif // USE_STRUCT_NODES
+#endif /* USE_STRUCT_NODES */
 		
-#if defined(USE_ELECTRIC_NODES)		
+#if defined(USE_ELECTRIC_NODES)
 	      case ELECTRICNODES: {			 
-		 NodeData[NodeType::ELECTRIC].fDefaultOut = flag(1);
+		 NodeData[Node::ELECTRIC].fDefaultOut = flag(1);
 		 break;
 	      }
 		
 	      case ABSTRACTNODES: {			 
-		 NodeData[NodeType::ABSTRACT].fDefaultOut = flag(1);
+		 NodeData[Node::ABSTRACT].fDefaultOut = flag(1);
 		 break;
 	      }
-#endif // USE_ELECTRIC_NODES
+#endif /* USE_ELECTRIC_NODES */
 
-#if defined(USE_HYDRAULIC_NODES)		
+#if defined(USE_HYDRAULIC_NODES)
 	      case HYDRAULICNODES: {
-		 NodeData[NodeType::HYDRAULIC].fDefaultOut = flag(1);
+		 NodeData[Node::HYDRAULIC].fDefaultOut = flag(1);
 		 break;
 	      }
-#endif // USE_HYDRAULIC_NODES
+#endif /* USE_HYDRAULIC_NODES */
 		
 		
-#if defined(USE_STRUCT_NODES)		
+#if defined(USE_STRUCT_NODES)
 	      case GRAVITY: {			 
-		 ElemData[ElemType::GRAVITY].fDefaultOut = flag(1);
+		 ElemData[Elem::GRAVITY].fDefaultOut = flag(1);
 		 break;
 	      }
 		
 	      case RIGIDBODIES: {			 
-		 ElemData[ElemType::BODY].fDefaultOut = flag(1);
+		 ElemData[Elem::BODY].fDefaultOut = flag(1);
 		 break;
 	      }
 		
 	      case JOINTS: {			 
-		 ElemData[ElemType::JOINT].fDefaultOut = flag(1);
+		 ElemData[Elem::JOINT].fDefaultOut = flag(1);
 		 break;
 	      }
 		
 	      case BEAMS: {			 
-		 ElemData[ElemType::BEAM].fDefaultOut = flag(1);
+		 ElemData[Elem::BEAM].fDefaultOut = flag(1);
 		 break;
 	      }
 		
 	      case PLATES: {
-		 ElemData[ElemType::PLATE].fDefaultOut = flag(1);
+		 ElemData[Elem::PLATE].fDefaultOut = flag(1);
 		 break;
 	      }
 
 #if defined(USE_AERODYNAMIC_ELEMS)
 	      case AIRPROPERTIES: {			 
-		 ElemData[ElemType::AIRPROPERTIES].fDefaultOut = flag(1);
+		 ElemData[Elem::AIRPROPERTIES].fDefaultOut = flag(1);
 		 break;
 	      }
 		
 	      case ROTORS: {			 
-		 ElemData[ElemType::ROTOR].fDefaultOut = flag(1);
+		 ElemData[Elem::ROTOR].fDefaultOut = flag(1);
 		 break;
 	      }
 		
 	      case AERODYNAMICELEMENTS: {			 
-		 ElemData[ElemType::AERODYNAMIC].fDefaultOut = flag(1);
+		 ElemData[Elem::AERODYNAMIC].fDefaultOut = flag(1);
 		 break;
 	      }
-#endif // USE_AERODYNAMIC_ELEMS
-#endif // USE_STRUCT_NODES
+#endif /* USE_AERODYNAMIC_ELEMS */
+#endif /* USE_STRUCT_NODES */
 
 	      case FORCES: {			 
-		 ElemData[ElemType::FORCE].fDefaultOut = flag(1);
+		 ElemData[Elem::FORCE].fDefaultOut = flag(1);
 		 break;
 	      }
 		
 #if defined(USE_ELECTRIC_NODES)
 	      case GENELS: {			 
-		 ElemData[ElemType::GENEL].fDefaultOut = flag(1);
+		 ElemData[Elem::GENEL].fDefaultOut = flag(1);
 		 break;
 	      }
 		
 	      case ELECTRICBULKELEMENTS: {			 
-		 ElemData[ElemType::ELECTRICBULK].fDefaultOut = flag(1);
+		 ElemData[Elem::ELECTRICBULK].fDefaultOut = flag(1);
 		 break;
 	      }
 		
 	      case ELECTRICELEMENTS: {			 
-		 ElemData[ElemType::ELECTRIC].fDefaultOut = flag(1);
+		 ElemData[Elem::ELECTRIC].fDefaultOut = flag(1);
 		 break;
 	      }
-#endif // USE_ELECTRIC_NODES
+#endif /* USE_ELECTRIC_NODES */
 
 #if defined(HAVE_LOADABLE)
 	      case LOADABLEELEMENTS: {
-		 ElemData[ElemType::LOADABLE].fDefaultOut = flag(1);
+		 ElemData[Elem::LOADABLE].fDefaultOut = flag(1);
 		 break;
 	      }
-#endif // defined(HAVE_LOADABLE)
+#endif /* defined(HAVE_LOADABLE) */
 		
 		
 	      case UNKNOWN: {
@@ -759,9 +763,11 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 
 	 /* add more entries ... */
 	 
-       case UNKNOWN: { // If description is not in key table the parser
-	               // returns UNKNONW, so "default" can be used to 
-	               // intercept control cases that are not allowed.
+       case UNKNOWN: { /*
+			* If description is not in key table the parser
+	                * returns UNKNONW, so "default" can be used to 
+	                * intercept control cases that are not allowed.
+			*/
 	  DEBUGCERR("");
 	  cerr << "unknown description at line " << HP.GetLineData() << endl;
 	  ASSERT(0);
@@ -829,7 +835,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 
 /* Legge se un item deve scrivere sull'output handler */
 
-flag DataManager::fReadOutput(MBDynParser& HP, enum ElemType::Type t)
+flag DataManager::fReadOutput(MBDynParser& HP, enum Elem::Type t)
 {
    flag fDef = fGetDefaultOutputFlag(t);
    if (!HP.IsKeyWord("output")) {
@@ -853,7 +859,7 @@ flag DataManager::fReadOutput(MBDynParser& HP, enum ElemType::Type t)
 } /* End of DataManager::fReadOutput */
 
 
-flag DataManager::fReadOutput(MBDynParser& HP, enum NodeType::Type t)
+flag DataManager::fReadOutput(MBDynParser& HP, enum Node::Type t)
 {
    flag fDef = fGetDefaultOutputFlag(t);
    if (!HP.IsKeyWord("output")) {
@@ -888,11 +894,11 @@ void DataManager::ReadNodes(MBDynParser& HP)
       "end",
 	"nodes",
 
-	psReadNodesNodes[NodeType::STRUCTURAL],
-	psReadNodesNodes[NodeType::ELECTRIC],
-	psReadNodesNodes[NodeType::ABSTRACT],
-	psReadNodesNodes[NodeType::PARAMETER],
-	psReadNodesNodes[NodeType::HYDRAULIC],
+	psReadNodesNodes[Node::STRUCTURAL],
+	psReadNodesNodes[Node::ELECTRIC],
+	psReadNodesNodes[Node::ABSTRACT],
+	psReadNodesNodes[Node::PARAMETER],
+	psReadNodesNodes[Node::HYDRAULIC],
 
 	"output"
    };
@@ -923,8 +929,8 @@ void DataManager::ReadNodes(MBDynParser& HP)
    
    
    /* struttura di servizio che conta i nodi tipo per tipo */
-   int iNumTypes[NodeType::LASTNODETYPE];
-   for (int i = 0; i < NodeType::LASTNODETYPE; i++) {      
+   int iNumTypes[Node::LASTNODETYPE];
+   for (int i = 0; i < Node::LASTNODETYPE; i++) {      
       iNumTypes[i] = NodeData[i].iNum;
    }      
          
@@ -937,57 +943,57 @@ void DataManager::ReadNodes(MBDynParser& HP)
       if (CurrDesc == OUTPUT) {
 	 DEBUGLCOUT(MYDEBUG_INPUT, "nodes to be output: ");
 	 
-	 NodeType::Type Typ;
+	 Node::Type Typ;
 	 switch (KeyWords(HP.GetWord())) {
 
 	  case STRUCTURAL: {
 #if defined(USE_STRUCT_NODES)
 	     DEBUGLCOUT(MYDEBUG_INPUT, "structural" << endl);
-	     Typ = NodeType::STRUCTURAL;
+	     Typ = Node::STRUCTURAL;
 	     break;
-#else // USE_STRUCT_NODES
+#else /* USE_STRUCT_NODES */
 	     cerr << "you're not allowed to use structural nodes" << endl;
 	     THROW(ErrGeneric());
-#endif // USE_STRUCT_NODES
+#endif /* USE_STRUCT_NODES */
 	  }
 	    
 	  case ELECTRIC: {	
 #if defined(USE_ELECTRIC_NODES)
 	     DEBUGLCOUT(MYDEBUG_INPUT, "electric" << endl);
-	     Typ = NodeType::ELECTRIC;	     
+	     Typ = Node::ELECTRIC;	     
 	     break;
-#else // USE_ELECTRIC_NODES
+#else /* USE_ELECTRIC_NODES */
 	     cerr << "you're not allowed to use electric nodes" << endl;
 	     THROW(ErrGeneric());
-#endif // USE_ELECTRIC_NODES
+#endif /* USE_ELECTRIC_NODES */
 	  }
 	    
 	  case ABSTRACT: {	   
 #if defined(USE_ELECTRIC_NODES)
 	     DEBUGLCOUT(MYDEBUG_INPUT, "abstract" << endl);
-	     Typ = NodeType::ABSTRACT;
+	     Typ = Node::ABSTRACT;
 	     break;
-#else // USE_ELECTRIC_NODES
+#else /* USE_ELECTRIC_NODES */
 	     cerr << "you're not allowed to use abstract nodes" << endl;
 	     THROW(ErrGeneric());
-#endif // USE_ELECTRIC_NODES
+#endif /* USE_ELECTRIC_NODES */
 	  }
 	    
 	  case PARAMETER: {	    
 	     DEBUGLCOUT(MYDEBUG_INPUT, "parameter" << endl);
-	     Typ = NodeType::PARAMETER;	     
+	     Typ = Node::PARAMETER;	     
 	     break;
 	  }
 
 	  case HYDRAULIC: {
 #if defined (USE_HYDRAULIC_NODES)
 	     DEBUGLCOUT(MYDEBUG_INPUT, "hydraulic" << endl);
-	     Typ = NodeType::HYDRAULIC;	     
+	     Typ = Node::HYDRAULIC;	     
 	     break;
-#else // defined (USE_HYDRAULIC_NODES)
+#else /* defined (USE_HYDRAULIC_NODES) */
 	     cerr << "you're not allowed to use hydraulic nodes" << endl;
 	     THROW(ErrGeneric());
-#endif // defined (USE_HYDRAULIC_NODES)	    
+#endif /* defined (USE_HYDRAULIC_NODES) */
 	  }
 	    
 	  default: {
@@ -1032,27 +1038,27 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     * 
 	     * - test sul numero di nodi letti rispetto a quelli dichiarati
 	     *   nel blocco di controllo:
-	     *       if(iNumTypes[NodeType::??]-- <= 0)
+	     *       if(iNumTypes[Node::??]-- <= 0)
 	     *         < gestione dell'errore >
 	     * 
 	     * - verifica di esistenza del nodo 
-	     *       if(pFindNode(NodeType::??, uLabel) != NULL)
+	     *       if(pFindNode(Node::??, uLabel) != NULL)
 	     *         < gestione dell'errore >
 	     * 
 	     * - lettura dati specifici
 	     * 
 	     * - allocazione e costruzione del nodo:
 	     *   - assegnazione del puntatore:
-	     *       ppN = NodeData[NodeType::??].ppFirstNode+
-	     *         iNumTypes[NodeType::??];
+	     *       ppN = NodeData[Node::??].ppFirstNode+
+	     *         iNumTypes[Node::??];
 	     * 
 	     *   - allocazione e costruzione:
 	     *       SAFENEW((??Node*)*ppN, ??Node(uLabel), NMmm);
 	     * 
 	     * - correzione del DofOwner relativo al nodo:
-	     *       (DofData[DofType::??].pFirstDofOwner+
-	     *         iNumTypes[NodeType::??])->iNumDofs = 
-	     *         DofData[DofType::??].iSize;
+	     *       (DofData[DofOwner::??].pFirstDofOwner+
+	     *         iNumTypes[Node::??])->iNumDofs = 
+	     *         DofData[DofOwner::??].iSize;
 	     * 
 	     * - scrittura dei dati specifici dell'oggetto creato.
 	     *   In alternativa i dati possono essere passato tutti 
@@ -1067,7 +1073,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     
 	     /* verifica che non siano gia' stati letti tutti 
 	      * quelli previsti */
-	     if (iNumTypes[NodeType::STRUCTURAL]-- <= 0) {
+	     if (iNumTypes[Node::STRUCTURAL]-- <= 0) {
 		DEBUGCERR("");
 		cerr << "line " << HP.GetLineData() 
 		  << ": structural node " << uLabel 
@@ -1090,19 +1096,19 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     /* lettura dei dati specifici */
 	     
 	     /* allocazione e creazione */
-	     int i = NodeData[NodeType::STRUCTURAL].iNum
-	       -iNumTypes[NodeType::STRUCTURAL]-1;
-	     ppN = NodeData[NodeType::STRUCTURAL].ppFirstNode+i;
-	     DofOwner* pDO = DofData[DofType::STRUCTURALNODE].pFirstDofOwner+i;
+	     int i = NodeData[Node::STRUCTURAL].iNum
+	       -iNumTypes[Node::STRUCTURAL]-1;
+	     ppN = NodeData[Node::STRUCTURAL].ppFirstNode+i;
+	     DofOwner* pDO = DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner+i;
 	     
 	     *ppN = ReadStructNode(this, HP, pDO, uLabel);
 	     HP.PutKeyTable(K);
 	     
 	     break;
-#else // USE_STRUCT_NODES
+#else /* USE_STRUCT_NODES */
 	     cerr << "you're not allowed to use structural nodes" << endl;
 	     THROW(ErrGeneric());
-#endif // USE_STRUCT_NODES
+#endif /* USE_STRUCT_NODES */
 	  }
 	    
 	    /* nodi elettrici */
@@ -1112,7 +1118,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     
 	     /* verifica che non siano gia' stati letti tutti 
 	      * quelli previsti */
-	     if (iNumTypes[NodeType::ELECTRIC]-- <= 0) {
+	     if (iNumTypes[Node::ELECTRIC]-- <= 0) {
 		DEBUGCERR("");
 		cerr << "line " << HP.GetLineData() 
 		  << ": electric node " << uLabel
@@ -1135,14 +1141,14 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     doublereal dx = HP.GetReal();
 	     doublereal dxp = HP.GetReal();
 	     
-	     flag fOut = fReadOutput(HP, NodeType::ELECTRIC);
+	     flag fOut = fReadOutput(HP, Node::ELECTRIC);
 	     
 	     
 	     /* allocazione e creazione */
-	     int i = NodeData[NodeType::ELECTRIC].iNum
-	       -iNumTypes[NodeType::ELECTRIC]-1;
-	     ppN = NodeData[NodeType::ELECTRIC].ppFirstNode+i;
-	     DofOwner* pDO = DofData[DofType::ELECTRICNODE].pFirstDofOwner+i;
+	     int i = NodeData[Node::ELECTRIC].iNum
+	       -iNumTypes[Node::ELECTRIC]-1;
+	     ppN = NodeData[Node::ELECTRIC].ppFirstNode+i;
+	     DofOwner* pDO = DofData[DofOwner::ELECTRICNODE].pFirstDofOwner+i;
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppN, 
 				    ElectricNode,
@@ -1150,10 +1156,10 @@ void DataManager::ReadNodes(MBDynParser& HP)
 				    DMmm);
 	     
 	     break;
-#else // USE_ELECTRIC_NODES	    
+#else /* USE_ELECTRIC_NODES */
 	     cerr << "you're not allowed to use electric nodes" << endl;
 	     THROW(ErrGeneric());
-#endif // USE_ELECTRIC_NODES	    
+#endif /* USE_ELECTRIC_NODES */
 	  }
 	    
 	    /* nodi astratti */
@@ -1163,7 +1169,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     
 	     /* verifica che non siano gia' stati letti tutti 
 	      * quelli previsti */
-	     if (iNumTypes[NodeType::ABSTRACT]-- <= 0) {
+	     if (iNumTypes[Node::ABSTRACT]-- <= 0) {
 		DEBUGCERR("");
 		cerr << "line " << HP.GetLineData() 
 		  << ": abstract node " << uLabel
@@ -1173,7 +1179,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     }
 	     
 	     /* verifica di esistenza del nodo */
-	     if (pFindNode(NodeType::ABSTRACT, uLabel) != NULL) {
+	     if (pFindNode(Node::ABSTRACT, uLabel) != NULL) {
 		DEBUGCERR("");
 		cerr << "line " << HP.GetLineData() 
 		  << ": abstract node " << uLabel
@@ -1197,13 +1203,13 @@ void DataManager::ReadNodes(MBDynParser& HP)
 		}		 
 	     }		  
 	     
-	     flag fOut = fReadOutput(HP, NodeType::ABSTRACT);
+	     flag fOut = fReadOutput(HP, Node::ABSTRACT);
 	     
 	     /* allocazione e creazione */
-	     int i = NodeData[NodeType::ABSTRACT].iNum
-	       -iNumTypes[NodeType::ABSTRACT]-1;
-	     ppN = NodeData[NodeType::ABSTRACT].ppFirstNode+i;
-	     DofOwner* pDO = DofData[DofType::ABSTRACTNODE].pFirstDofOwner+i;
+	     int i = NodeData[Node::ABSTRACT].iNum
+	       -iNumTypes[Node::ABSTRACT]-1;
+	     ppN = NodeData[Node::ABSTRACT].ppFirstNode+i;
+	     DofOwner* pDO = DofData[DofOwner::ABSTRACTNODE].pFirstDofOwner+i;
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppN, 
 				    AbstractNode,
@@ -1211,10 +1217,10 @@ void DataManager::ReadNodes(MBDynParser& HP)
 				    DMmm);
 	     
 	     break;
-#else // USE_ELECTRIC_NODES	    
+#else /* USE_ELECTRIC_NODES */
 	     cerr << "you're not allowed to use abstract nodes" << endl;
 	     THROW(ErrGeneric());
-#endif // USE_ELECTRIC_NODES
+#endif /* USE_ELECTRIC_NODES */
 	  }
 	    
 	    /* parametri */
@@ -1223,7 +1229,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     
 	     /* verifica che non siano gia' stati letti tutti 
 	      * quelli previsti */
-	     if (iNumTypes[NodeType::PARAMETER]-- <= 0) {
+	     if (iNumTypes[Node::PARAMETER]-- <= 0) {
 		DEBUGCERR("");
 		cerr << "line " << HP.GetLineData() 
 		  << ": parameter " << uLabel
@@ -1233,7 +1239,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     }
 	     
 	     /* verifica di esistenza del nodo */
-	     if (pFindNode(NodeType::PARAMETER, uLabel) != NULL) {
+	     if (pFindNode(Node::PARAMETER, uLabel) != NULL) {
 		DEBUGCERR("");
 		cerr << "line " << HP.GetLineData() 
 		  << ": parameter " << uLabel
@@ -1246,12 +1252,12 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     if (HP.IsKeyWord("element")) {
 		DEBUGLCOUT(MYDEBUG_INPUT, "parameter node " << uLabel 
 			   << "is linked to an element" << endl);
-		flag fOut = fReadOutput(HP, NodeType::PARAMETER);
+		flag fOut = fReadOutput(HP, Node::PARAMETER);
 		
 		/* allocazione e creazione */
-		int i = NodeData[NodeType::PARAMETER].iNum
-		  -iNumTypes[NodeType::PARAMETER]-1;
-		ppN = NodeData[NodeType::PARAMETER].ppFirstNode+i;
+		int i = NodeData[Node::PARAMETER].iNum
+		  -iNumTypes[Node::PARAMETER]-1;
+		ppN = NodeData[Node::PARAMETER].ppFirstNode+i;
 		
 		SAFENEWWITHCONSTRUCTOR(*ppN, 
 				       Elem2Param,
@@ -1268,12 +1274,12 @@ void DataManager::ReadNodes(MBDynParser& HP)
 		doublereal dY = HP.GetReal();
 		doublereal dZ = HP.GetReal();
 		
-		flag fOut = fReadOutput(HP, NodeType::PARAMETER);
+		flag fOut = fReadOutput(HP, Node::PARAMETER);
 		
 		/* allocazione e creazione */
-		int i = NodeData[NodeType::PARAMETER].iNum
-		  -iNumTypes[NodeType::PARAMETER]-1;
-		ppN = NodeData[NodeType::PARAMETER].ppFirstNode+i;
+		int i = NodeData[Node::PARAMETER].iNum
+		  -iNumTypes[Node::PARAMETER]-1;
+		ppN = NodeData[Node::PARAMETER].ppFirstNode+i;
 		
 		SAFENEWWITHCONSTRUCTOR(*ppN, 
 				       StrainGageParam,
@@ -1294,12 +1300,12 @@ void DataManager::ReadNodes(MBDynParser& HP)
 			      << " is supplied" << endl);
 		}	      
 		
-		flag fOut = fReadOutput(HP, NodeType::PARAMETER);
+		flag fOut = fReadOutput(HP, Node::PARAMETER);
 		
 		/* allocazione e creazione */
-		int i = NodeData[NodeType::PARAMETER].iNum
-		  -iNumTypes[NodeType::PARAMETER]-1;
-		ppN = NodeData[NodeType::PARAMETER].ppFirstNode+i;
+		int i = NodeData[Node::PARAMETER].iNum
+		  -iNumTypes[Node::PARAMETER]-1;
+		ppN = NodeData[Node::PARAMETER].ppFirstNode+i;
 		
 		SAFENEWWITHCONSTRUCTOR(*ppN, 
 				       ParameterNode,
@@ -1322,7 +1328,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     
 	     /* verifica che non siano gia' stati letti tutti 
 	      * quelli previsti */
-	     if (iNumTypes[NodeType::HYDRAULIC]-- <= 0) {
+	     if (iNumTypes[Node::HYDRAULIC]-- <= 0) {
 		DEBUGCERR("");
 		cerr << "line " << HP.GetLineData() 
 		  << ": hydraulic node " << uLabel
@@ -1332,7 +1338,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     }
 	     
 	     /* verifica di esistenza del nodo */
-	     if (pFindNode(NodeType::HYDRAULIC, uLabel) != NULL) {
+	     if (pFindNode(Node::HYDRAULIC, uLabel) != NULL) {
 		DEBUGCERR("");
 		cerr << "line " << HP.GetLineData() 
 		  << ": hydraulic node " << uLabel
@@ -1350,13 +1356,13 @@ void DataManager::ReadNodes(MBDynParser& HP)
 			  << " is supplied" << endl);
 	     }		  
 	     
-	     flag fOut = fReadOutput(HP, NodeType::HYDRAULIC);
+	     flag fOut = fReadOutput(HP, Node::HYDRAULIC);
 	     
 	     /* allocazione e creazione */
-	     int i = NodeData[NodeType::HYDRAULIC].iNum
-	       -iNumTypes[NodeType::HYDRAULIC]-1;
-	     ppN = NodeData[NodeType::HYDRAULIC].ppFirstNode+i;
-	     DofOwner* pDO = DofData[DofType::HYDRAULICNODE].pFirstDofOwner+i;
+	     int i = NodeData[Node::HYDRAULIC].iNum
+	       -iNumTypes[Node::HYDRAULIC]-1;
+	     ppN = NodeData[Node::HYDRAULIC].ppFirstNode+i;
+	     DofOwner* pDO = DofData[DofOwner::HYDRAULICNODE].pFirstDofOwner+i;
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppN, 
 				    PressureNode,
@@ -1365,7 +1371,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     
 	     break;
 	  }
-#endif // USE_HYDRAULIC_NODES
+#endif /* USE_HYDRAULIC_NODES */
 	    
 	    
 	    /* aggiungere eventuali nuovi tipi di nodo */
@@ -1427,7 +1433,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
       DEBUGCERR("");
       cerr << "warning: " << iMissingNodes
 	<< " nodes are missing;" << endl;
-      for (int iCnt = 0; iCnt < NodeType::LASTNODETYPE; iCnt++) {
+      for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
 	 if (iNumTypes[iCnt] > 0) {
 	    cerr << "  " << iNumTypes[iCnt] 
 	      << ' ' << psNodeNames[iCnt] << endl;
@@ -1471,9 +1477,9 @@ void DataManager::ReadDrivers(MBDynParser& HP)
    
    
    /* strutture di conteggio dei drivers letti */
-   int iNumTypes[DriveType::LASTDRIVETYPE];
+   int iNumTypes[Drive::LASTDRIVETYPE];
    for (int i = 0; 
-	i < DriveType::LASTDRIVETYPE; 
+	i < Drive::LASTDRIVETYPE; 
 	iNumTypes[i] = DriveData[i++].iNum) { 
       NO_OP; 
    }   
@@ -1499,7 +1505,7 @@ void DataManager::ReadDrivers(MBDynParser& HP)
        case FILEDRIVE: {	    
 	  silent_cout("Reading file driver " << uLabel << endl);
 	  
-	  if (iNumTypes[DriveType::FILEDRIVE]-- <= 0) {
+	  if (iNumTypes[Drive::FILEDRIVE]-- <= 0) {
 	     DEBUGCERR("");
 	     cerr << "line " << HP.GetLineData() 
 	       << ": driver " << uLabel
@@ -1508,9 +1514,9 @@ void DataManager::ReadDrivers(MBDynParser& HP)
 	  }	  
 	  
 	  /* allocazione e creazione */
-	  int i = DriveData[DriveType::FILEDRIVE].iNum
-	    -iNumTypes[DriveType::FILEDRIVE]-1;
-	  ppD = DriveData[DriveType::FILEDRIVE].ppFirstDrive+i;
+	  int i = DriveData[Drive::FILEDRIVE].iNum
+	    -iNumTypes[Drive::FILEDRIVE]-1;
+	  ppD = DriveData[Drive::FILEDRIVE].ppFirstDrive+i;
 	  
 	  *ppD = ReadFileDriver(this, HP, uLabel);
 	  HP.PutKeyTable(K);
@@ -1616,7 +1622,7 @@ int GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
       }	     
 #endif      
       return 0;
-   } // else   
+   } /* else */
    cerr << endl << sDMClassName
      << " at line " << HP.GetLineData()
        << ": unknown or illegal order for index " << iIndex
@@ -1631,7 +1637,7 @@ int GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
 ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
 {
    /* tabella delle parole chiave */
-   KeyTable KDof((int)NodeType::LASTNODETYPE, psReadNodesNodes);
+   KeyTable KDof((int)Node::LASTNODETYPE, psReadNodesNodes);
    HP.PutKeyTable(KDof);	     	        
 
    /* Label del nodo */
@@ -1639,8 +1645,8 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
    DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Node " << uNode << endl);
    
    /* Tipo del nodo */
-   NodeType::Type Type = NodeType::Type(HP.GetWord());
-   if (Type == NodeType::UNKNOWN) {
+   Node::Type Type = Node::Type(HP.GetWord());
+   if (Type == Node::UNKNOWN) {
       cerr << "line " << HP.GetLineData() << ": unknown node type" << endl;
       THROW(ErrGeneric());
    }   
@@ -1820,7 +1826,7 @@ Shape* ReadShape(MBDynParser& HP)
    ASSERT(pS != NULL);
    return pS;   
 } /* ReadShape */
-#endif // STRUCT && AERODYNAMIC
+#endif /* STRUCT && AERODYNAMIC */
 
 #ifdef TMP
 #define DEBUG_MEMMANAGER

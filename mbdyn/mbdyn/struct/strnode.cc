@@ -82,10 +82,10 @@ StructNode::~StructNode(void)
 
 
 /* Tipo di nodo */
-NodeType::Type 
+Node::Type 
 StructNode::GetNodeType(void) const
 {
-   return NodeType::STRUCTURAL;
+   return Node::STRUCTURAL;
 }
 
 
@@ -94,9 +94,9 @@ ostream&
 StructNode::Restart(ostream& out) const
 {
    out << "  structural: " << GetLabel() << ", ";
-   if (GetStructNodeType() == StructNodeType::DYNAMIC) {	
+   if (GetStructNodeType() == StructNode::DYNAMIC) {	
       out << "dynamic";
-   } else if (GetStructNodeType() == StructNodeType::STATIC) {	
+   } else if (GetStructNodeType() == StructNode::STATIC) {	
 	out << "static";
    }
    out << ", reference, global, ";
@@ -406,10 +406,10 @@ DynamicStructNode::~DynamicStructNode(void)
 
 
 /* Tipo di nodo strutturale */
-StructNodeType::Type 
+StructNode::Type 
 DynamicStructNode::GetStructNodeType(void) const
 {
-   return StructNodeType::DYNAMIC;
+   return StructNode::DYNAMIC;
 }
 
    
@@ -464,10 +464,10 @@ StaticStructNode::~StaticStructNode(void)
 
 
 /* Tipo di nodo strutturale */
-StructNodeType::Type 
+StructNode::Type 
 StaticStructNode::GetStructNodeType(void) const
 {
-   return StructNodeType::STATIC; 
+   return StructNode::STATIC; 
 }
 
 
@@ -512,10 +512,10 @@ ModalNode::~ModalNode(void)
 
 
 /* Tipo di nodo strutturale */
-StructNodeType::Type 
+StructNode::Type 
 ModalNode::GetStructNodeType(void) const
 {
-   return StructNodeType::MODAL;
+   return StructNode::MODAL;
 }
 
    
@@ -587,10 +587,10 @@ DummyStructNode::Err(void) const
 
 
 /* Tipo di nodo strutturale */
-StructNodeType::Type 
+StructNode::Type 
 DummyStructNode::GetStructNodeType(void) const
 {
-   return StructNodeType::DUMMY;
+   return StructNode::DUMMY;
 }
 
 
@@ -939,7 +939,7 @@ ReadStructNode(DataManager* pDM,
 	    DEBUGCOUT("Omega rotates? : " << fOmRot << endl);
 	 }
       }
-      fOut = pDM->fReadOutput(HP, NodeType::STRUCTURAL);   
+      fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);   
       
       /* Se non c'e' il punto e virgola finale */
       if (HP.fIsArg()) {
@@ -966,7 +966,7 @@ ReadStructNode(DataManager* pDM,
 						  fOmRot, fOut), DMmm);
 	 
 	 /* Incrementa il numero di elementi automatici dei nodi dinamici */
-	 pDM->ElemData[ElemType::AUTOMATICSTRUCTURAL].iNum++;
+	 pDM->ElemData[Elem::AUTOMATICSTRUCTURAL].iNum++;
 	 
       } else if(CurrType == MODAL) {
 	 SAFENEWWITHCONSTRUCTOR(pNd, ModalNode,

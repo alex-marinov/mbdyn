@@ -64,7 +64,7 @@ void DataManager::SetTime(doublereal dTime)
    DrvHdl.SetTime(dTime);
    
    /* serve i drive pending */
-   for (int iType = 0; iType < DriveType::LASTDRIVETYPE; iType++) {
+   for (int iType = 0; iType < Drive::LASTDRIVETYPE; iType++) {
       for (unsigned int iCnt = 0; iCnt < DriveData[iType].iNum; iCnt++) {
 	 DriveData[iType].ppFirstDrive[iCnt]->ServePending();
       }
@@ -205,23 +205,23 @@ void DataManager::InitialJointAssembly(void)
 {
    /* Costruisce la struttura temporanea dei Dof */
    
-   ASSERTMSG(DofData[DofType::JOINT].iNum > 0, 
+   ASSERTMSG(DofData[DofOwner::JOINT].iNum > 0, 
 	     "Warning, no joints are defined; You shouldn't have reached this point");
-   ASSERT(DofData[DofType::STRUCTURALNODE].iNum > 0);
+   ASSERT(DofData[DofOwner::STRUCTURALNODE].iNum > 0);
 
    /* Nodi strutturali: mette gli indici ai DofOwner */
    StructNode** ppFirstNode = 
-     (StructNode**)NodeData[NodeType::STRUCTURAL].ppFirstNode;
-   integer iNumNodes = NodeData[NodeType::STRUCTURAL].iNum;
+     (StructNode**)NodeData[Node::STRUCTURAL].ppFirstNode;
+   integer iNumNodes = NodeData[Node::STRUCTURAL].iNum;
    
    StructNode** ppNode = ppFirstNode;     
-   DofOwner* pTmp = DofData[DofType::STRUCTURALNODE].pFirstDofOwner;
+   DofOwner* pTmp = DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner;
    
    integer iIndex = 0;    /* Indice dei gradi di liberta' */
    unsigned int iNumDofs = 0;  /* numero di dof di un owner */
    for(int iCnt = 1; 
-       pTmp < DofData[DofType::STRUCTURALNODE].pFirstDofOwner+
-       DofData[DofType::STRUCTURALNODE].iNum;
+       pTmp < DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner+
+       DofData[DofOwner::STRUCTURALNODE].iNum;
        iCnt++, pTmp++, ppNode++) {
       iNumDofs = pTmp->iNumDofs = (*ppNode)->iGetInitialNumDof();
       if(iNumDofs > 0) {
@@ -239,16 +239,16 @@ void DataManager::InitialJointAssembly(void)
 
    
    /* Elementi: mette gli indici agli eventuali DofOwner */   
-   for(int iCnt1 = 0; iCnt1 < ElemType::LASTELEMTYPE; iCnt1++) {
+   for(int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
       /* Pre ogni tipo di elemento */
       if(ElemData[iCnt1].fToBeUsedInAssembly && ElemData[iCnt1].iNum > 0) {
 	 /* Se deve essere usato nell'assemblaggio e ne sono definiti */
 	 
 	 /* Tipo di dof dell'elemento corrente */
-	 DofType::Type CurrDofType = 
+	 DofOwner::Type CurrDofType = 
 	   ElemData[iCnt1].DofOwnerType;
 	 
-	 if(CurrDofType != DofType::UNKNOWN) {
+	 if(CurrDofType != DofOwner::UNKNOWN) {
 	    
 	    /* Puntatore al primo DofOwner */
 	    pTmp = DofData[CurrDofType].pFirstDofOwner;
@@ -402,9 +402,9 @@ void DataManager::InitialJointAssembly(void)
    
    /* Setta i valori iniziali dei gradi di liberta' dei vincoli
     * durante l'assemblaggio iniziale */
-   for(int iCnt1 = 0; iCnt1 < ElemType::LASTELEMTYPE; iCnt1++) {
+   for(int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
       /* Pre ogni tipo di elemento */
-      if(ElemData[iCnt1].DofOwnerType != DofType::UNKNOWN &&
+      if(ElemData[iCnt1].DofOwnerType != DofOwner::UNKNOWN &&
 	 ElemData[iCnt1].fToBeUsedInAssembly &&
 	 ElemData[iCnt1].iNum > 0) {
 	 
@@ -641,16 +641,16 @@ endofcycle:
    /* Resetta e distrugge la struttura temporanea dei Dof */
 
    /* Elementi: rimette a posto il numero di Dof propri dei vincoli */
-   for(int iCnt1 = 0; iCnt1 < ElemType::LASTELEMTYPE; iCnt1++) {
+   for(int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
       /* Per ogni tipo di elemento */
-      if(ElemData[iCnt1].DofOwnerType != DofType::UNKNOWN &&
+      if(ElemData[iCnt1].DofOwnerType != DofOwner::UNKNOWN &&
 	 ElemData[iCnt1].fToBeUsedInAssembly &&
 	 ElemData[iCnt1].iNum > 0) {
 	 /* Se possiede dofs, se deve essere usato nell'assemblaggio
 	  * e se ne sono presenti */
 	 
 	 /* Tipo di dof dell'elemento corrente */
-	 DofType::Type CurrDofType = 
+	 DofOwner::Type CurrDofType = 
 	   ElemData[iCnt1].DofOwnerType;
 	 /* Puntatore al primo DofOwner */
 	 pTmp = DofData[CurrDofType].pFirstDofOwner;
@@ -693,9 +693,9 @@ void DataManager::DofOwnerSet(void)
    }
      
    /* Setta i DofOwner degli elementi (chi li possiede) */
-   for (int iCnt = 0; iCnt < ElemType::LASTELEMTYPE; iCnt++) {
-      DofType::Type DT = ElemData[iCnt].DofOwnerType;
-      if (DT != DofType::UNKNOWN) {
+   for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
+      DofOwner::Type DT = ElemData[iCnt].DofOwnerType;
+      if (DT != DofOwner::UNKNOWN) {
 	 DEBUGLCOUT(MYDEBUG_INIT, "Elem type " << iCnt 
 		    << " (" << psElemNames[iCnt] << ")" << endl);
 	 
@@ -890,7 +890,7 @@ void DataManager::DerivativesUpdate(void) const
    Node** ppLastNode = ppNodes+iTotNodes;
    for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
       ASSERT(*ppTmp != NULL);
-      if ((*ppTmp)->GetNodeType() == NodeType::STRUCTURAL) {
+      if ((*ppTmp)->GetNodeType() == Node::STRUCTURAL) {
 	 (*(StructNode**)ppTmp)->DerivativesUpdate(*pXCurr, *pXPrimeCurr);
       } else {	 
 	 (*ppTmp)->Update(*pXCurr, *pXPrimeCurr);

@@ -213,12 +213,12 @@ LoadableElem::LoadableElem(unsigned int uLabel,
 			   const DofOwner* pDO, 
 			   DataManager* pDM, 
 			   MBDynParser& HP)
-: Elem(uLabel, ElemType::LOADABLE, flag(0)),
+: Elem(uLabel, Elem::LOADABLE, flag(0)),
 #ifdef USE_STRUCT_NODES
-InitialAssemblyElem(uLabel, ElemType::LOADABLE, flag(0)),
-ElemGravityOwner(uLabel, ElemType::LOADABLE, flag(0)),
+InitialAssemblyElem(uLabel, Elem::LOADABLE, flag(0)),
+ElemGravityOwner(uLabel, Elem::LOADABLE, flag(0)),
 #endif /* USE_STRUCT_NODES */
-ElemWithDofs(uLabel, ElemType::LOADABLE, pDO, flag(0)),
+ElemWithDofs(uLabel, Elem::LOADABLE, pDO, flag(0)),
 priv_data(NULL),
 module_name(NULL),
 handle(NULL),
@@ -386,7 +386,7 @@ calls(NULL)
 	}
 	
    	priv_data = (*calls->read)(this, pDM, HP, pDM->pGetDrvHdl());
-   	SetOutputFlag(pDM->fReadOutput(HP, ElemType::LOADABLE)); 
+   	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE)); 
 }
 
 LoadableElem::~LoadableElem(void)
@@ -399,10 +399,10 @@ LoadableElem::~LoadableElem(void)
    	SAFEDELETEARR(module_name, DMmm);
 }
 
-ElemType::Type 
+Elem::Type 
 LoadableElem::GetElemType(void) const
 {
-   	return ElemType::LOADABLE;
+   	return Elem::LOADABLE;
 }
 
 unsigned int 

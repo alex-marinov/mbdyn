@@ -98,16 +98,16 @@ DofPlugIn::ReadNode(unsigned int uLabel, const char *s)
 {
 	Node *pNode = NULL;
 	unsigned int i;
-	for (i = 0; i < NodeType::LASTNODETYPE; i++) {
+	for (i = 0; i < Node::LASTNODETYPE; i++) {
 		if (strcasecmp(s, psReadNodesNodes[i]) == 0) {
 			break;
 		}
 	}
-	if (i == NodeType::LASTNODETYPE) {
+	if (i == Node::LASTNODETYPE) {
 		cerr << "unknown node type '" << s << "'" << endl;
 		THROW(ErrGeneric());
 	}
-	if ((pNode = pDM->pFindNode(NodeType::Type(i), uLabel)) == NULL) {
+	if ((pNode = pDM->pFindNode(Node::Type(i), uLabel)) == NULL) {
 		cerr << "node " << uLabel << " not defined" << endl;
 		THROW(ErrGeneric());
 	}

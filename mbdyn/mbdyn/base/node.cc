@@ -345,9 +345,9 @@ ParameterNode::~ParameterNode(void)
 
 
 /* Tipo del nodo (usato solo per debug ecc.) */
-NodeType::Type ParameterNode::GetNodeType(void) const
+Node::Type ParameterNode::GetNodeType(void) const
 {
-   return NodeType::PARAMETER;
+   return Node::PARAMETER;
 }
 
 
@@ -449,7 +449,7 @@ Node2Scalar::~Node2Scalar(void)
 
 
 /* Tipo del nodo (usato solo per debug ecc.) */
-NodeType::Type Node2Scalar::GetNodeType(void) const
+Node::Type Node2Scalar::GetNodeType(void) const
 {
    return ND.pNode->GetNodeType();
 }

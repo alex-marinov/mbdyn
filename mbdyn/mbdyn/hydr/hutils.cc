@@ -55,7 +55,7 @@ Accumulator::Accumulator(unsigned int uL, const DofOwner* pDO,
 			 doublereal Wg, doublereal Kspr,doublereal F0,
 			 doublereal cs, doublereal cv, doublereal ca,
 			 flag fOut)
-: Elem(uL, ElemType::HYDRAULIC, fOut),
+: Elem(uL, Elem::HYDRAULIC, fOut),
 HydraulicElem(uL, pDO, hf, fOut),
 pNode1(p1),
 stroke(St), start(start), area(As), area_pipe(A_pipe), mass(ms),
@@ -64,7 +64,7 @@ Kappa(k), weight(Wg), spring(Kspr),force0(F0), h_in(h_in), h_out(h_out),
 c_spost(cs), c_vel(cv), c_acc(ca)
 {
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(St > DBL_EPSILON);
    ASSERT(As > DBL_EPSILON); 
    ASSERT(A_pipe > DBL_EPSILON); 
@@ -93,10 +93,10 @@ Accumulator::~Accumulator(void)
 }
    
 /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-HydraulicType::Type  
+HydraulicElem::Type  
 Accumulator::GetHydraulicType(void) const 
 {
-   return HydraulicType:: ACCUMULATOR;
+   return HydraulicElem::ACCUMULATOR;
 }
 
 /* Contributo al file di restart */
@@ -395,16 +395,16 @@ Tank::Tank(unsigned int uL, const DofOwner* pDO, HydraulicFluid* hf,
 	   doublereal Ps,doublereal A_pipe,
 	   doublereal A_serb, doublereal lev, doublereal s_mx, 
 	   doublereal s_mn, doublereal c_s, flag fOut) 
-: Elem(uL, ElemType::HYDRAULIC, fOut),
+: Elem(uL, Elem::HYDRAULIC, fOut),
 HydraulicElem(uL, pDO, hf, fOut),
 pNode1(p1), pNode2(p2),
 press(Ps), area_pipe(A_pipe), area_serb(A_serb),level(lev),
 s_max(s_mx), s_min(s_mn), c_spost(c_s)
 {
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
    ASSERT(Ps > DBL_EPSILON);
    ASSERT(A_pipe > DBL_EPSILON);
    ASSERT(A_serb > DBL_EPSILON);
@@ -424,10 +424,10 @@ Tank::~Tank(void)
 
 
 /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-HydraulicType::Type 
+HydraulicElem::Type 
 Tank::GetHydraulicType(void) const 
 {
-   return HydraulicType::TANK;
+   return HydraulicElem::TANK;
 }
 
 

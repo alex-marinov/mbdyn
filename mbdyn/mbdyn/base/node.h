@@ -45,44 +45,22 @@
 #include "withlab.h"
 #include "dofown.h"
 
-/* Tipi di Node */
-
-///Tipi di Node
-class NodeType {
- public:
-   /** Enumerazione dei tipi di nodi */
-   enum Type {
-      UNKNOWN = -1,
-	ABSTRACT = 0,
-
-	STRUCTURAL,
-
-	ELECTRIC,
-
-	PARAMETER,
-
-	HYDRAULIC,
-
-	LASTNODETYPE
-   };
-};
-
 /** 
  Array dei nomi dei nodi. 
  Usato per output
- @see NodeType
+ @see Node::Type
  */
 extern const char* psNodeNames[];
 /** 
  Array delle stringhe di identificazione dei tipi di nodi.
  Usato per input di controllo
- @see NodeType
+ @see Node::Type
  */
 extern const char* psReadControlNodes[];
 /** 
  Array delle stringhe di identificazione dei tipi di nodi.
  Usato per input dei nodi
- @see NodeType
+ @see Node::Type
  */
 extern const char* psReadNodesNodes[];
 
@@ -91,6 +69,20 @@ extern const char* psReadNodesNodes[];
 
 /// Nodi
 class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
+ public:
+   /** Enumerazione dei tipi di nodi */
+   enum Type {
+      UNKNOWN = -1,
+
+	ABSTRACT = 0,
+	STRUCTURAL,
+	ELECTRIC,
+	PARAMETER,
+	HYDRAULIC,
+
+	LASTNODETYPE
+   };
+
  public:
    /* Errori: */
    class ErrGeneric {};
@@ -117,7 +109,7 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
    //@{
 
    /** Tipo del nodo (usato per debug ecc.) */
-   virtual NodeType::Type GetNodeType(void) const = 0;
+   virtual Node::Type GetNodeType(void) const = 0;
 
    /** Contributo del nodo al file di restart */
    virtual ostream& Restart(ostream& out) const = 0;
@@ -492,7 +484,7 @@ class ParameterNode : public ScalarAlgebraicNode {
    /**@name Metodi di servizio */
    //@{
    /** Tipo del nodo. Usato solo per debug ecc. */
-   virtual NodeType::Type GetNodeType(void) const;
+   virtual Node::Type GetNodeType(void) const;
    
    /** Contributo del nodo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -602,7 +594,7 @@ class Node2Scalar : public ScalarNode {
    /** Metodi di servizio */
    //@{
    /** Tipo del nodo. Uusato per debug ecc. */
-   virtual NodeType::Type GetNodeType(void) const;
+   virtual Node::Type GetNodeType(void) const;
 
    /** Contributo del nodo al file di restart */
    virtual ostream& Restart(ostream& out) const;

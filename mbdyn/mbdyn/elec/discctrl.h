@@ -284,6 +284,9 @@ class DiscreteControlElem : virtual public Elem, public Electric {
       return (void*)this;
    };
 
+   virtual Electric::Type GetElectric(void) const {
+      return Electric::DISCRETECONTROL;
+   };
 
    /* Scrive il contributo dell'elemento al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -351,7 +354,7 @@ class DiscreteControlElem : virtual public Elem, public Electric {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = iNumInputs +iNumOutputs;
      for(int i = 0; i <= iNumInputs-1; i++) { 
        NdTyps[i] = (pInputs[i].pNode)->GetNodeType();

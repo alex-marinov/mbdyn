@@ -44,8 +44,8 @@ PlaneHingeJoint::PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
 				 const Vec3& dTmp1, const Vec3& dTmp2,
 				 const Mat3x3& R1hTmp, const Mat3x3& R2hTmp,
 				 flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::PLANEHINGE, pDO, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::PLANEHINGE, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.)
 {
@@ -319,7 +319,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
    if (fToBeOutput()) {
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[JointType::PLANEHINGE] 
+	<< psJointNames[Joint::PLANEHINGE] 
 	<< "\", linked to nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() << ':' << endl 
 	<< "Distance from node 1 (node reference frame): " << endl << d1 << endl 
@@ -755,8 +755,8 @@ AxialRotationJoint::AxialRotationJoint(unsigned int uL, const DofOwner* pDO,
 				       const Mat3x3& R1hTmp, 
 				       const Mat3x3& R2hTmp,
 				       const DriveCaller* pDC, flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::AXIALROTATION, pDO, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::AXIALROTATION, pDO, fOut), 
 DriveOwner(pDC), 
 pNode1(pN1), pNode2(pN2), 
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.)
@@ -1048,7 +1048,7 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
    if (fToBeOutput()) {
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[JointType::AXIALROTATION]
+	<< psJointNames[Joint::AXIALROTATION]
 	<< "\", linked to nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() << ':' << endl 
 	<< "Distance from node 1 (node reference frame): " << endl << d1 << endl 
@@ -1475,8 +1475,8 @@ PlanePinJoint::PlanePinJoint(unsigned int uL, const DofOwner* pDO,
 			     const Vec3& X0Tmp, const Mat3x3& R0Tmp, 
 			     const Vec3& dTmp, const Mat3x3& RhTmp,
 			     flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::AXIALROTATION, pDO, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::PLANEPIN, pDO, fOut), 
 pNode(pN), 
 X0(X0Tmp), R0(R0Tmp), d(dTmp), Rh(RhTmp),
 F(0.), M(0.)
@@ -1674,7 +1674,7 @@ void PlanePinJoint::Output(OutputHandler& OH) const
    if (fToBeOutput()) {
 #ifdef DEBUG
       OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[JointType::PLANEPIN]
+	<< psJointNames[Joint::PLANEPIN]
 	<< "\", linked to node " << pNode->GetLabel() << ':' << endl
 	<< "Distance from node (node reference frame): " << endl << d << endl
 	<< "Hinge rotation matrix (node reference frame): " << endl << Rh << endl

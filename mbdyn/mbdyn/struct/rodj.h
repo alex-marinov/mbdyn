@@ -36,10 +36,15 @@
 #include "joint.h"
 #include "constltp.h"
 
+extern const char* psRodNames[];
 
-/* Tipi di rods */
-class RodType {
+
+/* Rod - begin */
+
+class Rod : 
+virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
  public:
+   /* Tipi di rods */
    enum Type {
       UNKNOWN = -1,
 	ELASTIC = 0,
@@ -48,17 +53,9 @@ class RodType {
 	
 	LASTRODTYPE
    };
-};
 
-extern const char* psRodNames[];
-
-
-/* RodJoint - begin */
-
-class RodJoint : 
-virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
  private: 
-   RodType::Type RodT;
+   Rod::Type RodT;
    
  protected:
    const StructNode* pNode1;
@@ -80,42 +77,35 @@ virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
    void AssVec(SubVectorHandler& WorkVec);
    
    /* Sets the type */
-   void SetRodType(RodType::Type T) { 
+   void SetRodType(Rod::Type T) { 
       RodT = T;
    };
    
  public:
    /* Costruttore non banale */
-   RodJoint(unsigned int uL, const DofOwner* pDO, const ConstitutiveLaw1D* pCL,
+   Rod(unsigned int uL, const DofOwner* pDO, const ConstitutiveLaw1D* pCL,
 	    const StructNode* pN1, const StructNode* pN2,
 	    doublereal dLength, flag fOut,
 	    flag fHasOffsets = 0);
    
    /* Distruttore */
-   virtual ~RodJoint(void);
+   virtual ~Rod(void);
    
    virtual inline void* pGet(void) const { 
       return (void*)this;
    };
       
-   /* Tipo di Joint 
-   virtual JointType::Type GetJointType(void) const {
-      return JointType::ROD; 
+   /* Tipo di Joint */
+   virtual Joint::Type GetJointType(void) const {
+      return Joint::ROD; 
    };
-    */
       
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
 
-   /* Tipo di Rod
-   virtual RodType::Type GetRodType(void) const {
-      return RodType::ELASTIC; 
-   };
-    */
-   
    /* Tipo di Rod */
-   virtual RodType::Type GetRodType(void) const {
-      return RodT;
+   virtual Rod::Type GetRodType(void) const {
+      return Rod::ELASTIC; 
    };
    
    virtual unsigned int iGetNumDof(void) const { 
@@ -169,16 +159,10 @@ virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
    virtual SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
 				   const VectorHandler& XCurr);   
 
-#ifdef DEBUG
-   virtual const char* sClassName(void) const { 
-      return "RodJoint";
-   };
-#endif
-
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = pNode1->GetNodeType();
      NdLabels[0] = pNode1->GetLabel();
@@ -195,31 +179,30 @@ virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
    virtual ostream& WriteAdamsDummyPartCmd(ostream& out, unsigned int part, unsigned int firstId) const;
 };
 
-/* RodJoint - end */
+/* Rod - end */
 
 
-/* ViscoElasticRodJoint - begin */
+/* ViscoElasticRod - begin */
 
-class ViscoElasticRodJoint : virtual public Elem, public RodJoint {
+class ViscoElasticRod : virtual public Elem, public Rod {
  public:
    /* Costruttore non banale */
-   ViscoElasticRodJoint(unsigned int uL, const DofOwner* pDO,
+   ViscoElasticRod(unsigned int uL, const DofOwner* pDO,
 			const ConstitutiveLaw1D* pCL,
 			const StructNode* pN1, const StructNode* pN2,
 			doublereal dLength, flag fOut);
    
    /* Distruttore */
-   virtual ~ViscoElasticRodJoint(void);
+   virtual ~ViscoElasticRod(void);
 
    virtual inline void* pGet(void) const { 
       return (void*)this;
    };
    
-   /* Tipo di Rod 
-   virtual RodType::Type GetRodType(void) const {
-      return RodType::VISCOELASTIC; 
+   /* Tipo di Rod */
+   virtual Rod::Type GetRodType(void) const {
+      return Rod::VISCOELASTIC; 
    };
-    */
    
    virtual VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
 					    doublereal dCoef,
@@ -245,34 +228,28 @@ class ViscoElasticRodJoint : virtual public Elem, public RodJoint {
    /* Contributo al residuo durante l'assemblaggio iniziale */   
    virtual SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
 				   const VectorHandler& XCurr);   
-   
-#ifdef DEBUG
-   virtual const char* sClassName(void) const { 
-      return "ViscoElasticRodJoint";
-   };
-#endif   
 };
 
-/* ViscoElasticRodJoint - end */
+/* ViscoElasticRod - end */
 
 
-/* RodWithOffsetJoint - begin */
+/* RodWithOffset - begin */
 
-class RodWithOffsetJoint : virtual public Elem, public RodJoint {
+class RodWithOffset : virtual public Elem, public Rod {
  protected:
    const Vec3 f1;
    const Vec3 f2;
       
  public:
    /* Costruttore non banale */
-   RodWithOffsetJoint(unsigned int uL, const DofOwner* pDO, 
+   RodWithOffset(unsigned int uL, const DofOwner* pDO, 
 		      const ConstitutiveLaw1D* pCL,
 		      const StructNode* pN1, const StructNode* pN2,
 		      const Vec3& f1Tmp, const Vec3& f2Tmp,
 		      doublereal dLength, flag fOut);
    
    /* Distruttore */
-   virtual ~RodWithOffsetJoint(void);
+   virtual ~RodWithOffset(void);
 
    virtual inline void* pGet(void) const { 
       return (void*)this;
@@ -281,11 +258,10 @@ class RodWithOffsetJoint : virtual public Elem, public RodJoint {
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
    
-   /* Tipo di Rod 
-   virtual RodType::Type GetRodType(void) const { 
-      return RodType::VISCOELASTICWITHOFFSET; 
+   /* Tipo di Rod */
+   virtual Rod::Type GetRodType(void) const { 
+      return Rod::VISCOELASTICWITHOFFSET; 
    };
-    */
    
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
       *piNumRows = 12;
@@ -327,6 +303,7 @@ class RodWithOffsetJoint : virtual public Elem, public RodJoint {
 
 };
 
-/* RodWithOffsetJoint - end */
+/* RodWithOffset - end */
 
-#endif
+#endif /* RODJ_H */
+

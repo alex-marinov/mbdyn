@@ -45,10 +45,10 @@ const char sEMClassName[] = "DataManager";
 void DataManager::ElemManager(void)
 {
    /* Reset della struttura ElemData */
-   for(int i = 0; i < ElemType::LASTELEMTYPE; i++) {
+   for(int i = 0; i < Elem::LASTELEMTYPE; i++) {
       ElemData[i].ppFirstElem = NULL;
       ElemData[i].iNum = 0;
-      ElemData[i].DofOwnerType = DofType::UNKNOWN;
+      ElemData[i].DofOwnerType = DofOwner::UNKNOWN;
       ElemData[i].fIsUnique = flag(0);
       ElemData[i].fToBeUsedInAssembly = flag(0);
       ElemData[i].fGeneratesInertialForces = flag(0);
@@ -58,65 +58,65 @@ void DataManager::ElemManager(void)
    }
    
    /* Se un tipo possiede Dof propri aggiungere qui il tipo di Dof */
-   ElemData[ElemType::JOINT].DofOwnerType = DofType::JOINT;
-   ElemData[ElemType::ELECTRIC].DofOwnerType = DofType::ELECTRIC;
-   ElemData[ElemType::ELECTRICBULK].DofOwnerType = DofType::ELECTRICBULK;
-   ElemData[ElemType::GENEL].DofOwnerType = DofType::GENEL;
-   ElemData[ElemType::ROTOR].DofOwnerType = DofType::ROTOR;
-   ElemData[ElemType::HYDRAULIC].DofOwnerType = DofType::HYDRAULIC;
-   ElemData[ElemType::LOADABLE].DofOwnerType = DofType::LOADABLE;
+   ElemData[Elem::JOINT].DofOwnerType = DofOwner::JOINT;
+   ElemData[Elem::ELECTRIC].DofOwnerType = DofOwner::ELECTRIC;
+   ElemData[Elem::ELECTRICBULK].DofOwnerType = DofOwner::ELECTRICBULK;
+   ElemData[Elem::GENEL].DofOwnerType = DofOwner::GENEL;
+   ElemData[Elem::ROTOR].DofOwnerType = DofOwner::ROTOR;
+   ElemData[Elem::HYDRAULIC].DofOwnerType = DofOwner::HYDRAULIC;
+   ElemData[Elem::LOADABLE].DofOwnerType = DofOwner::LOADABLE;
    
    /* Se un tipo scrive su un file di output, aggiungere qui il tipo di file */
-   ElemData[ElemType::AUTOMATICSTRUCTURAL].OutFile = OutputHandler::INERTIA;
-   ElemData[ElemType::JOINT].OutFile = OutputHandler::JOINTS;
-   ElemData[ElemType::FORCE].OutFile = OutputHandler::FORCES;
-   ElemData[ElemType::BEAM].OutFile = OutputHandler::BEAMS;
-   ElemData[ElemType::ROTOR].OutFile = OutputHandler::ROTORS;   
-   ElemData[ElemType::AERODYNAMIC].OutFile = OutputHandler::AERODYNAMIC;
-   ElemData[ElemType::HYDRAULIC].OutFile = OutputHandler::HYDRAULIC;
-   ElemData[ElemType::LOADABLE].OutFile = OutputHandler::LOADABLE;
-   ElemData[ElemType::GENEL].OutFile = OutputHandler::GENELS;
+   ElemData[Elem::AUTOMATICSTRUCTURAL].OutFile = OutputHandler::INERTIA;
+   ElemData[Elem::JOINT].OutFile = OutputHandler::JOINTS;
+   ElemData[Elem::FORCE].OutFile = OutputHandler::FORCES;
+   ElemData[Elem::BEAM].OutFile = OutputHandler::BEAMS;
+   ElemData[Elem::ROTOR].OutFile = OutputHandler::ROTORS;   
+   ElemData[Elem::AERODYNAMIC].OutFile = OutputHandler::AERODYNAMIC;
+   ElemData[Elem::HYDRAULIC].OutFile = OutputHandler::HYDRAULIC;
+   ElemData[Elem::LOADABLE].OutFile = OutputHandler::LOADABLE;
+   ElemData[Elem::GENEL].OutFile = OutputHandler::GENELS;
    
    /* Tabella delle derivazioni */
-   ElemData[ElemType::AUTOMATICSTRUCTURAL].iDerivation = ELEM;
-   ElemData[ElemType::GRAVITY].iDerivation = ELEM;
-   ElemData[ElemType::BODY].iDerivation = ELEM | GRAVITYOWNER | INITIALASSEMBLY;
-   ElemData[ElemType::JOINT].iDerivation = ELEM | DOFOWNER | INITIALASSEMBLY;
-   ElemData[ElemType::GENEL].iDerivation = ELEM | DOFOWNER;
-   ElemData[ElemType::FORCE].iDerivation = ELEM | INITIALASSEMBLY;
-   ElemData[ElemType::BEAM].iDerivation = ELEM | GRAVITYOWNER | INITIALASSEMBLY;
-   ElemData[ElemType::PLATE].iDerivation = ELEM | INITIALASSEMBLY;
-   ElemData[ElemType::AIRPROPERTIES].iDerivation = ELEM | INITIALASSEMBLY;
-   ElemData[ElemType::ROTOR].iDerivation = ELEM | DOFOWNER | AIRPROPOWNER;
-   ElemData[ElemType::AERODYNAMIC].iDerivation = ELEM | AIRPROPOWNER |INITIALASSEMBLY;
-   ElemData[ElemType::ELECTRIC].iDerivation = ELEM | DOFOWNER;
-   ElemData[ElemType::ELECTRICBULK].iDerivation = ELEM | DOFOWNER;
-   ElemData[ElemType::BULK].iDerivation = ELEM;
-   ElemData[ElemType::LOADABLE].iDerivation = ELEM | GRAVITYOWNER | INITIALASSEMBLY | DOFOWNER;   
-   ElemData[ElemType::DRIVEN].iDerivation = ELEM;
+   ElemData[Elem::AUTOMATICSTRUCTURAL].iDerivation = ELEM;
+   ElemData[Elem::GRAVITY].iDerivation = ELEM;
+   ElemData[Elem::BODY].iDerivation = ELEM | GRAVITYOWNER | INITIALASSEMBLY;
+   ElemData[Elem::JOINT].iDerivation = ELEM | DOFOWNER | INITIALASSEMBLY;
+   ElemData[Elem::GENEL].iDerivation = ELEM | DOFOWNER;
+   ElemData[Elem::FORCE].iDerivation = ELEM | INITIALASSEMBLY;
+   ElemData[Elem::BEAM].iDerivation = ELEM | GRAVITYOWNER | INITIALASSEMBLY;
+   ElemData[Elem::PLATE].iDerivation = ELEM | INITIALASSEMBLY;
+   ElemData[Elem::AIRPROPERTIES].iDerivation = ELEM | INITIALASSEMBLY;
+   ElemData[Elem::ROTOR].iDerivation = ELEM | DOFOWNER | AIRPROPOWNER;
+   ElemData[Elem::AERODYNAMIC].iDerivation = ELEM | AIRPROPOWNER |INITIALASSEMBLY;
+   ElemData[Elem::ELECTRIC].iDerivation = ELEM | DOFOWNER;
+   ElemData[Elem::ELECTRICBULK].iDerivation = ELEM | DOFOWNER;
+   ElemData[Elem::BULK].iDerivation = ELEM;
+   ElemData[Elem::LOADABLE].iDerivation = ELEM | GRAVITYOWNER | INITIALASSEMBLY | DOFOWNER;   
+   ElemData[Elem::DRIVEN].iDerivation = ELEM;
 
    /* Aggiungere qui il flag di elemento unico */
-   ElemData[ElemType::GRAVITY].fIsUnique = flag(1);
-   ElemData[ElemType::AIRPROPERTIES].fIsUnique = flag(1);
+   ElemData[Elem::GRAVITY].fIsUnique = flag(1);
+   ElemData[Elem::AIRPROPERTIES].fIsUnique = flag(1);
 
    /* Aggiungere qui se un tipo deve essere usato di default 
     * nell'assemblaggio iniziale */
-   ElemData[ElemType::JOINT].fToBeUsedInAssembly = flag(1);
-   ElemData[ElemType::BEAM].fToBeUsedInAssembly = flag(1);  
+   ElemData[Elem::JOINT].fToBeUsedInAssembly = flag(1);
+   ElemData[Elem::BEAM].fToBeUsedInAssembly = flag(1);  
    
    /* Aggiungere qui se un tipo genera forze d'inerzia e quindi
     * deve essere collegato all'elemento accelerazione di gravita' */
-   ElemData[ElemType::BODY].fGeneratesInertialForces = flag(1);
-   ElemData[ElemType::LOADABLE].fGeneratesInertialForces = flag(1);
+   ElemData[Elem::BODY].fGeneratesInertialForces = flag(1);
+   ElemData[Elem::LOADABLE].fGeneratesInertialForces = flag(1);
    
    /* Aggiungere qui se un tipo usa le proprieta' dell'aria e quindi
     * deve essere collegato all'elemento proprieta' dell'aria */
-   ElemData[ElemType::ROTOR].fUsesAirProperties = flag(1);
-   ElemData[ElemType::AERODYNAMIC].fUsesAirProperties = flag(1);
+   ElemData[Elem::ROTOR].fUsesAirProperties = flag(1);
+   ElemData[Elem::AERODYNAMIC].fUsesAirProperties = flag(1);
    
    
    /* Reset della struttura DriveData */
-   for(int i = 0; i < DriveType::LASTDRIVETYPE; i++) {
+   for(int i = 0; i < Drive::LASTDRIVETYPE; i++) {
       DriveData[i].ppFirstDrive = NULL;
       DriveData[i].iNum = 0;
    }
@@ -211,7 +211,7 @@ void DataManager::ElemManagerDestructor(void)
 void DataManager::ElemDataInit(void)
 {
    /* struttura degli elementi */
-   for (int iCnt = 0; iCnt < ElemType::LASTELEMTYPE; iCnt++) {	   
+   for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {	   
       iTotElem += ElemData[iCnt].iNum;
    }	
    
@@ -230,7 +230,7 @@ void DataManager::ElemDataInit(void)
       }
       
       ElemData[0].ppFirstElem = ppElems;
-      for (int iCnt = 0; iCnt < ElemType::LASTELEMTYPE-1; iCnt++) {	      
+      for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE-1; iCnt++) {	      
 	 ElemData[iCnt+1].ppFirstElem =
 	   ElemData[iCnt].ppFirstElem+ElemData[iCnt].iNum;
       }
@@ -241,7 +241,7 @@ void DataManager::ElemDataInit(void)
 
 		
    /* struttura dei drivers */
-   for (int iCnt = 0; iCnt < DriveType::LASTDRIVETYPE; iCnt++) {	   
+   for (int iCnt = 0; iCnt < Drive::LASTDRIVETYPE; iCnt++) {	   
       iTotDrive += DriveData[iCnt].iNum;
    }	
    
@@ -266,7 +266,7 @@ void DataManager::ElemDataInit(void)
       }	   
       
       DriveData[0].ppFirstDrive = ppDrive;
-      for (int iCnt = 0; iCnt < DriveType::LASTDRIVETYPE-1; iCnt++) {	      
+      for (int iCnt = 0; iCnt < Drive::LASTDRIVETYPE-1; iCnt++) {	      
 	 DriveData[iCnt+1].ppFirstDrive =
 	   DriveData[iCnt].ppFirstDrive +
 	   DriveData[iCnt].iNum;
@@ -478,7 +478,7 @@ void DataManager::ElemOutput(OutputHandler& OH) const
 
 
 /* cerca un elemento qualsiasi */
-void* DataManager::pFindElem(ElemType::Type Typ, unsigned int uL) const
+void* DataManager::pFindElem(Elem::Type Typ, unsigned int uL) const
 {
    ASSERT(ElemData[Typ].ppFirstElem != NULL);
    ASSERT(ElemData[Typ].iNum > 0);
@@ -496,7 +496,7 @@ void* DataManager::pFindElem(ElemType::Type Typ, unsigned int uL) const
 
 
 /* cerca un elemento qualsiasi */
-Elem** DataManager::ppFindElem(ElemType::Type Typ, unsigned int uL) const
+Elem** DataManager::ppFindElem(Elem::Type Typ, unsigned int uL) const
 {
    ASSERT(ElemData[Typ].ppFirstElem != NULL);
    ASSERT(ElemData[Typ].iNum > 0);
@@ -513,7 +513,7 @@ Elem** DataManager::ppFindElem(ElemType::Type Typ, unsigned int uL) const
 
 
 /* cerca un elemento qualsiasi */
-void* DataManager::pFindElem(ElemType::Type Typ, unsigned int uL,
+void* DataManager::pFindElem(Elem::Type Typ, unsigned int uL,
 			     unsigned int iDeriv) const
 {
    ASSERT(ElemData[Typ].ppFirstElem != NULL);
@@ -564,7 +564,7 @@ void* DataManager::pChooseElem(Elem* p, unsigned int iDeriv) const
 
 
 /* cerca un drive qualsiasi */
-void* DataManager::pFindDrive(DriveType::Type Typ, unsigned int uL) const
+void* DataManager::pFindDrive(Drive::Type Typ, unsigned int uL) const
 {
    ASSERT(DriveData[Typ].ppFirstDrive != NULL);
    ASSERT(DriveData[Typ].iNum > 0);
@@ -572,7 +572,7 @@ void* DataManager::pFindDrive(DriveType::Type Typ, unsigned int uL) const
    
    Drive* p = pLabelSearch(DriveData[Typ].ppFirstDrive, DriveData[Typ].iNum, uL);
 
-   if( p == NULL ) {
+   if (p == NULL) {
       return NULL;
    }
 
@@ -580,7 +580,7 @@ void* DataManager::pFindDrive(DriveType::Type Typ, unsigned int uL) const
 }
 
 
-flag DataManager::fGetDefaultOutputFlag(const ElemType::Type& t) const
+flag DataManager::fGetDefaultOutputFlag(const Elem::Type& t) const
 {
    return ElemData[t].fDefaultOut;
 }
@@ -592,30 +592,30 @@ flag DataManager::fGetDefaultOutputFlag(const ElemType::Type& t) const
 
 InitialAssemblyIterator::
 InitialAssemblyIterator(const DataManager::ElemDataStructure
-			(*pED)[ElemType::LASTELEMTYPE])
+			(*pED)[Elem::LASTELEMTYPE])
 : pElemData(pED), 
-FirstType(ElemType::UNKNOWN), ppFirst(NULL), 
-CurrType(ElemType::UNKNOWN), ppCurr(NULL)
+FirstType(Elem::UNKNOWN), ppFirst(NULL), 
+CurrType(Elem::UNKNOWN), ppCurr(NULL)
 {
    int iCnt = 0;
-   while((*pElemData)[iCnt].fToBeUsedInAssembly == 0
+   while ((*pElemData)[iCnt].fToBeUsedInAssembly == 0
 	 || (*pElemData)[iCnt].iNum == 0) {
-      if(++iCnt >= ElemType::LASTELEMTYPE) {	 
+      if (++iCnt >= Elem::LASTELEMTYPE) {	 
 	 break;
       }      
    }   
 	   
-   ASSERT(iCnt < ElemType::LASTELEMTYPE);   
+   ASSERT(iCnt < Elem::LASTELEMTYPE);   
    ASSERT((*pElemData)[iCnt].ppFirstElem != NULL);
    
    ((Elem**&)ppFirst) = (*pElemData)[iCnt].ppFirstElem;
    ppCurr = (Elem**)ppFirst;
-   (ElemType::Type&)FirstType = CurrType = ElemType::Type(iCnt);     
+   (Elem::Type&)FirstType = CurrType = Elem::Type(iCnt);     
 }
 
 InitialAssemblyElem* InitialAssemblyIterator::GetFirst(void) const
 {
-   (ElemType::Type&)CurrType = FirstType;
+   (Elem::Type&)CurrType = FirstType;
    ((Elem**&)ppCurr) = (Elem**)ppFirst;
 
    /* La variabile temporanea e' necessaria per il debug. */
@@ -623,7 +623,7 @@ InitialAssemblyElem* InitialAssemblyIterator::GetFirst(void) const
    
 #ifdef DEBUG   
    ASSERT(p != NULL);
-   if(p == NULL) {
+   if (p == NULL) {
       cerr << "warning, element " << (*ppCurr)->GetLabel() 
 	<< " is not subject to initial assembly" << endl;
    }
@@ -636,19 +636,19 @@ InitialAssemblyElem* InitialAssemblyIterator::GetFirst(void) const
 InitialAssemblyElem* InitialAssemblyIterator::GetNext(void) const
 {
    ((Elem**&)ppCurr)++;
-   if(ppCurr >= (*pElemData)[CurrType].ppFirstElem
+   if (ppCurr >= (*pElemData)[CurrType].ppFirstElem
       +(*pElemData)[CurrType].iNum) {
       int iCnt = int(CurrType);
       
       do {
-	 if(++iCnt >= ElemType::LASTELEMTYPE) {	    
+	 if (++iCnt >= Elem::LASTELEMTYPE) {	    
 	    return NULL;
 	 }	 
-      } while((*pElemData)[iCnt].fToBeUsedInAssembly == 0
+      } while ((*pElemData)[iCnt].fToBeUsedInAssembly == 0
 	      || (*pElemData)[iCnt].iNum == 0);	
 	
       ASSERT((*pElemData)[iCnt].ppFirstElem != NULL);
-      (ElemType::Type&)CurrType = ElemType::Type(iCnt);	
+      (Elem::Type&)CurrType = Elem::Type(iCnt);	
       (Elem**&)ppCurr = (*pElemData)[iCnt].ppFirstElem;
       
       /* La variabile temporanea e' necessaria per il debug. */
@@ -656,7 +656,7 @@ InitialAssemblyElem* InitialAssemblyIterator::GetNext(void) const
       
 #ifdef DEBUG   
       ASSERT(p != NULL);
-      if(p == NULL) {
+      if (p == NULL) {
 	 cerr << "warning, element " << (*ppCurr)->GetLabel() 
 	   << " is not subject to initial assembly" << endl;
       }
@@ -670,7 +670,7 @@ InitialAssemblyElem* InitialAssemblyIterator::GetNext(void) const
    
 #ifdef DEBUG   
    ASSERT(p != NULL);
-   if(p == NULL) {
+   if (p == NULL) {
       cerr << "warning, element " << (*ppCurr)->GetLabel() 
 	<< " is not subject to initial assembly" << endl;
    }
@@ -680,3 +680,4 @@ InitialAssemblyElem* InitialAssemblyIterator::GetNext(void) const
 }
 
 /* InitialAssemblyIterator - end */
+

@@ -315,8 +315,8 @@ DofIter()
    HP.Close();
    
 #ifdef __HACK_BEAM__
-   for (unsigned int i = 0; i < ElemData[ElemType::BEAM].iNum; i++) {
-      Beam* p = (Beam*)ElemData[ElemType::BEAM].ppFirstElem[i]->pGet();
+   for (unsigned int i = 0; i < ElemData[Elem::BEAM].iNum; i++) {
+      Beam* p = (Beam*)ElemData[Elem::BEAM].ppFirstElem[i]->pGet();
       OutHdl.Output()
 	<< "beam " << p->GetLabel()
 	<< " " << p->pGetNode(1)->GetLabel()
@@ -327,14 +327,14 @@ DofIter()
    }
 #endif /* __HACK_BEAM__ */
    
-   for (int i = 0; i < NodeType::LASTNODETYPE; i++) {
+   for (int i = 0; i < Node::LASTNODETYPE; i++) {
       if(NodeData[i].iNum > 0 
 	 && NodeData[i].OutFile != OutputHandler::UNKNOWN) {
 	 OutHdl.Open(NodeData[i].OutFile);
       }
    }
 
-   for (int i = 0; i < ElemType::LASTELEMTYPE; i++) {
+   for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
       if(ElemData[i].iNum > 0 && ElemData[i].OutFile != OutputHandler::UNKNOWN) {
 	 OutHdl.Open(ElemData[i].OutFile);
       }
@@ -348,22 +348,22 @@ DofIter()
 #ifdef DEBUG
    if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
       /* mostra in modo succinto il numero di DofOwner per tipo */
-      for(int i = 0; i < DofType::LASTDOFTYPE; i++)
+      for(int i = 0; i < DofOwner::LASTDOFTYPE; i++)
 	cout << "DofType " << i << " (" << psDofOwnerNames[i] 
 	<< "), n. of owners: " << DofData[i].iNum << endl;
       
       /* mostra in modo succinto il numero di nodi per tipo */
-      for(int i = 0; i < NodeType::LASTNODETYPE; i++)
+      for(int i = 0; i < Node::LASTNODETYPE; i++)
 	cout << "NodeType " << i << " (" << psNodeNames[i] 
 	<< "), n. of nodes: " << NodeData[i].iNum << endl;
       
       /* mostra in modo succinto il numero di elementi per tipo */
-      for(int i = 0; i < ElemType::LASTELEMTYPE; i++)
-	cout << "ElemType " << i << " (" << psElemNames[i] 
+      for(int i = 0; i < Elem::LASTELEMTYPE; i++)
+	cout << "Element Type " << i << " (" << psElemNames[i] 
 	<< "), n. of elems: " << ElemData[i].iNum << endl;
       
       /* mostra in modo succinto il numero di drivers per tipo */
-      for(int i = 0; i < DriveType::LASTDRIVETYPE; i++)
+      for(int i = 0; i < Drive::LASTDRIVETYPE; i++)
 	cout << "DriveType " << i << " (" << psDriveNames[i] 
 	<< "), n. of drivers: " << DriveData[i].iNum << endl;
    }
@@ -413,7 +413,7 @@ DofIter()
    if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
       /* mostra in modo succinto i DofOwners */
       int k = 0;
-      for(int i = 0; i < DofType::LASTDOFTYPE; i++) {	
+      for(int i = 0; i < DofOwner::LASTDOFTYPE; i++) {	
 	 cout << "DofType " << i << ':' << endl;
 	 for(int j = 0; j < DofData[i].iNum; j++) {	   
 	    cout << "DofOwner " << j << ", n. of dofs: "
@@ -519,7 +519,7 @@ void DataManager::MakeRestart(void)
    OutHdl.Restart() << "begin: control data;" << endl;
    
    /* Nodi */
-   for (int iCnt = 0; iCnt < NodeType::LASTNODETYPE; iCnt++) {	     
+   for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {	     
       if (NodeData[iCnt].iNum > 0) {		  
 	 OutHdl.Restart() << "  " << psReadControlNodes[iCnt] << ": "
 	   << NodeData[iCnt].iNum << ';' << endl;
@@ -527,7 +527,7 @@ void DataManager::MakeRestart(void)
    }
    
    /* Drivers */
-   for (int iCnt = 0; iCnt < DriveType::LASTDRIVETYPE; iCnt++) {	     
+   for (int iCnt = 0; iCnt < Drive::LASTDRIVETYPE; iCnt++) {	     
       if (DriveData[iCnt].iNum > 0) {		  
 	 OutHdl.Restart() << "  " 
 	   << psReadControlDrivers[iCnt] << ": "
@@ -536,7 +536,7 @@ void DataManager::MakeRestart(void)
    }
    
    /* Elementi */
-   for (int iCnt = 0; iCnt < ElemType::LASTELEMTYPE; iCnt++) {	     
+   for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {	     
       if (ElemData[iCnt].iNum > 0) {
 	 if (ElemData[iCnt].fIsUnique == 1) {
 	    OutHdl.Restart() << "  " << psReadControlElems[iCnt] 

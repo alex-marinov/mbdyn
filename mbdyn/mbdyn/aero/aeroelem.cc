@@ -87,9 +87,9 @@ AerodynamicBody::AerodynamicBody(unsigned int uLabel,
 				 integer iN, AeroData* a,
 				 const DriveCaller* pDC, 
 				 flag fOut)
-: Elem(uLabel, ElemType::AERODYNAMIC, fOut), 
-AerodynamicElem(uLabel, AeroType::AERODYNAMICBODY, fOut), 
-InitialAssemblyElem(uLabel, ElemType::AERODYNAMIC, fOut),
+: Elem(uLabel, Elem::AERODYNAMIC, fOut), 
+AerodynamicElem(uLabel, AerodynamicElem::AERODYNAMICBODY, fOut), 
+InitialAssemblyElem(uLabel, Elem::AERODYNAMIC, fOut),
 DriveOwner(pDC),
 aerodata(a),
 pNode(pN),
@@ -115,12 +115,12 @@ M(0.)
    	DEBUGCOUTFNAME("AerodynamicBody::AerodynamicBody");
    
    	ASSERT(pNode != NULL);
-   	ASSERT(pNode->GetNodeType() == NodeType::STRUCTURAL);
+   	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
    	ASSERT(aerodata != NULL);
    
 #ifdef DEBUG
    	if(pRotor != NULL) {
-      		ASSERT(pRotor->GetElemType() == ElemType::ROTOR);
+      		ASSERT(pRotor->GetElemType() == Elem::ROTOR);
    	}
 #endif /* DEBUG */
    
@@ -641,7 +641,7 @@ ReadAerodynamicBody(DataManager* pDM,
 		 * NOTA: ovviamente il rotore deve essere definito 
 		 * prima dell'elemento aerodinamico
 		 */
-		 Elem* p = (Elem*)(pDM->pFindElem(ElemType::ROTOR, uNode));
+		 Elem* p = (Elem*)(pDM->pFindElem(Elem::ROTOR, uNode));
 		 if (p  == NULL) {
 		 	cerr << endl
 				<< " at line " << HP.GetLineData() 
@@ -675,7 +675,7 @@ ReadAerodynamicBody(DataManager* pDM,
 		     &pChord, &pForce, &pVelocity, &pTwist,
 		     &iNumber, &pDC, &aerodata);
 	
-	flag fOut = pDM->fReadOutput(HP, ElemType::AERODYNAMIC);
+	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 	
 	Elem* pEl = NULL;
 	SAFENEWWITHCONSTRUCTOR(pEl, 
@@ -711,9 +711,9 @@ AerodynamicBeam::AerodynamicBeam(unsigned int uLabel,
 				 integer iN, AeroData* a,
 				 const DriveCaller* pDC,
 				 flag fOut)
-: Elem(uLabel, ElemType::AERODYNAMIC, fOut),
-AerodynamicElem(uLabel, AeroType::AERODYNAMICBEAM, fOut),
-InitialAssemblyElem(uLabel, ElemType::AERODYNAMIC, fOut),
+: Elem(uLabel, Elem::AERODYNAMIC, fOut),
+AerodynamicElem(uLabel, AerodynamicElem::AERODYNAMICBEAM, fOut),
+InitialAssemblyElem(uLabel, Elem::AERODYNAMIC, fOut),
 DriveOwner(pDC),
 aerodata(a),
 pBeam(pB),
@@ -748,22 +748,22 @@ M3(0.)
    	DEBUGCOUTFNAME("AerodynamicBeam::AerodynamicBeam");
 	
 	ASSERT(pBeam != NULL);
-	ASSERT(pBeam->GetElemType() == ElemType::BEAM);
+	ASSERT(pBeam->GetElemType() == Elem::BEAM);
 	
 	pNode1 = pBeam->pGetNode(1); 
 	pNode2 = pBeam->pGetNode(2);
 	pNode3 = pBeam->pGetNode(3);
 	
 	ASSERT(pNode1 != NULL);
-	ASSERT(pNode1->GetNodeType() == NodeType::STRUCTURAL);
+	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
 	ASSERT(pNode2 != NULL);
-	ASSERT(pNode2->GetNodeType() == NodeType::STRUCTURAL);
+	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
 	ASSERT(pNode3 != NULL);
-	ASSERT(pNode3->GetNodeType() == NodeType::STRUCTURAL);
+	ASSERT(pNode3->GetNodeType() == Node::STRUCTURAL);
 	
 #ifdef DEBUG
 	if(pRotor != NULL) {      
-		ASSERT(pRotor->GetElemType() == ElemType::ROTOR);
+		ASSERT(pRotor->GetElemType() == Elem::ROTOR);
 	}
 #endif /* DEBUG */
 
@@ -1429,7 +1429,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 	
 	/* verifica di esistenza della trave */
 	Beam* pBeam;
-	Elem* p = (Elem*)(pDM->pFindElem(ElemType::BEAM, uBeam));
+	Elem* p = (Elem*)(pDM->pFindElem(Elem::BEAM, uBeam));
 	if (p == NULL) {
 		cerr << " at line " << HP.GetLineData() 
 			<< ": beam " << uBeam
@@ -1450,7 +1450,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 		 * NOTA: ovviamente il rotore deve essere definito 
 		 * prima dell'elemento aerodinamico
 		 */
-		Elem* p = (Elem*)(pDM->pFindElem(ElemType::ROTOR, uRotor));
+		Elem* p = (Elem*)(pDM->pFindElem(Elem::ROTOR, uRotor));
 		if (p == NULL) {
 			cerr << " at line " << HP.GetLineData() 
 				<< ": rotor " << uRotor
@@ -1512,7 +1512,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 		     &pChord, &pForce, &pVelocity, &pTwist,
 		     &iNumber, &pDC, &aerodata);
 	
-	flag fOut = pDM->fReadOutput(HP, ElemType::BEAM);
+	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);
 	
 	Elem* pEl = NULL;
 	

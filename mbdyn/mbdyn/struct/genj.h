@@ -57,12 +57,10 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    
    virtual inline void* pGet(void) const { return (void*)this; };
 
-   /* Tipo di Joint
-   virtual JointType::Type GetJointType(void) const 
-     { 
-	return JointType::DISTANCE; 
-     };
-    */
+   /* Tipo di Joint */
+   virtual Joint::Type GetJointType(void) const { 
+      return Joint::DISTANCE; 
+   };
    
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -133,7 +131,7 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = pNode1->GetNodeType();
      NdLabels[0] = pNode1->GetLabel();
@@ -177,12 +175,10 @@ virtual public Elem, public Joint, public DriveOwner {
    
    virtual inline void* pGet(void) const { return (void*)this; };
 
-   /* Tipo di Joint
-   virtual JointType::Type GetJointType(void) const 
-     { 
-	return JointType::DISTANCEWITHOFFSET; 
-     };
-    */
+   /* Tipo di Joint */
+   virtual Joint::Type GetJointType(void) const { 
+      return Joint::DISTANCEWITHOFFSET; 
+   };
    
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -254,7 +250,7 @@ virtual public Elem, public Joint, public DriveOwner {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = pNode1->GetNodeType();
      NdLabels[0] = pNode1->GetLabel();
@@ -294,12 +290,10 @@ class ClampJoint : virtual public Elem, public Joint {
    
    virtual inline void* pGet(void) const { return (void*)this; };
 
-   /* Tipo di Joint 
-   virtual JointType::Type GetJointType(void) const 
-     { 
-	return JointType::CLAMP; 
-     };
-    */
+   /* Tipo di Joint */
+   virtual Joint::Type GetJointType(void) const { 
+      return Joint::CLAMP; 
+   };
 
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -367,7 +361,7 @@ class ClampJoint : virtual public Elem, public Joint {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 1;
      NdTyps[0] = pNode->GetNodeType();
      NdLabels[0] = pNode->GetLabel();

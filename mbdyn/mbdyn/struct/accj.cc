@@ -43,8 +43,8 @@ LinearAccelerationJoint::LinearAccelerationJoint(unsigned int uL,
 						 const Vec3& TmpDir,
 						 const DriveCaller* pDC,
 						 flag fOut)
-: Elem(uL, ElemType::JOINT, fOut),
-Joint(uL, JointType::LINEARACCELERATION, pDO, fOut),
+: Elem(uL, Elem::JOINT, fOut),
+Joint(uL, Joint::LINEARACCELERATION, pDO, fOut),
 DriveOwner(pDC),
 pNode(pN),
 Dir(TmpDir),
@@ -64,9 +64,9 @@ LinearAccelerationJoint::~LinearAccelerationJoint(void)
 
 
 /* Tipo di Joint */
-JointType::Type LinearAccelerationJoint::GetJointType(void) const
+Joint::Type LinearAccelerationJoint::GetJointType(void) const
 {
-   return JointType::LINEARACCELERATION;
+   return Joint::LINEARACCELERATION;
 }
 
 
@@ -244,8 +244,8 @@ AngularAccelerationJoint::AngularAccelerationJoint(unsigned int uL,
 						   const Vec3& TmpDir,
 						   const DriveCaller* pDC,
 						   flag fOut)
-: Elem(uL, ElemType::JOINT, fOut),
-Joint(uL, JointType::ANGULARACCELERATION, pDO, fOut),
+: Elem(uL, Elem::JOINT, fOut),
+Joint(uL, Joint::ANGULARACCELERATION, pDO, fOut),
 DriveOwner(pDC),
 pNode(pN),
 Dir(TmpDir),
@@ -265,9 +265,9 @@ AngularAccelerationJoint::~AngularAccelerationJoint(void)
 
    
 /* Tipo di Joint */
-JointType::Type AngularAccelerationJoint::GetJointType(void) const
+Joint::Type AngularAccelerationJoint::GetJointType(void) const
 {
-   return JointType::ANGULARACCELERATION;
+   return Joint::ANGULARACCELERATION;
 }
 
 

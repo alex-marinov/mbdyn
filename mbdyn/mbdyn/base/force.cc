@@ -60,17 +60,17 @@ ostream& Force::Restart(ostream& out) const
 
 /* Costruttore */
 StructuralForce::StructuralForce(unsigned int uL, 
-				 ForceType::Type T,
+				 Force::Type T,
 				 const StructNode* pN,
 				 const DriveCaller* pDC, 
 				 const Vec3& TmpDir,
 				 flag fOut)
-: Elem(uL, ElemType::FORCE, fOut), 
+: Elem(uL, Elem::FORCE, fOut), 
 Force(uL, T, pDC, fOut), 
 pNode(pN), Dir(TmpDir)
 { 
    ASSERT(pNode != NULL);
-   ASSERT(pNode->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pDC != NULL);
    ASSERT(Dir.Dot() > 0.);
 }
@@ -90,8 +90,8 @@ StructuralForce::~StructuralForce(void)
 
 AbstractForce::AbstractForce(unsigned int uL, const Node* pN, 
 			     const DriveCaller* pDC, flag fOut)
-: Elem(uL, ElemType::FORCE, fOut),
-Force(uL, ForceType::ABSTRACTFORCE, pDC, fOut),
+: Elem(uL, Elem::FORCE, fOut),
+Force(uL, Force::ABSTRACTFORCE, pDC, fOut),
 pNode(pN)
 {
    NO_OP;
@@ -160,8 +160,8 @@ ConservativeForce::ConservativeForce(unsigned int uL, const StructNode* pN,
 				     const DriveCaller* pDC,
 				     const Vec3& TmpDir, const Vec3& TmpArm,
 				     flag fOut)
-: Elem(uL, ElemType::FORCE, fOut), 
-StructuralForce(uL, ForceType::CONSERVATIVEFORCE, pN, pDC, TmpDir, fOut), 
+: Elem(uL, Elem::FORCE, fOut), 
+StructuralForce(uL, Force::CONSERVATIVEFORCE, pN, pDC, TmpDir, fOut), 
 Arm(TmpArm)
 { 
    NO_OP; 
@@ -348,8 +348,8 @@ FollowerForce::FollowerForce(unsigned int uL, const StructNode* pN,
 			     const DriveCaller* pDC,
 			     const Vec3& TmpDir, const Vec3& TmpArm,
 			     flag fOut)
-: Elem(uL, ElemType::FORCE, fOut), 
-StructuralForce(uL, ForceType::FOLLOWERFORCE, pN, pDC, TmpDir, fOut), 
+: Elem(uL, Elem::FORCE, fOut), 
+StructuralForce(uL, Force::FOLLOWERFORCE, pN, pDC, TmpDir, fOut), 
 Arm(TmpArm)
 { 
    NO_OP; 
@@ -551,8 +551,8 @@ ConservativeCouple::ConservativeCouple(unsigned int uL, const StructNode* pN,
 				       const DriveCaller* pDC, 
 				       const Vec3& TmpDir,
 				       flag fOut)
-: Elem(uL, ElemType::FORCE, fOut), 
-StructuralForce(uL, ForceType::CONSERVATIVECOUPLE, pN, pDC, TmpDir, fOut)
+: Elem(uL, Elem::FORCE, fOut), 
+StructuralForce(uL, Force::CONSERVATIVECOUPLE, pN, pDC, TmpDir, fOut)
 { 
    NO_OP; 
 };
@@ -641,8 +641,8 @@ ConservativeCouple::InitialAssRes(SubVectorHandler& WorkVec,
 FollowerCouple::FollowerCouple(unsigned int uL, const StructNode* pN, 
 			       const DriveCaller* pDC, const Vec3& TmpDir,
 			       flag fOut)
-: Elem(uL, ElemType::FORCE, fOut), 
-StructuralForce(uL, ForceType::FOLLOWERCOUPLE, pN, pDC, TmpDir, fOut)
+: Elem(uL, Elem::FORCE, fOut), 
+StructuralForce(uL, Force::FOLLOWERCOUPLE, pN, pDC, TmpDir, fOut)
 { 
    NO_OP; 
 };
@@ -882,7 +882,7 @@ Elem* ReadForce(DataManager* pDM,
    if (CurrType == ABSTRACT) {
       
       /* tabella delle parole chiave */
-      KeyTable KDof((int)NodeType::LASTNODETYPE, psReadNodesNodes);
+      KeyTable KDof((int)Node::LASTNODETYPE, psReadNodesNodes);
       HP.PutKeyTable(KDof);
       
       ScalarDof SD = ReadScalarDof(pDM, HP, 0);                          
@@ -891,7 +891,7 @@ Elem* ReadForce(DataManager* pDM,
       DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
       HP.PutKeyTable(K);
 
-      flag fOut = pDM->fReadOutput(HP, ElemType::FORCE);
+      flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
       
       SAFENEWWITHCONSTRUCTOR(pEl,
 			     AbstractForce,
@@ -965,7 +965,7 @@ Elem* ReadForce(DataManager* pDM,
       DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
       HP.PutKeyTable(K);
       
-      flag fOut = pDM->fReadOutput(HP, ElemType::FORCE);
+      flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
       
       /* Alloca la forza */
       if (fCouple == 0) {	

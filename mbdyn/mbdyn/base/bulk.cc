@@ -74,13 +74,13 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
       /*  */
     case SPRINGSUPPORT: {       
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
-       if (SD.pNode->GetNodeType() ==  NodeType::PARAMETER) {
+       if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  cerr << "Sorry, parameters are not allowed for bulk spring" << endl;
 	  THROW(DataManager::ErrGeneric());	      
        }	     	  
        
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-       flag fOut = pDM->fReadOutput(HP, ElemType::BULK);
+       flag fOut = pDM->fReadOutput(HP, Elem::BULK);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      BulkSpringSupport,

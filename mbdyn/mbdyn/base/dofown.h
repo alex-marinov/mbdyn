@@ -37,32 +37,7 @@
 #include <myassert.h>
 #include <myf2c.h>       /* per integer! */
 
-
-/* Tipi di DofOwner */
-class DofType {
- public:
-   enum Type {
-      UNKNOWN = -1,
-	STRUCTURALNODE = 0,
-	ELECTRICNODE,
-	ABSTRACTNODE,
-	HYDRAULICNODE,
-	
-	JOINT,
-	GENEL,
-	ROTOR,
-	UNSTEADYAERO,
-	ELECTRICBULK,
-	ELECTRIC,
-	HYDRAULIC,	
-	LOADABLE,
-	
-	LASTDOFTYPE
-   };
-};
-   
 extern const char* psDofOwnerNames[];   
-
 
 /* ordine dei dof */
 class DofOrder {
@@ -88,6 +63,27 @@ struct Dof {
 
 
 struct DofOwner {
+/* Tipi di DofOwner */
+ public:
+   enum Type {
+      UNKNOWN = -1,
+	STRUCTURALNODE = 0,
+	ELECTRICNODE,
+	ABSTRACTNODE,
+	HYDRAULICNODE,
+	
+	JOINT,
+	GENEL,
+	ROTOR,
+	UNSTEADYAERO,
+	ELECTRICBULK,
+	ELECTRIC,
+	HYDRAULIC,	
+	LOADABLE,
+	
+	LASTDOFTYPE
+   };
+   
    integer iFirstIndex;
    unsigned int iNumDofs;
 };

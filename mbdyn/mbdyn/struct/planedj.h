@@ -73,11 +73,10 @@ class PlaneDispJoint : virtual public Elem, public Joint {
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
 
-   /* Tipo di Joint
-   virtual JointType::Type GetJointType(void) const { 
-      return JointType::PLANEDISPHINGE;
+   /* Tipo di Joint */
+   virtual Joint::Type GetJointType(void) const { 
+      return Joint::PLANEDISP;
    };
-    */
    
    virtual unsigned int iGetNumDof(void) const { 
       return 3;
@@ -135,7 +134,7 @@ class PlaneDispJoint : virtual public Elem, public Joint {
     /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = pNode1->GetNodeType();
      NdLabels[0] = pNode1->GetLabel();
@@ -175,11 +174,10 @@ class PlaneDispPinJoint : virtual public Elem, public Joint {
       return (void*)this;
    };
    
-   /* Tipo di Joint
-   virtual JointType::Type GetJointType(void) const { 
-      return JointType::PLANEDISPPIN; 
+   /* Tipo di Joint */
+   virtual Joint::Type GetJointType(void) const { 
+      return Joint::PLANEDISPPIN; 
    };
-    */
 
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -232,7 +230,7 @@ class PlaneDispPinJoint : virtual public Elem, public Joint {
   /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 1;
      NdTyps[0] = pNode->GetNodeType();
      NdLabels[0] = pNode->GetLabel();

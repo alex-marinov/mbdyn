@@ -110,7 +110,7 @@ Actuator::Actuator(unsigned int uL, const DofOwner* pDO,
 		   doublereal A_1, doublereal A_2, 
 		   doublereal l,
 		   flag fOut)
-: Elem(uL, ElemType::HYDRAULIC, fOut),
+: Elem(uL, Elem::HYDRAULIC, fOut),
 HydraulicElem(uL, pDO, hf1, fOut),
 pNodeHyd1(p1), pNodeHyd2(p2),
 HF2(hf2),
@@ -119,16 +119,16 @@ dl(l), axis(axisTmp),
 pNodeStr1(pN1), pNodeStr2(pN2), f1(f1Tmp), f2(f2Tmp)
 {
    ASSERT(pNodeHyd1 != NULL);
-   ASSERT(pNodeHyd1->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNodeHyd1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNodeHyd2 != NULL);
-   ASSERT(pNodeHyd2->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNodeHyd2->GetNodeType() == Node::HYDRAULIC);
    ASSERT(area1 > DBL_EPSILON); 
    ASSERT(area2 > DBL_EPSILON);
    ASSERT(dl > DBL_EPSILON);
    ASSERT(pNodeStr1 != NULL);
-   ASSERT(pNodeStr1->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pNodeStr1->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pNodeStr2 != NULL);
-   ASSERT(pNodeStr2->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pNodeStr2->GetNodeType() == Node::STRUCTURAL);
    ASSERT(HF2 != NULL);
 }
 
@@ -140,9 +140,9 @@ Actuator::~Actuator(void)
 }
    
 /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-HydraulicType::Type Actuator::GetHydraulicType(void) const 
+HydraulicElem::Type Actuator::GetHydraulicType(void) const 
 {
-   return HydraulicType::ACTUATOR;
+   return HydraulicElem::ACTUATOR;
 }
 
 
@@ -474,3 +474,4 @@ void Actuator::SetValue(VectorHandler& X, VectorHandler& XP) const
 }
 
 /* Actuator - end */
+

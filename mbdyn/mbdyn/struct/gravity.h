@@ -79,8 +79,8 @@ class Gravity : public Elem, public TplDriveOwner<Vec3> {
    virtual ostream& Restart(ostream& out) const;
    
    /* Tipo dell'elemento (usato solo per debug ecc.) */
-   virtual ElemType::Type GetElemType(void) const { 
-      return ElemType::GRAVITY; 
+   virtual Elem::Type GetElemType(void) const { 
+      return Elem::GRAVITY; 
    };
       
    /* funzioni di servizio */
@@ -158,7 +158,7 @@ class GravityOwner {
 
 class ElemGravityOwner : virtual public Elem, public GravityOwner {
  public:
-   ElemGravityOwner(unsigned int uL, ElemType::Type T, flag fOut);
+   ElemGravityOwner(unsigned int uL, Elem::Type T, flag fOut);
    ~ElemGravityOwner(void);
    
    /* Usata per inizializzare la quantita' di moto */

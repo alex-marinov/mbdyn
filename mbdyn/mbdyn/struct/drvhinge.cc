@@ -48,8 +48,8 @@ DriveHingeJoint::DriveHingeJoint(unsigned int uL,
 				 const Mat3x3& R1,
 				 const Mat3x3& R2,
 				 flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::DRIVEHINGE, pDO, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::DRIVEHINGE, pDO, fOut), 
 TplDriveOwner<Vec3>(pDC),
 pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2), 
 M(0.), ThetaRef(0.), ThetaCurr(0.), TaCurr(0.), TbCurr(0.),
@@ -57,8 +57,8 @@ fFirstRes(1)
 {
    ASSERT(pNode1 != NULL);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::STRUCTURAL);
-   ASSERT(pNode2->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
+   ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
    
    Vec3 g(gparam((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h)));
    ThetaRef = g*(4./(4.+g.Dot()));

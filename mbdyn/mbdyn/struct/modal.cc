@@ -128,8 +128,8 @@ Modal::Modal(unsigned int uL,
              MBDynParser& HP,   /* non serve */
 	     flag fOut)
 
-: Elem(uL, ElemType::JOINT, fOut),
-Joint(uL, JointType::MODAL, pDO, fOut),
+: Elem(uL, Elem::JOINT, fOut),
+Joint(uL, Joint::MODAL, pDO, fOut),
 pModalNode(pR),
 NModes(N), 
 NStrNodes(NS), 
@@ -262,10 +262,10 @@ Modal::~Modal(void)
 }
 
 
-JointType::Type 
+Joint::Type 
 Modal::GetJointType(void) const
 {
-   return JointType::MODAL;
+   return Joint::MODAL;
 }
 
 
@@ -1669,7 +1669,7 @@ ReadModal(DataManager* pDM,
       THROW(DataManager::ErrGeneric());
    }
    
-   if (pModalNode->GetStructNodeType() != StructNodeType::MODAL) {
+   if (pModalNode->GetStructNodeType() != StructNode::MODAL) {
       cerr << "Illegal structural node type for body " << uLabel << endl;
       THROW(DataManager::ErrGeneric());
    }  
@@ -2237,7 +2237,7 @@ ReadModal(DataManager* pDM,
 #endif
 
    const char *sFileMod = HP.GetFileName();
-   flag fOut = pDM->fReadOutput(HP, ElemType::JOINT);
+   flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
    
    SAFENEWWITHCONSTRUCTOR(pEl, 
 			  Modal,

@@ -40,13 +40,13 @@ KinJoint::KinJoint(unsigned int uL,
 		   const StructNode* pN,
 		   const Kinematics* pK,
 		   flag fOut)
-: Elem(uL, ElemType::JOINT, fOut),
-Joint(uL, JointType::IMPOSEDKINEMATICS, pDO, fOut),
+: Elem(uL, Elem::JOINT, fOut),
+Joint(uL, Joint::IMPOSEDKINEMATICS, pDO, fOut),
 pNode(pN), pKin(pK)
 {
    ASSERT(pNode != NULL);
-   ASSERT(pNode->GetNodeType() == NodeType::STRUCTURAL);
-   ASSERT(pNode->GetStructNodeType() == StructNodeType::STATIC);
+   ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
+   ASSERT(pNode->GetStructNodeType() == StructNode::STATIC);
 }
 
 

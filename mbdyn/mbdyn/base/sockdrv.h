@@ -69,7 +69,7 @@ public:
    
    	virtual ~SocketDrive(void);
    
-   	virtual FileDriveType::Type GetFileDriveType(void) const;
+   	virtual FileDrive::Type GetFileDriveType(void) const;
 
    	/* Scrive il contributo del DriveCaller al file di restart */
    	virtual ostream& Restart(ostream& out) const;

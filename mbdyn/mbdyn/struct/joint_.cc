@@ -278,7 +278,7 @@ Joint_NNodes::AssRes(SubVectorHandler& WorkVec,
    int iNNod = iGetNNodes();
    for (int j = 0; j < iNNod; j++) {
       ASSERT(pNodes[j] != NULL);
-      ASSERT(pNodes[j]->GetNodeType() == NodeType::STRUCTURAL);
+      ASSERT(pNodes[j]->GetNodeType() == Node::STRUCTURAL);
       integer iNodeFirstRowIndex = pNodes[j]->iGetFirstRowIndex();    
    
       for (int i = 1; i <= 6; i++) {
@@ -344,7 +344,7 @@ Joint_NNodes::InitialAssRes(SubVectorHandler& WorkVec,
    int iNNod = iGetNNodes();
    for (int j = 0; j < iNNod; j++) {
       ASSERT(pNodes[j] != NULL);
-      ASSERT(pNodes[j]->GetNodeType() == NodeType::STRUCTURAL);
+      ASSERT(pNodes[j]->GetNodeType() == Node::STRUCTURAL);
       integer iNodeFirstIndex = pNodes[j]->iGetFirstIndex();
    
       for (int i = 1; i <= 12; i++) {

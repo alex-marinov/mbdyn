@@ -45,8 +45,8 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
  public:
    GenelClamp(unsigned int uLabel, const DofOwner* pDO, const DriveCaller* pDC,
 	      const ScalarDof& sd, flag fOutput)
-     : Elem(uLabel, ElemType::BULK, fOutput), 
-     Genel(uLabel, GenelType::CLAMP, pDO, fOutput),
+     : Elem(uLabel, Elem::BULK, fOutput), 
+     Genel(uLabel, Genel::CLAMP, pDO, fOutput),
      DriveOwner(pDC), SD(sd), dRct(0.) {
       NO_OP;
    };
@@ -66,9 +66,9 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
    /* esegue operazioni sui dof di proprieta' dell'elemento */
 #ifdef DEBUG   
    virtual DofOrder::Order SetDof(unsigned int i ) const {
-#else     
+#else /* DEBUG */
    virtual DofOrder::Order SetDof(unsigned int /* i */) const {
-#endif    
+#endif /* DEBUG */
       ASSERT(i == 0);
       return DofOrder::ALGEBRAIC;
    };
@@ -78,6 +78,10 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
       return out; 
    };
    
+   /* Tipo di Genel */
+   virtual Genel::Type GetGenelType(void) const { 
+      return Genel::CLAMP; 
+   };
    
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -152,7 +156,7 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 1;
      NdTyps[0] = SD.pNode->GetNodeType();
      NdLabels[0] = SD.pNode->GetLabel();
@@ -175,8 +179,8 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
    GenelDistance(unsigned int uLabel, const DofOwner* pDO, 
 		 const DriveCaller* pDC,
 		 const ScalarDof& sd1, const ScalarDof& sd2, flag fOutput)
-     : Elem(uLabel, ElemType::BULK, fOutput), 
-     Genel(uLabel, GenelType::DISTANCE, pDO, fOutput),
+     : Elem(uLabel, Elem::BULK, fOutput), 
+     Genel(uLabel, Genel::DISTANCE, pDO, fOutput),
      DriveOwner(pDC), SD1(sd1), SD2(sd2), dRct(0.) {
       NO_OP;
    };
@@ -207,7 +211,11 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
    virtual ostream& Restart(ostream& out) const {
       return out; 
    };
-   
+  
+   /* Tipo di Genel */
+   virtual Genel::Type GetGenelType(void) const { 
+      return Genel::DISTANCE;
+   };
    
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -309,7 +317,7 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = SD1.pNode->GetNodeType();
      NdLabels[0] = SD1.pNode->GetLabel();
@@ -335,8 +343,8 @@ class GenelSpring
    GenelSpring(unsigned int uLabel, const DofOwner* pDO, 
 	       const ConstitutiveLaw1D* pCL,
 	       const ScalarDof& sd1, const ScalarDof& sd2, flag fOutput)
-     : Elem(uLabel, ElemType::BULK, fOutput), 
-     Genel(uLabel, GenelType::SPRING, pDO, fOutput),
+     : Elem(uLabel, Elem::BULK, fOutput), 
+     Genel(uLabel, Genel::SPRING, pDO, fOutput),
      ConstitutiveLaw1DOwner(pCL), SD1(sd1), SD2(sd2) { 
       NO_OP;
    };
@@ -353,7 +361,11 @@ class GenelSpring
    virtual ostream& Restart(ostream& out) const {
       return out; 
    };
-   
+  
+   /* Tipo di Genel */
+   virtual Genel::Type GetGenelType(void) const { 
+      return Genel::SPRING; 
+   };
    
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -440,7 +452,7 @@ class GenelSpring
  /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = SD1.pNode->GetNodeType();
      NdLabels[0] = SD1.pNode->GetLabel();
@@ -465,8 +477,8 @@ class GenelSpringSupport
    GenelSpringSupport(unsigned int uLabel, const DofOwner* pDO, 
 	       const ConstitutiveLaw1D* pCL,
 	       const ScalarDof& sd, flag fOutput)
-     : Elem(uLabel, ElemType::BULK, fOutput), 
-     Genel(uLabel, GenelType::SPRINGSUPPORT, pDO, fOutput),
+     : Elem(uLabel, Elem::BULK, fOutput), 
+     Genel(uLabel, Genel::SPRINGSUPPORT, pDO, fOutput),
      ConstitutiveLaw1DOwner(pCL), SD(sd) {
       ASSERT(SD.iOrder == 0);
    };
@@ -483,7 +495,11 @@ class GenelSpringSupport
    virtual ostream& Restart(ostream& out) const {
       return out; 
    };
-   
+
+   /* Tipo di Genel */
+   virtual Genel::Type GetGenelType(void) const { 
+      return Genel::SPRINGSUPPORT;
+   };
    
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -544,7 +560,7 @@ class GenelSpringSupport
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 1;
      NdTyps[0] = SD.pNode->GetNodeType();
      NdLabels[0] = SD.pNode->GetLabel();
@@ -570,8 +586,8 @@ class GenelCrossSpringSupport
 			   const ScalarDof& sdrow,
 			   const ScalarDof& sdcol,
 			   flag fOutput)
-     : Elem(uLabel, ElemType::BULK, fOutput), 
-     Genel(uLabel, GenelType::CROSSSPRINGSUPPORT, pDO, fOutput),
+     : Elem(uLabel, Elem::BULK, fOutput), 
+     Genel(uLabel, Genel::CROSSSPRINGSUPPORT, pDO, fOutput),
      ConstitutiveLaw1DOwner(pCL), SDRow(sdrow), SDCol(sdcol) {
       ASSERT(SDCol.iOrder == 0);
    };
@@ -589,6 +605,10 @@ class GenelCrossSpringSupport
       return out; 
    };
    
+   /* Tipo di Genel */
+   virtual Genel::Type GetGenelType(void) const { 
+      return Genel::CROSSSPRINGSUPPORT; 
+   };
    
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -649,7 +669,7 @@ class GenelCrossSpringSupport
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = SDRow.pNode->GetNodeType();
      NdLabels[0] = SDRow.pNode->GetLabel();
@@ -677,8 +697,8 @@ class GenelCrossSpringDamperSupport
 				 const ScalarDof& sdrow,
 				 const ScalarDof& sdcol,
 				 flag fOutput)
-     : Elem(uLabel, ElemType::BULK, fOutput), 
-     Genel(uLabel, GenelType::CROSSSPRINGDAMPERSUPPORT, pDO, fOutput),
+     : Elem(uLabel, Elem::BULK, fOutput), 
+     Genel(uLabel, Genel::CROSSSPRINGDAMPERSUPPORT, pDO, fOutput),
      ConstitutiveLaw1DOwner(pCL), SDRow(sdrow), SDCol(sdcol) {
       ASSERT(SDCol.iOrder == 0);
    };
@@ -696,6 +716,10 @@ class GenelCrossSpringDamperSupport
       return out; 
    };
    
+   /* Tipo di Genel */
+   virtual Genel::Type GetGenelType(void) const { 
+      return Genel::CROSSSPRINGDAMPERSUPPORT; 
+   };
    
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -757,7 +781,7 @@ class GenelCrossSpringDamperSupport
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = SDRow.pNode->GetNodeType();
      NdLabels[0] = SDRow.pNode->GetLabel();
@@ -782,8 +806,8 @@ class GenelSpringDamperSupport
    GenelSpringDamperSupport(unsigned int uLabel, const DofOwner* pDO, 
 			    const ConstitutiveLaw1D* pCL,
 			    const ScalarDof& sd, flag fOutput)
-     : Elem(uLabel, ElemType::BULK, fOutput), 
-     Genel(uLabel, GenelType::SPRINGDAMPERSUPPORT, pDO, fOutput),
+     : Elem(uLabel, Elem::BULK, fOutput), 
+     Genel(uLabel, Genel::SPRINGDAMPERSUPPORT, pDO, fOutput),
      ConstitutiveLaw1DOwner(pCL), SD(sd) {
 	ASSERT(sd.pNode->SetDof(0) == DofOrder::DIFFERENTIAL);
 	ASSERT(sd.iOrder == 0);
@@ -802,6 +826,10 @@ class GenelSpringDamperSupport
       return out; 
    };
    
+   /* Tipo di Genel */
+   virtual Genel::Type GetGenelType(void) const { 
+      return Genel::SPRINGDAMPERSUPPORT; 
+   };
    
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -863,7 +891,7 @@ class GenelSpringDamperSupport
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 1;
      NdTyps[0] = SD.pNode->GetNodeType();
      NdLabels[0] = SD.pNode->GetLabel();
@@ -883,8 +911,8 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
  public:
    GenelMass(unsigned int uLabel, const DofOwner* pDO, const DriveCaller* pDC,
 	      const ScalarDof& sd, flag fOutput)
-     : Elem(uLabel, ElemType::BULK, fOutput), 
-     Genel(uLabel, GenelType::MASS, pDO, fOutput),
+     : Elem(uLabel, Elem::BULK, fOutput), 
+     Genel(uLabel, Genel::MASS, pDO, fOutput),
      DriveOwner(pDC), SD(sd) { 
       NO_OP;
    };
@@ -904,9 +932,9 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
    /* esegue operazioni sui dof di proprieta' dell'elemento */
 #ifdef DEBUG   
    virtual DofOrder::Order SetDof(unsigned int i ) const {
-#else     
+#else /* DEBUG */
    virtual DofOrder::Order SetDof(unsigned int /* i */ ) const {
-#endif    
+#endif /* DEBUG */
       ASSERT(i == 0);
       return DofOrder::DIFFERENTIAL;
    };
@@ -916,6 +944,10 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
       return out; 
    };
    
+   /* Tipo di Genel */
+   virtual Genel::Type GetGenelType(void) const { 
+      return Genel::MASS; 
+   };
    
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -979,7 +1011,7 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 1;
      NdTyps[0] = SD.pNode->GetNodeType();
      NdLabels[0] = SD.pNode->GetLabel();
@@ -989,4 +1021,5 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
 
 /* GenelMass - end */
 
-#endif // GENEL__H
+#endif /* GENEL__H */
+

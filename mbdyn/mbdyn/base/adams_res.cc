@@ -50,7 +50,7 @@ DataManager::AdamsResOutputInit(void)
    ostream& out = OutHdl.AdamsRes();
    time_t t = time(NULL);
 
-   unsigned int nStrNodes = NodeData[NodeType::STRUCTURAL].iNum;
+   unsigned int nStrNodes = NodeData[Node::STRUCTURAL].iNum;
    iAdamsOutputParts = nStrNodes;
    
    Elem* p = NULL;
@@ -309,7 +309,7 @@ DataManager::AdamsResOutputInit(void)
      << "NAME MAP                                " << setw(8) << 2+2*iAdamsOutputParts << endl
      << setw(8) << iAdamsOutputParts << "YES" << endl;
    for (i = 0; i < nStrNodes; i++) {
-      StructNode *p = (StructNode *)NodeData[NodeType::STRUCTURAL].ppFirstNode[i];
+      StructNode *p = (StructNode *)NodeData[Node::STRUCTURAL].ppFirstNode[i];
       unsigned int l = p->GetLabel();
       out 
 	<< setw(20) << 2+i << "RIGID PART                 1" << endl
@@ -398,7 +398,7 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 {
    ostream& out = OutHdl.AdamsRes();
 
-   unsigned int nStrNodes = NodeData[NodeType::STRUCTURAL].iNum;
+   unsigned int nStrNodes = NodeData[Node::STRUCTURAL].iNum;
    
    out 
      << "ANALYSIS OUTPUT BLOCK                   " << setw(8) << 5+iAdamsOutputParts << endl
@@ -421,7 +421,7 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
       Vec3 e;
       
       StructNode *pNode = 
-	(StructNode *)NodeData[NodeType::STRUCTURAL].ppFirstNode[i];
+	(StructNode *)NodeData[Node::STRUCTURAL].ppFirstNode[i];
       
       x = pNode->GetXCurr();
       EulerParams(pNode->GetRCurr(), e0, e);

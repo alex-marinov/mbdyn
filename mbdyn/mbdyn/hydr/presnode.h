@@ -50,8 +50,8 @@ class PressureNode : public ScalarAlgebraicNode {
       NO_OP;      
    };
    
-   virtual NodeType::Type GetNodeType(void) const {
-      return NodeType::HYDRAULIC;
+   virtual Node::Type GetNodeType(void) const {
+      return Node::HYDRAULIC;
    };
    
    ostream& Restart(ostream& out) const {

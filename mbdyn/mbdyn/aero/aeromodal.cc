@@ -57,9 +57,9 @@ AerodynamicModal::AerodynamicModal(unsigned int uLabel,
                                  //integer Zaxis,
 				 const DriveCaller* pDC, 
 				 flag fOut)
-: Elem(uLabel, ElemType::AERODYNAMIC, fOut), 
-AerodynamicElem(uLabel, AeroType::AERODYNAMICMODAL, fOut), 
-InitialAssemblyElem(uLabel, ElemType::AERODYNAMIC, fOut),
+: Elem(uLabel, Elem::AERODYNAMIC, fOut), 
+AerodynamicElem(uLabel, AerodynamicElem::AERODYNAMICMODAL, fOut), 
+InitialAssemblyElem(uLabel, Elem::AERODYNAMIC, fOut),
 DriveOwner(pDC),
 pModalNode(pN), pModalJoint(pMJ), pRotor(pR),NAeroElems(iAP),
 NModes(iM),NFemNodes(NFN),
@@ -79,11 +79,11 @@ pFemNodesPosition(pFNP)
    // DEBUGCOUTFNAME("AerodynamicModal::AerodynamicModal");
    
    ASSERT(pModalNode != NULL);
-   ASSERT(pModalNode->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pModalNode->GetNodeType() == Node::STRUCTURAL);
    
 #ifdef DEBUG
    if(pRotor != NULL) {      
-      ASSERT(pRotor->GetElemType() == ElemType::ROTOR);
+      ASSERT(pRotor->GetElemType() == Elem::ROTOR);
    }
 #endif
    
@@ -707,7 +707,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
   /* giunto modale collegato */		     
   Modal* pModalJoint = NULL;
   /* verifica di esistenza del giunto modale */
-   Elem* pM = (Elem*)(pDM->pFindElem(ElemType::JOINT, uModalJoint));
+   Elem* pM = (Elem*)(pDM->pFindElem(Elem::JOINT, uModalJoint));
    if (pM == NULL) {
       cerr << endl
 	<< " at line " << HP.GetLineData() 
@@ -741,7 +741,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
       /* verifica di esistenza del rotore       
        * NOTA: ovviamente il rotore deve essere definito 
        * prima dell'elemento aerodinamico */
-      Elem* p = (Elem*)(pDM->pFindElem(ElemType::ROTOR, uNode));
+      Elem* p = (Elem*)(pDM->pFindElem(Elem::ROTOR, uNode));
       if (p  == NULL) {
 	 cerr << endl
 	   << " at line " << HP.GetLineData() 
@@ -850,7 +850,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    SAFENEWWITHCONSTRUCTOR(pFemNodesPosition, Mat3xN, Mat3xN(NFemNodes, 0.), EMmm);
    pFemNodesPosition = pModalJoint->pGetFemNodesPosition();
 
-   flag fOut = pDM->fReadOutput(HP, ElemType::AERODYNAMIC);
+   flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
    
    Elem* pEl = NULL;
    SAFENEWWITHCONSTRUCTOR(pEl, 

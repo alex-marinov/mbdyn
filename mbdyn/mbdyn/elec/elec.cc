@@ -42,10 +42,10 @@
 
 /* Electric - begin */
 
-Electric::Electric(unsigned int uL, ElectricType::Type T, 
+Electric::Electric(unsigned int uL, Electric::Type T, 
 		   const DofOwner* pDO, flag fOut)
-: Elem(uL, ElemType::ELECTRIC, fOut), 
-ElemWithDofs(uL, ElemType::ELECTRIC, pDO, fOut), 
+: Elem(uL, Elem::ELECTRIC, fOut), 
+ElemWithDofs(uL, Elem::ELECTRIC, pDO, fOut), 
 ElecT(T) 
 {
    NO_OP; 
@@ -67,16 +67,9 @@ ostream& Electric::Restart(ostream& out) const {
 
 
 /* Tipo dell'elemento (usato solo per debug ecc.) */
-ElemType::Type Electric::GetElemType(void) const 
+Elem::Type Electric::GetElemType(void) const 
 {
-   return ElemType::ELECTRIC; 
-}
-
-
-/* Tipo di elemento elettrico (usato solo per debug ecc.) */
-ElectricType::Type Electric::GetElectricType(void) const
-{
-   return ElecT;
+   return Elem::ELECTRIC; 
 }
 
 
@@ -104,8 +97,8 @@ Accelerometer::Accelerometer(unsigned int uL, const DofOwner* pDO,
 			     doublereal dO, doublereal dT, 
 			     doublereal dC, doublereal dK,
 			     flag fOut)
-: Elem(uL, ElemType::ELECTRIC, fOut), 
-Electric(uL, ElectricType::ACCELEROMETER, pDO, fOut),
+: Elem(uL, Elem::ELECTRIC, fOut), 
+Electric(uL, Electric::ACCELEROMETER, pDO, fOut),
 pStrNode(pS), pAbsNode(pA),
 Dir(TmpDir), dOmega(dO), dTau(dT), dCsi(dC), dKappa(dK)
 {
@@ -328,15 +321,15 @@ TraslAccel::TraslAccel(unsigned int uL, const DofOwner* pDO,
 		       const StructNode* pS, const AbstractNode* pA,
 		       const Vec3& TmpDir, const Vec3& Tmpf,
 		       flag fOut)
-: Elem(uL, ElemType::ELECTRIC, fOut), 
-Electric(uL, ElectricType::ACCELEROMETER, pDO, fOut),
+: Elem(uL, Elem::ELECTRIC, fOut), 
+Electric(uL, Electric::ACCELEROMETER, pDO, fOut),
 pStrNode(pS), pAbsNode(pA),
 Dir(TmpDir), f(Tmpf)
 {
    ASSERT(pStrNode != NULL);
-   ASSERT(pStrNode->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pStrNode->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pAbsNode != NULL);
-   ASSERT(pAbsNode->GetNodeType() == NodeType::ABSTRACT);
+   ASSERT(pAbsNode->GetNodeType() == Node::ABSTRACT);
 }
 
 
@@ -486,15 +479,15 @@ RotAccel::RotAccel(unsigned int uL, const DofOwner* pDO,
 		   const StructNode* pS, const AbstractNode* pA,
 		   const Vec3& TmpDir, 
 		   flag fOut)
-: Elem(uL, ElemType::ELECTRIC, fOut), 
-Electric(uL, ElectricType::ACCELEROMETER, pDO, fOut),
+: Elem(uL, Elem::ELECTRIC, fOut), 
+Electric(uL, Electric::ACCELEROMETER, pDO, fOut),
 pStrNode(pS), pAbsNode(pA),
 Dir(TmpDir)
 {
    ASSERT(pStrNode != NULL);
-   ASSERT(pStrNode->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pStrNode->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pAbsNode != NULL);
-   ASSERT(pAbsNode->GetNodeType() == NodeType::ABSTRACT);
+   ASSERT(pAbsNode->GetNodeType() == Node::ABSTRACT);
 }
 
 
@@ -633,17 +626,17 @@ DispMeasure::DispMeasure(unsigned int uL, const DofOwner* pDO,
 			 const AbstractNode* pA,
 			 const Vec3& Tmpf1, const Vec3& Tmpf2,
 			 flag fOut)
-: Elem(uL, ElemType::ELECTRIC, fOut), 
-Electric(uL, ElectricType::DISPLACEMENT, pDO, fOut),
+: Elem(uL, Elem::ELECTRIC, fOut), 
+Electric(uL, Electric::DISPLACEMENT, pDO, fOut),
 pStrNode1(pS1), pStrNode2(pS2), pAbsNode(pA),
 f1(Tmpf1), f2(Tmpf2)
 {
    ASSERT(pStrNode1 != NULL);
-   ASSERT(pStrNode1->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pStrNode1->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pStrNode2 != NULL);
-   ASSERT(pStrNode2->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pStrNode2->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pAbsNode != NULL);
-   ASSERT(pAbsNode->GetNodeType() == NodeType::ABSTRACT);
+   ASSERT(pAbsNode->GetNodeType() == Node::ABSTRACT);
 }
 
 
@@ -939,7 +932,7 @@ Elem* ReadElectric(DataManager* pDM,
 	  
 	  /* verifica di esistenza del nodo astratto */
 	  AbstractNode* pAbsNode;
-	  if ((pAbsNode = (AbstractNode*)(pDM->pFindNode(NodeType::ABSTRACT, uNode))) == NULL) {
+	  if ((pAbsNode = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
 	     cerr << "line " << HP.GetLineData() 
 	       << ": abstract node " << uNode
 	       << " not defined" << endl;	  
@@ -961,7 +954,7 @@ Elem* ReadElectric(DataManager* pDM,
 	   case 1: {
 	      /* offset */
 	      Vec3 Tmpf(HP.GetPosRel(ReferenceFrame(pStrNode)));
-	      flag fOut = pDM->fReadOutput(HP, ElemType::ELECTRIC);
+	      flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
 	      
 	      SAFENEWWITHCONSTRUCTOR(pEl, 
 				     TraslAccel,
@@ -972,7 +965,7 @@ Elem* ReadElectric(DataManager* pDM,
 	      break;
 	   } 
 	   case 2: {
-	      flag fOut = pDM->fReadOutput(HP, ElemType::ELECTRIC);
+	      flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
 	      
 	      SAFENEWWITHCONSTRUCTOR(pEl, 
 				     RotAccel,
@@ -1009,7 +1002,7 @@ Elem* ReadElectric(DataManager* pDM,
 	  
 	  /* verifica di esistenza del nodo astratto */
 	  AbstractNode* pAbsNode;
-	  if ((pAbsNode = (AbstractNode*)(pDM->pFindNode(NodeType::ABSTRACT, uNode))) == NULL) {
+	  if ((pAbsNode = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
 	     cerr << "line " << HP.GetLineData() 
 	       << ": abstract node " << uNode
 	       << " not defined" << endl;	  
@@ -1061,7 +1054,7 @@ Elem* ReadElectric(DataManager* pDM,
 		    << ", Csi: " << dCsi
 		    << ", Kappa: " << dKappa << endl);
 	  
-	  flag fOut = pDM->fReadOutput(HP, ElemType::ELECTRIC);
+	  flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
 	  
 	  SAFENEWWITHCONSTRUCTOR(pEl, 
 				 Accelerometer,
@@ -1120,14 +1113,14 @@ Elem* ReadElectric(DataManager* pDM,
        
        /* verifica di esistenza del nodo astratto */
        AbstractNode* pAbsNode;
-       if ((pAbsNode = (AbstractNode*)(pDM->pFindNode(NodeType::ABSTRACT, uNode))) == NULL) {
+       if ((pAbsNode = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	      << ": abstract node " << uNode
 	    << " not defined" << endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::ELECTRIC);
+       flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      DispMeasure,
@@ -1446,7 +1439,7 @@ Elem* ReadElectric(DataManager* pDM,
        /* Allocazione nodi e connessioni */
        for (int i = 0; i < iNumInputs; i++) {
 	  pInputs[i] = ReadScalarDof(pDM, HP, 1);
-	  if (pInputs[i].pNode->GetNodeType() ==  NodeType::PARAMETER) {
+	  if (pInputs[i].pNode->GetNodeType() ==  Node::PARAMETER) {
 	     cerr << "Sorry, parameters are not allowed as input nodes" 
 	       << endl;	     
 	     THROW(DataManager::ErrGeneric());	      
@@ -1455,7 +1448,7 @@ Elem* ReadElectric(DataManager* pDM,
        
        HP.PutKeyTable(K);
 
-       flag fOut = pDM->fReadOutput(HP, ElemType::ELECTRIC);
+       flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      DiscreteControlElem,

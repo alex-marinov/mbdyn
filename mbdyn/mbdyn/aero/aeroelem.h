@@ -132,8 +132,8 @@ public:
 	virtual ostream& Restart(ostream& out) const;
 	
 	/* Tipo dell'elemento (usato per debug ecc.) */
-	virtual ElemType::Type GetElemType(void) const {
-		return ElemType::AERODYNAMIC;
+	virtual Elem::Type GetElemType(void) const {
+		return Elem::AERODYNAMIC;
 	};
 	
 	/* funzioni proprie */
@@ -196,8 +196,8 @@ public:
 		      const VectorHandler& XCurr);
    
 	/* Tipo di elemento aerodinamico */
-	virtual AeroType::Type GetAeroType(void) const {
-		return AeroType::AERODYNAMICBODY;
+	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const {
+		return AerodynamicElem::AERODYNAMICBODY;
 	};
 	
 	/* *******PER IL SOLUTORE PARALLELO******** */        
@@ -207,7 +207,7 @@ public:
 	 */
 	virtual void
 	GetConnectedNodes(int& NumNodes,
-			  NodeType::Type* NdTyps,
+			  Node::Type* NdTyps,
 			  unsigned int* NdLabels) {
 		NumNodes = 1;
 		NdTyps[0] = pNode->GetNodeType();
@@ -311,8 +311,8 @@ public:
 	virtual ostream& Restart(ostream& out) const;
 	
 	/* Tipo dell'elemento (usato solo per debug ecc.) */
-	virtual ElemType::Type GetElemType(void) const {
-		return ElemType::AERODYNAMIC;
+	virtual Elem::Type GetElemType(void) const {
+		return Elem::AERODYNAMIC;
 	};
 	
 	/* funzioni proprie */
@@ -375,8 +375,8 @@ public:
 	virtual void Output(OutputHandler& OH) const;
 	
 	/* Tipo di elemento aerodinamico */
-	virtual AeroType::Type GetAeroType(void) const {
-		return AeroType::AERODYNAMICBEAM;
+	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const {
+		return AerodynamicElem::AERODYNAMICBEAM;
 	};
 	
 	/*
@@ -386,7 +386,7 @@ public:
 	 */
 	virtual void
 	GetConnectedNodes(int& NumNodes,
-			  NodeType::Type* NdTyps,
+			  Node::Type* NdTyps,
 			  unsigned int* NdLabels) {
 		NumNodes = 3;
 		NdTyps[0] = pNode1->GetNodeType();

@@ -49,7 +49,7 @@ class DrivenElem : /* virtual */ public Elem, protected DriveOwner {
    
  public:
    DrivenElem(const DriveCaller* pDC, const Elem* pE)
-     : Elem(pE->GetLabel(), ElemType::DRIVEN, pE->fToBeOutput()),
+     : Elem(pE->GetLabel(), Elem::DRIVEN, pE->fToBeOutput()),
      DriveOwner(pDC), pElem((Elem*)pE) {
 	ASSERT(pDC != NULL);
 	ASSERT(pE != NULL);
@@ -116,7 +116,7 @@ class DrivenElem : /* virtual */ public Elem, protected DriveOwner {
    };
    
    /* Tipo dell'elemento (usato solo per debug ecc.) */
-   virtual ElemType::Type GetElemType(void) const {
+   virtual Elem::Type GetElemType(void) const {
       ASSERT(pElem != NULL);
       return pElem->GetElemType(); 
    };
@@ -259,7 +259,7 @@ class DrivenElem : /* virtual */ public Elem, protected DriveOwner {
    /* *******PER IL SOLUTORE PARALLELO******** */
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      return pElem->GetConnectedNodes(NumNodes, NdTyps, NdLabels);
    };
 };

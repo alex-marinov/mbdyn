@@ -36,10 +36,14 @@
 #include "elem.h"
 #include "node.h"
 
+extern const char* psGenelNames[];
 
-/* Tipi di Genel */
-class GenelType {
+
+/* Genel - begin */
+
+class Genel : virtual public Elem, public ElemWithDofs {
  public:
+   /* Tipi di Genel */
    enum Type {
       UNKNOWN = -1,
 	SWASHPLATE = 0,
@@ -59,33 +63,24 @@ class GenelType {
 	
 	LASTGENELTYPE
    };
-};
 
-extern const char* psGenelNames[];
-
-
-/* Genel - begin */
-
-class Genel : virtual public Elem, public ElemWithDofs {
  private:
-   GenelType::Type GenelT;
+   Genel::Type GenelT;
    
  public:
-   Genel(unsigned int uL, GenelType::Type T, const DofOwner* pDO, flag fOut);
+   Genel(unsigned int uL, Genel::Type T, const DofOwner* pDO, flag fOut);
    virtual ~Genel(void);
    
    /* Scrive il contributo dell'elemento al file di restart */
    virtual ostream& Restart(ostream& out) const;
    
    /* Tipo dell'elemento (usato per debug ecc.) */
-   virtual ElemType::Type GetElemType(void) const {
-      return ElemType::GENEL; 
+   virtual Elem::Type GetElemType(void) const {
+      return Elem::GENEL; 
    };
    
    /* Tipo di Genel */
-   virtual GenelType::Type GetGenelType(void) const {
-      return GenelT;
-   };
+   virtual Genel::Type GetGenelType(void) const = 0;
 };
    
 /* Genel - end */
@@ -99,4 +94,5 @@ extern Elem* ReadGenel(DataManager* pDM,
 		       const DofOwner* pDO, 
 		       unsigned int uLabel);
 
-#endif
+#endif /* GENEL_H */
+

@@ -57,7 +57,7 @@
 #include <loadable.h>
 #endif /* HAVE_LOADABLE */
 
-static int iNumTypes[ElemType::LASTELEMTYPE];
+static int iNumTypes[Elem::LASTELEMTYPE];
 
 /* enum delle parole chiave */
 enum KeyWords {
@@ -140,7 +140,7 @@ void DataManager::ReadElems(MBDynParser& HP)
    HP.PutKeyTable(K);
       
    /* strutture di conteggio degli elementi letti */
-   for (int i = 0; i < ElemType::LASTELEMTYPE; 
+   for (int i = 0; i < Elem::LASTELEMTYPE; 
 	iNumTypes[i] = ElemData[i++].iNum) { 
       NO_OP; 
    }   
@@ -150,22 +150,22 @@ void DataManager::ReadElems(MBDynParser& HP)
    
 #ifdef USE_STRUCT_NODES
    /* Aggiunta degli elementi strutturali automatici legati ai nodi dinamici */
-   if (ElemData[ElemType::AUTOMATICSTRUCTURAL].iNum > 0) {	
+   if (ElemData[Elem::AUTOMATICSTRUCTURAL].iNum > 0) {	
       StructNode** ppTmpNod = 
-	(StructNode**)NodeData[NodeType::STRUCTURAL].ppFirstNode;
-      int iTotNod = NodeData[NodeType::STRUCTURAL].iNum;
+	(StructNode**)NodeData[Node::STRUCTURAL].ppFirstNode;
+      int iTotNod = NodeData[Node::STRUCTURAL].iNum;
       
       Elem** ppTmpEl = 
-	ElemData[ElemType::AUTOMATICSTRUCTURAL].ppFirstElem;
+	ElemData[Elem::AUTOMATICSTRUCTURAL].ppFirstElem;
       for (StructNode** ppTmp = ppTmpNod; ppTmp < ppTmpNod+iTotNod; ppTmp++) {
-	 if ((*ppTmp)->GetStructNodeType() == StructNodeType::DYNAMIC) {
+	 if ((*ppTmp)->GetStructNodeType() == StructNode::DYNAMIC) {
 	    
 	    SAFENEWWITHCONSTRUCTOR(*ppTmpEl, AutomaticStructElem,
 				   AutomaticStructElem((DynamicStructNode*)(*ppTmp)), DMmm);
 	    
 	    ppTmpEl++;
 	    iMissingElems--;
-	    iNumTypes[ElemType::AUTOMATICSTRUCTURAL]--;
+	    iNumTypes[Elem::AUTOMATICSTRUCTURAL]--;
 	    DEBUGLCOUT(MYDEBUG_INPUT, 
 		       "Initialising automatic structural element linked to node " 
 		       << (*ppTmp)->GetLabel() << endl);
@@ -179,40 +179,40 @@ void DataManager::ReadElems(MBDynParser& HP)
       
       if (CurrDesc == OUTPUT) {
 	 DEBUGLCOUT(MYDEBUG_INPUT, "Elements to be output: ");
-	 ElemType::Type Typ;
+	 Elem::Type Typ;
 	 switch (KeyWords(HP.GetWord())) {
 	    
 #ifdef USE_STRUCT_NODES
 	  case BODY: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "bodies" << endl);
-	     Typ = ElemType::BODY;
+	     Typ = Elem::BODY;
 	     break;
 	  }
 	  case AUTOMATICSTRUCTURAL: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "automatic structural" << endl);
-	     Typ = ElemType::AUTOMATICSTRUCTURAL;
+	     Typ = Elem::AUTOMATICSTRUCTURAL;
 	     break;
 	  }
 	  case JOINT: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "joints" << endl);
-	     Typ = ElemType::JOINT;
+	     Typ = Elem::JOINT;
 	     break;
 	  }
 	  case BEAM: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "beams" << endl);
-	     Typ = ElemType::BEAM;
+	     Typ = Elem::BEAM;
 	     break;
 	  }
 #ifdef USE_AERODYNAMIC_ELEMS
 	  case ROTOR: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "rotors" << endl);
-	     Typ = ElemType::ROTOR;
+	     Typ = Elem::ROTOR;
 	     break;
 	  }
 	  case AERODYNAMICBODY:
 	  case AERODYNAMICBEAM: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "aerodynamic" << endl);
-	     Typ = ElemType::AERODYNAMIC;
+	     Typ = Elem::AERODYNAMIC;
 	     break;
 	  }
 #endif /* USE_AERODYNAMIC_ELEMS */
@@ -224,18 +224,18 @@ void DataManager::ReadElems(MBDynParser& HP)
 #endif /* USE_STRUCT_NODES */
 	  {		 
 	     DEBUGLCOUT(MYDEBUG_INPUT, "forces" << endl);
-	     Typ = ElemType::FORCE;
+	     Typ = Elem::FORCE;
 	     break;
 	  }	
 #ifdef USE_ELECTRIC_NODES
 	  case GENEL: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "genels" << endl);
-	     Typ = ElemType::GENEL;
+	     Typ = Elem::GENEL;
 	     break;
 	  }
 	  case ELECTRIC: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "electric" << endl);
-	     Typ = ElemType::ELECTRIC;
+	     Typ = Elem::ELECTRIC;
 	     break;
 	  }
 #endif /* USE_ELECTRIC_NODES */
@@ -243,21 +243,21 @@ void DataManager::ReadElems(MBDynParser& HP)
 #ifdef USE_HYDRAULIC_NODES
 	  case HYDRAULIC: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "hydraulic elements" << endl);
-	     Typ = ElemType::HYDRAULIC;
+	     Typ = Elem::HYDRAULIC;
 	     break;
 	  }
 #endif /* USE_HYDRAULIC_NODES */
 
 	  case BULK: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "bulk" << endl);
-	     Typ = ElemType::BULK;
+	     Typ = Elem::BULK;
 	     break;
 	  }
 
 #ifdef HAVE_LOADABLE
 	  case LOADABLE: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "loadable" << endl);
-	     Typ = ElemType::LOADABLE;
+	     Typ = Elem::LOADABLE;
 	     break;
 	  }
 #endif /* HAVE_LOADABLE */
@@ -293,45 +293,45 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 unsigned int uL = HP.GetInt();
 	 
 	 /* Tipo dell'elemento */
-	 ElemType::Type t = ElemType::UNKNOWN;	 
+	 Elem::Type t = Elem::UNKNOWN;	 
 	 switch (KeyWords(HP.GetWord())) {
 	  case BODY:
-	    t = ElemType::BODY;
+	    t = Elem::BODY;
 	    break;
 	  case AUTOMATICSTRUCTURAL:
-	    t = ElemType::AUTOMATICSTRUCTURAL;
+	    t = Elem::AUTOMATICSTRUCTURAL;
 	    break;
 	  case JOINT:
-	    t = ElemType::JOINT;
+	    t = Elem::JOINT;
 	    break;
 	  case FORCE:
 	  case COUPLE:
-	    t = ElemType::FORCE;
+	    t = Elem::FORCE;
 	    break;
 	  case BEAM:
-	    t = ElemType::BEAM;
+	    t = Elem::BEAM;
 	    break;
 	  case ROTOR:
-	    t = ElemType::ROTOR;
+	    t = Elem::ROTOR;
 	    break;
 	  case AERODYNAMICBODY:
 	  case AERODYNAMICBEAM:	
-	    t = ElemType::AERODYNAMIC;
+	    t = Elem::AERODYNAMIC;
 	    break;
 	  case GENEL:
-	    t = ElemType::GENEL;
+	    t = Elem::GENEL;
 	    break;
 	  case ELECTRIC:
-	    t = ElemType::ELECTRIC;
+	    t = Elem::ELECTRIC;
 	    break;
 	  case HYDRAULIC:     
-	    t = ElemType::HYDRAULIC;
+	    t = Elem::HYDRAULIC;
 	    break;
 	  case BULK:
-	    t = ElemType::BULK;
+	    t = Elem::BULK;
 	    break;	 
 	  case LOADABLE:
-	    t = ElemType::LOADABLE;
+	    t = Elem::LOADABLE;
 	    break;
 	  default:
 	    THROW(ErrGeneric());
@@ -347,7 +347,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 /* Label del nodo parameter */
 	 uL = HP.GetInt();
 	 
-	 Elem2Param* pNd = ((Elem2Param*)pFindNode(NodeType::PARAMETER, uL));
+	 Elem2Param* pNd = ((Elem2Param*)pFindNode(Node::PARAMETER, uL));
 	 if (pNd == NULL) {
 	    cerr << "can't find parameter node (" << uL
 	      << ") at line " << HP.GetLineData() << endl;
@@ -377,7 +377,7 @@ void DataManager::ReadElems(MBDynParser& HP)
        * eventualmente si puo' fare altrimenti */
       } else if (CurrDesc == AUTOMATICSTRUCTURAL) {
 	 unsigned int uLabel = HP.GetInt();
-	 Elem* pEl = (Elem*)pFindElem(ElemType::AUTOMATICSTRUCTURAL, uLabel);
+	 Elem* pEl = (Elem*)pFindElem(Elem::AUTOMATICSTRUCTURAL, uLabel);
 	 if (pEl == NULL) {
 	    cerr << "line " << HP.GetLineData() 
 	      << ": unable to find automatic structural element " 
@@ -421,7 +421,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	  case GRAVITY: {
 	     silent_cout("Reading gravity acceleration" << endl);
 	     
-	     if (iNumTypes[ElemType::GRAVITY]-- <= 0) {
+	     if (iNumTypes[Elem::GRAVITY]-- <= 0) {
 		DEBUGCERR("");
 		cerr << "line " << HP.GetLineData() 
 		  << ": gravity acceleration element is not defined" << endl;
@@ -429,7 +429,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		THROW(DataManager::ErrGeneric());
 	     }
 	     
-	     ppE = ElemData[ElemType::GRAVITY].ppFirstElem;
+	     ppE = ElemData[Elem::GRAVITY].ppFirstElem;
 	     uLabel = 1;
 	     
 	      
@@ -437,7 +437,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	       = ReadTplDrive(this, HP, &DrvHdl, Vec3(0.));
 	     HP.PutKeyTable(K);
 	     
-	     flag fOut = fReadOutput(HP, ElemType::GRAVITY);
+	     flag fOut = fReadOutput(HP, Elem::GRAVITY);
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppE,
 				    Gravity,
@@ -452,7 +452,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	  case AIRPROPERTIES: {
 	     silent_cout("Reading air properties" << endl);
 	     
-	     if(iNumTypes[ElemType::AIRPROPERTIES]-- <= 0) {
+	     if(iNumTypes[Elem::AIRPROPERTIES]-- <= 0) {
 		DEBUGCERR("");
 		cerr << "line " << HP.GetLineData() 
 		  << ": air properties element is not defined" << endl;
@@ -460,7 +460,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		THROW(DataManager::ErrGeneric());
 	     }
 	     
-	     ppE = ElemData[ElemType::AIRPROPERTIES].ppFirstElem;
+	     ppE = ElemData[Elem::AIRPROPERTIES].ppFirstElem;
 	     uLabel = 1;
 	     
 	     doublereal dRho = HP.GetReal();
@@ -488,7 +488,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	       = ReadTplDrive(this, HP, &DrvHdl, Vec3(0.));	      	      
 	     HP.PutKeyTable(K);	      	      
 	     
-	     flag fOut = fReadOutput(HP, ElemType::AIRPROPERTIES);
+	     flag fOut = fReadOutput(HP, Elem::AIRPROPERTIES);
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppE, 
 				    AirProperties,
@@ -567,61 +567,61 @@ void DataManager::ReadElems(MBDynParser& HP)
 		    
 		    switch (CurrDriven) {
 		     case FORCE: {
-			ppE = ppFindElem(ElemType::FORCE, uLabel);
+			ppE = ppFindElem(Elem::FORCE, uLabel);
 			break;
 		     }
 #ifdef USE_STRUCT_NODES
-		     case BODY: {			 
-			ppE = ppFindElem(ElemType::BODY, uLabel);
+		     case BODY: {
+			ppE = ppFindElem(Elem::BODY, uLabel);
 			break;
 		     }
-		     case JOINT: {		       
-			ppE = ppFindElem(ElemType::JOINT, uLabel);
+		     case JOINT: {
+			ppE = ppFindElem(Elem::JOINT, uLabel);
 			break;
-		     }		    
+		     }
 		     case COUPLE: {
-			ppE = ppFindElem(ElemType::FORCE, uLabel);
+			ppE = ppFindElem(Elem::FORCE, uLabel);
 			break;
 		     }
 		     case BEAM: {
-			ppE = ppFindElem(ElemType::BEAM, uLabel);
+			ppE = ppFindElem(Elem::BEAM, uLabel);
 			break;
 		     }
 #ifdef USE_AERODYNAMIC_ELEMS
 		     case ROTOR: {
-			ppE = ppFindElem(ElemType::ROTOR, uLabel);
+			ppE = ppFindElem(Elem::ROTOR, uLabel);
 			break;
 		     }
 		     case AERODYNAMICBODY:
 		     case AERODYNAMICBEAM: {
-			ppE = ppFindElem(ElemType::AERODYNAMIC, uLabel);
+			ppE = ppFindElem(Elem::AERODYNAMIC, uLabel);
 			break;
 		     }
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
 #ifdef USE_ELECTRIC_NODES
-		     case GENEL: {		       
-			ppE = ppFindElem(ElemType::GENEL, uLabel);
+		     case GENEL: {
+			ppE = ppFindElem(Elem::GENEL, uLabel);
 			break;
 		     }
-		     case ELECTRIC: {		       
-			ppE = ppFindElem(ElemType::ELECTRIC, uLabel);
+		     case ELECTRIC: {
+			ppE = ppFindElem(Elem::ELECTRIC, uLabel);
 			break;
 		     }
 #endif /* USE_ELECTRIC_NODES */
 #ifdef USE_HYDRAULIC_NODES
-		     case HYDRAULIC: {		       
-			ppE = ppFindElem(ElemType::HYDRAULIC, uLabel);
+		     case HYDRAULIC: {
+			ppE = ppFindElem(Elem::HYDRAULIC, uLabel);
 			break;
 		     }
 #endif /* USE_HYDRAULIC_NODES */
-		     case BULK: {		       
-			ppE = ppFindElem(ElemType::BULK, uLabel);
+		     case BULK: {
+			ppE = ppFindElem(Elem::BULK, uLabel);
 			break;
 		     }
 #ifdef HAVE_LOADABLE
-		     case LOADABLE: {		       
-			ppE = ppFindElem(ElemType::LOADABLE, uLabel);
+		     case LOADABLE: {
+			ppE = ppFindElem(Elem::LOADABLE, uLabel);
 			break;
 		     }
 #endif /* HAVE_LOADABLE */
@@ -629,7 +629,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		     default: {
 			DEBUGCERR("warning, this element can't be driven" << endl);
 			break;
-		     }			
+		     }
 		    }
 		    
 		    if (ppE == NULL) {
@@ -789,7 +789,7 @@ void DataManager::ReadElems(MBDynParser& HP)
       DEBUGCERR("");
       cerr << "warning: " << iMissingElems
 	<< " elements are missing;" << endl;
-      for (int iCnt = 0; iCnt < ElemType::LASTELEMTYPE; iCnt++) {
+      for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 	 if (iNumTypes[iCnt] > 0) {
 	    cerr << "  " << iNumTypes[iCnt] 
 	      << ' ' << psElemNames[iCnt] << endl;
@@ -802,10 +802,10 @@ void DataManager::ReadElems(MBDynParser& HP)
 #ifdef USE_STRUCT_NODES
    /* Linka gli elementi che generano forze d'inerzia all'elemento 
     * accelerazione di gravita' */
-   if (ElemData[ElemType::GRAVITY].iNum > 0) {
+   if (ElemData[Elem::GRAVITY].iNum > 0) {
       Gravity* pGrav = 
-	(Gravity*)(*(ElemData[ElemType::GRAVITY].ppFirstElem))->pGet();
-      for (int iCnt = 0; iCnt < ElemType::LASTELEMTYPE; iCnt++) {
+	(Gravity*)(*(ElemData[Elem::GRAVITY].ppFirstElem))->pGet();
+      for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 	 if ((ElemData[iCnt].fGeneratesInertialForces == 1)
 	     && (ElemData[iCnt].iNum > 0)) {
 	    
@@ -823,11 +823,11 @@ void DataManager::ReadElems(MBDynParser& HP)
 #ifdef USE_AERODYNAMIC_ELEMS
    /* Linka gli elementi che usano le proprieta' dell'aria all'elemento
     * proprieta' dell'aria */
-   if (ElemData[ElemType::AIRPROPERTIES].iNum > 0) {      
+   if (ElemData[Elem::AIRPROPERTIES].iNum > 0) {      
       AirProperties* pProp =
-	(AirProperties*)(*(ElemData[ElemType::AIRPROPERTIES].ppFirstElem))->pGet();
+	(AirProperties*)(*(ElemData[Elem::AIRPROPERTIES].ppFirstElem))->pGet();
       
-      for (int iCnt = 0; iCnt < ElemType::LASTELEMTYPE; iCnt++) {
+      for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 	 if ((ElemData[iCnt].fUsesAirProperties == 1)
 	     && (ElemData[iCnt].iNum > 0)) {	    
 	    
@@ -847,7 +847,7 @@ void DataManager::ReadElems(MBDynParser& HP)
        * il calcolo deve essere arrestato */
       flag fStop(0);
       
-      for (int iCnt = 0; iCnt < ElemType::LASTELEMTYPE; iCnt++) {
+      for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 	 if ((ElemData[iCnt].fUsesAirProperties == 1)
 	     && (ElemData[iCnt].iNum > 0)) {
 	    if (fStop == 0) {
@@ -898,7 +898,7 @@ Elem** ReadOneElem(DataManager* pDM,
 	  silent_cout("Reading couple " << uLabel << endl);
        }
        
-       if (iNumTypes[ElemType::FORCE]-- <= 0) {
+       if (iNumTypes[Elem::FORCE]-- <= 0) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": force " << uLabel
@@ -908,7 +908,7 @@ Elem** ReadOneElem(DataManager* pDM,
        }
        
        /* verifica che non sia gia' definito */
-       if (pDM->pFindElem(ElemType::FORCE, uLabel) != NULL) {
+       if (pDM->pFindElem(Elem::FORCE, uLabel) != NULL) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": force " << uLabel
@@ -919,9 +919,9 @@ Elem** ReadOneElem(DataManager* pDM,
        
        
        /* allocazione e creazione */		      
-       int i = pDM->ElemData[ElemType::FORCE].iNum
-	 -iNumTypes[ElemType::FORCE]-1;
-       ppE = pDM->ElemData[ElemType::FORCE].ppFirstElem+i;
+       int i = pDM->ElemData[Elem::FORCE].iNum
+	 -iNumTypes[Elem::FORCE]-1;
+       ppE = pDM->ElemData[Elem::FORCE].ppFirstElem+i;
        
        *ppE = ReadForce(pDM, HP, uLabel, iForceType);
        
@@ -932,7 +932,7 @@ Elem** ReadOneElem(DataManager* pDM,
     case BODY: {
        silent_cout("Reading rigid body " << uLabel << endl);
        
-       if(iNumTypes[ElemType::BODY]-- <= 0) {
+       if(iNumTypes[Elem::BODY]-- <= 0) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": rigid body " << uLabel
@@ -942,7 +942,7 @@ Elem** ReadOneElem(DataManager* pDM,
        }
        
        /* verifica che non sia gia' definito */		    
-       if(pDM->pFindElem(ElemType::BODY, uLabel) != NULL) {
+       if(pDM->pFindElem(Elem::BODY, uLabel) != NULL) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": rigid body " << uLabel
@@ -953,8 +953,8 @@ Elem** ReadOneElem(DataManager* pDM,
        
        
        /* allocazione e creazione */
-       int i = pDM->ElemData[ElemType::BODY].iNum-iNumTypes[ElemType::BODY]-1;
-       ppE = pDM->ElemData[ElemType::BODY].ppFirstElem+i;
+       int i = pDM->ElemData[Elem::BODY].iNum-iNumTypes[Elem::BODY]-1;
+       ppE = pDM->ElemData[Elem::BODY].ppFirstElem+i;
        
        *ppE = ReadBody(pDM, HP, uLabel);     
        
@@ -965,7 +965,7 @@ Elem** ReadOneElem(DataManager* pDM,
     case JOINT: {    
        silent_cout("Reading joint " << uLabel << endl);
        
-       if (iNumTypes[ElemType::JOINT]-- <= 0) {
+       if (iNumTypes[Elem::JOINT]-- <= 0) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": joint " << uLabel
@@ -975,7 +975,7 @@ Elem** ReadOneElem(DataManager* pDM,
        }	  
        
        /* verifica che non sia gia' definito */		      
-       if (pDM->pFindElem(ElemType::JOINT, uLabel) != NULL) {
+       if (pDM->pFindElem(Elem::JOINT, uLabel) != NULL) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": joint " << uLabel
@@ -986,10 +986,10 @@ Elem** ReadOneElem(DataManager* pDM,
        
        
        /* allocazione e creazione */
-       int i = pDM->ElemData[ElemType::JOINT].iNum
-	 -iNumTypes[ElemType::JOINT]-1;
-       ppE = pDM->ElemData[ElemType::JOINT].ppFirstElem+i;
-       DofOwner* pDO = pDM->DofData[DofType::JOINT].pFirstDofOwner+i;
+       int i = pDM->ElemData[Elem::JOINT].iNum
+	 -iNumTypes[Elem::JOINT]-1;
+       ppE = pDM->ElemData[Elem::JOINT].ppFirstElem+i;
+       DofOwner* pDO = pDM->DofData[DofOwner::JOINT].pFirstDofOwner+i;
        
        *ppE = ReadJoint(pDM, HP, pDO, uLabel);     
        
@@ -1002,7 +1002,7 @@ Elem** ReadOneElem(DataManager* pDM,
     case BEAM: {      
        silent_cout("Reading beam " << uLabel << endl);
        
-       if (iNumTypes[ElemType::BEAM]-- <= 0) {
+       if (iNumTypes[Elem::BEAM]-- <= 0) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": beam " << uLabel
@@ -1012,7 +1012,7 @@ Elem** ReadOneElem(DataManager* pDM,
        }
        
        /* verifica che non sia gia' definito */
-       if (pDM->pFindElem(ElemType::BEAM, uLabel) != NULL) {
+       if (pDM->pFindElem(Elem::BEAM, uLabel) != NULL) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": beam " << uLabel
@@ -1022,9 +1022,9 @@ Elem** ReadOneElem(DataManager* pDM,
        }
        
        /* allocazione e creazione */
-       int i = pDM->ElemData[ElemType::BEAM].iNum
-	 -iNumTypes[ElemType::BEAM]-1;
-       ppE = pDM->ElemData[ElemType::BEAM].ppFirstElem+i;
+       int i = pDM->ElemData[Elem::BEAM].iNum
+	 -iNumTypes[Elem::BEAM]-1;
+       ppE = pDM->ElemData[Elem::BEAM].ppFirstElem+i;
        
        *ppE = ReadBeam(pDM, HP, uLabel);
        
@@ -1036,7 +1036,7 @@ Elem** ReadOneElem(DataManager* pDM,
     case ROTOR: {
        silent_cout("Reading rotor " << uLabel << endl);
        
-       if (iNumTypes[ElemType::ROTOR]-- <= 0) {
+       if (iNumTypes[Elem::ROTOR]-- <= 0) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": rotor " << uLabel
@@ -1046,7 +1046,7 @@ Elem** ReadOneElem(DataManager* pDM,
        }
        
        /* verifica che non sia gia' definito */
-       if (pDM->pFindElem(ElemType::ROTOR, uLabel) != NULL) {
+       if (pDM->pFindElem(Elem::ROTOR, uLabel) != NULL) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": rotor " << uLabel
@@ -1056,10 +1056,10 @@ Elem** ReadOneElem(DataManager* pDM,
        }
        
        /* allocazione e creazione */
-       int i = pDM->ElemData[ElemType::ROTOR].iNum
-	 -iNumTypes[ElemType::ROTOR]-1;
-       ppE = pDM->ElemData[ElemType::ROTOR].ppFirstElem+i;
-       DofOwner* pDO = pDM->DofData[DofType::ROTOR].pFirstDofOwner+i;
+       int i = pDM->ElemData[Elem::ROTOR].iNum
+	 -iNumTypes[Elem::ROTOR]-1;
+       ppE = pDM->ElemData[Elem::ROTOR].ppFirstElem+i;
+       DofOwner* pDO = pDM->DofData[DofOwner::ROTOR].pFirstDofOwner+i;
        
        *ppE = ReadRotor(pDM, HP, pDO, uLabel);     
        
@@ -1071,7 +1071,7 @@ Elem** ReadOneElem(DataManager* pDM,
     case AERODYNAMICBEAM: {
        silent_cout("Reading aerodynamic element " << uLabel << endl);
        
-       if (iNumTypes[ElemType::AERODYNAMIC]-- <= 0) {
+       if (iNumTypes[Elem::AERODYNAMIC]-- <= 0) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": aerodynamic element " << uLabel
@@ -1081,7 +1081,7 @@ Elem** ReadOneElem(DataManager* pDM,
        }
        
        /* verifica che non sia gia' definito */
-       if (pDM->pFindElem(ElemType::AERODYNAMIC, uLabel) != NULL) {
+       if (pDM->pFindElem(Elem::AERODYNAMIC, uLabel) != NULL) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": aerodynamic element " << uLabel
@@ -1091,9 +1091,9 @@ Elem** ReadOneElem(DataManager* pDM,
        }
        
        /* allocazione e creazione */
-       int i = pDM->ElemData[ElemType::AERODYNAMIC].iNum
-	 -iNumTypes[ElemType::AERODYNAMIC]-1;
-       ppE = pDM->ElemData[ElemType::AERODYNAMIC].ppFirstElem+i;
+       int i = pDM->ElemData[Elem::AERODYNAMIC].iNum
+	 -iNumTypes[Elem::AERODYNAMIC]-1;
+       ppE = pDM->ElemData[Elem::AERODYNAMIC].ppFirstElem+i;
        
        switch(KeyWords(CurrType)) {
 	case AERODYNAMICBODY: {
@@ -1123,7 +1123,7 @@ Elem** ReadOneElem(DataManager* pDM,
     case GENEL: {
        silent_cout("Reading genel " << uLabel << endl);
 
-       if(iNumTypes[ElemType::GENEL]-- <= 0) {
+       if(iNumTypes[Elem::GENEL]-- <= 0) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": genel " << uLabel
@@ -1133,7 +1133,7 @@ Elem** ReadOneElem(DataManager* pDM,
        }	  
        
        /* verifica che non sia gia' definito */		      
-       if(pDM->pFindElem(ElemType::GENEL, uLabel) != NULL) {
+       if(pDM->pFindElem(Elem::GENEL, uLabel) != NULL) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": genel " << uLabel
@@ -1144,10 +1144,10 @@ Elem** ReadOneElem(DataManager* pDM,
        
        
        /* allocazione e creazione */
-       int i = pDM->ElemData[ElemType::GENEL].iNum
-	 -iNumTypes[ElemType::GENEL]-1;
-       ppE = pDM->ElemData[ElemType::GENEL].ppFirstElem+i;
-       DofOwner* pDO = pDM->DofData[DofType::GENEL].pFirstDofOwner+i;
+       int i = pDM->ElemData[Elem::GENEL].iNum
+	 -iNumTypes[Elem::GENEL]-1;
+       ppE = pDM->ElemData[Elem::GENEL].ppFirstElem+i;
+       DofOwner* pDO = pDM->DofData[DofOwner::GENEL].pFirstDofOwner+i;
        
        *ppE = ReadGenel(pDM, HP, pDO, uLabel);
        
@@ -1159,7 +1159,7 @@ Elem** ReadOneElem(DataManager* pDM,
     case HYDRAULIC: {
        silent_cout("Reading hydraulic element " << uLabel << endl);
        
-       if(iNumTypes[ElemType::HYDRAULIC]-- <= 0) {
+       if(iNumTypes[Elem::HYDRAULIC]-- <= 0) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": hydraulic element " << uLabel
@@ -1169,7 +1169,7 @@ Elem** ReadOneElem(DataManager* pDM,
        }	  
        
        /* verifica che non sia gia' definito */
-       if (pDM->pFindElem(ElemType::HYDRAULIC, uLabel) != NULL) {
+       if (pDM->pFindElem(Elem::HYDRAULIC, uLabel) != NULL) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": hydraulic element " << uLabel
@@ -1180,10 +1180,10 @@ Elem** ReadOneElem(DataManager* pDM,
        
        
        /* allocazione e creazione */
-       int i = pDM->ElemData[ElemType::HYDRAULIC].iNum
-	 -iNumTypes[ElemType::HYDRAULIC]-1;
-       ppE = pDM->ElemData[ElemType::HYDRAULIC].ppFirstElem+i;
-       DofOwner* pDO = pDM->DofData[DofType::HYDRAULIC].pFirstDofOwner+i;
+       int i = pDM->ElemData[Elem::HYDRAULIC].iNum
+	 -iNumTypes[Elem::HYDRAULIC]-1;
+       ppE = pDM->ElemData[Elem::HYDRAULIC].ppFirstElem+i;
+       DofOwner* pDO = pDM->DofData[DofOwner::HYDRAULIC].pFirstDofOwner+i;
        
        *ppE = ReadHydraulicElem(pDM, HP, pDO, uLabel);
        
@@ -1199,7 +1199,7 @@ Elem** ReadOneElem(DataManager* pDM,
     case ELECTRIC: {
        silent_cout("Reading electric element " << uLabel << endl);
        
-       if(iNumTypes[ElemType::ELECTRIC]-- <= 0) {
+       if(iNumTypes[Elem::ELECTRIC]-- <= 0) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": electric element " << uLabel
@@ -1209,7 +1209,7 @@ Elem** ReadOneElem(DataManager* pDM,
        }	  
        
        /* verifica che non sia gia' definito */
-       if (pDM->pFindElem(ElemType::ELECTRIC, uLabel) != NULL) {
+       if (pDM->pFindElem(Elem::ELECTRIC, uLabel) != NULL) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": electric element " << uLabel
@@ -1220,10 +1220,10 @@ Elem** ReadOneElem(DataManager* pDM,
        
        
        /* allocazione e creazione */
-       int i = pDM->ElemData[ElemType::ELECTRIC].iNum
-	 -iNumTypes[ElemType::ELECTRIC]-1;
-       ppE = pDM->ElemData[ElemType::ELECTRIC].ppFirstElem+i;
-       DofOwner* pDO = pDM->DofData[DofType::ELECTRIC].pFirstDofOwner+i;
+       int i = pDM->ElemData[Elem::ELECTRIC].iNum
+	 -iNumTypes[Elem::ELECTRIC]-1;
+       ppE = pDM->ElemData[Elem::ELECTRIC].ppFirstElem+i;
+       DofOwner* pDO = pDM->DofData[DofOwner::ELECTRIC].pFirstDofOwner+i;
        
        *ppE = ReadElectric(pDM, HP, pDO, uLabel);
        
@@ -1238,7 +1238,7 @@ Elem** ReadOneElem(DataManager* pDM,
     case BULK: {
        silent_cout("Reading bulk element " << uLabel << endl);
        
-       if (iNumTypes[ElemType::BULK]-- <= 0) {
+       if (iNumTypes[Elem::BULK]-- <= 0) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": bulk element " << uLabel
@@ -1248,7 +1248,7 @@ Elem** ReadOneElem(DataManager* pDM,
        }	  
        
        /* verifica che non sia gia' definito */
-       if (pDM->pFindElem(ElemType::BULK, uLabel) != NULL) {
+       if (pDM->pFindElem(Elem::BULK, uLabel) != NULL) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": bulk element " << uLabel
@@ -1259,9 +1259,9 @@ Elem** ReadOneElem(DataManager* pDM,
        
        
        /* allocazione e creazione */		     
-       int i = pDM->ElemData[ElemType::BULK].iNum
-	 -iNumTypes[ElemType::BULK]-1;
-       ppE = pDM->ElemData[ElemType::BULK].ppFirstElem+i;
+       int i = pDM->ElemData[Elem::BULK].iNum
+	 -iNumTypes[Elem::BULK]-1;
+       ppE = pDM->ElemData[Elem::BULK].ppFirstElem+i;
        
        *ppE = ReadBulk(pDM, HP, uLabel);
        /* HP.PutKeyTable(K); */
@@ -1274,7 +1274,7 @@ Elem** ReadOneElem(DataManager* pDM,
     case LOADABLE: {
        silent_cout("Reading loadable element " << uLabel << endl);
        
-       if (iNumTypes[ElemType::LOADABLE]-- <= 0) {
+       if (iNumTypes[Elem::LOADABLE]-- <= 0) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": loadable element " << uLabel
@@ -1284,7 +1284,7 @@ Elem** ReadOneElem(DataManager* pDM,
        }	  
        
        /* verifica che non sia gia' definito */
-       if (pDM->pFindElem(ElemType::LOADABLE, uLabel) != NULL) {
+       if (pDM->pFindElem(Elem::LOADABLE, uLabel) != NULL) {
 	  DEBUGCERR("");
 	  cerr << "line " << HP.GetLineData() 
 	    << ": loadable element " << uLabel
@@ -1294,10 +1294,10 @@ Elem** ReadOneElem(DataManager* pDM,
        }
        
        /* allocazione e creazione */		     
-       int i = pDM->ElemData[ElemType::LOADABLE].iNum
-	 -iNumTypes[ElemType::LOADABLE]-1;
-       ppE = pDM->ElemData[ElemType::LOADABLE].ppFirstElem+i;
-       DofOwner* pDO = pDM->DofData[DofType::LOADABLE].pFirstDofOwner+i;
+       int i = pDM->ElemData[Elem::LOADABLE].iNum
+	 -iNumTypes[Elem::LOADABLE]-1;
+       ppE = pDM->ElemData[Elem::LOADABLE].ppFirstElem+i;
+       DofOwner* pDO = pDM->DofData[DofOwner::LOADABLE].pFirstDofOwner+i;
               
        *ppE = ReadLoadable(pDM, HP, pDO, uLabel);
        

@@ -42,8 +42,8 @@
 DistanceJoint::DistanceJoint(unsigned int uL, const DofOwner* pDO,
 			     const StructNode* pN1, const StructNode* pN2,
 			     const DriveCaller* pDC, flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::DISTANCE, pDO, fOut),
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::DISTANCE, pDO, fOut),
 DriveOwner(pDC),
 pNode1(pN1), pNode2(pN2), v(0.), dAlpha(0.)
 {
@@ -300,7 +300,7 @@ void DistanceJoint::Output(OutputHandler& OH) const
    if(fToBeOutput()) {      
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[JointType::DISTANCE] 
+	<< psJointNames[Joint::DISTANCE] 
 	<< "\", linked to nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() << ':' << endl 
 	<< "Current distance: " << pGetDriveCaller()->dGet() << endl 
@@ -739,17 +739,17 @@ DistanceJointWithOffset::DistanceJointWithOffset(unsigned int uL,
 						 const Vec3& f2Tmp,
 						 const DriveCaller* pDC,
 						 flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::DISTANCEWITHOFFSET, pDO, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::DISTANCEWITHOFFSET, pDO, fOut), 
 DriveOwner(pDC),
 pNode1(pN1), pNode2(pN2), f1(f1Tmp), f2(f2Tmp), v(0.), dAlpha(0.)
 {
    ASSERT(pDO != NULL);
    ASSERT(pDC != NULL);
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
 }
 
 
@@ -1029,7 +1029,7 @@ void DistanceJointWithOffset::Output(OutputHandler& OH) const
    if (fToBeOutput()) {
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[JointType::DISTANCE] 
+	<< psJointNames[Joint::DISTANCE] 
 	<< "\", linked to nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() << ':' << endl 
 	<< "Current distance: " << pGetDriveCaller()->dGet() << endl 
@@ -1520,8 +1520,8 @@ ClampJoint::ClampJoint(unsigned int uL, const DofOwner*pD,
 		       const StructNode* pN, 
 		       const Vec3& X0, const Mat3x3& R0, 
 		       flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::CLAMP, pD, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::CLAMP, pD, fOut), 
 pNode(pN), XClamp(X0), RClamp(R0), F(0.), M(0.)
 { 
    NO_OP; 
@@ -1687,7 +1687,7 @@ void ClampJoint::Output(OutputHandler& OH) const
    if (fToBeOutput()) {      
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[JointType::CLAMP] 
+	<< psJointNames[Joint::CLAMP] 
 	<< "\", linked to node " << pNode->GetLabel() << ':' << endl 
 	<< "Position: " << endl << XClamp << endl 
 	<< "Rotation Matrix: " << endl << RClamp << endl 

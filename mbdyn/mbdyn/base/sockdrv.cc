@@ -456,10 +456,10 @@ SocketDrive::ServePending(void)
    	}
 }
 
-FileDriveType::Type 
+FileDrive::Type 
 SocketDrive::GetFileDriveType(void) const
 {
-   	return FileDriveType::SOCKET;
+   	return FileDrive::SOCKET;
 }
 
 /* Scrive il contributo del DriveCaller al file di restart */

@@ -46,19 +46,6 @@
 
 #define VISCOELASTIC_BEAM /* uncomment when ViscoElasticBeam is available */
 
-/* Tipi di travi */
-class BeamType {
-  public:
-    enum Type {
-        UNKNOWN = -1,
-	ELASTIC = 0,
-	VISCOELASTIC,
-	PIEZOELECTRIC,
-	
-	LASTBEAMTYPE
-    };
-};
-
 extern const char* psBeamNames[];
 
 /* dati delle funzioni di forma per le travi a volumi finiti a tre nodi */
@@ -87,10 +74,21 @@ class Beam
     friend class AerodynamicBeam;
 
   public:
+    /* Tipi di travi */
+    enum Type {
+        UNKNOWN = -1,
+	ELASTIC = 0,
+	VISCOELASTIC,
+	PIEZOELECTRIC,
+	
+	LASTBEAMTYPE
+    };
+
+  public:
     class ErrGeneric {};
    
   private:
-    BeamType::Type BeamT;
+    Beam::Type BeamT;
    
   protected:   
     enum Section { S_I = 0, SII = 1, NUMSEZ = 2 };
@@ -215,7 +213,7 @@ class Beam
                 const Mat3x3& m11, const Mat3x3& m12, 
 		const Mat3x3& m21, const Mat3x3& m22) const;
    
-    void SetBeamType(BeamType::Type T) { 
+    void SetBeamType(Beam::Type T) { 
         BeamT = T;
     };
 
@@ -250,13 +248,13 @@ class Beam
     };
 
     /* Tipo di trave */
-    virtual BeamType::Type GetBeamType(void) const {
-        return BeamType::ELASTIC; 
+    virtual Beam::Type GetBeamType(void) const {
+        return Beam::ELASTIC; 
     };   
    
     /* Tipo di elemento */
-    virtual ElemType::Type GetElemType(void) const {
-        return ElemType::BEAM; 
+    virtual Elem::Type GetElemType(void) const {
+        return Elem::BEAM; 
     };
    
     /* Contributo al file di restart */
@@ -395,7 +393,7 @@ class Beam
      * utile per l'assemblaggio della matrice di connessione fra i dofs */
     virtual void 
     GetConnectedNodes(int& NumNodes, 
-                      NodeType::Type* NdTyps, 
+                      Node::Type* NdTyps, 
 		      unsigned int* NdLabels) {
         NumNodes = NUMNODES;
         for (int i = 0; i <= NUMNODES-1; i++) {
@@ -495,8 +493,8 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
     };
    
     /* Tipo di trave */
-    virtual BeamType::Type GetBeamType(void) const {
-        return BeamType::VISCOELASTIC; 
+    virtual Beam::Type GetBeamType(void) const {
+        return Beam::VISCOELASTIC; 
     };
 
     /* Settings iniziali, prima della prima soluzione */

@@ -244,8 +244,8 @@ pRotorComm(NULL)
 	        SAFENEWARR(ppExpCntNodes, Node*, iTotalExpConnections, DMmm);
 	        SAFENEWARR(ppExpCntElems, Elem*, iTotalExpConnections, DMmm);
       
-	        ElemType::Type ActualElType;
-	        NodeType::Type ActualNdType;
+	        Elem::Type ActualElType;
+	        Node::Type ActualNdType;
 	        unsigned int j = 0;
       
 	        for (int i = 0; i < iTotalExpConnections; i++) {
@@ -263,7 +263,7 @@ pRotorComm(NULL)
 	                    KeyWords ElDesc = KeyWords(HP.GetWord());
 	                    switch (ElDesc) {
 	                    case FORCE:
-		                ActualElType = ElemType::FORCE;
+		                ActualElType = Elem::FORCE;
 		
 		                if (HP.fIsArg()) {
 		                    j = HP.GetInt();
@@ -287,7 +287,7 @@ pRotorComm(NULL)
 		                break;
 				
 	                    case RIGIDBODY:
-		                ActualElType = ElemType::BODY;
+		                ActualElType = Elem::BODY;
 		
 		                if (HP.fIsArg()) {
 		                    j = HP.GetInt();
@@ -311,7 +311,7 @@ pRotorComm(NULL)
 		                break;
 		
 	                    case JOINT:
-		                ActualElType = ElemType::JOINT;
+		                ActualElType = Elem::JOINT;
 		
 		                if (HP.fIsArg()) {
 		                    j = HP.GetInt();
@@ -335,7 +335,7 @@ pRotorComm(NULL)
 				break;
 		
 	      		    case BEAM:
-				ActualElType = ElemType::BEAM;
+				ActualElType = Elem::BEAM;
 		
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -359,7 +359,7 @@ pRotorComm(NULL)
 				break;
 
 	      		    case PLATE:
-				ActualElType = ElemType::PLATE;
+				ActualElType = Elem::PLATE;
 		
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -383,7 +383,7 @@ pRotorComm(NULL)
 				break;
 		
 	      		    case ROTOR:
-				ActualElType = ElemType::ROTOR;
+				ActualElType = Elem::ROTOR;
 		
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -407,7 +407,7 @@ pRotorComm(NULL)
 				break;
 		
 	      		    case AERODYNAMICELEMENT:
-				ActualElType = ElemType::AERODYNAMIC;
+				ActualElType = Elem::AERODYNAMIC;
 		
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -431,7 +431,7 @@ pRotorComm(NULL)
 				break;
 		
 	      		    case ELECTRICBULK:
-				ActualElType = ElemType::ELECTRICBULK;
+				ActualElType = Elem::ELECTRICBULK;
 		
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -455,7 +455,7 @@ pRotorComm(NULL)
 				break;
 		
 	      		    case ELECTRIC:
-				ActualElType = ElemType::ELECTRIC;
+				ActualElType = Elem::ELECTRIC;
 		
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -479,7 +479,7 @@ pRotorComm(NULL)
 				break;
 		
 	      		    case GENEL:
-				ActualElType = ElemType::GENEL;
+				ActualElType = Elem::GENEL;
 		
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -503,7 +503,7 @@ pRotorComm(NULL)
 				break;
 		
 	      		    case HYDRAULIC:
-				ActualElType = ElemType::HYDRAULIC;
+				ActualElType = Elem::HYDRAULIC;
 		
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -527,7 +527,7 @@ pRotorComm(NULL)
 				break;
 		
 	      		    case BULK:
-				ActualElType = ElemType::BULK;
+				ActualElType = Elem::BULK;
 		
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -551,7 +551,7 @@ pRotorComm(NULL)
 				break;
 		
 	      		    case LOADABLE:
-				ActualElType = ElemType::LOADABLE;
+				ActualElType = Elem::LOADABLE;
 		
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -575,7 +575,7 @@ pRotorComm(NULL)
 				break;
 		
 	      		    case DRIVEN:
-				ActualElType = ElemType::DRIVEN;
+				ActualElType = Elem::DRIVEN;
 		
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -611,7 +611,7 @@ pRotorComm(NULL)
 	      		    KeyWords NdDesc = KeyWords(HP.GetWord());
 	      		    switch (NdDesc) {		
 	      		    case ABSTRACT:
-				ActualNdType = NodeType::ABSTRACT;
+				ActualNdType = Node::ABSTRACT;
 		
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -635,7 +635,7 @@ pRotorComm(NULL)
 				break;
 		
 	      		    case STRUCTURAL:
-				ActualNdType = NodeType::STRUCTURAL;
+				ActualNdType = Node::STRUCTURAL;
 		
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -659,7 +659,7 @@ pRotorComm(NULL)
 				break;
 		
 	      		    case ELECTRIC:
-				ActualNdType = NodeType::ELECTRIC;
+				ActualNdType = Node::ELECTRIC;
 				
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -683,7 +683,7 @@ pRotorComm(NULL)
 				break;
 		
 	    		    case PARAMETER:
-	      			ActualNdType = NodeType::PARAMETER;
+	      			ActualNdType = Node::PARAMETER;
 	      			if (HP.fIsArg()) {
 				    j = HP.GetInt();
 	      			} else {
@@ -706,7 +706,7 @@ pRotorComm(NULL)
 	      			break;
 	      
 	      		    case HYDRAULIC:
-				ActualNdType = NodeType::HYDRAULIC;
+				ActualNdType = Node::HYDRAULIC;
 				
 				if (HP.fIsArg()) {
 		  		    j = HP.GetInt();
@@ -833,12 +833,12 @@ SchurDataManager::CreatePartition(void)
     int* pRotPos = NULL;
     integer* pRotLab = NULL;
     int iNumberOfNodes;
-    NodeType::Type* pMyTypes = NULL;
+    Node::Type* pMyTypes = NULL;
     unsigned int* pMyLabels = NULL;
-    SAFENEWARR(pRotPos, int, ElemData[ElemType::ROTOR].iNum, DMmm);
-    SAFENEWARR(pRotLab, integer, ElemData[ElemType::ROTOR].iNum, DMmm);
+    SAFENEWARR(pRotPos, int, ElemData[Elem::ROTOR].iNum, DMmm);
+    SAFENEWARR(pRotLab, integer, ElemData[Elem::ROTOR].iNum, DMmm);
 
-    SAFENEWARR(pMyTypes, NodeType::Type, iDefaultMaxNodesPerElem, DMmm);
+    SAFENEWARR(pMyTypes, Node::Type, iDefaultMaxNodesPerElem, DMmm);
     SAFENEWARR(pMyLabels, unsigned int, iDefaultMaxNodesPerElem, DMmm);
     SAFENEWARR(pLabelsList, unsigned int, iTotNodes, DMmm);
 
@@ -865,13 +865,13 @@ SchurDataManager::CreatePartition(void)
        	for (Elem** ppTmpEl = ppElems; 
 	     ppTmpEl < ppElems+iTotElem; ppTmpEl++, 
 	     iCount++) {
-            if ((*ppTmpEl)->GetElemType() == ElemType::GRAVITY) {
+            if ((*ppTmpEl)->GetElemType() == Elem::GRAVITY) {
              	GravityPos = ppTmpEl - ppElems;
             }
-            if ((*ppTmpEl)->GetElemType() == ElemType::AIRPROPERTIES) {
+            if ((*ppTmpEl)->GetElemType() == Elem::AIRPROPERTIES) {
              	AirPropPos = ppTmpEl - ppElems;
             }
-            if ((*ppTmpEl)->GetElemType() == ElemType::ROTOR) {
+            if ((*ppTmpEl)->GetElemType() == Elem::ROTOR) {
              	pRotPos[iNumRt] = ppTmpEl - ppElems;
              	pRotLab[iNumRt] = (*ppTmpEl)->GetLabel();
              	iNumRt++;
@@ -1112,7 +1112,7 @@ SchurDataManager::CreatePartition(void)
     int move = 0;
     /* Gravity */
     Elem* pTmpElem;
-    if (ElemData[ElemType::GRAVITY].iNum != 0) {
+    if (ElemData[Elem::GRAVITY].iNum != 0) {
         ppMyElems[iNumLocElems] = ppElems[GravityPos];
       	iNumLocElems += 1;
       	pParAmgProcs[GravityPos+iTotNodes] = -1;
@@ -1120,7 +1120,7 @@ SchurDataManager::CreatePartition(void)
     }
     
     /* Air Properties */
-    if (ElemData[ElemType::AIRPROPERTIES].iNum != 0) {
+    if (ElemData[Elem::AIRPROPERTIES].iNum != 0) {
       	ppMyElems[iNumLocElems] = ppElems[AirPropPos];
       	iNumLocElems += 1;
       	pParAmgProcs[AirPropPos+iTotNodes] = -1;
@@ -1133,9 +1133,9 @@ SchurDataManager::CreatePartition(void)
     integer iRotorIsMine = 0;
     if (iNumRt  != 0) {
       	SAFENEWARR(pMyRot, integer, iNumRt, DMmm);
-      	for (int i = 0; i < ElemData[ElemType::AERODYNAMIC].iNum; i++) {
+      	for (int i = 0; i < ElemData[Elem::AERODYNAMIC].iNum; i++) {
 	    integer pTmpLab = 
-	    	((ElemData[ElemType::AERODYNAMIC].ppFirstElem)[i])->GetRotor();
+	    	((ElemData[Elem::AERODYNAMIC].ppFirstElem)[i])->GetRotor();
 	    int pos;
 	    if (pTmpLab != -1) {
 	  	for (int k = 0; k < iNumRt; k++) {
@@ -1225,9 +1225,9 @@ SchurDataManager::CreatePartition(void)
     iNumIntNodes = p - InterfNodes.pAdjncy;
 
     unsigned int* llabels = NULL;
-    NodeType::Type* lTypes = NULL;
+    Node::Type* lTypes = NULL;
     SAFENEWARR(llabels, unsigned int, iNumIntNodes, DMmm);
-    SAFENEWARR(lTypes,  NodeType::Type, iNumIntNodes, DMmm);
+    SAFENEWARR(lTypes,  Node::Type, iNumIntNodes, DMmm);
     SAFENEWARR(ppIntNodes, Node*, iNumIntNodes, DMmm); 
     for (int i = 0; i < iNumIntNodes-1; i++) {
       	ppIntNodes[i] = ppNodes[InterfNodes.pAdjncy[i+1]];
@@ -1246,9 +1246,9 @@ SchurDataManager::CreatePartition(void)
     
     for (int i = 0; i < iNumLocElems; i++) {
       	if (ppMyElems[i]->iGetNumDof() != 0) {
-            ElemType::Type CType = (ppMyElems[i])->GetElemType();
+            Elem::Type CType = (ppMyElems[i])->GetElemType();
             switch (CType) {
-            case ElemType::ROTOR:
+            case Elem::ROTOR:
           	if (iRotorIsMine == 1) {
             	    (ppMyElems[i])->GetConnectedNodes(iNumberOfNodes, pMyTypes, pMyLabels);
                     for (int j = 0; j < iNumberOfNodes; j++) {
@@ -1266,13 +1266,9 @@ SchurDataManager::CreatePartition(void)
           	}
                 break;
 
-            case ElemType::HYDRAULIC:
-          	break;
-
-            case ElemType::GENEL:
-	  	break;
-
-            case ElemType::ELECTRIC:
+            case Elem::HYDRAULIC:
+            case Elem::GENEL:
+            case Elem::ELECTRIC:
           	break;
 
             default:
@@ -1638,7 +1634,7 @@ SchurDataManager::DerivativesUpdate(void) const
     /* Nodi */   
     for (int i = 0; i < iNumLocNodes; i++) {
     	ASSERT(ppMyNodes[i] != NULL);
-    	if ((ppMyNodes[i])->GetNodeType() == NodeType::STRUCTURAL) {
+    	if ((ppMyNodes[i])->GetNodeType() == Node::STRUCTURAL) {
       	    ((StructNode*)ppMyNodes[i])->DerivativesUpdate(*pXCurr, *pXPrimeCurr);
     	} else {	 
       	    (ppMyNodes[i])->Update(*pXCurr, *pXPrimeCurr);
@@ -1648,7 +1644,7 @@ SchurDataManager::DerivativesUpdate(void) const
     /* Nodi adiacenti i cui valori influenzano gli assemblaggi degli elementi */
     for (int i = 0; i < iNumIntNodes; i++) {
     	ASSERT(ppIntNodes[i] != NULL);
-    	if ((ppIntNodes[i])->GetNodeType() == NodeType::STRUCTURAL) {
+    	if ((ppIntNodes[i])->GetNodeType() == Node::STRUCTURAL) {
       	    ((StructNode*)ppIntNodes[i])->DerivativesUpdate(*pXCurr, *pXPrimeCurr);
      	} else {	 
       	    (ppIntNodes[i])->Update(*pXCurr, *pXPrimeCurr);

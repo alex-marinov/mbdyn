@@ -67,7 +67,7 @@ const char* psElemNames[] = {
 
 /* Nomi degli elementi quando vengono dichiarati nel blocco dati di controllo;
  * hanno lo stesso numero progressivo degli elementi, quindi vi si accede con 
- * l'enum ElemType::Type */
+ * l'enum Elem::Type */
 const char* psReadControlElems[] = {
    "forces",
    
@@ -328,7 +328,7 @@ const char* psNodeNames[] = {
 
 /* Nomi dei nodi quando vengono dichiarati nel blocco dati di controllo;
  * hanno lo stesso numero progressivo dei nodi, quindi vi si accede con 
- * l'enum NodeType::Type */
+ * l'enum Node::Type */
 const char* psReadControlNodes[] = {
    "abstract" "nodes",
    "structural" "nodes",   

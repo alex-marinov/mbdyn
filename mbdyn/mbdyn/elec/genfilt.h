@@ -87,7 +87,7 @@ class GenelFilter : public Genel {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = SD_y.pNode->GetNodeType();
      NdLabels[0] = SD_y.pNode->GetLabel();
@@ -140,6 +140,11 @@ class GenelFilterEq : public Genel {
    /* Scrive il contributo dell'elemento al file di restart */
    virtual ostream& Restart(ostream& out) const;
 
+   /* Tipo di Genel */
+   virtual Genel::Type GetGenelType(void) const { 
+      return Genel::SCALARFILTER; 
+   };
+
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
    
@@ -165,7 +170,7 @@ class GenelFilterEq : public Genel {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = SD_y.pNode->GetNodeType();
      NdLabels[0] = SD_y.pNode->GetLabel();
@@ -224,6 +229,11 @@ class GenelStateSpaceSISO : public Genel {
    /* Scrive il contributo dell'elemento al file di restart */
    virtual ostream& Restart(ostream& out) const;
 
+   /* Tipo di Genel */
+   virtual Genel::Type GetGenelType(void) const { 
+      return Genel::STATESPACESISO; 
+   };
+   
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
    
@@ -245,7 +255,7 @@ class GenelStateSpaceSISO : public Genel {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = SD_y.pNode->GetNodeType();
      NdLabels[0] = SD_y.pNode->GetLabel();
@@ -300,6 +310,11 @@ class GenelStateSpaceMIMO : public Genel {
    /* Scrive il contributo dell'elemento al file di restart */
    virtual ostream& Restart(ostream& out) const;
 
+   /* Tipo di Genel */
+   virtual Genel::Type GetGenelType(void) const { 
+      return Genel::STATESPACEMIMO; 
+   };
+
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
    
@@ -321,7 +336,7 @@ class GenelStateSpaceMIMO : public Genel {
  /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = iNumInputs +iNumOutputs;
      for(unsigned int i= 0; i <= iNumOutputs-1; i++) { 
        NdTyps[i] = (pvSD_y[i].pNode)->GetNodeType();

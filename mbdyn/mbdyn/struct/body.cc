@@ -43,9 +43,9 @@ Body::Body(unsigned int uL,
 	   const Vec3& XgcTmp, 
 	   const Mat3x3& JTmp, 
 	   flag fOut)
-: Elem(uL, ElemType::BODY, fOut), 
-ElemGravityOwner(uL, ElemType::BODY, fOut), 
-InitialAssemblyElem(uL, ElemType::BODY, fOut),
+: Elem(uL, Elem::BODY, fOut), 
+ElemGravityOwner(uL, Elem::BODY, fOut), 
+InitialAssemblyElem(uL, Elem::BODY, fOut),
 pNode(pNodeTmp), 
 dMass(dMassTmp), 
 Xgc(XgcTmp), 
@@ -53,7 +53,7 @@ S0(XgcTmp*dMassTmp),
 J0(JTmp)
 {
     ASSERT(pNode != NULL);
-    ASSERT(pNode->GetNodeType() == NodeType::STRUCTURAL);
+    ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
     ASSERT(dMassTmp > 0.);
 }
 
@@ -449,7 +449,7 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
         THROW(DataManager::ErrGeneric());
     }
    
-    if (pNode->GetStructNodeType() != StructNodeType::DYNAMIC) {
+    if (pNode->GetStructNodeType() != StructNode::DYNAMIC) {
         cerr << "Illegal structural node type for body " << uLabel << endl;
         THROW(DataManager::ErrGeneric());
     }
@@ -555,7 +555,7 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	       << "Center of mass: " << Xgc << endl
 	       << "Inertia matrix:" << endl << J << endl);
 	           
-    flag fOut = pDM->fReadOutput(HP, ElemType::BODY);
+    flag fOut = pDM->fReadOutput(HP, Elem::BODY);
       
     /* Allocazione e costruzione */
     Elem* pEl = NULL;

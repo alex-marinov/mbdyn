@@ -1423,7 +1423,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
     case FILEDRIVE: {	     
        /* lettura dei dati specifici */
        unsigned int uL = HP.GetInt();
-       FileDrive* pDrv = (FileDrive*)pDM->pFindDrive(DriveType::FILEDRIVE, uL);
+       FileDrive* pDrv = (FileDrive*)pDM->pFindDrive(Drive::FILEDRIVE, uL);
        if (pDrv == NULL) {
 	  cerr << "line " << HP.GetLineData() 
 	    << ": can't find FileDrive(" << uL << ")" << endl;

@@ -63,8 +63,8 @@ class AbstractNode : public ScalarDifferentialNode {
    };
    
    /* Tipo di nodo */
-   virtual NodeType::Type GetNodeType(void) const {
-      return NodeType::ABSTRACT;
+   virtual Node::Type GetNodeType(void) const {
+      return Node::ABSTRACT;
    };
    
    /* Contributo del nodo astratto al file di restart */
@@ -130,8 +130,8 @@ class ElectricNode : public AbstractNode {
    };
 
    /* Tipo di nodo */
-   virtual NodeType::Type GetNodeType(void) const { 
-      return NodeType::ELECTRIC;
+   virtual Node::Type GetNodeType(void) const { 
+      return Node::ELECTRIC;
    };
    
    /* Contributo del nodo elettrico al file di restart */

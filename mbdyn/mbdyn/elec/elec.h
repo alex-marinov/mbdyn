@@ -28,7 +28,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* elementi elettrici, tipo: ElemType ELECTRIC */
+/* elementi elettrici, tipo: Elem::ELECTRIC */
 
 #ifndef ELEC_H
 #define ELEC_H
@@ -40,11 +40,15 @@
 #include "elecnode.h"
 #include "strnode.h"
 #include "drive.h"
+      
+extern const char* psElectricNames[];
 
 
-/* Tipi di elementi elettrici */
-class ElectricType {
+/* Electric - begin */
+
+class Electric : virtual public Elem, public ElemWithDofs {
  public:
+   /* Tipi di elementi elettrici */
    enum Type {
       UNKNOWN = -1,
       
@@ -54,19 +58,12 @@ class ElectricType {
       
       LASTELECTRICTYPE
    };
-};
-      
-extern const char* psElectricNames[];
 
-
-/* Electric - begin */
-
-class Electric : virtual public Elem, public ElemWithDofs {
  private:
-   ElectricType::Type ElecT;
+   Electric::Type ElecT;
    
  public:
-   Electric(unsigned int uL, ElectricType::Type T, 
+   Electric(unsigned int uL, Electric::Type T, 
 	    const DofOwner* pDO, flag fOut);
    virtual ~Electric(void);
    
@@ -76,10 +73,10 @@ class Electric : virtual public Elem, public ElemWithDofs {
    virtual ostream& Restart(ostream& out) const;
 
    /* Tipo dell'elemento (usato solo per debug ecc.) */
-   virtual ElemType::Type GetElemType(void) const;
+   virtual Elem::Type GetElemType(void) const;
 
    /* Tipo di elemento elettrico (usato solo per debug ecc.) */
-   virtual ElectricType::Type GetElectricType(void) const;
+   virtual Electric::Type GetElectric(void) const = 0;
 
    /* Output */
    virtual void Output(OutputHandler& OH) const;
@@ -110,6 +107,10 @@ class Accelerometer : virtual public Elem, public Electric {
 		 flag fOut);
    ~Accelerometer(void);
    virtual inline void* pGet(void) const;
+
+   virtual Electric::Type GetElectric(void) const {
+      return Electric::ACCELEROMETER;
+   };
    
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -136,7 +137,7 @@ class Accelerometer : virtual public Elem, public Electric {
  /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = pStrNode->GetNodeType();
      NdLabels[0] = pStrNode->GetLabel();
@@ -171,6 +172,10 @@ class TraslAccel : virtual public Elem, public Electric {
 	      flag fOut);
    ~TraslAccel(void);
    virtual inline void* pGet(void) const;
+
+   virtual Electric::Type GetElectric(void) const {
+      return Electric::ACCELEROMETER;
+   };
    
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -196,7 +201,7 @@ class TraslAccel : virtual public Elem, public Electric {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = pStrNode->GetNodeType();
      NdLabels[0] = pStrNode->GetLabel();
@@ -230,6 +235,10 @@ class RotAccel : virtual public Elem, public Electric {
 	      flag fOut);
    ~RotAccel(void);
    virtual inline void* pGet(void) const;
+
+   virtual Electric::Type GetElectric(void) const {
+      return Electric::ACCELEROMETER;
+   };
    
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -255,7 +264,7 @@ class RotAccel : virtual public Elem, public Electric {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = pStrNode->GetNodeType();
      NdLabels[0] = pStrNode->GetLabel();
@@ -291,6 +300,10 @@ class DispMeasure : virtual public Elem, public Electric {
 	       flag fOut);
    ~DispMeasure(void);
    virtual inline void* pGet(void) const;
+
+   virtual Electric::Type GetElectric(void) const {
+      return Electric::DISPLACEMENT;
+   };
    
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -315,7 +328,7 @@ class DispMeasure : virtual public Elem, public Electric {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 3;
      NdTyps[0] = pStrNode1->GetNodeType();
      NdLabels[0] = pStrNode1->GetLabel();

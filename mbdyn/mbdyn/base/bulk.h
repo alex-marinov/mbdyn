@@ -58,7 +58,7 @@ extern const char* psBulkNames[];
 class Bulk : virtual public Elem {
  public:
    Bulk(unsigned int uLabel, flag fOutput)
-     : Elem(uLabel, ElemType::BULK, fOutput) { 
+     : Elem(uLabel, Elem::BULK, fOutput) { 
 	NO_OP;
      };
    
@@ -66,8 +66,8 @@ class Bulk : virtual public Elem {
       NO_OP;
    };
    
-   virtual ElemType::Type GetElemType(void) const {
-      return ElemType::BULK;
+   virtual Elem::Type GetElemType(void) const {
+      return Elem::BULK;
    };
 };
 
@@ -84,7 +84,7 @@ class BulkSpringSupport
  public:
    BulkSpringSupport(unsigned int uLabel, const DriveCaller* pDC,
 		     const ScalarDof& sd, flag fOutput)
-     : Elem(uLabel, ElemType::BULK, fOutput), Bulk(uLabel, fOutput),
+     : Elem(uLabel, Elem::BULK, fOutput), Bulk(uLabel, fOutput),
      DriveOwner(pDC), SD(sd) { 
       NO_OP;
    };
@@ -157,7 +157,7 @@ class BulkSpringSupport
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 1;
      NdTyps[0] = SD.pNode->GetNodeType();
      NdLabels[0] = SD.pNode->GetLabel();

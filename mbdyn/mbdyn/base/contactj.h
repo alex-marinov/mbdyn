@@ -50,14 +50,14 @@ class ContactJoint : virtual public Elem, public Joint {
    ContactJoint(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pN1, const StructNode* pN2, 
 		const Vec3& n, flag fOut) 
-     : Elem(uL, ElemType::JOINT, fOut), 
-     Joint(uL, JointType::INPLANECONTACT, pDO, fOut),
+     : Elem(uL, Elem::JOINT, fOut), 
+     Joint(uL, Joint::INPLANECONTACT, pDO, fOut),
      pNode1(pN1), pNode2(pN2),
      n(n), dD(0.), dF(0.) {
 	ASSERT(pNode1 != NULL);
-	ASSERT(pNode1->GetNodeType() == NodeType::STRUCTURAL);
+	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
 	ASSERT(pNode2 != NULL);
-	ASSERT(pNode2->GetNodeType() == NodeType::STRUCTURAL);
+	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
 	ASSERT(n.Dot() > DBL_EPSILON);       
 
 	Vec3 D(pNode2->GetXCurr()-pNode1->GetXCurr());
@@ -73,12 +73,10 @@ class ContactJoint : virtual public Elem, public Joint {
       return (void*)this; 
    };
 
-   /* Tipo di Joint 
-   virtual JointType::Type GetJointType(void) const 
-     { 
-	return JointType::INPLANECONTACT;
-     };
-    */
+   /* Tipo di Joint */
+   virtual Joint::Type GetJointType(void) const { 
+      return Joint::INPLANECONTACT;
+   };
    
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const {
@@ -230,7 +228,7 @@ class ContactJoint : virtual public Elem, public Joint {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = pNode1->GetNodeType();
      NdLabels[0] = pNode1->GetLabel();
@@ -243,4 +241,5 @@ class ContactJoint : virtual public Elem, public Joint {
 
 /* ContactJoint - end */
 
-#endif // CONTACTJ_H
+#endif /* CONTACTJ_H */
+

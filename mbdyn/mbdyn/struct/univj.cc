@@ -48,8 +48,8 @@ UniversalHingeJoint::UniversalHingeJoint(unsigned int uL,
 					 const Mat3x3& R1hTmp,
 					 const Mat3x3& R2hTmp,
 					 flag fOut)
-: Elem(uL, ElemType::JOINT, fOut),
-Joint(uL, JointType::UNIVERSALHINGE, pDO, fOut), 
+: Elem(uL, Elem::JOINT, fOut),
+Joint(uL, Joint::UNIVERSALHINGE, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), dM(0.)
 {
@@ -309,7 +309,7 @@ void UniversalHingeJoint::Output(OutputHandler& OH) const
    if (fToBeOutput()) {
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[JointType::UNIVERSALHINGE] 
+	<< psJointNames[Joint::UNIVERSALHINGE] 
 	<< "\", linked to nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() << ':' << endl 
 	<< "Distance from node 1 (node reference frame): " << endl << d1 << endl 
@@ -669,8 +669,8 @@ UniversalPinJoint::UniversalPinJoint(unsigned int uL, const DofOwner* pDO,
 				     const Vec3& X0Tmp, const Mat3x3& R0Tmp, 
 				     const Vec3& dTmp, const Mat3x3& RhTmp,
 				     flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::UNIVERSALPIN, pDO, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::UNIVERSALPIN, pDO, fOut), 
 pNode(pN), 
 X0(X0Tmp), R0(R0Tmp), d(dTmp), Rh(RhTmp), F(0.), dM(0.)
 {
@@ -856,7 +856,7 @@ void UniversalPinJoint::Output(OutputHandler& OH) const
    if (fToBeOutput()) {      
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[JointType::PLANEPIN]
+	<< psJointNames[Joint::UNIVERSALPIN]
 	<< "\", linked to node " << pNode->GetLabel() << ':' << endl
 	<< "Distance from node (node reference frame): " << endl << d << endl
 	<< "Hinge rotation matrix (node reference frame): " << endl << Rh << endl

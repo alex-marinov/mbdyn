@@ -153,10 +153,10 @@ Beam::Beam(unsigned int uL,
 	   const ConstitutiveLaw6D* pD_I,
 	   const ConstitutiveLaw6D* pDII,
 	   flag fOut)
-: Elem(uL, ElemType::BEAM, fOut), 
-ElemGravityOwner(uL, ElemType::BEAM, fOut), 
-InitialAssemblyElem(uL, ElemType::BEAM, fOut),
-BeamT(BeamType::ELASTIC),
+: Elem(uL, Elem::BEAM, fOut), 
+ElemGravityOwner(uL, Elem::BEAM, fOut), 
+InitialAssemblyElem(uL, Elem::BEAM, fOut),
+BeamT(Beam::ELASTIC),
 fConsistentInertia(0), 
 dMass_I(0.),
 S0_I(0.),
@@ -235,10 +235,10 @@ Beam::Beam(unsigned int uL,
 	   const Mat3x3& s0II,
 	   const Mat3x3& j0II,
 	   flag fOut)
-: Elem(uL, ElemType::BEAM, fOut), 
-ElemGravityOwner(uL, ElemType::BEAM, fOut), 
-InitialAssemblyElem(uL, ElemType::BEAM, fOut),
-BeamT(BeamType::ELASTIC),
+: Elem(uL, Elem::BEAM, fOut), 
+ElemGravityOwner(uL, Elem::BEAM, fOut), 
+InitialAssemblyElem(uL, Elem::BEAM, fOut),
+BeamT(Beam::ELASTIC),
 fConsistentInertia(1),
 dMass_I(dM_I),
 S0_I(s0_I),
@@ -334,11 +334,11 @@ Beam::DsDxi(void)
 {
     /* Validazione dati */
     ASSERT(pNode[NODE1] != NULL);
-    ASSERT(pNode[NODE1]->GetNodeType() == NodeType::STRUCTURAL);
+    ASSERT(pNode[NODE1]->GetNodeType() == Node::STRUCTURAL);
     ASSERT(pNode[NODE2] != NULL);
-    ASSERT(pNode[NODE2]->GetNodeType() == NodeType::STRUCTURAL);
+    ASSERT(pNode[NODE2]->GetNodeType() == Node::STRUCTURAL);
     ASSERT(pNode[NODE3] != NULL);
-    ASSERT(pNode[NODE3]->GetNodeType() == NodeType::STRUCTURAL);     
+    ASSERT(pNode[NODE3]->GetNodeType() == Node::STRUCTURAL);     
    
     /* Calcola il ds/dxi e le deformazioni iniziali */
     Vec3 xNod[NUMNODES];
@@ -389,11 +389,11 @@ Beam::Omega0(void)
 {   
     /* Validazione dati */
     ASSERT(pNode[NODE1] != NULL);
-    ASSERT(pNode[NODE1]->GetNodeType() == NodeType::STRUCTURAL);
+    ASSERT(pNode[NODE1]->GetNodeType() == Node::STRUCTURAL);
     ASSERT(pNode[NODE2] != NULL);
-    ASSERT(pNode[NODE2]->GetNodeType() == NodeType::STRUCTURAL);
+    ASSERT(pNode[NODE2]->GetNodeType() == Node::STRUCTURAL);
     ASSERT(pNode[NODE3] != NULL);
-    ASSERT(pNode[NODE3]->GetNodeType() == NodeType::STRUCTURAL);     
+    ASSERT(pNode[NODE3]->GetNodeType() == Node::STRUCTURAL);     
  
     /* Modo consistente: */      
     Mat3x3 RNod[NUMNODES];
@@ -1059,10 +1059,10 @@ ViscoElasticBeam::ViscoElasticBeam(unsigned int uL,
 				   const ConstitutiveLaw6D* pD_I, 
 				   const ConstitutiveLaw6D* pDII,
 				   flag fOut)
-: Elem(uL, ElemType::BEAM, fOut),
+: Elem(uL, Elem::BEAM, fOut),
 Beam(uL, pN1, pN2, pN3, F1, F2, F3, r_I, rII, pD_I, pDII, fOut)
 {   
-   SetBeamType(BeamType::VISCOELASTIC);
+   SetBeamType(Beam::VISCOELASTIC);
 
    LPrimeRef[S_I] = LPrime[S_I] = Vec3(0.);  
    gPrime[S_I] = Vec3(0.);
@@ -1093,11 +1093,11 @@ ViscoElasticBeam::ViscoElasticBeam(unsigned int uL,
 				   doublereal dMII,
 				   const Mat3x3& s0II, const Mat3x3& j0II,
 				   flag fOut)
-: Elem(uL, ElemType::BEAM, fOut),
+: Elem(uL, Elem::BEAM, fOut),
 Beam(uL, pN1, pN2, pN3, F1, F2, F3, r_I, rII, pD_I, pDII,
      dM_I, s0_I, j0_I, dMII, s0II, j0II, fOut)
 {
-   SetBeamType(BeamType::VISCOELASTIC);
+   SetBeamType(Beam::VISCOELASTIC);
 
    LPrimeRef[S_I] = LPrime[S_I] = Vec3(0.);  
    gPrime[S_I] = Vec3(0.);
@@ -1688,7 +1688,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
       for (integer i = 0; i < iNumElec; i++) {
 	 unsigned int uL = HP.GetInt();
 	 DEBUGLCOUT(MYDEBUG_INPUT, "linked to abstract node " << uL << endl);
-	 pvElecDofs[i] = (ScalarDifferentialNode*)(pDM->pFindNode(NodeType::ABSTRACT, uL));
+	 pvElecDofs[i] = (ScalarDifferentialNode*)(pDM->pFindNode(Node::ABSTRACT, uL));
 	 if (pvElecDofs[i] == NULL) {
 	    cerr << "can't find abstract node " << uL << endl;
 	    THROW(ErrGeneric());
@@ -1717,7 +1717,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 #endif /* defined(USE_ELECTRIC_NODES) */
    
    
-   flag fOut = pDM->fReadOutput(HP, ElemType::BEAM);       
+   flag fOut = pDM->fReadOutput(HP, Elem::BEAM);       
    
    
    /* Se necessario, interpola i parametri di rotazione delle sezioni */

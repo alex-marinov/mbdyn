@@ -38,10 +38,15 @@
 #include "strnode.h"
 #include "elecnode.h"
 
+extern const char* psForceNames[];
 
-/* Tipi di Force */
-class ForceType {
+
+/* Force - begin */
+
+class Force 
+: virtual public Elem, public InitialAssemblyElem, public DriveOwner {
  public:
+   /* Tipi di Force */
    enum Type {
       UNKNOWN = -1,
 	ABSTRACTFORCE = 0,
@@ -53,24 +58,16 @@ class ForceType {
 	
 	LASTFORCETYPE
    };
-};
 
-extern const char* psForceNames[];
-
-
-/* Force - begin */
-
-class Force 
-: virtual public Elem, public InitialAssemblyElem, public DriveOwner {
  private:
-   ForceType::Type ForceT;
+   Force::Type ForceT;
    
  public:
    /* Costruttore banale */
-   Force(unsigned int uL, ForceType::Type T, 
+   Force(unsigned int uL, Force::Type T, 
 	 const DriveCaller* pDC, flag fOut)
-     : Elem(uL, ElemType::FORCE, fOut), 
-     InitialAssemblyElem(uL, ElemType::FORCE, fOut), 
+     : Elem(uL, Elem::FORCE, fOut), 
+     InitialAssemblyElem(uL, Elem::FORCE, fOut), 
      DriveOwner(pDC), ForceT(T) { 
 	NO_OP; 
      };
@@ -80,12 +77,12 @@ class Force
    };
          
    /* Tipo dell'elemento (usato per debug ecc.) */
-   virtual ElemType::Type GetElemType(void) const { 
-      return ElemType::FORCE; 
+   virtual Elem::Type GetElemType(void) const { 
+      return Elem::FORCE; 
    };   
    
    /* Tipo di forza */
-   virtual ForceType::Type GetForceType(void) const  = 0;
+   virtual Force::Type GetForceType(void) const = 0;
    
    virtual VariableSubMatrixHandler& 
      AssJac(VariableSubMatrixHandler& WorkMat,
@@ -129,7 +126,7 @@ class StructuralForce : virtual public Elem, public Force {
    
  public:
    /* Costruttore */
-   StructuralForce(unsigned int uL, ForceType::Type T, 
+   StructuralForce(unsigned int uL, Force::Type T, 
 		   const StructNode* pN,
 		   const DriveCaller* pDC, const Vec3& TmpDir,
 		   flag fOut);
@@ -139,7 +136,7 @@ class StructuralForce : virtual public Elem, public Force {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 1;
      NdTyps[0] = pNode->GetNodeType();
      NdLabels[0] = pNode->GetLabel();
@@ -171,8 +168,8 @@ class AbstractForce : virtual public Elem, public Force {
    };
          
    /* Tipo di forza */
-   virtual ForceType::Type GetForceType(void) const { 
-      return ForceType::ABSTRACTFORCE;
+   virtual Force::Type GetForceType(void) const { 
+      return Force::ABSTRACTFORCE;
    };
 
    /* Contributo al file di restart */
@@ -204,7 +201,7 @@ class AbstractForce : virtual public Elem, public Force {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 1;
      NdTyps[0] = pNode->GetNodeType();
      NdLabels[0] = pNode->GetLabel();
@@ -237,8 +234,8 @@ class ConservativeForce : virtual public Elem, public StructuralForce {
    };
      
    /* Tipo di forza */
-   virtual ForceType::Type GetForceType(void) const { 
-      return ForceType::CONSERVATIVEFORCE; 
+   virtual Force::Type GetForceType(void) const { 
+      return Force::CONSERVATIVEFORCE; 
    };   
    
    /* Contributo al file di restart */
@@ -300,8 +297,8 @@ class FollowerForce : virtual public Elem, public StructuralForce {
    virtual inline void* pGet(void) const { return (void*)this; };
      
    /* Tipo di forza */
-   virtual ForceType::Type GetForceType(void) const {
-      return ForceType::FOLLOWERFORCE; 
+   virtual Force::Type GetForceType(void) const {
+      return Force::FOLLOWERFORCE; 
    };
 
    /* Contributo al file di restart */
@@ -361,8 +358,8 @@ class ConservativeCouple : virtual public Elem, public StructuralForce {
    virtual inline void* pGet(void) const { return (void*)this; };
      
    /* Tipo di forza */
-   virtual ForceType::Type GetForceType(void) const {
-      return ForceType::CONSERVATIVECOUPLE; 
+   virtual Force::Type GetForceType(void) const {
+      return Force::CONSERVATIVECOUPLE; 
    };
 
    /* Contributo al file di restart */
@@ -412,8 +409,8 @@ class FollowerCouple : virtual public Elem, public StructuralForce {
    virtual inline void* pGet(void) const { return (void*)this; };
 
    /* Tipo di forza */
-   virtual ForceType::Type GetForceType(void) const {
-      return ForceType::FOLLOWERCOUPLE; 
+   virtual Force::Type GetForceType(void) const {
+      return Force::FOLLOWERCOUPLE; 
    };   
 
    /* Contributo al file di restart */

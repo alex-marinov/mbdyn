@@ -52,16 +52,16 @@ Pipe::Pipe(unsigned int uL, const DofOwner* pDO, HydraulicFluid* hf,
 		   const PressureNode* p1, const PressureNode* p2,
 		   doublereal Dh, doublereal A, doublereal L, flag transition, 
 		   doublereal q0, flag fOut)
-: Elem(uL, ElemType::HYDRAULIC, fOut), 
+: Elem(uL, Elem::HYDRAULIC, fOut), 
 HydraulicElem(uL, pDO, hf, fOut),
 pNode1(p1), pNode2(p2),
 diameter(Dh), area(A),
 length(L), turbulent(transition), q0(q0)
 {
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
    ASSERT(Dh > DBL_EPSILON);
    ASSERT(A > DBL_EPSILON);
    ASSERT(L> DBL_EPSILON);
@@ -88,8 +88,8 @@ Pipe::~Pipe(void)
 }
    
 /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-HydraulicType::Type Pipe::GetHydraulicType(void) const {
-   return HydraulicType::PIPE;
+HydraulicElem::Type Pipe::GetHydraulicType(void) const {
+   return HydraulicElem::PIPE;
 }
 
 /* Contributo al file di restart */
@@ -474,16 +474,16 @@ Dynamic_pipe::Dynamic_pipe(unsigned int uL, const DofOwner* pDO, HydraulicFluid*
 			   doublereal Dh, 
 			   doublereal A, doublereal L, flag transition, 
 			   doublereal q0, flag fOut)
-: Elem(uL, ElemType::HYDRAULIC, fOut), 
+: Elem(uL, Elem::HYDRAULIC, fOut), 
 HydraulicElem(uL, pDO, hf, fOut),
 pNode1(p1), pNode2(p2),
 diameter(Dh), area(A),
 length(L), turbulent(transition), q0(q0)
 {
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
    ASSERT(Dh > DBL_EPSILON);
    ASSERT(A > DBL_EPSILON);
    ASSERT(L > DBL_EPSILON);
@@ -502,8 +502,8 @@ Dynamic_pipe::~Dynamic_pipe(void)
 }
    
 /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-HydraulicType::Type Dynamic_pipe::GetHydraulicType(void) const {
-   return HydraulicType::DYNAMIC_PIPE;
+HydraulicElem::Type Dynamic_pipe::GetHydraulicType(void) const {
+   return HydraulicElem::DYNAMIC_PIPE;
 }
 
 /* Contributo al file di restart */
@@ -1017,7 +1017,7 @@ DynamicPipe::DynamicPipe(unsigned int uL,
 			 flag transition, 
 			 doublereal q0, 
 			 flag fOut)
-: Elem(uL, ElemType::HYDRAULIC, fOut), 
+: Elem(uL, Elem::HYDRAULIC, fOut), 
 HydraulicElem(uL, pDO, hf, fOut),
 pNode1(p1), 
 pNode2(p2),
@@ -1028,9 +1028,9 @@ turbulent(transition),
 q0(q0)
 {
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
    
    ASSERT(Dh > DBL_EPSILON);
    ASSERT(A > DBL_EPSILON);
@@ -1047,8 +1047,8 @@ DynamicPipe::~DynamicPipe(void)
 }
    
 /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-HydraulicType::Type DynamicPipe::GetHydraulicType(void) const {
-   return HydraulicType::DYNAMIC_PIPE;
+HydraulicElem::Type DynamicPipe::GetHydraulicType(void) const {
+   return HydraulicElem::DYNAMIC_PIPE;
 }
 
 /* Contributo al file di restart */

@@ -44,7 +44,7 @@ void DataManager::DofManager(void)
    DummyDofOwner.iNumDofs = 0;
    
    /* Resetta la struttura statica */
-   for(int i = 0; i < DofType::LASTDOFTYPE; i++) {
+   for(int i = 0; i < DofOwner::LASTDOFTYPE; i++) {
       DofData[i].pFirstDofOwner = NULL;
       DofData[i].iNum = 0;
       DofData[i].iSize = 0;
@@ -76,7 +76,7 @@ void DataManager::DofDataInit(void)
    /* struttura dei DofOwner */  
    
    /* Calcola il numero totale di DofOwner */
-   for (int iCnt = 0; iCnt < DofType::LASTDOFTYPE; iCnt++) {      
+   for (int iCnt = 0; iCnt < DofOwner::LASTDOFTYPE; iCnt++) {      
       iTotDofOwners += DofData[iCnt].iNum;
    }   
 
@@ -97,7 +97,7 @@ void DataManager::DofDataInit(void)
       /* Inizializza la struttura dinamica dei DofOwner
        * con il numero di Dof di ognuno */
       DofData[0].pFirstDofOwner = pDofOwners;
-      for (int iCnt = 1; iCnt < DofType::LASTDOFTYPE; iCnt++) {
+      for (int iCnt = 1; iCnt < DofOwner::LASTDOFTYPE; iCnt++) {
 	 DofData[iCnt].pFirstDofOwner =
 	   DofData[iCnt-1].pFirstDofOwner+
 	   DofData[iCnt-1].iNum;

@@ -40,24 +40,24 @@ extern "C" {
 #include <mymath.h>
 }
 
-/* RodJoint - begin */
+/* Rod - begin */
 
 /* Costruttore non banale */
-RodJoint::RodJoint(unsigned int uL, const DofOwner* pDO, 
+Rod::Rod(unsigned int uL, const DofOwner* pDO, 
 		   const ConstitutiveLaw1D* pCL,
 		   const StructNode* pN1, const StructNode* pN2,
 		   doublereal dLength, flag fOut, flag fHasOffsets)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::ROD, pDO, fOut),
-ConstitutiveLaw1DOwner(pCL), RodT(RodType::ELASTIC),
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::ROD, pDO, fOut),
+ConstitutiveLaw1DOwner(pCL), RodT(Rod::ELASTIC),
 pNode1(pN1), pNode2(pN2), dL0(dLength), v(0.), dElle(0.)
 {
 #ifdef DEBUG   
    /* Verifica di consistenza dei dati iniziali */   
    ASSERT(pN1 != NULL);
-   ASSERT(pN1->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pN1->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pN2 != NULL);
-   ASSERT(pN2->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pN2->GetNodeType() == Node::STRUCTURAL);
    
    if (!fHasOffsets) {
       v = pN2->GetXCurr()-pN1->GetXCurr();
@@ -71,14 +71,14 @@ pNode1(pN1), pNode2(pN2), dL0(dLength), v(0.), dElle(0.)
 
 
 /* Distruttore */
-RodJoint::~RodJoint(void) 
+Rod::~Rod(void) 
 {
    NO_OP;
 }
 
 
 /* Contributo al file di restart */
-ostream& RodJoint::Restart(ostream& out) const
+ostream& Rod::Restart(ostream& out) const
 {
    Joint::Restart(out) << ", rod, "
      << pNode1->GetLabel() << ", "
@@ -88,7 +88,7 @@ ostream& RodJoint::Restart(ostream& out) const
 }
 
 
-void RodJoint::AssMat(FullSubMatrixHandler& WorkMat, doublereal dCoef)
+void Rod::AssMat(FullSubMatrixHandler& WorkMat, doublereal dCoef)
 {
    /* v = x2-x1 */
    /* v = pNode2->GetXCurr()-pNode1->GetXCurr(); */
@@ -124,7 +124,7 @@ void RodJoint::AssMat(FullSubMatrixHandler& WorkMat, doublereal dCoef)
 }
 
 
-void RodJoint::AssVec(SubVectorHandler& WorkVec)
+void Rod::AssVec(SubVectorHandler& WorkVec)
 {
    /* v = x2-x1 */
    v = pNode2->GetXCurr()-pNode1->GetXCurr();
@@ -155,12 +155,12 @@ void RodJoint::AssVec(SubVectorHandler& WorkVec)
 }
 
 
-VariableSubMatrixHandler& RodJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+VariableSubMatrixHandler& Rod::AssJac(VariableSubMatrixHandler& WorkMat,
 					   doublereal dCoef,
 					   const VectorHandler& /* XCurr */ ,
 					   const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering RodJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering Rod::AssJac()" << endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -191,12 +191,12 @@ VariableSubMatrixHandler& RodJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 
-void RodJoint::AssEig(VariableSubMatrixHandler& WorkMatA,
+void Rod::AssEig(VariableSubMatrixHandler& WorkMatA,
 		      VariableSubMatrixHandler& WorkMatB,
 		      const VectorHandler& /* XCurr */ ,
 		      const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering RodJoint::AssEig()" << endl);
+   DEBUGCOUT("Entering Rod::AssEig()" << endl);
    
    WorkMatB.SetNullMatrix();   
    FullSubMatrixHandler& WMA = WorkMatA.SetFull();
@@ -226,12 +226,12 @@ void RodJoint::AssEig(VariableSubMatrixHandler& WorkMatA,
 }
 
 
-SubVectorHandler& RodJoint::AssRes(SubVectorHandler& WorkVec,
+SubVectorHandler& Rod::AssRes(SubVectorHandler& WorkVec,
 				   doublereal /* dCoef */ ,
 				   const VectorHandler& /* XCurr */ ,
 				   const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering RodJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering Rod::AssRes()" << endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -257,12 +257,12 @@ SubVectorHandler& RodJoint::AssRes(SubVectorHandler& WorkVec,
 }
    
 
-void RodJoint::Output(OutputHandler& OH) const
+void Rod::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {      
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[JointType::ROD]
+	<< psJointNames[Joint::ROD]
 	<< "\", linked to nodes " 
 	<< pNode1->GetLabel() << " and " << pNode2->GetLabel() << ':' << endl
 	<< "Initial length = " << dL0 << endl;
@@ -280,10 +280,10 @@ void RodJoint::Output(OutputHandler& OH) const
  
 
 VariableSubMatrixHandler& 
-RodJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+Rod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering RodJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering Rod::InitialAssJac()" << endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -312,10 +312,10 @@ RodJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 
-SubVectorHandler& RodJoint::InitialAssRes(SubVectorHandler& WorkVec,
+SubVectorHandler& Rod::InitialAssRes(SubVectorHandler& WorkVec,
 					  const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering RodJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering Rod::InitialAssRes()" << endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -342,7 +342,7 @@ SubVectorHandler& RodJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 
 void 
-RodJoint::GetAdamsDummyPart(unsigned int part,
+Rod::GetAdamsDummyPart(unsigned int part,
 			    Vec3& x, 
 			    Mat3x3& R) const 
 {
@@ -353,7 +353,7 @@ RodJoint::GetAdamsDummyPart(unsigned int part,
 
 
 ostream& 
-RodJoint::WriteAdamsDummyPartCmd(ostream& out,
+Rod::WriteAdamsDummyPartCmd(ostream& out,
 				 unsigned int part, 
 				 unsigned int firstId) const
 {
@@ -389,39 +389,39 @@ RodJoint::WriteAdamsDummyPartCmd(ostream& out,
      << Zero3 << endl;
 }
 
-/* RodJoint - end */
+/* Rod - end */
 
 
-/* ViscoElasticRodJoint - begin */
+/* ViscoElasticRod - begin */
 
 /* Costruttore non banale */
-ViscoElasticRodJoint::ViscoElasticRodJoint(unsigned int uL, 
+ViscoElasticRod::ViscoElasticRod(unsigned int uL, 
 					   const DofOwner* pDO,
 					   const ConstitutiveLaw1D* pCL,
 					   const StructNode* pN1, 
 					   const StructNode* pN2,
 					   doublereal dLength, flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-RodJoint(uL, pDO, pCL, pN1, pN2, dLength, fOut)
+: Elem(uL, Elem::JOINT, fOut), 
+Rod(uL, pDO, pCL, pN1, pN2, dLength, fOut)
 {
-   SetRodType(RodType::VISCOELASTIC);
+   SetRodType(Rod::VISCOELASTIC);
 }
 
 
 /* Distruttore */
-ViscoElasticRodJoint::~ViscoElasticRodJoint(void) 
+ViscoElasticRod::~ViscoElasticRod(void) 
 { 
    NO_OP; 
 }
 
 
 VariableSubMatrixHandler& 
-ViscoElasticRodJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+ViscoElasticRod::AssJac(VariableSubMatrixHandler& WorkMat,
 			     doublereal dCoef,
 			     const VectorHandler& /* XCurr */ ,
 			     const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ViscoElasticRodJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering ViscoElasticRod::AssJac()" << endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -487,12 +487,12 @@ ViscoElasticRodJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 
 SubVectorHandler& 
-ViscoElasticRodJoint::AssRes(SubVectorHandler& WorkVec,
+ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
 			     doublereal /* dCoef */ ,
 			     const VectorHandler& /* XCurr */ ,
 			     const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ViscoElasticRodJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering ViscoElasticRod::AssRes()" << endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -549,10 +549,10 @@ ViscoElasticRodJoint::AssRes(SubVectorHandler& WorkVec,
 
 
 VariableSubMatrixHandler& 
-ViscoElasticRodJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+ViscoElasticRod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				    const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering ViscoElasticRodJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering ViscoElasticRod::InitialAssJac()" << endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -629,10 +629,10 @@ ViscoElasticRodJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 
 SubVectorHandler& 
-ViscoElasticRodJoint::InitialAssRes(SubVectorHandler& WorkVec,
+ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
 				    const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering ViscoElasticRodJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering ViscoElasticRod::InitialAssRes()" << endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -687,13 +687,13 @@ ViscoElasticRodJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-/* ViscoElasticRodJoint - end */
+/* ViscoElasticRod - end */
 
 
-/* RodWithOffsetJoint - begin */
+/* RodWithOffset - begin */
 
 /* Costruttore non banale */
-RodWithOffsetJoint::RodWithOffsetJoint(unsigned int uL, 
+RodWithOffset::RodWithOffset(unsigned int uL, 
 				       const DofOwner* pDO,
 				       const ConstitutiveLaw1D* pCL,
 				       const StructNode* pN1, 
@@ -702,16 +702,16 @@ RodWithOffsetJoint::RodWithOffsetJoint(unsigned int uL,
 				       const Vec3& f2Tmp,
 				       doublereal dLength, 
 				       flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-RodJoint(uL, pDO, pCL, pN1, pN2, dLength, fOut, 1),
+: Elem(uL, Elem::JOINT, fOut), 
+Rod(uL, pDO, pCL, pN1, pN2, dLength, fOut, 1),
 f1(f1Tmp), f2(f2Tmp)
 {
 #ifdef DEBUG   
    /* Verifica di consistenza dei dati iniziali */   
    ASSERT(pN1 != NULL);
-   ASSERT(pN1->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pN1->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pN2 != NULL);
-   ASSERT(pN2->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pN2->GetNodeType() == Node::STRUCTURAL);
    
    v = pN2->GetXCurr()+(pN2->GetRCurr()*f2Tmp)
      -pN1->GetXCurr()-(pN1->GetRCurr()*f1Tmp);
@@ -720,19 +720,19 @@ f1(f1Tmp), f2(f2Tmp)
    ASSERT(dLength > DBL_EPSILON);
 #endif	   
    
-   SetRodType(RodType::VISCOELASTICWITHOFFSET);
+   SetRodType(Rod::VISCOELASTICWITHOFFSET);
 }
 
 
 /* Distruttore */
-RodWithOffsetJoint::~RodWithOffsetJoint(void)
+RodWithOffset::~RodWithOffset(void)
 {
    NO_OP;
 }
       
    
 /* Contributo al file di restart */
-ostream& RodWithOffsetJoint::Restart(ostream& out) const
+ostream& RodWithOffset::Restart(ostream& out) const
 {
    Joint::Restart(out) << ", rod, "
      << pNode1->GetLabel() << ", "
@@ -745,12 +745,12 @@ ostream& RodWithOffsetJoint::Restart(ostream& out) const
 
          
 VariableSubMatrixHandler& 
-RodWithOffsetJoint::AssJac(VariableSubMatrixHandler& WorkMat, 
+RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat, 
 			   doublereal dCoef,
 			   const VectorHandler& /* XCurr */ ,
 			   const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering RodWithOffsetJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering RodWithOffset::AssJac()" << endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -869,12 +869,12 @@ RodWithOffsetJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	   
 SubVectorHandler& 
-RodWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
+RodWithOffset::AssRes(SubVectorHandler& WorkVec,
 			   doublereal /* dCoef */ ,
 			   const VectorHandler& /* XCurr */ ,
 			   const VectorHandler& /* XPrimeCurr */ )
 {   
-   DEBUGCOUT("RodWithOffsetJoint::AssRes()" << endl);
+   DEBUGCOUT("RodWithOffset::AssRes()" << endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -946,7 +946,7 @@ RodWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
 }
 
    
-void RodWithOffsetJoint::Output(OutputHandler& OH) const
+void RodWithOffset::Output(OutputHandler& OH) const
 {
    /* Mettere magari l'output della forza, 
     * della deformazione e della velocita' di deformazione ? */
@@ -964,10 +964,10 @@ void RodWithOffsetJoint::Output(OutputHandler& OH) const
    
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler& 
-RodWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat, 
 				  const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering RodWithOffsetJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering RodWithOffset::InitialAssJac()" << endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -1130,10 +1130,10 @@ RodWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
 /* Contributo al residuo durante l'assemblaggio iniziale */   
 SubVectorHandler& 
-RodWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
+RodWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
 				  const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("RodWithOffsetJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("RodWithOffset::InitialAssRes()" << endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -1206,7 +1206,7 @@ RodWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 
 void 
-RodWithOffsetJoint::GetAdamsDummyPart(unsigned int part,
+RodWithOffset::GetAdamsDummyPart(unsigned int part,
 			    Vec3& x, 
 			    Mat3x3& R) const 
 {
@@ -1217,7 +1217,7 @@ RodWithOffsetJoint::GetAdamsDummyPart(unsigned int part,
 
 
 ostream& 
-RodWithOffsetJoint::WriteAdamsDummyPartCmd(ostream& out,
+RodWithOffset::WriteAdamsDummyPartCmd(ostream& out,
 					   unsigned int part, 
 					   unsigned int firstId) const
 {
@@ -1253,4 +1253,5 @@ RodWithOffsetJoint::WriteAdamsDummyPartCmd(ostream& out,
      << Zero3 << endl;   
 }
 
-/* RodWithOffsetJoint - end */
+/* RodWithOffset - end */
+

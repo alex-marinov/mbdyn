@@ -45,9 +45,14 @@
 #include "hfluid.h"
 
 
-/* Tipi di elementi idraulici */
-class HydraulicType {
+extern const char* psHydraulicNames[];
+
+
+/* HydraulicElem - begin */
+
+class HydraulicElem : virtual public Elem, public ElemWithDofs {
  public:
+   /* Tipi di elementi idraulici */
    enum Type {
       UNKNOWN = -1,
 	
@@ -67,14 +72,7 @@ class HydraulicType {
       
 	LASTHYDRAULICTYPE
    };
-};
-      
-extern const char* psHydraulicNames[];
-
-
-/* HydraulicElem - begin */
-
-class HydraulicElem : virtual public Elem, public ElemWithDofs {
+ 
  protected:
    HydraulicFluid* HF;
    
@@ -84,7 +82,7 @@ class HydraulicElem : virtual public Elem, public ElemWithDofs {
    virtual ~HydraulicElem(void);
    
    /* Tipo dell'elemento (usato per debug ecc.) */
-   virtual ElemType::Type GetElemType(void) const;
+   virtual Elem::Type GetElemType(void) const;
    
    /* Contributo al file di restart 
     * (Nota: e' incompleta, deve essere chiamata dalla funzione corrispndente
@@ -92,7 +90,7 @@ class HydraulicElem : virtual public Elem, public ElemWithDofs {
    virtual ostream& Restart(ostream& out) const;
 
    /* Tipo di elemento elettrico (usato solo per debug ecc.) */
-   virtual HydraulicType::Type GetHydraulicType(void) const = 0;
+   virtual HydraulicElem::Type GetHydraulicType(void) const = 0;
 
    /* Output */
    virtual void Output(OutputHandler& OH) const;

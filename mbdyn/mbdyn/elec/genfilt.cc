@@ -48,8 +48,8 @@ GenelFilter::GenelFilter(unsigned int uLabel, const DofOwner* pDO,
 			 unsigned int na, unsigned int nb,
 			 doublereal* p, doublereal* tau,
 			 flag fOutput)
-: Elem(uLabel, ElemType::GENEL, fOutput),
-Genel(uLabel, GenelType::SCALARFILTER, pDO, fOutput),
+: Elem(uLabel, Elem::GENEL, fOutput),
+Genel(uLabel, Genel::SCALARFILTER, pDO, fOutput),
 SD_y(y), SD_u(u),
 Na(na), Nb(nb),
 pdP(p), pdTau(tau) 
@@ -238,8 +238,8 @@ GenelFilterEq::GenelFilterEq(unsigned int uLabel, const DofOwner* pDO,
 			     unsigned int na, unsigned int nb,
 			     doublereal* pa, doublereal* pb,
 			     flag fSt, flag fOutput)
-: Elem(uLabel, ElemType::GENEL, fOutput),
-Genel(uLabel, GenelType::SCALARFILTER, pDO, fOutput),
+: Elem(uLabel, Elem::GENEL, fOutput),
+Genel(uLabel, Genel::SCALARFILTER, pDO, fOutput),
 SD_y(y), SD_u(u),
 Na(na), Nb(nb),
 pdA(pa), pdB(pb),
@@ -516,8 +516,8 @@ GenelStateSpaceSISO::GenelStateSpaceSISO(unsigned int uLabel,
 					 doublereal* pC, 
 					 doublereal D,
 					 flag fOutput)
-: Elem(uLabel, ElemType::GENEL, fOutput),
-Genel(uLabel, GenelType::STATESPACESISO, pDO, fOutput),
+: Elem(uLabel, Elem::GENEL, fOutput),
+Genel(uLabel, Genel::STATESPACESISO, pDO, fOutput),
 SD_y(y), SD_u(u),
 iNumDofs(Order),
 pdA(pA), pdB(pB), pdC(pC), dD(D),
@@ -702,8 +702,8 @@ GenelStateSpaceMIMO::GenelStateSpaceMIMO(unsigned int uLabel,
 					 doublereal* pC, 
 					 doublereal* pD,
 					 flag fOutput)
-: Elem(uLabel, ElemType::GENEL, fOutput),
-Genel(uLabel, GenelType::STATESPACEMIMO, pDO, fOutput),
+: Elem(uLabel, Elem::GENEL, fOutput),
+Genel(uLabel, Genel::STATESPACEMIMO, pDO, fOutput),
 iNumOutputs(iNumOut), iNumInputs(iNumIn),
 pvSD_y((ScalarDof*)y), pvSD_u((ScalarDof*)u),
 iNumDofs(Order),
@@ -725,10 +725,12 @@ pdX(NULL), pdXP(NULL)
    ASSERT(pdA != NULL);
    ASSERT(pdB != NULL);
    ASSERT(pdC != NULL);	
-   // ASSERT(pdD != NULL);	
+#if 0
+   ASSERT(pdD != NULL);	
+#endif /* 0 */
    DEBUGCOUT("GenelStateSpaceMIMO " << uLabel 
 	     << ", NumDofs: " << iNumDofs << endl);
-#endif
+#endif /* DEBUG */
    
    SAFENEWARR(pdX, doublereal, 2*Order, DMmm);
    pdXP = pdX+Order;

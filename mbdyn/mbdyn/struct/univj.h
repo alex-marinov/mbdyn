@@ -70,11 +70,10 @@ class UniversalHingeJoint : virtual public Elem, public Joint {
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
 
-   /* Tipo di Joint
-   virtual JointType::Type GetJointType(void) const {
-      return JointType::UNIVERSALHINGE; 
+   /* Tipo di Joint */
+   virtual Joint::Type GetJointType(void) const {
+      return Joint::UNIVERSALHINGE; 
    };
-    */
    
    virtual unsigned int iGetNumDof(void) const { 
       return 4;
@@ -126,12 +125,12 @@ class UniversalHingeJoint : virtual public Elem, public Joint {
    virtual const char* sClassName(void) const { 
       return "UniversalHingeJoint";
    };
-#endif
+#endif /* DEBUG */
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 2;
      NdTyps[0] = pNode1->GetNodeType();
      NdLabels[0] = pNode1->GetLabel();
@@ -172,11 +171,10 @@ class UniversalPinJoint : virtual public Elem, public Joint {
       return (void*)this;
    };
    
-   /* Tipo di Joint 
-   virtual JointType::Type GetJointType(void) const { 
-      return JointType::UNIVERSALPIN; 
+   /* Tipo di Joint */
+   virtual Joint::Type GetJointType(void) const { 
+      return Joint::UNIVERSALPIN; 
    };
-    */
 
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -230,12 +228,12 @@ class UniversalPinJoint : virtual public Elem, public Joint {
    virtual const char* sClassName(void) const { 
       return "UniversalPinJoint";
    };
-#endif  
+#endif /* DEBUG */
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 1;
      NdTyps[0] = pNode->GetNodeType();
      NdLabels[0] = pNode->GetLabel();
@@ -245,4 +243,5 @@ class UniversalPinJoint : virtual public Elem, public Joint {
 
 /* UniversalPinJoint - end */
 
-#endif
+#endif /* UNIVJ_H */
+

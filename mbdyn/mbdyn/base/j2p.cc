@@ -120,7 +120,7 @@ StrainGageParam::~StrainGageParam(void)
 void StrainGageParam::Bind(const Elem* pEl, unsigned int i)
 {
    ASSERT(pEl != NULL);
-   if (pEl->GetElemType() != ElemType::BEAM) {
+   if (pEl->GetElemType() != Elem::BEAM) {
       cerr << "StrainGageParam::Bind(): must bind to a beam" << endl;
       THROW(ErrGeneric());
    }

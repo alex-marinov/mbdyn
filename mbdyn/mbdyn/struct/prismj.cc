@@ -43,15 +43,15 @@ PrismaticJoint::PrismaticJoint(unsigned int uL, const DofOwner* pDO,
 			       const StructNode* pN1, const StructNode* pN2,
 			       const Mat3x3& R1hTmp, const Mat3x3& R2hTmp,
 			       flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::PRISMATIC, pDO, fOut), 
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::PRISMATIC, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
 R1h(R1hTmp), R2h(R2hTmp), M(0.)
 {
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == NodeType::STRUCTURAL);
+   ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
 }
 
 
@@ -256,7 +256,7 @@ void PrismaticJoint::Output(OutputHandler& OH) const
    if (fToBeOutput()) {
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[JointType::PRISMATIC] 
+	<< psJointNames[Joint::PRISMATIC] 
 	<< "\", linked to nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() << ':' << endl 
 	<< "Hinge to node 1 relative orientation: " << endl << R1h << endl

@@ -45,8 +45,8 @@ SphericalHingeJoint::SphericalHingeJoint(unsigned int uL, const DofOwner* pDO,
 					 const Vec3& dTmp1, const Mat3x3& RTmp1h,
 					 const Vec3& dTmp2, const Mat3x3& RTmp2h,
 					 flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::SPHERICALHINGE, pDO, fOut),
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::SPHERICALHINGE, pDO, fOut),
 pNode1(pN1), pNode2(pN2), 
 d1(dTmp1), R1h(RTmp1h),
 d2(dTmp2), R2h(RTmp2h), 
@@ -235,7 +235,7 @@ void SphericalHingeJoint::Output(OutputHandler& OH) const
    if (fToBeOutput()) {
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[JointType::SPHERICALHINGE] 
+	<< psJointNames[Joint::SPHERICALHINGE] 
 	<< "\", linked to nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() << ':' << endl 
 	<< "Distance from node 1 (node reference frame): " << endl << d1 << endl 
@@ -457,8 +457,8 @@ SphericalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 PinJoint::PinJoint(unsigned int uL, const DofOwner* pDO,	       
 		   const StructNode* pN,
 		   const Vec3& X0Tmp, const Vec3& dTmp, flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-Joint(uL, JointType::PIN, pDO, fOut), pNode(pN), X0(X0Tmp), d(dTmp), F(0.)
+: Elem(uL, Elem::JOINT, fOut), 
+Joint(uL, Joint::PIN, pDO, fOut), pNode(pN), X0(X0Tmp), d(dTmp), F(0.)
 {
    NO_OP;
 }
@@ -604,7 +604,7 @@ void PinJoint::Output(OutputHandler& OH) const
    if (fToBeOutput()) {
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
-	<< psJointNames[JointType::PIN] 
+	<< psJointNames[Joint::PIN] 
 	<< "\", linked to node " << pNode->GetLabel() << ':' << endl
 	<< "Distance from node (node reference frame): " << endl << d << endl 
 	<< "Current reaction: " << endl << F << endl;   

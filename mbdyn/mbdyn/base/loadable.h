@@ -195,7 +195,7 @@ public:
    
    	inline void* pGetData(void) const;
    
-   	virtual ElemType::Type GetElemType(void) const;
+   	virtual Elem::Type GetElemType(void) const;
 
    	virtual unsigned int iGetNumDof(void) const;   
    	virtual DofOrder::Order SetDof(unsigned int i) const;

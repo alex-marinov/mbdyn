@@ -101,11 +101,10 @@ class SwashPlate : virtual public Elem, public Genel {
    /* Scrive il contributo dell'elemento al file di restart */
    virtual ostream& Restart(ostream& out) const;
       
-   /* Tipo di Genel
-   virtual GenelType::Type GetGenelType(void) const { 
-      return GenelType::SWASHPLATE; 
+   /* Tipo di Genel */
+   virtual Genel::Type GetGenelType(void) const { 
+      return Genel::SWASHPLATE; 
    };
-    */
    
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -137,7 +136,7 @@ class SwashPlate : virtual public Elem, public Genel {
  /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 6;
      NdTyps[0] = pCollectiveIn->GetNodeType();
      NdLabels[0] = pCollectiveIn->GetLabel();

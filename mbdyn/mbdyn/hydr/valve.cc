@@ -51,20 +51,20 @@ Control_valve::Control_valve(unsigned int uL, const DofOwner* pDO,
 			     const PressureNode* p3, const PressureNode* p4,  
 			     doublereal A_max, doublereal Loss_A, const DriveCaller* pDC,
 			     flag fOut) 
-: Elem(uL, ElemType::HYDRAULIC, fOut),
+: Elem(uL, Elem::HYDRAULIC, fOut),
 HydraulicElem(uL, pDO, hf, fOut),
 DriveOwner(pDC),
 pNode1(p1), pNode2(p2), pNode3(p3), pNode4(p4),
 area_max(A_max), loss_area(Loss_A)
 {
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode3 != NULL);
-   ASSERT(pNode3->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode3->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode4 != NULL);
-   ASSERT(pNode4->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode4->GetNodeType() == Node::HYDRAULIC);
    ASSERT(A_max > DBL_EPSILON);
    ASSERT(loss_area >= 0.);
    
@@ -78,9 +78,9 @@ Control_valve::~Control_valve(void)
 }
    
 /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-HydraulicType::Type Control_valve::GetHydraulicType(void) const 
+HydraulicElem::Type Control_valve::GetHydraulicType(void) const 
 {
-   return HydraulicType::CONTROL_VALVE;
+   return HydraulicElem::CONTROL_VALVE;
 }
 
 /* Contributo al file di restart */
@@ -367,7 +367,7 @@ Dynamic_control_valve::Dynamic_control_valve(unsigned int uL, const DofOwner* pD
 					     doublereal Valve_d, doublereal Valve_rho,
 					     doublereal cs, doublereal cv, 
 					     doublereal ca, flag fOut) 
-: Elem(uL, ElemType::HYDRAULIC, fOut),
+: Elem(uL, Elem::HYDRAULIC, fOut),
 HydraulicElem(uL, pDO, hf, fOut), DriveOwner(pDC),
 pNode1(p1), pNode2(p2), pNode3(p3), pNode4(p4),
 start(s0), c_spost(cs), c_vel(cv), c_acc(ca), 
@@ -375,13 +375,13 @@ width(W), loss_area(Loss_A),
 valve_diameter(Valve_d), valve_density(Valve_rho), s_max(s_mx)
 {
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode3 != NULL);
-   ASSERT(pNode3->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode3->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode4 != NULL);
-   ASSERT(pNode4->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode4->GetNodeType() == Node::HYDRAULIC);
    ASSERT(s0 >= 0.);
    ASSERT(Valve_rho > DBL_EPSILON);
    ASSERT(Valve_d > DBL_EPSILON);
@@ -406,9 +406,9 @@ Dynamic_control_valve::~Dynamic_control_valve(void)
 }
    
 /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-HydraulicType::Type Dynamic_control_valve::GetHydraulicType(void) const 
+HydraulicElem::Type Dynamic_control_valve::GetHydraulicType(void) const 
 {
-   return HydraulicType::DYNAMIC_CONTROL_VALVE;
+   return HydraulicElem::DYNAMIC_CONTROL_VALVE;
 }
 
 /* Contributo al file di restart */
@@ -807,7 +807,7 @@ Pressure_flow_control_valve::Pressure_flow_control_valve(unsigned int uL, const 
 				     doublereal Valve_d, doublereal Valve_rho,
 				     doublereal cs, doublereal cv, 
 				     doublereal ca, flag fOut) 
-: Elem(uL, ElemType::HYDRAULIC, fOut),
+: Elem(uL, Elem::HYDRAULIC, fOut),
 HydraulicElem(uL, pDO, hf, fOut), DriveOwner(pDC),
 pNode1(p1), pNode2(p2), pNode3(p3), pNode4(p4), pNode5(p5), pNode6(p6),
 start(s0), s_max(s_mx), width(W), loss_area(Loss_A), 
@@ -815,17 +815,17 @@ valve_diameter(Valve_d), valve_density(Valve_rho),
 c_spost(cs), c_vel(cv), c_acc(ca)
 {
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode3 != NULL);
-   ASSERT(pNode3->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode3->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode4 != NULL);
-   ASSERT(pNode4->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode4->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode5 != NULL);
-   ASSERT(pNode5->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode5->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode6 != NULL);
-   ASSERT(pNode6->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode6->GetNodeType() == Node::HYDRAULIC);
    ASSERT(s0 >= 0.);
    ASSERT(Valve_rho > DBL_EPSILON);
    ASSERT(Valve_d > DBL_EPSILON);
@@ -845,9 +845,9 @@ Pressure_flow_control_valve::~Pressure_flow_control_valve(void)
 }
    
 /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-HydraulicType::Type Pressure_flow_control_valve::GetHydraulicType(void) const 
+HydraulicElem::Type Pressure_flow_control_valve::GetHydraulicType(void) const 
 {
-   return HydraulicType::PRESSURE_FLOW_CONTROL_VALVE;
+   return HydraulicElem::PRESSURE_FLOW_CONTROL_VALVE;
 }
 
 /* Contributo al file di restart */
@@ -1219,16 +1219,16 @@ Pressure_valve::Pressure_valve(unsigned int uL, const DofOwner* pDO,
 			       doublereal F0, doublereal w, 
 			       doublereal cs, doublereal cv, doublereal ca,
 			       flag fOut)
-: Elem(uL, ElemType::HYDRAULIC, fOut),
+: Elem(uL, Elem::HYDRAULIC, fOut),
 HydraulicElem(uL, pDO, hf, fOut),
 pNode1(p1), pNode2(p2), area_diaf(A_dia), mass(mv),
 area_max(A_max),s_max(s_mx), 
 Kappa(K), force0(F0), width(w),c_spost(cs), c_vel(cv), c_acc(ca)
 {
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
    ASSERT(A_dia > DBL_EPSILON);
    ASSERT(mv > DBL_EPSILON); 
    ASSERT(A_max > DBL_EPSILON);
@@ -1245,9 +1245,9 @@ Pressure_valve::~Pressure_valve(void)
 }
    
 /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-HydraulicType::Type Pressure_valve::GetHydraulicType(void) const 
+HydraulicElem::Type Pressure_valve::GetHydraulicType(void) const 
 {
-   return HydraulicType::PRESSURE_VALVE;
+   return HydraulicElem::PRESSURE_VALVE;
 }
 
 
@@ -1567,18 +1567,18 @@ Flow_valve:: Flow_valve(unsigned int uL, const DofOwner* pDO,
 			doublereal s_mx,  
 			doublereal cs, doublereal cv, doublereal ca, 
 			flag fOut)
-: Elem(uL, ElemType::HYDRAULIC, fOut),
+: Elem(uL, Elem::HYDRAULIC, fOut),
 HydraulicElem(uL, pDO, hf, fOut),
 pNode1(p1), pNode2(p2), pNode3(p3),
 area_diaf(A_dia), mass(mv), area_pipe(A_pipe), area_max(A_max), 
 Kappa(K), force0(F0), width(w), s_max(s_mx), c_spost(cs), c_vel(cv), c_acc(ca) 
 {
    ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode3 != NULL);
-   ASSERT(pNode3->GetNodeType() == NodeType::HYDRAULIC);
+   ASSERT(pNode3->GetNodeType() == Node::HYDRAULIC);
    ASSERT(A_dia > DBL_EPSILON);
    ASSERT(mv > DBL_EPSILON); 
    ASSERT(A_pipe > DBL_EPSILON);
@@ -1599,9 +1599,9 @@ Flow_valve::~Flow_valve(void)
  
 
 /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-HydraulicType::Type  Flow_valve::GetHydraulicType(void) const 
+HydraulicElem::Type  Flow_valve::GetHydraulicType(void) const 
 {
-   return HydraulicType:: FLOW_VALVE;
+   return HydraulicElem:: FLOW_VALVE;
 }
 
 

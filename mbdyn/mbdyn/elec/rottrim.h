@@ -83,6 +83,11 @@ public:
 	
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual ostream& Restart(ostream& out) const;
+
+	/* Tipo di Genel */
+	virtual Genel::Type GetGenelType(void) const { 
+		return Genel::ROTORTRIM; 
+	};
 	
 	/* Dimensioni del workspace */
 	virtual void
@@ -113,7 +118,7 @@ public:
 	 */
 	virtual void
 	GetConnectedNodes(int& NumNodes,
-			  NodeType::Type* NdTyps,
+			  Node::Type* NdTyps,
 			  unsigned int* NdLabels) {
 		pRotor->GetConnectedNodes(NumNodes,  NdTyps, NdLabels);
 		for (int i = 0; i <= 2; i++) {

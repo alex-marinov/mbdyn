@@ -36,7 +36,7 @@
 
 /* Costruttore */
 AutomaticStructElem::AutomaticStructElem(const DynamicStructNode* pN)
-: Elem(pN->GetLabel(), ElemType::AUTOMATICSTRUCTURAL, pN->fToBeOutput()), 
+: Elem(pN->GetLabel(), Elem::AUTOMATICSTRUCTURAL, pN->fToBeOutput()), 
 pNode(pN), Q(0.), G(0.), QP(0.), GP(0.)
 { 
    NO_OP;

@@ -63,11 +63,11 @@
 
 /* Joint - begin */
 
-Joint::Joint(unsigned int uL, JointType::Type T, const DofOwner* pDO, 
+Joint::Joint(unsigned int uL, Joint::Type T, const DofOwner* pDO, 
 	     flag fOut)
-: Elem(uL, ElemType::JOINT, fOut), 
-ElemWithDofs(uL, ElemType::JOINT, pDO, fOut), 
-InitialAssemblyElem(uL, ElemType::JOINT, fOut), JointT(T)
+: Elem(uL, Elem::JOINT, fOut), 
+ElemWithDofs(uL, Elem::JOINT, pDO, fOut), 
+InitialAssemblyElem(uL, Elem::JOINT, fOut), JointT(T)
 { 
    NO_OP;
 }
@@ -255,7 +255,7 @@ Elem* ReadJoint(DataManager* pDM,
        }
        HP.PutKeyTable(K);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::JOINT);
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        /* allocazione e costruzione */
        SAFENEWWITHCONSTRUCTOR(pEl, 
@@ -329,7 +329,7 @@ Elem* ReadJoint(DataManager* pDM,
        }
        HP.PutKeyTable(K);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::JOINT);
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        /* allocazione e costruzione */
        SAFENEWWITHCONSTRUCTOR(pEl, 
@@ -381,7 +381,7 @@ Elem* ReadJoint(DataManager* pDM,
        
        DEBUGCOUT("R0 =" << endl << R0 << endl);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::JOINT);
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        /* allocazione e costruzione */
        SAFENEWWITHCONSTRUCTOR(pEl,
@@ -414,7 +414,7 @@ Elem* ReadJoint(DataManager* pDM,
        /* posizione (vettore di 3 elementi) */	 
        Vec3 X0(HP.GetPosAbs(AbsRefFrame));
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::JOINT);
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pEl,
@@ -490,7 +490,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  HP.PutKeyTable(K);
        }	   
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::JOINT);
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        switch (CurrKeyWord) {
 	  
@@ -599,7 +599,7 @@ Elem* ReadJoint(DataManager* pDM,
        DEBUGCOUT("Absolute R:" << endl << R0 << endl);
        
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::JOINT);
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        switch (CurrKeyWord) {
 	  
@@ -694,7 +694,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  }
        }
        
-       fOut = pDM->fReadOutput(HP, ElemType::JOINT);      	   
+       fOut = pDM->fReadOutput(HP, Elem::JOINT);      	   
        
        if (fOffset) {	      
 	  SAFENEWWITHCONSTRUCTOR(pEl, 
@@ -758,7 +758,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  }
        }
        
-       fOut = pDM->fReadOutput(HP, ElemType::JOINT);      	   
+       fOut = pDM->fReadOutput(HP, Elem::JOINT);      	   
        
        if (fOffset) {
 	  SAFENEWWITHCONSTRUCTOR(pEl,
@@ -853,27 +853,27 @@ Elem* ReadJoint(DataManager* pDM,
        ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
        HP.PutKeyTable(K);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::JOINT);
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        if (fOffset == 1) {	      
 	  SAFENEWWITHCONSTRUCTOR(pEl, 
-				 RodWithOffsetJoint,
-				 RodWithOffsetJoint(uLabel, pDO, pCL,
+				 RodWithOffset,
+				 RodWithOffset(uLabel, pDO, pCL,
 						    pNode1, pNode2, 
 						    f1, f2, dL, fOut),
 				 DMmm);
        } else {	  
 	  if (ConstLawType == DefHingeType::VISCOUS || ConstLawType == DefHingeType::VISCOELASTIC) {
 	     SAFENEWWITHCONSTRUCTOR(pEl, 
-				    ViscoElasticRodJoint,
-				    ViscoElasticRodJoint(uLabel, pDO, pCL,
+				    ViscoElasticRod,
+				    ViscoElasticRod(uLabel, pDO, pCL,
 							 pNode1, pNode2, 
 							 dL, fOut), 
 				    DMmm);		 
 	  } else {		 
 	     SAFENEWWITHCONSTRUCTOR(pEl, 
-				    RodJoint,
-				    RodJoint(uLabel, pDO, pCL, pNode1, pNode2, dL, fOut), 
+				    Rod,
+				    Rod(uLabel, pDO, pCL, pNode1, pNode2, dL, fOut), 
 				    DMmm);
 	  }
        }	   
@@ -941,7 +941,7 @@ Elem* ReadJoint(DataManager* pDM,
        ConstitutiveLaw3D* pCL = pDM->ReadConstLaw3D(HP, ConstLawType);
        HP.PutKeyTable(K);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::JOINT);
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        switch (ConstLawType) {
 	case DefHingeType::ELASTIC: {
@@ -1044,7 +1044,7 @@ Elem* ReadJoint(DataManager* pDM,
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
        HP.PutKeyTable(K);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::JOINT);
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        switch (CurrKeyWord) {
 	case LINEARVELOCITY: {
@@ -1101,7 +1101,7 @@ Elem* ReadJoint(DataManager* pDM,
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
        HP.PutKeyTable(K);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::JOINT);
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        switch (CurrKeyWord) {
 	case LINEARACCELERATION: {
@@ -1176,7 +1176,7 @@ Elem* ReadJoint(DataManager* pDM,
        }
        
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::JOINT);
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      PrismaticJoint,
@@ -1234,7 +1234,7 @@ Elem* ReadJoint(DataManager* pDM,
        TplDriveCaller<Vec3>* pDC 
 	 = ReadTplDrive(pDM, HP, pDM->pGetDrvHdl(), Vec3(0.));
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::JOINT);
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      DriveHingeJoint,
@@ -1270,7 +1270,7 @@ Elem* ReadJoint(DataManager* pDM,
 			      KinematicsTest(pDC),
 			      DMmm);
        
-       flag fOut = pDM->fReadOutput(HP, ElemType::JOINT);
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      KinJoint,

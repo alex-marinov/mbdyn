@@ -52,11 +52,27 @@
 
 #include "node.h"
 
-/* Tipi di Elem. Lasciare sempre UNKNOWN = -1, cosi' il primo elemento
- * ha tipo zero, e l'ultima entry dell'enum, LAST...TYPE, e' uguale
- * al numero di tipi definiti, quindi puo' essere usata come costante nel 
- * dimensionamento degli arrays e come flag di fine tipi. */
-class ElemType {
+extern const char* psElemNames[];
+extern const char* psReadControlElems[];
+extern const char* psAdamsElemCode[];
+
+
+/* classi dichiarate */
+class ElemWithDofs;
+class ElemGravityOwner;
+class AerodynamicElem;
+class InitialAssemblyElem;
+class Rotor;
+
+/* Elem - begin */
+
+class Elem : public WithLabel, public ToBeOutput {
+   /*
+    * Tipi di Elem. Lasciare sempre UNKNOWN = -1, cosi' il primo elemento
+    * ha tipo zero, e l'ultima entry dell'enum, LAST...TYPE, e' uguale
+    * al numero di tipi definiti, quindi puo' essere usata come costante nel 
+    * dimensionamento degli arrays e come flag di fine tipi. 
+    */
  public:
    enum Type {
       UNKNOWN = -1,
@@ -85,35 +101,18 @@ class ElemType {
 	
 	LASTELEMTYPE
    };      
-};
-
-extern const char* psElemNames[];
-extern const char* psReadControlElems[];
-extern const char* psAdamsElemCode[];
-
-
-/* classi dichiarate */
-class ElemWithDofs;
-class ElemGravityOwner;
-class AerodynamicElem;
-class InitialAssemblyElem;
-class Rotor;
-
-/* Elem - begin */
-
-class Elem : public WithLabel, public ToBeOutput {
  private:
-   ElemType::Type ElemT;
+   Elem::Type ElemT;
    
  public:
-   Elem(unsigned int uL, ElemType::Type T, flag fOut);
+   Elem(unsigned int uL, Elem::Type T, flag fOut);
    virtual ~Elem(void);
 
    /* Scrive il contributo dell'elemento al file di restart */
    virtual ostream& Restart(ostream& out) const = 0;
    
    /* Tipo dell'elemento (usato solo per debug ecc.) */
-   virtual ElemType::Type GetElemType(void) const = 0;
+   virtual Elem::Type GetElemType(void) const = 0;
    
    
    /* funzioni di servizio */
@@ -190,7 +189,7 @@ class Elem : public WithLabel, public ToBeOutput {
       return 0;
    };
    
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* /* NdTyps */ , unsigned int* /* NdLabels */ ) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* /* NdTyps */ , unsigned int* /* NdLabels */ ) {
 #ifdef DEBUG
       cerr << "Warning: probably function Elem::GetConnectedNodes"
         " is not defined for an element Type" << endl;
@@ -246,7 +245,7 @@ class Elem : public WithLabel, public ToBeOutput {
 class ElemWithDofs : virtual public Elem, public DofOwnerOwner {
 
  public:
-   ElemWithDofs(unsigned int uL, ElemType::Type T, 
+   ElemWithDofs(unsigned int uL, Elem::Type T, 
 		const DofOwner* pDO, flag fOut);
    
    virtual ~ElemWithDofs(void);
@@ -299,7 +298,7 @@ class SubjectToInitialAssembly {
 class InitialAssemblyElem 
 : virtual public Elem, public SubjectToInitialAssembly {
  public:
-   InitialAssemblyElem(unsigned int uL, ElemType::Type T, flag fOut);
+   InitialAssemblyElem(unsigned int uL, Elem::Type T, flag fOut);
    virtual ~InitialAssemblyElem(void);
 
    /* Consente di effettuare un casting sicuro da Elem* a InitialAssemblyElem* */

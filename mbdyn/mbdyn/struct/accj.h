@@ -61,7 +61,7 @@ class LinearAccelerationJoint
    virtual inline void* pGet(void) const;
    
    /* Tipo di Joint */
-   virtual JointType::Type GetJointType(void) const;
+   virtual Joint::Type GetJointType(void) const;
 
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -104,7 +104,7 @@ class LinearAccelerationJoint
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 1;
      NdTyps[0] = pNode->GetNodeType();
      NdLabels[0] = pNode->GetLabel();
@@ -146,7 +146,7 @@ class AngularAccelerationJoint
    virtual inline void* pGet(void) const;
    
    /* Tipo di Joint */
-   virtual JointType::Type GetJointType(void) const;
+   virtual Joint::Type GetJointType(void) const;
 
    /* Contributo al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -190,7 +190,7 @@ class AngularAccelerationJoint
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
      NumNodes = 1;
      NdTyps[0] = pNode->GetNodeType();
      NdLabels[0] = pNode->GetLabel();

@@ -34,21 +34,6 @@
 #include "node.h"
 #include "matvec3.h"
 
-/* Tipi di StructNode */
-class StructNodeType {
- public:
-   enum Type {
-      UNKNOWN = -1,
-	
-	DYNAMIC = 0,
-	STATIC,
-	MODAL,
-	DUMMY,
-	
-	LASTSTRUCTNODETYPE
-   };
-};    
-   
 extern const char* psStructNodeNames[];
 
 
@@ -71,10 +56,20 @@ const int iStructNodeInitialDofNumber = 12;
 
 
 class StructNode : public Node {
-   
  public: 
    class ErrGeneric {};
    
+   enum Type {
+      UNKNOWN = -1,
+	
+	DYNAMIC = 0,
+	STATIC,
+	MODAL,
+	DUMMY,
+	
+	LASTSTRUCTNODETYPE
+   };
+
  private:
    
  protected:
@@ -127,7 +122,7 @@ class StructNode : public Node {
    virtual ~StructNode(void);
          
    /* Tipo di nodo */
-   virtual NodeType::Type GetNodeType(void) const;
+   virtual Node::Type GetNodeType(void) const;
    
    /* Contributo del nodo strutturale al file di restart */
    virtual ostream& Restart(ostream& out) const;
@@ -143,7 +138,7 @@ class StructNode : public Node {
       
    
    /* Tipo di nodo strutturale */
-   virtual StructNodeType::Type GetStructNodeType(void) const = 0;
+   virtual StructNode::Type GetStructNodeType(void) const = 0;
    
    /* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
    virtual inline unsigned int iGetInitialNumDof(void) const;
@@ -377,7 +372,7 @@ class DynamicStructNode : public StructNode {
    virtual ~DynamicStructNode(void);
 
    /* Tipo di nodo strutturale */
-   virtual StructNodeType::Type GetStructNodeType(void) const;
+   virtual StructNode::Type GetStructNodeType(void) const;
    
    /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
    virtual inline unsigned int iGetNumDof(void) const;
@@ -442,7 +437,7 @@ class StaticStructNode : public StructNode {
    virtual ~StaticStructNode(void);
          
    /* Tipo di nodo strutturale */
-   virtual StructNodeType::Type GetStructNodeType(void) const;
+   virtual StructNode::Type GetStructNodeType(void) const;
    
    /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
    virtual inline unsigned int iGetNumDof(void) const;
@@ -500,7 +495,7 @@ class ModalNode : public DynamicStructNode {
    virtual ~ModalNode(void);
    
    /* Tipo di nodo strutturale */
-   virtual StructNodeType::Type GetStructNodeType(void) const;
+   virtual StructNode::Type GetStructNodeType(void) const;
    
    /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
    virtual inline unsigned int iGetNumDof(void) const;
@@ -593,7 +588,7 @@ virtual void __Update(void) = 0;
 			    unsigned int iDof, unsigned int iOrder = 0);
 
    /* Tipo di nodo strutturale */
-   virtual StructNodeType::Type GetStructNodeType(void) const;
+   virtual StructNode::Type GetStructNodeType(void) const;
    
    /* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
    virtual inline unsigned int iGetInitialNumDof(void) const;

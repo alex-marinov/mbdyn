@@ -55,9 +55,9 @@ FileDrive::~FileDrive(void)
 }
 
 
-DriveType::Type FileDrive::GetDriveType(void) const
+Drive::Type FileDrive::GetDriveType(void) const
 {
-   return DriveType::FILEDRIVE;
+   return Drive::FILEDRIVE;
 }
 
 /* FileDrive - end */

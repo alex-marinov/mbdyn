@@ -66,22 +66,6 @@
 #include "tpldrive.h"
 #include "memmans.h"
 
-
-/* Tipi di elementi aerodinamici */
-class AeroType {
- public:
-   enum Type {
-      UNKNOWN = -1,
-
-	ROTOR = 0,
-	AERODYNAMICBODY,
-	AERODYNAMICBEAM,
-        AERODYNAMICMODAL,
-	
-	LASTAEROTYPE
-   };
-};
-
 extern const char* psAeroNames[];
 
 
@@ -97,8 +81,8 @@ class AirProperties
  public:
    AirProperties(const TplDriveCaller<Vec3>* pDC,
 		 doublereal dRho, doublereal dSS, flag fOut)
-     : Elem(1, ElemType::AIRPROPERTIES, fOut),
-     InitialAssemblyElem(1, ElemType::AIRPROPERTIES, fOut),
+     : Elem(1, Elem::AIRPROPERTIES, fOut),
+     InitialAssemblyElem(1, Elem::AIRPROPERTIES, fOut),
      TplDriveOwner<Vec3>(pDC),    
      Velocity(0.), dAirDensity(dRho), dSoundSpeed(dSS) {
 	NO_OP;
@@ -120,8 +104,8 @@ class AirProperties
    };
    
    /* Tipo dell'elemento (usato per debug ecc.) */
-   virtual ElemType::Type GetElemType(void) const { 
-      return ElemType::AIRPROPERTIES; 
+   virtual Elem::Type GetElemType(void) const { 
+      return Elem::AIRPROPERTIES; 
    };   
       
    /* funzioni di servizio */
@@ -167,7 +151,7 @@ class AirProperties
       WorkVec.Resize(0);
       
       /* Approfitto del fatto che AirProperties viene aggiornato prima 
-       * degli altri elementi (vedi l'enum ElemType e la sequenza di
+       * degli altri elementi (vedi l'enum Elem::Type e la sequenza di
        * assemblaggio) per fargli calcolare Velocity una volta per tutte.
        * Quindi, quando viene chiamata GetVelocity(void), 
        * questa restituisce un reference all'accelerazione con il
@@ -272,14 +256,26 @@ class AirPropOwner {
 /* AerodynamicElem - begin */
 
 class AerodynamicElem : virtual public Elem, public AirPropOwner {
+ public:
+   /* Tipi di elementi aerodinamici */
+   enum Type {
+      UNKNOWN = -1,
+
+	ROTOR = 0,
+	AERODYNAMICBODY,
+	AERODYNAMICBEAM,
+        AERODYNAMICMODAL,
+	
+	LASTAEROTYPE
+   };
  private:
-   AeroType::Type AeroT;
+   AerodynamicElem::Type AeroT;
    
  protected:
    
  public:
-   AerodynamicElem(unsigned int uL, AeroType::Type T, flag fOut)
-     : Elem(uL, ElemType::AERODYNAMIC, fOut), AeroT(T) { 
+   AerodynamicElem(unsigned int uL, AerodynamicElem::Type T, flag fOut)
+     : Elem(uL, Elem::AERODYNAMIC, fOut), AeroT(T) { 
 	NO_OP; 
      };
    
@@ -288,7 +284,7 @@ class AerodynamicElem : virtual public Elem, public AirPropOwner {
    };
    
    /* Tipo di elemento aerodinamico */
-   virtual AeroType::Type GetAeroType(void) const { 
+   virtual AerodynamicElem::Type GetAerodynamicElemType(void) const { 
       return AeroT;
    };
 
