@@ -555,6 +555,14 @@ Elem* ReadJoint(DataManager* pDM,
 	   
 	  /* allocazione e creazione pattino */
 	case PLANEDISPLACEMENT: {
+
+	   /* 
+	    * FIXME: not working yet 
+	    */
+	   std::cerr << "PlaneDispJoint(" << uLabel << "): not supported yet"
+		   << std::endl;
+	   THROW(ErrGeneric());
+	   
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlaneDispJoint,
 				  PlaneDispJoint(uLabel, pDO, pNode1, pNode2, 
