@@ -68,7 +68,6 @@ protected:
 	struct ThreadData {
 		MultiThreadDataManager *pDM;
 		integer threadNumber;
-		integer nThreads;
 		pthread_t thread;
 		sem_t sem;
 		clock_t	cputime;
@@ -84,7 +83,6 @@ protected:
 		CompactSparseMatrixHandler* pJacHdl;
 
 		/* for Naive assembly */
-		NaiveMatrixHandler* pNaiveJacHdl;
 		NaiveMatrixHandler** ppNaiveJacHdl;
 		integer* lock;
 
@@ -137,9 +135,6 @@ protected:
 	void ThreadSpawn(void);
 	clock_t ThreadDestroy(void);
 
-	/* reset InUse flag(s) before multithread execution */
-	void ResetInUse(bool b = false);
-
 	/* specialized assembly */
 	virtual void CCAssJac(MatrixHandler& JacHdl, doublereal dCoef);
 	virtual void NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef);
@@ -161,7 +156,8 @@ public:
 
 #ifdef MBDYN_X_MT_ASSRES
 	/* Assembla il residuo */
-	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef);
+	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef)
+		throw(ChangedEquationStructure);
 #endif /* MBDYN_X_MT_ASSRES */
 
 	/* additional CPU time, if any */

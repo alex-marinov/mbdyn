@@ -277,9 +277,9 @@ MultiThreadDataManager::thread(void *p)
 			break;
 
 		case MultiThreadDataManager::OP_ASSJAC_NAIVE:
-			arg->pNaiveJacHdl->Reset();
+			arg->ppNaiveJacHdl[arg->threadNumber]->Reset();
 			/* note: Naive should never throw ErrRebuildMatrix ... */
-			arg->pDM->DataManager::AssJac(*(arg->pNaiveJacHdl),
+			arg->pDM->DataManager::AssJac(*(arg->ppNaiveJacHdl[arg->threadNumber]),
 					arg->dCoef,
 					arg->ElemIter,
 					*arg->pWorkMat);
@@ -289,9 +289,9 @@ MultiThreadDataManager::thread(void *p)
 		{
 			NaiveMatrixHandler* to = arg->ppNaiveJacHdl[0];
 			integer nn = to->iGetNumRows();
-			integer iFrom = (nn*(arg->threadNumber))/arg->nThreads;
-			integer iTo = (nn*(arg->threadNumber + 1))/arg->nThreads - 1;
-			for (integer matrix = 1; matrix < arg->nThreads; matrix++) {
+			integer iFrom = (nn*(arg->threadNumber))/arg->pDM->nThreads;
+			integer iTo = (nn*(arg->threadNumber + 1))/arg->pDM->nThreads - 1;
+			for (unsigned int matrix = 1; matrix < arg->pDM->nThreads; matrix++) {
 				NaiveMatrixHandler* from = arg->ppNaiveJacHdl[matrix];
 				naivepsad(to->ppdRows, 
 						to->ppiRows, to->piNzr, 
@@ -344,13 +344,10 @@ MultiThreadDataManager::thread_cleanup(ThreadData *arg)
 		if (arg->pJacHdl) {
 			SAFEDELETE(arg->pJacHdl);
 		}
-		if (arg->pNaiveJacHdl) {
-			SAFEDELETE(arg->pNaiveJacHdl);
-		}
-		if (arg->ppNaiveJacHdl) {
-			SAFEDELETE(arg->ppNaiveJacHdl);
-		}
 		SAFEDELETE(arg->pResHdl);
+
+	} else {
+		SAFEDELETEARR(arg->ppNaiveJacHdl);
 	}
 	sem_destroy(&arg->sem);
 
@@ -402,7 +399,6 @@ MultiThreadDataManager::ThreadSpawn(void)
 		thread_data[i].pDM = this;
 		sem_init(&thread_data[i].sem, 0, 0);
 		thread_data[i].threadNumber = i;
-		thread_data[i].nThreads = nThreads;
 		thread_data[i].ElemIter.Init(ppElems, iTotElem);
 		thread_data[i].lock = 0;
 
@@ -429,7 +425,6 @@ MultiThreadDataManager::ThreadSpawn(void)
 		thread_data[i].pJacHdl = 0;
 
 		/* set by AssJac when in Naive form */
-		thread_data[i].pNaiveJacHdl = 0;
 		thread_data[i].ppNaiveJacHdl = 0;
 
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pResHdl,
@@ -447,23 +442,19 @@ MultiThreadDataManager::ThreadSpawn(void)
 }
 
 void
-MultiThreadDataManager::ResetInUse(bool b)
-{
-	DEBUGCOUT("Entering MultiThreadDataManager::ResetInUse()" << std::endl);
-
-	Elem* pTmpEl = NULL;
-	if (ElemIter.bGetFirst(pTmpEl)) {
-		do {
-			pTmpEl->SetInUse(b);
-		} while (ElemIter.bGetNext(pTmpEl));
-	}
-}
-
-void
 MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
+	silent_cerr("AssJac" << std::endl);
 retry:;
 	switch (AssMode) {
+	case ASS_CC:
+		CCAssJac(JacHdl, dCoef);
+		break;
+
+	case ASS_NAIVE:
+		NaiveAssJac(JacHdl, dCoef);
+		break;
+
 	case ASS_UNKNOWN:
 		if (dynamic_cast<NaiveMatrixHandler *>(&JacHdl)) {
 			AssMode = ASS_NAIVE;
@@ -472,24 +463,17 @@ retry:;
 			 * and create copies for the other threads */
 			SAFENEWARR(thread_data[0].lock, integer, JacHdl.iGetNumRows());
 			memset(thread_data[0].lock, 0, sizeof(integer)*JacHdl.iGetNumRows());
-			thread_data[0].pNaiveJacHdl = dynamic_cast<NaiveMatrixHandler *>(&JacHdl);
+
 			SAFENEWARR(thread_data[0].ppNaiveJacHdl, NaiveMatrixHandler*, nThreads);
-			thread_data[0].ppNaiveJacHdl[0] = thread_data[0].pNaiveJacHdl;
+			thread_data[0].ppNaiveJacHdl[0] = dynamic_cast<NaiveMatrixHandler *>(&JacHdl);
 
 			for (unsigned i = 1; i < nThreads; i++) {
-				SAFENEWARR(thread_data[i].ppNaiveJacHdl, NaiveMatrixHandler*, nThreads);
-			}
-			for (unsigned i = 1; i < nThreads; i++) {
-				thread_data[i].ppNaiveJacHdl[0] = thread_data[0].pNaiveJacHdl;
 				thread_data[i].lock = thread_data[0].lock;
-				thread_data[i].pNaiveJacHdl = 0;
-				SAFENEWWITHCONSTRUCTOR(thread_data[i].pNaiveJacHdl,
+				thread_data[i].ppNaiveJacHdl = thread_data[0].ppNaiveJacHdl;
+				thread_data[0].ppNaiveJacHdl[i] = 0;
+				SAFENEWWITHCONSTRUCTOR(thread_data[0].ppNaiveJacHdl[i],
 						NaiveMatrixHandler,
 						NaiveMatrixHandler(JacHdl.iGetNumRows()));
-				for (unsigned ii = 0; ii < nThreads; ii++) {
-					thread_data[ii].ppNaiveJacHdl[i] = 
-						thread_data[i].pNaiveJacHdl;
-				}
 			}
 
 			goto retry;
@@ -502,14 +486,6 @@ retry:;
 		silent_cerr("unable to detect jacobian matrix type "
 				"for multithread assembly" << std::endl);
 		throw ErrGeneric();
-
-	case ASS_CC:
-		CCAssJac(JacHdl, dCoef);
-		break;
-
-	case ASS_NAIVE:
-		NaiveAssJac(JacHdl, dCoef);
-		break;
 	}
 }
 
@@ -668,18 +644,16 @@ MultiThreadDataManager::NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	}
 	
 	pthread_mutex_unlock(&thread_mutex);
-#if 0
-	for (unsigned i = 1; i < nThreads; i++) {
-		pMH->AddUnchecked(*thread_data[i].pJacHdl);
-	}
-#endif
 }
 
 #ifdef MBDYN_X_MT_ASSRES
 void
 MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
+	throw(ChangedEquationStructure)
 {
 	ASSERT(thread_data != NULL);
+
+	silent_cerr("AssRes" << std::endl);
 
 	thread_data[0].ElemIter.ResetAccessData();
 	op = MultiThreadDataManager::OP_ASSRES;
