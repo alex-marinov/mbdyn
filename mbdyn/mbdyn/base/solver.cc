@@ -419,11 +419,14 @@ void Solver::Run(void)
 	/* il solution manager viene creato qui e passato al nonlin solver */
 	SolutionManager *pSM = NULL;
 	SolutionManager *pCurrSM = NULL;
+#ifdef USE_MPI
 	SolutionManager *pLocalSM = NULL;
 	SolutionManager *pSSM = NULL;
+#endif /* USE_MPI */
 	
 	integer iLWS = iWorkSpaceSize;
 	integer iNLD = iNumDofs;
+
 #ifdef USE_MPI
 	if (fParallel) {
 		iLWS = iWorkSpaceSize*iNumLocDofs/(iNumDofs*iNumDofs);
@@ -1660,7 +1663,7 @@ Solver::ReadData(MBDynParser& HP)
        		case DUMMYSTEPSRATIO:
 	  		dFictitiousStepsRatio = HP.GetReal();
 	  		if (dFictitiousStepsRatio < 0.) {
-	     			dFictitiousStepsRatio +					dDefaultFictitiousStepsRatio;
+	     			dFictitiousStepsRatio =	dDefaultFictitiousStepsRatio;
 				std::cerr << "warning, negative dummy steps ratio"
 					" is illegal;" << std::endl
 					<< "resorting to default value "
@@ -1683,7 +1686,7 @@ Solver::ReadData(MBDynParser& HP)
        		case DUMMYSTEPSTOLERANCE:
 	  		dFictitiousStepsTolerance = HP.GetReal();
 	  		if (dFictitiousStepsTolerance <= 0.) {
-				dFictitiousStepsTolerance +					dDefaultFictitiousStepsTolerance;
+				dFictitiousStepsTolerance = dDefaultFictitiousStepsTolerance;
 				std::cerr << "warning, negative dummy steps"
 					" tolerance is illegal;" << std::endl
 					<< "resorting to default value "

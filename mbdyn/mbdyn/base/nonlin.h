@@ -76,13 +76,13 @@ public:
 		, ExtStepType(External::ERROR)  
 #endif /* USE_EXTERNAL */
 #ifdef __HACK_SCALE_RES__
-		, VectorHandler* pScale(NULL) 
+		, pScale(NULL) 
 #endif /* __HACK_SCALE_RES__ */
 		{ };
 		
 #ifdef __HACK_SCALE_RES__
 	virtual void SetScale(const VectorHandler* pScl) {
-		pScale = pScl;
+		pScale = (VectorHandler *)pScl;
 		return;
 	}  
 #endif /* __HACK_SCALE_RES__ */
