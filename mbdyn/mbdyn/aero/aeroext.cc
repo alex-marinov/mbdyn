@@ -28,11 +28,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef USE_EXTERNAL 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_EXTERNAL 
 #include "aeroext.h"
 #include <myassert.h>
 #include <except.h>
@@ -565,10 +565,7 @@ ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLa
  	return pEl;   		
 }
 
-
-
-
+/* Aerodynamic External Modal - end */
 
 #endif /* USE_EXTERNAL */
 
-/* Aerodynamic External Modal - end */
