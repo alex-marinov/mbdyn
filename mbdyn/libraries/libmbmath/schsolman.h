@@ -74,8 +74,9 @@ class SchurSolutionManager : public SolutionManager {
   int MyRank, SolvCommSize;
   
   integer iPrbmSize;                /*dimensioni totali del problema */
-  integer iPrbBlocks;               /*numero di problemi accoppiati, */
+  integer iPrbmBlocks;               /*numero di problemi accoppiati, */
                                     /*ciascuno di dimensione iPrbmSize  */
+  integer iBlkSize;		    /* size di ciascun blocco */
   integer* pLocDofs;                /*lista dei dof locali */
   integer* pIntDofs;                /*lista dof interfaccia locale */ 
   int iLocVecDim, iIntVecDim;         /* dimensioni vettori dof locali e interfacce */ 

@@ -71,7 +71,8 @@ extern "C" {
 #undef max
 #include <algorithm>
 
-template <class S> SchurSolutionManager::SchurSolutionManager (integer iSize, 
+template <class S> SchurSolutionManager::SchurSolutionManager (integer iSize,
+					    integer iBlocks,	 
 					    integer* pLocalDofs,
 					    int iDim1,
 					    integer* pInterfDofs,
@@ -84,6 +85,7 @@ template <class S> SchurSolutionManager::SchurSolutionManager (integer iSize,
 SolvCommSize(0),
 iPrbmSize(iSize),
 iPrbmBlocks(iBlocks),
+iBlkSize(iSize),
 pLocDofs(pLocalDofs),
 pIntDofs(pInterfDofs),
 iLocVecDim(iDim1),
@@ -97,8 +99,8 @@ pGlbToLoc(NULL),
 pSchGlbToLoc(NULL),
 pBlockLenght(NULL), 
 pTypeDsp(NULL), 
-pBuffer(NULL),
 ppNewTypes(NULL),
+pBuffer(NULL),
 iWorkSpaceSize(iWorkSize), 
 pMH(NULL), 
 pRVH(NULL),
@@ -128,6 +130,7 @@ fNewMatrix(0)
   SolvCommSize = SolvComm.Get_size();
   MyRank = SolvComm.Get_rank();
   
+    
 #ifdef DEBUG
   if (SolvCommSize != 1) {
     	ASSERT(pIntDofs != NULL);
@@ -144,7 +147,7 @@ fNewMatrix(0)
    /* utilizza iWorkSpaceSize come un coefficiente moltiplicativo */
    integer IntiWorkSpaceSize = iWorkSpaceSize/(iPrbmSize*iPrbmSize)* (iSchurIntDim*iSchurIntDim);
    		
-   if(!MyRank) {
+     if(!MyRank) {
   	/* solutore di interfaccia */				
 	SAFENEWWITHCONSTRUCTOR(pInterSM,
 				S,
@@ -194,7 +197,9 @@ fNewMatrix(0)
     
     	MPI::Aint DispTmp = MPI::Get_address(pSolSchVH->pdGetVec());
     	for (int i=0; i < pDispl[SolvCommSize]; i++) {
-      		pTypeDsp[i] = MPI::Get_address(pSolSchVH->pdGetVec() + pSchGlbToLoc[pDofsRecvdList[i]] - 1) - DispTmp;
+		int j = i%iBlkSize;
+		int blk = int(floor(i/iBlkSize)); 
+      		pTypeDsp[i] = MPI::Get_address(pSolSchVH->pdGetVec() + pSchGlbToLoc[pDofsRecvdList[j] + blk*iBlkSize] - 1) - DispTmp;
     	}
     
     	SAFENEWARR(ppNewTypes, MPI::Datatype*, SolvCommSize);
@@ -403,7 +408,9 @@ void SchurSolutionManager::Solve(void)
     		/* Assembla pSchVH */
 		pSchVH->Reset(0.);
     		for (int i=0; i < pDispl[SolvCommSize]; i++) {
-      			pSchVH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[i]], pBuffer[i]);
+			int j = i%iBlkSize;
+			int blk = int(floor(i/iBlkSize)); 
+      			pSchVH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[j]+blk*iBlkSize], pBuffer[i]);
     		}
   	}      
   
@@ -556,7 +563,11 @@ void SchurSolutionManager::AssSchur(void)
       			for(int  j=0; j < pRecvDim[i]; j++) {
 				int iColx = j * pRecvDim[i];
 				for( int k=0; k < pRecvDim[i]; k++) {
-	  				pSchMH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[pDispl[i]+k]], pSchGlbToLoc[pDofsRecvdList[pDispl[i]+j]], pBuffer[iOffset + k + iColx]);
+					int z1 = pDispl[i]+k%iBlkSize;
+					int blk1 = int(floor(pDispl[i]+k/iBlkSize)); 
+					int z2 = pDispl[i]+j%iBlkSize;
+					int blk2 = int(floor(pDispl[i]+j/iBlkSize)); 
+	  				pSchMH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[z1]+blk1*iBlkSize], pSchGlbToLoc[pDofsRecvdList[z2]+blk2*iBlkSize], pBuffer[iOffset + k + iColx]);
 				}
       			}
       			iOffset += (pRecvDim[i]*pRecvDim[i]);
@@ -584,7 +595,7 @@ void SchurSolutionManager::InitializeComm(void)
   SolvComm.Gather(&iIntVecDim, 1, MPI::INT, pRecvDim, 1, MPI::INT, 0);
   if (!MyRank) {
     	for(int i=1; i <= SolvCommSize; i++){
-      		pDispl[i] = pDispl[i-1] + pRecvDim[i-1];
+		pDispl[i] = pDispl[i-1] + pRecvDim[i-1];		
     	}
   }
   
@@ -610,40 +621,54 @@ void SchurSolutionManager::InitializeComm(void)
   
   
   /* Vettore di trasformazione locale globale */
-  SAFENEWARR(pGlbToLoc, integer, iPrbmSize+1);
-  SAFENEWARR(pSchGlbToLoc, integer, iPrbmSize+1);
-  for (int i=0; i < iPrbmSize+1; i++) {
+  SAFENEWARR(pGlbToLoc, integer, (iPrbmSize*iPrbmBlocks)+1);
+  SAFENEWARR(pSchGlbToLoc, integer, (iPrbmSize*iPrbmBlocks)+1);
+  for (int i=0; i < (iPrbmSize*iPrbmBlocks)+1; i++) {
     	pGlbToLoc[i] = 0;
     	pSchGlbToLoc[i] = 0;
   }
   
-  
   for (int i=0; i < iLocVecDim; i++) {
-    	pGlbToLoc[pLocDofs[i]] = i + 1;
-  }
+  	for (int j=0; j < iPrbmBlocks; j++) {
+    		pGlbToLoc[pLocDofs[i] + j*iBlkSize] = i + j*iBlkSize + 1;
+  	}
+}
   
   /* per distinguerli gli indici dei nodi di interfaccia sono negativi */
   for (int i=0; i < iIntVecDim; i++) {
-    	pGlbToLoc[pIntDofs[i]] = -(i + 1);
+  	for (int j=0; j < iPrbmBlocks; j++) {
+    		pGlbToLoc[pIntDofs[i] + j*iBlkSize] = -(i  + j*iBlkSize + 1);
+	}
   }
   
   /* Global to local per la matrice di schur */
   if (!MyRank) {
     	for (int i=0; i < iSchurIntDim; i++) {
-      		pSchGlbToLoc[pSchurDofs[i]] = i+1;
-    	}
+  		for (int j=0; j < iPrbmBlocks; j++) {
+      			pSchGlbToLoc[pSchurDofs[i]+ j*iBlkSize] = i + j*iBlkSize + 1;
+    		}
+  	}
   }
 
-
+  iLocVecDim = iPrbmBlocks*iLocVecDim;
+  iIntVecDim = iPrbmBlocks*iIntVecDim;
+  iPrbmSize = iPrbmBlocks*iPrbmSize;
+  iSchurIntDim = iPrbmBlocks*iSchurIntDim;
+  
   /* creo i buffer per la ricezione e trasmissione dei messaggi */
  if (SolvCommSize !=1) {
    	if (!MyRank) {
      		/* i  messaggi + grandi sono legati alla ricezione  delle matrici di schur */
      		integer iTmpTot = 0;
     		for (int i=0; i < SolvCommSize; i++) {
+			pRecvDim[i] = pRecvDim[i]*iPrbmBlocks;
        			iTmpTot += pRecvDim[i] * pRecvDim[i];
      		}
-     		/* buffer di ricezione */
+    		for(int i=1; i <= SolvCommSize; i++){
+			pDispl[i] = pDispl[i-1] + pRecvDim[i-1];
+		}     		
+		
+		/* buffer di ricezione */
      		SAFENEWARR(pBuffer, doublereal, iTmpTot);
    	} else {
      		/* il messaggi + grandi sono le ricezioni dei valori di interfaccia */
@@ -735,7 +760,9 @@ SchurSolutionManager::ComplExchInt(doublereal& dR, doublereal& dXP)
       			/* Assembla pSVH */ 
       			pSchVH->Reset(0.);
       			for (int i=0; i < pDispl[SolvCommSize]; i++) {
-				pSchVH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[i]], pBuffer[i]);
+				int j = i%iBlkSize;
+				int blk = int(floor(i/iBlkSize)); 
+				pSchVH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[j]+blk*iBlkSize], pBuffer[i]);
       			}
       			for (int iCntp1 = 1; iCntp1 <= iSchurIntDim; iCntp1++) {
 				doublereal d = pSchVH->dGetCoef(iCntp1);

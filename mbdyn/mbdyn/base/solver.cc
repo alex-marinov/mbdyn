@@ -3368,9 +3368,9 @@ SolutionManager *const Solver::AllocateSchurSolman(integer iStates) {
 	switch (CurrIntSolver) {
 		case LinSol::Y12_SOLVER:
 #ifdef USE_Y12
-		SAFENEWWITHCONSTRUCTOR(pSSM, iStates,
+		SAFENEWWITHCONSTRUCTOR(pSSM, 
 			SchurSolutionManager,
-			SchurSolutionManager(iNumDofs, pLocDofs,
+			SchurSolutionManager(iNumDofs, iStates, pLocDofs,
 				iNumLocDofs,
 				pIntDofs, iNumIntDofs,
 				pLocalSM,
@@ -3397,9 +3397,9 @@ SolutionManager *const Solver::AllocateSchurSolman(integer iStates) {
 
 	case LinSol::MESCHACH_SOLVER:
 #ifdef USE_MESCHACH
-		SAFENEWWITHCONSTRUCTOR(pSSM, iStates,
+		SAFENEWWITHCONSTRUCTOR(pSSM, 
 			SchurSolutionManager,
-			SchurSolutionManager(iNumDofs, pLocDofs,
+			SchurSolutionManager(iNumDofs, iStates, pLocDofs,
 				iNumLocDofs,
 				pIntDofs, iNumIntDofs,
 				pLocalSM,
@@ -3415,9 +3415,9 @@ SolutionManager *const Solver::AllocateSchurSolman(integer iStates) {
 
 	case LinSol::UMFPACK_SOLVER:
 #ifdef USE_UMFPACK
-		SAFENEWWITHCONSTRUCTOR(pSSM, iStates,
+		SAFENEWWITHCONSTRUCTOR(pSSM, 
 			SchurSolutionManager,
-			SchurSolutionManager(iNumDofs, pLocDofs,
+			SchurSolutionManager(iNumDofs, iStates, pLocDofs,
 				iNumLocDofs,
 				pIntDofs, iNumIntDofs,
 				pLocalSM,
