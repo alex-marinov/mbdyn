@@ -89,7 +89,7 @@ void spline (
 *  forward elimination
 */
 		for (int i=1; i<n; i++) {
-		         double t = d[i-1]/b[i-1];
+		         doublereal t = d[i-1]/b[i-1];
 			 b[i] = b[i] - t*d[i-1];
 			 c[i] = c[i] - t*c[i-1];
 		}
@@ -119,7 +119,7 @@ void spline (
 	return;
 };
 
-double seval(const double u,
+doublereal seval(const doublereal u,
 	const std::vector<doublereal>& x,
 	const std::vector<doublereal>& y,
 	const std::vector<doublereal>& b,
@@ -144,7 +144,7 @@ double seval(const double u,
 *    b,c,d = arrays of spline coefficients computed by spline
 */
 	int i, j, k, n;
-	double dx;
+	doublereal dx;
 
       ASSERTMSGBREAK(x.size() == y.size(), "Error in seval, x.size()!=y.size()");
       ASSERTMSGBREAK(x.size() == b.size(), "Error in seval, x.size()!=b.size()");
@@ -228,7 +228,7 @@ double seval(const double u,
 	return 0.;
 };
 
-double leval(const double u,
+doublereal leval(const doublereal u,
 	const std::vector<doublereal>& x,
 	const std::vector<doublereal>& y,
 	const int diff) {
@@ -250,7 +250,7 @@ double leval(const double u,
 *    b,c,d = arrays of spline coefficients computed by spline
 */
 	int i, j, k, n;
-	double dx,m;
+	doublereal dx,m;
 
       ASSERTMSGBREAK(x.size() == y.size(), "Error in leval, x.size()!=y.size()");
 

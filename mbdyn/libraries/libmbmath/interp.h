@@ -13,7 +13,7 @@ void spline (
 /*
  * Evaluate spline
 */
-double seval(const double u,
+doublereal seval(const double u,
 	const std::vector<doublereal>& x,
 	const std::vector<doublereal>& y,
 	const std::vector<doublereal>& b,
@@ -23,7 +23,7 @@ double seval(const double u,
 /*
  * Evaluate multilinear function
 */
-double leval(const double u,
+doublereal leval(const double u,
 	const std::vector<doublereal>& x,
 	const std::vector<doublereal>& y,
 	const int diff = 0);
