@@ -251,6 +251,9 @@
 /* define if you want to use GPC/DeadBeat control */
 #undef USE_DBC
 
+/* define if GiNaC is available */
+#undef HAVE_GINAC
+
 /* define if class ostream has 'form' method */
 #undef HAVE_FORM_IN_OSTREAM
 

@@ -69,6 +69,9 @@ CXX = @CXX@
 DLLTOOL = @DLLTOOL@
 F2C_LIBS = @F2C_LIBS@
 F77 = @F77@
+GINACLIB_CONFIG = @GINACLIB_CONFIG@
+GINACLIB_CPPFLAGS = @GINACLIB_CPPFLAGS@
+GINACLIB_LIBS = @GINACLIB_LIBS@
 HARWELL_LIBS = @HARWELL_LIBS@
 LAPACK_LIBS = @LAPACK_LIBS@
 LIBTOOL = @LIBTOOL@
@@ -83,6 +86,7 @@ PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 SECURITY_LIBS = @SECURITY_LIBS@
 TCL_LIBS = @TCL_LIBS@
+UMFPACK3_LIBS = @UMFPACK3_LIBS@
 VERSION = @VERSION@
 Y12_LIBS = @Y12_LIBS@
 mbdyn_subdir = @mbdyn_subdir@
@@ -112,12 +116,12 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 DIST_COMMON =  COPYING INSTALL Makefile.am Makefile.in config.guess \
-config.sub configure.in install-sh missing mkinstalldirs
+config.sub configure configure.in install-sh missing mkinstalldirs
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/conm2.P .deps/cord2r.P .deps/grid.P .deps/lib.P \
 .deps/n2m.P .deps/pbeam.P

@@ -71,6 +71,9 @@ CXX = @CXX@
 DLLTOOL = @DLLTOOL@
 F2C_LIBS = @F2C_LIBS@
 F77 = @F77@
+GINACLIB_CONFIG = @GINACLIB_CONFIG@
+GINACLIB_CPPFLAGS = @GINACLIB_CPPFLAGS@
+GINACLIB_LIBS = @GINACLIB_LIBS@
 HARWELL_LIBS = @HARWELL_LIBS@
 LAPACK_LIBS = @LAPACK_LIBS@
 LIBTOOL = @LIBTOOL@
@@ -93,13 +96,13 @@ top_builddir = @top_builddir@
 
 lib_LTLIBRARIES = libbase.la
 
-libbase_la_SOURCES =  auth.cc auth.h bulk.cc bulk.h constltp.h constltp_.h contactj.h damper.f damper.h dataman.cc dataman.h dataman2.cc dataman3.cc dataman4.cc dataman5.cc dataman_.h demangled.h dofdrive.cc dofdrive.h dofman.cc dofown.h dofpgin.cc dofpgin.h drive.cc drive.h driven.h drive_.cc drive_.h elem.cc elem.h elman.cc enums.cc env.cc filedrv.cc filedrv.h force.cc force.h integr.h intmeth.cc intmeth.h j2p.cc j2p.h loadable.cc loadable.h mangled.h mbpar.cc mbpar.h multistp.cc multistp.h node.cc node.h nodeman.cc output.cc output.h posrel.h readclaw.h reffrm.h restart.h schur.cc schur.h schurdataman.cc schurdataman.h shape.h shockabsorber.h sockdrv.cc sockdrv.h tpldrive.cc tpldrive.h tpldrive_.h vec3drv.h
+libbase_la_SOURCES =  auth.cc auth.h bulk.cc bulk.h constltp.h constltp_.h contactj.h damper.f damper.h dataman.cc dataman.h dataman2.cc dataman3.cc dataman4.cc dataman5.cc dataman_.h demangled.h dofdrive.cc dofdrive.h dofman.cc dofown.h dofpgin.cc dofpgin.h drive.cc drive.h driven.h drive_.cc drive_.h elem.cc elem.h elman.cc enums.cc env.cc filedrv.cc filedrv.h force.cc force.h integr.h intmeth.cc intmeth.h j2p.cc j2p.h loadable.cc loadable.h mangled.h mbpar.cc mbpar.h multistp.cc multistp.h node.cc node.h nodeman.cc output.cc output.h posrel.h readclaw.h reffrm.h restart.h schur.cc schur.h schurdataman.cc schurdataman.h shape.h shockabsorber.h sockdrv.cc sockdrv.h symcltp.h tpldrive.cc tpldrive.h tpldrive_.h vec3drv.h
 
 
-libbase_la_LIBADD = @LIBS@
+libbase_la_LIBADD = @LIBS@ $(GINACLIB_LIBS)
 libbase_la_LDFLAGS = -static
 
-INCLUDES =  -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../libraries/libmbwrap -I../../mbdyn -I../../mbdyn/base -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr
+INCLUDES =  -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../libraries/libmbwrap -I../../mbdyn -I../../mbdyn/base -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr $(GINACLIB_CPPFLAGS)
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = ../../include/mbconfig.h

@@ -71,6 +71,9 @@ CXX = @CXX@
 DLLTOOL = @DLLTOOL@
 F2C_LIBS = @F2C_LIBS@
 F77 = @F77@
+GINACLIB_CONFIG = @GINACLIB_CONFIG@
+GINACLIB_CPPFLAGS = @GINACLIB_CPPFLAGS@
+GINACLIB_LIBS = @GINACLIB_LIBS@
 HARWELL_LIBS = @HARWELL_LIBS@
 LAPACK_LIBS = @LAPACK_LIBS@
 LIBTOOL = @LIBTOOL@
@@ -98,11 +101,11 @@ bin_PROGRAMS = mbdyn
 mbdyn_SOURCES =  dummy_c.c dummy_f.f  mbdyn.cc  mbdyn.h
 
 
-mbdyn_LDADD =  base/libbase.la struct/libstruct.la aero/libaero.la elec/libelec.la hydr/libhydr.la ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la @Y12_LIBS@ @HARWELL_LIBS@ @UMFPACK3_LIBS@ ../libraries/libmbwrap/libmbwrap.la ../libraries/libobjs/libobjs.la @MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ @METIS_LIBS@ @SECURITY_LIBS@ @TCL_LIBS@ @LIBS@
+mbdyn_LDADD =  base/libbase.la struct/libstruct.la aero/libaero.la elec/libelec.la hydr/libhydr.la ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la @Y12_LIBS@ @HARWELL_LIBS@ @UMFPACK3_LIBS@ ../libraries/libmbwrap/libmbwrap.la ../libraries/libobjs/libobjs.la @MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ @METIS_LIBS@ @SECURITY_LIBS@ @TCL_LIBS@ @LIBS@ $(GINACLIB_LIBS)
 
 #mbdyn_LDFLAGS = -static
 
-INCLUDES =  -I../libraries/libmbutil -I../libraries/libmbmath -I../libraries/libmbwrap -I../mbdyn/base -I../mbdyn/struct -I../mbdyn/aero -I../mbdyn/elec -I../mbdyn/hydr
+INCLUDES =  -I../libraries/libmbutil -I../libraries/libmbmath -I../libraries/libmbwrap -I../mbdyn/base -I../mbdyn/struct -I../mbdyn/aero -I../mbdyn/elec -I../mbdyn/hydr $(GINACLIB_CPPFLAGS)
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = ../include/mbconfig.h
