@@ -69,21 +69,16 @@ f(0.) {
 void ModLugreFriction::SetValue(VectorHandler&X, 
 	VectorHandler&XP, 
 	const unsigned int solution_startdof) const{
-	X.PutCoef(solution_startdof+1,f);
-	X.PutCoef(solution_startdof+2,f/sigma0);
+	X.PutCoef(solution_startdof+1,f/sigma0);
 };
 
 unsigned int ModLugreFriction::iGetNumDof(void) const {
-	return 2;
+	return 1;
 };
 
 DofOrder::Order ModLugreFriction::GetDofType(unsigned int i) const {
 	ASSERTMSGBREAK(i<iGetNumDof(), "INDEX ERROR in ModLugreFriction::GetDofType");
-	if (i == 0) {
-		return DofOrder::ALGEBRAIC;
-	} else {
-		return DofOrder::DIFFERENTIAL;
-	}
+	return DofOrder::DIFFERENTIAL;
 };
 
 DofOrder::Order ModLugreFriction::GetEqType(unsigned int i) const {
@@ -179,15 +174,10 @@ void ModLugreFriction::AssRes(
 	const doublereal v,
 	const VectorHandler& X,
 	const VectorHandler& XP) {
-	doublereal z = X.dGetCoef(solution_startdof+2);
-	doublereal zp = XP.dGetCoef(solution_startdof+2);	
-	f = X.dGetCoef(solution_startdof+1);
-	WorkVec.IncCoef(startdof+1,
-		+f-
-		sigma0*z-
-		sigma1*zp-
-		sigma2*v);
-	WorkVec.IncCoef(startdof+2,zp-v+alpha(z,v)*v*z/fs(v)*sigma0);
+	doublereal z = X.dGetCoef(solution_startdof+1);
+	doublereal zp = XP.dGetCoef(solution_startdof+1);
+	f = sigma0*z + sigma1*zp + sigma2*v;
+	WorkVec.IncCoef(startdof+1,zp-v+alpha(z,v)*v*z/fs(v)*sigma0);
 };
 
 void ModLugreFriction::AssJac(
@@ -203,25 +193,25 @@ void ModLugreFriction::AssJac(
 	const ExpandableRowVector& dF,
 	const ExpandableRowVector& dv) const {
 
-	doublereal z = X.dGetCoef(solution_startdof+2);
-	//doublereal zp = XP.dGetCoef(solution_startdof+2);
+	doublereal z = X.dGetCoef(solution_startdof+1);
+	//doublereal zp = XP.dGetCoef(solution_startdof+1);
 /*
- * 	prima equazione
+ * 	attrito
  */
-	WorkMat.IncCoef(startdof+1,startdof+2,+sigma0*dCoef+sigma1);
-	dv.Add(WorkMat,startdof+1,sigma2);
-	//f: algebrico
-	WorkMat.IncCoef(startdof+1,startdof+1,-1.);
+ 	dfc.ReDim(2);
+	dfc.Set(sigma0*dCoef+sigma1, 1, startdof+1);
+	dfc.Set(sigma2, 2); dfc.Link(2, &dv);
+	
 /*
- * 	seconda equazione
+ * 	z
  */
  	doublereal alph = alpha(z,v);
 	doublereal fsc = fs(v);
-	WorkMat.IncCoef(startdof+2,startdof+2,-1.);
-	WorkMat.IncCoef(startdof+2,startdof+2,
+	WorkMat.IncCoef(startdof+1,startdof+1,-1.);
+	WorkMat.IncCoef(startdof+1,startdof+1,
 		-alphad_z(z,v)*v*z/fsc*sigma0*dCoef-
 		alph*v/fsc*sigma0*dCoef);
-	dv.Add(WorkMat,startdof+2,
+	dv.Add(WorkMat,startdof+1,
 		1.-
 		alphad_v(z,v)*v*z/fsc*sigma0-
 		alph*z/fsc*sigma0+
@@ -230,12 +220,6 @@ void ModLugreFriction::AssJac(
 /*
  * 	callback: dfc[] = df/d{F,v,(z+dCoef,zp)}
  */
-//  	dfc.ReDim(3);
-// 	dfc.Set(0.,1);  dfc.Link(1,&dF);
-// 	dfc.Set(sigma2,2); dfc.Link(2,&dv);
-// 	dfc.Set(sigma0*dCoef+sigma1,3,startdof+2);
- 	dfc.ReDim(1);
-	dfc.Set(1.,1,startdof+1);
 };
 
 //----------------------
@@ -297,12 +281,12 @@ void DiscreteCoulombFriction::AfterConvergence(
 	first_iter = true;
 	first_switch = true;
 	if (status == sticking) {
-// 		std::cerr << "sticking" << std::endl;
+//* 		std::cerr << "sticking" << std::endl;
 		status = sticked;
 	} else if (status == sliding) {
-// 		std::cerr << "sliding" << std::endl;
+//* 		std::cerr << "sliding" << std::endl;
 	} else {
-// 		std::cerr << "sticked" << std::endl;
+//* 		std::cerr << "sticked" << std::endl;
 	}
 // 	std::cerr << status << " " << transition_type << std::endl;
 // 	std::cerr << "CONVERGENZA" << std::endl;
@@ -320,17 +304,17 @@ void DiscreteCoulombFriction::AssRes(
 // 	std::cerr << "Chimata residuo. Status:" << status << std::endl;
 	f = X.dGetCoef(solution_startdof+1);
 //	if ((std::fabs(f)-fss(0) > 1.0E-6) && (first_iter == false)) {
-// 	std::cerr << "Attrito: " << f << " " << std::fabs(std::fabs(f)-fss(0))/fss(0) << " - " << std::endl;
+//* 	std::cerr << "Attrito: " << f << " " << (std::fabs(f)-fss(0))/fss(0) << " - " << std::endl;
 // 	std::cerr << "Attrito: " << f << " " << std::fabs(f)/fss(0) << " - " << std::endl;
 // 	if ((std::fabs(std::fabs(f)-fss(0))/fss(0) > 1.0E-6)) {
 	if (std::fabs(f)-fss(0) > 1.0E-6*fss(0)) {
 		//unconditionally switch to sliding
 		if (status == sticked) {
 			transition_type = from_sticked_to_sliding;
-// 			std::cerr << "switch to sliding: " << transition_type << std::endl;
+//* 			std::cerr << "switch to sliding: " << transition_type << std::endl;
 		} else if (status == sticking) {
 			transition_type = from_sticking_to_sliding;
-// 			std::cerr << "switch to sliding: " << transition_type << std::endl;
+//* 			std::cerr << "switch to sliding: " << transition_type << std::endl;
 		} else if (status == sliding) {
 			//do nothing
 // 			std::cerr << "DiscreteCoulombFriction::AssRes message:\n"
@@ -344,20 +328,19 @@ void DiscreteCoulombFriction::AssRes(
 				<< std::endl;
 		}
 		status = sliding;
-	//%printf("QUI merda\n");
 	}
  	//else 
 	if (status == sliding) {
 // 		std::cerr << "v*current_velocity: " << v*current_velocity << std::endl;
 		if (v*current_velocity < 0.) {
-// 			std::cerr << "sono dentro; v: " << v << 
-// 				" previous_switch_v: " << previous_switch_v << std::endl;
-// 			std::cerr << "current velocity: " << current_velocity << std::endl;
+//* 			std::cerr << "sono dentro; v: " << v << 
+//* 				" previous_switch_v: " << previous_switch_v << std::endl;
+//* 			std::cerr << "current velocity: " << current_velocity << std::endl;
 			if (((transition_type != from_sticked_to_sliding) ||
 				(transition_type != from_sticking_to_sliding)) &&
 				((std::fabs(v-current_velocity) < std::fabs(previous_switch_v)) ||
 					(first_switch == true))) {
-// 				std::cerr << "$$";
+//* 				std::cerr << "Passo a sticking $$" << std::endl;;
 				first_switch = false;
 				status = sticking;
 				transition_type = from_sliding_to_sticking;
@@ -404,7 +387,6 @@ void DiscreteCoulombFriction::AssRes(
 			WorkVec.IncCoef(startdof+1,v);
 		} else {
 			//still sliding
-			//printf("here1\n");
 			//cur_sticking = false;
 			doublereal friction_force;
 			if (transition_type == from_sticked_to_sliding) {
@@ -431,11 +413,9 @@ void DiscreteCoulombFriction::AssRes(
 		 	}
 		}
 	//} else if (status == sticking)
-	//	//printf("here2\n");
 	//	//switch to sticking: null velocity at the end of time step
 	//	WorkVec.IncCoef(startdof+1,v);
 	} else if (status == sticked) {
-		//printf("here3\n");
 		WorkVec.IncCoef(startdof+1,v);
 	} else {
 		std::cerr << "DiscreteCoulombFriction::AssRes: logical error" << std::endl;
