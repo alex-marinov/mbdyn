@@ -1,0 +1,88 @@
+begin: data;
+	integrator: multistep;
+end: data;
+
+set: real tf = 80;
+set: real dt = 1.e-3;
+
+begin: multistep;
+	initial time: 0.;
+	final time: tf;
+	time step: dt;
+
+	tolerance: 1.e-6;
+	max iterations: 10;
+
+	method: ms, .6;
+end: multistep;
+
+begin: control data;
+	# default output: none;
+	structural nodes: 1;
+	parameter nodes: 2;
+	rigid bodies: 1;
+	joints: 1;
+	output elements: 1;
+	gravity;
+	forces: 1;
+        file drivers: 1;
+end: control data;
+
+reference: 1,
+	reference, global, null,
+	reference, global, eye,
+	reference, global, null,
+	reference, global, null;
+reference: 2,
+	reference, 1, null,
+	reference, 1, eye,
+	reference, 1, null,
+	reference, 1, 0.,0.,0.;
+
+begin: nodes;
+	structural: 1, dynamic,
+		reference, 2, 0.,0.,1.,
+		reference, 2, eye,
+		reference, 2, null,
+		reference, 2, null;
+	parameter: 1, /* bound to */ element;
+	parameter: 2, /* bound to */ element;
+end: nodes;
+
+begin: drivers;
+        file: 1, stream,
+        	stream drive name, "MBXOUT",
+        	create, yes,
+		# path, "/tmp/mbdyn.out.sock",
+		port, 8005,
+		1;
+end: drivers;
+
+begin: elements;
+	body: 1, 1,
+		1.,
+		null,
+		diag, 1.,1.,1.;
+	joint: 1, revolute pin,
+		1, reference, 1, null,
+		hinge, reference, 1, 1, 1.,0.,0., 3, 0.,1.,0.,
+		reference, 1, null,
+		hinge, reference, 1, 1, 1.,0.,0., 3, 0.,1.,0.;
+	bind: 1, joint, 1, string, "rz";
+	bind: 1, joint, 2, string, "wz";
+	gravity: 0.,0.,-1., 9.81;
+
+	stream output: 1,
+		stream name, "MBXINN",
+		create, yes,
+		# path, "/tmp/mbdyn.in.sock",
+		port, 10011,
+		2,
+			1, parameter,
+                        2, parameter;
+
+	force: 1, follower, 1, -1.,0.,0., null,
+		dof, 1, parameter, file, 1, 1;
+end: elements;
+
+
