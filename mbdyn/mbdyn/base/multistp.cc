@@ -3697,9 +3697,9 @@ MultiStepIntegrator::Eig(void)
 	   f06.setf(std::ios::scientific);
 
 	   f06 
-		   << "1                                                                                                MSC.NASTRAN " << datebuf << "    PAGE   " 
+		   << "1                                                                                              MSC.NASTRAN " << datebuf << "    PAGE   " 
 		   << std::setw(4) << iPage++ << std::endl
-		   << "MBDyn modal analysis" << std::endl
+		   << "      MBDyn modal analysis" << std::endl
 		   << "0     COMPLEX MODES" << std::endl
 		   << std::endl
 		   << "                                        C O M P L E X   E I G E N V A L U E   S U M M A R Y" << std::endl
@@ -3765,15 +3765,13 @@ MultiStepIntegrator::Eig(void)
 	    f06 
 	      << "1                                                                                                MSC.NASTRAN " << datebuf << "    PAGE   " 
 	      << std::setw(4) << iPage++ << std::endl
-	      << "MBDyn modal analysis" << std::endl
+	      << "      MBDyn modal analysis" << std::endl
 	      << "0     COMPLEX MODES" << std::endl
-	      << std::endl
-	      << "      COMPLEX EIGENVALUE =" << std::setw(14) << sigma << "," << std::setw(14) << omega << std::endl;
-	    f06 
+	      << "      COMPLEX EIGENVALUE =" << std::setw(14) << sigma << "," << std::setw(14) << omega << std::endl
 	      << "                             C O M P L E X   E I G E N V E C T O R   N O . " << std::setw(10) << iMode << "   (SOLUTION SET)" << std::endl
 	      << "                                                          (REAL/IMAGINARY)" << std::endl
 	      << std::endl
-	      << "     POINT ID.   TYPE          T1             T2             T3             R1             R2             R3" << std::endl;
+	      << "      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3" << std::endl;
 	 }
       }
 #endif /* __HACK_NASTRAN_MODES__ */
@@ -3843,7 +3841,7 @@ MultiStepIntegrator::Eig(void)
       f06 
 	      << "1                                                                                                MSC.NASTRAN " << datebuf << "    PAGE   " 
 	      << std::setw(4) << iPage++ << std::endl
-	      << "MBDyn modal analysis" << std::endl
+	      << "      MBDyn modal analysis" << std::endl
 	      << "0     COMPLEX MODES" << std::endl;
       f06.close();
    }
