@@ -130,16 +130,23 @@ main(int argc, char *const argv[])
 			break;
 		}
 	}
-#else /* !HAVE_GETOPT */
+	argc -= optind-1;
+	argv += optind-1;
+#endif /* HAVE_GETOPT */
 	if (argc > 1) {
-		f[NASTRAN_FILE_IN] = fopen(argv[1], "r");
-		if (f[NASTRAN_FILE_IN] == NULL) {
+		if (f[NASTRAN_FILE_IN] != stdin) {
 			fprintf(f[NASTRAN_FILE_OUT_ERR],
-				"### unable to open file '%s'\n", argv[1]);
-			exit(EXIT_FAILURE);
+				"### ignoring arg `%s'\n", argv[1]);
+		} else {
+			f[NASTRAN_FILE_IN] = fopen(argv[1], "r");
+			if (f[NASTRAN_FILE_IN] == NULL) {
+				fprintf(f[NASTRAN_FILE_OUT_ERR],
+					"### unable to open file '%s'\n",
+					argv[1]);
+				exit(EXIT_FAILURE);
+			}
 		}
 	}
-#endif /* !HAVE_GETOPT */
 
 	while (get_buf(f[NASTRAN_FILE_IN], &b)) {
 		if (cont > 0) {
