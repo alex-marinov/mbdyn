@@ -17,6 +17,7 @@ MBDyn 1.X-Engineering
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
+		- fixed angular acceleration bug with ScalarDof
 
 MBDyn 1.2-Engineering
 	Enhancements:

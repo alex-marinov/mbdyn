@@ -214,7 +214,7 @@ StructNode::dGetDofValue(int iDof, int iOrder) const
       }
    } else if (iDof >= 4 && iDof <= 6) {
       if (iOrder == 1) {
-	 return WCurr.dGet(iDof-3);
+	 return WCurr.dGet(iDof - 3);
       } else if (iOrder == 0) {
 	 silent_cerr("StructNode(" << GetLabel() << "): "
 	   "unable to return angles" << std::endl);
@@ -247,7 +247,7 @@ StructNode::dGetDofValuePrev(int iDof, int iOrder) const
       }
    } else if (iDof >= 4 && iDof <= 6) {
       if (iOrder == 1) {
-	 return WPrev.dGet(iDof-3);
+	 return WPrev.dGet(iDof - 3);
       } else if (iOrder == 0) {
 	 silent_cerr("StructNode(" << GetLabel() << "): "
 		 "unable to return angles" << std::endl);
@@ -284,7 +284,7 @@ StructNode::SetDofValue(const doublereal& dValue,
       }
    } else if (iDof >= 4 && iDof <= 6) {
       if (iOrder == 1) {
-	 WCurr.Put(iDof, dValue);
+	 WCurr.Put(iDof - 3, dValue);
 	 return;
       } else if (iOrder == 0) {
 	 silent_cerr("StructNode(" << GetLabel() << "): "
@@ -1005,7 +1005,7 @@ DynamicStructNode::dGetDofValue(int iDof, int iOrder) const
       if (iDof >= 1 && iDof <= 3) {
 	 return XPPCurr.dGet(iDof);
       } else {
-	 return WPCurr.dGet(iDof);
+	 return WPCurr.dGet(iDof - 3);
       }
 
    } else {
@@ -1035,7 +1035,7 @@ DynamicStructNode::dGetDofValuePrev(int iDof, int iOrder) const
       if (iDof >= 1 && iDof <= 3) {
 	 return XPPPrev.dGet(iDof);
       } else {
-	 return WPPrev.dGet(iDof);
+	 return WPPrev.dGet(iDof - 3);
       }
    } else {
       return StructNode::dGetDofValuePrev(iDof, iOrder);
@@ -1067,7 +1067,7 @@ DynamicStructNode::SetDofValue(const doublereal& dValue,
 	 XPPCurr.Put(iDof, dValue);
 	 return;
       } else {
-	 WPCurr.Put(iDof, dValue);
+	 WPCurr.Put(iDof - 3, dValue);
 	 return;
       }
    } else {
