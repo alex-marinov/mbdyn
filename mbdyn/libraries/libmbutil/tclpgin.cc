@@ -36,8 +36,9 @@
 
 #include <tclpgin.h>
 
-TclPlugIn::TclPlugIn(MathParser& mp, TypedValue::Type t)
-: MathParser::PlugIn::PlugIn(mp), type(t), interp(NULL), cmd(NULL)
+TclPlugIn::TclPlugIn(MathParser& mp)
+: MathParser::PlugIn::PlugIn(mp), type(TypedValue::VAR_UNKNOWN),
+interp(NULL), cmd(NULL)
 {
 	interp = Tcl_CreateInterp();
 	if (interp == NULL) {
@@ -64,12 +65,21 @@ TclPlugIn::sName(void) const
 int
 TclPlugIn::Read(int argc, char *argv[])
 {
-	if (strncasecmp(argv[0], "file://", 7) == 0) {
+	if (strcasecmp(argv[0], "real") == 0) {
+		type = TypedValue::VAR_REAL;
+	} else if (strcasecmp(argv[0], "integer") == 0) {
+		type = TypedValue::VAR_INT;
+	} else {
+		cerr << "unknown type '" << argv[0] << "'" << endl;
+		THROW(ErrGeneric());
+	}
+		
+	if (strncasecmp(argv[1], "file://", 7) == 0) {
 		FILE *fin;
 		char buf[1024], *s;
 		int cmdlen;
 
-		fin = fopen(argv[0]+7, "r");
+		fin = fopen(argv[1]+7, "r");
 		if (fin == NULL) {
 			cerr << "TclPlugIn::Read: error" << endl;
 			THROW(ErrGeneric());
@@ -97,7 +107,11 @@ TclPlugIn::Read(int argc, char *argv[])
 
 		free(s);
 	} else {
-		cmd = Tcl_NewStringObj(argv[0], strlen(argv[0]));
+
+		/*
+		 * check / escape string ?
+		 */
+		cmd = Tcl_NewStringObj(argv[1], strlen(argv[1]));
 	}
 
 	if (cmd == NULL) {
@@ -118,7 +132,6 @@ TypedValue
 TclPlugIn::GetVal(void) const
 {
 	Tcl_Obj *res;
-	TypedValue rv(type);
 	
 	if (Tcl_GlobalEvalObj(interp, cmd) != TCL_OK) {
 		cerr << "TclPlugIn::GetVal: Tcl_GlobalEvalObj: error" << endl;
@@ -130,51 +143,34 @@ TclPlugIn::GetVal(void) const
 		THROW(ErrGeneric());
 	}
 	
-	switch (type) {
-	case TypedValue::VAR_INT: {
-		Int d;
-		if (Tcl_GetIntFromObj(NULL, res, &d) != TCL_OK) {
-			cerr << "TclPlugIn::GetVal: Tcl_GetIntFromObj: error"
-				<< endl;
-			THROW(ErrGeneric());
-		}
-		rv = d;
-		break;
-	}
-				  
-	case TypedValue::VAR_REAL:
-	default: {
-		Real d;
-		if (Tcl_GetDoubleFromObj(NULL, res, &d) != TCL_OK) {
-			cerr << "TclPlugIn::GetVal: Tcl_GetDoubleFromObj: error"
-				<< endl;
-			THROW(ErrGeneric());
-		}
-		rv = d;
-		break;
-	}
+	Real d;
+	if (Tcl_GetDoubleFromObj(NULL, res, &d) != TCL_OK) {
+		cerr << "TclPlugIn::GetVal: Tcl_GetDoubleFromObj: error"
+			<< endl;
+		THROW(ErrGeneric());
 	}
 
 	Tcl_ResetResult(interp);
 
-	return rv;
+	switch (type) {
+	case TypedValue::VAR_INT:
+		return TypedValue(Int(d));
+	  
+	case TypedValue::VAR_REAL:
+	default:
+		return TypedValue(d);
+	}
 }
 
 MathParser::PlugIn *
 tcl_plugin(MathParser& mp, void *arg )
 {
 	MathParser::PlugIn *p = NULL;
-	const char *type = (const char *)arg;
 	
-	if (type == NULL || strcasecmp(type, "real") == 0) {
-		SAFENEWWITHCONSTRUCTOR(p, TclPlugIn::TclPlugIn,
-				TclPlugIn::TclPlugIn(mp, TypedValue::VAR_REAL),
-				MPmm);
-	} else if (strcasecmp(type, "integer") == 0) {
-		SAFENEWWITHCONSTRUCTOR(p, TclPlugIn::TclPlugIn,
-				TclPlugIn::TclPlugIn(mp, TypedValue::VAR_INT), 
-				MPmm);
-	}
+	SAFENEWWITHCONSTRUCTOR(p, TclPlugIn::TclPlugIn, 
+			TclPlugIn::TclPlugIn(mp),
+			MPmm);
+
 	return p;
 }
 

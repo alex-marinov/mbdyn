@@ -45,7 +45,7 @@ protected:
 	Tcl_Obj *cmd;
 
 public:
-	TclPlugIn(MathParser& mp, TypedValue::Type t);
+	TclPlugIn(MathParser& mp);
 	~TclPlugIn(void);
 	const char *sName(void) const;
 	int Read(int argc, char *argv[]);

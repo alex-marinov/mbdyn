@@ -36,7 +36,7 @@
 #include <mathp.h>
 
 
-/* helper per le funzioni built-in*/
+/* helper per le funzioni built-in */
 Int 
 asin_t(Real* d)
 {
@@ -1439,20 +1439,56 @@ MathParser::readplugin(void)
 	 * parse plugin:
 	 * 	- arg[0]: nome plugin
 	 * 	- arg[1]: nome variabile
-	 * 	- arg[2]: tipo {integer|real}
-	 * 	- arg[3]->arg[n]: dati da passare al costrutture
+	 * 	- arg[2]->arg[n]: dati da passare al costrutture
 	 */
 	char **argv = NULL, **tmp;
 	char c, buf[1024];
-	int argc = 0, i = 0;
+	int argc = 0;
+	unsigned int i = 0, in_quotes = 0;
 
+	/*
+	 * inizializzo l'array degli argomenti
+	 */
 	SAFENEWARR(argv, char *, 1, MPmm);
-	while ((c = in->get()) != CPGIN && !in->eof()) {
+	argv[0] = NULL;
+
+	/*
+	 * parserizzo la stringa: 
+	 * <plugin> ::= '[' <type> ',' <var_name> <list_of_args> ']'
+	 * <type> ::= <registered_type>
+	 * <var_name> ::= <legal_var_name>
+	 * <list_of_args> ::= ',' <arg> <list_of_args> | ''
+	 * <arg> ::= <legal_string> (no unescaped ']' or ','!)
+	 */
+	while ((c = in->get()), !in->eof()) {
 		switch (c) {
 		case '\\':
 			c = in->get();
+			if (in_quotes) {
+				switch (c) {
+				case 'n':
+					c = '\n';
+					break;
+
+				default:
+					in->putback(c);
+					c = '\\';
+					break;
+				}
+			}
+			buf[i++] = c;
 			break;
+			
+		case '"':
+			in_quotes = 1-in_quotes;
+			break;
+
 		case ',':
+		case ']':
+			if (in_quotes) {
+				buf[i++] = c;
+				break;
+			}
 			buf[i] = '\0';
 			tmp = argv;
 			argv = NULL;
@@ -1462,33 +1498,50 @@ MathParser::readplugin(void)
 			argv[argc] = NULL;
 			SAFESTRDUP(argv[argc], buf, MPmm);
 			++argc;
+			argv[argc] = NULL;
+			if (c == ']') {
+				goto last_arg;
+			}
 			i = 0;
-			c = in->get();
+			break;
+
+		default:
+			buf[i++] = c;
 			break;
 		}
-		buf[i++] = c;
+		
+		/*
+		 * FIXME: rendere dinamico il buffer ...
+		 */
+		if (i >= sizeof(buf)) {
+			cerr << "buffer overflow" << endl;
+			THROW(ErrGeneric());
+		}
 	}
-	
+
+last_arg:
 	if (in->eof()) {
 		cerr << "eof encountered while parsing plugin" << endl;
 		THROW(ErrGeneric());
 	}
-	
+
+	/*
+	 * put the close plugin token back, and get a new token to
+	 * restore the correct parsing state
+	 */
 	in->putback(c);
+	GetToken();
+	buf[i] = '\0';
 	
+	/*
+	 * argomenti comuni a tutti i plugin
+	 */
 	char *pginname = argv[0];
 	char *varname = argv[1];
-	TypedValue::Type type = TypedValue::VAR_UNKNOWN;
-	if (strcasecmp(argv[2], "integer") == 0) {
-		type = TypedValue::VAR_INT;
-	} else if (strcasecmp(argv[2], "real") == 0) {
-		type = TypedValue::VAR_REAL;
-	} else {
-		cerr << "illegal plugin variable type '" << argv[2] 
-			<< "'" << endl;
-		THROW(ErrGeneric());
-	}
 
+	/*
+	 * verifiche di validita' argomenti
+	 */
 	if (pginname == NULL || *pginname == '\0') {
 		cerr << "illegal or missing plugin name" << endl;
 		THROW(ErrGeneric());
@@ -1496,27 +1549,50 @@ MathParser::readplugin(void)
 
 	if (varname == NULL || *varname == '\0') {
 		cerr << "illegal or missing plugin variable name" << endl;
-                THROW(ErrGeneric());
-        }
+		THROW(ErrGeneric());
+	}
 	
+	/*
+	 * verifica esistenza nome
+	 */
 	NamedValue* v = table.Get(varname);
 	if (v != NULL) {
 		cerr << "variable " << varname << " already defined" << endl;
 		THROW(ErrGeneric());
 	}
 
+	/*
+	 * ricerca registrazione plugin
+	 */
 	for (struct PlugInRegister *p = PlugIns; p != NULL; p = p->next) {
-		if (strcasecmp(p->name, pginname) == 0) {
-			MathParser::PlugIn *pgin = 
-				(*p->constructor)(*this, p->arg);
-			SAFENEWWITHCONSTRUCTOR(v, PlugInVar,
-					PlugInVar(varname, pgin), MPmm);
-			table.Put(v);
-
-			return v->GetVal();
+		if (strcasecmp(p->name, pginname) != 0) {
+			continue;
 		}
+#ifdef DEBUG
+		for (int i = 0; argv[i] != NULL; i++) {
+			cout << "argv[" << i << "]=" << argv[i] << endl;
+		}
+#endif /* DEBUG */
+
+		/*
+		 * costruisce il plugin e gli fa interpretare gli argomenti
+		 */
+		MathParser::PlugIn *pgin = (*p->constructor)(*this, p->arg);
+		pgin->Read(argc-2, argv+2);
+
+		/*
+		 * costruisce la variabile, la inserisce nella tabella
+		 * e ne ritorna il valore (prima esecuzione)
+		 */
+		SAFENEWWITHCONSTRUCTOR(v, PlugInVar,
+				PlugInVar(varname, pgin), MPmm);
+		table.Put(v);
+		return v->GetVal();
 	}
 
+	/*
+	 * si arriva qui solo se il plugin non e' stato registrato
+	 */
 	cerr << "plugin '" << pginname << "' not supported" << endl;
 	THROW(ErrGeneric());
 }
