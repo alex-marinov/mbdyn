@@ -1452,6 +1452,9 @@ if test $ol_with_rtai != no ; then
 		AC_MSG_WARN([possible RTAI version mismatch])
 	fi
 
+	dnl FIXME: is this correct for >= 3.0 as well?
+	AC_CHECK_HEADERS(rtai_usp_posix.h)
+
 	AC_DEFINE(USE_RTAI,1,[define to use RTAI])
 fi
 
