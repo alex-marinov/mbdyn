@@ -149,19 +149,12 @@ public:
 	virtual MyVectorHandler* pSolHdl(void) const;
 };
 
-class SparseCCSolutionManager {
+
+class UmfpackSparseCCLUSolutionManager: public UmfpackSparseLUSolutionManager {
 protected:
-	CColMatrixHandler *Ac;
 	bool CCReady;
+	CColMatrixHandler *Ac;
 
-public:
-	SparseCCSolutionManager(void);
-	virtual ~SparseCCSolutionManager(void);
-};
-
-class UmfpackSparseCCLUSolutionManager:
-public UmfpackSparseLUSolutionManager, public SparseCCSolutionManager {
-protected:
 	virtual void MatrReset(const doublereal& d);
 	virtual void MakeCompressedColumnForm(void);
 	

@@ -209,7 +209,7 @@ UmfpackSparseLUSolutionManager::PrepareSymbolic(void)
 	if (status != UMFPACK_OK) {
 		UMFPACKWRAP_report_info(Control, Info) ;
 		UMFPACKWRAP_report_status(Control, status);
-		std::cerr << "UMFPACKWRAP_symbolic failed" << std::endl;
+		silent_cerr("UMFPACKWRAP_symbolic failed" << std::endl);
 
 		/* de-allocate memory */
 		UMFPACKWRAP_free_symbolic(&Symbolic);
@@ -263,7 +263,7 @@ UmfpackSparseLUSolutionManager::Solve(void)
 		if (status != UMFPACK_OK) {
 			UMFPACKWRAP_report_info(Control, Info);
 			UMFPACKWRAP_report_status(Control, status);
-			std::cerr << "UMFPACKWRAP_numeric failed" << std::endl;
+			silent_cerr("UMFPACKWRAP_numeric failed" << std::endl);
 
 			/* de-allocate memory */
 			UMFPACKWRAP_free_symbolic(&Symbolic);
@@ -308,7 +308,7 @@ UmfpackSparseLUSolutionManager::BackSub(doublereal t_iniz)
 	if (status != UMFPACK_OK) {
 		UMFPACKWRAP_report_info(Control, Info) ;
 		UMFPACKWRAP_report_status(Control, status) ;
-		std::cerr << "UMFPACKWRAP_solve failed" << std::endl;
+		silent_cerr("UMFPACKWRAP_solve failed" << std::endl);
 		
 		/* de-allocate memory */
 		UMFPACKWRAP_free_numeric(&Numeric);
@@ -344,37 +344,22 @@ UmfpackSparseLUSolutionManager::pSolHdl(void) const {
 
 /* UmfpackSparseLUSolutionManager - end */
 
-/* SparseCCSolutionManager - begin */
-
-SparseCCSolutionManager::SparseCCSolutionManager(void)
-: Ac(0),
-CCReady(false)
-{
-	NO_OP;
-}
-
-SparseCCSolutionManager::~SparseCCSolutionManager(void)
-{
-	if (Ac) {
-		SAFEDELETE(Ac);
-	}
-}
-
-/* SparseCCSolutionManager - end */
-
 /* UmfpackSparseCCLUSolutionManager - begin */
 
 UmfpackSparseCCLUSolutionManager::UmfpackSparseCCLUSolutionManager(integer Dim,
 		integer dummy, doublereal dPivot)
 : UmfpackSparseLUSolutionManager(Dim, dummy, dPivot),
-SparseCCSolutionManager()
+CCReady(false),
+Ac(0)
 {
 	NO_OP;
 }
 
 UmfpackSparseCCLUSolutionManager::~UmfpackSparseCCLUSolutionManager(void) 
 {
-	NO_OP;
+	if (Ac) {
+		SAFEDELETE(Ac);
+	}
 }
 
 void
@@ -410,8 +395,6 @@ UmfpackSparseCCLUSolutionManager::MatrInitialize(const doublereal& d)
 	Ac = 0;
 
 	CCReady = false;
-
-	HasBeenReset = false;
 
 	MatrInit();
 }
