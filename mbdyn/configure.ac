@@ -681,7 +681,7 @@ if test $ol_with_blas != no ; then
 	save_LIBS="$LIBS"
 	have_blas=no
 
-	if test "${ol_with_goto_lib-set}" = set ; then
+	if test "${ol_with_goto_lib:-set}" = set ; then
 		ol_with_goto_lib="goto"
 	fi
 
