@@ -99,7 +99,7 @@ iNumSteps(0)
 		std::cerr << "warning, possible misalignment "
 			"of rotor node " << pRotor->GetLabel()
 			<< " and craft node " << pCraft->GetLabel()
-			<< "axes for Rotor(" << GetLabel() << ")"
+			<< " axes for Rotor(" << GetLabel() << ")"
 			<< std::endl;
 	}
 

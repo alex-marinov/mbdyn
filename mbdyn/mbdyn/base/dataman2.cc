@@ -201,7 +201,7 @@ DataManager::DofOwnerInit(void)
 				unsigned int nd = pElWD->iGetNumDof();
 				integer fd = pDf->iIndex;
 
-				std::cout << pdElemNames[pElWD->GetElemType()]
+				std::cout << psElemNames[pElWD->GetElemType()]
 					<< "(" << pElWD->GetLabel()
 					<< "): " << nd << " " << fd + 1;
 				if (nd > 1) {
@@ -314,9 +314,16 @@ DataManager::InitialJointAssembly(void)
 		iNumDofs = pTmp->iNumDofs = (*ppNode)->iGetInitialNumDof();
 		if (iNumDofs > 0) {
 			if (pds) {
+				unsigned int nd = (*ppNode)->iGetNumDof();
+				integer fd = iIndex;
+
 				std::cout << psNodeNames[(*ppNode)->GetNodeType()]
 					<< "(" << (*ppNode)->GetLabel()
-		    			<< "): first index = " << iIndex+1 << std::endl;
+					<< "): " << nd << " " << fd + 1;
+				if (nd > 1) {
+					std::cout << "->" << fd + nd;
+				}
+				std::cout << std::endl;
 			}
 			pTmp->iFirstIndex = iIndex;
 			iIndex += iNumDofs;
@@ -354,10 +361,16 @@ DataManager::InitialJointAssembly(void)
 					iNumDofs = (*ppEl)->pGetInitialAssemblyElem()->iGetInitialNumDof();
 					if ((pTmp->iNumDofs = iNumDofs) > 0) {
 						if (pds) {
-							std::cout <<psElemNames[iCnt1]
+							unsigned int nd = (*ppEl)->iGetNumDof();
+							integer fd = iIndex;
+
+							std::cout << psElemNames[(*ppEl)->GetElemType()]
 								<< "(" << (*ppEl)->GetLabel()
-								<< "): first index = " << iIndex+1
-								<< std::endl;
+								<< "): " << nd << " " << fd + 1;
+							if (nd > 1) {
+								std::cout << "->" << fd + nd;
+							}
+							std::cout << std::endl;
 						}
 						pTmp->iFirstIndex = iIndex;
 						iIndex += iNumDofs;
