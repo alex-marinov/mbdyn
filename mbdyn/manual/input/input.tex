@@ -1080,7 +1080,7 @@ Finally there are some miscellaneous points:
   
         \item {\tt MBDYNVARS=<expr\_list>}
 	where {\tt expr\_list} is a series of mathematical expressions
-	semicolon separated. 
+	separated by semicolons. 
 	They are parsed and evaluated; if variables are declared, they are
 	added to the symbol table to be used durig the whole execution of the
 	program.
@@ -1113,8 +1113,8 @@ Finally there are some miscellaneous points:
     of a keyword.
     
     \item (UN*X systems) Whenever a file name is required, the shell-like
-    syntax for home directories (i.e.\ {\tt ~/filename}
-    or {\tt ~user/filename} is automatically resolved if legal [user and]
+    syntax for home directories (i.e.\ \verb1~/filename1
+    or \verb1~user/filename1 is automatically resolved if legal [user and]
     filename values are inserted.
     
 \end{itemize}  
@@ -2951,17 +2951,33 @@ internals of the code is required if special tasks are required.
 There are virtually no limits on what a loadable element can do.
 The syntax is simply:
 \begin{verbatim}
-    <normal_arglist> ::= " <module_name> " [ , <module_data> ]
+    <normal_arglist> ::= " <module_name> "
+                         [ , name, " <calls> " ] 
+                         [ , <module_data> ]
 \end{verbatim}
 where {\tt module\_name} is the name of the module file; as soon as the file
-is checked and the binding of the functions succeeded, a function called
-{\tt read} is invoked, and passed the input stream.
+is checked and the binding of the structure with function bindings 
+succeeded, a function called {\tt read} is invoked, and passed the input
+stream.
 This function is in charge of reading {\tt module\_data} following the
 general syntax of the input file.
 All the helpers and the high-level structures are available, such as
 drivers, constitutive laws, reference frames.
 Refer to each module for a description (if available) of the features and of
 the input/output format.
+{\tt module\_name} should be a full path to the module function.
+If the name starts with a slash ``/'', the full path name is used.
+Otherwise the module is searched in the colon-separated list of directories 
+contained in the environment variable {\tt LD\_LIBRARY}, then among the
+libraries listed in {\tt /etc/ld.so.cache}, and finally in
+{\tt /usr/lib} and in {\tt /lib} (see {\tt dlopen(3)}).
+At last, it is searched in the current directory, and the extension
+{\tt .so} is added if missing.
+The string {\tt calls} represents the name of the structure that contains
+the bindings to the functions.
+The default is {\tt "calls"}.
+Refer to {\tt \$(BASE)/mbdyn/base/loadable.h} for a description of the
+functions that are allowed.
 An example module is given in directory
 \begin{verbatim}
     $(BASE)/modules/module-template/
