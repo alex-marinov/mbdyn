@@ -4,6 +4,7 @@
 man_MANS = mbdyn.1
 
 EXTRA_DIST = \
+mbdyn.1 \
 Makefile.ok \
 data.tex \
 elements.tex \
