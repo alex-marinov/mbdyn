@@ -80,9 +80,11 @@ NonlinearSolverTest::MakeTest(Solver *pS, const integer& Size,
 			pSDM->HowManyDofs(SchurDataManager::MYINTERNAL);
 		integer *pLocDofs =
 			pSDM->GetDofsList(SchurDataManager::MYINTERNAL);
+
+		/* FIXME: this is wrong:
+		 * GetDofsList(SchurDataManager::TOTAL) is illegal */
 		integer *pDofs =
 			pSDM->GetDofsList(SchurDataManager::TOTAL);
-
 
 		/*
 		 * Chiama la routine di comunicazione per la trasmissione 
