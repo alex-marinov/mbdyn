@@ -328,12 +328,13 @@ public:
 			std::cerr << "Assertion fault in SpMapMatrixHandler::MulAndSumWithShift" << std::endl;
 			THROW(ErrGeneric());
 		}
+		drow = drow + 1;
 		for (int col=0; col<NCols; col++) {
 			row_cont_type::const_iterator ri, re;
 			re = col_indices[col].end();
-			integer newcol = col + dcol;
+			integer newcol = col + dcol + 1;
 			for (ri = col_indices[col].begin(); ri!=re; ri++) {
-				out.fIncCoef(ri->first+drow+1,newcol+1,ri->second*s);
+				out.fIncCoef(ri->first+drow,newcol,ri->second*s);
 			}
 		}
 		return out;	
@@ -350,13 +351,14 @@ public:
 			std::cerr << "Assertion fault in SpMapMatrixHandler::MulAndSumWithShift" << std::endl;
 			THROW(ErrGeneric());
 		}
+		drow = drow + 1;
 		for (int col=0; col<NCols; col++) {
 			row_cont_type::const_iterator ri, re;
 			re = col_indices[col].end();
-			integer newcol = col + dcol;
+			integer newcol = col + dcol + 1;
 			for (ri = col_indices[col].begin(); ri!=re; ri++) {
 				if (b[ri->first]) {
-					out.fIncCoef(ri->first+drow+1,newcol+1,ri->second*s);
+					out.fIncCoef(ri->first+drow,newcol,ri->second*s);
 				}
 			}
 		}
