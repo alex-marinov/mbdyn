@@ -138,6 +138,8 @@ class ImplicitStepIntegrator:
 private:
 	/* needed by EvalProd */
 	mutable MyVectorHandler XTau;
+	mutable MyVectorHandler SavedState;
+	mutable MyVectorHandler SavedDerState;
 	mutable bool bEvalProdCalledFirstTime;
 protected:
 	VectorHandler *pXCurr;
@@ -218,6 +220,7 @@ class StepNIntegrator :
 	public ImplicitStepIntegrator
 {
 protected:
+public:
 	doublereal db0Differential;
 	doublereal db0Algebraic;
 
