@@ -205,7 +205,7 @@ private:
 	StepIntegrator* pFictitiousSteps;
 	
 	/* Type of linear solver */
-	LinSol CurrSolver;
+	LinSol CurrLinearSolver;
 
 	/* Parameters for convergence tests */
 	NonlinearSolverTest::Type ResTest;

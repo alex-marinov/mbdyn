@@ -365,6 +365,24 @@ Solver::Run(void)
 					"with " << nThreads << " threads"
 					<< std::endl);
 
+			/* set solver for multithreaded solution */
+			switch (CurrLinearSolver.GetSolver()) {
+			case LinSol::UMFPACK_CC_SOLVER:
+				break;
+
+			default:
+				silent_cout("multithreaded solution needs Umfpack CC solver" << std::endl);
+
+#if 0
+			case LinSol::UMFPACK_SOLVER:
+#endif
+				if (!CurrLinearSolver.SetSolver(LinSol::UMFPACK_CC_SOLVER)) {
+					silent_cerr("unable to set Umfpack CC solver" << std::endl);
+					THROW(ErrGeneric());
+				}
+				break;
+			}
+
 			SAFENEWWITHCONSTRUCTOR(pDM,
 					MultiThreadDataManager,
 					MultiThreadDataManager(HP, 
@@ -2652,7 +2670,7 @@ Solver::ReadData(MBDynParser& HP)
 			break;
 
 		case SOLVER:
-			CurrSolver.Read(HP);
+			CurrLinearSolver.Read(HP);
 			break;
 
 		case INTERFACESOLVER:
@@ -3591,10 +3609,10 @@ Solver::Eig(void)
 SolutionManager *const
 Solver::AllocateSolman(integer iNLD, integer iLWS)
 {
-	SolutionManager *pCurrSM = CurrSolver.GetSolutionManager(iNLD, iLWS);
+	SolutionManager *pCurrSM = CurrLinearSolver.GetSolutionManager(iNLD, iLWS);
 	
 	/* special extra parameters if required */
-	switch (CurrSolver.GetSolver()) {
+	switch (CurrLinearSolver.GetSolver()) {
 	case LinSol::UMFPACK_SOLVER:
 #if defined(USE_RTAI) && defined(HAVE_UMFPACK_TIC_DISABLE)
 		if (bRT) {
@@ -3774,7 +3792,7 @@ Solver::SetupSolmans(integer iStates)
 		pLocalSM = 0;
 	}
 	
-	integer iWorkSpaceSize = CurrSolver.iGetWorkSpaceSize();
+	integer iWorkSpaceSize = CurrLinearSolver.iGetWorkSpaceSize();
 	integer iLWS = iWorkSpaceSize;
 	integer iNLD = iNumDofs*iStates;
 	if (bParallel) {

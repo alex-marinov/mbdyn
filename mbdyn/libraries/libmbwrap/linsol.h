@@ -62,6 +62,7 @@ public:
 	void Read(HighParser &HP, bool bAllowEmpty = false);
  
 	SolverType GetSolver(void) const;
+	bool SetSolver(SolverType t);
 	integer iGetWorkSpaceSize(void) const;
 	const doublereal& dGetPivotFactor(void) const;
 

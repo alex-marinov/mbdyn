@@ -236,6 +236,48 @@ LinSol::GetSolver(void) const
 	return CurrSolver;
 }
 
+bool
+LinSol::SetSolver(LinSol::SolverType t)
+{
+	switch (t) {
+	case LinSol::UMFPACK_SOLVER:
+	case LinSol::UMFPACK_CC_SOLVER:
+#ifdef USE_UMFPACK
+		CurrSolver = t;
+		return true;
+#endif /* USE_UMFPACK */
+
+	case LinSol::Y12_SOLVER:
+#ifdef USE_Y12
+		CurrSolver = t;
+		return true;
+#endif /* USE_Y12 */
+
+	case LinSol::HARWELL_SOLVER:
+#ifdef USE_HARWELL
+		CurrSolver = t;
+		return true;
+#endif /* USE_HARWELL */
+
+	case LinSol::MESCHACH_SOLVER:
+#ifdef USE_MESCHACH
+		CurrSolver = t;
+		return true;
+#endif /* USE_MESCHACH */
+
+		/* else */
+		silent_cerr(psSolverNames[t] << " unavailable" << std::endl);
+		return false;
+
+	case LinSol::EMPTY_SOLVER:
+		CurrSolver = t;
+		return true;
+
+	default:
+		return false;
+	}
+}
+
 integer
 LinSol::iGetWorkSpaceSize(void) const
 {

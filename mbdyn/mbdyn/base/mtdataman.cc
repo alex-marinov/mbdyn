@@ -72,7 +72,7 @@ CCReady(CC_NO),
 ptd(NULL),
 op(MultiThreadDataManager::UNKNOWN_OP),
 dataman_thread_count(0),
-propagate_ErrMatrixRebuild(false)
+propagate_ErrMatrixRebuild(sig_atomic_t(false))
 {
 #if 0	/* no effects ... */
 	struct sched_param	sp;
@@ -161,8 +161,10 @@ MultiThreadDataManager::dataman_thread(void *p)
 		 */
 		sem_wait(&arg->sem);
 
-		// std::cerr << "thread " << arg->threadNumber << ": "
-		// 	"op " << arg->pDM->op << std::endl;
+#if 0
+		std::cerr << "thread " << arg->threadNumber << ": "
+		 	"op " << arg->pDM->op << std::endl;
+#endif
 
 		/* select requested operation */
 		switch (arg->pDM->op) {
@@ -341,13 +343,13 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
 	ASSERT(ptd != NULL);
 
-	propagate_ErrMatrixRebuild = false;
+	propagate_ErrMatrixRebuild = sig_atomic_t(false);
 
 	switch (CCReady) {
 	case CC_NO:
-		if (dynamic_cast<SpMapMatrixHandler *>(&JacHdl) == NULL) {
-			THROW(ErrGeneric());
-		}
+		ASSERT(dynamic_cast<SpMapMatrixHandler *>(&JacHdl));
+
+		std::cerr << "CC_NO: dynamic_cast<SpMapMatrixHandler *>(&JacHdl) = " << dynamic_cast<SpMapMatrixHandler *>(&JacHdl) << std::endl;
 
 		DataManager::AssJac(JacHdl, dCoef, &ElemIter, *pWorkMat);
 		CCReady = CC_FIRST;
@@ -357,13 +359,15 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 
 	case CC_FIRST: {
 		CColMatrixHandler *pMH = dynamic_cast<CColMatrixHandler *>(&JacHdl);
-		if (pMH == NULL) {
-			THROW(ErrGeneric());
-		}
+
+		std::cerr << "CC_FIRST: dynamic_cast<CColMatrixHandler *>(&JacHdl) = " << dynamic_cast<CColMatrixHandler *>(&JacHdl) << std::endl;
+
+		ASSERT(pMH);
 
 		for (unsigned i = 1; i < nThreads; i++) {
 			ptd[i].pJacHdl = pMH->Copy();
 		}
+
 		CCReady = CC_YES;
 
 		DEBUGCERR("CC_FIRST => CC_YES" << std::endl);
@@ -422,9 +426,15 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	}
 
 	CColMatrixHandler *pMH = dynamic_cast<CColMatrixHandler *>(&JacHdl);
+	ASSERT(pMH);
+
+	std::cerr << "AddUnchecked: dynamic_cast<CColMatrixHandler *>(&JacHdl) = " << dynamic_cast<CColMatrixHandler *>(&JacHdl) << std::endl;
+
 	for (unsigned i = 1; i < nThreads; i++) {
 		pMH->AddUnchecked(*ptd[i].pJacHdl);
 	}
+
+	std::cerr << "AddUnchecked done" << std::endl;
 }
 
 void
