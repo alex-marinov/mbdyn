@@ -61,7 +61,13 @@ vec2rot_SOURCES = vec2rot.cc
 c81merge_CPPFLAGS = -I../mbdyn/aero -I../mbdyn/base
 
 autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@
-c81merge_LDADD = ../mbdyn/aero/libaero.la $(MYLIBS) @SECURITY_LIBS@
+# need to fool libtool in getting libbase linked twice ;)
+# hope this is not fixed for a while...
+c81merge_LDADD = \
+../mbdyn/base/libbase.la \
+../mbdyn/aero/libaero.la \
+../mbdyn/../mbdyn/base/libbase.la \
+$(MYLIBS) @SECURITY_LIBS@
 crypt_LDADD = $(MYLIBS) @SECURITY_LIBS@
 cl_LDADD = $(MYLIBS)
 dae_intg_LDADD = $(MYLIBS)

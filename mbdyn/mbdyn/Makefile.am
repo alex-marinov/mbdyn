@@ -13,6 +13,8 @@ dummy_f.f  \
 mbdyn.cc  \
 mbdyn.h
 
+# need to fool libtool in getting libbase linked twice ;)
+# hope this is not fixed for a while...
 mbdyn_LDADD = \
 ../mbdyn/base/libbase.la \
 aero/libaero.la \
