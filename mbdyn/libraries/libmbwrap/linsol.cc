@@ -299,7 +299,8 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 
 	if (!bGotIt) {
 		silent_cerr(::solver[CurrSolver].s_name << " solver "
-			"not available at line " << HP.GetLineData());
+			"not available at line " << HP.GetLineData()
+			<< std::endl);
 		throw ErrGeneric();
 	}
 
