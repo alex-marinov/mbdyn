@@ -73,16 +73,6 @@ AutomaticStructElem::ComputeAccelerations(Vec3& XPP, Vec3& WP) const
 		WP = Zero3;
 	}
 	XPP = (BP - WP.Cross(S) - W.Cross(WS))/m;
-
-	std::cerr << "==============" << std::endl
-		<< "    m=" << m << " S={" << S << "}" << std::endl
-		<< "    J={" << J << "}" << std::endl
-		<< "    Xcg={" << Xcg << "} dDet=" << dDet << std::endl
-		<< "    Jcg={" << Jcg << "}" << std::endl
-		<< "    W={" << W << "}" << std::endl
-		<< "    B={" << B << "} BP={" << BP << "}" << std::endl
-		<< "    G={" << G << "} GP={" << GP << "}" << std::endl
-		<< "    WP={" << WP << "} XPP={" << XPP << std::endl;
 }
  
 void
