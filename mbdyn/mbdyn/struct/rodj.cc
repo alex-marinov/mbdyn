@@ -283,6 +283,7 @@ void Rod::Output(OutputHandler& OH) const
 void
 Rod::Output_pch(ostream& out) const
 {
+#if defined(__HACK_NASTRAN_MODES__)
 	if (fToBeOutput()) {
 		unsigned int label = GetLabel();
 		if (label > 9999999) {
@@ -363,6 +364,7 @@ Rod::Output_pch(ostream& out) const
 #error "unknown NASTRAN format"
 #endif
 	}
+#endif /* __HACK_NASTRAN_MODES__ */
 }
  
 
@@ -1053,6 +1055,7 @@ void RodWithOffset::Output(OutputHandler& OH) const
 void
 RodWithOffset::Output_pch(ostream& out) const
 {
+#if defined(__HACK_NASTRAN_MODES__)
 	if (fToBeOutput()) {
 		unsigned int label = GetLabel();
 		if (label > 9999999) {
@@ -1172,6 +1175,7 @@ RodWithOffset::Output_pch(ostream& out) const
 #error "unknown NASTRAN format"
 #endif
 	}
+#endif /* __HACK_NASTRAN_MODES__ */
 }
 
 

@@ -228,6 +228,7 @@ StructNode::Output_pch(
 		ostream& out
 		) const
 {
+#if defined(__HACK_NASTRAN_MODES__)
 	if (fToBeOutput()) {
 		const char *name = GetName();
 
@@ -322,6 +323,7 @@ StructNode::Output_pch(
 #error "unknown NASTRAN format"
 #endif
 	}
+#endif /* __HACK_NASTRAN_MODES__ */
 }
 
 
@@ -331,6 +333,7 @@ StructNode::Output_f06(
 		const VectorHandler& X
 		) const
 {
+#if defined(__HACK_NASTRAN_MODES__)
 	if (fToBeOutput()) {
 		integer iFirstIndex = iGetFirstIndex();
 		
@@ -350,6 +353,7 @@ StructNode::Output_f06(
 			<< X.dGetCoef(iFirstIndex+6)
 			<< endl;
 	}
+#endif /* __HACK_NASTRAN_MODES__ */
 }
 
 

@@ -573,6 +573,7 @@ Beam2::Output(OutputHandler& OH) const
 void
 Beam2::Output_pch(ostream& out) const
 {
+#if defined(__HACK_NASTRAN_MODES__)
 	if (fToBeOutput()) {
 		unsigned int label = GetLabel();
 		const char *name = GetName();
@@ -687,6 +688,7 @@ Beam2::Output_pch(ostream& out) const
 #error "unknown NASTRAN format"
 #endif
 	}
+#endif /* __HACK_NASTRAN_MODES__ */
 }
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */

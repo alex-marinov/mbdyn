@@ -821,6 +821,7 @@ void Beam::Output(OutputHandler& OH) const
 void
 Beam::Output_pch(ostream& out) const
 {
+#if defined(__HACK_NASTRAN_MODES__)
 	if (fToBeOutput()) {
 		unsigned int label = GetLabel();
 		if (label > 9999999) {
@@ -1001,6 +1002,7 @@ Beam::Output_pch(ostream& out) const
 #error "unknown NASTRAN format"
 #endif
 	}
+#endif /* __HACK_NASTRAN_MODES__ */
 }
 
    
