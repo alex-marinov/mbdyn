@@ -33,7 +33,10 @@
   * Copyright (C) 2003
   * Marco Morandini	<morandini@aero.polimi.it>
   *
-  * third order integrator; orrible code.
+  * third order integrator; brain-damaged code, mainly due to some
+  *                         brain-damaged design decision in mbdyn.
+  *                         This will have to change, but will require
+  *                         a substantial effort.
   */
 
 
@@ -44,7 +47,6 @@
 
 #include "thirdorderstepsol.h"
 #include <schurdataman.h> 
-
 
 ThirdOrderIntegrator::ThirdOrderIntegrator(const doublereal dT, 
 			const doublereal dSolutionTol, 
@@ -105,15 +107,16 @@ void ThirdOrderIntegrator::SetCoef(doublereal dt,
 	jxp[1][0] = 0.;
 	jxp[0][1] = 0.;
 	jxp[0][0] = 1.;
-// 	std::cout << "rho: " << rho << std::endl;
-// 	std::cout << "theta: " << theta << std::endl;
-// 	std::cout << "w[0]: " << w[0] << std::endl;
-// 	std::cout << "w[1]: " << w[1] << std::endl;
-// 	std::cout << "w[2]: " << w[2] << std::endl;
-// 	std::cout << "  m0: " << m0 << std::endl;
-// 	std::cout << "  m1: " << m1 << std::endl;
-// 	std::cout << "  n0: " << n0 << std::endl;
-// 	std::cout << "  n1: " << n1 << std::endl;
+	DEBUGCOUT("ThirdOrder integrator coefficients:" << std::endl <<
+		<< "\t  rho: " << rho << std::endl
+		<< "\ttheta: " << theta << std::endl
+		<< "\t w[0]: " << w[0] << std::endl
+		<< "\t w[1]: " << w[1] << std::endl
+		<< "\t w[2]: " << w[2] << std::endl
+		<< "\t   m0: " << m0 << std::endl
+		<< "\t   m1: " << m1 << std::endl
+		<< "\t   n0: " << n0 << std::endl
+		<< "\t   n1: " << n1 << std::endl;);
 	
 };
 
@@ -144,8 +147,6 @@ doublereal ThirdOrderIntegrator::Advance(const doublereal TStep,
 			EqIsDifferential[iCntp1] = (!EqIsAlgebraic[iCntp1]);
 		}
 		DofIterator.fGetFirst(CurrDof);
-// 		Res1.Resize(n);
-// 		Res2.Resize(n);
 		Jacxi_xp.Resize(n);
 		Jacxi_x.Resize(n);
 		Jac_xp.Resize(n);
@@ -163,7 +164,6 @@ doublereal ThirdOrderIntegrator::Advance(const doublereal TStep,
 
 	Predict();
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
-	//pDM->AfterPredict();
 	
 	doublereal dErr = 0.;        
 	pNLS->Solve(this, pSM, MaxIters, dTol,
@@ -296,11 +296,6 @@ void ThirdOrderIntegrator::Residual(VectorHandler* pRes) const
 	pDM->Update();
 	pDM->AssRes(*pRes, 1.);
 
-// 	std::cout << "NumDofs: " << pDM->iGetNumDofs() << std::endl;
-// 	for (int i=1; i<=pDM->iGetNumDofs()*2; i+=6) {
-// 		std::cout << "\n" << pRes->dGetCoef(i);
-// 	} std::cout << "\n==================\n";
-
 	return;
 };
 
@@ -362,12 +357,6 @@ void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
 	Jac_x.MulAndSumWithShift(*pJac,J11_x,0,0);
 	Jac_xp.FakeThirdOrderMulAndSumWithShift(*pJac,EqIsDifferential,1.-J11_x,0,0);
 	
-// 	std::cout.precision(14);
-// 	for (int i=1; i<=pDM->iGetNumDofs()*2; i+=6) {
-// 	for (int j=1; j<=pDM->iGetNumDofs()*2; j+=6) {
-// 		std::cout << std::setw(16) << pJac->dGetCoef(i,j) << "\t";
-// 	} std::cout << std::endl;
-// 	}
 	return;
 };
 
@@ -391,13 +380,6 @@ void ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
 	 * Combinazione lineare di stato e derivata 
 	 * al passo precedente ecc. 
 	 */
-// 	std::cout << "Prima:\n";
-// 	std::cout.precision(14);
-// 	for (int i=1; i<=pDM->iGetNumDofs()*2; i+=6) {
-// 		std::cout << "\n" << std::setw(16) << pSol->dGetCoef(i) << "\t" << 
-// 			std::setw(16) << pXCurr->dGetCoef(i) << "\t" <<
-// 			std::setw(16) << pXPrimeCurr->dGetCoef(i);
-// 	} std::cout << "\n-------------------\n";
 	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
 		iCntp1++, DofIterator.fGetNext(CurrDof)) {
 		doublereal dxp = pSol->dGetCoef(iCntp1);
@@ -424,13 +406,6 @@ void ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
 	 		THROW(ErrGeneric());
 		}
    	}
-// 	std::cout << "Dopo:\n";
-// 	std::cout.precision(14);
-// 	for (int i=1; i<=pDM->iGetNumDofs()*2; i+=6) {
-// 		std::cout << "\n" << std::setw(16) << pSol->dGetCoef(i) << "\t" << 
-// 			std::setw(16) << pXCurr->dGetCoef(i) << "\t" <<
-// 			std::setw(16) << pXPrimeCurr->dGetCoef(i);
-// 	} std::cout << "\n-------------------\n";
 	pDM->Update();
 	return;
 };
