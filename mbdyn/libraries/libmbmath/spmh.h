@@ -51,11 +51,11 @@ protected:
 	};
 #endif /* DEBUG */
 
+public:
 	const integer Nz() const {
 		return NZ;
 	};
 	
-public:
 	/* FIXME: always square? */
 	SparseMatrixHandler(const integer &n, const integer &nn = 0);
 
