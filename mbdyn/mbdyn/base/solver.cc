@@ -55,6 +55,7 @@
 #define RTAI_LOG
 
 #include <unistd.h>
+#include <errno.h>
 #include <sys/stat.h>
 
 #include "ac/float.h"
