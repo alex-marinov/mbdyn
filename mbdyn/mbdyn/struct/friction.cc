@@ -308,7 +308,8 @@ void DiscreteCoulombFriction::AssRes(
 	const VectorHandler& X,
 	const VectorHandler& XP) {
 	f = X.dGetCoef(solution_startdof+1);
-	if ((std::fabs(f)-fss(0) > 1.0E-6) && (first_iter == false)) {
+//	if ((std::fabs(f)-fss(0) > 1.0E-6) && (first_iter == false)) {
+	if ((std::fabs(f)-fss(0) > 1.0E-6)) {
 		//unconditionally switch to sliding
 		if (status == sticked) {
 			transition_type = from_sticked_to_sliding;
@@ -318,19 +319,20 @@ void DiscreteCoulombFriction::AssRes(
 // 			std::cerr << "switch to sliding: " << transition_type << std::endl;
 		} else if (status == sliding) {
 			//do nothing
-			std::cerr << "DiscreteCoulombFriction::AssRes message\n:"
-				<< "you shold not go here1! What's wrong?\n"
-				<< "status: " << status << "\n"
-				<< "transition: " << transition_type << "\n"
-				<< "error: " << fabs(f)-fss(0)
-				<< std::endl;
+// 			std::cerr << "DiscreteCoulombFriction::AssRes message:\n"
+// 				<< "you shold not go here1! What's wrong?\n"
+// 				<< "status: " << status << "\n"
+// 				<< "transition: " << transition_type << "\n"
+// 				<< "error: " << fabs(f)-fss(0)
+// 				<< std::endl;
 		} else {
 			std::cerr << "DiscreteCoulombFriction::AssRes logical error1"
 				<< std::endl;
 		}
 		status = sliding;
 	//%printf("QUI merda\n");
-	} else if (status == sliding) {
+	} 
+// 	else if (status == sliding) {
 		if (v*current_velocity < 0.) {
 			if ((transition_type == from_sticked_to_sliding) &&
 				((std::fabs(v) < std::fabs(previous_switch_v)) ||
@@ -353,7 +355,7 @@ void DiscreteCoulombFriction::AssRes(
 // 				std::cerr << "switch to sticking: " << transition_type << std::endl;
 			}
 		}
-	}
+// 	}
 
 	if ((status == sliding) || (status == sticking)) {
 		if (transition_type == from_sliding_to_sticking) {
