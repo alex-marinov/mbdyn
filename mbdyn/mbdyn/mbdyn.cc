@@ -195,7 +195,7 @@ void SendMessage(const char* const, const char* const, time_t, time_t);
 
 int
 main(int argc, char* argv[])
-{   
+{ 
 #ifdef USE_MPI
     	/* Inizializza i processi */
     	MPI::Init(argc, argv);	   
