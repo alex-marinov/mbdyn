@@ -144,7 +144,7 @@ IdFemNodes(IdFemNodes),
 IntNodes(IntNodes),
 pXYZFemNodes(pN),
 pOffsetNodes(pXYZOffsetNodes), 
-pNode2(pN2), 
+pInterfaceNodes(pN2), 
 pPHIt(pPHItStrNode), 
 pPHIr(pPHIrStrNode),
 pModeShapest(pModeShapest),
@@ -346,12 +346,12 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* indici delle equazioni vincolari (solo per il nodo 2) */   
    for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {      
-      integer iNode2FirstMomIndex = pNode2[iStrNode-1]->iGetFirstMomentumIndex();
-      integer iNode2FirstPosIndex = pNode2[iStrNode-1]->iGetFirstPositionIndex();
+      integer iNodeFirstMomIndex = pInterfaceNodes[iStrNode-1]->iGetFirstMomentumIndex();
+      integer iNodeFirstPosIndex = pInterfaceNodes[iStrNode-1]->iGetFirstPositionIndex();
 
       for (integer iCnt = 1; iCnt <= 6; iCnt++) {   
-	 WM.fPutRowIndex(12+iGetNumDof()+6*(iStrNode-1)+iCnt, iNode2FirstMomIndex+iCnt);
-	 WM.fPutColIndex(12+iGetNumDof()+6*(iStrNode-1)+iCnt, iNode2FirstPosIndex+iCnt);
+	 WM.fPutRowIndex(12+iGetNumDof()+6*(iStrNode-1)+iCnt, iNodeFirstMomIndex+iCnt);
+	 WM.fPutColIndex(12+iGetNumDof()+6*(iStrNode-1)+iCnt, iNodeFirstPosIndex+iCnt);
       }
    }
 
@@ -684,24 +684,24 @@ Modal::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
-   /* indici dei nodi */   
+   /* rigid body indices */
    integer iRigidIndex = pModalNode->iGetFirstIndex();
-   
    for (unsigned int iCnt = 1; iCnt <= 12; iCnt++) {
       WorkVec.fPutRowIndex(iCnt, iRigidIndex+iCnt);
    }
-   
+  
+   /* modal dofs indices */
    integer iModalIndex = iGetFirstIndex();
-   
    for (unsigned int iCnt = 1; iCnt <= iGetNumDof(); iCnt++) {
       WorkVec.fPutRowIndex(12+iCnt, iModalIndex+iCnt);
    }
-   
-   for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {      
-      integer iNode2FirstMomIndex = pNode2[iStrNode-1]->iGetFirstMomentumIndex();
+  
+   /* interface nodes indices */
+   for (unsigned int iStrNode = 0; iStrNode < NStrNodes; iStrNode++) {      
+      integer iNodeFirstMomIndex = pInterfaceNodes[iStrNode]->iGetFirstMomentumIndex();
       
       for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) { 
-	 WorkVec.fPutRowIndex(12+iGetNumDof()+6*(iStrNode-1)+iCnt, iNode2FirstMomIndex+iCnt);
+	 WorkVec.fPutRowIndex(12+iGetNumDof()+6*iStrNode+iCnt, iNodeFirstMomIndex+iCnt);
       }
    }
    
@@ -754,18 +754,27 @@ Modal::AssRes(SubVectorHandler& WorkVec,
    for (unsigned int iMode = 1; iMode <= NModes; iMode++)  {
       Mat3x3 Inv8jajTmp;
       Mat3x3 Inv10jaPjTmp;
+
+      doublereal a_iMode = a->dGet(iMode);
+      doublereal aP_iMode = aPrime->dGet(iMode);
+      
       for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 	 for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) { 
 	    Inv8jajTmp.Put(iCnt, jCnt, pInv8->dGet(iCnt, (iMode-1)*3+jCnt));
-	    Inv10jaPjTmp.Put(iCnt, jCnt, pInv10->dGet(iCnt, (iMode-1)*3+jCnt)*aPrime->dGet(iMode));
+	    Inv10jaPjTmp.Put(iCnt, jCnt, 
+			    pInv10->dGet(iCnt, (iMode-1)*3+jCnt)*aP_iMode);
 	 }
 	 for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-	    Inv5jaj.Add(iCnt, jMode, pInv5->dGet(iCnt, (iMode-1)*NModes+jMode)*a->dGet(iMode));
-	    Inv5jaPj.Add(iCnt, jMode, pInv5->dGet(iCnt, (iMode-1)*NModes+jMode)*aPrime->dGet(iMode));
+	    Inv5jaj.Add(iCnt, jMode, 
+			    pInv5->dGet(iCnt, (iMode-1)*NModes+jMode)*a_iMode);
+	    Inv5jaPj.Add(iCnt, jMode, 
+			    pInv5->dGet(iCnt, (iMode-1)*NModes+jMode)*aP_iMode);
 	 }
       }
-      Inv8jaj += Inv8jajTmp*a->dGet(iMode);
-      Inv8jaPj += Inv8jajTmp*aPrime->dGet(iMode); 
+
+
+      Inv8jaj += Inv8jajTmp*a_iMode;
+      Inv8jaPj += Inv8jajTmp*aP_iMode; 
       Inv10jaPj += Inv10jaPjTmp;
       
       /* questi termini si possono commentare perchè sono (sempre ?) piccoli 
@@ -774,10 +783,12 @@ Modal::AssRes(SubVectorHandler& WorkVec,
        * se trascurarli o no */
 #if 0
       for (int kMode = 1; kMode <= NModes; kMode++)  {
+	 doublereal a_kMode = a->dGet(kMode);
+	 doublereal aP_kMode = aPrime->dGet(kMode);
 	 for (int iCnt = 1; iCnt <= 3; iCnt++) {
 	    for (int jCnt = 1; jCnt <= 3; jCnt++) {
-	       MatTmp1.Put(iCnt, jCnt, pInv9->dGet(iCnt,(iMode-1)*3*NModes+(kMode-1)*3+jCnt)*a->dGet(iMode)*a->dGet(kMode));
-	       MatTmp2.Put(iCnt, jCnt, pInv9->dGet(iCnt,(iMode-1)*3*NModes+(kMode-1)*3+jCnt)*a->dGet(iMode)*aPrime->dGet(kMode));
+	       MatTmp1.Put(iCnt, jCnt, pInv9->dGet(iCnt,(iMode-1)*3*NModes+(kMode-1)*3+jCnt)*a_iMode*a_kMode);
+	       MatTmp2.Put(iCnt, jCnt, pInv9->dGet(iCnt,(iMode-1)*3*NModes+(kMode-1)*3+jCnt)*a_iMode*aP_kMode);
 	    }
 	 }
 	 Inv9jkajak  += MatTmp1;
@@ -900,8 +911,8 @@ Modal::AssRes(SubVectorHandler& WorkVec,
       ppF[iStrNode-1]->Put(3, XCurr.dGetCoef(iModalIndex+2*NModes+6*(iStrNode-1)+3));
       
       Vec3 x1 = (pModalNode->GetXCurr());
-      Vec3 x2 = (pNode2[iStrNode-1]->GetXCurr());
-      *ppR2[iStrNode-1] = pNode2[iStrNode-1]->GetRCurr();
+      Vec3 x2 = (pInterfaceNodes[iStrNode-1]->GetXCurr());
+      *ppR2[iStrNode-1] = pInterfaceNodes[iStrNode-1]->GetRCurr();
       
       /* cerniera sferica */
       Vec3 dTmp1(R1*(*ppd1tot[iStrNode-1]));
@@ -1028,14 +1039,14 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    } 
    
    for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
-      integer iNode2FirstPosIndex = pNode2[iStrNode-1]->iGetFirstPositionIndex();
-      integer iNode2FirstVelIndex = iNode2FirstPosIndex+6;
+      integer iNodeFirstPosIndex = pInterfaceNodes[iStrNode-1]->iGetFirstPositionIndex();
+      integer iNodeFirstVelIndex = iNodeFirstPosIndex+6;
       
       for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {   
-	 WM.fPutRowIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+iCnt, iNode2FirstPosIndex+iCnt);
-	 WM.fPutColIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+iCnt, iNode2FirstPosIndex+iCnt);
-	 WM.fPutRowIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+6+iCnt, iNode2FirstVelIndex+iCnt);
-	 WM.fPutColIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+6+iCnt, iNode2FirstVelIndex+iCnt);
+	 WM.fPutRowIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+iCnt, iNodeFirstPosIndex+iCnt);
+	 WM.fPutColIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+iCnt, iNodeFirstPosIndex+iCnt);
+	 WM.fPutRowIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+6+iCnt, iNodeFirstVelIndex+iCnt);
+	 WM.fPutColIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+6+iCnt, iNodeFirstVelIndex+iCnt);
       }
    }
    
@@ -1068,9 +1079,9 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 #endif
       
       Mat3x3 R1(pModalNode->GetRRef());
-      Mat3x3 R2(pNode2[iStrNode-1]->GetRRef());
+      Mat3x3 R2(pInterfaceNodes[iStrNode-1]->GetRRef());
       Vec3 Omega1(pModalNode->GetWRef());
-      Vec3 Omega2(pNode2[iStrNode-1]->GetWRef());
+      Vec3 Omega2(pInterfaceNodes[iStrNode-1]->GetWRef());
       Vec3 F(XCurr, iFlexIndex+2*NModes+12*(iStrNode-1)+1);
       Vec3 FPrime(XCurr, iFlexIndex+2*NModes+12*(iStrNode-1)+7);
       
@@ -1415,11 +1426,11 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
    }
    
    for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
-      integer iNode2FirstPosIndex = pNode2[iStrNode-1]->iGetFirstPositionIndex();
-      integer iNode2FirstVelIndex = iNode2FirstPosIndex + 6;
+      integer iNodeFirstPosIndex = pInterfaceNodes[iStrNode-1]->iGetFirstPositionIndex();
+      integer iNodeFirstVelIndex = iNodeFirstPosIndex + 6;
       for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) { 
-	 WorkVec.fPutRowIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+iCnt, iNode2FirstPosIndex+iCnt);
-	 WorkVec.fPutRowIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+6+iCnt, iNode2FirstVelIndex+iCnt);
+	 WorkVec.fPutRowIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+iCnt, iNodeFirstPosIndex+iCnt);
+	 WorkVec.fPutRowIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+6+iCnt, iNodeFirstVelIndex+iCnt);
       }
    }
    
@@ -1477,10 +1488,10 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
       Vec3 d1tot = d1rig+PHIt*(*a);
       Mat3x3 R1tot = R1+R1*Mat3x3(PHIr*(*a));
       
-      Vec3 x2(pNode2[iStrNode-1]->GetXCurr());
-      Vec3 v2(pNode2[iStrNode-1]->GetVCurr());
-      Mat3x3 R2(pNode2[iStrNode-1]->GetRCurr());
-      Vec3 Omega2(pNode2[iStrNode-1]->GetWCurr());
+      Vec3 x2(pInterfaceNodes[iStrNode-1]->GetXCurr());
+      Vec3 v2(pInterfaceNodes[iStrNode-1]->GetVCurr());
+      Mat3x3 R2(pInterfaceNodes[iStrNode-1]->GetRCurr());
+      Vec3 Omega2(pInterfaceNodes[iStrNode-1]->GetWCurr());
       Vec3 F(XCurr, iFlexIndex+2*NModes+12*(iStrNode-1)+1);
       Vec3 FPrime(XCurr, iFlexIndex+2*NModes+12*(iStrNode-1)+7);
       

@@ -67,7 +67,7 @@ class Modal : virtual public Elem, public Joint {
    unsigned int* IntNodes;
    Mat3xN *pXYZFemNodes;
    Mat3xN *pOffsetNodes;   
-   const StructNode** pNode2;
+   const StructNode** pInterfaceNodes;
  
    Mat3xN *pPHIt;
    Mat3xN *pPHIr;
@@ -227,8 +227,8 @@ class Modal : virtual public Elem, public Joint {
       NdTyps[0] = pModalNode[0].GetNodeType();
       NdLabels[0] = pModalNode[0].GetLabel();
       for(unsigned int j=0; j < NStrNodes; j++) {
-	 NdTyps[1+j] = pNode2[j]->GetNodeType();
-	 NdLabels[1+j] = pNode2[j]->GetLabel();
+	 NdTyps[1+j] = pInterfaceNodes[j]->GetNodeType();
+	 NdLabels[1+j] = pInterfaceNodes[j]->GetLabel();
       }
    };
    /* ************************************************ */
