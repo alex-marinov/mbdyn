@@ -267,8 +267,7 @@ IncludeParser::Include_()
    
    	if (sCurrPath == NULL) {
       		char s[PATHBUFSIZE];
-      		sCurrPath = getcwd(s, PATHBUFSIZE);
-      		if (sCurrPath == NULL) {
+      		if (getcwd(s, PATHBUFSIZE) == NULL) {
 			std::cerr << "Error in getcwd()" << std::endl;
 	 		THROW(ErrFileSystem());
       		}

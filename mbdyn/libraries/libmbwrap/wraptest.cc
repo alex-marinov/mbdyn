@@ -141,7 +141,7 @@ main(int argc, char *argv[])
 			argv++;
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pSM,
-					UmfpackSparseLUSolutionManag,
+					UmfpackSparseSolutionManager,
 					UmfpackSparseSolutionManager(size));
 		}
 #else /* !USE_UMFPACK */
