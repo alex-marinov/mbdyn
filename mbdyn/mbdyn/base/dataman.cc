@@ -88,7 +88,7 @@ OutHdl(),
 pTime(NULL),
 pXCurr(NULL), pXPrimeCurr(NULL),
 #if defined(USE_STRUCT_NODES)
-fInitialJointAssemblyToBeMade(fDefaultInitialJointAssemblyToBeMade),
+fInitialJointAssemblyToBeDone(fDefaultInitialJointAssemblyToBeMade),
 fSkipInitialJointAssembly(fDefaultSkipInitialJointAssembly),
 fOutputFrames(0),
 dInitialPositionStiffness(dDefaultInitialStiffness), 
@@ -419,7 +419,7 @@ DofIter()
     * che conosce gli aspetti fisici del problema */
 
 #if defined(USE_STRUCT_NODES)   
-   if (fInitialJointAssemblyToBeMade) {
+   if (fInitialJointAssemblyToBeDone) {
       if (!fSkipInitialJointAssembly) {
 	 InitialJointAssembly();
       }	else {

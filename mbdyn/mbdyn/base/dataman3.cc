@@ -296,7 +296,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  DofData[DofOwner::JOINT].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Joints: " << iDmy << std::endl);
 	  if (iDmy > 0 ) {		       
-	     fInitialJointAssemblyToBeMade = flag(1);
+	     fInitialJointAssemblyToBeDone = flag(1);
 	  }
 	  break;
        }	     
@@ -307,7 +307,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  ElemData[Elem::BEAM].iNum = iDmy;	     
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Beams: " << iDmy << std::endl);
 	  if (iDmy > 0 ) {		       
-	     fInitialJointAssemblyToBeMade = flag(1);
+	     fInitialJointAssemblyToBeDone = flag(1);
 	  }
 	  break;
        }	     

@@ -96,7 +96,7 @@ class DataManager : public SolutionDataManager {
  private:
    /* Parametri usati durante l'assemblaggio iniziale */
 #if defined(USE_STRUCT_NODES)   
-   flag fInitialJointAssemblyToBeMade;
+   flag fInitialJointAssemblyToBeDone;
    flag fSkipInitialJointAssembly;
    flag fOutputFrames;
    doublereal dInitialPositionStiffness;
