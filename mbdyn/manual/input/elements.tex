@@ -1403,27 +1403,51 @@ The others have a fairly common syntax. The forst three are
     <induced_velocity> ::= { uniform | glauert | mangler } , 
         <reference_omega> , <reference_radius> 
         [ , delay, <memory_factor> ]
-        [ , correction, <correction_factor> ]
+        [ , correction, <hover_correction_factor>,
+                        <ff_correction_factor> ]
 \end{verbatim}
 the \texttt{reference\_omega} field is used to decide wether to round off the
 dimensionless parameters if the rotor speed is very low; the
 \texttt{reference\_radius} field is used in the adimensionalisation of the
 rotor related parameters. \\
-The \texttt{memory\_factor} and the \texttt{correction\_factor} are
+The \texttt{memory\_factor}, the \texttt{hover\_correction\_factor} 
+and the \texttt{ff\_correction\_factor} (forward flight) are
 used to correct the nominal induced velocity, according to the formula
+%\begin{eqnarray*}
+%	U_{effective} & = &
+%	\plbr{1 - \texttt{<memory\_factor>}} 
+%		\texttt{<correction\_factor>} \ U_{nominal} \\
+%	& & \mbox{} + \texttt{<memory\_factor>} \ U_{previous}
+%\end{eqnarray*}
 \begin{eqnarray*}
 	U_{effective} & = &
-	\plbr{1 - \texttt{<memory\_factor>}} 
-		\texttt{<correction\_factor>} \ U_{nominal} \\
-	& & \mbox{} + \texttt{<memory\_factor>} \ U_{previous}
+	\plbr{1 - \mathtt{<memory\_factor>}} 
+		U_{nominal} \\
+	& & \mbox{} + \mathtt{<memory\_factor>} \ U_{previous}
 \end{eqnarray*}
+with
+\begin{displaymath}
+	U_{nominal} = \frac{T}{2 \rho A V_{tip} \sqrt{
+		\cfrac{\lambda^2}{\mathtt{<hover\_correction\_factor>}^4}
+		+ \cfrac{\mu^2}{\mathtt{<ff\_correction\_factor>}^2}
+	}}
+\end{displaymath}
 The \texttt{memory\_factor} parameter is used to
 combine the current reference induced velocity with the induced velocity
 at the previous step; no delay means there is no memory of the previous value 
 (\emph{Note: for historical reasons, \texttt{weight} can be used 
 instead of \texttt{delay}}). \\
 The \texttt{memory\_factor} parameter defaults to 0; 
-the \texttt{correction\_factor} parameter defaults to 1.
+the \texttt{hover\_correction\_factor} 
+and the \texttt{ff\_correction\_factor} parameters default to 1. \\
+\emph{
+	Note: the syntax of the correction factor input changed
+	from MBDyn 1.1 to MBDyn 1.2, where two different factors,
+	according to conventional models (e.g.\ CAMRAD/JA), have
+	been considered instead of one.  No backward compatibility
+	has been implemented because this is a very specialistic 
+	parameter and it was introduced very recently.
+}
 
 \noindent
 The last one uses a dynamic inflow model, with inflow states.
