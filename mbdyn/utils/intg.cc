@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dlfcn.h>
-#include <getopt.h>
+#include <ac/getopt.h>
 #include <ac/iostream>
 
 #include <myassert.h>

@@ -6,6 +6,9 @@ Copyright (C) 1996-2002
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Mon Nov 25 09:21:22 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - move getopt.h to include/ac
+
 *** Thu Nov 21 19:36:00 CET 2002 Giuseppe Quaranta <quaranta@aero.polimi.it>
  - first commit of POD stuff
 

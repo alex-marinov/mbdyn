@@ -47,7 +47,6 @@
 
 	modified public-domain AT&T getopt(3)
 	modified by Kurt Zeilenga for inclusion into OpenLDAP
-
 	modified by Pierangelo Masarati for inclusion with MBDyn
 */
 

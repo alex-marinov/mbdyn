@@ -5,8 +5,7 @@ noinst_LTLIBRARIES = libobjs.la
 
 libobjs_la_SOURCES = \
 dgegv.c \
-getopt.c \
-getopt.h
+getopt.c
 
 libobjs_la_LIBADD = @LIBS@
 libobjs_la_LDFLAGS =

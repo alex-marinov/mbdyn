@@ -63,7 +63,9 @@
 #ifndef GETOPT_H
 #define GETOPT_H
 
-#ifndef HAVE_GETOPT_H
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#else /* !HAVE_GETOPT_H */
 
 #include <unistd.h>
 

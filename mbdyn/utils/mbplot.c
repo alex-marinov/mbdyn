@@ -38,6 +38,8 @@
 #include <errno.h>
 #include <termios.h>
 
+#include <ac/getopt.h>
+
 /* haldler to piped gnuplot */
 FILE *gnuplot = NULL;
 

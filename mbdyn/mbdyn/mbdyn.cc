@@ -35,6 +35,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <ac/fstream>
+#include <ac/getopt.h>
 
 extern "C" {
 #ifdef HAVE_TIMES_H

@@ -33,6 +33,7 @@
 
 #include <string.h>
 #include <dlfcn.h>
+#include <ac/getopt.h>
 
 #include <myassert.h>
 #include <solman.h>
