@@ -35,6 +35,6 @@ clean:
 		rm -f $$i/Makefile ; \
 	done
 
-distclean:
+distclean: clean
 	rm -f Makefile
 
