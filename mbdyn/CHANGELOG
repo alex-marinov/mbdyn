@@ -7,7 +7,7 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.X-Engineering
+MBDyn 1.X-Devel
 	Enhancements:
 		- added matrix-free nonlinear solver (BiCGStab/GMRES
 		  by Giuseppe Quaranta)
