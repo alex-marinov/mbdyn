@@ -447,7 +447,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 				<< std::endl);
 		}
 #else /* !USE_SUPERLU_MT */
-		if (nThreads > 1) {
+		if (nThreads > 1 && mt) {
 			silent_cerr("multithread SuperLU solver support not compiled; "
 				<< std::endl);
 			throw ErrGeneric();
