@@ -50,7 +50,7 @@
 
 /* SubMatrixHandler - begin */    
 
-/**
+/*
  Classe virtuale delle sottomatrici. 
  Le SubMatrixHandler sono matrici dotate di vettori di incidenza
  per righe e colonne. 
@@ -62,81 +62,81 @@ class SubMatrixHandler : public MatrixHandler {
  protected:
    
  public:
-   /**@name Costruttori */
-   //@{
+   /*Costruttori */
    
-   /** 
+   
+   /* 
     Distruttore virtuale. 
     Necessario per la corretta distruzione degli oggetti derivati 
     */
    virtual ~SubMatrixHandler(void);
-   //@}
+   
 
-   /**@name Metodi di servizio */
-   //@{
-   /**
+   /*Metodi di servizio */
+   
+   /*
     Routine di verifica della validita' dell'oggetto.
     Usata per il debug.
     */
    virtual void IsValid(void) const = 0;
-   //@}
    
-   /**@name Inizializzazione */
-   //@{
    
-   /**
+   /*Inizializzazione */
+   
+   
+   /*
     Inizializza la matrice con d 
     */
    virtual void Init(const doublereal&) = 0;
       
-   /** 
+   /* 
     Ridimensiona la matrice.
     Nota: nell'implementazione corrente le dimensioni possono essere solamente
     inferiori alle dimensioni massime con cui e' stata dimensionata.
     */
    virtual void Resize(integer, integer) = 0;
       
-   /**
+   /*
     Ridimensiona ed inizializza.
     Combina le due funzioni precedenti in una chiamata.
     */
    virtual void ResizeInit(integer, integer, const doublereal&) = 0;
-   //@}
    
-   /**@name Gestione dei vettori di incidenza */
-   //@{
+   
+   /*Gestione dei vettori di incidenza */
+   
       
-   /** 
+   /* 
     Scrive l'indice di riga.
     */
    virtual inline flag fPutRowIndex(integer, integer) = 0;
       
-   /** 
+   /* 
     Scrive l'indice di colonna.
     */
    virtual inline flag fPutColIndex(integer, integer) = 0;
    
-   /** 
+   /* 
     Ottiene l'indice di riga.
     */
    virtual inline integer iGetRowIndex(integer) = 0;
 
-   /** 
+   /* 
     Ottiene l'indice di colonna.
     */
    virtual inline integer iGetColIndex(integer) = 0;
-   //@}
+   
 
-   /**@name Funzioni di interazione con le matrici */
-   //@{
+   /*Funzioni di interazione con le matrici */
+   
       
-   /**
+   /*
     Si somma ad una matrice.
     Nota: le dimensioni devono essere compatibili.
     */
    virtual MatrixHandler& AddTo(MatrixHandler& MH) const = 0;
       
-   /** 
+   /* 
     Si sottrae da una matrice.
     Nota: le dimensioni devono essere compatibili.
     */
@@ -148,7 +148,7 @@ class SubMatrixHandler : public MatrixHandler {
     
 /* FullSubMatrixHandler */
     
-/** 
+/* 
  Sottomatrice piena. E' costituita da un vettore di interi, piRow, che 
  contiene i due vettori di incidenza, e da un vettore di reali, pdMat, 
  che contiene la matrice.
@@ -164,38 +164,38 @@ class FullSubMatrixHandler : public SubMatrixHandler {
 	   operator << (std::ostream& out, const FullSubMatrixHandler& m);
    
  public:
-   /**@name Errori */
-   //@{
+   /*Errori */
    
-   /** 
+   
+   /* 
     Errore di ridimensionamento illegale.
     */
    class ErrResize {};
-   //@}
+   
    
  protected:
-   /** Dimensione totale del vettore di incidenza */
+   /* Dimensione totale del vettore di incidenza */
    integer iVecSize;  
-   /** Dimensione totale del vettore dei coefficienti */
+   /* Dimensione totale del vettore dei coefficienti */
    integer iMatSize;
-   /** Numero di righe correnti */
+   /* Numero di righe correnti */
    integer iNumRows;
-   /** Numero di colonne correnti */
+   /* Numero di colonne correnti */
    integer iNumCols;
-   /** Puntatore al vettore di incidenza delle righe.
+   /* Puntatore al vettore di incidenza delle righe.
     Nota: coincide con il puntatore al vettore di incidenza */
    integer* piRow;
-   /** Puntatore al vettore di incidenza delle colonne */
+   /* Puntatore al vettore di incidenza delle colonne */
    integer* piCol;
-   /** Puntatore al vettore dei coefficienti */
+   /* Puntatore al vettore dei coefficienti */
    doublereal* pdMat; 
    
  public:
 
-   /**@name Costruttori */
-   //@{
+   /*Costruttori */
    
-   /** 
+   
+   /* 
     Riceve i vettori per gli indici ed i coefficienti, con relative 
     dimensioni
     @param iIntSize    dimensione del vettore degli indici
@@ -206,47 +206,47 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    FullSubMatrixHandler(integer iIntSize, integer iDoubleSize,
 			integer* piTmpVec, doublereal* pdTmpMat);
    
-   /** 
+   /* 
     Distruttore banale. 
     Nota: l'elemento non possiede memoria e quindi non ne dealloca.
     */
    virtual ~FullSubMatrixHandler(void);
-   //@}
+   
 
-   /**@name Metodi di servizio */
-   //@{
+   /*Metodi di servizio */
+   
       
-   /**
+   /*
     Routine di verifica della validita' dell'oggetto.
     Usata per il debug.
     */
    virtual void IsValid(void) const;
 
-   /**
+   /*
     Numero di righe della sottomatrice 
     */
    integer iGetNumRows(void) const {
       return iNumRows;
    };
 
-   /**
+   /*
     Numero di colonne della sottomatrice 
     */
    integer iGetNumCols(void) const {
       return iNumCols;
    };
-   //@}
    
    
-   /**@name Metodi di inizializzazione */
-   //@{
+   
+   /*Metodi di inizializzazione */
+   
       
-   /**
+   /*
     Inizializza la porzione utilizzata con il valore desiderato
     */
    void Init(const doublereal& dResetVal = 0.);
   
-   /**
+   /*
     Modifica le dimensioni correnti
     */
    void Resize(integer iNewRow, integer iNewCol) {
@@ -279,7 +279,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
 #endif		
    };
    
-   /**
+   /*
     Ridimensiona ed inizializza.
     */
    void ResizeInit(integer iNewRow, integer iNewCol, const doublereal& dResetVal = 0.) {
@@ -287,7 +287,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       Init(dResetVal);
    };
 
-   /**
+   /*
    Collega la matrice Full alla memoria che gli viene passata in ingresso
     */
    void Attach(int iRows, int iCols, doublereal* pdTmpMat, integer* piTmpIndx) {
@@ -297,12 +297,12 @@ class FullSubMatrixHandler : public SubMatrixHandler {
      piCol = piRow+iNumRows;
      pdMat = pdTmpMat;
    };
-   //@}
    
-   /**@name Gestione dei coefficienti */
-   //@{
+   
+   /*Gestione dei coefficienti */
+   
       
-   /** 
+   /* 
     Scrive un coefficiente in base ai sottoindici.
     */
    inline flag fPutCoef(integer iSubRow, integer iSubCol, const doublereal& dCoef) {
@@ -318,7 +318,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       return flag(0);
    };
    
-   /** 
+   /* 
     Incrementa un coefficiente in base ai sottoindici.
     */
    inline flag fIncCoef(integer iSubRow, integer iSubCol, const doublereal& dCoef) {
@@ -334,7 +334,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       return flag(0);
    };
    
-   /** 
+   /* 
     Decrementa un coefficiente in base ai sottoindici.
     */
    inline flag fDecCoef(integer iSubRow, integer iSubCol, const doublereal& dCoef) {
@@ -350,7 +350,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       return flag(0);
    };
    
-   /** 
+   /* 
     Ottiene un coefficiente in base ai sottoindici.
     */
    inline const doublereal& dGetCoef(integer iSubRow, integer iSubCol) const {
@@ -364,7 +364,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       return pdMat[(--iSubCol)*iNumRows+(--iSubRow)];
    };      
   
-   /**
+   /*
     Scrive un indice di riga 
     */
    inline flag fPutRowIndex(integer iSubRow, integer iRow) {	
@@ -379,7 +379,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       return flag(0);
    };   
    
-   /** 
+   /* 
     Scrive un indice di colonna 
     */
    inline flag fPutColIndex(integer iSubCol, integer iCol) {
@@ -394,7 +394,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       return flag(0);
    };   
    
-   /** 
+   /* 
     Legge un indice di riga 
     */
    inline integer iGetRowIndex(integer iSubRow) {	
@@ -407,7 +407,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       return piRow[--iSubRow];
    };   
    
-   /** 
+   /* 
     Legge un indice di colonna 
     */
    inline integer iGetColIndex(integer iSubCol) {	
@@ -420,7 +420,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       return piCol[--iSubCol];
    };
    
-   /**
+   /*
     Somma una matrice di tipo Mat3x3 in una data posizione.
     Nota: si assume che nella sottomatrice vi sia spazio per la matrice 3x3.
     Nota: gli indici sono a base 1, in stile FORTRAN.
@@ -430,7 +430,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
     */
    void Add(integer iRow, integer iCol, const Mat3x3& m);
       
-   /**
+   /*
     Sottrae una matrice di tipo Mat3x3 da una data posizione.
     Nota: si assume che nella sottomatrice vi sia spazio per la matrice 3x3.
     Nota: gli indici sono a base 1, in stile FORTRAN.
@@ -440,7 +440,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
     */
    void Sub(integer iRow, integer iCol, const Mat3x3& m);
 
-   /**
+   /*
     Scrive una matrice di tipo Mat3x3 in una data posizione.
     Nota: si assume che nella sottomatrice vi sia spazio per la matrice 3x3.
     Nota: gli indici sono a base 1, in stile FORTRAN.
@@ -450,7 +450,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
     */
    void Put(integer iRow, integer iCol, const Mat3x3& m);
  
-   /**
+   /*
     Somma una matrice di tipo Mat3xN in una data posizione.
     Nota: si assume che nella sottomatrice vi sia spazio per la matrice 3x3.
     Nota: gli indici sono a base 1, in stile FORTRAN.   
@@ -460,7 +460,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
     */
    void Add(integer iRow, integer iCol, const Mat3xN& m);
    
-   /**
+   /*
     Sottrae una matrice di tipo Mat3xN da una data posizione.
     Nota: si assume che nella sottomatrice vi sia spazio per la matrice 3x3.
     Nota: gli indici sono a base 1, in stile FORTRAN.
@@ -470,7 +470,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
     */ 
    void Sub(integer iRow, integer iCol, const Mat3xN& m);
    
-   /**
+   /*
     Scrive una matrice di tipo Mat3xN in una data posizione.
     Nota: si assume che nella sottomatrice vi sia spazio per la matrice 3x3.
     Nota: gli indici sono a base 1, in stile FORTRAN.  
@@ -479,34 +479,34 @@ class FullSubMatrixHandler : public SubMatrixHandler {
     @param m    Mat3xN
     */
    void Put(integer iRow, integer iCol, const Mat3xN& m);
-   //@}
+   
 
-   /** come sopra, ma per matrici Nx3 **/
+   /* come sopra, ma per matrici Nx3 **/
     void Add(integer iRow, integer iCol, const MatNx3& m);
     void Sub(integer iRow, integer iCol, const MatNx3& m);
 
-   /**@name Interazione con le matrici */
-   //@{
-   /** 
+   /*Interazione con le matrici */
+   
+   /* 
     Somma la matrice ad un matrix handler usando i metodi generici 
     */
    MatrixHandler& AddTo(MatrixHandler& MH) const;
    
-   /**
+   /*
     Somma la matrice ad un FullMatrixHandler 
     */
    MatrixHandler& AddTo(FullMatrixHandler& MH) const;
 
-   /**
+   /*
     Sottrae la matrice da un matrix handler usando i metodi generici 
     */
    MatrixHandler& SubFrom(MatrixHandler& MH) const;
 
-   /**
+   /*
     Sottrae la matrice da un FullMatrixHandler 
     */
    MatrixHandler& SubFrom(FullMatrixHandler& MH) const;
-   //@}
+   
 };
 
 /* FullSubMatrixHandler - end */
@@ -514,7 +514,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
 
 /* SparseSubMatrixHandler */
     
-/** 
+/* 
  Gestore di sottomatrici sparse, piuttosto rozzo, va usato con cautela.
  E' formato da due vettori di interi e da uno di reali, tutti della stessa 
  lunghezza. 
@@ -531,33 +531,33 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    friend class FullMatrixHandler;
    
  public:
-   /**@name Errori */
-   //@{
+   /*Errori */
+   
    class ErrResize {};
-   //@}
+   
    
  private:
-   /** Dimensioni dell'array degli indici */
+   /* Dimensioni dell'array degli indici */
    integer iIntSize;
-   /** Dimensioni dell'array dei coefficienti */
+   /* Dimensioni dell'array dei coefficienti */
    integer iDoubleSize;
-   /** Numero di entries definite */
+   /* Numero di entries definite */
    integer iNumItems;
-   /** Puntatore all'array degli indici di riga.
+   /* Puntatore all'array degli indici di riga.
     Coincide con il puntatore all'array degli inidici, che e' unico */
    integer* piRow;
-   /** Puntatore all'array degli indici di colonna */
+   /* Puntatore all'array degli indici di colonna */
    integer* piCol;
-   /** Puntatore all'array dei coefficienti */
+   /* Puntatore all'array dei coefficienti */
    doublereal* pdMat;
    
  protected:
    
  public:
-   /**@name Costruttori */
-   //@{
+   /*Costruttori */
    
-   /** Costruttore.
+   
+   /* Costruttore.
     @param iTmpInt    dimensione dell'array degli indici
     @param iTmpDouble dimensione dell'array dei coefficienti
     @param piTmpIndex puntatore all'array degli indici
@@ -573,24 +573,24 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
 #endif	
      };
    
-   /** Distruttore banale.
+   /* Distruttore banale.
     Nota: dato che la classe non possiede la memoria, non ne deve deallocare
     */
    virtual ~SparseSubMatrixHandler(void) { 
       NO_OP;
    };
-   //@}
    
-   /**@name Metodi di servizio */
-   //@{
+   
+   /*Metodi di servizio */
+   
       
-   /**
+   /*
     Routine di verifica della validita' dell'oggetto.
     Usata per il debug.
     */
    virtual void IsValid(void) const;
 
-   /**
+   /*
     Numero di righe della sottomatrice.
     Nota: rappresenta il numero totale di entries della sottomatrice.
     */
@@ -598,24 +598,24 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       return iNumItems;
    };
 
-   /**
+   /*
     Numero di colonne della sottomatrice.
     Nota: e' sempre 1, ovvero la matrice e' interpretata come un vettore.
     */
    integer iGetNumCols(void) const {
       return 1;
    };
-   //@}
    
-   /**@name Metodi di inizializzazione */
-   //@{
+   
+   /*Metodi di inizializzazione */
+   
       
-   /**
+   /*
     Inizializza la matrice con d.
     */
    void Init(const doublereal& dCoef = 0.);
   
-   /** 
+   /* 
     Ridimensiona la matrice.
     Nota: solo il primo argomento viene considerato, e rappresenta il numero
     totale di entries.
@@ -645,7 +645,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
 #endif		
    };
    
-   /**
+   /*
     Ridimensiona ed inizializza.
     Unione dei due metodi precedenti 
     */
@@ -654,7 +654,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       Init(dCoef);
    };
 
-   /** 
+   /* 
     Collega la matrice sparsa alla memoria che gli viene passata in ingresso
     */
     void Attach(int iNumEntr, doublereal* pdTmpMat, integer* piTmpIndx) { 
@@ -670,12 +670,12 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
 #endif
     };   
 
-   //@}
    
-   /**@name Gestione dei coefficienti */
-   //@{
+   
+   /*Gestione dei coefficienti */
+   
          
-   /** 
+   /* 
     Scrive un coefficiente in base ai sottoindici.
     */
    inline flag fPutCoef(integer iSubIt, integer /* iDmy */ , const doublereal& dCoef) {
@@ -690,7 +690,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       return flag(0);
    };
    
-   /** 
+   /* 
     Incrementa un coefficiente in base ai sottoindici.
     */
    inline flag fIncCoef(integer iSubIt, integer /* iDmy */ , const doublereal& dCoef) {
@@ -704,7 +704,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       return flag(0);
    };
    
-   /** 
+   /* 
     Decrementa un coefficiente in base ai sottoindici.
     */
    inline flag fDecCoef(integer iSubIt, integer /* iDmy */ , const doublereal& dCoef) {
@@ -718,7 +718,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       return flag(0);
    };
    
-   /** 
+   /* 
     Ottiene un coefficiente in base ai sottoindici.
     */
    inline const doublereal& dGetCoef(integer iSubIt, integer /* iDmy */ ) const {
@@ -731,7 +731,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       return pdMat[--iSubIt];
    };
    
-   /**
+   /*
     Scrive un indice di riga 
     */
    inline flag fPutRowIndex(integer iSubIt, integer iRow) {
@@ -745,7 +745,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       return flag(0);
    };   
    
-   /**
+   /*
     Scrive un indice di colonna
     */
    inline flag fPutColIndex(integer iSubIt, integer iCol) {
@@ -759,7 +759,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       return flag(0);
    };   
    
-   /**
+   /*
     Ottiene un indice di riga 
     */
    inline integer iGetRowIndex(integer iSubIt) {	
@@ -772,7 +772,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       return piRow[--iSubIt];
    };   
    
-   /**
+   /*
     Ottiene un indice di colonna
     */
    inline integer iGetColIndex(integer iSubIt) {	
@@ -785,7 +785,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       return piCol[--iSubIt];
    };   
    
-   /**
+   /*
     Scrive un'entry completa.
     @param iSubIt   sottoindice (numero della entry)
     @param iRow     indice di riga
@@ -808,7 +808,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       return flag(0);
    }
    
-   /**
+   /*
     Scrive una matrice prodotto vettore nella posizione assegnata.
     @param iSubIt     sottoindice iniziale (numero della prima entry)
     @param iFirstRow  indice della prima riga della matrice completa
@@ -819,7 +819,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    flag fPutCross(integer iSubIt, integer iFirstRow, 
 		  integer iFirstCol, const Vec3& v);
    
-   /**
+   /*
     Scrive una Mat3x3 nella posizione assegnata.
     @param iSubIt     sottoindice iniziale (numero della prima entry)
     @param iFirstRow  indice della prima riga della matrice completa
@@ -828,31 +828,31 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
     */
    flag fPutMat3x3(integer iSubIt, integer iFirstRow, 
 		   integer iFirstCol, const Mat3x3& m);
-   //@}
+   
 
-   /**@name Interazione con le matrici */
-   //@{
+   /*Interazione con le matrici */
+   
       
-   /** 
+   /* 
     Somma la matrice ad un matrix handler usando i metodi generici 
     */ 
    MatrixHandler& AddTo(MatrixHandler& MH) const;
    
-   /**
+   /*
     Somma la matrice ad un FullMatrixHandler 
     */
    MatrixHandler& AddTo(FullMatrixHandler& MH) const;
    
-   /** 
+   /* 
     Sottrae la matrice da un matrix handler usando i metodi generici 
     */
    MatrixHandler& SubFrom(MatrixHandler& MH) const;
    
-   /** 
+   /* 
     Sottrae la matrice da un FullMatrixHandler 
     */
    MatrixHandler& SubFrom(FullMatrixHandler& MH) const;
-   //@}
+   
 };
             
 /* SparseSubMatrixHandler - end */
@@ -860,7 +860,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
 
 /* VariableSubMatrixHandler - begin */
 
-/**
+/*
  Matrice che puo' diventare via via una sottomatrice piena o una sottomatrice
  sparsa, condividendo la memoria.
  Viene passata agli elementi che, a seconda della loro convenienza, 
@@ -871,16 +871,16 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
 class VariableSubMatrixHandler 
 : public FullSubMatrixHandler, public SparseSubMatrixHandler {
  private:
-   /**
+   /*
     Stato della matrice.
     */
    enum { NULLMATRIX, FULL, SPARSE } eStatus;
    
  public:
-   /**@name Costruttori */
-   //@{
+   /*Costruttori */
    
-   /** 
+   
+   /* 
     Costruttore: riceve gli spazi di lavoro con le loro dimensioni ed 
     inizializza le matrici piena e sparsa.
     @param iIntSize    dimensioni dell'array degli indici
@@ -896,7 +896,7 @@ class VariableSubMatrixHandler
 	NO_OP;
      };
    
-   /** 
+   /* 
     Distruttore banale 
     */
 #if 0
@@ -904,12 +904,12 @@ class VariableSubMatrixHandler
       NO_OP;
    };
 #endif
-   //@}
    
-   /** Metodi di servizio */
-   //@{
    
-   /**
+   /* Metodi di servizio */
+   
+   
+   /*
     Setta la matrice come vuota.
     Di conseguenza non viene assemblata.
     */
@@ -917,7 +917,7 @@ class VariableSubMatrixHandler
       eStatus = NULLMATRIX; 
    };
    
-   /** 
+   /* 
     Setta la matrice come piena.
     Ritorna un riferimento a matrice piena, che puo' essere usato per le 
     normali operazioni di scrittura delle matrici piene.
@@ -927,7 +927,7 @@ class VariableSubMatrixHandler
       return (*(FullSubMatrixHandler*)this);
    };
    
-   /** 
+   /* 
     Setta la matrice come sparsa.
     Ritorna un riferimento a matrice sparsa, che puo' essere usato per le 
     normali operazioni di scrittura delle matrici sparse.
@@ -937,28 +937,28 @@ class VariableSubMatrixHandler
       return (*(SparseSubMatrixHandler*)this);
    };
    
-   /**
+   /*
     Verifica se la matrice e' vuota.
     */
    flag fIsNullMatrix(void) const { 
       return flag(eStatus == NULLMATRIX);
    };
    
-   /**
+   /*
     Verifica se la matrice e' piena.
     */
    flag fIsFull(void) const { 
       return flag(eStatus == FULL);
    };
    
-   /**
+   /*
     Verifica se la matrice e' sparsa.
     */
    flag fIsSparse(void) const { 
       return flag(eStatus == SPARSE); 
    };
 
-   /**
+   /*
     Numero di righe della sottomatrice
    */ 
    integer iGetNumRows(void) const {
@@ -974,7 +974,7 @@ class VariableSubMatrixHandler
      }
    };
 
-   /**
+   /*
     Numero di colonne della sottomatrice
    */ 
    integer iGetNumCols(void) const {
@@ -991,7 +991,7 @@ class VariableSubMatrixHandler
    };
       
 
-   /** 
+   /* 
     Collega una matrice sparsa con della memoria già assegnata 
    */
    void Attach(int iNumEntr, doublereal* pdTmpMat, integer* piTmpIndx) { 
@@ -999,7 +999,7 @@ class VariableSubMatrixHandler
      SparseSubMatrixHandler::Attach(iNumEntr, pdTmpMat, piTmpIndx);
    };
  
-   /** 
+   /* 
     Collega una matrice Full con della memoria già assegnata 
    */
    void Attach(int iNumRows, int iNumCols, doublereal* pdTmpMat, integer* piTmpIndx) { 
@@ -1007,12 +1007,12 @@ class VariableSubMatrixHandler
      FullSubMatrixHandler::Attach(iNumRows, iNumCols, pdTmpMat, piTmpIndx);
    };
 
-   //@}
    
-   /**@name Interazione con le matrici */
-   //@{
+   
+   /*Interazione con le matrici */
+   
       
-   /** 
+   /* 
     Si somma ad una matrice completa con metodi generici.
     */
    MatrixHandler& AddTo(MatrixHandler& MH) const {
@@ -1028,7 +1028,7 @@ class VariableSubMatrixHandler
       }
    };
 
-   /** 
+   /* 
     Si sottrae da una matrice completa con metodi generici.
     */
    MatrixHandler& SubFrom(MatrixHandler& MH) const {
@@ -1043,7 +1043,7 @@ class VariableSubMatrixHandler
 	 return MH;
       }
    };
-   //@}
+   
 };
 
 /* VariableSubMatrixHandler - end */
@@ -1051,48 +1051,48 @@ class VariableSubMatrixHandler
 
 /* SubVectorHandler - begin */
 
-/**
+/*
  Classe virtuale dei sottovettori.
  */
 
 class SubVectorHandler : public VectorHandler {
  public:
    
-   /**@name Costruttori */
-   //@{
+   /*Costruttori */
    
-   /**
+   
+   /*
     Distruttore virtuale.
     */
    virtual ~SubVectorHandler(void) { 
       NO_OP;
    };
-   //@}
    
-   /**@name Metodi di servizio */
-   //@{
+   
+   /*Metodi di servizio */
+   
       
-   /**
+   /*
     Routine di verifica della validita' dell'oggetto.
     Usata per il debug.
     */
    virtual void IsValid(void) const = 0;
-   //@}
    
-   /**@name Operazioni su indici e coefficienti */
-   //@{
+   
+   /*Operazioni su indici e coefficienti */
+   
       
-   /**
+   /*
     Scrive un indice di riga 
     */
    virtual inline flag fPutRowIndex(integer iSubRow, integer iRow) = 0;
    
-   /**
+   /*
     Ottiene un indice di riga
     */
    virtual inline integer iGetRowIndex(integer iSubRow) const = 0;
    
-   /**
+   /*
     Scrive una entry completa.
     @param iSubRow numero della entry (indice del sotto-vettore)
     @param iRow    indice della entry
@@ -1103,20 +1103,20 @@ class SubVectorHandler : public VectorHandler {
       fPutRowIndex(iSubRow, iRow);
       return fPutCoef(iSubRow, dCoef);
    };
-   //@}
    
-   /**@name Interazione con i vettori */
-   //@{
+   
+   /*Interazione con i vettori */
+   
   
-   /** 
+   /* 
     Si somma ad un vettore con metodi generici 
     */
    virtual VectorHandler& AddTo(VectorHandler& VH) const = 0;
-   //@}
+   
 };
 
    
-/**
+/*
  Sottovettore standard, formato da un vettore di reali con associato 
  un vettore di interi che contiene gli indici di ogni coefficiente.
  Per il vettore di reali viene usato un VectorHandler, da cui la classe e' 
@@ -1127,9 +1127,9 @@ class MySubVectorHandler : public SubVectorHandler, public MyVectorHandler {
 	   operator << (std::ostream& out, const SubVectorHandler& v);
    
  protected:
-   /** Puntatore all'array degli indici */   
+   /* Puntatore all'array degli indici */   
    integer* piRow;
-   /** Puntatore alla posizione precedente a piRow.
+   /* Puntatore alla posizione precedente a piRow.
     Usato per rendere piu' efficiente l'accesso, dato che gli indici sono 
     a base 1, in stile FORTRAN
     */
@@ -1137,152 +1137,152 @@ class MySubVectorHandler : public SubVectorHandler, public MyVectorHandler {
    
  protected:
  public:
-   /**@name Costruttori */
-   //@{
+   /*Costruttori */
    
-   /**
+   
+   /*
     Costruttore per memoria posseduta.
     Specifica solo la dimensione dell'array, che deve essere non-nulla.
     La memoria viene allocata e gestita dal VectorHandler.
     */
    MySubVectorHandler(integer iSize);
       
-   /**
+   /*
     Costruttore per memoria in prestito.
     Riceve la dimensione dell'array e i puntatori alla memoria.
     */      
    MySubVectorHandler(integer iSize, integer* piTmpRow, doublereal* pdTmpVec);
    
-   /**
+   /*
     Distruttore.
     */
    virtual ~MySubVectorHandler(void) { 
       Detach();
    };
-   //@}
+   
 
 
-   /** 
+   /* 
     Tutti questi metodi sono richiesti perche' la classe MySubVectorHandler
     dipende due volte da VectorHandler e quindi vi e' un'ambiguita' 
     che va risolta (in realta' solo le funzioni di MyVectorHandler
     sono definite, tutte le altre sono virtuali pure!) 
     */
-   /**@name Metodi di servizio */
-   //@{
+   /*Metodi di servizio */
+   
       
-   /** 
+   /* 
     Puntatore alla base del vettore (deprecato)
     */
    virtual doublereal* pdGetVec(void) const {
       return MyVectorHandler::pdGetVec();
    };
 
-   /**
+   /*
     Dimensioni del vettore 
     */
    virtual integer iGetSize(void) const {
       return MyVectorHandler::iGetSize();
    };
       
-   /**
+   /*
     Ridimensiona il vettore.
     Nota: se il vettore possiede la memoria a cui punta,
     la nuova dimensione puo' eccedere la massima dimensione corrente.
     */
    virtual void Resize(integer iSize);
       
-   /**
+   /*
     Inizializza il vettore con d
     */
    virtual void Reset(doublereal d = 0.) {
       MyVectorHandler::Reset(d);
    };
    
-   /**
+   /*
     Scollega il vettore dalla memoria ad esso associata.
     Se il vettore possiede la memoria, viene delallocata.
     */
    void Detach(void);
    
-   /**
+   /*
     Collega il vettore alla memoria che gli viene passata.
     La memoria a cui il vettore era collegato viene deallocata se
     era posseduta dal vettore.
     */
    void Attach(integer iSize, doublereal* pd, integer* pi, integer iMSize = 0);   
    
-   /**
+   /*
     Verifica la validita' del vettore.
     Usata per debug
     */
    virtual void IsValid(void) const;
-   //@}
+   
 
 
-   /**@name Operazioni sugli indici e sui coefficienti */
-   //@{
+   /*Operazioni sugli indici e sui coefficienti */
+   
       
-   /** 
+   /* 
     Scrive un coefficiente in base al sottoindice.
     */
    virtual flag fPutCoef(integer i, const doublereal& d) {
       return MyVectorHandler::fPutCoef(i, d);
    };
 
-   /** 
+   /* 
     Incrementa un coefficiente in base al sottoindice.
     */
    virtual flag fIncCoef(integer i, const doublereal& d) {
       return MyVectorHandler::fIncCoef(i, d);
    };
 
-   /** 
+   /* 
     Decrementa un coefficiente in base al sottoindice.
     */
    virtual flag fDecCoef(integer i, const doublereal& d) {
       return MyVectorHandler::fDecCoef(i, d);
    };
 
-   /** 
+   /* 
     Ottiene un coefficiente in base al sottoindice.
     */
    virtual const doublereal& dGetCoef(integer i) const {
       return MyVectorHandler::dGetCoef(i);
    };
    
-   /** 
+   /* 
     Scrive un indice di riga in base al sottoindice.
     */
    virtual inline flag fPutRowIndex(integer iSubRow, integer iRow);
       
-   /** 
+   /* 
     Ottiene un indice di riga in base al sottoindice.
     */
    virtual inline integer iGetRowIndex(integer iSubRow) const;
       
-   /** 
+   /* 
     Scrive una entry completa.
     @param iSubRow numero della entry (indice del sotto-vettore)
     @param iRow    indice della entry
     @param dCoef   coefficiente della entry    
     */
    virtual inline flag fPutItem(integer iSubRow, integer iRow, const doublereal& dCoef);
-   //@}
    
-   /**@name Interazione con i vettori */
-   //@{
+   
+   /*Interazione con i vettori */
+   
   
-   /** 
+   /* 
     Si somma ad un vettore con metodi generici 
     */
    virtual VectorHandler& AddTo(VectorHandler& VH) const;
       
-   /** 
+   /* 
     Si somma ad un MyVectorHandler
     */
    virtual VectorHandler& AddTo(MyVectorHandler& VH) const;
-   //@}
+   
 };
 
 inline flag MySubVectorHandler::fPutRowIndex(integer iSubRow, integer iRow) {
@@ -1321,23 +1321,23 @@ inline flag MySubVectorHandler::fPutItem(integer iSubRow, integer iRow,
 }
 
 
-/**@name Operazioni esterne su SubMatrixHandler e su SubVectorHandler */
-//@{
+/*Operazioni esterne su SubMatrixHandler e su SubVectorHandler */
+
    
-/**
+/*
  Operatore per scrittura di SubVectorHandler su ostream.
  Usato principalmente per debug
  */
 extern std::ostream&
 operator << (std::ostream& out, const SubVectorHandler& v);
    
-/**
+/*
  Operatore per scrittura di FullSubMatrixHandler su ostream.
  Usato principalmente per debug
  */
 extern std::ostream&
 operator << (std::ostream& out, const FullSubMatrixHandler& m);
-//@}
+
 
 /* SubVectorHandler - end */
 

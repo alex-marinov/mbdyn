@@ -42,19 +42,19 @@
 #include <withlab.h>
 #include <dofown.h>
 
-/** 
+/* 
  Array dei nomi dei nodi. 
  Usato per output
  @see Node::Type
  */
 extern const char* psNodeNames[];
-/** 
+/* 
  Array delle stringhe di identificazione dei tipi di nodi.
  Usato per input di controllo
  @see Node::Type
  */
 extern const char* psReadControlNodes[];
-/** 
+/* 
  Array delle stringhe di identificazione dei tipi di nodi.
  Usato per input dei nodi
  @see Node::Type
@@ -64,10 +64,10 @@ extern const char* psReadNodesNodes[];
 
 /* Node - begin */
 
-/// Nodi
+// Nodi
 class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
  public:
-   /** Enumerazione dei tipi di nodi */
+   /* Enumerazione dei tipi di nodi */
    enum Type {
       UNKNOWN = -1,
 
@@ -84,10 +84,10 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
    /* Errori: */
    class ErrGeneric {};
    
-   /**@name Costruttori */
-   //@{
+   /* Costruttori */
    
-   /** 
+   
+   /* 
     Costruttore.
     @param uL label
     @param pDO puntatore al DofOwner relativo, gestito da DofOwnerOwner
@@ -98,24 +98,24 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
     */
    Node(unsigned int uL, const DofOwner* pDO, flag fOut);
       
-   /** Distruttore */
+   /* Distruttore */
    virtual ~Node(void);
-   //@}
+   
       
-   /**@name Funzioni di servizio */
-   //@{
+   /* Funzioni di servizio */
+   
 
-   /** Tipo del nodo (usato per debug ecc.) */
+   /* Tipo del nodo (usato per debug ecc.) */
    virtual Node::Type GetNodeType(void) const = 0;
 
-   /** Contributo del nodo al file di restart */
+   /* Contributo del nodo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const = 0;
-   //@}
+   
 
-   /**@name Metodi che operano sui DoF */
-   //@{
+   /* Metodi che operano sui DoF */
+   
       
-   /** 
+   /* 
     Ritorna il numero di DoFs.
     Non usa il DofOwner in quanto viene usata per generale il DofOwner
     stesso (per compatibilita' con gli elementi che generano gradi di 
@@ -123,13 +123,13 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
     */
    virtual inline unsigned int iGetNumDof(void) const = 0;
     
-   /**
+   /*
     Test di validita' di un indice. 
     Nota: gli indici vanno da 1 a iGetNumDofs()
     */
    virtual flag fIsValidIndex(unsigned int i) const;
    
-   /**
+   /*
     Esegue operazioni sui DoF di proprieta' dell'elemento.
     In particolare ritorna il tipo di DoF in base all'indice i.
     Di default i DoF dei nodi sono assunti differenziali.
@@ -140,7 +140,7 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
     */   
    virtual DofOrder::Order SetDof(unsigned int i) const;
 
-   /** 
+   /* 
     Ritorna il primo indice di riga dei DoF del nodo, in base 0.
     Ovvero, l'indice del primo DoF del nodo in un vettore a base zero.
     Per avere gli indici in un vettore a base 1 (stile Fortran),
@@ -149,7 +149,7 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
     */
    virtual integer iGetFirstRowIndex(void) const;
       
-   /** 
+   /* 
     Ritorna gli indici di colonna dei DoF.
     Per la numerazione degli indici vedi iGetFirstRowIndex().
     Tipicamente gli indici di riga e di colonna sono gli stessi,
@@ -157,13 +157,13 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
     */
    virtual integer iGetFirstColIndex(void) const;
    
-   /** 
+   /* 
     Restituisce il valore del DoF iDof.
     Se il nodo e' differenziale, iOrder puo' essere = 1 per avere la derivata
     */
    virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const = 0;
    
-   /**
+   /*
     Setta il valore del DoF iDof a dValue.
     Se il nodo e' differenziale, iOrder puo' essere = 1 
     per operare sulla derivata
@@ -171,12 +171,12 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
    virtual void SetDofValue(const doublereal& dValue,
 			    unsigned int iDof, 
 			    unsigned int iOrder = 0) = 0;
-   //@}
+   
    
       
-   /**@name Metodi legati all'integrazione */
-   //@{
-   /**
+   /* Metodi legati all'integrazione */
+   
+   /*
     Output.  
     Di default non fa nulla per nodi che non generano output
     */
@@ -184,14 +184,14 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
    virtual void Output(OutputHandler& OH,
 		   const VectorHandler& X, const VectorHandler& XP) const;
    
-   /**
+   /*
     Setta i valori iniziali dei DoF.
     Puo' essere usata per altre inizializzazioni prima di 
     iniziare l'integrazione 
     */
    virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
             
-   /**
+   /*
     Elaborazione vettori e dati prima della predizione.
     Per MultiStepIntegrator
     */
@@ -200,20 +200,20 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
 			      VectorHandler& /* XPrev */ ,
 			      VectorHandler& /* XPPrev */ ) const;
    
-   /**
+   /*
     Elaborazione vettori e dati dopo la predizione.
     Per MultiStepIntegrator
     */
    virtual void AfterPredict(VectorHandler& X, VectorHandler& XP) = 0;
 
-   /**
+   /*
     Aggiorna dati in base alla soluzione. 
     Usata per operazioni aggiuntive al semplice aggiornamento additivo,
     effettuato gia' dall'integratore.
     */
    virtual void Update(const VectorHandler& XCurr, 
 		       const VectorHandler& XPrimeCurr) = 0;
-   //@}
+   
 };
 
 /* Node - end */
@@ -221,54 +221,54 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
 
 /* ScalarNode - begin */
 
-/// Nodo Scalare
+// Nodo Scalare
 class ScalarNode : public Node {
  public:
-   /**@name Costruttori */
+   /* Costruttori */
    
-   //@{
-   /** Costruttore */
+   
+   /* Costruttore */
    ScalarNode(unsigned int uL, const DofOwner* pDO, flag fOut);
       
-   /** Distruttore */
+   /* Distruttore */
    virtual ~ScalarNode(void);
-   //@}
+   
 
-   /**@name Funzioni di servizio */
-   //@{
-   /**
+   /* Funzioni di servizio */
+   
+   /*
     Ritorna il numero di DoFs ( == 1).
     Non usa il DofOwner in quanto viene usata per generale il DofOwner stesso 
     (per compatibilita' con gli elementi che generano gradi di 
     liberta' ed in previsione di nodi con un numero variabile di DoF
     */
    virtual inline unsigned int iGetNumDof(void) const;
-   //@}
+   
 
-   /**@name Metodi che operano sui valori del DoF.
+   /* Metodi che operano sui valori del DoF.
     Funzioni che consentono l'accesso diretto ai dati privati.
     sono state definite perche' i nodi scalari sono usati nei
     modi piu' strani e quindi puo' essere necessario l'accesso diretto.
     */
-   //@{
-   /** Setta il valore del DoF */
+   
+   /* Setta il valore del DoF */
    virtual void SetX(const doublereal& d) = 0;
       
-   /** Ottiene il valore del DoF */
+   /* Ottiene il valore del DoF */
    virtual inline const doublereal& dGetX(void) const = 0;
    
-   /** 
+   /* 
     Setta il valore della derivata.
     Definito solo per nodi differenziali 
     */
    virtual void SetXPrime(const doublereal& d) = 0;
       
-   /** 
+   /* 
     Ottiene il valore della derivata.
     Definito solo per nodi differenziali 
     */
    virtual inline const doublereal& dGetXPrime(void) const = 0;
-   //@}
+   
 };
 
 
@@ -282,18 +282,18 @@ inline unsigned int ScalarNode::iGetNumDof(void) const
 
 /* ScalarDifferentialNode - begin */
 
-/// Nodo scalare differenziale
+// Nodo scalare differenziale
 class ScalarDifferentialNode : public ScalarNode {
  protected:
-   /** Valode del DoF */
+   /* Valode del DoF */
    doublereal dX;
-   /** Valore della derivata del DoF */
+   /* Valore della derivata del DoF */
    doublereal dXP;
    
  public:
-   /**@name Costruttori */
-   //@{
-   /** 
+   /* Costruttori */
+   
+   /* 
     Costruttore.
     @param uL label
     @param pDO DofOwner
@@ -304,29 +304,29 @@ class ScalarDifferentialNode : public ScalarNode {
    ScalarDifferentialNode(unsigned int uL, const DofOwner* pDO, 
 			  const doublereal& dx, const doublereal& dxp, 
 			  flag fOut);
-   /** Distruttore */
+   /* Distruttore */
    virtual ~ScalarDifferentialNode(void);
-   //@}
+   
 
-   /**@name Metodi di servizio */
-   //@{
-   /** 
+   /* Metodi di servizio */
+   
+   /* 
     Esegue operazioni sui DoF di proprieta' dell'elemento.
     In particolare ritorna il tipo di DoF in base all'indice i.
     */
    virtual DofOrder::Order SetDof(unsigned int i) const;
-   //@}
    
-   /** Metodi sui DoF */
-   //@{
+   
+   /* Metodi sui DoF */
+   
       
-   /** 
+   /* 
     Restituisce il valore del DoF iDof.
     Se differenziale, iOrder puo' essere = 1 per ottenere la derivata
     */
    virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
 
-   /**
+   /*
     Setta il valore del DoF iDof a dValue.
     Se differenziale, iOrder puo' essere = 1 per ottenere la derivata
     */
@@ -335,26 +335,26 @@ class ScalarDifferentialNode : public ScalarNode {
 			    unsigned int iOrder = 0);
    
    
-   /**
+   /*
     Funzione che consente l'accesso diretto ai dati privati.
     Sono state definite perche' i nodi scalari sono usati nei
     modi piu' strani e quindi puo' essere necessario l'accesso diretto 
     */
    virtual void SetX(const doublereal& d);
    
-   /** Ottiene il valore del DoF. Vedi SetX() */
+   /* Ottiene il valore del DoF. Vedi SetX() */
    virtual inline const doublereal& dGetX(void) const;
    
-   /** Setta la derivata del DoF. Vedi SetX() */
+   /* Setta la derivata del DoF. Vedi SetX() */
    virtual void SetXPrime(const doublereal& d);
    
-   /** Ottiene la derivata del DoF. Vedi GetX() */
+   /* Ottiene la derivata del DoF. Vedi GetX() */
    virtual inline const doublereal& dGetXPrime(void) const;
 
-   /** Consente di settare il valore iniziale nel vettore della soluzione*/
+   /* Consente di settare il valore iniziale nel vettore della soluzione*/
    virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
       
-   //@}
+   
 };
 
 
@@ -373,44 +373,44 @@ inline const doublereal& ScalarDifferentialNode::dGetXPrime(void) const
 
 /* ScalarAlgebraicNode - begin */
 
-/// Nodo scalare algebrico. Non ha derivata.
+// Nodo scalare algebrico. Non ha derivata.
 class ScalarAlgebraicNode : public ScalarNode {
  protected:
-   /** Valore del DoF */
+   /* Valore del DoF */
    doublereal dX;
    
  public:
-   /**@name Costruttori */
-   //@{
+   /* Costruttori */
    
-   /** Costruttore */
+   
+   /* Costruttore */
    ScalarAlgebraicNode(unsigned int uL, const DofOwner* pDO, 
 		       doublereal dx, flag fOut);
-   /** Distruttore */
+   /* Distruttore */
    virtual ~ScalarAlgebraicNode(void);
-   //@}
+   
 
-   /**@name Metodi di servizio */
-   //@{
+   /* Metodi di servizio */
+   
       
-   /**
+   /*
     Esegue operazioni sui DoF di proprieta' dell'elemento.
     In particolare ritorna il tipo di DoF in base all'indice i. 
     */
    virtual DofOrder::Order SetDof(unsigned int i) const;   
-   //@}
    
    
-   /**@name Metodi che operano sul valore del DoF */
-   //@{
+   
+   /* Metodi che operano sul valore del DoF */
+   
         
-   /** 
+   /* 
     Restituisce il valore del DoF iDof.
     Se differenziale, iOrder puo' essere = 1 per ottenere la derivata 
     */
    virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
    
-   /**
+   /*
     Setta il valore del DoF iDof a dValue.
     Se differenziale, iOrder puo' essere = 1 per operare sulla derivata 
     */
@@ -418,26 +418,26 @@ class ScalarAlgebraicNode : public ScalarNode {
 			    unsigned int iDof, 
 			    unsigned int iOrder = 0);
       
-   /** 
+   /* 
     Funzione che consente l'accesso diretto ai dati privati.
     Sono state definite perche' i nodi astratti sono usati nei
     modi piu' strani e quindi puo' essere necessario l'accesso diretto
     */
    virtual void SetX(const doublereal& d);
    
-   /** Ottiene il valore del DoF. Vedi SetX() */
+   /* Ottiene il valore del DoF. Vedi SetX() */
    virtual inline const doublereal& dGetX(void) const;
    
-   /** Non definito per nodi algebrici */
+   /* Non definito per nodi algebrici */
    virtual void SetXPrime(const doublereal& d);
    
-   /** Non definito per nodi algebrici */
+   /* Non definito per nodi algebrici */
    virtual inline const doublereal& dGetXPrime(void) const;
       
-   /** Consente di settare il valore iniziale nel vettore della soluzione*/
+   /* Consente di settare il valore iniziale nel vettore della soluzione*/
    virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
       
-   //@}
+   
 };
 
 
@@ -461,7 +461,7 @@ inline const doublereal& ScalarAlgebraicNode::dGetXPrime(void) const
 
 /* ParameterNode - begin */
 
-/** Parametri.
+/* Parametri.
  I nodi di tipo parametro sono derivati dai nodi scalari algebrici,
  ma non sono veri nodi. In realta' sono entita' che possiedono un valore,
  ma non generano DoFs ed equazioni. Sono usati per consentire di dare in
@@ -471,47 +471,47 @@ inline const doublereal& ScalarAlgebraicNode::dGetXPrime(void) const
  */
 class ParameterNode : public ScalarAlgebraicNode {   
  public:
-   /**@name Costruttori */
-   //@{
-   /** Costruttore */
+   /* Costruttori */
+   
+   /* Costruttore */
    ParameterNode(unsigned int uL, const DofOwner* pDO,
 		 doublereal dx, flag fOut);
-   /** Distruttore */
+   /* Distruttore */
    virtual ~ParameterNode(void);
-   //@}
+   
      
-   /**@name Metodi di servizio */
-   //@{
-   /** Tipo del nodo. Usato solo per debug ecc. */
+   /* Metodi di servizio */
+   
+   /* Tipo del nodo. Usato solo per debug ecc. */
    virtual Node::Type GetNodeType(void) const;
    
-   /** Contributo del nodo al file di restart */
+   /* Contributo del nodo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
          
-   /** 
+   /* 
     Ritorna il numero di dofs.
     non usa il DofOwner in quanto viene usato per generale il DofOwner stesso.
     Ritorna 0 perche' il parametro non ha DoFs
     */
    virtual inline unsigned int iGetNumDof(void) const;
       
-   /** 
+   /* 
     Verifica di validita' di un indice.
     Deve essere 0 perche' il parametro non ha DoFs 
     */
    virtual flag fIsValidIndex(unsigned int i) const;
-   //@}
+   
       
-   /**@name Metodi che agiscono sul valore */
-   //@{
-   /** 
+   /* Metodi che agiscono sul valore */
+   
+   /* 
     Restituisce il valore del DoF iDof.
     Se differenziale, iOrder puo' essere = 1 per la derivata.
     Il parametro e' algebrico.
     */
    virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
    
-   /**
+   /*
     Setta il valore del DoF iDof a dValue.
     Se differenziale, iOrder puo' essere = 1 per la derivata.
     Il parametro e' algebrico.
@@ -519,24 +519,24 @@ class ParameterNode : public ScalarAlgebraicNode {
    virtual void SetDofValue(const doublereal& dValue, 
 			    unsigned int iDof, 
 			    unsigned int iOrder = 0);
-   //@}
+   
       
-   /**@name Metodi relativi al metodo di intergazione */
-   //@{
-   /** Output di default per nodi di cui non si desidera output */
+   /* Metodi relativi al metodo di intergazione */
+   
+   /* Output di default per nodi di cui non si desidera output */
    virtual void Output(OutputHandler& OH) const;
    
-   /** Inizializzazione del valore */
+   /* Inizializzazione del valore */
    void SetValue(VectorHandler& X, VectorHandler& XP) const;
    
-   /** Aggiorna dati in base alla soluzione */
+   /* Aggiorna dati in base alla soluzione */
    virtual void Update(const VectorHandler& XCurr,
 		       const VectorHandler& XPrimeCurr);
    
-   /** Elaborazione dati dopo la predizione */
+   /* Elaborazione dati dopo la predizione */
    virtual void AfterPredict(VectorHandler& X, 
 			     VectorHandler& XP);
-   //@}
+   
 };
 
 
@@ -550,92 +550,92 @@ inline unsigned int ParameterNode::iGetNumDof(void) const
 
 /* Node2Scalar - begin */
 
-/**
+/*
  Struttura di conversione da nodo generico a nodo scalare.
  Questa struttura consente di usare un grado di liberta' di un nodo generico 
  come se fosse un nodo scalare
  */
 struct NodeDof {
-   /** Label del nodo */
+   /* Label del nodo */
    unsigned int uNode;
-   /** DoF del nodo */
+   /* DoF del nodo */
    int iDofNumber;     /* Dof of the node */
-   /** Puntatore al nodo */
+   /* Puntatore al nodo */
    Node* pNode;        /* Pointer to the node */
 
-   /**@name Costruttori */
-   //@{
-   /** Costruttore di default */
+   /* Costruttori */
+   
+   /* Costruttore di default */
    NodeDof(void);
-   /** Costruttore */
+   /* Costruttore */
    NodeDof(unsigned int u, int id, Node* p);
-   /** Distruttore */
+   /* Distruttore */
    virtual ~NodeDof(void);
-   //@}
+   
 };
 
-/** Classe di conversione da nodo generico a nodo scalare. 
+/* Classe di conversione da nodo generico a nodo scalare. 
  @see NodeDof */
 class Node2Scalar : public ScalarNode {
  protected:
-   /** Struttura che punta ad un DoF di un nodo */
+   /* Struttura che punta ad un DoF di un nodo */
    NodeDof ND;
    
  public:
-   /**@name Costruttori */
-   //@{
-   /** Costruttore */
+   /* Costruttori */
+   
+   /* Costruttore */
    Node2Scalar(const NodeDof& nd);
-   /** Distruttore */
+   /* Distruttore */
    virtual ~Node2Scalar(void);
-   //@}
+   
 
-   /** Metodi di servizio */
-   //@{
-   /** Tipo del nodo. Uusato per debug ecc. */
+   /* Metodi di servizio */
+   
+   /* Tipo del nodo. Uusato per debug ecc. */
    virtual Node::Type GetNodeType(void) const;
 
-   /** Contributo del nodo al file di restart */
+   /* Contributo del nodo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
    
-   /** 
+   /* 
     Ritorna il numero di dofs.
     Non usa il DofOwner in quanto viene usata per generare il DofOwner stesso 
     */
    virtual inline unsigned int iGetNumDof(void) const;
       
-   /** Verifica la validita' dell'indice i */
+   /* Verifica la validita' dell'indice i */
    virtual flag fIsValidIndex(unsigned int i) const;
-   //@}
    
-   /**@name Metodi che operano sui valori del DoF */
-   //@{
-   /** 
+   
+   /* Metodi che operano sui valori del DoF */
+   
+   /* 
     Esegue operazioni sui DoF di proprieta' dell'elemento.
     In particolare ritorna il tipo di DoF in base all'indice i.
     */
    virtual DofOrder::Order SetDof(unsigned int i) const;
 
-   /** 
+   /* 
     Ritorna gli indici di riga. 
     Tipicamente sono gli stessi di quelli di colonna 
     */
    virtual integer iGetFirstRowIndex(void) const;
       
-   /** 
+   /* 
     Ritorna gli indici di colonna.
     Tipicamente sono gli stessi di quelli di riga. 
     @see iGetFirstRowIndex()
     */
    virtual integer iGetFirstColIndex(void) const;
    
-   /**
+   /*
     Restituisce il valore del DoF iDof.
     Se differenziale, iOrder puo' essere = 1 per ottenere la derivata 
     */
    virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
    
-   /** 
+   /* 
     Setta il valore del DoF iDof a dValue.
     Se differenziale, iOrder puo' essere = 1 per operare sulla derivata 
     */
@@ -643,44 +643,44 @@ class Node2Scalar : public ScalarNode {
 			    unsigned int iDof,
 			    unsigned int iOrder = 0);
       
-   /**
+   /*
     Funzione che consente l'accesso diretto ai dati privati.
     Sono state definite perche' i nodi astratti sono usati nei
     modi piu' strani e quindi puo' essere necessario l'accesso diretto 
     */
    virtual void SetX(const doublereal& d);
    
-   /** Ottiene il valore del DoF */
+   /* Ottiene il valore del DoF */
    virtual inline const doublereal& dGetX(void) const;
    
-   /** Setta il valore della derivata del DoF */
+   /* Setta il valore della derivata del DoF */
    virtual void SetXPrime(const doublereal& d);
    
-   /** Setta il valore della derivata del DoF */
+   /* Setta il valore della derivata del DoF */
    virtual inline const doublereal& dGetXPrime(void) const;
-   //@}
+   
       
-   /** Metodi relativi al metodo di integrazione */
-   //@{
-   /** Output di default per nodi di cui non si desidera output */
+   /* Metodi relativi al metodo di integrazione */
+   
+   /* Output di default per nodi di cui non si desidera output */
    virtual void Output(OutputHandler& /* OH */ ) const;
    
-   /** Inizializza i DoF del nodo */
+   /* Inizializza i DoF del nodo */
    void SetValue(VectorHandler& X, VectorHandler& XP) const;
    
-   /** Aggiorna dati in base alla soluzione */
+   /* Aggiorna dati in base alla soluzione */
    virtual void Update(const VectorHandler& XCurr,
 		       const VectorHandler& XPrimeCurr);
 
-   /** Elaborazione vettori e dati prima della predizione */
+   /* Elaborazione vettori e dati prima della predizione */
    virtual void BeforePredict(VectorHandler& X,
       			      VectorHandler& XP,
 			      VectorHandler& XPrev,
 			      VectorHandler& XPPrev) const;
    
-   /** Elaborazione vettori e dati dopo la predizione */
+   /* Elaborazione vettori e dati dopo la predizione */
    virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
-   //@}
+   
 };
 
 
@@ -706,32 +706,32 @@ inline const doublereal& Node2Scalar::dGetXPrime(void) const
 
 /* ScalarDof - begin */
 
-/** 
+/* 
  Struttura che trasforma un nodo scalare in un grado di liberta' scalare.
  In pratica consente di accedere ad un DoF scalare o alla derivata di un
  nodo scalare in modo trasparente
  */
 struct ScalarDof {
-   /** Puntatore al nodo scalare */
+   /* Puntatore al nodo scalare */
    ScalarNode* pNode;
-   /** Ordine del grado di liberta' */
+   /* Ordine del grado di liberta' */
    int iOrder;
    
-   /**@name Costruttori */
-   //@{
-   /** Costruttore di default */
+   /* Costruttori */
+   
+   /* Costruttore di default */
    ScalarDof(void);
-   /** Costruttore */
+   /* Costruttore */
    ScalarDof(ScalarNode* p, int i);
-   /** Distruttore */   
+   /* Distruttore */   
    ~ScalarDof(void);
-   //@}
+   
       
-   /**@name Funzioni che operano sui valori del DoF */
-   //@{
-   /** Ottiene il valore del DoF */
+   /* Funzioni che operano sui valori del DoF */
+   
+   /* Ottiene il valore del DoF */
    doublereal dGetValue(void) const;
-   //@}
+   
 };
 
 /* ScalarDof - end */
