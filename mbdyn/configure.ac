@@ -797,7 +797,7 @@ if test "$ol_with_umfpack" != "no" ; then
 			AC_MSG_RESULT([no])
 		fi
 
-		try_umfpack_LIBS="$try_umfpack_LIBS -lumfpack $BLAS_LIBS"
+		try_umfpack_LIBS="-lumfpack $try_umfpack_LIBS $BLAS_LIBS"
 		AC_MSG_CHECKING([for umfpack library])
 		LIBS="$try_umfpack_LIBS $save_LIBS"
 		
