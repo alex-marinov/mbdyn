@@ -97,6 +97,17 @@ public:
 		return pdRaw;
 	};
 
+	virtual inline doublereal *pdGetVec(integer iCol) const {
+#ifdef DEBUG
+		ASSERT(pdRaw != NULL);
+		ASSERT(ppdColsm1 != NULL);
+		ASSERT(iCol > 0 && iCol <= iNumCols);
+		ASSERT(ppdColsm1[iCol] != NULL);
+#endif /* DEBUG */
+
+		return &ppdColsm1[iCol][1];
+	};
+
 	/* Inserisce un coefficiente */
 	virtual inline void
 	PutCoef(integer iRow, integer iCol, const doublereal& dCoef) {
