@@ -74,7 +74,8 @@ do_conm2(struct n2m_buffer *b, FILE **f, struct n2m_buffer *form)
 	X3 = get_double(b, NASTRAN_SEVENTH, NULL);
 	
 	fprintf(f[NASTRAN_FILE_OUT_ELEM],
-		"#body: /* CONM2 = */ %8d, /* GRID = */ %8d,\n", EID, G);
+		"%sbody: /* CONM2 = */ %8d, /* GRID = */ %8d,\n",
+		(make_rigid_bodies ? "" : "#"), EID, G);
 	fprintf(f[NASTRAN_FILE_OUT_ELEM],
 		"\t%14.7e, # CONM2=%d, GRID=%d\n", M, EID, G);
 	if (CID == 0 || CID == -1) {

@@ -40,11 +40,12 @@ enum {
 	NASTRAN_CARD_CONM2,
 	NASTRAN_CARD_CORD2R,
 
-	LAST_CARD		/* always goes last */
+	NASTRAN_CARD_LAST		/* always goes last */
 };
 
 enum {
 	NASTRAN_FILE_IN = 0,
+	NASTRAN_FILE_OUT_CTL,
 	NASTRAN_FILE_OUT_REF,
 	NASTRAN_FILE_OUT_NODE,
 	NASTRAN_FILE_OUT_ELEM,
@@ -65,6 +66,13 @@ struct n2m_buffer {
 	char buf[N_BUFFER_SIZE];
 	int len;
 };
+
+struct n2m_card_data {
+	int num;
+};
+
+/* global data */
+extern int make_rigid_bodies;
 
 /* helpers */
 extern int get_buf(FILE *fin, struct n2m_buffer *b);

@@ -30,11 +30,15 @@
 
 #include <n2m.h>
 
+int make_rigid_bodies = 0;
+
 int
 main(int argc, char *const argv[])
 {
 	FILE *f[NASTRAN_FILE_LAST];
 	struct n2m_buffer b;
+	struct n2m_card_data cards[NASTRAN_CARD_LAST];
+	int i;
 	
 	struct n2m_buffer form;		/* per continuaz. */
 	double coords[6];		/* per cord2r */
@@ -42,15 +46,22 @@ main(int argc, char *const argv[])
 	int type = -1;			/* tipo di card */
 	int cont = 0;			/* n. riga continuazione */
 
+	/* Initializes file handlers */
 	f[NASTRAN_FILE_IN] = stdin;
+	f[NASTRAN_FILE_OUT_CTL] = stdout;
 	f[NASTRAN_FILE_OUT_REF] = stdout;
 	f[NASTRAN_FILE_OUT_NODE] = stdout;
 	f[NASTRAN_FILE_OUT_ELEM] = stdout;
 	f[NASTRAN_FILE_OUT_ERR] = stderr;
 
+	for (i = 0; i < NASTRAN_CARD_LAST; i++) {
+		cards[i].num = 0;
+	}
+
+	/* Command-line parsing */
 #ifdef HAVE_GETOPT
 	while (1) {
-		char optstring[] = "e:i:n:o:r:";
+		char optstring[] = "bc:e:i:n:o:r:";
 		int opt;
 
 		opt = getopt(argc, argv, optstring);
@@ -60,6 +71,18 @@ main(int argc, char *const argv[])
 		}
 
 		switch (opt) {
+		case 'b':
+			make_rigid_bodies++;
+			break;
+		case 'c':
+			f[NASTRAN_FILE_OUT_CTL] = fopen(optarg, "w");
+			if (f[NASTRAN_FILE_OUT_CTL] == NULL) {
+				fprintf(f[NASTRAN_FILE_OUT_ERR],
+					"### unable to open file '%s'\n",
+					optarg);
+				exit(EXIT_FAILURE);
+			}
+			break;
 		case 'e':
 			f[NASTRAN_FILE_OUT_ELEM] = fopen(optarg, "w");
 			if (f[NASTRAN_FILE_OUT_ELEM] == NULL) {
@@ -93,6 +116,14 @@ main(int argc, char *const argv[])
 
 			l = strlen(optarg);
 			strncpy(buf, optarg, sizeof(buf));
+
+			strcpy(buf+l, ".ctl");
+			f[NASTRAN_FILE_OUT_CTL] = fopen(buf, "w");
+			if (f[NASTRAN_FILE_OUT_CTL] == NULL) {
+				fprintf(f[NASTRAN_FILE_OUT_ERR],
+					"### unable to open file '%s'\n", buf);
+				exit(EXIT_FAILURE);
+			}
 
 			strcpy(buf+l, ".elm");
 			f[NASTRAN_FILE_OUT_ELEM] = fopen(buf, "w");
@@ -133,6 +164,8 @@ main(int argc, char *const argv[])
 	argc -= optind-1;
 	argv += optind-1;
 #endif /* HAVE_GETOPT */
+
+	/* Extra command-line parsing */
 	if (argc > 1) {
 		if (f[NASTRAN_FILE_IN] != stdin) {
 			fprintf(f[NASTRAN_FILE_OUT_ERR],
@@ -148,6 +181,7 @@ main(int argc, char *const argv[])
 		}
 	}
 
+	/* Main cycle */
 	while (get_buf(f[NASTRAN_FILE_IN], &b)) {
 		if (cont > 0) {
 			int def = 0;
@@ -187,7 +221,20 @@ main(int argc, char *const argv[])
 			type = NASTRAN_CARD_GRID;
 			do_grid(&b, f);
 		}
+
+		cards[type].num++;
 	}
+
+	fprintf(f[NASTRAN_FILE_OUT_CTL],
+		"\t#references: \t\t%8d; # CORD2R\n",
+		cards[NASTRAN_CARD_CORD2R].num);
+	fprintf(f[NASTRAN_FILE_OUT_CTL],
+		"\tstructural nodes: \t%8d; # GRID\n",
+		cards[NASTRAN_CARD_GRID].num);
+	fprintf(f[NASTRAN_FILE_OUT_CTL],
+		"\t%srigid bodies: \t\t%8d; # CONM2\n",
+		(make_rigid_bodies ? "" : "#"),
+		cards[NASTRAN_CARD_CONM2].num);
 
 	return 0;
 }
