@@ -10,7 +10,7 @@ A. Configuration:
 	- eliminate horrible blank lines in '--with-*'
 	- check the 'getopt' stuff in program, utils and contrib
 	- audit all the suite for not-so-GNU systems
-	- add test for crypt
+	- add test for crypt and put auth code in ifdefs & --with
 	- redesign configure.in for meschach (there's a conflict
 		when checking for u_int and so)
 	- add test for pow_dd stuff (might be needed by fortran code)
@@ -34,6 +34,7 @@ B. Package:
 C. Libraries:
 
 	- add UMFPACK3 sparse matrix library
+	- plot output in case of 'abort after: input;'
 
 
 
