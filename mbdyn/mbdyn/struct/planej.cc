@@ -1006,12 +1006,11 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
        
        return v(3);
     }
-      
-    default:
-      silent_cerr("PlaneHingeJoint(" << GetLabel() << "): "
-	      "illegal private data " << i << std::endl);
-      throw ErrGeneric();
    }
+      
+   silent_cerr("PlaneHingeJoint(" << GetLabel() << "): "
+	      "illegal private data " << i << std::endl);
+   throw ErrGeneric();
 }
 
 /* PlaneHingeJoint - end */
@@ -1672,12 +1671,11 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
        
        return v(3);
     }
-      
-    default:
-      silent_cerr("PlaneRotationJoint(" << GetLabel() << "): "
-	      "illegal private data " << i << std::endl);
-      throw ErrGeneric();
    }
+      
+   silent_cerr("PlaneRotationJoint(" << GetLabel() << "): "
+	   "illegal private data " << i << std::endl);
+   throw ErrGeneric();
 }
 
 /* PlaneRotationJoint - end */
@@ -2668,9 +2666,10 @@ AxialRotationJoint::dGetPrivData(unsigned int i) const
       
 	case 8:
 		return M.dGet(3);
-      
 	}
 
+	silent_cerr("AxialRotationJoint(" << GetLabel() << "): "
+		"illegal private data " << i << std::endl);
 	throw ErrGeneric();
 }
 
@@ -3240,12 +3239,11 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
        
        return v(3);
     }
-      
-    default:
-      silent_cerr("PlanePinJoint(" << GetLabel() << "): "
-	      "illegal private data " << i << std::endl);
-      throw ErrGeneric();
    }
+      
+   silent_cerr("PlanePinJoint(" << GetLabel() << "): "
+	   "illegal private data " << i << std::endl);
+   throw ErrGeneric();
 }
 
 /* PlanePinJoint - end */
