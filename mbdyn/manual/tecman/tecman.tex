@@ -69,16 +69,110 @@ Version
 \newpage
 
 \chapter{Introduction}
-This paper describes the format of the input data for MBDyn: 
-Multi-body Analysis program.
-It should be considered a syntax more than a format, since the rules of the
-input allow a lot of freedom in the file format. 
+This document describes details about the formulation MBDyn:
+Multi-Body Dynamics relies on.
 
 \chapter{Data Structure}
 
 \chapter{Constraints}
 
-\section{Flexible Constraints}
+\section{Algebraic Constraints}
+
+\subsection{Distance Joint}
+
+\subsubsection{Distance Joint Without Offsets}
+Definitions:
+\begin{displaymath}
+	v = \frac{1}{d}\plbr{x_2 - x_1}
+\end{displaymath}
+Limitations:
+\begin{displaymath}
+	d > 0
+\end{displaymath}
+Constraint equation 
+\begin{displaymath}
+	d \sqrt{v^T v} = d
+\end{displaymath}
+Forces:
+\begin{eqnarray*}
+	F_1 & = & v \alpha \\
+	F_2 & = & -v \alpha
+\end{eqnarray*}
+Linearization:
+\begin{displaymath}
+	\sqbr{\matr{ccc}{
+		\frac{\alpha}{d}I & -\frac{\alpha}{d}I & -v \\
+		-\frac{\alpha}{d}I & \frac{\alpha}{d}I & v \\
+		-v^T & v^T & 0
+	}}\cubr{\cvvect{
+		\Delta{x_1} \\
+		\Delta{x_2} \\
+		\Delta{\alpha}
+	}} = \cubr{\cvvect{
+		v \alpha \\
+		-v \alpha \\
+		d\plbr{1 - \sqrt{v^T v}}
+	}}
+\end{displaymath}
+
+\subsubsection{Distance Joint With Offsets}
+Definitions:
+\begin{displaymath}
+	v = \frac{1}{d}\plbr{x_2 + f_2 - x_1 - f_1}
+\end{displaymath}
+Limitations:
+\begin{displaymath}
+	d > 0
+\end{displaymath}
+Constraint equation 
+\begin{displaymath}
+	d \sqrt{v^T v} = d
+\end{displaymath}
+Forces:
+\begin{eqnarray*}
+	F_1 & = & v \alpha \\
+	M_1 & = & f_1 \times v \alpha \\
+	F_2 & = & -v \alpha \\
+	M_2 & = & -f_2 \times v \alpha
+\end{eqnarray*}
+Linearization:
+\begin{displaymath}
+	\sqbr{\matr{ccccc}{
+		\frac{\alpha}{d}I & -\frac{\alpha}{d}f_1\times{} &
+			-\frac{\alpha}{d}I & \frac{\alpha}{d}f_2\times{} & -v \\
+		\frac{\alpha}{d}f_1\times{} & 
+			-\frac{\alpha}{d}\plbr{f_1 + v}\times{f_1\times{}} &
+			-\frac{\alpha}{d}f_1\times{} & 
+			\frac{\alpha}{d}f_1\times{f_2\times{}} & 
+			-f_1\times{v} \\
+		-\frac{\alpha}{d}I & \frac{\alpha}{d}f_1\times{} &
+			\frac{\alpha}{d}I & -\frac{\alpha}{d}f_2\times{} & v \\
+		-\frac{\alpha}{d}f_2\times{} &
+			\frac{\alpha}{d}f_2\times{f_1\times{}} &
+			\frac{\alpha}{d}f_2\times{} &
+			- \frac{\alpha}{d}\plbr{f_2 - v}\times{f_2\times{}} &
+			f_2\times{v} \\
+		-v^T & - \plbr{f_1\times{v}}^T & 
+			v^T & \plbr{f_2\times{v}}^T & 0
+	}}\cubr{\cvvect{
+		\Delta{x_1} \\
+		\Delta{g_1} \\
+		\Delta{x_2} \\
+		\Delta{g_2} \\
+		\Delta{\alpha}
+	}}
+\end{displaymath}
+\begin{displaymath}
+	\mbox{\hspace{100mm}} = \cubr{\cvvect{
+		v \alpha \\
+		f_1\times{v}\alpha \\
+		-v \alpha \\
+		-f_2\times{v}\alpha \\
+		d\plbr{1 - \sqrt{v^T v}}
+	}}
+\end{displaymath}
+
+\section{Deformable Constraints}
 
 \subsection{Deformable Hinge}
 \emph{Author: Marco Morandini} \verb;<morandini@aero.polimi.it>;
@@ -89,7 +183,7 @@ input allow a lot of freedom in the file format.
 \bibliography{mybib}
 
 
-
+\pagebreak
 \noindent
 Pierangelo Masarati \\
 Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano \\
