@@ -13,6 +13,7 @@ A. Configuration:
 	- test for '_' appended to F77 symbols (recent autoconf does that)
 	- audit all the suite for not-so-GNU systems
 	- add test for pow_dd stuff (might be needed by fortran code)
+	- add test for crypt or conditionally compile auth stuff
 
 
 
