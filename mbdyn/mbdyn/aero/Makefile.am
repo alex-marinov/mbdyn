@@ -29,11 +29,6 @@ rotor.h
 libaero_la_LIBADD = @LIBS@
 libaero_la_LDFLAGS = -static
 
-noinst_PROGRAMS = testc81
-testc81_SOURCES = testc81.cc
-testc81_LDADD = libaero.la \
-../../libraries/libmbutil/libmbutil.la
-
 INCLUDES = \
 -I../../libraries/libmbutil \
 -I../../libraries/libmbmath \

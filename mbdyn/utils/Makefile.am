@@ -5,6 +5,7 @@ include $(top_srcdir)/build/top.mk
 bin_PROGRAMS = \
 autopilot \
 c81merge \
+c81test \
 cl \
 crypt \
 dae-intg \
@@ -40,6 +41,7 @@ MYLIBS = \
 
 autopilot_SOURCES = autopilot.c
 c81merge_SOURCES = c81merge.cc
+c81test_SOURCES = c81test.cc
 crypt_SOURCES = crypt.c
 cl_SOURCES = cl.cc
 dae_intg_SOURCES = dae-intg.cc dae-intg.h
@@ -59,6 +61,7 @@ sockdrive_SOURCES = sockdrive.c
 vec2rot_SOURCES = vec2rot.cc
 
 c81merge_CPPFLAGS = -I../mbdyn/aero -I../mbdyn/base
+c81test_CPPFLAGS = -I../mbdyn/aero -I../mbdyn/base
 
 autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@
 # need to fool libtool in getting libbase linked twice ;)
@@ -67,7 +70,10 @@ c81merge_LDADD = \
 ../mbdyn/base/libbase.la \
 ../mbdyn/aero/libaero.la \
 ../mbdyn/../mbdyn/base/libbase.la \
-$(MYLIBS) @SECURITY_LIBS@
+$(MYLIBS)
+c81test_LDADD = ../mbdyn/aero/libaero.la \
+../libraries/libmbutil/libmbutil.la \
+$(MYLIBS)
 crypt_LDADD = $(MYLIBS) @SECURITY_LIBS@
 cl_LDADD = $(MYLIBS)
 dae_intg_LDADD = $(MYLIBS)
@@ -94,3 +100,4 @@ INCLUDES = \
 	$(CXXLINK) -shared -o $@ $<
 
 include $(top_srcdir)/build/bot.mk
+
