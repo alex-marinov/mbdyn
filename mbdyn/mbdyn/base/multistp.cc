@@ -818,16 +818,20 @@ MultiStepIntegrator::Run(void)
 		MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
-#ifdef USE_UMFPACK
       		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
-	 		std::cout << "Jacobian:" << std::endl;
+#ifdef USE_UMFPACK
 			if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
-				std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
-			} else {
-				std::cout << *(pSM->pMatHdl());
-	 		}
-      		}
 #endif /* USE_UMFPACK */
+				std::cout << "Warning, Jacobian output "
+					"avaliable only with umfpack solver" 
+					<< std::endl;
+#ifdef USE_UMFPACK
+			} else {
+	 			std::cout << "Jacobian:" << std::endl
+					<< *(pSM->pMatHdl());
+	 		}
+#endif /* USE_UMFPACK */
+      		}
       		pSM->Solve(dDerivativesCoef);
       
 #ifdef DEBUG
@@ -1035,16 +1039,21 @@ EndOfDerivatives:
 			MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
-#ifdef USE_UMFPACK
 	      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
-		 		std::cout << "Jacobian:" << std::endl;
+#ifdef USE_UMFPACK
 				if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
-					std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
-				} else {
-					std::cout << *(pSM->pMatHdl());
-		 		}
-      			}
 #endif /* USE_UMFPACK */
+					std::cout << "Warning, Jacobian output "
+						"avaliable only "
+						"with umfpack solver"
+						<< std::endl;
+#ifdef USE_UMFPACK
+				} else {
+			 		std::cout << "Jacobian:" << std::endl
+						<< *(pSM->pMatHdl());
+		 		}
+#endif /* USE_UMFPACK */
+      			}
 	 		pSM->Solve(db0Differential);
 	 
 #ifdef DEBUG
@@ -1239,16 +1248,23 @@ EndOfFirstFictitiousStep:
 				MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
-#ifdef USE_UMFPACK
 		      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
-			 		std::cout << "Jacobian:" << std::endl;
+#ifdef USE_UMFPACK
 					if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
-						std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
-					} else {
-						std::cout << *(pSM->pMatHdl());
-			 		}
-      				}
 #endif /* USE_UMFPACK */
+						std::cout << "Warning, "
+							"Jacobian output "
+							"avaliable only "
+							"with umfpack solver"
+							<< std::endl;
+#ifdef USE_UMFPACK
+					} else {
+				 		std::cout << "Jacobian:"
+							<< std::endl
+							<< *(pSM->pMatHdl());
+			 		}
+#endif /* USE_UMFPACK */
+      				}
 	    			pSM->Solve(db0Differential);
 	    
 #ifdef DEBUG
@@ -1523,16 +1539,20 @@ IfFirstStepIsToBeRepeated:
 #endif /* USE_MPI */
       		}
 
-#ifdef USE_UMFPACK
       		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
-	 		std::cout << "Jacobian:" << std::endl;
+#ifdef USE_UMFPACK
 			if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
-				std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
-			} else {
-				std::cout << *(pSM->pMatHdl());
-	 		}
-      		}
 #endif /* USE_UMFPACK */
+				std::cout << "Warning, Jacobian output "
+					"avaliable only with umfpack solver"
+					<< std::endl;
+#ifdef USE_UMFPACK
+			} else {
+	 			std::cout << "Jacobian:" << std::endl
+					<< *(pSM->pMatHdl());
+	 		}
+#endif /* USE_UMFPACK */
+      		}
       		pSM->Solve(db0Differential);   
       
 #ifdef DEBUG
@@ -1838,16 +1858,21 @@ IfStepIsToBeRepeated:
 #endif /* USE_MPI */
 	 		}
 
-#ifdef USE_UMFPACK
 	      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
-		 		std::cout << "Jacobian:" << std::endl;
+#ifdef USE_UMFPACK
 				if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
-					std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
-				} else {
-					std::cout << *(pSM->pMatHdl());
-		 		}
-      			}
 #endif /* USE_UMFPACK */
+					std::cout << "Warning, Jacobian output "
+						"avaliable only "
+						"with umfpack solver"
+						<< std::endl;
+#ifdef USE_UMFPACK
+				} else {
+		 			std::cout << "Jacobian:" << std::endl
+						<< *(pSM->pMatHdl());
+		 		}
+#endif /* USE_UMFPACK */
+      			}
 	 		pSM->Solve(db0Differential);
 
 #ifdef DEBUG
