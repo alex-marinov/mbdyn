@@ -243,16 +243,16 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	/* vincolo in posizione */
 	for (unsigned int i = 1; i <= 3; i++) {
-		/* l^T v = 0 : Delta v */
+		/* l^T F = 0 : Delta F */
 		doublereal d = l.dGet(i)/dCoef;
 		WM.fDecCoef(6*(1+Beam::NUMNODES)+1, 
 				6*(1+Beam::NUMNODES)+1+i, d);
 
-		/* xb - x = 0: l Delta s */
+		/* xc - x = 0: l Delta s */
 		WM.fIncCoef(6*(1+Beam::NUMNODES)+1+i, 
 				6*(1+Beam::NUMNODES)+1, d);
 
-		/* xb - x = 0: Delta x_b */
+		/* xc - x = 0: Delta x_b */
 		WM.fDecCoef(6*(1+Beam::NUMNODES)+1+i, i, 1.);
 	}
 
@@ -260,71 +260,100 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	for (unsigned int iN = 0; iN < Beam::NUMNODES; iN++) {
 		Vec3 Tmp(fTmp[iN].Cross(F));
 
-		/* l^T v = 0 : Delta s */
+		/* l^T F = 0 : Delta s */
 		lp += xTmp[iN]*dNpp[iN];
 
 		for (unsigned int i = 1; i <= 3; i++) {
-			/* l^T v = 0 : Delta x */
+			/* l^T F = 0 : Delta x */
 			doublereal d = F.dGet(i)*dNp[iN];
 			WM.fDecCoef(6*(1+Beam::NUMNODES)+1, 
 					6*(1+iN)+i, d);
 
-			/* l^T v = 0 : Delta g */
+			/* l^T F = 0 : Delta g */
 			d = Tmp.dGet(i)*dNp[iN];
 			WM.fDecCoef(6*(1+Beam::NUMNODES)+1, 
 					6*(1+iN)+3+i, d);
 
-			/* xb - x = 0: Delta x */
+			/* xc - x = 0: Delta x */
 			WM.fIncCoef(6*(1+Beam::NUMNODES)+1+i, 
 					6*(1+iN)+i, dN[iN]);
 		}
 
-		/* xb - x = 0: Delta g */
+		/* xc - x = 0: Delta g */
 		WM.Sub(6*(1+Beam::NUMNODES)+1+1, 
 				6*(1+iN)+3+1, Mat3x3(fTmp[iN]*dN[iN]));
 	}
 
-	/* l^T v = 0 : Delta s */
+	/* l^T F = 0 : Delta s */
 	WM.fDecCoef(6*(1+Beam::NUMNODES)+1, 
 			6*(1+Beam::NUMNODES)+1, (F*lp)/dCoef);
 
 	/* reazioni vincolari */
 	for (unsigned int i = 1; i <= 3; i++) {
-		/* corpo: Delta v */
+		/* corpo: Delta F */
 		WM.fDecCoef(i, 6*(1+Beam::NUMNODES)+1+i, 1.);
 
-		/* trave: Delta v */
+		/* trave: Delta F */
 		WM.fIncCoef(6*activeNode+i, 6*(1+Beam::NUMNODES)+1+i, dW[0]);
 	}
 
-	/* corpo: Delta v (momento) */
-	WM.Sub(3+1, 6*(1+Beam::NUMNODES)+1+1, Mat3x3(F));
+	/* corpo: Delta F (momento) */
+	WM.Sub(3+1, 6*(1+Beam::NUMNODES)+1+1, Mat3x3(fb));
 
-	/* corpo: Delta g (momento) */
-	WM.Sub(3+1, 6*activeNode+3+1, Mat3x3(F, fb*(dCoef*dW[0])));
+	/* vincolo posizione: Delta gb */
+	WM.Add(6*(1+Beam::NUMNODES)+1+1, 3+1, Mat3x3(fb));
 
-	/* trave: Delta v (momento) */
+	/* corpo: Delta gb (momento) */
+	Mat3x3 Ffb(F, fb*(dCoef));
+	WM.Sub(3+1, 3+1, Ffb);
+
+	/* trave: Delta gb (momento) */
+	WM.Add(6*activeNode+3+1, 3+1, Ffb*dW[0]);
+
+	/* trave: Delta F (momento) */
 	Mat3x3 MTmp(F*(dCoef*dW[0]));
 	WM.Add(6*activeNode+3+1, 6*(1+Beam::NUMNODES)+1+1, 
-			Mat3x3((xb-xNod[activeNode-1]))*dW[0]);
+			Mat3x3((xc-xNod[activeNode-1])*dW[0]));
 	WM.Sub(6*activeNode+3+1, 1, MTmp);
 	WM.Add(6*activeNode+3+1, 6*activeNode+1, MTmp);
 
 	if (dW[1] != 0.) {
+		/* trave: Delta gb (momento) */
+		WM.Add(6*(activeNode+1)+3+1, 3+1, Ffb*dW[1]);
+
+#ifdef DELTADW
+		Vec3 m1(M+(xc-xNod[activeNode-1]).Cross(F));
+		Vec3 m2(M+(xc-xNod[activeNode]).Cross(F));
+#endif /* DELTADW */
+
 		/* reazioni vincolari */
 		for (unsigned int i = 1; i <= 3; i++) {
-			/* trave: Delta v */
+			/* trave: Delta F */
 			WM.fIncCoef(6*(activeNode+1)+i, 
 					6*(1+Beam::NUMNODES)+1+i, dW[1]);
+
+#ifdef DELTADW
+			/* trave: Delta s (Delta dW forza) */
+			doublereal d = F(i)/(2.*dL);
+			WM.fDecCoef(6*activeNode+i, 
+					6*(1+Beam::NUMNODES)+1, d);
+			WM.fIncCoef(6*(activeNode+1)+i, 
+					6*(1+Beam::NUMNODES)+1, d);
+
+			/* trave: Delta s (Delta dW momento) */
+			d = m1(i)/(2.*dL);
+			WM.fDecCoef(6*activeNode+3+i, 
+					6*(1+Beam::NUMNODES)+1, d);
+			d = m2(i)/(2.*dL);
+			WM.fIncCoef(6*(activeNode+1)+3+i, 
+					6*(1+Beam::NUMNODES)+1, d);
+#endif /* DELTADW */
 		}
 
-		/* corpo: Delta g (momento) */
-		WM.Sub(3+1, 6*(activeNode+1)+3+1, Mat3x3(F, fb*(dCoef*dW[1])));
-
-		/* trave: Delta v (momento) */
+		/* trave: Delta F (momento) */
 		Mat3x3 MTmp(F*(dCoef*dW[1]));
 		WM.Add(6*(activeNode+1)+3+1, 6*(1+Beam::NUMNODES)+1+1, 
-				Mat3x3((xb-xNod[activeNode]))*dW[1]);
+				Mat3x3((xc-xNod[activeNode]))*dW[1]);
 		WM.Sub(6*(activeNode+1)+3+1, 1, MTmp);
 		WM.Add(6*(activeNode+1)+3+1, 6*(activeNode+1)+1, MTmp);
 	}
@@ -333,6 +362,8 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	if (iType != SPHERICAL) {
 		Vec3 eb2 = Rb.GetVec(2);
 		Vec3 eb3 = Rb.GetVec(3);
+
+		Vec3 mm(eb2*m(2) + eb3*m(3));
 
 		doublereal d;
 
@@ -361,41 +392,47 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 			}
 
+			Vec3 mmTmp(mm*(dNp[iN]*dCoef));
+			Mat3x3 mmTmp2(mmTmp);
+			Mat3x3 mmTmp3(mmTmp, fTmp[iN]);
+
+#if 0
 			Vec3 MTmp(M*(dNp[iN]*dCoef));
 			Mat3x3 MTmp2(MTmp);
 			Mat3x3 MTmp3(MTmp, fTmp[iN]);
+#endif
 			
 			/* Reazione vincolare: Delta x */
-			WM.Sub(3+1, 6*(1+iN)+1, MTmp2);
+			WM.Sub(3+1, 6*(1+iN)+1, mmTmp2);
 
 			/* Reazione vincolare: Delta g */
-			WM.Add(3+1, 6*(1+iN)+3+1, MTmp3);
+			WM.Add(3+1, 6*(1+iN)+3+1, mmTmp3);
 		
 			if (dW[1] == 0.) {
 				/* Reazione vincolare: Delta x */
-				WM.Add(6*activeNode+3+1, 6*(1+iN)+1, MTmp2);
+				WM.Add(6*activeNode+3+1, 6*(1+iN)+1, mmTmp2);
 
 				/* Reazione vincolare: Delta g */
-				WM.Sub(6*activeNode+3+1, 6*(1+iN)+3+1, MTmp3);
+				WM.Sub(6*activeNode+3+1, 6*(1+iN)+3+1, mmTmp3);
 			} else {
 				/* Reazione vincolare: Delta x */
 				WM.Add(6*activeNode+3+1, 6*(1+iN)+1, 
-						MTmp2*dW[0]);
+						mmTmp2*dW[0]);
 				WM.Add(6*(activeNode+1)+3+1, 6*(1+iN)+1, 
-						MTmp2*dW[1]);
+						mmTmp2*dW[1]);
 
 				/* Reazione vincolare: Delta g */
 				WM.Sub(6*activeNode+3+1, 6*(1+iN)+3+1, 
-						MTmp3*dW[0]);
+						mmTmp3*dW[0]);
 				WM.Sub(6*(activeNode+1)+3+1, 6*(1+iN)+3+1, 
-						MTmp3*dW[1]);
+						mmTmp3*dW[1]);
 			}
 		}
 
 		Vec3 Tmpl2(eb2.Cross(l));
 		Vec3 Tmpl3(eb3.Cross(l));
-		Vec3 TmpM(M.Cross(lp));
-
+		Vec3 Tmpmmlp(mm.Cross(lp));
+		
 		for (unsigned int i = 1; i <= 3; i++) {
 
 			/* Vincolo in rotazione: Delta gb */
@@ -427,7 +464,7 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			}
 
 			/* Reazione vincolare: Delta s */
-			d = TmpM.dGet(i);
+			d = Tmpmmlp(i);
 			WM.fDecCoef(3+i, 6*(1+Beam::NUMNODES)+1, d);
 			WM.fIncCoef(6*activeNode+3+i, 
 					6*(1+Beam::NUMNODES)+1, d*dW[0]);
@@ -448,13 +485,13 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 				6*(1+Beam::NUMNODES)+1, d);
 
 		/* Reazione vincolare: Delta gb */
-		Mat3x3 MTmp(l, M*dCoef);
-		WM.Sub(3+1, 3+1, MTmp);
+		Mat3x3 mmTmp(l, mm*dCoef);
+		WM.Sub(3+1, 3+1, mmTmp);
 		if (dW[1] == 0) {
-			WM.Add(6*activeNode+3+1, 3+1, MTmp);
+			WM.Add(6*activeNode+3+1, 3+1, mmTmp);
 		} else {
-			WM.Add(6*activeNode+3+1, 3+1, MTmp*dW[0]);
-			WM.Add(6*(activeNode+1)+3+1, 3+1, MTmp*dW[1]);
+			WM.Add(6*activeNode+3+1, 3+1, mmTmp*dW[0]);
+			WM.Add(6*(activeNode+1)+3+1, 3+1, mmTmp*dW[1]);
 		}
 		
 	}
@@ -623,16 +660,18 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 	
 	Rb = pNode->GetRCurr()*R;
 	fb = pNode->GetRCurr()*f;
-	xb = pNode->GetXCurr()+fb;
+	xc = pNode->GetXCurr()+fb;
 
 	Vec3 eb2 = Rb.GetVec(2);
 	Vec3 eb3 = Rb.GetVec(3);
 
 	/*
-	 * vincoli di posizione 
+	 * vincoli di posizione
+	 *
+	 * FIXME: togliere la scalatura da F*l ?????
 	 */
 	WorkVec.fPutCoef(6*(1+Beam::NUMNODES)+1, (F*l)/dCoef);
-	WorkVec.Add(6*(1+Beam::NUMNODES)+1+1, (xb-x)/dCoef);
+	WorkVec.Add(6*(1+Beam::NUMNODES)+1+1, (xc-x)/dCoef);
 
 	/*
 	 * Vincoli di rotazione
@@ -659,12 +698,12 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 
 	WorkVec.Sub(6*activeNode+1, F*dW[0]);
 	WorkVec.Sub(6*activeNode+3+1, 
-			(M+(xb-xNod[activeNode-1]).Cross(F))*dW[0]);
+			(M+(xc-xNod[activeNode-1]).Cross(F))*dW[0]);
 
 	if (dW[1] != 0.) {
 		WorkVec.Sub(6*(activeNode+1)+1, F*dW[1]);
 		WorkVec.Sub(6*(activeNode+1)+3+1, 
-				(M+(xb-xNod[activeNode]).Cross(F))*dW[1]);
+				(M+(xc-xNod[activeNode]).Cross(F))*dW[1]);
 	}
 
 	return WorkVec;

@@ -124,7 +124,7 @@ private:
 	Vec3 l;
 
 	Vec3 fb;
-	Vec3 xb;
+	Vec3 xc;
 	Mat3x3 Rb;
    
 public:
