@@ -55,7 +55,6 @@ struct task_struct;
 
 #include "ac/spinlock.h"
 
-#define  SPRSPIV
 
 
 /* FIXME: from <f2c.h> */
@@ -86,7 +85,7 @@ int pnaivfct(doublereal** a,
 	integer i, j, k, m, pvr = 0, pvc, nr, nc, r;
 	integer *pri, *pci;
 	char *pnzk;
-	doublereal den, mul;
+	doublereal den, mul, mulpiv, fapvr, fari;
 	doublereal *par, *papvr;
 	unsigned long *sync_lock = &row_locks[neq];
 	unsigned long *pivot_lock = &row_locks[neq + 1];
@@ -105,30 +104,26 @@ int pnaivfct(doublereal** a,
 		}
 		pri = ri[i];
 		if (task == 0) {
-			m = BIGINT;	
-			mul = 0.0;
+			m = neq + 1;	
+			mul = mulpiv = fapvr = 0.0;
 			for (k = 0; k < nr; k++) {
 				r = pri[k];
-				doublereal dAri = fabs(a[r][i]);
-				if (todo[r] && dAri > mul) {
-					mul = dAri;
-					pvr = r;
-					m = nzc[pvr];	
+				if (todo[r]) {
+					fari = fabs(a[r][i]);
+					if (fari > mul) {
+						mulpiv = mul*minpiv;
+						if (nzc[r] <= m  || mulpiv > fapvr) {
+							m = nzc[pvr = r];
+							fapvr = fari;
+						}
+						mul = fari;
+					} else if (nzc[r] < m && fari > mulpiv) {
+						m = nzc[pvr = r];
+					}
 				}
 			}
-			if (m == BIGINT) {
-				return ENOPIV + i;
-			}
-#ifdef SPRSPIV
-			mul *= minpiv;
-			for (k = 0; k < nr; k++) {
-				r = pri[k];
-				if (todo[r] && nzc[r] < m && fabs(a[r][i]) > mul) {
-					pvr = r;
-					m = nzc[pvr];
-				}
-			}
-#endif
+			if (m == neq + 1) { return ENOPIV + i; }
+
 			todo[pvr] = 0;
 			papvr = a[pvr];
 			den = 1.0/papvr[i];
