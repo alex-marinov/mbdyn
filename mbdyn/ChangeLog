@@ -7,6 +7,9 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Thu Jan 31 10:02:27 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - unsteady correction is 'cn', not 'cl'
+
 *** Wed Jan 30 14:49:04 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - added renice command-line switch
  - removed obsolete dependency on "mystddef.h"

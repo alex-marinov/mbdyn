@@ -379,7 +379,8 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 			SGN, SGM, SGMAX, 
 			DAN, DCN, DAM, DCM, 
 			S2, alphaN, alphaM, C1,
-			dcma, dclatan, ALF1, ALF2;
+			dcma, dclatan, ALF1, ALF2,
+			cn;
 		
 		const double PN[] = { 
 			-3.464003e-1, 
@@ -565,7 +566,16 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 
 		C1 = .9457/sqrt(1.-mach*mach);
 
-		cl = cl+dcla*DAN+DCN*C1;
+		/* 
+		 * the unsteady correction is "cn", 
+		 * so split it in "cl" and "cd"
+		 * (note: if "vp" is too small the routine exits
+		 * earlier without computing forces)
+		 */
+		cn = dcla*DAN+DCN*C1;
+		cl += cn*v[V_X]/vp;	/* cos(alpha) */
+		cd -= cn*v[V_Y]/vp;	/* sin(alpha) */
+
 		cm = cm+dcma*DAM+DCM*C1;
 
 		break;
