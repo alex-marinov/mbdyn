@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DATE=`date`
+DATE=`date "+%a %b %e, %Y"`
 if [ -r version.tex ] ; then
 	VERSION="`cat version.tex`"
 	VV="-$VERSION"
