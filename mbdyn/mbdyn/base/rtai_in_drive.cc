@@ -56,7 +56,6 @@ host(h), node(n), port(-1), mbx(NULL)
 				"init failed" << std::endl;
 			THROW(ErrGeneric());
 		}
-
 	} else {
 		if (node) {
 			/* get port ... */

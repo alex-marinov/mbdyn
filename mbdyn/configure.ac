@@ -1370,8 +1370,18 @@ dnl Check for RTAI
 dnl
 if test $ol_with_rtai != no ; then
 	dnl FIXME: LOT TODO ...
+	AC_CHECK_HEADERS(rtai_lxrt.h)
+	AC_CHECK_HEADERS(rtai_netrpc.h)
 	AC_CHECK_HEADERS(rtai_lxrt_user.h)
 	AC_CHECK_HEADERS(net_rpc.h)
+
+	if test "${ac_cv_header_rtai_lxrt_h:+set}" = "set" -a \
+		"${ac_cv_header_rtai_netrpc_h:-set}" = "set" ; then
+		AC_MSG_WARN([possible RTAI version mismatch])
+	elif test "${ac_cv_header_rtai_lxrt_user_h:+set}" = "set" -a \
+		"${ac_cv_header_net_rpc_h:-set}" = "set" ; then
+		AC_MSG_WARN([possible RTAI version mismatch])
+	fi
 
 	AC_DEFINE(USE_RTAI,1,[define to use RTAI])
 fi

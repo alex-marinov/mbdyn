@@ -40,10 +40,20 @@
  * Mante prefers KEEP_STATIC_INLINE instead of linking liblxrt.a
  */
 #define KEEP_STATIC_INLINE
+
+#if defined(HAVE_RTAI_LXRT_H)		/* RTAI 3.0 */
+#include <rtai_lxrt.h>
+#elif defined(HAVE_RTAI_LXRT_USER_H)	/* up to RTAI 24.1.13 */
 #include <rtai_lxrt_user.h>
+#endif /* HAVE_RTAI_LXRT_USER_H */
+#if defined(HAVE_RTAI_NETRPC_H)		/* RTAI 3.0 */
+#include <rtai_netrpc.h>
+#elif defined(HAVE_NET_RPC_H)		/* up to RTAI 24.1.13 */
 #include <net_rpc.h>
+#endif /* HAVE_NET_RPC_H */
+
 #include <assert.h>
-#include <mbrtai_utils.h>
+#include "mbrtai_utils.h"
 
 int
 mbdyn_rt_task_init(const char *name, int priority, int stack_size,
