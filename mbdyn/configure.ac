@@ -878,6 +878,7 @@ AC_OUTPUT([ \
 	libraries/Makefile:build/top.mk:libraries/Makefile.in:build/bot.mk \
 	libraries/libmbutil/Makefile:build/top.mk:libraries/libmbutil/Makefile.in:build/bot.mk \
 	libraries/libmbmath/Makefile:build/top.mk:libraries/libmbmath/Makefile.in:build/bot.mk \
+	libraries/libmbwrap/Makefile:build/top.mk:libraries/libmbwrap/Makefile.in:build/bot.mk \
 	libraries/liby12/Makefile:build/top.mk:libraries/liby12/Makefile.in:build/bot.mk \
 	libraries/libharwell/Makefile:build/top.mk:libraries/libharwell/Makefile.in:build/bot.mk \
 	libraries/libobjs/Makefile:build/top.mk:libraries/libobjs/Makefile.in:build/bot.mk \

@@ -38,6 +38,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_Y12
+
 #include <y12wrap.h>
 #include <y12lib.h>
 
@@ -392,3 +394,4 @@ Y12SparseLUSolutionManager::Solve(void)
 
 /* Y12SparseLUSolutionManager - end */
 
+#endif /* USE_Y12 */

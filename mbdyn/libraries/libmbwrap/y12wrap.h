@@ -95,6 +95,8 @@
 #ifndef Y12WRAP_H
 #define Y12WRAP_H
 
+#ifdef USE_Y12
+
 #include <myassert.h>
 #include <mynewmem.h>
 #include <except.h>
@@ -265,6 +267,8 @@ public:
 };
 
 /* Y12SparseLUSolutionManager - end */
+
+#endif /* USE_Y12 */
 
 #endif /* Y12WRAP_H */
 

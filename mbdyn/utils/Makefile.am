@@ -19,10 +19,12 @@ rotrel \
 sockdrive
 
 LIBS = \
+../libraries/libmbwrap/libmbwrap.la \
 ../libraries/libmbmath/libmbmath.la \
 ../libraries/libmbutil/libmbutil.la \
-@HARWELL_LIBS@ \
 @Y12_LIBS@ \
+@HARWELL_LIBS@ \
+../libraries/libmbwrap/libmbwrap.la \
 @MESCHACH_LIBS@ \
 @F2C_LIBS@
 
@@ -48,5 +50,7 @@ dae_intg_LDADD = -ldl
 INCLUDES = \
 -I../libraries/libmbutil \
 -I../libraries/libmbmath \
+-I../libraries/libmbwrap \
+-I../libraries/libharwell \
 -I../mbdyn
 

@@ -85,6 +85,7 @@ libbase_la_LDFLAGS = -static
 INCLUDES = \
 -I../../libraries/libmbutil \
 -I../../libraries/libmbmath \
+-I../../libraries/libmbwrap \
 -I../../libraries/libharwell \
 -I../../libraries/libobjs \
 -I../../mbdyn \

@@ -88,7 +88,7 @@ Y12_LIBS = @Y12_LIBS@
 mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
 
-SUBDIRS = libmbutil libmbmath liby12 libharwell libobjs
+SUBDIRS = libmbutil libmbmath libmbwrap liby12 libharwell libobjs
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = ../include/mbconfig.h
 CONFIG_CLEAN_FILES = 

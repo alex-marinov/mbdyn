@@ -6,11 +6,6 @@ lib_LTLIBRARIES = libmbmath.la
 libmbmath_la_SOURCES = \
 fullmh.cc \
 fullmh.h \
-harwout.c \
-harwout.h \
-harwout_.cc \
-harwrap.cc \
-harwrap.h \
 ldl.f \
 ldl.h \
 matvec3.cc \
@@ -21,8 +16,6 @@ matvec6.cc \
 matvec6.h \
 matvecexp.cc \
 matvecexp.h \
-mschwrap.cc \
-mschwrap.h \
 myf2c.h \
 mymath.h \
 Rot.cc \
@@ -37,9 +30,7 @@ sparsemh.cc \
 sparsemh.h \
 spdata_.f \
 submat.cc \
-submat.h \
-y12wrap.cc \
-y12wrap.h
+submat.h
 
 libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@
 libmbmath_la_LDFLAGS =
@@ -49,5 +40,6 @@ INCLUDES = \
 -I../../libraries/libharwell \
 -I../../libraries/libmbutil \
 -I../../libraries/libmbmath \
+-I../../libraries/libmbwrap \
 -I../../mbdyn
 

@@ -33,6 +33,7 @@ libelec_la_LDFLAGS = -static
 INCLUDES = \
 -I../../libraries/libmbutil \
 -I../../libraries/libmbmath \
+-I../../libraries/libmbwrap \
 -I../../mbdyn \
 -I../../mbdyn/base \
 -I../../mbdyn/struct \

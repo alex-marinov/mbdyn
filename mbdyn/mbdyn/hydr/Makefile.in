@@ -97,7 +97,7 @@ libhydr_la_SOURCES =  actuator.cc actuator.h hfluid.cc hfluid.h hfluid_.h hminor
 libhydr_la_LIBADD = @LIBS@
 libhydr_la_LDFLAGS = -static
 
-INCLUDES =  -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../mbdyn -I../../mbdyn/base -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr
+INCLUDES =  -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../libraries/libmbwrap -I../../mbdyn -I../../mbdyn/base -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = ../../include/mbconfig.h

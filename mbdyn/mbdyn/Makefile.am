@@ -14,23 +14,27 @@ mbdyn.h
 
 ## mbdyn_LDADD = @XLIBOBJS@
 mbdyn_LDADD = \
-	base/libbase.la \
-	struct/libstruct.la \
-	aero/libaero.la \
-	elec/libelec.la \
-	hydr/libhydr.la \
-	../libraries/libmbmath/libmbmath.la \
-	../libraries/libmbutil/libmbutil.la \
-	@Y12_LIBS@ \
-	@HARWELL_LIBS@ \
-	../libraries/libobjs/libobjs.la \
-	@MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ \
-	@METIS_LIBS@ @PAM_LIBS@ @TCL_LIBS@ @LIBS@
+base/libbase.la \
+struct/libstruct.la \
+aero/libaero.la \
+elec/libelec.la \
+hydr/libhydr.la \
+../libraries/libmbwrap/libmbwrap.la \
+../libraries/libmbmath/libmbmath.la \
+../libraries/libmbutil/libmbutil.la \
+@Y12_LIBS@ \
+@HARWELL_LIBS@ \
+../libraries/libmbwrap/libmbwrap.la \
+../libraries/libobjs/libobjs.la \
+@MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ \
+@METIS_LIBS@ @PAM_LIBS@ @TCL_LIBS@ @LIBS@
 mbdyn_LDFLAGS = -static
 
 INCLUDES = \
 -I../libraries/libmbutil \
 -I../libraries/libmbmath \
+-I../libraries/libmbwrap \
+-I../libraries/libharwell \
 -I../mbdyn/base \
 -I../mbdyn/struct \
 -I../mbdyn/aero \

@@ -97,7 +97,7 @@ libelec_la_SOURCES =  discctrl.cc discctrl.h elec.cc elec.h elecnode.cc elecnode
 libelec_la_LIBADD = @LIBS@
 libelec_la_LDFLAGS = -static
 
-INCLUDES =  -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../mbdyn -I../../mbdyn/base -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr
+INCLUDES =  -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../libraries/libmbwrap -I../../mbdyn -I../../mbdyn/base -I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec -I../../mbdyn/hydr
 
 
 # Program that tests Deadbeat Predictive Control

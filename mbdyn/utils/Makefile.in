@@ -93,7 +93,7 @@ top_builddir = @top_builddir@
 bin_PROGRAMS =  autopilot cl dae-intg deriv env eu2rot femgen intg loadable posrel rot2eu rot2eup rot2phi rotrel sockdrive
 
 
-LIBS =  ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la @HARWELL_LIBS@ @Y12_LIBS@ @MESCHACH_LIBS@ @F2C_LIBS@
+LIBS =  ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la @Y12_LIBS@ @HARWELL_LIBS@ ../libraries/libmbwrap/libmbwrap.la @MESCHACH_LIBS@ @F2C_LIBS@
 
 
 autopilot_SOURCES = autopilot.cc
@@ -115,7 +115,7 @@ sockdrive_SOURCES = sockdrive.cc
 intg_LDADD = -ldl
 dae_intg_LDADD = -ldl
 
-INCLUDES =  -I../libraries/libmbutil -I../libraries/libmbmath -I../mbdyn
+INCLUDES =  -I../libraries/libmbutil -I../libraries/libmbmath -I../libraries/libmbwrap -I../libraries/libharwell -I../mbdyn
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = ../include/mbconfig.h
