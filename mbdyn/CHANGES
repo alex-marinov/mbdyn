@@ -47,6 +47,8 @@ MBDyn 1.2-Engineering
 		- fixed time handling
 		- fixed force and couple initial assembly
 		- fix rotor output when no induced velocity is used
+		- fix modal element when modal node is not in the origin
+		  of the FEM reference frame
 
 
 MBDyn 1.1.4
