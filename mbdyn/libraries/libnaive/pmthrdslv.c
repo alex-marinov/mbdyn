@@ -53,6 +53,8 @@ struct task_struct;
 #include <asm/atomic.h>
 #include <asm/bitops.h>
 
+#include "ac/spinlock.h"
+
 #define  SPRSPIV
 
 
@@ -176,7 +178,8 @@ int pnaivfct(doublereal** a,
 				} else {
 					par[pvc] = -mul*papvr[pvc];
 					ci[r][nzc[r]++] = pvc;
-					while (atomic_inc_and_test((atomic_t *)&col_locks[pvc]));
+					//while (atomic_inc_and_test((atomic_t *)&col_locks[pvc]));
+					while (mbdyn_cmpxchgl(&col_locks[pvc], 1, 0) != 0);
 					pnzk[pvc] = 1;
 					ri[pvc][nzr[pvc]++] = r;
 					atomic_set((atomic_t *)&col_locks[pvc], 0); 
