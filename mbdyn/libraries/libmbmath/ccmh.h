@@ -99,10 +99,10 @@ public:
 	};
 
 	const doublereal& operator () (integer i_row, integer i_col) const {
-		ASSERTMSGBREAK(ix > 0 && ix <= NRows,
+		ASSERTMSGBREAK(i_row > 0 && i_row <= NRows,
 				"Error in CColMatrixHandler::operator(), "
 				"row index out of range");
-		ASSERTMSGBREAK(iy > 0 && iy <= NCols,
+		ASSERTMSGBREAK(i_col > 0 && i_col <= NCols,
 				"Error in CColMatrixHandler::operator(), "
 				"col index out of range");
 		i_row--;
@@ -150,7 +150,7 @@ public:
 			std::vector<integer>& AcolSt,
 			int offset = 0) const;
 
-	void Resize(const int &n, const int &nn = 0);
+	void Resize(integer ir, integer ic);
 
 	/* Estrae una colonna da una matrice */
 	VectorHandler& GetCol(integer icol, VectorHandler& out) const;

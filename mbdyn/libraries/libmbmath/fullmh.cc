@@ -48,25 +48,29 @@ FullMatrixHandler::Init(const doublereal& dResetVal)
 	IsValid();
 #endif /* DEBUG */
 
-#ifdef HAVE_MEMSET
-	if (dResetVal == 0.) {
-		memset(pdRaw, 0, iNumCols*iNumRows*sizeof(doublereal));
-	} else {
-#endif /* HAVE_MEMSET */
-		for (integer i = iNumCols*iNumRows; i-- > 0; ) {
-			pdRaw[i] = dResetVal;
+	for (integer c = iNumCols; c > 0; c--) {
+		for (integer r = iNumRows; r > 0; r--) {
+			ppdColsm1[c][r] = dResetVal;
 		}
-#ifdef HAVE_MEMSET
 	}
-#endif /* HAVE_MEMSET */
 }
 
 void
 FullMatrixHandler::CreateColRow(integer iNR, integer iNC)
 {
-	for (integer i = iNC; i-- > 0; ) {
-		ppdCols[i] = pdRawm1+i*iNR;
+	ASSERT(iNC > 0);
+	ASSERT(iNC > 0);
+	ASSERT(pdRawm1);
+	ASSERT(ppdColsm1);
+	
+	doublereal *pd = pdRawm1 + iNC*iNR;
+
+	for (integer c = iNC; c > 0; c--) {
+		pd -= iNR;
+		ppdColsm1[c] = pd;
 	}
+
+	ASSERT(pd == pdRawm1);
 }
 
 FullMatrixHandler::FullMatrixHandler(doublereal* pd, doublereal** ppd,
@@ -74,12 +78,17 @@ FullMatrixHandler::FullMatrixHandler(doublereal* pd, doublereal** ppd,
 		integer iMaxC)
 : bOwnsMemory(false),
 iNumRows(iNR), iNumCols(iNC), iRawSize(iSize), iMaxCols(iMaxC),
-pdRaw(pd), pdRawm1(pd-1),
-ppdCols(ppd), ppdColsm1(ppd-1)
+pdRaw(pd), pdRawm1(0),
+ppdCols(ppd), ppdColsm1(0)
 {
-	if (iMaxCols <= 0) {
+	if (iMaxCols == 0) {
 		iMaxCols = iNumCols;
 	}
+
+	ASSERT(pd);
+	pdRawm1 = pd - 1;
+	ASSERT(ppd);
+	ppdColsm1 = ppd - 1;
 
 	CreateColRow(iNumRows, iNumCols);
 
@@ -166,6 +175,7 @@ FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 				pdRaw = pd;
 				pdRawm1 = pd-1;
 			}
+
 			if (iNewCols > iMaxCols) {
 				/* crea */
 				SAFEDELETEARR(ppdCols);
@@ -174,12 +184,15 @@ FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 				ppdColsm1 = ppdCols-1;
 				CreateColRow(iNewRows, iNewCols);
 			}
+
 			/* aggiorna iNumCols, iNumRows */
 			if (iNewRows != iNumRows || iNewCols != iNumCols) {
 				CreateColRow(iNewRows, iNewCols);
 			}
+
 			iNumRows = iNewRows;
 			iNumCols = iNewCols;
+
 		} else {
 			/* crea tutto */
 			iRawSize = iSize;
@@ -192,6 +205,7 @@ FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 			ppdColsm1 = ppdCols-1;
 			CreateColRow(iNumRows, iNumCols);
 		}
+
 	} else {
 		if (pdRaw != NULL) {
 			if (iSize > iRawSize || iNewCols > iMaxCols) {
@@ -202,6 +216,7 @@ FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 						<< ": larger than max size "
 						<< iRawSize << std::endl;
 					THROW(ErrGeneric());
+
 				} else if (iNewCols > iMaxCols) {
 					std::cerr << "Can't resize to "
 						<< iNewCols
@@ -210,6 +225,7 @@ FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 						<< iMaxCols << std::endl;
 					THROW(ErrGeneric());
 				}
+
 			} else {
 				/* aggiorna */
 				if (iNewRows != iNumRows ||
@@ -219,6 +235,7 @@ FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 				iNumRows = iNewRows;
 				iNumCols = iNewCols;
 			}
+
 		} else {
 			/* errore */
 			std::cerr << "internal error!" << std::endl;
@@ -239,11 +256,13 @@ FullMatrixHandler::Detach(void)
 		if (ppdCols != NULL) {
 			SAFEDELETEARR(ppdCols);
 		}
-		bOwnsMemory = false;
 	}
 	iRawSize = iMaxCols = iNumRows = iNumCols = 0;
 	pdRaw = pdRawm1 = NULL;
 	ppdCols = ppdColsm1 = NULL;
+
+	/* so Resize() can be safely invoked */
+	bOwnsMemory = true;
 }
 
 
@@ -258,6 +277,7 @@ FullMatrixHandler::Attach(integer iNewRows, integer iNewCols,
 		Detach();
 		bOwnsMemory = false;
 	}
+
 	iNumRows = iNewRows;
 	iNumCols = iNewCols;
 	if (iMSize > 0) {
@@ -265,14 +285,17 @@ FullMatrixHandler::Attach(integer iNewRows, integer iNewCols,
 			THROW(ErrGeneric());
 		}
 		iRawSize = iMSize;
+
 	} else {
 		iRawSize = iNumRows*iNumCols;
 	}
+
 	if (iMaxC > 0) {
 		if (iMaxC < iNumCols) {
 			THROW(ErrGeneric());
 		}
 		iMaxCols = iMaxC;
+
 	} else {
 		iMaxCols = iNumCols;
 	}
@@ -361,7 +384,7 @@ FullMatrixHandler::MatMul(const FullMatrixHandler& m1,
 		for (integer iCol = 1; iCol <=iNumCols; iCol++) {
 			ppdColsm1[iCol][iRow] = 0.;
 			for (integer iK = 1; iK <= iN; iK++) {
-				ppdColsm1[iCol][iRow] += m1.dGetCoef(iRow,iK)*m2.dGetCoef(iK,iCol);
+				ppdColsm1[iCol][iRow] += m1(iRow,iK)*m2(iK,iCol);
 			}
 		}
 	}

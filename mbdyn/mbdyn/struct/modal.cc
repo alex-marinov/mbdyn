@@ -756,8 +756,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 	integer iNumCols;
 
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.Resize(iNumRows);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeInit(iNumRows, 0.);
 
 	/*
 	 * Equations:
@@ -1680,8 +1679,7 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 	integer iNumRows;
 	integer iNumCols;
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.Resize(iNumRows);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeInit(iNumRows, 0.);
 
 	VecN Ka(NModes);
 

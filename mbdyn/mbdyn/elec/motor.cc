@@ -188,8 +188,7 @@ Motor::AssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.Resize(iNumRows);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeInit(iNumRows, 0.);
 
 	integer iStrNode1FirstIndex = pStrNode1->iGetFirstMomentumIndex() + 3;
 	integer iStrNode2FirstIndex = pStrNode2->iGetFirstMomentumIndex() + 3;

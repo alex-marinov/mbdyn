@@ -139,8 +139,8 @@ class ContactJoint : virtual public Elem, public Joint {
 	 }
 	 
 	 Tmp = N*(dF*dCoef);
-	 WM.fPutCross(16, iNode1RowIndex+4, iNode1ColIndex+4, Tmp);
-	 WM.fPutCross(22, iNode2RowIndex+4, iNode1ColIndex+4, -Tmp);
+	 WM.PutCross(16, iNode1RowIndex+4, iNode1ColIndex+4, Tmp);
+	 WM.PutCross(22, iNode2RowIndex+4, iNode1ColIndex+4, -Tmp);
       }
       return WorkMat;
    };

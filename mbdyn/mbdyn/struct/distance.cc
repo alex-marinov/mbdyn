@@ -245,9 +245,8 @@ DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.Resize(iNumRows);
-	WorkVec.Reset(0.);
-        
+	WorkVec.ResizeInit(iNumRows, 0.);
+ 
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();  
 	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
 	integer iFirstReactionIndex = iGetFirstIndex();
@@ -320,8 +319,7 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	WorkVec.Resize(0);
-	WorkVec.Reset(0.);
-	
+
 	return WorkVec;
 }
 
@@ -616,9 +614,8 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.Resize(iNumRows);
-	WorkVec.Reset(0.);
-        
+	WorkVec.ResizeInit(iNumRows, 0.);
+
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();  
 	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
 	integer iFirstReactionIndex = iGetFirstIndex();

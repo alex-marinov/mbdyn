@@ -141,8 +141,7 @@ SubVectorHandler& ConservativeForce::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
 
    /* Dati */
    
@@ -224,8 +223,7 @@ ConservativeForce::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
 
    /* Dati */
    
@@ -336,8 +334,7 @@ SubVectorHandler& FollowerForce::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
    
    /* Dati */
    
@@ -426,8 +423,7 @@ FollowerForce::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
 
    /* Dati */
    
@@ -495,8 +491,7 @@ SubVectorHandler& ConservativeCouple::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
 
    /* Dati */
    
@@ -531,7 +526,6 @@ ConservativeCouple::InitialAssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("Entering ConservativeCouple::InitialAssRes()" << std::endl);
 
    WorkVec.Resize(3);
-   WorkVec.Reset(0.);
 
    /* Dati */
    
@@ -620,8 +614,7 @@ SubVectorHandler& FollowerCouple::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
    
    /* Dati */
    
@@ -694,8 +687,7 @@ FollowerCouple::InitialAssRes(SubVectorHandler& WorkVec,
 {
    DEBUGCOUT("Entering FollowerCouple::InitialAssRes()" << std::endl);
 
-   WorkVec.Resize(6);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(6, 0.);
 
    /* Dati */
    
@@ -841,8 +833,7 @@ ConservativeInternalForce::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
 
    /* Dati */
    
@@ -949,8 +940,7 @@ ConservativeInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
 
    /* Dati */
    
@@ -1091,8 +1081,7 @@ FollowerInternalForce::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
    
    /* Dati */
    
@@ -1216,8 +1205,7 @@ FollowerInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
 
    /* Dati */
    
@@ -1302,8 +1290,7 @@ ConservativeInternalCouple::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
 
    /* Dati */
    
@@ -1341,8 +1328,7 @@ ConservativeInternalCouple::InitialAssRes(SubVectorHandler& WorkVec,
 {
    DEBUGCOUT("Entering ConservativeInternalCouple::InitialAssRes()" << std::endl);
 
-   WorkVec.Resize(6);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(6, 0.);
 
    /* Dati */
    
@@ -1441,8 +1427,7 @@ FollowerInternalCouple::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
    
    /* Dati */
    
@@ -1529,8 +1514,7 @@ FollowerInternalCouple::InitialAssRes(SubVectorHandler& WorkVec,
 {
    DEBUGCOUT("Entering FollowerInternalCouple::InitialAssRes()" << std::endl);
 
-   WorkVec.Resize(12);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(12, 0.);
 
    /* Dati */
    

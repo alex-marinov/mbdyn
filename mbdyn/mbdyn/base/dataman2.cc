@@ -499,7 +499,8 @@ DataManager::InitialJointAssembly(void)
 
 	/* Matrice di lavoro */
 	MatrixHandler* pMatHdl = pSM->pMatHdl();
-	VariableSubMatrixHandler WorkMat(iIntDim, iDoubleDim, piWI, pdWD);
+	VariableSubMatrixHandler WorkMat(iIntDim, piWI, iDoubleDim, pdWD,
+			iMaxRows, iMaxCols);
 
 	/* Soluzione */
 	VectorHandler* pSolHdl = pSM->pSolHdl();

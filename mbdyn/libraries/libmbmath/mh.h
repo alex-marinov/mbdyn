@@ -75,6 +75,12 @@ public:
 	/* Resetta la matrice ecc. */
 	virtual void Init(const doublereal& dResetVal = 0.) = 0;
 
+	/* Ridimensiona la matrice */
+	virtual void Resize(integer, integer) = 0;
+
+	/* Ridimensiona ed inizializza. */
+	virtual void ResizeInit(integer, integer, const doublereal&);
+
 	/* Restituisce un puntatore all'array di reali della matrice */
 	virtual inline doublereal* pdGetMat(void) const;
 

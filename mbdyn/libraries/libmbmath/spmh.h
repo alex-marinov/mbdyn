@@ -93,10 +93,6 @@ public:
 			std::vector<integer>& AcolSt,
 			int offset = 0) const = 0;
 
-	virtual void Reset(const doublereal &r = 0.) = 0;
-
-	virtual void Resize(const int &n, const int &nn = 0) = 0;
-
 	/* Estrae una colonna da una matrice */
 	virtual VectorHandler& GetCol(integer icol,
 			VectorHandler& out) const = 0;

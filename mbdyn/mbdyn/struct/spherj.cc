@@ -129,28 +129,28 @@ SphericalHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 FTmp = F*dCoef;
    
    /* termini di reazione sul nodo 1 */
-   WM.fPutDiag(1, iNode1FirstMomIndex, iFirstReactionIndex, 1.);
-   WM.fPutCross(4, iNode1FirstMomIndex+3, iFirstReactionIndex, dTmp1);
+   WM.PutDiag(1, iNode1FirstMomIndex, iFirstReactionIndex, 1.);
+   WM.PutCross(4, iNode1FirstMomIndex+3, iFirstReactionIndex, dTmp1);
    
-   WM.fPutMat3x3(10, iNode1FirstMomIndex+3,
+   WM.PutMat3x3(10, iNode1FirstMomIndex+3,
 		 iNode1FirstPosIndex+3, Mat3x3(FTmp, dTmp1));
 
    /* termini di reazione sul nodo 2 */
-   WM.fPutDiag(19, iNode2FirstMomIndex, iFirstReactionIndex, -1.);
-   WM.fPutCross(22, iNode2FirstMomIndex+3, iFirstReactionIndex, -dTmp2);
+   WM.PutDiag(19, iNode2FirstMomIndex, iFirstReactionIndex, -1.);
+   WM.PutCross(22, iNode2FirstMomIndex+3, iFirstReactionIndex, -dTmp2);
 
-   WM.fPutMat3x3(28, iNode2FirstMomIndex+3,
+   WM.PutMat3x3(28, iNode2FirstMomIndex+3,
 		 iNode2FirstPosIndex+3, Mat3x3(FTmp, -dTmp2));
    
    /* Modifica: divido le equazioni di vincolo per dCoef */
    
    /* termini di vincolo dovuti al nodo 1 */
-   WM.fPutDiag(37, iFirstReactionIndex, iNode1FirstPosIndex, -1.);
-   WM.fPutCross(40, iFirstReactionIndex, iNode1FirstPosIndex+3, dTmp1);
+   WM.PutDiag(37, iFirstReactionIndex, iNode1FirstPosIndex, -1.);
+   WM.PutCross(40, iFirstReactionIndex, iNode1FirstPosIndex+3, dTmp1);
       
    /* termini di vincolo dovuti al nodo 1 */
-   WM.fPutDiag(46, iFirstReactionIndex, iNode2FirstPosIndex, 1.);
-   WM.fPutCross(49, iFirstReactionIndex, iNode2FirstPosIndex+3, -dTmp2);
+   WM.PutDiag(46, iFirstReactionIndex, iNode2FirstPosIndex, 1.);
+   WM.PutCross(49, iFirstReactionIndex, iNode2FirstPosIndex+3, -dTmp2);
 
    return WorkMat;
 }
@@ -168,9 +168,8 @@ SubVectorHandler& SphericalHingeJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-      
+   WorkVec.ResizeInit(iNumRows, 0.);
+ 
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
    integer iFirstReactionIndex = iGetFirstIndex();
@@ -209,7 +208,7 @@ SubVectorHandler& SphericalHingeJoint::AssRes(SubVectorHandler& WorkVec,
 
 			    
 DofOrder::Order SphericalHingeJoint::GetEqType(unsigned int i) const {
-	ASSERTMSGBREAK(i >=0 and i < iGetNomDof(), 
+	ASSERTMSGBREAK(i >=0 and i < iGetNumDof(), 
 		"INDEX ERROR in SphericalHingeJoint::GetEqType");
 	return DofOrder::ALGEBRAIC;
 }
@@ -241,7 +240,7 @@ SphericalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Equazioni: vedi joints.dvi */
@@ -360,9 +359,8 @@ SphericalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeInit(iNumRows, 0.);
    
    /* Indici */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
@@ -504,14 +502,14 @@ PinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       WM.PutItem(iCnt, iFirstMomentumIndex+iCnt, 
 		  iFirstReactionIndex+iCnt, 1.);
    }   
-   WM.fPutCross(4, iFirstMomentumIndex+3,
+   WM.PutCross(4, iFirstMomentumIndex+3,
 		iFirstReactionIndex, dTmp);
       
    /* Nota: F, la reazione vincolare, e' stata aggiornata da AssRes */
    
    /* Termini diagonali del tipo: c*F/\d/\Delta_g 
     * nota: la forza e' gia' moltiplicata per dCoef */      
-   WM.fPutMat3x3(10, iFirstMomentumIndex+3,
+   WM.PutMat3x3(10, iFirstMomentumIndex+3,
 		 iFirstPositionIndex+3, Mat3x3(F*dCoef, dTmp));
 
    /* Modifica: divido le equazioni di vincolo per dCoef */
@@ -521,7 +519,7 @@ PinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       WM.PutItem(18+iCnt, iFirstReactionIndex+iCnt, 
 		  iFirstPositionIndex+iCnt, -1.);
    }
-   WM.fPutCross(22, iFirstReactionIndex,
+   WM.PutCross(22, iFirstReactionIndex,
 		iFirstPositionIndex+3, dTmp);
          
    return WorkMat;
@@ -540,8 +538,7 @@ SubVectorHandler& PinJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
       
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
    integer iFirstReactionIndex = iGetFirstIndex();
@@ -685,9 +682,8 @@ PinJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeInit(iNumRows, 0.);
    
    /* Indici */
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();

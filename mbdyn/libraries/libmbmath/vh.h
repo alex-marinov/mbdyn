@@ -73,9 +73,13 @@ public:
 
 	virtual integer iGetSize(void) const = 0;
 
+	virtual void Init(doublereal dResetVal = 0.) = 0;
+
 	virtual void Resize(integer iNewSize) = 0;
 
-	virtual void Reset(doublereal dResetVal = 0.) = 0;
+	virtual void ResizeInit(integer, const doublereal&);
+
+	virtual void Reset(doublereal dResetVal = 0.);
 
 	virtual void PutCoef(integer iRow, const doublereal& dCoef) = 0;
 
@@ -139,9 +143,6 @@ public:
 /* MyVectorHandler - begin */
 
 class MyVectorHandler : public VectorHandler {
-	//friend class SolutionManager;
-	//friend class Vec3;
-
 protected:
 	bool bOwnsMemory;
 
@@ -149,7 +150,6 @@ protected:
 	integer iMaxSize;
 	integer iCurSize;
 
-	doublereal* pdVec;
 	doublereal* pdVecm1;
 
 public:
@@ -172,7 +172,7 @@ public:
 
 	virtual inline integer iGetSize(void) const;
 
-	virtual void Reset(doublereal dResetVal = 0.);
+	virtual void Init(doublereal dResetVal = 0.);
 
 	virtual inline void PutCoef(integer iRow, const doublereal& dCoef);
 
@@ -228,9 +228,6 @@ public:
 
 	/* Norma 2 del vettore */
 	doublereal Dot(void) const;
-
-	/* Norma del vettore */
-	doublereal Norm(void) const;
 };
 
 inline doublereal*
@@ -240,7 +237,7 @@ MyVectorHandler::pdGetVec(void) const
 	IsValid();
 #endif /* DEBUG */
 
-	return pdVec;
+	return pdVecm1 + 1;
 }
 
 inline integer

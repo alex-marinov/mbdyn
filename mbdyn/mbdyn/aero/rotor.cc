@@ -682,6 +682,7 @@ SubVectorHandler& NoRotor::AssRes(SubVectorHandler& WorkVec,
 #endif /* USE_MPI */
    ResetForce();
    WorkVec.Resize(0);
+
    return WorkVec;
 }
 
@@ -833,6 +834,7 @@ SubVectorHandler& UniformRotor::AssRes(SubVectorHandler& WorkVec,
    
    /* Non tocca il residuo */
    WorkVec.Resize(0);
+
    return WorkVec;  
 }
 
@@ -971,6 +973,7 @@ SubVectorHandler& GlauertRotor::AssRes(SubVectorHandler& WorkVec,
    /* Non tocca il residuo */
    ResetForce();
    WorkVec.Resize(0);
+
    return WorkVec;  
 }
 
@@ -1150,6 +1153,7 @@ SubVectorHandler& ManglerRotor::AssRes(SubVectorHandler& WorkVec,
    /* Non tocca il residuo */
    ResetForce();
    WorkVec.Resize(0);
+
    return WorkVec;  
 }
    
@@ -1479,6 +1483,7 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 	   	Rotor::InitParam();   
      
        	   	WorkVec.Resize(3);
+
 	   	integer iFirstIndex = iGetFirstIndex();
      	
 	   	WorkVec.PutRowIndex(1, iFirstIndex+1);

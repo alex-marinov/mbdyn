@@ -133,7 +133,7 @@ CColMatrixHandler<off>::MakeIndexForm(std::vector<doublereal>& rAx,
 
 template <int off>
 void
-CColMatrixHandler<off>::Resize(const int &n, const int &nn)
+CColMatrixHandler<off>::Resize(integer n, integer nn)
 {
 	silent_cerr("CColMatrixHandler<off>::Resize called" << std::endl);
 	THROW(ErrGeneric());

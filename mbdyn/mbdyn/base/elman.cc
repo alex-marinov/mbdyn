@@ -223,14 +223,14 @@ DataManager::ElemDataInit(void)
 		ElemIter.Init(ppElems, iTotElem);
 
 		Elem** ppTmp = ppElems;
-		while (ppTmp < ppElems+iTotElem) {
+		while (ppTmp < ppElems + iTotElem) {
 			*ppTmp++ = NULL;
 		}
 
 		ElemData[0].ppFirstElem = ppElems;
 		for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE-1; iCnt++) {
 			ElemData[iCnt+1].ppFirstElem =
-				ElemData[iCnt].ppFirstElem+ElemData[iCnt].iNum;
+				ElemData[iCnt].ppFirstElem + ElemData[iCnt].iNum;
 		}
 
 	} else {
@@ -259,7 +259,7 @@ DataManager::ElemDataInit(void)
 #endif
 
 		Drive** ppTmp = ppDrive;
-		while (ppTmp < ppDrive+iTotDrive) {
+		while (ppTmp < ppDrive + iTotDrive) {
 			*ppTmp++ = NULL;
 		}
 
@@ -300,16 +300,18 @@ DataManager::ElemAssInit(void)
 		SAFENEWWITHCONSTRUCTOR(pWorkMatA,
 				VariableSubMatrixHandler,
 				VariableSubMatrixHandler(iWorkIntSize,
-					iWorkDoubleSize,
 					piWorkIndex,
-					pdWorkMat));
+					iWorkDoubleSize,
+					pdWorkMat,
+					iMaxWorkNumRows, iMaxWorkNumCols));
 
 		SAFENEWWITHCONSTRUCTOR(pWorkMatB,
 				VariableSubMatrixHandler,
 				VariableSubMatrixHandler(iWorkIntSize,
+					piWorkIndex + iWorkIntSize,
 					iWorkDoubleSize,
-					piWorkIndex+iWorkIntSize,
-					pdWorkMat+iWorkDoubleSize));
+					pdWorkMat + iWorkDoubleSize,
+					iMaxWorkNumRows, iMaxWorkNumCols));
 
 		pWorkMat = pWorkMatA;
 
@@ -329,13 +331,6 @@ DataManager::ElemAssInit(void)
 				<< std::endl);
 	}
 }
-
-//#define MBDYN_X_THREADSAFE
-
-#ifdef MBDYN_X_THREADSAFE
-/* temporary */
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif /* MBDYN_X_THREADSAFE */
 
 /* Assemblaggio dello jacobiano.
  * Di questa routine e' molto importante l'efficienza, quindi vanno valutate
@@ -358,30 +353,14 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 {
 	DEBUGCOUT("Entering DataManager::AssJac()" << std::endl);
 
-	// int i = 0;
-
 	Elem* pTmpEl = NULL;
 	if (Iter.bGetFirst(pTmpEl)) {
 		do {
-
-#ifdef MBDYN_X_THREADSAFE
-			pthread_mutex_lock(&mutex);
-#endif /* MBDYN_X_THREADSAFE */
-			
 			JacHdl += pTmpEl->AssJac(WorkMat, dCoef,
 					*pXCurr, *pXPrimeCurr);
 
-#ifdef MBDYN_X_THREADSAFE
-			pthread_mutex_unlock(&mutex);
-#endif /* MBDYN_X_THREADSAFE */
-			
-			// i++;
-			// usleep(100);
-			
 		} while (Iter.bGetNext(pTmpEl));
 	}
-
-	// fprintf(stderr, "[%d]: J %d\n", pthread_self(), i);
 }
 
 void
@@ -450,30 +429,14 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
-	// int i = 0;
-
 	Elem* pTmpEl = NULL;
 	if (Iter.bGetFirst(pTmpEl)) {
 		do {
-
-#ifdef MBDYN_X_THREADSAFE
-			pthread_mutex_lock(&mutex);
-#endif /* MBDYN_X_THREADSAFE */
-			
 			ResHdl += pTmpEl->AssRes(WorkVec, dCoef,
 					*pXCurr, *pXPrimeCurr);
 
-#ifdef MBDYN_X_THREADSAFE
-			pthread_mutex_unlock(&mutex);
-#endif /* MBDYN_X_THREADSAFE */
-
-			// i++;
-			// usleep(100);
-			
 		} while (Iter.bGetNext(pTmpEl));
 	}
-
-	// fprintf(stderr, "[%d]: R %d\n", pthread_self(), i);
 }
 
 void

@@ -526,9 +526,8 @@ HBeam::AssRes(SubVectorHandler& WorkVec,
 	integer iNode2FirstMomIndex = pNode[NODE2]->iGetFirstMomentumIndex();
 	
 	/* Dimensiona il vettore, lo azzera e pone gli indici corretti */
-	WorkVec.Resize(12);
-	WorkVec.Reset(0.);
-	
+	WorkVec.ResizeInit(12, 0.);
+
 	for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
 		WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
@@ -676,9 +675,8 @@ HBeam::InitialAssRes(SubVectorHandler& WorkVec,
 	DEBUGCOUTFNAME("HBeam::InitialAssRes => AssStiffnessVec");
 
 	/* Dimensiona il vettore, lo azzera e pone gli indici corretti */
-	WorkVec.Resize(12);
-	WorkVec.Reset(0.);
-	
+	WorkVec.ResizeInit(12, 0.);
+
 	integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
 	integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();
    

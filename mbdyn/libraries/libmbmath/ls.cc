@@ -55,6 +55,16 @@ LinearSolver::~LinearSolver(void)
 	NO_OP;
 }
 
+#ifdef DEBUG
+void
+LinearSolver::IsValid(void) const
+{
+	ASSERT(pSM);	
+	ASSERT(pdRhs);	
+	ASSERT(pdSol);	
+}
+#endif /* DEBUG */
+	
 void
 LinearSolver::Init(void)
 {
@@ -64,8 +74,6 @@ LinearSolver::Init(void)
 void
 LinearSolver::SetSolutionManager(SolutionManager *psm)
 {
-	ASSERT(pSM);
-
 	pSM = psm;
 }
 

@@ -171,9 +171,8 @@ Accelerometer::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeInit(iNumRows, 0.);
       
    integer iAbstractIndex = pAbsNode->iGetFirstIndex();
    integer iFirstIndex = iGetFirstIndex();

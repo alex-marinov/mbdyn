@@ -50,6 +50,15 @@ MatrixHandler::~MatrixHandler(void)
 	NO_OP;
 }
 
+/* Ridimensiona ed inizializza. */
+void
+MatrixHandler::ResizeInit(integer iNewRow, integer iNewCol,
+		const doublereal& dResetVal)
+{
+	Resize(iNewRow, iNewCol);
+	Init(dResetVal);
+}
+
 void
 MatrixHandler::Reset(const doublereal& dResetVal)
 {

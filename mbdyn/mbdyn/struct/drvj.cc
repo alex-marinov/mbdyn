@@ -285,7 +285,7 @@ AngularVelocityJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		  iFirstPositionIndex+iCnt, d);
    }
    
-   WM.fPutCross(7, iFirstMomentumIndex, 
+   WM.PutCross(7, iFirstMomentumIndex, 
 		iFirstPositionIndex, TmpDir*(-dM*dCoef));
    
    return WorkMat;
@@ -375,7 +375,7 @@ AngularVelocityJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		    iFirstPositionIndex+iCnt, Tmp.dGet(iCnt));
      }
    
-   WM.fPutCross(10, iFirstVelocityIndex, iFirstPositionIndex, Dir*(-dM));
+   WM.PutCross(10, iFirstVelocityIndex, iFirstPositionIndex, Dir*(-dM));
    
    return WorkMat;
 }

@@ -571,7 +571,8 @@ StructNode::InitialUpdate(const VectorHandler& X)
 void
 StructNode::SetInitialValue(VectorHandler& X) const
 {
-	ASSERT(0);
+	/* FIXME: why is this called? */
+	NO_OP;
 }
 
 
@@ -592,18 +593,15 @@ StructNode::SetValue(VectorHandler& X, VectorHandler& XP) const
 
 		std::cout << "SetValue: X=" << XPrev << ", R=" << RPrev << ", V=" << VPrev << ", W=" << WPrev << std::endl;
 
-	} else {
+	} else
 #endif /* MBDYN_X_RELATIVE_PREDICTION */
-
+	{
 		/* FIXME: in any case, we start with Crank-Nicholson ... */
 		XPrev = XCurr;
 		RPrev = RCurr;
 		VPrev = VCurr;
 		WPrev = WCurr;
-
-#ifdef MBDYN_X_RELATIVE_PREDICTION
 	}
-#endif /* MBDYN_X_RELATIVE_PREDICTION */
 
 	integer iFirstIndex = iGetFirstIndex();
 	X.Put(iFirstIndex+1, XPrev);

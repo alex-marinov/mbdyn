@@ -209,8 +209,7 @@ SubVectorHandler& PrismaticJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
    
    /* Indici */
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex()+3;
@@ -468,9 +467,8 @@ PrismaticJoint::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
+   WorkVec.ResizeInit(iNumRows, 0.);
+
    /* Indici */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
    integer iNode1FirstVelIndex = iNode1FirstPosIndex+6;

@@ -176,9 +176,8 @@ SwashPlate::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("Entering SwashPlate::AssRes()" << std::endl);
 
    /* Dimensiona e resetta la matrice di lavoro */
-   WorkVec.Resize(6);
-   WorkVec.Reset(0.);
-      
+   WorkVec.ResizeInit(6, 0.);
+ 
    integer iCollFirstIndex = pCollectiveIn->iGetFirstIndex()+1;
    integer iLongFirstIndex = pLongitudinalIn->iGetFirstIndex()+1;
    integer iLatFirstIndex = pLateralIn->iGetFirstIndex()+1;

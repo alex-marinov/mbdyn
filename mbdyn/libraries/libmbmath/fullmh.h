@@ -39,11 +39,12 @@
 class FullMatrixHandler : public MatrixHandler {
 	friend std::ostream&
 	operator << (std::ostream& out, const FullMatrixHandler& m);
+	friend class FullSubMatrixHandler;
+	friend class SparseSubMatrixHandler;
 
 protected:
 	bool bOwnsMemory;
 
-protected:
 	integer iNumRows;
 	integer iNumCols;
 

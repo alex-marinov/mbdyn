@@ -225,8 +225,7 @@ Body::AssRes(SubVectorHandler& WorkVec,
 	    iNumRows = 12;
     }
 
-    WorkVec.Resize(iNumRows);
-    WorkVec.Reset(0.);
+    WorkVec.ResizeInit(iNumRows, 0.);
 
     integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
     for (integer iCnt = 1; iCnt <= iNumRows; iCnt++) {
@@ -334,8 +333,7 @@ Body::InitialAssRes(SubVectorHandler& WorkVec,
     integer iNumRows;
     integer iNumCols;
     InitialWorkSpaceDim(&iNumRows, &iNumCols);
-    WorkVec.Resize(iNumRows);
-    WorkVec.Reset(0.);
+    WorkVec.ResizeInit(iNumRows, 0.);
    
     integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
     for (integer iCnt = 1; iCnt <= 12; iCnt++) {

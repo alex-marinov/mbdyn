@@ -102,9 +102,9 @@ AutomaticStructElem::AssJac(VariableSubMatrixHandler& WorkMat,
 		  iFirstMomentumIndex+iCnt, 1.);    
    }
 
-   WM.fPutCross(13, iFirstMomentumIndex+3, iFirstMomentumIndex, 
+   WM.PutCross(13, iFirstMomentumIndex+3, iFirstMomentumIndex, 
 		   pNode->GetVCurr()*dCoef);
-   WM.fPutCross(19, iFirstMomentumIndex+3, iFirstPositionIndex, -Q);
+   WM.PutCross(19, iFirstMomentumIndex+3, iFirstPositionIndex, -Q);
    
    return WorkMat;
 }
@@ -156,8 +156,7 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
 {
    DEBUGCOUTFNAME("AutomaticStructElem::AssRes");
 
-   WorkVec.Resize(12);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(12, 0.);
    
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();

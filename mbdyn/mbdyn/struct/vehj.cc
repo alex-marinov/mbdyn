@@ -253,8 +253,7 @@ ElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.Resize(iNumRows);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeInit(iNumRows, 0.);
  
 	/* Recupera gli indici */
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex()+3;
@@ -332,8 +331,7 @@ ElasticHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.Resize(iNumRows);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeInit(iNumRows, 0.);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
@@ -475,8 +473,7 @@ ViscousHingeJoint::AssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.Resize(iNumRows);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeInit(iNumRows, 0.);
 
 	/* Recupera gli indici */
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex()+3;
@@ -588,8 +585,7 @@ ViscousHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.Resize(iNumRows);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeInit(iNumRows, 0.);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
@@ -765,8 +761,7 @@ ViscoElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.Resize(iNumRows);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeInit(iNumRows, 0.);
 
 	/* Recupera gli indici */
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex()+3;
@@ -878,8 +873,7 @@ ViscoElasticHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.Resize(iNumRows);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeInit(iNumRows, 0.);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;

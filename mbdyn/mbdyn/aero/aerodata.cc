@@ -361,7 +361,7 @@ C81MultipleAeroData::SetSectionData(
 		const doublereal& omega
 )
 {
-	ASSERT(abscissa > 1. || abscissa < -1.);
+	ASSERT(abscissa >= -1. && abscissa <= 1.);
 
 	AeroData::SetSectionData(abscissa, chord, forcepoint, velocitypoint,
 			twist, omega);

@@ -226,7 +226,7 @@ public:
 
 	void Reset(const doublereal &r = 0.);
 
-	void Resize(const int &n, const int &nn = 0);
+	void Resize(integer ir, integer ic);
 
 	/* Estrae una colonna da una matrice */
 	VectorHandler& GetCol(integer icol, VectorHandler& out) const;

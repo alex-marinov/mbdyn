@@ -176,7 +176,7 @@ VariableSubMatrixHandler& Rod::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -213,7 +213,7 @@ void Rod::AssMats(VariableSubMatrixHandler& WorkMatA,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WMA.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -245,10 +245,9 @@ SubVectorHandler& Rod::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeInit(iNumRows, 0.);
+
    /* Indici */
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
@@ -380,7 +379,7 @@ Rod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -410,10 +409,9 @@ SubVectorHandler& Rod::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeInit(iNumRows, 0.);
+
    /* Indici */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
    integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
@@ -575,7 +573,7 @@ ViscoElasticRod::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -644,10 +642,9 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeInit(iNumRows, 0.);
+
    /* Indici */
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
@@ -706,7 +703,7 @@ ViscoElasticRod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -784,10 +781,9 @@ ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeInit(iNumRows, 0.);
+
    /* Indici */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
    integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
@@ -917,7 +913,7 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -1039,10 +1035,9 @@ RodWithOffset::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeInit(iNumRows, 0.);
+
    /* Indici */
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
@@ -1245,7 +1240,7 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -1409,10 +1404,9 @@ RodWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeInit(iNumRows, 0.);
+
    /* Indici */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
    integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();

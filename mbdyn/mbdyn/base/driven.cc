@@ -231,8 +231,7 @@ DrivenElem::AssRes(SubVectorHandler& WorkVec,
 	if (iNumDofs == 0) {
 		WorkVec.Resize(0);
 	} else {
-		WorkVec.Resize(iNumDofs);
-		WorkVec.Reset(0.);
+		WorkVec.ResizeInit(iNumDofs, 0.);
 
 		integer iFirstIndex = pElem->pGetElemWithDofs()->iGetFirstIndex();
 

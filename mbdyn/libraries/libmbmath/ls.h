@@ -64,6 +64,10 @@ public:
 	LinearSolver(SolutionManager *pSM = NULL);
 	virtual ~LinearSolver(void);
 
+#ifdef DEBUG
+	void IsValid(void) const;
+#endif /* DEBUG */
+
 	virtual void Init(void);
 	virtual void Solve(void) const = 0;
 

@@ -96,8 +96,7 @@ AbstractForce::AssRes(SubVectorHandler& WorkVec,
 {
    DEBUGCOUT("Entering AbstractForce::AssRes()" << std::endl);
 
-   WorkVec.Resize(1);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(1, 0.);
 
    /* Dati */   
    doublereal dAmplitude = pGetDriveCaller()->dGet();
@@ -169,8 +168,7 @@ AbstractInternalForce::AssRes(SubVectorHandler& WorkVec,
 {
    DEBUGCOUT("Entering AbstractInternalForce::AssRes()" << std::endl);
 
-   WorkVec.Resize(2);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(2, 0.);
 
    /* Dati */   
    doublereal dAmplitude = pGetDriveCaller()->dGet();

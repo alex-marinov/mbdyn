@@ -212,8 +212,7 @@ ElasticDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
    
    /* Recupera gli indici */
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
@@ -291,8 +290,7 @@ ElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);   
+   WorkVec.ResizeInit(iNumRows, 0.);
 
    /* Recupera gli indici */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
@@ -400,9 +398,8 @@ ViscousDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
+   WorkVec.ResizeInit(iNumRows, 0.);
+
    /* Recupera gli indici */
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex()+3;
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex()+3;
@@ -492,9 +489,7 @@ ViscousDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
+   WorkVec.ResizeInit(iNumRows, 0.);
 
    /* Recupera gli indici */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
@@ -619,10 +614,8 @@ ViscoElasticDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
-
+   WorkVec.ResizeInit(iNumRows, 0.);
+ 
    /* Recupera gli indici */
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex()+3;
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex()+3;
@@ -721,9 +714,7 @@ ViscoElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
+   WorkVec.ResizeInit(iNumRows, 0.);
 
    /* Recupera gli indici */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;

@@ -175,8 +175,7 @@ GenelFilter::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
    
    integer iRowIndex_y = SD_y.pNode->iGetFirstRowIndex()+1;
    integer iFirstIndex = iGetFirstIndex();
@@ -628,8 +627,7 @@ GenelStateSpaceSISO::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
    
    integer iRowIndex_y = SD_y.pNode->iGetFirstRowIndex()+1;    
    integer iFirstIndex = iGetFirstIndex();
@@ -837,8 +835,7 @@ GenelStateSpaceMIMO::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(iNumRows, 0.);
    
    integer iFirstIndex = iGetFirstIndex();
    

@@ -315,16 +315,18 @@ MultiThreadDataManager::ThreadSpawn(void)
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatA,
 				VariableSubMatrixHandler,
 				VariableSubMatrixHandler(iWorkIntSize,
-					iWorkDoubleSize,
 					thread_data[i].piWorkIndex,
-					thread_data[i].pdWorkMat));
+					iWorkDoubleSize,
+					thread_data[i].pdWorkMat,
+					iMaxWorkNumRows, iMaxWorkNumCols));
 
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatB,
 				VariableSubMatrixHandler,
 				VariableSubMatrixHandler(iWorkIntSize,
-					iWorkDoubleSize,
 					thread_data[i].piWorkIndex + iWorkIntSize,
-					thread_data[i].pdWorkMat + iWorkDoubleSize));
+					iWorkDoubleSize,
+					thread_data[i].pdWorkMat + iWorkDoubleSize,
+					iMaxWorkNumRows, iMaxWorkNumCols));
 
 		thread_data[i].pWorkMat = thread_data[i].pWorkMatA;
 

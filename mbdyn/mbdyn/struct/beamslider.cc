@@ -517,8 +517,7 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.Resize(iNumRows);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeInit(iNumRows, 0.);
 
 	/* Indici */
 	integer iNodeFirstMomIndex = pNode->iGetFirstMomentumIndex();

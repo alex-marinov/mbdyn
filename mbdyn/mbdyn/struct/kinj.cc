@@ -138,9 +138,8 @@ KinJoint::AssRes(SubVectorHandler& WorkVec,
 		 const VectorHandler& XCurr, 
 		 const VectorHandler& XPrimeCurr)
 {
-   WorkVec.Resize(24);
-   WorkVec.Reset(0.);
-   
+   WorkVec.ResizeInit(24, 0.);
+ 
    integer iNodeFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
    integer iFirstIndex = iGetFirstIndex();
    

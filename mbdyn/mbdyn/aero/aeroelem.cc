@@ -232,8 +232,7 @@ AerodynamicBody::AssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& /* XPrimeCurr */ )
 {
    	DEBUGCOUTFNAME("AerodynamicBody::AssRes");
-   	WorkVec.Resize(6);
-   	WorkVec.Reset(0.);
+   	WorkVec.ResizeInit(6, 0.);
    
    	integer iFirstIndex = pNode->iGetFirstMomentumIndex();
    	for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -252,8 +251,7 @@ AerodynamicBody::InitialAssRes(SubVectorHandler& WorkVec,
 {
    	DEBUGCOUTFNAME("AerodynamicBody::InitialAssRes");
    
-   	WorkVec.Resize(6);
-   	WorkVec.Reset(0.);
+   	WorkVec.ResizeInit(6, 0.);
    
    	integer iFirstIndex = pNode->iGetFirstPositionIndex();
    	for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -1045,8 +1043,7 @@ AerodynamicBeam::AssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUTFNAME("AerodynamicBeam::AssRes");
-	WorkVec.Resize(18);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeInit(18, 0.);
 	
 	integer iNode1FirstIndex = pNode1->iGetFirstMomentumIndex();
 	integer iNode2FirstIndex = pNode2->iGetFirstMomentumIndex();
@@ -1068,8 +1065,7 @@ AerodynamicBeam::InitialAssRes(SubVectorHandler& WorkVec,
 			       const VectorHandler& /* XCurr */ )
 {
 	DEBUGCOUTFNAME("AerodynamicBeam::InitialAssRes");
-	WorkVec.Resize(18);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeInit(18, 0.);
 	
 	integer iNode1FirstIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode2FirstIndex = pNode2->iGetFirstPositionIndex();
@@ -1669,8 +1665,7 @@ AerodynamicBeam2::AssRes(
 )
 {
 	DEBUGCOUTFNAME("AerodynamicBeam2::AssRes");
-	WorkVec.Resize(12);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeInit(12, 0.);
 	
 	integer iNode1FirstIndex = pNode1->iGetFirstMomentumIndex();
 	integer iNode2FirstIndex = pNode2->iGetFirstMomentumIndex();
@@ -1692,8 +1687,7 @@ AerodynamicBeam2::InitialAssRes(
 )
 {
 	DEBUGCOUTFNAME("AerodynamicBeam2::InitialAssRes");
-	WorkVec.Resize(12);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeInit(12, 0.);
 	
 	integer iNode1FirstIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode2FirstIndex = pNode2->iGetFirstPositionIndex();

@@ -157,7 +157,6 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 	DEBUGCOUT("Entering RotorTrim::AssRes()" << std::endl);
 	
 	WorkVec.Resize(3);
-	WorkVec.Reset(0.);
 	
 	WorkVec.PutRowIndex(1, pvNodes[0]->iGetFirstRowIndex()+1);
 	WorkVec.PutRowIndex(2, pvNodes[1]->iGetFirstRowIndex()+1);

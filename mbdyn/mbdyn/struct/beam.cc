@@ -801,13 +801,11 @@ SubVectorHandler& Beam::AssRes(SubVectorHandler& WorkVec,
 
    /* Dimensiona il vettore, lo azzera e pone gli indici corretti */
    if (fConsistentInertia) {	
-      WorkVec.Resize(36);
+      WorkVec.ResizeInit(36, 0.);
    } else {	
-      WorkVec.Resize(18);
+      WorkVec.ResizeInit(18, 0.);
    }
    
-   WorkVec.Reset(0.);
-         
    for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
       WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
       WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
@@ -1154,8 +1152,7 @@ SubVectorHandler& Beam::InitialAssRes(SubVectorHandler& WorkVec,
    DEBUGCOUTFNAME("Beam::InitialAssRes => AssStiffnessVec");
 
    /* Dimensiona il vettore, lo azzera e pone gli indici corretti */
-   WorkVec.Resize(18);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(18, 0.);
    
    integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
    integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();

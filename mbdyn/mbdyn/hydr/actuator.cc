@@ -360,8 +360,7 @@ Actuator::AssRes(SubVectorHandler& WorkVec,
 		 const VectorHandler& XPrimeCurr)
 
 {      
-   WorkVec.Resize(16);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(16, 0.);
    
    integer iNode1RowIndex = pNodeHyd1->iGetFirstRowIndex()+1;
    integer iNode2RowIndex = pNodeHyd2->iGetFirstRowIndex()+1;

@@ -765,9 +765,8 @@ DiscreteControlElem::AssRes(SubVectorHandler& WorkVec,
 			    const VectorHandler& /* XCurr */ ,
 			    const VectorHandler& /* XPrimeCurr */ )
 {
-   WorkVec.Resize(iNumInputs);
-   WorkVec.Reset(0.);
-      
+   WorkVec.ResizeInit(iNumInputs, 0.);
+ 
    /* At first iteration gets the input from the control subprocess */
    if (fNewStep) {      
       /* Gets the inputs from subprocess */

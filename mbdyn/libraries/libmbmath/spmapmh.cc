@@ -171,7 +171,7 @@ SpMapMatrixHandler::Reset(const doublereal &r)
 }
 
 void
-SpMapMatrixHandler::Resize(const int &n, const int &nn)
+SpMapMatrixHandler::Resize(integer n, integer nn)
 {
 	int nnn;
 

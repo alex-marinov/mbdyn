@@ -51,6 +51,19 @@ VectorHandler::~VectorHandler(void)
 	NO_OP;
 }
 
+void
+VectorHandler::ResizeInit(integer iNewRow, const doublereal& dResetVal)
+{
+	Resize(iNewRow);
+	Init(dResetVal);
+}
+
+void
+VectorHandler::Reset(doublereal dResetVal)
+{
+	Init(dResetVal);
+}
+
 /* Somma un Vec3 nella posizione desiderata */
 void
 VectorHandler::Add(integer iRow, const Vec3& v)
@@ -267,22 +280,21 @@ VectorHandler::InnerProd(const VectorHandler& VH) const
 
 MyVectorHandler::MyVectorHandler(integer iSize, doublereal* pdTmpVec)
 : bOwnsMemory(false),
-iMaxSize(iSize), iCurSize(iSize), pdVec(pdTmpVec), pdVecm1(0)
+iMaxSize(iSize), iCurSize(iSize), pdVecm1()
 {
-#ifdef DEBUG
-	IsValid();
-#endif /* DEBUG */
-
 	if (iSize == 0) {
-		ASSERT(pdVec == NULL);
+		ASSERT(pdVecm1 == NULL);
 
 	} else {
-		if (pdVec == NULL) {
+		if (pdTmpVec == NULL) {
 			bOwnsMemory = true;
 			Resize(iSize);
 		} else {
-			pdVecm1 = pdVec - 1;
+			pdVecm1 = pdTmpVec - 1;
 		}
+#ifdef DEBUG
+		IsValid();
+#endif /* DEBUG */
 	}
 }
 
@@ -301,21 +313,22 @@ MyVectorHandler::Resize(integer iSize)
 
 
 	if (bOwnsMemory) {
-		if (pdVec != NULL) {
+		if (pdVecm1 != NULL) {
 			if (iSize > iMaxSize) {
 				doublereal* pd = NULL;
 
 				SAFENEWARR(pd, doublereal, iSize);
+				pd--;
 #ifdef HAVE_MEMMOVE
-				memmove(pd, pdVec, iCurSize*sizeof(doublereal));
+				memmove(pd + 1, pdVec, iCurSize*sizeof(doublereal));
 #else /* ! HAVE_MEMMOVE */
-				for (integer i = iCurSize; i-- > 0; ) {
-					pd[i] = pdVec[i];
+				for (integer i = iCurSize; i > 0; i--) {
+					pd[i] = pdVecm1[i];
 				}
 #endif /* ! HAVE_MEMMOVE */
-				SAFEDELETEARR(pdVec);
-				pdVec = pd;
-				pdVecm1 = pdVec - 1;
+				doublereal *pdv = pdVecm1 + 1;
+				SAFEDELETEARR(pdv);
+				pdVecm1 = pd;
 				iMaxSize = iCurSize = iSize;
 
 			} else {
@@ -323,13 +336,13 @@ MyVectorHandler::Resize(integer iSize)
 			}
 
 		} else {
-			SAFENEWARR(pdVec, doublereal, iSize);
-			pdVecm1 = pdVec - 1;
+			SAFENEWARR(pdVecm1, doublereal, iSize);
+			pdVecm1--;
 			iMaxSize = iCurSize = iSize;
 		}
 
 	} else {
-		if (pdVec != NULL) {
+		if (pdVecm1 != NULL) {
 			if (iSize > iMaxSize) {
 				std::cerr << "Can't resize to " << iSize
 					<< ": larger than "
@@ -350,20 +363,21 @@ void
 MyVectorHandler::Detach(void)
 {
 	if (bOwnsMemory) {
-		if (pdVec != NULL) {
-			SAFEDELETEARR(pdVec);
+		if (pdVecm1 != NULL) {
+			doublereal *pd = pdVecm1 + 1;
+			SAFEDELETEARR(pd);
 		}
 		bOwnsMemory = false;
 	}
 
 	iMaxSize = iCurSize = 0;
-	pdVec = pdVecm1 = NULL;
+	pdVecm1 = NULL;
 }
 
 void
 MyVectorHandler::Attach(integer iSize, doublereal* pd, integer iMSize)
 {
-	if (bOwnsMemory || pdVec != NULL) {
+	if (bOwnsMemory || pdVecm1 != NULL) {
 		Detach();
 		bOwnsMemory = false;
 	}
@@ -378,8 +392,7 @@ MyVectorHandler::Attach(integer iSize, doublereal* pd, integer iMSize)
 		}
 	}
 
-	pdVec = pd;
-	pdVecm1 = pdVec-1;
+	pdVecm1 = pd - 1;
 }
 
 #ifdef DEBUG
@@ -388,16 +401,14 @@ MyVectorHandler::IsValid(void) const
 {
 	ASSERT(iMaxSize > 0);
 	ASSERT(iCurSize >= 0 && iCurSize <= iMaxSize);
-	ASSERT(pdVec != NULL);
-	ASSERT(pdVecm1 < pdVec);
-	ASSERT(pdVecm1+1 == pdVec);
+	ASSERT(pdVecm1 != NULL);
 
 #ifdef DEBUG_MEMMANAGER
 	if (bOwnsMemory) {
-		ASSERT(defaultMemoryManager.fIsBlock(pdVec,
+		ASSERT(defaultMemoryManager.fIsBlock(pdVecm1 + 1,
 					iMaxSize*sizeof(doublereal)));
 	} else {
-		ASSERT(defaultMemoryManager.fIsValid(pdVec,
+		ASSERT(defaultMemoryManager.fIsValid(pdVecm1 + 1,
 					iMaxSize*sizeof(doublereal)));
 	}
 #endif /* DEBUG_MEMMANAGER */
@@ -405,22 +416,21 @@ MyVectorHandler::IsValid(void) const
 #endif /* DEBUG */
 
 void
-MyVectorHandler::Reset(doublereal dResetVal)
+MyVectorHandler::Init(doublereal dResetVal)
 {
 #ifdef DEBUG
 	IsValid();
 #endif /* DEBUG */
 
 	ASSERT(iCurSize > 0);
-	ASSERT(pdVec+iCurSize > pdVec);
 
 #ifdef HAVE_MEMSET
 	if (dResetVal == 0.) {
-		memset(pdVec, 0, iGetSize()*sizeof(doublereal));
+		memset(pdVecm1 + 1, 0, iGetSize()*sizeof(doublereal));
 	} else {
 #endif /* HAVE_MEMSET */
-		for (integer i = iGetSize(); i-- > 0; ) {
-			pdVec[i] = dResetVal;
+		for (integer i = iGetSize(); i > 0; i--) {
+			pdVecm1[i] = dResetVal;
 		}
 #ifdef HAVE_MEMSET
 	}
@@ -522,9 +532,9 @@ MyVectorHandler::operator += (const MyVectorHandler& VH)
 	ASSERT(VH.iGetSize() > 0);
 	ASSERT(iCurSize == VH.iGetSize());
 
-	doublereal* pdFrom = VH.pdGetVec();
-	for (integer i = iGetSize(); i-- > 0; ) {
-		pdVec[i] += pdFrom[i];
+	doublereal* pdFrom = VH.pdGetVec() - 1;
+	for (integer i = iGetSize(); i > 0; i--) {
+		pdVecm1[i] += pdFrom[i];
 	}
 
 	return *this;
@@ -561,9 +571,9 @@ MyVectorHandler::operator -= (const MyVectorHandler& VH)
 	ASSERT(VH.iGetSize() > 0);
 	ASSERT(iCurSize == VH.iGetSize());
 
-	doublereal* pdFrom = VH.pdGetVec();
-	for (integer i = iGetSize(); i-- > 0; ) {
-		pdVec[i] -= pdFrom[i];
+	doublereal* pdFrom = VH.pdGetVec() - 1;
+	for (integer i = iGetSize(); i > 0; i--) {
+		pdVecm1[i] -= pdFrom[i];
 	}
 
 	return *this;
@@ -582,7 +592,7 @@ MyVectorHandler::operator = (const VectorHandler& VH)
 	ASSERT(iCurSize == VH.iGetSize());
 
 	for (integer i = iGetSize(); i > 0; i--) {
-		pdVecm1[i] = VH.dGetCoef(i);
+		pdVecm1[i] = VH(i);
 	}
 
 	return *this;
@@ -600,9 +610,9 @@ MyVectorHandler::operator = (const MyVectorHandler& VH)
 	ASSERT(VH.iGetSize() > 0);
 	ASSERT(iCurSize == VH.iGetSize());
 
-	doublereal* pdFrom = VH.pdGetVec();
-	for (integer i = iGetSize(); i-- > 0; ) {
-		pdVec[i] = pdFrom[i];
+	doublereal* pdFrom = VH.pdGetVec() - 1;
+	for (integer i = iGetSize(); i > 0; i--) {
+		pdVecm1[i] = pdFrom[i];
 	}
 
 	return *this;
@@ -657,18 +667,11 @@ MyVectorHandler::Dot(void) const
 
 	doublereal d2 = 0.;
 
-	for (integer i = iCurSize; --i > 0;) {
-		d2 += pdVec[i]*pdVec[i];
+	for (integer i = iCurSize; i > 0; i--) {
+		d2 += pdVecm1[i]*pdVecm1[i];
 	}
 
 	return d2;
-}
-
-/* Norma del vettore */
-doublereal
-MyVectorHandler::Norm(void) const
-{
-	return sqrt(Dot());
 }
 
 /* MyVectorHandler - end */

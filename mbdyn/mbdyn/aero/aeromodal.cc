@@ -279,8 +279,7 @@ SubVectorHandler& AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
 					  const VectorHandler&  XPrimeCurr )
 {
    DEBUGCOUTFNAME("AerodynamicModal::AssRes");
-   WorkVec.Resize(RigidF+NStModes+NAeroStates+2*NGust);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(RigidF + NStModes + NAeroStates + 2*NGust, 0.);
 
 
    if (RigidF) {

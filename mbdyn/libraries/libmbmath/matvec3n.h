@@ -129,6 +129,7 @@ class VecN {
    const VecN& operator *= (const doublereal & d);
 
    inline doublereal& operator () (integer i);
+   inline const doublereal& operator () (integer i) const;
 };
 
 
@@ -181,6 +182,16 @@ inline const doublereal& VecN::dGet(integer i) const
 
 inline doublereal &
 VecN::operator () (integer i)
+{
+#ifdef DEBUG
+   IsValid();
+#endif /* DEBUG */
+   ASSERT(i > 0 && i <= iNumRows);
+   return pdVec[--i];
+}
+
+inline const doublereal &
+VecN::operator () (integer i) const
 {
 #ifdef DEBUG
    IsValid();
@@ -265,6 +276,7 @@ class Mat3xN {
    Mat3x3 GetMat3x3ScalarMult(integer iFirstCol, const doublereal& d) const;
 
    inline doublereal & operator () (integer i, integer j);
+   inline const doublereal & operator () (integer i, integer j) const;
 };
 
 
@@ -318,6 +330,17 @@ inline const doublereal& Mat3xN::dGet(int i, integer j) const
 
 inline doublereal &
 Mat3xN::operator () (integer i, integer j)
+{
+#ifdef DEBUG
+   IsValid();
+#endif /* DEBUG */
+   ASSERT(i > 0 && i <= 3);
+   ASSERT(j > 0 && j <= iNumCols);
+   return pdRows[--i][--j];
+}
+      
+inline const doublereal &
+Mat3xN::operator () (integer i, integer j) const
 {
 #ifdef DEBUG
    IsValid();
@@ -385,6 +408,7 @@ class MatNx3 {
    void SubVec(integer iRow, const Vec3& v);
 
    inline doublereal & operator () (integer i, integer j);
+   inline const doublereal & operator () (integer i, integer j) const;
 };
 
 
@@ -453,6 +477,17 @@ MatNx3::operator () (integer i, integer j)
    return pdCols[--j][--i];
 }
 
+inline const doublereal &
+MatNx3::operator () (integer i, integer j) const
+{
+#ifdef DEBUG
+   IsValid();
+#endif /* DEBUG */
+   ASSERT(i > 0 && i <= iNumRows);
+   ASSERT(j > 0 && j <= 3);
+   return pdCols[--j][--i];
+}
+
 /* Mat Nx3 - end */
 
 /* MatNxN - begin */
@@ -501,6 +536,7 @@ class MatNxN {
    const MatNxN& Mult(const MatNx3& m, const Mat3xN& n);
 
    inline doublereal& operator () (integer i, integer j);
+   inline const doublereal& operator () (integer i, integer j) const;
 };
 
 
@@ -559,6 +595,17 @@ MatNxN::dGet(integer i, integer j) const
 
 inline doublereal&
 MatNxN::operator () (integer i, integer j)
+{
+#ifdef DEBUG
+   IsValid();
+#endif /* DEBUG */
+   ASSERT(i > 0 && i <= iNumRows);
+   ASSERT(j > 0 && j <= iNumRows);
+   return pdMat[--j][--i];
+}
+
+inline const doublereal&
+MatNxN::operator () (integer i, integer j) const
 {
 #ifdef DEBUG
    IsValid();

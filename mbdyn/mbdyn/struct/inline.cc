@@ -132,15 +132,15 @@ InLineJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		  iNode1FirstPosIndex+3+iCnt, d);
    }
    
-   WM.fPutCross(36+1, iNode1FirstMomIndex,
+   WM.PutCross(36+1, iNode1FirstMomIndex,
 		iNode1FirstPosIndex+3, FTmp);
-   WM.fPutCross(42+1, iNode1FirstMomIndex+3,
+   WM.PutCross(42+1, iNode1FirstMomIndex+3,
 		iNode1FirstPosIndex, -FTmp);
-   WM.fPutMat3x3(48+1, iNode1FirstMomIndex+3,		
+   WM.PutMat3x3(48+1, iNode1FirstMomIndex+3,		
 		iNode1FirstPosIndex+3, Mat3x3(x2mx1, FTmp));
-   WM.fPutCross(57+1, iNode1FirstMomIndex+3,
+   WM.PutCross(57+1, iNode1FirstMomIndex+3,
 		iNode2FirstPosIndex, FTmp);
-   WM.fPutCross(63+1, iNode2FirstMomIndex,
+   WM.PutCross(63+1, iNode2FirstMomIndex,
 		iNode2FirstPosIndex+3, -FTmp);
    
    return WorkMat;
@@ -154,8 +154,7 @@ InLineJoint::AssRes(SubVectorHandler& WorkVec,
 		    const VectorHandler& /* XPrimeCurr */ )
 {
    DEBUGCOUTFNAME("InLineJoint::AssRes");
-   WorkVec.Resize(14);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(14, 0.);
  
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
@@ -361,8 +360,7 @@ InLineJoint::InitialAssRes(SubVectorHandler& WorkVec,
 			   const VectorHandler& XCurr)
 {
    DEBUGCOUTFNAME("InLineJoint::InitialAssRes");
-   WorkVec.Resize(28);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(28, 0.);
    
    /* Indici gdl */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
@@ -527,24 +525,24 @@ InLineWithOffsetJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		  iNode2FirstPosIndex+3+iCnt, d);
    }
    
-   WM.fPutCross(48+1, iNode1FirstMomIndex,
+   WM.PutCross(48+1, iNode1FirstMomIndex,
 		iNode1FirstPosIndex+3, FTmp);
-   WM.fPutCross(54+1, iNode1FirstMomIndex+3,
+   WM.PutCross(54+1, iNode1FirstMomIndex+3,
 		iNode1FirstPosIndex, -FTmp);
-   WM.fPutMat3x3(60+1, iNode1FirstMomIndex+3,		
+   WM.PutMat3x3(60+1, iNode1FirstMomIndex+3,		
 		iNode1FirstPosIndex+3, Mat3x3(x2qmx1, FTmp));
-   WM.fPutCross(69+1, iNode1FirstMomIndex+3,
+   WM.PutCross(69+1, iNode1FirstMomIndex+3,
 		iNode2FirstPosIndex, FTmp);
-   WM.fPutCross(75+1, iNode2FirstMomIndex,
+   WM.PutCross(75+1, iNode2FirstMomIndex,
 		iNode2FirstPosIndex+3, -FTmp);
 
    Mat3x3 MTmp(FTmp, qTmp);
-   WM.fPutMat3x3(81+1, iNode1FirstMomIndex+3,
+   WM.PutMat3x3(81+1, iNode1FirstMomIndex+3,
 		 iNode2FirstPosIndex+3, -MTmp);
-   WM.fPutMat3x3(90+1, iNode2FirstMomIndex+3,
+   WM.PutMat3x3(90+1, iNode2FirstMomIndex+3,
 		 iNode2FirstPosIndex+3, -MTmp);
 
-   WM.fPutMat3x3(99+1, iNode2FirstMomIndex+3,		
+   WM.PutMat3x3(99+1, iNode2FirstMomIndex+3,		
 		 iNode1FirstPosIndex+3, Mat3x3(-qTmp, FTmp));
    
    return WorkMat;
@@ -558,8 +556,7 @@ InLineWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
 			      const VectorHandler& /* XPrimeCurr */ )
 {
    DEBUGCOUTFNAME("InLineWithOffsetJoint::AssRes");
-   WorkVec.Resize(14);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(14, 0.);
  
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
@@ -597,8 +594,10 @@ InLineWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-DofOrder::Order InLineWithOffsetJoint::GetEqType(unsigned int i) const {
-	ASSERTMSGBREAK((i>0) and (i<15), 
+DofOrder::Order
+InLineWithOffsetJoint::GetEqType(unsigned int i) const
+{
+	ASSERTMSGBREAK((i>=0) and (i<15), 
 		"INDEX ERROR in InLineWithOffsetJoint::GetEqType");
 	if ((i==13) or (i==14)) {
 		return DofOrder::ALGEBRAIC;
@@ -833,8 +832,7 @@ InLineWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
 				     const VectorHandler& XCurr)
 {
    DEBUGCOUTFNAME("InLineWithOffsetJoint::InitialAssRes");
-   WorkVec.Resize(28);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeInit(28, 0.);
    
    /* Indici gdl */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();

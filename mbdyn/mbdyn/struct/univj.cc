@@ -241,9 +241,8 @@ SubVectorHandler& UniversalHingeJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-      
+   WorkVec.ResizeInit(iNumRows, 0.);
+ 
    /* Indici */
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
@@ -557,9 +556,8 @@ UniversalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
+   WorkVec.ResizeInit(iNumRows, 0.);
+
    /* Indici */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
    integer iNode1FirstVelIndex = iNode1FirstPosIndex+6;
@@ -815,9 +813,8 @@ UniversalRotationJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-      
+   WorkVec.ResizeInit(iNumRows, 0.);
+ 
    /* Indici */
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex()+3;
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex()+3;
@@ -1073,9 +1070,8 @@ UniversalRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
+   WorkVec.ResizeInit(iNumRows, 0.);
+ 
    /* Indici */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
    integer iNode1FirstVelIndex = iNode1FirstPosIndex+6;
@@ -1247,7 +1243,7 @@ UniversalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		  iFirstReactionIndex+4, Tmp.dGet(iCnt));
    }   
    
-   WM.fPutCross(7, iFirstMomentumIndex+3,
+   WM.PutCross(7, iFirstMomentumIndex+3,
 		iFirstReactionIndex, dTmp);
       
    
@@ -1255,7 +1251,7 @@ UniversalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Termini diagonali del tipo: c*F/\d/\Delta_g 
     * nota: la forza e' gia' moltiplicata per dCoef */      
-   WM.fPutMat3x3(13, iFirstMomentumIndex+3, iFirstPositionIndex+3, 
+   WM.PutMat3x3(13, iFirstMomentumIndex+3, iFirstPositionIndex+3, 
 		 Mat3x3(F*dCoef, dTmp)+Mat3x3(MTmp*dCoef, e3));
 
    /* Modifica: divido le equazioni di vincolo per dCoef */
@@ -1266,7 +1262,7 @@ UniversalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		  iFirstPositionIndex+iCnt, -1.);
    }
    
-   WM.fPutCross(25, iFirstReactionIndex,
+   WM.PutCross(25, iFirstReactionIndex,
 		iFirstPositionIndex+3, dTmp);
    
    for (int iCnt = 1; iCnt <= 3; iCnt ++) {
@@ -1290,9 +1286,8 @@ SubVectorHandler& UniversalPinJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-      
+   WorkVec.ResizeInit(iNumRows, 0.);
+
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
    integer iFirstReactionIndex = iGetFirstIndex();
    
@@ -1499,9 +1494,8 @@ UniversalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
+   WorkVec.ResizeInit(iNumRows, 0.);
+ 
    /* Indici */
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    integer iFirstVelocityIndex = iFirstPositionIndex+6;
