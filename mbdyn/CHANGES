@@ -16,6 +16,8 @@ MBDyn 1.1 Engineering
 		- improved approximate friction model of shock absorber
 		- penalty also on strain rate in shock absorber (WARNING:
 		  changes input syntax)
+		- facility for partial force and moment output from rotor
+		  elements (set).
 	Bug fixes:
 		- fixed bug in tire friction force in module-wheel2
 		- fixed bug in tire reference volume computation

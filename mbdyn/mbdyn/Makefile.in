@@ -101,7 +101,7 @@ bin_PROGRAMS = mbdyn
 mbdyn_SOURCES =  dummy_c.c dummy_f.f  mbdyn.cc  mbdyn.h
 
 
-mbdyn_LDADD =  base/libbase.la struct/libstruct.la aero/libaero.la elec/libelec.la hydr/libhydr.la ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la @Y12_LIBS@ @HARWELL_LIBS@ @UMFPACK3_LIBS@ ../libraries/libmbwrap/libmbwrap.la ../libraries/libobjs/libobjs.la @MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ @METIS_LIBS@ @SECURITY_LIBS@ @TCL_LIBS@ @LIBS@ $(GINACLIB_LIBS)
+mbdyn_LDADD =  base/libbase.la aero/libaero.la struct/libstruct.la elec/libelec.la hydr/libhydr.la base/libbase.la ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la @Y12_LIBS@ @HARWELL_LIBS@ @UMFPACK3_LIBS@ ../libraries/libmbwrap/libmbwrap.la ../libraries/libobjs/libobjs.la @MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ @METIS_LIBS@ @SECURITY_LIBS@ @TCL_LIBS@ @LIBS@ $(GINACLIB_LIBS)
 
 #mbdyn_LDFLAGS = -static
 
@@ -118,8 +118,8 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 mbdyn_OBJECTS =  dummy_c.o dummy_f.o mbdyn.o
-mbdyn_DEPENDENCIES =  base/libbase.la struct/libstruct.la \
-aero/libaero.la elec/libelec.la hydr/libhydr.la \
+mbdyn_DEPENDENCIES =  base/libbase.la aero/libaero.la \
+struct/libstruct.la elec/libelec.la hydr/libhydr.la base/libbase.la \
 ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la \
 ../libraries/libmbutil/libmbutil.la ../libraries/libmbwrap/libmbwrap.la \
 ../libraries/libobjs/libobjs.la

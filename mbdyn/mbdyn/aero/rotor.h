@@ -43,81 +43,11 @@ extern "C" {
 
 #include <aerodyn.h>
 #include <strnode.h>
+#include <resforces.h>
 
 extern const char* psRotorNames[];
 
-/* ResForces - begin */
-
-class ResForces {
-protected:
-	Vec3 F;
-	Vec3 C;
-
-public:
-	ResForces(void) : F(0.), C(0.) { NO_OP; };
-	virtual ~ResForces(void) { NO_OP; };
-
-	virtual void Reset(void) { F = 0.; C = 0.; };
-	void AddForce(const Vec3& f) { F += f; };
-	void AddForce(const Vec3& f, Vec3& x) { 
-		F += f; 
-		C += (x-Pole()).Cross(f); 
-	};
-	void AddCouple(const Vec3& c) { C += c; };
-	void AddForces(const Vec3& f, const Vec3& c, const Vec3& x) {
-		F += f;
-		C += c + (x-Pole()).Cross(f);
-	};
-	void PutForce(const Vec3& f) { F = f; };
-	void PutCouple(const Vec3& c) { C = c; };
-	void PutForces(const Vec3& f, const Vec3& c) { F = f; C = c; };
-	
-	const Vec3& Force(void) const { return F; };
-	const Vec3& Couple(void) const { return C; };
-	virtual const Vec3& Pole(void) const = 0;
-};
-
-class ExternResForces : public ResForces {
-protected:
-	Vec3 X;
-
-public:
-	ExternResForces(void) : X(0.) { NO_OP; };
-	virtual ~ExternResForces(void) { NO_OP; };
-
-	void Reset(void) { ResForces::Reset(); };
-	void Reset(const Vec3& x) { X = x; ResForces::Reset(); };
-	void PutPole(const Vec3& x) { X = x; };
-	
-	const Vec3& Pole(void) const { return X; };
-};
-
-class NodeResForces : public ResForces {
-protected:
-	StructNode *pNode;
-
-public:
-	NodeResForces(StructNode *n = 0) : pNode(n) { NO_OP; };
-	virtual ~NodeResForces(void) { NO_OP; };
-
-	const Vec3& Pole(void) const {
-		ASSERT(pNode); 
-		return pNode->GetXCurr(); 
-	};
-};
-
-/* ResForces - end */
-
 /* Rotor - begin */
-
-struct SetResForces : public WithLabel {
-	ResForces *pRes;
-	/* add map */
-	
-	SetResForces(unsigned int uLabel, ResForces *p) 
-	: pRes(p) { ASSERT(pRes); };
-	virtual ~SetResForces(void) { SAFEDELETE(pRes); };
-};
 
 class Rotor 
 : virtual public Elem, public AerodynamicElem, public ElemWithDofs {
@@ -181,7 +111,7 @@ class Rotor
    
 
    /* temporaneo */
-   int iNumSteps;
+   mutable int iNumSteps;
    
    
    /* Questa funzione non viene usata, da Rotor, ma da altre classi derivate 
@@ -200,7 +130,8 @@ class Rotor
 
  public:
    Rotor(unsigned int uL, const DofOwner* pDO, 
-	 const StructNode* pC, const StructNode* pR, flag fOut);
+	 const StructNode* pC, const StructNode* pR, 
+	 SetResForces **ppres, flag fOut);
    virtual ~Rotor(void);      
    
    /* funzioni di servizio */
@@ -324,6 +255,7 @@ class Rotor
    /* Somma alla trazione il contributo di un elemento */
    virtual void AddForce(unsigned int uL, 
 		   const Vec3& F, const Vec3& M, const Vec3& X);
+   virtual void ResetForce(void);
    
    /* Restituisce ad un elemento la velocita' indotta in base alla posizione
     * azimuthale */
@@ -362,7 +294,10 @@ class NoRotor : virtual public Elem, public Rotor {
    NoRotor(unsigned int uLabel,
 	   const DofOwner* pDO,
 	   const StructNode* pCraft, 
-	   const StructNode* pRotor, doublereal dR, flag fOut);
+	   const StructNode* pRotor, 
+	   SetResForces **ppres, 
+	   doublereal dR, 
+	   flag fOut);
    virtual ~NoRotor(void);
    virtual inline void* pGet(void) const { return (void*)this; };
    
@@ -403,6 +338,7 @@ class UniformRotor : virtual public Elem, public Rotor {
 		const DofOwner* pDO,
 		const StructNode* pCraft, 
 		const StructNode* pRotor, 
+		SetResForces **ppres, 
 		doublereal dOR,
 		doublereal dR,
 		doublereal dW,
@@ -446,6 +382,7 @@ class GlauertRotor : virtual public Elem, public Rotor {
 		const DofOwner* pDO,
 		const StructNode* pCraft,
 		const StructNode* pRotor,
+		SetResForces **ppres, 
 		doublereal dOR,
 		doublereal dR,
 		doublereal dW,
@@ -489,6 +426,7 @@ class ManglerRotor : virtual public Elem, public Rotor {
 		const DofOwner* pDO,
 		const StructNode* pCraft,
 		const StructNode* pRotor,
+		SetResForces **ppres,
 		doublereal dOR,
 		doublereal dR,
 		doublereal dW,
@@ -542,6 +480,7 @@ class DynamicInflowRotor : virtual public Elem, public Rotor {
 		      const DofOwner* pDO,
 		      const StructNode* pCraft, 
 		      const StructNode* pRotor,
+		      SetResForces **ppres, 
 		      doublereal dOR,
 		      doublereal dR,
 		      doublereal dVConstTmp,

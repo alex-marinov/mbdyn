@@ -61,6 +61,8 @@ output.h \
 posrel.h \
 readclaw.h \
 reffrm.h \
+resforces.cc \
+resforces.h \
 restart.h \
 schur.cc \
 schur.h \

@@ -15,10 +15,11 @@ mbdyn.h
 ## mbdyn_LDADD = @XLIBOBJS@
 mbdyn_LDADD = \
 base/libbase.la \
-struct/libstruct.la \
 aero/libaero.la \
+struct/libstruct.la \
 elec/libelec.la \
 hydr/libhydr.la \
+base/libbase.la \
 ../libraries/libmbwrap/libmbwrap.la \
 ../libraries/libmbmath/libmbmath.la \
 ../libraries/libmbutil/libmbutil.la \
