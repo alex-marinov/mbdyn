@@ -107,7 +107,7 @@ const integer iDefaultFictitiousStepsNumber = 0;
 const doublereal dDefaultFictitiousStepsRatio = 1.e-3;
 const doublereal dDefaultFictitiousStepsRho = 0.;
 const doublereal dDefaultFictitiousStepsTolerance = 1.e-6;
-const doublereal dDefaultToll = 1e-6;
+const doublereal dDefaultTol = 1e-6;
 const integer iDefaultIterationsBeforeAssembly = 2;
 const integer iDefaultIterativeSolversMaxSteps = 100;
 
@@ -157,6 +157,9 @@ pSM(NULL),
 pDM(NULL),
 DofIterator(),
 iNumDofs(0),
+fIterative(fIter),
+dIterTol(dDefaultTol),
+iIterativeMaxSteps(iDefaultIterativeSolversMaxSteps),
 #ifdef USE_MPI
 fParallel(fPar),
 pLocalSM(NULL),
@@ -171,23 +174,20 @@ iIWorkSpaceSize(0),
 dIPivotFactor(-1.),
 CurrIntSolver(Integrator::defaultSolver),
 #endif /* USE_MPI */
-fIterative(fIter),
-iIterativeMaxSteps(iDefaultIterativeSolversMaxSteps),
-dIterToll(dDefaultToll),
 dTime(0.),
 dInitialTime(0.), 
 dFinalTime(0.),
 dRefTimeStep(0.),
 dInitialTimeStep(1.), 
 dMinimumTimeStep(1.),
-dToll(dDefaultToll), 
+dTol(dDefaultTol), 
 iMaxIterations(iDefaultMaxIterations),
 iFictitiousStepsNumber(iDefaultFictitiousStepsNumber),
 dFictitiousStepsRatio(dDefaultFictitiousStepsRatio),
 dFictitiousStepsRho(dDefaultFictitiousStepsRho),
 dFictitiousStepsTolerance(dDefaultFictitiousStepsTolerance),
 iFictitiousStepsMaxIterations(iDefaultMaxIterations),
-dDerivativesToll(1e-6), 
+dDerivativesTol(1e-6), 
 dDerivativesCoef(1.),
 iDerivativesMaxIterations(iDefaultMaxIterations),
 fAbortAfterInput(0),
@@ -211,7 +211,7 @@ dPivotFactor(-1.)
 	DEBUGCOUTFNAME("MultiStepIntegrator::MultiStepIntegrator");
 
 	ASSERT(sInFName != NULL);
-
+	
 	SAFESTRDUP(sInputFileName, sInFName);
 
 	if (sOutFName != NULL) {
@@ -427,7 +427,7 @@ MultiStepIntegrator::Run(void)
 #ifdef USE_Y12
       			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				IterativeSolutionManager,
-				IterativeSolutionManager(iNLD, dIterToll,
+				IterativeSolutionManager(iNLD, dIterTol,
 				iIterativeMaxSteps,
 				pDM, pXCurr, pXPrimeCurr,
 				(Y12SparseLUSolutionManager*)0,
@@ -443,7 +443,7 @@ MultiStepIntegrator::Run(void)
 #ifdef USE_MESCHACH
       			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				IterativeSolutionManager,
-				IterativeSolutionManager(iNLD, dIterToll,
+				IterativeSolutionManager(iNLD, dIterTol,
 				iIterativeMaxSteps,
 				pDM, pXCurr, pXPrimeCurr,
 				(MeschachSparseLUSolutionManager*)0,
@@ -460,7 +460,7 @@ MultiStepIntegrator::Run(void)
 #ifdef USE_HARWELL
       			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				IterativeSolutionManager,
-				IterativeSolutionManager(iNLD, dIterToll,
+				IterativeSolutionManager(iNLD, dIterTol,
 				iIterativeMaxSteps,
 				pDM, pXCurr, pXPrimeCurr,
 				(HarwellSparseLUSolutionManager*)0,
@@ -476,7 +476,7 @@ MultiStepIntegrator::Run(void)
 #ifdef USE_UMFPACK3
       			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				IterativeSolutionManager,
-				IterativeSolutionManager(iNLD, dIterToll,
+				IterativeSolutionManager(iNLD, dIterTol,
 				iIterativeMaxSteps,
 				pDM, pXCurr, pXPrimeCurr,
 				(Umfpack3SparseLUSolutionManager*)0,
@@ -724,7 +724,7 @@ MultiStepIntegrator::Run(void)
       		}
 #endif /* DEBUG */
 
-      		if (dTest < dDerivativesToll) {
+      		if (dTest < dDerivativesTol) {
 	 		goto EndOfDerivatives;
       		}
       
@@ -1320,7 +1320,7 @@ IfFirstStepIsToBeRepeated:
       		}
 #endif /* DEBUG */
       
-      		if (dTest < dToll) {
+      		if (dTest < dTol) {
 	 		goto EndOfFirstStep;
       		}
       
@@ -1579,7 +1579,7 @@ IfStepIsToBeRepeated:
 	 		}
 #endif /* DEBUG */
 
-        		if (dTest < dToll) {
+        		if (dTest < dTol) {
 				CurrStep = MultiStepIntegrationMethod::NEWSTEP;
 				goto EndOfStep;
 			}
@@ -1619,9 +1619,12 @@ IfStepIsToBeRepeated:
 		    		}
 	 		}
 
+#ifdef DEBUG_MULTISTEP
 			/* Modified Newton-Raphson ... */
-      		std::cout << "iPerformedIterations " << iPerformedIterations << std::endl;
-      		std::cout << "iIterationsBeforeAssembly " << iIterationsBeforeAssembly << std::endl;
+			std::cout << "iPerformedIterations " << iPerformedIterations << std::endl;
+			std::cout << "iIterationsBeforeAssembly " << iIterationsBeforeAssembly << std::endl;
+#endif /* DEBUG_MULTISTEP */
+
 	 		if (iPerformedIterations < iIterationsBeforeAssembly) {
 	    			iPerformedIterations++;
 
@@ -1648,7 +1651,9 @@ IfStepIsToBeRepeated:
 
 	    			pSM->MatrInit(0.);
 	    			pDM->AssJac(*pJac, db0Differential);
-			std::cout << "JACOBIAN Assembled " << std::endl;
+#ifdef DEBUG_MULTISTEP
+				std::cout << "JACOBIAN Assembled " << std::endl;
+#endif /* DEBUG_MULTISTEP */
 
 #ifdef MPI_PROFILING
 				MPE_Log_event(24,0,"end Jacobian");
@@ -2871,28 +2876,28 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
        }	 
 
        case TOLERANCE: {
-	  dToll = HP.GetReal();
-	  if (dToll <= 0.) {
-	     dToll = dDefaultToll;
+	  dTol = HP.GetReal();
+	  if (dTol <= 0.) {
+	     dTol = dDefaultTol;
 	     std::cerr 
 	       << "warning, tolerance <= 0. is illegal; switching to default value "
-	       << dToll << std::endl;
+	       << dTol << std::endl;
 	  }		       		  
-	  DEBUGLCOUT(MYDEBUG_INPUT, "tolerance = " << dToll << std::endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "tolerance = " << dTol << std::endl);
 	  break;
        }
 	 
        case DERIVATIVESTOLERANCE: {
-	  dDerivativesToll = HP.GetReal();
-	  if (dDerivativesToll <= 0.) {
-	     dDerivativesToll = 1e-6;
+	  dDerivativesTol = HP.GetReal();
+	  if (dDerivativesTol <= 0.) {
+	     dDerivativesTol = 1e-6;
 	     std::cerr 
 	       << "warning, derivatives tolerance <= 0. is illegal; switching to default value " 
-	       << dDerivativesToll
+	       << dDerivativesTol
 	       << std::endl;
 	  }		       		  
 	  DEBUGLCOUT(MYDEBUG_INPUT, 
-		     "Derivatives toll = " << dDerivativesToll << std::endl);
+		     "Derivatives toll = " << dDerivativesTol << std::endl);
 	  break;
        }
 	 
@@ -3276,9 +3281,9 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
        }
        
        case ITERATIVETOLERANCE: {
-		dIterToll = HP.GetReal();
-		DEBUGLCOUT(MYDEBUG_INPUT, "Iterative Solver Tollerance: " 
-			<< dIterToll << std::endl);
+		dIterTol = HP.GetReal();
+		DEBUGLCOUT(MYDEBUG_INPUT, "Iterative Solver Tolerance: " 
+			<< dIterTol << std::endl);
 		break;
         }
        		

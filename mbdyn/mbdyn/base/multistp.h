@@ -126,7 +126,7 @@ private:
    	integer iNumDofs;     		/* Dimensioni del problema */
         
         flag fIterative;
-	doublereal  dIterToll;          /* tolleranza per la convergenza della
+	doublereal  dIterTol;          /* tolleranza per la convergenza della
 	                                   soluzione di Ax = b con metodi
 					   iterativi
 					 */
@@ -165,7 +165,7 @@ private:
    	doublereal dInitialTimeStep;
    	doublereal dMinimumTimeStep;
    	doublereal dMaxTimeStep;
-   	doublereal dToll;
+   	doublereal dTol;
    	integer iMaxIterations;
 
    	/* Dati dei passi fittizi di trimmaggio iniziale */
@@ -176,7 +176,7 @@ private:
    	integer iFictitiousStepsMaxIterations;
 
    	/* Dati del passo iniziale di calcolo delle derivate */
-   	doublereal dDerivativesToll;
+   	doublereal dDerivativesTol;
    	doublereal dDerivativesCoef;   
    	integer iDerivativesMaxIterations;
    
