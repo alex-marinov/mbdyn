@@ -238,17 +238,51 @@ Solver* RunMBDyn(MBDynParser&, const char* const, const char* const, bool);
 static void SendMessage(const char* const, const char* const, time_t, time_t);
 #endif /* MBDYN_X_MAIL_MESSAGE */
 
+static int
+parse_args(int argc, char *argv[], bool &using_mpi,
+		int &parallel_fSilent, int &parallel_fPedantic)
+{
+	for (int i = 1; i < argc; i++) {
+		if (!using_mpi && strncmp(argv[i], "-p", 2) == 0) {
+			using_mpi = true;
+			continue;
+		}
+		
+		/* intercept silence/pedantic flags */
+		if (strncmp(argv[i], "-s", 2) == 0) {
+			parallel_fSilent++;
+
+			for (unsigned j = 2; argv[i][j] == 's'; j++) {
+				parallel_fSilent++;
+			}
+
+		} else if (strncmp(argv[i], "-P", 2) == 0) {
+			parallel_fPedantic++;
+
+			for (unsigned j = 2; argv[i][j] == 'P'; j++) {
+				parallel_fPedantic++;
+			}
+		}
+	}
+
+	return 0;
+}
+
 
 int
 main(int argc, char* argv[])
 {
 	int	rc = EXIT_SUCCESS;
 
-	bool using_mpi = false;
+	bool	using_mpi = false;
+
 #ifdef USE_MPI
-	int WorldSize = 1;
-	int myrank = 0;
-	char ProcessorName_[1024] = "localhost", *ProcessorName = ProcessorName_;
+	int	WorldSize = 1;
+	int	myrank = 0;
+	char	ProcessorName_[1024] = "localhost",
+		*ProcessorName = ProcessorName_;
+	int	parallel_fSilent = 0,
+		parallel_fPedantic = 0;
 
     	/* 
 	 * FIXME: this is a hack to detect whether mbdyn has been
@@ -259,28 +293,38 @@ main(int argc, char* argv[])
 	 * the check is on the first two chars because "most" of
 	 * the mpirun/MPI extra args start with -p<something>
 	 */
-	for (int i = 1; i < argc; i++) {
-		if (strncmp(argv[i], "-p", 2) == 0) {
+	parse_args(argc, argv, using_mpi, parallel_fSilent, parallel_fPedantic);
 
-			MPI::Init(argc, argv);	   
-			WorldSize = MPI::COMM_WORLD.Get_size();
-			myrank = MPI::COMM_WORLD.Get_rank();
-		
-			/*
-			 * all these temporaries are to avoid complains from
-			 * the compiler (MPI's API is really messy ):
-			 */
-			int ProcessorNameLength = sizeof(ProcessorName_);
-			MPI::Get_processor_name(ProcessorName, 
-					ProcessorNameLength); 
-			using_mpi = true;
-			break;
-		}
-	}
+	::fSilent = parallel_fSilent;
+	::fPedantic = parallel_fPedantic;
 
 	if (using_mpi) {
-		std::cerr << "using MPI (explicitly required by '-p' switch)"
-			<< std::endl;
+		MPI::Init(argc, argv);	   
+		WorldSize = MPI::COMM_WORLD.Get_size();
+		myrank = MPI::COMM_WORLD.Get_rank();
+
+		if (myrank > 0) {
+			/*
+			 * need a second take because MPI::Init()
+			 * restores the inital args, so if Get_rank() > 0
+			 * the eventual -s/-P flags have been restored
+			 */
+			parse_args(argc, argv, using_mpi,
+					parallel_fSilent, parallel_fPedantic);
+
+			::fSilent = parallel_fSilent;
+			::fPedantic = parallel_fPedantic;
+		}
+		
+		/*
+		 * all these temporaries are to avoid complains from
+		 * the compiler (MPI's API is really messy ):
+		 */
+		int ProcessorNameLength = sizeof(ProcessorName_);
+		MPI::Get_processor_name(ProcessorName, ProcessorNameLength); 
+
+		silent_cerr("using MPI (explicitly required by '-p*' switch)"
+			<< std::endl);
 	}
 #endif /* USE_MPI */
    
@@ -352,9 +396,9 @@ main(int argc, char* argv[])
 #ifdef MBDYN_X_MAIL_MESSAGE
 	        		sMailToAddress = optarg;
 #else /* ! MBDYN_X_MAIL_MESSAGE */
-				std::cerr << "warning: option -m has been "
+				silent_cerr("warning: option -m has been "
 					"disabled because of potential "
-					"vulnerabilities" << std::endl;
+					"vulnerabilities" << std::endl);
 #endif /* ! MBDYN_X_MAIL_MESSAGE */
 	        		break;
 
@@ -365,10 +409,10 @@ main(int argc, char* argv[])
 					char *eptr = NULL;
 					niceIncr = strtol(optarg, &eptr, 10);
 					if (eptr != NULL && eptr[0] != '\0') {
-		    				std::cerr << "Unable to "
+		    				silent_cerr("Unable to "
 							"parse nice level <" 
 							<< optarg << ">"
-							<< std::endl;
+							<< std::endl);
 		    				THROW(ErrGeneric());
 					}
 #else /* !HAVE_STRTOL */
@@ -386,19 +430,18 @@ main(int argc, char* argv[])
 	        		sInputFileName = optarg;
 	        		FileStreamIn.open(sInputFileName);
 	        		if (!FileStreamIn) {
-		    			std::cerr 
-		        			<< std::endl 
+		    			silent_cerr(std::endl 
 		        			<< "Unable to open file '"
-						<< sInputFileName << '\'';
+						<< sInputFileName << '\'');
 #ifdef USE_MPI
 					if (using_mpi) {
-						std::cerr << " on "
-							<< ProcessorName;
+						silent_cerr(" on "
+							<< ProcessorName);
 					}
 #endif /* USE_MPI */
-					std::cerr
-						<< ";" << std::endl 
-						<< "aborting ..." << std::endl;
+					silent_cerr(";" << std::endl 
+						<< "aborting ..."
+						<< std::endl);
 		    			THROW(ErrGeneric());
 	        		}
 	        		pIn = (std::istream*)&FileStreamIn;
@@ -410,13 +453,13 @@ main(int argc, char* argv[])
 	        		CurrInputSource = FILE_OPT;
 	        		sInputFileName = optarg;
 	     
-	        		std::cerr << "ADAMS input not implemented yet,"
+	        		silent_cerr("ADAMS input not implemented yet,"
 		    			" cannot open file '"
-					<< sInputFileName << "'" << std::endl;
+					<< sInputFileName << "'" << std::endl);
 				THROW(ErrGeneric());
 	        		break;
 #else /* !USE_ADAMS_PP */
-	        		std::cerr << "Illegal option -a" << std::endl;
+	        		silent_cerr("Illegal option -a" << std::endl);
 	        		THROW(ErrGeneric());
 				break;
 #endif /* !USE_ADAMS_PP */
@@ -428,15 +471,15 @@ main(int argc, char* argv[])
 	    		case int('d'):
 #ifdef DEBUG
 	        		if (get_debug_options(optarg, da)) {
-		    			std::cerr << "Unable to interpret debug"
+		    			silent_cerr("Unable to interpret debug"
 						" option argument;"
-						" using default" << std::endl;
+						" using default" << std::endl);
 		    			::debug_level = DEFAULT_DEBUG_LEVEL;
 		    			/* THROW(ErrGeneric()); */
 	        		}
 #else /* !DEBUG */
-	        		std::cerr << "Compile with '-DDEBUG'"
-					" to use debug features" << std::endl;
+	        		silent_cerr("Compile with '-DDEBUG'"
+					" to use debug features" << std::endl);
 #endif /* !DEBUG */
 	        		break;
 	       
@@ -452,12 +495,20 @@ main(int argc, char* argv[])
 #ifdef USE_MPI
 				ASSERT(using_mpi);
 #else /* !USE_MPI */
-				std::cerr << "switch '-p' is meaningless without MPI" << std::endl;
+				silent_cerr("switch '-p' is meaningless "
+						"without MPI" << std::endl);
 #endif /* !USE_MPI */
 				break;
 	    
 	    		case int('P'):
-	        		::fPedantic++;
+#ifdef USE_MPI
+				if (parallel_fPedantic> 0) {
+					parallel_fPedantic--;
+				} else 
+#endif /* USE_MPI */
+				{
+	        			::fPedantic++;
+				}
 	        		break;
 
 	    		case int('r'):
@@ -469,7 +520,14 @@ main(int argc, char* argv[])
 	        		break;
 	    
 	    		case int('s'):
-	        		::fSilent++;
+#ifdef USE_MPI
+				if (parallel_fSilent > 0) {
+					parallel_fSilent--;
+				} else 
+#endif /* USE_MPI */
+				{
+	        			::fSilent++;
+				}
 	        		break;
 
 	    		case int('l'):
@@ -493,20 +551,20 @@ main(int argc, char* argv[])
 			case int('W'):
 #ifdef HAVE_CHDIR
       				if (chdir(optarg)) {
-					std::cerr << "Error in chdir(\""
+					silent_cerr("Error in chdir(\""
 						<< optarg << "\")"
-						<< std::endl;
+						<< std::endl);
 	 				THROW(ErrFileSystem());
       				}
 #else /* !HAVE_CHDIR */
-				std::cerr << "chdir() not available"
-					<< std::endl;
+				silent_cerr("chdir() not available"
+					<< std::endl);
 #endif /* !HAVE_CHDIR */
 				break;
 	    
 	    		case int('?'):
-	        		std::cerr << "Unknown option -"
-					<< char(optopt) << std::endl;
+	        		silent_cerr("Unknown option -"
+					<< char(optopt) << std::endl);
 
 	    		case int('h'):
 #ifdef USE_MPI
@@ -528,9 +586,9 @@ main(int argc, char* argv[])
 	        		break;
 	    
 	    		default:
-	        		std::cerr << std::endl 
+	        		silent_cerr(std::endl 
 	            			<< "Unrecoverable error; aborting ..."
-					<< std::endl;
+					<< std::endl);
 	        		THROW(ErrGeneric());
 	    		}
         	}
@@ -564,9 +622,10 @@ main(int argc, char* argv[])
 		    	    << std::endl);
 #ifdef USE_MPI
 		if (using_mpi) {
-        		std::cerr << "Process " << myrank 
+        		silent_cerr("Process " << myrank 
 	    			<< " (" << myrank+1 << " of " << WorldSize
-            			<< ") is alive on " << ProcessorName << std::endl;
+            			<< ") is alive on " << ProcessorName
+				<< std::endl);
 		}
 #endif /* USE_MPI */
       
@@ -595,8 +654,8 @@ main(int argc, char* argv[])
 			silent_cout("setting nice(" << niceIncr << ")" 
 					<< std::endl);
 			if (nice(niceIncr)) {
-				std::cerr << "nice(" << niceIncr 
-					<< ") failed; ignored" << std::endl;
+				silent_cerr("nice(" << niceIncr 
+					<< ") failed; ignored" << std::endl);
 			}
 		}
 #endif /* HAVE_NICE */
@@ -653,10 +712,11 @@ main(int argc, char* argv[])
 				    && !strncasecmp(p+1, "adm", 3)) {
 	            			CurrInputFormat = ADAMS;
 	       
-	            			std::cerr << "ADAMS input not implemented"
-						" yet, cannot open file '"
-						<< sInputFileName << "'"
-						<< std::endl;
+	            			silent_cerr("ADAMS input "
+							"not implemented yet, "
+							"cannot open file '"
+							<< sInputFileName 
+							<< "'" << std::endl);
 	            			THROW(ErrGeneric());
 	        		} else {
 #endif /* USE_ADAMS_PP */
@@ -664,12 +724,12 @@ main(int argc, char* argv[])
 	       
 	            			FileStreamIn.open(sInputFileName);
 	            			if (!FileStreamIn) {
-		        			std::cerr << std::endl 
+		        			silent_cerr(std::endl 
 			    				<< "Unable to open"
 							" file '"
 							<< sInputFileName 
 			    				<< "'; aborting ..."
-							<< std::endl;
+							<< std::endl);
 		        			THROW(ErrGeneric());
 	            			}
 #ifdef USE_ADAMS_PP
@@ -710,12 +770,13 @@ main(int argc, char* argv[])
 	    		}
 	       
 	    		case ADAMS:
-	        		std::cerr << "ADAMS input not implemented yet!"
-					<< std::endl;
+	        		silent_cerr("ADAMS input not implemented yet!"
+					<< std::endl);
 	        		THROW(ErrNotImplementedYet());
 	    
 	    		default:
-	        		std::cerr << "You shouldn't be here!" << std::endl;
+	        		silent_cerr("You shouldn't be here!"
+						<< std::endl);
 	        		THROW(ErrGeneric());
 	    		}
 	    
@@ -812,8 +873,8 @@ main(int argc, char* argv[])
         	rc = EXIT_SUCCESS;
 
     	} catch (...) {
-        	std::cerr << "An error occurred during the execution of MBDyn;"
-	    		" aborting ... " << std::endl;
+        	silent_cerr("An error occurred during the execution of MBDyn;"
+	    		" aborting ... " << std::endl);
         	rc = EXIT_FAILURE;
     	}
 #else /* ! USE_EXCEPTIONS */
@@ -882,16 +943,16 @@ RunMBDyn(MBDynParser& HP,
    
     	/* legge i dati della simulazione */
     	if (KeyWords(HP.GetDescription()) != BEGIN) {
-        	std::cerr << std::endl 
+        	silent_cerr(std::endl 
 	    		<< "Error: <begin> expected at line " 
-	    		<< HP.GetLineData() << "; aborting ..." << std::endl;
+	    		<< HP.GetLineData() << "; aborting ..." << std::endl);
         	THROW(ErrGeneric());
     	}
    
     	if (KeyWords(HP.GetWord()) != DATA) {
-        	std::cerr << std::endl 
+        	silent_cerr(std::endl 
 	    		<< "Error: <begin: data;> expected at line " 
-	    		<< HP.GetLineData() << "; aborting ..." << std::endl;
+	    		<< HP.GetLineData() << "; aborting ..." << std::endl);
         	THROW(ErrGeneric());
     	}
    
@@ -911,27 +972,27 @@ RunMBDyn(MBDynParser& HP,
 	        		break;
 		
             		case SSCHUR:
-				std::cerr << "warning: \"schur\" solver "
-					"is deprecated;" << std::endl;
+				silent_cerr("warning: \"schur\" solver "
+					"is deprecated;" << std::endl);
 #ifdef USE_MPI
-				std::cerr << "use \"parallel\" with "
+				silent_cerr("use \"parallel\" with "
 					"\"multistep\" solver instead"
-					<< std::endl;
+					<< std::endl);
 	        		CurrInt = MULTISTEP;
 				using_mpi = true;
 #else /* !USE_MPI */
-				std::cerr << "compile with -DUSE_MPI "
+				silent_cerr("compile with -DUSE_MPI "
 					"to enable parallel solution" 
-					<< std::endl;
+					<< std::endl);
 				THROW(ErrGeneric());
 #endif /* !USE_MPI */
 	        		break;
 		
             		default:
-	        		std::cerr << std::endl 
+	        		silent_cerr(std::endl 
 		    			<< "Unknown integrator at line " 
 	            			<< HP.GetLineData()
-					<< "; aborting ..." << std::endl;
+					<< "; aborting ..." << std::endl);
 	        		THROW(ErrGeneric());
             		}
             		break;    
@@ -946,8 +1007,8 @@ RunMBDyn(MBDynParser& HP,
 			using_mpi = true;
 	    		break;
 #else /* !USE_MPI */
-            		std::cerr << "compile with -DUSE_MPI to enable "
-				"parallel solution" << std::endl;
+            		silent_cerr("compile with -DUSE_MPI to enable "
+				"parallel solution" << std::endl);
 	    		THROW(ErrGeneric());
 #ifndef USE_EXCEPTIONS
 			break;
@@ -956,19 +1017,19 @@ RunMBDyn(MBDynParser& HP,
 
         	case END:
 	    		if (KeyWords(HP.GetWord()) != DATA) {
-	        		std::cerr << std::endl 
+	        		silent_cerr(std::endl 
 		    			<< "Error: <end: data;> expected"
 					" at line " << HP.GetLineData()
-					<< "; aborting ..." << std::endl;
+					<< "; aborting ..." << std::endl);
 	        		THROW(ErrGeneric());
 	    		}
 	    		goto endofcycle;        
 	 
         	default:
-	    		std::cerr << std::endl 
+	    		silent_cerr(std::endl 
 	        		<< "Unknown description at line " 
 	        		<< HP.GetLineData()
-				<< "; aborting ..." << std::endl;
+				<< "; aborting ..." << std::endl);
 	    		THROW(ErrGeneric());      
         	}
     	}
@@ -1046,12 +1107,12 @@ endofcycle:
 		 * in one scheme; the "thirdorder" method
 		 * is actually an implicit Runge-Kutta with
 		 * tunable algorithmic dissipation */
-        	std::cerr << "Sorry, implicit Runge-Kutta isn't supported yet;"
-	    		<< std::endl << "aborting ..." << std::endl;
+        	silent_cerr("Sorry, implicit Runge-Kutta isn't supported yet;"
+	    		<< std::endl << "aborting ..." << std::endl);
         	THROW(ErrNotImplementedYet());
 
 	default:
-        	std::cerr << "Unknown integrator; aborting ..." << std::endl;
+        	silent_cerr("Unknown integrator; aborting ..." << std::endl);
         	THROW(ErrGeneric());   
     	}
 
