@@ -86,6 +86,10 @@ class Modal : virtual public Elem, public Joint {
    
    Mat3xN *pModeShapest;
    Mat3xN *pModeShapesr;
+
+   Mat3xN *pCurrXYZ;
+   Mat3xN *pCurrXYZVel;
+
  
    Mat3xN *pInv3;
    Mat3xN *pInv4;
@@ -219,9 +223,8 @@ class Modal : virtual public Elem, public Joint {
       return pModeShapesr;
    };
    
-   Mat3xN* pGetFemNodesPosition(void) {
-      return pXYZFemNodes;
-   };
+   Mat3xN* GetCurrFemNodesPosition(void);
+   Mat3xN* GetCurrFemNodesVelocity(void);
    
    integer uGetNModes(void) {
       return NModes;

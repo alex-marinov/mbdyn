@@ -156,6 +156,8 @@ pPHIt(pPHItStrNode),
 pPHIr(pPHIrStrNode),
 pModeShapest(pModeShapest),
 pModeShapesr(pModeShapesr),
+pCurrXYZ(NULL),
+pCurrXYZVel(NULL),
 pInv3(pInv3), 
 pInv4(pInv4), 
 pInv5(pInv5), 
@@ -1740,6 +1742,63 @@ Modal::dGetPrivData(unsigned int i) const
       return b.dGet(i-NModes);
    }
 }
+
+Mat3xN* 
+Modal::GetCurrFemNodesPosition(void) {
+	if (pCurrXYZ == NULL) {
+		   SAFENEWWITHCONSTRUCTOR(pCurrXYZ, Mat3xN, Mat3xN(NFemNodes, 0.));
+	}	   
+	Mat3x3 R(pModalNode->GetRCurr());
+	Vec3 x(pModalNode->GetXCurr());  
+	for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
+		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+      			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+				pCurrXYZ->Add(iCnt, iNode, 
+					pXYZFemNodes->dGet(iCnt,iNode) + pModeShapest->dGet(iCnt,(iMode-1)*NFemNodes+iNode) * a.dGet(iMode) );  
+			}
+		}
+	}
+	pCurrXYZ->LeftMult(R);
+	for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+      		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+	 		pCurrXYZ->Add(iCnt, iNode, x.dGet(iCnt));
+      		}
+   	}
+
+      	return pCurrXYZ;
+}
+  
+Mat3xN* 
+Modal::GetCurrFemNodesVelocity(void) {
+	if (pCurrXYZ == NULL) {
+		   SAFENEWWITHCONSTRUCTOR(pCurrXYZVel, Mat3xN, Mat3xN(NFemNodes, 0.));
+	}	   
+      	Mat3x3 R(pModalNode->GetRCurr());
+	Vec3 w(pModalNode->GetWCurr());
+	Mat3x3 wWedge(w);  
+	Vec3 v(pModalNode->GetVCurr());  
+      	Mat3xN CurrXYZTmp(NFemNodes, 0.); 
+	for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
+		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+      			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+				doublereal d = pModeShapest->dGet(iCnt,(iMode-1)*NFemNodes+iNode);
+				pCurrXYZVel->Add(iCnt, iNode, pXYZFemNodes->dGet(iCnt,iNode) + d * a.dGet(iMode) ); 
+				CurrXYZTmp.Add(iCnt, iNode,d * b.dGet(iMode) );
+			}
+		}
+	}
+	pCurrXYZVel->LeftMult(wWedge*R);
+	CurrXYZTmp.LeftMult(R);
+	for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+      		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+	 		pCurrXYZVel->Add(iCnt, iNode, CurrXYZTmp.dGet(iCnt, iNode) + v.dGet(iCnt));
+      		}
+   	}
+
+      	return pCurrXYZVel;
+}
+   
+
 
 
 Joint* 
