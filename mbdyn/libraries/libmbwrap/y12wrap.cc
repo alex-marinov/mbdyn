@@ -43,10 +43,10 @@
 #include <y12wrap.h>
 #include <y12lib.h>
 
-/* Y12LUSolver - begin */
+/* Y12Solver - begin */
 
 /* Costruttore: si limita ad allocare la memoria */
-Y12LUSolver::Y12LUSolver(integer iMatOrd, integer iSize,
+Y12Solver::Y12Solver(integer iMatOrd, integer iSize,
 			 std::vector<integer>*const piTmpRow, 
 			 std::vector<integer>*const piTmpCol,
 			 std::vector<doublereal>*const pdTmpMat,
@@ -96,7 +96,7 @@ iFirstSol(-1)
 }
 
 /* Distruttore */
-Y12LUSolver::~Y12LUSolver(void)
+Y12Solver::~Y12Solver(void)
 {
 	if (pdPIVOT != NULL) {
 		SAFEDELETEARR(pdPIVOT);
@@ -108,7 +108,7 @@ Y12LUSolver::~Y12LUSolver(void)
 
 #ifdef DEBUG
 void 
-Y12LUSolver::IsValid(void) const
+Y12Solver::IsValid(void) const
 {
 	ASSERT(iMatSize > 0);
 	ASSERT(iCurSize > 0 && iCurSize <= iMatSize);
@@ -129,7 +129,7 @@ Y12LUSolver::IsValid(void) const
 #endif /* DEBUG */
 
 bool
-Y12LUSolver::SetCurSize(integer i)
+Y12Solver::SetCurSize(integer i)
 {
 	if (i < 1 || i > iMatSize) {
 		return false;
@@ -141,14 +141,14 @@ Y12LUSolver::SetCurSize(integer i)
 }
 
 integer
-Y12LUSolver::iGetCurSize(void) const
+Y12Solver::iGetCurSize(void) const
 {
 	return iCurSize;
 }
 
 /* Fattorizza la matrice */
 bool
-Y12LUSolver::bLUFactor(void)
+Y12Solver::bLUFactor(void)
 {
 #ifdef DEBUG 
 	IsValid();
@@ -178,11 +178,11 @@ Y12LUSolver::bLUFactor(void)
 			    dAFLAG, iIFLAG, &iIFAIL);
 			    
 	if (iIFAIL != 0) {
-		std::cerr << "Y12LUSolver (y12prefactor): "
+		std::cerr << "Y12Solver (y12prefactor): "
 			"error during pre-factorization, code " 
 			<< iIFAIL << ":" << std::endl;
 		PutError(std::cerr, iIFAIL);
-		THROW(Y12LUSolver::ErrFactorization(iIFAIL));
+		THROW(Y12Solver::ErrFactorization(iIFAIL));
 	}
 
 	/* actual factorization */
@@ -194,15 +194,15 @@ Y12LUSolver::bLUFactor(void)
 			    dAFLAG, iIFLAG, &iIFAIL);
 
 	if (iIFAIL != 0) {
-		std::cerr << "Y12LUSolver (y12factor): "
+		std::cerr << "Y12Solver (y12factor): "
 			"error during factorization, code " 
 			<< iIFAIL << ":" << std::endl;
 		PutError(std::cerr, iIFAIL);
-		THROW(Y12LUSolver::ErrFactorization(iIFAIL));
+		THROW(Y12Solver::ErrFactorization(iIFAIL));
 	}
 
 	if (dAFLAG[7] < 1.e-12) {
-		std::cerr << "Y12LUSolver (y12factor):"
+		std::cerr << "Y12Solver (y12factor):"
 			" warning, possible bad conditioning of matrix" 
 			<< std::endl;
 	}
@@ -212,7 +212,7 @@ Y12LUSolver::bLUFactor(void)
 
 /* Risolve */
 void
-Y12LUSolver::Solve(void)
+Y12Solver::Solve(void)
 {
 #ifdef DEBUG
 	IsValid();
@@ -226,11 +226,11 @@ Y12LUSolver::Solve(void)
 			    iIFLAG, &iIFAIL);
 	
 	if (iIFAIL != 0) {
-		std::cerr << "Y12LUSolver (y12solve): "
+		std::cerr << "Y12Solver (y12solve): "
 			"error during back substitution, code "
 			<< iIFAIL << ":" << std::endl;
 		PutError(std::cerr, iIFAIL);
-		THROW(Y12LUSolver::ErrFactorization(iIFAIL));
+		THROW(Y12Solver::ErrFactorization(iIFAIL));
 	}
 	
 	if (iFirstSol == 1) {
@@ -240,7 +240,7 @@ Y12LUSolver::Solve(void)
 }
 
 void 
-Y12LUSolver::PutError(std::ostream& out, int rc) const
+Y12Solver::PutError(std::ostream& out, int rc) const
 {
 	out << std::endl;
 
@@ -494,7 +494,7 @@ Y12LUSolver::PutError(std::ostream& out, int rc) const
 	out << std::endl;
 }
 
-/* Y12LUSolver - end */
+/* Y12Solver - end */
 
 
 /* Y12SparseSolutionManager - begin: code */
@@ -543,8 +543,8 @@ bHasBeenReset(true)
 	dMat.reserve(iWorkSpaceSize);
 
    	SAFENEWWITHCONSTRUCTOR(pLU, 
-			       Y12LUSolver,
-			       Y12LUSolver(iMatSize, iWorkSpaceSize,
+			       Y12Solver,
+			       Y12Solver(iMatSize, iWorkSpaceSize,
 			       		   &iRow, &iCol,
 					   &dMat, &(dVec[0]), iPivot));
    

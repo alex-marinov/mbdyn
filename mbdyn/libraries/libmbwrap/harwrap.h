@@ -107,20 +107,20 @@
 #include <spmapmh.h>
 
 /* classi dichiarate in questo file */
-class HarwellLUSolver;      	/* solutore */
+class HarwellSolver;      	/* solutore */
 class HarwellSparseSolutionManager;  /* gestore della soluzione */
 
 
-/* HarwellLUSolver - begin */
+/* HarwellSolver - begin */
 
 /*
  * Solutore LU per matrici sparse. usa spazio messo a disposizione da altri 
  * e si aspetta le matrici gia' bell'e preparate
  */
 
-static char sLUClassName[] = "HarwellLUSolver";
+static char sLUClassName[] = "HarwellSolver";
 
-class HarwellLUSolver {
+class HarwellSolver {
    	friend class HarwellSparseSolutionManager;
 
 
@@ -155,7 +155,7 @@ private:
    
 protected:
    	/* Costruttore: si limita ad allocare la memoria */
-   	HarwellLUSolver(integer iMatOrd, integer iSize,
+   	HarwellSolver(integer iMatOrd, integer iSize,
 		    std::vector<integer>*const piTmpRow, 
 		    std::vector<integer>*const piTmpCol, 
 		    std::vector<doublereal>*const  pdTmpMat,
@@ -207,7 +207,7 @@ protected:
      	};
    
    	/* Distruttore */
-   	~HarwellLUSolver(void) {
+   	~HarwellSolver(void) {
       		if (pdW != NULL) {	     
 	 		SAFEDELETEARR(pdW);
       		}
@@ -286,7 +286,7 @@ protected:
 	 		std::cerr << sLUClassName 
 	   			<< ": error during factorization, code "
 				<< iFlag << std::endl;	 
-	 		THROW(HarwellLUSolver::ErrFactorization(iFlag));
+	 		THROW(HarwellSolver::ErrFactorization(iFlag));
       		}
       
 		/* FIXME: handle iFlag > 0 ??? */
@@ -306,7 +306,7 @@ protected:
    	};
 };
 
-/* HarwellLUSolver - end */
+/* HarwellSolver - end */
 
 
 /* HarwellSparseSolutionManager - begin */
@@ -327,17 +327,17 @@ protected:
    	integer iMatSize;     /* ordine della matrice */
    	std::vector<integer> iRow;       /* array di interi con:
 			       * tabella di SparseData/indici di riga
-			       * di HarwellLUSolver */
+			       * di HarwellSolver */
    	std::vector<integer> iCol;       /* array di interi con:
 	                       * keys di SparseData/indici di colonna
-			       * di HarwellLUSolver */
+			       * di HarwellSolver */
    	std::vector<doublereal> dMat;    /* array di reali con la matrice */
    	std::vector<doublereal> dVec;    /* array di reali con residuo/soluzione */
    
 	mutable SpMapMatrixHandler MH; /* SparseMatrixHandler */
 /*   	SparseMatrixHandler* pMH; puntatore a SparseMatrixHandler */
    	VectorHandler* pVH;   /* puntatore a VectorHandler */
-   	HarwellLUSolver* pLU; /* puntatore a HarwellLUSolver */
+   	HarwellSolver* pLU; /* puntatore a HarwellSolver */
    
    	flag fHasBeenReset;   /* flag di matrice resettata */
    

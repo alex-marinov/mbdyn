@@ -81,8 +81,8 @@ fHasBeenReset(1)
 // 			       			   &iCol, &dMat,
 // 			       			   iWorkSpaceSize));
    	SAFENEWWITHCONSTRUCTOR(pLU, 
-			       HarwellLUSolver,
-			       HarwellLUSolver(iMatSize, iWorkSpaceSize,
+			       HarwellSolver,
+			       HarwellSolver(iMatSize, iWorkSpaceSize,
 			       		       &iRow, &iCol, 
 					       &dMat, &(dVec[0]), dPivotFactor));
    

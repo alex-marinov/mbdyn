@@ -108,18 +108,18 @@
 #include <spmapmh.h>
 
 /* classi dichiarate in questo file */
-class Y12LUSolver;      	/* solutore */
+class Y12Solver;      	/* solutore */
 class Y12SparseSolutionManager;  /* gestore della soluzione */
 
 
-/* Y12LUSolver - begin */
+/* Y12Solver - begin */
 
 /*
  * Solutore LU per matrici sparse. usa spazio messo a disposizione da altri 
  * e si aspetta le matrici gia' bell'e preparate
  */
 
-class Y12LUSolver {
+class Y12Solver {
    	friend class Y12SparseSolutionManager;
 
 
@@ -179,14 +179,14 @@ private:
    
 protected:
    	/* Costruttore: si limita ad allocare la memoria */
-   	Y12LUSolver(integer iMatOrd, integer iSize,
+   	Y12Solver(integer iMatOrd, integer iSize,
 		    std::vector<integer>*const piTmpRow, 
 		    std::vector<integer>*const piTmpCol, 
 		    std::vector<doublereal>*const  pdTmpMat,
 		    doublereal*  pdTmpRhs, 
 		    integer iPivotParam);
    	/* Distruttore */
-   	~Y12LUSolver(void);
+   	~Y12Solver(void);
 
 #ifdef DEBUG	
    	void IsValid(void) const;
@@ -199,7 +199,7 @@ protected:
    	void Solve(void);
 };
 
-/* Y12LUSolver - end */
+/* Y12Solver - end */
 
 
 /* Y12SparseSolutionManager - begin */
@@ -220,16 +220,16 @@ protected:
    	integer iMatSize;     /* ordine della matrice */
    	std::vector<integer> iRow;       /* array di interi con:
 			       * tabella di SparseData/indici di riga
-			       * di Y12LUSolver */
+			       * di Y12Solver */
    	std::vector<integer> iCol;       /* array di interi con:
 	                       * keys di SparseData/indici di colonna
-			       * di Y12LUSolver */
+			       * di Y12Solver */
    	std::vector<doublereal> dMat;    /* reali con la matrice */
    	std::vector<doublereal> dVec;    /* reali con residuo/soluzione */
    
 	mutable SpMapMatrixHandler MH; /* sparse MatrixHandler */
    	VectorHandler* pVH;   /* puntatore a VectorHandler */
-   	Y12LUSolver* pLU;     /* puntatore a Y12LUSolver */
+   	Y12Solver* pLU;     /* puntatore a Y12Solver */
    
    	bool bHasBeenReset;   /* flag di matrice resettata */
 
