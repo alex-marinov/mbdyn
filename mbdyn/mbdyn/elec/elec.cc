@@ -246,35 +246,34 @@ Elem* ReadElectric(DataManager* pDM,
 	       << uLabel << std::endl;
 	  }
 	  
+	  /* offset */
+	  Vec3 Tmpf(0.);
+	  if (HP.IsKeyWord("position") || HP.IsKeyWord("offset")) {
+	     Tmpf = HP.GetPosRel(ReferenceFrame(pStrNode));
+	  }
+	  flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
 	  switch (f) {
-	   case 1: {
-	      /* offset */
-	      Vec3 Tmpf(HP.GetPosRel(ReferenceFrame(pStrNode)));
-	      flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
-	      
+	   case 1:
 	      SAFENEWWITHCONSTRUCTOR(pEl, 
 				     TraslAccel,
 				     TraslAccel(uLabel, pDO, 
 						pStrNode, pAbsNode,
 						Dir, Tmpf, fOut));
 	      break;
-	   } 
-	   case 2: {
-	      flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
-	      
+
+	   case 2:
 	      SAFENEWWITHCONSTRUCTOR(pEl, 
 				     RotAccel,
 				     RotAccel(uLabel, pDO, 
 					      pStrNode, pAbsNode,
 					      Dir, fOut));
 	      break;
-	   }
-	   default: {
+
+	   default:
 	      std::cerr << "you shouldn't be here!" << std::endl;
 	      THROW(ErrGeneric());
-	   }
 	  }	  
-	  
+
        } else {
 	  
 	  /* nodo strutturale collegato */
