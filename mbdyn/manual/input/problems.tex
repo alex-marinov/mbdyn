@@ -328,9 +328,10 @@ to check how the system is actually configured after phases that are not
 usually output.
 
 
-\subsubsection{Solver}   
+\subsubsection{Linear Solver}   
+\label{sec:LINEAR-SOLVER}
 \begin{verbatim}
-    <card> ::= solver :
+    <card> ::= linear solver :
             { naive | umfpack | y12 | lapack 
                 | harwell | meschach | superlu | taucs }
         [ , { map | cc | dir } ]
@@ -343,7 +344,7 @@ usually output.
 The default, if available, is \kw{umfpack} which dynamically
 allocates memory as required, so the \kw{workspace size} 
 parameter, if given, is ignored.
-The \kw{umfpack} solver honors the \kw{block size} keyword,
+The \kw{umfpack} linear solver honors the \kw{block size} keyword,
 which refers to an internal parameter.
 The default value (32) is usually good for most problems; however,
 it has been observed that a lower value can slightly improve
@@ -351,23 +352,23 @@ performances on small problems (e.g.\ a rigid rotorcraft model
 with some 180 degrees of freedom showed a 10\% speedup with 
 a block size of 4, while a rigid robot showed eve higher speedups,
 in the 30\%, with a block size between 4 and 16).
-The \kw{y12} solver requires static allocation of the workspace;
+The \kw{y12} linear solver requires static allocation of the workspace;
 the optimal size is between 3 and 5 times the number of nonzero 
 coefficients.
 By default, twice the size of the full matrix is allocated
 (which sounds a bit nonsense, but is conservative enough);
-then the solver automatically uses an optimal amount of memory
+then the linear solver automatically uses an optimal amount of memory
 based on the results of the previous factorization; this could
 result in a failure if the filling of the matrix changes 
 dramatically between two factorizations.
-Another solver, that is available mostly for historical reasons, 
+Another linear solver, that is available mostly for historical reasons, 
 is \kw{harwell}, with a \kw{workspace size}
 of $ numdofs\times{numdofs} $, but in certain cases the user
 might prefer a smaller workspace, since the matrix is handled as sparse,
 while sometimes a larger space is required, since when the matrix is
 full, a little more space is required, due to extra storage needs when
 the matrix fills up.
-Finally, \kw{superlu} is an experimental solver that is able to perform
+Finally, \kw{superlu} is an experimental linear solver that is able to perform
 the factorization in a multi-threaded environment.
 If more than one CPU is available, it automatically uses all the CPUs;
 the keyword \kw{mt} allows to enforce the desired number of threads.
@@ -379,11 +380,11 @@ the sparse matrix is handled:
 \begin{itemize}
 \item \kw{map} uses an array of binary trees to store the matrix
 coefficients; right before the factorization, the matrix is transformed
-in the form required by each solver, usually Column Compressed
+in the form required by each linear solver, usually Column Compressed
 (also known as Harwell-Boeing format) or Index (as used by \kw{y12}).
 The matrix is regenerated each time an assembly is required.
 \item \kw{cc} uses the compact format resulting from the transformation
-required by the solver to store the coefficients in subsequent assemblies,
+required by the linear solver to store the coefficients in subsequent assemblies,
 thus saving the time required to transform the matrix.
 If the profile of the matrix changes, the compact form is invalidated,
 and the matrix is reset to \kw{map} form.  As a consequence, this matrix
@@ -401,15 +402,15 @@ of \kw{cc} is quite limited ($\log_2\plbr{\mathrm{<nz>}}$, where
 \kw{<nz>} is the number of non-zeroes in a column) so it is definitely
 comparable to that of \kw{cc}.
 \end{itemize}
-Only \kw{umfpack}, \kw{y12} and \kw{superlu} solvers allow these
+Only \kw{umfpack}, \kw{y12} and \kw{superlu} linear solvers allow these
 settings.
 
 \noindent
-The keyword \kw{colamd} is honored by the \kw{naive} and SuperLU solvers;
+The keyword \kw{colamd} is honored by the \kw{naive} and SuperLU linear solvers;
 it enables the column rearrangement that minimizes the sparsity
 of the factored matrix, as implemented in \kw{libcolamd}
 (part of \kw{umfpack} package). The keyword \kw{mmdata} is honored by 
-the scalar SuperLU solver only; it enables column rearrangement
+the scalar SuperLU linear solver only; it enables column rearrangement
 based on the MMD ordering ot the symmetric matrix $A^T A$.
 
 
@@ -421,14 +422,15 @@ while $ 1.0 $ means switch as soon as the norm of the ratio
 is less than unity.
 
 \noindent
-Table~\ref{tab:solvers-props} summarizes the properties that can be set
-for each type of linear solver; Table~\ref{tab:solvers-memory} summarizes 
-the memory usage of the linear solvers; Table~\ref{tab:solvers-pivot}
+Table~\ref{tab:linear-solvers-props} summarizes the properties that can be set
+for each type of linear solver; Table~\ref{tab:linear-solvers-memory}
+summarizes  the memory usage of the linear solvers;
+Table~\ref{tab:linear-solvers-pivot}
 summarizes how each linear solver deals with pivoting policies.
 
 \begin{table}
 \centering
-\caption{Linear solvers properties}\label{tab:solvers-props}
+\caption{Linear solvers properties}\label{tab:linear-solvers-props}
 \begin{tabular}{lccccccc}
 \hline\hline
 	\multicolumn{1}{c}{\textbf{\emph{Solver}}} &
@@ -462,7 +464,7 @@ summarizes how each linear solver deals with pivoting policies.
 
 \begin{table}
 \centering
-\caption{Linear solvers memory usage}\label{tab:solvers-memory}
+\caption{Linear solvers memory usage}\label{tab:linear-solvers-memory}
 \begin{tabular}{llll}
 \hline\hline
 	\multicolumn{1}{c}{\textbf{\emph{Solver}}} &
@@ -490,7 +492,7 @@ summarizes how each linear solver deals with pivoting policies.
 
 \begin{table}
 \centering
-\caption{Linear solvers pivot handling}\label{tab:solvers-pivot}
+\caption{Linear solvers pivot handling}\label{tab:linear-solvers-pivot}
 \begin{tabular}{llll}
 \hline\hline
 	\multicolumn{1}{c}{\textbf{\emph{Solver}}} &
@@ -510,6 +512,12 @@ summarizes how each linear solver deals with pivoting policies.
 \hline\hline
 \end{tabular}
 \end{table}
+
+
+
+\subsubsection{Solver}   
+Deprecated; see
+\hyperref{\kw{linear solver}}{\kw{linear solver} (Section~}{)}{sec:LINEAR-SOLVER}.
 
 
 \subsubsection{Threads}   

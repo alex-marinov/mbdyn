@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 		- added viscoelastic generic constitutive law
 		  with tension/torsion coupling
 	Backward compatibility issues:
+		- "solver" renamed into "linear solver"
 	Known issues:
 	Bug fixes:
 		- fixed SuperLU memory leak
