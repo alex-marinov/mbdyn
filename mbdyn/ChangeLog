@@ -9,6 +9,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 *** Thu Jan 31 10:02:27 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - unsteady correction is 'cn', not 'cl'
+ - added symbolic constitutive law based on GiNaC (elastic, no parameters)
 
 *** Wed Jan 30 14:49:04 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - added renice command-line switch
