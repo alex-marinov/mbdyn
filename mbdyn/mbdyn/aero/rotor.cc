@@ -93,14 +93,16 @@ iNumSteps(0)
 	ASSERT(pR->GetNodeType() == Node::STRUCTURAL);
 	ASSERT(pG == NULL || pG->GetNodeType() == Node::STRUCTURAL);
       
-	Vec3 R3C((pCraft->GetRCurr()).GetVec(3));
+	Vec3 R3C((pCraft->GetRCurr()*RRot).GetVec(3));
 	Vec3 R3R((pRotor->GetRCurr()).GetVec(3));
 	if (R3C.Dot(R3R) < 1.-DBL_EPSILON) {
-		std::cerr << "warning, possible misalignment "
+		silent_cerr("warning, possible misalignment "
 			"of rotor node " << pRotor->GetLabel()
 			<< " and craft node " << pCraft->GetLabel()
 			<< " axes for Rotor(" << GetLabel() << ")"
-			<< std::endl;
+			<< std::endl);
+		pedantic_cout("craft: " << R3C << std::endl
+				<< "rotor: " << R3R << std::endl);
 	}
 
 #ifdef USE_MPI
