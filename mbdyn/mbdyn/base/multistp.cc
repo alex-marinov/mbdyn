@@ -3424,7 +3424,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 /* Estrazione autovalori, vincolata alla disponibilita' delle LAPACK */
 #ifdef __HACK_EIG__
 
-#include <../libraries/libobjs/dgegv.h>
+#include <ac/lapack.h>
 
 static int
 do_eig(doublereal b, doublereal re, doublereal im, doublereal h, doublereal& sigma, doublereal& omega, doublereal& csi, doublereal& freq)

@@ -5,7 +5,6 @@ noinst_LTLIBRARIES = libobjs.la
 
 libobjs_la_SOURCES = \
 dgegv.c \
-dgegv.h  \
 getopt.c \
 getopt.h
 

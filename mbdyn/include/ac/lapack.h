@@ -2,10 +2,10 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2000
+ * Copyright (C) 1996-2002
  *
- * Pierangelo Masarati  <masarati@aero.polimi.it>
- * Paolo Mantegazza     <mantegazza@aero.polimi.it>
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
  *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
@@ -29,29 +29,23 @@
  */
 
 /*
- * This file contains the subset of the lapack and blas routines
- * that are required to use the dgegv subroutine for the double precision
- * extraction of eigenvalues and eigenvectors of a generalized problem
+ * Local headers for lapack library
  *
- *		A * X = lambda * B * X
- *
- * where A and X are real non-symmetric matrices which can be both singular.
- *
- * This package requires the linkning of the f2c libraries:
- * 
- *		cc -o myprog myobj.o libdgegv.c -lf2c -lm
- *
- * as well as the f2c.h header file.
+ * http://netlib.org
  */
 
-#ifndef DGEGV_H
-#define DGEGV_H
+#ifndef LAPACK_H
+#define LAPACK_H
 
 #if defined(__cplusplus)
 extern "C" {
 #endif /* __cplusplus */
 	
 #include <ac/f2c.h>
+
+/*
+ * Add declarations of lapack routines used by MBDyn
+ */
 
 /* Subroutine */ extern int
 __FC_DECL__(dgegv)(char *jobvl, char *jobvr, integer *n, doublereal *
@@ -64,5 +58,6 @@ __FC_DECL__(dgegv)(char *jobvl, char *jobvr, integer *n, doublereal *
 }
 #endif /* __cplusplus */
 
-#endif /* DGEGV_H */
 
+
+#endif /* LAPACK_H */
