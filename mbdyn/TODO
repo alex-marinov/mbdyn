@@ -4,6 +4,15 @@ Copyright: 1996 Pierangelo Masarati
 
 ... too many things!
 
+############################################################################
+URGENT!!!!!!!!!
+ - Verify hydraulic stuff; add unit tests
+ - Write hydraulic stuff manual
+ - Fix C81 aerodynamic forces for transverse flow
+ - Fix template instantiation to increase portability
+ - Verify modal element; fix ADAMS input
+
+
 
 
 
