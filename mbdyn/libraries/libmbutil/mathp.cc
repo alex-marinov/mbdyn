@@ -205,12 +205,12 @@ mp_par(Real s)
 
 Real max_t (Real a, Real b)
 {
-	return std::max(a,b);
+	return std::max(a, b);
 }
 
 Real min_t (Real a, Real b)
 {
-	return std::min(a,b);
+	return std::min(a, b);
 }
 
 /* tabella statica delle funzioni built-in */
