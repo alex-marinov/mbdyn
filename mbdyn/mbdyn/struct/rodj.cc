@@ -51,7 +51,6 @@ Joint(uL, Joint::ROD, pDO, fOut),
 ConstitutiveLaw1DOwner(pCL), RodT(Rod::ELASTIC),
 pNode1(pN1), pNode2(pN2), dL0(dLength), v(0.), dElle(0.), dEpsilon(0.)
 {
-#ifdef DEBUG   
    /* Verifica di consistenza dei dati iniziali */   
    ASSERT(pN1 != NULL);
    ASSERT(pN1->GetNodeType() == Node::STRUCTURAL);
@@ -61,11 +60,17 @@ pNode1(pN1), pNode2(pN2), dL0(dLength), v(0.), dElle(0.), dEpsilon(0.)
    if (!fHasOffsets) {
       v = pN2->GetXCurr()-pN1->GetXCurr();
    
-      ASSERT(v.Dot() > DBL_EPSILON);
+      doublereal dDot = v.Dot();
+      if (dDot <= DBL_EPSILON) {
+	 std::cerr << "Rod(" << GetLabel() << "): "
+		 "initial length must not be null" << std::endl;
+	 THROW(ErrGeneric());
+      }
+
+      dElle = sqrt(dDot);
    }
    
    ASSERT(dLength > DBL_EPSILON);
-#endif	
 }
 
 
@@ -849,7 +854,6 @@ Rod(uL, pDO, pCL, pN1, pN2, dLength, fOut, 1),
 dEpsilonPrime(0.),
 f1(f1Tmp), f2(f2Tmp)
 {
-#ifdef DEBUG   
    /* Verifica di consistenza dei dati iniziali */   
    ASSERT(pN1 != NULL);
    ASSERT(pN1->GetNodeType() == Node::STRUCTURAL);
@@ -859,9 +863,16 @@ f1(f1Tmp), f2(f2Tmp)
    v = pN2->GetXCurr()+(pN2->GetRCurr()*f2Tmp)
      -pN1->GetXCurr()-(pN1->GetRCurr()*f1Tmp);
    
-   ASSERT(v.Dot() > DBL_EPSILON);
+   doublereal dDot = v.Dot();
+   if (dDot <= DBL_EPSILON) {
+      std::cerr << "RodWithOffset(" << GetLabel() << "): "
+	      "inital length must not be null" << std::endl;
+      THROW(ErrGeneric());
+   }
+
+   dElle = sqrt(dDot);
+   
    ASSERT(dLength > DBL_EPSILON);
-#endif	   
    
    SetRodType(Rod::VISCOELASTICWITHOFFSET);
 }
