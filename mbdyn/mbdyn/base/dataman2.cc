@@ -139,11 +139,14 @@ void DataManager::DofOwnerInit(void)
 		    << "): first dof = " << pDf->iIndex+1 << std::endl);
 #else /* !DEBUG */
 	 if (!silent_output && fPrintDofStats) {
+	    unsigned int nd = (*ppNd)->iGetNumDof();
+	    integer fd = pDf->iIndex;
+
 	    std::cout << psNodeNames[(*ppNd)->GetNodeType()]
 	      << "(" << (*ppNd)->GetLabel()
-	      << "): first dof = " << pDf->iIndex+1;
-	    if ((*ppNd)->iGetNumDof() > 1) {
-	       std::cout << "->" << pDf->iIndex+(*ppNd)->iGetNumDof();
+	      << "): " << nd << " " << fd + 1;
+	    if (nd > 1) {
+	       std::cout << "->" << fd + nd;
 	    }
 	    std::cout << std::endl;
 	 }
@@ -181,14 +184,21 @@ void DataManager::DofOwnerInit(void)
 
 #ifdef DEBUG
 	 DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY, 
-		    pdElemNames[pElWD->GetElemType()]
+		    psElemNames[pElWD->GetElemType()]
 		    << "(" << pElWD->GetLabel()
 		    << "): first dof = " << pDf->iIndex+1 << std::endl);
 #else /* !DEBUG */
 	 if (!silent_output && fPrintDofStats) {
+	    unsigned int nd = pElWD->iGetNumDof();
+	    integer fd = pDf->iIndex;
+
 	    std::cout << pdElemNames[pElWD->GetElemType()] 
 	      << "(" << pElWD->GetLabel()
-	      << "): first dof = " << pDf->iIndex+1 << std::endl
+	      << "): " << nd << " " << fd + 1;
+	    if (nd > 1) {
+	       std::cout << "->" << fd + nd;
+	    }
+	    std::cout << std::endl;
 #endif /* !DEBUG */
 	 
 	 /* per ogni Dof, chiede all'elemento di che tipo e' e lo 
@@ -231,11 +241,14 @@ void DataManager::DofOwnerInit(void)
 		       << "): first dof = " << pDf->iIndex+1 << std::endl);
 #else /* !DEBUG */
 	    if (!silent_output && fPrintDofStats) {
-	       std::cout << psElemNames[pEl->GetElemType()]
-		 << "(" << pElWD->GetLabel()
-		 << "): first dof = " << pDf->iIndex+1;
-	       if (pElWD->iGetNumDof() > 1) {
-		  std::cout << "->" << pDf->iIndex+pElWD->iGetNumDof();
+	       unsigned int nd = pElWD->iGetNumDof();
+	       integer fd = pDf->iIndex;
+
+	       std::cout << psElemNames[pElWD->GetElemType()] 
+	         << "(" << pElWD->GetLabel()
+	         << "): " << nd << " " << fd + 1;
+	       if (nd > 1) {
+	          std::cout << "->" << fd + nd;
 	       }
 	       std::cout << std::endl;
 	    }
