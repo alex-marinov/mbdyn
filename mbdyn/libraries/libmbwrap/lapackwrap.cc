@@ -72,7 +72,7 @@
 #include "lapackwrap.h"
 
 extern "C" {
-int dgetrf_(integer *N, integer *N, doublereal *A, integer *LDA,
+int dgetrf_(integer *N, integer *N2, doublereal *A, integer *LDA,
 		integer *IPIV, integer *INFO);
 int dgetrs_(char *MODE, integer *N, integer *NRHS, doublereal *A,
 		integer *LDA, integer *IPIV, doublereal *B, integer *LDB,
