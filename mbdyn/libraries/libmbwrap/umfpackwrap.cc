@@ -65,6 +65,45 @@
 #ifdef USE_UMFPACK
 #include <umfpackwrap.h>
 
+#ifdef HAVE_UMFPACK4
+
+/*
+ * Wrap of the required functions; uses the calling convention 
+ * of umfpack 3.0 so the matrix must be square
+ */
+#define UMFPACKWRAP_defaults 		umfpack_di_defaults
+#define UMFPACKWRAP_free_symbolic 	umfpack_di_free_symbolic
+#define UMFPACKWRAP_free_numeric 	umfpack_di_free_numeric
+#define UMFPACKWRAP_symbolic(size, app, aip, sym, ctrl, info) \
+	umfpack_di_symbolic(size, size, app, aip, sym, ctrl, info)
+#define UMFPACKWRAP_report_info 	umfpack_di_report_info
+#define UMFPACKWRAP_report_status 	umfpack_di_report_status
+#define UMFPACKWRAP_numeric 		umfpack_di_numeric
+#define UMFPACKWRAP_solve 		umfpack_di_solve
+
+/* required factorization type (A * x = b) */
+#define SYS_VALUE 			UMFPACK_A
+
+#else /* !HAVE_UMFPACK4 */
+
+/*
+ * Wrap of the required functions; uses the calling convention 
+ * of umfpack 3.0
+ */
+#define UMFPACKWRAP_defaults 		umfpack_defaults
+#define UMFPACKWRAP_free_symbolic 	umfpack_free_symbolic
+#define UMFPACKWRAP_free_numeric 	umfpack_free_numeric
+#define UMFPACKWRAP_symbolic		umfpack_symbolic
+#define UMFPACKWRAP_report_info 	umfpack_report_info
+#define UMFPACKWRAP_report_status 	umfpack_report_status
+#define UMFPACKWRAP_numeric 		umfpack_numeric
+#define UMFPACKWRAP_solve 		umfpack_solve
+
+/* required factorization type (A * x = b) */
+#define SYS_VALUE 			"Ax=b"
+
+#endif /* HAVE_UMFPACK4 */
+
 UmfpackSparseLUSolutionManager::UmfpackSparseLUSolutionManager(integer Dim,
 		integer dummy, doublereal dPivot)
 : A(Dim),
@@ -82,7 +121,7 @@ HasBeenReset(true)
 			MyVectorHandler(Dim, &(b[0])));
 	pdRhs = &(b[0]);
 	pdSol = &(x[0]);
-	umfpack_defaults(Control);
+	UMFPACKWRAP_defaults(Control);
 
 	if (dPivot != -1. && (dPivot >= 0. && dPivot <= 1.)) {
 		/*
@@ -97,10 +136,10 @@ HasBeenReset(true)
 
 UmfpackSparseLUSolutionManager::~UmfpackSparseLUSolutionManager(void) 
 {
-	umfpack_free_symbolic(&Symbolic);
+	UMFPACKWRAP_free_symbolic(&Symbolic);
 	ASSERT(Symbolic == 0);
 
-	umfpack_free_numeric(&Numeric);
+	UMFPACKWRAP_free_numeric(&Numeric);
 	ASSERT(Numeric == 0);
 	
 	SAFEDELETE(xVH);
@@ -112,7 +151,7 @@ UmfpackSparseLUSolutionManager::MatrInit(const doublereal& d)
 {
 	A.Reset(d);
 	if (Numeric) {
-		umfpack_free_numeric(&Numeric);
+		UMFPACKWRAP_free_numeric(&Numeric);
 		ASSERT(Numeric == 0);
 	}
 	HasBeenReset = true;
@@ -125,15 +164,15 @@ UmfpackSparseLUSolutionManager::PrepareSymbolic(void)
 	const int* const App = &(Ap[0]);
 	int status;
 
-	status = umfpack_symbolic(b.size(), App, Aip, 
+	status = UMFPACKWRAP_symbolic(b.size(), App, Aip, 
 			&Symbolic, Control, Info);
 	if (status != UMFPACK_OK) {
-		umfpack_report_info(Control, Info) ;
-		umfpack_report_status(Control, status);
-		std::cerr << "umfpack_symbolic failed" << std::endl;
+		UMFPACKWRAP_report_info(Control, Info) ;
+		UMFPACKWRAP_report_status(Control, status);
+		std::cerr << "UMFPACKWRAP_symbolic failed" << std::endl;
 
 		/* de-allocate memory */
-		umfpack_free_symbolic(&Symbolic);
+		UMFPACKWRAP_free_symbolic(&Symbolic);
 		ASSERT(Symbolic == 0);
 
 		return false;
@@ -158,46 +197,46 @@ UmfpackSparseLUSolutionManager::Solve(const doublereal /* dCoef */)
 			THROW(ErrGeneric());
 		}
 #ifdef UMFPACK_REPORT
-		umfpack_report_symbolic ("Symbolic factorization of A",
+		UMFPACKWRAP_report_symbolic ("Symbolic factorization of A",
 				Symbolic, Control) ;
 #endif /* UMFPACK_REPORT */
 
-		umfpack_report_info(Control, Info);
+		UMFPACKWRAP_report_info(Control, Info);
 
 #ifdef UMFPACK_REPORT
 		double t1 = umfpack_timer() - t;
 #endif /* UMFPACK_REPORT */
 
-		status = umfpack_numeric(App, Aip, Axp, Symbolic, 
+		status = UMFPACKWRAP_numeric(App, Aip, Axp, Symbolic, 
 				&Numeric, Control, Info);
 		if (status == UMFPACK_ERROR_different_pattern) {
-			umfpack_free_symbolic(&Symbolic);
+			UMFPACKWRAP_free_symbolic(&Symbolic);
 			if (!PrepareSymbolic()) {
 				THROW(ErrGeneric());
 			}
-			status = umfpack_numeric(App, Aip, Axp, Symbolic, 
+			status = UMFPACKWRAP_numeric(App, Aip, Axp, Symbolic, 
 					&Numeric, Control, Info);
 		}
 
 		if (status != UMFPACK_OK) {
-			umfpack_report_info(Control, Info);
-			umfpack_report_status(Control, status);
-			std::cerr << "umfpack_numeric failed" << std::endl;
+			UMFPACKWRAP_report_info(Control, Info);
+			UMFPACKWRAP_report_status(Control, status);
+			std::cerr << "UMFPACKWRAP_numeric failed" << std::endl;
 
 			/* de-allocate memory */
-			umfpack_free_symbolic(&Symbolic);
-			umfpack_free_numeric(&Numeric);
+			UMFPACKWRAP_free_symbolic(&Symbolic);
+			UMFPACKWRAP_free_numeric(&Numeric);
 			ASSERT(Numeric == 0);
 
 			THROW(ErrGeneric());
 		}
 		
 #ifdef UMFPACK_REPORT
-		umfpack_report_numeric ("Numeric factorization of A",
+		UMFPACKWRAP_report_numeric ("Numeric factorization of A",
 				Numeric, Control);
 #endif /* UMFPACK_REPORT */
 
-		umfpack_report_info(Control, Info);
+		UMFPACKWRAP_report_info(Control, Info);
 
 #ifdef UMFPACK_REPORT
 		t1 = umfpack_timer() - t;
@@ -224,21 +263,22 @@ UmfpackSparseLUSolutionManager::BackSub(doublereal t_iniz)
 	double t = t_iniz;
 #endif /* UMFPACK_REPORT */
 	Control[UMFPACK_IRSTEP]= 0;
-	status = umfpack_solve("Ax=b", App, Aip, Axp, pdSol, pdRhs, 
+	status = UMFPACKWRAP_solve(SYS_VALUE,
+			App, Aip, Axp, pdSol, pdRhs, 
 			Numeric, Control, Info);
 	if (status != UMFPACK_OK) {
-		umfpack_report_info(Control, Info) ;
-		umfpack_report_status(Control, status) ;
-		std::cerr << "umfpack_solve failed" << std::endl;
+		UMFPACKWRAP_report_info(Control, Info) ;
+		UMFPACKWRAP_report_status(Control, status) ;
+		std::cerr << "UMFPACKWRAP_solve failed" << std::endl;
 		
 		/* de-allocate memory */
-		umfpack_free_numeric(&Numeric);
+		UMFPACKWRAP_free_numeric(&Numeric);
 		ASSERT(Numeric == 0);
 
 		THROW(ErrGeneric());
 	}
 	
-	umfpack_report_info(Control, Info);
+	UMFPACKWRAP_report_info(Control, Info);
 
 #ifdef UMFPACK_REPORT
 	double t1 = umfpack_timer() - t;

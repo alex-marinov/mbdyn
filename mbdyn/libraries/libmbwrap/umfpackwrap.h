@@ -75,8 +75,10 @@ extern "C" {
 #include <solman.h>
 #include <spmapmh.h>
 
+#ifdef UMFPACK3_COMPAT
 #warning "Umfpack3SparseLUSolutionManager => UmfpackSparseLUSolutionManager"
 #define Umfpack3SparseLUSolutionManager UmfpackSparseLUSolutionManager
+#endif /* UMFPACK3_COMPAT */
 
 class UmfpackSparseLUSolutionManager: public SolutionManager {
 private:

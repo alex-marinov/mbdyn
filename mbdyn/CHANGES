@@ -9,6 +9,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.2-Engineering
 	Enhancements:
+		- added support for UMFPACK 4.0
 	Bug fixes:
 
 
