@@ -229,6 +229,9 @@ fi
 dnl ----------------------------------------------------------------
 dnl Checks for header files.
 AC_STDC_HEADERS
+AC_CHECK_HEADERS(signal.h)
+AC_CHECK_HEADERS(unistd.h)
+AC_CHECK_HEADERS(getopt.h)
 
 
 dnl ----------------------------------------------------------------

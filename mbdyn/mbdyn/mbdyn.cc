@@ -50,7 +50,15 @@ extern "C" {
 /* Per il parsing della linea di comando */
 #include <unistd.h>
 #ifdef HAVE_GETOPT
+#ifdef HAVE_GETOPT_H
 #include <getopt.h>
+#else /* !HAVE_GETOPT_H */ 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#else /* !HAVE_UNISTD_H */
+extern int getopt(int argc, char * const argv[], const char *optstring);
+#endif /* !HAVE_UNISTD_H */
+#endif /* !HAVE_GETOPT_H */ 
 #endif /* HAVE_GETOPT */ 
 }
 

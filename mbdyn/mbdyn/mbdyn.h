@@ -37,7 +37,7 @@ typedef int mbInt;
 typedef long int mbLong;
 typedef long int mbFlag;
 
-#ifdef HAVE_SIGNAL_H
+#ifdef HAVE_SIGNAL
 #ifndef HAVE___SIGHANDLER_T
 #ifndef HAVE_SIGHANDLER_T
 typedef void (*__sighandler_t)(int);
@@ -45,7 +45,7 @@ typedef void (*__sighandler_t)(int);
 typedef sighandler_t __sighandler_t;
 #endif /* HAVE_SIGHANDLER_T */
 #endif /* !HAVE___SIGHANDLER_T */
-#endif /* HAVE_SIGNAL_H */
+#endif /* HAVE_SIGNAL */
 
 #ifdef HAVE_BOOL
 #ifdef NEED_BOOL_H

@@ -197,7 +197,7 @@ public:
    	void Init(const doublereal& dResetVal = 0.);
 
 	/* Compatta la matrice */
-	integer SparseMatrixHandler::iPacVec(void);
+	integer iPacVec(void);
 
    	/* Restituisce un puntatore all'array di reali della matrice */
    	inline doublereal* pdGetMat(void) const {

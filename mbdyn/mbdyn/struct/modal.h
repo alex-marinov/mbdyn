@@ -196,27 +196,27 @@ class Modal : virtual public Elem, public Joint {
     * altri elementi (ad es. agli elementi aerodinamici modali)
     */
 
-   Mat3xN* Modal::pGetPHIt(void) {
+   Mat3xN* pGetPHIt(void) {
       return pModeShapest;
    };
 
-   Mat3xN* Modal::pGetPHIr(void) {
+   Mat3xN* pGetPHIr(void) {
       return pModeShapesr;
    };
    
-   Mat3xN* Modal::pGetFemNodesPosition(void) {
+   Mat3xN* pGetFemNodesPosition(void) {
       return pXYZFemNodes;
    };
    
-   integer Modal::uGetNModes(void) {
+   integer uGetNModes(void) {
       return NModes;
    };
    
-   integer Modal::uGetNFemNodes(void) {
+   integer uGetNFemNodes(void) {
       return NFemNodes;
    };
    
-   integer Modal::iGetModalIndex(void) const {
+   integer iGetModalIndex(void) const {
       return iGetFirstIndex();
    };
    

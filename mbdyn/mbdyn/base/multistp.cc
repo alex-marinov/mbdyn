@@ -50,7 +50,9 @@
 #include <unistd.h>
 
 #ifdef HAVE_SIGNAL
+#ifdef HAVE_SIGNAL_H
 #include <signal.h>
+#endif /* HAVE_SIGNAL_H */
 
 volatile sig_atomic_t keep_going = 1;
 __sighandler_t sh_term = SIG_DFL;

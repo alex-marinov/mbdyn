@@ -50,6 +50,9 @@
 /* Define if you have the <f2c.h> header file.  */
 #undef HAVE_F2C_H
 
+/* Define if you have the <getopt.h> header file.  */
+#undef HAVE_GETOPT_H
+
 /* Define if you have the <meschach/sparse2.h> header file.  */
 #undef HAVE_MESCHACH_SPARSE2_H
 
@@ -65,6 +68,9 @@
 /* Define if you have the <security/pam_misc.h> header file.  */
 #undef HAVE_SECURITY_PAM_MISC_H
 
+/* Define if you have the <signal.h> header file.  */
+#undef HAVE_SIGNAL_H
+
 /* Define if you have the <sstream> header file.  */
 #undef HAVE_SSTREAM
 
@@ -73,6 +79,9 @@
 
 /* Define if you have the <tcl.h> header file.  */
 #undef HAVE_TCL_H
+
+/* Define if you have the <unistd.h> header file.  */
+#undef HAVE_UNISTD_H
 
 /* Name of package */
 #undef PACKAGE

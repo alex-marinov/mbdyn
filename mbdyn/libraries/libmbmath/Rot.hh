@@ -68,7 +68,7 @@ void RotAndDRot_IT(const Vec3 & phi, Mat3x3 & PhiIT, Mat3x3 & GaIT);
 
 Vec3 VecRot(const Mat3x3 & Phi);
 
-Mat3x3 RotManip::Elle(const Vec3 & phi, const Vec3 & a);
+Mat3x3 Elle(const Vec3 & phi, const Vec3 & a);
 
 } //end of namespace RotManip
 

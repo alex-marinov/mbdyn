@@ -5,17 +5,20 @@
 extern "C" {
 #endif /* __cplusplus */
 
-extern int y12mbf_(integer *n, integer *z__, doublereal *a, integer *snr, 
+extern int 
+__FC_DECL__(y12mbf) (integer *n, integer *z__, doublereal *a, integer *snr, 
 		   integer *nn, integer *rnr, integer *nn1, integer *ha,
 		   integer *iha, doublereal *aflag, integer *iflag,
 		   integer *ifail);
 		   
-extern int y12mcf_(integer *n, integer *z__, doublereal *a, integer *snr,
+extern int 
+__FC_DECL__(y12mcf) (integer *n, integer *z__, doublereal *a, integer *snr,
 		   integer *nn, integer *rnr, integer *nn1, doublereal *pivot,
 		   doublereal *b, integer *ha, integer *iha, doublereal *aflag,
 		   integer *iflag, integer *ifail);
 		   
-extern int y12mdf_(integer *n, doublereal *a, integer *nn, doublereal *b,
+extern int 
+__FC_DECL__(y12mdf) (integer *n, doublereal *a, integer *nn, doublereal *b,
 		   doublereal *pivot, integer *snr, integer *ha, integer *iha,
 		   integer *iflag, integer *ifail);
 
