@@ -280,21 +280,40 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.fDecCoef(i, 6*(1+Beam::NUMNODES)+1+i, 1.);
 
 		/* trave: Delta v */
-		WM.fIncCoef(6*activeNode+i, 6*(1+Beam::NUMNODES)+1+i, 1.);
+		WM.fIncCoef(6*activeNode+i, 6*(1+Beam::NUMNODES)+1+i, dW[0]);
 	}
 
 	/* corpo: Delta v (momento) */
 	WM.Sub(3+1, 6*(1+Beam::NUMNODES)+1+1, Mat3x3(F));
 
 	/* corpo: Delta g (momento) */
-	WM.Sub(3+1, 6*activeNode+3+1, Mat3x3(F, fb*dCoef));
+	WM.Sub(3+1, 6*activeNode+3+1, Mat3x3(F, fb*(dCoef*dW[0])));
 
 	/* trave: Delta v (momento) */
-	Mat3x3 MTmp(F*dCoef);
+	Mat3x3 MTmp(F*(dCoef*dW[0]));
 	WM.Add(6*activeNode+3+1, 6*(1+Beam::NUMNODES)+1+1, 
-			Mat3x3(xb-xNod[activeNode-1]));
+			Mat3x3((xb-xNod[activeNode-1]))*dW[0]);
 	WM.Sub(6*activeNode+3+1, 1, MTmp);
 	WM.Add(6*activeNode+3+1, 6*activeNode+1, MTmp);
+
+	if (dW[1] != 0.) {
+		/* reazioni vincolari */
+		for (unsigned int i = 1; i <= 3; i++) {
+			/* trave: Delta v */
+			WM.fIncCoef(6*(activeNode+1)+i, 
+					6*(1+Beam::NUMNODES)+1+i, dW[1]);
+		}
+
+		/* corpo: Delta g (momento) */
+		WM.Sub(3+1, 6*(activeNode+1)+3+1, Mat3x3(F, fb*(dCoef*dW[1])));
+
+		/* trave: Delta v (momento) */
+		Mat3x3 MTmp(F*(dCoef*dW[1]));
+		WM.Add(6*(activeNode+1)+3+1, 6*(1+Beam::NUMNODES)+1+1, 
+				Mat3x3((xb-xNod[activeNode]))*dW[1]);
+		WM.Sub(6*(activeNode+1)+3+1, 1, MTmp);
+		WM.Add(6*(activeNode+1)+3+1, 6*(activeNode+1)+1, MTmp);
+	}
 
 	/* Vincolo in rotazione */
 	if (iType != SPHERICAL) {
@@ -334,11 +353,29 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			
 			/* Reazione vincolare: Delta x */
 			WM.Sub(3+1, 6*(1+iN)+1, MTmp2);
-			WM.Add(6*activeNode+3+1, 6*(1+iN)+1, MTmp2);
 
 			/* Reazione vincolare: Delta g */
 			WM.Add(3+1, 6*(1+iN)+3+1, MTmp3);
-			WM.Sub(6*activeNode+3+1, 6*(1+iN)+3+1, MTmp3);
+		
+			if (dW[1] == 0.) {
+				/* Reazione vincolare: Delta x */
+				WM.Add(6*activeNode+3+1, 6*(1+iN)+1, MTmp2);
+
+				/* Reazione vincolare: Delta g */
+				WM.Sub(6*activeNode+3+1, 6*(1+iN)+3+1, MTmp3);
+			} else {
+				/* Reazione vincolare: Delta x */
+				WM.Add(6*activeNode+3+1, 6*(1+iN)+1, 
+						MTmp2*dW[0]);
+				WM.Add(6*(activeNode+1)+3+1, 6*(1+iN)+1, 
+						MTmp2*dW[1]);
+
+				/* Reazione vincolare: Delta g */
+				WM.Sub(6*activeNode+3+1, 6*(1+iN)+3+1, 
+						MTmp3*dW[0]);
+				WM.Sub(6*(activeNode+1)+3+1, 6*(1+iN)+3+1, 
+						MTmp3*dW[1]);
+			}
 		}
 
 		Vec3 Tmpl2(eb2.Cross(l));
@@ -354,7 +391,12 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			/* Reazione vincolare: Delta M */
 			WM.fDecCoef(3+i, 6*(1+Beam::NUMNODES)+1+3+1, d);
 			WM.fIncCoef(6*activeNode+3+i,
-					6*(1+Beam::NUMNODES)+1+3+1, d);
+					6*(1+Beam::NUMNODES)+1+3+1, d*dW[0]);
+			if (dW[1] != 0) {
+				WM.fIncCoef(6*(activeNode+1)+3+i,
+						6*(1+Beam::NUMNODES)+1+3+1, 
+						d*dW[1]);
+			}
 
 			/* Vincolo in rotazione: Delta gb */
 			d = Tmpl3.dGet(i);
@@ -363,13 +405,23 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			/* Reazione vincolare: Delta M */
 			WM.fDecCoef(3+i, 6*(1+Beam::NUMNODES)+1+3+2, d);
 			WM.fIncCoef(6*activeNode+3+i,
-					6*(1+Beam::NUMNODES)+1+3+2, d);
+					6*(1+Beam::NUMNODES)+1+3+2, d*dW[0]);
+			if (dW[1] != 0) {
+				WM.fIncCoef(6*(activeNode+1)+3+i,
+						6*(1+Beam::NUMNODES)+1+3+2, 
+						d*dW[1]);
+			}
 
 			/* Reazione vincolare: Delta s */
 			d = TmpM.dGet(i);
 			WM.fDecCoef(3+i, 6*(1+Beam::NUMNODES)+1, d);
 			WM.fIncCoef(6*activeNode+3+i, 
-					6*(1+Beam::NUMNODES)+1, d);
+					6*(1+Beam::NUMNODES)+1, d*dW[0]);
+			if (dW[1] != 0) {
+				WM.fIncCoef(6*(activeNode+1)+3+i, 
+						6*(1+Beam::NUMNODES)+1, 
+						d*dW[1]);
+			}
 		}
 
 		/* Vincolo in rotazione: Delta s */
@@ -384,7 +436,13 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		/* Reazione vincolare: Delta gb */
 		Mat3x3 MTmp(l, M*dCoef);
 		WM.Sub(3+1, 3+1, MTmp);
-		WM.Add(6*activeNode+3+1, 3+1, MTmp);
+		if (dW[1] == 0) {
+			WM.Add(6*activeNode+3+1, 3+1, MTmp);
+		} else {
+			WM.Add(6*activeNode+3+1, 3+1, MTmp*dW[0]);
+			WM.Add(6*(activeNode+1)+3+1, 3+1, MTmp*dW[1]);
+		}
+		
 	}
 	
 	return WorkMat;
