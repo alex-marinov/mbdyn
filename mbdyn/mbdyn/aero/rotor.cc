@@ -1347,10 +1347,12 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		 	dCl = M.dGet(1)/d;
 		 	dCm = M.dGet(2)/d;
 
+#if 0
 			std::cout << dCt/(fabs(dOmega) + 1e-12)
 				<< " " << dCl/(fabs(dOmega) + 1e-12)
 				<< " " << dCm/(fabs(dOmega) + 1e-12)
 				<< std::endl;
+#endif /* 0 */
    
 		 	/*** FIXME: this is from Rotor::InitParams() ***/
 	
@@ -1397,7 +1399,13 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		     	} else {      
 			  	dChi = atan2(dMu, dLambda);
 		     	}
-		 	/*** FIXME ***/
+		 	/*** end of FIXME ***/
+
+			/*
+			 * FIXME: these mu, lambda are in TPP; however,
+			 * those computed by MBDyn are in shaft plane;
+			 * conversion is required
+			 */
 #if 0
 		 	doublereal dUt = sqrt(dLambda*dLambda+dMu*dMu);
 		 	doublereal dUm = 0.;
