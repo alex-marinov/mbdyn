@@ -190,6 +190,11 @@ Real max_t (Real a, Real b)
 	return std::max(a,b);
 }
 
+Real min_t (Real a, Real b)
+{
+	return std::min(a,b);
+}
+
 /* tabella statica delle funzioni built-in */
 static mathfuncs FuncTable[] = {
      { "asin",       1, { (Real (*)(void))((Real (*)(Real))asin)      }, asin_t,     ""   },
@@ -224,6 +229,7 @@ static mathfuncs FuncTable[] = {
      
      { "abs",        1, { (Real (*)(void))((Real (*)(Real))fabs)      }, NULL,       ""   },
      { "max",        2, { (Real (*)(void))((Real (*)(Real, Real))max_t)  }, NULL,       ""   },
+     { "min",        2, { (Real (*)(void))((Real (*)(Real, Real))min_t)  }, NULL,       ""   },
      { "floor",      1, { (Real (*)(void))((Real (*)(Real))floor)     }, NULL,       ""   },
      { "ceil",       1, { (Real (*)(void))((Real (*)(Real))ceil)      }, NULL,       ""   },
 #ifdef __USE_XOPEN
