@@ -1748,29 +1748,52 @@ The syntax is:
 \end{verbatim}
 Authentication methods in general expect some authentication tokens to be
 input.
-Usually a user name and a password are required. \\
-{\em 
-    Note: no encryption is used when communicating, so the authentication
-    methods are very rough and should not be considered completely reliable.
-    Secure Socket connection or other SSL-like communication protocol may be
-    considered in the future.
-} \\
-Available methods:
-\subsubsection{No authentication}
+Usually a user name and a password are required.
+
+\subsection{Note on security and confidentiality}
+No encryption is used in communications, unless provided
+by the underlying mechanism (e.g. some SASL mechs), 
+so the authentication methods are very rough
+and should be considered as insecure.
+Secure Socket connection or other SSL-like communication protocol
+may be considered in the future.
+If confidentiality is required, SASL with at least DIGEST-MD5 
+is strongly recommended; otherwise no authentication should be used.
+As alternatives, a SSH tunnel may be established between the client
+and the server machine, and simple authentication can be used.
+Otherwise, if the user has direct access to the server where
+the computation is being run, sockets with \kw{local} namespace
+can be used, and security can be enforced by means of the access
+privileges of the socket file.
+Since some of the UNIX systems do not honor socket permissions,
+a portable way to exploit filesystem access permissions is to put
+the socket in a dedicated directory, and use the permissions
+of the directory to control access to the socket.
+
+\noindent
+Available methods are:
+\subsection{No authentication}
 \begin{verbatim}
     <authentication_method> ::= no auth
 \end{verbatim}
 
-\subsubsection{Password}
+\subsection{Password}
 \begin{verbatim}
     <authentication_method> ::= password ,
         user , " <user_name> " ,
         credentials , { prompt | " <user_cred> " }
+        [ , salt format , <salt_format> ]
 \end{verbatim}
 In case the keyword \kw{prompt} is given as credentials, the user is
 prompted for a password.
+The optional parameter \kw{salt\_format} allows to specify different
+formats for the \kw{salt}, for those \kw{crypt(3)} extensions 
+that support more sophisticated encryption mechanisms (e.g.\ MD5).
+See \kw{crypt(3)} for details.
+If the credentials are preceded by the string \kw{\{CRYPT\}},
+they are assumed to be already encypted, and the remaining portion is used.
 
-\subsubsection{PAM (Pluggable Authentication Modules)}
+\subsection{PAM (Pluggable Authentication Modules)}
 \begin{verbatim}
     <authentication_method> ::= pam 
         [ , user , " <user_name> " ]
@@ -1806,6 +1829,21 @@ An example is provided with the package, in  \kw{/etc/pam.d/mbdyn}, reading:
 which allows authentication by using standard Un*x or \kw{libpwdb} based
 authentication.
 
+
+
+\subsection{SASL (Simple Authentication and Security Layer)}
+\begin{verbatim}
+    <authentication_method> ::= sasl
+        [ , user , " <user_name> " ]
+        [ , mech , " <preferred_mechanism> " ]
+\end{verbatim}
+This is the preferred authentication method because 
+it is mechanism-independent, it can be reasonably secure
+and automatically selects the most appropriate mechanism available
+on both the client and the server machine.
+It requires Cyrus SASL 2 (See 
+\htmladdnormallink{\texttt{http://asg.web.cmu.edu/sasl/}} for details,
+and follow the documentation to obtain a working setup).
 
 
 
