@@ -40,12 +40,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-  
-  
  
-#ifdef USE_MPI
 #include <schurdataman.h> 
-#endif /* USE_MPI */ 
 
 #include<stepsol.h>
 
@@ -174,7 +170,6 @@ DerivativeSolver::Update(const VectorHandler* pSol) const
 	ASSERT(pDM != NULL);
 	
    	Dof CurrDof;
-#ifdef USE_MPI
 	SchurDataManager* pSDM;
 	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
 		
@@ -226,7 +221,6 @@ DerivativeSolver::Update(const VectorHandler* pSol) const
 		}
 
 	} else {
-#endif /* USE_MPI */
 		
    		DofIterator.fGetFirst(CurrDof);
 		integer iNumDofs = pDM->iGetNumDofs();
@@ -248,9 +242,7 @@ DerivativeSolver::Update(const VectorHandler* pSol) const
 		 		pXPrimeCurr->fIncCoef(iCntp1, dCoef*d);
       			}
    		}
-#ifdef USE_MPI
 	}
-#endif /* USE_MPI */
 	pDM->DerivativesUpdate();
 	return;
 }
@@ -354,7 +346,6 @@ StepNIntegrator::Update(const VectorHandler* pSol) const
 	
    	Dof CurrDof;
 	
-#ifdef USE_MPI
 	SchurDataManager* pSDM;
 	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
 		
@@ -406,7 +397,6 @@ StepNIntegrator::Update(const VectorHandler* pSol) const
 		}
 
 	} else {
-#endif /* USE_MPI */
 		
    		DofIterator.fGetFirst(CurrDof);
 		integer iNumDofs = pDM->iGetNumDofs();
@@ -427,9 +417,7 @@ StepNIntegrator::Update(const VectorHandler* pSol) const
 		 		pXPrimeCurr->fIncCoef(iCntp1, db0Algebraic*d);
       			}
    		}
-#ifdef USE_MPI
 	}
-#endif /* USE_MPI */
 	pDM->Update();
 	return;
 }
@@ -554,7 +542,6 @@ Step1Integrator::Predict(void)
    	ASSERT(pDM != NULL);
    	Dof CurrDof;
 	
-#ifdef USE_MPI
 	SchurDataManager* pSDM;
 	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
 		
@@ -643,7 +630,6 @@ Step1Integrator::Predict(void)
 		}
 
 	} else {
-#endif /* USE_MPI */
 
 	   	DofIterator.fGetFirst(CurrDof);
 		integer iNumDofs = pDM->iGetNumDofs();
@@ -680,9 +666,7 @@ Step1Integrator::Predict(void)
 		 		THROW(ErrGeneric());
       			}
 	   	}
-#ifdef USE_MPI
 	}
-#endif /* USE_MPI */
 }
 
 doublereal
@@ -779,7 +763,6 @@ Step2Integrator::Predict(void)
    	ASSERT(pDM != NULL);
    	Dof CurrDof;
 	
-#ifdef USE_MPI
 	SchurDataManager* pSDM;
 	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
 		
@@ -885,7 +868,6 @@ Step2Integrator::Predict(void)
 		}
 
 	} else {
-#endif /* USE_MPI */
 
 	   	DofIterator.fGetFirst(CurrDof);
 		integer iNumDofs = pDM->iGetNumDofs();
@@ -931,9 +913,7 @@ Step2Integrator::Predict(void)
 		 		THROW(ErrGeneric());
       			}
 	   	}
-#ifdef USE_MPI
 	}
-#endif /* USE_MPI */
 }
 
 doublereal

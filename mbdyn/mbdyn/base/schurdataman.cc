@@ -39,7 +39,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_MPI
+//#ifdef USE_MPI
 /* libreria per il calcolo delle partizioni */
 #ifdef USE_METIS
 extern "C" {
@@ -70,6 +70,33 @@ const integer iDefaultMaxConnectionsPerVertex = 100;
 const integer iDefaultMaxNodesPerElem = 50;
 const integer iDefaultMaxInterfNodes = 50;
 const int ADJ_UNDEFINED = -1;
+
+#ifndef USE_MPI
+SchurDataManager::SchurDataManager(MBDynParser& HP, 
+				   doublereal dInitialTime,
+				   const char* sInputFileName,
+				   const char* sOutputFileName, 
+				   flag fAbortAfterInput)
+: DataManager(HP, dInitialTime, sInputFileName, 
+              sOutputFileName, fAbortAfterInput) {
+	std::cerr << "fatal error: you are building SchurDataManager,\n" <<
+		"but mbdyn was compiled without MPI.\n" <<
+		"Something weird is happening\n" <<
+		"Anyway, please compile with -DUSE_MPI\n" <<
+		"to enable paralle solution\n";
+	THROW(ErrGeneric());
+};
+SchurDataManager::~SchurDataManager() {
+	NO_OP;
+};
+void SchurDataManager::AssRes(VectorHandler&, double) {NO_OP;};
+void SchurDataManager::AssJac(MatrixHandler&, double) {NO_OP;};
+void SchurDataManager::DerivativesUpdate() const {NO_OP;};
+void SchurDataManager::BeforePredict(VectorHandler&, VectorHandler&, VectorHandler&, VectorHandler&) const {NO_OP;};
+void SchurDataManager::AfterPredict() const {NO_OP;};
+void SchurDataManager::Update() const {NO_OP;};
+void SchurDataManager::AfterConvergence() const {NO_OP;};
+#else /* USE_MPI */
 
  /* Costruttore - begin */
 SchurDataManager::SchurDataManager(MBDynParser& HP, 
