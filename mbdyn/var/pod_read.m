@@ -11,15 +11,15 @@
 %
 function [W, cnt] = pod_read(filename, ndof)
 
-[fid, msg] = fopen(filename, "r", "native");
+[fid, msg] = fopen(filename, 'r', 'native');
 if (fid == -1),
-	error("pod_read: %s", msg)
+	error('pod_read: %s', msg)
 end
 
 if nargin < 2,
-	[W, cnt] = fread(fid, Inf, "double", 0, "native");
+	[W, cnt] = fread(fid, Inf, 'double', 0, 'native');
 else
-	[W, cnt] = fread(fid, [ndof, Inf], "double", 0, "native");
+	[W, cnt] = fread(fid, [ndof, Inf], 'double', 0, 'native');
 end
 
 fclose(fid);

@@ -68,11 +68,12 @@ if exist('OCTAVE_HOME'),
 	U = Utmp(:, I(r:-1:r-ns+1));
 else
 	[U, E] = eigs(A*A', ns);
+	E = diag(E);
 end
 
 B = U'*A;
 for i = 1:ns,
-    S(i) = norm(B(i, :));	% S = sqrt(E)
+    S(i, 1) = norm(B(i, :));	% S = sqrt(E)
     B(i, :) = B(i, :)/S(i)^2;
 end
 
