@@ -8,7 +8,18 @@ SUBDIRS = base struct aero elec hydr
 bin_PROGRAMS = mbdyn
 mbdyn_SOURCES = mbdyn.cc mbdyn.h
 ## mbdyn_LDADD = @XLIBOBJS@
-mbdyn_LDADD = base/libbase.la struct/libstruct.la aero/libaero.la elec/libelec.la hydr/libhydr.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la ../libraries/liby12/liby12.la @MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ @METIS_LIBS@ @PAM_LIBS@ @LIBS@
+mbdyn_LDADD = \
+	base/libbase.la \
+	struct/libstruct.la \
+	aero/libaero.la \
+	elec/libelec.la \
+	hydr/libhydr.la \
+	../libraries/libmbmath/libmbmath.la \
+	../libraries/libmbutil/libmbutil.la \
+	../libraries/liby12/liby12.la \
+	../libraries/libobjs/libobjs.la \
+	@MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ \
+	@METIS_LIBS@ @PAM_LIBS@ @LIBS@
 mbdyn_LDFLAGS = -static
 
 INCLUDES = -I../libraries/libmbutil -I../libraries/libmbmath -I../mbdyn/base -I../mbdyn/struct -I../mbdyn/aero -I../mbdyn/elec -I../mbdyn/hydr
