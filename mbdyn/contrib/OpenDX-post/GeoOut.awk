@@ -87,9 +87,8 @@ function print_preamble() {
 			printf("\t%d\n", aero3_label[i]);
 			printf("\t%d\n", aero3_label[i]);
 		}
-		# FIXME: check names
 		printf("attribute \"dep\" string \"connections\"\n");
-		printf("attribute \"element type\" string \"lines\"\n");
+		printf("attribute \"element type\" string \"quads\"\n");
 		printf("object \"Aero4Offsets\" class array type float shape 12 items %d data follows\n", aero_num);
 		for (i = 0; i < aero0_num; i++) {
 			l = aero0_label[i];
@@ -157,12 +156,21 @@ function print_step() {
 		printf("component \"offsets\" \"Beam2Offsets\"\n");
 	}
 	if (aero_num > 0) {
-		# FIXME ?!?
+		printf("object \"AeroQuads%f\" class field\n", t);
+		printf("component \"positions\" \"TriadPositions%f\"\n", t);
+		printf("component \"connections\" \"Aero4Connections\"\n");
+		printf("component \"cosines\" \"TriadCosines%f\"\n", t);
+		printf("component \"labels\" \"Aero4Labels\"\n");
+		printf("component \"nodelabels\" \"TriadLabels\"\n");
+		printf("component \"offsets\" \"Aero4Offsets\"\n");
 	}
 	printf("object \"MBDynSym%f\" class group\n", t);
 	printf("member \"OrientedTriads\" value \"OrientedTriads%f\"\n", t);
 	if (beam_num > 0) {
 		printf("member \"Beams2\" value \"Beams2%f\"\n", t);
+	}
+	if (aero_num > 0) {
+		printf("member \"AeroQuads\" value \"AeroQuads%f\"\n", t);
 	}
 }
 
