@@ -47,8 +47,6 @@
 #include <ltdl.h>
 #elif defined(HAVE_DLFCN_H)
 #include <dlfcn.h>
-#else /* !HAVE_LTDL_H && !HAVE_DLFCN_H */
-#error "no dynamic linking headers, sorry"
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 
 #include <elem.h>
