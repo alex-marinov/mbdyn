@@ -88,7 +88,7 @@ dErr1M(0.), dErr1S(0.), dErr2M(0.), dErr2S(0.) {
    ASSERT(dkRef > 0. && dkRef < 1.);
    ASSERT(dkLim > dkRef && dkLim <= 1.);
    
-   SAFENEWARR(pdErrM, doublereal, 2*N1, DMmm);
+   SAFENEWARR(pdErrM, doublereal, 2*N1);
    
    pdErrS = pdErrM+N1;
    for (integer i = 0; i < 2*N1; i++) {
@@ -98,7 +98,7 @@ dErr1M(0.), dErr1S(0.), dErr2M(0.), dErr2S(0.) {
 
 DynamicForgettingFactor::~DynamicForgettingFactor(void) {
    /* pdErr must be non-null */
-   SAFEDELETEARR(pdErrM, DMmm);
+   SAFEDELETEARR(pdErrM);
 }
 
 void DynamicForgettingFactor::Update(const doublereal* pErr) {
@@ -175,8 +175,8 @@ pdErr1M(NULL), pdErr1S(NULL), pdErr2M(NULL), pdErr2S(NULL) {
    
    integer sz = (N1+4)*iNumErr;
    
-   SAFENEWARR(pdErr, doublereal, sz, DMmm);
-   SAFENEWARR(ppdErr, doublereal*, N1, DMmm);
+   SAFENEWARR(pdErr, doublereal, sz);
+   SAFENEWARR(ppdErr, doublereal*, N1);
    
    pdErr1M = pdErr+N1*iNumErr;
    pdErr1S = pdErr1M+iNumErr;
@@ -192,8 +192,8 @@ pdErr1M(NULL), pdErr1S(NULL), pdErr2M(NULL), pdErr2S(NULL) {
 
 DynamicForgettingFactor2::~DynamicForgettingFactor2(void) {
    /* pdErr must be non-null */
-   SAFEDELETEARR(pdErr, DMmm);
-   SAFEDELETEARR(ppdErr, DMmm);
+   SAFEDELETEARR(pdErr);
+   SAFEDELETEARR(ppdErr);
 }
 
 void DynamicForgettingFactor2::Update(const doublereal* pE) {

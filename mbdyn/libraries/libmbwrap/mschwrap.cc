@@ -174,8 +174,7 @@ MeschachSparseLUSolutionManager::Create(unsigned int iSize,
    	if (prhs == NULL) {
       		SAFENEWWITHCONSTRUCTOR(prhs, 
 			     	       MeschachVectorHandler,
-				       MeschachVectorHandler(iSize),
-				       SMmm);
+				       MeschachVectorHandler(iSize));
    	} else {
       		prhs->Resize(iSize);
    	}
@@ -192,7 +191,7 @@ MeschachSparseLUSolutionManager::Create(unsigned int iSize,
    	if (pmh != NULL
             && (pmh->iGetNumRows() < (integer)iSize
 	        || pmh->iGetNumCols() < (integer)iSize)) {
-      		SAFEDELETE(pmh, SMmm);
+      		SAFEDELETE(pmh);
    	}
 	
    	if (pmh == NULL) {
@@ -200,8 +199,7 @@ MeschachSparseLUSolutionManager::Create(unsigned int iSize,
 				       MeschachSparseMatrixHandler,
 				       MeschachSparseMatrixHandler(iSize,
 				       				   iSize, 
-								   iMaxSize),
-			     	       SMmm);
+								   iMaxSize));
    	}
 }
 
@@ -232,7 +230,7 @@ MeschachSparseLUSolutionManager::~MeschachSparseLUSolutionManager(void)
 #endif
    
    	if (prhs != NULL) {
-      		SAFEDELETE(prhs, SMmm);
+      		SAFEDELETE(prhs);
    	}
 	
    	if (pivot != PNULL) {
@@ -240,7 +238,7 @@ MeschachSparseLUSolutionManager::~MeschachSparseLUSolutionManager(void)
    	}
 	
    	if (pmh != NULL) {
-      		SAFEDELETE(pmh, SMmm);
+      		SAFEDELETE(pmh);
    	}
 }
 

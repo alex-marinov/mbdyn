@@ -52,7 +52,7 @@ pNode(pN), pKin(pK)
 
 KinJoint::~KinJoint(void)
 {
-   SAFEDELETE(pKin, DMmm);
+   SAFEDELETE(pKin);
 }
 
 /* Contributo al file di restart */

@@ -49,10 +49,6 @@
 #include "mynewmem.h"
 #include "except.h"
 
-#ifdef DEBUG_MEMMANAGER
-extern clMemMan LLStack_mm;
-#endif
-
 template <class T>
 class LLStack {
  private:
@@ -67,7 +63,7 @@ class LLStack {
    
  public:   
    LLStack(void) : pTop(NULL) {
-      SAFENEWWITHCONSTRUCTOR(pTop, LLItem, LLItem(), LLStack_mm);
+      SAFENEW(pTop, LLItem);
    };
    
    ~LLStack(void) {
@@ -75,7 +71,7 @@ class LLStack {
       LLItem* p = pTop;
       while(p != NULL) {
 	 pTop = (LLItem*)(pTop->pnext);
-	 SAFEDELETE(p, LLStack_mm);
+	 SAFEDELETE(p);
 	 p = pTop;
       }	
    };
@@ -84,7 +80,7 @@ class LLStack {
       ASSERT(pTop != NULL);
       ASSERT(pTIn != NULL); /* Non necessario, solo per debug */
       LLItem* p = NULL;
-      SAFENEWWITHCONSTRUCTOR(p, LLItem, LLItem(pTIn, pTop), LLStack_mm);
+      SAFENEWWITHCONSTRUCTOR(p, LLItem, LLItem(pTIn, pTop));
       pTop = p;
    };
    
@@ -103,7 +99,7 @@ class LLStack {
       pTOut = (T*)(pTop->pTItem);
       LLItem* p = pTop;
       pTop = (LLItem*)(pTop->pnext);
-      SAFEDELETE(p, LLStack_mm);
+      SAFEDELETE(p);
       return 1;
    };
    

@@ -58,7 +58,7 @@ class DrivenElem : /* virtual */ public Elem, protected DriveOwner {
    ~DrivenElem(void) {
       ASSERT(pElem != NULL);
       if (pElem != NULL) {
-	 SAFEDELETE(pElem, DMmm);
+	 SAFEDELETE(pElem);
       }
    };
    

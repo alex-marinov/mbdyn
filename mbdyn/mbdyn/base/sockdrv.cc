@@ -99,8 +99,8 @@ pFlags(NULL)
    	ASSERT(auth != NULL);
    	ASSERT(nd > 0);
    
-   	SAFENEWARR(pdVal, doublereal, nd+1, DMmm);
-   	SAFENEWARR(pFlags, int, nd+1, DMmm);
+   	SAFENEWARR(pdVal, doublereal, nd+1);
+   	SAFENEWARR(pFlags, int, nd+1);
    	for (int iCnt = 0; iCnt <= nd; iCnt++) {
       		pFlags[iCnt] = SocketDrive::DEFAULT;
       		pdVal[iCnt] = 0.;
@@ -141,10 +141,10 @@ SocketDrive::~SocketDrive(void)
    	shutdown(sock, SHUT_RDWR /* 2 */ );
    
    	if (auth != NULL) {
-      		SAFEDELETE(auth, DMmm);
+      		SAFEDELETE(auth);
    	}
    	if (pdVal != NULL) {
-      		SAFEDELETEARR(pdVal, DMmm);
+      		SAFEDELETEARR(pdVal);
    	}
 }
 

@@ -895,8 +895,7 @@ Elem* ReadForce(DataManager* pDM,
       
       SAFENEWWITHCONSTRUCTOR(pEl,
 			     AbstractForce,
-			     AbstractForce(uLabel, SD.pNode, pDC, fOut),
-			     DMmm);
+			     AbstractForce(uLabel, SD.pNode, pDC, fOut));
             
    } else
      
@@ -974,28 +973,24 @@ Elem* ReadForce(DataManager* pDM,
 	    SAFENEWWITHCONSTRUCTOR(pEl, 
 				   ConservativeForce,
 				   ConservativeForce(uLabel, pNode, pDC, 
-						     Dir, Arm, fOut), 
-				   DMmm);
+						     Dir, Arm, fOut));
 	 } else if (CurrType == FOLLOWER) {	     
 	    SAFENEWWITHCONSTRUCTOR(pEl, 
 				   FollowerForce,
 				   FollowerForce(uLabel, pNode, pDC, 
-						 Dir, Arm, fOut), 
-				   DMmm);
+						 Dir, Arm, fOut));
 	 }	
       } else if (fCouple == 1) {
 	 if (CurrType == CONSERVATIVE) {
 	    SAFENEWWITHCONSTRUCTOR(pEl, 
 				   ConservativeCouple,
 				   ConservativeCouple(uLabel, pNode, pDC, 
-						      Dir, fOut), 
-				   DMmm);
+						      Dir, fOut));
 	 } else if (CurrType == FOLLOWER) {	  	
 	    SAFENEWWITHCONSTRUCTOR(pEl, 
 				   FollowerCouple,
 				   FollowerCouple(uLabel, pNode, pDC, 
-						  Dir, fOut), 
-				   DMmm);
+						  Dir, fOut));
 	 }	
       }      
    }

@@ -237,7 +237,7 @@ calls(NULL)
 		THROW(ErrGeneric());
 	}
 
-   	SAFESTRDUP(module_name, s, DMmm);
+   	SAFESTRDUP(module_name, s);
    	handle = dlopen(module_name, RTLD_NOW /* RTLD_LAZY */ );
    	if (handle == NULL) {
 		/* look for module in cwd */
@@ -399,7 +399,7 @@ LoadableElem::~LoadableElem(void)
    
    	ASSERT(handle != NULL);
    	dlclose(handle);
-   	SAFEDELETEARR(module_name, DMmm);
+   	SAFEDELETEARR(module_name);
 }
 
 Elem::Type 
@@ -574,8 +574,7 @@ ReadLoadable(DataManager* pDM,
    
    	SAFENEWWITHCONSTRUCTOR(pEl,
 			       LoadableElem,
-			       LoadableElem(uLabel, pDO, pDM, HP),
-			       DMmm);
+			       LoadableElem(uLabel, pDO, pDM, HP));
    	return pEl;
 }
 

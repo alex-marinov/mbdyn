@@ -62,15 +62,13 @@ TplDriveCaller<T>* GetPreStrain(DataManager* pDM,
       DriveCaller* pDC = NULL;
       SAFENEWWITHCONSTRUCTOR(pDC,
 			     NullDriveCaller,
-			     NullDriveCaller(pDH),
-			     DMmm);
+			     NullDriveCaller(pDH));
 
       T t(0.);
       TplDriveCaller<T>* pTplDC = NULL;
       SAFENEWWITHCONSTRUCTOR(pTplDC,
 			     SingleTplDriveCaller<T>,
-			     SingleTplDriveCaller<T>(pDC, t),
-			     DMmm);     
+			     SingleTplDriveCaller<T>(pDC, t));
       return pTplDC;
    }
 }
@@ -160,7 +158,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, pDH, PreStrain);
 
        typedef LinearElasticIsotropicConstitutiveLaw<T, Tder> L;
-       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS), DMmm);
+       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS));
        
        break;
     }
@@ -179,7 +177,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, pDH, PreStrain);
        
        typedef LinearElasticGenericConstitutiveLaw<T, Tder> L;
-       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S), DMmm);
+       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S));
        
        break;
     }
@@ -202,7 +200,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, pDH, PreStrain);
        
        typedef LinearElasticGenericAxialTorsionCouplingConstitutiveLaw<T, Tder> L;
-       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S, dCoupl), DMmm);
+       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S, dCoupl));
        
        break;
     }
@@ -225,7 +223,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        
        typedef LogConstitutiveLaw<T, Tder> L;
        // typedef LogConstitutiveLaw L;
-       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS), DMmm);
+       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS));
        
        break;
     }      
@@ -268,8 +266,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        typedef DoubleLinearElasticConstitutiveLaw<T, Tder> L;
        SAFENEWWITHCONSTRUCTOR(pCL, 
 			      L, 
-			      L(pTplDC, PreStress, dS, dUpp, dLow, dSecondS),
-			      DMmm);
+			      L(pTplDC, PreStress, dS, dUpp, dLow, dSecondS));
        
        break;
     }
@@ -301,7 +298,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, pDH, PreStrain);
        
        typedef IsotropicHardeningConstitutiveLaw<T, Tder> L;
-       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS, dE), DMmm);
+       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS, dE));
 
        break;
     }
@@ -333,7 +330,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, pDH, PreStrain);
        
        typedef ContactConstitutiveLaw<T, Tder> L;
-       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dK, dGamma), DMmm);
+       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dK, dGamma));
 
        break;
     }
@@ -355,7 +352,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        GetPreStress(HP, PreStress);
        
        typedef LinearViscousIsotropicConstitutiveLaw<T, Tder> L;
-       SAFENEWWITHCONSTRUCTOR(pCL, L, L(NULL, PreStress, dSP), DMmm);       
+       SAFENEWWITHCONSTRUCTOR(pCL, L, L(NULL, PreStress, dSP));
        
        break;
     }
@@ -371,7 +368,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        GetPreStress(HP, PreStress);
        
        typedef LinearViscousGenericConstitutiveLaw<T, Tder> L;
-       SAFENEWWITHCONSTRUCTOR(pCL, L, L(NULL, PreStress, SP), DMmm);
+       SAFENEWWITHCONSTRUCTOR(pCL, L, L(NULL, PreStress, SP));
        
        break;
     }
@@ -409,7 +406,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, pDH, PreStrain);
        
        typedef LinearViscoElasticIsotropicConstitutiveLaw<T, Tder> L;
-       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS, dSP), DMmm);
+       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS, dSP));
        
        break;
     }
@@ -435,7 +432,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, pDH, PreStrain);
        
        typedef LinearViscoElasticGenericConstitutiveLaw<T, Tder> L;
-       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S, SP), DMmm);
+       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S, SP));
        
        break;
     }
@@ -488,8 +485,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        SAFENEWWITHCONSTRUCTOR(pCL, 
 			      L, 
 			      L(pTplDC, PreStress, 
-				dS, dUpp, dLow, dSecondS, dSP), 
-			      DMmm);
+				dS, dUpp, dLow, dSecondS, dSP));
        
        break;
     }
@@ -550,8 +546,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        SAFENEWWITHCONSTRUCTOR(pCL, 
 			      L, 
 			      L(pTplDC, PreStress, 
-				dS, dSP, dTreshold, dParabStiff),
-			      DMmm);
+				dS, dSP, dTreshold, dParabStiff));
        
        break;
     }	      	     	      
@@ -570,21 +565,18 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        DriveCaller* pDC = NULL;
        SAFENEWWITHCONSTRUCTOR(pDC,
 			      TimeDriveCaller,
-			      TimeDriveCaller(pDH),
-			      DMmm);
+			      TimeDriveCaller(pDH));
        
        T t(1.);
        TplDriveCaller<T>* pTplDC = NULL;
        SAFENEWWITHCONSTRUCTOR(pTplDC,
                              SingleTplDriveCaller<T>,
-                             SingleTplDriveCaller<T>(pDC, t),
-                             DMmm);
+                             SingleTplDriveCaller<T>(pDC, t));
        
        typedef GRAALLDamperConstitutiveLaw<T, Tder> L;
        SAFENEWWITHCONSTRUCTOR(pCL, 
 			      L, 
-			      L(pTplDC, rla, filename),
-			      DMmm);
+			      L(pTplDC, rla, filename));
               
        break;
 #else /* USE_GRAALLDAMPER */
@@ -608,7 +600,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, pDH, PreStrain);
 	      
        typedef ShockAbsorberConstitutiveLaw<T, Tder> L;
-       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pDM, pTplDC, HP), DMmm);
+       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pDM, pTplDC, HP));
 
        break;
     }
@@ -697,8 +689,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 				  LinearElasticIsotropicConstitutiveLaw3D,
 				  LinearElasticIsotropicConstitutiveLaw3D(dS, 
 									  PreStress,
-									  PreStrain), 
-				  DMmm);
+									  PreStrain));
 	   break;
 	}
 	      
@@ -723,8 +714,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 				  LinearElasticOrthotropicConstitutiveLaw3D,
 				  LinearElasticOrthotropicConstitutiveLaw3D(K, 
 									    PreStress,
-									    PreStrain), 
-				  DMmm);
+									    PreStrain));
 	   break;
 	}
 	      
@@ -777,8 +767,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 								       dLow,
 								       dSecondS,
 								       PreStress,
-								       PreStrain), 
-				  DMmm);
+								       PreStrain));
 	   break;
 	}
 	      
@@ -798,7 +787,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	   // Legame costitutivo
 	   SAFENEWWITHCONSTRUCTOR(pCL,
 				  LinearViscousIsotropicConstitutiveLaw3D,
-				  LinearViscousIsotropicConstitutiveLaw3D(dS), DMmm);
+				  LinearViscousIsotropicConstitutiveLaw3D(dS));
 	   break;
 	}
 	 
@@ -846,13 +835,11 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 				     LinearTurbulentViscousIsotropicConstitutiveLaw3D,
 				     LinearTurbulentViscousIsotropicConstitutiveLaw3D(dSP,
 										      dTreshold,
-										      dParabStiff),
-				     DMmm);		   
+										      dParabStiff));
 	   } else {
 	      SAFENEWWITHCONSTRUCTOR(pCL, 
 				     TurbulentViscousIsotropicConstitutiveLaw3D,
-				     TurbulentViscousIsotropicConstitutiveLaw3D(dParabStiff),
-				     DMmm);		   
+				     TurbulentViscousIsotropicConstitutiveLaw3D(dParabStiff));
 	   }	   
 	   
 	   break;
@@ -880,8 +867,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	   // Legame costitutivo
 	   SAFENEWWITHCONSTRUCTOR(pCL,
 				  VelocityDamperConstitutiveLaw3D,
-				  VelocityDamperConstitutiveLaw3D(dR, dS, dV), 
-				  DMmm);
+				  VelocityDamperConstitutiveLaw3D(dR, dS, dV));
 	   break;
 	}
             
@@ -922,8 +908,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 				  LinearViscoElasticIsotropicConstitutiveLaw3D,
 				  LinearViscoElasticIsotropicConstitutiveLaw3D(dS, dSP,
 									       PreStress,
-									       PreStrain), 
-				  DMmm);		   
+									       PreStrain));
 	   
 	   break;
 	}      

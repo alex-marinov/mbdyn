@@ -45,7 +45,7 @@ protected:
 	
 	void DeleteName(void) {
 		if (sName != NULL) {
-			SAFEDELETEARR(sName, DMmm);
+			SAFEDELETEARR(sName);
 			sName = NULL;
 		}
 	};
@@ -68,7 +68,7 @@ public:
 	
 	void PutName(const char *sN) {
 		DeleteName();
-		SAFESTRDUP(sName, sN, DMmm);
+		SAFESTRDUP(sName, sN);
 	};
    
    	unsigned int GetLabel(void) const {

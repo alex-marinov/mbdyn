@@ -108,13 +108,11 @@ fFirstRes(1)
     pD[S_I] = NULL; 
     SAFENEWWITHCONSTRUCTOR(pD[S_I], 
 			   ConstitutiveLaw6DOwner,
-			   ConstitutiveLaw6DOwner(pD_I),
-			   DMmm);
+			   ConstitutiveLaw6DOwner(pD_I));
     pD[SII] = NULL;   
     SAFENEWWITHCONSTRUCTOR(pD[SII],
 			   ConstitutiveLaw6DOwner,
-			   ConstitutiveLaw6DOwner(pDII),
-			   DMmm);
+			   ConstitutiveLaw6DOwner(pDII));
    
     Omega[S_I]     = Omega[SII]     = Vec3(0.); 
     Az[S_I]        = Az[SII]        = Vec6(0.);
@@ -195,12 +193,10 @@ fFirstRes(1)
 
     SAFENEWWITHCONSTRUCTOR(pD[S_I], 
 			   ConstitutiveLaw6DOwner,
-			   ConstitutiveLaw6DOwner(pD_I),
-			   DMmm);
+			   ConstitutiveLaw6DOwner(pD_I));
     SAFENEWWITHCONSTRUCTOR(pD[SII],
 			   ConstitutiveLaw6DOwner,
-			   ConstitutiveLaw6DOwner(pDII),
-			   DMmm);
+			   ConstitutiveLaw6DOwner(pDII));
    
     Omega[S_I]     = Omega[SII]     = Vec3(0.); 
     Az[S_I]        = Az[SII]        = Vec6(0.);
@@ -222,12 +218,12 @@ Beam::~Beam(void)
 {
     ASSERT(pD[S_I] != NULL);
     if (pD[S_I] != NULL) {      
-        SAFEDELETE(pD[S_I], DMmm);
+        SAFEDELETE(pD[S_I]);
     }
    
     ASSERT(pD[SII] != NULL);
     if (pD[SII] != NULL) {      
-        SAFEDELETE(pD[SII], DMmm);
+        SAFEDELETE(pD[SII]);
     }
 }
 
@@ -1743,7 +1739,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	 THROW(ErrGeneric());
       }
       
-      SAFENEWARR(pvElecDofs, ScalarDifferentialNode*, iNumElec, DMmm);
+      SAFENEWARR(pvElecDofs, ScalarDifferentialNode*, iNumElec);
       
       for (integer i = 0; i < iNumElec; i++) {
 	 unsigned int uL = HP.GetInt();
@@ -1810,8 +1806,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				     Rn1, Rn2, Rn3,
 				     R_I, RII,
 				     pD_I, pDII,
-				     fOut),
-				DMmm);
+				     fOut));
 #if defined(USE_ELECTRIC_NODES)
       } else {	 
 	 SAFENEWWITHCONSTRUCTOR(pEl,
@@ -1826,8 +1821,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						  pvElecDofs,
 						  PiezoMat[0][0], PiezoMat[1][0],
 						  PiezoMat[0][1], PiezoMat[1][1],
-						  fOut),
-				DMmm);
+						  fOut));
       }
 #endif /* defined(USE_ELECTRIC_NODES) */
       
@@ -1845,8 +1839,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						 Rn1, Rn2, Rn3,
 						 R_I, RII,
 						 pD_I, pDII,
-						 fOut),
-				DMmm);     
+						 fOut));
 #if defined(USE_ELECTRIC_NODES)
       } else {	 
 	 SAFENEWWITHCONSTRUCTOR(pEl,
@@ -1861,8 +1854,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						    pvElecDofs,
 						    PiezoMat[0][0], PiezoMat[1][0],
 						    PiezoMat[0][1], PiezoMat[1][1],
-						    fOut),
-				DMmm);
+						    fOut));
       }
 #endif /* defined(USE_ELECTRIC_NODES) */
 

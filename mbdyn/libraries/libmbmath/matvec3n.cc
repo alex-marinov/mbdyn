@@ -48,14 +48,14 @@ void VecN::Create_(integer ns)
    if (pdVec != NULL) {
       Destroy_();
    }
-   SAFENEWARR(pdVec, doublereal, ns, SMmm);
+   SAFENEWARR(pdVec, doublereal, ns);
 }
  
 
 void VecN::Destroy_(void)
 {
    if (pdVec != NULL) {
-      SAFEDELETEARR(pdVec, SMmm);
+      SAFEDELETEARR(pdVec);
    }
 }
 
@@ -187,7 +187,7 @@ void Mat3xN::Create_(integer ns)
    if (pvdMat[0] != NULL) {
       Destroy_();
    }
-   SAFENEWARR(pvdMat[0], doublereal, 3*ns, SMmm);
+   SAFENEWARR(pvdMat[0], doublereal, 3*ns);
    pvdMat[1] = pvdMat[0]+ns;
    pvdMat[2] = pvdMat[1]+ns;
 }
@@ -196,7 +196,7 @@ void Mat3xN::Create_(integer ns)
 void Mat3xN::Destroy_(void)
 {
    if (pvdMat[0] != NULL) {
-      SAFEDELETEARR(pvdMat[0], SMmm);
+      SAFEDELETEARR(pvdMat[0]);
    }
 }
 
@@ -427,9 +427,9 @@ void MatNx3::Create_(integer ns)
    if (pdVec3 != NULL) {
       Destroy_();
    }
-   SAFENEWARR(pdVec1, doublereal, ns, SMmm);
-   SAFENEWARR(pdVec2, doublereal, ns, SMmm);
-   SAFENEWARR(pdVec3, doublereal, ns, SMmm);
+   SAFENEWARR(pdVec1, doublereal, ns);
+   SAFENEWARR(pdVec2, doublereal, ns);
+   SAFENEWARR(pdVec3, doublereal, ns);
 
 }
  
@@ -437,13 +437,13 @@ void MatNx3::Create_(integer ns)
 void MatNx3::Destroy_(void)
 {
    if (pdVec1 != NULL) {
-      SAFEDELETEARR(pdVec1, SMmm);
+      SAFEDELETEARR(pdVec1);
    }
     if (pdVec2 != NULL) {
-      SAFEDELETEARR(pdVec2, SMmm);
+      SAFEDELETEARR(pdVec2);
    }
     if (pdVec3 != NULL) {
-      SAFEDELETEARR(pdVec3, SMmm);
+      SAFEDELETEARR(pdVec3);
   }
 }
 
@@ -561,14 +561,14 @@ void MatNxN::Create_(integer ns)
    if (pdVec != NULL) {
       Destroy_();
    }
-   SAFENEWARR(pdVec, doublereal, ns*ns, SMmm);
+   SAFENEWARR(pdVec, doublereal, ns*ns);
 }
  
 
 void MatNxN::Destroy_(void)
 {
    if (pdVec != NULL) {
-      SAFEDELETEARR(pdVec, SMmm);
+      SAFEDELETEARR(pdVec);
    }
 }
 

@@ -41,7 +41,7 @@
  * HARDDESTRUCTOR(D, MyRand, mmDMY);
  * MyLList<MyRand> LL(D);
  * MyRand* pmrIn = NULL;
- * SAFENEWWITHCONSTRUCTOR(pmrIn, MyRand, MyRand(0), mmDMY);
+ * SAFENEWWITHCONSTRUCTOR(pmrIn, MyRand, MyRand(0));
  * if(pmrIn == NULL) {
  *    // error ...
  * }
@@ -67,10 +67,6 @@
 #include "except.h"
 
 #include "destr.h"
-
-#ifdef DEBUG_MEMMANAGER
-extern clMemMan MyLList_mm;
-#endif
 
 template <class T>
 class MyLList {
@@ -142,7 +138,7 @@ template <class T>
 MyLList<T>::MyLList(Destructor<T>& d)
 : D(d), pBase(NULL), pCurr(NULL), iSize(0)
 {
-   SAFENEWWITHCONSTRUCTOR(pBase, LLItem, LLItem(NULL, NULL), MyLList_mm);
+   SAFENEWWITHCONSTRUCTOR(pBase, LLItem, LLItem(NULL, NULL));
    (LLItem*&)(pBase->pNext) = pBase;
    
    pCurr = pBase;
@@ -160,7 +156,7 @@ MyLList<T>::~MyLList(void)
       p = (LLItem*)(p->pNext);
       
       D.Destroy((T*&)(pd->pTItem));
-      SAFEDELETE(pd, MyLList_mm);    
+      SAFEDELETE(pd);
    } while (p != pBase);
 }
 
@@ -207,7 +203,7 @@ int MyLList<T>::iAdd(const T* pTIn)
    }
    
    LLItem* pn = NULL;
-   SAFENEWWITHCONSTRUCTOR(pn, LLItem, LLItem(p->pNext, pTIn), MyLList_mm);
+   SAFENEWWITHCONSTRUCTOR(pn, LLItem, LLItem(p->pNext, pTIn));
    (LLItem*&)(p->pNext) = pn;
    iSize++;
    return 0;
@@ -225,7 +221,7 @@ int MyLList<T>::iRemove(unsigned int uLabel)
       (LLItem*&)(p->pNext) = (LLItem*)(pd->pNext);
       
       D.Destroy((T*&)(pd->pTItem));
-      SAFEDELETE(pd, MyLList_mm);
+      SAFEDELETE(pd);
       
       ASSERT(iSize > 0);
       iSize--;

@@ -497,7 +497,7 @@ DataManager::~DataManager(void)
    }
    
    if(sSimulationTitle != NULL) {
-      SAFEDELETEARR(sSimulationTitle, DMmm);
+      SAFEDELETEARR(sSimulationTitle);
    }
    
    ElemManagerDestructor();

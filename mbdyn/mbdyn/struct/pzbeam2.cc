@@ -141,7 +141,7 @@ iNumElec(iEl), pvElecDofs(pEDof), V(iEl)
 PiezoActuatorBeam2::~PiezoActuatorBeam2(void)
 {
 	ASSERT(pvElecDofs != NULL);
-	SAFEDELETEARR(pvElecDofs, DMmm);
+	SAFEDELETEARR(pvElecDofs);
 }
 
     
@@ -360,7 +360,7 @@ iNumElec(iEl), pvElecDofs(pEDof), V(iEl)
 PiezoActuatorVEBeam2::~PiezoActuatorVEBeam2(void)
 {
 	ASSERT(pvElecDofs != NULL);
-	SAFEDELETEARR(pvElecDofs, DMmm);
+	SAFEDELETEARR(pvElecDofs);
 }
 
 

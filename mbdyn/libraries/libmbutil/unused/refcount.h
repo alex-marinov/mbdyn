@@ -46,7 +46,7 @@
  *    MyClass(unsigned int iSize) : RefCount(), pi(NULL) 
  *      {
  * 	   if (iSize > 0) {
- *	      SAFENEWARR(pi, int, iSize, DMY);
+ *	      SAFENEWARR(pi, int, iSize);
  *	      if(pi == NULL) { NULL; } // ....
  *	   }
  *      };
@@ -54,7 +54,7 @@
  *    ~MyClass(void)
  *      {
  *	   if(GetCount() == 1) {
- *	      SAFEDELETEARR(pi, DMY);
+ *	      SAFEDELETEARR(pi);
  *	   }
  *      };
  *    MyClass& operator = (const MyClass& m)
@@ -69,7 +69,7 @@
  *
  *         // Check of temporary
  *         if (r.GetCount() == 1) { // r is going to be deleted by destructor
- *            SAFEDELETEARR(piTmp, DMY);
+ *            SAFEDELETEARR(piTmp);
  *         }
  *
  *         return *this;
@@ -88,17 +88,10 @@
 class RefCount {
  protected:
    unsigned int* piCount;
-#ifdef DEBUG_MEMMANAGER
-   clMemMan& mm;
-#endif
    
  protected:
-#ifdef DEBUG_MEMMANAGER  
-   RefCount(const clMemMan& m) : piCount(NULL), mm((clMemMan&)m) {
-#else      
    RefCount(void) : piCount(NULL) {
-#endif
-      SAFENEW(piCount, unsigned int, mm);
+      SAFENEW(piCount, unsigned int);
       if (piCount == NULL) {
 	 cerr << "Out of memory" << endl;
 	 THROW(ErrMemory());
@@ -107,9 +100,6 @@ class RefCount {
    };
    
    RefCount(const RefCount& r) : piCount(r.piCount)
-#ifdef DEBUG_MEMMANAGER
-     , mm(r.mm)
-#endif	
       {
 	 ASSERT(r.piCount != NULL);
 	 ASSERT(*r.piCount > 0);
@@ -131,7 +121,7 @@ class RefCount {
       ASSERT(piCount != NULL);
       ASSERT(*piCount > 0);
       if (--(*piCount) == 0) {
-	 SAFEDELETE(piCount, mm);
+	 SAFEDELETE(piCount);
 	 return 1;
       }
       return 0;
@@ -142,9 +132,6 @@ class RefCount {
       ASSERT(*r.piCount > 0);
       int i = Decrease();
       piCount = r.piCount;
-#ifdef DEBUG_MEMMANAGER      
-      (clMemMan&)mm = r.mm;
-#endif      
       (*piCount)++;
       return i;
    };
@@ -167,7 +154,7 @@ class RefCount {
       
       Decrease();
       piCount = NULL;
-      SAFENEW(piCount, unsigned int, mm);
+      SAFENEW(piCount, unsigned int);
       if (piCount == NULL) {
 	 cerr << "Out of memory" << endl;
 	 THROW(ErrMemory());
@@ -175,25 +162,6 @@ class RefCount {
       *piCount = 1;
       return *this;
    }
-
-#if defined(DEBUG_MEMMANAGER)      
-   RefCount& New(const clMemMan& m) {
-      if (GetCount() == 1) {
-	 return *this;
-      }
-      
-      Decrease();
-      piCount = NULL;
-      (clMemMan&)mm = (clMemMan&)m;
-      SAFENEW(piCount, unsigned int, mm);
-      if (piCount == NULL) {
-	 cerr << "Out of memory" << endl;
-	 THROW(ErrMemory());
-      }
-      *piCount = 1;
-      return *this;
-   }
-#endif      
 };
 
 #endif // REFCOUNT_H

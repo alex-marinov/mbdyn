@@ -124,7 +124,7 @@ MBDynParser::Reference_(void)
 	const char *sName = NULL;
 	if (IsKeyWord("name")) {
 		const char *sTmp = GetStringWithDelims();
-		SAFESTRDUP(sName, sTmp, MPmm);
+		SAFESTRDUP(sName, sTmp);
 	}
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reference frame " << uLabel << endl);
@@ -147,8 +147,7 @@ MBDynParser::Reference_(void)
 	ReferenceFrame* pRF = NULL;
 	SAFENEWWITHCONSTRUCTOR(pRF,
 		ReferenceFrame,
-		ReferenceFrame(uLabel, x, R, v, w),
-		MPmm);
+		ReferenceFrame(uLabel, x, R, v, w));
 	if (RF.iAdd(pRF)) {
 		cerr << "Reference frame " << uLabel
 			<< " already defined at line " << GetLineData()
@@ -158,7 +157,7 @@ MBDynParser::Reference_(void)
 	
 	if (sName != NULL) {
 		pRF->PutName(sName);
-		SAFEDELETEARR(sName, MPmm);
+		SAFEDELETEARR(sName);
 	}
 }
 #endif /* USE_STRUCT_NODES */
@@ -180,7 +179,7 @@ MBDynParser::HydraulicFluid_(void)
 	const char *sName = NULL;
 	if (IsKeyWord("name")) {
 		const char *sTmp = GetStringWithDelims();
-		SAFESTRDUP(sName, sTmp, MPmm);
+		SAFESTRDUP(sName, sTmp);
 	}
 	
 	KeyTable CurrTable = KeyT;
@@ -201,7 +200,7 @@ MBDynParser::HydraulicFluid_(void)
 	
 	if (sName != NULL) {
 		pHF->PutName(sName);
-		SAFEDELETEARR(sName, MPmm);
+		SAFEDELETEARR(sName);
 	}
 }
 #endif /* USE_HYDRAULIC_NODES */
@@ -222,7 +221,7 @@ MBDynParser::C81Data_(void)
 	const char *sName = NULL;
 	if (IsKeyWord("name")) {
 		const char *sTmp = GetStringWithDelims();
-		SAFESTRDUP(sName, sTmp, MPmm);
+		SAFESTRDUP(sName, sTmp);
 	}
 	
 	const char* filename = GetFileName();
@@ -237,7 +236,7 @@ MBDynParser::C81Data_(void)
 		   << " from file '" << filename << "'" << endl);
 	
 	C81Data* data = NULL;
-	SAFENEWWITHCONSTRUCTOR(data, C81Data, C81Data(uLabel), DMmm);
+	SAFENEWWITHCONSTRUCTOR(data, C81Data, C81Data(uLabel));
 	
 	if (read_c81_data(in, data) != 0) {
 		cerr << "unable to read c81 data " << uLabel 
@@ -261,7 +260,7 @@ MBDynParser::C81Data_(void)
 	
 	if (sName != NULL) {
 		data->PutName(sName);
-		SAFEDELETEARR(sName, MPmm);
+		SAFEDELETEARR(sName);
 	}
 }
 #endif /* USE_AERODYNAMIC_ELEMS */

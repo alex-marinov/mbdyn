@@ -594,7 +594,7 @@ GPCInv::GPCInv(void)
 GPCInv::~GPCInv(void) 
 {
    	if (pdBase != NULL) {
-      		SAFEDELETEARR(pdBase, DMmm);
+      		SAFEDELETEARR(pdBase);
    	}
 }
    
@@ -641,10 +641,10 @@ pdWork(NULL)
      		;
 
    	/* per ottimizzare le dimensioni di work: viene allocato a parte */
-   	SAFENEWARR(pdWork, doublereal, iWork, DMmm);
+   	SAFENEWARR(pdWork, doublereal, iWork);
 #endif /* OPTIMIZE_WORK */
      
-   	SAFENEWARR(pdBase, doublereal, i, DMmm);
+   	SAFENEWARR(pdBase, doublereal, i);
    
    	pdS = pdBase;
    	pdU = pdS+iMin;
@@ -660,7 +660,7 @@ GPC_LAPACK_pinv::~GPC_LAPACK_pinv(void)
 #ifndef OPTIMIZE_WORK
    	NO_OP;			/* pdBase viene distrutto da GPCInv */
 #else /* OPTIMIZE_WORK */
-   	SAFEDELETEARR(pdWork, DMmm);
+   	SAFEDELETEARR(pdWork);
 #endif /* OPTIMIZE_WORK */
 }
 
@@ -681,8 +681,8 @@ GPC_LAPACK_pinv::Inv(integer ndima, integer nrowa,
 #ifdef OPTIMIZE_WORK
    	if (((integer *)pdWork)[0] > iWork) {
       		iWork = ((integer *)pdWork)[0];
-      		SAFEDELETEARR(pdWork, DMmm);
-      		SAFENEWARR(pdWork, doublereal, iWork, DMmm);
+      		SAFEDELETEARR(pdWork);
+      		SAFENEWARR(pdWork, doublereal, iWork);
    	}
 #endif /* OPTIMIZE_WORK */
    
@@ -816,7 +816,7 @@ pdcc(NULL)
 
 GPCDesigner::~GPCDesigner(void)
 {
-   	SAFEDELETEARR(pdBase, DMmm);
+   	SAFEDELETEARR(pdBase);
 }
 
 
@@ -868,16 +868,14 @@ pInv(NULL)
     	case 1:
       		SAFENEWWITHCONSTRUCTOR(pInv, 
 			     	       GPC_Meschach_QRinv, 
-				       GPC_Meschach_QRinv(iTmpRows, iTmpCols),
-				       DMmm);
+				       GPC_Meschach_QRinv(iTmpRows, iTmpCols));
       		break;
 #endif /* USE_MESCHACH */
 #ifdef USE_LAPACK
     	case 2:
       		SAFENEWWITHCONSTRUCTOR(pInv, 
 			     	       GPC_LAPACK_pinv, 
-				       GPC_LAPACK_pinv(iTmpRows, iTmpCols),
-				       DMmm);
+				       GPC_LAPACK_pinv(iTmpRows, iTmpCols));
 		break;
 #endif /* USE_LAPACK */
    	}
@@ -896,7 +894,7 @@ pInv(NULL)
 			+iNumInputs*(iNumOutputs*iOrderA);      /* cc */
    	}
 
-   	SAFENEWARR(pdBase, doublereal, i, DMmm);
+   	SAFENEWARR(pdBase, doublereal, i);
    
    	for (integer j = i; j-- > 0; ) {
       		pdBase[j] = 0.;
@@ -1048,16 +1046,14 @@ pInv(NULL)
     	case 1:
       		SAFENEWWITHCONSTRUCTOR(pInv, 
 			     	       GPC_Meschach_QRinv, 
-				       GPC_Meschach_QRinv(iTmpCols, iTmpCols),
-				       DMmm);
+				       GPC_Meschach_QRinv(iTmpCols, iTmpCols));
 		break;
 #endif /* USE_MESCHACH */
 #ifdef USE_LAPACK
     	case 2:
       		SAFENEWWITHCONSTRUCTOR(pInv, 
 				       GPC_LAPACK_pinv, 
-				       GPC_LAPACK_pinv(iTmpCols, iTmpCols),
-				       DMmm);
+				       GPC_LAPACK_pinv(iTmpCols, iTmpCols));
 		break;
 #endif /* USE_LAPACK */
    	}
@@ -1083,7 +1079,7 @@ pInv(NULL)
 			+iNumInputs*(iNumOutputs*iOrderA);      /* cc */
    	}
 
-   	SAFENEWARR(pdBase, doublereal, i, DMmm);
+   	SAFENEWARR(pdBase, doublereal, i);
    
    	for (integer j = i; j-- > 0; ) {
       		pdBase[j] = 0.;
@@ -1108,8 +1104,8 @@ pInv(NULL)
 
 GPC::~GPC(void)
 {
-   	SAFEDELETEARR(pdW, DMmm);
-   	SAFEDELETEARR(pdR, DMmm);
+   	SAFEDELETEARR(pdW);
+   	SAFEDELETEARR(pdR);
 }
 
 static int

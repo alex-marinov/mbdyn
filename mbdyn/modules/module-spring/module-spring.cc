@@ -18,7 +18,7 @@ void* read(LoadableElem* pEl,
    DEBUGCOUT("Spring Elem: " << __PRETTY_FUNCTION__ << endl);
 
    spring* s = NULL;
-   SAFENEW(s, spring, EMmm);
+   SAFENEW(s, spring);
    
    unsigned int ul = HP.GetInt();
    DEBUGCOUT("Linked to Node " << ul << endl);
@@ -123,5 +123,5 @@ void destroy(LoadableElem* pEl)
    DEBUGCOUT("Spring Elem: " << __PRETTY_FUNCTION__ << endl);
    
    spring* s = (spring*)pEl->pGetData();
-   SAFEDELETE(s, EMmm);
+   SAFEDELETE(s);
 }

@@ -111,7 +111,7 @@ read(LoadableElem* pEl,
 	
 	/* allocation of user-defined struct */
 	module_wheel* p = NULL;
-	SAFENEW(p, module_wheel, EMmm);
+	SAFENEW(p, module_wheel);
 
 	/*
 	 * help
@@ -682,7 +682,7 @@ destroy(LoadableElem* pEl)
 	DEBUGCOUTFNAME("destroy");
 	module_wheel* p = (module_wheel *)pEl->pGetData();
 	
-	SAFEDELETE(p, EMmm);
+	SAFEDELETE(p);
 }
 
 static struct

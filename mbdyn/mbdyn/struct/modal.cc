@@ -178,12 +178,12 @@ ppF(NULL),
 ppM(NULL),
 fOutFlex(sFileMod, ios::out /* | ios::noreplace */ )
 {
-   SAFENEWARR(ppd1tot, Vec3*, NStrNodes, DMmm);
-   SAFENEWARR(ppd2, Vec3*, NStrNodes, DMmm);
-   SAFENEWARR(ppR1tot, Mat3x3*, NStrNodes, DMmm);
-   SAFENEWARR(ppR2, Mat3x3*, NStrNodes, DMmm);
-   SAFENEWARR(ppF, Vec3*, NStrNodes, DMmm);
-   SAFENEWARR(ppM, Vec3*, NStrNodes, DMmm);
+   SAFENEWARR(ppd1tot, Vec3*, NStrNodes);
+   SAFENEWARR(ppd2, Vec3*, NStrNodes);
+   SAFENEWARR(ppR1tot, Mat3x3*, NStrNodes);
+   SAFENEWARR(ppR2, Mat3x3*, NStrNodes);
+   SAFENEWARR(ppF, Vec3*, NStrNodes);
+   SAFENEWARR(ppM, Vec3*, NStrNodes);
    
    if (!fOutFlex) {
       cerr << "Modal(" << GetLabel() 
@@ -194,17 +194,17 @@ fOutFlex(sFileMod, ios::out /* | ios::noreplace */ )
    
    for (unsigned int i = 0; i < NStrNodes; i++) {
       ppd1tot[i] = NULL;
-      SAFENEW(ppd1tot[i], Vec3, DMmm);
+      SAFENEW(ppd1tot[i], Vec3);
       ppd2[i] = NULL;
-      SAFENEW(ppd2[i], Vec3, DMmm);
+      SAFENEW(ppd2[i], Vec3);
       ppR1tot[i] = NULL;
-      SAFENEW(ppR1tot[i], Mat3x3, DMmm);
+      SAFENEW(ppR1tot[i], Mat3x3);
       ppR2[i] = NULL;
-      SAFENEW(ppR2[i], Mat3x3, DMmm);
+      SAFENEW(ppR2[i], Mat3x3);
       ppF[i] = NULL;
-      SAFENEW(ppF[i], Vec3, DMmm);
+      SAFENEW(ppF[i], Vec3);
       ppM[i] = NULL;
-      SAFENEW(ppM[i], Vec3, DMmm);
+      SAFENEW(ppM[i], Vec3);
    }   
 }
 
@@ -214,50 +214,50 @@ Modal::~Modal(void)
    if (ppd1tot != NULL) {
       for (unsigned int i = 0; i < NStrNodes; i++) {
 	 if (ppd1tot[i] != NULL) {
-	    SAFEDELETE(ppd1tot[i], DMmm);
+	    SAFEDELETE(ppd1tot[i]);
 	 }
       }
-      SAFEDELETEARR(ppd1tot, DMmm);
+      SAFEDELETEARR(ppd1tot);
    }
    if (ppd2 != NULL) {
       for (unsigned int i = 0; i < NStrNodes; i++) {
 	 if (ppd2[i] != NULL) {
-	    SAFEDELETE(ppd2[i], DMmm);
+	    SAFEDELETE(ppd2[i]);
 	 }
       }
-      SAFEDELETEARR(ppd2, DMmm);
+      SAFEDELETEARR(ppd2);
    }
    if (ppF != NULL) {
       for (unsigned int i = 0; i < NStrNodes; i++) {
 	 if (ppF[i] != NULL) {
-	    SAFEDELETE(ppF[i], DMmm);
+	    SAFEDELETE(ppF[i]);
 	 }
       }
-      SAFEDELETEARR(ppF, DMmm);
+      SAFEDELETEARR(ppF);
    }
    if (ppM != NULL) {
       for (unsigned int i = 0; i < NStrNodes; i++) {
 	 if (ppM != NULL) {
-	    SAFEDELETE(ppM[i], DMmm);
+	    SAFEDELETE(ppM[i]);
 	 }
       }
-      SAFEDELETEARR(ppM, DMmm);
+      SAFEDELETEARR(ppM);
    }
    if (ppR1tot != NULL) {
       for (unsigned int i = 0; i < NStrNodes; i++) {
 	 if (ppR1tot[i] != NULL) {
-	    SAFEDELETE(ppR1tot[i], DMmm);
+	    SAFEDELETE(ppR1tot[i]);
 	 }
       }
-      SAFEDELETEARR(ppR1tot, DMmm);
+      SAFEDELETEARR(ppR1tot);
    } 
    if (ppR2 != NULL) {
       for (unsigned int i = 0; i < NStrNodes; i++) {
 	 if (ppR2[i] != NULL) {
-	    SAFEDELETE(ppR2[i], DMmm);
+	    SAFEDELETE(ppR2[i]);
 	 }
       }
-      SAFEDELETEARR(ppR2, DMmm);
+      SAFEDELETEARR(ppR2);
    }
 }
 
@@ -1785,21 +1785,21 @@ ReadModal(DataManager* pDM,
     * relativi al corpo flessibile
     * nota: devo usare i puntatori perche' altrimenti non si riesce 
     * a passarli al costruttore       */
-   SAFENEWWITHCONSTRUCTOR(pXYZFemNodes, Mat3xN, Mat3xN(NFemNodes, 0.), DMmm);
-   SAFENEWWITHCONSTRUCTOR(pGenMass,  MatNxN, MatNxN(NModes, 0.), DMmm);
-   SAFENEWWITHCONSTRUCTOR(pGenStiff, MatNxN, MatNxN(NModes, 0.), DMmm);
-   SAFENEWWITHCONSTRUCTOR(pGenDamp,  MatNxN, MatNxN(NModes, 0.), DMmm);
-   SAFENEWWITHCONSTRUCTOR(pModeShapest, Mat3xN, Mat3xN(NFemNodes*NModes, 0.), DMmm);
-   SAFENEWWITHCONSTRUCTOR(pModeShapesr, Mat3xN, Mat3xN(NFemNodes*NModes, 0.), DMmm);
-   SAFENEWWITHCONSTRUCTOR(pInv3, Mat3xN, Mat3xN(NModes, 0.), DMmm);
-   SAFENEWWITHCONSTRUCTOR(pInv4, Mat3xN, Mat3xN(NModes, 0.), DMmm);
-   SAFENEWWITHCONSTRUCTOR(pInv5, Mat3xN, Mat3xN(NModes*NModes, 0.), DMmm);   /* Inv5 e' un 3xMxM */
-   SAFENEWWITHCONSTRUCTOR(pInv8, Mat3xN, Mat3xN(3*NModes, 0.), DMmm);        /* Inv8 e' un 3x3xM */
-   SAFENEWWITHCONSTRUCTOR(pInv9, Mat3xN, Mat3xN(3*NModes*NModes, 0.), DMmm); /* Inv9 e' un 3x3xMxM */
-   SAFENEWWITHCONSTRUCTOR(pInv10,Mat3xN, Mat3xN(3*NModes, 0.), DMmm);        /* Inv10 e' un 3x3xM */
-   SAFENEWWITHCONSTRUCTOR(pInv11,Mat3xN, Mat3xN(NModes, 0.), DMmm); 
-   SAFENEWWITHCONSTRUCTOR(a,  VecN, VecN(NModes, 0.), EMmm);
-   SAFENEWWITHCONSTRUCTOR(aP, VecN, VecN(NModes, 0.), EMmm);
+   SAFENEWWITHCONSTRUCTOR(pXYZFemNodes, Mat3xN, Mat3xN(NFemNodes, 0.));
+   SAFENEWWITHCONSTRUCTOR(pGenMass,  MatNxN, MatNxN(NModes, 0.));
+   SAFENEWWITHCONSTRUCTOR(pGenStiff, MatNxN, MatNxN(NModes, 0.));
+   SAFENEWWITHCONSTRUCTOR(pGenDamp,  MatNxN, MatNxN(NModes, 0.));
+   SAFENEWWITHCONSTRUCTOR(pModeShapest, Mat3xN, Mat3xN(NFemNodes*NModes, 0.));
+   SAFENEWWITHCONSTRUCTOR(pModeShapesr, Mat3xN, Mat3xN(NFemNodes*NModes, 0.));
+   SAFENEWWITHCONSTRUCTOR(pInv3, Mat3xN, Mat3xN(NModes, 0.));
+   SAFENEWWITHCONSTRUCTOR(pInv4, Mat3xN, Mat3xN(NModes, 0.));
+   SAFENEWWITHCONSTRUCTOR(pInv5, Mat3xN, Mat3xN(NModes*NModes, 0.));   /* Inv5 e' un 3xMxM */
+   SAFENEWWITHCONSTRUCTOR(pInv8, Mat3xN, Mat3xN(3*NModes, 0.));        /* Inv8 e' un 3x3xM */
+   SAFENEWWITHCONSTRUCTOR(pInv9, Mat3xN, Mat3xN(3*NModes*NModes, 0.)); /* Inv9 e' un 3x3xMxM */
+   SAFENEWWITHCONSTRUCTOR(pInv10,Mat3xN, Mat3xN(3*NModes, 0.));        /* Inv10 e' un 3x3xM */
+   SAFENEWWITHCONSTRUCTOR(pInv11,Mat3xN, Mat3xN(NModes, 0.)); 
+   SAFENEWWITHCONSTRUCTOR(a,  VecN, VecN(NModes, 0.));
+   SAFENEWWITHCONSTRUCTOR(aP, VecN, VecN(NModes, 0.));
 
    unsigned int *IdFemNodes;        /* array contenente le label dei nodi FEM */
    IdFemNodes = new unsigned int[NFemNodes];
@@ -1972,9 +1972,9 @@ ReadModal(DataManager* pDM,
    unsigned int NStrNodes = HP.GetInt();  /* numero di nodi d'interfaccia */
    DEBUGCOUT("Number of Interface Nodes : " << NStrNodes << endl);
    
-   SAFENEWWITHCONSTRUCTOR(pXYZOffsetNodes, Mat3xN, Mat3xN(2*NStrNodes+1, 0.), DMmm);
-   SAFENEWWITHCONSTRUCTOR(pPHItStrNode, Mat3xN, Mat3xN(NStrNodes*NModes, 0.), DMmm);
-   SAFENEWWITHCONSTRUCTOR(pPHIrStrNode, Mat3xN, Mat3xN(NStrNodes*NModes, 0.), DMmm);
+   SAFENEWWITHCONSTRUCTOR(pXYZOffsetNodes, Mat3xN, Mat3xN(2*NStrNodes+1, 0.));
+   SAFENEWWITHCONSTRUCTOR(pPHItStrNode, Mat3xN, Mat3xN(NStrNodes*NModes, 0.));
+   SAFENEWWITHCONSTRUCTOR(pPHIrStrNode, Mat3xN, Mat3xN(NStrNodes*NModes, 0.));
    
    pN2 = new const StructNode*[NStrNodes];
    if (!pN2) {    
@@ -2274,8 +2274,7 @@ ReadModal(DataManager* pDM,
 				sFileMod, 
 				pDM, 
 				HP,  
-				fOut), 
-			  DMmm);
+				fOut));
 
   return pEl;   
 }

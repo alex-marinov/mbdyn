@@ -84,8 +84,7 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      BulkSpringSupport,
-			      BulkSpringSupport(uLabel, pDC, SD, fOut),
-			      DMmm);
+			      BulkSpringSupport(uLabel, pDC, SD, fOut));
        
        break;
     }

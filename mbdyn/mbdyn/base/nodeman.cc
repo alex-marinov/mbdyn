@@ -72,14 +72,14 @@ void DataManager::NodeManagerDestructor(void)
 	    DEBUGCOUT("deleting node " << (*pp)->GetLabel() 
 		      << ", type " << psNodeNames[(*pp)->GetNodeType()]
 		      << endl);
-	    SAFEDELETE(*pp, DMmm);
+	    SAFEDELETE(*pp);
 	 }
 	 
 	 pp++;
       }	  
       
       DEBUGCOUT("deleting node structure" << endl);
-      SAFEDELETEARR(ppNodes, DMmm);
+      SAFEDELETEARR(ppNodes);
    }	
 }
 
@@ -93,7 +93,7 @@ void DataManager::NodeDataInit(void)
    DEBUGCOUT("iTotNodes = " << iTotNodes << endl);
    
    if(iTotNodes > 0) {	
-      SAFENEWARR(ppNodes, Node*, iTotNodes, DMmm);
+      SAFENEWARR(ppNodes, Node*, iTotNodes);
       
       NodeIter.Init(ppNodes, iTotNodes);
       

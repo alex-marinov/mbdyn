@@ -132,8 +132,7 @@ ReadHydraulicFluid(MBDynParser& HP,
 							   dDensity, 
 							   dViscosity,
 							   dPres0,
-							   dTemp0),
-			      DMmm);
+							   dTemp0));
        break;
     }
       
@@ -209,8 +208,7 @@ ReadHydraulicFluid(MBDynParser& HP,
 								  dBeta,
 								  dPres0,
 								  dViscosity,
-								  dTemp0),
-				 DMmm);
+								  dTemp0));
 	  break;
 	case SUPER:
 	  SAFENEWWITHCONSTRUCTOR(pHF,
@@ -220,8 +218,7 @@ ReadHydraulicFluid(MBDynParser& HP,
 						     dBeta,
 						     dPres0,
 						     dViscosity,
-						     dTemp0),
-				 DMmm);
+						     dTemp0));
 	  break;
 	case AMESIM:
 	  doublereal dPsat = HP.GetReal();
@@ -234,8 +231,7 @@ ReadHydraulicFluid(MBDynParser& HP,
 						      dPres0,
 						      dPsat,
 						      dViscosity,
-						      dTemp0),
-				 DMmm);
+						      dTemp0));
 	  break;
        }
        
@@ -310,8 +306,7 @@ ReadHydraulicFluid(MBDynParser& HP,
 								dPres0,
 								dAlpha,
 								dTemp0,
-								dViscosity),
-			      DMmm);
+								dViscosity));
        break;
     }
 

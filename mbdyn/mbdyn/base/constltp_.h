@@ -106,8 +106,7 @@ class LinearElasticIsotropicConstitutiveLaw
                             cl, 
                             cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(), 
                                ElasticConstitutiveLaw<T, Tder>::PreStress, 
-                               dStiffness), 
-                            DMmm);
+                               dStiffness));
       
       return pCL;
    };
@@ -161,8 +160,7 @@ class LinearElasticGenericConstitutiveLaw
                             cl, 
                             cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(),
                                ElasticConstitutiveLaw<T, Tder>::PreStress, 
-                               ConstitutiveLaw<T, Tder>::FDE), 
-                            DMmm);
+                               ConstitutiveLaw<T, Tder>::FDE));
       
       return pCL;
    };
@@ -259,8 +257,7 @@ class LinearElasticGenericAxialTorsionCouplingConstitutiveLaw<Vec6, Mat6x6>
                             cl(pGetDriveCaller()->pCopy(),
                                PreStress, 
                                Stiffness,
-                               dAxialTorsionCoupling), 
-                            DMmm);
+                               dAxialTorsionCoupling));
       
       return pCL;
    };
@@ -349,8 +346,7 @@ class LogConstitutiveLaw<doublereal, doublereal>
                             cl, 
                             cl(pGetDriveCaller()->pCopy(),
                                PreStress, 
-                               dStiffness),
-                            DMmm);
+                               dStiffness));
       
       return pCL;
    };
@@ -456,8 +452,7 @@ class DoubleLinearElasticConstitutiveLaw<doublereal, doublereal>
                                dStiffness, 
                                dUpperLimitStrain,
                                dLowerLimitStrain,
-                               dSecondStiffness),
-                            DMmm);
+                               dSecondStiffness));
       
       return pCL;
    };
@@ -536,8 +531,7 @@ class DoubleLinearElasticConstitutiveLaw<Vec3, Mat3x3>
                                dStiffness, 
                                dUpperLimitStrain,
                                dLowerLimitStrain,
-                               dSecondStiffness),
-                            DMmm);
+                               dSecondStiffness));
       
       return pCL;
    };
@@ -625,8 +619,7 @@ class IsotropicHardeningConstitutiveLaw
                             cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(), 
                                ElasticConstitutiveLaw<T, Tder>::PreStress, 
                                dStiffness,
-                               dAlpha),
-                            DMmm);
+                               dAlpha));
       
       return pCL;
    };
@@ -735,8 +728,7 @@ class ContactConstitutiveLaw<doublereal, doublereal>
                             cl(pGetDriveCaller()->pCopy(), 
                                PreStress, 
                                dKappa,
-                               dGamma), 
-                            DMmm);
+                               dGamma));
       
       return pCL;
    };
@@ -797,8 +789,7 @@ class ContactConstitutiveLaw<Vec3, Mat3x3>
                             cl(pGetDriveCaller()->pCopy(), 
                                PreStress, 
                                dKappa,
-                               dGamma), 
-                            DMmm);
+                               dGamma));
       
       return pCL;
    };
@@ -865,8 +856,7 @@ class LinearViscousIsotropicConstitutiveLaw
                             cl, 
                             cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(), 
                                ElasticConstitutiveLaw<T, Tder>::PreStress, 
-                               dStiffnessPrime), 
-                            DMmm);
+                               dStiffnessPrime));
       
       return pCL;
    };
@@ -915,8 +905,7 @@ class LinearViscousGenericConstitutiveLaw
                             cl, 
                             cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(), 
                                ElasticConstitutiveLaw<T, Tder>::PreStress, 
-                               ConstitutiveLaw<T, Tder>::FDEPrime), 
-                            DMmm);
+                               ConstitutiveLaw<T, Tder>::FDEPrime));
       
       return pCL;
    };
@@ -973,8 +962,7 @@ class LinearViscoElasticIsotropicConstitutiveLaw
                             cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(), 
                                ElasticConstitutiveLaw<T, Tder>::PreStress, 
                                dStiffness,
-                               dStiffnessPrime), 
-                            DMmm);
+                               dStiffnessPrime));
       
       return pCL;
    };
@@ -1034,8 +1022,7 @@ class LinearViscoElasticGenericConstitutiveLaw
                             cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(), 
                                ElasticConstitutiveLaw<T, Tder>::PreStress, 
                                ConstitutiveLaw<T, Tder>::FDE,
-                               ConstitutiveLaw<T, Tder>::FDEPrime),
-                            DMmm);
+                               ConstitutiveLaw<T, Tder>::FDEPrime));
       
       return pCL;
    };
@@ -1147,8 +1134,7 @@ class DoubleLinearViscoElasticConstitutiveLaw<doublereal, doublereal>
                                dUpperLimitStrain,
                                dLowerLimitStrain,
                                dSecondStiffness,
-                               dStiffnessPrime), 
-                            DMmm);
+                               dStiffnessPrime));
       
       return pCL;
    };
@@ -1237,8 +1223,7 @@ class DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3>
                                dUpperLimitStrain,
                                dLowerLimitStrain,
                                dSecondStiffness,
-                               dStiffnessPrime), 
-                            DMmm);
+                               dStiffnessPrime));
       
       return pCL;
    };
@@ -1367,8 +1352,7 @@ class TurbulentViscoElasticConstitutiveLaw<doublereal, doublereal>
                                dStiffness,
                                dStiffnessPrime,
                                dTreshold, 
-                               dParabolicStiffness), 
-                            DMmm);
+                               dParabolicStiffness));
       
       return pCL;
    };

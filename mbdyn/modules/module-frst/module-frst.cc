@@ -31,7 +31,7 @@ void* read(LoadableElem* pEl,
    
    // allocation of user-defined struct
    module_template* p = NULL;
-   SAFENEW(p, module_template, EMmm);
+   SAFENEW(p, module_template);
 
    // read data
    unsigned int label = HP.GetInt();
@@ -292,5 +292,5 @@ void destroy(LoadableElem* pEl)
 {  
    DEBUGCOUTFNAME("destroy");
    module_template* p = (module_template *)pEl->pGetData();
-   SAFEDELETE(p, EMmm);
+   SAFEDELETE(p);
 }

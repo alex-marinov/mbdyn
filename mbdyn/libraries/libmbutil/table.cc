@@ -109,7 +109,7 @@ Table::Table(Int s, Int f) : size(s), v(NULL)
    ASSERT(size > 0);
    DEBUGCOUT("Table::Table" << endl);
    
-   SAFENEWARR(v, VarList*, size, MPmm);
+   SAFENEWARR(v, VarList*, size);
    
    for (Int i = size; i-- > 0; ) {
       v[i] = NULL; 
@@ -142,11 +142,11 @@ Table::~Table(void)
 	 while (pn != NULL) {
 	    VarList* n = pn;
 	    pn = n->next;
-	    SAFEDELETE(n->var, MPmm);
-	    SAFEDELETE(n, MPmm);
+	    SAFEDELETE(n->var);
+	    SAFEDELETE(n);
 	 }
       }
-      SAFEDELETEARR(v, MPmm);
+      SAFEDELETEARR(v);
    }
 }
 
@@ -179,9 +179,9 @@ Table::Put(const char* const name, const TypedValue& x)
    
    int ii = FindRow(name);
    pVar = NULL;
-   SAFENEWWITHCONSTRUCTOR(pVar, Var, Var(name, x), MPmm);
+   SAFENEWWITHCONSTRUCTOR(pVar, Var, Var(name, x));
    VarList* pList = NULL;
-   SAFENEW(pList, VarList, MPmm);
+   SAFENEW(pList, VarList);
    pList->var = pVar;
    pList->next = v[ii];
    v[ii] = pList;
@@ -202,7 +202,7 @@ Table::Put(NamedValue *p)
    int ii = FindRow(p->GetName());
    pVar = NULL;
    VarList* pList = NULL;
-   SAFENEW(pList, VarList, MPmm);
+   SAFENEW(pList, VarList);
    pList->var = p;
    pList->next = v[ii];
    v[ii] = pList;

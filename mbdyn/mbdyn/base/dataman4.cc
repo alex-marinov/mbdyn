@@ -167,7 +167,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 if ((*ppTmp)->GetStructNodeType() == StructNode::DYNAMIC) {
 	    
 	    SAFENEWWITHCONSTRUCTOR(*ppTmpEl, AutomaticStructElem,
-				   AutomaticStructElem((DynamicStructNode*)(*ppTmp)), DMmm);
+				   AutomaticStructElem((DynamicStructNode*)(*ppTmp)));
 	    
 	    ppTmpEl++;
 	    iMissingElems--;
@@ -453,8 +453,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppE,
 				    Gravity,
-				    Gravity(pDC, fOut),
-				    DMmm);
+				    Gravity(pDC, fOut));
 	     
 	     break;
 	  }
@@ -504,8 +503,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppE, 
 				    AirProperties,
-				    AirProperties(pDC, dRho, dSS, fOut),
-				    DMmm);
+				    AirProperties(pDC, dRho, dSS, fOut));
 	     
 	     break;
 	  }
@@ -688,8 +686,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		 Elem* pEl = NULL;
 		 SAFENEWWITHCONSTRUCTOR(pEl,
 					DrivenElem,
-					DrivenElem(pDC, *ppE),
-					DMmm);
+					DrivenElem(pDC, *ppE));
 		 		 
 		 /* Substitutes the element with the driver */
 		 *ppE = pEl;
@@ -730,7 +727,7 @@ void DataManager::ReadElems(MBDynParser& HP)
              	 const char *sName = NULL;
              	 if (HP.IsKeyWord("name")) {
 	            const char *sTmp = HP.GetStringWithDelims();
-	            SAFESTRDUP(sName, sTmp, DMmm);
+	            SAFESTRDUP(sName, sTmp);
 	         }
 		 
 		 ppE = ReadOneElem(this, HP, uLabel, CurrDesc);
@@ -738,7 +735,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		 
 		 if (sName != NULL) {
 		    (*ppE)->PutName(sName);
-   		    SAFEDELETEARR(sName, DMmm);
+   		    SAFEDELETEARR(sName);
 		 }
 
 		 break;

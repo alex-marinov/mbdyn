@@ -77,7 +77,7 @@ class ShapeOwner {
    virtual ~ShapeOwner(void) {
       ASSERT(pShape != NULL);
       if(pShape != NULL) {
-	 SAFEDELETE(pShape, DMmm);
+	 SAFEDELETE(pShape);
       }
    };
    
@@ -169,8 +169,8 @@ class PiecewiseLinearShape1D : public Shape1D {
    };
 
    ~PiecewiseLinearShape1D(void) {
-      SAFEDELETEARR(pdX, EMmm);
-      SAFEDELETEARR(pdV, EMmm);
+      SAFEDELETEARR(pdX);
+      SAFEDELETEARR(pdV);
    };
 
    doublereal dGet(doublereal d, doublereal = 0.) const {

@@ -288,7 +288,7 @@ public:
 		typedef ShockAbsorberConstitutiveLaw<doublereal, doublereal> L;
 
 		L* p = NULL;
-		SAFENEWWITHCONSTRUCTOR(p, L, L(this), DMmm);
+		SAFENEWWITHCONSTRUCTOR(p, L, L(this));
 		return p;
 	};
 

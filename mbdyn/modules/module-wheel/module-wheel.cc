@@ -103,7 +103,7 @@ read(LoadableElem* pEl,
    
    /* allocation of user-defined struct */
    module_wheel* p = NULL;
-   SAFENEW(p, module_wheel, EMmm);
+   SAFENEW(p, module_wheel);
    
    /* initialisation */
    for (int i = 0; i < 9; i++) {
@@ -276,7 +276,7 @@ read(LoadableElem* pEl,
       THROW(ErrGeneric());
    }
 
-   SAFENEWARR(p->tabfat, doublereal, 2*p->npft, EMmm);
+   SAFENEWARR(p->tabfat, doublereal, 2*p->npft);
    
    for (int i = 0; i < p->npft; i++) {
       in >> p->tabfat[i] >> p->tabfat[p->npft+i];
@@ -592,10 +592,10 @@ destroy(LoadableElem* pEl)
    module_wheel* p = (module_wheel *)pEl->pGetData();
    
    if (p->npft > 0 && p->tabfat != NULL) {
-      SAFEDELETEARR(p->tabfat, EMmm);
+      SAFEDELETEARR(p->tabfat);
    }
    
-   SAFEDELETE(p, EMmm);
+   SAFEDELETE(p);
 }
 
 static struct

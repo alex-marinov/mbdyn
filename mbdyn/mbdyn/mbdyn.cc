@@ -38,10 +38,6 @@
 #include <mynewmem.h>
 #include <except.h>
 
-#ifdef DEBUG_MEMMANAGER
-clMemMan MBDynMM("mbdyn");
-#endif /* DEBUG_MEMMANAGER */
-
 extern "C" {
 #ifdef HAVE_TIMES_H
 #include <sys/times.h>
@@ -212,7 +208,7 @@ main(int argc, char* argv[])
     	int myrank = MPI::COMM_WORLD.Get_rank();
     	int ProcessorNameLenght = 1024;
     	char* ProcessorName = NULL;
-    	SAFENEWARR(ProcessorName, char, ProcessorNameLenght, MBDynMM);
+    	SAFENEWARR(ProcessorName, char, ProcessorNameLenght);
     	MPI::Get_processor_name(ProcessorName, ProcessorNameLenght); 
 #endif /* USE_MPI */
    
@@ -277,17 +273,17 @@ main(int argc, char* argv[])
 	    		switch (iCurrOpt) {
 	    		case int('m'):
 	        		iMailToBeSent = 1;
-	        		SAFESTRDUP(sMailToAddress, optarg, MBDynMM);
+	        		SAFESTRDUP(sMailToAddress, optarg);
 	        		break;
 	    
 	    		case int('f'):
 	        		CurrInputFormat = MBDYN;
 	        		CurrInputSource = FILE_OPT;
 				if (sInputFileName != NULL) {
-					SAFEDELETEARR(sInputFileName, MBDynMM);
+					SAFEDELETEARR(sInputFileName);
 					sInputFileName = NULL;
 				}
-	        		SAFESTRDUP(sInputFileName, optarg, MBDynMM);
+	        		SAFESTRDUP(sInputFileName, optarg);
 	        		FileStreamIn.open(sInputFileName);
 	        		if (!FileStreamIn) {
 		    			cerr 
@@ -308,7 +304,7 @@ main(int argc, char* argv[])
 #ifdef USE_ADAMS_PP
 	        		CurrInputFormat = ADAMS;
 	        		CurrInputSource = FILE_OPT;
-	        		SAFESTRDUP(sInputFileName, optarg, MBDynMM);
+	        		SAFESTRDUP(sInputFileName, optarg);
 	     
 	        		cerr << "ADAMS input not implemented yet,"
 		    			" cannot open file '"
@@ -323,10 +319,10 @@ main(int argc, char* argv[])
 	    
 	    		case int('o'):
 	        		if (sOutputFileName != NULL) {
-	            			SAFEDELETEARR(sOutputFileName, MBDynMM);
+	            			SAFEDELETEARR(sOutputFileName);
 	            			sOutputFileName = NULL;
 	        		}
-	        		SAFESTRDUP(sOutputFileName, optarg, MBDynMM);
+	        		SAFESTRDUP(sOutputFileName, optarg);
 	        		break;
 
 	    		case int('d'):
@@ -542,15 +538,13 @@ main(int argc, char* argv[])
 	        		if (pT == NULL) {
 		    			SAFENEWWITHCONSTRUCTOR(pT,
 							       Table,
-							       Table(31, 1),
-							       MBDynMM);
+							       Table(31, 1));
 	        		}
 	        		if (pMP == NULL) {
 		    			SAFENEWWITHCONSTRUCTOR(pMP, 
 		                           		       MathParser, 
 					   			MathParser(*pT,
-								    fRedefine), 
-					   			MBDynMM);
+								    fRedefine));
 		
 		    			/* legge l'environment */
 		    			GetEnviron(*pMP);
@@ -580,16 +574,16 @@ main(int argc, char* argv[])
 	    		}
 	    
 	    		if (pIntg != NULL) {
-	        		SAFEDELETE(pIntg, MBDynMM);
+	        		SAFEDELETE(pIntg);
 	    		}
 	 
 	    		if (fTable == 0 || argv[currarg] == NULL) {
 	        		if (pMP != NULL) {
-	            			SAFEDELETE(pMP, MBDynMM);
+	            			SAFEDELETE(pMP);
 	            			pMP = NULL;
 	        		}
 	        		if (pT != NULL) {
-	            			SAFEDELETE(pT, MBDynMM);
+	            			SAFEDELETE(pT);
 	            			pT = NULL;
 	        		}
 	    		}
@@ -624,14 +618,14 @@ main(int argc, char* argv[])
 
 #ifdef HAVE_GETOPT
 		if (sMailToAddress) {
-			SAFEDELETEARR(sMailToAddress, MBDynMM);
+			SAFEDELETEARR(sMailToAddress);
 		}
 #endif /* HAVE_GETOPT */
 		if (sInputFileName) {
-			SAFEDELETEARR(sInputFileName, MBDynMM);
+			SAFEDELETEARR(sInputFileName);
 		}
 		if (sOutputFileName) {
-			SAFEDELETEARR(sOutputFileName, MBDynMM);
+			SAFEDELETEARR(sOutputFileName);
 		}
 
 #ifdef USE_EXCEPTIONS
@@ -784,8 +778,7 @@ endofcycle:
 			               MultiStepIntegrator,
 				       MultiStepIntegrator(HP, 
 				       			   sInputFileName, 
-							   sOutputFileName),
-			       	       MBDynMM);
+							   sOutputFileName));
         	break;
       
     	case RUNGEKUTTA:
@@ -811,8 +804,7 @@ endofcycle:
                                    	       MultiStepIntegrator,
 					       MultiStepIntegrator(HP,
 					       		sInputFileName,
-							sOutputFileName),
-                                   	       MBDynMM);
+							sOutputFileName));
 	    		break;
         	}
         	SAFENEWWITHCONSTRUCTOR(pIntg, 
@@ -820,8 +812,7 @@ endofcycle:
 				       SchurMultiStepIntegrator(HP, 
 				       			sInputFileName, 
 							sOutputFileName,
-				       fParallel),
-			       MBDynMM);
+				       fParallel));
         	break;
 #else /* !USE_MPI */
         	cerr << "compile with -DUSE_MPI to have parallel" << endl;
@@ -861,7 +852,7 @@ SendMessage(const char* const sInputFileName,
    
     	/* Crea la linea di comando */
     	char* sCmd = NULL;
-    	SAFENEWARR(sCmd, char, (29+strlen(sMailToAddress)+11+1), MBDynMM);
+    	SAFENEWARR(sCmd, char, (29+strlen(sMailToAddress)+11+1));
     	char* s = sCmd;
     	strcpy(s, "/bin/mail -s 'mbdyn message' ");
     	s = sCmd+strlen(sCmd);
@@ -872,6 +863,6 @@ SendMessage(const char* const sInputFileName,
    
     	/* Manda il messagio e cancella il file temporaneo */
     	system("rm mbdyn.msg");
-    	SAFEDELETEARR(sCmd, MBDynMM);
+    	SAFEDELETEARR(sCmd);
 }
 

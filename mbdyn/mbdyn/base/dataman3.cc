@@ -58,7 +58,7 @@ void DataManager::ReadControl(MBDynParser& HP,
    /* Nome del file di output */
    char* sOutName = NULL;
    if (sOutputFileName != NULL) {
-      SAFESTRDUP(sOutName, sOutputFileName, DMmm);
+      SAFESTRDUP(sOutName, sOutputFileName);
    }
    
    /* parole chiave del blocco di controllo */
@@ -566,10 +566,10 @@ void DataManager::ReadControl(MBDynParser& HP,
        case TITLE: {
 	  ASSERT(sSimulationTitle == NULL);
 	  if (sSimulationTitle != NULL) {
-	     SAFEDELETEARR(sSimulationTitle, DMmm);
+	     SAFEDELETEARR(sSimulationTitle);
 	  }
 	  const char* sTmp(HP.GetStringWithDelims());
-	  SAFESTRDUP(sSimulationTitle, sTmp, DMmm);
+	  SAFESTRDUP(sSimulationTitle, sTmp);
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Simulation title: \"" 
 		     << sSimulationTitle << '"' << endl);
 	  break;
@@ -601,7 +601,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 
        case OUTPUTFILENAME: {
 	  if (sOutName != NULL) {
-	     SAFEDELETEARR(sOutName, DMmm);
+	     SAFEDELETEARR(sOutName);
 	     sOutName = NULL;
 	  }
 	  const char* sTmp(HP.GetFileName());
@@ -609,7 +609,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	     cerr << "Null file name at line " << HP.GetLineData() << endl;
 	     THROW(DataManager::ErrGeneric());
 	  }
-	  SAFESTRDUP(sOutName, sTmp, DMmm);
+	  SAFESTRDUP(sOutName, sTmp);
 	  break;
        }
 	 
@@ -617,14 +617,14 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  fAdamsResOutput = 1;
 	  if (HP.fIsArg()) {
 	     if (sAdamsModelName != NULL) {
-		SAFEDELETEARR(sAdamsModelName, DMmm);
+		SAFEDELETEARR(sAdamsModelName);
 		sAdamsModelName = NULL;
 	     }
 	     
 	     const char *tmp = HP.GetStringWithDelims();
-	     SAFESTRDUP(sAdamsModelName, tmp, DMmm);
+	     SAFESTRDUP(sAdamsModelName, tmp);
 	  } else {
-	     SAFESTRDUP(sAdamsModelName, "mbdyn", DMmm);
+	     SAFESTRDUP(sAdamsModelName, "mbdyn");
 	  }
 	  break;
        }
@@ -826,20 +826,18 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 char *tmpout = NULL;
 	 const char *tmpin = sInputFileName ? sInputFileName : sDefaultOutputFileName;
 	 
-	 if (S_ISDIR(s.st_mode)) {	    
-	    SAFENEWARR(tmpout, 
-		       char, 
-		       strlen(sOutName)+strlen(tmpin)+1,
-		       DMmm);
+	 if (S_ISDIR(s.st_mode)) {
+	    int l = strlen(sOutName)+strlen(tmpin)+1;
+	    SAFENEWARR(tmpout, char, l);
 	    strcpy(tmpout, sOutName);
 	    strcat(tmpout, tmpin);
-	    SAFEDELETEARR(sOutName, DMmm);
+	    SAFEDELETEARR(sOutName);
 	    sOutName = tmpout;
 	 }
       }
       
       OutHdl.Init(sOutName, 0);
-      SAFEDELETEARR(sOutName, DMmm);
+      SAFEDELETEARR(sOutName);
    }
 
    DEBUGLCOUT(MYDEBUG_INPUT, "End of control data" << endl);
@@ -1041,7 +1039,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	 const char *sName = NULL;
 	 if (HP.IsKeyWord("name")) {
 	    const char *sTmp = HP.GetStringWithDelims();
-	    SAFESTRDUP(sName, sTmp, DMmm);
+	    SAFESTRDUP(sName, sTmp);
 	 }
 	 
 	 /* in base al tipo, avviene l'allocazione */
@@ -1066,7 +1064,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     *         iNumTypes[Node::??];
 	     * 
 	     *   - allocazione e costruzione:
-	     *       SAFENEW((??Node*)*ppN, ??Node(uLabel), NMmm);
+	     *       SAFENEW((??Node*)*ppN, ??Node(uLabel));
 	     * 
 	     * - correzione del DofOwner relativo al nodo:
 	     *       (DofData[DofOwner::??].pFirstDofOwner+
@@ -1165,8 +1163,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppN, 
 				    ElectricNode,
-				    ElectricNode(uLabel, pDO, dx, dxp, fOut), 
-				    DMmm);
+				    ElectricNode(uLabel, pDO, dx, dxp, fOut));
 	     
 	     break;
 #else /* USE_ELECTRIC_NODES */
@@ -1226,8 +1223,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppN, 
 				    AbstractNode,
-				    AbstractNode(uLabel, pDO, dX, dXP, fOut), 
-				    DMmm);
+				    AbstractNode(uLabel, pDO, dX, dXP, fOut));
 	     
 	     break;
 #else /* USE_ELECTRIC_NODES */
@@ -1276,8 +1272,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 				       Elem2Param,
 				       Elem2Param(uLabel, 
 						  &DummyDofOwner, 
-						  fOut),
-				       DMmm);
+						  fOut));
 		
 	     /* strain gage */
 	     } else if (HP.IsKeyWord("straingage")) {
@@ -1299,8 +1294,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 				       StrainGageParam(uLabel, 
 						       &DummyDofOwner,
 						       dY, dZ,
-						       fOut),
-				       DMmm);
+						       fOut));
 		
 		/* parametro generico */
 	     } else {	     
@@ -1324,8 +1318,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 				       ParameterNode,
 				       ParameterNode(uLabel,
 						     &DummyDofOwner, 
-						     dX, fOut),
-				       DMmm);		
+						     dX, fOut));
 	     }
 	     
 	     break;
@@ -1379,8 +1372,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     
 	     SAFENEWWITHCONSTRUCTOR(*ppN, 
 				    PressureNode,
-				    PressureNode(uLabel, pDO, dX, fOut),
-				    DMmm);
+				    PressureNode(uLabel, pDO, dX, fOut));
 	     
 	     break;
 	  }
@@ -1418,7 +1410,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 
 	 if (sName != NULL) {
  	    (*ppN)->PutName(sName);
-	    SAFEDELETEARR(sName, DMmm);
+	    SAFEDELETEARR(sName);
 	 }
 	 
 	 /* Decrementa i nodi attesi */
@@ -1740,7 +1732,7 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
        
        pNode = NULL;
        /* Chi dealloca questa memoria? ci vorrebbe l'handle */	 
-       SAFENEWWITHCONSTRUCTOR(pNode, Node2Scalar, Node2Scalar(nd), DMmm);
+       SAFENEWWITHCONSTRUCTOR(pNode, Node2Scalar, Node2Scalar(nd));
        cerr << sDMClassName
 	 << ": warning, possibly allocating a NodeDof that nobody will delete until Handles will be used"
 	 << endl;
@@ -1817,8 +1809,7 @@ Shape* ReadShape(MBDynParser& HP)
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pS,
 			      ConstShape1D,
-			      ConstShape1D(dConst), 
-			      DMmm);
+			      ConstShape1D(dConst));
        /* scrittura dei dati specifici */	     
        
        break;
@@ -1849,8 +1840,7 @@ Shape* ReadShape(MBDynParser& HP)
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pS,
 			      LinearShape1D,
-			      LinearShape1D(da0, da1), 
-			      DMmm);
+			      LinearShape1D(da0, da1));
        
        /* scrittura dei dati specifici */	     
        
@@ -1870,8 +1860,8 @@ Shape* ReadShape(MBDynParser& HP)
        doublereal *px = NULL;
        doublereal *pv = NULL;
 
-       SAFENEWARR(px, doublereal, np, EMmm);
-       SAFENEWARR(pv, doublereal, np, EMmm);
+       SAFENEWARR(px, doublereal, np);
+       SAFENEWARR(pv, doublereal, np);
 
        px[0] = HP.GetReal();
        if (px[0] < -1. || px[0] > 1.) {
@@ -1897,8 +1887,7 @@ Shape* ReadShape(MBDynParser& HP)
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pS,
 		       PiecewiseLinearShape1D,
-		       PiecewiseLinearShape1D(np, px, pv),
-		       DMmm);
+		       PiecewiseLinearShape1D(np, px, pv));
   
        break;
     }
@@ -1922,8 +1911,7 @@ Shape* ReadShape(MBDynParser& HP)
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pS,
 			      ParabolicShape1D,
-			      ParabolicShape1D(da0, da1, da2), 
-			      DMmm);
+			      ParabolicShape1D(da0, da1, da2));
        
        /* scrittura dei dati specifici */	     
        

@@ -78,7 +78,7 @@ SchurDataManager::SchurDataManager(MBDynParser& HP,
 				   flag fAbortAfterInput)
 : DataManager(HP, dInitialTime, sInputFileName, 
               sOutputFileName,fAbortAfterInput),
-iTotVertexs(0),
+iTotVertices(0),
 pLabelsList(NULL),
 ppMyNodes(NULL),
 iNumLocNodes(0),
@@ -110,8 +110,8 @@ pRotorComm(NULL)
 
     DEBUGCOUT("Communicator Size: " << DataCommSize << endl);
 
-    iTotVertexs = iTotNodes + iTotElem;
-    DEBUGCOUT("iTotVertexes: " << iTotVertexs << endl);
+    iTotVertices = iTotNodes + iTotElem;
+    DEBUGCOUT("iTotVertexes: " << iTotVertices << endl);
 
     /* parole chiave del blocco parallelizzazione */
     const char* sKeyWords[] = {
@@ -211,8 +211,8 @@ pRotorComm(NULL)
 	        break;
 	
             case PARTITION:
-      	        SAFENEWARR(pParAmgProcs, int, iTotVertexs, DMmm);	
-      	        for (int i = 0; i < iTotVertexs; i++) {
+      	        SAFENEWARR(pParAmgProcs, int, iTotVertices);	
+      	        for (int i = 0; i < iTotVertices; i++) {
 	            if (HP.fIsArg()) {
 	                pParAmgProcs[i] = HP.GetInt();
 	            } else {
@@ -241,8 +241,8 @@ pRotorComm(NULL)
     
             case NUMBEROFCONNECTIONS: 
 	        iTotalExpConnections = HP.GetInt();
-	        SAFENEWARR(ppExpCntNodes, Node*, iTotalExpConnections, DMmm);
-	        SAFENEWARR(ppExpCntElems, Elem*, iTotalExpConnections, DMmm);
+	        SAFENEWARR(ppExpCntNodes, Node*, iTotalExpConnections);
+	        SAFENEWARR(ppExpCntElems, Elem*, iTotalExpConnections);
       
 	        Elem::Type ActualElType;
 	        Node::Type ActualNdType;
@@ -771,28 +771,28 @@ SchurDataManager::~SchurDataManager(void)
     DEBUGCOUTFNAME("SchurDataManager::~SchurDataManager");
 
     if (ppMyNodes != NULL) {
-    	SAFEDELETEARR(ppMyNodes, DMmm);
+    	SAFEDELETEARR(ppMyNodes);
     }
     if (ppMyElems != NULL) {
-    	SAFEDELETEARR(ppMyElems, DMmm);
+    	SAFEDELETEARR(ppMyElems);
     } 
     if (ppMyIntElems != NULL) {
-    	SAFEDELETEARR(ppMyIntElems, DMmm);
+    	SAFEDELETEARR(ppMyIntElems);
     } 
     if (ppIntNodes != NULL) {
-    	SAFEDELETEARR(ppIntNodes, DMmm);
+    	SAFEDELETEARR(ppIntNodes);
     }
     if (LocalDofs != NULL) {
-    	SAFEDELETEARR(LocalDofs, DMmm);
+    	SAFEDELETEARR(LocalDofs);
     }
     if (LocalIntDofs != NULL) {
-    	SAFEDELETEARR(LocalIntDofs, DMmm);
+    	SAFEDELETEARR(LocalIntDofs);
     }
     if (ppExpCntNodes != NULL) {
-    	SAFEDELETEARR(ppExpCntNodes, DMmm);
+    	SAFEDELETEARR(ppExpCntNodes);
     }
     if (ppExpCntElems != NULL) {
-    	SAFEDELETEARR(ppExpCntElems, DMmm);
+    	SAFEDELETEARR(ppExpCntElems);
     }
 }
 
@@ -802,11 +802,11 @@ SchurDataManager::CreatePartition(void)
 { 
     DEBUGCOUT("Entering SchurDataManager::CreatePartition()" << endl);
 
-    Adjacency Vertexs;  /* Struttura contenente le connessioni fra i vertici */
+    Adjacency Vertices;  /* Struttura contenente le connessioni fra i vertici */
     int* pVertexWgts;   /* Pesi dei vertici = dofs x ogni v. utile per METIS */
     int* pCommWgts;
-    Vertexs.pXadj = NULL;
-    Vertexs.pAdjncy = NULL;
+    Vertices.pXadj = NULL;
+    Vertices.pAdjncy = NULL;
     pVertexWgts = NULL;
     pCommWgts = NULL;
     integer iMax = 0;
@@ -814,19 +814,19 @@ SchurDataManager::CreatePartition(void)
     int iCount = 0;
     int  iNumRt = 0;
     
-    ASSERT(iTotVertexs > 0);
+    ASSERT(iTotVertices > 0);
     ASSERT(DataCommSize > 0);
     /* Costruisco e inizializzo le due strutture */
-    SAFENEWARR(Vertexs.pXadj, int, iTotVertexs+1, DMmm);
-    SAFENEWARR(pVertexWgts, int, iTotVertexs*2, DMmm);
-    SAFENEWARR(pCommWgts, int, iTotVertexs, DMmm);
+    SAFENEWARR(Vertices.pXadj, int, iTotVertices+1);
+    SAFENEWARR(pVertexWgts, int, iTotVertices*2);
+    SAFENEWARR(pCommWgts, int, iTotVertices);
     
     /* Ciclo per la scrittura degli array delle connessioni. 
      * Il ciclo viene ripetuto se per un vertice si ha un numero
      * di connessioni superiore al max consentito per default
      * iDefaultMaxConnectionsPerVertex */
     int iMaxConnectionsPerVertex = 
-      (iTotVertexs < iDefaultMaxConnectionsPerVertex) ? iTotVertexs 
+      (iTotVertices < iDefaultMaxConnectionsPerVertex) ? iTotVertices 
       : iDefaultMaxConnectionsPerVertex;
     int GravityPos = 0, AirPropPos = 0;
     int* pRotPos = NULL;
@@ -834,19 +834,19 @@ SchurDataManager::CreatePartition(void)
     int iNumberOfNodes;
     Node::Type* pMyTypes = NULL;
     unsigned int* pMyLabels = NULL;
-    SAFENEWARR(pRotPos, int, ElemData[Elem::ROTOR].iNum, DMmm);
-    SAFENEWARR(pRotLab, integer, ElemData[Elem::ROTOR].iNum, DMmm);
+    SAFENEWARR(pRotPos, int, ElemData[Elem::ROTOR].iNum);
+    SAFENEWARR(pRotLab, integer, ElemData[Elem::ROTOR].iNum);
 
-    SAFENEWARR(pMyTypes, Node::Type, iDefaultMaxNodesPerElem, DMmm);
-    SAFENEWARR(pMyLabels, unsigned int, iDefaultMaxNodesPerElem, DMmm);
-    SAFENEWARR(pLabelsList, unsigned int, iTotNodes, DMmm);
+    SAFENEWARR(pMyTypes, Node::Type, iDefaultMaxNodesPerElem);
+    SAFENEWARR(pMyLabels, unsigned int, iDefaultMaxNodesPerElem);
+    SAFENEWARR(pLabelsList, unsigned int, iTotNodes);
 
     while (1) {
-        InitList(Vertexs.pXadj, iTotVertexs+1, 0);
-        InitList(pVertexWgts, iTotVertexs*2, 0);
-       	InitList(pCommWgts, iTotVertexs, 0);
-       	SAFENEWARR(Vertexs.pAdjncy, int, iTotVertexs*iMaxConnectionsPerVertex, DMmm);
-       	InitList(Vertexs.pAdjncy, iTotVertexs*iMaxConnectionsPerVertex, ADJ_UNDEFINED);
+        InitList(Vertices.pXadj, iTotVertices+1, 0);
+        InitList(pVertexWgts, iTotVertices*2, 0);
+       	InitList(pCommWgts, iTotVertices, 0);
+       	SAFENEWARR(Vertices.pAdjncy, int, iTotVertices*iMaxConnectionsPerVertex);
+       	InitList(Vertices.pAdjncy, iTotVertices*iMaxConnectionsPerVertex, ADJ_UNDEFINED);
        	ASSERT(ppElems != NULL);
        
        	/* ciclo sugli elementi per assemblare la struttura delle connessioni */
@@ -885,7 +885,7 @@ SchurDataManager::CreatePartition(void)
 	       	(*ppTmpEl)->iGetNumDof()*(*ppTmpEl)->iGetNumDof();
 
 	    for (int i = 0; i <= iNumberOfNodes-1; i++) {
-	     	Vertexs.pXadj[iCount+1] += 1;
+	     	Vertices.pXadj[iCount+1] += 1;
              	/* trovo la pos. del nodo nella lista dei puntatori ai nodi */
 	     	ppActualNode = SearchNode(NodeData[pMyTypes[i]].ppFirstNode, 
 	                                  NodeData[pMyTypes[i]].iNum, 
@@ -899,15 +899,15 @@ SchurDataManager::CreatePartition(void)
 #endif
 
 	     	/* aggiungo fra le connessioni dell'elemento il nodo attuale */
-	     	if ((iCount*iMaxConnectionsPerVertex) + Vertexs.pXadj[iCount+1] - 1 < iTotVertexs*iMaxConnectionsPerVertex) {
-	            Vertexs.pAdjncy[(iCount*iMaxConnectionsPerVertex) 
-		  	+ Vertexs.pXadj[iCount+1] - 1] = position;
+	     	if ((iCount*iMaxConnectionsPerVertex) + Vertices.pXadj[iCount+1] - 1 < iTotVertices*iMaxConnectionsPerVertex) {
+	            Vertices.pAdjncy[(iCount*iMaxConnectionsPerVertex) 
+		  	+ Vertices.pXadj[iCount+1] - 1] = position;
 	     	}
 	     	/* aggiungo alle connessioni del nodo l'elemento attuale */
-	     	Vertexs.pXadj[position+1] += 1;
-	     	if ((position*iMaxConnectionsPerVertex) + Vertexs.pXadj[position+1] - 1 < iTotVertexs*iMaxConnectionsPerVertex) {
-	            Vertexs.pAdjncy[(position*iMaxConnectionsPerVertex) 
-		  	+ Vertexs.pXadj[position+1] - 1] = iCount;
+	     	Vertices.pXadj[position+1] += 1;
+	     	if ((position*iMaxConnectionsPerVertex) + Vertices.pXadj[position+1] - 1 < iTotVertices*iMaxConnectionsPerVertex) {
+	            Vertices.pAdjncy[(position*iMaxConnectionsPerVertex) 
+		  	+ Vertices.pXadj[position+1] - 1] = iCount;
 	     	}
 	     	/* peso (di comunicazione) del nodo */
 	     	pCommWgts[position] = (*ppActualNode)->iGetNumDof();
@@ -927,41 +927,41 @@ SchurDataManager::CreatePartition(void)
                     j++;
              	}
              	iElPos = j;
-             	Vertexs.pXadj[iNdPos+1] += 1;
-             	Vertexs.pXadj[iTotNodes + iElPos+1] += 1;
-             	Vertexs.pAdjncy[(iNdPos*iMaxConnectionsPerVertex) 
-	       	    + Vertexs.pXadj[iNdPos+1] - 1] = iElPos+iTotNodes;
-             	Vertexs.pAdjncy[((iTotNodes+iElPos)*iMaxConnectionsPerVertex) 
-	       	    + Vertexs.pXadj[iTotNodes+iElPos+1] - 1] = iNdPos;
+             	Vertices.pXadj[iNdPos+1] += 1;
+             	Vertices.pXadj[iTotNodes + iElPos+1] += 1;
+             	Vertices.pAdjncy[(iNdPos*iMaxConnectionsPerVertex) 
+	       	    + Vertices.pXadj[iNdPos+1] - 1] = iElPos+iTotNodes;
+             	Vertices.pAdjncy[((iTotNodes+iElPos)*iMaxConnectionsPerVertex) 
+	       	    + Vertices.pXadj[iTotNodes+iElPos+1] - 1] = iNdPos;
             }
      	}
      
         iMax = 0;
-        for (int i = 0; i < iTotVertexs; i++) {
-            if (Vertexs.pXadj[i] > iMaxConnectionsPerVertex) {
-             	iMax = Vertexs.pXadj[i];
+        for (int i = 0; i < iTotVertices; i++) {
+            if (Vertices.pXadj[i] > iMaxConnectionsPerVertex) {
+             	iMax = Vertices.pXadj[i];
 	    }
       	}
       	if (iMax > iMaxConnectionsPerVertex) {
             iMaxConnectionsPerVertex = iMax;
-            SAFEDELETEARR(Vertexs.pAdjncy, DMmm);
+            SAFEDELETEARR(Vertices.pAdjncy);
       	} else {
             break;
       	}
     }
     
-    for (int i = 1; i <= iTotVertexs; i++) {
-       	Vertexs.pXadj[i] += Vertexs.pXadj[i-1];
+    for (int i = 1; i <= iTotVertices; i++) {
+       	Vertices.pXadj[i] += Vertices.pXadj[i-1];
     }
     /* Compatta il vettore delle adiacenze */
-    Pack(Vertexs.pAdjncy, iTotVertexs*iMaxConnectionsPerVertex);
+    Pack(Vertices.pAdjncy, iTotVertices*iMaxConnectionsPerVertex);
     
     /* Chiamo la routine per ottere la partizione fra i diversi processi METIS.
      * Se ne usano due diverse a seconda della dimensione della partizione */
     int edgecut; /* e' un dato fornito in output da METIS non usato */
     
     if (pParAmgProcs == NULL) {   
-      	SAFENEWARR(pParAmgProcs, int, iTotVertexs, DMmm);
+      	SAFENEWARR(pParAmgProcs, int, iTotVertices);
 
 #ifdef DEBUG
       	ofstream ofMetis;
@@ -970,15 +970,15 @@ SchurDataManager::CreatePartition(void)
       	    ofMetis << "# METIS Input File" << endl
                 << "Column 1 is for Computational weights " << endl
             	<< "Column 2 is for Comunicational weight " << endl
-            	<< "Total Vertexes: " << iTotVertexs << endl
+            	<< "Total Vertexes: " << iTotVertices << endl
             	<< "# Nodes" << endl;
       	    for (int i = 0; i < iTotNodes; i++) {
             	ofMetis << "# " << i << "  Node Type: "
           	    << "(" << psNodeNames[(ppNodes[i])->GetNodeType()] << ")"
           	    << " Label: " << (ppNodes[i])->GetLabel() << endl
           	    << pVertexWgts[i] << " " << pCommWgts[i];
-            	for (int j = Vertexs.pXadj[i]; j < Vertexs.pXadj[i+1]; j++) {
-          	    ofMetis << " " << Vertexs.pAdjncy[j];
+            	for (int j = Vertices.pXadj[i]; j < Vertices.pXadj[i+1]; j++) {
+          	    ofMetis << " " << Vertices.pAdjncy[j];
             	}
             	ofMetis << endl;
       	    }
@@ -989,10 +989,10 @@ SchurDataManager::CreatePartition(void)
           	    << " Label: " << (ppElems[i])->GetLabel() << endl
           	    << pVertexWgts[i+iTotNodes] 
 		    << " " << pCommWgts[i+iTotNodes];
-            	for (int j = Vertexs.pXadj[i+iTotNodes]; 
-                     j < Vertexs.pXadj[i+iTotNodes+1]; 
+            	for (int j = Vertices.pXadj[i+iTotNodes]; 
+                     j < Vertices.pXadj[i+iTotNodes+1]; 
 	             j++) {
-          	    ofMetis << " " << Vertexs.pAdjncy[j];
+          	    ofMetis << " " << Vertices.pAdjncy[j];
 	    	}
             	ofMetis << endl;
       	    }
@@ -1004,9 +1004,9 @@ SchurDataManager::CreatePartition(void)
     	int numflag = 0;
     	int options = 0;      
 
-    	METIS_PartGraphVKway(&iTotVertexs,
-                             Vertexs.pXadj,
-			     Vertexs.pAdjncy,
+    	METIS_PartGraphVKway(&iTotVertices,
+                             Vertices.pXadj,
+			     Vertices.pAdjncy,
 			     pVertexWgts,
 			     pCommWgts,
 			     &wgtflag,
@@ -1022,7 +1022,7 @@ SchurDataManager::CreatePartition(void)
 #endif /* !USE_METIS */    
     }
  
-    int MyDim = iTotVertexs/DataCommSize; /* Stima del # vertici per blocco */
+    int MyDim = iTotVertices/DataCommSize; /* Stima del # vertici per blocco */
     /* Lista dei nodi appartenenti a questo processo */
     Adjacency InterfNodes; /* nodi di interfaccia */
 
@@ -1032,12 +1032,12 @@ SchurDataManager::CreatePartition(void)
     integer iMaxInterfNodes = iDefaultMaxInterfNodes;
     InterfNodes.pXadj = NULL;
     InterfNodes.pAdjncy = NULL;
-    SAFENEWARR(InterfNodes.pXadj, int, DataCommSize+1, DMmm);
-    SAFENEWARR(ppMyNodes, Node*, 2*MyDim, DMmm);
+    SAFENEWARR(InterfNodes.pXadj, int, DataCommSize+1);
+    SAFENEWARR(ppMyNodes, Node*, 2*MyDim);
     
     while (1) {
         InitList(InterfNodes.pXadj, DataCommSize+1, 0);
-      	SAFENEWARR(InterfNodes.pAdjncy,int, DataCommSize*iMaxInterfNodes*8, DMmm);
+      	SAFENEWARR(InterfNodes.pAdjncy,int, DataCommSize*iMaxInterfNodes*8);
       	InitList(InterfNodes.pAdjncy, DataCommSize*iMaxInterfNodes*8, ADJ_UNDEFINED);
 
       	iNumLocNodes = 0;
@@ -1051,8 +1051,8 @@ SchurDataManager::CreatePartition(void)
 	    if (pParAmgProcs[i] == MyRank) {
 	  	/* se uno dei nodi è connesso ad un elemento non appartenente 
 	   	 * a questo processo e' un nodo di interfaccia */
-	  	for (int j = Vertexs.pXadj[i]; j < Vertexs.pXadj[i+1]; j++) {
-	    	    if ((TmpPrc = pParAmgProcs[Vertexs.pAdjncy[j]]) != MyRank) {
+	  	for (int j = Vertices.pXadj[i]; j < Vertices.pXadj[i+1]; j++) {
+	    	    if ((TmpPrc = pParAmgProcs[Vertices.pAdjncy[j]]) != MyRank) {
 	      		InterfNodes.pXadj[TmpPrc] += 1;
 	      		if (TmpPrc * iMaxInterfNodes * 2 + InterfNodes.pXadj[TmpPrc] - 1
 	          	    < DataCommSize * iMaxInterfNodes * 2) {
@@ -1081,7 +1081,7 @@ SchurDataManager::CreatePartition(void)
       	iMax = iRMax;
       	if (iMax > iMaxInterfNodes) {
             iMaxInterfNodes = iMax;
-            SAFEDELETEARR(InterfNodes.pAdjncy, DMmm);
+            SAFEDELETEARR(InterfNodes.pAdjncy);
       	} else {
             break;
       	}
@@ -1091,8 +1091,8 @@ SchurDataManager::CreatePartition(void)
     
     MPI::Request* pRReq = NULL;
     MPI::Request* pSReq = NULL;
-    SAFENEWARR(pRReq, MPI::Request, DataCommSize, DMmm);
-    SAFENEWARR(pSReq, MPI::Request, DataCommSize, DMmm);
+    SAFENEWARR(pRReq, MPI::Request, DataCommSize);
+    SAFENEWARR(pSReq, MPI::Request, DataCommSize);
     pRReq[MyRank] = MPI::REQUEST_NULL;
     pSReq[MyRank] = MPI::REQUEST_NULL;
     const int DIM_TAG = 10;
@@ -1105,7 +1105,7 @@ SchurDataManager::CreatePartition(void)
     }  
  
     /* lista degli elementi appartenenti a questo processo */
-    SAFENEWARR(ppMyElems, Elem*, 2*MyDim, DMmm);
+    SAFENEWARR(ppMyElems, Elem*, 2*MyDim);
     
     /* Trattamento elementi particolari */
     int move = 0;
@@ -1133,7 +1133,7 @@ SchurDataManager::CreatePartition(void)
     integer* pMyRot = NULL;
     integer iRotorIsMine = 0;
     if (iNumRt  != 0) {
-      	SAFENEWARR(pMyRot, integer, iNumRt, DMmm);
+      	SAFENEWARR(pMyRot, integer, iNumRt);
       	for (unsigned int i = 0; i < ElemData[Elem::AERODYNAMIC].iNum; i++) {
 	    integer pTmpLab = 
 	    	((ElemData[Elem::AERODYNAMIC].ppFirstElem)[i])->GetRotor();
@@ -1158,7 +1158,7 @@ SchurDataManager::CreatePartition(void)
       	}
 
       	/* Costruisco  i communicators per i rotori */
-      	SAFENEWARR(pRotorComm, MPI::Intracomm, iNumRt, DMmm);
+      	SAFENEWARR(pRotorComm, MPI::Intracomm, iNumRt);
 	int color, key;
       	for (int i = 0; i < iNumRt; i++) {
 	    if (iMyTotRot == 0) {
@@ -1193,7 +1193,7 @@ SchurDataManager::CreatePartition(void)
       	}
     }
 
-    for (int i = iTotNodes; i < iTotVertexs; i++) {
+    for (int i = iTotNodes; i < iTotVertices; i++) {
       	if (pParAmgProcs[i] == MyRank) {
 	    ppMyElems[iNumLocElems] = ppElems[i-iTotNodes];
 	    iNumLocDofs += (ppMyElems[iNumLocElems])->iGetNumDof();
@@ -1227,9 +1227,9 @@ SchurDataManager::CreatePartition(void)
 
     unsigned int* llabels = NULL;
     Node::Type* lTypes = NULL;
-    SAFENEWARR(llabels, unsigned int, iNumIntNodes, DMmm);
-    SAFENEWARR(lTypes,  Node::Type, iNumIntNodes, DMmm);
-    SAFENEWARR(ppIntNodes, Node*, iNumIntNodes, DMmm); 
+    SAFENEWARR(llabels, unsigned int, iNumIntNodes);
+    SAFENEWARR(lTypes,  Node::Type, iNumIntNodes);
+    SAFENEWARR(ppIntNodes, Node*, iNumIntNodes); 
     for (int i = 0; i < iNumIntNodes-1; i++) {
       	ppIntNodes[i] = ppNodes[InterfNodes.pAdjncy[i+1]];
       	llabels[i] = ppIntNodes[i]->GetLabel();
@@ -1241,8 +1241,8 @@ SchurDataManager::CreatePartition(void)
      * di interfaccia */
     int* pPosIntElems = NULL;
     if (iNumLocElems != 0) {
-      	SAFENEWARR(pPosIntElems, int, iNumLocElems, DMmm);
-      	SAFENEWARR(ppMyIntElems, Elem*, iNumLocElems, DMmm);
+      	SAFENEWARR(pPosIntElems, int, iNumLocElems);
+      	SAFENEWARR(ppMyIntElems, Elem*, iNumLocElems);
     }
     
     for (int i = 0; i < iNumLocElems; i++) {
@@ -1295,7 +1295,7 @@ SchurDataManager::CreatePartition(void)
     
     /* determina la liste dei dofs locali ed adiacenti suddivisa per processi,
      * secondo la struttura Adjacency */
-    SAFENEWARR(LocalDofs, integer ,iNumLocDofs, DMmm);
+    SAFENEWARR(LocalDofs, integer ,iNumLocDofs);
     
     iCount = 0;
     for (int i = 0; i < iNumLocNodes; i++) {
@@ -1335,8 +1335,8 @@ SchurDataManager::CreatePartition(void)
       	iNumIntDofs += (ppNodes[InterfNodes.pAdjncy[i]])->iGetNumDof();
     }
 
-    SAFENEWARR(LocalIntDofs, integer, iNumIntDofs, DMmm);
-    SAFENEWARR(pMyIntDofs, integer, iNumIntDofs, DMmm);
+    SAFENEWARR(LocalIntDofs, integer, iNumIntDofs);
+    SAFENEWARR(pMyIntDofs, integer, iNumIntDofs);
     
     iCount = 0;
     i2Count = 0;
@@ -1380,49 +1380,49 @@ SchurDataManager::CreatePartition(void)
     iNumIntNodes = iNumIntNodes-1;
 
     if (pMyTypes != NULL) {  
-      	SAFEDELETE(pMyTypes, DMmm);
+      	SAFEDELETE(pMyTypes);
     }
     if (pMyLabels != NULL) {  
-      	SAFEDELETE(pMyLabels, DMmm);
+      	SAFEDELETE(pMyLabels);
     }
     if (pRReq != NULL) {  
-      	SAFEDELETEARR(pRReq, DMmm);
+      	SAFEDELETEARR(pRReq);
     }
     if (pSReq != NULL) {  
-      	SAFEDELETEARR(pSReq, DMmm);
+      	SAFEDELETEARR(pSReq);
     }
-    if ( Vertexs.pXadj != NULL) {
-      	SAFEDELETEARR(Vertexs.pXadj, DMmm);
+    if ( Vertices.pXadj != NULL) {
+      	SAFEDELETEARR(Vertices.pXadj);
     }
-    if ( Vertexs.pAdjncy != NULL) {
-     	SAFEDELETEARR(Vertexs.pAdjncy, DMmm);
+    if ( Vertices.pAdjncy != NULL) {
+     	SAFEDELETEARR(Vertices.pAdjncy);
     }
     if ( InterfNodes.pXadj != NULL) {
-     	SAFEDELETEARR( InterfNodes.pXadj, DMmm);
+     	SAFEDELETEARR( InterfNodes.pXadj);
     }
     if ( InterfNodes.pAdjncy != NULL) {
-     	SAFEDELETEARR( InterfNodes.pAdjncy, DMmm);
+     	SAFEDELETEARR( InterfNodes.pAdjncy);
     }
     if ( pParAmgProcs != NULL) {
-      	SAFEDELETEARR(pParAmgProcs, DMmm);
+      	SAFEDELETEARR(pParAmgProcs);
     }
     if ( pLabelsList != NULL) {
-      	SAFEDELETEARR(pLabelsList, DMmm);
+      	SAFEDELETEARR(pLabelsList);
     }
     if ( pVertexWgts != NULL) {
-      	SAFEDELETEARR(pVertexWgts, DMmm);
+      	SAFEDELETEARR(pVertexWgts);
     }
     if ( pCommWgts != NULL) {
-      	SAFEDELETEARR(pCommWgts, DMmm);
+      	SAFEDELETEARR(pCommWgts);
     } 
     if ( pPosIntElems != NULL) {
-      	SAFEDELETEARR(pPosIntElems, DMmm);
+      	SAFEDELETEARR(pPosIntElems);
     }
     if ( lTypes != NULL) {
-      	SAFEDELETEARR(lTypes, DMmm);
+      	SAFEDELETEARR(lTypes);
     }
     if ( llabels != NULL) {
-      	SAFEDELETEARR(llabels, DMmm);
+      	SAFEDELETEARR(llabels);
     }
 
     OutputPartition();

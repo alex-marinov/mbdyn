@@ -45,13 +45,13 @@ FileDrive::FileDrive(unsigned int uL, const DriveHandler* pDH,
 : Drive(uL, pDH), sFileName(NULL), iNumDrives(nd)
 {   
    ASSERT(s != NULL);
-   SAFESTRDUP(sFileName, s, DMmm);
+   SAFESTRDUP(sFileName, s);
 }
 
 
 FileDrive::~FileDrive(void)
 {
-   SAFEDELETEARR(sFileName, DMmm);
+   SAFEDELETEARR(sFileName);
 }
 
 
@@ -85,8 +85,7 @@ DriveCaller* FileDriveCaller::pCopy(void) const
    DriveCaller* pDC = NULL;
    SAFENEWWITHCONSTRUCTOR(pDC, 
 			  FileDriveCaller,
-			  FileDriveCaller(pDrvHdl,  pFileDrive, iNumDrive),
-			  DMmm);
+			  FileDriveCaller(pDrvHdl,  pFileDrive, iNumDrive));
    
    return pDC;
 }
@@ -125,8 +124,8 @@ dT0(t0), dDT(dt), iNumSteps(is), pd(NULL), pvd(NULL)
       THROW(ErrGeneric());
    }
    
-   SAFENEWARR(pd, doublereal, iNumDrives*iNumSteps, DMmm);
-   SAFENEWARR(pvd, doublereal*, iNumDrives+1, DMmm);
+   SAFENEWARR(pd, doublereal, iNumDrives*iNumSteps);
+   SAFENEWARR(pvd, doublereal*, iNumDrives+1);
    
    /* Attenzione: il primo puntatore e' vuoto 
     * (ne e' stato allocato uno in piu'),
@@ -149,8 +148,8 @@ dT0(t0), dDT(dt), iNumSteps(is), pd(NULL), pvd(NULL)
 
 FixedStepFileDrive::~FixedStepFileDrive(void)
 {
-   SAFEDELETEARR(pd, DMmm);
-   SAFEDELETEARR(pvd, DMmm);
+   SAFEDELETEARR(pd);
+   SAFEDELETEARR(pvd);
 }
 
 
@@ -232,8 +231,7 @@ Drive* ReadFileDriver(DataManager* pDM,
 			      FixedStepFileDrive,
 			      FixedStepFileDrive(uLabel, pDM->pGetDrvHdl(),
 						 filename, isteps, idrives,
-						 t0, dt), 
-			      DMmm);
+						 t0, dt));
        break;
     } 
       
@@ -256,8 +254,7 @@ Drive* ReadFileDriver(DataManager* pDM,
        SAFENEWWITHCONSTRUCTOR(pDr,
 			      SocketDrive,
 			      SocketDrive(uLabel, pDM->pGetDrvHdl(),
-					  port, pAuth, idrives), 
-			      DMmm);    
+					  port, pAuth, idrives));
              
 #else /* USE_SOCKET_DRIVES */
        cerr << "Sorry, socket drives not supported." << endl;

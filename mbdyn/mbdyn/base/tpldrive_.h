@@ -57,7 +57,7 @@ class SingleTplDriveCaller : public TplDriveCaller<T>, public DriveOwner {
       typedef SingleTplDriveCaller<T> dc;
       TplDriveCaller<T>* pDC = NULL;
       
-      SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(pGetDriveCaller()->pCopy(), t), DMmm);
+      SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(pGetDriveCaller()->pCopy(), t));
       
       return pDC;
    };
@@ -94,7 +94,7 @@ class SingleTplDriveCaller<doublereal>
       TplDriveCaller<doublereal>* pDC = NULL;
       
       typedef SingleTplDriveCaller<doublereal> dc;
-      SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(pGetDriveCaller()->pCopy()), DMmm);
+      SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(pGetDriveCaller()->pCopy()));
       
       return pDC;
    };
@@ -138,9 +138,9 @@ class ArrayTplDriveCaller : public TplDriveCaller<T> {
    
    ~ArrayTplDriveCaller(void) {
       for (int i = 0; i < iNumDrives; i++) {
-	 SAFEDELETE(pDrivesArray[i].pDriveCaller, DMmm);
+	 SAFEDELETE(pDrivesArray[i].pDriveCaller);
       }
-      SAFEDELETEARR(pDrivesArray, DMmm);
+      SAFEDELETEARR(pDrivesArray);
    };
    
    /* copia */
@@ -148,7 +148,7 @@ class ArrayTplDriveCaller : public TplDriveCaller<T> {
       typedef DrivesArray<T> da;
       da* pDA = NULL;
       
-      SAFENEWARR(pDA, da, iNumDrives, DMmm);
+      SAFENEWARR(pDA, da, iNumDrives);
       
       for (int i = 0; i < iNumDrives; i++) {
 	 pDA[i].pDriveCaller = pDrivesArray[i].pDriveCaller->pCopy();
@@ -158,7 +158,7 @@ class ArrayTplDriveCaller : public TplDriveCaller<T> {
       typedef ArrayTplDriveCaller<T> dc;
       TplDriveCaller<T>* pDC = NULL;
       
-      SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(iNumDrives, pDA), DMmm);
+      SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(iNumDrives, pDA));
       
       return pDC;
    };
@@ -238,14 +238,12 @@ TplDriveCaller<T>* ReadTplDrive(const DataManager* pDM,
       DriveCaller* pDC = NULL;
       SAFENEWWITHCONSTRUCTOR(pDC,
 			     NullDriveCaller,
-			     NullDriveCaller(pDH),
-			     DMmm);
+			     NullDriveCaller(pDH));
 
       T t(0.);
       SAFENEWWITHCONSTRUCTOR(pTplDC,
 			     SingleTplDriveCaller<T>,
-			     SingleTplDriveCaller<T>(pDC, t),
-			     DMmm);
+			     SingleTplDriveCaller<T>(pDC, t));
       
    } else { /* c'e' la deformazione */
       int CurrKeyWord = HP.IsKeyWord();
@@ -268,8 +266,7 @@ restart:
 	  
 	  SAFENEWWITHCONSTRUCTOR(pTplDC, 
 				 SingleTplDriveCaller<T>,
-				 SingleTplDriveCaller<T>(pDC, t),
-				 DMmm);
+				 SingleTplDriveCaller<T>(pDC, t));
 	  
 	  break;
        }
@@ -286,7 +283,7 @@ restart:
 	  
 	  
 	  DrivesArray<T>* pDA = NULL;
-	  SAFENEWARR(pDA, DrivesArray<T>, iNumDr, DMmm);
+	  SAFENEWARR(pDA, DrivesArray<T>, iNumDr);
 	  
 	  for (unsigned short int i = 0; i < iNumDr; i++) {
 	     T t(0.);
@@ -297,8 +294,7 @@ restart:
 	  
 	  SAFENEWWITHCONSTRUCTOR(pTplDC, 
 				 ArrayTplDriveCaller<T>,
-				 ArrayTplDriveCaller<T>(iNumDr, pDA),
-				 DMmm);
+				 ArrayTplDriveCaller<T>(iNumDr, pDA));
 	  
 	  break;
        }

@@ -91,8 +91,7 @@ fFirstRes(1)
 	pD = NULL; 
 	SAFENEWWITHCONSTRUCTOR(pD,
 			ConstitutiveLaw6DOwner,
-			ConstitutiveLaw6DOwner(pd),
-			DMmm);
+			ConstitutiveLaw6DOwner(pd));
 	
 	Omega = Vec3(0.); 
 	Az = Vec6(0.);
@@ -123,7 +122,7 @@ Beam2::~Beam2(void)
 {
 	ASSERT(pD != NULL);
 	if (pD != NULL) {      
-		SAFEDELETE(pD, DMmm);
+		SAFEDELETE(pD);
 	}
 }
 
@@ -1274,7 +1273,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			THROW(ErrGeneric());
 		}
 		
-		SAFENEWARR(pvElecDofs, ScalarDifferentialNode*, iNumElec, DMmm);
+		SAFENEWARR(pvElecDofs, ScalarDifferentialNode*, iNumElec);
 		
 		for (integer i = 0; i < iNumElec; i++) {
 			unsigned int uL = HP.GetInt();
@@ -1325,8 +1324,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						Rn1, Rn2,
 						R,
 						pD,
-						fOut),
-					DMmm);
+						fOut));
 #if defined(USE_ELECTRIC_NODES)
 		} else {	 
 			SAFENEWWITHCONSTRUCTOR(pEl,
@@ -1340,8 +1338,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						iNumElec,
 						pvElecDofs,
 						PiezoMat[0], PiezoMat[1],
-						fOut),
-					DMmm);
+						fOut));
 		}
 #endif /* defined(USE_ELECTRIC_NODES) */
 		
@@ -1358,8 +1355,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						Rn1, Rn2,
 						R,
 						pD,
-						fOut),
-					DMmm);
+						fOut));
 #if defined(USE_ELECTRIC_NODES)
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pEl,
@@ -1373,8 +1369,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						iNumElec,
 						pvElecDofs,
 						PiezoMat[0], PiezoMat[1],
-						fOut),
-					DMmm);
+						fOut));
 		}
 #endif /* defined(USE_ELECTRIC_NODES) */
 		

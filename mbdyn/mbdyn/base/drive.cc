@@ -117,7 +117,7 @@ DriveHandler::~DriveHandler(void)
 {
    if (iRandDriveSize > 0) { 
       if (ppMyRand != NULL) {
-	 SAFEDELETEARR(ppMyRand, DMmm);
+	 SAFEDELETEARR(ppMyRand);
       } else {
 	 cerr << "Error, random drive data array should exist" << endl;
       }
@@ -167,7 +167,7 @@ integer DriveHandler::iRandInit(integer iSteps)
 	 return 0;
       }
       
-      SAFENEWARR(ppMyRand, MyRand*, iRandDriveSize, DMmm);
+      SAFENEWARR(ppMyRand, MyRand*, iRandDriveSize);
       
       MyRand** ppmr = ppMyRand;
       MyRand* pmr = NULL;
@@ -193,8 +193,7 @@ integer DriveHandler::iRandInit(integer iSteps)
    integer iNumber = MyRandLL.iGetSize();
    SAFENEWWITHCONSTRUCTOR(pmr, 
 			  MyRand, 
-			  MyRand((unsigned int)iNumber, iSteps, rand()),
-			  DMmm);
+			  MyRand((unsigned int)iNumber, iSteps, rand()));
    
    if (MyRandLL.iAdd(pmr)) {
       cerr << "Error in insertion of random driver data" << endl;
@@ -281,7 +280,7 @@ NullDriveCaller::~NullDriveCaller(void)
 DriveCaller* NullDriveCaller::pCopy(void) const
 {
    DriveCaller* pDC = NULL;
-   SAFENEWWITHCONSTRUCTOR(pDC, NullDriveCaller, NullDriveCaller(pDrvHdl), DMmm);
+   SAFENEWWITHCONSTRUCTOR(pDC, NullDriveCaller, NullDriveCaller(pDrvHdl));
    
    return pDC;
 }
@@ -315,7 +314,7 @@ OneDriveCaller::~OneDriveCaller(void)
 DriveCaller* OneDriveCaller::pCopy(void) const
 {
    DriveCaller* pDC = NULL;
-   SAFENEWWITHCONSTRUCTOR(pDC, OneDriveCaller, OneDriveCaller(pDrvHdl), DMmm);
+   SAFENEWWITHCONSTRUCTOR(pDC, OneDriveCaller, OneDriveCaller(pDrvHdl));
    
    return pDC;
 }
@@ -344,7 +343,7 @@ DriveOwner::~DriveOwner(void)
    ASSERT(pDriveCaller != NULL);
    
    if (pDriveCaller != NULL) {
-      SAFEDELETE(pDriveCaller, DMmm);
+      SAFEDELETE(pDriveCaller);
    }
 }
 

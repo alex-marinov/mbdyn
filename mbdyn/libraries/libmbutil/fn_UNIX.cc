@@ -39,11 +39,6 @@
 #include <mynewmem.h>
 
 
-#ifdef DEBUG_MEMMANAGER
-clMemMan FN("FileName");
-#endif
-
-
 FileName::FileName(const char *sFName, int iExtSepNum)
 : sName(NULL), sExt(NULL), sRef(NULL)
 { 
@@ -54,17 +49,13 @@ FileName::FileName(const char *sFName, int iExtSepNum)
 
 FileName::~FileName(void)
 {
-#ifdef DEBUG_MEMMANAGER
-   	COUT << FN << endl;
-#endif /* DEBUG_MEMMANAGER */
-   
    	if (sName != NULL) { 
       		/* delete []sName; */
-      		SAFEDELETEARR(sName, FN);
+      		SAFEDELETEARR(sName);
    	} 
    	if (sExt != NULL) { 
       		/* delete []sExt; */
-      		SAFEDELETEARR(sExt, FN);
+      		SAFEDELETEARR(sExt);
    	} 
 }
 
@@ -80,10 +71,10 @@ FileName::iInit(const char *sFName, int iExtSepNum)
    	unsigned int iNewSize = strlen(sFName);
    	if ((sName == NULL) || (iNewSize > iMaxSize)) {
       		if (sName != NULL) {      
-	 		SAFEDELETEARR(sName, FN);
+	 		SAFEDELETEARR(sName);
       		}
       		iMaxSize = iNewSize;
-      		SAFENEWARR(sName, char, iMaxSize+1, FN);
+      		SAFENEWARR(sName, char, iMaxSize+1);
    	}
    
    	strcpy(sName, sFName);         
@@ -113,9 +104,9 @@ label:
       		if (sExt == NULL || strlen(sExt) < iNewSize) {  
 			/* se c'e' gia' sExt lo cancella */
 	 		if (sExt != NULL) {	    
-	    			SAFEDELETEARR(sExt, FN);
+	    			SAFEDELETEARR(sExt);
 	 		}
-	 		SAFENEWARR(sExt, char, iNewSize+1, FN);
+	 		SAFENEWARR(sExt, char, iNewSize+1);
       		}
 
       		ASSERT(sRef != NULL);
@@ -146,16 +137,16 @@ label2:
       		iNewSize = strlen(sRef);
       		if (sExt == NULL || strlen(sExt) < iNewSize) { 
 	 		if (sExt != NULL) {	    
-	    			SAFEDELETEARR(sExt, FN);
+	    			SAFEDELETEARR(sExt);
 	 		}
-	 		SAFENEWARR(sExt, char, iNewSize+1, FN);
+	 		SAFENEWARR(sExt, char, iNewSize+1);
       		}
 	
       		ASSERT(sRef != NULL);
       		strcpy(sExt, sRef);
       		sRef[0] = '\0';
    	} else { 
-      		SAFENEWARR(sExt, char, 1, FN);
+      		SAFENEWARR(sExt, char, 1);
       		sExt[0] = '\0'; 
    	}
    
@@ -177,12 +168,12 @@ FileName::_sPutExt(const char *sEName)
    
    	if (iCurSize+uExtLen > iMaxSize) {
       		char *sTmp = NULL;
-      		SAFENEWARR(sTmp, char, iCurSize+uExtLen+1, FN);
+      		SAFENEWARR(sTmp, char, iCurSize+uExtLen+1);
       
       		ASSERT(sName != NULL);
       		strcpy(sTmp, sName);
       		sRef = sTmp+(sRef-sName);
-      		SAFEDELETEARR(sName, FN);
+      		SAFEDELETEARR(sName);
       		sName = sTmp;
    	}
    

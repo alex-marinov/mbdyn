@@ -66,7 +66,7 @@ read(LoadableElem* pEl,
    
    // allocation of user-defined struct
    module_rollercoaster* p = NULL;
-   SAFENEW(p, module_rollercoaster, EMmm);
+   SAFENEW(p, module_rollercoaster);
    
    /* nodo */
    unsigned int uNode = (unsigned int)HP.GetInt();
@@ -412,7 +412,7 @@ destroy(LoadableElem* pEl)
 {
    DEBUGCOUTFNAME("destroy");
    module_rollercoaster* p = (module_rollercoaster *)pEl->pGetData();
-   SAFEDELETE(p, EMmm);
+   SAFEDELETE(p);
 }
 
 static struct

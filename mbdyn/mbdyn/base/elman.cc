@@ -131,25 +131,25 @@ void DataManager::ElemManagerDestructor(void)
    /* Distruzione matrici di lavoro per assemblaggio */ 
    if(pWorkMatB != NULL) {
       DEBUGCOUT("deleting assembly structure, SubMatrix B" << endl);
-      SAFEDELETE(pWorkMatB, SMmm);
+      SAFEDELETE(pWorkMatB);
    }   
    
    if(pWorkMatA != NULL) {
       DEBUGCOUT("deleting assembly structure, SubMatrix A" << endl);
-      SAFEDELETE(pWorkMatA, SMmm);
+      SAFEDELETE(pWorkMatA);
    }   
    
    
    if(pdWorkMat != NULL) {
       DEBUGCOUT("deleting assembly structure, double workspace" << endl);
-      SAFEDELETEARR(pdWorkMat, SMmm);
+      SAFEDELETEARR(pdWorkMat);
    }   
 
    // ASSERT(piWorkIndex != NULL);
 
    if(piWorkIndex != NULL) {
       DEBUGCOUT("deleting assembly structure, integer workspace" << endl);
-      SAFEDELETEARR(piWorkIndex, SMmm);
+      SAFEDELETEARR(piWorkIndex);
    }   
 
    /* Distruzione elementi */
@@ -166,7 +166,7 @@ void DataManager::ElemManagerDestructor(void)
 		DEBUGCOUT("deleting element " << p->GetLabel()
 			  << ", type " << psElemNames[p->GetElemType()]
 			  << endl);
-		SAFEDELETE(p, DMmm);
+		SAFEDELETE(p);
 	     }
 	  } while(ElemIter.fGetNext(p));
        }
@@ -178,13 +178,13 @@ void DataManager::ElemManagerDestructor(void)
 	    DEBUGCOUT("deleting element " << (*pp)->GetLabel() 
 		      << ", type " << psElemNames[(*pp)->GetElemType()]
 		      << endl);
-	    SAFEDELETE(*pp, DMmm);		  
+	    SAFEDELETE(*pp);		  
 	 }	     
 	 pp++;
       }
 #endif /* !USE_ELEM_ITER */
       DEBUGCOUT("deleting elements structure" << endl);
-      SAFEDELETEARR(ppElems, DMmm);
+      SAFEDELETEARR(ppElems);
    }   
      
    /* Distruzione drivers */
@@ -194,13 +194,13 @@ void DataManager::ElemManagerDestructor(void)
 	 if(*pp != NULL) {
 	    DEBUGCOUT("deleting driver " << (*pp)->GetLabel() << ", type " 
 		      << psDriveNames[(*pp)->GetDriveType()] << endl);
-	    SAFEDELETE(*pp, DMmm);
+	    SAFEDELETE(*pp);
 	 }	     
 	 pp++;
       }
       
       DEBUGCOUT("deleting drivers structure" << endl);
-      SAFEDELETEARR(ppDrive, DMmm);
+      SAFEDELETEARR(ppDrive);
    }
       
 }
@@ -218,7 +218,7 @@ void DataManager::ElemDataInit(void)
    DEBUGCOUT("iTotElem = " << iTotElem << endl);
    
    if (iTotElem > 0) {	     
-      SAFENEWARR(ppElems, Elem*, iTotElem, DMmm);
+      SAFENEWARR(ppElems, Elem*, iTotElem);
       
       /* Inizializza l'iteratore degli elementi usato all'interno
        * dell'ElemManager */
@@ -248,7 +248,7 @@ void DataManager::ElemDataInit(void)
    DEBUGCOUT("iTotDrive = " << iTotDrive << endl);
    
    if (iTotDrive > 0) {
-      SAFENEWARR(ppDrive, Drive*, iTotDrive, DMmm);
+      SAFENEWARR(ppDrive, Drive*, iTotDrive);
 
       /* Puo' essere sostituito con un opportuno iteratore:
        VecIter<Drive*> DriveIter(ppDrive, iTotDrive);
@@ -295,8 +295,8 @@ void DataManager::ElemAssInit(void)
    iWorkDoubleSize = iMaxWorkNumRows*iMaxWorkNumCols;
 
    if (iWorkIntSize > 0) {
-      SAFENEWARR(piWorkIndex, integer, 2*iWorkIntSize, SMmm);
-      SAFENEWARR(pdWorkMat, doublereal, 2*iWorkDoubleSize, SMmm);      
+      SAFENEWARR(piWorkIndex, integer, 2*iWorkIntSize);
+      SAFENEWARR(pdWorkMat, doublereal, 2*iWorkDoubleSize);      
       
       /* SubMatrixHandlers */
       SAFENEWWITHCONSTRUCTOR(pWorkMatA,
@@ -304,16 +304,14 @@ void DataManager::ElemAssInit(void)
 			     VariableSubMatrixHandler(iWorkIntSize,
 						      iWorkDoubleSize,
 						      piWorkIndex,
-						      pdWorkMat),
-			     SMmm);
+						      pdWorkMat));
       
       SAFENEWWITHCONSTRUCTOR(pWorkMatB,
 			     VariableSubMatrixHandler,
 			     VariableSubMatrixHandler(iWorkIntSize,
 						      iWorkDoubleSize,
 						      piWorkIndex+iWorkIntSize, 
-						      pdWorkMat+iWorkDoubleSize),
-			     SMmm);
+						      pdWorkMat+iWorkDoubleSize));
       
       DEBUGCOUT("Creating working matrices: work int size = " << iWorkIntSize 
 		<< ", work double size = " << iWorkDoubleSize << endl

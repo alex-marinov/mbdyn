@@ -60,8 +60,8 @@ phi(NULL), y(NULL), err(NULL), pF(pf), k(0.), w(0.)
      +nout                             // vz
      +nout;                            // vtheta
 
-   SAFENEWARR(pdBase, doublereal, i, DMmm);
-   SAFENEWARR(ppdBase, doublereal*, iv, DMmm);
+   SAFENEWARR(pdBase, doublereal, i);
+   SAFENEWARR(ppdBase, doublereal*, iv);
    
    ldl = pdBase;
    z = ldl+size*size;
@@ -90,9 +90,9 @@ phi(NULL), y(NULL), err(NULL), pF(pf), k(0.), w(0.)
 
 
 Ident::~Ident(void) {
-   SAFEDELETEARR(ppdBase, DMmm);
-   SAFEDELETEARR(pdBase, DMmm);
-   SAFEDELETE(pF, DMmm);   
+   SAFEDELETEARR(ppdBase);
+   SAFEDELETEARR(pdBase);
+   SAFEDELETE(pF);   
 }
 
 doublereal Ident::dGetForgettingFactor(void) const {
@@ -179,7 +179,7 @@ IdentProcess::IdentProcess(unsigned int iOut, unsigned int iIn,
    
 IdentProcess::~IdentProcess(void) 
 {
-   SAFEDELETE(pIdent, DMmm);
+   SAFEDELETE(pIdent);
 }
    
 void IdentProcess::CreateIdent(integer size, integer nout, ForgettingFactor* pf) 
@@ -188,7 +188,7 @@ void IdentProcess::CreateIdent(integer size, integer nout, ForgettingFactor* pf)
    ASSERT(nout > 0);
    ASSERT(pf != NULL);     
    
-   SAFENEWWITHCONSTRUCTOR(pIdent, Ident, Ident(size, nout, pf), DMmm);
+   SAFENEWWITHCONSTRUCTOR(pIdent, Ident, Ident(size, nout, pf));
 }
 
 void IdentProcess::GetErr(doublereal* pdE) 
@@ -214,7 +214,7 @@ size(iOut*iA+iIn*(iB+1)), pdBase(NULL), pdPhi(NULL), pdY(NULL)
    integer i = size        // Phi
      +iOut;                // Y
      
-   SAFENEWARR(pdBase, doublereal, i, DMmm);
+   SAFENEWARR(pdBase, doublereal, i);
    
    pdPhi = pdBase;
    pdY = pdPhi+size;
@@ -226,7 +226,7 @@ size(iOut*iA+iIn*(iB+1)), pdBase(NULL), pdPhi(NULL), pdY(NULL)
  
 IdentARXProcess::~IdentARXProcess(void)
 {
-   SAFEDELETEARR(pdBase, DMmm);
+   SAFEDELETEARR(pdBase);
 }  
    
 void IdentARXProcess::Update(const doublereal* pdYTmp, 
@@ -286,7 +286,7 @@ size(2*iOut*iA+iIn*(iB+1)), pdBase(NULL), pdPhi(NULL), pdY(NULL), pdErr(NULL)
      +iOut                 // Y
      +iOut;                // Err
      
-   SAFENEWARR(pdBase, doublereal, i, DMmm);
+   SAFENEWARR(pdBase, doublereal, i);
    
    pdPhi = pdBase;
    pdY = pdPhi+size;
@@ -299,7 +299,7 @@ size(2*iOut*iA+iIn*(iB+1)), pdBase(NULL), pdPhi(NULL), pdY(NULL), pdErr(NULL)
 }
  
 IdentARMAXProcess::~IdentARMAXProcess(void) {    
-   SAFEDELETEARR(pdBase, DMmm);
+   SAFEDELETEARR(pdBase);
 }  
 
 

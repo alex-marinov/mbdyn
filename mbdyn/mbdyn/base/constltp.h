@@ -138,7 +138,7 @@ class ConstitutiveLawOwner {
    virtual ~ConstitutiveLawOwner(void) {
       ASSERT(pConstLaw != NULL);
       if (pConstLaw != NULL) {
-	 SAFEDELETE(pConstLaw, DMmm);
+	 SAFEDELETE(pConstLaw);
       }	
    };
    

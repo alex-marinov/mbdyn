@@ -67,7 +67,8 @@ usano la gestione sicura della memoria:
 
 Le macro di gestione dinamica della memoria sono:
 
-	SAFENEW(item* pit, item, clMemMan mm);
+	SAFENEW(item* pit, item);
+	SAFENEW_(item* pit, item, clMemMan mm);
 		<pit>  e' un puntatore al tipo <item> e deve essere <pit> = NULL
 		<item> e' un tipo valido
 		<mm>   e' un oggetto della classe clMemMan
@@ -84,7 +85,8 @@ Le macro di gestione dinamica della memoria sono:
         ### PUO' ESSERE ESEGUITO PIU' VOLTE IL COSTRUTTORE
         ###
 
-	SAFENEWWITHCONSTRUCTOR(item* pit, item, constructor, clMemMan mm);
+	SAFENEWWCONS(item* pit, item, constructor);
+	SAFENEWWITHCONSTRUCTOR_(item* pit, item, constructor, clMemMan mm);
 		<pit>  e' un puntatore al tipo <item> e deve essere <pit> = NULL
 		<item> e' un tipo valido
                 <constructor> ' il costruttore di <item>
@@ -92,22 +94,26 @@ Le macro di gestione dinamica della memoria sono:
 					 se #ifdef DEBUG_MEMMANAGER = TRUE,
 					 altrimenti non viene usato
 
-	SAFENEWARR(item* pit, item, type size, clMemMan mm);
+	SAFENEWARR(item* pit, item, type size);
+	SAFENEWARR_(item* pit, item, type size, clMemMan mm);
 		come SAFENEW, solo che viene allocato un array di oggetti
 		di tipo <item> dalle dimensioni determinate da <size>, 
 		di tipo indefinito.
 
 
 
-	SAFEDELETE(item* pit, clMemMan mm);
+	SAFEDELETE(item* pit);
+	SAFEDELETE_(item* pit, clMemMan mm);
 		come sopra; <pit> deve essere definito e deve essere 
 		contenuto in <mm> in qualita' di puntatore all'inizio 
 		di un blocco se #ifdef DEBUG_MEMMANAGER = TRUE
 
-	SAFEDELETEARR(item* pit, clMemMan mm);
+	SAFEDELETEARR(item* pit);
+	SAFEDELETEARR_(item* pit, clMemMan mm);
 		come SAFEDELETE, solo che viene cancellata un'array di oggetti.
 
-	SAFEDELETEANDFILLARR(item* pit, clMemMan mm);
+	SAFEDELETEANDFILLARR(item* pit);
+	SAFEDELETEANDFILLARR_(item* pit, clMemMan mm);
 		come SAFEDELETEARR, ma se #ifdef DEBUG_MEMMANAGER = TRUE,
 		prima di deallocare riempe la memoria con il carattere di free;
 		deve essere usato solo quando ogni oggetto dell'array e' stato
@@ -299,7 +305,7 @@ const char cDebugFree  = 'F';
 #ifdef DEBUG_MEMMANAGER
 
 /* Dichiarazione delle macro di debug con memory manager */
-#define SAFENEW(pnt, item, memman) \
+#define SAFENEW_(pnt, item, memman) \
 	do { \
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
@@ -311,7 +317,7 @@ const char cDebugFree  = 'F';
 	} while(0)
 
 /* Dichiarazione delle macro di debug con memory manager */
-#define SAFENEWWITHCONSTRUCTOR(pnt, item, constructor, memman) \
+#define SAFENEWWITHCONSTRUCTOR_(pnt, item, constructor, memman) \
 	do { \
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
@@ -325,7 +331,7 @@ const char cDebugFree  = 'F';
 /* Attenzione: questa operazione e' lecita solo se
  * non e' stato eseguito un costruttore
  * _Safenewfill(pnt, sizeof(item), cDebugAlloc); */
-#define SAFENEWARR(pnt, item, sz, memman) \
+#define SAFENEWARR_(pnt, item, sz, memman) \
 	do { \
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
@@ -338,7 +344,7 @@ const char cDebugFree  = 'F';
 		_Safenewfill((void*)pnt, sizeof(item)*(sz), cDebugAlloc); \
 	} while (0)
 
-#define SAFESTRDUP(pnt, src, memman) \
+#define SAFESTRDUP_(pnt, src, memman) \
 	do { \
 		unsigned int l = strlen((src))+1; \
 		ASSERT(!(pnt)); \
@@ -358,7 +364,7 @@ const char cDebugFree  = 'F';
 
 #ifndef DEBUG_MEMMANAGER_DELETEBUTNOTRELEASE
 
-#define SAFEDELETE(pnt, memman) \
+#define SAFEDELETE_(pnt, memman) \
 	do { \
 		ASSERT(pnt); \
 		(memman).remove((void*)(pnt)); \
@@ -366,7 +372,7 @@ const char cDebugFree  = 'F';
 		(pnt) = NULL; \
 	} while (0)
 
-#define SAFEDELETEARR(pnt, memman) \
+#define SAFEDELETEARR_(pnt, memman) \
 	do { \
 		ASSERT(pnt); \
 		(memman).remove((void*)(pnt), 1); \
@@ -374,7 +380,7 @@ const char cDebugFree  = 'F';
 		(pnt) = NULL; \
 	} while (0)
 
-#define SAFEDELETEANDFILLARR(pnt, memman) \
+#define SAFEDELETEANDFILLARR_(pnt, memman) \
 	do { \
 		ASSERT(pnt); \
 		(memman).remove((void*)(pnt), 1, 1); \
@@ -388,7 +394,7 @@ const char cDebugFree  = 'F';
 
 #ifdef DEBUG_MEMMANAGER_DELETEBUTKEEPLOG
 
-#define SAFEDELETE(pnt, memman) \
+#define SAFEDELETE_(pnt, memman) \
 	do { \
 		ASSERT(pnt); \
 		(memman).removeButKeepLog((void*)(pnt)); \
@@ -396,7 +402,7 @@ const char cDebugFree  = 'F';
 		(pnt) = NULL; \
 	} while (0)
 
-#define SAFEDELETEARR(pnt, memman) \
+#define SAFEDELETEARR_(pnt, memman) \
 	do { \
 		ASSERT(pnt); \
 		(memman).removeButKeepLog((void*)(pnt), 1); \
@@ -404,7 +410,7 @@ const char cDebugFree  = 'F';
 		(pnt) = NULL; \
 	} while (0)
 
-#define SAFEDELETEANDFILLARR(pnt, memman) \
+#define SAFEDELETEANDFILLARR_(pnt, memman) \
 	do { \
 		ASSERT(pnt); \
 		(memman).removeButKeepLog((void*)(pnt), 1); \
@@ -416,7 +422,7 @@ const char cDebugFree  = 'F';
 
 #ifdef DEBUG_MEMMANAGER_DELETEBUTNOTRELEASE
 
-#define SAFEDELETE(pnt, memman) \
+#define SAFEDELETE_(pnt, memman) \
 	do { \
 		ASSERT(pnt); \
 		(memman).removeButNotRelease((void*)(pnt)); \
@@ -424,7 +430,7 @@ const char cDebugFree  = 'F';
 		(pnt) = NULL; \
 	} while (0)
 
-#define SAFEDELETEARR(pnt, memman) \
+#define SAFEDELETEARR_(pnt, memman) \
 	do { \
 		ASSERT(pnt); \
 		(memman).removeButNotRelease((void*)(pnt), 1); \
@@ -432,7 +438,7 @@ const char cDebugFree  = 'F';
 		(pnt) = NULL; \
 	} while (0)
 
-#define SAFEDELETEANDFILLARR(pnt, memman) \
+#define SAFEDELETEANDFILLARR_(pnt, memman) \
 	do { \
 		ASSERT(pnt); \
 		(memman).removeButNotRelease((void*)(pnt), 1); \
@@ -441,7 +447,6 @@ const char cDebugFree  = 'F';
 	} while (0)
 
 #endif /* DEBUG_MEMMANAGER_DELETEBUTNOTRELEASE */
-
 
 /* enum degli stati della memoria */
 enum eStatus { 
@@ -528,13 +533,15 @@ public:
 	};
 };
 
+extern clMemMan defaultMemoryManager;
+
 /* funzione di stream del memory manager */
 extern ostream& operator << (ostream& rout, const clMemMan& rm);
 
 #else /* !DEBUG_MEMMANAGER */
 
 /* dichiarazione delle macro di debug senza memory manager */
-#define SAFENEW(pnt, item, memman) \
+#define SAFENEW_(pnt, item, memman) \
 	do { \
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
@@ -545,7 +552,7 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
 	} while (0)
 
 /* Dichiarazione delle macro di debug senza memory manager */
-#define SAFENEWWITHCONSTRUCTOR(pnt, item, constructor, memman) \
+#define SAFENEWWITHCONSTRUCTOR_(pnt, item, constructor, memman) \
 	do { \
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
@@ -559,7 +566,7 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
  * non e' stato eseguito un costruttore
  * _Safenewfill(pnt, sizeof(item), cDebugAlloc) */
 
-#define SAFENEWARR(pnt, item, sz, memman) \
+#define SAFENEWARR_(pnt, item, sz, memman) \
 	do { \
 		ASSERT(!(pnt)); \
 		ASSERT(sizeof(item)); \
@@ -571,7 +578,7 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
 		_Safenewfill(pnt, sizeof(item)*(sz), cDebugAlloc); \
 	} while (0) 
 
-#define SAFESTRDUP(pnt, src, memman) \
+#define SAFESTRDUP_(pnt, src, memman) \
 	do { \
 		unsigned int l = strlen((src))+1; \
 		ASSERT(!(pnt)); \
@@ -586,21 +593,21 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
 /* Qui il fill e' lecito perche' per le arrays
  * non sono eseguiti i costruttori */
 
-#define SAFEDELETE(pnt, memman) \
+#define SAFEDELETE_(pnt, memman) \
 	do { \
 		ASSERT(pnt); \
 		delete (pnt); \
 		(pnt) = NULL; \
 	} while (0)
 
-#define SAFEDELETEARR(pnt, memman) \
+#define SAFEDELETEARR_(pnt, memman) \
 	do { \
 		ASSERT(pnt); \
 		delete[] (pnt); \
 		(pnt) = NULL; \
 	} while (0)
 
-#define SAFEDELETEANDFILLARR(pnt, memman) \
+#define SAFEDELETEANDFILLARR_(pnt, memman) \
 	do { \
 		ASSERT(pnt); \
 		delete[] (pnt); \
@@ -612,42 +619,65 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
 #else /* !DEBUG */
 
 /* dichiarazione delle macro nella versione da release */
-#define SAFENEW(pnt, item, memman) \
+#define SAFENEW_(pnt, item, memman) \
 	(pnt) = new item
 
 /* dichiarazione delle macro nella versione da release */
-#define SAFENEWWITHCONSTRUCTOR(pnt, item, constructor, memman) \
+#define SAFENEWWITHCONSTRUCTOR_(pnt, item, constructor, memman) \
 	(pnt) = new constructor
 
-#define SAFENEWARR(pnt, item, sz, memman) \
+#define SAFENEWARR_(pnt, item, sz, memman) \
 	(pnt) = new item[sz]
 
-#define SAFESTRDUP(pnt, src, memman) \
+#define SAFESTRDUP_(pnt, src, memman) \
 	do { \
 		unsigned int l = strlen((src))+1; \
 		(pnt) = new char[l]; \
 		strcpy((char *)(pnt), (src)); \
 	} while (0)
 
-#define SAFEDELETE(pnt, memman) \
+#define SAFEDELETE_(pnt, memman) \
 	do { \
 		delete (pnt); \
 		(pnt) = NULL; \
 	} while (0)
 
-#define SAFEDELETEARR(pnt, memman) \
+#define SAFEDELETEARR_(pnt, memman) \
 	do { \
 		delete[] (pnt); \
 		(pnt) = NULL; \
 	} while (0)
 
-#define SAFEDELETEANDFILLARR(pnt, memman) \
+#define SAFEDELETEANDFILLARR_(pnt, memman) \
 	do { \
 		delete[] (pnt); \
 		(pnt) = NULL; \
 	} while (0)
+
+#define defaultMemoryManager	0
 
 #endif /* !DEBUG */
+
+#define SAFENEW(pnt, item) \
+	SAFENEW_(pnt, item, defaultMemoryManager)
+
+#define SAFENEWWITHCONSTRUCTOR(pnt, item, constructor) \
+	SAFENEWWITHCONSTRUCTOR_(pnt, item, constructor, defaultMemoryManager)
+
+#define SAFENEWARR(pnt, item, sz) \
+	SAFENEWARR_(pnt, item, sz, defaultMemoryManager)
+
+#define SAFESTRDUP(pnt, src) \
+	SAFESTRDUP_(pnt, src, defaultMemoryManager)
+
+#define SAFEDELETE(pnt) \
+	SAFEDELETE_(pnt, defaultMemoryManager)
+
+#define SAFEDELETEARR(pnt) \
+	SAFEDELETEARR_(pnt, defaultMemoryManager)
+
+#define SAFEDELETEANDFILLARR(pnt) \
+	SAFEDELETEANDFILLARR_(pnt, defaultMemoryManager)
 
 #endif /* MYNEWMEM_H */
 

@@ -202,10 +202,10 @@ iWorkSpaceSize(0), fNewMatrix(0)
   iWorkSpaceSize = LocVecDim;
 
   /* Alloca arrays per la matrice B e il vettore r */
-  SAFENEWARR(pdBMat, doublereal, LocVecDim * LocVecDim, SMmm);
-  SAFENEWARR(piBRow, integer, iWorkSpaceSize*iWorkSpaceSize, SMmm);
-  SAFENEWARR(piBCol, integer, iWorkSpaceSize*iWorkSpaceSize, SMmm);
-  SAFENEWARR(pdrVec, doublereal, iWorkSpaceSize, SMmm);
+  SAFENEWARR(pdBMat, doublereal, LocVecDim * LocVecDim);
+  SAFENEWARR(piBRow, integer, iWorkSpaceSize*iWorkSpaceSize);
+  SAFENEWARR(piBCol, integer, iWorkSpaceSize*iWorkSpaceSize);
+  SAFENEWARR(pdrVec, doublereal, iWorkSpaceSize);
 
   /* Alloca arrays per il solutore */
   
@@ -214,30 +214,31 @@ iWorkSpaceSize(0), fNewMatrix(0)
                          SparseMatrixHandler, 
 			 SparseMatrixHandler(iWorkSpaceSize, &piBRow, 
 			 		     &piBCol, &pdBMat,
- 					     iWorkSpaceSize*iWorkSpaceSize),
- 			 SMmm);
+ 					     iWorkSpaceSize*iWorkSpaceSize));
   
   SAFENEWWITHCONSTRUCTOR(pLU, 
 			 HarwellLUSolver,
-			 HarwellLUSolver(iWorkSpaceSize, iWorkSpaceSize*iWorkSpaceSize, &piBRow, &piBCol, 
-					 &pdBMat, pdrVec, dPivotFactor), SMmm);
+			 HarwellLUSolver(iWorkSpaceSize, 
+				 iWorkSpaceSize*iWorkSpaceSize, 
+				 &piBRow, &piBCol, 
+				 &pdBMat, pdrVec, dPivotFactor));
   
 
   /* Alloca la matrice E  per colonne */
-  SAFENEWARR(pdEMat, doublereal, LocVecDim * IntVecDim, SMmm);
+  SAFENEWARR(pdEMat, doublereal, LocVecDim * IntVecDim);
   
   /* Alloca la matrice F */
-  SAFENEWARR(pdFMat, doublereal, IntVecDim * LocVecDim, SMmm);
+  SAFENEWARR(pdFMat, doublereal, IntVecDim * LocVecDim);
 
   /* matrice C e vettore g*/
-  SAFENEWARR(pdCMat, doublereal, IntVecDim*IntVecDim, SMmm);
-  SAFENEWARR(pdgVec, doublereal, IntVecDim, SMmm);
+  SAFENEWARR(pdCMat, doublereal, IntVecDim*IntVecDim);
+  SAFENEWARR(pdgVec, doublereal, IntVecDim);
   
   /* matrice di Shur sul master */
   if(!MyRank) {
      SAFENEWWITHCONSTRUCTOR(pSchSM, MeschachSparseLUSolutionManager,
-			    MeschachSparseLUSolutionManager(iSchurIntDim, iSchurIntDim),
-			    SMmm);
+			    MeschachSparseLUSolutionManager(iSchurIntDim, 
+				    iSchurIntDim));
      pSchMH = pSchSM->pMatHdl();
      pSchVH = pSchSM->pResHdl();
   }
@@ -247,30 +248,30 @@ iWorkSpaceSize(0), fNewMatrix(0)
   /* Hadlers per la matrice per il residuo e per la soluzione */
   SAFENEWWITHCONSTRUCTOR(pMH, SchurMatrixHandler, 
 			 SchurMatrixHandler(LocVecDim, IntVecDim, pBMH, 
-					    pdEMat, pdFMat, pdCMat, pGlbToLoc),
-			 SMmm);
+					    pdEMat, pdFMat, pdCMat, pGlbToLoc));
   
   SAFENEWWITHCONSTRUCTOR(pRVH, SchurVectorHandler, 
 			 SchurVectorHandler(LocVecDim, IntVecDim, pdrVec,
-					    pdgVec, pGlbToLoc),
-			 SMmm);
+					    pdgVec, pGlbToLoc));
   
   /* Creazione di NewType per la trasmissione del vett soluzione calcolato */
   if(!MyRank) {
-    SAFENEWARR(pBlockLenght, int, pDispl[SolvCommSize], SMmm);
+    SAFENEWARR(pBlockLenght, int, pDispl[SolvCommSize]);
     InitializeList(pBlockLenght, pDispl[SolvCommSize], 1);
-    SAFENEWARR(pTypeDsp, MPI::Aint, pDispl[SolvCommSize] , SMmm);
+    SAFENEWARR(pTypeDsp, MPI::Aint, pDispl[SolvCommSize]);
     
     MPI::Aint DispTmp = MPI::Get_address(pSchVH->pdGetVec());
     for (int i=0; i < pDispl[SolvCommSize]; i++) {
       pTypeDsp[i] = MPI::Get_address(pSchVH->pdGetVec() + pSchGlbToLoc[pDofsRecvdList[i]] - 1) - DispTmp;
     }
     
-    SAFENEWARR(ppNewTypes, MPI::Datatype*, SolvCommSize, SMmm);
+    SAFENEWARR(ppNewTypes, MPI::Datatype*, SolvCommSize);
     MPI::Aint* pActualDispl = pTypeDsp;
     for (int i=0; i < SolvCommSize; i++) {
       ppNewTypes[i] = NULL;
-      SAFENEWWITHCONSTRUCTOR(ppNewTypes[i], MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(pRecvDim[i], pBlockLenght, pActualDispl)), SMmm);
+      SAFENEWWITHCONSTRUCTOR(ppNewTypes[i], MPI::Datatype, 
+		      MPI::Datatype(MPI::DOUBLE.Create_hindexed(pRecvDim[i], 
+				      pBlockLenght, pActualDispl)));
       ppNewTypes[i]->Commit();
       pActualDispl += pRecvDim[i];
     }
@@ -306,95 +307,95 @@ SchurSolutionManager::~SchurSolutionManager(void)
   */
 #if 0
   if(pLocDofs != NULL) {
-    SAFEDELETEARR(pLocDofs, SMmm);
+    SAFEDELETEARR(pLocDofs);
   }
   if(pIntDofs != NULL) {
-    SAFEDELETEARR(pIntDofs, SMmm);
+    SAFEDELETEARR(pIntDofs);
   } 
   if(pRecvDim != NULL) {
-    SAFEDELETEARR(pRecvDim, SMmm);
+    SAFEDELETEARR(pRecvDim);
   }
   if(pDispl != NULL) {
-    SAFEDELETEARR(pDispl, SMmm);
+    SAFEDELETEARR(pDispl);
   }
   if(pDofsRecvdList != NULL) {
-    SAFEDELETEARR(pDofsRecvdList, SMmm);
+    SAFEDELETEARR(pDofsRecvdList);
   }
   if(pSchurDofs != NULL) {
-    SAFEDELETEARR(pSchurDofs, SMmm);
+    SAFEDELETEARR(pSchurDofs);
   }
   if(pGlbToLoc != NULL) {
-    SAFEDELETEARR(pGlbToLoc, SMmm);
+    SAFEDELETEARR(pGlbToLoc);
   }
   if(pSchGlbToLoc != NULL) {
-    SAFEDELETEARR(pSchGlbToLoc, SMmm);
+    SAFEDELETEARR(pSchGlbToLoc);
   }
   if(pBlockLenght != NULL) {
-    SAFEDELETEARR(pBlockLenght, SMmm);
+    SAFEDELETEARR(pBlockLenght);
   }
    if(pTypeDsp != NULL) {
-    SAFEDELETEARR(pTypeDsp, SMmm);
+    SAFEDELETEARR(pTypeDsp);
   }
   if(pBuffer != NULL) {
-    SAFEDELETEARR(pBuffer, SMmm);
+    SAFEDELETEARR(pBuffer);
   }
   if(ppNewTypes != NULL) {
     for(int i=0; i < SolvCommSize; i++) {
        ppNewTypes[i]->Free();
-      SAFEDELETE(ppNewTypes[i], SMmm); 	
+      SAFEDELETE(ppNewTypes[i]);
     }
-   SAFEDELETEARR(ppNewTypes, SMmm);
+   SAFEDELETEARR(ppNewTypes);
   }
   if(piBRow != NULL) {
-    SAFEDELETEARR(piBRow, SMmm);
+    SAFEDELETEARR(piBRow);
   }
   if(piBCol != NULL) {
-    SAFEDELETEARR(piBCol, SMmm);
+    SAFEDELETEARR(piBCol);
   }
   if(pdBMat != NULL) {
-    SAFEDELETEARR(pdBMat, SMmm);
+    SAFEDELETEARR(pdBMat);
   }
   if(pdrVec != NULL) {
-    SAFEDELETEARR(pdrVec, SMmm);
+    SAFEDELETEARR(pdrVec);
   }
   if(pBMH != NULL) {
-      SAFEDELETE(pBMH, SMmm);
+      SAFEDELETE(pBMH);
   }
   if(pLU != NULL) {
-    SAFEDELETE(pLU, SMmm);
+    SAFEDELETE(pLU);
   }
   if(pdEMat != NULL) {
-    SAFEDELETEARR(pdEMat, SMmm);
+    SAFEDELETEARR(pdEMat);
   }
   if(pdFMat != NULL) {
-    SAFEDELETEARR(pdFMat, SMmm);
+    SAFEDELETEARR(pdFMat);
   }
   if(pdCMat != NULL) {
-    SAFEDELETEARR(pdCMat, SMmm);
+    SAFEDELETEARR(pdCMat);
   }
   if(pdgVec != NULL) {
-    SAFEDELETEARR(pdgVec, SMmm);
+    SAFEDELETEARR(pdgVec);
   }
   if(pMH != NULL) {
-	SAFEDELETE(pMH, SMmm);
+	SAFEDELETE(pMH);
   }
   if(pRVH != NULL) {
-	SAFEDELETE(pRVH, SMmm);
+	SAFEDELETE(pRVH);
   }
   if(pSchSM != NULL) {
-      SAFEDELETEARR(pSchSM, SMmm);
+      SAFEDELETEARR(pSchSM);
   }
   if(pSchMH != NULL) {
-    SAFEDELETEARR(pSchMH, SMmm);
+    SAFEDELETEARR(pSchMH);
   }
   if(pSchVH != NULL) {
-    SAFEDELETEARR(pSchVH, SMmm);
+    SAFEDELETEARR(pSchVH);
   }
   if(pGSReq != NULL) {
-    SAFEDELETEARR(pGSReq, SMmm);
+    SAFEDELETEARR(pGSReq);
   }
   if(pGRReq != NULL) {
-    SAFEDELETEARR(pGRReq, SMmm);
+    SAFEDELETEARR(pGRReq);
   }
 #endif /* 0 */
 }
@@ -717,8 +718,8 @@ void SchurSolutionManager::AssSchur(void)
 void SchurSolutionManager::InitializeComm(void)
 {
   if (!MyRank) {
-    SAFENEWARR(pRecvDim, int, SolvCommSize, SMmm);
-    SAFENEWARR(pDispl, int, SolvCommSize+1, SMmm);
+    SAFENEWARR(pRecvDim, int, SolvCommSize);
+    SAFENEWARR(pDispl, int, SolvCommSize+1);
     pDispl[0] = 0;
   } 
   
@@ -732,8 +733,8 @@ void SchurSolutionManager::InitializeComm(void)
   
  
   if (!MyRank && pDispl[SolvCommSize] != 0) {
-    SAFENEWARR(pSchurDofs, integer, pDispl[SolvCommSize], SMmm);
-    SAFENEWARR(pDofsRecvdList, integer, pDispl[SolvCommSize], SMmm);
+    SAFENEWARR(pSchurDofs, integer, pDispl[SolvCommSize]);
+    SAFENEWARR(pDofsRecvdList, integer, pDispl[SolvCommSize]);
   }
   
   SolvComm.Gatherv(pIntDofs, IntVecDim, MPI::INT, pDofsRecvdList, pRecvDim, pDispl, MPI::INT, 0);
@@ -753,8 +754,8 @@ void SchurSolutionManager::InitializeComm(void)
   
   
   /* Vettore di trasformazione locale globale */
-  SAFENEWARR(pGlbToLoc, integer, iPrbmSize+1, SMmm);
-  SAFENEWARR(pSchGlbToLoc, integer, iPrbmSize+1, SMmm);
+  SAFENEWARR(pGlbToLoc, integer, iPrbmSize+1);
+  SAFENEWARR(pSchGlbToLoc, integer, iPrbmSize+1);
   for (int i=0; i < iPrbmSize+1; i++) {
     pGlbToLoc[i] = 0;
     pSchGlbToLoc[i] = 0;
@@ -788,21 +789,21 @@ void SchurSolutionManager::InitializeComm(void)
        iTmpTot += pRecvDim[i] * pRecvDim[i];
      }
      /* buffer di ricezione */
-     SAFENEWARR(pBuffer, doublereal, iTmpTot, SMmm);
+     SAFENEWARR(pBuffer, doublereal, iTmpTot);
    }
    else{
      /* il messaggi + grandi sono le ricezioni dei valori di interfaccia */
-     SAFENEWARR(pBuffer, doublereal, IntVecDim, SMmm);
+     SAFENEWARR(pBuffer, doublereal, IntVecDim);
    }
   }
  
 
   if (!MyRank){
-    SAFENEWARR(pGSReq, MPI::Request, SolvCommSize, SMmm);
-    SAFENEWARR(pGRReq, MPI::Request, SolvCommSize, SMmm);
+    SAFENEWARR(pGSReq, MPI::Request, SolvCommSize);
+    SAFENEWARR(pGRReq, MPI::Request, SolvCommSize);
   } else {
-    SAFENEWARR(pGSReq, MPI::Request, 1, SMmm);
-    SAFENEWARR(pGRReq, MPI::Request, 1, SMmm);
+    SAFENEWARR(pGSReq, MPI::Request, 1);
+    SAFENEWARR(pGRReq, MPI::Request, 1);
   }
 }
 

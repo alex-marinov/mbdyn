@@ -115,13 +115,6 @@ class HarwellSparseLUSolutionManager;  /* gestore della soluzione */
 class SchurSolutionManager;
 #endif /* USE_SCHUR */
 
-/* Memory managers per le classi che allocano memoria */
-#ifdef DEBUG_MEMMANAGER
-extern clMemMan SMmm;  /* memory manager per SolutionManager (mynewmem.h) */
-extern clMemMan LUmm;  /* memory manager per HarwellLUSolver */
-extern clMemMan MHmm;  /* memory manager per SparseMatrixHandler */
-#endif /* DEBUG_MEMMANAGER */
-
 /* HarwellLUSolver - begin */
 
 /*
@@ -200,9 +193,9 @@ protected:
 		ASSERT(SMmm.fIsValid((void*)pdRhs, iN*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
 
-		SAFENEWARR(piKeep, integer, 5*iN, LUmm);
-		SAFENEWARR(piW, integer, 8*iN, LUmm);
-		SAFENEWARR(pdW, doublereal, iN, LUmm);
+		SAFENEWARR(piKeep, integer, 5*iN);
+		SAFENEWARR(piW, integer, 8*iN);
+		SAFENEWARR(pdW, doublereal, iN);
 	
 #ifdef DEBUG	
 		for (int iCnt = 0; iCnt < 5*iN; iCnt++) {
@@ -220,13 +213,13 @@ protected:
    	/* Distruttore */
    	~HarwellLUSolver(void) {
       		if (pdW != NULL) {	     
-	 		SAFEDELETEARR(pdW, LUmm);
+	 		SAFEDELETEARR(pdW);
       		}
       		if (piW != NULL) {	     
-	 		SAFEDELETEARR(piW, LUmm);
+	 		SAFEDELETEARR(piW);
       		}
       		if (piKeep != NULL) {	     
-	 		SAFEDELETEARR(piKeep, LUmm);
+	 		SAFEDELETEARR(piKeep);
       		}
    	};
    

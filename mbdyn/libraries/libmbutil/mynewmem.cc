@@ -84,6 +84,8 @@ _Safenewfill(void *pv, size_t size, char fill)
 
 #ifdef DEBUG_MEMMANAGER
 
+clMemMan defaultMemoryManager("Default");
+
 /* Funzioni proprie private del memory manager */
 clMemMan::stList *
 clMemMan::pstFindElem(const void* pvToFind) const

@@ -56,11 +56,8 @@ DriveCaller* DofDriveCaller::pCopy(void) const
 {
    DriveCaller* pDC = NULL;
    SAFENEWWITHCONSTRUCTOR(pDC, 
-			  DofDriveCaller,
-			  DofDriveCaller(pDrvHdl,
-					 pGetDriveCaller()->pCopy(),
-					 SD), 
-			  DMmm);
+		   DofDriveCaller,
+		   DofDriveCaller(pDrvHdl, pGetDriveCaller()->pCopy(), SD));
    
    return pDC;
 }

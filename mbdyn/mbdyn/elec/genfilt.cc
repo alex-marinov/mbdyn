@@ -66,10 +66,10 @@ pdP(p), pdTau(tau)
 GenelFilter::~GenelFilter(void) 
 {
    if (pdTau != NULL) {
-      SAFEDELETEARR(pdTau, DMmm);
+      SAFEDELETEARR(pdTau);
    }
    if (pdP != NULL) {
-      SAFEDELETEARR(pdP, DMmm);
+      SAFEDELETEARR(pdP);
    }
 }
  
@@ -253,7 +253,7 @@ fSteady(fSt)
    
    DEBUGCOUT("GenelFilterEq " << uLabel << ", NumDofs: " << Na << endl);
    
-   SAFENEWARR(pdAlpha, doublereal, Na+Nb+1, DMmm);
+   SAFENEWARR(pdAlpha, doublereal, Na+Nb+1);
       
    for (unsigned long i = 0; i < Na; i++) {
       pdAlpha[i] = -pdA[i]/pdA[Na];
@@ -276,13 +276,13 @@ fSteady(fSt)
 GenelFilterEq::~GenelFilterEq(void) 
 {
    if (pdAlpha != NULL) {
-      SAFEDELETEARR(pdAlpha, DMmm);
+      SAFEDELETEARR(pdAlpha);
    }
    if (pdB != NULL) {
-      SAFEDELETEARR(pdB, DMmm);
+      SAFEDELETEARR(pdB);
    }
    if (pdA != NULL) {
-      SAFEDELETEARR(pdA, DMmm);
+      SAFEDELETEARR(pdA);
    }
 }
  
@@ -532,7 +532,7 @@ pdX(NULL), pdXP(NULL)
    DEBUGCOUT("GenelStateSpaceSISO " << uLabel 
 	     << ", NumDofs: " << iNumDofs << endl);
    
-   SAFENEWARR(pdX, doublereal, 2*Order, DMmm);
+   SAFENEWARR(pdX, doublereal, 2*Order);
    pdXP = pdX+Order;
 }
 
@@ -540,16 +540,16 @@ pdX(NULL), pdXP(NULL)
 GenelStateSpaceSISO::~GenelStateSpaceSISO(void) 
 {
    if (pdX != NULL) {
-      SAFEDELETEARR(pdX, DMmm);
+      SAFEDELETEARR(pdX);
    }
    if (pdC != NULL) {
-      SAFEDELETEARR(pdC, DMmm);
+      SAFEDELETEARR(pdC);
    }
    if (pdB != NULL) {
-      SAFEDELETEARR(pdB, DMmm);
+      SAFEDELETEARR(pdB);
    }
    if (pdA != NULL) {
-      SAFEDELETEARR(pdA, DMmm);
+      SAFEDELETEARR(pdA);
    }
 }
 
@@ -732,7 +732,7 @@ pdX(NULL), pdXP(NULL)
 	     << ", NumDofs: " << iNumDofs << endl);
 #endif /* DEBUG */
    
-   SAFENEWARR(pdX, doublereal, 2*Order, DMmm);
+   SAFENEWARR(pdX, doublereal, 2*Order);
    pdXP = pdX+Order;
 }
 
@@ -740,25 +740,25 @@ pdX(NULL), pdXP(NULL)
 GenelStateSpaceMIMO::~GenelStateSpaceMIMO(void) 
 {
    if (pdX != NULL) {
-      SAFEDELETEARR(pdX, DMmm);
+      SAFEDELETEARR(pdX);
    }
    if (pdD != NULL) {
-      SAFEDELETEARR(pdD, DMmm);
+      SAFEDELETEARR(pdD);
    }
    if (pdD != NULL) {
-      SAFEDELETEARR(pdC, DMmm);
+      SAFEDELETEARR(pdC);
    }
    if (pdB != NULL) {
-      SAFEDELETEARR(pdB, DMmm);
+      SAFEDELETEARR(pdB);
    }
    if (pdA != NULL) {
-      SAFEDELETEARR(pdA, DMmm);
+      SAFEDELETEARR(pdA);
    }
    if (pvSD_u != NULL) {
-      SAFEDELETEARR(pvSD_u, DMmm);
+      SAFEDELETEARR(pvSD_u);
    }   
    if (pvSD_y != NULL) {
-      SAFEDELETEARR(pvSD_y, DMmm);
+      SAFEDELETEARR(pvSD_y);
    }   
 }
 

@@ -147,9 +147,9 @@ C81MultipleAeroData::C81MultipleAeroData(
 
 C81MultipleAeroData::~C81MultipleAeroData(void)
 {
-	SAFEDELETEARR(profiles, DMmm);
-	SAFEDELETEARR(upper_bounds, DMmm);
-	SAFEDELETEARR(data, DMmm);
+	SAFEDELETEARR(profiles);
+	SAFEDELETEARR(upper_bounds);
+	SAFEDELETEARR(data);
 }
 
 ostream& 

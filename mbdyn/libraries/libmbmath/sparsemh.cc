@@ -122,8 +122,7 @@ ppdMat(ppdTmpMat)
 
    	SAFENEWWITHCONSTRUCTOR(pSD,
 			       SparseData,
-			       SparseData(iCurSize, ppiRow, ppiCol), 
-			       MHmm);
+			       SparseData(iCurSize, ppiRow, ppiCol));
 }
 
 
@@ -134,7 +133,7 @@ SparseMatrixHandler::~SparseMatrixHandler(void)
 #endif
    
    	if (pSD != NULL) {
-      		SAFEDELETE(pSD, MHmm);
+      		SAFEDELETE(pSD);
    	}
 }
 

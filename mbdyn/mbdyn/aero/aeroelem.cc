@@ -55,7 +55,7 @@ Aero_output_alloc(unsigned int iNumPoints)
    	DEBUGCOUTFNAME("Aero_output_alloc");
 	ASSERT(iNumPoints > 0);
    	Aero_output* p = NULL;
-   	SAFENEWARR(p, Aero_output, iNumPoints, DMmm);  
+   	SAFENEWARR(p, Aero_output, iNumPoints);  
    	return p;
 }
 
@@ -126,8 +126,8 @@ M(0.)
    	}
 #endif /* DEBUG */
    
-   	SAFENEWARR(pdOuta, doublereal, 20*iN, DMmm);
-   	SAFENEWARR(pvdOuta, doublereal*, iN, DMmm);
+   	SAFENEWARR(pdOuta, doublereal, 20*iN);
+   	SAFENEWARR(pvdOuta, doublereal*, iN);
    	for (integer i = 20*iN; i-- > 0; ) {
       		pdOuta[i] = 0.;
    	}
@@ -157,16 +157,16 @@ AerodynamicBody::~AerodynamicBody(void)
 {
    	DEBUGCOUTFNAME("AerodynamicBody::~AerodynamicBody");
    
-   	SAFEDELETEARR(pvdOuta, DMmm);
-   	SAFEDELETEARR(pdOuta, DMmm);
+   	SAFEDELETEARR(pvdOuta);
+   	SAFEDELETEARR(pdOuta);
 
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
    	if (pOutput != NULL) {
-      		SAFEDELETEARR(pOutput, DMmm);
+      		SAFEDELETEARR(pOutput);
    	}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
    
-   	SAFEDELETE(aerodata, DMmm);
+   	SAFEDELETE(aerodata);
 }
 
 /*
@@ -576,7 +576,7 @@ ReadAeroData(DataManager* pDM,
    	} else {
       		SAFENEWWITHCONSTRUCTOR(*ppDC,
 			NullDriveCaller,
-			NullDriveCaller(pDM->pGetDrvHdl()), DMmm);
+			NullDriveCaller(pDM->pGetDrvHdl()));
    	}
  
    	if (HP.fIsArg()) {            
@@ -593,8 +593,7 @@ ReadAeroData(DataManager* pDM,
 	  		integer iInst = ReadUnsteadyFlag(HP);
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				STAHRAeroData,
-				STAHRAeroData(iInst, 1),
-				DMmm);
+				STAHRAeroData(iInst, 1));
 	  		break;
        		}
 	 
@@ -605,8 +604,7 @@ ReadAeroData(DataManager* pDM,
 	  		integer iInst = ReadUnsteadyFlag(HP);
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				STAHRAeroData,
-				STAHRAeroData(iInst, 2),
-				DMmm);
+				STAHRAeroData(iInst, 2));
 	  		break;
        		}
 	 
@@ -622,11 +620,11 @@ ReadAeroData(DataManager* pDM,
 					THROW(ErrGeneric());
 				}
 				integer *profiles = NULL;
-				SAFENEWARR(profiles, integer, nProfiles+1, DMmm);
+				SAFENEWARR(profiles, integer, nProfiles+1);
 				doublereal *upper_bounds = NULL;
-				SAFENEWARR(upper_bounds, doublereal, nProfiles, DMmm);
+				SAFENEWARR(upper_bounds, doublereal, nProfiles);
 				const c81_data** data = NULL;
-				SAFENEWARR(data, const c81_data*, nProfiles+1, DMmm);
+				SAFENEWARR(data, const c81_data*, nProfiles+1);
 
 				for (int i = 0; i < nProfiles; i++) {
 					profiles[i] = HP.GetInt();
@@ -663,8 +661,7 @@ ReadAeroData(DataManager* pDM,
 
 				SAFENEWWITHCONSTRUCTOR(*aerodata,
 						C81MultipleAeroData,
-						C81MultipleAeroData(iInst, nProfiles, profiles, upper_bounds, data),
-						DMmm);
+						C81MultipleAeroData(iInst, nProfiles, profiles, upper_bounds, data));
 	
 			} else {
 	  			integer iProfile = HP.GetInt();
@@ -676,8 +673,7 @@ ReadAeroData(DataManager* pDM,
 				integer iInst = ReadUnsteadyFlag(HP);
 	  			SAFENEWWITHCONSTRUCTOR(*aerodata,
 					C81AeroData,
-					C81AeroData(iInst, iProfile, data),
-					DMmm);
+					C81AeroData(iInst, iProfile, data));
 			}
 			break;
        		}
@@ -691,8 +687,7 @@ ReadAeroData(DataManager* pDM,
       		integer iInst = ReadUnsteadyFlag(HP);
       		SAFENEWWITHCONSTRUCTOR(*aerodata,
 			STAHRAeroData,
-			STAHRAeroData(iInst, 1),
-			DMmm);
+			STAHRAeroData(iInst, 1));
    	}
 }
 
@@ -761,8 +756,7 @@ ReadAerodynamicBody(DataManager* pDM,
 		AerodynamicBody,
 		AerodynamicBody(uLabel, pNode, pRotor, f, dSpan, Ra,
 				pChord, pForce, pVelocity, pTwist,
-				iNumber, aerodata, pDC, fOut),
-		DMmm);
+				iNumber, aerodata, pDC, fOut));
 	
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.fIsArg()) {
@@ -840,8 +834,8 @@ pvdOuta(NULL)
 	}
 #endif /* DEBUG */
 
-	SAFENEWARR(pdOuta, doublereal, 20*3*iN, DMmm);
-	SAFENEWARR(pvdOuta, doublereal*, 3*iN, DMmm);
+	SAFENEWARR(pdOuta, doublereal, 20*3*iN);
+	SAFENEWARR(pvdOuta, doublereal*, 3*iN);
 	for (integer i = 20*3*iN; i-- > 0; ) {
 		pdOuta[i] = 0.;
 	}
@@ -871,16 +865,16 @@ AerodynamicBeam::~AerodynamicBeam(void)
 {
    	DEBUGCOUTFNAME("AerodynamicBeam::~AerodynamicBeam");
 	
-	SAFEDELETEARR(pvdOuta, DMmm);
-	SAFEDELETEARR(pdOuta, DMmm);
+	SAFEDELETEARR(pvdOuta);
+	SAFEDELETEARR(pdOuta);
 	
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 	if (pOutput != NULL) {
-		SAFEDELETEARR(pOutput, DMmm);
+		SAFEDELETEARR(pOutput);
 	}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
-	SAFEDELETE(aerodata, DMmm);
+	SAFEDELETE(aerodata);
 }
 
 /*
@@ -1384,8 +1378,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 		AerodynamicBeam(uLabel, pBeam, pRotor, 
 				f1, f2, f3, Ra1, Ra2, Ra3,
 				pChord, pForce, pVelocity, pTwist,
-				iNumber, aerodata, pDC, fOut),
-		DMmm);
+				iNumber, aerodata, pDC, fOut));
 	
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.fIsArg()) {
@@ -1461,8 +1454,8 @@ pvdOuta(NULL)
 	}
 #endif /* DEBUG */
 
-	SAFENEWARR(pdOuta, doublereal, 20*2*iN, DMmm);
-	SAFENEWARR(pvdOuta, doublereal*, 2*iN, DMmm);
+	SAFENEWARR(pdOuta, doublereal, 20*2*iN);
+	SAFENEWARR(pvdOuta, doublereal*, 2*iN);
 	for (integer i = 20*2*iN; i-- > 0; ) {
 		pdOuta[i] = 0.;
 	}
@@ -1493,16 +1486,16 @@ AerodynamicBeam2::~AerodynamicBeam2(void)
 {
    	DEBUGCOUTFNAME("AerodynamicBeam2::~AerodynamicBeam2");
 	
-	SAFEDELETEARR(pvdOuta, DMmm);
-	SAFEDELETEARR(pdOuta, DMmm);
+	SAFEDELETEARR(pvdOuta);
+	SAFEDELETEARR(pdOuta);
 	
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 	if (pOutput != NULL) {
-		SAFEDELETEARR(pOutput, DMmm);
+		SAFEDELETEARR(pOutput);
 	}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
-	SAFEDELETE(aerodata, DMmm);
+	SAFEDELETE(aerodata);
 }
 
 /*
@@ -1972,8 +1965,7 @@ ReadAerodynamicBeam2(
 		AerodynamicBeam2(uLabel, pBeam, pRotor, 
 				f1, f2, Ra1, Ra2,
 				pChord, pForce, pVelocity, pTwist,
-				iNumber, aerodata, pDC, fOut),
-		DMmm);
+				iNumber, aerodata, pDC, fOut));
 	
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.fIsArg()) {

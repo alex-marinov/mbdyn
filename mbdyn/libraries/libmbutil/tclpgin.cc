@@ -169,7 +169,7 @@ tcl_plugin(MathParser& mp, void *arg )
 {
 	MathParser::PlugIn *p = NULL;
 	
-	SAFENEWWITHCONSTRUCTOR(p, TclPlugIn, TclPlugIn(mp), MPmm);
+	SAFENEWWITHCONSTRUCTOR(p, TclPlugIn, TclPlugIn(mp));
 
 	return p;
 }

@@ -66,7 +66,7 @@ HF(hf)
 HydraulicElem::~HydraulicElem(void) 
 {
    if (HF != NULL) {
-      SAFEDELETE(HF, DMmm);
+      SAFEDELETE(HF);
    }
 }
 
@@ -291,8 +291,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 				       pNodeStr1, pNodeStr2,
 				       f1, f2, axis, hf1, hf2, 
 				       area1, area2, dl,
-				       fOut),
-			      DMmm);
+				       fOut));
        
        break;
     }	
@@ -365,8 +364,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Minor_loss,
                               Minor_loss(uLabel, pDO, hf, pNode1, pNode2, 
-					 dKappa1, dKappa2, area, fOut), 
-			      DMmm);
+					 dKappa1, dKappa2, area, fOut));
        
        break;
     }
@@ -457,8 +455,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 			      ThreeWayMinorLoss,
                               ThreeWayMinorLoss(uLabel, pDO, hf, 
 				      pNode0, pNode1, pNode2, 
-				      dKappa1, dKappa2, area1, area2, fOut), 
-			      DMmm);
+				      dKappa1, dKappa2, area1, area2, fOut));
        
        break;
     }
@@ -553,16 +550,14 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 			      Control_valve,
 			      Control_valve(uLabel, pDO, hf, 
 				      pNode1, pNode2, pNode3, pNode4, 
-				      area_max, loss_area, pDC, fOut), 
-			      DMmm);
+				      area_max, loss_area, pDC, fOut));
        break;
        case CONTROL_VALVE2:
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      Control_valve2,
 			      Control_valve2(uLabel, pDO, hf, 
 				      pNode1, pNode2, pNode3, pNode4, 
-				      area_max, loss_area, pDC, fOut), 
-			      DMmm);
+				      area_max, loss_area, pDC, fOut));
        break;
        }
        
@@ -706,8 +701,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 						    valve_diameter, 
 						    valve_density,
 						    c_spost, c_vel, c_acc,
-						    fOut), 
-			      DMmm);
+						    fOut));
        break;
     }
 
@@ -882,8 +876,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 						    valve_diameter, 
 						    valve_density,
 						    c_spost, c_vel, c_acc,
-						    fOut), 
-			      DMmm);
+						    fOut));
        break;
     }
       
@@ -1002,8 +995,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 					     area_diaf, mass, area_max, 
 					     s_max, Kappa, force0, width,
 					     c_spost, c_vel, c_acc,
-					     fOut), 
-			      DMmm);
+					     fOut));
        
        break;
     }
@@ -1145,8 +1137,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 					 area_diaf, mass,area_pipe, area_max,
 					 Kappa, force0, width, s_max,
 					 c_spost, c_vel, c_acc,
-					 fOut),
-			      DMmm);
+					 fOut));
        
        break;
     }
@@ -1234,8 +1225,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 			      Orifice(uLabel, pDO, hf, 
 				      pNode1, pNode2, 
 				      diameter, 
-				      area_diaf, area_pipe, ReCr, fOut),
-			      DMmm);
+				      area_diaf, area_pipe, ReCr, fOut));
        break;
     }
       
@@ -1417,8 +1407,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 					  mass,h_in, h_out,
 					  press0, press_max,
 					  Kappa, weight, spring, force0, 
-					  c_spost, c_vel, c_acc, fOut),
-			      DMmm);
+					  c_spost, c_vel, c_acc, fOut));
        break;
     }
       
@@ -1524,8 +1513,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 			      Tank,
 			      Tank (uLabel, pDO, hf, pNode1,pNode2, press,
 				    area_pipe, area_serb,
-				    level, s_max, s_min, c_spost, fOut),
-			      DMmm);
+				    level, s_max, s_min, c_spost, fOut));
        break;
     }
       
@@ -1610,8 +1598,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 			      Pipe,
 			      Pipe(uLabel, pDO, hf, pNode1, pNode2, 
 				   diameter, 
-				   area, lenght, turbulent, q0, fOut),
-			      DMmm);
+				   area, lenght, turbulent, q0, fOut));
        break;
     }
       
@@ -1696,15 +1683,13 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 			      Dynamic_pipe,
 			      Dynamic_pipe(uLabel, pDO, hf,
 					   pNode1, pNode2, diameter, 
-					   area, lenght, turbulent, q0, fOut),
-			      DMmm);
+					   area, lenght, turbulent, q0, fOut));
 #else
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      DynamicPipe,
 			      DynamicPipe(uLabel, pDO, hf,
 					   pNode1, pNode2, diameter, 
-					   area, lenght, turbulent, q0, fOut),
-			      DMmm);
+					   area, lenght, turbulent, q0, fOut));
 #endif
        break;
     }	   

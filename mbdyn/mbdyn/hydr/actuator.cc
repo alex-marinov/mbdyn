@@ -135,7 +135,7 @@ pNodeStr1(pN1), pNodeStr2(pN2), f1(f1Tmp), f2(f2Tmp)
 Actuator::~Actuator(void)
 {
    if (HF2 != NULL) {
-      SAFEDELETE(HF2, DMmm);
+      SAFEDELETE(HF2);
    }
 }
    

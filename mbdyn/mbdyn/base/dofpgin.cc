@@ -66,10 +66,7 @@ DofPlugIn::Read(int argc, char *argv[])
 		NodeDof nd(pNode->GetLabel(), iIndex-1, pNode);
 		pNode = NULL;
 		/* Chi dealloca questa memoria? ci vorrebbe l'handle */
-		SAFENEWWITHCONSTRUCTOR(pNode, 
-				       Node2Scalar, 
-				       Node2Scalar(nd), 
-				       DMmm);
+		SAFENEWWITHCONSTRUCTOR(pNode, Node2Scalar, Node2Scalar(nd));
 		cerr << "warning, possibly allocating a NodeDof that nobody"
 			" will delete until handles will be used" << endl;
 	} else {
@@ -101,7 +98,8 @@ DofPlugIn::ReadLabel(const char* s)
 	/*
 	 * deve essere terminato da ';' per essere letto da math parser :(
 	 */
-	SAFENEWARR(stmp, char, strlen(s)+2, DMmm);
+	int l = strlen(s)+2;
+	SAFENEWARR(stmp, char, l);
 	strcpy(stmp, s);
 	strcat(stmp, ";");
 #if defined(HAVE_SSTREAM)
@@ -111,7 +109,7 @@ DofPlugIn::ReadLabel(const char* s)
 #endif /* HAVE_STRSTREAM_H */
 	InputStream In(in);
 	rc = (unsigned int)mp.Get(In);
-	SAFEDELETEARR(stmp, DMmm);
+	SAFEDELETEARR(stmp);
 
 	return rc;
 }
@@ -175,10 +173,7 @@ MathParser::PlugIn *
 dof_plugin(MathParser& mp, void *arg)
 {
 	MathParser::PlugIn *p = NULL;
-	SAFENEWWITHCONSTRUCTOR(p,
-			       DofPlugIn,
-			       DofPlugIn(mp, (DataManager *)arg),
-			       DMmm);
+	SAFENEWWITHCONSTRUCTOR(p, DofPlugIn, DofPlugIn(mp, (DataManager *)arg));
 	return p;
 }
 

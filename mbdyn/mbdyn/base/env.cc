@@ -56,10 +56,11 @@ GetEnviron(MathParser& MP)
    	/* cerca la variabile MBDYNVARS */
    	char* p = NULL;
    	char* s = "VARS";
-   	SAFENEWARR(p, char, MBDYNPREFIXLEN+strlen(s)+1, MBDynMM);
+	int l = MBDYNPREFIXLEN+strlen(s)+1;
+   	SAFENEWARR(p, char, l);
    	sprintf(p, "%s%s", MBDYNPREFIX, s);
    	char* e = getenv(p);
-   	SAFEDELETEARR(p, MBDynMM);     
+   	SAFEDELETEARR(p);     
    
    	if (e != NULL) {
       		DEBUGCOUT("GetEnv: reading variable <" << e << ">" << endl);
@@ -85,7 +86,7 @@ GetEnviron(MathParser& MP)
 	 		char* v = NULL;
 	 		char* n = NULL;
 	 
-	 		SAFESTRDUP(p, *env, MBDynMM);
+	 		SAFESTRDUP(p, *env);
 	 		v = strchr(p, '=');
 	 		if (v == NULL) {
 	    			cerr << "parse error in envvar <" 

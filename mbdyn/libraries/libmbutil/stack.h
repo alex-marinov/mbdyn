@@ -53,13 +53,13 @@ template <class T> class Stack {
       while (p != NULL) {
 	 Tlist* pp = p;
 	 p = p->next;
-	 SAFEDELETE(pp, MPmm);
+	 SAFEDELETE(pp);
       }
    };
    
    void Push(const T& t) {
       Tlist* pp = NULL;
-      SAFENEWWITHCONSTRUCTOR(pp, Tlist, Tlist(t), MPmm);
+      SAFENEWWITHCONSTRUCTOR(pp, Tlist, Tlist(t));
       pp->next = p;
       p = pp;
    }
@@ -71,7 +71,7 @@ template <class T> class Stack {
       t = p->t;
       Tlist* pp = p;
       p = p->next;
-      SAFEDELETE(pp, MPmm);
+      SAFEDELETE(pp);
       return 1;
    };
 };

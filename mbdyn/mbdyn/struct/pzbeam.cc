@@ -152,7 +152,7 @@ iNumElec(iEl), pvElecDofs(pEDof), V(iEl)
 /* Distruttore banale */
 PiezoActuatorBeam::~PiezoActuatorBeam(void)
 {
-   SAFEDELETEARR(pvElecDofs, DMmm);
+   SAFEDELETEARR(pvElecDofs);
 }
 
     
@@ -394,7 +394,7 @@ iNumElec(iEl), pvElecDofs(pEDof), V(iEl)
 /* Distruttore banale */
 PiezoActuatorVEBeam::~PiezoActuatorVEBeam(void)
 {
-   SAFEDELETEARR(pvElecDofs, DMmm);
+   SAFEDELETEARR(pvElecDofs);
 }
 
     

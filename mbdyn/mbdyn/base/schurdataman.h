@@ -57,7 +57,7 @@ class SchurDataManager : public DataManager {
   class ErrGeneric {}; 
 
  private:
-  int iTotVertexs;               /* # totale dei vertici: nodi = elementi */ 
+  int iTotVertices;               /* # totale dei vertici: nodi = elementi */ 
   Elem** ppMyElems;                  /* Lista degli elementi assegnati a questo processo */
   
   int iNumLocElems;               /* # di elementi assegnati a questo processo */

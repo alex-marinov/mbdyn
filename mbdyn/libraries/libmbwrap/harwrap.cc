@@ -42,20 +42,7 @@
 
 #include <harwrap.h>
 
-/* HarwellLUSolver - begin */
-
-#ifdef DEBUG_MEMMANAGER
-clMemMan LUmm(sLUClassName);
-#endif
-
-/* HarwellLUSolver - end */
-
-
 /* HarwellSparseLUSolutionManager - begin: code */
-
-#ifdef DEBUG_MEMMANAGER
-clMemMan SMmm("HarwellSparseLUSolutionManager");
-#endif
 
 /* Costruttore */
 HarwellSparseLUSolutionManager::HarwellSparseLUSolutionManager(integer iSize, 
@@ -77,28 +64,25 @@ fHasBeenReset(1)
    	}
       
    	/* Alloca arrays */
-   	SAFENEWARR(piRow, integer, iWorkSpaceSize, SMmm);
-   	SAFENEWARR(piCol, integer, iWorkSpaceSize, SMmm);
-   	SAFENEWARR(pdMat, doublereal, iWorkSpaceSize, SMmm);
-   	SAFENEWARR(pdVec, doublereal, iMatSize, SMmm);
+   	SAFENEWARR(piRow, integer, iWorkSpaceSize);
+   	SAFENEWARR(piCol, integer, iWorkSpaceSize);
+   	SAFENEWARR(pdMat, doublereal, iWorkSpaceSize);
+   	SAFENEWARR(pdVec, doublereal, iMatSize);
    
    	/* Alloca handlers ecc. */
    	SAFENEWWITHCONSTRUCTOR(pMH, 
 			       SparseMatrixHandler,
 			       SparseMatrixHandler(iMatSize, &piRow, 
 			       			   &piCol, &pdMat,
-			       			   iWorkSpaceSize), 
-			       SMmm);
+			       			   iWorkSpaceSize));
    	SAFENEWWITHCONSTRUCTOR(pVH,
 			       MyVectorHandler,
-			       MyVectorHandler(iMatSize, pdVec),
-			       SMmm);
+			       MyVectorHandler(iMatSize, pdVec));
    	SAFENEWWITHCONSTRUCTOR(pLU, 
 			       HarwellLUSolver,
 			       HarwellLUSolver(iMatSize, iWorkSpaceSize,
 			       		       &piRow, &piCol, 
-					       &pdMat, pdVec, dPivotFactor),
-			       SMmm);
+					       &pdMat, pdVec, dPivotFactor));
    
 #ifdef DEBUG
    	IsValid();
@@ -115,27 +99,27 @@ HarwellSparseLUSolutionManager::~HarwellSparseLUSolutionManager(void)
    
    	/* Dealloca oggetti strani */
    	if (pLU != NULL) {	
-      		SAFEDELETE(pLU, SMmm);
+      		SAFEDELETE(pLU);
    	}
    	if (pVH != NULL) {      
-      		SAFEDELETE(pVH, SMmm);
+      		SAFEDELETE(pVH);
    	}
    	if (pMH != NULL) {
-      		SAFEDELETE(pMH, SMmm);
+      		SAFEDELETE(pMH);
    	}
    
    	/* Dealloca arrays */
    	if (pdVec != NULL) {	
-      		SAFEDELETEARR(pdVec, SMmm);
+      		SAFEDELETEARR(pdVec);
    	}
    	if (pdMat != NULL) {	
-      		SAFEDELETEARR(pdMat, SMmm);
+      		SAFEDELETEARR(pdMat);
    	}
    	if (piCol != NULL) {	
-      		SAFEDELETEARR(piCol, SMmm);
+      		SAFEDELETEARR(piCol);
    	}
    	if (piRow != NULL) {	
-      		SAFEDELETEARR(piRow, SMmm);
+      		SAFEDELETEARR(piRow);
    	}
 }
 

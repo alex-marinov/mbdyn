@@ -281,7 +281,7 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	DEBUGLCOUT(MYDEBUG_INPUT, "NPDMR=" << NPDMR 
 		   << " (remark: \"" << s << "\")" << endl);
 	
-	SAFENEWARR(TBDMR, doublereal, 2*NPDMR, DMmm);
+	SAFENEWARR(TBDMR, doublereal, 2*NPDMR);
 	
 	for (integer i = 0; i < NPDMR; i++) {
 	   in >> TBDMR[i];
@@ -307,7 +307,7 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	DEBUGLCOUT(MYDEBUG_INPUT, "NPDMA=" << NPDMA 
 		   << " (remark: \"" << s << "\")" << endl);
 	
-	SAFENEWARR(TBDMA, doublereal, 2*NPDMA, DMmm);
+	SAFENEWARR(TBDMA, doublereal, 2*NPDMA);
 	
 	for (integer i = 0; i < NPDMA; i++) {
 	   in >> TBDMA[i];
@@ -332,7 +332,7 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	DEBUGLCOUT(MYDEBUG_INPUT, "NPCVR=" << NPCVR 
 		   << " (remark: \"" << s << "\")" << endl);
 	
-	SAFENEWARR(TBCVR, doublereal, 2*NPCVR, DMmm);
+	SAFENEWARR(TBCVR, doublereal, 2*NPCVR);
 	
 	for (integer i = 0; i < NPCVR; i++) {
 	   in >> TBCVR[i];
@@ -357,7 +357,7 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	DEBUGLCOUT(MYDEBUG_INPUT, "NPCVA=" << NPCVA 
 		   << " (remark: \"" << s << "\")" << endl);
 	
-	SAFENEWARR(TBCVA, doublereal, 2*NPCVA, DMmm);
+	SAFENEWARR(TBCVA, doublereal, 2*NPCVA);
 	
 	for (integer i = 0; i < NPCVA; i++) {
 	   in >> TBCVA[i];
@@ -382,7 +382,7 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	DEBUGLCOUT(MYDEBUG_INPUT, "NPVT=" << NPVT 
 		   << " (remark: \"" << s << "\")" << endl);
 	
-	SAFENEWARR(VETVIS, doublereal, 2*NPVT, DMmm);
+	SAFENEWARR(VETVIS, doublereal, 2*NPVT);
 	
 	for (integer i = 0; i < NPVT; i++) {
 	   in >> VETVIS[i];
@@ -404,11 +404,11 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
      };
 
    virtual ~GRAALLDamperConstitutiveLaw(void) {
-      SAFEDELETEARR(VETVIS, DMmm);
-      SAFEDELETEARR(TBCVA, DMmm);
-      SAFEDELETEARR(TBCVR, DMmm);
-      SAFEDELETEARR(TBDMA, DMmm);
-      SAFEDELETEARR(TBDMR, DMmm);
+      SAFEDELETEARR(VETVIS);
+      SAFEDELETEARR(TBCVA);
+      SAFEDELETEARR(TBCVR);
+      SAFEDELETEARR(TBDMA);
+      SAFEDELETEARR(TBDMR);
    };
   
    virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {

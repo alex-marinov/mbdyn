@@ -566,14 +566,14 @@ NamedValue::NamedValue(const char *const s)
 NamedValue::~NamedValue(void)
 {
 	ASSERT(name != NULL);
-	SAFEDELETEARR(name, MPmm);
+	SAFEDELETEARR(name);
 }
 
 void 
 NamedValue::AllocName(const char* const s)
 {
    ASSERT(s != NULL);
-   SAFESTRDUP(name, s, MPmm);  
+   SAFESTRDUP(name, s);  
 }
 
 int 
@@ -686,7 +686,7 @@ MathParser::PlugInVar::PlugInVar(const char *const s, MathParser::PlugIn *p)
 MathParser::PlugInVar::~PlugInVar(void)
 {
 	if (pgin) {
-		SAFEDELETE(pgin, MPmm);
+		SAFEDELETE(pgin);
 	}
 }
 
@@ -750,7 +750,7 @@ MathParser::TokenList::TokenList(Token t)
 MathParser::TokenList::TokenList(const char* const s) 
 : t(NAME), value(Real(0)), name(NULL), next(NULL) 
 {
-   SAFESTRDUP(name, s, MPmm);
+   SAFESTRDUP(name, s);
 }
       
 MathParser::TokenList::TokenList(const TypedValue& v) 
@@ -762,7 +762,7 @@ MathParser::TokenList::TokenList(const TypedValue& v)
 MathParser::TokenList::~TokenList(void) 
 {
    if (t == NAME) {
-      SAFEDELETEARR(name, MPmm);
+      SAFEDELETEARR(name);
    }
 }
    
@@ -771,11 +771,11 @@ MathParser::TokenPush(enum Token t)
 {
    TokenList* p = NULL;
    if (t == NUM) {	 
-      SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(value), MPmm);
+      SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(value));
    } else if (t == NAME) {      
-      SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(namebuf), MPmm);
+      SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(namebuf));
    } else {      
-      SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(t), MPmm);
+      SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(t));
    }      
    p->next = tokenlist;
    tokenlist = p;
@@ -797,7 +797,7 @@ MathParser::TokenPop(void)
    }
    TokenList* p = tokenlist;
    tokenlist = tokenlist->next;
-   SAFEDELETE(p, MPmm);
+   SAFEDELETE(p);
    
    return 1;
 }
@@ -823,16 +823,16 @@ MathParser::NewVar(const char* const s, TypedValue::Type t, const Real& d)
    Var* v = NULL;
    switch (t) {
     case TypedValue::VAR_INT:
-      SAFENEWWITHCONSTRUCTOR(v, Var, Var(s, Int(d)), MPmm);
+      SAFENEWWITHCONSTRUCTOR(v, Var, Var(s, Int(d)));
       break;
     case TypedValue::VAR_REAL:
-      SAFENEWWITHCONSTRUCTOR(v, Var, Var(s, d), MPmm);
+      SAFENEWWITHCONSTRUCTOR(v, Var, Var(s, d));
       break;
     default: 
       THROW(TypedValue::ErrUnknownType());
    }
    VarList* p = NULL;
-   SAFENEW(p, VarList, MPmm);
+   SAFENEW(p, VarList);
    p->var = v;
    p->next = varlist;
    varlist = p;
@@ -1063,10 +1063,10 @@ MathParser::IncNameBuf(void)
    int oldlen = namebuflen;
    namebuflen *= 2;
    char* s = NULL;
-   SAFENEWARR(s, char, (namebuflen+1), MPmm);
+   SAFENEWARR(s, char, namebuflen+1);
    strncpy(s, namebuf, oldlen);
    s[oldlen] = '\0';
-   SAFEDELETEARR(namebuf, MPmm);
+   SAFEDELETEARR(namebuf);
    namebuf = s;
 }
 
@@ -1382,7 +1382,7 @@ MathParser::stmt(void)
 	 if (GetToken() == ASSIGN) {
 	    /* faccio una copia del nome! */
 	    char* varname = NULL;
-	    SAFESTRDUP(varname, namebuf, MPmm);
+	    SAFESTRDUP(varname, namebuf);
 	    
 	    GetToken();
 	    TypedValue d = logical();
@@ -1411,7 +1411,7 @@ MathParser::stmt(void)
 	       }
 	    }
 	    /* distruggo il temporaneo */
-	    SAFEDELETEARR(varname, MPmm);
+	    SAFEDELETEARR(varname);
 	    return v->GetVal();
 	    
 	 } else if (currtoken == STMTSEP) {
@@ -1469,7 +1469,7 @@ MathParser::readplugin(void)
 	/*
 	 * inizializzo l'array degli argomenti
 	 */
-	SAFENEWARR(argv, char *, 1, MPmm);
+	SAFENEWARR(argv, char *, 1);
 	argv[0] = NULL;
 
 	/*
@@ -1525,12 +1525,12 @@ MathParser::readplugin(void)
 			buf[i] = '\0';
 			tmp = argv;
 			argv = NULL;
-			SAFENEWARR(argv, char *, argc+2, MPmm);
+			SAFENEWARR(argv, char *, argc+2);
 			memcpy(argv, tmp, sizeof(char *)*argc);
-			SAFEDELETEARR(tmp, MPmm);
+			SAFEDELETEARR(tmp);
 			argv[argc] = NULL;
 			trim_arg(buf);
-			SAFESTRDUP(argv[argc], buf, MPmm);
+			SAFESTRDUP(argv[argc], buf);
 			++argc;
 			argv[argc] = NULL;
 			if (c == ']') {
@@ -1624,16 +1624,16 @@ last_arg:
 		 * e ne ritorna il valore (prima esecuzione)
 		 */
 		SAFENEWWITHCONSTRUCTOR(v, PlugInVar,
-				PlugInVar(varname, pgin), MPmm);
+				PlugInVar(varname, pgin));
 		table.Put(v);
 
 		/*
 		 * pulizia ...
 		 */
 		for (int i = 0; argv[i] != NULL; i++) {
-			SAFEDELETEARR(argv[i], MPmm);
+			SAFEDELETEARR(argv[i]);
 		}
-		SAFEDELETEARR(argv, MPmm);
+		SAFEDELETEARR(argv);
 	
 		return v->GetVal();
 	}
@@ -1673,7 +1673,7 @@ powerstack()
 {
    DEBUGCOUTFNAME("MathParser::MathParser");
    
-   SAFENEWARR(namebuf, char, (namebuflen+1), MPmm);
+   SAFENEWARR(namebuf, char, namebuflen+1);
    
    time_t tm;
    time(&tm);
@@ -1694,7 +1694,7 @@ powerstack()
 {
    DEBUGCOUTFNAME("MathParser::MathParser");
 
-   SAFENEWARR(namebuf, char, (namebuflen+1), MPmm);
+   SAFENEWARR(namebuf, char, namebuflen+1);
    
    time_t tm;
    time(&tm);
@@ -1774,7 +1774,7 @@ MathParser::~MathParser(void)
    DEBUGCOUTFNAME("MathParser::~MathParser");
 
    if (namebuf != NULL) {
-      SAFEDELETEARR(namebuf, MPmm);
+      SAFEDELETEARR(namebuf);
    }
 }
      
@@ -1854,8 +1854,8 @@ int
 MathParser::RegisterPlugIn(const char *name, MathParser::PlugIn * (*constructor)(MathParser&, void *), void *arg)
 {
    PlugInRegister *p = NULL;
-   SAFENEW(p, PlugInRegister, MPmm);
-   SAFESTRDUP(p->name, name, MPmm);
+   SAFENEW(p, PlugInRegister);
+   SAFESTRDUP(p->name, name);
    p->constructor = constructor;
    p->arg = arg;
    p->next = PlugIns;

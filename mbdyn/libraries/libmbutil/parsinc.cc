@@ -51,17 +51,17 @@ sCurrFile(NULL)
 {   
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
    	char* s = NULL;
-   	SAFENEWARR(s, char, PATHBUFSIZE, MPmm);
+   	SAFENEWARR(s, char, PATHBUFSIZE);
    	sCurrPath = getcwd(s, PATHBUFSIZE);
    	if (sCurrPath == NULL) {
       		cerr << "Error in getcwd()" << endl;
-      		SAFEDELETEARR(s, MPmm);
+      		SAFEDELETEARR(s);
       		THROW(ErrFileSystem());
    	}
    	DEBUGCOUT("Current directory is <" << sCurrPath << '>' << endl);
    
    	const char sInitialFile[] = "initial file";
-   	SAFESTRDUP(sCurrFile, sInitialFile, MPmm);
+   	SAFESTRDUP(sCurrFile, sInitialFile);
 #else /* !defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
    	NO_OP;
 #endif /* !defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
@@ -87,20 +87,20 @@ void IncludeParser::Close(void)
       		ASSERT(sCurrFile != NULL);
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
       		if (pf != NULL) {
-	 		SAFEDELETE(pf, MPmm);
+	 		SAFEDELETE(pf);
       		}
       		if (pIn != NULL) {
-	 		SAFEDELETE(pIn, MPmm);
+	 		SAFEDELETE(pIn);
       		}
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
       		DEBUGCOUT("Leaving directory <" << sCurrPath 
 			<< ">, file <" << sCurrFile << '>' << endl);
       		if (sCurrPath != NULL) {
-	 		SAFEDELETEARR(sCurrPath, MPmm);
+	 		SAFEDELETEARR(sCurrPath);
 	 		sCurrPath = NULL;
       		}
       		if (sCurrFile != NULL) {
-	 		SAFEDELETEARR(sCurrFile, MPmm);
+	 		SAFEDELETEARR(sCurrFile);
 	 		sCurrFile = NULL;
       		}
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
@@ -119,17 +119,17 @@ void IncludeParser::Close(void)
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
 
       		/* pmi must be non NULL */
-      		SAFEDELETE(pmi, MPmm);     
+      		SAFEDELETE(pmi);     
    	}
    
    	/* sCurrPath can be NULL if Close() has been already called */
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
    	if (sCurrPath != NULL) {
-      		SAFEDELETEARR(sCurrPath, MPmm);
+      		SAFEDELETEARR(sCurrPath);
       		sCurrPath = NULL;
    	}
    	if (sCurrFile != NULL) {
-      		SAFEDELETEARR(sCurrFile, MPmm);
+      		SAFEDELETEARR(sCurrFile);
       		sCurrFile = NULL;
    	}
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
@@ -153,14 +153,14 @@ IncludeParser::fCheckStack(void)
       		ASSERT(sCurrFile != NULL);
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
       
-      		SAFEDELETE(pf, MPmm); 
-      		SAFEDELETE(pIn, MPmm);
+      		SAFEDELETE(pf); 
+      		SAFEDELETE(pIn);
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
       		DEBUGCOUT("Leaving directory <" << sCurrPath 
 			<< ">, file <" << sCurrFile << '>' << endl);
-      		SAFEDELETEARR(sCurrPath, MPmm);
+      		SAFEDELETEARR(sCurrPath);
       		sCurrPath = NULL;
-      		SAFEDELETEARR(sCurrFile, MPmm);
+      		SAFEDELETEARR(sCurrFile);
       		sCurrFile = NULL;
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
       
@@ -177,7 +177,7 @@ IncludeParser::fCheckStack(void)
       		}
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
       
-      		SAFEDELETE(pmi, MPmm);
+      		SAFEDELETE(pmi);
       		return flag(1);
    	} else {
       		return flag(0);
@@ -200,15 +200,14 @@ IncludeParser::Include_()
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
    	SAFENEWWITHCONSTRUCTOR(pmi, 
 			       MyInput,
-			       MyInput(pf, pIn, sCurrPath, sCurrFile),
-			       MPmm);
+			       MyInput(pf, pIn, sCurrPath, sCurrFile));
 #else /* !defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
-   	SAFENEWWITHCONSTRUCTOR(pmi, MyInput, MyInput(pf, pIn), MPmm);
+   	SAFENEWWITHCONSTRUCTOR(pmi, MyInput, MyInput(pf, pIn));
 #endif /* !defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
    	MyInStack.Push(pmi);
    
    	pf = NULL;
-   	SAFENEWWITHCONSTRUCTOR(pf, ifstream, ifstream(sfname), MPmm);
+   	SAFENEWWITHCONSTRUCTOR(pf, ifstream, ifstream(sfname));
    	if (!(*pf)) {
 #ifdef DEBUG
 		char *buf = getcwd(NULL, 0);
@@ -222,14 +221,14 @@ IncludeParser::Include_()
    	}
    
    	pIn = NULL;
-   	SAFENEWWITHCONSTRUCTOR(pIn, InputStream, InputStream(*pf), MPmm);
+   	SAFENEWWITHCONSTRUCTOR(pIn, InputStream, InputStream(*pf));
    
    	/* Cambio di directory */
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
    	sCurrPath = NULL;
    	sCurrFile = NULL;
    	char* stmp = NULL;
-   	SAFESTRDUP(stmp, sfname, MPmm);
+   	SAFESTRDUP(stmp, sfname);
    	char* s = (char*)stmp+strlen(sfname);
    	while (--s >= stmp) {
       		if (s[0] == '/') {
@@ -241,11 +240,11 @@ IncludeParser::Include_()
 	    			THROW(ErrFileSystem());
 	 		}	 
 	 		char* p = NULL;
-	 		SAFENEWARR(p, char, PATHBUFSIZE, MPmm);
+	 		SAFENEWARR(p, char, PATHBUFSIZE);
 	 		sCurrPath = getcwd(p, PATHBUFSIZE);
 	 		if (sCurrPath == NULL) {
 	    			cerr << "Error in getcwd()" << endl;
-	    			SAFEDELETEARR(s, MPmm);
+	    			SAFEDELETEARR(s);
 	    			THROW(ErrFileSystem());
 	 		}
 	 		DEBUGCOUT("Current directory is <" << sCurrPath 
@@ -256,19 +255,19 @@ IncludeParser::Include_()
       		}
    	}
    	s++;
-   	SAFESTRDUP(sCurrFile, s, MPmm);
+   	SAFESTRDUP(sCurrFile, s);
    	DEBUGCOUT("Opening file <" << sCurrFile << '>' << endl);
       
-   	SAFEDELETEARR(stmp, MPmm);
+   	SAFEDELETEARR(stmp);
    
    	if (sCurrPath == NULL) {
       		char* s = NULL;
       
-      		SAFENEWARR(s, char, PATHBUFSIZE, MPmm);
+      		SAFENEWARR(s, char, PATHBUFSIZE);
       		sCurrPath = getcwd(s, PATHBUFSIZE);
       		if (sCurrPath == NULL) {
 	 		cerr << "Error in getcwd()" << endl;
-	 		SAFEDELETEARR(s, MPmm);
+	 		SAFEDELETEARR(s);
 	 		THROW(ErrFileSystem());
       		}
       		DEBUGCOUT("Current directory is <" << sCurrPath 
@@ -344,10 +343,11 @@ resolve_filename(const char *filename)
 	 		}
 	 
 	 		char *s = NULL;
-	 		int l;
+	 		int l, ll;
 	 
 	 		l = strlen(home);
-	 		SAFENEWARR(s, char, l+strlen(filename)+1, MPmm);
+			ll = l+strlen(filename)+1;
+	 		SAFENEWARR(s, char, ll);
 	 
 	 		strncpy(s, home, l);
 	 		strcpy(s+l, filename);
@@ -364,7 +364,7 @@ resolve_filename(const char *filename)
 	 		char *s = NULL;
 	 		int l = p-filename;
 	 
-	 		SAFENEWARR(s, char, l+1, MPmm);
+	 		SAFENEWARR(s, char, l+1);
 	 		strncpy(s, filename, l);
 	 		s[l] = '\0';
 	 
@@ -372,15 +372,16 @@ resolve_filename(const char *filename)
 	 		struct passwd *pw;
 	 
 	 		pw = getpwnam(s);
-	 		SAFEDELETEARR(s, MPmm);
+	 		SAFEDELETEARR(s);
 	 
 	 		if (pw == NULL ) {
 	    			return NULL;
 	 		}
 	 
 	 		l = strlen(pw->pw_dir);
+			int ll = l+strlen(p)+1;
 	 		s = NULL;
-	 		SAFENEWARR(s, char, l+strlen(p)+1, MPmm);
+	 		SAFENEWARR(s, char, ll);
 	 		strncpy(s, pw->pw_dir, l);
 	 		strcpy(s+l, p);
 	 
@@ -407,7 +408,7 @@ IncludeParser::GetFileName(enum Delims Del)
       		} else {
 	 		strcpy(sStringBuf, stmp);
       		}
-      		SAFEDELETEARR(stmp, MPmm);
+      		SAFEDELETEARR(stmp);
    	}
 	
    	return sStringBuf;

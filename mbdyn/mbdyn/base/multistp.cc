@@ -166,10 +166,10 @@ dPivotFactor(1.)
 	DEBUGCOUTFNAME("MultiStepIntegrator::MultiStepIntegrator");
 
 	if (sInFName != NULL) {
-		SAFESTRDUP(sInputFileName, sInFName, DMmm);
+		SAFESTRDUP(sInputFileName, sInFName);
 	}
 	if (sOutFName != NULL) {
-		SAFESTRDUP(sOutputFileName, sOutFName, DMmm);
+		SAFESTRDUP(sOutputFileName, sOutFName);
 	}
 
    	/* Legge i dati relativi al metodo di integrazione */
@@ -189,8 +189,7 @@ MultiStepIntegrator::Run(void)
 			       		   dInitialTime, 
 					   sInputFileName,
 					   sOutputFileName,
-					   fAbortAfterInput),
-			       SMmm);
+					   fAbortAfterInput));
 
    	/* Si fa dare l'ostream al file di output per il log */
    	ostream& Out = pDM->GetOutFile();
@@ -219,35 +218,29 @@ MultiStepIntegrator::Run(void)
    	iNumDofs = pDM->iGetNumDofs();
    	ASSERT(iNumDofs > 0);        
    
-   	SAFENEWARR(pdWorkSpace, doublereal, 6*iNumDofs, SMmm);   
+   	SAFENEWARR(pdWorkSpace, doublereal, 6*iNumDofs);
    	SAFENEWWITHCONSTRUCTOR(pXCurr,
 			       MyVectorHandler,
-			       MyVectorHandler(iNumDofs, pdWorkSpace),
-			       SMmm);
+			       MyVectorHandler(iNumDofs, pdWorkSpace));
    	SAFENEWWITHCONSTRUCTOR(pXPrimeCurr, 
 			       MyVectorHandler,
-			       MyVectorHandler(iNumDofs, pdWorkSpace+iNumDofs),
-			       SMmm);
+			       MyVectorHandler(iNumDofs, pdWorkSpace+iNumDofs));
    	SAFENEWWITHCONSTRUCTOR(pXPrev, 
 			       MyVectorHandler,
 			       MyVectorHandler(iNumDofs,
-			       		       pdWorkSpace+2*iNumDofs),
-			       SMmm);
+			       		       pdWorkSpace+2*iNumDofs));
    	SAFENEWWITHCONSTRUCTOR(pXPrimePrev,
 			       MyVectorHandler,
 			       MyVectorHandler(iNumDofs,
-			       		       pdWorkSpace+3*iNumDofs),
-			       SMmm);
+			       		       pdWorkSpace+3*iNumDofs));
    	SAFENEWWITHCONSTRUCTOR(pXPrev2, 
 			       MyVectorHandler,
 			       MyVectorHandler(iNumDofs,
-			       		       pdWorkSpace+4*iNumDofs),
-			       SMmm);
+			       		       pdWorkSpace+4*iNumDofs));
    	SAFENEWWITHCONSTRUCTOR(pXPrimePrev2, 
 			       MyVectorHandler,
 			       MyVectorHandler(iNumDofs,
-			       		       pdWorkSpace+5*iNumDofs),
-			       SMmm);
+			       		       pdWorkSpace+5*iNumDofs));
    
    	/* Resetta i vettori */
    	pXCurr->Reset(0.);
@@ -271,8 +264,7 @@ MultiStepIntegrator::Run(void)
 			Y12SparseLUSolutionManager,
 			Y12SparseLUSolutionManager(iNumDofs,
 						   iWorkSpaceSize,
-						   dPivotFactor),
-			               SMmm);
+						   dPivotFactor));
       		break;
 #else /* !USE_Y12 */
       		cerr << "Configure with --with-y12 "
@@ -286,8 +278,7 @@ MultiStepIntegrator::Run(void)
 			MeschachSparseLUSolutionManager,
 			MeschachSparseLUSolutionManager(iNumDofs,
 						        iWorkSpaceSize,
-							dPivotFactor),
-				       SMmm);
+							dPivotFactor));
       		break;
 #else /* !USE_MESCHACH */
       		cerr << "Configure with --with-meschach "
@@ -302,8 +293,7 @@ MultiStepIntegrator::Run(void)
 			HarwellSparseLUSolutionManager,
 			HarwellSparseLUSolutionManager(iNumDofs,
 						       iWorkSpaceSize,
-						       dPivotFactor),
-				       SMmm);
+						       dPivotFactor));
       		break;
 #else /* !USE_HARWELL */
       		cerr << "Configure with --with-harwell "
@@ -1160,47 +1150,47 @@ MultiStepIntegrator::~MultiStepIntegrator(void)
    	DEBUGCOUTFNAME("MultiStepIntegrator::~MultiStepIntegrator");
 
    	if (sInputFileName != NULL) {
-      		SAFEDELETEARR(sInputFileName, SMmm);
+      		SAFEDELETEARR(sInputFileName);
    	}
    
    	if (sOutputFileName != NULL) {
-      		SAFEDELETEARR(sOutputFileName, SMmm);
+      		SAFEDELETEARR(sOutputFileName);
    	}
    
    	if (pSM != NULL)  {
-      		SAFEDELETE(pSM, SMmm);
+      		SAFEDELETE(pSM);
    	}
 
    	if (pXPrimePrev2 != NULL) {	
-      		SAFEDELETE(pXPrimePrev2, SMmm);
+      		SAFEDELETE(pXPrimePrev2);
    	}
    
    	if (pXPrev2 != NULL) {	
-      		SAFEDELETE(pXPrev2, SMmm);
+      		SAFEDELETE(pXPrev2);
    	}
    
-   	if (pXPrimePrev != NULL) {	
-      		SAFEDELETE(pXPrimePrev, SMmm);
+   	if (pXPrimePrev != NULL) {
+      		SAFEDELETE(pXPrimePrev);
    	}
    
    	if (pXPrev != NULL) {	
-      		SAFEDELETE(pXPrev, SMmm);
+      		SAFEDELETE(pXPrev);
    	}
    
    	if (pXPrimeCurr != NULL) {	
-      		SAFEDELETE(pXPrimeCurr, SMmm);
+      		SAFEDELETE(pXPrimeCurr);
    	}
    
    	if (pXCurr != NULL) {	
-      		SAFEDELETE(pXCurr, SMmm);
+      		SAFEDELETE(pXCurr);
    	}
       
    	if (pdWorkSpace != NULL) {	
-      		SAFEDELETEARR(pdWorkSpace, SMmm);
+      		SAFEDELETEARR(pdWorkSpace);
    	}
       
    	if (pDM != NULL) {	
-      		SAFEDELETE(pDM, SMmm);
+      		SAFEDELETE(pDM);
    	}
 }
 
@@ -1780,8 +1770,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  		switch (KMethod) {
 	   		case CRANKNICHOLSON:
 	      			SAFENEW(pMethod,
-		      			CrankNicholson, /* no constructor */
-		      			DMmm);
+		      			CrankNicholson); /* no constructor */
 	      			break;
 			
 	   		case NOSTRO:
@@ -1800,15 +1789,13 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		  			SAFENEWWITHCONSTRUCTOR(pMethod,
 					 	NostroMetodo,
 					 	NostroMetodo(pRho,
-							     pRhoAlgebraic),
-							       DMmm);
+							     pRhoAlgebraic));
 		  			break;
 		 
 	       			case HOPE:	      
 		  			SAFENEWWITHCONSTRUCTOR(pMethod,
 					 	Hope,
-						Hope(pRho, pRhoAlgebraic),
-					 		       DMmm);
+						Hope(pRho, pRhoAlgebraic));
 		  			break;
 					
 	       			default:
@@ -1838,8 +1825,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  switch (KMethod) {
 	   case CRANKNICHOLSON: {	      
 	      SAFENEW(pFictitiousStepsMethod,
-		      CrankNicholson, /* no constructor */
-		      DMmm);
+		      CrankNicholson); /* no constructor */
 	      break;
 	   }
 	   case NOSTRO:
@@ -1856,16 +1842,14 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	       case MS: {
 		  SAFENEWWITHCONSTRUCTOR(pFictitiousStepsMethod,
 					 NostroMetodo,
-					 NostroMetodo(pRho, pRhoAlgebraic),
-					 DMmm);
+					 NostroMetodo(pRho, pRhoAlgebraic));
 		  break;
 	       }
 		 
 	       case HOPE: {	      
 		  SAFENEWWITHCONSTRUCTOR(pFictitiousStepsMethod,
 					 Hope,
-					 Hope(pRho, pRhoAlgebraic),
-					 DMmm);
+					 Hope(pRho, pRhoAlgebraic));
 		  break;
 	       }
 	       default:
@@ -2226,21 +2210,18 @@ EndOfCycle: /* esce dal ciclo di lettura */
       
       DriveCaller* pRho = NULL;
       SAFENEWWITHCONSTRUCTOR(pRho,
-			     NullDriveCaller,
-			     NullDriveCaller(NULL),
-			     DMmm);
+		             NullDriveCaller,
+			     NullDriveCaller(NULL));
       
       /* DriveCaller per Rho asintotico per variabili algebriche */     
       DriveCaller* pRhoAlgebraic = NULL;
       SAFENEWWITHCONSTRUCTOR(pRhoAlgebraic,
 			     NullDriveCaller,
-			     NullDriveCaller(NULL),
-			     DMmm);
+			     NullDriveCaller(NULL));
       
       SAFENEWWITHCONSTRUCTOR(pMethod,
 			     NostroMetodo,
-			     NostroMetodo(pRho, pRhoAlgebraic),
-			     DMmm);
+			     NostroMetodo(pRho, pRhoAlgebraic));
    }
 
    /* Metodo di integrazione di default */
@@ -2250,20 +2231,17 @@ EndOfCycle: /* esce dal ciclo di lettura */
       DriveCaller* pRho = NULL;
       SAFENEWWITHCONSTRUCTOR(pRho,
 			     NullDriveCaller,
-			     NullDriveCaller(NULL),
-			     DMmm);
+			     NullDriveCaller(NULL));
                  
       /* DriveCaller per Rho asintotico per variabili algebriche */     
       DriveCaller* pRhoAlgebraic = NULL;
       SAFENEWWITHCONSTRUCTOR(pRhoAlgebraic,
 			     NullDriveCaller,
-			     NullDriveCaller(NULL),
-			     DMmm);
+			     NullDriveCaller(NULL));
       
       SAFENEWWITHCONSTRUCTOR(pFictitiousStepsMethod,
 			     NostroMetodo,
-			     NostroMetodo(pRho, pRhoAlgebraic),
-			     DMmm);
+			     NostroMetodo(pRho, pRhoAlgebraic));
    }
    
    return;
@@ -2346,14 +2324,14 @@ MultiStepIntegrator::Eig(void)
    /* 4 matrices iSize x iSize, 3 vectors iSize x 1, 1 vector iWorkSize x 1 */
    doublereal* pd = NULL;
    int iTmpSize = 4*(iSize*iSize)+3*iSize+iWorkSize;
-   SAFENEWARR(pd, doublereal, iTmpSize, SMmm);
+   SAFENEWARR(pd, doublereal, iTmpSize);
    for (int iCnt = iTmpSize; iCnt-- > 0; ) {
       pd[iCnt] = 0.;
    }
       
    /* 4 pointer arrays iSize x 1 for the matrices */
    doublereal** ppd = NULL;
-   SAFENEWARR(ppd, doublereal*, 4*iSize, SMmm);
+   SAFENEWARR(ppd, doublereal*, 4*iSize);
 
    /* Data Handlers */
    doublereal* pdTmp = pd;
@@ -2639,8 +2617,8 @@ MultiStepIntegrator::Eig(void)
 #endif /* __HACK_NASTRAN_MODES__ */      
 
    /* Non puo' arrivare qui se le due aree di lavoro non sono definite */
-   SAFEDELETEARR(pd, SMmm);
-   SAFEDELETEARR(ppd, SMmm);
+   SAFEDELETEARR(pd);
+   SAFEDELETEARR(ppd);
 }
 
 #endif /* __HACK_EIG__ */

@@ -50,7 +50,7 @@ StringDriveCaller::StringDriveCaller(const DriveHandler* pDH,
 {
    ASSERT(sTmpStr != NULL);
    iEvalStrLen = strlen(sTmpStr);
-   SAFESTRDUP(sEvalStr, sTmpStr, DMmm);
+   SAFESTRDUP(sEvalStr, sTmpStr);
 }
 
 
@@ -58,7 +58,7 @@ StringDriveCaller::~StringDriveCaller(void)
 {
    ASSERT(sEvalStr != NULL);
    if (sEvalStr != NULL) {
-      SAFEDELETEARR(sEvalStr, DMmm);
+      SAFEDELETEARR(sEvalStr);
    }
 }
 
@@ -69,8 +69,7 @@ DriveCaller* StringDriveCaller::pCopy(void) const
    DriveCaller* pDC = NULL;
    SAFENEWWITHCONSTRUCTOR(pDC, 
 			  StringDriveCaller, 
-			  StringDriveCaller(pDrvHdl, sEvalStr), 
-			  DMmm);
+			  StringDriveCaller(pDrvHdl, sEvalStr));
    
    return pDC;
 }
@@ -104,7 +103,7 @@ TimeDriveCaller::~TimeDriveCaller(void)
 DriveCaller* TimeDriveCaller::pCopy(void) const
 {
    DriveCaller* pDC = NULL;
-   SAFENEWWITHCONSTRUCTOR(pDC, TimeDriveCaller, TimeDriveCaller(pDrvHdl), DMmm);
+   SAFENEWWITHCONSTRUCTOR(pDC, TimeDriveCaller, TimeDriveCaller(pDrvHdl));
    
    return pDC;
 }
@@ -138,7 +137,7 @@ ConstDriveCaller::~ConstDriveCaller(void)
 DriveCaller* ConstDriveCaller::pCopy(void) const
 {
    DriveCaller* pDC = NULL;
-   SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(pDrvHdl, dConst), DMmm);
+   SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(pDrvHdl, dConst));
    
    return pDC;
 }
@@ -173,7 +172,7 @@ LinearDriveCaller::~LinearDriveCaller(void)
 DriveCaller* LinearDriveCaller::pCopy(void) const
 {
    DriveCaller* pDC = NULL;
-   SAFENEWWITHCONSTRUCTOR(pDC, LinearDriveCaller, LinearDriveCaller(pDrvHdl, dC0, dC1), DMmm);
+   SAFENEWWITHCONSTRUCTOR(pDC, LinearDriveCaller, LinearDriveCaller(pDrvHdl, dC0, dC1));
    
    return pDC;
 }
@@ -210,7 +209,7 @@ ParabolicDriveCaller::~ParabolicDriveCaller(void)
 DriveCaller* ParabolicDriveCaller::pCopy(void) const
 {
    DriveCaller* pDC = NULL;
-   SAFENEWWITHCONSTRUCTOR(pDC, ParabolicDriveCaller, ParabolicDriveCaller(pDrvHdl, dC0, dC1, dC2), DMmm);
+   SAFENEWWITHCONSTRUCTOR(pDC, ParabolicDriveCaller, ParabolicDriveCaller(pDrvHdl, dC0, dC1, dC2));
    
    return pDC;
 }
@@ -240,7 +239,7 @@ CubicDriveCaller::CubicDriveCaller(const DriveHandler* pDH,
 DriveCaller* CubicDriveCaller::pCopy(void) const
 {
    DriveCaller* pDC = NULL;
-   SAFENEWWITHCONSTRUCTOR(pDC, CubicDriveCaller, CubicDriveCaller(pDrvHdl, dC0, dC1, dC2, dC3), DMmm);
+   SAFENEWWITHCONSTRUCTOR(pDC, CubicDriveCaller, CubicDriveCaller(pDrvHdl, dC0, dC1, dC2, dC3));
    
    return pDC;
 }
@@ -288,8 +287,7 @@ DriveCaller* StepDriveCaller::pCopy(void) const
 			  StepDriveCaller(pDrvHdl, 
 					  dStepTime, 
 					  dStepValue, 
-					  dInitialValue),
-			  DMmm);
+					  dInitialValue));
    
    return pDC;
 }
@@ -335,8 +333,7 @@ DriveCaller* DoubleStepDriveCaller::pCopy(void) const
 						dStepTime, 
 						dStepValue,
 						dEndStepTime,
-						dInitialValue),
-			  DMmm);
+						dInitialValue));
    
    return pDC;
 }
@@ -383,8 +380,7 @@ DriveCaller* RampDriveCaller::pCopy(void) const
 					  dSlope,
 					  dStartTime,
 					  dEndTime,
-					  dInitialValue),
-			  DMmm);
+					  dInitialValue));
    
    return pDC;
 }
@@ -442,8 +438,7 @@ DriveCaller* DoubleRampDriveCaller::pCopy(void) const
 						dDescendingSlope,
 						dDescendingStartTime,
 						dDescendingEndTime, 
-						dInitialValue),
-			  DMmm);
+						dInitialValue));
    
    return pDC;
 }
@@ -512,8 +507,7 @@ DriveCaller* SineDriveCaller::pCopy(void) const
 					  dOmega,
 					  dAmplitude,
 					  iNumCycles,
-					  dInitialValue),
-			  DMmm);
+					  dInitialValue));
    
    return pDC;
 }
@@ -580,8 +574,7 @@ DriveCaller* CosineDriveCaller::pCopy(void) const
 					    dOmega,
 					    dAmplitude,
 					    iNumCycles,
-					    dInitialValue),
-			  DMmm);
+					    dInitialValue));
    
    return pDC;
 }
@@ -644,8 +637,7 @@ DriveCaller* FreqSweepDriveCaller::pCopy(void) const
 					       pAmplitude->pCopy(),
 					       dInitialValue,
 					       dEndTime, 
-					       dFinalValue),
-			  DMmm);
+					       dFinalValue));
    
    return pDC;
 }
@@ -695,8 +687,7 @@ DriveCaller* ExpDriveCaller::pCopy(void) const
 					 dAmplitude,
 					 dTimeConst,
 					 dStartTime,
-					 dInitialValue), 
-			  DMmm);
+					 dInitialValue));
    
    return pDC;
 }
@@ -746,8 +737,7 @@ DriveCaller* RandDriveCaller::pCopy(void) const
 					  dRefVal,
 					  dStartTime, 
 					  dEndTime,
-					  iSteps),
-			  DMmm);
+					  iSteps));
    
    return pDC;
 }
@@ -785,7 +775,7 @@ PiecewiseLinearDriveCaller::PiecewiseLinearDriveCaller(const DriveHandler* pDH,
 PiecewiseLinearDriveCaller::~PiecewiseLinearDriveCaller(void)
 {
 	if (pPoints != NULL) {
-		SAFEDELETEARR(pPoints, DMmm);
+		SAFEDELETEARR(pPoints);
 	}
 }
 
@@ -793,7 +783,7 @@ PiecewiseLinearDriveCaller::~PiecewiseLinearDriveCaller(void)
 DriveCaller* PiecewiseLinearDriveCaller::pCopy(void) const
 {
 	doublereal *p = NULL;
-	SAFENEWARR(p, doublereal, 2*iNumPoints, DMmm);
+	SAFENEWARR(p, doublereal, 2*iNumPoints);
 	for (unsigned int i = 0; i < 2*iNumPoints; i++) {
 		p[i] = pPoints[i];
 	}
@@ -801,8 +791,7 @@ DriveCaller* PiecewiseLinearDriveCaller::pCopy(void) const
 	DriveCaller* pDC = NULL;
 	SAFENEWWITHCONSTRUCTOR(pDC,
 			PiecewiseLinearDriveCaller,
-			PiecewiseLinearDriveCaller(pDrvHdl, iNumPoints, p),
-			DMmm);
+			PiecewiseLinearDriveCaller(pDrvHdl, iNumPoints, p));
 
 	return pDC;
 }
@@ -844,9 +833,9 @@ DriveArrayCaller::~DriveArrayCaller(void)
    ASSERT(ppDriveCallers != NULL);
    ASSERT(iNumDrivers > 0);
    for (int i = 0; i < iNumDrivers; i++) {	
-      SAFEDELETE(ppDriveCallers[i], DMmm);
+      SAFEDELETE(ppDriveCallers[i]);
    }
-   SAFEDELETEARR(ppDriveCallers, DMmm);
+   SAFEDELETEARR(ppDriveCallers);
 }
 
 
@@ -856,7 +845,7 @@ DriveCaller* DriveArrayCaller::pCopy(void) const
    ASSERT(ppDriveCallers != NULL);
    ASSERT(iNumDrivers > 0);
    DriveCaller** ppDC = NULL;
-   SAFENEWARR(ppDC, DriveCaller*, iNumDrivers, DMmm);
+   SAFENEWARR(ppDC, DriveCaller*, iNumDrivers);
    for (int i = 0; i < iNumDrivers; i++) {
       ppDC[i] = ppDriveCallers[i]->pCopy();
    }
@@ -866,8 +855,7 @@ DriveCaller* DriveArrayCaller::pCopy(void) const
 			  DriveArrayCaller, 
 			  DriveArrayCaller(pDrvHdl, 
 					   iNumDrivers,
-					   (const DriveCaller**)ppDC), 
-			  DMmm);
+					   (const DriveCaller**)ppDC));
    
    return pDC;
 }
@@ -977,20 +965,14 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       /* time */
     case TIME: {
        /* allocazione e creazione */
-       SAFENEWWITHCONSTRUCTOR(pDC,
-			      TimeDriveCaller,
-			      TimeDriveCaller(pDrvHdl),
-			      DMmm);
+       SAFENEWWITHCONSTRUCTOR(pDC, TimeDriveCaller, TimeDriveCaller(pDrvHdl));
      break;  
     }
       
       /* driver nullo */
     case NULLDRIVE: {
        /* allocazione e creazione */
-        SAFENEWWITHCONSTRUCTOR(pDC,
-			      NullDriveCaller,
-			      NullDriveCaller(pDrvHdl),
-			      DMmm);
+        SAFENEWWITHCONSTRUCTOR(pDC, NullDriveCaller, NullDriveCaller(pDrvHdl));
       
        /* scrittura dei dati specifici */	     
        
@@ -1000,10 +982,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       /* driver unitario*/
     case ONEDRIVE: {
        /* allocazione e creazione */
-        SAFENEWWITHCONSTRUCTOR(pDC,
-			      OneDriveCaller,
-			      OneDriveCaller(pDrvHdl),
-			      DMmm);
+        SAFENEWWITHCONSTRUCTOR(pDC, OneDriveCaller, OneDriveCaller(pDrvHdl));
       
        /* scrittura dei dati specifici */	     
        
@@ -1018,21 +997,14 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 
        /* allocazione e creazione */
        if (dConst == 0.) {
-          SAFENEWWITHCONSTRUCTOR(pDC,
-			         NullDriveCaller,
-			         NullDriveCaller(pDrvHdl),
-			         DMmm);
+          SAFENEWWITHCONSTRUCTOR(pDC, NullDriveCaller, NullDriveCaller(pDrvHdl));
        } else if (dConst == 1.) {
-          SAFENEWWITHCONSTRUCTOR(pDC,
-			         OneDriveCaller,
-			         OneDriveCaller(pDrvHdl),
-			         DMmm);
+          SAFENEWWITHCONSTRUCTOR(pDC, OneDriveCaller, OneDriveCaller(pDrvHdl));
       
        } else {
           SAFENEWWITHCONSTRUCTOR(pDC,
 	   		         ConstDriveCaller,
-			         ConstDriveCaller(pDrvHdl, dConst), 
-			         DMmm);
+			         ConstDriveCaller(pDrvHdl, dConst));
        }
        
        break;
@@ -1050,8 +1022,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pDC,
 			      LinearDriveCaller,
-			      LinearDriveCaller(pDrvHdl, dC0, dC1), 
-			      DMmm);
+			      LinearDriveCaller(pDrvHdl, dC0, dC1));
        
        /* scrittura dei dati specifici */	     
        
@@ -1073,8 +1044,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pDC,
 			      ParabolicDriveCaller,
-			      ParabolicDriveCaller(pDrvHdl, dC0, dC1, dC2), 
-			      DMmm);
+			      ParabolicDriveCaller(pDrvHdl, dC0, dC1, dC2));
        
        /* scrittura dei dati specifici */	     
        
@@ -1099,8 +1069,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pDC,
 			      CubicDriveCaller,
-			      CubicDriveCaller(pDrvHdl, dC0, dC1, dC2, dC3), 
-			      DMmm);
+			      CubicDriveCaller(pDrvHdl, dC0, dC1, dC2, dC3));
        
        /* scrittura dei dati specifici */	     
        
@@ -1121,8 +1090,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        SAFENEWWITHCONSTRUCTOR(pDC,
 			      StepDriveCaller,
 			      StepDriveCaller(pDrvHdl, dStepTime,
-					      dStepValue, dInitialValue), 
-			      DMmm);
+					      dStepValue, dInitialValue));
        break;
     }
       
@@ -1154,8 +1122,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 						    dStepTime, 
 						    dStepValue,
 						    dEndStepTime,
-						    dInitialValue), 
-			      DMmm);
+						    dInitialValue));
        break;
     }
       
@@ -1185,8 +1152,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 			      RampDriveCaller,
 			      RampDriveCaller(pDrvHdl, 
 					      dSlope, dInitialTime,
-					      dFinalTime, dInitialValue), 
-			      DMmm);
+					      dFinalTime, dInitialValue));
        break;
     }
       
@@ -1252,8 +1218,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 						    dDescendingSlope,
 						    dDescendingInitialTime,
 						    dDescendingFinalTime,
-						    dInitialValue), 
-			      DMmm);
+						    dInitialValue));
        break;
     }
       
@@ -1283,8 +1248,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 						 dOmega,
 						 dAmplitude,
 						 iNumCycles,
-						 dInitialValue), 
-				 DMmm);
+						 dInitialValue));
        } else if(CurrKeyWord == COSINE) {			    
 	  SAFENEWWITHCONSTRUCTOR(pDC,
 				 CosineDriveCaller,
@@ -1293,8 +1257,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 						   dOmega,
 						   dAmplitude,
 						   iNumCycles,
-						   dInitialValue), 
-				 DMmm);
+						   dInitialValue));
        }
        
        break;
@@ -1327,8 +1290,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 						   pAmplitude,
 						   dInitialValue,
 						   dFinalTime,
-						   dFinalValue), 
-			      DMmm);       
+						   dFinalValue));
        
        break;
     }
@@ -1351,8 +1313,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        SAFENEWWITHCONSTRUCTOR(pDC,
 			      ExpDriveCaller,
 			      ExpDriveCaller(pDrvHdl, dAmplitude, dTimeConst,
-					     dInitialTime, dInitialValue), 
-			      DMmm);
+					     dInitialTime, dInitialValue));
        break;
     }
       
@@ -1403,8 +1364,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 					      dRefVal,
 					      dInitialTime, 
 					      dFinalTime,
-					      iSteps),
-			      DMmm);
+					      iSteps));
        break;
     }
 
@@ -1420,7 +1380,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        }
 
        doublereal *p = NULL;
-       SAFENEWARR(p, doublereal, 2*n, DMmm);
+       SAFENEWARR(p, doublereal, 2*n);
        p[0] = HP.GetReal();
        p[n] = HP.GetReal();
        for (unsigned int i = 1; i < n; i++) {
@@ -1437,8 +1397,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pDC,
 		       PiecewiseLinearDriveCaller,
-		       PiecewiseLinearDriveCaller(pDrvHdl, n, p),
-		       DMmm);
+		       PiecewiseLinearDriveCaller(pDrvHdl, n, p));
        
        break;
     }
@@ -1452,8 +1411,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pDC,
 			      StringDriveCaller,
-			      StringDriveCaller(pDrvHdl, sTmp), 
-			      DMmm);
+			      StringDriveCaller(pDrvHdl, sTmp));
 
        break;
     }
@@ -1484,8 +1442,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pDC,
 			      DofDriveCaller,
-			      DofDriveCaller(pDrvHdl, pTmp, SD),
-			      DMmm);
+			      DofDriveCaller(pDrvHdl, pTmp, SD));
        
        HP.PutKeyTable(K);
        break;
@@ -1504,7 +1461,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	  HP.PutKeyTable(K);
        } else {
 	  DriveCaller** ppDC = NULL;
-	  SAFENEWARR(ppDC, DriveCaller*, iNumDr, DMmm);
+	  SAFENEWARR(ppDC, DriveCaller*, iNumDr);
 	  for (int i = 0; i < iNumDr; i++) {
 	     ppDC[i] = ReadDriveData(pDM, HP, pDrvHdl);
 	     HP.PutKeyTable(K);
@@ -1514,8 +1471,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	  SAFENEWWITHCONSTRUCTOR(pDC,
 				 DriveArrayCaller,
 				 DriveArrayCaller(pDrvHdl, iNumDr, 
-						  (const DriveCaller**)ppDC),
-				 DMmm);
+						  (const DriveCaller**)ppDC));
        }
        break;
     }
@@ -1540,8 +1496,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        /* allocazione e creazione */
 	SAFENEWWITHCONSTRUCTOR(pDC,
 			       FileDriveCaller,
-			       FileDriveCaller(pDM->pGetDrvHdl(), pDrv, id),
-			       DMmm);     
+			       FileDriveCaller(pDM->pGetDrvHdl(), pDrv, id));
        
        break;
     }

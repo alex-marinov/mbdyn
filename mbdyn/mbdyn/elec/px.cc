@@ -84,13 +84,13 @@ ScalarPX::ScalarPX(DriveCaller* p)
 : PersistentExcitation(1), pDrive(NULL) 
 {
    ASSERT(p != NULL);
-   SAFENEWWITHCONSTRUCTOR(pDrive, DriveOwner, DriveOwner(p), DMmm);
+   SAFENEWWITHCONSTRUCTOR(pDrive, DriveOwner, DriveOwner(p));
 }
 
 
 ScalarPX::~ScalarPX(void)
 {
-   SAFEDELETE(pDrive, DMmm);
+   SAFEDELETE(pDrive);
 }
 
 
@@ -111,23 +111,23 @@ VectorPX::VectorPX(int i, DriveCaller** pp)
    }
 #endif // DEBUG
    
-   SAFENEWARR(pvDrives, DriveOwner*, iNumDrives, DMmm);
+   SAFENEWARR(pvDrives, DriveOwner*, iNumDrives);
    
    for (int i = iNumDrives; i-- > 0; ) {
       pvDrives[i] = NULL;
-      SAFENEWWITHCONSTRUCTOR(pvDrives[i], DriveOwner, DriveOwner(pp[i]), DMmm);
+      SAFENEWWITHCONSTRUCTOR(pvDrives[i], DriveOwner, DriveOwner(pp[i]));
    }
    
-   SAFEDELETEARR(pp, DMmm);
+   SAFEDELETEARR(pp);
 }
 
 
 VectorPX::~VectorPX(void)
 {
    for (int i = iNumDrives; i-- > 0; ) {
-      SAFEDELETE(pvDrives[i], DMmm);
+      SAFEDELETE(pvDrives[i]);
    }
-   SAFEDELETEARR(pvDrives, DMmm);
+   SAFEDELETEARR(pvDrives);
 }
 
 

@@ -775,8 +775,7 @@ ForgettingFactor* ReadFF(MBDynParser& HP, integer iNumOutputs)
 	 
 	 SAFENEWWITHCONSTRUCTOR(pFF,
 				ConstForgettingFactor,
-				ConstForgettingFactor(d),
-				DMmm);
+				ConstForgettingFactor(d));
 	 
       } else if (HP.IsKeyWord("dynamic")) {
 	 /* uso la 2^a versione */
@@ -792,8 +791,7 @@ ForgettingFactor* ReadFF(MBDynParser& HP, integer iNumOutputs)
 				DynamicForgettingFactor2(n1, n2, 
 							 iNumOutputs,
 							 dRho, dFact,
-							 dKRef, dKLim),
-				DMmm);
+							 dKRef, dKLim));
 	 
       } else {	      
 	 cerr << "line " << HP.GetLineData() 
@@ -804,8 +802,7 @@ ForgettingFactor* ReadFF(MBDynParser& HP, integer iNumOutputs)
       /* default */
       SAFENEWWITHCONSTRUCTOR(pFF,
 			     ConstForgettingFactor,
-			     ConstForgettingFactor(1.),
-			     DMmm);
+			     ConstForgettingFactor(1.));
    }
    
    ASSERT(pFF != NULL);
@@ -822,19 +819,19 @@ PersistentExcitation* ReadPX(DataManager* pDM, MBDynParser& HP, integer iNumInpu
    if (HP.IsKeyWord("excitation")) {
       if (iNumInputs == 1) {
 	 DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-	 SAFENEWWITHCONSTRUCTOR(pPX, ScalarPX, ScalarPX(pDC), DMmm);
+	 SAFENEWWITHCONSTRUCTOR(pPX, ScalarPX, ScalarPX(pDC));
       } else {
 	 DriveCaller** ppDC = NULL;
-	 SAFENEWARR(ppDC, DriveCaller*, iNumInputs, DMmm);
+	 SAFENEWARR(ppDC, DriveCaller*, iNumInputs);
 	 
 	 for (integer i = iNumInputs; i-- > 0; ) {
 	    ppDC[i] = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());	    
 	 }
-	 SAFENEWWITHCONSTRUCTOR(pPX, VectorPX, VectorPX(iNumInputs, ppDC), DMmm);
+	 SAFENEWWITHCONSTRUCTOR(pPX, VectorPX, VectorPX(iNumInputs, ppDC));
       }
    } else {
       /* Null excitation */
-      SAFENEW(pPX, NullPX, DMmm);
+      SAFENEW(pPX, NullPX);
    }
    
    ASSERT(pPX != NULL);
@@ -960,8 +957,7 @@ Elem* ReadElectric(DataManager* pDM,
 				     TraslAccel,
 				     TraslAccel(uLabel, pDO, 
 						pStrNode, pAbsNode,
-						Dir, Tmpf, fOut), 
-				     DMmm);
+						Dir, Tmpf, fOut));
 	      break;
 	   } 
 	   case 2: {
@@ -971,8 +967,7 @@ Elem* ReadElectric(DataManager* pDM,
 				     RotAccel,
 				     RotAccel(uLabel, pDO, 
 					      pStrNode, pAbsNode,
-					      Dir, fOut), 
-				     DMmm);
+					      Dir, fOut));
 	      break;
 	   }
 	   default: {
@@ -1060,8 +1055,7 @@ Elem* ReadElectric(DataManager* pDM,
 				 Accelerometer,
 				 Accelerometer(uLabel, pDO, pStrNode, pAbsNode,
 					       Dir, dOmega, dTau, dCsi, dKappa, 
-					       fOut), 
-				 DMmm);
+					       fOut));
        }
        
        break;
@@ -1126,8 +1120,7 @@ Elem* ReadElectric(DataManager* pDM,
 			      DispMeasure,
 			      DispMeasure(uLabel, pDO, 
 					  pStrNode1, pStrNode2, pAbsNode,
-					  Tmpf1, Tmpf2, fOut), 
-			      DMmm);
+					  Tmpf1, Tmpf2, fOut));
        break;
        
 #else // USE_STRUCT_NODES
@@ -1183,8 +1176,7 @@ Elem* ReadElectric(DataManager* pDM,
 								  iNumInputs,
 								  iOrderA,
 								  iOrderB,
-								  iFIn),
-				  DMmm);
+								  iFIn));
 	   
 	   iFIn.close();	   
 	   break;
@@ -1218,8 +1210,7 @@ Elem* ReadElectric(DataManager* pDM,
 							     iOrderA,
 							     iOrderB,
 							     pFF, pPX,
-							     f_ma, s),
-				  DMmm);
+							     f_ma, s));
 	      
 	   break;
 	}	   
@@ -1278,8 +1269,8 @@ Elem* ReadElectric(DataManager* pDM,
 	      
 	      doublereal* pW = NULL;
 	      doublereal* pR = NULL;
-	      SAFENEWARR(pW, doublereal, iPredS-iPredH, DMmm);
-	      SAFENEWARR(pR, doublereal, iContrS-iContrH, DMmm);
+	      SAFENEWARR(pW, doublereal, iPredS-iPredH);
+	      SAFENEWARR(pR, doublereal, iContrS-iContrH);
 	      
 	      if (HP.IsKeyWord("predictionweights")) {
 		 DEBUGCOUT("prediction weights:" << endl);
@@ -1315,8 +1306,7 @@ Elem* ReadElectric(DataManager* pDM,
 					 iPredS, iContrS, 
 					 iPredH, iContrH,
 					 pW, pR, pLambda,
-					 dPeriodicFactor, f_ma),
-				     DMmm);
+					 dPeriodicFactor, f_ma));
 	      
 	   } else if (HP.IsKeyWord("deadbeat")) {
 	      DEBUGCOUT("DeadBeat adaptive control" << endl);
@@ -1328,8 +1318,7 @@ Elem* ReadElectric(DataManager* pDM,
 				     DeadBeat(iNumOutputs, iNumInputs,
 					      iOrderA, iOrderB, 
 					      iPredS, iContrS,
-					      dPeriodicFactor, f_ma),
-				     DMmm);	      
+					      dPeriodicFactor, f_ma));
 	   }
 	   
 	   /* Forgetting factor */
@@ -1348,15 +1337,14 @@ Elem* ReadElectric(DataManager* pDM,
 	   } else {
 	      SAFENEWWITHCONSTRUCTOR(pTrig, 
 				     OneDriveCaller,
-				     OneDriveCaller(pDM->pGetDrvHdl()),
-				     DMmm);
+				     OneDriveCaller(pDM->pGetDrvHdl()));
 	   }
 	   
 	   /* desired output */
 	   DriveCaller** pvDesiredOut = NULL;
 	   if (HP.IsKeyWord("desiredoutput")) {
 	      DEBUGCOUT("Desired output:" << endl);
-	      SAFENEWARR(pvDesiredOut, DriveCaller*, iNumOutputs, DMmm);
+	      SAFENEWARR(pvDesiredOut, DriveCaller*, iNumOutputs);
 	      
 	      for (integer i = 0; i < iNumOutputs; i++) {
 		 DEBUGCOUT("output[" << i+1 << "]:" << endl);
@@ -1384,8 +1372,7 @@ Elem* ReadElectric(DataManager* pDM,
 						    pTrig,
 						    pvDesiredOut,
 						    s,
-						    f_ma),
-				  DMmm);
+						    f_ma));
 	   
 	   break;
 	}	   
@@ -1408,9 +1395,9 @@ Elem* ReadElectric(DataManager* pDM,
        }
        
        ScalarDof* pOutputs = NULL;
-       SAFENEWARR(pOutputs, ScalarDof, iNumOutputs, DMmm);
+       SAFENEWARR(pOutputs, ScalarDof, iNumOutputs);
        DriveCaller** ppOutScaleFact = NULL;
-       SAFENEWARR(ppOutScaleFact, DriveCaller*, iNumOutputs, DMmm);
+       SAFENEWARR(ppOutScaleFact, DriveCaller*, iNumOutputs);
        
        /* Allocazione nodi e connessioni */
        for (int i = 0; i < iNumOutputs; i++) {
@@ -1421,8 +1408,7 @@ Elem* ReadElectric(DataManager* pDM,
 	     ppOutScaleFact[i] = NULL;
 	     SAFENEWWITHCONSTRUCTOR(ppOutScaleFact[i], 
 				    OneDriveCaller, 
-				    OneDriveCaller(pDM->pGetDrvHdl()),
-				    DMmm);
+				    OneDriveCaller(pDM->pGetDrvHdl()));
 	  }
        }
                             
@@ -1434,7 +1420,7 @@ Elem* ReadElectric(DataManager* pDM,
        
        /* Same thing for input nodes */
        ScalarDof* pInputs = NULL;
-       SAFENEWARR(pInputs, ScalarDof, iNumInputs, DMmm);
+       SAFENEWARR(pInputs, ScalarDof, iNumInputs);
        
        /* Allocazione nodi e connessioni */
        for (int i = 0; i < iNumInputs; i++) {
@@ -1460,8 +1446,7 @@ Elem* ReadElectric(DataManager* pDM,
 						  pInputs,
 						  pDCP,
 						  iNumIter,
-						  fOut),
-			      DMmm);
+						  fOut));
        
        break;
     }

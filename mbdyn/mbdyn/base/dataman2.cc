@@ -359,7 +359,7 @@ void DataManager::InitialJointAssembly(void)
 
    
    /* Creazione e costruzione array Dof */   
-   SAFENEWARR(pDofs, Dof, iInitialNumDofs, DMmm);
+   SAFENEWARR(pDofs, Dof, iInitialNumDofs);
    
    iIndex = 0;
    for (Dof* pTmpDof = pDofs; 
@@ -371,11 +371,11 @@ void DataManager::InitialJointAssembly(void)
    /* Alloca spazio per l'assemblaggio */
    integer iIntDim = iMaxRows*iMaxCols*2;
    integer* piWI = NULL;
-   SAFENEWARR(piWI, integer, iIntDim, SMmm);
+   SAFENEWARR(piWI, integer, iIntDim);
    
    integer iDoubleDim = iMaxRows*iMaxCols;
    doublereal* pdWD = NULL;
-   SAFENEWARR(pdWD, doublereal, iDoubleDim, SMmm);   
+   SAFENEWARR(pdWD, doublereal, iDoubleDim);   
    
    
    /* Ciclo di iterazioni fino a convergenza */
@@ -385,25 +385,22 @@ void DataManager::InitialJointAssembly(void)
 #if defined(USE_Y12)
    SAFENEWWITHCONSTRUCTOR(pSM,
 		   Y12SparseLUSolutionManager,
-		   Y12SparseLUSolutionManager(iInitialNumDofs, 0, 1.),
-		   SMmm);
+		   Y12SparseLUSolutionManager(iInitialNumDofs, 0, 1.));
 #elif defined(USE_HARWELL)
    SAFENEWWITHCONSTRUCTOR(pSM,
 		   HarwellSparseLUSolutionManager,
-		   HarwellSparseLUSolutionManager(iInitialNumDofs, 0, 1.),
-		   SMmm);
+		   HarwellSparseLUSolutionManager(iInitialNumDofs, 0, 1.));
 #elif defined(USE_MESCHACH)
    SAFENEWWITHCONSTRUCTOR(pSM,
 		   MeschachSparseLUSolutionManager,
-		   MeschachSparseLUSolutionManager(iInitialNumDofs, 0, 1.),
-		   SMmm);
+		   MeschachSparseLUSolutionManager(iInitialNumDofs, 0, 1.));
 #else
 #error "no appropriate solver available"
 #endif
     
    /* Crea il vettore con lo stato del sistema durante l'assemblaggio */
    doublereal* pdX = NULL;
-   SAFENEWARR(pdX, doublereal, iInitialNumDofs, SMmm);      
+   SAFENEWARR(pdX, doublereal, iInitialNumDofs);
    
 #ifdef DEBUG_MEMMANAGER
    DEBUGLCOUT(MYDEBUG_MEM|MYDEBUG_ASSEMBLY, 
@@ -650,19 +647,19 @@ endofcycle:
    /* Distrugge il workspace */
    ASSERT(pdWD != NULL);
    if (pdWD != NULL) {	
-      SAFEDELETEARR(pdWD, SMmm);
+      SAFEDELETEARR(pdWD);
    }
    
    ASSERT(piWI != NULL);
    if (piWI != NULL) {
-      SAFEDELETEARR(piWI, SMmm);
+      SAFEDELETEARR(piWI);
    }
       
    
    /* Distrugge il vettore soluzione */
    ASSERT(pdX != NULL);
    if (pdX != NULL) {	
-      SAFEDELETEARR(pdX, SMmm);
+      SAFEDELETEARR(pdX);
    }   
 
    
@@ -702,7 +699,7 @@ endofcycle:
    /* Dealloca il vettore dei Dof */
    ASSERT(pDofs != NULL);
    if (pDofs != NULL) {	
-      SAFEDELETEARR((Dof*&)pDofs, DMmm);
+      SAFEDELETEARR((Dof*&)pDofs);
    }   
    
 } /* End of InitialJointAssembly */

@@ -268,7 +268,7 @@ PAM_Auth::PAM_Auth(const char *u)
       u = pw->pw_name;
    }
    
-   SAFESTRDUP(User, u, DMmm);
+   SAFESTRDUP(User, u);
    
    struct pam_conv conv;
    conv.conv = mbdyn_conv;
@@ -373,7 +373,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
       
       /* auth is always successful */
     case NOAUTH: {
-       SAFENEW(pAuth, NoAuth, DMmm);
+       SAFENEW(pAuth, NoAuth);
        break;
     }
       
@@ -394,7 +394,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
        }
        
        char* user = NULL;
-       SAFESTRDUP(user, tmp, DMmm);
+       SAFESTRDUP(user, tmp);
        
        if (!HP.IsKeyWord("credentials")) {
 	  cerr << "credentials expected at line " << HP.GetLineData() << endl;
@@ -410,16 +410,15 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
        }
        
        char* cred = NULL;
-       SAFESTRDUP(cred, tmp, DMmm);
+       SAFESTRDUP(cred, tmp);
        memset((char *)tmp, '\0', strlen(tmp));
     
        SAFENEWWITHCONSTRUCTOR(pAuth,
 			      PasswordAuth,
-			      PasswordAuth(user, cred),
-			      DMmm);
-       SAFEDELETEARR(user, DMmm);
+			      PasswordAuth(user, cred));
+       SAFEDELETEARR(user);
        memset(cred, '\0', strlen(cred));
-       SAFEDELETEARR(cred, DMmm);	     
+       SAFEDELETEARR(cred);
        
        break;
     }
@@ -434,10 +433,10 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 	     THROW(ErrGeneric());
 	  }
        	 
-	  SAFESTRDUP(user, tmp, DMmm);
+	  SAFESTRDUP(user, tmp);
        }
        
-       SAFENEWWITHCONSTRUCTOR(pAuth, PAM_Auth, PAM_Auth(user), DMmm);
+       SAFENEWWITHCONSTRUCTOR(pAuth, PAM_Auth, PAM_Auth(user));
        break;
 #else /* !USE_PAM */       
        cerr << "line " << HP.GetLineData() 

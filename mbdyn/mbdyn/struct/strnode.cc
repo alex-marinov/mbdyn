@@ -1034,8 +1034,7 @@ ReadStructNode(DataManager* pDM,
 	  
 	  SAFENEWWITHCONSTRUCTOR(pNd, 
 				 OffsetDummyStructNode,
-				 OffsetDummyStructNode(uLabel, pDO, pNode, f, R),
-				 DMmm);
+				 OffsetDummyStructNode(uLabel, pDO, pNode, f, R));
 	  break;
        }
 	 
@@ -1056,8 +1055,7 @@ ReadStructNode(DataManager* pDM,
 	  
 	  SAFENEWWITHCONSTRUCTOR(pNd, 
 				 RelFrameDummyStructNode,
-				 RelFrameDummyStructNode(uLabel, pDO, pNode, pNodeRef),
-				 DMmm);
+				 RelFrameDummyStructNode(uLabel, pDO, pNode, pNodeRef));
 	  break;	  
        }
 	 
@@ -1117,7 +1115,7 @@ ReadStructNode(DataManager* pDM,
 						 X0, R0, 
 						 XPrime0, Omega0,
 						 dPosStiff, dVelStiff, 
-						 fOmRot, fOut), DMmm);
+						 fOmRot, fOut));
 	 
       } else if(CurrType == DYNAMIC) {
 	 SAFENEWWITHCONSTRUCTOR(pNd, DynamicStructNode,
@@ -1125,7 +1123,7 @@ ReadStructNode(DataManager* pDM,
 						  X0, R0, 
 						  XPrime0, Omega0,
 						  dPosStiff, dVelStiff, 
-						  fOmRot, fOut), DMmm);
+						  fOmRot, fOut));
 	 
 	 /* Incrementa il numero di elementi automatici dei nodi dinamici */
 	 pDM->ElemData[Elem::AUTOMATICSTRUCTURAL].iNum++;
@@ -1136,7 +1134,7 @@ ReadStructNode(DataManager* pDM,
 					  X0, R0, 
 					  XPrime0, Omega0,
 					  dPosStiff, dVelStiff, 
-					  fOmRot, fOut), DMmm);
+					  fOmRot, fOut));
       }
    }
    

@@ -75,7 +75,7 @@ dummy_plugin(MathParser& mp, void *arg)
 {
 	MathParser::PlugIn *p = NULL;
 	
-	SAFENEWWITHCONSTRUCTOR(p, DummyPlugIn, DummyPlugIn(mp, arg), MPmm);
+	SAFENEWWITHCONSTRUCTOR(p, DummyPlugIn, DummyPlugIn(mp, arg));
 
 	return p;
 }

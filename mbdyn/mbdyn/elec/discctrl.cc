@@ -118,7 +118,7 @@ iRefB(0)
      +iNumInputs*iOrderB                          // Vector U
      +iNumInputs;                                 // Vector u(k)
      
-   SAFENEWARR(pdA, doublereal, iSize, DMmm);
+   SAFENEWARR(pdA, doublereal, iSize);
    
    pdB = pdA+iNumInputs*iNumOutputs*iOrderA;
    pdY = pdB+iNumInputs*iNumInputs*iOrderB;
@@ -148,7 +148,7 @@ DiscreteControlARXProcess_Debug::~DiscreteControlARXProcess_Debug(void)
 {
    /* It must be non-null;
     * matrices and arrays come from one allocation only */
-   SAFEDELETEARR(pdA, DMmm);
+   SAFEDELETEARR(pdA);
 }
 
 
@@ -247,14 +247,12 @@ fout(sf != NULL ? 1 : 0)
       SAFENEWWITHCONSTRUCTOR(pId, 
 			     IdentARMAXProcess,
 			     IdentARMAXProcess(iNumOut, iNumIn, 
-					       iOrdA, iOrdB, pf),
-			     DMmm);
+					       iOrdA, iOrdB, pf));
    } else {
       SAFENEWWITHCONSTRUCTOR(pId,
 			     IdentARXProcess,
 			     IdentARXProcess(iNumOut, iNumIn,
-					     iOrdA, iOrdB, pf),
-			     DMmm);
+					     iOrdA, iOrdB, pf));
    }
    
    // temporaneo ?!?
@@ -265,8 +263,8 @@ fout(sf != NULL ? 1 : 0)
 
 DiscreteIdentProcess_Debug::~DiscreteIdentProcess_Debug(void)
 {
-   SAFEDELETE(pId, DMmm);
-   SAFEDELETE(pPx, DMmm);
+   SAFEDELETE(pId);
+   SAFEDELETE(pPx);
    
    // temporaneo ?!?
    if (fout) {      
@@ -389,7 +387,7 @@ fout(sf != NULL ? 1 : 0)
    }
    
      
-   SAFENEWARR(pdBase, doublereal, iSize, DMmm);
+   SAFENEWARR(pdBase, doublereal, iSize);
    
    pdY = pdBase;
    pdU = pdY+iNumOutputs*iOrderA;
@@ -422,15 +420,13 @@ fout(sf != NULL ? 1 : 0)
       SAFENEWWITHCONSTRUCTOR(pId,
 			     IdentARXProcess,
 			     IdentARXProcess(iNumOut, iNumIn,
-					     iOrdA, iOrdB, pf),
-			     DMmm);
+					     iOrdA, iOrdB, pf));
       break;
     case 1:
       SAFENEWWITHCONSTRUCTOR(pId,
 			     IdentARMAXProcess,
 			     IdentARMAXProcess(iNumOut, iNumIn,
-					       iOrdA, iOrdB, pf),
-			     DMmm);
+					       iOrdA, iOrdB, pf));
       break;
     default:
       cerr << "Unknown type of identification!" << endl;
@@ -438,16 +434,15 @@ fout(sf != NULL ? 1 : 0)
    }
    
    if (f_md) {
-      SAFENEWARR(pvDesiredOut, DriveOwner*, iNumOutputs, DMmm);
+      SAFENEWARR(pvDesiredOut, DriveOwner*, iNumOutputs);
       
       for (integer i = 0; i < iNumOutputs; i++) {
 	 pvDesiredOut[i] = NULL;
 	 SAFENEWWITHCONSTRUCTOR(pvDesiredOut[i],
 				DriveOwner, 
-				DriveOwner(pvDesOut[i]),
-				DMmm);
+				DriveOwner(pvDesOut[i]));
       }
-      SAFEDELETEARR(pvDesOut, DMmm);
+      SAFEDELETEARR(pvDesOut);
    }
    
    // temporaneo ?!?
@@ -463,15 +458,15 @@ DAC_Process_Debug::~DAC_Process_Debug(void)
    
    /* matrices and arrays come from one allocation only */
    
-   SAFEDELETEARR(pdBase, DMmm);          /* must be non-null */
-   SAFEDELETE(pId, DMmm);                /* must be non-null */
-   SAFEDELETE(pCD, DMmm);                /* must be non-null */
-   SAFEDELETE(pPx, DMmm);                /* must be non-null */
+   SAFEDELETEARR(pdBase);          /* must be non-null */
+   SAFEDELETE(pId);                /* must be non-null */
+   SAFEDELETE(pCD);                /* must be non-null */
+   SAFEDELETE(pPx);                /* must be non-null */
    if (pvDesiredOut != NULL) {           /* can be null (no desired output */
       for (integer i = iNumOutputs; i-- > 0; ) {
-	 SAFEDELETE(pvDesiredOut[i], DMmm);
+	 SAFEDELETE(pvDesiredOut[i]);
       }
-      SAFEDELETEARR(pvDesiredOut, DMmm);
+      SAFEDELETEARR(pvDesiredOut);
    }
 
    // temporaneo ?!?
@@ -687,18 +682,17 @@ pdIn(NULL)
    ASSERT(iNumOutputs > 0);
    
    ASSERT(ppOutSF != NULL);
-   SAFENEWARR(pvOutScaleFact, DriveOwner*, iNumOutputs, DMmm);
+   SAFENEWARR(pvOutScaleFact, DriveOwner*, iNumOutputs);
    
    for (int i = iNumOutputs; i-- > 0; ) {
       ASSERT(ppOutSF[i] != NULL);
       pvOutScaleFact[i] = NULL;
       SAFENEWWITHCONSTRUCTOR(pvOutScaleFact[i],
 			     DriveOwner, 
-			     DriveOwner(ppOutSF[i]),
-			     DMmm);
+			     DriveOwner(ppOutSF[i]));
    }
    
-   SAFENEWARR(pdIn, doublereal, iNumInputs+iNumOutputs, DMmm);   
+   SAFENEWARR(pdIn, doublereal, iNumInputs+iNumOutputs);   
    pdOut = pdIn+iNumInputs;
    
    for (int i = iNumInputs+iNumOutputs; i-- > 0; ) {
@@ -711,18 +705,18 @@ DiscreteControlElem::~DiscreteControlElem(void)
 {
    if (pvOutScaleFact != NULL) {
       for (integer i = iNumOutputs; i-- > 0; ) {
-	 SAFEDELETE(pvOutScaleFact[i], DMmm);
+	 SAFEDELETE(pvOutScaleFact[i]);
       }
-      SAFEDELETEARR(pvOutScaleFact, DMmm);
+      SAFEDELETEARR(pvOutScaleFact);
    }
    
    /* They must be non-null */  
-   SAFEDELETEARR(pdIn, DMmm);
+   SAFEDELETEARR(pdIn);
    
    /* Allocated by DataManager */
-   SAFEDELETEARR(pInputs, DMmm);
-   SAFEDELETEARR(pOutputs, DMmm);
-   SAFEDELETE(pDCP, DMmm); /* Must destroy the other processes too */
+   SAFEDELETEARR(pInputs);
+   SAFEDELETEARR(pOutputs);
+   SAFEDELETE(pDCP); /* Must destroy the other processes too */
 }
 
 

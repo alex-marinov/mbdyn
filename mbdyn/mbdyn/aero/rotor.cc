@@ -362,15 +362,15 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
   dRadius = dR; /* puo' essere richiesto dal trim */
 #ifdef USE_MPI
   if (fToBeOutput()) {
-    SAFENEWARR(pBlockLenght, int, 3, DMmm);
-    SAFENEWARR(pDispl, MPI::Aint, 3, DMmm);
+    SAFENEWARR(pBlockLenght, int, 3);
+    SAFENEWARR(pDispl, MPI::Aint, 3);
     for (int i=0; i < 3; i++) {
       pBlockLenght[i] = 1;
     }
     for (int i=0; i < 3; i++) {	
       pDispl[i] = MPI::Get_address(&(XCraft.pGetVec()[i]));	  	
     }
-    SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(3, pBlockLenght, pDispl)), SMmm);
+    SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(3, pBlockLenght, pDispl)));
     pRotDataType->Commit();
   }
 #endif /* USE_MPI */
@@ -486,8 +486,8 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
    dCorrection = dC;
 
 #ifdef USE_MPI
-  SAFENEWARR(pBlockLenght, int, 7, DMmm);
-  SAFENEWARR(pDispl, MPI::Aint, 7, DMmm);
+  SAFENEWARR(pBlockLenght, int, 7);
+  SAFENEWARR(pDispl, MPI::Aint, 7);
   for (int i=0; i < 7; i++) {
     pBlockLenght[i] = 1;
   }
@@ -498,7 +498,7 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
   for (int i=4; i <= 6; i++) {	
     pDispl[i] = MPI::Get_address(&(XCraft.pGetVec()[i-4]));	  	
   }
-  SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(7, pBlockLenght, pDispl)), SMmm);
+  SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(7, pBlockLenght, pDispl)));
   pRotDataType->Commit();
   
 #endif /* USE_MPI */
@@ -631,8 +631,8 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
    dCorrection = dC;
 
 #ifdef USE_MPI
-  SAFENEWARR(pBlockLenght, int, 20, DMmm);
-  SAFENEWARR(pDispl, MPI::Aint, 20, DMmm);
+  SAFENEWARR(pBlockLenght, int, 20);
+  SAFENEWARR(pDispl, MPI::Aint, 20);
   for (int i=0; i < 20; i++) {
     pBlockLenght[i] = 1;
   }
@@ -650,7 +650,7 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
   for (int i=11; i < 20; i++) {	
     pDispl[i] = MPI::Get_address(&(RRotTranspose.pGetMat()[i-11]));	  	
   }
-  SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)), SMmm);
+  SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)));
   pRotDataType->Commit();
   
 #endif /* USE_MPI */
@@ -779,8 +779,8 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
    dCorrection = dC;
 
 #ifdef USE_MPI
-  SAFENEWARR(pBlockLenght, int, 18, DMmm);
-  SAFENEWARR(pDispl, MPI::Aint, 18, DMmm);
+  SAFENEWARR(pBlockLenght, int, 18);
+  SAFENEWARR(pDispl, MPI::Aint, 18);
   for (int i=0; i < 18; i++) {
     pBlockLenght[i] = 1;
   }
@@ -796,7 +796,7 @@ Rotor(uLabel, pDO, pCraft, pRotor, fOut)
   for (int i=9; i < 18; i++) {	
     pDispl[i] = MPI::Get_address(&(RRotTranspose.pGetMat()[i-9]));	  	
   }
-  SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(18, pBlockLenght, pDispl)), SMmm);
+  SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(18, pBlockLenght, pDispl)));
   pRotDataType->Commit();
   
 #endif /* USE_MPI */
@@ -984,8 +984,8 @@ dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
    dWeight = 0.;
 
 #ifdef USE_MPI
-  SAFENEWARR(pBlockLenght, int, 20, DMmm);
-  SAFENEWARR(pDispl, MPI::Aint, 20, DMmm);
+  SAFENEWARR(pBlockLenght, int, 20);
+  SAFENEWARR(pDispl, MPI::Aint, 20);
   for (int i=0; i < 20; i++) {
     pBlockLenght[i] = 1;
   }
@@ -1003,7 +1003,7 @@ dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
   for (int i=11; i < 20; i++) {	
     pDispl[i] = MPI::Get_address(RRotTranspose.pGetMat()+i-11);	  	
   }
-  SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)), SMmm);
+  SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype, MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)));
   pRotDataType->Commit();
 #endif /* USE_MPI */
 }
@@ -1384,8 +1384,7 @@ Elem* ReadRotor(DataManager* pDM,
        
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      NoRotor,
-			      NoRotor(uLabel, pDO, pCraft, pRotor, dR, fOut),
-			      DMmm);
+			      NoRotor(uLabel, pDO, pCraft, pRotor, dR, fOut));
        break;
     }
       
@@ -1431,8 +1430,7 @@ Elem* ReadRotor(DataManager* pDM,
 						    pCraft, pRotor, 
 						    dOR, dR,
 						    dVConst, dVCosine, dVSine,
-						    fOut),
-				 DMmm);
+						    fOut));
        } else {   	      	   	      	  
 	  /* Legge il coefficiente di peso della velocita' indotta 
 	   * ("weight" e' deprecato, si preferisce "delay") 
@@ -1489,8 +1487,7 @@ Elem* ReadRotor(DataManager* pDM,
 	      SAFENEWWITHCONSTRUCTOR(pEl, 
 				     UniformRotor,
 				     UniformRotor(uLabel, pDO, pCraft, pRotor,
-						  dOR, dR, dW, dC, fOut), 
-				     DMmm);
+						  dOR, dR, dW, dC, fOut));
 	      break;
 	   }
 	     
@@ -1499,8 +1496,7 @@ Elem* ReadRotor(DataManager* pDM,
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     GlauertRotor,
 				     GlauertRotor(uLabel, pDO, pCraft, pRotor,
-						  dOR, dR, dW, dC, fOut), 
-				     DMmm);
+						  dOR, dR, dW, dC, fOut));
 	      break;
 	   }
 	     
@@ -1510,8 +1506,7 @@ Elem* ReadRotor(DataManager* pDM,
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     ManglerRotor,
 				     ManglerRotor(uLabel, pDO, pCraft, pRotor, 
-						  dOR, dR, dW, dC, fOut), 
-				     DMmm);
+						  dOR, dR, dW, dC, fOut));
 	      break;
 	   }
 	     

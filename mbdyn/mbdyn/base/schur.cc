@@ -137,10 +137,10 @@ fParallel(fPar)
 	DEBUGCOUTFNAME(sClassName() << "::SchurMultiStepIntegrator");
 
 	if (sInFName != NULL) {
-		SAFESTRDUP(sInputFileName, sInFName, DMmm);
+		SAFESTRDUP(sInputFileName, sInFName);
 	}
 	if (sOutFName != NULL) {
-		SAFESTRDUP(sOutputFileName, sOutFName, DMmm);
+		SAFESTRDUP(sOutputFileName, sOutFName);
 	}
 
    	/* Legge i dati relativi al metodo di integrazione */
@@ -165,11 +165,11 @@ SchurMultiStepIntegrator::Run(void)
    char* sNewOutName = NULL;
    if (sOutputFileName == NULL) {
      iOutLen = strlen(sInputFileName);
-     SAFENEWARR(sNewOutName, char, iOutLen+4+1, DMmm);
+     SAFENEWARR(sNewOutName, char, iOutLen+4+1);
      strcpy(sNewOutName, sInputFileName);
    } else {
      iOutLen = strlen(sOutputFileName);
-     SAFENEWARR(sNewOutName, char, iOutLen+4+1, DMmm);
+     SAFENEWARR(sNewOutName, char, iOutLen+4+1);
      strcpy(sNewOutName, sOutputFileName);
    }
    sprintf(sNewOutName+iOutLen,".%.3d", MyRank);
@@ -181,8 +181,7 @@ SchurMultiStepIntegrator::Run(void)
 					     dInitialTime,
 					     sInputFileName,
 					     sNewOutName,
-					     fAbortAfterInput),
-			    SMmm);
+					     fAbortAfterInput));
    
 #ifdef MPI_PROFILING
    int  err = MPE_Init_log();
@@ -251,25 +250,25 @@ SchurMultiStepIntegrator::Run(void)
 
    ASSERT(iNumDofs > 0);
    
-   SAFENEWARR(pdWorkSpace, doublereal, 6*iNumDofs, SMmm);
+   SAFENEWARR(pdWorkSpace, doublereal, 6*iNumDofs);
    SAFENEWWITHCONSTRUCTOR(pXCurr,
 			  MyVectorHandler,
-			  MyVectorHandler(iNumDofs, pdWorkSpace), SMmm);
+			  MyVectorHandler(iNumDofs, pdWorkSpace));
    SAFENEWWITHCONSTRUCTOR(pXPrimeCurr,
 			  MyVectorHandler,
-			  MyVectorHandler(iNumDofs, pdWorkSpace+iNumDofs), SMmm);
+			  MyVectorHandler(iNumDofs, pdWorkSpace+iNumDofs));
    SAFENEWWITHCONSTRUCTOR(pXPrev,
 			  MyVectorHandler,
-			  MyVectorHandler(iNumDofs, pdWorkSpace+2*iNumDofs), SMmm);
+			  MyVectorHandler(iNumDofs, pdWorkSpace+2*iNumDofs));
    SAFENEWWITHCONSTRUCTOR(pXPrimePrev,
 			  MyVectorHandler,
-			  MyVectorHandler(iNumDofs, pdWorkSpace+3*iNumDofs), SMmm);
+			  MyVectorHandler(iNumDofs, pdWorkSpace+3*iNumDofs));
    SAFENEWWITHCONSTRUCTOR(pXPrev2,
 			  MyVectorHandler,
-			  MyVectorHandler(iNumDofs, pdWorkSpace+4*iNumDofs), SMmm);
+			  MyVectorHandler(iNumDofs, pdWorkSpace+4*iNumDofs));
    SAFENEWWITHCONSTRUCTOR(pXPrimePrev2,
 			  MyVectorHandler,
-			  MyVectorHandler(iNumDofs, pdWorkSpace+5*iNumDofs), SMmm);
+			  MyVectorHandler(iNumDofs, pdWorkSpace+5*iNumDofs));
 
    /* Resetta i vettori */
    pXCurr->Reset(0.);
@@ -296,8 +295,7 @@ SchurMultiStepIntegrator::Run(void)
 			    SchurSolutionManager(iNumDofs, pLocDofs, 
 						 iNumLocDofs, 
 						 pIntDofs, iNumIntDofs,
-						 iWorkSpaceSize, dPivotFactor),
-			    SMmm);
+						 iWorkSpaceSize, dPivotFactor));
 #ifdef USE_MESCHACH
    } else {
      cerr << "don't know which solver to use!" << endl;
@@ -1164,47 +1162,47 @@ SchurMultiStepIntegrator::~SchurMultiStepIntegrator(void)
 #endif /* MPI_PROFILING */
 
    if (sInputFileName != NULL) {
-      SAFEDELETEARR(sInputFileName, DMmm);
+      SAFEDELETEARR(sInputFileName);
    }
 
    if (sOutputFileName != NULL) {
-      SAFEDELETEARR(sOutputFileName, DMmm);
+      SAFEDELETEARR(sOutputFileName);
    }
 
    if (pSM != NULL)  {
-      SAFEDELETE(pSM, SMmm);
+      SAFEDELETE(pSM);
    }
 
    if (pXPrimePrev2 != NULL) {
-      SAFEDELETE(pXPrimePrev2, SMmm);
+      SAFEDELETE(pXPrimePrev2);
    }
 
    if (pXPrev2 != NULL) {
-      SAFEDELETE(pXPrev2, SMmm);
+      SAFEDELETE(pXPrev2);
    }
 
    if (pXPrimePrev != NULL) {
-      SAFEDELETE(pXPrimePrev, SMmm);
+      SAFEDELETE(pXPrimePrev);
    }
 
    if (pXPrev != NULL) {
-      SAFEDELETE(pXPrev, SMmm);
+      SAFEDELETE(pXPrev);
    }
 
    if (pXPrimeCurr != NULL) {
-      SAFEDELETE(pXPrimeCurr, SMmm);
+      SAFEDELETE(pXPrimeCurr);
    }
 
    if (pXCurr != NULL) {
-      SAFEDELETE(pXCurr, SMmm);
+      SAFEDELETE(pXCurr);
    }
 
    if (pdWorkSpace != NULL) {
-      SAFEDELETEARR(pdWorkSpace, SMmm);
+      SAFEDELETEARR(pdWorkSpace);
    }
    
    if (pDM != NULL) {
-     SAFEDELETE(pDM, SMmm);
+     SAFEDELETE(pDM);
    }
 }
 
@@ -1889,9 +1887,7 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
       KeyWords KMethod = KeyWords(HP.GetWord());
       switch (KMethod) {
        case CRANKNICHOLSON: {
-          SAFENEW(pMethod,
-              CrankNicholson, // no constructor
-              DMmm);
+          SAFENEW(pMethod, CrankNicholson); // no constructor
           break;
        }
        case NOSTRO:
@@ -1908,16 +1904,14 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
 	   case MS: {
           SAFENEWWITHCONSTRUCTOR(pMethod,
                      NostroMetodo,
-                     NostroMetodo(pRho, pRhoAlgebraic),
-                     DMmm);
+                     NostroMetodo(pRho, pRhoAlgebraic));
           break;
            }
 
            case HOPE: {
           SAFENEWWITHCONSTRUCTOR(pMethod,
                      Hope,
-                     Hope(pRho, pRhoAlgebraic),
-                     DMmm);
+                     Hope(pRho, pRhoAlgebraic));
           break;
            }
 	   default:
@@ -1948,9 +1942,7 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
       KeyWords KMethod = KeyWords(HP.GetWord());
       switch (KMethod) {
        case CRANKNICHOLSON: {
-          SAFENEW(pFictitiousStepsMethod,
-              CrankNicholson, // no constructor
-              DMmm);
+          SAFENEW(pFictitiousStepsMethod, CrankNicholson); // no constructor
           break;
        }
        case NOSTRO:
@@ -1967,16 +1959,14 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
 	   case MS: {
               SAFENEWWITHCONSTRUCTOR(pFictitiousStepsMethod,
                                      NostroMetodo,
-                                     NostroMetodo(pRho, pRhoAlgebraic),
-                                     DMmm);
+                                     NostroMetodo(pRho, pRhoAlgebraic));
               break;
            }
 
            case HOPE: {
               SAFENEWWITHCONSTRUCTOR(pFictitiousStepsMethod,
                                      Hope,
-                                     Hope(pRho, pRhoAlgebraic),
-                                     DMmm);
+                                     Hope(pRho, pRhoAlgebraic));
               break;
            }
 	   default:
@@ -2283,20 +2273,17 @@ EndOfCycle:
       DriveCaller* pRho = NULL;
       SAFENEWWITHCONSTRUCTOR(pRho,
                  NullDriveCaller,
-                 NullDriveCaller(NULL),
-                 DMmm);
+                 NullDriveCaller(NULL));
 
       /* DriveCaller per Rho asintotico per variabili algebriche */
       DriveCaller* pRhoAlgebraic = NULL;
       SAFENEWWITHCONSTRUCTOR(pRhoAlgebraic,
                  NullDriveCaller,
-                 NullDriveCaller(NULL),
-                 DMmm);
+                 NullDriveCaller(NULL));
 
       SAFENEWWITHCONSTRUCTOR(pMethod,
                  NostroMetodo,
-                 NostroMetodo(pRho, pRhoAlgebraic),
-                 DMmm);
+                 NostroMetodo(pRho, pRhoAlgebraic));
    }
 
    /* Metodo di integrazione di default */
@@ -2306,20 +2293,17 @@ EndOfCycle:
       DriveCaller* pRho = NULL;
       SAFENEWWITHCONSTRUCTOR(pRho,
                  NullDriveCaller,
-                 NullDriveCaller(NULL),
-                 DMmm);
+                 NullDriveCaller(NULL));
 
       /* DriveCaller per Rho asintotico per variabili algebriche */
       DriveCaller* pRhoAlgebraic = NULL;
       SAFENEWWITHCONSTRUCTOR(pRhoAlgebraic,
                  NullDriveCaller,
-                 NullDriveCaller(NULL),
-                 DMmm);
+                 NullDriveCaller(NULL));
 
       SAFENEWWITHCONSTRUCTOR(pFictitiousStepsMethod,
                  NostroMetodo,
-                 NostroMetodo(pRho, pRhoAlgebraic),
-                 DMmm);
+                 NostroMetodo(pRho, pRhoAlgebraic));
    }
 
    return;

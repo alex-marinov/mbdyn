@@ -35,48 +35,25 @@
 
 template <class T>
 class Destructor {
-protected:   
-#if defined(DEBUG_MEMMANAGER)
-   	clMemMan& mm;
-#endif   
-   
 public:
-#if defined(DEBUG_MEMMANAGER)
-   	Destructor(clMemMan& m) : mm(m) { 
-      		NO_OP;
-   	};
-#else /* !DEBUG_MEMMANAGER */
    	Destructor(void) { 
       		NO_OP; 
    	};
-#endif /* !DEBUG_MEMMANAGER */
    
    	virtual ~Destructor(void) { 
       		NO_OP;
    	};
    
    	virtual void Destroy(T*&) const = 0;
-   
-#if defined(DEBUG_MEMMANAGER)
-   	clMemMan& GetMemMan(void) const {
-      		return mm;
-   	};
-#endif /* DEBUG_MEMMANAGER */
 };
 
 
 template <class T>
 class LinkDestructor : public Destructor<T> {
 public:
-#if defined(DEBUG_MEMMANAGER)
-   	LinkDestructor(clMemMan& m) : Destructor<T>(m) { 
-      		NO_OP;
-   	};
-#else /* !DEBUG_MEMMANAGER */
    	LinkDestructor(void) : Destructor<T>() { 
       		NO_OP;
    	};
-#endif /* !DEBUG_MEMMANAGER */
    
    	~LinkDestructor(void) { 
       		NO_OP;
@@ -91,15 +68,9 @@ public:
 template <class T>
 class HardDestructor : public Destructor<T> {
 public:
-#if defined(DEBUG_MEMMANAGER)
-   	HardDestructor(clMemMan& m) : Destructor<T>(m) { 
-      		NO_OP;
-   	};
-#else /* !DEBUG_MEMMANAGER */
    	HardDestructor(void) : Destructor<T>() { 
       		NO_OP;
    	};
-#endif /* !DEBUG_MEMMANAGER */
    
    	~HardDestructor(void) { 
       		NO_OP;
@@ -107,7 +78,7 @@ public:
    
    	void Destroy(T*& pnt) const {
       		if (pnt != NULL) {
-	 		SAFEDELETE(pnt, mm);
+	 		SAFEDELETE(pnt);
 	 		pnt = NULL;
       		}
    	};   
@@ -116,15 +87,9 @@ public:
 template <class T>
 class ArrayHardDestructor : public Destructor<T> {
 public:
-#if defined(DEBUG_MEMMANAGER)
-   	ArrayHardDestructor(clMemMan& m) : Destructor<T>(m) { 
-      		NO_OP;
-   	};
-#else /* !DEBUG_MEMMANAGER */
    	ArrayHardDestructor(void) : Destructor<T>() { 
       		NO_OP;
    	};
-#endif /* !DEBUG_MEMMANAGER */
 
    	~ArrayHardDestructor(void) { 
       		NO_OP;
@@ -132,26 +97,15 @@ public:
    
    	void Destroy(T*& pnt) const {
       		if (pnt != NULL) {
-	 		SAFEDELETEARR(pnt, mm);
+	 		SAFEDELETEARR(pnt);
 	 		pnt = NULL;
       		}
    	};
 };
 
-
-#if defined(DEBUG_MEMMANAGER)
-
-#define LINKDESTRUCTOR(d, type, m) LinkDestructor<type> d((m))
-#define HARDDESTRUCTOR(d, type, m) HardDestructor<type> d((m))
-#define ARRAYHARDDESTRUCTOR(d, type, m) ArrayHardDestructor<type> d((m))
-
-#else /* !DEBUG_MEMMANAGER */
-
 #define LINKDESTRUCTOR(d, type, m) LinkDestructor<type> d
 #define HARDDESTRUCTOR(d, type, m) HardDestructor<type> d
 #define ARRAYHARDDESTRUCTOR(d, type, m) ArrayHardDestructor<type> d
-
-#endif /* !DEBUG_MEMMANAGER */
 
 #endif /* DESTR_H */
 

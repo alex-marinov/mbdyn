@@ -235,11 +235,11 @@ void MyVectorHandler::Resize(integer iSize)
       if (pdVec != NULL) {
 	 if (iSize > iMaxSize) {
 	    doublereal* pd = NULL;
-	    SAFENEWARR(pd, doublereal, iSize, SMmm);
+	    SAFENEWARR(pd, doublereal, iSize);
 	    for (integer i = iCurSize; i-- > 0; ) {
 	       pd[i] = pdVec[i];
 	    }
-	    SAFEDELETEARR(pdVec, SMmm);
+	    SAFEDELETEARR(pdVec);
 	    pdVec = pd;
 	    pdVecm1 = pdVec-1;
 	    iMaxSize = iCurSize = iSize;	    
@@ -247,7 +247,7 @@ void MyVectorHandler::Resize(integer iSize)
 	    iCurSize = iSize;
 	 }
       } else {
-	 SAFENEWARR(pdVec, doublereal, iSize, SMmm);
+	 SAFENEWARR(pdVec, doublereal, iSize);
 	 pdVecm1 = pdVec-1;
 	 iMaxSize = iCurSize = iSize;
       }
@@ -271,7 +271,7 @@ void MyVectorHandler::Detach(void)
 {
    if (fOwnsMemory) {
       if (pdVec != NULL) {
-	 SAFEDELETEARR(pdVec, SMmm);
+	 SAFEDELETEARR(pdVec);
       }
       fOwnsMemory = 0;
    }

@@ -20,7 +20,7 @@ Aero_output* Aero_output_alloc(unsigned int iNumPoints)
 {
    // DEBUGCOUTFNAME("Aero_output_alloc");
    Aero_output* p = NULL;
-   SAFENEWARR(p, Aero_output, iNumPoints, EMmm);  
+   SAFENEWARR(p, Aero_output, iNumPoints);  
    return p;
 }
 
@@ -87,18 +87,18 @@ pFemNodesPosition(pFNP)
    }
 #endif
    
-   SAFENEWARR(pdOuta, doublereal, 20*iN*NAeroElems, EMmm);
-   SAFENEWARR(pvdOuta, doublereal*, iN*NAeroElems, EMmm);
+   SAFENEWARR(pdOuta, doublereal, 20*iN*NAeroElems);
+   SAFENEWARR(pvdOuta, doublereal*, iN*NAeroElems);
    for (integer i = 20*iN*NAeroElems; i-- > 0; ) {
       pdOuta[i] = 0.;
    }
    for (integer i = iN*NAeroElems; i-- > 0; ) {
       pvdOuta[i] = pdOuta+20*i;
    }
-   SAFENEWARR(ppR1tot, Mat3x3*, NAeroElems, EMmm);
+   SAFENEWARR(ppR1tot, Mat3x3*, NAeroElems);
    for ( int i = 0; i < NAeroElems; i++ ) {
     ppR1tot[i] = NULL;
-    SAFENEW(ppR1tot[i], Mat3x3, EMmm);
+    SAFENEW(ppR1tot[i], Mat3x3);
   }
   
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
@@ -125,19 +125,19 @@ AerodynamicModal::~AerodynamicModal(void)
 {
    // DEBUGCOUTFNAME("AerodynamicModal::~AerodynamicModal");
    
-   SAFEDELETEARR(pvdOuta, EMmm);   
-   SAFEDELETEARR(pdOuta, EMmm);
+   SAFEDELETEARR(pvdOuta);   
+   SAFEDELETEARR(pdOuta);
    if (ppR1tot != NULL) {
     for ( int i = 0; i < NAeroElems; i++ ) {
       if (ppR1tot[i] != NULL) {
-	SAFEDELETE(ppR1tot[i], EMmm);
+	SAFEDELETE(ppR1tot[i]);
       }
     }
-    SAFEDELETEARR(ppR1tot, EMmm);
+    SAFEDELETEARR(ppR1tot);
   } 
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
    if (pOutput != NULL) {
-      SAFEDELETEARR(pOutput, EMmm);
+      SAFEDELETEARR(pOutput);
    }
 #endif /* AEROD_OUTPUT */
 }
@@ -645,7 +645,7 @@ void ReadAeroModalData(DataManager* pDM,
    } else {      
       SAFENEWWITHCONSTRUCTOR(*ppDC,
 			     NullDriveCaller,
-			     NullDriveCaller(pDM->pGetDrvHdl()), EMmm);
+			     NullDriveCaller(pDM->pGetDrvHdl()));
    }
    
    *piProfile = 1;
@@ -711,8 +711,8 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    Mat3xN *pPHItTmp = NULL;
    Mat3xN *pPHIrTmp = NULL;
    
-   SAFENEWWITHCONSTRUCTOR(pPHItTmp, Mat3xN, Mat3xN(NFemNodes*NModes, 0.), EMmm);
-   SAFENEWWITHCONSTRUCTOR(pPHIrTmp, Mat3xN, Mat3xN(NFemNodes*NModes, 0.), EMmm);
+   SAFENEWWITHCONSTRUCTOR(pPHItTmp, Mat3xN, Mat3xN(NFemNodes*NModes, 0.));
+   SAFENEWWITHCONSTRUCTOR(pPHIrTmp, Mat3xN, Mat3xN(NFemNodes*NModes, 0.));
    
    pPHItTmp = pModalJoint->pGetPHIt();
    pPHIrTmp = pModalJoint->pGetPHIr();
@@ -800,8 +800,8 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    FullMatrixHandler PHI(NFemNodes, NModes, 0.);
    FullMatrixHandler *pH = NULL;
 
-   SAFENEWWITHCONSTRUCTOR(pGTKG, FullMatrixHandler, FullMatrixHandler(2*NAeroElems, NFemNodes, 0.), EMmm);
-   SAFENEWWITHCONSTRUCTOR(pH, FullMatrixHandler, FullMatrixHandler(2*NAeroElems, NModes, 0.), EMmm);
+   SAFENEWWITHCONSTRUCTOR(pGTKG, FullMatrixHandler, FullMatrixHandler(2*NAeroElems, NFemNodes, 0.));
+   SAFENEWWITHCONSTRUCTOR(pH, FullMatrixHandler, FullMatrixHandler(2*NAeroElems, NModes, 0.));
 
    doublereal d; 
    for(int iCnt = 1; iCnt <= 2*NAeroElems; iCnt ++) { 
@@ -824,7 +824,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
 
    /* recupero gli offset dei nodi FEM */
    Mat3xN *pFemNodesPosition = NULL;
-   SAFENEWWITHCONSTRUCTOR(pFemNodesPosition, Mat3xN, Mat3xN(NFemNodes, 0.), EMmm);
+   SAFENEWWITHCONSTRUCTOR(pFemNodesPosition, Mat3xN, Mat3xN(NFemNodes, 0.));
    pFemNodesPosition = pModalJoint->pGetFemNodesPosition();
 
    flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
@@ -837,8 +837,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
 					  iInst, iNumber, iProfile, NModes, NFemNodes,
                                           NAeroElems, pPHItTmp, pPHIrTmp, pH, pGTKG, dL,
                                           pFemNodesPosition, //Zaxis,
-                                          pDC, fOut),
-			  EMmm);
+                                          pDC, fOut));
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.fIsArg()) {

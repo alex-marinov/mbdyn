@@ -70,8 +70,7 @@ class UncompressibleHydraulicFluid : public HydraulicFluid {
       HydraulicFluid* pHF = NULL;
       SAFENEWWITHCONSTRUCTOR(pHF, 
 			     UncompressibleHydraulicFluid,
-			     UncompressibleHydraulicFluid(*this),
-			     DMmm);
+			     UncompressibleHydraulicFluid(*this));
       return pHF;
    };
    
@@ -169,8 +168,7 @@ class LinearCompressibleHydraulicFluid : public HydraulicFluid {
       HydraulicFluid* pHF = NULL;
       SAFENEWWITHCONSTRUCTOR(pHF, 
 			     LinearCompressibleHydraulicFluid,
-			     LinearCompressibleHydraulicFluid(*this),
-			     DMmm);
+			     LinearCompressibleHydraulicFluid(*this));
       return pHF;
    };
 
@@ -261,8 +259,7 @@ class LinearCompressibleTHydraulicFluid
       HydraulicFluid* pHF = NULL;
       SAFENEWWITHCONSTRUCTOR(pHF, 
 			     LinearCompressibleTHydraulicFluid,
-			     LinearCompressibleTHydraulicFluid(*this),
-			     DMmm);
+			     LinearCompressibleTHydraulicFluid(*this));
       return pHF;
    };
    
@@ -338,8 +335,7 @@ class SuperHydraulicFluid : public HydraulicFluid {
       HydraulicFluid* pHF = NULL;
       SAFENEWWITHCONSTRUCTOR(pHF,
 			     SuperHydraulicFluid,
-			     SuperHydraulicFluid(*this),
-			     DMmm);
+			     SuperHydraulicFluid(*this));
       return pHF;
    };
 
@@ -498,8 +494,7 @@ class AMESimHydraulicFluid : public HydraulicFluid {
       HydraulicFluid* pHF = NULL;
       SAFENEWWITHCONSTRUCTOR(pHF,
 			     AMESimHydraulicFluid,
-			     AMESimHydraulicFluid(*this),
-			     DMmm);
+			     AMESimHydraulicFluid(*this));
       return pHF;
    };
 

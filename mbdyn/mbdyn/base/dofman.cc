@@ -60,13 +60,12 @@ void DataManager::DofManagerDestructor(void)
    ASSERT(pDofOwners != NULL);   
    if(pDofOwners != NULL) {	
       DEBUGLCOUT(MYDEBUG_INIT, "deleting dof owners structure" << endl);
-      SAFEDELETEARR(pDofOwners, DMmm);
+      SAFEDELETEARR(pDofOwners);
    }
    
-   // ASSERT(pDofs != NULL);  // it could haven't been allocated
    if(pDofs != NULL) {	
       DEBUGLCOUT(MYDEBUG_INIT, "deleting dofs structure" << endl);
-      SAFEDELETEARR(pDofs, DMmm);
+      SAFEDELETEARR(pDofs);
    }   
 }
 
@@ -84,7 +83,7 @@ void DataManager::DofDataInit(void)
 	
    /* Crea la struttura dinamica dei DofOwner */
    if (iTotDofOwners > 0) {	     
-      SAFENEWARR(pDofOwners, DofOwner, iTotDofOwners, DMmm);
+      SAFENEWARR(pDofOwners, DofOwner, iTotDofOwners);
       
       /* Resetta la struttura dinamica dei DofOwner */
       DofOwner* pTmp = pDofOwners;
@@ -152,7 +151,7 @@ void DataManager::DofInit(void)
    	
    /* Crea la struttura dinamica dei Dof */
    if(iTotDofs > 0) {	
-      SAFENEWARR(pDofs, Dof, iTotDofs, DMmm);
+      SAFENEWARR(pDofs, Dof, iTotDofs);
       
       /* Inizializza l'iteratore sui Dof */
       DofIter.Init(pDofs, iTotDofs);

@@ -254,8 +254,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  doublereal l = (pNode2->GetXCurr()-pNode1->GetXCurr()).Norm();
 	  SAFENEWWITHCONSTRUCTOR(pDC, 
 				 ConstDriveCaller,
-				 ConstDriveCaller(pDM->pGetDrvHdl(), l),
-				 DMmm);
+				 ConstDriveCaller(pDM->pGetDrvHdl(), l));
        } else {
 	  pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
        }
@@ -266,8 +265,7 @@ Elem* ReadJoint(DataManager* pDM,
        /* allocazione e costruzione */
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      DistanceJoint,
-			      DistanceJoint(uLabel, pDO, pNode1, pNode2, pDC, fOut), 
-			      DMmm);
+			      DistanceJoint(uLabel, pDO, pNode1, pNode2, pDC, fOut));
        
        /* scrittura dei dati specifici */	     	     
        break;
@@ -331,8 +329,7 @@ Elem* ReadJoint(DataManager* pDM,
 			  -pNode1->GetRCurr()*f1).Norm();
 	  SAFENEWWITHCONSTRUCTOR(pDC, 
 				 ConstDriveCaller, 
-				 ConstDriveCaller(pDM->pGetDrvHdl(), l),
-				 DMmm);
+				 ConstDriveCaller(pDM->pGetDrvHdl(), l));
        } else {
 	  pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
        }
@@ -344,7 +341,7 @@ Elem* ReadJoint(DataManager* pDM,
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      DistanceJointWithOffset,
 			      DistanceJointWithOffset(uLabel, pDO, pNode1, pNode2,
-						      f1, f2, pDC, fOut), DMmm);
+						      f1, f2, pDC, fOut));
        
        /* scrittura dei dati specifici */
        break;
@@ -395,7 +392,7 @@ Elem* ReadJoint(DataManager* pDM,
        /* allocazione e costruzione */
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      ClampJoint,
-			      ClampJoint(uLabel, pDO, pNode, X0, R0, fOut), DMmm);
+			      ClampJoint(uLabel, pDO, pNode, X0, R0, fOut));
        break;
     }      	   	            
       
@@ -428,7 +425,7 @@ Elem* ReadJoint(DataManager* pDM,
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      PinJoint,
-			      PinJoint(uLabel, pDO, pNode, X0, d, fOut), DMmm);
+			      PinJoint(uLabel, pDO, pNode, X0, d, fOut));
        
        break;
     }	
@@ -512,8 +509,7 @@ Elem* ReadJoint(DataManager* pDM,
 				  SphericalHingeJoint(uLabel, pDO, 
 						      pNode1, pNode2, 
 						      d1, R1h,
-						      d2, R2h, fOut),
-				  DMmm);
+						      d2, R2h, fOut));
 	   break;
 	}
 	  
@@ -526,8 +522,7 @@ Elem* ReadJoint(DataManager* pDM,
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlaneHingeJoint,
 				  PlaneHingeJoint(uLabel, pDO, pNode1, pNode2, 
-						  d1, d2, R1h, R2h, fOut), 
-				  DMmm);
+						  d1, d2, R1h, R2h, fOut));
 	   break;
 	}
 	  
@@ -537,8 +532,7 @@ Elem* ReadJoint(DataManager* pDM,
 				  UniversalHingeJoint,
 				  UniversalHingeJoint(uLabel, pDO, 
 						      pNode1, pNode2,
-						      d1, d2, R1h, R2h, fOut), 
-				  DMmm);
+						      d1, d2, R1h, R2h, fOut));
 	   break;
 	}
 	  
@@ -550,8 +544,7 @@ Elem* ReadJoint(DataManager* pDM,
 				  AxialRotationJoint(uLabel, pDO, 
 						     pNode1, pNode2,
 						     d1, d2, R1h, R2h, pDC, 
-						     fOut), 
-				  DMmm);
+						     fOut));
 	   break;
 	}
 	   
@@ -560,8 +553,7 @@ Elem* ReadJoint(DataManager* pDM,
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlaneDispJoint,
 				  PlaneDispJoint(uLabel, pDO, pNode1, pNode2, 
-						 d1, d2, R1h, R2h, fOut),
-				  DMmm);
+						 d1, d2, R1h, R2h, fOut));
 	   
 	   break;
 	}
@@ -626,8 +618,7 @@ Elem* ReadJoint(DataManager* pDM,
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlanePinJoint,
 				  PlanePinJoint(uLabel, pDO, pNode,
-						X0, R0, d, Rh, fOut), 
-				  DMmm);
+						X0, R0, d, Rh, fOut));
 	   break;
 	}
 	  
@@ -635,8 +626,7 @@ Elem* ReadJoint(DataManager* pDM,
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  UniversalPinJoint,
 				  UniversalPinJoint(uLabel, pDO, pNode,
-						    X0, R0, d, Rh, fOut), 
-				  DMmm);
+						    X0, R0, d, Rh, fOut));
 	   break;
 	}
 	  
@@ -645,8 +635,7 @@ Elem* ReadJoint(DataManager* pDM,
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlaneDispPinJoint,
 				  PlaneDispPinJoint(uLabel, pDO, pNode,
-						    X0, R0, d, Rh, fOut), 
-				  DMmm);
+						    X0, R0, d, Rh, fOut));
 	   break;
 	}
 	  
@@ -719,12 +708,12 @@ Elem* ReadJoint(DataManager* pDM,
 				 InPlaneWithOffsetJoint,
 				 InPlaneWithOffsetJoint(uLabel, pDO,
 							pNode1, pNode2, 
-							v, p, q, fOut), DMmm);
+							v, p, q, fOut));
        } else {	      	   
 	  SAFENEWWITHCONSTRUCTOR(pEl, 
 				 InPlaneJoint,
 				 InPlaneJoint(uLabel, pDO, pNode1, pNode2, 
-					      v, p, fOut), DMmm);
+					      v, p, fOut));
        }
        
        break;
@@ -783,15 +772,13 @@ Elem* ReadJoint(DataManager* pDM,
 				 InLineWithOffsetJoint,
 				 InLineWithOffsetJoint(uLabel, pDO, 
 						       pNode1, pNode2,
-						       R, p, q, fOut), 
-				 DMmm);
+						       R, p, q, fOut));
        } else {	      	   
 	  SAFENEWWITHCONSTRUCTOR(pEl,
 				 InLineJoint,
 				 InLineJoint(uLabel, pDO, 
 					     pNode1, pNode2,
-					     R, p, fOut), 
-				 DMmm);
+					     R, p, fOut));
        }
        
        break;
@@ -860,8 +847,7 @@ Elem* ReadJoint(DataManager* pDM,
 				 RodWithOffset,
 				 RodWithOffset(uLabel, pDO, pCL,
 						    pNode1, pNode2, 
-						    f1, f2, dL, fOut),
-				 DMmm);
+						    f1, f2, dL, fOut));
        } else {	  
 	  if (ConstLawType == DefHingeType::VISCOUS
 			  || ConstLawType == DefHingeType::VISCOELASTIC) {
@@ -869,14 +855,12 @@ Elem* ReadJoint(DataManager* pDM,
 				    ViscoElasticRod,
 				    ViscoElasticRod(uLabel, pDO, pCL,
 							 pNode1, pNode2, 
-							 dL, fOut), 
-				    DMmm);		 
+							 dL, fOut));
 	  } else {		 
 	     SAFENEWWITHCONSTRUCTOR(pEl, 
 				    Rod,
 				    Rod(uLabel, pDO, pCL,
-					pNode1, pNode2, dL, fOut), 
-				    DMmm);
+					pNode1, pNode2, dL, fOut));
 	  }
        }	   
        
@@ -926,8 +910,7 @@ Elem* ReadJoint(DataManager* pDM,
                               RodWithOffset,
                               RodWithOffset(uLabel, pDO, pCL,
                                             pNode1, pNode2,
-                                            f1, f2, dL, fOut),
-                              DMmm);
+                                            f1, f2, dL, fOut));
 
        break;
     }
@@ -1001,16 +984,14 @@ Elem* ReadJoint(DataManager* pDM,
 				     ElasticHingeJoint,
 				     ElasticHingeJoint(uLabel, pDO, pCL,
 						       pNode1, pNode2, 
-						       R1, R2, fOut),
-				     DMmm);
+						       R1, R2, fOut));
 	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE) {
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     ElasticDispHingeJoint,
 				     ElasticDispHingeJoint(uLabel, pDO, pCL,
 							   pNode1, pNode2, 
 							   f1, f2, R1, R2, 
-							   fOut),
-				     DMmm);
+							   fOut));
 	   }
 	   
 	   break;
@@ -1022,16 +1003,14 @@ Elem* ReadJoint(DataManager* pDM,
 				     ViscousHingeJoint,
 				     ViscousHingeJoint(uLabel, pDO, pCL,
 						       pNode1, pNode2, 
-						       R1, R2, fOut),
-				     DMmm);
+						       R1, R2, fOut));
 	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE) {
 	      SAFENEWWITHCONSTRUCTOR(pEl, 
 				     ViscousDispHingeJoint,
 				     ViscousDispHingeJoint(uLabel, pDO, pCL,
 							   pNode1, pNode2,
 							   f1, f2, R1, R2, 
-							   fOut),
-				     DMmm);
+							   fOut));
 	   }
 	   
 	   break;
@@ -1043,8 +1022,7 @@ Elem* ReadJoint(DataManager* pDM,
 				     ViscoElasticHingeJoint,
 				     ViscoElasticHingeJoint(uLabel, pDO, pCL,
 							    pNode1, pNode2, 
-							    R1, R2, fOut),
-				     DMmm);
+							    R1, R2, fOut));
 	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE) {
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     ViscoElasticDispHingeJoint,
@@ -1052,8 +1030,7 @@ Elem* ReadJoint(DataManager* pDM,
 								pDO, pCL,
 								pNode1, pNode2,
 								f1, f2, R1, R2,
-								fOut),
-				     DMmm);
+								fOut));
 	   }
 	   
 	   break;
@@ -1102,8 +1079,7 @@ Elem* ReadJoint(DataManager* pDM,
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  LinearVelocityJoint,
 				  LinearVelocityJoint(uLabel, pDO,
-						      pNode, Dir, pDC, fOut), 
-				  DMmm);
+						      pNode, Dir, pDC, fOut));
 	   break;
 	}
 	  
@@ -1111,8 +1087,7 @@ Elem* ReadJoint(DataManager* pDM,
 	   SAFENEWWITHCONSTRUCTOR(pEl,
 				  AngularVelocityJoint,
 				  AngularVelocityJoint(uLabel, pDO,
-						       pNode, Dir, pDC, fOut), 
-				  DMmm);
+						       pNode, Dir, pDC, fOut));
 	   break;
 	}
 	  
@@ -1160,8 +1135,7 @@ Elem* ReadJoint(DataManager* pDM,
 				  LinearAccelerationJoint,
 				  LinearAccelerationJoint(uLabel, pDO,
 							  pNode, Dir, pDC, 
-							  fOut), 
-				  DMmm);
+							  fOut));
 	   break;
 	}
 	  
@@ -1170,8 +1144,7 @@ Elem* ReadJoint(DataManager* pDM,
 				  AngularAccelerationJoint,
 				  AngularAccelerationJoint(uLabel, pDO,
 							   pNode, Dir, pDC, 
-							   fOut), 
-				  DMmm);
+							   fOut));
 	   break;
 	}
 	  
@@ -1232,8 +1205,7 @@ Elem* ReadJoint(DataManager* pDM,
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      PrismaticJoint,
 			      PrismaticJoint(uLabel, pDO, pNode1, pNode2, 
-					     R1h, R2h, fOut), 
-			      DMmm);
+					     R1h, R2h, fOut));
        
        break;
     }
@@ -1291,8 +1263,7 @@ Elem* ReadJoint(DataManager* pDM,
 			      DriveHingeJoint,
 			      DriveHingeJoint(uLabel, pDO, pDC, 
 					      pNode1, pNode2, 
-					      R1h, R2h, fOut), 
-			      DMmm);
+					      R1h, R2h, fOut));
        
        
        break;
@@ -1316,17 +1287,13 @@ Elem* ReadJoint(DataManager* pDM,
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
        
        Kinematics* pK = NULL;
-       SAFENEWWITHCONSTRUCTOR(pK, 
-			      KinematicsTest,
-			      KinematicsTest(pDC),
-			      DMmm);
+       SAFENEWWITHCONSTRUCTOR(pK, KinematicsTest, KinematicsTest(pDC));
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      KinJoint,
-			      KinJoint(uLabel, pDO, pNode, pK, fOut),
-			      DMmm);
+			      KinJoint(uLabel, pDO, pNode, pK, fOut));
        
        break;
     }

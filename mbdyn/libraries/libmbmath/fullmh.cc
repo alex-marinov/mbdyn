@@ -130,19 +130,19 @@ void FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 	 if (iSize > iRawSize) {
 	    /* crea */
 	    doublereal* pd = NULL;
-	    SAFENEWARR(pd, doublereal, iSize, SMmm);
+	    SAFENEWARR(pd, doublereal, iSize);
 	    for (integer i = iRawSize; i-- > 0; ) {
 	       pd[i] = pdRaw[i];
 	    }
 	    iRawSize = iSize;
-	    SAFEDELETEARR(pdRaw, SMmm);
+	    SAFEDELETEARR(pdRaw);
 	    pdRaw = pd;
 	    pdRawm1 = pd-1;	    
 	 }
 	 if (iNewCols > iMaxCols) {
 	    /* crea */
-	    SAFEDELETEARR(ppdCols, SMmm);
-	    SAFENEWARR(ppdCols, doublereal*, iNewCols, SMmm);
+	    SAFEDELETEARR(ppdCols);
+	    SAFENEWARR(ppdCols, doublereal*, iNewCols);
 	    iMaxCols = iNewCols;
 	    ppdColsm1 = ppdCols-1;
 	    CreateColRow(iNewRows, iNewCols);
@@ -159,9 +159,9 @@ void FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 	 iMaxCols = iNewCols;
 	 iNumRows = iNewRows;
 	 iNumCols = iNewCols;
-	 SAFENEWARR(pdRaw, doublereal, iRawSize, SMmm);
+	 SAFENEWARR(pdRaw, doublereal, iRawSize);
 	 pdRawm1 = pdRaw-1;
-	 SAFENEWARR(ppdCols, doublereal*, iNumCols, SMmm);
+	 SAFENEWARR(ppdCols, doublereal*, iNumCols);
 	 ppdColsm1 = ppdCols-1;
 	 CreateColRow(iNumRows, iNumCols);
       }
@@ -200,10 +200,10 @@ void FullMatrixHandler::Detach(void)
 {
    if (fOwnsMemory) {
       if (pdRaw != NULL) {
-	 SAFEDELETEARR(pdRaw, SMmm);
+	 SAFEDELETEARR(pdRaw);
       }
       if (ppdCols != NULL) {
-	 SAFEDELETEARR(ppdCols, SMmm);
+	 SAFEDELETEARR(ppdCols);
       }
       fOwnsMemory = 0;
    }

@@ -293,8 +293,7 @@ Elem* ReadGenel(DataManager* pDM,
 					 fLatLimits,
 					 dLatMin,
 					 dLatMax,
-					 fOut), 
-			      DMmm);
+					 fOut));
        break;
     }
       
@@ -373,8 +372,7 @@ Elem* ReadGenel(DataManager* pDM,
 					pvDrives[0], pvDrives[1], pvDrives[2],
 					dSigma, dGamma, dP, 
 					dTau0, dTau1, dKappa0, dKappa1,
-					0 /* fOut */ ),
-			      DMmm);
+					0 /* fOut */ ));
 
 #else /* !USE_AERODYNAMIC_ELEMS */
        cerr << "can't use a rotor trim element without rotors" << endl;
@@ -399,8 +397,7 @@ Elem* ReadGenel(DataManager* pDM,
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      GenelClamp,
-			      GenelClamp(uLabel, pDO, pDC, SD, fOut),
-			      DMmm);
+			      GenelClamp(uLabel, pDO, pDC, SD, fOut));
        
        break;
     }
@@ -426,8 +423,7 @@ Elem* ReadGenel(DataManager* pDM,
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      GenelDistance,
-			      GenelDistance(uLabel, pDO, pDC, SD1, SD2, fOut),
-			      DMmm);
+			      GenelDistance(uLabel, pDO, pDC, SD1, SD2, fOut));
        
        
        break;
@@ -460,8 +456,7 @@ Elem* ReadGenel(DataManager* pDM,
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      GenelSpring,
-			      GenelSpring(uLabel, pDO, pCL, SD1, SD2, fOut),
-			      DMmm);
+			      GenelSpring(uLabel, pDO, pCL, SD1, SD2, fOut));
        
        
        break;
@@ -488,8 +483,7 @@ Elem* ReadGenel(DataManager* pDM,
 	   SAFENEWWITHCONSTRUCTOR(pEl,
 				  GenelSpringSupport,	
 				  GenelSpringSupport(uLabel, pDO, pCL, 
-						     SD, fOut),
-				  DMmm);
+						     SD, fOut));
 	   break;
 	}
 	case DefHingeType::VISCOUS:
@@ -497,8 +491,7 @@ Elem* ReadGenel(DataManager* pDM,
 	   SAFENEWWITHCONSTRUCTOR(pEl,
 				  GenelSpringDamperSupport,
 				  GenelSpringDamperSupport(uLabel, pDO, pCL, 
-							   SD, fOut),
-				  DMmm);
+							   SD, fOut));
 	   break;
 	}
 	default: {
@@ -534,8 +527,7 @@ Elem* ReadGenel(DataManager* pDM,
 	   SAFENEWWITHCONSTRUCTOR(pEl,
 				  GenelCrossSpringSupport,	
 				  GenelCrossSpringSupport(uLabel, pDO, pCL, 
-							  SDRow, SDCol, fOut),
-				  DMmm);
+							  SDRow, SDCol, fOut));
 	   break;
 	}
 	case DefHingeType::VISCOUS:
@@ -543,8 +535,7 @@ Elem* ReadGenel(DataManager* pDM,
 	   SAFENEWWITHCONSTRUCTOR(pEl,
 				  GenelCrossSpringDamperSupport,
 				  GenelCrossSpringDamperSupport(uLabel, pDO, pCL, 
-								SDRow, SDCol, fOut),
-				  DMmm);
+								SDRow, SDCol, fOut));
 	   break;
 	}
 	default: {
@@ -572,8 +563,7 @@ Elem* ReadGenel(DataManager* pDM,
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      GenelMass,
-			      GenelMass(uLabel, pDO, pDC, SD, fOut),
-			      DMmm);
+			      GenelMass(uLabel, pDO, pDC, SD, fOut));
        
        
        break;
@@ -596,7 +586,7 @@ Elem* ReadGenel(DataManager* pDM,
        unsigned int na = HP.GetInt();
        DEBUGCOUT("GenelFilter " << uLabel << " has a " << na << " order denominator" << endl);
        doublereal* pdP = NULL;
-       SAFENEWARR(pdP, doublereal, na+1, DMmm);
+       SAFENEWARR(pdP, doublereal, na+1);
        
        pdP[0] = 1.;
        
@@ -610,7 +600,7 @@ Elem* ReadGenel(DataManager* pDM,
        unsigned int nb = HP.GetInt();
        DEBUGCOUT("GenelFilter " << uLabel << " has a " << nb << " order numerator" << endl);
        doublereal* pdTau = NULL;
-       SAFENEWARR(pdTau, doublereal, nb+1, DMmm);
+       SAFENEWARR(pdTau, doublereal, nb+1);
              
        for (unsigned int iCnt = 0; iCnt <= nb; iCnt++) {
 	  pdTau[iCnt] = HP.GetReal();
@@ -630,8 +620,7 @@ Elem* ReadGenel(DataManager* pDM,
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      GenelFilter,
 			      GenelFilter(uLabel, pDO, SD_y, SD_u,
-					  na, nb, pdP, pdTau, fOut),
-			      DMmm);
+					  na, nb, pdP, pdTau, fOut));
               
        break;
     }
@@ -650,9 +639,10 @@ Elem* ReadGenel(DataManager* pDM,
 
        /* ordine del denominatore */
        unsigned int na = HP.GetInt();
-       DEBUGCOUT("GenelFilter " << uLabel << " has a " << na << " order denominator" << endl);
+       DEBUGCOUT("GenelFilter " << uLabel << " has a " << na 
+		       << " order denominator" << endl);
        doublereal* pdP = NULL;
-       SAFENEWARR(pdP, doublereal, na+1, DMmm);
+       SAFENEWARR(pdP, doublereal, na+1);
        pdP[0] = 1.;
        
        /* i coefficienti vengono letti a partire da a1, perche' il polinomio 
@@ -672,9 +662,10 @@ Elem* ReadGenel(DataManager* pDM,
 	  THROW(ErrGeneric());
        }
 
-       DEBUGCOUT("GenelFilter " << uLabel << " has a " << nb << " order numerator" << endl);
+       DEBUGCOUT("GenelFilter " << uLabel << " has a " << nb 
+		       << " order numerator" << endl);
        doublereal* pdTau = NULL;
-       SAFENEWARR(pdTau, doublereal, nb+1, DMmm);
+       SAFENEWARR(pdTau, doublereal, nb+1);
              
        /* i coefficienti vengono letti a partire da b0; e' possibile inserire 
 	* il polinomio in forma monica e modificare direttamente il guadagno */
@@ -707,8 +698,7 @@ Elem* ReadGenel(DataManager* pDM,
 			      GenelFilterEq,
 			      GenelFilterEq(uLabel, pDO, SD_y, SD_u,
 					    na, nb, pdP, pdTau, 
-					    fState, fOut),
-			      DMmm);
+					    fState, fOut));
               
        break;
     }
@@ -732,7 +722,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  THROW(ErrGeneric());
        }
        doublereal* pdA = NULL;
-       SAFENEWARR(pdA, doublereal, Order*Order, DMmm);
+       SAFENEWARR(pdA, doublereal, Order*Order);
        doublereal* pd = pdA;
        for (unsigned int i = 0; i < Order*Order; i++) {
 	  *pd++ = HP.GetReal();
@@ -743,7 +733,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  THROW(ErrGeneric());
        }
        doublereal* pdB = NULL;
-       SAFENEWARR(pdB, doublereal, Order, DMmm);
+       SAFENEWARR(pdB, doublereal, Order);
        pd = pdB;
        for (unsigned int i = 0; i < Order; i++) {
 	  *pd++ = HP.GetReal();
@@ -754,7 +744,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  THROW(ErrGeneric());
        }
        doublereal* pdC = NULL;
-       SAFENEWARR(pdC, doublereal, Order, DMmm);
+       SAFENEWARR(pdC, doublereal, Order);
        pd = pdC;
        for (unsigned int i = 0; i < Order; i++) {
 	  *pd++ = HP.GetReal();
@@ -771,8 +761,7 @@ Elem* ReadGenel(DataManager* pDM,
 			      GenelStateSpaceSISO,
 			      GenelStateSpaceSISO(uLabel, pDO, SD_y, SD_u,
 						  Order, 
-						  pdA, pdB, pdC, dD, fOut),
-			      DMmm);
+						  pdA, pdB, pdC, dD, fOut));
               
        break;
     }
@@ -787,7 +776,7 @@ Elem* ReadGenel(DataManager* pDM,
        }       
        
        ScalarDof* pvSD_y = NULL;
-       SAFENEWARR(pvSD_y, ScalarDof, iNumOutputs, DMmm);
+       SAFENEWARR(pvSD_y, ScalarDof, iNumOutputs);
        for (int i = 0; i < iNumOutputs; i++) {	  
 	  pvSD_y[i] = ReadScalarDof(pDM, HP, 1);
 	  if (pvSD_y[i].pNode->GetNodeType() ==  Node::PARAMETER) {
@@ -809,7 +798,7 @@ Elem* ReadGenel(DataManager* pDM,
        }       
        
        ScalarDof* pvSD_u = NULL;
-       SAFENEWARR(pvSD_u, ScalarDof, iNumInputs, DMmm);
+       SAFENEWARR(pvSD_u, ScalarDof, iNumInputs);
        for (int i = 0; i < iNumInputs; i++) {	  
 	  pvSD_u[i] = ReadScalarDof(pDM, HP, 1);
        }
@@ -822,7 +811,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  THROW(ErrGeneric());
        }
        doublereal* pdA = NULL;
-       SAFENEWARR(pdA, doublereal, Order*Order, DMmm);
+       SAFENEWARR(pdA, doublereal, Order*Order);
        doublereal* pd = pdA;
        for (unsigned int i = 0; i < Order*Order; i++) {
 	  *pd++ = HP.GetReal();
@@ -833,7 +822,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  THROW(ErrGeneric());
        }
        doublereal* pdB = NULL;
-       SAFENEWARR(pdB, doublereal, Order*iNumInputs, DMmm);
+       SAFENEWARR(pdB, doublereal, Order*iNumInputs);
        pd = pdB;
        for (unsigned int i = 0; i < Order*iNumInputs; i++) {
 	  *pd++ = HP.GetReal();
@@ -844,7 +833,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  THROW(ErrGeneric());
        }
        doublereal* pdC = NULL;
-       SAFENEWARR(pdC, doublereal, iNumOutputs*Order, DMmm);
+       SAFENEWARR(pdC, doublereal, iNumOutputs*Order);
        pd = pdC;
        for (unsigned int i = 0; i < iNumOutputs*Order; i++) {
 	  *pd++ = HP.GetReal();
@@ -852,7 +841,7 @@ Elem* ReadGenel(DataManager* pDM,
 
        doublereal* pdD = NULL;
        if (HP.IsKeyWord("matrixD")) {
-	  SAFENEWARR(pdD, doublereal, iNumOutputs*iNumInputs, DMmm);
+	  SAFENEWARR(pdD, doublereal, iNumOutputs*iNumInputs);
 	  pd = pdD;
 	  for (int i = 0; i < iNumOutputs*iNumInputs; i++) {
 	     *pd++ = HP.GetReal();
@@ -867,8 +856,7 @@ Elem* ReadGenel(DataManager* pDM,
 						  iNumOutputs, pvSD_y, 
 						  iNumInputs, pvSD_u,
 						  Order, 
-						  pdA, pdB, pdC, pdD, fOut),
-			      DMmm);
+						  pdA, pdB, pdC, pdD, fOut));
 
        break;
     }
