@@ -11,6 +11,8 @@ beam.cc \
 beam.h \
 beam2.cc \
 beam2.h \
+beamslider.h \
+beamslider.cc \
 body.cc \
 body.h \
 drvhinge.cc \

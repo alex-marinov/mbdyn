@@ -91,7 +91,7 @@ mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
 
 lib_LTLIBRARIES = libstruct.la
-libstruct_la_SOURCES =  accj.cc accj.h autostr.cc autostr.h beam.cc beam.h beam2.cc beam2.h body.cc body.h drvhinge.cc drvhinge.h drvj.cc drvj.h genj.cc genj.h gravity.cc gravity.h hbeam.cc hbeam.h hbeam_interp.cc hbeam_interp.h inline.cc inline.h inplanej.cc inplanej.h inplcntj.h joint.cc joint.h joint_.h kin.cc kin.h kinj.cc kinj.h modal.cc modal.h planedj.cc planedj.h planej.cc planej.h prismj.cc prismj.h pzbeam.cc pzbeam.h pzbeam2.cc pzbeam2.h rodj.cc rodj.h shapefnc.cc shapefnc.h spherj.cc spherj.h strnode.cc strnode.h univj.cc univj.h vehj.cc vehj.h vehj2.cc vehj2.h
+libstruct_la_SOURCES =  accj.cc accj.h autostr.cc autostr.h beam.cc beam.h beam2.cc beam2.h beamslider.h beamslider.cc body.cc body.h drvhinge.cc drvhinge.h drvj.cc drvj.h genj.cc genj.h gravity.cc gravity.h hbeam.cc hbeam.h hbeam_interp.cc hbeam_interp.h inline.cc inline.h inplanej.cc inplanej.h inplcntj.h joint.cc joint.h joint_.h kin.cc kin.h kinj.cc kinj.h modal.cc modal.h planedj.cc planedj.h planej.cc planej.h prismj.cc prismj.h pzbeam.cc pzbeam.h pzbeam2.cc pzbeam2.h rodj.cc rodj.h shapefnc.cc shapefnc.h spherj.cc spherj.h strnode.cc strnode.h univj.cc univj.h vehj.cc vehj.h vehj2.cc vehj2.h
 
 
 libstruct_la_LIBADD = @LIBS@
@@ -110,11 +110,11 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libstruct_la_DEPENDENCIES = 
-libstruct_la_OBJECTS =  accj.lo autostr.lo beam.lo beam2.lo body.lo \
-drvhinge.lo drvj.lo genj.lo gravity.lo hbeam.lo hbeam_interp.lo \
-inline.lo inplanej.lo joint.lo kin.lo kinj.lo modal.lo planedj.lo \
-planej.lo prismj.lo pzbeam.lo pzbeam2.lo rodj.lo shapefnc.lo spherj.lo \
-strnode.lo univj.lo vehj.lo vehj2.lo
+libstruct_la_OBJECTS =  accj.lo autostr.lo beam.lo beam2.lo \
+beamslider.lo body.lo drvhinge.lo drvj.lo genj.lo gravity.lo hbeam.lo \
+hbeam_interp.lo inline.lo inplanej.lo joint.lo kin.lo kinj.lo modal.lo \
+planedj.lo planej.lo prismj.lo pzbeam.lo pzbeam2.lo rodj.lo shapefnc.lo \
+spherj.lo strnode.lo univj.lo vehj.lo vehj2.lo
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -132,6 +132,13 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
+DEP_FILES =  .deps/accj.P .deps/autostr.P .deps/beam.P .deps/beam2.P \
+.deps/beamslider.P .deps/body.P .deps/drvhinge.P .deps/drvj.P \
+.deps/genj.P .deps/gravity.P .deps/hbeam.P .deps/hbeam_interp.P \
+.deps/inline.P .deps/inplanej.P .deps/joint.P .deps/kin.P .deps/kinj.P \
+.deps/modal.P .deps/planedj.P .deps/planej.P .deps/prismj.P \
+.deps/pzbeam.P .deps/pzbeam2.P .deps/rodj.P .deps/shapefnc.P \
+.deps/spherj.P .deps/strnode.P .deps/univj.P .deps/vehj.P .deps/vehj2.P
 SOURCES = $(libstruct_la_SOURCES)
 OBJECTS = $(libstruct_la_OBJECTS)
 
@@ -139,9 +146,9 @@ all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .cc .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --foreign --include-deps ./mbdyn/struct/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign ./mbdyn/struct/Makefile
 
-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
@@ -171,9 +178,6 @@ uninstall-libLTLIBRARIES:
 	  $(LIBTOOL)  --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p; \
 	done
 
-.c.o:
-	$(COMPILE) -c $<
-
 .s.o:
 	$(COMPILE) -c $<
 
@@ -189,9 +193,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 maintainer-clean-compile:
-
-.c.lo:
-	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
 
 .s.lo:
 	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
@@ -250,6 +251,11 @@ distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 subdir = ./mbdyn/struct
 
 distdir: $(DISTFILES)
+	here=`cd $(top_builddir) && pwd`; \
+	top_distdir=`cd $(top_distdir) && pwd`; \
+	distdir=`cd $(distdir) && pwd`; \
+	cd $(top_srcdir) \
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign ./mbdyn/struct/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
@@ -260,6 +266,57 @@ distdir: $(DISTFILES)
 	    || cp -p $$d/$$file $(distdir)/$$file || :; \
 	  fi; \
 	done
+
+DEPS_MAGIC := $(shell mkdir .deps > /dev/null 2>&1 || :)
+
+-include $(DEP_FILES)
+
+mostlyclean-depend:
+
+clean-depend:
+
+distclean-depend:
+	-rm -rf .deps
+
+maintainer-clean-depend:
+
+%.o: %.c
+	@echo '$(COMPILE) -c $<'; \
+	$(COMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-cp .deps/$(*F).pp .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm .deps/$(*F).pp
+
+%.lo: %.c
+	@echo '$(LTCOMPILE) -c $<'; \
+	$(LTCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \
+	  < .deps/$(*F).pp > .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm -f .deps/$(*F).pp
+
+%.o: %.cc
+	@echo '$(CXXCOMPILE) -c $<'; \
+	$(CXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-cp .deps/$(*F).pp .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm .deps/$(*F).pp
+
+%.lo: %.cc
+	@echo '$(LTCXXCOMPILE) -c $<'; \
+	$(LTCXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \
+	  < .deps/$(*F).pp > .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm -f .deps/$(*F).pp
 info-am:
 info: info-am
 dvi-am:
@@ -297,27 +354,27 @@ distclean-generic:
 
 maintainer-clean-generic:
 mostlyclean-am:  mostlyclean-libLTLIBRARIES mostlyclean-compile \
-		mostlyclean-libtool mostlyclean-tags \
+		mostlyclean-libtool mostlyclean-tags mostlyclean-depend \
 		mostlyclean-generic
 
 mostlyclean: mostlyclean-am
 
 clean-am:  clean-libLTLIBRARIES clean-compile clean-libtool clean-tags \
-		clean-generic mostlyclean-am
+		clean-depend clean-generic mostlyclean-am
 
 clean: clean-am
 
 distclean-am:  distclean-libLTLIBRARIES distclean-compile \
-		distclean-libtool distclean-tags distclean-generic \
-		clean-am
+		distclean-libtool distclean-tags distclean-depend \
+		distclean-generic clean-am
 	-rm -f libtool
 
 distclean: distclean-am
 
 maintainer-clean-am:  maintainer-clean-libLTLIBRARIES \
 		maintainer-clean-compile maintainer-clean-libtool \
-		maintainer-clean-tags maintainer-clean-generic \
-		distclean-am
+		maintainer-clean-tags maintainer-clean-depend \
+		maintainer-clean-generic distclean-am
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
@@ -329,12 +386,13 @@ uninstall-libLTLIBRARIES install-libLTLIBRARIES mostlyclean-compile \
 distclean-compile clean-compile maintainer-clean-compile \
 mostlyclean-libtool distclean-libtool clean-libtool \
 maintainer-clean-libtool tags mostlyclean-tags distclean-tags \
-clean-tags maintainer-clean-tags distdir info-am info dvi-am dvi check \
-check-am installcheck-am installcheck install-exec-am install-exec \
-install-data-am install-data install-am install uninstall-am uninstall \
-all-redirect all-am all installdirs mostlyclean-generic \
-distclean-generic clean-generic maintainer-clean-generic clean \
-mostlyclean distclean maintainer-clean
+clean-tags maintainer-clean-tags distdir mostlyclean-depend \
+distclean-depend clean-depend maintainer-clean-depend info-am info \
+dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
+install-exec install-data-am install-data install-am install \
+uninstall-am uninstall all-redirect all-am all installdirs \
+mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

@@ -79,6 +79,8 @@ class Joint
       PRISMATIC,
       DRIVEHINGE,
       IMPOSEDKINEMATICS,
+
+      BEAMSLIDER,
       
       MODAL,
       
