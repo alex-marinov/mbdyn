@@ -89,10 +89,12 @@ class Rotor
    doublereal dRadius;       /* Raggio del rotore */
    doublereal dArea;         /* Area del disco */
    doublereal dUMean;        /* Velocita' indotta media */
+   doublereal dUMeanRef;     /* Velocita' indotta media (nominale) */
    mutable doublereal dUMeanPrev;    /* Vel. indotta media al passo prec. */
    doublereal dWeight;       /* Peso della velocita' indotta media 
 			      * (peso della V al passo precedente, def = 0.) */
-   doublereal dCorrection;   /* Correzione (scala la velocita' indotta) */
+   doublereal dHoverCorrection; /* Correzione H (scala la velocita' indotta) */
+   doublereal dForwardFlightCorrection; /* FF */
    
    ExternResForces Res;	     /* force, couple and pole for resultants */
    SetResForces **ppRes;     /* extra forces */
@@ -353,7 +355,8 @@ class UniformRotor : virtual public Elem, public Rotor {
 		doublereal dOR,
 		doublereal dR,
 		doublereal dW,
-		doublereal dC,
+		doublereal dCH,
+		doublereal dCFF,
 		flag fOut);
    virtual ~UniformRotor(void);
    virtual inline void* pGet(void) const { return (void*)this; };
@@ -398,7 +401,8 @@ class GlauertRotor : virtual public Elem, public Rotor {
 		doublereal dOR,
 		doublereal dR,
 		doublereal dW,
-		doublereal dC,
+		doublereal dCH,
+		doublereal dCFF,
 		flag fOut);
    virtual ~GlauertRotor(void);
    virtual inline void* pGet(void) const { return (void*)this; };
@@ -443,7 +447,8 @@ class ManglerRotor : virtual public Elem, public Rotor {
 		doublereal dOR,
 		doublereal dR,
 		doublereal dW,
-		doublereal dC,
+		doublereal dCH,
+		doublereal dCFF,
 		flag fOut);
    virtual ~ManglerRotor(void);
    virtual inline void* pGet(void) const { return (void*)this; };

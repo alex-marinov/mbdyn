@@ -11,6 +11,8 @@ MBDyn 1.2-Engineering
 	Enhancements:
 		- added support for UMFPACK 4.0
 		- UMFPACK 4.0 is the default solver (if available)
+		- implement separate induced velocity correction
+		  factors for hover and forward flight
 	Bug fixes:
 
 

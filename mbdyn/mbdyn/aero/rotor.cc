@@ -69,8 +69,9 @@ ReqV(MPI::REQUEST_NULL),
 pRotDataType(NULL),
 #endif /* USE_MPI */
 pCraft(pC), pRotor(pR), 
-dOmegaRef(0.), dRadius(0.), dArea(0.), dUMean(0.), dUMeanPrev(0.), 
-dWeight(0.), dCorrection(1.),
+dOmegaRef(0.), dRadius(0.), dArea(0.),
+dUMean(0.), dUMeanRef(0.), dUMeanPrev(0.), 
+dWeight(0.), dHoverCorrection(1.), dForwardFlightCorrection(1.),
 ppRes(ppres),
 RRotTranspose(0.), RRot(rrot), RRot3(0.), 
 VCraft(0.),
@@ -283,7 +284,7 @@ void Rotor::InitParam(void)
    dVTip = dOmega*dRadius;
    if (dVTip > DBL_EPSILON) {
       dMu = (dVelocity*dCosAlphad)/dVTip;
-      dLambda = (dVelocity*dSinAlphad+dUMeanPrev/dCorrection)/dVTip;
+      dLambda = (dVelocity*dSinAlphad+dUMeanRef)/dVTip;
    }
    
    if (dMu == 0. && dLambda == 0.) {
@@ -301,8 +302,14 @@ void Rotor::MeanInducedVelocity(void)
 
    /* Velocita' indotta media */
    doublereal dVRef = dOmega*dRadius*sqrt(dMu*dMu+dLambda*dLambda);
-   doublereal d = 2.*dGetAirDensity(GetXCurr())*dArea*dVRef;
-   doublereal dUMeanTmp = dCorrection*dT/(d+1.);
+   doublereal dRef = 2.*dGetAirDensity(GetXCurr())*dArea*dVRef;
+   dUMeanRef = dT/(dRef+1.);
+
+   doublereal dMuTmp = dMu/(dHoverCorrection*dHoverCorrection);
+   doublereal dLambdaTmp = dLambda/dForwardFlightCorrection;
+   doublereal dV = dOmega*dRadius*sqrt(dMuTmp*dMuTmp+dLambdaTmp*dLambdaTmp);
+   doublereal d = 2.*dGetAirDensity(GetXCurr())*dArea*dV;
+   doublereal dUMeanTmp = dT/(d+1.);
 
    dUMean = dUMeanTmp*(1.-dWeight)+dUMeanPrev*dWeight;
 }
@@ -526,7 +533,8 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 			   doublereal dOR,
 			   doublereal dR, 
 			   doublereal dW,
-			   doublereal dC,
+			   doublereal dCH,
+			   doublereal dCFF,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
 Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
@@ -539,7 +547,8 @@ Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
    dRadius = dR;
    dArea = M_PI*dRadius*dRadius;
    dWeight = dW;
-   dCorrection = dC;
+   dHoverCorrection = dCH;
+   dForwardFlightCorrection = dCFF;
 
 #ifdef USE_MPI
    if (is_parallel) {
@@ -622,7 +631,8 @@ SubVectorHandler& UniformRotor::AssRes(SubVectorHandler& WorkVec,
 std::ostream& UniformRotor::Restart(std::ostream& out) const
 {
   return Rotor::Restart(out) << "uniform, " << dRadius << ", " 
-	  << dWeight << ", correction, " << dCorrection << ';' << std::endl;
+	  << dWeight << ", correction, " << dHoverCorrection
+	  << ", " << dForwardFlightCorrection << ';' << std::endl;
 }
 
 /* Somma alla trazione il contributo di forza di un elemento generico */
@@ -676,7 +686,8 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 			   doublereal dOR,
 			   doublereal dR, 
 			   doublereal dW,
-			   doublereal dC,
+			   doublereal dCH,
+			   doublereal dCFF,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut),
 Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
@@ -689,7 +700,8 @@ Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
    dRadius = dR;
    dArea = M_PI*dRadius*dRadius;
    dWeight = dW;
-   dCorrection = dC;
+   dHoverCorrection = dCH;
+   dForwardFlightCorrection = dCFF;
 
 #ifdef USE_MPI
    if (is_parallel) {
@@ -829,7 +841,8 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 			   doublereal dOR,
 			   doublereal dR, 
 			   doublereal dW,
-			   doublereal dC,
+			   doublereal dCH,
+			   doublereal dCFF,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
 Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
@@ -842,7 +855,8 @@ Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
    dRadius = dR;
    dArea = M_PI*dRadius*dRadius;
    dWeight = dW;
-   dCorrection = dC;
+   dHoverCorrection = dCH;
+   dForwardFlightCorrection = dCFF;
 
 #ifdef USE_MPI
    if (is_parallel) {
@@ -1568,16 +1582,26 @@ Elem* ReadRotor(DataManager* pDM,
 	  }
 
 	  /* Legge la correzione della velocita' indotta */
-	  doublereal dC = 1.;
+	  doublereal dCH = 1.;
+	  doublereal dCFF = 1.;
 	  if (HP.IsKeyWord("correction")) {
-	     dC = HP.GetReal();
-	     DEBUGCOUT("Correction: " << dC << std::endl);
-	     if (dC <= 0.) {
+	     dCH = HP.GetReal();
+	     DEBUGCOUT("Hover correction: " << dC << std::endl);
+	     if (dCH <= 0.) {
 		std::cerr 
 		  << "warning, illegal null or negative correction"
 		  " for uniform rotor " << uLabel << ", switching to 1" 
 		  << std::endl;
-		dW = 1.;
+		dCH = 1.;
+	     }
+	     dCFF = HP.GetReal();
+	     DEBUGCOUT("Forward-flight correction: " << dCFF << std::endl);
+	     if (dCFF <= 0.) {
+		std::cerr 
+		  << "warning, illegal null or negative correction"
+		  " for uniform rotor " << uLabel << ", switching to 1"
+		  << std::endl;
+		dCFF = 1.;
 	     }
 	  }
 
@@ -1592,7 +1616,8 @@ Elem* ReadRotor(DataManager* pDM,
 				     UniformRotor,
 				     UniformRotor(uLabel, pDO, pCraft, rrot,
 					     pRotor,
-					     ppres, dOR, dR, dW, dC, fOut));
+					     ppres, dOR, dR, dW, dCH, dCFF,
+					     fOut));
 	      break;
 	   }
 	     
@@ -1602,7 +1627,8 @@ Elem* ReadRotor(DataManager* pDM,
 				     GlauertRotor,
 				     GlauertRotor(uLabel, pDO, pCraft, rrot,
 					     pRotor,
-					     ppres, dOR, dR, dW, dC, fOut));
+					     ppres, dOR, dR, dW, dCH, dCFF, 
+					     fOut));
 	      break;
 	   }
 	     
@@ -1613,7 +1639,8 @@ Elem* ReadRotor(DataManager* pDM,
 				     ManglerRotor,
 				     ManglerRotor(uLabel, pDO, pCraft, rrot,
 					     pRotor, 
-					     ppres, dOR, dR, dW, dC, fOut));
+					     ppres, dOR, dR, dW, dCH, dCFF, 
+					     fOut));
 	      break;
 	   }
 	     
@@ -1644,3 +1671,4 @@ Elem* ReadRotor(DataManager* pDM,
    ASSERT(pEl != NULL);
    return pEl;
 } /* End of DataManager::ReadRotor() */
+

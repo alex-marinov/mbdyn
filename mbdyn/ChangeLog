@@ -6,6 +6,10 @@ Copyright (C) 1996-2002
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Thu Oct  3 10:42:15 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - implement separate induced velocity correction factors for hover
+   and forward flight
+
 *** Fri Aug  2 11:51:14 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - count jacobians
  - umfpack4 is the default solver now (if available :)
