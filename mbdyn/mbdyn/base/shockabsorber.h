@@ -405,10 +405,9 @@ public:
 			doublereal VRatio = 1./(1.+Cint*CurrEpsilon);
 			doublereal Adiab = pow(VRatio, Gamma);
 
+			F = -A0*P0*Adiab;
 			if (FrictionAmpl != 0.) {
-				F = -(1.-FrictionAmpl*tanh(EpsPrime/EpsPrimeRef))*A0*P0*Adiab;
-			} else {
-				F = -A0*P0*Adiab;
+				F *= (1.-FrictionAmpl*tanh(EpsPrime/EpsPrimeRef));
 			}
 
 			FDE = Gamma*Cint*VRatio*Adiab;
@@ -429,9 +428,9 @@ public:
 			a += pAreaOrifices->dGet(EpsPrime);
 		}
 
-		if (a == 0.) {
+		if (a <= 0.) {
 			std::cerr << "ShockAbsorberConstitutiveLaw::Update:"
-				" division by zero" << std::endl;
+				" null or negative area" << std::endl;
 			THROW(ErrGeneric());
 		}
 		
