@@ -449,6 +449,12 @@ See Section~\ref{ELEMS-JOINT-MODAL} for further details.
               , (scalar) <velocity_initial_stiffness>
               , (flag)   <omega_rotates?> ]
 \end{verbatim}
+The \texttt{omega\_rotates} parameter determines whether 
+the initial angular velocity should follow or not the node 
+as it is rotated by the initial assembly procedure; it may assume 
+the values \texttt{yes}/\texttt{no} or 0/nonzero.
+
+\noindent
 The \texttt{dummy} structural node has been added to ease the visualization of
 the kinematics of arbitrary points of the system. 
 It owns no dofs, and it must be attached to another node, possibly with an
