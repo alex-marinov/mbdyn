@@ -51,7 +51,7 @@ protected:
 	} data;
 	
 	int sock;
-	bool connection_flag;
+	bool connected;
 public:
 	SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		const DriveHandler* pDH,

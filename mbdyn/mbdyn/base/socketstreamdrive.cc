@@ -69,7 +69,7 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		unsigned short int p,
 		const char* const h)
 : StreamDrive(uL, pDH, sFileName, nd, c),
-type(AF_INET), sock(0), connection_flag(false)
+type(AF_INET), sock(0), connected(false)
 {
 	if (h) {
 		SAFESTRDUP(host, h);
@@ -133,7 +133,7 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		integer nd, bool c,
 		const char* const Path)
 : StreamDrive(uL, pDH, sFileName, nd, c),
-host(NULL), type(AF_LOCAL), sock(0), connection_flag(false)
+host(NULL), type(AF_LOCAL), sock(0), connected(false)
 {
 	ASSERT(Path != NULL);
 
@@ -214,7 +214,7 @@ void
 SocketStreamDrive::ServePending(const doublereal& t)
 {
 	
-	if (connection_flag) {
+	if (connected) {
 		/* FIXME: no receive at first step? */
 		if ((recv(sock, buf, size, 0))) {
 			
@@ -231,7 +231,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 	}
 	
 	
-	if (!connection_flag) {
+	if (!connected) {
 		if (create) {
 			int tmp_sock = sock;
 	   		socklen_t socklen;
@@ -381,8 +381,8 @@ SocketStreamDrive::ServePending(const doublereal& t)
       			throw ErrGeneric();
 			
 		}
-		connection_flag = true;
-	} /* connection_flag == false */
+		connected = true;
+	} /* connected == false */
 }
 
 

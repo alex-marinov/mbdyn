@@ -66,7 +66,7 @@ SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch, ScalarDof 
 : Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
 host(h), type(AF_INET), sock(0), name(m),
-create(c), connection_flag(false)
+create(c), connected(false)
 {
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(doublereal)*nch;
@@ -125,7 +125,7 @@ SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch, ScalarDof 
 : Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
 host(NULL), type(AF_LOCAL), sock(0), name(m),
-create(c), connection_flag(false)
+create(c), connected(false)
 {
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(doublereal)*nch;
@@ -230,7 +230,7 @@ void
 SocketStreamElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
-	if (!connection_flag) {
+	if (!connected) {
 		if (create) {
 			int tmp_sock = sock;
 		   	socklen_t socklen;
@@ -405,7 +405,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
       			throw ErrGeneric();
 			
 		}
-		connection_flag = true;
+		connected = true;
 	} /* sock == NULL */
 
 	char *curbuf = buf;

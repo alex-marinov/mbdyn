@@ -63,7 +63,7 @@ protected:
 
 	const char *name;
 	bool create; 
-	bool connection_flag;
+	bool connected;
 public:
    	SocketStreamElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
 			const char *h, const char *m, unsigned short int p,
