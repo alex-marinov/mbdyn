@@ -115,7 +115,7 @@ C V e' il modulo della velocita'
       V = DSQRT(VP2+VCSTR(3)**2)
 C
 C Se il numero di Mach e' troppo piccolo, si ferma
-      IF(V/CS.LT.1.E-6) THEN
+      IF(V/CS.LT.1.D-6) THEN
         CALL DZERO(TNG, 6)
         RETURN
       ENDIF
@@ -153,7 +153,7 @@ C     COSTRUZIONE A1* ?
 C
  400  CONTINUE
       CALL DZERO(A1STR, 12)
-      RK = -.5*DENS*CORDA
+      RK = -.5D0*DENS*CORDA
       A1STR(1,1) =  RK*(CRF*(VP-V)-CDRAG*VP)
       A1STR(1,2) = -RK*CLIFT*VP
       A1STR(2,1) = -A1STR(1, 2)
@@ -353,7 +353,7 @@ C Se l'angolo di incidenza e' significativo corregge la slope di CL/alfa
       IF(ASLRF.GT.ASLOP0) ASLRF = ASLOP0
  10   CONTINUE
 C Frequenza ridotta (spero che con VP = 0 non si entri qui ...)
-      RK = .5*CORDA*RSPEED/VP
+      RK = .5D0*CORDA*RSPEED/VP
       PA = .25D0
 C Corregge l'angolo di incidenza attraverso le funzioni di Theodorsen
       ALF = THF(RK)*ABE+(.5D0*RK+THG(RK))*ALF1
@@ -458,8 +458,8 @@ C
 C	print *,'CORDA=',CORDA,', ALF1=',ALF1,', ALF2=',ALF2,
 C     &	', VP=',VP,', VP2=',VP2
       
-      A = .5*CORDA*ALF1/VP
-      B = .25*CORDA*CORDA*ALF2/VP2
+      A = .5D0*CORDA*ALF1/VP
+      B = .25D0*CORDA*CORDA*ALF2/VP2
       VC1 = DABS(VCSTR(1))
       GAM = DATAN2(-VCSTR(3),VC1)
       OUTA(3) = GAM/DEGRAD
@@ -468,7 +468,7 @@ C     &	', VP=',VP,', VP2=',VP2
       RMACH = DSQRT((VP2+VCSTR(3)**2)*COSGAM)/CS
       OUTA(4) = RMACH
       IF(RMACH.GT..99D0) RMACH = .99D0
-      ETA = DSQRT((A/.048)**2+(B/.016)**2)
+      ETA = DSQRT((A/.048D0)**2+(B/.016D0)**2)
       SEGNO = 1.D0
       IF(ALFA.LT.0D0) SEGNO = -1.D0
       SEGNOE = SEGNO
@@ -481,7 +481,7 @@ C     &	', VP=',VP,', VP2=',VP2
       ASM = ASM0*(1.D0-RMACH)
       SGN = DABS(ALFA/ASN)
       SGM = DABS(ALFA/ASM)
-      SGMAX = 1.839-70.33*B
+      SGMAX = 1.839D0-70.33D0*B
       IF(SGMAX.GT.1.86D0) SGMAX = 1.86D0
       IF(SGN.GT.SGMAX) SGN = SGMAX
       IF(SGM.GT.SGMAX) SGM = SGMAX
@@ -492,7 +492,7 @@ C	print *,'A=',A,', B=',B,', SGN=',SGN,', PN(1:6)=',(PN(i),i=1,6)
 
 C	print *,'1) DAN=',DAN
 
-      DAN = DAN+DEXP(-1072.52*A2)*(A*(PN(3)+PN(7)*SGN)+
+      DAN = DAN+DEXP(-1072.52D0*A2)*(A*(PN(3)+PN(7)*SGN)+
      &  A2*(PN(9)+PN(10)*SGN))
 
 C	print *,'2) DAN=',DAN
@@ -546,16 +546,16 @@ C	print *,'ATMP = ALFA(=',ALFA,')-DAN(',DAN,')'
      &  DUM, DUM, DUM, DUM, DCMDM, DUM,
      &  ASLOP0, CSLOP0, JPRO, 1)
       
-      CMOME = CMOME-.25*CLIFT
-      CSLOP = CSLOP-.25*ASLOP
-      DCMDM = DCMDM-.25*DCPDM      
+      CMOME = CMOME-.25D0*CLIFT
+      CSLOP = CSLOP-.25D0*ASLOP
+      DCMDM = DCMDM-.25D0*DCPDM      
       
       ASLRF = ASLOP0
       IF(DABS(ALFA-DAN).LT.1.D-6) GOTO 10
       ASLRF = CLIFT/((ALFA-DAN)*COSGAM)
       IF(ASLRF.GT.ASLOP0) ASLRF = ASLOP0
  10   CLIFT = ASLRF*(ALFA-DAN)
-      C1 = .9457/DSQRT(1.D0-RMACH*RMACH)
+      C1 = .9457D0/DSQRT(1.D0-RMACH*RMACH)
 
 C	print *,'COE2 ',CLIFT,ASLOP0*DAN,DCN*C1,CMOME,CSLOP0*DAM,DCM*C1
       
@@ -617,20 +617,20 @@ C
 C
       DIMENSION D1(2,5), D2(2,5), D3(2,5), CD0(2,5),
      &  B1(2,5), B2(2,5), B3(2,5)
-      DATA D1 /.3,-.28532D2,.4,-.37392D2,.45,-.4597D2,.5,-.55819D2,
-     &         .55,-.88102D2/
-      DATA D2 /.3,.4826D1,.4,.70982D1,.45,.8914D1,.5,.10636D2,
-     &         .55,.1993D2/
-      DATA D3 /.3,.62085D1,.4,.64158D1,.45,.65334D1,.5,.66613D1,
-     &         .55,.64065D1/
-      DATA CD0 /.3,.60145D-2,.4,.35772D-2,.45,.2612D-2,.5,.46674D-2,
-     &          .55,.29977D-2/
-      DATA B1 /.3,.86845D-1,.4,.1915D0,.45,.24923D0,.5,.14568D0,
-     &         .55,.25389D0/
-      DATA B2 /.3,-.91795D0,.4,-.1966D1,.45,-.26795D1,.5,-.15943D1,
-     &         .55,-.30426D1/
-      DATA B3 /.3,.40357D1,.4,.67937D1,.45,.91332D1,.5,.62569D1,
-     &         .55,.12049D2/
+      DATA D1 /.3D0,-.28532D2,.4D0,-.37392D2,.45D0,-.4597D2,.5D0,
+     &         -.55819D2,.55D0,-.88102D2/
+      DATA D2 /.3D0,.4826D1,.4D0,.70982D1,.45D0,.8914D1,.5D0,
+     &         .10636D2,.55D0,.1993D2/
+      DATA D3 /.3D0,.62085D1,.4D0,.64158D1,.45D0,.65334D1,.5D0,
+     &         .66613D1,.55D0,.64065D1/
+      DATA CD0 /.3D0,.60145D-2,.4D0,.35772D-2,.45D0,.2612D-2,.5D0,
+     &         .46674D-2,.55D0,.29977D-2/
+      DATA B1 /.3D0,.86845D-1,.4D0,.1915D0,.45D0,.24923D0,.5D0,
+     &         .14568D0,.55D0,.25389D0/
+      DATA B2 /.3D0,-.91795D0,.4D0,-.1966D1,.45D0,-.26795D1,.5D0,
+     &         -.15943D1,.55D0,-.30426D1/
+      DATA B3 /.3D0,.40357D1,.4D0,.67937D1,.45D0,.91332D1,.5D0,
+     &         .62569D1,.55D0,.12049D2/
       DATA PG /3.14159265358979323846D0/
 C**** APHIJ  = ANGOLO INCIDENZA
 C**** EMIJ   = NUMERO DI MACH
@@ -649,14 +649,14 @@ C**** DCMDM  = DERIVATA DI CMOME RISPETTO NUMERO DI MACH
 C**** DCRFDM = DERIVATA DI CRF RISPETTO NUMERO DI MACH
 C**** AS0    = PENDENZA CURVA PORTANZA PER ALFA=0
 C**** CS0    = PENDENZA CURVA MOMENTO PER ALFA=0
-      CFSLOP = 0.
-      CRF = .006
-      DCRFDM = 0.
+      CFSLOP = 0.D0
+      CRF = .006D0
+      DCRFDM = 0.D0
       NEG = 1
       IF(EMIJ.GT..99D0) EMIJ = .99D0
-      SQT = DSQRT(1.-EMIJ*EMIJ)
-      C1 = 1.-EMIJ
-      C2 = .22689*C1
+      SQT = DSQRT(1.D0-EMIJ*EMIJ)
+      C1 = 1.D0-EMIJ
+      C2 = .22689D0*C1
       C5 = EMIJ/(SQT*SQT)
 
 C	print *,'APHIJ: ',APHIJ
@@ -665,74 +665,82 @@ C	print *,'APHIJ: ',APHIJ
 181   APHIJ = -APHIJ
       NEG = -1*NEG
 182   IF(APHIJ-PG) 184, 184, 183
-183   APHIJ = APHIJ-PG*2.
+183   APHIJ = APHIJ-PG*2.D0
       GOTO 97
 184   IF(APHIJ-C2) 185, 187, 187
-185   ASLOP = 5.7296/SQT
+185   ASLOP = 5.7296D0/SQT
       CLIFT = ASLOP*APHIJ
-      CDRAG = .006+.13131*APHIJ*APHIJ
-      BSLOP = .26262*APHIJ
-      CMOME = 1.4324*APHIJ/SQT
-      CSLOP = 1.4324/SQT
+      CDRAG = .006D0+.13131D0*APHIJ*APHIJ
+      BSLOP = .26262D0*APHIJ
+      CMOME = 1.4324D0*APHIJ/SQT
+      CSLOP = 1.4324D0/SQT
       DCPDM = CLIFT*C5
-      DCDRDM = 0.
+      DCDRDM = 0.D0
       DCMDM = CMOME*C5
       GOTO 250
-187   IF(APHIJ-.34906) 189, 191, 191
-189   CLIFT = .29269*C1+(1.3*EMIJ-.59)*APHIJ
-      C2 = (.12217+.22689*EMIJ)*SQT
+187   IF(APHIJ-.34906D0) 189, 191, 191
+189   CLIFT = .29269D0*C1+(1.3D0*EMIJ-.59D0)*APHIJ
+      C2 = (.12217D0+.22689D0*EMIJ)*SQT
       CMOME = CLIFT/(4*C2)
-      CSLOP = (1.3*EMIJ-.59)/(4*C2)
+      CSLOP = (1.3D0*EMIJ-.59D9)/(4.D0*C2)
       CLIFT = CLIFT/C2
-      ASLOP = (1.3*EMIJ-.59)/C2
-      DCPDM = (-.29269+1.3*APHIJ-CLIFT*(-(.12217+.22689*EMIJ)*EMIJ/SQT+
-     &  .22689*SQT))/C2
-      DCMDM = .25*DCPDM
+      ASLOP = (1.3D0*EMIJ-.59D0)/C2
+      DCPDM = (-.29269D0+1.3D0*APHIJ
+     &  -CLIFT*(-(.12217D0+.22689D0*EMIJ)*EMIJ/SQT+
+     &  .22689D0*SQT))/C2
+      DCMDM = .25D0*DCPDM
       GOTO 210
-  191 IF(APHIJ-2.7402) 193, 195, 195
+  191 IF(APHIJ-2.7402D0) 193, 195, 195
   193 S = DSIN(APHIJ)
       S2 = DSIN(2.*APHIJ)
       S3 = DSIN(3.*APHIJ)
       S4 = DSIN(4.*APHIJ)
-      CLIFT = (.080373*S+1.04308*S2-.011059*S3+.023127*S4)/SQT
-      CMOME = (-.02827*S+.14022*S2-.00622*S3+.01012*S4)/SQT
+      CLIFT = (.080373D0*S+1.04308D0*S2
+     &  -.011059D0*S3+.023127D0*S4)/SQT
+      CMOME = (-.02827D0*S+.14022D0*S2
+     &  -.00622D0*S3+.01012D0*S4)/SQT
       C1 = DCOS(APHIJ)
-      C2 = DCOS(2.*APHIJ)
-      C3 = DCOS(3.*APHIJ)
-      C4 = DCOS(4.*APHIJ)
+      C2 = DCOS(2.D0*APHIJ)
+      C3 = DCOS(3.D0*APHIJ)
+      C4 = DCOS(4.D0*APHIJ)
 CCCCC CLIFT = CLIFT/C2
-      CSLOP = (-.02827*C1+.28044*C2-.01866*C3+.04048*C4)/SQT
-      ASLOP = (.080373*C1+2.08616*C2-.033177*C3+.092508*C4)/SQT
+      CSLOP = (-.02827D0*C1+.28044D0*C2
+     &  -.01866D0*C3+.04048D0*C4)/SQT
+      ASLOP = (.080373D0*C1+2.08616D0*C2
+     &  -.033177D0*C3+.092508D0*C4)/SQT
       DCPDM = CLIFT*C5
       DCMDM = CMOME*C5
       GOTO 210
-195   IF(APHIJ-3.0020) 197, 199, 199
-197   CLIFT = -(.4704+.10313*APHIJ)/SQT
-      ASLOP = -.10313/SQT
-      CMOME = -(.4786+.02578*APHIJ)/SQT
-      CSLOP = .02578/SQT
+195   IF(APHIJ-3.0020D0) 197, 199, 199
+197   CLIFT = -(.4704D0+.10313D0*APHIJ)/SQT
+      ASLOP = -.10313D0/SQT
+      CMOME = -(.4786D0+.02578D0*APHIJ)/SQT
+      CSLOP = .02578D0/SQT
       DCPDM = CLIFT*C5
       DCMDM = CMOME*C5
       GOTO 210
 199   IF(APHIJ-PG) 200, 200, 260
-200   CLIFT = (-17.55+5.5864*APHIJ)/SQT
-      ASLOP = 5.5864/SQT
-      CMOME = (-12.5109+3.9824*APHIJ)/SQT
-      CSLOP = 3.9824/SQT
+200   CLIFT = (-17.55D0+5.5864D0*APHIJ)/SQT
+      ASLOP = 5.5864D0/SQT
+      CMOME = (-12.5109D0+3.9824D0*APHIJ)/SQT
+      CSLOP = 3.9824D0/SQT
       DCPDM = CLIFT*C5
       DCMDM = CMOME*C5
-210   CDRAG = 1.1233-.029894*DCOS(APHIJ)-1.00603*DCOS(2.*APHIJ)
-      CDRAG = CDRAG+.003115*DCOS(3.*APHIJ)-.091487*DCOS(4.*APHIJ)
+210   CDRAG = 1.1233D0-.029894D0*DCOS(APHIJ)
+     &  -1.00603D0*DCOS(2.D0*APHIJ)
+      CDRAG = CDRAG+.003115D0*DCOS(3.D0*APHIJ)
+     &  -.091487D0*DCOS(4.D0*APHIJ)
       CDRAG = CDRAG/SQT
-      BSLOP = .029894*DSIN(APHIJ)+2.01206*DSIN(2.*APHIJ)
-      BSLOP = (BSLOP+.009345*DSIN(3.*APHIJ)+.365948*DSIN(4.*APHIJ))/SQT
+      BSLOP = .029894D0*DSIN(APHIJ)+2.01206D0*DSIN(2.D0*APHIJ)
+      BSLOP = (BSLOP+.009345D0*DSIN(3.D0*APHIJ)
+     &  +.365948D0*DSIN(4.D0*APHIJ))/SQT
       DCDRDM = CDRAG*C5
       
  250  GOTO(251, 252), JPRO
 C
 C     CALCOLO COEFFICIENTI AERODINAMICI PER PROFILO 'RAE9671'
 C
- 252  IF(DABS(APHIJ).GT..21956242) GOTO 251
+ 252  IF(DABS(APHIJ).GT..21956242D0) GOTO 251
       IF(NEG.LT.0) APHIJ = -APHIJ
       CALL LININT(D1, 5, EMIJ, P1, PEND1)
       CALL LININT(D2, 5, EMIJ, P2, PEND2)
@@ -740,13 +748,13 @@ C
       APHIJ2 = APHIJ*APHIJ
       APHIJ3 = APHIJ*APHIJ2
       CLIFT = P1*APHIJ3+P2*APHIJ2+P3*APHIJ
-      ASLOP = 3.*P1*APHIJ2+2.*P2*APHIJ+P3
+      ASLOP = 3.D0*P1*APHIJ2+2.D0*P2*APHIJ+P3
       AS0 = P3
       DCPDM = PEND1*APHIJ3+PEND2*APHIJ2+PEND3*APHIJ
 C
       CALL LININT(CD0, 5, EMIJ, R0, PEND0)
       CRF = R0
-      CFSLOP = 0.
+      CFSLOP = 0.D0
       DCRFDM = PEND0
       CALL LININT(B1, 5, EMIJ, R1, PEND1)
       CALL LININT(B2, 5, EMIJ, R2, PEND2)
@@ -754,7 +762,7 @@ C
       APHIJ = DABS(APHIJ)
       APHIJ3 = DABS(APHIJ3)
       CDRAG = R0+APHIJ*R1+APHIJ2*R2+APHIJ3*R3
-      BSLOP = R1+2.*R2*APHIJ+3.*R3*APHIJ2
+      BSLOP = R1+2.D0*R2*APHIJ+3.D0*R3*APHIJ2
       DCDRDM = PEND0+APHIJ*PEND1+APHIJ2*PEND2+APHIJ3*PEND3
 C
       IF(NEG.GT.0) GOTO 249
@@ -762,13 +770,13 @@ C
       CSLOP = -CSLOP
       DCMDM = -DCMDM
  249  CONTINUE
-      CS0 = 0.
+      CS0 = 0.D0
 C
       GOTO 270
 C
-C      CMOME = CMOME-.25*CLIFT
-C      CSLOP = CSLOP-.25*ASLOP
-C      DCMDM = DCMDM-.25*DCPDM
+C      CMOME = CMOME-.25D0*CLIFT
+C      CSLOP = CSLOP-.25D0*ASLOP
+C      DCMDM = DCMDM-.25D0*DCPDM
 C      RETURN
 C
 C
@@ -784,7 +792,7 @@ C
       DCMDM = -DCMDM     
 260   CONTINUE
 C
-      AS0 = 5.7296/SQT
+      AS0 = 5.7296D0/SQT
 C
 C Qui arriva anche l'altro profilo per una parte di operazioni in comune
 C
@@ -792,9 +800,9 @@ C
       CS0 = 0.D0
       IF(IRETRN.EQ.1) RETURN
 C
-      CMOME = CMOME-.25*CLIFT
-      CSLOP = CSLOP-.25*ASLOP
-      DCMDM = DCMDM-.25*DCPDM
+      CMOME = CMOME-.25D0*CLIFT
+      CSLOP = CSLOP-.25D0*ASLOP
+      DCMDM = DCMDM-.25D0*DCPDM
 C
       RETURN
       END
@@ -828,10 +836,10 @@ C=    COMPILER (LINK=IBJ$)
       IMPLICIT NONE
       REAL*8 THF, K, A, B, C, D
 C ****  FUNZIONE F DI THEODORSEN ***
-      A =  K**4-.102058*K**2+9.55732E-6
-      B = -.761036*K**3+2.55067E-3*K
-      C =  2.*K**4-.113928*K**2+9.55732E-6
-      D = -1.064*K**3+2.6268E-3*K
+      A =  K**4-.102058D0*K**2+9.55732D-6
+      B = -.761036D0*K**3+2.55067D-3*K
+      C =  2.D0*K**4-.113928D0*K**2+9.55732D-6
+      D = -1.064D0*K**3+2.6268D-3*K
       THF = (A*C+B*D)/(C*C+D*D)
       RETURN
       END
@@ -841,10 +849,10 @@ C=    COMPILER (LINK=IBJ$)
       IMPLICIT NONE
       REAL*8 THG, K, A, B, C, D
 C ****  FUNZIONE G DI THEODORSEN ***
-      A =  K**4-.102058*K**2+9.55732E-6
-      B = -.761036*K**3+2.55067E-3*K
-      C =  2.*K**4-.113928*K**2+9.55732E-6
-      D = -1.064*K**3+2.6268E-3*K
+      A =  K**4-.102058D0*K**2+9.55732D-6
+      B = -.761036D0*K**3+2.55067D-3*K
+      C =  2.D0*K**4-.113928D0*K**2+9.55732D-6
+      D = -1.064D0*K**3+2.6268D-3*K
       THG = (B*C-A*D)/(C*C+D*D)
       RETURN
       END
@@ -955,12 +963,12 @@ C
       
       DO 10 I=1,3
       DO 10 K=1,3
-      D(I,K)=0.
+      D(I,K)=0.D0
       DO 10 L=1,3
 10    D(I,K)=D(I,K)+A(I,L)*B(L,K)
       DO 20 I=1,3
       DO 20 K=1,3
-      B(I,K)=0.
+      B(I,K)=0.D0
       DO 20 L=1,3
 20    B(I,K)=B(I,K)+D(I,L)*C(K,L)
       RETURN
@@ -983,7 +991,7 @@ C
       DIMENSION RO(3),RD(3),DEMA(ND,3),T(3)
 
       REAL*8 TRESH2
-      DATA TRESH2/1.D-10/
+      DATA TRESH2 /1.D-10/
       
       ARG2=0.D0
       RDRO=0.D0
@@ -1050,7 +1058,7 @@ C
       
       DIMENSION RO(3),SPMA(ND,3),T(3)
       
-      DATA TRESH2/1.D-10/
+      DATA TRESH2 /1.D-10/
       
       ARG2=0.D0
       DO 10 I=1,3
@@ -1172,28 +1180,28 @@ C
       GOTO(10,20,30,40),IGO
 10    DO 11 I=1,NRA
       DO 11 K=1,NCC
-      C(I,K)=0.
+      C(I,K)=0.D0
       DO 11 L=1,NCA
       C(I,K)=C(I,K)+A(I,L)*B(L,K)
 11    CONTINUE
       RETURN
 20    DO 12 I=1,NRA
       DO 12 K=1,NCC
-      C(I,K)=0.
+      C(I,K)=0.D0
       DO 12 L=1,NCA
       C(I,K)=C(I,K)+A(I,L)*B(K,L)
 12    CONTINUE
       RETURN
 30    DO 13 I=1,NCA
       DO 13 K=1,NCC
-      C(I,K)=0.
+      C(I,K)=0.D0
       DO 13 L=1,NRA
       C(I,K)=C(I,K)+A(L,I)*B(L,K)
 13    CONTINUE
       RETURN
 40    DO 14 I=1,NCA
       DO 14 K=1,NCC
-      C(I,K)=0.
+      C(I,K)=0.D0
       DO 14 L=1,NRA
       C(I,K)=C(I,K)+A(L,I)*B(K,L)
 14    CONTINUE
@@ -1220,13 +1228,13 @@ C
       IGO=IA+1
       GOTO(100,200),IGO
 100   DO 20 I=1,NRA
-      D=0.
+      D=0.D0
       DO 10 K=1,NCA
 10    D=D+A(I,K)*B(K)
 20    C(I)=D
       RETURN
 200   DO 40 I=1,NRA
-      D=0.
+      D=0.D0
       DO 30 K=1,NCA
 30    D=D+A(K,I)*B(K)
 40    C(I)=D
@@ -1313,19 +1321,19 @@ C=    COMPILER (LINK=IBJ$)
       INTEGER*4 I,K,IM1,IP1,IPVT,J
       
       DO10I=1,N
-      X=0.
+      X=0.D0
       DO20K=1,N
       IF(DABS(A(I,K)).LT.X)GOTO20
       X=DABS(A(I,K))
 20    CONTINUE
-      IF(X.EQ.0.)GOTO110
-      PERM(I)=1./X
+      IF(X.EQ.0.D0)GOTO110
+      PERM(I)=1.D0/X
 10    CONTINUE
       DO100 I=1,N
       IM1=I-1
       IP1=I+1
       IPVT=I
-      X=0.
+      X=0.D0
       DO50K=I,N
       DP=A(K,I)
       IF(I.EQ.1)GOTO40
@@ -1337,7 +1345,7 @@ C=    COMPILER (LINK=IBJ$)
       IPVT=K
       X=DABS(DP)*PERM(K)
 50    CONTINUE
-      IF(X.LE.0.)GOTO110
+      IF(X.LE.0.D0)GOTO110
       IF(IPVT.EQ.I)GOTO70
       DO60J=1,N
       X=A(IPVT,J)
@@ -1422,7 +1430,7 @@ C
 
       INTEGER*4 I
       DIMENSION X(1),Y(1)
-      DSCALL=0.
+      DSCALL=0.D0
       DO 1 I=1,N
 1     DSCALL=DSCALL+X(I)*Y(I)
       RETURN
@@ -1444,15 +1452,15 @@ C
       DIMENSION W(3),WV(9)
       
       H=DFLOAT(IVER)
-      WV(1)= 0.
+      WV(1)= 0.D0
       WV(2)= H*W(3)
       WV(3)=-H*W(2)
       WV(4)= -WV(2)
-      WV(5)= 0.
+      WV(5)= 0.D0
       WV(6)= H*W(1)
       WV(7)= -WV(3)
       WV(8)= -WV(6)
-      WV(9)= 0.
+      WV(9)= 0.D0
       RETURN
       END
 
@@ -1535,28 +1543,28 @@ C
       GOTO(10,20,30,40),IGO
 10    DO 11 I=1,NRA
       DO 11 K=1,NCC
-      D(I,K)=0.
+      D(I,K)=0.D0
       DO 11 L=1,NCA
       D(I,K)=D(I,K)+A(I,L)*B(L,K)
 11    CONTINUE
       GO TO 50
 20    DO 12 I=1,NRA
       DO 12 K=1,NCC
-      D(I,K)=0.
+      D(I,K)=0.D0
       DO 12 L=1,NCA
       D(I,K)=D(I,K)+A(I,L)*B(K,L)
 12    CONTINUE
       GO TO 50
 30    DO 13 I=1,NCA
       DO 13 K=1,NCC
-      D(I,K)=0.
+      D(I,K)=0.D0
       DO 13 L=1,NRA
       D(I,K)=D(I,K)+A(L,I)*B(L,K)
 13    CONTINUE
       GO TO 50
 40    DO 14 I=1,NCA
       DO 14 K=1,NCC
-      D(I,K)=0.
+      D(I,K)=0.D0
       DO 14 L=1,NRA
       D(I,K)=D(I,K)+A(L,I)*B(K,L)
 14    CONTINUE
@@ -1596,8 +1604,8 @@ C
 C
 C Fixme: check for N <= 10?
       DO I=1,N
-        S(I)=0.
-        COF(I)=0.
+        S(I)=0.D0
+        COF(I)=0.D0
       ENDDO
       S(N)=-X(1)
       DO I=2,N
@@ -1612,7 +1620,7 @@ C Fixme: check for N <= 10?
           PHI=K*S(K+1)+X(J)*PHI
         ENDDO
         FF=Y(J)/PHI
-        B=1.
+        B=1.D0
         DO K=N,1,-1
           COF(K)=COF(K)+B*FF
           B=S(K)+X(J)*B

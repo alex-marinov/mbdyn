@@ -29,7 +29,7 @@ c                     y = vettore dei termini noti da 'aggiungere'
           enddo
       enddo
       
-      t_old = 1.0
+      t_old = 1.D0
       do i = 1, n - 1
           temp = x(i)
           t_new = t_old + temp*temp*ldl(i,i)
