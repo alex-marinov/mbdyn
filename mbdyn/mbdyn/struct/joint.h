@@ -40,6 +40,7 @@
 
 #include <strnode.h>
 #include <elem.h>
+#include <gravity.h>
 
 extern const char* psJointNames[];
 
@@ -47,7 +48,8 @@ extern const char* psJointNames[];
 /* Joint - begin */
 
 class Joint 
-: virtual public Elem, public ElemWithDofs, public InitialAssemblyElem {
+: virtual public Elem, public ElemGravityOwner, 
+	public ElemWithDofs, public InitialAssemblyElem {
  public:
    /* Tipi di Joint */
    enum Type {

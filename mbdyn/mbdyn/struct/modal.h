@@ -134,7 +134,14 @@ protected:
 	mutable std::ofstream fOutFlex;
    
 	integer iModalIndex;
-      
+ 
+	/* from gravity.h */
+	/* momento statico */
+	Vec3 _GetS(void) const;
+
+	/* momento d'inerzia */
+	Mat3x3 _GetJ(void) const;
+ 
 public:
 	/* Costruttore non banale */
 	Modal(unsigned int uL,
@@ -256,6 +263,10 @@ public:
 	const ModalNode* pGetModalNode(void) const {
 		return pModalNode;
 	};
+
+	/* from gravity.h */
+	/* massa totale */
+	doublereal dGetM(void) const;
 
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento

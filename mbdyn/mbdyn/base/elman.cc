@@ -83,7 +83,7 @@ DataManager::ElemManager(void)
 	ElemData[Elem::AUTOMATICSTRUCTURAL].iDerivation = ELEM;
 	ElemData[Elem::GRAVITY].iDerivation = ELEM;
 	ElemData[Elem::BODY].iDerivation = ELEM | GRAVITYOWNER | INITIALASSEMBLY;
-	ElemData[Elem::JOINT].iDerivation = ELEM | DOFOWNER | INITIALASSEMBLY;
+	ElemData[Elem::JOINT].iDerivation = ELEM | GRAVITYOWNER | DOFOWNER | INITIALASSEMBLY;
 	ElemData[Elem::GENEL].iDerivation = ELEM | DOFOWNER;
 	ElemData[Elem::FORCE].iDerivation = ELEM | INITIALASSEMBLY;
 	ElemData[Elem::BEAM].iDerivation = ELEM | GRAVITYOWNER | INITIALASSEMBLY;
@@ -110,6 +110,7 @@ DataManager::ElemManager(void)
 	/* Aggiungere qui se un tipo genera forze d'inerzia e quindi
 	 * deve essere collegato all'elemento accelerazione di gravita' */
 	ElemData[Elem::BODY].fGeneratesInertialForces = flag(1);
+	ElemData[Elem::JOINT].fGeneratesInertialForces = flag(1);
 	ElemData[Elem::LOADABLE].fGeneratesInertialForces = flag(1);
 
 	/* Aggiungere qui se un tipo usa le proprieta' dell'aria e quindi

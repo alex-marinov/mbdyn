@@ -81,6 +81,7 @@ Joint::Joint(unsigned int uL, Joint::Type T, const DofOwner* pDO,
 	     flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
 ElemWithDofs(uL, Elem::JOINT, pDO, fOut), 
+ElemGravityOwner(uL, Elem::JOINT, fOut), 
 InitialAssemblyElem(uL, Elem::JOINT, fOut), JointT(T)
 { 
    NO_OP;

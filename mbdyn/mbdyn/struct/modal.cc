@@ -106,6 +106,9 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+/* FIXME: gravity in modal elements is eXperimental; undefine to disable */
+#define MODAL_USE_GRAVITY
+
 #include <modal.h>
 #include <dataman.h>
 
@@ -923,8 +926,9 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 
 #ifdef MODAL_USE_GRAVITY
 	/* forza di gravita' (decidere come inserire g) */
+	/* FIXME: use a reasonable reference point where compute gravity */
 	Vec3 GravityAcceleration(Zero3);
-	flag fGravity = GravityOwner::fGetAcceleration(x, GravityAcceleration);
+	bool bGravity = GravityOwner::fGetAcceleration(x, GravityAcceleration);
 #endif /* MODAL_USE_GRAVITY */
 
 	Vec3 vP(Zero3);
@@ -996,7 +1000,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 
 #ifdef MODAL_USE_GRAVITY
 		/* forza di gravita' (decidere come inserire g) */
-		if (fGravity) {
+		if (bGravity) {
 			WorkVec.Add(6+1, GravityAcceleration*dMass);
 			WorkVec.Add(9+1, S.Cross(GravityAcceleration));
 		}
@@ -1056,7 +1060,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 #endif
 #ifdef MODAL_USE_GRAVITY
 		/* forza di gravita': */
-		if (fGravity) {
+		if (bGravity) {
 			WorkVec.IncCoef(iRigidOffset+NModes+iMode,
 					(R*Inv3j).Dot(GravityAcceleration));
 		}
@@ -2101,7 +2105,27 @@ Modal::GetCurrFemNodesVelocity(void)
       	return pCurrXYZVel;
 }
 
+/* from gravity.h */
+/* massa totale */
+doublereal
+Modal::dGetM(void) const
+{
+	return 0.;
+}
 
+/* momento statico */
+Vec3
+Modal::_GetS(void) const
+{
+	return Zero3;
+}
+
+/* momento d'inerzia */
+Mat3x3
+Modal::_GetJ(void) const
+{
+	return Zero3x3;
+}
 
 
 Joint *
