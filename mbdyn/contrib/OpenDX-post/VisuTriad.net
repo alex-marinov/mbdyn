@@ -5,23 +5,28 @@
 //
 //
 //
-// macro reference (direct): FormatList /opt/dx/samples/macros/FormatListMacro.net
+// macro reference (direct): FormatList /usr/local/dx/samples/macros/FormatListMacro.net
 include "FormatListMacro.net"
 //
-// macro reference (direct): M3TimesP3 /data1/home/marc2/OpenDX-post/M3TimesP3.net
+// macro reference (direct): M3TimesP3 /home/masarati/Lavoro/mbdyn/mbdyn-devel/contrib/OpenDX-post/M3TimesP3.net
 include "M3TimesP3.net"
 //
 // MODULE main
+//
+// comment: macro reference (direct): FormatList /opt/dx/samples/macros/FormatListMacro.net
+// comment: macro reference (direct): M3TimesP3 @PREFIX@/contrib/OpenDX-post/M3TimesP3.net
+// comment: macro reference (direct): M3TimesP3 /data1/home/marc2/OpenDX-post/M3TimesP3.net
 //
 // comment: Copyright (C) 2002
 // comment: 
 // comment: Marco Morandini <morandini@aero.polimi.it>
 // comment: 
 // comment: This program is freely usable as a post-processor
-// comment: for the GPL'ed multy-body code MBDyn
-// comment: The program can be ditributed with the source code
-// comment: of MBDyn. Any other use of the program is explicitly
-// comment: forbidden
+// comment: for the GPL'ed multi-body code MBDyn (available
+// comment: at http://www.mbdyn.org).
+// comment: The program can be distributed with the source code
+// comment: of MBDyn.  Any other use of the program, including
+// comment: its modification, is explicitly forbidden
 // comment: 
 // comment: This program is distributed in the hope 
 // comment: that it will be useful,
