@@ -141,13 +141,45 @@ mbdyn_usage( ostream& out, const char *sShortOpts )
         " is put in various '{file}.xxx' files" << endl
         << "('Mbdyn.xxx' if input from stdin)" << endl
         << endl;
-#ifndef HAVE_GETOPT
-    cout 
-        << "MBDyn needs be compiled with <getopt.h>"
-        " to enable command line options" << endl;
-#endif /* !HAVE_GETOPT */
     cout << endl;   
 }
+
+/* Dati di getopt */
+static char sShortOpts[] = "a:d:f:hHlm:o:rRstTw";
+enum MyOptions {
+	MAIL = 0,
+	INPUT_FILE,
+	ADAMS_FILE,
+	OUTPUT_FILE,
+	DEBUG_LEVEL,
+	ONE_TABLE,
+	MULTIPLE_TABLE,
+	SILENT,
+	HELP,
+	
+	LASTOPTION
+} /* MyOptions */ ;
+
+#ifdef HAVE_GETOPT_LONG
+static struct option LongOpts[] = {
+	{ "adams-file",     required_argument, NULL,           int('a') },
+	{ "debug",          required_argument, NULL,           int('d') },
+	{ "input-file",     required_argument, NULL,           int('f') },
+	{ "help",           no_argument,       NULL,           int('h') },
+	{ "show-table",     no_argument,       NULL,           int('H') },
+	{ "license",        no_argument,       NULL,           int('l') },
+	{ "mail",           required_argument, NULL,           int('m') },
+	{ "output-file",    required_argument, NULL,           int('o') },
+	{ "redefine",       no_argument,       NULL,           int('r') },
+	{ "no-redefine",    no_argument,       NULL,           int('R') },
+	{ "silent",         no_argument,       NULL,           int('s') },
+	{ "same-table",     no_argument,       NULL,           int('t') },
+	{ "no-same-table",  no_argument,       NULL,           int('T') },
+	{ "warranty",       no_argument,       NULL,           int('w') },
+	
+	{ NULL,             0,                 NULL,           0        }
+};
+#endif /* HAVE_GETOPT_LONG */
 #endif /* HAVE_GETOPT */
 
 
@@ -161,467 +193,474 @@ Integrator* RunMBDyn(MBDynParser&, const char* const, const char* const);
 void SendMessage(const char* const, const char* const, time_t, time_t);
 
 
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {   
 #ifdef USE_MPI
-    /* Inizializza i processi */
-    MPI::Init(argc, argv);	   
-    int WorldSize = MPI::COMM_WORLD.Get_size();
-    int myrank = MPI::COMM_WORLD.Get_rank();
-    int ProcessorNameLenght = 1024;
-    char* ProcessorName = NULL;
-    SAFENEWARR(ProcessorName, char, ProcessorNameLenght, MBDynMM);
-    MPI::Get_processor_name(ProcessorName, ProcessorNameLenght); 
+    	/* Inizializza i processi */
+    	MPI::Init(argc, argv);	   
+    	int WorldSize = MPI::COMM_WORLD.Get_size();
+    	int myrank = MPI::COMM_WORLD.Get_rank();
+    	int ProcessorNameLenght = 1024;
+    	char* ProcessorName = NULL;
+    	SAFENEWARR(ProcessorName, char, ProcessorNameLenght, MBDynMM);
+    	MPI::Get_processor_name(ProcessorName, ProcessorNameLenght); 
 #endif /* USE_MPI */
    
-    /* primo argomento valido (potenziale nome di file di ingresso) */
-    int currarg = 0;
-    if (argc > 0) {
-        currarg = 1;
-    }
+    	/* primo argomento valido (potenziale nome di file di ingresso) */
+    	int currarg = 0;
+    	if (argc > 0) {
+        	currarg = 1;
+    	}
    
-    /* The program is a big try block */
+    	/* The program is a big try block */
 #ifdef USE_EXCEPTIONS
-    try {
+    	try {
 #endif /* USE_EXCEPTIONS */
       
-        enum InputFormat {
-	    MBDYN,
-	    ADAMS,
-	    LASTFORMAT
-        } CurrInputFormat = MBDYN;
+        	enum InputFormat {
+	    		MBDYN,
+	    		ADAMS,
+	    		LASTFORMAT
+        	} CurrInputFormat = MBDYN;
       
-        /* Stream di ingresso dati */
-        istream* pIn = NULL;
-        ifstream FileStreamIn;
-        char* sInputFileName = NULL;
-        char* sOutputFileName = NULL;
+        	/* Stream di ingresso dati */
+        	istream* pIn = NULL;
+        	ifstream FileStreamIn;
+        	char* sInputFileName = NULL;
+        	char* sOutputFileName = NULL;
       
-        enum InputSource {
-	    FILE_UNKNOWN,
-	    FILE_STDIN,
-	    FILE_OPT,
-	    FILE_ARGS	   
-        } CurrInputSource = FILE_UNKNOWN;
+        	enum InputSource {
+	    		FILE_UNKNOWN,
+	    		FILE_STDIN,
+	    		FILE_OPT,
+	    		FILE_ARGS	   
+        	} CurrInputSource = FILE_UNKNOWN;
       
-        /* Gestione dei parametri da linea di comando */
-        int fRedefine = 0;
-        int fTable = 0;
+        	/* Gestione dei parametri da linea di comando */
+        	int fRedefine = 0;
+        	int fTable = 0;
       
-        /* Mostra la tabella dei simboli ed esce */
-        int fShowSymbolTable = 0;
+        	/* Mostra la tabella dei simboli ed esce */
+        	int fShowSymbolTable = 0;
       
 #ifdef HAVE_GETOPT
-        /* Dati acquisibili da linea di comando */
-        int iMailToBeSent = 0;
-        char* sMailToAddress = NULL;
+        	/* Dati acquisibili da linea di comando */
+        	int iMailToBeSent = 0;
+        	char* sMailToAddress = NULL;
       
-        /* Dati di getopt */
-        static char sShortOpts[] = "a:d:f:hHlm:o:rRstTw";
-        enum MyOptions {
-            MAIL = 0,
-	    INPUT_FILE,
-	    ADAMS_FILE,
-	    OUTPUT_FILE,
-	    DEBUG_LEVEL,
-	    ONE_TABLE,
-	    MULTIPLE_TABLE,
-	    SILENT,
-	    HELP,
-	    
-	    LASTOPTION
-        } /* MyOptions */ ;
-      
-#ifdef HAVE_GETOPT_LONG
-        static struct option LongOpts[] = {
-	    { "adams-file",     required_argument, NULL,           int('a') },
-	    { "debug",          required_argument, NULL,           int('d') },
-	    { "input-file",     required_argument, NULL,           int('f') },
-	    { "help",           no_argument,       NULL,           int('h') },
-	    { "show-table",     no_argument,       NULL,           int('H') },
-	    { "license",        no_argument,       NULL,           int('l') },
-	    { "mail",           required_argument, &iMailToBeSent, 1        },
-	    { "output-file",    required_argument, NULL,           int('o') },
-	    { "redefine",       no_argument,       NULL,           int('r') },
-	    { "no-redefine",    no_argument,       NULL,           int('R') },
-	    { "silent",         no_argument,       NULL,           int('s') },
-	    { "same-table",     no_argument,       NULL,           int('t') },
-	    { "no-same-table",  no_argument,       NULL,           int('T') },
-	    { "warranty",       no_argument,       NULL,           int('w') },
-	    
-	    { NULL,             0,                 NULL,           0        }
-        };   
-#endif /* HAVE_GETOPT_LONG */
-        int iIndexPtr = 0;
+        	int iIndexPtr = 0;
 
-        /* Parsing della linea di comando */
-        opterr = 0;
-        while (1) {
+        	/* Parsing della linea di comando */
+        	opterr = 0;
+        	while (1) {
 #ifdef HAVE_GETOPT_LONG
-	    int iCurrOpt = 
-	        getopt_long(argc, argv, sShortOpts, LongOpts, &iIndexPtr);
+	    		int iCurrOpt = getopt_long(argc, argv, sShortOpts, 
+						   LongOpts, &iIndexPtr);
 #else /* !HAVE_GETOPT_LONG */
-	    int iCurrOpt = getopt(argc, argv, sShortOpts);
+	    		int iCurrOpt = getopt(argc, argv, sShortOpts);
 #endif /* !HAVE_GETOPT_LONG */
 	 
-	    if (iCurrOpt == EOF) {
-	        break;
-	    }
+	    		if (iCurrOpt == EOF) {
+	        		break;
+	    		}
 	 
-	    switch (iCurrOpt) {
-	    case 0:
-	        if (iIndexPtr == MAIL) {
-		    sMailToAddress = optarg;
-	        }
-	        break;
-
-	    case int('m'):
-	        iMailToBeSent = 1;
-	        sMailToAddress = optarg;
-	        break;
+	    		switch (iCurrOpt) {
+	    		case int('m'):
+	        		iMailToBeSent = 1;
+	        		SAFESTRDUP(sMailToAddress, optarg, MBDynMM);
+	        		break;
 	    
-	    case int('f'):
-	        CurrInputFormat = MBDYN;
-	        CurrInputSource = FILE_OPT;
-	        sInputFileName = optarg;
-	        FileStreamIn.open(sInputFileName);
-	        if (!FileStreamIn) {
-		    cerr 
-		        << endl 
-		        << "Unable to open file '" << optarg << "';" << endl
-		        << "aborting ..."
+	    		case int('f'):
+	        		CurrInputFormat = MBDYN;
+	        		CurrInputSource = FILE_OPT;
+				if (sInputFileName != NULL) {
+					SAFEDELETEARR(sInputFileName, MBDynMM);
+					sInputFileName = NULL;
+				}
+	        		SAFESTRDUP(sInputFileName, optarg, MBDynMM);
+	        		FileStreamIn.open(sInputFileName);
+	        		if (!FileStreamIn) {
+		    			cerr 
+		        			<< endl 
+		        			<< "Unable to open file '"
+						<< sInputFileName
 #ifdef USE_MPI
-		        << " on " << ProcessorName
+		        			<< " on " << ProcessorName
 #endif /* USE_MPI */
-		        << endl;
-		    THROW(ErrGeneric());
-	        }
-	        pIn = (istream*)&FileStreamIn;
-	        break;
+						<< ";" << endl 
+						<< "aborting ..." << endl;
+		    			THROW(ErrGeneric());
+	        		}
+	        		pIn = (istream*)&FileStreamIn;
+	        		break;
 	    
-	    case int('a'):
+	    		case int('a'):
 #ifdef USE_ADAMS_PP
-	        CurrInputFormat = ADAMS;
-	        CurrInputSource = FILE_OPT;
-	        sInputFileName = optarg;
+	        		CurrInputFormat = ADAMS;
+	        		CurrInputSource = FILE_OPT;
+	        		SAFESTRDUP(sInputFileName, optarg, MBDynMM);
 	     
-	        cerr << "ADAMS input not implemented yet,"
-		    " cannot open file '" << sInputFileName << "'" << endl;	
-	        THROW(ErrGeneric());	 
-	        break;
+	        		cerr << "ADAMS input not implemented yet,"
+		    			" cannot open file '"
+					<< sInputFileName << "'" << endl;
+				THROW(ErrGeneric());
+	        		break;
 #else /* !USE_ADAMS_PP */
-	        cerr << "Illegal option -a" << endl;
-	        THROW(ErrGeneric());
+	        		cerr << "Illegal option -a" << endl;
+	        		THROW(ErrGeneric());
+				break;
 #endif /* !USE_ADAMS_PP */
 	    
-	    case int('o'):
-	        if (sOutputFileName != NULL) {
-	            SAFEDELETEARR(sOutputFileName, MBDynMM);
-	            sOutputFileName = NULL;
-	        }
-	        SAFESTRDUP(sOutputFileName, optarg, MBDynMM);
-	        break;	  
+	    		case int('o'):
+	        		if (sOutputFileName != NULL) {
+	            			SAFEDELETEARR(sOutputFileName, MBDynMM);
+	            			sOutputFileName = NULL;
+	        		}
+	        		SAFESTRDUP(sOutputFileName, optarg, MBDynMM);
+	        		break;
 
-	    case int('d'):
+	    		case int('d'):
 #ifdef DEBUG
-	        if (get_debug_options(optarg, da)) {
-		    cerr << "Unable to interpret debug option argument;" 
-		        " using default" << endl;
-		    ::debug_level = DEFAULT_DEBUG_LEVEL;
-		    /* THROW(ErrGeneric()); */
-	        }
+	        		if (get_debug_options(optarg, da)) {
+		    			cerr << "Unable to interpret debug"
+						" option argument;"
+						" using default" << endl;
+		    			::debug_level = DEFAULT_DEBUG_LEVEL;
+		    			/* THROW(ErrGeneric()); */
+	        		}
 #else /* !DEBUG */
-	        cerr << "Compile with '-DDEBUG' to use debug features" << endl;
+	        		cerr << "Compile with '-DDEBUG'"
+					" to use debug features" << endl;
 #endif /* !DEBUG */
-	        break;
+	        		break;
 	       
-	    case int('t'):
-	        fTable = 1;
-	        break;
+	    		case int('t'):
+	        		fTable = 1;
+	        		break;
 	    
-	    case int('T'):
-	        fTable = 0;
-	        break;	  
+	    		case int('T'):
+	        		fTable = 0;
+	        		break;	  
 	    
-	    case int('r'):
-	        fRedefine = 1;
-	        break;
+	    		case int('r'):
+	        		fRedefine = 1;
+	        		break;
 	    
-	    case int('R'):
-	        fRedefine = 0;
-	        break;
+	    		case int('R'):
+	        		fRedefine = 0;
+	        		break;
 	    
-	    case int('s'):
-	        ::fSilent = 1;
-	        break;	  
+	    		case int('s'):
+	        		::fSilent = 1;
+	        		break;
 
-	    case int('l'):
-	        cout << "license not available yet; see GPL" << endl;
+	    		case int('l'):
+	        		cout << "license not available yet;"
+					" see GPL" << endl;
 #ifdef USE_EXCEPTIONS
-	        throw NoErr();
+	        		throw NoErr();
 #else /* !USE_EXCEPTIONS */
 #ifdef USE_MPI
-	        MPI::Finalize();
+	        		MPI::Finalize();
 #endif /* USE_MPI */
-	        exit(EXIT_SUCCESS);
+	        		exit(EXIT_SUCCESS);
 #endif /* !USE_EXCEPTIONS */
 	    
-	    case int('w'):
-	        cout << "warranty not available yet;"
-	            " see warranty coming with GPL" << endl;
+	    		case int('w'):
+	        		cout << "warranty not available yet;"
+	            			" see warranty coming with GPL"
+					<< endl;
 #ifdef USE_EXCEPTIONS
-	        throw NoErr();
+	        		throw NoErr();
 #else /* !USE_EXCEPTIONS */
 #ifdef USE_MPI
-	        MPI::Finalize();
+	        		MPI::Finalize();
 #endif /* USE_MPI */
-	        exit(EXIT_SUCCESS);
+	        		exit(EXIT_SUCCESS);
 #endif /* !USE_EXCEPTIONS */
 	    
-	    case int('?'):
-	        cerr << "Unknown option -" << char(optopt) << endl;
-	    case int('h'):
+	    		case int('?'):
+	        		cerr << "Unknown option -"
+					<< char(optopt) << endl;
+	    		case int('h'):
 	     
 #ifdef USE_MPI
-	        if (myrank == 0) {
+	        		if (myrank == 0) {
 #endif /* USE_MPI */
-		    mbdyn_usage( cout, sShortOpts );
+		    			mbdyn_usage( cout, sShortOpts );
 #ifdef USE_MPI
-	        }
+	        		}
 #endif /* USE_MPI */
-	     
 #ifdef USE_EXCEPTIONS
-	        throw NoErr();
+	        		throw NoErr();
 #else /* !USE_EXCEPTIONS */
 #ifdef USE_MPI
-	        MPI::Finalize();
+	        		MPI::Finalize();
 #endif /* USE_MPI */
-	        exit(EXIT_SUCCESS);
+	        		exit(EXIT_SUCCESS);
 #endif /* !USE_EXCEPTIONS */
 	    
-	    case int('H'):
-	        fShowSymbolTable++;
-	        break;	 
+	    		case int('H'):
+	        		fShowSymbolTable++;
+	        		break;
 	    
-	    default:
-	        cerr << endl 
-	            << "Unrecoverable error; aborting ..." << endl;
-	        THROW(ErrGeneric());	 
-	    }      
-        }
+	    		default:
+	        		cerr << endl 
+	            			<< "Unrecoverable error; aborting ..."
+					<< endl;
+	        		THROW(ErrGeneric());
+	    		}
+        	}
       
-        /* primo argomento utile (potenziale nome di file di ingresso) */
-        currarg = optind;
+        	/*
+		 * primo argomento utile (potenziale nome di file di ingresso)
+		 */
+        	currarg = optind;
 #endif /* HAVE_GETOPT */
 
-        silent_cout(endl
-                    << "MBDyn - Multi-Body Dynamics " << VERSION 
-		    << endl
-		    << "compiled on " << __DATE__ << " at " << __TIME__ 
-		    << endl << endl
-		    << "Copyright 1997-2000 Pierangelo Masarati," << endl
-		    << "Dipartimento di Ingegneria Aerospaziale,"
-		    " Politecnico di Milano." << endl
-		    << "MBDyn is free software, covered by the"
-		    " GNU General Public License, and you are" << endl
-		    << "welcome to change it and/or distribute"
-		    " copies of it under certain conditions." << endl
-		    << "Use 'mbdyn --license' to see the conditions." << endl
-		    << "There is absolutely no warranty for"
-		    " MBDyn.  Use \"mbdyn --warranty\" for details." << endl 
-		    << endl);
+        	silent_cout(endl
+                    	    << "MBDyn - Multi-Body Dynamics " << VERSION 
+		    	    << endl
+		    	    << "compiled on " << __DATE__ << " at " << __TIME__ 
+		    	    << endl
+			    << endl
+		    	    << "Copyright 1997-2000 Pierangelo Masarati,"
+			    << endl
+		    	    << "Dipartimento di Ingegneria Aerospaziale,"
+		    	    " Politecnico di Milano." << endl
+		    	    << "MBDyn is free software, covered by the"
+		    	    " GNU General Public License, and you are" << endl
+		    	    << "welcome to change it and/or distribute"
+		    	    " copies of it under certain conditions." << endl
+		    	    << "Use 'mbdyn --license' to see the conditions."
+			    << endl
+		    	    << "There is absolutely no warranty for"
+		    	    " MBDyn.  Use \"mbdyn --warranty\" for details."
+			    << endl 
+		    	    << endl);
 #ifdef USE_MPI
-        cerr << "Process " << myrank 
-	    << " (" << myrank+1 << " of " << WorldSize
-            << ") is alive on " << ProcessorName << endl;
+        	cerr << "Process " << myrank 
+	    		<< " (" << myrank+1 << " of " << WorldSize
+            		<< ") is alive on " << ProcessorName << endl;
 #endif /* USE_MPI */
       
-      /* Mostra la tabella dei simboli ed esce */
-        if (fShowSymbolTable > 0) {
+      		/* Mostra la tabella dei simboli ed esce */
+        	if (fShowSymbolTable > 0) {
 #ifdef USE_MPI
-	    if (myrank == 0) {
+	    		if (myrank == 0) {
 #endif /* USE_MPI */
-	        Table t(31, 1);
-	        cout << "default symbol table:" << endl << t << endl;
+	        		Table t(31, 1);
+	        		cout << "default symbol table:"
+					<< endl << t << endl;
 #ifdef USE_MPI
-	    }
+	    		}
 #endif /* USE_MPI */
 	 
 #ifdef USE_EXCEPTIONS
-	    throw NoErr();
+	    		throw NoErr();
 #else /* !USE_EXCEPTIONS */
 #ifdef USE_MPI
-	    MPI::Finalize();
+	    		MPI::Finalize();
 #endif /* USE_MPI */
-	    exit(EXIT_SUCCESS);
+	    		exit(EXIT_SUCCESS);
 #endif /* !USE_EXCEPTIONS */
-        }
+        	}
             
-        /* risolve l'input */
-        if (CurrInputSource == FILE_UNKNOWN) {
-	    if (argv[currarg] != NULL) {
-	        CurrInputSource = FILE_ARGS;
-	    } else {
-	        /* se non e' un argomento prende lo standard input */
-	        CurrInputSource = FILE_STDIN;
-	        CurrInputFormat = MBDYN;
-	        ASSERT(pIn == NULL);
-	        pIn = (istream*)&cin;
-	    }
-        }
+        	/* risolve l'input */
+        	if (CurrInputSource == FILE_UNKNOWN) {
+	    		if (argv[currarg] != NULL) {
+	        		CurrInputSource = FILE_ARGS;
+	    		} else {
+	        		/*
+				 * se non e' un argomento prende
+				 * lo standard input
+				 */
+	        		CurrInputSource = FILE_STDIN;
+	        		CurrInputFormat = MBDYN;
+	        		ASSERT(pIn == NULL);
+	        		pIn = (istream*)&cin;
+	    		}
+        	}
       
-        /* Gestione di input/output */      
-        Table* pT = NULL;
-        MathParser* pMP = NULL;
+        	/* Gestione di input/output */      
+        	Table* pT = NULL;
+        	MathParser* pMP = NULL;
       
-        int last = 0;
-        while (last == 0) {
-	    if (CurrInputSource == FILE_STDIN || CurrInputSource == FILE_OPT) {
-	        last = 1;
-	    } else if (CurrInputSource == FILE_ARGS) {
-	        sInputFileName = argv[currarg];
-	        DEBUGLCOUT(MYDEBUG_INPUT, 
-		           "input file: " << argv[currarg] << endl);
+        	int last = 0;
+        	while (last == 0) {
+	    		if (CurrInputSource == FILE_STDIN
+			    || CurrInputSource == FILE_OPT) {
+	        		last = 1;
+	    		} else if (CurrInputSource == FILE_ARGS) {
+	        		sInputFileName = argv[currarg];
+	        		DEBUGLCOUT(MYDEBUG_INPUT, 
+		           		   "input file: "
+					   << argv[currarg] << endl);
 	    
-	        /* incrementa il numero di argomento */
-	        currarg++; 
-	        if (argv[currarg] == NULL) {
-	            last = 1;
-	        }
+	        		/* incrementa il numero di argomento */
+	        		currarg++; 
+	        		if (argv[currarg] == NULL) {
+	            			last = 1;
+	        		}
 	    
 #ifdef USE_ADAMS_PP
-	        /* ADAMS extension */
-	        char* p = strrchr(sInputFileName, int('.'));
-	        if (p != NULL 
-		    && strlen(p+1) == 3 
-		    && !strncasecmp(p+1, "adm", 3)) {
-	            CurrInputFormat = ADAMS;
+	        		/* ADAMS extension */
+	        		char* p = strrchr(sInputFileName, int('.'));
+	        		if (p != NULL 
+		    		    && strlen(p+1) == 3 
+				    && !strncasecmp(p+1, "adm", 3)) {
+	            			CurrInputFormat = ADAMS;
 	       
-	            cerr << "ADAMS input not implemented yet,"
-		        " cannot open file '" << sInputFileName << "'" << endl;
-	            THROW(ErrGeneric());
-	        } else {
+	            			cerr << "ADAMS input not implemented"
+						" yet, cannot open file '"
+						<< sInputFileName << "'"
+						<< endl;
+	            			THROW(ErrGeneric());
+	        		} else {
 #endif /* USE_ADAMS_PP */
-	            CurrInputFormat = MBDYN;
+	            			CurrInputFormat = MBDYN;
 	       
-	            FileStreamIn.open(sInputFileName);
-	            if (!FileStreamIn) {
-		        cerr << endl 
-			    << "Unable to open file '" << sInputFileName 
-			    << "'; aborting ..." << endl;
-		        THROW(ErrGeneric());
-	            }
+	            			FileStreamIn.open(sInputFileName);
+	            			if (!FileStreamIn) {
+		        			cerr << endl 
+			    				<< "Unable to open"
+							" file '"
+							<< sInputFileName 
+			    				<< "'; aborting ..."
+							<< endl;
+		        			THROW(ErrGeneric());
+	            			}
 #ifdef USE_ADAMS_PP
-	        }
+	        		}
 #endif /* USE_ADAMS_PP */
-	        pIn = &FileStreamIn;
-	    }
+	        		pIn = &FileStreamIn;
+	    		}
 	 	 
-	    Integrator* pIntg = NULL;
-	    switch (CurrInputFormat) {
-	    case MBDYN: {	     
-	        if (pT == NULL) {
-		    SAFENEWWITHCONSTRUCTOR(pT, Table, Table(31, 1), MBDynMM);
-	        }
-	        if (pMP == NULL) {
-		    SAFENEWWITHCONSTRUCTOR(pMP, 
-		                           MathParser, 
-					   MathParser(*pT, fRedefine), 
-					   MBDynMM);
+	    		Integrator* pIntg = NULL;
+	    		switch (CurrInputFormat) {
+	    		case MBDYN: {	     
+	        		if (pT == NULL) {
+		    			SAFENEWWITHCONSTRUCTOR(pT,
+							       Table,
+							       Table(31, 1),
+							       MBDynMM);
+	        		}
+	        		if (pMP == NULL) {
+		    			SAFENEWWITHCONSTRUCTOR(pMP, 
+		                           		       MathParser, 
+					   			MathParser(*pT,
+								    fRedefine), 
+					   			MBDynMM);
 		
-		    /* legge l'environment */
-		    GetEnviron(*pMP);
-	        } 
+		    			/* legge l'environment */
+		    			GetEnviron(*pMP);
+	        		} 
 		
-	        /* parser del blocco di controllo */
-	        KeyTable K(0, NULL);
+	        		/* parser del blocco di controllo */
+	        		KeyTable K(0, NULL);
 	     
-	        /* stream in ingresso */
-	        InputStream In(*pIn);
-	        MBDynParser HP(*pMP, K, In);
+	        		/* stream in ingresso */
+	        		InputStream In(*pIn);
+	        		MBDynParser HP(*pMP, K, In);
 	     
-	        pIntg = RunMBDyn(HP, sInputFileName, sOutputFileName);
-	        FileStreamIn.close();
-	        break;
-	    }
+	        		pIntg = RunMBDyn(HP, sInputFileName, 
+						 sOutputFileName);
+	        		FileStreamIn.close();
+	        		break;
+	    		}
 	       
-	    case ADAMS:
-	        cerr << "ADAMS input not implemented yet, sorry!" << endl;
-	        THROW(ErrNotImplementedYet());
+	    		case ADAMS:
+	        		cerr << "ADAMS input not implemented yet!"
+					<< endl;
+	        		THROW(ErrNotImplementedYet());
 	    
-	    default:
-	        cerr << "You shouldn't be here!" << endl;
-	        THROW(ErrGeneric());
-	    }
+	    		default:
+	        		cerr << "You shouldn't be here!" << endl;
+	        		THROW(ErrGeneric());
+	    		}
 	    
-	    if (pIntg != NULL) {
-	        SAFEDELETE(pIntg, MBDynMM);
-	    }
+	    		if (pIntg != NULL) {
+	        		SAFEDELETE(pIntg, MBDynMM);
+	    		}
 	 
-	    if (fTable == 0 || argv[currarg] == NULL) {
-	        if (pMP != NULL) {
-	            SAFEDELETE(pMP, MBDynMM);
-	            pMP = NULL;
-	        }
-	        if (pT != NULL) {
-	            SAFEDELETE(pT, MBDynMM);
-	            pT = NULL;
-	        }
-	    }
+	    		if (fTable == 0 || argv[currarg] == NULL) {
+	        		if (pMP != NULL) {
+	            			SAFEDELETE(pMP, MBDynMM);
+	            			pMP = NULL;
+	        		}
+	        		if (pT != NULL) {
+	            			SAFEDELETE(pT, MBDynMM);
+	            			pT = NULL;
+	        		}
+	    		}
 	 
-	    time_t tSecs = 0;
-	    time_t tCents = 0;
+	    		time_t tSecs = 0;
+	    		time_t tCents = 0;
 #ifdef HAVE_TIMES_H	 
-	    /* Tempo di CPU impiegato */
-	    struct tms buf;
-	    times(&buf);
-	    clock_t ct = 
-	        buf.tms_utime+buf.tms_cutime+buf.tms_stime+buf.tms_cstime;
-	    tSecs = ct/CLK_TCK;
-	    tCents = ((ct*100)/CLK_TCK)%100;
-	    cout << endl << "The simulation required " 
-	        << tSecs << '.' << tCents 
-	        << " seconds of CPU time";
-#ifdef USE_MPI	      
-	    cout << " on " << ProcessorName;
+	    		/* Tempo di CPU impiegato */
+	    		struct tms buf;
+	    		times(&buf);
+	    		clock_t ct = buf.tms_utime+buf.tms_cutime
+				+buf.tms_stime+buf.tms_cstime;
+	    		tSecs = ct/CLK_TCK;
+	    		tCents = ((ct*100)/CLK_TCK)%100;
+	    		cout << endl << "The simulation required " 
+	        		<< tSecs << '.' << tCents 
+	        		<< " seconds of CPU time";
+#ifdef USE_MPI
+	    		cout << " on " << ProcessorName;
 #endif /* USE_MPI */
-	    cout << endl;
+	    		cout << endl;
 #endif /* HAVE_TIMES_H */
 	 
-#ifdef HAVE_GETOPT   
-	    /* E-mail all'utente */
-	    if (iMailToBeSent) {
-	        SendMessage(sInputFileName, sMailToAddress, tSecs, tCents);
-	    }
+#ifdef HAVE_GETOPT
+	    		/* E-mail all'utente */
+	    		if (iMailToBeSent) {
+	        		SendMessage(sInputFileName, sMailToAddress,
+					    tSecs, tCents);
+	    		}
 #endif /* HAVE_GETOPT */	    
-        }	  
+        	}
+
+#ifdef HAVE_GETOPT
+		if (sMailToAddress) {
+			SAFEDELETEARR(sMailToAddress, MBDynMM);
+		}
+#endif /* HAVE_GETOPT */
+		if (sInputFileName) {
+			SAFEDELETEARR(sInputFileName, MBDynMM);
+		}
+		if (sOutputFileName) {
+			SAFEDELETEARR(sOutputFileName, MBDynMM);
+		}
 
 #ifdef USE_EXCEPTIONS
-        throw NoErr();
-    }
+        	throw NoErr();
+    	}
    
-    catch (NoErr) {     
-        silent_cout("MBDyn terminated normally" << endl);
+    	catch (NoErr) {     
+        	silent_cout("MBDyn terminated normally" << endl);
 #ifdef USE_MPI 
-        MPI::Finalize();
+        	MPI::Finalize();
 #endif /* USE_MPI */
       
-        exit(EXIT_SUCCESS);
-    }
-    catch (...) {
-        cerr << "An error occurred during the execution of MBDyn;"
-	    " aborting ... " << endl;
-#ifdef USE_MPI 
-        MPI::Finalize();
+        	exit(EXIT_SUCCESS);
+    	}
+    	catch (...) {
+        	cerr << "An error occurred during the execution of MBDyn;"
+	    		" aborting ... " << endl;
+#ifdef USE_MPI
+        	MPI::Finalize();
 #endif /* USE_MPI */
-        exit(EXIT_FAILURE);
-    }
+        	exit(EXIT_FAILURE);
+    	}
 #endif /* USE_EXCEPTIONS */
    
 #ifdef USE_MPI 
-    MPI::Finalize();
+    	MPI::Finalize();
 #endif /* USE_MPI */
-    return EXIT_SUCCESS;
+    	return EXIT_SUCCESS;
 }
 
 
@@ -630,184 +669,189 @@ RunMBDyn(MBDynParser& HP,
 	 const char* const sInputFileName,
 	 const char* const sOutputFileName)
 {
-    DEBUGCOUTFNAME("RunMBDyn");
+    	DEBUGCOUTFNAME("RunMBDyn");
    
-    Integrator* pIntg = NULL;
+    	Integrator* pIntg = NULL;
 
-    /* flag di parallelo */
-    flag fParallel(0);
+    	/* flag di parallelo */
+    	flag fParallel(0);
 
-    /* parole chiave */
-    const char* sKeyWords[] = { 
-        "begin",
-	"end",
-        "data",
-        "integrator",
-        "multistep",
-        "rungekutta",
-        "parallel",
-        "schur"
-    };
+    	/* parole chiave */
+    	const char* sKeyWords[] = { 
+        	"begin",
+		"end",
+        	"data",
+        	"integrator",
+        	"multistep",
+        	"rungekutta",
+        	"parallel",
+        	"schur"
+    	};
 
-    /* enum delle parole chiave */
-    enum KeyWords {
-        UNKNOWN = -1,
-        BEGIN = 0,
-	END,
-        DATA,
-        INTEGRATOR,
-        MULTISTEP,
-        RUNGEKUTTA,
-        PARALLEL,
-        SSCHUR,
-        LASTKEYWORD
-    };
-   
-    /* tabella delle parole chiave */
-    KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-    /* Attacca la tabella al parser */
-    HP.PutKeyTable(K);
-   
-    /* legge i dati della simulazione */
-    if (KeyWords(HP.GetDescription()) != BEGIN) {
-        cerr << endl 
-	    << "Error: <begin> expected at line " 
-	    << HP.GetLineData() << "; aborting ..." << endl;
-        THROW(ErrGeneric());
-    }
-   
-    if (KeyWords(HP.GetWord()) != DATA) {
-        cerr << endl 
-	    << "Error: <begin: data;> expected at line " 
-	    << HP.GetLineData() << "; aborting ..." << endl;
-        THROW(ErrGeneric());
-    }           
-   
-    KeyWords CurrInt = MULTISTEP;
-   
-    /* Ciclo infinito */
-    while (1) {	
-        switch (KeyWords(HP.GetDescription())) {
-        case INTEGRATOR:
-            switch (KeyWords(HP.GetWord())) {
-            case RUNGEKUTTA:
-	        CurrInt = RUNGEKUTTA;
-	        break;
+    	/* enum delle parole chiave */
+    	enum KeyWords {
+        	UNKNOWN = -1,
 		
-            case MULTISTEP:
-	        CurrInt = MULTISTEP;
-	        break;
+        	BEGIN = 0,
+		END,
+        	DATA,
+        	INTEGRATOR,
+        	MULTISTEP,
+        	RUNGEKUTTA,
+        	PARALLEL,
+        	SSCHUR,
+        	LASTKEYWORD
+    	};
+   
+    	/* tabella delle parole chiave */
+    	KeyTable K((int)LASTKEYWORD, sKeyWords);
+   
+    	/* Attacca la tabella al parser */
+    	HP.PutKeyTable(K);
+   
+    	/* legge i dati della simulazione */
+    	if (KeyWords(HP.GetDescription()) != BEGIN) {
+        	cerr << endl 
+	    		<< "Error: <begin> expected at line " 
+	    		<< HP.GetLineData() << "; aborting ..." << endl;
+        	THROW(ErrGeneric());
+    	}
+   
+    	if (KeyWords(HP.GetWord()) != DATA) {
+        	cerr << endl 
+	    		<< "Error: <begin: data;> expected at line " 
+	    		<< HP.GetLineData() << "; aborting ..." << endl;
+        	THROW(ErrGeneric());
+    	}
+   
+    	KeyWords CurrInt = MULTISTEP;
+   
+    	/* Ciclo infinito */
+    	while (1) {	
+        	switch (KeyWords(HP.GetDescription())) {
+        	case INTEGRATOR:
+            		switch (KeyWords(HP.GetWord())) {
+            		case RUNGEKUTTA:
+	        		CurrInt = RUNGEKUTTA;
+	        		break;
 		
-            case SSCHUR:
-	        CurrInt = SSCHUR;
-	        break;
+            		case MULTISTEP:
+	        		CurrInt = MULTISTEP;
+	        		break;
 		
-            default:
-	        cerr << endl 
-		    << "Unknown integrator at line " 
-	            << HP.GetLineData() << "; aborting ..." << endl;
-	        THROW(ErrGeneric());
-            }
-            break;    
+            		case SSCHUR:
+	        		CurrInt = SSCHUR;
+	        		break;
+		
+            		default:
+	        		cerr << endl 
+		    			<< "Unknown integrator at line " 
+	            			<< HP.GetLineData()
+					<< "; aborting ..." << endl;
+	        		THROW(ErrGeneric());
+            		}
+            		break;    
 
-        case PARALLEL:
+        	case PARALLEL:
 #ifdef USE_MPI
-            fParallel = 1;
-	    break;
+            		fParallel = 1;
+	    		break;
 #else /* !USE_MPI */
-            cerr << "complile with -DUSE_MPI to have parallel" << endl;
-	    THROW(ErrGeneric());
+            		cerr << "complile with -DUSE_MPI to have parallel"
+				<< endl;
+	    		THROW(ErrGeneric());
 #ifndef USE_EXCEPTIONS
-	    break;
+	    		break;
 #endif /* USE_EXCEPTIONS */
-#endif /* !USE_MPI */      
+#endif /* !USE_MPI */
 
-        case END:
-	    if (KeyWords(HP.GetWord()) != DATA) {
-	        cerr << endl 
-		    << "Error: <end: data;> expected at line " 
-	            << HP.GetLineData() << "; aborting ..." << endl;
-	        THROW(ErrGeneric());
-	    }
-	    goto endofcycle;        
+        	case END:
+	    		if (KeyWords(HP.GetWord()) != DATA) {
+	        		cerr << endl 
+		    			<< "Error: <end: data;> expected"
+					" at line " << HP.GetLineData()
+					<< "; aborting ..." << endl;
+	        		THROW(ErrGeneric());
+	    		}
+	    		goto endofcycle;        
 	 
-        default:
-	    cerr << endl 
-	        << "Unknown description at line " 
-	        << HP.GetLineData() << "; aborting ..." << endl;
-	    THROW(ErrGeneric());      
-        }   
-    }
+        	default:
+	    		cerr << endl 
+	        		<< "Unknown description at line " 
+	        		<< HP.GetLineData()
+				<< "; aborting ..." << endl;
+	    		THROW(ErrGeneric());      
+        	}
+    	}
    
-   /* Uscita dal ciclo infinito */
+   	/* Uscita dal ciclo infinito */
 endofcycle:   
    
-    switch (CurrInt) {
-    case MULTISTEP:
-	if (fParallel == 1) {
-	    cerr << endl
-	        << "Sorry, multistep method cannot be parallel;"
-	        " aborting ..." << endl;
-	    THROW(ErrGeneric());
-        }	
-        SAFENEWWITHCONSTRUCTOR(pIntg,
-			       MultiStepIntegrator,
-			       MultiStepIntegrator(HP, 
-						   sInputFileName, 
-						   sOutputFileName),
-			       MBDynMM);
-        break;   
+    	switch (CurrInt) {
+    	case MULTISTEP:
+		if (fParallel == 1) {
+	    		cerr << "Sorry, multistep method cannot be parallel;"
+	        		" aborting ..." << endl;
+	    		THROW(ErrGeneric());
+        	}
+        	SAFENEWWITHCONSTRUCTOR(pIntg,
+			               MultiStepIntegrator,
+				       MultiStepIntegrator(HP, 
+				       			   sInputFileName, 
+							   sOutputFileName),
+			       	       MBDynMM);
+        	break;
       
-    case RUNGEKUTTA:
-        cerr << endl 
-	    << "Sorry, implicit Runge-Kutta isn't supported yet;"
-	    << endl << "aborting ..." << endl;
-        THROW(ErrNotImplementedYet());
+    	case RUNGEKUTTA:
+        	cerr << "Sorry, implicit Runge-Kutta isn't supported yet;"
+	    		<< endl << "aborting ..." << endl;
+        	THROW(ErrNotImplementedYet());
 
-    case SSCHUR:
-        if (!fParallel) {
-	    cerr << endl
-	        << "Sorry Schur method is supported only"
-	        " for parallel computations; aborting ..." << endl;
-	    THROW(ErrNotImplementedYet());
-        }
+    	case SSCHUR:
+        	if (!fParallel) {
+	    		cerr << "Sorry Schur method is supported only"
+	        		" for parallel computations; aborting ..."
+				<< endl;
+	    		THROW(ErrNotImplementedYet());
+        	}
 #ifdef USE_MPI
-        if (MPI::COMM_WORLD.Get_size() == 1) {
-            cerr << "Schur method is inefficient"
-	        " if used with only one processor;" << endl 
-		<< "multistep method will be used instead" << endl;
+        	if (MPI::COMM_WORLD.Get_size() == 1) {
+            		cerr << "Schur method is inefficient"
+	        		" if used with only one processor;" << endl 
+				<< "multistep method will be used instead"
+				<< endl;
 
-            SAFENEWWITHCONSTRUCTOR(pIntg,
-                                   MultiStepIntegrator,
-                                   MultiStepIntegrator(HP,
-                                                       sInputFileName,
-                                                       sOutputFileName),
-                                   MBDynMM);
-	    break;    
-        }
-        SAFENEWWITHCONSTRUCTOR(pIntg, 
-			       SchurMultiStepIntegrator, 
-			       SchurMultiStepIntegrator(HP, 
-						        sInputFileName, 
-						        sOutputFileName,
-						        fParallel),
+            		SAFENEWWITHCONSTRUCTOR(pIntg,
+                                   	       MultiStepIntegrator,
+					       MultiStepIntegrator(HP,
+					       		sInputFileName,
+							sOutputFileName),
+                                   	       MBDynMM);
+	    		break;
+        	}
+        	SAFENEWWITHCONSTRUCTOR(pIntg, 
+			       	       SchurMultiStepIntegrator, 
+				       SchurMultiStepIntegrator(HP, 
+				       			sInputFileName, 
+							sOutputFileName,
+				       fParallel),
 			       MBDynMM);
-        break;
+        	break;
 #else /* !USE_MPI */
-        cerr << "compile with -DUSE_MPI to have parallel" << endl;
-        THROW(ErrGeneric());
+        	cerr << "compile with -DUSE_MPI to have parallel" << endl;
+        	THROW(ErrGeneric());
 #endif /* !USE_MPI */
     
-    default:
-        cerr << endl 
-	   << "Unknown integrator; aborting ..." << endl;
-        THROW(ErrGeneric());   
-    }
+    	default:
+        	cerr << "Unknown integrator; aborting ..." << endl;
+        	THROW(ErrGeneric());   
+    	}
    
-    return pIntg;
+    	/* Runs the simulation */
+    	pIntg->Run();
+    
+    	return pIntg;
 }
-
 
 void 
 SendMessage(const char* const sInputFileName,
@@ -815,33 +859,33 @@ SendMessage(const char* const sInputFileName,
 	    time_t tSecs,
 	    time_t tCents)
 {
-    DEBUGCOUTFNAME("SendMessage");
+    	DEBUGCOUTFNAME("SendMessage");
    
-    /* Scrive il messaggio in un file temporaneo */
-    ofstream Msg("mbdyn.msg");
-    Msg << "Mbdyn terminated job ";
-    if (sInputFileName != NULL) {
-        Msg << "'" << sInputFileName << "' ";
-    }
+    	/* Scrive il messaggio in un file temporaneo */
+    	ofstream Msg("mbdyn.msg");
+    	Msg << "Mbdyn terminated job ";
+    	if (sInputFileName != NULL) {
+        	Msg << "'" << sInputFileName << "' ";
+    	}
 #ifdef HAVE_TIMES_H
-    Msg << "in " << tSecs << '.' << tCents << " seconds of CPU time";
+    	Msg << "in " << tSecs << '.' << tCents << " seconds of CPU time";
 #endif /* HAVE_TIMES_H */
-    Msg << '.' << endl;
-    Msg.close();
+    	Msg << '.' << endl;
+    	Msg.close();
    
-    /* Crea la linea di comando */
-    char* sCmd = NULL;
-    SAFENEWARR(sCmd, char, (29+strlen(sMailToAddress)+11+1), MBDynMM);
-    char* s = sCmd;
-    strcpy(s, "/bin/mail -s 'mbdyn message' ");
-    s = sCmd+strlen(sCmd);
-    strcpy(s, sMailToAddress);
-    s = sCmd+strlen(sCmd);
-    strcpy(s, " <mbdyn.msg");
-    system(sCmd);
+    	/* Crea la linea di comando */
+    	char* sCmd = NULL;
+    	SAFENEWARR(sCmd, char, (29+strlen(sMailToAddress)+11+1), MBDynMM);
+    	char* s = sCmd;
+    	strcpy(s, "/bin/mail -s 'mbdyn message' ");
+    	s = sCmd+strlen(sCmd);
+    	strcpy(s, sMailToAddress);
+    	s = sCmd+strlen(sCmd);
+    	strcpy(s, " <mbdyn.msg");
+    	system(sCmd);
    
-    /* Manda il messagio e cancella il file temporaneo */
-    system("rm mbdyn.msg");
-    SAFEDELETEARR(sCmd, MBDynMM);
+    	/* Manda il messagio e cancella il file temporaneo */
+    	system("rm mbdyn.msg");
+    	SAFEDELETEARR(sCmd, MBDynMM);
 }
 
