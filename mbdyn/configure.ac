@@ -587,9 +587,11 @@ if test $ol_with_libf2c != no ; then
 		try_libf2c_LIBS="-l$l"
 		save_LIBS=$LIBS
 		LIBS="$LIBS $try_libf2c_LIBS -lm"
-		AC_TRY_LINK([#include <$top_builddir/include/ac/f2c.h>],[
-			doublereal i = 1., o;
-			o = d_cos(&i);
+		AC_TRY_LINK([
+#include <$top_builddir/include/ac/f2c.h>
+		],[
+	doublereal i = 1., o;
+	o = d_cos(&i);
 		],[have_libf2c=yes],[have_libf2c=no])
 		LIBS=$save_LIBS
 
@@ -692,13 +694,13 @@ if test $ol_with_blas != no ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
 			AC_TRY_LINK([
-				/* FIXME: some architectures might use different
-				 * naming conventions, e.g. uppercase, no underscore
-				 */
-				extern int dgemm_(void);
+	/* FIXME: some architectures might use different
+	 * naming conventions, e.g. uppercase, no underscore
+	 */
+	extern int dgemm_(void);
 			],[
-				/* test for blas */
-				return dgemm_();
+	/* test for blas */
+	return dgemm_();
 			],[have_blas=goto],[have_blas=no])
 			LIBS="$save_LIBS"
 
@@ -714,10 +716,10 @@ if test $ol_with_blas != no ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
 			AC_TRY_LINK([
-				extern int dgemm(void);
+	extern int cblas_dgemm(void);
 			],[
-				/* test for blas */
-				return dgemm();
+	/* test for blas */
+	return cblas_dgemm();
 			],[have_blas="atlas"],[have_blas="no"])
 			LIBS="$save_LIBS"
 
@@ -733,10 +735,10 @@ if test $ol_with_blas != no ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
 			AC_TRY_LINK([
-				extern int dgemm(void);
+	extern int cblas_dgemm(void);
 			],[
-				/* test for blas */
-				return dgemm();
+	/* test for blas */
+	return cblas_dgemm();
 			],[have_blas="cblas"],[have_blas="no"])
 			LIBS="$save_LIBS"
 
@@ -752,13 +754,13 @@ if test $ol_with_blas != no ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
 			AC_TRY_LINK([
-				/* FIXME: some architectures might use different
-				 * naming conventions, e.g. uppercase, no underscore
-				 */
-				extern int dgemm_(void);
+	/* FIXME: some architectures might use different
+	 * naming conventions, e.g. uppercase, no underscore
+	 */
+	extern int dgemm_(void);
 			],[
-				/* test for blas */
-				return dgemm_();
+	/* test for blas */
+	return dgemm_();
 			],[have_blas="blas"],[have_blas="no"])
 			LIBS="$save_LIBS"
 
@@ -801,9 +803,10 @@ if test "$ol_with_umfpack" != "no" ; then
 		LIBS="$try_amd_LIBS $LIBS"
 
 		AC_TRY_LINK([
+	/* no test: the library must exist, then we trust it */
 		],[
-			/* test for amd */
-			return 0;
+	/* test for amd */
+	return 0;
 		],[have_amd="yes"],[have_amd="no"])
 		if test "$have_amd" = "yes" ; then
 			try_umfpack_LIBS="$try_amd_LIBS"
@@ -821,14 +824,14 @@ if test "$ol_with_umfpack" != "no" ; then
 #include <umfpack.h>
 ],[
 #define SIZE 2
-			int n_row = SIZE, n_col = SIZE;
-			const int Ap[SIZE], Ai[SIZE];
-			const double Ax[SIZE];
-			void *Symbolic;
-			const double Control[UMFPACK_CONTROL];
-			double Info[UMFPACK_INFO];
+	int n_row = SIZE, n_col = SIZE;
+	const int Ap[SIZE], Ai[SIZE];
+	const double Ax[SIZE];
+	void *Symbolic;
+	const double Control[UMFPACK_CONTROL];
+	double Info[UMFPACK_INFO];
 
-			umfpack_di_symbolic(n_row, n_col, Ap, Ai, Ax, &Symbolic, Control, Info);
+	umfpack_di_symbolic(n_row, n_col, Ap, Ai, Ax, &Symbolic, Control, Info);
 		],[
 			have_umfpack4_1="yes"
 			have_umfpack4="yes"
@@ -845,8 +848,8 @@ if test "$ol_with_umfpack" != "no" ; then
 			AC_TRY_LINK([
 #include <umfpack.h>
 			],[
-				double Control[UMFPACK_CONTROL];
-				umfpack_dl_defaults(Control);
+	double Control[UMFPACK_CONTROL];
+	umfpack_dl_defaults(Control);
 			],[
 				have_umfpack4="yes"
 				have_umfpack="yes"
@@ -860,8 +863,8 @@ if test "$ol_with_umfpack" != "no" ; then
 				AC_TRY_LINK([
 #include <umfpack.h>
 				],[
-					double t;
-					t = umfpack_timer();
+	double t;
+	t = umfpack_timer();
 				],[
 					have_umfpack="yes"
 					AC_MSG_RESULT([yes])
@@ -923,8 +926,8 @@ if test $ol_with_meschach != no ; then
 		AC_TRY_LINK([
 #include <meschach/sparse2.h>
 ],[
-			SPMAT* mat;
-			mat = sp_get(10, 20, 10);
+	SPMAT* mat;
+	mat = sp_get(10, 20, 10);
 		],[have_meschach=yes],[have_meschach=no])
 		LIBS=$save_LIBS
 
@@ -1074,10 +1077,10 @@ for i in $crypt_pool ; do
 	save_LIBS=$LIBS
 	LIBS="$LIBS $i"
 	AC_TRY_LINK([
-		#include <unistd.h>
-		#include <pwd.h>
+#include <unistd.h>
+#include <pwd.h>
 	],[
-		crypt(NULL,NULL);
+	crypt(NULL,NULL);
 	],[crypt_ok=yes],[crypt_ok=no])
 	LIBS=$save_LIBS
 
@@ -1115,18 +1118,22 @@ if test $ol_with_mpi != no ; then
 		AC_LANG_CPLUSPLUS
 		try_mpi_LIBS=
 		save_LIBS=$LIBS
- 		AC_TRY_LINK([#include <mpi++.h>],[
- 			int argc = 0;
- 			char **argv = 0;
- 			MPI::Init(argc, argv);
+ 		AC_TRY_LINK([
+#include <mpi++.h>
+		],[
+ 	int argc = 0;
+ 	char **argv = 0;
+ 	MPI::Init(argc, argv);
  		],[have_mpi=yes],[have_mpi=no])
                 if test $have_mpi = no ; then
         		try_mpi_LIBS="-lmpich++ -lmpich -lnsl"
 		        LIBS="$LIBS $try_mpi_LIBS"
-		        AC_TRY_LINK([#include <mpi++.h>],[
-			        int argc = 0;
-	        		char **argv = 0;
-		        	MPI::Init(argc, argv);
+		        AC_TRY_LINK([
+#include <mpi++.h>
+			],[
+	int argc = 0;
+	char **argv = 0;
+	MPI::Init(argc, argv);
         		],[have_mpi=yes],[have_mpi=no])
 	        	LIBS=$save_LIBS
                 fi
@@ -1342,7 +1349,9 @@ dnl Checks whether cmath defines std::isfinite
 dnl
 AC_LANG_CPLUSPLUS
 AC_MSG_CHECKING([whether cmath defines 'std::isfinite'])
-AC_TRY_LINK([#include <cmath>],[
+AC_TRY_LINK([
+#include <cmath>
+],[
 	using std::isfinite;
 	isfinite(1.);
 ],[have_std_isfinite=yes],[have_std_isfinite=no])
