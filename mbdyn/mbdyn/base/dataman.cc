@@ -45,6 +45,7 @@ extern "C" {
 #include <dataman_.h>
 /* plugins per math parser */
 #include <dofpgin.h>
+#include <dummypgin.h>
 #ifdef USE_TCL
 #include <tclpgin.h>
 #endif /* USE_TCL */
@@ -153,6 +154,9 @@ DofIter()
 #ifdef USE_TCL
    /* registra il plugin per il tcl */
    HP.GetMathParser().RegisterPlugIn("tcl", tcl_plugin, NULL);
+#else /* !USE_TCL */
+   HP.GetMathParser().RegisterPlugIn("tcl", dummy_plugin,
+		   "configure with --with-tcl to use tcl plugin");
 #endif /* USE_TCL */
    
    /* Setta il tempo al valore iniziale */

@@ -65,21 +65,23 @@ TclPlugIn::sName(void) const
 int
 TclPlugIn::Read(int argc, char *argv[])
 {
-	if (strcasecmp(argv[0], "real") == 0) {
+	char *s_type = argv[0];
+	if (strcasecmp(s_type, "real") == 0) {
 		type = TypedValue::VAR_REAL;
-	} else if (strcasecmp(argv[0], "integer") == 0) {
+	} else if (strcasecmp(s_type, "integer") == 0) {
 		type = TypedValue::VAR_INT;
 	} else {
-		cerr << "unknown type '" << argv[0] << "'" << endl;
+		cerr << "unknown type '" << s_type << "'" << endl;
 		THROW(ErrGeneric());
 	}
-		
-	if (strncasecmp(argv[1], "file://", 7) == 0) {
+
+	char *s_tcl = argv[1];
+	if (strncasecmp(s_tcl, "file://", 7) == 0) {
 		FILE *fin;
 		char buf[1024], *s;
 		int cmdlen;
 
-		fin = fopen(argv[1]+7, "r");
+		fin = fopen(s_tcl+7, "r");
 		if (fin == NULL) {
 			cerr << "TclPlugIn::Read: error" << endl;
 			THROW(ErrGeneric());
@@ -111,7 +113,7 @@ TclPlugIn::Read(int argc, char *argv[])
 		/*
 		 * check / escape string ?
 		 */
-		cmd = Tcl_NewStringObj(argv[1], strlen(argv[1]));
+		cmd = Tcl_NewStringObj(s_tcl, strlen(s_tcl));
 	}
 
 	if (cmd == NULL) {
@@ -167,9 +169,7 @@ tcl_plugin(MathParser& mp, void *arg )
 {
 	MathParser::PlugIn *p = NULL;
 	
-	SAFENEWWITHCONSTRUCTOR(p, TclPlugIn::TclPlugIn, 
-			TclPlugIn::TclPlugIn(mp),
-			MPmm);
+	SAFENEWWITHCONSTRUCTOR(p, TclPlugIn, TclPlugIn(mp), MPmm);
 
 	return p;
 }

@@ -657,6 +657,26 @@ Var::SetVal(const TypedValue& v)
    }
 }
 
+void
+MathParser::trim_arg(char *const s)
+{
+	int i, l;
+	
+	for (i = 0; isspace(s[i]); ++i) {
+		NO_OP;
+	}
+	
+	l = strlen(s+i);
+	if (i > 0) {
+		memmove(s, s+i, l+1);
+	}
+
+	for (i = l-1; isspace(s[i]); --i) {
+		NO_OP;
+	}
+	s[i+1] = '\0';
+}
+
 MathParser::PlugInVar::PlugInVar(const char *const s, MathParser::PlugIn *p)
 : NamedValue(s), pgin(p)
 {
@@ -1480,7 +1500,20 @@ MathParser::readplugin(void)
 			break;
 			
 		case '"':
-			in_quotes = 1-in_quotes;
+			if (in_quotes == 0) {
+				in_quotes = 1;
+				break;
+			}
+			in_quotes = 0;
+			while (isspace((c = in->get()))) {
+				NO_OP;
+			}
+			if (c != ',' && c != ']') {
+				cerr << "need a separator after closing quotes"
+					<< endl;
+				THROW(ErrGeneric());
+			}
+			in->putback(c);
 			break;
 
 		case ',':
@@ -1496,6 +1529,7 @@ MathParser::readplugin(void)
 			memcpy(argv, tmp, sizeof(char *)*argc);
 			SAFEDELETEARR(tmp, MPmm);
 			argv[argc] = NULL;
+			trim_arg(buf);
 			SAFESTRDUP(argv[argc], buf, MPmm);
 			++argc;
 			argv[argc] = NULL;
@@ -1536,6 +1570,8 @@ last_arg:
 	 */
 	char *pginname = argv[0];
 	char *varname = argv[1];
+	trim_arg(pginname);
+	trim_arg(varname);
 
 	/*
 	 * verifiche di validita' argomenti

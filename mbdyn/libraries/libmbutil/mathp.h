@@ -266,6 +266,7 @@ protected:
 	TypedValue stmt(void);
 	TypedValue stmtlist(void);
 	TypedValue readplugin(void);
+	void trim_arg(char *const s);
 
 public:   
 	MathParser(const InputStream& strm, Table& t, int redefine_vars = 0);
