@@ -242,7 +242,7 @@ Y12LUSolver::PutError(std::ostream& out, int rc) const
 {
 	out << std::endl;
 
-	switch (rc ) {
+	switch (rc) {
 	case 1:
 		out 
 			<< "\tThe    coefficient   matrix   A   is   not" << std::endl
