@@ -104,12 +104,26 @@ propagate_ErrMatrixRebuild(sig_atomic_t(false))
 		THROW(ErrGeneric());
 	}
 #endif
+	if (pthread_mutex_init(&thread_mutex, NULL)) {
+		silent_cerr("MultiThreadDataManager::MultiThreadDataManager(): "
+				"mutex init failed" << std::endl);
+		THROW(ErrGeneric());
+	}
+		
+	if (pthread_cond_init(&thread_cond, NULL)) {
+		silent_cerr("MultiThreadDataManager::MultiThreadDataManager(): "
+				"cond init failed" << std::endl);
+		THROW(ErrGeneric());
+	}
+
 	ThreadSpawn();
 }
 
 MultiThreadDataManager::~MultiThreadDataManager(void)
 {
-	NO_OP;
+	pthread_mutex_destroy(&thread_mutex);
+	pthread_cond_destroy(&thread_cond);
+
 }
 
 clock_t
@@ -235,10 +249,12 @@ MultiThreadDataManager::thread_cleanup(ThreadData *arg)
 	SAFEDELETE(arg->pWorkVec);
 	SAFEDELETEARR(arg->piWorkIndex);
 	SAFEDELETEARR(arg->pdWorkMat);
-	if (arg->pJacHdl) {
-		SAFEDELETE(arg->pJacHdl);
+	if (arg->threadNumber > 0) {
+		if (arg->pJacHdl) {
+			SAFEDELETE(arg->pJacHdl);
+		}
+		SAFEDELETE(arg->pResHdl);
 	}
-	SAFEDELETE(arg->pResHdl);
 	sem_destroy(&arg->sem);
 
 #ifdef HAVE_SYS_TIMES_H	
