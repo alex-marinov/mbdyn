@@ -635,6 +635,7 @@ Elem* ReadJoint(DataManager* pDM,
 	       r = HP.GetReal();
 	       bf = ParseFriction(HP,pDM->MapOfScalarFunctions);
 	       bsh = ParseShapeCoefficient(HP);
+	       HP.PutKeyTable(K);
 	   }	
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlaneHingeJoint,
