@@ -44,7 +44,7 @@
 #include "harwrap.h"
 #include "mschwrap.h"
 #include "umfpackwrap.h"
-#include "superluwrap.h"
+#include "parsuperluwrap.h"
 
 char *solvers[] = {
 #ifdef USE_UMFPACK

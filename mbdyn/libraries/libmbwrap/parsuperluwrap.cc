@@ -57,7 +57,7 @@ extern void *pdgstrf_thread(void *);
 extern void pdgstrf_finalize(pdgstrf_options_t *, SuperMatrix*);
 }
 
-#include "superluwrap.h"
+#include "parsuperluwrap.h"
 
 
 struct SuperLUSolverData {

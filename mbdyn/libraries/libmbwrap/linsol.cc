@@ -44,7 +44,7 @@
 #include "mschwrap.h"
 #include "y12wrap.h"
 #include "umfpackwrap.h"
-#include "superluwrap.h"
+#include "parsuperluwrap.h"
 #include "lapackwrap.h"
 #include "taucswrap.h"
 #include "naivewrap.h"

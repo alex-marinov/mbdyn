@@ -21,8 +21,8 @@ naivewrap.cc \
 naivewrap.h \
 parnaivewrap.cc \
 parnaivewrap.h \
-superluwrap.cc \
-superluwrap.h \
+parsuperluwrap.cc \
+parsuperluwrap.h \
 umfpackwrap.cc \
 umfpackwrap.h \
 taucswrap.cc \
