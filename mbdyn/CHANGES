@@ -24,6 +24,7 @@ MBDyn 1.X-Devel
 		  for easy socket I/O piping
 		- rewritten viscous and viscoelastic hinge joint
 		- added ideal gimbal joint
+		- reworked matrix/matrix and matrix/vector product
 	Backward compatibility issues:
 		- "output file name" statement in "control data"
 		  is no longer supported
