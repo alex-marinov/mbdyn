@@ -100,7 +100,7 @@ class VecN {
    /* costruttore da VectorHandler (Aggiunta) */
    VecN(const VectorHandler& vh, integer ns, integer iFirstIndex);
 
-   virtual ~VecN(void);
+   ~VecN(void);
    
    inline integer iGetNumRows(void) const;
    
@@ -204,7 +204,7 @@ class Mat3xN {
    Mat3xN(void); /* to allow arrays of Mat3xN */
    Mat3xN(integer nc);
    Mat3xN(integer nc, const doublereal& d);
-   virtual ~Mat3xN(void);
+   ~Mat3xN(void);
    
    void Resize(integer ns);
    void Reset(const doublereal& d = 0.);
@@ -327,7 +327,7 @@ class MatNx3 {
    MatNx3(void);
    MatNx3(integer ns);
    MatNx3(integer ns, const doublereal& d);   
-   virtual ~MatNx3(void);
+   ~MatNx3(void);
    
    inline integer iGetNumRows(void) const;
    void Resize(integer ns); 
@@ -441,7 +441,7 @@ class MatNxN {
    MatNxN(void);
    MatNxN(integer ns);
    MatNxN(integer ns, const doublereal& d);   
-   virtual ~MatNxN(void);
+   ~MatNxN(void);
    
    inline integer iGetNumRows(void) const;
    void Reset(const doublereal& d = 0.);
