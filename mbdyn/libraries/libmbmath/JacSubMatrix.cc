@@ -83,7 +83,7 @@ void ExpandableRowVector::Sub(doublereal xx, integer i){
 void ExpandableRowVector::Add(SubVectorHandler& WorkVec, const doublereal c) const {
 	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
 		if (idx[i] != 0) {
-			WorkVec.Add(idx[i],x[i]);
+			WorkVec.Add(idx[i],c*x[i]);
 		} else {
 			xm[i]->Add(WorkVec,c*x[i]);
 		}
@@ -92,7 +92,7 @@ void ExpandableRowVector::Add(SubVectorHandler& WorkVec, const doublereal c) con
 void ExpandableRowVector::Sub(SubVectorHandler& WorkVec, const doublereal c) const {
 	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
 		if (idx[i] != 0) {
-			WorkVec.Sub(idx[i],x[i]);
+			WorkVec.Sub(idx[i],c*x[i]);
 		} else {
 			xm[i]->Sub(WorkVec,c*x[i]);
 		}
@@ -103,7 +103,7 @@ void ExpandableRowVector::Add(FullSubMatrixHandler& WM,
 	const doublereal c) const {
 	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
 		if (idx[i] != 0) {
-			WM.fIncCoef(eq,idx[i],x[i]);
+			WM.fIncCoef(eq,idx[i],c*x[i]);
 		} else {
 			xm[i]->Add(WM,eq,c*x[i]);
 		}
@@ -114,7 +114,7 @@ void ExpandableRowVector::Sub(FullSubMatrixHandler& WM,
 	const doublereal c) const {
 	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
 		if (idx[i] != 0) {
-			WM.fDecCoef(eq,idx[i],x[i]);
+			WM.fDecCoef(eq,idx[i],c*x[i]);
 		} else {
 			xm[i]->Sub(WM,eq,c*x[i]);
 		}
