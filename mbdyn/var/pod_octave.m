@@ -69,3 +69,8 @@ X = vv'*B;
 
 % eigenvectors:
 % plot(([1 1;sqrt(-1) -sqrt(-1)]*X([6 7], l+1))')
+%
+% node indices:
+% awk '/struct node dofs: / {printf("l=[%s];\n",substr($0,19,length($0)))}' f.log
+%
+
