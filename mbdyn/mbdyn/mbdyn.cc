@@ -423,14 +423,6 @@ main(int argc, char* argv[])
 	    		}
         	}
 		
-#ifdef HAVE_NICE
-		if (niceIncr != 0) {
-			if (nice(niceIncr)) {
-				std::cerr << "nice(" << niceIncr << ") failed; ignored" << std::endl;
-			}
-		}
-#endif /* HAVE_NICE */
-      
         	/*
 		 * primo argomento utile (potenziale nome di file di ingresso)
 		 */
@@ -481,7 +473,18 @@ main(int argc, char* argv[])
 	    		MB_EXIT(EXIT_SUCCESS);
 #endif /* !USE_EXCEPTIONS */
         	}
-            
+
+#ifdef HAVE_NICE
+		if (niceIncr != 0) {
+			silent_cout("setting nice(" << niceIncr << ")" 
+					<< std::endl);
+			if (nice(niceIncr)) {
+				std::cerr << "nice(" << niceIncr 
+					<< ") failed; ignored" << std::endl;
+			}
+		}
+#endif /* HAVE_NICE */
+
         	/* risolve l'input */
         	if (CurrInputSource == FILE_UNKNOWN) {
 	    		if (argv[currarg] != NULL) {
