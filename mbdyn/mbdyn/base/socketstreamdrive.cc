@@ -332,7 +332,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 
 			switch (type) {
 			case AF_LOCAL: {
-				addrp = &addr_un;
+				addrp = (sockaddr *)&addr_un;
 				socklen = sizeof(addr_un);
 
 				sock = socket(PF_LOCAL, SOCK_STREAM, 0);
@@ -346,23 +346,16 @@ SocketStreamDrive::ServePending(const doublereal& t)
 					throw ErrGeneric();
 				}
 				addr_un.sun_family = AF_UNIX;
-				memcpy(addr.sun_path, data.Path, UNIX_PATH_MAX);
+				memcpy(addr_un.sun_path, data.Path, UNIX_PATH_MAX);
 
 				pedantic_cout("connecting to local socket \""
 						<< sFileName << "\" (" << data.Path << ") ..." 
 						<< std::endl);
-				}
-
-				if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0) {
-					silent_cerr("SocketStreamDrive(" << sFileName << ") "
-						"connect() failed " << std::endl);
-					throw ErrGeneric();									
-				}					
 				break;
 			}
 		
 			case AF_INET: {
-				addrp = &addr_in;
+				addrp = (sockaddr *)&addr_in;
 				socklen = sizeof(addr_in);
 
 				sock = socket(PF_INET, SOCK_STREAM, 0);
@@ -391,8 +384,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 				NO_OP;
 			}
 					
-			flag = MBDyn_connect(sock, addrp, socklen, 1000);
-			switch(flag) {
+			switch (MBDyn_connect(sock, addrp, socklen, 1000)) {
 			case -1:
 				silent_cerr("SocketStreamDrive(" << sFileName << ") "
 					"connect() failed " << std::endl);

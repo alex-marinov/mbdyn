@@ -1148,9 +1148,9 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
 	 
 	 /* add more entries ... */
        case READSOLUTIONARRAY:{
-	  int len = strlen(sInputFileName)+sizeof(".X");
+	  int len = strlen(sOutputFileName)+sizeof(".X");
 	  SAFENEWARR(solArrFileName, char, len);
-	  snprintf(solArrFileName, len, "%s.X", sInputFileName);
+	  snprintf(solArrFileName, len, "%s.X", sOutputFileName);
           break;
        }
  

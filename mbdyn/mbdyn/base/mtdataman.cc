@@ -126,7 +126,7 @@ MultiThreadDataManager::MultiThreadDataManager(MBDynParser& HP,
 		bool bAbortAfterInput,
 		unsigned nt)
 :
-DataManager(HP, OF, dInitialTime, sOutputFileName, bAbortAfterInput),
+DataManager(HP, OF, pS, dInitialTime, sOutputFileName, bAbortAfterInput),
 nThreads(nt),
 AssMode(ASS_UNKNOWN),
 CCReady(CC_NO),
