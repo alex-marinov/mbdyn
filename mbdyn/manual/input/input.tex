@@ -36,6 +36,8 @@
 
 \input{stdmacro}
 
+\newcommand{\kw}[1]{\texttt{#1}}
+
 \begin{document}
 
 \begin{latexonly}
@@ -78,16 +80,16 @@ input allow a lot of freedom in the file format.
 throughout the manual, a (sometimes na\"{\i}ve) 
 Backus-Naur-like syntax description is used. 
 Extensions are made, such as to put extra arguments in square brackets
-\texttt{[]}, mutually exclusive arguments in curl brackets \texttt{\{\}},
-separated by the logical ``or'' \texttt{|} operator.
-Non-terminal symbols are enclosed in angle brackets \texttt{<>}, while
+\kw{[]}, mutually exclusive arguments in curl brackets \kw{\{\}},
+separated by the logical ``or'' \kw{|} operator.
+Non-terminal symbols are enclosed in angle brackets \kw{<>}, while
 terminal symbols are written in normal types.
 The association of a non-terminal with terminal or non-terminal
-symbols is performed by means of the operator `\texttt{::=}'. 
-% Special characters are enclosed in simple quotes \texttt{`}, and \texttt{'}.
+symbols is performed by means of the operator `\kw{::=}'. 
+% Special characters are enclosed in simple quotes \kw{`}, and \kw{'}.
 When required, the type of a non-terminal symbol is enforced in a ``C''
 programming language casting style, by prepending a (usually
-self-explanatory) type enclosed in plain brackets \texttt{()}.
+self-explanatory) type enclosed in plain brackets \kw{()}.
 
 
 \section{Remarks}
@@ -108,7 +110,7 @@ and makes as many cross-checks as possible on the consistency of the data.
 Nearly every warning and error issue shows the line of the input file 
 where the error occurred. 
 Since at present multiple files can be scanned by means of the 
-\texttt{include} directive, the file where the error occurred
+\kw{include} directive, the file where the error occurred
 may not be clearly indicated if no reliable C++ exception handling 
 is supported by the compiler.
 This document will be subject to changes, so be sure you always have 

@@ -26,7 +26,7 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 \chapter{Elements}
-The \texttt{elements} section is enclosed in the cards:
+The \kw{elements} section is enclosed in the cards:
 \begin{verbatim}
     begin: elements;
         ...
@@ -37,26 +37,26 @@ Every element card has the following format:
     <card> ::= <elem_type> : <arglist>
                [ , output , { yes | no } ] ;
 \end{verbatim}
-where \texttt{elem\_type} is one of the following:
+where \kw{elem\_type} is one of the following:
 \begin{itemize}
-  \item \texttt{aerodynamic body}, \texttt{aerodynamic beam}
-  \item \texttt{air properties}
-  \item \texttt{beam}
-  \item \texttt{bind}
-  \item \texttt{body}
-  \item \texttt{bulk}
-  \item \texttt{driven}
-  \item \texttt{electric}
-  \item \texttt{force}, \texttt{couple}
-  \item \texttt{genel}
-  \item \texttt{gravity}
-  \item \texttt{hydraulic}
-  \item \texttt{joint}
-  \item \texttt{loadable}
-  \item \texttt{rotor}
+  \item \kw{aerodynamic body}, \kw{aerodynamic beam}
+  \item \kw{air properties}
+  \item \kw{beam}
+  \item \kw{bind}
+  \item \kw{body}
+  \item \kw{bulk}
+  \item \kw{driven}
+  \item \kw{electric}
+  \item \kw{force}, \kw{couple}
+  \item \kw{genel}
+  \item \kw{gravity}
+  \item \kw{hydraulic}
+  \item \kw{joint}
+  \item \kw{loadable}
+  \item \kw{rotor}
 \end{itemize}
 in case of elements that can be instantiatied only once, like
-the \texttt{gravity} or the \texttt{air properties} elements, the \texttt{arglist}
+the \kw{gravity} or the \kw{air properties} elements, the \kw{arglist}
 doesn't contain any label; otherwise, a label is expected first, to allow 
 for checks on duplicated elements, namely: 
 \begin{verbatim}
@@ -75,7 +75,7 @@ the aerodynamic surface to be rigid, and takes its configuration from a
 sigle node, while the latter relies on a three-node beam and uses the
 interpolation functions of the beam to compute the configuration at an 
 arbitrary point.
-The \texttt{aerodynamic body} input format is:
+The \kw{aerodynamic body} input format is:
 \begin{verbatim}
     <normal_arglist> ::= <node_label> 
         [ , rotor , <rotor_label> ] ,
@@ -91,7 +91,7 @@ The \texttt{aerodynamic body} input format is:
         [ , <airfoil_data> ]
         [ , unsteady , { bielawa } ]
 \end{verbatim}
-The \texttt{aerodynamic beam} input format is:
+The \kw{aerodynamic beam} input format is:
 \begin{verbatim}
     <normal_arglist> ::= <beam_label> 
         [ , rotor , <rotor_label> ] ,
@@ -120,24 +120,24 @@ and
         | multiple , <airfoil_number> ,
         <c81_label> , <end_point> [ , ... ]
 \end{verbatim}
-The field \texttt{rotor} instructs the element that it is linked to a 
-\texttt{rotor} element; this means that it can get information about the
+The field \kw{rotor} instructs the element that it is linked to a 
+\kw{rotor} element; this means that it can get information about the
 induced velocity and should supply information about the forces it generates.
 An arbitrary configuration and offset is allowed for both elements with
 respect to the nodes they are linked to. 
-The \texttt{shape} entities are used to compute the physical chord,
+The \kw{shape} entities are used to compute the physical chord,
 aerodynamic center, velocity measurement point (the point where the
 kinematic boundary conditios are evaluated) and twist as functions 
 of the dimensionless abscissa along the span.
-The span of the \texttt{aerodynamic body} element is set by the user; the
+The span of the \kw{aerodynamic body} element is set by the user; the
 centerspan of the element is assumed to be the end of the offset vector.
-The span of the \texttt{aerodynamic beam} is computed based on the end of the
+The span of the \kw{aerodynamic beam} is computed based on the end of the
 offset vectors related to nodes 1, 3.
 The aerodynamic center and the velocity measurement points are measured
 relative to the centerline of the elements, that is the line in direction 3
 of the local frame from the end of the offset vector.
 This line is assumed to be at the 25\% of the airfoil chord when steady
-aerodynamic coefficients are used (\texttt{unsteady\_flag} = 0).
+aerodynamic coefficients are used (\kw{unsteady\_flag} = 0).
 The direction 1 is assumed to be the ``reference'' line of the airfoil, 
 from the trailing edge to the leading edge (points ``forward''),
 while direction 2 is normal to the other two and goes from the lower 
@@ -152,14 +152,14 @@ and properties.
   \caption{\em Airfoil Geometry}\label{fig:AIRFOIL}
 \end{figure}
 
-The \texttt{airfoil\_ data} defaults to a builtin NACA 0012 semianalytical
-model (FIXME: the unsteady correction is buggy; use the \texttt{c81} 
+The \kw{airfoil\_ data} defaults to a builtin NACA 0012 semianalytical
+model (FIXME: the unsteady correction is buggy; use the \kw{c81} 
 mode instead).
 
 
 \subsection{Output}
 Aerodynamic elements, both bodies and beams, write their output with file
-extension \texttt{.aer}; for each time step the required elements are output.
+extension \kw{.aer}; for each time step the required elements are output.
 Three different formats are available; the format can be selected only at
 compile time, and it must be the same for all the elements. 
 
@@ -177,7 +177,7 @@ The format is:
     \item the three components of the force applied to the node
     \item the three components of the couple applied to the node
 \end{itemize}
-When an \texttt{aerodynamic beam} is considered, the output is repeated 
+When an \kw{aerodynamic beam} is considered, the output is repeated 
 for each node the element is attached to.
 
 \subsubsection{Forces at Gauss points}
@@ -188,7 +188,7 @@ The output refers to each Gauss integration point; the format is:
     \item the drag,
     \item and the aerodynamic moment per unit length
 \end{itemize}
-When an \texttt{aerodynamic beam} is considered, the output 
+When an \kw{aerodynamic beam} is considered, the output 
 is repeated for each portion of beam.
 
 \subsubsection{Coefficients at Gauss points}
@@ -201,7 +201,7 @@ The output refers to each Gauss integration point; the format is:
     \item the drag,
     \item and the aerodynamic coefficient
 \end{itemize}
-When an \texttt{aerodynamic beam} is considered, the output 
+When an \kw{aerodynamic beam} is considered, the output 
 is repeated for each portion of the beam.
 
 
@@ -247,12 +247,12 @@ altitude offset).
 The last possibility requires the user to input all the parameters
 required to compute the air properties based on the Z position
 of the point where they are requested, namely the reference
-pressure \texttt{p0}, the reference density \texttt{rho0},
-the reference temperature \texttt{T0}, the initial temperature
-gradient \texttt{dT/dz}, the gas constant \texttt{R}, the
-initial gravity acceleration \texttt{g0}, the bottom and top
-altitudes of the null temperature gradient region \texttt{z1} and
-\texttt{z2}; e.g., for SI units:
+pressure \kw{p0}, the reference density \kw{rho0},
+the reference temperature \kw{T0}, the initial temperature
+gradient \kw{dT/dz}, the gas constant \kw{R}, the
+initial gravity acceleration \kw{g0}, the bottom and top
+altitudes of the null temperature gradient region \kw{z1} and
+\kw{z2}; e.g., for SI units:
 \begin{verbatim}
     air properties: std,
         101325.,       /* Pa */
@@ -326,7 +326,7 @@ constitutive properties.
 \end{verbatim}
 Based on the type of constitutive law, the simple or the viscoelastic beam
 element is used.
-The two keywords \texttt{same} respectively mean that the same orientation 
+The two keywords \kw{same} respectively mean that the same orientation 
 and the same constitutive law defined for the first point will be used 
 for the second point. \\
 A piezoelectric actuator beam element is available; an arbitrary
@@ -347,7 +347,7 @@ of the abstract nodes that represent the input signal tensions, as follows:
         (Mat6xN) <piezoelectric_matrix_I> ,
         { same | (Mat6xN) <piezoelectric_matrix_II> }
 \end{verbatim}
-where the \texttt{abstract\_node\_label\_list} is the list of the labels of the
+where the \kw{abstract\_node\_label\_list} is the list of the labels of the
 abstract nodes that represent the electrodes.
 
 \subsection{Two-node beam element}
@@ -366,7 +366,7 @@ abstract nodes that represent the electrodes.
 
 \subsection{Output}
 The output related to beam elements is contained in a file with extension 
-\texttt{.act}; for each time step, the output of thre required beams is
+\kw{.act}; for each time step, the output of thre required beams is
 considered.
 The internal forces and couples are computed from the interpolated strains
 along the beam by means of the constitutive law, at the two evaluation
@@ -383,10 +383,10 @@ The format is:
 
 
 \section{Bind}\label{sec:EL-BIND}
-This is not really an element; it is used to instruct a \texttt{parameter node}
+This is not really an element; it is used to instruct a \kw{parameter node}
 about which parameter of an element it is bound to.
-The \texttt{parameter node} must exist, and the binding element, of type 
-\texttt{element\_type} and label \texttt{element\_label}, must have been already 
+The \kw{parameter node} must exist, and the binding element, of type 
+\kw{element\_type} and label \kw{element\_label}, must have been already 
 defined.
 The complete syntax is:
 \begin{verbatim}
@@ -397,7 +397,7 @@ The complete syntax is:
 \end{verbatim}
 Each element makes a number of parameters available for such binding; a
 detailed list will be presented in a future release of the input manual.
-The value of \texttt{parameter\_index} must be legal, i.e.\ between 1 and the
+The value of \kw{parameter\_index} must be legal, i.e.\ between 1 and the
 maximum number of parameters made available by the element.
 The alternative form, which will become the default, allows more
 friendly definition of the binding.
@@ -409,7 +409,7 @@ on developers' needs.
 It is advisable that a mechanism for elements to publish 
 what parameters they can make available be devised and implemented.
 
-Example: the parameter node \texttt{angle} is bound to the rotation
+Example: the parameter node \kw{angle} is bound to the rotation
 of a revolute hinge.
 \begin{verbatim}
     # ... integrator
@@ -465,30 +465,30 @@ of a revolute hinge.
           [ , ... ]
     }
 \end{verbatim}
-the \texttt{inertia\_matrix} is always referred to the center of mass of the
+the \kw{inertia\_matrix} is always referred to the center of mass of the
 mass that is being added. It can be rotated locally by means of the extra
-\texttt{orientation\_matrix} supplied after the (optional) keyword \texttt{inertial}.
-Otherwise, if the keyword \texttt{node} is supplied after the keyword 
-\texttt{inertial}, the inertia matrix is not rotated at all, since it is
+\kw{orientation\_matrix} supplied after the (optional) keyword \kw{inertial}.
+Otherwise, if the keyword \kw{node} is supplied after the keyword 
+\kw{inertial}, the inertia matrix is not rotated at all, since it is
 assumed to be already in the node reference frame.
 If only one mass is defined, the first method should be used. Otherwise,
 many masses can be referred to the same element by means of the keyword
-\texttt{condense}, followed by the number of expected masses \texttt{num\_masses}.
+\kw{condense}, followed by the number of expected masses \kw{num\_masses}.
 The format of each submass is the same as for the single mass input (actually, 
-when \texttt{condense} is not supplied, \texttt{num\_masses} is assumed to be 1).
+when \kw{condense} is not supplied, \kw{num\_masses} is assumed to be 1).
 
 
 
 
 \section{Bulk Elements}
-The \texttt{bulk} element is intended as a sort of NASTRAN's \texttt{CELAS} card,
+The \kw{bulk} element is intended as a sort of NASTRAN's \kw{CELAS} card,
 that can be used to apply a stiffness term on an arbitrary degree of freedom.
 Extensions are planned to different kind of elements.
-The syntax of the \texttt{bulk} element is:
+The syntax of the \kw{bulk} element is:
 \begin{verbatim}
     <normal_arglist> ::= <bulk_type> , <bulk_arglist>
 \end{verbatim}
-At present only the \texttt{stiffness spring} type is available.
+At present only the \kw{stiffness spring} type is available.
 
 \subsection{Stiffness spring}
 \begin{verbatim}
@@ -500,13 +500,13 @@ The equation related to the desired dof of the linked node is added a
 contribution based on the value of the desired degree of freedom (even the
 derivative can be used) multiplied times the stiffness. \\
 {\em Note: this family of elements has been partially superseeded by the
-\texttt{genel} elements, which allow more generality.}
+\kw{genel} elements, which allow more generality.}
 
 
 
 
 \section{Driven Element}
-The \texttt{driven} type is not an element by itself. It is a wrapper that
+The \kw{driven} type is not an element by itself. It is a wrapper that
 masks another element and switches it on and off depending on the (boolean)
 value of a drive. It can be used to emulate a variable topology model, where 
 some elements simply don't contribute to the residuial or to the jacobian
@@ -525,8 +525,8 @@ The syntax for a driven element is:
         }
 \end{verbatim}
 When the first format is used, a normal element is read, instantiated, and
-wrapped by the \texttt{driven} element wrapper. Note that after the element type,
-or after the keyword \texttt{existing}, a colon is used as a separator.
+wrapped by the \kw{driven} element wrapper. Note that after the element type,
+or after the keyword \kw{existing}, a colon is used as a separator.
 This is due for compatibility with the restart module and is not likely 
 to be eliminated in the future. 
 The label of the element must math that of the driving element given at
@@ -543,16 +543,16 @@ output flags. This flag will override the previously set one.
 
 
 \section{Electric Elements}
-\texttt{electric} elements are those elements that model electric and electronic
+\kw{electric} elements are those elements that model electric and electronic
 devices, dealing with abstract degrees of freedom more than with electric
 ones (from the program's point of view they are exactly the same, the
 difference is only semantic). The true electric elements, such resistors,
-switches and so on, are clessified as \texttt{electric bulk} elements.
-The syntax for \texttt{electric} elements is:
+switches and so on, are clessified as \kw{electric bulk} elements.
+The syntax for \kw{electric} elements is:
 \begin{verbatim}
     <normal_arglist> ::= <electric_type> , <electric_arglist>
 \end{verbatim}
-The \texttt{electric} elements implemented at present are:
+The \kw{electric} elements implemented at present are:
 
 \subsection{Accelerometer}
   \begin{verbatim}
@@ -564,15 +564,15 @@ The \texttt{electric} elements implemented at present are:
         (scalar) <csi> ,
         (scalar) <kappa>	
   \end{verbatim}
-  The label \texttt{struct\_node\_label} defines the node whose acceleration 
-  is being measured; the label \texttt{abstract\_node\_label} defines the
-  \texttt{abstract node} that will receive the output signal. 
-  An \texttt{electric node} can be used as well (?).
+  The label \kw{struct\_node\_label} defines the node whose acceleration 
+  is being measured; the label \kw{abstract\_node\_label} defines the
+  \kw{abstract node} that will receive the output signal. 
+  An \kw{electric node} can be used as well (?).
   The transfer function of the accelerometer is:
   \begin{displaymath}
-    \frac{e_0}{a} = \texttt{kappa}\frac{\texttt{tau} \ s}{
-      \plbr{1+\texttt{tau} \ s}
-      \plbr{1+2 \ \texttt{csi}/\texttt{omega} \ s+s^2/\texttt{omega}^2}
+    \frac{e_0}{a} = \kw{kappa}\frac{\kw{tau} \ s}{
+      \plbr{1+\kw{tau} \ s}
+      \plbr{1+2 \ \kw{csi}/\kw{omega} \ s+s^2/\kw{omega}^2}
     }
   \end{displaymath}
   where $ e_0 $ is the output signal, $ a $ is the input (the acceleration)
@@ -586,9 +586,9 @@ The \texttt{electric} elements implemented at present are:
         inputs [ , (node_dof) <input_dofs> [ , ... ] ] ,
   \end{verbatim}
   The lists of the output and input dofs follows. The input {\tt
-  node\_dof}s don't require the \texttt{order} field, since they are simply
+  node\_dof}s don't require the \kw{order} field, since they are simply
   used to compute the control forces, and thus identify an equation.
-  The \texttt{control\_data} has the following syntax:
+  The \kw{control\_data} has the following syntax:
   \begin{verbatim}  
         <control_data> ::= <control_type> , <control_arglist>
   \end{verbatim}
@@ -596,11 +596,11 @@ The \texttt{electric} elements implemented at present are:
   to come are system identification, both recursive and one-shot, and
   adaptive control, with different models and schemes, all based on 
   Generalized Predictive Control (GPC) and Deadbeat Control.
-  The \texttt{control} syntax is:
+  The \kw{control} syntax is:
   \begin{verbatim}
     <control_data> ::= control , " <control_matrices_file> "
   \end{verbatim}
-  where the file \texttt{control\_matrices\_file} must contain the matrices
+  where the file \kw{control\_matrices\_file} must contain the matrices
   $ a_c $, $ b_c $ of the control in plain text (as generated by Matlab, for
   instance): \\
   \begin{tabular}{l}
@@ -611,22 +611,22 @@ The \texttt{electric} elements implemented at present are:
     \ldots,     \\
     $ b_{cp} $  \\
   \end{tabular} \\
-  where $ p $ is the \texttt{order} of the controller and the matrices $ a_c $
-  have \texttt{num\_inputs} rows and \texttt{num\_outputs} columns, while the
-  matrices $ b_c $ have \texttt{num\_inputs} rows and \texttt{num\_inputs} columns.
+  where $ p $ is the \kw{order} of the controller and the matrices $ a_c $
+  have \kw{num\_inputs} rows and \kw{num\_outputs} columns, while the
+  matrices $ b_c $ have \kw{num\_inputs} rows and \kw{num\_inputs} columns.
 
 
 
 
 
 \section{Force and Couple Elements}
-The \texttt{force} element has the following syntax:
+The \kw{force} element has the following syntax:
 \begin{verbatim}
   <normal_arglist> ::= <force_type> , <force_arglist>
 \end{verbatim}
-where \texttt{<force\_type>} can be \texttt{abstract} for an abstract force, or 
-\texttt{conservative} or \texttt{follower} for a structural force. The latter types
-apply to a \texttt{couple} element, which can be structural only.
+where \kw{force\_type} can be \kw{abstract} for an abstract force, or 
+\kw{conservative} or \kw{follower} for a structural force. The latter types
+apply to a \kw{couple} element, which can be structural only.
 
 \subsection{Output}
 The output is discussed accordingly to the types of forces. 
@@ -638,8 +638,8 @@ The label of the element is output first in all the cases.
     <force_arglist> ::= (node_dof) <dof> ,
                         (drive_caller) <force_magnitude>
 \end{verbatim}
-the \texttt{dof} field is a normal \texttt{node\_dof} but no \texttt{order} is required
-since the \texttt{force} simply applies to the equation related to the node,
+the \kw{dof} field is a normal \kw{node\_dof} but no \kw{order} is required
+since the \kw{force} simply applies to the equation related to the node,
 regardless of the order.
 
 \subsection{Abstract reaction force}
@@ -649,8 +649,8 @@ regardless of the order.
                         (node_dof) <dof2> ,
                         (drive_caller) <force_magnitude>
 \end{verbatim}
-the \texttt{dof1} and \texttt{dof2} fields are normal \texttt{node\_dof}
-but no \texttt{order} is required since the \texttt{force} simply applies
+the \kw{dof1} and \kw{dof2} fields are normal \kw{node\_dof}
+but no \kw{order} is required since the \kw{force} simply applies
 to the equations related to the nodes, regardless of the order, with
 opposite magnitudes.
 
@@ -659,7 +659,7 @@ The format is:
 \begin{itemize}
     \item the label of the element
     \item the label of the abstract node the force is applied to
-	(the first node in case of \texttt{abstract internal})
+	(the first node in case of \kw{abstract internal})
     \item the value of the force
 \end{itemize}
 
@@ -726,7 +726,7 @@ The format is:
 
 \noindent
 {\em 
-Note: by using a \texttt{dof} drive, a simple feedback control can be easily
+Note: by using a \kw{dof} drive, a simple feedback control can be easily
 implemented. \\
 A more general force element can be written by using a template drive
 that contains both the direction and the amplitude. This will be done in the
@@ -748,16 +748,16 @@ The syntax of the {\sc Genel} elements is:
 \end{verbatim}
 
 \noindent
-The output goes in a file with extension \texttt{.gen}; only few elements
+The output goes in a file with extension \kw{.gen}; only few elements
 actually generate output.
 
 \noindent
 At present there are very simple {\sc Genel}
-elements, plus a very particular one, that is the \texttt{swash plate}.
+elements, plus a very particular one, that is the \kw{swash plate}.
 It is used to transform the controls of a rotor, in terms of collective
 and fore/aft and lateral cyclic pitch, into the elongations of the actuators 
 that actually move the swash plate.
-The syntax of the \texttt{genel}s is:
+The syntax of the \kw{genel}s is:
 
 \subsection{Swashplate}
 \begin{verbatim}
@@ -784,17 +784,17 @@ The limits on the actuators will simply force the value of the control
 inputs to remain in the boundaries regardless of the input values.
 The last three optional parameters are a dynamic coefficient that is used to
 add some dynamics to the actuators' stroke, namely the input variables are
-applied a sort of \texttt{spring stiffness} \texttt{bulk} element, while the
+applied a sort of \kw{spring stiffness} \kw{bulk} element, while the
 actuators' strokes are applied a transfer function of the first order, namely
-$ \alpha\dot{x}+x=f $, where $ \alpha=\texttt{dynamic\_coef} $ and $ f $ is
+$ \alpha\dot{x}+x=f $, where $ \alpha=\kw{dynamic\_coef} $ and $ f $ is
 the desired stroke, so the smaller is $ \alpha $, the more the behaviour is
 static.
-The \texttt{cyclic\_factor} and the \texttt{collective\_factor} parameters are
+The \kw{cyclic\_factor} and the \kw{collective\_factor} parameters are
 used to scale the inputs from angles in the desired units to strokes, that
 usually are dimensional parameters. The actual strokes are made of the
-collective contribution multiplied by \texttt{collective\_factor}, and the
-cyclic contribution multiplied by \texttt{collective\_factor} times 
-\texttt{cyclic\_factor}.
+collective contribution multiplied by \kw{collective\_factor}, and the
+cyclic contribution multiplied by \kw{collective\_factor} times 
+\kw{cyclic\_factor}.
    
 \subsection{Clamp}
 \begin{verbatim}
@@ -838,7 +838,7 @@ The format is:
                         (ConstitutiveLaw1D) <const_law>
 \end{verbatim}
 {\em 
-    Note: the constitutive law must be \texttt{elastic}, but the \texttt{distance}
+    Note: the constitutive law must be \kw{elastic}, but the \kw{distance}
     genel can apply to arbitrary order degrees of freedom, even between degrees 
     of freedom of different order.
 }
@@ -850,8 +850,8 @@ The format is:
                         (ConstitutiveLaw1D) <const_law>
 \end{verbatim}
 {\em
-    Note: the \texttt{spring support} must use the \texttt{algebraic} value of a 
-    \texttt{differential} node, but it can use an arbitrary constitutive law,
+    Note: the \kw{spring support} must use the \kw{algebraic} value of a 
+    \kw{differential} node, but it can use an arbitrary constitutive law,
     i.e.\ an elastic constitutive law for a spring, or a viscous
     constitutive law for a damper, and so on.
 }
@@ -863,12 +863,12 @@ The format is:
                         (node_dof) <col_node> ,                      
                         (ConstitutiveLaw1D) <const_law>
 \end{verbatim}
-It writes a term depending on the \texttt{col\_node} degree of freedom in an
-arbitrary manner (given by the \texttt{const\_law}) to the 
-\texttt{row\_node} equation. \\
+It writes a term depending on the \kw{col\_node} degree of freedom in an
+arbitrary manner (given by the \kw{const\_law}) to the 
+\kw{row\_node} equation. \\
 {\em
-    Note: the \texttt{cross spring support} must use the \texttt{algebraic} value
-    of a \texttt{differential} node, but can use an arbitrary constitutive law,
+    Note: the \kw{cross spring support} must use the \kw{algebraic} value
+    of a \kw{differential} node, but can use an arbitrary constitutive law,
     i.e.\ an elastic constitutive law for a spring, or a viscous
     constitutive law for a damper, and so on.
 }
@@ -880,8 +880,8 @@ arbitrary manner (given by the \texttt{const\_law}) to the
                         (drive_caller) <mass>
 \end{verbatim}
 {\em
-    Note: the mass must use the \texttt{algebraic} value of a {\tt
-    differential} node. The derivative of the \texttt{differential} value of
+    Note: the mass must use the \kw{algebraic} value of a {\tt
+    differential} node. The derivative of the \kw{differential} value of
     the dof is differentiated in a state-space sense, and an inertial driven
     term is applied to the equation related to the dof:
     \begin{eqnarray*}
@@ -904,11 +904,11 @@ This element models a scalar filter of the form
     A\plbr{s}y = B\plbr{s}u
 \end{displaymath}
 where $ A $, $ B $ are polynomials of arbitrary order, provided it is
-causal, namely the \texttt{output\_order} is greater than or equal to 
-the \texttt{input\_order}.
+causal, namely the \kw{output\_order} is greater than or equal to 
+the \kw{input\_order}.
 The polynomial $ A $ is assumed to be monic, so only the coefficients
-from 1 to \texttt{output\_order} must be input, while all the coefficients 
-of polynomial $ B $ are required, i.e.\ from 0 to \texttt{input\_order}.
+from 1 to \kw{output\_order} must be input, while all the coefficients 
+of polynomial $ B $ are required, i.e.\ from 0 to \kw{input\_order}.
 If a gain is supplied, all the coefficients of $ B $ are multiplied by the
 gain.
 
@@ -930,9 +930,9 @@ This element models a scalar (SISO) state space filter of the form
 	y = Cx+Dx
     }
 \end{displaymath}
-where $ A $ is a matrix \texttt{state\_order}$\times$\texttt{state\_order},
-$ B $ is a vector \texttt{state\_order}$\times$1,
-$ C $ is a vector 1$\times$\texttt{state\_order},
+where $ A $ is a matrix \kw{state\_order}$\times$\kw{state\_order},
+$ B $ is a vector \kw{state\_order}$\times$1,
+$ C $ is a vector 1$\times$\kw{state\_order},
 and $ D $ is scalar, if any.
 The matrices are read row-oriented.
 
@@ -954,10 +954,10 @@ This element models a scalar (SISO) state space filter of the form
 	y = Cx+Dx
     }
 \end{displaymath}
-where $ A $ is a matrix \texttt{state\_order}$\times$\texttt{state\_order},
-$ B $ is a matrix \texttt{state\_order}$\times$\texttt{num\_inputs},
-$ C $ is a matrix \texttt{num\_outputs}$\times$\texttt{state\_order},
-and $ D $ is scalar \texttt{num\_outputs}$\times$\texttt{num\_inputs}.
+where $ A $ is a matrix \kw{state\_order}$\times$\kw{state\_order},
+$ B $ is a matrix \kw{state\_order}$\times$\kw{num\_inputs},
+$ C $ is a matrix \kw{num\_outputs}$\times$\kw{state\_order},
+and $ D $ is scalar \kw{num\_outputs}$\times$\kw{num\_inputs}.
 The matrices are read row-oriented.
 
 
@@ -982,12 +982,12 @@ the drive of the gravity acceleration, in the global reference frame.
                          <hydr_elem_data>
 \end{verbatim}
 A detailed input description will be given as soon as it is available. \\
-\texttt{hydraulic\_element\_data} usually contains information about fluid
-properties, which are handled by means of an \texttt{hydraulic\_fluid}.
+\kw{hydraulic\_element\_data} usually contains information about fluid
+properties, which are handled by means of an \kw{hydraulic\_fluid}.
 This can be directly inserted, following the syntax described in
-Section~\ref{sec:HYDRAULIC-FLUID} preceeded by the keyword \texttt{fluid}, or a
+Section~\ref{sec:HYDRAULIC-FLUID} preceeded by the keyword \kw{fluid}, or a
 previously defined fluid can be recalled by using the keyword 
-\texttt{reference} followed by the label of the desired fluid.
+\kw{reference} followed by the label of the desired fluid.
 
 \subsection{Actuator}
 \begin{verbatim}
@@ -1021,13 +1021,13 @@ previously defined fluid can be recalled by using the keyword
                          <hydraulic_fluid_properties>
 \end{verbatim}
 This element represrents a valve that connects
-\texttt{node\_1} to \texttt{node\_2} and \texttt{node\_3} to \texttt{node\_4}
-when \texttt{state} is positive and \texttt{node\_1} to \texttt{node\_3}
-and \texttt{node\_2} to \texttt{node\_4} when \texttt{state} is negative,
-with area proportional to \texttt{area} times the norm of \texttt{state}, 
+\kw{node\_1} to \kw{node\_2} and \kw{node\_3} to \kw{node\_4}
+when \kw{state} is positive and \kw{node\_1} to \kw{node\_3}
+and \kw{node\_2} to \kw{node\_4} when \kw{state} is negative,
+with area proportional to \kw{area} times the norm of \kw{state}, 
 being the latter comprised between $-1$ and $1$.
-If \texttt{loss\_factor} is defined, it represents the fraction
-of area that leaks even when \texttt{state} is zero.
+If \kw{loss\_factor} is defined, it represents the fraction
+of area that leaks even when \kw{state} is zero.
 
 
 
@@ -1049,17 +1049,17 @@ of area that leaks even when \texttt{state} is zero.
                          <hydraulic_fluid_properties>
 \end{verbatim}
 This element represrents a valve that connects
-\texttt{node\_1} to \texttt{node\_2} and \texttt{node\_3} to \texttt{node\_4}
-when the displacement is positive and \texttt{node\_1} to \texttt{node\_3}
-and \texttt{node\_2} to \texttt{node\_4} when the displacement is negative,
+\kw{node\_1} to \kw{node\_2} and \kw{node\_3} to \kw{node\_4}
+when the displacement is positive and \kw{node\_1} to \kw{node\_3}
+and \kw{node\_2} to \kw{node\_4} when the displacement is negative,
 accounting for the dynamics of the valve body.
-The control force \texttt{force} is applied to the valve, whose 
+The control force \kw{force} is applied to the valve, whose 
 geometric and structural properties are described by 
-\texttt{initial\_displacement}, \texttt{max\_displacement},
-\texttt{duct\_width}, \texttt{valve\_diameter} and \texttt{valve\_density}.
-Again the \texttt{loss\_factor}, if defined, represents the fraction
+\kw{initial\_displacement}, \kw{max\_displacement},
+\kw{duct\_width}, \kw{valve\_diameter} and \kw{valve\_density}.
+Again the \kw{loss\_factor}, if defined, represents the fraction
 of the area that leaks when the displacement is zero.
-Finally, \texttt{displacement}, \texttt{velocity} and \texttt{acceleration}
+Finally, \kw{displacement}, \kw{velocity} and \kw{acceleration}
 are the penalty coefficients for displacement, valocity and acceleration
 when the maximum stroke is reached.
 
@@ -1085,7 +1085,7 @@ when the maximum stroke is reached.
                          <hydraulic_fluid_properties>
 \end{verbatim}
 Same as Dynamic Control Valve (\ref{sec:DYNAMIC_CONTROL_VALVE}),
-only the pressures at \texttt{node\_5} and \texttt{node\_6} are applied
+only the pressures at \kw{node\_5} and \kw{node\_6} are applied
 at the sides of the valve body and participate in the force balance.
 
 
@@ -1100,7 +1100,7 @@ a typical joint entry is made as follows:
 \begin{verbatim}
     <normal_arglist> :: = <joint_type> , <joint_arglist>
 \end{verbatim}
-The output is written to a file with extension \texttt{.jnt}.
+The output is written to a file with extension \kw{.jnt}.
 The output is generally made of a standard part, plus some extra information
 depending on the type of joint, which, when available, is described along
 with the joint description.
@@ -1128,21 +1128,21 @@ Legal joint types, with relative data, are:
 
 \noindent
 {\em 
-    Note: the \texttt{relative\_offset\_*} are the distances of each end
+    Note: the \kw{relative\_offset\_*} are the distances of each end
     of the joint from the relative nodes in the node reference frame \\
-    Both the \texttt{distance} and the \texttt{distance with offset} joints
+    Both the \kw{distance} and the \kw{distance with offset} joints
     allow for null distance, but the transition from null to non-null
     distance is not smooth at all.
 } \\
 {\em
-    Note: in case the keywords \texttt{from nodes} are used, a constant drive
-    caller is automatically instantiated for the \texttt{distance}. 
+    Note: in case the keywords \kw{from nodes} are used, a constant drive
+    caller is automatically instantiated for the \kw{distance}. 
     Its value is computed from the initial positions of the nodes;
     if defined, the distance between the offsets is considered. 
 } \\
 {\em
-    Note: the \texttt{distance with offset} element is deprecated
-    in favour of the \texttt{distance} with the new syntax, which
+    Note: the \kw{distance with offset} element is deprecated
+    in favour of the \kw{distance} with the new syntax, which
     offers the same capabilities.
 }
  
@@ -1158,7 +1158,7 @@ The extra output is:
 
 
 \subsection{Distance with offset}
-This element has been deprecated in favour of the \texttt{distance}
+This element has been deprecated in favour of the \kw{distance}
 element, which now supports offsets.  It may be not supported any more
 in the future.
 
@@ -1173,15 +1173,15 @@ in the future.
         [ , orientation ,
             { node | (OrientationMatrix) <absolute_orientation_matrix> } ]
 \end{verbatim}
-\emph{Note: the keyword \texttt{node} forces the joint to use
+\emph{Note: the keyword \kw{node} forces the joint to use
 the nodal position and reference frame. Otherwise, they must be entered
 in the usual way for these entities} \\
-\emph{Note: the default value for \texttt{position} and \texttt{orientation}
+\emph{Note: the default value for \kw{position} and \kw{orientation}
 are the position and the orientation of the clamped node.}
 
 
 \subsection{Coincidence}
-not implemented yet, use a \texttt{spherical hinge} and a \texttt{prismatic} 
+not implemented yet, use a \kw{spherical hinge} and a \kw{prismatic} 
 instead.
 
 \subsection{Spherical hinge}
@@ -1261,7 +1261,7 @@ A universal joint without position constraints.
 }
 
 \subsection{Plane hinge}
-This joint has been renamed \texttt{revolute hinge}; the old name has been
+This joint has been renamed \kw{revolute hinge}; the old name has been
 deprecated and may not be supported in future versions.
 
 \subsection{Revolute hinge}
@@ -1282,7 +1282,7 @@ deprecated and may not be supported in future versions.
 
 \subsection{Revolute rotation}
 A revolute joint without position constraints; this joint, in conjunction
-with an \texttt{inline} joint, should be used to constrain the two nodes
+with an \kw{inline} joint, should be used to constrain the two nodes
 of a hydraulic actuator.
 \begin{verbatim}
     <joint_type> ::= revolute rotation
@@ -1300,7 +1300,7 @@ of a hydraulic actuator.
 }
 
 \subsection{Plane pin}
-This joint has been renamed \texttt{revolute pin}; the old name has been
+This joint has been renamed \kw{revolute pin}; the old name has been
 deprecated and may not be supported in future versions.
 
 \subsection{Revolute pin}
@@ -1378,7 +1378,7 @@ and to rotate about the common relative axis 3.
 {\em
     Note: to make an in-line joint, use two in-plane joints, with the
     planes that intersect along the desired line. \\
-    Note: a \texttt{inline} element has been added, which automates the above
+    Note: a \kw{inline} element has been added, which automates the above
     reported procedure.
 }
 
@@ -1393,7 +1393,7 @@ and to rotate about the common relative axis 3.
         [ , offset , (Vec3) <relative_offset>]
 \end{verbatim}
 {\em 
-    Note: the \texttt{in line} joint supersedes the former note; the orientation
+    Note: the \kw{in line} joint supersedes the former note; the orientation
     assumes the sliding line is in direction 3.
 }
 
@@ -1415,7 +1415,7 @@ and to rotate about the common relative axis 3.
         (scalar) { <rod_length> | from nodes } ,
         (ConstitutiveLaw1D) <const_law>
 \end{verbatim}
-Analogous to \texttt{rod} with the optional arg \texttt{offset}.    
+Analogous to \kw{rod} with the optional arg \kw{offset}.    
 
 \subsection{Deformable hinge}
 \begin{verbatim}
@@ -1528,16 +1528,16 @@ by directly writing code in files \verb;mbdyn/struct/kin.cc; and
             [ , ... ] ,
         " <output_file_name> "
 \end{verbatim}
-The \texttt{reference\_modal\_node} is a special dynamic structural node that
-is required to handle the rigid body motion of the modal joint.
-Its input is completely analogous to that of the \texttt{dynamic} structural
-nodes, see Section~\ref{sec:NODE-STRUCT}, only the keyword \texttt{dynamic} 
-must be replaced by \texttt{modal}.
+The \kw{reference\_modal\_node} is a special dynamic structural node 
+that is required to handle the rigid body motion of the modal joint.
+Its input is completely analogous to that of the \kw{dynamic} structural
+nodes, see Section~\ref{sec:NODE-STRUCT}, only the keyword \kw{dynamic} 
+must be replaced by \kw{modal}.
 
 \noindent
-The mode count in \texttt{mode\_number} is not required to match
+The mode count in \kw{mode\_number} is not required to match
 the number of modes listed in the FEM data file; if a lower number
-is given, only the first \texttt{mode\_number} modes are used;
+is given, only the first \kw{mode\_number} modes are used;
 moreover, a list of active modes can be given, to use non-consecutive
 modes; e.g., to use modes 1, 2, 3 and 6 of a set of 10 modes, use:
 \begin{verbatim}
@@ -1545,26 +1545,83 @@ modes; e.g., to use modes 1, 2, 3 and 6 of a set of 10 modes, use:
 \end{verbatim}
 
 \noindent
-The \texttt{origin node} optional keyword is required to mark
-what FEM node corresponds to the \texttt{modal} node
-the element is connected to; otherwise, the \texttt{modal} node
+The \kw{origin node} optional keyword is required to mark
+what FEM node corresponds to the \kw{modal} node
+the element is connected to; otherwise, the \kw{modal} node
 is assumed to be connected to the origin of the FEM reference system
 (e.g.\ in \{0.0,0.0,0.0\} in the reference frame of the FEM model.
 
 \noindent
 The list of matchings between FEM and multibody nodes needs
 special care.
-The \texttt{offset\_of\_FEM\_node} field contains the distance
+The \kw{offset\_of\_FEM\_node} field contains the distance
 of the FEM node from the respective multibody node.
 
 \noindent
-The format of the \texttt{fem\_data\_file} is not documented yet;
-it can be generated by NASTRAN, using the ALTER cards provided
-in directory \texttt{etc/modal.d/} of the distribution.
+The \kw{fem\_data\_file} can be generated by NASTRAN, using
+the ALTER cards provided in directory \kw{etc/modal.d/} 
+of the distribution.
+In detail:
+\begin{enumerate}
+\item the file \kw{MBDyn\_NASTRAN\_alter\_1.nas} contains
+	ALTER definitions for static solutions; appropriate
+	loading subcases for each solution must be provided
+	in the case control and in the bulk data sections
+	of the input file;
+
+	\emph{FIXME: I don't know how to use static shapes only}.
+
+\item the file \kw{MBDyn\_NASTRAN\_alter\_2.nas} contains
+	ALTER definitions for eigenanalysis solutions;
+	an appropriate eigenanalysis method, with the related
+	data card must be provided in the case control 
+	and in the bulk data sections of the input file;
+
+	\emph{FIXME: I don't know how to use this together
+		with static shapes; I only get the normal mode shapes,
+		even if the matrices are complete}.
+
+\item the file \kw{MBDyn\_NASTRAN\_alter\_3.nas} contains
+	ALTER definitions for eigenanalysis solutions;
+	an appropriate eigenanalysis method, with the related
+	data card must be provided in the case control 
+	and in the bulk data sections of the input file;
+
+	\emph{Note: this works; see} \kw{tests/modal/beam.README}.
+
+\end{enumerate}
+The static solution of case (1: \kw{SOL 101}) and the eigensolution
+of case (2: \kw{SOL 103}) need to be performed in sequence; 
+if only the eigensolution is to be used, the ALTER file 
+of case (3: \kw{SOL 103}) must be used.
+The static solution of case (1) generates a binary file \kw{mbdyn.stm};
+the eigensolutions of cases (2--3) generate two binary files, 
+\kw{mbdyn.mat} and \kw{mbdyn.tab}; then, the tool \kw{utils/femgen} 
+must be executed, which transforms the binary files into 
+the \kw{fem\_data\_file}; the file name is requested as terminal input.
+
+\noindent
+It is strongly recommended that constrained modal analysis
+be used for otherwise free bodies, with the statically 
+determined constraint consisting of clamping the FEM node 
+that will coincide with \kw{reference\_modal\_node}, and using
+the \kw{origin node} to make that point the origin of the FEM frame.
+
+\noindent
+About reference frames ...
+
+\noindent
+The format of the \kw{fem\_data\_file} is relatively straightforward;
+each data block is commented.
+In detail, initial modal displacements and velocities can be added,
+if required, by manually editing the file; however this practice
+is discouraged.
+
+
 
 \subsection{Beam slider}
 This joint implements a slider, e.g.\ it constrains a structural node 
-on a string of three-node beams.
+on a string of three-node beams, as discussed in \cite{SLIDER-AIDAA-2003}.
 \begin{verbatim}
     <joint_type> ::= kinematic
     <joint_arglist> ::=
@@ -1587,26 +1644,26 @@ on a string of three-node beams.
 \end{verbatim}
 There are three types of slider:
 \begin{itemize}
-	\item the \texttt{spherical} slider does not constrain
+	\item the \kw{spherical} slider does not constrain
 	the orientation of the node;
-	\item the \texttt{classical} slider does allow rotation
+	\item the \kw{classical} slider does allow rotation
 	only about the sliding line;
-	\item the \texttt{spline} slider constrain the orientation
+	\item the \kw{spline} slider constrain the orientation
 	of the node.
 \end{itemize}
 For each node of each beam element, the offset and the orientation
 of the slider can be defined; except for the first element, the
 offset and the orientation of the first node can be specified using
-the keyword \texttt{same}, which causes the node to take the same
+the keyword \kw{same}, which causes the node to take the same
 value of the last node of the previous beam.
-The \texttt{initial\_beam} and \texttt{initial\_node} indices
+The \kw{initial\_beam} and \kw{initial\_node} indices
 serve as hints to set the initial contact point of the sliding node.
-The \texttt{smearing\_factor} determines the (nondimensional) extension
+The \kw{smearing\_factor} determines the (nondimensional) extension
 of the interference segment when the node passes from one segment
 to another. % \cite{SLIDER}.
 
 \section{Loadable Element}
-The \texttt{loadable} element is a wrapper for a user-defined element that is
+The \kw{loadable} element is a wrapper for a user-defined element that is
 comipled in a separated module and linked run-time.
 The module should provide a comprehensive set of functions with a specified
 API; default functions are available if no special features are required.
@@ -1619,33 +1676,33 @@ The syntax is simply:
                          [ , name, " <calls> " ] 
                          [ , <module_data> ]
 \end{verbatim}
-where \texttt{module\_name} is the name of the module file; as soon as the file
+where \kw{module\_name} is the name of the module file; as soon as the file
 is checked and the binding of the structure with function bindings 
-succeeded, a function called \texttt{read} is invoked, and passed the input
+succeeded, a function called \kw{read} is invoked, and passed the input
 stream.
-This function is in charge of reading \texttt{module\_data} following the
+This function is in charge of reading \kw{module\_data} following the
 general syntax of the input file.
 
-It is advisable that the function \texttt{read} prints some help message
-when the first field of \texttt{module\_data} is the keyword \texttt{help}.
+It is advisable that the function \kw{read} prints some help message
+when the first field of \kw{module\_data} is the keyword \kw{help}.
 All the helpers and the high-level structures are available, such as
 drivers, constitutive laws, reference frames.
 Refer to each module for a description (if available) of the features and of
 the input/output format.
-\texttt{module\_name} should be a full path to the module function.
+\kw{module\_name} should be a full path to the module function.
 If the name starts with a slash ``/'', the full path name is used.
 Otherwise the module is searched in the colon-separated list of directories 
-contained in the environment variable \texttt{LD\_LIBRARY}, then among the
-libraries listed in \texttt{/etc/ld.so.cache}, and finally in
-\texttt{/usr/lib} and in \texttt{/lib} (see \texttt{dlopen(3)}).
+contained in the environment variable \kw{LD\_LIBRARY}, then among the
+libraries listed in \kw{/etc/ld.so.cache}, and finally in
+\kw{/usr/lib} and in \kw{/lib} (see \kw{dlopen(3)}).
 At last, it is searched in the current directory, and the extension
-\texttt{.so} is added if missing.
-The string \texttt{calls} represents the name of the structure that contains
+\kw{.so} is added if missing.
+The string \kw{calls} represents the name of the structure that contains
 the bindings to the functions.
-The default is \texttt{"calls"}.
+The default is \kw{"calls"}.
 
 \noindent
-Refer to \texttt{\$(BASE)/mbdyn/base/loadable.h} for a description of the
+Refer to \kw{\$(BASE)/mbdyn/base/loadable.h} for a description of the
 functions that are allowed.
 An example module is given in directory
 \begin{verbatim}
@@ -1661,9 +1718,9 @@ the package as follows:
 \begin{verbatim}
     ./configure --with-module=<module_name>
 \end{verbatim}
-where \texttt{module\_name} is the name of the directory the module
-is placed in with the \texttt{module-} part stripped; e.g.\ to compile
-the tire module that resides in \texttt{\$(BASE)/modules/module-wheel2} 
+where \kw{module\_name} is the name of the directory the module
+is placed in with the \kw{module-} part stripped; e.g.\ to compile
+the tire module that resides in \kw{\$(BASE)/modules/module-wheel2} 
 one must type
 \begin{verbatim}
     ./configure --with-module=wheel2
@@ -1673,55 +1730,58 @@ separated by blanks.
 The modules need to resolve some of the symbols that are in the
 executable; until a full working libtool support is implemented,
 this must be done by hand.
-For the \texttt{g++(1)} compiler one needs
-to add \texttt{-rdynamic} to the loader flags, e.g.
+For the \kw{g++(1)} compiler one needs
+to add \kw{-rdynamic} to the loader flags, e.g.
 \begin{verbatim}
     LDFLAGS="-rdynamic" ./configure --with-module=<module_name>
 \end{verbatim}
-on \texttt{sh(1)} and compatible shells like \texttt{bash(1)}, or
+on \kw{sh(1)} and compatible shells like \kw{bash(1)}, or
 \begin{verbatim}
     env LDFLAGS="-rdynamic" ./configure --with-module=<module_name>
 \end{verbatim}
-on \texttt{csh(1)} and compatible shells.
+on \kw{csh(1)} and compatible shells.
 
 
 
 
 
 \section{Rotor Element}
-The \texttt{rotor} element is used to associate the aerodynamic elements that
+The \kw{rotor} element is used to associate the aerodynamic elements that
 model the blades of a rotor when some inflow related computations are
 required. By means of different inflow models, and by means of the
 aerodynamic load contributions supplied by the aerodynamic elements, the
 rotor element is able to compute the induced velocity at an arbitrary point on
 the rotor disk. This velocity term on turn is used by the aerodynamic
 elements to determine a better estimate of the boundary conditions.
-The syntax of the \texttt{rotor} element is:
+The syntax of the \kw{rotor} element is:
 \begin{verbatim}
     <normal_arglist> ::= <craft_node> , <rotor_node> ,
-        induced velocity : <ind_velocity>
+        induced velocity , <induced_velocity_model>
 \end{verbatim}
-\emph{Note: after the keyword \texttt{induced velocity} there used to be
+\emph{Note: after the keyword \kw{induced velocity} there used to be
 a colon is used as separator.
 This changed for uniformity with the rest of the syntax.
 No backwards compatibility is provided, so users are urged to update
 their models.
 A warning is issued.
-} \\
+}
+
+\noindent
 There are five models of induced velocity. 
 The first is no induced velocity; the syntax is:
 \begin{verbatim}
-    <induced_velocity> ::= no
+    <induced_velocity_model> ::= no
 \end{verbatim}
 There is no argument list. This element doesn't compute any induced
 velocity, but still computes the rotor traction for output purposes,
 if output is required.
 The others have a fairly common syntax.  The first three are
-\texttt{uniform}, \texttt{glauert} and \texttt{mangler} induced velocity
+\kw{uniform}, \kw{glauert} and \kw{mangler} induced velocity
 models:
 \begin{verbatim}
-    <induced_velocity> ::= { uniform | glauert | mangler } , 
+    <induced_velocity_model> ::= { uniform | glauert | mangler } , 
         <reference_omega> , <reference_radius> 
+        [ , ground , <ground_node> ]
         [ , delay , (drive_caller) <memory_factor> ]
         [ , max iterations , <max_iterations> ]
         [ , tolerance , <tolerance> ]
@@ -1729,18 +1789,18 @@ models:
         [ , correction , <hover_correction_factor> ,
             <ff_correction_factor> ]
 \end{verbatim}
-the \texttt{reference\_omega} field is used to decide whether to inhibit
+the \kw{reference\_omega} field is used to decide whether to inhibit
 or not the induced velocity computation if the rotor speed is very low;
-the \texttt{reference\_radius} field is used in the adimensionalization
+the \kw{reference\_radius} field is used in the adimensionalization
 of the rotor related parameters. \\
-The \texttt{memory\_factor}, the \texttt{hover\_correction\_factor} 
-and the \texttt{ff\_correction\_factor} (forward flight) are
+The \kw{memory\_factor}, the \kw{hover\_correction\_factor} 
+and the \kw{ff\_correction\_factor} (forward flight) are
 used to correct the nominal induced velocity, according to the formula
 %\begin{eqnarray*}
 %	U_{effective} & = &
-%	\plbr{1 - \texttt{<memory\_factor>}} 
-%		\texttt{<correction\_factor>} \ U_{nominal} \\
-%	& & \mbox{} + \texttt{<memory\_factor>} \ U_{previous}
+%	\plbr{1 - \kw{memory\_factor}} 
+%		\kw{correction\_factor} \ U_{nominal} \\
+%	& & \mbox{} + \kw{memory\_factor} \ U_{previous}
 %\end{eqnarray*}
 \begin{eqnarray*}
 	U_{effective} & = &
@@ -1755,23 +1815,23 @@ with
 		+ \cfrac{\mu^2}{\mathtt{<ff\_correction\_factor>}^2}
 	}}
 \end{displaymath}
-The \texttt{memory\_factor} parameter is used to
+The \kw{memory\_factor} parameter is used to
 combine the current reference induced velocity with the induced velocity
 at the previous step; no delay means there is no memory of the previous value 
-(\emph{Note: for historical reasons, the keyword \texttt{weight}
-can be used instead of \texttt{delay}}). \\
-The \texttt{memory\_factor} parameter defaults to 0; 
-the \texttt{hover\_correction\_factor} 
-and the \texttt{ff\_correction\_factor} parameters default to 1. \\
-The \texttt{max\_iterations}, the \texttt{tolerance} 
-and the \texttt{eta} parameters refer to the iteration cycle 
+(\emph{Note: for historical reasons, the keyword \kw{weight}
+can be used instead of \kw{delay}}). \\
+The \kw{memory\_factor} parameter defaults to 0; 
+the \kw{hover\_correction\_factor} 
+and the \kw{ff\_correction\_factor} parameters default to 1. \\
+The \kw{max\_iterations}, the \kw{tolerance} 
+and the \kw{eta} parameters refer to the iteration cycle 
 that is performed to compute the nominal induced velocity; 
-after \texttt{max\_iterations}, or when the absolute value 
+after \kw{max\_iterations}, or when the absolute value 
 of the difference between two iterations of the nominal induced 
-velocity is less than \texttt{tolerance}, the cycle breaks.
-Only a fraction \texttt{eta} of the difference between two
+velocity is less than \kw{tolerance}, the cycle breaks.
+Only a fraction \kw{eta} of the difference between two
 interations of the nominal induced velocity is actually
-used; \texttt{eta} defaults to one.
+used; \kw{eta} defaults to one.
 The default is to make only one iteration, which is backward-compatible
 with the original behavior.
 \emph{
@@ -1785,39 +1845,73 @@ with the original behavior.
 }
 
 \noindent
-The last one uses a dynamic inflow model, with inflow states.
+The last one uses a dynamic inflow model, based on \cite{PITT},
+with inflow states.
 The syntax is:
 \begin{verbatim}
-    <induced_velocity> ::= dynamic inflow , 
+    <induced_velocity_model> ::= dynamic inflow , 
         <reference_omega> , 
         <reference_radius> 
+        [ , ground , <ground_node> ]
+        [ , initial value , <const_vel> ,
+            <cosine_vel> ,
+            <sine_vel> ]
         [ , max iterations , <max_iterations> ]
         [ , tolerance , <tolerance> ]
         [ , eta , <eta> ]
         [ , correction , <hover_correction_factor> ,
             <ff_correction_factor> ]
-        [ , initial value , <const_vel> ,
-            <cosine_vel> ,
-            <sine_vel> ]
 \end{verbatim}
-The first entries are the same as for the previous models;
-the three states, corresponding to average, fore-aft amd lateral inflow,
-can be explicitly initialized.
+Most of the entries are the same as for the previous models;
+the \kw{delay} optional entry is missing, while the three states, 
+corresponding to average, fore-aft and lateral inflow,
+can be explicitly initialized by means of the optional 
+entry \kw{initial value}.
 
 
 
 
 \section{Miscellaneous}
+This section lists some extra cards that do not correspond to any
+specific simulation entity, but rather alter the behavior 
+of existing entries or cause special operations to be undertaken
+during model input.
+
+\subsection{Inertia}
+This card causes the equivalent inertia properties of a subset
+of elements to be generated.
+\begin{verbatim}
+    <card> ::= inertia : <label>
+        [ , name , " <inertia_name> " ]
+        [ , position , (Vec3)<reference_position> ]
+        [ , orientation , (Mat3x3)<reference_orientation> ]
+        , <type_subset> [ , ... ] ;
+        <type_subset> ::= <type> , { all | <label_list> }
+        <label_list> ::= <label> [ , <label_list> ]
+\end{verbatim}
+where \kw{type} currently can only be \kw{body}, although more elements
+associated to inertia might participate in the future.
+All elements whose labels are listed must exist, and duplicates
+are detected and considered errors.
+The keyword \kw{all} causes all the elements of type \kw{type} 
+to be included in the list.
+As a result, each \kw{inertia} entry is logged in the \kw{.log} file
+in a self explanatory form, referred both to the \kw{global} 
+reference frame and to the reference frame n \kw{reference\_position}
+oriented as \kw{reference\_orientation}.
+
+
+
+\subsection{Output}
 There is an extra card that is used to modify the output behaviour of 
 elements, analogous to that of the nodes:
 \begin{verbatim}
     <card> ::= output : <elem_type> , <elem_list> ;
     <elem_list> ::= <elem_label>  [ , <elem_list> ]
 \end{verbatim}
-\texttt{elem\_type} is a valid element type that can be read 
-as card name in the \texttt{elements} block.
+\kw{elem\_type} is a valid element type that can be read 
+as card name in the \kw{elements} block.
 module.
-
 
 
 

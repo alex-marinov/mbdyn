@@ -35,12 +35,12 @@ Every command (or card) has the following ``grammar'':
 \begin{verbatim}
     <card> ::= <description> [ : <arglist> ] ;
 \end{verbatim}
-\texttt{arglist} is a(n optional) list of arguments, that is driven by the 
-\texttt{description} that identifies the card. 
+\kw{arglist} is a(n optional) list of arguments, that is driven by the 
+\kw{description} that identifies the card. 
 The keyword can be made of multiple words separated by spaces or tabs; 
 the extra spaces are skipped\footnote{
-	Anything that makes the C function \texttt{isspace()} 
-	return \texttt{true}
+	Anything that makes the C function \kw{isspace()} 
+	return \kw{true}
 }, and the match is case insensitive. 
 The arguments are usually separated by commas\footnote{
 	A few exceptions require a colon to separate blocks of arguments;
@@ -59,8 +59,8 @@ When structured arguments like matrices, vectors, or drive callers are
 expected, they are parsed by dedicated functions.
 Anyway, the structured data always follows the rules of the general data. 
 Few exceptions are present, and will be eliminated soon.
-Every data module is surrounded by the control statements \texttt{begin} and
-\texttt{end}:
+Every data module is surrounded by the control statements \kw{begin} and
+\kw{end}:
 \begin{verbatim}
     begin: <module_name> ;
         ...
@@ -76,18 +76,18 @@ The contents of each file is related to the file extension,
 which is appended to the input file if no output file name 
 is explicitly supplied.
 If also no input file is explicitly supplied, and input is obtained from 
-\texttt{stdin}, the output file name defaults to ``MBDyn''; otherwise, 
+\kw{stdin}, the output file name defaults to ``MBDyn''; otherwise, 
 unless the output file name is explicitly set, the name 
 of the input file is used.
 The contents of the output files are described accordingly 
 to the items (nodes or elements) that generate them.
-Only a general information file, with extension \texttt{.out}, 
+Only a general information file, with extension \kw{.out}, 
 is described here. 
 The file contains general information about the simulation; 
 it is not formatted. 
 In detail, for each step the current time, time step, the number of
 iterations and the error are supplied.
-There is also a supplementary file, with \texttt{.log} extension,
+There is also a supplementary file, with \kw{.log} extension,
 that may contain extra (logging) information.
 Its contents are not documented since they are very experimental
 and may be subject to changes.
@@ -100,11 +100,11 @@ a mathematical expression can be used, including variable declaration
 and assignment (variable names and values are kept in memory throughout
 the input phase and the simulation) and simple math functions.
 Named variables and non-named constants are strongly typed; two types are
-currently available, \texttt{integer} and \texttt{real}.
+currently available, \kw{integer} and \kw{real}.
 Operations account for the type and perform implicit cast when allowed.
-For instance \texttt{1+2.5} returns a \texttt{real} whose value 
-is \texttt{3.5}, since one of the 
-two addenda is \texttt{real}, while \texttt{1/3} returns \texttt{0} because 
+For instance \kw{1+2.5} returns a \kw{real} whose value 
+is \kw{3.5}, since one of the 
+two addenda is \kw{real}, while \kw{1/3} returns \kw{0} because 
 the integer division is used.
 An empty field, delimited by a valid separator (a comma or a semicolon,
 depending on whether other arguments are expected or not) returns the
@@ -121,17 +121,17 @@ Example:
     (real r = 2.*pi; integer i = 1; sin(i*r*Time+.87))      
 \end{verbatim}
 the latter results in $ sin\plbr{2\pi{t}+.87} $; 
-note that the constant \texttt{pi} is always defined
-as the machine $ \pi $, as well as the constants \texttt{e},
-\texttt{MAX\_RAND} and more; use
+note that the constant \kw{pi} is always defined
+as the machine $ \pi $, as well as the constants \kw{e},
+\kw{MAX\_RAND} and more; use
 \begin{verbatim}
     mbdyn -H
 \end{verbatim}
 for an up-to-date list of predefined variables.
-The variable \texttt{Time} is declared, defined and initialized\footnote{
-    A variable is \texttt{declared} when its name enters the namespace;
-    it is \texttt{defined} when it can be referenced;
-    it is \texttt{initialized} when it is first assigned a value
+The variable \kw{Time} is declared, defined and initialized\footnote{
+    A variable is \kw{declared} when its name enters the namespace;
+    it is \kw{defined} when it can be referenced;
+    it is \kw{initialized} when it is first assigned a value
 } from the beginning of the control data section, and during the solution 
 phase it is assigned the value of the current time. 
 
@@ -152,24 +152,24 @@ can be reassigned.
 		\hline
 		\emph{Operator} & \emph{Type} & \emph{Description} \\
 		\hline
-		\texttt{\^} & Binary, right & Power \\
-		\texttt{+} & Unary, left & Plus sign \\
-		\texttt{-} & Unary, left & Minus sign \\
-		\texttt{*} & Binary, left & Multiplication \\
-		\texttt{/} & Binary, left & Division \\
-		\texttt{+} & Binary, left & Addition \\
-		\texttt{-} & Binary, left & Subtraction \\
-		\texttt{>} & Binary, left & Greater than \\
-		\texttt{>=} & Binary, left & Greater than or equal to \\
-		\texttt{==} & Binary, left & Equal to \\
-		\texttt{<=} & Binary, left & Less than or equal to \\
-		\texttt{<} & Binary, left & Less than \\
-		\texttt{!=} & Binary, left & Not equal \\
-		\texttt{!} & Unary, right & NOT \\
-		\texttt{\&\&} & Binary, left & AND \\
-		\texttt{||} & Binary, left & OR \\
-		\texttt{{~}|} & Binary, left & XOR (exclusive OR) \\
-		\texttt{=} & Binary, right & Assignment \\
+		\kw{\^} & Binary, right & Power \\
+		\kw{+} & Unary, left & Plus sign \\
+		\kw{-} & Unary, left & Minus sign \\
+		\kw{*} & Binary, left & Multiplication \\
+		\kw{/} & Binary, left & Division \\
+		\kw{+} & Binary, left & Addition \\
+		\kw{-} & Binary, left & Subtraction \\
+		\kw{>} & Binary, left & Greater than \\
+		\kw{>=} & Binary, left & Greater than or equal to \\
+		\kw{==} & Binary, left & Equal to \\
+		\kw{<=} & Binary, left & Less than or equal to \\
+		\kw{<} & Binary, left & Less than \\
+		\kw{!=} & Binary, left & Not equal \\
+		\kw{!} & Unary, right & NOT \\
+		\kw{\&\&} & Binary, left & AND \\
+		\kw{||} & Binary, left & OR \\
+		\kw{{~}|} & Binary, left & XOR (exclusive OR) \\
+		\kw{=} & Binary, right & Assignment \\
 		\hline
 	\end{tabular}
 	\end{center}
@@ -184,40 +184,40 @@ can be reassigned.
 		\hline
 		\emph{Function Name} & \emph{Arg[s]} & \emph{Description} \\
 		\hline
-		\texttt{asin} & Real & Arc sine \\
-		\texttt{acos} & Real & Arc cosine \\
-		\texttt{atan} & Real & Arc tangent \\
-		\texttt{actan} & Real & Arc co-tangent \\
-		\texttt{atan2} & Real, Real & Arc tangent 2 (rubust) \\
-		\texttt{actan2} & Real, Real & Arc co-tangent 2 (robust) \\
-		\texttt{cos} & Real & Cosine \\
-		\texttt{sin} & Real & Sine \\
-		\texttt{tan} & Real & Tangent \\
-		\texttt{ctan} & Real & Co-tangent \\
-		\texttt{cosh} & Real & Hyperbolic cosine \\
-		\texttt{sinh} & Real & Hyperbolic sine \\
-		\texttt{tanh} & Real & Hyperbolic tangent \\
-		\texttt{ctanh} & Real & Hyperbolic co-tangent \\
-		\texttt{acosh} & Real & Hyperbolic arc cosine \\
-		\texttt{asinh} & Real & Hyperbolic arc sine \\
-		\texttt{atanh} & Real & Hyperbolic arc tangent \\
-		\texttt{actanh} & Real & Hyperbolic arc co-tangent \\
-		\texttt{exp} & Real & Exponential \\
-		\texttt{log} & Real & Natural logarithm \\
-		\texttt{log10} & Real & Base 10 logarithm \\
-		\texttt{sqrt} & Real & Square root \\
-		\texttt{abs} & Real & Absolute value \\
-		\texttt{floor} & Real & Closest integer from below \\
-		\texttt{ceil} & Real & Closest integer from above \\
-		\texttt{round} & Real & Closest integer \\
-		\texttt{rand} & & random integer 
+		\kw{asin} & Real & Arc sine \\
+		\kw{acos} & Real & Arc cosine \\
+		\kw{atan} & Real & Arc tangent \\
+		\kw{actan} & Real & Arc co-tangent \\
+		\kw{atan2} & Real, Real & Arc tangent 2 (rubust) \\
+		\kw{actan2} & Real, Real & Arc co-tangent 2 (robust) \\
+		\kw{cos} & Real & Cosine \\
+		\kw{sin} & Real & Sine \\
+		\kw{tan} & Real & Tangent \\
+		\kw{ctan} & Real & Co-tangent \\
+		\kw{cosh} & Real & Hyperbolic cosine \\
+		\kw{sinh} & Real & Hyperbolic sine \\
+		\kw{tanh} & Real & Hyperbolic tangent \\
+		\kw{ctanh} & Real & Hyperbolic co-tangent \\
+		\kw{acosh} & Real & Hyperbolic arc cosine \\
+		\kw{asinh} & Real & Hyperbolic arc sine \\
+		\kw{atanh} & Real & Hyperbolic arc tangent \\
+		\kw{actanh} & Real & Hyperbolic arc co-tangent \\
+		\kw{exp} & Real & Exponential \\
+		\kw{log} & Real & Natural logarithm \\
+		\kw{log10} & Real & Base 10 logarithm \\
+		\kw{sqrt} & Real & Square root \\
+		\kw{abs} & Real & Absolute value \\
+		\kw{floor} & Real & Closest integer from below \\
+		\kw{ceil} & Real & Closest integer from above \\
+		\kw{round} & Real & Closest integer \\
+		\kw{rand} & & random integer 
 			$\sqbr{0,\mathrm{RAND\_MAX}}$ \\
-		\texttt{random} & & random real $\sqbr{-1.0,1.0}$ \\
-		\texttt{seed} & Integer & Seeds the random number generator \\
-		\texttt{step} & Real & Step function \\
-		\texttt{ramp} & Real & Ramp function \\
-		\texttt{par} & Real & Parabolic function \\
-		\texttt{print} & Real & Prints a value to standard output \\
+		\kw{random} & & random real $\sqbr{-1.0,1.0}$ \\
+		\kw{seed} & Integer & Seeds the random number generator \\
+		\kw{step} & Real & Step function \\
+		\kw{ramp} & Real & Ramp function \\
+		\kw{par} & Real & Parabolic function \\
+		\kw{print} & Real & Prints a value to standard output \\
 		\hline
 	\end{tabular}
 	\end{center}
@@ -230,8 +230,8 @@ can be reassigned.
 		\hline
 		\emph{Type Name} & \emph{Description} \\
 		\hline
-		\texttt{Real} & Real number \\
-		\texttt{Integer} & Integer number (promoted to \texttt{Real} 
+		\kw{Real} & Real number \\
+		\kw{Integer} & Integer number (promoted to \kw{Real} 
 			whenever required) \\
 		\hline
 	\end{tabular}
@@ -245,23 +245,23 @@ can be reassigned.
 		\hline
 		\emph{Variable Name} & \emph{Type} & \emph{Value} \\
 		\hline
-		\texttt{Time} & Real & Current simulation time \\
-		\texttt{Val} & Real & Set by dof driver with DOF value \\
+		\kw{Time} & Real & Current simulation time \\
+		\kw{Val} & Real & Set by dof driver with DOF value \\
 		\\
-		\texttt{e} & Real & Neper's number \\
-		\texttt{pi} & Real & $\pi$ \\
-		\texttt{RAND\_MAX} & Integer & Maximum random integer \\
+		\kw{e} & Real & Neper's number \\
+		\kw{pi} & Real & $\pi$ \\
+		\kw{RAND\_MAX} & Integer & Maximum random integer \\
 		\\
-		\texttt{in2m} & Real & Inch to meter ratio (0.0254) \\
-		\texttt{m2in} & Real & Meter to inch ratio (1.0/0.0254) \\
-		\texttt{in2mm} & Real & Inch to meter ratio (25.4) \\
-		\texttt{mm2in} & Real & Meter to inch ratio (1.0/25.4) \\
-		\texttt{ft2m} & Real & Foot to meter ratio (0.3048) \\
-		\texttt{m2ft} & Real & Meter to foot ratio (1.0/0.3048) \\
-		\texttt{lb2kg} & Real & Pound to kilogram ratio (0.4535) \\
-		\texttt{kg2lb} & Real & Kilogram to pound ratio (1.0/0.4535) \\
-		\texttt{deg2rad} & Real & Degree to radian ratio ($\pi$/180) \\
-		\texttt{rad2deg} & Real & Radian to degree ratio (180/$\pi$) \\
+		\kw{in2m} & Real & Inch to meter ratio (0.0254) \\
+		\kw{m2in} & Real & Meter to inch ratio (1.0/0.0254) \\
+		\kw{in2mm} & Real & Inch to meter ratio (25.4) \\
+		\kw{mm2in} & Real & Meter to inch ratio (1.0/25.4) \\
+		\kw{ft2m} & Real & Foot to meter ratio (0.3048) \\
+		\kw{m2ft} & Real & Meter to foot ratio (1.0/0.3048) \\
+		\kw{lb2kg} & Real & Pound to kilogram ratio (0.4535) \\
+		\kw{kg2lb} & Real & Kilogram to pound ratio (1.0/0.4535) \\
+		\kw{deg2rad} & Real & Degree to radian ratio ($\pi$/180) \\
+		\kw{rad2deg} & Real & Radian to degree ratio (180/$\pi$) \\
 		\hline
 	\end{tabular}
 	\end{center}
@@ -276,7 +276,7 @@ The main data structures are:
 \subsection{3 x 1 vectors}
 \begin{enumerate}
     \item general case: a sequence of 3 reals, comma-separated.
-    \item null vector: keyword \texttt{null}; the vector is initialised
+    \item null vector: keyword \kw{null}; the vector is initialised
     with zeros.
 \end{enumerate}
 As an example, all the following lines define an empty 3 x 1 vector:
@@ -288,7 +288,7 @@ As an example, all the following lines define an empty 3 x 1 vector:
 \subsection{6 x 1 vectors}
 \begin{enumerate}
     \item general case: a sequence of 6 reals, comma-separated.
-    \item null vector: keyword \texttt{null}; the vector is initialised 
+    \item null vector: keyword \kw{null}; the vector is initialised 
     with zeros.	
 \end{enumerate}
 \subsection{3 x 3 matrices}
@@ -296,17 +296,17 @@ As an example, all the following lines define an empty 3 x 1 vector:
     \item general case: a sequence of 9 reals, comma-separated, which
     represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
     \ldots, $ a_{32} $, $ a_{33} $.
-    \item symmetric matrix: keyword \texttt{sym}, followed by a sequence
+    \item symmetric matrix: keyword \kw{sym}, followed by a sequence
     of 6 reals, comma-separated, that represents the upper triangle, 
     row-oriented coefficients of a symmetric matrix, 
     e.g. $ a_{11} $, \ldots , $ a_{13} $, $ a_{22} $, $ a_{23} $, $ a_{33} $.
-    \item diagonal matrix: keyword \texttt{diag}, followed by a sequence
+    \item diagonal matrix: keyword \kw{diag}, followed by a sequence
     of 3 reals, comma-separated, that represent the diagonal coefficients 
     of a diagonal matrix.
-    \item identity matrix: keyword \texttt{eye}; the matrix is initialized
+    \item identity matrix: keyword \kw{eye}; the matrix is initialized
     as the identity matrix, that is a null matrix except for the diagonal 
     coefficients that are 1.
-    \item null matrix: keyword \texttt{null}; the matrix is initialised 
+    \item null matrix: keyword \kw{null}; the matrix is initialised 
     with zeros.
 \end{enumerate}
 \subsection{3 x 3 orientation matrix}
@@ -325,13 +325,13 @@ As an example, all the following lines define an empty 3 x 1 vector:
     with respect to the global reference frame),
     while the second one describes a rotation of $ \pi/6 $ rad.\ about
     axis 3.
-    \item identity matrix: keyword \texttt{eye}; the identity matrix,
+    \item identity matrix: keyword \kw{eye}; the identity matrix,
     which means there is no rotation with respect to the global reference
     frame.
-    \item a complete orientation matrix: keyword \texttt{matr}
+    \item a complete orientation matrix: keyword \kw{matr}
     followed by the nine, row-oriented, coefficients, namely
     $ r_{11} $, $ r_{12} $, \ldots, $ r_{33} $.
-    \item Euler angles: keyword \texttt{euler}, followed by the three
+    \item Euler angles: keyword \kw{euler}, followed by the three
     values, as output by structural nodes.
 \end{enumerate}
 \subsection{6 x 6 matrices}
@@ -339,7 +339,7 @@ As an example, all the following lines define an empty 3 x 1 vector:
     \item general case: a sequence of 36 reals, comma-separated, that
     represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
     \ldots, $ a_{65} $, $ a_{66} $.
-    \item ANBA format: keyword \texttt{anba}, followed by 36 reals, 
+    \item ANBA format: keyword \kw{anba}, followed by 36 reals, 
     comma-separated, that represent the coefficients of the beam stiffness
     matrix as generated by the code ANBA, namely the following
     transformation is performed:
@@ -351,18 +351,18 @@ As an example, all the following lines define an empty 3 x 1 vector:
 	\item axis $ z $, the beam axis in ANBA notation, 
 	becomes axis 1 in MBDyn notation;    
     \end{itemize}
-    \item symmetric matrix: keyword \texttt{sym}, followed by a sequence
+    \item symmetric matrix: keyword \kw{sym}, followed by a sequence
     of 21 reals, comma-separated, that represents the upper triangle,
     row-oriented coefficients of a symmetric matrix, 
     e.g. $ a_{11} $, \ldots , $ a_{16} $, $ a_{22} $,
     \ldots , $ a_{26} $, \ldots, $ a_{66} $.
-    \item diagonal matrix: keyword \texttt{diag}, followed by a sequence
+    \item diagonal matrix: keyword \kw{diag}, followed by a sequence
     of 6 reals, comma-separated, that represent the diagonal coefficients 
     of a diagonal matrix.
-    \item identity matrix: keyword \texttt{eye}; the matrix is initialized
+    \item identity matrix: keyword \kw{eye}; the matrix is initialized
     as the identity matrix, that is a null matrix except for the diagonal 
     coefficients that are 1.
-    \item null matrix: keyword \texttt{null}; the matrix is initialised 
+    \item null matrix: keyword \kw{null}; the matrix is initialised 
     with zeros.
 \end{enumerate}
 \subsection{6 x N matrices}
@@ -370,7 +370,7 @@ As an example, all the following lines define an empty 3 x 1 vector:
     \item general case: a sequence of 6 x N reals, comma-separated, that
     represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
     \ldots, $ a_{6\plbr{N-1}} $, $ a_{6N} $.
-    \item ANBA format: keyword \texttt{anba}, followed by 6 x N reals,
+    \item ANBA format: keyword \kw{anba}, followed by 6 x N reals,
     comma-separated, that represent the coefficients of the beam stiffness
     matrix as generated by the code ANBA, namely the following
     transformation is performed:
@@ -382,7 +382,7 @@ As an example, all the following lines define an empty 3 x 1 vector:
 	\item axis $ z $, the beam axis in ANBA notation, 
 	becomes axis 1 in MBDyn notation;    
     \end{itemize}
-    \item null matrix: keyword \texttt{null}; the matrix is initialised 
+    \item null matrix: keyword \kw{null}; the matrix is initialised 
     with zeros.
 \end{enumerate}
 
@@ -394,18 +394,18 @@ direct manner, because they are handled directly by the parsing object.
 They are:
 
 \subsection{Include}
-The \texttt{include} directive:
+The \kw{include} directive:
 \begin{verbatim}
     <card> ::= include : " <file_name> " ;
 \end{verbatim}
-where \texttt{file\_name} is a valid filename for the operative system in
+where \kw{file\_name} is a valid filename for the operative system in
 use, that must be enclosed in double quotes (").
 The full (absolute or relative) path must be given if the included file 
 is not in the directory of the including one.
-There is no check for recursive \texttt{include}s, so 
+There is no check for recursive \kw{include}s, so 
 {\bf the user must take care of recursion}.
-The \texttt{include} directive forces the parser to scan the included file
-\texttt{file\_name} before continuing with the including one.
+The \kw{include} directive forces the parser to scan the included file
+\kw{file\_name} before continuing with the including one.
 This is very useful if, for instance, a big model can be made of many
 small models that are meaningful by themselves. It can be used to
 replicate parts of the model, by simply using parametric labels for
@@ -413,22 +413,22 @@ nodes, elements, reference systems, and setting a bias value before
 multiple-including the same bulk data file.
 
 \subsection{Set}
-The \texttt{set} directive:
+The \kw{set} directive:
 \begin{verbatim}
     <card> ::= set : <math_expression> ;
 \end{verbatim}
 This directive simply invokes the math parser to evaluate the expression
-\texttt{math\_expression} and then discards the result. It can be useful
+\kw{math\_expression} and then discards the result. It can be useful
 to declare new variables, or to set the values of existing ones.
 
 \subsection{Remark}
-The \texttt{remark} directive:
+The \kw{remark} directive:
 \begin{verbatim}
     <card> ::= remark : " <remark_string > [ , <math_expression> ] ;
 \end{verbatim}
-This directive simply prints to stdout the string \texttt{remark\_string} and
-optionally evaluates the expression \texttt{math\_expression} in a way that is
-analogous to the \texttt{set} directive.
+This directive simply prints to stdout the string \kw{remark\_string} and
+optionally evaluates the expression \kw{math\_expression} in a way that is
+analogous to the \kw{set} directive.
 It is used to allow rough input debugging, where the file name and line 
 is logged, followed by a message, possibly followed by the evaluation 
 of an expression. 
@@ -438,7 +438,7 @@ Example:
 \end{verbatim}
 
 \subsection{Reference}
-The \texttt{reference} directive:
+The \kw{reference} directive:
 \begin{verbatim}
     <card> ::= reference : <unique_label> , 
                            <absolute_position> ,
@@ -446,17 +446,17 @@ The \texttt{reference} directive:
                            <absolute_velocity> ,
                            <absolute_angular_velocity> ;
 \end{verbatim}
-A \texttt{reference} system is declared and defined.
+A \kw{reference} system is declared and defined.
 It must be given a unique identifier, scanned by the mathparser
 (which means that any regular expression is allowed, and the result is
 rounded up to the nearest unsigned integer).
-The entries \texttt{absolute\_*} are parsed by routines that
+The entries \kw{absolute\_*} are parsed by routines that
 compute absolute (i.e.\ referring to the global frame) entities
 starting from a given entity in a given reference frame.
 These routines are very general, and make intense use of the 
-\texttt{reference} entries themselves, which means that a reference 
+\kw{reference} entries themselves, which means that a reference 
 can be recursively defined by means of previously defined 
-\texttt{reference} entries.
+\kw{reference} entries.
 
 \subsubsection{Use of Reference Frames}
 Every time an absolute or a relative geometric or physical entity is
@@ -480,14 +480,14 @@ The caller always supplies the routines a default reference structure
 the input must be referred to.
 So, depending on the caller, the entry can be in the following forms:
 \begin{enumerate}
-    \item \texttt{<entity>}: \\ 
+    \item \kw{entity}: \\ 
     the entry is in the default reference frame
-    \item \texttt{reference , <reference\_type> , <entity>}: \\
-    the entry is in \texttt{reference\_type} reference frame, 
-    that is one of \texttt{global}, 
-    \texttt{node} or \texttt{local}.
-    \item \texttt{reference , <reference\_number> , <entity>}: \\
-    the entry is in \texttt{reference reference\_number} reference frame. 
+    \item \kw{reference , <reference\_type> , <entity>}: \\
+    the entry is in \kw{reference\_type} reference frame, 
+    that is one of \kw{global}, 
+    \kw{node} or \kw{local}.
+    \item \kw{reference , <reference\_number> , <entity>}: \\
+    the entry is in \kw{reference reference\_number} reference frame. 
     This reference frame must be already defined. 
     % By default, the global reference frame has number 1, so it can't be redefined.    
 \end{enumerate}
@@ -511,11 +511,11 @@ Examples:
 Notes: 
 \begin{itemize}
     \item the global reference frame has position $ \cubr{0, 0, 0} $,
-    orientation matrix \texttt{eye}, velocity $ \cubr{0, 0, 0} $ and angular
+    orientation matrix \kw{eye}, velocity $ \cubr{0, 0, 0} $ and angular
     velocity $ \cubr{0, 0, 0} $.
     \item if the caller is not related to a node, the reference type
-    \texttt{node} shouldn't be defined. 
-    In this case it is considered equivalent to \texttt{local}.
+    \kw{node} shouldn't be defined. 
+    In this case it is considered equivalent to \kw{local}.
     \item when processing a velocity or an angular velocity, the resulting
     value always accounts for the velocity and angular velocity of the frame
     the entry is referred to. 
@@ -568,16 +568,16 @@ Notes:
 
 
 \subsection{Hydraulic fluid}\label{sec:HYDRAULIC-FLUID}
-The \texttt{hydraulic fluid} directive:
+The \kw{hydraulic fluid} directive:
 \begin{verbatim}
     <card> ::= hydraulic fluid : <unique_label> , 
                                  <fluid_type> , <fluid_properties> ;
 \end{verbatim}
-A \texttt{hydraulic fluid} is declared and defined.
+A \kw{hydraulic fluid} is declared and defined.
 It is stored for later retrieval to be used in hydraulic elements,
 see Section~\ref{sec:HYDRAULIC-ELEMENT}.
 The fluid is identified by a numerical label. 
-The \texttt{fluid\_type}s, with the related \texttt{fluid\_properties}, are:
+The \kw{fluid\_type}s, with the related \kw{fluid\_properties}, are:
 
 \subsubsection{Uncompressible}
 \begin{verbatim}
@@ -641,7 +641,7 @@ according to equation
                            [ viscosity , <viscosity> , ]
                            <psat>
 \end{verbatim}
-where \texttt{psat} is the saturation pressure, according to equation
+where \kw{psat} is the saturation pressure, according to equation
 \begin{displaymath}
 	\matr{ll}{
 		\rho \ = \ \rho_0 \e{\cfrac{p-p_0}{\beta}} &
@@ -671,16 +671,16 @@ follows:
                     [ , { algebraic | differential } ]
 \end{verbatim}
 In case an algebraic node is addressed (e.g.\ a pressure node), 
-the \texttt{dof\_order} field is not required.
+the \kw{dof\_order} field is not required.
 The label and the type of the node are used to track the pointer to the
 desired node. 
-If the node is not scalar, the \texttt{dof\_number} field is required.
+If the node is not scalar, the \kw{dof\_number} field is required.
 Finally, the order of the degree of freedom is checked, if required.
-It must be one of \texttt{algebraic} or \texttt{differential}.
-If the \texttt{dof\_number} degree of freedom is differential, both
+It must be one of \kw{algebraic} or \kw{differential}.
+If the \kw{dof\_number} degree of freedom is differential, both
 of them can be addressed, while in case of an algebraic node there is no
-choice, only the \texttt{algebraic} order can be addressed.
-The \texttt{dof\_number} must range between 1 and the number of {\em dof}s that
+choice, only the \kw{algebraic} order can be addressed.
+The \kw{dof\_number} must range between 1 and the number of {\em dof}s that
 belong to the node.
 The second choice is used in those cases where the order is not meaningful,
 as for instance when the node is used to address an equation (abstract
@@ -691,19 +691,19 @@ of the order of the degree of freedom.
 \section{Drives and Drive Callers}\label{sec:DRIVES}
 Everytime some entity can be ``driven'', i.e.\ a value can be
 expressed as depedent on some ``external'' input, an object of the class 
-\texttt{DriveCaller} is used. 
-The family of the \texttt{DriveCaller} object is very large, 
+\kw{DriveCaller} is used. 
+The family of the \kw{DriveCaller} object is very large, 
 and should require a dedicated chapter.
-The type of the \texttt{DriveCaller} is declared as follows:
+The type of the \kw{DriveCaller} is declared as follows:
 \begin{verbatim}
     <drive_caller> ::= <drive_caller_type> , <arglist>
 \end{verbatim}    
-where \texttt{arglist} is a comma-separated list of arguments.
-As an exception, a constant \texttt{DriveCaller} (that behaves exactly as a
+where \kw{arglist} is a comma-separated list of arguments.
+As an exception, a constant \kw{DriveCaller} (that behaves exactly as a
 numerical constant with little or no overhead depending on the optimizing
 capability of the compiler) is assumed when a numeric value is used instead
 of a keyword.
-The \texttt{DriveCaller} types are:
+The \kw{DriveCaller} types are:
 
 \subsection{Drives}
 
@@ -723,7 +723,7 @@ Always 1.
 \begin{verbatim}
     <drive_caller> ::= [ const , ] <const_coef>                    
 \end{verbatim}
-The keyword \texttt{const} can be omitted thus highlighting the real nature
+The keyword \kw{const} can be omitted thus highlighting the real nature
 of this driver, that is completely equivalent to a constant, static real
 value.
 
@@ -806,20 +806,20 @@ Linear interpolation between pairs is used.
                               <number_of_cycles> , 
                               <initial_value>
 \end{verbatim}
-the value of \texttt{number\_of\_cycles} determines the behavior of the
+the value of \kw{number\_of\_cycles} determines the behavior of the
 drive. 
-If it is positive, \texttt{number\_of\_cycles}$-1/2$ oscillations are
+If it is positive, \kw{number\_of\_cycles}$-1/2$ oscillations are
 performed. 
 If it is equal to zero, the oscillations never end. 
 If it is negative, the oscillations end after 
-\texttt{number\_of\_cycles}$-3/4$ cycles at the top of the sine, with null
+\kw{number\_of\_cycles}$-3/4$ cycles at the top of the sine, with null
 tangent.
-Special keywords can be used for \texttt{number\_of\_cycles}:
+Special keywords can be used for \kw{number\_of\_cycles}:
 \begin{itemize}
-	\item \texttt{forever}, which means the oscillation never stops;
-	\item \texttt{one}, which means exactly one cycle is performed;
-	\item \texttt{half}, which means exactly half cycle is performed,
-	so the function stops at \texttt{amplitude} + \texttt{initial\_value}.
+	\item \kw{forever}, which means the oscillation never stops;
+	\item \kw{one}, which means exactly one cycle is performed;
+	\item \kw{half}, which means exactly half cycle is performed,
+	so the function stops at \kw{amplitude} + \kw{initial\_value}.
 \end{itemize}
 
 \subsubsection{Cosine drive}
@@ -831,19 +831,19 @@ Special keywords can be used for \texttt{number\_of\_cycles}:
                                 <initial_value>
 \end{verbatim}
 this drive actually computes a function of the type $ 1-\llk{cos}\plbr{x} $.
-The value of \texttt{number\_of\_cycles} determines the behavior of the
+The value of \kw{number\_of\_cycles} determines the behavior of the
 drive. 
-If it is positive, \texttt{number\_of\_cycles} oscillations are
+If it is positive, \kw{number\_of\_cycles} oscillations are
 performed. If it is equal to zero, the oscillations never end. 
 If it is negative, the oscillations end after
-\texttt{number\_of\_cycles}$-1/2$ cycles at the top of the cosine, with null
+\kw{number\_of\_cycles}$-1/2$ cycles at the top of the cosine, with null
 tangent.   
-Special keywords can be used for \texttt{number\_of\_cycles}:
+Special keywords can be used for \kw{number\_of\_cycles}:
 \begin{itemize}
-	\item \texttt{forever}, which means the oscillation never stops;
-	\item \texttt{one}, which means exactly one cycle is performed;
-	\item \texttt{half}, which means exactly half cycle is performed,
-	so the function stops at \texttt{amplitude} + \texttt{initial\_value}.
+	\item \kw{forever}, which means the oscillation never stops;
+	\item \kw{one}, which means exactly one cycle is performed;
+	\item \kw{half}, which means exactly half cycle is performed,
+	so the function stops at \kw{amplitude} + \kw{initial\_value}.
 \end{itemize}
 
 \subsubsection{Frequency sweep drive}
@@ -875,11 +875,11 @@ and the amplitude of the oscillation. Any drive can be used.
                        [ , steps , <steps_to_hold_value>]
                        [ , seed , { time | <seed_value>} ]
 \end{verbatim}
-the first optional entry, preceeded by the keyword \texttt{steps}, sets the
+the first optional entry, preceeded by the keyword \kw{steps}, sets the
 number of steps a random value must be held before generating a new
 random number. The second optional entry, preceeded by the keyword
-\texttt{seed}, sets the new seed for the random number generator. A numeric
-value can be used, or the keyword \texttt{time} uses the current time from
+\kw{seed}, sets the new seed for the random number generator. A numeric
+value can be used, or the keyword \kw{time} uses the current time from
 the internal clock. A given seed can be used to ensure that two
 simulations use exactly the same random sequency (concurrent settings 
 are not managed, so it is not very reliable).
@@ -888,30 +888,30 @@ are not managed, so it is not very reliable).
 A family of file drivers is being planned.
 At present only a multiple-valued, constant time-step file drive is
 implemented.
-The \texttt{DriveCaller} is attached to a file drive object that must be declared
-and defined in the \htmlref{\texttt{drivers}}{sec:DRIVERS} section 
+The \kw{DriveCaller} is attached to a file drive object that must be declared
+and defined in the \htmlref{\kw{drivers}}{sec:DRIVERS} section 
 of the input file (see Section~\ref{sec:DRIVERS}).
 \begin{verbatim}
     <drive_caller> ::= file , <drive_label> [ , <column_number> ]
                               [ , amplitude , <amplitude> ]
 \end{verbatim}
-\texttt{drive\_label} is the label of the \htmlref{\texttt{drive}}{sec:DRIVES} 
-the \texttt{DriveCaller} is attached to, while
-\texttt{column\_number} is the number of the column the \texttt{DriveCaller}
+\kw{drive\_label} is the label of the \htmlref{\kw{drive}}{sec:DRIVES} 
+the \kw{DriveCaller} is attached to, while
+\kw{column\_number} is the number of the column the \kw{DriveCaller}
 refers to (defaults to 1).
-An additional scaling factor \texttt{amplitude} can be used to rescale
+An additional scaling factor \kw{amplitude} can be used to rescale
 the drive value (defaults to 1.0).
 
 \subsubsection{String drive}
 \begin{verbatim}
     <drive_caller> ::= string , " <expression_string> "
 \end{verbatim}
-\texttt{expression\_string} is a string, delimited by double quotes.
+\kw{expression\_string} is a string, delimited by double quotes.
 It is parsed by the math parser every time 
-the \htmlref{\texttt{drive}}{sec:DRIVES} is invoked.
-The valiable \texttt{Time} is kept up to date and can be used in the 
+the \htmlref{\kw{drive}}{sec:DRIVES} is invoked.
+The valiable \kw{Time} is kept up to date and can be used in the 
 string to compute the return value.
-Another variable, \texttt{Var}, is set to the value provided by the caller
+Another variable, \kw{Var}, is set to the value provided by the caller
 in case the drive is called with an explicit argument as, for instance,
 in the \hyperref{dof drive}{dof drive (see Section~}{)}{sec:DOF-DRIVE-CALLER};
 e.g.:
@@ -926,12 +926,12 @@ generates a cosine modulated by an exponential.
     <drive_caller> ::= dof , (node_dof) <driving_dof> ,
                              (drive_caller) <func_drive>
 \end{verbatim}
-a \hyperref{\texttt{node\_dof}}{\texttt{node\_dof} (see Section~}{)}{sec:node_dof}, 
+a \hyperref{\kw{node\_dof}}{\kw{node\_dof} (see Section~}{)}{sec:node_dof}, 
 namely the reference to a degree of freedom of a node, is read. 
 Then a recursive call to a drive data is read. 
-The driver returns the value of the \texttt{func\_drive} 
-\htmlref{\texttt{drive}}{sec:DRIVES} using the value of the 
-\htmlref{\texttt{node\_dof}}{sec:node_dof} as input instead of the time. 
+The driver returns the value of the \kw{func\_drive} 
+\htmlref{\kw{drive}}{sec:DRIVES} using the value of the 
+\htmlref{\kw{node\_dof}}{sec:node_dof} as input instead of the time. 
 This can be used as a sort of explicit feedback, to implement fancy
 springs (where a force is driven through a function by the displacement
 of the node it is applied to) or an active control system; e.g.:
@@ -949,7 +949,7 @@ and unit linear coefficient, while
 uses the value of the derivative of abstract node 1000 in computing 
 a string expression.
 Refer to the description of a 
-\hyperref{\texttt{node\_dof}}{\texttt{node\_dof} (see Section~}{)}{sec:node_dof}
+\hyperref{\kw{node\_dof}}{\kw{node\_dof} (see Section~}{)}{sec:node_dof}
 entry for further details.
 
 \subsubsection{Array drive}
@@ -958,21 +958,21 @@ entry for further details.
                                <drive_caller> 
                                [ , <drive_caller> [ , ... ] ]
 \end{verbatim}
-this is simply a front-end for the linear combination of \texttt{num\_drives} 
-normal drives; \texttt{num\_drives} must be at least 1, in which case 
+this is simply a front-end for the linear combination of \kw{num\_drives} 
+normal drives; \kw{num\_drives} must be at least 1, in which case 
 a simple drive caller is created, otherwise an array of drive callers 
 is created and at every call their value is added to give 
 the final value of the array drive.
 
 
 \subsection{Template drive}\label{sec:TPL-DRIVES}
-A particular \texttt{DriveCaller} is the template drive caller. This is made
+A particular \kw{DriveCaller} is the template drive caller. This is made
 of a constant entity that multiplies a conventional 
-\hyperref{\texttt{drive}}{\texttt{drive} (see Section~}{)}{sec:DRIVES} to give a drive
-entity of dimensionality different from that of a simple scalar \texttt{drive}.
-there are two types of template drive callers, the \texttt{single} template 
-drive caller and the \texttt{array} template drive caller, 
-that is nothing but the sum of an array of \texttt{single}
+\hyperref{\kw{drive}}{\kw{drive} (see Section~}{)}{sec:DRIVES} to give a drive
+entity of dimensionality different from that of a simple scalar \kw{drive}.
+there are two types of template drive callers, the \kw{single} template 
+drive caller and the \kw{array} template drive caller, 
+that is nothing but the sum of an array of \kw{single}
 template drive callers. 
 They are entered as follows:
 \begin{verbatim}
@@ -984,44 +984,44 @@ They are entered as follows:
                     [ , <entity> , <drive_caller> [ , ... ] ]
         }
 \end{verbatim}
-where \texttt{<entity>} is a constant of the expected type (scalar, 3 x 1 vector,
+where \kw{entity} is a constant of the expected type (scalar, 3 x 1 vector,
 6 x 1 vector are the types currently defined, but, since a C++ template has
 been used, the implementation of other ones is straightforward). In case of
 scalar values, the template reverts by default to a normal drive caller,
 such that no overhead is added.
 At least 1 drive caller is expected. 
-If \texttt{num\_template\_drive\_callers} is exactly 1, only a single
+If \kw{num\_template\_drive\_callers} is exactly 1, only a single
 template drive caller is actually costructed, thus avoiding the overhead 
 related to the handling of the drive caller array.    
 
 
 
 \section{Shapes}
-The \texttt{shape} entities are objects that return a value depending on one
+The \kw{shape} entities are objects that return a value depending on one
 (or two, for 2D shapes) dimensionless abscissa, ranging $ \sqbr{-1,1} $.
 At present, only 1D shapes are used, by aerodynamic elements.
-A \texttt{shape} input format is:
+A \kw{shape} input format is:
 \begin{verbatim}
     <shape_1D> ::= <shape_type> , <shape_arglist>
 \end{verbatim}
 The shapes currently available are:
 \begin{enumerate}
-    \item \texttt{const}
+    \item \kw{const}
     \begin{verbatim}
     <shape_arglist> ::= <const_value>
     \end{verbatim}
-    \item \texttt{linear}
+    \item \kw{linear}
     \begin{verbatim}
     <shape_arglist> ::= <value_at_-1> , 
                         <value_at_1>
     \end{verbatim}
-    \item \texttt{piecewise linear}
+    \item \kw{piecewise linear}
     \begin{verbatim}
     <shape_arglist> ::= <number_of_points> , 
                         <abscissa> , <value>
                         [ , ... ]
     \end{verbatim}
-    \item \texttt{parabolic}
+    \item \kw{parabolic}
     \begin{verbatim}
     <shape_arglist> ::= <value_at_-1> , 
                         <value_at_0> , 
@@ -1031,8 +1031,8 @@ The shapes currently available are:
 This form of input has been chosen since, being the shapes mainly used to
 interpolate values, it looks more ``natural'' to insert the mapping values
 at characteristic points.
-For \texttt{piecewise linear} shapes, there must be 
-\texttt{number\_of\_points} pairs of absciss\ae\ and values; absciss\ae\
+For \kw{piecewise linear} shapes, there must be 
+\kw{number\_of\_points} pairs of absciss\ae\ and values; absciss\ae\
 must be in the range $\sqbr{-1,1}$, in strict ascending order.
 
 
@@ -1040,10 +1040,10 @@ must be in the range $\sqbr{-1,1}$, in strict ascending order.
 Everytime a ``deformable'' entity requires a constitutive law, a template
 constitutive law is read. This has been implemented by means of the C++
 templates in order to allow the definition of a general constitutive law
-when possible. The ``deformable elements at present are \texttt{rod}s, 1D,
-\texttt{deformable hinge}s and \texttt{deformable displacement hinge}s, 3D,  
-and \texttt{beam}s, 6D.
-The \texttt{beam} element that uses the 6D template constitutive law has not been
+when possible. The ``deformable elements at present are \kw{rod}s, 1D,
+\kw{deformable hinge}s and \kw{deformable displacement hinge}s, 3D,  
+and \kw{beam}s, 6D.
+The \kw{beam} element that uses the 6D template constitutive law has not been
 implemented yet.
 Some constitutive laws are meaningful only when related to some precise
 dimension. 
@@ -1086,8 +1086,8 @@ The contitutive laws are entered as follows:
     <specific_const_law> ::= <const_law_name> , 
                              <const_law_data>
 \end{verbatim}
-where \texttt{const\_law\_name} is the name of the constitutive law and
-\texttt{const\_law\_data} depend on the specific constitutive law. 
+where \kw{const\_law\_name} is the name of the constitutive law and
+\kw{const\_law\_data} depend on the specific constitutive law. 
 The following fields, the type of which depends on the dimension of the
 constitutive law, usually are optional, under the assumption that the
 constitutive law is the last field in a card or that any ambiguity can be
@@ -1122,7 +1122,7 @@ n x 1 vectors, the type is the corrisponding n x n matrix.
 this is defined only for 6 x 1 vectors, where the torsion stiffness,
 coefficient $ a_{44} $ in the stiffness matrix, depends linearly on 
 the axial strain, $ \varepsilon_1 $, by means of 
-\texttt{coupling\_coefficient}.
+\kw{coupling\_coefficient}.
   
 \subsubsection{Log elastic}
 \begin{verbatim}
@@ -1131,7 +1131,7 @@ the axial strain, $ \varepsilon_1 $, by means of
 \end{verbatim}
 this is defined only for scalars. The force is defined as:
 \begin{displaymath}
-    f \ = \ \texttt{stiffness} \ \llk{log}\plbr{1+\varepsilon}
+    f \ = \ \kw{stiffness} \ \llk{log}\plbr{1+\varepsilon}
 \end{displaymath}
   
 \subsubsection{Linear elastic bi-stop generic}
@@ -1154,7 +1154,7 @@ this is defined only for scalars. The force is defined as:
 this is defined for scalar and 3 x 1 vectors. In the scalar case the
 meaning of the entries is straightforward, while in case of 3 x 1 vectors,
 the constitutive law is isotropic but in the local direction 3, where, in
-case of strain out of the upper or lower bound, the \texttt{stiffness\_2} is
+case of strain out of the upper or lower bound, the \kw{stiffness\_2} is
 used.
 
 \subsubsection{Isotropic hardening elastic}
@@ -1165,15 +1165,15 @@ used.
 \end{verbatim}
 this constitutive law is defined as follows:
 \begin{displaymath}
-    f \ = \ \texttt{stiffness} \ \frac{
+    f \ = \ \kw{stiffness} \ \frac{
         \alpha\shbr{\varepsilon}^2
     }{
         1+\alpha\shbr{\varepsilon}^2
     }\varepsilon
 \end{displaymath}
-where $ \alpha=3/\shbr{\texttt{reference\_strain}}^2 $. The resulting
+where $ \alpha=3/\shbr{\kw{reference\_strain}}^2 $. The resulting
 constitutive law, in the scalar case, is somewhat soft when
-$ \varepsilon $ is smaller than \texttt{reference\_strain}, while it grows to
+$ \varepsilon $ is smaller than \kw{reference\_strain}, while it grows to
 quasi-linear for higher $ \varepsilon$s
 
 \subsubsection{Linear viscous, linear viscous isotropic}
@@ -1225,7 +1225,7 @@ the linear stiffness and viscosity matrices
                              (scalar) <stiffness_2> ,
                              (scalar) <viscosity_coefficient>
 \end{verbatim}
-this is analogous to the \texttt{double linear elastic} constitutive law,
+this is analogous to the \kw{double linear elastic} constitutive law,
 except for the isotropic viscosity term.
   
 \subsubsection{Turbulent viscoelastic}
@@ -1238,21 +1238,21 @@ except for the isotropic viscosity term.
 \end{verbatim}
 the constitutive law has the form:
 \begin{displaymath}
-    f \ = \ \texttt{stiffness} \ \varepsilon + k \ \dot{\varepsilon}
+    f \ = \ \kw{stiffness} \ \varepsilon + k \ \dot{\varepsilon}
 \end{displaymath}
 where:
 \begin{displaymath}
     k = \lcubr{\matr{lcr}{
-        \texttt{linear\_viscous\_coefficient} & & 
-            \shbr{\dot{\varepsilon}} \leq \texttt{treshold} \\
-        \texttt{parabolic\_viscous\_coefficient} & &
-            \shbr{\dot{\varepsilon}} > \texttt{treshold}
+        \kw{linear\_viscous\_coefficient} & & 
+            \shbr{\dot{\varepsilon}} \leq \kw{treshold} \\
+        \kw{parabolic\_viscous\_coefficient} & &
+            \shbr{\dot{\varepsilon}} > \kw{treshold}
     }}
 \end{displaymath}
-if \texttt{treshold} is null, or not defined, the constitutive law is always
-parabolic. If the \texttt{linear\_viscous\_coefficient} is not defined, it is
-computed based on \texttt{parabolic\_viscous\_coefficient} and on 
-\texttt{treshold} to give a continuous force curve (with discontinuous slope).
+if \kw{treshold} is null, or not defined, the constitutive law is always
+parabolic. If the \kw{linear\_viscous\_coefficient} is not defined, it is
+computed based on \kw{parabolic\_viscous\_coefficient} and on 
+\kw{treshold} to give a continuous force curve (with discontinuous slope).
 Otherwise, it can be set by the user to give a discontinuous force curve,
 as observed in some fluids at intermediate Reynolds number.
 
@@ -1305,7 +1305,7 @@ Available methods:
         user , " <user_name> " ,
         credentials , { prompt | " <user_cred> " }
 \end{verbatim}
-In case the keyword \texttt{prompt} is given as credentials, the user is
+In case the keyword \kw{prompt} is given as credentials, the user is
 prompted for a password.
 
 \subsubsection{PAM (Pluggable Authentication Modules)}
@@ -1316,21 +1316,21 @@ prompted for a password.
 The {\em Linux-PAM} Pluggable Authentication Modules can be used to
 authenticate a user. 
 If no user name is provided, the effective user id, as proovided by the 
-\texttt{geteuid()} system function, is used to retrieve the username of the
+\kw{geteuid()} system function, is used to retrieve the username of the
 owner of mbdyn process.
-the \texttt{user} nust be valid. 
-The authentication is performed through a system-dependent \texttt{pam}
+the \kw{user} nust be valid. 
+The authentication is performed through a system-dependent \kw{pam}
 configuration file.
 No checks on the validity of the account or on the permission of opening a
 session are made; account, session and password changes should be explicitly
-denied to \texttt{mbdyn} to avoid possible security breaks (see the following
+denied to \kw{mbdyn} to avoid possible security breaks (see the following
 example).
 The interested reader should consult the documentation that comes with the
 package, try for instance
 \begin{verbatim}
     http://parc.power.net/morgan/Linux-PAM/index.html
 \end{verbatim}
-An example is provided with the pachage, in  \texttt{/etc/pam.d/mbdyn}, reading:
+An example is provided with the pachage, in  \kw{/etc/pam.d/mbdyn}, reading:
 \begin{verbatim}
     ### use either of the following:
     auth       required     /lib/security/pam_unix_auth.so
@@ -1341,7 +1341,7 @@ An example is provided with the pachage, in  \texttt{/etc/pam.d/mbdyn}, reading:
     session    required     /lib/security/pam_deny.so
     password   required     /lib/security/pam_deny.so
 \end{verbatim}
-which allows authentication by using standard Un*x or \texttt{libpwdb} based
+which allows authentication by using standard Un*x or \kw{libpwdb} based
 authentication.
 
 
@@ -1356,16 +1356,16 @@ Finally there are some miscellaneous points:
   
     \begin{enumerate}
   
-        \item \texttt{MBDYNVARS=<expr\_list>}
-	where \texttt{expr\_list} is a series of mathematical expressions
+        \item \kw{MBDYNVARS=<expr\_list>}
+	where \kw{expr\_list} is a series of mathematical expressions
 	separated by semicolons. 
 	They are parsed and evaluated; if variables are declared, they are
 	added to the symbol table to be used during the whole execution 
 	of the program.
     
-        \item \texttt{MBDYN\_<type>\_<name>=<value>},
-	where \texttt{type} is a legal mbdyn type (\texttt{integer} or \texttt{real}),
-	\texttt{name} is a legal symbol name and \texttt{value} is a legal
+        \item \kw{MBDYN\_<type>\_<name>=<value>},
+	where \kw{type} is a legal mbdyn type (\kw{integer} or \kw{real}),
+	\kw{name} is a legal symbol name and \kw{value} is a legal
 	mathematical expression.
     
     \end{enumerate}
@@ -1373,7 +1373,7 @@ Finally there are some miscellaneous points:
     \item Newlines and indentations are not meaningful. But good indentation
     habits can lead to better and more readable input files.
     
-    \item Everything that follows the character \texttt{`\#'} is considered a
+    \item Everything that follows the character \kw{`\#'} is considered a
     remark, and is discarded until the end of the line. 
     This can occur everywhere in the file, even inside a math expression 
     (if any problems occur, please let me know, because chances are 
@@ -1395,7 +1395,7 @@ Finally there are some miscellaneous points:
     or \verb1~user/filename1 is automatically resolved if legal [user and]
     filename values are inserted.
 
-    \item The \texttt{license} and the \texttt{warranty} commands
+    \item The \kw{license} and the \kw{warranty} commands
     respectively show the license and the warranty statement under 
     which the code is released on the standard output.
     They do not affect the simulation.
