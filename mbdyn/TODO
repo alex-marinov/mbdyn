@@ -113,7 +113,7 @@ D. Code:
 	- merge tool to generate ADAMS/View .cmd models from raw output
 		(Gian Luca Ghiringhelli is working at it)
 	- add piecewise linear or other simple generic elastic constitutive
-		laws
+		laws (Aakash Dalwani is working at it)
 	- allow runtime load of constitutive laws
 	- allow runtime load of drive callers
 	- generate a binary form of the .fem data for the modal element
