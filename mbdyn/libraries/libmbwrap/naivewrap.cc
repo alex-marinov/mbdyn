@@ -219,12 +219,6 @@ NaiveSparsePermSolutionManager::MatrReset(void)
 	} else {
 		CCReady = true;
 		Ac->Reset();
-		if (pLS) {
-			SAFEDELETE(pLS);
-		}
-		SAFENEWWITHCONSTRUCTOR(pLS, 
-			NaiveSolver, 
-			NaiveSolver(Ac->iGetNumCols(), dMinPiv, Ac));
 
 		pLS->ChangeResPoint(VH.pdGetVec());
 		pLS->ChangeSolPoint(XH.pdGetVec());
