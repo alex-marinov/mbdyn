@@ -235,6 +235,9 @@ BEGIN {
 	strnode_num = 0;
 	beam2_num = 0;
 	beam3_num = 0;
+	aero0_num = 0;
+	aero2_num = 0;
+	aero3_num = 0;
 
 	Preamble = 1;
 	Node = 0;
