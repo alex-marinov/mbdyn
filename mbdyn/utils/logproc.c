@@ -36,10 +36,11 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_RTAI
-
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef USE_RTAI
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/user.h>
