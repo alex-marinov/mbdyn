@@ -33,6 +33,7 @@
 ${SH_CXXCOMPILE} -DINTEGER_TEST -o integertest.o integertest.cc >/dev/null 2>&1
 if test "$?" != 0 ; then
 	# echo "integertest: sizeof(integer) == sizeof(int)"
+	rm -f integertest.o
 	exit 0
 fi
 
@@ -42,6 +43,7 @@ if test "$?" != 0 ; then
 	echo "         ###################################"
 	echo "         ### unable to link integertest! ###"
 	echo "         ###################################"
+	rm -f integertest.o
 	exit 0
 fi
 
@@ -51,7 +53,9 @@ if test "$?" != 0 ; then
 	echo "         ###############################################"
 	echo "         ### WARNING: sizeof(integer) != sizeof(int) ###"
 	echo "         ###############################################"
+	rm -f integertest.o
 	exit 0
 fi
 
+rm -f integertest.o
 exit 0
