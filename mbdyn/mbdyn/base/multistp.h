@@ -67,12 +67,13 @@
 class PODMat {
  
        doublereal* A;
-       int Rows, Cols;
-       bool bOutput;
+       unsigned long Rows, Cols, Cnt;
+       mutable bool bOutput;
  
  public:
  
-       PODMat(int rows, int cols): Rows(rows), Cols(cols), bOutput(false) {
+       PODMat(unsigned long rows, unsigned long cols)
+       : Rows(rows), Cols(cols), Cnt(0), bOutput(false) {
                SAFENEWARR(A, doublereal, rows*cols);
        };
  
@@ -83,20 +84,27 @@ class PODMat {
                SAFEDELETEARR(A);
        }
  
-       void AddTVec(VectorHandler* Vec, int pos) {
-               for (int i = 0; i < Rows; i++) {
-                       A[i+pos*Rows] = Vec->dGetCoef(i+1);
+       void AddTVec(VectorHandler* Vec, unsigned long pos) {
+	       doublereal *d = A + pos*Rows;
+               for (unsigned long i = 0; i < Rows; i++) {
+                       d[i] = Vec->dGetCoef(i+1);
                }
+	       Cnt++;
        };
  
-       void Output(void) {
-               std::ofstream out;
-               out.open("mbdyn.POD");
+       void Output(void) const {
+	       if (Cnt < Cols) {
+		       pedantic_cout("warning, only " << Cnt 
+				       << " out of " << Cols
+				       << " frames computed" << std::endl);
+	       }
+
+               std::ofstream out("mbdyn.POD");
 #ifdef __HACK_POD_BINARY__
 	       out.write((char *)A, Cols*Rows*sizeof(doublereal));
 #else /* !__HACK_POD_BINARY__ */
 	       doublereal *d = A;
-               for (int i = 0; i < Cols; i++) {         
+               for (int i = 0; i < Cnt; i++) {         
                        out << d[0];
                        for (int j = 1; j < Rows; j++) {
                                out << "  " << d[j];
@@ -109,7 +117,7 @@ class PODMat {
 
 	       bOutput = true;
        };
-};     
+};
         
 #endif /* __HACK_POD__ */
 
