@@ -20,6 +20,7 @@ MBDyn 1.1-Engineering
 	Bug fixes:
 		- fixed SIGSEGV when reading from stdin
 		- fixed SIGSEGV when including nonexisting file
+		- fix c81 data curve slope computation
 
 MBDyn 1.1.2
 	Enhancements:
