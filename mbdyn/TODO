@@ -12,11 +12,8 @@ A. Configuration:
 
 	- test for '_' appended to F77 symbols
 	- eliminate horrible blank lines in '--with-*'
-	- check the 'getopt' stuff in program, utils and contrib
 	- audit all the suite for not-so-GNU systems
 	- add test for crypt and put auth code in ifdefs & --with
-	- redesign configure.in for meschach (there's a conflict
-		when checking for u_int and so)
 	- add test for pow_dd stuff (might be needed by fortran code)
 	- fix missing -lcrypt on some systems when configuring with pam
 
@@ -25,14 +22,7 @@ A. Configuration:
 B. Package:
 
 	- make compliant to GNU style
-	- add license, copyright and disclaimer
 	- make 'make dist' work
-	- clear out harwell stuff; leave the harwrap expecting
-		libharwell.a to exist in the library path
-	- clear out y12 stuff; make a separate (contrib?) package 
-		as standard as possible, deparately downloadable
-	- make a separate (contrib?) package of patched meschach
-	- clear out proprietary modules (matmo), tests and data
 
 
 
@@ -62,5 +52,5 @@ D. Code:
 
 E. Bugs/missing features:
 
-	- check for nested /* */ comments
+	- check for nested /* */ comments in parsers
 
