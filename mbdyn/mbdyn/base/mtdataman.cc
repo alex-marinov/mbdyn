@@ -44,6 +44,15 @@ extern "C" {
 #ifdef HAVE_SCHED_H
 #include <sched.h>
 #endif /* HAVE_SCHED_H */
+
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <stdio.h>
+
+
 }
 
 #include "mtdataman.h"
@@ -237,6 +246,17 @@ MultiThreadDataManager::thread(void *p)
 	sigaddset(&newset, SIGINT);
 	sigaddset(&newset, SIGHUP);
 	pthread_sigmask(SIG_BLOCK, &newset, /* &oldset */ NULL);
+
+
+	do {
+		int fd;
+		fd = open("/dev/TASK2CPU",O_RDWR);
+		if (fd <= 0) {
+			silent_cerr("Error opening /dev/TASK2CPU" << std::endl);
+		}
+		ioctl(fd, 0, arg->threadNumber);
+		close(fd);
+	} while(false);
 
 	while (bKeepGoing) {
 		/* stop here until told to start */
@@ -446,6 +466,17 @@ MultiThreadDataManager::ThreadSpawn(void)
 			throw ErrGeneric();
 		}
 	}
+	
+	do {
+		int fd;
+		fd = open("/dev/TASK2CPU",O_RDWR);
+		if (fd <= 0) {
+			silent_cerr("Error opening /dev/TASK2CPU" << std::endl);
+		}
+		ioctl(fd, 0, 0);
+		close(fd);
+	} while(false);
+
 }
 
 void
