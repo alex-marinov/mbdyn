@@ -15,6 +15,8 @@ MBDyn 1.X-Engineering
 		- added "ad hoc" (Radau IIA) third-order integrator
 		- honor describe dofs directive in initial assembly
 		- added support for describing equations
+		- added support for namespaces in math parser
+		- added distance() function between nodes to math parser
 	Backward compatibility issues:
 		- "output file name" statement in "control data"
 		  is no longer supported
@@ -30,7 +32,7 @@ MBDyn 1.X-Engineering
 		- fixed output file name handling (scalar and parallel)
 		- fixed modal inertia matrix computation
 
-MBDyn 1.2-Engineering
+MBDyn 1.2.1
 	Enhancements:
 		- added provisions for detailed dof stats
 		- added linear and angular acceleration to dynamic
