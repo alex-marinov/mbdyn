@@ -38,12 +38,18 @@ dnl You should have received a copy of the GNU General Public License
 dnl along with this program; if not, write to the Free Software
 dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 dnl
+dnl *************************************************************************
 dnl *** Borrowed from:
 dnl
 dnl Copyright 1998-2000 The OpenLDAP Foundation,  All Rights Reserved.
 dnl COPYING RESTRICTIONS APPLY, See COPYRIGHT file
 dnl
 dnl OpenLDAP Autoconf Macros
+dnl
+dnl *************************************************************************
+dnl Note: the above reported Copyright statement refers to the COPYRIGHT
+dnl file distributed with OpenLDAP suite; see http://www.openldap.org 
+dnl for details
 dnl
 divert(-1)
 builtin(include, build/mbdyn.m4)dnl
