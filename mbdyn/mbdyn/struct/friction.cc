@@ -226,6 +226,7 @@ void ModLugreFriction::AssJac(
 		alphad_v(z,v)*v*z/fsc*sigma0-
 		alph*z/fsc*sigma0+
 		alph*v*z/(fsc*fsc)*fsd(v)*sigma0);
+//	std::cout << alphad_z(z,v) << std::endl;
 /*
  * 	callback: dfc[] = df/d{F,v,(z+dCoef,zp)}
  */
@@ -322,7 +323,7 @@ void DiscreteCoulombFriction::AssRes(
 // 	std::cerr << "Attrito: " << f << " " << std::fabs(std::fabs(f)-fss(0))/fss(0) << " - " << std::endl;
 // 	std::cerr << "Attrito: " << f << " " << std::fabs(f)/fss(0) << " - " << std::endl;
 // 	if ((std::fabs(std::fabs(f)-fss(0))/fss(0) > 1.0E-6)) {
-	if (std::fabs(f)/fss(0) > 1.0) {
+	if (std::fabs(f)-fss(0) > 1.0E-6*fss(0)) {
 		//unconditionally switch to sliding
 		if (status == sticked) {
 			transition_type = from_sticked_to_sliding;
