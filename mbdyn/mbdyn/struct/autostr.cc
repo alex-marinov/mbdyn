@@ -40,7 +40,7 @@
 /* Costruttore */
 AutomaticStructElem::AutomaticStructElem(const DynamicStructNode* pN)
 : Elem(pN->GetLabel(), Elem::AUTOMATICSTRUCTURAL, pN->fToBeOutput()), 
-pNode((DynamicStructNode *)pN), Q(0.), G(0.), QP(0.), GP(0.),
+pNode((DynamicStructNode *)pN), B(0.), G(0.), BP(0.), GP(0.),
 m(0.), S(0.), J(0.)
 { 
 	pNode->SetAutoStr(this);
@@ -60,14 +60,29 @@ AutomaticStructElem::ComputeAccelerations(Vec3& XPP, Vec3& WP) const
 	 * or issue error messages */
 	Mat3x3 Jcg = J + Mat3x3(Xcg, S);
 	doublereal dDet = Jcg.dDet();
+	const Vec3& W = pNode->GetWCurr();
+	Vec3 WS = W.Cross(S);
 	if (fabs(dDet) > DBL_EPSILON) {
-		WP = Jcg.Inv(dDet, GP - Xcg.Cross(QP)
-			- pNode->GetWCurr().Cross(G));
+		const Vec3& XP = pNode->GetVCurr();
+
+		WP = Jcg.Inv(dDet, GP - Xcg.Cross(BP)
+			- W.Cross(J*W)
+			+ XP.Cross(WS)
+			+ Xcg.Cross(W.Cross(WS)));
 	} else {
 		WP = Zero3;
 	}
-	XPP = QP/m + Xcg.Cross(WP)
-		- pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(Xcg));
+	XPP = (BP - WP.Cross(S) - W.Cross(WS))/m;
+
+	std::cerr << "==============" << std::endl
+		<< "    m=" << m << " S={" << S << "}" << std::endl
+		<< "    J={" << J << "}" << std::endl
+		<< "    Xcg={" << Xcg << "} dDet=" << dDet << std::endl
+		<< "    Jcg={" << Jcg << "}" << std::endl
+		<< "    W={" << W << "}" << std::endl
+		<< "    B={" << B << "} BP={" << BP << "}" << std::endl
+		<< "    G={" << G << "} GP={" << GP << "}" << std::endl
+		<< "    WP={" << WP << "} XPP={" << XPP << std::endl;
 }
  
 void
@@ -81,12 +96,12 @@ AutomaticStructElem::AddInertia(const doublereal& dm, const Vec3& dS,
 
 /* inizializza i dati */
 void 
-AutomaticStructElem::Init(const Vec3& q, const Vec3& g, 
-			  const Vec3& qp, const Vec3& gp)
+AutomaticStructElem::Init(const Vec3& b, const Vec3& g, 
+			  const Vec3& bp, const Vec3& gp)
 {
-   Q = q;
+   B = b;
    G = g;
-   QP = qp;
+   BP = bp;
    GP = gp;
 }
 
@@ -96,9 +111,9 @@ std::ostream&
 AutomaticStructElem::Restart(std::ostream& out) const
 {
    out << "    automatic structural: " << GetLabel() << ", "
-     "reference, global, ", Q.Write(out, ", ") << ", "
+     "reference, global, ", B.Write(out, ", ") << ", "
      "reference, global, ", G.Write(out, ", ") << ", "
-     "reference, global, ", QP.Write(out, ", ") << ", "
+     "reference, global, ", BP.Write(out, ", ") << ", "
      "reference, global, ", GP.Write(out, ", ") << ";" << std::endl;
 
    return out;
@@ -140,7 +155,7 @@ AutomaticStructElem::AssJac(VariableSubMatrixHandler& WorkMat,
 
    WM.PutCross(13, iFirstMomentumIndex+3, iFirstMomentumIndex, 
 		   pNode->GetVCurr()*dCoef);
-   WM.PutCross(19, iFirstMomentumIndex+3, iFirstPositionIndex, -Q);
+   WM.PutCross(19, iFirstMomentumIndex+3, iFirstPositionIndex, -B);
    
    return WorkMat;
 }
@@ -201,26 +216,26 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
    }   
    
    /* Collects data */
-   Q = Vec3(XCurr, iFirstMomentumIndex+1);
-   G = Vec3(XCurr, iFirstMomentumIndex+4);
-   QP = Vec3(XPrimeCurr, iFirstMomentumIndex+1);
-   GP = Vec3(XPrimeCurr, iFirstMomentumIndex+4);
+   B = Vec3(XCurr, iFirstMomentumIndex + 1);
+   G = Vec3(XCurr, iFirstMomentumIndex + 4);
+   BP = Vec3(XPrimeCurr, iFirstMomentumIndex + 1);
+   GP = Vec3(XPrimeCurr, iFirstMomentumIndex + 4);
    
    /*
     * Momentum and momenta moment (about node):
     *
-    * Q = m V + W /\ S
+    * B = m V + W /\ S
     *
     * G = S /\ V + J W
     *
-    * Qp = F
+    * Bp = F
     *
-    * Gp + V /\ Q = M
+    * Gp + V /\ B = M
     */
-   WorkVec.Add(1, Q);
+   WorkVec.Add(1, B);
    WorkVec.Add(4, G);
-   WorkVec.Sub(7, QP);
-   WorkVec.Sub(10, GP + pNode->GetVCurr().Cross(Q));
+   WorkVec.Sub(7, BP);
+   WorkVec.Sub(10, GP + pNode->GetVCurr().Cross(B));
 
    m = 0.;
    S = Zero3;
@@ -236,7 +251,7 @@ AutomaticStructElem::Output(OutputHandler& OH) const
    ASSERT(pNode != NULL);
    if(pNode->fToBeOutput()) {
       OH.Inertia() << std::setw(8) << GetLabel() << " " 
-	<< Q << " " << G << " " << QP << " " << GP << std::endl;
+	<< B << " " << G << " " << BP << " " << GP << std::endl;
    }
 }
 
@@ -248,8 +263,8 @@ AutomaticStructElem::SetValue(VectorHandler& /* X */ , VectorHandler& XP) const
 {
    integer iIndex = pNode->iGetFirstMomentumIndex();
    
-   XP.Put(iIndex + 1, QP);
-   XP.Put(iIndex + 3 + 1, GP);
+   XP.Put(iIndex + 1, BP);
+   XP.Put(iIndex + 4, GP);
 }
 
 /* Dati privati */
@@ -327,13 +342,13 @@ AutomaticStructElem::dGetPrivData(unsigned int i) const
 		if (type) {
 			return GP(i);
 		}
-		return QP(i);
+		return BP(i);
 
 	} else {
 		if (type) {
 			return G(i);
 		}
-		return Q(i);
+		return B(i);
 	}
 }
 

@@ -44,15 +44,15 @@ class AutomaticStructElem : virtual public Elem {
    
  protected:
    mutable DynamicStructNode* pNode;
-   Vec3 Q;
+   Vec3 B;
    Vec3 G;
-   Vec3 QP;
+   Vec3 BP;
    Vec3 GP;
 
    /* Accesso ai suoi dati */
-   virtual inline const Vec3& GetQCurr(void) const { return Q; };
+   virtual inline const Vec3& GetBCurr(void) const { return B; };
    virtual inline const Vec3& GetGCurr(void) const { return G; };     
-   virtual inline const Vec3& GetQPCurr(void) const { return QP; };
+   virtual inline const Vec3& GetBPCurr(void) const { return BP; };
    virtual inline const Vec3& GetGPCurr(void) const { return GP; };   
 
    mutable doublereal m;
@@ -73,7 +73,7 @@ class AutomaticStructElem : virtual public Elem {
    };
    
    /* inizializza i dati */
-   void Init(const Vec3& q, const Vec3& g, const Vec3& qp, const Vec3& gp);
+   void Init(const Vec3& b, const Vec3& g, const Vec3& bp, const Vec3& gp);
 
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;

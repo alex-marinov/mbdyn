@@ -62,7 +62,7 @@ J0(JTmp)
 Vec3 
 Body::GetS_int(void) const
 {
-	return pNode->GetXCurr()*dMass+pNode->GetRCurr()*S0;
+	return pNode->GetXCurr()*dMass + pNode->GetRCurr()*S0;
 }
 
 
@@ -82,10 +82,11 @@ Body::GetJ_int(void) const
 std::ostream& 
 Body::Restart(std::ostream& out) const
 {
-    out << "  body: " << GetLabel() << ", " 
-        << pNode->GetLabel() << ", " << dMass << ", "
-	<< "reference, node, ", Xgc.Write(out, ", ") << ", "
-        << "reference, node, ", (J0 + Mat3x3(S0, Xgc)).Write(out, ", ") << ';' << std::endl;
+	out << "  body: " << GetLabel() << ", " 
+		<< pNode->GetLabel() << ", " << dMass << ", "
+		<< "reference, node, ", Xgc.Write(out, ", ") << ", "
+		<< "reference, node, ", (J0 + Mat3x3(S0, Xgc)).Write(out, ", ") << ";"
+		<< std::endl;
    
     return out;
 }
@@ -169,8 +170,8 @@ Body::AssMats(FullSubMatrixHandler& WMA,
 {
     DEBUGCOUTFNAME("Body::AssMats");
    
-    Vec3 V(pNode->GetVCurr());
-    Vec3 W(pNode->GetWRef());
+    const Vec3& V(pNode->GetVCurr());
+    const Vec3& W(pNode->GetWRef());
    
 #if 0
     /* ci pensa AfterPredict() */
@@ -231,11 +232,11 @@ Body::AssRes(SubVectorHandler& WorkVec,
         WorkVec.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
     }
       
-    Vec3 V(pNode->GetVCurr());
-    Vec3 W(pNode->GetWCurr());
+    const Vec3& V(pNode->GetVCurr());
+    const Vec3& W(pNode->GetWCurr());
    
     /* Aggiorna i suoi dati (saranno pronti anche per AssJac) */
-    Mat3x3 R(pNode->GetRCurr());
+    const Mat3x3& R(pNode->GetRCurr());
     Vec3 STmp = R*S0;
     Mat3x3 JTmp = R*(J0*R.Transpose());
 
@@ -291,7 +292,7 @@ Body::InitialAssJac(VariableSubMatrixHandler& WorkMat,
     /* Prepara matrici e vettori */
    
     /* Velocita' angolare corrente */
-    Vec3 W(pNode->GetWRef());
+    const Vec3& W(pNode->GetWRef());
    
     Vec3 SWedgeW(S.Cross(W));   
     Mat3x3 WWedgeSWedge(-W, S);
@@ -341,11 +342,11 @@ Body::InitialAssRes(SubVectorHandler& WorkVec,
         WorkVec.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
     }
     
-    Vec3 X(pNode->GetXCurr());
-    Vec3 W(pNode->GetWCurr());
+    const Vec3& X(pNode->GetXCurr());
+    const Vec3& W(pNode->GetWCurr());
    
     /* Aggiorna i suoi dati (saranno pronti anche per AssJac) */
-    Mat3x3 R(pNode->GetRCurr());
+    const Mat3x3& R(pNode->GetRCurr());
     Vec3 STmp = R*S0;
     Mat3x3 JTmp = R*J0*R.Transpose();
 
@@ -383,20 +384,20 @@ Body::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
 {
     integer iFirstIndex = pNode->iGetFirstMomentumIndex();
    
-    Vec3 V(pNode->GetVCurr());
-    Vec3 W(pNode->GetWCurr());
-    Mat3x3 R(pNode->GetRCurr());
+    const Vec3& V(pNode->GetVCurr());
+    const Vec3& W(pNode->GetWCurr());
+    const Mat3x3& R(pNode->GetRCurr());
     S = R*S0;  
     J = R*(J0*R.Transpose());
-    X.Add(iFirstIndex+1, V*dMass+W.Cross(S));
-    X.Add(iFirstIndex+4, S.Cross(V)+J*W);
+    X.Add(iFirstIndex + 1, V*dMass + W.Cross(S));
+    X.Add(iFirstIndex + 4, S.Cross(V) + J*W);
 }
 
 
 void 
 Body::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 {
-    Mat3x3 R = pNode->GetRRef();
+    const Mat3x3& R = pNode->GetRRef();
 
     S = R*S0;
     J = R*(J0*R.Transpose());
