@@ -69,6 +69,7 @@ MBDyn 1.2-Engineering
 		- support for multithread SuperLU solver
 		- viscoelastic rods also output length rate
 		- shock absorber allows separate metering based on stroke rate
+		- beamslider joint
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
@@ -88,7 +89,6 @@ MBDyn 1.2-Engineering
 		- fix rotor output when no induced velocity is used
 		- fix modal element when modal node is not in the origin
 		  of the FEM reference frame
-		- fix beamslider joint jacobian
 		- fix utils/dae-intg (optional)
 		- fix dof plugin parameter node input (+ overall improvements)
 		- fix point where airstream speed is evaluated
