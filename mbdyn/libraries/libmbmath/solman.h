@@ -98,16 +98,16 @@ public:
 	virtual void Reset(const doublereal& dResetVal = 0.);
 
 	/* Inserisce un coefficiente */
-	virtual flag
-	fPutCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
+	virtual void
+	PutCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
 
 	/* Incrementa un coefficiente - se non esiste lo crea */
-	virtual flag
-	fIncCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
+	virtual void
+	IncCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
 
 	/* Decrementa un coefficiente - se non esiste lo crea */
-	virtual flag
-	fDecCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
+	virtual void
+	DecCoef(integer iRow, integer iCol, const doublereal& dCoef) = 0;
 
 	/* Restituisce un coefficiente - zero se non e' definito */
 	virtual const doublereal&
@@ -200,11 +200,11 @@ public:
 
 	virtual void Reset(doublereal dResetVal = 0.) = 0;
 
-	virtual flag fPutCoef(integer iRow, const doublereal& dCoef) = 0;
+	virtual void PutCoef(integer iRow, const doublereal& dCoef) = 0;
 
-	virtual flag fIncCoef(integer iRow, const doublereal& dCoef) = 0;
+	virtual void IncCoef(integer iRow, const doublereal& dCoef) = 0;
 
-	virtual flag fDecCoef(integer iRow, const doublereal& dCoef) = 0;
+	virtual void DecCoef(integer iRow, const doublereal& dCoef) = 0;
 
 	virtual const doublereal& dGetCoef(integer iRow) const = 0;
 
@@ -293,11 +293,11 @@ public:
 
 	virtual void Reset(doublereal dResetVal = 0.);
 
-	virtual inline flag fPutCoef(integer iRow, const doublereal& dCoef);
+	virtual inline void PutCoef(integer iRow, const doublereal& dCoef);
 
-	virtual inline flag fIncCoef(integer iRow, const doublereal& dCoef);
+	virtual inline void IncCoef(integer iRow, const doublereal& dCoef);
 
-	virtual inline flag fDecCoef(integer iRow, const doublereal& dCoef);
+	virtual inline void DecCoef(integer iRow, const doublereal& dCoef);
 
 	virtual inline const doublereal& dGetCoef(integer iRow) const;
 
@@ -373,8 +373,8 @@ MyVectorHandler::iGetSize(void) const
 	return iCurSize;
 }
 
-inline flag
-MyVectorHandler::fPutCoef(integer iRow, const doublereal& dCoef)
+inline void
+MyVectorHandler::PutCoef(integer iRow, const doublereal& dCoef)
 {
 	/* Nota: il flag di ritorno e' pleonastico. Lo si e' messo per
 	 * analogia con le matrici sparse, in cui l'aggiunta
@@ -389,13 +389,13 @@ MyVectorHandler::fPutCoef(integer iRow, const doublereal& dCoef)
 
 	pdVecm1[iRow] = dCoef;
 
-	return flag(0);
+	return;
 }
 
-inline flag
-MyVectorHandler::fIncCoef(integer iRow, const doublereal& dCoef)
+inline void
+MyVectorHandler::IncCoef(integer iRow, const doublereal& dCoef)
 {
-	/* Vedi nota di fPutCoef() */
+	/* Vedi nota di PutCoef() */
 
 #ifdef DEBUG
 	IsValid();
@@ -404,13 +404,13 @@ MyVectorHandler::fIncCoef(integer iRow, const doublereal& dCoef)
 
 	pdVecm1[iRow] += dCoef;
 
-	return flag(0);
+	return;
 }
 
-inline flag
-MyVectorHandler::fDecCoef(integer iRow, const doublereal& dCoef)
+inline void
+MyVectorHandler::DecCoef(integer iRow, const doublereal& dCoef)
 {
-	/* Vedi nota di fPutCoef() */
+	/* Vedi nota di PutCoef() */
 
 #ifdef DEBUG
 	IsValid();
@@ -419,13 +419,13 @@ MyVectorHandler::fDecCoef(integer iRow, const doublereal& dCoef)
 
 	pdVecm1[iRow] -= dCoef;
 
-	return flag(0);
+	return;
 }
 
 inline const doublereal&
 MyVectorHandler::dGetCoef(integer iRow) const
 {
-	/* Vedi nota di fPutCoef() */
+	/* Vedi nota di PutCoef() */
 
 #ifdef DEBUG
 	IsValid();

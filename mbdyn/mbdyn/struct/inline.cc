@@ -184,8 +184,8 @@ InLineJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Sub(7, FTmp);
    
    if (dCoef != 0.) {
-      WorkVec.fPutCoef(13, (Rv.GetVec(1).Dot(p)-RvTmp.GetVec(1).Dot(x2mx1))/dCoef);
-      WorkVec.fPutCoef(14, (Rv.GetVec(2).Dot(p)-RvTmp.GetVec(2).Dot(x2mx1))/dCoef);
+      WorkVec.PutCoef(13, (Rv.GetVec(1).Dot(p)-RvTmp.GetVec(1).Dot(x2mx1))/dCoef);
+      WorkVec.PutCoef(14, (Rv.GetVec(2).Dot(p)-RvTmp.GetVec(2).Dot(x2mx1))/dCoef);
    }
       
    return WorkVec;
@@ -255,70 +255,70 @@ InLineJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 Tmp4_2(-(xp2mxp1.Cross(v2)+x2mx1.Cross(Tmp2_2)));
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = v1.dGet(iCnt);
-      WM.fPutCoef(iCnt, 25, -d);
-      WM.fPutCoef(12+iCnt, 25, d);
+      WM.PutCoef(iCnt, 25, -d);
+      WM.PutCoef(12+iCnt, 25, d);
       
-      WM.fPutCoef(25, iCnt, -d);
-      WM.fPutCoef(25, 12+iCnt, d);
+      WM.PutCoef(25, iCnt, -d);
+      WM.PutCoef(25, 12+iCnt, d);
 
-      WM.fPutCoef(6+iCnt, 27, -d);  
-      WM.fPutCoef(18+iCnt, 27, d);
+      WM.PutCoef(6+iCnt, 27, -d);  
+      WM.PutCoef(18+iCnt, 27, d);
 
-      WM.fPutCoef(27, 6+iCnt, -d);  
-      WM.fPutCoef(27, 18+iCnt, d);
+      WM.PutCoef(27, 6+iCnt, -d);  
+      WM.PutCoef(27, 18+iCnt, d);
       
       d = v2.dGet(iCnt);
-      WM.fPutCoef(iCnt, 26, -d);
-      WM.fPutCoef(12+iCnt, 26, d);
+      WM.PutCoef(iCnt, 26, -d);
+      WM.PutCoef(12+iCnt, 26, d);
       
-      WM.fPutCoef(26, iCnt, -d);
-      WM.fPutCoef(26, 12+iCnt, d);
+      WM.PutCoef(26, iCnt, -d);
+      WM.PutCoef(26, 12+iCnt, d);
 
-      WM.fPutCoef(6+iCnt, 28, -d);  
-      WM.fPutCoef(18+iCnt, 28, d);
+      WM.PutCoef(6+iCnt, 28, -d);  
+      WM.PutCoef(18+iCnt, 28, d);
 
-      WM.fPutCoef(28, 6+iCnt, -d);  
-      WM.fPutCoef(28, 18+iCnt, d);
+      WM.PutCoef(28, 6+iCnt, -d);  
+      WM.PutCoef(28, 18+iCnt, d);
 
       d = Tmp1_1.dGet(iCnt);
-      WM.fPutCoef(3+iCnt, 25, d);   
-      WM.fPutCoef(25, 3+iCnt, d);   
+      WM.PutCoef(3+iCnt, 25, d);   
+      WM.PutCoef(25, 3+iCnt, d);   
 
-      WM.fPutCoef(27, 9+iCnt, d);   
-      WM.fPutCoef(9+iCnt, 27, d);
+      WM.PutCoef(27, 9+iCnt, d);   
+      WM.PutCoef(9+iCnt, 27, d);
       
       d = Tmp1_2.dGet(iCnt);
-      WM.fPutCoef(3+iCnt, 26, d);   
-      WM.fPutCoef(26, 3+iCnt, d);   
+      WM.PutCoef(3+iCnt, 26, d);   
+      WM.PutCoef(26, 3+iCnt, d);   
 
-      WM.fPutCoef(28, 9+iCnt, d);   
-      WM.fPutCoef(9+iCnt, 28, d);
+      WM.PutCoef(28, 9+iCnt, d);   
+      WM.PutCoef(9+iCnt, 28, d);
       
       d = Tmp2_1.dGet(iCnt);
-      WM.fPutCoef(27, iCnt, -d);    
-      WM.fPutCoef(27, 12+iCnt, d);  
+      WM.PutCoef(27, iCnt, -d);    
+      WM.PutCoef(27, 12+iCnt, d);  
 
-      WM.fPutCoef(6+iCnt, 25, -d);  
-      WM.fPutCoef(18+iCnt, 25, d);
+      WM.PutCoef(6+iCnt, 25, -d);  
+      WM.PutCoef(18+iCnt, 25, d);
       
       d = Tmp2_2.dGet(iCnt);
-      WM.fPutCoef(28, iCnt, -d);    
-      WM.fPutCoef(28, 12+iCnt, d);  
+      WM.PutCoef(28, iCnt, -d);    
+      WM.PutCoef(28, 12+iCnt, d);  
 
-      WM.fPutCoef(6+iCnt, 26, -d);  
-      WM.fPutCoef(18+iCnt, 26, d);
+      WM.PutCoef(6+iCnt, 26, -d);  
+      WM.PutCoef(18+iCnt, 26, d);
 
       d = Tmp3_1.dGet(iCnt);
-      WM.fPutCoef(27, 3+iCnt, d);   
+      WM.PutCoef(27, 3+iCnt, d);   
 
       d = Tmp3_2.dGet(iCnt);
-      WM.fPutCoef(28, 3+iCnt, d);   
+      WM.PutCoef(28, 3+iCnt, d);   
 
       d = Tmp4_1.dGet(iCnt);
-      WM.fPutCoef(9+iCnt, 25, d);   
+      WM.PutCoef(9+iCnt, 25, d);   
 
       d = Tmp4_2.dGet(iCnt);
-      WM.fPutCoef(9+iCnt, 27, d);   
+      WM.PutCoef(9+iCnt, 27, d);   
    }   
 
    Mat3x3 MTmp(FTmp);
@@ -405,10 +405,10 @@ InLineJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.Sub(13, FTmp);
    WorkVec.Sub(19, Tmp);   
    
-   WorkVec.fPutCoef(25, Rv.GetVec(1).Dot(p)-RvTmp.GetVec(1).Dot(x2mx1));
-   WorkVec.fPutCoef(26, Rv.GetVec(2).Dot(p)-RvTmp.GetVec(2).Dot(x2mx1));
-   WorkVec.fPutCoef(27, x2mx1.Dot(RvTmp.GetVec(1).Cross(Omega))-RvTmp.GetVec(1).Dot(xp2mxp1));
-   WorkVec.fPutCoef(28, x2mx1.Dot(RvTmp.GetVec(2).Cross(Omega))-RvTmp.GetVec(2).Dot(xp2mxp1));
+   WorkVec.PutCoef(25, Rv.GetVec(1).Dot(p)-RvTmp.GetVec(1).Dot(x2mx1));
+   WorkVec.PutCoef(26, Rv.GetVec(2).Dot(p)-RvTmp.GetVec(2).Dot(x2mx1));
+   WorkVec.PutCoef(27, x2mx1.Dot(RvTmp.GetVec(1).Cross(Omega))-RvTmp.GetVec(1).Dot(xp2mxp1));
+   WorkVec.PutCoef(28, x2mx1.Dot(RvTmp.GetVec(2).Cross(Omega))-RvTmp.GetVec(2).Dot(xp2mxp1));
    
    return WorkVec;
 }
@@ -590,8 +590,8 @@ InLineWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Sub(10, qTmp.Cross(FTmp));
    
    if (dCoef != 0.) {
-      WorkVec.fPutCoef(13, (Rv.GetVec(1).Dot(p)-RvTmp.GetVec(1).Dot(x2qmx1))/dCoef);
-      WorkVec.fPutCoef(14, (Rv.GetVec(2).Dot(p)-RvTmp.GetVec(2).Dot(x2qmx1))/dCoef);
+      WorkVec.PutCoef(13, (Rv.GetVec(1).Dot(p)-RvTmp.GetVec(1).Dot(x2qmx1))/dCoef);
+      WorkVec.PutCoef(14, (Rv.GetVec(2).Dot(p)-RvTmp.GetVec(2).Dot(x2qmx1))/dCoef);
    }
 
    return WorkVec;
@@ -682,96 +682,96 @@ InLineWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = v1.dGet(iCnt);
-      WM.fPutCoef(iCnt, 25, -d);
-      WM.fPutCoef(12+iCnt, 25, d);
+      WM.PutCoef(iCnt, 25, -d);
+      WM.PutCoef(12+iCnt, 25, d);
       
-      WM.fPutCoef(25, iCnt, -d);
-      WM.fPutCoef(25, 12+iCnt, d);
+      WM.PutCoef(25, iCnt, -d);
+      WM.PutCoef(25, 12+iCnt, d);
 
-      WM.fPutCoef(6+iCnt, 27, -d);  
-      WM.fPutCoef(18+iCnt, 27, d);
+      WM.PutCoef(6+iCnt, 27, -d);  
+      WM.PutCoef(18+iCnt, 27, d);
 
-      WM.fPutCoef(27, 6+iCnt, -d);  
-      WM.fPutCoef(27, 18+iCnt, d);
+      WM.PutCoef(27, 6+iCnt, -d);  
+      WM.PutCoef(27, 18+iCnt, d);
       
       d = v2.dGet(iCnt);
-      WM.fPutCoef(iCnt, 26, -d);
-      WM.fPutCoef(12+iCnt, 26, d);
+      WM.PutCoef(iCnt, 26, -d);
+      WM.PutCoef(12+iCnt, 26, d);
       
-      WM.fPutCoef(26, iCnt, -d);
-      WM.fPutCoef(26, 12+iCnt, d);
+      WM.PutCoef(26, iCnt, -d);
+      WM.PutCoef(26, 12+iCnt, d);
 
-      WM.fPutCoef(6+iCnt, 28, -d);  
-      WM.fPutCoef(18+iCnt, 28, d);
+      WM.PutCoef(6+iCnt, 28, -d);  
+      WM.PutCoef(18+iCnt, 28, d);
 
-      WM.fPutCoef(28, 6+iCnt, -d);  
-      WM.fPutCoef(28, 18+iCnt, d);
+      WM.PutCoef(28, 6+iCnt, -d);  
+      WM.PutCoef(28, 18+iCnt, d);
 
       d = Tmp1_1.dGet(iCnt);
-      WM.fPutCoef(3+iCnt, 25, d);   
-      WM.fPutCoef(25, 3+iCnt, d);   
+      WM.PutCoef(3+iCnt, 25, d);   
+      WM.PutCoef(25, 3+iCnt, d);   
 
-      WM.fPutCoef(27, 9+iCnt, d);   
-      WM.fPutCoef(9+iCnt, 27, d);
+      WM.PutCoef(27, 9+iCnt, d);   
+      WM.PutCoef(9+iCnt, 27, d);
       
       d = Tmp1_2.dGet(iCnt);
-      WM.fPutCoef(3+iCnt, 26, d);   
-      WM.fPutCoef(26, 3+iCnt, d);   
+      WM.PutCoef(3+iCnt, 26, d);   
+      WM.PutCoef(26, 3+iCnt, d);   
 
-      WM.fPutCoef(28, 9+iCnt, d);   
-      WM.fPutCoef(9+iCnt, 28, d);
+      WM.PutCoef(28, 9+iCnt, d);   
+      WM.PutCoef(9+iCnt, 28, d);
       
       d = Tmp2_1.dGet(iCnt);
-      WM.fPutCoef(27, iCnt, -d);    
-      WM.fPutCoef(27, 12+iCnt, d);  
+      WM.PutCoef(27, iCnt, -d);    
+      WM.PutCoef(27, 12+iCnt, d);  
 
-      WM.fPutCoef(6+iCnt, 25, -d);  
-      WM.fPutCoef(18+iCnt, 25, d);
+      WM.PutCoef(6+iCnt, 25, -d);  
+      WM.PutCoef(18+iCnt, 25, d);
       
       d = Tmp2_2.dGet(iCnt);
-      WM.fPutCoef(28, iCnt, -d);    
-      WM.fPutCoef(28, 12+iCnt, d);  
+      WM.PutCoef(28, iCnt, -d);    
+      WM.PutCoef(28, 12+iCnt, d);  
 
-      WM.fPutCoef(6+iCnt, 26, -d);  
-      WM.fPutCoef(18+iCnt, 26, d);
+      WM.PutCoef(6+iCnt, 26, -d);  
+      WM.PutCoef(18+iCnt, 26, d);
 
       d = Tmp3_1.dGet(iCnt);
-      WM.fPutCoef(27, 3+iCnt, d);   
+      WM.PutCoef(27, 3+iCnt, d);   
 
       d = Tmp3_2.dGet(iCnt);
-      WM.fPutCoef(28, 3+iCnt, d);   
+      WM.PutCoef(28, 3+iCnt, d);   
 
       d = Tmp4_1.dGet(iCnt);
-      WM.fPutCoef(9+iCnt, 25, d);   
+      WM.PutCoef(9+iCnt, 25, d);   
 
       d = Tmp4_2.dGet(iCnt);
-      WM.fPutCoef(9+iCnt, 27, d);   
+      WM.PutCoef(9+iCnt, 27, d);   
       
       d = Tmp5_1.dGet(iCnt);
-      WM.fPutCoef(15+iCnt, 25, d);
-      WM.fPutCoef(21+iCnt, 27, d);
+      WM.PutCoef(15+iCnt, 25, d);
+      WM.PutCoef(21+iCnt, 27, d);
 
-      WM.fPutCoef(25, 15+iCnt, d);
-      WM.fPutCoef(27, 21+iCnt, d);
+      WM.PutCoef(25, 15+iCnt, d);
+      WM.PutCoef(27, 21+iCnt, d);
 
       d = Tmp5_2.dGet(iCnt);
-      WM.fPutCoef(15+iCnt, 26, d);
-      WM.fPutCoef(21+iCnt, 28, d);
+      WM.PutCoef(15+iCnt, 26, d);
+      WM.PutCoef(21+iCnt, 28, d);
 
-      WM.fPutCoef(26, 15+iCnt, d);
-      WM.fPutCoef(28, 21+iCnt, d);
+      WM.PutCoef(26, 15+iCnt, d);
+      WM.PutCoef(28, 21+iCnt, d);
 
       d = Tmp6_1.dGet(iCnt);
-      WM.fPutCoef(27, 15+iCnt, d);
+      WM.PutCoef(27, 15+iCnt, d);
 
       d = Tmp6_2.dGet(iCnt);
-      WM.fPutCoef(28, 15+iCnt, d);
+      WM.PutCoef(28, 15+iCnt, d);
 
       d = Tmp7_1.dGet(iCnt);
-      WM.fPutCoef(21+iCnt, 25, d);
+      WM.PutCoef(21+iCnt, 25, d);
       
       d = Tmp7_2.dGet(iCnt);
-      WM.fPutCoef(21+iCnt, 26, d);
+      WM.PutCoef(21+iCnt, 26, d);
    }   
 
    Mat3x3 MTmp(FTmp);
@@ -881,10 +881,10 @@ InLineWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.Sub(19, Tmp);
    WorkVec.Sub(22, qTmp.Cross(Tmp)+(Omega2.Cross(qTmp)).Cross(FTmp));
    
-   WorkVec.fPutCoef(25, Rv.GetVec(1).Dot(p)-RvTmp.GetVec(1).Dot(x2qmx1));
-   WorkVec.fPutCoef(26, Rv.GetVec(2).Dot(p)-RvTmp.GetVec(2).Dot(x2qmx1));
-   WorkVec.fPutCoef(27, x2qmx1.Dot(RvTmp.GetVec(1).Cross(Omega1))-RvTmp.GetVec(1).Dot(xp2qmxp1));
-   WorkVec.fPutCoef(28, x2qmx1.Dot(RvTmp.GetVec(2).Cross(Omega1))-RvTmp.GetVec(2).Dot(xp2qmxp1));
+   WorkVec.PutCoef(25, Rv.GetVec(1).Dot(p)-RvTmp.GetVec(1).Dot(x2qmx1));
+   WorkVec.PutCoef(26, Rv.GetVec(2).Dot(p)-RvTmp.GetVec(2).Dot(x2qmx1));
+   WorkVec.PutCoef(27, x2qmx1.Dot(RvTmp.GetVec(1).Cross(Omega1))-RvTmp.GetVec(1).Dot(xp2qmxp1));
+   WorkVec.PutCoef(28, x2qmx1.Dot(RvTmp.GetVec(2).Cross(Omega1))-RvTmp.GetVec(2).Dot(xp2qmxp1));
    
    return WorkVec;
 }

@@ -251,9 +251,9 @@ SubVectorHandler& PrismaticJoint::AssRes(SubVectorHandler& WorkVec,
    if (dCoef != 0.) {
       
       /* Equazioni di vincolo di rotazione */
-      WorkVec.fPutCoef(7, -(e3b.Dot(e2a)/dCoef));
-      WorkVec.fPutCoef(8, -(e1b.Dot(e3a)/dCoef));
-      WorkVec.fPutCoef(9, -(e2b.Dot(e1a)/dCoef));
+      WorkVec.PutCoef(7, -(e3b.Dot(e2a)/dCoef));
+      WorkVec.PutCoef(8, -(e1b.Dot(e3a)/dCoef));
+      WorkVec.PutCoef(9, -(e2b.Dot(e1a)/dCoef));
    }   
 
    return WorkVec;
@@ -438,19 +438,19 @@ PrismaticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = v1.dGet(iCnt);
-      WM.fPutCoef(16, 0+iCnt, d);
+      WM.PutCoef(16, 0+iCnt, d);
       d = v1p.dGet(iCnt);
-      WM.fPutCoef(16, 6+iCnt, d);
+      WM.PutCoef(16, 6+iCnt, d);
 
       d = v2.dGet(iCnt);
-      WM.fPutCoef(17, 0+iCnt, d);
+      WM.PutCoef(17, 0+iCnt, d);
       d = v2p.dGet(iCnt);
-      WM.fPutCoef(17, 6+iCnt, d);
+      WM.PutCoef(17, 6+iCnt, d);
       
       d = v3.dGet(iCnt);
-      WM.fPutCoef(18, 0+iCnt, d);
+      WM.PutCoef(18, 0+iCnt, d);
       d = v3p.dGet(iCnt);
-      WM.fPutCoef(18, 6+iCnt, d);
+      WM.PutCoef(18, 6+iCnt, d);
    }    
    
    return WorkMat;
@@ -537,15 +537,15 @@ PrismaticJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(10, MTmp);
 
    /* Equazioni di vincolo di rotazione */
-   WorkVec.fPutCoef(13, -(e3b.Dot(e2a)));
-   WorkVec.fPutCoef(14, -(e1b.Dot(e3a)));
-   WorkVec.fPutCoef(15, -(e2b.Dot(e1a)));
+   WorkVec.PutCoef(13, -(e3b.Dot(e2a)));
+   WorkVec.PutCoef(14, -(e1b.Dot(e3a)));
+   WorkVec.PutCoef(15, -(e2b.Dot(e1a)));
    
    /* Derivate delle equazioni di vincolo di rotazione */
    Omega2 = Omega2-Omega1;
-   WorkVec.fPutCoef(16, (e2a.Cross(e3b)).Dot(Omega2));
-   WorkVec.fPutCoef(17, (e3a.Cross(e1b)).Dot(Omega2));
-   WorkVec.fPutCoef(18, (e1a.Cross(e2b)).Dot(Omega2));
+   WorkVec.PutCoef(16, (e2a.Cross(e3b)).Dot(Omega2));
+   WorkVec.PutCoef(17, (e3a.Cross(e1b)).Dot(Omega2));
+   WorkVec.PutCoef(18, (e1a.Cross(e2b)).Dot(Omega2));
    
    return WorkVec;
 }

@@ -60,9 +60,9 @@
  *         SM.MatrInit();
  * 
  * // Operare sulla matrice e sui vettori
- *         pMH->fPutCoef(row, col, coef);
+ *         pMH->PutCoef(row, col, coef);
  *         coef = pMH->dGetCoef(row, col);
- *         pRH->fPutCoef(row, coef);
+ *         pRH->PutCoef(row, coef);
  *         coef = pRH->dGetCoef(row);
  * 
  * // Risolvere il problema; in questa fase si assume che: 

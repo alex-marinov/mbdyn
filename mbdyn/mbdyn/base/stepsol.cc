@@ -280,17 +280,17 @@ void DerivativeSolver::UpdateDof(const int DCount,
 		const VectorHandler* const pSol) const {
 	doublereal d = pSol->dGetCoef(DCount);
 	if (Order == DofOrder::DIFFERENTIAL) {
-		pXPrimeCurr->fIncCoef(DCount, d);
+		pXPrimeCurr->IncCoef(DCount, d);
 		
 		/* Nota: b0Differential e b0Algebraic 
 		 * possono essere distinti;
 		 * in ogni caso sono calcolati 
 		 * dalle funzioni di predizione
 		 * e sono dati globali */
-		pXCurr->fIncCoef(DCount, dCoef*d);
+		pXCurr->IncCoef(DCount, dCoef*d);
 	} else {
-		pXCurr->fIncCoef(DCount, d);
-		pXPrimeCurr->fIncCoef(DCount, dCoef*d);
+		pXCurr->IncCoef(DCount, d);
+		pXPrimeCurr->IncCoef(DCount, dCoef*d);
 	}	
 }
 		
@@ -348,17 +348,17 @@ void StepNIntegrator::UpdateDof(const int DCount,
 	const VectorHandler* const pSol) const {
 	doublereal d = pSol->dGetCoef(DCount);
 	if (Order == DofOrder::DIFFERENTIAL) {
-		pXPrimeCurr->fIncCoef(DCount, d);
+		pXPrimeCurr->IncCoef(DCount, d);
 		
 		/* Nota: b0Differential e b0Algebraic 
 		 * possono essere distinti;
 		 * in ogni caso sono calcolati 
 		 * dalle funzioni di predizione
 		 * e sono dati globali */
-		pXCurr->fIncCoef(DCount, db0Differential*d);
+		pXCurr->IncCoef(DCount, db0Differential*d);
 	} else {
-		pXCurr->fIncCoef(DCount, d);
-		pXPrimeCurr->fIncCoef(DCount, db0Algebraic*d);
+		pXCurr->IncCoef(DCount, d);
+		pXPrimeCurr->IncCoef(DCount, db0Algebraic*d);
 	}
 }
 	
@@ -408,8 +408,8 @@ void Step1Integrator::PredictDof(const int DCount,
 			pXPrimePrev->dGetCoef(DCount);
 		doublereal dXPn = dPredDer(dXnm1, dXPnm1);
 		doublereal dXn = dPredState(dXnm1, dXPn, dXPnm1);
-		pXPrimeCurr->fPutCoef(DCount, dXPn);
-		pXCurr->fPutCoef(DCount, dXn);
+		pXPrimeCurr->PutCoef(DCount, dXPn);
+		pXCurr->PutCoef(DCount, dXn);
 	
 	} else if (Order == DofOrder::ALGEBRAIC) {
 		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
@@ -419,8 +419,8 @@ void Step1Integrator::PredictDof(const int DCount,
 		doublereal dXn = dPredDerAlg(dXInm1, dXnm1);
 		doublereal dXIn = dPredStateAlg(dXInm1, dXn, dXnm1);
 
-		pXCurr->fPutCoef(DCount, dXn);
-		pXPrimeCurr->fPutCoef(DCount, dXIn);
+		pXCurr->PutCoef(DCount, dXn);
+		pXPrimeCurr->PutCoef(DCount, dXIn);
 	
 	} else {
 		std::cerr << "Step1Integrator::"
@@ -537,8 +537,8 @@ void Step2Integrator::PredictDof(const int DCount,
 		doublereal dXn = dPredState(dXnm1, dXnm2, 
 				dXPn, dXPnm1, dXPnm2);
 
-		pXPrimeCurr->fPutCoef(DCount, dXPn);
-		pXCurr->fPutCoef(DCount, dXn);
+		pXPrimeCurr->PutCoef(DCount, dXPn);
+		pXCurr->PutCoef(DCount, dXn);
 		
 	} else if (Order == DofOrder::ALGEBRAIC) {
 		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
@@ -551,8 +551,8 @@ void Step2Integrator::PredictDof(const int DCount,
 		doublereal dXIn = dPredStateAlg(dXInm1, 
 				dXn, dXnm1, dXnm2);
 
-		pXCurr->fPutCoef(DCount, dXn);
-		pXPrimeCurr->fPutCoef(DCount, dXIn);
+		pXCurr->PutCoef(DCount, dXn);
+		pXPrimeCurr->PutCoef(DCount, dXIn);
 			
 	} else {
 		std::cerr << "Step2Integrator::"

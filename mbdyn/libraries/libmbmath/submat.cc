@@ -253,7 +253,7 @@ void FullSubMatrixHandler::Add(integer iRow, integer iCol, const Mat3xN& m)
    --iCol;
    for (int i = 3; i > 0; i--) {
       for (integer j = m.iGetNumCols(); j > 0; j--) {
-	 fIncCoef(i+iRow, j+iCol, m.dGet(i, j));
+	 IncCoef(i+iRow, j+iCol, m.dGet(i, j));
       }
    }
 }
@@ -276,7 +276,7 @@ void FullSubMatrixHandler::Sub(integer iRow, integer iCol, const Mat3xN& m)
    --iCol;
    for (int i = 3; i > 0; i--) {
       for (integer j = m.iGetNumCols(); j > 0; j--) {
-	 fDecCoef(i+iRow, j+iCol, m.dGet(i, j));
+	 DecCoef(i+iRow, j+iCol, m.dGet(i, j));
       }
    }
 }
@@ -295,7 +295,7 @@ void FullSubMatrixHandler::Add(integer iRow, integer iCol, const MatNx3& m)
    --iCol;
    for (int i = m.iGetNumRows(); i > 0; i--) {
       for (integer j = 3; j > 0; j--) {
-	 fIncCoef(i+iRow, j+iCol, m.dGet(i, j));
+	 IncCoef(i+iRow, j+iCol, m.dGet(i, j));
       }
    }
 }
@@ -314,7 +314,7 @@ void FullSubMatrixHandler::Sub(integer iRow, integer iCol, const MatNx3& m)
    --iCol;
    for (int i = m.iGetNumRows(); i > 0; i--) {
       for (integer j = 3; j > 0; j--) {
-	 fDecCoef(i+iRow, j+iCol, m.dGet(i, j));
+	 DecCoef(i+iRow, j+iCol, m.dGet(i, j));
       }
    }
 }
@@ -338,7 +338,7 @@ void FullSubMatrixHandler::Put(integer iRow, integer iCol, const Mat3xN& m)
    --iCol;
    for (int i = 3; i > 0; i--) {
       for (integer j = m.iGetNumCols(); j > 0; j--) {
-	 fPutCoef(i+iRow, j+iCol, m.dGet(i, j));
+	 PutCoef(i+iRow, j+iCol, m.dGet(i, j));
       }
    }
 }
@@ -362,9 +362,9 @@ FullSubMatrixHandler::fPutDiag(integer iFirstRow, integer iFirstCol,
 
    const doublereal *pdv = v.pGetVec();
 
-   fPutCoef(iFirstRow+1, iFirstCol+1, pdv[V1]);
-   fPutCoef(iFirstRow+2, iFirstCol+2, pdv[V2]);
-   fPutCoef(iFirstRow+3, iFirstCol+3, pdv[V3]);
+   PutCoef(iFirstRow+1, iFirstCol+1, pdv[V1]);
+   PutCoef(iFirstRow+2, iFirstCol+2, pdv[V2]);
+   PutCoef(iFirstRow+3, iFirstCol+3, pdv[V3]);
 
    return flag(0);
 }
@@ -386,9 +386,9 @@ FullSubMatrixHandler::fPutDiag(integer iFirstRow, integer iFirstCol,
    ASSERT((iFirstCol >= 0) && (iFirstCol <= iNumCols-3));
 #endif	
 
-   fPutCoef(iFirstRow+1, iFirstCol+1, d);
-   fPutCoef(iFirstRow+2, iFirstCol+2, d);
-   fPutCoef(iFirstRow+3, iFirstCol+3, d);
+   PutCoef(iFirstRow+1, iFirstCol+1, d);
+   PutCoef(iFirstRow+2, iFirstCol+2, d);
+   PutCoef(iFirstRow+3, iFirstCol+3, d);
 
    return flag(0);
 }
@@ -412,14 +412,14 @@ FullSubMatrixHandler::fPutCross(integer iFirstRow, integer iFirstCol,
 
    const doublereal *pdv = v.pGetVec();
 
-   fPutCoef(iFirstRow+1, iFirstCol+2, -pdv[V3]);
-   fPutCoef(iFirstRow+1, iFirstCol+3, pdv[V2]);
+   PutCoef(iFirstRow+1, iFirstCol+2, -pdv[V3]);
+   PutCoef(iFirstRow+1, iFirstCol+3, pdv[V2]);
 
-   fPutCoef(iFirstRow+2, iFirstCol+1, pdv[V3]);
-   fPutCoef(iFirstRow+2, iFirstCol+3, -pdv[V1]);
+   PutCoef(iFirstRow+2, iFirstCol+1, pdv[V3]);
+   PutCoef(iFirstRow+2, iFirstCol+3, -pdv[V1]);
 
-   fPutCoef(iFirstRow+3, iFirstCol+1, -pdv[V2]);
-   fPutCoef(iFirstRow+3, iFirstCol+2, pdv[V1]);
+   PutCoef(iFirstRow+3, iFirstCol+1, -pdv[V2]);
+   PutCoef(iFirstRow+3, iFirstCol+2, pdv[V1]);
 
    return flag(0);
 }
@@ -442,7 +442,7 @@ MatrixHandler& FullSubMatrixHandler::AddTo(MatrixHandler& MH) const {
       pd -= iNumRows;
       for (integer i = iNumRows; i-- > 0; ) {
 	 ASSERT(piRow[i] > 0 && piRow[i] <= MH.iGetNumRows());
-	 MH.fIncCoef(piRow[i], piCol[j], pd[i]);
+	 MH.IncCoef(piRow[i], piCol[j], pd[i]);
       }
    }
    
@@ -495,7 +495,7 @@ MatrixHandler& FullSubMatrixHandler::SubFrom(MatrixHandler& MH) const {
       pd -= iNumRows;
       for (integer i = iNumRows; i-- > 0; ) {
 	 ASSERT(piRow[i] > 0 && piRow[i] <= MH.iGetNumRows());
-	 MH.fDecCoef(piRow[i], piCol[j], pd[i]);
+	 MH.DecCoef(piRow[i], piCol[j], pd[i]);
       }
    }
    
@@ -894,7 +894,7 @@ MatrixHandler& SparseSubMatrixHandler::AddTo(MatrixHandler& MH) const {
    for (integer i = iNumItems; i-- > 0; ) {
       ASSERT(piRow[i] > 0 && piRow[i] <= MH.iGetNumRows());
       ASSERT(piCol[i] > 0 && piCol[i] <= MH.iGetNumCols());
-      MH.fIncCoef(piRow[i], piCol[i], pdMat[i]);
+      MH.IncCoef(piRow[i], piCol[i], pdMat[i]);
    }
    
    return MH;
@@ -931,7 +931,7 @@ MatrixHandler& SparseSubMatrixHandler::SubFrom(MatrixHandler& MH) const {
    for (integer i = iNumItems; i-- > 0; ) {
       ASSERT(piRow[i] > 0 && piRow[i] <= MH.iGetNumRows());
       ASSERT(piCol[i] > 0 && piCol[i] <= MH.iGetNumCols());
-      MH.fDecCoef(piRow[i], piCol[i], pdMat[i]);
+      MH.DecCoef(piRow[i], piCol[i], pdMat[i]);
    }
    
    return MH;
@@ -1079,7 +1079,7 @@ VectorHandler& MySubVectorHandler::AddTo(VectorHandler& VH) const {
 #endif
    
    for (integer i = iGetSize(); i > 0; i--) {
-      VH.fIncCoef(piRowm1[i], pdVecm1[i]);
+      VH.IncCoef(piRowm1[i], pdVecm1[i]);
    }
    return VH;
 }

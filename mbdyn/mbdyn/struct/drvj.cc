@@ -138,7 +138,7 @@ LinearVelocityJoint::AssRes(SubVectorHandler& WorkVec,
    
    /* Equazione di vincolo di velocita' */
    doublereal dv0 = dGet();
-   WorkVec.fPutCoef(4, dv0-Dir.Dot(vNode));
+   WorkVec.PutCoef(4, dv0-Dir.Dot(vNode));
    
    return WorkVec;   
 }
@@ -217,7 +217,7 @@ LinearVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Equazione di vincolo di velocita' */
    doublereal dv0 = dGet();
-   WorkVec.fPutCoef(4, dv0-Dir.Dot(vNode));
+   WorkVec.PutCoef(4, dv0-Dir.Dot(vNode));
    
    return WorkVec;
 }
@@ -331,7 +331,7 @@ AngularVelocityJoint::AssRes(SubVectorHandler& WorkVec,
    
    /* Equazione di vincolo di velocita' */
    doublereal dw0 = dGet();
-   WorkVec.fPutCoef(4, dw0-TmpDir.Dot(Omega));
+   WorkVec.PutCoef(4, dw0-TmpDir.Dot(Omega));
    
    return WorkVec;   
 }
@@ -418,7 +418,7 @@ AngularVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Equazione di vincolo di velocita' */
    doublereal dw0 = dGet();
-   WorkVec.fPutCoef(4, dw0-Dir.Dot(Omega));
+   WorkVec.PutCoef(4, dw0-Dir.Dot(Omega));
    
    return WorkVec;
 }

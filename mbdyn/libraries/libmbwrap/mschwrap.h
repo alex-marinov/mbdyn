@@ -70,9 +70,9 @@ public:
    	virtual void Resize(integer iNewSize);
    	virtual void Reset(doublereal dResetVal = 0.);
    
-   	virtual inline flag fPutCoef(integer iRow, const doublereal& dCoef);
-   	virtual inline flag fIncCoef(integer iRow, const doublereal& dCoef);
-   	virtual inline flag fDecCoef(integer iRow, const doublereal& dCoef);
+   	virtual inline flag PutCoef(integer iRow, const doublereal& dCoef);
+   	virtual inline flag IncCoef(integer iRow, const doublereal& dCoef);
+   	virtual inline flag DecCoef(integer iRow, const doublereal& dCoef);
    	virtual inline const doublereal& dGetCoef(integer iRow) const;
 };
 
@@ -105,7 +105,7 @@ MeschachVectorHandler::iGetSize(void) const
 }
 
 inline flag
-MeschachVectorHandler::fPutCoef(integer iRow, const doublereal& dCoef) 
+MeschachVectorHandler::PutCoef(integer iRow, const doublereal& dCoef) 
 {
 #ifdef DEBUG
    	IsValid();
@@ -115,7 +115,7 @@ MeschachVectorHandler::fPutCoef(integer iRow, const doublereal& dCoef)
 }
 
 inline flag
-MeschachVectorHandler::fIncCoef(integer iRow, const doublereal& dCoef) 
+MeschachVectorHandler::IncCoef(integer iRow, const doublereal& dCoef) 
 {
 #ifdef DEBUG
    	IsValid();
@@ -125,7 +125,7 @@ MeschachVectorHandler::fIncCoef(integer iRow, const doublereal& dCoef)
 }
 
 inline flag
-MeschachVectorHandler::fDecCoef(integer iRow, const doublereal& dCoef) 
+MeschachVectorHandler::DecCoef(integer iRow, const doublereal& dCoef) 
 {
 #ifdef DEBUG
    	IsValid();
@@ -168,15 +168,15 @@ public:
    	void Init(const doublereal& d = 0.);
    
    	/* Inserisce un coefficiente */
-   	inline flag fPutCoef(integer iRow, integer iCol,
+   	inline flag PutCoef(integer iRow, integer iCol,
 			     const doublereal& dCoef);
 			     
    	/* Incrementa un coefficiente - se non esiste lo crea */
-   	inline flag fIncCoef(integer iRow, integer iCol,
+   	inline flag IncCoef(integer iRow, integer iCol,
 			     const doublereal& dCoef);
 	
    	/* Decrementa un coefficiente - se non esiste lo crea */
-   	inline flag fDecCoef(integer iRow, integer iCol,
+   	inline flag DecCoef(integer iRow, integer iCol,
 			     const doublereal& dCoef);
 			     
    	/* Restituisce un coefficiente - zero se non e' definito */
@@ -206,7 +206,7 @@ MeschachSparseMatrixHandler::iGetNumCols(void) const
 
 /* Inserisce un coefficiente */
 inline flag
-MeschachSparseMatrixHandler::fPutCoef(integer iRow, integer iCol,
+MeschachSparseMatrixHandler::PutCoef(integer iRow, integer iCol,
 				      const doublereal& dCoef)
 {
 #ifdef DEBUG
@@ -221,7 +221,7 @@ MeschachSparseMatrixHandler::fPutCoef(integer iRow, integer iCol,
 
 /* Incrementa un coefficiente - se non esiste lo crea */
 inline flag
-MeschachSparseMatrixHandler::fIncCoef(integer iRow, integer iCol,
+MeschachSparseMatrixHandler::IncCoef(integer iRow, integer iCol,
 				      const doublereal& dCoef) 
 {
 #ifdef DEBUG
@@ -237,7 +237,7 @@ MeschachSparseMatrixHandler::fIncCoef(integer iRow, integer iCol,
 
 /* Decrementa un coefficiente - se non esiste lo crea */
 inline flag
-MeschachSparseMatrixHandler::fDecCoef(integer iRow, integer iCol,
+MeschachSparseMatrixHandler::DecCoef(integer iRow, integer iCol,
 				      const doublereal& dCoef) 
 {
 #ifdef DEBUG

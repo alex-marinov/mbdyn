@@ -272,28 +272,28 @@ SphericalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       /* Contributo di forza all'equazione della forza, nodo 1 */
-      WM.fPutCoef(iCnt, 24+iCnt, 1.);
+      WM.PutCoef(iCnt, 24+iCnt, 1.);
       
       /* Contrib. di der. di forza all'eq. della der. della forza, nodo 1 */
-      WM.fPutCoef(6+iCnt, 27+iCnt, 1.);
+      WM.PutCoef(6+iCnt, 27+iCnt, 1.);
       
       /* Contributo di forza all'equazione della forza, nodo 2 */
-      WM.fPutCoef(12+iCnt, 24+iCnt, -1.);
+      WM.PutCoef(12+iCnt, 24+iCnt, -1.);
       
       /* Contrib. di der. di forza all'eq. della der. della forza, nodo 2 */
-      WM.fPutCoef(18+iCnt, 27+iCnt, -1.);
+      WM.PutCoef(18+iCnt, 27+iCnt, -1.);
       
       /* Equazione di vincolo, nodo 1 */
-      WM.fPutCoef(24+iCnt, iCnt, -1.);
+      WM.PutCoef(24+iCnt, iCnt, -1.);
       
       /* Derivata dell'equazione di vincolo, nodo 1 */
-      WM.fPutCoef(27+iCnt, 6+iCnt, -1.);
+      WM.PutCoef(27+iCnt, 6+iCnt, -1.);
       
       /* Equazione di vincolo, nodo 2 */
-      WM.fPutCoef(24+iCnt, 12+iCnt, 1.);
+      WM.PutCoef(24+iCnt, 12+iCnt, 1.);
       
       /* Derivata dell'equazione di vincolo, nodo 2 */
-      WM.fPutCoef(27+iCnt, 18+iCnt, 1.);
+      WM.PutCoef(27+iCnt, 18+iCnt, 1.);
    }
    
    /* Recupera i dati */
@@ -627,16 +627,16 @@ PinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Matrici identita' */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       /* Contributo di forza all'equazione della forza */
-      WM.fPutCoef(iCnt, 12+iCnt, 1.);
+      WM.PutCoef(iCnt, 12+iCnt, 1.);
       
       /* Contrib. di der. di forza all'eq. della der. della forza */
-      WM.fPutCoef(6+iCnt, 15+iCnt, 1.);
+      WM.PutCoef(6+iCnt, 15+iCnt, 1.);
       
       /* Equazione di vincolo */
-      WM.fPutCoef(12+iCnt, iCnt, -1.);
+      WM.PutCoef(12+iCnt, iCnt, -1.);
       
       /* Derivata dell'equazione di vincolo */
-      WM.fPutCoef(15+iCnt, 6+iCnt, -1.);
+      WM.PutCoef(15+iCnt, 6+iCnt, -1.);
    }
    
    /* Recupera i dati */

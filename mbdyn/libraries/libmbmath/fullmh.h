@@ -98,39 +98,39 @@ public:
 	};
 
 	/* Inserisce un coefficiente */
-	virtual inline flag
-	fPutCoef(integer iRow, integer iCol, const doublereal& dCoef) {
+	virtual inline void
+	PutCoef(integer iRow, integer iCol, const doublereal& dCoef) {
 		IsValid();
 #ifdef DEBUG
 		ASSERT(iRow > 0 && iRow <= iNumRows);
 		ASSERT(iCol > 0 && iCol <= iNumCols);
 #endif /* DEBUG */
 		ppdColsm1[iCol][iRow] = dCoef;
-		return flag(1);
+		return;
 	};
 
 	/* Incrementa un coefficiente - se non esiste lo crea */
-	virtual inline flag
-	fIncCoef(integer iRow, integer iCol, const doublereal& dCoef) {
+	virtual inline void
+	IncCoef(integer iRow, integer iCol, const doublereal& dCoef) {
 		IsValid();
 #ifdef DEBUG
 		ASSERT(iRow > 0 && iRow <= iNumRows);
 		ASSERT(iCol > 0 && iCol <= iNumCols);
 #endif /* DEBUG */
 		ppdColsm1[iCol][iRow] += dCoef;
-		return flag(1);
+		return;
 	};
 
 	/* Incrementa un coefficiente - se non esiste lo crea */
-	virtual inline flag
-	fDecCoef(integer iRow, integer iCol, const doublereal& dCoef) {
+	virtual inline void
+	DecCoef(integer iRow, integer iCol, const doublereal& dCoef) {
 		IsValid();
 #ifdef DEBUG
 		ASSERT(iRow > 0 && iRow <= iNumRows);
 		ASSERT(iCol > 0 && iCol <= iNumCols);
 #endif /* DEBUG */
 		ppdColsm1[iCol][iRow] -= dCoef;
-		return flag(1);
+		return;
 	};
 
 	/* Restituisce un coefficiente - zero se non e' definito */

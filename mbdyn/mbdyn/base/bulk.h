@@ -130,7 +130,7 @@ class BulkSpringSupport
 	if (SD.iOrder == 0) {
 	   d *= dCoef;
 	}
-	WM.fPutCoef(1, 1, d);
+	WM.PutCoef(1, 1, d);
 	
 	return WorkMat;
      };

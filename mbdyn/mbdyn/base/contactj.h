@@ -222,7 +222,7 @@ class ContactJoint : virtual public Elem, public Joint {
    };
    
    virtual void SetValue(VectorHandler& X, VectorHandler& XP) const {
-      X.fPutCoef(iGetFirstIndex()+1, 0.);
+      X.PutCoef(iGetFirstIndex()+1, 0.);
    };
 
    /* *******PER IL SOLUTORE PARALLELO******** */        

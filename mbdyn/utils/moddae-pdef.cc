@@ -103,8 +103,8 @@ static int init(void* p, VectorHandler& X, VectorHandler& XP)
    X.Reset(0.);
    XP.Reset(0.);
    for (int i = 1; i <= size(p); i++) {
-      XP.fPutCoef(i, pd->xP[i-1]); /* posiz. iniziale */
-      X.fPutCoef(i, pd->x[i-1]); /* posiz. iniziale */
+      XP.PutCoef(i, pd->xP[i-1]); /* posiz. iniziale */
+      X.PutCoef(i, pd->x[i-1]); /* posiz. iniziale */
    }
    return 0;
 }
@@ -129,19 +129,19 @@ static int grad(void* p, MatrixHandler& J, MatrixHandler& JP,
    doublereal l = l0+u;
    doublereal g = pd->g;
    
-   J.fPutCoef(1, 3, -1.);
-   J.fPutCoef(2, 4, -1.);
-   J.fPutCoef(3, 1, g*ctheta/l);
-   J.fPutCoef(3, 2, -(2.*phi*w + g*stheta)/(l*l));
-   J.fPutCoef(3, 3, 2.*w/l);
-   J.fPutCoef(3, 4, 2.*phi/l);
-   J.fPutCoef(4, 1, g*stheta);
-   J.fPutCoef(4, 2, k/m - phi*phi);
-   J.fPutCoef(4, 3, -2*l*phi);
-   J.fPutCoef(4, 4, c/m);
+   J.PutCoef(1, 3, -1.);
+   J.PutCoef(2, 4, -1.);
+   J.PutCoef(3, 1, g*ctheta/l);
+   J.PutCoef(3, 2, -(2.*phi*w + g*stheta)/(l*l));
+   J.PutCoef(3, 3, 2.*w/l);
+   J.PutCoef(3, 4, 2.*phi/l);
+   J.PutCoef(4, 1, g*stheta);
+   J.PutCoef(4, 2, k/m - phi*phi);
+   J.PutCoef(4, 3, -2*l*phi);
+   J.PutCoef(4, 4, c/m);
 
    for (int i = 1; i <= 4; i++) {
-	   JP.fPutCoef(i, i, 1.);
+	   JP.PutCoef(i, i, 1.);
    }
 
    return 0;
@@ -165,10 +165,10 @@ static int func(void* p, VectorHandler& R, const VectorHandler& X, const VectorH
    doublereal l = l0+u;
    doublereal g = pd->g;
 
-   R.fPutCoef(1, phi - XP.dGetCoef(1));
-   R.fPutCoef(2, w - XP.dGetCoef(2));
-   R.fPutCoef(3, - (2.*phi*w + g*stheta)/l - XP.dGetCoef(3));
-   R.fPutCoef(4, (phi*phi*l - (k*u + c*w)/m + g*ctheta) - XP.dGetCoef(4));
+   R.PutCoef(1, phi - XP.dGetCoef(1));
+   R.PutCoef(2, w - XP.dGetCoef(2));
+   R.PutCoef(3, - (2.*phi*w + g*stheta)/l - XP.dGetCoef(3));
+   R.PutCoef(4, (phi*phi*l - (k*u + c*w)/m + g*ctheta) - XP.dGetCoef(4));
 
    return 0;
 }

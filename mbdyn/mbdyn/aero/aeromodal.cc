@@ -212,9 +212,9 @@ AerodynamicModal::AssJac(VariableSubMatrixHandler& WorkMat,
 	 */
     	for (unsigned int i=1; i <= NStModes; i++) {
         	for (unsigned int j=1; j <= NStModes; j++) {
-			WM.fIncCoef(i, j, -dCoef*qd*pD0->dGetCoef(RigidF+i,
+			WM.IncCoef(i, j, -dCoef*qd*pD0->dGetCoef(RigidF+i,
 						RigidF+j));
-	        	WM.fIncCoef(i, j+NStModes, 
+	        	WM.IncCoef(i, j+NStModes, 
 					-qd*CV*CV*pD2->dGetCoef(RigidF+i,
 						RigidF+j)
 					-dCoef*qd*CV*pD1->dGetCoef(RigidF+i,
@@ -223,49 +223,49 @@ AerodynamicModal::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
         for (unsigned int j=1; j <= NAeroStates; j++) {
         	for (unsigned int i=1; i <= NStModes; i++) {
-			WM.fIncCoef(i, j+2*NStModes,
+			WM.IncCoef(i, j+2*NStModes,
 					-dCoef*qd*pC->dGetCoef(RigidF+i, j));
-	        	WM.fIncCoef(j+NStModes, i, 
+	        	WM.IncCoef(j+NStModes, i, 
 					-dCoef*(1/CV)*pB->dGetCoef(j, 
 						RigidF+i));
 		}
 	}
         for (unsigned int j=1; j <= NAeroStates; j++) {
         	for (unsigned int i=1; i <= NAeroStates; i++) {
-		        WM.fIncCoef(i+NStModes,j+2*NStModes, 1*(i==j)-dCoef*(1/CV)*pA->dGetCoef(i,j));
+		        WM.IncCoef(i+NStModes,j+2*NStModes, 1*(i==j)-dCoef*(1/CV)*pA->dGetCoef(i,j));
 		}
 	}
 
 	if (NGust) {
         	for (unsigned int i=1; i <= NStModes; i++) {
-			WM.fIncCoef(i, 2*NStModes+NAeroStates+1,
+			WM.IncCoef(i, 2*NStModes+NAeroStates+1,
 					-dCoef*qd*pD0->dGetCoef(RigidF+i,
 						RigidF+NStModes+1));
-			WM.fIncCoef(i, 2*NStModes+NAeroStates+3,
+			WM.IncCoef(i, 2*NStModes+NAeroStates+3,
 					-dCoef*qd*pD0->dGetCoef(RigidF+i,
 						RigidF+NStModes+2));
-			WM.fIncCoef(i, 2*NStModes+NAeroStates+2,
+			WM.IncCoef(i, 2*NStModes+NAeroStates+2,
 					-CV*CV*qd*pD2->dGetCoef(RigidF+i,
 						RigidF+NStModes+1)
 					-dCoef*CV*qd*pD1->dGetCoef(RigidF+i,
 						RigidF+NStModes+1));
-			WM.fIncCoef(i, 2*NStModes+NAeroStates+4,
+			WM.IncCoef(i, 2*NStModes+NAeroStates+4,
 					-CV*CV*qd*pD2->dGetCoef(RigidF+i,
 						RigidF+NStModes+2)
 					-dCoef*CV*qd*pD1->dGetCoef(RigidF+i,
 						RigidF+NStModes+2));
 		}
         	for (unsigned int i=1; i <= NAeroStates; i++) {
-			WM.fIncCoef(i+NStModes, 2*NStModes+NAeroStates+1,
+			WM.IncCoef(i+NStModes, 2*NStModes+NAeroStates+1,
 					-dCoef*(1/CV)*pB->dGetCoef(i, RigidF+NStModes+1));
-			WM.fIncCoef(i+NStModes, 2*NStModes+NAeroStates+3,
+			WM.IncCoef(i+NStModes, 2*NStModes+NAeroStates+3,
 					-dCoef*(1/CV)*pB->dGetCoef(i, RigidF+NStModes+2));
 		}
         	for (unsigned int i=0; i < NGust; i++) {
-			WM.fIncCoef(i*2+1+NStModes+NAeroStates,i*2+1+2*NStModes+NAeroStates,1);
-			WM.fIncCoef(i*2+1+NStModes+NAeroStates,i*2+2+2*NStModes+NAeroStates,-dCoef);
-			WM.fIncCoef(i*2+2+NStModes+NAeroStates,i*2+1+2*NStModes+NAeroStates,dCoef*gustVff*gustVff);
-			WM.fIncCoef(i*2+2+NStModes+NAeroStates,i*2+2+2*NStModes+NAeroStates,1+dCoef*2*gustXi*gustVff);
+			WM.IncCoef(i*2+1+NStModes+NAeroStates,i*2+1+2*NStModes+NAeroStates,1);
+			WM.IncCoef(i*2+1+NStModes+NAeroStates,i*2+2+2*NStModes+NAeroStates,-dCoef);
+			WM.IncCoef(i*2+2+NStModes+NAeroStates,i*2+1+2*NStModes+NAeroStates,dCoef*gustVff*gustVff);
+			WM.IncCoef(i*2+2+NStModes+NAeroStates,i*2+2+2*NStModes+NAeroStates,1+dCoef*2*gustXi*gustVff);
 		}
 	}	
 	
@@ -306,12 +306,12 @@ SubVectorHandler& AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
    	Vec3 A_i  = RRT*(Vec3(XPrimeCurr, iFirstIndex+7));
 	Vec3 WP_i = RRT*(Vec3(XPrimeCurr, iFirstIndex+10));
 	for (unsigned int  iCnt=1; iCnt<=3; iCnt++) {
-     		pq->fPutCoef(iCnt, X_i.dGet(iCnt));
-     		pq->fPutCoef(iCnt+3, Phi_i.dGet(iCnt));
-     		pqPrime->fPutCoef(iCnt, V_i.dGet(iCnt));
-     		pqPrime->fPutCoef(iCnt+3, W_i.dGet(iCnt));
-     		pqSec->fPutCoef(iCnt, A_i.dGet(iCnt));
-     		pqSec->fPutCoef(iCnt+3, WP_i.dGet(iCnt));
+     		pq->PutCoef(iCnt, X_i.dGet(iCnt));
+     		pq->PutCoef(iCnt+3, Phi_i.dGet(iCnt));
+     		pqPrime->PutCoef(iCnt, V_i.dGet(iCnt));
+     		pqPrime->PutCoef(iCnt+3, W_i.dGet(iCnt));
+     		pqSec->PutCoef(iCnt, A_i.dGet(iCnt));
+     		pqSec->PutCoef(iCnt+3, WP_i.dGet(iCnt));
 	}		
    }
    	
@@ -331,19 +331,19 @@ SubVectorHandler& AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
 
    /* Recupera i vettori {a} e {aP} e {aS}(deformate modali) */  
    for (unsigned int  iCnt=1; iCnt<=NStModes; iCnt++) {
-     pq->fPutCoef(iCnt+RigidF, XCurr.dGetCoef(iModalIndex+iCnt));
-     pqPrime->fPutCoef(iCnt+RigidF, XPrimeCurr.dGetCoef(iModalIndex+iCnt));
-     pqSec->fPutCoef(iCnt+RigidF, XPrimeCurr.dGetCoef(iModalIndex+NStModes+iCnt));
+     pq->PutCoef(iCnt+RigidF, XCurr.dGetCoef(iModalIndex+iCnt));
+     pqPrime->PutCoef(iCnt+RigidF, XPrimeCurr.dGetCoef(iModalIndex+iCnt));
+     pqSec->PutCoef(iCnt+RigidF, XPrimeCurr.dGetCoef(iModalIndex+NStModes+iCnt));
    }
   
    /* Recupera i vettori {xa} e {xaP}  */  
    for (unsigned int  iCnt=1; iCnt<=NAeroStates; iCnt++) {
-     pxa->fPutCoef(iCnt, XCurr.dGetCoef(iAeroIndex+iCnt));
-     pxaPrime->fPutCoef(iCnt, XPrimeCurr.dGetCoef(iAeroIndex+iCnt));
+     pxa->PutCoef(iCnt, XCurr.dGetCoef(iAeroIndex+iCnt));
+     pxaPrime->PutCoef(iCnt, XPrimeCurr.dGetCoef(iAeroIndex+iCnt));
    }
    for (unsigned int  iCnt=1; iCnt<=2*NGust; iCnt++) {
-     pgs->fPutCoef(iCnt, XCurr.dGetCoef(iAeroIndex+NAeroStates+iCnt));
-     pgsPrime->fPutCoef(iCnt, XPrimeCurr.dGetCoef(iAeroIndex+NAeroStates+iCnt));
+     pgs->PutCoef(iCnt, XCurr.dGetCoef(iAeroIndex+NAeroStates+iCnt));
+     pgsPrime->PutCoef(iCnt, XPrimeCurr.dGetCoef(iAeroIndex+NAeroStates+iCnt));
 
    }
    
@@ -387,12 +387,12 @@ SubVectorHandler& AerodynamicModal::InitialAssRes(SubVectorHandler& WorkVec,
 	Vec3 V_i  = RRT*V0;
    	Vec3 W_i  = RRT*pModalNode->GetWCurr();
 	for (unsigned int  iCnt=1; iCnt<=3; iCnt++) {
-     		pq->fPutCoef(iCnt, X_i.dGet(iCnt));
-     		pq->fPutCoef(iCnt+3, Phi_i.dGet(iCnt));
-     		pqPrime->fPutCoef(iCnt, V_i.dGet(iCnt));
-     		pqPrime->fPutCoef(iCnt+3, W_i.dGet(iCnt));
-     		pqSec->fPutCoef(iCnt, 0.);
-     		pqSec->fPutCoef(iCnt+3, 0.);
+     		pq->PutCoef(iCnt, X_i.dGet(iCnt));
+     		pq->PutCoef(iCnt+3, Phi_i.dGet(iCnt));
+     		pqPrime->PutCoef(iCnt, V_i.dGet(iCnt));
+     		pqPrime->PutCoef(iCnt+3, W_i.dGet(iCnt));
+     		pqSec->PutCoef(iCnt, 0.);
+     		pqSec->PutCoef(iCnt+3, 0.);
 	}		
    }
    
@@ -411,19 +411,19 @@ SubVectorHandler& AerodynamicModal::InitialAssRes(SubVectorHandler& WorkVec,
 
    /* Recupera i vettori {a} e {aP} e {aS}(deformate modali) */  
    for (unsigned int  iCnt=1; iCnt<=NStModes; iCnt++) {
-     pq->fPutCoef(iCnt+RigidF, XCurr.dGetCoef(iModalIndex+iCnt));
-     pqPrime->fPutCoef(iCnt+RigidF, 0);
-     pqSec->fPutCoef(iCnt+RigidF, 0);
+     pq->PutCoef(iCnt+RigidF, XCurr.dGetCoef(iModalIndex+iCnt));
+     pqPrime->PutCoef(iCnt+RigidF, 0);
+     pqSec->PutCoef(iCnt+RigidF, 0);
    }
   
    /* Recupera i vettori {xa} e {xaP}  */  
    for (unsigned int  iCnt=1; iCnt<=NAeroStates; iCnt++) {
-     pxa->fPutCoef(iCnt, XCurr.dGetCoef(iAeroIndex+iCnt));
-     pxaPrime->fPutCoef(iCnt, 0);
+     pxa->PutCoef(iCnt, XCurr.dGetCoef(iAeroIndex+iCnt));
+     pxaPrime->PutCoef(iCnt, 0);
    }
    for (unsigned int  iCnt=1; iCnt<=2*NGust; iCnt++) {
-     pgs->fPutCoef(iCnt, XCurr.dGetCoef(iAeroIndex+NAeroStates+iCnt));
-     pgsPrime->fPutCoef(iCnt, 0.);
+     pgs->PutCoef(iCnt, XCurr.dGetCoef(iAeroIndex+NAeroStates+iCnt));
+     pgsPrime->PutCoef(iCnt, 0.);
    }
    AssVec(WorkVec);
    
@@ -465,7 +465,7 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
    TmpS.Reset();
    for (unsigned int i=1; i <= NAeroStates; i++) {
    	for (unsigned int j=1; j <= NStModes+RigidF; j++) {
-		TmpA.fIncCoef(i, pB->dGetCoef(i,j)*(pq->dGetCoef(j)));
+		TmpA.IncCoef(i, pB->dGetCoef(i,j)*(pq->dGetCoef(j)));
 	}
    }   
    pA->MatVecIncMul(TmpA,*pxa);
@@ -475,14 +475,14 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
    }
    for (unsigned int i=1; i <= NStModes+RigidF; i++) {
    	for (unsigned int j=1; j <= NStModes+RigidF; j++) {
-		Tmp.fIncCoef(i, pD0->dGetCoef(i,j)*(pq->dGetCoef(j)));
-		TmpP.fIncCoef(i, pD1->dGetCoef(i,j)*(pqPrime->dGetCoef(j)));
-		TmpS.fIncCoef(i, pD2->dGetCoef(i,j)*(pqSec->dGetCoef(j)));
+		Tmp.IncCoef(i, pD0->dGetCoef(i,j)*(pq->dGetCoef(j)));
+		TmpP.IncCoef(i, pD1->dGetCoef(i,j)*(pqPrime->dGetCoef(j)));
+		TmpS.IncCoef(i, pD2->dGetCoef(i,j)*(pqSec->dGetCoef(j)));
 	}
    }   
    for (unsigned int i=1; i <= NStModes+RigidF; i++) {
    	for (unsigned int j=1; j <= NAeroStates; j++) {
-		Tmp.fIncCoef(i, pC->dGetCoef(i,j)*(pxa->dGetCoef(j)));
+		Tmp.IncCoef(i, pC->dGetCoef(i,j)*(pxa->dGetCoef(j)));
         }
    }
    if (RigidF) {
@@ -661,7 +661,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
 	for (unsigned int iCnt = 0; iCnt < AeroN; iCnt++)  { 
 		for (unsigned int jCnt = 0; jCnt < AeroN; jCnt++)  { 
 			fdat >> d;
-			if (d != 0) { pAMat->fPutCoef(iCnt+1,jCnt+1,d);} 
+			if (d != 0) { pAMat->PutCoef(iCnt+1,jCnt+1,d);} 
 		}
 	}
 	/* legge il primo blocco (HEADER) */
@@ -669,7 +669,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
 	for (unsigned int iCnt = 0; iCnt < AeroN; iCnt++)  { 
 		for (unsigned int jCnt = 0; jCnt < NModes+GustN; jCnt++)  { 
 			fdat >> d;
-			pBMat->fPutCoef(iCnt+1,jCnt+1,d);
+			pBMat->PutCoef(iCnt+1,jCnt+1,d);
 		} 
 	}
 	
@@ -678,7 +678,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
 	for (unsigned int iCnt = 0; iCnt < NModes; iCnt++)  { 
 		for (unsigned int jCnt = 0; jCnt < AeroN; jCnt++)  { 
 			fdat >> d;
-			pCMat->fPutCoef(iCnt+1,jCnt+1,d);
+			pCMat->PutCoef(iCnt+1,jCnt+1,d);
 		} 
 	}
 
@@ -687,7 +687,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
 	for (unsigned int iCnt = 0; iCnt < NModes; iCnt++)  { 
 		for (unsigned int jCnt = 0; jCnt < NModes+GustN; jCnt++)  { 
 			fdat >> d;
-			pD0Mat->fPutCoef(iCnt+1,jCnt+1,d);
+			pD0Mat->PutCoef(iCnt+1,jCnt+1,d);
 		} 
 	}
 
@@ -696,7 +696,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
 	for (unsigned int iCnt = 0; iCnt < NModes; iCnt++)  { 
 		for (unsigned int jCnt = 0; jCnt < NModes+GustN; jCnt++)  { 
 			fdat >> d;
-			pD1Mat->fPutCoef(iCnt+1,jCnt+1,d);
+			pD1Mat->PutCoef(iCnt+1,jCnt+1,d);
 		} 
 	}
 	
@@ -705,7 +705,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
 	for (unsigned int iCnt = 0; iCnt < NModes; iCnt++)  { 
 		for (unsigned int jCnt = 0; jCnt < NModes+GustN; jCnt++)  { 
 			fdat >> d;
-			pD2Mat->fPutCoef(iCnt+1,jCnt+1,d);
+			pD2Mat->PutCoef(iCnt+1,jCnt+1,d);
 		} 
 	}   
       }

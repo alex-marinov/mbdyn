@@ -203,8 +203,8 @@ void ScalarDifferentialNode::SetXPrime(const doublereal& d)
 void ScalarDifferentialNode::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
    integer iIndex = iGetFirstIndex();
-   X.fPutCoef(iIndex+1, dX);
-   XP.fPutCoef(iIndex+1, dXP);
+   X.PutCoef(iIndex+1, dX);
+   XP.PutCoef(iIndex+1, dXP);
 }
 
 
@@ -338,7 +338,7 @@ void
 ScalarAlgebraicNode::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
 {
    integer iIndex = iGetFirstIndex();
-   X.fPutCoef(iIndex+1, dX);
+   X.PutCoef(iIndex+1, dX);
 }
 
 

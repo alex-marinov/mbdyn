@@ -191,22 +191,22 @@ Control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal Jac43 = quarto;
    doublereal Jac44 = -terzo-quarto;
 
-   WM.fPutCoef(1, 1, Jac11);
-   WM.fPutCoef(1, 2, Jac12);
-   WM.fPutCoef(1, 3, Jac13);
-   // WM.fPutCoef(1, 4, Jac14);
-   WM.fPutCoef(2, 1, Jac21);
-   WM.fPutCoef(2, 2, Jac22);
-   // WM.fPutCoef(2, 3, Jac23);
-   WM.fPutCoef(2, 4, Jac24);
-   WM.fPutCoef(3, 1, Jac31);
-   // WM.fPutCoef(3, 2, Jac32);
-   WM.fPutCoef(3, 3, Jac33);
-   WM.fPutCoef(3, 4, Jac24);
-   // WM.fPutCoef(4, 1, Jac41);
-   WM.fPutCoef(4, 2, Jac42);
-   WM.fPutCoef(4, 3, Jac43);
-   WM.fPutCoef(4, 4, Jac44);
+   WM.PutCoef(1, 1, Jac11);
+   WM.PutCoef(1, 2, Jac12);
+   WM.PutCoef(1, 3, Jac13);
+   // WM.PutCoef(1, 4, Jac14);
+   WM.PutCoef(2, 1, Jac21);
+   WM.PutCoef(2, 2, Jac22);
+   // WM.PutCoef(2, 3, Jac23);
+   WM.PutCoef(2, 4, Jac24);
+   WM.PutCoef(3, 1, Jac31);
+   // WM.PutCoef(3, 2, Jac32);
+   WM.PutCoef(3, 3, Jac33);
+   WM.PutCoef(3, 4, Jac24);
+   // WM.PutCoef(4, 1, Jac41);
+   WM.PutCoef(4, 2, Jac42);
+   WM.PutCoef(4, 3, Jac43);
+   WM.PutCoef(4, 4, Jac44);
 
    return WorkMat;
 }
@@ -434,57 +434,57 @@ Control_valve2::AssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal dKappa = 2.*Cd*Cd*density;
 
 	/* Q12 */
-	WM.fPutCoef(1, 5, -1.);
-	WM.fPutCoef(2, 5,  1.);
+	WM.PutCoef(1, 5, -1.);
+	WM.PutCoef(2, 5,  1.);
 	
 	doublereal a = A[0]*A[0];
-	WM.fPutCoef(5, 1, -a);
-	WM.fPutCoef(5, 2,  a);
+	WM.PutCoef(5, 1, -a);
+	WM.PutCoef(5, 2,  a);
 
 	/* Q34 */
-	WM.fPutCoef(3, 6, -1.);
-	WM.fPutCoef(4, 6,  1.);
+	WM.PutCoef(3, 6, -1.);
+	WM.PutCoef(4, 6,  1.);
 	
 	a = A[1]*A[1];
-	WM.fPutCoef(6, 3, -a);
-	WM.fPutCoef(6, 4,  a);
+	WM.PutCoef(6, 3, -a);
+	WM.PutCoef(6, 4,  a);
 	
 	/* Q13 */
-	WM.fPutCoef(1, 7, -1.);
-	WM.fPutCoef(3, 7,  1.);
+	WM.PutCoef(1, 7, -1.);
+	WM.PutCoef(3, 7,  1.);
 	
 	a = A[2]*A[2];
-	WM.fPutCoef(7, 1, -a);
-	WM.fPutCoef(7, 3,  a);
+	WM.PutCoef(7, 1, -a);
+	WM.PutCoef(7, 3,  a);
 	
 	/* Q24 */
-	WM.fPutCoef(2, 8, -1.);
-	WM.fPutCoef(4, 8,  1.);
+	WM.PutCoef(2, 8, -1.);
+	WM.PutCoef(4, 8,  1.);
 	
 	a = A[3]*A[3];
-	WM.fPutCoef(8, 2, -a);
-	WM.fPutCoef(8, 4,  a);
+	WM.PutCoef(8, 2, -a);
+	WM.PutCoef(8, 4,  a);
 
 #ifdef VALVE_6
 	/* Q14 */
-	WM.fPutCoef(1, 9, -1.);
-	WM.fPutCoef(4, 9,  1.);
+	WM.PutCoef(1, 9, -1.);
+	WM.PutCoef(4, 9,  1.);
 	
 	a = A[4]*A[4];
-	WM.fPutCoef(9, 1, -a);
-	WM.fPutCoef(9, 4,  a);
+	WM.PutCoef(9, 1, -a);
+	WM.PutCoef(9, 4,  a);
 	
 	/* Q23 */
-	WM.fPutCoef(2, 10, -1.);
-	WM.fPutCoef(3, 10,  1.);
+	WM.PutCoef(2, 10, -1.);
+	WM.PutCoef(3, 10,  1.);
 	
 	a = A[5]*A[5];
-	WM.fPutCoef(10, 2, -a);
-	WM.fPutCoef(10, 3,  a);
+	WM.PutCoef(10, 2, -a);
+	WM.PutCoef(10, 3,  a);
 #endif /* VALVE_6 */
 
 	for (int i = 0; i < LAST_Q; i++) {
-		WM.fPutCoef(5+i, 5+i, 2.*fabs(q[i])/dKappa);
+		WM.PutCoef(5+i, 5+i, 2.*fabs(q[i])/dKappa);
 	}
 	
 	return WorkMat;
@@ -619,7 +619,7 @@ Control_valve2::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
 		 * q = sign(Dp)*Cd*A*sqrt(2.*rho*abs(Dp))
 		 */
 		
-		X.fPutCoef(iFirstIndex+i, 
+		X.PutCoef(iFirstIndex+i, 
 			Cd*A[i]*copysign(sqrt(2.*density*fabs(dp[i])), dp[i]));
 	}
 }
@@ -833,33 +833,33 @@ Dynamic_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal Jac65  = -1;
    doublereal Jac66  = dCoef;  
 
-   WM.fPutCoef(1, 1, Jac11);
-   WM.fPutCoef(1, 2, Jac12);
-   WM.fPutCoef(1, 3, Jac13);
-   WM.fPutCoef(1, 4, Jac14);
-   WM.fPutCoef(1, 5, Jac15);
-   WM.fPutCoef(2, 1, Jac21);
-   WM.fPutCoef(2, 2, Jac22);
-   WM.fPutCoef(2, 3, Jac23);
-   WM.fPutCoef(2, 4, Jac24);
-   WM.fPutCoef(2, 5, Jac25);
-   WM.fPutCoef(3, 1, Jac31);
-   WM.fPutCoef(3, 2, Jac32);
-   WM.fPutCoef(3, 3, Jac33);
-   WM.fPutCoef(3, 4, Jac34);
-   WM.fPutCoef(3, 5, Jac35);
-   WM.fPutCoef(4, 1, Jac41);
-   WM.fPutCoef(4, 2, Jac42);
-   WM.fPutCoef(4, 3, Jac43);
-   WM.fPutCoef(4, 4, Jac44);
-   WM.fPutCoef(4, 5, Jac45);
-   WM.fPutCoef(5, 1, Jac51);
-   WM.fPutCoef(5, 2, Jac52);
-   WM.fPutCoef(5, 3, Jac53);
-   WM.fPutCoef(5, 5, Jac55);
-   WM.fPutCoef(5, 6, Jac56);
-   WM.fPutCoef(6, 5, Jac65);
-   WM.fPutCoef(6, 6, Jac66);
+   WM.PutCoef(1, 1, Jac11);
+   WM.PutCoef(1, 2, Jac12);
+   WM.PutCoef(1, 3, Jac13);
+   WM.PutCoef(1, 4, Jac14);
+   WM.PutCoef(1, 5, Jac15);
+   WM.PutCoef(2, 1, Jac21);
+   WM.PutCoef(2, 2, Jac22);
+   WM.PutCoef(2, 3, Jac23);
+   WM.PutCoef(2, 4, Jac24);
+   WM.PutCoef(2, 5, Jac25);
+   WM.PutCoef(3, 1, Jac31);
+   WM.PutCoef(3, 2, Jac32);
+   WM.PutCoef(3, 3, Jac33);
+   WM.PutCoef(3, 4, Jac34);
+   WM.PutCoef(3, 5, Jac35);
+   WM.PutCoef(4, 1, Jac41);
+   WM.PutCoef(4, 2, Jac42);
+   WM.PutCoef(4, 3, Jac43);
+   WM.PutCoef(4, 4, Jac44);
+   WM.PutCoef(4, 5, Jac45);
+   WM.PutCoef(5, 1, Jac51);
+   WM.PutCoef(5, 2, Jac52);
+   WM.PutCoef(5, 3, Jac53);
+   WM.PutCoef(5, 5, Jac55);
+   WM.PutCoef(5, 6, Jac56);
+   WM.PutCoef(6, 5, Jac65);
+   WM.PutCoef(6, 6, Jac66);
  
    return WorkMat;
 }
@@ -1060,10 +1060,10 @@ Dynamic_control_valve::SetValue(VectorHandler& X , VectorHandler& XP ) const
 {
    integer i = iGetFirstIndex();
    
-   X.fPutCoef(i+1, start);
-   X.fPutCoef(i+2, 0.);
-   XP.fPutCoef(i+1, 0.);
-   XP.fPutCoef(i+2, 0.);
+   X.PutCoef(i+1, start);
+   X.PutCoef(i+2, 0.);
+   XP.PutCoef(i+1, 0.);
+   XP.PutCoef(i+2, 0.);
 }
  
 /* Dynamic_control_valve - end */
@@ -1277,35 +1277,35 @@ Pressure_flow_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal Jac87  = -1;
    doublereal Jac88  = dCoef;  
 
-   WM.fPutCoef(1, 1, Jac11);
-   WM.fPutCoef(1, 2, Jac12);
-   WM.fPutCoef(1, 3, Jac13);
-   WM.fPutCoef(1, 4, Jac14);
-   WM.fPutCoef(1, 7, Jac17);
-   WM.fPutCoef(2, 1, Jac21);
-   WM.fPutCoef(2, 2, Jac22);
-   WM.fPutCoef(2, 3, Jac23);
-   WM.fPutCoef(2, 4, Jac24);
-   WM.fPutCoef(2, 7, Jac27);
-   WM.fPutCoef(3, 1, Jac31);
-   WM.fPutCoef(3, 2, Jac32);
-   WM.fPutCoef(3, 3, Jac33);
-   WM.fPutCoef(3, 4, Jac34);
-   WM.fPutCoef(3, 7, Jac37);
-   WM.fPutCoef(4, 1, Jac41);
-   WM.fPutCoef(4, 2, Jac42);
-   WM.fPutCoef(4, 3, Jac43);
-   WM.fPutCoef(4, 4, Jac44);
-   WM.fPutCoef(4, 7, Jac47);
-   WM.fPutCoef(5, 7, Jac67);
-   WM.fPutCoef(6, 7, Jac67);
-   WM.fPutCoef(7, 1, Jac71);
-   WM.fPutCoef(7, 2, Jac72);
-   WM.fPutCoef(7, 3, Jac73);
-   WM.fPutCoef(7, 7, Jac77);
-   WM.fPutCoef(7, 8, Jac78);
-   WM.fPutCoef(8, 7, Jac87);
-   WM.fPutCoef(8, 8, Jac88);
+   WM.PutCoef(1, 1, Jac11);
+   WM.PutCoef(1, 2, Jac12);
+   WM.PutCoef(1, 3, Jac13);
+   WM.PutCoef(1, 4, Jac14);
+   WM.PutCoef(1, 7, Jac17);
+   WM.PutCoef(2, 1, Jac21);
+   WM.PutCoef(2, 2, Jac22);
+   WM.PutCoef(2, 3, Jac23);
+   WM.PutCoef(2, 4, Jac24);
+   WM.PutCoef(2, 7, Jac27);
+   WM.PutCoef(3, 1, Jac31);
+   WM.PutCoef(3, 2, Jac32);
+   WM.PutCoef(3, 3, Jac33);
+   WM.PutCoef(3, 4, Jac34);
+   WM.PutCoef(3, 7, Jac37);
+   WM.PutCoef(4, 1, Jac41);
+   WM.PutCoef(4, 2, Jac42);
+   WM.PutCoef(4, 3, Jac43);
+   WM.PutCoef(4, 4, Jac44);
+   WM.PutCoef(4, 7, Jac47);
+   WM.PutCoef(5, 7, Jac67);
+   WM.PutCoef(6, 7, Jac67);
+   WM.PutCoef(7, 1, Jac71);
+   WM.PutCoef(7, 2, Jac72);
+   WM.PutCoef(7, 3, Jac73);
+   WM.PutCoef(7, 7, Jac77);
+   WM.PutCoef(7, 8, Jac78);
+   WM.PutCoef(8, 7, Jac87);
+   WM.PutCoef(8, 8, Jac88);
  
    return WorkMat;
 }
@@ -1477,10 +1477,10 @@ Pressure_flow_control_valve::SetValue(VectorHandler& X , VectorHandler& XP ) con
 {
    integer i = iGetFirstIndex();
    
-   X.fPutCoef(i+1, start);
-   X.fPutCoef(i+2, 0.);
-   XP.fPutCoef(i+1, 0.);
-   XP.fPutCoef(i+2, 0.);
+   X.PutCoef(i+1, start);
+   X.PutCoef(i+2, 0.);
+   XP.PutCoef(i+1, 0.);
+   XP.PutCoef(i+2, 0.);
 }
  
 /* Pressure_flow_control_valve - end */
@@ -1650,22 +1650,22 @@ Pressure_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Jac smorzatore " << density*area_max*pow(area_max/(area_diaf*Cd), 2) << std::endl);
 #endif
    
-   WM.fPutCoef(1, 1, Jac11);
-   WM.fPutCoef(1, 2, Jac12);
-   WM.fPutCoef(1, 3, Jac13);
-   WM.fPutCoef(1, 4, Jac14);
-   WM.fPutCoef(2, 1, Jac21);
-   WM.fPutCoef(2, 2, Jac22);
-   WM.fPutCoef(2, 3, Jac23);
-   WM.fPutCoef(2, 4, Jac24);
-   WM.fPutCoef(3, 1, Jac31);
-   WM.fPutCoef(3, 2, Jac32);
-   WM.fPutCoef(3, 3, Jac33);
-   WM.fPutCoef(3, 4, Jac34);
-   WM.fPutCoef(4, 1, Jac41);
-   WM.fPutCoef(4, 2, Jac42);
-   WM.fPutCoef(4, 3, Jac43);
-   WM.fPutCoef(4, 4, Jac44);
+   WM.PutCoef(1, 1, Jac11);
+   WM.PutCoef(1, 2, Jac12);
+   WM.PutCoef(1, 3, Jac13);
+   WM.PutCoef(1, 4, Jac14);
+   WM.PutCoef(2, 1, Jac21);
+   WM.PutCoef(2, 2, Jac22);
+   WM.PutCoef(2, 3, Jac23);
+   WM.PutCoef(2, 4, Jac24);
+   WM.PutCoef(3, 1, Jac31);
+   WM.PutCoef(3, 2, Jac32);
+   WM.PutCoef(3, 3, Jac33);
+   WM.PutCoef(3, 4, Jac34);
+   WM.PutCoef(4, 1, Jac41);
+   WM.PutCoef(4, 2, Jac42);
+   WM.PutCoef(4, 3, Jac43);
+   WM.PutCoef(4, 4, Jac44);
 
    return WorkMat;
 }
@@ -1823,10 +1823,10 @@ void Pressure_valve::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
    integer i = iGetFirstIndex();
    
-   X.fPutCoef(i+1, 0.);
-   X.fPutCoef(i+2, 0.);
-   XP.fPutCoef(i+1, 0.);
-   XP.fPutCoef(i+2, 0.);
+   X.PutCoef(i+1, 0.);
+   X.PutCoef(i+2, 0.);
+   XP.PutCoef(i+1, 0.);
+   XP.PutCoef(i+2, 0.);
 }
 
 /* Pressure_valve - end */
@@ -2073,31 +2073,31 @@ Flow_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Jac55: " << Jac55 << std::endl);
 #endif
    
-   WM.fPutCoef(1, 1, Jac11);
-   WM.fPutCoef(1, 2, Jac12);
-   WM.fPutCoef(1, 3, Jac13);
-   WM.fPutCoef(1, 4, Jac14);
-   WM.fPutCoef(1, 5, Jac15);
-   WM.fPutCoef(2, 1, Jac21);
-   WM.fPutCoef(2, 2, Jac22);
-   WM.fPutCoef(2, 3, Jac23);
-   WM.fPutCoef(2, 4, Jac24);
-   WM.fPutCoef(2, 5, Jac25);
-   WM.fPutCoef(3, 1, Jac31);
-   WM.fPutCoef(3, 2, Jac32);
-   WM.fPutCoef(3, 3, Jac33);
-   WM.fPutCoef(3, 4, Jac34);
-   WM.fPutCoef(3, 5, Jac35);
-   WM.fPutCoef(4, 1, Jac41);
-   WM.fPutCoef(4, 2, Jac42);
-   WM.fPutCoef(4, 3, Jac43);
-   WM.fPutCoef(4, 4, Jac44);
-   WM.fPutCoef(4, 5, Jac45);
-   WM.fPutCoef(5, 1, Jac51);
-   WM.fPutCoef(5, 2, Jac52);
-   WM.fPutCoef(5, 3, Jac53);
-   WM.fPutCoef(5, 4, Jac54);
-   WM.fPutCoef(5, 5, Jac55);
+   WM.PutCoef(1, 1, Jac11);
+   WM.PutCoef(1, 2, Jac12);
+   WM.PutCoef(1, 3, Jac13);
+   WM.PutCoef(1, 4, Jac14);
+   WM.PutCoef(1, 5, Jac15);
+   WM.PutCoef(2, 1, Jac21);
+   WM.PutCoef(2, 2, Jac22);
+   WM.PutCoef(2, 3, Jac23);
+   WM.PutCoef(2, 4, Jac24);
+   WM.PutCoef(2, 5, Jac25);
+   WM.PutCoef(3, 1, Jac31);
+   WM.PutCoef(3, 2, Jac32);
+   WM.PutCoef(3, 3, Jac33);
+   WM.PutCoef(3, 4, Jac34);
+   WM.PutCoef(3, 5, Jac35);
+   WM.PutCoef(4, 1, Jac41);
+   WM.PutCoef(4, 2, Jac42);
+   WM.PutCoef(4, 3, Jac43);
+   WM.PutCoef(4, 4, Jac44);
+   WM.PutCoef(4, 5, Jac45);
+   WM.PutCoef(5, 1, Jac51);
+   WM.PutCoef(5, 2, Jac52);
+   WM.PutCoef(5, 3, Jac53);
+   WM.PutCoef(5, 4, Jac54);
+   WM.PutCoef(5, 5, Jac55);
    
    return WorkMat;
 }
@@ -2274,10 +2274,10 @@ void Flow_valve::Output(OutputHandler& OH) const
 void Flow_valve::SetValue(VectorHandler&  X  , VectorHandler&  XP  ) const 
 {   
    integer i = iGetFirstIndex();
-   X.fPutCoef(i+1, 0.);
-   X.fPutCoef(i+2, 0.);
-   XP.fPutCoef(i+1, 0.);
-   XP.fPutCoef(i+2, 0.);  
+   X.PutCoef(i+1, 0.);
+   X.PutCoef(i+2, 0.);
+   XP.PutCoef(i+1, 0.);
+   XP.PutCoef(i+2, 0.);  
 }
 
 /* Flow_valve - end */

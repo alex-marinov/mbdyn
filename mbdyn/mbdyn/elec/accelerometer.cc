@@ -204,10 +204,10 @@ Accelerometer::AssRes(SubVectorHandler& WorkVec,
    doublereal z = XCurr.dGetCoef(iAbstractIndex+1);
    doublereal zp = XPrimeCurr.dGetCoef(iAbstractIndex+1);
 
-   WorkVec.fPutCoef(1, (R*Dir).Dot(XP)-v);
-   WorkVec.fPutCoef(2, -y1p-dOmega*dOmega/dTau*y2);
-   WorkVec.fPutCoef(3, -y2p+z-(2.*dCsi*dOmega+1./dTau)*y2);
-   WorkVec.fPutCoef(4, -zp+y1-dOmega*(dOmega+2.*dCsi/dTau)*y2+
+   WorkVec.PutCoef(1, (R*Dir).Dot(XP)-v);
+   WorkVec.PutCoef(2, -y1p-dOmega*dOmega/dTau*y2);
+   WorkVec.PutCoef(3, -y2p+z-(2.*dCsi*dOmega+1./dTau)*y2);
+   WorkVec.PutCoef(4, -zp+y1-dOmega*(dOmega+2.*dCsi/dTau)*y2+
 		    dKappa*dOmega*dOmega*vp);
          
    return WorkVec;
@@ -243,7 +243,7 @@ void Accelerometer::SetInitialValue(VectorHandler& /* X */ ) const
 void Accelerometer::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const 
 {
    doublereal v = (pStrNode->GetRCurr()*Dir).Dot(pStrNode->GetVCurr());
-   X.fPutCoef(iGetFirstIndex()+1, v);
+   X.PutCoef(iGetFirstIndex()+1, v);
 }
 
 /* Accelerometer - end */
@@ -350,8 +350,8 @@ TraslAccel::AssRes(SubVectorHandler& WorkVec,
    doublereal vp = XPrimeCurr.dGetCoef(iFirstIndex);
    doublereal a = pAbsNode->dGetX();
    
-   WorkVec.fPutCoef(1, vp-a);
-   WorkVec.fPutCoef(2, tmpd.Dot((pStrNode->GetVCurr()+pStrNode->GetWCurr().Cross(tmpf)))-v);
+   WorkVec.PutCoef(1, vp-a);
+   WorkVec.PutCoef(2, tmpd.Dot((pStrNode->GetVCurr()+pStrNode->GetWCurr().Cross(tmpf)))-v);
    
    return WorkVec;
 }
@@ -388,8 +388,8 @@ void TraslAccel::SetValue(VectorHandler& X, VectorHandler& XP) const
    doublereal v = 
      (pStrNode->GetRCurr()*Dir).Dot(pStrNode->GetVCurr()
 				    +pStrNode->GetWCurr().Cross(pStrNode->GetRCurr()*f));
-   X.fPutCoef(iGetFirstIndex()+1, v);
-   XP.fPutCoef(iGetFirstIndex()+1, 0.);
+   X.PutCoef(iGetFirstIndex()+1, v);
+   XP.PutCoef(iGetFirstIndex()+1, 0.);
 }
 
 /* TraslAccel - end */
@@ -487,8 +487,8 @@ RotAccel::AssRes(SubVectorHandler& WorkVec,
    doublereal vp = XPrimeCurr.dGetCoef(iFirstIndex);
    doublereal a = pAbsNode->dGetX();
    
-   WorkVec.fPutCoef(1, vp-a);
-   WorkVec.fPutCoef(2, tmp.Dot(pStrNode->GetWCurr())-v);
+   WorkVec.PutCoef(1, vp-a);
+   WorkVec.PutCoef(2, tmp.Dot(pStrNode->GetWCurr())-v);
    
    return WorkVec;
 }
@@ -523,7 +523,7 @@ void RotAccel::SetInitialValue(VectorHandler& /* X */ ) const
 void RotAccel::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
 {
    doublereal v = (pStrNode->GetRCurr()*Dir).Dot(pStrNode->GetWCurr());
-   X.fPutCoef(iGetFirstIndex()+1, v);
+   X.PutCoef(iGetFirstIndex()+1, v);
 }
 
 /* RotAccel - end */

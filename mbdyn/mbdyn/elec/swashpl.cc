@@ -199,9 +199,9 @@ SwashPlate::AssRes(SubVectorHandler& WorkVec,
    doublereal dXLong = XCurr.dGetCoef(iLongFirstIndex);
    doublereal dXLat = XCurr.dGetCoef(iLatFirstIndex);
       
-   WorkVec.fPutCoef(1, -dXColl);
-   WorkVec.fPutCoef(2, -dXLong);
-   WorkVec.fPutCoef(3, -dXLat);
+   WorkVec.PutCoef(1, -dXColl);
+   WorkVec.PutCoef(2, -dXLong);
+   WorkVec.PutCoef(3, -dXLat);
    
    /* Limits on pitch angles */
    if(fCollLimits) {
@@ -228,13 +228,13 @@ SwashPlate::AssRes(SubVectorHandler& WorkVec,
       }
    }   
    
-   WorkVec.fPutCoef(4, dCollectiveFactor*(dXColl-dCyclicFactor*dXLong)
+   WorkVec.PutCoef(4, dCollectiveFactor*(dXColl-dCyclicFactor*dXLong)
 		    -XCurr.dGetCoef(iNode1FirstIndex)
 		    -dDynamicCoef*XPrimeCurr.dGetCoef(iNode1FirstIndex));
-   WorkVec.fPutCoef(5, dCollectiveFactor*(dXColl+dCyclicFactor*(.5*dXLong-sqrt(3.)/2.*dXLat))
+   WorkVec.PutCoef(5, dCollectiveFactor*(dXColl+dCyclicFactor*(.5*dXLong-sqrt(3.)/2.*dXLat))
 		    -XCurr.dGetCoef(iNode2FirstIndex)
 		    -dDynamicCoef*XPrimeCurr.dGetCoef(iNode2FirstIndex));
-   WorkVec.fPutCoef(6, dCollectiveFactor*(dXColl+dCyclicFactor*(.5*dXLong+sqrt(3.)/2.*dXLat))
+   WorkVec.PutCoef(6, dCollectiveFactor*(dXColl+dCyclicFactor*(.5*dXLong+sqrt(3.)/2.*dXLat))
 		    -XCurr.dGetCoef(iNode3FirstIndex)
 		    -dDynamicCoef*XPrimeCurr.dGetCoef(iNode3FirstIndex));
 

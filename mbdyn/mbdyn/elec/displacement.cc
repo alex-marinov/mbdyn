@@ -125,7 +125,7 @@ DispMeasure::AssRes(SubVectorHandler& WorkVec,
    
    doublereal d = (x2-x1).Norm();
    
-   WorkVec.fPutCoef(1, d-a);
+   WorkVec.PutCoef(1, d-a);
    
    return WorkVec;
 }
@@ -155,7 +155,7 @@ DispMeasure::SetValue(VectorHandler& X, VectorHandler& XP) const
    doublereal d = (x2-x1).Norm();
 
    ((AbstractNode *&)pAbsNode)->SetX(d);
-   X.fPutCoef(iIndex, d);
+   X.PutCoef(iIndex, d);
    
    /* velocita' */   
    Vec3 v1 = pStrNode1->GetVCurr()+(pStrNode1->GetWCurr()).Cross(ff1);
@@ -165,7 +165,7 @@ DispMeasure::SetValue(VectorHandler& X, VectorHandler& XP) const
 
    ((AbstractNode *&)pAbsNode)->SetXPrime(v);
    
-   XP.fPutCoef(iIndex, v);
+   XP.PutCoef(iIndex, v);
 }
 
 /* DispMeasure - end */

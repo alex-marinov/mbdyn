@@ -260,12 +260,12 @@ Actuator::AssJac(VariableSubMatrixHandler& WorkMat,
       doublereal d1 = d*area1;
       doublereal d2 = d*area2;
       
-      WM.fPutCoef(iCnt, 13, d1);
-      WM.fPutCoef(6+iCnt, 13, -d1);
+      WM.PutCoef(iCnt, 13, d1);
+      WM.PutCoef(6+iCnt, 13, -d1);
       
 
-      WM.fPutCoef(iCnt, 14, -d2);
-      WM.fPutCoef(6+iCnt, 14, d2);
+      WM.PutCoef(iCnt, 14, -d2);
+      WM.PutCoef(6+iCnt, 14, d2);
    }
 
    /* seconda equazione moltiplica deltagpuntonodo1 */
@@ -276,8 +276,8 @@ Actuator::AssJac(VariableSubMatrixHandler& WorkMat,
    for (int iCnt = 1; iCnt <=3; iCnt++) {
       doublereal d = JacVec.dGet(iCnt);
       
-      WM.fPutCoef(3+iCnt, 13, d*area1);
-      WM.fPutCoef(3+iCnt, 14, -d*area2);
+      WM.PutCoef(3+iCnt, 13, d*area1);
+      WM.PutCoef(3+iCnt, 14, -d*area2);
    }
  
    /* quarta equazione moltiplica deltagpuntonodo1 */
@@ -290,15 +290,15 @@ Actuator::AssJac(VariableSubMatrixHandler& WorkMat,
    for (int iCnt = 1; iCnt <=3; iCnt++) {
       doublereal d = JacVec.dGet(iCnt);
       
-      WM.fPutCoef(9+iCnt, 13, -d*area1);
-      WM.fPutCoef(9+iCnt, 14, d*area2);
+      WM.PutCoef(9+iCnt, 13, -d*area1);
+      WM.PutCoef(9+iCnt, 14, d*area2);
    }
 
    /* inerzia del fluido */
-   WM.fPutCoef(13, 15, -densityDP1*dDist*area1);
-   WM.fPutCoef(13, 13, -densityDP1*dVel*area1);
-   WM.fPutCoef(14, 16, -densityDP2*(dl-dDist)*area2);
-   WM.fPutCoef(14, 14, densityDP2*dVel*area2);
+   WM.PutCoef(13, 15, -densityDP1*dDist*area1);
+   WM.PutCoef(13, 13, -densityDP1*dVel*area1);
+   WM.PutCoef(14, 16, -densityDP2*(dl-dDist)*area2);
+   WM.PutCoef(14, 14, densityDP2*dVel*area2);
    
    /* termini in spostamento e velocita' */
    doublereal rho1A1 = (density1+dCoef*densityDP1*dpP1)*area1;
@@ -306,48 +306,48 @@ Actuator::AssJac(VariableSubMatrixHandler& WorkMat,
 
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = TmpAxis.dGet(iCnt);
-      WM.fPutCoef(13, iCnt, d*rho1A1);
-      WM.fPutCoef(13, 6+iCnt, -d*rho1A1);
+      WM.PutCoef(13, iCnt, d*rho1A1);
+      WM.PutCoef(13, 6+iCnt, -d*rho1A1);
       
-      WM.fPutCoef(14, iCnt, -d*rho2A2);
-      WM.fPutCoef(14, 6+iCnt, d*rho2A2);
+      WM.PutCoef(14, iCnt, -d*rho2A2);
+      WM.PutCoef(14, 6+iCnt, d*rho2A2);
    }
 
    /* prima eq., nodo 1 */
    JacVec = (TmpAxis.Cross(x2+f2Tmp-x1))*(densityDP1*dpP1*dCoef)
      +(TmpAxis.Cross(f1Tmp+(x2+Omega2.Cross(f2Tmp)-x1)*dCoef))*density1;
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(13, 3+iCnt, -JacVec.dGet(iCnt)*area1);
+      WM.PutCoef(13, 3+iCnt, -JacVec.dGet(iCnt)*area1);
    }
    
    /* prima eq., nodo 2 */
    JacVec = (TmpAxis.Cross(f2Tmp))*(densityDP1*dpP1*dCoef)
      +(TmpAxis.Cross(f2Tmp+(Omega2.Cross(f2Tmp))*dCoef))*density1;
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(13, 9+iCnt, JacVec.dGet(iCnt)*area1);
+      WM.PutCoef(13, 9+iCnt, JacVec.dGet(iCnt)*area1);
    }
    
    /* seconda eq., nodo 1 */
    JacVec = (TmpAxis.Cross(x2+f2Tmp-x1))*(densityDP2*dpP2*dCoef)
      +(TmpAxis.Cross(f1Tmp+(x2+Omega2.Cross(f2Tmp)-x1)*dCoef))*density2;
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(14, 3+iCnt, JacVec.dGet(iCnt)*area2);
+      WM.PutCoef(14, 3+iCnt, JacVec.dGet(iCnt)*area2);
    }
    
    /* seconda eq., nodo 2 */
    JacVec = (TmpAxis.Cross(f2Tmp))*(densityDP2*dpP2*dCoef)
      +(TmpAxis.Cross(f2Tmp+(Omega2.Cross(f2Tmp))*dCoef))*density2;
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(14, 9+iCnt, JacVec.dGet(iCnt)*area2);
+      WM.PutCoef(14, 9+iCnt, JacVec.dGet(iCnt)*area2);
    }
    
    /* definizione della pressione interna */
    
-   WM.fPutCoef(15, 15, dCoef);
-   WM.fPutCoef(15, 13, -1.);
+   WM.PutCoef(15, 15, dCoef);
+   WM.PutCoef(15, 13, -1.);
     
-   WM.fPutCoef(16, 16, dCoef);
-   WM.fPutCoef(16, 14, -1.);
+   WM.PutCoef(16, 16, dCoef);
+   WM.PutCoef(16, 14, -1.);
 
    return WorkMat;
 }
@@ -439,14 +439,14 @@ Actuator::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(10, f2Tmp.Cross(FHyd));
 
    /* Portata sul nodo idraulico 1 */
-   WorkVec.fPutCoef(13, flow1);
+   WorkVec.PutCoef(13, flow1);
    
    /* Portata sul nodo idraulico 2 */
-   WorkVec.fPutCoef(14, flow2);
+   WorkVec.PutCoef(14, flow2);
    
    /* pressioni */
-   WorkVec.fPutCoef(15, p1-dp1);
-   WorkVec.fPutCoef(16, p2-dp2);
+   WorkVec.PutCoef(15, p1-dp1);
+   WorkVec.PutCoef(16, p2-dp2);
    
    return WorkVec;
 }
@@ -475,10 +475,10 @@ void Actuator::SetValue(VectorHandler& X, VectorHandler& XP) const
    (doublereal&)dpP1 = 0.;
    (doublereal&)dpP2 = 0.;
    
-   X.fPutCoef(iIndex+1, dp1);
-   X.fPutCoef(iIndex+2, dp2);
-   XP.fPutCoef(iIndex+1, dpP1);
-   XP.fPutCoef(iIndex+2, dpP2);
+   X.PutCoef(iIndex+1, dp1);
+   X.PutCoef(iIndex+2, dp2);
+   XP.PutCoef(iIndex+1, dpP1);
+   XP.PutCoef(iIndex+2, dpP2);
 }
 
 /* Actuator - end */

@@ -1609,11 +1609,11 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		 	<< "iv punto:  " << IndV << std::endl;
 #endif /* DEBUG */
 
-		WorkVec.fPutCoef(1, dCT - dM11*dVConstPrime
+		WorkVec.PutCoef(1, dCT - dM11*dVConstPrime
 				- dL11*dVConst - dL13*dVCosine);
-	 	WorkVec.fPutCoef(2, dCl - dM22*dVSinePrime
+	 	WorkVec.PutCoef(2, dCl - dM22*dVSinePrime
 				- dL22*dVSine);
-	 	WorkVec.fPutCoef(3, dCm - dM33*dVCosinePrime
+	 	WorkVec.PutCoef(3, dCm - dM33*dVCosinePrime
 				- dL31*dVConst - dL33*dVCosine);
 
 #ifdef USE_MPI 
@@ -1648,12 +1648,12 @@ DynamicInflowRotor::SetValue(VectorHandler& X, VectorHandler& XP) const
 	integer iFirstIndex = iGetFirstIndex();
 
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		XP.fPutCoef(iFirstIndex+iCnt, 0.);
+		XP.PutCoef(iFirstIndex+iCnt, 0.);
 	}   
 
-	X.fPutCoef(iFirstIndex+1, dVConst);
-	X.fPutCoef(iFirstIndex+2, dVSine);
-	X.fPutCoef(iFirstIndex+3, dVCosine);
+	X.PutCoef(iFirstIndex+1, dVConst);
+	X.PutCoef(iFirstIndex+2, dVSine);
+	X.PutCoef(iFirstIndex+3, dVCosine);
 }
 
 

@@ -204,9 +204,9 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 		pvDrives[2].dGet()-dPitchMoment);
 	v = m.Inv(v);
 	
-	WorkVec.fPutCoef(1, v.dGet(1)*dKappa0-dX1-dTau0*dX1Prime);
-	WorkVec.fPutCoef(2, v.dGet(2)*dKappa1-dX2-dTau1*dX2Prime);
-	WorkVec.fPutCoef(3, v.dGet(3)*dKappa1-dX3-dTau1*dX3Prime);
+	WorkVec.PutCoef(1, v.dGet(1)*dKappa0-dX1-dTau0*dX1Prime);
+	WorkVec.PutCoef(2, v.dGet(2)*dKappa1-dX2-dTau1*dX2Prime);
+	WorkVec.PutCoef(3, v.dGet(3)*dKappa1-dX3-dTau1*dX3Prime);
 	
 	return WorkVec;
 }

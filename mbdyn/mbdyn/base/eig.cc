@@ -242,7 +242,7 @@ void PODEig::ComputeEigenvalues(doublereal t)
 	for (int iCol=0; iCol < NEig; iCol++) { 
 		for(int iRow=0; iRow <= iSSize; iRow++) {
 			for(int k=0; k < iSnapN; k++) {		
-				dPOM.fIncCoef(iCol+1, iRow+1, pEigVec[piSupp[2*NEig+1]+k] * pXMat[iRow][k]);
+				dPOM.IncCoef(iCol+1, iRow+1, pEigVec[piSupp[2*NEig+1]+k] * pXMat[iRow][k]);
 			}
 		}
 	}
@@ -262,7 +262,7 @@ void PODEig::ComputeEigenvalues(doublereal t)
 		svTot += SVN[iS];
 		for (int iRow=0; iRow < iSSize; iRow++) { 
 			dd = dPOM.dGetCoef(iSSize+1, iS+1);
-			dPOM.fPutCoef(iSSize+1, iS+1, dd/SVD[iS]);
+			dPOM.PutCoef(iSSize+1, iS+1, dd/SVD[iS]);
 		}
 	}
 		
@@ -281,7 +281,7 @@ void PODEig::ComputeEigenvalues(doublereal t)
 	for (int iRow=0; iRow < iNumValidPOM; iRow++) { 
 		for(int iCol=0; iCol <= iSnapN; iCol++) {
 			for(int k=0; k < iSSize; k++) {		
-				dPOMTimeHs.fIncCoef(iRow+1, iCol+1, dPOM.dGetCoef(iRow+1, k+1) * pXMat[k][iCol]);
+				dPOMTimeHs.IncCoef(iRow+1, iCol+1, dPOM.dGetCoef(iRow+1, k+1) * pXMat[k][iCol]);
 			}
 		}
 	}

@@ -63,7 +63,7 @@ int jac(void* p, MatrixHandler& JP, MatrixHandler& J,
 	const VectorHandler& X, const VectorHandler& XP)
 {
    // private_data* pd = (private_data*)p;
-   J.fPutCoef(1, 1, 1.);
+   J.PutCoef(1, 1, 1.);
    return 0;
 }
 
@@ -71,7 +71,7 @@ int res(void* p, VectorHandler& R, const doublereal&,
 	const VectorHandler& X, const VectorHandler& XP)
 {
    // private_data* pd = (private_data*)p;
-   R.fPutCoef(1, -1.*X.dGetCoef(1)-1.*XP.dGetCoef(1));
+   R.PutCoef(1, -1.*X.dGetCoef(1)-1.*XP.dGetCoef(1));
    return 0;
 }
 

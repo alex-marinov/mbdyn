@@ -135,10 +135,10 @@ Minor_loss::AssJac(VariableSubMatrixHandler& WorkMat,
    */
    doublereal Jac = -density*.5*area*sqrt(2./(dKappa*density*jumpPres));
     
-   WM.fPutCoef(1, 1, Jac);
-   WM.fPutCoef(1, 2, -Jac);
-   WM.fPutCoef(2, 1, -Jac);
-   WM.fPutCoef(2, 2, Jac);
+   WM.PutCoef(1, 1, Jac);
+   WM.PutCoef(1, 2, -Jac);
+   WM.PutCoef(2, 1, -Jac);
+   WM.PutCoef(2, 2, Jac);
    
    return WorkMat;
 }
@@ -309,10 +309,10 @@ ThreeWayMinorLoss::AssJac(
 	 */
 	doublereal Jac = -density*.5*area*sqrt(2./(dKappa*density*jumpPres));
 	
-	WM.fPutCoef(1, 1, Jac);
-	WM.fPutCoef(1, 2, -Jac);
-	WM.fPutCoef(2, 1, -Jac);
-	WM.fPutCoef(2, 2, Jac);
+	WM.PutCoef(1, 1, Jac);
+	WM.PutCoef(1, 2, -Jac);
+	WM.PutCoef(2, 1, -Jac);
+	WM.PutCoef(2, 2, Jac);
 	
 	return WorkMat;
 }
@@ -522,10 +522,10 @@ Orifice::AssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Jac *= dCoef; */
    
-   WM.fPutCoef(1, 1, Jac);
-   WM.fPutCoef(1, 2, -Jac);
-   WM.fPutCoef(2, 1, -Jac);
-   WM.fPutCoef(2, 2, Jac);
+   WM.PutCoef(1, 1, Jac);
+   WM.PutCoef(1, 2, -Jac);
+   WM.PutCoef(2, 1, -Jac);
+   WM.PutCoef(2, 2, Jac);
    
    return WorkMat;
 }

@@ -69,8 +69,8 @@ f(0.) {
 void ModLugreFriction::SetValue(VectorHandler&X, 
 	VectorHandler&XP, 
 	const unsigned int solution_startdof) const{
-	X.fPutCoef(solution_startdof+1,f);
-	X.fPutCoef(solution_startdof+2,f/sigma0);
+	X.PutCoef(solution_startdof+1,f);
+	X.PutCoef(solution_startdof+2,f/sigma0);
 };
 
 unsigned int ModLugreFriction::iGetNumDof(void) const {
@@ -182,12 +182,12 @@ void ModLugreFriction::AssRes(
 	doublereal z = X.dGetCoef(solution_startdof+2);
 	doublereal zp = XP.dGetCoef(solution_startdof+2);	
 	f = X.dGetCoef(solution_startdof+1);
-	WorkVec.fIncCoef(startdof+1,
+	WorkVec.IncCoef(startdof+1,
 		+f-
 		sigma0*z-
 		sigma1*zp-
 		sigma2*v);
-	WorkVec.fIncCoef(startdof+2,zp-v+alpha(z,v)*v*z/fs(v)*sigma0);
+	WorkVec.IncCoef(startdof+2,zp-v+alpha(z,v)*v*z/fs(v)*sigma0);
 };
 
 void ModLugreFriction::AssJac(
@@ -208,17 +208,17 @@ void ModLugreFriction::AssJac(
 /*
  * 	prima equazione
  */
-	WorkMat.fIncCoef(startdof+1,startdof+2,+sigma0*dCoef+sigma1);
+	WorkMat.IncCoef(startdof+1,startdof+2,+sigma0*dCoef+sigma1);
 	dv.Add(WorkMat,startdof+1,sigma2);
 	//f: algebrico
-	WorkMat.fIncCoef(startdof+1,startdof+1,-1.);
+	WorkMat.IncCoef(startdof+1,startdof+1,-1.);
 /*
  * 	seconda equazione
  */
  	doublereal alph = alpha(z,v);
 	doublereal fsc = fs(v);
-	WorkMat.fIncCoef(startdof+2,startdof+2,-1.);
-	WorkMat.fIncCoef(startdof+2,startdof+2,
+	WorkMat.IncCoef(startdof+2,startdof+2,-1.);
+	WorkMat.IncCoef(startdof+2,startdof+2,
 		-alphad_z(z,v)*v*z/fsc*sigma0*dCoef-
 		alph*v/fsc*sigma0*dCoef);
 	dv.Add(WorkMat,startdof+2,
@@ -259,7 +259,7 @@ f(0) {
 void DiscreteCoulombFriction::SetValue(VectorHandler&X, 
 	VectorHandler&XP, 
 	const unsigned int solution_startdof) const{
-	X.fPutCoef(solution_startdof+1,f);
+	X.PutCoef(solution_startdof+1,f);
 };
 
 unsigned int DiscreteCoulombFriction::iGetNumDof(void) const {
@@ -364,7 +364,7 @@ void DiscreteCoulombFriction::AssRes(
 	if ((status == sliding) || (status == sticking)) {
 		if (transition_type == from_sliding_to_sticking) {
 			//switch to sticking: null velocity at the end of time step
-			WorkVec.fIncCoef(startdof+1,v);
+			WorkVec.IncCoef(startdof+1,v);
 		} else {
 			//still sliding
 			//printf("here1\n");
@@ -379,15 +379,15 @@ void DiscreteCoulombFriction::AssRes(
 				friction_force = sign(f)*fss(v)+sigma2*v;
 			}
 			//save friction force value in the (algebric) state
-			WorkVec.fIncCoef(startdof+1,f-friction_force);
+			WorkVec.IncCoef(startdof+1,f-friction_force);
 		}
 	//} else if (status == sticking)
 	//	//printf("here2\n");
 	//	//switch to sticking: null velocity at the end of time step
-	//	WorkVec.fIncCoef(startdof+1,v);
+	//	WorkVec.IncCoef(startdof+1,v);
 	} else if (status == sticked) {
 		//printf("here3\n");
-		WorkVec.fIncCoef(startdof+1,v);
+		WorkVec.IncCoef(startdof+1,v);
 	} else {
 		std::cerr << "DiscreteCoulombFriction::AssRes: logical error" << std::endl;
 	}
@@ -411,7 +411,7 @@ void DiscreteCoulombFriction::AssJac(
 	if ((status == sliding) || (status == sticking)) {
 		if (transition_type == from_sliding_to_sticking) {
 			//switch to sticking: null velocity at the end of time step
-			//WorkVec.fIncCoef(startdof+1,v);
+			//WorkVec.IncCoef(startdof+1,v);
 			dv.Sub(WorkMat,startdof+1);
 			dfc.ReDim(1);
 			dfc.Set(1.,1,startdof+1);
@@ -429,8 +429,8 @@ void DiscreteCoulombFriction::AssJac(
 				friction_force = sign(f)*fss(v)+sigma2*v;
 			}
 			//save friction force value in the (algebric) state
-			//WorkVec.fIncCoef(startdof+1,f-friction_force);
-			WorkMat.fIncCoef(startdof+1,startdof+1,-1);
+			//WorkVec.IncCoef(startdof+1,f-friction_force);
+			WorkMat.IncCoef(startdof+1,startdof+1,-1);
 			dv.Add(WorkMat,startdof+1,
 				sign(friction_force)*fss.ComputeDiff(v)+sigma2);
 			dfc.ReDim(1);
@@ -439,10 +439,10 @@ void DiscreteCoulombFriction::AssJac(
 	//} else if (status == sticking)
 	//	//printf("here2\n");
 	//	//switch to sticking: null velocity at the end of time step
-	//	WorkVec.fIncCoef(startdof+1,v);
+	//	WorkVec.IncCoef(startdof+1,v);
 	} else if (status == sticked) {
 		//printf("here3\n");
-		//WorkVec.fIncCoef(startdof+1,v);
+		//WorkVec.IncCoef(startdof+1,v);
 		dv.Sub(WorkMat,startdof+1);
 		dfc.ReDim(1);
 		dfc.Set(1.,1,startdof+1);

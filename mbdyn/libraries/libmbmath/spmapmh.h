@@ -124,29 +124,29 @@ public:
 			return i->second;
 		}
 	};
-	flag fIncCoef(integer ix, integer iy, const doublereal& inc) {
-		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::fIncCoef(), row index out of range");
-		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::fIncCoef(), col index out of range");
+	void IncCoef(integer ix, integer iy, const doublereal& inc) {
+		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::IncCoef(), row index out of range");
+		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::IncCoef(), col index out of range");
 		//try to keep sparsity
 		//FIXME: disable "try to keep sparsity" in view of RTAI
 		//if (inc != 0.) {
 			operator()(ix,iy) += inc;
 		//}
-		return 1;
+		return;
 	};
-	flag fDecCoef(integer ix, integer iy, const doublereal& inc) {
-		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::fDecCoef(), row index out of range");
-		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::fDecCoef(), col index out of range");
+	void DecCoef(integer ix, integer iy, const doublereal& inc) {
+		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::DecCoef(), row index out of range");
+		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::DecCoef(), col index out of range");
 		//try to keep sparsity
 		//FIXME: disable "try to keep sparsity" in view of RTAI
 		//if (inc != 0.) {
 			operator()(ix,iy) -= inc;
 		//}
-		return 1;
+		return;
 	};
-	flag fPutCoef(integer ix, integer iy, const doublereal& val) {
-		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::fPutCoef(), row index out of range");
-		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::fPutCoef(), col index out of range");
+	void PutCoef(integer ix, integer iy, const doublereal& val) {
+		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::PutCoef(), row index out of range");
+		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::PutCoef(), col index out of range");
 		//try to keep sparsity
 		//FIXME: disable "try to keep sparsity" in view of RTAI
 		//if (val != 0.) {
@@ -161,7 +161,7 @@ public:
 		//		i->second = val;
 		//	}
 		//}
-		return 1;
+		return;
 	};
 	const doublereal& dGetCoef(integer ix, integer iy) const {
 		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::dGetCoef(), row index out of range");
@@ -293,7 +293,7 @@ public:
 		row_cont_type::const_iterator ri, re;
 		re = col_indices[icol].end();
 		for (ri = col_indices[icol].begin();ri != re; ri++) {		
-			out.fPutCoef(ri->first+1, ri->second);
+			out.PutCoef(ri->first+1, ri->second);
 		}
 		return out;
 	};		 	
@@ -313,7 +313,7 @@ public:
 			for (ri = col_indices[col].begin(); ri!=re; ri++) {
 				int iend = in.iGetNumCols();
 				for (int col2=0; col2<iend;  col2++) {
-				out.fIncCoef(ri->first,col2,ri->second*in.dGetCoef(col,col2));
+				out.IncCoef(ri->first,col2,ri->second*in.dGetCoef(col,col2));
 				}
 			}
 		}
@@ -334,7 +334,7 @@ public:
 			re = col_indices[col].end();
 			integer newcol = col + dcol + 1;
 			for (ri = col_indices[col].begin(); ri!=re; ri++) {
-				out.fIncCoef(ri->first+drow,newcol,ri->second*s);
+				out.IncCoef(ri->first+drow,newcol,ri->second*s);
 			}
 		}
 		return out;	
@@ -358,7 +358,7 @@ public:
 			integer newcol = col + dcol + 1;
 			for (ri = col_indices[col].begin(); ri!=re; ri++) {
 				if (b[ri->first]) {
-					out.fIncCoef(ri->first+drow,newcol,ri->second*s);
+					out.IncCoef(ri->first+drow,newcol,ri->second*s);
 				}
 			}
 		}
@@ -378,7 +378,7 @@ public:
 			for (ri = col_indices[col].begin();ri != re; ri++) {
 				d += ri->second*in.dGetCoef(ri->first+1);
 			}
-			out.fPutCoef(col+1, d);
+			out.PutCoef(col+1, d);
 		}
 		return out;
 	};
@@ -395,7 +395,7 @@ public:
 			re = col_indices[col].end();
 			for (ri = col_indices[col].begin();ri != re; ri++) {
 				doublereal d = ri->second*in.dGetCoef(col+1);
-				out.fIncCoef(ri->first+1, d);
+				out.IncCoef(ri->first+1, d);
 			}
 		}
 		return out;
@@ -414,7 +414,7 @@ public:
 			for (ri = col_indices[col].begin();ri != re; ri++) {
 				d += ri->second*in.dGetCoef(ri->first+1);
 			}
-			out.fIncCoef(col+1, d);
+			out.IncCoef(col+1, d);
 		}
 		return out;
 	};
@@ -430,7 +430,7 @@ public:
 			re = col_indices[col].end();
 			for (ri = col_indices[col].begin();ri != re; ri++) {
 				doublereal d = ri->second*in.dGetCoef(col+1);
-				out.fIncCoef(ri->first+1, d);
+				out.IncCoef(ri->first+1, d);
 			}
 		}
 		return out;
@@ -447,7 +447,7 @@ public:
 			re = col_indices[col].end();
 			for (ri = col_indices[col].begin();ri != re; ri++) {
 				doublereal d = ri->second*in.dGetCoef(col+1);
-				out.fDecCoef(ri->first+1, d);
+				out.DecCoef(ri->first+1, d);
 			}
 		}
 		return out;

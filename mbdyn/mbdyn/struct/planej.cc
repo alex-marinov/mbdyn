@@ -203,8 +203,8 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Contributo della forza alle equazioni di equilibrio dei due nodi */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WM.fPutCoef(iCnt, 12+iCnt, 1.);
-      WM.fPutCoef(6+iCnt, 12+iCnt, -1.);
+      WM.PutCoef(iCnt, 12+iCnt, 1.);
+      WM.PutCoef(6+iCnt, 12+iCnt, -1.);
    }
    
    WM.Add(4, 13, Mat3x3(d1Tmp));
@@ -235,19 +235,19 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = Tmp1.dGet(iCnt);
-      WM.fPutCoef(3+iCnt, 16, d);
-      WM.fPutCoef(9+iCnt, 16, -d);
+      WM.PutCoef(3+iCnt, 16, d);
+      WM.PutCoef(9+iCnt, 16, -d);
       d = Tmp2.dGet(iCnt);
-      WM.fPutCoef(3+iCnt, 17, d);
-      WM.fPutCoef(9+iCnt, 17, -d);
+      WM.PutCoef(3+iCnt, 17, d);
+      WM.PutCoef(9+iCnt, 17, -d);
    }         
    
    /* Modifica: divido le equazioni di vincolo per dCoef */
    
    /* Equazioni di vincolo degli spostamenti */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(12+iCnt, iCnt, -1.);
-      WM.fPutCoef(12+iCnt, 6+iCnt, 1.);
+      WM.PutCoef(12+iCnt, iCnt, -1.);
+      WM.PutCoef(12+iCnt, 6+iCnt, 1.);
    }
    
    WM.Add(13, 4, Mat3x3(d1Tmp));
@@ -265,11 +265,11 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = Tmp1.dGet(iCnt);
-      WM.fPutCoef(16, 3+iCnt, d);
-      WM.fPutCoef(16, 9+iCnt, -d);
+      WM.PutCoef(16, 3+iCnt, d);
+      WM.PutCoef(16, 9+iCnt, -d);
       d = Tmp2.dGet(iCnt);
-      WM.fPutCoef(17, 3+iCnt, -d);
-      WM.fPutCoef(17, 9+iCnt, d);
+      WM.PutCoef(17, 3+iCnt, -d);
+      WM.PutCoef(17, 9+iCnt, d);
    }   
 
    if (fc) {
@@ -421,8 +421,8 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
       
       /* Equazioni di vincolo di rotazione */
       Vec3 Tmp = R1hTmp.GetVec(3);
-      WorkVec.fPutCoef(16, Tmp.Dot(R2hTmp.GetVec(2))/dCoef);
-      WorkVec.fPutCoef(17, Tmp.Dot(R2hTmp.GetVec(1))/dCoef);
+      WorkVec.PutCoef(16, Tmp.Dot(R2hTmp.GetVec(2))/dCoef);
+      WorkVec.PutCoef(17, Tmp.Dot(R2hTmp.GetVec(1))/dCoef);
 
    }   
    if (fc) {
@@ -568,28 +568,28 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Matrici identita' */   
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       /* Contributo di forza all'equazione della forza, nodo 1 */
-      WM.fPutCoef(iCnt, 24+iCnt, 1.);
+      WM.PutCoef(iCnt, 24+iCnt, 1.);
       
       /* Contrib. di der. di forza all'eq. della der. della forza, nodo 1 */
-      WM.fPutCoef(6+iCnt, 29+iCnt, 1.);
+      WM.PutCoef(6+iCnt, 29+iCnt, 1.);
       
       /* Contributo di forza all'equazione della forza, nodo 2 */
-      WM.fPutCoef(12+iCnt, 24+iCnt, -1.);
+      WM.PutCoef(12+iCnt, 24+iCnt, -1.);
       
       /* Contrib. di der. di forza all'eq. della der. della forza, nodo 2 */
-      WM.fPutCoef(18+iCnt, 29+iCnt, -1.);
+      WM.PutCoef(18+iCnt, 29+iCnt, -1.);
       
       /* Equazione di vincolo, nodo 1 */
-      WM.fPutCoef(24+iCnt, iCnt, -1.);
+      WM.PutCoef(24+iCnt, iCnt, -1.);
       
       /* Derivata dell'equazione di vincolo, nodo 1 */
-      WM.fPutCoef(29+iCnt, 6+iCnt, -1.);
+      WM.PutCoef(29+iCnt, 6+iCnt, -1.);
       
       /* Equazione di vincolo, nodo 2 */
-      WM.fPutCoef(24+iCnt, 12+iCnt, 1.);
+      WM.PutCoef(24+iCnt, 12+iCnt, 1.);
       
       /* Derivata dell'equazione di vincolo, nodo 2 */
-      WM.fPutCoef(29+iCnt, 18+iCnt, 1.);
+      WM.PutCoef(29+iCnt, 18+iCnt, 1.);
    }
       
    /* Distanze e matrici di rotazione dai nodi alla cerniera 
@@ -647,8 +647,8 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(4, 16, Mat3x3(e3a, MTmp));
    WM.Add(4, 25, Mat3x3(d1Tmp));
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(3+iCnt, 28, Tmp1.dGet(iCnt));
-      WM.fPutCoef(3+iCnt, 29, Tmp2.dGet(iCnt));	
+      WM.PutCoef(3+iCnt, 28, Tmp1.dGet(iCnt));
+      WM.PutCoef(3+iCnt, 29, Tmp2.dGet(iCnt));	
    }
    
    /* Equazione di momento, nodo 2 */
@@ -656,8 +656,8 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(16, 16, FWedged2Wedge-Mat3x3(e3a, MTmp));
    WM.Add(16, 25, Mat3x3(-d2Tmp));
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(15+iCnt, 28, -Tmp1.dGet(iCnt));
-      WM.fPutCoef(15+iCnt, 29, -Tmp2.dGet(iCnt));	
+      WM.PutCoef(15+iCnt, 28, -Tmp1.dGet(iCnt));
+      WM.PutCoef(15+iCnt, 29, -Tmp2.dGet(iCnt));	
    }
    
    /* Derivata dell'equazione di momento, nodo 1 */
@@ -669,10 +669,10 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(10, 30, Mat3x3(d1Tmp));
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(9+iCnt, 28, TmpPrime1.dGet(iCnt));
-      WM.fPutCoef(9+iCnt, 29, TmpPrime2.dGet(iCnt));
-      WM.fPutCoef(9+iCnt, 33, Tmp1.dGet(iCnt));
-      WM.fPutCoef(9+iCnt, 34, Tmp2.dGet(iCnt));	
+      WM.PutCoef(9+iCnt, 28, TmpPrime1.dGet(iCnt));
+      WM.PutCoef(9+iCnt, 29, TmpPrime2.dGet(iCnt));
+      WM.PutCoef(9+iCnt, 33, Tmp1.dGet(iCnt));
+      WM.PutCoef(9+iCnt, 34, Tmp2.dGet(iCnt));	
    }
    
    /* Derivata dell'equazione di momento, nodo 2 */
@@ -684,10 +684,10 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(22, 30, Mat3x3(-d2Tmp));
 
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(21+iCnt, 28, -TmpPrime1.dGet(iCnt));
-      WM.fPutCoef(21+iCnt, 29, -TmpPrime2.dGet(iCnt));	
-      WM.fPutCoef(21+iCnt, 33, -Tmp1.dGet(iCnt));
-      WM.fPutCoef(21+iCnt, 34, -Tmp2.dGet(iCnt));	
+      WM.PutCoef(21+iCnt, 28, -TmpPrime1.dGet(iCnt));
+      WM.PutCoef(21+iCnt, 29, -TmpPrime2.dGet(iCnt));	
+      WM.PutCoef(21+iCnt, 33, -Tmp1.dGet(iCnt));
+      WM.PutCoef(21+iCnt, 34, -Tmp2.dGet(iCnt));	
    }
    
    /* Equazione di vincolo di posizione */
@@ -704,22 +704,22 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
             
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
       doublereal d = Tmp1.dGet(iCnt);
-      WM.fPutCoef(28, 3+iCnt, d);
-      WM.fPutCoef(28, 15+iCnt, -d);
+      WM.PutCoef(28, 3+iCnt, d);
+      WM.PutCoef(28, 15+iCnt, -d);
       
       /* Queste sono per la derivata dell'equazione, sono qui solo per 
        * ottimizzazione */
-      WM.fPutCoef(33, 9+iCnt, d);
-      WM.fPutCoef(33, 21+iCnt, -d);
+      WM.PutCoef(33, 9+iCnt, d);
+      WM.PutCoef(33, 21+iCnt, -d);
       
       d = Tmp2.dGet(iCnt);
-      WM.fPutCoef(29, 3+iCnt, -d);
-      WM.fPutCoef(29, 15+iCnt, d);
+      WM.PutCoef(29, 3+iCnt, -d);
+      WM.PutCoef(29, 15+iCnt, d);
       
       /* Queste sono per la derivata dell'equazione, sono qui solo per 
        * ottimizzazione */
-      WM.fPutCoef(34, 9+iCnt, -d);
-      WM.fPutCoef(34, 21+iCnt, d);
+      WM.PutCoef(34, 9+iCnt, -d);
+      WM.PutCoef(34, 21+iCnt, d);
    }   
    
    /* Derivate delle equazioni di vincolo di rotazione: e1b~e3a, e2b~e3a */
@@ -727,15 +727,15 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    TmpPrime1 = e3a.Cross(O1mO2.Cross(e2b));   
    TmpPrime2 = e2b.Cross(e3a.Cross(O1mO2));
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WM.fPutCoef(33, 3+iCnt, TmpPrime1.dGet(iCnt));
-      WM.fPutCoef(33, 15+iCnt, TmpPrime2.dGet(iCnt));
+      WM.PutCoef(33, 3+iCnt, TmpPrime1.dGet(iCnt));
+      WM.PutCoef(33, 15+iCnt, TmpPrime2.dGet(iCnt));
    }
    
    TmpPrime1 = e3a.Cross(O1mO2.Cross(e1b));
    TmpPrime2 = e1b.Cross(e3a.Cross(O1mO2));
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WM.fPutCoef(34, 3+iCnt, TmpPrime1.dGet(iCnt));
-      WM.fPutCoef(34, 15+iCnt, TmpPrime2.dGet(iCnt));
+      WM.PutCoef(34, 3+iCnt, TmpPrime1.dGet(iCnt));
+      WM.PutCoef(34, 15+iCnt, TmpPrime2.dGet(iCnt));
    }   
    
    return WorkMat;
@@ -839,13 +839,13 @@ PlaneHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(30, v1+O1Wedged1-v2-O2Wedged2);
 
    /* Equazioni di vincolo di rotazione */
-   WorkVec.fPutCoef(28, e2b.Dot(e3a));
-   WorkVec.fPutCoef(29, e1b.Dot(e3a));
+   WorkVec.PutCoef(28, e2b.Dot(e3a));
+   WorkVec.PutCoef(29, e1b.Dot(e3a));
    
    /* Derivate delle equazioni di vincolo di rotazione: e1b~e3a, e2b~e3a */
    Vec3 Tmp((Omega1-Omega2).Cross(e3a));
-   WorkVec.fPutCoef(33, e2b.Dot(Tmp));
-   WorkVec.fPutCoef(34, e1b.Dot(Tmp));
+   WorkVec.PutCoef(33, e2b.Dot(Tmp));
+   WorkVec.PutCoef(34, e1b.Dot(Tmp));
 
    return WorkVec;
 }
@@ -1065,11 +1065,11 @@ PlaneRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = Tmp1.dGet(iCnt);
-      WM.fPutCoef(iCnt, 7, d);
-      WM.fPutCoef(3+iCnt, 7, -d);
+      WM.PutCoef(iCnt, 7, d);
+      WM.PutCoef(3+iCnt, 7, -d);
       d = Tmp2.dGet(iCnt);
-      WM.fPutCoef(iCnt, 8, d);
-      WM.fPutCoef(3+iCnt, 8, -d);
+      WM.PutCoef(iCnt, 8, d);
+      WM.PutCoef(3+iCnt, 8, -d);
    }         
    
    /* Modifica: divido le equazioni di vincolo per dCoef */
@@ -1086,11 +1086,11 @@ PlaneRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = Tmp1.dGet(iCnt);
-      WM.fPutCoef(7, iCnt, d);
-      WM.fPutCoef(7, 3+iCnt, -d);
+      WM.PutCoef(7, iCnt, d);
+      WM.PutCoef(7, 3+iCnt, -d);
       d = Tmp2.dGet(iCnt);
-      WM.fPutCoef(8, iCnt, -d);
-      WM.fPutCoef(8, 3+iCnt, d);
+      WM.PutCoef(8, iCnt, -d);
+      WM.PutCoef(8, 3+iCnt, d);
    }   
    
    return WorkMat;
@@ -1163,8 +1163,8 @@ SubVectorHandler& PlaneRotationJoint::AssRes(SubVectorHandler& WorkVec,
       
       /* Equazioni di vincolo di rotazione */
       Vec3 Tmp = R1hTmp.GetVec(3);
-      WorkVec.fPutCoef(7, Tmp.Dot(R2hTmp.GetVec(2))/dCoef);
-      WorkVec.fPutCoef(8, Tmp.Dot(R2hTmp.GetVec(1))/dCoef);
+      WorkVec.PutCoef(7, Tmp.Dot(R2hTmp.GetVec(2))/dCoef);
+      WorkVec.PutCoef(8, Tmp.Dot(R2hTmp.GetVec(1))/dCoef);
    }   
    
    return WorkVec;
@@ -1274,16 +1274,16 @@ PlaneRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Matrici identita' */   
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       /* Contributo di forza all'equazione della forza, nodo 1 */
-      WM.fPutCoef(iCnt, 12+iCnt, 1.);
+      WM.PutCoef(iCnt, 12+iCnt, 1.);
       
       /* Contrib. di der. di forza all'eq. della der. della forza, nodo 1 */
-      WM.fPutCoef(3+iCnt, 14+iCnt, 1.);
+      WM.PutCoef(3+iCnt, 14+iCnt, 1.);
       
       /* Contributo di forza all'equazione della forza, nodo 2 */
-      WM.fPutCoef(6+iCnt, 12+iCnt, -1.);
+      WM.PutCoef(6+iCnt, 12+iCnt, -1.);
       
       /* Contrib. di der. di forza all'eq. della der. della forza, nodo 2 */
-      WM.fPutCoef(9+iCnt, 14+iCnt, -1.);
+      WM.PutCoef(9+iCnt, 14+iCnt, -1.);
    }
       
    /* Matrici di rotazione dai nodi alla cerniera nel sistema globale */
@@ -1329,16 +1329,16 @@ PlaneRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Sub(4, 4, Mat3x3(MTmp, e3a));
    WM.Add(4, 16, Mat3x3(e3a, MTmp));
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(iCnt, 13, Tmp1.dGet(iCnt));
-      WM.fPutCoef(iCnt, 14, Tmp2.dGet(iCnt));	
+      WM.PutCoef(iCnt, 13, Tmp1.dGet(iCnt));
+      WM.PutCoef(iCnt, 14, Tmp2.dGet(iCnt));	
    }
    
    /* Equazione di momento, nodo 2 */
    WM.Add(7, 1, Mat3x3(MTmp, e3a));
    WM.Sub(7, 7, Mat3x3(e3a, MTmp));
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(6+iCnt, 13, -Tmp1.dGet(iCnt));
-      WM.fPutCoef(6+iCnt, 14, -Tmp2.dGet(iCnt));	
+      WM.PutCoef(6+iCnt, 13, -Tmp1.dGet(iCnt));
+      WM.PutCoef(6+iCnt, 14, -Tmp2.dGet(iCnt));	
    }
    
    /* Derivata dell'equazione di momento, nodo 1 */
@@ -1348,10 +1348,10 @@ PlaneRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(4, 10, Mat3x3(e3a, MTmp));
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(3+iCnt, 13, TmpPrime1.dGet(iCnt));
-      WM.fPutCoef(3+iCnt, 14, TmpPrime2.dGet(iCnt));
-      WM.fPutCoef(3+iCnt, 15, Tmp1.dGet(iCnt));
-      WM.fPutCoef(3+iCnt, 16, Tmp2.dGet(iCnt));	
+      WM.PutCoef(3+iCnt, 13, TmpPrime1.dGet(iCnt));
+      WM.PutCoef(3+iCnt, 14, TmpPrime2.dGet(iCnt));
+      WM.PutCoef(3+iCnt, 15, Tmp1.dGet(iCnt));
+      WM.PutCoef(3+iCnt, 16, Tmp2.dGet(iCnt));	
    }
    
    /* Derivata dell'equazione di momento, nodo 2 */
@@ -1361,32 +1361,32 @@ PlaneRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Sub(10, 10, Mat3x3(e3a, MTmp));
 
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(9+iCnt, 13, -TmpPrime1.dGet(iCnt));
-      WM.fPutCoef(9+iCnt, 14, -TmpPrime2.dGet(iCnt));	
-      WM.fPutCoef(9+iCnt, 15, -Tmp1.dGet(iCnt));
-      WM.fPutCoef(9+iCnt, 16, -Tmp2.dGet(iCnt));	
+      WM.PutCoef(9+iCnt, 13, -TmpPrime1.dGet(iCnt));
+      WM.PutCoef(9+iCnt, 14, -TmpPrime2.dGet(iCnt));	
+      WM.PutCoef(9+iCnt, 15, -Tmp1.dGet(iCnt));
+      WM.PutCoef(9+iCnt, 16, -Tmp2.dGet(iCnt));	
    }
    
    /* Equazioni di vincolo di rotazione: e1b~e3a, e2b~e3a */
             
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
       doublereal d = Tmp1.dGet(iCnt);
-      WM.fPutCoef(13, iCnt, d);
-      WM.fPutCoef(13, 6+iCnt, -d);
+      WM.PutCoef(13, iCnt, d);
+      WM.PutCoef(13, 6+iCnt, -d);
       
       /* Queste sono per la derivata dell'equazione, sono qui solo per 
        * ottimizzazione */
-      WM.fPutCoef(15, 3+iCnt, d);
-      WM.fPutCoef(15, 9+iCnt, -d);
+      WM.PutCoef(15, 3+iCnt, d);
+      WM.PutCoef(15, 9+iCnt, -d);
       
       d = Tmp2.dGet(iCnt);
-      WM.fPutCoef(14, iCnt, -d);
-      WM.fPutCoef(14, 6+iCnt, d);
+      WM.PutCoef(14, iCnt, -d);
+      WM.PutCoef(14, 6+iCnt, d);
       
       /* Queste sono per la derivata dell'equazione, sono qui solo per 
        * ottimizzazione */
-      WM.fPutCoef(16, 3+iCnt, -d);
-      WM.fPutCoef(16, 9+iCnt, d);
+      WM.PutCoef(16, 3+iCnt, -d);
+      WM.PutCoef(16, 9+iCnt, d);
    }   
    
    /* Derivate delle equazioni di vincolo di rotazione: e1b~e3a, e2b~e3a */
@@ -1394,15 +1394,15 @@ PlaneRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    TmpPrime1 = e3a.Cross(O1mO2.Cross(e2b));   
    TmpPrime2 = e2b.Cross(e3a.Cross(O1mO2));
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WM.fPutCoef(15, iCnt, TmpPrime1.dGet(iCnt));
-      WM.fPutCoef(15, 6+iCnt, TmpPrime2.dGet(iCnt));
+      WM.PutCoef(15, iCnt, TmpPrime1.dGet(iCnt));
+      WM.PutCoef(15, 6+iCnt, TmpPrime2.dGet(iCnt));
    }
    
    TmpPrime1 = e3a.Cross(O1mO2.Cross(e1b));
    TmpPrime2 = e1b.Cross(e3a.Cross(O1mO2));
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WM.fPutCoef(16, iCnt, TmpPrime1.dGet(iCnt));
-      WM.fPutCoef(16, 6+iCnt, TmpPrime2.dGet(iCnt));
+      WM.PutCoef(16, iCnt, TmpPrime1.dGet(iCnt));
+      WM.PutCoef(16, 6+iCnt, TmpPrime2.dGet(iCnt));
    }   
    
    return WorkMat;
@@ -1484,13 +1484,13 @@ PlaneRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(10, MPrimeTmp);
    
    /* Equazioni di vincolo di rotazione */
-   WorkVec.fPutCoef(13, e2b.Dot(e3a));
-   WorkVec.fPutCoef(14, e1b.Dot(e3a));
+   WorkVec.PutCoef(13, e2b.Dot(e3a));
+   WorkVec.PutCoef(14, e1b.Dot(e3a));
    
    /* Derivate delle equazioni di vincolo di rotazione: e1b~e3a, e2b~e3a */
    Vec3 Tmp((Omega1-Omega2).Cross(e3a));
-   WorkVec.fPutCoef(15, e2b.Dot(Tmp));
-   WorkVec.fPutCoef(16, e1b.Dot(Tmp));
+   WorkVec.PutCoef(15, e2b.Dot(Tmp));
+   WorkVec.PutCoef(16, e1b.Dot(Tmp));
 
    return WorkVec;
 }
@@ -1694,8 +1694,8 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Contributo della forza alle equazioni di equilibrio dei due nodi */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WM.fPutCoef(iCnt, 12+iCnt, 1.);
-      WM.fPutCoef(6+iCnt, 12+iCnt, -1.);
+      WM.PutCoef(iCnt, 12+iCnt, 1.);
+      WM.PutCoef(6+iCnt, 12+iCnt, -1.);
    }
    
    WM.Add(4, 13, Mat3x3(d1Tmp));
@@ -1727,24 +1727,24 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = Tmp1.dGet(iCnt);
-      WM.fPutCoef(3+iCnt, 16, d);
-      WM.fPutCoef(9+iCnt, 16, -d);
+      WM.PutCoef(3+iCnt, 16, d);
+      WM.PutCoef(9+iCnt, 16, -d);
       
       d = Tmp2.dGet(iCnt);
-      WM.fPutCoef(3+iCnt, 17, d);
-      WM.fPutCoef(9+iCnt, 17, -d);
+      WM.PutCoef(3+iCnt, 17, d);
+      WM.PutCoef(9+iCnt, 17, -d);
       
       d = e3a.dGet(iCnt);
-      WM.fPutCoef(3+iCnt, 18, d);	
-      WM.fPutCoef(9+iCnt, 18, -d);	
+      WM.PutCoef(3+iCnt, 18, d);	
+      WM.PutCoef(9+iCnt, 18, -d);	
    }         
    
    /* Modifica: divido le equazioni di vincolo per dCoef */
    
    /* Equazioni di vincolo degli spostamenti */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(12+iCnt, iCnt, -1.);
-      WM.fPutCoef(12+iCnt, 6+iCnt, 1.);
+      WM.PutCoef(12+iCnt, iCnt, -1.);
+      WM.PutCoef(12+iCnt, 6+iCnt, 1.);
    }
    
    WM.Add(13, 4, Mat3x3(d1Tmp));
@@ -1762,12 +1762,12 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = Tmp1.dGet(iCnt);
-      WM.fPutCoef(16, 3+iCnt, d);
-      WM.fPutCoef(16, 9+iCnt, -d);
+      WM.PutCoef(16, 3+iCnt, d);
+      WM.PutCoef(16, 9+iCnt, -d);
       
       d = Tmp2.dGet(iCnt);
-      WM.fPutCoef(17, 3+iCnt, -d);
-      WM.fPutCoef(17, 9+iCnt, d);
+      WM.PutCoef(17, 3+iCnt, -d);
+      WM.PutCoef(17, 9+iCnt, d);
    }
    
    /* Questa equazione non viene divisa per dCoef */
@@ -1777,8 +1777,8 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 Tmp = e3a+(Omega2.Cross(e3a)*dCoef);
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = Tmp.dGet(iCnt);
-      WM.fPutCoef(18, 3+iCnt, -d);
-      WM.fPutCoef(18, 9+iCnt, d);
+      WM.PutCoef(18, 3+iCnt, -d);
+      WM.PutCoef(18, 9+iCnt, d);
    }   
    
    return WorkMat;
@@ -1850,8 +1850,8 @@ SubVectorHandler& AxialRotationJoint::AssRes(SubVectorHandler& WorkVec,
       
       /* Equazioni di vincolo di rotazione */
       Vec3 Tmp = Vec3(R1hTmp.GetVec(3));
-      WorkVec.fPutCoef(16, Tmp.Dot(R2hTmp.GetVec(2))/dCoef);
-      WorkVec.fPutCoef(17, Tmp.Dot(R2hTmp.GetVec(1))/dCoef);
+      WorkVec.PutCoef(16, Tmp.Dot(R2hTmp.GetVec(2))/dCoef);
+      WorkVec.PutCoef(17, Tmp.Dot(R2hTmp.GetVec(1))/dCoef);
    }   
    
    /* Questa equazione non viene divisa per dCoef */
@@ -1860,7 +1860,7 @@ SubVectorHandler& AxialRotationJoint::AssRes(SubVectorHandler& WorkVec,
    Vec3 Omega1(pNode1->GetWCurr());
    Vec3 Omega2(pNode2->GetWCurr());
    doublereal dOmega0 = pGetDriveCaller()->dGet();
-   WorkVec.fPutCoef(18, dOmega0-e3a.Dot(Omega2-Omega1));
+   WorkVec.PutCoef(18, dOmega0-e3a.Dot(Omega2-Omega1));
    
    return WorkVec;
 }
@@ -1976,28 +1976,28 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Matrici identita' */   
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       /* Contributo di forza all'equazione della forza, nodo 1 */
-      WM.fPutCoef(iCnt, 24+iCnt, 1.);
+      WM.PutCoef(iCnt, 24+iCnt, 1.);
       
       /* Contrib. di der. di forza all'eq. della der. della forza, nodo 1 */
-      WM.fPutCoef(6+iCnt, 29+iCnt, 1.);
+      WM.PutCoef(6+iCnt, 29+iCnt, 1.);
       
       /* Contributo di forza all'equazione della forza, nodo 2 */
-      WM.fPutCoef(12+iCnt, 24+iCnt, -1.);
+      WM.PutCoef(12+iCnt, 24+iCnt, -1.);
       
       /* Contrib. di der. di forza all'eq. della der. della forza, nodo 2 */
-      WM.fPutCoef(18+iCnt, 29+iCnt, -1.);
+      WM.PutCoef(18+iCnt, 29+iCnt, -1.);
       
       /* Equazione di vincolo, nodo 1 */
-      WM.fPutCoef(24+iCnt, iCnt, -1.);
+      WM.PutCoef(24+iCnt, iCnt, -1.);
       
       /* Derivata dell'equazione di vincolo, nodo 1 */
-      WM.fPutCoef(29+iCnt, 6+iCnt, -1.);
+      WM.PutCoef(29+iCnt, 6+iCnt, -1.);
       
       /* Equazione di vincolo, nodo 2 */
-      WM.fPutCoef(24+iCnt, 12+iCnt, 1.);
+      WM.PutCoef(24+iCnt, 12+iCnt, 1.);
       
       /* Derivata dell'equazione di vincolo, nodo 2 */
-      WM.fPutCoef(29+iCnt, 18+iCnt, 1.);
+      WM.PutCoef(29+iCnt, 18+iCnt, 1.);
    }
       
    /* Distanze e matrici di rotazione dai nodi alla cerniera 
@@ -2055,8 +2055,8 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(4, 16, Mat3x3(e3a, MTmp));
    WM.Add(4, 25, Mat3x3(d1Tmp));
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(3+iCnt, 28, Tmp1.dGet(iCnt));
-      WM.fPutCoef(3+iCnt, 29, Tmp2.dGet(iCnt));
+      WM.PutCoef(3+iCnt, 28, Tmp1.dGet(iCnt));
+      WM.PutCoef(3+iCnt, 29, Tmp2.dGet(iCnt));
    }
    
    /* Equazione di momento, nodo 2 */
@@ -2064,8 +2064,8 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(16, 16, FWedged2Wedge-Mat3x3(e3a, MTmp));
    WM.Add(16, 25, Mat3x3(-d2Tmp));
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(15+iCnt, 28, -Tmp1.dGet(iCnt));
-      WM.fPutCoef(15+iCnt, 29, -Tmp2.dGet(iCnt));	
+      WM.PutCoef(15+iCnt, 28, -Tmp1.dGet(iCnt));
+      WM.PutCoef(15+iCnt, 29, -Tmp2.dGet(iCnt));	
    }
    
    /* Derivata dell'equazione di momento, nodo 1 */
@@ -2078,14 +2078,14 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(10, 30, Mat3x3(d1Tmp));
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(9+iCnt, 28, TmpPrime1.dGet(iCnt));
-      WM.fPutCoef(9+iCnt, 29, TmpPrime2.dGet(iCnt));
-      WM.fPutCoef(9+iCnt, 33, Tmp1.dGet(iCnt));
-      WM.fPutCoef(9+iCnt, 34, Tmp2.dGet(iCnt));	
+      WM.PutCoef(9+iCnt, 28, TmpPrime1.dGet(iCnt));
+      WM.PutCoef(9+iCnt, 29, TmpPrime2.dGet(iCnt));
+      WM.PutCoef(9+iCnt, 33, Tmp1.dGet(iCnt));
+      WM.PutCoef(9+iCnt, 34, Tmp2.dGet(iCnt));	
       
       /* Contributo del momento attorno all'asse 3, dovuto alla velocita' 
        * imposta */
-      WM.fPutCoef(9+iCnt, 35, e3a.dGet(iCnt));	
+      WM.PutCoef(9+iCnt, 35, e3a.dGet(iCnt));	
    }
    
    /* Derivata dell'equazione di momento, nodo 2 */
@@ -2097,14 +2097,14 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(22, 30, Mat3x3(-d2Tmp));
 
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(21+iCnt, 28, -TmpPrime1.dGet(iCnt));
-      WM.fPutCoef(21+iCnt, 29, -TmpPrime2.dGet(iCnt));	
-      WM.fPutCoef(21+iCnt, 33, -Tmp1.dGet(iCnt));
-      WM.fPutCoef(21+iCnt, 34, -Tmp2.dGet(iCnt));	
+      WM.PutCoef(21+iCnt, 28, -TmpPrime1.dGet(iCnt));
+      WM.PutCoef(21+iCnt, 29, -TmpPrime2.dGet(iCnt));	
+      WM.PutCoef(21+iCnt, 33, -Tmp1.dGet(iCnt));
+      WM.PutCoef(21+iCnt, 34, -Tmp2.dGet(iCnt));	
       
       /* Contributo del momento attorno all'asse 3, dovuto alla velocita' 
        * imposta */
-      WM.fPutCoef(21+iCnt, 35, -e3a.dGet(iCnt));
+      WM.PutCoef(21+iCnt, 35, -e3a.dGet(iCnt));
    }
    
    /* Equazione di vincolo di posizione */
@@ -2121,22 +2121,22 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
             
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
       doublereal d = Tmp1.dGet(iCnt);
-      WM.fPutCoef(28, 3+iCnt, d);
-      WM.fPutCoef(28, 15+iCnt, -d);
+      WM.PutCoef(28, 3+iCnt, d);
+      WM.PutCoef(28, 15+iCnt, -d);
       
       /* Queste sono per la derivata dell'equazione, sono qui solo per 
        * ottimizzazione */
-      WM.fPutCoef(33, 9+iCnt, d);
-      WM.fPutCoef(33, 21+iCnt, -d);
+      WM.PutCoef(33, 9+iCnt, d);
+      WM.PutCoef(33, 21+iCnt, -d);
       
       d = Tmp2.dGet(iCnt);
-      WM.fPutCoef(29, 3+iCnt, -d);
-      WM.fPutCoef(29, 15+iCnt, d);
+      WM.PutCoef(29, 3+iCnt, -d);
+      WM.PutCoef(29, 15+iCnt, d);
       
       /* Queste sono per la derivata dell'equazione, sono qui solo per 
        * ottimizzazione */
-      WM.fPutCoef(34, 9+iCnt, -d);
-      WM.fPutCoef(34, 21+iCnt, d);
+      WM.PutCoef(34, 9+iCnt, -d);
+      WM.PutCoef(34, 21+iCnt, d);
    }   
    
    /* Derivate delle equazioni di vincolo di rotazione: e1b~e3a, e2b~e3a */
@@ -2144,15 +2144,15 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    TmpPrime1 = e3a.Cross(O1mO2.Cross(e2b));   
    TmpPrime2 = e2b.Cross(e3a.Cross(O1mO2));
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WM.fPutCoef(33, 3+iCnt, TmpPrime1.dGet(iCnt));
-      WM.fPutCoef(33, 15+iCnt, TmpPrime2.dGet(iCnt));
+      WM.PutCoef(33, 3+iCnt, TmpPrime1.dGet(iCnt));
+      WM.PutCoef(33, 15+iCnt, TmpPrime2.dGet(iCnt));
    }
    
    TmpPrime1 = e3a.Cross(O1mO2.Cross(e1b));
    TmpPrime2 = e1b.Cross(e3a.Cross(O1mO2));
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WM.fPutCoef(34, 3+iCnt, TmpPrime1.dGet(iCnt));
-      WM.fPutCoef(34, 15+iCnt, TmpPrime2.dGet(iCnt));
+      WM.PutCoef(34, 3+iCnt, TmpPrime1.dGet(iCnt));
+      WM.PutCoef(34, 15+iCnt, TmpPrime2.dGet(iCnt));
    }   
    
    /* Equazione di vincolo di velocita' di rotazione; viene posta qui perche'
@@ -2160,10 +2160,10 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
     * relativa incognita */
    Vec3 Tmp = O1mO2.Cross(e3a);
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(35, 3+iCnt, Tmp.dGet(iCnt));
+      WM.PutCoef(35, 3+iCnt, Tmp.dGet(iCnt));
       doublereal d = e3a.dGet(iCnt);
-      WM.fPutCoef(35, 9+iCnt, -d);
-      WM.fPutCoef(35, 21+iCnt, d);
+      WM.PutCoef(35, 9+iCnt, -d);
+      WM.PutCoef(35, 21+iCnt, d);
    }   
    
    return WorkMat;
@@ -2271,17 +2271,17 @@ AxialRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(30, v1+O1Wedged1-v2-O2Wedged2);
 
    /* Equazioni di vincolo di rotazione */
-   WorkVec.fPutCoef(28, e2b.Dot(e3a));
-   WorkVec.fPutCoef(29, e1b.Dot(e3a));
+   WorkVec.PutCoef(28, e2b.Dot(e3a));
+   WorkVec.PutCoef(29, e1b.Dot(e3a));
    
    /* Derivate delle equazioni di vincolo di rotazione: e1b~e3a, e2b~e3a */
    Vec3 Tmp((Omega1-Omega2).Cross(e3a));
-   WorkVec.fPutCoef(33, e2b.Dot(Tmp));
-   WorkVec.fPutCoef(34, e1b.Dot(Tmp));
+   WorkVec.PutCoef(33, e2b.Dot(Tmp));
+   WorkVec.PutCoef(34, e1b.Dot(Tmp));
 
    /* Equazione di vincolo di velocita' di rotazione */
    doublereal Omega0 = pGetDriveCaller()->dGet();
-   WorkVec.fPutCoef(35, Omega0-e3a.Dot(Omega2-Omega1));
+   WorkVec.PutCoef(35, Omega0-e3a.Dot(Omega2-Omega1));
 
    return WorkVec;
 }
@@ -2554,8 +2554,8 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
    if (dCoef != 0.) {	
       WorkVec.Add(7, (x+dTmp-X0)/dCoef);
       
-      WorkVec.fPutCoef(10, e3.Dot(e2)/dCoef);
-      WorkVec.fPutCoef(11, e3.Dot(e1)/dCoef);
+      WorkVec.PutCoef(10, e3.Dot(e2)/dCoef);
+      WorkVec.PutCoef(11, e3.Dot(e1)/dCoef);
    }   
    
    return WorkVec;
@@ -2615,16 +2615,16 @@ PlanePinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       /* Contributo di forza all'equazione della forza */
-      WM.fPutCoef(iCnt, 12+iCnt, 1.);
+      WM.PutCoef(iCnt, 12+iCnt, 1.);
       
       /* Contrib. di der. di forza all'eq. della der. della forza */
-      WM.fPutCoef(6+iCnt, 17+iCnt, 1.);
+      WM.PutCoef(6+iCnt, 17+iCnt, 1.);
       
       /* Equazione di vincolo */
-      WM.fPutCoef(12+iCnt, iCnt, -1.);
+      WM.PutCoef(12+iCnt, iCnt, -1.);
       
       /* Derivata dell'equazione di vincolo */
-      WM.fPutCoef(17+iCnt, 6+iCnt, -1.);
+      WM.PutCoef(17+iCnt, 6+iCnt, -1.);
    }
    
    /* Recupera i dati */
@@ -2689,15 +2689,15 @@ PlanePinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = Tmp1.dGet(iCnt);
-      WM.fPutCoef(3+iCnt, 16, d);
-      WM.fPutCoef(9+iCnt, 21, d);
+      WM.PutCoef(3+iCnt, 16, d);
+      WM.PutCoef(9+iCnt, 21, d);
       
       d = Tmp2.dGet(iCnt);
-      WM.fPutCoef(3+iCnt, 17, d);
-      WM.fPutCoef(9+iCnt, 22, d);
+      WM.PutCoef(3+iCnt, 17, d);
+      WM.PutCoef(9+iCnt, 22, d);
       
-      WM.fPutCoef(9+iCnt, 16, TmpPrime1.dGet(iCnt));
-      WM.fPutCoef(9+iCnt, 17, TmpPrime2.dGet(iCnt));
+      WM.PutCoef(9+iCnt, 16, TmpPrime1.dGet(iCnt));
+      WM.PutCoef(9+iCnt, 17, TmpPrime2.dGet(iCnt));
    }
    
    /* Equazione di vincolo */
@@ -2710,29 +2710,29 @@ PlanePinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Equazioni di vincolo di rotazione: e1b~e3a, e2b~e3a */            
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
       doublereal d = -Tmp1.dGet(iCnt);
-      WM.fPutCoef(16, 3+iCnt, d);
+      WM.PutCoef(16, 3+iCnt, d);
       
       /* Queste sono per la derivata dell'equazione, sono qui solo per 
        * ottimizzazione */
-      WM.fPutCoef(21, 9+iCnt, d);
+      WM.PutCoef(21, 9+iCnt, d);
       
       d = Tmp2.dGet(iCnt);
-      WM.fPutCoef(17, 3+iCnt, d);
+      WM.PutCoef(17, 3+iCnt, d);
       
       /* Queste sono per la derivata dell'equazione, sono qui solo per 
        * ottimizzazione */
-      WM.fPutCoef(22, 9+iCnt, d);
+      WM.PutCoef(22, 9+iCnt, d);
    }   
    
    /* Derivate delle equazioni di vincolo di rotazione: e1b~e3a, e2b~e3a */
    TmpPrime2 = e2.Cross(Omega.Cross(e3));
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WM.fPutCoef(21, 3+iCnt, TmpPrime2.dGet(iCnt));
+      WM.PutCoef(21, 3+iCnt, TmpPrime2.dGet(iCnt));
    }
    
    TmpPrime2 = e1.Cross(Omega.Cross(e3));
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WM.fPutCoef(22, 3+iCnt, TmpPrime2.dGet(iCnt));
+      WM.PutCoef(22, 3+iCnt, TmpPrime2.dGet(iCnt));
    }      
    
    return WorkMat;
@@ -2822,16 +2822,16 @@ PlanePinJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(13, x+dTmp-X0);
    
    /* Equazioni di vincolo di rotazione */
-   WorkVec.fPutCoef(16, e2.Dot(e3));
-   WorkVec.fPutCoef(17, e1.Dot(e3));
+   WorkVec.PutCoef(16, e2.Dot(e3));
+   WorkVec.PutCoef(17, e1.Dot(e3));
 
    /* Derivata dell'equazione di vincolo di posizione */
    WorkVec.Add(18, v+OWedged);
    
    /* Derivate delle equazioni di vincolo di rotazione: e1b~e3a, e2b~e3a */
    Vec3 Tmp(e3.Cross(Omega));
-   WorkVec.fPutCoef(21, e2.Dot(Tmp));
-   WorkVec.fPutCoef(22, e1.Dot(Tmp));
+   WorkVec.PutCoef(21, e2.Dot(Tmp));
+   WorkVec.PutCoef(22, e1.Dot(Tmp));
       
    return WorkVec;
 }

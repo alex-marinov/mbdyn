@@ -150,9 +150,9 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
    
    void SetValue(VectorHandler& X, VectorHandler& XP) const {
       if (SD.iOrder == 0) {
-	 X.fPutCoef(SD.pNode->iGetFirstRowIndex()+1, dGet());
+	 X.PutCoef(SD.pNode->iGetFirstRowIndex()+1, dGet());
       } else if (SD.iOrder == 1) {
-	 XP.fPutCoef(SD.pNode->iGetFirstRowIndex()+1, dGet());	 
+	 XP.PutCoef(SD.pNode->iGetFirstRowIndex()+1, dGet());	 
       }
    };
    /* *******PER IL SOLUTORE PARALLELO******** */        
@@ -307,11 +307,11 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
    
    void SetValue(VectorHandler& X, VectorHandler& XP) const {
       if (SD2.iOrder == 0) {
-	 X.fPutCoef(SD2.pNode->iGetFirstRowIndex()+1,
+	 X.PutCoef(SD2.pNode->iGetFirstRowIndex()+1,
 		    dGet()-SD2.pNode->dGetX()
 		    +SD1.pNode->dGetDofValue(1, SD1.iOrder));
       } else if (SD2.iOrder == 1) {
-	 XP.fPutCoef(SD2.pNode->iGetFirstRowIndex()+1, 
+	 XP.PutCoef(SD2.pNode->iGetFirstRowIndex()+1, 
 		     dGet()-SD2.pNode->dGetXPrime()
 		     +SD1.pNode->dGetDofValue(1, SD1.iOrder));
       }
@@ -406,19 +406,19 @@ class GenelSpring
 	doublereal dFDE = GetFDE();
       	
 	if (SD1.iOrder == 1) {
-	   WM.fPutCoef(1, 1, dFDE);
-	   WM.fPutCoef(2, 1, -dFDE);
+	   WM.PutCoef(1, 1, dFDE);
+	   WM.PutCoef(2, 1, -dFDE);
 	} else {
-	   WM.fPutCoef(1, 1, dFDE*dCoef);
-	   WM.fPutCoef(2, 1, -dFDE*dCoef);
+	   WM.PutCoef(1, 1, dFDE*dCoef);
+	   WM.PutCoef(2, 1, -dFDE*dCoef);
 	}
 	
 	if (SD2.iOrder == 1) {
-	   WM.fPutCoef(1, 2, -dFDE);
-	   WM.fPutCoef(2, 2, dFDE);
+	   WM.PutCoef(1, 2, -dFDE);
+	   WM.PutCoef(2, 2, dFDE);
 	} else {
-	   WM.fPutCoef(1, 2, -dFDE*dCoef);
-	   WM.fPutCoef(2, 2, dFDE*dCoef);
+	   WM.PutCoef(1, 2, -dFDE*dCoef);
+	   WM.PutCoef(2, 2, dFDE*dCoef);
 	}
 	
 	return WorkMat;
@@ -535,7 +535,7 @@ class GenelSpringSupport
 	WM.fPutRowIndex(1, iNodeRowIndex);
 	WM.fPutColIndex(1, iNodeColIndex);            
 	     	              
-	WM.fPutCoef(1, 1, GetFDE()*dCoef);
+	WM.PutCoef(1, 1, GetFDE()*dCoef);
 	
 	return WorkMat;
      };
@@ -645,7 +645,7 @@ class GenelCrossSpringSupport
 	WM.fPutRowIndex(1, iNodeRowIndex);
 	WM.fPutColIndex(1, iNodeColIndex);            
 	     	              
-	WM.fPutCoef(1, 1, GetFDE()*dCoef);
+	WM.PutCoef(1, 1, GetFDE()*dCoef);
 	
 	return WorkMat;
      };
@@ -759,7 +759,7 @@ class GenelCrossSpringDamperSupport
 	WM.fPutRowIndex(1, iNodeRowIndex);
 	WM.fPutColIndex(1, iNodeColIndex);            
 	     	              
-	WM.fPutCoef(1, 1, GetFDE()*dCoef+GetFDEPrime());
+	WM.PutCoef(1, 1, GetFDE()*dCoef+GetFDEPrime());
 	
 	return WorkMat;
      };
@@ -871,7 +871,7 @@ class GenelSpringDamperSupport
 	WM.fPutRowIndex(1, iNodeRowIndex);
 	WM.fPutColIndex(1, iNodeColIndex);            
 	     	              
-	WM.fPutCoef(1, 1, GetFDE()*dCoef+GetFDEPrime());
+	WM.PutCoef(1, 1, GetFDE()*dCoef+GetFDEPrime());
 	
 	return WorkMat;
      };
@@ -1015,7 +1015,7 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
    };
    
    void SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const {
-      X.fPutCoef(iGetFirstIndex()+1, SD.pNode->dGetXPrime());
+      X.PutCoef(iGetFirstIndex()+1, SD.pNode->dGetXPrime());
    };
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento

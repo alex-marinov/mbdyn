@@ -445,8 +445,8 @@ int method_multistep(const char* module, integration_data* d,
    for (int k = 1; k <= size; k++) {
       doublereal x = pX->dGetCoef(k);
       doublereal xp = pXP->dGetCoef(k);
-      pXPm1->fPutCoef(k, xp);
-      pXm1->fPutCoef(k, x-dt*xp);
+      pXPm1->PutCoef(k, xp);
+      pXm1->PutCoef(k, x-dt*xp);
    }
    
    // output iniziale
@@ -464,8 +464,8 @@ int method_multistep(const char* module, integration_data* d,
 	 doublereal xm2 = pXm2->dGetCoef(k);
 	 doublereal xPm2 = pXPm2->dGetCoef(k);
 	 doublereal x = -4.*xm1+5.*xm2+dt*(4.*xPm1+2.*xPm2);
-	 pX->fPutCoef(k, x);
-	 R.fPutCoef(k, a1*xm1+a2*xm2+dt*(b1*xPm1+b2*xPm2));
+	 pX->PutCoef(k, x);
+	 R.PutCoef(k, a1*xm1+a2*xm2+dt*(b1*xPm1+b2*xPm2));
       }
       
       // test
@@ -477,7 +477,7 @@ int method_multistep(const char* module, integration_data* d,
 	 for (int k = 1; k <= size; k++) {
 	    doublereal x = pX->dGetCoef(k);
 	    doublereal xP = pXP->dGetCoef(k);
-	    Res.fPutCoef(k, R.dGetCoef(k)-x+coef*xP);
+	    Res.PutCoef(k, R.dGetCoef(k)-x+coef*xP);
 	 }
 
 	 test = Res.Norm();
@@ -496,16 +496,16 @@ int method_multistep(const char* module, integration_data* d,
 	 (*::ff_grad)(p_data, J, *pX, t);
 	 for (int k = 1; k <= size; k++) {
 	    for (int l = 1; l <= size; l++) {
-	       Jac.fPutCoef(k, l, -coef*J.dGetCoef(k, l));
+	       Jac.PutCoef(k, l, -coef*J.dGetCoef(k, l));
 	    }
-	    Jac.fIncCoef(k, k, 1.);
+	    Jac.IncCoef(k, k, 1.);
 	 }      
 	 sm.Solve();
 	 
 	 // update
 	 for (int k = size; k > 0; k--) {
 	    doublereal dx = Sol.dGetCoef(k);	
-	    pX->fIncCoef(k, dx);
+	    pX->IncCoef(k, dx);
 	 }	 
       } while (true);
       
@@ -611,8 +611,8 @@ int method_cubic(const char* module, integration_data* d,
    for (int k = 1; k <= size; k++) {
       doublereal x = pX->dGetCoef(k);
       doublereal xp = pXP->dGetCoef(k);
-      pXPm1->fPutCoef(k, xp);
-      pXm1->fPutCoef(k, x-dt*xp);
+      pXPm1->PutCoef(k, xp);
+      pXm1->PutCoef(k, x-dt*xp);
    }
    
    // output iniziale
@@ -630,7 +630,7 @@ int method_cubic(const char* module, integration_data* d,
 	 doublereal xm2 = pXm2->dGetCoef(k);
 	 doublereal xPm2 = pXPm2->dGetCoef(k);
 	 doublereal x = -4.*xm1+5.*xm2+dt*(4.*xPm1+2.*xPm2);
-	 pX->fPutCoef(k, x);
+	 pX->PutCoef(k, x);
       }
       
       // test
@@ -645,7 +645,7 @@ int method_cubic(const char* module, integration_data* d,
 	    doublereal xm1 = pXm1->dGetCoef(k);
 	    doublereal xPm1 = pXPm1->dGetCoef(k);
 	    doublereal xz = m0*x+m1*xm1+dt*(n0*xP+n1*xPm1);
-	    Xz.fPutCoef(k, xz);
+	    Xz.PutCoef(k, xz);
 	 }
 	 XPz.Reset();
 	 (*::ff_func)(p_data, XPz, Xz, t+z*dt);
@@ -658,7 +658,7 @@ int method_cubic(const char* module, integration_data* d,
 				  pX->dGetCoef(k)
 				  -pXm1->dGetCoef(k)
 				  );
-	    Res.fPutCoef(k, d);
+	    Res.PutCoef(k, d);
 	 }
 
 	 test = Res.Norm();
@@ -684,16 +684,16 @@ int method_cubic(const char* module, integration_data* d,
 		  d += Jz.dGetCoef(k, m)*J0.dGetCoef(m, l);
 	       }
 	       d = -dt*(wz*(Jz.dGetCoef(k, l)+dt*n0*d)+w0*J0.dGetCoef(k, l));
-	       Jac.fPutCoef(k, l, d);
+	       Jac.PutCoef(k, l, d);
 	    }
-	    Jac.fIncCoef(k, k, 1.);
+	    Jac.IncCoef(k, k, 1.);
 	 }
 	 sm.Solve();
 	 
 	 // update
 	 for (int k = size; k > 0; k--) {
 	    doublereal dx = Sol.dGetCoef(k);
-	    pX->fIncCoef(k, dx);
+	    pX->IncCoef(k, dx);
 	 }
       } while (true);
       

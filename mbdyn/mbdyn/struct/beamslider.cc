@@ -245,15 +245,15 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	for (unsigned int i = 1; i <= 3; i++) {
 		/* l^T F = 0 : Delta F */
 		doublereal d = l.dGet(i)/dCoef;
-		WM.fDecCoef(6*(1+Beam::NUMNODES)+1, 
+		WM.DecCoef(6*(1+Beam::NUMNODES)+1, 
 				6*(1+Beam::NUMNODES)+1+i, d);
 
 		/* xc - x = 0: l Delta s */
-		WM.fIncCoef(6*(1+Beam::NUMNODES)+1+i, 
+		WM.IncCoef(6*(1+Beam::NUMNODES)+1+i, 
 				6*(1+Beam::NUMNODES)+1, d);
 
 		/* xc - x = 0: Delta x_b */
-		WM.fDecCoef(6*(1+Beam::NUMNODES)+1+i, i, 1.);
+		WM.DecCoef(6*(1+Beam::NUMNODES)+1+i, i, 1.);
 	}
 
 	Vec3 lp(0.);
@@ -266,16 +266,16 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		for (unsigned int i = 1; i <= 3; i++) {
 			/* l^T F = 0 : Delta x */
 			doublereal d = F.dGet(i)*dNp[iN];
-			WM.fDecCoef(6*(1+Beam::NUMNODES)+1, 
+			WM.DecCoef(6*(1+Beam::NUMNODES)+1, 
 					6*(1+iN)+i, d);
 
 			/* l^T F = 0 : Delta g */
 			d = Tmp.dGet(i)*dNp[iN];
-			WM.fDecCoef(6*(1+Beam::NUMNODES)+1, 
+			WM.DecCoef(6*(1+Beam::NUMNODES)+1, 
 					6*(1+iN)+3+i, d);
 
 			/* xc - x = 0: Delta x */
-			WM.fIncCoef(6*(1+Beam::NUMNODES)+1+i, 
+			WM.IncCoef(6*(1+Beam::NUMNODES)+1+i, 
 					6*(1+iN)+i, dN[iN]);
 		}
 
@@ -285,16 +285,16 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* l^T F = 0 : Delta s */
-	WM.fDecCoef(6*(1+Beam::NUMNODES)+1, 
+	WM.DecCoef(6*(1+Beam::NUMNODES)+1, 
 			6*(1+Beam::NUMNODES)+1, (F*lp)/dCoef);
 
 	/* reazioni vincolari */
 	for (unsigned int i = 1; i <= 3; i++) {
 		/* corpo: Delta F */
-		WM.fDecCoef(i, 6*(1+Beam::NUMNODES)+1+i, 1.);
+		WM.DecCoef(i, 6*(1+Beam::NUMNODES)+1+i, 1.);
 
 		/* trave: Delta F */
-		WM.fIncCoef(6*activeNode+i, 6*(1+Beam::NUMNODES)+1+i, dW[0]);
+		WM.IncCoef(6*activeNode+i, 6*(1+Beam::NUMNODES)+1+i, dW[0]);
 	}
 
 	/* corpo: Delta F (momento) */
@@ -329,23 +329,23 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		/* reazioni vincolari */
 		for (unsigned int i = 1; i <= 3; i++) {
 			/* trave: Delta F */
-			WM.fIncCoef(6*(activeNode+1)+i, 
+			WM.IncCoef(6*(activeNode+1)+i, 
 					6*(1+Beam::NUMNODES)+1+i, dW[1]);
 
 #ifdef DELTADW
 			/* trave: Delta s (Delta dW forza) */
 			doublereal d = F(i)/(2.*dL);
-			WM.fDecCoef(6*activeNode+i, 
+			WM.DecCoef(6*activeNode+i, 
 					6*(1+Beam::NUMNODES)+1, d);
-			WM.fIncCoef(6*(activeNode+1)+i, 
+			WM.IncCoef(6*(activeNode+1)+i, 
 					6*(1+Beam::NUMNODES)+1, d);
 
 			/* trave: Delta s (Delta dW momento) */
 			d = m1(i)/(2.*dL);
-			WM.fDecCoef(6*activeNode+3+i, 
+			WM.DecCoef(6*activeNode+3+i, 
 					6*(1+Beam::NUMNODES)+1, d);
 			d = m2(i)/(2.*dL);
-			WM.fIncCoef(6*(activeNode+1)+3+i, 
+			WM.IncCoef(6*(activeNode+1)+3+i, 
 					6*(1+Beam::NUMNODES)+1, d);
 #endif /* DELTADW */
 		}
@@ -374,20 +374,20 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			for (unsigned int i = 1; i <= 3; i++) {
 				/* Vincolo in rotazione: Delta x */
 				d = eb2.dGet(i)*dNp[iN];
-				WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+1, 
+				WM.DecCoef(6*(1+Beam::NUMNODES)+1+3+1, 
 						6*(1+iN)+i, d);
 
 				d = eb3.dGet(i)*dNp[iN];
-				WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+2, 
+				WM.DecCoef(6*(1+Beam::NUMNODES)+1+3+2, 
 						6*(1+iN)+i, d);
 
 				/* Vincolo in rotazione: Delta g */
 				d = Tmpf2.dGet(i)*dNp[iN];
-				WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+1,
+				WM.DecCoef(6*(1+Beam::NUMNODES)+1+3+1,
 						6*(1+iN)+3+i, d);
 
 				d = Tmpf3.dGet(i)*dNp[iN];
-				WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+2,
+				WM.DecCoef(6*(1+Beam::NUMNODES)+1+3+2,
 						6*(1+iN)+3+i, d);
 
 			}
@@ -437,39 +437,39 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 			/* Vincolo in rotazione: Delta gb */
 			d = Tmpl2.dGet(i);
-			WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+1, 3+i, d);
+			WM.DecCoef(6*(1+Beam::NUMNODES)+1+3+1, 3+i, d);
 
 			/* Reazione vincolare: Delta M */
-			WM.fDecCoef(3+i, 6*(1+Beam::NUMNODES)+1+3+1, d);
-			WM.fIncCoef(6*activeNode+3+i,
+			WM.DecCoef(3+i, 6*(1+Beam::NUMNODES)+1+3+1, d);
+			WM.IncCoef(6*activeNode+3+i,
 					6*(1+Beam::NUMNODES)+1+3+1, d*dW[0]);
 			if (dW[1] != 0) {
-				WM.fIncCoef(6*(activeNode+1)+3+i,
+				WM.IncCoef(6*(activeNode+1)+3+i,
 						6*(1+Beam::NUMNODES)+1+3+1, 
 						d*dW[1]);
 			}
 
 			/* Vincolo in rotazione: Delta gb */
 			d = Tmpl3.dGet(i);
-			WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+2, 3+i, d);
+			WM.DecCoef(6*(1+Beam::NUMNODES)+1+3+2, 3+i, d);
 
 			/* Reazione vincolare: Delta M */
-			WM.fDecCoef(3+i, 6*(1+Beam::NUMNODES)+1+3+2, d);
-			WM.fIncCoef(6*activeNode+3+i,
+			WM.DecCoef(3+i, 6*(1+Beam::NUMNODES)+1+3+2, d);
+			WM.IncCoef(6*activeNode+3+i,
 					6*(1+Beam::NUMNODES)+1+3+2, d*dW[0]);
 			if (dW[1] != 0) {
-				WM.fIncCoef(6*(activeNode+1)+3+i,
+				WM.IncCoef(6*(activeNode+1)+3+i,
 						6*(1+Beam::NUMNODES)+1+3+2, 
 						d*dW[1]);
 			}
 
 			/* Reazione vincolare: Delta s */
 			d = Tmpmmlp(i);
-			WM.fDecCoef(3+i, 6*(1+Beam::NUMNODES)+1, d);
-			WM.fIncCoef(6*activeNode+3+i, 
+			WM.DecCoef(3+i, 6*(1+Beam::NUMNODES)+1, d);
+			WM.IncCoef(6*activeNode+3+i, 
 					6*(1+Beam::NUMNODES)+1, d*dW[0]);
 			if (dW[1] != 0) {
-				WM.fIncCoef(6*(activeNode+1)+3+i, 
+				WM.IncCoef(6*(activeNode+1)+3+i, 
 						6*(1+Beam::NUMNODES)+1, 
 						d*dW[1]);
 			}
@@ -477,11 +477,11 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 		/* Vincolo in rotazione: Delta s */
 		d = (eb2*lp)/dCoef;
-		WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+1,
+		WM.DecCoef(6*(1+Beam::NUMNODES)+1+3+1,
 				6*(1+Beam::NUMNODES)+1, d);
 
 		d = (eb3*lp)/dCoef;
-		WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+2,
+		WM.DecCoef(6*(1+Beam::NUMNODES)+1+3+2,
 				6*(1+Beam::NUMNODES)+1, d);
 
 		/* Reazione vincolare: Delta gb */
@@ -670,7 +670,7 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 	 *
 	 * FIXME: togliere la scalatura da F*l ?????
 	 */
-	WorkVec.fPutCoef(6*(1+Beam::NUMNODES)+1, (F*l)/dCoef);
+	WorkVec.PutCoef(6*(1+Beam::NUMNODES)+1, (F*l)/dCoef);
 	WorkVec.Add(6*(1+Beam::NUMNODES)+1+1, (xc-x)/dCoef);
 
 	/*
@@ -678,8 +678,8 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 	 */
 	if (iType != SPHERICAL) {
 		/* 2 vincoli di rotazione */
-		WorkVec.fPutCoef(6*(1+Beam::NUMNODES)+1+3+1, (eb2*l)/dCoef);
-		WorkVec.fPutCoef(6*(1+Beam::NUMNODES)+1+3+2, (eb3*l)/dCoef);
+		WorkVec.PutCoef(6*(1+Beam::NUMNODES)+1+3+1, (eb2*l)/dCoef);
+		WorkVec.PutCoef(6*(1+Beam::NUMNODES)+1+3+2, (eb3*l)/dCoef);
 
 		/* calcolo momento */
 		M = eb2.Cross(l*m(2))+eb3.Cross(l*m(3));

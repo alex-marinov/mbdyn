@@ -106,7 +106,7 @@ AbstractForce::AssRes(SubVectorHandler& WorkVec,
    integer iFirstIndex = pNode->iGetFirstRowIndex();
    WorkVec.fPutRowIndex(1, iFirstIndex+1);
 
-   WorkVec.fPutCoef(1, dAmplitude);
+   WorkVec.PutCoef(1, dAmplitude);
 
    return WorkVec;
 }
@@ -181,8 +181,8 @@ AbstractInternalForce::AssRes(SubVectorHandler& WorkVec,
    WorkVec.fPutRowIndex(1, iFirstIndex1+1);
    WorkVec.fPutRowIndex(2, iFirstIndex2+1);
 
-   WorkVec.fPutCoef(1, dAmplitude);
-   WorkVec.fPutCoef(2, -dAmplitude);
+   WorkVec.PutCoef(1, dAmplitude);
+   WorkVec.PutCoef(2, -dAmplitude);
 
    return WorkVec;
 }

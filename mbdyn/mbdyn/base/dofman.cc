@@ -188,7 +188,7 @@ DataManager::SetScale(VectorHandler& XScale) const
 		doublereal dScale = pDofOwners[iCnt].dScale;
 
 		for (unsigned int iDof = 1; iDof <= iNumDofs; iDof++) {
-			XScale.fPutCoef(iFirstIndex + iDof, dScale);
+			XScale.PutCoef(iFirstIndex + iDof, dScale);
 		}
 	}
 }

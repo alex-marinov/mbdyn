@@ -91,15 +91,15 @@ public:
 	SchurMatrixHandler::MatEFCInit(const doublereal& dResetVal);
 
 	/* Inserisce un coefficiente */
-	virtual inline flag fPutCoef(integer iRow, integer iCol,
+	virtual inline void PutCoef(integer iRow, integer iCol,
 			const doublereal& dCoef);
   
 	/* Incrementa un coefficiente - se non esiste lo crea */
-	virtual inline flag fIncCoef(integer iRow, integer iCol,
+	virtual inline void IncCoef(integer iRow, integer iCol,
 			const doublereal& dCoef);
   	
 	/* Incrementa un coefficiente - se non esiste lo crea */
-	virtual inline flag fDecCoef(integer iRow, integer iCol,
+	virtual inline void DecCoef(integer iRow, integer iCol,
 			const doublereal& dCoef);
   
 	/* Restituisce un coefficiente - zero se non e' definito */
@@ -166,49 +166,49 @@ SchurMatrixHandler::Init(const doublereal& dResetVal)
 	pC->Reset(dResetVal);
 }
 
-inline flag
-SchurMatrixHandler::fPutCoef(integer iRow, integer iCol, 
+inline void
+SchurMatrixHandler::PutCoef(integer iRow, integer iCol, 
 		const doublereal& dCoef) 
 {
 #ifdef DEBUG
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "fPutCoef - Process(" << MBDynComm.Get_rank()
+		std::cerr << "PutCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {" << iRow << "," << iCol << "}"
 			<< std::endl;
-		return flag(0);
+		return;
 	}
 #endif /* DEBUG_MPI */
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) { 
 		if (pGTL[iCol] > 0) { 
-			pB->fPutCoef(pGTL[iRow], pGTL[iCol], dCoef); 
+			pB->PutCoef(pGTL[iRow], pGTL[iCol], dCoef); 
 		} else {
-			pE->fPutCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize, dCoef);
+			pE->PutCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize, dCoef);
 		}
 	} else {
 		if (pGTL[iCol] > 0) {
-			pF->fPutCoef(-pGTL[iRow], pGTL[iCol], dCoef);
+			pF->PutCoef(-pGTL[iRow], pGTL[iCol], dCoef);
 		} else {
-			pC->fPutCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
+			pC->PutCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
 		}
 	}
 	
-	return flag(0);
+	return;
 }
 
-inline flag
-SchurMatrixHandler::fIncCoef(integer iRow, integer iCol, 
+inline void
+SchurMatrixHandler::IncCoef(integer iRow, integer iCol, 
 		const doublereal& dCoef)
 {
 #ifdef DEBUG
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "fIncCoef - Process(" << MBDynComm.Get_rank()
+		std::cerr << "IncCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {" << iRow << "," << iCol << "}"
 			<< std::endl;
@@ -219,30 +219,30 @@ SchurMatrixHandler::fIncCoef(integer iRow, integer iCol,
 
 	if (pGTL[iRow] > 0) { 
 		if (pGTL[iCol] > 0) { 
-			pB->fIncCoef(pGTL[iRow], pGTL[iCol], dCoef);
+			pB->IncCoef(pGTL[iRow], pGTL[iCol], dCoef);
 		} else {
-			pE->fIncCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize, dCoef);
+			pE->IncCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize, dCoef);
 		}
 	} else {
 		if (pGTL[iCol] > 0) {
-			pF->fIncCoef(-pGTL[iRow], pGTL[iCol], dCoef);
+			pF->IncCoef(-pGTL[iRow], pGTL[iCol], dCoef);
 		} else {
-			pC->fIncCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
+			pC->IncCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
 		}
 	}
 
-	return flag(0);
+	return;
 }
  
-inline flag
-SchurMatrixHandler::fDecCoef(integer iRow, integer iCol, 
+inline void
+SchurMatrixHandler::DecCoef(integer iRow, integer iCol, 
 		const doublereal& dCoef)
 {
 #ifdef DEBUG
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "fDecCoef - Process(" << MBDynComm.Get_rank()
+		std::cerr << "DecCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {" << iRow << "," << iCol << "}"
 			<< std::endl;
@@ -253,19 +253,19 @@ SchurMatrixHandler::fDecCoef(integer iRow, integer iCol,
 
 	if (pGTL[iRow] > 0) { 
 		if (pGTL[iCol] > 0) { 
-			pB->fDecCoef(pGTL[iRow], pGTL[iCol], dCoef);
+			pB->DecCoef(pGTL[iRow], pGTL[iCol], dCoef);
 		} else {
-			pE->fDecCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize, dCoef);
+			pE->DecCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize, dCoef);
 		}
 	} else {
 		if (iCol > 0) {
-			pF->fDecCoef(-pGTL[iRow], pGTL[iCol], dCoef);
+			pF->DecCoef(-pGTL[iRow], pGTL[iCol], dCoef);
 		} else {
-			pC->fDecCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
+			pC->DecCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
 		}
 	}
 
-	return flag(0);
+	return;
 }
 
 inline const doublereal&
@@ -401,7 +401,7 @@ SchurMatrixHandler::CompNewf(VectorHandler& f, const VectorHandler& g) const
     		int iColx = j * LSize;
     		for (int i = 0; i < LSize; i++) {
       			if (pdE[i + iColx] != 0) {
-				f.fDecCoef(i+1, pdE[i+iColx]*g.dGetCoef(j+1));
+				f.DecCoef(i+1, pdE[i+iColx]*g.dGetCoef(j+1));
       			}
     		}
   	}
@@ -473,9 +473,9 @@ public:
 	inline VectorHandler* GetIVec(void);
 	inline VectorHandler* GetLVec(void);
 
-	inline flag fPutCoef(integer iRow, const doublereal& dCoef);
-	inline flag fIncCoef(integer iRow, const doublereal& dCoef);
-	inline flag fDecCoef(integer iRow, const doublereal& dCoef);
+	inline void PutCoef(integer iRow, const doublereal& dCoef);
+	inline void IncCoef(integer iRow, const doublereal& dCoef);
+	inline void DecCoef(integer iRow, const doublereal& dCoef);
 	inline const doublereal& dGetCoef(integer iRow) const;
 	inline void PrintVector(void);  
 };
@@ -525,14 +525,14 @@ SchurVectorHandler::GetLVec(void)
 	return pLV;
 }
 
-inline flag
-SchurVectorHandler::fPutCoef(integer iRow, const doublereal& dCoef)
+inline void
+SchurVectorHandler::PutCoef(integer iRow, const doublereal& dCoef)
 {
 #ifdef DEBUG
 	IsValid();
 #ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
-		std::cerr << "fPutCoef - Process(" << MBDynComm.Get_rank()
+		std::cerr << "PutCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, VectorHandler is trying to operate "
 			"on a non local value {" << iRow << "}"
 			<< std::endl;
@@ -542,22 +542,22 @@ SchurVectorHandler::fPutCoef(integer iRow, const doublereal& dCoef)
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) {
-		pLV->fPutCoef(pGTL[iRow], dCoef);
+		pLV->PutCoef(pGTL[iRow], dCoef);
 	} else {
-		pIV->fPutCoef(-pGTL[iRow], dCoef);
+		pIV->PutCoef(-pGTL[iRow], dCoef);
 	}
 
-	return flag(0);
+	return;
 }
 
-inline flag
-SchurVectorHandler::fIncCoef(integer iRow, const doublereal& dCoef)
+inline void
+SchurVectorHandler::IncCoef(integer iRow, const doublereal& dCoef)
 {
 #ifdef DEBUG
 	IsValid();
 #ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
-		std::cerr <<"fIncCoef - Process(" << MBDynComm.Get_rank()
+		std::cerr <<"IncCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, VectorHandler is trying to operate "
 			"on a non local value {" << iRow << "}"
 			<< std::endl;
@@ -567,21 +567,21 @@ SchurVectorHandler::fIncCoef(integer iRow, const doublereal& dCoef)
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) {
-		pLV->fIncCoef(pGTL[iRow], dCoef);
+		pLV->IncCoef(pGTL[iRow], dCoef);
 	} else {
-		pIV->fIncCoef(-pGTL[iRow], dCoef);
+		pIV->IncCoef(-pGTL[iRow], dCoef);
 	}  
-	return flag(0); 
+	return; 
 }
 
-inline flag
-SchurVectorHandler::fDecCoef(integer iRow, const doublereal& dCoef)
+inline void
+SchurVectorHandler::DecCoef(integer iRow, const doublereal& dCoef)
 {
 #ifdef DEBUG
 	IsValid();
 #ifdef DEBUG_MPI
 	if (pGTL[iRow] == 0) {
-		std::cerr <<"fDecCoef - Process(" << MBDynComm.Get_rank()
+		std::cerr <<"DecCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, VectorHandler is trying to operate "
 			"on a non local value {" << iRow << "}"
 			<< std::endl;
@@ -591,11 +591,11 @@ SchurVectorHandler::fDecCoef(integer iRow, const doublereal& dCoef)
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) {
-		pLV->fDecCoef(pGTL[iRow], dCoef);
+		pLV->DecCoef(pGTL[iRow], dCoef);
 	} else {
-		pIV->fDecCoef(-pGTL[iRow], dCoef);
+		pIV->DecCoef(-pGTL[iRow], dCoef);
 	}
-	return flag(0); 
+	return; 
 }
 
 inline const doublereal&
@@ -660,15 +660,15 @@ public:
 	inline void Init(const doublereal& dResetVal);
   
 	/* Inserisce un coefficiente */
-	inline flag fPutCoef(integer iRow, integer iCol,
+	inline void PutCoef(integer iRow, integer iCol,
 			const doublereal& dCoef);
 
 	/* Incrementa un coefficiente - se non esiste lo crea */
-	inline flag fIncCoef(integer iRow, integer iCol,
+	inline void IncCoef(integer iRow, integer iCol,
 			const doublereal& dCoef);
   
 	/* Incrementa un coefficiente - se non esiste lo crea */
-	inline flag fDecCoef(integer iRow, integer iCol,
+	inline void DecCoef(integer iRow, integer iCol,
 			const doublereal& dCoef);
   
 	/* Restituisce un coefficiente - zero se non e' definito */
@@ -718,15 +718,15 @@ inline void SchurMatrixHandlerUm::Init(const doublereal& dResetVal)
 	pC->Reset(dResetVal);
 }
 
-inline flag
-SchurMatrixHandlerUm::fPutCoef(integer iRow, integer iCol, 
+inline void
+SchurMatrixHandlerUm::PutCoef(integer iRow, integer iCol, 
 		const doublereal& dCoef) 
 {
 #ifdef DEBUG
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "fPutCoef - Process(" << MBDynComm.Get_rank()
+		std::cerr << "PutCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {"<< iRow << "," << iCol << "}"
 			<< std::endl;
@@ -737,36 +737,36 @@ SchurMatrixHandlerUm::fPutCoef(integer iRow, integer iCol,
 
 	if (pGTL[iRow] > 0) { 
 		if (pGTL[iCol] > 0) { 
-			pB->fPutCoef(pGTL[iRow], pGTL[iCol], dCoef); 
+			pB->PutCoef(pGTL[iRow], pGTL[iCol], dCoef); 
 		} else {
 			if (Eflag) {
-				pE->fPutCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize,
+				pE->PutCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize,
 						dCoef);
 			} else {
-				pEs->fPutCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize,
+				pEs->PutCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize,
 						dCoef);
 			}
 		}
 	} else {
 		if (pGTL[iCol] > 0) {
-			pF->fPutCoef(-pGTL[iRow], pGTL[iCol], dCoef);
+			pF->PutCoef(-pGTL[iRow], pGTL[iCol], dCoef);
 		} else {
-			pC->fPutCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
+			pC->PutCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
 		}
 	}
 
-	return flag(0);
+	return;
 }
 
-inline flag
-SchurMatrixHandlerUm::fIncCoef(integer iRow, integer iCol, 
+inline void
+SchurMatrixHandlerUm::IncCoef(integer iRow, integer iCol, 
 		const doublereal& dCoef)
 {
 #ifdef DEBUG
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "fIncCoef - Process(" << MBDynComm.Get_rank()
+		std::cerr << "IncCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {"<< iRow << "," << iCol << "}"
 			<< std::endl;
@@ -777,36 +777,36 @@ SchurMatrixHandlerUm::fIncCoef(integer iRow, integer iCol,
 
 	if (pGTL[iRow] > 0) { 
 		if (pGTL[iCol] > 0) { 
-			pB->fIncCoef(pGTL[iRow], pGTL[iCol], dCoef);
+			pB->IncCoef(pGTL[iRow], pGTL[iCol], dCoef);
 		} else {
 			if (Eflag) {
-				pE->fIncCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize,
+				pE->IncCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize,
 						dCoef);
 			} else {
-				pEs->fIncCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize,
+				pEs->IncCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize,
 						dCoef);
 			}
 		}
 	} else {
 		if (pGTL[iCol] > 0) {
-			pF->fIncCoef(-pGTL[iRow], pGTL[iCol], dCoef);
+			pF->IncCoef(-pGTL[iRow], pGTL[iCol], dCoef);
 		} else {
-			pC->fIncCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
+			pC->IncCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
 		}
 	}
 
-	return flag(0);
+	return;
 }
  
-inline flag
-SchurMatrixHandlerUm::fDecCoef(integer iRow, integer iCol, 
+inline void
+SchurMatrixHandlerUm::DecCoef(integer iRow, integer iCol, 
 		const doublereal& dCoef)
 {
 #ifdef DEBUG
 	IsValid();
 #ifdef DEBUG_MPI
 	if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
-		std::cerr << "fDecCoef - Process(" << MBDynComm.Get_rank()
+		std::cerr << "DecCoef - Process(" << MBDynComm.Get_rank()
 			<< "): warning, MatrixHandler is trying to operate "
 			"on a non local value {"<< iRow << "," << iCol << "}"
 			<< std::endl;
@@ -817,25 +817,25 @@ SchurMatrixHandlerUm::fDecCoef(integer iRow, integer iCol,
 
 	if (pGTL[iRow] > 0) { 
 		if (pGTL[iCol] > 0) { 
-			pB->fDecCoef(pGTL[iRow], pGTL[iCol], dCoef);
+			pB->DecCoef(pGTL[iRow], pGTL[iCol], dCoef);
 		} else {
 			if (Eflag) {
-				pE->fDecCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize,
+				pE->DecCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize,
 						dCoef);
 			} else {
-				pEs->fDecCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize,
+				pEs->DecCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize,
 						dCoef);
 			}
 		}
 	} else {
 		if (iCol > 0) {
-			pF->fDecCoef(-pGTL[iRow], pGTL[iCol], dCoef);
+			pF->DecCoef(-pGTL[iRow], pGTL[iCol], dCoef);
 		} else {
-			pC->fDecCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
+			pC->DecCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
 		}
 	}
 	
-	return flag(0);
+	return;
 }
 
 inline const doublereal&
@@ -916,7 +916,7 @@ SchurMatrixHandlerUm::CompNewf(VectorHandler& f, const VectorHandler& g) const
 		
     		for (int i = 0; i < LSize; i++) {
       			if (pdEs[i + iColx] != 0) {
-				f.fDecCoef(i+1, pdEs[i+iColx]*g.dGetCoef(j+1));
+				f.DecCoef(i+1, pdEs[i+iColx]*g.dGetCoef(j+1));
       			}
     		}
   	}

@@ -159,21 +159,21 @@ Motor::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 		doublereal d = Cdi.dGet(iCnt);
-		WM.fIncCoef(iCnt, 9, d);
-		WM.fDecCoef(3 + iCnt, 9, d);
+		WM.IncCoef(iCnt, 9, d);
+		WM.DecCoef(3 + iCnt, 9, d);
 
 		d = Tmp.dGet(iCnt);
-		WM.fIncCoef(9, iCnt, d);
-		WM.fDecCoef(9, 3 + iCnt, d);
+		WM.IncCoef(9, iCnt, d);
+		WM.DecCoef(9, 3 + iCnt, d);
 	}
 
-	WM.fIncCoef(7, 9, dCoef);
-	WM.fDecCoef(8, 9, dCoef);
+	WM.IncCoef(7, 9, dCoef);
+	WM.DecCoef(8, 9, dCoef);
 
-	WM.fIncCoef(9, 7, dCoef);
-	WM.fDecCoef(9, 8, dCoef);
+	WM.IncCoef(9, 7, dCoef);
+	WM.DecCoef(9, 8, dCoef);
 
-	WM.fIncCoef(9, 9, dL + dCoef*dR);
+	WM.IncCoef(9, 9, dL + dCoef*dR);
 
 	return WorkMat;
 }
@@ -217,9 +217,9 @@ Motor::AssRes(SubVectorHandler& WorkVec,
 
 	WorkVec.Sub(1, C);
 	WorkVec.Add(4, C);
-	WorkVec.fDecCoef(7, i);
-	WorkVec.fIncCoef(8, i);
-	WorkVec.fIncCoef(9, dV - dGain*omega - dL*iP - dR*i);
+	WorkVec.DecCoef(7, i);
+	WorkVec.IncCoef(8, i);
+	WorkVec.IncCoef(9, dV - dGain*omega - dL*iP - dR*i);
       
 	return WorkVec;
 }

@@ -421,7 +421,7 @@ void SchurSolutionManager::Solve(void)
     		for (int i = 0; i < pDispl[SolvCommSize]; i++) {
 			int j = i%iBlkSize;
 			int blk = int(floor(i/iBlkSize));
-      			pSchVH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[j]+blk*iBlkSize], pBuffer[i]);
+      			pSchVH->IncCoef(pSchGlbToLoc[pDofsRecvdList[j]+blk*iBlkSize], pBuffer[i]);
     		}
   	}
 
@@ -563,7 +563,7 @@ SchurSolutionManager::AssSchur(void)
 					int blk1 = int(floor(pDispl[i]+k/iBlkSize));
 					int z2 = pDispl[i]+j%iBlkSize;
 					int blk2 = int(floor(pDispl[i]+j/iBlkSize));
-	  				pSchMH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[z1]+blk1*iBlkSize], pSchGlbToLoc[pDofsRecvdList[z2]+blk2*iBlkSize], pBuffer[iOffset + k + iColx]);
+	  				pSchMH->IncCoef(pSchGlbToLoc[pDofsRecvdList[z1]+blk1*iBlkSize], pSchGlbToLoc[pDofsRecvdList[z2]+blk2*iBlkSize], pBuffer[iOffset + k + iColx]);
 				}
       			}
       			iOffset += pRecvDim[i]*pRecvDim[i];
@@ -808,7 +808,7 @@ SchurSolutionManager::ComplExchInt(doublereal& dRes)
       		for (int i = 0; i < pDispl[SolvCommSize]; i++) {
 			int j = i%iBlkSize;
 			int blk = int(floor(i/iBlkSize));
-			pSchVH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[j]+blk*iBlkSize], pBuffer[i]);
+			pSchVH->IncCoef(pSchGlbToLoc[pDofsRecvdList[j]+blk*iBlkSize], pBuffer[i]);
       		}
 
 		for (int iCntp1 = 1; iCntp1 <= iSchurIntDim; iCntp1++) {

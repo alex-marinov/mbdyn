@@ -102,7 +102,7 @@ int init(void* p, VectorHandler& X)
    private_data* pd = (private_data*)p;
    X.Reset(0.);
    for (int i = 1; i <= size(p); i++) {      
-      X.fPutCoef(i, pd->x[i-1]); /* posiz. iniziale */
+      X.PutCoef(i, pd->x[i-1]); /* posiz. iniziale */
    }
    return 0;
 }
@@ -123,12 +123,12 @@ int grad(void* p, MatrixHandler& J, const VectorHandler& X, const doublereal& t)
    doublereal l0 = pd->l; 
 //    doublereal g = pd->g;
    
-   J.fPutCoef(1, 3, 1.);
-   J.fPutCoef(2, 4, 1.);
-   J.fPutCoef(3, 1, -k/m*(1.-l0/l*(1.-(x*x)/(l*l))));
-   J.fPutCoef(3, 2, -k/m*x*y*l0/(l*l*l));   
-   J.fPutCoef(4, 1, -k/m*x*y*l0/(l*l*l));
-   J.fPutCoef(4, 2, -k/m*(1.-l0/l*(1.-(y*y)/(l*l))));
+   J.PutCoef(1, 3, 1.);
+   J.PutCoef(2, 4, 1.);
+   J.PutCoef(3, 1, -k/m*(1.-l0/l*(1.-(x*x)/(l*l))));
+   J.PutCoef(3, 2, -k/m*x*y*l0/(l*l*l));   
+   J.PutCoef(4, 1, -k/m*x*y*l0/(l*l*l));
+   J.PutCoef(4, 2, -k/m*(1.-l0/l*(1.-(y*y)/(l*l))));
 
    return 0;
 }
@@ -149,10 +149,10 @@ int func(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
    doublereal l = sqrt(x*x+y*y);
    doublereal g = pd->g;
 
-   R.fPutCoef(1, u);
-   R.fPutCoef(2, v);
-   R.fPutCoef(3, -k/m*x*(1.-l0/l));
-   R.fPutCoef(4, -k/m*y*(1.-l0/l)-g);
+   R.PutCoef(1, u);
+   R.PutCoef(2, v);
+   R.PutCoef(3, -k/m*x*(1.-l0/l));
+   R.PutCoef(4, -k/m*y*(1.-l0/l)-g);
 
    return 0;
 }

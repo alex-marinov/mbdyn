@@ -666,11 +666,11 @@ DataManager::InitialJointAssembly(void)
 			for (int iCnt = 1; iCnt <= 6; iCnt++) {
 				/* Posizione, rotazione */
 				integer iTmp = iFirstIndex+iCnt;
-				pMatHdl->fPutCoef(iTmp, iTmp, dPosStiff);
+				pMatHdl->PutCoef(iTmp, iTmp, dPosStiff);
 
 				/* Velocita', velocita' angolare */
 				iTmp += 6;
-				pMatHdl->fPutCoef(iTmp, iTmp, dVelStiff);
+				pMatHdl->PutCoef(iTmp, iTmp, dVelStiff);
 			}
 
 			if ((*ppTmpNode)->fOmegaRotates()) {
@@ -684,18 +684,18 @@ DataManager::InitialJointAssembly(void)
 
 				/* W1 in m(3, 2), -W1 in m(2, 3) */
 				doublereal d = TmpVec.dGet(1);
-				pMatHdl->fPutCoef(iFirstIndex+12, iFirstIndex+5, d);
-				pMatHdl->fPutCoef(iFirstIndex+11, iFirstIndex+6, -d);
+				pMatHdl->PutCoef(iFirstIndex+12, iFirstIndex+5, d);
+				pMatHdl->PutCoef(iFirstIndex+11, iFirstIndex+6, -d);
 
 				/* W2 in m(1, 3), -W2 in m(3, 1) */
 				d = TmpVec.dGet(2);
-				pMatHdl->fPutCoef(iFirstIndex+10, iFirstIndex+6, d);
-				pMatHdl->fPutCoef(iFirstIndex+12, iFirstIndex+4, -d);
+				pMatHdl->PutCoef(iFirstIndex+10, iFirstIndex+6, d);
+				pMatHdl->PutCoef(iFirstIndex+12, iFirstIndex+4, -d);
 
 				/* W3 in m(2, 1), -W3 in m(1, 2) */
 				d = TmpVec.dGet(3);
-				pMatHdl->fPutCoef(iFirstIndex+11, iFirstIndex+4, d);
-				pMatHdl->fPutCoef(iFirstIndex+10, iFirstIndex+5, -d);
+				pMatHdl->PutCoef(iFirstIndex+11, iFirstIndex+4, d);
+				pMatHdl->PutCoef(iFirstIndex+10, iFirstIndex+5, -d);
 			} /* altrimenti la velocita' angolare e' solidale con il nodo */
 		}
 

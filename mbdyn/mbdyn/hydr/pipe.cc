@@ -262,11 +262,11 @@ Pipe::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("JAC Jac33:     " << Jac33 << std::endl);
 #endif /* HYDR_DEVEL */
    
-   WM.fPutCoef(1, 3, Jac13);
-   WM.fPutCoef(2, 3, Jac23);
-   WM.fPutCoef(3, 1, Jac31); 
-   WM.fPutCoef(3, 2, Jac32);
-   WM.fPutCoef(3, 3, Jac33);
+   WM.PutCoef(1, 3, Jac13);
+   WM.PutCoef(2, 3, Jac23);
+   WM.PutCoef(3, 1, Jac31); 
+   WM.PutCoef(3, 2, Jac32);
+   WM.PutCoef(3, 3, Jac33);
   
    return WorkMat;
 }
@@ -456,7 +456,7 @@ void Pipe::Output(OutputHandler& OH) const
 void Pipe::SetValue(VectorHandler& X , VectorHandler& /* XP */ ) const 
 {
    integer i = iGetFirstIndex();
-   X.fPutCoef(i+1, q0);  /* portata iniziale nodo 2 */
+   X.PutCoef(i+1, q0);  /* portata iniziale nodo 2 */
 }
 
 /* Pipe - end */
@@ -720,18 +720,18 @@ Dynamic_pipe::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("JAC Jac55:     " << Jac55 << std::endl);
 #endif /* HYDR_DEVEL */
    
-   WM.fPutCoef(1, 4, Jac14);
-   WM.fPutCoef(2, 5, Jac25);
-   WM.fPutCoef(3, 1, Jac31);
-   WM.fPutCoef(3, 2, Jac32);
-   WM.fPutCoef(3, 3, Jac33);
-   WM.fPutCoef(4, 3, Jac43);
-   WM.fPutCoef(4, 4, Jac44);
-   WM.fPutCoef(4, 5, Jac45);
-   WM.fPutCoef(5, 1, Jac51);   
-   WM.fPutCoef(5, 2, Jac52);
-   WM.fPutCoef(5, 4, Jac54);
-   WM.fPutCoef(5, 5, Jac55);
+   WM.PutCoef(1, 4, Jac14);
+   WM.PutCoef(2, 5, Jac25);
+   WM.PutCoef(3, 1, Jac31);
+   WM.PutCoef(3, 2, Jac32);
+   WM.PutCoef(3, 3, Jac33);
+   WM.PutCoef(4, 3, Jac43);
+   WM.PutCoef(4, 4, Jac44);
+   WM.PutCoef(4, 5, Jac45);
+   WM.PutCoef(5, 1, Jac51);   
+   WM.PutCoef(5, 2, Jac52);
+   WM.PutCoef(5, 4, Jac54);
+   WM.PutCoef(5, 5, Jac55);
  
    return WorkMat;
 }
@@ -985,13 +985,13 @@ Dynamic_pipe::SetValue(VectorHandler& X , VectorHandler& XP) const
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX();
    
-   X.fPutCoef(i+1, .5*(p1+p2));
-   X.fPutCoef(i+2, q0);
-   X.fPutCoef(i+3, -q0);
+   X.PutCoef(i+1, .5*(p1+p2));
+   X.PutCoef(i+2, q0);
+   X.PutCoef(i+3, -q0);
    
-   XP.fPutCoef(i+1, 0.);
-   XP.fPutCoef(i+2, 0.);
-   XP.fPutCoef(i+3, 0.);
+   XP.PutCoef(i+1, 0.);
+   XP.PutCoef(i+2, 0.);
+   XP.PutCoef(i+3, 0.);
 }
 
 /* Dynamic_pipe - end */
@@ -1183,16 +1183,16 @@ DynamicPipe::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* primo blocco: conservazione massa */
    doublereal dr = .5*dCoef;
-   WM.fPutCoef(1, 5, -dr);
-   WM.fPutCoef(1, 6, -dr);
-   WM.fPutCoef(2, 5, dr);
-   WM.fPutCoef(2, 6, dr);
+   WM.PutCoef(1, 5, -dr);
+   WM.PutCoef(1, 6, -dr);
+   WM.PutCoef(2, 5, dr);
+   WM.PutCoef(2, 6, dr);
  
    dr = area*length/8.;
-   WM.fPutCoef(1, 3, -dr*3.*densityDPres1);
-   WM.fPutCoef(1, 4, -dr*densityDPres1);
-   WM.fPutCoef(2, 3, -dr*densityDPres2);
-   WM.fPutCoef(2, 4, -dr*3.*densityDPres2);
+   WM.PutCoef(1, 3, -dr*3.*densityDPres1);
+   WM.PutCoef(1, 4, -dr*densityDPres1);
+   WM.PutCoef(2, 3, -dr*densityDPres2);
+   WM.PutCoef(2, 4, -dr*3.*densityDPres2);
    
    
    /* secondo blocco: equazione quantita' di moto */
@@ -1201,25 +1201,25 @@ DynamicPipe::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal ddq12 = .5*(q12*q12)/(density0*density0*area)*dRDP0*dCoef;
    doublereal ddq1 = q1*q1/(density1*density1*area)*dRDP1*dCoef;
    doublereal ddq2 = q2*q2/(density2*density2*area)*dRDP2*dCoef;
-   WM.fPutCoef(3, 3, -dr + ddq1 - ddq12);
-   WM.fPutCoef(3, 4, dr - ddq12);
-   WM.fPutCoef(4, 3, -dr + ddq12);
-   WM.fPutCoef(4, 4, dr + ddq12 - ddq2);
+   WM.PutCoef(3, 3, -dr + ddq1 - ddq12);
+   WM.PutCoef(3, 4, dr - ddq12);
+   WM.PutCoef(4, 3, -dr + ddq12);
+   WM.PutCoef(4, 4, dr + ddq12 - ddq2);
    
    /* manca la viscosita' */
    dr = length/8.;
    doublereal dq12 = .5*(q1+q2)/density0;   
-   WM.fPutCoef(3, 5, 3.*dr+(dq12-2.*q1/density1)/area*dCoef  + dLoss11);
-   WM.fPutCoef(3, 6, dr+dq12/area*dCoef + dLoss12);
-   WM.fPutCoef(4, 5, dr-dq12/area*dCoef + dLoss21);
-   WM.fPutCoef(4, 6, 3.*dr+(2.*q2/density2-dq12)/area*dCoef + dLoss22);
+   WM.PutCoef(3, 5, 3.*dr+(dq12-2.*q1/density1)/area*dCoef  + dLoss11);
+   WM.PutCoef(3, 6, dr+dq12/area*dCoef + dLoss12);
+   WM.PutCoef(4, 5, dr-dq12/area*dCoef + dLoss21);
+   WM.PutCoef(4, 6, 3.*dr+(2.*q2/density2-dq12)/area*dCoef + dLoss22);
    
    /* terzo blocco: definizione delle pressioni nodali interne */   
-   WM.fPutCoef(5, 1, -1.);
-   WM.fPutCoef(6, 2, -1.);
+   WM.PutCoef(5, 1, -1.);
+   WM.PutCoef(6, 2, -1.);
    
-   WM.fPutCoef(5, 3, dCoef);
-   WM.fPutCoef(6, 4, dCoef);
+   WM.PutCoef(5, 3, dCoef);
+   WM.PutCoef(6, 4, dCoef);
    
    return WorkMat;
 }
@@ -1385,15 +1385,15 @@ DynamicPipe::SetValue(VectorHandler& X , VectorHandler& XP) const
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX();
    
-   X.fPutCoef(i+1, p1);
-   X.fPutCoef(i+2, p2);
-   X.fPutCoef(i+3, q0);
-   X.fPutCoef(i+4, -q0);
+   X.PutCoef(i+1, p1);
+   X.PutCoef(i+2, p2);
+   X.PutCoef(i+3, q0);
+   X.PutCoef(i+4, -q0);
    
-   XP.fPutCoef(i+1, 0.);
-   XP.fPutCoef(i+2, 0.);
-   XP.fPutCoef(i+3, 0.);
-   XP.fPutCoef(i+4, 0.);
+   XP.PutCoef(i+1, 0.);
+   XP.PutCoef(i+2, 0.);
+   XP.PutCoef(i+3, 0.);
+   XP.PutCoef(i+4, 0.);
 }
 
 /* DynamicPipe - end */

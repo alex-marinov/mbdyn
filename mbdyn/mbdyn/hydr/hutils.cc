@@ -200,15 +200,15 @@ Accumulator::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Jac33: " << Jac33 << std::endl);
 #endif
 
-   WM.fPutCoef(1, 1, Jac11);
-   WM.fPutCoef(1, 2, Jac12);
-   WM.fPutCoef(1, 3, Jac13);
-   WM.fPutCoef(2, 1, Jac21);
-   WM.fPutCoef(2, 2, Jac22);
-   WM.fPutCoef(2, 3, Jac23);
-   WM.fPutCoef(3, 1, Jac31);
-   WM.fPutCoef(3, 2, Jac32);
-   WM.fPutCoef(3, 3, Jac33);
+   WM.PutCoef(1, 1, Jac11);
+   WM.PutCoef(1, 2, Jac12);
+   WM.PutCoef(1, 3, Jac13);
+   WM.PutCoef(2, 1, Jac21);
+   WM.PutCoef(2, 2, Jac22);
+   WM.PutCoef(2, 3, Jac23);
+   WM.PutCoef(3, 1, Jac31);
+   WM.PutCoef(3, 2, Jac32);
+   WM.PutCoef(3, 3, Jac33);
    
    return WorkMat;
 }
@@ -377,10 +377,10 @@ Accumulator::SetValue(VectorHandler& X, VectorHandler& XP) const
 {  
    integer i = iGetFirstIndex();
    
-   X.fPutCoef(i+1, start);
-   X.fPutCoef(i+2, 0.);
-   XP.fPutCoef(i+1, 0.);
-   XP.fPutCoef(i+2, 0.);  
+   X.PutCoef(i+1, start);
+   X.PutCoef(i+2, 0.);
+   XP.PutCoef(i+1, 0.);
+   XP.PutCoef(i+2, 0.);  
 }
 
 /* Accumulator - end */
@@ -541,15 +541,15 @@ Tank::AssJac(VariableSubMatrixHandler& WorkMat,
 #endif
    }
 
-   WM.fPutCoef(1, 1, Jac11);
-   WM.fPutCoef(1, 2, Jac12);
-   WM.fPutCoef(1, 3, Jac13);
-   WM.fPutCoef(2, 1, Jac21);
-   WM.fPutCoef(2, 2, Jac22);
-   WM.fPutCoef(2, 3, Jac23);
-   WM.fPutCoef(3, 1, Jac31);
-   WM.fPutCoef(3, 2, Jac32);
-   WM.fPutCoef(3, 3, Jac33);
+   WM.PutCoef(1, 1, Jac11);
+   WM.PutCoef(1, 2, Jac12);
+   WM.PutCoef(1, 3, Jac13);
+   WM.PutCoef(2, 1, Jac21);
+   WM.PutCoef(2, 2, Jac22);
+   WM.PutCoef(2, 3, Jac23);
+   WM.PutCoef(3, 1, Jac31);
+   WM.PutCoef(3, 2, Jac32);
+   WM.PutCoef(3, 3, Jac33);
      
    return WorkMat;
 }
@@ -669,7 +669,7 @@ void
 Tank::SetValue(VectorHandler&  X , VectorHandler& /* XP */ ) const 
 {
    integer i = iGetFirstIndex();
-   X.fPutCoef(i+1, level);
+   X.PutCoef(i+1, level);
 }
 
 /* Tank - end */

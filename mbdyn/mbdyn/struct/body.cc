@@ -187,9 +187,9 @@ Body::AssMat_(FullSubMatrixHandler& WMA,
      *
      * m * I DeltaV - S /\ DeltagP + ( S /\ W ) /\ Deltag 
      */
-    WMB.fIncCoef(1, 1, dMass);
-    WMB.fIncCoef(2, 2, dMass);
-    WMB.fIncCoef(3, 3, dMass);
+    WMB.IncCoef(1, 1, dMass);
+    WMB.IncCoef(2, 2, dMass);
+    WMB.IncCoef(3, 3, dMass);
       
     WMB.Sub(1, 4, SWedge);
     WMA.Add(1, 4, Mat3x3(Sc.Cross(W)));

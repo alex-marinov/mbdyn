@@ -98,20 +98,20 @@ KinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 W(pNode->GetWRef());
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(iCnt, 18+iCnt, -1.);
+      WM.PutCoef(iCnt, 18+iCnt, -1.);
       
-      WM.fPutCoef(6+iCnt, iCnt, 1.);
-      WM.fPutCoef(6+iCnt, 6+iCnt, -1.);
-      WM.fPutCoef(6+iCnt, 12+iCnt, 1.);      
+      WM.PutCoef(6+iCnt, iCnt, 1.);
+      WM.PutCoef(6+iCnt, 6+iCnt, -1.);
+      WM.PutCoef(6+iCnt, 12+iCnt, 1.);      
 
-      WM.fPutCoef(9+iCnt, 3+iCnt, 1.);
-      WM.fPutCoef(9+iCnt, 9+iCnt, -1.);
-      WM.fPutCoef(9+iCnt, 15+iCnt, 1.);
+      WM.PutCoef(9+iCnt, 3+iCnt, 1.);
+      WM.PutCoef(9+iCnt, 9+iCnt, -1.);
+      WM.PutCoef(9+iCnt, 15+iCnt, 1.);
       
-      WM.fPutCoef(12+iCnt, iCnt, dCoef);
+      WM.PutCoef(12+iCnt, iCnt, dCoef);
       
-      WM.fPutCoef(18+iCnt, 6+iCnt, 1.);
-      WM.fPutCoef(21+iCnt, 9+iCnt, 1.);
+      WM.PutCoef(18+iCnt, 6+iCnt, 1.);
+      WM.PutCoef(21+iCnt, 9+iCnt, 1.);
    }
    
    Mat3x3 H(R.GetVec(2).Cross(R0.GetVec(3)),

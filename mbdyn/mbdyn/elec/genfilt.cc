@@ -127,7 +127,7 @@ GenelFilter::AssJac(VariableSubMatrixHandler& WorkMat,
    unsigned int col_u = 2;
    WM.fPutRowIndex(1, iRowIndex_y);
    WM.fPutColIndex(1, iColIndex_y);
-   WM.fPutCoef(1, 1, dCoef); /* sarebbe *(pdP), ma e' == 1. per def. */
+   WM.PutCoef(1, 1, dCoef); /* sarebbe *(pdP), ma e' == 1. per def. */
    if (Na >= 1) {
       if (Na > 1) {
 	 row_u = Na;
@@ -135,28 +135,28 @@ GenelFilter::AssJac(VariableSubMatrixHandler& WorkMat,
 	 for (unsigned int iCnt = 1; iCnt <= Na-1; iCnt++) {
 	    WM.fPutRowIndex(iCnt+1, iFirstIndex+iCnt);
 	    WM.fPutColIndex(iCnt+1, iFirstIndex+iCnt);
-	    WM.fPutCoef(iCnt+1, iCnt, 1.);
-	    WM.fPutCoef(iCnt+1, iCnt+1, -dCoef);
-	    WM.fPutCoef(1, iCnt+1, pdP[iCnt]*dCoef);
+	    WM.PutCoef(iCnt+1, iCnt, 1.);
+	    WM.PutCoef(iCnt+1, iCnt+1, -dCoef);
+	    WM.PutCoef(1, iCnt+1, pdP[iCnt]*dCoef);
 	 }
 	 iFirstIndex += Na-1;
       }
-      WM.fIncCoef(1, Na, pdP[Na]);
+      WM.IncCoef(1, Na, pdP[Na]);
    }	          
    
    WM.fPutColIndex(col_u, iColIndex_u);
-   WM.fPutCoef(1, col_u, -pdTau[0]*dCoef);
+   WM.PutCoef(1, col_u, -pdTau[0]*dCoef);
    if (Nb >= 1) {
       if (Nb > 1) {
 	 for (unsigned int iCnt = 1; iCnt <= Nb-1; iCnt++) {
 	    WM.fPutRowIndex(row_u+iCnt, iFirstIndex+iCnt);
 	    WM.fPutColIndex(col_u+iCnt, iFirstIndex+iCnt);
-	    WM.fPutCoef(row_u+iCnt, col_u-1+iCnt, 1.);
-	    WM.fPutCoef(row_u+iCnt, col_u+iCnt, -dCoef);
-	    WM.fPutCoef(1, col_u+iCnt, -pdTau[iCnt]*dCoef);
+	    WM.PutCoef(row_u+iCnt, col_u-1+iCnt, 1.);
+	    WM.PutCoef(row_u+iCnt, col_u+iCnt, -dCoef);
+	    WM.PutCoef(1, col_u+iCnt, -pdTau[iCnt]*dCoef);
 	 }	      
       }
-      WM.fIncCoef(1, col_u+Nb-1, -pdTau[Nb]);
+      WM.IncCoef(1, col_u+Nb-1, -pdTau[Nb]);
    }
    
    return WorkMat;
@@ -193,7 +193,7 @@ GenelFilter::AssRes(SubVectorHandler& WorkVec,
 	    WorkVec.fPutRowIndex(iCnt+1, iFirstIndex+iCnt);
 	    y = XCurr.dGetCoef(iFirstIndex+iCnt);	       
 	    d -= pdP[iCnt]*y;
-	    WorkVec.fPutCoef(iCnt+1, y-yp);	       
+	    WorkVec.PutCoef(iCnt+1, y-yp);	       
 	    yp = XPrimeCurr.dGetCoef(iFirstIndex+iCnt);
 	 }
 	 iFirstIndex += Na-1;
@@ -210,7 +210,7 @@ GenelFilter::AssRes(SubVectorHandler& WorkVec,
 	    WorkVec.fPutRowIndex(row_u+iCnt, iFirstIndex+iCnt);
 	    u = XCurr.dGetCoef(iFirstIndex+iCnt);
 	    d += pdTau[iCnt]*u;
-	    WorkVec.fPutCoef(row_u+iCnt, u-up);	       
+	    WorkVec.PutCoef(row_u+iCnt, u-up);	       
 	    up = XPrimeCurr.dGetCoef(iFirstIndex+iCnt);
 	 }
       }
@@ -394,7 +394,7 @@ GenelFilterEq::AssRes(SubVectorHandler& WorkVec,
 	 dX = XCurr.dGetCoef(iFirstIndex+i);
       }
       for (unsigned long i = 2; i <= Nb; i++) {       
-	 WorkVec.fIncCoef(i, pdBeta[i-1]*u);
+	 WorkVec.IncCoef(i, pdBeta[i-1]*u);
       }
       WorkVec.fPutItem(Na+1, iRowIndex_y, dXn-y);
    }
@@ -415,7 +415,7 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
       if (Na == 0) {
 	 integer iRowIndex_y = SD_y.pNode->iGetFirstRowIndex()+1;
 	 doublereal u = SD_u.pNode->dGetX();
-	 X.fPutCoef(iRowIndex_y, pdBeta[Nb]*u);
+	 X.PutCoef(iRowIndex_y, pdBeta[Nb]*u);
 # ifdef DEBUG
 	    std::cout << "Y = " << pdBeta[Nb]*u << std::endl;
 # endif	 
@@ -431,12 +431,12 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
       MatrixHandler* mh = sm.pMatHdl();
       for (unsigned long i = 1; i < Na; i++) {
 	 /* Subdiagonale */
-	 mh->fPutCoef(i+1, i, -1.);
+	 mh->PutCoef(i+1, i, -1.);
 	 /* colonna con Alpha */
-	 mh->fPutCoef(i, Na, -pdAlpha[i-1]);
+	 mh->PutCoef(i, Na, -pdAlpha[i-1]);
       }
       /* Ultimo termine della diagonale + colonna */
-      mh->fPutCoef(Na, Na, -pdAlpha[Na-1]);
+      mh->PutCoef(Na, Na, -pdAlpha[Na-1]);
       
       /* preparo termine noto */
       DEBUGCOUT("Preparing rhs ..." << std::endl);
@@ -444,7 +444,7 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
       doublereal u = SD_u.pNode->dGetX();
 
       for (unsigned long i = 1; i <= Nb; i++) {
-	 rh->fPutCoef(i, pdBeta[i-1]*u);
+	 rh->PutCoef(i, pdBeta[i-1]*u);
       }
       
       /* risolvo */
@@ -469,13 +469,13 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
 # ifdef DEBUG
 	 std::cout << "X[" << i << "] = " << sh->dGetCoef(i) << std::endl;
 # endif
-	 X.fPutCoef(iFirstIndex+i, sh->dGetCoef(i));
+	 X.PutCoef(iFirstIndex+i, sh->dGetCoef(i));
       }
       
       integer iRowIndex_y = SD_y.pNode->iGetFirstRowIndex()+1;
       doublereal dXn = sh->dGetCoef(Na);
       if (Na == Nb) {
-	 X.fPutCoef(iRowIndex_y, dXn+pdBeta[Nb]*u);
+	 X.PutCoef(iRowIndex_y, dXn+pdBeta[Nb]*u);
 # ifdef DEBUG
 	 std::cout << "Y = " << dXn+pdBeta[Nb]*u << std::endl;
 # endif
@@ -483,7 +483,7 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
 # ifdef DEBUG
 	 std::cout << "Y = " << dXn << std::endl;
 # endif	 
-	 X.fPutCoef(iRowIndex_y, dXn);
+	 X.PutCoef(iRowIndex_y, dXn);
       }
    }
 
@@ -595,21 +595,21 @@ GenelStateSpaceSISO::AssJac(VariableSubMatrixHandler& WorkMat,
    WM.fPutRowIndex(iNumRows, iRowIndex_y);
    WM.fPutColIndex(iNumCols, iColIndex_y);
    
-   WM.fPutCoef(iNumRows, iNumCols, dCoef);
+   WM.PutCoef(iNumRows, iNumCols, dCoef);
    
    doublereal* pda = pdA+iNumDofs*iNumDofs-1;
    doublereal* pdc = pdC-1;
    for (unsigned int i = iNumDofs; i > 0; i--) {
       WM.fPutRowIndex(i, iFirstIndex+i);
       WM.fPutColIndex(i, iFirstIndex+i);
-      WM.fPutCoef(iNumRows, i, -pdc[i]*dCoef);
+      WM.PutCoef(iNumRows, i, -pdc[i]*dCoef);
       pda -= iNumDofs;
       for (unsigned int j = iNumDofs; j > 0; j--) {
 	 /* Attenzione: si assume A orientata per righe:
 	  * a_11, a_12, ..., a_1n, a_21, ..., a_2n, ..., a_nn */
-	 WM.fPutCoef(i, j, -pda[j]*dCoef);
+	 WM.PutCoef(i, j, -pda[j]*dCoef);
       }
-      WM.fIncCoef(i, i, 1.);
+      WM.IncCoef(i, i, 1.);
    }
    
    return WorkMat;
@@ -649,7 +649,7 @@ GenelStateSpaceSISO::AssRes(SubVectorHandler& WorkVec,
       pdxp[i] = XPrimeCurr.dGetCoef(iFirstIndex+i);
       d += pdc[i]*pdx[i];
    }
-   WorkVec.fPutCoef(iNumRows, d);
+   WorkVec.PutCoef(iNumRows, d);
    
    doublereal* pda = pdA+iNumDofs*iNumDofs;
    doublereal* pdb = pdB;
@@ -661,7 +661,7 @@ GenelStateSpaceSISO::AssRes(SubVectorHandler& WorkVec,
       for (unsigned int j = iNumDofs; j-- > 0; ) {
 	 d += pda[j]*pdx[j];
       }
-      WorkVec.fPutCoef(i+1, d);
+      WorkVec.PutCoef(i+1, d);
    }
    
    return WorkVec;
@@ -798,13 +798,13 @@ GenelStateSpaceMIMO::AssJac(VariableSubMatrixHandler& WorkMat,
 
       WM.fPutRowIndex(iNumDofs+i, iRowIndex_y);
       WM.fPutColIndex(iNumDofs+i, iColIndex_y);
-      WM.fPutCoef(iNumDofs+i, iNumDofs+i, dCoef); // 1 sulla diagonale
+      WM.PutCoef(iNumDofs+i, iNumDofs+i, dCoef); // 1 sulla diagonale
 
       pdc -= iNumDofs;
       for (unsigned int j = iNumDofs; j > 0; j--) {
 	 /* Attenzione: si assume C orientata per righe:
 	  * c_11, c_12, ..., c_1n, c_21, ..., c_2n, ..., c_nn */
-	 WM.fPutCoef(iNumDofs+i, j, -pdc[j]*dCoef);
+	 WM.PutCoef(iNumDofs+i, j, -pdc[j]*dCoef);
       }
    }
 
@@ -816,9 +816,9 @@ GenelStateSpaceMIMO::AssJac(VariableSubMatrixHandler& WorkMat,
       for (unsigned int j = iNumDofs; j > 0; j--) {
 	 /* Attenzione: si assume A orientata per righe:
 	  * a_11, a_12, ..., a_1n, a_21, ..., a_2n, ..., a_nn */
-	 WM.fPutCoef(i, j, -pda[j]*dCoef);
+	 WM.PutCoef(i, j, -pda[j]*dCoef);
       }
-      WM.fIncCoef(i, i, 1.);
+      WM.IncCoef(i, i, 1.);
    }
    
    return WorkMat;
@@ -866,7 +866,7 @@ GenelStateSpaceMIMO::AssRes(SubVectorHandler& WorkVec,
 	 for (unsigned int j = iNumInputs; j > 0; j--) {
 	    d += pdd[j]*pvSD_u[j-1].pNode->dGetX();
 	 }      
-	 WorkVec.fPutCoef(iNumDofs+i, d);
+	 WorkVec.PutCoef(iNumDofs+i, d);
       }
    } else {
       for (int i = iNumOutputs; i > 0; i--) {      
@@ -878,7 +878,7 @@ GenelStateSpaceMIMO::AssRes(SubVectorHandler& WorkVec,
 	 for (unsigned int j = iNumDofs; j > 0; j--) {
 	    d += pdc[j]*pdx[j];
 	 }
-	 WorkVec.fPutCoef(iNumDofs+i, d);
+	 WorkVec.PutCoef(iNumDofs+i, d);
       }
    }   
       
@@ -896,7 +896,7 @@ GenelStateSpaceMIMO::AssRes(SubVectorHandler& WorkVec,
       for (unsigned int j = iNumDofs; j-- > 0; ) {
 	 d += pda[j]*pdx[j];
       }
-      WorkVec.fPutCoef(i+1, d);
+      WorkVec.PutCoef(i+1, d);
    }
 
    return WorkVec;

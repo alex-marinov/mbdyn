@@ -107,17 +107,17 @@ main(int argc, char *argv[])
 	VectorHandler *pV = pSM->pResHdl();
 	VectorHandler *px = pSM->pSolHdl();
 
-	pM->fPutCoef(1, 1, 1.);
-	pM->fPutCoef(2, 2, 2.);
+	pM->PutCoef(1, 1, 1.);
+	pM->PutCoef(2, 2, 2.);
 	if (argc > 2 && strcasecmp(argv[2], "singular") == 0) {
-		pM->fPutCoef(3, 3, 0.);
+		pM->PutCoef(3, 3, 0.);
 	} else {
-		pM->fPutCoef(3, 3, 3.);
+		pM->PutCoef(3, 3, 3.);
 	}
 	
-	pV->fPutCoef(1, 1.);
-	pV->fPutCoef(2, 1.);
-	pV->fPutCoef(3, 1.);
+	pV->PutCoef(1, 1.);
+	pV->PutCoef(2, 1.);
+	pV->PutCoef(3, 1.);
 	
 #ifdef USE_EXCEPTIONS
 	try {

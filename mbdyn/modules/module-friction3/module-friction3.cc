@@ -216,10 +216,10 @@ ass_jac(LoadableElem* pEl,
  * 	dynamic system
  */
 	// dot x matrix
-	WM.fPutCoef(1, 1, 1);
-	WM.fPutCoef(2, 2, -1);
+	WM.PutCoef(1, 1, 1);
+	WM.PutCoef(2, 2, -1);
 	// x matrix
-	WM.fPutCoef(2, 1, dCoef/p->mass);
+	WM.PutCoef(2, 1, dCoef/p->mass);
 	
 	if (p->fc) {
 		doublereal f = p->fc->fc();
@@ -282,10 +282,10 @@ ass_res(LoadableElem* pEl,
 	}
 	}
 	
-	WorkVec.fPutCoef(1,-XPrimeCurr.dGetCoef(iFirstMomentumIndex+1));
-	WorkVec.fPutCoef(2,
+	WorkVec.PutCoef(1,-XPrimeCurr.dGetCoef(iFirstMomentumIndex+1));
+	WorkVec.PutCoef(2,
 		XPrimeCurr.dGetCoef(iFirstPositionIndex+1));
-	WorkVec.fIncCoef(2,
+	WorkVec.IncCoef(2,
 		-XCurr.dGetCoef(iFirstMomentumIndex+1)/p->mass);
 	if (p->fc) {
 		doublereal v = XPrimeCurr.dGetCoef(iFirstPositionIndex+1);

@@ -218,16 +218,16 @@ ass_jac(LoadableElem* pEl,
    Vec3 Tmp3(ET*rho);
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutCoef(6+iCnt, iCnt, -dCoef);
-      WM.fPutCoef(6+iCnt, 9, XP.dGet(iCnt));
+      WM.PutCoef(6+iCnt, iCnt, -dCoef);
+      WM.PutCoef(6+iCnt, 9, XP.dGet(iCnt));
       
-      WM.fPutCoef(iCnt, 7, -e1.dGet(iCnt));
-      WM.fPutCoef(iCnt, 8, -e2.dGet(iCnt));
+      WM.PutCoef(iCnt, 7, -e1.dGet(iCnt));
+      WM.PutCoef(iCnt, 8, -e2.dGet(iCnt));
       
-      WM.fPutCoef(iCnt, 9, -Tmp1.dGet(iCnt));
-      WM.fPutCoef(3+iCnt, 9, -Tmp2.dGet(iCnt));
+      WM.PutCoef(iCnt, 9, -Tmp1.dGet(iCnt));
+      WM.PutCoef(3+iCnt, 9, -Tmp2.dGet(iCnt));
             
-      WM.fPutCoef(9+iCnt, 9, Tmp3.dGet(iCnt));
+      WM.PutCoef(9+iCnt, 9, Tmp3.dGet(iCnt));
    }
    
    WM.Sub(4, 4, 
@@ -406,7 +406,7 @@ set_value(const LoadableElem* pEl, VectorHandler& X, VectorHandler& XP)
    DEBUGCOUTFNAME("set_value");
    
    integer iIndex = pEl->iGetFirstIndex();
-   X.fPutCoef(iIndex+3, -M_PI/2.);
+   X.PutCoef(iIndex+3, -M_PI/2.);
 }
    
 static void

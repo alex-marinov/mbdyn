@@ -109,9 +109,9 @@ Gmres::Backsolve(VectorHandler& x, integer sz,
 		VectorHandler& s, MyVectorHandler* v) 
 { 
 	for (int i = sz+1; i > 0; i--) {
-    		s.fPutCoef(i, s.dGetCoef(i) / H(i, i));
+    		s.PutCoef(i, s.dGetCoef(i) / H(i, i));
     		for (int j = i - 1; j > 0; j--) {
-      			s.fDecCoef(j, H(j, i) * s.dGetCoef(i));
+      			s.DecCoef(j, H(j, i) * s.dGetCoef(i));
 		}
   	}
 
@@ -256,7 +256,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 		s.Reset(0.);
 		cs.Reset(0.);
 		sn.Reset(0.);
-		s.fPutCoef(1, resid);
+		s.PutCoef(1, resid);
 		while ((i < MaxLinIt)) {
 
 #ifdef DEBUG_ITERATIVE

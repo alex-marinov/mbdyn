@@ -305,7 +305,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    /* 
     Scrive un coefficiente in base ai sottoindici.
     */
-   inline flag fPutCoef(integer iSubRow, integer iSubCol, const doublereal& dCoef) {
+   inline void PutCoef(integer iSubRow, integer iSubCol, const doublereal& dCoef) {
 #ifdef DEBUG	
       IsValid();
 #endif	
@@ -315,13 +315,13 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       
       pdMat[(--iSubCol)*iNumRows+(--iSubRow)] = dCoef;
       
-      return flag(0);
+      return;
    };
    
    /* 
     Incrementa un coefficiente in base ai sottoindici.
     */
-   inline flag fIncCoef(integer iSubRow, integer iSubCol, const doublereal& dCoef) {
+   inline void IncCoef(integer iSubRow, integer iSubCol, const doublereal& dCoef) {
 #ifdef DEBUG	
       IsValid();
 #endif	
@@ -331,13 +331,13 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       
       pdMat[(--iSubCol)*iNumRows+(--iSubRow)] += dCoef;
       
-      return flag(0);
+      return;
    };
    
    /* 
     Decrementa un coefficiente in base ai sottoindici.
     */
-   inline flag fDecCoef(integer iSubRow, integer iSubCol, const doublereal& dCoef) {
+   inline void DecCoef(integer iSubRow, integer iSubCol, const doublereal& dCoef) {
 #ifdef DEBUG	
       IsValid();
 #endif	
@@ -347,7 +347,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       
       pdMat[(--iSubCol)*iNumRows+(--iSubRow)] -= dCoef;
       
-      return flag(0);
+      return;
    };
    
    /* 
@@ -711,7 +711,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    /* 
     Scrive un coefficiente in base ai sottoindici.
     */
-   inline flag fPutCoef(integer iSubIt, integer /* iDmy */ , const doublereal& dCoef) {
+   inline void PutCoef(integer iSubIt, integer /* iDmy */ , const doublereal& dCoef) {
 #ifdef DEBUG
       IsValid();
 #endif	
@@ -720,13 +720,13 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       
       pdMat[--iSubIt] = dCoef;
       
-      return flag(0);
+      return;
    };
    
    /* 
     Incrementa un coefficiente in base ai sottoindici.
     */
-   inline flag fIncCoef(integer iSubIt, integer /* iDmy */ , const doublereal& dCoef) {
+   inline void IncCoef(integer iSubIt, integer /* iDmy */ , const doublereal& dCoef) {
 #ifdef DEBUG
       IsValid();
 #endif	
@@ -734,13 +734,13 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));   
       pdMat[--iSubIt] += dCoef;
       
-      return flag(0);
+      return;
    };
    
    /* 
     Decrementa un coefficiente in base ai sottoindici.
     */
-   inline flag fDecCoef(integer iSubIt, integer /* iDmy */ , const doublereal& dCoef) {
+   inline void DecCoef(integer iSubIt, integer /* iDmy */ , const doublereal& dCoef) {
 #ifdef DEBUG
       IsValid();
 #endif	
@@ -748,7 +748,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));   
       pdMat[--iSubIt] -= dCoef;
       
-      return flag(0);
+      return;
    };
    
    /* 
@@ -1178,10 +1178,11 @@ class SubVectorHandler : public VectorHandler {
     @param iRow    indice della entry
     @param dCoef   coefficiente della entry
     */
-   virtual inline flag fPutItem(integer iSubRow, integer iRow,
+   virtual inline void fPutItem(integer iSubRow, integer iRow,
 				const doublereal& dCoef) {
       fPutRowIndex(iSubRow, iRow);
-      return fPutCoef(iSubRow, dCoef);
+      PutCoef(iSubRow, dCoef);
+      return;
    };
    
    
@@ -1306,22 +1307,25 @@ class MySubVectorHandler : public SubVectorHandler, public MyVectorHandler {
    /* 
     Scrive un coefficiente in base al sottoindice.
     */
-   virtual flag fPutCoef(integer i, const doublereal& d) {
-      return MyVectorHandler::fPutCoef(i, d);
+   virtual void PutCoef(integer i, const doublereal& d) {
+      MyVectorHandler::PutCoef(i, d);
+      return;
    };
 
    /* 
     Incrementa un coefficiente in base al sottoindice.
     */
-   virtual flag fIncCoef(integer i, const doublereal& d) {
-      return MyVectorHandler::fIncCoef(i, d);
+   virtual void IncCoef(integer i, const doublereal& d) {
+      MyVectorHandler::IncCoef(i, d);
+      return;
    };
 
    /* 
     Decrementa un coefficiente in base al sottoindice.
     */
-   virtual flag fDecCoef(integer i, const doublereal& d) {
-      return MyVectorHandler::fDecCoef(i, d);
+   virtual void DecCoef(integer i, const doublereal& d) {
+      MyVectorHandler::DecCoef(i, d);
+      return;
    };
 
    /* 
@@ -1347,7 +1351,7 @@ class MySubVectorHandler : public SubVectorHandler, public MyVectorHandler {
     @param iRow    indice della entry
     @param dCoef   coefficiente della entry    
     */
-   virtual inline flag fPutItem(integer iSubRow, integer iRow, const doublereal& dCoef);
+   virtual inline void fPutItem(integer iSubRow, integer iRow, const doublereal& dCoef);
    
    
    /*Interazione con i vettori */
@@ -1386,7 +1390,7 @@ inline integer MySubVectorHandler::iGetRowIndex(integer iSubRow) const {
    return piRowm1[iSubRow];
 }
 
-inline flag MySubVectorHandler::fPutItem(integer iSubRow, integer iRow, 
+inline void MySubVectorHandler::fPutItem(integer iSubRow, integer iRow, 
 					 const doublereal& dCoef) {	
 #ifdef DEBUG
    IsValid();
@@ -1397,7 +1401,7 @@ inline flag MySubVectorHandler::fPutItem(integer iSubRow, integer iRow,
    piRowm1[iSubRow] = iRow;
    pdVecm1[iSubRow] = dCoef;
    
-   return flag(0);
+   return;
 }
 
 

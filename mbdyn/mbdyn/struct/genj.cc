@@ -304,7 +304,7 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 	 WorkVec.Add(7, (x1-x2)/dCoef);
       }
       
-      WorkVec.fPutCoef(10, 1.-dAlpha);
+      WorkVec.PutCoef(10, 1.-dAlpha);
       
    } else {	
       Vec3 TmpVec(v*dAlpha);
@@ -321,7 +321,7 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 	 d = 0.;
       }
       
-      WorkVec.fPutCoef(10, 1.-d);	  
+      WorkVec.PutCoef(10, 1.-d);	  
    }
    
    return WorkVec;
@@ -616,9 +616,9 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
       WorkVec.Add(7, -v);
       WorkVec.Add(10, -w);
       WorkVec.Add(13, x1-x2);
-      WorkVec.fPutCoef(16, 1.-dAlpha);
+      WorkVec.PutCoef(16, 1.-dAlpha);
       WorkVec.Add(17, x1P-x2P);
-      WorkVec.fPutCoef(20, -dBeta);
+      WorkVec.PutCoef(20, -dBeta);
    } else {			
       WorkVec.Add(1, v*dAlpha);
       WorkVec.Add(4, w*dBeta);
@@ -634,10 +634,10 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	d = 0.;
       }
       
-      WorkVec.fPutCoef(16, 1.-d);
+      WorkVec.PutCoef(16, 1.-d);
       
       WorkVec.Add(17, v-w);
-      WorkVec.fPutCoef(20, (x1P-x2P).Dot(w));
+      WorkVec.PutCoef(20, (x1P-x2P).Dot(w));
    }
 
    return WorkVec;
@@ -1054,7 +1054,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 	 WorkVec.Add(13, (x1+f1Tmp-x2-f2Tmp)/dCoef);
       }
 	
-      WorkVec.fPutCoef(16, 1.-dAlpha);
+      WorkVec.PutCoef(16, 1.-dAlpha);
       
    } else {	
       Vec3 TmpVec(v*dAlpha);
@@ -1072,7 +1072,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
       } else {	   
 	 dTmp = 0.;
       }	
-      WorkVec.fPutCoef(16, 1.-dTmp);
+      WorkVec.PutCoef(16, 1.-dTmp);
       
    }
    
@@ -1137,17 +1137,17 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    if (fabs(dDistance) <= DBL_EPSILON) {
       for (int iCnt = 1; iCnt <= 3; iCnt++) {	 
-	 WM.fPutCoef(iCnt, 24+iCnt, -1.);
-	 WM.fPutCoef(12+iCnt, 24+iCnt, 1.);
+	 WM.PutCoef(iCnt, 24+iCnt, -1.);
+	 WM.PutCoef(12+iCnt, 24+iCnt, 1.);
 	 
-	 WM.fPutCoef(6+iCnt, 28+iCnt, -1.);
-	 WM.fPutCoef(18+iCnt, 28+iCnt, 1.);
+	 WM.PutCoef(6+iCnt, 28+iCnt, -1.);
+	 WM.PutCoef(18+iCnt, 28+iCnt, 1.);
 	 
-	 WM.fPutCoef(24+iCnt, iCnt, -1.);
-	 WM.fPutCoef(24+iCnt, 12+iCnt, 1.);
+	 WM.PutCoef(24+iCnt, iCnt, -1.);
+	 WM.PutCoef(24+iCnt, 12+iCnt, 1.);
 
-	 WM.fPutCoef(28+iCnt, 6+iCnt, -1.);
-	 WM.fPutCoef(28+iCnt, 18+iCnt, 1.);
+	 WM.PutCoef(28+iCnt, 6+iCnt, -1.);
+	 WM.PutCoef(28+iCnt, 18+iCnt, 1.);
       }
       
       Mat3x3 MTmp(-f1Tmp);
@@ -1192,59 +1192,59 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       MTmp = (Mat3x3(v, Omega2)+Mat3x3(vP))*Mat3x3(f2Tmp);
       WM.Add(22, 16, MTmp);
       
-      WM.fPutCoef(28, 28, 1.);
-      WM.fPutCoef(32, 32, 1.);      
+      WM.PutCoef(28, 28, 1.);
+      WM.PutCoef(32, 32, 1.);      
       
    } else {
       
       /* Equazioni di equilibrio */
       for (int iCnt = 1; iCnt <= 3; iCnt++) {
-	 WM.fPutCoef(iCnt, 24+iCnt, -dAlpha);
-	 WM.fPutCoef(12+iCnt, 24+iCnt, dAlpha);
+	 WM.PutCoef(iCnt, 24+iCnt, -dAlpha);
+	 WM.PutCoef(12+iCnt, 24+iCnt, dAlpha);
 
-	 WM.fPutCoef(6+iCnt, 28+iCnt, -dAlpha);
-	 WM.fPutCoef(18+iCnt, 28+iCnt, dAlpha);
+	 WM.PutCoef(6+iCnt, 28+iCnt, -dAlpha);
+	 WM.PutCoef(18+iCnt, 28+iCnt, dAlpha);
 	 
-	 WM.fPutCoef(6+iCnt, 24+iCnt, -dAlphaP);
-	 WM.fPutCoef(18+iCnt, 24+iCnt, dAlphaP);
+	 WM.PutCoef(6+iCnt, 24+iCnt, -dAlphaP);
+	 WM.PutCoef(18+iCnt, 24+iCnt, dAlphaP);
 	 
 	 doublereal d = v.dGet(iCnt);
-	 WM.fPutCoef(iCnt, 28, -d);
-	 WM.fPutCoef(12+iCnt, 28, d);
+	 WM.PutCoef(iCnt, 28, -d);
+	 WM.PutCoef(12+iCnt, 28, d);
 
-	 WM.fPutCoef(6+iCnt, 32, -d);
-	 WM.fPutCoef(18+iCnt, 32, d);
+	 WM.PutCoef(6+iCnt, 32, -d);
+	 WM.PutCoef(18+iCnt, 32, d);
 	 
 	 d = vP.dGet(iCnt);
-	 WM.fPutCoef(6+iCnt, 28, -d);
-	 WM.fPutCoef(18+iCnt, 28, d);
+	 WM.PutCoef(6+iCnt, 28, -d);
+	 WM.PutCoef(18+iCnt, 28, d);
 	 
       }
       
       Vec3 Tmp(v.Cross(f1Tmp));
       for (int iCnt = 1; iCnt <= 3; iCnt++) {
 	 doublereal d = Tmp.dGet(iCnt);
-	 WM.fPutCoef(3+iCnt, 28, d);
-	 WM.fPutCoef(9+iCnt, 32, d);
+	 WM.PutCoef(3+iCnt, 28, d);
+	 WM.PutCoef(9+iCnt, 32, d);
       }
       
       Tmp = f2Tmp.Cross(v);
       for (int iCnt = 1; iCnt <= 3; iCnt++) {
 	 doublereal d = Tmp.dGet(iCnt);
-	 WM.fPutCoef(15+iCnt, 28, d);
-	 WM.fPutCoef(21+iCnt, 32, d);
+	 WM.PutCoef(15+iCnt, 28, d);
+	 WM.PutCoef(21+iCnt, 32, d);
       }
       
       Tmp = v.Cross(Omega1.Cross(f1Tmp))+vP.Cross(f1Tmp);
       for (int iCnt = 1; iCnt <= 3; iCnt++) {
 	 doublereal d = Tmp.dGet(iCnt);
-	 WM.fPutCoef(9+iCnt, 28, d);
+	 WM.PutCoef(9+iCnt, 28, d);
       }
       
       Tmp = v.Cross(f2Tmp.Cross(Omega2))-vP.Cross(f2Tmp);
       for (int iCnt = 1; iCnt <= 3; iCnt++) {
 	 doublereal d = Tmp.dGet(iCnt);
-	 WM.fPutCoef(21+iCnt, 28, d);
+	 WM.PutCoef(21+iCnt, 28, d);
       }
       
       
@@ -1281,15 +1281,15 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
       /* Equazioni di vincolo */
       for (int iCnt = 1; iCnt <= 3; iCnt++) {
-	 WM.fPutCoef(24+iCnt, iCnt, -1.);
-	 WM.fPutCoef(24+iCnt, 12+iCnt, 1.);
+	 WM.PutCoef(24+iCnt, iCnt, -1.);
+	 WM.PutCoef(24+iCnt, 12+iCnt, 1.);
 	 
-	 WM.fPutCoef(24+iCnt, 24+iCnt, -dDistance);
+	 WM.PutCoef(24+iCnt, 24+iCnt, -dDistance);
 
-	 WM.fPutCoef(28+iCnt, 6+iCnt, -1.);
-	 WM.fPutCoef(28+iCnt, 18+iCnt, 1.);
+	 WM.PutCoef(28+iCnt, 6+iCnt, -1.);
+	 WM.PutCoef(28+iCnt, 18+iCnt, 1.);
       
-	 WM.fPutCoef(28+iCnt, 28+iCnt, -dDistance);
+	 WM.PutCoef(28+iCnt, 28+iCnt, -dDistance);
       }
       
       MTmp = Mat3x3(f1Tmp);
@@ -1314,14 +1314,14 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	 Tmp = v/d;
 	 for (int iCnt = 1; iCnt <= 3; iCnt++) {
 	    doublereal d = Tmp.dGet(iCnt);
-	    WM.fPutCoef(28, 24+iCnt, d);
-	    WM.fPutCoef(32, 28+iCnt, d);
+	    WM.PutCoef(28, 24+iCnt, d);
+	    WM.PutCoef(32, 28+iCnt, d);
 	 }
 	 
 	 Tmp = vP/d-v*((vP.Dot(v))/pow(d, 3));
 	 for (int iCnt = 1; iCnt <= 3; iCnt++) {
 	    doublereal d = Tmp.dGet(iCnt);
-	    WM.fPutCoef(32, 24+iCnt, d);
+	    WM.PutCoef(32, 24+iCnt, d);
 	 }	 
       }                        
    }
@@ -1383,10 +1383,10 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
       WorkVec.Put(22, v.Cross(Omega2.Cross(f2Tmp))-f2Tmp.Cross(vP));
       
       WorkVec.Put(25, x1+f1Tmp-x2-f2Tmp);
-      WorkVec.fPutCoef(28, 1.-dAlpha);
+      WorkVec.PutCoef(28, 1.-dAlpha);
       
       WorkVec.Put(29, v1+Omega1.Cross(f1Tmp)-v2-Omega2.Cross(f2Tmp));
-      WorkVec.fPutCoef(32, -dAlphaP);
+      WorkVec.PutCoef(32, -dAlphaP);
       
    } else {
       Vec3 Tmp(v*dAlpha);
@@ -1409,8 +1409,8 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
       ASSERT(d > DBL_EPSILON);
       if (d > DBL_EPSILON) {
 	 d = sqrt(d);
-	 WorkVec.fPutCoef(28, 1.-d);
-	 WorkVec.fPutCoef(32, -v.Dot(vP)/d);
+	 WorkVec.PutCoef(28, 1.-d);
+	 WorkVec.PutCoef(32, -v.Dot(vP)/d);
       }                  
    }
    

@@ -196,12 +196,12 @@ void AerodynamicExternal::Send(const VectorHandler& X  ,
 		GetAirProps(Xc, rho, c, p, T); 
 		fGetAirVelocity(Vinf,Xc); 
 		/* current time */
-		pdBuffer->fPutCoef(1, DriveOwner::dGet());
+		pdBuffer->PutCoef(1, DriveOwner::dGet());
 		pdBuffer->Put(2, Vinf);
-		pdBuffer->fPutCoef(5, rho);
-		pdBuffer->fPutCoef(6,c);
-		pdBuffer->fPutCoef(7,p);
-		pdBuffer->fPutCoef(8,T);
+		pdBuffer->PutCoef(5, rho);
+		pdBuffer->PutCoef(6,c);
+		pdBuffer->PutCoef(7,p);
+		pdBuffer->PutCoef(8,T);
  		
 		Mat3xN MatTmp(OffN,0.);
 		for (int i=0; i < NodeN; i++) {
@@ -523,12 +523,12 @@ void AerodynamicExternalModal::Send(const VectorHandler& X  ,
 	doublereal rho, c, p, T;
 	GetAirProps(Vinf, rho, c, p, T); 
 	/* current time */
-	pdBuffer->fPutCoef(1, DriveOwner::dGet());
+	pdBuffer->PutCoef(1, DriveOwner::dGet());
 	pdBuffer->Put(2, Vinf);
-	pdBuffer->fPutCoef(5, rho);
-	pdBuffer->fPutCoef(6,c);
-	pdBuffer->fPutCoef(7,p);
-	pdBuffer->fPutCoef(8,T);
+	pdBuffer->PutCoef(5, rho);
+	pdBuffer->PutCoef(6,c);
+	pdBuffer->PutCoef(7,p);
+	pdBuffer->PutCoef(8,T);
 
 	Mat3xN* pNodePos = pModal->GetCurrFemNodesPosition();
 	Mat3xN* pNodeVel = NULL;

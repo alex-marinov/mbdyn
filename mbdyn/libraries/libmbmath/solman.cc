@@ -60,9 +60,9 @@ void VectorHandler::Add(integer iRow, const Vec3& v) {
    ASSERT(iGetSize() >= iRow+2);
 #endif
 
-   fIncCoef(iRow, v.dGet(1));
-   fIncCoef(++iRow, v.dGet(2));
-   fIncCoef(++iRow, v.dGet(3));
+   IncCoef(iRow, v.dGet(1));
+   IncCoef(++iRow, v.dGet(2));
+   IncCoef(++iRow, v.dGet(3));
 }
 
 /* Sottrae un Vec3 nella posizione desiderata */
@@ -73,9 +73,9 @@ void VectorHandler::Sub(integer iRow, const Vec3& v) {
    ASSERT(iGetSize() >= iRow+2);
 #endif
 
-   fDecCoef(iRow, v.dGet(1));
-   fDecCoef(++iRow, v.dGet(2));
-   fDecCoef(++iRow, v.dGet(3));
+   DecCoef(iRow, v.dGet(1));
+   DecCoef(++iRow, v.dGet(2));
+   DecCoef(++iRow, v.dGet(3));
 }
 
 /* Scrive un Vec3 nella posizione desiderata */
@@ -86,9 +86,9 @@ void VectorHandler::Put(integer iRow, const Vec3& v) {
    ASSERT(iGetSize() >= iRow+2);
 #endif
 
-   fPutCoef(iRow, v.dGet(1));
-   fPutCoef(++iRow, v.dGet(2));
-   fPutCoef(++iRow, v.dGet(3));
+   PutCoef(iRow, v.dGet(1));
+   PutCoef(++iRow, v.dGet(2));
+   PutCoef(++iRow, v.dGet(3));
 }
 
 /* Somma e moltiplica per uno scalare */
@@ -100,7 +100,7 @@ VectorHandler& VectorHandler::ScalarAddMul(const VectorHandler& VH, const double
 #endif
 
    for (integer i = iGetSize(); i > 0; i--) {
-      fIncCoef(i, d*VH.dGetCoef(i));
+      IncCoef(i, d*VH.dGetCoef(i));
    }
 
    return *this;
@@ -118,7 +118,7 @@ VectorHandler& VectorHandler::ScalarAddMul(const VectorHandler& VH, const Vector
 #endif
 
    for (integer i = iGetSize(); i > 0; i--) {
-      fPutCoef(i, VH.dGetCoef(i) + d*VH1.dGetCoef(i));
+      PutCoef(i, VH.dGetCoef(i) + d*VH1.dGetCoef(i));
    }
 
    return *this;
@@ -133,7 +133,7 @@ VectorHandler& VectorHandler::ScalarMul(const VectorHandler& VH, const doublerea
 #endif
 
    for (integer i = iGetSize(); i > 0; i--) {
-      fPutCoef(i, d*VH.dGetCoef(i));
+      PutCoef(i, d*VH.dGetCoef(i));
    }
 
    return *this;
@@ -148,7 +148,7 @@ VectorHandler& VectorHandler::operator += (const VectorHandler& VH) {
 #endif
 
    for (integer i = iGetSize(); i > 0; i--) {
-      fIncCoef(i, VH.dGetCoef(i));
+      IncCoef(i, VH.dGetCoef(i));
    }
 
    return *this;
@@ -177,7 +177,7 @@ VectorHandler& VectorHandler::operator -= (const VectorHandler& VH) {
 #endif
 
    for (integer i = iGetSize(); i > 0; i--) {
-      fDecCoef(i, VH.dGetCoef(i));
+      DecCoef(i, VH.dGetCoef(i));
    }
 
    return *this;
@@ -192,7 +192,7 @@ VectorHandler& VectorHandler::operator = (const VectorHandler& VH) {
 #endif
 
    for (integer i = iGetSize(); i > 0; i--) {
-      fPutCoef(i, VH.dGetCoef(i));
+      PutCoef(i, VH.dGetCoef(i));
    }
 
    return *this;
@@ -660,7 +660,7 @@ MatrixHandler& MatrixHandler::ScalarMul(const doublereal& d)
 {
    for (integer i = 1; i <= iGetNumRows(); i++) {
       for (integer j = 0; j <= iGetNumCols(); j++) {
-	 fPutCoef(i, j, dGetCoef(i, j)*d);
+	 PutCoef(i, j, dGetCoef(i, j)*d);
       }
    }
    return *this;
@@ -681,7 +681,7 @@ VectorHandler& MatrixHandler::MatVecMul(
 		for (integer c = 1; c <= in.iGetSize(); c++) {
 			d += dGetCoef(r, c)*in.dGetCoef(c);
 		}
-		out.fPutCoef(r, d);
+		out.PutCoef(r, d);
 	}
 	return out;
 }
@@ -701,7 +701,7 @@ VectorHandler& MatrixHandler::MatTVecMul(
 		for (integer c = 1; c <= in.iGetSize(); c++) {
 			d += dGetCoef(c, r)*in.dGetCoef(c);
 		}
-		out.fPutCoef(r, d);
+		out.PutCoef(r, d);
 	}
 	return out;
 }
@@ -721,7 +721,7 @@ VectorHandler& MatrixHandler::MatVecIncMul(
 		for (integer c = 1; c <= in.iGetSize(); c++) {
 			d += dGetCoef(r, c)*in.dGetCoef(c);
 		}
-		out.fIncCoef(r, d);
+		out.IncCoef(r, d);
 	}
 	return out;
 }
@@ -741,7 +741,7 @@ VectorHandler& MatrixHandler::MatTVecIncMul(
 		for (integer c = 1; c <= in.iGetSize(); c++) {
 			d += dGetCoef(c, r)*in.dGetCoef(c);
 		}
-		out.fIncCoef(r, d);
+		out.IncCoef(r, d);
 	}
 	return out;
 }

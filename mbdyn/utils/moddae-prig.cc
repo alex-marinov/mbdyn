@@ -89,8 +89,8 @@ static int init(void* p, VectorHandler& X, VectorHandler& XP)
    X.Reset(0.);
    XP.Reset(0.);
    for (int i = 1; i <= size(p); i++) {
-      XP.fPutCoef(i, pd->xP[i-1]); /* posiz. iniziale */
-      X.fPutCoef(i, pd->x[i-1]); /* posiz. iniziale */
+      XP.PutCoef(i, pd->xP[i-1]); /* posiz. iniziale */
+      X.PutCoef(i, pd->x[i-1]); /* posiz. iniziale */
    }
    return 0;
 }
@@ -106,11 +106,11 @@ static int grad(void* p, MatrixHandler& J, MatrixHandler& JP,
    doublereal l = pd->l;
    doublereal g = pd->g;
    
-   J.fPutCoef(1, 2, -1.);
-   J.fPutCoef(2, 1, g*cos(theta)/l);
+   J.PutCoef(1, 2, -1.);
+   J.PutCoef(2, 1, g*cos(theta)/l);
 
    for (int i = 1; i <= 2; i++) {
-	   JP.fPutCoef(i, i, 1.);
+	   JP.PutCoef(i, i, 1.);
    }
 
    return 0;
@@ -126,8 +126,8 @@ static int func(void* p, VectorHandler& R, const VectorHandler& X, const VectorH
    doublereal l = pd->l;
    doublereal g = pd->g;
 
-   R.fPutCoef(1, phi - XP.dGetCoef(1));
-   R.fPutCoef(2, - g*sin(theta)/l - XP.dGetCoef(2));
+   R.PutCoef(1, phi - XP.dGetCoef(1));
+   R.PutCoef(2, - g*sin(theta)/l - XP.dGetCoef(2));
 
    return 0;
 }

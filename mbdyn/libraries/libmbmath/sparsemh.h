@@ -252,15 +252,15 @@ public:
    	integer PacMat(void);
 
    	/* Inserisce un coefficiente */
-   	inline flag fPutCoef(integer iRow, integer iCol,
+   	inline void PutCoef(integer iRow, integer iCol,
 			     const doublereal& dCoef);
 
    	/* Incrementa un coefficiente - se non esiste lo crea */
-   	inline flag fIncCoef(integer iRow, integer iCol,
+   	inline void IncCoef(integer iRow, integer iCol,
 			     const doublereal& dCoef);
 
    	/* Incrementa un coefficiente - se non esiste lo crea */
-   	inline flag fDecCoef(integer iRow, integer iCol,
+   	inline void DecCoef(integer iRow, integer iCol,
 			     const doublereal& dCoef);
 
    	/* Restituisce un coefficiente - zero se non e' definito */
@@ -287,8 +287,8 @@ public:
 
 
 
-inline flag
-SparseMatrixHandler::fPutCoef(integer iRow,
+inline void
+SparseMatrixHandler::PutCoef(integer iRow,
 		      	      integer iCol,
 			      const doublereal& dCoef)
 {
@@ -308,14 +308,14 @@ SparseMatrixHandler::fPutCoef(integer iRow,
       		integer iReturnFlag = abs(pSD->iGetIndex(iField));
       		pdMatm1[iReturnFlag] = dCoef;
 
-      		return flag(0);
+      		return;
    	}
 
-   	return flag(1);
+   	return;
 }
 
-inline flag
-SparseMatrixHandler::fIncCoef(integer iRow,
+inline void
+SparseMatrixHandler::IncCoef(integer iRow,
 			      integer iCol,
 			      const doublereal& dCoef)
 {
@@ -352,14 +352,14 @@ SparseMatrixHandler::fIncCoef(integer iRow,
 		}
 #endif /* SPARSE_MATRIX_NO_RESET */
 
-      		return flag(0);
+      		return;
    	}
 
-   	return flag(1);
+   	return;
 }
 
-inline flag
-SparseMatrixHandler::fDecCoef(integer iRow,
+inline void
+SparseMatrixHandler::DecCoef(integer iRow,
 		      	      integer iCol,
 			      const doublereal& dCoef)
 {
@@ -396,10 +396,10 @@ SparseMatrixHandler::fDecCoef(integer iRow,
 		}
 #endif /* SPARSE_MATRIX_NO_RESET */
 
-      		return flag(0);
+      		return;
    	}
 
-   	return flag(1);
+   	return;
 }
 
 inline const doublereal&
