@@ -7,6 +7,9 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Wed Apr 10 15:00:56 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - check validity of c81 header (ITS#4)
+
 *** Wed Apr 10 09:58:46 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - fix linear and parabolic shape input
 

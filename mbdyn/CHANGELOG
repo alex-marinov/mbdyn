@@ -16,6 +16,7 @@ MBDyn 1.1 Engineering
 		- fix unsteady Cm sign bug in unsteady c81 aerodynamics
 		- fix input file command line arg delete[] failure 
 		- fix linear and parabolic shapes input
+		- check c81 data header (ITS#4)
 	Known bugs:
 		- there's a library cross-dependency that's not handled
 		  correctly by recent versions of libtool (e.g. 1.4.1).

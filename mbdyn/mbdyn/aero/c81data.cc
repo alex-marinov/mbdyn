@@ -169,6 +169,12 @@ read_c81_data(std::istream& in, c81_data* data)
    	buf[32] = '\0';
    	data->NML = atoi(buf+30);
    	buf[30] = '\0';
+
+	if (data->NAM <= 0 || data->NMM <= 0
+			|| data->NAD <= 0 || data->NMD <= 0
+			|| data->NAL <= 0 || data->NML <= 0) {
+		return -1;
+	}
    
    	strncpy(data->header, buf, 30);
    	data->header[30] = '\0';
