@@ -5,8 +5,8 @@ aclocal
 libtoolize --force --copy
 autoheader
 for i in `find . -name 'Makefile.am'` ; do
-	j=`echo $i | sed "s/\.am//" | grep -v "^\./contrib"`
-	if test "x$j" != "x" ; then
+	j=`echo $i | sed "s/\.am$//" | grep -v "^\./contrib"`
+	if test "${j:+set}" = "set" ; then
 		automake --foreign --add-missing --copy $j
 	fi
 done
