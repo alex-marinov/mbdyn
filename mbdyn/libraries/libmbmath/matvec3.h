@@ -224,28 +224,26 @@ class Vec3 {
     Nota: l'indice ha base 1, in stile FORTRAN.
     */
    inline void Put(unsigned short int iRow, const doublereal& dCoef) {
-      ASSERT(iRow > 0 && iRow < 4);   
+      ASSERT(iRow >= 1 && iRow <= 3);   
       pdVec[--iRow] = dCoef;
    };
    
    /**
     Lettura di un coefficiente.
     Nota: l'indice ha base 1, in stile FORTRAN.
-    Nota: gli ASSERT controllano solo l'upper bound dell'indice
-    	poiche' l'indice e' sempre >0 (unsigned short int)
     */
    inline const doublereal& dGet(unsigned short int iRow) const {
-      ASSERT(iRow < 4);
+      ASSERT(iRow >= 1 && iRow <= 3);
       return pdVec[--iRow];
    };
 
    inline doublereal& operator () (unsigned short int iRow) {
-      ASSERT(iRow <= 3);
+      ASSERT(iRow >= 1 && iRow <= 3);
       return pdVec[--iRow];
    };
 
    inline const doublereal& operator () (unsigned short int iRow) const {
-      ASSERT(iRow <= 3);
+      ASSERT(iRow >= 1 && iRow <= 3);
       return pdVec[--iRow];
    };
 
@@ -672,8 +670,8 @@ class Mat3x3 {
    inline void Put(unsigned short int iRow,
 		   unsigned short int iCol, 
 		   const doublereal& dCoef) {
-      ASSERT(iRow > 0 && iRow < 4);
-      ASSERT(iCol > 0 && iCol < 4);      
+      ASSERT(iRow >= 1 && iRow <= 3);
+      ASSERT(iCol >= 1 && iCol <= 3);      
       pdMat[--iRow+3*--iCol] = dCoef;
    };
    
@@ -683,8 +681,8 @@ class Mat3x3 {
     */
    inline const doublereal& dGet(unsigned short int iRow, 
 				 unsigned short int iCol) const {
-      ASSERT(iRow > 0 && iRow < 4);
-      ASSERT(iCol > 0 && iCol < 4);      
+      ASSERT(iRow >= 1 && iRow <= 3);
+      ASSERT(iCol >= 1 && iCol <= 3);      
       return pdMat[--iRow+3*--iCol];
    };
 
@@ -1335,4 +1333,5 @@ extern _MatG_Manip MatG;
 extern _MatGm1_Manip MatGm1;
 //@}
 
-#endif
+#endif /* MATVEC3_H */
+
