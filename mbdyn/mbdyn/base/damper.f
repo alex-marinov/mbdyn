@@ -43,14 +43,14 @@ C ======================================================================
      &  NPDMR,NPDMA,NPCVR,NPCVA,NPVT,
      &  FTOT,FVISDL,FELDL)
 C
-      IMPLICIT REAL*8 (A-H,O-Z)
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 C
-      REAL*8 DL,DLDT,V(*),
+      DOUBLE PRECISION DL,DLDT,V(*),
      &  TBDMR(*),TBDMA(*),TBCVR(*),TBCVA(*),VETVIS(*),
      &  FTOT,FVISDL,FELDL
-      INTEGER*4 NPDMR,NPDMA,NPCVR,NPCVA,NPVT
+      INTEGER NPDMR,NPDMA,NPCVR,NPCVA,NPVT
 C
-      INTEGER*4 RLA,PNTR,P0,A0,RL0,PLTREX,TCOST,TLIN,TEMPORIF,
+      INTEGER RLA,PNTR,P0,A0,RL0,PLTREX,TCOST,TLIN,TEMPORIF,
      &  VELRIF,CORONA,TRIFVUOTO,T,TRIFTEMP,RNURIF,ASTNT,RO,TIME
       PARAMETER(
      &  RLA=1,
@@ -171,8 +171,8 @@ C     =====================================
 
 
       FUNCTION RINT(P,X,NX)
-      REAL*8 RINT,P,X(*)
-      INTEGER*4 NX,I
+      DOUBLE PRECISION RINT,P,X(*)
+      INTEGER NX,I
 
       IF(P.LE.X(1)) THEN
         RINT=X(NX+1)

@@ -18,9 +18,9 @@ c                     y = vettore dei termini noti da 'aggiungere'
 
       implicit none
       integer nrdldl, n, nrdz, nz
-      real*8 ldl(nrdldl,n), x(n), z(nrdz,nz), y(nz)
+      double precision ldl(nrdldl,n), x(n), z(nrdz,nz), y(nz)
       
-      real*8 t_old, t_new, temp, beta
+      double precision t_old, t_new, temp, beta
       integer i, j
       
       do i = 1, n
@@ -63,9 +63,9 @@ c     Restituisce: la soluzione sovrascritta in B.
       
       implicit none
       integer nrdldl, nrdb, n, nvet
-      real*8 ldl(nrdldl,n), b(nrdb, nvet)
+      double precision ldl(nrdldl,n), b(nrdb, nvet)
       
-      real*8 s
+      double precision s
       integer i, j, k
 
 
