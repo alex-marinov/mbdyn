@@ -47,12 +47,13 @@
 #endif /* USE_MPI */
 #include <schurmh.h>
 
-inline void InitializeList(int* list, integer dim, integer  value){
- for (int i=0; i <= dim-1; i++) {
-    list[i] = value;
-  }
-};
-  
+inline void
+InitializeList(int* list, integer dim, integer value)
+{
+	for (int i = 0; i < dim; i++) {
+		list[i] = value;
+	}
+} 
 
 /* SchurMatrixHandler - Begin */
 
@@ -60,141 +61,117 @@ const int G_TAG = 100;
 const int S_TAG = 200; 
 
 class SchurSolutionManager : public SolutionManager {
- 
- public: 
-  class ErrGeneric {};
+public: 
+	class ErrGeneric {};
    
- private:
- 
+private:
 
-  /* communicator per lo scambio di messaggi */
+	/* communicator per lo scambio di messaggi */
 #ifdef USE_MPI
-  MPI::Intracomm SolvComm; 
+	MPI::Intracomm SolvComm; 
 #endif /* USE_MPI */
-  int MyRank, SolvCommSize;
+	int MyRank, SolvCommSize;
   
-  integer iPrbmSize;                /*dimensioni totali del problema */
-  integer iPrbmBlocks;               /*numero di problemi accoppiati, */
-                                    /*ciascuno di dimensione iPrbmSize  */
-  integer iBlkSize;		    /* size di ciascun blocco */
-  integer* pLocDofs;                /*lista dei dof locali */
-  integer* pIntDofs;                /*lista dof interfaccia locale */ 
-  int iLocVecDim, iIntVecDim;         /* dimensioni vettori dof locali e interfacce */ 
-  int* pRecvDim;                    /* vettore dimensioni interfaccie locali; master */
-  int* pDispl;                      /* vettore displacement x comunicazioni; master */
-  integer* pDofsRecvdList;          /* lista dof da ricevere sul master; i dof del processo i
-				       iniziano da pDofsRecvdList[pDispl[i]] */
-  integer* pSchurDofs;              /* lista totale dof interfaccia; master */
-  int iSchurIntDim;                 /* dimensioni matrice di schur; master */
+	integer iPrbmSize;          /* dimensioni totali del problema */
+	integer iPrbmBlocks;        /* numero di problemi accoppiati, */
+                                    /* ciascuno di dimensione iPrbmSize  */
+	integer iBlkSize;	    /* size di ciascun blocco */
+	integer* pLocDofs;          /* lista dei dof locali */
+	integer* pIntDofs;          /* lista dof interfaccia locale */ 
+	int iLocVecDim, iIntVecDim; /* dim. vettori dof locali e interfacce */ 
+	int* pRecvDim;              /* vettore dim. interfacce locali; master */
+	int* pDispl;                /* vettore disp. x comunicazioni; master */
+	integer* pDofsRecvdList;    /* lista dof da ricevere sul master;
+				     * i dof del processo i iniziano
+				     * da pDofsRecvdList[pDispl[i]] */
+	integer* pSchurDofs;        /* lista totale dof interfaccia; master */
+	int iSchurIntDim;           /* dimensioni matrice di schur; master */
   
-  integer* pGlbToLoc;               /* vettore di trsformazione indici Globale->locale */
-  integer* pSchGlbToLoc;            /* vettore di trasformazione indici Globale->Schur; master */
+	integer* pGlbToLoc;         /* vett. di trasf. indici Glob->loc */
+	integer* pSchGlbToLoc;      /* vett. trasf. idx Glob->Schur; master */
   
-  int* pBlockLenght;                 /* struttura di servizio x datatype; master */ 
+	int* pBlockLenght;          /* str. di servizio x datatype; master */ 
 #ifdef USE_MPI
-  MPI::Aint* pTypeDsp;               /* struttura di servizio x datatype; master */ 
-  MPI::Datatype** ppNewTypes;        /* datatype per la trasmissione dei vettori soluzione delle interfacce; master */
+	MPI::Aint* pTypeDsp;        /* str. di servizio x datatype; master */ 
+	MPI::Datatype** ppNewTypes; /* datatype per la trasmissione dei vettori
+				     * soluzione delle interfacce; master */
 #endif /* USE_MPI */
-  doublereal* pBuffer;               /* buffer di ricezione */
+	doublereal* pBuffer;        /* buffer di ricezione */
 
-  integer iWorkSpaceSize;
+	integer iWorkSpaceSize;
 
 
-  SchurMatrixHandler* pMH;         /* handler della matrice globale */
-  SchurVectorHandler* pRVH;        /* handler del vettore residuo  globale */
-  SchurVectorHandler* pSolVH;      /* handler del vettore soluzione  globale */
+	SchurMatrixHandler* pMH;         /* handler della matrice globale */
+	SchurVectorHandler* pRVH;        /* handler del vettore residuo  globale */
+	SchurVectorHandler* pSolVH;      /* handler del vettore soluzione  globale */
 
-  
-  MatrixHandler* pSchMH;      /*handler matrice delle interfacce */
-  VectorHandler* pSchVH;  	   /* vettore delle interfacce  */
-  VectorHandler* pSolSchVH;     /* soluzione problema delle interfacce */  
-
-  /* Vettori di lavoro x il Matrix Handler */
-  MatrixHandler* pBMH;
-  doublereal* pdCM;                 /* puntatore necessario per lo scambio delle schur locali */
-  VectorHandler* prVH;
-  VectorHandler* pgVH;  
-  VectorHandler* pSolrVH;
+	MatrixHandler* pSchMH;      /*handler matrice delle interfacce */
+	VectorHandler* pSchVH;  	   /* vettore delle interfacce  */
+	VectorHandler* pSolSchVH;     /* soluzione problema delle interfacce */  
+	/* Vettori di lavoro x il Matrix Handler */
+	MatrixHandler* pBMH;
+	doublereal* pdCM;                 /* puntatore necessario per lo scambio delle schur locali */
+	VectorHandler* prVH;
+	VectorHandler* pgVH;  
+	VectorHandler* pSolrVH;
 
 #ifdef USE_MPI
-  MPI::Request* pGSReq;               /* Array di request Send */
-  MPI::Request* pGRReq;               /* Array di request Receive */
+	MPI::Request* pGSReq;               /* Array di request Send */
+	MPI::Request* pGRReq;               /* Array di request Receive */
 #endif /* USE_MPI */
 
- SolutionManager* pLocalSM;           /* Solutore sparso locale */
- SolutionManager* pInterSM;          /* Solutore sparso locale */
+	SolutionManager* pLocalSM;           /* Solutore sparso locale */
+	SolutionManager* pInterSM;          /* Solutore sparso locale */
 
   
-  flag fNewMatrix;
- public:
+	flag fNewMatrix;
+public:
   
-  template<class S> SchurSolutionManager(integer iSize,
-  		     integer iBlocks,
-		     integer* pLocalDofs,
-		     int iDim1,
-		     integer* pInterfDofs,
-		     int iDim2,
-		     SolutionManager* pLSM,
-		     S* pISM,
-		     integer iWorkSpaceSize = 0,
-		     const doublereal& dPivotFactor = 1.0);			 
-  
-  ~SchurSolutionManager(void);
-  
-  void IsValid(void) const;
-  
-  /* Inizializza il gestore delle  matrici */
-  void MatrInit(const doublereal& dResetVal);
+	template<class S> SchurSolutionManager(integer iSize,
+			integer iBlocks,
+			integer* pLocalDofs,
+			int iDim1,
+			integer* pInterfDofs,
+			int iDim2,
+			SolutionManager* pLSM,
+			S* pISM,
+			integer iWorkSpaceSize = 0,
+			const doublereal& dPivotFactor = 1.0);
+	
+	virtual ~SchurSolutionManager(void);
 
-  /* Risolve i blocchi chiamando il solutore */
-  void Solve(void);
+	void IsValid(void) const;
 
-  /* sposta il puntatore al vettore del residuo */
-   void ChangeResPoint(doublereal* pRes){
-	std::cerr << "SchurSolutionManager::ChangeResPoint: "
-		<< "you should not be here !!"
-		<< "Aborting..." << std::endl;
-		THROW(ErrGeneric());
-	};
-   
-   	/* sposta il puntatore al vettore del residuo */
-   	void ChangeSolPoint(doublereal* pSol) {
-	std::cerr << "SchurSolutionManager::ChangeSolPoint: "
-		<< "you should not be here !!"
-		<< "Aborting..." << std::endl;
-		THROW(ErrGeneric());
-	};   
-  /* Rende disponibile l'handler per la matrice */
-  SchurMatrixHandler* pMatHdl(void) const {
-    ASSERT(pMH != NULL);	
-    return pMH;
-  };
-   
-  /* Rende disponibile l'handler per il termine noto */
-  SchurVectorHandler* pResHdl(void) const {
-    ASSERT(pRVH != NULL);	
-    return pRVH;
-  };
+	/* Inizializza il gestore delle  matrici */
+	void MatrInit(const doublereal& dResetVal);
 
-  /* Rende disponibile l'handler per la soluzione */
-  SchurVectorHandler* pSolHdl(void) const {
-    ASSERT(pSolVH != NULL);	
-    return pSolVH;
-  };
+	/* Risolve i blocchi chiamando il solutore */
+	void Solve(void);
 
-  void StartExchInt(void);
-  
-  void ComplExchInt(doublereal& dR, doublereal& dXP);
-  
+	/* sposta il puntatore al vettore del residuo */
+	void ChangeResPoint(doublereal* pRes);
 
- private:
-  
-  void AssSchur(void);
-  
-  void InitializeComm(void);
+	/* sposta il puntatore al vettore del residuo */
+	void ChangeSolPoint(doublereal* pSol);
 
+	/* Rende disponibile l'handler per la matrice */
+	SchurMatrixHandler* pMatHdl(void) const;
 
+	/* Rende disponibile l'handler per il termine noto */
+	SchurVectorHandler* pResHdl(void) const;
+
+	/* Rende disponibile l'handler per la soluzione */
+	SchurVectorHandler* pSolHdl(void) const;
+
+	void StartExchInt(void);
+
+	void ComplExchInt(doublereal d[]);
+
+private:
+	void AssSchur(void);
+
+	void InitializeComm(void);
 };
 
-#endif
+#endif /* SCHSOLMAN_H */
 
