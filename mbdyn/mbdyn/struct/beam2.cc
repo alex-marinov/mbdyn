@@ -1083,7 +1083,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsKeyWord("rot")) {
 		Rn1 = HP.GetRotRel(ReferenceFrame(pNode1));
 	}
-	
+
 	DEBUGLCOUT(MYDEBUG_INPUT, "node 1 offset (node reference frame): " 
 			<< f1 << endl << "(global frame): "
 			<< pNode1->GetXCurr()+pNode1->GetRCurr()*f1 << endl);
@@ -1199,7 +1199,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					Beam2(uLabel,
 						pNode1, pNode2,
 						f1, f2,
-						R1, R2,
+						Rn1, Rn2,
 						R,
 						pD,
 						fOut),
@@ -1211,7 +1211,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					PiezoActuatorBeam2(uLabel,
 						pNode1, pNode2,
 						f1, f2,
-						R1, R2,
+						Rn1, Rn2,
 						R,
 						pD,
 						iNumElec,
@@ -1232,7 +1232,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					ViscoElasticBeam2(uLabel,
 						pNode1, pNode2,
 						f1, f2,
-						R1, R2,
+						Rn1, Rn2,
 						R,
 						pD,
 						fOut),
@@ -1244,7 +1244,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					PiezoActuatorVEBeam2(uLabel,
 						pNode1, pNode2,
 						f1, f2,
-						R1, R2,
+						Rn1, Rn2,
 						R,
 						pD,
 						iNumElec,
