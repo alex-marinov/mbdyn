@@ -2286,16 +2286,19 @@ of elements to be generated.
         <type_subset> ::= <type> , { all | <label_list> }
         <label_list> ::= <label> [ , <label_list> ]
 \end{verbatim}
-where \kw{type} currently can only be \kw{body}, although more elements
-associated to inertia might participate in the future.
+where \kw{type} currently can be \kw{body}, \kw{joint} and \kw{loadable}, 
+although more elements associated to inertia might participate in the future.
 All elements whose labels are listed must exist, and duplicates
 are detected and considered errors.
 The keyword \kw{all} causes all the elements of type \kw{type} 
 to be included in the list.
-As a result, each \kw{inertia} entry is logged in the \kw{.log} file
-in a self explanatory form, referred both to the \kw{global} 
-reference frame and to the reference frame n \kw{reference\_position}
-oriented as \kw{reference\_orientation}.
+
+\noindent
+The only effect of the \kw{inertia} statement is to log
+each \kw{inertia} entry in the \kw{.log} file in a self explanatory form,
+referred both to the \kw{global} reference frame and to a reference frame
+originating from \kw{reference\_position} and oriented 
+as \kw{reference\_orientation}.
 
 
 
