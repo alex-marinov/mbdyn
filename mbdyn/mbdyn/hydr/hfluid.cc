@@ -144,23 +144,24 @@ ReadHydraulicFluid(MBDynParser& HP,
        if (HP.IsKeyWord("density")) {
 	  dDensity = HP.GetReal();
 	   
-	  if (HP.IsKeyWord("soundcelerity")) {
+	  if (HP.IsKeyWord("sound" "celerity")) {
 	     doublereal sound = HP.GetReal();
 	     if (sound < DBL_EPSILON) {
-		std::cerr << "line " << HP.GetLineData() << ": illegal sound velocity " << sound
-		  << std::endl;
+		std::cerr << "line " << HP.GetLineData()
+			<< ": illegal sound celerity " << sound
+		        << std::endl;
 		THROW(ErrGeneric());		
 	     } 
 	     dBeta = sound*sound*dDensity;
-	  } else
-	    { 
-	       dBeta = HP.GetReal();
-	       if (fabs(dBeta) < DBL_EPSILON) {
-		  std::cerr << "line " << HP.GetLineData() << ": illegal bulk modulus " << dBeta 
-		    << std::endl;
-		  THROW(ErrGeneric());
-	       }
-	    }
+	  } else { 
+	     dBeta = HP.GetReal();
+	     if (fabs(dBeta) < DBL_EPSILON) {
+		std::cerr << "line " << HP.GetLineData()
+			  << ": illegal bulk modulus " << dBeta 
+		          << std::endl;
+		THROW(ErrGeneric());
+	     }
+	  }
 	   
 	  if (dDensity < DBL_EPSILON) {
 	     std::cerr << "line " << HP.GetLineData()
