@@ -1717,6 +1717,7 @@ Solver::ReadData(MBDynParser& HP)
 			"hope",
 			"bdf",
 			"thirdorder",
+			"implicit" "euler",
 	
 		"derivatives" "coefficient",
 		"derivatives" "tolerance",
@@ -1811,6 +1812,7 @@ Solver::ReadData(MBDynParser& HP)
 		HOPE,
 		BDF,
 		THIRDORDER,
+		IMPLICITEULER,
 	
 		DERIVATIVESCOEFFICIENT,
 		DERIVATIVESTOLERANCE,
@@ -1901,6 +1903,7 @@ Solver::ReadData(MBDynParser& HP)
 			INT_MS2,
 			INT_HOPE,
 			INT_THIRDORDER,
+			INT_IMPLICITEULER,
 			INT_UNKNOWN
 	};
 	
@@ -2156,19 +2159,39 @@ Solver::ReadData(MBDynParser& HP)
 	  		KeyWords KMethod = KeyWords(HP.GetWord());
 	  		switch (KMethod) {
 	   		case CRANKNICHOLSON:
-				RegularType = INT_CRANKNICHOLSON;				
+				RegularType = INT_CRANKNICHOLSON;
 	      			break;
 				
-			case BDF: {
-				SAFENEWWITHCONSTRUCTOR(pRhoRegular,
-						NullDriveCaller, 
-						NullDriveCaller(NULL));
-				SAFENEWWITHCONSTRUCTOR(pRhoAlgebraicRegular,
-						NullDriveCaller, 
-						NullDriveCaller(NULL));
+			case BDF:
+				/* default (order 2) */
 				RegularType = INT_MS2;
+
+				if (HP.IsKeyWord("order")) {
+					int iOrder = HP.GetInt();
+
+					switch (iOrder) {
+					case 1:
+						RegularType = INT_IMPLICITEULER;
+						break;
+
+					case 2:
+						break;
+
+					default:
+						silent_cerr("unhandled BDF order " << iOrder << std::endl);
+						THROW(ErrGeneric());
+					}
+				}
+
+				if (RegularType == INT_MS2) {
+					SAFENEWWITHCONSTRUCTOR(pRhoRegular,
+							NullDriveCaller, 
+							NullDriveCaller(NULL));
+					SAFENEWWITHCONSTRUCTOR(pRhoAlgebraicRegular,
+							NullDriveCaller, 
+							NullDriveCaller(NULL));
+				}
 		  		break;
-			}
 			
 	   		case NOSTRO:
 				  silent_cerr("integration method \"nostro\" "
@@ -2177,13 +2200,12 @@ Solver::ReadData(MBDynParser& HP)
 						  << HP.GetLineData()
 						  << std::endl);
 	   		case MS:
-	   		case HOPE: {
+	   		case HOPE:
 	      			pRhoRegular = ReadDriveData(NULL, HP, NULL);
 
 	      			pRhoAlgebraicRegular = NULL;
 				if (HP.IsArg()) {
-					pRhoAlgebraicRegular = ReadDriveData(NULL, 
-							HP, NULL);
+					pRhoAlgebraicRegular = ReadDriveData(NULL, HP, NULL);
 				} else {
 					pRhoAlgebraicRegular = pRhoRegular->pCopy();
 				}
@@ -2202,12 +2224,16 @@ Solver::ReadData(MBDynParser& HP)
 	          			THROW(ErrGeneric());
 	      			}
 	      			break;
-	   		}
-			case THIRDORDER: {
+
+			case THIRDORDER:
 	      			pRhoRegular = ReadDriveData(NULL, HP, NULL);
 				RegularType = INT_THIRDORDER;
 				break;
-			}
+
+			case IMPLICITEULER:
+				RegularType = INT_IMPLICITEULER;
+		  		break;
+			
 	   		default:
 	      			std::cerr << "Unknown integration method at line "
 					<< HP.GetLineData() << std::endl;
@@ -2234,13 +2260,34 @@ Solver::ReadData(MBDynParser& HP)
 				break;
 
 			case BDF: 
-				SAFENEWWITHCONSTRUCTOR(pRhoFictitious,
-					NullDriveCaller,
-					NullDriveCaller(NULL));
-				SAFENEWWITHCONSTRUCTOR(pRhoAlgebraicFictitious,
-					NullDriveCaller,
-					NullDriveCaller(NULL));
+				/* default (order 2) */
 				FictitiousType = INT_MS2;
+
+				if (HP.IsKeyWord("order")) {
+					int iOrder = HP.GetInt();
+
+					switch (iOrder) {
+					case 1:
+						FictitiousType = INT_IMPLICITEULER;
+						break;
+
+					case 2:
+						break;
+
+					default:
+						silent_cerr("unhandled BDF order " << iOrder << std::endl);
+						THROW(ErrGeneric());
+					}
+				}
+
+				if (FictitiousType == INT_MS2) {
+					SAFENEWWITHCONSTRUCTOR(pRhoFictitious,
+						NullDriveCaller,
+						NullDriveCaller(NULL));
+					SAFENEWWITHCONSTRUCTOR(pRhoAlgebraicFictitious,
+						NullDriveCaller,
+						NullDriveCaller(NULL));
+				}
 				break;
   
 			case NOSTRO:
@@ -2267,15 +2314,20 @@ Solver::ReadData(MBDynParser& HP)
 	       			default:
 	          			THROW(ErrGeneric());
 				}
-	      			break;	      
+	      			break;
+
 	   		case THIRDORDER:
 				pRhoFictitious = ReadDriveData(NULL, HP, NULL);
 				FictitiousType = INT_THIRDORDER;
 				break;
-			default: {
+
+	   		case IMPLICITEULER:
+				FictitiousType = INT_IMPLICITEULER;
+				break;
+
+			default:
 				std::cerr << "Unknown integration method at line " << HP.GetLineData() << std::endl;
 				THROW(ErrGeneric());
-			}
 			}	     
 			break;
 		} 
@@ -3148,15 +3200,15 @@ EndOfCycle: /* esce dal ciclo di lettura */
 
 	/* First step prediction must always be Crank-Nicholson for accuracy */
 	SAFENEWWITHCONSTRUCTOR(pFirstFictitiousStep,
-			CrankNicholsonSolver,
-			CrankNicholsonSolver(dFictitiousStepsTolerance,
+			CrankNicholsonIntegrator,
+			CrankNicholsonIntegrator(dFictitiousStepsTolerance,
 				0.,
 				iFictitiousStepsMaxIterations,
 				bModResTest));
 
 	SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-			CrankNicholsonSolver,
-			CrankNicholsonSolver(dTol,
+			CrankNicholsonIntegrator,
+			CrankNicholsonIntegrator(dTol,
 				dSolutionTol,
 				iMaxIterations,
 				bModResTest));
@@ -3165,7 +3217,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 	switch (FictitiousType) {
 	case INT_CRANKNICHOLSON:
   		pFictitiousSteps = pFirstFictitiousStep;
-		break;	
+		break;
 
 	case INT_MS2:
   		SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
@@ -3199,6 +3251,14 @@ EndOfCycle: /* esce dal ciclo di lettura */
 					bModResTest));
 		break;
 		
+	case INT_IMPLICITEULER:
+		SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+				ImplicitEulerIntegrator,
+				ImplicitEulerIntegrator(dFictitiousStepsTolerance,
+					dSolutionTol, iFictitiousStepsMaxIterations,
+					bModResTest));
+		break;
+
 	default:
 		std::cerr << "unknown dummy steps integration method"
 			<< std::endl;
@@ -3244,6 +3304,15 @@ EndOfCycle: /* esce dal ciclo di lettura */
 					bModResTest));
 		break;
 		  
+	case INT_IMPLICITEULER:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				ImplicitEulerIntegrator,
+				ImplicitEulerIntegrator(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					bModResTest));
+		break;	
+
 	default:
 		std::cerr << "Unknown integration method" << std::endl;
 		THROW(ErrGeneric());

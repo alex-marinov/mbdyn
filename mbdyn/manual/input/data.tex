@@ -236,8 +236,13 @@ The multistep method, when the asymptotic radius is zero, degenerates
 in the Backward Differentiation Formulas of order two.
 A shortcut to this case is provided as
 \begin{verbatim}
-    <method_data> ::= bdf
+    <method_data> ::= bdf [ , order , <order> ]
 \end{verbatim}
+The keyword \kw{order} can be used to indicate a specific order
+of the BDF formulas; only first order (implicit Euler) and 
+second order formulas are currently implemented, and the default
+is the second order formula, which is the most useful.
+The first order formula may be of help for very specific problems.
 
 \subsubsection{Nonlinear Solver}
 The nonlinear solver solves a nonlinear problem $F(x)=0$.

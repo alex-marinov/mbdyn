@@ -316,16 +316,66 @@ protected:
 };
 
 
-class CrankNicholsonSolver: 
+class CrankNicholsonIntegrator: 
 	public Step1Integrator
 {
 public:
-	CrankNicholsonSolver(const doublereal Tl, 
+	CrankNicholsonIntegrator(const doublereal Tl, 
 			const doublereal dSolTl, 
 			const integer iMaxIt,
 			const bool bmod_res_test);
 
-	~CrankNicholsonSolver(void);
+	~CrankNicholsonIntegrator(void);
+
+	void SetDriveHandler(const DriveHandler* pDH);
+   
+protected:
+	void SetCoef(doublereal dT, 
+			doublereal dAlpha,
+			enum StepChange NewStep);
+  
+   	doublereal 
+     	dPredictDerivative(const doublereal& dXm1,
+			const doublereal& dXPm1,
+			DofOrder::Order o = DofOrder::DIFFERENTIAL) const;
+   
+	doublereal 
+	dPredictState(const doublereal& dXm1,
+		   const doublereal& dXP,
+		   const doublereal& dXPm1,
+		   DofOrder::Order o = DofOrder::DIFFERENTIAL) const;
+   
+	/* Note: uses linear prediction for derivatives 
+	 * (highest possible order) */
+	doublereal 
+	dPredDer(const doublereal& dXm1,
+	      const doublereal& dXPm1) const;
+   
+	doublereal 
+	dPredState(const doublereal& dXm1,
+		const doublereal& dXP,
+		const doublereal& dXPm1) const;
+   
+	doublereal 
+	dPredDerAlg(const doublereal& dXm1,
+		 const doublereal& dXPm1) const;
+   
+	doublereal 
+	dPredStateAlg(const doublereal& dXm1,
+		   const doublereal& dXP,
+		   const doublereal& dXPm1) const;
+};
+
+class ImplicitEulerIntegrator: 
+	public Step1Integrator
+{
+public:
+	ImplicitEulerIntegrator(const doublereal Tl, 
+			const doublereal dSolTl, 
+			const integer iMaxIt,
+			const bool bmod_res_test);
+
+	~ImplicitEulerIntegrator(void);
 
 	void SetDriveHandler(const DriveHandler* pDH);
    

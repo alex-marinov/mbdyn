@@ -646,7 +646,7 @@ Step2Integrator::Advance(Solver* pS,
 
 /* CrankNicholson - begin */
 
-CrankNicholsonSolver::CrankNicholsonSolver(const doublereal dTl, 
+CrankNicholsonIntegrator::CrankNicholsonIntegrator(const doublereal dTl, 
 		const doublereal dSolTl, 
 		const integer iMaxIt,
 		const bool bmod_res_test)
@@ -655,19 +655,19 @@ CrankNicholsonSolver::CrankNicholsonSolver(const doublereal dTl,
 	NO_OP;
 }
 
-CrankNicholsonSolver::~CrankNicholsonSolver(void)
+CrankNicholsonIntegrator::~CrankNicholsonIntegrator(void)
 {
 	NO_OP;
 }
 
 void
-CrankNicholsonSolver::SetDriveHandler(const DriveHandler* /* pDH */ )
+CrankNicholsonIntegrator::SetDriveHandler(const DriveHandler* /* pDH */ )
 {
 	NO_OP;
 }
 
 void
-CrankNicholsonSolver::SetCoef(doublereal dT,
+CrankNicholsonIntegrator::SetCoef(doublereal dT,
 		doublereal dAlpha,
 		enum StepChange /* NewStep */)
 {
@@ -676,7 +676,7 @@ CrankNicholsonSolver::SetCoef(doublereal dT,
 
 
 doublereal 
-CrankNicholsonSolver::dPredictDerivative(const doublereal& /* dXm1 */,
+CrankNicholsonIntegrator::dPredictDerivative(const doublereal& /* dXm1 */,
 		const doublereal& dXPm1,
 		DofOrder::Order o) const
 {
@@ -684,7 +684,7 @@ CrankNicholsonSolver::dPredictDerivative(const doublereal& /* dXm1 */,
 }
    
 doublereal 
-CrankNicholsonSolver::dPredictState(const doublereal& dXm1,
+CrankNicholsonIntegrator::dPredictState(const doublereal& dXm1,
 		const doublereal& dXP,
 		const doublereal& dXPm1,
 		DofOrder::Order o) const
@@ -697,14 +697,14 @@ CrankNicholsonSolver::dPredictState(const doublereal& dXm1,
    
 /* Nota: usa predizione lineare per le derivate (massimo ordine possibile) */
 doublereal 
-CrankNicholsonSolver::dPredDer(const doublereal& /* dXm1 */ ,
+CrankNicholsonIntegrator::dPredDer(const doublereal& /* dXm1 */ ,
 	      const doublereal& dXPm1) const
 {
 	return dXPm1;
 }
    
 doublereal 
-CrankNicholsonSolver::dPredState(const doublereal& dXm1,
+CrankNicholsonIntegrator::dPredState(const doublereal& dXm1,
 		const doublereal& dXP,
 		const doublereal& dXPm1) const
 {
@@ -712,14 +712,14 @@ CrankNicholsonSolver::dPredState(const doublereal& dXm1,
 }
    
 doublereal 
-CrankNicholsonSolver::dPredDerAlg(const doublereal& /* dXm1 */ ,
+CrankNicholsonIntegrator::dPredDerAlg(const doublereal& /* dXm1 */ ,
 		const doublereal& dXPm1) const
 {
 	return dXPm1;
 }
    
 doublereal 
-CrankNicholsonSolver::dPredStateAlg(const doublereal& /* dXm1 */ ,
+CrankNicholsonIntegrator::dPredStateAlg(const doublereal& /* dXm1 */ ,
 		const doublereal& dXP,
 		const doublereal& dXPm1) const
 {
@@ -727,6 +727,90 @@ CrankNicholsonSolver::dPredStateAlg(const doublereal& /* dXm1 */ ,
 }
 
 /* CrankNicholson - end */
+  
+/* Implicit Euler - begin */
+
+ImplicitEulerIntegrator::ImplicitEulerIntegrator(const doublereal dTl, 
+		const doublereal dSolTl, 
+		const integer iMaxIt,
+		const bool bmod_res_test)
+: Step1Integrator(iMaxIt, dTl, dSolTl, bmod_res_test)  
+{
+	NO_OP;
+}
+
+ImplicitEulerIntegrator::~ImplicitEulerIntegrator(void)
+{
+	NO_OP;
+}
+
+void
+ImplicitEulerIntegrator::SetDriveHandler(const DriveHandler* /* pDH */ )
+{
+	NO_OP;
+}
+
+void
+ImplicitEulerIntegrator::SetCoef(doublereal dT,
+		doublereal dAlpha,
+		enum StepChange /* NewStep */)
+{
+	db0Differential = db0Algebraic = dT*dAlpha;
+}
+
+
+doublereal 
+ImplicitEulerIntegrator::dPredictDerivative(const doublereal& /* dXm1 */,
+		const doublereal& dXPm1,
+		DofOrder::Order o) const
+{
+	return dXPm1;
+}
+   
+doublereal 
+ImplicitEulerIntegrator::dPredictState(const doublereal& dXm1,
+		const doublereal& dXP,
+		const doublereal& dXPm1,
+		DofOrder::Order o) const
+{
+	if (o == DofOrder::ALGEBRAIC) {
+		return db0Differential*dXP;     
+	} /* else if (o == DofOrder::DIFFERENTIAL) */   
+	return dXm1+db0Differential*dXP;
+}
+   
+/* Nota: usa predizione lineare per le derivate (massimo ordine possibile) */
+doublereal 
+ImplicitEulerIntegrator::dPredDer(const doublereal& /* dXm1 */ ,
+	      const doublereal& dXPm1) const
+{
+	return dXPm1;
+}
+   
+doublereal 
+ImplicitEulerIntegrator::dPredState(const doublereal& dXm1,
+		const doublereal& dXP,
+		const doublereal& dXPm1) const
+{
+	return dXm1+db0Differential*dXP;
+}
+   
+doublereal 
+ImplicitEulerIntegrator::dPredDerAlg(const doublereal& /* dXm1 */ ,
+		const doublereal& dXPm1) const
+{
+	return dXPm1;
+}
+   
+doublereal 
+ImplicitEulerIntegrator::dPredStateAlg(const doublereal& /* dXm1 */ ,
+		const doublereal& dXP,
+		const doublereal& dXPm1) const
+{
+	return db0Differential*dXP;
+}
+
+/* Implicit Euler - end */
   
 /* NostroMetodo - begin */
 
