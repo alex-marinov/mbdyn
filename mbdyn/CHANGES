@@ -14,9 +14,12 @@ MBDyn 1.2-Engineering
 		- added TAUCS linear solver (eXperimental)
 		- added "ad hoc" (Radau IIA) third-order integrator
 		- added predefined drive callers
+		- added support for inertia log to modal joint
+		- added inertia log supports joints and loadable elements
+		- added crypt utility to encrypt credentials
+		- improved auth handling and docs
 	Known Issues:
 		- parallel is not working yet
-		- modal joint cannot be used yet in model inertia computation
 
 MBDyn 1.2-Beta.4
 	Enhancements:
