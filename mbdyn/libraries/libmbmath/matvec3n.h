@@ -198,6 +198,11 @@ class Mat3xN {
    
    Vec3 operator * (const VecN& v) const;
 
+   Vec3 GetVec(integer iCol) const;
+   void PutVec(integer iCol, const Vec3& v);
+   void AddVec(integer iCol, const Vec3& v);
+   void SubVec(integer iCol, const Vec3& v);
+
    inline doublereal & operator () (integer i, integer j);
 };
 
@@ -295,6 +300,11 @@ class MatNx3 {
    /* *this = [3xN]T    */
    const MatNx3& Transpose(const Mat3xN& n);
    const MatNx3& Mult(const MatNxN& m, const MatNx3& n);
+
+   Vec3 GetVec(integer iRow) const;
+   void PutVec(integer iRow, const Vec3& v);
+   void AddVec(integer iRow, const Vec3& v);
+   void SubVec(integer iRow, const Vec3& v);
 
    inline doublereal & operator () (integer i, integer j);
 };

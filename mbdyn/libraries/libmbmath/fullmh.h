@@ -174,4 +174,5 @@ operator << (std::ostream& out, const FullMatrixHandler& m);
 
 /* FullMatrixHandler - end */
 
-#endif
+#endif /* FULLMH_H */
+

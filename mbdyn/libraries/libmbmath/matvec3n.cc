@@ -296,18 +296,24 @@ const Mat3xN& Mat3xN::LeftMult(const Mat3x3& m)
 {
    IsValid();
    for (integer i = iNumCols; i-- > 0; ) {
-      pdRows[0][i] =
-	pdRows[0][i]*m.pdMat[M11]
-	+pdRows[1][i]*m.pdMat[M12]
-	+pdRows[2][i]*m.pdMat[M13];
-      pdRows[1][i] =
-	pdRows[0][i]*m.pdMat[M21]
-	+pdRows[1][i]*m.pdMat[M22]
-	+pdRows[2][i]*m.pdMat[M23];
-      pdRows[2][i] =
-	pdRows[0][i]*m.pdMat[M31]
-	+pdRows[1][i]*m.pdMat[M32]
-	+pdRows[2][i]*m.pdMat[M33];
+      doublereal d[3] = { 0., 0., 0. };
+
+      d[0] =
+	m.pdMat[M11] * pdRows[0][i]
+	+ m.pdMat[M12] * pdRows[1][i]
+	+ m.pdMat[M13] * pdRows[2][i];
+      d[1] =
+	m.pdMat[M21] * pdRows[0][i]
+	+ m.pdMat[M22] * pdRows[1][i]
+	+ m.pdMat[M23] * pdRows[2][i];
+      d[2] =
+	m.pdMat[M31] * pdRows[0][i]
+	+ m.pdMat[M32] * pdRows[1][i]
+	+ m.pdMat[M33] * pdRows[2][i];
+
+      pdRows[0][i] = d[0];
+      pdRows[1][i] = d[1];
+      pdRows[2][i] = d[2];
    }
    return *this;
 }
@@ -323,17 +329,17 @@ const Mat3xN& Mat3xN::LeftMult(const Mat3x3& m, const Mat3xN& n)
    
    for (integer i = iNumCols; i-- > 0; ) {
       pdRows[0][i] =
-	n.pdRows[0][i]*m.pdMat[M11]
-	+n.pdRows[1][i]*m.pdMat[M12]
-	+n.pdRows[2][i]*m.pdMat[M13];
+	m.pdMat[M11] * n.pdRows[0][i]
+	+ m.pdMat[M12] * n.pdRows[1][i]
+	+ m.pdMat[M13] * n.pdRows[2][i];
       pdRows[1][i] =
-	n.pdRows[0][i]*m.pdMat[M21]
-	+n.pdRows[1][i]*m.pdMat[M22]
-	+n.pdRows[2][i]*m.pdMat[M23];
+	m.pdMat[M21] * n.pdRows[0][i]
+	+ m.pdMat[M22] * n.pdRows[1][i]
+	+ m.pdMat[M23] * n.pdRows[2][i];
       pdRows[2][i] =
-	n.pdRows[0][i]*m.pdMat[M31]
-	+n.pdRows[1][i]*m.pdMat[M32]
-	+n.pdRows[2][i]*m.pdMat[M33];
+	m.pdMat[M31] * n.pdRows[0][i]
+	+ m.pdMat[M32] * n.pdRows[1][i]
+	+ m.pdMat[M33] * n.pdRows[2][i];
    }
    return *this;
 }
@@ -423,6 +429,52 @@ Mat3xN::operator * (const VecN& v) const
 	}
 
 	return Vec3(d);
+}
+
+Vec3 
+Mat3xN::GetVec(integer iCol) const
+{
+	IsValid();
+	ASSERT(iCol > 0 && iCol <= iNumCols);
+
+	--iCol;
+	return Vec3(pdRows[0][iCol], pdRows[1][iCol], pdRows[2][iCol]);
+}
+
+void 
+Mat3xN::PutVec(integer iCol, const Vec3& v)
+{
+	IsValid();
+	ASSERT(iCol > 0 && iCol <= iNumCols);
+
+	--iCol;
+	pdRows[0][iCol] = v.pdVec[0];
+	pdRows[1][iCol] = v.pdVec[1];
+	pdRows[2][iCol] = v.pdVec[2];
+}
+
+void 
+Mat3xN::AddVec(integer iCol, const Vec3& v)
+{
+	IsValid();
+	ASSERT(iCol > 0 && iCol <= iNumCols);
+
+	--iCol;
+	pdRows[0][iCol] += v.pdVec[0];
+	pdRows[1][iCol] += v.pdVec[1];
+	pdRows[2][iCol] += v.pdVec[2];
+}
+
+void 
+Mat3xN::SubVec(integer iCol, const Vec3& v)
+{
+	IsValid();
+	ASSERT(iCol > 0 && iCol <= iNumCols);
+
+	--iCol;
+	pdRows[0][iCol] -= v.pdVec[0];
+	pdRows[1][iCol] -= v.pdVec[1];
+	pdRows[2][iCol] -= v.pdVec[2];
 }
 
 /* Mat3xN - end */
@@ -537,6 +589,53 @@ const MatNx3& MatNx3::RightMult(const MatNx3& n, const Mat3x3& m)
 
    return *this;
 }
+
+Vec3 
+MatNx3::GetVec(integer iRow) const
+{
+	IsValid();
+	ASSERT(iRow > 0 && iRow <= iNumRows);
+
+	--iRow;
+	return Vec3(pdCols[0][iRow], pdCols[1][iRow], pdCols[2][iRow]);
+}
+
+void 
+MatNx3::PutVec(integer iRow, const Vec3& v)
+{
+	IsValid();
+	ASSERT(iRow > 0 && iRow <= iNumRows);
+
+	--iRow;
+	pdCols[0][iRow] = v.pdVec[0];
+	pdCols[1][iRow] = v.pdVec[1];
+	pdCols[2][iRow] = v.pdVec[2];
+}
+
+void 
+MatNx3::AddVec(integer iRow, const Vec3& v)
+{
+	IsValid();
+	ASSERT(iRow > 0 && iRow <= iNumRows);
+
+	--iRow;
+	pdCols[0][iRow] += v.pdVec[0];
+	pdCols[1][iRow] += v.pdVec[1];
+	pdCols[2][iRow] += v.pdVec[2];
+}
+
+void 
+MatNx3::SubVec(integer iRow, const Vec3& v)
+{
+	IsValid();
+	ASSERT(iRow > 0 && iRow <= iNumRows);
+
+	--iRow;
+	pdCols[0][iRow] -= v.pdVec[0];
+	pdCols[1][iRow] -= v.pdVec[1];
+	pdCols[2][iRow] -= v.pdVec[2];
+}
+
 
 const MatNx3& MatNx3::Transpose(const Mat3xN& n)
 {

@@ -74,6 +74,8 @@ class Vec3 {
    friend Vec3 operator - (const Vec3& v);
    friend class _Mat3x3_Manip;
    friend class VecN;
+   friend class Mat3xN;
+   friend class MatNx3;
    
 
  private:
