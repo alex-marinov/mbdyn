@@ -154,7 +154,7 @@ OL_ARG_ENABLE(motionview,[  --enable-motionview     enable Altair's Motion View 
 dnl ----------------------------------------------------------------
 dnl General "with" options
 OL_ARG_WITH(tcl,[  --with-tcl              with tcl interpreters],auto,[auto yes no])
-OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}]  with f2c library],auto,[auto yes no g2c])
+OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}] with f2c library],auto,[auto yes no g2c])
 OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support],auto,[auto yes no])
 OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
@@ -174,7 +174,8 @@ OL_ARG_WITH(lapack,[
   --with-lapack           with LAPACK math library],auto,[auto yes no])
 OL_ARG_WITH(pam,[  --with-pam              with PAM support],auto,[auto yes no])
 OL_ARG_WITH(sasl2,[  --with-sasl2            with Cyrus SASL2 support],auto,[auto yes no])
-OL_ARG_WITH(ginac,[  --with-ginac            with GiNaC support],auto,[auto yes no])
+OL_ARG_WITH(ginac,[  --with-ginac            with GiNaC support
+                          (ginac-config must be in $PATH)],auto,[auto yes no])
 OL_ARG_WITH(struct,[  --with-struct           with structural elements],yes,[yes no])
 OL_ARG_WITH(elec,[  --with-elec             with electric stuff],yes,[yes no])
 OL_ARG_WITH(aero,[  --with-aero             with aerodynamic stuff],yes,[yes no])
@@ -1137,25 +1138,55 @@ dnl
 ol_link_lapack=no
 if test $ol_with_lapack != no ; then
 	dnl OL_ADD_DIRS(lapack)
+	AC_MSG_CHECKING([for lapack])
 
-	AC_LANG_FORTRAN77
-	AC_CHECK_LIB(lapack,dgesvd,[have_lapack=yes],[have_lapack=no],[-lblas])
-	AC_LANG_C
+	save_LIBS="$LIBS"
+	try_lapack_LIBS="-llapack $BLAS_LIBS"
+	LIBS="$try_lapack_LIBS $LIBS"
+	AC_TRY_LINK([
+	extern double dgesvd(double *);
+		],[
+	double i = 1., o;
+	o = dgesvd(&i);
+		],[have_lapack=yes
+		   have_lapack_=no],[
+		AC_TRY_LINK([
+	extern double dgesvd_(double *);
+			],[
+	double i = 1., o;
+	o = dgesvd_(&i);
+		],[have_lapack=yes
+		   have_lapack_=yes],[have_lapack=no
+				      have_lapack_=no])])
 	
 	if test $have_lapack != no ; then
 		AC_DEFINE(USE_LAPACK,1,[define to use LAPACK libraries])
 		AC_DEFINE(HAVE_DGESVD,1,[define to use LAPACK's dgesvd in GPC])
-		LAPACK_LIBS="-llapack -lblas "
+		LAPACK_LIBS="$try_lapack_LIBS"
 	fi
 
-	AC_LANG_FORTRAN77
-	AC_CHECK_LIB(lapack,dgegv,[have_lapack=yes],[have_lapack=no],[-lblas])
-	AC_LANG_C
-
-	if test $have_lapack != no ; then
-		ol_link_lapack=yes
-		AC_DEFINE(HAVE_DGEGV,1,[define to use LAPACK's dgegv in Eig])
+	if test "$have_lapack_" = "yes" ; then
+		AC_TRY_LINK([
+	extern double dgegv_(double *);
+			],[
+	double i = 1., o;
+	o = dgegv_(&i);
+			],[AC_DEFINE(HAVE_DGEGV,1,[define to use LAPACK's dgegv in Eig])])
+	elif test "$have_lapack" = "yes" ; then
+		AC_TRY_LINK([
+	extern double dgegv(double *);
+			],[
+	double i = 1., o;
+	o = dgegv(&i);
+			],[AC_DEFINE(HAVE_DGEGV_,1,[define to use LAPACK's dgegv in Eig])])
 	fi
+
+	if test "$have_lapack" = "yes" ; then
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])	
+	fi
+	LIBS="$save_LIBS"
 fi
 
 dnl ----------------------------------------------------------------
@@ -1442,10 +1473,10 @@ dnl Use GiNaC?
 dnl
 ol_link_ginac=no
 if test $ol_with_ginac != no ; then
-	dnl AC_LANG_CPLUSPLUS
-	dnl AM_PATH_GINAC(0.7.0,[ol_link_ginac=yes],[ol_link_ginac=no])
-	dnl AC_LANG_C
 	AC_MSG_CHECKING([for GiNaC library])
+	AC_LANG_CPLUSPLUS
+	AC_CHECK_HEADERS(ginac/ginac.h)
+	AC_LANG_C
 	which ginac-config >/dev/null 2>&1
 	if test $? = 0 ; then
 		GINACLIB_CONFIG="ginac-config"
