@@ -63,7 +63,8 @@ AeroData::SetAirData(const doublereal& rho, const doublereal& c)
 }
 
 void 
-AeroData::SetSectionData(const doublereal& chord,
+AeroData::SetSectionData(const doublereal& abscissa,
+		         const doublereal& chord,
 			 const doublereal& forcepoint,
 			 const doublereal& velocitypoint,
 			 const doublereal& twist,
@@ -76,7 +77,7 @@ AeroData::SetSectionData(const doublereal& chord,
    	Omega = omega;
 }
    
-STAHRAeroData::STAHRAeroData(integer p, integer u) 
+STAHRAeroData::STAHRAeroData(integer u, integer p) 
 : AeroData(u), profile(p)
 {
    	NO_OP;
@@ -98,7 +99,7 @@ STAHRAeroData::Restart(ostream& out) const
       		THROW(ErrGeneric());
    	}
 	
-   	return out;
+   	return out << ", unsteady, " << unsteadyflag;
 }
    
 int 
@@ -109,7 +110,7 @@ STAHRAeroData::GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA)
    	return 0;
 }
 
-C81AeroData::C81AeroData(integer p, integer u, const c81_data* d)
+C81AeroData::C81AeroData(integer u, integer p, const c81_data* d)
 : AeroData(u), profile(p), data(d) 
 {
    	ASSERT(data != NULL);
@@ -118,7 +119,7 @@ C81AeroData::C81AeroData(integer p, integer u, const c81_data* d)
 ostream& 
 C81AeroData::Restart(ostream& out) const 
 {
-   	return out << "C81, " << profile;
+   	return out << "C81, " << profile << ", unsteady, " << unsteadyflag;
 }
 
 int
@@ -126,4 +127,70 @@ C81AeroData::GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA)
 {
    	return c81_aerod2(W, VAM, TNG, OUTA, (c81_data*)data);
 }
+
+
+
+C81MultipleAeroData::C81MultipleAeroData(
+		integer u,
+		integer np,
+		integer *p,
+		doublereal *ub,
+		const c81_data** d
+)
+: AeroData(u), nprofiles(np), profiles(p), upper_bounds(ub), data(d) 
+{
+	ASSERT(nprofiles > 0);
+	ASSERT(profiles != NULL);
+	ASSERT(upper_bounds != NULL);
+   	ASSERT(data != NULL);
+}
+
+C81MultipleAeroData::~C81MultipleAeroData(void)
+{
+	SAFEDELETEARR(profiles, DMmm);
+	SAFEDELETEARR(upper_bounds, DMmm);
+	SAFEDELETEARR(data, DMmm);
+}
+
+ostream& 
+C81MultipleAeroData::Restart(ostream& out) const 
+{
+   	out << "C81, ";
+	for (int i = 0; i < nprofiles; i++) {
+		out << profiles[i] << ", " << upper_bounds[i] << ", ";
+	}
+	return out << "unsteady, " << unsteadyflag;
+}
+
+void 
+C81MultipleAeroData::SetSectionData(
+		const doublereal& abscissa,
+		const doublereal& chord,
+		const doublereal& forcepoint,
+		const doublereal& velocitypoint,
+		const doublereal& twist,
+		const doublereal& omega
+)
+{
+	ASSERT(abscissa > 1. || abscissa < -1.);
+
+	AeroData::SetSectionData(abscissa, chord, forcepoint, velocitypoint,
+			twist, omega);
+
+	for (int i = nprofiles-1; i--; ) {
+		if (abscissa > upper_bounds[i]) {
+			curr_data = i+1;
+			return;
+		}
+	}
+
+	curr_data = 0;
+}
+
+int
+C81MultipleAeroData::GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA) 
+{
+   	return c81_aerod2(W, VAM, TNG, OUTA, (c81_data*)data[curr_data]);
+}
+
 

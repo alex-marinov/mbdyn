@@ -339,7 +339,8 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 
       		/* Copia i dati nel vettore di lavoro dVAM */
       		doublereal dTw = Twist.dGet(dCsi)+dGet();
-      		aerodata->SetSectionData(Chord.dGet(dCsi),
+      		aerodata->SetSectionData(dCsi, 
+				         Chord.dGet(dCsi),
 			       		 ForcePoint.dGet(dCsi),
 					 VelocityPoint.dGet(dCsi),
 					 dTw,
@@ -592,7 +593,7 @@ ReadAeroData(DataManager* pDM,
 	  		integer iInst = ReadUnsteadyFlag(HP);
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				STAHRAeroData,
-				STAHRAeroData(1, iInst),
+				STAHRAeroData(iInst, 1),
 				DMmm);
 	  		break;
        		}
@@ -604,7 +605,7 @@ ReadAeroData(DataManager* pDM,
 	  		integer iInst = ReadUnsteadyFlag(HP);
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				STAHRAeroData,
-				STAHRAeroData(2, iInst),
+				STAHRAeroData(iInst, 2),
 				DMmm);
 	  		break;
        		}
@@ -614,20 +615,74 @@ ReadAeroData(DataManager* pDM,
 		 * (sistemare)
 		 */
        		case C81: {
-	  		integer iProfile = HP.GetInt();
-	  		const c81_data* data = HP.GetC81Data(iProfile);
+			if (HP.IsKeyWord("multiple")) {
+				integer nProfiles = HP.GetInt();
+				if (nProfiles <= 0) {
+					cerr << "Need at least one profile at line " << HP.GetLineData() << endl;
+					THROW(ErrGeneric());
+				}
+				integer *profiles = NULL;
+				SAFENEWARR(profiles, integer, nProfiles+1, DMmm);
+				doublereal *upper_bounds = NULL;
+				SAFENEWARR(upper_bounds, doublereal, nProfiles, DMmm);
+				const c81_data** data = NULL;
+				SAFENEWARR(data, const c81_data*, nProfiles+1, DMmm);
 
-	  		DEBUGLCOUT(MYDEBUG_INPUT, 
-				"profile data is from file c81 "
-				<< iProfile << endl);
-			integer iInst = ReadUnsteadyFlag(HP);
-	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
-				C81AeroData,
-				C81AeroData(iProfile, iInst, data),
-				DMmm);
+				for (int i = 0; i < nProfiles; i++) {
+					profiles[i] = HP.GetInt();
+					upper_bounds[i] = HP.GetReal();
+					if (upper_bounds[i] <= -1.) {
+						cerr << "upper bound " << i+1 << " = " << upper_bounds[i] << " too small at line " << HP.GetLineData() << endl;
+						THROW(ErrGeneric());
+					} else if (upper_bounds[i] > 1.) {
+						cerr << "upper bound " << i+1 << " = " << upper_bounds[i] << " too large at line " << HP.GetLineData() << endl;
+						THROW(ErrGeneric());
+					} else if (i > 0 && upper_bounds[i] <= upper_bounds[i-1]) {
+						cerr << "upper bound " << i+1 << " = " << upper_bounds[i] << " not in increasing order at line " << HP.GetLineData() << endl;
+						THROW(ErrGeneric());
+					}
+					data[i] = HP.GetC81Data(profiles[i]);
+					if (data[i] == NULL) {
+						cerr << "Unable to find profile " << profiles[i] << " at line "<< HP.GetLineData() << endl;
+						THROW(ErrGeneric());
+					}
+		  			DEBUGLCOUT(MYDEBUG_INPUT, 
+						"profile data " << i+1 
+						<< " is from file c81 "
+						<< profiles[i] << endl);
+				}
+
+				if (upper_bounds[nProfiles-1] != 1.) {
+					cerr << "warning: the last upper bound should be 1. at line " << HP.GetLineData() << endl;
+				}
+				
+				profiles[nProfiles] = -1;
+				data[nProfiles] = NULL;
+				
+				integer iInst = ReadUnsteadyFlag(HP);
+
+				SAFENEWWITHCONSTRUCTOR(*aerodata,
+						C81MultipleAeroData,
+						C81MultipleAeroData(iInst, nProfiles, profiles, upper_bounds, data),
+						DMmm);
+	
+			} else {
+	  			integer iProfile = HP.GetInt();
+		  		const c81_data* data = HP.GetC81Data(iProfile);
+
+		  		DEBUGLCOUT(MYDEBUG_INPUT, 
+					"profile data is from file c81 "
+					<< iProfile << endl);
+				integer iInst = ReadUnsteadyFlag(HP);
+	  			SAFENEWWITHCONSTRUCTOR(*aerodata,
+					C81AeroData,
+					C81AeroData(iInst, iProfile, data),
+					DMmm);
+			}
 			break;
        		}
       		}
+		
    	} else {
       		cerr << "unknown profile type at line "
 			<< HP.GetLineData()
@@ -636,7 +691,7 @@ ReadAeroData(DataManager* pDM,
       		integer iInst = ReadUnsteadyFlag(HP);
       		SAFENEWWITHCONSTRUCTOR(*aerodata,
 			STAHRAeroData,
-			STAHRAeroData(1, iInst),
+			STAHRAeroData(iInst, 1),
 			DMmm);
    	}
 }
@@ -1071,7 +1126,8 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
       		/* Copia i dati nel vettore di lavoro dVAM */
 		doublereal dTw = Twist.dGet(ds);
 		dTw += dGet(); /* Contributo dell'eventuale sup. mobile */
-		aerodata->SetSectionData(Chord.dGet(ds), 
+		aerodata->SetSectionData(dCsi,
+				         Chord.dGet(ds), 
 					 ForcePoint.dGet(ds),
 					 VelocityPoint.dGet(ds),
 					 dTw,
@@ -1188,7 +1244,8 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 		/* Copia i dati nel vettore di lavoro dVAM */
 		doublereal dTw = Twist.dGet(ds);
 		dTw += dGet(); /* Contributo dell'eventuale sup. mobile */
-		aerodata->SetSectionData(Chord.dGet(ds), 
+		aerodata->SetSectionData(dCsi,
+				         Chord.dGet(ds), 
 					 ForcePoint.dGet(ds),
 					 VelocityPoint.dGet(ds),
 					 dTw,
@@ -1304,7 +1361,8 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 		/* Copia i dati nel vettore di lavoro dVAM */
 		doublereal dTw = Twist.dGet(ds);
 		dTw += dGet(); /* Contributo dell'eventuale sup. mobile */
-		aerodata->SetSectionData(Chord.dGet(ds), 
+		aerodata->SetSectionData(dCsi,
+				         Chord.dGet(ds), 
 					 ForcePoint.dGet(ds),
 					 VelocityPoint.dGet(ds),
 					 dTw,
@@ -1900,7 +1958,8 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
       		/* Copia i dati nel vettore di lavoro dVAM */
 		doublereal dTw = Twist.dGet(ds);
 		dTw += dGet(); /* Contributo dell'eventuale sup. mobile */
-		aerodata->SetSectionData(Chord.dGet(ds), 
+		aerodata->SetSectionData(dCsi,
+				         Chord.dGet(ds), 
 					 ForcePoint.dGet(ds),
 					 VelocityPoint.dGet(ds),
 					 dTw,
@@ -2016,7 +2075,8 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 		/* Copia i dati nel vettore di lavoro dVAM */
 		doublereal dTw = Twist.dGet(ds);
 		dTw += dGet(); /* Contributo dell'eventuale sup. mobile */
-		aerodata->SetSectionData(Chord.dGet(ds), 
+		aerodata->SetSectionData(dCsi,
+				         Chord.dGet(ds), 
 					 ForcePoint.dGet(ds),
 					 VelocityPoint.dGet(ds),
 					 dTw,

@@ -63,7 +63,8 @@ public:
    	virtual ostream& Restart(ostream& out) const = 0;   
    	void SetAirData(const doublereal& rho, const doublereal& c);
    
-   	void SetSectionData(const doublereal& chord,
+   	virtual void SetSectionData(const doublereal& abscissa,
+			    const doublereal& chord,
 			    const doublereal& forcepoint,
 			    const doublereal& velocitypoint,
 			    const doublereal& twist,
@@ -91,7 +92,7 @@ protected:
    	integer profile;
    
 public: 
-   	STAHRAeroData(integer p, integer u);
+   	STAHRAeroData(integer u, integer p);
    
    	ostream& Restart(ostream& out) const;   
    	int GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA);
@@ -108,9 +109,42 @@ protected:
    	const c81_data* data;
    
 public: 
-   	C81AeroData(integer p, integer u, const c81_data* d);
+   	C81AeroData(integer u, integer p, const c81_data* d);
 
    	ostream& Restart(ostream& out) const;
+   	int GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA);
+};
+
+/* C81AeroData - end */
+
+
+/* C81MultipleAeroData - begin */
+
+class C81MultipleAeroData : public AeroData {
+protected:
+   	integer nprofiles;
+	integer *profiles;
+	doublereal *upper_bounds;
+	const c81_data** data;
+	integer curr_data;
+
+public: 
+   	C81MultipleAeroData(
+			integer u,
+			integer np,
+			integer *p,
+			doublereal *ub,
+			const c81_data** d);
+   	~C81MultipleAeroData(void);
+
+   	ostream& Restart(ostream& out) const;
+   	void SetSectionData(const doublereal& abscissa,
+			    const doublereal& chord,
+			    const doublereal& forcepoint,
+			    const doublereal& velocitypoint,
+			    const doublereal& twist,
+			    const doublereal& omega = 0.);
+   
    	int GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA);
 };
 
