@@ -388,10 +388,11 @@ main(int argc, char* argv[])
 		    			std::cerr 
 		        			<< std::endl 
 		        			<< "Unable to open file '"
-						<< sInputFileName;
+						<< sInputFileName << '\'';
 #ifdef USE_MPI
 					if (using_mpi) {
-						std::cerr << "' on " << ProcessorName;
+						std::cerr << " on "
+							<< ProcessorName;
 					}
 #endif /* USE_MPI */
 					std::cerr

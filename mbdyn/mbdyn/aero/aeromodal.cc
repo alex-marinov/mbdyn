@@ -629,9 +629,11 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
     /* apre il file contenente le matrici A B C D0 D1 D2 */
    const char *sFileData = HP.GetFileName();
    std::ifstream fdat(sFileData);       
-   DEBUGCOUT("Reading Aerodynamic State Space Matrices from file " << sFileData << std::endl);
+   DEBUGCOUT("Reading Aerodynamic State Space Matrices from file '" 
+		   << sFileData << '\'' << std::endl);
    if (!fdat) {
-     std::cerr << std::endl << "Unable to open file " << sFileData << std::endl;
+     std::cerr << std::endl << "Unable to open file '" << sFileData << '\''
+	     << std::endl;
      THROW(DataManager::ErrGeneric());
    }	
    SpMapMatrixHandler* pAMat = NULL;
