@@ -48,7 +48,7 @@ main(int argn, const char* const argv[])
 	 std::cin >> d[1] >> d[2];
 	 Vec3 x1(d);
 	 std::cin >> d[0] >> d[1] >> d[2];
-	 Mat3x3 R1(RFromEulerAngles(Vec3(d)/180.*M_PI));
+	 Mat3x3 R1(EulerAngles2MatR(Vec3(d)/180.*M_PI));
 	 std::cin >> d[0] >> d[1] >> d[2];
 	 Vec3 x2(d);
 

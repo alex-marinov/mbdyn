@@ -789,11 +789,11 @@ Beam2::WriteAdamsDummyPartCmd(std::ostream& out,
 		<< "_" << 1 << std::endl
 		<< firstId << " "
 		<< p << " " 
-		<< EulerAngles(R) << " "
+		<< MatR2EulerAngles(R) << " "
 		<< RT*(xTmp[NODE1]-p) << " "
-		<< Zero3 /* EulerAngles(pNode[part]->GetRCurr()) */ << " "
+		<< Zero3 /* MatR2EulerAngles(pNode[part]->GetRCurr()) */ << " "
 		<< RT*(xTmp[NODE2]-p) << " "
-		<< Zero3 /* EulerAngles(pNode[1+part]->GetRCurr()) */ << std::endl;
+		<< Zero3 /* MatR2EulerAngles(pNode[1+part]->GetRCurr()) */ << std::endl;
 	
 	return out;
 }

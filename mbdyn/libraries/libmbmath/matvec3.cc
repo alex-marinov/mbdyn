@@ -370,7 +370,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
 
 const doublereal dRaDegr = 180./M_PI;
 
-Vec3 EulerAngles(const Mat3x3& R)
+Vec3 MatR2EulerAngles(const Mat3x3& R)
 {  
    doublereal dAlpha = atan2(-R.dGet(2,3), R.dGet(3,3));
    doublereal dCosAlpha = cos(dAlpha);
@@ -383,7 +383,7 @@ Vec3 EulerAngles(const Mat3x3& R)
 		     dCosAlpha*R.dGet(2,2)+dSinAlpha*R.dGet(3,2))*dRaDegr);   
 }
 
-void EulerParams(const Mat3x3& R, doublereal& e0, Vec3& e)
+void MatR2EulerParams(const Mat3x3& R, doublereal& e0, Vec3& e)
 {
    doublereal t = R.Tr();
    doublereal T[4];
@@ -436,7 +436,7 @@ void EulerParams(const Mat3x3& R, doublereal& e0, Vec3& e)
    }
 }
 
-Mat3x3 RFromEulerAngles(const Vec3& v)
+Mat3x3 EulerAngles2MatR(const Vec3& v)
 {
    doublereal d = v.dGet(1);
    doublereal dCosAlpha(cos(d));

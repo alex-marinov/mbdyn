@@ -328,7 +328,7 @@ DataManager::AdamsResOutputInit(void)
 	<< "." << sAdamsModelName << ".PART_" << l << std::endl;
       
       Vec3 x(p->GetXCurr());
-      Vec3 e(EulerAngles(p->GetRCurr()));
+      Vec3 e(MatR2EulerAngles(p->GetRCurr()));
 
       /* Commento con il nome del nodo */
       const char *sName = p->GetName();
@@ -452,7 +452,7 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
       }
       
       x = pNode->GetXCurr();
-      EulerParams(pNode->GetRCurr(), e0, e);
+      MatR2EulerParams(pNode->GetRCurr(), e0, e);
 #if HAVE_FORM_IN_OSTREAM
       out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
 	       x.dGet(1), x.dGet(2), x.dGet(3),
@@ -481,7 +481,7 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 	       doublereal e0;
 	       Vec3 e;
 	       p->GetAdamsDummyPart(part, x, R);
-	       EulerParams(R, e0, e);
+	       MatR2EulerParams(R, e0, e);
 #if HAVE_FORM_IN_OSTREAM
 	       out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
 			x.dGet(1), x.dGet(2), x.dGet(3),

@@ -58,7 +58,7 @@ int main(int argn, const char* const argv[])
 	 Vec3 e;
 	 doublereal e0;
 	 std::cin >> d[3] >> d[6] >> d[1] >> d[4] >> d[7] >> d[2] >> d[5] >> d[8];
-	 EulerParams(Mat3x3(d, 3), e0, e);
+	 MatR2EulerParams(Mat3x3(d, 3), e0, e);
 	 std::cout << e0 << " " << e << std::endl;
       } else {
 	 break;

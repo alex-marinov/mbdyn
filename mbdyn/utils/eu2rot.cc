@@ -67,7 +67,7 @@ main(int argn, const char* const argv[])
       		std::cin >> d[0];
       		if (std::cin) {
 	 		std::cin >> d[1] >> d[2];
-	 		std::cout << RFromEulerAngles(Vec3(d)/180.*M_PI) << std::endl;
+	 		std::cout << EulerAngles2MatR(Vec3(d)/180.*M_PI) << std::endl;
       		} else {
 	 		break;
       		}

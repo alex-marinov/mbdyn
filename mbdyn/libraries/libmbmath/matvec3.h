@@ -1214,14 +1214,14 @@ extern Mat3x3 MatR2vec(unsigned short int ia,
  Calcola gli angoli di Eulero a partire dalla matrice di rotazione R.
  Nota: gli angoli di Eulero sono ritornati in gradi.
  */
-extern Vec3 EulerAngles(const Mat3x3& R);
-extern void EulerParams(const Mat3x3& R, doublereal& e0, Vec3& e);
+extern Vec3 MatR2EulerAngles(const Mat3x3& R);
+extern void MatR2EulerParams(const Mat3x3& R, doublereal& e0, Vec3& e);
 
 /*
  Calcola la matrice di rotazione corrispondente agli angoli di Eulero v.
  Nota: gli angoli di Eulero vengono letti in radianti.
  */
-extern Mat3x3 RFromEulerAngles(const Vec3& v);
+extern Mat3x3 EulerAngles2MatR(const Vec3& v);
 
 
 /* _MatR_Manip - begin */

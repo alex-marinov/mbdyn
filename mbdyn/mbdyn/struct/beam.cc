@@ -1103,11 +1103,11 @@ Beam::WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int 
    out << psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << 1+part << std::endl
      << firstId << " "
      << p[part] << " " 
-     << EulerAngles(R[part]) << " "
+     << MatR2EulerAngles(R[part]) << " "
      << RT*(xTmp[part]-p[part]) << " "
-     << Zero3 /* EulerAngles(pNode[part]->GetRCurr()) */ << " "
+     << Zero3 /* MatR2EulerAngles(pNode[part]->GetRCurr()) */ << " "
      << RT*(xTmp[1+part]-p[part]) << " "
-     << Zero3 /* EulerAngles(pNode[1+part]->GetRCurr()) */ << std::endl;
+     << Zero3 /* MatR2EulerAngles(pNode[1+part]->GetRCurr()) */ << std::endl;
 
    return out;
 }

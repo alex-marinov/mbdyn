@@ -99,7 +99,7 @@ public:
 	std::ostream& Output(std::ostream& out) const {
 		return out 
 			<< std::setw(8) << GetLabel() << " "
-			<< x << " " << EulerAngles(R) << " "
+			<< x << " " << MatR2EulerAngles(R) << " "
 			<< v << " " << w << " " << std::endl;
 	};
 };

@@ -328,7 +328,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
       
       Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
 		    R2TmpT*F, M, F, R2Tmp*M)
-	<< " " << EulerAngles(RTmp) 
+	<< " " << MatR2EulerAngles(RTmp) 
 	  << " " << R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()) << std::endl;
    }   
 }
@@ -710,7 +710,7 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
     case 1:
     case 2:
     case 3: {
-       Vec3 v(EulerAngles(RTmp));
+       Vec3 v(MatR2EulerAngles(RTmp));
        
        d = v.dGet(i);
        break;
@@ -994,7 +994,7 @@ void PlaneRotationJoint::Output(OutputHandler& OH) const
       
       Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
 		    Zero3, M, Zero3, R2Tmp*M)
-	<< " " << EulerAngles(RTmp) 
+	<< " " << MatR2EulerAngles(RTmp) 
 	<< " " << R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()) << std::endl;
    }
 }
@@ -1314,7 +1314,7 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
     case 1:
     case 2:
     case 3: {
-       Vec3 v(EulerAngles(RTmp));
+       Vec3 v(MatR2EulerAngles(RTmp));
        
        d = v.dGet(i);
        break;
@@ -1648,7 +1648,7 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
       
       Joint::Output(OH.Joints(), "AxialRotation", GetLabel(),
 		    R2TmpT*F, M, F, R2Tmp*M) 
-	<< " " << EulerAngles(RTmp) << " " << dGet() 
+	<< " " << MatR2EulerAngles(RTmp) << " " << dGet() 
 	<< " " << R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()) << std::endl;
    }
 }
@@ -2260,7 +2260,7 @@ void PlanePinJoint::Output(OutputHandler& OH) const
       
       Joint::Output(OH.Joints(), "PlanePin", GetLabel(),
 		    RTmpT*F, M, F, RTmp*M) 
-	<< " " << EulerAngles(R0Tmp)
+	<< " " << MatR2EulerAngles(R0Tmp)
 	<< " " << RTmpT*(pNode->GetWCurr()) << std::endl;      
    }
 }

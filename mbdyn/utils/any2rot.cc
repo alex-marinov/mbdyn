@@ -36,7 +36,7 @@ main(int argn, const char* const argv[])
       		cin >> d[0];
       		if (cin) {
 	 		cin >> d[1] >> d[2];
-	 		cout << RFromEulerAngles(Vec3(d)/180.*M_PI) << endl;
+	 		cout << EulerAngles2MatR(Vec3(d)/180.*M_PI) << endl;
       		} else {
 	 		break;
       		}

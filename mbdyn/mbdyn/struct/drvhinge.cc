@@ -89,7 +89,7 @@ std::ostream& DriveHingeJoint::Restart(std::ostream& out) const
 void DriveHingeJoint::Output(OutputHandler& OH) const
 {   
    if (fToBeOutput()) {
-      Vec3 d(EulerAngles(pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()));
+      Vec3 d(MatR2EulerAngles(pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()));
       Joint::Output(OH.Joints(), "DriveHinge", GetLabel(),
 		    Zero3, M, Zero3, pNode1->GetRCurr()*M)
 	<< " " << d 

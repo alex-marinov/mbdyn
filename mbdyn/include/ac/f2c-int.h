@@ -31,17 +31,14 @@
 #define AC_F2C_INT_H
 
 #ifdef __cplusplus
+#warning "<ac/f2c-int.h> is not meant to be included in C++ code"
 extern "C" {
 #endif /* __cplusplus */
 
 #include <ac/f2c.h>
 
-#ifndef min
 #define min(a,b) ((a) < (b) ? (a) : (b))
-#endif /* !min */
-#ifndef max
 #define max(a,b) ((a) > (b) ? (a) : (b))
-#endif /* !max */
 
 #ifdef __cplusplus
 }

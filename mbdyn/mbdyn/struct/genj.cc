@@ -702,13 +702,13 @@ DistanceJoint::WriteAdamsDummyPartCmd(std::ostream& out,
    Vec3 v2(Rx.GetVec(index));
    v2 /= v2.Norm();
    
-   Vec3 e(EulerAngles(MatR2vec(1, v1, 2, v2)));
+   Vec3 e(MatR2EulerAngles(MatR2vec(1, v1, 2, v2)));
    
    return out 
      << psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << part << std::endl
      << firstId << " "
      << x1 << " "
-     << EulerAngles(pNode1->GetRCurr()) << " "
+     << MatR2EulerAngles(pNode1->GetRCurr()) << " "
      << x1 << " "
      << e << " "
      << l << " " << 0. << " " << 0. << " "
@@ -1477,13 +1477,13 @@ DistanceJointWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
    Vec3 v2(Rx.GetVec(index));
    v2 /= v2.Norm();
    
-   Vec3 e(EulerAngles(MatR2vec(1, v1, 2, v2)));
+   Vec3 e(MatR2EulerAngles(MatR2vec(1, v1, 2, v2)));
    
    return out 
      << psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << part << std::endl
      << firstId << " "
      << x1 << " "
-     << e /* EulerAngles(pNode1->GetRCurr()) */ << " "
+     << e /* MatR2EulerAngles(pNode1->GetRCurr()) */ << " "
      << x1 << " "
      << e << " "
      << l << " " << 0. << " " << 0. << " "

@@ -193,7 +193,7 @@ StructNode::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {      
       OH.StrNodes() << std::setw(8) << GetLabel() << " "
-	<< XCurr << " " << EulerAngles(RCurr) << " "
+	<< XCurr << " " << MatR2EulerAngles(RCurr) << " "
 	<< VCurr << " " << WCurr << " " << std::endl;
    }   
 }
@@ -214,7 +214,7 @@ StructNode::Output(
       Mat3x3 DR(MatR, Dg);
 
       OH.StrNodes() << std::setw(8) << GetLabel() << " "
-	<< (XCurr+DX) << " " << EulerAngles(DR*RCurr) << " "
+	<< (XCurr+DX) << " " << MatR2EulerAngles(DR*RCurr) << " "
 	<< "#" << std::endl;
    }
 }

@@ -295,7 +295,7 @@ PlaneDispJoint::Output(OutputHandler& OH) const
       
       Joint::Output(OH.Joints(), "PlaneDisp", GetLabel(),
 		    R2TmpT*F, M, F, R2Tmp*M)
-	<< " " << EulerAngles(RTmp) 
+	<< " " << MatR2EulerAngles(RTmp) 
 	  << " " << R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()) << std::endl;
    }   
 }
@@ -737,7 +737,7 @@ PlaneDispJoint::dGetPrivData(unsigned int i) const
     }
             
     case 3: {
-       Vec3 v(EulerAngles(RTmp));
+       Vec3 v(MatR2EulerAngles(RTmp));
        
        d = v.dGet(3);
        break;
@@ -989,7 +989,7 @@ void PlaneDispPinJoint::Output(OutputHandler& OH) const
       
       Joint::Output(OH.Joints(), "PlaneDispPin", GetLabel(),
 		    RTmpT*F, M, F, RTmp*M) 
-	<< " " << EulerAngles(R0Tmp)
+	<< " " << MatR2EulerAngles(R0Tmp)
 	<< " " << RTmpT*(pNode->GetWCurr()) << std::endl;      
    }
 }

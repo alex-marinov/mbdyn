@@ -814,12 +814,27 @@ HighParser::GetMatR2vec(void)
       return Mat3x3(r11, r21, r31, r12, r22, r32, r13, r23, r33);
    }
    
+   if (IsKeyWord("euler" "parameters")) {
+      doublereal e0 = GetReal();
+      doublereal e1 = GetReal();
+      doublereal e2 = GetReal();
+      doublereal e3 = GetReal();
+     
+#if 0 /* FIXME: this function is TODO */
+      return EulerParams2MatR(Vec3(e1, e2, e3));
+#else
+      std::cerr << "Line " << GetLineData()
+	      << ": euler parameters not allowed yet" << std::endl;
+      THROW(ErrGeneric());
+#endif
+   }
+   
    if (IsKeyWord("euler")) {
       doublereal e1 = GetReal();
       doublereal e2 = GetReal();
       doublereal e3 = GetReal();
       
-      return RFromEulerAngles(Vec3(e1, e2, e3));
+      return EulerAngles2MatR(Vec3(e1, e2, e3));
    }
    
    int i1 = GetInt();
