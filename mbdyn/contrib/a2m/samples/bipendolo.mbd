@@ -1,0 +1,162 @@
+# File generato da Adams2MBDyn - versione 1.0 Beta
+
+begin: data;
+  integrator: multistep;
+end: data;
+
+begin: control data;
+  structural nodes: 3;
+  rigid bodies: 3;
+  joints: 0;
+  forces: 2;
+
+  initial stiffness: 0;
+  initial tolerance: 0;
+
+#  skip initial joint assembly;
+#  use: rigid bodies, in assembly;
+#  make restart file;
+end: control data;
+
+# input related card - Reference section
+
+  reference:  1, 
+              reference, global, null, 
+              reference, global, eye, 
+              reference, global, null, 
+              reference, global, null;
+  reference:  2, 
+              reference, global, null, 
+              reference, global, eye, 
+              reference, global, null, 
+              reference, global, null;
+  reference:  3, 
+              reference, global, null, 
+              reference, global, eye, 
+              reference, global, null, 
+              reference, global, null;
+  reference:  4, 
+              reference, 1, -400, 350, 0, 
+              reference, 1, eye, 
+              reference, 1, null, 
+              reference, 1, null;
+  reference:  5, 
+              reference, 1, -150, -150, 0, 
+              reference, 1, 1, 1.91069e-15, 5.56363e-08, -1, 
+              2, 4.37114e-08, 1, 5.56363e-08, 
+              reference, 1, null, 
+              reference, 1, null;
+  reference:  6, 
+              reference, 2, -400, 350, 0, 
+              reference, 2, 1, 1, 0, 0, 
+              2, 0, 0.752577, -0.658505, 
+              reference, 2, null, 
+              reference, 2, null;
+  reference:  7, 
+              reference, 2, null, 
+              reference, 2, 1, 1, 0, 0, 
+              2, 0, 0.752577, -0.658505, 
+              reference, 2, null, 
+              reference, 2, null;
+  reference:  8, 
+              reference, 2, -200, 175, 0, 
+              reference, 2, 1, 1, 0, 0, 
+              2, 0, 0.752577, -0.658505, 
+              reference, 2, null, 
+              reference, 2, null;
+  reference:  9, 
+              reference, 2, null, 
+              reference, 2, eye, 
+              reference, 2, null, 
+              reference, 2, null;
+  reference:  10, 
+              reference, 2, -400, 350, 0, 
+              reference, 2, eye, 
+              reference, 2, null, 
+              reference, 2, null;
+  reference:  11, 
+              reference, 2, -200, 175, 0, 
+              reference, 2, 1, 1.91069e-15, 5.56363e-08, -1, 
+              2, 4.37114e-08, 1, 5.56363e-08, 
+              reference, 2, null, 
+              reference, 2, null;
+  reference:  12, 
+              reference, 2, -200, 175, 0, 
+              reference, 2, 1, 1.91069e-15, 5.56363e-08, -1, 
+              2, 4.37114e-08, 1, 5.56363e-08, 
+              reference, 2, null, 
+              reference, 2, null;
+  reference:  13, 
+              reference, 3, null, 
+              reference, 3, 1, 1, 0, 0, 
+              2, 0, -0.707107, -0.707107, 
+              reference, 3, null, 
+              reference, 3, null;
+  reference:  14, 
+              reference, 3, -150, -150, 0, 
+              reference, 3, 1, 1, 0, 0, 
+              2, 0, -0.707107, -0.707107, 
+              reference, 3, null, 
+              reference, 3, null;
+  reference:  15, 
+              reference, 3, -75, -75, 0, 
+              reference, 3, 1, 1, 0, 0, 
+              2, 0, 0.707107, 0.707107, 
+              reference, 3, null, 
+              reference, 3, null;
+  reference:  16, 
+              reference, 3, null, 
+              reference, 3, eye, 
+              reference, 3, null, 
+              reference, 3, null;
+  reference:  17, 
+              reference, 3, -150, -150, 0, 
+              reference, 3, 1, 1.91069e-15, 5.56363e-08, -1, 
+              2, 4.37114e-08, 1, 5.56363e-08, 
+              reference, 3, null, 
+              reference, 3, null;
+begin: nodes;
+  structural: 1, dynamic, 
+                 reference, global, null, 
+                 reference, global, 
+                 eye, 
+                 reference, global, null, 
+                 reference, global, null, 
+                 0, 0, 1;
+  structural: 2, dynamic, 
+                 reference, global, null, 
+                 reference, global, 
+                 eye, 
+                 reference, global, null, 
+                 reference, global, null, 
+                 0, 0, 1;
+  structural: 3, dynamic, 
+                 reference, global, null, 
+                 reference, global, 
+                 eye, 
+                 reference, global, null, 
+                 reference, global, null, 
+                 0, 0, 1;
+end: nodes;
+
+begin: elements;
+  body:  1, 
+         1, 0, 
+         reference, node, null, 
+         null ;
+  body:  2, 
+         2, 6.30908, 
+         reference, node, null, 
+         diag, 1828.65, 172969, 174055 ;
+  body:  3, 
+         3, 0.401104, 
+         reference, node, null, 
+         diag, 18.5189, 1751.68, 1762.67 ;
+  force:  1, conservative, 
+          14, reference, node, null, 
+          reference, node, null, 0.4;
+  force:  2, conservative, 
+          8, reference, node, null, 
+          reference, node, null, 6.3;
+  gravity:  0, -9806.65, 0, const,  1;
+end: elements;

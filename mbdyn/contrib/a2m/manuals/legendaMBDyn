@@ -1,0 +1,129 @@
+                     CARD DI MBDYN - SCHEMA DEI COSTRUTTORI
+
+                  BY Cassan Leonardo 2000, all rights reserved
+
+
+
+
+MBDyn_card 	(Id Label,
+		MBDyn_card::Type {
+			_ELEMENT,
+			_REFERENCE,
+			_NODE,
+			_CONSTLAW,
+			_LAST_CARD
+		}
+
+MBDyn_elem	(Id Label,
+		MBDyn_elem::Type {
+			UNKNOWN,
+			_BEAM,
+			_JOINT,
+			_RIGIDBODY,
+			_BULK,
+			_FORCE,
+			_GRAVITY
+		}
+		
+ConstitutiveLaw6D (double Emodulus, Gmodulus)
+
+MBDyn_beam 	(Id Label,
+		 Id Node[0]=Left node,
+		 Id Node[1]=Midnode,
+		 Id Node[2]=Right node
+		 Vec3 f[0 1 2] : Relative offset for Node1,Node2,Node3,
+		 Mat3x3 R[0] Rotation matrix for section I,
+		 Mat3x3 R[1] Rotation matrix for section II,
+		 pCL6D pD[0] : pointer to constitutive Law for section I
+		 pCL6D pD[1] : pointer to constitutive Law for section II)
+
+MBDyn_body	(Id Label,
+                 Id Node_Label,
+		 double Mass,
+		 Vec3 Xgc : relative center of mass
+		 Mat3x3 Jota : Intertia Matrix referred to the center of mass)
+		 [ { Id Node | Mat3x3 Rotation matrix } ]
+		
+		MBDyn_body (Id,Id,double,Vec3,Mat3x3)
+		MBDyn_body (Id,Id,double,Vec3,Mat3x3,Id)
+		MBDyn_body (Id,Id,double,Vec3,Mat3x3,Mat3x3)
+
+MBDyn_force	(Id Label,
+		 MBDyn_force::Type = {
+		 	UNKNOWN,
+		 	ABSTRACT,
+		 	STRUCTURALFORCE,
+		 	STRUCTURALCOUPLE,
+		 	LAST_FORCE_TYPE
+		 } ,
+		 MBDyn_force::Ftype = {
+		 	CONSERVATIVE,
+		 	FOLLOWER
+		 } )
+		 
+		 MBDyn_force (Id,MBDyn_force::Type)
+		 MBDyn_force (Id,MBDyn_force::Type,MBDyn_force::Ftype)
+		 
+MBDyn_force_abstract
+			(Id Label,
+			 Id NodeDof : Node degree of freedom (?)
+			 double Magnitude)
+		 
+		 	MBDyn_force_abstract (Id,Id,double)
+
+MBDyn_force_structural
+	(Id Label,
+	MBDyn_force::Ftype,
+	Id Node,
+	Vec3 Relative_direction,
+	Vec3 Relative_arm,
+	double Magnitude)
+		 
+        MBDyn_force_structural (Id,MBDyn_force::Ftype,Id,Vec3,Vec3,double)
+
+MBDyn_force_couple	
+	(Id Label,
+	MBDyn_force::Ftype,
+	Id Node
+	Vec3 Relative_direction;
+	double Magnitude)
+			 
+	MBDyn_force_couple (Id,MBDyn_force::Ftype,Id,Vec3,double)
+
+
+MBDyn_joint
+	(Id Label,
+	 MBDyn_joint::Type q)
+	 MBDyn_joint (Id,MBDyn_joint::Type)
+
+MBDyn_spherhinge 	(Id Label,
+			 Id Node[0],
+			 Id Node[1],
+			 Vec3 d[0],
+			 Vec3 d[1],
+			 Mat3x3 Rh[0],
+			 Mat3x3 Rh[1])
+	
+	MBDyn_spherhinge (Id,Id,Id,Vec3,Mat3x3,Vec3,Mat3x3)
+
+MBDyn_pin		(Id Label,
+			 Id Node,
+			 Vec3 Relative_offset,
+			 Vec3 Absolute_pos)
+			 
+	MBDyn_pin (Id,Id,Vec3,Vec3)
+
+MBDyn_clamp		(Id Label,
+			 Id Node,
+			 Vec3 Absolute_pos,
+			 Mat3x3 Absolute_rot_matrix)
+			 
+			 Boolean NodeRef1,NodeRef2
+	
+	MBDyn_clamp (Id,Id)
+	MBDyn_clamp (Id,Id,Vec3)
+	MBDyn_clamp (Id,Id,Mat3x3)
+	MBDyn_clamp (Id,Id,Vec3,Mat3x3)
+	
+	
+				
