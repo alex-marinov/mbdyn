@@ -59,7 +59,7 @@ extern "C" {
 Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
 	     const StructNode* pC, const Mat3x3& rrot,
 	     const StructNode* pR, const StructNode* pG, 
-	     int iMaxIt, doublereal dTol, doublereal dE,
+	     unsigned int iMaxIt, doublereal dTol, doublereal dE,
 	     ResForceSet **ppres, flag fOut)
 : Elem(uL, Elem::ROTOR, fOut), 
 AerodynamicElem(uL, AerodynamicElem::ROTOR, fOut), 
@@ -75,8 +75,10 @@ pCraft(pC), pRotor(pR), pGround(pG),
 dOmegaRef(0.), dRadius(0.), dArea(0.),
 dUMean(0.), dUMeanRef(0.), dUMeanPrev(0.),
 iMaxIter(iMaxIt),
+iCurrIter(0),
 dTolerance(dTol),
 dEta(dE),
+bUMeanRefConverged(false),
 Weight(), dWeight(0.),
 dHoverCorrection(1.), dForwardFlightCorrection(1.),
 ppRes(ppres),
@@ -246,6 +248,8 @@ Rotor::Output(OutputHandler& OH) const
 					<< " " << dLambda	/* 13 */
 					<< " " << dChi		/* 14 */
 					<< " " << dPsi0		/* 15 */
+					<< " " << bUMeanRefConverged /* 16 */
+					<< " " << iCurrIter	/* 17 */
 					<< std::endl;
 
 				for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -273,6 +277,8 @@ Rotor::Output(OutputHandler& OH) const
 	    			<< " " << dLambda		/* 13 */
 				<< " " << dChi			/* 14 */
 	    			<< " " << dPsi0			/* 15 */
+				<< " " << bUMeanRefConverged	/* 16 */
+				<< " " << iCurrIter		/* 17 */
 	    			<< std::endl;
 
 	    		for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -298,6 +304,8 @@ Rotor::Output(OutputHandler& OH) const
 			<< " " << dLambda		/* 13 */
 			<< " " << dChi			/* 14 */
 			<< " " << dPsi0			/* 15 */
+			<< " " << bUMeanRefConverged	/* 16 */
+			<< " " << iCurrIter		/* 17 */
 			<< std::endl;
 
 		/* FIXME: check for parallel stuff ... */
@@ -454,10 +462,9 @@ void Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	   dGE -= 1./(z*z);
    }
 
+   bUMeanRefConverged = false;
    if (dVTip > DBL_EPSILON) {
-      int iCnt;
-
-      for (iCnt = 0; iCnt < iMaxIter; iCnt++ ) {
+      for (iCurrIter = 0; iCurrIter < iMaxIter; iCurrIter++ ) {
          doublereal dUMeanRefOrig = dUMeanRef;
       
          dLambda = (dVelocity*dSinAlphad+dUMeanRef)/dVTip;
@@ -470,6 +477,7 @@ void Rotor::InitParam(bool bComputeMeanInducedVelocity)
          dUMeanRef = dEta*dDelta + dUMeanRefOrig;
 
          if (fabs(dDelta) <= dTolerance) {
+	    bUMeanRefConverged = true;
 	    break;
 	 }
       }
@@ -477,7 +485,7 @@ void Rotor::InitParam(bool bComputeMeanInducedVelocity)
       /* if no convergence, simply accept the current value
        * very forgiving choice, though */
 #if 0
-      if (iCnt == iMaxIter) {
+      if (iCurrIter == iMaxIter) {
 	 std::cerr << "unable to compute mean induced velocity for Rotor(" 
 		 << GetLabel() << ")" << std::endl;
 	 THROW(ErrGeneric());
@@ -729,7 +737,7 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 			   doublereal dOR,
 			   doublereal dR, 
 			   DriveCaller *pdW,
-			   int iMaxIt,
+			   unsigned int iMaxIt,
 			   doublereal dTol,
 			   doublereal dE,
 			   doublereal dCH,
@@ -884,7 +892,7 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 			   doublereal dOR,
 			   doublereal dR, 
 			   DriveCaller *pdW,
-			   int iMaxIt,
+			   unsigned int iMaxIt,
 			   doublereal dTol,
 			   doublereal dE,
 			   doublereal dCH,
@@ -1043,7 +1051,7 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 			   doublereal dOR,
 			   doublereal dR, 
 			   DriveCaller *pdW,
-			   int iMaxIt,
+			   unsigned int iMaxIt,
 			   doublereal dTol,
 			   doublereal dE,
 			   doublereal dCH,
@@ -1254,7 +1262,7 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 				       ResForceSet **ppres, 
 				       doublereal dOR,
 				       doublereal dR,
-				       int iMaxIt,
+				       unsigned int iMaxIt,
 				       doublereal dTol,
 				       doublereal dE,
 	    			       doublereal dCH,
@@ -1345,9 +1353,11 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 					<< " " << dLambda	/* 13 */
 					<< " " << dChi		/* 14 */
 					<< " " << dPsi0		/* 15 */
-					<< " " << dVConst	/* 16 */
-					<< " " << dVSine	/* 17 */
-					<< " " << dVCosine	/* 18 */
+					<< " " << bUMeanRefConverged /* 16 */
+					<< " " << iCurrIter	/* 17 */
+					<< " " << dVConst	/* 18 */
+					<< " " << dVSine	/* 19 */
+					<< " " << dVCosine	/* 20 */
 					<< std::endl; 
 
 				for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -1375,9 +1385,11 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 				<< " " << dLambda	/* 13 */
 				<< " " << dChi		/* 14 */
 				<< " " << dPsi0		/* 15 */
-				<< " " << dVConst	/* 16 */
-				<< " " << dVSine	/* 17 */
-				<< " " << dVCosine	/* 18 */
+				<< " " << bUMeanRefConverged /* 16 */
+				<< " " << iCurrIter	/* 17 */
+				<< " " << dVConst	/* 18 */
+				<< " " << dVSine	/* 19 */
+				<< " " << dVCosine	/* 20 */
 				<< std::endl;
 
 			for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -1403,9 +1415,11 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 			<< " " << dLambda	/* 13 */
 			<< " " << dChi		/* 14 */
 			<< " " << dPsi0		/* 15 */
-			<< " " << dVConst	/* 16 */
-			<< " " << dVSine	/* 17 */
-			<< " " << dVCosine	/* 18 */
+			<< " " << bUMeanRefConverged /* 16 */
+			<< " " << iCurrIter	/* 17 */
+			<< " " << dVConst	/* 18 */
+			<< " " << dVSine	/* 19 */
+			<< " " << dVCosine	/* 20 */
 			<< std::endl;
 
 		for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -1888,15 +1902,16 @@ ReadRotor(DataManager* pDM,
 #if 0
 		int iMaxIter = INT_MAX;
 #endif
-		int iMaxIter = 1;
+		unsigned int iMaxIter = 1;
 		if (HP.IsKeyWord("max" "iterations")) {
-			iMaxIter = HP.GetInt();
-			if (iMaxIter <= 0) {
+			int i = HP.GetInt();
+			if (i <= 0) {
 				std::cerr << "illegal max iterations " 
-					<< iMaxIter << " for Rotor(" 
+					<< i << " for Rotor(" 
 					<< uLabel << ")";
 				THROW(ErrGeneric());
 			}
+			iMaxIter = i;
 		}
 
 		/* tolerance when computing reference inflow velocity;

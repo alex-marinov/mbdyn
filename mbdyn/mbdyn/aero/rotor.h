@@ -94,10 +94,14 @@ class Rotor
    doublereal dUMean;        /* Velocita' indotta media */
    doublereal dUMeanRef;     /* Velocita' indotta media (nominale) */
    mutable doublereal dUMeanPrev;    /* Vel. indotta media al passo prec. */
+
    /* iterations for dUMeanRef */
-   int iMaxIter;
+   unsigned int iMaxIter;
+   unsigned int iCurrIter;
    doublereal dTolerance;
    doublereal dEta;
+   bool bUMeanRefConverged;
+
    DriveOwner Weight;
    doublereal dWeight;       /* Peso della velocita' indotta media 
 			      * (peso della V al passo precedente, def = 0.) */
@@ -144,7 +148,8 @@ class Rotor
  public:
    Rotor(unsigned int uL, const DofOwner* pDO, 
 	 const StructNode* pC, const Mat3x3& rrot, const StructNode* pR, 
-	 const StructNode* pG, int iMaxIt, doublereal dTol, doublereal dE,
+	 const StructNode* pG, 
+	 unsigned int iMaxIt, doublereal dTol, doublereal dE,
 	 ResForceSet **ppres, flag fOut);
    virtual ~Rotor(void);      
    
@@ -358,7 +363,7 @@ class UniformRotor : virtual public Elem, public Rotor {
 		doublereal dOR,
 		doublereal dR,
 		DriveCaller *pdW,
-		int iMaxIt,
+		unsigned int iMaxIt,
 		doublereal dTol,
 		doublereal dE,
 		doublereal dCH,
@@ -408,7 +413,7 @@ class GlauertRotor : virtual public Elem, public Rotor {
 		doublereal dOR,
 		doublereal dR,
 		DriveCaller *pdW,
-		int iMaxIt,
+		unsigned int iMaxIt,
 		doublereal dTol,
 		doublereal dE,
 		doublereal dCH,
@@ -458,7 +463,7 @@ class ManglerRotor : virtual public Elem, public Rotor {
 		doublereal dOR,
 		doublereal dR,
 		DriveCaller *pdW,
-		int iMaxIt,
+		unsigned int iMaxIt,
 		doublereal dTol,
 		doublereal dE,
 		doublereal dCH,
@@ -532,7 +537,7 @@ class DynamicInflowRotor : virtual public Elem, public Rotor {
 		      ResForceSet **ppres, 
 		      doublereal dOR,
 		      doublereal dR,
-		      int iMaxIt,
+		      unsigned int iMaxIt,
 		      doublereal dTol,
 		      doublereal dE,
 		      doublereal dCH,
