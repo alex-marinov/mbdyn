@@ -85,7 +85,7 @@ Body::Restart(std::ostream& out) const
     out << "  body: " << GetLabel() << ", " 
         << pNode->GetLabel() << ", " << dMass << ", "
 	<< "reference, node, ", Xgc.Write(out, ", ") << ", "
-        << "reference, node, ", J0.Write(out, ", ") << ';' << std::endl;
+        << "reference, node, ", (J0 + Mat3x3(S0, Xgc)).Write(out, ", ") << ';' << std::endl;
    
     return out;
 }

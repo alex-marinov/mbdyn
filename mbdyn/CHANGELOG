@@ -24,6 +24,7 @@ MBDyn 1.X-Engineering
 		- fixed "naive" support of parallel assembly
 		- fixed default model name for adams output
 		- fixed modal inertia computation when clamped
+		- fixed rigid body inertia reference point in restart
 
 MBDyn 1.2-Engineering
 	Enhancements:
