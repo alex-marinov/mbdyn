@@ -123,8 +123,8 @@ class SchurMultiStepIntegrator : public Integrator {
    VectorHandler* pXPrimePrev2; /* derivata due passi prima */
    
    /* Strutture di gestione dei dati e della soluzione */
-   SolutionManager* pSM;        /* SolutionManager locale */
-   SchurSolutionManager* pIntSM;/* SolutionManager di interfaccia (schur) */
+   SchurSolutionManager* pSM;	/* SolutionManager locale */
+   SolutionManager* pLocalSM;	/* SolutionManager di interfaccia (schur) */
    DataManager* pDM;            /* gestore dei dati (generico) */
    SchurDataManager* pSDM;      /* gestore dei dati (specifico schur) */
    VecIter<Dof> DofIterator;    /* Iteratore per la struttura dei Dof, 
@@ -261,4 +261,5 @@ SchurMultiStepIntegrator::Flip(void)
 	pXPrimeCurr = p;
 }
 
-#endif
+#endif /* SCHUR_H */
+

@@ -145,7 +145,7 @@ pXPrimePrev(NULL),
 pXPrev2(NULL),
 pXPrimePrev2(NULL),
 pSM(NULL),
-pIntSM(NULL),
+pLocalSM(NULL),
 pDM(NULL),
 pSDM(NULL),
 DofIterator(), 
@@ -186,9 +186,9 @@ pFictitiousStepsMethod(NULL),
 db0Differential(0.),
 db0Algebraic(0.),
 iWorkSpaceSize(0),
-dPivotFactor(1.),
+dPivotFactor(-1.),
 iIWorkSpaceSize(0),
-dIPivotFactor(1.),
+dIPivotFactor(-1.),
 fParallel(fPar)
 {
 	DEBUGCOUTFNAME("SchurMultiStepIntegrator::SchurMultiStepIntegrator");
@@ -346,11 +346,11 @@ SchurMultiStepIntegrator::Run(void)
    
 
     /* Crea il solutore locale */
-    integer iLocWorkSpaceSize = iWorkSpaceSize/(iNumDofs*iNumDofs)* iNumLocDofs;
+    integer iLocWorkSpaceSize = iWorkSpaceSize*iNumLocDofs/(iNumDofs*iNumDofs);
     switch (CurrSolver) {
      	case Y12_SOLVER: 
 #ifdef USE_Y12
-      		SAFENEWWITHCONSTRUCTOR(pSM,
+      		SAFENEWWITHCONSTRUCTOR(pLocalSM,
 			Y12SparseLUSolutionManager,
 			Y12SparseLUSolutionManager(iNumLocDofs,
 				iLocWorkSpaceSize,
@@ -367,7 +367,7 @@ SchurMultiStepIntegrator::Run(void)
 			<< "solver. Switching to Harwell...." << std::endl;
    	case HARWELL_SOLVER:
 #ifdef USE_HARWELL
-      		SAFENEWWITHCONSTRUCTOR(pSM,
+      		SAFENEWWITHCONSTRUCTOR(pLocalSM,
 			HarwellSparseLUSolutionManager,
 			HarwellSparseLUSolutionManager(iNumLocDofs,
 				iLocWorkSpaceSize,
@@ -381,7 +381,7 @@ SchurMultiStepIntegrator::Run(void)
 
    	case UMFPACK3_SOLVER:
 #ifdef USE_UMFPACK3
-      		SAFENEWWITHCONSTRUCTOR(pSM,
+      		SAFENEWWITHCONSTRUCTOR(pLocalSM,
 			Umfpack3SparseLUSolutionManager,
 			Umfpack3SparseLUSolutionManager(iNumLocDofs, 
 				0, dPivotFactor));
@@ -399,14 +399,14 @@ SchurMultiStepIntegrator::Run(void)
      	case Y12_SOLVER: 
 #ifdef USE_Y12
 		{ 
-		  Y12SparseLUSolutionManager* pSM;
-   		  SAFENEWWITHCONSTRUCTOR(pIntSM,
+		  Y12SparseLUSolutionManager* pIntSM;
+   		  SAFENEWWITHCONSTRUCTOR(pSM,
 			  SchurSolutionManager,
 			  SchurSolutionManager(iNumDofs, pLocDofs, 
 						iNumLocDofs, 
 						pIntDofs, iNumIntDofs,
-						pSM,
-						pSM,
+						pLocalSM,
+						pIntSM,
 						iIWorkSpaceSize, 
 						dIPivotFactor== -1.? 1. : dIPivotFactor));
 		}
@@ -424,14 +424,14 @@ SchurMultiStepIntegrator::Run(void)
     	case MESCHACH_SOLVER:
 #ifdef USE_MESCHACH
 		{ 
-		MeschachSparseLUSolutionManager* pSM;
-   		SAFENEWWITHCONSTRUCTOR(pIntSM,
+		MeschachSparseLUSolutionManager* pIntSM;
+   		SAFENEWWITHCONSTRUCTOR(pSM,
 			  SchurSolutionManager,
 			  SchurSolutionManager(iNumDofs, pLocDofs, 
 						iNumLocDofs, 
 						pIntDofs, iNumIntDofs,
-						pSM,
-						pSM,
+						pLocalSM,
+						pIntSM,
 						iIWorkSpaceSize, 
 						dIPivotFactor== -1.? 1. : dIPivotFactor));
 		}
@@ -446,14 +446,14 @@ SchurMultiStepIntegrator::Run(void)
    	case UMFPACK3_SOLVER:
 #ifdef USE_UMFPACK3
 		{
-		Umfpack3SparseLUSolutionManager* pSM;
-   		SAFENEWWITHCONSTRUCTOR(pIntSM,
+		Umfpack3SparseLUSolutionManager* pIntSM;
+   		SAFENEWWITHCONSTRUCTOR(pSM,
 			  SchurSolutionManager,
 			  SchurSolutionManager(iNumDofs, pLocDofs, 
 						iNumLocDofs, 
 						pIntDofs, iNumIntDofs,
-						pSM,
-						pSM,
+						pLocalSM,
+						pIntSM,
 						0, dIPivotFactor));
       		}
 		break;
@@ -466,9 +466,9 @@ SchurMultiStepIntegrator::Run(void)
 
 
    /* Puntatori agli handlers del solution manager */
-   VectorHandler* pRes = pIntSM->pResHdl();
-   VectorHandler* pSol = pIntSM->pSolHdl();
-   MatrixHandler* pJac = pIntSM->pMatHdl();
+   VectorHandler* pRes = pSM->pResHdl();
+   VectorHandler* pSol = pSM->pSolHdl();
+   MatrixHandler* pJac = pSM->pMatHdl();
 
    /* Legenda:
     *   MS - SchurMultiStepIntegrator
@@ -577,14 +577,14 @@ SchurMultiStepIntegrator::Run(void)
      	MPE_Log_event(23, 0, "start");
 #endif /* MPI_PROFILING */
  
-     	pIntSM->MatrInit(0.);
+     	pSM->MatrInit(0.);
      	pDM->AssJac(*pJac, dDerivativesCoef);
     
 #ifdef MPI_PROFILING
      	MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
     
-     	pIntSM->Solve();
+     	pSM->Solve();
   
 
 #ifdef DEBUG
@@ -749,14 +749,14 @@ EndOfDerivatives:
        MPE_Log_event(23, 0, "start");
 #endif /* MPI_PROFILING */ 
        
-       pIntSM->MatrInit(0.);
+       pSM->MatrInit(0.);
        pDM->AssJac(*pJac, db0Differential);
 
 #ifdef MPI_PROFILING
         MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */ 
     
-       pIntSM->Solve();
+       pSM->Solve();
      
 #ifdef DEBUG
        if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_FSTEPS)) {
@@ -905,14 +905,14 @@ EndOfFirstFictitiousStep:
          MPE_Log_event(23, 0, "start");
 #endif /* MPI_PROFILING */  
 	 
-	 pIntSM->MatrInit(0.);
+	 pSM->MatrInit(0.);
 	 pDM->AssJac(*pJac, db0Differential);
 	 
 #ifdef MPI_PROFILING
 	 MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 	 
-	 pIntSM->Solve();
+	 pSM->Solve();
 	 
 #ifdef DEBUG
 	 if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_FSTEPS)) {
@@ -1137,7 +1137,7 @@ EndOfFictitiousStep:
        MPE_Log_event(23,0,"start Jacobian");
 #endif
 
-       pIntSM->MatrInit(0.);
+       pSM->MatrInit(0.);
        pDM->AssJac(*pJac, db0Differential);
 
 #ifdef MPI_PROFILING
@@ -1145,7 +1145,7 @@ EndOfFictitiousStep:
 #endif
       }
 
-     pIntSM->Solve();
+     pSM->Solve();
      
 #ifdef DEBUG
      if (DEBUG_LEVEL(MYDEBUG_SOL)) {
@@ -1362,7 +1362,7 @@ IfStepIsToBeRepeated:
 #ifdef MPI_PROFILING
 	 MPE_Log_event(23,0,"start Jacobian");
 #endif
-	 pIntSM->MatrInit(0.);
+	 pSM->MatrInit(0.);
 	 pDM->AssJac(*pJac, db0Differential);
 
 #ifdef MPI_PROFILING
@@ -1370,7 +1370,7 @@ IfStepIsToBeRepeated:
 #endif
 
        }
-       pIntSM->Solve();
+       pSM->Solve();
        
 #ifdef DEBUG
        if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_MPI)) {
@@ -1447,8 +1447,8 @@ SchurMultiStepIntegrator::~SchurMultiStepIntegrator(void)
       SAFEDELETEARR(sOutputFileName);
    }
 
-   if (pIntSM != NULL)  {
-      SAFEDELETE(pIntSM);
+   if (pSM != NULL)  {
+      SAFEDELETE(pSM);
    }
 
    if (pXPrimePrev2 != NULL) {
@@ -1501,7 +1501,7 @@ SchurMultiStepIntegrator::MakeTest(const VectorHandler& Res,
    * chiama la routine di comunicazione per la trasmissione del residuo
    * delle interfacce
    */
-  pIntSM->StartExchInt();
+  pSM->StartExchInt();
  
   /* calcola il test per i dofs locali */
   int DCount = 0;
@@ -1530,7 +1530,7 @@ SchurMultiStepIntegrator::MakeTest(const VectorHandler& Res,
   }
   
   /* verifica completamento trasmissioni */
-  pIntSM->ComplExchInt(dRes, dXPr);
+  pSM->ComplExchInt(dRes, dXPr);
 
   
   dRes /= (1.+dXPr);
