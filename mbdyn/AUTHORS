@@ -90,6 +90,9 @@ Giuseppe Quaranta, currently a Ph.D. student will work on the integration
 	with sophisticated aerodynamics, including wake modeling
 	and CFD.
 
+Michele Attolico, currently a Ph.D. student, is integrating RTAI 
+	to allow hard and user-space real-time simulations.
+
 Other undergrads might have had a role in the F77 version of the code, 
 that I'm not aware of.
 
