@@ -15,10 +15,9 @@ MBDyn 1.X-Engineering
 		- added "ad hoc" (Radau IIA) third-order integrator
 	Backward compatibility issues:
 	Known issues:
-		- parallel is not working yet
 	Bug fixes:
 
-MBDyn 1.2.1
+MBDyn 1.2-Engineering
 	Enhancements:
 		- added provisions for detailed dof stats
 		- added linear and angular acceleration to dynamic
@@ -32,10 +31,10 @@ MBDyn 1.2.1
 		- improved local and inet socket input/output
 	Backward compatibility issues:
 	Known issues:
-		- parallel is not working yet
 	Bug fixes:
 		- fixed relative rotation private data in revolute
 		  joints (problem noted by Roger Polston)
+		- parallel is working now
 
 MBDyn 1.2.0
 	Enhancements:
