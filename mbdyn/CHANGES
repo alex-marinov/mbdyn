@@ -67,6 +67,8 @@ MBDyn 1.2-Engineering
 		  with Y12
 		- direct access compact column matrix for further improvements
 		- support for multithread SuperLU solver
+		- viscoelastic rods also output length rate
+		- shock absorber allows separate metering based on stroke rate
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
