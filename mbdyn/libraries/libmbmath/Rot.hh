@@ -56,20 +56,48 @@
 
 namespace RotManip {
 
+/**
+ * Compute the rotation matrix Phi given Euler Rogriguez's parameters phi
+ */
 Mat3x3 Rot(const Vec3 & phi);
- 
-Mat3x3 DRot(const Vec3 & phi);
 
+/**
+ * Compute G matrix given Euler Rogriguez's parameters Phi
+ * G defined in such a way that dPhi * PhiT = G * dphi
+ */
+ Mat3x3 DRot(const Vec3 & phi);
+
+/**
+ * Compute rotation matrix Phi and Ga matrix 
+ * given Euler Rogriguez's parameters Phi
+ */
 void RotAndDRot(const Vec3 & phi, Mat3x3 & Phi, Mat3x3 & Ga);
 
+/**
+ * Compute the inverse transpose of G matrix given Euler Rogriguez's parameters Phi
+ */
 Mat3x3 DRot_IT(const Vec3 & phi);
 
+/**
+ * Compute the inverse of G matrix given Euler Rogriguez's parameters Phi
+ */
 Mat3x3 DRot_I(const Vec3 & phi);
 
+/**
+ * Compute inverse transpose ot rotation matrix Phi and Ga matrix 
+ * given Euler Rogriguez's parameters Phi
+ */
 void RotAndDRot_IT(const Vec3 & phi, Mat3x3 & PhiIT, Mat3x3 & GaIT);
 
+/**
+ * Compute Euler Rogriguez's parameters phi given rotation matrix Phi
+ */
 Vec3 VecRot(const Mat3x3 & Phi);
 
+/**
+ * Compute, given Euler Rogriguez's parameters phi, L matrix such that
+ * dG * a = L(phi, a) * dphi
+ */
 Mat3x3 Elle(const Vec3 & phi, const Vec3 & a);
 
 } //end of namespace RotManip
