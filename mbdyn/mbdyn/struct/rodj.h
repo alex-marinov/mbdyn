@@ -187,6 +187,8 @@ public:
 	};
 	virtual void
 	GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
+	virtual void
+	GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
 	virtual std::ostream&
 	WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part,
 			unsigned int firstId) const;
@@ -333,6 +335,7 @@ public:
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);   
 	void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
+	void GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
 	std::ostream& WriteAdamsDummyPartCmd(std::ostream& out,
 		unsigned int part, unsigned int firstId) const;
 

@@ -454,6 +454,16 @@ Rod::GetAdamsDummyPart(unsigned int part,
    R = pNode1->GetRCurr();
 }
 
+void 
+Rod::GetAdamsDummyPartVel(unsigned int part,
+			    Vec3& v, 
+			    Vec3& w) const 
+{
+   ASSERT(part == 1);
+   v = pNode1->GetVCurr();
+   w = pNode1->GetWCurr();
+}
+
 
 std::ostream& 
 Rod::WriteAdamsDummyPartCmd(std::ostream& out,
@@ -1561,6 +1571,16 @@ RodWithOffset::GetAdamsDummyPart(unsigned int part,
    ASSERT(part == 1);
    x = pNode1->GetXCurr()+pNode1->GetRCurr()*f1;
    R = pNode1->GetRCurr();
+}
+
+void 
+RodWithOffset::GetAdamsDummyPartVel(unsigned int part,
+			    Vec3& v, 
+			    Vec3& w) const 
+{
+   ASSERT(part == 1);
+   w = pNode1->GetWCurr();
+   v = pNode1->GetVCurr()+w.Cross(pNode1->GetRCurr()*f1);
 }
 
 

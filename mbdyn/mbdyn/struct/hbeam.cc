@@ -718,6 +718,16 @@ HBeam::GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& r) const
 	r = R;
 }
 
+void
+HBeam::GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
+{
+	ASSERT(part == 1);
+	part--;
+   
+	v = Zero3;
+	w = Zero3;
+}
+
 
 std::ostream& 
 HBeam::WriteAdamsDummyPartCmd(std::ostream& out,

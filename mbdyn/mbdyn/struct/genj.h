@@ -138,6 +138,7 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
       return 1;
    };
    virtual void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
+   virtual void GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
    virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
 #endif /* USE_ADAMS */
 };
@@ -250,6 +251,7 @@ virtual public Elem, public Joint, public DriveOwner {
       return 1;
    };
    virtual void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
+   virtual void GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
    virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
 #endif /* USE_ADAMS */
 };

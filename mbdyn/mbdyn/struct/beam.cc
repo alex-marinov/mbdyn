@@ -1197,6 +1197,17 @@ Beam::GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& r) const
    r = R[part];
 }
 
+void
+Beam::GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
+{
+   ASSERT(part == 1 || part == 2);
+   part--;
+
+   /* FIXME */
+   v = Zero3;
+   w = Zero3;
+}
+
 
 std::ostream& 
 Beam::WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const
@@ -1890,6 +1901,15 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
       }	
    }
 
+   std::ostream& out = pDM->GetLogFile();
+   out << "beam3: " << uLabel
+	   << " " << pNode1->GetLabel()
+	   << " ", f1.Write(out, " ")
+	   << " " << pNode2->GetLabel()
+	   << " ", f2.Write(out, " ")
+	   << " " << pNode3->GetLabel()
+	   << " ", f3.Write(out, " ")
+	   << std::endl;
 
    Elem* pEl = NULL;
    

@@ -1312,14 +1312,17 @@ DataManager::ReadOneElem(MBDynParser& HP,
        switch (KeyWords(CurrType)) {
        case BEAM:
        case BEAM3:	/* same as BEAM */
-          *ppE = ReadBeam(this, HP, uLabel);
+	  *ppE = ReadBeam(this, HP, uLabel);
 	  break;
+
        case BEAM2:
 	  *ppE = ReadBeam2(this, HP, uLabel);
 	  break;
+
        case HBEAM:
 	  *ppE = ReadHBeam(this, HP, uLabel);
 	  break;
+
        default:
 	  THROW(DataManager::ErrGeneric());
        }

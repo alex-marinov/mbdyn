@@ -135,34 +135,36 @@ DataManager::AdamsResOutputInit(void)
 		<< "NUMBER OF ANALYSIS BLOCKS                      2" << std::endl;
 	adamsNoab = out.tellp();
 
+	const char *sVel = bAdamsVelocity ? "YES" : "NO ";
 	out
 		<< std::setw(8) << 2+10000 << std::setw(8) << 123+3*iAdamsOutputParts << std::endl
 		<< "!" << std::endl
      
 		/* Rigid Parts Map Block */
 		<< "RIGID PARTS MAP                         " << std::setw(8) << 2+iAdamsOutputParts << std::endl
-		<< std::setw(8) << iAdamsOutputParts << "YESNO NO" << std::endl;
+		<< std::setw(8) << iAdamsOutputParts << "YES" << sVel << "NO" << std::endl;
 
 	unsigned int i;
+	unsigned int iVelOffset = iAdamsOutputParts;
+	unsigned int iAccOffset = bAdamsVelocity ? 2*iAdamsOutputParts : iAdamsOutputParts;
 	for (i = 0; i < nStrNodes; i++) {
 		out 
 			<< std::setw(20) << 2+i  /* 2 perche' 1 e' il "ground" in Adams! */
 			<< std::setw(8) << 5+i
-			<< std::setw(8) << 5+i+iAdamsOutputParts
-			<< std::setw(8) << 5+i+iAdamsOutputParts << std::endl;
+			<< std::setw(8) << 5+i+iVelOffset
+			<< std::setw(8) << 5+i+iAccOffset << std::endl;
 	}
    
 	if (ElemIter.bGetFirst(p)) {
 		do {
 			ASSERT(p != NULL);
 			if (p != NULL) {
-				for (unsigned int part = 1; part <= p->iGetNumAdamsDummyParts(); part++) {
+				for (unsigned int part = 1; part <= p->iGetNumAdamsDummyParts(); part++, i++) {
 					out
 						<< std::setw(20) << 2+i
 						<< std::setw(8) << 5+i
-						<< std::setw(8) << 5+i+iAdamsOutputParts
-						<< std::setw(8) << 5+i+iAdamsOutputParts << std::endl;
-					i++;
+						<< std::setw(8) << 5+i+iVelOffset
+						<< std::setw(8) << 5+i+iAccOffset << std::endl;
 				}
 			}
 		} while (ElemIter.bGetNext(p));
@@ -479,17 +481,16 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 		MatR2EulerParams(pNode->GetRCurr(), e0, e);
 #ifdef HAVE_FORM_IN_OSTREAM
 		out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
-				x.dGet(1), x.dGet(2), x.dGet(3),
-				e0, e.dGet(1), e.dGet(2), e.dGet(3));
+				x(1), x(2), x(3), e0, e(1), e(2), e(3));
 #else /* !HAVE_FORM_IN_OSTREAM */
 		out
-			<< std::setw(12) << std::setprecision(5) << x.dGet(1)
-			<< std::setw(12) << std::setprecision(5) << x.dGet(2)
-			<< std::setw(12) << std::setprecision(5) << x.dGet(3)
+			<< std::setw(12) << std::setprecision(5) << x(1)
+			<< std::setw(12) << std::setprecision(5) << x(2)
+			<< std::setw(12) << std::setprecision(5) << x(3)
 			<< std::setw(12) << std::setprecision(5) << e0
-			<< std::setw(12) << std::setprecision(5) << e.dGet(1)
-			<< std::setw(12) << std::setprecision(5) << e.dGet(2)
-			<< std::setw(12) << std::setprecision(5) << e.dGet(3)
+			<< std::setw(12) << std::setprecision(5) << e(1)
+			<< std::setw(12) << std::setprecision(5) << e(2)
+			<< std::setw(12) << std::setprecision(5) << e(3)
 			<< std::endl;
 #endif /* !HAVE_FORM_IN_OSTREAM */
 	}
@@ -510,22 +511,85 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 					MatR2EulerParams(R, e0, e);
 #ifdef HAVE_FORM_IN_OSTREAM
 					out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
-							x.dGet(1), x.dGet(2), x.dGet(3),
-							e0, e.dGet(1), e.dGet(2), e.dGet(3));
+							x(1), x(2), x(3), e0, e(1), e(2), e(3));
 #else /* !HAVE_FORM_IN_OSTREAM */
 					out 
-						<< std::setw(12) << std::setprecision(5) << x.dGet(1)
-						<< std::setw(12) << std::setprecision(5) << x.dGet(2)
-						<< std::setw(12) << std::setprecision(5) << x.dGet(3)
+						<< std::setw(12) << std::setprecision(5) << x(1)
+						<< std::setw(12) << std::setprecision(5) << x(2)
+						<< std::setw(12) << std::setprecision(5) << x(3)
 						<< std::setw(12) << std::setprecision(5) << e0
-						<< std::setw(12) << std::setprecision(5) << e.dGet(1)
-						<< std::setw(12) << std::setprecision(5) << e.dGet(2)
-						<< std::setw(12) << std::setprecision(5) << e.dGet(3)
+						<< std::setw(12) << std::setprecision(5) << e(1)
+						<< std::setw(12) << std::setprecision(5) << e(2)
+						<< std::setw(12) << std::setprecision(5) << e(3)
 						<< std::endl;
 #endif /* HAVE_FORM_IN_OSTREAM */
 				}
 			}
 		} while (ElemIter.bGetNext(p));
+	}
+
+	if (bAdamsVelocity) {
+		for (unsigned int i = 0; i < nStrNodes; i++) {
+			Vec3 v;
+			Vec3 w;
+
+			StructNode *pNode =
+				(StructNode *)NodeData[Node::STRUCTURAL].ppFirstNode[i];
+
+			/* Skip relative frame dummy nodes */
+			if (pNode->GetStructNodeType() == StructNode::DUMMY) {
+				DummyStructNode *pDmy = (DummyStructNode *)pNode;
+
+				if (pDmy->GetDummyType() == DummyStructNode::RELATIVEFRAME) {
+					continue;
+				}
+			}
+ 
+			v = pNode->GetVCurr();
+			w = pNode->GetWCurr();
+			
+#ifdef HAVE_FORM_IN_OSTREAM
+			out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
+					v(1), v(2), v(3), w(1), w(2), w(3));
+#else /* !HAVE_FORM_IN_OSTREAM */
+			out
+				<< std::setw(12) << std::setprecision(5) << v(1)
+				<< std::setw(12) << std::setprecision(5) << v(2)
+				<< std::setw(12) << std::setprecision(5) << v(3)
+				<< std::setw(12) << std::setprecision(5) << w(1)
+				<< std::setw(12) << std::setprecision(5) << w(2)
+				<< std::setw(12) << std::setprecision(5) << w(3)
+				<< std::endl;
+#endif /* !HAVE_FORM_IN_OSTREAM */
+		}
+
+		Elem *p = NULL;
+		if (ElemIter.bGetFirst(p)) {
+			do {
+				ASSERT(p != NULL);
+				
+				if (p != NULL) {
+					for (unsigned int part = 1; part <= p->iGetNumAdamsDummyParts(); part++) {
+						Vec3 v, w;
+						
+						p->GetAdamsDummyPartVel(part, v, w);
+#ifdef HAVE_FORM_IN_OSTREAM
+						out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
+								v(1), v(2), v(3), w(1), w(2), w(3));
+#else /* !HAVE_FORM_IN_OSTREAM */
+						out 
+							<< std::setw(12) << std::setprecision(5) << v.dGet(1)
+							<< std::setw(12) << std::setprecision(5) << v.dGet(2)
+							<< std::setw(12) << std::setprecision(5) << v.dGet(3)
+							<< std::setw(12) << std::setprecision(5) << w.dGet(1)
+							<< std::setw(12) << std::setprecision(5) << w.dGet(2)
+							<< std::setw(12) << std::setprecision(5) << w.dGet(3)
+							<< std::endl;
+#endif /* HAVE_FORM_IN_OSTREAM */
+					}
+				}
+			} while (ElemIter.bGetNext(p));
+		}
 	}
 
 	out.flags(oldflags);

@@ -308,6 +308,7 @@ class Beam2
         return 1;
     };
     void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
+    void GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
     std::ostream& 
     WriteAdamsDummyPartCmd(std::ostream& out,
                            unsigned int part, 

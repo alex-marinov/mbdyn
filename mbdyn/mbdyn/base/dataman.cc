@@ -124,6 +124,7 @@ iOutputBlock(1),
 #endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */
 #ifdef USE_ADAMS 
 sAdamsModelName(NULL),
+bAdamsVelocity(false),
 iAdamsOutputNodes(0),
 iAdamsOutputParts(0),
 adamsNoab(0),

@@ -334,6 +334,16 @@ DistanceJoint::GetAdamsDummyPart(unsigned int part,
 	R = pNode1->GetRCurr();
 }
 
+void 
+DistanceJoint::GetAdamsDummyPartVel(unsigned int part, 
+		Vec3& v, 
+		Vec3& w) const 
+{
+	ASSERT(part == 1);
+	v = pNode1->GetVCurr();
+	w = pNode1->GetWCurr();
+}
+
 std::ostream& 
 DistanceJoint::WriteAdamsDummyPartCmd(std::ostream& out,
 		unsigned int part, 
@@ -718,6 +728,40 @@ DistanceJointWithOffset::GetAdamsDummyPart(unsigned int part,
 	R = MatR2vec(1, v1, 2, v2);
 
 	// R = pNode1->GetRCurr();
+}
+
+void 
+DistanceJointWithOffset::GetAdamsDummyPartVel(unsigned int part,
+		Vec3& v, 
+		Vec3& w) const 
+{
+	ASSERT(part == 1);
+#if 0
+	x = pNode1->GetXCurr()+pNode1->GetRCurr()*f1;
+	
+	Vec3 x2 = pNode2->GetXCurr()+pNode2->GetRCurr()*f2;
+
+	Vec3 v1 = x2-x;
+	doublereal l = v1.Norm();
+	v1 /= l;
+
+	Mat3x3 Rx(Eye3-v1.Tens(v1));
+	int index = 1;
+	if (fabs(v1.dGet(2)) < fabs(v1.dGet(index))) {
+		index = 2;
+	}
+	if (fabs(v1.dGet(3)) < fabs(v1.dGet(index))) {
+		index = 3;
+	}
+
+	Vec3 v2(Rx.GetVec(index));
+	v2 /= v2.Norm();
+
+	R = MatR2vec(1, v1, 2, v2);
+#endif
+
+	v = pNode1->GetVCurr();
+	w = pNode1->GetWCurr();
 }
 
 std::ostream& 

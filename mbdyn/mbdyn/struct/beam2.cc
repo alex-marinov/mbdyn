@@ -863,6 +863,16 @@ Beam2::GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& r) const
 	r = R;
 }
 
+void
+Beam2::GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
+{
+	ASSERT(part == 1);
+	part--;
+   
+	v = Zero3;
+	w = Zero3;
+}
+
 
 std::ostream& 
 Beam2::WriteAdamsDummyPartCmd(std::ostream& out,
@@ -1394,6 +1404,14 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		R = RR2*Mat3x3(MatR, g);
 	}
 	
+	std::ostream& out = pDM->GetLogFile();
+	out << "beam2: " << uLabel
+		<< " " << pNode1->GetLabel()
+		<< " ", f1.Write(out, " ")
+		<< " " << pNode2->GetLabel()
+		<< " ", f2.Write(out, " ")
+		<< std::endl;
+
 	Elem* pEl = NULL;
 	
 	if (CLType == ConstLawType::ELASTIC) {

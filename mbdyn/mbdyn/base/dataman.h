@@ -163,6 +163,7 @@ protected:
 
 #ifdef USE_ADAMS
 	char *sAdamsModelName;
+	bool bAdamsVelocity;
 	unsigned int iAdamsOutputNodes;
 	unsigned int iAdamsOutputParts;
 	std::streambuf::pos_type adamsNoab;
@@ -266,6 +267,7 @@ public:
 	/* Restituisce l'ostream al file di output,
 	 * usato dai vari metodi per scrivere il log del calcolo */
 	std::ostream& GetOutFile(void) { return OutHdl.Output(); };
+	std::ostream& GetLogFile(void) { return OutHdl.Log(); };
 
 	/* Restituisce il DriveHandler */
 	const DriveHandler* pGetDrvHdl(void) const { return &DrvHdl; };

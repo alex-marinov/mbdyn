@@ -169,6 +169,8 @@ public:
 	};
 	virtual void
 	GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
+	virtual void
+	GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
 	virtual std::ostream&
 	WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part,
 			unsigned int firstId) const;
@@ -263,6 +265,8 @@ public:
 	/* Adams output stuff */
 	virtual void
 	GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
+	virtual void
+	GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
 	virtual std::ostream&
 	WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part,
 			unsigned int firstId) const;

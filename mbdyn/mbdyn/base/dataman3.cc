@@ -799,19 +799,41 @@ void DataManager::ReadControl(MBDynParser& HP,
 #if defined USE_ADAMS 
 	 	 	ResMode |= RES_ADAMS;
 
-	  		if (HP.IsArg() && HP.IsKeyWord("model" "name")) {
-	     			if (sAdamsModelName != NULL) {
-					SAFEDELETEARR(sAdamsModelName);
-					sAdamsModelName = NULL;
-	     			}
+	  		if (HP.IsArg()) {
+				if (HP.IsKeyWord("model" "name")) {
+	     				if (sAdamsModelName != NULL) {
+						pedantic_cerr("line " << HP.GetLineData()
+								<< ": ADAMS output model name "
+								"already defined; replacing..."
+								<< std::endl);
+						SAFEDELETEARR(sAdamsModelName);
+						sAdamsModelName = NULL;
+	     				}
 	     
-	     			const char *tmp = HP.GetStringWithDelims();
-	     			SAFESTRDUP(sAdamsModelName, tmp);
-	  		} else {
-	     			SAFESTRDUP(sAdamsModelName, "mbdyn");
-	  		}
+	     				const char *tmp = HP.GetStringWithDelims();
+	     				SAFESTRDUP(sAdamsModelName, tmp);
+
+	  			} else {
+	     				SAFESTRDUP(sAdamsModelName, "mbdyn");
+	  			}
+
+				/* default; conservative: output is very verbose */
+				if ( HP.IsKeyWord("velocity")) {
+					if (HP.IsKeyWord("yes")) {
+						bAdamsVelocity = true;
+
+					} else if (HP.IsKeyWord("no")) {
+						bAdamsVelocity = false;
+
+					} else {
+						silent_cerr("unknown value for \"velocity\" flag at line "
+								<< HP.GetLineData() << std::endl);
+						THROW(ErrGeneric());
+					}
+				}
+			}
 #else /* !USE_ADAMS */
-			std::cerr << "Please rebuild with Adams output enabled\n"
+			std::cerr << "Please rebuild with ADAMS output enabled\n"
 				<< std::endl;
 			THROW(ErrGeneric());
 #endif /* USE_ADAMS */

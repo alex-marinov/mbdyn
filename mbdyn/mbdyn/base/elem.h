@@ -215,6 +215,9 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
    virtual void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const {
       THROW(ErrGeneric());
    };
+   virtual void GetAdamsDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const {
+      THROW(ErrGeneric());
+   };
    virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const {
       THROW(ErrGeneric());
    };
