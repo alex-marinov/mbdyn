@@ -30,7 +30,7 @@ if nargin < 2,
 	ns = c;
 else 
 	if ( ns > c),
-  	  error('too many sv required');
+  		error('too many sv required');
 	end
 end
 
@@ -47,6 +47,7 @@ A = A(:, gt)./(ones(r, 1)*scl(gt));
 for i = 1:nlt,
 	disp(sprintf('dof %d: output is negligible', lt(i)));
 end
+disp(sprintf('using %d dofs (out of %d)', ngt, c));
 
 if ((exist('OCTAVE_HOME') == 0) & (exist('dec') == 1)),
 	if dec <= 1,
@@ -60,23 +61,47 @@ if ((exist('OCTAVE_HOME') == 0) & (exist('dec') == 1)),
 	r = fix(r/dec);
 end
 
+[nt, nd] = size(A);
 if exist('OCTAVE_HOME'),
 	%%% This is the big octave drawback: no eigs() ...
-	[Utmp, Etmp] = eig(A*A');
-	Etmp = diag(Etmp);
-	[Etmp2, I] = sort(Etmp);
-	E = Etmp(I(r:-1:r-ns+1));
-	U = Utmp(:, I(r:-1:r-ns+1));
+	if (nt > nd),
+		[Btmp, Etmp] = eig(A'*A);
+		Etmp = diag(Etmp);
+		[Etmp2, I] = sort(Etmp);
+		E = Etmp(I(ngt:-1:ngt-ns+1));
+		B = Btmp(:, I(ngt:-1:ngt-ns+1))';
+	else 
+		[Utmp, Etmp] = eig(A*A');
+		Etmp = diag(Etmp);
+		[Etmp2, I] = sort(Etmp);
+		E = Etmp(I(r:-1:r-ns+1));
+		U = Utmp(:, I(r:-1:r-ns+1));
+	end
 else
-	[U, E] = eigs(A*A', ns);
-	E = diag(E);
+	if (nt > nd),
+		[B, E] = eigs(A'*A, ns);
+		E = diag(E);
+		B = B';
+	else
+		[U, E] = eigs(A*A', ns);
+		E = diag(E);
+	end
 end
 
-B = U'*A;
-for i = 1:ns,
-    s = B(i, :)*B(i, :)';
-    S(i, 1) = sqrt(s); % norm(B(i, :)), since S = sqrt(E)
-    B(i, :) = B(i, :)/s;
+if (nt > nd),
+	U = A*B';
+	for i = 1:ns,
+		s = U(:, i)'*U(:, i);
+		S(i, 1) = sqrt(s);		% norm(B(i, :)), since S = sqrt(E)
+		U(:, i) = U(:, i)/S(i, 1);
+	end
+else
+	B = U'*A;
+	for i = 1:ns,
+		s = B(i, :)*B(i, :)';
+		S(i, 1) = sqrt(s);		% norm(B(i, :)), since S = sqrt(E)
+		B(i, :) = B(i, :)/S(i, 1);
+	end
 end
 
 % Aout = B*A';			% = E^-1*U'*A*A' = E^-1*U'*U*E*U' = U'
@@ -92,7 +117,7 @@ end
 % physical eigenvalues and eigenvectors ...
 [vv, eetmp] = eig(H);
 ee = log(diag(eetmp))/dt;
-B = B.*(ones(ns, 1)*scl(gt));
+B = diag(S)*B.*(ones(ns, 1)*scl(gt));
 X = zeros(ns, c);
 X(:, gt) = vv'*B;
 BB = zeros(ns, c);
