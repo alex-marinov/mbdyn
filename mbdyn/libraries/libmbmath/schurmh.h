@@ -370,7 +370,6 @@ private:
 	integer LSize, ISize;
 	VectorHandler* pLV;
 	VectorHandler* pIV;
-	doublereal* pIntVec;
 	integer* pGTL;
   
 public:
@@ -389,36 +388,18 @@ public:
 #endif /* DEBUG */
  
 	/* restituisce il puntatore al vettore */
-	inline doublereal* pdGetVec(void) const {
-		std::cerr << "You shouldn't have asked for "
-			"the internal pointer of a SchurVectorHandler"
-			<< std::endl; 
-		return pLV->pdGetVec();
-	};
+	inline doublereal* pdGetVec(void) const;
 
 	/* restituisce le dimensioni del vettore */
-	inline integer iGetSize(void) const {
-		return LSize+ISize;
-	};  
+	inline integer iGetSize(void) const;
 
-	inline void Resize(integer iNewSize) {
-		std::cerr << "Why are you trying to resize a SchurVector ????"
-			<< std::endl;
-		std::cerr << "No Operation Performed!!" << std::endl;
-	};
+	inline void Resize(integer iNewSize);
 
 	/* assegna il dResetVal a tutti gli elementi del vettore */
-	inline void Reset(doublereal dResetVal = 0.) {
-		pLV->Reset(dResetVal);
-		pIV->Reset(dResetVal); 
-	};
+	inline void Reset(doublereal dResetVal = 0.);
   
-	inline VectorHandler*  GetIVec(void) {
-		return pIV; 
-	};
-	inline VectorHandler* GetLVec(void) {
-		return pLV;
-	};
+	inline VectorHandler* GetIVec(void);
+	inline VectorHandler* GetLVec(void);
 
 	inline flag fPutCoef(integer iRow, const doublereal& dCoef);
 	inline flag fIncCoef(integer iRow, const doublereal& dCoef);
@@ -426,6 +407,51 @@ public:
 	inline const doublereal& dGetCoef(integer iRow) const;
 	inline void PrintVector(void);  
 };
+
+/* restituisce il puntatore al vettore */
+inline doublereal*
+SchurVectorHandler::pdGetVec(void) const
+{
+	std::cerr << "You shouldn't have asked for "
+		"the internal pointer of a SchurVectorHandler"
+		<< std::endl; 
+	return pLV->pdGetVec();
+}
+
+/* restituisce le dimensioni del vettore */
+inline integer
+SchurVectorHandler::iGetSize(void) const
+{
+	return LSize+ISize;
+}
+
+inline void
+SchurVectorHandler::Resize(integer iNewSize)
+{
+	std::cerr << "Why are you trying to resize a SchurVector ????"
+		<< std::endl
+		<< "No Operation Performed!!" << std::endl;
+}
+
+/* assegna il dResetVal a tutti gli elementi del vettore */
+inline void
+SchurVectorHandler::Reset(doublereal dResetVal = 0.)
+{
+	pLV->Reset(dResetVal);
+	pIV->Reset(dResetVal); 
+}
+  
+inline VectorHandler*
+SchurVectorHandler::GetIVec(void)
+{
+	return pIV; 
+}
+
+inline VectorHandler*
+SchurVectorHandler::GetLVec(void)
+{
+	return pLV;
+}
 
 inline flag
 SchurVectorHandler::fPutCoef(integer iRow, const doublereal& dCoef)

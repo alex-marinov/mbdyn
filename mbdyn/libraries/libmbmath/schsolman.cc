@@ -168,11 +168,11 @@ fNewMatrix(0)
   if (prVH->pdGetVec() == pSolrVH->pdGetVec()) {
   	SAFENEWWITHCONSTRUCTOR(pMH, SchurMatrixHandler, 
 			 SchurMatrixHandler(iLocVecDim, 
-			 		iIntVecDim, pBMH,pGlbToLoc));
+			 		iIntVecDim, pBMH, pGlbToLoc));
   } else {
   	SAFENEWWITHCONSTRUCTOR(pMH, SchurMatrixHandlerUm, 
 			 SchurMatrixHandlerUm(iLocVecDim, 
-			 		iIntVecDim, pBMH,pGlbToLoc));
+			 		iIntVecDim, pBMH, pGlbToLoc));
   }
   
   SAFENEWWITHCONSTRUCTOR(pRVH, SchurVectorHandler, 

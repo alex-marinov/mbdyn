@@ -153,13 +153,11 @@ SchurVectorHandler::SchurVectorHandler(int LocSize, int IntSize,
 ISize(IntSize),
 pLV(pLocVec),
 pIV(NULL),
-pIntVec(NULL),
 pGTL(pGlobToLoc) 
 {
-	SAFENEWARR(pIntVec, doublereal, IntSize); 
 	SAFENEWWITHCONSTRUCTOR(pIV,
 			MyVectorHandler,
-			MyVectorHandler(IntSize, pIntVec));
+			MyVectorHandler(IntSize));
 }
 
 SchurVectorHandler::SchurVectorHandler(int LocSize, int IntSize,
@@ -169,7 +167,6 @@ SchurVectorHandler::SchurVectorHandler(int LocSize, int IntSize,
 ISize(IntSize),
 pLV(pLocV),
 pIV(pIntV),
-pIntVec(NULL),
 pGTL(pGlobToLoc) 
 {
 	NO_OP;
@@ -178,9 +175,6 @@ pGTL(pGlobToLoc)
 
 SchurVectorHandler::~SchurVectorHandler(void)
 {
-	if (pIntVec != NULL) {
-      		SAFEDELETEARR(pIntVec);
-	}
 	if (pIV != NULL) {
 		SAFEDELETE(pIV);
 	}	 
