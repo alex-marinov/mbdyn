@@ -62,8 +62,9 @@ mbdyn_warranty(std::ostream& out)
 		<< std::endl;
 }
 
-MBDynParser::MBDynParser(MathParser& MP, KeyTable& KT, InputStream& streamIn)
-: IncludeParser(MP, KT, streamIn)
+MBDynParser::MBDynParser(MathParser& MP, KeyTable& KT, InputStream& streamIn,
+		const char *initial_file)
+: IncludeParser(MP, KT, streamIn, initial_file)
 #if defined(USE_STRUCT_NODES)
 , RFHD()
 , RF(RFHD)

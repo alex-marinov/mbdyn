@@ -144,7 +144,8 @@ class IncludeParser : public HighParser {
    void Include_(void);
    
  public:
-   IncludeParser(MathParser& MP, KeyTable& KT, InputStream& streamIn);
+   IncludeParser(MathParser& MP, KeyTable& KT, InputStream& streamIn, 
+		   const char *initial_file = "initial file");
    virtual ~IncludeParser(void);
 
    virtual void Close(void);                  /* "Chiude" i flussi */   

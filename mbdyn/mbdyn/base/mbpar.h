@@ -172,7 +172,8 @@ protected:
 #endif /* USE_AERODYNAMIC_ELEMS */
 
 public:
-	MBDynParser(MathParser& MP, KeyTable& KT, InputStream& streamIn);
+	MBDynParser(MathParser& MP, KeyTable& KT, InputStream& streamIn,
+			const char *initial_file);
 	~MBDynParser(void);
 	
 	int GetDescription(void);          /* Legge una parola chiave */

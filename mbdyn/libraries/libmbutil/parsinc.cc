@@ -49,11 +49,13 @@ const int PATHBUFSIZE = 1024;
 
 IncludeParser::IncludeParser(MathParser& MP, 
 			     KeyTable& KT, 
-			     InputStream& streamIn)
+			     InputStream& streamIn,
+			     const char *sInitialFile)
 : HighParser(MP, KT, streamIn),
 sCurrPath(NULL),
 sCurrFile(NULL)
 {   
+	ASSERT(sInitialFile != NULL);
 #ifdef USE_INCLUDE_PARSER
    	char* s = NULL;
    	SAFENEWARR(s, char, PATHBUFSIZE);
@@ -65,7 +67,6 @@ sCurrFile(NULL)
    	}
    	DEBUGCOUT("Current directory is <" << sCurrPath << '>' << std::endl);
    
-   	const char sInitialFile[] = "initial file";
    	SAFESTRDUP(sCurrFile, sInitialFile);
 #else /* !USE_INCLUDE_PARSER */
    	NO_OP;

@@ -196,6 +196,8 @@ extern void GetEnviron(MathParser&);
 
 /* flag di silent run (no output su stdout) */
 int fSilent = 0;
+const char* sDefaultInputFileName = "MBDyn";
+
 
 
 Integrator* RunMBDyn(MBDynParser&, const char* const, const char* const);
@@ -256,7 +258,7 @@ main(int argc, char* argv[])
         	/* Stream di ingresso dati */
 		std::istream* pIn = NULL;
 		std::ifstream FileStreamIn;
-        	char* sInputFileName = "MBDyn";
+        	char* sInputFileName = (char *)sDefaultInputFileName;
         	char* sOutputFileName = NULL;
       
         	enum InputSource {
@@ -601,7 +603,8 @@ main(int argc, char* argv[])
 	     
 	        		/* stream in ingresso */
 	        		InputStream In(*pIn);
-	        		MBDynParser HP(*pMP, K, In);
+	        		MBDynParser HP(*pMP, K, In, 
+						sInputFileName == sDefaultInputFileName ? "initial file" : sInputFileName);
 	     
 	        		pIntg = RunMBDyn(HP, sInputFileName, 
 						 sOutputFileName);
