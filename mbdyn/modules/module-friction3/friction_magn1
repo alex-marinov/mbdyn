@@ -8,7 +8,7 @@ begin: multistep;
 #	time step: 1.e-3;
 	final time: 30.;
 #	time step: 30./40000.;
-	time step: 750.E-4;
+	time step: 750.E-5;
 
 	tolerance: 1.e-6;
 	max iterations: 20;
@@ -79,7 +79,8 @@ begin: elements;
 		,
 		friction, 
 #			modlugre, 1E5, sqrt(1E5),0.4,0.71, "splinefriction", 
-			discrete coulomb, "splinefriction",
+			discrete coulomb, "splinefriction", 
+				sigma2, 0.4, velocity ratio, 0.8,
 			simple
 #			simple plane hinge, 0.1
 		;
