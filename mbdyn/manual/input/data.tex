@@ -328,6 +328,7 @@ usually output.
             { naive | umfpack | y12 | lapack 
                 | harwell | meschach | superlu | taucs }
         [ , { map | cc | dir } ]
+        [ , colamd ]
         [ , mt , <threads> ]
         [ , workspace size , <workspace_size> ] 
         [ , pivot factor , <factor> ]
@@ -396,6 +397,12 @@ comparable to that of \kw{cc}.
 \end{itemize}
 Only \kw{umfpack}, \kw{y12} and \kw{superlu} solvers allow these
 settings.
+
+\noindent
+The keyword \kw{colamd} is honored by the \kw{naive} solver only;
+it enables the column rearrangement that minimizes the sparsity
+of the factorized matrix, as implemented in \kw{libcolamd}
+(part of \kw{umfpack} package).
 
 \noindent
 Pivot factor is a real, which in a heuristic sense can be regarded as
