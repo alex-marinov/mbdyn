@@ -118,7 +118,7 @@ D. Code:
 	- allow runtime load of drive callers
 	- generate a binary form of the .fem data for the modal element
 		that can be loaded instead of the text version according
-		to time stamps, to speed-up large models input
+		to time stamps, to speed-up large models input (DONE)
 
 
 
