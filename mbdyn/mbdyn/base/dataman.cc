@@ -343,6 +343,12 @@ DofIter()
       OutHdl.Open(OutputHandler::REFERENCEFRAMES);
       HP.OutputFrames(OutHdl.ReferenceFrames());
    }
+
+#ifdef USE_AERODYNAMIC_ELEMS
+   if (ElemData[Elem::AIRPROPERTIES].iNum > 0) {
+      OutHdl.Open(OutputHandler::AIRPROPS);
+   }
+#endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
 
    /* fine lettura elementi */     

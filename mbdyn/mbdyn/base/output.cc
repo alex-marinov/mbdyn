@@ -67,6 +67,7 @@ const char* psExt[] = {
    ".amd",
    ".rfm",
    ".log",  /* 20 */
+   ".air",
    
    NULL
 };
@@ -96,6 +97,7 @@ ofAdamsCmd(),
 ofAeroModals(),
 ofReferenceFrames(),
 ofLog(),
+ofAirProps(),
 iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
 {
    OutData[OUTPUT].fToUseDefaultPrecision = flag(0);
@@ -181,6 +183,10 @@ iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
    OutData[LOG].fToUseDefaultPrecision = flag(0);
    OutData[LOG].fToUseScientific = flag(0);
    OutData[LOG].pof = &ofLog;
+   
+   OutData[AIRPROPS].fToUseDefaultPrecision = flag(1);
+   OutData[AIRPROPS].fToUseScientific = flag(1);
+   OutData[AIRPROPS].pof = &ofAirProps;
 }
 
 
@@ -209,6 +215,7 @@ ofAdamsCmd(),
 ofAeroModals(),
 ofReferenceFrames(),
 ofLog(),
+ofAirProps(),
 iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
 {
    OutData[OUTPUT].fToUseDefaultPrecision = flag(0);
@@ -298,6 +305,10 @@ iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
    OutData[LOG].pof = &ofLog;
    ofLog.width(iCurrWidth);
    ofLog.precision(iCurrPrecision);
+   
+   OutData[AIRPROPS].fToUseDefaultPrecision = flag(1);
+   OutData[AIRPROPS].fToUseScientific = flag(1);
+   OutData[AIRPROPS].pof = &ofAirProps;
 }
 
 
@@ -524,6 +535,17 @@ int OutputHandler::LogOpen(void)
 #endif /* HAVE_ISOPEN */
    return Open(LOG);
 }
+
+
+#if 0
+int OutputHandler::AirPropsOpen(void)
+{ 
+#if HAVE_ISOPEN
+   ASSERT(!ofAirProps.is_open());
+#endif /* HAVE_ISOPEN */
+   return Open(AIRPROPS);
+}
+#endif /* 0 */
 
 /* Setta precisione e dimensioni campo */
 const int iWidth = 7; /* Caratteri richiesti dalla notazione esponenziale */

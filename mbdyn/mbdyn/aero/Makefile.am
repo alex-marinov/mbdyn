@@ -10,6 +10,7 @@ aerodata.cc \
 aerodata.h \
 aerodc81.c \
 aerodc81.h \
+aerodyn.cc \
 aerodyn.h \
 aeroelem.cc \
 aeroelem.h \

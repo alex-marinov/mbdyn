@@ -72,8 +72,9 @@ class OutputHandler : public FileName {
       AEROMODALS  = 18,
       REFERENCEFRAMES	= 19,
       LOG         = 20,
+      AIRPROPS	  = 21,
       
-      LASTFILE    /* = 21 */
+      LASTFILE    /* = 22 */
    };   
    
  private:
@@ -106,6 +107,7 @@ class OutputHandler : public FileName {
    std::ofstream ofAeroModals;
    std::ofstream ofReferenceFrames;
    std::ofstream ofLog;
+   std::ofstream ofAirProps;
    
    int iCurrWidth;
    int iCurrPrecision;
@@ -296,6 +298,13 @@ class OutputHandler : public FileName {
 #endif	
    };   
    
+   inline std::ostream& AirProps(void) const {
+#if HAVE_ISOPEN
+      ASSERT(ofAirProps.is_open());
+#endif /* HAVE_ISOPEN */
+      return (std::ostream&)ofAirProps;	  
+   };
+
    inline int iW(void) const { 
       return iCurrWidth; 
    };

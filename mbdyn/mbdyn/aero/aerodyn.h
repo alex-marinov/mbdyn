@@ -79,28 +79,16 @@ class AirProperties
    
  public:
    AirProperties(const TplDriveCaller<Vec3>* pDC,
-		 DriveCaller *pRho, doublereal dSS, flag fOut)
-     : Elem(1, Elem::AIRPROPERTIES, fOut),
-     InitialAssemblyElem(1, Elem::AIRPROPERTIES, fOut),
-     TplDriveOwner<Vec3>(pDC),    
-     Velocity(0.), pAirDensity(pRho), dSoundSpeed(dSS) {
-	NO_OP;
-     };
+		 DriveCaller *pRho, doublereal dSS, flag fOut);
    
-   virtual ~AirProperties(void) {
-      NO_OP;
-   };
+   virtual ~AirProperties(void);
 
    virtual inline void* pGet(void) const { 
       return (void*)this;
    };
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const {
-      return out << "  air properties: ",
-	pAirDensity->Restart(out) << ", " << dSoundSpeed << ", ",
-	pGetDriveCaller()->Restart(out) << ';' << std::endl;	   
-   };
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    /* Tipo dell'elemento (usato per debug ecc.) */
    virtual Elem::Type GetElemType(void) const { 
@@ -127,89 +115,48 @@ class AirProperties
    /* funzioni proprie */
    
    /* Dimensioni del workspace */
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-      *piNumRows = 0;
-      *piNumCols = 0;
-   };
+   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
    
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
      AssJac(VariableSubMatrixHandler& WorkMat,
 	    doublereal /* dCoef */ , 
 	    const VectorHandler& /* XCurr */ ,
-	    const VectorHandler& /* XPrimeCurr */ ) {
-	WorkMat.SetNullMatrix();
-	return WorkMat;
-     };
+	    const VectorHandler& /* XPrimeCurr */ );
    
    /* assemblaggio residuo */
    virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 				    doublereal /* dCoef */ ,
 				    const VectorHandler& /* XCurr */ , 
-				    const VectorHandler& /* XPrimeCurr */ ) {
-      WorkVec.Resize(0);
-      
-      /* Approfitto del fatto che AirProperties viene aggiornato prima 
-       * degli altri elementi (vedi l'enum Elem::Type e la sequenza di
-       * assemblaggio) per fargli calcolare Velocity una volta per tutte.
-       * Quindi, quando viene chiamata GetVelocity(void), 
-       * questa restituisce un reference all'accelerazione con il
-       * minimo overhead */
-      Velocity = Get();
-      
-      return WorkVec;
-   };
-   
+				    const VectorHandler& /* XPrimeCurr */ );
    
    /* Numero di GDL iniziali */
-   virtual unsigned int iGetInitialNumDof(void) const { 
-      return 0;
-   };
+   virtual unsigned int iGetInitialNumDof(void) const;
      
    /* Dimensioni initiali del workspace */
-   virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-      *piNumRows = 0;
-      *piNumCols = 0;
-   };
+   virtual void InitialWorkSpaceDim(integer* piNumRows,
+		   integer* piNumCols) const;
    
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
      InitialAssJac(VariableSubMatrixHandler& WorkMat,	  
-	    const VectorHandler& /* XCurr */ ) {
-	WorkMat.SetNullMatrix();
-	return WorkMat;
-     };
+	    const VectorHandler& /* XCurr */ );
    
    /* assemblaggio residuo */
    virtual SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
-					   const VectorHandler& XCurr) {
-      /* Chiama AssRes, che si limita ad aggiornare la velocita' */
-      return AssRes(WorkVec, 1, XCurr, XCurr);
-   };
+					   const VectorHandler& XCurr);
 
-   virtual void Output(OutputHandler&) const {
-	NO_OP;	   
-   };
+   virtual void Output(OutputHandler&) const;
      
-   virtual const Vec3& GetVelocity(const Vec3& /* X */ ) const { 
-      return Velocity;
-   };
+   virtual const Vec3& GetVelocity(const Vec3& /* X */ ) const;
    
-   virtual doublereal dGetAirDensity(const Vec3& /* X */ ) const {
-      return pAirDensity->dGet();
-   };
+   virtual doublereal dGetAirDensity(const Vec3& /* X */ ) const;
    
-   virtual doublereal dGetAirPressure(const Vec3& /* X */ ) const { 
-      return 0.;
-   };
+   virtual doublereal dGetAirPressure(const Vec3& /* X */ ) const;
 
-   virtual doublereal dGetAirTemperature(const Vec3& /* X */ ) const { 
-      return 0.;
-   };
+   virtual doublereal dGetAirTemperature(const Vec3& /* X */ ) const;
 
-   virtual doublereal dGetSoundSpeed(const Vec3& /* X */ ) const { 
-      return dSoundSpeed;
-   };
+   virtual doublereal dGetSoundSpeed(const Vec3& /* X */ ) const;
 };
 
 /* AirProperties - end */
@@ -221,38 +168,20 @@ class AirPropOwner {
  protected:
    const AirProperties* pAirProperties;
  public:
-   AirPropOwner(void) : pAirProperties(NULL) { NO_OP; };
-   virtual ~AirPropOwner(void) { NO_OP; };
+   AirPropOwner(void);
+   virtual ~AirPropOwner(void);
    
-   virtual void PutAirProperties(const AirProperties* pAP) {
-      ASSERT(pAirProperties == NULL);
-      (AirProperties*&)pAirProperties = (AirProperties*)pAP;
-   };
+   virtual void PutAirProperties(const AirProperties* pAP);
    
-   virtual flag fGetAirVelocity(Vec3& Velocity, const Vec3& X) const {
-      if (pAirProperties == NULL) {
-	 return 0;
-      }
-      
-      Velocity = pAirProperties->GetVelocity(X);
-      return 1;
-   };
+   virtual flag fGetAirVelocity(Vec3& Velocity, const Vec3& X) const;
    
-   virtual doublereal dGetAirDensity(const Vec3& X) const { 
-      return pAirProperties->dGetAirDensity(X);
-   };
+   virtual doublereal dGetAirDensity(const Vec3& X) const;
    
-   virtual doublereal dGetAirPressure(const Vec3& X) const { 
-      return pAirProperties->dGetAirPressure(X); 
-   };
+   virtual doublereal dGetAirPressure(const Vec3& X) const;
    
-   virtual doublereal dGetAirTemperature(const Vec3& X) const { 
-      return pAirProperties->dGetAirTemperature(X); 
-   };
+   virtual doublereal dGetAirTemperature(const Vec3& X) const;
    
-   virtual doublereal dGetSoundSpeed(const Vec3& X) const { 
-      return pAirProperties->dGetSoundSpeed(X); 
-   };
+   virtual doublereal dGetSoundSpeed(const Vec3& X) const;
 };
 
 /* AirPropOwner - end */
@@ -281,41 +210,26 @@ class AerodynamicElem : virtual public Elem, public AirPropOwner {
  protected:
    
  public:
-   AerodynamicElem(unsigned int uL, AerodynamicElem::Type T, flag fOut)
-     : Elem(uL, Elem::AERODYNAMIC, fOut), AeroT(T) { 
-	NO_OP; 
-     };
+   AerodynamicElem(unsigned int uL, AerodynamicElem::Type T, flag fOut);
    
-   virtual ~AerodynamicElem(void) { 
-      NO_OP; 
-   };
+   virtual ~AerodynamicElem(void);
    
    /* Tipo di elemento aerodinamico */
-   virtual AerodynamicElem::Type GetAerodynamicElemType(void) const { 
-      return AeroT;
+   virtual AerodynamicElem::Type GetAerodynamicElemType(void) const {
+	   return AeroT;
    };
-
 
    /* Consente di effettuare un casting sicuro da Elem* a AerodynamicElem* */
    virtual AerodynamicElem* pGetAerodynamicElem(void) const {
-      return (AerodynamicElem*)this; 
+	   return (AerodynamicElem *)this;
    };
 
-   virtual bool NeedsAirProperties(void) const {
-      return true;
-   };
+   virtual bool NeedsAirProperties(void) const;
 
-   virtual const Rotor *pGetRotor(void) const {
-      return NULL;
-   }
-   
-#ifdef DEBUG
-   virtual flag fIsAerodynamicElem(void) const { 
-      return flag(1);
-   };
-#endif /* DEBUG */
+   virtual const Rotor *pGetRotor(void) const;
 };
 
 /* AerodynamicElem - end */
 
-#endif
+#endif /* AERODYN_H */
+
