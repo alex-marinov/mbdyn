@@ -98,6 +98,7 @@ static volatile sig_atomic_t mbdyn_keep_going = 1;
 static __sighandler_t mbdyn_sh_term = SIG_DFL;
 static __sighandler_t mbdyn_sh_int = SIG_DFL;
 static __sighandler_t mbdyn_sh_hup = SIG_DFL;
+static __sighandler_t mbdyn_sh_pipe = SIG_DFL;
 
 static void
 really_exit_handler(int signum)
@@ -114,6 +115,10 @@ really_exit_handler(int signum)
 
     	case SIGHUP:
       		signal(signum, ::mbdyn_sh_hup);
+      		break;
+
+    	case SIGPIPE:
+      		signal(signum, ::mbdyn_sh_pipe);
       		break;
    	}
 
@@ -677,14 +682,14 @@ Solver::Run(void)
    	}
 #endif /* __HACK_EIG__ */
 
-   	integer iTotIter = 0;
+	integer iTotIter = 0;
 	integer iStIter = 0;
-   	doublereal dTotErr = 0.;
+	doublereal dTotErr = 0.;
 	doublereal dTest = DBL_MAX;
-   	doublereal dSolTest = DBL_MAX;
+	doublereal dSolTest = DBL_MAX;
 	bool bSolConv = false;
 	/* calcolo delle derivate */
-   	DEBUGLCOUT(MYDEBUG_DERIVATIVES, "derivatives solution step"
+	DEBUGLCOUT(MYDEBUG_DERIVATIVES, "derivatives solution step"
 			<< std::endl);
 
 #ifdef HAVE_SIGNAL
@@ -692,19 +697,25 @@ Solver::Run(void)
 	 * FIXME: don't do this if compiling with USE_RTAI
 	 * Re FIXME: use sigaction() ...
 	 */
-   	::mbdyn_sh_term = signal(SIGTERM, modify_final_time_handler);
-   	::mbdyn_sh_int = signal(SIGINT, modify_final_time_handler);
-   	::mbdyn_sh_hup = signal(SIGHUP, modify_final_time_handler);
+	::mbdyn_sh_term = signal(SIGTERM, modify_final_time_handler);
+	if (::mbdyn_sh_term == SIG_IGN) {
+		signal(SIGTERM, SIG_IGN);
+	}
 
-   	if (::mbdyn_sh_term == SIG_IGN) {
-      		signal (SIGTERM, SIG_IGN);
-   	}
-   	if (::mbdyn_sh_int == SIG_IGN) {
-      		signal (SIGINT, SIG_IGN);
-   	}
-   	if (::mbdyn_sh_hup == SIG_IGN) {
-      		signal (SIGHUP, SIG_IGN);
-   	}
+	::mbdyn_sh_int = signal(SIGINT, modify_final_time_handler);
+	if (::mbdyn_sh_int == SIG_IGN) {
+		signal(SIGINT, SIG_IGN);
+	}
+
+	::mbdyn_sh_hup = signal(SIGHUP, modify_final_time_handler);
+	if (::mbdyn_sh_hup == SIG_IGN) {
+		signal(SIGHUP, SIG_IGN);
+	}
+
+	::mbdyn_sh_pipe = signal(SIGPIPE, modify_final_time_handler);
+	if (::mbdyn_sh_pipe == SIG_IGN) {
+		signal(SIGHUP, SIG_IGN);
+	}
 #endif /* HAVE_SIGNAL */
 
 	/* settaggio degli output Types */
