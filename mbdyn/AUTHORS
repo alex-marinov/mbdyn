@@ -54,6 +54,8 @@ Many students had a part in developing the code:
 Dr. Gabriele Gilardi worked on the initial code as a PhD student, but I don't
 	known what his exact contribution was.
 
+Colferai worked at the modal body implementation in the F77 version.
+
 Stefano Marazzani worked as an undergrad student at the beam, rotor 
 	and aerodynamic  elements in the F77 version of the code.
 
@@ -77,7 +79,6 @@ Giuseppe Quaranta (Beppe), as an undergrad, did a very good job in
 Leonardo Cassan, undergrad, is working at the ADAMS2MBDyn project,
 	a translator form ADAMS/View models in adm format into MBDyn
 	raw input files. You can find it in contrib/a2m.
-
 
 Other undergrads might have had a role in the F77 version of the code, 
 that I'm not aware of.
