@@ -1282,7 +1282,7 @@ Analogous to \texttt{rod} with the optional arg \texttt{offset}.
 }
 \begin{verbatim}
     <joint_type> ::= modal
-    <joint                    8e-04 -7.720ode> ,
+    <joint_arglist> ::= <reference_modal_node> ,
                         <mode_number> ,
                         <fem_node_number> 
                         [ , no damping 
@@ -1387,15 +1387,27 @@ The others have a fairly common syntax. The forst three are
 \begin{verbatim}
     <induced_velocity> ::= { uniform | glauert | mangler } , 
         <reference_omega> , <reference_radius> 
-        [ , weight , <memory_factor> ]
+        [ , delay, <memory_factor> ]
+        [ , correction, <correction_factor> ]
 \end{verbatim}
 the \texttt{reference\_omega} field is used to decide wether to round off the
 dimensionless parameters if the rotor speed is very low; the
 \texttt{reference\_radius} field is used in the adimensionalisation of the
-rotor related parameters; the \texttt{memory\_factor} parameter is used to
+rotor related parameters
+The \texttt{memory\_factor} parameter is used to
 combine the current reference induced velocity with the induced velocity
-at the previous step. It represents the weight that is given to the value at
-the previous step; no weight means there is no memory of the previous value.
+at the previous step, according to
+\begin{displaymath}
+	U_{effective} = \plbr{1 - \texttt{<memory\_factor>}} U_{nominal}
+			+ \texttt{<memory\_factor>} U_{previous}
+\end{displaymath}
+no delay means there is no memory of the previous value 
+(\emph{Note: for historical reasons, \texttt{weight} can be used 
+instead of \texttt{delay}}).
+The \texttt{correction\_factor} multiplies the nominal induced velocity;
+it defaults to 1.
+
+\noindent
 The last one uses a dynamic inflow model, with inflow states.
 The syntax is:
 \begin{verbatim}
