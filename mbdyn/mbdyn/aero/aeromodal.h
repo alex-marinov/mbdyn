@@ -76,10 +76,10 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
    const Modal* pModalJoint;     /* puntatore all'elemento modale di riferimento */
    const Mat3x3 Ra;             /* Rotaz. del sistema aerodinamico al nodo */
 
-   doublereal Cord;          /* Reference Cord */
-   int NStModes;             /* Numero di modi strutturali */
-   int NAeroStates;		 /* Numero stati aerodinamici */
-   int NGust;		 /* Numero ingressi raffica */
+   doublereal Chord;          /* Reference Cord */
+   unsigned int NStModes;             /* Numero di modi strutturali */
+   unsigned int NAeroStates;		 /* Numero stati aerodinamici */
+   unsigned int NGust;		 /* Numero ingressi raffica */
    
    std::vector<double>* pA;	         /* Vettore degli autovalori del sistema aerodinamco */		   
    FullMatrixHandler* pB;	 	 /* Matrici del modello agli stati dell'aerodinamica */	   

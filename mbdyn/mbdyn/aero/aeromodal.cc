@@ -61,7 +61,7 @@ ElemWithDofs(uLabel, Elem::AEROMODAL, pDO, fout),
 DriveOwner(pDC),
 pModalNode(pN), pModalJoint(pMJ),
 Ra(RaTmp),
-Cord(Cd),
+Chord(Cd),
 NStModes(NModal),
 NAeroStates(NAero), NGust(Gust),
 pA(pAMat), pB(pBMat), pC(pCMat),
@@ -140,20 +140,22 @@ AerodynamicModal::AssJac(VariableSubMatrixHandler& WorkMat,
    	FullSubMatrixHandler& WM = WorkMat.SetFull();
    	integer iNumRows = 0;
    	integer iNumCols = 0;
-   	this->WorkSpaceDim(&iNumRows, &iNumCols);
+   	WorkSpaceDim(&iNumRows, &iNumCols);
    	WM.ResizeInit(iNumRows, iNumCols, 0.);
 
+#if 0
    	integer iFirstIndex = pModalNode->iGetFirstIndex();
+#endif
    	integer iModalIndex = pModalJoint->iGetModalIndex();
 
    
-    	for(int iCnt = 1; iCnt <= 2*NStModes; iCnt++) {
+    	for (unsigned int iCnt = 1; iCnt <= 2*NStModes; iCnt++) {
       		WM.fPutRowIndex(iCnt, iModalIndex+iCnt);
       		WM.fPutColIndex(iCnt, iModalIndex+iCnt);
     	} 
    
     	integer iAeroIndex = iGetFirstIndex();		   
-    	for(int iCnt = 1; iCnt <= NAeroStates; iCnt++) {
+    	for (unsigned int iCnt = 1; iCnt <= NAeroStates; iCnt++) {
       		WM.fPutRowIndex(2*NStModes+iCnt, iAeroIndex+iCnt);
       		WM.fPutColIndex(2*NStModes+iCnt, iAeroIndex+iCnt);
     	}
@@ -166,16 +168,18 @@ AerodynamicModal::AssJac(VariableSubMatrixHandler& WorkMat,
    	Mat3x3 RRT(RR.Transpose());
    	Vec3 Vr(V0);
    	doublereal rho = dGetAirDensity(X0);
+#if 0
    	doublereal vs  = dGetSoundSpeed(X0);
+#endif
    	Vec3 VTmp(0.);
    	if(fGetAirVelocity(VTmp, X0)) {
-   		Vr = VTmp + Vr;
+   		Vr -= VTmp;
    	}
    	/* velocità nel riferimento nodale aerodinamico */
    	VTmp=RRT*Vr;
    	doublereal nV = VTmp.Norm();
    	doublereal qd =0.5*rho*nV*nV;	
-        doublereal CV=Cord/(2*nV);
+        doublereal CV=Chord/(2*nV);
    
 	/* parte deformabile :
     	 * 
@@ -190,15 +194,15 @@ AerodynamicModal::AssJac(VariableSubMatrixHandler& WorkMat,
 	 * Cae=-qd CV D1
 	 * Kae=-qd D0	  
 	 */
-        for(int i=1; i <= NStModes; i++) {
-        	for(int j=1; j <= NStModes; j++) {
+        for (unsigned int i=1; i <= NStModes; i++) {
+        	for (unsigned int j=1; j <= NStModes; j++) {
 			WM.fIncCoef(i+NStModes,j,-dCoef*qd*pD0->dGetCoef(i,j));
 	        	WM.fIncCoef(i+NStModes,j+NStModes,-qd*CV*CV*pD2->dGetCoef(i,j)-dCoef*qd*CV*pD1->dGetCoef(i,j));
 		}
 	}
-        for(int j=1; j <= NAeroStates; j++) {
+        for (unsigned int j=1; j <= NAeroStates; j++) {
 	        WM.fIncCoef(j+2*NStModes,j+2*NStModes, 1-dCoef*(1/CV)*(*pA)[j-1]);
-        	for(int i=1; i <= NStModes; i++) {
+        	for (unsigned int i=1; i <= NStModes; i++) {
 			WM.fIncCoef(i+NStModes,j+2*NStModes,-dCoef*qd*pC->dGetCoef(i,j));
 	        	WM.fIncCoef(j+2*NStModes,i,-dCoef*(1/CV)*pB->dGetCoef(j,i));
 		}
@@ -216,30 +220,32 @@ SubVectorHandler& AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUTFNAME("AerodynamicModal::AssRes");
    WorkVec.Resize(NStModes+NAeroStates);
    WorkVec.Reset(0.);
-   
+
+#if 0 
    integer iFirstIndex = pModalNode->iGetFirstIndex();
+#endif
    integer iModalIndex = pModalJoint->iGetModalIndex();
 
    
-    for(int iCnt = 1; iCnt <= NStModes; iCnt++) {
+    for (unsigned int iCnt = 1; iCnt <= NStModes; iCnt++) {
       WorkVec.fPutRowIndex(iCnt, iModalIndex+NStModes+iCnt);
     } 
    
     integer iAeroIndex = iGetFirstIndex();		   
-    for(int iCnt = 1; iCnt <= NAeroStates; iCnt++) {
+    for (unsigned int iCnt = 1; iCnt <= NAeroStates; iCnt++) {
       WorkVec.fPutRowIndex(NStModes+iCnt, iAeroIndex+iCnt);
     } 
 
 
    /* Recupera i vettori {a} e {aP} e {aS}(deformate modali) */  
-   for(int  iCnt=1; iCnt<=NStModes; iCnt++) {
+   for (unsigned int  iCnt=1; iCnt<=NStModes; iCnt++) {
      pq->fPutCoef(iCnt, XCurr.dGetCoef(iModalIndex+iCnt));
      pqPrime->fPutCoef(iCnt, XPrimeCurr.dGetCoef(iModalIndex+iCnt));
      pqSec->fPutCoef(iCnt, XPrimeCurr.dGetCoef(iModalIndex+NStModes+iCnt));
    }
   
    /* Recupera i vettori {xa} e {xaP}  */  
-   for(int  iCnt=1; iCnt<=NAeroStates; iCnt++) {
+   for (unsigned int  iCnt=1; iCnt<=NAeroStates; iCnt++) {
      pxa->fPutCoef(iCnt, XCurr.dGetCoef(iAeroIndex+iCnt));
      pxaPrime->fPutCoef(iCnt, XPrimeCurr.dGetCoef(iAeroIndex+iCnt));
    }
@@ -255,30 +261,32 @@ SubVectorHandler& AerodynamicModal::InitialAssRes(SubVectorHandler& WorkVec,
    DEBUGCOUTFNAME("AerodynamicModal::AssRes");
    WorkVec.Resize(NStModes+NAeroStates);
    WorkVec.Reset(0.);
-   
+
+#if 0 
    integer iFirstIndex = pModalNode->iGetFirstIndex();
+#endif
    integer iModalIndex = pModalJoint->iGetModalIndex();
 
    
-    for(int iCnt = 1; iCnt <= NStModes; iCnt++) {
+    for (unsigned int iCnt = 1; iCnt <= NStModes; iCnt++) {
       WorkVec.fPutRowIndex(iCnt, iModalIndex+NStModes+iCnt);
     } 
    
     integer iAeroIndex = iGetFirstIndex();		   
-    for(int iCnt = 1; iCnt <= NAeroStates; iCnt++) {
+    for (unsigned int iCnt = 1; iCnt <= NAeroStates; iCnt++) {
       WorkVec.fPutRowIndex(NStModes+iCnt, iAeroIndex+iCnt);
     } 
 
 
    /* Recupera i vettori {a} e {aP} e {aS}(deformate modali) */  
-   for(int  iCnt=1; iCnt<=NStModes; iCnt++) {
+   for (unsigned int  iCnt=1; iCnt<=NStModes; iCnt++) {
      pq->fPutCoef(iCnt, XCurr.dGetCoef(iModalIndex+iCnt));
      pqPrime->fPutCoef(iCnt, 0);
      pqSec->fPutCoef(iCnt, 0);
    }
   
    /* Recupera i vettori {xa} e {xaP}  */  
-   for(int  iCnt=1; iCnt<=NAeroStates; iCnt++) {
+   for (unsigned int  iCnt=1; iCnt<=NAeroStates; iCnt++) {
      pxa->fPutCoef(iCnt, XCurr.dGetCoef(iAeroIndex+iCnt));
      pxaPrime->fPutCoef(iCnt, 0);
    }
@@ -301,12 +309,14 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
    Mat3x3 RRT(RR.Transpose());
    Vec3 Vr(V0);
    doublereal rho = dGetAirDensity(X0);
+#if 0
    doublereal vs  = dGetSoundSpeed(X0);
+#endif
    Vec3 VTmp(0.);
    if(fGetAirVelocity(VTmp, X0)) {
-   	Vr = VTmp + Vr;
+   	Vr -= VTmp;
    }
-   /* velocità nel riferimento nodale aerodinamico */
+   /* velocita' nel riferimento nodale aerodinamico */
    VTmp=RRT*Vr;
    doublereal nV = VTmp.Norm();
    doublereal qd =0.5*rho*nV*nV;	
@@ -314,15 +324,15 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
    MyVectorHandler TmpP(NAeroStates);
    MyVectorHandler TmpS(NAeroStates);
    pB->MatVecMul(Tmp,*pq);
-   doublereal CV=Cord/(2*nV);
-   for(int i=1; i <= NAeroStates; i++) {
+   doublereal CV=Chord/(2*nV);
+   for (unsigned int i=1; i <= NAeroStates; i++) {
 	WorkVec.Add(NStModes+i, -pxaPrime->dGetCoef(i)+(1/CV)*(*pA)[i-1]*(pxa->dGetCoef(i))+(1/CV)*Tmp.dGetCoef(i));
     }
    pD0->MatVecMul(Tmp,*pq);
    pC->MatVecIncMul(Tmp,*pxa);   
    pD1->MatVecMul(TmpP,*pqPrime);
    pD2->MatVecMul(TmpS,*pqSec);
-   for(int i=1; i <= NStModes; i++) {
+   for (unsigned int i=1; i <= NStModes; i++) {
 	WorkVec.Add(i,+qd*Tmp.dGetCoef(i)+qd*CV*TmpP.dGetCoef(i)+qd*CV*CV*TmpS.dGetCoef(i));
     }
 
@@ -336,10 +346,10 @@ void AerodynamicModal::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
 		OH.AeroModals() << std::setw(8) << GetLabel() << " ";
-		for (int iCnt=0; iCnt < NAeroStates; iCnt++){
+		for (unsigned int iCnt=0; iCnt < NAeroStates; iCnt++){
 			OH.AeroModals() << " " << pxa->dGetCoef(iCnt);
 		}
-		for (int iCnt=0; iCnt < NAeroStates; iCnt++){
+		for (unsigned int iCnt=0; iCnt < NAeroStates; iCnt++){
 			OH.AeroModals() << " " << pxaPrime->dGetCoef(iCnt);
 		}
 		OH.AeroModals() << std::endl;
@@ -379,7 +389,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    Elem* pM = pDM->ReadElem(HP, Elem::JOINT);
    Modal* pModalJoint = (Modal*)pM->pGet();
    if (pModalJoint->GetJointType() != Joint::MODAL) {
-      std::cerr << "element " << pModalJoint->GetLabel()
+      std::cerr << "Joint " << pModalJoint->GetLabel()
 	      << " is required to be a modal joint" << std::endl;
       THROW(DataManager::ErrGeneric());
    }
@@ -388,11 +398,11 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
 
    Mat3x3 Ra(HP.GetRotRel(RF));
 
-   doublereal Cord = HP.GetReal();
+   doublereal Chord = HP.GetReal();
 
    unsigned int AeroN = HP.GetInt();
    /* numero modi e FEM */
-   integer NModes = pModalJoint->uGetNModes();
+   unsigned int NModes = pModalJoint->uGetNModes();
 
 
    unsigned int GustN = 0;
@@ -425,49 +435,56 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    SAFENEWWITHCONSTRUCTOR(pD2Mat, FullMatrixHandler, FullMatrixHandler(NModes, NModes+GustN, 0.));
    
    doublereal d;
-   char str[255];
+   char str[256];
 
    while (!fdat.eof()) {        /* parsing del file */ 
-      fdat.getline(str,255);
-      if (!strncmp("*** MATRIX A", str, 12)) {  /* legge il primo blocco (HEADER) */
+      fdat.getline(str, sizeof(str));
+
+	/* legge il primo blocco (HEADER) */
+      if (!strncmp("*** MATRIX A", str, 12)) {  
 	for (unsigned int iCnt = 0; iCnt < AeroN; iCnt++)  { 
 		fdat >> d;
 		(*pAMat)[iCnt] = d; 
 	}
-      }   
-      if (!strncmp("*** MATRIX B", str, 12)) {  /* legge il primo blocco (HEADER) */
+	
+	/* legge il primo blocco (HEADER) */
+      } else if (!strncmp("*** MATRIX B", str, 12)) {  
 	for (unsigned int iCnt = 0; iCnt < AeroN; iCnt++)  { 
 		for (unsigned int jCnt = 0; jCnt < NModes+GustN; jCnt++)  { 
 			fdat >> d;
 			pBMat->fPutCoef(iCnt+1,jCnt+1,d);
 		} 
-	}   
-      }
-      if (!strncmp("*** MATRIX C", str, 12)) {  /* legge il primo blocco (HEADER) */
+	}
+	
+	/* legge il primo blocco (HEADER) */
+      } else if (!strncmp("*** MATRIX C", str, 12)) {  
 	for (unsigned int iCnt = 0; iCnt < NModes; iCnt++)  { 
 		for (unsigned int jCnt = 0; jCnt < AeroN; jCnt++)  { 
 			fdat >> d;
 			pCMat->fPutCoef(iCnt+1,jCnt+1,d);
 		} 
-	}   
-      }
-      if (!strncmp("*** MATRIX D0", str, 13)) {  /* legge il primo blocco (HEADER) */
+	}
+
+	/* legge il primo blocco (HEADER) */
+      } else if (!strncmp("*** MATRIX D0", str, 13)) {  
 	for (unsigned int iCnt = 0; iCnt < NModes; iCnt++)  { 
 		for (unsigned int jCnt = 0; jCnt < NModes+GustN; jCnt++)  { 
 			fdat >> d;
 			pD0Mat->fPutCoef(iCnt+1,jCnt+1,d);
 		} 
-	}   
-      }
-      if (!strncmp("*** MATRIX D1", str, 13)) {  /* legge il primo blocco (HEADER) */
+	}
+
+	/* legge il primo blocco (HEADER) */
+      } else if (!strncmp("*** MATRIX D1", str, 13)) {
 	for (unsigned int iCnt = 0; iCnt < NModes; iCnt++)  { 
 		for (unsigned int jCnt = 0; jCnt < NModes+GustN; jCnt++)  { 
 			fdat >> d;
 			pD1Mat->fPutCoef(iCnt+1,jCnt+1,d);
 		} 
-	}   
-      }
-      if (!strncmp("*** MATRIX D2", str, 13)) {  /* legge il primo blocco (HEADER) */
+	}
+	
+	/* legge il primo blocco (HEADER) */
+      } else if (!strncmp("*** MATRIX D2", str, 13)) {  
 	for (unsigned int iCnt = 0; iCnt < NModes; iCnt++)  { 
 		for (unsigned int jCnt = 0; jCnt < NModes+GustN; jCnt++)  { 
 			fdat >> d;
@@ -484,14 +501,15 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    SAFENEWWITHCONSTRUCTOR(pEl, 
 			  AerodynamicModal,
 			  AerodynamicModal(uLabel, pModalNode, pModalJoint, 
-			                   Ra, pDO, Cord, NModes, AeroN, GustN, 
+			                   Ra, pDO, Chord, NModes, 
+					   AeroN, GustN, 
 					   pAMat, pBMat, pCMat, pD0Mat, pD1Mat,
 					   pD2Mat, pDC, fOut));
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.fIsArg()) {
-      std::cerr << std::endl
-	<< ": semicolon expected at line " << HP.GetLineData() << std::endl;      
+      std::cerr << "semicolon expected at line " 
+	      << HP.GetLineData() << std::endl;      
       THROW(DataManager::ErrGeneric());
    }   
    
