@@ -141,17 +141,20 @@ AC_SUBST(mbdyn_subdir)dnl
 dnl ----------------------------------------------------------------
 dnl General "enable" options
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debugging], no)dnl
-
+OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
+OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], auto)dnl
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
-OL_ARG_WITH(libf2c,[  --with-libf2c           with f2c library],auto,[auto yes no g2c])
-OL_ARG_WITH(fs,[  --with-fs[=unix|dos]    filesystem type],unix,[unix dos])
+OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}]  with f2c library],auto,[auto yes no g2c])
+OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support],auto,[auto yes no])
-OL_ARG_WITH(metis,[  --with-metis              with Metis support],auto,[auto yes no])
+OL_ARG_WITH(metis,[  --with-metis            with Metis support],auto,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
+OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
 OL_ARG_WITH(pam,[  --with-pam              with PAM support],auto,[auto yes no])
 
+OL_ARG_WITH(aero_output,[  --with-aero-output={std,gauss,node}  aerodynamic output mode],auto,[auto std gauss node])
 
 
 dnl ----------------------------------------------------------------
@@ -174,6 +177,7 @@ F2C_LIBS=
 MPI_LIBS=
 METIS_LIBS=
 MESCHACH_LIBS=
+LAPACK_LIBS=
 PAM_LIBS=
 
 
@@ -204,6 +208,13 @@ AC_DEFINE(USE_TABLE,1,[define this to use external symbol table (default)])
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Use element iterator
+dnl
+AC_DEFINE(USE_ELEM_ITER,1,[define this to use dedicated element iterator])
+
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Set inter-language naming convention for calling Fortran routines
 dnl
 AC_DEFINE(USE_UNDERSCORE,1,[append underscore to fortran calls])
@@ -223,8 +234,46 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check for DEBUG
 dnl
-if test "$ol_enable_debug" != no ; then
+if test "$ol_enable_debug_mpi" != no ; then
+	AC_DEFINE(DEBUG_MPI,1,[define this to add MPI debugging code])
+fi
+if test "$ol_enable_debug" != no -o "$ol_enable_debug_mpi" != no ; then
 	AC_DEFINE(DEBUG,1,[define this to add debugging code])
+fi
+
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Checks for socket
+dnl
+if test "$ol_enable_socket_drives" != no ; then
+	AC_CHECK_FUNC(socket,[have_socket=yes],[have_socket=no])
+
+	if test $have_socket != no ; then
+		AC_DEFINE(USE_SOCKET_DRIVES,1,[define to enable socket drives])
+
+		AC_MSG_CHECKING([for socklen_t])
+		AC_TRY_COMPILE([#include <sys/socket.h>],[
+			socklen_t l;
+		],[have_socklen_t=yes],[have_socklen_t=no])
+		if test $have_socklen_t != no ; then
+			AC_DEFINE(HAVE_SOCKLEN_T,1,
+				[define if typedef socklen_t is defined])
+			AC_MSG_RESULT([yes])
+		else
+			AC_MSG_RESULT([no])
+		fi
+		
+	else
+		if test $ol_enable_socket_drives != auto ; then
+			AC_MSG_ERROR([cannot find sockets])
+		else
+			AC_MSG_WARN([cannot find sockets])
+			AC_MSG_WARN([socket drives not supported!])
+		fi
+	fi
+else
+	AC_MSG_WARN([socket drives not supported!])
 fi
 
 
@@ -249,6 +298,19 @@ else
 	AC_MSG_RESULT([no])
 fi		
 AC_LANG_C
+
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for aerodynamic output flags
+dnl
+if test $ol_with_aero_output = gauss ; then
+	AC_DEFINE(AEROD_OUTPUT,1,[set to 0,1,2 for std,gauss,node])
+elif test $ol_with_aero_output = node ; then
+	AC_DEFINE(AEROD_OUTPUT,2,[set to 0,1,2 for std,gauss,node])
+else
+	AC_DEFINE(AEROD_OUTPUT,0,[set to 0,1,2 for std,gauss,node])
+fi
 
 
 dnl ----------------------------------------------------------------
@@ -383,33 +445,37 @@ dnl
 ol_link_metis=no
 if test $ol_with_metis != no ; then
 	
-	if test $ol_link_mpi != yes ; then
-		AC_MSG_WARN([You need Metis only with MPI])
-	fi
+	if test $ol_link_mpi != yes -a $ol_with_metis != yes ; then
 	
-	AC_CHECK_HEADERS(metis.h)
+		AC_MSG_WARN([You need Metis only with MPI])
+	else
+	
+		AC_CHECK_HEADERS(metis.h)
 
-	if test $ac_cv_header_metis_h = yes ; then
-		AC_CHECK_LIB(metis, METIS_PartGraphVKway,
-			[have_metis=yes],[have_metis=no])
+		if test $ac_cv_header_metis_h = yes ; then
+			AC_CHECK_LIB(metis, METIS_PartGraphVKway,
+				[have_metis=yes],[have_metis=no])
 
-		if test $have_metis != no ; then
-			METIS_LIBS="-lmetis -lm"
-			AC_DEFINE(USE_METIS,1,[define if you want to use Metis])
-			ol_link_metis=yes
-		fi
-	fi
-
-	if test $ol_link_metis = no ; then
-		if test $ol_with_metis != auto ; then
-			AC_MSG_ERROR([Could not locate Metis])
-		else
-			AC_MSG_WARN([Could not locate Metis])
-			AC_MSG_WARN([Metis not supported!])
+			if test $have_metis != no ; then
+				METIS_LIBS="-lmetis -lm"
+				AC_DEFINE(USE_METIS,1,
+					[define if you want to use Metis])
+				ol_link_metis=yes
+			fi
 		fi
 
-		if test $ol_link_mpi = yes ; then
-			AC_MSG_ERROR([You NEED Metis to use Schur parallel solver!])
+		if test $ol_link_metis = no ; then
+			if test $ol_with_metis != auto ; then
+				AC_MSG_ERROR([Could not locate Metis])
+			else
+				AC_MSG_WARN([Could not locate Metis])
+				AC_MSG_WARN([Metis not supported!])
+			fi
+
+			if test $ol_link_mpi = yes ; then
+				AC_MSG_ERROR([You NEED Metis \
+					to use Schur parallel solver!])
+			fi
 		fi
 	fi
 else
@@ -460,6 +526,27 @@ if test $ol_with_meschach != no ; then
 else
 	AC_MSG_WARN([Meschach not supported!])
 fi
+
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for LAPACK
+dnl
+ol_link_lapack=no
+if test $ol_with_lapack != no ; then
+
+	AC_LANG_FORTRAN77
+	AC_CHECK_LIB(lapack,dgesvd,
+		[have_lapack=yes],[have_lapack=no],
+		[-lblas])
+	AC_LANG_C
+	
+	if test $have_lapack != no ; then
+		AC_DEFINE(USE_LAPACK,1,[define to use LAPACK libraries])
+		LAPACK_LIBS="-llapack -lblas"
+	fi
+fi
+
 
 dnl ----------------------------------------------------------------
 dnl
@@ -519,6 +606,21 @@ AC_CHECK_FUNCS([ \
 	chdir \
 ])
 
+AC_LANG_CPLUSPLUS
+AC_MSG_CHECKING([whether class ostream has method 'form'])
+AC_TRY_COMPILE([#include <iostream.h>],[
+	cout.form("%d", 1);
+],[have_form=yes],[have_form=no])
+AC_LANG_C
+
+if test $have_form != no ; then
+	AC_DEFINE(HAVE_FORM_IN_OSTREAM,1,
+		[define if class ostream has 'form' method])
+	AC_MSG_RESULT([yes])
+else
+	AC_MSG_RESULT([no])
+fi
+
 
 dnl ----------------------------------------------------------------
 dnl Variable substituion
@@ -526,6 +628,7 @@ AC_SUBST(F2C_LIBS)
 AC_SUBST(MPI_LIBS)
 AC_SUBST(METIS_LIBS)
 AC_SUBST(MESCHACH_LIBS)
+AC_SUBST(LAPACK_LIBS)
 AC_SUBST(PAM_LIBS)
 
 

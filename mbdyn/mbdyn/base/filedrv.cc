@@ -43,8 +43,7 @@ FileDrive::FileDrive(unsigned int uL, const DriveHandler* pDH,
 : Drive(uL, pDH), sFileName(NULL), iNumDrives(nd)
 {   
    ASSERT(s != NULL);
-   SAFENEWARR(sFileName, char, strlen(s)+1, DMmm);
-   strcpy(sFileName, s);
+   SAFESTRDUP(sFileName, s, DMmm);
 }
 
 

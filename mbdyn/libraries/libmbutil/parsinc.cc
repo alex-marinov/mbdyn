@@ -44,366 +44,374 @@ const int PATHBUFSIZE = 256;
 IncludeParser::IncludeParser(MathParser& MP, 
 			     KeyTable& KT, 
 			     InputStream& streamIn)
-: HighParser(MP, KT, streamIn), sCurrPath(NULL), sCurrFile(NULL)
+: HighParser(MP, KT, streamIn),
+sCurrPath(NULL),
+sCurrFile(NULL)
 {   
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
-   char* s = NULL;
-   SAFENEWARR(s, char, PATHBUFSIZE, MPmm);
-   sCurrPath = getcwd(s, PATHBUFSIZE);
-   if (sCurrPath == NULL) {
-      cerr << "Error in getcwd()" << endl;
-      SAFEDELETEARR(s, MPmm);
-      THROW(ErrFileSystem());
-   }
-   DEBUGCOUT("Current directory is <" << sCurrPath << '>' << endl);
+   	char* s = NULL;
+   	SAFENEWARR(s, char, PATHBUFSIZE, MPmm);
+   	sCurrPath = getcwd(s, PATHBUFSIZE);
+   	if (sCurrPath == NULL) {
+      		cerr << "Error in getcwd()" << endl;
+      		SAFEDELETEARR(s, MPmm);
+      		THROW(ErrFileSystem());
+   	}
+   	DEBUGCOUT("Current directory is <" << sCurrPath << '>' << endl);
    
-   const char sInitialFile[] = "initial file";
-   SAFENEWARR(sCurrFile, char, strlen(sInitialFile)+1, MPmm);
-   strcpy(sCurrFile, sInitialFile); 
+   	const char sInitialFile[] = "initial file";
+   	SAFESTRDUP(sCurrFile, sInitialFile, MPmm);
 #else /* !defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
-   NO_OP;
+   	NO_OP;
 #endif /* !defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
-}   
+}
 
 
 IncludeParser::~IncludeParser(void)
 {   
-   IncludeParser::Close();
+   	IncludeParser::Close();
 }
  
 
 void IncludeParser::Close(void)
 {
-   MyInput* pmi = NULL;
-   if (MyInStack.iPop(pmi)) {
-      ASSERT(pmi != NULL);
-      /* Nota: deve esserci solo l'ultimo file */
-      ASSERT(pf != NULL);
-      ASSERT(pIn != NULL);
+   	MyInput* pmi = NULL;
+   	if (MyInStack.iPop(pmi)) {
+      		ASSERT(pmi != NULL);
+      		/* Nota: deve esserci solo l'ultimo file */
+      		ASSERT(pf != NULL);
+      		ASSERT(pIn != NULL);
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
-      ASSERT(sCurrPath != NULL);
-      ASSERT(sCurrFile != NULL);
+      		ASSERT(sCurrPath != NULL);
+      		ASSERT(sCurrFile != NULL);
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
-      if (pf != NULL) {
-	 SAFEDELETE(pf, MPmm);
-      }
-      if(pIn != NULL) {
-	 SAFEDELETE(pIn, MPmm);
-      }
+      		if (pf != NULL) {
+	 		SAFEDELETE(pf, MPmm);
+      		}
+      		if (pIn != NULL) {
+	 		SAFEDELETE(pIn, MPmm);
+      		}
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
-      DEBUGCOUT("Leaving directory <" << sCurrPath 
-		<< ">, file <" << sCurrFile << '>' << endl);
-      if (sCurrPath != NULL) {
-	 SAFEDELETEARR(sCurrPath, MPmm);
-	 sCurrPath = NULL;
-      }
-      if (sCurrFile != NULL) {
-	 SAFEDELETEARR(sCurrFile, MPmm);
-	 sCurrFile = NULL;
-      }
+      		DEBUGCOUT("Leaving directory <" << sCurrPath 
+			<< ">, file <" << sCurrFile << '>' << endl);
+      		if (sCurrPath != NULL) {
+	 		SAFEDELETEARR(sCurrPath, MPmm);
+	 		sCurrPath = NULL;
+      		}
+      		if (sCurrFile != NULL) {
+	 		SAFEDELETEARR(sCurrFile, MPmm);
+	 		sCurrFile = NULL;
+      		}
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
       
-      pf = pmi->pfile;
-      pIn = pmi->pis;
+      		pf = pmi->pfile;
+      		pIn = pmi->pis;
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
-      sCurrPath = pmi->sPath;
-      sCurrFile = pmi->sFile;
-      DEBUGCOUT("Entering directory <" << sCurrPath 
-		<< ">, file <" << sCurrFile << '>' << endl);
-      if (chdir(sCurrPath)) {
-	 cerr << "Error in chdir, path = " << sCurrPath << endl;
-	 THROW(ErrFileSystem());
-      };
+      		sCurrPath = pmi->sPath;
+      		sCurrFile = pmi->sFile;
+      		DEBUGCOUT("Entering directory <" << sCurrPath 
+			<< ">, file <" << sCurrFile << '>' << endl);
+      		if (chdir(sCurrPath)) {
+	 		cerr << "Error in chdir, path = " << sCurrPath << endl;
+	 		THROW(ErrFileSystem());
+      		}
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
 
-      /* pmi must be non NULL */
-      SAFEDELETE(pmi, MPmm);     
-   }
+      		/* pmi must be non NULL */
+      		SAFEDELETE(pmi, MPmm);     
+   	}
    
-   /* sCurrPath can be NULL if Close() has been already called */
+   	/* sCurrPath can be NULL if Close() has been already called */
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
-   if (sCurrPath != NULL) {
-      SAFEDELETEARR(sCurrPath, MPmm);
-      sCurrPath = NULL;
-   }   
-   if (sCurrFile != NULL) {
-      SAFEDELETEARR(sCurrFile, MPmm);
-      sCurrFile = NULL;
-   }   
+   	if (sCurrPath != NULL) {
+      		SAFEDELETEARR(sCurrPath, MPmm);
+      		sCurrPath = NULL;
+   	}
+   	if (sCurrFile != NULL) {
+      		SAFEDELETEARR(sCurrFile, MPmm);
+      		sCurrFile = NULL;
+   	}
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
 }
 
-
-flag IncludeParser::fCheckStack(void)
+flag 
+IncludeParser::fCheckStack(void)
 {
-   MyInput* pmi = NULL;
-   if (MyInStack.iPop(pmi)) {
-      ASSERT(pmi != NULL);
-      /* 
-       * Nota: se la stack e' piena, allora sia pf che pIn devono essere
-       * diversi da NULL; viceversa, se la stack e' vuota, pf deve essere NULL 
-       */
-      ASSERT(pf != NULL);
-      ASSERT(pIn != NULL);
+   	MyInput* pmi = NULL;
+   	if (MyInStack.iPop(pmi)) {
+      		ASSERT(pmi != NULL);
+      		/* 
+       		 * Nota: se la stack e' piena, allora sia pf che pIn
+		 * devono essere diversi da NULL; viceversa, se la stack
+		 * e' vuota, pf deve essere NULL.
+		 */
+      		ASSERT(pf != NULL);
+      		ASSERT(pIn != NULL);
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
-      ASSERT(sCurrPath != NULL);
-      ASSERT(sCurrFile != NULL);
+      		ASSERT(sCurrPath != NULL);
+      		ASSERT(sCurrFile != NULL);
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
       
-      SAFEDELETE(pf, MPmm); 
-      SAFEDELETE(pIn, MPmm);
+      		SAFEDELETE(pf, MPmm); 
+      		SAFEDELETE(pIn, MPmm);
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
-      DEBUGCOUT("Leaving directory <" << sCurrPath 
-		<< ">, file <" << sCurrFile << '>' << endl);
-      SAFEDELETEARR(sCurrPath, MPmm);
-      sCurrPath = NULL;
-      SAFEDELETEARR(sCurrFile, MPmm);
-      sCurrFile = NULL;
+      		DEBUGCOUT("Leaving directory <" << sCurrPath 
+			<< ">, file <" << sCurrFile << '>' << endl);
+      		SAFEDELETEARR(sCurrPath, MPmm);
+      		sCurrPath = NULL;
+      		SAFEDELETEARR(sCurrFile, MPmm);
+      		sCurrFile = NULL;
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
       
-      pf = pmi->pfile;
-      pIn = pmi->pis;
+      		pf = pmi->pfile;
+      		pIn = pmi->pis;
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
-      sCurrPath = pmi->sPath;
-      sCurrFile = pmi->sFile;
-      DEBUGCOUT("Entering directory <" << sCurrPath 
-		<< ">, file <" << sCurrFile << '>' << endl);
-      if (chdir(sCurrPath)) {
-	 cerr << "Error in chdir, path = " << sCurrPath << endl;
-	 THROW(ErrFileSystem());
-      };
+      		sCurrPath = pmi->sPath;
+      		sCurrFile = pmi->sFile;
+      		DEBUGCOUT("Entering directory <" << sCurrPath 
+			<< ">, file <" << sCurrFile << '>' << endl);
+      		if (chdir(sCurrPath)) {
+	 		cerr << "Error in chdir, path = " << sCurrPath << endl;
+	 		THROW(ErrFileSystem());
+      		}
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
       
-      SAFEDELETE(pmi, MPmm);
-      return flag(1);
-   } else {
-      return flag(0);
-   }
+      		SAFEDELETE(pmi, MPmm);
+      		return flag(1);
+   	} else {
+      		return flag(0);
+   	}
 }
 
-
-void IncludeParser::Include_()
+void 
+IncludeParser::Include_()
 {
-   if (FirstToken() == UNKNOWN) {
-      cerr << endl << "Parser error in IncludeParser::Include_(), colon expected at line "
-	<< GetLineData() << endl;
-      THROW(HighParser::ErrColonExpected());
-   }
+   	if (FirstToken() == UNKNOWN) {
+      		cerr << endl 
+			<< "Parser error in IncludeParser::Include_(),"
+			" colon expected at line " << GetLineData() << endl;
+      		THROW(HighParser::ErrColonExpected());
+   	}
    
-   const char* sfname = this->GetFileName();
+   	const char* sfname = this->GetFileName();
    
-   MyInput* pmi = NULL;
+   	MyInput* pmi = NULL;
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
-   SAFENEWWITHCONSTRUCTOR(pmi, MyInput, MyInput(pf, pIn, sCurrPath, sCurrFile), MPmm);
+   	SAFENEWWITHCONSTRUCTOR(pmi, 
+			       MyInput,
+			       MyInput(pf, pIn, sCurrPath, sCurrFile),
+			       MPmm);
 #else /* !defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
-   SAFENEWWITHCONSTRUCTOR(pmi, MyInput, MyInput(pf, pIn), MPmm);
+   	SAFENEWWITHCONSTRUCTOR(pmi, MyInput, MyInput(pf, pIn), MPmm);
 #endif /* !defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
-   MyInStack.Push(pmi);
+   	MyInStack.Push(pmi);
    
-   pf = NULL;
-   SAFENEWWITHCONSTRUCTOR(pf, ifstream, ifstream(sfname), MPmm);
-   if (!(*pf)) {
-      cerr << "Invalid file <" << sfname << '>' << endl;
-      THROW(ErrFile());
-   }
+   	pf = NULL;
+   	SAFENEWWITHCONSTRUCTOR(pf, ifstream, ifstream(sfname), MPmm);
+   	if (!(*pf)) {
+      		cerr << "Invalid file <" << sfname << '>' << endl;
+      		THROW(ErrFile());
+   	}
    
-   pIn = NULL;
-   SAFENEWWITHCONSTRUCTOR(pIn, InputStream, InputStream(*pf), MPmm);
+   	pIn = NULL;
+   	SAFENEWWITHCONSTRUCTOR(pIn, InputStream, InputStream(*pf), MPmm);
    
-   /* Cambio di directory */
+   	/* Cambio di directory */
 #if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
-   sCurrPath = NULL;
-   sCurrFile = NULL;
-   int il = strlen(sfname);
-   char* stmp = NULL;
-   SAFENEWARR(stmp, char, il+1, MPmm);
-   strcpy(stmp, sfname);
-   char* s = (char*)stmp+il;
-   while (--s >= stmp) {
-      if (s[0] == '/') {
-	 char c = *(s+1);
-	 s[1] = '\0';
-	 if (chdir(stmp)) {
-	    cerr << "Error in chdir, path = " << stmp << endl;
-	    THROW(ErrFileSystem());
-	 };	 
-	 char* p = NULL;
-	 SAFENEWARR(p, char, PATHBUFSIZE, MPmm);
-	 sCurrPath = getcwd(p, PATHBUFSIZE);
-	 if (sCurrPath == NULL) {
-	    cerr << "Error in getcwd()" << endl;
-	    SAFEDELETEARR(s, MPmm);
-	    THROW(ErrFileSystem());
-	 }
-	 DEBUGCOUT("Current directory is <" << sCurrPath << '>' << endl);
+   	sCurrPath = NULL;
+   	sCurrFile = NULL;
+   	char* stmp = NULL;
+   	SAFESTRDUP(stmp, sfname, MPmm);
+   	char* s = (char*)stmp+strlen(sfname);
+   	while (--s >= stmp) {
+      		if (s[0] == '/') {
+	 		char c = *(s+1);
+	 		s[1] = '\0';
+	 		if (chdir(stmp)) {
+	    			cerr << "Error in chdir, path = " 
+					<< stmp << endl;
+	    			THROW(ErrFileSystem());
+	 		}	 
+	 		char* p = NULL;
+	 		SAFENEWARR(p, char, PATHBUFSIZE, MPmm);
+	 		sCurrPath = getcwd(p, PATHBUFSIZE);
+	 		if (sCurrPath == NULL) {
+	    			cerr << "Error in getcwd()" << endl;
+	    			SAFEDELETEARR(s, MPmm);
+	    			THROW(ErrFileSystem());
+	 		}
+	 		DEBUGCOUT("Current directory is <" << sCurrPath 
+				<< '>' << endl);
 	 
-	 s[1] = c;
-	 break;
-      }	 
-   }
-   s++;
-   il = strlen(s);
-   SAFENEWARR(sCurrFile, char, il+1, MPmm);
-   strcpy(sCurrFile, s);   
-   DEBUGCOUT("Opening file <" << sCurrFile << '>' << endl);
+	 		s[1] = c;
+	 		break;
+      		}
+   	}
+   	s++;
+   	SAFESTRDUP(sCurrFile, s, MPmm);
+   	DEBUGCOUT("Opening file <" << sCurrFile << '>' << endl);
       
-   SAFEDELETEARR(stmp, MPmm);
+   	SAFEDELETEARR(stmp, MPmm);
    
-   if (sCurrPath == NULL) {
-      char* s = NULL;
+   	if (sCurrPath == NULL) {
+      		char* s = NULL;
       
-      SAFENEWARR(s, char, PATHBUFSIZE, MPmm);
-      sCurrPath = getcwd(s, PATHBUFSIZE);
-      if (sCurrPath == NULL) {
-	 cerr << "Error in getcwd()" << endl;
-	 SAFEDELETEARR(s, MPmm);
-	 THROW(ErrFileSystem());
-      }
-      DEBUGCOUT("Current directory is <" << sCurrPath << '>' << endl);
-   }
+      		SAFENEWARR(s, char, PATHBUFSIZE, MPmm);
+      		sCurrPath = getcwd(s, PATHBUFSIZE);
+      		if (sCurrPath == NULL) {
+	 		cerr << "Error in getcwd()" << endl;
+	 		SAFEDELETEARR(s, MPmm);
+	 		THROW(ErrFileSystem());
+      		}
+      		DEBUGCOUT("Current directory is <" << sCurrPath 
+			<< '>' << endl);
+   	}
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
    
-   /* mettere un test se c'e' il punto e virgola? */
-   CurrToken = HighParser::DESCRIPTION;
+   	/* FIXME: mettere un test se c'e' il punto e virgola? */
+   	CurrToken = HighParser::DESCRIPTION;
 }
 
-
-int IncludeParser::GetDescription(void)
+int
+IncludeParser::GetDescription(void)
 {
-   const char sFuncName[] = "IncludeParser::GetDescription()";
+   	const char sFuncName[] = "IncludeParser::GetDescription()";
 
-   /* Checks if current token is a description */
-   if (!fIsDescription()) {
-      THROW(HighParser::ErrInvalidCallToGetDescription());
-   }
+   	/* Checks if current token is a description */
+   	if (!fIsDescription()) {
+      		THROW(HighParser::ErrInvalidCallToGetDescription());
+   	}
    
 restart:
    
-   if ((CurrLowToken = LowP.GetToken(*pIn)) != LowParser::WORD) {
-      if (pIn->GetStream().eof()) {
-	 if(fCheckStack()) {
-	    /* Se la stack e' vuota lancia l'eccezione (errore) */
-	    goto restart;
-	 } else {
-	    THROW(ErrFile());
-	 }
-      } else {     	 
-	 cerr << endl << "Parser error in "
-	   << sFuncName << ", keyword expected at line " 
-	   << GetLineData() << endl;
-	 THROW(HighParser::ErrKeyWordExpected());
-      }      
-   }
+   	if ((CurrLowToken = LowP.GetToken(*pIn)) != LowParser::WORD) {
+      		if (pIn->GetStream().eof()) {
+	 		if(fCheckStack()) {
+	    			/* Se la stack e' vuota lancia l'eccezione */
+	    			goto restart;
+	 		} else {
+	    			THROW(ErrFile());
+	 		}
+      		} else {     	 
+	 		cerr << endl << "Parser error in "
+	   			<< sFuncName << ", keyword expected at line " 
+	   			<< GetLineData() << endl;
+	 		THROW(HighParser::ErrKeyWordExpected());
+      		}
+   	}
    
-   /* Description corrente */
-   char* s = LowP.sGetWord();
+   	/* Description corrente */
+   	char* s = LowP.sGetWord();
    
-   /* Se trova la direttiva "include", la gestisce direttamente in modo
-    * da aprire il nuovo file conservando quello corrente nella stack */
-   if (!strcmp(s, "include")) {
-      Include_();
-      goto restart;      
+   	/*
+	 * Se trova la direttiva "include", la gestisce direttamente in modo
+    	 * da aprire il nuovo file conservando quello corrente nella stack
+	 */
+   	if (!strcmp(s, "include")) {
+      		Include_();
+      		goto restart;      
 
-      /* Se trova un sistema di riferimento, lo gestisce direttamente */
-   } else if (!strcmp(s, "set")) {
-      Set_();
-      goto restart;
-   } /* else */   
-   return iGetDescription_(s);
+      		/*
+		 * Se trova un sistema di riferimento, lo gestisce direttamente
+		 */
+   	} else if (!strcmp(s, "set")) {
+      		Set_();
+      		goto restart;
+   	} /* else */   
+   	return iGetDescription_(s);
 }
-
 
 char *
 resolve_filename(const char *filename)
 {
-   if (filename[0] == '~') {
-      filename++;
-      if (filename[0] == '/') {
-	 /* do environment stuff */
-	 char *home;
+   	if (filename[0] == '~') {
+      		filename++;
+      		if (filename[0] == '/') {
+	 		/* do environment stuff */
+	 		char *home;
 	 
-	 home = getenv("HOME");
-	 if (home == NULL) {	 	 
-	    return NULL;
-	 }
+	 		home = getenv("HOME");
+	 		if (home == NULL) {	 	 
+	    			return NULL;
+	 		}
 	 
-	 char *s = NULL;
-	 int l;
+	 		char *s = NULL;
+	 		int l;
 	 
-	 l = strlen(home);
-	 SAFENEWARR(s, char, l+strlen(filename)+1, MPmm);
+	 		l = strlen(home);
+	 		SAFENEWARR(s, char, l+strlen(filename)+1, MPmm);
 	 
-	 strncpy(s, home, l);
-	 strcpy(s+l, filename);
+	 		strncpy(s, home, l);
+	 		strcpy(s+l, filename);
 	 
-	 return s;
+	 		return s;
+      		} else {
+	 		char *p;
 	 
-      } else {
-	 char *p;
+	 		p = strchr(filename, '/');
+	 		if (p == NULL) {
+	    			return NULL;
+	 		} 
 	 
-	 p = strchr(filename, '/');
-	 if (p == NULL) {
-	    return NULL;
-	 } 
+	 		char *s = NULL;
+	 		int l = p-filename;
 	 
-	 char *s = NULL;
-	 int l = p-filename;
+	 		SAFENEWARR(s, char, l+1, MPmm);
+	 		strncpy(s, filename, l);
+	 		s[l] = '\0';
 	 
-	 SAFENEWARR(s, char, l+1, MPmm);
-	 strncpy(s, filename, l);
-	 s[l] = '\0';
+	 		/* do passwd stuff */
+	 		struct passwd *pw;
 	 
-	 /* do passwd stuff */
-	 struct passwd *pw;
+	 		pw = getpwnam(s);
+	 		SAFEDELETEARR(s, MPmm);
 	 
-	 pw = getpwnam(s);
-	 SAFEDELETEARR(s, MPmm);
+	 		if (pw == NULL ) {
+	    			return NULL;
+	 		}
 	 
-	 if (pw == NULL ) {
-	    return NULL;
-	 }
+	 		l = strlen(pw->pw_dir);
+	 		s = NULL;
+	 		SAFENEWARR(s, char, l+strlen(p)+1, MPmm);
+	 		strncpy(s, pw->pw_dir, l);
+	 		strcpy(s+l, p);
 	 
-	 l = strlen(pw->pw_dir);
-	 s = NULL;
-	 SAFENEWARR(s, char, l+strlen(p)+1, MPmm);
-	 strncpy(s, pw->pw_dir, l);
-	 strcpy(s+l, p);
-	 
-	 return s;
-      }
-   } else {
-      return NULL;
-   }
+	 		return s;
+      		}
+   	} else {
+      		return NULL;
+   	}
 }
 
-
-const char* IncludeParser::GetFileName(enum Delims Del)
+const char* 
+IncludeParser::GetFileName(enum Delims Del)
 {
-   const char *s = GetStringWithDelims(Del);
-
-   const char *stmp = resolve_filename(s);
-   if (stmp == NULL) {
-      return s;
-   } else {
-      if (strlen(stmp) >= iBufSize) {
-	 /* errore */
-	 strncpy(sStringBuf, stmp, iBufSize-1);
-	 sStringBuf[iBufSize-1] = '\0';
-      } else {
-	 strcpy(sStringBuf, stmp);
-      }
-      SAFEDELETEARR(stmp, MPmm);
-   }
-   return sStringBuf;
+   	const char *s = GetStringWithDelims(Del);
+   	const char *stmp = resolve_filename(s);
+	
+   	if (stmp == NULL) {
+      		return s;
+   	} else {
+      		if (strlen(stmp) >= iBufSize) {
+	 		/* errore */
+	 		strncpy(sStringBuf, stmp, iBufSize-1);
+	 		sStringBuf[iBufSize-1] = '\0';
+      		} else {
+	 		strcpy(sStringBuf, stmp);
+      		}
+      		SAFEDELETEARR(stmp, MPmm);
+   	}
+	
+   	return sStringBuf;
 }
 
-
-IncludeParser::ErrOut IncludeParser::GetLineData(void) const
+IncludeParser::ErrOut
+IncludeParser::GetLineData(void) const
 {      
-   ErrOut LineData;
-   LineData.sFileName = sCurrFile;
-   LineData.iLineNumber = GetLineNumber();
-   return LineData;
+   	ErrOut LineData;
+   	LineData.sFileName = sCurrFile;
+   	LineData.iLineNumber = GetLineNumber();
+   	return LineData;
 }
 
 /* IncludeParser - end */

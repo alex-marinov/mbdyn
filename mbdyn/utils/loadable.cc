@@ -1,3 +1,5 @@
+#include <mbconfig.h>
+
 #include <stdlib.h>
 #include <iostream.h>
 #include <fstream.h>
@@ -5,29 +7,33 @@
 #include <string.h>
 
 struct list {
-   	list* next;
-   	list* prev;
-   	char* p;
-    list(void) : next(NULL), prev(NULL), p(NULL) {};
+	list* next;
+	list* prev;
+	char* p;
+	
+	list(void) : next(NULL), prev(NULL), p(NULL) {};
 };
 
-int eat_spaces(istream& in) 
+int 
+eat_spaces(istream& in) 
 {
-    int c;
- 	while (isspace(c = in.get()));
-   	in.putback(c);
-   	if (!in || c == EOF) {
-	   	return EOF;
+	int c;
+	
+	while (isspace(c = in.get()));
+	in.putback(c);
+	if (!in || c == EOF) {
+		return EOF;
 	}
-   	return c;
+	return c;
 }
 
-int main(int argn, const char* const argv[]) 
+int 
+main(int argn, const char* const argv[]) 
 {
-    char *demangled_fname = "demangled.h";
-   	char *mangled_fname = "mangled.tmp";
-   
-   	ostream* pout = &(ostream&)cout;
+	char *demangled_fname = "demangled.h";
+	char *mangled_fname = "mangled.tmp";
+
+	ostream* pout = &(ostream&)cout;
    
    	if (argn > 1) {
 	   	demangled_fname = (char*)argv[1];
@@ -48,7 +54,7 @@ int main(int argn, const char* const argv[])
 	   	exit(EXIT_FAILURE);
 	}
    
-    const int buflen = 1024;
+    	const int buflen = 1024;
    	char buf[buflen];   	
 
    	list* d_start = new list;
@@ -63,18 +69,18 @@ int main(int argn, const char* const argv[])
 		   	break;
 		}
  	   	demangled.getline(buf, buflen);	   	   
-	    if (buf[0] == '\0') {
+	    	if (buf[0] == '\0') {
 		   	cerr << "error: non-null string expected" << endl;
 		   	break;
 		}
 	   	char *sep = strrchr(buf, ',');
 	   	if (sep == NULL) {
-		    sep = strrchr(buf, '"');
+		    	sep = strrchr(buf, '"');
 		   	if (sep == NULL) {
 			   	sep = buf+strlen(buf);
 			}
 		} else if (sep[-1] == '"') {		   
-		    sep = sep-1;
+		    	sep = sep-1;
 		}
 	   	sep[0] = '\0';
 	   	list *p = new list;
@@ -86,7 +92,8 @@ int main(int argn, const char* const argv[])
 	   	p->next = d_end;	 
 	} while (demangled);
    	if (strcmp(d_end->prev->p, "NULL") != 0) {
-	   	cerr << "warning: NULL expected as last demangled function" << endl;
+	   	cerr << "warning: NULL expected"
+			" as last demangled function" << endl;
 	} else {
 	   	list* d_tmp = d_end->prev->prev;
 	   	d_tmp->next = d_end;
@@ -107,12 +114,12 @@ int main(int argn, const char* const argv[])
 		   	break;
 		}
  	   	mangled.getline(buf, buflen);	 
-	    if (buf[0] == '\0') {
+	    	if (buf[0] == '\0') {
 		   	cerr << "error: non-null string expected" << endl;
 		   	break;
 		}
 	   	list *p = new list;
-	    p->p = new char[strlen(buf)+1];
+	    	p->p = new char[strlen(buf)+1];
 	   	strcpy(p->p, buf);
 	   	p->prev = m_end->prev;
 	   	m_end->prev->next = p;
@@ -133,13 +140,14 @@ int main(int argn, const char* const argv[])
 		   		m_l->next = m_curr->next;
 		   		m_curr->next->prev = m_l;			 
 		   		m_curr->next = m_l;
-			    m_curr = m_l;
+			    	m_curr = m_l;
 			   	break;			   
 			}
 		   	m_l = m_l->next;
 		}
 	   	if (m_l->next == NULL) {
-		   	cerr << "error: \"" << d_l->p << "\" not found in mangled!" << endl;
+		   	cerr << "error: \"" << d_l->p 
+				<< "\" not found in mangled!" << endl;
 		   	exit(EXIT_FAILURE);
 		} 
 	   	d_l = d_l->next;
@@ -149,7 +157,7 @@ int main(int argn, const char* const argv[])
 	}
 
    	list* l = d_start->next;
-    /*
+#if 0
    	while (l->next != NULL) {
 	   	cout << l->p << endl;
 	   	l = l->next;
@@ -159,10 +167,10 @@ int main(int argn, const char* const argv[])
 	   	cout << l->p << endl;
 	   	l = l->next;
 	}
-	*/
+#endif /* 0 */
    
-    l = m_start->next;
-    while (l->next != NULL) {
+    	l = m_start->next;
+    	while (l->next != NULL) {
 	   	*pout << "    \"" << l->p << "\"," << endl;
 	   	l = l->next;
 	}
@@ -170,5 +178,4 @@ int main(int argn, const char* const argv[])
    
  	return EXIT_SUCCESS;  
 }
-   
-   
+

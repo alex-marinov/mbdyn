@@ -5,9 +5,11 @@
 #include <strstream.h>
 
 int 
-main(int argn, const char* const argv[])
+main(int argc, const char* const argv[])
 {
-	if (argn > 1) {
+	int verbose = 1;
+
+	if (argc > 1) {
 		if (strcmp(argv[1], "-?") == 0 
 		    || strcmp(argv[1], "-h") == 0
 		    || strcmp(argv[1], "--help") == 0) {
@@ -20,24 +22,26 @@ main(int argn, const char* const argv[])
 				<< " <arg1> [<arg2> ...]"
 				" evaluates the expressions" << endl;
 	 		exit(EXIT_SUCCESS);
-      		}
-#ifdef USE_TABLE
-	 	Table t(31, 1);		
-#endif
-		int verbose = 1;
-		int arg0 = 1;
-		if (strcmp(argv[1], "-s") == 0) {
+      		} else if (strcmp(argv[1], "-s") == 0) {
 			verbose = 0;
-			arg0++;
+			argv++;
+			argc--;
 		}
-	 	for (int i = arg0; i < argn; i++) {
+	}
+	
+#ifdef USE_TABLE
+	Table t(31, 1);
+#endif /* USE_TABLE */
+
+	if (argc > 1) {
+	 	for (int i = 1; i < argc; i++) {
 	    		istrstream in(argv[i]);
 	    		InputStream In(in);
 #ifdef USE_TABLE
 	    		MathParser mp(In, t);
-#else
+#else /* !USE_TABLE */
 	    		MathParser mp(In);
-#endif
+#endif /* !USE_TABLE */
 			if (verbose) {
 	    			cout << "argv[" << i << "] = ";
 			}
@@ -46,14 +50,13 @@ main(int argn, const char* const argv[])
 	 	}
 	 	exit(EXIT_SUCCESS);
       	}
-	
+
+	InputStream In(cin);
 #ifdef USE_TABLE
-      	Table t(31, 1);
-      	InputStream In(cin);
       	MathParser mp(In, t);
-#else
+#else /* !USE_TABLE */
       	MathParser mp(In);
-#endif
+#endif /* !USE_TABLE */
       	mp.GetForever(cout, "\n");
       	cout << endl;
       	exit(EXIT_SUCCESS);

@@ -29,14 +29,14 @@
  */
 
 #ifndef LOADABLE_H
-# define LOADABLE_H
+#define LOADABLE_H
 
-# include <elem.h>
-# include <dataman.h>
-# ifdef USE_STRUCT_NODES
-#  include <gravity.h>
-# endif /* USE_STRUCT_NODES */
-// #include <aerodyn.h>
+#include <elem.h>
+#include <dataman.h>
+#ifdef USE_STRUCT_NODES
+#include <gravity.h>
+#endif /* USE_STRUCT_NODES */
+/* #include <aerodyn.h> */
 
 /* Elemento caricabile dinamicamente;
  * fornisce l'interfaccia ad un modulo a parte e compilato come shared library
@@ -78,127 +78,133 @@
 
 class LoadableElem
 : virtual public Elem,
-# ifdef USE_STRUCT_NODES
+#ifdef USE_STRUCT_NODES
 public InitialAssemblyElem,
-// public AerodynamicElem, 
+/* public AerodynamicElem, */
 public ElemGravityOwner,
-# endif /* USE_STRUCT_NODES */
+#endif /* USE_STRUCT_NODES */
 public ElemWithDofs {
- protected:
-   void* priv_data;
-   char* module_name;
-   void* handle;
+protected:
+   	void* priv_data;
+   	char* module_name;
+   	void* handle;
 
-   /* Funzioni attese */
-   enum Funcs {     
-	READ = 0,
+   	/* Funzioni attese */
+   	enum Funcs {     
+		READ = 0,
       
-	IGETNUMDOF,
-	SETDOF,
+		IGETNUMDOF,
+		SETDOF,
       
-	OUTPUT,
-	RESTART,
+		OUTPUT,
+		RESTART,
       
-	WORKSPACEDIM,
-	ASSJAC,
-        ASSEIG,
-	ASSRES,
+		WORKSPACEDIM,
+		ASSJAC,
+        	ASSEIG,
+		ASSRES,
       
-        BEFOREPREDICT,
-        AFTERPREDICT,
-        UPDATE,
+        	BEFOREPREDICT,
+        	AFTERPREDICT,
+        	UPDATE,
       
-	IGETINITIALNUMDOF,
-	INITIALWORKSPACEDIM,
-	INITIALASSJAC,
-	INITIALASSRES,
+		IGETINITIALNUMDOF,
+		INITIALWORKSPACEDIM,
+		INITIALASSJAC,
+		INITIALASSRES,
 
-	SETVALUE,
-	SETINITIALVALUE,
+		SETVALUE,
+		SETINITIALVALUE,
 
-        IGETNUMPRIVDATA,
-        DGETPRIVDATA,            
+        	IGETNUMPRIVDATA,
+        	DGETPRIVDATA,            
 
-	// ...
+		/* ... */
 
-	DESTROY,
-	LASTFUNC
-   };
+		DESTROY,
+		LASTFUNC
+   	};
 
-   /* Simboli delle funzioni attese */
-   void * fsym[LASTFUNC];
+   	/* Simboli delle funzioni attese */
+   	void * fsym[LASTFUNC];
    
- public:
-   LoadableElem(unsigned int uLabel, const DofOwner* pDO,
-		DataManager* pDM, MBDynParser& HP);
-   ~LoadableElem(void); 
-   virtual inline void* pGet(void) const;
+public:
+   	LoadableElem(unsigned int uLabel, const DofOwner* pDO,
+		     DataManager* pDM, MBDynParser& HP);
+   	~LoadableElem(void); 
+   	virtual inline void* pGet(void) const;
    
-   inline void* pGetData(void) const;
+   	inline void* pGetData(void) const;
    
-   virtual ElemType::Type GetElemType(void) const;
+   	virtual ElemType::Type GetElemType(void) const;
 
-   virtual unsigned int iGetNumDof(void) const;   
-   virtual DofOrder::Order SetDof(unsigned int i) const;
+   	virtual unsigned int iGetNumDof(void) const;   
+   	virtual DofOrder::Order SetDof(unsigned int i) const;
    
-   virtual void Output(OutputHandler& OH) const;
-   virtual ostream& Restart(ostream& out) const;
+   	virtual void Output(OutputHandler& OH) const;
+   	virtual ostream& Restart(ostream& out) const;
    
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal dCoef, 
-	    const VectorHandler& XCurr,
-	    const VectorHandler& XPrimeCurr);
-   virtual void
-     AssEig(VariableSubMatrixHandler& WorkMatA,
-	    VariableSubMatrixHandler& WorkMatB,
-	    const VectorHandler& XCurr,
-	    const VectorHandler& XPrimeCurr);
-   virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-				    doublereal dCoef,
-				    const VectorHandler& XCurr, 
-				    const VectorHandler& XPrimeCurr);
+   	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+   	virtual VariableSubMatrixHandler& 
+     	AssJac(VariableSubMatrixHandler& WorkMat,
+	       doublereal dCoef,
+	       const VectorHandler& XCurr,
+	       const VectorHandler& XPrimeCurr);
+	virtual void
+     	AssEig(VariableSubMatrixHandler& WorkMatA,
+	       VariableSubMatrixHandler& WorkMatB,
+	       const VectorHandler& XCurr,
+	       const VectorHandler& XPrimeCurr);
+   	virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+					 doublereal dCoef,
+					 const VectorHandler& XCurr, 
+					 const VectorHandler& XPrimeCurr);
 
-   virtual void BeforePredict(VectorHandler& X,
-                              VectorHandler& XP,
-                              VectorHandler& XPrev,
-                              VectorHandler& XPPrev) const;   
-   virtual void AfterPredict(VectorHandler& X,
-                             VectorHandler& XP);   
-   virtual void Update(const VectorHandler& XCurr, 
-                       const VectorHandler& XPrimeCurr);
+   	virtual void BeforePredict(VectorHandler& X,
+				   VectorHandler& XP,
+				   VectorHandler& XPrev,
+				   VectorHandler& XPPrev) const;   
+   	virtual void AfterPredict(VectorHandler& X,
+				  VectorHandler& XP);   
+	virtual void Update(const VectorHandler& XCurr, 
+                       	    const VectorHandler& XPrimeCurr);
 
-# ifdef USE_STRUCT_NODES
-   virtual unsigned int iGetInitialNumDof(void) const;
-   virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-   VariableSubMatrixHandler& InitialAssJac(VariableSubMatrixHandler& WorkMat, const VectorHandler& XCurr);
-   SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
-   virtual void SetInitialValue(VectorHandler& X) const;   
-# endif /* USE_STRUCT_NODES */
+#ifdef USE_STRUCT_NODES
+   	virtual unsigned int iGetInitialNumDof(void) const;
+   	virtual void 
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+   	VariableSubMatrixHandler&
+	InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+		      const VectorHandler& XCurr);
+   	SubVectorHandler& 
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+   	virtual void SetInitialValue(VectorHandler& X) const;   
+#endif /* USE_STRUCT_NODES */
 
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+   	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
 
-   virtual unsigned int iGetNumPrivData(void) const;
-   virtual doublereal dGetPrivData(unsigned int i) const;
+   	virtual unsigned int iGetNumPrivData(void) const;
+   	virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
-inline void* LoadableElem::pGet(void) const 
+inline void* 
+LoadableElem::pGet(void) const 
 { 
-   return (void*)this; 
+   	return (void*)this; 
 }
 
-inline void* LoadableElem::pGetData(void) const
+inline void* 
+LoadableElem::pGetData(void) const
 {
-   return priv_data;
+   	return priv_data;
 }
-
 
 class DataManager;
 class MBDynParser;
 
-extern Elem* ReadLoadable(DataManager* pDM, 
-			  MBDynParser& HP, 
-			  const DofOwner* pDO, 
-			  unsigned int uLabel);
+extern Elem* 
+ReadLoadable(DataManager* pDM, MBDynParser& HP, 
+	     const DofOwner* pDO, unsigned int uLabel);
+
 #endif /* LOADABLE_H */
+

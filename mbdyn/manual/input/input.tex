@@ -2799,9 +2799,9 @@ instead.
     <joint_type> ::= deformable hinge
     <joint_arglist> ::= 
         <node_1>
-        [ , hinge , (RotationMarix) <relative_rotation_matrix_1> ] ,
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_1> ] ,
         <node_2> 
-        [ , hinge , (RotationMarix) <relative_rotation_matrix_2> ] ,
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_2> ] ,
         (ConstitutiveLaw3D) <const_law>
 \end{verbatim}
 {\em 
@@ -2815,9 +2815,9 @@ instead.
     <joint_type> ::= deformable displacement hinge
     <joint_arglist> ::= 
         <node_1> , (Vec3) <relative_offset_1>
-        [ , hinge , (RotationMarix) <relative_rotation_matrix_1> ] ,
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_1> ] ,
         <node_2> , (Vec3) <relative_offset_2>
-        [ , hinge , (RotationMarix) <relative_rotation_matrix_2> ] ,
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_2> ] ,
         (ConstitutiveLaw3D) <const_law>
 \end{verbatim}
 
@@ -2854,9 +2854,9 @@ instead.
     <joint_type> ::= prismatic
     <joint_arglist> ::= 
         <node_1>
-        [ , hinge , (RotationMarix) <relative_rotation_matrix_1> ] ,
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_1> ] ,
         <node_2> 
-        [ , hinge , (RotationMarix) <relative_rotation_matrix_2> ] ,    
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_2> ] ,    
 \end{verbatim}
 
 \subsection{Drive hinge}
@@ -2864,9 +2864,9 @@ instead.
     <joint_type> ::= drive hinge
     <joint_arglist> ::= 
         <node_1>
-        [ , hinge , (RotationMarix) <relative_rotation_matrix_1> ] ,
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_1> ] ,
         <node_2> 
-        [ , hinge , (RotationMarix) <relative_rotation_matrix_2> ] ,
+        [ , hinge , (RotationMatrix) <relative_rotation_matrix_2> ] ,
         (Vec3_tpl_drive_caller) <hinge_rotation>
 \end{verbatim}
 {\em

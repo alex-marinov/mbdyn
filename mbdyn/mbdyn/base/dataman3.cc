@@ -56,8 +56,7 @@ void DataManager::ReadControl(MBDynParser& HP,
    /* Nome del file di output */
    char* sOutName = NULL;
    if (sOutputFileName != NULL) {
-      SAFENEWARR(sOutName, char, strlen(sOutputFileName)+1, DMmm);
-      strcpy(sOutName, sOutputFileName);
+      SAFESTRDUP(sOutName, sOutputFileName, DMmm);
    }
    
    /* parole chiave del blocco di controllo */
@@ -551,9 +550,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	     SAFEDELETEARR(sSimulationTitle, DMmm);
 	  }
 	  const char* sTmp(HP.GetStringWithDelims());
-	  SAFENEWARR(sSimulationTitle, char, strlen(sTmp)+1, DMmm);
-	     
-	  strcpy(sSimulationTitle, sTmp);
+	  SAFESTRDUP(sSimulationTitle, sTmp, DMmm);
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Simulation title: \"" 
 		     << sSimulationTitle << '"' << endl);
 	  break;
@@ -589,12 +586,11 @@ void DataManager::ReadControl(MBDynParser& HP,
 	     sOutName = NULL;
 	  }
 	  const char* sTmp(HP.GetFileName());
-	  int iL = strlen(sTmp);
-	  if (iL > 0) {
-	     SAFENEWARR(sOutName, char, iL+1, DMmm);
-	     
-	     strcpy(sOutName, sTmp);
+	  if (sTmp == NULL) {
+	     cerr << "Null file name at line " << HP.GetLineData() << endl;
+	     THROW(DataManager::ErrGeneric());
 	  }
+	  SAFESTRDUP(sOutName, sTmp, DMmm);
 	  break;
        }
 	 
@@ -607,11 +603,9 @@ void DataManager::ReadControl(MBDynParser& HP,
 	     }
 	     
 	     const char *tmp = HP.GetStringWithDelims();
-	     SAFENEWARR(sAdamsModelName, char, strlen(tmp)+1, DMmm);
-	     strcpy(sAdamsModelName, tmp);
+	     SAFESTRDUP(sAdamsModelName, tmp, DMmm);
 	  } else {
-	     SAFENEWARR(sAdamsModelName, char, sizeof("mbdyn")+1, DMmm);
-	     strcpy(sAdamsModelName, "mbdyn");
+	     SAFESTRDUP(sAdamsModelName, "mbdyn", DMmm);
 	  }
 	  break;
        }

@@ -74,6 +74,9 @@
 /* define this to use external symbol table (default) */
 #undef USE_TABLE
 
+/* define this to use dedicated element iterator */
+#undef USE_ELEM_ITER
+
 /* append underscore to fortran calls */
 #undef USE_UNDERSCORE
 
@@ -89,11 +92,29 @@
 /* use hydraulic nodes */
 #undef USE_HYDRAULIC_NODES
 
+/* define this to add MPI debugging code */
+#undef DEBUG_MPI
+
 /* define this to add debugging code */
 #undef DEBUG
 
+/* define to enable socket drives */
+#undef USE_SOCKET_DRIVES
+
+/* define if typedef socklen_t is defined */
+#undef HAVE_SOCKLEN_T
+
 /* define if C++ compiler handles exceptions */
 #undef USE_EXCEPTIONS
+
+/* set to 0,1,2 for std,gauss,node */
+#undef AEROD_OUTPUT
+
+/* set to 0,1,2 for std,gauss,node */
+#undef AEROD_OUTPUT
+
+/* set to 0,1,2 for std,gauss,node */
+#undef AEROD_OUTPUT
 
 /* define this to use UNIX-style filenames */
 #undef USE_UNIX_FILE
@@ -113,8 +134,14 @@
 /* define if you want to use Meschach */
 #undef USE_MESCHACH
 
+/* define to use LAPACK libraries */
+#undef USE_LAPACK
+
 /* define if you want to use PAM */
 #undef USE_PAM
+
+/* define if class ostream has 'form' method */
+#undef HAVE_FORM_IN_OSTREAM
 
 
 /* this file must be included by every .c/.cc file */

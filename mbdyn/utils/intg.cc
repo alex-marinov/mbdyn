@@ -1,3 +1,5 @@
+#include <mbconfig.h>
+
 #include <myassert.h>
 #include <solman.h>
 #include <harwrap.h>
@@ -7,12 +9,12 @@
 #include <dlfcn.h>
 
 struct integration_data {
-   doublereal ti;
-   doublereal tf;
-   doublereal dt;
-   doublereal tol;
-   int maxiter;
-   doublereal rho;
+   	doublereal ti;
+   	doublereal tf;
+   	doublereal dt;
+   	doublereal tol;
+   	int maxiter;
+   	doublereal rho;
 };
 
 int method_multistep(const char*, integration_data*, void*, const char*);
@@ -22,168 +24,183 @@ int method_cn(const char*, integration_data*, void*, const char*);
 
 void* get_method_data(int, const char*);
 
-int main(int argn, char *const argv[])
+int 
+main(int argn, char *const argv[])
 {
-   enum {
-      METHOD_UNKNOWN,
-	METHOD_MULTISTEP,
-	METHOD_HOPE,
-	METHOD_CUBIC,
-	METHOD_CRANK_NICHOLSON
-   };
-   struct s_method {
-      const char* s;
-      int m;
-   } s_m[] = {
-	{ "ms",                METHOD_MULTISTEP         },
-	{ "hope",              METHOD_HOPE              },
-	{ "cubic",             METHOD_CUBIC             },
-	{ "crank-nicholson",   METHOD_CRANK_NICHOLSON   },
+   	enum {
+      		METHOD_UNKNOWN,
+		METHOD_MULTISTEP,
+		METHOD_HOPE,
+		METHOD_CUBIC,
+		METHOD_CRANK_NICHOLSON
+   	};
 	
-	{ NULL,                METHOD_UNKNOWN           }
-   };
-   int curr_method = METHOD_UNKNOWN;   
-   char* module = "intg-default.so";
-   char* user_defined = NULL;
-   void* method_data = NULL;
-   integration_data d = { 0., 1., 1.e-3, 1.e-6, 10 };
-
-   // opzioni
-   const char optstring[] = "i:m:t:T:n:r:u:h";
-   const struct option longopts[] = { 
-	{ "integrator",     required_argument, NULL, int('i') },
-	{ "method-data",    required_argument, NULL, int('m') },
-	{ "timing",         required_argument, NULL, int('t') },
-	{ "tolerance",      required_argument, NULL, int('T') },
-	{ "iterations",     required_argument, NULL, int('n') },
-	{ "rho",            required_argument, NULL, int('r') },
-	{ "user-defined",   required_argument, NULL, int('u') },
-	{ "help",           no_argument,       NULL, int('h') },
+   	struct s_method {
+      		const char* s;
+      		int m;
+   	} s_m[] = {
+		{ "ms",                METHOD_MULTISTEP         },
+		{ "hope",              METHOD_HOPE              },
+		{ "cubic",             METHOD_CUBIC             },
+		{ "crank-nicholson",   METHOD_CRANK_NICHOLSON   },
 	
-	{ NULL,             no_argument,       NULL, int(0)   }  
-   };
+		{ NULL,                METHOD_UNKNOWN           }
+   	};
+   	int curr_method = METHOD_UNKNOWN;   
+   	char* module = "intg-default.so";
+   	char* user_defined = NULL;
+   	void* method_data = NULL;
+   	integration_data d = { 0., 1., 1.e-3, 1.e-6, 10 };
 
-   int curropt;
-   while ((curropt = getopt_long(argn, argv, optstring, longopts, NULL)) != EOF) {
-      switch(curropt) {
-       case int('?') : {
-	  // cerr << "unknown option -" << char(optopt) << endl;
-	  break;
-       }
-       case int(':') : {
-	  cerr << "missing parameter for option -" << optopt << endl;
-	  break;
-       }
-       case int('h') : {
-	  cerr << "usage: int -[imtTnruh] [module]" << endl
-	    << endl
-	    << " -i,--integrator   : integration method" << endl
-	    << " -m,--method-data  : method-dependent data" << endl
-	    << " -t,--timing       : ti:dt:tf" << endl
-	    << " -T,--tolerance" << endl
-	    << " -n,--maxiter" << endl
-	    << " -r,--rho          : asymptotic radius" << endl
-	    << " -u,--user         : user-defined data" << endl
-	    << endl
-	    << " -h,--help         : print this message and exit" << endl;
-	  exit(EXIT_SUCCESS);
-       }
-       case int('i') : {
-	  s_method* p = s_m;
-	  while (p->s != NULL) {
-	     if (strcmp(p->s, optarg) == 0) {
-		curr_method = p->m;
-		break;
-	     }
-	     p++;
-	  }
-	  if (p->s == NULL) {
-	     cerr << "unknown integrator " << optarg << endl;
-	     exit(EXIT_FAILURE);
-	  }
-	  break;
-       }
-       case int('m') : {
-	  method_data = get_method_data(curr_method, optarg);
-	  break;
-       }
-       case int('t') : {
-	  char* s = new char[strlen(optarg)+1];
-	  strcpy(s, optarg);
-	  char* p = strrchr(s, ':');
-	  if (p == NULL) {
-	     cerr << "syntax: ti:dt:tf" << endl;
-	     exit(EXIT_FAILURE);
-	  }
-	  d.tf = atof(p+1);
-	  p[0] = '\0';
-	  p = strrchr(s, ':');
-	  if (p == NULL) {
-	     cerr << "syntax: ti:dt:tf" << endl;
-	     exit(EXIT_FAILURE);
-	  }
-	  d.dt = atof(p+1);
-	  p[0] = '\0';
-	  d.ti = atof(s);
-	  delete[] s;
-	  break;
-       }
-       case int ('T') : {
-	  d.tol = atof(optarg);
-	  break;
-       }
-       case int ('n') : {
-	  d.maxiter = atoi(optarg);
-	  break;
-       }
-       case int ('r') : {
-	  d.rho = atof(optarg);
-	  break;
-       }
-       case int('u') : {
-	  user_defined = new char[strlen(optarg)+1];
-	  strcpy(user_defined, optarg);
-	  break;
-       }
-       default : {
-	  // cerr << "unknown option" << endl;
-	  break;
-       }
-      }
-   }
+   	/* opzioni */
+   	const char optstring[] = "i:m:t:T:n:r:u:h";
+   	const struct option longopts[] = { 
+		{ "integrator",     required_argument, NULL, int('i') },
+		{ "method-data",    required_argument, NULL, int('m') },
+		{ "timing",         required_argument, NULL, int('t') },
+		{ "tolerance",      required_argument, NULL, int('T') },
+		{ "iterations",     required_argument, NULL, int('n') },
+		{ "rho",            required_argument, NULL, int('r') },
+		{ "user-defined",   required_argument, NULL, int('u') },
+		{ "help",           no_argument,       NULL, int('h') },
+	
+		{ NULL,             no_argument,       NULL, int(0)   }  
+   	};
+
+   	while (1) {
+		int curropt;
+		
+		curropt = getopt_long(argn, argv, optstring, longopts, NULL);
+		
+		if (curropt == EOF) {
+			break;
+		}
+		
+      		switch(curropt) {
+       		case int('?'):
+	  		/* 
+			 * cerr << "unknown option -" << char(optopt) << endl;
+			 */
+	  		break;
+			
+       		case int(':'):
+	  		cerr << "missing parameter for option -" 
+				<< optopt << endl;
+	  		break;
+			
+       		case int('h'):
+	  		cerr << "usage: int -[imtTnruh] [module]" << endl
+	    			<< endl
+	    			<< " -i,--integrator   : integration method" << endl
+	    			<< " -m,--method-data  : method-dependent data" << endl
+	    			<< " -t,--timing       : ti:dt:tf" << endl
+	    			<< " -T,--tolerance" << endl
+	    			<< " -n,--maxiter" << endl
+	    			<< " -r,--rho          : asymptotic radius" << endl
+	    			<< " -u,--user         : user-defined data" << endl
+	    			<< endl
+	    			<< " -h,--help         : print this message and exit" << endl;
+	  		exit(EXIT_SUCCESS);
+
+       		case int('i'): {
+	  		s_method* p = s_m;
+	  		while (p->s != NULL) {
+	     			if (strcmp(p->s, optarg) == 0) {
+					curr_method = p->m;
+					break;
+	     			}
+	     			p++;
+	  		}
+	  		if (p->s == NULL) {
+	     			cerr << "unknown integrator " 
+					<< optarg << endl;
+	     			exit(EXIT_FAILURE);
+	  		}
+	  		break;
+       		}
+		
+       		case int('m'):
+	  		method_data = get_method_data(curr_method, optarg);
+	  		break;
+
+       		case int('t'): {
+	  		char* s = new char[strlen(optarg)+1];
+	  		strcpy(s, optarg);
+	  		char* p = strrchr(s, ':');
+	  		if (p == NULL) {
+	     			cerr << "syntax: ti:dt:tf" << endl;
+	     			exit(EXIT_FAILURE);
+	  		}
+	  		d.tf = atof(p+1);
+	  		p[0] = '\0';
+	  		p = strrchr(s, ':');
+	  		if (p == NULL) {
+	     			cerr << "syntax: ti:dt:tf" << endl;
+	     			exit(EXIT_FAILURE);
+	  		}
+	  		d.dt = atof(p+1);
+	  		p[0] = '\0';
+	  		d.ti = atof(s);
+	  		delete[] s;
+	  		break;
+       		}
+		
+       		case int ('T'):
+	  		d.tol = atof(optarg);
+	  		break;
+
+       		case int ('n'):
+	  		d.maxiter = atoi(optarg);
+	  		break;
+
+       		case int ('r'):
+	  		d.rho = atof(optarg);
+	  		break;
+
+       		case int('u'):
+	  		user_defined = new char[strlen(optarg)+1];
+	  		strcpy(user_defined, optarg);
+	  		break;
+			
+       		default:
+	  		/* cerr << "unknown option" << endl; */
+	  		break;
+      		}
+   	}
    
-   if (argv[optind] != NULL) {
-      module = argv[optind];
-      // cerr << "using module " << module << endl;
-   }
+   	if (argv[optind] != NULL) {
+      		module = argv[optind];
+      		/* cerr << "using module " << module << endl; */
+   	}
    
-   int rc = 0;
-   switch (curr_method) {
-    case METHOD_MULTISTEP :
-      rc = method_multistep(module, &d, method_data, user_defined);
-      break;
-    case METHOD_HOPE:
-      rc = method_hope(module, &d, method_data, user_defined);
-      break;
-    case METHOD_CUBIC:
-      rc = method_cubic(module, &d, method_data, user_defined);
-      break;
-    case METHOD_CRANK_NICHOLSON:
-      rc = method_cn(module, &d, method_data, user_defined);
-      break;
-    default:
-      cerr << "you must select an integration method" << endl;
-      exit(EXIT_FAILURE);
-   }
+   	int rc = 0;
+   	switch (curr_method) {
+    	case METHOD_MULTISTEP :
+      		rc = method_multistep(module, &d, method_data, user_defined);
+      		break;
+    	case METHOD_HOPE:
+      		rc = method_hope(module, &d, method_data, user_defined);
+      		break;
+    	case METHOD_CUBIC:
+      		rc = method_cubic(module, &d, method_data, user_defined);
+      		break;
+    	case METHOD_CRANK_NICHOLSON:
+      		rc = method_cn(module, &d, method_data, user_defined);
+      		break;
+    	default:
+      		cerr << "you must select an integration method" << endl;
+      		exit(EXIT_FAILURE);
+   	}
    
-   if (user_defined != NULL) {
-      delete[] user_defined;
-      user_defined == NULL;
-   }
-   return 0;
+   	if (user_defined != NULL) {
+      		delete[] user_defined;
+      		user_defined == NULL;
+   	}
+   	return 0;
 }
 
-void* get_method_data(int curr_method, const char* optarg)
+void* 
+get_method_data(int curr_method, const char* optarg)
 {
    switch (curr_method) {
     default:

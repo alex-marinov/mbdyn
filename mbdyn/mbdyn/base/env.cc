@@ -78,8 +78,7 @@ GetEnviron(MathParser& MP)
 	 		char* v = NULL;
 	 		char* n = NULL;
 	 
-	 		SAFENEWARR(p, char, strlen(*env)+1, MBDynMM);
-	 		strcpy(p, *env);
+	 		SAFESTRDUP(p, *env, MBDynMM);
 	 		v = strchr(p, '=');
 	 		if (v == NULL) {
 	    			cerr << "parse error in envvar <" 

@@ -1,16 +1,17 @@
 MBDyn: Multi-Body Dynamics
 
-Copyright: 1996 Pierangelo Masarati
+Copyright: 1996-2000 Pierangelo Masarati
 
 Pierangelo Masarati
 Dipartimento di Ingegneria Aerospaziale
 Politecnico di Milano
-via La Masa 34, 20158 Milano Italy
+via La Masa 34, 20156 Milano Italy
 
 Tel: ++39-02-3933-2393
 Fax: ++39-02-3933-2334
 E-mail: masarati@aero.polimi.it
-http://diampp1.aero.polimi.it/~masarati/ando-index.html
+http://mbdyn.aero.polimi.it/~masarati/index.html
+http://www.mbdyn.org
 
 
 Tabella dei vincoli cinematici; in ogni casella:

@@ -40,12 +40,11 @@
 
 StringDriveCaller::StringDriveCaller(const DriveHandler* pDH,
 				     const char* const sTmpStr)
-: DriveCaller(pDH), sEvalStr(NULL), iEvalStrLen(strlen(sTmpStr)) 
+: DriveCaller(pDH), sEvalStr(NULL), iEvalStrLen(0) 
 {
    ASSERT(sTmpStr != NULL);
-
-   SAFENEWARR(sEvalStr, char, iEvalStrLen+1, DMmm);
-   strcpy(sEvalStr, sTmpStr);
+   iEvalStrLen = strlen(sTmpStr);
+   SAFESTRDUP(sEvalStr, sTmpStr, DMmm);
 }
 
 

@@ -46,7 +46,7 @@
 
 #ifdef HAVE_SIGNAL
 #include <signal.h>
-#endif
+#endif /* HAVE_SIGNAL */
 
 #ifdef HAVE_SIGNAL
 /* per essere usato dai signal handler */
@@ -58,7 +58,7 @@ typedef void (*__sighandler_t)(int);
 #else /* HAVE_SIGHANDLER_T */
 typedef sighandler_t __sighandler_t;
 #endif /* HAVE_SIGHANDLER_T */
-#endif /* HAVE___SIGHANDLER_T */
+#endif /* !HAVE___SIGHANDLER_T */
 __sighandler_t sh_term = SIG_DFL;
 __sighandler_t sh_int = SIG_DFL;
 __sighandler_t sh_hup = SIG_DFL;
@@ -80,13 +80,13 @@ modify_final_time_handler(int signum)
    }
    /* signal(signum, modify_final_time_handler); */
 }
-#endif
+#endif /* HAVE_SIGNAL */
 
 /* MultiStepIntegrator - begin */
 
 #ifdef DEBUG_MEMMANAGER
 clMemMan MSmm("MultiStepIntegrator");
-#endif
+#endif /* DEBUG_MEMMANAGER */
 
 /* Parametri locali */
 const integer iDefaultMaxIterations = 1;
@@ -229,7 +229,7 @@ dPivotFactor(1.)
 			     MeschachSparseLUSolutionManager(iNumDofs, iWorkSpaceSize, dPivotFactor),
 			     SMmm);
    } else if (CurrSolver == HARWELL_SOLVER) {
-#endif
+#endif /* USE_MESCHACH */
       SAFENEWWITHCONSTRUCTOR(pSM,
 			     HSLUSolutionManager,
 			     HSLUSolutionManager(iNumDofs, iWorkSpaceSize, dPivotFactor),
@@ -239,7 +239,7 @@ dPivotFactor(1.)
       cerr << "don't know which solver to use!" << endl;
       THROW(ErrGeneric());
    }
-#endif
+#endif /* USE_MESCHACH */
    
    /* Puntatori agli handlers del solution manager */
    VectorHandler* pRes = pSM->pResHdl();
@@ -279,7 +279,7 @@ dPivotFactor(1.)
 	 OneEig.fDone = flag(1);
       }
    }
-#endif      
+#endif /* USE_LAPACK */
    
    integer iTotIter = 0;
    doublereal dTotErr = 0.;                  
@@ -304,7 +304,7 @@ dPivotFactor(1.)
    if ( ::sh_hup == SIG_IGN ) {
       signal (SIGHUP, SIG_IGN);
    }
-#endif
+#endif /* HAVE_SIGNAL */
 
    int iIterCnt = 0;
    while (1) {
@@ -354,7 +354,7 @@ dPivotFactor(1.)
 	      << pSol->dGetCoef(iTmpCnt) << endl;
 	 }
       }
-#endif /* debug */
+#endif /* DEBUG */
       	
       this->Update(*pSol);
       pDM->DerivativesUpdate();	
@@ -453,7 +453,7 @@ EndOfDerivatives:
 		 << pRes->dGetCoef(iTmpCnt) << endl;
 	    }
 	 }
-#endif
+#endif /* DEBUG */
 	 
 	 
 	 if (dTest < dFictitiousStepsTolerance) {
@@ -485,7 +485,7 @@ EndOfDerivatives:
 		 << pSol->dGetCoef(iTmpCnt) << endl;
 	    }
 	 }
-#endif
+#endif /* DEBUG */
 	 
 	 this->Update(*pSol); 
 	 pDM->Update();
@@ -502,9 +502,9 @@ EndOfFirstFictitiousStep:
 #ifdef HAVE_SIGNAL
       if (!::keep_going) {
 	 /* Fa l'output della soluzione delle derivate iniziali ed esce */
-# ifdef DEBUG_FICTITIOUS
+#ifdef DEBUG_FICTITIOUS
 	   pDM->Output();
-# endif
+#endif /* DEBUG_FICTITIOUS */
 	 Out << "Interrupted during first dummy step." << endl;
 	 return;
       }
@@ -512,7 +512,7 @@ EndOfFirstFictitiousStep:
       
 #ifdef DEBUG_FICTITIOUS
       pDM->Output();
-#endif
+#endif /* DEBUG_FICTITIOUS */
             
       /**********************************************************************
        * Passi fittizi successivi 
@@ -631,9 +631,9 @@ EndOfFictitiousStep:
 #ifdef HAVE_SIGNAL
 	 if (!::keep_going) {
 	    /* */
-# ifdef DEBUG_FICTITIOUS
+#ifdef DEBUG_FICTITIOUS
 	    pDM->Output();
-# endif
+#endif /* DEBUG_FICTITIOUS */
 	    Out << "Interrupted during dummy steps." << endl;
 	    return;
 	 }
@@ -828,8 +828,8 @@ EndOfFirstStep:
 	 Eig();
 	 OneEig.fDone = flag(1);
       }
-   }      
-#endif
+   } 
+#endif /* USE_LAPACK */
    
    /*************************************************************************
     * Altri passi regolari
@@ -852,7 +852,7 @@ EndOfFirstStep:
 	   << "total iterations: " << iTotIter << endl
 	   << "total error: " << dTotErr << endl;
 	 return;
-#endif	 
+#endif /* HAVE_SIGNAL */
       }
 	 
       iStep++;
@@ -988,7 +988,7 @@ EndOfStep:
 	    OneEig.fDone = flag(1);
 	 }
       }      
-#endif      
+#endif /* USE_LAPACK */
       
       
       /* Calcola il nuovo timestep */
@@ -1140,11 +1140,6 @@ MultiStepIntegrator::Predict(MultiStepIntegrationMethod* pM)
 	 pXPrimeCurr->fPutCoef(iCntp1, pM->dPredStateAlg(dXInm1, dXn, dXnm1, dXnm2));
 	 
       }	else {
-#ifdef __GNUC__
-	 cerr << __FUNCTION__ << ": ";
-#else
-	 cerr << "MultiStepIntegrator::Predict(): ";
-#endif /* __GNUC__ */
 	 cerr << "unknown dof order" << endl;
 	 THROW(ErrGeneric());
       }
@@ -2158,7 +2153,7 @@ MultiStepIntegrator::Eig(void)
 #ifdef DEBUG
    DEBUGCOUT(endl << "Matrix A:" << endl << MatA << endl
 	     << "Matrix B:" << endl << MatB << endl);
-#endif
+#endif /* DEBUG */
    
 #ifdef DEBUG_MEMMANAGER
    ASSERT(SMmm.fIsValid((void*)MatA.pdGetMat(), iSize*iSize*sizeof(doublereal)));
@@ -2169,7 +2164,7 @@ MultiStepIntegrator::Eig(void)
    ASSERT(SMmm.fIsValid((void*)AlphaI.pdGetVec(), iSize*sizeof(doublereal)));
    ASSERT(SMmm.fIsValid((void*)Beta.pdGetVec(), iSize*sizeof(doublereal)));
    ASSERT(SMmm.fIsValid((void*)WorkVec.pdGetVec(), iWorkSize*sizeof(doublereal)));
-#endif   
+#endif /* DEBUG_MEMMANAGER */
    
    /* get a temp file name */
    char* tmpFileName = tempnam(NULL, "mbdyn");
@@ -2397,7 +2392,7 @@ MultiStepIntegrator::Eig(void)
 	  pdWork,
 	  &iWorkSize,
 	  &iInfo);
-#endif
+#endif /* 0 */
    
    FullMatrixHandler MatA(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
    MatA.Init();
@@ -2433,7 +2428,7 @@ MultiStepIntegrator::Eig(void)
 #ifdef DEBUG
    DEBUGCOUT(endl << "Matrix A:" << endl << MatA << endl
 	     << "Matrix B:" << endl << MatB << endl);
-#endif
+#endif /* DEBUG */
    
 #ifdef DEBUG_MEMMANAGER
    ASSERT(SMmm.fIsValid((void*)MatA.pdGetMat(), iSize*iSize*sizeof(doublereal)));
@@ -2444,7 +2439,7 @@ MultiStepIntegrator::Eig(void)
    ASSERT(SMmm.fIsValid((void*)AlphaI.pdGetVec(), iSize*sizeof(doublereal)));
    ASSERT(SMmm.fIsValid((void*)Beta.pdGetVec(), iSize*sizeof(doublereal)));
    ASSERT(SMmm.fIsValid((void*)WorkVec.pdGetVec(), iWorkSize*sizeof(doublereal)));
-#endif   
+#endif /* DEBUG_MEMMANAGER */
      
    
    /* Eigenanalysis */
@@ -2521,9 +2516,10 @@ MultiStepIntegrator::Eig(void)
    SAFEDELETEARR(pd, SMmm);
    SAFEDELETEARR(ppd, SMmm);
    
-#endif
+#endif /* 0 */
 }
    
-#endif   
+#endif /* USE_LAPACK */
 
 /* MultiStepIntegrator - end */
+

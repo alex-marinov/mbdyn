@@ -748,8 +748,7 @@ MathParser::TokenList::TokenList(Token t)
 MathParser::TokenList::TokenList(const char* const s) 
 : t(NAME), value(Real(0)), name(NULL), next(NULL) 
 {
-   SAFENEWARR(name, char, strlen(s)+1, MPmm);
-   strcpy(name, s);	 
+   SAFESTRDUP(name, s, MPmm);
 }
       
 MathParser::TokenList::TokenList(const TypedValue& v) 
@@ -1375,8 +1374,7 @@ MathParser::stmt(void)
 	 if (GetToken() == ASSIGN) {
 	    /* faccio una copia del nome! */
 	    char* varname = NULL;
-	    SAFENEWARR(varname, char, strlen(namebuf)+1, MPmm);
-	    strcpy(varname, namebuf);
+	    SAFESTRDUP(varname, namebuf, MPmm);
 	    
 	    GetToken();
 	    TypedValue d = logical();

@@ -41,22 +41,24 @@ extern "C" {
 #endif /* USE_MESCHACH */
 
 
-/* classe di routines che consentono di invertire matrici;
+/*
+ * classe di routines che consentono di invertire matrici;
  * allocano autonomamente lo spazio di lavoro lo gestiscono e lo distruggono;
- * usate per l'inversione delle matrici nel progetto dei controllori */
+ * usate per l'inversione delle matrici nel progetto dei controllori
+ */
 
 /* GPCInv - begin */
 
 class GPCInv {
- protected:
-   doublereal* pdBase;   
+protected:
+   	doublereal* pdBase;   
+
+public:
+   	GPCInv(void);
+   	virtual ~GPCInv(void);
    
- public:
-   GPCInv(void);
-   virtual ~GPCInv(void);
-   
-   virtual integer Inv(integer ndima, integer nrowa,
-		       integer ncola, doublereal* a) = 0;
+   	virtual integer Inv(integer ndima, integer nrowa,
+		            integer ncola, doublereal* a) = 0;
 };
 
 /* GPCInv - end */
@@ -70,24 +72,24 @@ class GPCInv {
 /* GPC_LAPACK_pinv - begin */
 
 class GPC_LAPACK_pinv : public GPCInv {
- protected:
-   integer m; /* in realta' non servono, e' solo per sicurezza */
-   integer n;
+protected:
+   	integer m; /* in realta' non servono, e' solo per sicurezza */
+   	integer n;
    
-   integer iMin;
-   integer iMax;
+   	integer iMin;
+   	integer iMax;
 
-   integer iWork; /* per ridimensionare pdWork */
+   	integer iWork; /* per ridimensionare pdWork */
 
-   doublereal* pdS;
-   doublereal* pdU;
-   doublereal* pdVt;
-   doublereal* pdWork;
+   	doublereal* pdS;
+   	doublereal* pdU;
+   	doublereal* pdVt;
+   	doublereal* pdWork;
    
- public:
-   GPC_LAPACK_pinv(integer n, integer m);
-   ~GPC_LAPACK_pinv(void);
-   integer Inv(integer ndima, integer nrowa, integer ncola, doublereal* a);
+public:
+   	GPC_LAPACK_pinv(integer n, integer m);
+   	~GPC_LAPACK_pinv(void);
+   	integer Inv(integer ndima, integer nrowa, integer ncola, doublereal* a);
 };
 
 /* GPC_LAPACK_pinv - end */
@@ -97,20 +99,20 @@ class GPC_LAPACK_pinv : public GPCInv {
 /* GPC_Meschach_QRinv - begin */
 
 class GPC_Meschach_QRinv : public GPCInv {
- protected:
-   integer m; /* in realta' non servono, e' solo per sicurezza */
-   integer n;
+protected:
+   	integer m; /* in realta' non servono, e' solo per sicurezza */
+   	integer n;
    
-   MAT* A;
-   VEC* diag;
-   VEC* x;
-   VEC* b;
-   PERM* pivot;
+   	MAT* A;
+   	VEC* diag;
+   	VEC* x;
+   	VEC* b;
+   	PERM* pivot;
    
- public:
-   GPC_Meschach_QRinv(integer m, integer n);
-   ~GPC_Meschach_QRinv(void);
-   integer Inv(integer ndima, integer nrowa, integer ncola, doublereal* a);
+public:
+   	GPC_Meschach_QRinv(integer m, integer n);
+   	~GPC_Meschach_QRinv(void);
+   	integer Inv(integer ndima, integer nrowa, integer ncola, doublereal* a);
 };
 
 /* GPC_Meschach_QRinv - end */
@@ -122,103 +124,103 @@ class GPC_Meschach_QRinv : public GPCInv {
  * a partire dal sistema identificato
  */
 
-
 /* GPCDesigner - begin */
 
 class GPCDesigner {
- protected:
-   integer iNumOutputs;
-   integer iNumInputs;
-   integer iOrderA;
-   integer iOrderB;
+protected:
+   	integer iNumOutputs;
+   	integer iNumInputs;
+   	integer iOrderA;
+   	integer iOrderB;
 
-   integer iPredStep;      // passo della predizione piu' in avanti
-   integer iContrStep;     // passo del controllo piu' avanti
-   integer iPredHor;       // passo iniziale della predizione
-   integer iContrHor;      // passo iniziale del controllo (sempre 0)
+   	integer iPredStep;      /* passo della predizione piu' in avanti */
+   	integer iContrStep;     /* passo del controllo piu' avanti */
+   	integer iPredHor;       /* passo iniziale della predizione */
+   	integer iContrHor;      /* passo iniziale del controllo (sempre 0) */
 
-   doublereal* pdBase;
+   	doublereal* pdBase;
 
-   doublereal* pdA;
-   doublereal* pdB;
-   doublereal* pdP;
-   doublereal* pdC;
+   	doublereal* pdA;
+   	doublereal* pdB;
+   	doublereal* pdP;
+   	doublereal* pdC;
    
-   doublereal* pdac;
-   doublereal* pdbc;
-   doublereal* pdmd;
-   doublereal* pdcc;
+   	doublereal* pdac;
+   	doublereal* pdbc;
+   	doublereal* pdmd;
+   	doublereal* pdcc;
 
- public:
-   GPCDesigner(integer iNumOut, integer iNumIn, integer iOrdA, integer iOrdB,
-	       integer iPredS, integer iContrS, 
-	       integer iPredH, integer iContrH);
+public:
+   	GPCDesigner(integer iNumOut, integer iNumIn, 
+		    integer iOrdA, integer iOrdB,
+		    integer iPredS, integer iContrS, 
+		    integer iPredH, integer iContrH);
    
-   virtual ~GPCDesigner(void);
+   	virtual ~GPCDesigner(void);
    
-   virtual void DesignControl(const doublereal* /* pdTheta */ ,
-			      doublereal** ppda = NULL, 
-			      doublereal** ppdb = NULL,
-			      doublereal** ppdm = NULL, 
-			      doublereal** ppdc = NULL);
+   	virtual void DesignControl(const doublereal* /* pdTheta */ ,
+			      	   doublereal** ppda = NULL, 
+				   doublereal** ppdb = NULL,
+				   doublereal** ppdm = NULL, 
+				   doublereal** ppdc = NULL);
    
-   inline doublereal* pdGetAc(void) const;
-   inline doublereal* pdGetBc(void) const;
-   inline doublereal* pdGetMd(void) const;
-   inline doublereal* pdGetCc(void) const;
+   	inline doublereal* pdGetAc(void) const;
+   	inline doublereal* pdGetBc(void) const;
+   	inline doublereal* pdGetMd(void) const;
+   	inline doublereal* pdGetCc(void) const;
 
-   inline integer iGetPredStep(void) const;
-   inline integer iGetContrStep(void) const;
-   inline integer iGetPredHor(void) const;
-   inline integer iGetContrHor(void) const;
+   	inline integer iGetPredStep(void) const;
+   	inline integer iGetContrStep(void) const;
+   	inline integer iGetPredHor(void) const;
+   	inline integer iGetContrHor(void) const;
 };
 
-
-inline doublereal* GPCDesigner::pdGetAc(void) const 
+inline doublereal* 
+GPCDesigner::pdGetAc(void) const 
 {
-   return pdac;
+   	return pdac;
 }
 
-
-inline doublereal* GPCDesigner::pdGetBc(void) const 
+inline doublereal* 
+GPCDesigner::pdGetBc(void) const 
 {
-   return pdbc;
+   	return pdbc;
 }
 
-
-inline doublereal* GPCDesigner::pdGetMd(void) const 
+inline doublereal* 
+GPCDesigner::pdGetMd(void) const 
 {
-   return pdmd;
+   	return pdmd;
 }
 
-
-inline doublereal* GPCDesigner::pdGetCc(void) const 
+inline doublereal* 
+GPCDesigner::pdGetCc(void) const 
 {
-   return pdcc;
+   	return pdcc;
 }
 
-
-inline integer GPCDesigner::iGetPredStep(void) const 
+inline integer 
+GPCDesigner::iGetPredStep(void) const 
 {
-   return iPredStep;
+   	return iPredStep;
 }
 
-
-inline integer GPCDesigner::iGetContrStep(void) const 
+inline integer 
+GPCDesigner::iGetContrStep(void) const 
 {
-   return iContrStep;
+   	return iContrStep;
 }
 
-
-inline integer GPCDesigner::iGetPredHor(void) const
+inline integer 
+GPCDesigner::iGetPredHor(void) const
 {
-   return iPredHor;
+   	return iPredHor;
 }
 
-
-inline integer GPCDesigner::iGetContrHor(void) const
+inline integer 
+GPCDesigner::iGetContrHor(void) const
 {
-   return iContrHor;
+   	return iContrHor;
 }
 
 /* GPCControlDesigner - end */
@@ -231,26 +233,25 @@ inline integer GPCDesigner::iGetContrHor(void) const
 /* DeadBeat - begin */
 
 class DeadBeat : public GPCDesigner{
- protected:
-   integer iDim;
-   integer iTmpRows;
-   integer iTmpCols;
+protected:
+   	integer iDim;
+   	integer iTmpRows;
+   	integer iTmpCols;
    
-   doublereal* pdPTmp;
+   	doublereal* pdPTmp;
    
-   flag f_armax;
+   	flag f_armax;
 
-   // GPC_LAPACK_pinv Inv;
-   GPCInv* pInv;
+   	GPCInv* pInv;
    
- public:
-   DeadBeat(integer iNumOut, integer iNumIn, integer iOrdA, integer iOrdB,
-	    integer iPredS, integer iContrS, flag f);
-   virtual ~DeadBeat(void);
+public:
+   	DeadBeat(integer iNumOut, integer iNumIn, integer iOrdA, integer iOrdB,
+	    	 integer iPredS, integer iContrS, flag f);
+   	virtual ~DeadBeat(void);
    
-   void DesignControl(const doublereal* pdTheta,
-		      doublereal** ppda = NULL, doublereal** ppdb = NULL,
-		      doublereal** ppdm = NULL, doublereal** ppdc = NULL);
+   	void DesignControl(const doublereal* pdTheta,
+		           doublereal** ppda = NULL, doublereal** ppdb = NULL,
+		      	   doublereal** ppdm = NULL, doublereal** ppdc = NULL);
 };
 
 /* DeadBeat - end */
@@ -263,37 +264,37 @@ class DeadBeat : public GPCDesigner{
 /* GPC - begin */
 
 class GPC : public GPCDesigner{
- protected:
-   integer iDim;
-   integer iTmpRows;
-   integer iTmpCols;
+protected:
+   	integer iDim;
+   	integer iTmpRows;
+   	integer iTmpCols;
    
-   doublereal* pdPTmp;
+   	doublereal* pdPTmp;
    
-   doublereal* pdW;
-   doublereal* pdR;
-   DriveOwner Weight;
+   	doublereal* pdW;
+   	doublereal* pdR;
+   	DriveOwner Weight;
    
-   doublereal* pdM;
-   doublereal* pdInvP;
+   	doublereal* pdM;
+   	doublereal* pdInvP;
    
-   flag f_armax;
+   	flag f_armax;
 
-   // GPC_LAPACK_pinv Inv;
-   GPCInv* pInv;
+   	GPCInv* pInv;
    
- public:
-   GPC(integer iNumOut, integer iNumIn, integer iOrdA, integer iOrdB,
-       integer iPredS, integer iContrS, integer iPredH, integer iContrH,
-       doublereal* pW, doublereal* pR, DriveCaller* pDC, flag f);
+public:
+   	GPC(integer iNumOut, integer iNumIn, integer iOrdA, integer iOrdB,
+       	    integer iPredS, integer iContrS, integer iPredH, integer iContrH,
+	    doublereal* pW, doublereal* pR, DriveCaller* pDC, flag f);
    
-   virtual ~GPC(void);
+   	virtual ~GPC(void);
    
-   void DesignControl(const doublereal* pdTheta,
-		      doublereal** ppda = NULL, doublereal** ppdb = NULL,
-		      doublereal** ppdm = NULL, doublereal** ppdc = NULL);
+   	void DesignControl(const doublereal* pdTheta,
+		           doublereal** ppda = NULL, doublereal** ppdb = NULL,
+			   doublereal** ppdm = NULL, doublereal** ppdc = NULL);
 };
 
 /* GPC - end */
 
-#endif // GPC_H
+#endif /* GPC_H */
+

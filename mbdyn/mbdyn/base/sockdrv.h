@@ -48,39 +48,40 @@ const unsigned short int MBDynSocketDrivePort = 5555;
 /* SocketDrive - begin */
 
 class SocketDrive : public FileDrive {
- protected:
-   enum { 
-      DEFAULT     = 0x0000,
-      INCREMENTAL = 0x0001,
-      IMPULSIVE   = 0x0002
-   };
+protected:
+   	enum { 
+      		DEFAULT     = 0x0000,
+      		INCREMENTAL = 0x0001,
+      		IMPULSIVE   = 0x0002
+   	};
    
-   unsigned short int Port;
-   AuthMethod* auth;
+   	unsigned short int Port;
+   	AuthMethod* auth;
    
-   doublereal* pdVal;
-   int* pFlags;
+   	doublereal* pdVal;
+   	int* pFlags;
    
-   int sock;
+   	int sock;
    
- public:
-   SocketDrive(unsigned int uL, const DriveHandler* pDH,
-	       unsigned short int p, AuthMethod* a, integer nd);
+public:
+   	SocketDrive(unsigned int uL, const DriveHandler* pDH,
+	            unsigned short int p, AuthMethod* a, integer nd);
    
-   virtual ~SocketDrive(void);
+   	virtual ~SocketDrive(void);
    
-   virtual FileDriveType::Type GetFileDriveType(void) const;
+   	virtual FileDriveType::Type GetFileDriveType(void) const;
 
-   /* Scrive il contributo del DriveCaller al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   	/* Scrive il contributo del DriveCaller al file di restart */
+   	virtual ostream& Restart(ostream& out) const;
    
-   virtual const doublereal& dGet(const doublereal& t, int i = 1) const;
+   	virtual const doublereal& dGet(const doublereal& t, int i = 1) const;
    
-   virtual void ServePending(void);
+   	virtual void ServePending(void);
 };
 
 /* SocketDrive - end */
 
 #endif /* USE_SOCKET_DRIVES */
 
-#endif // SOCKDRV_H
+#endif /* SOCKDRV_H */
+

@@ -3,6 +3,13 @@ see http://www.mbdyn.org
 
 Copyright: 1996-2000 Pierangelo Masarati
 
+*** Sat Sep 16 01:03:24 CEST 2000 Pierangelo Masarati <masarati@aero.polimi.it>
+ - Added checks for: exceptions, lapack, aerodynamic output, various flags.
+ - Cleaned up gpc, aeroelem and other files.
+ - Moved env.c in utils - checks for MBDYN_* env vars.
+ - Retrieved the Deadbeat Predictive Control test dpc in mbdyn/elec; now
+   it builds fine together with the library
+
 *** Fri Sep 15 17:30:33 CEST 2000 Pierangelo Masarati <masarati@aero.polimi.it>
  - Directory tree completely reworked.
  - Added autoconf's configure.in, automake's Makefile.am's and libtool
@@ -254,3 +261,4 @@ Copyright: 1996-2000 Pierangelo Masarati
 *** 1999-01-15 Pierangelo Masarati:
   - added a modified meschach sparse LU solver, wrapped by
     Meschach<VH>, MeschachSparse<MH>, MeschachSparseLU<SM>
+

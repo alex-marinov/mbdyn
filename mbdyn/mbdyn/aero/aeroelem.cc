@@ -65,7 +65,7 @@ inline void set_f(Aero_output* p, doublereal* pd)
    /* DEBUGCOUTFNAME("set_f"); */
    p->f = Vec3(*(pd+1), *(pd), *(pd+5));
 }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
 	       
 	       
@@ -92,7 +92,7 @@ GDI(iN), pdOuta(NULL), pvdOuta(NULL),
 F(0.), M(0.)
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 , pOutput(NULL)
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 {
    /* DEBUGCOUTFNAME("AerodynamicBody::AerodynamicBody"); */
    
@@ -130,7 +130,7 @@ F(0.), M(0.)
       }      
 #endif /* USE_EXCEPTIONS */
    }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 }
 
 
@@ -145,7 +145,7 @@ AerodynamicBody::~AerodynamicBody(void)
    if (pOutput != NULL) {
       SAFEDELETEARR(pOutput, DMmm);
    }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
    
    SAFEDELETE(aerodata, DMmm);
 }
@@ -177,7 +177,7 @@ void AerodynamicBody::SetOutputFlag(flag f)
 #endif /* USE_EXCEPTIONS */
       }	 
    }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 }
 
 
@@ -285,7 +285,7 @@ void AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
    /* per output */
    Aero_output* pTmpOutput = pOutput;
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
    
    /* Ciclo sui punti di Gauss */
    PntWght PW = GDI.GetFirst();
@@ -336,7 +336,7 @@ void AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 	 ASSERT(pOutput != NULL);
 	 set_alpha(pTmpOutput, Tmp);
       }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
       
       Tmp = RRlocT*Wn;
       Tmp.PutTo(dW+3);
@@ -353,7 +353,7 @@ void AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 	 set_f(pTmpOutput, dTng);
 	 pTmpOutput++;
       }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
       
       /* Dimensionalizza le forze */
       doublereal dWght = PW.dGetWght();
@@ -407,23 +407,23 @@ void AerodynamicBody::Output(OutputHandler& OH) const
    if (fToBeOutput()) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
       ASSERT(pOutput != NULL);
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
       ostream& out = OH.Aerodynamic() << setw(8) << GetLabel();
       
 #if AEROD_OUTPUT == AEROD_OUT_NODE
       out << " " << setw(8) << pNode->GetLabel()
 	<< " ", F.Write(out, " ") << " ", M.Write(out, " ");
-#else /* AEROD_OUTPUT */      
+#else /* AEROD_OUTPUT != AEROD_OUT_NODE */ 
       for (int i = 0; i < GDI.iGetNum(); i++) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 	 out << ' ' << pOutput[i]->alpha << ' ' << pOutput[i]->f;
-#elif AEROD_OUTPUT == AEROD_OUT_STD /* AEROD_OUTPUT */
+#elif AEROD_OUTPUT == AEROD_OUT_STD
 	 for (int j = 1; j <= 6; j++) {
 	    out << ' ' << pvdOuta[i][j];
 	 }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_STD */
       }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
       out << endl;      
    }   
 }
@@ -442,7 +442,7 @@ ReadUnsteadyFlag(MBDynParser& HP)
       if (iInst != 0
 #if 0
 	  && iInst != 1 && iInst != 2
-#endif
+#endif /* 0 */
 	  ) {      
 	 if (iInst < 0 || iInst > 2) {
 	    cerr << "illegal unsteady flag";
@@ -687,7 +687,7 @@ GDI(iN), pdOuta(NULL), pvdOuta(NULL),
 F1(0.), M1(0.), F2(0.), M2(0.), F3(0.), M3(0.)
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 , pOutput(NULL)
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 {
    DEBUGCOUTFNAME("AerodynamicBeam::AerodynamicBeam");
    
@@ -735,7 +735,7 @@ F1(0.), M1(0.), F2(0.), M2(0.), F3(0.), M3(0.)
       }      
 #endif /* USE_EXCEPTIONS */
    }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 }
 
 
@@ -750,7 +750,7 @@ AerodynamicBeam::~AerodynamicBeam(void)
    if (pOutput != NULL) {
       SAFEDELETEARR(pOutput, DMmm);
    }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
    
    SAFEDELETE(aerodata, DMmm);
 }
@@ -783,7 +783,7 @@ void AerodynamicBeam::SetOutputFlag(flag f)
 #endif /* USE_EXCEPTIONS */
       }	 
    }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 }
 
 
@@ -941,7 +941,7 @@ void AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
    /* per output */
    Aero_output* pTmpOutput = pOutput;
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
    
    /* Ciclo sui punti di Gauss */
    PntWght PW = GDI.GetFirst();
@@ -1003,7 +1003,7 @@ void AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	 ASSERT(pOutput != NULL);
 	 set_alpha(pTmpOutput, Tmp);
       }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
       
       Tmp = RRlocT*Wr;
       Tmp.PutTo(dW+3);
@@ -1020,7 +1020,7 @@ void AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	 set_f(pTmpOutput, dTng);
 	 pTmpOutput++;
       }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
             
       /* Dimensionalizza le forze */
       doublereal dWght = dXds*dsdCsi*PW.dGetWght();
@@ -1110,7 +1110,7 @@ void AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	 ASSERT(pOutput != NULL);
 	 set_alpha(pTmpOutput, Tmp);
       }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
             
       Tmp = RRlocT*Wr;
       Tmp.PutTo(dW+3);
@@ -1127,7 +1127,7 @@ void AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	 set_f(pTmpOutput, dTng);
 	 pTmpOutput++;
       }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
                   
       /* Dimensionalizza le forze */
       doublereal dWght = dXds*dsdCsi*PW.dGetWght();
@@ -1217,7 +1217,7 @@ void AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	 ASSERT(pOutput != NULL);
 	 set_alpha(pTmpOutput, Tmp);
       }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
             
       Tmp = RRlocT*Wr;
       Tmp.PutTo(dW+3);
@@ -1234,7 +1234,7 @@ void AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	 set_f(pTmpOutput, dTng);
 	 pTmpOutput++;
       }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
             
       /* Dimensionalizza le forze */
       doublereal dWght = dXds*dsdCsi*PW.dGetWght();
@@ -1291,7 +1291,7 @@ void AerodynamicBeam::Output(OutputHandler& OH ) const
    if (fToBeOutput()) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
       ASSERT(pOutput != NULL);
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
       ostream& out = OH.Aerodynamic() << setw(8) << GetLabel();
       
 #if AEROD_OUTPUT == AEROD_OUT_NODE
@@ -1299,17 +1299,17 @@ void AerodynamicBeam::Output(OutputHandler& OH ) const
 	 out << " ", F1.Write(out, " ") << " ", M1.Write(out, " ");
 	 out << " ", F2.Write(out, " ") << " ", M2.Write(out, " ");
 	 out << " ", F3.Write(out, " ") << " ", M3.Write(out, " ");
-#else /* AEROD_OUTPUT */
+#else /* AEROD_OUTPUT != AEROD_OUT_NODE */
       for (int i = 0; i < 3*GDI.iGetNum(); i++) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 	 out << ' ' << pOutput[i]->alpha << ' ' << pOutput[i]->f;
-#elif AEROD_OUTPUT == AEROD_OUT_STD /* AEROD_OUTPUT */
+#elif AEROD_OUTPUT == AEROD_OUT_STD
 	 for (int j = 1; j <= 6; j++) {
 	    out << ' ' << pvdOuta[i][j];
 	 }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT == AEROD_OUT_STD */
       }
-#endif /* AEROD_OUTPUT */
+#endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
       out << endl;
    }
 }
