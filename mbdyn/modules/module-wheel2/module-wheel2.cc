@@ -485,21 +485,25 @@ ass_res(LoadableElem* pEl,
 		p->dMuX = dMuX0*fabs(1.-fabs(p->dAlpha)/M_PI_2);
 		
 		/*
-		 * Correggo le forze
+		 * Correggo le forze:
+		 * uso il coefficiente di attrito longitudinale
+		 * con il segno della velocita' del punto di contatto
 		 */
-		p->F -= fwd*dFn*p->dMuX;
+		p->F -= fwd*dFn*copysign(p->dMuX,dvx);
 
 		if (dvay != 0.) {
-			doublereal dMuY0 = 0., dMuY1 = 0.;
-			if (dvax >= 0.) {
-				dMuY0 = p->pMuY0->dGet(p->dAlpha);
-				dMuY1 = p->pMuY1->dGet(p->dAlpha);
-			} else {
-				/* FIXME: ... */
+			doublereal dAlpha = p->dAlpha;
+
+			if (dAlpha > M_PI_2) {
+				dAlpha = M_PI-dAlpha;
+			} else if (dAlpha < -M_PI_2) {
+				dAlpha = -M_PI-dAlpha;
 			}
 			
-			p->dMuY = dMuY0*(1.-fabs(p->dSr))
-				+ dMuY1*fabs(p->dSr);
+			doublereal dMuY0 = p->pMuY0->dGet(dAlpha);
+			doublereal dMuY1 = p->pMuY1->dGet(dAlpha);
+			
+			p->dMuY = dMuY0+(dMuY1-dMuY0)*fabs(p->dSr);
 
 			/*
 			 * Correggo le forze
