@@ -1826,7 +1826,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    Mat3xN PiezoMat[2][2];
    integer iNumElec = 0;
    ScalarDifferentialNode** pvElecDofs = NULL;
-   if (HP.IsKeyWord("piezoelectricactuator")) {
+   if (HP.IsKeyWord("piezoelectric" "actuator")) {
       fPiezo = flag(1);
       DEBUGLCOUT(MYDEBUG_INPUT, 
 		 "Piezoelectric actuator beam is expected" << std::endl);
