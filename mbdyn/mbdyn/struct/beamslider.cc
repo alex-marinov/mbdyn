@@ -264,7 +264,7 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	/* trave: Delta v (momento) */
 	Mat3x3 MTmp(F*dCoef);
 	WM.Add(6*activeNode+3+1, 6*(1+Beam::NUMNODES)+1+1, 
-			Mat3x3(pNode->GetXCurr()-xTmp[activeNode-1]));
+			Mat3x3(pNode->GetXCurr()-xNod[activeNode-1]));
 	WM.Sub(6*activeNode+3+1, 1, MTmp);
 	WM.Add(6*activeNode+3+1, 6*activeNode+1, MTmp);
 
