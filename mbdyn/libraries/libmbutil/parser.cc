@@ -38,48 +38,59 @@
 
 /* LowParser - begin */
 
-static char
-skip_remarks(InputStream& In)
+static int
+skip_remarks(InputStream& In, char &cIn)
 {
 skip_again:
    
-   char cIn;
-   while (isspace(cIn = In.get())) {
-      NO_OP;
-   }
-   
-   if (cIn == REMARK) {
-      do {
-	 NO_OP;
-      } while ((cIn = In.get()) != '\n');
-      goto skip_again;
-   }
-   
-   if (cIn == '/') {
-      if ((cIn = In.get()) == '*') {
-	 for (;; cIn = In.get()) {
-	    if (cIn == '*' && (cIn = In.get()) == '/') {	     
-	       goto skip_again;
-	    }	    
-	 }	 
-      } else {
-	 In.putback(cIn);
-	 return '/';
+   for (cIn = In.get(); isspace(cIn); cIn = In.get()) {
+      if (In.eof()) {
+	  return -1;
       }
    }
    
-   return cIn;
+   if (cIn == REMARK) {
+      for (cIn = In.get(); cIn != '\n'; cIn = In.get()) {
+	 if (In.eof()) {
+	    return -1;
+	 }
+      }
+      goto skip_again;
+      
+   } else if (cIn == '/') {
+      cIn = In.get();
+      if (In.eof()) {
+	 return -1;
+      } else if (cIn == '*') {
+	 for (; !In.eof(); cIn = In.get()) {
+	    if (cIn == '*' && (cIn = In.get()) == '/') {
+	       goto skip_again;
+	    }
+	 }
+	 if (In.eof()) {
+	    return -1;
+	 }
+
+      } else {
+	 In.putback(cIn);
+	 return 0;
+      }
+   }
+   
+   return 0;
 }
 
 void 
 LowParser::PackWords(InputStream& In)
 {
    char* pCur = sCurrWordBuf;
-   char cIn = '\0';
+   char cIn;
    
    /* note: no remarks allowed inside words */
-   while ((cIn = In.get()) != ':' && cIn != ';' && cIn != ',') {      
-      if (!isspace(cIn)) {
+   for (cIn = In.get(); cIn != ':' && cIn != ';' && cIn != ','; cIn = In.get()) {      
+      if (In.eof()) {
+	 return;
+      } else if (!isspace(cIn)) {
 	 *pCur++ = cIn;
 	 if (pCur == sCurrWordBuf+iBufSize-1) {
 	    *pCur = '\0';
@@ -97,7 +108,10 @@ LowParser::Token
 LowParser::GetToken(InputStream& In)
 {
    /* toglie gli spazi iniziali e tutti i commenti */
-   char cIn = skip_remarks(In);
+   char cIn;
+   if (skip_remarks(In, cIn)) {
+      return CurrToken = LowParser::ENDOFFILE;
+   }
       
    if (isalpha(cIn) || cIn == '_') {
       PackWords(In.putback(cIn));
@@ -411,7 +425,10 @@ HighParser::IsKeyWord(const char* sKeyWord)
    char* sBuf = sStringBuf;
    char* sBufWithSpaces = sStringBufWithSpaces;
 
-   char cIn = skip_remarks(*pIn);
+   char cIn;
+   if (skip_remarks(*pIn, cIn)) {
+      return CurrToken = HighParser::ENDOFFILE;
+   }
    
    if (!isalpha(cIn)) {
       pIn->putback(cIn);
@@ -425,28 +442,28 @@ HighParser::IsKeyWord(const char* sKeyWord)
     * tra due parole, magari con due buffer, uno in cui li mangia per fare
     * il confronto con la keyword, l'altro in cui li tiene per l'eventuale 
     * putback */
-   while (isalnum(cIn = pIn->get()) || isspace(cIn)) {
+   for (cIn = pIn->get(); isalnum(cIn) || isspace(cIn); cIn = pIn->get()) {
       *sBufWithSpaces++ = cIn;
       if (isalnum(cIn)) {
 	 *sBuf++ = cIn;
       }
       if (sBufWithSpaces >= sStringBufWithSpaces+iBufSize-1) {
 	 break;
-      }      
-   }   
+      }
+   }
    pIn->putback(cIn);
    
    *sBuf = '\0';
    *sBufWithSpaces = '\0';
    
    if (!strcasecmp(sStringBuf, sKeyWord)) {
-      NextToken(sFuncName);		
+      NextToken(sFuncName);
       return 1;
-   }   
+   }
    
-   while (sBufWithSpaces > sStringBufWithSpaces) {      
+   while (sBufWithSpaces > sStringBufWithSpaces) {
       pIn->putback(*--sBufWithSpaces);
-   }   
+   }
    
    return 0;
 }
@@ -457,31 +474,34 @@ HighParser::IsKeyWord(void)
 {
    const char sFuncName[] = "HighParser::IsKeyWord()";
    
-   if (CurrToken != HighParser::ARG) {      
+   if (CurrToken != HighParser::ARG) {
       return -1;
    }
       
    char* sBuf = sStringBuf;
    char* sBufWithSpaces = sStringBufWithSpaces;
 
-   char cIn = skip_remarks(*pIn);
+   char cIn;
+   if (skip_remarks(*pIn, cIn)) {
+      return CurrToken = HighParser::ENDOFFILE;
+   }
    
    if (!isalpha(cIn)) {
       pIn->putback(cIn);
       return -1;
-   }   
+   }
    *sBuf++ = cIn;
    *sBufWithSpaces++ = cIn;
    
-   while (isalnum(cIn = pIn->get()) || isspace(cIn)) {
+   for (cIn = pIn->get(); isalnum(cIn) || isspace(cIn); cIn = pIn->get()) {
       *sBufWithSpaces++ = cIn;
       if (isalnum(cIn)) {
 	 *sBuf++ = cIn;
       }
       if (sBufWithSpaces >= sStringBufWithSpaces+iBufSize-1) {
 	 break;
-      }      
-   }   
+      }
+   }
    pIn->putback(cIn);
    
    *sBuf = '\0';
@@ -491,11 +511,11 @@ HighParser::IsKeyWord(void)
    if ((iKW = KeyT.Find(sStringBuf)) >= 0) {
       NextToken(sFuncName);
       return iKW;
-   }   
+   }
    
    while (sBufWithSpaces > sStringBufWithSpaces) {
       pIn->putback(*--sBufWithSpaces);
-   }   
+   }
    
    return -1;   
 }
@@ -614,13 +634,22 @@ HighParser::GetString(void)
    
    while (isspace(cIn = pIn->get())) {
       NO_OP;
-   }   
+   }
+
+   if (pIn->eof()) {
+      CurrToken = HighParser::ENDOFFILE;
+      return NULL;
+   }
    
    pIn->putback(cIn);
-   while ((cIn = pIn->get()) != ',' && cIn != ';') {
+   for (cIn = pIn->get(); cIn != ',' && cIn != ';'; cIn = pIn->get()) {
       /* Attenzione! cosi' la legge tutta, 
        * ma ne tiene solo iBufSize-1 caratteri */
-      if (sTmp < s+iBufSize-1) {
+      if (pIn->eof()) {
+	 CurrToken = HighParser::ENDOFFILE;
+         *sTmp = '\0';	
+	 return s;
+      } else if (sTmp < s+iBufSize-1) {
 	 *sTmp++ = cIn;
       }      
    }
@@ -677,14 +706,20 @@ HighParser::GetStringWithDelims(enum Delims Del)
       break;	
    }
 
-   char cIn = skip_remarks(*pIn);
+   char cIn;
+   if (skip_remarks(*pIn, cIn)) {
+      return NULL;
+   }
       
    /* Se trova il delimitatore sinistro, legge la stringa */
    if (cIn == cLdelim) {
-      while ((cIn = pIn->get()) != cRdelim) {
+      for (cIn = pIn->get(); cIn != cRdelim; cIn = pIn->get()) {
 	 /* Attenzione! cosi' la legge tutta, 
 	  * ma ne tiene solo iBufSize-1 caratteri */
-	 if (sTmp < s+iBufSize-1) {
+	 if (pIn->eof()) {
+	    *sTmp = '\0';
+	    return s;
+	 } else if (sTmp < s+iBufSize-1) {
 	    if (cIn == ESCAPE_CHAR) {
 	       *sTmp++ = cIn;
 	       cIn = pIn->get();
@@ -693,9 +728,9 @@ HighParser::GetStringWithDelims(enum Delims Del)
 	 }	 
       }   
    
-   /* Se trova una virgola o un punto e virgola, le rimette nello stream e passa oltre, 
-    * restituendo un puntatore nullo. Il chiamante deve occuparsi della
-    * gestione del valore di default */
+   /* Se trova una virgola o un punto e virgola, le rimette nello stream 
+    * e passa oltre, restituendo un puntatore nullo. Il chiamante deve 
+    * occuparsi della gestione del valore di default */
    } else if (cIn == ',' || cIn == ';') {	
       pIn->putback(cIn);
       goto nullstring;  
@@ -714,7 +749,7 @@ HighParser::GetStringWithDelims(enum Delims Del)
    /* Mette zero al termine della stringa */
    *sTmp = '\0';	
 	
-   nullstring:
+nullstring:
    
    NextToken(sFuncName);
    return s;

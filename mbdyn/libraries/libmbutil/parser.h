@@ -142,7 +142,10 @@ class LowParser {
 	COMMA = ',',
 	COLON = ':',
 	SEMICOLON = ';',
-	NUMBER
+	NUMBER,
+	ENDOFFILE,
+
+	LASTTOKEN
    };
    
  private:
@@ -204,6 +207,8 @@ class HighParser {
 	WORD,	
 	NUMBER,
 	STRING,
+	ENDOFFILE,
+
 	LASTITEM
    };
    
@@ -337,4 +342,5 @@ class HighParser {
    
 extern ostream& operator << (ostream& out, const HighParser::ErrOut& err);
 
-#endif
+#endif /* PARSER_H */
+
