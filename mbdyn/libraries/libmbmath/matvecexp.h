@@ -145,7 +145,8 @@ public:
 	};
 	
 
-	ostream& Write(ostream& out, const char* sFill = " ") const;   
+	std::ostream& 
+		Write(std::ostream& out, const char* sFill = " ") const;   
 };
 
 extern ScalExp pow(const ScalExp &d, const doublereal &e);
@@ -155,8 +156,8 @@ extern ScalExp cos(const ScalExp &d);
 extern ScalExp exp(const ScalExp &d);
 //extern ScalExp operator + (const ScalExp& v);
 //extern ScalExp operator - (const ScalExp& v);
-extern ostream& operator << (ostream& out, const ScalExp& v);
-extern ostream& Write(ostream& out, const ScalExp& v, const char* sFill = " ");
+extern std::ostream& operator << (std::ostream& out, const ScalExp& v);
+extern std::ostream& Write(std::ostream& out, const ScalExp& v, const char* sFill = " ");
 
 
 
@@ -312,13 +313,13 @@ public:
 	
 	inline MatExp Tens(const VecExp &v) const;
 
-	ostream& Write(ostream& out, const char* sFill = " ") const;   
+	std::ostream& Write(std::ostream& out, const char* sFill = " ") const;
 };
 
 extern VecExp operator + (const VecExp& v);
 extern VecExp operator - (const VecExp& v);
-extern ostream& operator << (ostream& out, const VecExp& v);
-extern ostream& Write(ostream& out, const VecExp& v, const char* sFill = " ");
+extern std::ostream& operator << (std::ostream& out, const VecExp& v);
+extern std::ostream& Write(std::ostream& out, const VecExp& v, const char* sFill = " ");
 
 
 class MatExp {
@@ -426,11 +427,8 @@ public:
 	};
 
 	/* Scrittura su ostream della matrice */
-	ostream& Write(
-			ostream& out,
-			const char* sFill = " ",
-			const char* sFill2 = NULL
-	) const;
+	std::ostream& Write(std::ostream& out, const char* sFill = " ", 
+			const char* sFill2 = NULL) const;
 };
 
 inline MatExp
@@ -439,13 +437,9 @@ VecExp::Cross(void) const {
 }
 
 
-extern ostream& operator << (ostream& out, const MatExp& m);
-extern ostream& Write(
-		ostream& out,
-		const MatExp& m,
-		const char* sFill = " ", 
-		const char* sFill2 = NULL
-);
+extern std::ostream& operator << (std::ostream& out, const MatExp& m);
+extern std::ostream& Write(std::ostream& out, const MatExp& m, 
+		const char* sFill = " ", const char* sFill2 = NULL);
 
 inline MatExp
 VecExp::Tens(const VecExp &v) const {

@@ -258,40 +258,43 @@ HighParser::GetLineData(void) const
 flag 
 HighParser::fIsDescription(void)
 {
-   if (CurrToken != HighParser::DESCRIPTION) {
-      cerr << "Parser error in HighParser::fIsDescription, invalid call to GetDescription at line "
-	<< GetLineData() << endl;
-      return flag(0);
-   }
-   return flag(1);
+     	if (CurrToken != HighParser::DESCRIPTION) {
+	  	std::cerr << "Parser error in HighParser::fIsDescription, "
+	  		"invalid call to GetDescription at line "
+			<< GetLineData() << std::endl;
+	  	return flag(0);
+     	}
+     	return flag(1);
 }
 
 
 int 
 HighParser::iGetDescription_(const char* const s)
 {
-   int i = KeyT.Find(s);
-   
-   if (FirstToken() == HighParser::UNKNOWN) {
-      cerr << "Parser error in HighParser::iGetDescription_(), semicolon expected at line " 
-	<< GetLineData() << endl;
-      THROW(HighParser::ErrSemicolonExpected());      
-   }
-   
-   return i;   
+	int i = KeyT.Find(s);
+     	
+     	if (FirstToken() == HighParser::UNKNOWN) {
+		std::cerr << "Parser error in HighParser::iGetDescription_(), "
+			"semicolon expected at line " 
+			<< GetLineData() << std::endl;
+	  	THROW(HighParser::ErrSemicolonExpected());      
+     	}
+     	
+     	return i;   
 }
 
 
 void 
 HighParser::Set_(void) 
 {      
-   if (FirstToken() == UNKNOWN) {
-      cerr << endl << "Parser error in HighParser::Set_(), colon expected at line " 
-	<< GetLineData() << endl;
-      THROW(HighParser::ErrColonExpected());
-   }
+     	if (FirstToken() == UNKNOWN) {
+     		std::cerr << "Parser error in HighParser::Set_(), "
+     			"colon expected at line " 
+     			<< GetLineData() << std::endl;
+     		THROW(HighParser::ErrColonExpected());
+	}
    
-   GetReal();   
+	GetReal();   
 }
 
 
@@ -299,18 +302,18 @@ void
 HighParser::Remark_(void)
 {
 	if (FirstToken() == UNKNOWN) {
-		cerr << "Parser error in MBDynParser::Remark_(),"
+		std::cerr << "Parser error in MBDynParser::Remark_(),"
 			" colon expected at line "
-			<< GetLineData() << endl;
+			<< GetLineData() << std::endl;
 		THROW(HighParser::ErrColonExpected());
 	}
 	
-	cout << "line " << GetLineData() << ": " << GetStringWithDelims();
+	std::cout << "line " << GetLineData() << ": " << GetStringWithDelims();
 	if (fIsArg()) {
-		cout << ", " << GetReal();
+		std::cout << ", " << GetReal();
 	}
  
-	cout << endl;
+	std::cout << std::endl;
 }
 
 
@@ -330,9 +333,9 @@ restart_parsing:
       if (pIn->GetStream().eof()) {
 	 THROW(ErrFile());
       } else {     	 
-	 cerr << endl << "Parser error in "
+	std::cerr << "Parser error in "
 	   << sFuncName << ", keyword expected at line " 
-	   << GetLineData() << endl;
+	   << GetLineData() << std::endl;
 	 THROW(HighParser::ErrKeyWordExpected());
       }      
    }
@@ -405,9 +408,9 @@ HighParser::NextToken(const char* sFuncName)
       CurrToken = HighParser::DESCRIPTION;
       break;
     default:
-      cerr << endl << "Parser error in "
+      std::cerr << "Parser error in "
 	<< sFuncName << ", missing separator at line " 
-	<< GetLineData() << endl;
+	<< GetLineData() << std::endl;
       THROW(HighParser::ErrMissingSeparator());
    }   
 }
@@ -527,9 +530,9 @@ HighParser::GetInt(int iDefval)
    const char sFuncName[] = "HighParser::GetInt()";
    
    if (CurrToken != HighParser::ARG) {
-      cerr << endl << "Parser error in "
+	std::cerr << "Parser error in "
 	<< sFuncName << ", integer arg expected at line " 
-	<< GetLineData() << endl;
+	<< GetLineData() << std::endl;
       THROW(HighParser::ErrIntegerExpected());
    }
    
@@ -544,7 +547,8 @@ HighParser::GetInt(int iDefval)
 #ifdef USE_EXCEPTIONS
    }
    catch (MathParser::ErrGeneric e) {
-      cerr << sFuncName << ": error return from MathParser at line " << GetLineData() << endl;
+      std::cerr << sFuncName << ": error return from MathParser at line " 
+	      << GetLineData() << std::endl;
       throw e;
    }
 #endif     
@@ -560,9 +564,9 @@ HighParser::GetReal(double dDefval)
    const char sFuncName[] = "HighParser::GetReal()";
    
    if (CurrToken != HighParser::ARG) {
-      cerr << endl << "Parser error in "
+      std::cerr << "Parser error in "
 	<< sFuncName << ", real arg expected at line " 
-	<< GetLineData() << endl;
+	<< GetLineData() << std::endl;
       THROW(HighParser::ErrRealExpected());
    }
    
@@ -576,7 +580,8 @@ HighParser::GetReal(double dDefval)
 #ifdef USE_EXCEPTIONS
    }
    catch (MathParser::ErrGeneric e) {
-      cerr << sFuncName << ": error return from MathParser at line " << GetLineData() << endl;
+      std::cerr << sFuncName << ": error return from MathParser at line " 
+	      << GetLineData() << std::endl;
       throw e;
    }
 #endif     
@@ -592,16 +597,16 @@ HighParser::GetWord(void)
    const char sFuncName[] = "HighParser::GetWord()";
    
    if (CurrToken != HighParser::ARG) {
-      cerr << endl << "Parser error in "
+      std::cerr << "Parser error in "
 	<< sFuncName << ", keyword arg expected at line " 
-	<< GetLineData() << endl;
+	<< GetLineData() << std::endl;
       THROW(HighParser::ErrKeyWordExpected());
    }
    
    if ((CurrLowToken = LowP.GetToken(*pIn)) != LowParser::WORD) {
-      cerr << endl << "Parser error in "
+      std::cerr << "Parser error in "
 	<< sFuncName << ", keyword expected at line " 
-	<< GetLineData() << endl;
+	<< GetLineData() << std::endl;
       THROW(HighParser::ErrKeyWordExpected());
    }
    
@@ -617,13 +622,13 @@ HighParser::GetString(void)
 {
    const char sFuncName[] = "HighParser::GetString()";
    
-   cerr << "line " << GetLineData()
-     << ": warning, use of deprecated method \"GetString\"" << endl;
+   std::cerr << "line " << GetLineData()
+     << ": warning, use of deprecated method \"GetString\"" << std::endl;
    
    if (CurrToken != HighParser::ARG) {
-      cerr << endl << "Parser error in "
+      std::cerr << "Parser error in "
 	<< sFuncName << ", string arg expected at line " 
-	<< GetLineData() << endl;
+	<< GetLineData() << std::endl;
       THROW(HighParser::ErrStringExpected());
    }
    
@@ -668,9 +673,9 @@ HighParser::GetStringWithDelims(enum Delims Del)
    const char sFuncName[] = "HighParser::GetStringWithDelims()";
    
    if (CurrToken != HighParser::ARG) {
-      cerr << endl << "Parser error in "
+      std::cerr << "Parser error in "
 	<< sFuncName << ", string arg expected at line " 
-	<< GetLineData() << endl;
+	<< GetLineData() << std::endl;
       THROW(HighParser::ErrStringExpected());
    }
    
@@ -738,11 +743,11 @@ HighParser::GetStringWithDelims(enum Delims Del)
    /* Altrimenti c'e' qualcosa senza delimitatore. Adesso da' errore,
     * forse e' piu' corretto fargli ritornare lo stream intatto */
    } else {	
-      cerr << endl << "Parser error in "
-	<< sFuncName << endl 
+      std::cerr << "Parser error in "
+	<< sFuncName << std::endl 
 	<< "first non-blank char at line " 
-	<< GetLineData() << " isn't a valid left-delimiter;" << endl
-	<< "aborting ..." << endl;
+	<< GetLineData() << " isn't a valid left-delimiter;" << std::endl
+	<< "aborting ..." << std::endl;
       THROW(HighParser::ErrIllegalDelimiter());
    }   
    
@@ -1122,8 +1127,8 @@ HighParser::GetMat6xN(Mat3xN& m1, Mat3xN& m2, integer iNumCols)
 
 /* HighParser - end */
 
-ostream& 
-operator << (ostream& out, const HighParser::ErrOut& err)
+std::ostream& 
+operator << (std::ostream& out, const HighParser::ErrOut& err)
 {
    out << err.iLineNumber;
    if (err.sFileName != NULL) {      

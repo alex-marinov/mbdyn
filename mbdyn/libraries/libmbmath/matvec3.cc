@@ -106,7 +106,7 @@ Mat3x3 Mat3x3::Inv(void) const
      +p[M13]*(p[M21]*p[M32]-p[M22]*p[M31]);
    
    if (fabs(d) < DBL_EPSILON) {
-      cerr << "matrix is singular" << endl;
+      std::cerr << "matrix is singular" << std::endl;
       THROW(ErrGeneric());
    }
    
@@ -133,7 +133,7 @@ Vec3 Mat3x3::Inv(const Vec3& v) const
    doublereal* pv = v.pGetVec();
    
    if (fabs(d) < DBL_EPSILON) {
-      cerr << "matrix is singular" << endl;
+      std::cerr << "matrix is singular" << std::endl;
       THROW(ErrGeneric());
    }
    return Vec3((pv[V1]*(p[M22]*p[M33]-p[M23]*p[M32])
@@ -183,7 +183,8 @@ const char sDefFill[] = " ";
 
 /* output di matrici */
 
-ostream& operator << (ostream& out, const Mat3x3& m)
+std::ostream& 
+operator << (std::ostream& out, const Mat3x3& m)
 {
    doublereal* pd = m.pGetMat();
 #ifdef HAVE_FORM_IN_OSTREAM
@@ -201,10 +202,8 @@ ostream& operator << (ostream& out, const Mat3x3& m)
 }
 
 
-ostream& Write(ostream& out, 
-	       const Mat3x3& m,
-	       const char* s,
-	       const char* s2)
+std::ostream& 
+Write(std::ostream& out, const Mat3x3& m, const char* s, const char* s2)
 {
    return m.Write(out, s, s2);
 }
@@ -212,7 +211,8 @@ ostream& Write(ostream& out,
 
 /* output di vettori */
 
-ostream& operator << (ostream& out, const Vec3& v)
+std::ostream&
+operator << (std::ostream& out, const Vec3& v)
 {
    doublereal* pd = v.pGetVec();
    
@@ -224,16 +224,16 @@ ostream& operator << (ostream& out, const Vec3& v)
 }
 
 
-ostream& Write(ostream& out, const Vec3& v, const char* s)
+std::ostream& 
+Write(std::ostream& out, const Vec3& v, const char* s)
 {
    return v.Write(out, s);
 }
 
 
 /* Output di matrici */
-ostream& Mat3x3::Write(ostream& out, 
-		       const char* sFill, 
-		       const char* sFill2) const
+std::ostream&
+Mat3x3::Write(std::ostream& out, const char* sFill, const char* sFill2) const
 {
    char* sF2 = (char*)sFill2; 
    if (sFill2 == NULL) {
@@ -248,7 +248,8 @@ ostream& Mat3x3::Write(ostream& out,
 }
 
 
-ostream& Vec3::Write(ostream& out, const char* sFill) const
+std::ostream&
+Vec3::Write(std::ostream& out, const char* sFill) const
 {
    out << pdVec[V1] << sFill << pdVec[V2] << sFill << pdVec[V3];
    
@@ -256,7 +257,8 @@ ostream& Vec3::Write(ostream& out, const char* sFill) const
 }
 
 
-ostream& Write(ostream& out, const doublereal& d, const char*)
+std::ostream&
+Write(std::ostream& out, const doublereal& d, const char*)
 {
    return out << d;
 }
@@ -270,8 +272,8 @@ Vec3 gparam(const Mat3x3& m)
    doublereal d = 1.+m.Trace();
    
    if (d == 0.) {
-      cerr << "gparam(): divide by zero,"
-        " probably due to singularity in rotation parameters" << endl;
+      std::cerr << "gparam(): divide by zero,"
+        " probably due to singularity in rotation parameters" << std::endl;
       THROW(ErrGeneric());
    }
    
@@ -294,10 +296,11 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
    Vec3 r[3];
 
    DEBUGCOUT(sFuncName << ": ia = " << ia << " (" << va << "),"
-	     << " ib = " << ib << " (" << vb << ")" << endl);
+	     << " ib = " << ib << " (" << vb << ")" << std::endl);
    
    if (ia < 1 || ia > 3) {
-      cerr << endl << sFuncName << ": first index is illegal" << endl;
+      std::cerr << sFuncName << ": first index is illegal" 
+	      << std::endl;
       THROW(ErrGeneric());
    }
    
@@ -310,14 +313,15 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       r[i3] = r[i1].Cross(vb);
       double d = r[i3].Dot();
       if (d <= DBL_EPSILON) {
-	 cerr << endl << sFuncName << ": vectors must be distinct" << endl;
+	 std::cerr << sFuncName << ": vectors must be distinct" 
+		 << std::endl;
 	 THROW(ErrGeneric());
       }	
       d = sqrt(d);
       r[i3] /= d;
       r[i2] = r[i3].Cross(r[i1]);
       
-      DEBUGCOUT("R = " << Mat3x3(r[0], r[1], r[2]) << endl);
+      DEBUGCOUT("R = " << Mat3x3(r[0], r[1], r[2]) << std::endl);
       
       return Mat3x3(r[0], r[1], r[2]);
    } else if (ib == ((ia+1)%3+1)) {
@@ -325,18 +329,19 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       r[i2] = vb.Cross(r[i1]);
       double d = r[i2].Dot();
       if (d <= DBL_EPSILON) {
-	 cerr << endl << sFuncName << ": vectors must be distinct" << endl;
+	 std::cerr << sFuncName << ": vectors must be distinct" 
+		 << std::endl;
 	 THROW(ErrGeneric());
       }	
       d = sqrt(d);
       r[i2] /= d;
       r[i3] = r[i1].Cross(r[i2]);  
       
-      DEBUGCOUT("R = " << Mat3x3(r[0], r[1], r[2]) << endl);
+      DEBUGCOUT("R = " << Mat3x3(r[0], r[1], r[2]) << std::endl);
       
       return Mat3x3(r[0], r[1], r[2]);
    } else {
-      cerr << endl << sFuncName << ": second index is illegal" << endl;
+      std::cerr << sFuncName << ": second index is illegal" << std::endl;
       THROW(ErrGeneric());
    }
    

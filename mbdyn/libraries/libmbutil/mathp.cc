@@ -103,7 +103,7 @@ mp_srnd(Real s)
 Real 
 mp_prnt(Real s)
 {
-   cout << s << endl;
+   std::cout << s << std::endl;
    return s;
 }
 
@@ -542,8 +542,8 @@ operator + (const TypedValue& v)
    return v;
 }
 
-ostream& 
-operator << (ostream& out, const TypedValue& v) 
+std::ostream& 
+operator << (std::ostream& out, const TypedValue& v) 
 {
    switch (v.GetType()) {
     case TypedValue::VAR_INT:
@@ -709,7 +709,7 @@ MathParser::ErrGeneric::ErrGeneric(void)
 
 MathParser::ErrGeneric::ErrGeneric(MathParser* p, const char* const s) 
 {
-   cerr << s << " at line " << p->GetLineNumber() << endl;
+   std::cerr << s << " at line " << p->GetLineNumber() << std::endl;
 }
 
 MathParser::ErrGeneric::ErrGeneric(MathParser* p,
@@ -717,8 +717,8 @@ MathParser::ErrGeneric::ErrGeneric(MathParser* p,
 				   const char* const s2,
 				   const char* const s3) 
 {
-   cerr << "MathParser - " << s1 << s2 << s3
-     << " at line " << p->GetLineNumber() << endl;
+   std::cerr << "MathParser - " << s1 << s2 << s3
+     << " at line " << p->GetLineNumber() << std::endl;
 }
 
 /* gioca con table e stream di ingresso */
@@ -1384,7 +1384,8 @@ MathParser::stmt(void)
 	 ASSERT(type != TypedValue::VAR_UNKNOWN);
 	 
 	 if (GetToken() != NAME) {
-	    cerr << "name expected after type in declaration in stmt()" << endl;
+	    std::cerr << "name expected after type in declaration in stmt()" 
+		    << std::endl;
 	    THROW(ErrGeneric(this, "name expected after type in declaration"));
 	 }
 	 
@@ -1415,7 +1416,8 @@ MathParser::stmt(void)
 		  if (v->IsVar()) {
 		     ((Var *)v)->SetVal(d);
 		  } else {
-		     cerr << "cannot redefine a non-var named value" << endl;
+		     std::cerr << "cannot redefine a non-var named value" 
+			     << std::endl;
 		     THROW(MathParser::ErrGeneric(this, "cannot redefine non-var named value '", v->GetName(), "'"));
 		  }
 	       } else {
@@ -1449,8 +1451,8 @@ MathParser::stmt(void)
 	       if (v->IsVar()) {
 	          ((Var *)v)->SetVal(d);
 	       } else {
-		  cerr << "cannot assign non-var named value '" 
-			  << v->GetName() << "'" << endl;
+		  std::cerr << "cannot assign non-var named value '" 
+			  << v->GetName() << "'" << std::endl;
 		  THROW(MathParser::ErrGeneric(this,
 		  			"cannot assign non-var named value '",
 					v->GetName(), "'"));
@@ -1523,8 +1525,8 @@ MathParser::readplugin(void)
 				NO_OP;
 			}
 			if (c != ',' && c != ']') {
-				cerr << "need a separator after closing quotes"
-					<< endl;
+				std::cerr << "need a separator "
+					"after closing quotes" << std::endl;
 				THROW(ErrGeneric());
 			}
 			in->putback(c);
@@ -1562,14 +1564,15 @@ MathParser::readplugin(void)
 		 * FIXME: rendere dinamico il buffer ...
 		 */
 		if (i >= sizeof(buf)) {
-			cerr << "buffer overflow" << endl;
+			std::cerr << "buffer overflow" << std::endl;
 			THROW(ErrGeneric());
 		}
 	}
 
 last_arg:
 	if (in->eof()) {
-		cerr << "eof encountered while parsing plugin" << endl;
+		std::cerr << "eof encountered while parsing plugin" 
+			<< std::endl;
 		THROW(ErrGeneric());
 	}
 
@@ -1591,12 +1594,13 @@ last_arg:
 	 * verifiche di validita' argomenti
 	 */
 	if (pginname == NULL || *pginname == '\0') {
-		cerr << "illegal or missing plugin name" << endl;
+		std::cerr << "illegal or missing plugin name" << std::endl;
 		THROW(ErrGeneric());
 	}
 
 	if (varname == NULL || *varname == '\0') {
-		cerr << "illegal or missing plugin variable name" << endl;
+		std::cerr << "illegal or missing plugin variable name" 
+			<< std::endl;
 		THROW(ErrGeneric());
 	}
 	
@@ -1605,7 +1609,8 @@ last_arg:
 	 */
 	NamedValue* v = table.Get(varname);
 	if (v != NULL) {
-		cerr << "variable " << varname << " already defined" << endl;
+		std::cerr << "variable " << varname << " already defined" 
+			<< std::endl;
 		THROW(ErrGeneric());
 	}
 
@@ -1655,7 +1660,7 @@ last_arg:
 	/*
 	 * si arriva qui solo se il plugin non e' stato registrato
 	 */
-	cerr << "plugin '" << pginname << "' not supported" << endl;
+	std::cerr << "plugin '" << pginname << "' not supported" << std::endl;
 	THROW(ErrGeneric());
 }
    
@@ -1731,7 +1736,7 @@ MathParser::InsertSym(const char* const s, const Real& v, int redefine)
          if (var->IsVar()) {
             ((Var *)var)->SetVal(TypedValue(v));
          } else {
-            cerr << "cannot redefine a non-var named value" << endl;
+	    std::cerr << "cannot redefine a non-var named value" << std::endl;
             THROW(MathParser::ErrGeneric(this,
 		"cannot redefine non-var named value '", var->GetName(), "'"));
          }
@@ -1765,7 +1770,7 @@ MathParser::InsertSym(const char* const s, const Int& v, int redefine)
          if (var->IsVar()) {
             ((Var *)var)->SetVal(TypedValue(v));
          } else {
-            cerr << "cannot redefine a non-var named value" << endl;
+	    std::cerr << "cannot redefine a non-var named value" << std::endl;
             THROW(MathParser::ErrGeneric(this,
 		"cannot redefine non-var named value '", var->GetName(), "'"));
          }
@@ -1848,7 +1853,7 @@ MathParser::Get(const InputStream& strm, Real d)
 }
 
 void 
-MathParser::GetForever(ostream& out, const char* const sep)
+MathParser::GetForever(std::ostream& out, const char* const sep)
 {
    do {
       out << Get(0.) << sep;	
@@ -1856,7 +1861,8 @@ MathParser::GetForever(ostream& out, const char* const sep)
 }
 
 void 
-MathParser::GetForever(const InputStream& strm, ostream& out, const char* const sep)
+MathParser::GetForever(const InputStream& strm, std::ostream& out, 
+		const char* const sep)
 {
    const InputStream* p = in;
    in = (InputStream*)&strm;

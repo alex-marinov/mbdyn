@@ -34,14 +34,15 @@
 #ifndef MATVEC3_H
 #define MATVEC3_H
 
-/* include per debug */
+#if defined(HAVE_IOSTREAM)
+#include <iostream>
+#elif defined(HAVE_IOSTREAM_H)
+#include <iostream.h>
+#endif
+
 #include <myassert.h>
 #include <except.h>
-
-/* include generali */
 #include <myf2c.h>
-
-/* include del programma */
 #include <solman.h>
 
 enum {
@@ -446,7 +447,7 @@ class Vec3 {
     Scrive se stesso sull'ostream out.
     I coefficienti sono separati dalla stringa sFill (spazio di default).
     */
-   ostream& Write(ostream& out, const char* sFill = " ") const;
+   std::ostream& Write(std::ostream& out, const char* sFill = " ") const;
    //@}
 };
    
@@ -1105,7 +1106,7 @@ class Mat3x3 {
     Scrive se stessa sull'ostream out usando come separatore tra colonne sFill
     e come separatore tra le righe sFill2.
     */
-   ostream& Write(ostream& out, 
+   std::ostream& Write(std::ostream& out, 
 		  const char* sFill = " ", 
 		  const char* sFill2 = NULL) const;
    //@}
@@ -1136,14 +1137,14 @@ extern Mat3x3 operator - (const Mat3x3& v);
  Operatore di scrittura di Vec3 su ostream.
  Nota: i coefficienti sono separati da spazi. Non c'e' endl al termine
  */
-extern ostream& operator << (ostream& out, const Vec3& v);
+extern std::ostream& operator << (std::ostream& out, const Vec3& v);
       
 /**
  Operatore di scrittura di Mat3x3 su ostream.
  Nota: i coefficienti sono separati da spazi e sono scritti consecutivamente,
  per righe. Non c'e' endl al termine.
  */
-extern ostream& operator << (ostream& out, const Mat3x3& m);
+extern std::ostream& operator << (std::ostream& out, const Mat3x3& m);
 
 
 /** 
@@ -1153,7 +1154,7 @@ extern ostream& operator << (ostream& out, const Mat3x3& m);
  @param out   ostream su cui avviene la scrittura.
  @param d     valore da scrivere.
  */
-extern ostream& Write(ostream& out, const doublereal& d, const char*);
+extern std::ostream& Write(std::ostream& out, const doublereal& d, const char*);
    
 /**
  Funzione di Output di Vec3 su ostream.
@@ -1162,7 +1163,7 @@ extern ostream& Write(ostream& out, const doublereal& d, const char*);
  @param v     vettore da scrivere.
  @param s     separatore tra i valori.
  */
-extern ostream& Write(ostream& out, const Vec3& v, const char* s = " ");
+extern std::ostream& Write(std::ostream& out, const Vec3& v, const char* s = " ");
    
 /** 
  Funzione di Output di Mat3x3 su ostream.
@@ -1172,7 +1173,7 @@ extern ostream& Write(ostream& out, const Vec3& v, const char* s = " ");
  @param s     separatore tra i valori (colonne).
  @param s2    separatore tra i valori (righe); se nullo, usa s.
  */
-extern ostream& Write(ostream& out,
+extern std::ostream& Write(std::ostream& out,
 		      const Mat3x3& m,
 		      const char* s = " ", 
 		      const char* s2 = NULL);

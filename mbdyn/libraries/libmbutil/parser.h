@@ -101,18 +101,25 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-
+#if defined(HAVE_IOSTREAM)
+#include <iostream>
+#elif defined(HAVE_IOSTREAM_H)
 #include <iostream.h>
+#endif
+
+#if defined(HAVE_FSTREAM)
+#include <fstream>
+#elif defined(HAVE_FSTREAM_H)
 #include <fstream.h>
-extern "C" {
-#include <strings.h>
+#endif
+
+#include <string.h>
 #include <ctype.h>
 #include <myf2c.h>
 
 #include <stdlib.h>
 #include <unistd.h>
-}
-   
+
 #include <input.h>
 #include <mathp.h>
 #include <matvec3.h>
@@ -237,7 +244,7 @@ class HighParser {
      
    /* Stream in ingresso */
    InputStream* pIn;
-   ifstream* pf;
+   std::ifstream* pf;
    
    /* Buffer per le stringhe */
    char sStringBuf[iBufSize];
@@ -265,35 +272,50 @@ class HighParser {
  public:   
    HighParser(MathParser& MP, KeyTable& KT, InputStream& streamIn);
    virtual ~HighParser(void);
-
-   virtual void PutKeyTable(KeyTable& KT);            /* Attacca una nuova KeyTable */
-   virtual int GetLineNumber(void) const;             /* Numero di linea corrente */   
+   /* Attacca una nuova KeyTable */
+   virtual void PutKeyTable(KeyTable& KT);
+   /* Numero di linea corrente */   
+   virtual int GetLineNumber(void) const;
+   /* Numero di nome file e linea corrente */   
    virtual HighParser::ErrOut GetLineData(void) const;
-   
-   virtual MathParser& GetMathParser(void);           /* Restituisce il math parser */
-   virtual void Close(void);                          /* "Chiude" i flussi */
-   
-   virtual int GetDescription(void);                  /* Legge una parola chiave */
-   virtual void ExpectDescription(void);              /* si attende una descrizione */
-   virtual void ExpectArg(void);                      /* si attende una lista di argomenti */
-
-   virtual flag IsKeyWord(const char* sKeyWord);      /* 1 se trova la keyword sKeyWord */
-   virtual int IsKeyWord(void);                       /* numero della keyword trovata */
-   
-   virtual flag fIsArg(void);                         /* 1 se e' atteso un argomento */
-   virtual void PutBackSemicolon(void);               /* Se ha letto un ";" lo rimette a posto */
-   virtual integer GetInt(int iDefval = 0);           /* legge un intero con il mathpar */
-   virtual doublereal GetReal(double dDefval = 0.0);  /* legge un reale col mathpar */
-   virtual int GetWord(void);                         /* legge una keyword */
-   virtual const char* GetString(void);               /* legge una stringa */
+   /* Restituisce il math parser */
+   virtual MathParser& GetMathParser(void);
+   /* "Chiude" i flussi */
+   virtual void Close(void);
+   /* Legge una parola chiave */
+   virtual int GetDescription(void);
+   /* si attende una descrizione */
+   virtual void ExpectDescription(void);
+   /* si attende una lista di argomenti */
+   virtual void ExpectArg(void);
+   /* 1 se trova la keyword sKeyWord */
+   virtual flag IsKeyWord(const char* sKeyWord);
+   /* numero della keyword trovata */
+   virtual int IsKeyWord(void);
+   /* 1 se e' atteso un argomento */
+   virtual flag fIsArg(void);
+   /* Se ha letto un ";" lo rimette a posto */
+   virtual void PutBackSemicolon(void);
+   /* legge un intero con il mathpar */
+   virtual integer GetInt(int iDefval = 0);
+   /* legge un reale col mathpar */
+   virtual doublereal GetReal(double dDefval = 0.0);
+   /* legge una keyword */
+   virtual int GetWord(void);
+   /* legge una stringa */
+   virtual const char* GetString(void);
+   /* stringa delimitata */
    virtual const char* GetStringWithDelims(enum Delims Del = DEFAULTDELIM); 
-                                                      /* stringa delimitata */
-
-   virtual Vec3 GetVec3(void);                   /* vettore Vec3 */
-   virtual Vec3 GetVec3(const Vec3& vDef);       /* vettore Vec3 */
-   virtual Mat3x3 GetMatR2vec(void);             /* matrice R mediante i due vettori */
-   virtual Mat3x3 GetMat3x3Sym(void);            /* matrice 3x3 simmetrica */
-   virtual Mat3x3 GetMat3x3(void);               /* matrice 3x3 arbitraria */
+   /* vettore Vec3 */
+   virtual Vec3 GetVec3(void);
+   /* vettore Vec3 */
+   virtual Vec3 GetVec3(const Vec3& vDef);
+   /* matrice R mediante i due vettori */
+   virtual Mat3x3 GetMatR2vec(void);
+   /* matrice 3x3 simmetrica */
+   virtual Mat3x3 GetMat3x3Sym(void);
+   /* matrice 3x3 arbitraria */
+   virtual Mat3x3 GetMat3x3(void);
    virtual Mat3x3 GetMat3x3(const Mat3x3& mDef);
    
    virtual Vec6 GetVec6(void);
@@ -340,7 +362,7 @@ class HighParser {
 
 /* HighParser - end */
    
-extern ostream& operator << (ostream& out, const HighParser::ErrOut& err);
+extern std::ostream& operator << (std::ostream& out, const HighParser::ErrOut& err);
 
 #endif /* PARSER_H */
 

@@ -34,7 +34,12 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#if defined(HAVE_IOMANIP)
+#include <iomanip>
+#elif defined(HAVE_IOMANIP_H)
 #include <iomanip.h>
+#endif
+
 #include <submat.h>
 
 /* SubMatrixHandler - begin */
@@ -412,7 +417,8 @@ MatrixHandler& FullSubMatrixHandler::SubFrom(FullMatrixHandler& MH) const {
 
 
 /* output, usato principalmente per debug */
-ostream& operator << (ostream& out, const FullSubMatrixHandler& m)
+std::ostream& 
+operator << (std::ostream& out, const FullSubMatrixHandler& m)
 {
 #ifdef DEBUG
    m.IsValid();
@@ -431,23 +437,23 @@ ostream& operator << (ostream& out, const FullSubMatrixHandler& m)
    ASSERT(pd != NULL);
    
    integer* piCnt = piCol;
-   out << setw(12) << "";
+   out << std::setw(12) << "";
    while (piCnt < piCol+iCol) {      
-      out << setw(12) << *piCnt++;
+      out << std::setw(12) << *piCnt++;
    }
-   out << endl << endl;
+   out << std::endl << std::endl;
      
    piCnt = piRow;
    while (piCnt < piRow+iRow) {	
-      out << setw(12) << *piCnt++;
+      out << std::setw(12) << *piCnt++;
       for (integer iCnt = 0; iCnt < iRow; iCnt++) {	 
-	 out << setw(12) << *(pd+iCnt*iRow);
+	 out << std::setw(12) << *(pd+iCnt*iRow);
       }
-      out << endl;
+      out << std::endl;
       pd++;
    }
    
-   return out << endl;   
+   return out << std::endl;   
 }
 
 /* FullSubMatrixHandler - end */
@@ -727,7 +733,7 @@ MySubVectorHandler::MySubVectorHandler(integer iSize, integer* piTmpRow,
 void MySubVectorHandler::Resize(integer iSize) 
 {
    if (iSize < 0) {
-      cerr << "Negative size!" << endl;
+      std::cerr << "Negative size!" << std::endl;
       THROW(ErrGeneric());
    }
    
@@ -736,8 +742,8 @@ void MySubVectorHandler::Resize(integer iSize)
    
    if (!fOwnsMemory && piRow != NULL) {
       if (iSize > iMaxSize) {
-	 cerr << "Can't resize to " << iSize 
-	   << ": larger than max size " << iMaxSize << endl;
+         std::cerr << "Can't resize to " << iSize 
+	   << ": larger than max size " << iMaxSize << std::endl;
 	 THROW(ErrGeneric());
       }
       iCurSize = iSize;
@@ -847,7 +853,8 @@ VectorHandler& MySubVectorHandler::AddTo(MyVectorHandler& VH) const {
 }
 
 
-ostream& operator << (ostream& out, const SubVectorHandler& v)
+std::ostream& 
+operator << (std::ostream& out, const SubVectorHandler& v)
 {
 #ifdef DEBUG
    v.IsValid();
@@ -858,10 +865,11 @@ ostream& operator << (ostream& out, const SubVectorHandler& v)
    ASSERT(iRow > 0);
    
    for (integer i = 1; i <= iRow; i++) {
-      out << setw(12) << v.iGetRowIndex(i) << setw(12) << v.dGetCoef(i) << endl;
+      out << std::setw(12) << v.iGetRowIndex(i) 
+	      << std::setw(12) << v.dGetCoef(i) << std::endl;
    }   
       
-   return out << endl;
+   return out << std::endl;
 }
 
 /* MySubVectorHandler - end */

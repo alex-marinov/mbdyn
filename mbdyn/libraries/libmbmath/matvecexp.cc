@@ -88,8 +88,8 @@ ScalExp exp(const ScalExp &d) {
 
 
 
-ostream&
-ScalExp::Write(ostream& out, const char* sFill) const
+std::ostream&
+ScalExp::Write(std::ostream& out, const char* sFill) const
 {
 	return out 
 		<< GetVec() << sFill
@@ -103,25 +103,22 @@ ScalExp::Write(ostream& out, const char* sFill) const
 //}
 //
 
-ostream&
-operator << (ostream& out, const ScalExp& v)
+std::ostream&
+operator << (std::ostream& out, const ScalExp& v)
 {
 	return out 
 		<< v.GetVec() << " "
 		<< v.GetMom();    
 }
 
-ostream&
-Write(ostream& out, const ScalExp& v, const char* sFill)
+std::ostream&
+Write(std::ostream& out, const ScalExp& v, const char* sFill)
 {
 	return v.Write(out, sFill);
 }
 
-
-
-
-ostream&
-VecExp::Write(ostream& out, const char* sFill) const
+std::ostream&
+VecExp::Write(std::ostream& out, const char* sFill) const
 {
 	return out 
 		<< vec.dGet(1) << sFill
@@ -138,8 +135,8 @@ operator - (const VecExp& v)
 	return VecExp(-v.GetVec(), -v.GetMom());
 }
 
-ostream&
-operator << (ostream& out, const VecExp& v)
+std::ostream&
+operator << (std::ostream& out, const VecExp& v)
 {
 	const Vec3& vec = v.GetVec();
 	const Vec3& mom = v.GetMom();
@@ -152,14 +149,14 @@ operator << (ostream& out, const VecExp& v)
 		<< mom.dGet(3);    
 }
 
-ostream&
-Write(ostream& out, const VecExp& v, const char* sFill)
+std::ostream&
+Write(std::ostream& out, const VecExp& v, const char* sFill)
 {
 	return v.Write(out, sFill);
 }
 
-ostream&
-MatExp::Write(ostream& out, const char* sFill, const char* sFill2) const
+std::ostream&
+MatExp::Write(std::ostream& out, const char* sFill, const char* sFill2) const
 {
 	char* sF2 = (char*)sFill2; 
 	if (sFill2 == NULL) {      
@@ -205,8 +202,8 @@ MatExp::Write(ostream& out, const char* sFill, const char* sFill2) const
 		<< vec.dGet(3,3);
 }
 
-ostream&
-operator << (ostream& out, const MatExp& m)
+std::ostream&
+operator << (std::ostream& out, const MatExp& m)
 {
 	const Mat3x3& vec = m.GetVec();
 	const Mat3x3& mom = m.GetMom();
@@ -216,31 +213,31 @@ operator << (ostream& out, const MatExp& m)
 		<< vec.dGet(1, 3) << " " 
 		<< mom.dGet(1, 1) << " "
 		<< mom.dGet(1, 2) << " "
-		<< mom.dGet(1, 3) << endl
+		<< mom.dGet(1, 3) << std::endl
 		<< vec.dGet(2, 1) << " "
 		<< vec.dGet(2, 2) << " "
 		<< vec.dGet(2, 3) << " " 
 		<< mom.dGet(2, 1) << " "
 		<< mom.dGet(2, 2) << " "
-		<< mom.dGet(2, 3) << endl
+		<< mom.dGet(2, 3) << std::endl
 		<< vec.dGet(3, 1) << " "
 		<< vec.dGet(3, 2) << " "
 		<< vec.dGet(3, 3) << " " 
 		<< mom.dGet(3, 1) << " "
 		<< mom.dGet(3, 2) << " "
-		<< mom.dGet(3, 3) << endl
+		<< mom.dGet(3, 3) << std::endl
 		<< 0. << " "
 		<< 0. << " "
 		<< 0. << " " 
 		<< vec.dGet(1, 1) << " "
 		<< vec.dGet(1, 2) << " "
-		<< vec.dGet(1, 3) << endl
+		<< vec.dGet(1, 3) << std::endl
 		<< 0. << " "
 		<< 0. << " " 
 		<< 0. << " " 
 		<< vec.dGet(2, 1) << " "
 		<< vec.dGet(2, 2) << " "
-		<< vec.dGet(2, 3) << endl
+		<< vec.dGet(2, 3) << std::endl
 		<< 0. << " "
 		<< 0. << " "
 		<< 0. << " " 
@@ -249,8 +246,8 @@ operator << (ostream& out, const MatExp& m)
 		<< vec.dGet(3, 3);     
 }
 
-ostream&
-Write(ostream& out, const MatExp& m, const char* sFill, const char* sFill2)
+std::ostream&
+Write(std::ostream& out, const MatExp& m, const char* sFill, const char* sFill2)
 {
 	return m.Write(out, sFill, sFill2);
 }

@@ -50,8 +50,26 @@
 /* Define if you have the <f2c.h> header file.  */
 #undef HAVE_F2C_H
 
+/* Define if you have the <fstream> header file.  */
+#undef HAVE_FSTREAM
+
+/* Define if you have the <fstream.h> header file.  */
+#undef HAVE_FSTREAM_H
+
 /* Define if you have the <getopt.h> header file.  */
 #undef HAVE_GETOPT_H
+
+/* Define if you have the <iomanip> header file.  */
+#undef HAVE_IOMANIP
+
+/* Define if you have the <iomanip.h> header file.  */
+#undef HAVE_IOMANIP_H
+
+/* Define if you have the <iostream> header file.  */
+#undef HAVE_IOSTREAM
+
+/* Define if you have the <iostream.h> header file.  */
+#undef HAVE_IOSTREAM_H
 
 /* Define if you have the <meschach/sparse2.h> header file.  */
 #undef HAVE_MESCHACH_SPARSE2_H
@@ -61,6 +79,9 @@
 
 /* Define if you have the <pam_misc.h> header file.  */
 #undef HAVE_PAM_MISC_H
+
+/* Define if you have the <pwd.h> header file.  */
+#undef HAVE_PWD_H
 
 /* Define if you have the <security/pam_appl.h> header file.  */
 #undef HAVE_SECURITY_PAM_APPL_H
@@ -73,6 +94,9 @@
 
 /* Define if you have the <sstream> header file.  */
 #undef HAVE_SSTREAM
+
+/* Define if you have the <string.h> header file.  */
+#undef HAVE_STRING_H
 
 /* Define if you have the <strstream.h> header file.  */
 #undef HAVE_STRSTREAM_H

@@ -33,7 +33,11 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+#if defined(HAVE_IOSTREAM)
+#include <iostream>
+#elif defined(HAVE_IOSTREAM_H)
 #include <iostream.h>
+#endif
 #include "myassert.h"
 
 /* Filtro per la classe istream che conta il numero di righe. */
@@ -55,12 +59,12 @@ class InputStream {
 #endif
 
  private:
-   istream& iStrm;
+   std::istream& iStrm;
    unsigned long uLineNumber;      
    
  public:
    /* Costruttore - inizializza il filtro con un reference ad un istream */
-   InputStream(istream& in);
+   InputStream(std::istream& in);
    
    /* Distruttore banale */
    ~InputStream(void);
@@ -69,7 +73,7 @@ class InputStream {
    inline char get(void);
    
    /* Legge un carattere; se e' un fine-riga, aggiorna il contatore */
-   inline istream& get(char& ch);
+   inline std::istream& get(char& ch);
    
    /* Esegue il putback di un carattere */
    inline InputStream& putback(char ch);
@@ -81,7 +85,7 @@ class InputStream {
    inline bool eof(void) const;
    
    /* Restituisce l'istream */
-   inline istream& GetStream(void) const;
+   inline std::istream& GetStream(void) const;
 };
 
 /* Overload dell'operatore di lettura */
@@ -109,9 +113,9 @@ inline char InputStream::get(void)
 }
    
 /* Legge un carattere; se e' un fine-riga, aggiorna il contatore */
-inline istream& InputStream::get(char& ch) 
+inline std::istream& InputStream::get(char& ch) 
 {
-   istream& i = iStrm.get(ch);
+   std::istream& i = iStrm.get(ch);
    if(ch == '\n')
      uLineNumber++;
    return i;
@@ -139,11 +143,12 @@ inline bool InputStream::eof(void) const
 }
 
 /* Restituisce l'istream */
-inline istream& InputStream::GetStream(void) const
+inline std::istream& InputStream::GetStream(void) const
 {
    return iStrm;
 }
 
 /* InputStream - end */
 
-#endif
+#endif /* INPUT_H */
+

@@ -48,7 +48,7 @@ enum {
      TABLE_REAL
 };
 
-#define GCC_BUG 1
+#define GCC_BUG 0
 
 struct tmp_sym {
    char* name;
@@ -107,7 +107,7 @@ Table::Table(Int s, Int f) : size(s), v(NULL)
    static char func_name[] = "Table::Table";
 
    ASSERT(size > 0);
-   DEBUGCOUT("Table::Table" << endl);
+   DEBUGCOUT("Table::Table" << std::endl);
    
    SAFENEWARR(v, VarList*, size);
    
@@ -121,13 +121,14 @@ Table::Table(Int s, Int f) : size(s), v(NULL)
    
    tmp_sym* p = consts;
    while (p->name != NULL) {
-#if GCC_BUG != 1      
+#if 1
       NamedValue* n = Put(p->name, p->val);
 #else /* GCC_BUG == 1 */      
       NamedValue* n = Put(p->name, (p->type == TABLE_REAL ? p->r_val : p->i_val));
 #endif /* GCC_BUG == 1 */
       if (n == NULL) { 
-	 cerr << func_name << ": unable to insert " << p->name << endl;
+	 std::cerr << func_name << ": unable to insert " << p->name 
+		 << std::endl;
 	 THROW(ErrGeneric());
       }
       p++;
@@ -172,8 +173,8 @@ Table::Put(const char* const name, const TypedValue& x)
    static char func_name[] = "Table::Put()";
    NamedValue* pVar = Get(name);
    if (pVar != NULL) {
-      cerr << endl << func_name << ": name \"" << name 
-	<< "\" already defined" << endl;
+      std::cerr << func_name << ": name \"" << name 
+	<< "\" already defined" << std::endl;
       THROW(Table::ErrNameAlreadyDefined());
    }
    
@@ -194,8 +195,8 @@ Table::Put(NamedValue *p)
    static char func_name[] = "Table::Put()";
    NamedValue* pVar = Get(p->GetName());
    if (pVar != NULL) {
-      cerr << endl << func_name << ": name \"" << p->GetName()
-	<< "\" already defined" << endl;
+      std::cerr << func_name << ": name \"" << p->GetName()
+	<< "\" already defined" << std::endl;
       THROW(Table::ErrNameAlreadyDefined());
    }
 
@@ -226,8 +227,8 @@ Table::Get(const char* const name) const
 }
 
 
-ostream& 
-operator << (ostream& out, Table& T)
+std::ostream& 
+operator << (std::ostream& out, Table& T)
 {  
    for (Int i = T.size; i-- > 0; ) {      
       VarList* pn = T.v[i];
@@ -235,13 +236,13 @@ operator << (ostream& out, Table& T)
 	 out << "  " << pn->var->GetName() << '<';
 	 switch (pn->var->GetType()) {
 	  case TypedValue::VAR_INT:
-	    out << "int> = " << pn->var->GetVal().GetInt() << endl;
+	    out << "int> = " << pn->var->GetVal().GetInt() << std::endl;
 	    break;
 	  case TypedValue::VAR_REAL:
-	    out << "real> = " << pn->var->GetVal().GetReal() << endl;
+	    out << "real> = " << pn->var->GetVal().GetReal() << std::endl;
 	    break;
 	  default:
-	    out << "unknown type!>" << endl;
+	    out << "unknown type!>" << std::endl;
 	    break;
 	 }	 
 	     

@@ -71,7 +71,7 @@ TclPlugIn::Read(int argc, char *argv[])
 	} else if (strcasecmp(s_type, "integer") == 0) {
 		type = TypedValue::VAR_INT;
 	} else {
-		cerr << "unknown type '" << s_type << "'" << endl;
+		std::cerr << "unknown type '" << s_type << "'" << std::endl;
 		THROW(ErrGeneric());
 	}
 
@@ -83,12 +83,12 @@ TclPlugIn::Read(int argc, char *argv[])
 
 		fin = fopen(s_tcl+7, "r");
 		if (fin == NULL) {
-			cerr << "TclPlugIn::Read: error" << endl;
+			std::cerr << "TclPlugIn::Read: error" << std::endl;
 			THROW(ErrGeneric());
 		}
 
 		if (!fgets(buf, sizeof(buf), fin)) {
-			cerr << "TclPlugIn::Read: error" << endl;
+			std::cerr << "TclPlugIn::Read: error" << std::endl;
 			THROW(ErrGeneric());
 		}
 
@@ -99,7 +99,8 @@ TclPlugIn::Read(int argc, char *argv[])
 			cmdlen += strlen(buf);
 			s = (char *)realloc(s, cmdlen+1);
 			if (s == NULL) {
-				cerr << "TclPlugIn::Read: error" << endl;
+				std::cerr << "TclPlugIn::Read: error" 
+					<< std::endl;
 				THROW(ErrGeneric());
 			}
 			strcat(s, buf);
@@ -117,7 +118,7 @@ TclPlugIn::Read(int argc, char *argv[])
 	}
 
 	if (cmd == NULL) {
-		cerr << "TclPlugIn::Read: error" << endl;
+		std::cerr << "TclPlugIn::Read: error" << std::endl;
 		THROW(ErrGeneric());
 	}
 
@@ -136,19 +137,21 @@ TclPlugIn::GetVal(void) const
 	Tcl_Obj *res;
 	
 	if (Tcl_GlobalEvalObj(interp, cmd) != TCL_OK) {
-		cerr << "TclPlugIn::GetVal: Tcl_GlobalEvalObj: error" << endl;
+		std::cerr << "TclPlugIn::GetVal: Tcl_GlobalEvalObj: error" 
+			<< std::endl;
 		THROW(ErrGeneric());
 	}
 
 	if ((res = Tcl_GetObjResult(interp)) == NULL) {
-		cerr << "TclPlugIn::GetVal: Tcl_GlobalEvalObj: error" << endl;
+		std::cerr << "TclPlugIn::GetVal: Tcl_GlobalEvalObj: error" 
+			<< std::endl;
 		THROW(ErrGeneric());
 	}
 	
 	Real d;
 	if (Tcl_GetDoubleFromObj(NULL, res, &d) != TCL_OK) {
-		cerr << "TclPlugIn::GetVal: Tcl_GetDoubleFromObj: error"
-			<< endl;
+		std::cerr << "TclPlugIn::GetVal: Tcl_GetDoubleFromObj: error"
+			<< std::endl;
 		THROW(ErrGeneric());
 	}
 

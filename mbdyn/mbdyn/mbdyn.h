@@ -37,6 +37,7 @@ typedef int mbInt;
 typedef long int mbLong;
 typedef long int mbFlag;
 
+/* signal types */
 #ifdef HAVE_SIGNAL
 #ifndef HAVE___SIGHANDLER_T
 #ifndef HAVE_SIGHANDLER_T
@@ -47,12 +48,14 @@ typedef sighandler_t __sighandler_t;
 #endif /* !HAVE___SIGHANDLER_T */
 #endif /* HAVE_SIGNAL */
 
+/* replacement for getopt */
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #else /* !HAVE_GETOPT_H */
 #include <../libraries/libobjs/getopt.h>
 #endif /* !HAVE_GETOPT_H */
 
+/* replacement for bool */
 #ifdef HAVE_BOOL
 #ifdef NEED_BOOL_H
 #include <bool.h>
@@ -60,6 +63,11 @@ typedef sighandler_t __sighandler_t;
 #else /* !HAVE_BOOL */
 typedef char bool;
 #endif /* !HAVE_BOOL */
+
+/* decides whether to build include capability in parser */
+#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
+#define USE_INCLUDE_PARSER
+#endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
 
 /* Global variables */
 extern int fSilent;
@@ -70,14 +78,14 @@ extern int fSilent;
 #define silent_cout(arg) \
     	do { \
         	if (::fSilent < 1) { \
-            		cout << arg; \
+            		std::cout << arg; \
         	} \
     	} while (0)
 
 #define silent_cerr(arg) \
 	do { \
 		if (::fSilent < 2) { \
-			cerr << arg; \
+			std::cerr << arg; \
 		} \
 	} while (0)
 

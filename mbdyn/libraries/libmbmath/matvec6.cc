@@ -39,7 +39,8 @@ const Mat6x6 Zero6x6(0.);
 const Mat6x6 Eye6(1.);
 
 
-ostream& Vec6::Write(ostream& out, const char* sFill) const
+std::ostream&
+Vec6::Write(std::ostream& out, const char* sFill) const
 {
    return out 
      << v[0].dGet(1) << sFill
@@ -63,7 +64,8 @@ Vec6 operator - (const Vec6& v)
 }
 
 
-ostream& operator << (ostream& out, const Vec6& v)
+std::ostream& 
+operator << (std::ostream& out, const Vec6& v)
 {
    const Vec3& v1 = v.GetVec1();
    const Vec3& v2 = v.GetVec2();
@@ -73,15 +75,15 @@ ostream& operator << (ostream& out, const Vec6& v)
 }
 
 
-ostream& Write(ostream& out, const Vec6& v, const char* sFill)
+std::ostream&
+Write(std::ostream& out, const Vec6& v, const char* sFill)
 {
    return v.Write(out, sFill);
 }
 
 
-ostream& Mat6x6::Write(ostream& out,
-		       const char* sFill, 
-		       const char* sFill2) const
+std::ostream&
+Mat6x6::Write(std::ostream& out, const char* sFill, const char* sFill2) const
 {
    char* sF2 = (char*)sFill2; 
    if (sFill2 == NULL) {      
@@ -128,7 +130,8 @@ ostream& Mat6x6::Write(ostream& out,
 }
 
 
-ostream& operator << (ostream& out, const Mat6x6& m)
+std::ostream&
+operator << (std::ostream& out, const Mat6x6& m)
 {
    const Mat3x3& m11 = m.GetMat11();
    const Mat3x3& m12 = m.GetMat12();
@@ -136,24 +139,23 @@ ostream& operator << (ostream& out, const Mat6x6& m)
    const Mat3x3& m22 = m.GetMat22();
    return out 
      << m11.dGet(1, 1) << " " << m11.dGet(1, 2) << " " << m11.dGet(1,3) << " " 
-     << m12.dGet(1, 1) << " " << m12.dGet(1, 2) << " " << m12.dGet(1,3) << endl
+     << m12.dGet(1, 1) << " " << m12.dGet(1, 2) << " " << m12.dGet(1,3) << std::endl
      << m11.dGet(2, 1) << " " << m11.dGet(2, 2) << " " << m11.dGet(2,3) << " " 
-     << m12.dGet(2, 1) << " " << m12.dGet(2, 2) << " " << m12.dGet(2,3) << endl
+     << m12.dGet(2, 1) << " " << m12.dGet(2, 2) << " " << m12.dGet(2,3) << std::endl
      << m11.dGet(3, 1) << " " << m11.dGet(3, 2) << " " << m11.dGet(3,3) << " " 
-     << m12.dGet(3, 1) << " " << m12.dGet(3, 2) << " " << m12.dGet(3,3) << endl
+     << m12.dGet(3, 1) << " " << m12.dGet(3, 2) << " " << m12.dGet(3,3) << std::endl
      << m21.dGet(1, 1) << " " << m21.dGet(1, 2) << " " << m21.dGet(1,3) << " " 
-     << m22.dGet(1, 1) << " " << m22.dGet(1, 2) << " " << m22.dGet(1,3) << endl
+     << m22.dGet(1, 1) << " " << m22.dGet(1, 2) << " " << m22.dGet(1,3) << std::endl
      << m21.dGet(2, 1) << " " << m21.dGet(2, 2) << " " << m21.dGet(2,3) << " " 
-     << m22.dGet(2, 1) << " " << m22.dGet(2, 2) << " " << m22.dGet(2,3) << endl
+     << m22.dGet(2, 1) << " " << m22.dGet(2, 2) << " " << m22.dGet(2,3) << std::endl
      << m21.dGet(3, 1) << " " << m21.dGet(3, 2) << " " << m21.dGet(3,3) << " " 
      << m22.dGet(3, 1) << " " << m22.dGet(3, 2) << " " << m22.dGet(3,3);     
 }
 
 
-ostream& Write(ostream& out,
-	       const Mat6x6& m,
-	       const char* sFill,
-	       const char* sFill2)
+std::ostream&
+Write(std::ostream& out, const Mat6x6& m, const char* sFill, 
+		const char* sFill2)
 {
    return m.Write(out, sFill, sFill2);
 }

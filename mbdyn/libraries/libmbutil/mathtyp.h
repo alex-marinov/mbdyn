@@ -97,7 +97,7 @@ public:
 extern bool operator ! (const TypedValue& v);
 extern TypedValue operator - (const TypedValue& v);
 extern TypedValue operator + (const TypedValue& v);
-extern ostream& operator << (ostream& out, const TypedValue& v);
+extern std::ostream& operator << (std::ostream& out, const TypedValue& v);
 
 
 /* classe per la memorizzazione delle variabili */

@@ -101,19 +101,14 @@
 #ifndef PARSINC_H
 #define PARSINC_H
 
+#if defined(HAVE_FSTREAM)
+#include <fstream>
+#elif defined(HAVE_FSTREAM_H)
+#include <fstream.h>
+#endif
 
 #include "parser.h"
-
-extern "C" {
-#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
-#include <stdlib.h>
-#include <unistd.h>
-#endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
-}
-
-/* Per include */
 #include "llstack.h" 
-
 
 /* IncludeParser - begin */
 
@@ -126,23 +121,23 @@ class IncludeParser : public HighParser {
     * ATTENZIONE: non impedisce l'inclusione ricorsiva, e quindi il loop 
     */
    struct MyInput {
-      ifstream* pfile;
+      std::ifstream* pfile;
       InputStream* pis;
       
-#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
+#ifdef USE_INCLUDE_PARSER
       char* sPath;      
       char* sFile;
-      MyInput(ifstream* pf = NULL, InputStream* pi = NULL,
+      MyInput(std::ifstream* pf = NULL, InputStream* pi = NULL,
 	      char* sp = NULL, char* sfile = NULL)
 	: pfile(pf), pis(pi), sPath(sp), sFile(sfile) { 
 	   NO_OP; 
 	};
-#else /* !defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
-      MyInput(ifstream* pf = NULL, InputStream* pi = NULL)
+#else /* !USE_INCLUDE_PARSER */
+      MyInput(std::ifstream* pf = NULL, InputStream* pi = NULL)
 	: pfile(pf), pis(pi) { 
 	   NO_OP;
 	};
-#endif /* !defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
+#endif /* !USE_INCLUDE_PARSER */
    };
    
    LLStack<MyInput> MyInStack;

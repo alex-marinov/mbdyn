@@ -349,7 +349,7 @@ const Mat3xN& Mat3xN::operator /= (const doublereal& d)
 {
    IsValid();
    if (d == 0.) {
-      cerr << "division by zero" << endl;
+      std::cerr << "division by zero" << std::endl;
       THROW(ErrGeneric());
    }
    if (d != 1.) {

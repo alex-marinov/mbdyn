@@ -43,7 +43,7 @@ extern "C" {
 const int DEF_TABLE_SIZE = 127;
 
 class Table {      
-   friend ostream& operator << (ostream& out, Table& T);
+   friend std::ostream& operator << (std::ostream& out, Table& T);
    
  public:
    class ErrNameAlreadyDefined {};   
@@ -61,6 +61,7 @@ class Table {
    NamedValue* Get(const char* const name) const;
 };
 
-extern ostream& operator << (ostream& out, Table& T);
+extern std::ostream& operator << (std::ostream& out, Table& T);
 
-#endif
+#endif /* TABLE_H */
+

@@ -120,7 +120,7 @@ FullMatrixHandler::~FullMatrixHandler(void)
 void FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 {
    if (iNewRows < 0 || iNewCols < 0) {
-      cerr << "Negative size!" << endl;
+      std::cerr << "Negative size!" << std::endl;
       THROW(ErrGeneric());
    }
    
@@ -170,12 +170,13 @@ void FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 	 if (iSize > iRawSize || iNewCols > iMaxCols) {
 	    if (iSize > iRawSize) {
 	       /* errore */
-	       cerr << "Can't resize to " << iSize 
-		 << ": larger than max size " << iRawSize << endl;
+	       std::cerr << "Can't resize to " << iSize 
+		 << ": larger than max size " << iRawSize << std::endl;
 	       THROW(ErrGeneric());
 	    } else if (iNewCols > iMaxCols) {
-	       cerr << "Can't resize to " << iNewCols
-		 << " cols: larger than max num cols " << iMaxCols << endl;
+	       std::cerr << "Can't resize to " << iNewCols
+		 << " cols: larger than max num cols " 
+		 << iMaxCols << std::endl;
 	       THROW(ErrGeneric());
 	    }
 	 } else {
@@ -188,7 +189,7 @@ void FullMatrixHandler::Resize(integer iNewRows, integer iNewCols)
 	 }
       } else {
 	 /* errore */
-	 cerr << "internal error!" << endl;
+	 std::cerr << "internal error!" << std::endl;
 	 THROW(ErrGeneric());
       }      
    }
@@ -275,22 +276,22 @@ void FullMatrixHandler::IsValid(void) const
 }
 
    
-ostream& operator << (ostream& out, const FullMatrixHandler& m)
+std::ostream& operator << (std::ostream& out, const FullMatrixHandler& m)
 {
 #ifdef HAVE_FMTFLAGS_IN_IOS
-   ios::fmtflags oldbits = out.setf(ios::scientific);
+   std::ios::fmtflags oldbits = out.setf(std::ios::scientific);
 #else /* !HAVE_FMTFLAGS_IN_IOS */
    long oldbits = out.setf(ios::scientific);
 #endif /* !HAVE_FMTFLAGS_IN_IOS */
    
    out << "<FullMatrixHandler> n. rows: " << m.iNumRows 
-     << "; n. cols: " << m.iNumCols << endl;  
+     << "; n. cols: " << m.iNumCols << std::endl;  
    for (int i = 1; i <= m.iNumRows; i++) {
-      out << "Row " << setw(4) << i;
+      out << "Row " << std::setw(4) << i;
       for (int j = 1; j <= m.iNumCols; j++) {
-	 out << setw(10) << setprecision(2) << m.ppdColsm1[j][i];
+	 out << std::setw(10) << std::setprecision(2) << m.ppdColsm1[j][i];
       }
-      out << endl;
+      out << std::endl;
    }
    
    out.flags(oldbits);

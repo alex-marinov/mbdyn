@@ -157,7 +157,7 @@ private:
 
 	integer iFirstSol;      /* 1 se prima backsubst, else 0 */
 
-	void PutError(ostream& out, int rc) const ;	/* scrive l'errore */
+	void PutError(std::ostream& out, int rc) const ; /* scrive l'errore */
    
 protected:
    	/* Costruttore: si limita ad allocare la memoria */

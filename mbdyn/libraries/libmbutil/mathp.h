@@ -31,14 +31,16 @@
 #ifndef MATHP_H
 #define MATHP_H
 
-extern "C" {
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 #include <mymath.h>
 #include <time.h>
-}
+#if defined(HAVE_IOSTREAM)
+#include <iostream>
+#elif defined(HAVE_IOSTREAM_H)
 #include <iostream.h>
+#endif
 
 #include "myassert.h"
 #include "mynewmem.h"
@@ -291,8 +293,8 @@ public:
 	Real Get(const InputStream& strm, Real d = 0.);
 
 	/* modalita' calcolatrice: elabora e stampa ogni stmt */
-	void GetForever(ostream& out, const char* const sep = "\n");
-	void GetForever(const InputStream& strm, ostream& out,
+	void GetForever(std::ostream& out, const char* const sep = "\n");
+	void GetForever(const InputStream& strm, std::ostream& out,
 			const char* const sep = "\n");
 
 	int RegisterPlugIn(const char *name,

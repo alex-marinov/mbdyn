@@ -30,9 +30,7 @@
 #ifndef EXCEPT_H
 #define EXCEPT_H
 
-extern "C" {
 #include <stdio.h>
-}
 
 #ifdef USE_EXCEPTIONS
 #define THROW(cl) \
@@ -48,7 +46,11 @@ extern "C" {
     } while (0)
 #endif
 
+#if defined(HAVE_IOSTREAM)
+#include <iostream>
+#elif defined(HAVE_IOSTREAM_H)
 #include <iostream.h>
+#endif
 
 class NoErr {};
 class ErrGeneric {};
@@ -58,8 +60,8 @@ class ErrDivideByZero {};
 class ErrMemory {
   public: 
     ErrMemory(void) {};
-    ErrMemory(const char* const s) { cerr << s << endl; };
-    ErrMemory(ostream& out, const char* const s) { out << s << endl; };   
+    ErrMemory(const char* const s) { std::cerr << s << std::endl; };
+    ErrMemory(std::ostream& out, const char* const s) { out << s << std::endl; };   
 };
 
 class ErrFile {};

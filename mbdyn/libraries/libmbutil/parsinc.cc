@@ -34,9 +34,14 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <parsinc.h>
+#if defined(HAVE_UNISTD_H)
 #include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+#if defined(HAVE_PWD_H)
 #include <pwd.h>
+#endif /* HAVE_PWD_H */
+
+#include <parsinc.h>
 
 const int PATHBUFSIZE = 1024;
 
@@ -49,22 +54,22 @@ IncludeParser::IncludeParser(MathParser& MP,
 sCurrPath(NULL),
 sCurrFile(NULL)
 {   
-#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
+#ifdef USE_INCLUDE_PARSER
    	char* s = NULL;
    	SAFENEWARR(s, char, PATHBUFSIZE);
    	sCurrPath = getcwd(s, PATHBUFSIZE);
    	if (sCurrPath == NULL) {
-      		cerr << "Error in getcwd()" << endl;
+		std::cerr << "Error in getcwd()" << std::endl;
       		SAFEDELETEARR(s);
       		THROW(ErrFileSystem());
    	}
-   	DEBUGCOUT("Current directory is <" << sCurrPath << '>' << endl);
+   	DEBUGCOUT("Current directory is <" << sCurrPath << '>' << std::endl);
    
    	const char sInitialFile[] = "initial file";
    	SAFESTRDUP(sCurrFile, sInitialFile);
-#else /* !defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
+#else /* !USE_INCLUDE_PARSER */
    	NO_OP;
-#endif /* !defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
+#endif /* !USE_INCLUDE_PARSER */
 }
 
 
@@ -82,19 +87,22 @@ void IncludeParser::Close(void)
       		/* Nota: deve esserci solo l'ultimo file */
       		ASSERT(pf != NULL);
       		ASSERT(pIn != NULL);
-#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
+
+#ifdef USE_INCLUDE_PARSER
       		ASSERT(sCurrPath != NULL);
       		ASSERT(sCurrFile != NULL);
-#endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
+#endif /* USE_INCLUDE_PARSER */
+
       		if (pf != NULL) {
 	 		SAFEDELETE(pf);
       		}
       		if (pIn != NULL) {
 	 		SAFEDELETE(pIn);
       		}
-#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
+
+#ifdef USE_INCLUDE_PARSER
       		DEBUGCOUT("Leaving directory <" << sCurrPath 
-			<< ">, file <" << sCurrFile << '>' << endl);
+			<< ">, file <" << sCurrFile << '>' << std::endl);
       		if (sCurrPath != NULL) {
 	 		SAFEDELETEARR(sCurrPath);
 	 		sCurrPath = NULL;
@@ -103,27 +111,29 @@ void IncludeParser::Close(void)
 	 		SAFEDELETEARR(sCurrFile);
 	 		sCurrFile = NULL;
       		}
-#endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
+#endif /* USE_INCLUDE_PARSER */
       
       		pf = pmi->pfile;
       		pIn = pmi->pis;
-#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
+
+#ifdef USE_INCLUDE_PARSER
       		sCurrPath = pmi->sPath;
       		sCurrFile = pmi->sFile;
       		DEBUGCOUT("Entering directory <" << sCurrPath 
-			<< ">, file <" << sCurrFile << '>' << endl);
+			<< ">, file <" << sCurrFile << '>' << std::endl);
       		if (chdir(sCurrPath)) {
-	 		cerr << "Error in chdir, path = " << sCurrPath << endl;
+			std::cerr << "Error in chdir, path = " 
+				<< sCurrPath << std::endl;
 	 		THROW(ErrFileSystem());
       		}
-#endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
+#endif /* USE_INCLUDE_PARSER */
 
       		/* pmi must be non NULL */
       		SAFEDELETE(pmi);     
    	}
    
    	/* sCurrPath can be NULL if Close() has been already called */
-#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
+#ifdef USE_INCLUDE_PARSER
    	if (sCurrPath != NULL) {
       		SAFEDELETEARR(sCurrPath);
       		sCurrPath = NULL;
@@ -132,7 +142,7 @@ void IncludeParser::Close(void)
       		SAFEDELETEARR(sCurrFile);
       		sCurrFile = NULL;
    	}
-#endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
+#endif /* USE_INCLUDE_PARSER */
 }
 
 flag 
@@ -148,34 +158,35 @@ IncludeParser::fCheckStack(void)
 		 */
       		ASSERT(pf != NULL);
       		ASSERT(pIn != NULL);
-#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
+#ifdef USE_INCLUDE_PARSER
       		ASSERT(sCurrPath != NULL);
       		ASSERT(sCurrFile != NULL);
-#endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
+#endif /* USE_INCLUDE_PARSER */
       
       		SAFEDELETE(pf); 
       		SAFEDELETE(pIn);
-#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
+#ifdef USE_INCLUDE_PARSER
       		DEBUGCOUT("Leaving directory <" << sCurrPath 
-			<< ">, file <" << sCurrFile << '>' << endl);
+			<< ">, file <" << sCurrFile << '>' << std::endl);
       		SAFEDELETEARR(sCurrPath);
       		sCurrPath = NULL;
       		SAFEDELETEARR(sCurrFile);
       		sCurrFile = NULL;
-#endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
+#endif /* USE_INCLUDE_PARSER */
       
       		pf = pmi->pfile;
       		pIn = pmi->pis;
-#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
+#ifdef USE_INCLUDE_PARSER
       		sCurrPath = pmi->sPath;
       		sCurrFile = pmi->sFile;
       		DEBUGCOUT("Entering directory <" << sCurrPath 
-			<< ">, file <" << sCurrFile << '>' << endl);
+			<< ">, file <" << sCurrFile << '>' << std::endl);
       		if (chdir(sCurrPath)) {
-	 		cerr << "Error in chdir, path = " << sCurrPath << endl;
+			std::cerr << "Error in chdir, path = " 
+				<< sCurrPath << std::endl;
 	 		THROW(ErrFileSystem());
       		}
-#endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
+#endif /* USE_INCLUDE_PARSER */
       
       		SAFEDELETE(pmi);
       		return flag(1);
@@ -188,35 +199,36 @@ void
 IncludeParser::Include_()
 {
    	if (FirstToken() == UNKNOWN) {
-      		cerr << endl 
-			<< "Parser error in IncludeParser::Include_(),"
-			" colon expected at line " << GetLineData() << endl;
+		std::cerr << "Parser error in IncludeParser::Include_(),"
+			" colon expected at line " << GetLineData() 
+			<< std::endl;
       		THROW(HighParser::ErrColonExpected());
    	}
    
    	const char* sfname = this->GetFileName();
    
    	MyInput* pmi = NULL;
-#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
+#ifdef USE_INCLUDE_PARSER
    	SAFENEWWITHCONSTRUCTOR(pmi, 
 			       MyInput,
 			       MyInput(pf, pIn, sCurrPath, sCurrFile));
-#else /* !defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
+#else /* !USE_INCLUDE_PARSER */
    	SAFENEWWITHCONSTRUCTOR(pmi, MyInput, MyInput(pf, pIn));
-#endif /* !defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
+#endif /* !USE_INCLUDE_PARSER */
    	MyInStack.Push(pmi);
    
    	pf = NULL;
-   	SAFENEWWITHCONSTRUCTOR(pf, ifstream, ifstream(sfname));
+   	SAFENEWWITHCONSTRUCTOR(pf, std::ifstream, std::ifstream(sfname));
    	if (!(*pf)) {
 #ifdef DEBUG
 		char *buf = getcwd(NULL, 0);
 		if (buf != NULL) {
-			DEBUGCERR("Current directory <" << buf << ">" << endl);
+			DEBUGCERR("Current directory <" << buf << ">" 
+					<< std::endl);
 			free(buf);
 		}
 #endif /* DEBUG */
-      		cerr << "Invalid file <" << sfname << '>' << endl;
+		std::cerr << "Invalid file <" << sfname << '>' << std::endl;
       		THROW(ErrFile());
    	}
    
@@ -224,7 +236,7 @@ IncludeParser::Include_()
    	SAFENEWWITHCONSTRUCTOR(pIn, InputStream, InputStream(*pf));
    
    	/* Cambio di directory */
-#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
+#ifdef USE_INCLUDE_PARSER
    	sCurrPath = NULL;
    	sCurrFile = NULL;
    	char* stmp = NULL;
@@ -235,20 +247,20 @@ IncludeParser::Include_()
 	 		char c = *(s+1);
 	 		s[1] = '\0';
 	 		if (chdir(stmp)) {
-	    			cerr << "Error in chdir, path = " 
-					<< stmp << endl;
+				std::cerr << "Error in chdir, path = " 
+					<< stmp << std::endl;
 	    			THROW(ErrFileSystem());
 	 		}	 
 	 		char* p = NULL;
 	 		SAFENEWARR(p, char, PATHBUFSIZE);
 	 		sCurrPath = getcwd(p, PATHBUFSIZE);
 	 		if (sCurrPath == NULL) {
-	    			cerr << "Error in getcwd()" << endl;
+				std::cerr << "Error in getcwd()" << std::endl;
 	    			SAFEDELETEARR(s);
 	    			THROW(ErrFileSystem());
 	 		}
 	 		DEBUGCOUT("Current directory is <" << sCurrPath 
-				<< '>' << endl);
+				<< '>' << std::endl);
 	 
 	 		s[1] = c;
 	 		break;
@@ -256,7 +268,7 @@ IncludeParser::Include_()
    	}
    	s++;
    	SAFESTRDUP(sCurrFile, s);
-   	DEBUGCOUT("Opening file <" << sCurrFile << '>' << endl);
+   	DEBUGCOUT("Opening file <" << sCurrFile << '>' << std::endl);
       
    	SAFEDELETEARR(stmp);
    
@@ -266,14 +278,14 @@ IncludeParser::Include_()
       		SAFENEWARR(s, char, PATHBUFSIZE);
       		sCurrPath = getcwd(s, PATHBUFSIZE);
       		if (sCurrPath == NULL) {
-	 		cerr << "Error in getcwd()" << endl;
+			std::cerr << "Error in getcwd()" << std::endl;
 	 		SAFEDELETEARR(s);
 	 		THROW(ErrFileSystem());
       		}
       		DEBUGCOUT("Current directory is <" << sCurrPath 
-			<< '>' << endl);
+			<< '>' << std::endl);
    	}
-#endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
+#endif /* USE_INCLUDE_PARSER */
    
    	/* FIXME: mettere un test se c'e' il punto e virgola? */
    	CurrToken = HighParser::DESCRIPTION;
@@ -300,9 +312,9 @@ restart:
 	    			THROW(ErrFile());
 	 		}
       		} else {     	 
-	 		cerr << endl << "Parser error in "
+			std::cerr << "Parser error in "
 	   			<< sFuncName << ", keyword expected at line " 
-	   			<< GetLineData() << endl;
+	   			<< GetLineData() << std::endl;
 	 		THROW(HighParser::ErrKeyWordExpected());
       		}
    	}
@@ -353,6 +365,8 @@ resolve_filename(const char *filename)
 	 		strcpy(s+l, filename);
 	 
 	 		return s;
+
+#if defined(HAVE_PWD_H)
       		} else {
 	 		char *p;
 	 
@@ -367,7 +381,7 @@ resolve_filename(const char *filename)
 	 		SAFENEWARR(s, char, l+1);
 	 		strncpy(s, filename, l);
 	 		s[l] = '\0';
-	 
+
 	 		/* do passwd stuff */
 	 		struct passwd *pw;
 	 
@@ -386,6 +400,7 @@ resolve_filename(const char *filename)
 	 		strcpy(s+l, p);
 	 
 	 		return s;
+#endif /* HAVE_PWD_H */
       		}
    	} else {
       		return NULL;

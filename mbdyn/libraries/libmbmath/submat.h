@@ -160,7 +160,8 @@ class SubMatrixHandler : public MatrixHandler {
  */
 
 class FullSubMatrixHandler : public SubMatrixHandler {
-   friend ostream& operator << (ostream& out, const FullSubMatrixHandler& m);
+   friend std::ostream& 
+	   operator << (std::ostream& out, const FullSubMatrixHandler& m);
    
  public:
    /**@name Errori */
@@ -275,7 +276,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
 	  || iNewCol <= 0 
 	  || iNewRow+iNewCol > iVecSize 
 	  || iNewRow*iNewCol > iMatSize) {
-	 cerr << "FullSubMatrixHandler::Resize() - error" << endl;
+	 std::cerr << "FullSubMatrixHandler::Resize() - error" << std::endl;
 	 
 	 THROW(FullSubMatrixHandler::ErrResize());
       }
@@ -661,7 +662,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       ASSERT(piRow != NULL);
       
       if (iNewRow <= 0 || 2*iNewRow > iIntSize || iNewRow > iDoubleSize) {
-	 cerr << "SparseSubMatrixHandler::Resize() - error" << endl;	 
+	 std::cerr << "SparseSubMatrixHandler::Resize() - error" << std::endl;	 
 	 THROW(SparseSubMatrixHandler::ErrResize());
       }		       
       
@@ -1137,7 +1138,8 @@ class SubVectorHandler : public VectorHandler {
  derivata. 
  */
 class MySubVectorHandler : public SubVectorHandler, public MyVectorHandler {
-   friend ostream& operator << (ostream& out, const SubVectorHandler& v);
+   friend std::ostream& 
+	   operator << (std::ostream& out, const SubVectorHandler& v);
    
  protected:
    /** Puntatore all'array degli indici */   
@@ -1341,13 +1343,15 @@ inline flag MySubVectorHandler::fPutItem(integer iSubRow, integer iRow,
  Operatore per scrittura di SubVectorHandler su ostream.
  Usato principalmente per debug
  */
-extern ostream& operator << (ostream& out, const SubVectorHandler& v);
+extern std::ostream&
+operator << (std::ostream& out, const SubVectorHandler& v);
    
 /**
  Operatore per scrittura di FullSubMatrixHandler su ostream.
  Usato principalmente per debug
  */
-extern ostream& operator << (ostream& out, const FullSubMatrixHandler& m);
+extern std::ostream&
+operator << (std::ostream& out, const FullSubMatrixHandler& m);
 //@}
 
 /* SubVectorHandler - end */

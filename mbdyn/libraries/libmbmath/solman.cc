@@ -226,7 +226,7 @@ iMaxSize(iSize), iCurSize(iSize), pdVec(pdTmpVec), pdVecm1(pdVec-1)
 void MyVectorHandler::Resize(integer iSize) 
 {
    if (iSize < 0) {
-      cerr << "Negative size!" << endl;
+      std::cerr << "Negative size!" << std::endl;
       THROW(ErrGeneric());
    }
 
@@ -254,14 +254,14 @@ void MyVectorHandler::Resize(integer iSize)
    } else {
       if (pdVec != NULL) {
 	 if (iSize > iMaxSize) {
-	    cerr << "Can't resize to " << iSize 
-	      << ": larger than max size " << iMaxSize << endl;
+	    std::cerr << "Can't resize to " << iSize 
+	      << ": larger than max size " << iMaxSize << std::endl;
 	    THROW(ErrGeneric());
 	 } else {
 	    iCurSize = iSize;
 	 }
       } else {
-	 cerr << "internal error!" << endl;
+         std::cerr << "internal error!" << std::endl;
 	 THROW(ErrGeneric());
       }
    }   
@@ -636,13 +636,14 @@ VectorHandler& MatrixHandler::MatTVecIncMul(
 	return out;
 }
 
-ostream& operator << (ostream& out, const MatrixHandler& MH)
+std::ostream& 
+operator << (std::ostream& out, const MatrixHandler& MH)
 {
    for (integer i = 1; i <= MH.iGetNumRows(); i++) {
       for (integer j = 1; j <= MH.iGetNumCols(); j++) {
-	 out << setw(16) << MH.dGetCoef(i, j);
+	 out << std::setw(16) << MH.dGetCoef(i, j);
       }
-      out << endl;
+      out << std::endl;
    }
    return out;
 }

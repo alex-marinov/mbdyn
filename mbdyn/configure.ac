@@ -242,9 +242,24 @@ dnl
 dnl Checks for header files.
 dnl
 AC_STDC_HEADERS
+AC_CHECK_HEADERS(string.h)
 AC_CHECK_HEADERS(signal.h)
 AC_CHECK_HEADERS(unistd.h)
 AC_CHECK_HEADERS(getopt.h)
+AC_CHECK_HEADERS(pwd.h)
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Checks for C++ header files (takes care of ANSI/pre-ANSI naming)
+dnl
+AC_LANG_CPLUSPLUS
+AC_CHECK_HEADERS(iostream)
+AC_CHECK_HEADERS(iostream.h)
+AC_CHECK_HEADERS(iomanip)
+AC_CHECK_HEADERS(iomanip.h)
+AC_CHECK_HEADERS(fstream)
+AC_CHECK_HEADERS(fstream.h)
+AC_LANG_C
 
 
 dnl ----------------------------------------------------------------
@@ -969,18 +984,28 @@ dnl
 
 AC_LANG_CPLUSPLUS
 AC_MSG_CHECKING([whether class ios has fmtflags type])
-AC_TRY_COMPILE([#include <iostream.h>],[
-	ios::fmtflags f;
+AC_TRY_COMPILE([#include <iostream>],[
+	std::ios::fmtflags f;
 ],[have_fmtflags=yes],[have_fmtflags=no])
-AC_LANG_C
 
 if test $have_fmtflags != no ; then
 	AC_DEFINE(HAVE_FMTFLAGS_IN_IOS,1,
 		[define if class ios has 'fmtflags' type])
 	AC_MSG_RESULT([yes])
 else
-	AC_MSG_RESULT([no])
+	AC_TRY_COMPILE([#include <iostream.h>],[
+		std::ios::fmtflags f;
+],[have_fmtflags=yes],[have_fmtflags=no])
+
+	if test $have_fmtflags != no ; then
+		AC_DEFINE(HAVE_FMTFLAGS_IN_IOS,1,
+			[define if class ios has 'fmtflags' type])
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
 fi
+AC_LANG_C
 
 
 dnl ----------------------------------------------------------------

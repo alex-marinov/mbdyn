@@ -39,7 +39,7 @@
 /* InputStream - begin */
 
 /* Costruttore - inizializza il filtro con un reference ad un istream */
-InputStream::InputStream(istream& in) 
+InputStream::InputStream(std::istream& in) 
 : iStrm(in), uLineNumber(1) 
 {
    NO_OP;
@@ -113,3 +113,4 @@ InputStream& operator >> (InputStream& in, long double& i)
 #endif
 
 /* InputStream - end */
+

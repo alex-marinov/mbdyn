@@ -32,8 +32,12 @@
 #endif
 
 #include <stdlib.h>
+#if defined(HAVE_IOSTREAM)
+#include <iostream>
+#elif defined(HAVE_IOSTREAM_H)
 #include <iostream.h>
-#include <string.h>
+#endif
+//#include <string.h>
 
 #include <solman.h>
 #include <y12wrap.h>
@@ -44,7 +48,8 @@
 static void
 usage(void)
 {
-	cerr << "usage: t [y12|harwell|meschach|umfpack3 [singular]]" << endl;
+	std::cerr << "usage: t [y12|harwell|meschach|umfpack3 [singular]]" 
+		<< std::endl;
 	exit(EXIT_FAILURE);
 }
 
@@ -63,7 +68,8 @@ main(int argc, char *argv[])
 #ifdef USE_Y12
 		pSM = new Y12SparseLUSolutionManager(size);
 #else 
-		cerr << "need --with-y12 to use y12m library" << endl;
+		std::cerr << "need --with-y12 to use y12m library" 
+			<< std::endl;
 		usage();
 #endif
 
@@ -71,7 +77,8 @@ main(int argc, char *argv[])
 #ifdef USE_HARWELL
 		pSM = new HarwellSparseLUSolutionManager(size);
 #else
-		cerr << "need --with-harwell to use HSL library" << endl;
+		std::cerr << "need --with-harwell to use HSL library" 
+			<< std::endl;
 		usage();
 #endif
 
@@ -79,19 +86,21 @@ main(int argc, char *argv[])
 #ifdef USE_MESCHACH
 		pSM = new MeschachSparseLUSolutionManager(size);
 #else
-		cerr << "need --with-meschach to use Meschach library" << endl;
+		std::cerr << "need --with-meschach to use Meschach library" 
+			<< std::endl;
 		usage();
 #endif
 	} else if (strcasecmp(solver, "umfpack3") == 0) {
 #ifdef USE_UMFPACK3
 		pSM = new Umfpack3SparseLUSolutionManager(size);
 #else
-		cerr << "need --with-umfpack3 to use Umfpack3 library" << endl;
+		std::cerr << "need --with-umfpack3 to use Umfpack3 library" 
+			<< std::endl;
 		usage();
 #endif
 
 	} else {
-		cerr << "unknown solver '" << solver << "'" << endl;
+		std::cerr << "unknown solver '" << solver << "'" << std::endl;
 		usage();
 	}
 
@@ -123,7 +132,8 @@ main(int argc, char *argv[])
 #endif /* USE_EXCEPTIONS */
 	
 	for (int i = 1; i <= size; i++) {
-		cout << "\tsol[" << i << "] = " << pV->dGetCoef(i) << endl;
+		std::cout << "\tsol[" << i << "] = " << pV->dGetCoef(i) 
+			<< std::endl;
 	}
 	
 	return 0;

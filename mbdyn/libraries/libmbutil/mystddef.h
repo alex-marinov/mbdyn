@@ -37,8 +37,16 @@
 #ifndef _MYSTDDEF
 #define _MYSTDDEF
 
+#if defined(HAVE_IOSTREAM)
+#include <iostream>
+#elif defined(HAVE_IOSTREAM_H)
 #include <iostream.h>
+#endif
+#if defined(HAVE_IOMANIP)
+#include <iomanip>
+#elif defined(HAVE_IOMANIP_H)
 #include <iomanip.h>
+#endif
 
 // Definizioni generali
 #ifdef __alpha

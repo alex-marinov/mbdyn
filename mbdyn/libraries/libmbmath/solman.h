@@ -44,6 +44,12 @@ extern "C" {
 #include <mymath.h>
 }
 
+#if defined(HAVE_IOSTREAM)
+#include <iostream>
+#elif defined(HAVE_IOSTREAM_H)
+#include <iostream.h>
+#endif
+
 /* per il debugging */
 #include <myassert.h>
 #include <mynewmem.h>
@@ -147,7 +153,7 @@ class MatrixHandler {
 };
 
 
-extern ostream& operator << (ostream& out, const MatrixHandler& MH);
+extern std::ostream& operator << (std::ostream& out, const MatrixHandler& MH);
 
 /* MatrixHandler - end */
 

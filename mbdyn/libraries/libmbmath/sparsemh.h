@@ -127,8 +127,8 @@ public:
       		integer iFree = 0;
       		__FC_DECL__(kd01b)(*ppiTable, *ppiKeys, &iKey, &iFree);
       		if (iFree == 0) {
-	 		cerr << "SparseData: there's no room left in matrix"
-				<< endl;	 
+			std::cerr << "SparseData: there's no room left "
+				"in matrix" << std::endl;	 
 	 		THROW(SparseData::ErrNoRoom());
       		}
       

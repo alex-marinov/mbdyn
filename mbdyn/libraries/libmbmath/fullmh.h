@@ -37,7 +37,8 @@
 /* FullMatrixHandler - begin */
 
 class FullMatrixHandler : public MatrixHandler {
-   friend ostream& operator << (ostream& out, const FullMatrixHandler& m);
+   friend std::ostream& 
+	   operator << (std::ostream& out, const FullMatrixHandler& m);
 
  protected:
    flag fOwnsMemory;
@@ -168,7 +169,8 @@ class FullMatrixHandler : public MatrixHandler {
    void MatMul(const FullMatrixHandler& m1, const FullMatrixHandler& m2);
 };
 
-extern ostream& operator << (ostream& out, const FullMatrixHandler& m);
+extern std::ostream& 
+operator << (std::ostream& out, const FullMatrixHandler& m);
 
 /* FullMatrixHandler - end */
 

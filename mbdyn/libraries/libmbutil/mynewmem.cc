@@ -42,16 +42,23 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-extern "C" {
+#ifdef DEBUG
+
 #include <string.h>
-}
+#if defined(HAVE_IOSTREAM)
+#include <iostream>
+#elif defined(HAVE_IOSTREAM_H)
 #include <iostream.h>
+#endif
+#if defined(HAVE_IOMANIP)
+#include <iomanip>
+#elif defined(HAVE_IOMANIP_H)
 #include <iomanip.h>
+#endif
 
 #include <myassert.h>
 #include <mynewmem.h>
 
-#ifdef DEBUG
 
 /* Funzioni usate anche senza memory manager */
 void 

@@ -197,14 +197,14 @@ class Vec6 {
       v[j].Put(i-3*j, d);
    };
    
-   ostream& Write(ostream& out, const char* sFill = " ") const;   
+   std::ostream& Write(std::ostream& out, const char* sFill = " ") const;   
 };
 
 
 extern Vec6 operator + (const Vec6& v);
 extern Vec6 operator - (const Vec6& v);
-extern ostream& operator << (ostream& out, const Vec6& m);
-extern ostream& Write(ostream& out, const Vec6& v, const char* sFill = " ");
+extern std::ostream& operator << (std::ostream& out, const Vec6& m);
+extern std::ostream& Write(std::ostream& out, const Vec6& v, const char* sFill = " ");
 
 
 class Mat6x6 {
@@ -501,13 +501,13 @@ class Mat6x6 {
    };      
    
    /* Scrittura su ostream della matrice */
-   ostream& Write(ostream& out, 
+   std::ostream& Write(std::ostream& out, 
 		  const char* sFill = " ", 
 		  const char* sFill2 = NULL) const;
 };
 
-extern ostream& operator << (ostream& out, const Mat6x6& m);
-extern ostream& Write(ostream& out,
+extern std::ostream& operator << (std::ostream& out, const Mat6x6& m);
+extern std::ostream& Write(std::ostream& out,
 		      const Mat6x6& m,
 		      const char* sFill = " ", 
 		      const char* sFill2 = NULL);
