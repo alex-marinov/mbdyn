@@ -331,6 +331,7 @@ protected:
    	std::vector<integer> iCol;       /* array di interi con:
 	                       * keys di SparseData/indici di colonna
 			       * di HarwellSolver */
+   	std::vector<integer> iColStart;
    	std::vector<doublereal> dMat;    /* array di reali con la matrice */
    	std::vector<doublereal> dVec;    /* array di reali con residuo/soluzione */
    
