@@ -26,6 +26,8 @@ MBDyn 1.2-Engineering
 	Known issues:
 		- parallel is not working yet
 	Bug fixes:
+		- fixed relative rotation private data in revolute
+		  joints (problem noted by Roger Polston)
 
 MBDyn 1.2.0
 	Enhancements:
