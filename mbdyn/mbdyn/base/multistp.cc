@@ -997,14 +997,30 @@ IfStepIsToBeRepeated:
 	 		}
       		}
 #endif /* DEBUG */
-	
+
       		iIterCnt = 0;
       		iPerformedIterations = iIterationsBeforeAssembly;
-      		while (1) { 	
+      		while (1) {
 	 		pRes->Reset(0.);
 	 		pDM->AssRes(*pRes, db0Differential);
-	 		dTest = this->MakeTest(*pRes, *pXPrimeCurr);
-	 
+#ifdef USE_EXCEPTIONS
+			try {
+#endif /* USE_EXCEPTIONS */
+	 			dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+#ifdef USE_EXCEPTIONS
+			}
+			catch (MultiStepIntegrator::ErrSimulationDiverged) {
+				/*
+				 * Mettere qui eventuali azioni speciali 
+				 * da intraprendere in caso di errore ...
+				 */
+#if 0
+				cerr << *pJac << endl;
+#endif /* 0 */
+				throw;
+			}
+#endif /* USE_EXCEPTIONS */
+
 #ifdef DEBUG   
 	 		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL)) {
 	    			cout << "Residual:" << endl;
@@ -1052,6 +1068,10 @@ IfStepIsToBeRepeated:
 						<< " cannot be reduced"
 						" further;" << endl
 						<< "aborting ..." << endl;
+#if 0
+					cerr << *pJac << endl;
+#endif /* 0 */
+					
 	       				THROW(MultiStepIntegrator::ErrMaxIterations());
 		    		}
 	 		}
