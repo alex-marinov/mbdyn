@@ -257,20 +257,20 @@ is well tested.
 \end{verbatim}
 if \kw{modified}, the number of \kw{<iterations>} the same Jacobian matrix 
 will be reused, and thus factored only once, is expected.
-If the option \kw{keep jacobian} is selected, the jacobian is preserved
+If the option \kw{keep jacobian} is selected, the Jacobian is preserved
 for the desired \kw{<iterations>} even across time steps.
-By default, the jacobian is recomputed at the beginning of each time step.
+By default, the Jacobian is recomputed at the beginning of each time step.
 If the option \kw{honor element requests} is selected, the preconditioned
 is updated also when an element changes the structure of its equations.
 The default behavior is to ignore such requests\footnote{
 	At present, only few elements that can change the structure
-	of the equations, or at least radically change the jacobian,
+	of the equations, or at least radically change the Jacobian,
 	actually issue this request.
 }.
 The second nonlinear solver, based on a
 matrix-free algorithm, is experimental.
 \begin{verbatim}
-    <nonlinear_solver_data> ::= matrix free, { bcgstab | gmres }
+    <nonlinear_solver_data> ::= matrix free, { bicgstab | gmres }
         [ , tolerance, < tolerance > ]
         [ , steps , <steps> ]
         [ , tau , <tau> ]
@@ -284,13 +284,13 @@ where \kw{<tolerance>} is the iterative linear solver tolerance;
 \kw{<steps>} is the maximum number of linear solver iterations;
 \kw{<tau>} is a measure of the configuration perturbation used
 to obtain a matrix-free approximation of the product
-of the jacobian matrix times the solution vector;
+of the Jacobian matrix times the solution vector;
 it is seldom necessary to change the default value of this parameter,
 mainly for very ``stiff'' problems.
 By setting \kw{<eta>} one changes the convergence requirements; 
 further reference for this parameter may be found in \cite{KELLEY-1995}; 
 do not change it unless you know what you are doing.
-The valu \kw{<steps>} of the \kw{steps} keyword 
+The value \kw{<steps>} of the \kw{steps} keyword 
 of the \kw{preconditioner} sub-block 
 sets the maximum number of iterations that can be performed 
 without requiring an update of the preconditioner; 
@@ -407,7 +407,7 @@ settings.
 \noindent
 The keyword \kw{colamd} is honored by the \kw{naive} solver only;
 it enables the column rearrangement that minimizes the sparsity
-of the factorized matrix, as implemented in \kw{libcolamd}
+of the factored matrix, as implemented in \kw{libcolamd}
 (part of \kw{umfpack} package).
 
 \noindent
@@ -611,8 +611,8 @@ The displacement constraint equations in an index three
 Differential-Algebraic Equations system
 (DAE) represent the second derivative effect of the constraints on the
 kinematic unknowns. Thus, to ensure the proper initial conditions, the
-constraint equations should be derivated twice. To simplify the code,
-those equations have been derivated once only, in the initial assembly,
+constraint equations should be differentiated twice. To simplify the code,
+those equations have been differentiated once only, in the initial assembly,
 the second derivation being performed numerically by the dummy steps.
 During these steps the system converges to a solution whose error from
 the sought solution is bounded. For this reason, the dummy steps
@@ -641,7 +641,7 @@ at each iteration inside a time step
 % in the \kw{.out} file.
 on the standard output.
 The items \kw{residual}, \kw{solution} and \kw{jacobian} log
-the residual, the solution and the jacobian to standard output; they are
+the residual, the solution and the Jacobian to standard output; they are
 currently available only for the umfpack solver, and they are
 mainly intended for last resort debugging purposes.
 The item \kw{messages} refers to all messaging 

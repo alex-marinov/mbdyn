@@ -158,7 +158,7 @@ used by the parser.
 LinearSolver classes wraps linear solvers\\
 SolutionManagers classes deals with the solution of linear systems.
 They own a pointer to a LinearSolver, where they allocate
-the undelying linear solver.
+the underlying linear solver.
 SolutionManager::MatrInitialize() is called
 when the structure of the underlying spares matrix changes.
 SolutionManager::MatrReset(), is called to delete a factorization.
@@ -181,7 +181,7 @@ which is necessary for the solving phase with the substructuring method.
 \end{itemize}
 Of course this two partitions must be connected, 
 so we build created a graph which is made of nodes and elements as vertex. 
-The connection between vertexes are only between nodes and elements. 
+The connection between vertices are only between nodes and elements. 
 There is no node to node or element to element connection.
 
 \texttt{pVertexWgts} 
@@ -206,7 +206,7 @@ in \texttt{SimulationEntity::GetDofType()}
 by returning \texttt{DofOrder::DIFFERENTIAL}.
 The increment of the value of a differential variable is equal 
 to $\Delta x=\texttt{dCoef}\Delta \dot{x}$.
-When writing the jacobian, this must be considered;
+When writing the Jacobian, this must be considered;
 as a consequence, for an equation $f=0$ (the residual is $-f$)
 the linearization is 
 $f_{/\dot{x}}+f_{/x}*\texttt{dCoef})*\Delta \dot{x}=-f$, 
@@ -263,7 +263,7 @@ and so $\Delta \T \omega = \Delta \dot{\T g}-
 \chapter{Solution Phases}
 \section{Initial Assembly}
 This phase only involves some of the structural elements.
-It is intended to ensure that the innitial configuration and velocity 
+It is intended to ensure that the initial configuration and velocity 
 complies with the constraint equations.
 It is not performed if the \texttt{control data} block contains 
 the statement \texttt{skip initial joint assembly}.
@@ -293,8 +293,8 @@ with the constraints.
 Unfortunately, this requires the implementation of more constraints
 than required by the regular solution phases, namely the time derivative
 of the algebraic constraints that depend only on the configuration.
-A new procedure is being considered, wich requires only the use 
-of the constraint equation $\Phi$ and its jacobian $\Phi_{/x}$.
+A new procedure is being considered, which requires only the use 
+of the constraint equation $\Phi$ and its Jacobian $\Phi_{/x}$.
 
 The problem that is solved with the new procedure is (FIXME):
 \begin{eqnarray*}
@@ -306,13 +306,13 @@ The problem that is solved with the new procedure is (FIXME):
 \end{eqnarray*}
 so that only the configuration is required to comply 
 with the constraint equations, and the same constraint 
-jacobian and residual of the regular steps are required;
+Jacobian and residual of the regular steps are required;
 then, after convergence, the following equation is considered:
 \begin{displaymath}
 	\Phi_{/x} v + \Phi_{/t} = 0
 \end{displaymath}
-which uses the jacobian of the constraint equations; 
-only the derivative of the time-dependent contraints is required.
+which uses the Jacobian of the constraint equations; 
+only the derivative of the time-dependent constraints is required.
 
 The number of rows of matrix $\Phi_{/x}$ is equal to the number 
 of degrees of freedom that are constrained, so typically the matrix 
@@ -330,7 +330,7 @@ becomes a compatibility test for the initial velocities.
 There are two possible choices:
 \begin{enumerate}
 \item the initial configuration assessment fails if the given 
-initial velocities, after the correction occuring during the position 
+initial velocities, after the correction occurring during the position 
 and orientation assessment and correction phase, do not pass 
 the above test;
 \item the initial velocities $v$ are corrected into $v_c$ 
@@ -350,13 +350,13 @@ Implementation issues are still open as well.
 
 
 \section{Initial Derivatives}
-The so-called ``derivatives'' phase can be thought as computing the initial value of the highest order derivatives at t=t0 before any iteration starts.  For simplifity, think of an explicit Ordinary Differential Equation (ODE) problem like
+The so-called ``derivatives'' phase can be thought as computing the initial value of the highest order derivatives at t=t0 before any iteration starts.  For simplicity, think of an explicit Ordinary Differential Equation (ODE) problem like
 \begin{displaymath}
   \dot{y} = f(y, t)
 \end{displaymath}
 with the initial value of $t(0) = t_0$ and $y(0) = y_0$; 
 then, the computation of $\dot{y}(0)$ is trivial.  
-Now, the actual problem is Differential Agebraic (DAE) and implicit, 
+Now, the actual problem is Differential Algebraic (DAE) and implicit, 
 i.e. something like
 \begin{displaymath}
   F(\dot{y}, y, t) = 0
@@ -390,7 +390,7 @@ must be different from $0$, but small enough to let the correction
   \Delta y = \texttt{dCoef} * \Delta \dot{y}
 \end{displaymath}
 be negligible with respect to $\Delta \dot{y}$.  
-To conclude, the ``derivatives coefficient'' defined in the imput file 
+To conclude, the ``derivatives coefficient'' defined in the input file 
 is this ``\texttt{dCoef}'', 
 which can be interpreted as the time step of a ``fake'' 
 initial step that is used to compute the initial value of 
@@ -428,10 +428,10 @@ of a scalar quantity, say $y$, with respect to problem variables.
 Each element $v_i$ of the \texttt{ExpandableRowVector} $v$ 
 is supposed to be set to the partial derivative
 of $y$: $v_i = y_{/k_i}$, i.e. \texttt{v.Set($y_{/k_i}$,i)}.
-If $k_i$ is a problem variable then you shold set also
+If $k_i$ is a problem variable then you should set also
 the index of the variable, \texttt{v.Set($y_{/k_i}$,i,ip)}
 of \texttt{v.SetIdx($i$,ip)}. Otherwise, you can
-\emph{link} the partial derivatives to onother \texttt{ExpandableRowVector}
+\emph{link} the partial derivatives to another \texttt{ExpandableRowVector}
 giving the partial derivatives of $k$ (say $w$): \texttt{v.Set(i,\&w)}.
 
 \noindent
@@ -646,10 +646,10 @@ $\T M$: constraint moment reaction (third component null).\\
 Friction:
 \begin{itemize}
 \item add third component of constraint moment $\T M$
-\item add a costraint equation; this could be one of the following:
+\item add a constraint equation; this could be one of the following:
 	\begin{itemize}
 	\item direct definition of $\T M[3]$ in function of relative velocity,
-		friction coeff and $\T F$
+		friction coefficient and $\T F$
 	\item impose null relative velocity
 	\end{itemize}
 \item optionally add internal states dynamic $z$ (for friction)
@@ -750,11 +750,11 @@ Variation of friction moment contribution component:
 				{\displaystyle \partial \dot{z}} * \delta \dot{z}\\			
 		\end{array}\right\}
 \end{eqnarray*}
-dove 
+where
 \begin{itemize}
 \item
 $v=r * (\T \omega_{1}-\T \omega_{2})\cdot(\T R_1\cdot \T R_{h1})[3]$
-e quindi
+so that
 \begin{eqnarray*}
 \delta v &=& d * (\T R_1\cdot \T R_{h1})[3] \cdot (\delta \T \omega_{1}- \delta \T \omega_{2}) +\\
 	&& d * (\T \omega_{1}-\T \omega_{2})\cdot (\T R_{\delta 1} \times \T R_1 \cdot \T R_{h1})[3]\\
@@ -766,7 +766,7 @@ $
 \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v,z,\dot{z}))=
 r * 
 C_\alpha(
-	\alpha(\mathrm{costants},
+	\alpha(\mathrm{constants},
 		f_{\mathrm{c}}(v,z,\dot{z}),
 		||\T F||,
 		f_{\mathrm{c}}(v,z,\dot{z})
@@ -776,7 +776,7 @@ C_\alpha(
 $
 \item
 $
-\alpha(\mathrm{costants},
+\alpha(\mathrm{constants},
 	f_{\mathrm{c}}(v,z,\dot{z}),
 	||\T F||,
 	f_{\mathrm{c}}(v,z,\dot{z})
@@ -859,7 +859,7 @@ Linearization:
 \end{displaymath}
 The linearization of the reaction moments contribution 
 to the moment equilibrium equations of the nodes is straightforward.
-The linearization of the contraint equation is a bit more complicated.
+The linearization of the constraint equation is a bit more complicated.
 According to the definition of $\T{\theta}$, its linearization
 yields
 \begin{eqnarray*}
@@ -982,7 +982,7 @@ we obtain
 where $\bar{\T{R}}=\T{R}_1 \T{R}_{1h}$.
 Note that, since the constraint equations are defined by setting 
 to zero any components of the vector $\T{\theta}^{\Delta}$, the
-related jacobian contribution is obtained by selecting 
+related Jacobian contribution is obtained by selecting 
 the corresponding columns of matrix $\bar{\T{R}}$.
 
 \noindent
@@ -1055,7 +1055,7 @@ and with respect to the spring and damper constraints:
 \end{eqnarray*}
 
 \noindent
-The jacobian and the residual that results from the linearization
+The Jacobian and the residual that results from the linearization
 of the constraint equations and of the couples, considering
 the simplifications related to the updated-updated approach,
 are summarized below:
@@ -1373,7 +1373,7 @@ The force and the moment are
 	\T{F}_i & = & \plbr{ -1 }^i \T{R}_{1h} \tilde{\T{F}}\plbr{\tilde{\T{d}}, \dot{\tilde{\T{d}}}} \\
 	\T{M}_i & = & \T{f}_i \times \T{F}_i
 \end{eqnarray*}
-Their linerization yields
+Their linearization yields
 \begin{eqnarray*}
 	\Delta\T{F}_i & = & \plbr{ -1 }^i \T{R}_{1h} \plbr{
 		\tilde{\T{F}}_{/\tilde{\T{d}}} \Delta{\tilde{\T{d}}}
@@ -1428,14 +1428,14 @@ and $k$ for a linear spring device.
 where $p_g=p_{g0}\plbr{\frac{l}{l - x}}^{\gamma}$ and $q=\rho A v$.
 
 \subsection{Actuator}
-The hydraulic acutator element couples the hydraulic library 
+The hydraulic actuator element couples the hydraulic library 
 with the structural library.
 It connects the displacement of two structural nodes to the flow
 through two hydraulic nodes, and the pressure at two hydraulic nodes
 to the forces applied at two structural nodes.
 In the spirit of the multibody analysis philosophy, this element
 provides the essential connection between structural 
-and hydraulic nodes; the coinstraints between the structural nodes, 
+and hydraulic nodes; the constraints between the structural nodes, 
 and other flow elements, e.g.\ leakages between the chambers, 
 must be added by the user.
 

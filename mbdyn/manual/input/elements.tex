@@ -177,7 +177,7 @@ more than one airfoil for an aerodynamic element; the transition
 between airfoils is sharp.
 The integer \kw{airfoil\_number} indicates how many airfoils are expected;
 the real \kw{end\_point} indicates where the influence zone for that
-airfoil ends, expressed in terms of an adimensional abscissa spanning 
+airfoil ends, expressed in terms of a non-dimensional abscissa spanning 
 $\plbr{-1,1}$ along the reference line, roughly along axis 3 
 of the aerodynamic reference frame; \kw{end\_point} must not lie outside
 the element.
@@ -271,8 +271,8 @@ is repeated for each portion of the beam.
     <arglist> ::= <aircraft_node>
 \end{verbatim}
 The \kw{<aircraft\_node>} represents the aircraft; it is assumed
-that the ``nose'' of the aircraft is towards the positive $x$ direction
-of the node, and the ``top'' of the aircraft is towards the positive 
+that the ``nose'' of the aircraft is toward the positive $x$ direction
+of the node, and the ``top'' of the aircraft is toward the positive 
 $z$ direction of the node.
 The available measures are accessed during the simulation 
 by defining appropriate \kw{parameter} nodes, and by binding
@@ -423,11 +423,11 @@ and a peak velocity of 5 m/s moving downstream at the airstream speed,
 
 
 \section{Automatic structural}
-The so called \kw{automatic structural} element is automtically generated
-when a dynamic structural node is insantiated.
+The so called \kw{automatic structural} element is automatically generated
+when a dynamic structural node is instantiated.
 As such, when defined in the \kw{elements} block,
 the element already exists.
-The only reason to repeat its defnition is to modify the values
+The only reason to repeat its definition is to modify the values
 of the momentum and of the momenta moment, and to initialize
 their derivatives.
 The label must match that of the node it refers to.
@@ -632,7 +632,7 @@ in Figure~\ref{fig:EL:BEAM:GROUPS}.
 	$M_z$ & A &   &   &   & A & A \\
 	\hline
 \end{tabular}
-\caption{Consitutive coefficients grouping (S: shear, A: axial)}
+\caption{Constitutive coefficients grouping (S: shear, A: axial)}
 \label{fig:EL:BEAM:GROUPS}
 \end{figure}
 There is no direct coupling between the two group, at the section level,
@@ -1093,7 +1093,7 @@ and uses conventional polynomial parabolic interpolation
 of the nodal displacements and orientations;
 the two-node finite volume element has been introduced later.
 This latter element presents some shear-locking, which, for linear elastic
-consitutive laws, may be overcome by correcting the section stiffness matrix
+constitutive laws, may be overcome by correcting the section stiffness matrix
 in a relatively straightforward form:
 \begin{equation}\label{eq:2-NODE-BEAM-STIFFNESS}
 	\hat{\T{K}} = \plbr{\T{F} + \frac{L^2}{12}\T{T} \T{F} \T{T}^T}^{-1} ,
@@ -2097,7 +2097,7 @@ A detailed input description will be given as soon as it is available. \\
 \kw{hydraulic\_element\_data} usually contains information about fluid
 properties, which are handled by means of an \kw{hydraulic\_fluid}.
 This can be directly inserted, following the syntax described in
-Section~\ref{sec:HYDRAULIC-FLUID} preceeded by the keyword \kw{fluid}, or a
+Section~\ref{sec:HYDRAULIC-FLUID} preceded by the keyword \kw{fluid}, or a
 previously defined fluid can be recalled by using the keyword 
 \kw{reference} followed by the label of the desired fluid.
 
@@ -3662,7 +3662,7 @@ The following output is available for all rotor elements:
 \item rotor moment about \kw{y} direction (pitch moment)
 \item rotor moment about \kw{z} direction (torque)
 \item mean inflow velocity, based on momentum theory
-\item reference velocity at rotor center, sum of aistream
+\item reference velocity at rotor center, sum of airstream
 	and craft node velocity
 \item rotor disk angle
 \item advance parameter $\mu$
