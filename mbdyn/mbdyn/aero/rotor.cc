@@ -52,6 +52,12 @@ extern "C" {
 #include <rotor.h>
 #include <dataman.h>
 
+#if 0
+#undef USE_MULTITHREAD
+void Rotor::Wait(void) const {};
+void Rotor::Done(void) const {};
+#endif
+
 /* Rotor - begin */
 
 Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
@@ -117,6 +123,12 @@ iNumSteps(0)
    		RotorComm = MBDynComm.Dup();
 	}
 #endif /* USE_MPI */
+
+#ifdef USE_MULTITHREAD
+	pthread_mutex_init(&induced_velocity_mutex, NULL);
+	pthread_cond_init(&induced_velocity_cond, NULL);
+	pthread_mutex_init(&forces_mutex, NULL);
+#endif /* USE_MULTITHREAD */
 }
 
 Rotor::~Rotor(void)
@@ -125,6 +137,12 @@ Rotor::~Rotor(void)
 	SAFEDELETEARR(pTmpVecR);
 	SAFEDELETEARR(pTmpVecS);
 #endif /* USE_MPI */
+
+#ifdef USE_MULTITHREAD
+	pthread_mutex_destroy(&induced_velocity_mutex);
+	pthread_cond_destroy(&induced_velocity_cond);
+	pthread_mutex_destroy(&forces_mutex);
+#endif /* USE_MULTITHREAD */
 }
 
 unsigned int
@@ -224,6 +242,11 @@ Rotor::AfterConvergence(const VectorHandler& /* X */ ,
      		    dWeight = 1.;
 	    }
     }
+
+#ifdef USE_MULTITHREAD
+    ASSERT(bDone);
+    bDone = false;
+#endif /* USE_MULTITHREAD */
 }
 
 void
@@ -441,9 +464,9 @@ void Rotor::InitParam(bool bComputeMeanInducedVelocity)
 
 	   if (z < .25) {
 		   if (z <= 0.) {
-			   std::cerr << "warning, illegal negative "
+			   silent_cerr("warning, illegal negative "
 				   "normalized altitude "
-				   "z=" << z << std::endl;
+				   "z=" << z << std::endl);
 		   }
 
 		   z = .25;
@@ -486,8 +509,8 @@ void Rotor::InitParam(bool bComputeMeanInducedVelocity)
        * very forgiving choice, though */
 #if 0
       if (iCurrIter == iMaxIter) {
-	 std::cerr << "unable to compute mean induced velocity for Rotor(" 
-		 << GetLabel() << ")" << std::endl;
+	 silent_cerr("unable to compute mean induced velocity for Rotor(" 
+		 << GetLabel() << ")" << std::endl);
 	 THROW(ErrGeneric());
       }
 #endif
@@ -522,6 +545,7 @@ VariableSubMatrixHandler& Rotor::AssJac(VariableSubMatrixHandler& WorkMat,
 {
    DEBUGCOUT("Entering Rotor::AssJac()" << std::endl);
    WorkMat.SetNullMatrix();
+
    return WorkMat;	
 }
 
@@ -608,6 +632,29 @@ Rotor::ResetForce(void)
 	}
 }
 
+#ifdef USE_MULTITHREAD
+void
+Rotor::Wait(void) const
+{
+	pthread_mutex_lock(&induced_velocity_mutex);
+	if (!bDone) {
+		pthread_cond_wait(&induced_velocity_cond,
+				&induced_velocity_mutex);
+	}
+	pthread_mutex_unlock(&induced_velocity_mutex);
+}
+
+void
+Rotor::Done(void) const
+{
+	pthread_mutex_lock(&induced_velocity_mutex);
+	ASSERT(!bDone);
+	bDone = true;
+	pthread_cond_broadcast(&induced_velocity_cond);
+	pthread_mutex_unlock(&induced_velocity_mutex);
+}
+#endif /* USE_MULTITHREAD */
+
 /* Rotor - end */
 
 
@@ -683,6 +730,10 @@ SubVectorHandler& NoRotor::AssRes(SubVectorHandler& WorkVec,
    ResetForce();
    WorkVec.Resize(0);
 
+#ifdef USE_MULTITHREAD
+   Done();
+#endif /* USE_MULTITHREAD */
+
    return WorkVec;
 }
 
@@ -708,17 +759,26 @@ NoRotor::AddForce(unsigned int uL,
 	}
 #endif /* USE_MPI */
 
+#ifdef USE_MULTITHREAD
+	pthread_mutex_lock(&forces_mutex);
+	Wait();
+#endif /* USE_MULTITHREAD */
+
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
 		Rotor::AddForce(uL, F, M, X);
 	}
+
+#ifdef USE_MULTITHREAD
+	pthread_mutex_unlock(&forces_mutex);
+#endif /* USE_MULTITHREAD */
 }
 
 /* Restituisce ad un elemento la velocita' indotta in base alla posizione
  * azimuthale */
 Vec3 NoRotor::GetInducedVelocity(const Vec3& /* X */ ) const
 {
-  return Zero3;
+	return Zero3;
 }
   
 /* NoRotor - end */
@@ -835,6 +895,10 @@ SubVectorHandler& UniformRotor::AssRes(SubVectorHandler& WorkVec,
    /* Non tocca il residuo */
    WorkVec.Resize(0);
 
+#ifdef USE_MULTITHREAD
+   Done();
+#endif /* USE_MULTITHREAD */
+
    return WorkVec;  
 }
 
@@ -859,6 +923,11 @@ UniformRotor::AddForce(unsigned int uL,
 	}
 #endif /* USE_MPI */
 
+#ifdef USE_MULTITHREAD
+	pthread_mutex_lock(&forces_mutex);
+	Wait();
+#endif /* USE_MULTITHREAD */
+
 	/* Solo se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {      
 		Res.AddForces(F, M, X);
@@ -866,13 +935,21 @@ UniformRotor::AddForce(unsigned int uL,
 	} else {
 		Res.AddForce(F);
 	}
+
+#ifdef USE_MULTITHREAD
+	pthread_mutex_unlock(&forces_mutex);
+#endif /* USE_MULTITHREAD */
 }
 
 /* Restituisce ad un elemento la velocita' indotta in base alla posizione
  * azimuthale */
 Vec3 UniformRotor::GetInducedVelocity(const Vec3& /* X */ ) const
 {
-  return RRot3*dUMeanPrev;
+#ifdef USE_MULTITHREAD
+	Wait();
+#endif /* USE_MULTITHREAD */
+
+	return RRot3*dUMeanPrev;
 };
 
 /* UniformRotor - end */
@@ -974,6 +1051,10 @@ SubVectorHandler& GlauertRotor::AssRes(SubVectorHandler& WorkVec,
    ResetForce();
    WorkVec.Resize(0);
 
+#ifdef USE_MULTITHREAD
+   Done();
+#endif /* USE_MULTITHREAD */
+
    return WorkVec;  
 }
 
@@ -1000,6 +1081,11 @@ GlauertRotor::AddForce(unsigned int uL,
 	}
 #endif /* USE_MPI */
 
+#ifdef USE_MULTITHREAD
+	pthread_mutex_lock(&forces_mutex);
+	Wait();
+#endif /* USE_MULTITHREAD */
+
 	/* Solo se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {      
 		Res.AddForces(F, M, X);
@@ -1007,6 +1093,10 @@ GlauertRotor::AddForce(unsigned int uL,
 	} else {
 		Res.AddForce(F);
 	}
+
+#ifdef USE_MULTITHREAD
+	pthread_mutex_unlock(&forces_mutex);
+#endif /* USE_MULTITHREAD */
 }
 
 
@@ -1016,19 +1106,23 @@ GlauertRotor::AddForce(unsigned int uL,
  */
 Vec3 GlauertRotor::GetInducedVelocity(const Vec3& X) const
 {   
-   if (dUMeanPrev == 0.) {
-      return Vec3(0.);
-   }
+	if (dUMeanPrev == 0.) {
+		return Vec3(0.);
+	}
    
-   if (fabs(dLambda) < 1.e-9) {
-      return RRot3*dUMeanPrev;
-   }
+#ifdef USE_MULTITHREAD
+	Wait();
+#endif /* USE_MULTITHREAD */
+
+	if (fabs(dLambda) < 1.e-9) {
+		return RRot3*dUMeanPrev;
+	}
    
-   doublereal dr, dp;
-   GetPos(X, dr, dp);
-   doublereal dd = 1.+4./3.*(1.-1.8*dMu*dMu)*tan(dChi/2.)*dr*cos(dp);
+	doublereal dr, dp;
+	GetPos(X, dr, dp);
+	doublereal dd = 1.+4./3.*(1.-1.8*dMu*dMu)*tan(dChi/2.)*dr*cos(dp);
    
-   return RRot3*(dd*dUMeanPrev);
+	return RRot3*(dd*dUMeanPrev);
 };
 
 
@@ -1154,6 +1248,10 @@ SubVectorHandler& ManglerRotor::AssRes(SubVectorHandler& WorkVec,
    ResetForce();
    WorkVec.Resize(0);
 
+#ifdef USE_MULTITHREAD
+   Done();
+#endif /* USE_MULTITHREAD */
+
    return WorkVec;  
 }
    
@@ -1180,6 +1278,11 @@ ManglerRotor::AddForce(unsigned int uL,
 	}
 #endif /* USE_MPI */
 
+#ifdef USE_MULTITHREAD
+	pthread_mutex_lock(&forces_mutex);
+	Wait();
+#endif /* USE_MULTITHREAD */
+
 	/* Solo se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {      
 		Res.AddForces(F, M, X);
@@ -1187,6 +1290,10 @@ ManglerRotor::AddForce(unsigned int uL,
 	} else {
 		Res.AddForce(F);
 	}
+
+#ifdef USE_MULTITHREAD
+	pthread_mutex_unlock(&forces_mutex);
+#endif /* USE_MULTITHREAD */
 }
 
 
@@ -1194,46 +1301,50 @@ ManglerRotor::AddForce(unsigned int uL,
  * azimuthale */
 Vec3 ManglerRotor::GetInducedVelocity(const Vec3& X) const
 {
-   if (dUMeanPrev == 0.) {
-      return Vec3(0.);
-   }
+	if (dUMeanPrev == 0.) {
+		return Vec3(0.);
+	}
    
-   doublereal dr, dp;
-   GetPos(X, dr, dp);
+#ifdef USE_MULTITHREAD
+	Wait();
+#endif /* USE_MULTITHREAD */
+
+	doublereal dr, dp;
+	GetPos(X, dr, dp);
    
-   doublereal dr2 = dr*dr;
-   doublereal dm2 = 1.-dr2;   
-   doublereal dm = 0.;
-   if (dm2 > 0.) {
-      dm = sqrt(dm2);
-   }
-   doublereal da = 1.+dSinAlphad;
-   if (fabs(da) > 1.e-9) {
-      da = (1.-dSinAlphad)/da;
-   }
-   if (fabs(da) > 0.) {
-      da = sqrt(da);
-   }
+	doublereal dr2 = dr*dr;
+	doublereal dm2 = 1.-dr2;   
+	doublereal dm = 0.;
+	if (dm2 > 0.) {
+		dm = sqrt(dm2);
+	}
+	doublereal da = 1.+dSinAlphad;
+	if (fabs(da) > 1.e-9) {
+		da = (1.-dSinAlphad)/da;
+	}
+	if (fabs(da) > 0.) {
+		da = sqrt(da);
+	}
    
-   doublereal dd = 15./4.*dm*dr2;
+	doublereal dd = 15./4.*dm*dr2;
    
-   /* Primo coefficiente */
-   doublereal dc = -15./256.*M_PI*(9.*dr2-4.)*dr*da;
-   dd -= 4.*dc*cos(dp);
+	/* Primo coefficiente */
+	doublereal dc = -15./256.*M_PI*(9.*dr2-4.)*dr*da;
+	dd -= 4.*dc*cos(dp);
    
-   /* Secondo coefficiente */
-   dc = 45./256.*M_PI*pow(da*dr, 3);
-   dd -= 4.*dc*cos(3.*dp);
+	/* Secondo coefficiente */
+	dc = 45./256.*M_PI*pow(da*dr, 3);
+	dd -= 4.*dc*cos(3.*dp);
    
-   /* Coefficienti pari, da 2 a 10: */
-   for (int i = 2; i <= 10; i += 2) {
-      dc = pow(-1., i/2-1)*15./8.
-	*((dm+i)/(i*i-1.)*(3.-9.*dr2+i*i)+3.*dm)/(i*i-9.)
-	*pow(((1.-dm)/(1.+dm))*da, i/2.);
-      dd -= 4.*dc*cos(i*dp);
-   }
+	/* Coefficienti pari, da 2 a 10: */
+	for (int i = 2; i <= 10; i += 2) {
+		dc = pow(-1., i/2-1)*15./8.
+			*((dm+i)/(i*i-1.)*(3.-9.*dr2+i*i)+3.*dm)/(i*i-9.)
+			*pow(((1.-dm)/(1.+dm))*da, i/2.);
+		dd -= 4.*dc*cos(i*dp);
+	}
          
-   return RRot3*(dd*dUMeanPrev);
+	return RRot3*(dd*dUMeanPrev);
 };
 
 
@@ -1634,6 +1745,10 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 	/* Ora la trazione non serve piu' */
 	ResetForce();
 
+#ifdef USE_MULTITHREAD
+	Done();
+#endif /* USE_MULTITHREAD */
+
      	return WorkVec;
 }
 
@@ -1688,10 +1803,19 @@ DynamicInflowRotor::AddForce(unsigned int uL,
 	}
 #endif /* USE_MPI */
 
+#ifdef USE_MULTITHREAD
+	pthread_mutex_lock(&forces_mutex);
+	Wait();
+#endif /* USE_MULTITHREAD */
+
 	Res.AddForces(F, M, X);
 	if (fToBeOutput()) {
 		Rotor::AddForce(uL, F, M, X);
 	}
+
+#ifdef USE_MULTITHREAD
+	pthread_mutex_unlock(&forces_mutex);
+#endif /* USE_MULTITHREAD */
 }
 
 
@@ -1700,6 +1824,10 @@ DynamicInflowRotor::AddForce(unsigned int uL,
 Vec3
 DynamicInflowRotor::GetInducedVelocity(const Vec3& X) const
 {
+#ifdef USE_MULTITHREAD
+	Wait();
+#endif /* USE_MULTITHREAD */
+
 	doublereal dr, dp;
 	GetPos(X, dr, dp);
 	
@@ -1755,10 +1883,10 @@ ReadRotor(DataManager* pDM,
 	/* verifica di esistenza del nodo */
      	StructNode* pCraft = pDM->pFindStructNode(uNode);
      	if (pCraft == NULL) {
-	  	std::cerr << std::endl << sFuncName
+	  	silent_cerr(std::endl << sFuncName
 			<< " at line " << HP.GetLineData() 
 			<< ": craft structural node " << uNode
-			<< " not defined" << std::endl;     
+			<< " not defined" << std::endl);
 	  	THROW(DataManager::ErrGeneric());
      	}
 
@@ -1774,10 +1902,10 @@ ReadRotor(DataManager* pDM,
      	/* verifica di esistenza del nodo */
      	StructNode* pRotor = pDM->pFindStructNode(uNode);
      	if (pRotor == NULL) {
-	  	std::cerr << std::endl << sFuncName
+	  	silent_cerr(std::endl << sFuncName
 			<< " at line " << HP.GetLineData() 
 			<< ": rotor structural node " << uNode
-			<< " not defined" << std::endl;     
+			<< " not defined" << std::endl);
 	  	THROW(DataManager::ErrGeneric());
      	}
 
@@ -1816,20 +1944,20 @@ ReadRotor(DataManager* pDM,
 		doublereal dOR = HP.GetReal();
 	 	DEBUGCOUT("Reference rotation speed: " << dOR << std::endl);
 	 	if (dOR <= 0.) {
-	      		std::cerr << "Illegal null or negative "
+	      		silent_cerr("Illegal null or negative "
 				"reference speed for rotor " << uLabel
 				<< " at line " << HP.GetLineData()
-				<< std::endl;
+				<< std::endl);
 	      		THROW(DataManager::ErrGeneric());
 	 	}
        
 	 	doublereal dR = HP.GetReal();
 	 	DEBUGCOUT("Radius: " << dR << std::endl);
 	 	if (dR <= 0.) {
-	      		std::cerr << "Illegal null or negative radius "
+	      		silent_cerr("Illegal null or negative radius "
 				"for rotor " << uLabel
 				<< " at line " << HP.GetLineData()
-				<< std::endl;	  
+				<< std::endl);
 	      		THROW(DataManager::ErrGeneric());
 	 	}
        
@@ -1846,9 +1974,9 @@ ReadRotor(DataManager* pDM,
 			/* verifica di esistenza del nodo */
      			pGround = pDM->pFindStructNode(uNode);
      			if (pGround == NULL) {
-	  			std::cerr << "ground structural node " << uNode
+	  			silent_cerr("ground structural node " << uNode
 					<< " not defined at line " 
-					<< HP.GetLineData()  << std::endl;     
+					<< HP.GetLineData()  << std::endl);
 	  			THROW(DataManager::ErrGeneric());
      			}
 		}
@@ -1897,9 +2025,9 @@ ReadRotor(DataManager* pDM,
 		if (HP.IsKeyWord("max" "iterations")) {
 			int i = HP.GetInt();
 			if (i <= 0) {
-				std::cerr << "illegal max iterations " 
+				silent_cerr("illegal max iterations " 
 					<< i << " for Rotor(" 
-					<< uLabel << ")";
+					<< uLabel << ")");
 				THROW(ErrGeneric());
 			}
 			iMaxIter = i;
@@ -1913,9 +2041,9 @@ ReadRotor(DataManager* pDM,
 		if (HP.IsKeyWord("tolerance")) {
 			dTolerance = HP.GetReal();
 			if (dTolerance <= 0.) {
-				std::cerr << "illegal tolerance " 
+				silent_cerr("illegal tolerance " 
 					<< dTolerance << " for Rotor(" 
-					<< uLabel << ")";
+					<< uLabel << ")");
 				THROW(ErrGeneric());
 			}
 		}
@@ -1927,9 +2055,9 @@ ReadRotor(DataManager* pDM,
 		if (HP.IsKeyWord("eta")) {
 			dEta = HP.GetReal();
 			if (dEta <= 0.) {
-				std::cerr << "illegal eta " 
+				silent_cerr("illegal eta " 
 					<< dEta << " for Rotor(" 
-					<< uLabel << ")";
+					<< uLabel << ")");
 				THROW(ErrGeneric());
 			}
 		}
@@ -1941,20 +2069,20 @@ ReadRotor(DataManager* pDM,
 	 		dCH = HP.GetReal();
 	 		DEBUGCOUT("Hover correction: " << dCH << std::endl);
 	 		if (dCH <= 0.) {
-	 			std::cerr << "warning, illegal null "
+	 			silent_cerr("warning, illegal null "
 					"or negative inflow correction "
 					"for rotor " << uLabel
-	 				<< ", switching to 1" << std::endl;
+	 				<< ", switching to 1" << std::endl);
 	 			dCH = 1.;
 	 		}
 
 	 		dCFF = HP.GetReal();
 			DEBUGCOUT("Forward-flight correction: " << dCFF << std::endl);
 	 		if (dCFF <= 0.) {
-	 			std::cerr << "warning, illegal null "
+	 			silent_cerr("warning, illegal null "
 					"or negative inflow correction "
 					"for rotor " << uLabel
-	 				<< ", switching to 1" << std::endl;
+	 				<< ", switching to 1" << std::endl);
 	 			dCFF = 1.;
 	 		}
 	 	}
@@ -2024,15 +2152,15 @@ ReadRotor(DataManager* pDM,
 	}
 
 	default:
-		std::cerr << "unknown induced velocity type at line " 
-	       		<< HP.GetLineData() << std::endl;       
+		silent_cerr("unknown induced velocity type at line " 
+	       		<< HP.GetLineData() << std::endl);
 	 	THROW(DataManager::ErrGeneric());
 	}
    
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
-		std::cerr << "semicolon expected at line "
-			<< HP.GetLineData() << std::endl;      
+		silent_cerr("semicolon expected at line "
+			<< HP.GetLineData() << std::endl);
 		THROW(DataManager::ErrGeneric());
 	}
 

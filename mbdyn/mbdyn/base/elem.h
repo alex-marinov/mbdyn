@@ -84,7 +84,11 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
  public:
    enum Type {
       UNKNOWN = -1,
-	FORCE = 0,
+
+        /* rotors must be as early as possible */
+	ROTOR = 0,
+	
+	FORCE,
 
 	AUTOMATICSTRUCTURAL,
 	GRAVITY,
@@ -92,11 +96,6 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
 	JOINT,
 	BEAM,
 	PLATE,
-
-	AIRPROPERTIES,
-	ROTOR,
-        AEROMODAL,
-	AERODYNAMIC,
 
 	ELECTRICBULK,
 	ELECTRIC,
@@ -108,6 +107,11 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
 	LOADABLE,
 	DRIVEN,
 	EXTERNAL,
+
+	/* other aerodynamic elements must be as late as possible */
+	AIRPROPERTIES,
+        AEROMODAL,
+	AERODYNAMIC,
 
 	RTAI_OUTPUT,
 	

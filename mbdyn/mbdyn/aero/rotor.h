@@ -36,6 +36,7 @@
 extern "C" {
 #include <ac/float.h>
 }
+#include "ac/pthread.h"
 
 #ifdef USE_MPI
 #include <mpi++.h>
@@ -83,6 +84,18 @@ class Rotor
    MPI::Datatype* pRotDataType; /* datatype che contiene le posizioni 
 				   dei dati da scambiare ad ogni passo */
 #endif /* USE_MPI */
+
+#ifdef USE_MULTITHREAD
+   mutable pthread_mutex_t forces_mutex;
+
+   mutable pthread_mutex_t induced_velocity_mutex;
+   mutable pthread_cond_t induced_velocity_cond;
+   mutable bool bDone;
+
+   void Wait(void) const;
+   void Done(void) const;
+#endif /* USE_MULTITHREAD */
+
    const StructNode* pCraft;
    const StructNode* pRotor;
    const StructNode* pGround;
@@ -237,22 +250,37 @@ class Rotor
    
    /* accesso a dati */
    virtual inline doublereal dGetOmega(void) const {
+#ifdef USE_MULTITHREAD
+      Wait();
+#endif /* USE_MULTITHREAD */
       return dOmega;
    };
    
    virtual inline doublereal dGetRadius(void) const {
+#ifdef USE_MULTITHREAD
+      Wait();
+#endif /* USE_MULTITHREAD */
       return dRadius;
    };
    
    virtual inline doublereal dGetMu(void) const {
+#ifdef USE_MULTITHREAD
+      Wait();
+#endif /* USE_MULTITHREAD */
       return dMu;
    };
    
    virtual inline const Vec3& GetForces(void) const {
+#ifdef USE_MULTITHREAD
+      Wait();
+#endif /* USE_MULTITHREAD */
       return Res.Force();
    };
    
    virtual inline const Vec3& GetMoments(void) const {
+#ifdef USE_MULTITHREAD
+      Wait();
+#endif /* USE_MULTITHREAD */
       return Res.Couple();
    };
    

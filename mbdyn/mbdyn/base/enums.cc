@@ -38,6 +38,8 @@
 
 /* Tipi di elementi */
 const char* psElemNames[] = {
+   "Rotor",
+
    "Force",
    
    "Automatic Structural",
@@ -46,11 +48,6 @@ const char* psElemNames[] = {
    "Joint",
    "Beam",
    "Plate",
-   
-   "Air Properties",
-   "Rotor",
-   "Aeromodal",
-   "Aerodynamic Element",
    
    "Electric Bulk",
    "Electric",
@@ -62,6 +59,11 @@ const char* psElemNames[] = {
    "Loadable",
    "Driven",
    "External",
+
+   "Air Properties",
+   "Aeromodal",
+   "Aerodynamic Element",
+
    "RTAI Output",
    
    NULL
@@ -69,6 +71,8 @@ const char* psElemNames[] = {
 
 /* Tipi di elementi */
 const char* psReadElemsElems[] = {
+   "rotor",
+
    "force",
    
    "automatic" "structural",
@@ -77,11 +81,6 @@ const char* psReadElemsElems[] = {
    "joint",
    "beam",
    "plate",
-   
-   "air" "properties",
-   "rotor",
-   "aeromodal",
-   "aerodynamic Element",
    
    "electric" "bulk",
    "electric",
@@ -93,6 +92,11 @@ const char* psReadElemsElems[] = {
    "loadable",
    "driven",
    "external",
+
+   "air" "properties",
+   "aeromodal",
+   "aerodynamic Element",
+   
    "rtai" "output",
    
    NULL
@@ -103,6 +107,8 @@ const char* psReadElemsElems[] = {
  * hanno lo stesso numero progressivo degli elementi, quindi vi si accede con 
  * l'enum Elem::Type */
 const char* psReadControlElems[] = {
+   "rotors",
+
    "forces",
    
    "automatic" "structural" "elements",
@@ -111,11 +117,6 @@ const char* psReadControlElems[] = {
    "joints",
    "beams",
    "plates",
-   
-   "air" "properties",
-   "rotors",
-   "aeromodals",
-   "aerodynamic" "elements",
    
    "electric" "bulk" "elements",
    "electric" "elements",
@@ -128,6 +129,10 @@ const char* psReadControlElems[] = {
    "driven" "elements",
    "external" "elements",
 
+   "air" "properties",
+   "aeromodals",
+   "aerodynamic" "elements",
+   
    "rtai" "output" "elements",
    
    NULL
@@ -136,6 +141,8 @@ const char* psReadControlElems[] = {
 
 /* Codici Adams per denominazione entita' */
 const char *psAdamsElemCode[] = {
+   "ROTR",
+
    "FORC",
    
    "AUTO",
@@ -144,10 +151,6 @@ const char *psAdamsElemCode[] = {
    "LINK",
    "BEAM",
    "PLAT",
-   
-   "AIRP",
-   "ROTR",
-   "AERO",
    
    "ELBK",
    "ELEC",
@@ -160,6 +163,11 @@ const char *psAdamsElemCode[] = {
    "DRVN",
 
    "RMBX",
+   "EXTN",
+   
+   "AIRP",
+   "AERO",
+   "AERM",
    
    NULL
 };
