@@ -231,29 +231,31 @@ class Vec3 {
    /**
     Lettura di un coefficiente.
     Nota: l'indice ha base 1, in stile FORTRAN.
+    Nota: gli ASSERT controllano solo l'upper bound dell'indice
+    	poiche' l'indice e' sempre >0 (unsigned short int)
     */
    inline const doublereal& dGet(unsigned short int iRow) const {
-      ASSERT(iRow > 0 && iRow < 4);
+      ASSERT(iRow < 4);
       return pdVec[--iRow];
    };
 
    inline doublereal& operator () (unsigned short int iRow) {
-      ASSERT(iRow >= 1 && iRow <= 3);
+      ASSERT(iRow <= 3);
       return pdVec[--iRow];
    };
 
    inline const doublereal& operator () (unsigned short int iRow) const {
-      ASSERT(iRow >= 1 && iRow <= 3);
+      ASSERT(iRow <= 3);
       return pdVec[--iRow];
    };
 
    inline doublereal& operator [] (unsigned short int iRow) {
-      ASSERT(iRow >= 0 && iRow <= 2);
+      ASSERT(iRow <= 2);
       return pdVec[iRow];
    };
 
    inline const doublereal& operator [] (unsigned short int iRow) const {
-      ASSERT(iRow >= 0 && iRow <= 2);
+      ASSERT(iRow <= 2);
       return pdVec[iRow];
    };
    //@}
