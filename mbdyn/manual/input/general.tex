@@ -169,7 +169,7 @@ can be reassigned.
 	\caption{Mathematical Functions}\label{tab:MATHP-FUNCTIONS}
 	\begin{tabular}{lll}
 		\hline
-		\emph{Function Name} & \emph{Args} & \emph{Description} \\
+		\emph{Function Name} & \emph{Arg[s]} & \emph{Description} \\
 		\hline
 		\texttt{asin} & Real & Arc sine \\
 		\texttt{acos} & Real & Arc cosine \\
@@ -302,7 +302,7 @@ As an example, all the following lines define an empty 3 x 1 vector:
     system, each of them preceded by its index in the final rotation 
     matrix. The first vector is normalized and assumed to represent the
     desired direction, while the second simply defines the plane the
-    vector that is not given is normal to, e.a.:
+    vector that is not given is normal to, e.g.:
     \begin{verbatim}
     1, 1.,0.,0., 2, 0.,1.,0.
     1, (real alpha=pi/6.; 
@@ -652,8 +652,8 @@ follows:
 \begin{verbatim}
     <node_dof> :: = <node_label> , 
                     <node_type> 
-                    [ , <dof_number> ] ,
-                    [ { algebraic | differential } ]
+                    [ , <dof_number> ]
+                    [ , { algebraic | differential } ]
 \end{verbatim}
 In case an algebraic node is addressed (e.g.\ a pressure node), 
 the \texttt{dof\_order} field is not required.
@@ -776,7 +776,8 @@ Yields the current time.
 \subsubsection{Piecewise linear drive}
 \begin{verbatim}
     <drive_caller> ::= piecewise linear , <num_points> ,
-                                          <point> , <value> [ , ... ]
+                                          <point> , <value> 
+                                          [ , ... ]
 \end{verbatim}
 Piecewise linear function; the first and the last point/value pairs are
 extrapolated in case a value beyond the extremes is required.
@@ -894,7 +895,13 @@ The valiable \texttt{Time} is kept up to date and can be used in the
 string to compute the return value.
 Another variable, \texttt{Var}, is set to the value provided by the caller
 in case the drive is called with an explicit argument as, for instance,
-in the \hyperref{dof drive}{dof drive (see Section~}{)}{sec:DOF-DRIVE-CALLER}.
+in the \hyperref{dof drive}{dof drive (see Section~}{)}{sec:DOF-DRIVE-CALLER};
+e.g.:
+\begin{verbatim}
+    string, "e^(-Time)*cos(2.*pi*Time)"
+\end{verbatim}
+generates a cosine modulated by an exponential.
+
 
 \subsubsection{Dof drive}\label{sec:DOF-DRIVE-CALLER}
 \begin{verbatim}
@@ -909,9 +916,22 @@ The driver returns the value of the \texttt{func\_drive}
 \htmlref{\texttt{node\_dof}}{sec:node_dof} as input instead of the time. 
 This can be used as a sort of explicit feedback, to implement fancy
 springs (where a force is driven through a function by the displacement
-of the node it is applied to) or an active control system. 
+of the node it is applied to) or an active control system; e.g.:
+\begin{verbatim}
+    dof, 1000, structural, 3, algebraic, 
+        linear, 0., 1.
+\end{verbatim}
+uses the value of the third component (z) of structural node 1000 
+as is (that is, in a linear expression with null constant coefficient 
+and unit linear coefficient, while
+\begin{verbatim}
+    dof, 1000, abstract, differential, 
+        string, "2.*exp(-100.*Var)"
+\end{verbatim}
+uses the value of the derivative of abstract node 1000 in computing 
+a string expression.
 Refer to the description of a 
-\hyperref{\texttt{node\_dof}}{\texttt{node\_dof} (see Section~}{)}{sec:node_dof} 
+\hyperref{\texttt{node\_dof}}{\texttt{node\_dof} (see Section~}{)}{sec:node_dof}
 entry for further details.
 
 \subsubsection{Array drive}
@@ -921,11 +941,11 @@ entry for further details.
                                [ , <drive_caller> [ , ... ] ]
 \end{verbatim}
 this is simply a front-end for the linear combination of \texttt{num\_drives} 
-normal drives. \\
-\texttt{num\_drives} must be at least 1, in which case a simple drive
-caller is created. 
-Otherwise an array of drive callers is created and at every call their value 
-is added to give the final value of the array drive.
+normal drives; \texttt{num\_drives} must be at least 1, in which case 
+a simple drive caller is created, otherwise an array of drive callers 
+is created and at every call their value is added to give 
+the final value of the array drive.
+
 
 \subsection{Template drive}\label{sec:TPL-DRIVES}
 A particular \texttt{DriveCaller} is the template drive caller. This is made
@@ -977,6 +997,12 @@ The shapes currently available are:
     <shape_arglist> ::= <value_at_-1> , 
                         <value_at_1>
     \end{verbatim}
+    \item \texttt{piecewise linear}
+    \begin{verbatim}
+    <shape_arglist> ::= <number_of_points> , 
+                        <abscissa> , <value>
+                        [ , ... ]
+    \end{verbatim}
     \item \texttt{parabolic}
     \begin{verbatim}
     <shape_arglist> ::= <value_at_-1> , 
@@ -987,6 +1013,10 @@ The shapes currently available are:
 This form of input has been chosen since, being the shapes mainly used to
 interpolate values, it looks more ``natural'' to insert the mapping values
 at characteristic points.
+For \texttt{piecewise linear} shapes, there must be 
+\texttt{number\_of\_points} pairs of absciss\ae\ and values; absciss\ae\
+must be in the range $\sqbr{-1,1}$, in strict ascending order.
+
 
 \section{Constitutive Laws}
 Everytime a ``deformable'' entity requires a constitutive law, a template
@@ -1312,8 +1342,8 @@ Finally there are some miscellaneous points:
 	where \texttt{expr\_list} is a series of mathematical expressions
 	separated by semicolons. 
 	They are parsed and evaluated; if variables are declared, they are
-	added to the symbol table to be used durig the whole execution of the
-	program.
+	added to the symbol table to be used during the whole execution 
+	of the program.
     
         \item \texttt{MBDYN\_<type>\_<name>=<value>},
 	where \texttt{type} is a legal mbdyn type (\texttt{integer} or \texttt{real}),
