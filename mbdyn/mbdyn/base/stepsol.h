@@ -124,6 +124,7 @@ public:
 			MyVectorHandler*const pX,
  			MyVectorHandler*const pXPrime,
 			integer& EffIter,
+			doublereal& Err,
 			doublereal& SolErr) = 0;
 };
 
@@ -197,6 +198,7 @@ public:
 			MyVectorHandler*const pX,
  			MyVectorHandler*const pXPrime,
 			integer& EffIter,
+			doublereal& Err,
 			doublereal& SolErr);
 
  	void Residual(VectorHandler* pRes) const;
@@ -267,6 +269,7 @@ public:
 			MyVectorHandler*const pX,
  			MyVectorHandler*const pXPrime,
 			integer& EffIter,
+			doublereal& Err,
 			doublereal& SolErr);
 
 protected:
@@ -380,6 +383,7 @@ public:
 			MyVectorHandler*const pX,
  			MyVectorHandler*const pXPrime,
 			integer& EffIter,
+			doublereal& Err,
 			doublereal& SolErr);
 
 protected:

@@ -207,7 +207,7 @@ pFirstRegularStep(NULL),
 pRegularSteps(NULL),
 pFictitiousSteps(NULL),
 ResTest(NonlinearSolverTest::NORM),
-SolTest(NonlinearSolverTest::NORM),
+SolTest(NonlinearSolverTest::NONE),
 bScale(false),
 bTrueNewtonRaphson(1),
 iIterationsBeforeAssembly(0),
@@ -503,6 +503,10 @@ void Solver::Run(void)
 
 	} else {
 		switch (ResTest) {
+		case NonlinearSolverTest::NONE:
+			SAFENEW(pResTest, NonlinearSolverTestNone);
+			break;
+
 		case NonlinearSolverTest::NORM:
 			SAFENEW(pResTest, NonlinearSolverTestNorm);
 			break;
@@ -519,6 +523,10 @@ void Solver::Run(void)
 
 	NonlinearSolverTest *pSolTest = NULL;
 	switch (SolTest) {
+	case NonlinearSolverTest::NONE:
+		SAFENEW(pSolTest, NonlinearSolverTestNone);
+		break;
+
 	case NonlinearSolverTest::NORM:
 		SAFENEW(pSolTest, NonlinearSolverTestNorm);
 		break;
@@ -626,7 +634,7 @@ void Solver::Run(void)
 		dTest = pDerivativeSteps->Advance(0., 1.,
 				StepIntegrator::NEWSTEP,
 			 	pSM, pNLS, qX, qXPrime, pX, pXPrime,
-				iStIter, dSolTest);
+				iStIter, dTest, dSolTest);
 	}
 	catch (NonlinearSolver::NoConvergence) {
 		std::cerr << std::endl
@@ -654,7 +662,7 @@ void Solver::Run(void)
 	iTotIter += iStIter;
 	  	
 	if (outputMsg()) {	
-   		Out << "Derivatives solution step at time " << dInitialTime
+   		Out << "# Derivatives solution step at time " << dInitialTime
      			<< " performed in " << iStIter
      			<< " iterations with " << dTest
      			<< " error" << std::endl;
@@ -722,7 +730,7 @@ void Solver::Run(void)
 	 		dTest = pFirstFictitiousStep->Advance(dRefTimeStep, 1.,
 				StepIntegrator::NEWSTEP,
 				pSM, pNLS, qX, qXPrime, pX, pXPrime, iStIter,
-				dSolTest);					
+				dTest, dSolTest);
 		}
 		catch (NonlinearSolver::NoConvergence) {
 			std::cerr << std::endl
@@ -799,7 +807,7 @@ void Solver::Run(void)
 					 	StepIntegrator::NEWSTEP, 
 				 		pSM, pNLS, 
 						qX, qXPrime, pX, pXPrime,
-						iStIter, dSolTest);						
+						iStIter, dTest, dSolTest);
 			}
 			catch (NonlinearSolver::NoConvergence) {
 				std::cerr << std::endl
@@ -861,7 +869,7 @@ void Solver::Run(void)
 			dTime += dRefTimeStep;	  
       		}
 		if (outputMsg()) {	
-      			Out << "Initial solution after dummy steps "
+      			Out << "# Initial solution after dummy steps "
 				"at time " << dTime
 				<< " performed in " << iStIter
 				<< " iterations with " << dTest 
@@ -882,11 +890,19 @@ void Solver::Run(void)
 
 	   
         if (outputMsg()) {	
-  	 	Out << "Step " << 0
-     			<< " time " << dTime+dCurrTimeStep
-     			<< " step " << dCurrTimeStep
-     			<< " iterations " << iStIter
-     			<< " error " << dTest << std::endl;
+  	 	Out
+			<< "# Key for lines starting with \"Step\":" 
+				<< std::endl
+			<< "# Step Time TStep NIter ResErr SolErr SolConv" 
+				<< std::endl
+			<< "Step " << 0
+     			<< " " << dTime+dCurrTimeStep
+     			<< " " << dCurrTimeStep
+     			<< " " << iStIter
+     			<< " " << dTest
+			<< " " << dSolTest
+			<< " " << bSolConv
+			<< std::endl;
 	}
    
 
@@ -936,7 +952,8 @@ IfFirstStepIsToBeRepeated:
 		dTest = pFirstRegularStep->Advance(dRefTimeStep,
 				dCurrTimeStep/dRefTimeStep,
 			 	CurrStep, pSM, pNLS, 
-				qX, qXPrime, pX, pXPrime, iStIter, dSolTest);
+				qX, qXPrime, pX, pXPrime, iStIter,
+				dTest, dSolTest);
 	}
 	catch (NonlinearSolver::NoConvergence) {
 		if (dCurrTimeStep > dMinimumTimeStep) {
@@ -993,16 +1010,15 @@ IfFirstStepIsToBeRepeated:
 #endif /* HAVE_SIGNAL */
  
 	if (outputMsg()) {
-      		Out << "Step " << iStep
-			<< " time " << dTime+dCurrTimeStep
-			<< " step " << dCurrTimeStep
-			<< " iterations " << iStIter
-			<< " error " << dTest
-			<< " solution error " << dSolTest;
-		if (bSolConv) {
-			Out << " convergence on solution";
-		}
-		Out << std::endl;
+      		Out 
+			<< "Step " << iStep
+			<< " " << dTime+dCurrTimeStep
+			<< " " << dCurrTimeStep
+			<< " " << iStIter
+			<< " " << dTest
+			<< " " << dSolTest
+			<< " " << bSolConv
+			<< std::endl;
 	}
 
 	bSolConv = false;
@@ -1141,7 +1157,7 @@ IfStepIsToBeRepeated:
 					dCurrTimeStep/dRefTimeStep,
 				 	CurrStep, pSM, pNLS,
 					qX, qXPrime, pX, pXPrime, iStIter,
-					dSolTest);
+					dTest, dSolTest);
 		}
 
 		catch (NonlinearSolver::NoConvergence) {
@@ -1195,15 +1211,13 @@ IfStepIsToBeRepeated:
 	
 		if (outputMsg()) {	
       			Out << "Step " << iStep 
-				<< " time " << dTime+dCurrTimeStep
-				<< " step " << dCurrTimeStep
-				<< " iterations " << iStIter
-				<< " error " << dTest 
-				<< " soluton error " << dSolTest;
-			if (bSolConv) {
-				Out << " convergence on solution";
-			}
-			Out << std::endl;
+				<< " " << dTime+dCurrTimeStep
+				<< " " << dCurrTimeStep
+				<< " " << iStIter
+				<< " " << dTest 
+				<< " " << dSolTest
+				<< " " << bSolConv
+				<< std::endl;
 		}
       
      	 	DEBUGCOUT("Step " << iStep
@@ -1983,54 +1997,107 @@ Solver::ReadData(MBDynParser& HP)
 		} 
 
 		case TOLERANCE: {
-			dTol = HP.GetReal();
-			if (dTol <= 0.) {
-				dTol = dDefaultTol;
-				std::cerr << "warning, tolerance <= 0. is illegal; "
-					"using default value " << dTol << std::endl;
+			/*
+			 * residual tolerance; can be the keyword "null",
+			 * which means that the convergence test 
+			 * will be computed on the solution, or a number
+			 */
+			if (HP.IsKeyWord("null")) {
+				dTol = 0.;
+
+			} else {
+				dTol = HP.GetReal();
+				if (dTol < 0.) {
+					dTol = dDefaultTol;
+					std::cerr << "warning, residual tolerance "
+						"< 0. is illegal; "
+						"using default value " << dTol
+						<< std::endl;
+				}
 			}
 
-			dSolutionTol = dTol;
-
+			/* safe default */
+			if (dTol == 0.) {
+				ResTest = NonlinearSolverTest::NONE;
+			}
+				
 			if (HP.fIsArg()) {
 				if (HP.IsKeyWord("test")) {
 					if (HP.IsKeyWord("norm")) {
 						ResTest = NonlinearSolverTest::NORM;
 					} else if (HP.IsKeyWord("minmax")) {
 						ResTest = NonlinearSolverTest::MINMAX;
+					} else if (HP.IsKeyWord("none")) {
+						ResTest = NonlinearSolverTest::NONE;
 					} else {
-						std::cerr << "unknown test method at line " << HP.GetLineData() << std::endl;
+						std::cerr << "unknown test "
+							"method at line " 
+							<< HP.GetLineData()
+							<< std::endl;
 						throw ErrGeneric();
 					}
 
 					if (HP.IsKeyWord("scale")) {
-						bScale = true;
+						if (ResTest == NonlinearSolverTest::NONE) {
+							std::cerr << "it's a nonsense "
+								"to scale a disabled test; "
+								"\"scale\" ignored" 
+								<< std::endl;
+							bScale = false;
+						} else {
+							bScale = true;
+						}
 					}
 				}
 			}
 
 			if (HP.fIsArg()) {
-				dSolutionTol = HP.GetReal();
-			}
+				if (!HP.IsKeyWord("null")) {
+					dSolutionTol = HP.GetReal();
+				}
 
-			if (HP.fIsArg()) {
-				if (HP.IsKeyWord("test")) {
-					if (HP.IsKeyWord("norm")) {
-						SolTest = NonlinearSolverTest::NORM;
-					} else if (HP.IsKeyWord("minmax")) {
-						SolTest = NonlinearSolverTest::MINMAX;
-					} else {
-						std::cerr << "unknown test method at line " << HP.GetLineData() << std::endl;
-						throw ErrGeneric();
+				/* safe default */
+				if (dSolutionTol != 0.) {
+					SolTest = NonlinearSolverTest::NORM;
+				}
+
+				if (HP.fIsArg()) {
+					if (HP.IsKeyWord("test")) {
+						if (HP.IsKeyWord("norm")) {
+							SolTest = NonlinearSolverTest::NORM;
+						} else if (HP.IsKeyWord("minmax")) {
+							SolTest = NonlinearSolverTest::MINMAX;
+						} else if (HP.IsKeyWord("none")) {
+							SolTest = NonlinearSolverTest::NONE;
+						} else {
+							std::cerr << "unknown test "
+								"method at line " 
+								<< HP.GetLineData() 
+								<< std::endl;
+							throw ErrGeneric();
+						}
 					}
 				}
-			}
-
-			if (dSolutionTol <= 0.) {
-				dSolutionTol = 0.;
-				std::cerr << "warning, tolerance <= 0. is illegal; "
-					"switching to default value " << dSolutionTol 
+				
+			} else if (dTol == 0.) {
+				std::cerr << "need solution tolerance "
+					"with null residual tolerance"
 					<< std::endl;
+				throw ErrGeneric();
+			}
+
+			if (dSolutionTol < 0.) {
+				dSolutionTol = 0.;
+				std::cerr << "warning, solution tolerance "
+					"< 0. is illegal; "
+					"solution test is disabled" 
+					<< std::endl;
+			}
+
+			if (dTol == 0. && dSolutionTol == 0.) {
+				std::cerr << "both residual and solution "
+					"tolerances are zero" << std::endl;
+				throw ErrGeneric();
 			}
 
 			DEBUGLCOUT(MYDEBUG_INPUT, "tolerance = " << dTol

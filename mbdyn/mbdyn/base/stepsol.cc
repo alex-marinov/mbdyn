@@ -222,6 +222,7 @@ DerivativeSolver::Advance(const doublereal TStep,
 		MyVectorHandler*const pX,
  		MyVectorHandler*const pXPrime,
 		integer& EffIter,
+		doublereal& Err,
 		doublereal& SolErr)
 {
 	/* no predizione */
@@ -231,11 +232,11 @@ DerivativeSolver::Advance(const doublereal TStep,
 	pXPrimeCurr = pXPrime;
 
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
-	doublereal dErr = 0.;        
-	pNLS->Solve(this,  pSM, MaxIters, dTol,
-    			EffIter, dErr, dSolTol, SolErr);
+	Err = 0.;
+	pNLS->Solve(this, pSM, MaxIters, dTol,
+    			EffIter, Err, dSolTol, SolErr);
 
-	return dErr;
+	return Err;
 }
 
 void
@@ -631,6 +632,7 @@ Step1Integrator::Advance(const doublereal TStep,
 		MyVectorHandler*const pX,
  		MyVectorHandler*const pXPrime,
 		integer& EffIter,
+		doublereal& Err,
 		doublereal& SolErr)
 {
 	ASSERT(pDM != NULL);
@@ -668,11 +670,11 @@ Step1Integrator::Advance(const doublereal TStep,
       		}
 #endif /* DEBUG */
 
-	doublereal dErr = 0.;
+	Err = 0.;
 	pNLS->Solve(this, pSM, MaxIters, dTol,
-    			EffIter, dErr , dSolTol, SolErr);
+    			EffIter, Err, dSolTol, SolErr);
 	
-	return dErr;
+	return Err;
 }
 
 /* Step1Integrator - end */
@@ -872,6 +874,7 @@ Step2Integrator::Advance(const doublereal TStep,
 		MyVectorHandler*const pX,
 		MyVectorHandler*const pXPrime,
 		integer& EffIter,
+		doublereal& Err,
 		doublereal& SolErr)
 {
 	ASSERT(pDM != NULL);
@@ -911,11 +914,11 @@ Step2Integrator::Advance(const doublereal TStep,
       		}
 #endif /* DEBUG */
 
-	doublereal dErr = 0.;        
+	Err = 0.;        
 	pNLS->Solve(this, pSM, MaxIters, dTol,
-    			EffIter, dErr , dSolTol, SolErr);
+    			EffIter, Err, dSolTol, SolErr);
 	
-	return dErr;
+	return Err;
 }
 
 /* Step2Integrator - end */

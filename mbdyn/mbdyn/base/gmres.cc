@@ -455,20 +455,19 @@ Gmres::Solve(const NonlinearProblem* pNLP,
       		pNLP->Update(&dx);
 		
 		
-		if (SolTol > 0.) {
-			dSolErr = MakeSolTest(dx);
-			if (outputIters()) {
+		dSolErr = MakeSolTest(dx);
+		if (outputIters()) {
 #ifdef USE_MPI
-				if (MBDynComm.Get_rank() == 0) {
+			if (MBDynComm.Get_rank() == 0) {
 #endif /* USE_MPI */
-					std::cout << "\t\tSolErr " << dSolErr << std::endl;
+				std::cout << "\t\tSolErr "
+					<< dSolErr << std::endl;
 #ifdef USE_MPI
-				}
+			}
 #endif /* USE_MPI */
-			}
-        		if (dSolErr < SolTol) {
-				THROW(ConvergenceOnSolution());
-			}
+		}
+       		if (dSolErr < SolTol) {
+			THROW(ConvergenceOnSolution());
       		}
 	}
 }

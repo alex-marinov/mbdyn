@@ -58,6 +58,7 @@ public:
 			MyVectorHandler*const pX,
  			MyVectorHandler*const pXPrime,
 			integer& EffIter,
+			doublereal& Err,
 			doublereal& SolErr);
 
 protected:

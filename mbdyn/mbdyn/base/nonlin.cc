@@ -64,6 +64,13 @@ NonlinearSolverTest::dScaleCoef(const integer& iIndex) const
 }
 
 doublereal
+NonlinearSolverTestNone::MakeTest(integer Size, const VectorHandler& Vec)
+{
+   	DEBUGCOUTFNAME("NonlinearSolverTestNone::MakeTest");
+	return 0.;
+}
+
+doublereal
 NonlinearSolverTestNorm::MakeTest(integer Size, const VectorHandler& Vec)
 {
    	DEBUGCOUTFNAME("NonlinearSolverTestNorm::MakeTest");

@@ -119,6 +119,12 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 			}
       		}
 
+		/* FIXME: if Tol == 0., no convergence on residual
+		 * is required, so we could simply don't compute
+		 * the test; I'm leaving it in place so it appears
+		 * in the output (maybe we could conditionally disable 
+		 * it? */
+
 		dErr = MakeResTest(*pRes)*pNLP->TestScale(pResTest);
 
       		if (dErr < Tol) {
@@ -181,21 +187,20 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
       		pNLP->Update(pSol);
 
 		
-		if (SolTol > 0.) {
-			dSolErr = MakeSolTest(*pSol);
-                        if (outputIters()) {
+		dSolErr = MakeSolTest(*pSol);
+		if (outputIters()) {
 #ifdef USE_MPI
-                                if (MBDynComm.Get_rank() == 0) {
+			if (MBDynComm.Get_rank() == 0) {
 #endif /* USE_MPI */
-                                        std::cout << "\t\tSolErr " << dSolErr << std::endl;
+				std::cout << "\t\tSolErr "
+					<< dSolErr << std::endl;
 #ifdef USE_MPI
-                                }
-#endif /* USE_MPI */
-                        }
-        		if (dSolErr < SolTol) {
-				THROW(ConvergenceOnSolution());
 			}
-      		}
+#endif /* USE_MPI */
+		}
+		if (dSolErr < SolTol) {
+			THROW(ConvergenceOnSolution());
+		}
 	}
 }
 

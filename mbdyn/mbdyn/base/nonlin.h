@@ -68,6 +68,7 @@
 class NonlinearSolverTest {
 public:
 	enum Type {
+		NONE,
 		NORM,
 		MINMAX,
 
@@ -77,6 +78,11 @@ public:
 	virtual ~NonlinearSolverTest(void);
 	virtual doublereal MakeTest(integer Size, const VectorHandler& Vec) = 0;
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
+};
+
+class NonlinearSolverTestNone : public NonlinearSolverTest {
+public:
+	virtual doublereal MakeTest(integer Size, const VectorHandler& Vec);
 };
 
 class NonlinearSolverTestNorm : public NonlinearSolverTest {
