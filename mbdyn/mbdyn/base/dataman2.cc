@@ -356,13 +356,16 @@ void DataManager::InitialJointAssembly(void)
       SAFENEWWITHCONSTRUCTOR(pSM,
 			     MeschachSparseLUSolutionManager,
 			     MeschachSparseLUSolutionManager(iInitialNumDofs, 
-							     0, 1.),
+							     0, 
+							     1.),
 			     SMmm);
    } else {
 #endif
       SAFENEWWITHCONSTRUCTOR(pSM,
-			     HSLUSolutionManager,
-			     HSLUSolutionManager(iInitialNumDofs, 0, 1.),
+			     HarwellSparseLUSolutionManager,
+			     HarwellSparseLUSolutionManager(iInitialNumDofs, 
+			     				    0, 
+							    1.),
 			     SMmm);
 #ifdef USE_MESCHACH
    }

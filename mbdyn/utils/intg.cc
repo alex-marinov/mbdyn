@@ -374,7 +374,7 @@ int method_multistep(const char* module, integration_data* d,
    FullMatrixHandler J(pd, ppd, size*size, size, size);
    MyVectorHandler R(size);
    
-   HSLUSolutionManager sm(size, size*(size+1)+1, 1.);
+   HarwellSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
    
    MatrixHandler& Jac = *sm.pMatHdl();
    VectorHandler& Res = *sm.pResHdl();   
@@ -534,7 +534,7 @@ int method_cubic(const char* module, integration_data* d,
    MyVectorHandler Xz(size);
    MyVectorHandler XPz(size);
    
-   HSLUSolutionManager sm(size, size*(size+1)+1, 1.);
+   HarwellSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
    
    MatrixHandler& Jac = *sm.pMatHdl();
    VectorHandler& Res = *sm.pResHdl();   

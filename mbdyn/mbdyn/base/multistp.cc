@@ -228,13 +228,17 @@ dPivotFactor(1.)
    if (CurrSolver == MESCHACH_SOLVER) {
       SAFENEWWITHCONSTRUCTOR(pSM,
 			     MeschachSparseLUSolutionManager,
-			     MeschachSparseLUSolutionManager(iNumDofs, iWorkSpaceSize, dPivotFactor),
+			     MeschachSparseLUSolutionManager(iNumDofs,
+			     				     iWorkSpaceSize,
+							     dPivotFactor),
 			     SMmm);
    } else if (CurrSolver == HARWELL_SOLVER) {
 #endif /* USE_MESCHACH */
       SAFENEWWITHCONSTRUCTOR(pSM,
-			     HSLUSolutionManager,
-			     HSLUSolutionManager(iNumDofs, iWorkSpaceSize, dPivotFactor),
+			     HarwellSparseLUSolutionManager,
+			     HarwellSparseLUSolutionManager(iNumDofs,
+			     				    iWorkSpaceSize,
+							    dPivotFactor),
 			     SMmm);
 #ifdef USE_MESCHACH
    } else {

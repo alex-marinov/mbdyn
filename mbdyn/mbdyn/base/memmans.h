@@ -40,7 +40,6 @@
 extern clMemMan DMmm; /* DataManager */
 
 extern clMemMan SMmm; /* SolutionManager */
-// extern clMemMan MHmm; /* MatrixHandler */
 extern clMemMan LUmm; /* HSLU */
 
 #endif
