@@ -116,6 +116,7 @@ iOutputCount(0),
 fAdamsResOutput(0),
 sAdamsModelName(NULL),
 iAdamsOutputBlock(1),
+iAdamsOutputNodes(0),
 iAdamsOutputParts(0),
 
 /* ElemManager */

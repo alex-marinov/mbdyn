@@ -128,6 +128,7 @@ class DataManager : public SolutionDataManager {
    flag fAdamsResOutput;
    char *sAdamsModelName;
    integer iAdamsOutputBlock;
+   unsigned int iAdamsOutputNodes;
    unsigned int iAdamsOutputParts;
    
  private:

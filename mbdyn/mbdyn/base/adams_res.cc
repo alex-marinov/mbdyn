@@ -50,7 +50,16 @@ DataManager::AdamsResOutputInit(void)
    std::ostream& out = OutHdl.AdamsRes();
    time_t t = time(NULL);
 
-   unsigned int nStrNodes = NodeData[Node::STRUCTURAL].iNum;
+   unsigned int nStrNodes = 0;
+   for (unsigned int i = 0; i < NodeData[Node::STRUCTURAL].iNum; i++) {
+	   StructNode *pStr = (StructNode *)NodeData[Node::STRUCTURAL].ppFirstNode[i];
+	   if (pStr->GetStructNodeType() != StructNode::DUMMY
+			   || ((DummyStructNode *)pStr)->GetDummyType() != DummyStructNode::RELATIVEFRAME) {
+		   nStrNodes++;
+	   }
+   }
+   
+   iAdamsOutputNodes = nStrNodes;
    iAdamsOutputParts = nStrNodes;
    
    Elem* p = NULL;
@@ -401,7 +410,7 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
    /*
     * FIXME: do not output RelativeFrame struct nodes
     */
-   unsigned int nStrNodes = NodeData[Node::STRUCTURAL].iNum;
+   unsigned int nStrNodes = iAdamsOutputNodes;
    std::ios::fmtflags oldflags, tmpflags;
 
    oldflags = out.flags(std::ios::scientific);
@@ -433,6 +442,11 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
       
       StructNode *pNode = 
 	(StructNode *)NodeData[Node::STRUCTURAL].ppFirstNode[i];
+
+      if (pNode->GetStructNodeType() == StructNode::DUMMY
+		      && ((DummyStructNode *)pNode)->GetDummyType() == DummyStructNode::RELATIVEFRAME) {
+	      continue;
+      }
       
       x = pNode->GetXCurr();
       EulerParams(pNode->GetRCurr(), e0, e);
