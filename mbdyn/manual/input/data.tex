@@ -639,32 +639,31 @@ and add the iterations output, use:
 \subsection{Special Data}
 \subsubsection{Real-Time Execution}\label{sec:REAL-TIME}
 \begin{verbatim}
-    <card> ::= real time [ : <rt-statements> ] ;
-    <rt-statements> ::= <rt-statement> [ , <rt-statements> ]
-    <rt-statement> ::= {
-        allow nonroot |
-        mode , { period | semaphore } |
-        time step , <time-step> |
-        reserve stack , <stack-size> |
-        hard real time |
-        cpu map , <cpu-map> |
-        real time log [ , file name , <command-name> ]
+    <card> ::= real time :
+        time step , <time-step> 
+        [ , allow nonroot ]
+        [ , mode , { period | semaphore } ]
+        [ , reserve stack , <stack-size> ]
+        [ , hard real time ]
+        [ , cpu map , <cpu-map> ]
+        [ , real time log [ , file name , <command-name> ] ]
 \end{verbatim}
 where:
 \begin{itemize}
+\item the \kw{time step} is the sampling time in \emph{nanoseconds} (ns); 
+usually, it should match the time step 
+of the simulation, but it can be different for other purposes;
 \item \kw{allow nonroot} means that the program should be allowed to run
 as a regular (non-root) user while performing hard real-time operations
 with the underlying OS;
 \item when the keyword \kw{mode} is set to \kw{period}, the execution
 is scheduled periodically; when set to \kw{semaphore}, it waits 
 for an external trigger to start a new step;
-\item the \kw{time step} is the sampling time in \emph{nanoseconds} (ns); 
-usually, it should match the time step 
-of the simulation, but it can be different for other purposes.
 \item the keyword \kw{reserve stack} instructs the program 
 to statically reserve the desired stack size by means 
 of the \kw{mlockall(2)} system call; it should be used to ensure 
 that no page swapping occurs during the real-time simulation;
+a minimal default value is set in any case;
 \item the keyword \kw{hard real time} instructs the program to run
 in hard real-time; the default is soft real-time;
 \item the keyword \kw{cpu map} allos the program to force its

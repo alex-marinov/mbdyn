@@ -1209,7 +1209,7 @@ IfFirstStepIsToBeRepeated:
 			}
 		}
 
-		/* FIXME: should check whether RTStackSize is correclty set? */
+		/* FIXME: should check whether RTStackSize is correctly set? */
 #ifdef RTAI_LOG	
 		if (bRTlog) { 
 			char *mbxlogname = "logmb";
@@ -1229,7 +1229,6 @@ IfFirstStepIsToBeRepeated:
 					snprintf(LogCpuMap, sizeof(LogCpuMap), "%4x", ~RTCpuMap);
 				}
 
-				bool startDefault = true;
 				if (!strcmp(LogProcName, "logproc") != 0) {
 					if (execl(LogProcName, LogProcName, "MBDTSK",
 							mbxlogname, LogCpuMap, NULL) == -1) {
@@ -1239,26 +1238,37 @@ IfFirstStepIsToBeRepeated:
 								<< "\"; using default"
 								<< std::endl);
 					} else {
-						startDefault = false;
+						break;
 					}
 				}
 
-				if (startDefault) {
-					/* sets new path */
-					/* BINPATH is the ${bindir} variable 
-					 * at configure time, defined in
-					 * include/mbdefs.h.in */
+				/* sets new path */
+				/* BINPATH is the ${bindir} variable 
+				 * at configure time, defined in
+				 * include/mbdefs.h.in */
+				char *origpath = getenv("PATH");
+				if (origpath == NULL) {
+					/* ?!? */
 					setenv("PATH", ".:" BINPATH, 1);
+
+				} else {
+					size_t	len = strlen(origpath);
+					char newpath[sizeof(".:" BINPATH ":") + len];
+
+					/* prepend ".:BINPATH:" to original path */
+					memcpy(newpath, ".:" BINPATH ":", sizeof(".:" BINPATH ":"));
+					memcpy(&newpath[sizeof(".:" BINPATH ":") - 1], origpath, len + 1);
+					setenv("PATH", newpath, 1);
+				}
 					
-					/* start logger */
-					if (execlp("logproc", "logproc", "MBDTSK",
-				               	mbxlogname, LogCpuMap, NULL) == -1) {
-						silent_cout("Cannot start default "
-								"log procedure \"logproc\""
-								<< std::endl);
-						/* FIXME: better give up logging? */
-						bRTlog = false;
-					}
+				/* start logger */
+				if (execlp("logproc", "logproc", "MBDTSK",
+			               	mbxlogname, LogCpuMap, NULL) == -1) {
+					silent_cout("Cannot start default "
+							"log procedure \"logproc\""
+							<< std::endl);
+					/* FIXME: better give up logging? */
+					bRTlog = false;
 				}
 				break;
 			}
@@ -2884,26 +2894,6 @@ Solver::ReadData(MBDynParser& HP)
 #ifdef USE_RTAI
 			bRT = true;
 
-			if (HP.IsKeyWord("allow" "nonroot")) {
-				bRTAllowNonRoot = true;
-			}
-
-			/* FIXME: use a safe default? */
-			if (HP.IsKeyWord("mode")) {
-				if (HP.IsKeyWord("period")) {
-					RTMode = MBRTAI_WAITPERIOD;
-					
-				} else if (HP.IsKeyWord("semaphore")) {
-					/* FIXME: not implemented yet ... */
-					RTMode = MBRTAI_SEMAPHORE;
-				} else {
-					std::cerr << "unknown realtime mode "
-						"at line " << HP.GetLineData()
-						<< std::endl;
-					THROW(ErrGeneric());
-				}
-			}
-			
 			if (HP.IsKeyWord("time" "step")) {
 				long long p = HP.GetInt();
 
@@ -2923,6 +2913,27 @@ Solver::ReadData(MBDynParser& HP)
 				THROW(ErrGeneric());
 			}
 
+			if (HP.IsKeyWord("allow" "nonroot")) {
+				bRTAllowNonRoot = true;
+			}
+
+			/* FIXME: use a safe default? */
+			if (HP.IsKeyWord("mode")) {
+				if (HP.IsKeyWord("period")) {
+					RTMode = MBRTAI_WAITPERIOD;
+					
+				} else if (HP.IsKeyWord("semaphore")) {
+					/* FIXME: not implemented yet ... */
+					RTMode = MBRTAI_SEMAPHORE;
+
+				} else {
+					std::cerr << "unknown realtime mode "
+						"at line " << HP.GetLineData()
+						<< std::endl;
+					THROW(ErrGeneric());
+				}
+			}
+			
 			if (HP.IsKeyWord("reserve" "stack")) {
 				long size = HP.GetInt();
 
