@@ -435,7 +435,7 @@ main(int argc, char* argv[])
 		    	    << "compiled on " << __DATE__ << " at " << __TIME__ 
 		    	    << std::endl
 			    << std::endl
-		    	    << "Copyright 1997-2000 Pierangelo Masarati,"
+		    	    << "Copyright 1997-2002 Paolo Mantegazza and Pierangelo Masarati,"
 			    << std::endl
 		    	    << "Dipartimento di Ingegneria Aerospaziale,"
 		    	    " Politecnico di Milano." << std::endl
