@@ -78,11 +78,7 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    
    virtual DofOrder::Order GetEqType(unsigned int i) const
    {
-      ASSERT(i >= 0 && i < 4);
-      if (i == 3) {
-	      return DofOrder::DIFFERENTIAL;
-      }
-      return DofOrder::ALGEBRAIC;
+      return DofOrder::DIFFERENTIAL;
    };
    
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
@@ -192,11 +188,7 @@ virtual public Elem, public Joint, public DriveOwner {
    
    virtual DofOrder::Order GetEqType(unsigned int i) const
    {
-      ASSERT(i >= 0 && i < 4);
-      if (i == 3) {
-	      return DofOrder::DIFFERENTIAL;
-      }
-      return DofOrder::ALGEBRAIC;
+      return DofOrder::DIFFERENTIAL;
    };
    
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 

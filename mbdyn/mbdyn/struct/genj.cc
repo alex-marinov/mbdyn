@@ -121,61 +121,6 @@ DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
    integer iFirstReactionIndex = iGetFirstIndex();
    
-   /* Distanza nulla */
-   if (fabs(dDistance) <= DBL_EPSILON) {
-      /* 
-       *      forza:             v
-       *      distanza (nulla):  x2 - x1 = 0
-       *      equazione banale per dAlpha:
-       *                         dAlpha = 0
-       * 
-       * 
-       *        x1   Q1   x2   Q2   v    a
-       * 
-       * x1  |  0    0    0    0    0    0 |
-       * Q1  |  0    0    0    0   -I    0 |
-       * x2  |  0    0    0    0    0    0 |
-       * Q2  |  0    0    0    0    I    0 |
-       * v   | -c*I  0    c*I  0    0    0 |
-       * a   |  0    0    0    0    0    1 |
-       *
-       * con c = dCoef
-       * 
-       * In realta' modifico lo jacobiano dividendo le equazioni 
-       * di vincolo per dCoef dove possibile, in modo da migliorare
-       * il condizionamento della matrice. */
-      
-      
-      
-      WM.ResizeInit(13, 1, 0.);
-      
-	
-      /* Attenzione: modifico jacobiano e residuo dividendo per dCoef le
-       * equazioni di vincolo (solo per d == 0) */
-      
-      for (int iCnt = 1; iCnt <= 3; iCnt++) {	   
-	 /* termini di Delta_x1 */
-	 WM.PutItem(iCnt, iFirstReactionIndex+iCnt,
-		     iNode1FirstPosIndex+iCnt, -1.);
-	 
-	 /* termini di Delta_x2 */
-	 WM.PutItem(3+iCnt, iFirstReactionIndex+iCnt,
-		     iNode2FirstPosIndex+iCnt, 1.);	 
-	 
-	 /* termini di Delta_F sul nodo 1 */
-	 WM.PutItem(6+iCnt, iNode1FirstMomIndex+iCnt,
-		     iFirstReactionIndex+iCnt, -1.);
-	 
-	 /* termini di Delta_F sul nodo 2 */
-	 WM.PutItem(9+iCnt, iNode2FirstMomIndex+iCnt,
-		     iFirstReactionIndex+iCnt, 1.);
-      }
-      
-      /* Termine diagonale per alpha */
-      WM.PutItem(13, iFirstReactionIndex+4,
-		  iFirstReactionIndex+4, 1.);
-      
-   } else {
       /* 
        *       forza:     dAlpha*v
        *       distanza:  x2 - x1 = d*v
@@ -243,7 +188,6 @@ DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			iFirstReactionIndex+iCnt, v.dGet(iCnt)/d);
 	 }	   				
       }
-   }
    
    return WorkMat;
 }
@@ -292,20 +236,8 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
    
    /* Distanza nulla */
    if (fabs(dDistance) <= DBL_EPSILON) {	
-      WorkVec.Add(1, v);
-      WorkVec.Sub(4, v);
-      
-      /* Modifica: se dCoef non e' nullo (caso normale), divido il residuo 
-       * delle equazioni di vincolo (solo lo prime 3) per dCoef, altrimenti
-       * lascio nullo il vincolo. Infatti dCoef = 0 significa che sta 
-       * facendo il passo fittizio iniziale, nel quale si assume che 
-       * le equazioni di vincolo siano soddisfatte */
-      if (dCoef >= DBL_EPSILON) {	     
-	 WorkVec.Add(7, (x1-x2)/dCoef);
-      }
-      
-      WorkVec.PutCoef(10, 1.-dAlpha);
-      
+      std::cerr << "Distance joint with near zero distance." << std::endl;
+      THROW(ErrGeneric());
    } else {	
       Vec3 TmpVec(v*dAlpha);
       WorkVec.Add(1, TmpVec);
@@ -368,70 +300,6 @@ DistanceJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    integer iReactionPrimeIndex = iFirstReactionIndex+4;
    
    /* Distanza nulla */
-   if (fabs(dDistance) <= DBL_EPSILON) {
-      /* 
-       *      forza:             v
-       *      distanza (nulla):  x2 - x1 = 0
-       *      equazione banale per dAlpha:
-       *                         dAlpha = 1
-       * 
-       *      derivata della forza:    w
-       *      derivata della distanza: xP2 - xP1 = 0
-       *      derivata di alpha:       dAlphaP = 0
-       * 
-       * 
-       *        x1   xP1  x2   xP2  v    w   a   aP 
-       * 
-       * x1  |  0    0    0    0   -I    0    0    0 || Delta_x1  |
-       * xP1 |  0    0    0    0    0    0   -I    0 || Delta_xP1 |
-       * x2  |  0    0    0    0    I    0    0    0 || Delta_x2  |
-       * xP2 |  0    0    0    0    0    0    I    0 || Delta_xP2 |
-       * v   | -I    0    I    0    0    0    0    0 || Delta_v   |
-       * a   |  0    0    0    0    0    1    0    0 || Delta_a   |
-       * w   |  0   -I    0    I    0    0    0    0 || Delta_w   |
-       * aP  |  0    0    0    0    0    0    0    1 || Delta_aP  |
-       * 
-       * 
-       */
-	
-      
-      WM.ResizeInit(26, 1, 0.);
-      
-      for (int iCnt = 1; iCnt <= 3; iCnt++) {	   
-	 /* derivata dell'equazione di vincolo, nodo 1 */
-	 WM.PutItem(6+iCnt, iReactionPrimeIndex+iCnt,
-		     iNode1FirstVelIndex+iCnt, -1.);
-	 
-	 /* derivata dell'equazione di vincolo, nodo 2 */
-	 WM.PutItem(9+iCnt, iReactionPrimeIndex+iCnt,
-		     iNode2FirstVelIndex+iCnt, 1.);
-	 
-	 /* termini di forza sul nodo 1 */
-	 WM.PutItem(12+iCnt, iNode1FirstPosIndex+iCnt,
-		     iFirstReactionIndex+iCnt, -1.);
-	 
-	 /* termini di forza sul nodo 2 */
-	 WM.PutItem(15+iCnt, iNode2FirstPosIndex+iCnt,
-		     iFirstReactionIndex+iCnt, 1.);
-	
-	 /* termini di derivata della forza sul nodo 1 */
-	 WM.PutItem(18+iCnt, iNode1FirstVelIndex+iCnt,
-		     iReactionPrimeIndex+iCnt, -1.);
-	 
-	 /* termini di derivata della forza sul nodo 2 */
-	 WM.PutItem(21+iCnt, iNode2FirstVelIndex+iCnt,
-		     iReactionPrimeIndex+iCnt, 1.);
-      }
-      
-      /* Termine diagonale per alpha */
-      WM.PutItem(25, iFirstReactionIndex+4,
-		  iFirstReactionIndex+4, 1.);
-      
-      /* Termine diagonale per alpha derivato */
-      WM.PutItem(26, iReactionPrimeIndex+4,
-		  iReactionPrimeIndex+4, 1.);
-      
-   } else {
       /* 
        *       forza:     dAlpha*v
        *       distanza:  x2 - x1 = d*v
@@ -545,7 +413,6 @@ DistanceJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			iFirstReactionIndex+iCnt, 0.);
 	 }	   
       }		  				
-   }
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {      
       /* termini di Delta_x1 */
@@ -611,14 +478,8 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Distanza nulla */
    if (fabs(dDistance) <= DBL_EPSILON) {
-      WorkVec.Add(1, v);
-      WorkVec.Add(4, w);
-      WorkVec.Add(7, -v);
-      WorkVec.Add(10, -w);
-      WorkVec.Add(13, x1-x2);
-      WorkVec.PutCoef(16, 1.-dAlpha);
-      WorkVec.Add(17, x1P-x2P);
-      WorkVec.PutCoef(20, -dBeta);
+      std::cerr << "Distance joint with near zero distance." << std::endl;
+      THROW(ErrGeneric());
    } else {			
       WorkVec.Add(1, v*dAlpha);
       WorkVec.Add(4, w*dBeta);
@@ -650,8 +511,8 @@ void DistanceJoint::SetInitialValue(VectorHandler& X) const
    
    doublereal dDistance = pGetDriveCaller()->dGet();
    if (fabs(dDistance) <= DBL_EPSILON) {
-      X.Put(iFirstIndex+4, 1.);
-      return;
+      std::cerr << "Distance joint with near zero distance." << std::endl;
+      THROW(ErrGeneric());
    }
      
    (Vec3&)v = ((pNode2->GetXCurr())-(pNode1->GetXCurr()));
@@ -673,7 +534,8 @@ void DistanceJoint::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
    /* Setta a 1 dAlpha, che e' indipendente dalle altre variabili
     * in caso di distanza nulla */
    if (fabs(dDistance) <= DBL_EPSILON) {	
-      X.Put(iGetFirstIndex()+4, 1.);
+      std::cerr << "Distance joint with near zero distance." << std::endl;
+      THROW(ErrGeneric());
    } else {      
    
    /* Scrive la direzione della distanza. Se e' stata ottenuta con 
@@ -854,59 +716,6 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 f2Tmp(pNode2->GetRRef()*f2);
    
    /* Distanza nulla */
-   if (fabs(dDistance) <= DBL_EPSILON) {            
-      
-      WM.ResizeInit(55, 0, 0.);
-      
-      /* Attenzione: per d == 0. divido per dCoef */
-            
-      for (int iCnt = 1; iCnt <= 3; iCnt++) {	 
-
-	 /* termini di Delta_x1 */
-	 WM.PutItem(iCnt, iFirstReactionIndex+iCnt,
-		     iNode1FirstPosIndex+iCnt, -1.);
-      
-	 /* termini di Delta_x2 */
-	 WM.PutItem(3+iCnt, iFirstReactionIndex+iCnt,
-		     iNode2FirstPosIndex+iCnt, 1.);
-      
-      
-	 /* termini di Delta_F sul nodo 1 */
-	 WM.PutItem(6+iCnt, iNode1FirstMomIndex+iCnt,
-		     iFirstReactionIndex+iCnt, -1.);
-      
-	 /* termini di Delta_F sul nodo 2 */
-	 WM.PutItem(9+iCnt, iNode2FirstMomIndex+iCnt,
-		     iFirstReactionIndex+iCnt, 1.);
-      }
-      
-      /* Termini di offset nell'equazione di vincolo */
-      WM.fPutCross(13, iFirstReactionIndex, 
-		   iNode1FirstPosIndex+3, f1Tmp);
-
-      WM.fPutCross(19, iFirstReactionIndex, 
-		   iNode2FirstPosIndex+3, -f2Tmp);
-            
-      /* Termini di momento nell'equazione di equilibrio nodo 1 */
-      WM.fPutCross(25, iNode1FirstMomIndex+3,
-		   iFirstReactionIndex, -f1Tmp);
-      WM.fPutMat3x3(31, iNode1FirstMomIndex+3,
-		    iNode1FirstPosIndex+3, Mat3x3(v, f1Tmp*(-dCoef)));
-
-      
-      /* Termini di momento nell'equazione di equilibrio nodo 2 */
-      WM.fPutCross(40, iNode2FirstMomIndex+3,
-		   iFirstReactionIndex, f2Tmp);
-      WM.fPutMat3x3(46, iNode2FirstMomIndex+3,
-		    iNode2FirstPosIndex+3, Mat3x3(v, f2Tmp*dCoef));
-      
-
-      /* Termine diagonale per alpha */
-      WM.PutItem(55, iFirstReactionIndex+4,
-		  iFirstReactionIndex+4, 1.);
-      
-   } else {
-      
       WM.ResizeInit(72, 0, 0.);
             
       for (int iCnt = 1; iCnt <= 3; iCnt++) {
@@ -990,7 +799,6 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 	 WM.PutItem(69+iCnt, iFirstReactionIndex+4,
 		     iFirstReactionIndex+iCnt, v.dGet(iCnt)/d);      
       }      
-   }
    
    return WorkMat;
 }
@@ -1040,22 +848,8 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
    
    /* Distanza nulla */
    if (fabs(dDistance) <= DBL_EPSILON) {	
-      WorkVec.Add(1, v);
-      WorkVec.Add(4, f1Tmp.Cross(v));
-      WorkVec.Sub(7, v);
-      WorkVec.Sub(10, f2Tmp.Cross(v));
-      
-      /* Modifica: se dCoef non e' nullo (caso normale), divido il residuo 
-       * delle equazioni di vincolo (solo lo prime 3) per dCoef, altrimenti
-       * lascio nullo il vincolo. Infatti dCoef = 0 significa che sta 
-       * facendo il passo fittizio iniziale, nel quale si assume che 
-       * le equazioni di vincolo siano soddisfatte */
-      if (fabs(dCoef) > DBL_EPSILON) {	     
-	 WorkVec.Add(13, (x1+f1Tmp-x2-f2Tmp)/dCoef);
-      }
-	
-      WorkVec.PutCoef(16, 1.-dAlpha);
-      
+      std::cerr << "Distance joint with near zero distance." << std::endl;
+      THROW(ErrGeneric());
    } else {	
       Vec3 TmpVec(v*dAlpha);
       WorkVec.Add(1, TmpVec);
@@ -1067,11 +861,8 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
       
       doublereal dTmp = v.Dot();
       ASSERT(dTmp >= 0.0);
-      if (dTmp > 0.) {	   
-	 dTmp = sqrt(dTmp);
-      } else {	   
-	 dTmp = 0.;
-      }	
+      dTmp = sqrt(dTmp);
+
       WorkVec.PutCoef(16, 1.-dTmp);
       
    }
@@ -1135,68 +926,6 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    doublereal dDistance = pGetDriveCaller()->dGet();
    
-   if (fabs(dDistance) <= DBL_EPSILON) {
-      for (int iCnt = 1; iCnt <= 3; iCnt++) {	 
-	 WM.PutCoef(iCnt, 24+iCnt, -1.);
-	 WM.PutCoef(12+iCnt, 24+iCnt, 1.);
-	 
-	 WM.PutCoef(6+iCnt, 28+iCnt, -1.);
-	 WM.PutCoef(18+iCnt, 28+iCnt, 1.);
-	 
-	 WM.PutCoef(24+iCnt, iCnt, -1.);
-	 WM.PutCoef(24+iCnt, 12+iCnt, 1.);
-
-	 WM.PutCoef(28+iCnt, 6+iCnt, -1.);
-	 WM.PutCoef(28+iCnt, 18+iCnt, 1.);
-      }
-      
-      Mat3x3 MTmp(-f1Tmp);
-      WM.Add(4, 25, MTmp);
-      WM.Add(10, 29, MTmp);
-
-      MTmp = Mat3x3(f1Tmp);
-      WM.Add(25, 4, MTmp);
-      WM.Add(29, 10, MTmp);
-      
-      MTmp = Mat3x3(f2Tmp);
-      WM.Add(16, 25, MTmp);
-      WM.Add(22, 29, MTmp);
-
-      MTmp = Mat3x3(-f2Tmp);
-      WM.Add(25, 16, MTmp);
-      WM.Add(29, 22, MTmp);
-      
-      MTmp = Mat3x3(-v, f1Tmp);
-      WM.Add(4, 4, MTmp);
-      WM.Add(10, 10, MTmp);
-      
-      MTmp = Mat3x3(v, f2Tmp);
-      WM.Add(16, 16, MTmp);
-      WM.Add(22, 22, MTmp);
-      
-      MTmp = Mat3x3(Omega1, f1Tmp);
-      WM.Add(29, 4, MTmp);
-      
-      MTmp = Mat3x3(-Omega2, f2Tmp);
-      WM.Add(29, 16, MTmp);
-      
-      MTmp = Mat3x3(f1Tmp.Cross(Omega1));
-      WM.Add(10, 25, MTmp);
-      
-      MTmp = Mat3x3(Omega2.Cross(f2Tmp));
-      WM.Add(22, 25, MTmp);
-      
-      MTmp = (Mat3x3(v, Omega1)+Mat3x3(vP))*Mat3x3(-f1Tmp);
-      WM.Add(10, 4, MTmp);
-      
-      MTmp = (Mat3x3(v, Omega2)+Mat3x3(vP))*Mat3x3(f2Tmp);
-      WM.Add(22, 16, MTmp);
-      
-      WM.PutCoef(28, 28, 1.);
-      WM.PutCoef(32, 32, 1.);      
-      
-   } else {
-      
       /* Equazioni di equilibrio */
       for (int iCnt = 1; iCnt <= 3; iCnt++) {
 	 WM.PutCoef(iCnt, 24+iCnt, -dAlpha);
@@ -1324,7 +1053,6 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	    WM.PutCoef(32, 24+iCnt, d);
 	 }	 
       }                        
-   }
    
    return WorkMat;
 }
@@ -1372,22 +1100,8 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
    doublereal dDistance = pGetDriveCaller()->dGet();
    
    if (fabs(dDistance) <= DBL_EPSILON) {
-      WorkVec.Put(1, v);
-      WorkVec.Put(4, f1Tmp.Cross(v));
-      WorkVec.Put(7, vP);
-      WorkVec.Put(10, (Omega1.Cross(f1Tmp)).Cross(v)+f1Tmp.Cross(vP));
-      
-      WorkVec.Put(13, -v);
-      WorkVec.Put(16, v.Cross(f2Tmp));
-      WorkVec.Put(19, -vP);
-      WorkVec.Put(22, v.Cross(Omega2.Cross(f2Tmp))-f2Tmp.Cross(vP));
-      
-      WorkVec.Put(25, x1+f1Tmp-x2-f2Tmp);
-      WorkVec.PutCoef(28, 1.-dAlpha);
-      
-      WorkVec.Put(29, v1+Omega1.Cross(f1Tmp)-v2-Omega2.Cross(f2Tmp));
-      WorkVec.PutCoef(32, -dAlphaP);
-      
+      std::cerr << "Distance joint with near zero distance." << std::endl;
+      THROW(ErrGeneric());
    } else {
       Vec3 Tmp(v*dAlpha);
       WorkVec.Put(1, Tmp);
@@ -1406,12 +1120,11 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
 		  -v2-Omega2.Cross(f2Tmp)+v1+Omega1.Cross(f1Tmp));
       
       doublereal d = v.Dot();
+      
       ASSERT(d > DBL_EPSILON);
-      if (d > DBL_EPSILON) {
-	 d = sqrt(d);
-	 WorkVec.PutCoef(28, 1.-d);
-	 WorkVec.PutCoef(32, -v.Dot(vP)/d);
-      }                  
+      d = sqrt(d);
+      WorkVec.PutCoef(28, 1.-d);
+      WorkVec.PutCoef(32, -v.Dot(vP)/d);
    }
    
    return WorkVec;
@@ -1424,8 +1137,8 @@ void DistanceJointWithOffset::SetInitialValue(VectorHandler& X) const
    
    doublereal dDistance = pGetDriveCaller()->dGet();
    if (fabs(dDistance) <= DBL_EPSILON) {
-      X.Put(iFirstIndex+4, 1.);
-      return;
+      std::cerr << "Distance joint with near zero distance." << std::endl;
+      THROW(ErrGeneric());
    }
    
    Vec3 x1(pNode1->GetXCurr());
@@ -1440,17 +1153,12 @@ void DistanceJointWithOffset::SetInitialValue(VectorHandler& X) const
    (Vec3&)v = x2+f2Tmp-x1-f1Tmp;
    doublereal d = v.Dot();
    ASSERT(d > DBL_EPSILON);
-   if (d > DBL_EPSILON) {
-      d = sqrt(d);
-      (Vec3&)v = v/d;
-   } else {
-      (Vec3&)v = Vec3(1., 0., 0.);
-   }
+
+   d = sqrt(d);
+   (Vec3&)v = v/d;
    
    X.Put(iFirstIndex+1, v);
-   if (d > DBL_EPSILON) {      
-      X.Put(iFirstIndex+5, (v2+Omega2.Cross(f2Tmp)-v1-Omega1.Cross(f1Tmp))/d);
-   }   
+   X.Put(iFirstIndex+5, (v2+Omega2.Cross(f2Tmp)-v1-Omega1.Cross(f1Tmp))/d);
 }
 
 
@@ -1462,7 +1170,8 @@ void DistanceJointWithOffset::SetValue(VectorHandler& X,
    /* Setta a 1 dAlpha, che e' indipendente dalle altre variabili
     * in caso di distanza nulla */
    if (fabs(dDistance) <= DBL_EPSILON) {	
-      X.Put(iGetFirstIndex()+4, 1.);
+      std::cerr << "Distance joint with near zero distance." << std::endl;
+      THROW(ErrGeneric());
    } else {
       doublereal d = v.Dot();
       if (d <= DBL_EPSILON) {
@@ -1473,10 +1182,10 @@ void DistanceJointWithOffset::SetValue(VectorHandler& X,
 	    std::cerr << std::endl << "Joint " << uLabel << ", linked to nodes " 
 	      << pNode1->GetLabel() << " and " << pNode2->GetLabel() 
 	      << ": nodes are coincident." << std::endl
-	      << "Initial joint assembly is recommended; aborting ... " 
+	      << "This is now unsupported " 
 	      << std::endl;
 	    
-	    THROW(ErrMemory());
+	    THROW(ErrGeneric());
 	 }
 	 (Vec3&)v /= sqrt(d);
       }
