@@ -104,6 +104,12 @@ void
 Elem2Param::SetValue(VectorHandler& /* X */,
 		VectorHandler& /* XP */ ) const
 {
+	if (pElem == NULL) {
+		silent_cerr("ParameterNode(" << GetLabel() 
+				<< "): never bound" << std::endl);
+		THROW(ErrGeneric());
+	}
+
 	dX = dGetX();
 }
 

@@ -86,6 +86,8 @@ Elem2Param::dGetDofValue(int /* iDof */ , int /* iOrder */ ) const
 inline const doublereal&
 Elem2Param::dGetX(void) const
 {
+	ASSERT(pElem != NULL);
+
 	dX = pElem->dGetPrivData(iNum);
 	return dX;
 }
