@@ -60,6 +60,11 @@ Mat3x3 Vec3::Tens(const Vec3& v) const
 		 pdVec[V3]*v.pdVec[V3]);
 }
 
+/* Prodotto "tensore".  Restituisce se stesso per se stesso */
+Mat3x3 Vec3::Tens(void) const
+{
+	return Tens(*this);
+}     
 
 /* Prodotto vettore per matrice */
 Mat3x3 Vec3::Cross(const Mat3x3& m) const {

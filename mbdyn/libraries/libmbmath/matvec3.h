@@ -167,6 +167,12 @@ class Vec3 {
    Mat3x3 Tens(const Vec3& v) const;
       
    /*
+    Prodotto "tensore". 
+    Restituisce se stesso per se stesso
+    */
+   Mat3x3 Tens(void) const;
+ 
+   /*
     Prodotto vettore. 
     Restituisce il prodotto vettore tra se stesso e v in un temporaneo.
     */
@@ -706,7 +712,7 @@ class Mat3x3 {
       pdMat[M33] = a.pdVec[V3]*b.pdVec[V3];   /* m(3,3) = a(3)*b(3) */
       return *this;
    };
-   
+
    /*
     Traspone la matrice.
     Restituisce la trasposta di se stessa in un temporaneo (poco efficiente).
@@ -1321,7 +1327,7 @@ class _MatGm1_Manip : public _Mat3x3_Manip {
     Operatore deprecato (e' poco efficiente).
     */
    inline Mat3x3 operator << (const Vec3& g) const {
-      return Eye3+g.Tens(g/4.)-Mat3x3(g/2.);
+      return Eye3+g.Tens()/4.-Mat3x3(g/2.);
    };
    
    /*
@@ -1329,7 +1335,7 @@ class _MatGm1_Manip : public _Mat3x3_Manip {
     */
    inline void Make(Mat3x3& m, const Vec3& g) const {
       m = Mat3x3(1., g/(-2.));
-      m += g.Tens(g/4.);
+      m += g.Tens()/4.;
    };
 };
 
