@@ -7,6 +7,15 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Tue Feb  5 17:30:00 CAT 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+				 Stefania Gualdi <gualdi@aero.polimi.it>
+ - added a couple of coefficients to allow to tune the approximate friction
+   model of the shock absorber constitutive law
+
+*** Fri Feb  1 17:00:00 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+				 Stefania Gualdi <gualdi@aero.polimi.it>
+ - reviewed module-wheel2; fixed bug in tire friction
+
 *** Thu Jan 31 10:02:27 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - unsteady correction is 'cn', not 'cl'
  - added symbolic constitutive law based on GiNaC (elastic, no parameters)

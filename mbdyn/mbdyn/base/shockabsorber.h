@@ -158,6 +158,9 @@ private:
 	doublereal RhoFluid; /* FIXME: usare i fluidi idraulici? */
 	doublereal Cd;
 
+	doublereal EpsPrimeRef;
+	doublereal FrictionAmpl;
+
 	/*
 	 * Costruttore per pCopy
 	 */
@@ -184,6 +187,9 @@ private:
 		AreaFluid = p->AreaFluid;
 		RhoFluid = p->RhoFluid;
 		Cd = p->Cd;
+
+		EpsPrimeRef = p->EpsPrimeRef;
+		FrictionAmpl = p->FrictionAmpl;
 	};
    
 public:
@@ -193,7 +199,8 @@ public:
 			MBDynParser& HP
 	) : ElasticConstitutiveLaw<doublereal, doublereal>(pDC, 0.),
 	EpsMax(defaultEpsMax), EpsMin(defaultEpsMin), Penalty(defaultPenalty),
-	pAreaPin(NULL), pAreaOrifices(NULL) {
+	pAreaPin(NULL), pAreaOrifices(NULL),
+	EpsPrimeRef(1.), FrictionAmpl(0.) {
 		if (HP.IsKeyWord("help")) {
 
 			std::cout <<
@@ -214,9 +221,15 @@ public:
 "\t[ orifice , <orifice area (drive, strain rate dependent)> , ]\n"
 "\t<fluid area> ,\n"
 "\t<fluid density> ,\n"
-"\t<drag coefficient / reference length (scales strain rate to velocity)> ;\n"
+"\t<drag coefficient / reference length (scales strain rate to velocity)>\n"
+"\t[ , friction, <reference epsilon prime> ,\n"
+"\t\t <friction amplitude coefficient> ] ;\n"
 "\n"
 "Note: at least one of \"metering\" and \"orifice\" must be defined.\n"
+"Note: if 'friction' is enabled, the elastic force is multiplied\n"
+"      by the factor\n"
+"\n"
+"\t\t1. - <friction amplitude coefficient> * tanh( <epsilon prime> / <reference epsilon prime> )\n"
 "\n"
 				<< std::endl;
 
@@ -270,6 +283,20 @@ public:
 		AreaFluid = HP.GetReal();
 		RhoFluid = HP.GetReal();
 		Cd = HP.GetReal();
+
+		if (HP.IsKeyWord("friction")) {
+			EpsPrimeRef = HP.GetReal();
+			if (EpsPrimeRef <= 0.) {
+				std::cerr << "Illegal Reference Epsilon Prime " << EpsPrimeRef << " at line " << HP.GetLineData() << std::endl;
+				THROW(ErrGeneric());
+			}
+
+			FrictionAmpl = HP.GetReal();
+			if (FrictionAmpl < 0. || FrictionAmpl > 1.) {
+				std::cerr << "Illegal Friction Amplitude Coefficient " << FrictionAmpl << " at line " << HP.GetLineData() << std::endl;
+				THROW(ErrGeneric());
+			}
+		}
 
 		Update(EpsMax, 0.);
 		FMin = F;
@@ -364,7 +391,12 @@ public:
 			doublereal VRatio = 1./(1.+Cint*CurrEpsilon);
 			doublereal Adiab = pow(VRatio, Gamma);
 
-			F = -(1.-tanh(EpsPrime))*A0*P0*Adiab;
+			if (FrictionAmpl != 0.) {
+				F = -(1.-FrictionAmpl*tanh(EpsPrime/EpsPrimeRef))*A0*P0*Adiab;
+			} else {
+				F = -A0*P0*Adiab;
+			}
+
 			FDE = Gamma*Cint*VRatio*Adiab;
 		}
 

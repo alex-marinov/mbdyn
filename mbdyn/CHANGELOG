@@ -13,7 +13,9 @@ MBDyn 1.1 Engineering
 		  for C81 aerodynamics
 		- unsteady aerodynamic model selection by keywords
 		- added renice command-line switch
+		- improved approximate friction model of shock absorber
 	Bug fixes:
+		- fixed bug in tire friction force in module-wheel2
 	Known bugs:
 		- parallel build still requires HSL library
 		- Built-in naca0012/RAE* unsteady aero still broken
