@@ -1,0 +1,104 @@
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2002
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+\documentclass[10pt,dvips]{report}
+
+%\usepackage[pdftex]{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage{ae,aecompl}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{html}
+
+\input{stdmacro}
+
+\begin{document}
+
+\begin{latexonly}
+\title{\bf MBDyn Technical Manual \\
+Version
+\input{version}
+}
+\author{Pierangelo Masarati \vspace{5mm}\\
+    \sc Dipartimento di Ingegneria Aerospaziale \\
+    \sc Politecnico di Milano}
+\date{\today}
+\maketitle
+\end{latexonly}
+
+\begin{htmlonly}
+\begin{center}
+\textbf{\LARGE MBDyn Technical Manual}
+
+\emph{\large Pierangelo Masarati}
+
+\textsc{Dipartimento di Ingegneria Aerospaziale \\ Politecnico di Milano}
+
+\today
+\end{center}
+\end{htmlonly}
+
+
+
+
+\tableofcontents
+\newpage
+
+\chapter{Introduction}
+This paper describes the format of the input data for MBDyn: 
+Multi-body Analysis program.
+It should be considered a syntax more than a format, since the rules of the
+input allow a lot of freedom in the file format. 
+
+\chapter{Data Structure}
+
+\chapter{Constraints}
+
+\section{Flexible Constraints}
+
+\subsection{Deformable Hinge}
+\emph{Author: Marco Morandini} \verb;<morandini@aero.polimi.it>;
+
+
+
+\bibliographystyle{unsrt}
+\bibliography{mybib}
+
+
+
+\noindent
+Pierangelo Masarati \\
+Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano \\
+via La Masa 34, 20156 Milano, Italy \\
+Tel.: ++39 02 2399 8309 \\
+Fax: ++39 02 2399 8334 \\
+E-mail: \htmladdnormallink{\emph{masarati@aero.polimi.it}}{masarati@aero.polimi.it} \\
+Web: \htmladdnormallink{\texttt{http://www.aero.polimi.it/\~{}mbdyn/}}{http://www.aero.polimi.it/~mbdyn/} \\
+Web: \htmladdnormallink{\texttt{http://www.aero.polimi.it/\~{}masarati/}}{http://www.aero.polimi.it/~masarati/} \\
+Web: \htmladdnormallink{\texttt{http://mbdyn.aero.polimi.it/\~{}masarati/MBDyn-input/manual/index.html}}{http://mbdyn.aero.polimi.it/~masarati/MBDyn-input/manual/index.html}
+
+\end{document}
