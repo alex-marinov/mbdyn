@@ -791,6 +791,7 @@ void Solver::Run(void)
    			/* Setup SolutionManager(s) */
 			SetupSolmans(pFictitiousSteps->GetIntegratorNumUnknownStates());
 		}
+
       		for (int iSubStep = 2;
 		     iSubStep <= iFictitiousStepsNumber;
 		     iSubStep++) {

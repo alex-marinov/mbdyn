@@ -561,7 +561,8 @@ void Step2Integrator::PredictDof(const int DCount,
 			<< DCount << std::endl;
 		THROW(ErrGeneric());
 	}
-};
+}
+
 void
 Step2Integrator::Predict(void) 
 {
