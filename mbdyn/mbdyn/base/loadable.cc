@@ -32,7 +32,6 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef HAVE_LOADABLE
 #include <unistd.h>
 #include <loadable.h>
 #include <dataman.h>
@@ -742,6 +741,4 @@ LoadableElem::NeedsAirProperties(bool yesno)
 {
 	needsAirProperties = yesno;
 }
-
-#endif /* HAVE_LOADABLE */
 
