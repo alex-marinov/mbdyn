@@ -342,14 +342,15 @@ void DataManager::ReadElems(MBDynParser& HP)
 	  }
 
 	  case UNKNOWNKEYWORD: {
-	     std::cerr << "Error: unknown element type, cannot modify output" << std::endl;	     
+	     silent_cerr("Error: unknown element type, cannot modify output"
+			     << std::endl);
 	     throw DataManager::ErrGeneric();
 	  }
 	    
 	  default: {
-	     std::cerr << "Error: element type " << sKeyWords[CurrDesc] 
+	     silent_cerr("Error: element type " << sKeyWords[CurrDesc] 
 	       << " at line " << HP.GetLineData() << " is not allowed"
-	       << std::endl;
+	       << std::endl);
 	     throw DataManager::ErrGeneric();	    
 	  }
 	 }
@@ -359,8 +360,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    unsigned int uL = (unsigned int)HP.GetInt();	    	
 	    Elem* pE = (Elem*)pFindElem(Typ, uL);
 	    if (pE == NULL) {
-	       std::cerr << "Error: " << psElemNames[Typ] << "(" << uL
-		 << ") is not defined; output cannot be modified" << std::endl;
+	       silent_cerr("Error: " << psElemNames[Typ] << "(" << uL
+		 << ") is not defined; output cannot be modified" << std::endl);
 	    } else {
 	       DEBUGLCOUT(MYDEBUG_INPUT, "element " << uL << std::endl);
 	       pE->SetOutputFlag(flag(1));
@@ -396,13 +397,23 @@ void DataManager::ReadElems(MBDynParser& HP)
 
 	 std::set<unsigned int> Body_labels;
 	 Elem::Type Type = Elem::UNKNOWN;
-	 bool bOutput(false);
+	 bool bOut(false);
+	 bool bLog(true);
 	 while (HP.IsArg()) {
 		 if (HP.IsKeyWord("output")) {
 		 	if (HP.IsKeyWord("no")) {
-				bOutput = false;
-			} else if (HP.IsKeyWord("yes")) {         
-				bOutput = true;
+				bLog = false;
+
+			} else if (HP.IsKeyWord("yes")) {
+				bLog = false;
+				bOut = true;
+
+			} else if (HP.IsKeyWord("log")) {
+				/* bLog = true */ ;
+
+			} else if (HP.IsKeyWord("both")) {
+				bOut = true;
+
 			} else {
 				silent_cerr("unknown output mode for inertia "
 						<< uIn << " at line "
@@ -457,11 +468,11 @@ void DataManager::ReadElems(MBDynParser& HP)
        					S += pEl->GetS();
        					J += pEl->GetJ();
 				 } else {
-	 				 std::cerr << psElemNames[Type]
+	 				 silent_cerr(psElemNames[Type]
 						 << "(" << uL 
 						 << ") duplicate label at line "
 	 					 << HP.GetLineData() 
-						 << " (ignored)" << std::endl;
+						 << " (ignored)" << std::endl);
 				 }
 			 }
 
@@ -471,10 +482,10 @@ void DataManager::ReadElems(MBDynParser& HP)
 			 if (Body_labels.find(uL) == BL_end) {			 
 			 	Elem **ppTmpEl = (Elem **)ppFindElem(Type, uL);
 			 	if (ppTmpEl == NULL || ppTmpEl[0] == NULL) {
-				 	std::cerr << "inertia " << uIn 
+				 	silent_cerr("inertia " << uIn 
 					 	<< " at line " << HP.GetLineData()
 					 	<< ": unable to find " << psElemNames[Type]
-					 	<< "( " << uL << ")" << std::endl;
+					 	<< "( " << uL << ")" << std::endl);
 				 	throw ErrGeneric();
 			 	}
 
@@ -499,10 +510,10 @@ void DataManager::ReadElems(MBDynParser& HP)
 			 	J += pEl->GetJ();
 
 		 	} else {
-				std::cerr << psElemNames[Type] << "(" << uL
+				silent_cerr(psElemNames[Type] << "(" << uL
 					<< "): duplicate label at line "
 					<< HP.GetLineData() << " (ignored)"
-					<< std::endl;
+					<< std::endl);
 			}
 		}
 	} 
@@ -528,19 +539,22 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    J += Mat3x3(x, x*dM) + Mat3x3(Dx, x*dM) + Mat3x3(x, Dx*dM);
 	 }
 
-	 OutHdl.Log()
-		 << "inertia " << uIn
-		 << " (" << ( sName ? sName : "unnamed" ) << ")" << std::endl
-		 << "    mass:        " << dM << std::endl
-		 << "    Xcg:         " << Xcg << std::endl
-		 << "    Xcg-X:       " << (Xcg - x) << std::endl
-		 << "    R^T*(Xcg-X): " << RT*(Xcg - x) << std::endl
-		 << "    J:           " << RT*J*R << std::endl
-		 << "    Jcg:         " << RT*Jcg*R << std::endl;
-	 if (bOutput) {
+	 if (bLog) {
+		 OutHdl.Log()
+			 << "inertia " << uIn
+			 << " (" << ( sName ? sName : "unnamed" ) << ")"
+			 	<< std::endl
+			 << "    mass:        " << dM << std::endl
+			 << "    Xcg:         " << Xcg << std::endl
+			 << "    Xcg-X:       " << (Xcg - x) << std::endl
+			 << "    R^T*(Xcg-X): " << RT*(Xcg - x) << std::endl
+			 << "    J:           " << RT*J*R << std::endl
+			 << "    Jcg:         " << RT*Jcg*R << std::endl;
+	 }
+	 if (bOut) {
 		 silent_cout("inertia " << uIn
 			 << " (" << ( sName ? sName : "unnamed" ) << ")"
-			 << std::endl
+			 	<< std::endl
 			 << "    mass:        " << dM << std::endl
 			 << "    Xcg:         " << Xcg << std::endl
 			 << "    Xcg-X:       " << (Xcg - x) << std::endl
@@ -553,9 +567,9 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 }
 	 
 #else /* !USE_STRUCT_NODES */
-	 std::cerr << "inertia " << uIn << " at line " << HP.GetLineData()
+	 silent_cerr("inertia " << uIn << " at line " << HP.GetLineData()
 		 << " available only if structural nodes are enabled" 
-		 << std::endl;
+		 << std::endl);
 #if 0	/* not critical ... */
 	 throw ErrGeneric();
 #endif
@@ -624,16 +638,16 @@ void DataManager::ReadElems(MBDynParser& HP)
 
 	  case RTAI_OUTPUT:
 	  case SOCKETSTREAM_OUTPUT:
-	    std::cerr << psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-		    << " does not support bind" << std::endl;
+	    silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
+		    << " does not support bind" << std::endl);
 	  default:
 	    throw ErrGeneric();
 	 }
 	 
 	 Elem* pEl = ((Elem*)pFindElem(t, uL));
 	 if (pEl == NULL) {
-	    std::cerr << "can't find " << psElemNames[t] << " (" << uL 
-	      << ") at line " << HP.GetLineData() << std::endl;
+	    silent_cerr("can't find " << psElemNames[t] << " (" << uL 
+	      << ") at line " << HP.GetLineData() << std::endl);
 	    throw ErrGeneric();
 	 }
       
@@ -642,8 +656,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 
 	 Elem2Param* pNd = ((Elem2Param*)pFindNode(Node::PARAMETER, uL));
 	 if (pNd == NULL) {
-	    std::cerr << "can't find parameter node (" << uL
-	      << ") at line " << HP.GetLineData() << std::endl;
+	    silent_cerr("can't find parameter node (" << uL
+	      << ") at line " << HP.GetLineData() << std::endl);
 	    throw ErrGeneric();
 	 }
 
@@ -666,9 +680,9 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 
 	 /* indice del dato a cui il parametro e' bound */
 	 if (i <= 0 || i > pEl->iGetNumPrivData()) {
-	    std::cerr << "error in private data number " << i << " for element "
+	    silent_cerr("error in private data number " << i << " for element "
 	      << psElemNames[t] << " (" << pEl->GetLabel() 
-	      << ") at line " << HP.GetLineData() << std::endl;
+	      << ") at line " << HP.GetLineData() << std::endl);
 	    throw ErrGeneric();
 	 }
 	 
@@ -686,9 +700,9 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 unsigned int uLabel = HP.GetInt();
 	 Elem* pEl = (Elem*)pFindElem(Elem::AUTOMATICSTRUCTURAL, uLabel);
 	 if (pEl == NULL) {
-	    std::cerr << "line " << HP.GetLineData() 
+	    silent_cerr("line " << HP.GetLineData() 
 	      << ": unable to find automatic structural element " 
-	      << uLabel << std::endl;
+	      << uLabel << std::endl);
 	    throw ErrGeneric();
 	 }
 	 
@@ -730,8 +744,9 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     
 	     if (iNumTypes[Elem::GRAVITY]-- <= 0) {
 		DEBUGCERR("");
-		std::cerr << "line " << HP.GetLineData() 
-		  << ": gravity acceleration element is not defined" << std::endl;
+		silent_cerr("line " << HP.GetLineData() 
+		  << ": gravity acceleration element is not defined"
+		  << std::endl);
 		
 		throw DataManager::ErrGeneric();
 	     }
@@ -758,8 +773,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     
 	     if(iNumTypes[Elem::AIRPROPERTIES]-- <= 0) {
 		DEBUGCERR("");
-		std::cerr << "line " << HP.GetLineData() 
-		  << ": air properties element is not defined" << std::endl;
+		silent_cerr("line " << HP.GetLineData() 
+		  << ": air properties element is not defined" << std::endl);
 		
 		throw DataManager::ErrGeneric();
 	     }
@@ -827,8 +842,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 
 		  case RTAI_OUTPUT:
 		  case SOCKETSTREAM_OUTPUT:
-		     std::cerr << psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-	 		     << " cannot be driven" << std::endl;
+		     silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
+	 		     << " cannot be driven" << std::endl);
 	 	     throw ErrGeneric();
 		    
 		  default: {
@@ -843,7 +858,9 @@ void DataManager::ReadElems(MBDynParser& HP)
 		    CurrDriven = KeyWords(HP.GetWord());
 		    unsigned int uL = (unsigned int)HP.GetInt();
 		    if (uL != uLabel) {
-		       std::cerr << "Error: the driving element must have the same label of the driven" << std::endl;
+		       silent_cerr("Error: the driving element must have "
+				       "the same label of the driven"
+				       << std::endl);
 		       
 		       throw DataManager::ErrGeneric();
 		    }
@@ -920,8 +937,9 @@ void DataManager::ReadElems(MBDynParser& HP)
 		    }
 		    
 		    if (ppE == NULL) {
-		       std::cerr << "Error: element " << uLabel 
-			 << "cannot be driven since it doesn't exist" << std::endl;
+		       silent_cerr("Error: element " << uLabel 
+			 << "cannot be driven since it doesn't exist"
+			 << std::endl);
 		       
 		       throw DataManager::ErrGeneric();
 		    }
@@ -934,7 +952,9 @@ void DataManager::ReadElems(MBDynParser& HP)
 		 } else {
 		    unsigned int uDummy = (unsigned int)HP.GetInt();
 		    if (uDummy != uLabel) {
-		       std::cerr << "Error: the element label must be the same of the driving element" << std::endl;
+		       silent_cerr("Error: the element label must be "
+				       "the same of the driving element"
+				       << std::endl);
 		       
 		       throw DataManager::ErrGeneric();
 		    }
@@ -944,8 +964,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 		    
 		    if (*ppE == NULL) {
 		       DEBUGCERR("");
-		       std::cerr << "error in allocation of element "
-			 << uLabel << std::endl;
+		       silent_cerr("error in allocation of element "
+			 << uLabel << std::endl);
 		       
 		       throw ErrMemory();
 		    }		  
@@ -1012,7 +1032,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 		 if (CurrDesc == LOADABLE) {
 		    if (loadableElemInitialized == false) {
 		       if (lt_dlinit()) {
-	   		  std::cerr << "unable to initialize loadable elements" << std::endl;
+	   		  silent_cerr("unable to initialize loadable elements"
+					  << std::endl);
       			  throw ErrGeneric();
       		       }
 
@@ -1020,8 +1041,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 		        * NOTE: this macro is defined in mbdefs.h
 		        */
 		       if (lt_dlsetsearchpath(MODULE_LOADPATH) != 0) {
-			  std::cerr << "unable to initialize load path"
-				  << std::endl;
+			  silent_cerr("unable to initialize load path"
+				  << std::endl);
 		       }
 		       loadableElemInitialized = true;
 		    }
@@ -1042,17 +1063,17 @@ void DataManager::ReadElems(MBDynParser& HP)
 		/* in caso di tipo sconosciuto */
 	      case UNKNOWNKEYWORD: {
 		 DEBUGCERR("");
-		 std::cerr << "error - unknown element type at line " 
-		   << HP.GetLineData() << std::endl;
+		 silent_cerr("error - unknown element type at line " 
+		   << HP.GetLineData() << std::endl);
 		 
 		 throw DataManager::ErrGeneric();
 	      }
 		
 	      default: {
 		 DEBUGCERR("");
-		 std::cerr << "error - element type " << sKeyWords[CurrDesc]
+		 silent_cerr("error - element type " << sKeyWords[CurrDesc]
 		   << " at line " << HP.GetLineData() 
-		   << " is not allowed " << std::endl;
+		   << " is not allowed " << std::endl);
 		 
 		 throw DataManager::ErrGeneric();
 	      }        
@@ -1086,8 +1107,8 @@ void DataManager::ReadElems(MBDynParser& HP)
    
    if (KeyWords(HP.GetWord()) != ELEMENTS) {
       DEBUGCERR("");
-      std::cerr << "<end: elements;> expected at line" 
-	<< HP.GetLineData() << std::endl;
+      silent_cerr("<end: elements;> expected at line" 
+	<< HP.GetLineData() << std::endl);
            
       throw DataManager::ErrGeneric();
    }
@@ -1095,19 +1116,20 @@ void DataManager::ReadElems(MBDynParser& HP)
    /* Se non c'e' il punto e virgola finale */
    if (HP.IsArg()) {
       DEBUGCERR("");
-      std::cerr << "semicolon expected at line " << HP.GetLineData() << std::endl;
+      silent_cerr("semicolon expected at line " << HP.GetLineData()
+		      << std::endl);
      
       throw DataManager::ErrGeneric();
    }   
    
    if (iMissingElems > 0) {
       DEBUGCERR("");
-      std::cerr << "warning: " << iMissingElems
-	<< " elements are missing;" << std::endl;
+      silent_cerr("warning: " << iMissingElems
+	<< " elements are missing;" << std::endl);
       for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 	 if (iNumTypes[iCnt] > 0) {
-	    std::cerr << "  " << iNumTypes[iCnt] 
-	      << ' ' << psElemNames[iCnt] << std::endl;
+	    silent_cerr("  " << iNumTypes[iCnt] 
+	      << ' ' << psElemNames[iCnt] << std::endl);
 	 }	 
       }      
       
@@ -1168,19 +1190,21 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    for (unsigned int iEl = 0; iEl < ElemData[iCnt].iNum; iEl++) {
 	       if (ElemData[iCnt].ppFirstElem[iEl]->pGetAerodynamicElem()->NeedsAirProperties()) {
 	          if (fStop == 0) {
-	             std::cerr << "The following aerodynamic elements are defined: " << std::endl;	       
+	             silent_cerr("The following aerodynamic elements "
+				     "are defined: " << std::endl);
 	             fStop = 1;
 		  }
 	       }
 	    }
 
-	    std::cerr << ElemData[iCnt].iNum << " " 
-	      << psElemNames[iCnt] << std::endl;
+	    silent_cerr(ElemData[iCnt].iNum << " " 
+	      << psElemNames[iCnt] << std::endl);
 	 }
       }
       
       if (fStop) {
-	 std::cerr << "while no air properties are defined; aborting ..." << std::endl;
+	 silent_cerr("while no air properties are defined; aborting ..."
+			 << std::endl);
 	 
 	 throw DataManager::ErrGeneric();
       }
@@ -1220,9 +1244,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        
        if (iNumTypes[Elem::FORCE]-- <= 0) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": force " << uLabel
-	    << " exceeds force elements number" << std::endl;
+	    << " exceeds force elements number" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1230,9 +1254,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* verifica che non sia gia' definito */
        if (pFindElem(Elem::FORCE, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": force " << uLabel
-	    << " already defined" << std::endl;
+	    << " already defined" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1254,9 +1278,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        
        if(iNumTypes[Elem::BODY]-- <= 0) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": rigid body " << uLabel
-	    << " exceeds rigid body elements number" << std::endl;
+	    << " exceeds rigid body elements number" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1264,9 +1288,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* verifica che non sia gia' definito */		    
        if(pFindElem(Elem::BODY, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": rigid body " << uLabel
-	    << " already defined" << std::endl;
+	    << " already defined" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1287,9 +1311,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        
        if (iNumTypes[Elem::JOINT]-- <= 0) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": joint " << uLabel
-	    << " exceeds joint elements number" << std::endl;
+	    << " exceeds joint elements number" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }	  
@@ -1297,9 +1321,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* verifica che non sia gia' definito */		      
        if (pFindElem(Elem::JOINT, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": joint " << uLabel
-	    << " already defined" << std::endl;
+	    << " already defined" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1327,9 +1351,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        
        if (iNumTypes[Elem::BEAM]-- <= 0) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": beam " << uLabel
-	    << " exceeds beam elements number" << std::endl;
+	    << " exceeds beam elements number" << std::endl);
 	 
 	  throw DataManager::ErrGeneric();
        }
@@ -1337,9 +1361,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* verifica che non sia gia' definito */
        if (pFindElem(Elem::BEAM, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": beam " << uLabel
-	    << " already defined" << std::endl;
+	    << " already defined" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1377,9 +1401,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        
        if (iNumTypes[Elem::ROTOR]-- <= 0) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": rotor " << uLabel
-	    << " exceeds rotor elements number" << std::endl;
+	    << " exceeds rotor elements number" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1387,9 +1411,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* verifica che non sia gia' definito */
        if (pFindElem(Elem::ROTOR, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": rotor " << uLabel
-	    << " already defined" << std::endl;
+	    << " already defined" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1412,9 +1436,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        
        if (iNumTypes[Elem::AEROMODAL]-- <= 0) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": aromodal " << uLabel
-	    << " exceeds aeromodal elements number" << std::endl;
+	  silent_cerr("line " << HP.GetLineData() 
+	    << ": aeromodal " << uLabel
+	    << " exceeds aeromodal elements number" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1422,9 +1446,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* verifica che non sia gia' definito */
        if (pFindElem(Elem::AEROMODAL, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": raeromodal " << uLabel
-	    << " already defined" << std::endl;
+	  silent_cerr("line " << HP.GetLineData() 
+	    << ": aeromodal " << uLabel
+	    << " already defined" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1448,9 +1472,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        
        if (iNumTypes[Elem::EXTERNAL]-- <= 0) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": external element " << uLabel
-	    << " exceeds external elements number" << std::endl;
+	    << " exceeds external elements number" << std::endl);
 	 
 	  throw DataManager::ErrGeneric();
        }
@@ -1458,9 +1482,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* verifica che non sia gia' definito */
        if (pFindElem(Elem::EXTERNAL, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": external element " << uLabel
-	    << " already defined" << std::endl;
+	    << " already defined" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1483,8 +1507,8 @@ DataManager::ReadOneElem(MBDynParser& HP,
 	   break;
        }
 #else /* !USE_EXTERNAL */
-       std::cerr << "You need mpi and -DUSE_AERODYNAMIC_EXTERNAL " 
-       		<< "to use this type of elements." << std::endl;
+       silent_cerr("You need mpi and -DUSE_AERODYNAMIC_EXTERNAL " 
+       		<< "to use this type of elements." << std::endl);
        throw ErrGeneric();
 #endif /* !USE_EXTERNAL */	  
        break;
@@ -1498,9 +1522,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        
        if (iNumTypes[Elem::AERODYNAMIC]-- <= 0) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": aerodynamic element " << uLabel
-	    << " exceeds aerodynamic elements number" << std::endl;
+	    << " exceeds aerodynamic elements number" << std::endl);
 	 
 	  throw DataManager::ErrGeneric();
        }
@@ -1508,9 +1532,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* verifica che non sia gia' definito */
        if (pFindElem(Elem::AERODYNAMIC, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": aerodynamic element " << uLabel
-	    << " already defined" << std::endl;
+	    << " already defined" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1558,9 +1582,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
 
        if(iNumTypes[Elem::GENEL]-- <= 0) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": genel " << uLabel
-	    << " exceeds genel elements number" << std::endl;
+	    << " exceeds genel elements number" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }	  
@@ -1568,9 +1592,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* verifica che non sia gia' definito */		      
        if(pFindElem(Elem::GENEL, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": genel " << uLabel
-	    << " already defined" << std::endl;
+	    << " already defined" << std::endl);
 	 
 	  throw DataManager::ErrGeneric();
        }
@@ -1594,9 +1618,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        
        if(iNumTypes[Elem::HYDRAULIC]-- <= 0) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": hydraulic element " << uLabel
-	    << " exceeds hydraulic elements number" << std::endl;
+	    << " exceeds hydraulic elements number" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }	  
@@ -1604,9 +1628,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* verifica che non sia gia' definito */
        if (pFindElem(Elem::HYDRAULIC, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": hydraulic element " << uLabel
-	    << " already defined" << std::endl;
+	    << " already defined" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1634,9 +1658,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        
        if(iNumTypes[Elem::ELECTRIC]-- <= 0) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": electric element " << uLabel
-	    << " exceeds electric elements number" << std::endl;
+	    << " exceeds electric elements number" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }	  
@@ -1644,9 +1668,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* verifica che non sia gia' definito */
        if (pFindElem(Elem::ELECTRIC, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": electric element " << uLabel
-	    << " already defined" << std::endl;
+	    << " already defined" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1673,9 +1697,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        
        if (iNumTypes[Elem::BULK]-- <= 0) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": bulk element " << uLabel
-	    << " exceeds bulk elements number" << std::endl;
+	    << " exceeds bulk elements number" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }	  
@@ -1683,9 +1707,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* verifica che non sia gia' definito */
        if (pFindElem(Elem::BULK, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": bulk element " << uLabel
-	    << " already defined" << std::endl;
+	    << " already defined" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1707,9 +1731,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        
        if (iNumTypes[Elem::LOADABLE]-- <= 0) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": loadable element " << uLabel
-	    << " exceeds loadable elements number" << std::endl;
+	    << " exceeds loadable elements number" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }	  
@@ -1717,9 +1741,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* verifica che non sia gia' definito */
        if (pFindElem(Elem::LOADABLE, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": loadable element " << uLabel
-	    << " already defined" << std::endl;
+	    << " already defined" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1742,9 +1766,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        
        if (iNumTypes[Elem::SOCKETSTREAM_OUTPUT]-- <= 0) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": Socket Stream output element " << uLabel
-	    << " exceeds Socket Stream output elements number" << std::endl;
+	    << " exceeds Socket Stream output elements number" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }	  
@@ -1752,9 +1776,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        /* verifica che non sia gia' definito */
        if (pFindElem(Elem::SOCKETSTREAM_OUTPUT, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  std::cerr << "line " << HP.GetLineData() 
+	  silent_cerr("line " << HP.GetLineData() 
 	    << ": Socket Stream output element " << uLabel
-	    << " already defined" << std::endl;
+	    << " already defined" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }
@@ -1766,12 +1790,12 @@ DataManager::ReadOneElem(MBDynParser& HP,
               
 #ifdef USE_RTAI
        if (mbdyn_rtai_task != 0) {
-	   std::cerr << "starting RTAI out element" << std::endl;    
+	   silent_cerr("starting RTAI out element" << std::endl);
           *ppE = ReadRTAIOutElem(this, HP, uLabel);
        } else
 #endif /* USE_RTAI */
        {
-	  std::cerr << "starting Socket Stream element" << std::endl;
+	  silent_cerr("starting Socket Stream element" << std::endl);
           *ppE = ReadSocketStreamElem(this, HP, uLabel);
        }
 #ifndef USE_RTAI
@@ -1782,7 +1806,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
      
       /* In case the element type is not correct */
     default: {
-       std::cerr << "You shouldn't be here" << std::endl;
+       silent_cerr("You shouldn't be here" << std::endl);
        
        throw DataManager::ErrGeneric();
     }
