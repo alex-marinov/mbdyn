@@ -1,0 +1,224 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2000
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+#ifndef PZBEAM2_H
+#define PZBEAM2_H
+
+#include "beam.h"
+#include "beam2.h"
+#include "matvec3n.h"
+
+/* PiezoActuatorBeam2 - begin */
+
+class PiezoActuatorBeam2 : public Beam2 {
+   
+ private:
+   PiezoActuatorBeam2(const PiezoActuatorBeam2&);
+   const PiezoActuatorBeam2& operator = (const PiezoActuatorBeam2&);
+   
+ protected:
+   int iNumElec;
+   ScalarDifferentialNode** pvElecDofs;
+   VecN V;
+   Mat3xN PiezoMat[NUMDEFORM];
+   
+   /* Funzioni di calcolo delle matrici */
+   virtual void AssStiffnessMat(FullSubMatrixHandler& WMA,
+				FullSubMatrixHandler& WMB,
+				doublereal dCoef,
+				const VectorHandler& XCurr,
+				const VectorHandler& XPrimeCurr);
+   
+   virtual void AssStiffnessVec(SubVectorHandler& WorkVec,
+				doublereal dCoef,
+				const VectorHandler& XCurr,
+				const VectorHandler& XPrimeCurr);
+   
+   virtual void AddInternalForces(Vec6& AzLoc);
+   
+ public:
+   /* Costruttore normale */
+   PiezoActuatorBeam2(unsigned int uL,
+		     const StructNode* pN1, const StructNode* pN2,
+		     const Vec3& F1, const Vec3& F2,
+		     const Mat3x3& R1, const Mat3x3& R2,
+		     const Mat3x3& r,
+		     const ConstitutiveLaw6D* pd,
+		     int iEl,
+		     ScalarDifferentialNode** pEDof,
+		     const Mat3xN& T_Ie, const Mat3xN& T_Ik,
+		     flag fOut);
+   
+   /* Distruttore banale */
+   virtual ~PiezoActuatorBeam2(void);
+    
+   /* Contributo al file di restart */
+   virtual ostream& Restart(ostream& out) const;
+    
+   /* Dimensioni del workspace; sono 36 righe perche' se genera anche le
+    * forze d'inerzia consistenti deve avere accesso alle righe di definizione
+    * della quantita' di moto */
+   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+    
+   /* Settings iniziali, prima della prima soluzione */
+   void SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const;
+   
+      /* Prepara i parametri di riferimento dopo la predizione */
+   virtual void AfterPredict(VectorHandler& /* X */ ,
+			     VectorHandler& /* XP */ );
+   
+   /* assemblaggio jacobiano */
+   virtual VariableSubMatrixHandler&
+     AssJac(VariableSubMatrixHandler& WorkMat,
+	    doublereal dCoef,
+	    const VectorHandler& XCurr,
+	    const VectorHandler& XPrimeCurr);
+      
+   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
+   virtual VariableSubMatrixHandler&
+     InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		   const VectorHandler& XCurr);
+   
+   /* Contributo al residuo durante l'assemblaggio iniziale */
+   virtual SubVectorHandler&
+     InitialAssRes(SubVectorHandler& WorkVec,
+		   const VectorHandler& XCurr);
+
+ /* *******PER IL SOLUTORE PARALLELO******** */        
+   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+      utile per l'assemblaggio della matrice di connessione fra i dofs */
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) { 
+     Beam2::GetConnectedNodes(NumNodes, NdTyps, NdLabels);
+     for(int i=0; i <= iNumElec-1; i++) {
+       NdTyps[NumNodes+i] = pvElecDofs[i]->GetNodeType();
+       NdLabels[NumNodes+i] = pvElecDofs[i]->GetLabel();
+     }
+     NumNodes += iNumElec;
+   };
+   /* ************************************************ */
+};
+
+/* PiezoActuatorBeam2 - end */
+
+
+/* PiezoActuatorVEBeam2 - begin */
+
+class PiezoActuatorVEBeam2 : public ViscoElasticBeam2 {
+   
+ private:
+   PiezoActuatorVEBeam2(const PiezoActuatorVEBeam2&);
+   const PiezoActuatorVEBeam2& operator = (const PiezoActuatorVEBeam2&);
+   
+ protected:
+   int iNumElec;
+   ScalarDifferentialNode** pvElecDofs;
+   VecN V;
+   Mat3xN PiezoMat[NUMDEFORM];
+   
+   /* Funzioni di calcolo delle matrici */
+   virtual void AssStiffnessMat(FullSubMatrixHandler& WMA,
+				FullSubMatrixHandler& WMB,
+				doublereal dCoef,
+				const VectorHandler& XCurr,
+				const VectorHandler& XPrimeCurr);
+   
+   virtual void AssStiffnessVec(SubVectorHandler& WorkVec,
+				doublereal dCoef,
+				const VectorHandler& XCurr,
+				const VectorHandler& XPrimeCurr);
+   
+   virtual void AddInternalForces(Vec6& AzLoc);
+   
+ public:
+   /* Costruttore normale */
+   PiezoActuatorVEBeam2(unsigned int uL,
+		       const StructNode* pN1, const StructNode* pN2,
+		       const Vec3& F1, const Vec3& F2,
+		       const Mat3x3& R1, const Mat3x3& R2,
+		       const Mat3x3& r,
+		       const ConstitutiveLaw6D* pd,
+		       int iEl,
+		       ScalarDifferentialNode** pEDof,
+		       const Mat3xN& T_Ie, const Mat3xN& T_Ik,
+		       flag fOut);
+   
+   /* Distruttore banale */
+   virtual ~PiezoActuatorVEBeam2(void);
+    
+   /* Contributo al file di restart */
+   virtual ostream& Restart(ostream& out) const;
+    
+   /* Dimensioni del workspace; sono 36 righe perche' se genera anche le
+    * forze d'inerzia consistenti deve avere accesso alle righe di definizione
+    * della quantita' di moto */
+   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+    
+   /* Settings iniziali, prima della prima soluzione */
+   void SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const;
+   
+      /* Prepara i parametri di riferimento dopo la predizione */
+   virtual void AfterPredict(VectorHandler& /* X */ ,
+			     VectorHandler& /* XP */ );
+   
+   /* assemblaggio jacobiano */
+   virtual VariableSubMatrixHandler&
+     AssJac(VariableSubMatrixHandler& WorkMat,
+	    doublereal dCoef,
+	    const VectorHandler& XCurr,
+	    const VectorHandler& XPrimeCurr);
+      
+   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
+   virtual VariableSubMatrixHandler&
+     InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		   const VectorHandler& XCurr);
+   
+   /* Contributo al residuo durante l'assemblaggio iniziale */
+   virtual SubVectorHandler&
+     InitialAssRes(SubVectorHandler& WorkVec,
+		   const VectorHandler& XCurr);
+
+   /* *******PER IL SOLUTORE PARALLELO******** */        
+   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+      utile per l'assemblaggio della matrice di connessione fra i dofs */
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) { 
+     ViscoElasticBeam2::GetConnectedNodes(NumNodes, NdTyps, NdLabels);
+     for(int i=0; i <= iNumElec-1; i++) {
+       NdTyps[NumNodes+i] = pvElecDofs[i]->GetNodeType();
+       NdLabels[NumNodes+i] = pvElecDofs[i]->GetLabel();
+     }
+     NumNodes += iNumElec;
+   };
+   /* ************************************************ */
+};
+
+/* PiezoActuatorVEBeam2 - end */
+
+#endif /* PZBEAM2_H */
+
