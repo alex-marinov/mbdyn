@@ -154,21 +154,25 @@ Umfpack3SparseLUSolutionManager::Solve(void)
 		int status;
 		
 		if (Symbolic == 0 && !PrepareSymbolic()) {
-			return;
+			THROW(ErrGeneric());
 		}
-#if 0
+#ifdef UMFPACK_REPORT
 		umfpack_report_symbolic ("Symbolic factorization of A",
 				Symbolic, Control) ;
-#endif
+#endif /* UMFPACK_REPORT */
 
 		umfpack_report_info(Control, Info);
+
+#ifdef UMFPACK_REPORT
 		double t1 = umfpack_timer() - t;
+#endif /* UMFPACK_REPORT */
+
 		status = umfpack_numeric(App, Aip, Axp, Symbolic, 
 				&Numeric, Control, Info);
 		if (status == UMFPACK_ERROR_different_pattern) {
 			umfpack_free_symbolic(&Symbolic);
 			if (!PrepareSymbolic()) {
-				return;
+				THROW(ErrGeneric());
 			}
 			status = umfpack_numeric(App, Aip, Axp, Symbolic, 
 					&Numeric, Control, Info);
@@ -184,16 +188,19 @@ Umfpack3SparseLUSolutionManager::Solve(void)
 			umfpack_free_numeric(&Numeric);
 			ASSERT(Numeric == 0);
 
-			return;
+			THROW(ErrGeneric());
 		}
 		
-#if 0
+#ifdef UMFPACK_REPORT
 		umfpack_report_numeric ("Numeric factorization of A",
 				Numeric, Control);
-#endif
+#endif /* UMFPACK_REPORT */
 
 		umfpack_report_info(Control, Info);
+
+#ifdef UMFPACK_REPORT
 		t1 = umfpack_timer() - t;
+#endif /* UMFPACK_REPORT */
 
 		HasBeenReset = false;
 	}
@@ -214,7 +221,10 @@ Umfpack3SparseLUSolutionManager::BackSub(doublereal t_iniz)
 
 	ASSERT(HasBeenReset == false);
 	
+#ifdef UMFPACK_REPORT
 	double t = t_iniz;
+#endif /* UMFPACK_REPORT */
+
 	status = umfpack_solve("Ax=b", App, Aip, Axp, xp, bp, 
 			Numeric, Control, Info);
 	if (status != UMFPACK_OK) {
@@ -226,11 +236,14 @@ Umfpack3SparseLUSolutionManager::BackSub(doublereal t_iniz)
 		umfpack_free_numeric(&Numeric);
 		ASSERT(Numeric == 0);
 
-		return;
+		THROW(ErrGeneric());
 	}
 	
 	umfpack_report_info(Control, Info);
+
+#ifdef UMFPACK_REPORT
 	double t1 = umfpack_timer() - t;
+#endif /* UMFPACK_REPORT */
 }
 
 /* Rende disponibile l'handler per la matrice */

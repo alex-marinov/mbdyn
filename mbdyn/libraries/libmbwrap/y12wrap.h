@@ -210,6 +210,9 @@ protected:
    	Y12LUSolver* pLU;     /* puntatore a Y12LUSolver */
    
    	flag fHasBeenReset;   /* flag di matrice resettata */
+
+	integer currWorkSize;
+	integer optimalWorkSize;
    
    	/* Prepara i vettori e la matrice per il solutore */
    	void PacVec(void); 

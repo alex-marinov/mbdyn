@@ -97,6 +97,9 @@ public:
 
 	/* Inizializza i vettori con il valore -(iSize+1) ecc. */
 	void ResetVec(void);
+
+	/* Risetta la dimensione corrente */
+	bool SetCurSize(integer i);
    
    	/*
 	 * Trova la posizione del termine dato da iKey
@@ -191,6 +194,12 @@ public:
 	 */
    	void Init(const doublereal& dResetVal = 0.);
 
+	/* Risetta la dimensione corrente */
+	integer iGetCurSize(void) const;
+   
+	/* Risetta la dimensione corrente */
+	bool SetCurSize(integer i);
+   
 	/* Compatta la matrice */
 	integer iPacVec(void);
 

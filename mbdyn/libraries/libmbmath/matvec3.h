@@ -1089,7 +1089,7 @@ class Mat3x3 {
     */
    Mat3x3 operator * (const Mat3x3& m) const;      
    //@}
-     
+
    doublereal Tr(void) const {
       return pdMat[M11]+pdMat[M22]+pdMat[M33];
    };

@@ -529,6 +529,9 @@ fHasBeenReset(1)
 	} else {
 		iPivot = 1;
 	}
+
+	currWorkSize = iWorkSpaceSize;
+	optimalWorkSize = iWorkSpaceSize;
       
    	/* Alloca arrays */
    	SAFENEWARR(piRow, integer, iWorkSpaceSize);
@@ -636,7 +639,12 @@ Y12SparseLUSolutionManager::MatrInit(const doublereal& dResetVal)
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
-   
+
+	if (optimalWorkSize != currWorkSize) {
+		pMH->SetCurSize(optimalWorkSize);
+		currWorkSize = optimalWorkSize;
+	}
+
    	pMH->Init(dResetVal);
    	fHasBeenReset = flag(1);
 }
@@ -655,7 +663,21 @@ Y12SparseLUSolutionManager::Solve(void)
       		if (pLU->fLUFactor() < 0) {	 
 	 		THROW(Y12SparseLUSolutionManager::ErrGeneric());
       		}
+
+		/*
+		 * optimizes working space
+		 */
+		integer lowerOptSize = pLU->iIFLAG[7]*21/20;
+		integer upperOptSize = pLU->iIFLAG[7]*22/20;
+		if (currWorkSize > upperOptSize) {
+			DEBUGCOUT("Y12SparseLUSolutionManager: reducing size to " << upperOptSize << std::endl);
+			optimalWorkSize = upperOptSize;
+		} else if (currWorkSize < lowerOptSize) {
+			DEBUGCOUT("Y12SparseLUSolutionManager: rising size to " << lowerOptSize << std::endl);
+			optimalWorkSize = lowerOptSize;
+		}
    	}
+
    	pLU->Solve();
 }
 

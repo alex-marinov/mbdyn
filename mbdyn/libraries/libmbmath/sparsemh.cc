@@ -93,6 +93,18 @@ SparseData::~SparseData(void) {
 	NO_OP;
 };
 
+bool 
+SparseData::SetCurSize(integer i)
+{
+	if ( i < 1 || i > iMaxSize ) {
+		return false;
+	}
+
+	iCurSize = i;
+
+	return true;
+}
+
 /* SparseData - end */
 
 
@@ -199,10 +211,32 @@ SparseMatrixHandler::Init(const doublereal& dResetVal)
 #endif /* DEBUG_MEMMANAGER */
    
    	pSD->ResetVec();
-   	doublereal* pdTmp = *ppdMat;
-   	while ( pdTmp < *ppdMat+iCurSize ) {
-      		*pdTmp++ = dResetVal; 
-   	}
+
+	for ( integer cnt = 0; cnt < iCurSize; cnt++ ) {
+		(*ppdMat)[cnt] = dResetVal;
+	}
+}
+
+integer
+SparseMatrixHandler::iGetCurSize(void) const
+{
+	return iCurSize;
+}
+
+bool
+SparseMatrixHandler::SetCurSize(integer i)
+{
+	if (i < 1 || i > iWorkSpaceSize) {
+		return false;
+	}
+
+	if (!pSD->SetCurSize(i)) {
+		return false;
+	}
+
+	iCurSize = i;
+
+	return true;
 }
 
 /* Prepara i vettori e la matrice per il solutore */
