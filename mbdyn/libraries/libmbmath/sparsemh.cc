@@ -345,8 +345,8 @@ SparseMatrixHandler::SparseOutput(std::ostream& out, int w) const
 
 	integer iEmpty = -(iCurSize+1);
 
-	int cW = out.width(max(w, 10));
-	int cP = out.precision(max(w-8, 2));	
+	int cW = out.width(std::max(w, 10));
+	int cP = out.precision(std::max(w-8, 2));	
 
 #ifdef HAVE_FMTFLAGS_IN_IOS
 	std::ios::fmtflags oldbits = out.setf(std::ios::scientific);

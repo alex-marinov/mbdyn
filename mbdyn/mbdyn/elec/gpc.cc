@@ -549,7 +549,7 @@ gpc_pinv(integer lda, integer m, integer n, doublereal* a,
    	/* corregge con gli inversi dei SV */
 	/* FIXME: mettere qualcosa tipo RCOND */
    	const doublereal THR = s[0]*1.e-12; 
-   	integer x = min(m, n);
+   	integer x = std::min(m, n);
    	for (integer i = x; i-- > 0; ) {
       		doublereal d = s[i];
       		if (fabs(d) < THR) {
@@ -614,10 +614,10 @@ pdWork(NULL)
    	ASSERT(m > 0);
    	ASSERT(n > 0);   
    
-   	iMin = min(m, n);	/* usati per vari parametri */
-   	iMax = max(m, n);       /* serve solo qui, non serve tenerlo */
+   	iMin = std::min(m, n);	/* usati per vari parametri */
+   	iMax = std::max(m, n);       /* serve solo qui, non serve tenerlo */
    
-   	iWork = max(3*iMin+iMax, 5*iMin-4); /* aumentare per maggiore eff. */
+   	iWork = std::max(3*iMin+iMax, 5*iMin-4); /* aumentare per maggiore eff. */
    
    	/* aree di lavoro per SVD:
     	 * s:    (min(m,n))
@@ -709,8 +709,8 @@ pivot(PNULL)
       		THROW(ErrGeneric());
    	}
 	
-   	if ((diag = v_get(min(m, n))) == VNULL) {
-      		std::cerr << "diag = v_get(" << min(m, n) << ") failed" << std::endl;
+   	if ((diag = v_get(std::min(m, n))) == VNULL) {
+      		std::cerr << "diag = v_get(" << std::min(m, n) << ") failed" << std::endl;
       		THROW(ErrGeneric());
    	}
 	
