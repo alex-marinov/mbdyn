@@ -61,7 +61,7 @@ void ExpandableRowVector::Reset() {
 	std::fill(xm.begin(),xm.end(),(ExpandableRowVector*)0);
 	std::fill(idx.begin(),idx.end(),0);		
 };
-void ExpandableRowVector::Link(const integer i, ExpandableRowVector* xp) {
+void ExpandableRowVector::Link(const integer i, const ExpandableRowVector*const xp) {
 	ASSERTMSGBREAK(idx[i-1] == 0, "ExpandableRowVector::Link fatal error");
 	xm[i-1] = xp;
 };
@@ -81,7 +81,7 @@ void ExpandableRowVector::Add(doublereal xx, integer i){
 void ExpandableRowVector::Sub(doublereal xx, integer i){
 	x[i-1] += xx;
 };
-void ExpandableRowVector::Add(SubVectorHandler& WorkVec, const doublereal c) {
+void ExpandableRowVector::Add(SubVectorHandler& WorkVec, const doublereal c) const {
 	for (int i=0; i<x.size(); i++) {
 		if (idx[i] != 0) {
 			WorkVec.Add(idx[i],x[i]);
@@ -90,7 +90,7 @@ void ExpandableRowVector::Add(SubVectorHandler& WorkVec, const doublereal c) {
 		}
 	}
 };
-void ExpandableRowVector::Sub(SubVectorHandler& WorkVec, const doublereal c) {
+void ExpandableRowVector::Sub(SubVectorHandler& WorkVec, const doublereal c) const {
 	for (int i=0; i<x.size(); i++) {
 		if (idx[i] != 0) {
 			WorkVec.Sub(idx[i],x[i]);
@@ -101,7 +101,7 @@ void ExpandableRowVector::Sub(SubVectorHandler& WorkVec, const doublereal c) {
 };
 void ExpandableRowVector::Add(FullSubMatrixHandler& WM, 
 	const integer eq,
-	const doublereal c) {
+	const doublereal c) const {
 	for (int i=0; i<x.size(); i++) {
 		if (idx[i] != 0) {
 			WM.fIncCoef(eq-1,idx[i],x[i]);
@@ -112,7 +112,7 @@ void ExpandableRowVector::Add(FullSubMatrixHandler& WM,
 };
 void ExpandableRowVector::Sub(FullSubMatrixHandler& WM,
 	const integer eq,
-	const doublereal c) {
+	const doublereal c) const {
 	for (int i=0; i<x.size(); i++) {
 		if (idx[i] != 0) {
 			WM.fDecCoef(eq,idx[i],x[i]);

@@ -41,7 +41,7 @@
 class ExpandableRowVector {
 private:
 	std::vector<doublereal> x;
-	std::vector<ExpandableRowVector*> xm;
+	std::vector<const ExpandableRowVector*> xm;
 	std::vector<integer> idx;
 	ExpandableRowVector & operator = (const ExpandableRowVector &); // not to be implemented
 	ExpandableRowVector (const ExpandableRowVector &); // not to be implemented
@@ -52,16 +52,16 @@ public:
 	void ReDim(const integer n);
 	void Zero();
 	void Reset();
-	void Link(const integer i, ExpandableRowVector* xp);
+	void Link(const integer i, const ExpandableRowVector* const xp);
 	void Set(doublereal xx, integer i);
 	void SetIdx(integer i, integer iidx);
 	void Set(doublereal xx, integer i, integer iidx);
 	void Add(doublereal xx, integer i);
 	void Sub(doublereal xx, integer i);
-	void Add(SubVectorHandler& WorkVec, const doublereal c = 1.);
-	void Sub(SubVectorHandler& WorkVec, const doublereal c = 1.);
-	void Add(FullSubMatrixHandler& WM, const integer eq, const doublereal c = 1.);
-	void Sub(FullSubMatrixHandler& WM, const integer eq, const doublereal c = 1.);
+	void Add(SubVectorHandler& WorkVec, const doublereal c = 1.) const;
+	void Sub(SubVectorHandler& WorkVec, const doublereal c = 1.) const;
+	void Add(FullSubMatrixHandler& WM, const integer eq, const doublereal c = 1.) const;
+	void Sub(FullSubMatrixHandler& WM, const integer eq, const doublereal c = 1.) const;
 };
 
 
