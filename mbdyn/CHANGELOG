@@ -46,6 +46,8 @@ MBDyn 1.2-Engineering
 		  between the keyword "induced velocity" and the induced
 		  velocity type (need to update all the models...)
 		- changed symbol table output format
+		- the sintax of nonlinear solver is changed; backward
+		  compatibility if NOT preserved
 	Bug fixes:
 		- do not output RelativeFrame dummy struct nodes in ADAMS
 		  res format
