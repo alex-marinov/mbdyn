@@ -43,7 +43,6 @@
 
 class NonlinearProblem
 {
-
 public:
 	/* Distruttore */
    	virtual ~NonlinearProblem(void) { };
@@ -53,12 +52,17 @@ public:
 	virtual void Jacobian(MatrixHandler* pJac) const = 0;
 	
 	virtual void Update(const VectorHandler* pSol) const = 0;
+
+	/* scale factor for tests */
+#ifdef __HACK_SCALE_RES__
+	virtual doublereal TestScale(const VectorHandler *pScale) const = 0;
+#else /* ! __HACK_SCALE_RES__ */
+	virtual doublereal TestScale(void) const = 0;
+#endif /* ! __HACK_SCALE_RES__ */
 	
 	virtual void EvalProd(doublereal Tau, const VectorHandler& f0,
 			const VectorHandler& w, VectorHandler& z) const = 0;
-
-
 };   
-   
 
 #endif /* NONLINPB_H */
+

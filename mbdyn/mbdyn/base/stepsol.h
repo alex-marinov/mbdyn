@@ -77,7 +77,6 @@ class StepIntegrator
 {
 
 public:
-
 	class ErrGeneric{};
 	
 	enum { DIFFERENTIAL = 0, ALGEBRAIC = 1 };
@@ -87,7 +86,7 @@ protected:
 	DataManager* pDM;
 	VecIter<Dof> DofIterator; 	/* Iteratore per la struttura dei Dof,
 					 * passato da DM */
-					 
+
 	bool outputPred;
 	
 	integer MaxIters;
@@ -98,34 +97,15 @@ public:
 	StepIntegrator(const integer MaxIt,
 		const doublereal dT,
 		const doublereal dSolutionTol,
-		const integer stp) 
-	: pDM(NULL),
-	DofIterator(),
-	outputPred(false),
-	MaxIters(MaxIt),
-	dTol(dT),
-	dSolTol(dSolutionTol),
-	steps(stp)
-	{ };
+		const integer stp);
 	
-	void SetDataManager(DataManager* pDatMan) {
-		pDM = pDatMan;
-		DofIterator = pDM->GetDofIterator();
-		return;
-	};
-	
-	
-	virtual ~StepIntegrator(void) { };
+	virtual ~StepIntegrator(void);
+
+	void SetDataManager(DataManager* pDatMan);
 		
-	virtual integer GetIntegratorStepSize(void) const{
-		return steps+1;
-	}; 
+	virtual integer GetIntegratorStepSize(void) const;
 	
-	virtual void OutputTypes(const bool fpred)
-	{
-		outputPred  = fpred;
-	};
-	
+	virtual void OutputTypes(const bool fpred);
 	
 	virtual void SetDriveHandler(const DriveHandler* pDH) = 0;
 
@@ -157,18 +137,12 @@ public:
 	DerivativeSolver(const doublereal Tl, 
 			const doublereal dSolTl, 
 			const doublereal dC,
-			const integer iMaxIt) 
-	:StepIntegrator(iMaxIt, Tl, dSolTl, 1),
-	dCoef(dC) { };
-	
-	~DerivativeSolver(void){ };			
+			const integer iMaxIt);
 
+	~DerivativeSolver(void);
 	
-	void SetDriveHandler(const DriveHandler* /* pDH */ ) {
-      		NO_OP;
-   	};
- 
-		
+	void SetDriveHandler(const DriveHandler* /* pDH */ );
+	
  	doublereal Advance(const doublereal TStep, 
 				const doublereal /* dAph */, 
 				const StepChange /* StType */,
@@ -186,6 +160,13 @@ public:
 	void Jacobian(MatrixHandler* pJac) const;
 	
 	void Update(const VectorHandler* pSol) const;
+
+	/* scale factor for tests */
+#ifdef __HACK_SCALE_RES__
+	virtual doublereal TestScale(const VectorHandler *pScale) const;
+#else /* ! __HACK_SCALE_RES__ */
+	virtual doublereal TestScale(void) const;
+#endif /* ! __HACK_SCALE_RES__ */
 
 	virtual void EvalProd(doublereal Tau, const VectorHandler& f0,
 			const VectorHandler& w, VectorHandler& z) const;
@@ -208,22 +189,9 @@ protected:
 public:
 	Step2Integrator(const integer MaxIt,
 		const doublereal dT,
-		const doublereal dSolutionTol) 
-	:StepIntegrator(MaxIt, dT, dSolutionTol, 2),
-	db0Differential(0.),
-	db0Algebraic(0.),
-	pXCurr(NULL),
-	pXPrev(NULL),
-	pXPrev2(NULL),
-	pXPrimeCurr(NULL),
-	pXPrimePrev(NULL),
-	pXPrimePrev2(NULL)
-	{ };
-	
+		const doublereal dSolutionTol);
 
-	virtual ~Step2Integrator(void) { };
-
-
+	virtual ~Step2Integrator(void);
 
 	virtual doublereal Advance(const doublereal TStep, 
 				const doublereal dAlph, 
@@ -244,12 +212,17 @@ public:
 	
 	virtual void Update(const VectorHandler* pSol) const;
 
+	/* scale factor for tests */
+#ifdef __HACK_SCALE_RES__
+	virtual doublereal TestScale(const VectorHandler *pScale) const;
+#else /* ! __HACK_SCALE_RES__ */
+	virtual doublereal TestScale(void) const;
+#endif /* ! __HACK_SCALE_RES__ */
+
 	virtual void EvalProd(doublereal Tau, const VectorHandler& f0,
 			const VectorHandler& w, VectorHandler& z) const;
 
-
 protected:
-
 	virtual void Predict(void);
 
 	// Overridden by dedicated inline functions
@@ -299,26 +272,17 @@ protected:
 };
 
 
-
-
 class CrankNicholsonSolver: 
 	public Step2Integrator
 {
-
 public:
-	
 	CrankNicholsonSolver(const doublereal Tl, 
 			const doublereal dSolTl, 
 			const integer iMaxIt);
 
+	~CrankNicholsonSolver(void);
 
-	~CrankNicholsonSolver(void) {};
-
-
-	void SetDriveHandler(const DriveHandler* /* pDH */ ) {
-      		NO_OP;
-   	};
-
+	void SetDriveHandler(const DriveHandler* /* pDH */ );
    
 protected:
 	void SetCoef(doublereal dT, 
@@ -379,7 +343,6 @@ protected:
 		   const doublereal& /* dXPm2 */ ) const {
 		      return db0Differential*(dXP+dXPm1);
 		   };     
-
 };
 
 
@@ -405,12 +368,9 @@ public:
 		const DriveCaller* pRho,
 		const DriveCaller* pAlgRho);
    
-   ~MultistepSolver(void) { 
-      NO_OP; 
-   };
+   ~MultistepSolver(void);
 
 protected:
-   
   void SetCoef(doublereal dT, 
 			doublereal dAlpha,
 			enum StepChange NewStep);
@@ -499,12 +459,9 @@ class HopeSolver :
 		const DriveCaller* pRho,
 		const DriveCaller* pAlgRho);
    
-   ~HopeSolver(void) { 
-      NO_OP; 
-   };
+   ~HopeSolver(void);
 
 protected:
-   
    void SetCoef(doublereal dT,
 			doublereal dAlpha,
 			enum StepChange NewStep);

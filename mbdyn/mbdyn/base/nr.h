@@ -52,7 +52,6 @@ class NewtonRaphsonSolver : public  NonlinearSolver
 	
 
 public:
-
 	NewtonRaphsonSolver(const flag fTNR, 
 			const integer IterBfAss);
 	
@@ -75,3 +74,4 @@ protected:
 };
 
 #endif /* NONLIN_H */
+

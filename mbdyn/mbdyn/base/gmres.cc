@@ -210,7 +210,11 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 			}
       		}
 
-		dErr = MakeTest(*pRes);		
+#ifdef __HACK_SCALE_RES__
+		dErr = pNLP->TestScale(pScale)*MakeTest(*pRes);		
+#else /* ! __HACK_SCALE_RES__ */
+		dErr = pNLP->TestScale()*MakeTest(*pRes);		
+#endif /* ! __HACK_SCALE_RES__ */
 
 #ifdef DEBUG_ITERATIVE
       		std::cerr << "dErr " << dErr << std::endl;

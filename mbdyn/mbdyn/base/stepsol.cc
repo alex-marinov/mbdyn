@@ -49,7 +49,69 @@
 
 #include<stepsol.h>
 
-doublereal DerivativeSolver::Advance(const doublereal TStep, 
+StepIntegrator::StepIntegrator(const integer MaxIt,
+		const doublereal dT,
+		const doublereal dSolutionTol,
+		const integer stp) 
+: pDM(NULL),
+DofIterator(),
+outputPred(false),
+MaxIters(MaxIt),
+dTol(dT),
+dSolTol(dSolutionTol),
+steps(stp)
+{
+	NO_OP;
+}
+
+StepIntegrator::~StepIntegrator(void)
+{
+	NO_OP;
+}
+
+void
+StepIntegrator::SetDataManager(DataManager* pDatMan)
+{
+	pDM = pDatMan;
+	DofIterator = pDM->GetDofIterator();
+}
+
+integer
+StepIntegrator::GetIntegratorStepSize(void) const
+{
+	return steps+1;
+}
+
+void
+StepIntegrator::OutputTypes(const bool fpred)
+{
+	outputPred  = fpred;
+}
+
+
+DerivativeSolver::DerivativeSolver(const doublereal Tl, 
+		const doublereal dSolTl, 
+		const doublereal dC,
+		const integer iMaxIt) 
+: StepIntegrator(iMaxIt, Tl, dSolTl, 1),
+dCoef(dC)
+{
+	NO_OP;
+}
+	
+DerivativeSolver::~DerivativeSolver(void)
+{
+	NO_OP;
+}
+	
+void
+DerivativeSolver::SetDriveHandler(const DriveHandler* /* pDH */ )
+{
+	NO_OP;
+}
+
+doublereal
+DerivativeSolver::Advance(const doublereal TStep, 
 		const doublereal /* dAph */, 
 		const StepChange /* StType */,
 		SolutionManager* pSM,
@@ -185,6 +247,16 @@ void DerivativeSolver::Update(const VectorHandler* pSol) const
 	
 }
 
+/* scale factor for tests */
+doublereal
+#ifdef __HACK_SCALE_RES__
+DerivativeSolver::TestScale(const VectorHandler * /* pScale */ ) const
+#else /* ! __HACK_SCALE_RES__ */
+DerivativeSolver::TestScale(void) const
+#endif /* ! __HACK_SCALE_RES__ */
+{
+	return 1.;
+}
 
 void DerivativeSolver::EvalProd(doublereal Tau, const VectorHandler& f0,
 	const VectorHandler& w, VectorHandler& z) const
@@ -227,6 +299,27 @@ void DerivativeSolver::EvalProd(doublereal Tau, const VectorHandler& f0,
 
 
 
+
+Step2Integrator::Step2Integrator(const integer MaxIt,
+		const doublereal dT,
+		const doublereal dSolutionTol) 
+: StepIntegrator(MaxIt, dT, dSolutionTol, 2),
+db0Differential(0.),
+db0Algebraic(0.),
+pXCurr(NULL),
+pXPrev(NULL),
+pXPrev2(NULL),
+pXPrimeCurr(NULL),
+pXPrimePrev(NULL),
+pXPrimePrev2(NULL)
+{
+	NO_OP;
+}
+
+Step2Integrator::~Step2Integrator(void)
+{
+	NO_OP;
+}
 
 /* predizione valida per tutti i metodi del second'ordine 
   a patto di utllizzare le giuste funzioni implementate per 
@@ -559,6 +652,49 @@ void Step2Integrator::Update(const VectorHandler* pSol) const
 	
 }
 
+/* scale factor for tests */
+doublereal
+#ifdef __HACK_SCALE_RES__
+Step2Integrator::TestScale(const VectorHandler *pScale) const
+#else /* ! __HACK_SCALE_RES__ */
+Step2Integrator::TestScale(void) const
+#endif /* ! __HACK_SCALE_RES__ */
+{
+#ifdef __HACK_RES_TEST__
+
+#ifdef USE_MPI
+#warning "Step2Integrator TestScale parallel broken !! "	
+#endif /* USE_MPI */
+
+   	Dof CurrDof;
+	doublereal dXPr = 0.;
+
+	DofIterator.fGetFirst(CurrDof); 
+
+   	for (int iCntp1 = 1; iCntp1 <= pXPrimeCurr->iGetSize(); 
+			iCntp1++, DofIterator.fGetNext(CurrDof)) {
+
+		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+			doublereal d = pXPrimeCurr->dGetCoef(iCntp1);
+			doublereal d2 = d*d;
+
+#ifdef __HACK_SCALE_RES__
+			doublereal ds = pScale->dGetCoef(iCntp1);
+			doublereal ds2 = ds*ds;
+			d2 *= ds2;
+#endif /* __HACK_SCALE_RES__ */
+
+			dXPr += d2;
+		}
+		/* else if ALGEBRAIC: non aggiunge nulla */
+	}
+
+   	return 1./(1.+dXPr);
+
+#else /* ! __HACK_RES_TEST__ */
+	return 1.;
+#endif /* ! __HACK_RES_TEST__ */
+}
 
 void Step2Integrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 	const VectorHandler& w, VectorHandler& z) const
@@ -610,9 +746,21 @@ void Step2Integrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 CrankNicholsonSolver::CrankNicholsonSolver(const doublereal dTl, 
 		const doublereal dSolTl, 
 		const integer iMaxIt)
-:Step2Integrator(iMaxIt, dTl, dSolTl)  
-{ };
+: Step2Integrator(iMaxIt, dTl, dSolTl)  
+{
+	NO_OP;
+}
 
+CrankNicholsonSolver::~CrankNicholsonSolver(void)
+{
+	NO_OP;
+}
+
+void
+CrankNicholsonSolver::SetDriveHandler(const DriveHandler* /* pDH */ )
+{
+	NO_OP;
+}  
 
 void CrankNicholsonSolver::SetCoef(doublereal dT,
 			     doublereal dAlpha,
@@ -637,6 +785,10 @@ Rho(pRho), AlgebraicRho(pAlgRho)
    ASSERT(pAlgRho != NULL);
 }
 
+MultistepSolver::~MultistepSolver(void)
+{
+	NO_OP;
+}
 
 void MultistepSolver::SetCoef(doublereal dT,
 			   doublereal dAlpha,
@@ -770,6 +922,10 @@ Rho(pRho), AlgebraicRho(pAlgRho), fStep(0)
    ASSERT(pAlgRho != NULL);
 }
 
+HopeSolver::~HopeSolver(void)
+{
+	NO_OP; 
+}
 
 void HopeSolver::SetCoef(doublereal dT,
 		   doublereal dAlpha,

@@ -231,7 +231,11 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 			}
       		}
 
-		dErr = MakeTest(*pRes);
+#ifdef __HACK_SCALE_RES__
+		dErr = pNLP->TestScale(pScale)*MakeTest(*pRes);		
+#else /* ! __HACK_SCALE_RES__ */
+		dErr = pNLP->TestScale()*MakeTest(*pRes);		
+#endif /* ! __HACK_SCALE_RES__ */
 
       		if (dErr < Tol) {
 	 		return;
