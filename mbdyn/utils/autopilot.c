@@ -28,16 +28,13 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <termios.h>
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -55,28 +52,14 @@
 #elif defined (HAVE_SASL_H)
 #include <sasl.h>
 #endif /* HAVE_SASL_SASL_H || HAVE_SASL_H */
-#include <mbsasl.h>
+#include "mbsasl.h"
 #endif /* HAVE_SASL2 */
 
-const unsigned short int PORT = 5555;
-const char* SERVERHOST = "localhost";
+#include "sock.h"
 
-static void
-init_sockaddr (struct sockaddr_in *name,
-		const char *hostname,
-		unsigned short int port)
-{
-	struct hostent *hostinfo;
-
-	name->sin_family = AF_INET;
-	name->sin_port = htons (port);
-	hostinfo = gethostbyname (hostname);
-	if (hostinfo == NULL) {
-		fprintf (stderr, "Unknown host %s.\n", hostname);
-		exit (EXIT_FAILURE);
-	}
-	name->sin_addr = *(struct in_addr *) hostinfo->h_addr;
-}
+const unsigned short int	PORT = 5555;
+const char			*SERVERHOST = "localhost";
+const char			*SERVERPATH = "/var/mbdyn/mbdyn.sock";
 
 static void
 keys(FILE * fh)
@@ -111,13 +94,13 @@ usage(void)
 struct termios saved_attributes;
 
 void
-reset_input_mode (void)
+reset_input_mode(void)
 {
 	tcsetattr(STDIN_FILENO, TCSANOW, &saved_attributes);
 }
 
 void
-set_input_mode (void)
+set_input_mode(void)
 {
 	struct termios tattr;
 
@@ -147,24 +130,30 @@ static int sasl = 0;
 static mbdyn_sasl_t mbdyn_sasl = MBDYN_SASL_INIT;
 #endif /* HAVE_SASL2 */
 
+const char		*path = NULL;
+const char		*host = NULL;
+unsigned short int	port = 0;
+
 int
-send_message(const char *host, unsigned short int port, const char *message)
+send_message(const char *message)
 {
 	int sock;
 	struct sockaddr_in server_name;
 	FILE *fd;
 
 	/* Create the socket. */
-	sock = socket (PF_INET, SOCK_STREAM, 0);
+	if (path) {
+		sock = make_named_socket(path, 0);
+	} else {
+		sock = make_inet_socket(&server_name, host, port, 0);
+	}
 	if (sock < 0) {
 		return -1;
 	}
 
 	/* Connect to the server. */
-	init_sockaddr (&server_name, host, port);
-	if (0 > connect (sock,
-				(struct sockaddr *) &server_name,
-				sizeof (server_name))) {
+	if (0 > connect(sock, (struct sockaddr *) &server_name,
+				sizeof(server_name))) {
 		return -1;
 	}
 
@@ -178,17 +167,14 @@ send_message(const char *host, unsigned short int port, const char *message)
 
 	fd = fdopen(sock, "w");
 	fputs(message, fd);
-	fclose (fd);
+	fclose(fd);
 
 	return 0;
 }
 
 int
-main (int argc, char *argv[])
+main(int argc, char *argv[])
 {
-	char *host = (char *)SERVERHOST;
-	unsigned short int port = PORT;
-
 	char *user = NULL;
 	char *cred = NULL;
 
@@ -206,10 +192,13 @@ main (int argc, char *argv[])
 
 	int verbose = 0;
 
-	while (true) {
+	host = SERVERHOST;
+	port = PORT;
+
+	while (1) {
 		int opt;
 
-		opt = getopt (argc, argv, "D:h:m:p:Svw:Wx:");
+		opt = getopt(argc, argv, "D:h:m:p:Svw:Wx:");
 
 		if (opt == EOF) {
 			break;
@@ -232,7 +221,7 @@ main (int argc, char *argv[])
 			break;
 
 		case 'p':
-			port = atoi (optarg);
+			port = atoi(optarg);
 			break;
 
 		case 'S':
@@ -351,7 +340,7 @@ main (int argc, char *argv[])
 		keys(stdout);
 	}
 
-	while (true) {
+	while (1) {
 		size_t i;
 
 		i = read(STDIN_FILENO, &c, 1);
@@ -380,7 +369,7 @@ main (int argc, char *argv[])
 
 			}
 
-			if (send_message(host, port, msg) == -1) {
+			if (send_message(msg) == -1) {
 				fprintf(stderr, "unable to connect to host %s:%d\n",
 						host, port);
 			}
