@@ -170,7 +170,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 
 		if (outputIters()) {
 #ifdef USE_MPI
-			if (MBDynComm.Get_rank() == 0) {
+			if (!MPI::Is_initialized() || MBDynComm.Get_rank() == 0) {
 #endif /* USE_MPI */
 				silent_cout("\tIteration " << iIterCnt
 					<< " " << dErr);
@@ -392,7 +392,7 @@ rebuild_matrix:;
 		dSolErr = MakeSolTest(pS, dx);
 		if (outputIters()) {
 #ifdef USE_MPI
-			if (MBDynComm.Get_rank() == 0) {
+			if (!MPI::Is_initialized() || MBDynComm.Get_rank() == 0) {
 #endif /* USE_MPI */
 				silent_cout("\t\tSolErr " << dSolErr
 						<< std::endl);
