@@ -742,7 +742,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
    
    Inv8jaj = 0.; 
    Inv8jaPj = 0.;  
-   Inv5jaj *= 0.;	/* need a helper! */
+   Inv5jaj.Reset();	/* need a helper! */
    
    Mat3xN Inv5jaPj(NModes, 0.);
    Mat3x3 MatTmp1(0.), MatTmp2(0.);
