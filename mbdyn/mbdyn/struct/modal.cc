@@ -718,15 +718,17 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	/* interface nodes equilibrium indices */
+	integer iOffset = 12+iNumDof;
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
 		integer iNodeFirstMomIndex =
 			pInterfaceNodes[iStrNodem1]->iGetFirstMomentumIndex();
-		integer iOffset = 12+iNumDof+6*iStrNodem1;
 
 		for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
 			WorkVec.fPutRowIndex(iOffset+iCnt,
 					iNodeFirstMomIndex+iCnt);
 		}
+
+		iOffset += 6;
 	}
 
 	/* recupera i dati necessari */
@@ -1000,7 +1002,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		 * alla flessibilita':
 		 * d1tot = d1+PHIt*a, R1tot = R*[I+(PHIr*a)/\]
 		 */
-		pd1tot[iStrNodem1] = d1rig+PHIt*a;
+		pd1tot[iStrNodem1] = d1rig + PHIt*a;
 		pR1tot[iStrNodem1] = R*Mat3x3(1., PHIr*a);
 
 		/* constraint reaction (force) */
