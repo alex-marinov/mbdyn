@@ -163,6 +163,8 @@ private:
    	doublereal* pdPIVOT;    /* vettore di lavoro */
 
 	integer iFirstSol;      /* 1 se prima backsubst, else 0 */
+
+	void PutError(ostream& out, int rc) const ;	/* scrive l'errore */
    
 protected:
    	/* Costruttore: si limita ad allocare la memoria */

@@ -172,7 +172,8 @@ Y12LUSolver::fLUFactor(void)
 			    
 	if (iIFAIL != 0) {
 		cerr << "Y12LUSolver: error during pre-factorization, code "
-			<< iIFAIL << endl;
+			<< iIFAIL << ":" << endl;
+		PutError(cerr, iIFAIL);
 		THROW(Y12LUSolver::ErrFactorisation(iIFAIL));
 	}
 	
@@ -186,7 +187,8 @@ Y12LUSolver::fLUFactor(void)
 
 	if (iIFAIL != 0) {
 		cerr << "Y12LUSolver: error during factorization, code "
-			<< iIFAIL << endl;
+			<< iIFAIL << ":" << endl;
+		PutError(cerr, iIFAIL);
 		THROW(Y12LUSolver::ErrFactorisation(iIFAIL));
 	}
 
@@ -215,7 +217,8 @@ Y12LUSolver::Solve(void)
 	
 	if (iIFAIL != 0) {
 		cerr << "Y12LUSolver: error during back substitution, code "
-			<< iIFAIL << endl;
+			<< iIFAIL << ":" << endl;
+		PutError(cerr, iIFAIL);
 		THROW(Y12LUSolver::ErrFactorisation(iIFAIL));
 	}
 	
@@ -223,6 +226,261 @@ Y12LUSolver::Solve(void)
 		iIFLAG[4] = 3;
 		iFirstSol = 0;
 	}
+}
+
+void 
+Y12LUSolver::PutError(ostream& out, int rc) const
+{
+	out << endl;
+
+	switch (rc ) {
+	case 1:
+		out 
+			<< "\tThe    coefficient   matrix   A   is   not" << endl
+			<< "\tfactorized, i.e. the  call  of  subroutine" << endl
+			<< "\tY12MD  was not preceded by a call of Y12MC" << endl
+			<< "\tduring the solution of   Ax=b   or  during" << endl
+			<< "\tthe  solution  of  the  first  system in a" << endl
+			<< "\tsequence ( Ax1 = b1 , Ax2 = b2,.....,Axp =" << endl
+			<< "\tbp)  of  systems with the same coefficient" << endl
+			<< "\tmatrix. This will work in all  cases  only" << endl
+			<< "\tif  the  user  sets IFLAG(1) .ge. 0 before" << endl
+			<< "\tthe call of package Y12M (i.e. before  the" << endl
+			<< "\tfirst   call   of  a  subroutine  of  this" << endl
+			<< "\tpackage)." << endl;
+		break;
+
+	case 2:
+		out
+			<< "\tThe coefficient matrix A is  not  ordered," << endl
+			<< "\ti.e.  the call of subroutine Y12MC was not" << endl
+			<< "\tpreceded by a call  of  Y12MB.  This  will" << endl
+			<< "\twork  in  all  cases only if the user sets" << endl
+			<< "\tIFLAG(1) .ge. 0 before the call of package" << endl
+			<< "\tY12M  (i.e.  before  the  first  call of a" << endl
+			<< "\tsubroutine of this package)." << endl;
+		break;
+
+	case 3:
+		out
+			<< "\tA pivotal element abs(a(i,i;j)) < AFLAG(4)" << endl
+			<< "\t*  AFLAG(6) is selected.  When AFLAG(4) is" << endl
+			<< "\tsufficiently small this is  an  indication" << endl
+			<< "\tthat the coefficient matrix is numerically" << endl
+			<< "\tsingular." << endl;
+		break;
+		
+	case 4:
+		out
+			<< "\tAFLAG(5), the  growth  factor,  is  larger" << endl
+			<< "\tthan    AFLAG(3).    When    AFLAG(3)   is" << endl
+			<< "\tsufficiently large this indicates that the" << endl
+			<< "\telements  of the coefficient matrix A grow" << endl
+			<< "\tso quickly during the  factorization  that" << endl
+			<< "\tthe continuation of the computation is not" << endl
+			<< "\tjustified.  The  choice   of   a   smaller" << endl
+			<< "\tstability   factor,   AFLAG(1),  may  give" << endl
+			<< "\tbetter results in this case." << endl;
+		break;
+
+	case 5:
+		out
+			<< "\tThe length NN of arrays A and SNR  is  not" << endl
+			<< "\tsufficient.   Larger  values  of  NN  (and" << endl
+			<< "\tpossibly of NN1) should be used." << endl;
+		break;
+
+	case 6:
+		out
+			<< "\tThe  length  NN1  of  array  RNR  is   not" << endl
+			<< "\tsufficient.   Larger  values  of  NN1 (and" << endl
+			<< "\tpossibly of NN) should be used." << endl;
+		break;
+
+	case 7:
+		out
+			<< "\tA row without  non-zero  elements  in  its" << endl
+			<< "\tactive    part   is   found   during   the" << endl
+			<< "\tdecomposition.  If   the   drop-tolerance," << endl
+			<< "\tAFLAG(2),   is  sufficiently  small,  then" << endl
+			<< "\tIFAIL = 7 indicates  that  the  matrix  is" << endl
+			<< "\tnumerically  singular. If a large value of" << endl
+			<< "\tthe drop-tolerance AFLAG(2) is used and if" << endl
+			<< "\tIFAIL = 7  on exit, this is not certain. A" << endl
+			<< "\trun  with  a  smaller  value  of  AFLAG(2)" << endl
+			<< "\tand/or  a  careful check of the parameters" << endl
+			<< "\tAFLAG(8) and AFLAG(5)  is  recommended  in" << endl
+			<< "\tthe latter case." << endl;
+		break;
+
+	case 8:
+		out
+			<< "\tA  column without non-zero elements in its" << endl
+			<< "\tactive   part   is   found   during    the" << endl
+			<< "\tdecomposition.   If   the  drop-tolerance," << endl
+			<< "\tAFLAG(2),  is  sufficiently  small,   then" << endl
+			<< "\tIFAIL  =  8  indicates  that the matrix is" << endl
+			<< "\tnumerically singular. If a large value  of" << endl
+			<< "\tthe drop-tolerance AFLAG(2) is used and if" << endl
+			<< "\tIFAIL = 8  on exit, this is not certain. A" << endl
+			<< "\trun  with  a  smaller  value  of  AFLAG(2)" << endl
+			<< "\tand/or a careful check of  the  parameters" << endl
+			<< "\tAFLAG(8)  and  AFLAG(5)  is recommended in" << endl
+			<< "\tthe latter case." << endl;
+		break;
+	
+	case 9:
+		out
+			<< "\tA pivotal element  is  missing.  This  may" << endl
+			<< "\toccur  if  AFLAG(2)  >  0 and IFLAG(4) = 2" << endl
+			<< "\t(i.e. some system after the first one in a" << endl
+			<< "\tsequence   of   systems   with   the  same" << endl
+			<< "\tstructure is solved using a positive value" << endl
+			<< "\tfor  the drop-tolerance). The value of the" << endl
+			<< "\tdrop-tolerance   AFLAG(2),    should    be" << endl
+			<< "\tdecreased  and  the  coefficient matrix of" << endl
+			<< "\tthe system refactorized.  This  error  may" << endl
+			<< "\talso occur when one of the special pivotal" << endl
+			<< "\tstrategies (IFLAG(3)=0 or  IFLAG(3)=2)  is" << endl
+			<< "\tused  and  the  matrix is not suitable for" << endl
+			<< "\tsuch a strategy." << endl;
+		break;
+
+	case 10:
+		out
+			<< "\tSubroutine Y12MF is called with IFLAG(5) =" << endl
+			<< "\t1  (i.e.  with  a  request  to  remove the" << endl
+			<< "\tnon-zero elements of the lower  triangular" << endl
+			<< "\tmatrix    L).     IFLAG(5)=2     must   be" << endl
+			<< "\tinitialized instead of IFLAG(5)=1." << endl;
+		break;
+
+	case 11:
+		out
+			<< "\tThe coefficient matrix A contains at least" << endl
+			<< "\ttwo  elements  in the same position (i,j)." << endl
+			<< "\tThe  input   data   should   be   examined" << endl
+			<< "\tcarefully in this case." << endl;
+		break;
+
+	case 12:
+		out
+			<< "\tThe number of equations in the system Ax=b" << endl
+			<< "\tis smaller than 2 (i.e.  N<2).  The  value" << endl
+			<< "\tof N should be checked." << endl;
+		break;
+		
+	case 13:
+		out
+			<< "\tThe  number  of  non-zero  elements of the" << endl
+			<< "\tcoefficient matrix is  non-positive  (i.e." << endl
+			<< "\tZ.le.0  ).   The  value of the parameter Z" << endl
+			<< "\t(renamed NZ in Y12MF) should be checked." << endl;
+		break;
+
+	case 14:
+		out
+			<< "\tThe number of  non-zero  elements  in  the" << endl
+			<< "\tcoefficient  matrix  is  smaller  than the" << endl
+			<< "\tnumber of equations (i.e. Z  <  N  ).   If" << endl
+			<< "\tthere  is no mistake (i.e. if parameter Z," << endl
+			<< "\trenamed NZ in Y12MF, is correctly assigned" << endl
+			<< "\ton  entry)  then the coefficient matrix is" << endl
+			<< "\tstructurally singular in this case." << endl;
+		break;
+
+	case 15:
+		out
+			<< "\tThe length IHA of the first  dimension  of" << endl
+			<< "\tarray  HA  is  smaller  than  N.  IHA.ge.N" << endl
+			<< "\tshould be assigned." << endl;
+		break;
+
+	case 16:
+		out
+			<< "\tThe value of  parameter  IFLAG(4)  is  not" << endl
+			<< "\tassigned  correctly.  IFLAG(4)  should  be" << endl
+			<< "\tequal to 0, 1 or 2. See  more  details  in" << endl
+			<< "\tthe description of this parameter." << endl;
+		break;
+		
+	case 17:
+		out
+			<< "\tA  row  without non-zero elements has been" << endl
+			<< "\tfound in the coefficient matrix A  of  the" << endl
+			<< "\tsystem  before the Gaussian elimination is" << endl
+			<< "\tinitiated.  Matrix   A   is   structurally" << endl
+			<< "\tsingular." << endl;
+		break;
+
+	case 18:
+		out
+			<< "\tA  column  without  non-zero  elements has" << endl
+			<< "\tbeen found in the coefficient matrix A  of" << endl
+			<< "\tthe system before the Gaussian elimination" << endl
+			<< "\tis initiated.  Matrix  A  is  structurally" << endl
+			<< "\tsingular." << endl;
+		break;
+
+	case 19:
+		out
+			<< "\tParameter  IFLAG(2) is smaller than 1. The" << endl
+			<< "\tvalue of IFLAG(2)  should  be  a  positive" << endl
+			<< "\tinteger (IFLAG(2) = 3 is recommended)." << endl;
+		break;
+
+	case 20:
+		out
+			<< "\tParameter   IFLAG(3)   is  out  of  range." << endl
+			<< "\tIFLAG(3) should be equal to 0, 1 or 2." << endl;
+		break;
+
+	case 21:
+		out
+			<< "\tParameter  IFLAG(5)  is  out   of   range." << endl
+			<< "\tIFLAG(5) should be equal to 1, 2 or 3 (but" << endl
+			<< "\twhen IFLAG(5) = 3 Y12MB and  Y12MC  should" << endl
+			<< "\tnot  be  called;  see also the message for" << endl
+			<< "\tIFAIL = 22 below)." << endl;
+		break;
+
+	case 22:
+		out
+			<< "\tEither  subroutine  Y12MB  or   subroutine" << endl
+			<< "\tY12MC is called with IFLAG(5) = 3. Each of" << endl
+			<< "\tthese subroutines should  be  called  with" << endl
+			<< "\tIFLAG(5) equal to 1 or 2." << endl;
+		break;
+
+	case 23:
+		out
+			<< "\tThe    number    of   allowed   iterations" << endl
+			<< "\t(parameter IFLAG(11) when Y12MF  is  used)" << endl
+			<< "\tis  smaller  than  2.   IFLAG(11)  .ge.  2" << endl
+			<< "\tshould be assigned." << endl;
+		break;
+
+	case 24:
+		out
+			<< "\tAt least one element whose  column  number" << endl
+			<< "\tis  either larger than N or smaller than 1" << endl
+			<< "\tis found." << endl;
+		break;
+
+	case 25:
+		out
+			<< "\tAt least one element whose row  number  is" << endl
+			<< "\teither  larger than N or smaller than 1 is" << endl
+			<< "\tfound." << endl;
+		break;
+
+	default:
+		out
+			<<"\t Unhandled code." << endl;
+		break;
+	}
+
+	out << endl;
 }
 
 /* Y12LUSolver - end */
