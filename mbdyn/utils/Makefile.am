@@ -52,6 +52,7 @@ rotrel_SOURCES = rotrel.cc
 sockdrive_SOURCES = sockdrive.cc
 vec2rot_SOURCES = vec2rot.cc
 
+autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@
 cl_LDADD = $(MYLIBS)
 dae_intg_LDADD = $(MYLIBS)
 eu2rot_LDADD = $(MYLIBS)

@@ -56,10 +56,10 @@
 #include <sys/un.h>
 #include <arpa/inet.h>
 
-const size_t USERLEN = 8;
+const size_t USERLEN = 32;
 const size_t CREDLEN = 128;
 const size_t BUFSIZE = 1024;
-const char *MBDynSocketDrivePath = "/tmp/mbdyn.sock";
+const char *MBDynSocketDrivePath = "/var/mbdyn/mbdyn.sock";
 
 static int
 make_socket(unsigned short int port)
@@ -68,7 +68,7 @@ make_socket(unsigned short int port)
    	struct sockaddr_in name;
 
    	/* Create the socket. */
-   	sock = socket (PF_LOCAL, SOCK_STREAM, 0);
+   	sock = socket (PF_INET, SOCK_STREAM, 0);
    	if (sock < 0) {
       		return -1;
    	}
@@ -92,7 +92,7 @@ make_named_socket(const char *path)
 	size_t size;
 
    	/* Create the socket. */
-   	sock = socket (PF_INET, SOCK_STREAM, 0);
+   	sock = socket (PF_LOCAL, SOCK_STREAM, 0);
    	if (sock < 0) {
       		return -1;
    	}
@@ -219,8 +219,12 @@ SocketDrive::~SocketDrive(void)
 
 	switch (type) {
 	case AF_LOCAL:
-		SAFEDELETEARR(data.Path);
+		if (data.Path) {
+			unlink(data.Path);
+			SAFEDELETEARR(data.Path);
+		}
 		break;
+
 	default:
 		NO_OP;
 		break;
@@ -263,7 +267,7 @@ get_line(char *buf, size_t bufsize,  FILE *fd)
  *     buf : puntatore a buffer statico che contiene una copia della nuova
  *           linea nel caso sia stata accidentalmente letta
  */
-static int
+int
 get_auth_token(FILE *fd, char *user, char *cred, char **nextline)
 {
    	char buf[BUFSIZE];
@@ -348,8 +352,8 @@ SocketDrive::ServePending(const doublereal& /* t */ )
    	}
 
    	while (true) {
-      		char user[USERLEN+1];
-      		char cred[CREDLEN+1];
+      		char user[USERLEN + 1];
+      		char cred[CREDLEN + 1];
 
       		int got_value = 0;
       		char *nextline = NULL;
@@ -375,24 +379,38 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 		  	<< "): connect from " << inet_ntoa(client_name.sin_addr)
 		  	<< ":" << ntohs(client_name.sin_port) << std::endl);
 
+		bool bAuthc = false;
+#ifdef HAVE_SASL2
+		if (dynamic_cast<SASL2_Auth*>(auth)) {
+     	 		if (auth->Auth(cur_sock) != AuthMethod::AUTH_OK) {
+		 		std::cerr << "SocketDrive(" << GetLabel()
+					<< "): authentication failed" << std::endl;
+		 		continue;
+      			}
+			bAuthc = true;
+		}
+#endif /* HAVE_SASL2 */
+		
       		fd = fdopen(cur_sock, "r");
 
-      		if (get_auth_token(fd, user, cred, &nextline) == -1) {
-	 		std::cerr << "SocketDrive(" << GetLabel()
-				<< "): corrupted stream" << std::endl;
-	 		fclose(fd);
-	 		continue;
-      		}
+		if (!bAuthc) {
+      			if (get_auth_token(fd, user, cred, &nextline) == -1) {
+	 			std::cerr << "SocketDrive(" << GetLabel()
+					<< "): corrupted stream" << std::endl;
+	 			fclose(fd);
+	 			continue;
+      			}
 
-      		DEBUGCOUT("got auth token: user=\"" << user
-			<< "\", cred=\"" << cred << "\"" << std::endl);
+      			DEBUGCOUT("got auth token: user=\"" << user
+				<< "\", cred=\"" << cred << "\"" << std::endl);
 
-      		if (auth->Auth(user, cred) != AuthMethod::AUTH_OK) {
-	 		std::cerr << "SocketDrive(" << GetLabel()
-				<< "): authentication failed" << std::endl;
-	 		fclose(fd);
-	 		continue;
-      		}
+      			if (auth->Auth(user, cred) != AuthMethod::AUTH_OK) {
+	 			std::cerr << "SocketDrive(" << GetLabel()
+					<< "): authentication failed" << std::endl;
+	 			fclose(fd);
+	 			continue;
+      			}
+		}
 
       		DEBUGCOUT("authenticated" << std::endl);
 
@@ -419,119 +437,120 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 				<< "): missing label" << std::endl;
 	 		fclose(fd);
 	 		continue;
-      		} else {
-	 		char *p = nextline+6;
-	 		while (isspace(p[0])) {
-	    			p++;
-	 		}
+      		}
 
-	 		if (sscanf(p, "%d", &label) != 1) {
-	    			std::cerr << "SocketDrive(" << GetLabel()
-					<< "): unable to read label" << std::endl;
-	    			fclose(fd);
-	    			continue;
-	 		}
+	 	char *p = nextline + 6;
+	 	while (isspace(p[0])) {
+	    		p++;
+	 	}
 
-	 		if (label <= 0 || label > iNumDrives) {
-	    			std::cerr << "SocketDrive(" << GetLabel()
-					<< "): illegal label "
-					<< label << std::endl;
-	    			fclose(fd);
-	    			continue;
-	 		}
+	 	if (sscanf(p, "%d", &label) != 1) {
+	    		std::cerr << "SocketDrive(" << GetLabel()
+				<< "): unable to read label" << std::endl;
+	    		fclose(fd);
+	    		continue;
+	 	}
 
-	 		while (true) {
-	    			if (get_line(buf, bufsize, fd) == NULL) {
-	       				std::cerr << "SocketDrive(" << GetLabel()
-						<< "): corrupted stream"
+	 	if (label <= 0 || label > iNumDrives) {
+	    		std::cerr << "SocketDrive(" << GetLabel()
+				<< "): illegal label "
+				<< label << std::endl;
+	    		fclose(fd);
+	    		continue;
+	 	}
+
+	 	while (true) {
+	    		if (get_line(buf, bufsize, fd) == NULL) {
+	       			std::cerr << "SocketDrive(" << GetLabel()
+					<< "): corrupted stream"
+					<< std::endl;
+	       			fclose(fd);
+	       			break;
+	    		}
+
+	    		nextline = buf;
+
+	    		if (nextline[0] == '.') {
+	       			fclose(fd);
+	       			break;
+	    		}
+
+	    		if (strncasecmp(nextline, "value:", 6) == 0) {
+	       			char *p = nextline+6;
+	       			while (isspace(p[0])) {
+	 				p++;
+				}
+
+	       			if (sscanf(p, "%lf", &value) != 1) {
+	  				std::cerr << "SocketDrive("
+						<< GetLabel()
+						<< "): unable to read"
+						" value" << std::endl;
+	  				fclose(fd);
+	  				break;
+				}
+				got_value = 1;
+
+    			} else if (strncasecmp(nextline, "inc:", 4) == 0) {
+       				char *p = nextline+4;
+       				while (isspace(p[0])) {
+	  				p++;
+       				}
+
+       				if (strncasecmp(p, "yes", 3) == 0) {
+	  				pFlags[label] |= SocketDrive::INCREMENTAL;
+       				} else if (strncasecmp(p, "no", 2) == 0) {
+	  				pFlags[label] &= !SocketDrive::INCREMENTAL;
+       				} else {
+	  				std::cerr << "SocketDrive("
+						<< GetLabel()
+	    					<< "): \"inc\" line"
+						" in \"" << nextline
+	    					<< "\" looks corrupted"
 						<< std::endl;
-	       				fclose(fd);
-	       				break;
-	    			}
+	  				fclose(fd);
+	  				break;
+       				}
+       				nextline = NULL;
 
-	    			nextline = buf;
+    			} else if (strncasecmp(nextline, "imp:", 4) == 0) {
+       				char *p = nextline+4;
+       				while (isspace(p[0])) {
+	  				p++;
+       				}
 
-	    			if (nextline[0] == '.') {
-	       				fclose(fd);
-	       				break;
-	    			}
-
-	    			if (strncasecmp(nextline, "value:", 6) == 0) {
-	       				char *p = nextline+6;
-	       				while (isspace(p[0])) {
-		  				p++;
-	       				}
-
-	       				if (sscanf(p, "%lf", &value) != 1) {
-		  				std::cerr << "SocketDrive("
-							<< GetLabel()
-							<< "): unable to read"
-							" value" << std::endl;
-		  				fclose(fd);
-		  				break;
-	       				}
-	       				got_value = 1;
-
-	    			} else if (strncasecmp(nextline, "inc:", 4) == 0) {
-	       				char *p = nextline+4;
-	       				while (isspace(p[0])) {
-		  				p++;
-	       				}
-
-	       				if (strncasecmp(p, "yes", 3) == 0) {
-		  				pFlags[label] |= SocketDrive::INCREMENTAL;
-	       				} else if (strncasecmp(p, "no", 2) == 0) {
-		  				pFlags[label] &= !SocketDrive::INCREMENTAL;
-	       				} else {
-		  				std::cerr << "SocketDrive("
-							<< GetLabel()
-		    					<< "): \"inc\" line"
-							" in \"" << nextline
-		    					<< "\" looks corrupted"
-							<< std::endl;
-		  				fclose(fd);
-		  				break;
-	       				}
-	       				nextline = NULL;
-
-	    			} else if (strncasecmp(nextline, "imp:", 4) == 0) {
-	       				char *p = nextline+4;
-	       				while (isspace(p[0])) {
-		  				p++;
-	       				}
-
-	       				if (strncasecmp(p, "yes", 3) == 0) {
-		  				pFlags[label] |= SocketDrive::IMPULSIVE;
-	       				} else if (strncasecmp(p, "no", 2) == 0) {
-		  				pFlags[label] &= !SocketDrive::IMPULSIVE;
-	       				} else {
-		  				std::cerr << "SocketDrive("
-							<< GetLabel()
-		    					<< "): \"imp\" line"
-							" in \"" << nextline
-		    					<< "\" looks corrupted"
-							<< std::endl;
-		  				fclose(fd);
-		  				break;
-	       				}
-	       				nextline = NULL;
-	    			}
-	 		}
+       				if (strncasecmp(p, "yes", 3) == 0) {
+	  				pFlags[label] |= SocketDrive::IMPULSIVE;
+       				} else if (strncasecmp(p, "no", 2) == 0) {
+	  				pFlags[label] &= !SocketDrive::IMPULSIVE;
+       				} else {
+	  				std::cerr << "SocketDrive("
+						<< GetLabel()
+	    					<< "): \"imp\" line"
+						" in \"" << nextline
+	    					<< "\" looks corrupted"
+						<< std::endl;
+	  				fclose(fd);
+	  				break;
+       				}
+       				nextline = NULL;
+    			}
 
 	 		/* usa i valori */
 	 		if (got_value) {
 	    			if (pFlags[label] & SocketDrive::INCREMENTAL) {
 	       				silent_cout("SocketDrive("
 						<< GetLabel() << "): adding "
-						<<  value << " to label "
+						<< value << " to label "
 						<< label << std::endl);
 	       				pdVal[label] += value;
+
 	    			} else {
 	       				silent_cout("SocketDrive("
 						<< GetLabel()
 			   			<< "): setting label "
 						<< label << " to value "
-						<<  value << std::endl);
+						<< value << std::endl);
 	       				pdVal[label] = value;
 	    			}
 	 		}

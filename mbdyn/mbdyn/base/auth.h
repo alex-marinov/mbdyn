@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2003
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -35,30 +35,29 @@
 #include <string.h>
 
 class AuthMethod {
- public:
-   enum AuthRes {
-      AUTH_UNKNOWN,
-      AUTH_OK,
-      AUTH_FAIL,
-      AUTH_ERR
-   };      
-   
- public:   
-   virtual ~AuthMethod(void) {};
-   
-   virtual AuthMethod::AuthRes 
-     Auth(const char *user, const char *cred) const = 0;
-};
+public:
+	enum AuthRes {
+		AUTH_UNKNOWN,
+		AUTH_OK,
+		AUTH_FAIL,
+		AUTH_ERR
+	};
 
+public:
+	virtual ~AuthMethod(void) {};
+
+	virtual AuthMethod::AuthRes Auth(const char *user, const char *cred) const = 0;
+	virtual AuthMethod::AuthRes Auth(int sock) const = 0;
+};
 
 /* NoAuth - begin */
 
 /* always OK */
 
 class NoAuth : public AuthMethod {
- public:
-   AuthMethod::AuthRes 
-     Auth(const char * /* user */ , const char * /* cred */ ) const;
+public:
+	AuthMethod::AuthRes Auth(const char * /* user */ , const char * /* cred */ ) const;
+	AuthMethod::AuthRes Auth(int sock) const;
 };
 
 /* NoAuth - end */
@@ -71,15 +70,15 @@ class NoAuth : public AuthMethod {
 #ifdef HAVE_CRYPT
 
 class PasswordAuth: public AuthMethod {
- protected:
-   char User[9];
-   char Cred[14];
-   
- public:
-   PasswordAuth(const char *u, const char *c);
-   
-   AuthMethod::AuthRes
-     Auth(const char *user, const char *cred) const;
+protected:
+	char User[33];
+	char Cred[33];
+
+public:
+	PasswordAuth(const char *u, const char *c, const char *salt_format = NULL);
+
+	AuthMethod::AuthRes Auth(const char *user, const char *cred) const;
+	AuthMethod::AuthRes Auth(int sock) const;
 };
 
 #endif /* HAVE_CRYPT */
@@ -94,25 +93,51 @@ class PasswordAuth: public AuthMethod {
 #ifdef USE_PAM
 
 class PAM_Auth: public AuthMethod {
- protected:
-   char* User;
-   
- public:
-   PAM_Auth(const char *u = NULL);
-   
-   AuthMethod::AuthRes
-     Auth(const char *user, const char *cred) const;
+protected:
+	char* User;
+
+public:
+	PAM_Auth(const char *u = NULL);
+
+	AuthMethod::AuthRes Auth(const char *user, const char *cred) const;
+	AuthMethod::AuthRes Auth(int sock) const;
 };
 
 #endif /* USE_PAM */
 
 /* PAM_Auth - end */
 
+/* SASL2_Auth - begin */
+
+/* SASL2 authentication (obsoletes everything else) */
+
+#ifdef HAVE_SASL2
+
+#if defined(HAVE_SASL_SASL_H)
+#include <sasl/sasl.h>
+#elif defined(HAVE_SASL_H)
+#include <sasl.h>
+#endif /* HAVE_SASL_SASL_H || HAVE_SASL_H */
+#include "mbsasl.h"
+
+class SASL2_Auth: public AuthMethod {
+protected:
+	mutable mbdyn_sasl_t	mbdyn_sasl;
+
+public:
+	SASL2_Auth(const mbdyn_sasl_t *ms);
+
+	AuthMethod::AuthRes Auth(const char *user, const char *cred) const;
+	AuthMethod::AuthRes Auth(int sock) const;
+};
+
+#endif /* HAVE_SASL2 */
+
+/* PAM_Auth - end */
 
 class DataManager;
 class MBDynParser;
 
-extern AuthMethod* ReadAuthMethod(DataManager* pDM,
-				  MBDynParser& HP);
+extern AuthMethod* ReadAuthMethod(DataManager* pDM, MBDynParser& HP);
 
-#endif
+#endif /* AUTH_H */

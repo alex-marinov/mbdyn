@@ -15,7 +15,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -49,51 +49,62 @@
 
 #include <string.h>
 
+#ifdef HAVE_SASL2
+#if defined(HAVE_SASL_SASL_H)
+#include <sasl/sasl.h>
+#elif defined (HAVE_SASL_H)
+#include <sasl.h>
+#endif /* HAVE_SASL_SASL_H || HAVE_SASL_H */
+#include <mbsasl.h>
+#endif /* HAVE_SASL2 */
+
 const unsigned short int PORT = 5555;
 const char* SERVERHOST = "localhost";
 
 static void
 init_sockaddr (struct sockaddr_in *name,
-	       const char *hostname,
-	       unsigned short int port)
+		const char *hostname,
+		unsigned short int port)
 {
-   struct hostent *hostinfo;
-   
-   name->sin_family = AF_INET;
-   name->sin_port = htons (port);
-   hostinfo = gethostbyname (hostname);
-   if (hostinfo == NULL) {
-      fprintf (stderr, "Unknown host %s.\n", hostname);
-      exit (EXIT_FAILURE);
-   }
-   name->sin_addr = *(struct in_addr *) hostinfo->h_addr;
+	struct hostent *hostinfo;
+
+	name->sin_family = AF_INET;
+	name->sin_port = htons (port);
+	hostinfo = gethostbyname (hostname);
+	if (hostinfo == NULL) {
+		fprintf (stderr, "Unknown host %s.\n", hostname);
+		exit (EXIT_FAILURE);
+	}
+	name->sin_addr = *(struct in_addr *) hostinfo->h_addr;
 }
 
-static void 
+static void
 keys(FILE * fh)
 {
-   fprintf(fh, 
-	   "\tkeys:\n"
-	   "\t\t'i':\tswitches the incremental mode on\n"
-	   "\t\t'p':\tincrements the drive\n"
-	   "\t\t'm':\tdecrements the drive\n"
-	   "\t\t'^D':\tquits\n\n");
+	fprintf(fh,
+			"\tkeys:\n"
+			"\t\t'i':\tswitches the incremental mode on\n"
+			"\t\t'p':\tincrements the drive\n"
+			"\t\t'm':\tdecrements the drive\n"
+			"\t\t'^D':\tquits\n\n");
 }
-   
 
 static void
 usage(void)
 {
-   fprintf(stderr,
-	   "\n\tusage: autopilot [h:p:D:w:Wx:] label\n\n"
-	   "\t\t-h host\t\thost name\n"
-	   "\t\t-p port\t\tport number\n"
-	   "\t\t-D user\t\tuser name\n"
-	   "\t\t-w cred\t\tuser credentials\n"
-	   "\t\t-W\t\tprompt for user credentials\n"
-	   "\t\t-x value\tincrement\n\n"
-	   "\tlabel:\tfile drive index to modify\n\n");
-   keys(stderr);
+ 	fprintf(stderr,
+			"\n\tusage: autopilot [h:p:D:vw:Wx:] label\n\n"
+			"\t\t-D user\t\tuser name\n"
+			"\t\t-h host\t\thost name\n"
+			"\t\t-m mech\t\tSASL mechanism(s)\n"
+			"\t\t-p port\t\tport number\n"
+			"\t\t-S\t\tuse SASL\n"
+			"\t\t-v\t\tverbose\n"
+			"\t\t-w cred\t\tuser credentials\n"
+			"\t\t-W\t\tprompt for user credentials\n"
+			"\t\t-x value\tincrement\n\n"
+			"\tlabel:\tfile drive index to modify\n\n");
+	keys(stderr);
 }
 
 /* Use this variable to remember original terminal attributes. */
@@ -102,230 +113,284 @@ struct termios saved_attributes;
 void
 reset_input_mode (void)
 {
-   tcsetattr(STDIN_FILENO, TCSANOW, &saved_attributes);
+	tcsetattr(STDIN_FILENO, TCSANOW, &saved_attributes);
 }
-     
 
 void
 set_input_mode (void)
 {
-   struct termios tattr;
-   
-   /* Make sure stdin is a terminal. */
-   if (!isatty(STDIN_FILENO)) {
-      fprintf(stderr, "Not a terminal.\n");
-      exit(EXIT_FAILURE);
-   }
-     
-   /* Save the terminal attributes so we can restore them later. */
-   tcgetattr(STDIN_FILENO, &saved_attributes);
-   atexit(reset_input_mode);
-   
-   /* Set the funny terminal modes. */
-   tcgetattr(STDIN_FILENO, &tattr);
-   tattr.c_lflag &= ~(ICANON|ECHO); /* Clear ICANON and ECHO. */
-   tattr.c_cc[VMIN] = 0;
-   tattr.c_cc[VTIME] = 0;
-   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tattr) < 0) {
-      perror("tcsetattr");
-      exit(EXIT_FAILURE);
-   }
+	struct termios tattr;
+
+	/* Make sure stdin is a terminal. */
+	if (!isatty(STDIN_FILENO)) {
+		fprintf(stderr, "Not a terminal.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	/* Save the terminal attributes so we can restore them later. */
+	tcgetattr(STDIN_FILENO, &saved_attributes);
+	atexit(reset_input_mode);
+
+	/* Set the funny terminal modes. */
+	tcgetattr(STDIN_FILENO, &tattr);
+	tattr.c_lflag &= ~(ICANON|ECHO); /* Clear ICANON and ECHO. */
+	tattr.c_cc[VMIN] = 0;
+	tattr.c_cc[VTIME] = 0;
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tattr) < 0) {
+		perror("tcsetattr");
+		exit(EXIT_FAILURE);
+	}
 }
 
+static int sasl = 0;
+#ifdef HAVE_SASL2
+static mbdyn_sasl_t mbdyn_sasl = MBDYN_SASL_INIT;
+#endif /* HAVE_SASL2 */
 
 int
 send_message(const char *host, unsigned short int port, const char *message)
 {
-   int sock;
-   struct sockaddr_in server_name;
-   FILE *fd;   
-   
-   /* Create the socket. */
-   sock = socket (PF_INET, SOCK_STREAM, 0);
-   if (sock < 0) {
-      return -1;
-   }
-   
-   /* Connect to the server. */
-   init_sockaddr (&server_name, host, port);
-   if (0 > connect (sock,
-		    (struct sockaddr *) &server_name,
-		    sizeof (server_name))) {
-      return -1;
-   }
+	int sock;
+	struct sockaddr_in server_name;
+	FILE *fd;
 
-   fd = fdopen(sock, "w");
-   fputs(message, fd);
-   fclose (fd);
-   
-   return 0;
+	/* Create the socket. */
+	sock = socket (PF_INET, SOCK_STREAM, 0);
+	if (sock < 0) {
+		return -1;
+	}
+
+	/* Connect to the server. */
+	init_sockaddr (&server_name, host, port);
+	if (0 > connect (sock,
+				(struct sockaddr *) &server_name,
+				sizeof (server_name))) {
+		return -1;
+	}
+
+	if (sasl) {
+#ifdef HAVE_SASL2
+		if (mbdyn_sasl_client_auth(sock, NULL, &mbdyn_sasl) != SASL_OK) {
+			return -1;
+		}
+#endif /* HAVE_SASL2 */
+	}
+
+	fd = fdopen(sock, "w");
+	fputs(message, fd);
+	fclose (fd);
+
+	return 0;
 }
-
 
 int
 main (int argc, char *argv[])
-{   
-   char *host = (char *)SERVERHOST;
-   unsigned short int port = PORT;
-   
-   char *user = NULL;
-   char *cred = NULL;
-   
-   char *increment = "1.";
-   char *label = NULL;
-   
-   char c;
-   
-   char *auth = NULL;
-   char *inc = NULL; 
-   char *plus = NULL;
-   char *minus = NULL;
-   
-   int verbose = 0;
-     
-   while (true) {
-      int opt;
-      
-      opt = getopt (argc, argv, "h:p:D:w:Wx:v");
-      
-      if (opt == EOF) {
-	 break;
-      }
-      
-      switch (opt) {
-       case 'h':
-	 host = strdup (optarg);
-	 break;
-	 
-       case 'p':
-	 port = atoi (optarg);
-	 break;
-	 
-       case 'D':
-	 user = strdup (optarg);
-	 break;
-	 
-       case 'w':
-	 cred = strdup (optarg);
-	 break;
-	 
-       case 'W': {
-	  char *tmp = getpass("password: ");
-	  if (tmp) {	     
-	     cred = strdup(tmp);
-	     memset(tmp, '\0', strlen(tmp));
-	  }
-	  break;
-       }
-	 
-       case 'x':
-	 increment = strdup(optarg);
-	 break;
-	 
-       case 'v':
-	 verbose++;
-	 break;
-      }
-   }
-   
-   if (argc-optind < 1) {
-      usage();
-      exit(EXIT_SUCCESS);
-   }
-   
-   label = argv[optind];
+{
+	char *host = (char *)SERVERHOST;
+	unsigned short int port = PORT;
 
-   
-   /* messaggi: */
-   if (user) {
-      int ul = strlen(user);
-      if (cred) {
-	 int cl = strlen(cred);
-	 auth = (char *)calloc(sizeof(char), ul+cl+7+11+1);
-	 sprintf(auth, "user: %s\npassword: %s\n", user, cred);
-      } else {
-	 auth = (char *)calloc(sizeof(char), ul+7+1);
-	 sprintf(auth, "user: %s\n", user);
-      }
-   }
+	char *user = NULL;
+	char *cred = NULL;
 
-   if (auth) {
-      int l;
-      
-      l = strlen(auth)+8+strlen(label)+9+2;
-      inc = (char *)calloc(sizeof(char), l+1);
-      sprintf(inc, "%slabel: %s\ninc: yes\n.\n", auth, label);
-      
-      l = strlen(auth)+8+strlen(label)+8+strlen(increment)+2;
-      plus = (char *)calloc(sizeof(char), l+1);
-      minus = (char *)calloc(sizeof(char), l+1+1);
-      sprintf(plus, "%slabel: %s\nvalue: %s\n.\n", auth, label, increment);
-      sprintf(minus, "%slabel: %s\nvalue: -%s\n.\n", auth, label, increment);
-      
-   } else {
-      int l;
-      
-      l = 8+strlen(label)+9+2;
-      inc = (char *)calloc(sizeof(char), l+1);
-      sprintf(inc, "label: %s\ninc: yes\n.\n", label);
-      
-      l = 8+strlen(label)+8+strlen(increment)+2;
-      plus = (char *)calloc(sizeof(char), l+1);
-      minus = (char *)calloc(sizeof(char), l+1+1);
-      sprintf(plus, "label: %s\nvalue: %s\n.\n", label, increment);
-      sprintf(minus, "label: %s\nvalue: -%s\n.\n", label, increment);
-   }
+	char *increment = "1.";
+	char *label = NULL;
 
-   set_input_mode();
-   
-   if (verbose) {
-      fprintf(stdout, "Connecting to host %s:%d\n", host, port);
-      if (user) {
-	 if (cred) {	    
-	    fprintf(stdout, "Accounting as \"%s\" (with creds)\n", user);
-	 } else {
-	    fprintf(stdout, "Accounting as \"%s\"\n", user);
-	 }
-      }
-      fprintf(stdout, "Incrementing drive %s by %s\n", label, increment);
-      keys(stdout);
-   }
-   
-   while (true) {
-      size_t i;
-      
-      i = read(STDIN_FILENO, &c, 1);
-      
-      if (i > 0) {
-	 if (c == '\004') {         /* `C-d' */
-	    break;
-	 } else {
-	    switch (c) {
-	       
-	     case 'i':
-	       if (send_message(host, port, inc) == -1) {
-		  fprintf(stderr, "unable to connect to host %s:%d\n", 
-			  host, port);
-	       }
-	       break;
-	       
-	     case 'p':
-	       if (send_message(host, port, plus) == -1) {
-		  fprintf(stderr, "unable to connect to host %s:%d\n", 
-			  host, port);
-	       }
-	       break;
-	       
-	     case 'm':
-	       if (send_message(host, port, minus) == -1) {
-		  fprintf(stderr, "unable to connect to host %s:%d\n", 
-			  host, port);
-	       }
-	       break;
-	    }
-	 }
-      }
-   }
-   
-   exit (EXIT_SUCCESS);
+	char c;
+
+	char *auth = NULL;
+	char *inc = NULL;
+	char *plus = NULL;
+	char *minus = NULL;
+
+	char *mech = NULL;
+
+	int verbose = 0;
+
+	while (true) {
+		int opt;
+
+		opt = getopt (argc, argv, "D:h:m:p:Svw:Wx:");
+
+		if (opt == EOF) {
+			break;
+		}
+
+		switch (opt) {
+		case 'D':
+			user = optarg;
+			break;
+
+		case 'h':
+			host = optarg;
+			break;
+
+		case 'm':
+			mech = optarg;
+#ifndef HAVE_SASL2
+			fprintf(stderr, "SASL not supported\n");
+#endif /* ! HAVE_SASL2 */
+			break;
+
+		case 'p':
+			port = atoi (optarg);
+			break;
+
+		case 'S':
+			sasl++;
+#ifndef HAVE_SASL2
+			fprintf(stderr, "SASL not supported\n");
+			exit(EXIT_FAILURE);
+#endif /* ! HAVE_SASL2 */
+			break;
+
+		case 'v':
+			verbose++;
+			break;
+
+		case 'w':
+			cred = strdup(optarg);
+			break;
+
+		case 'W': {
+			char *tmp = getpass("password: ");
+
+			if (tmp) {
+				cred = strdup(tmp);
+				memset(tmp, '\0', strlen(tmp));
+			}
+			break;
+		}
+
+		case 'x':
+			increment = optarg;
+			break;
+		}
+	}
+
+	if (argc - optind < 1) {
+		usage();
+		exit(EXIT_SUCCESS);
+	}
+
+	label = argv[optind];
+
+	/* messaggi: */
+	if (!sasl) {
+		if (user) {
+			size_t l = strlen(user);
+			if (cred) {
+				l += strlen(cred) + 7 + 11;
+
+				auth = (char *)calloc(sizeof(char), l + 1);
+				snprintf(auth, l + 1, "user: %s\npassword: %s\n", user, cred);
+			} else {
+				l += 7;
+
+				auth = (char *)calloc(sizeof(char), l + 1);
+				snprintf(auth, l + 1, "user: %s\n", user);
+			}
+		}
+	} else {
+#ifdef HAVE_SASL2
+		if (verbose) {
+			printf("initializing SASL data...\n");
+		}
+
+		mbdyn_sasl.use_sasl = MBDYN_SASL_CLIENT;
+		mbdyn_sasl.sasl_flags = MBDYN_SASL_FLAG_CRITICAL | MBDYN_SASL_FLAG_USERAUTHZ;
+		mbdyn_sasl.sasl_mech = mech;
+		mbdyn_sasl.sasl_user = user;
+		mbdyn_sasl.sasl_cred = cred;
+		mbdyn_sasl.sasl_hostname = host;
+
+		if (mbdyn_sasl_client_init(&mbdyn_sasl) != SASL_OK) {
+			fprintf(stderr, "SASL init failed\n");
+			exit(EXIT_FAILURE);
+		}
+#endif /* HAVE_SASL2 */
+	}
+
+	if (auth) {
+		size_t l = strlen(auth) + 8 + strlen(label) + 9 + 2;
+
+		inc = (char *)calloc(sizeof(char), l + 1);
+		snprintf(inc, l, "%slabel: %s\ninc: yes\n.\n", auth, label);
+
+		l = strlen(auth) + 8 + strlen(label) + 8 + strlen(increment) + 2;
+		plus = (char *)calloc(sizeof(char), l + 1);
+		minus = (char *)calloc(sizeof(char), l + 1 + 1);
+		snprintf(plus, l + 1, "%slabel: %s\nvalue: %s\n.\n", auth, label, increment);
+		snprintf(minus, l + 2, "%slabel: %s\nvalue: -%s\n.\n", auth, label, increment);
+
+	} else {
+		size_t l = 8 + strlen(label) + 9 + 2;
+		
+		inc = (char *)calloc(sizeof(char), l + 1);
+		snprintf(inc, l + 1, "label: %s\ninc: yes\n.\n", label);
+
+		l = 8 + strlen(label) + 8 + strlen(increment) + 2;
+		plus = (char *)calloc(sizeof(char), l + 1);
+		minus = (char *)calloc(sizeof(char), l + 1 + 1);
+		snprintf(plus, l + 1, "label: %s\nvalue: %s\n.\n", label, increment);
+		snprintf(minus, l + 2, "label: %s\nvalue: -%s\n.\n", label, increment);
+	}
+
+	set_input_mode();
+
+	if (verbose) {
+		fprintf(stdout, "Connecting to host %s:%d\n", host, port);
+		if (user) {
+			if (cred) {
+				fprintf(stdout, "Accounting as \"%s\" (with creds)\n", user);
+			
+			} else {
+				fprintf(stdout, "Accounting as \"%s\"\n", user);
+			}
+		}
+		fprintf(stdout, "Incrementing drive %s by %s\n", label, increment);
+		keys(stdout);
+	}
+
+	while (true) {
+		size_t i;
+
+		i = read(STDIN_FILENO, &c, 1);
+
+		if (i > 0) {
+			char	*msg = NULL;
+
+			if (c == '\004') {         /* `C-d' */
+				break;
+			}
+
+			switch (c) {
+			case 'i':
+				msg = inc;
+				break;
+
+				break;
+
+			case 'p':
+				msg = plus;
+				break;
+
+			case 'm':
+				msg = minus;
+				break;
+
+			}
+
+			if (send_message(host, port, msg) == -1) {
+				fprintf(stderr, "unable to connect to host %s:%d\n",
+						host, port);
+			}
+		}
+	}
+
+	if (cred) {
+		free(cred);
+	}
+
+	exit(EXIT_SUCCESS);
 }
+
