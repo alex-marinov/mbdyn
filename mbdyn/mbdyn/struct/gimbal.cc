@@ -38,10 +38,10 @@
 #include "gimbal.h"
 #include "Rot.hh"
 
-/* GimbalJoint - begin */
+/* GimbalRotationJoint - begin */
 
 /* Costruttore non banale */
-GimbalJoint::GimbalJoint(unsigned int uL,
+GimbalRotationJoint::GimbalRotationJoint(unsigned int uL,
 				 const DofOwner* pDO,
 				 const StructNode* pN1,
 				 const StructNode* pN2,
@@ -61,7 +61,7 @@ M(0.), dTheta(0.), dPhi(0.)
 
 
 /* Distruttore */
-GimbalJoint::~GimbalJoint(void)
+GimbalRotationJoint::~GimbalRotationJoint(void)
 {
 	NO_OP;
 }
@@ -69,9 +69,9 @@ GimbalJoint::~GimbalJoint(void)
 
 /* Contributo al file di restart */
 std::ostream&
-GimbalJoint::Restart(std::ostream& out) const
+GimbalRotationJoint::Restart(std::ostream& out) const
 {
-	Joint::Restart(out) << ", gimbal hinge, "
+	Joint::Restart(out) << ", gimbal rotation, "
 		<< pNode1->GetLabel() << ", reference, node, 1, ",
 		(R1h.GetVec(1)).Write(out, ", ")
 		<< ", 2, ", (R1h.GetVec(2)).Write(out, ", ") << ", "
@@ -83,7 +83,7 @@ GimbalJoint::Restart(std::ostream& out) const
 
 
 void
-GimbalJoint::Output(OutputHandler& OH) const
+GimbalRotationJoint::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
 		Mat3x3 Ra(pNode1->GetRCurr());
@@ -98,12 +98,12 @@ GimbalJoint::Output(OutputHandler& OH) const
 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler&
-GimbalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+GimbalRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		doublereal dCoef,
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering GimbalJoint::AssJac()" << std::endl);
+	DEBUGCOUT("Entering GimbalRotationJoint::AssJac()" << std::endl);
 
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
@@ -140,7 +140,7 @@ GimbalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 
 void
-GimbalJoint::AfterPredict(VectorHandler& /* X */ ,
+GimbalRotationJoint::AfterPredict(VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ )
 {
 	NO_OP;
@@ -148,7 +148,7 @@ GimbalJoint::AfterPredict(VectorHandler& /* X */ ,
 
 
 void
-GimbalJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
+GimbalRotationJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 {
 	Mat3x3 Ra(pNode1->GetRRef()*R1h);
 	Mat3x3 RaT(Ra.Transpose());
@@ -207,12 +207,12 @@ GimbalJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 
 /* assemblaggio residuo */
 SubVectorHandler&
-GimbalJoint::AssRes(SubVectorHandler& WorkVec,
+GimbalRotationJoint::AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
 		const VectorHandler& XCurr,
 		const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering GimbalJoint::AssRes()" << std::endl);
+	DEBUGCOUT("Entering GimbalRotationJoint::AssRes()" << std::endl);
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
@@ -246,7 +246,7 @@ GimbalJoint::AssRes(SubVectorHandler& WorkVec,
 
 
 void
-GimbalJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
+GimbalRotationJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
 {
 	Mat3x3 Ra(pNode1->GetRCurr()*R1h);
 	Mat3x3 Rb(pNode2->GetRCurr()*R2h);
@@ -278,10 +278,10 @@ GimbalJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler&
-GimbalJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+GimbalRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr)
 {
-	DEBUGCOUT("Entering GimbalJoint::InitialAssJac()" << std::endl);
+	DEBUGCOUT("Entering GimbalRotationJoint::InitialAssJac()" << std::endl);
 
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
@@ -317,10 +317,10 @@ GimbalJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 /* Contributo al residuo durante l'assemblaggio iniziale */
 SubVectorHandler&
-GimbalJoint::InitialAssRes(SubVectorHandler& WorkVec,
+GimbalRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr)
 {
-	DEBUGCOUT("Entering GimbalJoint::InitialAssRes()" << std::endl);
+	DEBUGCOUT("Entering GimbalRotationJoint::InitialAssRes()" << std::endl);
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
@@ -350,13 +350,13 @@ GimbalJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 /* Dati privati (aggiungere magari le reazioni vincolari) */
 unsigned int
-GimbalJoint::iGetNumPrivData(void) const
+GimbalRotationJoint::iGetNumPrivData(void) const
 {
 	return 5;
 }
 
 unsigned int
-GimbalJoint::iGetPrivDataIdx(const char *s) const
+GimbalRotationJoint::iGetPrivDataIdx(const char *s) const
 {
 	if (strncmp(s, "lambda[", sizeof("lambda[") - 1) == 0) {
 		s += sizeof("lambda[") - 1;
@@ -385,7 +385,7 @@ GimbalJoint::iGetPrivDataIdx(const char *s) const
 }
 
 doublereal
-GimbalJoint::dGetPrivData(unsigned int i) const
+GimbalRotationJoint::dGetPrivData(unsigned int i) const
 {
 	switch (i) {
 	case 1:
@@ -403,4 +403,4 @@ GimbalJoint::dGetPrivData(unsigned int i) const
 	throw ErrGeneric();
 }
 
-/* GimbalJoint - end */
+/* GimbalRotationJoint - end */

@@ -37,9 +37,9 @@
 #include "joint.h"
 
 
-/* GimbalJoint - begin */
+/* GimbalRotationJoint - begin */
 
-class GimbalJoint : 
+class GimbalRotationJoint : 
 virtual public Elem, public Joint {
 private:      
 protected:
@@ -56,7 +56,7 @@ protected:
 
 public:
 		/* Costruttore non banale */
-	GimbalJoint(unsigned int uL,	       
+	GimbalRotationJoint(unsigned int uL,	       
 			const DofOwner* pDO,
 			const StructNode* pN1, 
 			const StructNode* pN2,
@@ -65,7 +65,7 @@ public:
 			flag fOut);
 
 	/* Distruttore */
-	virtual ~GimbalJoint(void);
+	virtual ~GimbalRotationJoint(void);
 
 	virtual inline void* pGet(void) const { 
 		return (void*)this;
@@ -152,7 +152,7 @@ public:
 	/* ************************************************ */
 };
 
-/* GimbalJoint - end */
+/* GimbalRotationJoint - end */
 
 #endif /* GIMBAL_H */
 

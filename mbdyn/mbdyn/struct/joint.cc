@@ -153,7 +153,7 @@ Elem* ReadJoint(DataManager* pDM,
       "kinematic",
       "beam" "slider",
       "brake",
-      "gimbal",
+      "gimbal" "rotation",
       
       "modal",
 
@@ -197,7 +197,7 @@ Elem* ReadJoint(DataManager* pDM,
       KINEMATIC,
       BEAMSLIDER,
       BRAKE,
-      GIMBAL,
+      GIMBALROTATION,
       
       MODAL,
 
@@ -498,7 +498,7 @@ Elem* ReadJoint(DataManager* pDM,
     case UNIVERSALHINGE:
     case UNIVERSALROTATION:
     case AXIALROTATION:
-    case GIMBAL:
+    case GIMBALROTATION:
     case PLANEDISPLACEMENT: {
        /* nodo collegato 1 */
        StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
@@ -514,7 +514,7 @@ Elem* ReadJoint(DataManager* pDM,
        switch (CurrKeyWord) {
        case REVOLUTEROTATION:
        case UNIVERSALROTATION:
-       case GIMBAL:
+       case GIMBALROTATION:
 	  if (HP.IsKeyWord("position")) {
 	     /* currently ignored */
 	     (void)HP.GetPosRel(RF);
@@ -567,7 +567,7 @@ Elem* ReadJoint(DataManager* pDM,
        switch (CurrKeyWord) {
        case REVOLUTEROTATION:
        case UNIVERSALROTATION:
-       case GIMBAL:
+       case GIMBALROTATION:
 	  if (HP.IsKeyWord("position")) {
 	     /* currently ignored */
 	     (void)HP.GetPosRel(RF);
@@ -737,10 +737,10 @@ Elem* ReadJoint(DataManager* pDM,
 	}
 	   
 	  /* allocazione e creazione vincolo gimbal */
-	case GIMBAL: {
+	case GIMBALROTATION: {
 	   SAFENEWWITHCONSTRUCTOR(pEl,
-				  GimbalJoint,
-				  GimbalJoint(uLabel, pDO, 
+				  GimbalRotationJoint,
+				  GimbalRotationJoint(uLabel, pDO, 
 						      pNode1, pNode2,
 						      R1h, R2h, fOut));
 	   break;
