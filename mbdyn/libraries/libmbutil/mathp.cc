@@ -214,6 +214,7 @@ static mathfuncs FuncTable[] = {
    
      { "exp",        1, { (Real (*)(void))((Real (*)(Real))exp)       }, NULL,       ""   },
      { "log",        1, { (Real (*)(void))((Real (*)(Real))log)       }, log_t,      ""   },
+     { "log10",      1, { (Real (*)(void))((Real (*)(Real))log10)     }, log_t,      ""   },
      
      { "sqrt",       1, { (Real (*)(void))((Real (*)(Real))sqrt)      }, log_t,      ""   },
      
