@@ -164,7 +164,9 @@ dLowerFreq(0.),
 #ifdef USE_RTAI
 bRT(false),
 bRTWaitPeriod(true),
+bRTHard(false),
 lRTPeriod(-1),
+RTStackSize(1024),
 #endif /* USE_RTAI */
 #ifdef __HACK_POD__
 fPOD(0),
@@ -1031,26 +1033,46 @@ IfFirstStepIsToBeRepeated:
 				<< iStIter << " iterations"
 				<< std::endl);
 	    		goto IfFirstStepIsToBeRepeated;
-	 	} else {
-	    		std::cerr << std::endl
-				<< "Maximum iterations number "
-				<< iStIter
-				<< " has been reached during"
-				" first step (time = "
-				<< dTime << ");" << std::endl
-				<< "time step dt = " << dCurrTimeStep 
-				<< " cannot be reduced further;"
-				<< std::endl
-				<< "aborting ..." << std::endl;
-	    		pDM->Output(true);
-			THROW(Solver::ErrMaxIterations());
 	 	}
+
+	    	std::cerr << std::endl
+			<< "Maximum iterations number "
+			<< iStIter
+			<< " has been reached during"
+			" first step (time = "
+			<< dTime << ");" << std::endl
+			<< "time step dt = " << dCurrTimeStep 
+			<< " cannot be reduced further;"
+			<< std::endl
+			<< "aborting ..." << std::endl;
+	    	pDM->Output(true);
+
+#ifdef USE_RTAI
+		if (bRTHard) {
+			/*
+			 * FIXME: make soft real time
+			 * before doing any error handling
+			 */
+		}
+#endif /* USE_RTAI */
+
+		THROW(Solver::ErrMaxIterations());
       	}
 	catch (NonlinearSolver::ErrSimulationDiverged) {
 		/*
 		 * Mettere qui eventuali azioni speciali 
 		 * da intraprendere in caso di errore ...
 		 */
+
+#ifdef USE_RTAI
+		if (bRTHard) {
+			/*
+			 * FIXME: make soft real time
+			 * before doing any error handling
+			 */
+		}
+#endif /* USE_RTAI */
+
 		THROW(SimulationDiverged());
 	}
 	catch (NonlinearSolver::ConvergenceOnSolution) {
@@ -1060,6 +1082,16 @@ IfFirstStepIsToBeRepeated:
 #endif /* MBDYN_X_CONVSOL */
 	}
 	catch (...) {
+
+#ifdef USE_RTAI
+		if (bRTHard) {
+			/*
+			 * FIXME: make soft real time
+			 * before doing any error handling
+			 */
+		}
+#endif /* USE_RTAI */
+
 		THROW(ErrGeneric());
 	}
 
@@ -1105,17 +1137,29 @@ IfFirstStepIsToBeRepeated:
 #endif /* __HACK_EIG__ */
 
 #ifdef USE_RTAI
-	if (bRT && bRTWaitPeriod) {
-		long long t = mbdyn_rt_get_time();
-		int r;
+	if (bRT) {
+		if (bRTWaitPeriod) {
+			long long t = mbdyn_rt_get_time();
+			int r;
 
-		r = mbdyn_rt_task_make_periodic(mbdyn_rtai_task, t, lRTPeriod);
+			r = mbdyn_rt_task_make_periodic(mbdyn_rtai_task, t, lRTPeriod);
 
-		if (r) {
-			std::cerr << "rt_task_make_periodic() failed"
-				<< std::endl;
-			THROW(ErrGeneric());
+			if (r) {
+				std::cerr << "rt_task_make_periodic() failed"
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
 		}
+
+		if (bRTHard) {
+			/*
+			 * FIXME: make hard real time here
+			 */
+			silent_cout("hard real time not supported yet"
+					<< std::endl);
+		}
+
+		reserve_stack(RTStackSize);
 	}
 #endif /* USE_RTAI */
    
@@ -1484,7 +1528,6 @@ Solver::ReadData(MBDynParser& HP)
 
 		/* RTAI stuff */
 		"real" "time",
-		"reserve" "stack",
 
 		NULL
    	};
@@ -1570,7 +1613,6 @@ Solver::ReadData(MBDynParser& HP)
 
 		/* RTAI stuff */
 		REALTIME,
-		RESERVESTACK,
 	
 		LASTKEYWORD
    	};
@@ -2559,26 +2601,24 @@ Solver::ReadData(MBDynParser& HP)
 	    THROW(ErrGeneric());
 	 }
 
+	 if (HP.IsKeyWord("reserve" "stack")) {
+	    long size = HP.GetInt();
+
+	    if (size <= 0) {
+	       std::cerr << "illegal stack size " << size << " at line "
+		       << HP.GetLineData() << std::endl;
+	       THROW(ErrGeneric());
+	    }
+
+	    RTStackSize = size;
+	 }
+
 #else /* !USE_RTAI */
          std::cerr << "need to configure --with-rtai to use realtime" << std::endl;
 	 THROW(ErrGeneric());
 #endif /* !USE_RTAI */
 	 break;
        }
-
-       case RESERVESTACK: {
-#ifdef USE_RTAI
-		unsigned long size = HP.GetInt();
-		if (reserve_stack(size)) {
-			std::cerr << "unable to reserve stack" << std::endl;
-			THROW(ErrGeneric());
-		}
-#else /* !USE_RTAI */
-		pedantic_cerr("\"reserve stack\" useless without RTAI"
-				<< std::endl);
-#endif /* !USE_RTAI */
-		break;
-	}
 
        default: {
 	  std::cerr << std::endl << "Unknown description at line " 

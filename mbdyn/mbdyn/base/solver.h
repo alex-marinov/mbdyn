@@ -112,7 +112,9 @@ private:
 #ifdef USE_RTAI
 	bool bRT;
 	bool bRTWaitPeriod;
+	bool bRTHard;
 	long long lRTPeriod;
+	unsigned long RTStackSize;
 #endif /* USE_RTAI */
 
 #ifdef __HACK_POD__
