@@ -196,16 +196,11 @@ std::ostream&
 operator << (std::ostream& out, const Mat3x3& m)
 {
    doublereal* pd = m.pGetMat();
-#ifdef HAVE_FORM_IN_OSTREAM
-   out.form(sForm,
-		   pd[M11], pd[M12], pd[M13],
-		   pd[M21], pd[M22], pd[M23],
-		   pd[M31], pd[M32], pd[M33]);
-#else /* !HAVE_FORM_IN_OSTREAM */
-   out << pd[M11] << sDefFill << pd[M12] << sDefFill << pd[M13] << sDefFill
+
+   out
+     << pd[M11] << sDefFill << pd[M12] << sDefFill << pd[M13] << sDefFill
      << pd[M21] << sDefFill << pd[M22] << sDefFill << pd[M23] << sDefFill
      << pd[M31] << sDefFill << pd[M32] << sDefFill << pd[M33];
-#endif /* !HAVE_FORM_IN_OSTREAM */
    
    return out;
 }
@@ -225,8 +220,6 @@ operator << (std::ostream& out, const Vec3& v)
 {
    doublereal* pd = v.pGetVec();
    
-// out.form(sForm, *pd, *(pd+1), *(pd+2));
-
    out << pd[0] << sDefFill << pd[1] << sDefFill << pd[2];
    
    return out;

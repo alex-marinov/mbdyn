@@ -443,21 +443,13 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 	out 
 		<< "ANALYSIS OUTPUT BLOCK                   " << std::setw(8) << 5+iAdamsOutputParts << std::endl
 		<< std::setw(8) << iBlock;
-#ifdef HAVE_FORM_IN_OSTREAM
-	out.form("%-20s", type);
-#else /* !HAVE_FORM_IN_OSTREAM */
 	std::ios::fmtflags tmpflags;
 	tmpflags = out.flags(std::ios::left);
 	out << std::setw(20) << type;
 	out.flags(tmpflags);
-#endif /* !HAVE_FORM_IN_OSTREAM */
 	out << id << std::endl;
-#ifdef HAVE_FORM_IN_OSTREAM
-	out.form("%12.5e\n", pTime->GetVal().GetReal());
-#else /* !HAVE_FORM_IN_OSTREAM */
-	out << std::setw(12) << std::setprecision(5) << pTime->GetVal().GetReal() << std::endl;
-#endif /* !HAVE_FORM_IN_OSTREAM */
-	out
+	out << std::setw(12) << std::setprecision(5)
+		<< pTime->GetVal().GetReal() << std::endl
 		<< std::endl
 		<< std::endl;
 
@@ -480,10 +472,6 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
  
 		x = pNode->GetXCurr();
 		MatR2EulerParams(pNode->GetRCurr(), e0, e);
-#ifdef HAVE_FORM_IN_OSTREAM
-		out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
-				x(1), x(2), x(3), e0, e(1), e(2), e(3));
-#else /* !HAVE_FORM_IN_OSTREAM */
 		out
 			<< std::setw(12) << std::setprecision(5) << x(1)
 			<< std::setw(12) << std::setprecision(5) << x(2)
@@ -493,7 +481,6 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 			<< std::setw(12) << std::setprecision(5) << e(2)
 			<< std::setw(12) << std::setprecision(5) << e(3)
 			<< std::endl;
-#endif /* !HAVE_FORM_IN_OSTREAM */
 	}
 
 	Elem *p = NULL;
@@ -510,10 +497,6 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 					
 					p->GetDummyPartPos(part, x, R);
 					MatR2EulerParams(R, e0, e);
-#ifdef HAVE_FORM_IN_OSTREAM
-					out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
-							x(1), x(2), x(3), e0, e(1), e(2), e(3));
-#else /* !HAVE_FORM_IN_OSTREAM */
 					out 
 						<< std::setw(12) << std::setprecision(5) << x(1)
 						<< std::setw(12) << std::setprecision(5) << x(2)
@@ -523,7 +506,6 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 						<< std::setw(12) << std::setprecision(5) << e(2)
 						<< std::setw(12) << std::setprecision(5) << e(3)
 						<< std::endl;
-#endif /* HAVE_FORM_IN_OSTREAM */
 				}
 			}
 		} while (ElemIter.bGetNext(p));
@@ -549,10 +531,6 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 			v = pNode->GetVCurr();
 			w = pNode->GetWCurr();
 			
-#ifdef HAVE_FORM_IN_OSTREAM
-			out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
-					v(1), v(2), v(3), w(1), w(2), w(3));
-#else /* !HAVE_FORM_IN_OSTREAM */
 			out
 				<< std::setw(12) << std::setprecision(5) << v(1)
 				<< std::setw(12) << std::setprecision(5) << v(2)
@@ -561,7 +539,6 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 				<< std::setw(12) << std::setprecision(5) << w(2)
 				<< std::setw(12) << std::setprecision(5) << w(3)
 				<< std::endl;
-#endif /* !HAVE_FORM_IN_OSTREAM */
 		}
 
 		Elem *p = NULL;
@@ -574,10 +551,6 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 						Vec3 v, w;
 						
 						p->GetDummyPartVel(part, v, w);
-#ifdef HAVE_FORM_IN_OSTREAM
-						out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
-								v(1), v(2), v(3), w(1), w(2), w(3));
-#else /* !HAVE_FORM_IN_OSTREAM */
 						out 
 							<< std::setw(12) << std::setprecision(5) << v.dGet(1)
 							<< std::setw(12) << std::setprecision(5) << v.dGet(2)
@@ -586,7 +559,6 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 							<< std::setw(12) << std::setprecision(5) << w.dGet(2)
 							<< std::setw(12) << std::setprecision(5) << w.dGet(3)
 							<< std::endl;
-#endif /* HAVE_FORM_IN_OSTREAM */
 					}
 				}
 			} while (ElemIter.bGetNext(p));
@@ -614,10 +586,6 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 				wp = pDSN->GetWPCurr();
 			}
 			
-#ifdef HAVE_FORM_IN_OSTREAM
-			out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
-					a(1), a(2), a(3), wp(1), wp(2), wp(3));
-#else /* !HAVE_FORM_IN_OSTREAM */
 			out
 				<< std::setw(12) << std::setprecision(5) << a(1)
 				<< std::setw(12) << std::setprecision(5) << a(2)
@@ -626,7 +594,6 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 				<< std::setw(12) << std::setprecision(5) << wp(2)
 				<< std::setw(12) << std::setprecision(5) << wp(3)
 				<< std::endl;
-#endif /* !HAVE_FORM_IN_OSTREAM */
 		}
 
 		Elem *p = NULL;
@@ -638,10 +605,6 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 					for (unsigned int part = 1; part <= p->iGetNumDummyParts(); part++) {
 						Vec3 a(0.), wp(0.);
 						
-#ifdef HAVE_FORM_IN_OSTREAM
-						out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
-								a(1), a(2), a(3), wp(1), wp(2), wp(3));
-#else /* !HAVE_FORM_IN_OSTREAM */
 						out 
 							<< std::setw(12) << std::setprecision(5) << a.dGet(1)
 							<< std::setw(12) << std::setprecision(5) << a.dGet(2)
@@ -650,7 +613,6 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 							<< std::setw(12) << std::setprecision(5) << wp.dGet(2)
 							<< std::setw(12) << std::setprecision(5) << wp.dGet(3)
 							<< std::endl;
-#endif /* HAVE_FORM_IN_OSTREAM */
 					}
 				}
 			} while (ElemIter.bGetNext(p));

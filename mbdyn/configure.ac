@@ -1973,25 +1973,6 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Checks whether ostream has form method
-dnl
-AC_LANG_CPLUSPLUS
-AC_MSG_CHECKING([whether class ostream has method 'form'])
-AC_TRY_COMPILE([#include <iostream.h>],[
-	cout.form("%d", 1);
-],[have_form=yes],[have_form=no])
-AC_LANG_C
-
-if test $have_form != no ; then
-	AC_DEFINE(HAVE_FORM_IN_OSTREAM,1,
-		[define if class ostream has 'form' method])
-	AC_MSG_RESULT([yes])
-else
-	AC_MSG_RESULT([no])
-fi
-
-dnl ----------------------------------------------------------------
-dnl
 dnl Checks whether cmath defines std::isfinite
 dnl
 AC_LANG_CPLUSPLUS
