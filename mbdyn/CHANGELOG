@@ -20,6 +20,8 @@ MBDyn 1.1 Engineering
 	Known bugs:
 		- there's a library cross-dependency that's not handled
 		  correctly by recent versions of libtool (e.g. 1.4.1).
+		- the modal element is skrewed when the modal node 
+		  is not clamped (under revision)
 
 
 MBDyn 1.1.1
