@@ -96,5 +96,7 @@ E. Bugs/missing features:
 F. Documentation:
 
 	- document the utilities in a separate man page
-	- unpdate and audit the user manual
+	- update and audit the user manual
+	- document output
+	- document element private data
 
