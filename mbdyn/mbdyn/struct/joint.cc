@@ -62,6 +62,7 @@
 #include <vehj2.h>     /* "" */
 #include <kinj.h>
 #include <beamslider.h>
+#include "brake.h"
 
 /* Provvisorio ?!? */
 #include <modal.h>
@@ -153,10 +154,11 @@ Elem* ReadJoint(DataManager* pDM,
       "prismatic",
       "drive" "hinge",
       "kinematic",
+      "beam" "slider",
+      "brake",
       
       "modal",
-
-      "beam" "slider",
+      
       "wheel2",
       
       NULL
@@ -196,10 +198,10 @@ Elem* ReadJoint(DataManager* pDM,
       PRISMATIC,
       DRIVEHINGE,
       KINEMATIC,
+      BEAMSLIDER,
+      BRAKE,
       
       MODAL,
-
-      BEAMSLIDER,
 
       WHEEL2,
       
@@ -498,6 +500,7 @@ Elem* ReadJoint(DataManager* pDM,
     case SPHERICALHINGE:
     case PLANEHINGE:
     case REVOLUTEHINGE:
+    case BRAKE:
     case REVOLUTEROTATION:
     case UNIVERSALHINGE:
     case UNIVERSALROTATION:
@@ -650,6 +653,31 @@ Elem* ReadJoint(DataManager* pDM,
 						  d1, d2, R1h, R2h, fOut,
 						  r, preload, bsh, bf));
 	   break;
+	}
+        case BRAKE: {
+	   if (!HP.IsKeyWord("friction")) {
+	   	silent_cerr("missing keyword \"friction\" at line "
+			<< HP.GetLineData() << std::endl);
+		THROW(ErrGeneric());
+	   }
+	   doublereal r = HP.GetReal();
+
+	   doublereal preload = 0.;
+	   if (HP.IsKeyWord("preload")) {
+		preload = HP.GetReal();
+	   }
+
+	   BasicFriction * bf = ParseFriction(HP,pDM);
+	   BasicShapeCoefficient * bsh = ParseShapeCoefficient(HP);
+	   
+	   DriveCaller *pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+	   
+	   SAFENEWWITHCONSTRUCTOR(pEl, 
+				  Brake,
+				  Brake(uLabel, pDO, pNode1, pNode2, 
+						  d1, d2, R1h, R2h, fOut,
+						  r, preload, bsh, bf, pDC));
+	   break; 
 	}
 
 	  /* allocazione e creazione cerniera piana senza vincolo in pos. */
@@ -1480,11 +1508,6 @@ Elem* ReadJoint(DataManager* pDM,
     }
 
       
-    case MODAL: {
-       pEl = ReadModal(pDM, HP, pDO, uLabel);
-       break;
-    }
-
     case BEAMSLIDER: {
        /* Corpo slittante */
        StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
@@ -1690,6 +1713,11 @@ Elem* ReadJoint(DataManager* pDM,
 			       f, R, fOut));
        break;
     }
+    
+    
+    case MODAL:
+       pEl = ReadModal(pDM, HP, pDO, uLabel);
+       break;
 
 
     case WHEEL2: {
