@@ -137,7 +137,7 @@ class Elem : public WithLabel, public ToBeOutput {
    virtual unsigned int iGetNumDof(void) const;
       
    /* esegue operazioni sui dof di proprieta' dell'elemento */
-   virtual DofOrder::Order SetDof(unsigned int i ) const;
+   virtual DofOrder::Order SetDof(unsigned int i) const;
 
    
    /* funzioni proprie */
