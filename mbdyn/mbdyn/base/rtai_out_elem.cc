@@ -66,6 +66,8 @@ host(h), node(n), port(-1), mbx(NULL)
 
 	if (node) {
 		/* get port ... */
+		port = rt_request_port(node);
+		/* FIXME: what in case of failure? */
 	}
 }
 
