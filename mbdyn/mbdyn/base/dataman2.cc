@@ -443,11 +443,14 @@ DataManager::InitialJointAssembly(void)
 				/* Iterazione sugli Elem */
 				Elem** ppEl = ppFirstEl;
 				for (int iCnt = 0;
-						pTmp < DofData[CurrDofType].pFirstDofOwner+iNumEls;
-						pTmp++, ppEl++, iCnt++) {
-					ASSERT((*ppEl)->pGetInitialAssemblyElem() != NULL);
-
-					iNumDofs = (*ppEl)->pGetInitialAssemblyElem()->iGetInitialNumDof();
+						pTmp < DofData[CurrDofType].pFirstDofOwner + iNumEls;
+						pTmp++, ppEl++, iCnt++)
+				{
+					InitialAssemblyElem *pEl = (*ppEl)->pGetInitialAssemblyElem();
+					if (pEl == 0) {
+						continue;
+					}
+					iNumDofs = pEl->iGetInitialNumDof();
 					pTmp->iNumDofs = iNumDofs;
 					if (iNumDofs > 0) {
 						pTmp->iFirstIndex = iIndex;

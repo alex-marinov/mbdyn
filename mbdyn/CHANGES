@@ -29,6 +29,8 @@ MBDyn 1.X-Devel
 		  and FreeBSD (patches from Kay Lehmann).
 		- fixed dynamic node accelerations postprocessing
 		- fixed compile with gcc3.2/icc8.0
+		- fixed initial assembly of inactive driven elements
+		  (noted by Israel Wander)
 
 MBDyn 1.2.3
 	Enhancements:

@@ -43,7 +43,7 @@
 
 #include "except.h"
 
-class DrivenElem : /* virtual */ public Elem, protected DriveOwner {
+class DrivenElem : public Elem, protected DriveOwner {
 protected: 
 	Elem* pElem;
  
@@ -78,7 +78,10 @@ public:
 
 	virtual InitialAssemblyElem* pGetInitialAssemblyElem(void) const { 
 		ASSERT(pElem != NULL);
-		return pElem->pGetInitialAssemblyElem();
+		if (dGet() != 0.) {
+			return pElem->pGetInitialAssemblyElem();
+		}
+   		return 0;
 	};
    
 	virtual void Output(OutputHandler& OH) const;

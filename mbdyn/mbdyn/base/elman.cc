@@ -621,7 +621,8 @@ CurrType(Elem::UNKNOWN), ppCurr(NULL)
 	int iCnt = 0;
 
 	while ((*pElemData)[iCnt].fToBeUsedInAssembly == 0
-			|| (*pElemData)[iCnt].iNum == 0) {
+			|| (*pElemData)[iCnt].iNum == 0)
+	{
 		if (++iCnt >= Elem::LASTELEMTYPE) {
 			break;
 		}
@@ -642,63 +643,57 @@ InitialAssemblyIterator::GetFirst(void) const
 	ppCurr = (Elem**)ppFirst;
 
 	/* La variabile temporanea e' necessaria per il debug. */
-	InitialAssemblyElem* p = (*ppCurr)->pGetInitialAssemblyElem();
-
+	InitialAssemblyElem* p;
+	for (p = (*ppCurr)->pGetInitialAssemblyElem();
+			p == 0;
+			p = GetNext())
+	{
 #ifdef DEBUG
-	ASSERT(p != NULL);
-	if (p == NULL) {
-		std::cerr << "warning, element " << (*ppCurr)->GetLabel()
-			<< " is not subject to initial assembly" << std::endl;
-	}
+		if (p == NULL) {
+			silent_cerr(psElemNames[(*ppCurr)->GetElemType()]
+				<< "(" << (*ppCurr)->GetLabel() << ")"
+				" is not subject to initial assembly" << std::endl);
+		}
 #endif
+	}
 
 	return p;
 }
 
 InitialAssemblyElem* InitialAssemblyIterator::GetNext(void) const
 {
-	ppCurr++;
-	if (ppCurr >= (*pElemData)[CurrType].ppFirstElem
-			+ (*pElemData)[CurrType].iNum) {
-		int iCnt = int(CurrType);
+	InitialAssemblyElem* p = 0;
+	do {
+		ppCurr++;
+		if (ppCurr >= (*pElemData)[CurrType].ppFirstElem
+				+ (*pElemData)[CurrType].iNum)
+		{
+			int iCnt = int(CurrType);
 
-		do {
-			if (++iCnt >= Elem::LASTELEMTYPE) {
-				return NULL;
-			}
-		} while ((*pElemData)[iCnt].fToBeUsedInAssembly == 0
-				|| (*pElemData)[iCnt].iNum == 0);
+			do {
+				if (++iCnt >= Elem::LASTELEMTYPE) {
+					return NULL;
+				}
+			} while ((*pElemData)[iCnt].fToBeUsedInAssembly == 0
+					|| (*pElemData)[iCnt].iNum == 0);
 
-		ASSERT((*pElemData)[iCnt].ppFirstElem != NULL);
-		CurrType = Elem::Type(iCnt);
-		ppCurr = (*pElemData)[iCnt].ppFirstElem;
+			ASSERT((*pElemData)[iCnt].ppFirstElem != NULL);
+			CurrType = Elem::Type(iCnt);
+			ppCurr = (*pElemData)[iCnt].ppFirstElem;
+		}
 
 		/* La variabile temporanea e' necessaria per il debug. */
-		InitialAssemblyElem* p = (*ppCurr)->pGetInitialAssemblyElem();
+		p = (*ppCurr)->pGetInitialAssemblyElem();
 
 #ifdef DEBUG
-		ASSERT(p != NULL);
-		if (p == NULL) {
-			std::cerr << "warning, element "
-				<< (*ppCurr)->GetLabel()
-				<< " is not subjected to initial assembly"
-				<< std::endl;
+		if (p == 0) {
+			silent_cerr(psElemNames[(*ppCurr)->GetELemType()]
+				<< "(" << (*ppCurr)->GetLabel() << ")"
+				" is not subjected to initial assembly"
+				<< std::endl);
 		}
 #endif
-
-		return p;
-	}
-
-	/* La variabile temporanea e' necessaria per il debug. */
-	InitialAssemblyElem* p = (*ppCurr)->pGetInitialAssemblyElem();
-
-#ifdef DEBUG
-	ASSERT(p != NULL);
-	if (p == NULL) {
-		std::cerr << "warning, element " << (*ppCurr)->GetLabel()
-			<< " is not subject to initial assembly" << std::endl;
-	}
-#endif
+	} while (p == 0);
 
 	return p;
 }
