@@ -38,15 +38,24 @@
 #include <error.h>
 #include <sys/ioctl.h>
 
+#include <ac/pthread.h>
+
 #include <iostream>
+
+static bool		mbdyn_task2cpu_disabled = false;
+#ifdef HAVE_THREADS
+static pthread_mutex_t	mbdyn_task2cpu_mutex_t = PTHREAD_MUTEX_INITIALIZER;
+#endif /* HAVE_THREADS */
 
 int
 mbdyn_task2cpu(int cpu)
 {
-	static bool	disabled = false;
 	int		fd = -1;
 
-	if (!disabled) {
+#ifdef HAVE_THREADS
+	pthread_mutex_lock(&::mbdyn_task2cpu_mutex_t);
+#endif /* HAVE_THREADS */
+	if (!::mbdyn_task2cpu_disabled) {
 #ifdef HAVE_TASK2CPU
 		fd = open("/dev/TASK2CPU", O_RDWR);
 		if (fd != -1) {
@@ -60,13 +69,16 @@ mbdyn_task2cpu(int cpu)
 			silent_cerr("Error opening /dev/TASK2CPU ("
 					<< save_errno << ": " << err_msg << ";"
 				       " ignored)" << std::endl);
-			disabled = true;
+			::mbdyn_task2cpu_disabled = true;
 		}
 #else /* ! HAVE_TASK2CPU */
 		silent_cerr("/dev/TASK2CPU is not available" << std::endl);
-		disabled = true;
+		::mbdyn_task2cpu_disabled = true;
 #endif /* ! HAVE_TASK2CPU */
 	}
+#ifdef HAVE_THREADS
+	pthread_mutex_unlock(&::mbdyn_task2cpu_mutex_t);
+#endif /* HAVE_THREADS */
 
 	return (fd == -1);
 }
