@@ -95,6 +95,7 @@ class Beam
     /* Offset dei nodi */
     Vec3 f[NUMNODES];
     Vec3 fRef[NUMNODES];
+    Mat3x3 RNode[NUMNODES];
    
     /* Matrice di rotazione delle sezioni - non sono const perche' vengono
      * aggiornate ad ogni iterazione */
@@ -213,6 +214,7 @@ class Beam
     Beam(unsigned int uL, 
 	 const StructNode* pN1, const StructNode* pN2, const StructNode* pN3,
 	 const Vec3& F1, const Vec3& F2, const Vec3& F3,
+	 const Mat3x3& R1, const Mat3x3& R2, const Mat3x3& R3,
 	 const Mat3x3& r_I, const Mat3x3& rII,
 	 const ConstitutiveLaw6D* pD_I, const ConstitutiveLaw6D* pDII,
 	 flag fOut);
@@ -221,6 +223,7 @@ class Beam
     Beam(unsigned int uL, 
 	 const StructNode* pN1, const StructNode* pN2, const StructNode* pN3,
 	 const Vec3& F1, const Vec3& F2, const Vec3& F3,
+	 const Mat3x3& R1, const Mat3x3& R2, const Mat3x3& R3,
 	 const Mat3x3& r_I, const Mat3x3& rII,
 	 const ConstitutiveLaw6D* pD_I, const ConstitutiveLaw6D* pDII,
 	 doublereal dM_I,
@@ -445,6 +448,9 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
 	             const Vec3& F1, 
 		     const Vec3& F2, 
 		     const Vec3& F3,
+		     const Mat3x3& R1,
+		     const Mat3x3& R2,
+		     const Mat3x3& R3,
 	             const Mat3x3& r_I, 
 		     const Mat3x3& rII,
 	             const ConstitutiveLaw6D* pD_I, 
@@ -459,6 +465,9 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
 		     const Vec3& F1,
 		     const Vec3& F2,
 		     const Vec3& F3,
+		     const Mat3x3& R1,
+		     const Mat3x3& R2,
+		     const Mat3x3& R3,
 		     const Mat3x3& r_I,
 		     const Mat3x3& rII,
 		     const ConstitutiveLaw6D* pD_I,

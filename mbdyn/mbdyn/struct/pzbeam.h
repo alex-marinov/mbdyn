@@ -67,6 +67,7 @@ class PiezoActuatorBeam : public Beam {
    PiezoActuatorBeam(unsigned int uL,
 		     const StructNode* pN1, const StructNode* pN2, const StructNode* pN3,
 		     const Vec3& F1, const Vec3& F2, const Vec3& F3,
+		     const Mat3x3& R1, const Mat3x3& R2, const Mat3x3& R3,
 		     const Mat3x3& r_I, const Mat3x3& rII,
 		     const ConstitutiveLaw6D* pD_I, const ConstitutiveLaw6D* pDII,
 		     int iEl,
@@ -168,6 +169,7 @@ class PiezoActuatorVEBeam : public ViscoElasticBeam {
    PiezoActuatorVEBeam(unsigned int uL,
 		       const StructNode* pN1, const StructNode* pN2, const StructNode* pN3,
 		       const Vec3& F1, const Vec3& F2, const Vec3& F3,
+		       const Mat3x3& R1, const Mat3x3& R2, const Mat3x3& R3,
 		       const Mat3x3& r_I, const Mat3x3& rII,
 		       const ConstitutiveLaw6D* pD_I, const ConstitutiveLaw6D* pDII,
 		       int iEl,
@@ -235,4 +237,5 @@ class PiezoActuatorVEBeam : public ViscoElasticBeam {
 
 /* PiezoActuatorVEBeam - end */
 
-#endif // PZBEAM_H
+#endif /* PZBEAM_H */
+

@@ -64,6 +64,9 @@ Beam::Beam(unsigned int uL,
 	   const Vec3& F1,
 	   const Vec3& F2,
 	   const Vec3& F3,
+	   const Mat3x3& R1,
+	   const Mat3x3& R2,
+	   const Mat3x3& R3,
 	   const Mat3x3& r_I,
 	   const Mat3x3& rII,
 	   const ConstitutiveLaw6D* pD_I,
@@ -88,6 +91,9 @@ fFirstRes(1)
     (Vec3&)f[NODE1] = F1;
     (Vec3&)f[NODE2] = F2;
     (Vec3&)f[NODE3] = F3;
+    (Mat3x3&)RNode[NODE1] = R1;
+    (Mat3x3&)RNode[NODE2] = R2;
+    (Mat3x3&)RNode[NODE3] = R3;
     RRef[S_I] = R[S_I] = (Mat3x3&)r_I;
     RRef[SII] = R[SII] = (Mat3x3&)rII;
   
@@ -140,6 +146,9 @@ Beam::Beam(unsigned int uL,
 	   const Vec3& F1,
 	   const Vec3& F2,
 	   const Vec3& F3,
+	   const Mat3x3& R1,
+	   const Mat3x3& R2,
+	   const Mat3x3& R3,
 	   const Mat3x3& r_I,
 	   const Mat3x3& rII,
 	   const ConstitutiveLaw6D* pD_I,
@@ -170,6 +179,9 @@ fFirstRes(1)
     (Vec3&)f[NODE1] = F1;
     (Vec3&)f[NODE2] = F2;
     (Vec3&)f[NODE3] = F3;
+    (Mat3x3&)RNode[NODE1] = R1;
+    (Mat3x3&)RNode[NODE2] = R2;
+    (Mat3x3&)RNode[NODE3] = R3;
     RRef[S_I] = R[S_I] = (Mat3x3&)r_I;
     RRef[SII] = R[SII] = (Mat3x3&)rII;
 
@@ -315,7 +327,7 @@ Beam::Omega0(void)
     Mat3x3 RNod[NUMNODES];
     Vec3 w[NUMNODES];
     for (unsigned int i = 0; i < NUMNODES; i++) {     
-        RNod[i] = pNode[i]->GetRCurr();
+        RNod[i] = pNode[i]->GetRCurr()*RNode[i];
         w[i] = pNode[i]->GetWCurr();
     }
    
@@ -920,17 +932,24 @@ Beam::WriteAdamsDummyPartCmd(ostream& out, unsigned int part, unsigned int first
 /* ViscoElasticBeam - begin */
 
 /* Costruttore normale */
-ViscoElasticBeam::ViscoElasticBeam(unsigned int uL, 
-				   const StructNode* pN1, 
-				   const StructNode* pN2, 
-				   const StructNode* pN3,
-				   const Vec3& F1, const Vec3& F2, const Vec3& F3,
-				   const Mat3x3& r_I, const Mat3x3& rII,
-				   const ConstitutiveLaw6D* pD_I, 
-				   const ConstitutiveLaw6D* pDII,
-				   flag fOut)
-: Elem(uL, Elem::BEAM, fOut),
-Beam(uL, pN1, pN2, pN3, F1, F2, F3, r_I, rII, pD_I, pDII, fOut)
+ViscoElasticBeam::ViscoElasticBeam(
+		unsigned int uL, 
+		const StructNode* pN1, 
+		const StructNode* pN2, 
+		const StructNode* pN3,
+		const Vec3& F1,
+		const Vec3& F2,
+		const Vec3& F3,
+		const Mat3x3& R1,
+		const Mat3x3& R2,
+		const Mat3x3& R3,
+		const Mat3x3& r_I,
+		const Mat3x3& rII,
+		const ConstitutiveLaw6D* pD_I, 
+		const ConstitutiveLaw6D* pDII,
+		flag fOut
+) : Elem(uL, Elem::BEAM, fOut),
+Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII, fOut)
 {   
    SetBeamType(Beam::VISCOELASTIC);
 
@@ -948,23 +967,27 @@ Beam(uL, pN1, pN2, pN3, F1, F2, F3, r_I, rII, pD_I, pDII, fOut)
 
 
 /* Costruttore per la trave con forze d'inerzia consistenti */
-ViscoElasticBeam::ViscoElasticBeam(unsigned int uL, 
-				   const StructNode* pN1, 
-				   const StructNode* pN2, 
-				   const StructNode* pN3,
-				   const Vec3& F1, 
-				   const Vec3& F2, 
-				   const Vec3& F3,
-				   const Mat3x3& r_I, const Mat3x3& rII,
-				   const ConstitutiveLaw6D* pD_I, 
-				   const ConstitutiveLaw6D* pDII,
-				   doublereal dM_I,
-				   const Mat3x3& s0_I, const Mat3x3& j0_I,
-				   doublereal dMII,
-				   const Mat3x3& s0II, const Mat3x3& j0II,
-				   flag fOut)
-: Elem(uL, Elem::BEAM, fOut),
-Beam(uL, pN1, pN2, pN3, F1, F2, F3, r_I, rII, pD_I, pDII,
+ViscoElasticBeam::ViscoElasticBeam(
+		unsigned int uL, 
+		const StructNode* pN1, 
+		const StructNode* pN2, 
+		const StructNode* pN3,
+		const Vec3& F1, 
+		const Vec3& F2, 
+		const Vec3& F3,
+		const Mat3x3& R1,
+		const Mat3x3& R2,
+		const Mat3x3& R3,
+		const Mat3x3& r_I, const Mat3x3& rII,
+		const ConstitutiveLaw6D* pD_I, 
+		const ConstitutiveLaw6D* pDII,
+		doublereal dM_I,
+		const Mat3x3& s0_I, const Mat3x3& j0_I,
+		doublereal dMII,
+		const Mat3x3& s0II, const Mat3x3& j0II,
+		flag fOut
+) : Elem(uL, Elem::BEAM, fOut),
+Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII,
      dM_I, s0_I, j0_I, dMII, s0II, j0II, fOut)
 {
    SetBeamType(Beam::VISCOELASTIC);
@@ -1382,6 +1405,10 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    
    Mat3x3 R1(pNode1->GetRCurr());   
    Vec3 f1(HP.GetPosRel(ReferenceFrame(pNode1)));
+   Mat3x3 Rn1(Eye3);
+   if (HP.IsKeyWord("rot")) {
+	   Rn1 = HP.GetRotRel(ReferenceFrame(pNode1));
+   }
         
    DEBUGLCOUT(MYDEBUG_INPUT, "node 1 offset (node reference frame): " 
 	      << f1 << endl
@@ -1393,6 +1420,10 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    
    Mat3x3 R2(pNode2->GetRCurr());
    Vec3 f2(HP.GetPosRel(ReferenceFrame(pNode2)));
+   Mat3x3 Rn2(Eye3);
+   if (HP.IsKeyWord("rot")) {
+	   Rn2 = HP.GetRotRel(ReferenceFrame(pNode2));
+   }
          
    DEBUGLCOUT(MYDEBUG_INPUT, "node 2 offset (node reference frame): " 
 	      << f2 << endl
@@ -1404,6 +1435,10 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    
    Mat3x3 R3(pNode3->GetRCurr());   
    Vec3 f3(HP.GetPosRel(ReferenceFrame(pNode3)));
+   Mat3x3 Rn3(Eye3);
+   if (HP.IsKeyWord("rot")) {
+	   Rn3 = HP.GetRotRel(ReferenceFrame(pNode3));
+   }
    
    DEBUGLCOUT(MYDEBUG_INPUT, "node 3 offset (node reference frame): " 
 	      << f3 << endl
@@ -1550,10 +1585,11 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    
    
    /* Se necessario, interpola i parametri di rotazione delle sezioni */
-   if (f_I || fII) {		
-      Vec3 g1(gparam(R2.Transpose()*R1));
-      Vec3 g3(gparam(R2.Transpose()*R3));
-      if (f_I) {	     
+   if (f_I || fII) {
+      Mat3x3 RT((R2*Rn2).Transpose());
+      Vec3 g1(gparam(RT*(R1*Rn1)));
+      Vec3 g3(gparam(RT*(R3*Rn3)));
+      if (f_I) {
 	 R_I = R2*Mat3x3(Beam::InterpState(g1, 0., g3, Beam::S_I));
       }
       if (fII) {
@@ -1575,6 +1611,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				Beam(uLabel,
 				     pNode1, pNode2, pNode3,
 				     f1, f2, f3,
+				     Rn1, Rn2, Rn3,
 				     R_I, RII,
 				     pD_I, pDII,
 				     fOut),
@@ -1586,6 +1623,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				PiezoActuatorBeam(uLabel,
 						  pNode1, pNode2, pNode3,
 						  f1, f2, f3,
+						  Rn1, Rn2, Rn3,
 						  R_I, RII,
 						  pD_I, pDII,
 						  iNumElec,
@@ -1608,6 +1646,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				ViscoElasticBeam(uLabel,
 						 pNode1, pNode2, pNode3,
 						 f1, f2, f3,
+						 Rn1, Rn2, Rn3,
 						 R_I, RII,
 						 pD_I, pDII,
 						 fOut),
@@ -1619,6 +1658,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				PiezoActuatorVEBeam(uLabel,
 						    pNode1, pNode2, pNode3,
 						    f1, f2, f3,
+						    Rn1, Rn2, Rn3,
 						    R_I, RII,
 						    pD_I, pDII,
 						    iNumElec,
@@ -1660,3 +1700,4 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    
    return pEl;
 } /* End of ReadBeam() */
+

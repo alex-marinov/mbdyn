@@ -109,18 +109,27 @@ void PiezoActuatorBeam::AddInternalForces(Vec6& AzLoc, unsigned int iSez)
       
 
 /* Costruttore normale */
-PiezoActuatorBeam::PiezoActuatorBeam(unsigned int uL,
-				     const StructNode* pN1, const StructNode* pN2, const StructNode* pN3,
-				     const Vec3& F1, const Vec3& F2, const Vec3& F3,
-				     const Mat3x3& r_I, const Mat3x3& rII,
-				     const ConstitutiveLaw6D* pD_I, const ConstitutiveLaw6D* pDII,
-				     int iEl,
-				     ScalarDifferentialNode** pEDof,
-				     const Mat3xN& T_Ie, const Mat3xN& T_Ik,
-				     const Mat3xN& TIIe, const Mat3xN& TIIk,
-				     flag fOut)
-: Elem(uL, Elem::BEAM, fOut),
-Beam(uL, pN1, pN2, pN3, F1, F2, F3, r_I, rII, pD_I, pDII, fOut),
+PiezoActuatorBeam::PiezoActuatorBeam(
+		unsigned int uL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const StructNode* pN3,
+		const Vec3& F1,
+		const Vec3& F2,
+		const Vec3& F3,
+		const Mat3x3& R1,
+		const Mat3x3& R2,
+		const Mat3x3& R3,
+		const Mat3x3& r_I, const Mat3x3& rII,
+		const ConstitutiveLaw6D* pD_I,
+		const ConstitutiveLaw6D* pDII,
+		int iEl,
+		ScalarDifferentialNode** pEDof,
+		const Mat3xN& T_Ie, const Mat3xN& T_Ik,
+		const Mat3xN& TIIe, const Mat3xN& TIIk,
+		flag fOut
+) : Elem(uL, Elem::BEAM, fOut),
+Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII, fOut),
 iNumElec(iEl), pvElecDofs(pEDof), V(iEl)
 {
 #ifdef DEBUG
@@ -338,18 +347,31 @@ void PiezoActuatorVEBeam::AddInternalForces(Vec6& AzLoc, unsigned int iSez)
       
 
 /* Costruttore normale */
-PiezoActuatorVEBeam::PiezoActuatorVEBeam(unsigned int uL,
-					 const StructNode* pN1, const StructNode* pN2, const StructNode* pN3,
-					 const Vec3& F1, const Vec3& F2, const Vec3& F3,
-					 const Mat3x3& r_I, const Mat3x3& rII,
-					 const ConstitutiveLaw6D* pD_I, const ConstitutiveLaw6D* pDII,
-					 int iEl,
-					 ScalarDifferentialNode** pEDof,
-					 const Mat3xN& T_Ie, const Mat3xN& T_Ik,
-					 const Mat3xN& TIIe, const Mat3xN& TIIk,
-					 flag fOut)
-: Elem(uL, Elem::BEAM, fOut),
-ViscoElasticBeam(uL, pN1, pN2, pN3, F1, F2, F3, r_I, rII, pD_I, pDII, fOut),
+PiezoActuatorVEBeam::PiezoActuatorVEBeam(
+		unsigned int uL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const StructNode* pN3,
+		const Vec3& F1,
+		const Vec3& F2,
+		const Vec3& F3,
+		const Mat3x3& R1,
+		const Mat3x3& R2,
+		const Mat3x3& R3,
+		const Mat3x3& r_I,
+		const Mat3x3& rII,
+		const ConstitutiveLaw6D* pD_I,
+		const ConstitutiveLaw6D* pDII,
+		int iEl,
+		ScalarDifferentialNode** pEDof,
+		const Mat3xN& T_Ie,
+		const Mat3xN& T_Ik,
+		const Mat3xN& TIIe,
+		const Mat3xN& TIIk,
+		flag fOut
+) : Elem(uL, Elem::BEAM, fOut),
+ViscoElasticBeam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3,
+		r_I, rII, pD_I, pDII, fOut),
 iNumElec(iEl), pvElecDofs(pEDof), V(iEl)
 {
 #ifdef DEBUG

@@ -63,6 +63,8 @@ Beam2::Beam2(unsigned int uL,
 		const StructNode* pN2,
 		const Vec3& F1,
 		const Vec3& F2,
+		const Mat3x3& R1,
+		const Mat3x3& R2,
 		const Mat3x3& r,
 		const ConstitutiveLaw6D* pd,
 		flag fOut)
@@ -82,6 +84,8 @@ fFirstRes(1)
 	pNode[NODE2] = pN2;
 	(Vec3&)f[NODE1] = F1;
 	(Vec3&)f[NODE2] = F2;
+	(Mat3x3&)RNode[NODE1] = R1;
+	(Mat3x3&)RNode[NODE2] = R2;
 	RRef = R = (Mat3x3&)r;
 	
 	pD = NULL; 
@@ -187,7 +191,7 @@ Beam2::Omega0(void)
 	Mat3x3 RNod[NUMNODES];
 	Vec3 w[NUMNODES];
 	for (unsigned int i = 0; i < NUMNODES; i++) {     
-		RNod[i] = pNode[i]->GetRCurr();
+		RNod[i] = pNode[i]->GetRCurr()*RNode[i];
 		w[i] = pNode[i]->GetWCurr();
 	}
 	
@@ -195,7 +199,6 @@ Beam2::Omega0(void)
 	 * Calcolo i parametri di rotazione della rotazione relativa
 	 * tra inizio e fine e li dimezzo nell'ipotesi che siano limitati
 	 */
-#if 0
 	Vec3 gTmp(gparam(RNod[NODE2].Transpose()*RNod[NODE1]));
 	
 	/*
@@ -206,11 +209,12 @@ Beam2::Omega0(void)
 
         Vec3 gPTmp(g1P*dN2[NODE1]+g2P*dN2[NODE2]);
         Omega = Mat3x3(MatG, gTmp)*gPTmp;
-#endif /* 0 */
 	
+#if 0
 	/* Modo brutale: interpolo le velocita' dei nodi */
 	Omega = pNode[NODE1]->GetWCurr()*dN2[NODE1]
 		+pNode[NODE2]->GetWCurr()*dN2[NODE2];
+#endif /* 0 */
 }
 
 
@@ -682,11 +686,13 @@ ViscoElasticBeam2::ViscoElasticBeam2(unsigned int uL,
 		const StructNode* pN2, 
 		const Vec3& F1,
 		const Vec3& F2,
+		const Mat3x3& R1,
+		const Mat3x3& R2,
 		const Mat3x3& r,
 		const ConstitutiveLaw6D* pd, 
 		flag fOut)
 : Elem(uL, Elem::BEAM, fOut),
-Beam2(uL, pN1, pN2, F1, F2, r, pd, fOut)
+Beam2(uL, pN1, pN2, F1, F2, R1, R2, r, pd, fOut)
 {
 	SetBeamType(Beam::VISCOELASTIC);
 	
@@ -1073,6 +1079,10 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	
 	Mat3x3 R1(pNode1->GetRCurr());   
 	Vec3 f1(HP.GetPosRel(ReferenceFrame(pNode1)));
+	Mat3x3 Rn1(Eye3);
+	if (HP.IsKeyWord("rot")) {
+		Rn1 = HP.GetRotRel(ReferenceFrame(pNode1));
+	}
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "node 1 offset (node reference frame): " 
 			<< f1 << endl << "(global frame): "
@@ -1083,6 +1093,10 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	
 	Mat3x3 R2(pNode2->GetRCurr());
 	Vec3 f2(HP.GetPosRel(ReferenceFrame(pNode2)));
+	Mat3x3 Rn2(Eye3);
+	if (HP.IsKeyWord("rot")) {
+		Rn2 = HP.GetRotRel(ReferenceFrame(pNode2));
+	}
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "node 2 offset (node reference frame): " 
 			<< f2 << endl << "(global frame): "
@@ -1168,9 +1182,10 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	
 	
 	/* Se necessario, interpola i parametri di rotazione delle sezioni */
-	if (f) {		
-		Vec3 g(gparam(R2.Transpose()*R1)*.5);
-		R = R2*Mat3x3(MatR, g);
+	if (f) {
+		Mat3x3 RR2 = R2*Rn2;
+		Vec3 g(gparam(RR2.Transpose()*(R1*Rn1))*.5);
+		R = RR2*Mat3x3(MatR, g);
 	}
 	
 	Elem* pEl = NULL;
@@ -1184,6 +1199,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					Beam2(uLabel,
 						pNode1, pNode2,
 						f1, f2,
+						R1, R2,
 						R,
 						pD,
 						fOut),
@@ -1195,6 +1211,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					PiezoActuatorBeam2(uLabel,
 						pNode1, pNode2,
 						f1, f2,
+						R1, R2,
 						R,
 						pD,
 						iNumElec,
@@ -1215,6 +1232,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					ViscoElasticBeam2(uLabel,
 						pNode1, pNode2,
 						f1, f2,
+						R1, R2,
 						R,
 						pD,
 						fOut),
@@ -1226,6 +1244,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					PiezoActuatorVEBeam2(uLabel,
 						pNode1, pNode2,
 						f1, f2,
+						R1, R2,
 						R,
 						pD,
 						iNumElec,

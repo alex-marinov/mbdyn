@@ -68,6 +68,7 @@ class Beam2
     /* Offset dei nodi */
     Vec3 f[NUMNODES];
     Vec3 fRef[NUMNODES];
+    Mat3x3 RNode[NUMNODES];
    
     /* Matrice di rotazione delle sezioni - non sono const perche' vengono
      * aggiornate ad ogni iterazione */
@@ -171,6 +172,7 @@ class Beam2
     Beam2(unsigned int uL, 
 	 const StructNode* pN1, const StructNode* pN2,
 	 const Vec3& F1, const Vec3& F2,
+	 const Mat3x3& R1, const Mat3x3& R2,
 	 const Mat3x3& r,
 	 const ConstitutiveLaw6D* pd,
 	 flag fOut);
@@ -372,6 +374,8 @@ class ViscoElasticBeam2 : virtual public Elem, public Beam2 {
 		     const StructNode* pN2, 
 	             const Vec3& F1, 
 		     const Vec3& F2, 
+		     const Mat3x3& R1,
+		     const Mat3x3& R2,
 	             const Mat3x3& r, 
 	             const ConstitutiveLaw6D* pd, 
 		     flag fOut);
