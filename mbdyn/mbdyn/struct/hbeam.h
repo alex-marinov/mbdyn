@@ -47,7 +47,9 @@
 #include "constltp.h"
 
 // #define VISCOELASTIC_BEAM /* uncomment when ViscoElasticBeam is available */
+#undef VISCOELASTIC_BEAM
 // #define PIEZO_BEAM /* uncomment when PiezoBeam is available */
+#undef PIEZO_BEAM
 
 /* Beam - begin */
 
@@ -71,6 +73,9 @@ class HBeam
     /* Offset dei nodi */
     Vec3 f[NUMNODES];
     Vec3 fRef[NUMNODES];
+
+    /* Matarici di rotazione iniziali dei nodi */
+    Mat3x3 Rn[NUMNODES];
    
     /* Matrice di rotazione delle sezioni - non sono const perche' vengono
      * aggiornate ad ogni iterazione */
@@ -106,6 +111,31 @@ class HBeam
    
     /* Is first res? */
     flag fFirstRes;
+
+    /* Temporanei per interpolazione elicoidale */
+    /* posiz. punto medio:		p */
+    /* orientazione punto medio:	R */
+    /* F (dp/ds)			L */
+    /* assiale di dR/ds*R^T		Rho */
+    Vec3 Rho;
+    Vec3 Rho0;
+    /* derivate di p e L rispetto a p e PhiDelta,
+     * di R e Rho rispetto a PhiDelta */
+    Mat3x3 pdp[NUMNODES];
+    Mat3x3 pdP[NUMNODES];
+    Mat3x3 Ldp[NUMNODES];
+    Mat3x3 LdP[NUMNODES];
+    Mat3x3 RdP[NUMNODES];
+    Mat3x3 RhodP[NUMNODES];
+
+    /*
+     * Nota: Rho0 e L0 non sono derivate "iniziali" nel sistema iniziale,
+     * ma nel sistema del materiale: "L0" = R0^T L0, "Rho0" = R0^T Rho0
+     */
+
+    /* pesi e derivate */
+    doublereal w[NUMNODES];
+    doublereal wder[NUMNODES];
 
     /* Funzioni di calcolo delle matrici */
     virtual void 

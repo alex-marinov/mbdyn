@@ -13,7 +13,7 @@ planej.h     prismj.cc    prismj.h     pzbeam.cc   pzbeam.h     rodj.cc \
 rodj.h       spherj.cc    spherj.h     strnode.cc  strnode.h    univj.cc \
 univj.h      vehj.cc      vehj.h       vehj2.cc    vehj2.h \
 beam2.h      beam2.cc     pzbeam2.h    pzbeam2.cc  shapefnc.h   shapefnc.cc \
-hbeam.h      hbeam.cc     hbeam_interp.cc
+hbeam.h      hbeam.cc     hbeam_interp.cc hbeam_interp.h
 
 libstruct_la_LIBADD = @LIBS@
 libstruct_la_LDFLAGS = -static

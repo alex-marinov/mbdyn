@@ -73,6 +73,14 @@
 // Dopo l'uscita bisogna convertire gli or_delta nodali 
 // in delta_parametri_or
 
+/*
+ * Enum puramente locale
+ */
+enum {
+	NODE1 = 0,
+	NODE2 = 1,
+	NUMNODES = 2	/* serve eventualmente per dimensionare arrays */
+};
 
 void ComputeInterpolation(const Vec3 *const node_pos,
 			const Mat3x3 *const node_or,
@@ -88,12 +96,12 @@ void ComputeInterpolation(const Vec3 *const node_pos,
 			Mat3x3 *const delta_om_ws_or,
 			Mat3x3 *const delta_F_ws_or,
 			Mat3x3 *const delta_F_ws_pos) {
-	MatExp n1(node_or[0],Mat3x3(node_pos[0])*node_or[0]);
-	MatExp n2(node_or[1],Mat3x3(node_pos[1])*node_or[1]);
+	MatExp n1(node_or[NODE1],Mat3x3(node_pos[NODE1])*node_or[NODE1]);
+	MatExp n2(node_or[NODE2],Mat3x3(node_pos[NODE2])*node_or[NODE2]);
 	MatExp n12(n2*(n1.Transpose()));
 	//VecExp e1(0.);
 	VecExp e2(RoTrManip::Helix(n12));
-	VecExp we2(e2*w[1]);
+	VecExp we2(e2*w[NODE2]);
 	MatExp E12, Theta12;
 	RoTrManip::RoTrAndDRoTr(we2,E12,Theta12);
 	MatExp E(E12*n1);
@@ -101,49 +109,82 @@ void ComputeInterpolation(const Vec3 *const node_pos,
 	pos = (E.GetMom()*(or.Transpose())).Ax();
 	
 	
-	MatExp Theta2I(RoTrManip::DRoTr_It(e2).Transpose());
+	MatExp Theta2I(RoTrManip::DRoTr_I(e2));
 	MatExp d1, d2;
 	MatExp Wd1, Wd2;
 	d1 = Theta12;
 	d2 = Theta12*Theta2I;
-	Wd1 = d1*w[0];
-	Wd2 = d2*w[1];
-	or_delta_w_or[0] = Wd1.GetVec();
-	or_delta_w_or[1] = Wd2.GetVec();
+	Wd1 = d1*w[NODE1];
+	Wd2 = d2*w[NODE2];
+	or_delta_w_or[NODE1] = Wd1.GetVec();
+	or_delta_w_or[NODE2] = Wd2.GetVec();
 	
-	delta_pos_w_or[0] = Wd1.GetMom();
-	delta_pos_w_or[0] += Wd1.GetVec()*Mat3x3(node_pos[0]);
-	delta_pos_w_or[0] -= pos.Cross(Wd1.GetVec());
-	delta_pos_w_or[1] = Wd2.GetMom();
-	delta_pos_w_or[1] += Wd2.GetVec()*Mat3x3(node_pos[1]);
-	delta_pos_w_or[1] -= pos.Cross(Wd2.GetVec());
+	delta_pos_w_or[NODE1] = Wd1.GetMom();
+	delta_pos_w_or[NODE1] += Wd1.GetVec()*Mat3x3(node_pos[NODE1]);
+	delta_pos_w_or[NODE1] -= pos.Cross(Wd1.GetVec());
+	delta_pos_w_or[NODE2] = Wd2.GetMom();
+	delta_pos_w_or[NODE2] += Wd2.GetVec()*Mat3x3(node_pos[NODE2]);
+	delta_pos_w_or[NODE2] -= pos.Cross(Wd2.GetVec());
 	
-	delta_pos_w_pos[0] = Wd1.GetVec();
-	delta_pos_w_pos[1] = Wd2.GetVec();
+	delta_pos_w_pos[NODE1] = Wd1.GetVec();
+	delta_pos_w_pos[NODE2] = Wd2.GetVec();
 		
-	VecExp kappa(Theta12*(e2*wder[1]));
+	VecExp kappa(Theta12*(e2*wder[NODE2]));
 	om = kappa.GetVec();
 	F = kappa.GetMom();
 	F -= pos.Cross(om); /* :) */
 	
-	Wd1 = d1*wder[0];
-	Wd2 = d2*wder[1];
+	Wd1 = d1*wder[NODE1];
+	Wd2 = d2*wder[NODE2];
 	
-	delta_om_ws_or[0] = Wd1.GetVec();
-	delta_om_ws_or[1] = Wd2.GetVec();
+	delta_om_ws_or[NODE1] = Wd1.GetVec();
+	delta_om_ws_or[NODE2] = Wd2.GetVec();
 	
-	delta_F_ws_or[0] = Wd1.GetVec()*Mat3x3(node_pos[0]);
-	delta_F_ws_or[1] = Wd2.GetVec()*Mat3x3(node_pos[1]);
-	delta_F_ws_or[0] += Wd1.GetMom();
-	delta_F_ws_or[1] += Wd2.GetMom();
-	delta_F_ws_or[0] += om.Cross(delta_pos_w_or[0]);
-	delta_F_ws_or[1] += om.Cross(delta_pos_w_or[1]);
-	delta_F_ws_or[0] -= pos.Cross(delta_om_ws_or[0]);
-	delta_F_ws_or[1] -= pos.Cross(delta_om_ws_or[1]);
+	delta_F_ws_or[NODE1] = Wd1.GetVec()*Mat3x3(node_pos[NODE1]);
+	delta_F_ws_or[NODE2] = Wd2.GetVec()*Mat3x3(node_pos[NODE2]);
+	delta_F_ws_or[NODE1] += Wd1.GetMom();
+	delta_F_ws_or[NODE2] += Wd2.GetMom();
+	delta_F_ws_or[NODE1] += om.Cross(delta_pos_w_or[NODE1]);
+	delta_F_ws_or[NODE2] += om.Cross(delta_pos_w_or[NODE2]);
+	delta_F_ws_or[NODE1] -= pos.Cross(delta_om_ws_or[NODE1]);
+	delta_F_ws_or[NODE2] -= pos.Cross(delta_om_ws_or[NODE2]);
 	
-	delta_F_ws_pos[0] = Wd1.GetVec();
-	delta_F_ws_pos[1] = Wd2.GetVec();
-	delta_F_ws_or[0] += om.Cross(delta_pos_w_pos[0]);
-	delta_F_ws_or[1] += om.Cross(delta_pos_w_pos[1]);
+	delta_F_ws_pos[NODE1] = Wd1.GetVec();
+	delta_F_ws_pos[NODE2] = Wd2.GetVec();
+	delta_F_ws_or[NODE1] += om.Cross(delta_pos_w_pos[NODE1]);
+	delta_F_ws_or[NODE2] += om.Cross(delta_pos_w_pos[NODE2]);
+	
+	
+	//hic sunt leones....
+// 	Mat3x3 L(RotManip::Elle(we2.GetVec(),(e2.GetVec())*wder[NODE2]));
+// 	delta_om_ws_or[NODE1] += L*Theta12.GetVec().Inv()*or_delta_w_or[NODE1];
+// 	delta_om_ws_or[NODE2] += L*Theta12.GetVec().Inv()*or_delta_w_or[NODE2];
+// 	
+// 	L = RotManip::Elle(we2.GetVec(),(e2.GetMom())*wder[NODE2]);
+// 	delta_F_ws_or[NODE1] += L*Theta12.GetVec().Inv()*or_delta_w_or[NODE1];
+// 	delta_F_ws_or[NODE2] += L*Theta12.GetVec().Inv()*or_delta_w_or[NODE2];
+
+
+	Mat3x3 L(RotManip::Elle(we2.GetVec(),e2.GetVec()*wder[NODE2]));
+	Mat3x3 Theta12vI(RotManip::DRot_I(we2.GetVec()));
+	delta_om_ws_or[NODE1] += L*Theta12vI*or_delta_w_or[NODE1];
+	delta_om_ws_or[NODE2] += L*Theta12vI*or_delta_w_or[NODE2];
+	
+// 	delta_F_ws_or[NODE1] += L.GetMom()*Theta12vI*or_delta_w_or[NODE1];
+// 	delta_F_ws_or[NODE2] += L.GetMom()*Theta12vI*or_delta_w_or[NODE2];
+
+	Mat3x3 LT(L*Theta12.GetVec());
+
+	Mat3x3 tmp = pos.Cross(or_delta_w_or[NODE1]);
+	tmp += delta_pos_w_or[NODE1];
+	tmp += delta_pos_w_pos[NODE1];
+	tmp += or_delta_w_or[NODE1];
+	delta_F_ws_or[NODE1] += LT*tmp;
+
+	tmp = pos.Cross(or_delta_w_or[NODE2]);
+	tmp += delta_pos_w_or[NODE2];
+	tmp += delta_pos_w_pos[NODE2];
+	tmp += or_delta_w_or[NODE2];
+	delta_F_ws_or[NODE2] += LT*tmp;
 };
 

@@ -42,6 +42,7 @@
 #include <beam.h>
 #include <hbeam.h>
 //#include <pzhbeam.h>
+#include <hbeam_interp.h>
 #include <dataman.h>
 
 /*
@@ -80,8 +81,12 @@ fFirstRes(1)
    
 	pNode[NODE1] = pN1;
 	pNode[NODE2] = pN2;
-	(Vec3&)f[NODE1] = F1;
-	(Vec3&)f[NODE2] = F2;
+	f[NODE1] = F1;
+	f[NODE2] = F2;
+
+	Rn[NODE1] = R1;
+	Rn[NODE2] = R2;
+	
 	/*
 	RRef = R = interpolazione di R1 e R2 ;
 	 */
@@ -103,22 +108,14 @@ fFirstRes(1)
 	g = Vec3(0.);
 	L0 = Vec3(0.);
 	L = Vec3(0.);
-	
+
 	DsDxi();
-	
-	Vec3 xTmp[NUMNODES];
-	
-	for (unsigned int i = 0; i < NUMNODES; i++) {      
-		xTmp[i] = pNode[i]->GetXCurr()+pNode[i]->GetRCurr()*f[i];
-	}      
-	
-	/* Aggiorna le grandezze della trave nel punto di valutazione */
-	p = InterpState(xTmp[NODE1], xTmp[NODE2]);
 }
 
 
 HBeam::~HBeam(void) 
 {
+	/* Distrugge il legame costitutivo */
 	ASSERT(pD != NULL);
 	if (pD != NULL) {      
 		SAFEDELETE(pD, DMmm);
@@ -126,65 +123,66 @@ HBeam::~HBeam(void)
 }
 
 
-Vec3 
-HBeam::InterpState(const Vec3& v1, const Vec3& v2)
-{
-	doublereal* pv1 = (doublereal*)v1.pGetVec();
-	doublereal* pv2 = (doublereal*)v2.pGetVec();
-	return Vec3(pv1[0]*dN2[0]+pv2[0]*dN2[1],
-			pv1[1]*dN2[0]+pv2[1]*dN2[1],
-			pv1[2]*dN2[0]+pv2[2]*dN2[1]);
-}
-
-
-Vec3
-HBeam::InterpDeriv(const Vec3& v1, const Vec3& v2)
-{
-	doublereal* pv1 = (doublereal*)v1.pGetVec();
-	doublereal* pv2 = (doublereal*)v2.pGetVec();
-	return Vec3((pv1[0]*dN2P[0]+pv2[0]*dN2P[1])*dsdxi,
-			(pv1[1]*dN2P[0]+pv2[1]*dN2P[1])*dsdxi,
-			(pv1[2]*dN2P[0]+pv2[2]*dN2P[1])*dsdxi);
-}
-
-
 void
 HBeam::DsDxi(void)
 {
 	/* Calcola il ds/dxi e le deformazioni iniziali */
-	Vec3 xNod[NUMNODES];
-	Mat3x3 RNod[NUMNODES];
+	Mat3x3 RTmp[NUMNODES];
 	Vec3 xTmp[NUMNODES];
 	for (unsigned int i = 0; i < NUMNODES; i++) {
-		xNod[i] = pNode[i]->GetXCurr();
-		RNod[i] = pNode[i]->GetRCurr();
-		xTmp[i] = xNod[i]+RNod[i]*f[i];
+		RTmp[i] = pNode[i]->GetRCurr()*Rn[i];
+		xTmp[i] = pNode[i]->GetXCurr()+pNode[i]->GetRCurr()*f[i];
 	}
-	
-	dsdxi = 1.;
 
-	Vec3 xGrad = InterpDeriv(xTmp[NODE1], xTmp[NODE2]);
-	doublereal d = xGrad.Dot();
+	w[NODE1] = .5;
+	w[NODE2] = .5;
+	
+	wder[NODE1] = -.5;
+	wder[NODE2] = .5;
+	
+	/* Calcolo i wder ... */
+	ComputeInterpolation(xTmp, RTmp,
+			w, wder,
+			p, R,
+			RdP, pdP, pdp,
+			L, Rho,
+			RhodP, LdP, Ldp);
+	
+	doublereal d = L.Dot();
 	if (d > DBL_EPSILON) {
-		dsdxi = 1./sqrt(d);
+		d = sqrt(d);
 	} else {
 		cerr << "warning, beam " << GetLabel() 
 			<< " has singular metric; aborting ..." << endl;
 		
 		THROW(HBeam::ErrGeneric());
 	}
+	
+	wder[NODE1] = wder[NODE1]/d;
+	wder[NODE2] = wder[NODE2]/d;
 
-	/* Calcola le deformazioni iniziali */
-	L0 = R.Transpose()*InterpDeriv(xTmp[NODE1], xTmp[NODE2]);
-	pD->Update(0.);
-	DRef = MultRMRt(pD->GetFDE(), R);
+	/* Calcolo le caratteristiche iniziali ... */
+	ComputeInterpolation(xTmp, RTmp,
+			w, wder,
+			p, R,
+			RdP, pdP, pdp,
+			L, Rho,
+			RhodP, LdP, Ldp);
+
+	/* Grandezze iniziali e di riferimento */
+	/* FIXME: fare un temporaneo per i trasposti ... */
+	RRef = R;
+	Rho0 = R.Transpose()*Rho;
+	LRef = L;
+	L0 = R.Transpose()*L;
 }
 
 
 /* Calcola la velocita' angolare delle sezioni a partire da quelle dei nodi */
 void 
 HBeam::Omega0(void)
-{   
+{
+#if 0
 	/* Modo consistente: */      
 	Mat3x3 RNod[NUMNODES];
 	Vec3 w[NUMNODES];
@@ -216,6 +214,7 @@ HBeam::Omega0(void)
 	}
 	Omega[i] = w[NODE1]*dN2[NODE1]+w[NODE2]*dN2[NODE2];
 #endif /* 0 */
+#endif
 }
 
 
@@ -263,23 +262,26 @@ HBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		fTmp[i] = pNode[i]->GetRCurr()*f[i];
 	}
+
+	/* Legame costitutivo (viene generato sempre) */
+	DRef = MultRMRt(pD->GetFDE(), R);
 	
+	/* Derivate delle deformazioni rispetto alle incognite nodali */
 	Mat6x6 AzTmp[NUMNODES];
 	
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		/* Delta - deformazioni */
-		AzTmp[i] = Mat6x6(Mat3x3(dN2P[i]*dsdxi*dCoef),
+		AzTmp[i] = Mat6x6(Ldp[i]*dCoef,
 				Zero3x3,
-				Mat3x3(LRef*(dN2[i]*dCoef)
-					-fTmp[i]*(dN2P[i]*dsdxi*dCoef)),
-				Mat3x3(dN2P[i]*dsdxi*dCoef));
+				(LdP[i]+Mat3x3(L)*RdP[i])*dCoef,
+				(RhodP[i]+Mat3x3(Rho)*RdP[i])*dCoef);
 		
 		/* Delta - azioni interne */
 		AzTmp[i] = DRef*AzTmp[i];
 		
 		/* Correggo per la rotazione da locale a globale */
-		AzTmp[i].SubMat12(Mat3x3(AzRef.GetVec1()*(dN2[i]*dCoef)));
-		AzTmp[i].SubMat22(Mat3x3(AzRef.GetVec2()*(dN2[i]*dCoef)));
+		AzTmp[i].SubMat12(Mat3x3(AzRef.GetVec1()*dCoef)*RdP[i]);
+		AzTmp[i].SubMat22(Mat3x3(AzRef.GetVec2()*dCoef)*RdP[i]);
 	}
    
 	Vec3 bTmp[2];
@@ -290,11 +292,13 @@ HBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		/* Equazione all'indietro: */
 		WMA.Sub(1, 6*i+1, AzTmp[i].GetMat11());
-		WMA.Sub(1, 6*i+4, AzTmp[i].GetMat12());
+		WMA.Sub(1, 6*i+4, 
+				AzTmp[i].GetMat12()
+				-Mat3x3(AzRef.GetVec1()*dCoef)*pdP[i]);
 		
 		WMA.Sub(4, 6*i+1,
 				AzTmp[i].GetMat21()
-				-Mat3x3(AzRef.GetVec1()*(dCoef*dN2[i]))
+				-Mat3x3(AzRef.GetVec1()*dCoef)*pdp[i]
 				+Mat3x3(bTmp[0])*AzTmp[i].GetMat11());
 		WMA.Sub(4, 6*i+4, 
 				AzTmp[i].GetMat22()
@@ -337,75 +341,39 @@ HBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 	 * per scrivere il residuo delle equazioni di equilibrio dei tre nodi
 	 */
 	
-	/*
-	 * Per la trattazione teorica, il riferimento e' il file ul-travi.tex 
-	 * (ora e' superato)
-	 */
-	
 	/* Recupera i dati dei nodi */
-	Vec3 xNod[NUMNODES];
-	
+	Vec3 xTmp[NUMNODES];
+	Mat3x3 RTmp[NUMNODES];
 	for (unsigned int i = 0; i < NUMNODES; i++) {
-		xNod[i] = pNode[i]->GetXCurr();
+		xTmp[i] = pNode[i]->GetXCurr()+pNode[i]->GetRCurr()*f[i];
+		RTmp[i] = pNode[i]->GetRCurr()*Rn[i];
 	}   
 	
-	if (fFirstRes) {
-		fFirstRes = flag(0); /* AfterPredict ha gia' calcolato tutto */
-	} else {
-		Vec3 gNod[NUMNODES];    
-		Vec3 xTmp[NUMNODES];
-		
-		for (unsigned int i = 0; i < NUMNODES; i++) {      
-			gNod[i] = pNode[i]->GetgCurr();	 
-			xTmp[i] = xNod[i]+pNode[i]->GetRCurr()*f[i];
-		}      
-		
-		Mat3x3 RDelta;
-		Vec3 gGrad;
-		
-		/*
-		 * Aggiorna le grandezze della trave nel punto di valutazione
-		 */
-		
-		/* Posizione */
-		p = InterpState(xTmp[NODE1], xTmp[NODE2]);
-		
-		/* Matrici di rotazione */
-		g = InterpState(gNod[NODE1], gNod[NODE2]);
-		RDelta = Mat3x3(MatR, g);
-		R = RDelta*RRef;
-		
-		/* Derivate della posizione */
-		L = InterpDeriv(xTmp[NODE1], xTmp[NODE2]);
-		
-		/* Derivate dei parametri di rotazione */
-		gGrad = InterpDeriv(gNod[NODE1], gNod[NODE2]);
-		
-		/* Per le deformazioni nel sistema del materiale */
-		Mat3x3 RTmp(R.Transpose());
-		
-		/*
-		 * Calcola le deformazioni nel sistema locale
-		 * nei punti di valutazione
-		 */
-		DefLoc = Vec6(RTmp*L-L0, RTmp*(Mat3x3(MatG, g)*gGrad)
-				+DefLocRef.GetVec2());
-		
-		/* Calcola le azioni interne */
-		pD->Update(DefLoc);
-		AzLoc = pD->GetF();
-		
-		/* corregge le azioni interne locali (piezo, ecc) */
-		AddInternalForces(AzLoc);
-		
-		/* Porta le azioni interne nel sistema globale */
-		Az = MultRV(AzLoc, R);
-	}
+	/* Interpolazione generica */
+	ComputeInterpolation(xTmp, RTmp,
+			w, wder,
+			p, R,
+			RdP, pdP, pdp,
+			L, Rho,
+			RhodP, LdP, Ldp);
+	
+	Mat3x3 RT(R.Transpose());
+	DefLoc = Vec6(RT*L-L0, RT*Rho-Rho0);
+
+	/* Calcola le azioni interne */
+	pD->Update(DefLoc);
+	AzLoc = pD->GetF();
+	
+	/* corregge le azioni interne locali (piezo, ecc) */
+	AddInternalForces(AzLoc);
+
+	/* Porta le azioni interne nel sistema globale */
+	Az = MultRV(AzLoc, R);
 	
 	WorkVec.Add(1, Az.GetVec1());
-	WorkVec.Add(4, (p-xNod[NODE1]).Cross(Az.GetVec1())+Az.GetVec2());
+	WorkVec.Add(4, (p-xTmp[NODE1]).Cross(Az.GetVec1())+Az.GetVec2());
 	WorkVec.Sub(7, Az.GetVec1());
-	WorkVec.Sub(10, Az.GetVec2()+(p-xNod[NODE2]).Cross(Az.GetVec1()));
+	WorkVec.Sub(10, Az.GetVec2()+(p-xTmp[NODE2]).Cross(Az.GetVec1()));
 }
 
    
@@ -497,7 +465,7 @@ HBeam::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 	 * Calcola le deformazioni, aggiorna il legame costitutivo
 	 * e crea la FDE
 	 */
-	
+#if 0	
 	/* Recupera i dati dei nodi */  
 	Vec3   gNod[NUMNODES];
 	Vec3   xTmp[NUMNODES];
@@ -550,8 +518,9 @@ HBeam::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 	
 	/* Aggiorna il legame costitutivo di riferimento */
 	DRef = MultRMRt(pD->GetFDE(), RRef);
-	
+
 	fFirstRes = flag(1);
+#endif
 }
 
 
@@ -1075,32 +1044,31 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	
 	/* Nodo 1 */
 	StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-	
-	Mat3x3 R1(pNode1->GetRCurr());   
 	Vec3 f1(HP.GetPosRel(ReferenceFrame(pNode1)));
+	Mat3x3 R1;
+	if (HP.IsKeyWord("rot")) {
+		R1 = HP.GetRotRel(ReferenceFrame(pNode1));
+	} else {
+		R1 = pNode1->GetRCurr();
+	}
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "node 1 offset (node reference frame): " 
 			<< f1 << endl << "(global frame): "
-			<< pNode1->GetXCurr()+pNode1->GetRCurr()*f1 << endl);
+			<< pNode1->GetXCurr()+pNode1->GetRCurr()*R1*f1 << endl);
 	
 	/* Nodo 2 */
 	StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-	
-	Mat3x3 R2(pNode2->GetRCurr());
 	Vec3 f2(HP.GetPosRel(ReferenceFrame(pNode2)));
+	Mat3x3 R2;
+	if (HP.IsKeyWord("rot")) {
+		R2 = HP.GetRotRel(ReferenceFrame(pNode2));
+	} else {
+		R2 = pNode1->GetRCurr();
+	}
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "node 2 offset (node reference frame): " 
 			<< f2 << endl << "(global frame): "
-			<< pNode2->GetXCurr()+pNode2->GetRCurr()*f2 << endl);
-	
-	/* Matrice R */
-	Mat3x3 R;
-	flag f(0);
-	if (HP.IsKeyWord("node")) {
-		f = flag(1);
-	} else {
-		R = HP.GetRotAbs(AbsRefFrame);
-	}
+			<< pNode2->GetXCurr()+pNode2->GetRCurr()*R2*f2 << endl);
 	
 	/* Legame costitutivo */
 	DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
@@ -1173,13 +1141,6 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);       
 	
-	
-	/* Se necessario, interpola i parametri di rotazione delle sezioni */
-	if (f) {		
-		Vec3 g(gparam(R2.Transpose()*R1)*.5);
-		R = R2*Mat3x3(MatR, g);
-	}
-	
 	Elem* pEl = NULL;
 	
 	if (ConstLawType == DefHingeType::ELASTIC) {
@@ -1193,7 +1154,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					HBeam(uLabel,
 						pNode1, pNode2,
 						f1, f2,
-						R,
+						R1, R2,
 						pD,
 						fOut),
 					DMmm);

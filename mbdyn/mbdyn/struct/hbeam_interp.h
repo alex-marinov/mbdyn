@@ -48,48 +48,48 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "matvecexp.h"
+#include "Rot.hh"
 
-#ifndef Rot_hh
-#define Rot_hh
+// Input:
+// node_pos	array delle posizioni attuali dei due nodi
+// node_or		array delle orientazioni attuali dei due nodi
+// w		array dei pesi associati ai due nodi nel punto di calcolo
+// wder		array dei pesi derivati rispetto all'ascissa curvilinea
+// 
+// Output:
+// pos		posizione del punto interpolato
+// or		orinetazione del punto interpolato
+// or_delta_w_or	or_delta in funzione di or_delta nodali
+// delta_pos_w_or	delta_pos in funzione di or_delta nodali
+// delta_pos_w_pos	delta_pos in funzione di delta_pos nodali
+// F		derivata della posizione rispetto all'ascissa curvilinea
+// om		assiale di d(or)/d(s)*or.Transpose()
+// delta_om_ws_or	delta_om in funzione di or_delta nodali
+// delta_F_ws_or	delta_F in funzione di or_delta nodali
+// delta_F_ws_pos	delta_F in funzione di delta_pos nodali
+// 
+// Nota:
+// Dopo l'uscita bisogna convertire gli or_delta nodali 
+// in delta_parametri_or
 
-namespace RotManip {
+#ifndef HBEAM_INTERP_H
+#define HBEAM_INTERP_H
 
-Mat3x3 Rot(const Vec3 & phi);
- 
-Mat3x3 DRot(const Vec3 & phi);
+void ComputeInterpolation(const Vec3 *const node_pos,
+			const Mat3x3 *const node_or,
+			const doublereal *const w,
+			const doublereal *const wder,
+			Vec3 &pos,
+			Mat3x3 &or,
+			Mat3x3 *const or_delta_w_or,
+			Mat3x3 *const delta_pos_w_or,
+			Mat3x3 *const delta_pos_w_pos,
+			Vec3 &F,
+			Vec3 &om,
+			Mat3x3 *const delta_om_ws_or,
+			Mat3x3 *const delta_F_ws_or,
+			Mat3x3 *const delta_F_ws_pos);
 
-void RotAndDRot(const Vec3 & phi, Mat3x3 & Phi, Mat3x3 & Ga);
-
-Mat3x3 DRot_IT(const Vec3 & phi);
-
-Mat3x3 DRot_I(const Vec3 & phi);
-
-void RotAndDRot_IT(const Vec3 & phi, Mat3x3 & PhiIT, Mat3x3 & GaIT);
-
-Vec3 VecRot(const Mat3x3 & Phi);
-
-Mat3x3 RotManip::Elle(const Vec3 & phi, const Vec3 & a);
-
-} //end of namespace RotManip
-
-
-
-namespace RoTrManip {
-
-MatExp RoTr(const VecExp & eta);
-
-MatExp DRoTr(const VecExp & eta);
-
-void RoTrAndDRoTr(const VecExp & eta, MatExp & H, MatExp & Th);
-
-MatExp DRoTr_It (const VecExp & eta);
-
-MatExp DRoTr_I (const VecExp & eta);
-
-void RoTrAndDRoTr_It(const VecExp & eta, MatExp & HIt, MatExp & ThIt);
-
-VecExp Helix (const MatExp & H);
-
-} //end of namespace RoTrManip
-#endif // Rot_hh
+#endif /* HBEAM_INTERP_H */
 

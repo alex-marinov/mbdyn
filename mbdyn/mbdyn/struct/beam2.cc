@@ -195,6 +195,7 @@ Beam2::Omega0(void)
 	 * Calcolo i parametri di rotazione della rotazione relativa
 	 * tra inizio e fine e li dimezzo nell'ipotesi che siano limitati
 	 */
+#if 0
 	Vec3 gTmp(gparam(RNod[NODE2].Transpose()*RNod[NODE1]));
 	
 	/*
@@ -205,15 +206,11 @@ Beam2::Omega0(void)
 
         Vec3 gPTmp(g1P*dN2[NODE1]+g2P*dN2[NODE2]);
         Omega = Mat3x3(MatG, gTmp)*gPTmp;
-	
-#if 0
-	/* Modo brutale: interpolo le velocita' dei nodi */
-	Vec3 w[NUMNODES];
-	for (unsigned int i = 0; i < NUMNODES; i++) {
-		w[i] = pNode[i]->GetWCurr();
-	}
-	Omega[i] = w[NODE1]*dN2[NODE1]+w[NODE2]*dN2[NODE2];
 #endif /* 0 */
+	
+	/* Modo brutale: interpolo le velocita' dei nodi */
+	Omega = pNode[NODE1]->GetWCurr()*dN2[NODE1]
+		+pNode[NODE2]->GetWCurr()*dN2[NODE2];
 }
 
 
