@@ -39,6 +39,7 @@
 
 #include "dataman.h"
 #include "spmh.h"
+#include "naivemh.h"
 
 /* MultiThreadDataManager - begin */
 
@@ -46,6 +47,15 @@ class MultiThreadDataManager : public DataManager {
 protected:
 	/* from input file, or auto-detected */
 	unsigned int nThreads;
+
+	enum {
+		ASS_UNKNOWN = -1,
+
+		ASS_CC,
+		ASS_NAIVE,
+
+		ASS_LAST
+	} AssMode;
 
 	enum {
 		CC_NO,
@@ -68,7 +78,11 @@ protected:
 		VariableSubMatrixHandler *pWorkMat;	/* same as pWorkMatA */
 		MySubVectorHandler *pWorkVec;
 
+		/* for CC assembly */
 		CompactSparseMatrixHandler* pJacHdl;
+		/* for Naive assembly */
+		MatrixHandler* pNaiveJacHdl;
+
 		VectorHandler* pResHdl;
 		MatrixHandler* pMatA;
 		MatrixHandler* pMatB;
@@ -76,14 +90,20 @@ protected:
 	} *thread_data;
 
 	enum DataManagerOp {
-		UNKNOWN_OP = -1,
+		OP_UNKNOWN = -1,
 
 		OP_ASSJAC,
-		OP_ASSMATS,
+		OP_ASSJAC_NAIVE,
+
+		/* used only #ifdef MBDYN_X_MT_ASSRES */
 		OP_ASSRES,
+
+		/* not used yet */
+		OP_ASSMATS,
 		OP_BEFOREPREDICT,
 		OP_AFTERPREDICT,
 		OP_AFTERCONVERGENCE,
+		/* end of not used yet */
 
 		OP_EXIT,
 
@@ -113,6 +133,9 @@ protected:
 	/* reset InUse flag(s) before multithread execution */
 	void ResetInUse(bool b = false);
 
+	/* specialized assembly */
+	virtual void CCAssJac(MatrixHandler& JacHdl, doublereal dCoef);
+	virtual void NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef);
 public:
 	/* costruttore - legge i dati e costruisce le relative strutture */
 	MultiThreadDataManager(MBDynParser& HP,
