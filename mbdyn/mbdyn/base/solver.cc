@@ -1184,7 +1184,8 @@ IfFirstStepIsToBeRepeated:
 
 			DEBUGCOUT("Task: " << mbdyn_rtai_task 
 				<< "; time: " << t 
-				<< "; period: " << mbdyn_count2nano(lRTPeriod) << std::endl);
+				<< "; period: " << mbdyn_count2nano(lRTPeriod)
+				<< std::endl);
 			r = mbdyn_rt_task_make_periodic(mbdyn_rtai_task,
 					t, lRTPeriod);
 
@@ -2913,7 +2914,6 @@ Solver::ReadData(MBDynParser& HP)
 						<< std::endl;
 					THROW(ErrGeneric());
 				}
-
 				lRTPeriod = mbdyn_nano2count(p);
 				
 			} else {
