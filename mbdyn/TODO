@@ -8,6 +8,8 @@ A. Configuration:
 
 	- test for '_' appended to F77 symbols
 	- eliminate horrible blank lines in '--with-*'
+	- check the 'getopt' stuff in program, utils and contrib
+	- audit all the suite for not-so-GNU systems
 
 
 
@@ -28,4 +30,8 @@ B. Package:
 C. Libraries:
 
 	- add UMFPACK3 sparse matrix library
+
+D. Code:
+
+	- ...
 
