@@ -336,7 +336,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 #ifdef MBDYN_X_CONVSOL
 		if (SolTol > 0.) {
 			dSolErr = MakeTest(dx);
-        		if (dSolErr < dSolTol) {
+        		if (dSolErr < SolTol) {
 				THROW(ConvergenceOnSolution());
 			}
       		}
