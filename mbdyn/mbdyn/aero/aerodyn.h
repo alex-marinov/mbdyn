@@ -158,7 +158,7 @@ class AirProperties
     * End of deprecated; use GetAirProps instead
     */
 
-   virtual bool GetAirProps(const Vec3& X, Vec3& V, doublereal& rho,
+   virtual bool GetAirProps(const Vec3& X, doublereal& rho,
 		   doublereal& c, doublereal& p, doublereal& T) const = 0;
 };
 
@@ -186,11 +186,11 @@ class BasicAirProperties
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
    
+   virtual const Vec3& GetVelocity(const Vec3& /* X */ ) const;
+   
    /*
     * Deprecated; use GetAirProps instead
     */
-   virtual const Vec3& GetVelocity(const Vec3& /* X */ ) const;
-   
    virtual doublereal dGetAirDensity(const Vec3& /* X */ ) const;
    
    virtual doublereal dGetAirPressure(const Vec3& /* X */ ) const;
@@ -203,7 +203,7 @@ class BasicAirProperties
     * End of deprecated; use GetAirProps instead
     */
 
-   virtual bool GetAirProps(const Vec3& X, Vec3& V, doublereal& rho,
+   virtual bool GetAirProps(const Vec3& X, doublereal& rho,
 		   doublereal& c, doublereal& p, doublereal& T) const;
 };
 
@@ -239,11 +239,11 @@ class StdAirProperties
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
    
+   virtual const Vec3& GetVelocity(const Vec3& /* X */ ) const;
+   
    /*
     * Deprecated; use GetAirProps instead
     */
-   virtual const Vec3& GetVelocity(const Vec3& /* X */ ) const;
-   
    virtual doublereal dGetAirDensity(const Vec3& /* X */ ) const;
    
    virtual doublereal dGetAirPressure(const Vec3& /* X */ ) const;
@@ -256,7 +256,7 @@ class StdAirProperties
     * End of deprecated; use GetAirProps instead
     */
 
-   virtual bool GetAirProps(const Vec3& X, Vec3& V, doublereal& rho,
+   virtual bool GetAirProps(const Vec3& X, doublereal& rho,
 		   doublereal& c, doublereal& p, doublereal& T) const;
 };
 
@@ -291,7 +291,7 @@ class AirPropOwner {
     * End of deprecated; use GetAirProps instead
     */
 
-   virtual bool GetAirProps(const Vec3& X, Vec3& V, doublereal& rho,
+   virtual bool GetAirProps(const Vec3& X, doublereal& rho,
 		   doublereal& c, doublereal& p, doublereal& T) const;
 };
 

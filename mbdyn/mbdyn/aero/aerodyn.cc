@@ -232,11 +232,10 @@ BasicAirProperties::dGetSoundSpeed(const Vec3& /* X */ ) const
 }
 
 bool
-BasicAirProperties::GetAirProps(const Vec3& X, Vec3& V, doublereal& rho,
+BasicAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 		doublereal& c, doublereal& p, doublereal& T) const
 {
 	/* FIXME */
-	V = GetVelocity(X);
 	rho = dGetAirDensity(X);
 	c = dGetSoundSpeed(X);
 	p = -1.;
@@ -306,7 +305,7 @@ StdAirProperties::dGetAirDensity(const Vec3& X) const
 {
 	doublereal rho, c, p, T;
 
-	GetAirProps(X, Velocity, rho, c, p, T);
+	GetAirProps(X, rho, c, p, T);
 
 	return rho;
 }
@@ -316,7 +315,7 @@ StdAirProperties::dGetAirPressure(const Vec3& X) const
 {
 	doublereal rho, c, p, T;
 
-	GetAirProps(X, Velocity, rho, c, p, T);
+	GetAirProps(X, rho, c, p, T);
 
 	return p;
 }
@@ -326,7 +325,7 @@ StdAirProperties::dGetAirTemperature(const Vec3& X) const
 {
 	doublereal rho, c, p, T;
 
-	GetAirProps(X, Velocity, rho, c, p, T);
+	GetAirProps(X, rho, c, p, T);
 
 	return T;
 }
@@ -336,13 +335,13 @@ StdAirProperties::dGetSoundSpeed(const Vec3& X) const
 {
 	doublereal rho, c, p, T;
 
-	GetAirProps(X, Velocity, rho, c, p, T);
+	GetAirProps(X, rho, c, p, T);
 
 	return c;
 }
 
 bool
-StdAirProperties::GetAirProps(const Vec3& X, Vec3& V, doublereal& rho,
+StdAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 		doublereal& c, doublereal& p, doublereal& T) const
 {
 	/* FIXME */
@@ -438,10 +437,10 @@ AirPropOwner::dGetSoundSpeed(const Vec3& X) const
 }
 
 bool
-AirPropOwner::GetAirProps(const Vec3& X, Vec3& V, doublereal& rho,
+AirPropOwner::GetAirProps(const Vec3& X, doublereal& rho,
 		doublereal& c, doublereal& p, doublereal& T) const
 {
-	return pAirProperties->GetAirProps(X, V, rho, c, p, T);
+	return pAirProperties->GetAirProps(X, rho, c, p, T);
 }
 
 /* AirPropOwner - end */

@@ -304,7 +304,9 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 	 * Dati "permanenti" (uso la posizione del nodo perche'
 	 * non dovrebbero cambiare "molto")
 	 */
-   	aerodata->SetAirData(dGetAirDensity(Xn), dGetSoundSpeed(Xn));
+	doublereal rho, c, p, T;
+	GetAirProps(Xn, rho, c, p, T);	/* p, T no used yet */
+   	aerodata->SetAirData(rho, c);
 
    	doublereal** pvd = pvdOuta;
    
@@ -1098,8 +1100,9 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	 * Dati "permanenti" (uso solo la posizione del nodo 2 perche'
 	 * non dovrebbero cambiare "molto")
 	 */
-	aerodata->SetAirData(dGetAirDensity(Xn[NODE2]), 
-			dGetSoundSpeed(Xn[NODE2]));
+	doublereal rho, c, p, T;
+	GetAirProps(Xn[NODE2], rho, c, p, T);	/* p, T no used yet */
+	aerodata->SetAirData(rho, c);
 
 	/* OUTA */
 	doublereal** pvd = pvdOuta;
@@ -1706,7 +1709,9 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 	 * non dovrebbero cambiare "molto")
 	 */
 	Vec3 Xmid = (Xn[NODE2]+Xn[NODE1])/2.;
-	aerodata->SetAirData(dGetAirDensity(Xmid), dGetSoundSpeed(Xmid));
+	doublereal rho, c, p, T;
+	GetAirProps(Xmid, rho, c, p, T);	/* p, T no used yet */
+	aerodata->SetAirData(rho, c);
 
 	doublereal pdsi2[] = { -1., 0. };
 	doublereal pdsf2[] = { 0., 1. };

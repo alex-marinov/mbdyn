@@ -183,10 +183,10 @@ AerodynamicModal::AssJac(VariableSubMatrixHandler& WorkMat,
    	Mat3x3 RR(Rn*Ra);
    	Mat3x3 RRT(RR.Transpose());
    	Vec3 Vr(V0);
-   	doublereal rho = dGetAirDensity(X0);
-#if 0
-   	doublereal vs  = dGetSoundSpeed(X0);
-#endif
+
+   	doublereal rho, vs, p, T;
+	GetAirProps(X0, rho, vs, p, T);		/* p, T are not used yet */
+
    	Vec3 VTmp(0.);
    	if(fGetAirVelocity(VTmp, X0)) {
    		Vr -= VTmp;
@@ -443,10 +443,10 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
    Mat3x3 RR(Rn*Ra);
    Mat3x3 RRT(RR.Transpose());
    Vec3 Vr(V0);
-   doublereal rho = dGetAirDensity(X0);
-#if 0
-   doublereal vs  = dGetSoundSpeed(X0);
-#endif
+
+   doublereal rho, vs, p, T;
+   GetAirProps(X0, rho, vs, p, T);	/* p, T are not used yet */
+
    Vec3 Vair(0.);
    if(fGetAirVelocity(Vair, X0)) {
    	Vr -= Vair;
