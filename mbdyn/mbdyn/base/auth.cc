@@ -68,6 +68,10 @@ make_salt(void)
    return salt;
 }
 
+/*
+ * FIXME: sometimes it is not defined even if present
+ */
+extern char *crypt(const char *key, const char *salt);
 
 PasswordAuth::PasswordAuth(const char *u, const char *c) 
 {
