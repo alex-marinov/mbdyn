@@ -76,40 +76,72 @@ Multi-Body Dynamics relies on.
 
 \chapter{Parsing}
 The parser ... bla... bla.. 
+
 \section{HighParser} ... 
-The HighParser require a KeyTable containing the
-list of accepted keywords.
-The KeyTable can be changed during parsing.
-KeyTable is a class. Its constructur takes a pointer to
-an array of strings. The last string must be null.
-The KeyTable class keeps trak of previuos keytables
-arrays, and restore them upon destruction.
-The typical usage inside a parsing function is
+The \texttt{HighParser} class and its descendants use a \texttt{KeyTable}
+object containing a list of legal keywords to return a valid keyword index
+when \texttt{HighParser::GetWord()}, and significantly 
+\texttt{HighParser::GetDescription()} are invoked.
+The \texttt{KeyTable} can be changed during parsing.
+\texttt{KeyTable} is a class.
+Its constructor takes a pointer to an array of strings and a reference 
+to the \texttt{HighParser} object.
+The last string in the array must be null.
+The \texttt{KeyTable} class constructor keeps track 
+of previous \texttt{KeyTable} objects in the \texttt{HighParser}, 
+and restores them upon destruction.
+The suggested usage inside a stacked call sequence of parsing functions is
 \begin{verbatim}
-Part *read_part(HighParser& HP)
+Part *
+read_part(HighParser& HP)
 {
+    /* prepare names */
+    enum KeyWord { KEYWORD1, KEYWORD2, KEYWORD_LAST };
     char *key_table_array[] = { "keyword1", "keyword2", 0 };
-    //build KeyTable class
-    KeyTable k(HP, nomi);
+    /* build KeyTable class */
+    KeyTable k(HP, keytable);
     Part *returned_object = 0;
-    //parse input file
-    //and build returned_object 
-    return returned_object;
+    /* parse input */
+    do {
+        switch (KeyWord(HP.GetWord())) {
+        default:
+            /* do something... */
+            break;
+        case KEYWORD1:
+            /* ...and build returned_object  */
+            return returned_object;
+        }
+    } while (true);
 }
 
-void read_all(HighParser& HP)
+void
+read_all(HighParser& HP)
 {
-    char *keytable[] = { "key1", "key2", 0 };
-    KeyTable k(HP, nomi);
+    /* prepare names */
+    enum KeyWord { KEY1, KEY2, PART, KEY_LAST };
+    char *keytable[] = { "key1", "key2", "part", 0 };
+    /* build KeyTable class */
+    KeyTable k(HP, keytable);
     /* do something */
-    Part *part = read_part(HP);
-    /* do someting else */
+    Part *part = 0;
+    do {
+        switch (KeyWord(HP.GetWord())) {
+        default:
+            /* do something... */
+            break;
+        case PART:
+            /* read part */
+            Part *part = read_part(HP);
+            break;
+        }
+    } while (true);
 }
 
 \end{verbatim}
-Here the keytable is automatically restored after the call
-to \verb read_part; \verb read_part temporarily changes 
-the key table array.
+Here the \texttt{KeyTable} set by function \texttt{read\_all()} 
+is automatically restored after the call to \texttt{read\_part()}; 
+\texttt{read\_part()} temporarily changes the \texttt{KeyTable}
+used by the parser.
 
 \section{LowParser} ... 
 \section{MathParser} ...
