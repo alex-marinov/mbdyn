@@ -32,16 +32,52 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <ac/math.h>
+#include <ac/float.h>
+
 #include <autostr.h>
 
 /* Costruttore */
 AutomaticStructElem::AutomaticStructElem(const DynamicStructNode* pN)
 : Elem(pN->GetLabel(), Elem::AUTOMATICSTRUCTURAL, pN->fToBeOutput()), 
-pNode(pN), Q(0.), G(0.), QP(0.), GP(0.)
+pNode((DynamicStructNode *)pN), Q(0.), G(0.), QP(0.), GP(0.),
+m(0.), S(0.), J(0.)
 { 
-   NO_OP;
+	pNode->SetAutoStr(this);
 }
 
+void
+AutomaticStructElem::ComputeAccelerations(Vec3& XPP, Vec3& WP) const
+{
+	if (m == 0.) {
+		XPP = Zero3;
+		WP = Zero3;
+		return;
+	}
+
+	Vec3 Xcg = S/m;
+	/* FIXME: we export the test because we don't want Inv() to fail
+	 * or issue error messages */
+	Mat3x3 Jcg = J + Mat3x3(Xcg, S);
+	doublereal dDet = Jcg.dDet();
+	if (fabs(dDet) > DBL_EPSILON) {
+		WP = Jcg.Inv(dDet, GP - Xcg.Cross(QP)
+			- pNode->GetWCurr().Cross(G));
+	} else {
+		WP = Zero3;
+	}
+	XPP = QP/m + Xcg.Cross(WP)
+		- pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(Xcg));
+}
+ 
+void
+AutomaticStructElem::AddInertia(const doublereal& dm, const Vec3& dS,
+		const Mat3x3& dJ)
+{
+	m += dm;
+	S += dS;
+	J += dJ;
+}
 
 /* inizializza i dati */
 void 
@@ -184,8 +220,14 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(1, Q);
    WorkVec.Add(4, G);
    WorkVec.Sub(7, QP);
-   WorkVec.Sub(10, GP+pNode->GetVCurr().Cross(Q));
-   
+   WorkVec.Sub(10, GP + pNode->GetVCurr().Cross(Q));
+
+   if (fToBeOutput()) {
+      m = 0.;
+      S = Zero3;
+      J = Zero3x3;
+   }
+
    return WorkVec;
 }
 
@@ -208,7 +250,7 @@ AutomaticStructElem::SetValue(VectorHandler& /* X */ , VectorHandler& XP) const
 {
    integer iIndex = pNode->iGetFirstMomentumIndex();
    
-   XP.Put(iIndex+1, QP);
-   XP.Put(iIndex+4, GP);
+   XP.Put(iIndex + 1, QP);
+   XP.Put(iIndex + 3 + 1, GP);
 }
 

@@ -60,6 +60,7 @@ class MatrixHandler {
 public:
 	class ErrGeneric {};
 	class ErrRebuildMatrix {};
+	class ErrMatrixIsSingular {};
 
 	/* read-only return value for sparse data structures */
 	//static const doublereal dZero = 0.;

@@ -91,6 +91,7 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
 	FORCE,
 
 	AUTOMATICSTRUCTURAL,
+	
 	GRAVITY,
 	BODY,
 	JOINT,

@@ -44,7 +44,7 @@
 class Body : 
 virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {   
   private:
-    const StructNode* pNode;
+    const DynamicStructNode* pNode;
     doublereal dMass;
     Vec3 Xgc;
     Vec3 S0;
@@ -69,7 +69,7 @@ virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
       
   public:
     /* Costruttore definitivo (da mettere a punto) */
-    Body(unsigned int uL, const StructNode* pNodeTmp, 
+    Body(unsigned int uL, const DynamicStructNode* pNodeTmp, 
 	 doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp, 
 	 flag fOut);
    

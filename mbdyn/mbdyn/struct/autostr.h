@@ -43,7 +43,7 @@ class AutomaticStructElem : virtual public Elem {
    friend class DynamicStructNode;
    
  protected:
-   const DynamicStructNode* pNode;
+   mutable DynamicStructNode* pNode;
    Vec3 Q;
    Vec3 G;
    Vec3 QP;
@@ -54,7 +54,13 @@ class AutomaticStructElem : virtual public Elem {
    virtual inline const Vec3& GetGCurr(void) const { return G; };     
    virtual inline const Vec3& GetQPCurr(void) const { return QP; };
    virtual inline const Vec3& GetGPCurr(void) const { return GP; };   
-   
+
+   mutable doublereal m;
+   mutable Vec3 S;
+   mutable Mat3x3 J;
+
+   virtual void ComputeAccelerations(Vec3& XPP, Vec3& WP) const;
+  
  public:
    AutomaticStructElem(const DynamicStructNode* pN);
    
@@ -77,6 +83,8 @@ class AutomaticStructElem : virtual public Elem {
       return Elem::AUTOMATICSTRUCTURAL; 
    };
    
+   virtual void AddInertia(const doublereal& dm, const Vec3& dS,
+		   const Mat3x3& dJ);
    
    /* funzioni di servizio */
 

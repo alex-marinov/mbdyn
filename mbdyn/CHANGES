@@ -14,6 +14,8 @@ MBDyn 1.2-Engineering
 		- added TAUCS linear solver (eXperimental)
 		- added "ad hoc" (Radau IIA) third-order integrator
 		- added provisions for detailed dof stats
+		- added linear and angular acceleration to dynamic
+		  structural nodes output
 	Backward compatibility issues:
 	Known issues:
 		- parallel is not working yet

@@ -858,6 +858,110 @@ DynamicStructNode::iGetFirstRowIndex(void) const
    return iGetFirstMomentumIndex();
 }
 
+/* delegate to autostr node */
+void
+DynamicStructNode::AddInertia(const doublereal& dm, const Vec3& dS,
+		const Mat3x3& dJ) const
+{
+	/* FIXME: do it only if to be output... */
+	if ( fToBeOutput()) {
+		pAutoStr->AddInertia(dm, dS, dJ);
+	}
+};
+
+/* Output del nodo strutturale (da mettere a punto) */
+void
+DynamicStructNode::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) {
+		pAutoStr->ComputeAccelerations(XPPCurr, WPCurr);
+
+		OH.StrNodes()
+			<< std::setw(8) << GetLabel()
+			<< " " << XCurr
+			<< " " << MatR2EulerAngles(RCurr)*dRaDegr
+			<< " " << VCurr
+			<< " " << WCurr
+			<< " " << XPPCurr
+			<< " " << WPCurr
+			<< std::endl;
+	}
+}
+
+void
+DynamicStructNode::BeforePredict(VectorHandler& X,
+			  VectorHandler& XP,
+			  VectorHandler& XPr,
+			  VectorHandler& XPPr) const
+{
+	XPPPrev = XPPCurr;
+	WPPrev = WPCurr;
+
+	StructNode::BeforePredict(X, XP, XPr, XPPr);
+}
+
+/* Restituisce il valore del dof iDof;
+ * se differenziale, iOrder puo' essere = 1 per la derivata */
+const doublereal&
+DynamicStructNode::dGetDofValue(int iDof, int iOrder) const
+{
+   ASSERT(iDof >= 1 && iDof <= 6);
+   ASSERT(iOrder >= 0 && iOrder <= 2);
+
+   if (iOrder == 2) {
+      if (iDof >= 1 && iDof <= 3) {
+	 return XPPCurr.dGet(iDof);
+      } else {
+	 return WPCurr.dGet(iDof);
+      }
+   } else {
+      return StructNode::dGetDofValue(iDof, iOrder);
+   }
+}
+
+/* Restituisce il valore del dof iDof al passo precedente;
+ * se differenziale, iOrder puo' essere = 1 per la derivata */
+const doublereal&
+DynamicStructNode::dGetDofValuePrev(int iDof, int iOrder) const
+{
+   ASSERT(iDof >= 1 && iDof <= 6);
+   ASSERT(iOrder == 0 || iOrder == 1);
+
+   if (iOrder == 2) {
+      if (iDof >= 1 && iDof <= 3) {
+	 return XPPPrev.dGet(iDof);
+      } else {
+	 return WPPrev.dGet(iDof);
+      }
+   } else {
+      return StructNode::dGetDofValuePrev(iDof, iOrder);
+   }
+}
+
+/* Setta il valore del dof iDof a dValue;
+ * se differenziale, iOrder puo' essere = 1 per la derivata */
+void
+DynamicStructNode::SetDofValue(const doublereal& dValue,
+			unsigned int iDof,
+			unsigned int iOrder /* = 0 */ )
+{
+   ASSERT(iDof >= 1 && iDof <= 6);
+   ASSERT(iOrder == 0 || iOrder == 1);
+
+   if (iOrder == 2) {
+      if (iDof >= 1 && iDof <= 3) {
+	 XPPCurr.Put(iDof, dValue);
+	 return;
+      } else {
+	 WPCurr.Put(iDof, dValue);
+	 return;
+      }
+   } else {
+      StructNode::SetDofValue(iDof, iOrder);
+   }
+}
+
+
 /* DynamicStructNode - end */
 
 
@@ -910,9 +1014,8 @@ ModalNode::ModalNode(unsigned int uL,
 				     doublereal dVelStiff,
 				     flag fOmRot,
 				     flag fOut)
-: DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0, dPosStiff, dVelStiff, fOmRot, fOut),
-XPPCurr(0.),
-WPCurr(0.)
+: DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0,
+		dPosStiff, dVelStiff, fOmRot, fOut)
 {
    NO_OP;
 }

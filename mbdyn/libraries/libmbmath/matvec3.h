@@ -832,6 +832,8 @@ class Mat3x3 {
     Inversione. 
     Restituisce l'inversa di se stessa in un temporaneo.
     */
+   doublereal dDet(void) const;
+   Mat3x3 Inv(const doublereal& ddet) const;
    Mat3x3 Inv(void) const;
    
    /*
@@ -839,6 +841,7 @@ class Mat3x3 {
     Restituisce l'inversa di se stessa per v in un temporaneo.
     */
    Vec3 Inv(const Vec3& v) const;      
+   Vec3 Inv(const doublereal& d, const Vec3& v) const;      
    
    /*Operazioni su arrays di reali */
       

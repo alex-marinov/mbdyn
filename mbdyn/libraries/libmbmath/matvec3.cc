@@ -99,18 +99,22 @@ Mat3x3 Mat3x3::operator * (const Mat3x3& m) const
 
 
 /* inversione */
-Mat3x3 Mat3x3::Inv(void) const
+doublereal Mat3x3::dDet(void) const
 {
    doublereal* p = (doublereal*)pdMat;
-   doublereal d = p[M11]*(p[M22]*p[M33]-p[M23]*p[M32])
+
+   return p[M11]*(p[M22]*p[M33]-p[M23]*p[M32])
      +p[M12]*(p[M23]*p[M31]-p[M21]*p[M33])
      +p[M13]*(p[M21]*p[M32]-p[M22]*p[M31]);
+}
    
-   if (fabs(d) < DBL_EPSILON) {
-      silent_cerr("matrix is singular" << std::endl);
-      throw ErrGeneric();
-   }
-   
+/* inversione */
+Mat3x3 Mat3x3::Inv(const doublereal &d) const
+{
+   ASSERT(fabs(d) > DBL_EPSILON);
+
+   doublereal* p = (doublereal*)pdMat;
+
    return Mat3x3((p[M22]*p[M33]-p[M23]*p[M32])/d,
 		 (p[M23]*p[M31]-p[M21]*p[M33])/d,
 		 (p[M21]*p[M32]-p[M22]*p[M31])/d,
@@ -122,21 +126,27 @@ Mat3x3 Mat3x3::Inv(void) const
 		 (p[M11]*p[M22]-p[M12]*p[M21])/d);
 }
 
-
-/* soluzione */
-Vec3 Mat3x3::Inv(const Vec3& v) const
+/* inversione */
+Mat3x3 Mat3x3::Inv(void) const
 {
-   doublereal* p = (doublereal*)pdMat;
-   doublereal d = p[M11]*(p[M22]*p[M33]-p[M23]*p[M32])
-     +p[M12]*(p[M23]*p[M31]-p[M21]*p[M33])
-     +p[M13]*(p[M21]*p[M32]-p[M22]*p[M31]);
-
-   doublereal* pv = v.pGetVec();
-   
+   doublereal d = dDet();
    if (fabs(d) < DBL_EPSILON) {
       silent_cerr("matrix is singular" << std::endl);
-      throw ErrGeneric();
+      throw MatrixHandler::ErrMatrixIsSingular();
    }
+   
+   return Inv(d);
+}
+
+
+/* soluzione */
+Vec3 Mat3x3::Inv(const doublereal& d, const Vec3& v) const
+{
+   doublereal* p = (doublereal*)pdMat;
+   doublereal* pv = v.pGetVec();
+
+   ASSERT(fabs(d) > DBL_EPSILON);
+   
    return Vec3((pv[V1]*(p[M22]*p[M33]-p[M23]*p[M32])
 		+pv[V2]*(p[M13]*p[M32]-p[M12]*p[M33])
 		+pv[V3]*(p[M12]*p[M23]-p[M13]*p[M22]))/d,
@@ -146,6 +156,19 @@ Vec3 Mat3x3::Inv(const Vec3& v) const
 	       (pv[V1]*(p[M21]*p[M32]-p[M22]*p[M31])
 		+pv[V2]*(p[M12]*p[M31]-p[M11]*p[M32])
 		+pv[V3]*(p[M11]*p[M22]-p[M12]*p[M21]))/d);
+}
+
+/* soluzione */
+Vec3 Mat3x3::Inv(const Vec3& v) const
+{
+   doublereal d = dDet();
+   
+   if (fabs(d) < DBL_EPSILON) {
+      silent_cerr("matrix is singular" << std::endl);
+      throw ErrGeneric();
+   }
+
+   return Inv(d, v);
 }
 
 /* Mat3x3 - end */

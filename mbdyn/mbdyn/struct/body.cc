@@ -38,7 +38,7 @@
 #include <dataman.h>
 
 Body::Body(unsigned int uL, 
-	   const StructNode* pNodeTmp, 
+	   const DynamicStructNode* pNodeTmp, 
            doublereal dMassTmp, 
 	   const Vec3& XgcTmp, 
 	   const Mat3x3& JTmp, 
@@ -250,6 +250,8 @@ Body::AssRes(SubVectorHandler& WorkVec,
         WorkVec.Add(7, GravityAcceleration*dMass);
         WorkVec.Add(10, STmp.Cross(GravityAcceleration));
     }
+
+    pNode->AddInertia(dMass, STmp, JTmp);
  
     return WorkVec;
 }
@@ -423,7 +425,7 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     KeyTable K(HP, sKeyWords);
    
     /* nodo collegato */
-    StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+    DynamicStructNode* pNode = dynamic_cast<DynamicStructNode*>(pDM->ReadNode(HP, Node::STRUCTURAL));
    
     if (pNode->GetStructNodeType() != StructNode::DYNAMIC) {
         silent_cerr("Body(" << uLabel << "): "

@@ -387,9 +387,24 @@ inline flag StructNode::fOmegaRotates(void) const
 /* Numero di dof del tipo di nodo */
 const int iDynamicStructNodeDofNumber = 12;
 
+/* Forward declaration */
+class AutomaticStructElem;
 
 class DynamicStructNode : public StructNode {
+   friend class AutomaticStructElem;
  protected:
+ 
+   /* accelerazioni lineari e angolari (da usarsi solo col nodo modale) */
+   mutable AutomaticStructElem *pAutoStr;
+   mutable Vec3 XPPCurr;   /* Accelerazione lineare  corrente */
+   mutable Vec3 WPCurr;    /* Accelerazione angolare corrente */
+   mutable Vec3 XPPPrev;   /* Accelerazione lineare  corrente */
+   mutable Vec3 WPPrev;    /* Accelerazione angolare corrente */
+
+   virtual void SetAutoStr(const AutomaticStructElem *p) {
+	   pAutoStr = (AutomaticStructElem *)p;
+   };
+
  public:
    /* Costruttore definitivo (da mettere a punto) */
    /* I dati sono passati a mezzo di reference, quindi i relativi oggetti 
@@ -423,6 +438,32 @@ class DynamicStructNode : public StructNode {
    /* Usato dalle forze astratte, dai bulk ecc., per assemblare le forze
     * al posto giusto */
    virtual integer iGetFirstRowIndex(void) const;
+
+   virtual void AddInertia(const doublereal& dm, const Vec3& dS,
+		   const Mat3x3& dJ) const;
+
+   /* Output del nodo strutturale (da mettere a punto) */
+   virtual void Output(OutputHandler& OH) const;
+
+   /* Elaborazione vettori e dati prima e dopo la predizione
+    * per MultiStepIntegrator */
+   virtual void BeforePredict(VectorHandler& X, VectorHandler& XP,
+			      VectorHandler& XPrev, 
+			      VectorHandler& XPPrev) const;
+
+   /* Restituisce il valore del dof iDof;
+    * se differenziale, iOrder puo' essere = 1 per la derivata */
+   virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
+   
+   /* Restituisce il valore del dof iDof al passo precedente;
+    * se differenziale, iOrder puo' essere = 1 per la derivata */
+   virtual const doublereal& dGetDofValuePrev(int iDof, int iOrder = 0) const;
+   
+   /* Setta il valore del dof iDof a dValue;
+    * se differenziale, iOrder puo' essere = 1 per la derivata */
+   virtual void SetDofValue(const doublereal& dValue, 
+			    unsigned int iDof, unsigned int iOrder = 0);
+
 };
 
 
@@ -435,7 +476,7 @@ inline unsigned int DynamicStructNode::iGetNumDof(void) const
 /* Ritorna il primo indice (-1) di quantita' di moto */
 inline integer DynamicStructNode::iGetFirstMomentumIndex(void) const
 {
-   return DofOwnerOwner::iGetFirstIndex()+6;
+   return DofOwnerOwner::iGetFirstIndex() + 6;
 }
 
 /* DynamicStructNode - end */
@@ -506,11 +547,6 @@ inline integer StaticStructNode::iGetFirstMomentumIndex(void) const
 
 class ModalNode : public DynamicStructNode {
  protected:
-   
-   /* accelerazioni lineari e angolari (da usarsi solo col nodo modale) */
-   Vec3 XPPCurr;   /* Accelerazione lineare  corrente */
-   Vec3 WPCurr;    /* Accelerazione angolare corrente */
-
  public:
    /* Costruttore definitivo (da mettere a punto) */
    /* I dati sono passati a mezzo di reference, quindi i relativi oggetti 
