@@ -21,6 +21,39 @@
 %
 function [S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, uu, dec)
 
+% MBDyn (C) is a multibody analysis code. 
+% http://www.mbdyn.org
+% 
+% Copyright (C) 1996-2003
+% 
+% Pierangelo Masarati	<masarati@aero.polimi.it>
+% Paolo Mantegazza	<mantegazza@aero.polimi.it>
+% 
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+% 
+% Changing this copyright notice is forbidden.
+% 
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 
+%
+% Authors:	Giuseppe Quaranta	<quaranta@aero.polimi.it>
+%		Pierangelo Masarati	<masarati@aero.polimi.it>
+%
+
 if nargin < 3,
 	dt = 1.;
 end
@@ -59,7 +92,7 @@ if ((exist('dec') == 1)),
 		AA(:, i) = decimate(A(:, i), dec);
 	end
         if (exist('uu') & ~isempty(uu)),
-                [ru,cu] = size(uu);
+                [ru, cu] = size(uu);
                 for i = 1:cu,
                         uuu(:, i) = decimate(uu(:, i), dec);
                 end
@@ -126,10 +159,10 @@ if exist('OCTAVE_HOME'),
 	H = (Aout(1:r-1, :)\Aout(2:r, :))';
 else
        if (exist('uu') & ~isempty(uu)),
-                [ru,cu] = size(uu);
+                [ru, cu] = size(uu);
                 yu = iddata(Aout, uu);
 		%% si potrebbe dare la struttura della B noto il nodo eccitato... 
-                H = ssdata(arx(yu, [ones(ns), ones(ns,cu), zeros(ns,cu)], 'Covariance', 'None'));
+                H = ssdata(arx(yu, [ones(ns), ones(ns, cu), zeros(ns, cu)], 'Covariance', 'None'));
     	else
 		H = ssdata(arx(Aout, ones(ns), 'Covariance', 'None'));
 	end
