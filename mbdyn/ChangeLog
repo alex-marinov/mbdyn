@@ -6,6 +6,11 @@ Copyright (C) 1996-2002
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Mon Mar  4 14:17:16 CET 2002 Giuseppe Quaranta <quaranta@aero.polimi.it>
+ - fix configure.in check for parallel solver
+
+*** Mon Mar  4 10:17:16 CET 2002 Giuseppe Quaranta <quaranta@aero.polimi.it>
+ - fix and enhance parallel solver
 
 *** Tue Feb 26 18:23:16 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - configurable extra output for the iteration engine

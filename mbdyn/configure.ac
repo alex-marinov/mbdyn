@@ -903,10 +903,6 @@ if test $ol_with_mpi != no ; then
 			AC_MSG_WARN([Could not locate MPI])
 			AC_MSG_WARN([MPI not supported!])
 		fi
-	else
-		if test $ol_link_harwell != yes ; then
-			AC_MSG_ERROR([Need Harwell to use Schur solver with MPI])
-		fi
 	fi
 else
 	AC_MSG_WARN([MPI not supported!])
