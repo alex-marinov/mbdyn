@@ -39,7 +39,8 @@ do_grid(struct n2m_buffer *b, FILE **f)
         X2 = get_double(b, NASTRAN_FIFTH, NULL);
         X3 = get_double(b, NASTRAN_SIXTH, NULL);
 	
-	fprintf(f[NASTRAN_FILE_OUT_REF], "reference: %8d, # GRID %d\n", ID, ID);
+	fprintf(f[NASTRAN_FILE_OUT_REF],
+		"reference: %8d, # GRID %d\n", reference_offset+ID, ID);
 	if (CP == 0) {
 		snprintf(form, sizeof(form), "\treference,   global");
 	} else {
@@ -53,7 +54,8 @@ do_grid(struct n2m_buffer *b, FILE **f)
 
 	snprintf(form, sizeof(form), "\treference, %8d", ID);
 	fprintf(f[NASTRAN_FILE_OUT_NODE],
-		"structural: %8d, dynamic, # GRID %d\n", ID, ID);
+		"structural: %8d, dynamic, # GRID %d\n",
+		reference_offset+ID, ID);
 	fprintf(f[NASTRAN_FILE_OUT_NODE], "%s, null,\n", form);
 	fprintf(f[NASTRAN_FILE_OUT_NODE], "%s, eye,\n", form);
 	fprintf(f[NASTRAN_FILE_OUT_NODE], "%s, null,\n", form);

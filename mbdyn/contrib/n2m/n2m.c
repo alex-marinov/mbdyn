@@ -31,6 +31,7 @@
 #include <n2m.h>
 
 int make_rigid_bodies = 0;
+int reference_offset = 0;
 
 int
 main(int argc, char *const argv[])
@@ -61,7 +62,7 @@ main(int argc, char *const argv[])
 	/* Command-line parsing */
 #ifdef HAVE_GETOPT
 	while (1) {
-		char optstring[] = "bc:e:i:n:o:r:";
+		char optstring[] = "bc:e:i:n:o:r:R:";
 		int opt;
 
 		opt = getopt(argc, argv, optstring);
@@ -158,6 +159,9 @@ main(int argc, char *const argv[])
 					optarg);
 				exit(EXIT_FAILURE);
 			}
+			break;
+		case 'R':
+			reference_offset = atoi(optarg);
 			break;
 		}
 	}

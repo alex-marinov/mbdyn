@@ -73,6 +73,7 @@ struct n2m_card_data {
 
 /* global data */
 extern int make_rigid_bodies;
+extern int reference_offset;
 
 /* helpers */
 extern int get_buf(FILE *fin, struct n2m_buffer *b);
