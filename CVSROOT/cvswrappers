@@ -33,4 +33,5 @@
 # Images
 *.gif -k 'b'
 *.jpg -k 'b'
+*.bmp -k 'b'
 
