@@ -317,6 +317,12 @@ HighParser::Remark_(void)
 }
 
 
+void
+HighParser::Eof(void)
+{
+	 THROW(ErrFile());
+}
+
 int 
 HighParser::GetDescription(void)
 {
@@ -331,7 +337,9 @@ restart_parsing:
    
    if ((CurrLowToken = LowP.GetToken(*pIn)) != LowParser::WORD) {
       if (pIn->GetStream().eof()) {
-	 THROW(ErrFile());
+	 Eof();
+	 goto restart_parsing;
+
       } else {     	 
 	std::cerr << "Parser error in "
 	   << sFuncName << ", keyword expected at line " 
@@ -343,11 +351,25 @@ restart_parsing:
    /* Description corrente */
    char* s = LowP.sGetWord();
    
+   if (GetDescription_int(s)) {
+      goto restart_parsing;
+
+   }
+
+   return iGetDescription_(s);
+}
+
+
+bool
+HighParser::GetDescription_int(const char *s)
+{
    if (strcmp(s, "set") == 0) {
       Set_();
-      goto restart_parsing;
-   } /* else */
-   return iGetDescription_(s);
+      return true;
+
+   }
+
+   return false;
 }
 
 

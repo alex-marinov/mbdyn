@@ -294,50 +294,20 @@ IncludeParser::Include_()
    	CurrToken = HighParser::DESCRIPTION;
 }
 
-int
-IncludeParser::GetDescription(void)
+void
+IncludeParser::Eof(void)
 {
-   	/* Checks if current token is a description */
-   	if (!fIsDescription()) {
-      		THROW(HighParser::ErrInvalidCallToGetDescription());
-   	}
-   
-restart:
-   
-   	if ((CurrLowToken = LowP.GetToken(*pIn)) != LowParser::WORD) {
-      		if (pIn->GetStream().eof()) {
-	 		if(fCheckStack()) {
-	    			/* Se la stack e' vuota lancia l'eccezione */
-	    			goto restart;
-	 		} else {
-	    			THROW(ErrFile());
-	 		}
-      		} else {     	 
-			std::cerr << "Parser error "
-				"in IncludeParser::GetDescription(), "
-	   			"keyword expected at line " 
-	   			<< GetLineData() << std::endl;
-	 		THROW(HighParser::ErrKeyWordExpected());
-      		}
-   	}
-   
-   	/* Description corrente */
-   	char* s = LowP.sGetWord();
-   
-   	/*
-	 * Se trova la direttiva "include", la gestisce direttamente in modo
-    	 * da aprire il nuovo file conservando quello corrente nella stack
-	 */
+	if(!fCheckStack()) {
+		THROW(ErrFile());
+	}
+}
+
+bool
+IncludeParser::GetDescription_int(const char *s)
+{
    	if (!strcmp(s, "include")) {
       		Include_();
-      		goto restart;      
-
-      		/*
-		 * Se trova un sistema di riferimento, lo gestisce direttamente
-		 */
-   	} else if (!strcmp(s, "set")) {
-      		Set_();
-      		goto restart;
+      		return true;
 
 #ifdef USE_INCLUDE_PARSER
 	} else if (!strcmp(s, "chdir")) {
@@ -356,12 +326,13 @@ restart:
 				<< sfname << std::endl;
 	 		THROW(ErrFileSystem());
       		}
-      		goto restart;
+      		return true;
 
 #endif /* USE_INCLUDE_PARSER*/
 		
-   	} /* else */   
-   	return iGetDescription_(s);
+   	}
+	
+	return HighParser::GetDescription_int(s);
 }
 
 char *

@@ -254,59 +254,20 @@ MBDynParser::C81Data_(void)
 }
 #endif /* USE_AERODYNAMIC_ELEMS */
 
-int 
-MBDynParser::GetDescription(void)
+bool
+MBDynParser::GetDescription_int(const char *s)
 {
-	/* Checks if current token is a description */
-	if (!fIsDescription()) {
-		THROW(HighParser::ErrInvalidCallToGetDescription());
-	}
-	
-restart:
-	if ((CurrLowToken = LowP.GetToken(*pIn)) != LowParser::WORD) {
-		if (pIn->GetStream().eof()) {
-			if (fCheckStack()) {
-				/*
-				 * Se la stack e' vuota lancia l'eccezione
-				 * (errore)
-				 */
-				goto restart;
-			} else {
-				THROW(ErrFile());
-			}
-		} else {     	 
-			std::cerr << "Keyword expected at line "
-				<< GetLineData() << std::endl;
-			THROW(HighParser::ErrKeyWordExpected());
-		}      
-	}
-	
-	/* Description corrente */
-	char* s = LowP.sGetWord();
-	
-	/*
-	 * Se trova la direttiva "include", la gestisce direttamente in modo
-	 * da aprire il nuovo file conservando quello corrente nella stack
-	 */
-	if (!strcmp(s, "include")) {
-		Include_();
-		goto restart;      
-		
-	/* Se trova un'invocazione di MathPerser, la gestisce direttamente */
-	} else if (!strcmp(s, "set")) {
-		Set_();
-		goto restart;
-		
-	/* Se trova un remark, scrive il commento ed eventualmente quello che segue */
-	} else if (!strcmp(s, "remark")) {
+	/* Se trova un remark, scrive il commento ed eventualmente
+	 * quello che segue */
+	if (!strcmp(s, "remark")) {
 		Remark_();
-		goto restart;
+		return true;
 
 	/* Se trova un sistema di riferimento, lo gestisce direttamente */
 	} else if (!strcmp(s, "reference")) {
 #if defined(USE_STRUCT_NODES)      
 		Reference_();
-		goto restart;
+		return true;
 #else /* USE_STRUCT_NODES */
 		THROW(MBDynParser::ErrGeneric());
 #endif /* USE_STRUCT_NODES */
@@ -315,7 +276,7 @@ restart:
 	} else if (!strcmp(s, "hydraulic" "fluid")) {
 #if defined(USE_HYDRAULIC_NODES)
 		HydraulicFluid_();
-		goto restart;
+		return true;
 #else /* USE_HYDRAULIC_NODES */
 		THROW(MBDynParser::ErrGeneric());
 #endif /* USE_HYDRAULIC_NODES */
@@ -324,7 +285,7 @@ restart:
 	} else if (!strcmp(s, "c81" "data")) {
 #if defined(USE_AERODYNAMIC_ELEMS)
 		C81Data_();
-		goto restart;
+		return true;
 #else /* USE_AERODYNAMIC_ELEMS */
 		THROW(MBDynParser::ErrGeneric());
 #endif /* USE_AERODYNAMIC_ELEMS */
@@ -333,17 +294,17 @@ restart:
 	} else if (!strcmp(s, "license")) {
 		mbdyn_license(std::cout);
 		CurrLowToken = LowP.GetToken(*pIn);
-		goto restart;
+		return true;
 	
 	/* Scrive il disclaimer */
 	} else if (!strcmp(s, "warranty")) {
 		mbdyn_warranty(std::cout);
 		CurrLowToken = LowP.GetToken(*pIn);
-		goto restart;
+		return true;
 	}
 
 	/* altrimenti e' una description normale */
-	return iGetDescription_(s);
+	return IncludeParser::GetDescription_int(s);
 }
 
 #if defined(USE_STRUCT_NODES)

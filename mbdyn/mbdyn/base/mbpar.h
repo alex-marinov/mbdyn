@@ -171,12 +171,14 @@ protected:
 	void C81Data_(void);
 #endif /* USE_AERODYNAMIC_ELEMS */
 
+	/* Legge una parola chiave */
+	bool GetDescription_int(const char *s);
+
 public:
 	MBDynParser(MathParser& MP, KeyTable& KT, InputStream& streamIn,
 			const char *initial_file);
 	~MBDynParser(void);
 	
-	int GetDescription(void);          /* Legge una parola chiave */
 	
 	/*
 	 * Lettura di posizioni, vettori e matrici di rotazione

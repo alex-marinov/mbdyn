@@ -144,6 +144,10 @@ class IncludeParser : public HighParser {
 
    flag fCheckStack(void);
    void Include_(void);
+
+   /* Legge una parola chiave */
+   virtual bool GetDescription_int(const char *s);
+   virtual void Eof(void);
    
  public:
    IncludeParser(MathParser& MP, KeyTable& KT, InputStream& streamIn, 
@@ -151,7 +155,6 @@ class IncludeParser : public HighParser {
    virtual ~IncludeParser(void);
 
    virtual void Close(void);                  /* "Chiude" i flussi */   
-   virtual int GetDescription(void);          /* Legge una parola chiave */
    
    virtual const char* GetFileName(enum Delims Del = DEFAULTDELIM);
    

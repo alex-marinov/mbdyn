@@ -259,6 +259,8 @@ class HighParser {
    int iGetDescription_(const char* const s);
    void Set_(void);
    void Remark_(void);
+   virtual bool GetDescription_int(const char *s);
+   virtual void Eof(void);
    
  public:   
    HighParser(MathParser& MP, KeyTable& KT, InputStream& streamIn);
@@ -274,7 +276,7 @@ class HighParser {
    /* "Chiude" i flussi */
    virtual void Close(void);
    /* Legge una parola chiave */
-   virtual int GetDescription(void);
+   int GetDescription(void);
    /* si attende una descrizione */
    virtual void ExpectDescription(void);
    /* si attende una lista di argomenti */
