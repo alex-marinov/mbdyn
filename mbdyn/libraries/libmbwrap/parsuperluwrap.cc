@@ -52,6 +52,7 @@
 extern "C" {
 #include <pdsp_defs.h>
 #include <util.h>
+
 extern void *pdgstrf_thread(void *);
 extern void pdgstrf_finalize(pdgstrf_options_t *, SuperMatrix*);
 }
@@ -154,6 +155,10 @@ SuperLUSolver::~SuperLUSolver(void)
 	}
 	pthread_mutex_unlock(&thread_mutex);
 
+	for (unsigned i = 1; i < nThreads; i++) {
+		sem_destroy(&thread_data[i].sem);
+	}
+
 	pthread_mutex_destroy(&thread_mutex);
 	pthread_cond_destroy(&thread_cond);
 
@@ -216,8 +221,11 @@ SuperLUSolver::EndOfOp(void)
 
 	/* if last thread, signal to restart */
 	if (last) {
+#if 0
+		pthread_cond_broadcast(&thread_cond);
+#else
 		pthread_cond_signal(&thread_cond);
-		// pthread_cond_broadcast(&thread_cond);
+#endif
 	}
 	pthread_mutex_unlock(&thread_mutex);
 }
