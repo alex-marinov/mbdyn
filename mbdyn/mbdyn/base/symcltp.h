@@ -34,11 +34,7 @@
 #ifndef SYMCLTP_H
 #define SYMCLTP_H
 
-
 #include <constltp.h>
-#ifdef HAVE_GINAC
-#include <ginac/ginac.h>
-#endif /* HAVE_GINAC */
 
 /* SymbolicElasticIsotropicConstitutiveLaw - begin */
 
@@ -71,15 +67,8 @@ SymbolicElasticIsotropicConstitutiveLaw<T, Tder>::SymbolicElasticIsotropicConsti
 		const char *const *symbols = NULL)
 : ElasticConstitutiveLaw<T, Tder>(pDC, PStress)
 { 
-
-#ifndef HAVE_GINAC
-	std::cerr << "SymbolicElasticIsotropicConstitutiveLaw needs "
-		"GiNaC symbolic algebra package" << std::endl;
-	THROW(DataManager::ErrGeneric());
-#else /* HAVE_GINAC */
 	THROW(Err(std::cerr, "symbolic constitutive law "
 				"is allowed only for scalar")); 
-#endif /* HAVE_GINAC */
 }
  
 template <class T, class Tder>
@@ -114,186 +103,146 @@ SymbolicElasticIsotropicConstitutiveLaw<T, Tder>::IncrementalUpdate(const T& Del
 	NO_OP;
 }
 
+/* SymbolicElasticIsotropicConstitutiveLaw - end */
 
-#ifdef HAVE_GINAC
+/* SymbolicViscousIsotropicConstitutiveLaw - begin */
 
-/* specialize for scalar constitutive law */
-
-class SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>
-: public ElasticConstitutiveLaw<doublereal, doublereal> {
-private:
-	GiNaC::symbol gEps;		/* parameter symbol */
-	GiNaC::symbol **gSymList;	/* list of other symbols */
-	doublereal *vals;			/* values of other symbols */
-
-	GiNaC::ex gExpr;		/* expression */
-	GiNaC::ex gDer;			/* derivative */
-
-#if 0
-	SymbolicElasticIsotropicConstitutiveLaw(const TplDriveCaller<doublereal>* pDC,
-			const doublereal& PStress,
-			const GiNaC::symbol& epsilon,
-			const GiNaC::ex& expression,
-			const GiNaC::ex& derivative,
-			const GiNaC::symbol **symbols = NULL,
-			doublereal *v = NULL);
-#endif
-
+template <class T, class Tder>
+class SymbolicViscousIsotropicConstitutiveLaw 
+: public ElasticConstitutiveLaw<T, Tder> {
 public:
-	SymbolicElasticIsotropicConstitutiveLaw(const TplDriveCaller<doublereal>* pDC,
-			const doublereal& PStress, const char *epsilon,
+	SymbolicViscousIsotropicConstitutiveLaw(const TplDriveCaller<T>* pDC,
+			const T& PStress, const char *epsilon,
 			const char *expression, const char *const *symbols);
-     	virtual ~SymbolicElasticIsotropicConstitutiveLaw(void);
-     	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const;
+     	virtual ~SymbolicViscousIsotropicConstitutiveLaw(void);
+     	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const;
 	virtual std::ostream& Restart(std::ostream& out) const;
-	virtual void Update(const doublereal& Eps, const doublereal& /* EpsPrime */ = 0.);
-	virtual void IncrementalUpdate(const doublereal& DeltaEps, 
-			const doublereal& /* EpsPrime */ = 0.);
+	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.);
+	virtual void IncrementalUpdate(const T& DeltaEps, 
+			const T& /* EpsPrime */ = 0.);
 };
 
-SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>::SymbolicElasticIsotropicConstitutiveLaw(
-		const TplDriveCaller<doublereal>* pDC, const doublereal& PStress, 
+typedef SymbolicViscousIsotropicConstitutiveLaw<doublereal, doublereal> 
+	SymbolicViscousIsotropicConstitutiveLaw1D;
+typedef SymbolicViscousIsotropicConstitutiveLaw<Vec3, Mat3x3>
+	SymbolicViscousIsotropicConstitutiveLaw3D;
+typedef SymbolicViscousIsotropicConstitutiveLaw<Vec6, Mat6x6> 
+	SymbolicViscousIsotropicConstitutiveLaw6D;
+
+template <class T, class Tder>
+SymbolicViscousIsotropicConstitutiveLaw<T, Tder>::SymbolicViscousIsotropicConstitutiveLaw(
+		const TplDriveCaller<T>* pDC, const T& PStress, 
 		const char *epsilon, const char *expression, 
 		const char *const *symbols = NULL)
-: ElasticConstitutiveLaw<doublereal, doublereal>(pDC, PStress),
-gEps(epsilon), gSymList(0), vals(0)
+: ElasticConstitutiveLaw<T, Tder>(pDC, PStress)
 { 
-	ConstitutiveLaw<doublereal, doublereal>::FDE = 0.;
-
-	GiNaC::lst l; 
-
-	l.append(gEps);
-
-	if (symbols) {
-		int i;
-
-		for (i = 0; symbols[i]; i++);
-
-		gSymList = new GiNaC::symbol*[i+1];
-		vals = new double[i];
-
-		for (i = 0; symbols[i]; i++) {
-			char *s = strdup(symbols[i]), *v = 0;
-
-			if ((v = strchr(s, '='))) {
-				*v = '\0';
-			}
-
-			gSymList[i] = new GiNaC::symbol(s);
-			l.append(*gSymList[i]);
-
-			if (v) {
-				vals[i] = atof(&v[1]);
-			}
-
-			free(s);
-		}
-
-		gSymList[i] = 0;
-	}
-
-	try {
-		gExpr = GiNaC::ex(expression, l);
-	} catch (std::exception e) {
-		std::cerr << "expression parsing failed: " << e.what() << std::endl;
-		throw e;
-	}
-
-	try {
-		gDer = gExpr.diff(gEps);
-	} catch (std::exception e) {
-		std::cerr << "expression differentiation failed: " << e.what() << std::endl;
-		throw e;
-	}
-
-	silent_cout("Variable:         \"" << gEps << "\"" << std::endl
-		<< "Constitutive law: \"" << gExpr << "\"" << std::endl
-		<< "Derivative:       \"" << gDer << "\"" << std::endl);
+	THROW(Err(std::cerr, "symbolic constitutive law "
+				"is allowed only for scalar")); 
 }
  
-SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>::~SymbolicElasticIsotropicConstitutiveLaw(void)
+template <class T, class Tder>
+SymbolicViscousIsotropicConstitutiveLaw<T, Tder>::~SymbolicViscousIsotropicConstitutiveLaw(void)
 {
-	if (gSymList) {
-		for (int i = 0; gSymList[i]; i++) {
-			delete gSymList[i];
-		}
-		delete[] gSymList;
-		delete[] vals;
-	}
+	NO_OP;
 };
 
-ConstitutiveLaw<doublereal, doublereal>* 
-SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>::pCopy(void) const
+template <class T, class Tder> ConstitutiveLaw<T, Tder>* 
+SymbolicViscousIsotropicConstitutiveLaw<T, Tder>::pCopy(void) const
 {
-	ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
-
-	typedef SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal> cl;
-	SAFENEWWITHCONSTRUCTOR(pCL, 
-		cl, 
-		cl(ElasticConstitutiveLaw<doublereal, doublereal>::pGetDriveCaller()->pCopy(), 
-			ElasticConstitutiveLaw<doublereal, doublereal>::PreStress,
-			/* gEps.get_name() */ 0, 0, 0)); /* FIXME! */
-      
-	return pCL;
+	return NULL;
 }
 
-std::ostream& 
-SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>::Restart(std::ostream& out) const
+template <class T, class Tder> std::ostream& 
+SymbolicViscousIsotropicConstitutiveLaw<T, Tder>::Restart(std::ostream& out) const
 {
-	out << "symbolic elastic isotropic, epsilon, \"" << gEps
-		<< "\", expression, \"" << gExpr << "\"";
-
-	if (gSymList) {
-		int i;
-
-		for (i = 0; gSymList[i]; i++);
-		out << "symbols, " << i;
-
-		for (i = 0; gSymList[i]; i++) {
-			out << ", \"" << gSymList[i] << "=" << vals[i] << "\"";
-		}
-	}
-
-  	return Restart_(out);
+  	return out;
 }
 
-void
-SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>::Update(const doublereal& Eps, 
-		const doublereal& /* EpsPrime */ )
+template <class T, class Tder> void
+SymbolicViscousIsotropicConstitutiveLaw<T, Tder>::Update(const T& Eps, 
+		const T& /* EpsPrime */ )
 {
-	GiNaC::lst l;
-
-	ElasticConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps;
-
-	doublereal e = Eps - ElasticConstitutiveLaw<doublereal, doublereal>::Get();
-
-	l.append(gEps == e);
-
-	if (gSymList) {
-		for (int i = 0; gSymList[i]; i++) {
-			l.append(*gSymList[i] == vals[i]);
-		}
-	}
-
-	GiNaC::ex f_expr = gExpr.subs(l);
-	ConstitutiveLaw<doublereal, doublereal>::F = 
-		ElasticConstitutiveLaw<doublereal, doublereal>::PreStress
-		+ GiNaC::ex_to<GiNaC::numeric>(f_expr).to_double();
-
-	GiNaC::ex f_der = gDer.subs(l);
-	ConstitutiveLaw<doublereal, doublereal>::FDE = GiNaC::ex_to<GiNaC::numeric>(f_der).to_double();
+	NO_OP;
 }
 
-void 
-SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>::IncrementalUpdate(const doublereal& DeltaEps, 
-		const doublereal& /* EpsPrime */ )
+template <class T, class Tder> void 
+SymbolicViscousIsotropicConstitutiveLaw<T, Tder>::IncrementalUpdate(const T& DeltaEps, 
+		const T& /* EpsPrime */ )
 {
-	Update(ElasticConstitutiveLaw<doublereal, doublereal>::Epsilon+DeltaEps);
+	NO_OP;
 }
 
-/* LinearElasticIsotropicConstitutiveLaw - end */
+/* SymbolicViscousIsotropicConstitutiveLaw - end */
 
-#endif /* HAVE_GINAC */
+/* SymbolicViscoElasticIsotropicConstitutiveLaw - begin */
+
+template <class T, class Tder>
+class SymbolicViscoElasticIsotropicConstitutiveLaw 
+: public ElasticConstitutiveLaw<T, Tder> {
+public:
+	SymbolicViscoElasticIsotropicConstitutiveLaw(const TplDriveCaller<T>* pDC,
+			const T& PStress,
+			const char *epsilon, const char *epsilonPrime,
+			const char *expression, const char *const *symbols);
+     	virtual ~SymbolicViscoElasticIsotropicConstitutiveLaw(void);
+     	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const;
+	virtual std::ostream& Restart(std::ostream& out) const;
+	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.);
+	virtual void IncrementalUpdate(const T& DeltaEps, 
+			const T& /* EpsPrime */ = 0.);
+};
+
+typedef SymbolicViscoElasticIsotropicConstitutiveLaw<doublereal, doublereal> 
+	SymbolicViscoElasticIsotropicConstitutiveLaw1D;
+typedef SymbolicViscoElasticIsotropicConstitutiveLaw<Vec3, Mat3x3>
+	SymbolicViscoElasticIsotropicConstitutiveLaw3D;
+typedef SymbolicViscoElasticIsotropicConstitutiveLaw<Vec6, Mat6x6> 
+	SymbolicViscoElasticIsotropicConstitutiveLaw6D;
+
+template <class T, class Tder>
+SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder>::SymbolicViscoElasticIsotropicConstitutiveLaw(
+		const TplDriveCaller<T>* pDC, const T& PStress, 
+		const char *epsilon,  const char *epsilonPrime,
+		const char *expression, const char *const *symbols = NULL)
+: ElasticConstitutiveLaw<T, Tder>(pDC, PStress)
+{ 
+	THROW(Err(std::cerr, "symbolic constitutive law "
+				"is allowed only for scalar")); 
+}
+ 
+template <class T, class Tder>
+SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder>::~SymbolicViscoElasticIsotropicConstitutiveLaw(void)
+{
+	NO_OP;
+};
+
+template <class T, class Tder> ConstitutiveLaw<T, Tder>* 
+SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder>::pCopy(void) const
+{
+	return NULL;
+}
+
+template <class T, class Tder> std::ostream& 
+SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder>::Restart(std::ostream& out) const
+{
+  	return out;
+}
+
+template <class T, class Tder> void
+SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder>::Update(const T& Eps, 
+		const T& /* EpsPrime */ )
+{
+	NO_OP;
+}
+
+template <class T, class Tder> void 
+SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder>::IncrementalUpdate(const T& DeltaEps, 
+		const T& EpsPrime )
+{
+	NO_OP;
+}
+
+/* SymbolicViscoElasticIsotropicConstitutiveLaw - end */
 
 #endif /* SYMCLTP_H */
 
