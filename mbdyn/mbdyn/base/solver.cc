@@ -1103,7 +1103,7 @@ IfFirstStepIsToBeRepeated:
 	
 	/* Setup SolutionManager(s) */
 	SetupSolmans(pRegularSteps->GetIntegratorNumUnknownStates());
-      	while (1) {
+      	while (true) {
 		
 		StepIntegrator::StepChange CurrStep 
 				= StepIntegrator::NEWSTEP;
@@ -1626,7 +1626,7 @@ Solver::ReadData(MBDynParser& HP)
 	
 	 	
    	/* Ciclo infinito */
-   	while (1) {	
+   	while (true) {	
       		KeyWords CurrKeyWord = KeyWords(HP.GetDescription());
       
       		switch (CurrKeyWord) {	 	 

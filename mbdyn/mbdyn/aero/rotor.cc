@@ -37,10 +37,8 @@
 #include <ac/math.h>
 
 #ifdef USE_MPI
-#ifdef USE_MYSLEEP
 #include <mysleep.h>
 const int mysleeptime = 300;
-#endif /* USE_MYSLEEP */
 
 #ifdef MPI_PROFILING
 extern "C" {
@@ -702,9 +700,7 @@ NoRotor::AddForce(unsigned int uL,
 #ifdef USE_MPI
 	if (ReqV != MPI::REQUEST_NULL) {
 		while (!ReqV.Test()) {
-#ifdef USE_MYSLEEP
-			mysleep(mysleeptime);
-#endif /* USE_MYSLEEP */
+			MYSLEEP(mysleeptime);
 		}
 	}
 #endif /* USE_MPI */
@@ -854,9 +850,7 @@ UniformRotor::AddForce(unsigned int uL,
 #ifdef USE_MPI
 	if (ReqV != MPI::REQUEST_NULL) {
 		while (!ReqV.Test()) { 
-#ifdef USE_MYSLEEP	
-			mysleep(mysleeptime);
-#endif /* USE_MYSLEEP */
+			MYSLEEP(mysleeptime);
 		}
 	}
 #endif /* USE_MPI */
@@ -996,9 +990,7 @@ GlauertRotor::AddForce(unsigned int uL,
 #ifdef USE_MPI
 	if (ReqV != MPI::REQUEST_NULL) {
 		while (!ReqV.Test()) { 
-#ifdef USE_MYSLEEP
-			mysleep(mysleeptime);
-#endif /* USE_MYSLEEP */
+			MYSLEEP(mysleeptime);
 		}
 	}
 #endif /* USE_MPI */
@@ -1177,9 +1169,7 @@ ManglerRotor::AddForce(unsigned int uL,
 #ifdef USE_MPI
 	if (ReqV != MPI::REQUEST_NULL) {
 		while (!ReqV.Test()) { 
-#ifdef USE_MYSLEEP
-			mysleep(mysleeptime);
-#endif /* USE_MYSLEEP */
+			MYSLEEP(mysleeptime);
 		}
 	}
 #endif /* USE_MPI */
@@ -1686,9 +1676,7 @@ DynamicInflowRotor::AddForce(unsigned int uL,
 #ifdef USE_MPI
 	if (ReqV != MPI::REQUEST_NULL) {
 		while (!ReqV.Test()) { 
-#ifdef USE_MYSLEEP
-			mysleep(mysleeptime);
-#endif /* USE_MYSLEEP */
+			MYSLEEP(mysleeptime);
 		}
 	}
 #endif /* USE_MPI */

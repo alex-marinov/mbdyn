@@ -341,7 +341,7 @@ SocketDrive::ServePending(const doublereal& /* t */ )
       		}
    	}
 
-   	while (1) {
+   	while (true) {
       		char user[USERLEN+1];
       		char cred[CREDLEN+1];
 
@@ -434,7 +434,7 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 	    			continue;
 	 		}
 	 
-	 		while (1) {
+	 		while (true) {
 	    			if (get_line(buf, bufsize, fd) == NULL) {
 	       				std::cerr << "SocketDrive(" << GetLabel()
 						<< "): corrupted stream"

@@ -100,7 +100,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 	pPrevNLP = pNLP;
 	dSolErr = 0.;
 
-	while (1) {
+	while (true) {
 
 #ifdef 	USE_EXTERNAL 	
 		SendExternal();

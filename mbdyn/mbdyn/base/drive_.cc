@@ -1343,7 +1343,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        
        /* Type of random number (additional data) */
        integer iSteps = 1;
-       while (1) {
+       while (true) {
 	  if (HP.IsKeyWord("steps")) {
 	     iSteps = HP.GetInt();
 	     if (iSteps <= 0) {		    

@@ -238,7 +238,7 @@ iTotalExpConnections(0)
 	        << HP.GetLineData() << "; aborting ..." << std::endl;
             THROW(ErrGeneric());
         }
-        while (1) {
+        while (true) {
             KeyWords CDesc = KeyWords(HP.GetDescription());
             switch (CDesc) {
             case WEIGHTS:
@@ -958,7 +958,7 @@ SchurDataManager::CreatePartition(void)
     SAFENEWARR(pMyLabels, unsigned int, iDefaultMaxNodesPerElem);
     SAFENEWARR(pLabelsList, unsigned int, iTotNodes);
 
-    while (1) {
+    while (true) {
         InitList(Vertices.pXadj, iTotVertices+1, 0);
         InitList(pVertexWgts, iTotVertices*2, 0);
        	InitList(pCommWgts, iTotVertices, 0);
@@ -1152,7 +1152,7 @@ SchurDataManager::CreatePartition(void)
     SAFENEWARR(InterfNodes.pXadj, int, DataCommSize+1);
     SAFENEWARR(ppMyNodes, Node*, 2*MyDim);
     
-    while (1) {
+    while (true) {
         InitList(InterfNodes.pXadj, DataCommSize+1, 0);
       	SAFENEWARR(InterfNodes.pAdjncy,int, DataCommSize*iMaxInterfNodes*8);
       	InitList(InterfNodes.pAdjncy, DataCommSize*iMaxInterfNodes*8, ADJ_UNDEFINED);
@@ -1326,15 +1326,13 @@ SchurDataManager::CreatePartition(void)
 
     /* Verifico la ricezione dei nodi di interfaccia */
     flag RecvFlag, SentFlag;
-    while (1) {
+    while (true) {
       	RecvFlag = MPI::Request::Testall(DataCommSize, pRReq);
       	SentFlag = MPI::Request::Testall(DataCommSize, pSReq);
       	if (RecvFlag && SentFlag) {
 	    break;
-#ifdef USE_MYSLEEP
       	} else {
-	    mysleep(1000);
-#endif /* USE_MYSLEEP */
+	    MYSLEEP(1000);
       	}
     }
     

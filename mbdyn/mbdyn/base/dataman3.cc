@@ -528,7 +528,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 
 	 /* Uso di diversi tipi di elementi nell'assemblaggio iniziale */
        case USE: {
-	  while (1) {		       
+	  while (true) {		       
 	     switch (KeyWords(HP.GetWord())) {
 		/* Esce dal ciclo */
 	      case INASSEMBLY: {
