@@ -1,4 +1,4 @@
-function [V,S,M,Aout,data,A,BB] = pod(file, stp, posgdl, ns, novel)
+function [S,Aout,data,A,BB] = pod(file, stp, ns, novel)
 
 data = dlmread(file, ' ');
 [N, m] = size(data)
@@ -36,32 +36,6 @@ end
 B =U'*A;
 for i = 1:ns
     S(i) = norm(B(i,:));
-    Bmovx(i,1:posgdl) = B(i,1:jp:posgdl*jp)/S(i);
-    Bmovy(i,1:posgdl) = B(i,2:jp:posgdl*jp)/S(i);
-    Bmovz(i,1:posgdl) = B(i,3:jp:posgdl*jp)/S(i);
-    Bmovp(i,1:posgdl) = B(i,4:jp:posgdl*jp)/S(i);
-    Bmovq(i,1:posgdl) = B(i,5:jp:posgdl*jp)/S(i);
-    Bmovr(i,1:posgdl) = B(i,6:jp:posgdl*jp)/S(i);
     BB(i,:) = B(i,:)/S(i)^2;
 end
 Aout =BB*A';
-mx = mn(1:jp:posgdl*jp).*scl(1:jp:posgdl*jp);
-my = mn(2:jp:posgdl*jp).*scl(2:jp:posgdl*jp);
-mz = mn(3:jp:posgdl*jp).*scl(3:jp:posgdl*jp);
-mp = mn(4:jp:posgdl*jp).*scl(4:jp:posgdl*jp);
-mq = mn(5:jp:posgdl*jp).*scl(5:jp:posgdl*jp);
-mr = mn(6:jp:posgdl*jp).*scl(6:jp:posgdl*jp);
-
-for i=1:ns
- %   s = max(abs([Bmovx(i,:), Bmovy(i,:), Bmovz(i,:)]))
- %if (s > 1.e-15) 
-        V((i-1)*6+1,:) = Bmovx(i,:).*scl(1:jp:posgdl*jp);
-        V((i-1)*6+2,:) = Bmovy(i,:).*scl(2:jp:posgdl*jp);
-        V((i-1)*6+3,:) = Bmovz(i,:).*scl(3:jp:posgdl*jp);
-        V((i-1)*6+4,:) = Bmovp(i,:).*scl(4:jp:posgdl*jp);
-        V((i-1)*6+5,:) = Bmovq(i,:).*scl(5:jp:posgdl*jp);
-        V((i-1)*6+6,:) = Bmovr(i,:).*scl(6:jp:posgdl*jp);
-        %  end
-end
-M = [mx;my;mz];
-%M = mx;
