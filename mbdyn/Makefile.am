@@ -3,6 +3,6 @@ include $(top_srcdir)/build/top.mk
 ## Do not forget to run automake ( --add-missing ) when you modify Makefile.am
 
 EXTRA_DIST = CHANGELOG 
-SUBDIRS = build etc include libraries manual mbdyn modules utils var
+SUBDIRS = include build etc libraries manual mbdyn modules utils var
 
 include $(top_srcdir)/build/bot.mk

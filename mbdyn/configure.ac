@@ -218,6 +218,7 @@ GINACLIB_LIBS=
 GINACLIB_CPPFLAGS=
 
 dnl MODULES_DIRS=
+MODULE_LOADPATH=
 
 
 dnl ----------------------------------------------------------------
@@ -597,6 +598,7 @@ if test $have_ltdl_h = "yes" ; then
 	if test $have_lt_dlinit = "yes" ; then
 		LIBS="$LIBS -lltdl"
 		have_loadable=yes
+		MODULE_LOADPATH=$libexecdir
 	fi
 fi
 if test $have_loadable = no ; then
@@ -1146,6 +1148,7 @@ AC_SUBST(TCL_LIBS)
 AC_SUBST(Y12_LIBS)
 AC_SUBST(HARWELL_LIBS)
 AC_SUBST(MODULES_DIRS)
+AC_SUBST(MODULE_LOADPATH)
 
 AC_SUBST(GINACLIB_CONFIG)
 AC_SUBST(GINACLIB_CPPFLAGS)

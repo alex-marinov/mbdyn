@@ -1006,6 +1006,14 @@ void DataManager::ReadElems(MBDynParser& HP)
 	   		  std::cerr << "unable to initialize loadable elements" << std::endl;
       			  THROW(ErrGeneric());
       		       }
+
+		       /*
+		        * NOTE: this macro is defined in mbdefs.h
+		        */
+		       if (lt_dlsetsearchpath(MODULE_LOADPATH) != 0) {
+			  std::cerr << "unable to initialize load path"
+				  << std::endl;
+		       }
 		       loadableElemInitialized = true;
 		    }
 		 }

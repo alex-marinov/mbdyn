@@ -1,11 +1,11 @@
-/*
- * MBDyn (C) is a multibody analysis code.
+/* 
+ * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2001
+ * Copyright (C) 1996-2000
  *
- * Pierangelo Masarati  <masarati@aero.polimi.it>
- * Paolo Mantegazza     <mantegazza@aero.polimi.it>
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
  *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
@@ -26,13 +26,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */ 
-@TOP@
+ */
 
+#ifndef MBDEFS_H
+#define MBDEFS_H
 
-@BOTTOM@
+#ifdef HAVE_LTDL_H
+#define	MODULE_LOADPATH		"%MODULE_LOADPATH%"
+#endif /* MODULE_LOADPATH */
 
-/* this file must be included by every .c/.cc file */
-#include <mbdefs.h>
-#include <mbdyn.h>
+#endif /* MBDEFS_H */
 
