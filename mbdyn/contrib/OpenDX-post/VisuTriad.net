@@ -1,12 +1,12 @@
 //
-// time: Fri Nov  8 11:52:18 2002
+// time: Fri Nov  8 19:13:11 2002
 //
 // version: 3.1.2 (format), 4.1.3 (DX)
 //
 //
 //
-// macro reference (direct): FormatList /opt/dx/samples/macros/FormatListMacro.net
-include "FormatListMacro.net"
+// macro reference (direct): DecimateFormatList /home2/marco/mbdyn/contrib/OpenDX-post/DecimateFormatList.net
+include "DecimateFormatList.net"
 //
 // macro reference (direct): M3TimesP3 /home2/marco/mbdyn/contrib/OpenDX-post/M3TimesP3.net
 include "M3TimesP3.net"
@@ -45,8 +45,8 @@ macro main(
 ) {
     // 
     // node FileSelector[1]: x = 187, y = 16, inputs = 0, label = FileSelector
-    // output[1]: visible = 1, type = 32, value = "/home2/marco/mbdyn/contrib/OpenDX-post/GeoOut.dx"
-    // output[2]: visible = 1, type = 32, value = "GeoOut.dx"
+    // output[1]: visible = 1, type = 32, value = "/home2/marco/mbdyn/contrib/OpenDX-post/G0.dx"
+    // output[2]: visible = 1, type = 32, value = "G0.dx"
     // page group: MainControl
     //
     // 
@@ -85,24 +85,62 @@ main_Inquire_5_out_1 =
     main_Inquire_5_in_3
     ) [instance: 5, cache: 1];
     // 
-    // node FormatList[2]: x = 237, y = 294, inputs = 2, label = FormatList
-    // input[2]: defaulting = 0, visible = 1, type = 32, value = "%f"
+    // node Integer[1]: x = 316, y = 22, inputs = 11, label = Integer
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "Integer_1"
+    // input[3]: defaulting = 0, visible = 0, type = 1, value = 21 
+    // input[5]: defaulting = 1, visible = 0, type = 1, value = 1
+    // input[6]: defaulting = 1, visible = 0, type = 1, value = 1000
+    // input[7]: defaulting = 1, visible = 0, type = 5, value = 1.0
+    // input[9]: defaulting = 1, visible = 0, type = 1, value = 0
+    // output[1]: visible = 1, type = 1, value = 21 
     // page group: MainControl
     //
-main_FormatList_2_out_1 = 
-    FormatList(
-    main_Inquire_5_out_1,
-    main_FormatList_2_in_2
-    ) [instance: 2, cache: 1];
     // 
-    // node Selector[12]: x = 245, y = 366, inputs = 7, label = Selector
+    // node Inquire[9]: x = 383, y = 135, inputs = 3, label = Inquire
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "items"
+    // page group: MainControl
+    //
+main_Inquire_9_out_1 = 
+    Inquire(
+    main_Inquire_5_out_1,
+    main_Inquire_9_in_2,
+    main_Inquire_9_in_3
+    ) [instance: 9, cache: 1];
+    // 
+    // node Compute[16]: x = 343, y = 216, inputs = 3, label = Compute
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "max(1,$1/$0)"
+    // page group: MainControl
+    // expression: value = max(1,b/a)
+    // name[2]: value = a
+    // name[3]: value = b
+    //
+main_Compute_16_out_1 = 
+    Compute(
+    main_Compute_16_in_1,
+    main_Integer_1_out_1,
+    main_Inquire_9_out_1
+    ) [instance: 16, cache: 1];
+    // 
+    // node DecimateFormatList[1]: x = 230, y = 314, inputs = 3, label = DecimateFormatList
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "%f"
+    // input[3]: defaulting = 1, visible = 1, type = 1, value = 10
+    // page group: MainControl
+    //
+main_DecimateFormatList_1_out_1 = 
+    DecimateFormatList(
+    main_Inquire_5_out_1,
+    main_DecimateFormatList_1_in_2,
+    main_Compute_16_out_1
+    ) [instance: 1, cache: 1];
+    // 
+    // node Selector[12]: x = 330, y = 383, inputs = 7, label = Selector
     // input[1]: defaulting = 0, visible = 0, type = 32, value = "Selector_12"
-    // input[2]: defaulting = 0, visible = 0, type = 32, value = "0.100000" 
-    // input[3]: defaulting = 0, visible = 0, type = 29, value = 1 
-    // input[4]: defaulting = 1, visible = 1, type = 16777248, value = {"0.000000" "0.100000" }
-    // input[5]: defaulting = 1, visible = 0, type = 16777245, value = {0  1  }
-    // output[1]: visible = 1, type = 29, value = 1 
-    // output[2]: visible = 1, type = 32, value = "0.100000" 
+    // input[2]: defaulting = 0, visible = 0, type = 32, value = "0.000000" 
+    // input[3]: defaulting = 0, visible = 0, type = 29, value = 0 
+    // input[4]: defaulting = 1, visible = 1, type = 16777248, value = { "0.000000" "0.142000" "0.284000" "0.426000" "0.568000" "0.710000" "0.852000" "0.994000" "1.136000" "1.278000" "1.420000" "1.562000" "1.704000" "1.846000" "1.988000" "2.130000" "2.272000" "2.414000" "2.556000" "2.698000" "2.840000" "2.982000" "3.000000" }
+    // input[5]: defaulting = 1, visible = 0, type = 16777245, value = { 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 }
+    // output[1]: visible = 1, type = 29, value = 0 
+    // output[2]: visible = 1, type = 32, value = "0.000000" 
     // page group: MainControl
     //
 main_Selector_12_out_1[cache: 2],
@@ -111,7 +149,7 @@ main_Selector_12_out_2[cache: 2] =
     main_Selector_12_in_1,
     main_Selector_12_in_2,
     main_Selector_12_in_3,
-    main_FormatList_2_out_1,
+    main_DecimateFormatList_1_out_1,
     main_Selector_12_in_5,
     main_Selector_12_in_6,
     main_Selector_12_in_7
@@ -135,7 +173,7 @@ main_Compute_5_out_1 =
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "count"
     // page group: MainControl
     //
-main_Inquire_7_out_1 = 
+main_Inquire_7_out_1[cache: 0] = 
     Inquire(
     main_Inquire_5_out_1,
     main_Inquire_7_in_2,
@@ -156,14 +194,14 @@ main_Compute_4_out_1 =
     main_Compute_4_in_3
     ) [instance: 4, cache: 1];
     // 
-    // node Sequencer[1]: x = 584, y = 314, inputs = 7, label = Sequencer
+    // node Sequencer[1]: x = 617, y = 314, inputs = 7, label = Sequencer
     // input[1]: defaulting = 0, visible = 0, type = 32, value = "Sequencer_1"
     // input[4]: defaulting = 1, visible = 1, type = 1, value = 0
-    // input[5]: defaulting = 1, visible = 1, type = 1, value = 1
+    // input[5]: defaulting = 1, visible = 1, type = 1, value = 1500
     // input[6]: defaulting = 1, visible = 0, type = 1, value = 1
-    // input[7]: defaulting = 0, visible = 0, type = 16777217, value = { 0 1 1 0 1 1 }
+    // input[7]: defaulting = 0, visible = 0, type = 16777217, value = { 0 1500 1 0 1500 1 }
     // page group: MainControl
-    // vcr[1]: min = 0, max = 1, beg = 0, end = 1, cur = 1, inc = 1, loop = off, step = off, pal = off
+    // vcr[1]: min = 0, max = 1500, beg = 0, end = 1500, cur = 1, inc = 1, loop = off, step = off, pal = off
     // window: position = (0.0000,0.0000), size = 0.2734x0.1045
     //
     main_Sequencer_1_in_3 = @frame;
@@ -192,7 +230,7 @@ main_Switch_2_out_1 =
     // input[2]: defaulting = 1, visible = 1, type = 1, value = 2
     // page group: MainControl
     //
-main_Select_10_out_1 = 
+main_Select_10_out_1[cache: 0] = 
     Select(
     main_Import_1_out_1,
     main_Switch_2_out_1,
@@ -213,7 +251,7 @@ main_Receiver_4_out_1[cache: 0] = TimeData;
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "OrientedTriads"
     // page group: ShowTriads
     //
-main_Select_11_out_1 = 
+main_Select_11_out_1[cache: 0] = 
     Select(
     main_Receiver_4_out_1,
     main_Select_11_in_2,
@@ -224,7 +262,7 @@ main_Select_11_out_1 =
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "labels"
     // page group: ShowTriads
     //
-main_Mark_5_out_1 = 
+main_Mark_5_out_1[cache: 0] = 
     Mark(
     main_Select_11_out_1,
     main_Mark_5_in_2
@@ -281,7 +319,7 @@ main_Mark_6_out_1 =
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "a"
     // page group: ShowTriads
     //
-main_Compute2_1_out_1 = 
+main_Compute2_1_out_1[cache: 0] = 
     Compute2(
     main_Format_2_out_1,
     main_Compute2_1_in_2,
@@ -314,7 +352,7 @@ main_Receiver_6_out_1[cache: 0] = TimeData;
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "Beams2"
     // page group: ShowBeams2
     //
-main_Select_12_out_1 = 
+main_Select_12_out_1[cache: 0] = 
     Select(
     main_Receiver_6_out_1,
     main_Select_12_in_2,
@@ -325,7 +363,7 @@ main_Select_12_out_1 =
     // input[2]: defaulting = 0, visible = 1, type = 5, value = 1.
     // page group: ShowBeams2
     //
-main_Isolate_1_out_1 = 
+main_Isolate_1_out_1[cache: 0] = 
     Isolate(
     main_Select_12_out_1,
     main_Isolate_1_in_2
@@ -355,7 +393,7 @@ main_Mark_9_out_1 =
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "connections"
     // page group: ShowBeams2
     //
-main_Mark_8_out_1 = 
+main_Mark_8_out_1[cache: 0] = 
     Mark(
     main_Isolate_1_out_1,
     main_Mark_8_in_2
@@ -368,7 +406,7 @@ main_Mark_8_out_1 =
     // name[2]: value = a
     // name[3]: value = b
     //
-main_Compute_10_out_1 = 
+main_Compute_10_out_1[cache: 0] = 
     Compute(
     main_Compute_10_in_1,
     main_Mark_8_out_1,
@@ -378,7 +416,7 @@ main_Compute_10_out_1 =
     // node Extract[2]: x = 523, y = 560, inputs = 2, label = Extract
     // page group: ShowBeams2
     //
-main_Extract_2_out_1 = 
+main_Extract_2_out_1[cache: 0] = 
     Extract(
     main_Compute_10_out_1,
     main_Extract_2_in_2
@@ -402,7 +440,7 @@ main_Options_2_out_1 =
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "offsets"
     // page group: ShowBeams2
     //
-main_Mark_11_out_1 = 
+main_Mark_11_out_1[cache: 0] = 
     Mark(
     main_Isolate_1_out_1,
     main_Mark_11_in_2
@@ -415,7 +453,7 @@ main_Mark_11_out_1 =
     // name[2]: value = a
     // name[3]: value = b
     //
-main_Compute_7_out_1 = 
+main_Compute_7_out_1[cache: 0] = 
     Compute(
     main_Compute_7_in_1,
     main_Mark_11_out_1,
@@ -446,7 +484,7 @@ main_Replace_1_out_1 =
     // node M3TimesP3[2]: x = 426, y = 769, inputs = 2, label = M3TimesP3
     // page group: ShowBeams2
     //
-main_M3TimesP3_2_out_1 = 
+main_M3TimesP3_2_out_1[cache: 0] = 
     M3TimesP3(
     main_Mark_9_out_1,
     main_Replace_1_out_1
@@ -459,7 +497,7 @@ main_M3TimesP3_2_out_1 =
     // name[2]: value = a
     // name[3]: value = b
     //
-main_Compute_11_out_1 = 
+main_Compute_11_out_1[cache: 0] = 
     Compute(
     main_Compute_11_in_1,
     main_M3TimesP3_2_out_1,
@@ -483,7 +521,7 @@ main_Remove_2_out_1 =
     // name[2]: value = a
     // name[3]: value = b
     //
-main_Compute_9_out_1 = 
+main_Compute_9_out_1[cache: 0] = 
     Compute(
     main_Compute_9_in_1,
     main_Mark_8_out_1,
@@ -493,7 +531,7 @@ main_Compute_9_out_1 =
     // node Extract[1]: x = 723, y = 708, inputs = 2, label = Extract
     // page group: ShowBeams2
     //
-main_Extract_1_out_1 = 
+main_Extract_1_out_1[cache: 0] = 
     Extract(
     main_Compute_9_out_1,
     main_Extract_1_in_2
@@ -520,7 +558,7 @@ main_Options_1_out_1 =
     // name[2]: value = a
     // name[3]: value = b
     //
-main_Compute_8_out_1 = 
+main_Compute_8_out_1[cache: 0] = 
     Compute(
     main_Compute_8_in_1,
     main_Mark_11_out_1,
@@ -552,7 +590,7 @@ main_Replace_2_out_1 =
     // node M3TimesP3[1]: x = 787, y = 974, inputs = 2, label = M3TimesP3
     // page group: ShowBeams2
     //
-main_M3TimesP3_1_out_1 = 
+main_M3TimesP3_1_out_1[cache: 0] = 
     M3TimesP3(
     main_Mark_9_out_1,
     main_Replace_2_out_1
@@ -565,7 +603,7 @@ main_M3TimesP3_1_out_1 =
     // name[2]: value = a
     // name[3]: value = b
     //
-main_Compute_12_out_1 = 
+main_Compute_12_out_1[cache: 0] = 
     Compute(
     main_Compute_12_in_1,
     main_M3TimesP3_1_out_1,
@@ -603,7 +641,7 @@ main_Compute_14_out_1 =
     // name[2]: value = a
     // name[3]: value = b
     //
-main_Compute_13_out_1 = 
+main_Compute_13_out_1[cache: 0] = 
     Compute(
     main_Compute_13_in_1,
     main_Mark_7_out_1,
@@ -613,7 +651,7 @@ main_Compute_13_out_1 =
     // node Unmark[1]: x = 554, y = 1332, inputs = 2, label = Unmark
     // page group: ShowBeams2
     //
-main_Unmark_1_out_1 = 
+main_Unmark_1_out_1[cache: 0] = 
     Unmark(
     main_Compute_13_out_1,
     main_Unmark_1_in_2
@@ -623,7 +661,7 @@ main_Unmark_1_out_1 =
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "labels"
     // page group: ShowBeams2
     //
-main_Mark_12_out_1 = 
+main_Mark_12_out_1[cache: 0] = 
     Mark(
     main_Unmark_1_out_1,
     main_Mark_12_in_2
@@ -648,7 +686,7 @@ main_AutoGlyph_10_out_1 =
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "cosines"
     // page group: ShowTriads
     //
-main_Mark_3_out_1 = 
+main_Mark_3_out_1[cache: 0] = 
     Mark(
     main_Select_11_out_1,
     main_Mark_3_in_2
@@ -692,7 +730,7 @@ main_Receiver_1_out_1[cache: 0] = TriadScale;
     // node Glyph[1]: x = 176, y = 490, inputs = 7, label = Glyph
     // page group: ShowTriads
     //
-main_Glyph_1_out_1 = 
+main_Glyph_1_out_1[cache: 0] = 
     Glyph(
     main_Compute_1_out_1,
     main_Glyph_1_in_2,
@@ -738,7 +776,7 @@ main_Receiver_2_out_1[cache: 0] = TriadScale;
     // node Glyph[2]: x = 344, y = 494, inputs = 7, label = Glyph
     // page group: ShowTriads
     //
-main_Glyph_2_out_1 = 
+main_Glyph_2_out_1[cache: 0] = 
     Glyph(
     main_Compute_2_out_1,
     main_Glyph_2_in_2,
@@ -784,7 +822,7 @@ main_Receiver_3_out_1[cache: 0] = TriadScale;
     // node Glyph[3]: x = 557, y = 498, inputs = 7, label = Glyph
     // page group: ShowTriads
     //
-main_Glyph_3_out_1 = 
+main_Glyph_3_out_1[cache: 0] = 
     Glyph(
     main_Compute_3_out_1,
     main_Glyph_3_in_2,
@@ -959,7 +997,7 @@ main_Switch_5_out_1 =
     // node ShowConnections[1]: x = 518, y = 1420, inputs = 1, label = ShowConnections
     // page group: ShowBeams2
     //
-main_ShowConnections_1_out_1 = 
+main_ShowConnections_1_out_1[cache: 0] = 
     ShowConnections(
     main_Unmark_1_out_1
     ) [instance: 1, cache: 1];
@@ -1034,11 +1072,11 @@ main_Compute_6_out_1 =
     // input[1]: defaulting = 0, visible = 0, type = 67108863, value = "Image_2"
     // input[4]: defaulting = 0, visible = 0, type = 1, value = 1
     // input[5]: defaulting = 0, visible = 0, type = 8, value = [0.760677 0.760677 0.262596]
-    // input[6]: defaulting = 0, visible = 0, type = 8, value = [0.760677 0.760677 6.04972]
+    // input[6]: defaulting = 0, visible = 0, type = 8, value = [3.49257 -2.95816 -3.22993]
     // input[7]: defaulting = 0, visible = 0, type = 5, value = 3.10131
     // input[8]: defaulting = 0, visible = 0, type = 1, value = 640
     // input[9]: defaulting = 0, visible = 0, type = 5, value = 0.750781
-    // input[10]: defaulting = 0, visible = 0, type = 8, value = [0 1 0]
+    // input[10]: defaulting = 0, visible = 0, type = 8, value = [0.867681 0.217671 0.446934]
     // input[11]: defaulting = 1, visible = 0, type = 5, value = 30.0
     // input[12]: defaulting = 0, visible = 0, type = 1, value = 0
     // input[14]: defaulting = 0, visible = 0, type = 1, value = 1
@@ -1046,7 +1084,7 @@ main_Compute_6_out_1 =
     // input[16]: defaulting = 1, visible = 0, type = 32, value = "none"
     // input[17]: defaulting = 0, visible = 0, type = 1, value = 1
     // input[18]: defaulting = 0, visible = 0, type = 1, value = 1
-    // input[19]: defaulting = 0, visible = 0, type = 1, value = 1
+    // input[19]: defaulting = 0, visible = 0, type = 3, value = 1
     // input[29]: defaulting = 0, visible = 0, type = 3, value = 0
     // input[33]: defaulting = 0, visible = 0, type = 3, value = 0
     // input[36]: defaulting = 0, visible = 0, type = 3, value = 0
@@ -1056,9 +1094,9 @@ main_Compute_6_out_1 =
     // window: position = (0.2414,0.4092), size = 0.5109x0.5117
     // internal caching: 1
     //
-main_Image_2_out_1,
-main_Image_2_out_2,
-main_Image_2_out_3 = 
+main_Image_2_out_1[cache: 0],
+main_Image_2_out_2[cache: 0],
+main_Image_2_out_3[cache: 0] = 
     Image(
     main_Image_2_in_1,
     main_Collect_2_out_1,
@@ -1118,7 +1156,7 @@ main_Image_2_out_3 =
     main_Compute_6_out_1
     ) [instance: 1, cache: 1];
     // 
-    // node Transmitter[24]: x = 358, y = 359, inputs = 1, label = Simulation_times
+    // node Transmitter[24]: x = 482, y = 359, inputs = 1, label = Simulation_times
     // page group: MainControl
     //
 Simulation_times = main_Inquire_5_out_1;
@@ -1135,7 +1173,7 @@ ImageNumber = main_Sequencer_1_out_1;
 // network: end of macro body
 CacheScene(main_Image_2_in_1, main_Image_2_out_1, main_Image_2_out_2);
 }
-main_FileSelector_1_out_1 = "/home2/marco/mbdyn/contrib/OpenDX-post/GeoOut.dx";
+main_FileSelector_1_out_1 = "/home2/marco/mbdyn/contrib/OpenDX-post/G0.dx";
 main_Import_1_in_2 = NULL;
 main_Import_1_in_3 = NULL;
 main_Import_1_in_4 = NULL;
@@ -1153,15 +1191,32 @@ main_Selector_16_out_1 = 1 ;
 main_Inquire_5_in_2 = "series positions";
 main_Inquire_5_in_3 = NULL;
 main_Inquire_5_out_1 = NULL;
-main_FormatList_2_in_2 = "%f";
-main_FormatList_2_out_1 = NULL;
+main_Integer_1_in_1 = "Integer_1";
+main_Integer_1_in_2 = NULL;
+main_Integer_1_in_3 = 21 ;
+main_Integer_1_in_4 = NULL;
+main_Integer_1_in_5 = NULL;
+main_Integer_1_in_6 = NULL;
+main_Integer_1_in_7 = NULL;
+main_Integer_1_in_8 = NULL;
+main_Integer_1_in_9 = NULL;
+main_Integer_1_in_10 = NULL;
+main_Integer_1_in_11 = NULL;
+main_Integer_1_out_1 = 21 ;
+main_Inquire_9_in_2 = "items";
+main_Inquire_9_in_3 = NULL;
+main_Inquire_9_out_1 = NULL;
+main_Compute_16_in_1 = "max(1,$1/$0)";
+main_Compute_16_out_1 = NULL;
+main_DecimateFormatList_1_in_2 = "%f";
+main_DecimateFormatList_1_out_1 = NULL;
 main_Selector_12_in_1 = "Selector_12";
-main_Selector_12_in_2 = "0.100000" ;
-main_Selector_12_in_3 = 1 ;
+main_Selector_12_in_2 = "0.000000" ;
+main_Selector_12_in_3 = 0 ;
 main_Selector_12_in_5 = NULL;
 main_Selector_12_in_6 = NULL;
 main_Selector_12_in_7 = NULL;
-main_Selector_12_out_1 = 1 ;
+main_Selector_12_out_1 = 0 ;
 main_Compute_5_in_1 = "0";
 main_Compute_5_in_2 = NULL;
 main_Compute_5_in_3 = NULL;
@@ -1176,12 +1231,12 @@ main_Sequencer_1_in_1 = "Sequencer_1";
 main_Sequencer_1_in_2 = NULL;
 main_Sequencer_1_in_3 = NULL;
 main_Sequencer_1_in_6 = NULL;
-main_Sequencer_1_in_7 = { 0 1 1 0 1 1 };
+main_Sequencer_1_in_7 = { 0 1500 1 0 1500 1 };
 main_Sequencer_1_out_1 = NULL;
 
 @startframe = 0;
 @nextframe  = @startframe;
-@endframe   = 1;
+@endframe   = 1500;
 @deltaframe = 1;
 main_Switch_2_out_1 = NULL;
 main_Select_10_in_3 = NULL;
@@ -1746,11 +1801,11 @@ main_Image_2_in_1 = "Image_2";
 main_Image_2_in_3 = "X16,,";
 main_Image_2_in_4 = 1;
 main_Image_2_in_5 = [0.760677 0.760677 0.262596];
-main_Image_2_in_6 = [0.760677 0.760677 6.04972];
+main_Image_2_in_6 = [3.49257 -2.95816 -3.22993];
 main_Image_2_in_7 = 3.10131;
 main_Image_2_in_8 = 640;
 main_Image_2_in_9 = 0.750781;
-main_Image_2_in_10 = [0 1 0];
+main_Image_2_in_10 = [0.867681 0.217671 0.446934];
 main_Image_2_in_11 = NULL;
 main_Image_2_in_12 = 0;
 main_Image_2_in_13 = NULL;
