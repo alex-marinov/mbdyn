@@ -8,6 +8,13 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
 
+*** Tue Dec 11 14:11:59 CET 2001 Pierangelo Masarati <masarati@aero.polimi.it>
+ - added "bdf" option to integration methods also for dummy steps
+ - same for asymptotic radius of algebraic unknowns
+
+*** Thu Dec  6 19:21:40 CET 2001 Pierangelo Masarati <masarati@aero.polimi.it>
+ - improved optional parameter input for struct nodes, updated manual
+
 *** Fri Nov 30 15:28:39 CET 2001 Pierangelo Masarati <masarati@aero.polimi.it>
  - added smearing
  - "abort after: input;" outputs the current data

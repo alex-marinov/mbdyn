@@ -1843,18 +1843,40 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  
 	  KeyWords KMethod = KeyWords(HP.GetWord());
 	  switch (KMethod) {
-	   case CRANKNICHOLSON: {	      
+	   case CRANKNICHOLSON:
 	      SAFENEW(pFictitiousStepsMethod,
 		      CrankNicholson); /* no constructor */
 	      break;
+
+           case BDF: {
+	      DriveCaller* pRho = NULL;
+	      SAFENEWWITHCONSTRUCTOR(pRho,
+			NullDriveCaller,
+			NullDriveCaller(NULL));
+  	      DriveCaller* pRhoAlgebraic = NULL;
+	      SAFENEWWITHCONSTRUCTOR(pRhoAlgebraic,
+			NullDriveCaller,
+			NullDriveCaller(NULL));
+
+	      SAFENEWWITHCONSTRUCTOR(pMethod,
+			NostroMetodo,
+			NostroMetodo(pRho, pRhoAlgebraic));
+	      break;
 	   }
+	   
 	   case NOSTRO:
 	   case MS:
 	   case HOPE: {	      	     
 	      DriveCaller* pRho = ReadDriveData(NULL, HP, NULL);
 	      HP.PutKeyTable(K);
-	      
-	      DriveCaller* pRhoAlgebraic = ReadDriveData(NULL, HP, NULL);
+
+	      DriveCaller* pRhoAlgebraic;
+	      if (HP.fIsArg()) {
+	      	 pRhoAlgebraic = ReadDriveData(NULL, HP, NULL);
+		 HP.PutKeyTable(K);
+	      } else {
+		 pRhoAlgebraic = pRho->pCopy();
+	      }
 	      HP.PutKeyTable(K);
 	      
 	      switch (KMethod) {

@@ -17,6 +17,8 @@ MBDyn 1.0 Engineering
 		  Vec3 also has [] operator
 		- "abort after: input;" causes the output as from 
 		  initialization after input
+		- improved optional parameter input for struct nodes
+		- added helper for BDF integration scheme also in dummy steps
 	Bugs:
 		- Hydraulic nodes did not honor the output flag (always on)
 		- minor fixes in documentation
