@@ -35,6 +35,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#ifndef HAVE_SOCKLEN_T
+typedef int socklen_t;
+#endif /* HAVE_SOCKLEN_T */
+
 extern int
 make_inet_socket(struct sockaddr_in *name, const char *hostname,
 		unsigned short int port, int dobind, int *perror);

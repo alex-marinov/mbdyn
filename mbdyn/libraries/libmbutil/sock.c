@@ -55,11 +55,7 @@ make_inet_socket(struct sockaddr_in *name, const char *hostname,
 		unsigned short int port, int dobind, int *perrno)
 {
    	int			sock;
-#ifdef HAVE_SOCKLEN_T
 	socklen_t		size;
-#else /* !HAVE_SOCKLEN_T */
-	int			size;
-#endif /* !HAVE_SOCKLEN_T */
 
 	if (perrno) {
 		*perrno = 0;
@@ -108,11 +104,7 @@ make_named_socket(const char *path, int dobind, int *perrno)
 {
    	int			sock;
    	struct sockaddr_un	name;
-#ifdef HAVE_SOCKLEN_T
 	socklen_t		size;
-#else /* !HAVE_SOCKLEN_T */
-	int			size;
-#endif /* !HAVE_SOCKLEN_T */
 
 	if (perrno) {
 		*perrno = 0;

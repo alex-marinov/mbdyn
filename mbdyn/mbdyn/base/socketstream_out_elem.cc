@@ -179,7 +179,9 @@ SocketStreamElem::~SocketStreamElem(void)
 	switch (type) {
 	case AF_LOCAL:
 		if (data.Path) {
+			unlink(data.Path);
 			SAFEDELETEARR(data.Path);
+			data.Path = 0;
 		}
 		break;
 	default:
@@ -231,12 +233,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 	if (!connection_flag) {
 		if (create) {
 			int tmp_sock = sock;
-			//accept
-#ifdef HAVE_SOCKLEN_T
 		   	socklen_t socklen;
-#else /* !HAVE_SOCKLEN_T */
-   			int socklen;
-#endif /* !HAVE_SOCKLEN_T */
 
 			switch (type) {
 			case AF_LOCAL:
@@ -267,7 +264,6 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
       					silent_cout("SocketStreamElem(" << GetLabel()
 		  				<< "): connect from " << client_addr.sun_path
 							<< std::endl);
-					unlink(data.Path);
 					
 					break;
 				}
@@ -308,7 +304,6 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 			}
 			
 		} else {
-			//connect
 			switch (type) {
 			case AF_LOCAL:
 				{
@@ -427,7 +422,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 	if (send(sock, (void *)buf, size, 0) == -1) {
 		silent_cerr("SocketStreamElem(" << name << ") "
 			<< "Communication closed by host" << std::endl);
-		// stop simulation?
+		/* FIXME: stop simulation? */
 	}
 }
 

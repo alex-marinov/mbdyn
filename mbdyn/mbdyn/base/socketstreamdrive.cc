@@ -80,7 +80,7 @@ type(AF_INET), sock(0), connection_flag(false)
    	ASSERT(p > 0);
 	data.Port = p;
 	
-	if (create){
+	if (create) {
 		struct sockaddr_in	addr_name;
 		int			save_errno;
 
@@ -135,13 +135,11 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 : StreamDrive(uL, pDH, sFileName, nd, c),
 host(NULL), type(AF_LOCAL), sock(0), connection_flag(false)
 {
-	//NO_OP;
-	
 	ASSERT(Path != NULL);
 
 	SAFESTRDUP(data.Path, Path);
 	
-	if (create){
+	if (create) {
 		int			save_errno;
 
 		sock = make_named_socket(data.Path, 1, &save_errno);
@@ -183,12 +181,15 @@ host(NULL), type(AF_LOCAL), sock(0), connection_flag(false)
 SocketStreamDrive::~SocketStreamDrive(void)
 {
 	shutdown(sock,SHUT_RD);
-	switch (type) { //connect
+	switch (type) {
 	case AF_LOCAL:
 		if (data.Path) {
+			unlink(data.Path);
 			SAFEDELETEARR(data.Path);
+			data.Path = 0;
 		}
 		break;
+
 	default:
 		NO_OP;
 		break;
@@ -213,18 +214,19 @@ void
 SocketStreamDrive::ServePending(const doublereal& t)
 {
 	
-	if (connection_flag) {//non esegue la lettura nel primo passo
+	if (connection_flag) {
+		/* FIXME: no receive at first step? */
 		if ((recv(sock, buf, size, 0))) {
 			
 			doublereal *rbuf = (doublereal *)buf;
-			for (int i = 1; i <= iNumDrives; i++){
+			for (int i = 1; i <= iNumDrives; i++) {
 				pdVal[i] = rbuf[i-1];
 			}
 	
 		} else {	
 			silent_cout("SocketStreamDrive(" << sFileName << ") "
 					<< "Communication closed by host" << std::endl);
-			// stop simulation?
+			/* FIXME: stop simulation? */
 		}
 	}
 	
@@ -232,11 +234,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 	if (!connection_flag) {
 		if (create) {
 			int tmp_sock = sock;
-#ifdef HAVE_SOCKLEN_T
 	   		socklen_t socklen;
-#else /* !HAVE_SOCKLEN_T */
-			int socklen;
-#endif /* !HAVE_SOCKLEN_T */
 
 			switch (type) {
 			case AF_LOCAL:
@@ -268,7 +266,6 @@ SocketStreamDrive::ServePending(const doublereal& t)
 					silent_cout("SocketStreamDrive(" << GetLabel()
   							<< "): connect from " << client_addr.sun_path
 							<< std::endl);
-					unlink(data.Path);
 					
 					break;
 				}
@@ -309,14 +306,13 @@ SocketStreamDrive::ServePending(const doublereal& t)
 				break;
 			}
 		} else {
-				//connect
 			switch (type) {
 			case AF_LOCAL:
 				{
 					struct sockaddr_un addr;
 						
 					sock = socket(PF_LOCAL, SOCK_STREAM, 0);
-					if (sock < 0){
+					if (sock < 0) {
 						silent_cerr("SocketStreamDrive(" << sFileName << ") "
 							"socket() failed " << host << std::endl);
 						throw ErrGeneric();
@@ -328,7 +324,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 							<< sFileName << "\" (" << data.Path << ") ..." 
 							<< std::endl);
 
-					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
+					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0) {
 						silent_cerr("SocketStreamDrive(" << sFileName << ") "
 							"connect() failed " << std::endl);
 						throw ErrGeneric();									
@@ -341,7 +337,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 					struct sockaddr_in addr;
 					
 					sock = socket(PF_INET, SOCK_STREAM, 0);
-					if (sock < 0){
+					if (sock < 0) {
 						silent_cerr("SocketStreamDrive(" << sFileName << ") "
 							"socket() failed " << host << std::endl);
 						throw ErrGeneric();
@@ -360,7 +356,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 							<< ":" << ntohs(addr.sin_port)
 							<< ") ..." << std::endl);
 							
-					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
+					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0) {
 						silent_cerr("SocketStreamDrive(" << sFileName << ") "
 							"connect() failed " << std::endl);
 						throw ErrGeneric();					
@@ -373,20 +369,20 @@ SocketStreamDrive::ServePending(const doublereal& t)
 				break;
 			}
 	
-		} /*create*/
+		} /* create */
 		
 		struct linger lin;
 		lin.l_onoff = 1;
 		lin.l_linger = 0;
 		
-		if (setsockopt(sock, SOL_SOCKET, SO_LINGER, &lin, sizeof(lin))){
+		if (setsockopt(sock, SOL_SOCKET, SO_LINGER, &lin, sizeof(lin))) {
       			silent_cerr("SocketStreamDrive(" << sFileName
 				<< "): setsockopt() failed" << std::endl);
       			throw ErrGeneric();
 			
 		}
 		connection_flag = true;
-	} /*connection_flag == false*/
+	} /* connection_flag == false */
 }
 
 
@@ -452,8 +448,8 @@ ReadSocketStreamDrive(DataManager* pDM,
 		SAFESTRDUP(path, m);	
 	}
 	
-	if (HP.IsKeyWord("port")){
-		if (path != NULL){
+	if (HP.IsKeyWord("port")) {
+		if (path != NULL) {
 			silent_cerr("cannot specify a port "
 					"for a local socket in "
 				<< "SocketStreamDrive("
@@ -478,7 +474,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 
 	
 	if (HP.IsKeyWord("host")) {
-		if (path != NULL){
+		if (path != NULL) {
 			silent_cerr("cannot specify an allowed host "
 					"for a local socket in "
 				<< "SocketStreamDrive("
@@ -520,7 +516,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 	}
 
 	Drive* pDr = NULL;
-	if (path == NULL){
+	if (path == NULL) {
 		SAFENEWWITHCONSTRUCTOR(pDr, SocketStreamDrive,
 				SocketStreamDrive(uLabel, 
 				pDM->pGetDrvHdl(),

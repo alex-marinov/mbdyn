@@ -299,11 +299,7 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 {
    	int cur_sock;
    	struct sockaddr_in client_name;
-#ifdef HAVE_SOCKLEN_T
    	socklen_t socklen;
-#else /* !HAVE_SOCKLEN_T */
-   	int socklen;
-#endif /* !HAVE_SOCKLEN_T */
    	FILE* fd;
 
    	/* prova */
