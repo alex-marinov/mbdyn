@@ -414,6 +414,23 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Checks for working offsetof
+dnl
+have_offsetof=no
+AC_MSG_CHECKING([for offsetof])
+AC_TRY_COMPILE([#include <stddef.h>],[
+	struct dummy_t { int dummy; };
+	(void)offsetof(struct dummy_t, dummy);
+],[have_offsetof=yes],[have_offsetof=no])
+if test $have_offsetof != no ; then
+	AC_DEFINE(HAVE_OFFSETOF,1, [define if offsetof() works])
+	AC_MSG_RESULT([yes])
+else
+	AC_MSG_RESULT([no])
+fi
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Checks for socket
 dnl
 if test "$ol_enable_socket_drives" != no ; then
@@ -438,12 +455,9 @@ if test "$ol_enable_socket_drives" != no ; then
 		if test $ol_enable_socket_drives != auto ; then
 			AC_MSG_ERROR([cannot find sockets])
 		else
-			AC_MSG_WARN([cannot find sockets])
-			AC_MSG_WARN([socket drives not supported!])
+			AC_MSG_WARN([socket drives not supported.])
 		fi
 	fi
-else
-	AC_MSG_WARN([socket drives not supported!])
 fi
 
 dnl ----------------------------------------------------------------
@@ -585,11 +599,9 @@ if test $ol_with_tcl != no ; then
 		if test $ol_with_tcl != auto ; then
 			AC_MSG_ERROR([Could not locate tcl library])
 		else
-			AC_MSG_WARN([tcl not supported!])
+			AC_MSG_WARN([tcl not supported])
 		fi
 	fi
-else
-	AC_MSG_WARN([tcl library not supported!])
 fi
 
 dnl ----------------------------------------------------------------
@@ -659,7 +671,7 @@ if test $ol_with_libf2c != no ; then
 		if test $ol_with_libf2c != auto ; then
 			AC_MSG_ERROR([Could not locate f2c library])
 		else
-			AC_MSG_WARN([f2c library not supported!])
+			AC_MSG_WARN([f2c library not supported])
 		fi
 	else
 		dnl Hack to allow different Fortran compatibility libraries
@@ -667,8 +679,6 @@ if test $ol_with_libf2c != no ; then
 		AC_CHECK_LIB($try_libf2c,pow_di,[
 			AC_DEFINE(HAVE_POW_DI,1,[define if pow_di() function is available])])
 	fi
-else
-	AC_MSG_WARN([f2c library not supported!])
 fi
 
 
@@ -1258,12 +1268,16 @@ if test "$ol_with_umfpack" != "no" ; then
 fi
 
 if test $ol_link_umfpack = no ; then
-	if test $ol_with_umfpack != auto ; then
+	case "$ol_with_umfpack" in
+	yes) 
 		AC_MSG_ERROR([Could not locate Umfpack])
-	else
-		AC_MSG_WARN([Could not locate Umfpack])
-		AC_MSG_WARN([Umfpack not supported!])
-	fi
+		;;
+	auto)
+		AC_MSG_WARN([Umfpack not supported])
+		;;
+	*)
+		;;
+	esac
 else
 	AC_DEFINE(USE_UMFPACK,1,[define if you want to use Umfpack])
 fi
@@ -1305,13 +1319,10 @@ if test $ol_with_meschach != no ; then
 	if test $ol_link_meschach = no ; then
 		if test $ol_with_meschach != auto ; then
 			AC_MSG_ERROR([Could not locate Meschach])
-		dnl who cares?
-		dnl else
-		dnl	AC_MSG_WARN([Meschach not supported!])
+		else
+			AC_MSG_WARN([Meschach not supported])
 		fi
 	fi
-else
-	AC_MSG_WARN([Meschach not supported!])
 fi
 
 dnl ----------------------------------------------------------------
@@ -1374,13 +1385,10 @@ if test $ol_with_superlu != no ; then
 	if test $ol_link_superlu = no ; then
 		if test $ol_with_superlu != auto ; then
 			AC_MSG_ERROR([Could not locate SuperLU])
-		dnl who cares?
-		dnl else
-		dnl	AC_MSG_WARN([SuperLU not supported!])
+		else
+			AC_MSG_WARN([SuperLU not supported])
 		fi
 	fi
-else
-	AC_MSG_WARN([SuperLU not supported!])
 fi
 
 dnl ----------------------------------------------------------------
@@ -1429,9 +1437,8 @@ if test $ol_with_harwell != no ; then
 	else
 		if test $ol_with_harwell != auto ; then
 			AC_MSG_ERROR([Could not locate Harwell lib (-lhsl)])
-		dnl who cares?
-		dnl else
-		dnl	AC_MSG_WARN([Harwell lib (-lhsl) not supported])
+		else
+			AC_MSG_WARN([Harwell lib (-lhsl) not supported])
 		fi
 	fi
 fi
@@ -1521,7 +1528,7 @@ if test "$ol_with_sasl2" != "no" ; then
 		if test "$ol_with_sasl2" != "auto" ; then
 			AC_MSG_ERROR([Could not locate SASL2])
 		else
-			AC_MSG_WARN([Could not locate SASL2])
+			AC_MSG_WARN([SASL2 not supported])
 		fi
 	fi
 fi
@@ -1555,12 +1562,9 @@ if test $ol_with_pam != no ; then
 		if test $ol_with_pam != auto ; then
 			AC_MSG_ERROR([Could not locate PAM])
 		else
-			AC_MSG_WARN([Could not locate PAM])
-			AC_MSG_WARN([PAM not supported!])
+			AC_MSG_WARN([PAM not supported])
 		fi		
 	fi
-else
-	AC_MSG_WARN([PAM not supported!])
 fi
 
 dnl ----------------------------------------------------------------
@@ -1662,12 +1666,9 @@ if test $ol_with_mpi != no ; then
 		if test $ol_with_mpi != auto ; then
 			AC_MSG_ERROR([Could not locate MPI])
 		else
-			AC_MSG_WARN([Could not locate MPI])
-			AC_MSG_WARN([MPI not supported!])
+			AC_MSG_WARN([MPI not supported])
 		fi
 	fi
-else
-	AC_MSG_WARN([MPI not supported!])
 fi
 
 dnl ----------------------------------------------------------------
@@ -1695,7 +1696,7 @@ if test "$ol_with_metis" != "no" ; then
 		if test "$ol_with_metis" != "auto" ; then
 			AC_MSG_ERROR([Could not locate Metis])
 		else
-			AC_MSG_WARN([Could not locate Metis; not supported])
+			AC_MSG_WARN([Metis not supported])
 			dnl set to "no" because we cannot link metis
 			dnl without header file
 			ol_link_metis="no"
@@ -1703,8 +1704,6 @@ if test "$ol_with_metis" != "no" ; then
 	else
 		METIS_LIBS="-lmetis -lm"
 	fi
-else
-	AC_MSG_WARN([Metis not supported!])
 fi
 
 dnl ----------------------------------------------------------------
@@ -1727,11 +1726,9 @@ if test "$ol_with_chaco" != no ; then
                 if test $ol_with_chaco != auto ; then
                         AC_MSG_ERROR([Could not locate Chaco])
                 else
-                        AC_MSG_WARN([Could not locate Chaco; not supported])
+                        AC_MSG_WARN([Chaco not supported])
                 fi
         fi
-else
-	AC_MSG_WARN([Chaco not supported!])
 fi
 
 dnl ----------------------------------------------------------------
@@ -1768,21 +1765,21 @@ if test $ol_with_taucs != no ; then
 		if test $ol_with_taucs != auto ; then
 			AC_MSG_ERROR([Need Metis library for Taucs solver])
 		else
-                        AC_MSG_WARN([Could not locate Metis library; Taucs not supported])
+                        AC_MSG_WARN([Taucs needs Metis; not supported])
 		fi
 	elif test $have_lapack = no ; then
 		have_taucs=no
 		if test $ol_with_taucs != auto ; then
 			AC_MSG_ERROR([Need Lapack library for Taucs solver])
 		else
-                        AC_MSG_WARN([Could not locate Lapack library; Taucs not supported])
+                        AC_MSG_WARN([Taucs needs Lapack; not supported])
 		fi
 	elif test $have_blas = no ; then
 		have_taucs=no
 		if test $ol_with_taucs != auto ; then
 			AC_MSG_ERROR([Need Blas library for Taucs solver])
 		else
-                        AC_MSG_WARN([Could not locate Blas library; Taucs not supported])
+                        AC_MSG_WARN([Taucs needs BLAS; not supported])
 		fi
 	else
 		save_LIBS="$LIBS"
@@ -1844,7 +1841,7 @@ if test $ol_with_rtai != no ; then
 			fi
 
 			if test "$rtai_mismatch" = "yes" ; then
-				AC_MSG_WARN([possible RTAI version mismatch])
+				AC_MSG_WARN([possible RTAI version mismatch; YMMV])
 			fi
 
 		fi
@@ -1872,7 +1869,7 @@ if test $ol_link_lapack != no -o $ol_link_meschach != no ; then
 	AC_DEFINE(USE_DBC,1,[define if you want to use GPC/DeadBeat control])
 else
 	if test $ol_with_elec != no ; then
-		AC_MSG_WARN([GPC/Deadbeat not allowed!])
+		AC_MSG_WARN([GPC/Deadbeat not allowed])
 	fi
 fi
 
@@ -1894,10 +1891,10 @@ if test $ol_with_ginac != no ; then
 		AC_DEFINE(HAVE_GINAC,1,[define if GiNaC is available])
 		AC_MSG_RESULT([yes])
 	else 
-		if test $ol_with_ginac != yes ; then
-			AC_MSG_WARN([GiNaC support not available])
+		if test $ol_with_ginac != auto; then
+			AC_MSG_ERROR([GiNaC not available])
 		else
-			AC_MSG_ERROR([need to have GiNaC installed])
+			AC_MSG_WARN([GiNaC not available])
 		fi
 	fi
 fi
