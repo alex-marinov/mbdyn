@@ -147,7 +147,7 @@ void DataManager::ReadElems(MBDynParser& HP)
       
    /* strutture di conteggio degli elementi letti */
    for (int i = 0; i < Elem::LASTELEMTYPE; 
-	iNumTypes[i] = ElemData[i++].iNum) { 
+	iNumTypes[i] = ElemData[i].iNum, i++) { 
       NO_OP; 
    }   
          
