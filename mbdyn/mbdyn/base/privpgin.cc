@@ -179,7 +179,7 @@ PrivPlugIn::ReadIndex(unsigned int iMaxIndex, const char *s)
 		bIsName = true;
 
 	} else {
-		unsigned int i = ReadLabel(s);
+		iIndex = ReadLabel(s);
 	}
 
 	if (iIndex == 0 || iIndex > iMaxIndex) {
