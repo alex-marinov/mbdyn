@@ -283,7 +283,7 @@ Friction:
 		friction coeff and $\T F$
 	\item impose null relative velocity
 	\end{itemize}
-\item optionally add internal states dynamic $k$ (for friction)
+\item optionally add internal states dynamic $z$ (for friction)
 \end{itemize}
 \subsubsection{add third component of constraint moment $\T M$}
 Residual vector:
@@ -310,12 +310,12 @@ Residual vector:
 			(\T R_2\cdot \T R_{h2})[2])/dCoef\\
 	\mathrm{constraint}:\ 17& = &  ((\T R_1\cdot \T R_{h1})[3]\cdot 
 			(\T R_2\cdot \T R_{h2})[1])/dCoef\\
-	\mathrm{friction:}\ 18& = &  \T M[3] -f(\T F, \mathrm{rel\ velocity}, 
+	\mathrm{friction:}\ 18& = &  \T M[3] -f(\T F, v, 
 			\mathrm{friction\ coef})\\
-		& = &  (\mathrm{rel\ velocity})[3]
-	\mathrm{friction states:}\ 19...& = &  k - g(
+		& = &  (\mathrm{rel\ velocity})[3]\\
+	\mathrm{(optional)\ friction\ states:}\ 19...& = &  \dot{z} - g(z,v)
 \end{eqnarray*}
-The relative velocity
+where $v$ is the relative velocity
 $v = r * (\T \omega_{1}-\T \omega_{2})\cdot(\T R_1\cdot \T R_{h1})[3]$.
 The constraint is based on positions. This means that during integration 
 $(\T \omega_{1}-\T \omega_{2})$ will NOT have exactly the
@@ -327,7 +327,7 @@ Explicit form of friction moment contribution
 (FIXME: remove vector $(\T R_1\cdot \T R_{h1})[3]$ and write scalar equation???):\\
 $f(\T F, \mathrm{rel\ velocity})$:
 $\T M[3] = \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v)) * (\T R_1\cdot \T R_{h1})[3] * 
-	||\T F|| * f_{\mathrm{c}}(v)$,\\
+	||\T F|| * f_{\mathrm{c}}(v,k,\dot{k})$,\\
 with $\T R_{h1}$ constant.\\
 Variation of friction moment contribution:
 \begin{eqnarray*}
@@ -370,8 +370,14 @@ Variation of friction moment contribution component:
 			\frac{\displaystyle \partial \mathrm{sh\_c}(||\T F||, f_{\mathrm{c}}(v))}
 			{\displaystyle \partial f_{\mathrm{c}}(v)}
 		\end{array} \right ) *
-		\frac{\displaystyle \partial f_{\mathrm{c}}}
-			{\displaystyle \partial v} * \delta v
+		\left\{\begin{array}{l}
+			\frac{\displaystyle \partial f_{\mathrm{c}}}
+				{\displaystyle \partial v} * \delta v\\
+			\frac{\displaystyle \partial f_{\mathrm{c}}}
+				{\displaystyle \partial k} * \delta k\\
+			\frac{\displaystyle \partial f_{\mathrm{c}}}
+				{\displaystyle \partial \dot{k}} * \delta \dot{k}\\			
+		\end{array}\right\}
 \end{eqnarray*}
 dove 
 \begin{itemize}
