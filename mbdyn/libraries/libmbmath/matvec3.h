@@ -408,6 +408,15 @@ class Vec3 {
 		 && pdVec[V2] == v.pdVec[V2] 
 		 && pdVec[V3] == v.pdVec[V3]);
       };
+
+   /**
+    Operatore booleano di disuguaglianza tra vettori.
+    */
+      bool operator != (const Vec3& v) const {
+	 return (pdVec[V1] != v.pdVec[V1] 
+		 || pdVec[V2] != v.pdVec[V2] 
+		 || pdVec[V3] != v.pdVec[V3]);
+      };
    //@}
       
    /**@name Input/Output */
@@ -1012,6 +1021,34 @@ class Mat3x3 {
       return Vec3(pdMat[M11]*v.pdVec[V1]+pdMat[M12]*v.pdVec[V2]+pdMat[M13]*v.pdVec[V3],
 		  pdMat[M21]*v.pdVec[V1]+pdMat[M22]*v.pdVec[V2]+pdMat[M23]*v.pdVec[V3],
 		  pdMat[M31]*v.pdVec[V1]+pdMat[M32]*v.pdVec[V2]+pdMat[M33]*v.pdVec[V3]);
+   };
+
+   /**
+    */
+    bool operator == (const Mat3x3& m) const {
+      return pdMat[M11] == m.pdMat[M11]
+	      && pdMat[M12] == m.pdMat[M12]
+	      && pdMat[M13] == m.pdMat[M13]
+	      && pdMat[M21] == m.pdMat[M21]
+	      && pdMat[M22] == m.pdMat[M22]
+	      && pdMat[M23] == m.pdMat[M23]
+	      && pdMat[M31] == m.pdMat[M31]
+	      && pdMat[M32] == m.pdMat[M32]
+	      && pdMat[M33] == m.pdMat[M33];
+   };
+   
+   /**
+    */
+    bool operator != (const Mat3x3& m) const {
+      return pdMat[M11] != m.pdMat[M11]
+	      || pdMat[M12] != m.pdMat[M12]
+	      || pdMat[M13] != m.pdMat[M13]
+	      || pdMat[M21] != m.pdMat[M21]
+	      || pdMat[M22] != m.pdMat[M22]
+	      || pdMat[M23] != m.pdMat[M23]
+	      || pdMat[M31] != m.pdMat[M31]
+	      || pdMat[M32] != m.pdMat[M32]
+	      || pdMat[M33] != m.pdMat[M33];
    };
    
    /** 
