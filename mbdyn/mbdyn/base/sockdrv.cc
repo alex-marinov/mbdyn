@@ -132,28 +132,34 @@ pFlags(NULL)
 	data.Port = p;
    	sock = make_socket(data.Port);
    	if (sock == -1) {
-      		std::cerr << "SocketDrive(" << GetLabel()
-			<< "): socket failed" << std::endl;
+      		silent_cerr("SocketDrive(" << GetLabel()
+			<< "): socket failed" << std::endl);
       		THROW(ErrGeneric());
    	} else if (sock == -2) {
-      		std::cerr << "SocketDrive(" << GetLabel()
-			<< "): bind failed" << std::endl;
+      		silent_cerr("SocketDrive(" << GetLabel()
+			<< "): bind failed" << std::endl);
       		THROW(ErrGeneric());
    	}
 
    	/* non-blocking */
    	int oldflags = fcntl (sock, F_GETFL, 0);
    	if (oldflags == -1) {
-      		/* FIXME: err ... */
+		silent_cerr("SocketDrive(" << GetLabel()
+				<< ": unable to get socket flags"
+				<< std::endl);
+      		THROW(ErrGeneric());
    	}
    	oldflags |= O_NONBLOCK;
    	if (fcntl(sock, F_SETFL, oldflags) == -1) {
-      		/* FIXME: err ... */
+		silent_cerr("SocketDrive(" << GetLabel()
+				<< ": unable to set socket flags"
+				<< std::endl);
+      		THROW(ErrGeneric());
    	}
 
    	if (listen(sock, 1) < 0) {
-      		std::cerr << "SocketDrive(" << GetLabel()
-			<< "): listen failed" << std::endl;
+      		silent_cerr("SocketDrive(" << GetLabel()
+			<< "): listen failed" << std::endl);
       		THROW(ErrGeneric());
    	}
 }
