@@ -26,7 +26,7 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 \chapter{Data}
-The 	exttt{data} section is read directly by the driver program. It is
+The \texttt{data} section is read directly by the driver program. It is
 included between the cards:
 \begin{verbatim}
     begin: data;
@@ -40,7 +40,7 @@ card (optional, at present), is:
 \begin{verbatim}
     <card> ::= integrator: multistep;
 \end{verbatim}
-Anyway, the 	exttt{data} section \underline{must} be present.
+Anyway, the \texttt{data} section \underline{must} be present.
 
 
 
@@ -60,7 +60,7 @@ is to be used in the simulation. The section is included between the cards:
 
 
 \section{Multi-Step Integrator}
-At present, the only available 	exttt{integrator\_name} is 	exttt{multistep}.
+At present, the only available \texttt{integrator\_name} is \texttt{multistep}.
 The syntax of the module is:
 \begin{verbatim}
     begin: multistep;
@@ -103,8 +103,8 @@ obviously the step is never changed, and
 \end{verbatim}
 the time step is reduced or raised of the proper factor not before a
 minimum number of time steps; it is reduced if more than 
-	exttt{max\_iterations} are performed at a time step, it is raised if less
-than 	exttt{min\_iterations} are performed at a time step.
+\texttt{max\_iterations} are performed at a time step, it is raised if less
+than \texttt{min\_iterations} are performed at a time step.
 
 \subsubsection{Min time step}
 \begin{verbatim}
@@ -178,7 +178,7 @@ A shortcut to this case is provided as
     <card> ::= newton raphson : { true 
                                 | modified [ , <iterations> ] } ;
 \end{verbatim}
-if 	exttt{modified}, the number of iterations the jacobian matrix will be
+if \texttt{modified}, the number of iterations the jacobian matrix will be
 reused is expected; otherwise a default value is used.
 
 \subsubsection{Eigenanalysis}
@@ -199,7 +199,7 @@ mainly used to check models and simulations at various phases.
                [ , workspace size , <size> ] 
 	       [ , pivot factor , <factor> ] ;
 \end{verbatim}
-The default is 	exttt{harwell} with a 	exttt{workspace size}
+The default is \texttt{harwell} with a \texttt{workspace size}
 of $ numdofs\times{numdofs} $, but in certain cases the user
 might prefer a smaller workspace, since the matrix is handled as sparse,
 while sometimes a larger space is required, since when the matrix is
@@ -326,8 +326,8 @@ The cards are:
                | beams
                | aerodynamic elements } 
 \end{verbatim}
-	exttt{joints} are used by default, and shouldn't be added to the list.
-	exttt{beams} are used by default, too, but can be added to the list
+\texttt{joints} are used by default, and shouldn't be added to the list.
+\texttt{beams} are used by default, too, but can be added to the list
 essentially for backwards compatibility.
 
 \subsubsection{Initial stiffness}
@@ -398,7 +398,7 @@ each entity module.
 
 
 \chapter{Nodes}
-The 	exttt{nodes} section is enclosed in the cards:
+The \texttt{nodes} section is enclosed in the cards:
 \begin{verbatim}
     begin: nodes;
         ...
@@ -410,13 +410,13 @@ Every node card has the following format:
                               <arglist>
                               [ , output , { yes | no } ] ;
 \end{verbatim}
-where 	exttt{node\_type} is one of the following:
+where \texttt{node\_type} is one of the following:
 \begin{itemize}
-    \item 	exttt{structural}
-    \item 	exttt{electric}
-    \item 	exttt{abstract}
-    \item 	exttt{parameter}
-    \item 	exttt{hydraulic}
+    \item \texttt{structural}
+    \item \texttt{electric}
+    \item \texttt{abstract}
+    \item \texttt{parameter}
+    \item \texttt{hydraulic}
 \end{itemize}
 The data manager reads the node type and the label and checks for
 duplication. If the node is not defined yet, the proper read function is
@@ -427,16 +427,16 @@ The nodes are read as follows:
 
 
 \section{Structural Node}\label{sec:NODE-STRUCT}
-The historical 6 dof structural node can be both 	exttt{static}
-or 	exttt{dynamic}.
+The historical 6 dof structural node can be both \texttt{static}
+or \texttt{dynamic}.
 Static means no inertia is related to it, so it must be properly grounded 
 or attached to elastic elements.
 Dynamic means inertia can be attached to it, so it provides linear and
 angular momenta dofs, and automatically generates the so-called 
 {\em automatic structural elements}.
-There is a special dynamic node that is required when a 	exttt{modal} joint is
+There is a special dynamic node that is required when a \texttt{modal} joint is
 used, which accounts for the rigid body motion of the modal body; the node
-type in such case is 	exttt{modal}.
+type in such case is \texttt{modal}.
 See Section~\ref{ELEMS-JOINT-MODAL} for further details.
 \begin{verbatim}
     <arglist> ::= { static | dynamic } ,
@@ -448,7 +448,7 @@ See Section~\ref{ELEMS-JOINT-MODAL} for further details.
               , (scalar) <velocity_initial_stiffness>
               , (flag)   <omega_rotates?> ]
 \end{verbatim}
-The 	exttt{dummy} structural node has been added to ease the visualization of
+The \texttt{dummy} structural node has been added to ease the visualization of
 the kinematics of arbitrary points of the system. 
 It owns no dofs, and it must be attached to another node, possibly with an
 offset and a relative orientation.
@@ -457,19 +457,19 @@ Two dummy structural node types are available.
     <arglist> ::= dummy , <base_node> , <type> , <dummy_node_data>
 \end{verbatim}
 {\em 
-    Note: the 	exttt{static} and 	exttt{dynamic} type is optional; if not given,
-    it defaults to 	exttt{dynamic}. 
+    Note: the \texttt{static} and \texttt{dynamic} type is optional; if not given,
+    it defaults to \texttt{dynamic}. 
     This practice is deprecated and could become unsupported in the future, 
     so it is a good practice to enforce the type of the structural node. \\
-    The stiffness parameters, and the 	exttt{omega\_rotates} flag, 
+    The stiffness parameters, and the \texttt{omega\_rotates} flag, 
     override the default values. 
     They are optional, but they must be supplied all together if at least
     one is to be input. \\
-    The 	exttt{omega\_rotates} flag can take values 0 or 1. 
-    A boolean (string) type 	exttt{\{yes | no \}} may be introduced in the
+    The \texttt{omega\_rotates} flag can take values 0 or 1. 
+    A boolean (string) type \texttt{\{yes | no \}} may be introduced in the
     future. 
 } \\
-Dummy nodes take the label of the 	exttt{base\_node} they are attached to, 
+Dummy nodes take the label of the \texttt{base\_node} they are attached to, 
 followed by the type of dummy node, possibly followed by specific data.
 The following dummy types are available:
 
@@ -490,7 +490,7 @@ The following dummy types are available:
     <dummy_node_data> ::= <reference_node>
     \end{verbatim}
     It outputs the configuration of the base node in the frame defined
-    by the 	exttt{reference\_node}.\\
+    by the \texttt{reference\_node}.\\
     Examples:
     \begin{verbatim}
     set: real Omega = 1.;
@@ -503,7 +503,7 @@ The following dummy types are available:
 
 \subsection{Output}
 Structural nodes generate two kinds of output files. 
-The first refers to the kinematics of the node; its extension is 	exttt{.mov},
+The first refers to the kinematics of the node; its extension is \texttt{.mov},
 and for each time step it contains one row for each node whose output is
 required.
 The rows contain: \vspace{2mm} \\
@@ -517,12 +517,12 @@ The rows contain: \vspace{2mm} \\
     \hline
 \end{tabular}\vspace{2mm}\\
 All of the quantities are expressed in the global frame, except in case of
-the dummy 	exttt{relative frame} node, where the quantities are in the
+the dummy \texttt{relative frame} node, where the quantities are in the
 relative frame.
 
 \noindent
 The second output file refers only to dynamic nodes, and contains their
-inertia; its extension is 	exttt{.ine}.
+inertia; its extension is \texttt{.ine}.
 For each time step, it contains information about the inertia of all the
 nodes whose output is required.
 Notice that more than one inertia body can be attached to one node; the
@@ -553,13 +553,13 @@ The rows contain:
 \end{verbatim}
 {\em
     Note: abstract and electric nodes are derived from the same class, the
-    scalar differential node. Many 	exttt{genel} and 	exttt{electric} elements 
+    scalar differential node. Many \texttt{genel} and \texttt{electric} elements 
     can be connected to both of them since they directly use the ancestor
     class. 
 }
 
 \subsection{Output}
-The value of abstract nodes is output with file extension 	exttt{.abs}; for
+The value of abstract nodes is output with file extension \texttt{.abs}; for
 each time step the output of the required nodes is written.
 The format of each row is
 \begin{itemize}
@@ -588,17 +588,17 @@ is used in a rather peculiar way: it doesn't own any degree of freedom,
 so it does not participate in the solution, but is used as a sort of
 placeholder for those elements that require to be connected to a scalar node
 that is not otherwise significant to the analysis.
-Thanks to the availability of the 	exttt{parameter} node, these elements
+Thanks to the availability of the \texttt{parameter} node, these elements
 do not need be reformulated with a grounded node, while the parameter
 node value can be changed during the solution by means of a proper driving 
 force.
-When the argument list starts with the keyword 	exttt{element}, the parameter
+When the argument list starts with the keyword \texttt{element}, the parameter
 node expects to be bound to an element, and to access bulk element data 
 (see Section~\ref{sec:EL-BIND}).
-When the argument list starts with the keyword 	exttt{straingage}, followed by
-the coordinates of a point on the section of a beam, the 	exttt{parameter}
+When the argument list starts with the keyword \texttt{straingage}, followed by
+the coordinates of a point on the section of a beam, the \texttt{parameter}
 node expectes to be bound to a beam element, and to access the measure of
-the axial strain at point 	exttt{x}, 	exttt{y} in the section plane as a
+the axial strain at point \texttt{x}, \texttt{y} in the section plane as a
 combination of section strains and curvatures.
 
 
@@ -611,16 +611,16 @@ There is an extra card, that is used to modify the output behaviour of nodes:
     <card> ::= output : <node_type> , <node_list> ;
     <node_list> ::= <node_label>  [ , <node_list> ]
 \end{verbatim}
-	exttt{node\_item} is a valid node type that can be read in the 	exttt{nodes}
+\texttt{node\_item} is a valid node type that can be read in the \texttt{nodes}
 module. \\
 {\em
-   Note: if a node should never (	exttt{no}) or always (	exttt{yes}) be output,
+   Note: if a node should never (\texttt{no}) or always (\texttt{yes}) be output,
    its output flag should be set directly on the node card. 
    The global behaviour of all the nodes of a type can be set from the 
-   	exttt{control} module by adding the node type to the item list in the 
-   	exttt{default output} card. 
+   \texttt{control} module by adding the node type to the item list in the 
+   \texttt{default output} card. 
    Then, the specific output flag of sets of nodes can be altered by means 
-   of the 	exttt{output} card in the 	exttt{nodes} module. 
+   of the \texttt{output} card in the \texttt{nodes} module. 
    This allows a high flexibility in the selection of the desired output. 
    The same remarks apply to the output of the elements.
 }
@@ -631,25 +631,25 @@ module. \\
 
 
 \chapter{Drivers}\label{sec:DRIVERS}
-The 	exttt{drivers} section is enclosed in the cards:
+The \texttt{drivers} section is enclosed in the cards:
 \begin{verbatim}
     begin: drivers;
         ...
     end: drivers;
 \end{verbatim}
-Every 	exttt{driver} card has the following format:
+Every \texttt{driver} card has the following format:
 \begin{verbatim}
     <card> ::= <driver_type> : <arglist> ;
 \end{verbatim}
-At present only 	exttt{file} drivers are supported.
+At present only \texttt{file} drivers are supported.
 
 \section{File Drivers}
-A comprehensive family of 	exttt{file} drivers is being planned;
+A comprehensive family of \texttt{file} drivers is being planned;
 their syntax is:
 \begin{verbatim}
     <arglist> ::= <label> , <normal_arglist>
 \end{verbatim}
-The following 	exttt{file} drivers are supported at present:
+The following \texttt{file} drivers are supported at present:
 
 
 \subsection{Fixed Step}
@@ -670,7 +670,7 @@ data; if the requested value is out of time bounds, zero is returned.
                            | [ , port, <port_number> ] }
                          (AuthenticationMethod)<authentication>
 \end{verbatim}
-The driver binds to a socket listening on port 	exttt{port\_number} 
+The driver binds to a socket listening on port \texttt{port\_number} 
 (defaults to 5555) or on the named pipe \texttt{file\_name}; at the
 beginning of each time step, in case of connection, the driver expects some
 input data in text format, consisting in an authentication token 
@@ -681,8 +681,8 @@ The authentication token is usually in the form
     password: <user_password> <new_line>
 \end{verbatim}
 {\em 
-    Note: whitespaces may be significant in 	exttt{user\_name}, and surely are
-    in 	exttt{user\_password}.
+    Note: whitespaces may be significant in \texttt{user\_name}, and surely are
+    in \texttt{user\_password}.
 } \\    
 It is followed by a label token, in the form
 \begin{verbatim}
