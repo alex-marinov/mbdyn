@@ -177,7 +177,7 @@ void SetupSystem(
 				if (random_args) {
 					char	*next;
 
-					sprfct = (int)strtod(random_args,
+					sprfct = (double)strtod(random_args,
 							&next);
 					switch (next[0]) {
 					case '\0':
