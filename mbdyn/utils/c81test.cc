@@ -118,7 +118,7 @@ main(int argc, char *argv[])
 		break;
 
 	case 'o':
-		rc = read_onera_data(in, data);
+		rc = read_fc511_data(in, data);
 		break;
 
 	default:

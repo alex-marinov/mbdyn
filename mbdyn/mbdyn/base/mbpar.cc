@@ -284,11 +284,11 @@ MBDynParser::C81Data_int(void)
 	C81Data* data = NULL;
 	SAFENEWWITHCONSTRUCTOR(data, C81Data, C81Data(uLabel));
 
-	if (IsKeyWord("onera")) {
-		if (read_onera_data(in, data) != 0) {
+	if (IsKeyWord("fc511")) {
+		if (read_fc511_data(in, data) != 0) {
 			silent_cerr("unable to read c81 data " << uLabel 
 				<< " from file '" << filename << "' "
-				"in ONERA format at line " << GetLineData() << std::endl);
+				"in fc511 format at line " << GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
 

@@ -343,7 +343,7 @@ write_c81_data(std::ostream& out, c81_data* data)
 }
 
 int
-read_onera_row(std::istream& in, doublereal *d, int NC)
+read_fc511_row(std::istream& in, doublereal *d, int NC)
 {
 	int	r;
 
@@ -377,7 +377,7 @@ read_onera_row(std::istream& in, doublereal *d, int NC)
 }
 
 int
-read_onera_mat(std::istream& in, doublereal *d, int NR, int NC)
+read_fc511_mat(std::istream& in, doublereal *d, int NR, int NC)
 {
 	for (int i = 0; i < NR; i++) {
 		int	r;
@@ -413,7 +413,7 @@ read_onera_mat(std::istream& in, doublereal *d, int NR, int NC)
 }
 
 int
-read_onera_block(std::istream& in, int &NA, int &NM, doublereal *&da, doublereal *&dm)
+read_fc511_block(std::istream& in, int &NA, int &NM, doublereal *&da, doublereal *&dm)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
    
@@ -436,15 +436,15 @@ read_onera_block(std::istream& in, int &NA, int &NM, doublereal *&da, doublereal
 	dm = new doublereal[NM];
 	doublereal *tmpda = new doublereal[NA*(NM + 1)];
 
-	if (read_onera_row(in, tmpda, NA)) {
+	if (read_fc511_row(in, tmpda, NA)) {
 		return -1;
 	}
 
-	if (read_onera_row(in, dm, NM)) {
+	if (read_fc511_row(in, dm, NM)) {
 		return -1;
 	}
 
-	if (read_onera_mat(in, &tmpda[NA], NA, NM)) {
+	if (read_fc511_mat(in, &tmpda[NA], NA, NM)) {
 		return -1;
 	}
 
@@ -456,11 +456,11 @@ read_onera_block(std::istream& in, int &NA, int &NM, doublereal *&da, doublereal
 
 	doublereal *posda = new doublereal[2*pos];
 
-	if (read_onera_row(in, posda, pos)) {
+	if (read_fc511_row(in, posda, pos)) {
 		return -1;
 	}
 
-	if (read_onera_row(in, &posda[pos], pos)) {
+	if (read_fc511_row(in, &posda[pos], pos)) {
 		return -1;
 	}
 
@@ -473,11 +473,11 @@ read_onera_block(std::istream& in, int &NA, int &NM, doublereal *&da, doublereal
 	int realNA = (neg + NA + pos);
 	da = new doublereal[realNA*(NM + 1)];
 
-	if (read_onera_row(in, da, neg)) {
+	if (read_fc511_row(in, da, neg)) {
 		return -1;
 	}
 
-	if (read_onera_row(in, &da[realNA], neg)) {
+	if (read_fc511_row(in, &da[realNA], neg)) {
 		return -1;
 	}
 
@@ -511,7 +511,7 @@ read_onera_block(std::istream& in, int &NA, int &NM, doublereal *&da, doublereal
 }
 
 int
-read_onera_data(std::istream& in, c81_data* data)
+read_fc511_data(std::istream& in, c81_data* data)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
    
@@ -534,7 +534,7 @@ read_onera_data(std::istream& in, c81_data* data)
 		return -1;
 	}
 
-	if (read_onera_block(in, data->NAL, data->NML, data->al, data->ml)) {
+	if (read_fc511_block(in, data->NAL, data->NML, data->al, data->ml)) {
 		return -1;
 	}
 
@@ -549,7 +549,7 @@ read_onera_data(std::istream& in, c81_data* data)
 		return -1;
 	}
 
-	if (read_onera_block(in, data->NAD, data->NMD, data->ad, data->md)) {
+	if (read_fc511_block(in, data->NAD, data->NMD, data->ad, data->md)) {
 		return -1;
 	}
 
@@ -564,7 +564,7 @@ read_onera_data(std::istream& in, c81_data* data)
 		return -1;
 	}
 
-	if (read_onera_block(in, data->NAM, data->NMM, data->am, data->mm)) {
+	if (read_fc511_block(in, data->NAM, data->NMM, data->am, data->mm)) {
 		return -1;
 	}
 
