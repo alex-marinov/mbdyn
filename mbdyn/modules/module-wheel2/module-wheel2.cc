@@ -90,6 +90,7 @@ struct module_wheel {
 	DriveCaller *pMuX0;
 	DriveCaller *pMuY0;
 	DriveCaller *pMuY1;
+	doublereal dvThreshold;
 
 	/*
 	 * Output
@@ -164,7 +165,8 @@ read(LoadableElem* pEl,
 "		[ slip ,						\n"
 "		<drive del coefficiente di attrito longitudinale>	\n"
 "		<drive del coeff. di attrito laterale per sr=0>		\n"
-"		<drive del coeff. di attrito laterale per sr=1> ]	\n"
+"		<drive del coeff. di attrito laterale per sr=1>		\n"
+"		[ , threshold, <velocity threshold> ] ]			\n"
 "									\n"
 "     -	Output:								\n"
 "		1)	label elemento					\n"
@@ -265,7 +267,17 @@ read(LoadableElem* pEl,
 		p->pMuX0 = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
 		p->pMuY0 = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
 		p->pMuY1 = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-
+	
+		p->dvThreshold = 0.;
+		if (HP.IsKeyWord("threshold")) {
+			p->dvThreshold = HP.GetReal();
+			if (p->dvThreshold < 0.) {
+				std::cerr << "illegal velocity threshold "
+					<< p->dvThreshold << " at line "
+					<< HP.GetLineData() << std::endl;
+				p->dvThreshold = fabs(p->dvThreshold);
+			}
+		}
 	}
 	
 	return (void *)p;
@@ -484,11 +496,11 @@ ass_res(LoadableElem* pEl,
 		doublereal dfvax = fabs(dvax);
 
 		/*
-		 * FIXME: se la vax va a zero (percheà il velivolo si e'
+		 * FIXME: se la vax va a zero (perche' il velivolo si e'
 		 * fermato, ad esempio) lo "sleep" ratio deve essere 
 		 * "piccolo", o no?
 		 */
-		p->dSr = dfvx/(1.+dfvax);
+		p->dSr = dfvx/(dfvax + p->dvThreshold);
 		if (p->dSr > 1.) {
 			p->dSr = 1.;
 		}
