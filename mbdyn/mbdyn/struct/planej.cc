@@ -875,6 +875,7 @@ PlaneHingeJoint::iGetPrivDataIdx(const char *s) const
 		return 2;
 	}
 
+
 	return 0;
 }
 
@@ -2286,7 +2287,7 @@ AxialRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
 unsigned int
 AxialRotationJoint::iGetNumPrivData(void) const
 {
-	return 2;
+	return 3;
 }
 
 unsigned int
@@ -2302,6 +2303,10 @@ AxialRotationJoint::iGetPrivDataIdx(const char *s) const
 		return 2;
 	}
 
+	if (strcmp(s, "mz") == 0) {
+		return 3;
+	}
+
 	return 0;
 }
 
@@ -2315,8 +2320,11 @@ AxialRotationJoint::dGetPrivData(unsigned int i) const
 		return dTheta;
 	}
       
-	case 2:
+	case 2: 
 		return dGet();
+      
+	case 3:
+		return M.dGet(3);
 	}
 
 	THROW(ErrGeneric());
