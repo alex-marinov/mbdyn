@@ -37,6 +37,7 @@
 
 #include <dataman.h>
 #include <auth.h>
+#include <crypt.h>
 
 /* NoAuth - begin */
 
@@ -62,54 +63,6 @@ NoAuth::Auth(int /* sock */ ) const
 
 #ifdef HAVE_CRYPT
 
-static char *
-make_salt(char *salt, size_t saltlen, const char *salt_format = NULL)
-{
-	static char salt_charset[] =
-		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./";
-
-	ASSERT(strlen(salt_charset) == 64);
-	ASSERT(salt);
-	ASSERT(saltlen > 2);
-
-	char	buf[33];
-
-#if defined(HAVE_DEV_RANDOM) || defined(HAVE_DEV_URANDOM)
-	FILE *fin = NULL;
-
-#if defined(HAVE_DEV_RANDOM)
-	fin = fopen("/dev/random");
-#elif defined(HAVE_DEV_URANDOM)
-	fin = fopen("/dev/urandom");
-#endif /* HAVE_DEV_RANDOM || HAVE_DEV_URANDOM */
-
-	fread(buf, sizeof(buf) - 1, 1, fin);
-	buf[sizeof(buf) - 1] = '\0';
-	fclose(fin);
-
-	for (unsigned int i = 0; i < sizeof(buf) - 1; i++) {
-		buf[i] = salt_charset[buf[i] % (sizeof(salt_charset) - 1)];
-	}
-#else
-	for (unsigned int i = 0; i < sizeof(buf) - 1; i++) {
-		buf[i] = salt_charset[rand() % (sizeof(salt_charset) - 1)];
-	}
-#endif
-
-	if (salt_format) {
-		snprintf(salt, saltlen, salt_format, buf);
-	} else {
-		strncpy(salt, buf, saltlen);
-	}
-
-	return salt;
-}
-
-/*
- * FIXME: sometimes it is not defined even if present
- */
-extern "C" char *crypt(const char *key, const char *salt);
-
 PasswordAuth::PasswordAuth(const char *u, const char *c, const char *salt_format)
 {
 	ASSERT(u != NULL);
@@ -119,10 +72,22 @@ PasswordAuth::PasswordAuth(const char *u, const char *c, const char *salt_format
 	User[sizeof(User) - 1] = '\0';
 
 	char salt[33];
+	char *tmp = 0;
+	if (strncmp(c, "{CRYPT}", sizeof("{CRYPT}") - 1) == 0) {
+		tmp = c + sizeof("{CRYPT}") - 1;
 
-	char *tmp = crypt(c, make_salt(salt, sizeof(salt), salt_format));
-	if (tmp == NULL) {
-		throw ErrGeneric();
+		if (strlen(tmp) >= sizeof(Cred)) {
+			silent_cerr("unable to handle credentials (too long)"
+					<< std::endl);
+			throw ErrGeneric();
+		}
+
+	} else {
+		tmp = crypt(c, mbdyn_make_salt(salt, sizeof(salt), salt_format));
+		if (tmp == NULL) {
+			silent_cerr("crypt() failed" << std::endl);
+			throw ErrGeneric();
+		}
 	}
 
 	strncpy(Cred, tmp, sizeof(Cred));
@@ -535,7 +500,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 			throw ErrGeneric();
 		}
 
-		char* user = NULL;
+		char* user = 0;
 		SAFESTRDUP(user, tmp);
 
 		if (!HP.IsKeyWord("credentials")) {
@@ -555,16 +520,25 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 					<< HP.GetLineData() << std::endl);
 		}
 
-		char* cred = NULL;
+		char* cred = 0;
 		SAFESTRDUP(cred, tmp);
 		memset((char *)tmp, '\0', strlen(tmp));
 
+		char *salt_format = 0;
+		if (HP.IsKeyWord("salt" "format")) {
+			tmp = HP.GetStringWithDelims();
+			SAFESTRDUP(salt_format, tmp);
+		}
+
 		SAFENEWWITHCONSTRUCTOR(pAuth,
 				PasswordAuth,
-				PasswordAuth(user, cred));
+				PasswordAuth(user, cred, salt_format));
 		SAFEDELETEARR(user);
 		memset(cred, '\0', strlen(cred));
 		SAFEDELETEARR(cred);
+		if (salt_format) {
+			SAFEDELETEARR(salt_format);
+		}
 
 		break;
 #else /* !HAVE_CRYPT */
