@@ -1795,12 +1795,12 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 
 	      			DriveCaller* pRhoAlgebraic = NULL;
 				if (HP.fIsArg()) {
-					pRhoAlgebraic = 
-						ReadDriveData(NULL, HP, NULL);
+					pRhoAlgebraic = ReadDriveData(NULL, 
+							HP, NULL);
+					HP.PutKeyTable(K);
 				} else {
 					pRhoAlgebraic = pRho->pCopy();
 				}
-				HP.PutKeyTable(K);
 			
 	      			switch (KMethod) {
 	       			case NOSTRO: 

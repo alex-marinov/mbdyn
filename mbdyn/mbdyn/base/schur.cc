@@ -1594,6 +1594,7 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
     "Crank" "Nicholson",
     "nostro",
     "ms",
+    "bdf",
     "hope",
     "rho",
     "algebraic" "rho",
@@ -1650,6 +1651,7 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
     CRANKNICHOLSON,
     NOSTRO,
     MS,
+    BDF,
     HOPE,
     RHO,
     ALGEBRAICRHO,
@@ -1882,17 +1884,33 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
       KeyWords KMethod = KeyWords(HP.GetWord());
       switch (KMethod) {
        case CRANKNICHOLSON: {
-          SAFENEW(pMethod, CrankNicholson); // no constructor
+          SAFENEW(pMethod, CrankNicholson);
           break;
        }
+
+       case BDF: {
+          DriveCaller* pRho = NULL;
+	  SAFENEWWITHCONSTRUCTOR(pRho, NullDriveCaller, NullDriveCaller(NULL));
+	  DriveCaller* pRhoAlgebraic = pRho->pCopy();
+	  SAFENEWWITHCONSTRUCTOR(pMethod,
+			  NostroMetodo,
+			  NostroMetodo(pRho, pRhoAlgebraic));
+	  break;
+       }
+       
        case NOSTRO:
        case MS:
        case HOPE: {
           DriveCaller* pRho = ReadDriveData(NULL, HP, NULL);
           HP.PutKeyTable(K);
 
-          DriveCaller* pRhoAlgebraic = ReadDriveData(NULL, HP, NULL);
-          HP.PutKeyTable(K);
+	  DriveCaller* pRhoAlgebraic = NULL;
+	  if (HP.fIsArg()) {
+             pRhoAlgebraic = ReadDriveData(NULL, HP, NULL);
+             HP.PutKeyTable(K);
+	  } else {
+	     pRhoAlgebraic = pRho->pCopy();
+	  }
 
           switch (KMethod) {
            case NOSTRO:
