@@ -54,6 +54,8 @@ namespace External {
 	void SendNull(void);
 
 	void SendInitial(void);
+
+	void SendFreeze(void);
 	
 	void SendRegular(void);
 

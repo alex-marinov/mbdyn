@@ -42,7 +42,7 @@
 
  
 #include <schurdataman.h> 
-
+#include <external.h>
 #include<stepsol.h>
 
 StepIntegrator::StepIntegrator(const integer MaxIt,
@@ -133,8 +133,10 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 	XTau.Reset(0.);
 	z.Reset(0.);
         XTau.ScalarMul(w, Tau);
-	
 	this->Update(&XTau);
+#ifdef  USE_EXTERNAL    
+        External::SendFreeze();
+#endif /* USE_EXTERNAL */
 	this->Residual(&z);
 	XTau.ScalarMul(XTau, -1.);
 	/* riporta tutto nelle condizioni inziali */

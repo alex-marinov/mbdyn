@@ -74,8 +74,9 @@ class OutputHandler : public FileName {
       LOG,		/* 20 */
       AIRPROPS,
       PARAMETERS,
+      EXTERNALS,
 
-      LASTFILE		/* 23 */
+      LASTFILE		/* 24 */
    };   
    
  private:
@@ -111,6 +112,7 @@ class OutputHandler : public FileName {
    std::ofstream ofLog;
    std::ofstream ofAirProps;
    std::ofstream ofParameters;
+   std::ofstream ofExternals;
    
    int iCurrWidth;
    int iCurrPrecision;
@@ -338,6 +340,14 @@ class OutputHandler : public FileName {
       ASSERT(ofParameters.is_open());
 #endif /* HAVE_ISOPEN */
       return (std::ostream&)ofParameters;	  
+   };
+
+   inline std::ostream& Externals(void) const {
+      ASSERT(ofExternal.IsOpen);
+#ifdef HAVE_ISOPEN
+      ASSERT(ofExternal.is_open());
+#endif /* HAVE_ISOPEN */
+      return (std::ostream&)ofExternals;	  
    };
 
    inline int iW(void) const { 

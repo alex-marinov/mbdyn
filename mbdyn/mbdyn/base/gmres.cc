@@ -185,7 +185,6 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 #ifdef 	USE_EXTERNAL 	
 		SendExternal();
 #endif /* USE_EXTERNAL */
-		
 		pRes->Reset(0.);
       		pNLP->Residual(pRes);
 		
@@ -388,7 +387,6 @@ Gmres::Solve(const NonlinearProblem* pNLP,
       			ApplyPlaneRotation(H(i+1, i+1), H(i+2, i+1),
 					cs(i+1), sn(i+1));
       			ApplyPlaneRotation(s(i+1), s(i+2), cs(i+1), sn(i+1));
-
 			if ((resid = fabs(s.dGetCoef(i+2))) < LocTol) {
 
 #ifdef DEBUG_ITERATIVE
@@ -417,7 +415,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 			i++;
 		}
 		if (i == MaxLinIt) {
-			Backsolve(dx, MaxLinIt, s, v);
+			Backsolve(dx, MaxLinIt-1, s, v);
 			pPM->Precond(dx, dx, pSM);				
 		        std::cerr << "Iterative inner solver didn't converge."
 				<< " Continuing..." << std::endl;
@@ -454,7 +452,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 		
 		if (outputIters()) {
 #ifdef USE_MPI
-			if (dynamic_cast<SchurSolutionManager*> (pSM) && (MBDynComm.Get_rank() == 0)) {
+			if (MBDynComm.Get_rank() == 0) {
 #endif /* USE_MPI */
 				std::cout << "\tIteration " << iIterCnt
 					<< " " << dErr << " J"
@@ -465,11 +463,20 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 		}
 		
       		pNLP->Update(&dx);
-
+		
 		
 #ifdef MBDYN_X_CONVSOL
 		if (SolTol > 0.) {
 			dSolErr = MakeTest(dx);
+			if (outputIters()) {
+#ifdef USE_MPI
+				if (MBDynComm.Get_rank() == 0) {
+#endif /* USE_MPI */
+					std::cout << "\t\tSolErr " << dSolErr << std::endl;
+#ifdef USE_MPI
+				}
+#endif /* USE_MPI */
+			}
         		if (dSolErr < SolTol) {
 				THROW(ConvergenceOnSolution());
 			}

@@ -78,6 +78,7 @@ void DataManager::ElemManager(void)
    ElemData[Elem::HYDRAULIC].OutFile = OutputHandler::HYDRAULIC;
    ElemData[Elem::LOADABLE].OutFile = OutputHandler::LOADABLE;
    ElemData[Elem::GENEL].OutFile = OutputHandler::GENELS;
+   ElemData[Elem::EXTERNAL].OutFile = OutputHandler::EXTERNALS;
    
    /* Tabella delle derivazioni */
    ElemData[Elem::AUTOMATICSTRUCTURAL].iDerivation = ELEM;
@@ -97,6 +98,7 @@ void DataManager::ElemManager(void)
    ElemData[Elem::BULK].iDerivation = ELEM;
    ElemData[Elem::LOADABLE].iDerivation = ELEM | GRAVITYOWNER | INITIALASSEMBLY | DOFOWNER;   
    ElemData[Elem::DRIVEN].iDerivation = ELEM;
+   ElemData[Elem::AEROMODAL].iDerivation = ELEM | AIRPROPOWNER;
 
    /* Aggiungere qui il flag di elemento unico */
    ElemData[Elem::GRAVITY].fIsUnique = flag(1);
@@ -118,6 +120,7 @@ void DataManager::ElemManager(void)
    ElemData[Elem::AEROMODAL].fUsesAirProperties = flag(1);
    ElemData[Elem::AERODYNAMIC].fUsesAirProperties = flag(1);
    ElemData[Elem::LOADABLE].fUsesAirProperties = flag(1);
+   ElemData[Elem::EXTERNAL].fUsesAirProperties = flag(1);
    
    
    /* Reset della struttura DriveData */

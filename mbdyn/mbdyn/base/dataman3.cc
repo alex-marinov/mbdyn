@@ -94,6 +94,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       psReadControlElems[Elem::HYDRAULIC],      
       psReadControlElems[Elem::BULK],
       psReadControlElems[Elem::LOADABLE],
+      psReadControlElems[Elem::EXTERNAL],
       psReadControlElems[Elem::RTAI_OUTPUT],
 
       psReadControlDrivers[Drive::FILEDRIVE],
@@ -160,6 +161,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       HYDRAULICELEMENTS,
       BULKELEMENTS,
       LOADABLEELEMENTS,
+      EXTERNALELEMENTS,
       RTAIOUTPUTELEMENTS,
 
       FILEDRIVERS,
@@ -481,6 +483,17 @@ void DataManager::ReadControl(MBDynParser& HP,
        }
 #endif /* defined(HAVE_LOADABLE) */
 
+       case EXTERNALELEMENTS: {
+#ifdef USE_EXTERNAL
+	  int iDmy = HP.GetInt();
+	  ElemData[Elem::EXTERNAL].iNum = iDmy;	     
+	  DEBUGLCOUT(MYDEBUG_INPUT, "External elements: " << iDmy
+		<< std::endl);
+#else /* USE_EXTERNAL */
+          std::cerr << "cannot use external elements when not compiled with -DUSE_EXTERNAL" << std::endl;
+#endif /* USE_EXTERNAL */
+	  break;
+	}
        case RTAIOUTPUTELEMENTS: {
 #ifdef USE_RTAI
 	  int iDmy = HP.GetInt();
@@ -918,7 +931,12 @@ void DataManager::ReadControl(MBDynParser& HP,
 		 break;
 	      }
 #endif /* defined(HAVE_LOADABLE) */
-		
+#ifdef USE_EXTERNAL
+	       case EXTERNALELEMENTS: {		
+		 ElemData[Elem::EXTERNAL].fDefaultOut = flag(1);
+		 break;
+	      }
+#endif /* USE_EXTERNAL */
 		
 	      case UNKNOWN: {
 		 std::cerr << "warning: unknown output case at line " 

@@ -98,6 +98,7 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput {
 	BULK,
 	LOADABLE,
 	DRIVEN,
+	EXTERNAL,
 
 	RTAI_OUTPUT,
 	

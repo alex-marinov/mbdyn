@@ -61,7 +61,7 @@ const char* psElemNames[] = {
    "Bulk",
    "Loadable",
    "Driven",
-
+   "External",
    "RTAI Output",
    
    NULL
@@ -95,6 +95,7 @@ const char* psReadControlElems[] = {
    "bulk" "elements",
    "loadable" "elements",
    "driven" "elements",
+   "external" "elements",
 
    "rtai" "output" "elements",
    

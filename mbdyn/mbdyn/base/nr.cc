@@ -258,7 +258,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 		
 		if (outputIters()) {
 #ifdef USE_MPI
-			if (dynamic_cast<SchurSolutionManager*> (pSM) && (MBDynComm.Get_rank() == 0)) {
+			if (MBDynComm.Get_rank() == 0) {
 #endif /* USE_MPI */
 				std::cout << "\tIteration " << iIterCnt
 					<< " " << dErr << " J"
@@ -274,6 +274,15 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 #ifdef MBDYN_X_CONVSOL
 		if (SolTol > 0.) {
 			dSolErr = MakeTest(*pSol);
+                        if (outputIters()) {
+#ifdef USE_MPI
+                                if (MBDynComm.Get_rank() == 0) {
+#endif /* USE_MPI */
+                                        std::cout << "\t\tSolErr " << dSolErr << std::endl;
+#ifdef USE_MPI
+                                }
+#endif /* USE_MPI */
+                        }
         		if (dSolErr < SolTol) {
 				THROW(ConvergenceOnSolution());
 			}

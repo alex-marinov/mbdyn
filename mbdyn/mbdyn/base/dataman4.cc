@@ -262,7 +262,11 @@ void DataManager::ReadElems(MBDynParser& HP)
 	  }
 #ifdef USE_EXTERNAL
 	  case AERODYNAMICEXTERNAL:
-	  case AERODYNAMICEXTERNALMODAL:
+	  case AERODYNAMICEXTERNALMODAL: {
+	     DEBUGLCOUT(MYDEBUG_INPUT, "aerodynamic external" << std::endl);
+	     Typ = Elem::EXTERNAL;
+	     break;
+	  }
 #endif /* USE_EXTERNAL */
 	  case AERODYNAMICBODY:
 	  case AERODYNAMICBEAM:
@@ -525,6 +529,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 #ifdef USE_EXTERNAL
           case AERODYNAMICEXTERNAL:
           case AERODYNAMICEXTERNALMODAL:
+	    t = Elem::EXTERNAL;
+	    break;
 #endif /* USE_EXTERNAL */	  
 	  case AERODYNAMICBODY:
 	  case AERODYNAMICBEAM:	
@@ -1375,7 +1381,53 @@ Elem** ReadOneElem(DataManager* pDM,
       
       /* Elementi aerodinamici: aeromodal */
     case AERODYNAMICEXTERNAL:
-    case AERODYNAMICEXTERNALMODAL:
+    case AERODYNAMICEXTERNALMODAL: {
+#ifdef USE_EXTERNAL
+       silent_cout("Reading external element " << uLabel << std::endl);
+       
+       if (iNumTypes[Elem::EXTERNAL]-- <= 0) {
+	  DEBUGCERR("");
+	  std::cerr << "line " << HP.GetLineData() 
+	    << ": external element " << uLabel
+	    << " exceedes external elements number" << std::endl;
+	 
+	  THROW(DataManager::ErrGeneric());
+       }
+       
+       /* verifica che non sia gia' definito */
+       if (pDM->pFindElem(Elem::EXTERNAL, uLabel) != NULL) {
+	  DEBUGCERR("");
+	  std::cerr << "line " << HP.GetLineData() 
+	    << ": external element " << uLabel
+	    << " already defined" << std::endl;
+	  
+	  THROW(DataManager::ErrGeneric());
+       }
+       /* allocazione e creazione */
+       int i = pDM->ElemData[Elem::EXTERNAL].iNum
+	 -iNumTypes[Elem::EXTERNAL]-1;
+       ppE = pDM->ElemData[Elem::EXTERNAL].ppFirstElem+i;
+       
+       switch(KeyWords(CurrType)) {
+         case AERODYNAMICEXTERNAL:
+		*ppE = ReadAerodynamicExternal(pDM, HP, uLabel);
+		break;
+
+         case AERODYNAMICEXTERNALMODAL:
+		*ppE = ReadAerodynamicExternalModal(pDM, HP, uLabel);
+		break;
+	
+         default:
+	   ASSERTMSG(0, "You shouldn't have reached this point");
+	   break;
+       }
+#else /* !USE_EXTERNAL */
+       std::cerr << "You need mpi and -DUSE_AERODYNAMIC_EXTERNAL " 
+       		<< "to use this type of elements." << std::endl;
+       THROW(ErrGeneric());
+#endif /* !USE_EXTERNAL */	  
+       break;
+    }
     case AERODYNAMICBODY:
     case AERODYNAMICBEAM:
     case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
@@ -1422,21 +1474,6 @@ Elem** ReadOneElem(DataManager* pDM,
 	   *ppE = ReadAerodynamicBeam2(pDM, HP, uLabel);
 	   break;
 
-#ifdef USE_EXTERNAL
-         case AERODYNAMICEXTERNAL:
-		*ppE = ReadAerodynamicExternal(pDM, HP, uLabel);
-		break;
-
-         case AERODYNAMICEXTERNALMODAL:
-		*ppE = ReadAerodynamicExternalModal(pDM, HP, uLabel);
-		break;
-#else /* !USE_EXTERNAL */
-	case AERODYNAMICEXTERNAL:
-	case AERODYNAMICEXTERNALMODAL:
-		std::cerr << "You need mpi and -DUSE_AERODYNAMIC_EXTERNAL " 
-			<< "to use this type of elements." << std::endl;
-		THROW(ErrGeneric());
-#endif /* !USE_EXTERNAL */	  
 
 	case AIRCRAFTINSTRUMENTS:
 	   *ppE = ReadAircraftInstruments(pDM, HP, uLabel);
