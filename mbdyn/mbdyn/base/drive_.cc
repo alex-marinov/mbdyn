@@ -880,7 +880,7 @@ std::ostream& DriveArrayCaller::Restart(std::ostream& out) const
 /* Legge i dati dei drivers built-in */
 
 DriveCaller *
-ReadDriveData(const DataManager* pDM, MBDynParser& HP)
+ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
    DEBUGCOUTFNAME("ReadDriveData()");
    
@@ -966,7 +966,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP)
    }   
 #endif   
 
-   if (pDrvHdl == 0) { 
+   if (pDrvHdl == 0 && !bDeferred) { 
       switch (CurrKeyWord) {
        case NULLDRIVE:
        case ONEDRIVE:

@@ -493,6 +493,12 @@ Solver::Run(void)
    		iNumDofs = pDM->iGetNumDofs();
 	}
 
+	/* relink those known drive callers that might need
+	 * the data manager, but were verated ahead of it */
+	if (pStrategyChangeDrive) {
+		pStrategyChangeDrive->SetDrvHdl(pDM->pGetDrvHdl());
+	}
+
    	ASSERT(iNumDofs > 0);
 
 	integer iNSteps = pRegularSteps->GetIntegratorNumPreviousStates();
@@ -2209,11 +2215,11 @@ Solver::ReadData(MBDynParser& HP)
 						  << std::endl);
 	   		case MS:
 	   		case HOPE:
-	      			pRhoRegular = HP.GetDriveCaller();
+	      			pRhoRegular = HP.GetDriveCaller(true);
 
 	      			pRhoAlgebraicRegular = NULL;
 				if (HP.IsArg()) {
-					pRhoAlgebraicRegular = HP.GetDriveCaller();
+					pRhoAlgebraicRegular = HP.GetDriveCaller(true);
 				} else {
 					pRhoAlgebraicRegular = pRhoRegular->pCopy();
 				}
@@ -2237,7 +2243,7 @@ Solver::ReadData(MBDynParser& HP)
 				if (HP.IsKeyWord("ad" "hoc")) {
 					/* do nothing */ ;
 				} else {
-	      				pRhoRegular = HP.GetDriveCaller();
+	      				pRhoRegular = HP.GetDriveCaller(true);
 				}
 				RegularType = INT_THIRDORDER;
 				break;
@@ -2301,10 +2307,10 @@ Solver::ReadData(MBDynParser& HP)
 			case NOSTRO:
 			case MS:
 			case HOPE:
-				pRhoFictitious = HP.GetDriveCaller();
+				pRhoFictitious = HP.GetDriveCaller(true);
 
 				if (HP.IsArg()) {
-					pRhoAlgebraicFictitious = HP.GetDriveCaller();
+					pRhoAlgebraicFictitious = HP.GetDriveCaller(true);
 				} else {
 					pRhoAlgebraicFictitious = pRhoFictitious->pCopy();
 				}
@@ -2328,7 +2334,7 @@ Solver::ReadData(MBDynParser& HP)
 				if (HP.IsKeyWord("ad" "hoc")) {
 					/* do nothing */ ;
 				} else {
-					pRhoFictitious = HP.GetDriveCaller();
+					pRhoFictitious = HP.GetDriveCaller(true);
 				}
 				FictitiousType = INT_THIRDORDER;
 				break;
@@ -2683,7 +2689,7 @@ Solver::ReadData(MBDynParser& HP)
 
 			case STRATEGYCHANGE: {
 				CurrStrategy = CHANGE;
-				pStrategyChangeDrive = HP.GetDriveCaller();
+				pStrategyChangeDrive = HP.GetDriveCaller(true);
 				break;
 			}
 

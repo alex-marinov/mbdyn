@@ -110,6 +110,20 @@ MBDynParser::SetDataManager(DataManager *pdm)
 {
 	ASSERT(pdm != NULL);
 	pDM = pdm;
+	const DriveHandler *pDH = pDM->pGetDrvHdl();
+	if (pDH == 0) {
+		silent_cerr("no drive handler is associated to data manager?"
+				<< std::endl);
+
+	} else {
+		/* add the drive handler to the drive callers... */
+		DriveCaller *pDC;
+		if (DC.GetFirst(pDC)) {
+			do {
+				pDC->SetDrvHdl(pDH);
+			} while (DC.GetNext(pDC));
+		}
+	}
 }
 
 #if defined(USE_STRUCT_NODES)
@@ -431,9 +445,14 @@ MBDynParser::DriveCaller_int(void)
 		SAFESTRDUP(sName, sTmp);
 	}
 
+	bool bDeferred(false);
+	if (IsKeyWord("deferred")) {
+		bDeferred = true;
+	}
+
 	DriveCaller *pDC = 0;
 	try {
-		pDC = ReadDriveData(pDM, *this);
+		pDC = ReadDriveData(pDM, *this, bDeferred);
 	}
 	catch (DataManager::ErrNeedDataManager) {
 		silent_cerr("the \"drive caller\" statement must appear "
@@ -1198,12 +1217,12 @@ MBDynParser::GetConstLaw6D(ConstLawType::Type& clt)
 }
 
 DriveCaller *
-MBDynParser::GetDriveCaller(void)
+MBDynParser::GetDriveCaller(bool bDeferred)
 {
 	if (!IsKeyWord("reference")) {
 		DriveCaller *pDC = 0;
 		try {
-			pDC = ReadDriveData(pDM, *this);
+			pDC = ReadDriveData(pDM, *this, bDeferred);
 		}
 		catch (DataManager::ErrNeedDataManager) {
 			silent_cerr("the required drive caller must appear "
@@ -1212,6 +1231,7 @@ MBDynParser::GetDriveCaller(void)
 					<< std::endl);
 			throw DataManager::ErrNeedDataManager();
 		}
+		return pDC;
 	}
 
 	unsigned int uLabel = GetInt();

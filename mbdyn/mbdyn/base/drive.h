@@ -253,7 +253,7 @@ class DriveCaller : public WithLabel {
  public:
    DriveCaller(const DriveHandler* pDH);
    virtual ~DriveCaller(void);
-   
+
    /* Copia */
    virtual DriveCaller* pCopy(void) const = 0;
    
@@ -268,7 +268,7 @@ class DriveCaller : public WithLabel {
 };
 
 inline doublereal 
-DriveCaller:: dGet(void) const 
+DriveCaller::dGet(void) const 
 {
 	return dGet(pDrvHdl->dGetTime());
 }
@@ -408,7 +408,7 @@ class DataManager;
 class MBDynParser;
 
 extern DriveCaller* 
-ReadDriveData(const DataManager* pDM, MBDynParser& HP);
+ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
 
 #endif /* DRIVE_H */
 
