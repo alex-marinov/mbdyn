@@ -44,6 +44,7 @@
 #include "harwrap.h"
 #include "mschwrap.h"
 #include "umfpackwrap.h"
+#include "superluwrap.h"
 
 char *solvers[] = {
 #ifdef USE_UMFPACK
@@ -52,6 +53,9 @@ char *solvers[] = {
 #ifdef USE_Y12
 	"y12",
 #endif /* USE_Y12 */
+#ifdef USE_SUPERLU
+	"superlu",
+#endif /* USE_SUPERLU */
 	NULL
 };
 
@@ -80,10 +84,11 @@ main(int argc, char *argv[])
 	SolutionManager *pSM = NULL;
 	char *solver = NULL;
 	bool dir(false);
+	unsigned nt = 1;
 	const int size(3);
 
 	while (1) {
-		int opt = getopt(argc, argv, "dm:");
+		int opt = getopt(argc, argv, "dm:t:");
 
 		if (opt == EOF) {
 			break;
@@ -98,6 +103,13 @@ main(int argc, char *argv[])
 			solver = optarg;
 			break;
 
+		case 't':
+			nt = atoi(optarg);
+			if (nt < 1) {
+				nt = 1;
+			}
+			break;
+
 		default:
 			usage();
 		}
@@ -107,7 +119,23 @@ main(int argc, char *argv[])
 		usage();
 	}
 
-	if (strcasecmp(solver, "y12") == 0) {
+	if (strcasecmp(solver, "superlu") == 0) {
+#ifdef USE_SUPERLU
+		if (dir) {
+			typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, 0, 1., nt));
+
+		} else {
+			typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, 0, 1., nt));
+		}
+#else /* !USE_SUPERLU */
+		std::cerr << "need --with-superlu to use SuperLU library" 
+			<< std::endl;
+		usage();
+#endif /* !USE_SUPERLU */
+
+	} else if (strcasecmp(solver, "y12") == 0) {
 #ifdef USE_Y12
 		if (dir) {
 			typedef Y12SparseCCSolutionManager<DirCColMatrixHandler<1> > CCMH;

@@ -44,6 +44,7 @@ public:
 		MESCHACH_SOLVER,
 		Y12_SOLVER,
                 UMFPACK_SOLVER,
+		SUPERLU_SOLVER,
 		EMPTY_SOLVER,
 
 		LAST_SOLVER
@@ -52,12 +53,14 @@ public:
 	enum {
 		SOLVER_FLAGS_NONE = 0x00U,
 		SOLVER_FLAGS_ALLOWS_CC = 0x01U,
-		SOLVER_FLAGS_ALLOWS_DIR = 0x02U
+		SOLVER_FLAGS_ALLOWS_DIR = 0x02U,
+		SOLVER_FLAGS_ALLOWS_MT = 0x04U
 	};
 	
 protected:
 	SolverType CurrSolver;
 	unsigned solverFlags;
+	unsigned nThreads;
 	integer iWorkSpaceSize;
    	doublereal dPivotFactor;
 

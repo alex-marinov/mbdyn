@@ -33,6 +33,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include "myassert.h"
+#include "ac/sys_sysinfo.h"
 
 #include "spmapmh.h"
 #include "ccmh.h"
@@ -41,12 +42,11 @@
 #include "mschwrap.h"
 #include "y12wrap.h"
 #include "umfpackwrap.h"
+#include "superluwrap.h"
 
 #include "mbpar.h"
 
 #include "linearsolver.h"
-
-// #define DEFAULT_CC
 
 /* private data */
 static struct solver_t {
@@ -67,6 +67,9 @@ static struct solver_t {
 	{ "Umfpack", "umfpack3", 
 		LinSol::UMFPACK_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR },
+	{ "Umfpack", "umfpack3", 
+		LinSol::UMFPACK_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT },
 	{ "Empty", NULL,
 		LinSol::EMPTY_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE },
@@ -83,7 +86,9 @@ LinSol::SolverType LinSol::defaultSolver =
 	LinSol::UMFPACK_SOLVER
 #elif /* !USE_UMFPACK */ defined(USE_Y12)
 	LinSol::Y12_SOLVER
-#elif /* !USE_Y12 */ defined(USE_HARWELL)
+#elif /* !USE_Y12 */ defined(USE_SUPERLU)
+	LinSol::SUPERLU_SOLVER
+#elif /* !USE_SUPERLU */ defined(USE_HARWELL)
 	LinSol::HARWELL_SOLVER
 #elif /* !USE_HARWELL */ defined(USE_MESCHACH)
 	LinSol::MESCHACH_SOLVER
@@ -98,15 +103,15 @@ const char *psSolverNames[] = {
 	"Harwell",
 	"Meschach",
 	"Y12",
-	"Y12CC",
 	"Umfpack",
-	"UmfpackCC",
+	"SuperLU",
 	"Empty",
 	NULL
 };
 
 LinSol::LinSol(void)
 : CurrSolver(LinSol::defaultSolver),
+nThreads(1),
 iWorkSpaceSize(0),
 dPivotFactor(1.)
 {
@@ -128,6 +133,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::Y12_SOLVER].s_name,
 		::solver[LinSol::UMFPACK_SOLVER].s_name,
 		::solver[LinSol::UMFPACK_SOLVER].s_alias,
+		::solver[LinSol::SUPERLU_SOLVER].s_name,
 		::solver[LinSol::EMPTY_SOLVER].s_name,
 		NULL
 	};
@@ -138,6 +144,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		Y12,
 		UMFPACK,
 		UMFPACK3,
+		SUPERLU,
 		EMPTY,
 
 		LASTKEYWORD
@@ -165,6 +172,17 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using y12 sparse LU solver" << std::endl);
 #endif /* USE_Y12 */
+		break;
+
+	case SUPERLU:
+#ifdef USE_SUPERLU
+		/*
+		 * FIXME: use CC as default???
+		 */
+		CurrSolver = LinSol::SUPERLU_SOLVER;
+		DEBUGLCOUT(MYDEBUG_INPUT,
+				"Using SuperLU sparse LU solver" << std::endl);
+#endif /* USE_SUPERLU */
 		break;
 
 	case UMFPACK3:
@@ -206,6 +224,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		break;
 	}
 
+	/* CC? */
 	if (HP.IsKeyWord("column" "compressed") || HP.IsKeyWord("cc")) {
 		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_CC) {
 			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_CC;
@@ -217,6 +236,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		}
 	}
 
+	/* direct? */
 	if (HP.IsKeyWord("direct") || HP.IsKeyWord("dir")) {
 		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_DIR) {
 			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_DIR;
@@ -225,6 +245,39 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 			pedantic_cerr("direct is meaningless for "
 					<< ::solver[CurrSolver].s_name
 					<< " solver" << std::endl);
+		}
+	}
+
+	/* mutithread? */
+	if (HP.IsKeyWord("multi" "thread") || HP.IsKeyWord("mt")) {
+		nThreads = HP.GetInt();
+
+		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT) {
+			solverFlags |= LinSol::SOLVER_FLAGS_ALLOWS_MT;
+			if (nThreads < 1) {
+				silent_cerr("illegal thread number, using 1" << std::endl);
+				nThreads = 1;
+			}
+
+		} else {
+			pedantic_cerr("multithread is meaningless for "
+					<< ::solver[CurrSolver].s_name
+					<< " solver" << std::endl);
+			nThreads = 1;
+		}
+	} else {
+		if (::solver[CurrSolver].s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT) {
+			int n = get_nprocs();
+
+			if (n > 1) {
+				silent_cout("no multithread requested "
+						"with a potential of " << n
+						<< " CPUs" << std::endl);
+				nThreads = n;
+
+			} else {
+				nThreads = 1;
+			}
 		}
 	}
 
@@ -292,6 +345,12 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 		CurrSolver = t;
 		return true;
 #endif /* USE_UMFPACK */
+
+	case LinSol::SUPERLU_SOLVER:
+#ifdef USE_SUPERLU
+		CurrSolver = t;
+		return true;
+#endif /* USE_SUPERLU */
 
 	case LinSol::Y12_SOLVER:
 #ifdef USE_Y12
@@ -399,6 +458,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 	SolutionManager *pCurrSM = NULL;
 	bool cc = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_CC);
 	bool dir = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_DIR);
+	bool mt = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_MT);
 
 	ASSERT((::solver[CurrSolver].s_flags & solverFlags) == solverFlags);
 
@@ -424,6 +484,35 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 				Y12SparseSolutionManager,
 				Y12SparseSolutionManager(iNLD, iLWS,
 					dPivotFactor == -1. ? 1. : dPivotFactor));
+		}
+      		break;
+#else /* !USE_Y12 */
+      		std::cerr << "Configure with --with-y12 "
+			"to enable Y12 solver" << std::endl;
+      		THROW(ErrGeneric());
+#endif /* !USE_Y12 */
+
+     	case LinSol::SUPERLU_SOLVER: 
+#ifdef USE_SUPERLU
+		if (!mt) {
+			silent_cerr("warning: SuperLU supperted only in multithread form" << std::endl);
+		}
+
+		if (dir) {
+			typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
+	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
+					CCSM(iNLD, iLWS,
+					dPivotFactor == -1. ? 1. : dPivotFactor, nThreads));
+		} else if (cc) {
+			typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
+	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
+					CCSM(iNLD, iLWS,
+					dPivotFactor == -1. ? 1. : dPivotFactor, nThreads));
+		} else {
+      			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				SuperLUSparseSolutionManager,
+				SuperLUSparseSolutionManager(iNLD, iLWS,
+					dPivotFactor == -1. ? 1. : dPivotFactor, nThreads));
 		}
       		break;
 #else /* !USE_Y12 */
