@@ -109,9 +109,6 @@
 class Y12LUSolver;      	/* solutore */
 class Y12SparseLUSolutionManager;  /* gestore della soluzione */
 
-#ifdef USE_SCHUR
-class SchurSolutionManager;
-#endif /* USE_SCHUR */
 
 /* Y12LUSolver - begin */
 
@@ -123,9 +120,6 @@ class SchurSolutionManager;
 class Y12LUSolver {
    	friend class Y12SparseLUSolutionManager;
 
-#ifdef USE_SCHUR
-   	friend class SchurSolutionManager;
-#endif /* USE_SCHUR */
 
 public:
    	class ErrFactorisation {
@@ -168,7 +162,7 @@ private:
    	integer iN;         	/* ordine della matrice */
    	integer iNonZeroes; 	/* coeff. non nulli */
    	doublereal* pdRhs;  	/* Soluzione e termine noto */
-   
+private:   
    	integer* piHA;    	/* vettore di lavoro */
    	integer  iIFLAG[10];    /* vettore di lavoro */
 	doublereal dAFLAG[8];	/* vettore di lavoro */
@@ -266,6 +260,16 @@ public:
    	/* Risolve il sistema */
    	void Solve(void);
    
+   	/* sposta il puntatore al vettore del residuo */
+   	void ChangeResPoint(doublereal* pRes){
+		pLU->pdRhs = pRes;
+	};
+   
+   	/* sposta il puntatore al vettore del residuo */
+   	void ChangeSolPoint(doublereal* pSol){
+		pLU->pdRhs = pSol;
+	};
+
    	/* Rende disponibile l'handler per la matrice */
    	MatrixHandler* pMatHdl(void) const {
       		ASSERT(pMH != NULL);	

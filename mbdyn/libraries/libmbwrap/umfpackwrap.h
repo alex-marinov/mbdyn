@@ -84,6 +84,9 @@ private:
 	std::vector<double> Ax;
 	std::vector<int> Ai;
 	std::vector<int> Ap;
+	doublereal* pdRhs;
+	doublereal* pdSol;
+	
 
 	void * Symbolic;
 	double Control[UMFPACK_CONTROL];
@@ -111,6 +114,16 @@ public:
 	/* Bacward Substitution */
 	void BackSub(doublereal t_iniz = 0.);
    
+   	/* sposta il puntatore al vettore del residuo */
+   	void ChangeResPoint(doublereal* pRes){
+		pdRhs = pRes;
+	};
+   
+   	/* sposta il puntatore al vettore del residuo */
+   	void ChangeSolPoint(doublereal* pSol){
+		pdSol = pSol;
+	};
+	
 	/* Rende disponibile l'handler per la matrice */
 	virtual SpMapMatrixHandler* pMatHdl(void) const;
 

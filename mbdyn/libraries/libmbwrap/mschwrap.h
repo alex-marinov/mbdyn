@@ -301,8 +301,22 @@ public:
    	void MatrInit(const doublereal& d = 0.);
    
    	void Solve(void);
+   	
+	/* sposta il puntatore al vettore del residuo */
+   	void ChangeResPoint(doublereal* pRes){
+		std::cerr << "Sorry Meschach is not available as local parallel solver. "
+			<< "Aborting" << std::endl;
+		THROW(ErrGeneric());
+	};
    
-   	/* Rende disponibile l'handler per la matrice */
+   	/* sposta il puntatore al vettore del residuo */
+   	void ChangeSolPoint(doublereal* pSol) {
+		std::cerr << "Sorry Meschach is not available as local parallel solver. "
+			<< "Aborting" << std::endl;
+		THROW(ErrGeneric());
+	};   
+   	
+	/* Rende disponibile l'handler per la matrice */
    	virtual MatrixHandler* pMatHdl(void) const;
 	
    	/* Rende disponibile l'handler per il termine noto */

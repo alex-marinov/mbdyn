@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p5 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -69,6 +69,8 @@ AS = @AS@
 CC = @CC@
 CXX = @CXX@
 DLLTOOL = @DLLTOOL@
+ECHO = @ECHO@
+EXEEXT = @EXEEXT@
 F2C_LIBS = @F2C_LIBS@
 F77 = @F77@
 GINACLIB_CONFIG = @GINACLIB_CONFIG@
@@ -84,9 +86,11 @@ METIS_LIBS = @METIS_LIBS@
 MODULES_DIRS = @MODULES_DIRS@
 MPI_LIBS = @MPI_LIBS@
 OBJDUMP = @OBJDUMP@
+OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 SECURITY_LIBS = @SECURITY_LIBS@
+STRIP = @STRIP@
 TCL_LIBS = @TCL_LIBS@
 UMFPACK3_LIBS = @UMFPACK3_LIBS@
 VERSION = @VERSION@
@@ -120,9 +124,10 @@ LIBS = @LIBS@
 liby12_la_DEPENDENCIES = 
 liby12_la_OBJECTS =  y12mae.lo y12maf.lo y12mbe.lo y12mbf.lo y12mce.lo \
 y12mcf.lo y12mde.lo y12mdf.lo y12mfe.lo y12mge.lo y12mhe.lo
+bin_PROGRAMS =  t$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
-t_OBJECTS =  test.o
+t_OBJECTS =  test.$(OBJEXT)
 t_DEPENDENCIES =  ./liby12.la
 t_LDFLAGS = 
 FFLAGS = @FFLAGS@
@@ -140,7 +145,7 @@ DIST_COMMON =  README Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/test.P .deps/y12mae.P .deps/y12maf.P .deps/y12mbe.P \
 .deps/y12mbf.P .deps/y12mce.P .deps/y12mcf.P .deps/y12mde.P \
@@ -150,7 +155,7 @@ OBJECTS = $(liby12_la_OBJECTS) $(t_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .f .lo .o .s
+.SUFFIXES: .S .c .f .lo .o .obj .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu ./libraries/liby12/Makefile
 
@@ -184,6 +189,11 @@ uninstall-libLTLIBRARIES:
 	  $(LIBTOOL)  --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p; \
 	done
 
+# FIXME: We should only use cygpath when building on Windows,
+# and only if it is available.
+.c.obj:
+	$(COMPILE) -c `cygpath -w $<`
+
 .s.o:
 	$(COMPILE) -c $<
 
@@ -192,6 +202,7 @@ uninstall-libLTLIBRARIES:
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
+	-rm -f *.$(OBJEXT)
 
 clean-compile:
 
@@ -244,11 +255,13 @@ uninstall-binPROGRAMS:
 	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
 	done
 
-t: $(t_OBJECTS) $(t_DEPENDENCIES)
-	@rm -f t
+t$(EXEEXT): $(t_OBJECTS) $(t_DEPENDENCIES)
+	@rm -f t$(EXEEXT)
 	$(LINK) $(t_LDFLAGS) $(t_OBJECTS) $(t_LDADD) $(LIBS)
 .f.o:
 	$(F77COMPILE) -c $<
+.f.obj:
+	$(F77COMPILE) -c `cygpath -w $<`
 .f.lo:
 	$(LTF77COMPILE) -c $<
 

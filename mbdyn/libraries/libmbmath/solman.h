@@ -216,8 +216,6 @@ class VectorHandler {
    /* Norma del vettore */
    virtual doublereal Norm(void) const;
 
-   /* copia i valori del vettore chiamante su quelli del VH inviato */ 
-   virtual void Copy(VectorHandler& VH) const;
 };
 
 /* VectorHandler - end */
@@ -412,7 +410,13 @@ class SolutionManager {
    
    /* Risolve il sistema */
    virtual void Solve(void) = 0;
+
+   /* sposta il puntatore al vettore del residuo */
+   virtual void ChangeResPoint(doublereal* pRes) = 0;
    
+   /* sposta il puntatore al vettore del residuo */
+   virtual void ChangeSolPoint(doublereal* pSol) = 0;
+
    /* Rende disponibile l'handler per la matrice */
    virtual MatrixHandler* pMatHdl(void) const = 0;
 

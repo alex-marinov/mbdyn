@@ -101,6 +101,7 @@ ppNewTypes(NULL),
 iWorkSpaceSize(iWorkSize), 
 pMH(NULL), 
 pRVH(NULL),
+pSolVH(NULL),
 pSchMH(NULL), 
 pSchVH(NULL),
 pSolSchVH(NULL),
@@ -109,8 +110,6 @@ pdCM(NULL),
 prVH(NULL),
 pgVH(NULL),
 pSolrVH(NULL),
-pSolrTempVH(NULL),
-pdTemp(NULL),
 pGSReq(NULL), 
 pGRReq(NULL),
 pLocalSM(pLSM),
@@ -158,10 +157,6 @@ fNewMatrix(0)
    prVH    = pLocalSM->pResHdl();
    pSolrVH = pLocalSM->pSolHdl();
    
-   SAFENEWARR(pdTemp, doublereal, iLocVecDim);
-   SAFENEWWITHCONSTRUCTOR(pSolrTempVH,
-   			MyVectorHandler,
-			MyVectorHandler(iLocVecDim, pdTemp));
 			
    if(!MyRank) {
    	pSchMH    = pInterSM->pMatHdl();
@@ -170,15 +165,25 @@ fNewMatrix(0)
    }	
 
   /* Definisce le matrici globali */
-  SAFENEWWITHCONSTRUCTOR(pMH, SchurMatrixHandler, 
+  if (prVH->pdGetVec() == pSolrVH->pdGetVec()) {
+  	SAFENEWWITHCONSTRUCTOR(pMH, SchurMatrixHandler, 
 			 SchurMatrixHandler(iLocVecDim, 
 			 		iIntVecDim, pBMH,pGlbToLoc));
+  } else {
+  	SAFENEWWITHCONSTRUCTOR(pMH, SchurMatrixHandlerUm, 
+			 SchurMatrixHandlerUm(iLocVecDim, 
+			 		iIntVecDim, pBMH,pGlbToLoc));
+  }
+  
   SAFENEWWITHCONSTRUCTOR(pRVH, SchurVectorHandler, 
 			 SchurVectorHandler(iLocVecDim, 
 			 		iIntVecDim, prVH, pGlbToLoc));
-  
   pdCM = pMH->GetCMat();
   pgVH = pRVH->GetIVec();
+
+  SAFENEWWITHCONSTRUCTOR(pSolVH, SchurVectorHandler, 
+			 SchurVectorHandler(iLocVecDim, 
+			 		iIntVecDim, pSolrVH, pgVH, pGlbToLoc));
      
   /* Creazione di NewType per la trasmissione del vett soluzione calcolato */
   if(!MyRank) {
@@ -268,14 +273,11 @@ SchurSolutionManager::~SchurSolutionManager(void)
   if(pRVH != NULL) {
 	SAFEDELETE(pRVH);
   }
+  if(pSolVH != NULL) {
+	SAFEDELETE(pRVH);
+  }
   if(pInterSM != NULL) {
 	SAFEDELETE(pInterSM);
-  }
-  if(pSolrTempVH != NULL) {
-	SAFEDELETE(pSolrTempVH);
-  }
-  if(pdTemp != NULL) {
-	SAFEDELETEARR(pdTemp);
   }
   if(pGSReq != NULL) {
 	SAFEDELETEARR(pGSReq);
@@ -321,7 +323,6 @@ void SchurSolutionManager::Solve(void)
 
 	/* Fattorizzazione matrice B */
 	pLocalSM->Solve();
-	pSolrVH->Copy(*pSolrTempVH); 
 #ifdef MPI_PROFILING 
   	MPE_Log_event(32, 0, "end");
 #endif /* MPI_PROFILING */   
@@ -347,18 +348,17 @@ void SchurSolutionManager::Solve(void)
 	
      /* Calcolo di E'. Va fatto solo se  La matrice è stata rifattorizzata*/   
    	if (fNewMatrix) {
-		MyVectorHandler* pTVH = new MyVectorHandler(0);
-     		for (int i=0; i < iIntVecDim; i++) {			
-			pMH->GetECol(i,pTVH);
-			pTVH->Copy(*prVH);
+     		for (int i=0; i < iIntVecDim; i++) {
+   			pLocalSM->ChangeResPoint(pMH->GetECol(i));
+			pLocalSM->ChangeSolPoint(pMH->GetEColSol(i));			
        			/* fa solo la back Substion perche' 
 			 * e' stato già lanciato il solve al precedentemente */
 			pLocalSM->Solve();
-			pSolrVH->Copy(*pTVH);
      		}
 	}
-
-
+   	pLocalSM->ChangeResPoint(prVH->pdGetVec());
+	pLocalSM->ChangeSolPoint(pSolrVH->pdGetVec());			
+	
    	/* verifica completamento ricezioni e trasmissione vettore g*/
    	flag SentFlag;
    	while (1) {
@@ -476,8 +476,7 @@ void SchurSolutionManager::Solve(void)
     		}
   	}   
   	/* calcolo la soluzione corretta per x = Solr - E'*g */
-	pMH->CompNewf(*pSolrTempVH, *pgVH);
-	pSolrTempVH->Copy(*prVH);
+	pMH->CompNewf(*pSolrVH, *pgVH);
 }
 
 

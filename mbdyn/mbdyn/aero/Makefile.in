@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p5 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -69,6 +69,8 @@ AS = @AS@
 CC = @CC@
 CXX = @CXX@
 DLLTOOL = @DLLTOOL@
+ECHO = @ECHO@
+EXEEXT = @EXEEXT@
 F2C_LIBS = @F2C_LIBS@
 F77 = @F77@
 GINACLIB_CONFIG = @GINACLIB_CONFIG@
@@ -84,9 +86,11 @@ METIS_LIBS = @METIS_LIBS@
 MODULES_DIRS = @MODULES_DIRS@
 MPI_LIBS = @MPI_LIBS@
 OBJDUMP = @OBJDUMP@
+OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 SECURITY_LIBS = @SECURITY_LIBS@
+STRIP = @STRIP@
 TCL_LIBS = @TCL_LIBS@
 UMFPACK3_LIBS = @UMFPACK3_LIBS@
 VERSION = @VERSION@
@@ -120,9 +124,10 @@ LIBS = @LIBS@
 libaero_la_DEPENDENCIES = 
 libaero_la_OBJECTS =  aerod2.lo aerodata.lo aerodc81.lo aeroelem.lo \
 aeromodal.lo c81data.lo rotor.lo
+bin_PROGRAMS =  testc81$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
-testc81_OBJECTS =  testc81.o
+testc81_OBJECTS =  testc81.$(OBJEXT)
 testc81_DEPENDENCIES =  libaero.la \
 ../../libraries/libmbutil/libmbutil.la
 testc81_LDFLAGS = 
@@ -146,7 +151,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/aerod2.P .deps/aerodata.P .deps/aerodc81.P \
 .deps/aeroelem.P .deps/aeromodal.P .deps/c81data.P .deps/rotor.P \
@@ -156,7 +161,7 @@ OBJECTS = $(libaero_la_OBJECTS) $(testc81_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .cc .f .lo .o .s
+.SUFFIXES: .S .c .cc .f .lo .o .obj .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu ./mbdyn/aero/Makefile
 
@@ -190,6 +195,11 @@ uninstall-libLTLIBRARIES:
 	  $(LIBTOOL)  --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p; \
 	done
 
+# FIXME: We should only use cygpath when building on Windows,
+# and only if it is available.
+.c.obj:
+	$(COMPILE) -c `cygpath -w $<`
+
 .s.o:
 	$(COMPILE) -c $<
 
@@ -198,6 +208,7 @@ uninstall-libLTLIBRARIES:
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
+	-rm -f *.$(OBJEXT)
 
 clean-compile:
 
@@ -250,15 +261,19 @@ uninstall-binPROGRAMS:
 	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
 	done
 
-testc81: $(testc81_OBJECTS) $(testc81_DEPENDENCIES)
-	@rm -f testc81
+testc81$(EXEEXT): $(testc81_OBJECTS) $(testc81_DEPENDENCIES)
+	@rm -f testc81$(EXEEXT)
 	$(CXXLINK) $(testc81_LDFLAGS) $(testc81_OBJECTS) $(testc81_LDADD) $(LIBS)
 .cc.o:
 	$(CXXCOMPILE) -c $<
+.cc.obj:
+	$(CXXCOMPILE) -c `cygpath -w $<`
 .cc.lo:
 	$(LTCXXCOMPILE) -c $<
 .f.o:
 	$(F77COMPILE) -c $<
+.f.obj:
+	$(F77COMPILE) -c `cygpath -w $<`
 .f.lo:
 	$(LTF77COMPILE) -c $<
 

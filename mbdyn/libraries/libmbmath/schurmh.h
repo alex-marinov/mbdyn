@@ -52,7 +52,7 @@ class SchurMatrixHandler : public MatrixHandler {
  public:
   class ErrGeneric{};
 
- private: 
+ protected: 
   integer LSize, ISize; /* dimensioni locali, interfacce */
   MatrixHandler* pB;
   MyVectorHandler* pE;
@@ -65,65 +65,76 @@ class SchurMatrixHandler : public MatrixHandler {
 			  i nodi di interfaccia hanno indice negativo per 
 			  permetterne la distizione */  
   
+   flag extpdE;
  public: 
   inline SchurMatrixHandler(int LocSize, int IntSize,
                      MatrixHandler* pBM, 
 		     integer* pGlobToLoc);
   
-  inline ~SchurMatrixHandler(void); 
+  inline SchurMatrixHandler(int LocSize, int IntSize,
+                     MatrixHandler* pBM, 
+		     integer* pGlobToLoc, doublereal* pdEv);
+
+  virtual inline ~SchurMatrixHandler(void); 
   
   /* Usata per il debug */
-  inline void IsValid(void) const;
+  virtual inline void IsValid(void) const;
   
   /* Resetta la matrice */
-  inline void Init(const doublereal& dResetVal);
+  virtual inline void Init(const doublereal& dResetVal);
   
   /* Resetta la matrice */
-  inline void SchurMatrixHandler::MatEFCInit(const doublereal& dResetVal);
+  virtual inline void SchurMatrixHandler::MatEFCInit(const doublereal& dResetVal);
 
   /* Inserisce un coefficiente */
-  inline flag fPutCoef(integer iRow, integer iCol, const doublereal& dCoef);
+  virtual inline flag fPutCoef(integer iRow, integer iCol, const doublereal& dCoef);
   
   /* Incrementa un coefficiente - se non esiste lo crea */
-  inline flag fIncCoef(integer iRow, integer iCol, const doublereal& dCoef);
+  virtual inline flag fIncCoef(integer iRow, integer iCol, const doublereal& dCoef);
   
   /* Incrementa un coefficiente - se non esiste lo crea */
-  inline flag fDecCoef(integer iRow, integer iCol, const doublereal& dCoef);
+  virtual inline flag fDecCoef(integer iRow, integer iCol, const doublereal& dCoef);
   
   /* Restituisce un coefficiente - zero se non e' definito */
-  inline const doublereal& dGetCoef(integer iRow, integer iCol) const;
+  virtual inline const doublereal& dGetCoef(integer iRow, integer iCol) const;
   
   /* dimensioni */
-  integer iGetNumRows(void) const {
+  virtual integer iGetNumRows(void) const {
     return LSize+ISize;
   };
   
-  integer iGetNumCols(void) const {
+  virtual integer iGetNumCols(void) const {
     return LSize+ISize;
   };   
   
    /* Restituisce l'handler alla matrice B */
-   MatrixHandler* GetBMat(void) {
+   virtual MatrixHandler* GetBMat(void) {
       return pB;
    };
    /* Restituisce il puntatore alla alla matrice C 
       che e' un vettore doublereal contenente le righe in successione */
-   doublereal* GetCMat(void) {
+   virtual doublereal* GetCMat(void) {
       return pdC;
    };
 
-   inline void GetECol (const integer iCol, MyVectorHandler* pTmpVH) const;
+  virtual inline doublereal* GetECol(const integer iCol) const {
+  	return &pdE[LSize*iCol];
+  };
+   
+  virtual inline doublereal* GetEColSol(const integer iCol) const {
+  	return &pdE[LSize*iCol];
+  };   
    
    /* calacola g - F*f e lo pone in g */
-   inline VectorHandler& CompNewg(VectorHandler& g, const VectorHandler& f) const;  
+   virtual inline VectorHandler& CompNewg(VectorHandler& g, const VectorHandler& f) const;  
    
    /* Calcola la matrice di schur locale C-F*E' e la memorizza in C */
-   inline void CompLocSchur(void);
+   virtual inline void CompLocSchur(void);
    
    /* Calcola  f - E*g e lo pone in f */
-   inline VectorHandler& CompNewf(VectorHandler& f, const VectorHandler& g) const; 
+   virtual inline VectorHandler& CompNewf(VectorHandler& f, const VectorHandler& g) const; 
 
-   inline void PrintMatrix(void); 
+   virtual inline void PrintMatrix(void); 
 };
 
 SchurMatrixHandler::SchurMatrixHandler(int LocSize, int IntSize,
@@ -137,12 +148,44 @@ pdE(NULL),
 pF(NULL),
 pC(NULL),
 pdC(NULL), 
-pGTL(pGlobToLoc)
+pGTL(pGlobToLoc),
+extpdE(1)
 { 
 	SAFENEWARR(pdE, doublereal, LSize*ISize); 
 	SAFENEWWITHCONSTRUCTOR(pE,
 				MyVectorHandler,
 				MyVectorHandler(LSize*ISize, pdE));
+	SAFENEWARR(pdC, doublereal, ISize*ISize); 
+	SAFENEWWITHCONSTRUCTOR(pC,
+				MyVectorHandler,
+				MyVectorHandler(ISize*ISize, pdC));
+	SAFENEWWITHCONSTRUCTOR(pF,
+				SpMapMatrixHandler,
+				SpMapMatrixHandler(ISize, LSize));
+   
+#ifdef DEBUG
+  IsValid();
+#endif /* DEBUG */
+}
+
+SchurMatrixHandler::SchurMatrixHandler(int LocSize, int IntSize,
+				       		MatrixHandler* pBM,
+				       		integer* pGlobToLoc, 
+						doublereal* pdEv)
+: LSize(LocSize),
+ISize(IntSize),
+pB(pBM),
+pE(NULL),
+pdE(NULL),
+pF(NULL),
+pC(NULL),
+pdC(NULL), 
+pGTL(pGlobToLoc),
+extpdE(0)
+{ 
+	SAFENEWWITHCONSTRUCTOR(pE,
+				MyVectorHandler,
+				MyVectorHandler(LSize*ISize, pdEv));
 	SAFENEWARR(pdC, doublereal, ISize*ISize); 
 	SAFENEWWITHCONSTRUCTOR(pC,
 				MyVectorHandler,
@@ -167,8 +210,10 @@ SchurMatrixHandler::~SchurMatrixHandler(void)
 	if(pF != NULL) {
 		SAFEDELETE(pF);
 	}
-	if(pdE != NULL) {
-		SAFEDELETEARR(pdE);
+	if (extpdE) {
+		if(pdE != NULL) {
+			SAFEDELETEARR(pdE);
+		}
 	}
 	if(pdC != NULL) {
 		SAFEDELETEARR(pdC);
@@ -334,10 +379,6 @@ inline const doublereal& SchurMatrixHandler::dGetCoef(integer iRow, integer iCol
   }
 }
 
-inline void SchurMatrixHandler::GetECol(const integer iCol, MyVectorHandler* pTmpVH) const  
-{	
-	pTmpVH->Attach(LSize, &pdE[LSize*iCol] , LSize);
-}
 
 
 
@@ -417,7 +458,7 @@ class SchurVectorHandler : public VectorHandler {
  private:
   integer LSize, ISize;
   VectorHandler* pLV;
-  MyVectorHandler* pIV;
+  VectorHandler* pIV;
   doublereal* pIntVec;
   integer* pGTL;
   
@@ -438,7 +479,19 @@ class SchurVectorHandler : public VectorHandler {
 			MyVectorHandler(IntSize, pIntVec));
    };    	     
 		     
-  
+   SchurVectorHandler(int LocSize, int IntSize,
+		     VectorHandler* pLocV,
+		     VectorHandler* pIntV,
+		     integer* pGlobToLoc)
+  :LSize(LocSize),
+   ISize(IntSize),
+   pLV(pLocV),
+   pIV(pIntV),
+   pIntVec(NULL),
+   pGTL(pGlobToLoc) 
+   {};    	     
+		     
+
   ~SchurVectorHandler(void){
   	if (pIntVec != NULL) {
       		SAFEDELETEARR(pIntVec);
@@ -588,6 +641,314 @@ inline void SchurVectorHandler::PrintVector(void) {
 	}	
 }	 
 /* SchurVectorHandler - End */
+/* SchurMatrixHandlerUm - begin*/
 
+class SchurMatrixHandlerUm : public SchurMatrixHandler {
+
+ public:
+  class ErrGeneric{};
+
+ private:
+  doublereal* pdEs;
+  MyVectorHandler* pEs;
+  integer Eflag;  
+ 
+ public: 
+  inline SchurMatrixHandlerUm(int LocSize, int IntSize,
+                     MatrixHandler* pBM, 
+		     integer* pGlobToLoc);
+  
+  inline ~SchurMatrixHandlerUm(void); 
+   
+  /* Resetta le matrici E F e C */
+  inline void MatEFCInit(const doublereal& dResetVal);
+
+  /* Resetta la matrice */
+  inline void Init(const doublereal& dResetVal);
+  
+  /* Inserisce un coefficiente */
+  inline flag fPutCoef(integer iRow, integer iCol, const doublereal& dCoef);
+  
+  /* Incrementa un coefficiente - se non esiste lo crea */
+  inline flag fIncCoef(integer iRow, integer iCol, const doublereal& dCoef);
+  
+  /* Incrementa un coefficiente - se non esiste lo crea */
+  inline flag fDecCoef(integer iRow, integer iCol, const doublereal& dCoef);
+  
+  /* Restituisce un coefficiente - zero se non e' definito */
+  inline const doublereal& dGetCoef(integer iRow, integer iCol) const;
+  
+  inline doublereal* GetECol(const integer iCol) const;
+   
+  inline doublereal* GetEColSol(const integer iCol) const;   
+     
+
+   /* Calcola la matrice di schur locale C-F*E' e la memorizza in C */
+   inline void CompLocSchur(void);
+   
+   /* Calcola  f - E*g e lo pone in f */
+   inline VectorHandler& CompNewf(VectorHandler& f, const VectorHandler& g) const; 
+
+   inline void PrintMatrix(void); 
+};
+
+SchurMatrixHandlerUm::SchurMatrixHandlerUm(int LocSize, int IntSize,
+				       		MatrixHandler* pBM,
+				       		integer* pGlobToLoc)
+:SchurMatrixHandler(LocSize, IntSize, pBM, pGlobToLoc, NULL), 
+pEs(NULL),
+pdEs(NULL),
+Eflag(1)
+{ 
+	
+	SAFENEWARR(pdEs, doublereal, LSize*(ISize+1));
+	pdE = pdEs+LSize;
+	pE->Attach(LSize*ISize,pdE,LSize*ISize);
+	SAFENEWWITHCONSTRUCTOR(pEs,
+				MyVectorHandler,
+				MyVectorHandler((LSize*ISize), pdEs));
+}
+
+SchurMatrixHandlerUm::~SchurMatrixHandlerUm(void)
+{
+	if (pE != NULL) {
+		SAFEDELETE(pE);
+	}
+	if (pdEs != NULL) {
+		SAFEDELETEARR(pdEs);
+	};
+}
+
+
+inline void SchurMatrixHandlerUm::MatEFCInit(const doublereal& dResetVal)
+{
+#ifdef DEBUG
+  IsValid();
+#endif
+   Eflag= 1;
+  for (int i=0; i < LSize*(ISize+1); i++) {
+  	pdEs[i] = dResetVal;
+  }	
+  pF->Reset(dResetVal);
+  pC->Reset(dResetVal);
+}
+
+inline void SchurMatrixHandlerUm::Init(const doublereal& dResetVal)
+{
+#ifdef DEBUG
+  IsValid();
+#endif
+  Eflag= 1;
+  pB->Init(dResetVal);
+  for (int i=0; i < LSize*(ISize+1); i++) {
+  	pdEs[i] = dResetVal;
+  }	
+  pF->Reset(dResetVal);
+  pC->Reset(dResetVal);
+}
+
+inline flag SchurMatrixHandlerUm::fPutCoef(integer iRow, 
+					 integer iCol, 
+					 const doublereal& dCoef) 
+{
+#ifdef DEBUG
+  IsValid();
+  if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
+    cerr << "fPutCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
+      << " Warning, you are trying to operate on a non local value !!!"
+      " (Matrix Handler) "<< iRow << " " << iCol  << endl;
+    return flag(0);
+  }
+#endif
+  if (pGTL[iRow] > 0) { 
+    if (pGTL[iCol] > 0) { 
+      pB->fPutCoef(pGTL[iRow], pGTL[iCol], dCoef); 
+    } else {
+    	if (Eflag) {
+      		pE->fPutCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize, dCoef);
+	} else {
+		pEs->fPutCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize, dCoef);
+    	}
+    }
+  } else {
+    if (pGTL[iCol] > 0) {
+      pF->fPutCoef(-pGTL[iRow], pGTL[iCol], dCoef);
+    } else {
+      pC->fPutCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
+    }
+  }
+  return flag(0);
+}
+
+inline flag SchurMatrixHandlerUm::fIncCoef(integer iRow, 
+					 integer iCol, 
+					 const doublereal& dCoef)
+{
+#ifdef DEBUG
+  IsValid();
+  if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
+    cerr << "fIncCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
+      << " Warning, you are trying to operate on a non local value !!!"
+      " (Matrix Handler) "<< iRow << " " << iCol  << endl;
+    return  flag(0);
+  }
+#endif
+  if (pGTL[iRow] > 0) { 
+    if (pGTL[iCol] > 0) { 
+      pB->fIncCoef(pGTL[iRow], pGTL[iCol], dCoef);
+    } else {
+    	if (Eflag) {
+      		pE->fIncCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize, dCoef);
+	} else {
+		pEs->fIncCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize, dCoef);
+    	}
+    }
+  } else {
+    if (pGTL[iCol] > 0) {
+      pF->fIncCoef(-pGTL[iRow], pGTL[iCol], dCoef);
+    } else {
+      pC->fIncCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
+    }
+  }
+  return flag(0);
+}
+ 
+
+inline flag SchurMatrixHandlerUm::fDecCoef(integer iRow,
+					 integer iCol, 
+					 const doublereal& dCoef)
+{
+#ifdef DEBUG
+  IsValid();
+  if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
+    cerr << "fDecCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
+      << " Warning, you are trying to operate on a non local value !!!"
+      " (Matrix Handler) "<< iRow << " " << iCol << endl;
+    return  flag(0);
+  }
+#endif
+  if (pGTL[iRow] > 0) { 
+    if (pGTL[iCol] > 0) { 
+      pB->fDecCoef(pGTL[iRow], pGTL[iCol], dCoef);
+    } else {
+        if (Eflag) {
+      		pE->fDecCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize, dCoef);
+	} else {
+		pEs->fDecCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize, dCoef);
+    	}
+    }
+  } else {
+    if (iCol > 0) {
+      pF->fDecCoef(-pGTL[iRow], pGTL[iCol], dCoef);
+    } else {
+      pC->fDecCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize, dCoef);
+    }
+  }
+  return flag(0);
+}
+
+inline const doublereal& SchurMatrixHandlerUm::dGetCoef(integer iRow, integer iCol) const
+{
+#ifdef DEBUG
+  IsValid();
+  if ((pGTL[iRow] == 0) ||(pGTL[iCol] == 0))  {
+    cerr << "dGetCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
+      << " Warning, you are trying to operate on a non local value !!!"
+      " (Matrix Handler) "<< iRow << " " << iCol << endl;
+    return ::dZero; 
+  }
+#endif
+  if (pGTL[iRow] > 0) { 
+    if (pGTL[iCol] > 0) { 
+      return pB->dGetCoef(pGTL[iRow], pGTL[iCol]);
+    } else {
+    	if (Eflag) {
+      		return pE->dGetCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize);
+	} else {
+		return pEs->dGetCoef(pGTL[iRow]-(pGTL[iCol]+1)*LSize);
+    	}
+    }
+  } else {
+    if (pGTL[iCol] > 0) {
+      return pF->dGetCoef(-pGTL[iRow], pGTL[iCol]);
+    } 
+    else {
+      return pC->dGetCoef(-pGTL[iRow]-(pGTL[iCol]+1)*ISize);
+    }
+  }
+}
+
+inline doublereal* SchurMatrixHandlerUm::GetECol(const integer iCol) const  
+{	
+ 	return &pdE[iCol*LSize];
+}
+
+inline doublereal* SchurMatrixHandlerUm::GetEColSol(const integer iCol) const  
+{	
+ 	return &pdEs[iCol*LSize];
+}
+
+
+
+  /* Calcola le Schur locali */
+
+inline void SchurMatrixHandlerUm::CompLocSchur(void)
+{	
+  	Eflag=0;
+	for(int j=0; j < ISize; j++) {
+    		int iColc = j * ISize;
+    		int iCole = j * LSize;
+    		for (int k=0; k < LSize; k++) {
+      			for( int i=0; i < ISize; i++) {
+        			pdC[i + iColc] -=  pF->dGetCoef(i+1,k+1) * pdEs[k + iCole];
+      			}
+    		}
+  	}
+}
+
+inline VectorHandler& SchurMatrixHandlerUm::CompNewf(VectorHandler& f, const VectorHandler& g) const
+{
+#ifdef DEBUG
+	ASSERT(f.iGetSize() == LSize);
+	ASSERT(g.iGetSize() == ISize);
+#endif
+  	for( int j=0; j < ISize; j++) {  
+    		int iColx = j * LSize;
+    		for (int i=0; i < LSize; i++) {
+      			if (pdEs[i + iColx] != 0) {
+				f.fDecCoef(i+1, pdEs[i + iColx]*g.dGetCoef(j+1));
+      			}
+    		}
+  	}
+	return f;
+} 
+
+inline void SchurMatrixHandlerUm::PrintMatrix(void) {
+	std::cout << "Schur Matrix " << std::endl;
+	for (int i=0;i < LSize; i++) {
+		for (int j=0; j < LSize; j++) {
+ 			std::cout << pB->dGetCoef(i+1,j+1) << " "; 
+		}
+		for (int j=0; j < ISize; j++) {
+			if (Eflag) {
+				std::cout << pdE[i+j*LSize] << " ";
+			} else {
+				std::cout << pdEs[i+j*LSize] << " ";
+			}
+		}		
+		std::cout << std::endl;
+	}
+	for (int i=0;i < ISize; i++) {
+		for (int j=0;j < LSize; j++) {
+ 			std::cout << pF->dGetCoef(i+1,j+1) << " "; 
+		}
+		for (int j=0; j < ISize; j++) {
+			std::cout << pdC[i+j*ISize] << " ";
+		}	
+		std::cout << std::endl;
+	}
+}	 
+
+/* SchurMatrixHandlerUm - End*/
 #endif
 

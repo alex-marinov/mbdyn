@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p5 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -69,6 +69,8 @@ AS = @AS@
 CC = @CC@
 CXX = @CXX@
 DLLTOOL = @DLLTOOL@
+ECHO = @ECHO@
+EXEEXT = @EXEEXT@
 F2C_LIBS = @F2C_LIBS@
 F77 = @F77@
 GINACLIB_CONFIG = @GINACLIB_CONFIG@
@@ -84,9 +86,11 @@ METIS_LIBS = @METIS_LIBS@
 MODULES_DIRS = @MODULES_DIRS@
 MPI_LIBS = @MPI_LIBS@
 OBJDUMP = @OBJDUMP@
+OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 SECURITY_LIBS = @SECURITY_LIBS@
+STRIP = @STRIP@
 TCL_LIBS = @TCL_LIBS@
 UMFPACK3_LIBS = @UMFPACK3_LIBS@
 VERSION = @VERSION@
@@ -123,63 +127,67 @@ INCLUDES =  -I../libraries/libmbutil -I../libraries/libmbmath -I../libraries/lib
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = ../include/mbconfig.h
 CONFIG_CLEAN_FILES = 
+bin_PROGRAMS =  autopilot$(EXEEXT) cl$(EXEEXT) dae-intg$(EXEEXT) \
+deriv$(EXEEXT) env$(EXEEXT) eu2rot$(EXEEXT) femgen$(EXEEXT) \
+intg$(EXEEXT) posrel$(EXEEXT) rot2eu$(EXEEXT) rot2eup$(EXEEXT) \
+rot2phi$(EXEEXT) rotrel$(EXEEXT) sockdrive$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
 
 DEFS = @DEFS@ -I. -I$(srcdir) -I../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
-autopilot_OBJECTS =  autopilot.o
+autopilot_OBJECTS =  autopilot.$(OBJEXT)
 autopilot_LDADD = $(LDADD)
 autopilot_DEPENDENCIES = 
 autopilot_LDFLAGS = 
-cl_OBJECTS =  cl.o
+cl_OBJECTS =  cl.$(OBJEXT)
 cl_LDADD = $(LDADD)
 cl_DEPENDENCIES = 
 cl_LDFLAGS = 
-dae_intg_OBJECTS =  dae-intg.o
+dae_intg_OBJECTS =  dae-intg.$(OBJEXT)
 dae_intg_DEPENDENCIES = 
 dae_intg_LDFLAGS = 
-deriv_OBJECTS =  deriv.o
+deriv_OBJECTS =  deriv.$(OBJEXT)
 deriv_LDADD = $(LDADD)
 deriv_DEPENDENCIES = 
 deriv_LDFLAGS = 
-env_OBJECTS =  env.o
+env_OBJECTS =  env.$(OBJEXT)
 env_LDADD = $(LDADD)
 env_DEPENDENCIES = 
 env_LDFLAGS = 
-eu2rot_OBJECTS =  eu2rot.o
+eu2rot_OBJECTS =  eu2rot.$(OBJEXT)
 eu2rot_LDADD = $(LDADD)
 eu2rot_DEPENDENCIES = 
 eu2rot_LDFLAGS = 
-femgen_OBJECTS =  femgen.o
+femgen_OBJECTS =  femgen.$(OBJEXT)
 femgen_LDADD = $(LDADD)
 femgen_DEPENDENCIES = 
 femgen_LDFLAGS = 
-intg_OBJECTS =  intg.o
+intg_OBJECTS =  intg.$(OBJEXT)
 intg_DEPENDENCIES = 
 intg_LDFLAGS = 
-posrel_OBJECTS =  posrel.o
+posrel_OBJECTS =  posrel.$(OBJEXT)
 posrel_LDADD = $(LDADD)
 posrel_DEPENDENCIES = 
 posrel_LDFLAGS = 
-rot2eu_OBJECTS =  rot2eu.o
+rot2eu_OBJECTS =  rot2eu.$(OBJEXT)
 rot2eu_LDADD = $(LDADD)
 rot2eu_DEPENDENCIES = 
 rot2eu_LDFLAGS = 
-rot2eup_OBJECTS =  rot2eup.o
+rot2eup_OBJECTS =  rot2eup.$(OBJEXT)
 rot2eup_LDADD = $(LDADD)
 rot2eup_DEPENDENCIES = 
 rot2eup_LDFLAGS = 
-rot2phi_OBJECTS =  rot2phi.o
+rot2phi_OBJECTS =  rot2phi.$(OBJEXT)
 rot2phi_LDADD = $(LDADD)
 rot2phi_DEPENDENCIES = 
 rot2phi_LDFLAGS = 
-rotrel_OBJECTS =  rotrel.o
+rotrel_OBJECTS =  rotrel.$(OBJEXT)
 rotrel_LDADD = $(LDADD)
 rotrel_DEPENDENCIES = 
 rotrel_LDFLAGS = 
-sockdrive_OBJECTS =  sockdrive.o
+sockdrive_OBJECTS =  sockdrive.$(OBJEXT)
 sockdrive_LDADD = $(LDADD)
 sockdrive_DEPENDENCIES = 
 sockdrive_LDFLAGS = 
@@ -203,7 +211,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/autopilot.P .deps/cl.P .deps/dae-intg.P .deps/deriv.P \
 .deps/env.P .deps/eu2rot.P .deps/femgen.P .deps/intg.P .deps/posrel.P \
@@ -214,7 +222,7 @@ OBJECTS = $(autopilot_OBJECTS) $(cl_OBJECTS) $(dae_intg_OBJECTS) $(deriv_OBJECTS
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .cc .f .lo .o .s
+.SUFFIXES: .S .c .cc .f .lo .o .obj .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu ./utils/Makefile
 
@@ -248,6 +256,11 @@ uninstall-binPROGRAMS:
 	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
 	done
 
+# FIXME: We should only use cygpath when building on Windows,
+# and only if it is available.
+.c.obj:
+	$(COMPILE) -c `cygpath -w $<`
+
 .s.o:
 	$(COMPILE) -c $<
 
@@ -256,6 +269,7 @@ uninstall-binPROGRAMS:
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
+	-rm -f *.$(OBJEXT)
 
 clean-compile:
 
@@ -280,67 +294,71 @@ distclean-libtool:
 
 maintainer-clean-libtool:
 
-autopilot: $(autopilot_OBJECTS) $(autopilot_DEPENDENCIES)
-	@rm -f autopilot
+autopilot$(EXEEXT): $(autopilot_OBJECTS) $(autopilot_DEPENDENCIES)
+	@rm -f autopilot$(EXEEXT)
 	$(CXXLINK) $(autopilot_LDFLAGS) $(autopilot_OBJECTS) $(autopilot_LDADD) $(LIBS)
 
-cl: $(cl_OBJECTS) $(cl_DEPENDENCIES)
-	@rm -f cl
+cl$(EXEEXT): $(cl_OBJECTS) $(cl_DEPENDENCIES)
+	@rm -f cl$(EXEEXT)
 	$(CXXLINK) $(cl_LDFLAGS) $(cl_OBJECTS) $(cl_LDADD) $(LIBS)
 
-dae-intg: $(dae_intg_OBJECTS) $(dae_intg_DEPENDENCIES)
-	@rm -f dae-intg
+dae-intg$(EXEEXT): $(dae_intg_OBJECTS) $(dae_intg_DEPENDENCIES)
+	@rm -f dae-intg$(EXEEXT)
 	$(CXXLINK) $(dae_intg_LDFLAGS) $(dae_intg_OBJECTS) $(dae_intg_LDADD) $(LIBS)
 
-deriv: $(deriv_OBJECTS) $(deriv_DEPENDENCIES)
-	@rm -f deriv
+deriv$(EXEEXT): $(deriv_OBJECTS) $(deriv_DEPENDENCIES)
+	@rm -f deriv$(EXEEXT)
 	$(LINK) $(deriv_LDFLAGS) $(deriv_OBJECTS) $(deriv_LDADD) $(LIBS)
 
-env: $(env_OBJECTS) $(env_DEPENDENCIES)
-	@rm -f env
+env$(EXEEXT): $(env_OBJECTS) $(env_DEPENDENCIES)
+	@rm -f env$(EXEEXT)
 	$(LINK) $(env_LDFLAGS) $(env_OBJECTS) $(env_LDADD) $(LIBS)
 
-eu2rot: $(eu2rot_OBJECTS) $(eu2rot_DEPENDENCIES)
-	@rm -f eu2rot
+eu2rot$(EXEEXT): $(eu2rot_OBJECTS) $(eu2rot_DEPENDENCIES)
+	@rm -f eu2rot$(EXEEXT)
 	$(CXXLINK) $(eu2rot_LDFLAGS) $(eu2rot_OBJECTS) $(eu2rot_LDADD) $(LIBS)
 
-femgen: $(femgen_OBJECTS) $(femgen_DEPENDENCIES)
-	@rm -f femgen
+femgen$(EXEEXT): $(femgen_OBJECTS) $(femgen_DEPENDENCIES)
+	@rm -f femgen$(EXEEXT)
 	$(F77LINK) $(femgen_LDFLAGS) $(femgen_OBJECTS) $(femgen_LDADD) $(LIBS)
 
-intg: $(intg_OBJECTS) $(intg_DEPENDENCIES)
-	@rm -f intg
+intg$(EXEEXT): $(intg_OBJECTS) $(intg_DEPENDENCIES)
+	@rm -f intg$(EXEEXT)
 	$(CXXLINK) $(intg_LDFLAGS) $(intg_OBJECTS) $(intg_LDADD) $(LIBS)
 
-posrel: $(posrel_OBJECTS) $(posrel_DEPENDENCIES)
-	@rm -f posrel
+posrel$(EXEEXT): $(posrel_OBJECTS) $(posrel_DEPENDENCIES)
+	@rm -f posrel$(EXEEXT)
 	$(CXXLINK) $(posrel_LDFLAGS) $(posrel_OBJECTS) $(posrel_LDADD) $(LIBS)
 
-rot2eu: $(rot2eu_OBJECTS) $(rot2eu_DEPENDENCIES)
-	@rm -f rot2eu
+rot2eu$(EXEEXT): $(rot2eu_OBJECTS) $(rot2eu_DEPENDENCIES)
+	@rm -f rot2eu$(EXEEXT)
 	$(CXXLINK) $(rot2eu_LDFLAGS) $(rot2eu_OBJECTS) $(rot2eu_LDADD) $(LIBS)
 
-rot2eup: $(rot2eup_OBJECTS) $(rot2eup_DEPENDENCIES)
-	@rm -f rot2eup
+rot2eup$(EXEEXT): $(rot2eup_OBJECTS) $(rot2eup_DEPENDENCIES)
+	@rm -f rot2eup$(EXEEXT)
 	$(CXXLINK) $(rot2eup_LDFLAGS) $(rot2eup_OBJECTS) $(rot2eup_LDADD) $(LIBS)
 
-rot2phi: $(rot2phi_OBJECTS) $(rot2phi_DEPENDENCIES)
-	@rm -f rot2phi
+rot2phi$(EXEEXT): $(rot2phi_OBJECTS) $(rot2phi_DEPENDENCIES)
+	@rm -f rot2phi$(EXEEXT)
 	$(CXXLINK) $(rot2phi_LDFLAGS) $(rot2phi_OBJECTS) $(rot2phi_LDADD) $(LIBS)
 
-rotrel: $(rotrel_OBJECTS) $(rotrel_DEPENDENCIES)
-	@rm -f rotrel
+rotrel$(EXEEXT): $(rotrel_OBJECTS) $(rotrel_DEPENDENCIES)
+	@rm -f rotrel$(EXEEXT)
 	$(CXXLINK) $(rotrel_LDFLAGS) $(rotrel_OBJECTS) $(rotrel_LDADD) $(LIBS)
 
-sockdrive: $(sockdrive_OBJECTS) $(sockdrive_DEPENDENCIES)
-	@rm -f sockdrive
+sockdrive$(EXEEXT): $(sockdrive_OBJECTS) $(sockdrive_DEPENDENCIES)
+	@rm -f sockdrive$(EXEEXT)
 	$(CXXLINK) $(sockdrive_LDFLAGS) $(sockdrive_OBJECTS) $(sockdrive_LDADD) $(LIBS)
 .cc.o:
 	$(CXXCOMPILE) -c $<
+.cc.obj:
+	$(CXXCOMPILE) -c `cygpath -w $<`
 .cc.lo:
 	$(LTCXXCOMPILE) -c $<
 .f.o:
 	$(F77COMPILE) -c $<
+.f.obj:
+	$(F77COMPILE) -c `cygpath -w $<`
 .f.lo:
 	$(LTF77COMPILE) -c $<
 

@@ -198,15 +198,6 @@ doublereal VectorHandler::Norm(void) const {
 }
 
 
-void VectorHandler::Copy(VectorHandler& VH) const{
-#ifdef DEBUG
-	ASSERT(VH.iGetSize() == this->iGetSize());
-#endif /* DEBUG */
-
-	for (int i=1; i <= VH.iGetSize(); i++) {
-		VH.fPutCoef(i, this->dGetCoef(i));
-	}
-}
 
 /* VectorHandler - end */
 

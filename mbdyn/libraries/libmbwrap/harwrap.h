@@ -111,9 +111,6 @@
 class HarwellLUSolver;      	/* solutore */
 class HarwellSparseLUSolutionManager;  /* gestore della soluzione */
 
-#ifdef USE_SCHUR
-class SchurSolutionManager;
-#endif /* USE_SCHUR */
 
 /* HarwellLUSolver - begin */
 
@@ -127,9 +124,6 @@ static char sLUClassName[] = "HarwellLUSolver";
 class HarwellLUSolver {
    	friend class HarwellSparseLUSolutionManager;
 
-#ifdef USE_SCHUR
-   	friend class SchurSolutionManager;
-#endif /* USE_SCHUR */
 
 public:
    	class ErrFactorisation {
@@ -379,6 +373,16 @@ public:
    	/* Risolve il sistema */
    	void Solve(void);
    
+   	/* sposta il puntatore al vettore del residuo */
+   	void ChangeResPoint(doublereal* pRes){
+		pLU->pdRhs = pRes;
+	};
+   
+   	/* sposta il puntatore al vettore del residuo */
+   	void ChangeSolPoint(doublereal* pSol){
+		pLU->pdRhs = pSol;
+	};
+
    	/* Rende disponibile l'handler per la matrice */
    	MatrixHandler* pMatHdl(void) const {
       		ASSERT(pMH != NULL);	

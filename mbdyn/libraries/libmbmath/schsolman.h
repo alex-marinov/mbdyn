@@ -106,8 +106,6 @@ class SchurSolutionManager : public SolutionManager {
   VectorHandler* prVH;
   VectorHandler* pgVH;  
   VectorHandler* pSolrVH;
-  MyVectorHandler* pSolrTempVH;
-  doublereal* pdTemp;
 
   MPI::Request* pGSReq;               /* Array di request Send */
   MPI::Request* pGRReq;               /* Array di request Receive */
@@ -139,6 +137,21 @@ class SchurSolutionManager : public SolutionManager {
   /* Risolve i blocchi chiamando il solutore */
   void Solve(void);
 
+  /* sposta il puntatore al vettore del residuo */
+   void ChangeResPoint(doublereal* pRes){
+	std::cerr << "SchurSolutionManager::ChangeResPoint: "
+		<< "you should not be here !!"
+		<< "Aborting..." << std::endl;
+		THROW(ErrGeneric());
+	};
+   
+   	/* sposta il puntatore al vettore del residuo */
+   	void ChangeSolPoint(doublereal* pSol) {
+	std::cerr << "SchurSolutionManager::ChangeSolPoint: "
+		<< "you should not be here !!"
+		<< "Aborting..." << std::endl;
+		THROW(ErrGeneric());
+	};   
   /* Rende disponibile l'handler per la matrice */
   SchurMatrixHandler* pMatHdl(void) const {
     ASSERT(pMH != NULL);	
@@ -153,8 +166,8 @@ class SchurSolutionManager : public SolutionManager {
 
   /* Rende disponibile l'handler per la soluzione */
   SchurVectorHandler* pSolHdl(void) const {
-    ASSERT(pRVH != NULL);	
-    return pRVH;
+    ASSERT(pSolVH != NULL);	
+    return pSolVH;
   };
 
   void StartExchInt(void);

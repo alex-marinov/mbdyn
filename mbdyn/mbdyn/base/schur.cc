@@ -346,20 +346,8 @@ SchurMultiStepIntegrator::Run(void)
 #endif /* !USE_Y12 */
 
     	case MESCHACH_SOLVER:
-#ifdef USE_MESCHACH
-      		SAFENEWWITHCONSTRUCTOR(pLocalSM,
-			MeschachSparseLUSolutionManager,
-			MeschachSparseLUSolutionManager(iNumLocDofs,
-				LociWorkSpaceSize,
-				dLPivotFactor == -1. ? 1. : dLPivotFactor));
-      		break;
-#else /* !USE_MESCHACH */
-      		std::cerr << "Configure with --with-meschach "
-			"to enable Meschach solver"
-			<< std::endl;
-      		THROW(ErrGeneric());
-#endif /* !USE_MESCHACH */
-
+		std::cerr << "Sorry Meschach cannot be used as a local parallel "
+			<< "solver. Switching to Harwell...." << std::endl;
    	case HARWELL_SOLVER:
 #ifdef USE_HARWELL
       		SAFENEWWITHCONSTRUCTOR(pLocalSM,

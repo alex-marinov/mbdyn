@@ -80,7 +80,8 @@ HasBeenReset(true)
 			MyVectorHandler(Dim, &(x[0])));
 	SAFENEWWITHCONSTRUCTOR(bVH, MyVectorHandler, 
 			MyVectorHandler(Dim, &(b[0])));
-	
+	pdRhs = &(b[0]);
+	pdSol = &(x[0]);
 	umfpack_defaults(Control);
 
 	if (dPivot != -1. && (dPivot >= 0. && dPivot <= 1.)) {
@@ -215,8 +216,6 @@ Umfpack3SparseLUSolutionManager::BackSub(doublereal t_iniz)
 	const double* const Axp = &(Ax[0]);
 	const int* const Aip = &(Ai[0]);
 	const int* const App = &(Ap[0]);
-	const double* const bp = &(b[0]);
-	double* const xp = &(x[0]);
 	int status;
 
 	ASSERT(HasBeenReset == false);
@@ -224,8 +223,8 @@ Umfpack3SparseLUSolutionManager::BackSub(doublereal t_iniz)
 #ifdef UMFPACK_REPORT
 	double t = t_iniz;
 #endif /* UMFPACK_REPORT */
-
-	status = umfpack_solve("Ax=b", App, Aip, Axp, xp, bp, 
+	Control[UMFPACK_IRSTEP]= 0;
+	status = umfpack_solve("Ax=b", App, Aip, Axp, pdSol, pdRhs, 
 			Numeric, Control, Info);
 	if (status != UMFPACK_OK) {
 		umfpack_report_info(Control, Info) ;
