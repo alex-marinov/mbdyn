@@ -239,6 +239,7 @@ class DataManager : public SolutionDataManager {
    virtual void Output_pch(std::ostream& pch) const;
    virtual void Output_f06(std::ostream& f06, const VectorHandler& X) const;
    virtual void Output_f06(std::ostream& f06, const VectorHandler& Xr, const VectorHandler& Xi) const;
+   virtual void Output_OpenDX(std::ostream& dx, const VectorHandler& Xr, const VectorHandler& Xi) const;
    
    /* Adams output */
    flag fAdamsOutput(void) const;

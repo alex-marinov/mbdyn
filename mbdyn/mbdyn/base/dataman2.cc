@@ -874,6 +874,13 @@ DataManager::Output_f06(std::ostream& f06, const VectorHandler& Xr, const Vector
 };
 
 
+/* OpenDX output (tbi) */
+void DataManager::Output_OpenDX(std::ostream& dx, const VectorHandler& Xr, const VectorHandler& Xi) const
+{
+	NO_OP;
+}
+
+
 void DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
 				VectorHandler& XPrev, 
 				VectorHandler& XPPrev) const
