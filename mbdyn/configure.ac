@@ -167,6 +167,7 @@ dnl temporarily disabled until we figure out how to make chaco work...
 dnl OL_ARG_WITH(chaco,[  --with-chaco            with Chaco model partitioning support],auto,[auto yes no])
 ol_with_chaco=no
 
+OL_ARG_WITH(threads,[  --with-threads          with threads],auto,[auto yes no])
 OL_ARG_WITH(rtai,[  --with-rtai             with RTAI support],no,[auto yes no])
 OL_ARG_WITH(blas,[
        math libraries:
@@ -751,35 +752,38 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check for threads (check anyway...)
 dnl
-have_threads=no
-AC_MSG_CHECKING([for usable threads])
-if test "$ac_cv_header_pthread_h" = "yes" ; then
-	save_LIBS="$LIBS"
-	have_threads="no"
-	if test "$have_threads" = no ; then
-		AC_TRY_LINK([
-		/* Check whether threads are linked by default */
+have_threads="no"
+if test "$ol_with_threads" != "no" ; then
+	AC_MSG_CHECKING([for usable threads])
+	if test "$ac_cv_header_pthread_h" = "yes" ; then
+		save_LIBS="$LIBS"
+		have_threads="no"
+		if test "$have_threads" = no ; then
+			AC_TRY_LINK([
+			/* Check whether threads are linked by default */
 #include <pthread.h>
-			],[
-	return pthread_create(0, 0, 0, 0);
-			],[have_threads="yes"])
-		LIBS="$save_LIBS"
-	fi
+				],[
+		return pthread_create(0, 0, 0, 0);
+				],[have_threads="yes"])
+			LIBS="$save_LIBS"
+		fi
 
-	if test "$have_threads" = no ; then
-		THREAD_LIBS="-lpthread"
-		LIBS="$save_LIBS $THREAD_LIBS"
-		AC_TRY_LINK([
-		/* Check whether threads need -lpthread */
+		if test "$have_threads" = no ; then
+			THREAD_LIBS="-lpthread"
+			LIBS="$save_LIBS $THREAD_LIBS"
+			AC_TRY_LINK([
+			/* Check whether threads need -lpthread */
 #include <pthread.h>
-			],[
-	return pthread_create(0, 0, 0, 0);
-			],[have_threads="yes"])
-		LIBS="$save_LIBS"
-	fi
+				],[
+		return pthread_create(0, 0, 0, 0);
+				],[have_threads="yes"])
+			LIBS="$save_LIBS"
+		fi
 
-	if test "$have_threads" = "yes" ; then
-		AC_MSG_RESULT([yes])
+		if test "$have_threads" = "yes" ; then
+			AC_DEFINE(HAVE_THREADS,1,[define if usable threads are available])
+			AC_MSG_RESULT([yes])
+		fi
 	fi
 fi
 
@@ -841,6 +845,9 @@ dnl Check for multithreads (use previous checks)
 dnl
 ol_link_multithread=no
 if test "$ol_enable_multithread" != no ; then
+	if test "$ol_enable_multithread" = "yes" -a "$ol_with_thread" = "no" ; then
+		AC_MSG_ERROR([Can't enable multithread --without-threads])
+	fi
 	AC_MSG_CHECKING([whether to enable multithread])
 	if test "$ac_cv_header_pthread_h" != "yes" ; then
 		AC_MSG_ERROR([need pthreads.h])
@@ -1639,11 +1646,14 @@ if test "$ol_with_metis" != "no" ; then
 		fi
 	fi
 
-	if test "$ol_link_metis" = "no" ; then
+	if test "$ol_link_metis" = "no" -o "$ac_cv_header_metis_h" != "yes" ; then
 		if test "$ol_with_metis" != "auto" ; then
 			AC_MSG_ERROR([Could not locate Metis])
 		else
 			AC_MSG_WARN([Could not locate Metis; not supported])
+			dnl set to "no" because we cannot link metis
+			dnl without header file
+			ol_link_metis="no"
 		fi
 	else
 		METIS_LIBS="-lmetis -lm"

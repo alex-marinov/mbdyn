@@ -1267,7 +1267,21 @@ MySubVectorHandler::MySubVectorHandler(integer iSize)
 
 MySubVectorHandler::MySubVectorHandler(integer iSize, integer* piTmpRow,
 	       doublereal* pdTmpVec)
-: MyVectorHandler(iSize, pdTmpVec), piRowm1(piTmpRow - 1) {
+: MyVectorHandler(iSize, pdTmpVec), piRowm1(0)
+{
+	if (piTmpRow == 0) {
+		/* ... because set by MyVectorHandler() */
+		ASSERT(bOwnsMemory == true);
+
+		if (pdTmpVec == 0) {
+			silent_cerr("MySubVectorHandler(): illegal args" << std::endl);
+			throw ErrGeneric();
+		}
+		
+		SAFENEWARR(piTmpRow, integer, iSize);
+	}
+
+	piRowm1 = piTmpRow - 1;
 #ifdef DEBUG
 	IsValid();
 #endif /* DEBUG */

@@ -63,7 +63,7 @@
 #include <sys/poll.h>
 #include <sys/socket.h>
 
-#if defined(HAVE_SASL2) && defined(HAVE_PTHREAD_H) && (HAVE_SEMAPHORE_H)
+#if defined(HAVE_SASL2) && defined(HAVE_THREADS) && (HAVE_SEMAPHORE_H)
 
 #include <sasl/sasl.h>
 #include "mbsasl.h"
@@ -195,7 +195,7 @@ main(int argc, char *argv[])
 	return 0;
 }
 
-#else /* ! defined(HAVE_SASL2) && defined(HAVE_PTHREAD_H) && (HAVE_SEMAPHORE_H) */
+#else /* ! defined(HAVE_SASL2) && defined(HAVE_THREADS) && (HAVE_SEMAPHORE_H) */
 
 int
 main(void)
@@ -204,6 +204,6 @@ main(void)
 	exit(EXIT_FAILURE);
 }
 
-#endif /* ! defined(HAVE_SASL2) && defined(HAVE_PTHREAD_H) && (HAVE_SEMAPHORE_H) */
+#endif /* ! defined(HAVE_SASL2) && defined(HAVE_THREADS) && (HAVE_SEMAPHORE_H) */
 
 
