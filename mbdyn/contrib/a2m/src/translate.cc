@@ -1,3 +1,44 @@
+/*
+
+MBDyn (C) is a multibody analysis code. 
+http://www.mbdyn.org
+
+Copyright (C) 1996-2000
+
+Pierangelo Masarati	<masarati@aero.polimi.it>
+Paolo Mantegazza	<mantegazza@aero.polimi.it>
+
+Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+via La Masa, 34 - 20156 Milano, Italy
+http://www.aero.polimi.it
+
+Changing this copyright notice is forbidden.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+------------------------------------------------------------------------------
+
+ADAMS2MBDyn (C) is a translator from ADAMS/View models in adm format
+into raw MBDyn input files.
+
+Copyright (C) 1999-2000
+Leonardo Cassan		<lcassan@tiscalinet.it>
+
+*/
+
 
 // TRANSLATE
 
@@ -13,6 +54,9 @@ p_card_entry i;
 p_MTP_entry iMTP;
 MTP Tempbuffer;
 extern MTP_deck Marker_Table;
+extern PTR_deck Part_Table;
+extern BTR_deck Beam_reference_Table;
+
 extern MBDyn_deck MBReference;
 extern MBDyn_deck MBBeams;
 extern MBDyn_deck MBBodies;
@@ -54,6 +98,17 @@ extern s_vtorque* curr_vtorque;
 extern s_vforce* curr_vforce;
 extern s_accgrav* curr_accgrav;
 
+extern double A2M_initial_time;
+extern double A2M_final_time;
+extern double A2M_time_step;
+extern double A2M_rho;
+extern char A2M_method [];
+extern double A2M_tolerance;
+extern double A2M_max_iterations;
+extern double A2M_deriv_coef;
+extern double A2M_deriv_tol;
+extern double A2M_deriv_iter;
+
 int NO_STRUCTURAL_NODES, NO_FORCES, NO_JOINTS, NO_RIGIDBODIES;
 double IS,IT;
 
@@ -73,8 +128,6 @@ void Translate (ofstream& out)
    /* 03. - Part, pointmassess translation section */
    Translate_deck ("Translating parts...",parts,curr_part,out);
    Translate_deck ("Translating pointmasses...",pointmasses,curr_pointmass,out);
-   /* 04. - Beam, translation section */
-   Translate_deck ("Translating beams...",beams,curr_beam,out);
 
    /* B.  - Dequeueing markers . */
    for (i=markers.begin();i!=markers.end();i++) {
@@ -97,6 +150,9 @@ void Translate (ofstream& out)
    /* 08. - Joints, translation section */
    Translate_deck ("Translating joints...",joints,curr_joint,out);
    /* Set the total amount of elements for each type */
+   /* 09. - Beam, translation section */
+   Translate_deck ("Translating beams...",beams,curr_beam,out);
+
    NO_STRUCTURAL_NODES=MBNodes.size();
    NO_FORCES=MBForces.size();
    NO_JOINTS=MBJoints.size();
@@ -114,26 +170,30 @@ void Translate (ofstream& out)
      << "end: data;" << endl << endl;
    /* 02a.- Multistep definitions */
    out << "begin: multistep;" << endl
-     << "  initial time: 0.;" << endl
-     << "  final time: 1.;" << endl
-     << "  time step: .1;" << endl
+     << "  initial time: " << A2M_initial_time << ";" << endl
+     << "  final time: " << A2M_final_time << ";" << endl
+     << "  time step: " << A2M_time_step << ";" << endl
      << endl
-     << "  set: real rho = .6;" << endl
-     << "  method: ms, rho, rho;" << endl
-     << "  tolerance: 1.e-6;" << endl
-     << "  max iterations: 20;" << endl
+     << "  set: real rho = " << A2M_rho << ";" << endl
+     << "  method: " << A2M_method << ";" << endl
+     << "  tolerance: " << A2M_tolerance << ";" << endl
+     << "  max iterations: " << A2M_max_iterations << "; "<< endl
      << endl
-     << "  derivatives coefficient: 1.;" << endl
-     << "  derivatives tolerance: 1.e-9;" << endl
-     << "  derivatives max iterations: 10;" << endl
+     << "  derivatives coefficient: " << A2M_deriv_coef << ";" << endl
+     << "  derivatives tolerance: " << A2M_deriv_tol << "; " << endl
+     << "  derivatives max iterations: " << A2M_deriv_iter << ";" << endl
      << "end: multistep;" << endl << endl;
    /* 03. - Control data section */
    out << "begin: control data;" << endl
      << "  structural nodes: " << NO_STRUCTURAL_NODES<< ";" << endl
      << "  rigid bodies: " << NO_RIGIDBODIES << ";" << endl
      << "  joints: " << NO_JOINTS << ";" << endl
-     << "  forces: " << NO_FORCES << ";" << endl
-     << endl
+     << "  forces: " << NO_FORCES << ";" << endl;
+   
+   /* Se è presente la gravità la inserisce nella lista */
+   if (accgravs.size()!=0) out << "  gravity;" << endl;
+   
+   out << endl
      << "  initial stiffness: " << IS << ";" << endl
      << "  initial tolerance: " << IT << ";" << endl
      << endl
@@ -146,7 +206,41 @@ void Translate (ofstream& out)
    //
    /* REFERENCE */
    out << "# input related card - Reference section" << endl << endl;
-   Restart_MBDYNDeck (MBReference,out);
+   
+   /* Riordina i reference affinché i BCS compaiono prima degli altri marker */
+   Id idx;
+   Id counter=1;
+   MBDyn_reference* TEMPREF;
+   MBDyn_deck MBMarkers;
+   p_MBDyn_entry index;
+   p_PTR_entry indexPTR;
+   for (indexPTR=Part_Table.begin();indexPTR!=Part_Table.end();indexPTR++)
+     {
+	idx = (*indexPTR).second;
+	TEMPREF = (MBDyn_reference*) Find_MBCard (idx,MBReference);
+	MBMarkers.insert (MBDyn_entry(counter++,(MBDyn_card*) TEMPREF));
+     }
+   p_BTR_entry indexBTR;
+   for (indexBTR=Beam_reference_Table.begin();
+	indexBTR!=Beam_reference_Table.end();
+	indexBTR++)
+     {
+	idx = (*indexBTR).second;
+	TEMPREF = (MBDyn_reference*) Find_MBCard (idx,MBReference);
+	MBMarkers.insert (MBDyn_entry(counter++,(MBDyn_card*) TEMPREF));
+     }
+   p_MTP_entry indexMTP;
+   for (indexMTP=Marker_Table.begin();indexMTP!=Marker_Table.end();indexMTP++)
+     {
+	idx = (*indexMTP).first;
+	TEMPREF = (MBDyn_reference*) Find_MBCard (idx,MBReference);
+	MBMarkers.insert (MBDyn_entry(counter++,(MBDyn_card*) TEMPREF));
+     }
+   if (MBReference.size()!=MBMarkers.size())
+     cout << "[DEBUG] : REORDERED MARKERS DOES NOT LINK WITH ORIGINAL DECK" << endl;
+   /* End of reordering */
+   
+   Restart_MBDYNDeck (MBMarkers,out);
    /* NODE SECTION */
    out << "begin: nodes;" << endl;
    Restart_MBDYNDeck (MBNodes,out);

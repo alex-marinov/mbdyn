@@ -1,3 +1,44 @@
+/*
+
+MBDyn (C) is a multibody analysis code. 
+http://www.mbdyn.org
+
+Copyright (C) 1996-2000
+
+Pierangelo Masarati	<masarati@aero.polimi.it>
+Paolo Mantegazza	<mantegazza@aero.polimi.it>
+
+Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+via La Masa, 34 - 20156 Milano, Italy
+http://www.aero.polimi.it
+
+Changing this copyright notice is forbidden.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+------------------------------------------------------------------------------
+
+ADAMS2MBDyn (C) is a translator from ADAMS/View models in adm format
+into raw MBDyn input files.
+
+Copyright (C) 1999-2000
+Leonardo Cassan		<lcassan@tiscalinet.it>
+
+*/
+
 
 //                                JOINT.CC                                    
 
@@ -206,7 +247,8 @@ ostream& Joint_ref::Print (ostream& out) const
 void s_joint::Translate (ostream& out)
 {
    /* Common query of data */
-   char* comment= new char[80];
+   char* comment= new char[255];
+   char* title=new char[80];
    Id JointID;
    Id REFNODE[2];
    Id NODE[2];
@@ -256,8 +298,10 @@ void s_joint::Translate (ostream& out)
        MBJoints.insert (MBDyn_entry(JointID, (MBDyn_card*) HJ));
        
        sprintf (comment,
-		"\n# Spherical joint %d is related to Adams SPHERICAL JOINT %d",
+		"Spherical joint %d is related to Adams SPHERICAL JOINT %d",
 		JointID,label);
+       sprintf (title,"Adams SPHERICAL joint %d",label);
+       HJ->Title(title);
        HJ->Remark(comment);
        
     }
@@ -271,8 +315,10 @@ void s_joint::Translate (ostream& out)
        MBJoints.insert (MBDyn_entry(JointID, (MBDyn_card*) HJ));
        
        sprintf (comment,
-		"\n# Plane hinge joint %d is related to Adams REVOLUTE %d",
+		"Plane hinge joint %d is related to Adams REVOLUTE %d",
 		JointID,label);
+       sprintf (title,"Adams REVOLUTE joint %d",label);
+       HJ->Title(title);
        HJ->Remark(comment);
        
     }
@@ -290,8 +336,10 @@ void s_joint::Translate (ostream& out)
        MBJoints.insert (MBDyn_entry(JointID, (MBDyn_card*) HJ));
        
        sprintf (comment,
-		"\n# In plane joint %d is related to Adams PLANAR JOINT %d",
+		"In plane joint %d is related to Adams PLANAR JOINT %d",
 		JointID,label);
+       sprintf (title,"Adams PLANAR joint %d",label);
+       HJ->Title(title);
        HJ->Remark(comment);
        
     }
@@ -305,8 +353,11 @@ void s_joint::Translate (ostream& out)
        MBJoints.insert (MBDyn_entry(JointID, (MBDyn_card*) HJ));
        
        sprintf (comment,
-		"\n# Inline joint %d is related to Adams TRANSLATIONAL JOINT %d",
+		"Inline joint %d is related to Adams TRANSLATIONAL JOINT %d",
 		JointID,label);
+       sprintf (title,"Adams TRANSLATIONAL joint %d", label);
+       
+       HJ->Title(title);
        HJ->Remark(comment);
        
     }

@@ -1,15 +1,45 @@
 %{
-// ***************************************************************************
-// *                                                                         *
-// *                        A D A M S   2   M B D Y N                        *
-// *                                                                         *
-// *                        INTERFACCIA ADAMS - MBDYN                        *
-// *                 VERSIONE 1.0 BETA - BY CASSAN LEONARDO 2000             *
-// *                          POLITECNICO DI MILANO                          *
-// *                   DIPARTIMENTO DI INGEGNERIA AEROSPAZIALE               *
-// *                                                                         *
-// ***************************************************************************
 
+/*
+ * 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ * 
+ * Copyright (C) 1996-2000
+ * 
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ * 
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ * 
+ * Changing this copyright notice is forbidden.
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ * 
+ * ----------------------------------------------------------------------------
+ * 
+ * ADAMS2MBDyn (C) is a translator from ADAMS/View models in adm format
+ * into raw MBDyn input files.
+ * 
+ * Copyright (C) 1999-2000
+ * Leonardo Cassan		<lcassan@tiscalinet.it>
+ * 
+ */
 
 // 31-7-2000 - DATA DELL'ULTIMO AGGIORNAMENTO
 
@@ -72,7 +102,8 @@ PTR_deck Pmass_Table;
 MTR_deck Reference_Table;
 PTN_deck PartToNode_Table;
 BTP_deck Body_Table;
-
+BTR_deck Beam_reference_Table;
+   
 // DICHIARAZIONE DELLE STRUTTURE DI MEMORIZZAZIONE DELLE CARD MBDYN
 MBDyn_deck MBReference;
 MBDyn_deck MBBeams;
@@ -86,6 +117,20 @@ MBDyn_deck MBAccs;
 // VARIABILI GLOBALI DI VARIA NATURA
 
 Id GROUND_PART_ID=0;
+
+/* CREA IL SET DI VARIABILI DI CONTROLLO A2M */
+
+double A2M_initial_time = 0;
+double A2M_final_time = 1;
+double A2M_time_step = .1;
+double A2M_rho = .6;
+char A2M_method [] = "ms, rho, rho";
+double A2M_tolerance = 1.e-6;
+double A2M_max_iterations = 20;
+
+double A2M_deriv_coef = 1.e-6;
+double A2M_deriv_tol = 1.e-9;
+double A2M_deriv_iter = 10;
 
 // PER OGNI TIPO DI ELEMENTO CREA L'OPPORTUNO PUNTATORE
 // Un puntatore deve essere sempre disponibile a contenere la card
@@ -1276,8 +1321,9 @@ int main (int argn, char* argv[])
 	yyin=stdin;
 	errfile=fopen("console.err","w");
 	messagefile=fopen("console.msg","w");
-	yyparse();
-	outfile="console";
+	tablefile=fopen("console.ref","w");
+        yyparse();
+	outfile="console.mbd";
      }
      Report_form (outfile);
      fclose(temp);

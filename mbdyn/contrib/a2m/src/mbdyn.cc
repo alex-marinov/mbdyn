@@ -1,19 +1,64 @@
+/*
+
+MBDyn (C) is a multibody analysis code. 
+http://www.mbdyn.org
+
+Copyright (C) 1996-2000
+
+Pierangelo Masarati	<masarati@aero.polimi.it>
+Paolo Mantegazza	<mantegazza@aero.polimi.it>
+
+Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+via La Masa, 34 - 20156 Milano, Italy
+http://www.aero.polimi.it
+
+Changing this copyright notice is forbidden.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+------------------------------------------------------------------------------
+
+ADAMS2MBDyn (C) is a translator from ADAMS/View models in adm format
+into raw MBDyn input files.
+
+Copyright (C) 1999-2000
+Leonardo Cassan		<lcassan@tiscalinet.it>
+
+*/
+
 /* MBDYN.CC - SOURCE CODE FOR MBDYN ELEMENTS AND ROUTINES */
 
 #include <mbdyn.h>
 #include <map.h>
 
+extern Boolean REMOVE_REMARK;
+char ph='"';
 
 // GENERICA CARTA DI MBDYN, possiede una label e un tipo
 
 MBDyn_card::MBDyn_card (Id L, MBDyn_card::Type q) :
-                        Label(L),Card_type(q),_remark_(NULL)
+                        Label(L),Card_type(q),_remark_(NULL),
+                        _title_(NULL)
 {}
 
 MBDyn_card::~MBDyn_card ()
 {}
 
-MBDyn_card::MBDyn_card () : Label(0),Card_type(_LAST_CARD),_remark_(NULL)
+MBDyn_card::MBDyn_card () : Label(0),Card_type(_LAST_CARD),
+                            _remark_(NULL),_title_(NULL)
 {}
 
 ostream& MBDyn_card::Test(ostream& out) const
@@ -24,12 +69,28 @@ ostream& MBDyn_card::Test(ostream& out) const
 
 void MBDyn_card::Remark (char* R)
 {
-   _remark_=new char[strlen(R)+1];
-   for (int i=0;i<strlen(R);i++) _remark_[i]=' ';
+   _remark_=new char[strlen(R)+4];
+   _remark_[0]='\n';
+   _remark_[1]='#';
+   _remark_[2]=' ';
+   for (int i=0;i<strlen(R);i++) _remark_[i+3]=' ';
    for (int i=0;i<strlen(R);i++) {
-      _remark_[i]=R[i];
+      _remark_[i+3]=R[i];
    }
-   _remark_[strlen(R)]='\0';
+   _remark_[strlen(R)+3]='\0';
+   return;
+}
+
+void MBDyn_card::Title (char* R)
+{
+   _title_=new char[strlen(R)+3];
+   _title_[0]=ph;
+   for (int i=0;i<strlen(R);i++) _title_[i+1]=' ';
+   for (int i=0;i<strlen(R);i++) {
+      _title_[i+1]=R[i];
+   }
+   _title_[strlen(R)+1]=ph;
+   _title_[strlen(R)+2]='\0';
    return;
 }
 
@@ -106,6 +167,7 @@ MBDyn_beam::MBDyn_beam	(Id L, Id N1, Id N2, Id N3, Vec3 F1, Vec3 F2,
                          MBDyn_elem (L,_BEAM)
 {
    Node[0]=N1; Node[1]=N2; Node[2]=N3;
+   R1=Eye3; R2=Eye3;
    f[0]=F1; f[1]=F2; f[2]=F3;
    R[0]=R1; R[1]=R2;
    pD[0]=CS1; pD[1]=CS2;
@@ -119,6 +181,7 @@ ostream& MBDyn_beam::Restart (ostream& out) const
 {
    const char indent[]="         ";
    out << "  beam:  " << Label;
+   if (_title_!=NULL) out << ", name, " << _title_;
    for (unsigned int i=0; i <NUMNODES; i++) {
       out << ", " << endl << indent << Node[i] << ", reference, node, ",
       f[i].Write(out,", ");
@@ -181,7 +244,9 @@ MBDyn_body::~MBDyn_body ()
 ostream& MBDyn_body::Restart(ostream& out) const
 {
    const char* indent = "         ";
-   out << "  body:  " << Label << ", " << endl << indent
+   out << "  body:  " << Label << ", ";
+   if (_title_!=NULL) out << "name, " << _title_ << ", ";
+   out << endl << indent
      << Node << ", " << Mass << ", " << endl << indent,
      Xgc.Write(out,", ") << ", " << endl
      << indent,Jota.Write(out,", ",", ","");
@@ -223,7 +288,9 @@ MBDyn_force::~MBDyn_force () {}
 
 ostream& MBDyn_force::Restart(ostream& out) const
 {
-   return out << "  force:  " << Label << ", ";
+   out << "  force:  " << Label << ", ";
+   if (_title_!=NULL) out << "name, " << _title_ << ", ";
+   return out;
 }
 
 inline const char* const MBDyn_force::Gettype(void) const
@@ -247,7 +314,8 @@ ostream& MBDyn_force::Test(ostream& out) const
 }
 
 // - ABSTRACT FORCE
-MBDyn_force_abstract::MBDyn_force_abstract (Id L, Id dof, double M) :
+MBDyn_force_abstract::MBDyn_force_abstract (Id L, Id dof, 
+					    MBDyn_drive_caller *M) :
                       Nodedof(dof),Magnitude(M),MBDyn_force(L,ABSTRACT)
 {}
 MBDyn_force_abstract::~MBDyn_force_abstract ()
@@ -255,8 +323,9 @@ MBDyn_force_abstract::~MBDyn_force_abstract ()
 
 ostream& MBDyn_force_abstract::Restart(ostream& out) const
 {
-   MBDyn_force::Restart(out) << " abstract, " << Nodedof << ", " 
-     << Magnitude << ";" << endl;
+   MBDyn_force::Restart(out) << " abstract, " << Nodedof << ", ";
+   Magnitude->Restart(out);
+   out << ";" << endl;
    return out;
 }
 
@@ -274,7 +343,8 @@ ostream& MBDyn_force_abstract::Test(ostream& out) const
 
 // - STRUCTURAL FORCE
 MBDyn_force_structural::MBDyn_force_structural (Id L,MBDyn_force::FType q,
-			Id N, RVec3 reldir,Vec3 relarm, double magn) :
+			Id N, RVec3 reldir,Vec3 relarm, 
+		        MBDyn_drive_caller* magn) :
                         Node(N),Relative_direction(reldir),
                         Relative_arm(relarm),Magnitude(magn),
                         MBDyn_force(L,STRUCTURALFORCE,q)
@@ -283,19 +353,6 @@ MBDyn_force_structural::MBDyn_force_structural (Id L,MBDyn_force::FType q,
 MBDyn_force_structural::~MBDyn_force_structural ()
 {}
 
-/* OLD DEFINITION OF STRUCTURAL RESTART
-ostream& MBDyn_force_structural::Restart(ostream& out) const
-{
-   const char* indent = "          ";
-   MBDyn_force::Restart(out) << MBDyn_force::GetMode() << ", "
-     << endl << indent
-     << Node << ", reference, node, ",Relative_direction.Write(out,", ")
-     << ", " << endl << indent
-     << "reference, node, ",Relative_arm.Write(out,", ") << ", "
-     << Magnitude << ";" << endl;
-   return out;
-}*/
-
 ostream& MBDyn_force_structural::Restart(ostream& out) const
 {
    const char* indent = "          ";
@@ -303,7 +360,9 @@ ostream& MBDyn_force_structural::Restart(ostream& out) const
      << endl << indent
      << Node << ", ",Relative_direction.Write(out,", ")
      << ", " << endl << indent,Relative_arm.Write(out,", ") << ", "
-     << Magnitude << ";" << endl;
+     << endl << indent;
+     Magnitude->Restart(out);
+     out << ";" << endl;
    return out;
 }
 
@@ -321,7 +380,8 @@ ostream& MBDyn_force_structural::Test(ostream& out) const
 
 // STRUCTURAL COUPLE
 MBDyn_force_couple::MBDyn_force_couple (Id L,MBDyn_force::FType q,
-					Id N, RVec3 reldir, double magn) :
+					Id N, RVec3 reldir, 
+					MBDyn_drive_caller* magn) :
                                         Node(N),
                                         Relative_direction(reldir), 
                                         Magnitude(magn),
@@ -334,10 +394,14 @@ MBDyn_force_couple::~MBDyn_force_couple ()
 ostream& MBDyn_force_couple::Restart (ostream& out) const
 {
    const char* indent= "           ";
-   out << "  couple:  " << Label << ", " << MBDyn_force::GetMode() << ", " 
+   out << "  couple:  " << Label << ", ";
+   if (_title_!=NULL) out << "name, " << _title_ << ", ";
+   out << MBDyn_force::GetMode() << ", " 
      << endl << indent << Node 
      << ", ",Relative_direction.Write(out,", ")
-       << ", " << Magnitude << ";" << endl;
+     << ", " << endl << indent; 
+   Magnitude->Restart(out);
+   out << ";" << endl;
    return out;
 }
 
@@ -374,7 +438,8 @@ MBDyn_reference::MBDyn_reference(Id L) : MBDyn_card (L,_REFERENCE) {}
 ostream& MBDyn_reference::Restart(ostream& out) const
 {
    const char* indent="              ";
-   out << "  reference:  " << Label << ", " << endl << indent;
+   out << "  reference:  " << Label << ", ";
+   if (_title_!=NULL) out << "name, " << _title_ << ", " << endl << indent;
    out << "",Abs_Pos.Write(out,", ") << ", " << endl,
      Abs_Rot_Matrix.RWrite(out,", ","\n",indent);
    out << ", " << endl << indent,
@@ -406,6 +471,7 @@ MBDyn_joint::~MBDyn_joint () {}
 ostream& MBDyn_joint::Restart (ostream& out) const
 {
    out << "  joint:  " << Label << ", ";
+   if (_title_!=NULL) out << "name, " << _title_ << ", ";
    return out;
 }
 
@@ -765,8 +831,7 @@ ostream& MBDyn_planehinge::Restart(ostream& out) const
    out << "plane hinge, ";
    for (int i = 0; i<2; i++) {
       out << endl << indent << Node[i];
-      out << ", reference, node, ", 
-	d[i].Write(out,", ");
+      out << ", reference, node, ", d[i].Write(out,", ");
       if (Rh[i]!=E) out << ", " << endl 
 	<< indent << "hinge, reference, node, ", Rh[i].RWrite(out,", ","");
       if (i==0) out << ", ";
@@ -926,6 +991,7 @@ inline const char* const MBDyn_StiffnessSpring::Gettype(void) const
 ostream& MBDyn_bulk::Restart(ostream& out) const
 {
    out << " bulk : " << Label << ", ";
+   if (_title_!=NULL) out << "name, " << _title_ << ", ";
    return out;
 }
 
@@ -1015,7 +1081,8 @@ MBDyn_node_structural::~MBDyn_node_structural() {}
 ostream& MBDyn_node_structural::Restart(ostream& out) const
 {
    const char indent[]="                 ";
-   out << "  structural: " << Label << ", "; 
+   out << "  structural: " << Label << ", ";
+   if (_title_!=NULL) out << "name, " << _title_ << ", ";
    if (Mode_type!=DUMMY) {
      out << GetMode() << ", " << endl << indent,
 	Abs_pos.Write(out,", ") << ", " 
@@ -1030,7 +1097,8 @@ ostream& MBDyn_node_structural::Restart(ostream& out) const
 	<< Omega_rotates << ";" << endl;      
    }
    else {
-      out << "dummy, " << StrNodeLabel << ", reference, relative, ",
+      out << "dummy, " << StrNodeLabel << ", offset, " << endl
+	<< "reference, relative, ",
       Relative_offset.Write(out,", ") << ", "
       << " reference, relative, " << endl,
       Relative_rot_matrix.RWrite(out,", ","\n",indent)
@@ -1072,7 +1140,10 @@ MBDyn_node_electric::~MBDyn_node_electric () {}
 
 ostream& MBDyn_node_electric::Restart(ostream& out) const
 {
-   out << " electric : " << Label << ", " << Dx << ", "
+   const char* indent = "            ";
+   out << " electric : " << Label << ", ";
+   if (_title_!=NULL) out << "name, " << _title_ << ", ";
+   out << endl << indent << Dx << ", "
        << Dxp << ";" << endl;
    return out;
 }
@@ -1097,7 +1168,10 @@ MBDyn_node_abstract::MBDyn_node_abstract (Id N,double x,double xp) :
 
 ostream& MBDyn_node_abstract::Restart (ostream& out) const
 {
-   out << " abstract : " << Label << ", " << Dx << ", "
+   const char* indent = "            ";
+   out << " abstract : " << Label << ", ";
+   if (_title_!=NULL) out << "name, " << _title_ << ", ";
+   out << endl << indent << Dx << ", "
        << Dxp << ";" << endl;
    return out;
 }
@@ -1119,8 +1193,8 @@ ostream& MBDyn_node_abstract::Test(ostream& out) const
 
 // GRAVITY
 
-MBDyn_gravity::MBDyn_gravity (Vec3 A) : Acc(A), 
-               MBDyn_elem(0,MBDyn_elem::_GRAVITY)
+MBDyn_gravity::MBDyn_gravity (Vec3 A,MBDyn_drive_CONST* Iacc) : Acc(A), 
+MBDyn_elem(0,MBDyn_elem::_GRAVITY), Intensity(Iacc)
 {}
 
 MBDyn_gravity::~MBDyn_gravity ()
@@ -1128,8 +1202,9 @@ MBDyn_gravity::~MBDyn_gravity ()
 
 ostream& MBDyn_gravity::Restart(ostream& out) const
 {
-   out << "  gravity:  ",Acc.Write(out,", ") << ", const,  1"
-       << ";" << endl;
+   out << "  gravity:  ",Acc.Write(out,", ") << ", ";
+   Intensity->Restart(out);
+   out << ";" << endl;
    return out;
 }
 
@@ -1150,7 +1225,7 @@ ostream& MBDyn_gravity::Test(ostream& out) const
 // DRIVES AND DRIVE CALLER
 
 MBDyn_drive_caller::MBDyn_drive_caller (MBDyn_drive_caller::Type T) :
-                                        Drive_Type (T)
+                                        Drive_Type (T), _remark_(NULL)
 {}
 
 MBDyn_drive_caller::~MBDyn_drive_caller () {}
@@ -1158,6 +1233,23 @@ MBDyn_drive_caller::~MBDyn_drive_caller () {}
 inline const char* const MBDyn_drive_caller::Gettype (void) const
 {
    return "<-drive caller-<";
+}
+
+void MBDyn_drive_caller::Remark (char* R)
+{
+   _remark_=new char[strlen(R)+1];
+   for (int i=0;i<strlen(R);i++) _remark_[i]=' ';
+   for (int i=0;i<strlen(R);i++) {
+      _remark_[i]=R[i];
+   }
+   _remark_[strlen(R)]='\0';
+   return;
+}
+
+ostream& MBDyn_drive_caller::Restart (ostream& out) const
+{
+   if (REMOVE_REMARK==N) out << _remark_;
+   return out;
 }
 
 // Constant Drive
@@ -1171,6 +1263,7 @@ MBDyn_drive_CONST::~MBDyn_drive_CONST ()
 
 ostream& MBDyn_drive_CONST::Restart (ostream& out) const
 {
+   MBDyn_drive_caller::Restart(out);
    out << "const, " << const_coef;
    return out;
 }
@@ -1198,6 +1291,7 @@ MBDyn_drive_LINEAR::~MBDyn_drive_LINEAR ()
 
 ostream& MBDyn_drive_LINEAR::Restart (ostream& out) const
 {
+   MBDyn_drive_caller::Restart(out);
    out << "linear, " << const_coef << ", " << slope_coef;
    return out;
 }
@@ -1228,6 +1322,7 @@ MBDyn_drive_PARABOLIC::~MBDyn_drive_PARABOLIC ()
 
 ostream& MBDyn_drive_PARABOLIC::Restart (ostream& out) const
 {
+   MBDyn_drive_caller::Restart(out);
    out << "parabolic, " << const_coef << ", " <<
      linear_coef << ", " << parabolic_coef;
    return out;
@@ -1260,6 +1355,7 @@ MBDyn_drive_CUBIC::~MBDyn_drive_CUBIC ()
 
 ostream& MBDyn_drive_CUBIC::Restart (ostream& out) const
 {
+   MBDyn_drive_caller::Restart(out);
    out << "cubic, " << const_coef << ", " <<
      linear_coef << ", " << parabolic_coef <<
      ", " << cubic_coef;

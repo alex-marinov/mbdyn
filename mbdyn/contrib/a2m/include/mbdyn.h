@@ -1,3 +1,44 @@
+/*
+
+MBDyn (C) is a multibody analysis code. 
+http://www.mbdyn.org
+
+Copyright (C) 1996-2000
+
+Pierangelo Masarati	<masarati@aero.polimi.it>
+Paolo Mantegazza	<mantegazza@aero.polimi.it>
+
+Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+via La Masa, 34 - 20156 Milano, Italy
+http://www.aero.polimi.it
+
+Changing this copyright notice is forbidden.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+------------------------------------------------------------------------------
+
+ADAMS2MBDyn (C) is a translator from ADAMS/View models in adm format
+into raw MBDyn input files.
+
+Copyright (C) 1999-2000
+Leonardo Cassan		<lcassan@tiscalinet.it>
+
+*/
+
 
 #ifndef MBDYN_H
 #define MBDYN_H
@@ -6,10 +47,94 @@
 #include <map.h>
 #include <mathem.h>
 
+// DRIVERS AND DRIVE CALLER
+
+struct MBDyn_drive_caller {
+   
+   enum Type {
+      CONST,
+	LINEAR,
+	PARABOLIC,
+	CUBIC,
+	STEP,
+	DOUBLE_STEP,
+	RAMP,
+	DOUBLE_RAMP,
+	SINE,
+	COSINE,
+	FREQUENCY_SWEEP,
+	EXPONENTIAL,
+	RANDOM,
+	STRING,
+	DOF,
+	ARRAY,
+	TEMPLATE_DRIVE
+   };
+      
+   Type Drive_Type;
+   char* _remark_;
+   char* _title_;
+   
+   MBDyn_drive_caller (Type);
+   ~MBDyn_drive_caller ();
+   virtual ostream& Restart (ostream& out) const;
+   virtual ostream& Test(ostream& out) const=0;
+   inline const char* const Gettype (void) const;
+   void Remark(char*);
+};
+
+struct MBDyn_drive_CONST : public MBDyn_drive_caller {
+  
+   double const_coef;
+   
+   MBDyn_drive_CONST (double coef);
+   ~MBDyn_drive_CONST ();
+   ostream& Restart (ostream& out) const;
+   ostream& Test (ostream& out) const;
+   inline const char* const Gettype (void) const;
+};
+
+struct MBDyn_drive_LINEAR : public MBDyn_drive_caller {
+   
+   double const_coef,slope_coef;
+   
+   MBDyn_drive_LINEAR (double, double);
+   ~MBDyn_drive_LINEAR ();
+   ostream& Restart (ostream& out) const;
+   ostream& Test (ostream& out) const;
+   inline const char* const Gettype (void) const;
+};
+
+struct MBDyn_drive_PARABOLIC : public MBDyn_drive_caller {
+   
+   double const_coef, linear_coef, parabolic_coef;
+   
+   MBDyn_drive_PARABOLIC (double, double, double);
+   ~MBDyn_drive_PARABOLIC ();
+   ostream& Restart (ostream& out) const;
+   ostream& Test (ostream& out) const;
+   inline const char* const Gettype (void) const;
+};
+
+struct MBDyn_drive_CUBIC : public MBDyn_drive_caller {
+   
+   double const_coef, linear_coef, parabolic_coef, cubic_coef;
+   
+   MBDyn_drive_CUBIC (double, double, double, double);
+   ~MBDyn_drive_CUBIC ();
+   ostream& Restart (ostream& out) const;
+   ostream& Test (ostream& out) const;
+   inline const char* const Gettype (void) const;
+};
+
+
 // SCHEDA GENERICA DI MBDYN
+
 struct MBDyn_card {
    unsigned int Label;
    char* _remark_;
+   char* _title_;
+   
    enum Type {
       _ELEMENT,
       _REFERENCE,
@@ -29,6 +154,7 @@ struct MBDyn_card {
    virtual inline const char* const Gettype() const=0;
    virtual ostream& Test(ostream& out) const;
    void Remark (char*);
+   void Title (char*);
 };
 
 struct MBDyn_elem : public MBDyn_card {
@@ -148,9 +274,9 @@ struct MBDyn_force_abstract : public MBDyn_force {
    inline const char* const Gettype(void) const;
    
    Id Nodedof;
-   double Magnitude;
+   MBDyn_drive_caller* Magnitude;
    
-   MBDyn_force_abstract (Id,Id,double);
+   MBDyn_force_abstract (Id,Id,MBDyn_drive_caller*);
    ~MBDyn_force_abstract ();
 };
 
@@ -162,9 +288,9 @@ struct MBDyn_force_structural : public MBDyn_force {
    Id Node;
    RVec3 Relative_direction;
    Vec3 Relative_arm;
-   double Magnitude;
+   MBDyn_drive_caller* Magnitude;
    
-   MBDyn_force_structural (Id,FType,Id,RVec3,Vec3,double);
+   MBDyn_force_structural (Id,FType,Id,RVec3,Vec3,MBDyn_drive_caller*);
    ~MBDyn_force_structural ();
 };
 
@@ -175,9 +301,9 @@ struct MBDyn_force_couple : public MBDyn_force {
    
    Id Node;
    RVec3 Relative_direction;
-   double Magnitude;
+   MBDyn_drive_caller* Magnitude;
 
-   MBDyn_force_couple (Id,FType,Id,RVec3,double);
+   MBDyn_force_couple (Id,FType,Id,RVec3,MBDyn_drive_caller*);
    ~MBDyn_force_couple ();
    
 };
@@ -367,18 +493,6 @@ struct MBDyn_inline : public MBDyn_joint {
    Vec3 Relative_offset;
 };
 
-// GRAVITY
-
-struct MBDyn_gravity : public MBDyn_elem {
-   MBDyn_gravity (Vec3);
-   ~MBDyn_gravity ();
-   ostream& Restart(ostream& out) const;
-   ostream& Test(ostream& out) const;
-   inline const char* const Gettype (void) const;
-   
-   Vec3 Acc;
-};
-
 // BULK ELEMENTS
 
 struct MBDyn_bulk : public MBDyn_elem {
@@ -511,81 +625,17 @@ struct MBDyn_node_abstract : public MBDyn_node {
    double Dxp;
 };
 
-// DRIVERS AND DRIVE CALLER
+// GRAVITY
 
-struct MBDyn_drive_caller {
-   
-   enum Type {
-      CONST,
-	LINEAR,
-	PARABOLIC,
-	CUBIC,
-	STEP,
-	DOUBLE_STEP,
-	RAMP,
-	DOUBLE_RAMP,
-	SINE,
-	COSINE,
-	FREQUENCY_SWEEP,
-	EXPONENTIAL,
-	RANDOM,
-	STRING,
-	DOF,
-	ARRAY,
-	TEMPLATE_DRIVE
-   };
-      
-   Type Drive_Type;
-   
-   MBDyn_drive_caller (Type);
-   ~MBDyn_drive_caller ();
-   virtual ostream& Restart (ostream& out) const=0;
-   virtual ostream& Test(ostream& out) const=0;
+struct MBDyn_gravity : public MBDyn_elem {
+   MBDyn_gravity (Vec3,MBDyn_drive_CONST*);
+   ~MBDyn_gravity ();
+   ostream& Restart(ostream& out) const;
+   ostream& Test(ostream& out) const;
    inline const char* const Gettype (void) const;
-};
-
-struct MBDyn_drive_CONST : public MBDyn_drive_caller {
-  
-   double const_coef;
    
-   MBDyn_drive_CONST (double coef);
-   ~MBDyn_drive_CONST ();
-   ostream& Restart (ostream& out) const;
-   ostream& Test (ostream& out) const;
-   inline const char* const Gettype (void) const;
-};
-
-struct MBDyn_drive_LINEAR : public MBDyn_drive_caller {
-   
-   double const_coef,slope_coef;
-   
-   MBDyn_drive_LINEAR (double, double);
-   ~MBDyn_drive_LINEAR ();
-   ostream& Restart (ostream& out) const;
-   ostream& Test (ostream& out) const;
-   inline const char* const Gettype (void) const;
-};
-
-struct MBDyn_drive_PARABOLIC : public MBDyn_drive_caller {
-   
-   double const_coef, linear_coef, parabolic_coef;
-   
-   MBDyn_drive_PARABOLIC (double, double, double);
-   ~MBDyn_drive_PARABOLIC ();
-   ostream& Restart (ostream& out) const;
-   ostream& Test (ostream& out) const;
-   inline const char* const Gettype (void) const;
-};
-
-struct MBDyn_drive_CUBIC : public MBDyn_drive_caller {
-   
-   double const_coef, linear_coef, parabolic_coef, cubic_coef;
-   
-   MBDyn_drive_CUBIC (double, double, double, double);
-   ~MBDyn_drive_CUBIC ();
-   ostream& Restart (ostream& out) const;
-   ostream& Test (ostream& out) const;
-   inline const char* const Gettype (void) const;
+   Vec3 Acc;
+   MBDyn_drive_CONST* Intensity;
 };
 
 #endif

@@ -1,3 +1,44 @@
+/*
+
+MBDyn (C) is a multibody analysis code. 
+http://www.mbdyn.org
+
+Copyright (C) 1996-2000
+
+Pierangelo Masarati	<masarati@aero.polimi.it>
+Paolo Mantegazza	<mantegazza@aero.polimi.it>
+
+Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+via La Masa, 34 - 20156 Milano, Italy
+http://www.aero.polimi.it
+
+Changing this copyright notice is forbidden.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+------------------------------------------------------------------------------
+
+ADAMS2MBDyn (C) is a translator from ADAMS/View models in adm format
+into raw MBDyn input files.
+
+Copyright (C) 1999-2000
+Leonardo Cassan		<lcassan@tiscalinet.it>
+
+*/
+
 //                                  GFORCE.CC                                 
 
 #include <vtorque.h>
@@ -59,7 +100,8 @@ ostream& s_vtorque::Print (ostream& out) const
 void s_vtorque::Translate (ostream& out)
 {
    char* comment= new char [255];
-
+   char* title = new char[80];
+   
    /* Retrieve formulas from map */
    char* stf[4];
    p_formula_entry* id = new p_formula_entry[4];
@@ -93,9 +135,13 @@ void s_vtorque::Translate (ostream& out)
    I=Node;
    J=Jfloat;
    Id idx1,idx2;
-   double T[3]={Tx,Ty,Tz};
+   double MT[6]={Tx,-Tx,Ty,-Ty,Tz,-Tz};
    MBDyn_force_couple* COUPLE[2*NumT];
-
+   MBDyn_drive_CONST* T[6];
+   for (int i=0;i<6;i++) {
+      T[i]=new MBDyn_drive_CONST (MT[i]);
+      T[i]->Remark("/* drive */ ");
+   }
    
    /* Resolves references */
    Id WhichPart[2],WhichNode[2],WhichReference[2];
@@ -126,8 +172,8 @@ void s_vtorque::Translate (ostream& out)
 	
 	LT[idx1]=GetFreeLabel (MBForces);
 	COUPLE[idx1]=new MBDyn_force_couple (LT[idx1],MBDyn_force::CONSERVATIVE,
-					 WhichNode[0],DF[i],T[i]);
-	sprintf (comment,"\n# Couple %d, direction %d of marker %d due to Adams VTORQUE %d",
+					 WhichNode[0],DF[i],T[idx1]);
+	sprintf (comment,"Action Couple %d, direction %d of marker %d due to Adams VTORQUE %d",
 		 LT[idx1],i+1,Rm,label);
 	if (stf[i]!=NULL) {
 	   strcat (comment,"\n# [formula used for magnitude]:");
@@ -137,13 +183,18 @@ void s_vtorque::Translate (ostream& out)
 	   strcat (comment,"\n# [formula used for magnitude]:");
 	   strcat (comment,stf[3]);
 	}
+	
+        sprintf (title,"T%c [action] due to Adams VTORQUE %i",(88+i),label);
+
+	COUPLE[idx1]->Title(title);
 	COUPLE[idx1]->Remark(comment);
 	MBForces.insert (MBDyn_entry(LT[idx1],(MBDyn_card*) COUPLE[idx1]));
 	
 	LT[idx2]=GetFreeLabel (MBForces);
 	COUPLE[idx2]=new MBDyn_force_couple (LT[idx2],MBDyn_force::CONSERVATIVE,
-					     WhichNode[1],DF[i],-T[i]);
-	sprintf (comment,"\n# Reaction Couple %d, direction %d of marker %d due to Adams VTORQUE %d",
+					     WhichNode[1],DF[i],T[idx2]);
+	
+	sprintf (comment,"Reaction Couple %d, direction %d of marker %d due to Adams VTORQUE %d",
 		 LT[idx2],i+1,Rm,label);
 	if (stf[i]!=NULL) {
 	   strcat (comment,"\n# [formula used for magnitude]:");
@@ -153,9 +204,12 @@ void s_vtorque::Translate (ostream& out)
 	   strcat (comment,"\n# [formula used for magnitude]:");
 	   strcat (comment,stf[3]);
 	}
+	
+	sprintf (title,"T%c [reaction] due to Adams VTORQUE %i",(88+i),label);
+	
+	COUPLE[idx2]->Title(title);
 	COUPLE[idx2]->Remark(comment);
 	MBForces.insert (MBDyn_entry(LT[idx2],(MBDyn_card*) COUPLE[idx2]));
-	
 	
      }
    /* END OF COUPLES INSERTION */

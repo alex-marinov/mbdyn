@@ -1,4 +1,47 @@
-//                                  GFORCE.CC                                 
+/*
+
+MBDyn (C) is a multibody analysis code. 
+http://www.mbdyn.org
+
+Copyright (C) 1996-2000
+
+Pierangelo Masarati	<masarati@aero.polimi.it>
+Paolo Mantegazza	<mantegazza@aero.polimi.it>
+
+Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+via La Masa, 34 - 20156 Milano, Italy
+http://www.aero.polimi.it
+
+Changing this copyright notice is forbidden.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+------------------------------------------------------------------------------
+
+ADAMS2MBDyn (C) is a translator from ADAMS/View models in adm format
+into raw MBDyn input files.
+
+Copyright (C) 1999-2000
+Leonardo Cassan		<lcassan@tiscalinet.it>
+
+*/
+
+
+
+//                                 GFORCE.CC                                 
 
 #include <gforce.h>
 #include <output.h>
@@ -72,10 +115,9 @@ void s_gforce::Translate(ostream& out)
    // CHE LA POSIZIONE SPAZIALE (ASSOLUTA?) COINCIDA CON QUELLA DEL MARKER
    // I - IN PRATICA I PUNTI DI AZIONE E REAZIONE DEVONO COINCIDERE !
    //
-   /* Per ora, come nel caso di sforce si confondo i Marker con i nodi
-    * strutturali. Poi bisognerà sostituire tutto! Attenzione ! */
    char* comment = new char[600];
-
+   char* title = new char[80];
+   
    /* Retrieve formulas from map */
    char* stf[7];
    p_formula_entry* id = new p_formula_entry[7];
@@ -87,21 +129,28 @@ void s_gforce::Translate(ostream& out)
       if ((*id[k]).second != NULL) stf[k]=new char[strlen((*id[k]).second)]; 
       stf[k]=(*id[k]).second;
    }
-
    
-   Id I,J;
+   Id I,J,idx0,idx1;
    I = Node;
    J = Jfloat;
    Vec3 Relative_Arm[2];
    /* INSERIMENTO DELLE COMPONENTI DI FORZA */
-   double F[3]={Fx,Fy,Fz};
-   double T[3]={Tx,Ty,Tz};
-   int NumF = 3;
-   int NumT = 3;
-   Id LF[2*NumF];
-   Id LT[2*NumT];
-   MBDyn_force_structural* FORCE[2*NumF];
-   MBDyn_force_couple* COUPLE[2*NumT];
+   /* Vettore delle intensità */
+   double MF[6]={Fx,-Fx,Fy,-Fy,Fz,-Fz};
+   double MT[6]={Tx,-Tx,Ty,-Ty,Tz,-Tz};
+   /* dichiarazione dei drive */
+   MBDyn_drive_CONST* F[6],*T[6];
+   for (int i=0;i<6;i++) {
+      F[i]=new MBDyn_drive_CONST (MF[i]);
+      T[i]=new MBDyn_drive_CONST (MT[i]);
+      F[i]->Remark("/* drive */ ");
+      T[i]->Remark("/* drive */ ");
+   }
+      
+   Id LF[6];
+   Id LT[6];
+   MBDyn_force_structural* FORCE[6];
+   MBDyn_force_couple* COUPLE[6];
 
    MBDyn_reference* ACTION_MARKER,*REACTION_MARKER,*REF_MARKER,*P1,*P2,*P3;
    P1=(MBDyn_reference*) Find_MBCard (Node,MBReference);
@@ -141,23 +190,26 @@ void s_gforce::Translate(ostream& out)
    WhichReference[1] = (*p3).second;
    Relative_Arm[1] = P1->Abs_Pos;
    
+   /* Calculate offset */
    MBDyn_entity RefM (MBDyn_entity::REFERENCED,REF_MARKER->Label);
    for (int i=0;i<3;i++) {
 	   (DF[i])[i]=1;
 	   DF[i].REF=RefM;
    }
 
-   for (int i=0;i<NumF;i++)
+   /* Force insertion */
+   for (int i=0;i<3;i++)
      {
-	/* FORCE INSERTION */
+	/* Indexes */
+	idx0=(2*i); idx1=idx0+1;
 	
-	/* ACTION FORCE INSERT */
-	LF[(2*i)]=GetFreeLabel (MBForces);
-	FORCE[(2*i)]=new MBDyn_force_structural (LF[(2*i)],MBDyn_force::CONSERVATIVE,
-					WhichNode[0],DF[i],Relative_Arm[0],F[i]);
+	/* Action forces*/
+	LF[idx0]=GetFreeLabel (MBForces);
+	FORCE[idx0]=new MBDyn_force_structural (LF[idx0],MBDyn_force::CONSERVATIVE,
+					WhichNode[0],DF[i],Relative_Arm[0],F[idx0]);
 	sprintf (comment,
-		 "\n# Action Force %d, direction %d of marker %d, relative to Adams GFORCE %d",
-		 LF[i],i+1,Rm,label);
+		 "Action Force %d, direction %d of marker %d, relative to Adams GFORCE %d",
+		 LF[idx0],i+1,Rm,label);
 	
 	if (stf[i]!=NULL) {
 	   strcat (comment,"\n# [formula used for magnitude]:");
@@ -167,19 +219,22 @@ void s_gforce::Translate(ostream& out)
 	   strcat (comment,"\n# [formula used for magnitude]:");
 	   strcat(comment,stf[6]);
 	}
-	FORCE[(2*i)]->Remark(comment);
+
+	sprintf (title,"F%c [action] due to Adams GFORCE %i",(88+i),label);
+	FORCE[idx0]->Remark(comment);
+	FORCE[idx0]->Title(title);
 	
-	MBForces.insert (MBDyn_entry(LF[(2*i)],(MBDyn_card*) FORCE[(2*i)]));	
+	MBForces.insert (MBDyn_entry(LF[idx0],(MBDyn_card*) FORCE[idx0]));
 	
-	/* REACTION FORCE INSERT */
-	LF[(2*i)+1]=GetFreeLabel (MBForces);
-	FORCE[(2*i)+1]=new MBDyn_force_structural(LF[(2*i)+1],
+	/* Reaction forces */
+	LF[idx1]=GetFreeLabel (MBForces);
+	FORCE[idx1]=new MBDyn_force_structural(LF[idx1],
 						  MBDyn_force::CONSERVATIVE,
 						  WhichNode[1],DF[i],
-						  Relative_Arm[1],-F[i]);
+						  Relative_Arm[1],F[idx1]);
 	sprintf (comment,
-		 "\n# Reaction Force %d, direction %d of marker %d, relative to Adams GFORCE %d",
-		 LF[(2*i)+1],i+1,Rm,label);
+		 "Reaction Force %d, direction %d of marker %d, relative to Adams GFORCE %d",
+		 LF[idx1],i+1,Rm,label);
 	if (stf[i]!=NULL) {
 	   strcat (comment,"\n# [formula used for magnitude]:");
 	   strcat (comment,stf[i]);
@@ -188,24 +243,29 @@ void s_gforce::Translate(ostream& out)
 	   strcat (comment,"\n# [formula used for magnitude]:");
 	   strcat (comment,stf[6]);
 	}
-	FORCE[(2*i)+1]->Remark(comment);
+
+	sprintf (title,"F%c [reaction] due to Adams GFORCE %i",(88+i),label);
+	FORCE[idx1]->Title(title);
+	FORCE[idx1]->Remark(comment);
 	
-	MBForces.insert (MBDyn_entry(LF[(2*i)+1],(MBDyn_card*) FORCE[(2*i)+1]));
+	MBForces.insert (MBDyn_entry(LF[idx1],(MBDyn_card*) FORCE[idx1]));
 	
      }
    
-   for (int i=0;i<NumT;i++)
+   for (int i=0;i<3;i++)
      {
 	/* TORQUE INSERTION */
 	
+	idx0 = (2*i); idx1 = (2*i)+1;
+	
 	/* ACTION TORQUE INSERT */
-	LT[(2*i)]=GetFreeLabel (MBForces);
-	COUPLE[(2*i)]=new MBDyn_force_couple (LT[(2*i)],
+	LT[idx0]=GetFreeLabel (MBForces);
+	COUPLE[idx0]=new MBDyn_force_couple (LT[idx0],
 					      MBDyn_force::CONSERVATIVE,
-					      WhichNode[0],DF[i],T[i]);
+					      WhichNode[0],DF[i],T[idx0]);
 	sprintf (comment,
-		 "\n# Action Torque %d, direction %d of marker %d, relative to Adams GFORCE %d",
-		 LT[(2*i)],i+1,Rm,label);
+		 "Action Torque %d, direction %d of marker %d, relative to Adams GFORCE %d",
+		 LT[idx0],i+1,Rm,label);
 	if (stf[i+3]!=NULL) {
 	   strcat (comment,"\n# [formula used for magnitude]:");
 	   strcat (comment,stf[i+3]);
@@ -214,19 +274,21 @@ void s_gforce::Translate(ostream& out)
 	   strcat (comment,"\n# [formula used for magnitude]:");
 	   strcat(comment,stf[6]);
 	}
-	COUPLE[(2*i)]->Remark(comment);
+
+	sprintf (title,"T%c [action] due to Adams GFORCE %i",(88+i),label);
+	COUPLE[idx0]->Title(title);
+	COUPLE[idx0]->Remark(comment);
 	
-	MBForces.insert (MBDyn_entry(LT[(2*i)],(MBDyn_card*) COUPLE[(2*i)]));
+	MBForces.insert (MBDyn_entry(LT[idx0],(MBDyn_card*) COUPLE[idx0]));
 	
 	/* REACTION TORQUE INSERT */
-	Id idx = (2*i)+1;
-	LT[idx]= GetFreeLabel (MBForces);
-	COUPLE[idx]=new MBDyn_force_couple (LT[idx],
+	LT[idx1]= GetFreeLabel (MBForces);
+	COUPLE[idx1]=new MBDyn_force_couple (LT[idx1],
 					    MBDyn_force::CONSERVATIVE,
-					    WhichNode[1],DF[i],-T[i]);
+					    WhichNode[1],DF[i],T[idx1]);
 	sprintf (comment,
-		 "\n# Reaction Torque %d, direction %d of marker %d, relative to Adams GFORCE %d",
-		 LT[idx],i+1,Rm,label);
+		 "Reaction Torque %d, direction %d of marker %d, relative to Adams GFORCE %d",
+		 LT[idx1],i+1,Rm,label);
 	if (stf[i+3]!=NULL) {
 	   strcat (comment,"\n# [formula used for magnitude]:");
 	   strcat (comment,stf[i+3]);
@@ -235,9 +297,12 @@ void s_gforce::Translate(ostream& out)
 	   strcat (comment,"\n# [formula used for magnitude]:");
 	   strcat(comment,stf[6]);
 	}
-	COUPLE[idx]->Remark(comment);
+
+	sprintf (title,"T%c [reaction] due to Adams GFORCE %i",(88+i),label);
+	COUPLE[idx1]->Title(title);
+	COUPLE[idx1]->Remark(comment);
 	
-	MBForces.insert (MBDyn_entry(LT[idx],(MBDyn_card*) COUPLE[idx]));
+	MBForces.insert (MBDyn_entry(LT[idx1],(MBDyn_card*) COUPLE[idx1]));
 
      }
    /* END OF FORCES AND COUPLE INSERTION */

@@ -1,3 +1,44 @@
+/*
+
+MBDyn (C) is a multibody analysis code. 
+http://www.mbdyn.org
+
+Copyright (C) 1996-2000
+
+Pierangelo Masarati	<masarati@aero.polimi.it>
+Paolo Mantegazza	<mantegazza@aero.polimi.it>
+
+Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+via La Masa, 34 - 20156 Milano, Italy
+http://www.aero.polimi.it
+
+Changing this copyright notice is forbidden.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+------------------------------------------------------------------------------
+
+ADAMS2MBDyn (C) is a translator from ADAMS/View models in adm format
+into raw MBDyn input files.
+
+Copyright (C) 1999-2000
+Leonardo Cassan		<lcassan@tiscalinet.it>
+
+*/
+
 //                                MATRIX.CC
 
 #include <matrix.h>
@@ -58,7 +99,7 @@ ostream& Vector::Write (ostream& out, const char* fill) const
    /* Check if vector is null */
    Boolean IsNull=Y;
    for (int i=0; i<sz; i++) if (dato[i] != 0) IsNull=N;
-   if ((IsNull) && (EXTENDED_MATRIX_DISPLAY==N)) out << "null"; /* FIXME: && ? */
+   if ((IsNull) && (EXTENDED_MATRIX_DISPLAY==N)) out << "null";
    else {
    for (int i=0; i<(sz-1); i++) out << dato[i] << fill;
       out << dato[sz-1];
@@ -257,7 +298,7 @@ ostream& Matrix::Write(ostream& out, const char* fill,
 	/* DIAG MATRIX */
 	for (int i=0;i<rows();i++)
 	  for (int j=0;j<columns();j++)
-	    if ((i!=j) && ((*data[i])[j]!=0)) TARGET=N; /* FIXME: && ? */
+	    if ((i!=j) && ((*data[i])[j]!=0)) TARGET=N;
 	if (TARGET==Y) TYPE=DIAG_MATRIX;
 	/* NULL MATRIX */
 	for (int i=0;i<rows();i++)
@@ -398,7 +439,7 @@ Vec3 Interp (const Vec3& A, const Vec3& B, double P=0.5)
 {
   Vector C(3),D(3);
   Vec3 E;
-  E=Interp (A,B,P);
+  E=Interp ( (Vector) A, (Vector) B,P);
   return E;
 }
 
@@ -493,7 +534,7 @@ ostream& Mat3x3::RWrite(ostream& out, const char* fill,
 	/* DIAG MATRIX */
 	for (int i=0;i<rows();i++)
 	  for (int j=0;j<columns();j++)
-	    if ((i!=j) && ((*data[i])[j]!=0)) TARGET=N; /* FIXME: && ? */
+	    if ((i!=j) && ((*data[i])[j]!=0)) TARGET=N;
 	if (TARGET==Y) TYPE=DIAG_MATRIX;
 	/* NULL MATRIX */
 	for (int i=0;i<rows();i++)
@@ -704,7 +745,7 @@ ostream& RVec3::Write (ostream& out, const char* fill) const
    REF.Restart(out);
    Boolean IsNull=Y;
    for (int i=0; i<sz; i++) if (dato[i] != 0) IsNull=N;
-   if ((IsNull) && (EXTENDED_MATRIX_DISPLAY==N)) out << "null"; /* FIXME: && ? */
+   if ((IsNull) && (EXTENDED_MATRIX_DISPLAY==N)) out << "null";
    else {
    for (int i=0; i<(sz-1); i++) out << dato[i] << fill;
       out << dato[sz-1];
@@ -731,7 +772,7 @@ ostream& RMat3x3::Write (ostream& out, const char* fill,
 	/* DIAG MATRIX */
 	for (int i=0;i<rows();i++)
 	  for (int j=0;j<columns();j++)
-	    if ((i!=j) && ((*data[i])[j]!=0)) TARGET=N; /* FIXME: && ? */
+	    if ((i!=j) && ((*data[i])[j]!=0)) TARGET=N;
 	if (TARGET==Y) TYPE=DIAG_MATRIX;
 	/* NULL MATRIX */
 	for (int i=0;i<rows();i++)
@@ -784,7 +825,7 @@ ostream& RMat3x3::RWrite(ostream& out, const char* fill,
 	/* DIAG MATRIX */
 	for (int i=0;i<rows();i++)
 	  for (int j=0;j<columns();j++)
-	    if ((i!=j) && ((*data[i])[j]!=0)) TARGET=N; /* FIXME: && ? */
+	    if ((i!=j) && ((*data[i])[j]!=0)) TARGET=N;
 	if (TARGET==Y) TYPE=DIAG_MATRIX;
 	/* NULL MATRIX */
 	for (int i=0;i<rows();i++)

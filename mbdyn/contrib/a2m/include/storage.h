@@ -1,3 +1,44 @@
+/*
+
+MBDyn (C) is a multibody analysis code. 
+http://www.mbdyn.org
+
+Copyright (C) 1996-2000
+
+Pierangelo Masarati	<masarati@aero.polimi.it>
+Paolo Mantegazza	<mantegazza@aero.polimi.it>
+
+Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+via La Masa, 34 - 20156 Milano, Italy
+http://www.aero.polimi.it
+
+Changing this copyright notice is forbidden.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+------------------------------------------------------------------------------
+
+ADAMS2MBDyn (C) is a translator from ADAMS/View models in adm format
+into raw MBDyn input files.
+
+Copyright (C) 1999-2000
+Leonardo Cassan		<lcassan@tiscalinet.it>
+
+*/
+
 #ifndef STORAGE_H
 #define STORAGE_H
 
@@ -51,9 +92,10 @@ typedef map < Id, Id, less<Id> > LTL_deck;
 typedef LTL_deck::value_type LTL_entry;
 typedef LTL_deck::iterator p_LTL_entry;
 
-typedef LTL_deck PTR_deck,MTR_deck,PTN_deck,BTP_deck;
-typedef LTL_entry PTR_entry,MTR_entry,PTN_entry,BTP_entry;
-typedef p_LTL_entry p_PTR_entry,p_MTR_entry,p_PTN_entry,p_BTP_entry;
+typedef LTL_deck PTR_deck,MTR_deck,PTN_deck,BTP_deck,BTR_deck;
+typedef LTL_entry PTR_entry,MTR_entry,PTN_entry,BTP_entry,BTR_entry;
+typedef p_LTL_entry p_PTR_entry,p_MTR_entry,p_PTN_entry,
+  p_BTP_entry,p_BTR_entry;
 
 /* STRUTTURE CHE SERVONO A GETFREE LABEL PER RESTITUIRE UN VALORE DI*/
 /* LABEL NON ANCORA UTILIZZATO. I TRE FALDONI SONO ELEMENTI,NODI, E */
