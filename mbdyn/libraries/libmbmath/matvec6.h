@@ -461,6 +461,23 @@ class Mat6x6 {
       return Mat6x6(m[0][0]/d, m[1][0]/d, m[0][1]/d, m[1][1]/d);
    };   
               
+   const Mat6x6& operator *= (const doublereal& d) {
+      m[0][0] *= d;
+      m[1][0] *= d;
+      m[0][1] *= d;
+      m[1][1] *= d;
+      return *this;
+   };   
+   
+   const Mat6x6& operator /= (const doublereal& d) {
+      ASSERT(d != 0.);
+      m[0][0] /= d;
+      m[1][0] /= d;
+      m[0][1] /= d;
+      m[1][1] /= d;
+      return *this;
+   };   
+              
    Vec6 operator * (const Vec6& v) const {
       return Vec6(m[0][0]*v.GetVec1()+m[0][1]*v.GetVec2(),
 		  m[1][0]*v.GetVec1()+m[1][1]*v.GetVec2());
