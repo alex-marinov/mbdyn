@@ -51,7 +51,6 @@
 
 #if 0
 #define MODAL_USE_INV9
-#define MODAL_USE_GRAVITY /* need GravityOwner inheritance first */
 #endif
 
 /* Modal - begin */
