@@ -2345,8 +2345,11 @@ MultiStepIntegrator::Eig(void)
    }
    
    /* Output? */
+   Out << "Mode n. " "  " "    Real    " "   " "    Imag    " "  " "    " "   Damp %   " "  Freq Hz" << endl;
+
    for (int iCnt = 1; iCnt <= iSize; iCnt++) {
-      Out << "Mode " << setw(4) << iCnt 
+#if 0
+      Out << setw(8) << iCnt 
 	<< ": ( " << AlphaR.dGetCoef(iCnt) << " + j * "
 	<< AlphaI.dGetCoef(iCnt) << " ) / " << Beta.dGetCoef(iCnt);
       if (fabs(Beta.dGetCoef(iCnt)) > 1.e-16) {
@@ -2354,6 +2357,28 @@ MultiStepIntegrator::Eig(void)
 	   << " + j * " << AlphaI.dGetCoef(iCnt)/Beta.dGetCoef(iCnt) << ")";
       }
       Out << endl;
+#else /* 0 */
+      Out << setw(8) << iCnt << ": ";
+      if (fabs(Beta.dGetCoef(iCnt)) > 1.e-16) {
+         Out << setw(12) << AlphaR.dGetCoef(iCnt)/Beta.dGetCoef(iCnt)
+	   << " + " << setw(12) << AlphaI.dGetCoef(iCnt)/Beta.dGetCoef(iCnt)
+	   << " j";
+	 doublereal d = sqrt(pow(AlphaR.dGetCoef(iCnt), 2) + pow(AlphaI.dGetCoef(iCnt), 2));
+	 if (d > 1.e-16) {
+	    Out << "    " << setw(12) << AlphaR.dGetCoef(iCnt)/d;
+	 } else {
+	    Out << "    " << setw(12) << 0.;
+	 }
+	 Out << "    " << setw(12) << AlphaI.dGetCoef(iCnt)/(2*M_PI*Beta.dGetCoef(iCnt));
+      } else {
+         Out << setw(12) << 0. 
+	   << " + " << setw(12) << 0.
+	   << " j    " << setw(12) << 0. 
+	   << "    " << setw(12) << 0.;
+      }
+      Out << endl;
+
+#endif /* 0 */
    }
 
    /* Non puo' arrivare qui se le due aree di lavoro non sono definite */
