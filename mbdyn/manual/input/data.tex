@@ -195,20 +195,52 @@ mainly used to check models and simulations at various phases.
 
 \subsubsection{Solver}   
 \begin{verbatim}
-    <card> ::= solver : { meschach | harwell }
+    <card> ::= solver : { umfpack3 | y12 | harwell | meschach }
                [ , workspace size , <size> ] 
 	       [ , pivot factor , <factor> ] ;
 \end{verbatim}
-The default is \texttt{harwell} with a \texttt{workspace size}
+The default, if available, is \texttt{umfpack3} which dynamically
+allocates memory as required, so the \texttt{workspace size} 
+parameter is ignored.
+The \texttt{y12} solver requires static allocation of the workspace;
+the optimal size is between 2 and 3 times the number of nonzero 
+coefficients.
+By default twice the size of the full matrix is allocated;
+then the solver automatically uses an optimal amount of memory
+based on the results of the previous factorization; this could
+result in a failure if the filling of the matrix changes 
+dramatically between two factorizations.
+Another solver, that is available mostly for historical reasons, 
+is \texttt{harwell}, with a \texttt{workspace size}
 of $ numdofs\times{numdofs} $, but in certain cases the user
 might prefer a smaller workspace, since the matrix is handled as sparse,
 while sometimes a larger space is required, since when the matrix is
 full, a little more space is required, due to extra storage needs when
 the matrix fills up.
+
+\noindent
 Pivot factor is a real, which in a heuristic sense can be regarded as
 the treshold for the ratio between two coefficients below which they are
 switched, so $ 0.0 $ means no pivoting, while $ 1.0 $ means switch as
 soon as the norm of the ratio is less than unity.
+
+\noindent
+Table~\ref{tab:solvers} summarizes the properties of the solvers
+
+\begin{table}
+\centering
+\caption{Properties of the solvers}
+\begin{tabular}{lccc}
+Solver & Pivot & Size & Memory allocation \\
+\hline
+Umfpack 3	& full: 1.0 	& 			& dynamic \\
+ 		& default: 0.1 	&			& \\
+Y12m 		& full: 1.0 	& $2 \times n^2 $	& static \\
+		&		& optimal		& \\
+Harwell		& full: 1.0	& ?			& static \\
+Meschach	& full: 1.0	& 			& dynamic
+\end{tabular}
+\end{table}
 
 
 
