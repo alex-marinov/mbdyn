@@ -428,10 +428,10 @@ mostlyclean distclean maintainer-clean
 
 # Explicit compile rules to enforce the use of CXX!
 dpc.o : gpc.cc
-	$(CXXCOMPILE) $(CXXFLAGS) -DTEST_DPC -c gpc.cc && mv gpc.o dpc.o
+	-$(CXXCOMPILE) $(CXXFLAGS) -DTEST_DPC -c gpc.cc && mv gpc.o dpc.o
 
 dpc : dpc.o
-	$(CXXLINK) -o dpc $(dpc_LDADD)
+	-$(CXXLINK) -o dpc $(dpc_LDADD)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -21,8 +21,8 @@ dpc_LDADD = dpc.o ../base/libbase.la ../../libraries/libmbutil/libmbutil.la ../.
 
 # Explicit compile rules to enforce the use of CXX!
 dpc.o : gpc.cc
-	$(CXXCOMPILE) $(CXXFLAGS) -DTEST_DPC -c gpc.cc && mv gpc.o dpc.o
+	-$(CXXCOMPILE) $(CXXFLAGS) -DTEST_DPC -c gpc.cc && mv gpc.o dpc.o
 
 dpc : dpc.o
-	$(CXXLINK) -o dpc $(dpc_LDADD)
+	-$(CXXLINK) -o dpc $(dpc_LDADD)
 
