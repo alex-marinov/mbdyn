@@ -87,7 +87,7 @@ SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
 	row_cont_type::const_iterator re;
 		
 	for (integer col = 0; col < NCols; col++) {
-		Ap[col] = x_ptr;
+		Ap[col] = x_ptr + offset;
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin(); ri != re; ri++) {
 			Ax[x_ptr] = ri->second;
@@ -99,7 +99,7 @@ SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
 	ASSERTMSGBREAK(x_ptr == NZ, "Error in "
 			"SpMapMatrixHandler::MakeCompressedColumnForm");
 
-	Ap[NCols] = x_ptr;
+	Ap[NCols] = x_ptr + offset;
 
 	return Nz();
 }
@@ -127,7 +127,7 @@ SpMapMatrixHandler::MakeIndexForm(doublereal *const Ax,
 	row_cont_type::const_iterator re;		
 		
 	for (integer col = 0; col < NCols; col++) {
-		Ap[col] = x_ptr;
+		Ap[col] = x_ptr + offset;
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin(); ri != re; ri++) {
 			Ax[x_ptr] = ri->second;
@@ -140,7 +140,7 @@ SpMapMatrixHandler::MakeIndexForm(doublereal *const Ax,
 	ASSERTMSGBREAK(x_ptr == NZ, "Error in "
 			"SpMapMatrixHandler::MakeIndexForm");
 
-	Ap[NCols] = x_ptr;
+	Ap[NCols] = x_ptr + offset;
 
 	return Nz();
 }
