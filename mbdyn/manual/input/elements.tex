@@ -341,12 +341,16 @@ The complete syntax is:
     <arglist> ::= <element_label> , 
                   <element_type> ,
                   <parameter_node_label> , 
-                  <parameter_index>
+                  { <parameter_index> | string , " <parameter_name> " }
 \end{verbatim}
 Each element makes a number of parameters available for such binding; a
 detailed list will be presented in a future release of the input manual.
 The value of \texttt{parameter\_index} must be legal, i.e.\ between 1 and the
 maximum number of parameters made available by the element.
+The alternative form, which will become the default, allows more
+friendly definition of the binding.
+The name of the parameter depends on the element whose property
+is being bound.
 
 
 
