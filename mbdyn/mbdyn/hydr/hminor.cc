@@ -622,9 +622,11 @@ void Orifice::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) { 
       ostream& out = OH.Hydraulic();
-      out << setw(8) << GetLabel();
-      out << " " << vel << " " << flow << " " << Re << endl;
-   }  
+      out << setw(8) << GetLabel() << " " 
+        << vel << " " 
+	<< flow << " " 
+	<< Re << endl;
+   }
 }
 
 void Orifice::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const 
