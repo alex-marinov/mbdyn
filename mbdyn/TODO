@@ -19,7 +19,7 @@ A. Configuration:
 B. Package:
 
 	- add a comprehensive test suite
-	- make compliant to GNU style
+	- make more compliant to GNU style
 
 
 
@@ -41,15 +41,18 @@ D. Code:
 		contact point: Marco Morandini <morandini@aero.polimi.it>)
 
 	Medium Projects:
-	- recover existing soft restart
-	- add MATLAB/Octave and Simulink hooks.
+	- recover existing soft restart (Michele Attolico is working at it)
+	- add MATLAB/Octave and Simulink hooks (Michele Attolico is working
+		at it; see contrib/SimulinkInterface).
 		``matlab'' element that feeds matlab with data structures 
 		containing variables and executes matlab code.
 	- develop a trim control as an external command that drives
 		a simulation.
-	- improve friction and add it to all joints
-          (try a transition force from stick to slip that is higher)
-	- add Arnoldi-like eigenvalue extraction module
+	- improve friction and add it to all joints (Marco Morandini is
+		working at it; suggestion: try a transition force from stick
+		to slip that is higher than slip force)
+	- add Arnoldi-like eigenvalue extraction module (Giuseppe Quaranta
+		is working at it; see var/pod*.m)
 	- review output to allow selective ascii/binary output
 	- replace MyLList and LLStack with STL containers
 
@@ -61,17 +64,19 @@ D. Code:
 		with pressure/temperature dependencies.
 	- improve symbolic constitutive law (based on GiNaC)
 	- move exception handling towards <stdexcept>
-	- review/improve user-configurable statistics output
+	- review/improve user-configurable statistics output (partially done;
+		see "output:" statement in integrator data block)
 	- add Matlab-compatible sparse matrix generation for sparse
 	  matrix eigenvalue analysis (eigs)
 	- add selected output streamed on sockets for interactive analysis
 		by implementing sort of "sensors", possibly based on the
-		elements' "private data" (under devel in RTAI)
+		elements' "private data" (Michele Attolico is working at it;
+		see "output elements" and RTAI-related features)
 	- add rot2any/any2rot utilities
 	- try to rewrite hydraulic nodes as scalar differential (?)
 	- add joints like:
 		- 2-node clamp (spherical + prismatic in one joint)
-		- universal without displacement constraints (done)
+		- universal without displacement constraints (DONE)
 		- inplane and inline between a node and the ground
 	- allow to define modules as separate entities which are later
 		referred to by labels, like c81 data or hydraulic fluids.
@@ -79,8 +84,10 @@ D. Code:
 		the module path and then use the file name as a label;
 		the underlying library will open modules exactly once
 		despite they're loaded many times; however, this would
-		allow to use statically linked modules as loadable elements)
+		allow to use statically linked modules as loadable
+		elements) (DONE)
 	- link to Taucs sparse solver: http://www.tau.ac.il/~stoledo/taucs
+		(Marco Morandini is working at it)
 	- add aircraft instruments as sensors (e.g. writing measures
 		to parameter nodes; refer to
 		http://www.allstar.fiu.edu/aero/FlightIns.htm ):
@@ -104,9 +111,14 @@ D. Code:
 	- append constitutive law output, if any, to elements' output
 	  (DONE infrastructure, shock absorber and rods)
 	- merge tool to generate ADAMS/View .cmd models from raw output
-	- add piecewise linear or other simple generic elastic constitutive laws
+		(Gian Luca Ghiringhelli is working at it)
+	- add piecewise linear or other simple generic elastic constitutive
+		laws
 	- allow runtime load of constitutive laws
 	- allow runtime load of drive callers
+	- generate a binary form of the .fem data for the modal element
+		that can be loaded instead of the text version according
+		to time stamps, to speed-up large models input
 
 
 
@@ -114,7 +126,7 @@ D. Code:
 E. Bugs/missing features:
 
 	- check for nested /* */ comments in parsers (DONE)
-	- eliminate nasty dependence from f2c typedefs (doublereal and so)
+	- eliminate nasty dependence from f2c typedef's (doublereal and so)
 	- review deformable viscous/viscoelastic hinge according
 	  to the elastic one
 	- check "universal pin"
