@@ -143,4 +143,5 @@ class AutomaticStructElem : virtual public Elem {
 
 /* AutomaticStructElem - end */
 
-#endif
+#endif /* AUTOSTR_H */
+
