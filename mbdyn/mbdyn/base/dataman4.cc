@@ -602,28 +602,165 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     
 	     ppE = ElemData[Elem::AIRPROPERTIES].ppFirstElem;
 	     uLabel = 1;
-	     
-	     DriveCaller *pRho = ReadDriveData(this, HP, &DrvHdl);
 
-	     doublereal dSS = HP.GetReal();
-	     DEBUGLCOUT(MYDEBUG_INPUT, "Sound speed: " << dSS << std::endl);
-	     if (dSS <= 0.) {
-		std::cerr << "illegal null or negative sound speed at line "
-		  << HP.GetLineData() << std::endl;
+	     if (HP.IsKeyWord("std")) {
+		doublereal PRef(0.);
+		DriveCaller *RhoRef = NULL;
+		doublereal TRef(0.);
+		doublereal a(0.);
+		doublereal R(0.);
+		doublereal g0(0.);
+		doublereal z1(0.);
+		doublereal z2(0.);
+
+		bool Std = false;
+
+		if (HP.IsKeyWord("SI")) {
+			Std = true;
+
+			PRef = 101325.;		/* Pa */
+
+			/* kg/m^3 */
+			SAFENEWWITHCONSTRUCTOR(RhoRef, ConstDriveCaller,
+					ConstDriveCaller(&DrvHdl, 1.2250));
+
+			TRef = 288.16;		/* K */
+			a = -6.5e-3;		/* K/m */
+			R = 287.;		/* J/kgK */
+			g0 = 9.81; 		/* m/s^2 */
+			z1 = 11000.; 		/* m */
+			z2 = 25000.; 		/* m */
+
+		} else if (HP.IsKeyWord("british")) {
+			Std = true;
+
+			PRef = 2116.2; 		/* lb/ft^2 */
+
+			/* slug/ft3 */
+			SAFENEWWITHCONSTRUCTOR(RhoRef, ConstDriveCaller,
+					ConstDriveCaller(&DrvHdl, 0.002377));
+
+			TRef = 518.69;		/* R */
+			a = -3.566e-3;		/* R/ft */
+			R = 1716;		/* ft lb/slug R */
+			g0 = 32.17;		/* ft/s^2 */
+			z1 = 36089;		/* ft */
+			z2 = 82021;		/* ft */
+
+		} else {
+			PRef = HP.GetReal();
+			if (PRef <= 0.) {
+				std::cerr << "illegal reference "
+					"pressure" << PRef 
+					<< " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			RhoRef = ReadDriveData(this, HP, &DrvHdl);
+			/* FIXME: we need to do runtime checks ... */
+
+			TRef = HP.GetReal();
+			if (TRef <= 0.) {
+				std::cerr << "illegal reference "
+					"temperature " << TRef 
+					<< " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			a = HP.GetReal();
+			if (a >= 0.) {
+				/* FIXME: should we leave this free? */
+				std::cerr << "illegal temperature gradient "
+					<< a << " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			R = HP.GetReal();
+			if (R <= 0.) {
+				std::cerr << "illegal gas constant " << R
+					<< " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			g0 = HP.GetReal();
+			if (g0 <= 0.) {
+				std::cerr << "illegal reference "
+					"gravity acceleration " << g0
+					<< " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			z1 = HP.GetReal();
+			if (z1 <= 0.) {
+				std::cerr << "illegal troposphere altitude "
+					<< z1
+					<< " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			z2 = HP.GetReal();
+			if (z2 <= z1) {
+				std::cerr << "illegal stratosphere altitude "
+					<< z2
+					<< " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+		}
+	
+		if (Std && HP.IsKeyWord("temperature" "deviation")) {
+			TRef += HP.GetReal();
+			if (TRef <= 0.) {
+				std::cerr << "illegal reference "
+					"temperature " << TRef 
+					<< " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+		}
+
+	     	/* Driver multiplo */	   
+	     	TplDriveCaller<Vec3>* pDC 
+	       		= ReadTplDrive(this, HP, &DrvHdl, Vec3(0.));
+	     	HP.PutKeyTable(K);	      	      
+	     
+	     	flag fOut = fReadOutput(HP, Elem::AIRPROPERTIES);
+	     
+	     	SAFENEWWITHCONSTRUCTOR(*ppE, 
+				StdAirProperties,
+				StdAirProperties(pDC, 
+					PRef, RhoRef, TRef, a, R, g0, z1, z2,
+					fOut));
+	     } else {
+
+	     	DriveCaller *pRho = ReadDriveData(this, HP, &DrvHdl);
+
+	     	doublereal dSS = HP.GetReal();
+	     	DEBUGLCOUT(MYDEBUG_INPUT, "Sound speed: " << dSS << std::endl);
+	     	if (dSS <= 0.) {
+			std::cerr << "illegal null or negative sound speed "
+				"at line " << HP.GetLineData() << std::endl;
 		
-		THROW(DataManager::ErrGeneric());
-	     }	      
+			THROW(DataManager::ErrGeneric());
+	     	}	      
 	     
-	     /* Driver multiplo */	   
-	     TplDriveCaller<Vec3>* pDC 
-	       = ReadTplDrive(this, HP, &DrvHdl, Vec3(0.));	      	      
-	     HP.PutKeyTable(K);	      	      
+	     	/* Driver multiplo */	   
+	     	TplDriveCaller<Vec3>* pDC 
+	       		= ReadTplDrive(this, HP, &DrvHdl, Vec3(0.));
+	     	HP.PutKeyTable(K);	      	      
 	     
-	     flag fOut = fReadOutput(HP, Elem::AIRPROPERTIES);
+	     	flag fOut = fReadOutput(HP, Elem::AIRPROPERTIES);
 	     
-	     SAFENEWWITHCONSTRUCTOR(*ppE, 
-				    AirProperties,
-				    AirProperties(pDC, pRho, dSS, fOut));
+	     	SAFENEWWITHCONSTRUCTOR(*ppE, 
+				BasicAirProperties,
+				BasicAirProperties(pDC, pRho, dSS, fOut));
+	     }
 	     
 	     break;
 	  }

@@ -67,14 +67,11 @@
 
 /* AirProperties - begin */
 
-AirProperties::AirProperties(const TplDriveCaller<Vec3>* pDC,
-		DriveCaller *pRho, doublereal dSS, flag fOut)
+AirProperties::AirProperties(const TplDriveCaller<Vec3>* pDC, flag fOut)
 : Elem(1, Elem::AIRPROPERTIES, fOut),
 InitialAssemblyElem(1, Elem::AIRPROPERTIES, fOut),
-TplDriveOwner<Vec3>(pDC),    
-Velocity(0.),
-pAirDensity(pRho),
-dSoundSpeed(dSS)
+TplDriveOwner<Vec3>(pDC),
+Velocity(0.)
 {
 	NO_OP;
 }
@@ -88,9 +85,7 @@ AirProperties::~AirProperties(void)
 std::ostream&
 AirProperties::Restart(std::ostream& out) const
 {
-	return out << "  air properties: ",
-		pAirDensity->Restart(out) << ", " << dSoundSpeed << ", ",
-		pGetDriveCaller()->Restart(out) << ';' << std::endl;	   
+	return pGetDriveCaller()->Restart(out) << ';' << std::endl;	   
 }
    
 /* Dimensioni del workspace */
@@ -177,37 +172,213 @@ AirProperties::Output(OutputHandler& OH) const
 	}
 }
      
+/* AirProperties - end */
+
+
+/* BasicAirProperties - begin */
+
+BasicAirProperties::BasicAirProperties(const TplDriveCaller<Vec3>* pDC,
+		DriveCaller *pRho, doublereal dSS, flag fOut)
+: Elem(1, Elem::AIRPROPERTIES, fOut),
+AirProperties(pDC, fOut),
+pAirDensity(pRho),
+dSoundSpeed(dSS)
+{
+	NO_OP;
+}
+   
+BasicAirProperties::~BasicAirProperties(void)
+{
+	NO_OP;
+}
+
+/* Scrive il contributo dell'elemento al file di restart */
+std::ostream&
+BasicAirProperties::Restart(std::ostream& out) const
+{
+	out << "  air properties: ",
+		pAirDensity->Restart(out) << ", " << dSoundSpeed << ", ";
+	return AirProperties::Restart(out);
+}
+   
 const Vec3&
-AirProperties::GetVelocity(const Vec3& /* X */ ) const
+BasicAirProperties::GetVelocity(const Vec3& /* X */ ) const
 {
 	return Velocity;
 }
    
 doublereal
-AirProperties::dGetAirDensity(const Vec3& /* X */ ) const
+BasicAirProperties::dGetAirDensity(const Vec3& /* X */ ) const
 {
 	return pAirDensity->dGet();
 }
    
 doublereal
-AirProperties::dGetAirPressure(const Vec3& /* X */ ) const
+BasicAirProperties::dGetAirPressure(const Vec3& /* X */ ) const
 {
-	return 0.;
+	return -1.;
 }
 
 doublereal
-AirProperties::dGetAirTemperature(const Vec3& /* X */ ) const
+BasicAirProperties::dGetAirTemperature(const Vec3& /* X */ ) const
 {
-	return 0.;
+	return -1.;
 }
 
 doublereal
-AirProperties::dGetSoundSpeed(const Vec3& /* X */ ) const
+BasicAirProperties::dGetSoundSpeed(const Vec3& /* X */ ) const
 {
 	return dSoundSpeed;
 }
 
-/* AirProperties - end */
+bool
+BasicAirProperties::GetAirProps(const Vec3& X, Vec3& V, doublereal& rho,
+		doublereal& c, doublereal& p, doublereal& T) const
+{
+	/* FIXME */
+	V = GetVelocity(X);
+	rho = dGetAirDensity(X);
+	c = dGetSoundSpeed(X);
+	p = -1.;
+	T = -1.;
+
+	return true;
+}
+
+/* BasicAirProperties - end */
+
+
+/* StdAirProperties - begin */
+
+StdAirProperties::StdAirProperties(const TplDriveCaller<Vec3>* pDC,
+		 doublereal PRef_, DriveCaller *RhoRef_, doublereal TRef_,
+		 doublereal a_, doublereal R_, doublereal g0_,
+		 doublereal z1_, doublereal z2_, flag fOut)
+: Elem(1, Elem::AIRPROPERTIES, fOut),
+AirProperties(pDC, fOut),
+PRef(PRef_),
+RhoRef(RhoRef_),
+TRef(TRef_),
+a(a_),
+R(R_),
+g0(g0_),
+z1(z1_),
+z2(z2_)
+{
+	ASSERT(PRef > 0.);
+	ASSERT(RhoRef != NULL);
+	ASSERT(TRef > 0.);
+	ASSERT(R > 0.);
+	ASSERT(g0 > 0.);
+	ASSERT(z1 > 0.);
+	ASSERT(z2 > z1);
+}
+   
+StdAirProperties::~StdAirProperties(void)
+{
+	NO_OP;
+}
+
+/* Scrive il contributo dell'elemento al file di restart */
+std::ostream&
+StdAirProperties::Restart(std::ostream& out) const
+{
+	out << "  air properties: std, "
+		<< PRef << ", ",
+		RhoRef->Restart(out) << ", "
+		<< TRef << ", "
+		<< a << ", "
+		<< R << ", "
+		<< g0 << ", "
+		<< z1 << ", "
+		<< z2 << ", ";
+	return AirProperties::Restart(out);
+}
+   
+const Vec3&
+StdAirProperties::GetVelocity(const Vec3& /* X */ ) const
+{
+	return Velocity;
+}
+   
+doublereal
+StdAirProperties::dGetAirDensity(const Vec3& X) const
+{
+	doublereal rho, c, p, T;
+
+	GetAirProps(X, Velocity, rho, c, p, T);
+
+	return rho;
+}
+   
+doublereal
+StdAirProperties::dGetAirPressure(const Vec3& X) const
+{
+	doublereal rho, c, p, T;
+
+	GetAirProps(X, Velocity, rho, c, p, T);
+
+	return p;
+}
+
+doublereal
+StdAirProperties::dGetAirTemperature(const Vec3& X) const
+{
+	doublereal rho, c, p, T;
+
+	GetAirProps(X, Velocity, rho, c, p, T);
+
+	return T;
+}
+
+doublereal
+StdAirProperties::dGetSoundSpeed(const Vec3& X) const
+{
+	doublereal rho, c, p, T;
+
+	GetAirProps(X, Velocity, rho, c, p, T);
+
+	return c;
+}
+
+bool
+StdAirProperties::GetAirProps(const Vec3& X, Vec3& V, doublereal& rho,
+		doublereal& c, doublereal& p, doublereal& T) const
+{
+	/* FIXME */
+	doublereal z = X.dGet(3);
+
+	if (z < z1) {
+		/* regione del gradiente (troposfera) */
+		T = TRef + a * z;
+		p = PRef * pow(T / TRef, -g0 / (a * R));
+		doublereal rhoRef = RhoRef->dGet();
+		if (rhoRef < 0.) {
+			std::cerr << "illegal reference density "
+				<< rhoRef << std::endl;
+			THROW(ErrGeneric());
+		}
+		rho = rhoRef * pow(T / TRef, -(g0 / (a * R) + 1));
+	} else {
+		/* regione a T = const. (stratosfera) */
+		T = TRef + a * z1;
+		doublereal p1 = PRef * pow(T / TRef, -g0 / (a * R));
+		p = p1*exp(-g0 / (R * T) * (z - z1));
+		doublereal rhoRef = RhoRef->dGet();
+		if (rhoRef < 0.) {
+			std::cerr << "illegal reference density "
+				<< rhoRef << std::endl;
+			THROW(ErrGeneric());
+		}
+		doublereal rho1 = rhoRef * pow(T / TRef, -(g0 / (a * R) + 1));
+		rho = rho1 * exp(-(g0 / (R*T) * (z - z1)));
+	}
+	c = sqrt(1.4 * R * T);
+
+	return true;
+}
+
+/* StdAirProperties - end */
 
 
 /* AirPropOwner - begin */
@@ -264,6 +435,13 @@ doublereal
 AirPropOwner::dGetSoundSpeed(const Vec3& X) const
 {
 	return pAirProperties->dGetSoundSpeed(X); 
+}
+
+bool
+AirPropOwner::GetAirProps(const Vec3& X, Vec3& V, doublereal& rho,
+		doublereal& c, doublereal& p, doublereal& T) const
+{
+	return pAirProperties->GetAirProps(X, V, rho, c, p, T);
 }
 
 /* AirPropOwner - end */

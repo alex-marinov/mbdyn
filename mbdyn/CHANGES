@@ -20,6 +20,7 @@ MBDyn 1.2-Engineering
 		  and orientation with respect to the reference node
 		- added ".log" file for miscellaneous logs
 		- added ".air" file for air properties output
+		- added standard air provisions
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility

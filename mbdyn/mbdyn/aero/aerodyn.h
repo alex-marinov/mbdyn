@@ -73,20 +73,13 @@ extern const char* psAeroNames[];
 class AirProperties 
 : virtual public Elem, public InitialAssemblyElem, public TplDriveOwner<Vec3> {
  protected:
-   Vec3 Velocity;
-   DriveCaller *pAirDensity;
-   doublereal dSoundSpeed;
+   mutable Vec3 Velocity;
    
  public:
-   AirProperties(const TplDriveCaller<Vec3>* pDC,
-		 DriveCaller *pRho, doublereal dSS, flag fOut);
+   AirProperties(const TplDriveCaller<Vec3>* pDC, flag fOut);
    
    virtual ~AirProperties(void);
 
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
    
@@ -147,7 +140,55 @@ class AirProperties
 					   const VectorHandler& XCurr);
 
    virtual void Output(OutputHandler&) const;
-     
+
+   /*
+    * Deprecated; use GetAirProps instead
+    */
+   virtual const Vec3& GetVelocity(const Vec3& /* X */ ) const = 0;
+   
+   virtual doublereal dGetAirDensity(const Vec3& /* X */ ) const = 0;
+   
+   virtual doublereal dGetAirPressure(const Vec3& /* X */ ) const = 0;
+
+   virtual doublereal dGetAirTemperature(const Vec3& /* X */ ) const = 0;
+
+   virtual doublereal dGetSoundSpeed(const Vec3& /* X */ ) const = 0;
+
+   /*
+    * End of deprecated; use GetAirProps instead
+    */
+
+   virtual bool GetAirProps(const Vec3& X, Vec3& V, doublereal& rho,
+		   doublereal& c, doublereal& p, doublereal& T) const = 0;
+};
+
+/* AirProperties - end */
+
+
+/* BasicAirProperties - begin */
+
+class BasicAirProperties 
+: virtual public Elem, public AirProperties {
+ protected:
+   DriveCaller *pAirDensity;
+   doublereal dSoundSpeed;
+   
+ public:
+   BasicAirProperties(const TplDriveCaller<Vec3>* pDC,
+		 DriveCaller *pRho, doublereal dSS, flag fOut);
+   
+   virtual ~BasicAirProperties(void);
+
+   virtual inline void* pGet(void) const { 
+      return (void*)this;
+   };
+   
+   /* Scrive il contributo dell'elemento al file di restart */
+   virtual std::ostream& Restart(std::ostream& out) const;
+   
+   /*
+    * Deprecated; use GetAirProps instead
+    */
    virtual const Vec3& GetVelocity(const Vec3& /* X */ ) const;
    
    virtual doublereal dGetAirDensity(const Vec3& /* X */ ) const;
@@ -157,9 +198,69 @@ class AirProperties
    virtual doublereal dGetAirTemperature(const Vec3& /* X */ ) const;
 
    virtual doublereal dGetSoundSpeed(const Vec3& /* X */ ) const;
+
+   /*
+    * End of deprecated; use GetAirProps instead
+    */
+
+   virtual bool GetAirProps(const Vec3& X, Vec3& V, doublereal& rho,
+		   doublereal& c, doublereal& p, doublereal& T) const;
 };
 
-/* AirProperties - end */
+/* BasicAirProperties - end */
+
+
+/* StdAirProperties - begin */
+
+class StdAirProperties 
+: virtual public Elem, public AirProperties {
+ protected:
+   doublereal PRef;
+   DriveCaller *RhoRef;
+   doublereal TRef;
+   doublereal a;
+   doublereal R;
+   doublereal g0;
+   doublereal z1;
+   doublereal z2;
+   
+ public:
+   StdAirProperties(const TplDriveCaller<Vec3>* pDC,
+		 doublereal PRef_, DriveCaller *RhoRef_, doublereal TRef_,
+		 doublereal a_, doublereal R_, doublereal g0_,
+		 doublereal z1_, doublereal z2_, flag fOut);
+   
+   virtual ~StdAirProperties(void);
+
+   virtual inline void* pGet(void) const { 
+      return (void*)this;
+   };
+   
+   /* Scrive il contributo dell'elemento al file di restart */
+   virtual std::ostream& Restart(std::ostream& out) const;
+   
+   /*
+    * Deprecated; use GetAirProps instead
+    */
+   virtual const Vec3& GetVelocity(const Vec3& /* X */ ) const;
+   
+   virtual doublereal dGetAirDensity(const Vec3& /* X */ ) const;
+   
+   virtual doublereal dGetAirPressure(const Vec3& /* X */ ) const;
+
+   virtual doublereal dGetAirTemperature(const Vec3& /* X */ ) const;
+
+   virtual doublereal dGetSoundSpeed(const Vec3& /* X */ ) const;
+
+   /*
+    * End of deprecated; use GetAirProps instead
+    */
+
+   virtual bool GetAirProps(const Vec3& X, Vec3& V, doublereal& rho,
+		   doublereal& c, doublereal& p, doublereal& T) const;
+};
+
+/* StdAirProperties - end */
 
 
 /* AirPropOwner - begin */
@@ -173,6 +274,9 @@ class AirPropOwner {
    
    virtual void PutAirProperties(const AirProperties* pAP);
    
+   /*
+    * Deprecated; use GetAirProps instead
+    */
    virtual flag fGetAirVelocity(Vec3& Velocity, const Vec3& X) const;
    
    virtual doublereal dGetAirDensity(const Vec3& X) const;
@@ -182,6 +286,13 @@ class AirPropOwner {
    virtual doublereal dGetAirTemperature(const Vec3& X) const;
    
    virtual doublereal dGetSoundSpeed(const Vec3& X) const;
+
+   /*
+    * End of deprecated; use GetAirProps instead
+    */
+
+   virtual bool GetAirProps(const Vec3& X, Vec3& V, doublereal& rho,
+		   doublereal& c, doublereal& p, doublereal& T) const;
 };
 
 /* AirPropOwner - end */
