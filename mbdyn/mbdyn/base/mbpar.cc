@@ -379,7 +379,7 @@ MBDynParser::GetRef(ReferenceFrame& rf)
 }
 
 void 
-MBDynParser::OutputFrames(ostream& out) const
+MBDynParser::OutputFrames(std::ostream& out) const
 {
 	ReferenceFrame *pRF = NULL;
 
