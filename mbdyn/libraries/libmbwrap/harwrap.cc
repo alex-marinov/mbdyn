@@ -50,8 +50,8 @@ HarwellSparseLUSolutionManager::HarwellSparseLUSolutionManager(integer iSize,
 							       const doublereal& dPivotFactor) :
 iMatMaxSize(iSize),
 iMatSize(iSize), 
-piRow(NULL), piCol(NULL), 
-pdMat(NULL), pdVec(NULL),
+// piRow(NULL), piCol(NULL), 
+// pdMat(NULL), pdVec(NULL),
 pMH(NULL), pVH(NULL), pLU(NULL),
 fHasBeenReset(1)
 {
@@ -64,25 +64,25 @@ fHasBeenReset(1)
    	}
       
    	/* Alloca arrays */
-   	SAFENEWARR(piRow, integer, iWorkSpaceSize);
-   	SAFENEWARR(piCol, integer, iWorkSpaceSize);
-   	SAFENEWARR(pdMat, doublereal, iWorkSpaceSize);
-   	SAFENEWARR(pdVec, doublereal, iMatSize);
+   	dVec.resize(iMatSize,0.);
    
    	/* Alloca handlers ecc. */
-   	SAFENEWWITHCONSTRUCTOR(pMH, 
-			       SparseMatrixHandler,
-			       SparseMatrixHandler(iMatSize, &piRow, 
-			       			   &piCol, &pdMat,
-			       			   iWorkSpaceSize));
    	SAFENEWWITHCONSTRUCTOR(pVH,
 			       MyVectorHandler,
-			       MyVectorHandler(iMatSize, pdVec));
+			       MyVectorHandler(iMatSize, &(dVec[0])));
+	iRow.reserve(iWorkSpaceSize);
+	iCol.reserve(iWorkSpaceSize);
+	dMat.reserve(iWorkSpaceSize);
+//    	SAFENEWWITHCONSTRUCTOR(pMH, 
+// 			       SparseMatrixHandler,
+// 			       SparseMatrixHandler(iMatSize, &iRow, 
+// 			       			   &iCol, &dMat,
+// 			       			   iWorkSpaceSize));
    	SAFENEWWITHCONSTRUCTOR(pLU, 
 			       HarwellLUSolver,
 			       HarwellLUSolver(iMatSize, iWorkSpaceSize,
-			       		       &piRow, &piCol, 
-					       &pdMat, pdVec, dPivotFactor));
+			       		       &iRow, &iCol, 
+					       &dMat, &(dVec[0]), dPivotFactor));
    
 #ifdef DEBUG
    	IsValid();
@@ -104,23 +104,6 @@ HarwellSparseLUSolutionManager::~HarwellSparseLUSolutionManager(void)
    	if (pVH != NULL) {      
       		SAFEDELETE(pVH);
    	}
-   	if (pMH != NULL) {
-      		SAFEDELETE(pMH);
-   	}
-   
-   	/* Dealloca arrays */
-   	if (pdVec != NULL) {	
-      		SAFEDELETEARR(pdVec);
-   	}
-   	if (pdMat != NULL) {	
-      		SAFEDELETEARR(pdMat);
-   	}
-   	if (piCol != NULL) {	
-      		SAFEDELETEARR(piCol);
-   	}
-   	if (piRow != NULL) {	
-      		SAFEDELETEARR(piRow);
-   	}
 }
 
 /* Test di validita' del manager */
@@ -129,21 +112,12 @@ HarwellSparseLUSolutionManager::IsValid(void) const
 {   
    	ASSERT(iMatMaxSize > 0);
    	ASSERT(iMatSize > 0);
-   	ASSERT(pMH != NULL);
-   	ASSERT(pdMat != NULL);
-   	ASSERT(piRow != NULL);
-   	ASSERT(piCol != NULL);
    
 #ifdef DEBUG_MEMMANAGER
-   	ASSERT(defaultMemoryManager.fIsPointerToBlock(piRow));
-   	ASSERT(defaultMemoryManager.fIsPointerToBlock(piCol));
-   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pdMat));
-   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pMH));
    	ASSERT(defaultMemoryManager.fIsPointerToBlock(pVH));
    	ASSERT(defaultMemoryManager.fIsPointerToBlock(pLU));
 #endif /* DEBUG_MEMMANAGER */
    
-   	ASSERT((pMH->IsValid(), 1));
    	ASSERT((pVH->IsValid(), 1));
    	ASSERT((pLU->IsValid(), 1));
 }
@@ -158,7 +132,7 @@ HarwellSparseLUSolutionManager::PacVec(void)
    
    	ASSERT(fHasBeenReset == 1);
    
-   	pLU->iNonZeroes = pMH->iPacVec();
+   	pLU->iNonZeroes = MH.MakeIndexForm(dMat,iRow,iCol,1);
 }
 
 /* Inizializza il gestore delle matrici */
@@ -169,7 +143,7 @@ HarwellSparseLUSolutionManager::MatrInit(const doublereal& dResetVal)
    	IsValid();
 #endif /* DEBUG */
    
-   	pMH->Init(dResetVal);
+   	MH.Init(dResetVal);
    	fHasBeenReset = flag(1);
 }
 
@@ -182,10 +156,9 @@ HarwellSparseLUSolutionManager::Solve(const doublereal /* dCoef */)
 #endif /* DEBUG */
 
    	if (fHasBeenReset == 1) {
-      		this->PacVec();
+      		PacVec();
       		fHasBeenReset = flag(0);
-      		flag fReturnFlag = pLU->fLUFactor();
-      		if (fReturnFlag < 0) {	 
+      		if (pLU->fLUFactor() < 0) {	 
 	 		THROW(HarwellSparseLUSolutionManager::ErrGeneric());
       		}
    	}

@@ -101,11 +101,10 @@
 #include <myassert.h>
 #include <mynewmem.h>
 #include <except.h>
-#include <spdata.h>
 #include <harwlib.h>
 #include <solman.h>
 #include <submat.h>
-#include <sparsemh.h>
+#include <spmapmh.h>
 
 /* classi dichiarate in questo file */
 class HarwellLUSolver;      	/* solutore */
@@ -140,9 +139,10 @@ public:
    
 private:
    	integer iMatSize;
-   	integer** ppiRow;
-   	integer** ppiCol;
-   	doublereal** ppdMat;
+
+   	std::vector<integer>*const piRow;
+   	std::vector<integer>*const piCol;
+   	std::vector<doublereal>*const pdMat;
    
    	integer iN;         	/* ordine della matrice */
    	integer iNonZeroes; 	/* coeff. non nulli */
@@ -156,13 +156,14 @@ private:
 protected:
    	/* Costruttore: si limita ad allocare la memoria */
    	HarwellLUSolver(integer iMatOrd, integer iSize,
-		   	integer** ppiTmpRow, integer** ppiTmpCol, 
-		   	doublereal** ppdTmpMat,
+		    std::vector<integer>*const piTmpRow, 
+		    std::vector<integer>*const piTmpCol, 
+		    std::vector<doublereal>*const  pdTmpMat,
 		   	doublereal* pdTmpRhs, doublereal dPivotFact)
 	: iMatSize(iSize),
-	ppiRow(ppiTmpRow),
-	ppiCol(ppiTmpCol),
-	ppdMat(ppdTmpMat),
+	piRow(piTmpRow),
+	piCol(piTmpCol),
+	pdMat(pdTmpMat),
      	iN(iMatOrd),
 	iNonZeroes(0),
 	pdRhs(pdTmpRhs), 
@@ -171,9 +172,9 @@ protected:
 	piW(NULL),
 	pdW(NULL) {		
 		ASSERT(iMatSize > 0);
-		ASSERT(ppiRow != NULL);
-		ASSERT(ppiCol != NULL);
-		ASSERT(ppdMat != NULL);   
+		ASSERT(piRow != NULL);
+		ASSERT(piCol != NULL);
+		ASSERT(pdMat != NULL);   
 		ASSERT(*ppiRow != NULL);
 		ASSERT(*ppiCol != NULL);
 		ASSERT(*ppdMat != NULL);
@@ -181,12 +182,9 @@ protected:
 		ASSERT(iN > 0);
 	
 #ifdef DEBUG_MEMMANAGER	
-		ASSERT(defaultMemoryManager.fIsValid(*ppiRow, 
-					iMatSize*sizeof(integer)));
-		ASSERT(defaultMemoryManager.fIsValid(*ppiCol, 
-					iMatSize*sizeof(integer)));
-		ASSERT(defaultMemoryManager.fIsValid(*ppdMat, 
-					iMatSize*sizeof(doublereal)));
+		ASSERT(piRow->Size()==iMatSize);
+		ASSERT(piCol->Size()==iMatSize);
+		ASSERT(pdMat->Size()==iMatSize);
 		ASSERT(defaultMemoryManager.fIsValid(pdRhs, 
 					iN*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
@@ -223,22 +221,16 @@ protected:
    
    	void IsValid(void) const {
       		ASSERT(iMatSize > 0);
-      		ASSERT(ppiRow != NULL);
-      		ASSERT(ppiCol != NULL);
-      		ASSERT(ppdMat != NULL);   
-      		ASSERT(*ppiRow != NULL);
-     		ASSERT(*ppiCol != NULL);
-      		ASSERT(*ppdMat != NULL);
+      		ASSERT(piRow != NULL);
+      		ASSERT(piCol != NULL);
+      		ASSERT(pdMat != NULL);   
       		ASSERT(pdRhs != NULL);
       		ASSERT(iN > 0);
       
 #ifdef DEBUG_MEMMANAGER	
-      		ASSERT(defaultMemoryManager.fIsValid(*ppiRow, 
-					iMatSize*sizeof(integer)));
-      		ASSERT(defaultMemoryManager.fIsValid(*ppiCol, 
-					iMatSize*sizeof(integer)));
-      		ASSERT(defaultMemoryManager.fIsValid(*ppdMat, 
-					iMatSize*sizeof(doublereal)));
+		ASSERT(piRow->Size()==iMatSize);
+		ASSERT(piCol->Size()==iMatSize);
+		ASSERT(pdMat->Size()==iMatSize);
       		ASSERT(defaultMemoryManager.fIsValid(pdRhs, 
 					iN*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
@@ -282,9 +274,11 @@ protected:
 			<< "piW        = " << piW << std::endl
 			<< "iFlag      = " << iFlag << std::endl);
       
-      		__FC_DECL__(ma28ad)(&iN, &iNonZeroes, *ppdMat, &iLicn, *ppiRow,
-				    &iLirn, *ppiCol, &dU, piKeep, piW, pdW,
-				    &iFlag);
+      		__FC_DECL__(ma28ad)(&iN, &iNonZeroes, &((*pdMat)[0]),
+					&iLicn, &((*piRow)[0]),
+					&iLirn, &((*piCol)[0]), 
+					&dU, piKeep, piW, pdW,
+					&iFlag);
       
       		if (iFlag < 0) { 
 	 		std::cerr << sLUClassName 
@@ -304,7 +298,7 @@ protected:
       
       		integer iLicn = iMatSize;
       		integer iMtype = 1;
-      		__FC_DECL__(ma28cd)(&iN, *ppdMat, &iLicn, *ppiCol,
+      		__FC_DECL__(ma28cd)(&iN, &((*pdMat)[0]), &iLicn, &((*piCol)[0]),
 				    piKeep, pdRhs, pdW, &iMtype);
    	};
 };
@@ -328,16 +322,17 @@ private:
 protected:
    	integer iMatMaxSize;  /* Dimensione max della matrice (per resize) */
    	integer iMatSize;     /* ordine della matrice */
-   	integer* piRow;       /* puntatore ad array di interi con:
+   	std::vector<integer> iRow;       /* array di interi con:
 			       * tabella di SparseData/indici di riga
 			       * di HarwellLUSolver */
-   	integer* piCol;       /* puntatore ad array di interi con:
+   	std::vector<integer> iCol;       /* array di interi con:
 	                       * keys di SparseData/indici di colonna
 			       * di HarwellLUSolver */
-   	doublereal* pdMat;    /* puntatore ad array di reali con la matrice */
-   	doublereal* pdVec;    /* p. ad array di reali con residuo/soluzione */
+   	std::vector<doublereal> dMat;    /* array di reali con la matrice */
+   	std::vector<doublereal> dVec;    /* array di reali con residuo/soluzione */
    
-   	SparseMatrixHandler* pMH; /* puntatore a SparseMatrixHandler */
+	mutable SpMapMatrixHandler MH; /* SparseMatrixHandler */
+/*   	SparseMatrixHandler* pMH; puntatore a SparseMatrixHandler */
    	VectorHandler* pVH;   /* puntatore a VectorHandler */
    	HarwellLUSolver* pLU; /* puntatore a HarwellLUSolver */
    
@@ -385,8 +380,7 @@ public:
 
    	/* Rende disponibile l'handler per la matrice */
    	MatrixHandler* pMatHdl(void) const {
-      		ASSERT(pMH != NULL);	
-      		return pMH;
+      		return &MH;
    	};
    
    	/* Rende disponibile l'handler per il termine noto */
