@@ -330,7 +330,7 @@ DataManager::ElemAssInit(void)
 	}
 }
 
-#define MBDYN_X_THREADSAFE
+//#define MBDYN_X_THREADSAFE
 
 #ifdef MBDYN_X_THREADSAFE
 /* temporary */
