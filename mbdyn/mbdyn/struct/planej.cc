@@ -991,14 +991,20 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
    
    switch (i) {
     case 1: {
-	return dTheta;
+       Mat3x3 RTmp(((pNode1->GetRCurr()*R1h).Transpose()
+			*pNode1->GetRPrev()*R1h).Transpose()
+			*((pNode2->GetRCurr()*R2h).Transpose()
+			*pNode2->GetRPrev()*R2h));
+       Vec3 v(MatR2EulerAngles(RTmp.Transpose()));
+
+       return dTheta + v(3);
     }
       
     case 2: {
        Mat3x3 R2TmpT((pNode2->GetRCurr()*R2h).Transpose());
        Vec3 v(R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
        
-       return v.dGet(3);
+       return v(3);
     }
       
     default:
@@ -1651,18 +1657,20 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
    
    switch (i) {
     case 1: {
-	Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
-			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
-	Vec3 v(MatR2EulerAngles(RTmp));
+       Mat3x3 RTmp(((pNode1->GetRCurr()*R1h).Transpose()
+			*pNode1->GetRPrev()*R1h).Transpose()
+			*((pNode2->GetRCurr()*R2h).Transpose()
+			*pNode2->GetRPrev()*R2h));
+       Vec3 v(MatR2EulerAngles(RTmp.Transpose()));
 
-       return dTheta;
+       return dTheta + v(3);
     }
       
     case 2: {
        Mat3x3 R2TmpT((pNode2->GetRCurr()*R2h).Transpose());
        Vec3 v(R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
        
-       return v.dGet(3);
+       return v(3);
     }
       
     default:
@@ -2631,7 +2639,13 @@ AxialRotationJoint::dGetPrivData(unsigned int i) const
    
 	switch (i) {
 	case 1: {
-		return dTheta;
+		Mat3x3 RTmp(((pNode1->GetRCurr()*R1h).Transpose()
+				*pNode1->GetRPrev()*R1h).Transpose()
+				*((pNode2->GetRCurr()*R2h).Transpose()
+					*pNode2->GetRPrev()*R2h));
+		Vec3 v(MatR2EulerAngles(RTmp.Transpose()));
+
+		return dTheta + v(3);
 	}
       
 	case 2: 
@@ -3217,14 +3231,14 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
 	Mat3x3 RTmp(pNode->GetRPrev().Transpose()*pNode->GetRCurr()*Rh);
 	Vec3 v(MatR2EulerAngles(RTmp));
 
-       return dTheta + v.dGet(3);
+       return dTheta + v(3);
     }
       
     case 2: {
        Mat3x3 RTmpT((pNode->GetRCurr()*Rh).Transpose());
        Vec3 v(RTmpT*pNode->GetWCurr());
        
-       return v.dGet(3);
+       return v(3);
     }
       
     default:
