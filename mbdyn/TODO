@@ -10,7 +10,8 @@ URGENT!!!!!!!!!
  - Write hydraulic stuff manual
  - (DONE October 2000) Fix C81 aerodynamic forces for transverse flow
  - Fix template instantiation to increase portability
- - Verify modal element; fix ADAMS input
+ - (DONE July 2001 by Giuseppe Quaranta: added utlis/femgen with NASTRAN 
+   alters to generate modal data) Verify modal element; fix ADAMS input
 
 
 
@@ -26,8 +27,8 @@ Known Bugs
  - Restart stuff is broken
    - (22 Nov 2000) fixing drives, constitutive law and beam stuff
    - (24 Nov 2000) now the beam restarts with correct current strains as new
-     prestrains; the already defined prestrains are discarded (recursive
-     tpldrive arrays?)
+     prestrains; the already defined prestrains are discarded and saved 
+     in a remark (recursive tpldrive arrays?)
 
 
 
@@ -65,16 +66,19 @@ Short Term
  - Beam data (and general distributed data) from a data handler that knows 
    how to interpolate from tables and so.
  - Add v2.0 input for structured stuff
+ - remove "control data" node/element counters (saving backwards 
+   compatibility) and put all the data in STL-like containers.
+   First step towards submodel automated generation.
 
 
 
 ##############################################################################
 Mid Term
 
- - Integration with NUVOLA for uncompressible rotor wake
- - Integration with ADAMS Pre/Post Processing
+ - Integration with NUVOLA/Bagai's code for incompressible rotor wake
+ - (Cassan ?) Integration with ADAMS Pre/Post Processing
  - Modal deformations (with aerodynamics and inertia, for wing and blades)
- - Parallel and iterative solution (Quaranta?)
+ - Parallel (Quaranta) and iterative (?) solution
 
 
 
