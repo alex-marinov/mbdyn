@@ -467,7 +467,7 @@ C
       INTEGER TTYP, SYSOUT
       INTEGER IRTN,ITYPE,NWDS,G,H,D,DM1,IEID,IGID,ISA,ISB
       INTEGER IMODE, COUNT, STARTS, DELTAS, STARTF, DELTAF, GRIDID
-      INTEGER IMOLD, I, K, J, IFLAG
+      INTEGER  I, K, J, IFLAG 
       DIMENSION NAM(2),T(7),LAB(2)
       CHARACTER*6 ELETYP(100)
       DIMENSION STARTS(100), DELTAS(100), STARTF(100), DELTAF(100)
@@ -522,15 +522,11 @@ C     Grid id data(Y/N).
 C     READ THE HEADER RECORD AND START TO PROCESS
       CALL IHEADR(IUN,IOUT,NAM,T)
       write(sysout,'(A15,A4,A4)') ' Reading Table ', NAM(1), NAM(2) 
-      if (ttyp .eq. 7) then
-         write(iout, *) '**    NORMAL MODE SHAPE # 1'
-      endif
 
 C     GET THE DATA BLOCK
-      
       IRTN = 1
       COUNT = 1
-      IMODE = 1              
+      IMODE = 0              
       NWDS = 0
       ITYPE = 0
       IWR = 0
@@ -550,11 +546,8 @@ C     WHICH DATA BLOCK IS IT?
       IF (IBLOCK(2) .EQ. TTYP) THEN
          
 C     ... EVALUATING IN THE CONTROL BLOCK
-         IMOLD = IMODE
-         IMODE = IBLOCK(5)
-         if(IMODE .GT. IMOLD) then 
-            WRITE(IOUT,*)'**    NORMAL MODE SHAPE # ', IMODE  
-         endif
+	  IMODE = IMODE + 1
+          WRITE(IOUT,*)'**    NORMAL MODE SHAPE # ', IMODE  
          
 C     istruzioni per i blocchi conteneti i dati relativi agli elementi  
          IF ((TTYP .GE. 4).AND.(TTYP .LE. 5)) THEN
