@@ -225,6 +225,10 @@ LAPACK_LIBS=
 SECURITY_LIBS=
 TCL_LIBS=
 
+GINACLIB_CONFIG=
+GINACLIB_LIBS=
+GINACLIB_CPPFLAGS=
+
 dnl MODULES_DIRS=
 
 
@@ -972,17 +976,21 @@ dnl Use GiNaC?
 dnl
 ol_link_ginac=no
 if test $ol_with_ginac != no ; then
-	AC_LANG_CPLUSPLUS
-	AM_PATH_GINAC(0.7.0,[ol_link_ginac=yes],[ol_link_ginac=no])
-	AC_LANG_C
-	if test $ol_link_ginac = no ; then
+	dnl AC_LANG_CPLUSPLUS
+	dnl AM_PATH_GINAC(0.7.0,[ol_link_ginac=yes],[ol_link_ginac=no])
+	dnl AC_LANG_C
+	which ginac-config >/dev/null 2>&1
+	if test $? = 0 ; then
+		GINACLIB_CONFIG="ginac-config"
+		GINACLIB_LIBS=`$GINACLIB_CONFIG --libs`
+		GINACLIB_CPPFLAGS=`$GINACLIB_CONFIG --cppflags`
+		AC_DEFINE(HAVE_GINAC,1,[define if GiNaC is available])
+	else 
 		if test $ol_with_ginac != yes ; then
 			AC_MSG_WARN([GiNaC support not available])
 		else
 			AC_MSG_ERROR([need to have GiNaC installed])
 		fi
-	else
-		AC_DEFINE(HAVE_GINAC,1,[define if GiNaC is available])
 	fi
 fi
 
@@ -1069,6 +1077,10 @@ AC_SUBST(TCL_LIBS)
 AC_SUBST(Y12_LIBS)
 AC_SUBST(HARWELL_LIBS)
 AC_SUBST(MODULES_DIRS)
+
+AC_SUBST(GINACLIB_CONFIG)
+AC_SUBST(GINACLIB_CPPFLAGS)
+AC_SUBST(GINACLIB_LIBS)
 
 
 dnl ----------------------------------------------------------------
