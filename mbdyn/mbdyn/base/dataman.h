@@ -543,8 +543,8 @@ class InitialAssemblyIterator {
    const DataManager::ElemDataStructure (*pElemData)[Elem::LASTELEMTYPE];
    const Elem::Type FirstType;
    const Elem** ppFirst;
-   Elem::Type CurrType;
-   Elem** ppCurr;
+   mutable Elem::Type CurrType;
+   mutable Elem** ppCurr;
  
  public:
    InitialAssemblyIterator(const DataManager::ElemDataStructure 

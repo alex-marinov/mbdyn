@@ -601,7 +601,7 @@ CurrType(Elem::UNKNOWN), ppCurr(NULL)
 	ASSERT(iCnt < Elem::LASTELEMTYPE);
 	ASSERT((*pElemData)[iCnt].ppFirstElem != NULL);
 
-	((Elem**&)ppFirst) = (*pElemData)[iCnt].ppFirstElem;
+	(Elem**&)ppFirst = (*pElemData)[iCnt].ppFirstElem;
 	ppCurr = (Elem**)ppFirst;
 	(Elem::Type&)FirstType = CurrType = Elem::Type(iCnt);
 }
@@ -609,8 +609,8 @@ CurrType(Elem::UNKNOWN), ppCurr(NULL)
 InitialAssemblyElem *
 InitialAssemblyIterator::GetFirst(void) const
 {
-	(Elem::Type&)CurrType = FirstType;
-	((Elem**&)ppCurr) = (Elem**)ppFirst;
+	CurrType = FirstType;
+	ppCurr = (Elem**)ppFirst;
 
 	/* La variabile temporanea e' necessaria per il debug. */
 	InitialAssemblyElem* p = (*ppCurr)->pGetInitialAssemblyElem();
@@ -628,7 +628,7 @@ InitialAssemblyIterator::GetFirst(void) const
 
 InitialAssemblyElem* InitialAssemblyIterator::GetNext(void) const
 {
-	((Elem**&)ppCurr)++;
+	ppCurr++;
 	if (ppCurr >= (*pElemData)[CurrType].ppFirstElem
 			+ (*pElemData)[CurrType].iNum) {
 		int iCnt = int(CurrType);
@@ -641,8 +641,8 @@ InitialAssemblyElem* InitialAssemblyIterator::GetNext(void) const
 				|| (*pElemData)[iCnt].iNum == 0);
 
 		ASSERT((*pElemData)[iCnt].ppFirstElem != NULL);
-		(Elem::Type&)CurrType = Elem::Type(iCnt);
-		(Elem**&)ppCurr = (*pElemData)[iCnt].ppFirstElem;
+		CurrType = Elem::Type(iCnt);
+		ppCurr = (*pElemData)[iCnt].ppFirstElem;
 
 		/* La variabile temporanea e' necessaria per il debug. */
 		InitialAssemblyElem* p = (*ppCurr)->pGetInitialAssemblyElem();
