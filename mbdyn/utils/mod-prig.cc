@@ -52,9 +52,9 @@ int read(void** pp, const char* user_defined)
    
    if (user_defined != NULL) {
       // cerr << "opening file \"" << user_defined << "\"" << endl;
-      ifstream in(user_defined);
+      std::ifstream in(user_defined);
       if (!in) {
-	 cerr << "unable to open file \"" << user_defined << "\"" << endl;
+	 std::cerr << "unable to open file \"" << user_defined << "\"" << std::endl;
 	 exit(EXIT_FAILURE);
       }
       in >> pd->m >> pd->l >> pd->g
@@ -67,8 +67,8 @@ int read(void** pp, const char* user_defined)
       pd->x[1] = 0.;
    }
    
-   cerr << "m=" << pd->m << ", l=" << pd->l << ", g=" << pd->g << endl
-     << "x={" << pd->x[0] << "," << pd->x[1] << "}" << endl;
+   std::cerr << "m=" << pd->m << ", l=" << pd->l << ", g=" << pd->g << std::endl
+     << "x={" << pd->x[0] << "," << pd->x[1] << "}" << std::endl;
    
    return 0;
 }
@@ -94,11 +94,11 @@ int grad(void* p, MatrixHandler& J, const VectorHandler& X, const doublereal& t)
    private_data* pd = (private_data*)p;
    
    doublereal theta = X.dGetCoef(1); 
-   doublereal phi = X.dGetCoef(2);
+//    doublereal phi = X.dGetCoef(2);
    
    doublereal ctheta = cos(theta);
-   doublereal stheta = sin(theta);
-   doublereal m = pd->m;
+//    doublereal stheta = sin(theta);
+//    doublereal m = pd->m;
    doublereal l = pd->l;
    doublereal g = pd->g;
    
@@ -115,9 +115,9 @@ int func(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
    doublereal theta = X.dGetCoef(1);
    doublereal phi = X.dGetCoef(2);
    
-   doublereal ctheta = cos(theta);
+//    doublereal ctheta = cos(theta);
    doublereal stheta = sin(theta);
-   doublereal m = pd->m;
+//    doublereal m = pd->m;
    doublereal l = pd->l;
    doublereal g = pd->g;
 
@@ -127,7 +127,7 @@ int func(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
    return 0;
 }
 
-ostream& out(void* p, ostream& o, 
+std::ostream& out(void* p, std::ostream& o, 
 	     const VectorHandler& X, const VectorHandler& XP)
 {
    private_data* pd = (private_data*)p;
@@ -155,8 +155,8 @@ ostream& out(void* p, ostream& o,
 
 int destroy(void** p)
 {
-   // private_data* pd = (private_data*)p;
-   delete *p;
+   private_data* pd = (private_data*)(*p);
+   delete pd;
    *p = NULL;
    return 0;
 }

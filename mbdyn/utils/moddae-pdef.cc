@@ -31,12 +31,13 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <ac/iostream>
 #include <ac/fstream>
+#include <ac/iostream>
 #include <math.h>
 
 #include <myassert.h>
 #include <solman.h>
+#include "dae-intg.h"
 
 struct private_data {
    doublereal m;
@@ -45,9 +46,10 @@ struct private_data {
    doublereal l;
    doublereal g;
    doublereal x[4];
+   doublereal xP[4];
 };
 
-int read(void** pp, const char* user_defined)
+static int read(void** pp, const char* user_defined)
 {
    *pp = (void*)new private_data;
    private_data* pd = (private_data*)*pp;
@@ -73,16 +75,6 @@ int read(void** pp, const char* user_defined)
       pd->x[3] = 0.;
    }
    
-   doublereal theta = pd->x[0];
-   doublereal uu = pd->x[1];
-   doublereal thetap = pd->x[2];
-   doublereal uup = pd->x[3];
-   
-   pd->x[0] = (pd->l+uu)*sin(theta);
-   pd->x[1] = -(pd->l+uu)*cos(theta);
-   pd->x[2] = thetap*(pd->l+uu)*cos(theta)+uup*sin(theta);
-   pd->x[3] = thetap*(pd->l+uu)*sin(theta)-uup*cos(theta);   
-   
    std::cerr << "m=" << pd->m << ", c=" << pd->c << ", k=" << pd->k << std::endl
      << "l=" << pd->l << ", g=" << pd->g << std::endl
      << "x={" << pd->x[0] << "," << pd->x[1] << "," 
@@ -91,102 +83,137 @@ int read(void** pp, const char* user_defined)
    return 0;
 }
 
-int size(void* p)
+static int size(void* p)
 {
-   // private_data* pd = (private_data*)p;
+   /* private_data* pd = (private_data*)p; */
    return 4;
 }
 
-int init(void* p, VectorHandler& X)
+static int init(void* p, VectorHandler& X, VectorHandler& XP)
 {
    private_data* pd = (private_data*)p;
    X.Reset(0.);
-   for (int i = 1; i <= size(p); i++) {      
+   XP.Reset(0.);
+   for (int i = 1; i <= size(p); i++) {
+      XP.fPutCoef(i, pd->xP[i-1]); /* posiz. iniziale */
       X.fPutCoef(i, pd->x[i-1]); /* posiz. iniziale */
    }
    return 0;
 }
 
-int grad(void* p, MatrixHandler& J, const VectorHandler& X, const doublereal& t)
+static int grad(void* p, MatrixHandler& J, MatrixHandler& JP, 
+		const VectorHandler& X, const doublereal& t)
 {
    private_data* pd = (private_data*)p;
    
-   doublereal x = X.dGetCoef(1);
-   doublereal y = X.dGetCoef(2);
-//    doublereal u = X.dGetCoef(3);
-//    doublereal v = X.dGetCoef(4);
+   doublereal theta = X.dGetCoef(1);
+   doublereal u = X.dGetCoef(2);
+   doublereal phi = X.dGetCoef(3);
+   doublereal w = X.dGetCoef(4);
    
-   doublereal l = sqrt(x*x+y*y);
+   doublereal ctheta = cos(theta);
+   doublereal stheta = sin(theta);
    doublereal m = pd->m;
-   // doublereal c = pd->c;
+   doublereal c = pd->c;
    doublereal k = pd->k;
-   doublereal l0 = pd->l; 
-//    doublereal g = pd->g;
+   doublereal l0 = pd->l;
+   doublereal l = l0+u;
+   doublereal g = pd->g;
    
    J.fPutCoef(1, 3, 1.);
    J.fPutCoef(2, 4, 1.);
-   J.fPutCoef(3, 1, -k/m*(1.-l0/l*(1.-(x*x)/(l*l))));
-   J.fPutCoef(3, 2, -k/m*x*y*l0/(l*l*l));   
-   J.fPutCoef(4, 1, -k/m*x*y*l0/(l*l*l));
-   J.fPutCoef(4, 2, -k/m*(1.-l0/l*(1.-(y*y)/(l*l))));
+   J.fPutCoef(3, 1, -g*ctheta/l);
+   J.fPutCoef(3, 2, (2.*phi*w+g*stheta)/(l*l));
+   J.fPutCoef(3, 3, -2.*w/l);
+   J.fPutCoef(3, 4, -2.*phi/l);
+   J.fPutCoef(4, 1, -g*stheta);
+   J.fPutCoef(4, 2, phi*phi-k/m);
+   J.fPutCoef(4, 3, 2*l*phi);
+   J.fPutCoef(4, 4, -c/m);
+
+   for (int i = 1; i <= 4; i++) {
+	   JP.fPutCoef(i, i, -1.);
+   }
 
    return 0;
 }
 
-int func(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
+static int func(void* p, VectorHandler& R, const VectorHandler& X, const VectorHandler& XP, const doublereal& t)
 {
    private_data* pd = (private_data*)p;
    
-   doublereal x = X.dGetCoef(1);
-   doublereal y = X.dGetCoef(2);
-   doublereal u = X.dGetCoef(3);
-   doublereal v = X.dGetCoef(4);
+   doublereal theta = X.dGetCoef(1);
+   doublereal u = X.dGetCoef(2);
+   doublereal phi = X.dGetCoef(3);
+   doublereal w = X.dGetCoef(4);
    
+   doublereal ctheta = cos(theta);
+   doublereal stheta = sin(theta);
    doublereal m = pd->m;
-   // doublereal c = pd->c;
+   doublereal c = pd->c;
    doublereal k = pd->k;
    doublereal l0 = pd->l;
-   doublereal l = sqrt(x*x+y*y);
+   doublereal l = l0+u;
    doublereal g = pd->g;
 
-   R.fPutCoef(1, u);
-   R.fPutCoef(2, v);
-   R.fPutCoef(3, -k/m*x*(1.-l0/l));
-   R.fPutCoef(4, -k/m*y*(1.-l0/l)-g);
+   R.fPutCoef(1, phi);
+   R.fPutCoef(2, w);
+   R.fPutCoef(3, -(2.*phi*w+g*stheta)/l);
+   R.fPutCoef(4, phi*phi*l-k/m*u-c/m*w+g*ctheta);
 
    return 0;
 }
 
-std::ostream& out(void* p, std::ostream& o, 
+static std::ostream& out(void* p, std::ostream& o, 
 	     const VectorHandler& X, const VectorHandler& XP)
 {
    private_data* pd = (private_data*)p;
   
-   doublereal x = X.dGetCoef(1);
-   doublereal y = X.dGetCoef(2);
-   doublereal u = X.dGetCoef(3);
-   doublereal v = X.dGetCoef(4);   
+   doublereal theta = X.dGetCoef(1);
+   doublereal ctheta = cos(theta);
+   doublereal stheta = sin(theta);
+   doublereal u = X.dGetCoef(2);
+   doublereal phi = X.dGetCoef(3);
+   doublereal w = X.dGetCoef(4);
    doublereal m = pd->m;
    doublereal k = pd->k;
-   doublereal l0 = pd->l;
-   doublereal l = sqrt(x*x+y*y);
-   doublereal theta = atan2(x, -y);
+   doublereal l = pd->l+u;
    doublereal g = pd->g;
+   doublereal x = l*stheta;
+   doublereal y = -l*ctheta;
+   doublereal xp = w*stheta+l*ctheta*phi;
+   doublereal yp = -w*ctheta+l*stheta*phi;
    
-   doublereal E = .5*m*(u*u+v*v)+m*g*y+.5*k*(l-l0)*(l-l0);
+   doublereal E = .5*m*(xp*xp+yp*yp)+m*g*y+.5*k*u*u;
   
    
-   return o << theta << " " << (l-l0)
+   return o << theta << " " << u
      << " " << X.dGetCoef(3) << " " << X.dGetCoef(4)
      << " " << XP.dGetCoef(1) << " " << XP.dGetCoef(2)
      << " " << XP.dGetCoef(3) << " " << XP.dGetCoef(4)
      << " " << x << " " << y << " " << E;
 }
 
-int destroy(void** p)
+static int destroy(void** p)
 {
    private_data* pd = (private_data*)(*p);
    delete pd;
    *p = NULL;
    return 0;
 }
+
+static struct funcs funcs_handler = {
+	read,
+	init,
+	size,
+	grad,
+	func,
+	out,
+	destroy
+};
+
+/* de-mangle name */
+extern "C" {
+void *ff = &funcs_handler;
+}
+

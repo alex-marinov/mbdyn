@@ -131,8 +131,8 @@ std::ostream& out(void* p, std::ostream& o,
 
 int destroy(void** p)
 {
-   // private_data* pd = (private_data*)p;
-   delete *p;
+   private_data* pd = (private_data*)(*p);
+   delete pd;
    *p = NULL;
    return 0;
 }

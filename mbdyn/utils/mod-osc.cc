@@ -53,9 +53,9 @@ int read(void** pp, const char* user_defined)
    
    if (user_defined != NULL) {
       // cerr << "opening file \"" << user_defined << "\"" << endl;
-      ifstream in(user_defined);
+      std::ifstream in(user_defined);
       if (!in) {
-	 cerr << "unable to open file \"" << user_defined << "\"" << endl;
+	 std::cerr << "unable to open file \"" << user_defined << "\"" << std::endl;
 	 exit(EXIT_FAILURE);
       }
       in >> pd->m >> pd->c >> pd->k >> pd->x[0] >> pd->x[1];
@@ -108,7 +108,7 @@ int func(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
    return 0;
 }
 
-ostream& out(void* p, ostream& o, 
+std::ostream& out(void* p, std::ostream& o, 
 	     const VectorHandler& X, const VectorHandler& XP)
 {
    // private_data* pd = (private_data*)p;
@@ -118,8 +118,8 @@ ostream& out(void* p, ostream& o,
 
 int destroy(void** p)
 {
-   // private_data* pd = (private_data*)p;
-   delete *p;
+   private_data* pd = (private_data*)(*p);
+   delete pd;
    *p = NULL;
    return 0;
 }

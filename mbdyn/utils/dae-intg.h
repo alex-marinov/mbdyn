@@ -33,14 +33,16 @@
 #include <ac/iostream>
 
 typedef int (*pread_t)(void**, const char*);
-typedef int (*pinit_t)(void*, VectorHandler&);
+typedef int (*pinit_t)(void*, VectorHandler&, VectorHandler&);
 typedef int (*psize_t)(void*);
 typedef int (*pgrad_t)(void*, MatrixHandler&, MatrixHandler&, 
-		     const VectorHandler&, const doublereal&);
+		const VectorHandler&, const VectorHandler&,
+		const doublereal&);
 typedef int (*pfunc_t)(void*, VectorHandler&,
-		     const VectorHandler&, const doublereal&);
+		const VectorHandler&, const VectorHandler&,
+		const doublereal&);
 typedef std::ostream& (*pout_t)(void*, std::ostream&,
-			 const VectorHandler&, const VectorHandler&);
+		const VectorHandler&, const VectorHandler&);
 typedef int (*pdestroy_t)(void**);
 
 struct funcs {

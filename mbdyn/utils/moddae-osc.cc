@@ -128,8 +128,8 @@ out(void* p, ostream& o, const VectorHandler& X, const VectorHandler& XP)
 static int
 destroy(void** p)
 {
-   	// private_data* pd = (private_data*)p;
-   	delete *p;
+   	private_data* pd = (private_data*)(*p);
+   	delete pd;
    	*p = NULL;
    	return 0;
 }
