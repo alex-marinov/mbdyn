@@ -36,6 +36,7 @@ D. Code:
 		Large project: turn mbdyn into a module for Simulink.
 	- remove node/element type listing from "control data" block;
 	  use STL containers to keep track of model components
+	- implement a postprocessor with OpenDX (http://www.opendx.org)
 
 	Medium Projects:
 	- recover existing soft restart
