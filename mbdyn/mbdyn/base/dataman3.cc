@@ -621,6 +621,7 @@ void DataManager::ReadControl(MBDynParser& HP,
        case OUTPUTPRECISION: {
           int iPrec = HP.GetInt();
 	  OutHdl.SetPrecision(iPrec);
+	  break;
        }
 	 
        case ADAMSRESOUTPUT: {
