@@ -8,7 +8,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
 *** Tue Apr 23 12:08:47 CEST 2002 Marco Morandini <morandini@aero.polimi.it>
- - improve deformable hinge
+ - improve deformable hinge; need work for viscoelastic joints
 
 *** Thu Apr 18 18:56:01 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - major modal joint cleanup; initial modal velocity works.
