@@ -48,6 +48,8 @@ Simulink procedure:
 - leave the MBDyn start block alone
 - in "Simulation->Simulation Parameters set "Type" to "Fixed Step"
   and set "Fixed Step Size" to the value of the (fixed) time step
+- hit "Simulation->Start"; some times, the first run fails; we're
+  still trying to track that down.  Simply try again...
 
 Start MBDyn block:
 - set the "MBDyn path" entry to the custom executable path if required

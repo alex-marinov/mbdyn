@@ -139,7 +139,7 @@ struct mbd_read_str{
 #define DEFAULT_PORT	5500
 #define SYSTEM_PORT	1000
 #define DEFAULT_HOST	"127.0.0.1"
-#define TIME_OUT	10000
+#define TIME_OUT	10000	/* milliseconds */
 
 #endif /* MATLAB_MEX_FILE */
 
