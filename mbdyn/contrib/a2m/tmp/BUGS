@@ -1,3 +1,7 @@
+Wed Oct 18 12:13:23 CEST 2000
+
+Analisi di come generare correttamente l'interpolazione della trave
+
 Wed Oct 11 16:04:00 CEST 2000
 
 L'elemento "beam" provoca la creazione di un marker che ha tutti i campi null.
