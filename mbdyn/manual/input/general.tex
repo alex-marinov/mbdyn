@@ -511,6 +511,55 @@ airfoil tables that are used by aerodynamic elements.
     <card> ::= c81 data : <label> [ , name , " <name> " ]
         " <filename> " ;
 \end{verbatim}
+The file is in textual form; the format is:
+\begin{itemize}
+\item first line: \kw{"\%30s\%2d\%2d\%2d\%2d\%2d\%2d"} 
+where the first 30 chars are a title string, currently ignored by MBDyn,
+followed by 6 two-digit integers that indicate:
+	\begin{itemize}
+	\item the number \kw{ML} of \emph{Mach} points for $C_l$;
+	\item the number \kw{NL} of angle of attack points for $C_l$;
+	\item the number \kw{MD} of \emph{Mach} points for $C_d$;
+	\item the number \kw{ND} of angle of attack points for $C_d$;
+	\item the number \kw{MM} of \emph{Mach} points for $C_m$;
+	\item the number \kw{NM} of angle of attack points for $C_m$.
+	\end{itemize}
+The example in \kw{var/naca0012.c81} contains:
+{\small
+\begin{verbatim}
+PROFILO NACA 0012             11391165 947
+\end{verbatim}
+}
+\item the format of each following line is up to 10 fields of 7 chars each;
+records longer than 10 fields are broken on multiple lines,
+with the first field filled with blanks;
+\item a block containing the $C_l$ data, made of:
+	\begin{itemize}
+	\item a record with the first field blank, followed by
+	the \kw{ML} \emph{Mach} values for the $C_l$;
+	\item \kw{NL} records contatining the angle of attack
+	in the first field, followed by \kw{ML} values of $C_l$
+	for each \emph{Mach} number; angles of attack wrap around 
+	360 deg, starting from -180.
+	\end{itemize}
+The example in \kw{var/naca0012.c81} contains 11 \emph{Mach} points
+and 39 angle of attack records for $C_l$:
+{\small
+\begin{verbatim}
+       0.     .20    .30    .40    .50    .60    .70    .75    .80
+       .90    1.
+-180.  0.     0.     0.     0.     0.     0.     0.     0.     0.
+       0.     0.
+-172.5 .78    .78    .78    .78    .78    .78    .78    .78    .78
+       .78    .78
+...
+\end{verbatim}
+}
+\item a block containing the $C_d$ data, same as for $C_l$,
+with \kw{MD} \emph{Mach} points and \kw{ND} angle of attack records;
+\item a block containing the $C_m$ data, same as for $C_l$,
+with \kw{MM} \emph{Mach} points and \kw{NM} angle of attack records.
+\end{itemize}
 
 
 
@@ -530,7 +579,7 @@ It is useful essentially in two cases:
 	that will be used many times throughout a model;
 	\item to define a \htmlref{\kw{drive}}{sec:DRIVE} 
 	that needs to be used in a later defined part of a model, 
-	to make it parametric.
+	in order to make it parametric.
 \end{enumerate}
 
 
@@ -676,20 +725,21 @@ Notes:
     orientation matrix \kw{eye}, velocity $ \cubr{0, 0, 0} $ and angular
     velocity $ \cubr{0, 0, 0} $.
     \item if the caller is not related to a node, the reference type
-    \kw{node} shouldn't be defined. 
+    \kw{node} should not be defined. 
     In this case it is considered equivalent to \kw{local}.
     \item when processing a velocity or an angular velocity, the resulting
     value always accounts for the velocity and angular velocity of the frame
     the entry is referred to. 
-    As an example, if a node is defined on a reference frame that has
-    non-null angular velocity $ \Omega_R $, and its position 
-    $ x_{input} $ is not in the origin $ X_R $ of the reference frame
+    As an example, if a node is defined on a reference frame $\T{R}_R$
+    that has non-null angular velocity $ \T{\Omega}_R $, and its position 
+    $ \T{x}_{input} $ is not in the origin $ \T{X}_R $ of the reference frame
     it is attached to, its global velocity and angular velocity result
     as the composition of the input values and of those of the reference 
     frame:
     \begin{eqnarray*}    
-        w & = & R_R\omega_{input}+\Omega_R \\
-	v & = & R_Rv_{input}+V_R+\Omega_R\times\plbr{R_Rx_{input}}
+        \T{w} & = & \T{R}_R \T{\omega}_{input} + \T{\Omega}_R \\
+	\T{v} & = & \T{R}_R \T{v}_{input} + \T{V}_R
+		+\T{\Omega}_R\times\plbr{\T{R}_R \T{x}_{input}}
     \end{eqnarray*}
     This, for instance, eases the input of all the parts of a complex system
     that is moving as a rigid body, by defining a reference frame with the
@@ -780,6 +830,16 @@ to the value \kw{<value>}, if given; otherwise, the variable
 is unset.
 If the keyword \kw{overwrite} is set, the variable is overwritten, 
 if already set.
+\begin{verbatim}
+    # set FILE to "test", if it does not exist
+    setenv: "FILE=test";
+    # set FILE to "test", even if it exists
+    setenv: override, "FILE=test";
+    # unset FILE
+    setenv: "FILE";
+    # set FILE to the empty string, if it does not exist
+    setenv: "FILE=";
+\end{verbatim}
 See \kw{setenv(3)} and \kw{unsetenv(3)} man pages for details.
 
 
@@ -791,6 +851,7 @@ Usually elements access nodal degrees of freedom through well-defined
 interfaces, at a high level. 
 But in a few cases, nodal degrees of freedom must be accessed
 at a very low level, with the bare knowledge of the node label,
+the node type,
 the internal number of the degree of freedom, and the order 
 (algebraic or differential, if any).
 The data that allows an entity to track a nodal degree of freedom
