@@ -39,7 +39,6 @@
 #include <termios.h>
 
 #include <ac/getopt.h>
-#include <ac/f2c-int.h>
 
 /* haldler to piped gnuplot */
 FILE *gnuplot = NULL;
@@ -177,7 +176,7 @@ main(int argc, char *argv[])
 							  } else if (nc > 0) {
 							  	cnt += nc;
 							  	if (buf[cnt-1] == '\n') {
-							  		buf[cnt-1] == '\0';
+							  		buf[cnt-1] = '\0';
 									break;
 								}
 							  }
