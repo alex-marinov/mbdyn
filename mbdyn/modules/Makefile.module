@@ -54,9 +54,8 @@ $(MBDYN_MODULE).so: $(MODULE_DEPENDENCIES) $(MBDYN_MODULE).o
 	$(LTF77COMPILE) -c $<
 
 install: $(MBDYN_MODULE).so
-	$(mkinstalldirs) $(DESTDIR)$(libexecdir)
-	if test -f $@; then \
-		$(INSTALL_PROGRAM) $@ $(DESTDIR)$(libexecdir)/$@ \
+	if test -f $<; then \
+		$(INSTALL_PROGRAM) $< $(LIBEXEC_DIR)/$< ; \
 	fi
 
 clean:

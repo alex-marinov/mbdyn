@@ -22,6 +22,8 @@ export LTCOMPILE = @LIBTOOL@ --mode=compile @CC@ @DEFS@ \
 export LTF77COMPILE = @LIBTOOL@ --mode=compile @F77@ $(AM_FFLAGS) @FFLAGS@ \
 	-fPIC
 export MODULES_DIRS=@MODULES_DIRS@
+export INSTALL_PROGRAM=${INSTALL}
+export LIBEXEC_DIR=$(libexecdir)
 
 .PHONY: all all__ clean distclean
 
@@ -45,11 +47,12 @@ all__:
 	done
 
 install:
+	$(mkinstalldirs) $(libexecdir)
 	-@for i in $(MODULES_DIRS) ; do \
 		echo "Installing $$i ..."; \
 		export MBDYN_MODULE=$$i ; \
-		cd $$i && $(MAKE) install; \
 		cp Makefile.module $$i/Makefile ; \
+		cd $$i && $(MAKE) install; \
 		cd .. ; \
 		rm -f $$i/Makefile ; \
 	done
