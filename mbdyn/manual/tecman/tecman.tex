@@ -444,6 +444,116 @@ is computed in such a way that \texttt{WM(eq,:)+=c*v}, with every linked
 \chapter{Constraints}
 
 \section{Algebraic Constraints}
+Consider a holonomic constraint equation of the form
+\begin{equation*}
+	\T{\Phi}\plbr{\T{q}, t} = 0 
+\end{equation*}
+Its time derivative and perturbation yields
+\begin{eqnarray*}
+	\delta\frac{\llk{d}}{\llk{d}t}\plbr{\T{\mu}^T\T{\Phi}} & = &
+		\delta\dot{\T{\mu}}^T \T{\Phi}
+		+ \delta\T{\Phi}^T \dot{\T{\mu}}
+		+ \delta\T{\mu}^T \dot{\T{\Phi}}
+		+ \delta\dot{\T{\Phi}}^T \T{\mu} \\
+	& = & \delta\dot{\T{\mu}}^T \T{\Phi}
+		+ \delta\T{q}^T \T{\Phi}_{/\T{q}}^T \dot{\T{\mu}}
+		+ \delta\T{\mu}^T\plbr{
+			\T{\Phi}_{/\T{q}} \dot{\T{q}}
+			+ \T{\Phi}_{/t}
+		} \\
+	& & \mbox{} + \plbr{
+			\delta\dot{\T{q}}^T \T{\Phi}_{/\T{q}}^T
+			+ \delta\T{q}^T \plbr{
+				\T{\Phi}_{/\T{q}} \dot{\T{q}}
+				+ \T{\Phi}_{/t}
+			}_{/\T{q}}^T
+		} \T{\mu} \\
+	& = & \delta\dot{\T{q}}^T \T{\Phi}_{/\T{q}}^T \T{\mu} \\
+	& & \mbox{} + \delta\T{q}^T \plbr{
+		\plbr{
+			\T{\Phi}_{/\T{q}} \dot{\T{q}}
+			+ \T{\Phi}_{/t}
+		}_{/\T{q}}^T \T{\mu}
+		+ \T{\Phi}_{/\T{q}}^T \dot{\T{\mu}}
+	} \\
+	& & \mbox{} + \delta\dot{\T{\mu}}^T \T{\Phi} \\
+	& & \mbox{} + \delta\T{\mu}^T \plbr{
+		\T{\Phi}_{/\T{q}} \dot{\T{q}}
+		+ \T{\Phi}_{/t}
+	}
+\end{eqnarray*}
+Its linearization yields
+\begin{eqnarray*}
+	\Delta\plbr{\delta\frac{\llk{d}}{\llk{d}t}\plbr{\T{\mu}^T\T{\Phi}}}
+	& = & \delta\dot{\T{q}}^T \plbr{
+		\T{\Phi}_{/\T{q}}^T \Delta\T{\mu}
+		+ \plbr{\T{\Phi}_{/\T{q}}^T \T{\mu}}_{/\T{q}} \Delta\T{q}
+	} \\
+	& & \mbox{} + \delta\T{q}^T \lplbr{
+		\plbr{
+			\T{\Phi}_{/\T{q}} \dot{\T{q}}
+			+ \T{\Phi}_{/t}
+		}_{/\T{q}}^T \Delta \T{\mu}
+		+ \T{\Phi}_{/\T{q}} \Delta\dot{\T{\mu}}
+		+ \plbr{\T{\Phi}_{/\T{q}} \Delta\dot{\T{q}}}_{/\T{q}}^T \T{\mu}
+	} \\
+	& & \mbox{\hspace{12mm}} + \rplbr{
+		\plbr{
+			\plbr{
+				\T{\Phi}_{/\T{q}} \dot{\T{q}}
+				+ \T{\Phi}_{/t}
+			}_{/\T{q}}^T \T{\mu}
+			+ \T{\Phi}_{/\T{q}}^T \dot{\T{\mu}}
+		}_{/\T{q}} \Delta\T{q}
+	} \\
+	& & \mbox{} + \delta\dot{\T{\mu}}^T \T{\Phi}_{/\T{q}} \Delta\T{q} \\
+	& & \mbox{} + \delta\T{\mu}^T \plbr{
+		\T{\Phi}_{/\T{q}} \Delta\dot{\T{q}}
+		+ \plbr{
+			\T{\Phi}_{/\T{q}} \dot{\T{q}}
+			+ \T{\Phi}_{/t}
+		}_{/\T{q}} \Delta\T{q}
+	}
+\end{eqnarray*}
+An unconstrained problem of the form
+\begin{eqnarray*}
+	\T{M} \dot{\T{q}} - \T{p} & = & \T{0} \\
+	\dot{\T{p}} & = & \T{F}\plbr{\T{q}, \dot{\T{q}}, t}
+\end{eqnarray*}
+becomes
+\begin{eqnarray*}
+	\T{M} \dot{\T{q}} - \T{p} + \T{\Phi}_{/\T{q}}^T \T{\mu} & = & \T{0} \\
+	\dot{\T{p}} + \plbr{
+		\T{\Phi}_{/\T{q}} \dot{\T{q}}
+		+ \T{\Phi}_{/t}
+	}_{/\T{q}}^T \T{\mu}
+	+ \T{\Phi}_{/\T{q}}^T \dot{\T{\mu}} & = & \T{F}\plbr{\T{q}, \dot{\T{q}}, t} \\
+	\T{\Phi} & = & \T{0} \\
+	\T{\Phi}_{/\T{q}} \dot{\T{q}} + \T{\Phi}_{/t} & = & \T{0}
+\end{eqnarray*}
+Actually, $\dot{\T{\mu}}$ is independent of $\T{\mu}$;
+$\T{\mu}$ by definition is zero if the exact solution is considered.
+So $\dot{\T{\mu}}$ is redefined as $\dot{\T{\mu}}=\T{\lambda}$:
+\begin{eqnarray*}
+	\T{M} \dot{\T{q}} - \T{p} + \T{\Phi}_{/\T{q}}^T \T{\mu} & = & \T{0} \\
+	\dot{\T{p}} + \plbr{
+		\T{\Phi}_{/\T{q}} \dot{\T{q}}
+		+ \T{\Phi}_{/t}
+	}_{/\T{q}}^T \T{\mu} + \T{\Phi}_{/\T{q}}^T \T{\lambda}
+		& = & \T{F}\plbr{\T{q}, \dot{\T{q}}, t} \\
+	\T{\Phi} & = & \T{0} \\
+	\T{\Phi}_{/\T{q}} \dot{\T{q}} + \T{\Phi}_{/t} & = & \T{0}
+\end{eqnarray*}
+If $\T{\mu}=0$ then a conventional DAE of index 3 results, i.e.
+\begin{eqnarray*}
+	\T{M} \dot{\T{q}} - \T{p} & = & \T{0} \\
+	\dot{\T{p}} + \T{\Phi}_{/\T{q}}^T \T{\lambda}
+		& = & \T{F}\plbr{\T{q}, \dot{\T{q}}, t} \\
+	\T{\Phi} & = & \T{0}
+\end{eqnarray*}
+while the previous form is known as stabilized index 2 form.
+The latter is typically used throughout MBDyn, while the former is used 
+in the initial assembly and, occasionally, in specific constraints.
 
 \subsection{Distance Joint}
 
