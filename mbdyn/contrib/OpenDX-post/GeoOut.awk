@@ -1,10 +1,11 @@
+# Prints the labels
 function print_labels() {
 	printf("object \"TriadLabels\" class array type int rank 1 shape 1 items %d data follows\n", NumNodes);
 	for (i = 1; i <= NumNodes; i++) {
 		printf("\t%d\n", Nodes[i]);
 	}
 }
-
+# Prints the objects at one step
 function print_step() {
 	t = Start+Step*Incr;
 	printf("attribute \"dep\" string \"positions\"\n");
@@ -28,16 +29,16 @@ function print_step() {
 	printf("object \"MbdynSym%f\" class group\n", t);
 	printf("member \"OrientedTriads\" value \"OrientedTriads%f\"\n", t);
 }
-
+# Prints the members of the group at the end
 function print_members() {
 	printf("object \"series\" class series\n");
-	for (i = 0; i < Step; i++) {
+	for (i = 0; i <= Step; i++) {
 		t = Start+i*Incr;
 		printf("member %d position %f value \"MbdynSym%f\"\n", i, t, t);
 	}
 	printf("end\n");
 }
-
+# Initialize vars
 BEGIN {
 	FirstLabel = -1;
 	FirstStep = 1;
@@ -48,6 +49,7 @@ BEGIN {
 	rad2deg = 57.29578;
 	AngleScale = deg2rad;
 }
+# Generic rule --- add here any specific check to filter out undesired labels
 $1 > 10 {
 	if ($1 == FirstLabel) {
 		Node = 0;
@@ -89,6 +91,7 @@ $1 > 10 {
 	Cosines[Node,8] = -dSinAlpha*dCosBeta;
 	Cosines[Node,9] = dCosAlpha*dCosBeta;
 }
+# Print last step and members
 END {
 	print_step();
 	print_members();
