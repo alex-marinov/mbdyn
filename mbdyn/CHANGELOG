@@ -26,11 +26,12 @@ MBDyn 1.2-Engineering
 		  dof plugin and drive
 		- added momentum and momenta moment and their derivatives
 		  as automatic structural element private data
-		- added SimulinkInterface code and example as contrib
-		  by Michele Attolico
+		- added SimulinkInterface code and example (contrib
+		  by Michele Attolico)
 		- improved local and inet socket input/output
 	Backward compatibility issues:
 	Known issues:
+		- local socket drive/output need work
 	Bug fixes:
 		- fixed relative rotation private data in revolute
 		  joints (problem noted by Roger Polston)

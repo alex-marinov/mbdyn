@@ -915,9 +915,7 @@ DynamicStructNode::ComputeAccelerations(bool b)
 void
 DynamicStructNode::SetOutputFlag(flag f)
 {
-	if (f) {
-		bComputeAccelerations = true;
-	}
+	ComputeAccelerations(true);
 	ToBeOutput::SetOutputFlag(f);
 }
 
@@ -1121,7 +1119,7 @@ ModalNode::ModalNode(unsigned int uL,
 		dPosStiff, dVelStiff, fOmRot, fOut)
 {
 	/* XPP and WP are unknowns in ModalNode */
-	bComputeAccelerations = false;
+	ComputeAccelerations(false);
 }
 
 
