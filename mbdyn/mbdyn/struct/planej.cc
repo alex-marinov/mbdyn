@@ -72,6 +72,7 @@ PlaneHingeJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta = v.dGet(3);
+
 	if (fc) {
 		fc->SetValue(X,XP,iGetFirstIndex()+NumSelfDof);
 	}
@@ -81,11 +82,15 @@ void
 PlaneHingeJoint::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
-	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*pNode1->GetRPrev()
-			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
-	Vec3 v(MatR2EulerAngles(RTmp));
+
+	Mat3x3 RTmp(((pNode1->GetRCurr()*R1h).Transpose()
+			*pNode1->GetRPrev()*R1h).Transpose()
+			*((pNode2->GetRCurr()*R2h).Transpose()
+			*pNode2->GetRPrev()*R2h));
+	Vec3 v(MatR2EulerAngles(RTmp.Transpose()));
 
 	dTheta += v.dGet(3);
+
 	if (fc) {
 		Mat3x3 R1(pNode1->GetRCurr());
 		Mat3x3 R1hTmp(R1*R1h);
@@ -877,11 +882,7 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
    
    switch (i) {
     case 1: {
-	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*pNode1->GetRPrev()
-			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
-	Vec3 v(MatR2EulerAngles(RTmp));
-
-       return dTheta + v.dGet(3);
+	return dTheta;
     }
       
     case 2: {
@@ -1583,11 +1584,11 @@ void
 AxialRotationJoint::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
-	Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
-			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
-	Vec3 v(MatR2EulerAngles(RTmp));
+	Mat3x3 R1Tmp(((pNode1->GetRCurr()*R1h).Transpose()*pNode1->GetRPrev()*R1h).Transpose()
+		*((pNode2->GetRCurr()*R2h).Transpose()*pNode2->GetRPrev()*R2h));
+	Vec3 v1(MatR2EulerAngles(R1Tmp.Transpose()));
 
-	dTheta += v.dGet(3);
+	dTheta += v1.dGet(3);
 }
 
 
@@ -2309,11 +2310,7 @@ AxialRotationJoint::dGetPrivData(unsigned int i) const
    
 	switch (i) {
 	case 1: {
-		Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
-				*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
-		Vec3 v(MatR2EulerAngles(RTmp));
-
-		return dTheta + v.dGet(3);
+		return dTheta;
 	}
       
 	case 2:
