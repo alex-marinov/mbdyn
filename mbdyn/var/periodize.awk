@@ -161,7 +161,7 @@ function output() {
 
 			if (node == d[3]) {
 	
-				printf("%8d %e %e %e %e %e %e %e %e %e %e %e %e        %e %e %e\n",
+				printf("%8d %e %e %e %e %e %e %e %e %e %e %e %e        %e %e %e %d\n",
 					node,
 					d[2]*Pos[node, 1] + d[1]*OldPos[node, 1],
 					d[2]*Pos[node, 2] + d[1]*OldPos[node, 2],
@@ -175,7 +175,7 @@ function output() {
 					d[2]*Ome[node, 1] + d[1]*OldOme[node, 1],
 					d[2]*Ome[node, 2] + d[1]*OldOme[node, 2],
 					d[2]*Ome[node, 3] + d[1]*OldOme[node, 3],
-					d[1], d[2], d[1] + d[2]);
+					d[1], d[2], d[1] + d[2], step);
 			} else {
 
 				printf("%8d %e %e %e %e %e %e %e %e %e %e %e %e\n",
