@@ -576,7 +576,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 		mbdyn_sasl_t	mbdyn_sasl = MBDYN_SASL_INIT;
 		mbdyn_sasl.use_sasl = MBDYN_SASL_SERVER;
 
-		if (HP.IsKeyWord("mech")) {
+		if (HP.IsKeyWord("mechanism") || HP.IsKeyWord("mech")) {
 			const char *s = HP.GetStringWithDelims();
 			if (s != NULL) {
 				SAFESTRDUP(mbdyn_sasl.sasl_mech, s);

@@ -1765,7 +1765,7 @@ Otherwise, if the user has direct access to the server where
 the computation is being run, sockets with \kw{local} namespace
 can be used, and security can be enforced by means of the access
 privileges of the socket file.
-Since some of the UNIX systems do not honor socket permissions,
+Since some of the UN*X systems do not honor socket permissions,
 a portable way to exploit filesystem access permissions is to put
 the socket in a dedicated directory, and use the permissions
 of the directory to control access to the socket.
@@ -1835,15 +1835,15 @@ authentication.
 \begin{verbatim}
     <authentication_method> ::= sasl
         [ , user , " <user_name> " ]
-        [ , mech , " <preferred_mechanism> " ]
+        [ , mechanism , " <preferred_mechanism> " ]
 \end{verbatim}
 This is the preferred authentication method because 
 it is mechanism-independent, it can be reasonably secure
 and automatically selects the most appropriate mechanism available
 on both the client and the server machine.
 It requires Cyrus SASL 2 (See 
-\htmladdnormallink{\texttt{http://asg.web.cmu.edu/sasl/}} for details,
-and follow the documentation to obtain a working setup).
+\htmladdnormallink{\kw{http://asg.web.cmu.edu/sasl/\ }}\
+for details, and follow the documentation to obtain a working setup).
 
 
 
