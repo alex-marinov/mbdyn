@@ -345,9 +345,9 @@ const char cDebugFree  = 'F';
 
 #define SAFESTRDUP_(pnt, src, memman) \
 	do { \
-		unsigned int l = strlen((src))+1; \
 		ASSERT(!(pnt)); \
 		ASSERT((src)); \
+		unsigned int l = strlen((src))+1; \
 		(pnt) = new char[l]; \
 		if ( !(pnt) ) { \
 			_Safenew(__FILE__, __LINE__, 1); \
@@ -579,9 +579,9 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
 
 #define SAFESTRDUP_(pnt, src, memman) \
 	do { \
-		unsigned int l = strlen((src))+1; \
 		ASSERT(!(pnt)); \
 		ASSERT((src)); \
+		unsigned int l = strlen((src))+1; \
 		(pnt) = new char[l]; \
 		if (!(pnt)) { \
 			_Safenew(__FILE__, __LINE__, 1); \
