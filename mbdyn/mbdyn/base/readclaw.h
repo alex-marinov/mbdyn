@@ -345,7 +345,6 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     }
 
     case SYMBOLICELASTICISOTROPIC: {
-#ifdef HAVE_GINAC
        ConstLawType = DefHingeType::ELASTIC;
 
        const char *epsilon = 0;
@@ -385,11 +384,6 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        
        typedef SymbolicElasticIsotropicConstitutiveLaw<T, Tder> L;
        SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, epsilon, expression, symbols));
-
-#else /* !HAVE_GINAC */
-       std::cerr << "need GiNaC symbolic algebra package" << std::endl;
-       THROW(DataManager::ErrGeneric());
-#endif /* !HAVE_GINAC */
 
        break;
     }

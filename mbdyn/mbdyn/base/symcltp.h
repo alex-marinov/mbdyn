@@ -31,31 +31,20 @@
 /* Symbolic constitutive law */
 
 
-#ifndef SYMCLTP__H
-#define SYMCLTP__H
+#ifndef SYMCLTP_H
+#define SYMCLTP_H
 
-#ifdef HAVE_GINAC
 
 #include <constltp.h>
+#ifdef HAVE_GINAC
 #include <ginac/ginac.h>
-
-#if 0
-using namespace GiNaC;
-#endif
+#endif /* HAVE_GINAC */
 
 /* SymbolicElasticIsotropicConstitutiveLaw - begin */
 
 template <class T, class Tder>
 class SymbolicElasticIsotropicConstitutiveLaw 
 : public ElasticConstitutiveLaw<T, Tder> {
-private:
-	GiNaC::symbol gEps;		/* parameter symbol */
-	GiNaC::symbol **gSymList;	/* list of other symbols */
-	double *vals;			/* values of other symbols */
-
-	GiNaC::ex gExpr;		/* expression */
-	GiNaC::ex gDer;			/* derivative */
-
 public:
 	SymbolicElasticIsotropicConstitutiveLaw(const TplDriveCaller<T>* pDC,
 			const T& PStress, const char *epsilon,
@@ -80,11 +69,17 @@ SymbolicElasticIsotropicConstitutiveLaw<T, Tder>::SymbolicElasticIsotropicConsti
 		const TplDriveCaller<T>* pDC, const T& PStress, 
 		const char *epsilon, const char *expression, 
 		const char *const *symbols = NULL)
-: ElasticConstitutiveLaw<T, Tder>(pDC, PStress),
-gEps(epsilon), gSymList(0), vals(0)
+: ElasticConstitutiveLaw<T, Tder>(pDC, PStress)
 { 
+
+#ifndef HAVE_GINAC
+	std::cerr << "SymbolicElasticIsotropicConstitutiveLaw needs "
+		"GiNaC symbolic algebra package" << std::endl;
+	THROW(DataManager::ErrGeneric());
+#else /* HAVE_GINAC */
 	THROW(Err(std::cerr, "symbolic constitutive law "
 				"is allowed only for scalar")); 
+#endif /* HAVE_GINAC */
 }
  
 template <class T, class Tder>
@@ -118,6 +113,11 @@ SymbolicElasticIsotropicConstitutiveLaw<T, Tder>::IncrementalUpdate(const T& Del
 {
 	NO_OP;
 }
+
+
+#ifdef HAVE_GINAC
+
+/* specialize for scalar constitutive law */
 
 class SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>
 : public ElasticConstitutiveLaw<doublereal, doublereal> {
@@ -295,5 +295,5 @@ SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>::IncrementalUpda
 
 #endif /* HAVE_GINAC */
 
-#endif /* SYMCLTP__H */
+#endif /* SYMCLTP_H */
 
