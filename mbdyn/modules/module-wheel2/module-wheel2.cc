@@ -451,9 +451,6 @@ ass_res(LoadableElem* pEl,
 	 *
 	 * FIXME: perche' dRadius invece di dInstRadius?
 	 */
-#if 0
-	Vec3 pc = p->pWheel->GetXCurr()-(n*p->dRadius);
-#endif
 	Vec3 pc = p->pWheel->GetXCurr()-(n*p->dInstRadius);
 
 	/*
@@ -480,35 +477,21 @@ ass_res(LoadableElem* pEl,
 		/*
 		 * Slip ratio
 		 */
-		p->dSr = 0.;
 		doublereal dvx = fwd.Dot(v);
+		doublereal sgn = copysign(1., dvx);
+		doublereal dfvx = fabs(dvx);
 		doublereal dvax = fwd.Dot(va);
-		if (fabs(dvx) > fabs(dvax)) {
-			/*
-			 * Se il modulo della componente longitudinale
-			 * della velocita' del punto di contatto rispetto
-			 * al terreno e' maggiore del modulo
-			 * della componente longitudinale della velocita'
-			 * dell'asse rispetto al terreno, allora
-			 * lo slip ratio viene posto uguale a 1.,
-			 * con il segno dato dal prodotto dei segni
-			 * delle due velocita' (quindi, se concordi
-			 * il segno e' +, se discordi il segno e' -)
-			 */
-			p->dSr = copysign(1., dvx*dvax);
-		} else if (fabs(dvax) > DBL_EPSILON) {
-			/*
-			 * Altrimenti, se la velocita' dell'asse rispetto
-			 * al terreno e' sufficientemente grande, viene
-			 * effettuata la divisione
-			 */
-			p->dSr = 1.-dvx/dvax;
-		} /* else */
+		doublereal dfvax = fabs(dvax);
+
 		/*
-		 * In alternativa viene usato il valore di default, 0., che
-		 * significa che entrambe le velocita' sono nulle o non occorre
-		 * calcolarle
+		 * FIXME: se la vax va a zero (percheà il velivolo si e'
+		 * fermato, ad esempio) lo "sleep" ratio deve essere 
+		 * "piccolo", o no?
 		 */
+		p->dSr = dfvx/(1.+dfvax);
+		if (p->dSr > 1.) {
+			p->dSr = 1.;
+		}
 
 		/*
 		 * Direzione laterale: normale cross forward
@@ -529,7 +512,7 @@ ass_res(LoadableElem* pEl,
 		 * Coefficiente di attrito longitudinale
 		 */
 		doublereal dMuX0 = p->pMuX0->dGet(p->dSr);
-		p->dMuX = dMuX0*fabs(1.-fabs(p->dAlpha)/M_PI_2);
+		p->dMuX = dMuX0*sgn*fabs(1.-fabs(p->dAlpha)/M_PI_2);
 		
 		/*
 		 * Correggo le forze:
@@ -563,7 +546,7 @@ ass_res(LoadableElem* pEl,
 	 * Momento
 	 */
 	p->M = (pc-p->pWheel->GetXCurr()).Cross(p->F);
-	
+
 	WorkVec.Sub(1, p->F);
 	WorkVec.Sub(4, (pc-p->pGround->GetXCurr()).Cross(p->F));
 	WorkVec.Add(7, p->F);
