@@ -8,7 +8,8 @@ fullmh.cc    fullmh.h     harwlib.h    harwlib_.f      spdata_.f \
 harwout.c    harwout.h    harwout_.cc  harwrap.cc      harwrap.h   ldl.f \
 ldl.h        matvec3.cc   matvec3.h    matvec3n.cc     matvec3n.h  matvec6.cc \
 matvec6.h    mschwrap.cc  mschwrap.h   myf2c.h         mymath.h    solman.cc \
-solman.h     submat.cc    submat.h     schsolman.cc    schsolman.h
+solman.h     submat.cc    submat.h     schsolman.cc    schsolman.h \
+sparsemh.cc  sparsemh.h
 
 libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@
 libmbmath_la_LDFLAGS =

@@ -81,13 +81,11 @@ pB(pMatB),
 pE(pMatE),
 pF(pMatF),
 pC(pMatC),
-pGTL(pGlobToLoc),
-dZero(0.)
-  
+pGTL(pGlobToLoc)
 { 
 #ifdef DEBUG
   IsValid();
-#endif  
+#endif /* DEBUG */
 }
 
 SchurMatrixHandler::~SchurMatrixHandler(void)
@@ -119,13 +117,11 @@ SchurVectorHandler::SchurVectorHandler(int LocSize, int IntSize,
 ISize(IntSize),
 pLV(pLocVec),
 pIV(pIntVec),
-pGTL(pGlobToLoc),
-dZero(0.)
-
+pGTL(pGlobToLoc)
 {
 #ifdef DEBUG
   IsValid();
-#endif 
+#endif /* DEBUG */
 }
 
 SchurVectorHandler::~SchurVectorHandler(void)
@@ -443,7 +439,7 @@ void SchurSolutionManager::Solve(void)
     pLU->iNonZeroes = iCount;
     flag fReturnFlag = pLU->fLUFactor();
     if (fReturnFlag < 0) {	 
-      THROW(HSLUSolutionManager::ErrGeneric());
+      THROW(HarwellSparseLUSolutionManager::ErrGeneric());
     }
   } 
   

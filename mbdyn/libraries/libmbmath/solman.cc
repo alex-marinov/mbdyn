@@ -38,6 +38,9 @@
 #include <submat.h>
 #include <matvec3.h>
 
+/* Zero for sparse vector and matrix handlers */
+const doublereal dZero = 0.;
+
 /* VectorHandler - begin */
 
 /* Somma un Vec3 nella posizione desiderata */

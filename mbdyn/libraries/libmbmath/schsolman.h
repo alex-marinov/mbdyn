@@ -38,27 +38,18 @@
 #ifndef SCHSOLMAN_H
 #define SCHSOLMAN_H
 
-
-/* per il debugging */
-#include "myassert.h"
-#include "mynewmem.h"
-#include "except.h"
-  
-#include "solman.h"
-#include "harwrap.h"
-
-
-#include "mschwrap.h"
-
-
-#include "mpi++.h"
-
-
-
+#include <myassert.h>
+#include <mynewmem.h>
+#include <except.h>
+#include <solman.h>
+#include <harwrap.h> 		/* includes <sparsemh.h> */
+#include <mschwrap.h>
+#include <mpi++.h>
 
 void InitializeList(int* list, integer dim, integer  value);
 
-void InitializeList(doublereal* list, integer dim, doublereal  value);  
+void InitializeList(doublereal* list, integer dim, doublereal  value);
+
 /* SchurMatrixHandler - Begin */
 
 const int G_TAG = 100;
@@ -76,7 +67,6 @@ class SchurMatrixHandler : public MatrixHandler {
   doublereal* pF;
   doublereal* pC;
   integer* pGTL;
-  const doublereal dZero;
   
  public: 
   SchurMatrixHandler(int LocSize, int IntSize,
@@ -211,7 +201,7 @@ inline flag SchurMatrixHandler::fDecCoef(integer iRow,
   if (pGTL[iRow] > 0) { 
     if (pGTL[iCol] > 0) { 
       pB->fDecCoef(pGTL[iRow], pGTL[iCol], dCoef);
-      //pB[pGTL[iRow]-1 + (pGTL[iCol]-1) *LSize] -= dCoef;
+      // pB[pGTL[iRow]-1 + (pGTL[iCol]-1) *LSize] -= dCoef;
     } 
     else {
       pE[pGTL[iRow]-1 + (-pGTL[iCol]-1)*LSize] -= dCoef;
@@ -236,7 +226,7 @@ inline const doublereal& SchurMatrixHandler::dGetCoef(integer iRow, integer iCol
     cerr << "dGetCoef " << "Process: " << MPI::COMM_WORLD.Get_rank()
       << " Warning, you are trying to operate on a non local value !!!"
       " (Matrix Handler) "<< iRow << " " << iCol << endl;
-    return dZero; 
+    return ::dZero; 
   }
 #endif
   if (pGTL[iRow] > 0) { 
@@ -273,8 +263,6 @@ class SchurVectorHandler : public VectorHandler {
   doublereal* pLV;
   doublereal* pIV;
   integer* pGTL;
-  
-  const doublereal dZero;
   
  public:
   SchurVectorHandler(int LocSize, int IntSize,
@@ -347,7 +335,8 @@ inline flag SchurVectorHandler::fIncCoef(integer iRow, const doublereal& dCoef)
       " (Vector Handler) " << iRow << endl;
     return  flag(0);
   }
-#endif
+#endif /* DEBUG */
+
   if (pGTL[iRow] > 0) {
     pLV[pGTL[iRow]-1] += dCoef;
   }
@@ -365,7 +354,8 @@ inline flag SchurVectorHandler::fDecCoef(integer iRow, const doublereal& dCoef)
     cerr << " Warning, you are trying to operate on a non local value !!! (Vector Handler) " << iRow <<  endl;
     return  flag(0);
   }
-#endif
+#endif /* DEBUG */
+
   if (pGTL[iRow] > 0) {
     pLV[pGTL[iRow]-1] -= dCoef;
   }
@@ -384,9 +374,10 @@ inline const doublereal& SchurVectorHandler::dGetCoef(integer iRow) const
     cerr <<"dGetCoef "  << "Process: " << MPI::COMM_WORLD.Get_rank()
       << " Warning, you are trying to operate on a non local value !!!"
       " (Vector Handler) " << iRow << endl;
-    return dZero;
+    return ::dZero;
   } 
-#endif
+#endif /* DEBUG */
+
   if (pGTL[iRow] > 0) {
     return pLV[pGTL[iRow]-1];
   }
@@ -407,7 +398,6 @@ class SchurSolutionManager : public SolutionManager {
  private:
 
   /* communicator per lo scambio di messaggi */
-
   MPI::Intracomm SolvComm; 
   int MyRank, SolvCommSize;
   
@@ -428,15 +418,13 @@ class SchurSolutionManager : public SolutionManager {
   int* pBlockLenght;                 /* struttura di servizio x datatype; master */ 
   MPI::Aint* pTypeDsp;               /* struttura di servizio x datatype; master */ 
   doublereal* pBuffer;               /* buffer di ricezione */
-  MPI::Datatype** ppNewTypes;        /* datatype per la trasmissione dei vettori soluzioe delle interfacce; master */
+  MPI::Datatype** ppNewTypes;        /* datatype per la trasmissione dei vettori soluzione delle interfacce; master */
 
-  //  integer SchurWorkSpace;
   integer iWorkSpaceSize;
 
   /* Vettori di lavoro x l'Harwell solver */
   integer*  piBRow;
   integer*  piBCol;
-  //  doublereal*  pdBMat;
   SparseMatrixHandler* pBMH;
   
   /* Matrice B */
@@ -467,7 +455,6 @@ class SchurSolutionManager : public SolutionManager {
   MatrixHandler* pSchMH;
 
  /* vettore Schur */
-  //doublereal* pdScVec;
   VectorHandler* pSchVH;
 
   SchurMatrixHandler* pMH;         /* handler della matrice globale */

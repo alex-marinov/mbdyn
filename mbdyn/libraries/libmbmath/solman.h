@@ -40,7 +40,6 @@
 #ifndef SOLMAN_H
 #define SOLMAN_H
 
-
 extern "C" {
 #include <mymath.h>
 }
@@ -58,16 +57,16 @@ extern clMemMan SMmm;
 
 #include <myf2c.h>
 
+/* Zero for sparse vector and matrix handlers */
+extern const doublereal dZero;
 
 /* classi virtuali dichiarate in questo file */
-
 class MatrixHandler;    /* gestore matrice */
 class VectorHandler;    /* gestore vettore */
 class SolutionManager;  /* gestore della soluzione */
 
 
 /* classi usate in questo file */
-
 class SubMatrixHandler;
 class FullSubMatrixHandler;
 class SparseSubMatrixHandler;

@@ -40,120 +40,6 @@
 
 #include <harwrap.h>
 
-/* SparseMatrixHandler - begin: code */
-
-#ifdef DEBUG_MEMMANAGER
-clMemMan MHmm("SparseMatrixHandler");
-#endif
-
-SparseMatrixHandler::SparseMatrixHandler(integer iMSize, 
-				         integer** ppiTmpRow,
-					 integer** ppiTmpCol,
-					 doublereal** ppdTmpMat,
-					 integer iWSSize)
-: iWorkSpaceSize(iWSSize),
-iCurSize(iWSSize), 
-iNumItem(0), iMatSize(iMSize),
-pSD(NULL), dZero(0.),
-ppiRow(ppiTmpRow),
-ppiCol(ppiTmpCol), 
-ppdMat(ppdTmpMat)
-{
-#ifdef DEBUG
-   IsValid();
-#endif
-
-   SAFENEWWITHCONSTRUCTOR(pSD,
-			  SparseData,
-			  SparseData(iCurSize, ppiRow, ppiCol), 
-			  MHmm);
-}
-
-
-SparseMatrixHandler::~SparseMatrixHandler(void) 
-{
-#ifdef DEBUG
-   IsValid();
-#endif
-   
-   if (pSD != NULL) {
-      SAFEDELETE(pSD, MHmm);
-   }
-}
-
-integer SparseMatrixHandler::PacMat(void)
-{
-  //  ASSERT(pMH->iCurSize > 0);   
-   
-   doublereal* pdMatNew = *ppdMat;
-   integer* piRowNew = *ppiRow;
-   integer* piColNew = *ppiCol;
-   
-   doublereal* pdMatOld = *ppdMat;
-   integer* piRowOld = *ppiRow;
-   integer* piColOld = *ppiCol;
-   
-   integer iEmpty = -(this->pSD->iCurSize+1);
-   integer iCount = 0;
-   
-   for (; piRowOld < *ppiRow+this->iCurSize; pdMatOld++, piRowOld++, piColOld++) {
-      if (*(piRowOld) != iEmpty) {
-	 union uPacVec uPV;
-	 uPV.iInt = *piColOld;
-	 *pdMatNew++ = *pdMatOld;
-	 *piRowNew++ = integer(uPV.sRC.ir);
-	 *piColNew++ = integer(uPV.sRC.ic);	     
-	 iCount++;
-      }
-   }
-   return iCount;
-}
-
-void SparseMatrixHandler::IsValid(void) const
-{   
-   ASSERT(iMatSize > 0);
-   ASSERT(iWorkSpaceSize > 0);
-   ASSERT(ppiRow != NULL);
-   ASSERT(ppiCol != NULL);
-   ASSERT(ppdMat != NULL);
-   ASSERT(*ppiRow != NULL);
-   ASSERT(*ppiCol != NULL);
-   ASSERT(*ppdMat != NULL);
-   
-#ifdef DEBUG_MEMMANAGER
-   ASSERT(SMmm.fIsValid((void*)*ppiRow, iWorkSpaceSize*sizeof(integer)));
-   ASSERT(SMmm.fIsValid((void*)*ppiCol, iWorkSpaceSize*sizeof(integer)));
-   ASSERT(SMmm.fIsValid((void*)*ppdMat, iWorkSpaceSize*sizeof(doublereal)));
-#endif
-   
-}
-
-
-void SparseMatrixHandler::Init(const doublereal& dResetVal)
-{
-#ifdef DEBUG
-   IsValid();
-#endif
-   
-   ASSERT(pSD != NULL);
-#ifdef DEBUG_MEMMANAGER
-   ASSERT(MHmm.fIsPointerToBlock((void*)pSD));
-#endif
-   
-   pSD->ResetVec();
-   doublereal* pdTmp = *ppdMat;
-   while ( pdTmp < *ppdMat+iCurSize ) {
-      *pdTmp++ = dResetVal; 
-   }  
-}
-
-/* SparseMatrixHandler - end */
-
-
-
-
-
-
 /* HarwellLUSolver - begin */
 
 #ifdef DEBUG_MEMMANAGER
@@ -163,23 +49,16 @@ clMemMan LUmm(sLUClassName);
 /* HarwellLUSolver - end */
 
 
-
-
-
-
-
-
-/* HSLUSolutionManager - begin: code */
+/* HarwellSparseLUSolutionManager - begin: code */
 
 #ifdef DEBUG_MEMMANAGER
-clMemMan SMmm("HSLUSolutionManager");
+clMemMan SMmm("HarwellSparseLUSolutionManager");
 #endif
 
 /* Costruttore */
-
-HSLUSolutionManager::HSLUSolutionManager(integer iSize, 
-					 integer iWorkSpaceSize,
-					 const doublereal& dPivotFactor) :
+HarwellSparseLUSolutionManager::HarwellSparseLUSolutionManager(integer iSize, 
+					 		       integer iWorkSpaceSize,
+							       const doublereal& dPivotFactor) :
 iMatMaxSize(iSize),
 iMatSize(iSize), 
 piRow(NULL), piCol(NULL), 
@@ -187,208 +66,146 @@ pdMat(NULL), pdVec(NULL),
 pMH(NULL), pVH(NULL), pLU(NULL),
 fHasBeenReset(1)
 {
-   ASSERT(iSize > 0);
-   ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
+   	ASSERT(iSize > 0);
+   	ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
 
-   /* Valore di default */
-   if (iWorkSpaceSize == 0) {
-      iWorkSpaceSize = iSize*iSize;
-   }
+   	/* Valore di default */
+   	if (iWorkSpaceSize == 0) {
+      		iWorkSpaceSize = iSize*iSize;
+   	}
       
-   /* Alloca arrays */
-   SAFENEWARR(piRow, integer, iWorkSpaceSize, SMmm);
-   SAFENEWARR(piCol, integer, iWorkSpaceSize, SMmm);
-   SAFENEWARR(pdMat, doublereal, iWorkSpaceSize, SMmm);
-   SAFENEWARR(pdVec, doublereal, iMatSize, SMmm);
+   	/* Alloca arrays */
+   	SAFENEWARR(piRow, integer, iWorkSpaceSize, SMmm);
+   	SAFENEWARR(piCol, integer, iWorkSpaceSize, SMmm);
+   	SAFENEWARR(pdMat, doublereal, iWorkSpaceSize, SMmm);
+   	SAFENEWARR(pdVec, doublereal, iMatSize, SMmm);
    
-   /* Alloca handlers ecc. */
-   SAFENEWWITHCONSTRUCTOR(pMH, 
-			  SparseMatrixHandler,
-			  SparseMatrixHandler(iMatSize, &piRow, &piCol, &pdMat,
-				   	      iWorkSpaceSize), 
-			  SMmm);
-   SAFENEWWITHCONSTRUCTOR(pVH,
-			  MyVectorHandler,
-			  MyVectorHandler(iMatSize, pdVec), SMmm);
-   SAFENEWWITHCONSTRUCTOR(pLU, 
-			  HarwellLUSolver,
-			  HarwellLUSolver(iMatSize, iWorkSpaceSize, &piRow, &piCol, 
-					  &pdMat, pdVec, dPivotFactor), SMmm);
+   	/* Alloca handlers ecc. */
+   	SAFENEWWITHCONSTRUCTOR(pMH, 
+			       SparseMatrixHandler,
+			       SparseMatrixHandler(iMatSize, &piRow, 
+			       			   &piCol, &pdMat,
+			       			   iWorkSpaceSize), 
+			       SMmm);
+   	SAFENEWWITHCONSTRUCTOR(pVH,
+			       MyVectorHandler,
+			       MyVectorHandler(iMatSize, pdVec),
+			       SMmm);
+   	SAFENEWWITHCONSTRUCTOR(pLU, 
+			       HarwellLUSolver,
+			       HarwellLUSolver(iMatSize, iWorkSpaceSize,
+			       		       &piRow, &piCol, 
+					       &pdMat, pdVec, dPivotFactor),
+			       SMmm);
    
 #ifdef DEBUG
-   IsValid();
+   	IsValid();
 #endif      
 }
 
 
 /* Distruttore; verificare la distruzione degli oggetti piu' complessi */
-
-HSLUSolutionManager::~HSLUSolutionManager(void)
+HarwellSparseLUSolutionManager::~HarwellSparseLUSolutionManager(void)
 {
 #ifdef DEBUG
-   IsValid();
+   	IsValid();
 #endif      
    
-   /* Dealloca oggetti strani */
-   if (pLU != NULL) {	
-      SAFEDELETE(pLU, SMmm);
-   }   
-   if (pVH != NULL) {      
-      SAFEDELETE(pVH, SMmm);
-   }   
-   if (pMH != NULL) {
-      SAFEDELETE(pMH, SMmm);
-   }      
+   	/* Dealloca oggetti strani */
+   	if (pLU != NULL) {	
+      		SAFEDELETE(pLU, SMmm);
+   	}
+   	if (pVH != NULL) {      
+      		SAFEDELETE(pVH, SMmm);
+   	}
+   	if (pMH != NULL) {
+      		SAFEDELETE(pMH, SMmm);
+   	}
    
-   /* Dealloca arrays */
-   if (pdVec != NULL) {	
-      SAFEDELETEARR(pdVec, SMmm);
-   }   
-   if (pdMat != NULL) {	
-      SAFEDELETEARR(pdMat, SMmm);
-   }   
-   if (piCol != NULL) {	
-      SAFEDELETEARR(piCol, SMmm);
-   }   
-   if (piRow != NULL) {	
-      SAFEDELETEARR(piRow, SMmm);
-   }   
+   	/* Dealloca arrays */
+   	if (pdVec != NULL) {	
+      		SAFEDELETEARR(pdVec, SMmm);
+   	}
+   	if (pdMat != NULL) {	
+      		SAFEDELETEARR(pdMat, SMmm);
+   	}
+   	if (piCol != NULL) {	
+      		SAFEDELETEARR(piCol, SMmm);
+   	}
+   	if (piRow != NULL) {	
+      		SAFEDELETEARR(piRow, SMmm);
+   	}
 }
 
-
 /* Test di validita' del manager */
-
-void HSLUSolutionManager::IsValid(void) const
+void 
+HarwellSparseLUSolutionManager::IsValid(void) const
 {   
-   ASSERT(iMatMaxSize > 0);
-   ASSERT(iMatSize > 0);
-   ASSERT(pMH != NULL);
-   ASSERT(pdMat != NULL);
-   ASSERT(piRow != NULL);
-   ASSERT(piCol != NULL);
+   	ASSERT(iMatMaxSize > 0);
+   	ASSERT(iMatSize > 0);
+   	ASSERT(pMH != NULL);
+   	ASSERT(pdMat != NULL);
+   	ASSERT(piRow != NULL);
+   	ASSERT(piCol != NULL);
    
 #ifdef DEBUG_MEMMANAGER
-   ASSERT(SMmm.fIsPointerToBlock((void*)piRow));
-   ASSERT(SMmm.fIsPointerToBlock((void*)piCol));
-   ASSERT(SMmm.fIsPointerToBlock((void*)pdMat));
-   ASSERT(SMmm.fIsPointerToBlock((void*)pMH));
-   ASSERT(SMmm.fIsPointerToBlock((void*)pVH));
-   ASSERT(SMmm.fIsPointerToBlock((void*)pLU));
+   	ASSERT(SMmm.fIsPointerToBlock((void*)piRow));
+   	ASSERT(SMmm.fIsPointerToBlock((void*)piCol));
+   	ASSERT(SMmm.fIsPointerToBlock((void*)pdMat));
+   	ASSERT(SMmm.fIsPointerToBlock((void*)pMH));
+   	ASSERT(SMmm.fIsPointerToBlock((void*)pVH));
+   	ASSERT(SMmm.fIsPointerToBlock((void*)pLU));
 #endif
    
-   ASSERT((pMH->IsValid(), 1));
-   ASSERT((pVH->IsValid(), 1));
-   ASSERT((pLU->IsValid(), 1));
+   	ASSERT((pMH->IsValid(), 1));
+   	ASSERT((pVH->IsValid(), 1));
+   	ASSERT((pLU->IsValid(), 1));
 }
 
 /* Prepara i vettori e la matrice per il solutore */
-
-void HSLUSolutionManager::PacVec(void)
+void
+HarwellSparseLUSolutionManager::PacVec(void)
 {
 #ifdef DEBUG
-   IsValid();
+   	IsValid();
 #endif
    
-   /*
-   ASSERT(pMH != NULL);
-   ASSERT(pdMat != NULL);
-   ASSERT(piRow != NULL);
-   ASSERT(piCol != NULL);
-#ifdef DEBUG_MEMMANAGER
-   ASSERT(SMmm.fIsPointerToBlock((void*)pMH));
-   ASSERT(SMmm.fIsPointerToBlock((void*)piRow));
-   ASSERT(SMmm.fIsPointerToBlock((void*)piCol));
-   ASSERT(SMmm.fIsPointerToBlock((void*)pdMat));
-#endif
-    */
+   	ASSERT(pMH->iCurSize > 0);   
+   	ASSERT(fHasBeenReset == 1);
    
-   ASSERT(pMH->iCurSize > 0);   
-   ASSERT(fHasBeenReset == 1);
-   
-   doublereal* pdMatNew = pdMat;
-   integer* piRowNew = piRow;
-   integer* piColNew = piCol;
-   
-   doublereal* pdMatOld = pdMat;
-   integer* piRowOld = piRow;
-   integer* piColOld = piCol;
-   
-   integer iEmpty = -(pMH->pSD->iCurSize+1);
-   integer iCount = 0;
-   
-   for (; piRowOld < piRow+pMH->iCurSize; pdMatOld++, piRowOld++, piColOld++) {
-      if (*(piRowOld) != iEmpty) {
-	 union uPacVec uPV;
-	 uPV.iInt = *piColOld;
-	 *pdMatNew++ = *pdMatOld;
-	 *piRowNew++ = integer(uPV.sRC.ir);
-	 *piColNew++ = integer(uPV.sRC.ic);	     
-	 iCount++;
-      }
-   }
-   
-   pLU->iNonZeroes = iCount;
+   	pLU->iNonZeroes = pMH->iPacVec();
 }
-
 
 /* Inizializza il gestore delle matrici */
-
-void HSLUSolutionManager::MatrInit(const doublereal& dResetVal)
+void
+HarwellSparseLUSolutionManager::MatrInit(const doublereal& dResetVal)
 {
 #ifdef DEBUG
-   IsValid();
+   	IsValid();
 #endif
    
-   /*
-   ASSERT(pMH != NULL);
-#ifdef DEBUG_MEMMANAGER
-   ASSERT(SMmm.fIsPointerToBlock((void*)pMH));
-#endif
-    */
-   
-   pMH->Init(dResetVal);
-   fHasBeenReset = flag(1);
+   	pMH->Init(dResetVal);
+   	fHasBeenReset = flag(1);
 }
-
 
 /* Risolve il problema */
-
-void HSLUSolutionManager::Solve(void)
+void
+HarwellSparseLUSolutionManager::Solve(void)
 {
 #ifdef DEBUG
-   IsValid();
+   	IsValid();
 #endif
 
-   /*
-   ASSERT(iMatSize > 0);
-   ASSERT(piRow != NULL);
-   ASSERT(piCol != NULL);
-   ASSERT(pdMat != NULL);
-   ASSERT(pdVec != NULL);
-   ASSERT(pMH != NULL);
-   ASSERT(pVH != NULL);
-   ASSERT(pLU != NULL);
-#ifdef DEBUG_MEMMANAGER
-   ASSERT(SMmm.fIsPointerToBlock((void*)piRow));
-   ASSERT(SMmm.fIsPointerToBlock((void*)piCol));
-   ASSERT(SMmm.fIsPointerToBlock((void*)pdMat));
-   ASSERT(SMmm.fIsPointerToBlock((void*)pdVec));
-   ASSERT(SMmm.fIsPointerToBlock((void*)pMH));
-   ASSERT(SMmm.fIsPointerToBlock((void*)pVH));
-   ASSERT(SMmm.fIsPointerToBlock((void*)pLU));
-#endif
-    */
-   
-   if (fHasBeenReset == 1) {
-      this->PacVec();
-      fHasBeenReset = flag(0);
-      flag fReturnFlag = pLU->fLUFactor();
-      if (fReturnFlag < 0) {	 
-	 THROW(HSLUSolutionManager::ErrGeneric());
-      }
-   }
-   pLU->Solve();
+   	if (fHasBeenReset == 1) {
+      		this->PacVec();
+      		fHasBeenReset = flag(0);
+      		flag fReturnFlag = pLU->fLUFactor();
+      		if (fReturnFlag < 0) {	 
+	 		THROW(HarwellSparseLUSolutionManager::ErrGeneric());
+      		}
+   	}
+   	pLU->Solve();
 }
 
-/* HSLUSolutionManager - end */
+/* HarwellSparseLUSolutionManager - end */
 
