@@ -277,13 +277,13 @@ iTotalExpConnections(0)
 
 	try {
 		if (KeyWords(HP.GetDescription()) != BEGIN) {
-			silent_cerr("no explicit connection declared "
+			pedantic_cerr("no explicit connection declared "
 				"for this input file" << std::endl);
 			return;
 		}
 
 	} catch (EndOfFile) {
-		silent_cerr("no explicit connection declared "
+		pedantic_cerr("no explicit connection declared "
 			"for this input file" << std::endl);
 		return;
 	}
@@ -305,7 +305,24 @@ iTotalExpConnections(0)
 					<< "; aborting ..." << std::endl);
 				throw ErrGeneric();
 			}
-			wgtflag = HP.GetInt();
+
+			if (HP.IsKeyWord("no" "weights")) {
+				wgtflag = 0;
+			} else if (HP.IsKeyWord("edges" "only")) {
+				wgtflag = 1;
+			} else if (HP.IsKeyWord("vertices" "only")) {
+				wgtflag = 2;
+			} else if (HP.IsKeyWord("vertices" "and" "edges")) {
+				wgtflag = 3;
+			} else {
+				wgtflag = HP.GetInt();
+				if (wgtflag < 0 || wgtflag > 3) {
+					silent_cerr("invalid weights " << wgtflag
+						<< " at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric();
+				}
+			}
 			break;
 
 		case PARTITION:
@@ -651,11 +668,11 @@ SchurDataManager::CreatePartition(void)
 	DEBUGCOUT("Entering SchurDataManager::CreatePartition()" << std::endl);
 
 	Adjacency Vertices;	/* Struttura contenente le connessioni fra i vertici */
-	int* pVertexWgts;	/* Pesi dei vertici = dofs x ogni v. utile per METIS */
-	int* pCommWgts = NULL;
-	Vertices.pXadj = NULL;
-	Vertices.pAdjncy = NULL;
-	pVertexWgts = NULL;
+	int* pVertexWgts = 0;	/* Pesi dei vertici = dofs x ogni v. utile per METIS */
+	int* pCommWgts = 0;
+	Vertices.pXadj = 0;
+	Vertices.pAdjncy = 0;
+	pVertexWgts = 0;
 	integer iMax = 0;
 	integer iRMax = 0;
 	int iCount = 0;
@@ -665,9 +682,12 @@ SchurDataManager::CreatePartition(void)
 	ASSERT(DataCommSize > 0);
 	
 	/* Costruisco e inizializzo le due strutture */
-	SAFENEWARR(Vertices.pXadj, int, iTotVertices+1);
-	SAFENEWARR(pVertexWgts, int, iTotVertices*2);
+	SAFENEWARR(Vertices.pXadj, int, iTotVertices + 1);
+	SAFENEWARR(pVertexWgts, int, iTotVertices * 2);
 	SAFENEWARR(pCommWgts, int, iTotVertices);
+	memset(Vertices.pXadj, 0, (iTotVertices + 1)*sizeof(int));
+	memset(pVertexWgts, 0, iTotVertices*2*sizeof(int));
+	memset(pCommWgts, 0, iTotVertices*sizeof(int));
 
 	/* Ciclo per la scrittura degli array delle connessioni.
 	 * Il ciclo viene ripetuto se per un vertice si ha un numero
@@ -685,10 +705,15 @@ SchurDataManager::CreatePartition(void)
 	if (ElemData[Elem::ROTOR].iNum != 0) {
 		SAFENEWARR(pRotPos, int, ElemData[Elem::ROTOR].iNum);
 		SAFENEWARR(pRotLab, unsigned int, ElemData[Elem::ROTOR].iNum);
+		memset(pRotPos, 0, ElemData[Elem::ROTOR].iNum*sizeof(int));
+		memset(pRotLab, 0, ElemData[Elem::ROTOR].iNum*sizeof(unsigned int));
 	}
 	SAFENEWARR(pMyTypes, Node::Type, iDefaultMaxNodesPerElem);
 	SAFENEWARR(pMyLabels, unsigned int, iDefaultMaxNodesPerElem);
 	SAFENEWARR(pLabelsList, unsigned int, iTotNodes);
+	memset(pMyTypes, 0, iDefaultMaxNodesPerElem*sizeof(Node::Type));
+	memset(pMyLabels, 0, iDefaultMaxNodesPerElem*sizeof(unsigned int));
+	memset(pLabelsList, 0, iTotNodes*sizeof(unsigned int));
 
 	while (true) {
 		InitList(Vertices.pXadj, iTotVertices+1, 0);
@@ -713,7 +738,8 @@ SchurDataManager::CreatePartition(void)
 
 		for (Elem** ppTmpEl = ppElems;
 				ppTmpEl < ppElems+iTotElem;
-				ppTmpEl++, iCount++) {
+				ppTmpEl++, iCount++)
+		{
 			if ((*ppTmpEl)->GetElemType() == Elem::GRAVITY) {
 				GravityPos = ppTmpEl - ppElems;
 			}
@@ -803,15 +829,13 @@ SchurDataManager::CreatePartition(void)
 			}
 		}
 
-		if (iMax > iMaxConnectionsPerVertex) {
-			iMaxConnectionsPerVertex = iMax;
-			SAFEDELETEARR(Vertices.pAdjncy);
-			Vertices.pAdjncy = 0;
-			/* FIXME: then what? */
-		
-		} else {
+		if (iMax <= iMaxConnectionsPerVertex) {
 			break;
 		}
+
+		iMaxConnectionsPerVertex = iMax;
+		SAFEDELETEARR(Vertices.pAdjncy);
+		Vertices.pAdjncy = 0;
 	}
 
 	for (int i = 1; i <= iTotVertices; i++) {
@@ -865,6 +889,9 @@ SchurDataManager::CreatePartition(void)
 
 		switch (Partitioner) {
 		case PARTITIONER_CHACO: {
+			silent_cerr("CHACO partitioning algorithm not supported yet" << std::endl);
+			throw ErrGeneric();
+
 			/* Chaco uses floats for the communication weights */
 			float* pfCommWgts = NULL;
 
@@ -907,7 +934,8 @@ SchurDataManager::CreatePartition(void)
 		}
 	}
 
-	int MyDim = iTotVertices/DataCommSize; /* Stima del # vertici per blocco */
+	/* Stima del # vertici per blocco */
+	int MyDim = iTotVertices/DataCommSize + DataCommSize;
 
 	/* Lista dei nodi appartenenti a questo processo */
 	Adjacency InterfNodes; /* nodi di interfaccia */
@@ -1002,17 +1030,16 @@ SchurDataManager::CreatePartition(void)
 
 	/* lista degli elementi appartenenti a questo processo */
 	SAFENEWARR(ppMyElems, Elem*, 2*MyDim);
+	memset(ppMyElems, 0, 2*MyDim*sizeof(Elem*));
 
 	/* Trattamento elementi particolari */
 	int move = 0;
 
 	/* Gravity */
-#if 0
-	Elem* pTmpElem;
-#endif /* 0 */
 	if (ElemData[Elem::GRAVITY].iNum != 0) {
+		/* FIXME: there's a better way to find GravityPos and so on... */
 		ppMyElems[iNumLocElems] = ppElems[GravityPos];
-		iNumLocElems += 1;
+		iNumLocElems++;
 		pParAmgProcs[GravityPos+iTotNodes] = -1;
 		move++;
 	}
@@ -1020,7 +1047,7 @@ SchurDataManager::CreatePartition(void)
 	/* Air Properties */
 	if (ElemData[Elem::AIRPROPERTIES].iNum != 0) {
 		ppMyElems[iNumLocElems] = ppElems[AirPropPos];
-		iNumLocElems += 1;
+		iNumLocElems++;
 		pParAmgProcs[AirPropPos+iTotNodes] = -1;
 		move++;
 	}
@@ -1094,18 +1121,21 @@ SchurDataManager::CreatePartition(void)
 			} else {
 				move++;
 			}
-			iNumLocElems += 1;
+			iNumLocElems++;
 			pParAmgProcs[pMyRot[i]+iTotNodes] = -1;
 		}
 	}
 
-	for (int i = iTotNodes; i < iTotVertices; i++) {
-		if (pParAmgProcs[i] == MyRank) {
-			ppMyElems[iNumLocElems] = ppElems[i-iTotNodes];
-			iNumLocDofs += (ppMyElems[iNumLocElems])->iGetNumDof();
-			iNumLocElems += 1;
+	for (unsigned int i = 0; i < iTotVertices - iTotNodes; i++) {
+		if (pParAmgProcs[iTotNodes + i] == MyRank) {
+			ppMyElems[iNumLocElems] = ppElems[i];
+			iNumLocDofs += ppMyElems[iNumLocElems]->iGetNumDof();
+			iNumLocElems++;
 		}
 	}
+
+	/* initialize local element iterator */
+	MyElemIter.Init(ppMyElems, iNumLocElems);
 
 	/* Verifico la ricezione dei nodi di interfaccia */
 	bool bRecvFlag, bSentFlag;
@@ -1129,15 +1159,19 @@ SchurDataManager::CreatePartition(void)
 
 	/* dimensione effettiva dell'interfaccia locale
 	 * il -1 e' dovuto al primo valore che è sempre pari a -1 */
-	iNumIntNodes = p - InterfNodes.pAdjncy;
+	/*
+	 * InterfNodes.pAdjncy[0] == -1
+	 * InterfNodes.pAdjncy[iNumIntNodes] == -1
+	 */
+	iNumIntNodes = p - &InterfNodes.pAdjncy[1];
 
 	unsigned int* llabels = NULL;
 	Node::Type* lTypes = NULL;
 	SAFENEWARR(llabels, unsigned int, iNumIntNodes);
 	SAFENEWARR(lTypes,  Node::Type, iNumIntNodes);
 	SAFENEWARR(ppIntNodes, Node*, iNumIntNodes);
-	for (int i = 0; i < iNumIntNodes-1; i++) {
-		ppIntNodes[i] = ppNodes[InterfNodes.pAdjncy[i+1]];
+	for (int i = 0; i < iNumIntNodes; i++) {
+		ppIntNodes[i] = ppNodes[InterfNodes.pAdjncy[i + 1]];
 		llabels[i] = ppIntNodes[i]->GetLabel();
 		lTypes[i] = ppIntNodes[i]->GetNodeType();
 	}
@@ -1149,15 +1183,18 @@ SchurDataManager::CreatePartition(void)
 	if (iNumLocElems != 0) {
 		SAFENEWARR(pPosIntElems, int, iNumLocElems);
 		SAFENEWARR(ppMyIntElems, Elem*, iNumLocElems);
+
+		memset(pPosIntElems, 0, iNumLocElems*sizeof(int));
+		memset(ppMyIntElems, 0, iNumLocElems*sizeof(Elem*));
 	}
 
 	for (int i = 0; i < iNumLocElems; i++) {
 		if (ppMyElems[i]->iGetNumDof() != 0) {
-			Elem::Type CType = (ppMyElems[i])->GetElemType();
+			Elem::Type CType = ppMyElems[i]->GetElemType();
 			switch (CType) {
 			case Elem::ROTOR:
 				if (iRotorIsMine == 1) {
-					(ppMyElems[i])->GetConnectedNodes(iNumberOfNodes, pMyTypes, pMyLabels);
+					ppMyElems[i]->GetConnectedNodes(iNumberOfNodes, pMyTypes, pMyLabels);
 					for (int j = 0; j < iNumberOfNodes; j++) {
 						unsigned int* p =
 							std::find(llabels, llabels+iNumIntNodes, pMyLabels[j]);
@@ -1179,7 +1216,7 @@ SchurDataManager::CreatePartition(void)
 				break;
 
 			default:
-				(ppMyElems[i])->GetConnectedNodes(iNumberOfNodes,
+				ppMyElems[i]->GetConnectedNodes(iNumberOfNodes,
 						pMyTypes, pMyLabels);
 				for (int j = 0; j < iNumberOfNodes; j++) {
 					unsigned int* p =
@@ -1204,12 +1241,12 @@ SchurDataManager::CreatePartition(void)
 
 	iCount = 0;
 	for (int i = 0; i < iNumLocNodes; i++) {
-		if ((ppMyNodes[i])->iGetNumDof() != 0) {
+		if (ppMyNodes[i]->iGetNumDof() != 0) {
 			integer First = (ppMyNodes[i])->iGetFirstIndex();
 
 			LocalDofs[iCount] = First+1;
 			iCount++;
-			for (unsigned int j = 1; j < (ppMyNodes[i])->iGetNumDof(); j++) {
+			for (unsigned int j = 1; j < ppMyNodes[i]->iGetNumDof(); j++) {
 				LocalDofs[iCount] = First + j + 1;
 				iCount++;
 			}
@@ -1221,9 +1258,10 @@ SchurDataManager::CreatePartition(void)
 	int i2Count = 0;
 
 	for (int i = move; i < iNumLocElems; i++) {
-		if ((TmpDofNum = (ppMyElems[i])->iGetNumDof()) != 0) {
+		TmpDofNum = ppMyElems[i]->iGetNumDof();
+		if (TmpDofNum != 0) {
 			if (i != pPosIntElems[i2Count]) {
-				ElemWithDofs* pWithDofs = (ppMyElems[i])->pGetElemWithDofs();
+				ElemWithDofs* pWithDofs = ppMyElems[i]->pGetElemWithDofs();
 				integer First = (pWithDofs)->iGetFirstIndex();
 
 				LocalDofs[iCount] = First+1;
@@ -1240,8 +1278,8 @@ SchurDataManager::CreatePartition(void)
 	}
 
 	/* scrivo ora la lista dei dofs interfaccia */
-	for (int i = 1; i < iNumIntNodes; i++) {
-		iNumIntDofs += (ppNodes[InterfNodes.pAdjncy[i]])->iGetNumDof();
+	for (int i = 1; i < iNumIntNodes + 1; i++) {
+		iNumIntDofs += ppNodes[InterfNodes.pAdjncy[i]]->iGetNumDof();
 	}
 
 	SAFENEWARR(LocalIntDofs, integer, iNumIntDofs);
@@ -1249,9 +1287,9 @@ SchurDataManager::CreatePartition(void)
 
 	iCount = 0;
 	i2Count = 0;
-	for (int i = 1; i < iNumIntNodes; i++) {
-		if ((ppNodes[InterfNodes.pAdjncy[i]])->iGetNumDof() != 0) {
-			integer First = (ppNodes[InterfNodes.pAdjncy[i]])->iGetFirstIndex();
+	for (int i = 1; i < iNumIntNodes + 1; i++) {
+		if (ppNodes[InterfNodes.pAdjncy[i]]->iGetNumDof() != 0) {
+			integer First = ppNodes[InterfNodes.pAdjncy[i]]->iGetFirstIndex();
 
 			LocalIntDofs[iCount] = (First + 1);
 			iCount++;
@@ -1261,14 +1299,14 @@ SchurDataManager::CreatePartition(void)
 			}
 
 			for (unsigned int j = 1;
-					j < (ppNodes[InterfNodes.pAdjncy[i]])->iGetNumDof();
-					j++) {
-
+					j < ppNodes[InterfNodes.pAdjncy[i]]->iGetNumDof();
+					j++)
+			{
 				/* il - serve a distinguere questi dofs da quelli interni */
-				LocalIntDofs[iCount] = (First  + 1 + j);
+				LocalIntDofs[iCount] = (First + 1 + j);
 				iCount++;
 				if (pParAmgProcs[InterfNodes.pAdjncy[i]] == MyRank) {
-					pMyIntDofs[i2Count] = (First  + 1 + j);
+					pMyIntDofs[i2Count] = (First + 1 + j);
 					i2Count++;
 				}
 			}
@@ -1277,7 +1315,7 @@ SchurDataManager::CreatePartition(void)
 
 	/* Interfaccia degli elementi locali */
 	for (int i = 0; i < iNumIntElems; i++) {
-		TmpDofNum = (ppMyIntElems[i])->iGetNumDof();
+		TmpDofNum = ppMyIntElems[i]->iGetNumDof();
 		ElemWithDofs* pWithDofs = (ppMyIntElems[i])->pGetElemWithDofs();
 		integer First = (pWithDofs)->iGetFirstIndex();
 		LocalIntDofs[iCount] = (First + 1);
@@ -1289,14 +1327,13 @@ SchurDataManager::CreatePartition(void)
 	}
 
 	iNumMyInt = i2Count;
-	iNumIntNodes = iNumIntNodes-1;
 
 	if (pMyTypes != NULL) {
-		SAFEDELETE(pMyTypes);
+		SAFEDELETEARR(pMyTypes);
 	}
 
 	if (pMyLabels != NULL) {
-		SAFEDELETE(pMyLabels);
+		SAFEDELETEARR(pMyLabels);
 	}
 
 	if ( Vertices.pXadj != NULL) {
@@ -1356,7 +1393,7 @@ SchurDataManager::OutputPartition(void)
 
 	time_t tCurrTime(time(NULL));
 	OutHdl.Partition()
-		<< "# Partition file for Mbdyn. Time: " << ctime(&tCurrTime)  << std::endl
+		<< "# Partition file for MBDyn. Time: " << ctime(&tCurrTime)  << std::endl
 		<< "# Partition produced with METIS" << std::endl << std::endl << std::endl;
 
 	/* Dati */
@@ -1378,8 +1415,8 @@ SchurDataManager::OutputPartition(void)
 		OutHdl.Partition()
 			<< "Node Type: "
 			<< "(" << psNodeNames[(ppMyNodes[i])->GetNodeType()] << ")"
-			<< " Label: " << (ppMyNodes[i])->GetLabel()
-			<< " Dofs #: " << (ppMyNodes[i])->iGetNumDof()
+			<< " Label: " << ppMyNodes[i]->GetLabel()
+			<< " Dofs #: " << ppMyNodes[i]->iGetNumDof()
 			<< std::endl;
 	}
 
@@ -1389,9 +1426,9 @@ SchurDataManager::OutputPartition(void)
 		ASSERT(ppMyElems[i] != NULL);
 		OutHdl.Partition()
 			<< "Element Type: "
-			<< "("  << psElemNames[(ppMyElems[i])->GetElemType()] << ")"
-			<< " Label: " << (ppMyElems[i])->GetLabel()
-			<< " Dofs #: " << (ppMyElems[i])->iGetNumDof()
+			<< "("  << psElemNames[ppMyElems[i]->GetElemType()] << ")"
+			<< " Label: " << ppMyElems[i]->GetLabel()
+			<< " Dofs #: " << ppMyElems[i]->iGetNumDof()
 			<< std::endl;
 	}
 
@@ -1404,8 +1441,8 @@ SchurDataManager::OutputPartition(void)
 		OutHdl.Partition()
 			<< "Node Type: "
 			<< "(" << psNodeNames[(ppIntNodes[i])->GetNodeType()] << ")"
-			<< " Label: " << (ppIntNodes[i])->GetLabel()
-			<< " Dofs #: " <<  (ppIntNodes[i])->iGetNumDof()
+			<< " Label: " << ppIntNodes[i]->GetLabel()
+			<< " Dofs #: " <<  ppIntNodes[i]->iGetNumDof()
 			<< std::endl;
 	}
 
@@ -1416,8 +1453,8 @@ SchurDataManager::OutputPartition(void)
 		OutHdl.Partition()
 			<< "Element Type: "
 			<< "("  << psElemNames[(ppMyIntElems[i])->GetElemType()] << ")"
-			<< " Label: " << (ppMyIntElems[i])->GetLabel()
-			<< " Dofs #: " << (ppMyIntElems[i])->iGetNumDof()
+			<< " Label: " << ppMyIntElems[i]->GetLabel()
+			<< " Dofs #: " << ppMyIntElems[i]->iGetNumDof()
 			<< std::endl;
 	}
 
@@ -1455,14 +1492,13 @@ SchurDataManager::OutputPartition(void)
 void
 SchurDataManager::Pack(int* pList, int dim)
 {
-	int iCount = 0;
 	int* pOld = pList;
 	int* pNew = pList;
 
 	for (; pOld < pList + dim; pOld++) {
 		if (*pOld != ADJ_UNDEFINED) {
-			*pNew++ = *pOld;
-			iCount++;
+			*pNew = *pOld;
+			pNew++;
 		}
 	}
 }
@@ -1471,7 +1507,7 @@ SchurDataManager::Pack(int* pList, int dim)
 void
 SchurDataManager::InitList(int* list, int dim, int value)
 {
-	for (int i = 0; i <= dim-1; i++) {
+	for (int i = 0; i < dim; i++) {
 		list[i] = value;
 	}
 }
@@ -1479,7 +1515,7 @@ SchurDataManager::InitList(int* list, int dim, int value)
 void
 SchurDataManager::InitList(float* list, int dim, int value)
 {
-	for (int i = 0; i <= dim-1; i++) {
+	for (int i = 0; i < dim; i++) {
 		list[i] = value;
 	}
 }
@@ -1501,24 +1537,26 @@ SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef) throw(ChangedE
 {
 	DEBUGCOUT("Entering SchurDataManager::AssRes()" << std::endl);
 
-	/* Vedi quanto scritto per lo jacobiano */
-	ASSERT(iWorkIntSize >= iWorkDoubleSize);
-	MySubVectorHandler WorkVec(iWorkDoubleSize, piWorkIndex, pdWorkMat);
-	
+	Elem* pTmpEl = NULL;
 	bool ChangedEqStructure(false);
-	for (Elem** ppTmpEl = ppMyElems; ppTmpEl < ppMyElems+iNumLocElems; ppTmpEl++) {
-		try {
-			ResHdl += (*ppTmpEl)->AssRes(WorkVec, dCoef, *pXCurr, *pXPrimeCurr);
-		}
-		catch (Elem::ChangedEquationStructure) {
-				ResHdl += WorkVec;
+	if (MyElemIter.bGetFirst(pTmpEl)) {
+		do {
+			try {
+				ResHdl += pTmpEl->AssRes(*pWorkVec, dCoef,
+					*pXCurr, *pXPrimeCurr);
+			}
+			catch(Elem::ChangedEquationStructure) {
+				ResHdl += *pWorkVec;
 				ChangedEqStructure = true;
-		}
+			}
+
+		} while (MyElemIter.bGetNext(pTmpEl));
 	}
+
 	if (ChangedEqStructure) {
 		silent_cerr("Jacobian reassembly requested by an element. "
 				"Currently unsopported with MPI" << std::endl);
-		/* FIXME: exception? */
+		throw ErrGeneric();
 	}
 }
 
@@ -1526,11 +1564,16 @@ void
 SchurDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
 	DEBUGCOUT("Entering SchurDataManager::AssJac()" << std::endl);
-	ASSERT(pWorkMatA != NULL);
-	ASSERT(ppElems != NULL);
+	ASSERT(pWorkMat != NULL);
+	ASSERT(ppMyElems != NULL);
 
-	for (Elem** ppTmpEl = ppMyElems; ppTmpEl < ppMyElems+iNumLocElems; ppTmpEl++) {
-		JacHdl += (*ppTmpEl)->AssJac(*pWorkMatA, dCoef, *pXCurr, *pXPrimeCurr);
+	Elem* pTmpEl = NULL;
+	if (MyElemIter.bGetFirst(pTmpEl)) {
+		do {
+			JacHdl += pTmpEl->AssJac(*pWorkMat, dCoef,
+					*pXCurr, *pXPrimeCurr);
+
+		} while (MyElemIter.bGetNext(pTmpEl));
 	}
 }
 /* End of AssJac */
@@ -1543,19 +1586,19 @@ SchurDataManager::Update(void) const
 	/* Nodi */
 	for (int i = 0; i < iNumLocNodes; i++) {
 		ASSERT(ppMyNodes[i] != NULL);
-		(ppMyNodes[i])->Update(*pXCurr, *pXPrimeCurr);
+		ppMyNodes[i]->Update(*pXCurr, *pXPrimeCurr);
 	}
 
 	/* Nodi di interfaccia */
 	for (int i = 0; i < iNumIntNodes; i++) {
 		ASSERT(ppIntNodes[i] != NULL);
-		(ppIntNodes[i])->Update(*pXCurr, *pXPrimeCurr);
+		ppIntNodes[i]->Update(*pXCurr, *pXPrimeCurr);
 	}
 
 	/* Elementi */
 	for (int i = 0; i < iNumLocElems; i++) {
 		ASSERT(ppMyElems[i] != NULL);
-		(ppMyElems[i])->Update(*pXCurr, *pXPrimeCurr);
+		ppMyElems[i]->Update(*pXCurr, *pXPrimeCurr);
 	}
 }
 /* End of Update */
@@ -1568,27 +1611,27 @@ SchurDataManager::DerivativesUpdate(void) const
 	/* Nodi */
 	for (int i = 0; i < iNumLocNodes; i++) {
 		ASSERT(ppMyNodes[i] != NULL);
-		if ((ppMyNodes[i])->GetNodeType() == Node::STRUCTURAL) {
+		if (ppMyNodes[i]->GetNodeType() == Node::STRUCTURAL) {
 			((StructNode*)ppMyNodes[i])->DerivativesUpdate(*pXCurr, *pXPrimeCurr);
 		} else {
-			(ppMyNodes[i])->Update(*pXCurr, *pXPrimeCurr);
+			ppMyNodes[i]->Update(*pXCurr, *pXPrimeCurr);
 		}
 	}
 
 	/* Nodi adiacenti i cui valori influenzano gli assemblaggi degli elementi */
 	for (int i = 0; i < iNumIntNodes; i++) {
 		ASSERT(ppIntNodes[i] != NULL);
-		if ((ppIntNodes[i])->GetNodeType() == Node::STRUCTURAL) {
+		if (ppIntNodes[i]->GetNodeType() == Node::STRUCTURAL) {
 			((StructNode*)ppIntNodes[i])->DerivativesUpdate(*pXCurr, *pXPrimeCurr);
 		} else {
-			(ppIntNodes[i])->Update(*pXCurr, *pXPrimeCurr);
+			ppIntNodes[i]->Update(*pXCurr, *pXPrimeCurr);
 		}
 	}
 
 	/* Elementi */
 	for (int i = 0; i < iNumLocElems; i++) {
 		ASSERT(ppMyElems[i] != NULL);
-		(ppMyElems[i])->Update(*pXCurr, *pXPrimeCurr);
+		ppMyElems[i]->Update(*pXCurr, *pXPrimeCurr);
 	}
 }
 /* End of DerivativeUpdate */
@@ -1603,19 +1646,19 @@ SchurDataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
 	/* Nodi */
 	for (int i = 0; i < iNumLocNodes; i++) {
 		ASSERT(ppMyNodes[i] != NULL);
-		(ppMyNodes[i])->BeforePredict(X, XP, XPrev, XPPrev);
+		ppMyNodes[i]->BeforePredict(X, XP, XPrev, XPPrev);
 	}
 
 	/* Nodi adiacenti i cui valori influenzano gli assemblaggi degli elementi */
 	for (int i = 0; i < iNumIntNodes; i++) {
 		ASSERT(ppIntNodes[i] != NULL);
-		(ppIntNodes[i])->BeforePredict(X, XP, XPrev, XPPrev);
+		ppIntNodes[i]->BeforePredict(X, XP, XPrev, XPPrev);
 	}
 
 	/* Elementi */
 	for (int i = 0; i < iNumLocElems; i++) {
 		ASSERT(ppMyElems[i] != NULL);
-		(ppMyElems[i])->BeforePredict(X, XP, XPrev, XPPrev);
+		ppMyElems[i]->BeforePredict(X, XP, XPrev, XPPrev);
 	}
 }
 /* End of BeforePredict */
@@ -1628,21 +1671,21 @@ SchurDataManager::AfterPredict(void) const
 	/* Nodi */
 	for (int i = 0; i < iNumLocNodes; i++) {
 		ASSERT(ppMyNodes[i] != NULL);
-		(ppMyNodes[i])->AfterPredict(*(VectorHandler*)pXCurr,
+		ppMyNodes[i]->AfterPredict(*(VectorHandler*)pXCurr,
 				*(VectorHandler*)pXPrimeCurr);
 	}
 
 	/* Nodi adiacenti i cui valori influenzano gli assemblaggi degli elementi */
 	for (int i = 0; i < iNumIntNodes; i++) {
 		ASSERT(ppIntNodes[i] != NULL);
-		(ppIntNodes[i])->AfterPredict(*(VectorHandler*)pXCurr,
+		ppIntNodes[i]->AfterPredict(*(VectorHandler*)pXCurr,
 				*(VectorHandler*)pXPrimeCurr);
 	}
 
 	/* Elementi */
 	for (int i = 0; i < iNumLocElems; i++) {
 		ASSERT(ppMyElems[i] != NULL);
-		(ppMyElems[i])->AfterPredict(*(VectorHandler*)pXCurr,
+		ppMyElems[i]->AfterPredict(*(VectorHandler*)pXCurr,
 				*(VectorHandler*)pXPrimeCurr);
 	}
 }
@@ -1657,21 +1700,21 @@ SchurDataManager::AfterConvergence(void) const
 	/* Nodi */
 	for (int i = 0; i < iNumLocNodes; i++) {
 		ASSERT(ppMyNodes[i] != NULL);
-		(ppMyNodes[i])->AfterConvergence(*(VectorHandler*)pXCurr,
+		ppMyNodes[i]->AfterConvergence(*(VectorHandler*)pXCurr,
 				*(VectorHandler*)pXPrimeCurr);
 	}
 
 	/* Nodi adiacenti i cui valori influenzano gli assemblaggi degli elementi */
 	for (int i = 0; i < iNumIntNodes; i++) {
 		ASSERT(ppIntNodes[i] != NULL);
-		(ppIntNodes[i])->AfterConvergence(*(VectorHandler*)pXCurr,
+		ppIntNodes[i]->AfterConvergence(*(VectorHandler*)pXCurr,
 				*(VectorHandler*)pXPrimeCurr);
 	}
 
 	/* Elementi */
 	for (int i = 0; i < iNumLocElems; i++) {
 		ASSERT(ppMyElems[i] != NULL);
-		(ppMyElems[i])->AfterConvergence(*(VectorHandler*)pXCurr,
+		ppMyElems[i]->AfterConvergence(*(VectorHandler*)pXCurr,
 				*(VectorHandler*)pXPrimeCurr);
 	}
 

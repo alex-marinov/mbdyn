@@ -53,8 +53,10 @@ mbdyn_METIS_PartGraph(int iTotVertices,
 {
 #ifdef USE_METIS
 	/* required by METIS_PartGraphVKway API, but otherwise ignored */
+	/* 0: C-style numbering [0..n-1]; 1: F77-style numbering (1..n) */
 	int	numflag = 0;
-	int	options = 0;
+	/* if options[0] == 0, the rest is ignored */
+	int	options[5] = { 0 };
 	int	edgecut = 0;
 
 	METIS_PartGraphVKway(&iTotVertices,
@@ -65,9 +67,12 @@ mbdyn_METIS_PartGraph(int iTotVertices,
 			&wgtflag,
 			&numflag,
 			&DataCommSize,
-			&options,
+			options,
 			&edgecut,
 			pParAmgProcs);
+
+	/* NOTE: the manual suggests to use
+	 * METIS_PartGraphRecursive if DataCommSize < 8 */
 
 #endif /* !USE_METIS */
 	return 0;

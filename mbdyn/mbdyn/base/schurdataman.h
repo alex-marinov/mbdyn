@@ -60,7 +60,8 @@ public:
 private:
 	int iTotVertices;	/* # totale dei vertici: nodi = elementi */ 
 	Elem** ppMyElems;	/* Lista elementi assegnati a questo processo */
-  
+	mutable VecIter<Elem *> MyElemIter;
+
 	int iNumLocElems;	/* # di elementi assegnati a questo processo */
 	Elem** ppMyIntElems;
 	int iNumIntElems;

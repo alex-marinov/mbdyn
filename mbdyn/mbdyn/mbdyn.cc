@@ -210,20 +210,7 @@ mbdyn_welcome(void)
 }
 
 /* Dati di getopt */
-static char sShortOpts[] = "a:d:f:hHlm:n:N::o:pPrRstTwW:";
-enum MyOptions {
-	MAIL = 0,
-	INPUT_FILE,
-	ADAMS_FILE,
-	OUTPUT_FILE,
-	DEBUG_LEVEL,
-	ONE_TABLE,
-	MULTIPLE_TABLE,
-	SILENT,
-	HELP,
-	
-	LASTOPTION
-} /* MyOptions */ ;
+static char sShortOpts[] = "a:d:f:hHlm:n:N::o:pPrRsS:tTwW:";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option LongOpts[] = {
@@ -242,6 +229,7 @@ static struct option LongOpts[] = {
 	{ "redefine",       no_argument,       NULL,           int('r') },
 	{ "no-redefine",    no_argument,       NULL,           int('R') },
 	{ "silent",         no_argument,       NULL,           int('s') },
+	{ "sleep",          required_argument, NULL,           int('S') },
 	{ "same-table",     no_argument,       NULL,           int('t') },
 	{ "no-same-table",  no_argument,       NULL,           int('T') },
 	{ "warranty",       no_argument,       NULL,           int('w') },
@@ -399,6 +387,8 @@ main(int argc, char* argv[])
 		int niceIncr = 0;
 #endif /* HAVE_NICE */
 
+		int iSleepTime = -1;
+
         	/* Parsing della linea di comando */
         	opterr = 0;
         	while (true) {
@@ -555,6 +545,50 @@ main(int argc, char* argv[])
 				}
 	        		break;
 
+			case int('S'):
+				if (optarg) {
+					char	*s = optarg;
+
+					if (strncasecmp(s, "rank=", sizeof("rank=") - 1) == 0) {
+#ifdef USE_MPI
+						char	*next;
+						long	r;
+						
+						s += sizeof("rank=") - 1;
+						r = strtol(s, &next, 10);
+						if (next[0] != '\0') {
+							if (next[0] != ',') {
+								silent_cerr("error in argument -S " << optarg << std::endl);
+								throw ErrGeneric();
+							}
+							s = &next[1];
+						}
+
+						if (using_mpi && r != myrank) {
+							break;
+						}
+#else /* ! USE_MPI */
+						silent_cerr("option -S " << optarg << " valid only when --with-mpi" << std::endl);
+#endif /* ! USE_MPI */
+					}
+
+					if (s[0]) {
+						char	*next;
+
+						iSleepTime = strtol(s, &next, 10);
+						if (next[0] != '\0') {
+							silent_cerr("error in argument -S " << optarg << std::endl);
+							throw ErrGeneric();
+						}
+					}
+
+				} else {
+					/* default: 10 s */
+					iSleepTime = 10;
+				}
+
+				break;
+
 	    		case int('l'):
 				mbdyn_welcome();
 	        		mbdyn_license();
@@ -598,6 +632,10 @@ main(int argc, char* argv[])
 	        		throw ErrGeneric();
 	    		}
         	}
+
+		if (iSleepTime > -1) {
+			sleep(iSleepTime);
+		}
 		
         	/*
 		 * primo argomento utile (potenziale nome di file di ingresso)

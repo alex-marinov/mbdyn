@@ -412,8 +412,6 @@ protected:
 	integer iMaxWorkNumCols; /*    ''         ''   */
 	integer iWorkIntSize;    /* dimensioni degli spazi di lavoro */
 	integer iWorkDoubleSize;
-	integer* piWorkIndex;    /* puntatore ad interi - array di lavoro */
-	doublereal* pdWorkMat;   /* puntatore a double - matrice di lavoro */
 
 	VariableSubMatrixHandler *pWorkMatA;  /* SubMatrix di lavoro */
 	VariableSubMatrixHandler *pWorkMatB;
