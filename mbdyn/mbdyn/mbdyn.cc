@@ -202,16 +202,20 @@ void SendMessage(const char* const, const char* const, time_t, time_t);
 
 int
 main(int argc, char* argv[])
-{ 
+{
 #ifdef USE_MPI
+
+	int WorldSize = 1;
+	int myrank = 0;
+	char ProcessorName[1024] = "localhost";
+
     	/* Inizializza i processi */
-    	MPI::Init(argc, argv);	   
-    	int WorldSize = MPI::COMM_WORLD.Get_size();
-    	int myrank = MPI::COMM_WORLD.Get_rank();
-    	int ProcessorNameLenght = 1024;
-    	char* ProcessorName = NULL;
-    	SAFENEWARR(ProcessorName, char, ProcessorNameLenght);
-    	MPI::Get_processor_name(ProcessorName, ProcessorNameLenght); 
+	if (getenv("MPIRUN_DEVICE") != NULL) {
+		MPI::Init(argc, argv);	   
+		WorldSize = MPI::COMM_WORLD.Get_size();
+		myrank = MPI::COMM_WORLD.Get_rank();
+		MPI::Get_processor_name(ProcessorName, sizeof(ProcessorName)); 
+	}
 #endif /* USE_MPI */
    
     	/* primo argomento valido (potenziale nome di file di ingresso) */
