@@ -3735,7 +3735,7 @@ Solver::AllocateSchurSolman(integer iStates)
 NonlinearSolver *const
 Solver::AllocateNonlinearSolver()
 {
-	NonlinearSolver *pNLS;
+	NonlinearSolver *pNLS = NULL;
 
 	switch (NonlinearSolverType) {
 	case NonlinearSolver::MATRIXFREE:
@@ -3789,8 +3789,8 @@ Solver::SetupSolmans(integer iStates)
 {
    	DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager\n\tsize = "
 		   << iNumDofs*iUnkStates << 
-		   "\n\tnumdofs = " << iNumDofs <<
-		   "\n\tnumstates = " iStates << std::endl);
+		   "\n\tnumdofs = " << iNumDofs
+		   << "\n\tnumstates = " << iStates << std::endl);
 
 	/*delete previous solmans*/
 	if (pSM != 0) {
