@@ -942,6 +942,8 @@ void DataManager::ReadControl(MBDynParser& HP,
       SAFEDELETEARR(sOutName);
    }
 
+   OutHdl.Log() << "output frequency: " << iOutputFrequency << std::endl;
+
    DEBUGLCOUT(MYDEBUG_INPUT, "End of control data" << std::endl);
 } /* End of DataManager::ReadControl() */
 
