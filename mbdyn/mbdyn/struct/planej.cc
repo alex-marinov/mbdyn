@@ -303,7 +303,7 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       ExpandableRowVector dv;
           //variation of reaction force
       dF.ReDim(3);
-      if ((modF == 0.) or (F.Norm() > preF)) {
+      if ((modF == 0.) or (F.Norm() < preF)) {
           dF.Set(0.,1,12+1);
           dF.Set(0.,2,12+2);
           dF.Set(0.,3,12+3);
