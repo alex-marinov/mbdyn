@@ -338,12 +338,17 @@ if test "$ol_enable_motionview" != no ; then
 	AC_CHECK_HEADER(mbs_result_api.h,[have_mbs_result_api_h=yes],[have_mbs_result_api_h=no])
 	if test $have_mbs_result_api_h = "yes" ; then
 		AC_DEFINE(USE_MOTIONVIEW,1,[define this to enable MotionView output])
+		AC_LANG_CPLUSPLUS
 		AC_TRY_COMPILE([
 #include <mbs_result_api.h>
 ],[
 			mrfOpenResult();
 ],		[mb_motionview_major_version=6],[mb_motionview_major_version=5])
-		AC_DEFINE_UNQUOTED(MOTIONVIEW_VER_MAJ,$mb_motionview_major_version,[set to the major version number of MotionView])
+		AC_LANG_C
+		AC_DEFINE_UNQUOTED(PROBED_MOTIONVIEW_VER_MAJ,$mb_motionview_major_version,[set to the major version number of MotionView])
+		if test $mb_motionview_major_version -lt 6 ; then
+			AC_DEFINE(MRFOPENRESULT_NEEDS_ARGS,1,[define if MotionView API func mrfOpenResult() needs args])
+		fi
 	else
 		if test $ol_enable_motionview != auto ; then
 			AC_MSG_ERROR([Could not locate mbs_result_api.h header])
