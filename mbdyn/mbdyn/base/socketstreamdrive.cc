@@ -59,7 +59,7 @@
 #include <arpa/inet.h>
 
 #define UNIX_PATH_MAX    108
-#define DEFUALT_PORT	5500 /*FIXME:da defineire meglio*/
+#define DEFAULT_PORT	5500 /* FIXME:da definire meglio */
 #define DEFAULT_HOST 	"127.0.0.1"
 
 SocketStreamDrive::SocketStreamDrive(unsigned int uL,
@@ -242,6 +242,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 			case AF_LOCAL:
 				{
 					struct sockaddr_un client_addr;
+					socklen = sizeof(struct sockaddr_un);
 
 					pedantic_cout("accepting connection on local socket \""
 							<< sFileName << "\" (" << data.Path << ") ..." 
@@ -252,8 +253,13 @@ SocketStreamDrive::ServePending(const doublereal& t)
 					sock = accept(tmp_sock,
 							(struct sockaddr *)&client_addr, &socklen);
 					if (sock == -1) {
-               					silent_cerr("SocketStreamDrive(" << sFileName << ") "
-							"accept() failed " << std::endl);
+						int		save_errno = errno;
+						const char	*err_msg = strerror(save_errno);
+
+                				silent_cerr("SocketStreamElem(" << sFileName << ") "
+							"accept(" << tmp_sock << ") failed ("
+							<< save_errno << ": " << err_msg << ")"
+							<< std::endl);
 						throw ErrGeneric();
      					}
 					if (client_addr.sun_path[0] == '\0') {
@@ -270,6 +276,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 			case AF_INET:
 				{
    					struct sockaddr_in client_addr;
+					socklen = sizeof(struct sockaddr_in);
 	
 					pedantic_cout("accepting connection on inet socket \""
 							<< sFileName << "\" (" 
@@ -281,8 +288,13 @@ SocketStreamDrive::ServePending(const doublereal& t)
 					sock = accept(tmp_sock,
 							(struct sockaddr *)&client_addr, &socklen);
 					if (sock == -1) {
-                				silent_cerr("SocketStreamDrive(" << sFileName << ") "
-							"accept() failed " << std::endl);
+						int		save_errno = errno;
+						const char	*err_msg = strerror(save_errno);
+
+                				silent_cerr("SocketStreamElem(" << sFileName << ") "
+							"accept(" << tmp_sock << ") failed ("
+							<< save_errno << ": " << err_msg << ")"
+							<< std::endl);
 						throw ErrGeneric();
         				}
       					silent_cout("SocketStreamDrive(" << GetLabel()
@@ -387,7 +399,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 {
 	
 	bool create = false;
-	unsigned short int port = DEFUALT_PORT;
+	unsigned short int port = DEFAULT_PORT;
 	const char *name = NULL;
 	const char *host = NULL;
 	const char *path = NULL;

@@ -316,8 +316,13 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 						
 					sock = socket(PF_LOCAL, SOCK_STREAM, 0);
 					if (sock < 0){
+						int	save_errno = errno;
+						const char	*err_msg = strerror(save_errno);
+						
 						silent_cerr("SocketStreamElem(" << name << ") "
-							"socket() failed " << host << std::endl);
+							"socket(PF_LOCAL, SOCK_STREAM, 0) failed "
+							"(" << save_errno << ": " << err_msg << ")"
+							<< std::endl);
 						throw ErrGeneric();
 					}
 					addr.sun_family = AF_UNIX;
@@ -328,10 +333,16 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 							<< std::endl);
 
 					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
+						int	save_errno = errno;
+						const char	*err_msg = strerror(save_errno);
+						
 						silent_cerr("SocketStreamElem(" << name << ") "
-							"connect failed " << std::endl);
+							"connect(" << sock << ", \"" << data.Path << "\""
+							", " << sizeof(struct sockaddr_un) << ") "
+							"failed (" << save_errno << ": " << err_msg << ")"
+							<< std::endl);
 						throw ErrGeneric();									
-					}//da sistemare in modo da rendere non bloccante il connect					
+					} // da sistemare in modo da rendere non bloccante il connect					
 					break;
 				}
 		
@@ -341,8 +352,13 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 
 					sock = socket(PF_INET, SOCK_STREAM, 0);
 					if (sock < 0){
+						int	save_errno = errno;
+						const char	*err_msg = strerror(save_errno);
+						
 						silent_cerr("SocketStreamElem(" << name << ") "
-							"socket() failed " << host << std::endl);
+							"socket(PF_INET, SOCK_STREAM, 0) failed "
+							"(" << save_errno << ": " << err_msg << ")"
+							<< std::endl);
 						throw ErrGeneric();
 					}				
 					addr.sin_family = AF_INET;
@@ -360,10 +376,16 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 							<< ") ..." << std::endl);
 							
 					if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
-						silent_cerr("SocketStreamElem(" << name << "): "
-							"connect failed " << std::endl);
+						int	save_errno = errno;
+						const char	*err_msg = strerror(save_errno);
+						
+						silent_cerr("SocketStreamElem(" << name << ") "
+							"connect(" << sock << ", \"" << host << ":" << data.Port << "\""
+							", " << sizeof(struct sockaddr_un) << ") "
+							"failed (" << save_errno << ": " << err_msg << ")"
+							<< std::endl);
 						throw ErrGeneric();					
-					}//da sistemare in modo da rendere non bloccante il connect
+					} //da sistemare in modo da rendere non bloccante il connect
 					break;
 				}
 				
@@ -372,14 +394,19 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 				break;
 			}
 	
-		} /*create*/
+		} /* create */
 		struct linger lin;
 		lin.l_onoff = 1;
 		lin.l_linger = 0;
 		
 		if (setsockopt(sock, SOL_SOCKET, SO_LINGER, &lin, sizeof(lin))){
+			int	save_errno = errno;
+			const char	*err_msg = strerror(save_errno);
+						
       			silent_cerr("SocketStreamElem(" << name
-				<< "): setsockopt failed" << std::endl);
+				<< "): setsockopt failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
       			throw ErrGeneric();
 			
 		}
