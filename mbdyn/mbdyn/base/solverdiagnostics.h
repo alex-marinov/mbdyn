@@ -42,7 +42,9 @@ protected:
 		OUTPUT_RES		= 0x0002,
 		OUTPUT_SOL		= 0x0004,
 		OUTPUT_JAC		= 0x0008,
-		OUTPUT_MSG		= 0x0010,
+		OUTPUT_BAILOUT		= 0x0010,
+
+		OUTPUT_MSG		= 0x0020,
 
 		OUTPUT_DEFAULT		= OUTPUT_MSG,
 
@@ -71,6 +73,10 @@ public:
  
 	inline bool outputJac(void) const {
 		return (OutputFlags & OUTPUT_JAC);
+	};
+
+	inline bool outputBailout(void) const {
+		return (OutputFlags & OUTPUT_BAILOUT);
 	};
 
         /*

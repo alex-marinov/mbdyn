@@ -1704,6 +1704,7 @@ Solver::ReadData(MBDynParser& HP)
 			"residual",
 			"solution",
 			"jacobian",
+			"bailout",
 			"messages",
 	
 		"method",
@@ -1798,6 +1799,7 @@ Solver::ReadData(MBDynParser& HP)
 			RESIDUAL,
 			SOLUTION,
 			JACOBIAN,
+			BAILOUT,
 			MESSAGES,
 	
 		METHOD,
@@ -2091,12 +2093,14 @@ Solver::ReadData(MBDynParser& HP)
 
 		case OUTPUT: {
 			unsigned OF = OUTPUT_DEFAULT;
+			bool setOutput = false;
 
 			while (HP.IsArg()) {
 				KeyWords OutputFlag(KeyWords(HP.GetWord()));
 				switch (OutputFlag) {
 				case NONE:
 					OF = OUTPUT_NONE;
+					setOutput = true;
 					break;
 
 				case ITERATIONS:
@@ -2115,6 +2119,10 @@ Solver::ReadData(MBDynParser& HP)
 					OF |= OUTPUT_JAC;
 					break;
 
+				case BAILOUT:
+					OF |= OUTPUT_BAILOUT;
+					break;
+
 				case MESSAGES:
 					OF |= OUTPUT_MSG;
 					break;
@@ -2127,7 +2135,11 @@ Solver::ReadData(MBDynParser& HP)
 				}
 			}
 
-			SetOutputFlags(OF);
+			if (setOutput) {
+				SetOutputFlags(OF);
+			} else {
+				AddOutputFlags(OF);
+			}
 			
 			break;
 		}
