@@ -6,11 +6,18 @@
 \begin{document}
 
 
+\title{\textbf{Vincolo ``rollercoaster''}}
+\author{Stefania Gualdi, Marco Morandini, Pierangelo Masarati \\
+\small Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano}
+\date{}
+\maketitle
 
-\section*{Vincolo ``rollercoaster''}
+\subsection*{Sommario}
 Il vincolo impone ad un corpo di spostarsi lungo una linea e di assumere
 un'orientazione imposta.
 I due problemi possono essere visti separatamente.
+La linea pu\`o dipendere dalla configurazione, ovvero essere rappresentata
+dalla linea di riferimento che definisce una trave.
 
 
 
@@ -97,13 +104,13 @@ ortogonale ai due che definiscono il vincolo, quindi
 \end{displaymath}
 La loro linearizzazione d\`{a}
 \begin{displaymath}
-    \plbr{ e_{b1} \times e_2 }^T \Delta{g_b}
+    \plbr{ e_{b1} \times e_2 }^T \theta_{\Delta{b}}
     +\plbr{ e_2 \times e_{b1} }^T \rho \Delta{s} \ = \ 0
 \end{displaymath}
 e
 \begin{displaymath}
     \Delta{M} \ = \
-        m_3 e_2 \times e_{b1} \times \Delta{g_b}
+        m_3 e_2 \times e_{b1} \times \theta_{\Delta{b}}
 	- m_3 e_{b1} \times e_2 \times \rho \Delta{s}
 	+ e_{b1} \times e_2 \Delta{m_3} .
 \end{displaymath}
@@ -156,7 +163,7 @@ Si possono ipotizzare tre diversi vincoli:
 	all'asse del manicotto; si scrivono due sole equazioni di vincolo
 	alla rotazione
 	\item manicotto ``rigato'': non consente libert\`a di rotazione;
-	si scrivono tre queazioni di vincolo alla rotazione.
+	si scrivono tre equazioni di vincolo alla rotazione.
 \end{enumerate}
 Occorre prestare attenzione a come si definiscono i vincoli di rotazione.
 Non \`e ragionevole, in questo caso, ipotizzare che l'orientazione 
@@ -179,14 +186,35 @@ e che quindi gli altri due assi siano ad esso ortogonali:
 	e_{b2}^T t & = & 0 \\
 	e_{b3}^T t & = & 0
 \end{eqnarray*}
+Per semplificare le linearizzazioni, dal momento che si considera nulla
+la rotazione iniziale, si pu\`o sostituire la tangente
+con la derivata della linea media:
+\begin{eqnarray*}
+	e_{b2}^T l & = & 0 \\
+	e_{b3}^T l & = & 0
+\end{eqnarray*}
 Queste due equazioni definiscono il vincolo alla rotazione del manicotto 
 classico; le corrispondenti reazioni vincolari sono le coppie:
 \begin{displaymath}
 	M \ = \ m_3 e_{b2}\times{t} + m_2 e_{b3}\times{t}
 \end{displaymath}
+Anche qui, data l'indeterminazione delle reazioni vincolari, si pu\`o 
+usare la derivata della linea media al posto della tangente:
+\begin{displaymath}
+	M \ = \ m_3 e_{b2}\times{l} + m_2 e_{b3}\times{l}
+\end{displaymath}
+Ovviamente le reazioni sono date da $M_i=\shbr{l}m_i$.
+
+\noindent
 L'equazione di vincolo alla rotazione attorno all'asse della trave
 \`e un po' pi\`u complessa, e richiede la definizione della rotazione
-relativa tra manicotto e trave:
+relativa tra manicotto e trave
+Se la rotazione relativa \`e piccola, pu\`o essere approssimata 
+con l'\emph{assiale} della matrice; si assume quindi:
+\begin{displaymath}
+	R \ \cong \ I + \theta\times{}
+\end{displaymath}
+da cui si ottiene:
 \begin{displaymath}
 	\theta \ = \ \llk{ax}\plbr{R_{\Delta}} 
 		\ = \ \llk{ax}\plbr{R_bR^T}
@@ -202,39 +230,50 @@ le linearizzazioni:
 \begin{displaymath}
 	\theta^T l \ = \ 0 .
 \end{displaymath}
-La linearizzazione della rotazione relativa \`e data da:
+La linearizzazione della rotazione relativa, $\theta_{\Delta}$,
+in generale dipendente dalla parametrizzazione $\llk{p}$ attraverso
+la relazione $ \theta_{\Delta}=G\plbr{\llk{p}}\Delta{\llk{p}} $, 
+\`e data da:
 \begin{eqnarray*}
-	\Delta\theta & = & \Delta\llk{ax}\plbr{R_bR^T} \\
+	\theta_{\Delta} & = & \Delta\llk{ax}\plbr{R_bR^T} \\
 	& = & \llk{ax}\plbr{\Delta\plbr{R_bR^T}\plbr{R_bR^T}^T} \\
-	& = & \llk{ax}\plbr{\Delta\theta_b\times{R_bR^TRR_b^T}
-		+R_bR^T\Delta\theta_t\times{}^TRR_b^T} \\
-	& = & \llk{ax}\plbr{R_bR_b^T\Delta\theta_b\times{R_bR_b^T}
-		+R_bR^T\Delta\theta_t\times{}^TRR_b^T} \\
+	& = & \llk{ax}\plbr{\theta_{\Delta{b}}\times{R_bR^TRR_b^T}
+		+R_bR^T\theta_{\Delta{t}}\times{}^TRR_b^T} \\
+	& = & \llk{ax}\plbr{R_bR_b^T\theta_{\Delta{b}}\times{R_bR_b^T}
+		+R_bR^T\theta_{\Delta{t}}\times{}^TRR_b^T} \\
 	& = & \llk{ax}\plbr{
 		R_b\plbr{
-			R_b^T\Delta\theta_b\times{R_b}
-			-R^T\Delta\theta_t\times{R}
+			R_b^T\theta_{\Delta{b}}\times{R_b}
+			-R^T\theta_{\Delta{t}}\times{R}
 		}R_b^T
 	} \\
 	& = & R_b\llk{ax}\plbr{
-		\plbr{R_b^T\Delta\theta_b}\times{}
-		-\plbr{R^T\Delta\theta_t}\times{}
+		\plbr{R_b^T\theta_{\Delta{b}}}\times{}
+		-\plbr{R^T\theta_{\Delta{t}}}\times{}
 	} \\
 	& = & R_b\llk{ax}\plbr{\plbr{
-		R_b^T\Delta\theta_b - R^T\Delta\theta_t
+		R_b^T\theta_{\Delta{b}} - R^T\theta_{\Delta{t}}
 	}\times{}} \\
-	& = & R_b\plbr{R_b^T\Delta\theta_b-R^T\Delta\theta_t}
+	& = & R_b\plbr{R_b^T\theta_{\Delta{b}}-R^T\theta_{\Delta{t}}}
 \end{eqnarray*}
+o
+\begin{displaymath}
+	\theta_{\Delta} \ = \ \theta_{\Delta{b}}-R_bR^T\theta_{\Delta{t}}
+\end{displaymath}
 dove si sono sfruttate le propriet\`a:
 \begin{eqnarray*}
 	\Delta\llk{ax}\plbr{R} & = & \llk{ax}\plbr{\Delta{R} R^T} \\
 	\Delta{R} & = & \theta\times{R} \\
 	R R^T & = & I \\
-	\llk{ax}\plbr{R R_{\Delta} R^T} & = & R\llk{ax}\plbr{R_{\Delta}} \\
+	\theta\times{}^T & = & -\theta\times \\
 	R \theta\times{R^T} & = & \plbr{R\theta}\times{} \\
+	\llk{ax}\plbr{\theta\times{}} & = & \theta \\
 	\theta_1\times{}+\theta_2\times{} & = & \plbr{\theta_1+\theta_2}\times{} \\
 	\llk{ax}\plbr{\theta\times{}} & = & \theta
 \end{eqnarray*}
+Questo significa che la perturbazione dell'angolo relativo \`e data 
+dalla differenza tra le perturbazioni degli angoli riportate in uno 
+stesso riferimento.
 
 \noindent
 La coppia risultante da questa equazione di vincolo si applica semplicemente
@@ -318,5 +357,36 @@ dell'ascissa curvilinea.
 
 \bibliographystyle{ieeetr}
 \bibliography{mybib}
+
+
+\subsection*{Traccia del lavoro}
+
+\begin{itemize}
+\item formulazione analitica del vincolo
+\item implementazione in MBDyn (volumi finiti; elementi finiti?)
+\item discussione su attrito e altre problematiche collegate
+\item caso prova: soluzione analitica lineare confrontata a soluzione vf e fe;
+  discorso sulla convergenza e sulla modalita` di applicazione
+  di forza concentrata/vf (fare modello lineare a un elemento?)
+\item applicazione aeronautica: carrello a stelo
+\item altre applicazioni: cenno al rollercoaster
+\end{itemize}
+
+\noindent
+Soluzione lineare trave caricata trasversalmente ad un estremo e incastrata
+all'altro:
+\begin{eqnarray*}
+	v\plbr{x} & = & \frac{x}{GA}+\frac{1}{3}\frac{x^3}{EJ} \\
+	\phi\plbr{x} & = & \frac{1}{2}\frac{x^2}{EJ}
+\end{eqnarray*}
+Soluzone per trave lunga $L$ caricata a distanza $d<L$ dall'incastro:
+\begin{eqnarray*}
+	v\plbr{d} & = & \frac{d}{GA}+\frac{1}{3}\frac{d^3}{EJ} \\
+	\phi\plbr{d} & = & \frac{1}{2}\frac{d^2}{EJ} \\
+	v\plbr{L} & = & v\plbr{d} + \plbr{L-d}\phi\plbr{d} \\
+	& = & \frac{d}{GA}+\frac{1}{6}\frac{d^2}{EJ}\plbr{3L - d} \\
+	\phi\plbr{L} & = & \phi\plbr{d}
+\end{eqnarray*}
+
 
 \end{document}
