@@ -130,6 +130,7 @@ Elem* ReadJoint(DataManager* pDM,
       "coincidence",
       "spherical" "hinge",
       "pin",
+      "spherical" "pin",
       "universal" "hinge",
       "universal" "rotation",
       "universal" "pin",
@@ -174,6 +175,7 @@ Elem* ReadJoint(DataManager* pDM,
       COINCIDENCE,
       SPHERICALHINGE,
       PIN,
+      SPHERICALPIN,
       UNIVERSALHINGE,
       UNIVERSALROTATION,
       UNIVERSALPIN,
@@ -433,7 +435,8 @@ Elem* ReadJoint(DataManager* pDM,
        break;
     }      	   	            
       
-    case PIN: {
+    case PIN:
+    case SPHERICALPIN: {
        /* lettura dei dati specifici */
        
        /* nodo collegato */

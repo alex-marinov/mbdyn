@@ -1099,6 +1099,8 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		pF[iStrNodem1] = Vec3(XCurr,
 				iModalIndex+2*NModes+6*iStrNodem1+1);
 		Vec3 x2 = pInterfaceNodes[iStrNodem1]->GetXCurr();
+
+		/* FIXME: R2??? */
 		pR2[iStrNodem1] = pInterfaceNodes[iStrNodem1]->GetRCurr();
 
 		/* cerniera sferica */
