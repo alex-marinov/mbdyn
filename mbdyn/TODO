@@ -111,10 +111,10 @@ E. Bugs/missing features:
 	- review deformable viscous/viscoelastic hinge according
 	  to the elastic one
 	- check "universal pin"
-	- fix etc/modal.d/MBDyn_NASTRAN_alter_[1-2].nas; allow the use
-	  of node sets to reduce the amount of FEM nodes that are passed
-	  to the model element (e.g. no nodes without inertia that do not
-	  participate in the interface)
+	- fix etc/modal.d/MBDyn_NASTRAN_alter_[1-2].nas;
+          allow the use of node sets to reduce the amount of FEM nodes 
+	  that are passed to the model element (e.g. no nodes without
+	  inertia that do not participate in the interface)
 	- clarify how to increase the size of models utils/femgen can
 	  handle
 
