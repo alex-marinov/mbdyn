@@ -384,7 +384,7 @@ MultiStepIntegrator::Run(void)
    	while (1) {
       		pRes->Reset(0.);
       		pDM->AssRes(*pRes, dDerivativesCoef);
-      		dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+      		dTest = MakeTest(*pRes, *pXPrimeCurr);
       
 #ifdef DEBUG
       		if (DEBUG_LEVEL_MATCH(MYDEBUG_DERIVATIVES|MYDEBUG_RESIDUAL)) {
@@ -432,7 +432,7 @@ MultiStepIntegrator::Run(void)
       		}
 #endif /* DEBUG */
       	
-      		this->Update(*pSol);
+      		Update(*pSol);
       		pDM->DerivativesUpdate();	
    	}
    
@@ -484,7 +484,7 @@ EndOfDerivatives:
 		 */
       		pDM->BeforePredict(*pXCurr, *pXPrimeCurr,
 				   *pXPrev, *pXPrimePrev);
-      		this->Flip();
+      		Flip();
          
        		/* primo passo fittizio */
       		/* Passo ridotto per step fittizi di messa a punto */
@@ -535,7 +535,7 @@ EndOfDerivatives:
 	 		/* l02: EM calcolo del residuo */
 	 		pRes->Reset(0.);
 			pDM->AssRes(*pRes, db0Differential);
-			dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+			dTest = MakeTest(*pRes, *pXPrimeCurr);
 	 
 #ifdef DEBUG
 			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)) {
@@ -588,7 +588,7 @@ EndOfDerivatives:
 	 		}
 #endif /* DEBUG */
 	 
-	 		this->Update(*pSol); 
+	 		Update(*pSol); 
 	 		pDM->Update();
       		}
       
@@ -624,7 +624,7 @@ EndOfFirstFictitiousStep:
 		     iSubStep++) {
 	 		pDM->BeforePredict(*pXCurr, *pXPrimeCurr,
 					   *pXPrev, *pXPrimePrev);
-	 		this->Flip();
+	 		Flip();
 	 
 	 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Fictitious step "
 				   << iSubStep 
@@ -671,7 +671,7 @@ EndOfFirstFictitiousStep:
 	 		while (1) { 
 	    			pRes->Reset(0.);
 	    			pDM->AssRes(*pRes, db0Differential);
-	    			dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+	    			dTest = MakeTest(*pRes, *pXPrimeCurr);
 	    
 #ifdef DEBUG
 	    			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)) {
@@ -727,7 +727,7 @@ EndOfFirstFictitiousStep:
 	    			}
 #endif /* DEBUG */
 	    
-	    			this->Update(*pSol); 
+	    			Update(*pSol); 
 	    			pDM->Update();
 	 		}
 	 
@@ -806,7 +806,7 @@ EndOfFictitiousStep:
 		  << iIterCnt << " iterations" << std::endl);
    
    	pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *pXPrev, *pXPrimePrev);
-   	this->Flip();
+   	Flip();
    
    	dRefTimeStep = dInitialTimeStep;   
    	dCurrTimeStep = dRefTimeStep;
@@ -852,7 +852,7 @@ IfFirstStepIsToBeRepeated:
    	while (1) {
       		pRes->Reset(0.);
       		pDM->AssRes(*pRes, db0Differential);      
-      		dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+      		dTest = MakeTest(*pRes, *pXPrimeCurr);
       
 #ifdef DEBUG
       		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL)) {
@@ -874,7 +874,7 @@ IfFirstStepIsToBeRepeated:
 			if (dCurrTimeStep > dMinimumTimeStep) {
 				/* Riduce il passo */
 				dCurrTimeStep =
-					this->NewTimeStep(dCurrTimeStep, 
+					NewTimeStep(dCurrTimeStep, 
 							  iIterCnt, 
 							  MultiStepIntegrationMethod::REPEATSTEP);
 				dRefTimeStep = dCurrTimeStep;
@@ -920,7 +920,7 @@ IfFirstStepIsToBeRepeated:
 #endif /* DEBUG */
 
 
-      		this->Update(*pSol); 
+      		Update(*pSol); 
       		pDM->Update();
    	}
    
@@ -985,7 +985,7 @@ EndOfFirstStep:
 	   
       		pDM->BeforePredict(*pXCurr, *pXPrimeCurr,
 				   *pXPrev, *pXPrimePrev);
-      		this->Flip();
+      		Flip();
       		
 IfStepIsToBeRepeated:
       		pDM->SetTime(dTime+dCurrTimeStep);
@@ -1029,7 +1029,7 @@ IfStepIsToBeRepeated:
 #ifdef USE_EXCEPTIONS
 			try {
 #endif /* USE_EXCEPTIONS */
-	 			dTest = this->MakeTest(*pRes, *pXPrimeCurr);
+	 			dTest = MakeTest(*pRes, *pXPrimeCurr);
 #ifdef USE_EXCEPTIONS
 			}
 			catch (MultiStepIntegrator::ErrSimulationDiverged) {
@@ -1070,7 +1070,7 @@ IfStepIsToBeRepeated:
 					/* Riduce il passo */
 					CurrStep = MultiStepIntegrationMethod::REPEATSTEP;
 					dCurrTimeStep =
-						this->NewTimeStep(dCurrTimeStep,
+						NewTimeStep(dCurrTimeStep,
 								  iIterCnt,
 								  CurrStep);	       
 					DEBUGCOUT("Changing time step"
@@ -1123,7 +1123,7 @@ IfStepIsToBeRepeated:
 	 		}
 #endif /* DEBUG */
 
-	 		this->Update(*pSol);
+	 		Update(*pSol);
 	 		pDM->Update();
       		}
 	 
@@ -1156,7 +1156,7 @@ EndOfStep:
       
       		/* Calcola il nuovo timestep */
       		dCurrTimeStep =
-			this->NewTimeStep(dCurrTimeStep, iIterCnt, CurrStep);
+			NewTimeStep(dCurrTimeStep, iIterCnt, CurrStep);
 		DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
    	}
 }
