@@ -59,17 +59,17 @@ extern const char* psDefHingeNames[];
 
 class DeformableHingeJoint : 
 virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
- protected:
-   const StructNode* pNode1;
-   const StructNode* pNode2;
-   const Mat3x3 R1h;
-   const Mat3x3 R2h;
-   
-   bool bFirstRes;
-   
- public:
-   /* Costruttore non banale */
-   DeformableHingeJoint(unsigned int uL,
+protected:
+	const StructNode* pNode1;
+	const StructNode* pNode2;
+	const Mat3x3 R1h;
+	const Mat3x3 R2h;
+
+	bool bFirstRes;
+
+public:
+	/* Costruttore non banale */
+	DeformableHingeJoint(unsigned int uL,
 			const DofOwner* pDO,
 			const ConstitutiveLaw3D* pCL,
 			const StructNode* pN1, 
@@ -78,59 +78,53 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
 			const Mat3x3& R2, 
 			flag fOut);
 
-   /* Distruttore */
-   virtual ~DeformableHingeJoint(void);
-   
-   /* Tipo di Joint */
-   virtual Joint::Type GetJointType(void) const {
-      return Joint::DEFORMABLEHINGE; 
-   };
-   
-   /* Contributo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
+	/* Distruttore */
+	virtual ~DeformableHingeJoint(void);
 
-   virtual void Output(OutputHandler& OH) const;
-   
-   /* Tipo di DeformableHinge */
-   virtual DefHingeType::Type GetDefHingeType(void) const = 0;
-   
-   virtual unsigned int iGetNumDof(void) const { 
-      return 0;
-   };
-   
-   virtual DofOrder::Order SetDof(unsigned int /* i */ ) const {
-      return DofOrder::UNKNOWN;
-   };
+	/* Tipo di Joint */
+	virtual Joint::Type GetJointType(void) const {
+		return Joint::DEFORMABLEHINGE; 
+	};
 
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 6; 
-      *piNumCols = 6; 
-   };
-         
-   /* funzioni usate nell'assemblaggio iniziale */
-   
-   virtual unsigned int iGetInitialNumDof(void) const { 
-      return 0;
-   };
-   
-#ifdef DEBUG
-   virtual const char* sClassName(void) const { 
-      return "DeformableHingeJoint";
-   };
-#endif   
+	/* Contributo al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
 
-   /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = pNode1->GetNodeType();
-     NdLabels[0] = pNode1->GetLabel();
-     NdTyps[1] = pNode2->GetNodeType();
-     NdLabels[1] = pNode2->GetLabel();
-   };
-   /* ************************************************ */
+	virtual void Output(OutputHandler& OH) const;
 
+	/* Tipo di DeformableHinge */
+	virtual DefHingeType::Type GetDefHingeType(void) const = 0;
+
+	virtual unsigned int iGetNumDof(void) const { 
+		return 0;
+	};
+
+	virtual DofOrder::Order SetDof(unsigned int /* i */ ) const {
+		return DofOrder::UNKNOWN;
+	};
+
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+		*piNumRows = 6; 
+		*piNumCols = 6; 
+	};
+ 
+	/* funzioni usate nell'assemblaggio iniziale */
+	
+	virtual unsigned int iGetInitialNumDof(void) const { 
+		return 0;
+	};
+
+	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps,
+			unsigned int* NdLabels) {
+		NumNodes = 2;
+		NdTyps[0] = pNode1->GetNodeType();
+		NdLabels[0] = pNode1->GetLabel();
+		NdTyps[1] = pNode2->GetNodeType();
+		NdLabels[1] = pNode2->GetLabel();
+	};
+	/* ************************************************ */
 };
 
 /* DeformableHingeJoint - end */
@@ -139,77 +133,70 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
 /* ElasticHingeJoint - begin */
 
 class ElasticHingeJoint : virtual public Elem, public DeformableHingeJoint {   
- protected:
-   Vec3 ThetaRef;
-   Vec3 ThetaCurr;
-   
-   Mat3x3 FDE;
-   
-   void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
-   void AssVec(SubVectorHandler& WorkVec);
-   
- public:
-   ElasticHingeJoint(unsigned int uL, 
-		     const DofOwner* pDO, 
-		     const ConstitutiveLaw3D* pCL,
-		     const StructNode* pN1, 
-		     const StructNode* pN2,
-		     const Mat3x3& R1,
-		     const Mat3x3& R2,
-		     flag fOut);
-   
-   ~ElasticHingeJoint(void);
-   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
+protected:
+	Vec3 ThetaRef;
+	Vec3 ThetaCurr;
 
-   virtual void
-   AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+	Mat3x3 FDE;
 
-   /* Tipo di DeformableHinge */
-   virtual DefHingeType::Type GetDefHingeType(void) const {
-      return DefHingeType::ELASTIC; 
-   };
-   
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal dCoef, 
-	    const VectorHandler& XCurr,
-	    const VectorHandler& XPrimeCurr);
-   
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& 
-     AssRes(SubVectorHandler& WorkVec,
-	    doublereal dCoef,
-	    const VectorHandler& XCurr, 
-	    const VectorHandler& XPrimeCurr);
+	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
+	void AssVec(SubVectorHandler& WorkVec);
 
-   /* Aggiorna le deformazioni ecc. */
-   virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);           
-   
-   virtual void InitialWorkSpaceDim(integer* piNumRows,
-				    integer* piNumCols) const { 
-      *piNumRows = 6; 
-      *piNumCols = 6;
-   };
+public:
+	ElasticHingeJoint(unsigned int uL, 
+			const DofOwner* pDO, 
+			const ConstitutiveLaw3D* pCL,
+			const StructNode* pN1, 
+			const StructNode* pN2,
+			const Mat3x3& R1,
+			const Mat3x3& R2,
+			flag fOut);
 
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat, 
-		   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& 
-     InitialAssRes(SubVectorHandler& WorkVec,
-		   const VectorHandler& XCurr);   
+	~ElasticHingeJoint(void);
 
-#ifdef DEBUG
-   virtual const char* sClassName(void) const { 
-      return "ElasticHingeJoint";
-   };
-#endif   
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
+
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
+	/* Tipo di DeformableHinge */
+	virtual DefHingeType::Type GetDefHingeType(void) const {
+		return DefHingeType::ELASTIC; 
+	};
+
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler& 
+	AssJac(VariableSubMatrixHandler& WorkMat,
+			doublereal dCoef, 
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio residuo */
+	virtual SubVectorHandler& 
+	AssRes(SubVectorHandler& WorkVec,
+			doublereal dCoef,
+			const VectorHandler& XCurr, 
+			const VectorHandler& XPrimeCurr);
+
+	/* Aggiorna le deformazioni ecc. */
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
+	virtual void InitialWorkSpaceDim(integer* piNumRows,
+			integer* piNumCols) const { 
+		*piNumRows = 6; 
+		*piNumCols = 6;
+	};
+
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+			const VectorHandler& XCurr);
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	virtual SubVectorHandler& 
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);   
 };
 
 /* ElasticHingeJoint - end */
@@ -218,77 +205,70 @@ class ElasticHingeJoint : virtual public Elem, public DeformableHingeJoint {
 /* ViscousHingeJoint - begin */
 
 class ViscousHingeJoint : virtual public Elem, public DeformableHingeJoint {
- protected:
-   Vec3 ThetaRefPrime;
-   Vec3 ThetaCurrPrime;
-   
-   Vec3 TaCurrPrime;
-   Vec3 TbCurrPrime;
-   
-   Mat3x3 FDEPrime;
-   
- public:
-   ViscousHingeJoint(unsigned int uL, 
-		     const DofOwner* pDO, 
-		     const ConstitutiveLaw3D* pCL,
-		     const StructNode* pN1, 
-		     const StructNode* pN2,
-		     const Mat3x3& R1,
-		     const Mat3x3& R2,
-		     flag fOut);
-   
-   ~ViscousHingeJoint(void);
-   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
+protected:
+	Vec3 ThetaRefPrime;
+	Vec3 ThetaCurrPrime;
 
-   virtual void
-   AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+	Vec3 TaCurrPrime;
+	Vec3 TbCurrPrime;
 
-   /* Tipo di DeformableHinge */
-   virtual DefHingeType::Type GetDefHingeType(void) const {
-      return DefHingeType::VISCOUS; 
-   };
+	Mat3x3 FDEPrime;
 
-   /* Aggiorna le deformazioni ecc. */
-   virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
-   
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal dCoef, 
-	    const VectorHandler& XCurr,
-	    const VectorHandler& XPrimeCurr);
-   
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& 
-     AssRes(SubVectorHandler& WorkVec,
-	    doublereal dCoef,
-	    const VectorHandler& XCurr, 
-	    const VectorHandler& XPrimeCurr);
+public:
+	ViscousHingeJoint(unsigned int uL, 
+			const DofOwner* pDO, 
+			const ConstitutiveLaw3D* pCL,
+			const StructNode* pN1, 
+			const StructNode* pN2,
+			const Mat3x3& R1,
+			const Mat3x3& R2,
+			flag fOut);
 
-   virtual void InitialWorkSpaceDim(integer* piNumRows,
-				    integer* piNumCols) const  { 
-      *piNumRows = 6; 
-      *piNumCols = 12;
-   };
+	~ViscousHingeJoint(void);
 
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat, 
-		   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& 
-     InitialAssRes(SubVectorHandler& WorkVec,
-		   const VectorHandler& XCurr);   
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
 
-#ifdef DEBUG
-   virtual const char* sClassName(void) const { 
-      return "ViscousHingeJoint";
-   };
-#endif   
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
+	/* Tipo di DeformableHinge */
+	virtual DefHingeType::Type GetDefHingeType(void) const {
+		return DefHingeType::VISCOUS; 
+	};
+
+	/* Aggiorna le deformazioni ecc. */
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler& 
+	AssJac(VariableSubMatrixHandler& WorkMat,
+			doublereal dCoef, 
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio residuo */
+	virtual SubVectorHandler& 
+	AssRes(SubVectorHandler& WorkVec,
+			doublereal dCoef,
+			const VectorHandler& XCurr, 
+			const VectorHandler& XPrimeCurr);
+
+	virtual void InitialWorkSpaceDim(integer* piNumRows,
+			integer* piNumCols) const  { 
+		*piNumRows = 6; 
+		*piNumCols = 12;
+	};
+
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+			const VectorHandler& XCurr);
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	virtual SubVectorHandler& 
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);   
 };
 
 /* ViscousHingeJoint - end */
@@ -298,86 +278,80 @@ class ViscousHingeJoint : virtual public Elem, public DeformableHingeJoint {
 
 class ViscoElasticHingeJoint 
 : virtual public Elem, public DeformableHingeJoint {
- protected:
-   Vec3 ThetaRef;
-   Vec3 ThetaCurr;
-   
-   Vec3 ThetaRefPrime;
-   Vec3 ThetaCurrPrime;
-   
-   Vec3 TaCurr;
-   Vec3 TbCurr;
-   
-   Vec3 TaCurrPrime;
-   Vec3 TbCurrPrime;
-   
-   Mat3x3 FDE;
-   Mat3x3 FDEPrime;
-   
- public:
-   ViscoElasticHingeJoint(unsigned int uL, 
-			  const DofOwner* pDO, 
-			  const ConstitutiveLaw3D* pCL,
-			  const StructNode* pN1, 
-			  const StructNode* pN2,
-			  const Mat3x3& R1,
-			  const Mat3x3& R2, 
-			  flag fOut);
-   
-   ~ViscoElasticHingeJoint(void);
-   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
+protected:
+	Vec3 ThetaRef;
+	Vec3 ThetaCurr;
 
-   virtual void
-   AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+	Vec3 ThetaRefPrime;
+	Vec3 ThetaCurrPrime;
 
-   /* Tipo di DeformableHinge */
-   virtual DefHingeType::Type GetDefHingeType(void) const {
-      return DefHingeType::VISCOELASTIC; 
-   };
-   
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal dCoef, 
-	    const VectorHandler& XCurr,
-	    const VectorHandler& XPrimeCurr);
-   
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& 
-     AssRes(SubVectorHandler& WorkVec,
-	    doublereal dCoef,
-	    const VectorHandler& XCurr, 
-	    const VectorHandler& XPrimeCurr);
+	Vec3 TaCurr;
+	Vec3 TbCurr;
 
-   /* Aggiorna le deformazioni ecc. */
-   virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);           
+	Vec3 TaCurrPrime;
+	Vec3 TbCurrPrime;
 
-   virtual void InitialWorkSpaceDim(integer* piNumRows,
-				    integer* piNumCols) const {
-      *piNumRows = 6; 
-      *piNumCols = 12;
-   };
+	Mat3x3 FDE;
+	Mat3x3 FDEPrime;
 
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat, 
-		   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& 
-     InitialAssRes(SubVectorHandler& WorkVec,
-		   const VectorHandler& XCurr);
+public:
+	ViscoElasticHingeJoint(unsigned int uL, 
+			const DofOwner* pDO, 
+			const ConstitutiveLaw3D* pCL,
+			const StructNode* pN1, 
+			const StructNode* pN2,
+			const Mat3x3& R1,
+			const Mat3x3& R2, 
+			flag fOut);
 
-#ifdef DEBUG
-   virtual const char* sClassName(void) const { 
-      return "ViscoElasticHingeJoint";
-   };
-#endif   
+	~ViscoElasticHingeJoint(void);
+
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
+
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
+	/* Tipo di DeformableHinge */
+	virtual DefHingeType::Type GetDefHingeType(void) const {
+		return DefHingeType::VISCOELASTIC; 
+	};
+
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler& 
+	AssJac(VariableSubMatrixHandler& WorkMat,
+			doublereal dCoef, 
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio residuo */
+	virtual SubVectorHandler& 
+	AssRes(SubVectorHandler& WorkVec,
+			doublereal dCoef,
+			const VectorHandler& XCurr, 
+			const VectorHandler& XPrimeCurr);
+
+	/* Aggiorna le deformazioni ecc. */
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
+	virtual void InitialWorkSpaceDim(integer* piNumRows,
+			integer* piNumCols) const {
+		*piNumRows = 6; 
+		*piNumCols = 12;
+	};
+
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+			const VectorHandler& XCurr);
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	virtual SubVectorHandler& 
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 };
 
 /* ViscoElasticHingeJoint - end */
 
-#endif
+#endif /* VEHJ_H */
+
