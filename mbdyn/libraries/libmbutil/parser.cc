@@ -398,7 +398,7 @@ HighParser::SetEnv_(void)
 	if (avasep == NULL) {
 		int	rc = 0;
 #ifdef HAVE_UNSETENV
-		rc = unsetenv(ava);
+		unsetenv(ava);
 #elif defined(HAVE_PUTENV)
 		rc = putenv(ava);
 #endif	/* !HAVE_UNSETENV && !HAVE_PUTENV */
