@@ -114,6 +114,8 @@ protected:
 	Elem** ppExpCntElems;
 	int iTotalExpConnections;
 
+	virtual void PrepareOutputFileName(void);
+
 private:
 
 	/* compatta il vettore delle adiacenze */

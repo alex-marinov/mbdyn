@@ -96,6 +96,8 @@ MathPar(HP.GetMathParser()),
 GlobalSymbolTable((HP.GetMathParser()).GetSymbolTable()),
 DrvHdl((HP.GetMathParser()).GetSymbolTable()),
 OutHdl(),
+sInName(0),
+sOutName(0),
 pTime(NULL),
 pXCurr(NULL), pXPrimeCurr(NULL),
 #if defined(USE_STRUCT_NODES)

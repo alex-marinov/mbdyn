@@ -92,6 +92,12 @@ SchurDataManager::~SchurDataManager()
 }
 
 void
+SchurDataManager::PrepareOutputFileName(void)
+{
+	NO_OP;
+}
+
+void
 SchurDataManager::AssRes(VectorHandler&, doublereal) throw(ChangedEquationStructure)
 {
 	NO_OP;
@@ -633,6 +639,34 @@ SchurDataManager::~SchurDataManager(void)
 	if (ppExpCntElems != NULL) {
 		SAFEDELETEARR(ppExpCntElems);
 	}
+}
+
+void
+SchurDataManager::PrepareOutputFileName(void)
+{
+	/* sOutName and sInName are defined (either because supplied
+	 * or because defaults have been used */
+
+	/* deals with directories and so... */
+	DataManager::InitOutput();
+
+	/*
+	 * I file di output vengono stampati localmente
+	 * da ogni processo aggiungendo al termine
+	 * dell'OutputFileName il rank del processo
+	 */
+	ASSERT(MPI::COMM_WORLD.Get_size() > 1);
+	int iRankLength = 1 + (int)log10(MPI::COMM_WORLD.Get_size() - 1);
+
+	char* sNewOutName = 0;
+	int iOutLen = strlen(sOutName) + sizeof(".") - 1 + iRankLength + sizeof("\0") - 1;
+
+	SAFENEWARR(sNewOutName, char, iOutLen);
+	snprintf(sNewOutName, iOutLen, "%s.%.*d",
+			sOutName, iRankLength, MyRank);
+
+	SAFEDELETEARR(sOutName);
+	sOutName = sNewOutName;
 }
 
 integer

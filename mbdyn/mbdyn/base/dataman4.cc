@@ -968,7 +968,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 			 << uLabel << std::endl);
 		       
 		       throw ErrMemory();
-		    }		  
+		    }
 		 }
 		 
 		 

@@ -323,9 +323,10 @@ Solver::Run(void)
 #ifdef USE_MPI
 	int mpi_finalize = 0;
 
-	int MyRank = 0;
+	//int MyRank = 0;
 	if (bParallel) {
 
+#if 0
 		/*
 		 * E' necessario poter determinare in questa routine
 		 * quale e' il master in modo da far calcolare la soluzione
@@ -362,6 +363,7 @@ Solver::Run(void)
 		SAFENEWARR(sNewOutName, char, iOutLen);
 		snprintf(sNewOutName, iOutLen, "%s.%.*d",
 				sOutName, iRankLength, MyRank);
+#endif
 
 		DEBUGLCOUT(MYDEBUG_MEM, "creating parallel SchurDataManager"
 				<< std::endl);
@@ -372,7 +374,7 @@ Solver::Run(void)
 				OutputFlags,
 				dInitialTime,
 				sInputFileName,
-				sNewOutName,
+				sOutputFileName, // sNewOutName,
 				eAbortAfter == AFTER_INPUT));
 
 		/* FIXME: who frees sNewOutname? */

@@ -104,6 +104,10 @@ protected:
 	DriveHandler DrvHdl;
 	mutable OutputHandler OutHdl;
 
+	const char *sInName;
+	const char *sOutName;
+	virtual void PrepareOutputFileName(void);
+
 	/* Puntatore alla variabile Time nella GlobalSymbolTable */
 	Var* pTime;
 

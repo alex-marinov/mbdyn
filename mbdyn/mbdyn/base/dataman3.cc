@@ -61,9 +61,17 @@ void DataManager::ReadControl(MBDynParser& HP,
 {
    DEBUGCOUTFNAME("DataManager::ReadControl");
 
+   /* Nome del file di input */
+   if (sInputFileName == 0) {
+      SAFESTRDUP(sInName, sDefaultInputFileName);
+   } else {
+      SAFESTRDUP(sInName, sInputFileName);
+   }
+
    /* Nome del file di output */
-   char* sOutName = NULL;
-   if (sOutputFileName != NULL) {
+   if (sOutputFileName == 0) {
+      SAFESTRDUP(sOutName, sInName);
+   } else {
       SAFESTRDUP(sOutName, sOutputFileName);
    }
 
@@ -760,15 +768,15 @@ void DataManager::ReadControl(MBDynParser& HP,
        }
 	 
        case OUTPUTFILENAME: {
-	  if (sOutName != NULL) {
-	     SAFEDELETEARR(sOutName);
-	     sOutName = NULL;
-	  }
 	  const char* sTmp(HP.GetFileName());
 	  if (sTmp == NULL) {
 	     silent_cerr("Null file name at line "
 		     << HP.GetLineData() << std::endl);
 	     throw DataManager::ErrGeneric();
+	  }
+	  if (sOutName != 0) {
+	     SAFEDELETEARR(sOutName);
+	     sOutName = 0;
 	  }
 	  SAFESTRDUP(sOutName, sTmp);
 	  break;
@@ -1175,46 +1183,52 @@ void DataManager::ReadControl(MBDynParser& HP,
 	      << HP.GetLineData() << std::endl);
       throw DataManager::ErrGeneric();
    }   
-   
-   /* Inizializza l'OutputHandler */
-   if (sOutName == NULL) {
-      if (sInputFileName == NULL) {
-	 OutHdl.Init(sDefaultOutputFileName, 0);
-      } else {
-	 OutHdl.Init(sInputFileName, 0);
-      }
-   } else {
 
-             /* FIXME: ora in caso di solutore parallelo, se sOutName
-	      * e' una directory il nome dei file viene incasinato */
-	     
-      struct stat s;
-      if (stat(sOutName, &s) == 0) {
-	 char *tmpout = NULL;
-	 const char *tmpin = sInputFileName ? sInputFileName : sDefaultOutputFileName;
-	 
-	 if (S_ISDIR(s.st_mode)) {
-	    unsigned l1 = strlen(sOutName), l2 = l1 + strlen(tmpin) + 2;
-	    SAFENEWARR(tmpout, char, l2);
-	    strncpy(tmpout, sOutName, l1);
-	    if (sOutName[l1 - 1] != '/') {
-		    tmpout[l1] = '/';
-		    l1++;
-	    }
-	    strncpy(&tmpout[l1], tmpin, l2 - l1);
-	    SAFEDELETEARR(sOutName);
-	    sOutName = tmpout;
-	 }
-      }
-      
-      OutHdl.Init(sOutName, 0);
-      SAFEDELETEARR(sOutName);
+   /* initialize output handler */
+   if (sOutName == 0) {
+      SAFESTRDUP(sOutName, sInputFileName);
    }
 
+   PrepareOutputFileName();
+
+   OutHdl.Init(sOutName, 0);
+   
    OutHdl.Log() << "output frequency: " << iOutputFrequency << std::endl;
 
    DEBUGLCOUT(MYDEBUG_INPUT, "End of control data" << std::endl);
 } /* End of DataManager::ReadControl() */
+
+void
+DataManager::PrepareOutputFileName(void)
+{
+	/* sOutName and sInName are defined (either because supplied
+	 * or because defaults have been used */
+	struct stat	s;
+	if (stat(sOutName, &s) != 0) {
+		int	save_errno = errno;
+		char	*errmsg = str2error(save_errno);
+		
+		silent_cerr("stat(" << sOutName << ") failed "
+				"(" << save_errno << ": " << errmsg << ")" << std::endl);
+		throw Errgeneric();
+	}
+
+	if (S_ISDIR(s.st_mode)) {
+		unsigned 	lOld = strlen(sOutName),
+				lNew = lOld + strlen(sInName) + 2;
+		char		*tmpout = 0;
+
+		SAFENEWARR(tmpout, char, lNew);
+		memcpy(tmpout, sOutName, lOld);
+		if (sOutName[lOld - 1] != '/') {
+			tmpout[lOld] = '/';
+			lOld++;
+		}
+		memcpy(&tmpout[lOld], sInName, lNew - lOld);
+		SAFEDELETEARR(sOutName);
+		sOutName = tmpout;
+	}
+}
 
 
 /* Legge se un item deve scrivere sull'output handler */
