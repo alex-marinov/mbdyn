@@ -128,7 +128,7 @@ DataManager::AdamsResOutputInit(void)
 		<< "" << std::endl
 		<< "!" << std::endl
  
-		/* Header Block: Number of Analysis Output Blocs Sub-Block 
+		/* Header Block: Number of Analysis Output Blocks Sub-Block 
 		 * FIXME: replace 10000 with the number of steps
 		 * actually performed
 		 */
@@ -137,7 +137,7 @@ DataManager::AdamsResOutputInit(void)
 
 	const char *sVel = bAdamsVelocity ? "YES" : "NO ";
 	out
-		<< std::setw(8) << 2+10000 << std::setw(8) << 123+3*iAdamsOutputParts << std::endl
+		<< std::setw(8) << 2 << std::setw(8) << 123+3*iAdamsOutputParts << std::endl
 		<< "!" << std::endl
      
 		/* Rigid Parts Map Block */
