@@ -306,13 +306,17 @@ void Rotor::MeanInducedVelocity(void)
    doublereal dRef = 2.*dRho*dArea*dVRef;
    dUMeanRef = dT/(dRef+1.);
 
-#if 0
-   doublereal dMuTmp = dMu/(dHoverCorrection*dHoverCorrection);
-   doublereal dLambdaTmp = dLambda/dForwardFlightCorrection;
-#else
+   /*
+    * Fixme: Claudio Monteggia said:
+    *
+    *                        Ct
+    * Um = -------------------------------------
+    *       sqrt( lambda^2 / KH^4 + mu^2 / KF^2)
+    *
+    * need to cross check whether the powers of KH, KF are correct
+    */
    doublereal dMuTmp = dMu/dForwardFlightCorrection;
    doublereal dLambdaTmp = dLambda/(dHoverCorrection*dHoverCorrection);
-#endif
    doublereal dV = dOmega*dRadius*sqrt(dMuTmp*dMuTmp+dLambdaTmp*dLambdaTmp);
    doublereal d = 2.*dRho*dArea*dV;
 
