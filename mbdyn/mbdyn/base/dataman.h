@@ -103,7 +103,7 @@ class DataManager {
    flag fOmegaRotates;
    doublereal dInitialAssemblyToll;
    integer iMaxInitialIterations;
-#endif // USE_STRUCT_NODES   
+#endif /* USE_STRUCT_NODES */
 
    flag fPrintDofStats;
 
