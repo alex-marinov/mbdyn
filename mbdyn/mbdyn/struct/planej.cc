@@ -560,7 +560,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
       std::ostream &of = Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
 		    R2TmpT*F, M, F, R2Tmp*M)
 	<< " " << MatR2EulerAngles(RTmp)*dRaDegr
-	  << " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr());
+	<< " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr());
       if (fc) {
           of << " " << M3 << " " << fc->fc();
       }
@@ -1015,9 +1015,11 @@ void
 PlaneRotationJoint::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
-	Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
-			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
-	Vec3 v(MatR2EulerAngles(RTmp));
+	Mat3x3 RTmp(((pNode1->GetRCurr()*R1h).Transpose()
+			*pNode1->GetRPrev()*R1h).Transpose()
+			*((pNode2->GetRCurr()*R2h).Transpose()
+			*pNode2->GetRPrev()*R2h));
+	Vec3 v(MatR2EulerAngles(RTmp.Transpose()));
 
 	dTheta += v.dGet(3);
 }
@@ -1263,9 +1265,9 @@ void PlaneRotationJoint::Output(OutputHandler& OH) const
       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
       Mat3x3 R2TmpT(R2Tmp.Transpose());
       
-      Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
+      Joint::Output(OH.Joints(), "PlaneRotation", GetLabel(),
 		    Zero3, M, Zero3, R2Tmp*M)
-	<< " " << Vec3(0., 0., dTheta)
+	<< " " << MatR2EulerAngles(RTmp)*dRaDegr
 	<< " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()) << std::endl;
    }
 }
@@ -1603,7 +1605,7 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
 			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
 	Vec3 v(MatR2EulerAngles(RTmp));
 
-       return dTheta + v.dGet(3);
+       return dTheta;
     }
       
     case 2: {
