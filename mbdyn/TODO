@@ -51,6 +51,7 @@ D. Code:
 	- move critical Reynolds numbers from constants to fluid properties
 		with pressure/temperature dependencies.
 	- add symbolic constitutive law (based on GiNaC)
+	- move exception handling towards <stdexcept>
 
 
 
