@@ -20,7 +20,7 @@ MBDyn 1.2-Engineering
 		  (this code should be trimmed off, it's useless
 		- use ltdl library for loadable modules
 		- RelativeFrame dummy struct nodes can have offset
-		  and orientation withrespect to the reference node
+		  and orientation with respect to the reference node
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 	Bug fixes:
