@@ -135,65 +135,68 @@ void Rotor::Output(OutputHandler& OH) const
 	    if (RotorComm.Get_rank() == 0) {
 		Vec3 TmpF(pTmpVecR), TmpM(pTmpVecR+3);
 		Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
-		OH.Rotors() << std::setw(8) << GetLabel() << " " 
-			<< (RT*TmpF) << " " << (RT*TmpM) << " " 
-			<< dUMean 
+		OH.Rotors() << std::setw(8) << GetLabel()
+			<< " " << (RT*TmpF) << " " << (RT*TmpM)
+			<< " " << dUMean 
 #if 1
-			<< " "
-			<< dVelocity << " " 
-			<< dSinAlphad << " " << dCosAlphad << " "
-			<< dMu << " " << dLambda << " " << dChi << " "
-			<< dPsi0
+			<< " " << dVelocity
+			<< " " << dSinAlphad << " " << dCosAlphad
+			<< " " << dMu
+			<< " " << dLambda << " " << dChi
+			<< " " << dPsi0
 #endif
 			<< std::endl;
 	        for (int i = 0; ppRes && ppRes[i]; i++) {
 			Vec3 TmpF(pTmpVecR+6+6*i), TmpM(pTmpVecR+9+6*i);
 			OH.Rotors() << std::setw(8) << GetLabel() 
-				<< ":" << ppRes[i]->GetLabel() << " "
-				<< TmpF << " "
-				<< TmpM << std::endl;
+				<< ":" << ppRes[i]->GetLabel()
+				<< " " << TmpF << " " << TmpM
+				<< std::endl;
 		}
 	    }
 	} else {
 	    Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
-	    OH.Rotors() << std::setw(8) << GetLabel() << " "
-		    << (RT*Res.Force()) << " " << (RT*Res.Couple()) << " " 
-		    << dUMean 
+	    OH.Rotors() << std::setw(8) << GetLabel()
+		    << " " << (RT*Res.Force()) << " " << (RT*Res.Couple())
+		    << " " << dUMean 
 #if 1
-		    << " "
-		    << dVelocity << " " 
-		    << dSinAlphad << " " << dCosAlphad << " "
-		    << dMu << " " << dLambda << " " << dChi << " "
-		    << dPsi0
+		    << " " << dVelocity
+		    << " " << dSinAlphad << " " << dCosAlphad
+		    << " " << dMu
+		    << " " << dLambda << " " << dChi
+		    << " " << dPsi0
 #endif 
 		    << std::endl;
+
 	    for (int i = 0; ppRes && ppRes[i]; i++) {
 		OH.Rotors() << std::setw(8) << GetLabel() 
-			    << ":" << ppRes[i]->GetLabel() << " "
-			    << ppRes[i]->pRes->Force() << " "
-			    << ppRes[i]->pRes->Couple() << std::endl;
+			    << ":" << ppRes[i]->GetLabel()
+			    << " " << ppRes[i]->pRes->Force()
+			    << " " << ppRes[i]->pRes->Couple()
+			    << std::endl;
 	    }
 	}
 #else /* !USE_MPI */     
 	Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
 	OH.Rotors() << std::setw(8) << GetLabel() << " " 
-		<< (RT*Res.Force()) << " " << (RT*Res.Couple()) << " " 
-		<< dUMean 
+		<< (RT*Res.Force()) << " " << (RT*Res.Couple())
+		<< " " << dUMean 
 #if 1
-		<< " "
-		<< dVelocity << " " 
-		<< dSinAlphad << " " << dCosAlphad << " "
-		<< dMu << " " << dLambda << " " << dChi << " "
-		<< dPsi0
+		<< " " << dVelocity
+		<< " " << dSinAlphad << " " << dCosAlphad
+		<< " " << dMu
+		<< " " << dLambda << " " << dChi
+		<< " " << dPsi0
 #endif
 		<< std::endl;
 
 	/* FIXME: check for parallel stuff ... */
 	for (int i = 0; ppRes && ppRes[i]; i++) {
 		OH.Rotors() << std::setw(8) << GetLabel() 
-			<< ":" << ppRes[i]->GetLabel() << " "
-			<< ppRes[i]->pRes->Force() << " "
-			<< ppRes[i]->pRes->Couple() << std::endl;
+			<< ":" << ppRes[i]->GetLabel()
+			<< " " << ppRes[i]->pRes->Force()
+			<< " " << ppRes[i]->pRes->Couple()
+			<< std::endl;
 	}
 #endif /* !USE_MPI */
     }
