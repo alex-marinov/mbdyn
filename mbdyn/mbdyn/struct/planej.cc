@@ -72,7 +72,7 @@ void
 PlaneHingeJoint::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
-	Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
+	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*pNode1->GetRPrev()
 			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
 	Vec3 v(MatR2EulerAngles(RTmp));
 
@@ -754,7 +754,7 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
    
    switch (i) {
     case 1: {
-	Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
+	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*pNode1->GetRPrev()
 			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
 	Vec3 v(MatR2EulerAngles(RTmp));
 
