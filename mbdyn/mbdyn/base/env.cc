@@ -114,7 +114,18 @@ GetEnviron(MathParser& MP)
 	    
 	 		} else if (strncmp(p+5, "_integer_", 9) == 0) {
 	    			n = p+14;
-	    			i = atoi(v);
+#ifdef HAVE_STRTOL
+				char *endptr = NULL;
+				i = strtol(v, &endptr, 10);
+				if (endptr != NULL && endptr[0] != '\0') {
+					std::cerr << "SetEnv: unable to read "
+						"integer <" << v << ">"
+						<< std::endl;
+					THROW(ErrGeneric());
+				}
+#else /* !HAVE_STRTOL */
+	    			i = atol(v);
+#endif /* !HAVE_STRTOL */
 	    			DEBUGCOUT("setting integer var <" 
 					<< n << "=" << i << ">" << std::endl);
 	    

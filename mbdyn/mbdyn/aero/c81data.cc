@@ -154,7 +154,43 @@ read_c81_data(std::istream& in, c81_data* data)
    
    	/* header */
    	in.getline(buf, sizeof(buf));
+
+#ifdef HAVE_STRTOL
+	char *endptr = NULL;
+   	data->NAM = strtol(buf + 40, &endptr, 10);
+	if (endptr != NULL && endptr[0] != '\0') {
+		return -1;
+	}
+   	buf[40] = '\0';
+
+   	data->NAM = strtol(buf + 38, &endptr, 10);
+	if (endptr != NULL && endptr[0] != '\0') {
+		return -1;
+	}
+   	buf[38] = '\0';
    
+   	data->NAM = strtol(buf + 36, &endptr, 10);
+	if (endptr != NULL && endptr[0] != '\0') {
+		return -1;
+	}
+   	buf[36] = '\0';
+   	data->NAM = strtol(buf + 34, &endptr, 10);
+	if (endptr != NULL && endptr[0] != '\0') {
+		return -1;
+	}
+   	buf[34] = '\0';
+   
+   	data->NAM = strtol(buf + 32, &endptr, 10);
+	if (endptr != NULL && endptr[0] != '\0') {
+		return -1;
+	}
+   	buf[32] = '\0';
+   	data->NAM = strtol(buf + 30, &endptr, 10);
+	if (endptr != NULL && endptr[0] != '\0') {
+		return -1;
+	}
+   	buf[30] = '\0';
+#else /* !HAVE_STRTOL */
    	data->NAM = atoi(buf+40);
    	buf[40] = '\0';
    	data->NMM = atoi(buf+38);
@@ -169,6 +205,7 @@ read_c81_data(std::istream& in, c81_data* data)
    	buf[32] = '\0';
    	data->NML = atoi(buf+30);
    	buf[30] = '\0';
+#endif /* !HAVE_STRTOL */
 
 	if (data->NAM <= 0 || data->NMM <= 0
 			|| data->NAD <= 0 || data->NMD <= 0

@@ -209,6 +209,7 @@ class Modal : virtual public Elem, public Joint {
   
    /* Dati privati */
    virtual unsigned int iGetNumPrivData(void) const;
+   virtual unsigned int iGetPrivDataIdx(const char *s) const;
    virtual doublereal dGetPrivData(unsigned int i) const;   
    
    /* Funzioni che restituiscono dati che possono servire ad

@@ -279,33 +279,9 @@ class Beam2
     InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
     /* Accesso ai dati privati */
-    virtual unsigned int iGetNumPrivData(void) const {
-        return 6;
-    };   
-      
-    virtual doublereal dGetPrivData(unsigned int i) const {
-        ASSERT(i > 0 && i <= 6);
-        switch (i) {
-        case 1:
-        case 4:
-        case 5:
-        case 6:
-	    return DefLoc.dGet(i);
-        case 2:
-        case 3:
-	    std::cerr << "Beam2 " << GetLabel() 
-	        << ": not allowed to return shear strain" << std::endl;
-	    THROW(ErrGeneric());
-        default:
-	    std::cerr << "Beam2 " << GetLabel() << ": illegal private data " 
-	       << i << std::endl;
-	    THROW(ErrGeneric());
-        }
-#ifndef USE_EXCEPTIONS
-        return 0.;
-#endif /* USE_EXCEPTIONS */
-    };
-   
+    virtual unsigned int iGetNumPrivData(void) const;
+    virtual unsigned int iGetPrivDataIdx(const char *s) const;
+    virtual doublereal dGetPrivData(unsigned int i) const;
    
     /* Accesso ai nodi */
     virtual const StructNode* pGetNode(unsigned int i) const;

@@ -126,11 +126,9 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
 				   const VectorHandler& XCurr);
    
    /* Dati privati */
-   virtual unsigned int iGetNumPrivData(void) const {
-      return 6;
-   };   
-   
-   virtual doublereal dGetPrivData(unsigned int i = 0) const;
+   virtual unsigned int iGetNumPrivData(void) const;
+   virtual unsigned int iGetPrivDataIdx(const char *s) const;
+   virtual doublereal dGetPrivData(unsigned int i) const;
    
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -234,11 +232,9 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
 				   const VectorHandler& XCurr);
    
    /* Dati privati */
-   virtual unsigned int iGetNumPrivData(void) const {
-      return 3;
-   };   
-   
-   virtual doublereal dGetPrivData(unsigned int i = 0) const;
+   virtual unsigned int iGetNumPrivData(void) const;
+   virtual unsigned int iGetPrivDataIdx(const char *s) const;
+   virtual doublereal dGetPrivData(unsigned int i) const;
    
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -350,14 +346,9 @@ public Joint, public DriveOwner {
 				   const VectorHandler& XCurr);
    
    /* Dati privati */
-   virtual unsigned int iGetNumPrivData(void) const {
-      return 1;
-   };   
-   
-   virtual doublereal dGetPrivData(unsigned int i = 0) const {
-      ASSERT(i == 1);     
-      return dGet();
-   };
+   virtual unsigned int iGetNumPrivData(void) const;
+   virtual unsigned int iGetPrivDataIdx(const char *s) const;
+   virtual doublereal dGetPrivData(unsigned int i) const;
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento

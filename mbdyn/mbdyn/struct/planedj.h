@@ -125,10 +125,8 @@ class PlaneDispJoint : virtual public Elem, public Joint {
 				   const VectorHandler& XCurr);
    
    /* Dati privati */
-   virtual unsigned int iGetNumPrivData(void) const {
-      return 6;
-   };   
-   
+   virtual unsigned int iGetNumPrivData(void) const;
+   virtual unsigned int iGetPrivDataIdx(const char *s) const;
    virtual doublereal dGetPrivData(unsigned int i = 0) const; 
 
     /* *******PER IL SOLUTORE PARALLELO******** */        

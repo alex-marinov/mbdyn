@@ -125,6 +125,96 @@ HBeam::~HBeam(void)
 	}
 }
 
+/* Accesso ai dati privati */
+unsigned int
+HBeam::iGetNumPrivData(void) const
+{
+	return 6;
+}
+
+unsigned int
+HBeam::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+
+	/*
+	 * {ex|k{x|y|z}}
+	 */
+
+	unsigned int idx = 0;
+
+	switch (s[0]) {
+	case 'e':
+		switch (s[1]) {
+		case 'x':
+			idx += 1;
+			break;
+
+		case 'y':
+		case 'z':
+			return 0;
+
+		default:
+			return 0;
+		}
+		break;
+
+	case 'k':
+		idx += 3;
+		switch (s[1]) {
+		case 'x':
+			idx += 1;
+			break;
+
+		case 'y':
+			idx += 2;
+			break;
+
+		case 'z':
+			idx += 3;
+			break;
+
+		default:
+			return 0;
+		}
+		break;
+
+	default:
+		return 0;
+	}
+
+	if (s[2] != '\0') {
+		return 0;
+	}
+
+	return idx;
+}
+
+doublereal
+HBeam::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i > 0 && i <= 6);
+
+	switch (i) {
+	case 1:
+	case 4:
+	case 5:
+	case 6:
+		return DefLoc.dGet(i);
+	case 2:
+	case 3:
+		std::cerr << "Beam2 " << GetLabel() 
+			<< ": not allowed to return shear strain" << std::endl;
+		THROW(ErrGeneric());
+	default:
+		std::cerr << "Beam2 " << GetLabel()
+			<< ": illegal private data " << i << std::endl;
+		THROW(ErrGeneric());
+	}
+#ifndef USE_EXCEPTIONS
+	return 0.;
+#endif /* USE_EXCEPTIONS */
+}
 
 void
 HBeam::DsDxi(void)

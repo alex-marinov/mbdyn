@@ -159,11 +159,25 @@ BeamSliderJoint::Output(OutputHandler& OH) const
 	}
 }
 
+#if 0
+unsigned int
+BeamSliderJoint::iGetNumPrivData(void) const
+{
+	return 0;
+}
+
+unsigned int
+BeamSliderJoint::iGetPrivDataIdx(const char *s) const
+{
+	return 0;
+}
+
 doublereal 
 BeamSliderJoint::dGetPrivData(unsigned int i) const
 {
 	return 0.;
 }
+#endif
 
 /* Assemblaggio jacobiano */
 VariableSubMatrixHandler&

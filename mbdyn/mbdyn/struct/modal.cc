@@ -1728,19 +1728,78 @@ Modal::SetValue(VectorHandler& X, VectorHandler& XP) const
 unsigned int 
 Modal::iGetNumPrivData(void) const
 {
-   return 2*NModes;
+   return 3*NModes;
+}
+
+unsigned int 
+Modal::iGetPrivDataIdx(const char *s) const
+{
+	/*
+	 * x[n] | xP[n] | xPP[n]
+	 *
+	 * dove n e' il numero del modo (a base 1)
+	 */
+
+	unsigned int idx = 0;
+
+	/* che cosa e' richiesto? */
+	if (strncmp(s, "x[", sizeof("x[") - 1) == 0) {
+		s += sizeof("x[") - 1;
+
+	} else if (strncmp(s, "xP[", sizeof("xP[") - 1) == 0) {
+		s += sizeof("xP[") - 1;
+		idx += NModes;
+
+	} else if (strncmp(s, "xPP[", sizeof("xPP[") - 1) == 0) {
+		s += sizeof("xPP[") - 1;
+		idx += 2*NModes;
+
+	} else {
+		return 0;
+	}
+
+	/* trova la parentesi chiusa (e il terminatore di stringa) */
+	char *end = strchr(s, ']');
+	if (end == NULL || end[1] != '\0') {
+		return 0;
+	}
+
+	/* buffer per numero (dimensione massima: 32 bit) */
+	char buf[sizeof("4000000000")];
+
+	ASSERT(end - s < sizeof(buf));
+
+	strncpy(buf, s, end - s);
+	buf[end - s] = '\0';
+
+	/* leggi il numero */
+#ifdef HAVE_STRTOUL
+	unsigned long n = strtoul(buf, &end, 10);
+	if (end == buf || end[0] != '\0') {
+		return 0;
+	}
+#else /* !HAVE_STRTOUL */
+	unsigned long n = atol(buf);
+#endif /* !HAVE_STRTOUL */
+
+	if (n > NModes) {
+		return 0;
+	}
+
+	return idx + n;
 }
 
 
 doublereal 
 Modal::dGetPrivData(unsigned int i) const
 {
-   ASSERT(i > 0 && i < iGetNumPrivData());
-   if (i <= NModes) {
-      return a.dGet(i);
-   } else {
-      return b.dGet(i-NModes);
-   }
+	ASSERT(i > 0 && i < iGetNumPrivData());
+	if (i <= NModes) {
+		return a.dGet(i);
+
+	} else {
+		return b.dGet(i - NModes);
+	}
 }
 
 Mat3xN* 

@@ -697,41 +697,53 @@ PlaneHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 }
 
 
+unsigned int
+PlaneHingeJoint::iGetNumPrivData(void) const
+{
+	return 2;
+}
+
+unsigned int
+PlaneHingeJoint::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+
+	if (strcmp(s, "rx") == 0) {
+		return 1;
+	}
+
+	if (strcmp(s, "wx") == 0) {
+		return 2;
+	}
+
+	return 0;
+}
+
 doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
 {
-   ASSERT(i >= 1 && i <= 6);
-   
-   double d;
+   ASSERT(i >= 1 && i <= iGetNumPrivData());
    
    Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
    Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
    
    switch (i) {
-    case 1:
-    case 2:
-    case 3: {
+    case 1: {
        Vec3 v(MatR2EulerAngles(RTmp));
        
-       d = v.dGet(i);
-       break;
+       return v.dGet(3);
     }
       
-    case 4:
-    case 5:
-    case 6: {
+    case 2: {
        Mat3x3 R2TmpT(R2Tmp.Transpose());
        Vec3 v(R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()));
        
-       d = v.dGet(i-3);
-       break;
+       return v.dGet(3);
     }
       
     default:
       std::cerr << "Illegal private data" << std::endl;
       THROW(ErrGeneric());
    }
-   
-   return d;
 }
 
 /* PlaneHingeJoint - end */
@@ -1301,41 +1313,53 @@ PlaneRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
 }
 
 
+unsigned int
+PlaneRotationJoint::iGetNumPrivData(void) const
+{
+	return 2;
+}
+
+unsigned int
+PlaneRotationJoint::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+
+	if (strcmp(s, "rx") == 0) {
+		return 1;
+	}
+
+	if (strcmp(s, "wx") == 0) {
+		return 2;
+	}
+
+	return 0;
+}
+
 doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
 {
-   ASSERT(i >= 1 && i <= 6);
-   
-   double d;
+   ASSERT(i >= 1 && i <= iGetNumPrivData());
    
    Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
    Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
    
    switch (i) {
-    case 1:
-    case 2:
-    case 3: {
+    case 1: {
        Vec3 v(MatR2EulerAngles(RTmp));
        
-       d = v.dGet(i);
-       break;
+       return v.dGet(3);
     }
       
-    case 4:
-    case 5:
-    case 6: {
+    case 2: {
        Mat3x3 R2TmpT(R2Tmp.Transpose());
        Vec3 v(R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()));
        
-       d = v.dGet(i-3);
-       break;
+       return v.dGet(3);
     }
       
     default:
       std::cerr << "Illegal private data" << std::endl;
       THROW(ErrGeneric());
    }
-   
-   return d;
 }
 
 /* PlaneRotationJoint - end */
@@ -2044,6 +2068,36 @@ AxialRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.fPutCoef(35, Omega0-e3a.Dot(Omega2-Omega1));
 
    return WorkVec;
+}
+
+unsigned int
+AxialRotationJoint::iGetNumPrivData(void) const
+{
+	return 1;
+}
+
+unsigned int
+AxialRotationJoint::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+
+	if (strcmp(s, "wx") == 0) {
+		return 1;
+	}
+
+	return 0;
+}
+
+doublereal
+AxialRotationJoint::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i == 1);
+
+	if (i == 1) {
+		return dGet();
+	}
+
+	THROW(ErrGeneric());
 }
 
 /* AxialRotationJoint - end */

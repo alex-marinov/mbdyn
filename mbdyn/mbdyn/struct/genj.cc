@@ -58,6 +58,37 @@ DistanceJoint::~DistanceJoint(void)
 }
 
 
+/* Dati privati */
+unsigned int
+DistanceJoint::iGetNumPrivData(void) const
+{
+	return 1;
+}
+
+unsigned int
+DistanceJoint::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+
+	if (strcmp(s, "d") == 0) {
+		return 1;
+	}
+
+	return 0;
+}
+
+doublereal
+DistanceJoint::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i == 1);
+
+	if (i == 1) {
+		return dGet();
+	}
+
+	THROW(ErrGeneric());
+}
+
 /* Contributo al file di restart */
 std::ostream& DistanceJoint::Restart(std::ostream& out) const
 {
@@ -747,6 +778,37 @@ pNode1(pN1), pNode2(pN2), f1(f1Tmp), f2(f2Tmp), v(0.), dAlpha(0.)
 DistanceJointWithOffset::~DistanceJointWithOffset(void) 
 { 
    NO_OP;
+}
+
+/* Dati privati */
+unsigned int
+DistanceJointWithOffset::iGetNumPrivData(void) const
+{
+	return 1;
+}
+
+unsigned int
+DistanceJointWithOffset::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+
+	if (strcmp(s, "d") == 0) {
+		return 1;
+	}
+
+	return 0;
+}
+
+doublereal
+DistanceJointWithOffset::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i == 1);
+
+	if (i == 1) {
+		return dGet();
+	}
+
+	THROW(ErrGeneric());
 }
 
 
@@ -1778,23 +1840,70 @@ ClampJoint::InitialAssRes(SubVectorHandler& WorkVec,
 /* Metodi per l'estrazione di dati "privati".
  * Si suppone che l'estrattore li sappia interpretare.
  * Come default non ci sono dati privati estraibili */
-unsigned int ClampJoint::iGetNumPrivData(void) const
+unsigned int
+ClampJoint::iGetNumPrivData(void) const
 {
-   return 6;
+	return 6;
 }
 
-
-doublereal ClampJoint::dGetPrivData(unsigned int i) const
+unsigned int
+ClampJoint::iGetPrivDataIdx(const char *s) const
 {
-   if (i >= 1 && i <= 3) {
-      return F.dGet(i);
-   } else if (i >= 4 && i <= 6) {
-      return M.dGet(i-3);
-   } else {
-      THROW(ErrGeneric());
-   }
+	ASSERT(s != NULL);
+
+	unsigned int idx = 0;
+
+	switch (s[0]) {
+	case 'F':
+		break;
+
+	case 'M':
+		idx += 3;
+		break;
+
+	default:
+		return 0;
+	}
+
+	switch (s[1]) {
+	case 'x':
+		idx += 1;
+		break;
+
+	case 'y':
+		idx += 2;
+		break;
+
+	case 'z':
+		idx += 3;
+		break;
+
+	default:
+		return 0;
+	}
+
+	if (s[2] != '\0') {
+		return 0;
+	}
+
+	return idx;
+}
+
+doublereal
+ClampJoint::dGetPrivData(unsigned int i) const
+{
+	if (i >= 1 && i <= 3) {
+		return F.dGet(i);
+	}
+
+	if (i >= 4 && i <= 6) {
+		return M.dGet(i-3);
+	}
+
+	THROW(ErrGeneric());
+
 #ifndef USE_EXCEPTIONS
-   return 0.;
+	return 0.;
 #endif /* USE_EXCEPTIONS */
 }
 

@@ -230,6 +230,113 @@ Beam::~Beam(void)
 }
 
 
+/* Accesso ai dati privati */
+unsigned int
+Beam::iGetNumPrivData(void) const
+{
+	return 12;
+}
+
+unsigned int
+Beam::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+
+	/*
+	 * p{I|II}.{ex|k{x|y|z}}
+	 */
+
+	unsigned int idx = 0;
+
+	if (strncmp(s, "pII.", sizeof("pII.") - 1) == 0) {
+		s += sizeof("pII.") - 1;
+		idx += 6;
+
+	} else if (strncmp(s, "pI.", sizeof("pI.") - 1) == 0) {
+		s += sizeof("pI.") - 1;
+
+	} else {
+		return 0;
+	}
+
+	switch (s[0]) {
+	case 'e':
+		switch (s[1]) {
+		case 'x':
+			idx += 1;
+			break;
+
+		case 'y':
+		case 'z':
+			return 0;
+
+		default:
+			return 0;
+		}
+		break;
+
+	case 'k':
+		idx += 3;
+		switch (s[1]) {
+		case 'x':
+			idx += 1;
+			break;
+
+		case 'y':
+			idx += 2;
+			break;
+
+		case 'z':
+			idx += 3;
+			break;
+
+		default:
+			return 0;
+		}
+		break;
+
+	default:
+		return 0;
+	}
+
+	if (s[2] != '\0') {
+		return 0;
+	}
+
+	return idx;
+}
+
+doublereal
+Beam::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i > 0 && i <= 12);
+	switch (i) {
+	case 1:
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+	case 10:
+	case 11:
+	case 12:
+		return DefLoc[(i-1)/6].dGet((i-1)%6+1);
+	case 2:
+	case 3:
+	case 8:
+	case 9:
+		std::cerr << "Beam " << GetLabel() 
+			<< ": not allowed to return shear strain" << std::endl;
+		THROW(ErrGeneric());
+	default:
+		std::cerr << "Beam " << GetLabel() << ": illegal private data " 
+			<< i << std::endl;
+		THROW(ErrGeneric());
+	}
+#ifndef USE_EXCEPTIONS
+	return 0.;
+#endif /* USE_EXCEPTIONS */
+}
+
 Vec3 
 Beam::InterpState(const Vec3& v1,
                   const Vec3& v2,

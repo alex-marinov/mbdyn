@@ -714,6 +714,44 @@ PlaneDispJoint::InitialAssRes(SubVectorHandler& WorkVec,
 }
 
 
+unsigned int
+PlaneDispJoint::iGetNumPrivData(void) const
+{
+	return 6;
+}
+
+unsigned int
+PlaneDispJoint::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+
+	if (strcmp(s, "x1") == 0) {
+		return 1;
+	}
+
+	if (strcmp(s, "x2") == 0) {
+		return 2;
+	}
+
+	if (strcmp(s, "r3") == 0) {
+		return 3;
+	}
+
+	if (strcmp(s, "v1") == 0) {
+		return 4;
+	}
+
+	if (strcmp(s, "v2") == 0) {
+		return 5;
+	}
+
+	if (strcmp(s, "w3") == 0) {
+		return 6;
+	}
+
+	return 0;
+}
+
 doublereal 
 PlaneDispJoint::dGetPrivData(unsigned int i) const
 {

@@ -338,7 +338,19 @@ main(int argc, char* argv[])
 #ifdef HAVE_NICE
 			case int('n'):
 				if (optarg != 0) {
+#ifdef HAVE_STRTOL
+					char *eptr = NULL;
+					niceIncr = strtol(optarg, &eptr, 10);
+					if (eptr != NULL && eptr[0] != '\0') {
+		    				std::cerr << "Unable to "
+							"parse nice level <" 
+							<< optarg << ">"
+							<< std::endl;
+		    				THROW(ErrGeneric());
+					}
+#else /* !HAVE_STRTOL */
 					niceIncr = atoi(optarg);
+#endif /* !HAVE_STRTOL */
 				} else {
 					niceIncr = 10;
 				}

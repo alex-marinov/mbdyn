@@ -114,19 +114,9 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    virtual void SetValue(VectorHandler& X, VectorHandler& XP) const ;
 
    /* Dati privati */
-   virtual unsigned int iGetNumPrivData(void) const {
-      return 1;
-   };   
-
-#ifdef DEBUG
-   virtual doublereal dGetPrivData(unsigned int i) const
-#else
-   virtual doublereal dGetPrivData(unsigned int /* i */ = 0) const
-#endif
-   {
-      ASSERT(i == 1);
-      return dGet();
-   };
+   virtual unsigned int iGetNumPrivData(void) const;
+   virtual unsigned int iGetPrivDataIdx(const char *s) const;
+   virtual doublereal dGetPrivData(unsigned int i) const;
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -232,19 +222,9 @@ virtual public Elem, public Joint, public DriveOwner {
    virtual void SetValue(VectorHandler& X, VectorHandler& XP) const ;
 
    /* Dati privati */
-   virtual unsigned int iGetNumPrivData(void) const {
-      return 1;
-   };   
-
-#ifdef DEBUG
-   virtual doublereal dGetPrivData(unsigned int i = 0) const
-#else
-   virtual doublereal dGetPrivData(unsigned int /* i */ = 0) const
-#endif
-   {
-      ASSERT(i == 1);
-      return dGet();
-   };   
+   virtual unsigned int iGetNumPrivData(void) const;
+   virtual unsigned int iGetPrivDataIdx(const char *s) const;
+   virtual doublereal dGetPrivData(unsigned int i) const;
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -355,6 +335,7 @@ class ClampJoint : virtual public Elem, public Joint {
     * Si suppone che l'estrattore li sappia interpretare.
     * Come default non ci sono dati privati estraibili */
    virtual unsigned int iGetNumPrivData(void) const;
+   virtual unsigned int iGetPrivDataIdx(const char *s) const;
    virtual doublereal dGetPrivData(unsigned int i) const;
 
    /* *******PER IL SOLUTORE PARALLELO******** */        

@@ -199,12 +199,12 @@ public:
 	SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
  
+#if 0
 	/* Dati privati */
-	virtual unsigned int iGetNumPrivData(void) const {
-		return 6;
-	};
-
+	virtual unsigned int iGetNumPrivData(void) const;
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
 	virtual doublereal dGetPrivData(unsigned int i = 0) const;
+#endif
 	
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/*
