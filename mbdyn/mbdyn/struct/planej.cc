@@ -46,14 +46,16 @@ PlaneHingeJoint::PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pN1, const StructNode* pN2,
 		const Vec3& dTmp1, const Vec3& dTmp2,
 		const Mat3x3& R1hTmp, const Mat3x3& R2hTmp,
-		flag fOut, const doublereal rr,
+		flag fOut, 
+		const doublereal rr,
+		const doublereal pref,
 		BasicShapeCoefficient *const sh,
 		BasicFriction *const f)
 : Elem(uL, Elem::JOINT, fOut), 
 Joint(uL, Joint::PLANEHINGE, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.), dTheta(0.),
-Sh_c(sh), fc(f), r(rr)
+Sh_c(sh), fc(f), preF(pref), r(rr)
 {
 	NO_OP;
 }
@@ -292,7 +294,7 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
           //relative velocity
       doublereal v = (Omega1-Omega2).Dot(e3a)*r;
           //reaction norm
-      doublereal modF = F.Norm();
+      doublereal modF = std::max(F.Norm(), preF);
           //reaction moment
       //doublereal M3 = shc*modF*f;
       
@@ -301,7 +303,7 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       ExpandableRowVector dv;
           //variation of reaction force
       dF.ReDim(3);
-      if (modF == 0.) {
+      if ((modF == 0.) or (F.Norm() > preF)) {
           dF.Set(0.,1,12+1);
           dF.Set(0.,2,12+2);
           dF.Set(0.,3,12+3);
@@ -433,7 +435,7 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
       Vec3 Omega1(pNode1->GetWCurr());
       Vec3 Omega2(pNode2->GetWCurr());
       doublereal v = (Omega1-Omega2).Dot(e3a)*r;
-      doublereal modF = F.Norm();
+      doublereal modF = std::max(F.Norm(), preF);
       fc->AssRes(WorkVec,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,modF,v,XCurr,XPrimeCurr);
       doublereal f = fc->fc();
       doublereal shc = Sh_c->Sh_c(f,modF,v);

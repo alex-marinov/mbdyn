@@ -62,6 +62,7 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    /* friction related data */
    BasicShapeCoefficient *const Sh_c;
    BasicFriction *const fc;
+   const doublereal preF;
    const doublereal r;
    static const unsigned int NumSelfDof;
    static const unsigned int NumDof;
@@ -73,7 +74,8 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
 		   const StructNode* pN1, const StructNode* pN2,
 		   const Vec3& dTmp1, const Vec3& dTmp2,
 		   const Mat3x3& R1hTmp, const Mat3x3& R2hTmp, flag fOut,
-		   const doublereal r = 0.,
+		   const doublereal rr = 0.,
+		   const doublereal pref = 0.,
 		   BasicShapeCoefficient *const sh = 0,
 		   BasicFriction *const f = 0);
    

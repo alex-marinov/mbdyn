@@ -633,18 +633,22 @@ Elem* ReadJoint(DataManager* pDM,
 		   << " use 'revolute hinge' instead" << std::endl;
 	case REVOLUTEHINGE: {
 	   doublereal r = 0.;
+	   doublereal preload = 0.;
 	   BasicFriction * bf = 0;
 	   BasicShapeCoefficient * bsh = 0;
 	   if (HP.IsKeyWord("friction")) {
-	       r = HP.GetReal();
-	       bf = ParseFriction(HP,pDM);
-	       bsh = ParseShapeCoefficient(HP);
+		r = HP.GetReal();
+		if (HP.IsKeyWord("preload")) {
+			preload = HP.GetReal();
+		}
+		bf = ParseFriction(HP,pDM);
+		bsh = ParseShapeCoefficient(HP);
 	   }	
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlaneHingeJoint,
 				  PlaneHingeJoint(uLabel, pDO, pNode1, pNode2, 
 						  d1, d2, R1h, R2h, fOut,
-						  r,bsh,bf));
+						  r, preload, bsh, bf));
 	   break;
 	}
 
