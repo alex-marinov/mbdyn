@@ -108,6 +108,21 @@ mp_prnt(Real s)
 }
 
 Real 
+mp_stop(Real s, Real v)
+{
+	if (s != 0.) {
+		if (int(v) == 0) {
+			silent_cout("mp_stop(SUCCESS)" << std::endl);
+			THROW(NoErr());
+		} else {
+			silent_cout("mp_stop(FAILURE)" << std::endl);
+			THROW(ErrGeneric());
+		}
+	}
+	return s;
+}
+
+Real 
 mp_ctg(Real s)
 {
    return 1./tan(s);
@@ -266,6 +281,7 @@ static mathfuncs FuncTable[] = {
      { "par",        1, { (Real (*)(void))((Real (*)(Real))mp_par)    }, NULL,       ""   },
      
      { "print",      1, { (Real (*)(void))((Real (*)(Real))mp_prnt)   }, NULL,       ""   },
+     { "stop",       2, { (Real (*)(void))((Real (*)(Real, Real))mp_stop)    }, NULL,       ""   },
      
      /* add more as needed */
      
