@@ -133,8 +133,6 @@ BeamSliderJoint::Output(OutputHandler& OH) const
 			<< " " << ppBeam[iCurrBeam]->pGetBeam()->GetLabel()
 			<< " " << s << endl;
 	}
-
-	cerr << "################" << endl;
 }
 
 doublereal 
@@ -261,14 +259,18 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.fIncCoef(6*activeNode+i, 6*(1+Beam::NUMNODES)+1+i, 1.);
 	}
 
+	/* corpo: Delta v (momento) */
+	WM.Sub(3+1, 6*(1+Beam::NUMNODES)+1+1, Mat3x3(F));
+
+	/* corpo: Delta g (momento) */
+	WM.Sub(3+1, 6*activeNode+3+1, Mat3x3(F, fb*dCoef));
+
 	/* trave: Delta v (momento) */
 	Mat3x3 MTmp(F*dCoef);
 	WM.Add(6*activeNode+3+1, 6*(1+Beam::NUMNODES)+1+1, 
-			Mat3x3(pNode->GetXCurr()-xNod[activeNode-1]));
+			Mat3x3(xb-xNod[activeNode-1]));
 	WM.Sub(6*activeNode+3+1, 1, MTmp);
 	WM.Add(6*activeNode+3+1, 6*activeNode+1, MTmp);
-
-	cerr << WM << endl;
 	
 	return WorkMat;
 }	
@@ -390,17 +392,20 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 		l += xTmp[i]*dNp[i];
 	}
 	
+	fb = pNode->GetRCurr()*f;
+	xb = pNode->GetXCurr()+fb;
+	
 	/*
 	 * vincoli di posizione 
 	 */
 	WorkVec.fPutCoef(6*(1+Beam::NUMNODES)+1, (F*l)/dCoef);
-	WorkVec.Add(6*(1+Beam::NUMNODES)+1+1, (pNode->GetXCurr()-x)/dCoef);
+	WorkVec.Add(6*(1+Beam::NUMNODES)+1+1, (xb-x)/dCoef);
 
 	/*
 	 * reazioni vincolari
 	 */
 	WorkVec.Add(1, F);
-	WorkVec.Add(4, M);
+	WorkVec.Add(4, M+fb.Cross(F));
 
 	/* Cerco il tratto di trave a cui le forze si applicano ... */
 	/* Primo tratto */
@@ -417,15 +422,7 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	WorkVec.Sub(6*activeNode+1, F);
-	WorkVec.Sub(6*activeNode+3+1, 
-			M+(pNode->GetXCurr()-xNod[activeNode-1]).Cross(F));
-
-	cerr << "	iCurrBeam: " << iCurrBeam 
-		<< "; activeNode: " << activeNode 
-		<< "; s: " << s << endl
-		<< "	F: " << F << "; M: " << M << endl
-		<< "	x: " << x << "; l: " << l
-		<< "; F*l: " << F*l << endl;
+	WorkVec.Sub(6*activeNode+3+1, M+(xb-xNod[activeNode-1]).Cross(F));
 
 	return WorkVec;
 }

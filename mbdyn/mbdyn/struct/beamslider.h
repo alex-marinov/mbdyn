@@ -104,6 +104,7 @@ private:
 	const StructNode* pNode;
 	const BeamConn *const *ppBeam;
 	Vec3 f;
+	Vec3 fb, xb;
 	Mat3x3 R;
 	Vec3 F;
 	Vec3 M;
