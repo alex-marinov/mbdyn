@@ -451,7 +451,10 @@ ass_res(LoadableElem* pEl,
 	 *
 	 * FIXME: perche' dRadius invece di dInstRadius?
 	 */
+#if 0
 	Vec3 pc = p->pWheel->GetXCurr()-(n*p->dRadius);
+#endif
+	Vec3 pc = p->pWheel->GetXCurr()-(n*p->dInstRadius);
 
 	/*
 	 * Forza
@@ -498,8 +501,6 @@ ass_res(LoadableElem* pEl,
 			 * Altrimenti, se la velocita' dell'asse rispetto
 			 * al terreno e' sufficientemente grande, viene
 			 * effettuata la divisione
-			 *
-			 * FIXME: (dva - dv) / dva   o   dv / dva ?
 			 */
 			p->dSr = 1.-dvx/dvax;
 		} /* else */
