@@ -294,7 +294,7 @@ public:
 	};   
 	
 	inline VecExp operator / (const ScalExp& d) const {
-		ASSERT(d != 0.);
+		ASSERT(d.GetVec() != 0.);
 		return VecExp(vec/d.GetVec(),
 			(mom*d.GetVec()-vec*d.GetMom())/(d.GetVec()*d.GetVec()));
 	};
