@@ -272,9 +272,9 @@ read(LoadableElem* pEl,
 		/*
 		 * Parametri di attrito
 		 */
-		p->pMuX0 = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-		p->pMuY0 = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-		p->pMuY1 = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+		p->pMuX0 = HP.GetDriveCaller();
+		p->pMuY0 = HP.GetDriveCaller();
+		p->pMuY1 = HP.GetDriveCaller();
 	
 		p->dvThreshold = 0.;
 		p->dAlphaThreshold = 0.;
