@@ -686,7 +686,7 @@ void Solver::Run(void)
 	pNLS->SetOutputFlag(outputIters(),	
 		(DEBUG_LEVEL_MATCH(MYDEBUG_RESIDUAL)|| outputRes()),
 		(DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()),
-		 DEBUG_LEVEL_MATCH(MYDEBUG_SOL));
+		 DEBUG_LEVEL_MATCH(MYDEBUG_SOL) || outputSol());
 	
 	pDerivativeSteps->SetDataManager(pDM);
 	pFirstFictitiousStep->SetDataManager(pDM);
@@ -1481,6 +1481,7 @@ Solver::ReadData(MBDynParser& HP)
 		"output",
 			"iterations",
 			"residual",
+			"solution",
 			"jacobian",
 			"messages",
 	
@@ -1567,6 +1568,7 @@ Solver::ReadData(MBDynParser& HP)
 		OUTPUT,
 			ITERATIONS,
 			RESIDUAL,
+			SOLUTION,
 			JACOBIAN,
 			MESSAGES,
 	
@@ -1863,6 +1865,10 @@ Solver::ReadData(MBDynParser& HP)
 
 				case RESIDUAL:
 					iOutputFlags |= OUTPUT_RES;
+					break;
+
+				case SOLUTION:
+					iOutputFlags |= OUTPUT_SOL;
 					break;
 
 				case JACOBIAN:

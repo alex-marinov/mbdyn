@@ -572,7 +572,7 @@ void DataManager::InitialJointAssembly(void)
       DEBUGLCOUT(MYDEBUG_ASSEMBLY, "Iteration: " << iNumIter 
 		 << ", Test: " << dTest 
 		 << " (Tol = " << dInitialAssemblyTol << ") " << std::endl);
-	
+
       /* Se la tolleranza e' raggiunta, esce dal ciclo */
       if (dTest <= dInitialAssemblyTol) {
 	 DEBUGLCOUT(MYDEBUG_ASSEMBLY, "Initial assembly performed successfully in "

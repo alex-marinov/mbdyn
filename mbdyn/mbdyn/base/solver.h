@@ -168,8 +168,9 @@ private:
 
 		OUTPUT_ITERS		= 0x0001,
 		OUTPUT_RES		= 0x0002,
-		OUTPUT_JAC		= 0x0004,
-		OUTPUT_MSG		= 0x0008,
+		OUTPUT_SOL		= 0x0004,
+		OUTPUT_JAC		= 0x0008,
+		OUTPUT_MSG		= 0x0010,
 
 		OUTPUT_DEFAULT		= OUTPUT_MSG,
 
@@ -182,6 +183,10 @@ private:
  
 	inline bool outputRes(void) const {
 		return (iOutputFlags & OUTPUT_RES);
+	};
+ 
+	inline bool outputSol(void) const {
+		return (iOutputFlags & OUTPUT_SOL);
 	};
  
 	inline bool outputJac(void) const {
