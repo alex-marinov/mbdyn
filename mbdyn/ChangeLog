@@ -8,6 +8,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 *** Mon Nov  4 13:00:00 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - struct node type does not default to dynamic any more
+ - spherical joint output in local frame
 
 *** Fri Nov  1 20:00:00 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - added "inertia" block properties computation

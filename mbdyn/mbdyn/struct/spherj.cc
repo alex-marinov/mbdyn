@@ -211,10 +211,11 @@ SubVectorHandler& SphericalHingeJoint::AssRes(SubVectorHandler& WorkVec,
 void SphericalHingeJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
-      Mat3x3 RTmp((pNode2->GetRCurr()*R2h).Transpose()*(pNode1->GetRCurr()*R1h));
+      Mat3x3 R2TmpT((pNode2->GetRCurr()*R2h).Transpose());
+      Mat3x3 RTmp(R2TmpT*(pNode1->GetRCurr()*R1h));
       
       Joint::Output(OH.Joints(), "SphericalHinge", GetLabel(),
-		    F, Zero3, F, Zero3) 
+		    R2TmpT*F, Zero3, F, Zero3) 
 	<< " " << EulerAngles(RTmp) << std::endl;
    }   
 }

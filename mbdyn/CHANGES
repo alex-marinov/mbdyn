@@ -18,6 +18,8 @@ MBDyn 1.2-Engineering
 	Backward compatibility:
 		- struct node type does not default to dynamic any more
 	Bug fixes:
+		- spherical joint did not log the reaction forces
+		  in the element's frame (structural node 2).
 
 
 MBDyn 1.1.3
