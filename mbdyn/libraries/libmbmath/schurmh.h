@@ -167,9 +167,7 @@ SchurMatrixHandler::Reset(void)
 #endif /* DEBUG */
 
 	pB->Reset();
-	pE->Reset();
-	pF->Reset();
-	pC->Reset();
+	MatEFCReset();
 }
 
 inline void
@@ -835,11 +833,7 @@ inline void SchurMatrixHandlerUm::Reset(void)
 
 	Eflag = true;
 	pB->Reset();
-	for (int i = 0; i < LSize*(ISize + 1); i++) {
-		pdEs[i] = 0.;
-	}
-	pF->Reset();
-	pC->Reset();
+	MatEFCReset();
 }
 
 inline void

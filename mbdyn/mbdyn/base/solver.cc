@@ -122,7 +122,7 @@ really_exit_handler(int signum)
       		break;
    	}
 
-	throw ErrGeneric();
+	throw ErrInterrupted();
 }
 
 static void
@@ -326,6 +326,8 @@ Solver::Run(void)
 #endif /* USE_RTAI */
 
 #ifdef USE_MPI
+	int mpi_finalize = 0;
+
 	int MyRank = 0;
 	if (bParallel) {
 
@@ -828,7 +830,7 @@ Solver::Run(void)
 		 */
       		pDM->Output(true);
       		Out << "Interrupted during derivatives computation." << std::endl;
-      		return;
+      		throw ErrInterrupted();
 #endif /* HAVE_SIGNAL */
    	}
 
@@ -907,7 +909,7 @@ Solver::Run(void)
 	   		pDM->Output(true);
 #endif /* DEBUG_FICTITIOUS */
 	 		Out << "Interrupted during first dummy step." << std::endl;
-	 		return;
+	 		throw ErrInterrupted();
       		}
 #endif /* HAVE_SIGNAL */
 
@@ -994,7 +996,7 @@ Solver::Run(void)
 #endif /* DEBUG_FICTITIOUS */
 	    			Out << "Interrupted during dummy steps."
 					<< std::endl;
-				return;
+				throw ErrInterrupted();
 			}
 #endif /* HAVE_SIGNAL */
 
@@ -1046,7 +1048,7 @@ Solver::Run(void)
    	} else if (!::mbdyn_keep_going) {
       		/* Fa l'output della soluzione ed esce */
       		Out << "Interrupted during dummy steps." << std::endl;
-      		return;
+      		throw ErrInterrupted();
 #endif /* HAVE_SIGNAL */
    	}
 
@@ -1133,7 +1135,7 @@ IfFirstStepIsToBeRepeated:
    	if (!::mbdyn_keep_going) {
       		/* Fa l'output della soluzione al primo passo ed esce */
       		Out << "Interrupted during first step." << std::endl;
-      		return;
+      		throw ErrInterrupted();
    	}
 #endif /* HAVE_SIGNAL */
 
@@ -1384,7 +1386,12 @@ IfFirstStepIsToBeRepeated:
 #endif /* USE_RTAI */
 
 #ifdef HAVE_SIGNAL
-      		} else if (!::mbdyn_keep_going) {
+      		} else if (!::mbdyn_keep_going
+#ifdef USE_MPI
+				|| (MPI_Finalized(&mpi_finalize), mpi_finalize)
+#endif /* USE_MPI */
+				)
+		{
 #ifdef USE_RTAI
 			if (bRT && bRTHard) {
 				mbdyn_rt_make_soft_real_time();
@@ -1398,7 +1405,7 @@ IfFirstStepIsToBeRepeated:
 				<< "total iterations: " << iTotIter << std::endl
 				<< "total Jacobians: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
-	 		return;
+	 		throw ErrInterrupted();
 #endif /* HAVE_SIGNAL */
       		}
 

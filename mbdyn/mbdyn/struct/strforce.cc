@@ -1392,14 +1392,14 @@ FollowerInternalCouple::AssJac(VariableSubMatrixHandler& WorkMat,
    WorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeReset(iNumRows, iNumCols);
 
-   integer iFirstRotationIndex1 = pNode1->iGetFirstPositionIndex()+3;
-   integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex()+3;
-   integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex()+3;
+   integer iFirstRotationIndex1 = pNode1->iGetFirstPositionIndex() + 3;
+   integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex() + 3;
+   integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex() + 3;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);    /* coppia */
-      WM.PutColIndex(iCnt, iFirstRotationIndex1+iCnt);    /* rotazione */
+      WM.PutRowIndex(iCnt, iFirstMomentumIndex1 + iCnt);    /* coppia */
+      WM.PutColIndex(iCnt, iFirstRotationIndex1 + iCnt);    /* rotazione */
 
-      WM.PutRowIndex(3+iCnt, iFirstMomentumIndex2+iCnt);    /* coppia */
+      WM.PutRowIndex(3 + iCnt, iFirstMomentumIndex2 + iCnt);    /* coppia */
    }      
    
    /* Dati */
@@ -1434,11 +1434,11 @@ FollowerInternalCouple::AssRes(SubVectorHandler& WorkVec,
    doublereal dAmplitude = pGetDriveCaller()->dGet();
    
    /* Indici delle incognite del nodo */
-   integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex()+3;
-   integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex()+3;
+   integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex() + 3;
+   integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex() + 3;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
-      WorkVec.PutRowIndex(3+iCnt, iFirstMomentumIndex2+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex1 + iCnt);
+      WorkVec.PutRowIndex(3 + iCnt, iFirstMomentumIndex2 + iCnt);
    }
  
    Vec3 M((pNode1->GetRCurr()*Dir)*dAmplitude);

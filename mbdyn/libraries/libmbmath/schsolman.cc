@@ -51,6 +51,9 @@
 /* FIXME: we must move the test to libmbmath */
 #include "nonlin.h"
 
+/* define to use Wait/Waitall instead of Test/Testall */
+#define USE_MPI_WAIT
+
 /*
  * Le occorrenze della routine 'mysleep' vanno commentate quando
  * si opera su di una macchina dove le comunicazioni sono efficienti
@@ -144,12 +147,14 @@ bNewMatrix(false)
          * sul master (MyRank == 0) la matrice C e' quella
 	 * di tutte le interfacce */
 
-	/* initializes iSchurIntDim */
+	/* initializes iSchurIntDim among other stuff... */
 	InitializeComm();
 
 	/* utilizza iWorkSpaceSize come un coefficiente moltiplicativo */
-	/* note: iWorkSpaceSize is likely to be 0, since now most of the
-	 * linear solvers don't need any */
+
+	/* NOTE: iWorkSpaceSize is likely to be 0, since now most of the
+	 * linear solvers don't need any; this is not a big deal, resulting
+	 * in GetSolutionManager() being called with a 0 iWorkSpaceSize arg */
 	iWorkSpaceSize = ls.iGetWorkSpaceSize();
 	integer iIntWorkSpaceSize = iWorkSpaceSize*(iSchurIntDim*iSchurIntDim)/(iPrbmSize*iPrbmSize);
 
@@ -206,13 +211,13 @@ bNewMatrix(false)
 		SAFENEWARR(pBlockLenght, int, pDispl[SolvCommSize]);
 		InitializeList(pBlockLenght, pDispl[SolvCommSize], 1);
 		SAFENEWARR(pTypeDsp, MPI::Aint, pDispl[SolvCommSize]);
-
-		doublereal	*pd = pSolSchVH->pdGetVec();
-		MPI::Aint DispTmp = MPI::Get_address(pd);
+		
+		doublereal *pdm1 = pSolSchVH->pdGetVec() - 1;
+		MPI::Aint DispTmp = MPI::Get_address(pdm1 + 1);
 		for (int i = 0; i < pDispl[SolvCommSize]; i++) {
 			int j = i%iBlkSize;
 			int blk = i/iBlkSize;
-			pTypeDsp[i] = MPI::Get_address(&pd[pSchGlbToLoc[pDofsRecvdList[j] + blk*iBlkSize] - 1]) - DispTmp;
+			pTypeDsp[i] = MPI::Get_address(&pdm1[pSchGlbToLoc[pDofsRecvdList[j] + blk*iBlkSize]]) - DispTmp;
 		}
 
 		SAFENEWARR(ppNewTypes, MPI::Datatype*, SolvCommSize);
@@ -387,15 +392,15 @@ SchurSolutionManager::Solve(void)
      		MPE_Log_event(19, 0, "start");
 #endif /* MPI_PROFILING */
 
-		/* emulate transmission...*/
-		(void)memmove(&pBuffer[pDispl[0]], pgVH->pdGetVec(),
-				sizeof(double)*pRecvDim[0]);
-
 		/* receive from remote only... */
      		for (int i = 1; i < SolvCommSize; i++){
        			pGRReq[i] = SolvComm.Irecv(&pBuffer[pDispl[i]],
 					pRecvDim[i], MPI::DOUBLE, i, G_TAG);
      		}
+
+		/* emulate transmission...*/
+		(void)memmove(&pBuffer[pDispl[0]], pgVH->pdGetVec(),
+				sizeof(double)*pRecvDim[0]);
 
 	/* on remote nodes... */
 	} else {
@@ -420,10 +425,12 @@ SchurSolutionManager::Solve(void)
 
 	/* on master node... */
 	if (MyRank == 0) {
+#ifdef USE_MPI_WAIT
+		MPI::Request::Waitall(SolvCommSize - 1, &pGRReq[1]);
+#else /* ! USE_MPI_WAIT */
 		while (true) {
 			/* testing remote only... */
-      			if (MPI::Request::Testall(SolvCommSize - 1,
-						&pGRReq[1])) 
+      			if (MPI::Request::Testall(SolvCommSize - 1, &pGRReq[1])) 
 			{
 #ifdef MPI_PROFILING
         			MPE_Log_event(20, 0, "end");
@@ -435,32 +442,51 @@ SchurSolutionManager::Solve(void)
       			}
 			MYSLEEP(1500);
     		}
+#endif /* ! USE_MPI_WAIT */
 
   		/* Assemblaggio del vettore delle incognite g 
 		 * sulla macchina master */
 
+#ifdef DEBUG_SCHUR
+		std::cout << "# Solve 19:";
+		for (int i = 0; i < pDispl[SolvCommSize]; i++) {
+			std::cout << " " << pBuffer[i];
+		}
+		std::cout << std::endl;
+#endif /* DEBUG_SCHUR */
+
     		/* Assembla pSchVH */
 		pSchVH->Reset();
-    		for (int i = 0; i < pDispl[SolvCommSize]; i++) {
-			int j = i%iBlkSize;
-			int blk = i/iBlkSize;
+		if (iPrbmBlocks == 1) {
+    			for (int i = 0; i < pDispl[SolvCommSize]; i++) {
+     	 			pSchVH->IncCoef(pSchGlbToLoc[pDofsRecvdList[i]], pBuffer[i]);
+			}
+
+		} else {
+    			for (int i = 0; i < pDispl[SolvCommSize]; i++) {
+				int j = i%iBlkSize;
+				int blk = i/iBlkSize;
 
 #if 0
-			silent_cerr("SchurSolutionManager::Solve():"
-				<< " iBlkSize=" << iBlkSize
-				<< " i=" << i
-				<< " j=" << j
-				<< " blk=" << blk
-				<< " pDRL[" << j << "]=" << pDofsRecvdList[j]
-				<< " V(" << pDofsRecvdList[j] + blk*iBlkSize << ")=" << pBuffer[i]
-				<< std::endl);
+				silent_cerr("SchurSolutionManager::Solve():"
+					<< " iBlkSize=" << iBlkSize
+					<< " i=" << i
+					<< " j=" << j
+					<< " blk=" << blk
+					<< " pDRL[" << j << "]=" << pDofsRecvdList[j]
+					<< " V(" << pDofsRecvdList[j] + blk*iBlkSize << ")=" << pBuffer[i]
+					<< std::endl);
 #endif
 
-      			pSchVH->IncCoef(pSchGlbToLoc[pDofsRecvdList[j] + blk*iBlkSize], pBuffer[i]);
+     	 			pSchVH->IncCoef(pSchGlbToLoc[pDofsRecvdList[j] + blk*iBlkSize], pBuffer[i]);
+			}
     		}
 
 	/* on remote nodes... */
    	} else {
+#ifdef USE_MPI_WAIT
+     		pGSReq[0].Wait();
+#else /* ! USE_MPI_WAIT */
  	  	/* verifica completamento ricezioni e trasmissione vettore g */
    		while (true) {
      			if (pGSReq[0].Test()) {
@@ -471,6 +497,7 @@ SchurSolutionManager::Solve(void)
      			}
        			MYSLEEP(150);
 		}
+#endif /* ! USE_MPI_WAIT */
   	}
 
   	/* assembla le matrici di schur locali se e' stata
@@ -509,13 +536,15 @@ SchurSolutionManager::Solve(void)
     		}
 
 		/* emulate local transmission... */
-		memmove(pgVH->pdGetVec(), pd, pRecvDim[0]);
+		memmove(pgVH->pdGetVec(), pd, sizeof(double)*pRecvDim[0]);
 
+#ifdef USE_MPI_WAIT
+      		MPI::Request::Waitall(SolvCommSize - 1, &pGRReq[1]);
+#else /* ! USE_MPI_WAIT */
   		/* Verifica completamento trasmissioni */
     		while (true) {
 			/* testing remote only... */
-      			if (MPI::Request::Testall(SolvCommSize - 1,
-						&pGRReq[1]))
+      			if (MPI::Request::Testall(SolvCommSize - 1, &pGRReq[1]))
 			{
 #ifdef MPI_PROFILING
         			MPE_Log_event(14, 0, "end");
@@ -524,6 +553,7 @@ SchurSolutionManager::Solve(void)
       			}
 			MYSLEEP(150);
     		}
+#endif /* ! USE_MPI_WAIT */
 
 	/* on other nodes... */	
   	} else {
@@ -534,6 +564,9 @@ SchurSolutionManager::Solve(void)
   		pGSReq[0] = SolvComm.Irecv(pgVH->pdGetVec(), iIntVecDim,
 				MPI::DOUBLE, 0, G_TAG);
 
+#ifdef USE_MPI_WAIT
+    		pGSReq[0].Wait();
+#else /* ! USE_MPI_WAIT */
  	 	while (true) {
     			if (pGSReq[0].Test()) {
 #ifdef MPI_PROFILING
@@ -544,10 +577,24 @@ SchurSolutionManager::Solve(void)
     			}
       			MYSLEEP(1500);
 		}
+#endif /* ! USE_MPI_WAIT */
   	}
 
   	/* calcolo la soluzione corretta per x = Solr - E'*g */
 	pMH->CompNewf(*pSolrVH, *pgVH);
+
+#ifdef DEBUG_SCHUR
+	std::cout << "# Solve 20a:";
+	for (int i = 1; i <= iIntVecDim; i++) {
+		std::cout << " " << pgVH->dGetCoef(i);
+	}
+	std::cout << std::endl;
+	std::cout << "# Solve 20b:";
+	for (int i = 1; i <= iLocVecDim; i++) {
+		std::cout << " " << pSolrVH->dGetCoef(i);
+	}
+	std::cout << std::endl;
+#endif /* DEBUG_SCHUR */
 }
 
 
@@ -588,9 +635,11 @@ SchurSolutionManager::AssSchur(void)
 		(void)memmove(&pBuffer[pDispl[0]], pdCM,
 			      sizeof(double)*pRecvDim[0]*pRecvDim[0]);
 
+#ifdef USE_MPI_WAIT
+      		MPI::Request::Waitall(SolvCommSize - 1, &pGRReq[1]);
+#else /* ! USE_MPI_WAIT */
     		while (true) {
-      			if (MPI::Request::Testall(SolvCommSize - 1,
-						&pGRReq[1]))
+      			if (MPI::Request::Testall(SolvCommSize - 1, &pGRReq[1]))
 			{
 #ifdef MPI_PROFILING
         			MPE_Log_event(20, 0, "end");
@@ -602,31 +651,46 @@ SchurSolutionManager::AssSchur(void)
       			}
 			MYSLEEP(1500);
     		}
+#endif /* ! USE_MPI_WAIT */
 
     		/* Assembla Schur matrix */
-		/* See note below about decreasing pBuffer by pDispl[i] */
-    		doublereal *pb = &pBuffer[-pDispl[0]];
+		pSchMH->Reset();
+    		doublereal *pbmd = &pBuffer[-pDispl[0]];
     		for (int i = 0; i < SolvCommSize; i++) {
 
 #if 0
 			for (int k = 0; k < pRecvDim[i]*pRecvDim[i]; k++) {
-				silent_cerr("i=" << i << " pb[" << k << "]=" << pb[pDispl[i] + k] << std::endl);
+				silent_cerr("i=" << i << " pbmd[" << k << "]=" << pbmd[pDispl[i] + k] << std::endl);
 			}
 #endif
-			
-      			for (int j = pDispl[i]; j < pDispl[i + 1]; j++) {
 
-				int ic = j%iBlkSize;
-				int bc = j/iBlkSize;
-				int idxC = pSchGlbToLoc[pDofsRecvdList[ic] + bc*iBlkSize];
+			if (iPrbmBlocks == 1) {
+      				for (int j = pDispl[i]; j < pDispl[i + 1]; j++) {
+					int idxC = pSchGlbToLoc[pDofsRecvdList[j]];
 
-				for (int k = pDispl[i]; k < pDispl[i + 1]; k++) {
-					int ir = k%iBlkSize;
-					int br = k/iBlkSize;
-					int idxR = pSchGlbToLoc[pDofsRecvdList[ir] + br*iBlkSize];
+					for (int k = pDispl[i]; k < pDispl[i + 1]; k++) {
+						int idxR = pSchGlbToLoc[pDofsRecvdList[k]];
+
+						pSchMH->IncCoef(idxR, idxC, pbmd[k]);
+					}
+
+      					pbmd += pRecvDim[i];
+				}
+
+			} else {
+      				for (int j = pDispl[i]; j < pDispl[i + 1]; j++) {
+
+					int ic = j%iBlkSize;
+					int bc = j/iBlkSize;
+					int idxC = pSchGlbToLoc[pDofsRecvdList[ic] + bc*iBlkSize];
+	
+					for (int k = pDispl[i]; k < pDispl[i + 1]; k++) {
+						int ir = k%iBlkSize;
+						int br = k/iBlkSize;
+						int idxR = pSchGlbToLoc[pDofsRecvdList[ir] + br*iBlkSize];
 
 #if 0
-					silent_cerr("SchurSolutionManager::AssSchur():"
+						silent_cerr("SchurSolutionManager::AssSchur():"
 							<< " iBlkSize=" << iBlkSize
 							<< " i=" << i
 							<< " j=" << j
@@ -637,20 +701,21 @@ SchurSolutionManager::AssSchur(void)
 							<< " bc=" << bc
 							<< " pDRL[" << ir << "]=" << pDofsRecvdList[ir]
 							<< " pDRL[" << ic << "]=" << pDofsRecvdList[ic]
-							<< " M(" << idxR << "," << idxC << ")=" << pb[k]
+							<< " M(" << idxR << "," << idxC << ")=" << pbmd[k]
 							<< std::endl);
 #endif
-					pSchMH->IncCoef(idxR, idxC, pb[k]);
+						pSchMH->IncCoef(idxR, idxC, pbmd[k]);
+					}
+
+      					pbmd += pRecvDim[i];
 				}
-
-      				pb += pRecvDim[i];
       			}
-
+	
 			/* this is required to allow the innermos loop on k
 			 * to be between pDispl[i] and pDispl[i + 1]; as a
-			 * consequence, pb must be decreased by pDispl[i] 
+			 * consequence, pbmd must be decreased by pDispl[i] 
 			 * at each i */
-			pb += pDispl[i] - pDispl[i + 1];
+			pbmd += pDispl[i] - pDispl[i + 1];
     		}
 
 	/* on other nodes... */
@@ -664,6 +729,9 @@ SchurSolutionManager::AssSchur(void)
   		pGSReq[0] = SolvComm.Isend(pdCM, iIntVecDim*iIntVecDim,
 				MPI::DOUBLE, 0, S_TAG);
 
+#ifdef USE_MPI_WAIT
+    		pGSReq[0].Wait();
+#else /* !USE_MPI_WAIT */
 	  	/* verifica completamento ricezioni e trasmissione */
   		while (true) {
     			if (pGSReq[0].Test()) {
@@ -674,6 +742,7 @@ SchurSolutionManager::AssSchur(void)
     			}
       			MYSLEEP(150);
   		}
+#endif /* !USE_MPI_WAIT */
 	}
 
 #ifdef MPI_PROFILING
@@ -886,7 +955,7 @@ SchurSolutionManager::ComplExchIntRes(doublereal& dRes,
 {
   	DEBUGCOUT("Entering SchurSolutionManager::ComplExchIntRes()" << endl);
 
-#if 1
+#if 0
 	silent_cout(">> Rank=" << MyRank << " dRes=" << dRes << std::endl);
 #endif
 
@@ -897,9 +966,11 @@ SchurSolutionManager::ComplExchIntRes(doublereal& dRes,
 	d[0] = dRes;
 	
     	if (MyRank == 0) {
+#ifdef USE_MPI_WAIT
+      		MPI::Request::Waitall(SolvCommSize - 1, &pGRReq[1]);
+#else /* ! USE_MPI_WAIT */
       		while (true) {
-      			if (MPI::Request::Testall(SolvCommSize - 1,
-						&pGRReq[1]))
+      			if (MPI::Request::Testall(SolvCommSize - 1, &pGRReq[1]))
 			{
 #ifdef MPI_PROFILING
   				MPE_Log_event(20, 0, "end");
@@ -911,25 +982,33 @@ SchurSolutionManager::ComplExchIntRes(doublereal& dRes,
 			}
   			MYSLEEP(1500);
 		}
+#endif /* ! USE_MPI_WAIT */
 
 		/* Assembla pSVH */
       		pSchVH->Reset();
-      		for (int iCnt = 0; iCnt < pDispl[SolvCommSize]; iCnt++) {
-			int j = iCnt%iBlkSize;
-			int blk = iCnt/iBlkSize;
+		if (iPrbmBlocks == 1) {
+      			for (int i = 0; i < pDispl[SolvCommSize]; i++) {
+				pSchVH->IncCoef(pSchGlbToLoc[pDofsRecvdList[i]], pBuffer[i]);
+			}
+
+		} else {
+      			for (int i = 0; i < pDispl[SolvCommSize]; i++) {
+				int j = i%iBlkSize;
+				int blk = i/iBlkSize;
 
 #if 0
-			silent_cerr("SchurSolutionManager::ComplExchInt():"
-				<< " i=" << iCnt
-				<< " j=" << j
-				<< " blk=" << blk
-				<< " pDRL[" << j << "]=" << pDofsRecvdList[j]
-				<< " V(" << pSchGlbToLoc[pDofsRecvdList[j] + blk*iBlkSize] << ")+=" << pBuffer[iCnt]
-				<< std::endl);
+				silent_cerr("SchurSolutionManager::ComplExchInt():"
+					<< " i=" << iCnt
+					<< " j=" << j
+					<< " blk=" << blk
+					<< " pDRL[" << j << "]=" << pDofsRecvdList[j]
+					<< " V(" << pSchGlbToLoc[pDofsRecvdList[j] + blk*iBlkSize] << ")+=" << pBuffer[iCnt]
+					<< std::endl);
 #endif
 			
-			pSchVH->IncCoef(pSchGlbToLoc[pDofsRecvdList[j] + blk*iBlkSize],
-					pBuffer[iCnt]);
+				pSchVH->IncCoef(pSchGlbToLoc[pDofsRecvdList[j] + blk*iBlkSize],
+						pBuffer[i]);
+			}
       		}
 
 #if 0
@@ -946,15 +1025,18 @@ SchurSolutionManager::ComplExchIntRes(doublereal& dRes,
 					DBLMSGSIZE, MPI::DOUBLE,
 					i, G_TAG + 100);
       		}
-			
+
+#ifdef USE_MPI_WAIT
+      		MPI::Request::Waitall(SolvCommSize - 1, &pGRReq[1]);
+#else /* ! USE_MPI_WAIT */
       		while (true) {
-      			if (MPI::Request::Testall(SolvCommSize - 1,
-						&pGRReq[1]))
+      			if (MPI::Request::Testall(SolvCommSize - 1, &pGRReq[1]))
 			{
 				break;
 			}
   			MYSLEEP(1500);
 		}
+#endif /* ! USE_MPI_WAIT */
 
 		for (int i = 1; i < SolvCommSize; i++) {
 			t->TestMerge(d[0], pBuffer[DBLMSGSIZE*i]);
@@ -968,6 +1050,9 @@ SchurSolutionManager::ComplExchIntRes(doublereal& dRes,
 		/* send the residual test value */
 		SolvComm.Send(d, DBLMSGSIZE, MPI::DOUBLE, 0, G_TAG + 100);
 
+#ifdef USE_MPI_WAIT
+      		pGSReq[0].Wait();
+#else /* ! USE_MPI_WAIT */
    	 	/* verifica completamento ricezioni e trasmissione */
     		while (true) {
       			if (pGSReq[0].Test()) {
@@ -978,22 +1063,27 @@ SchurSolutionManager::ComplExchIntRes(doublereal& dRes,
       			}
 			MYSLEEP(150);
     		}
+#endif /* ! USE_MPI_WAIT */
 
 		/* wait for the cumulative residual test */
 		pGRReq[0] = SolvComm.Irecv(d, DBLMSGSIZE, MPI::DOUBLE, 
 				0, G_TAG);
 
+#ifdef USE_MPI_WAIT
+      		pGRReq[0].Wait();
+#else /* ! USE_MPI_WAIT */
    	 	while (true) {
       			if (pGRReq[0].Test()) {
 				break;
       			}
 			MYSLEEP(150);
    		}
+#endif /* ! USE_MPI_WAIT */
 	}
 
 	dRes = d[0];
 
-#if 1
+#if 0
 	silent_cout("<< Rank=" << MyRank << " dRes=" << dRes << std::endl);
 #endif
 }
@@ -1003,37 +1093,8 @@ SchurSolutionManager::StartExchIntSol(void)
 {
   	DEBUGCOUT("Entering SchurSolutionManager::StartExchIntSol()" << endl);
 
-    	/* Inizializza Trasmissione di g */
-
-#if 0
 	/* FIXME: the solution interface should have alread been exchanged
 	 * during the solution process, so we don't start anything... */
-
-#ifdef MPI_PROFILING
-   	MPE_Log_event(13, 0, "start");
-    	MPE_Log_send(0, G_TAG, iIntVecDim);
-#endif /* MPI_PROFILING */
-
-    	if (MyRank == 0) {
-#ifdef MPI_PROFILING
-      		MPE_Log_event(19, 0, "start");
-#endif /* MPI_PROFILING */
-
-		/* collect remote contributions... */
-      		for (int i = 1; i < SolvCommSize; i++) {
-			pGRReq[i] = SolvComm.Irecv(&pBuffer[pDispl[i]],
-					pRecvDim[i], MPI::DOUBLE, i, G_TAG);
-      		}
-
-		/* set up local contribution... */
-		(void)memmove(&pBuffer[pDispl[0]], pgVH->pdGetVec(),
-			      sizeof(double)*pRecvDim[0]);
-
-    	} else {
-    		pGSReq[0] = SolvComm.Isend(pgVH->pdGetVec(), iIntVecDim,
-				MPI::DOUBLE, 0, G_TAG);
-	}
-#endif
 }
 
 void
@@ -1042,7 +1103,7 @@ SchurSolutionManager::ComplExchIntSol(doublereal& dSol,
 {
   	DEBUGCOUT("Entering SchurSolutionManager::ComplExchIntSol()" << endl);
 
-#if 1
+#if 0
 	silent_cout(">> Rank=" << MyRank << " dSol=" << dSol << std::endl);
 #endif
 
@@ -1053,53 +1114,11 @@ SchurSolutionManager::ComplExchIntSol(doublereal& dSol,
 	d[0] = dSol;
 	
     	if (MyRank == 0) {
-#if 0
-      		while (true) {
-      			if (MPI::Request::Testall(SolvCommSize - 1,
-						&pGRReq[1]))
-			{
-#ifdef MPI_PROFILING
-  				MPE_Log_event(20, 0, "end");
-  				for (int i = 1; i < SolvCommSize; i++){
-    					MPE_Log_receive(i, G_TAG, pRecvDim[i]);
-	  			}
-#endif /* MPI_PROFILING */
-  				break;
-			}
-  			MYSLEEP(1500);
-		}
-
-		/* Assembla pSVH */
-      		pSchVH->Reset();
-      		for (int iCnt = 0; iCnt < pDispl[SolvCommSize]; iCnt++) {
-			int j = iCnt%iBlkSize;
-			int blk = iCnt/iBlkSize;
-
-#if 0
-			silent_cerr("SchurSolutionManager::ComplExchInt():"
-				<< " i=" << iCnt
-				<< " j=" << j
-				<< " blk=" << blk
-				<< " pDRL[" << j << "]=" << pDofsRecvdList[j]
-				<< " V(" << pSchGlbToLoc[pDofsRecvdList[j] + blk*iBlkSize] << ")+=" << pBuffer[iCnt]
-				<< std::endl);
-#endif
-			
-			pSchVH->IncCoef(pSchGlbToLoc[pDofsRecvdList[j] + blk*iBlkSize],
-					pBuffer[iCnt]);
-      		}
-
-#if 0
-		std::cerr << "pSchVH: " << *pSchVH << std::endl;
-#endif
-
-#endif
-
 		/* Note: the interface contribution should have already
 		 * been transmitted during Solve(), and stored in pgVH. */
 
-#if 1
-		silent_cerr("pgVH: " << std::endl << *pgVH << std::endl);
+#if 0
+		silent_cerr("pgVH:" << std::endl << *pgVH << std::endl);
 #endif
 
 		/* interface contribution to error */
@@ -1112,15 +1131,18 @@ SchurSolutionManager::ComplExchIntSol(doublereal& dSol,
 					DBLMSGSIZE, MPI::DOUBLE,
 					i, G_TAG + 100);
       		}
-			
+
+#ifdef USE_MPI_WAIT
+      		MPI::Request::Waitall(SolvCommSize - 1, &pGRReq[1]);
+#else /* ! USE_MPI_WAIT */
       		while (true) {
-      			if (MPI::Request::Testall(SolvCommSize - 1,
-						&pGRReq[1]))
+      			if (MPI::Request::Testall(SolvCommSize - 1, &pGRReq[1]))
 			{
 				break;
 			}
   			MYSLEEP(1500);
 		}
+#endif /* ! USE_MPI_WAIT */
 
 		for (int i = 1; i < SolvCommSize; i++) {
 			t->TestMerge(d[0], pBuffer[DBLMSGSIZE*i]);
@@ -1134,6 +1156,9 @@ SchurSolutionManager::ComplExchIntSol(doublereal& dSol,
 		/* send the residual test value */
 		SolvComm.Send(d, DBLMSGSIZE, MPI::DOUBLE, 0, G_TAG + 100);
 
+#ifdef USE_MPI_WAIT
+      		pGSReq[0].Wait();
+#else /* ! USE_MPI_WAIT */
    	 	/* verifica completamento ricezioni e trasmissione */
     		while (true) {
       			if (pGSReq[0].Test()) {
@@ -1144,22 +1169,27 @@ SchurSolutionManager::ComplExchIntSol(doublereal& dSol,
       			}
 			MYSLEEP(150);
     		}
+#endif /* ! USE_MPI_WAIT */
 
 		/* wait for the cumulative residual test */
 		pGRReq[0] = SolvComm.Irecv(d, DBLMSGSIZE, MPI::DOUBLE, 
 				0, G_TAG);
 
+#ifdef USE_MPI_WAIT
+      		pGRReq[0].Wait();
+#else /* ! USE_MPI_WAIT */
    	 	while (true) {
       			if (pGRReq[0].Test()) {
 				break;
       			}
 			MYSLEEP(150);
    		}
+#endif /* ! USE_MPI_WAIT */
 	}
 
 	dSol = d[0];
 
-#if 1
+#if 0
 	silent_cout("<< Rank=" << MyRank << " dSol=" << dSol << std::endl);
 #endif
 }

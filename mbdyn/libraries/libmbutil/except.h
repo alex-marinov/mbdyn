@@ -52,6 +52,7 @@
 
 class NoErr {};
 class ErrGeneric {};
+class ErrInterrupted {};
 
 class ErrOutOfRange {};
 class ErrDivideByZero {};

@@ -57,6 +57,9 @@ std::list<MPI::Intercomm>  InterfaceComms;
 	do { \
 		if (using_mpi) { \
 			External::SendClose();	\
+			if ((err) != EXIT_SUCCESS) { \
+				MBDynComm.Abort((err)); \
+			} \
 			MPI::Finalize(); \
 		} \
 		exit((err)); \
@@ -67,6 +70,9 @@ std::list<MPI::Intercomm>  InterfaceComms;
 #define MB_EXIT(err) \
 	do { \
 		if (using_mpi) { \
+			if ((err) != EXIT_SUCCESS) { \
+				MBDynComm.Abort((err)); \
+			} \
 			MPI::Finalize(); \
 		} \
 		exit((err)); \
@@ -893,6 +899,10 @@ main(int argc, char* argv[])
     	} catch (NoErr) {     
         	silent_cout("MBDyn terminated normally" << std::endl);
         	rc = EXIT_SUCCESS;
+
+	} catch (ErrInterrupted) {
+        	silent_cout("MBDyn was interrupted" << std::endl);
+        	rc = 2;
 
     	} catch (...) {
         	silent_cerr("An error occurred during the execution of MBDyn;"
