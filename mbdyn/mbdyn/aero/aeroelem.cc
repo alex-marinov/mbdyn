@@ -472,25 +472,31 @@ ReadUnsteadyFlag(MBDynParser& HP)
    	if (HP.fIsArg()) {
 		if (HP.IsKeyWord("unsteady")) {
 			/*
-			 * ...
+			 * swallow "unsteady" keyword
 			 */
 		}
 
       		integer iInst = HP.GetInt();
 
-      		if (iInst != 0
-	  	    && iInst != 1 && iInst != 2
-	  	    ) {
+      		if (iInst != 0) {
 	 		if (iInst < 0 || iInst > 2) {
 	    			cerr << "illegal unsteady flag at line "
 					<< HP.GetLineData() << endl;
 				THROW(ErrGeneric());
 	 		}
-	    		cerr << HP.GetLineData() << "warning:"
-				" unsteady aerodynamics are not tested yet";
+	    		cerr << HP.GetLineData() << ": warning:"
+				" unsteady aerodynamics are not tested yet"
+				<< endl;
       		}
+		/*
+		 * unsteady flag
+		 */
       		return iInst;
    	}
+	
+	/*
+	 * default: no unsteady ...
+	 */
    	return 0;
 }
 
