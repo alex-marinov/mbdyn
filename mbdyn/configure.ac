@@ -1049,16 +1049,17 @@ if test "$ol_with_umfpack" != "no" ; then
 		if test "$have_umfpack4" = "yes" ; then
 			AC_DEFINE(HAVE_UMFPACK4,1,[define if Umfpack4 is available])
 
+			AC_LANG_CPLUSPLUS
 			AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <umfpack.h>
 			],[
 #define SIZE 2
 	int32_t n_row = SIZE, n_col = SIZE;
-	const int32_t Ap[SIZE], Ai[SIZE];
-	const double Ax[SIZE];
+	int32_t Ap[SIZE], Ai[SIZE];
+	double Ax[SIZE];
 	void *Symbolic;
-	const double Control[UMFPACK_CONTROL];
+	double Control[UMFPACK_CONTROL];
 	double Info[UMFPACK_INFO];
 
 	umfpack_di_symbolic(n_row, n_col, Ap, Ai, Ax, &Symbolic, Control, Info);
@@ -1069,19 +1070,20 @@ if test "$ol_with_umfpack" != "no" ; then
 				],[
 #define SIZE 2
 	int32_t n_row = SIZE, n_col = SIZE;
-	const int32_t Ap[SIZE], Ai[SIZE];
-	const double Ax[SIZE];
+	int32_t Ap[SIZE], Ai[SIZE];
+	double Ax[SIZE];
 	void *Symbolic;
-	const double Control[UMFPACK_CONTROL];
+	double Control[UMFPACK_CONTROL];
 	double Info[UMFPACK_INFO];
 
-	umfpack_di_symbolic(n_row, n_col, Ap, Ai, Ax, &Symbolic, Control, Info);
+	umfpack_dl_symbolic(n_row, n_col, Ap, Ai, Ax, &Symbolic, Control, Info);
 				],[
 					AC_DEFINE(USE_UMFPACK_LONG,1,[define if need to use umfpack_dl_* calls])
 				],[
 					AC_MSG_ERROR([umfpack might be broken])
 				]) 
 			])
+			AC_LANG_C
 		fi
 
 		if test "$have_umfpack" = "yes" ; then
