@@ -422,19 +422,19 @@ summarizes how each linear solver deals with pivoting policies.
 \caption{Linear solvers properties}\label{tab:solvers-props}
 \begin{tabular}{lccccccc}
 \hline\hline
-	\multicolumn{1}{c}{\textbf{Solver}} &
-	\multicolumn{1}{c}{\textbf{Map}} &
-	\multicolumn{1}{c}{\textbf{Column}} &
-	\multicolumn{1}{c}{\textbf{Dir}} &
-	\multicolumn{1}{c}{\textbf{Multi-}} &
-	\multicolumn{1}{c}{\textbf{Worksp.}} &
-	\multicolumn{1}{c}{\textbf{Pivot}} &
-	\multicolumn{1}{c}{\textbf{Block}} \\
-	& & \multicolumn{1}{c}{\textbf{Compr.}} &
-	& \multicolumn{1}{c}{\textbf{Thread}}
-	& \multicolumn{1}{c}{\textbf{Size}}
-	& \multicolumn{1}{c}{\textbf{Factor}}
-	& \multicolumn{1}{c}{\textbf{Size}} \\
+	\multicolumn{1}{c}{\textbf{\emph{Solver}}} &
+	\multicolumn{1}{c}{\textbf{\emph{Map}}} &
+	\multicolumn{1}{c}{\textbf{\emph{Column}}} &
+	\multicolumn{1}{c}{\textbf{\emph{Dir}}} &
+	\multicolumn{1}{c}{\textbf{\emph{Multi-}}} &
+	\multicolumn{1}{c}{\textbf{\emph{Worksp.}}} &
+	\multicolumn{1}{c}{\textbf{\emph{Pivot}}} &
+	\multicolumn{1}{c}{\textbf{\emph{Block}}} \\
+	& & \multicolumn{1}{c}{\textbf{\emph{Compr.}}} &
+	& \multicolumn{1}{c}{\textbf{\emph{Thread}}}
+	& \multicolumn{1}{c}{\textbf{\emph{Size}}}
+	& \multicolumn{1}{c}{\textbf{\emph{Factor}}}
+	& \multicolumn{1}{c}{\textbf{\emph{Size}}} \\
 \hline
 	Naive		& 	&	&	&	&	& x	&	\\
 	Umfpack		& x	& x	& x	&	&	& x	& x	\\
@@ -455,14 +455,14 @@ summarizes how each linear solver deals with pivoting policies.
 \caption{Linear solvers memory usage}\label{tab:solvers-memory}
 \begin{tabular}{llll}
 \hline\hline
-	\multicolumn{1}{c}{\textbf{Solver}} &
-	\multicolumn{1}{c}{\textbf{Workspace}} &
-	\multicolumn{1}{c}{\textbf{Memory}} &
-	\multicolumn{1}{c}{\textbf{Block Size}} \\
+	\multicolumn{1}{c}{\textbf{\emph{Solver}}} &
+	\multicolumn{1}{c}{\textbf{\emph{Workspace}}} &
+	\multicolumn{1}{c}{\textbf{\emph{Memory}}} &
+	\multicolumn{1}{c}{\textbf{\emph{Block Size}}} \\
 	&
 	&
-	\multicolumn{1}{c}{\textbf{Size}} &
-	\multicolumn{1}{c}{\textbf{Allocation}} \\
+	\multicolumn{1}{c}{\textbf{\emph{Size}}} &
+	\multicolumn{1}{c}{\textbf{\emph{Allocation}}} \\
 \hline
 	Naive		& 			& full		&		\\
 	Umfpack 	& 			& dynamic	& default=32	\\
@@ -482,12 +482,12 @@ summarizes how each linear solver deals with pivoting policies.
 \caption{Linear solvers pivot handling}\label{tab:solvers-pivot}
 \begin{tabular}{llll}
 \hline\hline
-	\multicolumn{1}{c}{\textbf{Solver}} &
-	\multicolumn{1}{c}{\textbf{Pivot}} &
-	\multicolumn{1}{c}{\textbf{Default}} &
-	\multicolumn{1}{c}{\textbf{Description}} \\
+	\multicolumn{1}{c}{\textbf{\emph{Solver}}} &
+	\multicolumn{1}{c}{\textbf{\emph{Pivot}}} &
+	\multicolumn{1}{c}{\textbf{\emph{Default}}} &
+	\multicolumn{1}{c}{\textbf{\emph{Description}}} \\
 \hline
-	Naive		& 1.0$\rightarrow$0.0	& 1.$e-8$	& \\
+	Naive		& 1.0$\rightarrow$0.0	& 1.e$-8$	& \\
 	Umfpack 	& 0.0$\rightarrow$1.0 	& 0.1 		& \\
 	Y12m 		& none=0.0, full=1.0	& 1.0		& \\
 	Lapack		& 1.0$\rightarrow$0.0	&		& \\

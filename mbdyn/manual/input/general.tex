@@ -138,7 +138,9 @@ can be reassigned.
 	(from higher to lower precedence)}\label{tab:MATHP-OPERATORS}
 	\begin{tabular}{lll}
 		\hline
-		\emph{Operator} & \emph{Type} & \emph{Description} \\
+		\multicolumn{1}{c}{\textbf{\emph{Operator}}} & 
+		\multicolumn{1}{c}{\textbf{\emph{Type}}} &
+		\multicolumn{1}{c}{\textbf{\emph{Description}}} \\
 		\hline
 		\kw{\^} & Binary, right & Power \\
 		\kw{+} & Unary, left & Plus sign \\
@@ -171,7 +173,9 @@ can be reassigned.
 		in math parser}\label{tab:MATHP-FUNCTIONS}
 	\begin{tabular}{lll}
 		\hline
-		\emph{Function Name} & \emph{Arg[s]} & \emph{Description} \\
+		\multicolumn{1}{c}{\textbf{\emph{Name}}} &
+		\multicolumn{1}{c}{\textbf{\emph{Arg[s]}}} &
+		\multicolumn{1}{c}{\textbf{\emph{Description}}} \\
 		\hline
 		\kw{asin} & Real & Arc sine \\
 		\kw{acos} & Real & Arc cosine \\
@@ -220,7 +224,8 @@ can be reassigned.
 	\caption{Builtin types in math parser}\label{tab:MATHP-TYPES}
 	\begin{tabular}{ll}
 		\hline
-		\emph{Type Name} & \emph{Description} \\
+		\multicolumn{1}{c}{\textbf{\emph{Name}}} &
+		\multicolumn{1}{c}{\textbf{\emph{Description}}} \\
 		\hline
 		\kw{Real} & Real number \\
 		\kw{Integer} & Integer number (promoted to \kw{Real} 
@@ -235,7 +240,9 @@ can be reassigned.
 	\caption{Predefined variables in math parser}\label{tab:MATHP-VARS}
 	\begin{tabular}{lll}
 		\hline
-		\emph{Variable Name} & \emph{Type} & \emph{Value} \\
+		\multicolumn{1}{c}{\textbf{\emph{Name}}} &
+		\multicolumn{1}{c}{\textbf{\emph{Type}}} &
+		\multicolumn{1}{c}{\textbf{\emph{Value}}} \\
 		\hline
 		\kw{Time} & Real & Current simulation time \\
 		\kw{Val} & Real & Set by dof driver with DOF value \\
@@ -281,9 +288,17 @@ defined in Table~\ref{tab:MODEL-NS-FUNCS}.
 	\label{tab:MODEL-NS-FUNCS}
 	\begin{tabular}{lll}
 		\hline
-		\emph{Function Name} & \emph{Arg[s]} & \emph{Description} \\
+		\multicolumn{1}{c}{\textbf{\emph{Name}}} &
+		\multicolumn{1}{c}{\textbf{\emph{Arg[s]}}} &
+		\multicolumn{1}{c}{\textbf{\emph{Description}}} \\
 		\hline
+		\kw{xposition} & Int & $X$ component of structural node position \\
+		\kw{yposition} & Int & $Y$ component of structural node position \\
+		\kw{zposition} & Int & $Z$ component of structural node position \\
 		\kw{distance} & Int, Int & distance between structural nodes \\
+		\kw{xdistance} & Int, Int & $X$ component of distance between structural nodes \\
+		\kw{ydistance} & Int, Int & $Y$ component of distance between structural nodes \\
+		\kw{zdistance} & Int, Int & $Z$ component of distance between structural nodes \\
 		\hline
 	\end{tabular}
 	\end{center}
@@ -1429,7 +1444,10 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
     \caption{Constitutive laws dimensionality}\label{tab:CONST-LAW-DIM}
     \begin{tabular}{l|c|c|c} 
         \hline
-        Constitutive Law & 1D & 3D & 6D \\ 
+        \multicolumn{1}{c}{\textbf{\emph{Constitutive Law}}} &
+	\multicolumn{1}{c}{\textbf{\emph{1D}}} &
+	\multicolumn{1}{c}{\textbf{\emph{3D}}} &
+	\multicolumn{1}{c}{\textbf{\emph{6D}}} \\ 
 	\hline
 	linear elastic, linear elastic isotropic               & x & x & x \\
 	linear elastic generic                                 & x & x & x \\
@@ -1718,7 +1736,8 @@ the entities as element private data.
 \caption{Shock absorber output data}\label{tab:CL-SHOCK-ABSORBER-OUTPUT}
 \begin{tabular}{ll}
 \hline
-\multicolumn{1}{c}{\textbf{entity}} & \multicolumn{1}{c}{\textbf{name}} \\
+\multicolumn{1}{c}{\textbf{\emph{entity}}} &
+\multicolumn{1}{c}{\textbf{\emph{name}}} \\
 \hline
 gas pressure	& \kw{p} \\
 metering area	& \kw{A} \\
