@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 	Known issues:
 	Bug fixes:
 		- fixed SuperLU memory leak
+		- fix socklen_t compilation bug under cygwin
 
 MBDyn 1.2.3
 	Enhancements:

@@ -31,6 +31,7 @@
 #ifndef USESOCK_H
 #define USESOCK_H
 
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/un.h>
 
