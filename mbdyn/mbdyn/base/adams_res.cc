@@ -398,6 +398,9 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 {
    std::ostream& out = OutHdl.AdamsRes();
 
+   /*
+    * FIXME: do not output RelativeFrame struct nodes
+    */
    unsigned int nStrNodes = NodeData[Node::STRUCTURAL].iNum;
    std::ios::fmtflags oldflags, tmpflags;
 
