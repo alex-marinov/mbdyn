@@ -72,6 +72,12 @@ Elem::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 	return out;
 }
 
+std::ostream&
+Elem::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+{
+	return out;
+}
+
 DofOrder::Order 
 Elem::GetDofType(unsigned int) const
 {

@@ -322,6 +322,43 @@ Modal::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 	return out;
 }
 
+std::ostream&
+Modal::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+{
+	integer iModalIndex = iGetFirstIndex();
+
+	if (i >= 0) {
+		silent_cerr("Modal(" << GetLabel() << "): "
+			"DescribeEq(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	out 
+		<< prefix << iModalIndex + 1 << "->" << iModalIndex + NModes
+		<< ": modal velocity definitions [q(1.." << NModes << ")=qP(1.." << NModes << ")]" << std::endl
+		<< prefix << iModalIndex + NModes + 1 << "->" << iModalIndex + 2*NModes
+		<< ": modal equilibrium equations [1.." << NModes << "]" << std::endl;
+	iModalIndex += 2*NModes;
+	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++, iModalIndex += 6) {
+		out
+			<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
+				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") position constraints [Px=PxN,Py=PyN,Pz=PzN]" << std::endl
+			<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
+				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") orientation constraints [gx=gxN,gy=gyN,gz=gzN]" << std::endl;
+		if (bInitial) {
+			iModalIndex += 6;
+			out
+				<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
+					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") velocity constraints [vx=vxN,vy=vyN,vz=vzN]" << std::endl
+				<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
+					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") angular velocity constraints [wx=wxN,wy=wyN,wz=wzN]" << std::endl;
+		}
+	}
+
+	return out;
+}
+
 DofOrder::Order
 Modal::GetDofType(unsigned int i) const
 {

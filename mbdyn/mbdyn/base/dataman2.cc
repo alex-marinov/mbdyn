@@ -272,6 +272,10 @@ DataManager::DofOwnerInit(void)
 					(*ppNd)->DescribeDof(std::cout,
 							     "        ");
 				}
+				if (uPrintFlags & PRINT_EQDESCRIPTION) {
+					(*ppNd)->DescribeEq(std::cout,
+							     "        ");
+				}
 			}
 #endif /* !DEBUG */
 
@@ -325,6 +329,10 @@ DataManager::DofOwnerInit(void)
 					std::cout << std::endl;
 					if (uPrintFlags & PRINT_DOFDESCRIPTION) {
 						pElWD->DescribeDof(std::cout,
+								"        ");
+					}
+					if (uPrintFlags & PRINT_EQDESCRIPTION) {
+						pElWD->DescribeEq(std::cout,
 								"        ");
 					}
 				}
@@ -397,6 +405,10 @@ DataManager::InitialJointAssembly(void)
 					(*ppNode)->DescribeDof(std::cout,
 							     "        ", true);
 				}
+				if (uPrintFlags & PRINT_EQDESCRIPTION) {
+					(*ppNode)->DescribeEq(std::cout,
+							     "        ", true);
+				}
 			}
 			iIndex += iNumDofs;
 
@@ -449,6 +461,10 @@ DataManager::InitialJointAssembly(void)
 							silent_cout(std::endl);
 							if (uPrintFlags & PRINT_DOFDESCRIPTION) {
 								pElWD->DescribeDof(std::cout,
+										"        ", true);
+							}
+							if (uPrintFlags & PRINT_EQDESCRIPTION) {
+								pElWD->DescribeEq(std::cout,
 										"        ", true);
 							}
 						}

@@ -156,6 +156,10 @@ class StructNode : public Node {
 		   char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
 
+   virtual std::ostream& DescribeEq(std::ostream& out,
+		   char *prefix = "",
+		   bool bInitial = false, int i = -1) const;
+
    /* Restituisce il valore del dof iDof;
     * se differenziale, iOrder puo' essere = 1 per la derivata */
    virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
@@ -435,7 +439,12 @@ class DynamicStructNode : public StructNode {
    
    /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
    virtual inline unsigned int iGetNumDof(void) const;
+
    virtual std::ostream& DescribeDof(std::ostream& out,
+		   char *prefix = "",
+		   bool bInitial = false, int i = -1) const;
+   
+   virtual std::ostream& DescribeEq(std::ostream& out,
 		   char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
    
@@ -605,7 +614,12 @@ class ModalNode : public DynamicStructNode {
    
    /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
    virtual inline unsigned int iGetNumDof(void) const;
+
    virtual std::ostream& DescribeDof(std::ostream& out,
+		   char *prefix = "",
+		   bool bInitial = false, int i = -1) const;
+   
+   virtual std::ostream& DescribeEq(std::ostream& out,
 		   char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
    

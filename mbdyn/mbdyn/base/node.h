@@ -119,6 +119,10 @@ public DofOwnerOwner, public ToBeOutput {
 		   char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
 
+   virtual std::ostream& DescribeEq(std::ostream& out,
+		   char *prefix = "",
+		   bool bInitial = false, int i = -1) const;
+
    /* Metodi che operano sui DoF */
       
    /* 

@@ -709,6 +709,9 @@ void DataManager::ReadControl(MBDynParser& HP,
 	     } else if (HP.IsKeyWord("dof" "description")) {
 	        uPrintFlags |= (PRINT_DOFSTATS | PRINT_DOFDESCRIPTION);
 
+	     } else if (HP.IsKeyWord("equation" "description")) {
+	        uPrintFlags |= (PRINT_DOFSTATS | PRINT_EQDESCRIPTION);
+
 	     } else if (HP.IsKeyWord("none")) {
 	        uPrintFlags = PRINT_NONE;
 	     }

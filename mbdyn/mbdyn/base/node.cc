@@ -59,6 +59,12 @@ Node::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 	return out;
 }
 
+std::ostream&
+Node::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+{
+	return out;
+}
+
 /* Ritorna gli indici di riga e colonna. Tipicamente sono gli stessi */
 integer Node::iGetFirstRowIndex(void) const 
 {

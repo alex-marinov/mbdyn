@@ -14,6 +14,7 @@ MBDyn 1.X-Engineering
 		- added TAUCS linear solver (eXperimental)
 		- added "ad hoc" (Radau IIA) third-order integrator
 		- honor describe dofs directive in initial assembly
+		- added support for describing equations
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

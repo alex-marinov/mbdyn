@@ -1379,6 +1379,36 @@ ClampJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) c
 	return out;
 }
 
+std::ostream&
+ClampJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	if (i >= 0) {
+		silent_cerr("ClampJoint(" << GetLabel() << "): "
+			"DescribeEq(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+			"position constraints [Px=Px0,Py=Py0,Pz=Pz0]" << std::endl
+		<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
+			"orientation constraints [gx=gx0,gy=gy0,gz=gz0]" << std::endl;
+	
+	if (bInitial) {
+		iIndex += 6;
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"velocity constraints [vx=0,vy=0,vz=0]" << std::endl
+			<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
+				"angular velocity constraints [wx=0,wy=0,wz=0]" << std::endl;
+	}
+
+	return out;
+}
+
 /* Contributo al file di restart */
 std::ostream& ClampJoint::Restart(std::ostream& out) const
 {

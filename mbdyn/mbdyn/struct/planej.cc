@@ -110,6 +110,49 @@ PlaneHingeJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int
 	return out;
 }
 
+std::ostream&
+PlaneHingeJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	if (i >= 0) {
+		silent_cerr("PlaneHingeJoint(" << GetLabel() << "): "
+			"DescribeEq(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+			"position constraints [Px1=Px2,Py1=Py2,Pz1=Pz2]" << std::endl
+		<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": "
+			"orientation constraints [gx1=gx2,gy1=gy2]" << std::endl;
+
+	if (bInitial) {
+		iIndex += NumSelfDof;
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"velocity constraints [vx1=vx2,vy1=vy2,vz1=vz2]" << std::endl
+			<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": "
+				"angular velocity constraints [wx1=wx2,wy1=wy2]" << std::endl;
+	}
+
+	iIndex += NumSelfDof;
+	if (fc) {
+		integer iFCDofs = fc->iGetNumDof();
+		if (iFCDofs > 0) {
+			out << prefix << iIndex + 1;
+			if (iFCDofs > 1) {
+				out << "->" << iIndex + iFCDofs;
+			}
+			out << ": friction equation(s)" << std::endl
+				<< "        ", fc->DescribeEq(out, prefix, bInitial, i);
+		}
+	}
+
+	return out;
+}
+
 void
 PlaneHingeJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
@@ -1077,6 +1120,32 @@ PlaneRotationJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, 
 	return out;
 }
 
+std::ostream&
+PlaneRotationJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	if (i >= 0) {
+		silent_cerr("PlaneRotationJoint(" << GetLabel() << "): "
+			"DescribeEq(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 2 << ": "
+			"orientation constraints [gx1=gx2,gy1=gy2]" << std::endl;
+
+	if (bInitial) {
+		iIndex += 2;
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 2 << ": "
+				"angular velocity constraints [wx1=wx2,wy1=wy2]" << std::endl;
+	}
+
+	return out;
+}
+
 void
 PlaneRotationJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
@@ -1759,8 +1828,8 @@ AxialRotationJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, 
 		out
 			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
 				"reaction force derivatives [FPx,FPy,FPz]" << std::endl
-			<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
-				"reaction couple derivatives [mPx,mPy,mPz]" << std::endl;
+			<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": "
+				"reaction couple derivatives [mPx,mPy]" << std::endl;
 	}
 	
 	iIndex += NumSelfDof;
@@ -1773,6 +1842,49 @@ AxialRotationJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, 
 			}
 			out << ": friction dof(s)" << std::endl
 				<< "        ", fc->DescribeDof(out, prefix, bInitial, i);
+		}
+	}
+
+	return out;
+}
+
+std::ostream&
+AxialRotationJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	if (i >= 0) {
+		silent_cerr("AxialRotationJoint(" << GetLabel() << "): "
+			"DescribeEq(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+			"position constraints [Px1=Px2,Py1=Py2,Pz1=Pz2]" << std::endl
+		<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
+			"orientation constraints [gx1=gx2,gy1=gy2,gz2-gz1=Omega]" << std::endl;
+
+	if (bInitial) {
+		iIndex += NumSelfDof;
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"velocity constraints [vx1=vx2,vy1=vy2,vz1=vz2]" << std::endl
+			<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": "
+				"reaction couple derivatives [wx1=wx2,wy1=wy2]" << std::endl;
+	}
+	
+	iIndex += NumSelfDof;
+	if (fc) {
+		integer iFCDofs = fc->iGetNumDof();
+		if (iFCDofs > 0) {
+			out << prefix << iIndex + 1;
+			if (iFCDofs > 1) {
+				out << "->" << iIndex + iFCDofs;
+			}
+			out << ": friction equation(s)" << std::endl
+				<< "        ", fc->DescribeEq(out, prefix, bInitial, i);
 		}
 	}
 
@@ -2758,6 +2870,36 @@ PlanePinJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i
 				"reaction force derivatives [FPx,FPy,FPz]" << std::endl
 			<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": "
 				"reaction couple derivatives [mPx,mPy]" << std::endl;
+	}
+
+	return out;
+}
+
+std::ostream&
+PlanePinJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	if (i >= 0) {
+		silent_cerr("PlanePinJoint(" << GetLabel() << "): "
+			"DescribeEq(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+			"position constraints [Px=Px0,Py=Py0,Pz=Pz0]" << std::endl
+		<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": "
+			"orientation constraints [gx=gx0,gy=gy0]" << std::endl;
+
+	if (bInitial) {
+		iIndex += 5;
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"velocity constraints [vx=0,vy=0,vz=0]" << std::endl
+			<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": "
+				"angular velocity constraints [wx=0,wy=0]" << std::endl;
 	}
 
 	return out;

@@ -83,6 +83,13 @@ ModLugreFriction::DescribeDof(std::ostream& out, char *prefix, bool bInitial, in
 	return out;
 }
 
+std::ostream&
+ModLugreFriction::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+{
+	out << prefix << "[" << 1 << "]: ModLugreFriction equation" << std::endl;
+	return out;
+}
+
 DofOrder::Order ModLugreFriction::GetDofType(unsigned int i) const {
 	ASSERTMSGBREAK(i<iGetNumDof(), "INDEX ERROR in ModLugreFriction::GetDofType");
 	return DofOrder::DIFFERENTIAL;
@@ -263,6 +270,13 @@ std::ostream&
 DiscreteCoulombFriction::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 {
 	out << prefix << "[" << 1 << "]: DiscreteCoulombFriction state" << std::endl;
+	return out;
+}
+
+std::ostream&
+DiscreteCoulombFriction::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+{
+	out << prefix << "[" << 1 << "]: DiscreteCoulombFriction equation" << std::endl;
 	return out;
 }
 

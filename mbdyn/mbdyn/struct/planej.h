@@ -96,7 +96,12 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    };
    
    virtual unsigned int iGetNumDof(void) const;
+
    virtual std::ostream& DescribeDof(std::ostream& out,
+		   char *prefix = "",
+		   bool bInitial = false, int i = -1) const;
+   
+   virtual std::ostream& DescribeEq(std::ostream& out,
 		   char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
    
@@ -214,7 +219,12 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
    virtual unsigned int iGetNumDof(void) const { 
       return 2;
    };
+
    virtual std::ostream& DescribeDof(std::ostream& out,
+		   char *prefix = "",
+		   bool bInitial = false, int i = -1) const;
+   
+   virtual std::ostream& DescribeEq(std::ostream& out,
 		   char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
    
@@ -357,7 +367,12 @@ public Joint, public DriveOwner {
        } 
        return i;
    };
+
    virtual std::ostream& DescribeDof(std::ostream& out,
+		   char *prefix = "",
+		   bool bInitial = false, int i = -1) const;
+   
+   virtual std::ostream& DescribeEq(std::ostream& out,
 		   char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
    
@@ -478,7 +493,12 @@ class PlanePinJoint : virtual public Elem, public Joint {
    virtual unsigned int iGetNumDof(void) const { 
       return 5;
    };
+
    virtual std::ostream& DescribeDof(std::ostream& out,
+		   char *prefix = "",
+		   bool bInitial = false, int i = -1) const;
+   
+   virtual std::ostream& DescribeEq(std::ostream& out,
 		   char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
    

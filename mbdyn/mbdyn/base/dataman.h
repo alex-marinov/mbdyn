@@ -133,7 +133,8 @@ private:
 	enum PrintFlags {
 		PRINT_NONE		= 0x00U,
 		PRINT_DOFSTATS		= 0x01U,
-		PRINT_DOFDESCRIPTION	= 0x02U
+		PRINT_DOFDESCRIPTION	= 0x02U,
+		PRINT_EQDESCRIPTION	= 0x04U
 	};
 	unsigned uPrintFlags;
 

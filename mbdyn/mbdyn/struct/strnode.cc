@@ -173,6 +173,44 @@ StructNode::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) c
 	return out;
 }
 
+std::ostream&
+StructNode::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	if (i >= 0) {
+		silent_cerr("StructNode(" << GetLabel() << "): "
+			"DescribeEq(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	if (bInitial) {
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"position [Px,Py,Pz]" << std::endl
+			<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
+				"orientation [gx,gy,gz]" << std::endl
+			<< prefix << iIndex + 1 << "->" << iIndex + 9 << ": "
+				"linear velocity [vx,vy,vz]" << std::endl
+			<< prefix << iIndex + 4 << "->" << iIndex + 12 << ": "
+				"angular velocity [wx,wy,wz]" << std::endl;
+	} else {
+		if (dynamic_cast<const DynamicStructNode*>(this) != 0
+				|| dynamic_cast<const ModalNode*>(this) != 0) {
+			iIndex += 6;
+		}
+		
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"force equilibrium [Fx,Fy,Fz]" << std::endl
+			<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
+				"moment equilibrium [Mx,My,Mz]" << std::endl;
+	}
+
+	return out;
+}
+
 /* Contributo del nodo strutturale al file di restart */
 std::ostream&
 StructNode::Restart(std::ostream& out) const
@@ -900,6 +938,31 @@ DynamicStructNode::DescribeDof(std::ostream& out, char *prefix, bool bInitial, i
 	return out;
 }
 
+std::ostream&
+DynamicStructNode::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+{
+	if (i >= 0) {
+		silent_cerr("StructNode(" << GetLabel() << "): "
+			"DescribeEq(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	if (bInitial == false) {
+		integer iIndex = iGetFirstIndex();
+
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"momentum definition [Bx,By,Bz]" << std::endl
+			<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
+				"momenta moment definition [Gx,Gy,Gz]" << std::endl;
+	}
+
+	StructNode::DescribeEq(out, prefix, bInitial, i);
+	
+	return out;
+}
+
 /* Usato dalle forze astratte, dai bulk ecc., per assemblare le forze
  * al posto giusto */
 integer
@@ -1162,11 +1225,11 @@ ModalNode::iGetFirstRowIndex(void) const
 std::ostream&
 ModalNode::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 {
-	integer iIndex = iGetFirstIndex();
-
 	StructNode::DescribeDof(out, prefix, bInitial, i);
 
 	if (bInitial == false) {
+		integer iIndex = iGetFirstIndex();
+
 		out
 			<< prefix << iIndex + 7 << "->" << iIndex + 9 << ": "
 				"velocity [vx,vy,vz]" << std::endl
@@ -1174,6 +1237,31 @@ ModalNode::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) co
 				"angular velocity [wx,wy,wz]" << std::endl;
 	}
 
+	return out;
+}
+
+std::ostream&
+ModalNode::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+{
+	if (i >= 0) {
+		silent_cerr("StructNode(" << GetLabel() << "): "
+			"DescribeEq(" << i << ") "
+			"not implemented yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	if (bInitial == false) {
+		integer iIndex = iGetFirstIndex();
+
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"linear velocity definition [Bx,By,Bz]" << std::endl
+			<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
+				"angular velocity definition [Gx,Gy,Gz]" << std::endl;
+	}
+
+	StructNode::DescribeEq(out, prefix, bInitial, i);
+	
 	return out;
 }
 
