@@ -551,10 +551,10 @@ Example:
 The \kw{reference} directive:
 \begin{verbatim}
     <card> ::= reference : <unique_label> , 
-                           <absolute_position> ,
-                           <absolute_orientation_matrix> ,
-                           <absolute_velocity> ,
-                           <absolute_angular_velocity> ;
+        <absolute_position> ,
+        <absolute_orientation_matrix> ,
+        <absolute_velocity> ,
+        <absolute_angular_velocity> ;
 \end{verbatim}
 A \kw{reference} system is declared and defined.
 It must be given a unique identifier, scanned by the mathparser
@@ -614,8 +614,9 @@ Examples:
     \begin{verbatim}
     eye
     reference, node, eye
-    reference, 8, 3, 0., 1., 0., 
-                  1, .5, sqrt(3)/2., 0.
+    reference, 8,
+        3, 0., 1., 0., 
+        1, .5, sqrt(3)/2., 0.
     \end{verbatim}
 \end{itemize}
 Notes: 
@@ -649,18 +650,20 @@ Notes:
     a simple reference frame definition, with all the entries referring 
     by default to the global system, would be:
     \begin{verbatim}
-    reference: 1000, null,
-                     eye,
-                     null,
-                     null;			 
+    reference: 1000,
+        null,
+        eye,
+        null,
+        null;			 
     \end{verbatim}
     which represents a redefinition of the global system.
     A more verbose, and self-explanatory definition would be:
     \begin{verbatim}
-    reference: 1000, reference, global, null,
-                     reference, global, eye,
-                     reference, global, null,
-                     reference, global, null;			 
+    reference: 1000,
+        reference, global, null,
+        reference, global, eye,
+        reference, global, null,
+        reference, global, null;			 
     \end{verbatim}
     the reference frame one is referring to must be repeated for all the entries
     since they must be allowed to refer to whatever frame is preferred 
@@ -668,11 +671,12 @@ Notes:
     A fancier definition would be:
     \begin{verbatim}
     reference: Rotating_structure, 
-               reference, Fixed_structure, null,
-               reference, Spindle_1, 1, 0.,0.,1., 
-                                     3, 0.,1.,0.,
-               reference, Fixed_structure, null,
-               reference, Spindle_1, 0.,0.,Omega_1;
+        reference, Fixed_structure, null,
+        reference, Spindle_1,
+            1, 0.,0.,1., 
+            3, 0.,1.,0.,
+        reference, Fixed_structure, null,
+        reference, Spindle_1, 0.,0.,Omega_1;
     \end{verbatim}
 }
 
@@ -681,7 +685,7 @@ Notes:
 The \kw{hydraulic fluid} directive:
 \begin{verbatim}
     <card> ::= hydraulic fluid : <unique_label> , 
-                                 <fluid_type> , <fluid_properties> ;
+        <fluid_type> , <fluid_properties> ;
 \end{verbatim}
 A \kw{hydraulic fluid} is declared and defined.
 It is stored for later retrieval to be used in hydraulic elements,
@@ -692,42 +696,41 @@ The \kw{fluid\_type}s, with the related \kw{fluid\_properties}, are:
 \subsubsection{Uncompressible}
 \begin{verbatim}
     <fluid_type> ::= uncompressible
-    <fluid_properties> ::= [ density , <density> ]
-                           [ , viscosity , <viscosity> ]
-                           [ , pressure , <pressure > ]
-                           [ , temperature , <temperature> ]
+    <fluid_properties> ::=
+        [ density , <density> ]
+        [ , viscosity , <viscosity> ]
+        [ , pressure , <pressure > ]
+        [ , temperature , <temperature> ]
 \end{verbatim}
 
 \subsubsection{Linearly compressible}
 \begin{verbatim}
     <fluid_type> ::= linear compressible
-    <fluid_properties> ::= [ density , <ref_density> , 
-                                       <beta> , 
-                                       <ref_pressure> ]
-                           [ , viscosity , <viscosity> ]
-                           [ , temperature , <temperature> ]
+    <fluid_properties> ::=
+        [ density , <ref_density> ,
+            <beta> , <ref_pressure> ]
+        [ , viscosity , <viscosity> ]
+        [ , temperature , <temperature> ]
 \end{verbatim}
 
 \subsubsection{Linearly compressible, with thermal dependency}
 \begin{verbatim}
     <fluid_type> ::= linear thermal compressible
-    <fluid_properties> ::= [ density , <ref_density> , 
-                                       <beta> , 
-                                       <ref_pressure> ,
-                                       <alpha> ,
-                                       <ref_temperature> ]
-                           [ , viscosity , <viscosity> ]
+    <fluid_properties> ::=
+        [ density , <ref_density> ,
+            <beta> , <ref_pressure> ,
+            <alpha> , <ref_temperature> ]
+        [ , viscosity , <viscosity> ]
 \end{verbatim}
 
 \subsubsection{Super (linearly compressible, with thermal dependency)}
 \begin{verbatim}
     <fluid_type> ::= x-super
-    <fluid_properties> ::= [ density , <ref_density> , 
-                                       <beta> , 
-                                       <ref_pressure> ,
-                                       <alpha> ,
-                                       <ref_temperature> ]
-                           [ , viscosity , <viscosity> ]
+    <fluid_properties> ::=
+        [ density , <ref_density> ,
+            <beta> , <ref_pressure> ,
+            <alpha> , <ref_temperature> ]
+        [ , viscosity , <viscosity> ]
 \end{verbatim}
 according to equation
 \begin{displaymath}
@@ -743,13 +746,12 @@ according to equation
 \subsubsection{AMESim's compressible fluid, with saturation}
 \begin{verbatim}
     <fluid_type> ::= x-amesim
-    <fluid_properties> ::= [ density , <ref_density> , 
-                                       <beta> , 
-                                       <ref_pressure> ,
-                                       <alpha> ,
-                                       <ref_temperature> , ]
-                           [ viscosity , <viscosity> , ]
-                           <psat>
+    <fluid_properties> ::=
+        [ density , <ref_density> ,
+            <beta> , <ref_pressure> ,
+            <alpha> , <ref_temperature> , ]
+        [ viscosity , <viscosity> , ]
+        <psat>
 \end{verbatim}
 where \kw{psat} is the saturation pressure, according to equation
 \begin{displaymath}
@@ -799,9 +801,9 @@ The data that allows an entity to track a nodal degree of freedom
 is read as follows:
 \begin{verbatim}
     <node_dof> :: = <node_label> , 
-                    <node_type> 
-                    [ , <dof_number> ]
-                    [ , { algebraic | differential } ]
+        <node_type> 
+        [ , <dof_number> ]
+        [ , { algebraic | differential } ]
 \end{verbatim}
 The label and the type of the node are used to track the pointer to the
 desired node. 
@@ -884,64 +886,72 @@ Yields the current time.
   
 \subsection{Linear drive}
 \begin{verbatim}
-    <drive_caller> ::= linear , <const_coef> , 
-                                <slope_coef>
+    <drive_caller> ::= linear ,
+        <const_coef> ,
+        <slope_coef>
 \end{verbatim}
 
 \subsection{Parabolic drive}
 \begin{verbatim}
-    <drive_caller> ::= parabolic , <const_coef> , 
-                                   <linear_coef> , 
-                                   <parabolic_coef>
+    <drive_caller> ::= parabolic ,
+        <const_coef> , 
+        <linear_coef> , 
+        <parabolic_coef>
 \end{verbatim}
 
 \subsection{Cubic drive}
 \begin{verbatim}
-    <drive_caller> ::= cubic , <const_coef> , 
-                               <linear_coef> ,
-                               <parabolic_coef>, 
-                               <cubic_coef>
+    <drive_caller> ::= cubic ,
+        <const_coef> , 
+        <linear_coef> ,
+        <parabolic_coef>, 
+        <cubic_coef>
 \end{verbatim}
 
 \subsection{Step drive}
 \begin{verbatim}
-    <drive_caller> ::= step , <initial_time> , 
-                              <step_value> ,
-                              <initial_value>
+    <drive_caller> ::= step ,
+        <initial_time> , 
+        <step_value> ,
+        <initial_value>
 \end{verbatim}    
 
 \subsection{Double step drive}
 \begin{verbatim}
-    <drive_caller> ::= double step , <initial_time> , 
-                                     <final_time> ,
-                                     <step_value> , 
-                                     <initial_value>
+    <drive_caller> ::= double step ,
+        <initial_time> , 
+        <final_time> ,
+        <step_value> , 
+        <initial_value>
 \end{verbatim}
 
 \subsection{Ramp drive}
 \begin{verbatim}
-    <drive_caller> ::= ramp , <slope> , 
-                              <initial_time> ,
-                              <final_time> , 
-                              <initial_value>
+    <drive_caller> ::= ramp ,
+        <slope> , 
+        <initial_time> ,
+        <final_time> , 
+        <initial_value>
 \end{verbatim}
   
 \subsection{Double ramp drive}
 \begin{verbatim}
-    <drive_caller> ::= double ramp , <asc_slope> , 
-                                     <asc_initial_time> , 
-                                     <asc_final_time> , 
-                                     <desc_slope> , 
-                                     <desc_initial_time> , 
-                                     <desc_final_time> , 
-                                     <initial_value>
+    <drive_caller> ::= double ramp ,
+        <asc_slope> , 
+        <asc_initial_time> , 
+        <asc_final_time> , 
+        <desc_slope> , 
+        <desc_initial_time> , 
+        <desc_final_time> , 
+        <initial_value>
 \end{verbatim}
 
 \subsection{Piecewise linear drive}
 \begin{verbatim}
-    <drive_caller> ::= piecewise linear , <num_points> ,
-                                          <point> , <value> 
-                                          [ , ... ]
+    <drive_caller> ::= piecewise linear ,
+        <num_points> ,
+            <point> , <value> 
+            [ , ... ]
 \end{verbatim}
 Piecewise linear function; the first and the last point/value pairs are
 extrapolated in case a value beyond the extremes is required.
@@ -949,17 +959,17 @@ Linear interpolation between pairs is used.
 
 \subsection{Sine drive}
 \begin{verbatim}
-    <drive_caller> ::= sine , <initial_time> ,
-                              <pulsation> ,
-                              <amplitude> ,
-                              <number_of_cycles> , 
-                              <initial_value>
+    <drive_caller> ::= sine ,
+        <initial_time> ,
+        <pulsation> ,
+        <amplitude> ,
+        { [ - ] <number_of_cycles> | half | one | forever } , 
+        <initial_value>
 \end{verbatim}
 the value of \kw{number\_of\_cycles} determines the behavior of the
 drive. 
 If it is positive, \kw{number\_of\_cycles}$-1/2$ oscillations are
 performed. 
-If it is equal to zero, the oscillations never end. 
 If it is negative, the oscillations end after 
 \kw{number\_of\_cycles}$-3/4$ cycles at the top of the sine, with null
 tangent.
@@ -973,17 +983,18 @@ Special keywords can be used for \kw{number\_of\_cycles}:
 
 \subsection{Cosine drive}
 \begin{verbatim}
-    <drive_caller> ::= cosine , <initial_time> ,
-                                <pulsation> ,
-                                <amplitude> ,
-                                <number_of_cycles> , 
-                                <initial_value>
+    <drive_caller> ::= cosine ,
+        <initial_time> ,
+        <pulsation> ,
+        <amplitude> ,
+        { [ - ] <number_of_cycles> | half | one | forever } , 
+        <initial_value>
 \end{verbatim}
 this drive actually computes a function of the type $ 1-\llk{cos}\plbr{x} $.
 The value of \kw{number\_of\_cycles} determines the behavior of the
 drive. 
 If it is positive, \kw{number\_of\_cycles} oscillations are
-performed. If it is equal to zero, the oscillations never end. 
+performed.
 If it is negative, the oscillations end after
 \kw{number\_of\_cycles}$-1/2$ cycles at the top of the cosine, with null
 tangent.   
@@ -997,32 +1008,35 @@ Special keywords can be used for \kw{number\_of\_cycles}:
 
 \subsection{Frequency sweep drive}
 \begin{verbatim}
-    <drive_caller> ::= frequency sweep , <initial_time> ,
-                                         <pulsation_drive> ,
-                                         <amplitude_drive> ,
-                                         <initial_value> ,
-                                         <final_time> ,
-                                         <final_value>
+    <drive_caller> ::= frequency sweep ,
+        <initial_time> ,
+        <pulsation_drive> ,
+        <amplitude_drive> ,
+        <initial_value> ,
+        <final_time> ,
+        <final_value>
 \end{verbatim}
 this drive recursively calls two other drives that supply the pulsation 
 and the amplitude of the oscillation. Any drive can be used.
 
 \subsection{Exponential drive}
 \begin{verbatim}
-    <drive_caller> ::= exponential , <amplitude_value> ,
-                                     <time_constant_value> ,
-                                     <initial_time> ,
-                                     <initial_value>
+    <drive_caller> ::= exponential ,
+        <amplitude_value> ,
+        <time_constant_value> ,
+        <initial_time> ,
+        <initial_value>
 \end{verbatim}
 
 \subsection{Random drive}
 \begin{verbatim}
-    <drive_caller> ::= random , <amplitude_value> ,
-                                <mean_value> ,
-                                <initial_time> ,
-                                <final_time> 
-                       [ , steps , <steps_to_hold_value>]
-                       [ , seed , { time | <seed_value>} ]
+    <drive_caller> ::= random ,
+        <amplitude_value> ,
+        <mean_value> ,
+        <initial_time> ,
+        <final_time> 
+        [ , steps , <steps_to_hold_value>]
+        [ , seed , { time | <seed_value>} ]
 \end{verbatim}
 the first optional entry, preceeded by the keyword \kw{steps}, sets the
 number of steps a random value must be held before generating a new
@@ -1041,8 +1055,10 @@ The \kw{DriveCaller} is attached to a file drive object that must be declared
 and defined in the \htmlref{\kw{drivers}}{sec:DRIVERS} section 
 of the input file (see Section~\ref{sec:DRIVERS}).
 \begin{verbatim}
-    <drive_caller> ::= file , <drive_label> [ , <column_number> ]
-                              [ , amplitude , <amplitude> ]
+    <drive_caller> ::= file ,
+        <drive_label>
+        [ , <column_number> ]
+        [ , amplitude , <amplitude> ]
 \end{verbatim}
 \kw{drive\_label} is the label of the \htmlref{\kw{drive}}{sec:DRIVE} 
 the \kw{DriveCaller} is attached to, while
@@ -1053,7 +1069,8 @@ the drive value (defaults to 1.0).
 
 \subsection{String drive}
 \begin{verbatim}
-    <drive_caller> ::= string , " <expression_string> "
+    <drive_caller> ::= string ,
+        " <expression_string> "
 \end{verbatim}
 \kw{expression\_string} is a string, delimited by double quotes.
 It is parsed by the math parser every time 
@@ -1072,7 +1089,8 @@ generates a cosine modulated by an exponential.
 
 \subsection{Dof drive}\label{sec:DRIVE-DOF}
 \begin{verbatim}
-    <drive_caller> ::= dof , (node_dof) <driving_dof> ,
+    <drive_caller> ::= dof ,
+        (node_dof) <driving_dof> ,
         (drive_caller) <func_drive>
 \end{verbatim}
 a \hyperref{\kw{node\_dof}}{\kw{node\_dof} (see Section~}{)}{sec:NODEDOF}, 
@@ -1103,7 +1121,9 @@ entry for further details.
 
 \subsection{Element drive}\label{sec:DRIVE-ELEMENT}
 \begin{verbatim}
-    <drive_caller> ::= element , <label> , <type>
+    <drive_caller> ::= element ,
+        <label> ,
+        <type>
         [ , { name , "<name>" | index , <index> } ]
         (drive_caller) <func_drive>
 \end{verbatim}
@@ -1149,9 +1169,10 @@ in terms of the element's private data at each invocation.
 
 \subsection{Array drive}
 \begin{verbatim}
-    <drive_caller> ::= array , <num_drives> ,
-        <drive_caller> 
-        [ , <drive_caller> [ , ... ] ]
+    <drive_caller> ::= array ,
+        <num_drives> ,
+            <drive_caller> 
+            [ , <drive_caller> [ , ... ] ]
 \end{verbatim}
 this is simply a front-end for the linear combination of \kw{num\_drives} 
 normal drives; \kw{num\_drives} must be at least 1, in which case 
@@ -1171,13 +1192,13 @@ that is nothing but the sum of an array of \kw{single}
 template drive callers. 
 They are entered as follows:
 \begin{verbatim}
-    <tpl_drive_caller> :: = {
-            single , <entity> , <drive_caller> 
-        |
-            array , <num_template_drive_callers> ,
-                    <entity> , <drive_caller>
-                    [ , <entity> , <drive_caller> [ , ... ] ]
-        }
+    <tpl_drive_caller> ::= single ,
+        <entity> , <drive_caller> 
+
+    <tpl_drive_caller> ::= array ,
+        <num_template_drive_callers> ,
+        <entity> , <drive_caller>
+        [ , <entity> , <drive_caller> [ , ... ] ]
 \end{verbatim}
 where \kw{entity} is a constant of the expected type (scalar, \kw{3 x 1} 
 vector, \kw{6 x 1} vector are the types currently defined, but, since 
@@ -1200,7 +1221,8 @@ at least a \kw{friction model} and of a \kw{shape function}.
 \subsection{Friction models}
 The \kw{friction model} input format is:
 \begin{verbatim}
-    <friction_model> ::= <friction_type> , <friction_arglist>
+    <friction_model> ::= <friction_type> ,
+        <friction_arglist>
 \end{verbatim}
 Currently implemented friction models are:
 \begin{enumerate}
@@ -1210,8 +1232,13 @@ Currently implemented friction models are:
     Friedhelm Altpeter, Single State Elasto-Plastic Friction Models,
     IEEE Transactions on Automatic Control, June 2002. The input format is:
     \begin{verbatim}
-    <friction_arglist> ::= <sigma0>, <sigma1>, <sigma2>, <kappa>,
-                               <friction_function>
+    <friction_model> ::= modlugre
+    <friction_arglist> ::=
+        <sigma0>,
+        <sigma1>,
+        <sigma2>,
+        <kappa>,
+        <friction_function>
     <sigma0> ::= <const_value>
     <sigma1> ::= <const_value>
     <sigma2> ::= <const_value>
@@ -1221,10 +1248,13 @@ Currently implemented friction models are:
     This is a Coulomb model with viscous friction and
     internal states to resolve stick/slip conditions.
     \begin{verbatim}
-    <friction_arglist> ::= [sigma2,] [vel_ratio,]
-                               <friction_function>
-    <sigma2> ::= sigma2 , <const_value>
-    <vel_ratio> ::= velocity ratio , <const_value>
+    <friction_model> ::= discrete coulomb
+    <friction_arglist> ::=
+        [ sigma2 , <sigma2> , ]
+        [ velocity ratio , <vel_ratio> , ]
+        <friction_function>
+    <sigma2> ::= <const_value>
+    <vel_ratio> ::= <const_value>
     <friction_function> ::= <ScalarFunction>
     \end{verbatim}
     where \kw{sigma2} gives the viscous friction;
@@ -1236,14 +1266,20 @@ as a function of sliding velocity.
 \subsection{Shape functions}
 A \kw{shape function} input format is:
 \begin{verbatim}
-    <shape_function> ::= <shape_function_type> , <shape_function_arglist>
+    <shape_function> ::= <shape_function_type> ,
+        <shape_function_arglist>
 \end{verbatim}
 Currently implemented friction models are:
 \begin{enumerate}
     \item \kw{simple}\\
     This shape function is equal to one. It does not need arguments.
+    \begin{verbatim}
+    <shape_function> ::= simple
+    <shape_function_arglist> ::=
+    \end{verbatim}
     \item \kw{simple plane hinge}
     \begin{verbatim}
+    <shape_function> ::= simple plane hinge
     <shape_function_arglist> ::= <radius>
     <radius> ::= <const_value>
     \end{verbatim}
@@ -1256,30 +1292,38 @@ The \kw{shape} entities are objects that return a value depending on one
 At present, only 1D shapes are used, by aerodynamic elements.
 A \kw{shape} input format is:
 \begin{verbatim}
-    <shape_1D> ::= <shape_type> , <shape_arglist>
+    <shape_1D> ::= <shape_type> ,
+        <shape_arglist>
 \end{verbatim}
 The shapes currently available are:
 \begin{enumerate}
     \item \kw{const}
     \begin{verbatim}
+    <shape_type> ::= const
     <shape_arglist> ::= <const_value>
     \end{verbatim}
     \item \kw{linear}
     \begin{verbatim}
-    <shape_arglist> ::= <value_at_-1> , 
-                        <value_at_1>
+    <shape_type> ::= linear
+    <shape_arglist> ::=
+        <value_at_-1> , 
+        <value_at_1>
     \end{verbatim}
     \item \kw{piecewise linear}
     \begin{verbatim}
-    <shape_arglist> ::= <number_of_points> , 
-                        <abscissa> , <value>
-                        [ , ... ]
+    <shape_type> ::= piecewise linear
+    <shape_arglist> ::=
+        <number_of_points> , 
+            <abscissa> , <value>
+            [ , ... ]
     \end{verbatim}
     \item \kw{parabolic}
     \begin{verbatim}
-    <shape_arglist> ::= <value_at_-1> , 
-                        <value_at_0> , 
-                        <value_at_1>
+    <shape_type> ::= parabolic
+    <shape_arglist> ::=
+        <value_at_-1> , 
+        <value_at_0> , 
+        <value_at_1>
     \end{verbatim}
 \end{enumerate}
 This form of input has been chosen since, being the shapes mainly used to
@@ -1311,8 +1355,7 @@ allows to define constitutive laws stand-alone, and attach them
 to the elements by means of the following mechanism:
 \begin{verbatim}
     <constitutive_law_input> ::=
-        { <constitutive_law_definition>
-        | <constitutive_law_reference> }
+        { <constitutive_law_definition> | <constitutive_law_reference> }
 
     <constitutive_law_reference> ::= reference , <label>
 \end{verbatim}
@@ -1355,10 +1398,9 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 The contitutive laws are entered as follows:
 \begin{verbatim}
     <const_law> ::= <specific_const_law>                        
-            [ , prestress, (entity) <prestress>
-            [ , prestrain, (entity_tpl_driver) <prestrain> ] ]
-    <specific_const_law> ::= <const_law_name> , 
-                             <const_law_data>
+        [ , prestress, (entity) <prestress>
+        [ , prestrain, (entity_tpl_driver) <prestrain> ] ]
+    <specific_const_law> ::= <const_law_name> , <const_law_data>
 \end{verbatim}
 where \kw{const\_law\_name} is the name of the constitutive law and
 \kw{const\_law\_data} depend on the specific constitutive law. 
@@ -1373,7 +1415,7 @@ entered as follows:
 \subsection{Linear elastic, linear elastic isotropic}
 \begin{verbatim}
     <specific_const_law> ::= linear elastic [ isotropic ] , 
-                             (scalar) <stiffness>
+        (scalar) <stiffness>
 \end{verbatim}
 the isotropic stiffness coefficient
   
@@ -1381,7 +1423,7 @@ the isotropic stiffness coefficient
 \subsection{Linear elastic generic}
 \begin{verbatim}
     <specific_const_law> ::= linear elastic generic ,  
-                             (derivative_of_entity) <stiffness>
+        (derivative_of_entity) <stiffness>
 \end{verbatim}
 the stiffness matrix. In case of 1D, the type is scalar, 
 and there is no distinction between \kw{generic} and \kw{isotropic}, 
@@ -1403,7 +1445,7 @@ the axial strain, $ \varepsilon_1 $, by means of
 \subsection{Log elastic}
 \begin{verbatim}
     <specific_const_law> ::= log elastic ,
-                             (derivative_of_entity) <stiffness>      
+        (derivative_of_entity) <stiffness>      
 \end{verbatim}
 this is defined only for scalars. The force is defined as:
 \begin{displaymath}
@@ -1413,19 +1455,19 @@ this is defined only for scalars. The force is defined as:
 \subsection{Linear elastic bi-stop generic}
 \begin{verbatim}
     <specific_const_law> ::= linear elastic bistop,
-                             (derivative_of_entity) <stiffness> ,
-                             [ initial state , { inactive | active } , ]
-                             (DriveCaller)<activating_condition> ,
-                             (DriveCaller)<deactivating_condition>
+        (derivative_of_entity) <stiffness> ,
+        [ initial state , { inactive | active } , ]
+        (DriveCaller)<activating_condition> ,
+        (DriveCaller)<deactivating_condition>
 \end{verbatim}
   
 \subsection{Double linear elastic}
 \begin{verbatim}
     <specific_const_law> ::= double linear elastic ,
-                             (scalar) <stiffness_1> ,
-                             (scalar) <upper_strain> ,
-                             (scalar) <lower_strain> ,
-                             (scalar) <stiffness_2>
+        (scalar) <stiffness_1> ,
+        (scalar) <upper_strain> ,
+        (scalar) <lower_strain> ,
+        (scalar) <stiffness_2>
 \end{verbatim}
 this is defined for scalar and \kw{3 x 1} vectors. In the scalar case the
 meaning of the entries is straightforward, while in case of \kw{3 x 1} vectors,
@@ -1436,8 +1478,8 @@ used.
 \subsection{Isotropic hardening elastic}
 \begin{verbatim}
     <specific_const_law> ::= isotropic hardening elastic ,
-                             (scalar) <stiffness> ,
-                             (scalar) <reference_strain>
+        (scalar) <stiffness> ,
+        (scalar) <reference_strain>
 \end{verbatim}
 this constitutive law is defined as follows:
 \begin{displaymath}
@@ -1455,7 +1497,7 @@ quasi-linear for higher $ \varepsilon$s
 \subsection{Linear viscous, linear viscous isotropic}
 \begin{verbatim}
     <specific_const_law> ::= linear viscous [ isotropic ] , 
-                             (scalar) <viscosity_coefficient>
+        (scalar) <viscosity_coefficient>
 \end{verbatim}
 the linear viscous coefficient. \\
 {\em 
@@ -1466,7 +1508,7 @@ the linear viscous coefficient. \\
 \subsection{Linear viscous generic}
 \begin{verbatim}
     <specific_const_law> ::= linear viscous generic , 
-                             (derivative_of_entity) <viscosity_matrix>
+        (derivative_of_entity) <viscosity_matrix>
 \end{verbatim}
 the linear viscous matrix. \\
 {\em 
@@ -1477,29 +1519,29 @@ the linear viscous matrix. \\
 \subsection{Linear viscoelastic, linear viscoelastic isotropic}
 \begin{verbatim}
     <specific_const_law> ::= linear viscoelastic [ isotropic ] ,
-                             (scalar) <stiffness> ,
-                             { (scalar) <viscosity_coefficient>
-                             | proportional, (scalar) <factor> }
+        (scalar) <stiffness> ,
+        { (scalar) <viscosity_coefficient>
+        | proportional, (scalar) <factor> }
 \end{verbatim}
 the isotropic stiffness and viscosity coefficients
   
 \subsection{Linear viscoelastic generic}
 \begin{verbatim}
     <specific_const_law> ::= linear viscoelastic generic ,  
-                             (derivative_of_entity) <stiffness> ,
-                             { (derivative_of_entity) <viscosity_matrix> 
-                             | proportional, (scalar) <factor> }
+        (derivative_of_entity) <stiffness> ,
+        { (derivative_of_entity) <viscosity_matrix> 
+        | proportional, (scalar) <factor> }
 \end{verbatim}
 the linear stiffness and viscosity matrices
   
 \subsection{Double linear viscoelastic}
 \begin{verbatim}
     <specific_const_law> ::= double linear viscoelastic ,
-                             (scalar) <stiffness_1> ,
-                             (scalar) <upper_strain> ,
-                             (scalar) <lower_strain> ,
-                             (scalar) <stiffness_2> ,
-                             (scalar) <viscosity_coefficient>
+        (scalar) <stiffness_1> ,
+        (scalar) <upper_strain> ,
+        (scalar) <lower_strain> ,
+        (scalar) <stiffness_2> ,
+        (scalar) <viscosity_coefficient>
 \end{verbatim}
 this is analogous to the \kw{double linear elastic} constitutive law,
 except for the isotropic viscosity term.
@@ -1507,10 +1549,10 @@ except for the isotropic viscosity term.
 \subsection{Turbulent viscoelastic}
 \begin{verbatim}
     <specific_const_law> ::= turbulent viscoelastic ,
-                             (scalar) <stiffness> ,
-                             (scalar) <parabolic_viscous_coefficient>
-                             [ , (scalar) <treshold> 
-                                 [ , (scalar) <linear_viscous_coefficient> ] ]
+        (scalar) <stiffness> ,
+        (scalar) <parabolic_viscous_coefficient>
+        [ , (scalar) <treshold> 
+            [ , (scalar) <linear_viscous_coefficient> ] ]
 \end{verbatim}
 the constitutive law has the form:
 \begin{displaymath}
@@ -1535,11 +1577,11 @@ as observed in some fluids at intermediate Reynolds number.
 \subsection{Linear viscoelastic bi-stop generic}
 \begin{verbatim}
     <specific_const_law> ::= linear viscoelastic bistop,
-                             (derivative_of_entity) <stiffness> ,
-                             (derivative_of_entity) <viscosity_coefficient> ,
-                             [ initial state , { inactive | active } , ]
-                             (DriveCaller)<activating_condition> ,
-                             (DriveCaller)<deactivating_condition>
+        (derivative_of_entity) <stiffness> ,
+        (derivative_of_entity) <viscosity_coefficient> ,
+        [ initial state , { inactive | active } , ]
+        (DriveCaller)<activating_condition> ,
+        (DriveCaller)<deactivating_condition>
 \end{verbatim}
   
 \subsection{GRAALL damper}
