@@ -195,9 +195,11 @@ class Orifice : virtual public Elem, public HydraulicElem {
   
    doublereal CriticJump;
    doublereal delta;
+   doublereal Cd;
    doublereal flow;  /* utilizzato per l'output */
    doublereal vel;   /* utilizzato per l'output */
    doublereal Re;    /* utilizzato per l'output */
+   bool turbulent;
       
  public:
    Orifice(unsigned int uL, const DofOwner* pD,

@@ -413,223 +413,220 @@ Orifice::Orifice(unsigned int uL, const DofOwner* pDO,
 HydraulicElem(uL, pDO, hf, fOut),
 pNode1(p1), pNode2(p2),
 diameter(Dh), area_diaf(A_diaf),
-area_pipe(A_pipe),  ReCr(ReCr)
+area_pipe(A_pipe),  ReCr(ReCr), turbulent(false)
 {
-   ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
-   ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
-   ASSERT(Dh > DBL_EPSILON);
-   ASSERT(A_diaf > DBL_EPSILON);
-   ASSERT(A_pipe > DBL_EPSILON);
+	ASSERT(pNode1 != NULL);
+	ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
+	ASSERT(pNode2 != NULL);
+	ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
+	ASSERT(Dh > DBL_EPSILON);
+	ASSERT(A_diaf > DBL_EPSILON);
+	ASSERT(A_pipe > DBL_EPSILON);
    
-   /* se |p1-p2| < CriticJump avrò sicuramente moto laminare se no turbolento */
+	/* se |p1-p2| < CriticJump avrò sicuramente moto laminare se no turbolento */
    
-   viscosity = HF->dGetViscosity();
-   delta = .2;            /* numero adimensionale Cd=delta*sqrt(Reynolds) */
-   doublereal density = HF->dGetDensity((pNode2->dGetX()+pNode1->dGetX())/2.);
-   CriticJump = area_pipe*ReCr*pow(viscosity/(diameter*delta), 2.)
-     /(2.*density*area_diaf);   
+	viscosity = HF->dGetViscosity();
+	/*
+	 * Merritt, pp. 43-45:
+	 *
+	 * delta = 0.2 for a sharp-edged round orifice
+	 * delta = 0.157 for a sharp-edged slit orifice
+	 */
+	delta = 0.2;
+	// ReCr = pow(0.611/delta, 2);
+	doublereal density = HF->dGetDensity((pNode2->dGetX()+pNode1->dGetX())/2.);
+	CriticJump = area_pipe*ReCr*pow(viscosity/(diameter*delta), 2.)/(2.*density*area_diaf);   
+
+	/* calcolo del Cd */
+      
+	/* Cc = funzione delle due aree; */
+	doublereal rapp = area_diaf/area_pipe;
+	/* parametro adimensionale in funzione del rapporto area_diaf/area_pipe */
+	doublereal Cc = (((.4855*rapp-.4971)*rapp+.158)*rapp+.1707)*rapp+.6005;
+      
+	doublereal base = Cc*rapp;
+	doublereal rad = 1.-base*base;
+	if (rad < 1.e3*DBL_EPSILON) {
+		silent_cerr("Orifice(" << GetLabel() << "): error computing Cd" << std::endl);
+		THROW(ErrGeneric());
+	}
+
+	doublereal Cv = .98; /* costante adimensionale */
+	Cd = Cv*Cc/sqrt(rad);
 }
 
 Orifice::~Orifice(void)
 {
-   NO_OP;
+	NO_OP;
 }
    
 /* Tipo di elemento idraulico (usato solo per debug ecc.) */
-HydraulicElem::Type Orifice::GetHydraulicType(void) const 
+HydraulicElem::Type
+Orifice::GetHydraulicType(void) const 
 {
-   return HydraulicElem::ORIFICE;
+	return HydraulicElem::ORIFICE;
 }
 
 /* Contributo al file di restart */
-std::ostream& Orifice::Restart(std::ostream& out) const
+std::ostream&
+Orifice::Restart(std::ostream& out) const
 {
-   return out << "Orifice not implemented yet!" << std::endl;
+	return out << "Orifice not implemented yet!" << std::endl;
 }
    
-unsigned int Orifice::iGetNumDof(void) const 
+unsigned int
+Orifice::iGetNumDof(void) const 
 {
-   return 0;
+	return 0;
 }
    
-DofOrder::Order Orifice::GetDofType(unsigned int i) const {
-   std::cerr << "Orifice has no dofs!" << std::endl;
-   THROW(ErrGeneric());
+DofOrder::Order
+Orifice::GetDofType(unsigned int i) const
+{
+	std::cerr << "Orifice has no dofs!" << std::endl;
+	THROW(ErrGeneric());
 }
 
-void Orifice::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-   *piNumRows = 2; 
-   *piNumCols = 2; 
+void
+Orifice::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
+	*piNumRows = 2; 
+	*piNumCols = 2; 
 }
-     
+
 VariableSubMatrixHandler& 
 Orifice::AssJac(VariableSubMatrixHandler& WorkMat,
-		  doublereal dCoef,
-		  const VectorHandler& XCurr, 
-		  const VectorHandler& XPrimeCurr)
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Orifice::AssJac()" << std::endl);
-   
-   FullSubMatrixHandler& WM = WorkMat.SetFull();
-   WM.Resize(2, 2);
-   
-   integer iNode1RowIndex = pNode1->iGetFirstRowIndex()+1;
-   integer iNode2RowIndex = pNode2->iGetFirstRowIndex()+1;
-   integer iNode1ColIndex = pNode1->iGetFirstColIndex()+1;
-   integer iNode2ColIndex = pNode2->iGetFirstColIndex()+1;
-   
-   WM.PutRowIndex(1, iNode1RowIndex);
-   WM.PutRowIndex(2, iNode2RowIndex);
-   WM.PutColIndex(1, iNode1ColIndex);
-   WM.PutColIndex(2, iNode2ColIndex);
-   
-   doublereal p1 = pNode1->dGetX();
-   doublereal p2 = pNode2->dGetX();
-   doublereal jumpPres = fabs(p1-p2);
+	DEBUGCOUT("Entering Orifice::AssJac()" << std::endl);
 
-   doublereal Jac = 0.;
-   doublereal Cv = .98; /* costante adimensionale */
-   doublereal Cc;       /* parametro adimensionale in funzione del rapporto area_diaf/area_pipe */
-   doublereal Cd;
-   doublereal rad;
-   doublereal density = HF->dGetDensity((p1+p2)/2.);
-   
-   if (jumpPres < CriticJump) {
-      /*  moto sicuramente laminare (jacobiano) */
-      Jac = -density*2.*(delta*delta)*diameter*area_diaf/viscosity;
-   } else {
-      /*  moto sicuramente turbolento  (jacobiano) */
-      /* calcolo del Cd */
-      /* Cc= funzione delle due aree; */
-      doublereal rapp = area_diaf/area_pipe;
-      doublereal rapp2 = rapp*rapp;
-      doublereal rapp3 = rapp2*rapp;
-      doublereal rapp4 = rapp3*rapp;
-      Cc = .4855*rapp4-.4971*rapp3+.158*rapp2+.1707*rapp+.6005;
+	FullSubMatrixHandler& WM = WorkMat.SetFull();
+	WM.Resize(2, 2);
 
-      rad = 1.-pow(Cc*area_diaf/area_pipe, 2.);
-	   
-      if (rad < 1.e3*DBL_EPSILON) {		  
-	 std::cerr << "error in orifice: Cd" << std::endl;
-	 THROW(ErrGeneric());
-      }
+	integer iNode1RowIndex = pNode1->iGetFirstRowIndex()+1;
+	integer iNode2RowIndex = pNode2->iGetFirstRowIndex()+1;
+	integer iNode1ColIndex = pNode1->iGetFirstColIndex()+1;
+	integer iNode2ColIndex = pNode2->iGetFirstColIndex()+1;
 
-      Cd = Cv*Cc/sqrt(rad);
-      Jac = -density*Cd*area_diaf/(sqrt(2.*jumpPres/density)*density);
-   }
+	WM.PutRowIndex(1, iNode1RowIndex);
+	WM.PutRowIndex(2, iNode2RowIndex);
+	WM.PutColIndex(1, iNode1ColIndex);
+	WM.PutColIndex(2, iNode2ColIndex);
 
-   /* Jac *= dCoef; */
-   
-   WM.PutCoef(1, 1, Jac);
-   WM.PutCoef(1, 2, -Jac);
-   WM.PutCoef(2, 1, -Jac);
-   WM.PutCoef(2, 2, Jac);
-   
-   return WorkMat;
+	doublereal p1 = pNode1->dGetX();
+	doublereal p2 = pNode2->dGetX();
+	doublereal jumpPres = fabs(p1-p2);
+
+	doublereal Jac = 0.;
+	doublereal density = HF->dGetDensity((p1+p2)/2.);
+
+	if (jumpPres < CriticJump) {
+		/*  moto sicuramente laminare (jacobiano) */
+		Jac = -density*2.*(delta*delta)*diameter*area_diaf/viscosity;
+
+	} else {
+		/*  moto sicuramente turbolento  (jacobiano) */
+		Jac = -Cd*area_diaf/sqrt(2.*jumpPres/density);
+	}
+
+	/* Jac *= dCoef; */
+
+	WM.PutCoef(1, 1, Jac);
+	WM.PutCoef(1, 2, -Jac);
+	WM.PutCoef(2, 1, -Jac);
+	WM.PutCoef(2, 2, Jac);
+
+	return WorkMat;
 }
 
-SubVectorHandler& Orifice::AssRes(SubVectorHandler& WorkVec,
-				    doublereal dCoef,
-				    const VectorHandler& XCurr, 
-				    const VectorHandler& XPrimeCurr)
+SubVectorHandler&
+Orifice::AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Orifice::AssRes()" << std::endl);
-   
-   WorkVec.Resize(2);
-   
-   integer iNode1RowIndex = pNode1->iGetFirstRowIndex()+1;
-   integer iNode2RowIndex = pNode2->iGetFirstRowIndex()+1;
-   
-   doublereal p1 = pNode1->dGetX();
-   doublereal p2 = pNode2->dGetX();
-   
-   doublereal jumpPres = fabs(p1-p2);
+	DEBUGCOUT("Entering Orifice::AssRes()" << std::endl);
+ 
+	WorkVec.Resize(2);
 
-   doublereal Cv = .98;
-   doublereal Cc;  /* = .6;   valori inutili */
-   doublereal Cd;  /* = .1;   valori inutili */
-   doublereal rad; /* = 1.;   valori inutili */
-   doublereal density = HF->dGetDensity((p1+p2)/2.);
-   
-   if (jumpPres < CriticJump) {
-      /*  moto sicuramente laminare (residuo) */
-#ifdef HYDR_DEVEL
-      DEBUGCOUT("we are in orifice laminar" << std::endl);
-#endif
-      flow = density*2.*(delta*delta)*diameter*area_diaf*(p1-p2)/viscosity;
-   } else {
-      /*  moto sicuramente turbolento  (residuo) */
-#ifdef HYDR_DEVEL
-      DEBUGCOUT("we are in orifice turbulent:" << std::endl);
-#endif
-      /* calcolo del Cd */
-      
-      /* Cc= funzione delle due aree; */
-      doublereal rapp = area_diaf/area_pipe;
-      doublereal rapp2 = rapp*rapp;
-      doublereal rapp3 = rapp2*rapp;
-      doublereal rapp4 = rapp3*rapp;
-      Cc = .4855*rapp4-.4971*rapp3+.158*rapp2+.1707*rapp+.6005;
-      /* Cc = (((.4855*rapp-.4971)*rapp+.158)*rapp+.1707)*rapp+.6005; */
-      
-      doublereal base= Cc*area_diaf/area_pipe;
-      rad = 1.-base*base;
-      if (rad < 1.e3*DBL_EPSILON) {		  
-	 std::cerr << "error in orifice: Cd" << std::endl;
-	 THROW(ErrGeneric());
-      }	   
-		      
-      Cd = Cv*Cc/sqrt(rad);
-      flow = density*Cd*area_diaf*copysign(sqrt(2.*jumpPres/density), p1-p2);
-   }
-    
-   vel = flow/(density*area_pipe);
-   Re = fabs(density*vel*diameter/viscosity);
-   
-#ifdef HYDR_DEVEL
-   DEBUGCOUT("jumpPres:       " << jumpPres << std::endl);
-   DEBUGCOUT("density:        " << density << std::endl);
-   DEBUGCOUT("Cd:             " << Cd << std::endl);
-   DEBUGCOUT("p1:             " << p1 << std::endl);
-   DEBUGCOUT("p2:             " << p2 << std::endl);
-   DEBUGCOUT("Cc:             " << Cc << std::endl);
-   DEBUGCOUT("CriticJump:     " << CriticJump << std::endl);
-   DEBUGCOUT("delta:          " << delta << std::endl);
-   DEBUGCOUT("viscosity:      " << viscosity << std::endl);
-   DEBUGCOUT("rad:            " << rad << std::endl);
-   DEBUGCOUT("area_pipe:      " << area_pipe << std::endl);
-   DEBUGCOUT("area_diaf:      " << area_diaf << std::endl);
-   DEBUGCOUT("RES area_pipe : " << area_pipe << std::endl);
-   DEBUGCOUT("RES flow:       " << flow << std::endl);
-   DEBUGCOUT("RES Reynolds:   " << Re << std::endl);
-   DEBUGCOUT("******************************************" << std::endl);
-   DEBUGCOUT("RES velocita': " << vel << std::endl);
-   DEBUGCOUT("    se positiva il fluido va dal nodo 1 al nodo 2" << std::endl);
-   DEBUGCOUT("*********************************************" << std::endl);
-#endif
-   
-   WorkVec.PutItem(1, iNode1RowIndex, flow);	
-   WorkVec.PutItem(2, iNode2RowIndex, -flow);
+	integer iNode1RowIndex = pNode1->iGetFirstRowIndex()+1;
+	integer iNode2RowIndex = pNode2->iGetFirstRowIndex()+1;
 
-   return WorkVec;
+	doublereal p1 = pNode1->dGetX();
+	doublereal p2 = pNode2->dGetX();
+   
+	doublereal jumpPres = fabs(p1-p2);
+
+	doublereal density = HF->dGetDensity((p1+p2)/2.);
+
+	if (jumpPres < CriticJump) {
+		/*  moto sicuramente laminare (residuo) */
+#ifdef HYDR_DEVEL
+		DEBUGCOUT("we are in orifice laminar" << std::endl);
+#endif
+		flow = density*2.*(delta*delta)*diameter*area_diaf*(p1-p2)/viscosity;
+		turbulent = false;
+
+	} else {
+		/*  moto sicuramente turbolento  (residuo) */
+#ifdef HYDR_DEVEL
+		DEBUGCOUT("we are in orifice turbulent:" << std::endl);
+#endif
+		flow = density*Cd*area_diaf*copysign(sqrt(2.*jumpPres/density), p1-p2);
+		turbulent = true;
+	}
+
+	vel = flow/(density*area_pipe);
+	Re = fabs(density*vel*diameter/viscosity);
+
+#ifdef HYDR_DEVEL
+	DEBUGCOUT("jumpPres:       " << jumpPres << std::endl);
+	DEBUGCOUT("density:        " << density << std::endl);
+	DEBUGCOUT("Cd:             " << Cd << std::endl);
+	DEBUGCOUT("p1:             " << p1 << std::endl);
+	DEBUGCOUT("p2:             " << p2 << std::endl);
+	DEBUGCOUT("Cc:             " << Cc << std::endl);
+	DEBUGCOUT("CriticJump:     " << CriticJump << std::endl);
+	DEBUGCOUT("delta:          " << delta << std::endl);
+	DEBUGCOUT("viscosity:      " << viscosity << std::endl);
+	DEBUGCOUT("rad:            " << rad << std::endl);
+	DEBUGCOUT("area_pipe:      " << area_pipe << std::endl);
+	DEBUGCOUT("area_diaf:      " << area_diaf << std::endl);
+	DEBUGCOUT("RES area_pipe : " << area_pipe << std::endl);
+	DEBUGCOUT("RES flow:       " << flow << std::endl);
+	DEBUGCOUT("RES Reynolds:   " << Re << std::endl);
+	DEBUGCOUT("******************************************" << std::endl);
+	DEBUGCOUT("RES velocita': " << vel << std::endl);
+	DEBUGCOUT("    se positiva il fluido va dal nodo 1 al nodo 2" << std::endl);
+	DEBUGCOUT("*********************************************" << std::endl);
+#endif
+
+	WorkVec.PutItem(1, iNode1RowIndex, flow);	
+	WorkVec.PutItem(2, iNode2RowIndex, -flow);
+
+	return WorkVec;
 }
 
-void Orifice::Output(OutputHandler& OH) const
+void
+Orifice::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) { 
-      std::ostream& out = OH.Hydraulic();
-      out << std::setw(8) << GetLabel() << " " 
-        << vel << " " 
-	<< flow << " " 
-	<< Re << std::endl;
-   }
+	if (fToBeOutput()) { 
+		std::ostream& out = OH.Hydraulic();
+		out << std::setw(8) << GetLabel()	/*  1 */
+			<< " " << vel			/*  2 */
+			<< " " << flow			/*  3 */
+			<< " " << Re			/*  4 */
+			<< " " << turbulent		/*  5 */
+			<< std::endl;
+	}
 }
 
-void Orifice::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const 
+void
+Orifice::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const 
 {
-   NO_OP;
+	NO_OP;
 }
 
 /* Orifice - end */
