@@ -98,7 +98,7 @@ static __sighandler_t mbdyn_sh_int = SIG_DFL;
 static __sighandler_t mbdyn_sh_hup = SIG_DFL;
 
 static void
-modify_final_time_handler(int signum)
+really_exit_handler(int signum)
 {
    	::mbdyn_keep_going = 0;
    	switch (signum) {
@@ -114,6 +114,15 @@ modify_final_time_handler(int signum)
       		signal(signum, ::mbdyn_sh_hup);
       		break;
    	}
+
+	THROW(ErrGeneric());
+}
+
+static void
+modify_final_time_handler(int signum)
+{
+   	::mbdyn_keep_going = 0;
+      	signal(signum, really_exit_handler);
 }
 #endif /* HAVE_SIGNAL */
 
