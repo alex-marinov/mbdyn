@@ -1103,7 +1103,6 @@ if test $ol_with_chaco != no ; then
                         AC_MSG_WARN([Could not locate Chaco; not supported])
                 fi
         fi
-	CHACO_LIBS="-lchaco"
 else
 	AC_MSG_WARN([Chaco not supported!])
 fi
