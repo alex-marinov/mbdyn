@@ -62,8 +62,7 @@ PlaneHingeJoint::~PlaneHingeJoint(void)
 void
 PlaneHingeJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
-	Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
-	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
+	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h));
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta = v.dGet(3);
@@ -74,7 +73,7 @@ PlaneHingeJoint::AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP)
 {
 	Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
-			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr());
+			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta += v.dGet(3);
@@ -747,18 +746,15 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
    switch (i) {
     case 1: {
 	Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
-			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr());
+			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
 	Vec3 v(MatR2EulerAngles(RTmp));
 
        return dTheta + v.dGet(3);
     }
       
     case 2: {
-       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
-       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
-   
-       Mat3x3 R2TmpT(R2Tmp.Transpose());
-       Vec3 v(R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()));
+       Mat3x3 R2TmpT((pNode2->GetRCurr()*R2h).Transpose());
+       Vec3 v(R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
        
        return v.dGet(3);
     }
@@ -798,8 +794,7 @@ PlaneRotationJoint::~PlaneRotationJoint(void)
 void
 PlaneRotationJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
-	Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
-	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
+	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h));
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta = v.dGet(3);
@@ -810,7 +805,7 @@ PlaneRotationJoint::AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP)
 {
 	Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
-			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr());
+			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta += v.dGet(3);
@@ -1387,18 +1382,15 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
    switch (i) {
     case 1: {
 	Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
-			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr());
+			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
 	Vec3 v(MatR2EulerAngles(RTmp));
 
        return dTheta + v.dGet(3);
     }
       
     case 2: {
-       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
-       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
-   
-       Mat3x3 R2TmpT(R2Tmp.Transpose());
-       Vec3 v(R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()));
+       Mat3x3 R2TmpT((pNode2->GetRCurr()*R2h).Transpose());
+       Vec3 v(R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
        
        return v.dGet(3);
     }
@@ -1442,8 +1434,7 @@ AxialRotationJoint::~AxialRotationJoint(void)
 void
 AxialRotationJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
-	Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
-	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
+	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h));
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta = v.dGet(3);
@@ -1454,7 +1445,7 @@ AxialRotationJoint::AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP)
 {
 	Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
-			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr());
+			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta += v.dGet(3);
@@ -2169,7 +2160,7 @@ AxialRotationJoint::dGetPrivData(unsigned int i) const
 	switch (i) {
 	case 1: {
 		Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
-				*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr());
+				*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr()*R2h);
 		Vec3 v(MatR2EulerAngles(RTmp));
 
 		return dTheta + v.dGet(3);
@@ -2213,8 +2204,7 @@ PlanePinJoint::~PlanePinJoint(void)
 void
 PlanePinJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
-	Mat3x3 R(pNode->GetRCurr()*Rh);
-	Mat3x3 RTmp(R0.Transpose()*R);
+	Mat3x3 RTmp(R0.Transpose()*(pNode->GetRCurr()*Rh));
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta = v.dGet(3);
@@ -2224,7 +2214,7 @@ void
 PlanePinJoint::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
-	Mat3x3 RTmp(pNode->GetRPrev().Transpose()*pNode->GetRCurr());
+	Mat3x3 RTmp(pNode->GetRPrev().Transpose()*pNode->GetRCurr()*Rh);
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta += v.dGet(3);
@@ -2711,20 +2701,17 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
    
    switch (i) {
     case 1: {
-	Mat3x3 RTmp(pNode->GetRPrev().Transpose()*pNode->GetRCurr());
+	Mat3x3 RTmp(pNode->GetRPrev().Transpose()*pNode->GetRCurr()*Rh);
 	Vec3 v(MatR2EulerAngles(RTmp));
 
        return dTheta + v.dGet(3);
     }
       
     case 2: {
-       Mat3x3 R(pNode->GetRCurr()*Rh);
-       Mat3x3 RTmp((R0).Transpose()*R);
-   
-       Mat3x3 RT(R.Transpose());
-       Vec3 v(RT*(pNode->GetWCurr()));
+       Mat3x3 RTmpT((pNode->GetRCurr()*Rh).Transpose());
+       Vec3 v(RTmpT*pNode->GetWCurr());
        
-       return -v.dGet(3);
+       return v.dGet(3);
     }
       
     default:
