@@ -133,7 +133,9 @@ Elem* ReadJoint(DataManager* pDM,
       "universal" "hinge",
       "universal" "pin",
       "plane" "hinge",
+      "revolute" "hinge",
       "plane" "pin",
+      "revolute" "pin",
       "axial" "rotation",
       "plane" "displacement",
       "plane" "displacement" "pin",
@@ -169,7 +171,9 @@ Elem* ReadJoint(DataManager* pDM,
       UNIVERSALHINGE,
       UNIVERSALPIN,
       PLANEHINGE,
+      REVOLUTEHINGE,
       PLANEPIN,
+      REVOLUTEPIN,
       AXIALROTATION,
       PLANEDISPLACEMENT,
       PLANEDISPLACEMENTPIN,
@@ -433,6 +437,7 @@ Elem* ReadJoint(DataManager* pDM,
 	* eventualmente con velocita' di rotazione imposta (AXIALROTATION) */
     case SPHERICALHINGE:
     case PLANEHINGE:
+    case REVOLUTEHINGE:
     case UNIVERSALHINGE:
     case AXIALROTATION:
     case PLANEDISPLACEMENT: {
@@ -513,7 +518,10 @@ Elem* ReadJoint(DataManager* pDM,
 	}
 	  
 	  /* allocazione e creazione cerniera piana */
-	case PLANEHINGE: {	
+	case PLANEHINGE:
+	   cerr << "deprecated 'plane hinge' name;"
+		   << " use 'revolute hinge' instead" << endl;
+	case REVOLUTEHINGE: {	
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlaneHingeJoint,
 				  PlaneHingeJoint(uLabel, pDO, pNode1, pNode2, 
@@ -568,6 +576,7 @@ Elem* ReadJoint(DataManager* pDM,
       
     case UNIVERSALPIN:
     case PLANEPIN:
+    case REVOLUTEPIN:
     case PLANEDISPLACEMENTPIN: {
        /* nodo collegato */
        unsigned int uNode = (unsigned int)HP.GetInt();	    
@@ -609,7 +618,10 @@ Elem* ReadJoint(DataManager* pDM,
        switch (CurrKeyWord) {
 	  
 	  /* allocazione e creazione cerniera piana */	     
-	case PLANEPIN: {
+	case PLANEPIN:
+		cerr << "deprecated 'plane pin' name;" 
+			<< " use 'revolute pin' instead" << endl;
+	case REVOLUTEPIN: {
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlanePinJoint,
 				  PlanePinJoint(uLabel, pDO, pNode,
