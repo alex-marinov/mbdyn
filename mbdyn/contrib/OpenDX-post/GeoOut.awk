@@ -3,6 +3,7 @@
 # -v INCR=<time step>		: time step (1.0)
 # -v START=<initial time>	: initial time (0.0)
 # -v SKIP=<skip>		: print every <skip> time steps
+# -v STOP=<stop>		: stop after <stop> time steps
 
 # Prints the labels
 function print_labels() {
@@ -17,12 +18,12 @@ function print_step() {
 	printf("attribute \"dep\" string \"positions\"\n");
 	printf("object \"TriadPositions%f\" class array type float rank 1 shape 3 items %d data follows\n", t, NumNodes);
 	for (i = 1; i <= NumNodes; i++) {
-		printf("\t%e %e %e\n", 
+		printf("\t%f %f %f\n", 
 			Positions[i,1], Positions[i,2], Positions[i,3]);
 	}
 	printf("object \"TriadCosines%f\" class array type float rank 1 shape 9 items %d data follows\n", t, NumNodes);
 	for (i = 1; i <= NumNodes; i++) {
-		printf("\t%e %e %e %e %e %e %e %e %e\n", 
+		printf("\t%f %f %f %f %f %f %f %f %f\n", 
 			Cosines[i,1], Cosines[i,2], Cosines[i,3], 
 			Cosines[i,4], Cosines[i,5], Cosines[i,6], 
 			Cosines[i,7], Cosines[i,8], Cosines[i,9]);
@@ -32,8 +33,16 @@ function print_step() {
 	printf("component \"positions\" \"TriadPositions%f\"\n", t);
 	printf("component \"cosines\" \"TriadCosines%f\"\n", t);
 	printf("component \"labels\" \"TriadLabels\"\n");
+	printf("object \"Beams2%f\" class field\n", t);
+	printf("component \"positions\" \"TriadPositions%f\"\n", t);
+	printf("component \"connections\" \"Beam2Connections\"\n");
+	printf("component \"cosines\" \"TriadCosines%f\"\n", t);
+	printf("component \"labels\" \"Beam2Labels\"\n");
+	printf("component \"nodelabels\" \"TriadLabels\"\n");
+	printf("component \"offsets\" \"Beam2Offsets\"\n");
 	printf("object \"MbdynSym%f\" class group\n", t);
 	printf("member \"OrientedTriads\" value \"OrientedTriads%f\"\n", t);
+	printf("member \"Beams2\" value \"Beams2%f\"\n", t);
 }
 # Prints the members of the group at the end
 function print_members() {
@@ -70,6 +79,13 @@ BEGIN {
 	if (SKIP != 0) {
 		Skip = SKIP;
 	}
+
+        # stop after STOP steps 
+        Stop = 10000000000000000000000000000000;
+        if (STOP != 0) {
+                Stop = STOP;
+        }
+
 }
 # Generic rule --- add here any specific check to filter out undesired labels
 $1 > 10 {
@@ -82,6 +98,10 @@ $1 > 10 {
 		if (!(blocks % Skip)) {
 			print_step();
 			Step++;
+		}
+		if (Step >= Stop) {
+			print_members();
+			exit;
 		}
 		blocks++;
 	}

@@ -4,9 +4,8 @@ object "TriadLabels" class array type int rank 1 shape 1 items 3 data follows
                15
 attribute "dep" string "positions"
 object "Beam2Connections" class array type int shape 2 items 2 data follows
- 0 1
- 1 2
-attribute "ref" string "positions"
+ 1 10
+ 10 15
 attribute "element type" string "lines"
 #
 #questo e' un commento
@@ -18,7 +17,7 @@ attribute "dep" string "connections"
 attribute "element type" string "lines"
 object "Beam2Offsets" class array type float shape 6 items 2 data follows
  0.1 0.0 0.2 0. 0. 0.15
- 0.0 0.0 0.0 1. 0. 0.
+ 0.0 0.0 0.0 0. 0. 0.
 attribute "dep" string "connections"
 #
 #questo e' un commento

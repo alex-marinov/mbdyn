@@ -1,0 +1,116 @@
+//
+// time: Wed Apr 28 08:38:01 1993
+
+//
+// version: 1.0.0
+//
+// Begin MDF
+// MODULE M3Mul
+// CATEGORY Vectors and Matrices
+// DESCRIPTION multiplies two 3x3 matrices; returns 3x3 matrix (1x9 row vector)
+// INPUT M30; value list or field; {[1,0,0,0,1,0,0,0,1]}; 3x3 matrix (1x9 row vector)
+// INPUT M31; value list or field; {[1,0,0,0,1,0,0,0,1]}; 3x3 matrix (1x9 row vector)
+// OUTPUT M3mul; value or value list or field; 3x3 matrix (1x9 row vector)
+// End MDF
+//
+//
+// comment: Network name: M3Mul.net
+// comment: Macro name: M3Mul
+// comment: Category: Vectors and Matrices
+// comment: Author: Chris Pelkie, Cornell Theory Center Visualization staff, chrisp@tc.cornell.edu
+// comment: Date last modified: 04/13/93
+// comment: Other required files: M3FromRowVectors.net (Vectors and Matrices macro)
+// comment: 
+// comment: M3Mul multiplies together 2 3x3 matrices (or 2 fields of 3x3 matrices) represented by M3 structures (1x9 row vectors) yielding a 3x3 matrix result (1x9 row vector, an M3) or a field of M3 structures. Standard matrix multiplication rules are employed.
+// comment: 
+// comment: See also:
+// comment: M2Mul (Vectors and Matrices macro)
+// comment: M4Mul (Vectors and Matrices macro)
+//
+// workspace: width = 1000, height = 1000
+// layout: snap = 0, width = 50, height = 50, align = C
+//
+macro M3Mul(
+        M30 = {[1,0,0,0,1,0,0,0,1]},
+        M31 = {[1,0,0,0,1,0,0,0,1]}) -> (
+        M3mul)
+{
+    //
+    // node Input[1]: x = 29, y = 29, inputs = 0, label = Input
+    // parameter: position = 1, name = 'M30', value = '{[1,0,0,0,1,0,0,0,1]}', descriptive = 0, description = '3x3 matrix (1x9 row vector)', required = 0
+    //
+    Input_1_out_1 = M30;
+    //
+    // node Input[2]: x = 175, y = 40, inputs = 0, label = Input
+    // parameter: position = 2, name = 'M31', value = '{[1,0,0,0,1,0,0,0,1]}', descriptive = 0, description = '3x3 matrix (1x9 row vector)', required = 0
+    //
+    Input_2_out_1 = M31;
+    //
+    // node Compute[1]: x = 21, y = 153, inputs = 3, label = Compute
+    // input[1]: type = 64, value = "[$0.0*$1.0 + $0.1*$1.3 + $0.2*$1.6,  $0.0*$1.1 + $0.1*$1.4 + $0.2*$1.7,  $0.0*$1.2 + $0.1*$1.5 + $0.2*$1.8]"
+    // expression: value = [a.0*b.0 + a.1*b.3 + a.2*b.6,  a.0*b.1 + a.1*b.4 + a.2*b.7,  a.0*b.2 + a.1*b.5 + a.2*b.8]
+    // name[2]: value = a
+    // name[3]: value = b
+    //
+    Compute_1_out_1 =
+        Compute(
+            Compute_1_in_1,
+            Input_1_out_1,
+            Input_2_out_1
+        ) [instance: 1];
+    //
+    // node Compute[2]: x = 90, y = 153, inputs = 3, label = Compute
+    // input[1]: type = 64, value = "[$0.3*$1.0 + $0.4*$1.3 + $0.5*$1.6,  $0.3*$1.1 + $0.4*$1.4 + $0.5*$1.7,  $0.3*$1.2 + $0.4*$1.5 + $0.5*$1.8]"
+    // expression: value = [a.3*b.0 + a.4*b.3 + a.5*b.6,  a.3*b.1 + a.4*b.4 + a.5*b.7,  a.3*b.2 + a.4*b.5 + a.5*b.8]
+    // name[2]: value = a
+    // name[3]: value = b
+    //
+    Compute_2_out_1 =
+        Compute(
+            Compute_2_in_1,
+            Input_1_out_1,
+            Input_2_out_1
+        ) [instance: 2];
+    //
+    // node Compute[3]: x = 159, y = 153, inputs = 3, label = Compute
+    // input[1]: type = 64, value = "[$0.6*$1.0 + $0.7*$1.3 + $0.8*$1.6,  $0.6*$1.1 + $0.7*$1.4 + $0.8*$1.7,  $0.6*$1.2 + $0.7*$1.5 + $0.8*$1.8]"
+    // expression: value = [a.6*b.0 + a.7*b.3 + a.8*b.6,  a.6*b.1 + a.7*b.4 + a.8*b.7,  a.6*b.2 + a.7*b.5 + a.8*b.8]
+    // name[2]: value = a
+    // name[3]: value = b
+    //
+    Compute_3_out_1 =
+        Compute(
+            Compute_3_in_1,
+            Input_1_out_1,
+            Input_2_out_1
+        ) [instance: 3];
+    //
+    // node M3FromRowVectors[1]: x = 51, y = 263, inputs = 3, label = M3FromRowVectors
+    //
+    M3FromRowVectors_1_out_1 =
+        M3FromRowVectors(
+            Compute_1_out_1,
+            Compute_2_out_1,
+            Compute_3_out_1
+        ) [instance: 1];
+    //
+    // node Output[1]: x = 97, y = 370, inputs = 1, label = Output
+    // parameter: position = 1, name = 'M3mul', value = ' ', descriptive = 0, description = '3x3 matrix (1x9 row vector)', required = 0
+    //
+    Output_1_in_1 = M3FromRowVectors_1_out_1;
+    M3mul = Output_1_in_1;
+}
+
+Compute_1_in_1 = "[$0.0*$1.0 + $0.1*$1.3 + $0.2*$1.6,  $0.0*$1.1 + $0.1*$1.4 + $0.2*$1.7,  $0.0*$1.2 + $0.1*$1.5 + $0.2*$1.8]";
+Compute_1_in_2 = NULL;
+Compute_1_in_3 = NULL;
+Compute_2_in_1 = "[$0.3*$1.0 + $0.4*$1.3 + $0.5*$1.6,  $0.3*$1.1 + $0.4*$1.4 + $0.5*$1.7,  $0.3*$1.2 + $0.4*$1.5 + $0.5*$1.8]";
+Compute_2_in_2 = NULL;
+Compute_2_in_3 = NULL;
+Compute_3_in_1 = "[$0.6*$1.0 + $0.7*$1.3 + $0.8*$1.6,  $0.6*$1.1 + $0.7*$1.4 + $0.8*$1.7,  $0.6*$1.2 + $0.7*$1.5 + $0.8*$1.8]";
+Compute_3_in_2 = NULL;
+Compute_3_in_3 = NULL;
+M3FromRowVectors_1_in_1 = NULL;
+M3FromRowVectors_1_in_2 = NULL;
+M3FromRowVectors_1_in_3 = NULL;
+Output_1_in_1 = NULL;
