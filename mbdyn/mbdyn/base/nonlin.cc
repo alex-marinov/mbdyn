@@ -108,17 +108,15 @@ NonlinearSolverTest::MakeTest(Solver *pS, const integer& Size,
 
 		/* FIXME: operazioni su altri dof */
 		
-	} else {
-
+	} else
 #endif /* USE_MPI */
+	{
 		ASSERT(Vec.iGetSize() == Size);
 
  	  	for (int iCntp1 = 1; iCntp1 <= Size; iCntp1++) {
 			TestOne(dRes, Vec, iCntp1);
 		}
-#ifdef USE_MPI
 	}
-#endif /* USE_MPI */
 
 	return TestPost(dRes);
 }

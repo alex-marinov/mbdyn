@@ -174,9 +174,9 @@ ppMyIntElems(NULL),
 iNumIntElems(0),
 ppMyNodes(NULL),
 iNumLocNodes(0),
-LocalDofs(NULL),
+pLocalDofs(NULL),
 iNumLocDofs(0),
-LocalIntDofs(NULL),
+pLocalIntDofs(NULL),
 iNumIntDofs(0),
 ppIntNodes(NULL),
 iNumIntNodes(0),
@@ -593,12 +593,12 @@ SchurDataManager::~SchurDataManager(void)
 		SAFEDELETEARR(ppIntNodes);
 	}
 
-	if (LocalDofs != NULL) {
-		SAFEDELETEARR(LocalDofs);
+	if (pLocalDofs != NULL) {
+		SAFEDELETEARR(pLocalDofs);
 	}
 
-	if (LocalIntDofs != NULL) {
-		SAFEDELETEARR(LocalIntDofs);
+	if (pLocalIntDofs != NULL) {
+		SAFEDELETEARR(pLocalIntDofs);
 	}
 
 	if (ppExpCntNodes != NULL) {
@@ -639,10 +639,10 @@ SchurDataManager::GetDofsList(DofType who) const
 {
 	switch(who) {
 	case LOCAL:
-		return LocalDofs;
+		return pLocalDofs;
 
 	case INTERNAL:
-		return LocalIntDofs;
+		return pLocalIntDofs;
 
 	case MYINTERNAL:
 		return pMyIntDofs;
@@ -946,12 +946,15 @@ SchurDataManager::CreatePartition(void)
 	integer iMaxInterfNodes = iDefaultMaxInterfNodes;
 	InterfNodes.pXadj = NULL;
 	InterfNodes.pAdjncy = NULL;
-	SAFENEWARR(InterfNodes.pXadj, int, DataCommSize+1);
+	SAFENEWARR(InterfNodes.pXadj, int, DataCommSize);
 	SAFENEWARR(ppMyNodes, Node*, 2*MyDim);
+	memset(InterfNodes.pXadj, 0, DataCommSize*sizeof(int));
+	memset(ppMyNodes, 0, 2*MyDim*sizeof(Node*));
 
 	while (true) {
-		InitList(InterfNodes.pXadj, DataCommSize+1, 0);
-		SAFENEWARR(InterfNodes.pAdjncy,int, DataCommSize*iMaxInterfNodes*8);
+		InitList(InterfNodes.pXadj, DataCommSize, 0);
+		SAFENEWARR(InterfNodes.pAdjncy, int, DataCommSize*iMaxInterfNodes*8);
+		memset(InterfNodes.pAdjncy, 0, DataCommSize*iMaxInterfNodes*8*sizeof(int));
 		InitList(InterfNodes.pAdjncy, DataCommSize*iMaxInterfNodes*8, ADJ_UNDEFINED);
 
 		iNumLocNodes = 0;
@@ -967,12 +970,12 @@ SchurDataManager::CreatePartition(void)
 				/* se uno dei nodi è connesso ad un elemento non appartenente
 				 * a questo processo e' un nodo di interfaccia */
 				for (int j = Vertices.pXadj[i]; j < Vertices.pXadj[i+1]; j++) {
-					if ((TmpPrc = pParAmgProcs[Vertices.pAdjncy[j]]) != MyRank) {
+					TmpPrc = pParAmgProcs[Vertices.pAdjncy[j]];
+					if (TmpPrc != MyRank) {
 						InterfNodes.pXadj[TmpPrc] += 1;
-						if (TmpPrc * iMaxInterfNodes * 2 + InterfNodes.pXadj[TmpPrc] - 1
-								< DataCommSize * iMaxInterfNodes * 2) {
-							InterfNodes.pAdjncy[TmpPrc * iMaxInterfNodes * 2
-								+ InterfNodes.pXadj[TmpPrc] - 1] = i;
+						int k = TmpPrc * iMaxInterfNodes * 2 + InterfNodes.pXadj[TmpPrc] - 1;
+						if (k < DataCommSize * iMaxInterfNodes * 2) {
+							InterfNodes.pAdjncy[k] = i;
 							bIsNInterf = false;
 						}
 					}
@@ -1237,17 +1240,17 @@ SchurDataManager::CreatePartition(void)
 
 	/* determina la liste dei dofs locali ed adiacenti suddivisa per processi,
 	 * secondo la struttura Adjacency */
-	SAFENEWARR(LocalDofs, integer ,iNumLocDofs);
+	SAFENEWARR(pLocalDofs, integer ,iNumLocDofs);
 
 	iCount = 0;
 	for (int i = 0; i < iNumLocNodes; i++) {
 		if (ppMyNodes[i]->iGetNumDof() != 0) {
 			integer First = (ppMyNodes[i])->iGetFirstIndex();
 
-			LocalDofs[iCount] = First+1;
+			pLocalDofs[iCount] = First+1;
 			iCount++;
 			for (unsigned int j = 1; j < ppMyNodes[i]->iGetNumDof(); j++) {
-				LocalDofs[iCount] = First + j + 1;
+				pLocalDofs[iCount] = First + j + 1;
 				iCount++;
 			}
 		}
@@ -1264,10 +1267,10 @@ SchurDataManager::CreatePartition(void)
 				ElemWithDofs* pWithDofs = ppMyElems[i]->pGetElemWithDofs();
 				integer First = (pWithDofs)->iGetFirstIndex();
 
-				LocalDofs[iCount] = First+1;
+				pLocalDofs[iCount] = First+1;
 				iCount++;
 				for (int j = 1; j < TmpDofNum; j++) {
-					LocalDofs[iCount] = First + 1 + j;
+					pLocalDofs[iCount] = First + 1 + j;
 					iCount++;
 				}
 				
@@ -1282,7 +1285,7 @@ SchurDataManager::CreatePartition(void)
 		iNumIntDofs += ppNodes[InterfNodes.pAdjncy[i]]->iGetNumDof();
 	}
 
-	SAFENEWARR(LocalIntDofs, integer, iNumIntDofs);
+	SAFENEWARR(pLocalIntDofs, integer, iNumIntDofs);
 	SAFENEWARR(pMyIntDofs, integer, iNumIntDofs);
 
 	iCount = 0;
@@ -1291,7 +1294,7 @@ SchurDataManager::CreatePartition(void)
 		if (ppNodes[InterfNodes.pAdjncy[i]]->iGetNumDof() != 0) {
 			integer First = ppNodes[InterfNodes.pAdjncy[i]]->iGetFirstIndex();
 
-			LocalIntDofs[iCount] = (First + 1);
+			pLocalIntDofs[iCount] = (First + 1);
 			iCount++;
 			if (pParAmgProcs[InterfNodes.pAdjncy[i]] == MyRank) {
 				pMyIntDofs[i2Count] = (First + 1);
@@ -1303,7 +1306,7 @@ SchurDataManager::CreatePartition(void)
 					j++)
 			{
 				/* il - serve a distinguere questi dofs da quelli interni */
-				LocalIntDofs[iCount] = (First + 1 + j);
+				pLocalIntDofs[iCount] = (First + 1 + j);
 				iCount++;
 				if (pParAmgProcs[InterfNodes.pAdjncy[i]] == MyRank) {
 					pMyIntDofs[i2Count] = (First + 1 + j);
@@ -1318,10 +1321,10 @@ SchurDataManager::CreatePartition(void)
 		TmpDofNum = ppMyIntElems[i]->iGetNumDof();
 		ElemWithDofs* pWithDofs = (ppMyIntElems[i])->pGetElemWithDofs();
 		integer First = (pWithDofs)->iGetFirstIndex();
-		LocalIntDofs[iCount] = (First + 1);
+		pLocalIntDofs[iCount] = (First + 1);
 		iCount++;
 		for (int j = 1; j < TmpDofNum; j++) {
-			LocalIntDofs[iCount] = (First  + 1 + j);
+			pLocalIntDofs[iCount] = (First  + 1 + j);
 			iCount++;
 		}
 	}
@@ -1463,7 +1466,7 @@ SchurDataManager::OutputPartition(void)
 
 	int j = 0;
 	for (int i = 0; i < iNumLocDofs; i++) {
-		OutHdl.Partition() << LocalDofs[i] << " ";
+		OutHdl.Partition() << pLocalDofs[i] << " ";
 		j++;
 		if (j > 10) {
 			OutHdl.Partition() << std::endl;
@@ -1475,7 +1478,7 @@ SchurDataManager::OutputPartition(void)
 	OutHdl.Partition() << std::endl << "Local Interface Dofs List:" <<std::endl;
 	j = 0;
 	for (int i = 0; i < iNumIntDofs; i++) {
-		OutHdl.Partition() << LocalIntDofs[i] << " ";
+		OutHdl.Partition() << pLocalIntDofs[i] << " ";
 		j++;
 		if (j > 10) {
 			OutHdl.Partition() << std::endl;

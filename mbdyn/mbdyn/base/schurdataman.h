@@ -68,9 +68,9 @@ private:
 
 	Node** ppMyNodes;	/* Lista dei nodi assegnati a questo processo */
 	int iNumLocNodes;	/* # di nodi assegnati a questo processo */
-	integer* LocalDofs;
+	integer* pLocalDofs;
 	int iNumLocDofs;
-	integer* LocalIntDofs;
+	integer* pLocalIntDofs;
 	int iNumIntDofs;
 	Node** ppIntNodes;
 	int iNumIntNodes;

@@ -360,7 +360,7 @@ Solver::Run(void)
 			sOutName = sOutputFileName;
 		}
 
-		iOutLen += 1 + iRankLength + 1;
+		iOutLen += sizeof(".") - 1 + iRankLength + sizeof("\0") - 1;
 
 		SAFENEWARR(sNewOutName, char, iOutLen);
 		snprintf(sNewOutName, iOutLen, "%s.%.*d",
@@ -377,6 +377,8 @@ Solver::Run(void)
 				sInputFileName,
 				sNewOutName,
 				eAbortAfter == AFTER_INPUT));
+
+		/* FIXME: who frees sNewOutname? */
 
 		pDM = pSDM;
 
@@ -513,9 +515,7 @@ Solver::Run(void)
 	iUnkStates = (iNSteps < iFSteps) ? iFSteps : iNSteps;
 
 	/* allocate workspace for previous time steps */
-	SAFENEWARR(
-		pdWorkSpace,
-		doublereal,
+	SAFENEWARR(pdWorkSpace, doublereal,
 		2*(iNumPreviousVectors)*iNumDofs);
 	/* allocate MyVectorHandlers for previous time steps: use workspace */
 	for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {
@@ -586,7 +586,7 @@ Solver::Run(void)
 	 * this should work as long as the last unknown time step is put
 	 * at the beginning of pX, pXPrime
 	 */
-   	pDM->LinkToSolution(*(pX), *(pXPrime));
+   	pDM->LinkToSolution(*pX, *pXPrime);
 
 	/* a questo punto si costruisce il nonlinear solver */
 	pNLS = AllocateNonlinearSolver();
@@ -682,7 +682,7 @@ Solver::Run(void)
 
 	dTime = dInitialTime;
 	pDM->SetTime(dTime);
-	pDM->SetValue(*(pX), *(pXPrime));
+	pDM->SetValue(*pX, *pXPrime);
 
 #ifdef __HACK_EIG__
    	if (eEigenAnalysis != EIG_NO && OneEig.dTime <= dTime && !OneEig.bDone) {
@@ -844,8 +844,7 @@ Solver::Run(void)
 		 * con sottopassi di correzione delle accelerazioni
 		 * e delle reazioni vincolari
 		 */
-      		pDM->BeforePredict(*(pX), *(pXPrime),
-				   *(qX[0]), *(qXPrime[0]));
+      		pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
       		Flip();
 
       		dRefTimeStep = dInitialTimeStep*dFictitiousStepsRatio;
@@ -924,8 +923,8 @@ Solver::Run(void)
       		for (int iSubStep = 2;
 		     iSubStep <= iFictitiousStepsNumber;
 		     iSubStep++) {
-      			pDM->BeforePredict(*(pX), *(pXPrime),
-				   	*(qX[0]), *(qXPrime[0]));
+      			pDM->BeforePredict(*pX, *pXPrime,
+				   	*qX[0], *qXPrime[0]);
 	 		Flip();
 
 	 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Fictitious step "
@@ -1065,8 +1064,7 @@ Solver::Run(void)
 
    	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 
-      	pDM->BeforePredict(*(pX), *(pXPrime),
-				*(qX[0]), *(qXPrime[0]));
+      	pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
 
 	Flip();
 	dRefTimeStep = dInitialTimeStep;
@@ -1404,8 +1402,7 @@ IfFirstStepIsToBeRepeated:
       		}
 
       		iStep++;
-      		pDM->BeforePredict(*(pX), *(pXPrime),
-				*(qX[0]), *(qXPrime[0]));
+      		pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
 
 		Flip();
 
@@ -3864,9 +3861,6 @@ Solver::AllocateSchurSolman(integer iStates)
 	SolutionManager *pSSM(NULL);
 
 #ifdef USE_MPI
-	doublereal dIPivotFactor = CurrIntSolver.dGetPivotFactor();
-	integer iIWorkSpaceSize = CurrIntSolver.iGetWorkSpaceSize();
-
 	switch (CurrIntSolver.GetSolver()) {
 	case LinSol::Y12_SOLVER:
 	case LinSol::UMFPACK_SOLVER:

@@ -57,6 +57,7 @@ mbdyn_METIS_PartGraph(int iTotVertices,
 	int	numflag = 0;
 	/* if options[0] == 0, the rest is ignored */
 	int	options[5] = { 0 };
+	/* number of edges cut */
 	int	edgecut = 0;
 
 	METIS_PartGraphVKway(&iTotVertices,
