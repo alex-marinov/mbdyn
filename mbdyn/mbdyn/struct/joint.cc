@@ -157,8 +157,6 @@ Elem* ReadJoint(DataManager* pDM,
       "beam" "slider",
       "wheel2",
       
-      "friction",
-      
       NULL
    };
    
@@ -202,8 +200,6 @@ Elem* ReadJoint(DataManager* pDM,
       BEAMSLIDER,
 
       WHEEL2,
-      
-      FRICTION,
       
       LASTKEYWORD
    };
@@ -631,7 +627,15 @@ Elem* ReadJoint(DataManager* pDM,
 	   std::cerr << "line " << HP.GetLineData() 
 		   << ": deprecated 'plane hinge' name;"
 		   << " use 'revolute hinge' instead" << std::endl;
-	case REVOLUTEHINGE: {	
+	case REVOLUTEHINGE: {
+	   doublereal r = 0.;
+	   BasicFriction * bf = 0;
+	   BasicShapeCoefficient * bsh = 0;
+	   if (HP.IsKeyWord("friction")) {
+	       r = HP.GetReal();
+	       bf = ParseFriction(HP,pDM->MapOfScalarFunctions);
+	       bsh = ParseShapeCoefficient(HP);
+	   }	
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlaneHingeJoint,
 				  PlaneHingeJoint(uLabel, pDO, pNode1, pNode2, 
