@@ -76,6 +76,8 @@ DofDriveCaller::Restart(std::ostream& out) const
 		out << ", algebraic, ";
 	} else if (SD.iOrder == 1) {	
 		out << ", differential, ";
+	} else {
+		out << ", order, " << SD.iOrder << ", ";
 	}
 	return DriveOwner::pGetDriveCaller()->Restart(out);
 }

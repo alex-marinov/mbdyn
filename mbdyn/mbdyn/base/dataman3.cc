@@ -1231,9 +1231,6 @@ flag DataManager::fReadOutput(MBDynParser& HP, enum Elem::Type t)
 	<< psElemNames[t] << "\" at line " << HP.GetLineData() << std::endl);
       throw DataManager::ErrGeneric();
    }
-#ifndef USE_EXCEPTIONS
-   return fDef;
-#endif /* USE_EXCEPTIONS */
 } /* End of DataManager::fReadOutput */
 
 
@@ -1255,9 +1252,6 @@ flag DataManager::fReadOutput(MBDynParser& HP, enum Node::Type t)
 	<< psNodeNames[t] << "\" at line " << HP.GetLineData() << std::endl);
       throw DataManager::ErrGeneric();
    }
-#ifndef USE_EXCEPTIONS
-   return fDef;
-#endif /* USE_EXCEPTIONS */
 } /* End of DataManager::fReadOutput */
 
 
@@ -2071,46 +2065,68 @@ Elem* DataManager::ReadElem(MBDynParser& HP, Elem::Type type)
 }
 
 
-int GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
+static int
+GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
 {
-   /*
-    * Ordine del grado di liberta' da considerare 
-    * (stato, oppure derivata se esiste)
-    */
-   if (HP.IsKeyWord("differential")) {
-      /* 
-       * Questo check e' pleonastico, viene gia' fatto dal chiamante
-       */
-      if (pNode->GetDofType(iIndex-1) != DofOrder::DIFFERENTIAL) {
-	 silent_cerr(psNodeNames[pNode->GetNodeType()] 
-		 << "(" << pNode->GetLabel() 
-		 << "): invalid order for index " << iIndex 
-      		 << " variable at line " << HP.GetLineData()
-		 << std::endl);
-	 throw DataManager::ErrGeneric();
-      }
-      return 1;
-   } 
+	/*
+	 * Ordine del grado di liberta' da considerare 
+	 * (stato, oppure derivata se esiste)
+	 */
+	int iOrder = 0;
 
-   if (HP.IsKeyWord("algebraic")) {
-      return 0;
+	if (HP.IsKeyWord("differential")) {
+		iOrder = 1;
 
-   } /* else */
+	} else if (HP.IsKeyWord("order")) {
+		iOrder = HP.GetInt();
+		if (iOrder < 0 || iOrder > 2) {
+			silent_cerr(psNodeNames[pNode->GetNodeType()]
+				<< "(" << pNode->GetLabel() << "): "
+				"illegal order " << iOrder 
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
+	  		throw DataManager::ErrGeneric();
 
-   silent_cerr(psNodeNames[pNode->GetNodeType()] 
-	   << "(" << pNode->GetLabel() 
-	   << "): unknown or illegal order for index " << iIndex << std::endl
-      	   << "(hint: you may need to specify "
-	   "\"differential\" or \"algebraic\" when referencing " << std::endl
-      	   << "a generic degree of freedom at line " 
-      	   << HP.GetLineData() << ")" << std::endl);
+		} else if (iOrder == 2) {
+			DynamicStructNode *pStrNode = dynamic_cast<DynamicStructNode *>(pNode) == 0;
+			if (pStrNode == 0) {
+				silent_cerr(psNodeNames[pNode->GetNodeType()]
+					<< "(" << pNode->GetLabel() << "): "
+					"order " << iOrder << " not allowed "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+	  			throw DataManager::ErrGeneric();
+			}
+			pStrNode->ComputeAccelerations(true);
+		}
+	}
 
-   throw DataManager::ErrGeneric();
-#ifndef USE_EXCEPTIONS
-   return 0;
-#endif /* USE_EXCEPTIONS */
+	if (iOrder > 0) {
+		if (pNode->GetDofType(iIndex-1) != DofOrder::DIFFERENTIAL) {
+			silent_cerr(psNodeNames[pNode->GetNodeType()] 
+				<< "(" << pNode->GetLabel() 
+				<< "): invalid order for index " << iIndex 
+				<< " variable at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+		return iOrder;
+	}
+
+	if (HP.IsKeyWord("algebraic")) {
+		return 0;
+	} /* else */
+	
+	silent_cerr(psNodeNames[pNode->GetNodeType()] 
+		<< "(" << pNode->GetLabel() 
+		<< "): unknown or illegal order for index " << iIndex << std::endl
+      		<< "(hint: you may need to specify "
+		"\"differential\" or \"algebraic\" or \"order <n>\" when referencing " << std::endl
+		<< "a generic degree of freedom at line " 
+		<< HP.GetLineData() << ")" << std::endl);
+
+	throw DataManager::ErrGeneric();
 }
-
 
 ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
 {
@@ -2178,13 +2194,6 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
    
    return ScalarDof((ScalarNode*)pNode, iOrder);
 }
-   
-   
-   
-   
-   
-   
-  
 
 /* Legge una shape1D; 
  * NOTA: il proprietario del puntatore alla Shape la deve distruggere */

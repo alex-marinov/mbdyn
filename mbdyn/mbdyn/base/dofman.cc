@@ -114,11 +114,7 @@ void DataManager::DofDataInit(void)
       /* Se non sono definiti DofOwners, la simulazione non ha senso,
        * quindi il programma termina */
       silent_cerr("warning, no dof owners are defined" << std::endl);
-#ifdef USE_EXCEPTIONS      
       throw NoErr();
-#else
-      exit(EXIT_SUCCESS);
-#endif      
    }
 }
 

@@ -73,10 +73,16 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     case SPRINGSUPPORT: {       
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
        if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("Sorry, parameters are not allowed for bulk spring" 
-		  << std::endl);
+	  silent_cerr("BulkSpringSupport(" << uLabel << "): parameter nodes "
+		  "are not allowed" << std::endl);
 	  throw DataManager::ErrGeneric();	      
-       }	     	  
+       }
+
+       if (SD.iOrder > 1) {
+	  silent_cerr("BulkSpringSupport(" << uLabel << "): illegal order "
+			  << SD.iOrder << " for ScalarDof" << std::endl);
+	  throw DataManager::ErrGeneric();	      
+       }
        
        DriveCaller* pDC = HP.GetDriveCaller();
        flag fOut = pDM->fReadOutput(HP, Elem::BULK);

@@ -214,9 +214,6 @@ Beam2::dGetPrivData(unsigned int i) const
 			"illegal private data " << i << std::endl);
 		throw ErrGeneric();
 	}
-#ifndef USE_EXCEPTIONS
-	return 0.;
-#endif /* USE_EXCEPTIONS */
 }
 
 Vec3 
@@ -846,9 +843,6 @@ Beam2::pGetNode(unsigned int i) const
 	default:
 		throw Beam2::ErrGeneric();
 	}
-#ifndef USE_EXCEPTIONS
-	return NULL;
-#endif /* USE_EXCEPTIONS */
 }
 
 

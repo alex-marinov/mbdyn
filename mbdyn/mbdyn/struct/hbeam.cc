@@ -211,9 +211,6 @@ HBeam::dGetPrivData(unsigned int i) const
 			"illegal private data " << i << std::endl);
 		throw ErrGeneric();
 	}
-#ifndef USE_EXCEPTIONS
-	return 0.;
-#endif /* USE_EXCEPTIONS */
 }
 
 void
@@ -701,9 +698,6 @@ HBeam::pGetNode(unsigned int i) const
 	default:
 		throw HBeam::ErrGeneric();
 	}
-#ifndef USE_EXCEPTIONS
-	return NULL;
-#endif /* USE_EXCEPTIONS */
 }
 
 

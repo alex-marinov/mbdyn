@@ -47,9 +47,6 @@ int_set_dof(const LoadableElem*, unsigned int /* i */ )
 {
    	silent_cerr("You shouldn't be here!" << std::endl);
    	throw ErrGeneric();
-#ifndef USE_EXCEPTIONS
-   	return DofOrder::UNKNOWN;
-#endif /* USE_EXCEPTIONS */
 }
 
 static void
@@ -199,9 +196,6 @@ int_i_get_priv_data_idx(const LoadableElem* /* pEl */ , const char *s)
 {
    	silent_cerr("You shouldn't be here!" << std::endl);
    	throw ErrGeneric();
-#ifndef USE_EXCEPTIONS
-        return 0;
-#endif /* USE_EXCEPTIONS */
 }
 
 static doublereal 
@@ -209,9 +203,6 @@ int_d_get_priv_data(const LoadableElem* /* pEl */ , unsigned int /* i */ )
 {
    	silent_cerr("You shouldn't be here!" << std::endl);
    	throw ErrGeneric();
-#ifndef USE_EXCEPTIONS
-        return 0.;
-#endif /* USE_EXCEPTIONS */
 }
 
 static int

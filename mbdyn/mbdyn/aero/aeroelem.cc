@@ -134,11 +134,8 @@ M(0.)
 
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
    	if (fToBeOutput()) {
-#ifdef USE_EXCEPTIONS
       		try {
-#endif /* USE_EXCEPTIONS */
 	 		pOutput = Aero_output_alloc(iN);
-#ifdef USE_EXCEPTIONS
       		}
       		catch (ErrMemory) {
 	 		SetOutputFlag(flag(0));
@@ -147,7 +144,6 @@ M(0.)
 					<< GetLabel() << ")"
 					<< std::endl);
       		}
-#endif /* USE_EXCEPTIONS */
    	}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 }
@@ -183,11 +179,8 @@ AerodynamicBody::SetOutputFlag(flag f)
    	if (fToBeOutput()) {
       		/* se non e' gia' stato allocato ... */
       		if (pOutput == NULL) {
-#ifdef USE_EXCEPTIONS
 	 		try {
-#endif /* USE_EXCEPTIONS */
 	    			pOutput = Aero_output_alloc(GDI.iGetNum());
-#ifdef USE_EXCEPTIONS
 	 		}
 	 		catch (ErrMemory) {
 	    			SetOutputFlag(flag(0));
@@ -196,7 +189,6 @@ AerodynamicBody::SetOutputFlag(flag f)
 						<< GetLabel() << ")"
 						<< std::endl);
 	 		}
-#endif /* USE_EXCEPTIONS */
       		}
    	}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
@@ -941,11 +933,8 @@ pvdOuta(NULL)
 
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 	if (fToBeOutput()) {
-#ifdef USE_EXCEPTIONS
 		try {
-#endif /* USE_EXCEPTIONS */
 			pOutput = Aero_output_alloc(3*iN);
-#ifdef USE_EXCEPTIONS
       		}
       		catch (ErrMemory) {
 	 		SetOutputFlag(flag(0));
@@ -953,7 +942,6 @@ pvdOuta(NULL)
 					" of AerodynamicBeam(" << GetLabel()
 					<< ")" << std::endl);
       		}
-#endif /* USE_EXCEPTIONS */
    	}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 }
@@ -990,11 +978,8 @@ AerodynamicBeam::SetOutputFlag(flag f)
 	if (fToBeOutput()) {
 		/* se non e' gia' stato allocato ... */
 		if (pOutput == NULL) {
-#ifdef USE_EXCEPTIONS
 			try {
-#endif /* USE_EXCEPTIONS */
 				pOutput = Aero_output_alloc(3*GDI.iGetNum());
-#ifdef USE_EXCEPTIONS
 	 		}
 	 		catch (ErrMemory) {
 	    			SetOutputFlag(flag(0));
@@ -1002,7 +987,6 @@ AerodynamicBeam::SetOutputFlag(flag f)
 						"for output of AerodynamicBeam("
 						<< GetLabel() << ")" << std::endl);
 	 		}
-#endif /* USE_EXCEPTIONS */
       		}
    	}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
@@ -1564,11 +1548,8 @@ pvdOuta(NULL)
 
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 	if (fToBeOutput()) {
-#ifdef USE_EXCEPTIONS
 		try {
-#endif /* USE_EXCEPTIONS */
 			pOutput = Aero_output_alloc(2*iN);
-#ifdef USE_EXCEPTIONS
       		}
       		catch (ErrMemory) {
 	 		SetOutputFlag(flag(0));
@@ -1576,7 +1557,6 @@ pvdOuta(NULL)
 					"of AerodynamicBeam2(" << GetLabel() << ")"
 					<< std::endl);
       		}
-#endif /* USE_EXCEPTIONS */
    	}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 }
@@ -1613,11 +1593,8 @@ AerodynamicBeam2::SetOutputFlag(flag f)
 	if (fToBeOutput()) {
 		/* se non e' gia' stato allocato ... */
 		if (pOutput == NULL) {
-#ifdef USE_EXCEPTIONS
 			try {
-#endif /* USE_EXCEPTIONS */
 				pOutput = Aero_output_alloc(2*GDI.iGetNum());
-#ifdef USE_EXCEPTIONS
 	 		}
 	 		catch (ErrMemory) {
 	    			SetOutputFlag(flag(0));
@@ -1625,7 +1602,6 @@ AerodynamicBeam2::SetOutputFlag(flag f)
 						"of AerodynamicBeam2("
 						<< GetLabel() << ")" << std::endl);
 	 		}
-#endif /* USE_EXCEPTIONS */
       		}
    	}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */

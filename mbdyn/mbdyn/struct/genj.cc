@@ -1687,10 +1687,6 @@ ClampJoint::dGetPrivData(unsigned int i) const
 	}
 
 	throw ErrGeneric();
-
-#ifndef USE_EXCEPTIONS
-	return 0.;
-#endif /* USE_EXCEPTIONS */
 }
 
 /* ClampJoint - end */

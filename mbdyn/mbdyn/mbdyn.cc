@@ -360,10 +360,7 @@ main(int argc, char* argv[])
     	}
    
     	/* The program is a big try block */
-#ifdef USE_EXCEPTIONS
     	try {
-#endif /* USE_EXCEPTIONS */
-      
         	enum InputFormat {
 	    		MBDYN,
 	    		ADAMS,
@@ -561,22 +558,12 @@ main(int argc, char* argv[])
 	    		case int('l'):
 				mbdyn_welcome();
 	        		mbdyn_license();
-#ifdef USE_EXCEPTIONS
 	        		throw NoErr();
-#else /* !USE_EXCEPTIONS */
-	        		rc = EXIT_SUCCESS;
-				goto exit_point;
-#endif /* !USE_EXCEPTIONS */
 	    
 	    		case int('w'):
 				mbdyn_welcome();
 				mbdyn_warranty();
-#ifdef USE_EXCEPTIONS
 	        		throw NoErr();
-#else /* !USE_EXCEPTIONS */
-	        		rc = EXIT_SUCCESS;
-				goto exit_point;
-#endif /* !USE_EXCEPTIONS */
 
 			case int('W'):
 #ifdef HAVE_CHDIR
@@ -598,12 +585,7 @@ main(int argc, char* argv[])
 
 	    		case int('h'):
 		    		mbdyn_usage(sShortOpts);
-#ifdef USE_EXCEPTIONS
 	        		throw NoErr();
-#else /* !USE_EXCEPTIONS */
-	        		rc = EXIT_SUCCESS;
-				goto exit_point;
-#endif /* !USE_EXCEPTIONS */
 	    
 	    		case int('H'):
 	        		fShowSymbolTable++;
@@ -646,12 +628,7 @@ main(int argc, char* argv[])
 	    		}
 #endif /* USE_MPI */
 	 
-#ifdef USE_EXCEPTIONS
 	    		throw NoErr();
-#else /* !USE_EXCEPTIONS */
-	    		rc = EXIT_SUCCESS;
-			goto exit_point;
-#endif /* !USE_EXCEPTIONS */
         	}
 
 #ifdef HAVE_NICE
@@ -870,7 +847,6 @@ main(int argc, char* argv[])
 #endif /* MBDYN_X_MAIL_MESSAGE */
         	}
 
-#ifdef USE_EXCEPTIONS
         	throw NoErr();
 
     	} catch (NoErr) {     
@@ -882,9 +858,6 @@ main(int argc, char* argv[])
 	    		" aborting ... " << std::endl);
         	rc = EXIT_FAILURE;
     	}
-#else /* ! USE_EXCEPTIONS */
-exit_point:;
-#endif /* USE_EXCEPTIONS */
 
 #ifdef USE_RTAI
 	if (mbdyn_rtai_task) {
@@ -1025,9 +998,6 @@ RunMBDyn(MBDynParser& HP,
             		silent_cerr("compile with -DUSE_MPI to enable "
 				"parallel solution" << std::endl);
 	    		throw ErrGeneric();
-#ifndef USE_EXCEPTIONS
-			break;
-#endif /* USE_EXCEPTIONS */
 #endif /* !USE_MPI */
 
         	case END:
@@ -1131,14 +1101,10 @@ endofcycle:
         	throw ErrGeneric();   
     	}
 
-#ifdef USE_EXCEPTIONS
 	try {
-#endif /* USE_EXCEPTIONS */
-   
     		/* Runs the simulation */
     		pSolv->Run();
 
-#ifdef USE_EXCEPTIONS
 	} catch (...) {
 		if (pSolv) {
 			SAFEDELETE(pSolv);
@@ -1146,7 +1112,6 @@ endofcycle:
 		}
 		throw;
 	}
-#endif /* USE_EXCEPTIONS */
     
     	return pSolv;
 }

@@ -308,12 +308,18 @@ Elem* ReadGenel(DataManager* pDM,
     case CLAMP: {
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
        if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("Sorry, parameters are not allowed for genel clamp" << std::endl);
+	  silent_cerr("GenelClamp(" << uLabel << "): parameter nodes "
+		  "are not allowed" << std::endl);
 	  throw DataManager::ErrGeneric();	      
        }	     	  
-       
+ 
+       if (SD.iOrder > 1) {
+	  silent_cerr("GenelClamp(" << uLabel << "): illegal order "
+		  << SD.iOrder << " for ScalarDof" << std::endl);
+	  throw DataManager::ErrGeneric();	      
+       }
+
        DriveCaller* pDC = HP.GetDriveCaller();
-       // DEBUGCOUT("Stiffness: " << dK << std::endl);
        
        flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
@@ -328,21 +334,33 @@ Elem* ReadGenel(DataManager* pDM,
     case DISTANCE: {
        ScalarDof SD1 = ReadScalarDof(pDM, HP, 1);
        if (SD1.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("Sorry, parameters are not allowed for genel distance" << std::endl);
+	  silent_cerr("GenelDistance(" << uLabel << "): parameter nodes "
+		  "are not allowed for ScalarDof 1" << std::endl);
+	  throw DataManager::ErrGeneric();
+       }
+
+       if (SD1.iOrder > 1) {
+	  silent_cerr("GenelDistance(" << uLabel << "): illegal order "
+		  << SD1.iOrder << " for ScalarDof 1" << std::endl);
 	  throw DataManager::ErrGeneric();	      
-       }	     	  
+       }
 
        ScalarDof SD2 = ReadScalarDof(pDM, HP, 1);
        if (SD2.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("Sorry, parameters are not allowed for genel distance" << std::endl);
+	  silent_cerr("GenelDistance(" << uLabel << "): parameter nodes "
+		  "are not allowed for ScalarDof 2" << std::endl);
+	  throw DataManager::ErrGeneric();
+       }
+
+       if (SD2.iOrder > 1) {
+	  silent_cerr("GenelDistance(" << uLabel << "): illegal order "
+		  << SD2.iOrder << " for ScalarDof 2" << std::endl);
 	  throw DataManager::ErrGeneric();	      
-       }	     	  
-       
+       }
+
        DriveCaller* pDC = HP.GetDriveCaller();
-       // DEBUGCOUT("Stiffness: " << dK << std::endl);
        
        flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
-
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      GenelDistance,
@@ -355,15 +373,29 @@ Elem* ReadGenel(DataManager* pDM,
     case SPRING: {
        ScalarDof SD1 = ReadScalarDof(pDM, HP, 1);
        if (SD1.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("Sorry, parameters are not allowed for genel springs" << std::endl);
+	  silent_cerr("GenelSpring(" << uLabel << "): parameter nodes "
+		  "are not allowed for ScalarDof 1" << std::endl);
+	  throw DataManager::ErrGeneric();
+       }
+
+       if (SD1.iOrder > 1) {
+	  silent_cerr("GenelSpring(" << uLabel << "): illegal order "
+		  << SD1.iOrder << " for ScalarDof 1" << std::endl);
 	  throw DataManager::ErrGeneric();	      
-       }	     	  
-       
+       }
+
        ScalarDof SD2 = ReadScalarDof(pDM, HP, 1);
        if (SD2.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("Sorry, parameters are not allowed for genel springs" << std::endl);
+	  silent_cerr("GenelSpring(" << uLabel << "): parameter nodes "
+		  "are not allowed for ScalarDof 2" << std::endl);
+	  throw DataManager::ErrGeneric();
+       }
+
+       if (SD2.iOrder > 1) {
+	  silent_cerr("GenelSpring(" << uLabel << "): illegal order "
+		  << SD2.iOrder << " for ScalarDof 2" << std::endl);
 	  throw DataManager::ErrGeneric();	      
-       }	     	  
+       }
        
        ConstLawType::Type CLType = ConstLawType::UNKNOWN;
        ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
@@ -395,20 +427,24 @@ Elem* ReadGenel(DataManager* pDM,
     case SPRINGSUPPORT: {
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
        if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("Sorry, parameters are not allowed for genel spring supports" << std::endl);
+	  silent_cerr("GenelSpringSupport(" << uLabel << "): parameter nodes "
+		  "are not allowed for ScalarDof" << std::endl);
+	  throw DataManager::ErrGeneric();
+       }
+
+       if (SD.iOrder != 0 || (SD.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)) {
+	  silent_cerr("GenelSpringSupport(" << uLabel << "): illegal order "
+		  << SD.iOrder << " for ScalarDof; the algebraic value "
+		  "of a differential node is required" << std::endl);
 	  throw DataManager::ErrGeneric();	      
-       } else if ((SD.iOrder != 0) 
-		  || (SD.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)) {
-	  silent_cerr("Sorry, a spring support must be linked to the algebraic value of a differential node" << std::endl);
-	  throw DataManager::ErrGeneric();	      
-       }	         
-       
+       }
+
        ConstLawType::Type CLType = ConstLawType::UNKNOWN;
        ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
        
        if (pCL->iGetNumDof() != 0) {
 	  silent_cerr("Error at line " << HP.GetLineData()
-	    << ": spring support genel does not support "
+	    << ": the spring support genel does not support "
 	    "dynamic constitutive laws yet"
 	    << std::endl);
 	  throw DataManager::ErrGeneric();
@@ -444,17 +480,32 @@ Elem* ReadGenel(DataManager* pDM,
     case CROSSSPRINGSUPPORT: {
        ScalarDof SDRow = ReadScalarDof(pDM, HP, 1);
        if (SDRow.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("Sorry, parameters are not allowed for genel spring supports" << std::endl);
+	  silent_cerr("GenelCrossSpringSupport(" << uLabel << "): parameter nodes "
+		  "are not allowed for ScalarDof 1" << std::endl);
+	  throw DataManager::ErrGeneric();
+       }
+
+       if (SDRow.iOrder > 1) {
+	  silent_cerr("GenelCrossSpringSupport(" << uLabel << "): illegal order "
+		  << SDRow.iOrder << " for ScalarDof 1" << std::endl);
 	  throw DataManager::ErrGeneric();	      
-       } 
-       
+       }
+
        ScalarDof SDCol = ReadScalarDof(pDM, HP, 1);
        if ((SDCol.iOrder != 0) 
 	   || (SDCol.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)) {
-	  silent_cerr("Sorry, a spring support must be linked to the algebraic value of a differential node" << std::endl);
+	  silent_cerr("GenelCrossSpringSupport(" << uLabel << "): parameter nodes "
+		  "are not allowed for ScalarDof" << std::endl);
+	  throw DataManager::ErrGeneric();
+       }
+
+       if (SDCol.iOrder != 0 || (SDCol.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)) {
+	  silent_cerr("GenelCrossSpringSupport(" << uLabel << "): illegal order "
+		  << SDCol.iOrder << " for ScalarDof; the algebraic value "
+		  "of a differential node is required" << std::endl);
 	  throw DataManager::ErrGeneric();	      
-       }	         
-       
+       }
+
        ConstLawType::Type CLType = ConstLawType::UNKNOWN;
        ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
        
@@ -496,10 +547,20 @@ Elem* ReadGenel(DataManager* pDM,
     case MASS: {
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
        if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("Sorry, parameters are not allowed for genel mass" << std::endl);
+	  silent_cerr("GenelMass(" << uLabel << "): parameter nodes "
+		  "are not allowed for ScalarDof" << std::endl);
+	  throw DataManager::ErrGeneric();
+       }
+
+       if (SD.iOrder > 1) {
+	  silent_cerr("GenelMass(" << uLabel << "): illegal order "
+		  << SD.iOrder << " for ScalarDof 1" << std::endl);
 	  throw DataManager::ErrGeneric();	      
-       } else if (SD.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
-	  silent_cerr("Sorry, only differential dofs are allowed for genel mass" << std::endl);
+       }
+
+       if (SD.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
+	  silent_cerr("GenelMass(" << uLabel << "): only differential dofs "
+		  "are allowed for ScalarDof" << std::endl);
 	  throw DataManager::ErrGeneric();
        }
 
@@ -576,10 +637,17 @@ Elem* ReadGenel(DataManager* pDM,
        /* output */
        ScalarDof SD_y = ReadScalarDof(pDM, HP, 1);
        if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("Sorry, parameters are not allowed for genel scalar filter output" << std::endl);
+	  silent_cerr("GenelFilterEq(" << uLabel << "): parameter nodes "
+		  "are not allowed for output ScalarDof (y)" << std::endl);
 	  throw DataManager::ErrGeneric();
        }
-       
+
+       if (SD_y.iOrder > 1) {
+	  silent_cerr("GenelFilterEq(" << uLabel << "): illegal order "
+		  << SD_y.iOrder << " for output ScalarDof (y)" << std::endl);
+	  throw DataManager::ErrGeneric();	      
+       }
+
        /* input */
        ScalarDof SD_u = ReadScalarDof(pDM, HP, 1);
 
@@ -651,15 +719,20 @@ Elem* ReadGenel(DataManager* pDM,
       
     case STATESPACESISO: {
        ScalarDof SD_y = ReadScalarDof(pDM, HP, 1);
-       ScalarDof SD_u = ReadScalarDof(pDM, HP, 1);
        if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("Sorry, parameters are not allowed for genel state space SISO output" << std::endl);
-	  throw DataManager::ErrGeneric();	      
-       } else if (SD_y.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
-	  silent_cerr("Sorry, only differential dofs are allowed for genel state space SISO output" << std::endl);
+	  silent_cerr("GenelStateSpaceSISO(" << uLabel << "): parameter nodes "
+		  "are not allowed for output ScalarDof (y)" << std::endl);
 	  throw DataManager::ErrGeneric();
        }
-       
+
+       if (SD_y.iOrder > 1) {
+	  silent_cerr("GenelStateSpaceSISO(" << uLabel << "): illegal order "
+		  << SD_y.iOrder << " for output ScalarDof (y)" << std::endl);
+	  throw DataManager::ErrGeneric();	      
+       }
+
+       ScalarDof SD_u = ReadScalarDof(pDM, HP, 1);
+
        unsigned int Order = HP.GetInt();       
        DEBUGCOUT("State Space SISO " << uLabel << " is of order " << Order << std::endl);
        
@@ -726,14 +799,16 @@ Elem* ReadGenel(DataManager* pDM,
        for (int i = 0; i < iNumOutputs; i++) {	  
 	  pvSD_y[i] = ReadScalarDof(pDM, HP, 1);
 	  if (pvSD_y[i].pNode->GetNodeType() ==  Node::PARAMETER) {
-	     silent_cerr("line " << HP.GetLineData()
-	       << ": sorry, parameters are not allowed for genel state space MIMO output" << std::endl);
-	     throw DataManager::ErrGeneric();	      
-	  } else if (pvSD_y[i].pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
-	     silent_cerr("line " << HP.GetLineData() 
-	       << ": sorry, only differential dofs are allowed for genel state space MIMO output" << std::endl);
+	     silent_cerr("GenelStateSpaceSISO(" << uLabel << "): parameter nodes "
+		     "are not allowed for output ScalarDof (y[" << i << "])" << std::endl);
 	     throw DataManager::ErrGeneric();
-	  }
+          }
+
+          if (pvSD_y[i].iOrder > 1) {
+	     silent_cerr("GenelStateSpaceSISO(" << uLabel << "): illegal order "
+		     << pvSD_y[i].iOrder << " for output ScalarDof (y[" << i << "])" << std::endl);
+	     throw DataManager::ErrGeneric();	      
+          }
        }
        
        int iNumInputs = HP.GetInt();

@@ -447,18 +447,14 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
       }
       
       /* risolvo */
-# ifdef USE_EXCEPTIONS
       try {
-# endif 
 	 DEBUGCOUT("Solving ..." << std::endl);
 	 sm.Solve();
-# ifdef USE_EXCEPTIONS
-      } 
-      catch (...) {
+
+      } catch (...) {
 	 silent_cerr("Matrix might be singular; skipping state initialization" << std::endl);
 	 return;
       }
-# endif 
       
       /* setto coefficienti */
       DEBUGCOUT("Solution:" << std::endl);

@@ -736,10 +736,6 @@ MBDynParser::GetPosRel(const ReferenceFrame& rf)
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric();
 	}
-	
-# ifndef USE_EXCEPTIONS
-	return Zero3;
-# endif /* USE_EXCEPTIONS */
 }
 
 Vec3 
@@ -766,10 +762,6 @@ MBDynParser::GetPosAbs(const ReferenceFrame& rf)
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric();
 	}
-	
-# ifndef USE_EXCEPTIONS
-	return Zero3;
-# endif /* USE_EXCEPTIONS */
 }
 
 Vec3 
@@ -804,10 +796,6 @@ MBDynParser::GetVelRel(const ReferenceFrame& rf, const Vec3& x)
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric();
 	}
-	
-# ifndef USE_EXCEPTIONS
-	return Zero3;
-# endif /* USE_EXCEPTIONS */
 }
 
 Vec3 
@@ -837,10 +825,6 @@ MBDynParser::GetVelAbs(const ReferenceFrame& rf, const Vec3& x)
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric();
 	}
-	
-# ifndef USE_EXCEPTIONS
-	return Zero3;
-# endif /* USE_EXCEPTIONS */
 }
 
 Vec3 
@@ -869,9 +853,6 @@ MBDynParser::GetOmeRel(const ReferenceFrame& rf)
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric();
 	}
-# ifndef USE_EXCEPTIONS
-	return Zero3;
-# endif /* USE_EXCEPTIONS */
 }
 
 Vec3 
@@ -898,10 +879,6 @@ MBDynParser::GetOmeAbs(const ReferenceFrame& rf)
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric();
 	}
-	
-# ifndef USE_EXCEPTIONS
-	return Zero3;
-# endif /* USE_EXCEPTIONS */
 }
 
 Vec3 
@@ -947,10 +924,6 @@ MBDynParser::GetVecRel(const ReferenceFrame& rf)
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric();
 	}
-	
-# ifndef USE_EXCEPTIONS
-	return Zero3;
-# endif /* USE_EXCEPTIONS */
 }
 
 Vec3 
@@ -995,10 +968,6 @@ MBDynParser::GetVecAbs(const ReferenceFrame& rf)
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric();
 	}
-	
-# ifndef USE_EXCEPTIONS
-	return Zero3;
-# endif /* USE_EXCEPTIONS */
 }
 
 Mat3x3
@@ -1024,10 +993,6 @@ MBDynParser::GetMatRel(const ReferenceFrame& rf)
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric();
 	}
-	
-# ifndef USE_EXCEPTIONS
-	return Zero3x3;
-# endif /* USE_EXCEPTIONS */
 }
 
 Mat3x3
@@ -1050,10 +1015,6 @@ MBDynParser::GetMatAbs(const ReferenceFrame& rf)
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric();
 	}
-	
-# ifndef USE_EXCEPTIONS
-	return Zero3x3;
-# endif /* USE_EXCEPTIONS */
 }
 
 Mat3x3 
@@ -1076,10 +1037,6 @@ MBDynParser::GetRotRel(const ReferenceFrame& rf)
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric();
 	}
-	
-# ifndef USE_EXCEPTIONS
-	return Zero3x3;
-# endif /* USE_EXCEPTIONS */
 }
 
 Mat3x3 
@@ -1102,10 +1059,6 @@ MBDynParser::GetRotAbs(const ReferenceFrame& rf)
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric();
 	}
-	
-# ifndef USE_EXCEPTIONS
-	return Zero3x3;
-# endif /* USE_EXCEPTIONS */
 }
 #endif /* USE_STRUCT_NODES */
 

@@ -199,10 +199,6 @@ Rotor::dGetPrivData(unsigned int i) const
 	} else {
 		throw ErrGeneric();
 	}
-
-#ifndef USE_EXCEPTIONS
-	return 0.;
-#endif /* USE_EXCEPTIONS */
 }
  
 /* Tipo dell'elemento (usato per debug ecc.) */

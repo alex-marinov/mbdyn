@@ -275,22 +275,18 @@ iTotalExpConnections(0)
 
 	/* legge la distribuzione degli elementi sulle diverse CPU */
 
-#ifdef USE_EXCEPTIONS
 	try {
-#endif /* USE_EXCEPTIONS */
 		if (KeyWords(HP.GetDescription()) != BEGIN) {
 			silent_cerr("no explicit connection declared "
 				"for this input file" << std::endl);
 			return;
 		}
 
-#ifdef USE_EXCEPTIONS
 	} catch (EndOfFile) {
 		silent_cerr("no explicit connection declared "
 			"for this input file" << std::endl);
 		return;
 	}
-#endif /* USE_EXCEPTIONS */
 
 	int iNumElems = 0;
 	int iNumNodes = 0;
