@@ -11,6 +11,8 @@ A. Configuration:
 	- check the 'getopt' stuff in program, utils and contrib
 	- audit all the suite for not-so-GNU systems
 	- add test for crypt
+	- redesign configure.in for meschach
+	- add test for pow_dd stuff (might be needed by fortran code)
 
 
 
@@ -31,6 +33,8 @@ B. Package:
 C. Libraries:
 
 	- add UMFPACK3 sparse matrix library
+
+
 
 D. Code:
 
