@@ -4,6 +4,10 @@ include $(top_srcdir)/build/top.mk
 # Build libelec.a library
 noinst_LTLIBRARIES = libelec.la
 libelec_la_SOURCES = \
+accelerometer.cc \
+accelerometer.h \
+displacement.cc \
+displacement.h \
 discctrl.cc \
 discctrl.h \
 elec.cc \
