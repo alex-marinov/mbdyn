@@ -673,16 +673,6 @@ method_cubic(const char* module, integration_data* d,
    	doublereal w1 = (2.+3.*z)/(6.*(1.+z));
    	doublereal wz = -1./(6.*z*(1.+z));
    	doublereal w0 = (1.+3.*z)/(6.*z);
-   	doublereal m0 = cm0(z);
-   	doublereal m1 = cm1(z);
-   	doublereal n0 = cn0(z);
-   	doublereal n1 = cn1(z);
-#if 0
-   	doublereal m0p = cm0p(z);
-   	doublereal m1p = cm1p(z);
-   	doublereal n0p = cn0p(z);
-   	doublereal n1p = cn1p(z);
-#endif
 
 	doublereal jzz = (1.+3.*rho)/(6.*rho*(1.+rho))*dt;
 	doublereal jz0 = -1./(6.*rho*(1.+rho)*(1.+rho))*dt;
@@ -742,7 +732,7 @@ method_cubic(const char* module, integration_data* d,
 		 		doublereal xPz = (cm0p(1. + z)*xm1 + cm1p(1. + z)*xm2)/dt
 					+ cn0p(1. + z)*xPm1 + cn1p(1. + z)*xPm2;
 		 		doublereal x = xm1 + dt*(w1*xPm1 + wz*xPz + w0*xP);
-		 		doublereal xz = m0*x + m1*xm1 + dt*(n0*xP + n1*xPm1);
+		 		doublereal xz = cm0(z)*x + cm1(z)*xm1 + dt*(cn0(z)*xP + cn1(z)*xPm1);
 	
 		 		pX->PutCoef(k, x);
 		 		pXP->PutCoef(k, xP);
@@ -809,7 +799,7 @@ method_cubic(const char* module, integration_data* d,
 	    			pXP->IncCoef(ir, dxP0);
 				XPz.IncCoef(ir, dxPz);
 	    			pX->IncCoef(ir, dt*(wz*dxPz + w0*dxP0));
-				Xz.IncCoef(ir, dt*(m0*(wz*dxPz + w0*dxP0)+n0*dxP0));
+				Xz.IncCoef(ir, dt*(cm0(z)*(wz*dxPz + w0*dxP0)+cn0(z)*dxP0));
 	 		}
      	 	} while (true);
       
