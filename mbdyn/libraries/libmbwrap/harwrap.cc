@@ -50,9 +50,7 @@ HarwellSparseSolutionManager::HarwellSparseSolutionManager(integer iSize,
 							       const doublereal& dPivotFactor) :
 iMatMaxSize(iSize),
 iMatSize(iSize), 
-// piRow(NULL), piCol(NULL), 
-// pdMat(NULL), pdVec(NULL),
-/* pMH(NULL), */
+iColStart(iSize + 1),
 MH(iSize),
 pVH(NULL), pLU(NULL),
 fHasBeenReset(1)
@@ -75,11 +73,6 @@ fHasBeenReset(1)
 	iRow.reserve(iWorkSpaceSize);
 	iCol.reserve(iWorkSpaceSize);
 	dMat.reserve(iWorkSpaceSize);
-//    	SAFENEWWITHCONSTRUCTOR(pMH, 
-// 			       SparseMatrixHandler,
-// 			       SparseMatrixHandler(iMatSize, &iRow, 
-// 			       			   &iCol, &dMat,
-// 			       			   iWorkSpaceSize));
    	SAFENEWWITHCONSTRUCTOR(pLU, 
 			       HarwellSolver,
 			       HarwellSolver(iMatSize, iWorkSpaceSize,
@@ -136,7 +129,7 @@ HarwellSparseSolutionManager::PacVec(void)
    
    	ASSERT(fHasBeenReset == 1);
    
-   	pLU->iNonZeroes = MH.MakeIndexForm(dMat,iRow,iCol,1);
+   	pLU->iNonZeroes = MH.MakeIndexForm(dMat, iRow, iCol, iColStart, 1);
 }
 
 /* Inizializza il gestore delle matrici */
