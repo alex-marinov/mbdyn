@@ -51,6 +51,15 @@
 #include <string.h>
 #include <signal.h>
 
+#ifdef HAVE_SASL2
+#if defined(HAVE_SASL_SASL_H)
+#include <sasl/sasl.h>
+#elif defined (HAVE_SASL_H)
+#include <sasl.h>
+#endif /* HAVE_SASL_SASL_H || HAVE_SASL_H */
+#include "mbsasl.h"
+#endif /* HAVE_SASL2 */
+
 #include "sock.h"
 
 const unsigned short int PORT = 5555;
@@ -74,6 +83,11 @@ usage(void)
 		"\tvalue:\tnew value (or increment if -i)\n\n");
 }
 
+	static int sasl = 0;
+#ifdef HAVE_SASL2
+static struct mbdyn_sasl_t mbdyn_sasl = MBDYN_SASL_INIT;
+#endif /* HAVE_SASL2 */
+
 int
 main(int argc, char *argv[])
 {
@@ -86,6 +100,7 @@ main(int argc, char *argv[])
 
 	char *user = NULL;
 	char *cred = NULL;
+	char *mech = NULL;
 
 	int inc = 0;
 	int imp = 0;
@@ -98,15 +113,42 @@ main(int argc, char *argv[])
 	while (1) {
 		int opt;
 
-		opt = getopt (argc, argv, "h:p:P:D:w:Wi:I:");
+		opt = getopt (argc, argv, "D:h:i:I:m:p:P:S:w:W");
 
 		if (opt == EOF) {
 			break;
 		}
 
 		switch (opt) {
+		case 'D':
+			user = optarg;
+			break;
+
 		case 'h':
 			host = optarg;
+			break;
+
+		case 'i':
+			if (strcasecmp(optarg, "yes") == 0) {
+				inc = 1;
+			} else if (strcasecmp(optarg, "no") == 0) {
+				inc = -1;
+			}
+			break;
+
+		case 'I':
+			if (strcasecmp(optarg, "yes") == 0) {
+				imp = 1;
+			} else if (strcasecmp(optarg, "no") == 0) {
+				imp = -1;
+			}
+			break;
+
+		case 'm':
+			mech = optarg;
+#ifndef HAVE_SASL2
+			fprintf(stderr, "SASL not supported\n");
+#endif /* ! HAVE_SASL2 */
 			break;
 
 		case 'p':
@@ -117,8 +159,12 @@ main(int argc, char *argv[])
 			path = optarg;
 			break;
 
-		case 'D':
-			user = optarg;
+		case 'S':
+			sasl++;
+#ifndef HAVE_SASL2
+			fprintf(stderr, "SASL not supported\n");
+			exit(EXIT_FAILURE);
+#endif /* ! HAVE_SASL2 */
 			break;
 
 		case 'w':
@@ -144,22 +190,6 @@ main(int argc, char *argv[])
 				cred = strdup(cred);
 			}
 			break;
-
-		case 'i':
-			if (strcasecmp(optarg, "yes") == 0) {
-				inc = 1;
-			} else if (strcasecmp(optarg, "no") == 0) {
-				inc = -1;
-			}
-			break;
-
-		case 'I':
-			if (strcasecmp(optarg, "yes") == 0) {
-				imp = 1;
-			} else if (strcasecmp(optarg, "no") == 0) {
-				imp = -1;
-			}
-			break;
 		}
 	}
 
@@ -183,12 +213,38 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	if (sasl) {
+#ifdef HAVE_SASL2
+		printf("initializing SASL data...\n");
+
+		mbdyn_sasl.use_sasl = MBDYN_SASL_CLIENT;
+		mbdyn_sasl.sasl_flags = MBDYN_SASL_FLAG_CRITICAL | MBDYN_SASL_FLAG_USERAUTHZ;
+		mbdyn_sasl.sasl_mech = mech;
+		mbdyn_sasl.sasl_user = user;
+		mbdyn_sasl.sasl_cred = cred;
+		mbdyn_sasl.sasl_hostname = host;
+
+		if (mbdyn_sasl_client_init(&mbdyn_sasl) != SASL_OK) {
+			fprintf(stderr, "SASL init failed\n");
+			exit(EXIT_FAILURE);
+		}
+
+		if (mbdyn_sasl_client_auth(sock, NULL, &mbdyn_sasl) != SASL_OK) {
+			fprintf(stderr, "SASL auth failed\n");
+			exit(EXIT_FAILURE);
+		}
+#endif /* HAVE_SASL2 */
+	}
+
 	fd = fdopen(sock, "w");
-	if (user) {
-		fprintf(fd, "user: %s\n", user);
-		if (cred) {
-			fprintf(fd, "password: %s\n", cred);
-			memset(cred, '\0', strlen(cred));
+
+	if (!sasl) {
+		if (user) {
+			fprintf(fd, "user: %s\n", user);
+			if (cred) {
+				fprintf(fd, "password: %s\n", cred);
+				memset(cred, '\0', strlen(cred));
+			}
 		}
 	}
 

@@ -28,7 +28,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
@@ -127,7 +127,7 @@ set_input_mode(void)
 
 static int sasl = 0;
 #ifdef HAVE_SASL2
-static mbdyn_sasl_t mbdyn_sasl = MBDYN_SASL_INIT;
+static struct mbdyn_sasl_t mbdyn_sasl = MBDYN_SASL_INIT;
 #endif /* HAVE_SASL2 */
 
 const char		*path = NULL;

@@ -62,7 +62,7 @@ rot2eup_LDADD = $(MYLIBS)
 rot2eu_LDADD = $(MYLIBS)
 rot2phi_LDADD = $(MYLIBS)
 rotrel_LDADD = $(MYLIBS)
-sockdrive_LDADD = $(MYLIBS)
+sockdrive_LDADD = $(MYLIBS) @SECURITY_LIBS@
 vec2rot_LDADD = $(MYLIBS)
 
 logproc_LDFLAGS = -static
