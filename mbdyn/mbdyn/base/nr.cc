@@ -50,7 +50,6 @@
 #endif /* USE_MPI */
 
 #include "dofown.h"
-#include "umfpackwrap.h"
 #include "output.h"
 #include "ac/float.h"
 #include "ac/math.h"
@@ -169,8 +168,10 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
           
       		iIterCnt++;
 
-		if (bTrueNewtonRaphson || (iPerformedIterations%IterationBeforeAssembly == 0)
-			|| forceJacobian) {
+		if (bTrueNewtonRaphson
+				|| (iPerformedIterations%IterationBeforeAssembly == 0)
+				|| forceJacobian)
+		{
       			pSM->MatrReset();
 rebuild_matrix:;
 			try {

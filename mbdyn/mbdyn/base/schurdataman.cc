@@ -158,6 +158,11 @@ SchurDataManager::Output(bool force) const
 }
 #else /* USE_MPI */
 
+/* NOTE: define to use Wait/Waitall instead of Test/Testall
+ * Apparently, this results in far better performances,
+ * so we might want to extend it to all other communications */
+#define USE_MPI_WAIT
+
 /* Costruttore - begin */
 SchurDataManager::SchurDataManager(MBDynParser& HP,
 		unsigned OF,
@@ -1144,6 +1149,10 @@ SchurDataManager::CreatePartition(void)
 	/* initialize local element iterator */
 	MyElemIter.Init(ppMyElems, iNumLocElems);
 
+#ifdef USE_MPI_WAIT
+	MPI::Request::Waitall(DataCommSize, pRReq);
+	MPI::Request::Waitall(DataCommSize, pSReq);
+#else /* ! USE_MPI_WAIT */
 	/* Verifico la ricezione dei nodi di interfaccia */
 	bool bRecvFlag = false, bSentFlag = false;
 	while (true) {
@@ -1161,6 +1170,7 @@ SchurDataManager::CreatePartition(void)
 
 		MYSLEEP(1000);
 	}
+#endif /* ! USE_MPI_WAIT */
 
 	/* ordino i nodi interfaccia */
 	std::sort(InterfNodes.pAdjncy,
@@ -1759,10 +1769,13 @@ SchurDataManager::Output(bool force) const
 		return;
 	}
 
+#if 0
 	/* Dati intestazione */
 	OutHdl.Output()
 		<< "Time: "
-		<< std::setw(16) << std::setprecision(8) << DrvHdl.dGetTime() << std::endl;
+		<< std::setw(16) << std::setprecision(8)
+		<< DrvHdl.dGetTime() << std::endl;
+#endif
 
 	/* Nodi */
 	for (int i = 0; i < iNumLocNodes; i++) {

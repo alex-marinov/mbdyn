@@ -61,8 +61,18 @@ static struct solver_t {
 	unsigned		s_default_flags;
 	doublereal		s_pivot_factor;
 } solver[] = {
+	{ "Empty", NULL,
+		LinSol::EMPTY_SOLVER,
+		LinSol::SOLVER_FLAGS_NONE,
+		LinSol::SOLVER_FLAGS_NONE,
+       		-1. },
 	{ "Harwell", NULL,
 		LinSol::HARWELL_SOLVER,
+		LinSol::SOLVER_FLAGS_NONE,
+		LinSol::SOLVER_FLAGS_NONE,
+		-1. },
+	{ "Lapack", NULL,
+		LinSol::LAPACK_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
 		LinSol::SOLVER_FLAGS_NONE,
 		-1. },
@@ -71,41 +81,31 @@ static struct solver_t {
 		LinSol::SOLVER_FLAGS_NONE,
 		LinSol::SOLVER_FLAGS_NONE,
 		-1. },
-	{ "Y12", NULL,
-		LinSol::Y12_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
-		-1. },
-	{ "Umfpack", "umfpack3", 
-		LinSol::UMFPACK_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
-		.1 },
-	{ "SuperLU", NULL, 
-		LinSol::SUPERLU_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
-		1. },
-	{ "Lapack", NULL,
-		LinSol::LAPACK_SOLVER,
-		LinSol::SOLVER_FLAGS_NONE,
-		LinSol::SOLVER_FLAGS_NONE,
-		-1. },
-	{ "Taucs", NULL, 
-		LinSol::TAUCS_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP,
-       		-1. },
 	{ "Naive", NULL,
 		LinSol::NAIVE_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_COLAMD|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
 		LinSol::SOLVER_FLAGS_NONE,
 		1.e-8 },
-	{ "Empty", NULL,
-		LinSol::EMPTY_SOLVER,
-		LinSol::SOLVER_FLAGS_NONE,
-		LinSol::SOLVER_FLAGS_NONE,
+	{ "SuperLU", NULL, 
+		LinSol::SUPERLU_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
+		1. },
+	{ "Taucs", NULL, 
+		LinSol::TAUCS_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP,
        		-1. },
+	{ "Umfpack", "umfpack3", 
+		LinSol::UMFPACK_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+		.1 },
+	{ "Y12", NULL,
+		LinSol::Y12_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+		-1. },
 	{ NULL, NULL, 
 		LinSol::EMPTY_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
@@ -162,114 +162,39 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 {
    	/* parole chiave */
    	const char* sKeyWords[] = { 
+		::solver[LinSol::EMPTY_SOLVER].s_name,
 		::solver[LinSol::HARWELL_SOLVER].s_name,
+		::solver[LinSol::LAPACK_SOLVER].s_name,
 		::solver[LinSol::MESCHACH_SOLVER].s_name,
-		::solver[LinSol::Y12_SOLVER].s_name,
+		::solver[LinSol::NAIVE_SOLVER].s_name,
+		::solver[LinSol::SUPERLU_SOLVER].s_name,
+		::solver[LinSol::TAUCS_SOLVER].s_name,
 		::solver[LinSol::UMFPACK_SOLVER].s_name,
 		::solver[LinSol::UMFPACK_SOLVER].s_alias,
-		::solver[LinSol::SUPERLU_SOLVER].s_name,
-		::solver[LinSol::LAPACK_SOLVER].s_name,
-		::solver[LinSol::TAUCS_SOLVER].s_name,
-		::solver[LinSol::NAIVE_SOLVER].s_name,
-		::solver[LinSol::EMPTY_SOLVER].s_name,
+		::solver[LinSol::Y12_SOLVER].s_name,
 		NULL
 	};
 
 	enum KeyWords {
+		EMPTY,
 		HARWELL,
+		LAPACK,
 		MESCHACH,
-		Y12,
+		NAIVE,
+		SUPERLU,
+		TAUCS,
 		UMFPACK,
 		UMFPACK3,
-		SUPERLU,
-		LAPACK,
-		TAUCS,
-		NAIVE,
-		EMPTY,
+		Y12,
 
 		LASTKEYWORD
 	};
 
    	/* tabella delle parole chiave */
    	KeyTable K(HP, sKeyWords);
-   
-	switch(KeyWords(HP.GetWord())) {
-	case MESCHACH:
-#ifdef USE_MESCHACH
-		CurrSolver = LinSol::MESCHACH_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using meschach sparse LU solver"
-				<< std::endl);
-#endif /* USE_MESCHACH */
-		break;
 
-	case Y12:
-#ifdef USE_Y12
-		/*
-		 * FIXME: use CC as default???
-		 */
-		CurrSolver = LinSol::Y12_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using y12 sparse LU solver" << std::endl);
-#endif /* USE_Y12 */
-		break;
-
-	case SUPERLU:
-#ifdef USE_SUPERLU
-		/*
-		 * FIXME: use CC as default???
-		 */
-		CurrSolver = LinSol::SUPERLU_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using SuperLU sparse LU solver" << std::endl);
-#endif /* USE_SUPERLU */
-		break;
-
-	case LAPACK:
-#ifdef USE_LAPACK
-		CurrSolver = LinSol::LAPACK_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using Lapack dense LU solver" << std::endl);
-#endif /* USE_LAPACK */
-		break;
-
-	case TAUCS:
-#ifdef USE_TAUCS
-		/*
-		 * FIXME: use CC as default???
-		 */
-		CurrSolver = LinSol::TAUCS_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using Taucs sparse solver" << std::endl);
-#endif /* USE_TAUCS */
-		break;
-
-	case UMFPACK3:
-		pedantic_cerr("\"umfpack3\" is deprecated; "
-				"use \"umfpack\" instead" << std::endl);
-	case UMFPACK:
-#ifdef USE_UMFPACK
-		/*
-		 * FIXME: use CC as default???
-		 */
-		CurrSolver = LinSol::UMFPACK_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using umfpack sparse LU solver" << std::endl);
-#endif /* USE_UMFPACK */
-		break;
-
-	case HARWELL:
-#ifdef USE_HARWELL
-		CurrSolver = LinSol::HARWELL_SOLVER;
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Using harwell sparse LU solver" << std::endl);
-#endif /* USE_HARWELL */
-		break;
-
-	case NAIVE:
-		CurrSolver = LinSol::NAIVE_SOLVER;
-		break;
-
+	bool bGotIt = false;	
+	switch (KeyWords(HP.GetWord())) {
 	case EMPTY:
 		if (!bAllowEmpty) {
 			silent_cerr("empty solver not allowed at line "
@@ -280,12 +205,102 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		CurrSolver = LinSol::EMPTY_SOLVER;
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"No LU solver" << std::endl);
+		bGotIt = true;
+		break;
+
+	case HARWELL:
+		CurrSolver = LinSol::HARWELL_SOLVER;
+		DEBUGLCOUT(MYDEBUG_INPUT,
+				"Using harwell sparse LU solver" << std::endl);
+#ifdef USE_HARWELL
+		bGotIt = true;
+#endif /* USE_HARWELL */
+		break;
+
+	case LAPACK:
+		CurrSolver = LinSol::LAPACK_SOLVER;
+		DEBUGLCOUT(MYDEBUG_INPUT,
+				"Using Lapack dense LU solver" << std::endl);
+#ifdef USE_LAPACK
+		bGotIt = true;
+#endif /* USE_LAPACK */
+		break;
+
+	case MESCHACH:
+		CurrSolver = LinSol::MESCHACH_SOLVER;
+		DEBUGLCOUT(MYDEBUG_INPUT,
+				"Using meschach sparse LU solver"
+				<< std::endl);
+#ifdef USE_MESCHACH
+		bGotIt = true;
+#endif /* USE_MESCHACH */
+		break;
+
+	case NAIVE:
+		CurrSolver = LinSol::NAIVE_SOLVER;
+		bGotIt = true;
+		break;
+
+	case SUPERLU:
+		/*
+		 * FIXME: use CC as default???
+		 */
+		CurrSolver = LinSol::SUPERLU_SOLVER;
+		DEBUGLCOUT(MYDEBUG_INPUT,
+				"Using SuperLU sparse LU solver" << std::endl);
+#ifdef USE_SUPERLU
+		bGotIt = true;
+#endif /* USE_SUPERLU */
+		break;
+
+	case TAUCS:
+		/*
+		 * FIXME: use CC as default???
+		 */
+		CurrSolver = LinSol::TAUCS_SOLVER;
+		DEBUGLCOUT(MYDEBUG_INPUT,
+				"Using Taucs sparse solver" << std::endl);
+#ifdef USE_TAUCS
+		bGotIt = true;
+#endif /* USE_TAUCS */
+		break;
+
+	case UMFPACK3:
+		pedantic_cerr("\"umfpack3\" is deprecated; "
+				"use \"umfpack\" instead" << std::endl);
+	case UMFPACK:
+		/*
+		 * FIXME: use CC as default???
+		 */
+		CurrSolver = LinSol::UMFPACK_SOLVER;
+		DEBUGLCOUT(MYDEBUG_INPUT,
+				"Using umfpack sparse LU solver" << std::endl);
+#ifdef USE_UMFPACK
+		bGotIt = true;
+#endif /* USE_UMFPACK */
+		break;
+
+	case Y12:
+		/*
+		 * FIXME: use CC as default???
+		 */
+		CurrSolver = LinSol::Y12_SOLVER;
+		DEBUGLCOUT(MYDEBUG_INPUT,
+				"Using y12 sparse LU solver" << std::endl);
+#ifdef USE_Y12
+		bGotIt = true;
+#endif /* USE_Y12 */
 		break;
 
 	default:
-		DEBUGLCOUT(MYDEBUG_INPUT,
-				"Unknown solver; switching to default" << std::endl);
-		break;
+		silent_cerr("unknown solver" << std::endl);
+		throw ErrGeneric();
+	}
+
+	if (!bGotIt) {
+		silent_cerr(::solver[CurrSolver].s_name << " solver "
+			"not available at line " << HP.GetLineData());
+		throw ErrGeneric();
 	}
 
 	solverFlags = ::solver[CurrSolver].s_default_flags;
@@ -351,7 +366,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		}
 	}
 
-	/* mutithread? */
+	/* multithread? */
 	if (HP.IsKeyWord("multi" "thread") || HP.IsKeyWord("mt")) {
 		nThreads = HP.GetInt();
 

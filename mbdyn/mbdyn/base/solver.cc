@@ -88,11 +88,6 @@
 #endif /* HAVE_SYS_MMAN_H */
 #endif /* USE_RTAI */
 
-#include "harwrap.h"
-#include "mschwrap.h"
-#include "y12wrap.h"
-#include "umfpackwrap.h"
-
 #ifdef HAVE_SIGNAL
 static volatile sig_atomic_t mbdyn_keep_going = 1;
 static __sighandler_t mbdyn_sh_term = SIG_DFL;
@@ -985,8 +980,9 @@ Solver::Run(void)
 
 	 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Substep " << iSubStep
 				   << " of step " << iStep
-				   << " has been completed successfully in "
-				   << iStIter << " iterations" << std::endl);
+				   << " has been successfully completed "
+				   "in " << iStIter << " iterations"
+				   << std::endl);
 
 #ifdef HAVE_SIGNAL
 	 		if (!::mbdyn_keep_going) {
@@ -1011,8 +1007,8 @@ Solver::Run(void)
 		}
 
       		DEBUGLCOUT(MYDEBUG_FSTEPS,
-			   "Fictitious steps have been completed successfully"
-			   " in " << iStIter << " iterations" << std::endl);
+			   "Fictitious steps have been successfully completed "
+			   "in " << iStIter << " iterations" << std::endl);
 #ifdef USE_EXTERNAL
 	/* comunica che gli ultimi dati inviati sono la condizione iniziale */
 		External::SendInitial();
@@ -1061,8 +1057,8 @@ Solver::Run(void)
 
    	iStep = 1; /* Resetto di nuovo iStep */
 
-   	DEBUGCOUT("Step " << iStep << " has been completed successfully in "
-		  << iStIter << " iterations" << std::endl);
+   	DEBUGCOUT("Step " << iStep << " has been successfully completed "
+			"in " << iStIter << " iterations" << std::endl);
 
 
    	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
@@ -1525,8 +1521,8 @@ IfStepIsToBeRepeated:
 		}
 
      	 	DEBUGCOUT("Step " << iStep
-			<< " has been completed successfully in "
-			<< iStIter << " iterations" << std::endl);
+			<< " has been successfully completed "
+			"in " << iStIter << " iterations" << std::endl);
 
 	      	dRefTimeStep = dCurrTimeStep;
       		dTime += dRefTimeStep;
@@ -3877,9 +3873,10 @@ Solver::AllocateSchurSolman(integer iStates)
 #ifdef USE_MPI
 	switch (CurrIntSolver.GetSolver()) {
 	case LinSol::LAPACK_SOLVER:
-	case LinSol::Y12_SOLVER:
-	case LinSol::UMFPACK_SOLVER:
 	case LinSol::MESCHACH_SOLVER:
+	case LinSol::NAIVE_SOLVER:
+	case LinSol::UMFPACK_SOLVER:
+	case LinSol::Y12_SOLVER:
 		break;
 
 	default:

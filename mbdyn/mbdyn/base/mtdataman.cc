@@ -47,9 +47,6 @@ extern "C" {
 }
 
 #include "mtdataman.h"
-#include "umfpackwrap.h"
-
-
 
 static inline void
 do_lock(integer &p)
