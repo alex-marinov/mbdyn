@@ -42,6 +42,7 @@ libmbwrap_la_LIBADD = \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \
+@WSMP_LIBS@ \
 @LAPACK_LIBS@ \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
