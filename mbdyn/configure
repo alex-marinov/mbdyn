@@ -3189,7 +3189,7 @@ echo "configure:3189: checking for lib$l" >&5
 echo "configure:4409: checking for lib$l" >&5
 
 		try_libf2c_LIBS="-l$l"
-		LIBS="$LIBS $try_libf2c_LIBS"
+		save_LIBS=$LIBS
 		LIBS="$LIBS $try_libf2c_LIBS -lm"
 #line 3195 "configure"
 #line 4415 "configure"

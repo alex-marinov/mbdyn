@@ -471,7 +471,7 @@ if test $ol_with_libf2c != no ; then
 
 		try_libf2c_LIBS="-l$l"
 		save_LIBS=$LIBS
-		LIBS="$LIBS $try_libf2c_LIBS"
+		LIBS="$LIBS $try_libf2c_LIBS -lm"
 		AC_TRY_LINK([#include <$top_builddir/libraries/libmbmath/myf2c.h>],[
 			doublereal i = 1., o;
 			o = d_cos(&i);
