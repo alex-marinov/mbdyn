@@ -722,7 +722,14 @@ HighParser::GetVec3(const Vec3& vDef)
    doublereal x1 = GetReal(vDef.dGet(1));
    doublereal x2 = GetReal(vDef.dGet(2));
    doublereal x3 = GetReal(vDef.dGet(3));
-   return Vec3(x1, x2, x3);
+
+   Vec3 v(x1, x2, x3);
+
+   if (IsKeyWord("scale")) {
+       v *= GetReal(1.);
+   }
+   
+   return v;
 }
 
 
