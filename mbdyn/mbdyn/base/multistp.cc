@@ -214,12 +214,10 @@ fAbortAfterInput(0),
 fAbortAfterAssembly(0),
 fAbortAfterDerivatives(0),
 fAbortAfterFictitiousSteps(0),
-iOutputFlags(0),
+iOutputFlags(OUTPUT_NONE),
 fTrueNewtonRaphson(1),
 iIterationsBeforeAssembly(0),
 iPerformedIterations(0),
-fPrintRes(false),
-fPrintJac(false),
 iStepsAfterReduction(0),
 iStepsAfterRaise(0),
 iWeightedPerformedIters(0),
@@ -758,16 +756,13 @@ MultiStepIntegrator::Run(void)
 		MPE_Log_event(4, 0, "end");
 #endif /* MPI_PROFILING */
       
-//#ifdef DEBUG
-      		if (DEBUG_LEVEL_MATCH(MYDEBUG_DERIVATIVES|MYDEBUG_RESIDUAL)||
-			fPrintRes) {
+      		if (DEBUG_LEVEL_MATCH(MYDEBUG_DERIVATIVES|MYDEBUG_RESIDUAL)|| outputRes()) {
 	 		std::cout << "Residual:" << std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
 	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": " 
 	      				<< pRes->dGetCoef(iTmpCnt) << std::endl;
 	 		}
       		}
-//#endif /* DEBUG */
 
       		if (dTest < dDerivativesTol) {
 	 		goto EndOfDerivatives;
@@ -790,7 +785,7 @@ MultiStepIntegrator::Run(void)
 	 		THROW(MultiStepIntegrator::ErrMaxIterations());
       		}
 
-		if (iOutputFlags & OUTPUT_ITERS) {
+		if (outputIters()) {
 			Out << "\tIteration " << iIterCnt
 				<< " " << dTest << " J"
 				<< std::endl;
@@ -808,7 +803,7 @@ MultiStepIntegrator::Run(void)
 		MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
-      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC)||fPrintJac) {
+      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
 	 		std::cout << "Jacobian:" << std::endl;
 			if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
 				std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
@@ -968,9 +963,7 @@ EndOfDerivatives:
 			MPE_Log_event(4, 0, "end");
 #endif /* MPI_PROFILING */
 	 
-//#ifdef DEBUG
-			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)||
-				fPrintRes) {
+			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)|| outputRes()) {
 				std::cout << "Residual:" << std::endl;
 				for (int iTmpCnt = 1;
 				     iTmpCnt <= iNumDofs;
@@ -980,7 +973,6 @@ EndOfDerivatives:
 						<< pRes->dGetCoef(iTmpCnt) << std::endl;
 	    			}
 	 		}
-//#endif /* DEBUG */
 	 
 	 		if (dTest < dFictitiousStepsTolerance) {
 	   			goto EndOfFirstFictitiousStep;
@@ -1002,7 +994,7 @@ EndOfDerivatives:
 	    			THROW(MultiStepIntegrator::ErrMaxIterations());
 	 		}
 
-			if (iOutputFlags & OUTPUT_ITERS) {
+			if (outputIters()) {
 				Out << "\tIteration " << iIterCnt
 					<< " " << dTest << " J"
 					<< std::endl;
@@ -1020,7 +1012,7 @@ EndOfDerivatives:
 			MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
-	      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC)||fPrintJac) {
+	      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
 		 		std::cout << "Jacobian:" << std::endl;
 				if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
 					std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
@@ -1166,9 +1158,7 @@ EndOfFirstFictitiousStep:
 				MPE_Log_event(4, 0, "end");
 #endif /* MPI_PROFILING */
 
-//#ifdef DEBUG
-	    			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL) ||
-					fPrintRes) {
+	    			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL) || outputRes()) {
 	       				std::cout << "Residual:" << std::endl;
 	       				for (int iTmpCnt = 1;
 					     iTmpCnt <= iNumDofs;
@@ -1180,8 +1170,6 @@ EndOfFirstFictitiousStep:
 							<< std::endl;
 	       				}
 	    			}
-//#endif /* DEBUG */
-
 	    
 	    			if (dTest < dFictitiousStepsTolerance) {
 	       				goto EndOfFictitiousStep;
@@ -1204,7 +1192,7 @@ EndOfFirstFictitiousStep:
 					THROW(MultiStepIntegrator::ErrMaxIterations());
 	    			}
 	    
-				if (iOutputFlags & OUTPUT_ITERS) {
+				if (outputIters()) {
 					Out << "\tIteration " << iIterCnt
 						<< " " << dTest << " J"
 						<< std::endl;
@@ -1222,7 +1210,7 @@ EndOfFirstFictitiousStep:
 				MPE_Log_event(24, 0, "end");
 #endif /* MPI_PROFILING */
 
-		      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC)||fPrintJac) {
+		      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
 			 		std::cout << "Jacobian:" << std::endl;
 					if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
 						std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
@@ -1405,8 +1393,7 @@ IfFirstStepIsToBeRepeated:
 
       		dTest = MakeTest(*pRes, *pXPrimeCurr);
       
-//#ifdef DEBUG
-      		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL)||fPrintRes) {
+      		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL) || outputRes()) {
 	 		std::cout << "Residual:" << std::endl;
 	 		std::cout << iStep  << "   " << iIterCnt <<std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
@@ -1414,7 +1401,6 @@ IfFirstStepIsToBeRepeated:
 					<< pRes->dGetCoef(iTmpCnt) << std::endl;
 			}
       		}
-//#endif /* DEBUG */
       
       		if (dTest < dTol) {
 	 		goto EndOfFirstStep;
@@ -1461,7 +1447,7 @@ IfFirstStepIsToBeRepeated:
 			 */
 			if (MyRank == 0) {
 #endif /* USE_MPI */
-				if (iOutputFlags & OUTPUT_ITERS) {
+				if (outputIters()) {
 					Out << "\tIteration " << iIterCnt
 						<< " " << dTest << " M"
 						<< std::endl;
@@ -1488,7 +1474,7 @@ IfFirstStepIsToBeRepeated:
 #ifdef USE_MPI
 			if (MyRank == 0) {
 #endif /* USE_MPI */
-				if (iOutputFlags & OUTPUT_ITERS) {
+				if (outputIters()) {
 					Out << "\tIteration " << iIterCnt
 						<< " " << dTest << " J"
 						<< std::endl;
@@ -1498,7 +1484,7 @@ IfFirstStepIsToBeRepeated:
 #endif /* USE_MPI */
       		}
 
-      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC)||fPrintJac) {
+      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
 	 		std::cout << "Jacobian:" << std::endl;
 			if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
 				std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
@@ -1694,8 +1680,7 @@ IfStepIsToBeRepeated:
 			}
 #endif /* USE_EXCEPTIONS */
 
-//#ifdef DEBUG   
-	 		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL)|| fPrintRes) {
+	 		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL) || outputRes()) {
 	    			std::cout << "Residual:" << std::endl;
 	    			std::cout << iStep  << "   " << iIterCnt << std::endl;
 	    			for (int iTmpCnt = 1;
@@ -1707,7 +1692,6 @@ IfStepIsToBeRepeated:
 						<< std::endl;
 	    			}
 	 		}
-//#endif /* DEBUG */
 
         		if (dTest < dTol) {
 				CurrStep = MultiStepIntegrationMethod::NEWSTEP;
@@ -1761,7 +1745,7 @@ IfStepIsToBeRepeated:
 #ifdef USE_MPI
 				if (MyRank == 0) {
 #endif /* USE_MPI */
-					if (iOutputFlags & OUTPUT_ITERS) {
+					if (outputIters()) {
 						Out << "\tIteration " 
 							<< iIterCnt
 							<< " " << dTest 
@@ -1793,7 +1777,7 @@ IfStepIsToBeRepeated:
 #ifdef USE_MPI
 				if (MyRank == 0) {
 #endif /* USE_MPI */
-					if (iOutputFlags & OUTPUT_ITERS) {
+					if (outputIters()) {
 						Out << "\tIteration " 
 							<< iIterCnt
 							<< " " << dTest 
@@ -1805,7 +1789,7 @@ IfStepIsToBeRepeated:
 #endif /* USE_MPI */
 	 		}
 
-	      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC)||fPrintJac) {
+	      		if (DEBUG_LEVEL_MATCH(MYDEBUG_JAC) || outputJac()) {
 		 		std::cout << "Jacobian:" << std::endl;
 				if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
 					std::cout << "Warning, Jacobian output avaliable only with umfpack solver" << std::endl;
@@ -2598,6 +2582,8 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 
 		"output",
 			"iterations",
+			"residual",
+			"jacobian",
 	
 		"method",
 		/* DEPRECATED */ "fictitious" "steps" "method" /* END OF DEPRECATED */ ,
@@ -2617,9 +2603,6 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 			"true",
 			"modified",
 		
-		"PrintRes",
-		"PrintJac",
-	
 		"strategy",
 			"factor",
 			"no" "change",
@@ -2679,7 +2662,9 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		DUMMYSTEPS,
 
 		OUTPUT,
-		ITERATIONS,
+			ITERATIONS,
+			RESIDUAL,
+			JACOBIAN,
 	
 		METHOD,
 		FICTITIOUSSTEPSMETHOD,
@@ -2934,6 +2919,14 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 				switch (OutputFlag) {
 				case ITERATIONS:
 					iOutputFlags |= OUTPUT_ITERS;
+					break;
+
+				case RESIDUAL:
+					iOutputFlags |= OUTPUT_RES;
+					break;
+
+				case JACOBIAN:
+					iOutputFlags |= OUTPUT_JAC;
 					break;
 
 				default:
@@ -3237,15 +3230,6 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  break;
        }
 
-       case PRINTRES: {
-          fPrintRes = true;
-          break;
-       }   
-       case PRINTJAC: {
-          fPrintJac = true;
-          break;
-       }   
-	 
        case END: {	     
 	  if (KeyWords(HP.GetWord()) != MULTISTEP) {
 	     std::cerr << std::endl 
@@ -3974,7 +3958,7 @@ MultiStepIntegrator::Eig(void)
    if (currtm) {
 #warning "Your compiler might complain about %y"
 #warning "yielding only the last two digits of"
-#warning "the year; don't worry, it is intended :)"
+#warning "the year; don't worry, it's intended :)"
    	strftime(datebuf, sizeof(datebuf)-1, "%m/%d/%y", currtm);
    }
 #endif /* HAVE_STRFTIME && HAVE_LOCALTIME && HAVE_TIME */

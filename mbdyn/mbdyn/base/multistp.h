@@ -299,17 +299,30 @@ private:
 
 	integer iOutputFlags;
 	enum {
-		OUTPUT_ITERS = 0x0001
+		OUTPUT_NONE		= 0x0000,
+		OUTPUT_ITERS		= 0x0001,
+		OUTPUT_RES		= 0x0002,
+		OUTPUT_JAC		= 0x0004,
+
+		OUTPUT_MASK		= 0x00FF
+	};
+
+	inline bool outputIters(void) const {
+		return (iOutputFlags & OUTPUT_ITERS);
+	};
+ 
+	inline bool outputRes(void) const {
+		return (iOutputFlags & OUTPUT_RES);
+	};
+ 
+	inline bool outputJac(void) const {
+		return (iOutputFlags & OUTPUT_JAC);
 	};
  
    	/* Parametri per Newton-Raphson modificato */
    	flag fTrueNewtonRaphson;
    	integer iIterationsBeforeAssembly;
    	integer iPerformedIterations;
-
-        /* Parametri per debug */
- 	flag fPrintRes;
- 	flag fPrintJac;
 
    	/* Parametri per la variazione passo */
    	integer iStepsAfterReduction;
