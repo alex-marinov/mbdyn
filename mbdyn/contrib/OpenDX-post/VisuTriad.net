@@ -1,5 +1,5 @@
 //
-// time: Mon Nov  4 11:25:08 2002
+// time: Fri Nov  8 11:52:18 2002
 //
 // version: 3.1.2 (format), 4.1.3 (DX)
 //
@@ -97,12 +97,12 @@ main_FormatList_2_out_1 =
     // 
     // node Selector[12]: x = 245, y = 366, inputs = 7, label = Selector
     // input[1]: defaulting = 0, visible = 0, type = 32, value = "Selector_12"
-    // input[2]: defaulting = 0, visible = 0, type = 32, value = "0.000000" 
-    // input[3]: defaulting = 0, visible = 0, type = 29, value = 0 
+    // input[2]: defaulting = 0, visible = 0, type = 32, value = "0.100000" 
+    // input[3]: defaulting = 0, visible = 0, type = 29, value = 1 
     // input[4]: defaulting = 1, visible = 1, type = 16777248, value = {"0.000000" "0.100000" }
     // input[5]: defaulting = 1, visible = 0, type = 16777245, value = {0  1  }
-    // output[1]: visible = 1, type = 29, value = 0 
-    // output[2]: visible = 1, type = 32, value = "0.000000" 
+    // output[1]: visible = 1, type = 29, value = 1 
+    // output[2]: visible = 1, type = 32, value = "0.100000" 
     // page group: MainControl
     //
 main_Selector_12_out_1[cache: 2],
@@ -163,7 +163,7 @@ main_Compute_4_out_1 =
     // input[6]: defaulting = 1, visible = 0, type = 1, value = 1
     // input[7]: defaulting = 0, visible = 0, type = 16777217, value = { 0 1 1 0 1 1 }
     // page group: MainControl
-    // vcr[1]: min = 0, max = 1, beg = 0, end = 1, cur = 0, inc = 1, loop = off, step = off, pal = off
+    // vcr[1]: min = 0, max = 1, beg = 0, end = 1, cur = 1, inc = 1, loop = off, step = off, pal = off
     // window: position = (0.0000,0.0000), size = 0.2734x0.1045
     //
     main_Sequencer_1_in_3 = @frame;
@@ -219,131 +219,6 @@ main_Select_11_out_1 =
     main_Select_11_in_2,
     main_Select_11_in_3
     ) [instance: 11, cache: 1];
-    // 
-    // node Mark[3]: x = 289, y = 246, inputs = 2, label = Mark
-    // input[2]: defaulting = 0, visible = 1, type = 32, value = "cosines"
-    // page group: ShowTriads
-    //
-main_Mark_3_out_1 = 
-    Mark(
-    main_Select_11_out_1,
-    main_Mark_3_in_2
-    ) [instance: 3, cache: 1];
-    // 
-    // node Compute[1]: x = 154, y = 385, inputs = 3, label = Compute
-    // input[1]: defaulting = 0, visible = 0, type = 32, value = "[$0.0, $0.1, $0.2]"
-    // page group: ShowTriads
-    // expression: value = [a.0, a.1, a.2]
-    // name[2]: value = a
-    // name[3]: value = b
-    //
-main_Compute_1_out_1 = 
-    Compute(
-    main_Compute_1_in_1,
-    main_Mark_3_out_1,
-    main_Compute_1_in_3
-    ) [instance: 1, cache: 1];
-    // 
-    // node Scalar[1]: x = 419, y = 46, inputs = 11, label = Scalar
-    // input[1]: defaulting = 0, visible = 0, type = 32, value = "Scalar_1"
-    // input[3]: defaulting = 0, visible = 0, type = 5, value = 1.0 
-    // input[5]: defaulting = 1, visible = 0, type = 5, value = -1000000.0
-    // input[6]: defaulting = 1, visible = 0, type = 5, value = 1000000.0
-    // input[7]: defaulting = 1, visible = 0, type = 5, value = 1.0
-    // input[9]: defaulting = 1, visible = 0, type = 1, value = 5
-    // output[1]: visible = 1, type = 5, value = 1.0 
-    // page group: ShowTriads
-    //
-    // 
-    // node Transmitter[1]: x = 481, y = 143, inputs = 1, label = TriadScale
-    // page group: ShowTriads
-    //
-TriadScale = main_Scalar_1_out_1;
-    // 
-    // node Receiver[1]: x = 263, y = 364, inputs = 1, label = TriadScale
-    // page group: ShowTriads
-    //
-main_Receiver_1_out_1[cache: 0] = TriadScale;
-    // 
-    // node AutoGlyph[1]: x = 164, y = 472, inputs = 7, label = AutoGlyph
-    // page group: ShowTriads
-    //
-main_AutoGlyph_1_out_1 = 
-    AutoGlyph(
-    main_Compute_1_out_1,
-    main_AutoGlyph_1_in_2,
-    main_AutoGlyph_1_in_3,
-    main_Receiver_1_out_1,
-    main_AutoGlyph_1_in_5,
-    main_AutoGlyph_1_in_6,
-    main_AutoGlyph_1_in_7
-    ) [instance: 1, cache: 1];
-    // 
-    // node Compute[2]: x = 357, y = 417, inputs = 3, label = Compute
-    // input[1]: defaulting = 0, visible = 0, type = 32, value = "[$0.3, $0.4, $0.5]"
-    // page group: ShowTriads
-    // expression: value = [a.3, a.4, a.5]
-    // name[2]: value = a
-    // name[3]: value = b
-    //
-main_Compute_2_out_1 = 
-    Compute(
-    main_Compute_2_in_1,
-    main_Mark_3_out_1,
-    main_Compute_2_in_3
-    ) [instance: 2, cache: 1];
-    // 
-    // node Receiver[2]: x = 428, y = 388, inputs = 1, label = TriadScale
-    // page group: ShowTriads
-    //
-main_Receiver_2_out_1[cache: 0] = TriadScale;
-    // 
-    // node AutoGlyph[2]: x = 368, y = 495, inputs = 7, label = AutoGlyph
-    // page group: ShowTriads
-    //
-main_AutoGlyph_2_out_1 = 
-    AutoGlyph(
-    main_Compute_2_out_1,
-    main_AutoGlyph_2_in_2,
-    main_AutoGlyph_2_in_3,
-    main_Receiver_2_out_1,
-    main_AutoGlyph_2_in_5,
-    main_AutoGlyph_2_in_6,
-    main_AutoGlyph_2_in_7
-    ) [instance: 2, cache: 1];
-    // 
-    // node Compute[3]: x = 576, y = 424, inputs = 3, label = Compute
-    // input[1]: defaulting = 0, visible = 0, type = 32, value = "[$0.6, $0.7, $0.8]"
-    // page group: ShowTriads
-    // expression: value = [a.6, a.7, a.8]
-    // name[2]: value = a
-    // name[3]: value = b
-    //
-main_Compute_3_out_1 = 
-    Compute(
-    main_Compute_3_in_1,
-    main_Mark_3_out_1,
-    main_Compute_3_in_3
-    ) [instance: 3, cache: 1];
-    // 
-    // node Receiver[3]: x = 672, y = 347, inputs = 1, label = TriadScale
-    // page group: ShowTriads
-    //
-main_Receiver_3_out_1[cache: 0] = TriadScale;
-    // 
-    // node AutoGlyph[3]: x = 593, y = 500, inputs = 7, label = AutoGlyph
-    // page group: ShowTriads
-    //
-main_AutoGlyph_3_out_1 = 
-    AutoGlyph(
-    main_Compute_3_out_1,
-    main_AutoGlyph_3_in_2,
-    main_AutoGlyph_3_in_3,
-    main_Receiver_3_out_1,
-    main_AutoGlyph_3_in_5,
-    main_AutoGlyph_3_in_6,
-    main_AutoGlyph_3_in_7
-    ) [instance: 3, cache: 1];
     // 
     // node Mark[5]: x = 789, y = 260, inputs = 2, label = Mark
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "labels"
@@ -769,18 +644,110 @@ main_AutoGlyph_10_out_1 =
     main_AutoGlyph_10_in_7
     ) [instance: 10, cache: 1];
     // 
+    // node Mark[3]: x = 289, y = 246, inputs = 2, label = Mark
+    // input[2]: defaulting = 0, visible = 1, type = 32, value = "cosines"
+    // page group: ShowTriads
+    //
+main_Mark_3_out_1 = 
+    Mark(
+    main_Select_11_out_1,
+    main_Mark_3_in_2
+    ) [instance: 3, cache: 1];
+    // 
+    // node Compute[1]: x = 154, y = 385, inputs = 3, label = Compute
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "[$0.0, $0.1, $0.2]"
+    // page group: ShowTriads
+    // expression: value = [a.0, a.1, a.2]
+    // name[2]: value = a
+    // name[3]: value = b
+    //
+main_Compute_1_out_1 = 
+    Compute(
+    main_Compute_1_in_1,
+    main_Mark_3_out_1,
+    main_Compute_1_in_3
+    ) [instance: 1, cache: 1];
+    // 
+    // node Scalar[1]: x = 419, y = 46, inputs = 11, label = Scalar
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "Scalar_1"
+    // input[3]: defaulting = 0, visible = 0, type = 5, value = 0.55 
+    // input[5]: defaulting = 1, visible = 0, type = 5, value = 0.01
+    // input[6]: defaulting = 1, visible = 0, type = 5, value = 10.0
+    // input[7]: defaulting = 1, visible = 0, type = 5, value = 1.0
+    // input[9]: defaulting = 1, visible = 0, type = 1, value = 5
+    // output[1]: visible = 1, type = 5, value = 0.55 
+    // page group: ShowTriads
+    //
+    // 
+    // node Transmitter[1]: x = 481, y = 143, inputs = 1, label = TriadScale
+    // page group: ShowTriads
+    //
+TriadScale = main_Scalar_1_out_1;
+    // 
+    // node Receiver[1]: x = 263, y = 364, inputs = 1, label = TriadScale
+    // page group: ShowTriads
+    //
+main_Receiver_1_out_1[cache: 0] = TriadScale;
+    // 
+    // node Glyph[1]: x = 176, y = 490, inputs = 7, label = Glyph
+    // page group: ShowTriads
+    //
+main_Glyph_1_out_1 = 
+    Glyph(
+    main_Compute_1_out_1,
+    main_Glyph_1_in_2,
+    main_Glyph_1_in_3,
+    main_Receiver_1_out_1,
+    main_Glyph_1_in_5,
+    main_Glyph_1_in_6,
+    main_Glyph_1_in_7
+    ) [instance: 1, cache: 1];
+    // 
     // node Color[1]: x = 166, y = 584, inputs = 5, label = Color
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "red"
     // page group: ShowTriads
     //
 main_Color_1_out_1 = 
     Color(
-    main_AutoGlyph_1_out_1,
+    main_Glyph_1_out_1,
     main_Color_1_in_2,
     main_Color_1_in_3,
     main_Color_1_in_4,
     main_Color_1_in_5
     ) [instance: 1, cache: 1];
+    // 
+    // node Compute[2]: x = 357, y = 417, inputs = 3, label = Compute
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "[$0.3, $0.4, $0.5]"
+    // page group: ShowTriads
+    // expression: value = [a.3, a.4, a.5]
+    // name[2]: value = a
+    // name[3]: value = b
+    //
+main_Compute_2_out_1 = 
+    Compute(
+    main_Compute_2_in_1,
+    main_Mark_3_out_1,
+    main_Compute_2_in_3
+    ) [instance: 2, cache: 1];
+    // 
+    // node Receiver[2]: x = 428, y = 388, inputs = 1, label = TriadScale
+    // page group: ShowTriads
+    //
+main_Receiver_2_out_1[cache: 0] = TriadScale;
+    // 
+    // node Glyph[2]: x = 344, y = 494, inputs = 7, label = Glyph
+    // page group: ShowTriads
+    //
+main_Glyph_2_out_1 = 
+    Glyph(
+    main_Compute_2_out_1,
+    main_Glyph_2_in_2,
+    main_Glyph_2_in_3,
+    main_Receiver_2_out_1,
+    main_Glyph_2_in_5,
+    main_Glyph_2_in_6,
+    main_Glyph_2_in_7
+    ) [instance: 2, cache: 1];
     // 
     // node Color[2]: x = 345, y = 585, inputs = 5, label = Color
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "green"
@@ -788,12 +755,45 @@ main_Color_1_out_1 =
     //
 main_Color_2_out_1 = 
     Color(
-    main_AutoGlyph_2_out_1,
+    main_Glyph_2_out_1,
     main_Color_2_in_2,
     main_Color_2_in_3,
     main_Color_2_in_4,
     main_Color_2_in_5
     ) [instance: 2, cache: 1];
+    // 
+    // node Compute[3]: x = 576, y = 424, inputs = 3, label = Compute
+    // input[1]: defaulting = 0, visible = 0, type = 32, value = "[$0.6, $0.7, $0.8]"
+    // page group: ShowTriads
+    // expression: value = [a.6, a.7, a.8]
+    // name[2]: value = a
+    // name[3]: value = b
+    //
+main_Compute_3_out_1 = 
+    Compute(
+    main_Compute_3_in_1,
+    main_Mark_3_out_1,
+    main_Compute_3_in_3
+    ) [instance: 3, cache: 1];
+    // 
+    // node Receiver[3]: x = 669, y = 333, inputs = 1, label = TriadScale
+    // page group: ShowTriads
+    //
+main_Receiver_3_out_1[cache: 0] = TriadScale;
+    // 
+    // node Glyph[3]: x = 557, y = 498, inputs = 7, label = Glyph
+    // page group: ShowTriads
+    //
+main_Glyph_3_out_1 = 
+    Glyph(
+    main_Compute_3_out_1,
+    main_Glyph_3_in_2,
+    main_Glyph_3_in_3,
+    main_Receiver_3_out_1,
+    main_Glyph_3_in_5,
+    main_Glyph_3_in_6,
+    main_Glyph_3_in_7
+    ) [instance: 3, cache: 1];
     // 
     // node Color[3]: x = 557, y = 581, inputs = 5, label = Color
     // input[2]: defaulting = 0, visible = 1, type = 32, value = "blue"
@@ -801,7 +801,7 @@ main_Color_2_out_1 =
     //
 main_Color_3_out_1 = 
     Color(
-    main_AutoGlyph_3_out_1,
+    main_Glyph_3_out_1,
     main_Color_3_in_2,
     main_Color_3_in_3,
     main_Color_3_in_4,
@@ -900,13 +900,13 @@ main_Receiver_5_out_1[cache: 0] = TriadsImage;
     // 
     // node Toggle[1]: x = 12, y = 269, inputs = 6, label = Toggle
     // input[1]: defaulting = 0, visible = 0, type = 32, value = "Toggle_1"
-    // input[2]: defaulting = 0, visible = 0, type = 29, value = 1
-    // input[3]: defaulting = 0, visible = 0, type = 3, value = 1
+    // input[2]: defaulting = 0, visible = 0, type = 29, value = 0
+    // input[3]: defaulting = 0, visible = 0, type = 3, value = 0
     // input[4]: defaulting = 1, visible = 1, type = 29, value = 1
     // input[5]: defaulting = 1, visible = 1, type = 29, value = 0
-    // output[1]: visible = 1, type = 29, value = 1
+    // output[1]: visible = 1, type = 29, value = 0
     // page group: ShowBeams2
-    // toggle : 1
+    // toggle : 0
     //
     // 
     // node Inquire[8]: x = 85, y = 267, inputs = 3, label = Inquire
@@ -1033,14 +1033,14 @@ main_Compute_6_out_1 =
     // node Image[2]: x = 290, y = 356, inputs = 49, label = Image
     // input[1]: defaulting = 0, visible = 0, type = 67108863, value = "Image_2"
     // input[4]: defaulting = 0, visible = 0, type = 1, value = 1
-    // input[5]: defaulting = 0, visible = 0, type = 8, value = [0.773379 0.773379 0.491831]
-    // input[6]: defaulting = 0, visible = 0, type = 8, value = [7.29417 2.42631 -0.824416]
-    // input[7]: defaulting = 1, visible = 0, type = 5, value = 3.67336
+    // input[5]: defaulting = 0, visible = 0, type = 8, value = [0.760677 0.760677 0.262596]
+    // input[6]: defaulting = 0, visible = 0, type = 8, value = [0.760677 0.760677 6.04972]
+    // input[7]: defaulting = 0, visible = 0, type = 5, value = 3.10131
     // input[8]: defaulting = 0, visible = 0, type = 1, value = 640
     // input[9]: defaulting = 0, visible = 0, type = 5, value = 0.750781
-    // input[10]: defaulting = 0, visible = 0, type = 8, value = [-0.208477 0.96216 0.175459]
-    // input[11]: defaulting = 0, visible = 0, type = 5, value = 30.0
-    // input[12]: defaulting = 0, visible = 0, type = 1, value = 1
+    // input[10]: defaulting = 0, visible = 0, type = 8, value = [0 1 0]
+    // input[11]: defaulting = 1, visible = 0, type = 5, value = 30.0
+    // input[12]: defaulting = 0, visible = 0, type = 1, value = 0
     // input[14]: defaulting = 0, visible = 0, type = 1, value = 1
     // input[15]: defaulting = 1, visible = 0, type = 32, value = "none"
     // input[16]: defaulting = 1, visible = 0, type = 32, value = "none"
@@ -1050,7 +1050,7 @@ main_Compute_6_out_1 =
     // input[29]: defaulting = 0, visible = 0, type = 3, value = 0
     // input[33]: defaulting = 0, visible = 0, type = 3, value = 0
     // input[36]: defaulting = 0, visible = 0, type = 3, value = 0
-    // input[41]: defaulting = 0, visible = 0, type = 32, value = "rotate"
+    // input[41]: defaulting = 0, visible = 0, type = 32, value = "none"
     // page group: PlotAll
     // depth: value = 16
     // window: position = (0.2414,0.4092), size = 0.5109x0.5117
@@ -1156,12 +1156,12 @@ main_Inquire_5_out_1 = NULL;
 main_FormatList_2_in_2 = "%f";
 main_FormatList_2_out_1 = NULL;
 main_Selector_12_in_1 = "Selector_12";
-main_Selector_12_in_2 = "0.000000" ;
-main_Selector_12_in_3 = 0 ;
+main_Selector_12_in_2 = "0.100000" ;
+main_Selector_12_in_3 = 1 ;
 main_Selector_12_in_5 = NULL;
 main_Selector_12_in_6 = NULL;
 main_Selector_12_in_7 = NULL;
-main_Selector_12_out_1 = 0 ;
+main_Selector_12_out_1 = 1 ;
 main_Compute_5_in_1 = "0";
 main_Compute_5_in_2 = NULL;
 main_Compute_5_in_3 = NULL;
@@ -1191,51 +1191,6 @@ main_Receiver_4_out_1 = NULL;
 main_Select_11_in_2 = "OrientedTriads";
 main_Select_11_in_3 = NULL;
 main_Select_11_out_1 = NULL;
-main_Mark_3_in_2 = "cosines";
-main_Mark_3_out_1 = NULL;
-main_Compute_1_in_1 = "[$0.0, $0.1, $0.2]";
-main_Compute_1_in_3 = NULL;
-main_Compute_1_out_1 = NULL;
-main_Scalar_1_in_1 = "Scalar_1";
-main_Scalar_1_in_2 = NULL;
-main_Scalar_1_in_3 = 1.0 ;
-main_Scalar_1_in_4 = NULL;
-main_Scalar_1_in_5 = NULL;
-main_Scalar_1_in_6 = NULL;
-main_Scalar_1_in_7 = NULL;
-main_Scalar_1_in_8 = NULL;
-main_Scalar_1_in_9 = NULL;
-main_Scalar_1_in_10 = NULL;
-main_Scalar_1_in_11 = NULL;
-main_Scalar_1_out_1 = 1.0 ;
-main_Transmitter_1_out_1 = NULL;
-main_Receiver_1_out_1 = NULL;
-main_AutoGlyph_1_in_2 = NULL;
-main_AutoGlyph_1_in_3 = NULL;
-main_AutoGlyph_1_in_5 = NULL;
-main_AutoGlyph_1_in_6 = NULL;
-main_AutoGlyph_1_in_7 = NULL;
-main_AutoGlyph_1_out_1 = NULL;
-main_Compute_2_in_1 = "[$0.3, $0.4, $0.5]";
-main_Compute_2_in_3 = NULL;
-main_Compute_2_out_1 = NULL;
-main_Receiver_2_out_1 = NULL;
-main_AutoGlyph_2_in_2 = NULL;
-main_AutoGlyph_2_in_3 = NULL;
-main_AutoGlyph_2_in_5 = NULL;
-main_AutoGlyph_2_in_6 = NULL;
-main_AutoGlyph_2_in_7 = NULL;
-main_AutoGlyph_2_out_1 = NULL;
-main_Compute_3_in_1 = "[$0.6, $0.7, $0.8]";
-main_Compute_3_in_3 = NULL;
-main_Compute_3_out_1 = NULL;
-main_Receiver_3_out_1 = NULL;
-main_AutoGlyph_3_in_2 = NULL;
-main_AutoGlyph_3_in_3 = NULL;
-main_AutoGlyph_3_in_5 = NULL;
-main_AutoGlyph_3_in_6 = NULL;
-main_AutoGlyph_3_in_7 = NULL;
-main_AutoGlyph_3_out_1 = NULL;
 main_Mark_5_in_2 = "labels";
 main_Mark_5_out_1 = NULL;
 main_AutoGlyph_4_in_2 = "text";
@@ -1346,16 +1301,61 @@ main_AutoGlyph_10_in_5 = NULL;
 main_AutoGlyph_10_in_6 = NULL;
 main_AutoGlyph_10_in_7 = NULL;
 main_AutoGlyph_10_out_1 = NULL;
+main_Mark_3_in_2 = "cosines";
+main_Mark_3_out_1 = NULL;
+main_Compute_1_in_1 = "[$0.0, $0.1, $0.2]";
+main_Compute_1_in_3 = NULL;
+main_Compute_1_out_1 = NULL;
+main_Scalar_1_in_1 = "Scalar_1";
+main_Scalar_1_in_2 = NULL;
+main_Scalar_1_in_3 = 0.55 ;
+main_Scalar_1_in_4 = NULL;
+main_Scalar_1_in_5 = NULL;
+main_Scalar_1_in_6 = NULL;
+main_Scalar_1_in_7 = NULL;
+main_Scalar_1_in_8 = NULL;
+main_Scalar_1_in_9 = NULL;
+main_Scalar_1_in_10 = NULL;
+main_Scalar_1_in_11 = NULL;
+main_Scalar_1_out_1 = 0.55 ;
+main_Transmitter_1_out_1 = NULL;
+main_Receiver_1_out_1 = NULL;
+main_Glyph_1_in_2 = NULL;
+main_Glyph_1_in_3 = NULL;
+main_Glyph_1_in_5 = NULL;
+main_Glyph_1_in_6 = NULL;
+main_Glyph_1_in_7 = NULL;
+main_Glyph_1_out_1 = NULL;
 main_Color_1_in_2 = "red";
 main_Color_1_in_3 = NULL;
 main_Color_1_in_4 = NULL;
 main_Color_1_in_5 = NULL;
 main_Color_1_out_1 = NULL;
+main_Compute_2_in_1 = "[$0.3, $0.4, $0.5]";
+main_Compute_2_in_3 = NULL;
+main_Compute_2_out_1 = NULL;
+main_Receiver_2_out_1 = NULL;
+main_Glyph_2_in_2 = NULL;
+main_Glyph_2_in_3 = NULL;
+main_Glyph_2_in_5 = NULL;
+main_Glyph_2_in_6 = NULL;
+main_Glyph_2_in_7 = NULL;
+main_Glyph_2_out_1 = NULL;
 main_Color_2_in_2 = "green";
 main_Color_2_in_3 = NULL;
 main_Color_2_in_4 = NULL;
 main_Color_2_in_5 = NULL;
 main_Color_2_out_1 = NULL;
+main_Compute_3_in_1 = "[$0.6, $0.7, $0.8]";
+main_Compute_3_in_3 = NULL;
+main_Compute_3_out_1 = NULL;
+main_Receiver_3_out_1 = NULL;
+main_Glyph_3_in_2 = NULL;
+main_Glyph_3_in_3 = NULL;
+main_Glyph_3_in_5 = NULL;
+main_Glyph_3_in_6 = NULL;
+main_Glyph_3_in_7 = NULL;
+main_Glyph_3_out_1 = NULL;
 main_Color_3_in_2 = "blue";
 main_Color_3_in_3 = NULL;
 main_Color_3_in_4 = NULL;
@@ -1396,12 +1396,12 @@ main_Switch_4_out_1 = NULL;
 main_Transmitter_29_out_1 = NULL;
 main_Receiver_5_out_1 = NULL;
 main_Toggle_1_in_1 = "Toggle_1";
-main_Toggle_1_in_2 = 1;
-main_Toggle_1_in_3 = 1;
+main_Toggle_1_in_2 = 0;
+main_Toggle_1_in_3 = 0;
 main_Toggle_1_in_4 = NULL;
 main_Toggle_1_in_5 = NULL;
 main_Toggle_1_in_6 = NULL;
-main_Toggle_1_out_1 = 1;
+main_Toggle_1_out_1 = 0;
 main_Inquire_8_in_2 = "has member";
 main_Inquire_8_in_3 = "Beams2";
 main_Inquire_8_out_1 = NULL;
@@ -1745,14 +1745,14 @@ macro Image(
 main_Image_2_in_1 = "Image_2";
 main_Image_2_in_3 = "X16,,";
 main_Image_2_in_4 = 1;
-main_Image_2_in_5 = [0.773379 0.773379 0.491831];
-main_Image_2_in_6 = [7.29417 2.42631 -0.824416];
-main_Image_2_in_7 = NULL;
+main_Image_2_in_5 = [0.760677 0.760677 0.262596];
+main_Image_2_in_6 = [0.760677 0.760677 6.04972];
+main_Image_2_in_7 = 3.10131;
 main_Image_2_in_8 = 640;
 main_Image_2_in_9 = 0.750781;
-main_Image_2_in_10 = [-0.208477 0.96216 0.175459];
-main_Image_2_in_11 = 30.0;
-main_Image_2_in_12 = 1;
+main_Image_2_in_10 = [0 1 0];
+main_Image_2_in_11 = NULL;
+main_Image_2_in_12 = 0;
 main_Image_2_in_13 = NULL;
 main_Image_2_in_14 = 1;
 main_Image_2_in_15 = NULL;
@@ -1780,7 +1780,7 @@ main_Image_2_in_37 = NULL;
 main_Image_2_in_38 = NULL;
 main_Image_2_in_39 = NULL;
 main_Image_2_in_40 = NULL;
-main_Image_2_in_41 = "rotate";
+main_Image_2_in_41 = "none";
 main_Image_2_in_42 = NULL;
 main_Image_2_in_43 = NULL;
 main_Image_2_in_44 = NULL;
