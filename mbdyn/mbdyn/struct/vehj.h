@@ -98,11 +98,8 @@ public:
 		return 0;
 	};
 
-	virtual DofOrder::Order SetDof(unsigned int /* i */ ) const {
-		return DofOrder::UNKNOWN;
-	};
-
-	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+	virtual void
+	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
 		*piNumRows = 6; 
 		*piNumCols = 6; 
 	};
