@@ -35,13 +35,13 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <table.h>
 #include <myassert.h>
 #include <mynewmem.h>
 
-extern "C" {
+#include <string.h>
+#include <table.h>
+
 #include <mymath.h>
-}
 
 enum {
      TABLE_INT,

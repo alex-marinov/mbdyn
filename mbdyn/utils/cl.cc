@@ -4,14 +4,13 @@
 
 #include <input.h>
 #include <mathp.h>
-#if defined(HAVE_SSTREAM)
-#include <sstream>
-#elif defined(HAVE_STRSTREAM_H)
-#include <strstream.h>
-#else /* !HAVE_SSTREAM && !HAVE_STRSTREAM_H */
-#error "no sstream and no strstream.h"
-#endif /* !HAVE_SSTREAM && !HAVE_STRSTREAM_H */
+#include <sstream.h>
 
+/* plugins per math parser */
+#include <dummypgin.h>
+#ifdef USE_TCL
+#include <tclpgin.h>
+#endif /* USE_TCL */
 
 int 
 main(int argc, const char* const argv[])
@@ -70,6 +69,16 @@ main(int argc, const char* const argv[])
 #else /* !USE_TABLE */
       	MathParser mp(In);
 #endif /* !USE_TABLE */
+
+#ifdef USE_TCL
+#warning "using 'tcl' plugin"
+	/* registra il plugin per il tcl */
+	mp.RegisterPlugIn("tcl", tcl_plugin, NULL);
+#else /* !USE_TCL */
+	mp.RegisterPlugIn("tcl", dummy_plugin,
+			(void *)"configure with --with-tcl to use tcl plugin");
+#endif /* USE_TCL */
+	
       	mp.GetForever(cout, "\n");
       	cout << endl;
       	exit(EXIT_SUCCESS);

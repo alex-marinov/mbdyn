@@ -93,7 +93,7 @@ top_builddir = @top_builddir@
 bin_PROGRAMS =  autopilot cl dae-intg deriv env eu2rot femgen intg loadable posrel rot2eu rot2eup rot2phi rotrel sockdrive
 
 
-LIBS =  ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la @Y12_LIBS@ @HARWELL_LIBS@ ../libraries/libmbwrap/libmbwrap.la @MESCHACH_LIBS@ @F2C_LIBS@
+LIBS =  ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la @Y12_LIBS@ @HARWELL_LIBS@ ../libraries/libmbwrap/libmbwrap.la @MESCHACH_LIBS@ @F2C_LIBS@ @TCL_LIBS@
 
 
 autopilot_SOURCES = autopilot.cc

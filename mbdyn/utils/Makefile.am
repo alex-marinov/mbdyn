@@ -26,7 +26,8 @@ LIBS = \
 @HARWELL_LIBS@ \
 ../libraries/libmbwrap/libmbwrap.la \
 @MESCHACH_LIBS@ \
-@F2C_LIBS@
+@F2C_LIBS@ \
+@TCL_LIBS@
 
 autopilot_SOURCES = autopilot.cc
 cl_SOURCES = cl.cc

@@ -32,14 +32,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#if defined(HAVE_SSTREAM)
-#include <sstream>
-#elif defined(HAVE_STRSTREAM_H)
-#include <strstream.h>
-#else /* !HAVE_SSTREAM && !HAVE_STRSTREAM_H */
-#error "need sstream or strstream.h"
-#endif /* !HAVE_SSTREAM && !HAVE_STRSTREAM_H */
-
+#include <sstream.h>
 #include <dofpgin.h>
 
 DofPlugIn::DofPlugIn(MathParser& mp, DataManager *pDM)

@@ -34,13 +34,7 @@
 #define DRIVE__H
 
 /* include generali */
-#if defined(HAVE_SSTREAM)
-#include <sstream>
-#elif defined(HAVE_STRSTREAM_H)
-#include <strstream.h>
-#else /* !HAVE_SSTREAM && !HAVE_STRSTREAM_H */
-#error "no sstream and no strstream.h"
-#endif /* !HAVE_SSTREAM && !HAVE_STRSTREAM_H */
+#include <sstream.h>
 
 /* include per il debug */
 #include "myassert.h"

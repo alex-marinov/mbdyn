@@ -37,13 +37,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#if defined(HAVE_SSTREAM)
-#include <sstream>
-#elif defined(HAVE_STRSTREAM_H)
-#include <strstream.h>
-#else /* no sstream & no strstream.h */
-#error "no sstream & no strstream.h"
-#endif /* no sstream & no strstream.h */
+#include <sstream.h>
 
 #include <mathp.h>
 #include <memmans.h>

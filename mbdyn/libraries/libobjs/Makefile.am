@@ -10,5 +10,7 @@ getopt.h
 libobjs_la_LIBADD = @LIBS@
 libobjs_la_LDFLAGS =
 
-INCLUDES = -I../../mbdyn 
+INCLUDES = -I../../mbdyn \
+	-I../../libraries/libmbutil \
+	-I../../libraries/libmbmath
 

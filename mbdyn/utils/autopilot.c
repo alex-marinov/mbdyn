@@ -85,7 +85,6 @@ void
 set_input_mode (void)
 {
    struct termios tattr;
-   char *name;
    
    /* Make sure stdin is a terminal. */
    if (!isatty(STDIN_FILENO)) {
