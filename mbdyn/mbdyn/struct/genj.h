@@ -155,7 +155,7 @@ virtual public Elem, public Joint, public DriveOwner {
    const StructNode* pNode2;
    Vec3 f1;
    Vec3 f2;
-   Vec3 v;
+   mutable Vec3 v;
    doublereal dAlpha;
    
  public:
@@ -363,4 +363,5 @@ class ClampJoint : virtual public Elem, public Joint {
 
 /* ClampJoint - end */
 
-#endif
+#endif /* GENJ_H */
+

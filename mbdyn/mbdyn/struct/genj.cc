@@ -524,10 +524,11 @@ void DistanceJoint::SetInitialValue(VectorHandler& X) const
      
    v = ((pNode2->GetXCurr())-(pNode1->GetXCurr()));
    doublereal d = v.Dot();
-   ASSERT(d > DBL_EPSILON);
-   if (d > DBL_EPSILON) {
-      v /= sqrt(d);
-   }     
+   if (d < DBL_EPSILON) {
+      silent_cerr("DistanceJoint(" << GetLabel() << "): initial length is null" << std::endl);
+      throw ErrGeneric();
+   }
+   v /= sqrt(d);
    
    X.Put(iFirstIndex+1, v);
    X.Put(iFirstIndex+4+1, v);   
@@ -1164,12 +1165,13 @@ void DistanceJointWithOffset::SetInitialValue(VectorHandler& X) const
    Vec3 Omega1(pNode1->GetWCurr());
    Vec3 Omega2(pNode2->GetWCurr());   
    
-   (Vec3&)v = x2+f2Tmp-x1-f1Tmp;
+   v = x2+f2Tmp-x1-f1Tmp;
    doublereal d = v.Dot();
-   ASSERT(d > DBL_EPSILON);
-
-   d = sqrt(d);
-   (Vec3&)v = v/d;
+   if (d < DBL_EPSILON) {
+      silent_cerr("DistanceJoint(" << GetLabel() << "): initial length is null" << std::endl);
+      throw ErrGeneric();
+   }
+   v /= sqrt(d);
    
    X.Put(iFirstIndex+1, v);
    X.Put(iFirstIndex+5, (v2+Omega2.Cross(f2Tmp)-v1-Omega1.Cross(f1Tmp))/d);
