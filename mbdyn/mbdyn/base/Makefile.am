@@ -55,6 +55,8 @@ j2p.cc \
 j2p.h \
 loadable.cc \
 loadable.h \
+mbrtai_utils.c \
+mbrtai_utils.h \
 mfree.cc \
 mfree.h \
 mbpar.cc \

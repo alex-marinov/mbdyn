@@ -44,6 +44,7 @@
 #include <netdb.h>
 
 #include <rtai_out_elem.h>
+#include <mbrtai_utils.h>
 #include <dataman.h>
 
 /* RTAIOutElem - begin */
@@ -58,15 +59,14 @@ host(h), node(n), port(-1), mbx(NULL)
 	size = sizeof(double)*nch;
 	SAFENEWARR(buf, char, size);
 
-	SAFENEW(mbx, MBX);
-	if (rt_mbx_init(mbx, size)) {
+	if (mbdyn_rt_mbx_init(&mbx, size)) {
 		std::cerr << "RTAI mailbox failed" << std::endl;
 		THROW(ErrGeneric());
 	}
 
 	if (node) {
 		/* get port ... */
-		port = rt_request_port(node);
+		port = mbdyn_rt_request_port(node);
 		/* FIXME: what in case of failure? */
 	}
 }
@@ -74,8 +74,7 @@ host(h), node(n), port(-1), mbx(NULL)
 RTAIOutElem::~RTAIOutElem(void)
 {
 	if (mbx) {
-		rt_mbx_delete(mbx);
-		SAFEDELETE(mbx);
+		mbdyn_rt_mbx_delete(&mbx);
 	}
 
 	if (buf) {
@@ -131,13 +130,19 @@ void
 RTAIOutElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
+	char *curbuf = buf;
+	
 	for (unsigned int i; i < NumChannels; i++) {
 		/* assign value somewhere into mailbox buffer */
 		doublereal v = pNodes[i].pNode->dGetDofValue(1, pNodes[i].iOrder);
-		memcpy(&buf[sizeof(double)*i], &v, sizeof(double));
+
+		doublereal *dbuf = (doublereal *)curbuf;
+		dbuf[0] = v;
+
+		curbuf += sizeof(doublereal);
 	}
 
-	if (RT_mbx_send_if(node, port, mbx, buf, size) != size) {
+	if (mbdyn_RT_mbx_send_if(node, port, mbx, (void *)buf, size) != size) {
 		/* error */
 	}
 }

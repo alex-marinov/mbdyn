@@ -40,10 +40,6 @@
 #include <elem.h>
 #include <node.h>
 
-#include <rtai.h>
-#include <rtai_sched.h>
-#include <net_rpc.h>
-
 /* RTAIOutElem - begin */
 
 class RTAIOutElem : virtual public Elem {
@@ -53,12 +49,13 @@ protected:
 
 	/* MBox buffer */
 	int size;
-	void *buf;
+	char *buf;
 
 	/* FIXME: store restart info as well */
+	const char *host;
 	unsigned long node;
 	int port;
-	MBX *mbx;
+	void *mbx;
    
 public:
    	RTAIOutElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
