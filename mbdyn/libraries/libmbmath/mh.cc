@@ -164,13 +164,19 @@ MatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
 MatrixHandler*
 MatrixHandler::MatMatMul(MatrixHandler* out, const MatrixHandler& in) const
 {
-	return MatMatMul_base(&MatrixHandler::PutCoef, out, in);
+	/* Put is implemented resetting out first, then passing IncCoef()
+	 * so that out-of-order assignments work */
+	out->Reset();
+	return MatMatMul_base(&MatrixHandler::IncCoef, out, in);
 }
 
 MatrixHandler*
 MatrixHandler::MatTMatMul(MatrixHandler* out, const MatrixHandler& in) const
 {
-	return MatTMatMul_base(&MatrixHandler::PutCoef, out, in);
+	/* Put is implemented resetting out first, then passing IncCoef()
+	 * so that out-of-order assignments work */
+	out->Reset();
+	return MatTMatMul_base(&MatrixHandler::IncCoef, out, in);
 }
 
 MatrixHandler*
@@ -246,13 +252,19 @@ MatrixHandler::MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
 VectorHandler&
 MatrixHandler::MatVecMul(VectorHandler& out, const VectorHandler& in) const
 {
-	return MatVecMul_base(&VectorHandler::PutCoef, out, in);
+	/* Put is implemented resetting out first, then passing IncCoef()
+	 * so that out-of-order assignments work */
+	out.Reset();
+	return MatVecMul_base(&VectorHandler::IncCoef, out, in);
 }
 
 VectorHandler&
 MatrixHandler::MatTVecMul(VectorHandler& out, const VectorHandler& in) const
 {
-	return MatTVecMul_base(&VectorHandler::PutCoef, out, in);
+	/* Put is implemented resetting out first, then passing IncCoef()
+	 * so that out-of-order assignments work */
+	out.Reset();
+	return MatTVecMul_base(&VectorHandler::IncCoef, out, in);
 }
 
 VectorHandler&

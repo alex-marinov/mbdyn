@@ -338,7 +338,6 @@ SpMapMatrixHandler::MatVecMul_base(void (VectorHandler::*op)(integer iRow,
   	}
 
 	row_cont_type::const_iterator ri, re;
-	out.Reset();
 
 	for (integer col = 0; col < NCols; col++) {
 		re = col_indices[col].end();

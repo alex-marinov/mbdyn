@@ -607,8 +607,6 @@ SchurSolutionManager::Solve(void)
 #endif /* DEBUG_SCHUR */
 }
 
-
-
 void
 SchurSolutionManager::AssSchur(void)
 {
@@ -740,8 +738,6 @@ SchurSolutionManager::AssSchur(void)
 #endif /* MPI_PROFILING */
 }
 
-
-
 void
 SchurSolutionManager::InitializeComm(void)
 {
@@ -860,7 +856,6 @@ SchurSolutionManager::InitializeComm(void)
 		SAFENEWARR(pGRReq, MPI::Request, 1);
 	}
 }
-
 
 /* sposta il puntatore al vettore del residuo */
 doublereal *
