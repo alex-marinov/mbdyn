@@ -13,6 +13,7 @@ MBDyn 1.2-Engineering
 		- added third order step solver
 		- added TAUCS linear solver (eXperimental)
 		- added discrete Coulomb friction model
+		- added constitutive law output to elements
 	Known Issues:
 		- parallel is not working yet
 
