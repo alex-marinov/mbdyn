@@ -180,8 +180,8 @@ Y12Solver::Factor(void)
 #endif /* ! HAVE_MEMMOVE */
 
 	} else {
-		pir = piCol;
-		pic = piRow;
+		pir = piRow;
+		pic = piCol;
 	}
 
 	y12prefactor(&iN, &iNonZeroes, pdMat,
