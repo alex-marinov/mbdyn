@@ -398,14 +398,14 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       dM3.Set(shc*modF,3); dM3.Link(3,&dfc);
       //assemble first node
           //variation of moment component
-      dM3.Sub(WM,0+4,e3a.dGet(1));
-      dM3.Sub(WM,0+5,e3a.dGet(2));
-      dM3.Sub(WM,0+6,e3a.dGet(3));
+      dM3.Add(WM,0+4,e3a.dGet(1));
+      dM3.Add(WM,0+5,e3a.dGet(2));
+      dM3.Add(WM,0+6,e3a.dGet(3));
       //assemble second node
           //variation of moment component
-      dM3.Add(WM,6+4,e3a.dGet(1));
-      dM3.Add(WM,6+5,e3a.dGet(2));
-      dM3.Add(WM,6+6,e3a.dGet(3));
+      dM3.Sub(WM,6+4,e3a.dGet(1));
+      dM3.Sub(WM,6+5,e3a.dGet(2));
+      dM3.Sub(WM,6+6,e3a.dGet(3));
    }
    
    return WorkMat;
