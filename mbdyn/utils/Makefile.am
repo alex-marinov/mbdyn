@@ -4,7 +4,7 @@
 bin_PROGRAMS = rotrel eu2rot rot2eu rot2eup rot2phi \
 deriv cl loadable posrel sockdrive autopilot intg env
 
-LIBS = ../libraries/libmbutil/libmbutil.la ../libraries/libmbmath/libmbmath.la
+LIBS = ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la
 
 rotrel_SOURCES = rotrel.cc
 eu2rot_SOURCES = eu2rot.cc
