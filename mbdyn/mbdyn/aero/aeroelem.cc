@@ -516,7 +516,7 @@ ReadAeroData(DataManager* pDM,
    if (HP.fIsArg()) {            
       switch (HP.IsKeyWord()) {
        default:
-	  cerr << endl << "Unknown profile type at line "
+	  cerr << "unknown profile type at line "
 	    << HP.GetLineData() << "; using default (NACA0012)" << endl;
 	 
        case NACA0012: {
@@ -558,7 +558,7 @@ ReadAeroData(DataManager* pDM,
        }
       }
    } else {
-      cerr << endl << "Unknown profile type at line "
+      cerr << "unknown profile type at line "
 	<< HP.GetLineData() << "; using default (NACA0012)" << endl;
       
       integer iInst = ReadUnsteadyFlag(HP);

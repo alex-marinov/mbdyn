@@ -38,6 +38,10 @@
 #include <dofdrive.h>
 #include <filedrv.h>
 
+#ifdef USE_MPI
+#include <mpi++.h>
+#endif /* USE_MPI */
+
 /* StringDriveCaller - begin */
 
 StringDriveCaller::StringDriveCaller(const DriveHandler* pDH,
@@ -1364,10 +1368,12 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        ScalarDof SD = ReadScalarDof(pDM, HP, 1);
        
 #ifdef USE_MPI
-       cerr << "warning: add explicit connection entry for the dof drive"
-         " at line " << HP.GetLineData() << endl
-	 << psNodeNames[SD.pNode->GetNodeType()] 
-	 << "(" << SD.pNode->GetLabel() << ")" << endl;
+       if (MPI::COMM_WORLD.Get_size() > 1) {
+          cerr << "warning: add explicit connection entry for the "
+            << psNodeNames[SD.pNode->GetNodeType()] 
+	    << "(" << SD.pNode->GetLabel() << ") dof drive"
+            " at line " << HP.GetLineData() << endl;
+       }
 #endif /* USE_MPI */
        
        /* Chiamata ricorsiva a leggere il drive supplementare */
