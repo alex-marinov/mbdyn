@@ -124,6 +124,15 @@ public:
 	class ConvergenceOnSolution {};
 	class ErrGeneric {};
 
+	enum Type {
+		UNKNOWN = -1,
+
+		NEWTONRAPHSON,
+		MATRIXFREE,
+
+		LASTSOLVERTYPE
+	};
+
 protected:
 	integer Size;
 	integer TotJac;	

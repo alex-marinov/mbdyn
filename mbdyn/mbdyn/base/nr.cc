@@ -124,13 +124,13 @@ NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
    	return sqrt(dRes);
 }
 
-NewtonRaphsonSolver::NewtonRaphsonSolver(const flag fTNR, 
+NewtonRaphsonSolver::NewtonRaphsonSolver(const bool bTNR, 
 		const integer IterBfAss)
 : pSM(NULL),
 pRes(NULL),
 pSol(NULL),
 pJac(NULL),
-fTrueNewtonRaphson(fTNR),
+bTrueNewtonRaphson(bTNR),
 IterationBeforeAssembly(IterBfAss)
 {
 	NO_OP;
@@ -211,7 +211,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
           
       		iIterCnt++;
 
-		if (fTrueNewtonRaphson || (iPerformedIterations%IterationBeforeAssembly == 0)) {
+		if (bTrueNewtonRaphson || (iPerformedIterations%IterationBeforeAssembly == 0)) {
       			pSM->MatrInit(0.);
       			pNLP->Jacobian(pJac);
 			TotJac++;

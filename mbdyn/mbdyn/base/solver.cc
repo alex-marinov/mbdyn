@@ -205,9 +205,9 @@ pFictitiousSteps(NULL),
 CurrSolver(LinSol::defaultSolver),
 iWorkSpaceSize(0),
 dPivotFactor(-1.),
-fTrueNewtonRaphson(1),
+bTrueNewtonRaphson(1),
 iIterationsBeforeAssembly(0),
-fMatrixFree(0),
+NonlinearSolverType(NonlinearSolver::UNKNOWN),
 MFSolverType(MatrixFreeSolver::BICGSTAB),
 dIterTol(dDefaultTol),
 PcType(Preconditioner::FULLJACOBIAN),
@@ -618,8 +618,10 @@ void Solver::Run(void)
 	
 	/* a questo punto si costruisce il nonlinear solver passandogli 
 	   il solution manager */
-	if (fMatrixFree) {
-		if (MFSolverType == MatrixFreeSolver::BICGSTAB) {
+	switch (NonlinearSolverType) {
+	case NonlinearSolver::MATRIXFREE:
+		switch (MFSolverType) {
+		case MatrixFreeSolver::BICGSTAB:
 			SAFENEWWITHCONSTRUCTOR(pNLS,
 					BiCGStab,
 					BiCGStab(PcType, 
@@ -628,7 +630,12 @@ void Solver::Run(void)
 						iIterativeMaxSteps,
 						dIterertiveEtaMax,
 						dIterertiveTau));
-		} else {
+			break;
+
+		default:
+			pedantic_cout("unknown matrix free solver type; "
+					"using default" << std::endl);
+		case MatrixFreeSolver::GMRES:
 			SAFENEWWITHCONSTRUCTOR(pNLS,
 					Gmres,
 					Gmres(PcType, 
@@ -637,12 +644,19 @@ void Solver::Run(void)
 						iIterativeMaxSteps,
 						dIterertiveEtaMax,
 						dIterertiveTau));
-		}			  
-	} else {
+			break;
+		}
+
+	default:
+		pedantic_cout("unknown nonlinear solver type; using default"
+				<< std::endl);
+
+	case NonlinearSolver::NEWTONRAPHSON:
 		SAFENEWWITHCONSTRUCTOR(pNLS,
 				NewtonRaphsonSolver,
-				NewtonRaphsonSolver(fTrueNewtonRaphson,
+				NewtonRaphsonSolver(bTrueNewtonRaphson,
 					iIterationsBeforeAssembly));  
+		break;
 	}
 
 #ifdef __HACK_SCALE_RES__
@@ -1547,10 +1561,11 @@ Solver::ReadData(MBDynParser& HP)
 		"derivatives" "coefficient",
 		"derivatives" "tolerance",
 		"derivatives" "max" "iterations",
-	
-		"Newton" "Raphson",
-			"true",
-			"modified",
+
+		/* DEPRECATED */	
+		"true",
+		"modified",
+		/* END OF DEPRECATED */
 		
 		"strategy",
 			"factor",
@@ -1570,11 +1585,17 @@ Solver::ReadData(MBDynParser& HP)
 			"umfpack",
 			"umfpack3",
 			"empty",
-		"matrix" "free",
-		"bicgstab",
-		"gmres",
+
+		/* DEPRECATED */	
 		"preconditioner",
-		"full" "jacobian",
+		/* END OF DEPRECATED */
+
+		"nonlinear" "solver",
+			"newton" "raphson",
+			"matrix" "free",
+				"bicgstab",
+				"gmres",
+					"full" "jacobian",
 
 		/* RTAI stuff */
 		"real" "time",
@@ -1634,10 +1655,11 @@ Solver::ReadData(MBDynParser& HP)
 		DERIVATIVESCOEFFICIENT,
 		DERIVATIVESTOLERANCE,
 		DERIVATIVESMAXITERATIONS,
-	
-		NEWTONRAPHSON,
+
+		/* DEPRECATED */
 		NR_TRUE,
 		MODIFIED,
+		/* END OF DEPRECATED */
 
 		STRATEGY,
 		STRATEGYFACTOR,
@@ -1657,11 +1679,16 @@ Solver::ReadData(MBDynParser& HP)
 		UMFPACK3,
 		EMPTY,
 		
-		MATRIXFREE,
-		BICGSTAB,
-		GMRES,
+		/* DEPRECATED */
 		PRECONDITIONER,
-		FULLJACOBIAN,
+		/* END OF DEPRECATED */
+	
+		NONLINEARSOLVER,
+			NEWTONRAPHSON,
+			MATRIXFREE,
+				BICGSTAB,
+				GMRES,
+					FULLJACOBIAN,
 
 		/* RTAI stuff */
 		REALTIME,
@@ -2193,10 +2220,14 @@ Solver::ReadData(MBDynParser& HP)
        }	     	  	       
 	 
        case NEWTONRAPHSON: {
+	  pedantic_cout("Newton Raphson is deprecated; use "
+			  "\"nonlinear solver: newton raphson "
+  			  "[ , modified, <steps> ]\" instead"
+  			  << std::endl);
 	  KeyWords NewRaph(KeyWords(HP.GetWord()));
 	  switch(NewRaph) {
 	   case MODIFIED: {
-	      fTrueNewtonRaphson = 0;
+	      bTrueNewtonRaphson = 0;
 	      if (HP.fIsArg()) {
 		 iIterationsBeforeAssembly = HP.GetInt();
 	      } else {
@@ -2215,13 +2246,13 @@ Solver::ReadData(MBDynParser& HP)
 		<< std::endl;
 	      /* Nota: non c'e' break; 
 	       * cosi' esegue anche il caso NR_TRUE */
-	   }		       
+	   }
 	   case NR_TRUE: {
-	      fTrueNewtonRaphson = 1;
+	      bTrueNewtonRaphson = 1;
 	      iIterationsBeforeAssembly = 0;
 	      break;
-	   }		 
-	  }		  		  
+	   }
+	  }
 	  break;
        }
 
@@ -2576,7 +2607,8 @@ Solver::ReadData(MBDynParser& HP)
 		THROW(ErrGeneric());
 #endif /* !USE_MPI */
        }
-       
+      
+#if 0 
        case MATRIXFREE: {
 		fMatrixFree = 1;
 
@@ -2640,6 +2672,109 @@ Solver::ReadData(MBDynParser& HP)
 		}
 		
 		break;
+        }
+#endif
+       case NONLINEARSOLVER: {
+	  switch (KeyWords(HP.GetWord())) {
+	  case NEWTONRAPHSON:
+		  NonlinearSolverType = NonlinearSolver::NEWTONRAPHSON;
+
+    		  bTrueNewtonRaphson = 1;
+    		  iIterationsBeforeAssembly = 0;
+
+		  if (HP.IsKeyWord("modified")) {
+	    		  bTrueNewtonRaphson = 0;
+		 	  iIterationsBeforeAssembly = HP.GetInt();
+
+	    		  DEBUGLCOUT(MYDEBUG_INPUT, 
+		 			  "Modified Newton-Raphson "
+					  "will be used;" << std::endl
+		 			  << "matrix will be assembled "
+					  "at most after " 
+					  << iIterationsBeforeAssembly
+					  << " iterations" << std::endl);
+       		  }
+		  break;
+		  
+	  case MATRIXFREE:
+		  NonlinearSolverType = NonlinearSolver::MATRIXFREE;
+
+  		  switch(KeyWords(HP.GetWord())) {           		  
+  		  case BICGSTAB:
+  			  MFSolverType = MatrixFreeSolver::BICGSTAB;
+			  break;
+			
+		  case GMRES:
+			  MFSolverType = MatrixFreeSolver::GMRES;
+			  break;
+		
+		  default:
+			  std::cerr << "Unknown iterative solver "
+				  "at line " << HP.GetLineData()
+				  << std::endl;
+			  THROW(ErrGeneric());
+  		  }	
+	       
+  		  if (HP.IsKeyWord("tolerance")) {
+  			  dIterTol = HP.GetReal();
+  			  DEBUGLCOUT(MYDEBUG_INPUT, "Inner Iterative Solver "
+					  "Tolerance: " << dIterTol
+					  << std::endl);
+  		  }
+  		  if (HP.IsKeyWord("steps")) {
+  			  iIterativeMaxSteps = HP.GetInt();
+  			  DEBUGLCOUT(MYDEBUG_INPUT, "Maximum Number "
+					  "of Inner Steps "
+					  "for Iterative Solver : " 
+					  << iIterativeMaxSteps << std::endl);
+  		  }
+  		  if (HP.IsKeyWord("tau")) {
+  			  dIterertiveTau = HP.GetReal();
+  			  DEBUGLCOUT(MYDEBUG_INPUT, "Tau Scaling Coefficient "
+					  "for Iterative Solver : " 
+  					  << dIterertiveTau << std::endl);
+  		  }
+  		  if (HP.IsKeyWord("eta")) {
+  			  dIterertiveEtaMax = HP.GetReal();
+  			  DEBUGLCOUT(MYDEBUG_INPUT, "Maximum Eta Coefficient "
+					  "for Iterative Solver : " 
+	  				  << dIterertiveEtaMax << std::endl);
+  		  }
+
+		  if (HP.IsKeyWord("preconditioner")) {
+		          KeyWords KPrecond = KeyWords(HP.GetWord());
+			  switch (KPrecond) {
+			  case FULLJACOBIAN: 
+				  PcType = Preconditioner::FULLJACOBIAN;		
+	  			  if (HP.IsKeyWord("steps")) {
+	  				  iPrecondSteps = HP.GetInt();
+	  				  DEBUGLCOUT(MYDEBUG_INPUT, 
+							  "Number of Steps "
+							  "before recomputing "
+							  "the preconditioner: "
+							  << iPrecondSteps
+							  << std::endl);
+				  }
+				  break;
+
+			  /* add other preconditioners here */
+			
+	  		  default:
+	  			  std::cerr << "Unkown preconditioner at line "
+	  				  << HP.GetLineData() << std::endl;
+	  			  THROW(ErrGeneric());
+	  		  }
+	  		  break;
+		  }
+		  break;
+
+	  default:
+		  std::cerr << "unknown nonlinear solver at line "
+			  << HP.GetLineData() << std::endl;
+		  THROW(ErrGeneric());
+		  break;
+	  }
+	  break;
         }
 
        case REALTIME: {

@@ -41,18 +41,18 @@
 
 #include <nonlin.h>
 
-class NewtonRaphsonSolver : public  NonlinearSolver
+class NewtonRaphsonSolver : public NonlinearSolver
 {
 	SolutionManager* pSM;
 	VectorHandler* 	pRes;
 	VectorHandler* 	pSol;
 	MatrixHandler*  pJac;
-	flag fTrueNewtonRaphson;
+	bool bTrueNewtonRaphson;
 	integer IterationBeforeAssembly;
 	
 
 public:
-	NewtonRaphsonSolver(const flag fTNR, 
+	NewtonRaphsonSolver(const bool fTNR, 
 			const integer IterBfAss);
 	
 	~NewtonRaphsonSolver(void);

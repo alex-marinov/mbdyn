@@ -194,9 +194,9 @@ private:
 	integer iWorkSpaceSize;
    	doublereal dPivotFactor;
    	/* Parametri per Newton-Raphson modificato */
-   	flag fTrueNewtonRaphson;
+   	bool bTrueNewtonRaphson;
    	integer iIterationsBeforeAssembly;
-	flag fMatrixFree;
+	NonlinearSolver::Type NonlinearSolverType;
 	MatrixFreeSolver::SolverType MFSolverType;
 	doublereal dIterTol;
 	Preconditioner::PrecondType PcType;
