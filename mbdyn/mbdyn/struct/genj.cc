@@ -986,8 +986,8 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
    if (fabs(dDistance) <= DBL_EPSILON) {	
       WorkVec.Add(1, v);
       WorkVec.Add(4, f1Tmp.Cross(v));
-      WorkVec.Add(7, -v);
-      WorkVec.Add(10, v.Cross(f2Tmp));
+      WorkVec.Sub(7, v);
+      WorkVec.Sub(10, f2Tmp.Cross(v));
       
       /* Modifica: se dCoef non e' nullo (caso normale), divido il residuo 
        * delle equazioni di vincolo (solo lo prime 3) per dCoef, altrimenti
@@ -1004,8 +1004,8 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
       Vec3 TmpVec(v*dAlpha);
       WorkVec.Add(1, TmpVec);
       WorkVec.Add(4, f1Tmp.Cross(TmpVec));
-      WorkVec.Add(7, -TmpVec);	
-      WorkVec.Add(10, TmpVec.Cross(f2Tmp));
+      WorkVec.Sub(7, TmpVec);	
+      WorkVec.Sub(10, f2Tmp.Cross(TmpVec));
       
       WorkVec.Add(13, x1+f1Tmp-x2-f2Tmp+v*dDistance);
       
