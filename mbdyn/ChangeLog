@@ -7,6 +7,10 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Thu Apr 18 18:56:01 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - major modal joint cleanup; initial modal velocity works.
+ - small Mat3x3/Mat3xN API inprovements
+
 *** Wed Apr 17 15:44:46 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - rotors can be arbitrarily oriented wrt the craft (ITS#5)
 
