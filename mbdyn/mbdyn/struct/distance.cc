@@ -89,6 +89,10 @@ DistanceJoint::dGetPrivData(unsigned int i) const
 	ASSERT(i == 1);
 
 	if (i == 1) {
+#if 0
+		/* FIXME: could simply use */
+		return dDistance;
+#endif
 		return dGet();
 	}
 
@@ -106,22 +110,59 @@ std::ostream& DistanceJoint::Restart(std::ostream& out) const
 }
 
 
+/* Assemblaggio matrici */
+void
+DistanceJoint::AssMat_(FullSubMatrixHandler& WorkMatA,
+		 FullSubMatrixHandler& WorkMatB,
+		 doublereal dCoef,
+		 const VectorHandler& XCurr,
+		 const VectorHandler& /* XPrimeCurr */ )
+{
+	DEBUGCOUT("Entering DistanceJoint::AssMat_()" << std::endl);
+ 
+	doublereal dd = (dAlpha/dDistance)*dCoef;
+	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+		doublereal d = Vec.dGet(iCnt);
+
+		/* Constraint equation */
+
+		/* C: - U^T Delta x_1 */
+		WorkMatB.fDecCoef(6+1, iCnt, d);
+
+		/* C: U^T Delta x_2 */
+		WorkMatB.fIncCoef(6+1, 3+iCnt, d);
+
+		/* Equilibrium */
+
+		/* F1: - U Delta lambda */
+		WorkMatB.fDecCoef(iCnt, 6+1, d);
+
+		/* F2: U Delta lambda */
+		WorkMatB.fIncCoef(3+iCnt, 6+1, d);
+
+		/* F1: lambda/d Delta x_1 */
+		WorkMatA.fIncCoef(iCnt, iCnt, dd);
+
+		/* F1: - lambda/d Delta x_2 */
+		WorkMatA.fDecCoef(iCnt, 3+iCnt, dd);
+
+		/* F2: - lambda/d Delta x_1 */
+		WorkMatA.fDecCoef(3+iCnt, iCnt, dd);
+
+		/* F2: lambda/d Delta x_2 */
+		WorkMatA.fIncCoef(3+iCnt, 3+iCnt, dd);
+	}
+}
+   
+
 /* Assemblaggio jacobiano */
 VariableSubMatrixHandler& 
 DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		doublereal dCoef,
-		const VectorHandler& /* XCurr */ ,
-		const VectorHandler& /* XPrimeCurr */ )
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUT("Entering DistanceJoint::AssJac()" << std::endl);
- 
-	/* Dimensiona e resetta la matrice di lavoro */
-	doublereal dDistance = pGetDriveCaller()->dGet();
-   
-	/* Distanza nulla */
-	if (fabs(dDistance) <= DBL_EPSILON) {
-		/* abort? */
-	}
 
  	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	WM.ResizeInit(7, 7, 0.);
@@ -141,40 +182,51 @@ DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.fPutRowIndex(6+1, iFirstReactionIndex+1);
 	WM.fPutColIndex(6+1, iFirstReactionIndex+1);
 
-	doublereal dd = (dAlpha/dDistance)*dCoef;
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		doublereal d = Vec.dGet(iCnt);
-
-		/* Constraint equation */
-
-		/* C: - U^T Delta x_1 */
-		WM.fDecCoef(6+1, iCnt, d);
-
-		/* C: U^T Delta x_2 */
-		WM.fIncCoef(6+1, 3+iCnt, d);
-
-		/* Equilibrium */
-
-		/* F1: - U Delta lambda */
-		WM.fDecCoef(iCnt, 6+1, d);
-
-		/* F2: U Delta lambda */
-		WM.fIncCoef(3+iCnt, 6+1, d);
-
-		/* F1: lambda/d Delta x_1 */
-		WM.fIncCoef(iCnt, iCnt, dd);
-
-		/* F1: - lambda/d Delta x_2 */
-		WM.fDecCoef(iCnt, 3+iCnt, dd);
-
-		/* F2: - lambda/d Delta x_1 */
-		WM.fDecCoef(3+iCnt, iCnt, dd);
-
-		/* F2: lambda/d Delta x_2 */
-		WM.fIncCoef(3+iCnt, 3+iCnt, dd);
-	}
-      
+	AssMat_(WM, WM, dCoef, XCurr, XPrimeCurr);
+ 
 	return WorkMat;
+}
+   
+
+/* Assemblaggio jacobiano */
+void
+DistanceJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr)
+{
+	DEBUGCOUT("Entering DistanceJoint::AssMats()" << std::endl);
+
+ 	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
+	WMA.ResizeInit(7, 7, 0.);
+ 
+ 	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
+	WMB.ResizeInit(7, 7, 0.);
+ 
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
+	integer iFirstReactionIndex = iGetFirstIndex();
+
+	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+		WMA.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WMA.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WMA.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+		WMA.fPutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+		
+		WMB.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WMB.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WMB.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+		WMB.fPutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+	}
+	WMA.fPutRowIndex(6+1, iFirstReactionIndex+1);
+	WMA.fPutColIndex(6+1, iFirstReactionIndex+1);
+
+	WMB.fPutRowIndex(6+1, iFirstReactionIndex+1);
+	WMB.fPutColIndex(6+1, iFirstReactionIndex+1);
+
+	AssMat_(WMA, WMB, 1., XCurr, XPrimeCurr);
 }
    
 
@@ -215,7 +267,7 @@ DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 	/* Aggiorna i dati propri */
 	dAlpha = XCurr.dGetCoef(iFirstReactionIndex+1);
 
-	doublereal dDistance = pGetDriveCaller()->dGet();
+	dDistance = pGetDriveCaller()->dGet();
    
 	/* Distanza nulla */
 	if (fabs(dDistance) <= DBL_EPSILON) {	
@@ -236,11 +288,9 @@ void
 DistanceJoint::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {      
-		doublereal d = dGet();
-
 		Joint::Output(OH.Joints(), "Distance", GetLabel(),
 	    			Vec3(dAlpha, 0., 0.), Zero3, Vec*dAlpha, Zero3)
-			<< " " << Vec << " " << d << std::endl;
+			<< " " << Vec << " " << dDistance << std::endl;
 	}
 }
 
@@ -362,22 +412,130 @@ DistanceJointWithOffset::Restart(std::ostream& out) const
 		return pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
-/* Assemblaggio jacobiano */
-VariableSubMatrixHandler& 
-DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
+/* Assemblaggio matrici */
+void
+DistanceJointWithOffset::AssMat_(FullSubMatrixHandler& WorkMatA,
+		FullSubMatrixHandler& WorkMatB,
 		doublereal dCoef,
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering DistanceJointWithOffset::AssJac()" << std::endl);
+	DEBUGCOUT("Entering DistanceJointWithOffset::AssMat_()" << std::endl);
  
-	/* Dimensiona e resetta la matrice di lavoro */
-	doublereal dDistance = pGetDriveCaller()->dGet();
-   
-	/* Distanza nulla */
-	if (fabs(dDistance) <= DBL_EPSILON) {
-		/* abort? */
+	Vec3 f1Tmp(pNode1->GetRRef()*f1);
+	Vec3 f2Tmp(pNode2->GetRRef()*f2);
+
+	Vec3 f1u(f1Tmp.Cross(Vec));
+	Vec3 f2u(f2Tmp.Cross(Vec));
+
+	doublereal dd = (dAlpha/dDistance)*dCoef;
+	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+		doublereal d = Vec.dGet(iCnt);
+
+		/* Constraint equation */
+
+		/* C: - U^T Delta x_1 */
+		WorkMatB.fDecCoef(12+1, iCnt, d);
+
+		/* C: U^T Delta x_2 */
+		WorkMatB.fIncCoef(12+1, 6+iCnt, d);
+
+		/* Equilibrium */
+
+		/* F1: - U Delta lambda */
+		WorkMatB.fDecCoef(iCnt, 12+1, d);
+
+		/* F2: U Delta lambda */
+		WorkMatB.fIncCoef(6+iCnt, 12+1, d);
+
+		/* F1: lambda/d Delta x_1 */
+		WorkMatA.fIncCoef(iCnt, iCnt, dd);
+
+		/* F1: - lambda/d Delta x_2 */
+		WorkMatA.fDecCoef(iCnt, 6+iCnt, dd);
+
+		/* F2: - lambda/d Delta x_1 */
+		WorkMatA.fDecCoef(6+iCnt, iCnt, dd);
+
+		/* F2: lambda/d Delta x_2 */
+		WorkMatA.fIncCoef(6+iCnt, 6+iCnt, dd);
+
+		d = f1u.dGet(iCnt);
+
+		/* C: - (f1 Cross U)^T Delta g_1 */
+		WorkMatB.fDecCoef(12+1, 3+iCnt, d);
+
+		/* M1: - (f1 Cross u) Delta lambda */
+		WorkMatB.fDecCoef(3+iCnt, 12+1, d);
+
+		d = f2u.dGet(iCnt);
+
+		/* C: (f2 Cross U)^T Delta g_2 */
+		WorkMatB.fIncCoef(12+1, 9+iCnt, d);
+
+		/* M2: (f2 Cross u) Delta lambda */
+		WorkMatB.fIncCoef(9+iCnt, 12+1, d);
 	}
+
+	Mat3x3 Tmp;
+
+	Tmp = Mat3x3(f1Tmp*dd);
+
+	/* F1: - lambda/d f1 Cross Delta g_1 */
+	WorkMatA.Sub(1, 3+1, Tmp);
+
+	/* F2: lambda/d f1 Cross Delta g_1 */
+	WorkMatA.Add(6+1, 3+1, Tmp);
+
+	/* M1: lambda/d f1 Cross Delta x_1 */
+	WorkMatA.Add(3+1, 1, Tmp);
+	
+	/* M1: - lambda/d f1 Cross Delta x_2 */
+	WorkMatA.Sub(3+1, 6+1, Tmp);
+	
+	Tmp = Mat3x3(f2Tmp*dd);
+
+	/* F1: lambda/d f2 Cross Delta g_2 */
+	WorkMatA.Add(1, 9+1, Tmp);
+
+	/* F2: - lambda/d f2 Cross Delta g_2 */
+	WorkMatA.Sub(6+1, 9+1, Tmp);
+
+	/* M2: - lambda/d f2 Cross Delta x_1 */
+	WorkMatA.Sub(9+1, 1, Tmp);
+	
+	/* M2: lambda/d f2 Cross Delta x_2 */
+	WorkMatA.Add(9+1, 6+1, Tmp);
+
+	Tmp = Mat3x3(f1Tmp, f2Tmp*dd);
+	
+	/* M1: lambda/d f1 Cross f2 Cross Delta g_2 */
+	WorkMatA.Add(3+1, 9+1, Tmp);
+
+	Tmp = Mat3x3(f2Tmp, f1Tmp*dd);
+	
+	/* M2: lambda/d f2 Cross f1 Cross Delta g_1 */
+	WorkMatA.Add(9+1, 3+1, Tmp);
+
+	Tmp = Mat3x3(f1Tmp + Vec*dDistance, f1Tmp*dd);
+
+	/* M1: - lambda/d (x2 + f2 - x1) Cross f1 Cross Delta g_1 */
+	WorkMatA.Sub(3+1, 3+1, Tmp);
+      
+	Tmp = Mat3x3(f2Tmp - Vec*dDistance, f2Tmp*dd);
+
+	/* M2: - lambda/d (- x2 + x1 + f1) Cross f2 Cross Delta g_2 */
+	WorkMatA.Sub(9+1, 9+1, Tmp);
+}
+
+/* Assemblaggio jacobiano */
+VariableSubMatrixHandler& 
+DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr)
+{
+	DEBUGCOUT("Entering DistanceJointWithOffset::AssJac()" << std::endl);
 
  	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	WM.ResizeInit(13, 13, 0.);
@@ -397,112 +555,50 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.fPutRowIndex(12+1, iFirstReactionIndex+1);
 	WM.fPutColIndex(12+1, iFirstReactionIndex+1);
 
-	Vec3 f1Tmp(pNode1->GetRRef()*f1);
-	Vec3 f2Tmp(pNode2->GetRRef()*f2);
+	AssMat_(WM, WM, dCoef, XCurr, XPrimeCurr);
 
-	Vec3 f1u(f1Tmp.Cross(Vec));
-	Vec3 f2u(f2Tmp.Cross(Vec));
-
-	doublereal dd = (dAlpha/dDistance)*dCoef;
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		doublereal d = Vec.dGet(iCnt);
-
-		/* Constraint equation */
-
-		/* C: - U^T Delta x_1 */
-		WM.fDecCoef(12+1, iCnt, d);
-
-		/* C: U^T Delta x_2 */
-		WM.fIncCoef(12+1, 6+iCnt, d);
-
-		/* Equilibrium */
-
-		/* F1: - U Delta lambda */
-		WM.fDecCoef(iCnt, 12+1, d);
-
-		/* F2: U Delta lambda */
-		WM.fIncCoef(6+iCnt, 12+1, d);
-
-		/* F1: lambda/d Delta x_1 */
-		WM.fIncCoef(iCnt, iCnt, dd);
-
-		/* F1: - lambda/d Delta x_2 */
-		WM.fDecCoef(iCnt, 6+iCnt, dd);
-
-		/* F2: - lambda/d Delta x_1 */
-		WM.fDecCoef(6+iCnt, iCnt, dd);
-
-		/* F2: lambda/d Delta x_2 */
-		WM.fIncCoef(6+iCnt, 6+iCnt, dd);
-
-		d = f1u.dGet(iCnt);
-
-		/* C: - (f1 Cross U)^T Delta g_1 */
-		WM.fDecCoef(12+1, 3+iCnt, d);
-
-		/* M1: - (f1 Cross u) Delta lambda */
-		WM.fDecCoef(3+iCnt, 12+1, d);
-
-		d = f2u.dGet(iCnt);
-
-		/* C: (f2 Cross U)^T Delta g_2 */
-		WM.fIncCoef(12+1, 9+iCnt, d);
-
-		/* M2: (f2 Cross u) Delta lambda */
-		WM.fIncCoef(9+iCnt, 12+1, d);
-	}
-
-	Mat3x3 Tmp;
-
-	Tmp = Mat3x3(f1Tmp*dd);
-
-	/* F1: - lambda/d f1 Cross Delta g_1 */
-	WM.Sub(1, 3+1, Tmp);
-
-	/* F2: lambda/d f1 Cross Delta g_1 */
-	WM.Add(6+1, 3+1, Tmp);
-
-	/* M1: lambda/d f1 Cross Delta x_1 */
-	WM.Add(3+1, 1, Tmp);
-	
-	/* M1: - lambda/d f1 Cross Delta x_2 */
-	WM.Sub(3+1, 6+1, Tmp);
-	
-	Tmp = Mat3x3(f2Tmp*dd);
-
-	/* F1: lambda/d f2 Cross Delta g_2 */
-	WM.Add(1, 9+1, Tmp);
-
-	/* F2: - lambda/d f2 Cross Delta g_2 */
-	WM.Sub(6+1, 9+1, Tmp);
-
-	/* M2: - lambda/d f2 Cross Delta x_1 */
-	WM.Sub(9+1, 1, Tmp);
-	
-	/* M2: lambda/d f2 Cross Delta x_2 */
-	WM.Add(9+1, 6+1, Tmp);
-
-	Tmp = Mat3x3(f1Tmp, f2Tmp*dd);
-	
-	/* M1: lambda/d f1 Cross f2 Cross Delta g_2 */
-	WM.Add(3+1, 9+1, Tmp);
-
-	Tmp = Mat3x3(f2Tmp, f1Tmp*dd);
-	
-	/* M2: lambda/d f2 Cross f1 Cross Delta g_1 */
-	WM.Add(9+1, 3+1, Tmp);
-
-	Tmp = Mat3x3(f1Tmp + Vec*dDistance, f1Tmp*dd);
-
-	/* M1: - lambda/d (x2 + f2 - x1) Cross f1 Cross Delta g_1 */
-	WM.Sub(3+1, 3+1, Tmp);
-      
-	Tmp = Mat3x3(f2Tmp - Vec*dDistance, f2Tmp*dd);
-
-	/* M2: - lambda/d (- x2 + x1 + f1) Cross f2 Cross Delta g_2 */
-	WM.Sub(9+1, 9+1, Tmp);
-      
 	return WorkMat;
+}
+
+/* Assemblaggio matrici */
+void
+DistanceJointWithOffset::AssMats(VariableSubMatrixHandler& WorkMatA,
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr)
+{
+	DEBUGCOUT("Entering DistanceJointWithOffset::AssMats()" << std::endl);
+ 
+ 	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
+	WMA.ResizeInit(13, 13, 0.);
+ 
+ 	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
+	WMB.ResizeInit(13, 13, 0.);
+ 
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
+	integer iFirstReactionIndex = iGetFirstIndex();
+
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WMA.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WMA.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WMA.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+		WMA.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		
+		WMB.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WMB.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WMB.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+		WMB.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+	}
+	WMA.fPutRowIndex(12+1, iFirstReactionIndex+1);
+	WMA.fPutColIndex(12+1, iFirstReactionIndex+1);
+
+	WMB.fPutRowIndex(12+1, iFirstReactionIndex+1);
+	WMB.fPutColIndex(12+1, iFirstReactionIndex+1);
+
+	AssMat_(WMA, WMB, 1., XCurr, XPrimeCurr);
 }
 
 /* Assemblaggio residuo */
@@ -545,7 +641,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 	/* Aggiorna i dati propri */
 	dAlpha = XCurr.dGetCoef(iFirstReactionIndex+1);
 
-	doublereal dDistance = pGetDriveCaller()->dGet();
+	dDistance = pGetDriveCaller()->dGet();
    
 	/* Distanza nulla */
 	if (fabs(dDistance) <= DBL_EPSILON) {	

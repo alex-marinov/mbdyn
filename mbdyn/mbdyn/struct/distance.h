@@ -45,9 +45,22 @@ protected:
 	const StructNode	*pNode2;
 	Vec3			Vec;
 	doublereal		dAlpha;
+	doublereal		dDistance;
 
 	void Abort(void);
    
+	/*
+	 * Assembla le due matrici
+	 *
+	 * A = dF/dx e B = dCoef * dF/dxp
+	 */
+	virtual void
+	AssMat_(FullSubMatrixHandler& WorkMatA,
+			FullSubMatrixHandler& WorkMatB,
+			doublereal dCoef,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
 public:
 	/* Costruttore non banale */
 	DistanceJoint(unsigned int uL, const DofOwner* pDO,
@@ -91,6 +104,13 @@ public:
 			doublereal dCoef,
 			const VectorHandler& XCurr, 
 			const VectorHandler& XPrimeCurr);
+
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA,
+			VariableSubMatrixHandler& WorkMatB,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 			doublereal dCoef,
@@ -163,7 +183,19 @@ virtual public Elem, public DistanceJoint {
 private:
 	Vec3 f1;
 	Vec3 f2;
-   
+ 
+	/*
+	 * Assembla le due matrici
+	 *
+	 * A = dF/dx e B = dCoef * dF/dxp
+	 */
+	virtual void
+	AssMat_(FullSubMatrixHandler& WorkMatA,
+			FullSubMatrixHandler& WorkMatB,
+			doublereal dCoef,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
 public:
 	/* Costruttore non banale */
 	DistanceJointWithOffset(unsigned int uL, const DofOwner* pDO,
@@ -194,6 +226,13 @@ public:
 			doublereal dCoef,
 			const VectorHandler& XCurr, 
 			const VectorHandler& XPrimeCurr);
+
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA,
+			VariableSubMatrixHandler& WorkMatB,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 			doublereal dCoef,
