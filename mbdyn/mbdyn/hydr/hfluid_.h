@@ -288,6 +288,10 @@ class LinearCompressibleTHydraulicFluid
 
 /* SuperHydraulicFluid - begin */
 
+static const double a = 2.e-5;
+static const double dPresRif = .2*101325.;
+static const double dRhoZero = 977.*1.e-2;
+
 class SuperHydraulicFluid : public HydraulicFluid {
  protected:
    const doublereal dDensity;
@@ -342,10 +346,6 @@ class SuperHydraulicFluid : public HydraulicFluid {
    enum { DEFAULT, ZERO, SMALL, INFTY, TANH };
    static const int type = TANH;
    
-   static const double a = 2.e-5;
-   static const double dPresRif = .2*101325.;
-   static const double dRhoZero = 977.*1.e-2;
-
    /* densita' */
    virtual doublereal dGetDensity(void) const {
       return dDensity;
@@ -374,9 +374,9 @@ class SuperHydraulicFluid : public HydraulicFluid {
 	 }      
 	 return dDensity+(dPres-dPres0)*dDensityDPres;
        case TANH:
-	 double d = dRhoZero+dDensity*.5*(1. + tanh(a*(dPres-dPresRif)));
-	 if (dPres > dPresRif) {
-	    d += (dPres-dPresRif)*dDensityDPres;
+	 double d = ::dRhoZero+dDensity*.5*(1. + tanh(::a*(dPres-::dPresRif)));
+	 if (dPres > ::dPresRif) {
+	    d += (dPres-::dPresRif)*dDensityDPres;
 	 }
 	 return d;
       }
@@ -412,8 +412,8 @@ class SuperHydraulicFluid : public HydraulicFluid {
 	 }
 	 return dDensityDPres;
        case TANH:
-	 double d = a*dDensity*.5/pow(cosh(a*(dPres-dPresRif)), 2);
-	 if (dPres > dPresRif) {
+	 double d = ::a*dDensity*.5/pow(cosh(::a*(dPres-::dPresRif)), 2);
+	 if (dPres > ::dPresRif) {
 	    d += dDensityDPres;
 	 }
 	 return d;
@@ -438,7 +438,7 @@ class SuperHydraulicFluid : public HydraulicFluid {
    };
    
    doublereal dGetViscosity(const doublereal& dPres) const {
-      if (dPres < dPresRif) {
+      if (dPres < ::dPresRif) {
 	 return 1.e-6*dViscosity;
       }
       return dViscosity;
