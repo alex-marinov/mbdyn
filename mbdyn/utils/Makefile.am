@@ -30,7 +30,8 @@ LIBS = \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
 @F2C_LIBS@ \
-@TCL_LIBS@
+@TCL_LIBS@ \
+@LIBS@
 
 autopilot_SOURCES = autopilot.cc
 cl_SOURCES = cl.cc
