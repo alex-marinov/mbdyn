@@ -89,6 +89,9 @@ distclean:
 	fi
 	rm -f Makefile libtool
 
-EXTRA_DIST = Makefile.module Makefile.template module-template/module-template.cc
+# Add dsitributed modules below
+EXTRA_DIST = Makefile.module Makefile.template \
+module-template/module-template.cc \
+module-wheel2/module-wheel2.cc
 
 include $(top_srcdir)/build/bot.mk
