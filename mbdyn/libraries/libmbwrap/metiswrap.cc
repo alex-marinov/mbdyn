@@ -42,30 +42,31 @@ extern "C" {
 #endif /* !USE_METIS */
 
 int
-mbdyn_METIS_PartGraph(int *piTotVertices,
+mbdyn_METIS_PartGraph(int iTotVertices,
 		int *pXadj,
 		int *pAdjncy,
 		int *pVertexWgts,
 		int *pCommWgts,
-		int *pwgtflag,
-		int *pDataCommSize,
-		int *pedgecut,
+		int wgtflag,
+		int DataCommSize,
+		int edgecut,
 		int *pParAmgProcs)
 {
 #ifdef USE_METIS
+	/* required by METIS_PartGraphVKway API, but otherwise ignored */
 	int	numflag;
 	int	options;
 
-	METIS_PartGraphVKway(piTotVertices,
+	METIS_PartGraphVKway(&iTotVertices,
 			pXadj,
 			pAdjncy,
 			pVertexWgts,
 			pCommWgts,
-			pwgtflag,
+			&wgtflag,
 			&numflag,
-			pDataCommSize,
+			&DataCommSize,
 			&options,
-			pedgecut,
+			&edgecut,
 			pParAmgProcs);
 
 	return 0;
@@ -76,5 +77,4 @@ mbdyn_METIS_PartGraph(int *piTotVertices,
 	THROW(ErrGeneric());
 #endif /* !USE_METIS */
 }
-
 

@@ -39,7 +39,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-/* libreria per il calcolo delle partizioni */
+/* libraries for mesh partitioning computation 
+ * FIXME: they're currently */
 #include <metiswrap.h>
 #include <chaco_interface.h>
 
@@ -1121,19 +1122,14 @@ SchurDataManager::CreatePartition(void)
 #endif /* DEBUG */
     
 #if defined(USE_METIS)
-    	int numflag = 0;
-    	int options = 0;      
-
-    	METIS_PartGraphVKway(&iTotVertices,
+    	mbdyn_METIS_PartGraph(iTotVertices,
                              Vertices.pXadj,
 			     Vertices.pAdjncy,
 			     pVertexWgts,
 			     pCommWgts,
-			     &wgtflag,
-			     &numflag,
-			     &DataCommSize,
-			     &options,
-			     &edgecut,
+			     wgtflag,
+			     DataCommSize,
+			     edgecut,
 			     pParAmgProcs);    
 #elif defined(USE_CHACO)
         chaco_interface(iTotVertices,

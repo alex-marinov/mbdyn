@@ -206,6 +206,18 @@ void DataManager::ReadControl(MBDynParser& HP,
    /* parser del blocco di controllo */
    HP.PutKeyTable(K);
 
+#if 0
+   /*
+    * reset default output in case of realtime
+    */
+   for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
+      ElemData[iCnt].fDefaultOut = flag(0);
+   }			 
+   for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
+      NodeData[iCnt].fDefaultOut = flag(0);
+   }			 
+#endif /* 0 */
+
    KeyWords CurrDesc;
    while ((CurrDesc = KeyWords(HP.GetDescription())) != END) {
       switch (CurrDesc) {

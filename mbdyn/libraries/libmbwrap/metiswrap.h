@@ -32,16 +32,14 @@
 #define METISWRAP_H
 
 extern int
-mbdyn_METIS_PartGraph(int *piTotVertices,
+mbdyn_METIS_PartGraph(int piTotVertices,
 		int *pXadj,
 		int *pAdjncy,
 		int *pVertexWgts,
 		int *pCommWgts,
-		int *pwgtflag,
-		int *pnumflag,
-		int *pDataCommSize,
-		int *poptions,
-		int *pedgecut,
+		int wgtflag,
+		int DataCommSize,
+		int edgecut,
 		int *pParAmgProcs);
 
 #endif /* METISWRAP_H */
