@@ -261,7 +261,7 @@ main(int argc, char* argv[])
 	 * portable it is ...
 	 */
 	for (char **s = argv; s[0]; s++) {
-		if (strncmp(s[0], "-p", 2) == 0) {
+		if (strcmp(s[0], "-p") == 0) {
 			MPI::Init(argc, argv);	   
 			WorldSize = MPI::COMM_WORLD.Get_size();
 			myrank = MPI::COMM_WORLD.Get_rank();
@@ -279,7 +279,8 @@ main(int argc, char* argv[])
 	}
 
 	if (using_mpi) {
-		std::cerr << "using MPI (required by '-p' switch)" << std::endl;
+		std::cerr << "using MPI (explicitly required by '-p' switch)"
+			<< std::endl;
 	}
 #endif /* USE_MPI */
    
