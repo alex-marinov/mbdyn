@@ -9,8 +9,9 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.1 Engineering
 	Enhancements:
-		- merged scalar and parallel multistep integrators
-		- detects if run by mpirun (appropriate MPI initialization)
+		- merge of scalar and parallel multistep integrators
+		- detects if run by mpirun (appropriate MPI initialization;
+		  needs work)
 	Bug fixes:
 		- fix unsteady Cm sign bug in unsteady c81 aerodynamics
 		- fix input file command line arg delete[] failure 
@@ -30,7 +31,7 @@ MBDyn 1.1.1
 		  changes input syntax)
 		- facility for partial force and moment output from rotor
 		  elements (set).
-		- added threshold switch to axel velocity for tire slip 
+		- added threshold switch to axle velocity for tire slip 
 		  ratio computation
 		- configurable extra output for the iteration engine
 		- configurable local and interface solver for parallel build
