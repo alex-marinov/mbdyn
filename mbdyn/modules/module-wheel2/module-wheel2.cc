@@ -443,7 +443,7 @@ ass_res(LoadableElem* pEl,
 	 * Velocita' tra Wheel (nel punto di contatto) 
 	 * e Ground nel sistema assoluto
 	 */
-	Vec3 v = va-(p->pWheel->GetWCurr()).Cross(n*p->dInstRadius);
+	Vec3 v = va - (p->pWheel->GetWCurr()).Cross(n*p->dInstRadius);
 	
 	/*
 	 * Componente normale al terreno della velocita'
@@ -464,7 +464,7 @@ ass_res(LoadableElem* pEl,
 	/*
 	 * Stima della pressione del pneumatico (adiabatica)
 	 */
-	doublereal dP = p->dP0*pow(p->dV0/(p->dV0-dDeltaV), p->dGamma);
+	doublereal dP = p->dP0*pow(p->dV0/(p->dV0 - dDeltaV), p->dGamma);
 
 	/*
 	 * Il punto di applicazione della forza e' xW - R * nG ;
@@ -475,12 +475,12 @@ ass_res(LoadableElem* pEl,
 	 *
 	 * FIXME: perche' dRadius invece di dInstRadius?
 	 */
-	Vec3 pc = p->pWheel->GetXCurr()-(n*p->dInstRadius);
+	Vec3 pc = p->pWheel->GetXCurr() - (n*p->dInstRadius);
 
 	/*
 	 * Forza
 	 */
-	doublereal dFn = (dA*dP*(1.-tanh(p->dVn/p->dHystVRef)));
+	doublereal dFn = (dA*dP*(1. - tanh(p->dVn/p->dHystVRef)));
 	p->F = n*dFn;
 
 	if (p->fSlip) {
@@ -536,7 +536,7 @@ ass_res(LoadableElem* pEl,
 		 */
 		p->dAlpha = atan2(dvay, fabs(dvax));
 		if (p->dAlphaThreshold > 0.) {
-			doublereal dtmp = tanh(sqrt(dvax*dvax+dvay*dvay)/p->dAlphaThreshold);
+			doublereal dtmp = tanh(sqrt(dvax*dvax + dvay*dvay)/p->dAlphaThreshold);
 			p->dAlpha *= dtmp*dtmp;
 		}
 
@@ -547,7 +547,7 @@ ass_res(LoadableElem* pEl,
 		/*
 		 * Nota: alpha/(pi/2) e' compreso tra -1. e 1.
 		 */
-		p->dMuX = dMuX0*sgn*(1.-fabs(p->dAlpha)/M_PI_2);
+		p->dMuX = dMuX0*sgn*(1. - fabs(p->dAlpha)/M_PI_2);
 		
 		/*
 		 * Correggo le forze:
@@ -570,7 +570,7 @@ ass_res(LoadableElem* pEl,
 			doublereal dMuY0 = p->pMuY0->dGet(dAlpha);
 			doublereal dMuY1 = p->pMuY1->dGet(dAlpha);
 			
-			p->dMuY = dMuY0+(dMuY1-dMuY0)*p->dSr;
+			p->dMuY = dMuY0 + (dMuY1 - dMuY0)*p->dSr;
 
 			/*
 			 * Correggo le forze
@@ -582,10 +582,10 @@ ass_res(LoadableElem* pEl,
 	/*
 	 * Momento
 	 */
-	p->M = (pc-p->pWheel->GetXCurr()).Cross(p->F);
+	p->M = (pc - p->pWheel->GetXCurr()).Cross(p->F);
 
 	WorkVec.Sub(1, p->F);
-	WorkVec.Sub(4, (pc-p->pGround->GetXCurr()).Cross(p->F));
+	WorkVec.Sub(4, (pc - p->pGround->GetXCurr()).Cross(p->F));
 	WorkVec.Add(7, p->F);
 	WorkVec.Add(10, p->M);
 
@@ -632,7 +632,7 @@ initial_work_space_dim(const LoadableElem* pEl,
 {
 	DEBUGCOUTFNAME("initial_work_space_dim");
 	*piNumRows = 0;
-	*piNumCols = 0;   
+	*piNumCols = 0;
 }
 
 static VariableSubMatrixHandler& 

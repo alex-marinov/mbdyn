@@ -148,8 +148,10 @@ private:
 	doublereal EpsMin;
 	doublereal Penalty;
 	doublereal PenaltyPrime;
+#if 0
 	doublereal FMax;
 	doublereal FMin;
+#endif
 
 	/*
 	 * Dissipazione
@@ -191,8 +193,10 @@ private:
 		EpsMin = p->EpsMin;
 		Penalty = p->Penalty;
 		PenaltyPrime = p->PenaltyPrime;
+#if 0
 		FMax = p->FMax;
 		FMin = p->FMin;
+#endif
 
 		pAreaPinPlus = p->pAreaPinPlus->pCopy();
 		pAreaPinMinus = p->pAreaPinMinus->pCopy();
@@ -321,10 +325,12 @@ public:
 			}
 		}
 
+#if 0
 		Update(EpsMax, 0.);
 		FMin = F;
 		Update(EpsMin, 0.);
 		FMax = F;
+#endif
 	};
 	
 	virtual
@@ -425,26 +431,39 @@ public:
 		FDE = Gamma*Cint*VRatio*F;
 
 		if (CurrEpsilon > EpsMax) {
-			doublereal dFP = Penalty*(CurrEpsilon-EpsMax)
-				+PenaltyPrime*EpsPrime;
 			FDE += Penalty;
+#if 0
+			doublereal dFP = Penalty*(CurrEpsilon-EpsMax)
+				+ PenaltyPrime*EpsPrime;
 			FDEPrime = PenaltyPrime;
+#endif
+			doublereal dFP = Penalty*(CurrEpsilon-EpsMax);
+			if (EpsPrime > 0.) {
+				FDEPrime = PenaltyPrime;
+				dFP += PenaltyPrime*EpsPrime;
+			}
 
 			dFelastic += dFP;
 			F += dFP;
 	
 		} else if (CurrEpsilon < EpsMin) {
-			doublereal dFP = Penalty*(CurrEpsilon-EpsMin)
-				+PenaltyPrime*EpsPrime;
 			FDE += Penalty;
+#if 0
+			doublereal dFP = Penalty*(CurrEpsilon-EpsMin)
+				+ PenaltyPrime*EpsPrime;
 			FDEPrime = PenaltyPrime;
+#endif
+			doublereal dFP = Penalty*(CurrEpsilon-EpsMin);
+			if (EpsPrime < 0.) {
+				FDEPrime = PenaltyPrime;
+				dFP += PenaltyPrime*EpsPrime;
+			}
 
 			dFelastic += dFP;
 			F += dFP;
 		}
 
 #if 0
-
 		if (CurrEpsilon > EpsMax) {
 			F = FMin+Penalty*(CurrEpsilon-EpsMax)
 				+PenaltyPrime*EpsPrime;
