@@ -44,6 +44,12 @@ MBDyn 1.2-Engineering
 		- very rough implementation of aircraft instruments
 		- add matrix-free solver
 		- improve API
+		- added a cycle to better approximate reference
+		  induced velocity in rotors
+		- convergence test based on solution
+		- selected scaling of residual before testing
+		- specialized tests for residual and solution: 
+		  norm and minmax
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
@@ -66,6 +72,8 @@ MBDyn 1.2-Engineering
 		- fix beamslider joint jacobian
 		- fix utils/dae-intg (optional)
 		- fix dof plugin parameter node input (+ overall improvements)
+		- fix point where airstream speed is evaluated
+		  for aerodynamic body
 
 
 MBDyn 1.1.4

@@ -130,7 +130,48 @@ The initial time step.
 
 \subsubsection{Tolerance}
 \begin{verbatim}
-    <card> ::= tolerance : <tolerance> ;
+    <card> ::= tolerance : { null | <residual_tolerance> }
+            [ , test , { none | norm | minmax } [ , scale ] ]
+        [ , { null | <solution_tolerance> } 
+            [ , test , { none | norm | minmax } ] ] ;
+\end{verbatim}
+The only mandatory value is \texttt{residual\_tolerance}, 
+the tolerance used for the residual test; the keyword \texttt{null}
+disables the residual testing, disabling the computation
+of the test on the residual.
+The \texttt{test} mechanism is used to select what kind of test must
+be performed; currently, only \texttt{norm} (the default) 
+and \texttt{minmax} are supported.
+The special value \texttt{none} means that the test is not actually 
+computed; it is the default when the test is disabled by setting
+the tolerance to zero, or by using the keyword \texttt{null};
+however, it can be restored to any mechanism for output purposes.
+The optional parameter \texttt{scale} is used to enable the scaling
+of the residual before performing the test; default scale factors 
+can be set for each type of degree of freedom owner, and some
+entities allow individual scaling; by default, no scaling takes place.
+A tolerance \texttt{solution\_tolerance} to test the solution 
+(the difference between the states at two iterations) is allowed, 
+and also in this case a test mechanism can be chosen;
+by default, no test on the solution convergence is done.
+Currently, no scaling is allowed in the solution test.
+
+\noindent
+Examples:
+\begin{verbatim}
+    # residual test by means of the norm
+    tolerance: 1.e-6;
+    # residual test with minmax method
+    tolerance: 1.e-6, test, minmax;
+    # residual test with norm method and scaling
+    tolerance: 1.e-6, test, norm, scale;
+    # solution test
+    tolerance: null, 1.e-9;
+    # residual and solution test
+    # (the first that succeeds breaks the loop)
+    tolerance: 1.e-6, 1.e-9;
+    # residual test with computation of solution
+    tolerance: 1.e-6, none, test, norm;
 \end{verbatim}
 
 \subsubsection{Max iterations}
@@ -169,13 +210,14 @@ dependent radius variation.
         [ , (drive_caller) <algebraic_radius> ]
 \end{verbatim}
 The fourth method is experimental. It is a third-order,
-two stage unconditionally stable method, and can be tuned to give 
-the desired algorithmic dissipation
-by setting the value of the asymptotic spectral radius. Currently
-it is not possible to set independently the radius for the differential
-and the algebraic variables.
+two stage unconditionally stable method, which can be tuned to give 
+the desired algorithmic dissipation by setting the value 
+of the asymptotic spectral radius, which should not be 
+too close to zero.
+Currently it is not possible to independently set the radius 
+for the differential and the algebraic variables.
 \begin{verbatim}
-    <method_data> ::= { thirdorder } ,
+    <method_data> ::= thirdorder ,
         (drive_caller) <differential_radius>
 \end{verbatim}
 The first method proved to be more accurate at high values of asymptotic
@@ -247,7 +289,7 @@ Experimental, not available nor documented yet.
                              | derivatives 
                              | dummy steps } ;
 \end{verbatim}
-mainly used to check models and simulations at various phases.
+mainly used to cleanly check models and simulations at various phases.
 
 \subsubsection{Solver}   
 \begin{verbatim}

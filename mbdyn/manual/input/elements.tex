@@ -1723,8 +1723,11 @@ models:
     <induced_velocity> ::= { uniform | glauert | mangler } , 
         <reference_omega> , <reference_radius> 
         [ , delay , (drive_caller) <memory_factor> ]
+        [ , max iterations , <max_iterations> ]
+        [ , tolerance , <tolerance> ]
+        [ , eta , <eta> ]
         [ , correction , <hover_correction_factor> ,
-                        <ff_correction_factor> ]
+            <ff_correction_factor> ]
 \end{verbatim}
 the \texttt{reference\_omega} field is used to decide whether to inhibit
 or not the induced velocity computation if the rotor speed is very low;
@@ -1760,13 +1763,25 @@ can be used instead of \texttt{delay}}). \\
 The \texttt{memory\_factor} parameter defaults to 0; 
 the \texttt{hover\_correction\_factor} 
 and the \texttt{ff\_correction\_factor} parameters default to 1. \\
+The \texttt{max\_iterations}, the \texttt{tolerance} 
+and the \texttt{eta} parameters refer to the iteration cycle 
+that is performed to compute the nominal induced velocity; 
+after \texttt{max\_iterations}, or when the absolute value 
+of the difference between two iterations of the nominal induced 
+velocity is less than \texttt{tolerance}, the cycle breaks.
+Only a fraction \texttt{eta} of the difference between two
+interations of the nominal induced velocity is actually
+used; \texttt{eta} defaults to one.
+The default is to make only one iteration, which is backward-compatible
+with the original behavior.
 \emph{
 	Note: the syntax of the correction factor input changed
 	from MBDyn 1.1 to MBDyn 1.2, where two different factors,
 	according to conventional models (e.g.\ CAMRAD/JA), have
-	been considered instead of one.  No backward compatibility
-	has been implemented because this is a very specialistic 
-	parameter and it was introduced very recently.
+	been considered instead of one.
+	No backward compatibility has been implemented because 
+	this is a very specialistic parameter and it was introduced 
+	very recently.
 }
 
 \noindent
@@ -1774,15 +1789,20 @@ The last one uses a dynamic inflow model, with inflow states.
 The syntax is:
 \begin{verbatim}
     <induced_velocity> ::= dynamic inflow , 
-                           <reference_omega> , 
-                           <reference_radius> 
-                           [ , initial value , <const_vel> ,
-                                               <cosine_vel> ,
-                                               <sine_vel> ]
+        <reference_omega> , 
+        <reference_radius> 
+        [ , max iterations , <max_iterations> ]
+        [ , tolerance , <tolerance> ]
+        [ , eta , <eta> ]
+        [ , correction , <hover_correction_factor> ,
+            <ff_correction_factor> ]
+        [ , initial value , <const_vel> ,
+            <cosine_vel> ,
+            <sine_vel> ]
 \end{verbatim}
-The first two entries are the same as for the previous models;
+The first entries are the same as for the previous models;
 the three states, corresponding to average, fore-aft amd lateral inflow,
-can be initialized.
+can be explicitly initialized.
 
 
 
