@@ -59,6 +59,7 @@ extern "C" {
 Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
 	     const StructNode* pC, const Mat3x3& rrot,
 	     const StructNode* pR, const StructNode* pG, 
+	     int iMaxIt, doublereal dTol, doublereal dE,
 	     ResForceSet **ppres, flag fOut)
 : Elem(uL, Elem::ROTOR, fOut), 
 AerodynamicElem(uL, AerodynamicElem::ROTOR, fOut), 
@@ -73,6 +74,9 @@ pRotDataType(NULL),
 pCraft(pC), pRotor(pR), pGround(pG),
 dOmegaRef(0.), dRadius(0.), dArea(0.),
 dUMean(0.), dUMeanRef(0.), dUMeanPrev(0.),
+iMaxIter(iMaxIt),
+dTolerance(dTol),
+dEta(dE),
 Weight(), dWeight(0.),
 dHoverCorrection(1.), dForwardFlightCorrection(1.),
 ppRes(ppres),
@@ -357,7 +361,7 @@ Rotor::GetPos(const Vec3& X, doublereal& dr, doublereal& dp) const
 /* Calcola vari parametri geometrici
  * A partire dai corpi che identificano il velivolo ed il rotore
  */
-void Rotor::InitParam(void)
+void Rotor::InitParam(bool bComputeMeanInducedVelocity)
 {
    ASSERT(pCraft != NULL);
    ASSERT(pRotor != NULL);
@@ -401,35 +405,28 @@ void Rotor::InitParam(void)
       dCosAlphad = 0.;
    }
 
+   if (!bComputeMeanInducedVelocity) {
+      return;
+   }
+
+   /* Trazione nel sistema rotore */
+   doublereal dT = RRot3*Res.Force();
+   doublereal dRho = dGetAirDensity(GetXCurr());
+
    /* Parametri di influsso (usano il valore di dUMean al passo precedente) */
    doublereal dVTip = 0.;
    dMu = 0.;
    dLambda = 0.;
    dVTip = dOmega*dRadius;
+
    if (dVTip > DBL_EPSILON) {
       dMu = (dVelocity*dCosAlphad)/dVTip;
-      dLambda = (dVelocity*dSinAlphad+dUMeanRef)/dVTip;
    }
    
-   if (dMu == 0. && dLambda == 0.) {
-      dChi = 0.;
-   } else {      
-      dChi = atan2(dMu, dLambda);
-   }
-}
+   /* NOTE: dUMeanRef starts at the value it had previously */
 
-/* Velocita' indotta media (uniforme) */
-void Rotor::MeanInducedVelocity(void)
-{
-   /* Trazione nel sistema rotore */
-   doublereal dT = RRot3*Res.Force();
-   doublereal dRho = dGetAirDensity(GetXCurr());
-
-   /* Velocita' indotta media */
-   doublereal dVRef = dOmega*dRadius*sqrt(dMu*dMu+dLambda*dLambda);
-   doublereal dRef = 2.*dRho*dArea*dVRef;
-   dUMeanRef = dT/(dRef+1.);
-
+   /* Ground effect */
+   doublereal dGE = 1.;
    if (pGround) {
 	   Vec3 p = pGround->GetRCurr().Transpose()*(pRotor->GetXCurr() - pGround->GetXCurr());
 	   doublereal z = p.dGet(3)*(4./dRadius);
@@ -454,7 +451,44 @@ void Rotor::MeanInducedVelocity(void)
 	    * We need to make R / ( 4 * z ) <= 1, so
 	    * we must enforce z >= R / 4.
 	    */
-	   dUMeanRef *= 1. - 1./(z*z);
+	   dGE -= 1./(z*z);
+   }
+
+   if (dVTip > DBL_EPSILON) {
+      int iCnt;
+
+      for (iCnt = 0; iCnt < iMaxIter; iCnt++ ) {
+         doublereal dUMeanRefOrig = dUMeanRef;
+      
+         dLambda = (dVelocity*dSinAlphad+dUMeanRef)/dVTip;
+   
+         /* Velocita' indotta media */
+         doublereal dVRef = dOmega*dRadius*sqrt(dMu*dMu+dLambda*dLambda);
+         doublereal dRef = 2.*dRho*dArea*dVRef;
+
+         doublereal dDelta = dGE*dT/(dRef+1.) - dUMeanRefOrig;
+         dUMeanRef = dEta*dDelta + dUMeanRefOrig;
+
+         if (fabs(dDelta) <= dTolerance) {
+	    break;
+	 }
+      }
+
+      /* if no convergence, simply accept the current value
+       * very forgiving choice, though */
+#if 0
+      if (iCnt == iMaxIter) {
+	 std::cerr << "unable to compute mean induced velocity for Rotor(" 
+		 << GetLabel() << ")" << std::endl;
+	 THROW(ErrGeneric());
+      }
+#endif
+   }
+
+   if (dMu == 0. && dLambda == 0.) {
+      dChi = 0.;
+   } else {      
+      dChi = atan2(dMu, dLambda);
    }
 
    /*
@@ -466,8 +500,8 @@ void Rotor::MeanInducedVelocity(void)
     */
    doublereal dMuTmp = dMu/dForwardFlightCorrection;
    doublereal dLambdaTmp = dLambda/(dHoverCorrection*dHoverCorrection);
-   doublereal dV = dOmega*dRadius*sqrt(dMuTmp*dMuTmp+dLambdaTmp*dLambdaTmp);
-   doublereal d = 2.*dRho*dArea*dV;
+   doublereal dVRef = dOmega*dRadius*sqrt(dMuTmp*dMuTmp+dLambdaTmp*dLambdaTmp);
+   doublereal d = 2.*dRho*dArea*dVRef;
 
    dUMean = (1.-dWeight)*dT/(d+1.)+dWeight*dUMeanPrev;
 }
@@ -580,7 +614,7 @@ NoRotor::NoRotor(unsigned int uLabel,
 		 doublereal dR,
 		 flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, NULL, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, NULL, 0, 0., 0., ppres, fOut)
 {
 	dRadius = dR; /* puo' essere richiesto dal trim */
 #ifdef USE_MPI
@@ -628,7 +662,7 @@ SubVectorHandler& NoRotor::AssRes(SubVectorHandler& WorkVec,
 
       if (out) { 
          /* Calcola parametri vari */
-         Rotor::InitParam();   
+         Rotor::InitParam(false);
     
 #ifdef USE_MPI 
          ExchangeVelocity();
@@ -695,11 +729,14 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 			   doublereal dOR,
 			   doublereal dR, 
 			   DriveCaller *pdW,
+			   int iMaxIt,
+			   doublereal dTol,
+			   doublereal dE,
 			   doublereal dCH,
 			   doublereal dCFF,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
@@ -758,8 +795,6 @@ SubVectorHandler& UniformRotor::AssRes(SubVectorHandler& WorkVec,
 
      /* Calcola parametri vari */
      Rotor::InitParam();   
-     Rotor::MeanInducedVelocity();
-   
      
 #ifdef DEBUG   
      /* Prova:
@@ -849,11 +884,14 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 			   doublereal dOR,
 			   doublereal dR, 
 			   DriveCaller *pdW,
+			   int iMaxIt,
+			   doublereal dTol,
+			   doublereal dE,
 			   doublereal dCH,
 			   doublereal dCFF,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
@@ -920,7 +958,6 @@ SubVectorHandler& GlauertRotor::AssRes(SubVectorHandler& WorkVec,
 
      /* Calcola parametri vari */
      Rotor::InitParam();   
-     Rotor::MeanInducedVelocity();
 
 #ifdef USE_MPI 
    }
@@ -1006,11 +1043,14 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 			   doublereal dOR,
 			   doublereal dR, 
 			   DriveCaller *pdW,
+			   int iMaxIt,
+			   doublereal dTol,
+			   doublereal dE,
 			   doublereal dCH,
 			   doublereal dCFF,
 			   flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
@@ -1075,8 +1115,6 @@ SubVectorHandler& ManglerRotor::AssRes(SubVectorHandler& WorkVec,
 
      /* Calcola parametri vari */
      Rotor::InitParam();   
-     Rotor::MeanInducedVelocity();
-   
      
 #ifdef DEBUG   
      /* Prova: */
@@ -1216,6 +1254,9 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 				       ResForceSet **ppres, 
 				       doublereal dOR,
 				       doublereal dR,
+				       int iMaxIt,
+				       doublereal dTol,
+				       doublereal dE,
 	    			       doublereal dCH,
 	    			       doublereal dCFF,
 				       doublereal dVConstTmp,
@@ -1223,7 +1264,7 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 				       doublereal dVCosineTmp,
 				       flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, fOut),
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut),
 dVConst(dVConstTmp), dVSine(dVSineTmp), dVCosine(dVCosineTmp), 
 dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
 {
@@ -1430,7 +1471,6 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 
 	   	/* Calcola parametri vari */
 	   	Rotor::InitParam();   
-	   	Rotor::MeanInducedVelocity();
      
        	   	WorkVec.Resize(3);
 	   	integer iFirstIndex = iGetFirstIndex();
@@ -1841,6 +1881,53 @@ ReadRotor(DataManager* pDM,
 	      		}
 	 	}
 
+		/* max iterations when computing reference inflow velocity;
+		 * after iMaxIter iterations, the current value is accepted
+		 * regardless of convergence; thus, 1 reproduces original
+		 * behavior */
+#if 0
+		int iMaxIter = INT_MAX;
+#endif
+		int iMaxIter = 1;
+		if (HP.IsKeyWord("max" "iterations")) {
+			iMaxIter = HP.GetInt();
+			if (iMaxIter <= 0) {
+				std::cerr << "illegal max iterations " 
+					<< iMaxIter << " for Rotor(" 
+					<< uLabel << ")";
+				THROW(ErrGeneric());
+			}
+		}
+
+		/* tolerance when computing reference inflow velocity;
+		 * when the difference in inflow velocity between two 
+		 * iterations is less than tolerance in module, the
+		 * cycle breaks */
+		doublereal dTolerance = DBL_MAX;
+		if (HP.IsKeyWord("tolerance")) {
+			dTolerance = HP.GetReal();
+			if (dTolerance <= 0.) {
+				std::cerr << "illegal tolerance " 
+					<< dTolerance << " for Rotor(" 
+					<< uLabel << ")";
+				THROW(ErrGeneric());
+			}
+		}
+
+		/* increment factor when computing reference inflow velocity;
+		 * only a fraction dEta of the difference between two iterations
+		 * is applied */
+		doublereal dEta = 1.;
+		if (HP.IsKeyWord("eta")) {
+			dEta = HP.GetReal();
+			if (dEta <= 0.) {
+				std::cerr << "illegal eta " 
+					<< dEta << " for Rotor(" 
+					<< uLabel << ")";
+				THROW(ErrGeneric());
+			}
+		}
+
 	 	/* Legge la correzione della velocita' indotta */
 	 	doublereal dCH = 1.;
 	 	doublereal dCFF = 1.;
@@ -1877,7 +1964,9 @@ ReadRotor(DataManager* pDM,
    					UniformRotor,
    					UniformRotor(uLabel, pDO, pCraft, rrot,
    						pRotor, pGround,
-   						ppres, dOR, dR, pdW, dCH, dCFF,
+   						ppres, dOR, dR, pdW, 
+						iMaxIter, dTolerance, dEta,
+						dCH, dCFF,
    						fOut));
 	  		break;
 
@@ -1887,7 +1976,9 @@ ReadRotor(DataManager* pDM,
    					GlauertRotor,
    					GlauertRotor(uLabel, pDO, pCraft, rrot,
    						pRotor, pGround,
-   						ppres, dOR, dR, pdW, dCH, dCFF, 
+   						ppres, dOR, dR, pdW, 
+						iMaxIter, dTolerance, dEta,
+						dCH, dCFF, 
    						fOut));
 	  		break;
 
@@ -1898,7 +1989,9 @@ ReadRotor(DataManager* pDM,
    					ManglerRotor,
    					ManglerRotor(uLabel, pDO, pCraft, rrot,
    						pRotor, pGround,
-   						ppres, dOR, dR, pdW, dCH, dCFF, 
+   						ppres, dOR, dR, pdW, 
+						iMaxIter, dTolerance, dEta,
+						dCH, dCFF, 
    						fOut));
 	  		break;
 
@@ -1911,6 +2004,7 @@ ReadRotor(DataManager* pDM,
 						pCraft, rrot, pRotor, 
 						pGround, ppres, 
 						dOR, dR,
+						iMaxIter, dTolerance, dEta,
 						dCH, dCFF,
 						dVConst, dVSine, dVCosine,
 						fOut));

@@ -94,6 +94,10 @@ class Rotor
    doublereal dUMean;        /* Velocita' indotta media */
    doublereal dUMeanRef;     /* Velocita' indotta media (nominale) */
    mutable doublereal dUMeanPrev;    /* Vel. indotta media al passo prec. */
+   /* iterations for dUMeanRef */
+   int iMaxIter;
+   doublereal dTolerance;
+   doublereal dEta;
    DriveOwner Weight;
    doublereal dWeight;       /* Peso della velocita' indotta media 
 			      * (peso della V al passo precedente, def = 0.) */
@@ -135,15 +139,13 @@ class Rotor
    virtual void GetPos(const Vec3& X, doublereal& dr, doublereal& dp) const;
    
    /* Calcola la velocita' di traslazione del rotore */
-   virtual void InitParam(void);
+   virtual void InitParam(bool bComputeMeanInducedVelocity = true);
    
-   /* Calcola la velocita' indotta media (uniforme) */
-   virtual void MeanInducedVelocity(void);   
-
  public:
    Rotor(unsigned int uL, const DofOwner* pDO, 
 	 const StructNode* pC, const Mat3x3& rrot, const StructNode* pR, 
-	 const StructNode* pG, ResForceSet **ppres, flag fOut);
+	 const StructNode* pG, int iMaxIt, doublereal dTol, doublereal dE,
+	 ResForceSet **ppres, flag fOut);
    virtual ~Rotor(void);      
    
    /* funzioni di servizio */
@@ -356,6 +358,9 @@ class UniformRotor : virtual public Elem, public Rotor {
 		doublereal dOR,
 		doublereal dR,
 		DriveCaller *pdW,
+		int iMaxIt,
+		doublereal dTol,
+		doublereal dE,
 		doublereal dCH,
 		doublereal dCFF,
 		flag fOut);
@@ -403,6 +408,9 @@ class GlauertRotor : virtual public Elem, public Rotor {
 		doublereal dOR,
 		doublereal dR,
 		DriveCaller *pdW,
+		int iMaxIt,
+		doublereal dTol,
+		doublereal dE,
 		doublereal dCH,
 		doublereal dCFF,
 		flag fOut);
@@ -450,6 +458,9 @@ class ManglerRotor : virtual public Elem, public Rotor {
 		doublereal dOR,
 		doublereal dR,
 		DriveCaller *pdW,
+		int iMaxIt,
+		doublereal dTol,
+		doublereal dE,
 		doublereal dCH,
 		doublereal dCFF,
 		flag fOut);
@@ -521,6 +532,9 @@ class DynamicInflowRotor : virtual public Elem, public Rotor {
 		      ResForceSet **ppres, 
 		      doublereal dOR,
 		      doublereal dR,
+		      int iMaxIt,
+		      doublereal dTol,
+		      doublereal dE,
 		      doublereal dCH,
 		      doublereal dCFF,
 		      doublereal dVConstTmp,
