@@ -49,10 +49,13 @@ class NewtonRaphsonSolver : public NonlinearSolver
 	MatrixHandler*  pJac;
 	bool bTrueNewtonRaphson;
 	integer IterationBeforeAssembly;
+	bool bKeepJac;
+	integer iPerformedIterations;
 	
 
 public:
-	NewtonRaphsonSolver(const bool fTNR, 
+	NewtonRaphsonSolver(const bool bTNR,
+			const bool bKJ, 
 			const integer IterBfAss);
 	
 	~NewtonRaphsonSolver(void);

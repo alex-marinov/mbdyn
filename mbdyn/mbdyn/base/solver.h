@@ -195,6 +195,7 @@ private:
    	doublereal dPivotFactor;
    	/* Parametri per Newton-Raphson modificato */
    	bool bTrueNewtonRaphson;
+   	bool bKeepJac;
    	integer iIterationsBeforeAssembly;
 	NonlinearSolver::Type NonlinearSolverType;
 	MatrixFreeSolver::SolverType MFSolverType;

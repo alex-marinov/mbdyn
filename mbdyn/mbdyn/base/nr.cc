@@ -124,14 +124,17 @@ NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
    	return sqrt(dRes);
 }
 
-NewtonRaphsonSolver::NewtonRaphsonSolver(const bool bTNR, 
+NewtonRaphsonSolver::NewtonRaphsonSolver(const bool bTNR,
+		const bool bKJ, 
 		const integer IterBfAss)
 : pSM(NULL),
 pRes(NULL),
 pSol(NULL),
 pJac(NULL),
 bTrueNewtonRaphson(bTNR),
-IterationBeforeAssembly(IterBfAss)
+IterationBeforeAssembly(IterBfAss),
+bKeepJac(bKJ),
+iPerformedIterations(0)
 {
 	NO_OP;
 }
@@ -164,7 +167,9 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 	Size = pRes->iGetSize();
 	
 	iIterCnt = 0;
-	integer iPerformedIterations = 0;
+	if (!bKeepJac) {
+		iPerformedIterations = 0;
+	}
 #ifdef MBDYN_X_CONVSOL
 	dSolErr = 0.;
 #endif /* MBDYN_X_CONVSOL  */	

@@ -658,6 +658,7 @@ void Solver::Run(void)
 		SAFENEWWITHCONSTRUCTOR(pNLS,
 				NewtonRaphsonSolver,
 				NewtonRaphsonSolver(bTrueNewtonRaphson,
+					bKeepJac,
 					iIterationsBeforeAssembly));  
 		break;
 	}
@@ -2702,12 +2703,17 @@ Solver::ReadData(MBDynParser& HP)
 
 	  switch (NonlinearSolverType) {
 	  case NonlinearSolver::NEWTONRAPHSON:
-    		  bTrueNewtonRaphson = 1;
+    		  bTrueNewtonRaphson = true;
+		  bKeepJac = false;
     		  iIterationsBeforeAssembly = 0;
 
 		  if (HP.IsKeyWord("modified")) {
-	    		  bTrueNewtonRaphson = 0;
+	    		  bTrueNewtonRaphson = false;
 		 	  iIterationsBeforeAssembly = HP.GetInt();
+			  
+			  if (HP.IsKeyWord("keep" "jacobian")) {
+			  	bKeepJac = true;
+			  }
 
 	    		  DEBUGLCOUT(MYDEBUG_INPUT, 
 		 			  "Modified Newton-Raphson "
