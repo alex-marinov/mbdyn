@@ -246,10 +246,7 @@ Umfpack3SparseLUSolutionManager::pResHdl(void) const {
 	return bVH;
 }
 
-/*
- * Rende disponibile l'handler per la soluzione (e' lo stesso 
- * del termine noto, ma concettualmente sono separati)
- */
+/* Rende disponibile l'handler per la soluzione */
 MyVectorHandler*
 Umfpack3SparseLUSolutionManager::pSolHdl(void) const {
 	return xVH;
