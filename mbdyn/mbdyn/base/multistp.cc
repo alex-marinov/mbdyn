@@ -144,6 +144,7 @@ db0Differential(0.),
 db0Algebraic(0.),
 #ifdef __HACK_EIG__
 fEigenAnalysis(0),
+dEigParam(1.),
 #endif /* __HACK_EIG__ */
 iWorkSpaceSize(0),
 dPivotFactor(1.)
@@ -2051,12 +2052,19 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
        case EIGENANALYSIS: {
 #ifdef __HACK_EIG__
 	  OneEig.dTime = HP.GetReal();
+	  if (HP.IsKeyWord("parameter")) {
+             dEigParam = HP.GetReal();
+	  }
 	  OneEig.fDone = flag(0);
 	  fEigenAnalysis = flag(1);
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Eigenanalysis will be performed at time "
-	  	     << OneEig.dTime << endl);
+	  	     << OneEig.dTime << " (parameter: " << dEigParam << ")" 
+		     << endl);
 #else /* !__HACK_EIG__ */
 	  HP.GetReal();
+	  if (HP.IsKeyWord("parameter")) {
+	     HP.GetReal();
+	  }
 	  cerr << "eigenanalysis not supported (ignored)" << endl;
 #endif /* !__HACK_EIG__ */
 	  break;
@@ -2263,7 +2271,7 @@ MultiStepIntegrator::Eig(void)
    MyVectorHandler WorkVec(iWorkSize, pdTmp);
    
    /* Matrices Assembly (vedi eig.ps) */
-   doublereal h = 1.e-4;
+   doublereal h = dEigParam;
    pDM->AssJac(MatA, -h/2.);
    pDM->AssJac(MatB, h/2.);
 
@@ -2352,24 +2360,45 @@ MultiStepIntegrator::Eig(void)
 
    for (int iCnt = 1; iCnt <= iSize; iCnt++) {
       Out << setw(8) << iCnt << ": ";
-      if (fabs(Beta.dGetCoef(iCnt)) > 1.e-16) {
-	 doublereal b = Beta.dGetCoef(iCnt);
-	 doublereal re = AlphaR.dGetCoef(iCnt)/b;
-	 doublereal im = AlphaI.dGetCoef(iCnt)/b;
-	 doublereal d = sqrt(pow(re, 2)+pow(im, 2));
+      doublereal b = Beta.dGetCoef(iCnt);
+      if (fabs(b) > 1.e-16) {
+	 doublereal re = AlphaR.dGetCoef(iCnt);
+	 doublereal im = AlphaI.dGetCoef(iCnt);
+	 doublereal d;
+	 if (im != 0.) {
+	    d = sqrt(re*re+im*im);
+	 } else {
+	    d = fabs(re);
+	 }
+	 d /= fabs(b);
 	 doublereal sigma = log(d)/h;
 	 doublereal omega = atan2(im, re)/h;
-	 d = sqrt(pow(sigma, 2)+pow(omega, 2));
+
+#if 0
+	 Out << "[(" << re << ( im >= 0. ? "+" : "-" ) << "j*" << fabs(im) 
+           << ")/" << b << "] ";
+#endif
 	 
-         Out << setw(12) << sigma << " + " << setw(12) << omega << " j";
-	 
-	 if (d > 1.e-16) {
+	 int isPi = (fabs(im/b) < 1.e-15 && fabs(re/b+1.) < 1.e-15);
+	 if (isPi) {
+	    Out << setw(12) << 0. << " - " << "          PI j";
+	 } else {
+            Out << setw(12) << sigma << " + " << setw(12) << omega << " j";
+	 }
+
+	 d = sqrt(sigma*sigma+omega*omega);
+	 if (d > 1.e-15 && sigma/d > 1.e-15) {
 	    Out << "    " << setw(12) << sigma/d;
 	 } else {
 	    Out << "    " << setw(12) << 0.;
 	 }
-	 Out << "    " << setw(12) << omega/(2*M_PI);
-      } else {
+
+	 if (isPi) {
+	    Out << "    " << "PI";
+	 } else {
+	    Out << "    " << setw(12) << omega/(2*M_PI);
+	 }
+      } else {	 
          Out << setw(12) << 0. 
 	   << " + " << setw(12) << 0.
 	   << " j    " << setw(12) << 0. 
@@ -2379,25 +2408,21 @@ MultiStepIntegrator::Eig(void)
    }
 
    for (int iCnt = 1; iCnt <= iSize; iCnt++) {
-      Out << "Mode " << iCnt << ":" << endl;
-      if (AlphaI.dGetCoef(iCnt) != 0.) {
-	 if ((iCnt/2)*2 == iCnt) {
-	    for (int jCnt = 1; jCnt <= iSize; jCnt++) {
-	       Out << setw(12) << jCnt << ": "
-		 << setw(12) << MatR.dGetCoef(jCnt, iCnt-1) 
-	         << " - " << MatR.dGetCoef(jCnt, iCnt) << " * j " << endl;
-	    }
-	 } else {
-	    for (int jCnt = 1; jCnt <= iSize; jCnt++) {
-	       Out << setw(12) << jCnt << ": "
-		 << setw(12) << MatR.dGetCoef(jCnt, iCnt) 
-	         << " + " << MatR.dGetCoef(jCnt, iCnt+1) << " * j " << endl;
-	    }
-	 }
-      } else {
+      doublereal cmplx = AlphaI.dGetCoef(iCnt);
+      if (cmplx == 0.) {
+         Out << "Mode " << iCnt << ":" << endl;
          for (int jCnt = 1; jCnt <= iSize; jCnt++) {
             Out << setw(12) << jCnt << ": "
 	      << setw(12) << MatR.dGetCoef(jCnt, iCnt) << endl;
+	 }
+      } else if (cmplx > 0.) {
+         Out << "Modes " << iCnt << ", " << iCnt+1 << ":" << endl;
+	 for (int jCnt = 1; jCnt <= iSize; jCnt++) {
+	    doublereal im = MatR.dGetCoef(jCnt, iCnt+1);
+	    Out << setw(12) << jCnt << ": "
+	      << setw(12) << MatR.dGetCoef(jCnt, iCnt) 
+	      << ( im >= 0. ? " + " : " - " ) 
+	      << setw(12) << fabs(im) << " * j " << endl;
          }
       }
    }

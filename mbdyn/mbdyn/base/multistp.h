@@ -101,6 +101,7 @@ private:
       		flag fDone;
    	} OneEig;
 	flag fEigenAnalysis;
+	doublereal dEigParam;
 #endif /* __HACK_EIG__ */
    
    	/* 
