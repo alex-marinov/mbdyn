@@ -932,8 +932,9 @@ Elem* ReadForce(DataManager* pDM,
       
       /* Normalizza la direzione */
       ASSERT(Dir.Dot() > DBL_EPSILON);
-      if (doublereal d = Dir.Dot() > DBL_EPSILON) {      
-	 Dir /= d;
+      doublereal d = Dir.Dot();
+      if (d > DBL_EPSILON) {      
+	 Dir /= sqrt(d);
       } else {      
 	 cerr << "Warning, force " << uLabel 
 	   << " has null direction" << endl;
