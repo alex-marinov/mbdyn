@@ -248,7 +248,7 @@ Elem* ReadElectric(DataManager* pDM,
 	  
 	  /* offset */
 	  Vec3 Tmpf(0.);
-	  if (HP.IsKeyWord("position") || HP.IsKeyWord("offset")) {
+	  if (HP.IsKeyWord("position") || HP.IsKeyWord("offset") || f == 1) {
 	     Tmpf = HP.GetPosRel(ReferenceFrame(pStrNode));
 	  }
 	  flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
