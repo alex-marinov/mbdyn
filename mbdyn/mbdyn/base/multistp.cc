@@ -2461,9 +2461,7 @@ MultiStepIntegrator::Eig(void)
 	   /* crea il file .pch */
 	   pch.open("mbdyn.bdf");
 	   pch.setf(ios::showpoint);
-
 	   pch << "$.......2.......3.......4.......5.......6.......7.......8.......9.......0......." << endl;
-
 	   pDM->Output_pch(pch);
 	   
 	   /* crea il file .f06 */
