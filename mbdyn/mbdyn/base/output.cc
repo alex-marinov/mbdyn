@@ -66,6 +66,7 @@ const char* psExt[] = {
    ".ada",
    ".amd",
    ".rfm",
+   ".log",  /* 20 */
    
    NULL
 };
@@ -94,6 +95,7 @@ ofAdamsRes(),
 ofAdamsCmd(),
 ofAeroModals(),
 ofReferenceFrames(),
+ofLog(),
 iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
 {
    OutData[OUTPUT].fToUseDefaultPrecision = flag(0);
@@ -175,6 +177,10 @@ iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
    OutData[REFERENCEFRAMES].fToUseDefaultPrecision = flag(1);
    OutData[REFERENCEFRAMES].fToUseScientific = flag(1);
    OutData[REFERENCEFRAMES].pof = &ofReferenceFrames;
+   
+   OutData[LOG].fToUseDefaultPrecision = flag(0);
+   OutData[LOG].fToUseScientific = flag(0);
+   OutData[LOG].pof = &ofLog;
 }
 
 
@@ -202,6 +208,7 @@ ofAdamsRes(),
 ofAdamsCmd(),
 ofAeroModals(),
 ofReferenceFrames(),
+ofLog(),
 iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
 {
    OutData[OUTPUT].fToUseDefaultPrecision = flag(0);
@@ -285,6 +292,12 @@ iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
    OutData[REFERENCEFRAMES].fToUseDefaultPrecision = flag(1);
    OutData[REFERENCEFRAMES].fToUseScientific = flag(1);
    OutData[REFERENCEFRAMES].pof = &ofReferenceFrames;
+
+   OutData[LOG].fToUseDefaultPrecision = flag(0);
+   OutData[LOG].fToUseScientific = flag(0);
+   OutData[LOG].pof = &ofLog;
+   ofLog.width(iCurrWidth);
+   ofLog.precision(iCurrPrecision);
 }
 
 
@@ -293,6 +306,7 @@ void OutputHandler::Init(const char* sFName, int iExtNum)
 {
    FileName::iInit(sFName, iExtNum);
    OutputOpen();
+   LogOpen();
 }
 
 
@@ -503,6 +517,13 @@ int OutputHandler::AdamsCmdOpen(void)
    return Open(ADAMSCMD);
 }
 
+int OutputHandler::LogOpen(void) 
+{
+#if HAVE_ISOPEN
+   ASSERT(!ofLog.is_open());
+#endif /* HAVE_ISOPEN */
+   return Open(LOG);
+}
 
 /* Setta precisione e dimensioni campo */
 const int iWidth = 7; /* Caratteri richiesti dalla notazione esponenziale */

@@ -71,8 +71,9 @@ class OutputHandler : public FileName {
       ADAMSCMD    = 17,
       AEROMODALS  = 18,
       REFERENCEFRAMES	= 19,
+      LOG         = 20,
       
-      LASTFILE    /* = 20 */
+      LASTFILE    /* = 21 */
    };   
    
  private:
@@ -104,6 +105,7 @@ class OutputHandler : public FileName {
    std::ofstream ofAdamsCmd;
    std::ofstream ofAeroModals;
    std::ofstream ofReferenceFrames;
+   std::ofstream ofLog;
    
    int iCurrWidth;
    int iCurrPrecision;
@@ -123,31 +125,12 @@ class OutputHandler : public FileName {
    
    
    int OutputOpen(void);
-
-#if 0
-   int StrNodesOpen(void);
-   int ElectricOpen(void);
-   int AbstractOpen(void);
-   int InertiaOpen(void);
-   int JointsOpen(void);
-   int ForcesOpen(void);
-   int BeamsOpen(void);
-   int RotorsOpen(void);
-#endif /* 0 */
-   
    int RestartOpen(void);
-
-#if 0
-   int AerodynamicOpen(void);
-   int HydraulicOpen(void);
-   int PresNodesOpen(void);
-   int LoadableOpen(void);
-   int GenelsOpen(void);
-#endif /* 0 */
 
    int PartitionOpen(void);
    int AdamsResOpen(void);
    int AdamsCmdOpen(void);
+   int LogOpen(void);
 
    /* Aggiungere qui le funzioni che ritornano gli stream desiderati */
    inline std::ostream& Get(const OutputHandler::OutFiles f) {
@@ -302,6 +285,17 @@ class OutputHandler : public FileName {
       return (std::ostream&)ofReferenceFrames;	  
    };   
 
+   inline std::ostream& Log(void) const {
+#ifdef DEBUG_COUT
+      return (std::ostream&)cout;
+#else
+#if HAVE_ISOPEN
+      ASSERT(ofLog.is_open());
+#endif /* HAVE_ISOPEN */
+      return (std::ostream&)ofLog;
+#endif	
+   };   
+   
    inline int iW(void) const { 
       return iCurrWidth; 
    };
