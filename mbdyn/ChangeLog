@@ -10,6 +10,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 *** Thu Jan 10 11:10:55 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - std::ified all the package
  - major reworking of configuration/system detection/header handling
+ - fix umfpack logic bug; promoted to default (much better than others)
 
 *** Tue Jan  8 19:27:59 CET 2002 Giuseppe Quaranta <quaranta@aero.polimi.it>
 				 Marco Morandini <morandini@aero.polimi.it>
