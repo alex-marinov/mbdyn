@@ -102,9 +102,16 @@ static void mdlStart(SimStruct *S)
 	case 0 :{
 		int count = 0;
 		char *parameter[8];
-		fprintf(stderr,"qui\n");
 		char * mbdyn_name;
 		char * file_output;
+		char file_name[MAX_FILE_NEME_DIM];
+		char file_option[] = "-f";
+		char output_option[] = "-o";
+		char verbose_option[] = "-ss";
+		char pedantic_option[] = "-P";
+
+		fprintf(stderr,"qui\n");
+
 		if(MBDYN_PATH) {
 			mbdyn_name = calloc(MAX_MBDYN_PATH_NAME_DIM, sizeof(char));
 			mxGetString(MBDYN_PATH_NAME_PARAM, mbdyn_name, MAX_MBDYN_PATH_NAME_DIM);	
@@ -118,15 +125,12 @@ static void mdlStart(SimStruct *S)
 		}
 		/*char mbdyn_name [] ="../mbdyn-devel1/mbdyn/mbdyn";
 		count ++;*/
-		char file_name[MAX_FILE_NEME_DIM];
-		char file_option[] = "-f";
 		mxGetString(FILE_NAME_PARAM, file_name, MAX_FILE_NEME_DIM);
 		parameter[count] = file_option;
 		count ++;		
 		parameter[count] = file_name;
 		count ++;
 		
-		char output_option[] = "-o";
 		if(OUTPUT) {
 			file_output=calloc(MAX_FILE_OUTPUT_DIM, sizeof(char));
 			mxGetString(FILE_OUTPUT_PARAM, file_output, MAX_FILE_OUTPUT_DIM);	
@@ -136,13 +140,11 @@ static void mdlStart(SimStruct *S)
 			count ++;
 		}
 		
-		char verbose_option[] = "-ss";
 		if(!VERBOSE) {
 			parameter[count] = verbose_option;
 			count ++;				
 		}
 		
-		char pedantic_option[] = "-P";
 		if(PEDANTIC) {
 			parameter[count] = pedantic_option;
 			count ++;				
@@ -174,8 +176,8 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 static void mdlTerminate(SimStruct *S)
 {
 #ifdef MATLAB_MEX_FILE
-		printf("Qui!\n");
 	int pid = (int_T)ssGetIWork(S)[0];
+	printf("Qui!\n");
 	printf("Qui2!\n");
 	/*kill(pid,SIGINT);*/
 #endif /*MATLAB_MEX_FILE*/
