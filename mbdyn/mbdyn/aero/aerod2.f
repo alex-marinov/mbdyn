@@ -521,6 +521,11 @@ C	print *,'4) DAN=',DAN
       OUTA(13) = DCN
       OUTA(14) = DCM
 
+      DAN = SEGNO*DAN
+      DCN = SEGNO*DCN
+      DAM = SEGNO*DAM
+      DCM = SEGNO*DCM
+
 C
 C Questa parte e' sbagliata, perche' per calcolare i coeff. di momento
 C e le loro derivate vengono usati i coeff di portanza e le loro derivate
@@ -555,8 +560,10 @@ C	print *,'ATMP = ALFA(=',ALFA,')-DAN(',DAN,')'
 C	print *,'COE2 ',CLIFT,ASLOP0*DAN,DCN*C1,CMOME,CSLOP0*DAM,DCM*C1
       
 C La parte steady di CLIFT e' 0 quando alfa cambia segno!!!
-      CLIFT = CLIFT+SEGNO*(ASLOP0*DAN+DCN*C1)
-      CMOME = SEGNO*(CMOME+CSLOP0*DAM+DCM*C1)
+C      CLIFT = CLIFT+SEGNO*(ASLOP0*DAN+DCN*C1)
+C      CMOME = SEGNO*(CMOME+CSLOP0*DAM+DCM*C1)
+      CLIFT = CLIFT+ASLOP0*DAN+DCN*C1
+      CMOME = CMOME+CSLOP0*DAM+DCM*C1
       OUTA(5) = CLIFT
       OUTA(6) = CDRAG
       OUTA(7) = CMOME
