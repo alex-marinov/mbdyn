@@ -96,13 +96,13 @@ class Modal : virtual public Elem, public Joint {
    VecN *aPrime;
    VecN bPrime;
 
-   Vec3** ppd1tot;
-   Vec3** ppd2;
-   Mat3x3** ppR1tot;
-   Mat3x3** ppR2;
-   Vec3** ppF;
-   Vec3** ppM;
-   std::ofstream fOutFlex;
+   Vec3* pd1tot;
+   Vec3* pd2;
+   Mat3x3* pR1tot;
+   Mat3x3* pR2;
+   Vec3* pF;
+   Vec3* pM;
+   mutable std::ofstream fOutFlex;
    
    integer iModalIndex;
       

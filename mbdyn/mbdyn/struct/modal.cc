@@ -170,20 +170,20 @@ Inv9jkajaPk(0.),
 a(a), 
 aPrime(aP),
 bPrime(NModes,0.),
-ppd1tot(NULL), 
-ppd2(NULL), 
-ppR1tot(NULL), 
-ppR2(NULL), 
-ppF(NULL), 
-ppM(NULL),
+pd1tot(NULL), 
+pd2(NULL), 
+pR1tot(NULL), 
+pR2(NULL), 
+pF(NULL), 
+pM(NULL),
 fOutFlex(sFileMod, std::ios::out /* | std::ios::noreplace */ )
 {
-   SAFENEWARR(ppd1tot, Vec3*, NStrNodes);
-   SAFENEWARR(ppd2, Vec3*, NStrNodes);
-   SAFENEWARR(ppR1tot, Mat3x3*, NStrNodes);
-   SAFENEWARR(ppR2, Mat3x3*, NStrNodes);
-   SAFENEWARR(ppF, Vec3*, NStrNodes);
-   SAFENEWARR(ppM, Vec3*, NStrNodes);
+   SAFENEWARR(pd1tot, Vec3, NStrNodes);
+   SAFENEWARR(pd2, Vec3, NStrNodes);
+   SAFENEWARR(pR1tot, Mat3x3, NStrNodes);
+   SAFENEWARR(pR2, Mat3x3, NStrNodes);
+   SAFENEWARR(pF, Vec3, NStrNodes);
+   SAFENEWARR(pM, Vec3, NStrNodes);
    
    if (!fOutFlex) {
       std::cerr << "Modal(" << GetLabel() 
@@ -193,71 +193,35 @@ fOutFlex(sFileMod, std::ios::out /* | std::ios::noreplace */ )
    }
    
    for (unsigned int i = 0; i < NStrNodes; i++) {
-      ppd1tot[i] = NULL;
-      SAFENEW(ppd1tot[i], Vec3);
-      ppd2[i] = NULL;
-      SAFENEW(ppd2[i], Vec3);
-      ppR1tot[i] = NULL;
-      SAFENEW(ppR1tot[i], Mat3x3);
-      ppR2[i] = NULL;
-      SAFENEW(ppR2[i], Mat3x3);
-      ppF[i] = NULL;
-      SAFENEW(ppF[i], Vec3);
-      ppM[i] = NULL;
-      SAFENEW(ppM[i], Vec3);
+      pd1tot[i] = Vec3(0.);
+      pd2[i] = Vec3(0.);
+      pR1tot[i] = Mat3x3(0.);
+      pR2[i] = Mat3x3(0.);
+      pF[i] = Vec3(0.);
+      pM[i] = Vec3(0.);
    }   
 }
 
 
 Modal::~Modal(void)
 {
-   if (ppd1tot != NULL) {
-      for (unsigned int i = 0; i < NStrNodes; i++) {
-	 if (ppd1tot[i] != NULL) {
-	    SAFEDELETE(ppd1tot[i]);
-	 }
-      }
-      SAFEDELETEARR(ppd1tot);
+   if (pd1tot != NULL) {
+      SAFEDELETEARR(pd1tot);
    }
-   if (ppd2 != NULL) {
-      for (unsigned int i = 0; i < NStrNodes; i++) {
-	 if (ppd2[i] != NULL) {
-	    SAFEDELETE(ppd2[i]);
-	 }
-      }
-      SAFEDELETEARR(ppd2);
+   if (pd2 != NULL) {
+      SAFEDELETEARR(pd2);
    }
-   if (ppF != NULL) {
-      for (unsigned int i = 0; i < NStrNodes; i++) {
-	 if (ppF[i] != NULL) {
-	    SAFEDELETE(ppF[i]);
-	 }
-      }
-      SAFEDELETEARR(ppF);
+   if (pF != NULL) {
+      SAFEDELETEARR(pF);
    }
-   if (ppM != NULL) {
-      for (unsigned int i = 0; i < NStrNodes; i++) {
-	 if (ppM != NULL) {
-	    SAFEDELETE(ppM[i]);
-	 }
-      }
-      SAFEDELETEARR(ppM);
+   if (pM != NULL) {
+      SAFEDELETEARR(pM);
    }
-   if (ppR1tot != NULL) {
-      for (unsigned int i = 0; i < NStrNodes; i++) {
-	 if (ppR1tot[i] != NULL) {
-	    SAFEDELETE(ppR1tot[i]);
-	 }
-      }
-      SAFEDELETEARR(ppR1tot);
+   if (pR1tot != NULL) {
+      SAFEDELETEARR(pR1tot);
    } 
-   if (ppR2 != NULL) {
-      for (unsigned int i = 0; i < NStrNodes; i++) {
-	 if (ppR2[i] != NULL) {
-	    SAFEDELETE(ppR2[i]);
-	 }
-      }
-      SAFEDELETEARR(ppR2);
+   if (pR2 != NULL) {
+      SAFEDELETEARR(pR2);
    }
 }
 
@@ -345,13 +309,17 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
     }
    
    /* indici delle equazioni vincolari (solo per il nodo 2) */   
-   for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {      
-      integer iNodeFirstMomIndex = pInterfaceNodes[iStrNode-1]->iGetFirstMomentumIndex();
-      integer iNodeFirstPosIndex = pInterfaceNodes[iStrNode-1]->iGetFirstPositionIndex();
+   for (unsigned int iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
+      integer iNodeFirstMomIndex = 
+	      pInterfaceNodes[iStrNodem1]->iGetFirstMomentumIndex();
+      integer iNodeFirstPosIndex = 
+	      pInterfaceNodes[iStrNodem1]->iGetFirstPositionIndex();
 
       for (integer iCnt = 1; iCnt <= 6; iCnt++) {   
-	 WM.fPutRowIndex(12+iGetNumDof()+6*(iStrNode-1)+iCnt, iNodeFirstMomIndex+iCnt);
-	 WM.fPutColIndex(12+iGetNumDof()+6*(iStrNode-1)+iCnt, iNodeFirstPosIndex+iCnt);
+	 WM.fPutRowIndex(12+iGetNumDof()+6*iStrNodem1+iCnt, 
+			 iNodeFirstMomIndex+iCnt);
+	 WM.fPutColIndex(12+iGetNumDof()+6*iStrNodem1+iCnt, 
+			 iNodeFirstPosIndex+iCnt);
       }
    }
 
@@ -479,6 +447,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* ciclo esteso a tutti i nodi d'interfaccia */
    for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {   
+      unsigned int iStrNodem1 = iStrNode - 1;
       
       /* recupera i nodi vincolati dall'array IntNodes */
 #if 0
@@ -510,18 +479,18 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
       /* cerniera sferica */
       /* F e' aggiornata da AssRes */
 #if 0
-      Vec3 F(XCurr, iModalIndex+2*NModes+6*(iStrNode-1)+1);
+      Vec3 F(XCurr, iModalIndex+2*NModes+6*iStrNodem1+1);
 #endif
       
       /* termini di reazione sul nodo 1 */      
-      integer iReactionIndex = 12+2*NModes+6*(iStrNode-1);
-      integer iNode2Index = 12+iGetNumDof()+6*(iStrNode-1);
+      integer iReactionIndex = 12+2*NModes+6*iStrNodem1;
+      integer iNode2Index = 12+iGetNumDof()+6*iStrNodem1;
 
       for (int iCnt = 1; iCnt <= 3; iCnt++) { 
 	 WM.fIncCoef(iCnt+6, iReactionIndex+iCnt, 1.);
       }
 
-      Vec3 dTmp1(R1*(*ppd1tot[iStrNode-1])); 
+      Vec3 dTmp1(R1*pd1tot[iStrNodem1]); 
       /* ppd1Tot e' il puntatore all'array 
        * che contiene le posizioni del nodi FEM */ 
 
@@ -534,13 +503,13 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 	 WM.fIncCoef(iNode2Index+iCnt, iReactionIndex+iCnt, -1.);
       }
       
-      /* idem per ppd2 e ppR2 */
-      Vec3 dTmp2((*ppR2[iStrNode-1])*(*ppd2[iStrNode-1]));
+      /* idem per pd2 e pR2 */
+      Vec3 dTmp2(pR2[iStrNodem1]*pd2[iStrNodem1]);
       
       Mat3x3 dTmp2Wedge(dTmp2);
       WM.Add(iNode2Index+4, iReactionIndex+1, -dTmp2Wedge);
       
-      Mat3x3 FTmpWedge((*ppF[iStrNode-1])*dCoef);
+      Mat3x3 FTmpWedge(pF[iStrNodem1]*dCoef);
       
       /* termini del tipo: c*F/\*d/\*Deltag */
       
@@ -579,15 +548,17 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
       
       /* equazioni di vincolo : giunto prismatico */
       
-      /* Vec3 M(XCurr, iModalIndex+2*NModes+6*(iStrNode-1)+4); */
-      Vec3 MTmp = (*ppM[iStrNode-1])*dCoef; 
+      /* Vec3 M(XCurr, iModalIndex+2*NModes+6*iStrNodem1+4); */
+      Vec3 MTmp = pM[iStrNodem1]*dCoef; 
+
+      Mat3x3 pR1totTranspose = pR1tot[iStrNodem1].Transpose();
       
-      Vec3 e1tota(ppR1tot[iStrNode-1]->GetVec(1));
-      Vec3 e2tota(ppR1tot[iStrNode-1]->GetVec(2));
-      Vec3 e3tota(ppR1tot[iStrNode-1]->GetVec(3));
-      Vec3 e1b(ppR2[iStrNode-1]->GetVec(1));
-      Vec3 e2b(ppR2[iStrNode-1]->GetVec(2));
-      Vec3 e3b(ppR2[iStrNode-1]->GetVec(3));
+      Vec3 e1tota(pR1tot[iStrNodem1].GetVec(1));
+      Vec3 e2tota(pR1tot[iStrNodem1].GetVec(2));
+      Vec3 e3tota(pR1tot[iStrNodem1].GetVec(3));
+      Vec3 e1b(pR2[iStrNodem1].GetVec(1));
+      Vec3 e2b(pR2[iStrNodem1].GetVec(2));
+      Vec3 e3b(pR2[iStrNodem1].GetVec(3));
       
       Mat3x3 MWedge(Mat3x3(e3b, e2tota*MTmp.dGet(1))
 		    +Mat3x3(e1b, e3tota*MTmp.dGet(2))
@@ -614,19 +585,19 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
       WM.Sub(iNode2Index+4, 13, SubMat1);
       
       /* Eq. d'equilibrio ai modi */      
-      SubMat3.RightMult(PHIrT, ppR1tot[iStrNode-1]->Transpose()*MWedge);
+      SubMat3.RightMult(PHIrT, pR1totTranspose*MWedge);
       WM.Add(12+NModes+1, 4, SubMat3);
-      SubMat3.RightMult(PHIrT, ppR1tot[iStrNode-1]->Transpose()*-MWedgeT);
+      SubMat3.RightMult(PHIrT, pR1totTranspose*-MWedgeT);	// FIXME ?!?
       WM.Add(12+NModes+1, iNode2Index+1, SubMat3);
       
-      Vec3 MA(Mat3x3(e2tota.Cross(e3b), e3tota.Cross(e1b), e1tota.Cross(e2b))*(*ppM[iStrNode-1])*dCoef);
+      Vec3 MA(Mat3x3(e2tota.Cross(e3b), e3tota.Cross(e1b), e1tota.Cross(e2b))*pM[iStrNodem1]*dCoef);
       Mat3x3 MAWedge(MA);
-      SubMat3.RightMult(PHIrT, ppR1tot[iStrNode-1]->Transpose()*MAWedge);
+      SubMat3.RightMult(PHIrT, pR1totTranspose*MAWedge);
       WM.Add(12+NModes+1, 4, SubMat3);
       
       Mat3x3 R1TMAWedge(R1.Transpose()*MA);
       SubMat1.LeftMult(R1TMAWedge, PHIr);   
-      SubMat2.LeftMult(ppR1tot[iStrNode-1]->Transpose()*M1Wedge, PHIr);
+      SubMat2.LeftMult(pR1totTranspose*M1Wedge, PHIr);
       SubMat1 += SubMat2;
       SubMat4.Mult(PHIrT, SubMat1);
       for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
@@ -646,7 +617,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
       WM.Add(iNode2Index+4, iReactionIndex+4, -MWedge);
       
       /* contributo modale: PHIrT*R1T*(e2a/\e3b + e3a/\e1b + e1a/\e2b)  */
-      SubMat3.RightMult(PHIrT, ppR1tot[iStrNode-1]->Transpose()*MWedge);
+      SubMat3.RightMult(PHIrT, pR1totTranspose*MWedge);
       WM.Add(12+NModes+1, iReactionIndex+4, SubMat3);
       
       /* Modifica: divido le equazioni di vincolo per dCoef */
@@ -697,11 +668,12 @@ Modal::AssRes(SubVectorHandler& WorkVec,
    }
   
    /* interface nodes indices */
-   for (unsigned int iStrNode = 0; iStrNode < NStrNodes; iStrNode++) {      
-      integer iNodeFirstMomIndex = pInterfaceNodes[iStrNode]->iGetFirstMomentumIndex();
+   for (unsigned int iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
+      integer iNodeFirstMomIndex = pInterfaceNodes[iStrNodem1]->iGetFirstMomentumIndex();
       
       for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) { 
-	 WorkVec.fPutRowIndex(12+iGetNumDof()+6*iStrNode+iCnt, iNodeFirstMomIndex+iCnt);
+	 WorkVec.fPutRowIndex(12+iGetNumDof()+6*iStrNodem1+iCnt, 
+			 iNodeFirstMomIndex+iCnt);
       }
    }
    
@@ -869,8 +841,9 @@ Modal::AssRes(SubVectorHandler& WorkVec,
    /* equazioni di vincolo */
    Mat3x3 R1 = R;   
    for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
-      integer iReactionIndex = 12+2*NModes+6*(iStrNode-1);
-      integer iNode2Index = 12+iGetNumDof()+6*(iStrNode-1);
+      unsigned int iStrNodem1 = iStrNode - 1;
+      integer iReactionIndex = 12+2*NModes+6*iStrNodem1;
+      integer iNode2Index = 12+iGetNumDof()+6*iStrNodem1;
       
       /* recupera i nodi vincolati dall'array IntNodes */
 #if 0
@@ -885,9 +858,9 @@ Modal::AssRes(SubVectorHandler& WorkVec,
       d1rig.Put(2, pOffsetNodes->dGet(2, iStrNode)); 
       d1rig.Put(3, pOffsetNodes->dGet(3, iStrNode));
       
-      ppd2[iStrNode-1]->Put(1, pOffsetNodes->dGet(1, NStrNodes+iStrNode)); 
-      ppd2[iStrNode-1]->Put(2, pOffsetNodes->dGet(2, NStrNodes+iStrNode)); 
-      ppd2[iStrNode-1]->Put(3, pOffsetNodes->dGet(3, NStrNodes+iStrNode));
+      pd2[iStrNodem1].Put(1, pOffsetNodes->dGet(1, NStrNodes+iStrNode)); 
+      pd2[iStrNodem1].Put(2, pOffsetNodes->dGet(2, NStrNodes+iStrNode)); 
+      pd2[iStrNodem1].Put(3, pOffsetNodes->dGet(3, NStrNodes+iStrNode));
       
       /* recupero le forme modali del nodo vincolato */
       Mat3xN PHIt(NModes), PHIr(NModes);
@@ -903,36 +876,36 @@ Modal::AssRes(SubVectorHandler& WorkVec,
       PHIrT.Transpose(PHIr);
       
       /* aggiorno d1 e R1 con il contributo dovuto alla flessibilita': d1tot = d1+PHIt*a, R1tot = R*[I+(PHIr*a)/\] */
-      *ppd1tot[iStrNode-1] = d1rig+PHIt*(*a);
-      *ppR1tot[iStrNode-1] = R1+R1*Mat3x3(PHIr*(*a));
+      pd1tot[iStrNodem1] = d1rig+PHIt*(*a);
+      pR1tot[iStrNodem1] = R1+R1*Mat3x3(PHIr*(*a));
       
-      ppF[iStrNode-1]->Put(1, XCurr.dGetCoef(iModalIndex+2*NModes+6*(iStrNode-1)+1));
-      ppF[iStrNode-1]->Put(2, XCurr.dGetCoef(iModalIndex+2*NModes+6*(iStrNode-1)+2));
-      ppF[iStrNode-1]->Put(3, XCurr.dGetCoef(iModalIndex+2*NModes+6*(iStrNode-1)+3));
+      pF[iStrNodem1].Put(1, XCurr.dGetCoef(iModalIndex+2*NModes+6*iStrNodem1+1));
+      pF[iStrNodem1].Put(2, XCurr.dGetCoef(iModalIndex+2*NModes+6*iStrNodem1+2));
+      pF[iStrNodem1].Put(3, XCurr.dGetCoef(iModalIndex+2*NModes+6*iStrNodem1+3));
       
       Vec3 x1 = (pModalNode->GetXCurr());
-      Vec3 x2 = (pInterfaceNodes[iStrNode-1]->GetXCurr());
-      *ppR2[iStrNode-1] = pInterfaceNodes[iStrNode-1]->GetRCurr();
+      Vec3 x2 = (pInterfaceNodes[iStrNodem1]->GetXCurr());
+      pR2[iStrNodem1] = pInterfaceNodes[iStrNodem1]->GetRCurr();
       
       /* cerniera sferica */
-      Vec3 dTmp1(R1*(*ppd1tot[iStrNode-1]));
-      Vec3 dTmp2((*ppR2[iStrNode-1])*(*ppd2[iStrNode-1]));
+      Vec3 dTmp1(R1*pd1tot[iStrNodem1]);
+      Vec3 dTmp2(pR2[iStrNodem1]*pd2[iStrNodem1]);
       
       /* Eq. d'equilibrio, nodo 1 */
-      WorkVec.Sub(7, *ppF[iStrNode-1]);
-      WorkVec.Add(10, ppF[iStrNode-1]->Cross(dTmp1));
+      WorkVec.Sub(7, pF[iStrNodem1]);
+      WorkVec.Add(10, pF[iStrNodem1].Cross(dTmp1));
       
       /*termine aggiuntivo dovuto alla deformabilita': -PHItiT*RT*F */
       for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
 	 double temp = 0.;
 	 for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-	    temp += PHItT.dGet(iMode, iCnt)*(R1.Transpose()*(*ppF[iStrNode-1])).dGet(iCnt); 
+	    temp += PHItT.dGet(iMode, iCnt)*(R1.Transpose()*pF[iStrNodem1]).dGet(iCnt); 
 	 }
 	 WorkVec.fIncCoef(12+NModes+iMode, -temp);
       }
       /* Eq. d'equilibrio, nodo 2 */
-      WorkVec.Add(iNode2Index+1, *ppF[iStrNode-1]);
-      WorkVec.Add(iNode2Index+4, dTmp2.Cross(*ppF[iStrNode-1]));
+      WorkVec.Add(iNode2Index+1, pF[iStrNodem1]);
+      WorkVec.Add(iNode2Index+4, dTmp2.Cross(pF[iStrNodem1]));
       
       /* Eq. di vincolo */
       if (dCoef != 0.) {
@@ -940,18 +913,20 @@ Modal::AssRes(SubVectorHandler& WorkVec,
       }
       
       /* giunto prismatico */
-      ppM[iStrNode-1]->Put(1, XCurr.dGetCoef(iModalIndex+2*NModes+6*(iStrNode-1)+4));
-      ppM[iStrNode-1]->Put(2, XCurr.dGetCoef(iModalIndex+2*NModes+6*(iStrNode-1)+5));
-      ppM[iStrNode-1]->Put(3, XCurr.dGetCoef(iModalIndex+2*NModes+6*(iStrNode-1)+6));
+      pM[iStrNodem1].Put(1, XCurr.dGetCoef(iModalIndex+2*NModes+6*iStrNodem1+4));
+      pM[iStrNodem1].Put(2, XCurr.dGetCoef(iModalIndex+2*NModes+6*iStrNodem1+5));
+      pM[iStrNodem1].Put(3, XCurr.dGetCoef(iModalIndex+2*NModes+6*iStrNodem1+6));
       
-      Vec3 e1a(ppR1tot[iStrNode-1]->GetVec(1));
-      Vec3 e2a(ppR1tot[iStrNode-1]->GetVec(2));
-      Vec3 e3a(ppR1tot[iStrNode-1]->GetVec(3));
-      Vec3 e1b(ppR2[iStrNode-1]->GetVec(1));
-      Vec3 e2b(ppR2[iStrNode-1]->GetVec(2));
-      Vec3 e3b(ppR2[iStrNode-1]->GetVec(3));
+      Vec3 e1a(pR1tot[iStrNodem1].GetVec(1));
+      Vec3 e2a(pR1tot[iStrNodem1].GetVec(2));
+      Vec3 e3a(pR1tot[iStrNodem1].GetVec(3));
+      Vec3 e1b(pR2[iStrNodem1].GetVec(1));
+      Vec3 e2b(pR2[iStrNodem1].GetVec(2));
+      Vec3 e3b(pR2[iStrNodem1].GetVec(3));
       
-      Vec3 MTmp(Mat3x3(e2a.Cross(e3b), e3a.Cross(e1b), e1a.Cross(e2b))*(*ppM[iStrNode-1]));
+      Vec3 MTmp(Mat3x3(e2a.Cross(e3b), e3a.Cross(e1b), e1a.Cross(e2b))*pM[iStrNodem1]);
+
+      Mat3x3 pR1totTranspose = pR1tot[iStrNodem1].Transpose();
       
       /* Equazioni di equilibrio, nodo 1 */
       WorkVec.Add(10, -MTmp); 
@@ -963,7 +938,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
       for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
 	 double temp = 0;
 	 for (int iCnt = 1; iCnt <= 3; iCnt++) {
-	    temp += PHIrT.dGet(iMode, iCnt)*(ppR1tot[iStrNode-1]->Transpose()*MTmp).dGet(iCnt);
+	    temp += PHIrT.dGet(iMode, iCnt)*(pR1totTranspose*MTmp).dGet(iCnt);
 	 } 
 	 WorkVec.fIncCoef(12+NModes+iMode, -temp);
       }
@@ -988,7 +963,7 @@ Modal::Output(OutputHandler& OH) const
       /* stampa sul file di output i modi */       
       
       for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-	 (std::ofstream&)fOutFlex << " " << iCnt
+	 fOutFlex << " " << iCnt
 	   << " " << a->dGet(iCnt)
 	     << " " << aPrime->dGet(iCnt)
 	       << " " << bPrime.dGet(iCnt) << std::endl;
@@ -1038,15 +1013,19 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       WM.fPutColIndex(12+iCnt, iFlexIndex+iCnt);
    } 
    
-   for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
-      integer iNodeFirstPosIndex = pInterfaceNodes[iStrNode-1]->iGetFirstPositionIndex();
+   for (unsigned int iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
+      integer iNodeFirstPosIndex = pInterfaceNodes[iStrNodem1]->iGetFirstPositionIndex();
       integer iNodeFirstVelIndex = iNodeFirstPosIndex+6;
       
       for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {   
-	 WM.fPutRowIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+iCnt, iNodeFirstPosIndex+iCnt);
-	 WM.fPutColIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+iCnt, iNodeFirstPosIndex+iCnt);
-	 WM.fPutRowIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+6+iCnt, iNodeFirstVelIndex+iCnt);
-	 WM.fPutColIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+6+iCnt, iNodeFirstVelIndex+iCnt);
+	 WM.fPutRowIndex(12+iGetInitialNumDof()+12*iStrNodem1+iCnt, 
+			 iNodeFirstPosIndex+iCnt);
+	 WM.fPutColIndex(12+iGetInitialNumDof()+12*iStrNodem1+iCnt, 
+			 iNodeFirstPosIndex+iCnt);
+	 WM.fPutRowIndex(12+iGetInitialNumDof()+12*iStrNodem1+6+iCnt, 
+			 iNodeFirstVelIndex+iCnt);
+	 WM.fPutColIndex(12+iGetInitialNumDof()+12*iStrNodem1+6+iCnt, 
+			 iNodeFirstVelIndex+iCnt);
       }
    }
    
@@ -1070,6 +1049,7 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    /* cerniera sferica */
    for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
+      unsigned int iStrNodem1 = iStrNode - 1;
       
       /* recupera i dati */
 #if 0
@@ -1079,11 +1059,11 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 #endif
       
       Mat3x3 R1(pModalNode->GetRRef());
-      Mat3x3 R2(pInterfaceNodes[iStrNode-1]->GetRRef());
+      Mat3x3 R2(pInterfaceNodes[iStrNodem1]->GetRRef());
       Vec3 Omega1(pModalNode->GetWRef());
-      Vec3 Omega2(pInterfaceNodes[iStrNode-1]->GetWRef());
-      Vec3 F(XCurr, iFlexIndex+2*NModes+12*(iStrNode-1)+1);
-      Vec3 FPrime(XCurr, iFlexIndex+2*NModes+12*(iStrNode-1)+7);
+      Vec3 Omega2(pInterfaceNodes[iStrNodem1]->GetWRef());
+      Vec3 F(XCurr, iFlexIndex+2*NModes+12*iStrNodem1+1);
+      Vec3 FPrime(XCurr, iFlexIndex+2*NModes+12*iStrNodem1+7);
       
       Mat3xN PHIt(NModes,0), PHIr(NModes, 0);
       MatNx3 PHItT(NModes, 0), PHIrT(NModes, 0);
@@ -1112,28 +1092,28 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       
       for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 	 /* Contributo di forza all'equazione della forza, nodo 1 */
-	 WM.fIncCoef(iCnt, 12+2*NModes+12*(iStrNode-1)+iCnt, 1.);
+	 WM.fIncCoef(iCnt, 12+2*NModes+12*iStrNodem1+iCnt, 1.);
 	 
 	 /* Contrib. di der. di forza all'eq. della der. della forza, nodo 1 */
-	 WM.fIncCoef(6+iCnt, 12+2*NModes+12*(iStrNode-1)+6+iCnt, 1.);
+	 WM.fIncCoef(6+iCnt, 12+2*NModes+12*iStrNodem1+6+iCnt, 1.);
 	 
 	 /* Contributo di forza all'equazione della forza, nodo 2 */
-	 WM.fIncCoef(12+iGetInitialNumDof()+12*(iStrNode-1)+iCnt, 12+2*NModes+12*(iStrNode-1)+iCnt, -1.);
+	 WM.fIncCoef(12+iGetInitialNumDof()+12*iStrNodem1+iCnt, 12+2*NModes+12*iStrNodem1+iCnt, -1.);
 	 
 	 /* Contrib. di der. di forza all'eq. della der. della forza, nodo 2 */
-	 WM.fIncCoef(12+iGetInitialNumDof()+12*(iStrNode-1)+6+iCnt, 12+2*NModes+12*(iStrNode-1)+6+iCnt, -1.);
+	 WM.fIncCoef(12+iGetInitialNumDof()+12*iStrNodem1+6+iCnt, 12+2*NModes+12*iStrNodem1+6+iCnt, -1.);
 	 
 	 /* Equazione di vincolo, nodo 1 */
-	 WM.fIncCoef(12+2*NModes+12*(iStrNode-1)+iCnt, iCnt, -1.);
+	 WM.fIncCoef(12+2*NModes+12*iStrNodem1+iCnt, iCnt, -1.);
 	 
 	 /* Derivata dell'equazione di vincolo, nodo 1 */
-	 WM.fIncCoef(12+2*NModes+12*(iStrNode-1)+6+iCnt, 6+iCnt, -1.);
+	 WM.fIncCoef(12+2*NModes+12*iStrNodem1+6+iCnt, 6+iCnt, -1.);
 	 
 	 /* Equazione di vincolo, nodo 2 */
-	 WM.fIncCoef(12+2*NModes+12*(iStrNode-1)+iCnt, 12+iGetInitialNumDof()+12*(iStrNode-1)+iCnt, 1.);
+	 WM.fIncCoef(12+2*NModes+12*iStrNodem1+iCnt, 12+iGetInitialNumDof()+12*iStrNodem1+iCnt, 1.);
 	 
 	 /* Derivata dell'equazione di vincolo, nodo 2 */
-	 WM.fIncCoef(12+2*NModes+12*(iStrNode-1)+6+iCnt, 12+iGetInitialNumDof()+12*(iStrNode-1)+6+iCnt, 1.);
+	 WM.fIncCoef(12+2*NModes+12*iStrNodem1+6+iCnt, 12+iGetInitialNumDof()+12*iStrNodem1+6+iCnt, 1.);
       }
       
       /* Distanza nel sistema globale */
@@ -1156,11 +1136,11 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       
       /* Equazione di momento, nodo 1 */
       WM.Add(4, 4, FWedged1Wedge);
-      WM.Add(4, 12+2*NModes+12*(iStrNode-1)+1, Mat3x3(d1Tmp));
+      WM.Add(4, 12+2*NModes+12*iStrNodem1+1, Mat3x3(d1Tmp));
       
       /* Equazione di momento, nodo 2 */
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+4,12+iGetInitialNumDof()+12*(iStrNode-1)+4,  FWedged2Wedge);
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+4,12+2*NModes+12*(iStrNode-1)+1, Mat3x3(-d2Tmp));
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+4,12+iGetInitialNumDof()+12*iStrNodem1+4,  FWedged2Wedge);
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+4,12+2*NModes+12*iStrNodem1+1, Mat3x3(-d2Tmp));
       
       /* Equazione di momento, contributo modale */
       Mat3x3 FWedge(F);
@@ -1176,8 +1156,8 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       /* derivata dell'equazione di momento, nodo 1 */
       WM.Add(10, 4, (Mat3x3(FPrime)+Mat3x3(F, Omega1))*Mat3x3(d1Tmp)+Mat3x3(F, R1*(PHIt*(*aPrime))));
       WM.Add(10, 10, FWedged1Wedge);
-      WM.Add(10, 12+2*NModes+12*(iStrNode-1)+1, O1Wedged1Wedge+Mat3x3(R1*(PHIt*(*aPrime))));
-      WM.Add(10, 12+2*NModes+12*(iStrNode-1)+7, Mat3x3(d1Tmp));
+      WM.Add(10, 12+2*NModes+12*iStrNodem1+1, O1Wedged1Wedge+Mat3x3(R1*(PHIt*(*aPrime))));
+      WM.Add(10, 12+2*NModes+12*iStrNodem1+7, Mat3x3(d1Tmp));
       
       /* derivata dell'equazione di momento, contributo modale */
       SubMat1.LeftMult((-FWedgeO1Wedge-Mat3x3(FPrime))*R1, PHIt);
@@ -1194,35 +1174,35 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       WM.Add(12+NModes+1, 12+2*NModes+7, SubMat2); 
       
       /* Derivata dell'equazione di momento, nodo 2 */
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+10, 12+iGetInitialNumDof()+12*(iStrNode-1)+4, 
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+10, 12+iGetInitialNumDof()+12*iStrNodem1+4, 
 	     (Mat3x3(FPrime)+Mat3x3(F, Omega2))*Mat3x3(-d2Tmp));
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+10, 12+iGetInitialNumDof()+12*(iStrNode-1)+10, FWedged2Wedge);
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+10, 12+2*NModes+12*(iStrNode-1)+1, O2Wedged2Wedge);
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+10, 12+2*NModes+12*(iStrNode-1)+7, Mat3x3(-d2Tmp));
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+10, 12+iGetInitialNumDof()+12*iStrNodem1+10, FWedged2Wedge);
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+10, 12+2*NModes+12*iStrNodem1+1, O2Wedged2Wedge);
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+10, 12+2*NModes+12*iStrNodem1+7, Mat3x3(-d2Tmp));
       
       /* Equazione di vincolo */
-      WM.Add(12+2*NModes+12*(iStrNode-1)+1, 4, Mat3x3(d1Tmp));
-      WM.Add(12+2*NModes+12*(iStrNode-1)+1, 12+iGetInitialNumDof()+12*(iStrNode-1)+4, Mat3x3(-d2Tmp));
+      WM.Add(12+2*NModes+12*iStrNodem1+1, 4, Mat3x3(d1Tmp));
+      WM.Add(12+2*NModes+12*iStrNodem1+1, 12+iGetInitialNumDof()+12*iStrNodem1+4, Mat3x3(-d2Tmp));
       
       /* Equazione di vincolo, contributo modale */
       SubMat1.LeftMult(-R1, PHIt);
-      WM.Add(12+2*NModes+12*(iStrNode-1)+1, 13, SubMat1);
+      WM.Add(12+2*NModes+12*iStrNodem1+1, 13, SubMat1);
       
       /* Derivata dell'equazione di vincolo */
-      WM.Add(12+2*NModes+12*(iStrNode-1)+7, 4, O1Wedged1Wedge+R1*(PHIt*(*aPrime)));
-      WM.Add(12+2*NModes+12*(iStrNode-1)+7, 10, Mat3x3(d1Tmp));
-      WM.Add(12+2*NModes+12*(iStrNode-1)+7, 12+iGetInitialNumDof()+12*(iStrNode-1)+4, O2Wedged2Wedge);
-      WM.Add(12+2*NModes+12*(iStrNode-1)+7, 12+iGetInitialNumDof()+12*(iStrNode-1)+10, Mat3x3(-d2Tmp));
+      WM.Add(12+2*NModes+12*iStrNodem1+7, 4, O1Wedged1Wedge+R1*(PHIt*(*aPrime)));
+      WM.Add(12+2*NModes+12*iStrNodem1+7, 10, Mat3x3(d1Tmp));
+      WM.Add(12+2*NModes+12*iStrNodem1+7, 12+iGetInitialNumDof()+12*iStrNodem1+4, O2Wedged2Wedge);
+      WM.Add(12+2*NModes+12*iStrNodem1+7, 12+iGetInitialNumDof()+12*iStrNodem1+10, Mat3x3(-d2Tmp));
       
       /* Derivata dell'equazione di vincolo, contributo modale */
       SubMat1.LeftMult(-Mat3x3(Omega1)*R1, PHIt);
-      WM.Add(12+2*NModes+12*(iStrNode-1)+7, 13, SubMat1);
+      WM.Add(12+2*NModes+12*iStrNodem1+7, 13, SubMat1);
       SubMat1.LeftMult(-R1, PHIt);
-      WM.Add(12+2*NModes+12*(iStrNode-1)+7, 12+NModes+1, SubMat1);
+      WM.Add(12+2*NModes+12*iStrNodem1+7, 12+NModes+1, SubMat1);
       
       /* giunto prismatico */      
-      Vec3 M(XCurr, iFlexIndex+2*NModes+12*(iStrNode-1)+4);
-      Vec3 MPrime(XCurr, iFlexIndex+2*NModes+12*(iStrNode-1)+10);
+      Vec3 M(XCurr, iFlexIndex+2*NModes+12*iStrNodem1+4);
+      Vec3 MPrime(XCurr, iFlexIndex+2*NModes+12*iStrNodem1+10);
       Vec3 e1tota(R1tot.GetVec(1));
       Vec3 e2tota(R1tot.GetVec(2));
       Vec3 e3tota(R1tot.GetVec(3));
@@ -1238,10 +1218,10 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       
       /* Equilibrio */
       WM.Add(4, 4, MWedge);
-      WM.Add(4, 12+iGetInitialNumDof()+12*(iStrNode-1)+4, -MWedgeT);
+      WM.Add(4, 12+iGetInitialNumDof()+12*iStrNodem1+4, -MWedgeT);
       
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+4, 4, MWedgeT);   
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+4, 12+iGetInitialNumDof()+12*(iStrNode-1)+4, -MWedge);
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+4, 4, MWedgeT);   
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+4, 12+iGetInitialNumDof()+12*iStrNodem1+4, -MWedge);
       
       /* Equilibrio dei momenti, termini aggiuntivi modali */      
       Vec3 e1ra(R1.GetVec(1));
@@ -1253,13 +1233,13 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       
       SubMat1.LeftMult(M1Wedge, PHIr);
       WM.Add(4, 13, SubMat1);
-      WM.Sub(12+iGetInitialNumDof()+12*(iStrNode-1)+4, 13, SubMat1);
+      WM.Sub(12+iGetInitialNumDof()+12*iStrNodem1+4, 13, SubMat1);
       
       /* Equilibrio ai modi */
       SubMat2.RightMult(PHIrT, R1tot.Transpose()*MWedge);
       WM.Add(13, 4, SubMat2);
       SubMat2.RightMult(PHIrT, R1tot.Transpose()*-MWedgeT);
-      WM.Add(13, 12+iGetInitialNumDof()+12*(iStrNode-1)+4, SubMat2);
+      WM.Add(13, 12+iGetInitialNumDof()+12*iStrNodem1+4, SubMat2);
       
       Vec3 MA(Mat3x3(e2tota.Cross(e3b), e3tota.Cross(e1b), e1tota.Cross(e2b))*M);
       Mat3x3 MAWedge(MA);
@@ -1281,10 +1261,10 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       
       /* Derivate dell'equilibrio */
       WM.Add(10, 10, MWedge);
-      WM.Add(10, 12+iGetInitialNumDof()+12*(iStrNode-1)+10, -MWedgeT);
+      WM.Add(10, 12+iGetInitialNumDof()+12*iStrNodem1+10, -MWedgeT);
       
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+10, 10, MWedgeT);   
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+10, 12+iGetInitialNumDof()+12*(iStrNode-1)+10, -MWedge);
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+10, 10, MWedgeT);   
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+10, 12+iGetInitialNumDof()+12*iStrNodem1+10, -MWedge);
       
       MWedge = 
 	( (Mat3x3(e3b, Omega1)+Mat3x3(Omega2.Cross(e3b))*M.dGet(1))
@@ -1295,7 +1275,7 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	     +Mat3x3(e2b)*MPrime.dGet(3) )*Mat3x3(e1tota);
       
       WM.Add(10, 4, MWedge);
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+10, 4, -MWedge);
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+10, 4, -MWedge);
       
       MWedge =
 	( (Mat3x3(e2tota, Omega2)+Mat3x3(Omega1.Cross(e2tota))*M.dGet(1))
@@ -1305,13 +1285,13 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	   +( (Mat3x3(e1tota, Omega2)+Mat3x3(Omega1.Cross(e1tota))*M.dGet(3))
 	     +Mat3x3(e1tota)*MPrime.dGet(3) )*Mat3x3(e2b);
       
-      WM.Add(10, 12+iGetInitialNumDof()+12*(iStrNode-1)+4, -MWedge);
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+10, 12+iGetInitialNumDof()+12*(iStrNode-1)+4, MWedge);
+      WM.Add(10, 12+iGetInitialNumDof()+12*iStrNodem1+4, -MWedge);
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+10, 12+iGetInitialNumDof()+12*iStrNodem1+4, MWedge);
       
       /* Derivate dell'equilibrio, termini aggiuntivi modali */
       SubMat1.LeftMult(M1Wedge, PHIr);
       WM.Add(10, 12+NModes+1, SubMat1);
-      WM.Sub(12+iGetInitialNumDof()+12*(iStrNode-1)+10, 12+NModes+1, SubMat1); 
+      WM.Sub(12+iGetInitialNumDof()+12*iStrNodem1+10, 12+NModes+1, SubMat1); 
       
       Vec3 v1(e2tota.Cross(e3b)); 
       Vec3 v2(e3tota.Cross(e1b)); 
@@ -1327,21 +1307,21 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       MWedge = Mat3x3(v1, v2, v3);
       
       /* Equilibrio */
-      WM.Add(4, 12+2*NModes+12*(iStrNode-1)+4, MWedge);
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+4, 12+2*NModes+12*(iStrNode-1)+4, -MWedge);
+      WM.Add(4, 12+2*NModes+12*iStrNodem1+4, MWedge);
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+4, 12+2*NModes+12*iStrNodem1+4, -MWedge);
       
       SubMat2.RightMult(PHIrT, R1tot.Transpose()*MWedge);
-      WM.Add(13, 12+2*NModes+12*(iStrNode-1)+4, SubMat2);   
+      WM.Add(13, 12+2*NModes+12*iStrNodem1+4, SubMat2);   
       
       /* Derivate dell'equilibrio */
-      WM.Add(10, 12+2*NModes+12*(iStrNode-1)+10, MWedge);
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+10, 12+2*NModes+12*(iStrNode-1)+10, -MWedge);
+      WM.Add(10, 12+2*NModes+12*iStrNodem1+10, MWedge);
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+10, 12+2*NModes+12*iStrNodem1+10, -MWedge);
       
       MWedge = MWedge.Transpose();
       
       /* Equaz. di vincolo */
-      WM.Add(12+2*NModes+12*(iStrNode-1)+4, 4, MWedge);
-      WM.Add(12+2*NModes+12*(iStrNode-1)+4, 12+iGetInitialNumDof()+12*(iStrNode-1)+4, -MWedge);
+      WM.Add(12+2*NModes+12*iStrNodem1+4, 4, MWedge);
+      WM.Add(12+2*NModes+12*iStrNodem1+4, 12+iGetInitialNumDof()+12*iStrNodem1+4, -MWedge);
       
       /* Equaz. di vincolo: termine aggiuntivo dovuto alla flessibilita' */
       Vec3 u1(e2ra.Cross(e3b));
@@ -1350,11 +1330,11 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       
       M1Wedge = (Mat3x3(u1, u2, u3)).Transpose();
       SubMat1.LeftMult(M1Wedge, PHIr);
-      WM.Add(12+2*NModes+12*(iStrNode-1)+4, 13, SubMat1); 
+      WM.Add(12+2*NModes+12*iStrNodem1+4, 13, SubMat1); 
       
       /* Derivate delle equaz. di vincolo */
-      WM.Add(12+2*NModes+12*(iStrNode-1)+10, 10, MWedge);
-      WM.Add(12+2*NModes+12*(iStrNode-1)+10, 12+iGetInitialNumDof()+12*(iStrNode-1)+10, -MWedge);
+      WM.Add(12+2*NModes+12*iStrNodem1+10, 10, MWedge);
+      WM.Add(12+2*NModes+12*iStrNodem1+10, 12+iGetInitialNumDof()+12*iStrNodem1+10, -MWedge);
       
       v1 = e3b.Cross(e2tota.Cross(Omega1))+e2tota.Cross(Omega2.Cross(e3b));
       v2 = e1b.Cross(e3tota.Cross(Omega1))+e3tota.Cross(Omega2.Cross(e1b));
@@ -1363,8 +1343,8 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       MWedge = Mat3x3(v1, v2, v3);
       
       /* Derivate dell'equilibrio */
-      WM.Add(10, 12+2*NModes+12*(iStrNode-1)+4, MWedge);
-      WM.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+10, 12+2*NModes+12*(iStrNode-1)+4, -MWedge);
+      WM.Add(10, 12+2*NModes+12*iStrNodem1+4, MWedge);
+      WM.Add(12+iGetInitialNumDof()+12*iStrNodem1+10, 12+2*NModes+12*iStrNodem1+4, -MWedge);
       
       /* Derivate delle equaz. di vincolo */
       Omega1 = Omega1-Omega2;
@@ -1378,19 +1358,19 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       
       for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 	 doublereal d = v1.dGet(iCnt);
-	 WM.fIncCoef(12+2*NModes+12*(iStrNode-1)+10, 3+iCnt, d);
+	 WM.fIncCoef(12+2*NModes+12*iStrNodem1+10, 3+iCnt, d);
 	 d = v1p.dGet(iCnt);
-	 WM.fIncCoef(12+2*NModes+12*(iStrNode-1)+10, 12+iGetInitialNumDof()+12*(iStrNode-1)+3+iCnt, d);
+	 WM.fIncCoef(12+2*NModes+12*iStrNodem1+10, 12+iGetInitialNumDof()+12*iStrNodem1+3+iCnt, d);
 	 
 	 d = v2.dGet(iCnt);
-	 WM.fIncCoef(12+2*NModes+12*(iStrNode-1)+11, 3+iCnt, d);
+	 WM.fIncCoef(12+2*NModes+12*iStrNodem1+11, 3+iCnt, d);
 	 d = v2p.dGet(iCnt);
-	 WM.fIncCoef(12+2*NModes+12*(iStrNode-1)+11, 12+iGetInitialNumDof()+12*(iStrNode-1)+3+iCnt, d);
+	 WM.fIncCoef(12+2*NModes+12*iStrNodem1+11, 12+iGetInitialNumDof()+12*iStrNodem1+3+iCnt, d);
 	 
 	 d = v3.dGet(iCnt);
-	 WM.fIncCoef(12+2*NModes+12*(iStrNode-1)+12, 3+iCnt, d);
+	 WM.fIncCoef(12+2*NModes+12*iStrNodem1+12, 3+iCnt, d);
 	 d = v3p.dGet(iCnt);
-	 WM.fIncCoef(12+2*NModes+12*(iStrNode-1)+12, 12+iGetInitialNumDof()+12*(iStrNode-1)+3+iCnt, d);
+	 WM.fIncCoef(12+2*NModes+12*iStrNodem1+12, 12+iGetInitialNumDof()+12*iStrNodem1+3+iCnt, d);
       }    
       
    } /* fine ciclo sui nodi vincolati */
@@ -1425,12 +1405,14 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
       WorkVec.fPutRowIndex(12+iCnt, iFlexIndex+iCnt);
    }
    
-   for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
-      integer iNodeFirstPosIndex = pInterfaceNodes[iStrNode-1]->iGetFirstPositionIndex();
+   for (unsigned int iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
+      integer iNodeFirstPosIndex = pInterfaceNodes[iStrNodem1]->iGetFirstPositionIndex();
       integer iNodeFirstVelIndex = iNodeFirstPosIndex + 6;
       for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) { 
-	 WorkVec.fPutRowIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+iCnt, iNodeFirstPosIndex+iCnt);
-	 WorkVec.fPutRowIndex(12+iGetInitialNumDof()+12*(iStrNode-1)+6+iCnt, iNodeFirstVelIndex+iCnt);
+	 WorkVec.fPutRowIndex(12+iGetInitialNumDof()+12*(iStrNodem1)+iCnt, 
+			 iNodeFirstPosIndex+iCnt);
+	 WorkVec.fPutRowIndex(12+iGetInitialNumDof()+12*(iStrNodem1)+6+iCnt, 
+			 iNodeFirstVelIndex+iCnt);
       }
    }
    
@@ -1458,6 +1440,8 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
    Vec3 Omega1(pModalNode->GetWCurr());
    
    for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
+      unsigned int iStrNodem1 = iStrNode - 1;
+
 #if 0
       unsigned int *IntNodesm1 = IntNodes-1;
       unsigned int uNode1 = IntNodesm1[iStrNode];
@@ -1488,12 +1472,12 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
       Vec3 d1tot = d1rig+PHIt*(*a);
       Mat3x3 R1tot = R1+R1*Mat3x3(PHIr*(*a));
       
-      Vec3 x2(pInterfaceNodes[iStrNode-1]->GetXCurr());
-      Vec3 v2(pInterfaceNodes[iStrNode-1]->GetVCurr());
-      Mat3x3 R2(pInterfaceNodes[iStrNode-1]->GetRCurr());
-      Vec3 Omega2(pInterfaceNodes[iStrNode-1]->GetWCurr());
-      Vec3 F(XCurr, iFlexIndex+2*NModes+12*(iStrNode-1)+1);
-      Vec3 FPrime(XCurr, iFlexIndex+2*NModes+12*(iStrNode-1)+7);
+      Vec3 x2(pInterfaceNodes[iStrNodem1]->GetXCurr());
+      Vec3 v2(pInterfaceNodes[iStrNodem1]->GetVCurr());
+      Mat3x3 R2(pInterfaceNodes[iStrNodem1]->GetRCurr());
+      Vec3 Omega2(pInterfaceNodes[iStrNodem1]->GetWCurr());
+      Vec3 F(XCurr, iFlexIndex+2*NModes+12*iStrNodem1+1);
+      Vec3 FPrime(XCurr, iFlexIndex+2*NModes+12*iStrNodem1+7);
       
       /* cerniera sferica */
       
@@ -1539,22 +1523,22 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
       }
       
       /* Equazioni di equilibrio, nodo 2 */
-      WorkVec.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+1, F);
-      WorkVec.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+4, d2Tmp.Cross(F)); 
+      WorkVec.Add(12+iGetInitialNumDof()+12*iStrNodem1+1, F);
+      WorkVec.Add(12+iGetInitialNumDof()+12*iStrNodem1+4, d2Tmp.Cross(F)); 
       
       /* Derivate delle equazioni di equilibrio, nodo 2 */
-      WorkVec.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+7, FPrime);
-      WorkVec.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+10, d2Tmp.Cross(FPrime)+O2Wedged2.Cross(F));
+      WorkVec.Add(12+iGetInitialNumDof()+12*iStrNodem1+7, FPrime);
+      WorkVec.Add(12+iGetInitialNumDof()+12*iStrNodem1+10, d2Tmp.Cross(FPrime)+O2Wedged2.Cross(F));
       
       /* Equazione di vincolo */
-      WorkVec.Add(12+2*NModes+12*(iStrNode-1)+1, x1+d1Tmp-x2-d2Tmp);
+      WorkVec.Add(12+2*NModes+12*iStrNodem1+1, x1+d1Tmp-x2-d2Tmp);
       
       /* Derivata dell'equazione di vincolo */
-      WorkVec.Add(12+2*NModes+12*(iStrNode-1)+7, v1+d1Prime-v2-O2Wedged2);
+      WorkVec.Add(12+2*NModes+12*iStrNodem1+7, v1+d1Prime-v2-O2Wedged2);
       
       /* giunto prismatico */
-      Vec3 M(XCurr, iFlexIndex+2*NModes+12*(iStrNode-1)+4);
-      Vec3 MPrime(XCurr, iFlexIndex+2*NModes+12*(iStrNode-1)+10); 
+      Vec3 M(XCurr, iFlexIndex+2*NModes+12*iStrNodem1+4);
+      Vec3 MPrime(XCurr, iFlexIndex+2*NModes+12*iStrNodem1+10); 
       
       Vec3 e1a(R1tot.GetVec(1));
       Vec3 e2a(R1tot.GetVec(2));
@@ -1571,7 +1555,7 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
       WorkVec.Add(4, -MTmp);
       
       /* Equazioni di equilibrio, nodo 2 */
-      WorkVec.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+4, MTmp);
+      WorkVec.Add(12+iGetInitialNumDof()+12*iStrNodem1+4, MTmp);
       
       /* Equazioni di equilibrio, contributo modale */
       for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
@@ -1602,7 +1586,7 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
       WorkVec.Add(10, -MTmpPrime);
       
       /* Derivate delle equazioni di equilibrio, nodo 2 */
-      WorkVec.Add(12+iGetInitialNumDof()+12*(iStrNode-1)+10, MTmpPrime);
+      WorkVec.Add(12+iGetInitialNumDof()+12*iStrNodem1+10, MTmpPrime);
       
       /* Derivate delle equazioni di equilibrio, contributo modale */
       MatNx3 SubMat1(NModes);
@@ -1617,14 +1601,14 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
       }
       
       /* Equazioni di vincolo di rotazione */
-      WorkVec.fIncCoef(12+2*NModes+12*(iStrNode-1)+4, -(e3b.Dot(e2a)));
-      WorkVec.fIncCoef(12+2*NModes+12*(iStrNode-1)+5, -(e1b.Dot(e3a)));
-      WorkVec.fIncCoef(12+2*NModes+12*(iStrNode-1)+6, -(e2b.Dot(e1a)));
+      WorkVec.fIncCoef(12+2*NModes+12*iStrNodem1+4, -(e3b.Dot(e2a)));
+      WorkVec.fIncCoef(12+2*NModes+12*iStrNodem1+5, -(e1b.Dot(e3a)));
+      WorkVec.fIncCoef(12+2*NModes+12*iStrNodem1+6, -(e2b.Dot(e1a)));
       
       /* Derivate delle equazioni di vincolo di rotazione */
-      WorkVec.fIncCoef(12+2*NModes+12*(iStrNode-1)+10, e3b.Dot(Omega2.Cross(e2a)-e2aPrime));
-      WorkVec.fIncCoef(12+2*NModes+12*(iStrNode-1)+11, e1b.Dot(Omega2.Cross(e3a)-e3aPrime));
-      WorkVec.fIncCoef(12+2*NModes+12*(iStrNode-1)+12, e2b.Dot(Omega2.Cross(e1a)-e1aPrime));
+      WorkVec.fIncCoef(12+2*NModes+12*iStrNodem1+10, e3b.Dot(Omega2.Cross(e2a)-e2aPrime));
+      WorkVec.fIncCoef(12+2*NModes+12*iStrNodem1+11, e1b.Dot(Omega2.Cross(e3a)-e3aPrime));
+      WorkVec.fIncCoef(12+2*NModes+12*iStrNodem1+12, e2b.Dot(Omega2.Cross(e1a)-e1aPrime));
       
    } /* fine equazioni di vincolo */
    
