@@ -430,7 +430,7 @@ ass_res(LoadableElem* pEl,
 	/*
 	 * Stima dell'area di contatto
 	 */
-	doublereal dA = p->dRefArea*(dDeltaL/p->dRadius);
+	doublereal dA = p->dRefArea*(dDeltaL/p->dInternalRadius);
 	
 	/*
 	 * Stima del volume di compenetrazione tra ruota e terreno
