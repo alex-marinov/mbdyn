@@ -888,7 +888,8 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
    const char* sKeyWords[] = {
       "time",
 	"null",
-	"one",
+	"one",	/* deprecated */
+	"unit",
 	"const",
 	"linear",
 	"parabolic",
@@ -919,6 +920,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	TIME = 0,
 	NULLDRIVE,
 	ONEDRIVE,
+	UNITDRIVE,
 	CONST,
 	LINEAR,
 	PARABOLIC,
@@ -982,7 +984,8 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
     }
       
       /* driver unitario*/
-    case ONEDRIVE: {
+    case ONEDRIVE:
+    case UNITDRIVE: {
        /* allocazione e creazione */
         SAFENEWWITHCONSTRUCTOR(pDC, OneDriveCaller, OneDriveCaller(pDrvHdl));
       
