@@ -14,6 +14,7 @@ MBDyn 1.0 Engineering
 		- (For developers) Vec3 and Mat3x3 now have () operator;
 		  Vec3 also has [] operator
 	Bugs:
+		- Hydraulic nodes did not honor the output flag (always on)
 
 
 MBDyn 1.0.1

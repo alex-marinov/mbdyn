@@ -8,6 +8,10 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
 
+*** Tue Nov 27 18:19:43 CET 2001 Pierangelo Masarati <masarati@aero.polimi.it>
+ - Make hydraulic nodes honor the output flag
+ - ITS works
+
 *** Thu Nov 22 14:59:29 CET 2001 Pierangelo Masarati <masarati@aero.polimi.it>
  - The classic beam slider joint works
 
