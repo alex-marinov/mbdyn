@@ -133,10 +133,6 @@ protected:
 	std::vector<integer> Adummy;
 	std::vector<integer> Ap;
 
-	UmfpackSolver *pLS;
-
-	bool PrepareSymbolic(void);
-
 	/* Azzera la matrice (callback per MatrInit) */
 	virtual void MatrReset(const doublereal& d);
 

@@ -125,7 +125,8 @@
 /* UmfpackSolver - begin */
 	
 UmfpackSolver::UmfpackSolver(const integer &size, const doublereal &dPivot)
-: iSize(size),
+: LinearSolver(0),
+iSize(size),
 Axp(0),
 Aip(0),
 App(0),
@@ -185,7 +186,8 @@ UmfpackSolver::Solve(void) const
 
 	Control[UMFPACK_IRSTEP] = 0;
 	status = UMFPACKWRAP_solve(SYS_VALUE,
-			App, Aip, Axp, pdSol, pdRhs, 
+			App, Aip, Axp,
+			LinearSolver::pdSol, LinearSolver::pdRhs, 
 			Numeric, Control, Info);
 	if (status != UMFPACK_OK) {
 		UMFPACKWRAP_report_info(Control, Info) ;
@@ -307,13 +309,12 @@ UmfpackSparseSolutionManager::UmfpackSparseSolutionManager(integer Dim,
 x(Dim),
 b(Dim),
 xVH(Dim, &x[0]),
-bVH(Dim, &b[0]), 
-pLS(0)
+bVH(Dim, &b[0])
 {
 	SAFENEWWITHCONSTRUCTOR(pLS, UmfpackSolver, UmfpackSolver(Dim, dPivot));
-	
-	pLS->ChangeResPoint(&(b[0]));
-	pLS->ChangeSolPoint(&(x[0]));
+
+	(void)pLS->ChangeResPoint(&(b[0]));
+	(void)pLS->ChangeSolPoint(&(x[0]));
 	pLS->SetSolutionManager(this);
 }
 

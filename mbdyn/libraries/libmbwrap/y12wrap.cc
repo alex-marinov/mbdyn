@@ -54,7 +54,8 @@ Y12Solver::Y12Solver(integer iMatOrd, integer iWorkSpaceSize,
 			 doublereal* pdTmpRhs, 
 			 integer iPivotParam,
 			 bool bDupInd)
-: iMaxSize(iWorkSpaceSize),
+: LinearSolver(0),
+iMaxSize(iWorkSpaceSize),
 iCurSize(iWorkSpaceSize),
 piRow(0),
 piCol(0),
@@ -67,8 +68,8 @@ iNonZeroes(0),
 piHA(NULL),
 pdPIVOT(NULL)
 {
-	LinearSolver::pdRhs = pdTmpRhs;
-	LinearSolver::pdSol = pdTmpRhs;
+	(void)ChangeResPoint(pdTmpRhs);
+	(void)ChangeSolPoint(pdTmpRhs);
 
 	ASSERT(pdTmpRhs != NULL);
 	ASSERT(iN > 0);
