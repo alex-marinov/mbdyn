@@ -50,7 +50,6 @@
 #ifndef MULTISTP_H
 #define MULTISTP_H
 
-
 #include <myassert.h>
 #include <mynewmem.h>
 #include <solman.h>
@@ -62,8 +61,8 @@
 #include <integr.h>
 #include <intmeth.h>
 
-#ifdef __POD__
-#include <fstream>
+#ifdef __HACK_POD__
+#include <ac/fstream>
  
 class PODMat {
  
@@ -73,11 +72,11 @@ class PODMat {
  public:
  
        PODMat(int rows, int cols): Rows(rows), Cols(cols) {
-               A = new doublereal[rows*cols];    
+               SAFENEWARR(A, doublereal, rows*cols);
        };
  
        ~PODMat(void) {
-               delete A;
+               SAFEDELETEARR(A);
        }
  
        void AddTVec(VectorHandler* Vec, int pos) {
@@ -96,9 +95,9 @@ class PODMat {
                        out << std::endl;
                }
        };
- };     
+};     
         
- #endif /* __POD__ */
+#endif /* __HACK_POD__ */
 
 /* MultiStepIntegrator - begin */
 
@@ -135,7 +134,7 @@ private:
    	/* Dati per strategia DRIVER_CHANGE */
 	DriveCaller* pStrategyChangeDrive;
  
-#ifdef __POD__
+#ifdef __HACK_POD__
         /* Dati per il cacole delle matrici delle covarianze */
        struct PODData {
                doublereal dTime;
@@ -145,7 +144,7 @@ private:
        flag fPOD;
        int iPODStep;
        int iPODFrames;
-#endif /*__POD__*/
+#endif /*__HACK_POD__*/
  
 
 

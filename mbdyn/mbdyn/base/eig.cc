@@ -41,6 +41,7 @@
     
 
 #include<ac/lapack.h>
+#include "eig.h"
 
 PODEig::PODEig(doublereal Period, 
 	       integer S, 

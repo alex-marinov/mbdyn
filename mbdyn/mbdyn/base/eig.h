@@ -42,6 +42,7 @@
 #include <mynewmem.h>
 #include <solman.h>
 #include <fullmh.h>
+
 #include <vector>
 #include <algorithm>
 #include <cmath>
@@ -92,7 +93,7 @@ class PODEig
         void ComputeEigenvalues(doublereal t);
 		 
         void OutputEigenvalues(void);
-} 
+};
 
 
-#endif //PODEIG_H
+#endif /* PODEIG_H */

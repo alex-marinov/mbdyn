@@ -131,11 +131,11 @@ fOutputModes(0),
 dUpperFreq(FLT_MAX),
 dLowerFreq(0.),
 #endif /* __HACK_EIG__ */
-#ifdef __POD__
+#ifdef __HACK_POD__
 fPOD(0),
 iPODStep(0),
 iPODFrames(0),
-#endif /*__POD__*/
+#endif /*__HACK_POD__*/
 pdWorkSpace(NULL),
 pXCurr(NULL),
 pXPrimeCurr(NULL),
@@ -395,9 +395,9 @@ MultiStepIntegrator::Run(void)
    	pXPrev2->Reset(0.);
    	pXPrimePrev2->Reset(0.);
 
-#ifdef __POD__
+#ifdef __HACK_POD__
         PODMat APOD(iNumDofs, pod.iFrames); 
-#endif /*__POD__*/
+#endif /*__HACK_POD__*/
 
    	/* Subito collega il DataManager alla soluzione corrente */
    	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);         
@@ -1754,8 +1754,8 @@ EndOfStep:
       		dRefTimeStep = dCurrTimeStep;
       		dTime += dRefTimeStep;
 
-#ifdef __POD__
-              if (fPOD &&  dTime >= pod.dTime) {
+#ifdef __HACK_POD__
+              if (fPOD && dTime >= pod.dTime) {
                       if (iPODStep == pod.iSteps) {
                               APOD.AddTVec(pXCurr, iPODFrames);
                               iPODFrames++;
@@ -1767,10 +1767,8 @@ EndOfStep:
                               APOD.Output();
                               fPOD = flag(0);
                       }                        
-
               }
-                                               
-#endif /*__POD__ */
+#endif /*__HACK_POD__ */
 
 #ifdef __HACK_EIG__
       		if (fEigenAnalysis && OneEig.dTime <= dTime && !OneEig.fDone) {
@@ -3173,8 +3171,8 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  break;
        }
 	 
-       case POD: {
-#ifdef __POD__
+       case POD:
+#ifdef __HACK_POD__
               pod.dTime = HP.GetReal();
               pod.iSteps = HP.GetInt();
               pod.iFrames = HP.GetInt();
@@ -3182,16 +3180,13 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
               DEBUGLCOUT(MYDEBUG_INPUT, "POD analysis will be performed from time "
                    << pod.dTime << "for  " << pod.Steps << "steps." 
                    << std::endl);
-#else/* __POD__ */
-              HP.GetReal();
-              HP.GetInt();
-              std::cerr << HP.GetLineData()
-              << ": POD analysis not supported (ignored)" << std::endl;
-#endif /* !__POD__ */
-        break;
-       }
-
-                
+#else/* __HACK_POD__ */
+              std::cerr << "line " << HP.GetLineData()
+                   << ": POD analysis not supported (ignored)" << std::endl;
+	      THROW(ErrGeneric());
+#endif /* !__HACK_POD__ */
+              break;
+ 
        case EIGENANALYSIS: {
 #ifdef __HACK_EIG__
 	  OneEig.dTime = HP.GetReal();
