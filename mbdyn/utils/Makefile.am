@@ -34,7 +34,7 @@ MYLIBS = \
 @TCL_LIBS@ \
 @LIBS@
 
-autopilot_SOURCES = autopilot.cc
+autopilot_SOURCES = autopilot.c
 cl_SOURCES = cl.cc
 dae_intg_SOURCES = dae-intg.cc dae-intg.h
 deriv_SOURCES = deriv.c
@@ -49,7 +49,7 @@ rot2eup_SOURCES = rot2eup.cc
 rot2eu_SOURCES = rot2eu.cc
 rot2phi_SOURCES = rot2phi.cc
 rotrel_SOURCES = rotrel.cc
-sockdrive_SOURCES = sockdrive.cc
+sockdrive_SOURCES = sockdrive.c
 vec2rot_SOURCES = vec2rot.cc
 
 autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@
