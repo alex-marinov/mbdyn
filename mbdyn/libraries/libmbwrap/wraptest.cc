@@ -109,7 +109,7 @@ void SetupSystem(
 			int size = 0;
 			size = (*pM).iGetNumRows();
 			if (spM == 0) {
-				spM = new SpMapMatrixHandler(100);
+				spM = new SpMapMatrixHandler(size);
 
 				int halfband = 0;
 				int activcol = 0;
@@ -131,17 +131,15 @@ void SetupSystem(
 				for (int i = size - activcol; i < size; i++) {
 					for (int k = 0; k < size; k++) {
 						if (((doublereal)rand())/RAND_MAX > sprfct) {
-							(*spM)(k+1, i+1) = (*pM)(i+1, k+1) = 2.0*(((doublereal)rand())/RAND_MAX - 0.5);
+							(*spM)(k+1, i+1) = (*spM)(i+1, k+1) = 2.0*(((doublereal)rand())/RAND_MAX - 0.5);
 						}
 					}
 				}
 				for (int i = 0; i < size; i++) {
 					(*spM)(i+1, i+1) = 1;
 				}
-				std::cerr << "Passo di qui" << std::endl;
 				(*spM).MakeIndexForm(x_values, row_values, col_values, acol_values, 1);
 				if (matrixfilename != 0) {
-					std::cerr << "scrivo su " << matrixfilename << std::endl;
 					ofile.open(matrixfilename);
 					ofile << size << std::endl;
 					int n = x_values.size();
