@@ -629,7 +629,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 #endif /* USE_STRUCT_NODES */
 
        case PRINT:
-	  if (HP.IsKeyWord("dofstats")) {
+	  if (HP.IsKeyWord("dof" "stats")) {
 	     fPrintDofStats = 1;
 	  }
 	  break;

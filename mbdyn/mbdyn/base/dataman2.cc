@@ -90,6 +90,30 @@ void DataManager::DofOwnerInit(void)
    ASSERT(ppNodes != NULL);
    ASSERT(ppElems != NULL);
       
+   /* per ogni nodo strutturale */
+   if (NodeData[Node::STRUCTURAL].iNum > 0) {
+
+      /*
+       * used by POD stuff: if any, output the list of the first dof (minus 1)
+       * of each structural node, so it's easy to get the struct node values
+       * in MATLAB: given a vector "X" with all the states, and a vector
+       * "v" with the first dof of each structural node, then the x coordinate
+       * is X(v+1) and so forth
+       */
+      OutHdl.Log() << "struct node dofs:";
+      
+      StructNode** ppNd = (StructNode **)NodeData[Node::STRUCTURAL].ppFirstNode;
+      for (unsigned long i = 0; i < NodeData[Node::STRUCTURAL].iNum; i++) {
+         ASSERT(ppNd[i] != NULL);
+	 if (ppNd[i]->GetStructNodeType() == StructNode::DUMMY) {
+	    continue;
+	 }
+	 OutHdl.Log() << " " << ppNd[i]->iGetFirstIndex();
+      }
+
+      OutHdl.Log() << std::endl;
+   }
+   
    /* per ogni nodo */
    Node** ppNd = ppNodes;
    while (ppNd < ppNodes+iTotNodes) {	
@@ -132,7 +156,6 @@ void DataManager::DofOwnerInit(void)
       }	
       ppNd++;
    }
-   
    
    /* per ogni elemento */
 #if !defined(USE_ELEM_ITER)
