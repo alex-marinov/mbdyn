@@ -104,7 +104,7 @@ SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
 	return Nz();
 }
 
-int
+integer
 SpMapMatrixHandler::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
                 std::vector<integer>& Ai, std::vector<integer>& Ap,
 		int offset) const
@@ -116,7 +116,7 @@ SpMapMatrixHandler::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
 	return MakeCompressedColumnForm(&(Ax[0]), &(Ai[0]), &(Ap[0]), offset);
 }
 
-int
+integer
 SpMapMatrixHandler::MakeIndexForm(doublereal *const Ax,
 		integer *const Arow, integer *const Acol,
 		integer *const Ap, int offset) const
@@ -145,7 +145,7 @@ SpMapMatrixHandler::MakeIndexForm(doublereal *const Ax,
 	return Nz();
 }
 
-int
+integer
 SpMapMatrixHandler::MakeIndexForm(std::vector<doublereal>& Ax,
                 std::vector<integer>& Arow, std::vector<integer>& Acol,
 		std::vector<integer>& Ap, int offset) const

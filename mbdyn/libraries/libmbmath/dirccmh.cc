@@ -76,7 +76,7 @@ DirCColMatrixHandler<off>::Copy(void) const
 }
 
 template <int off>
-int
+integer
 DirCColMatrixHandler<off>::MakeCompressedColumnForm(doublereal *const Ax,
 		integer *const Ai, integer *const Ap,
 		int offset) const
@@ -85,7 +85,7 @@ DirCColMatrixHandler<off>::MakeCompressedColumnForm(doublereal *const Ax,
 }
 
 template <int off>
-int
+integer
 DirCColMatrixHandler<off>::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
 		std::vector<integer>& Ai, std::vector<integer>& Ap,
 		int offset) const
@@ -94,7 +94,7 @@ DirCColMatrixHandler<off>::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
 }
 
 template <int off>
-int
+integer
 DirCColMatrixHandler<off>::MakeIndexForm(doublereal *const rAx,
 		integer *const Arow, integer *const Acol,
 		integer *const AcolSt, int offset) const
@@ -124,7 +124,7 @@ DirCColMatrixHandler<off>::MakeIndexForm(doublereal *const rAx,
 }
 
 template <int off>
-int
+integer
 DirCColMatrixHandler<off>::MakeIndexForm(std::vector<doublereal>& rAx,
                 std::vector<integer>& Arow, std::vector<integer>& Acol,
 		std::vector<integer>& AcolSt, int offset) const
