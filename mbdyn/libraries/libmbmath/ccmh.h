@@ -186,8 +186,5 @@ public:
 
 #include "ccmh.hc"
 
-typedef CColMatrixHandler<0> CColMatrixHandler0;
-typedef CColMatrixHandler<1> CColMatrixHandler1;
-
 #endif /* CColMatrixHandler_hh */
 
