@@ -1628,7 +1628,18 @@ Elem** ReadOneElem(DataManager* pDM,
     case RTAI_OUTPUT: {
 #ifdef USE_RTAI
       unsigned long node = 0;
+      const char *host = NULL;
       if (HP.IsKeyWord("host")) {
+	      const char *h = HP.GetStringWithDelims();
+	      if (h == NULL) {
+		      std::cerr << "unable to real host for "
+			      << psElemNames[Elem::RTAI_OUTPUT]
+			      << "(" << uLabel << ") at line "
+			      << HP.GetLineData() << std::endl;
+		      THROW(ErrGeneric());
+	      }
+	      SAFESTRDUP(host, h);
+
 	      /* resolve host */
       }
 	      
@@ -1649,7 +1660,7 @@ Elem** ReadOneElem(DataManager* pDM,
       }
 
       SAFENEWWITHCONSTRUCTOR(*ppE, RTAIOutElem,
-		      RTAIOutElem(uLabel, nch, pNodes, node));
+		      RTAIOutElem(uLabel, nch, pNodes, host, node));
 
 #else /* ! USE_RTAI */
        std::cerr << "need USE_RTAI to allow RTAI mailboxes" << std::endl;

@@ -42,11 +42,11 @@
 
 /* RTAIOutElem - begin */
 
-RTAIOutElem::RTAIOutElem(unsigned int uL, unsigned int nch,
-		ScalarDof *& pn, unsigned long n)
+RTAIOutElem::RTAIOutElem(unsigned int uL, unsigned int nch, ScalarDof *& pn,
+		const char *h, unsigned long n)
 : Elem(uL, Elem::RTAI_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
-node(n), port(-1), mbx(NULL)
+host(h), node(n), port(-1), mbx(NULL)
 {
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(double)*nch;
@@ -77,6 +77,10 @@ RTAIOutElem::~RTAIOutElem(void)
 	if (pNodes) {
 		/* FIXME: pNodes leak */
 		SAFEDELETEARR(pNodes);
+	}
+
+	if (host) {
+		SAFEDELETEARR(host);
 	}
 }
 

@@ -62,7 +62,7 @@ protected:
    
 public:
    	RTAIOutElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
-			unsigned long n);
+			const char *host, unsigned long n);
    	virtual ~RTAIOutElem(void);
 
 	virtual inline void* pGet(void) const;
