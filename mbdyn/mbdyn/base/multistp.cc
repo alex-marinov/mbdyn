@@ -2683,9 +2683,6 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		NR_TRUE,
 		MODIFIED,
 
-		PRINTRES,
-		PRINTJAC,
-			
 		STRATEGY,
 		STRATEGYFACTOR,
 		STRATEGYNOCHANGE,
@@ -3343,16 +3340,29 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
        case POD:
 #ifdef __HACK_POD__
               pod.dTime = HP.GetReal();
-              pod.iSteps = HP.GetInt();
-              pod.iFrames = HP.GetInt();
+
+	      pod.iSteps = 1;
+	      if (HP.fIsArg()) {
+              	 pod.iSteps = HP.GetInt();
+	      }
+
+	      pod.iFrames = (unsigned int)(-1);
+	      if (HP.fIsArg()) {
+              	 pod.iFrames = HP.GetInt();
+	      }
+
               fPOD = flag(1);
-              DEBUGLCOUT(MYDEBUG_INPUT, "POD analysis will be performed from time "
-                   << pod.dTime << "for  " << pod.Steps << "steps." 
-                   << std::endl);
-#else/* __HACK_POD__ */
+              DEBUGLCOUT(MYDEBUG_INPUT, "POD analysis will be performed "
+			      "since time " << pod.dTime
+			      << " for " << pod.iFrames << " frames "
+			      << " every " << pod.iSteps << " steps " 
+			      << std::endl);
+#else/* !__HACK_POD__ */
               std::cerr << "line " << HP.GetLineData()
                    << ": POD analysis not supported (ignored)" << std::endl;
-	      THROW(ErrGeneric());
+	      for (; HP.fIsArg();) {
+		      (void)HP.GetReal();
+	      }
 #endif /* !__HACK_POD__ */
               break;
  

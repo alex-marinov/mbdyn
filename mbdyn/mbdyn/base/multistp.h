@@ -205,14 +205,14 @@ private:
         /* Dati per il cacole delle matrici delle covarianze */
        struct PODData {
                doublereal dTime;
-               int iSteps;
-               int iFrames;
+               unsigned int iSteps;
+               unsigned int iFrames;
 	       PODData(void) : dTime(0.), iSteps(0), iFrames(0) {};
        } pod;
 
        flag fPOD;
-       int iPODStep;
-       int iPODFrames;
+       unsigned int iPODStep;
+       unsigned int iPODFrames;
 #endif /*__HACK_POD__*/
 
    	/* 
