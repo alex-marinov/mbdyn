@@ -41,9 +41,9 @@ extern "C" {
 #include <time.h>
 }
 
-#if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
+#if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 #include <ltdl.h>
-#endif /* HAVE_LOADABLE && HAVE_LTDL_H */
+#endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
 
 #include "constltp.h"
 #include "dataman_.h"
@@ -58,11 +58,8 @@ extern "C" {
 /* temporary? */
 #include "beam.h"
 
-#ifdef __HACK_MODULES_AS_JOINTS__
-/* To allow direct loading of wheel2 (and other modules, in the future)
- * as joints ... */
+/* To allow direct loading of modules */
 #include <modules.h>
-#endif /* __HACK_MODULES_AS_JOINTS__ */
 
 /* DataManager - begin */
 
@@ -112,9 +109,9 @@ dInitialAssemblyTol(dDefaultInitialAssemblyTol),
 iMaxInitialIterations(iDefaultMaxInitialIterations),
 dEpsilon(1.),
 #endif /* USE_STRUCT_NODES */
-#if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
+#if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 loadableElemInitialized(false),
-#endif /* HAVE_LOADABLE && HAVE_LTDL_H */
+#endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
 bPrintDofStats(true),		/* Morandini, 2003-11-17 */
 sSimulationTitle(NULL),
 RestartEvery(NEVER),
@@ -209,9 +206,9 @@ DofIter()
     */
 
    /* initialize pre-loaded loadable elements... */
-#ifdef __HACK_MODULES_AS_JOINTS__
+#ifdef STATIC_MODULES
    SetLoadableElemModule(module_wheel2_lc.name, &module_wheel2_lc);
-#endif /* __HACK_MODULES_AS_JOINTS__ */
+#endif /* STATIC_MODULES */
    
    /* parole chiave */
    const char* sKeyWords[] = { 
@@ -589,14 +586,14 @@ DataManager::~DataManager(void)
    NodeManagerDestructor();
    DofManagerDestructor();
 
-#if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
+#if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
    if (loadableElemInitialized) {
       if (lt_dlexit()) {
 	 std::cerr << "lt_dlexit failed" << std::endl;
 	 throw ErrGeneric();
       }
    }
-#endif /* HAVE_LOADABLE && HAVE_LTDL_H */
+#endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
 } /* End of DataManager::DataManager() */
 
 

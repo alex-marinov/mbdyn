@@ -37,9 +37,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
+#if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 #include <ltdl.h>
-#endif /* HAVE_LOADABLE && HAVE_LTDL_H */
+#endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
 
 #include "dataman.h"
 #include "dataman_.h"
@@ -443,7 +443,6 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  break;
        }	     
 	 
-#if defined(HAVE_LOADABLE)
 	 /* Numero di elementi caricabili attesi */
        case LOADABLEELEMENTS: {
 	  int iDmy = HP.GetInt();
@@ -453,6 +452,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  break;
        }
 
+#if defined(HAVE_RUNTIME_LOADING)
        case LOADABLEPATH: {
 #if defined(HAVE_LTDL_H)
           int mode = 0;
@@ -500,7 +500,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 #endif /* HAVE_LTDL_H */
 	  break;
        }
-#endif /* defined(HAVE_LOADABLE) */
+#endif /* defined(HAVE_RUNTIME_LOADING) */
 
        case EXTERNALELEMENTS: {
 #ifdef USE_EXTERNAL
@@ -594,15 +594,12 @@ void DataManager::ReadControl(MBDynParser& HP,
 	      }
 #endif /* USE_AERODYNAMIC_ELEMS */
 		
-#if defined(HAVE_LOADABLE)
 	      case LOADABLEELEMENTS: {
 		 ElemData[Elem::LOADABLE].fToBeUsedInAssembly = flag(1);
 		 DEBUGLCOUT(MYDEBUG_INPUT, "Loadable Elements will be used in initial joint assembly" << std::endl);
 		 break;
 	      }
-#endif /* defined(HAVE_LOADABLE) */
-		
-		
+
 		
 		/* Elemento non autorizzato */
 	      default: {
@@ -987,12 +984,10 @@ void DataManager::ReadControl(MBDynParser& HP,
 		 break;
 	      }
 #endif /* USE_HYDRAULIC */
-#if defined(HAVE_LOADABLE)
 	      case LOADABLEELEMENTS: {
 		 ElemData[Elem::LOADABLE].fDefaultOut = flag(1);
 		 break;
 	      }
-#endif /* defined(HAVE_LOADABLE) */
 #ifdef USE_EXTERNAL
 	       case EXTERNALELEMENTS: {		
 		 ElemData[Elem::EXTERNAL].fDefaultOut = flag(1);
@@ -1101,13 +1096,11 @@ void DataManager::ReadControl(MBDynParser& HP,
 	      }
 #endif /* USE_HYDRAULIC */
 
-#if defined(HAVE_LOADABLE)
 	      case LOADABLEELEMENTS: {
 		 DofData[DofOwner::LOADABLE].dDefScale = dScale;
 		 break;
 	      }
-#endif /* defined(HAVE_LOADABLE) */
-		
+
 	      case UNKNOWN: {
 		 std::cerr << "warning: unknown output case at line " 
 		   << HP.GetLineData() << std::endl;

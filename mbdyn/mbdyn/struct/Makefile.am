@@ -49,7 +49,6 @@ kinj.h \
 modal.cc \
 modal.h \
 module-wheel2.cc \
-modules.h \
 planej.cc \
 planej.h \
 prismj.cc \

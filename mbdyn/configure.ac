@@ -145,7 +145,8 @@ dnl General "enable" options
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debugging], no)dnl
 OL_ARG_WITH(debug_mode,[  --with-debug-mode[={none|mem}]  with debug mode {none|mem}],none,[none mem])
 OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], auto)dnl
-OL_ARG_ENABLE(loadable,[  --enable-loadable       enable loadable elements], auto)dnl
+OL_ARG_ENABLE(runtime_loading,[  --enable-runtime-loading    enable runtime loading], auto)dnl
+OL_ARG_WITH(static_modules,[  --with-static-modules build (known) modules as static],auto,[no,yes,auto])
 OL_ARG_ENABLE(crypt,[  --enable-crypt          enable crypt (deprecated)], no)dnl
 OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver
                           (needs MPI and either Metis or Chaco)],auto,[auto yes no])dnl needs MPI and Metis or Chaco
@@ -161,7 +162,11 @@ OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support (=pmpi for profiling)],auto,[auto yes pmpi no])
 OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
 OL_ARG_WITH(metis,[  --with-metis            with Metis model partitioning support],auto,[auto yes no])
-OL_ARG_WITH(chaco,[  --with-chaco            with Chaco model partitioning support],auto,[auto yes no])
+
+dnl temporarily disabled until we figure out how to make chaco work...
+dnl OL_ARG_WITH(chaco,[  --with-chaco            with Chaco model partitioning support],auto,[auto yes no])
+ol_with_chaco=no
+
 OL_ARG_WITH(rtai,[  --with-rtai             with RTAI support],no,[auto yes no])
 OL_ARG_WITH(blas,[
        math libraries:
@@ -179,7 +184,10 @@ OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[au
 OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math library - historical],auto,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library - historical],auto,[auto yes no])
 OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library - eXperimental],auto,[auto yes no])
-OL_ARG_WITH(taucs,[  --with-taucs            with TAUCS math library - eXperimental],auto,[auto yes no])
+
+dnl temporarily disabled until we find out how to make it work...
+dnl OL_ARG_WITH(taucs,[  --with-taucs            with TAUCS math library - eXperimental],auto,[auto yes no])
+ol_with_taucs=no
 OL_ARG_WITH(pam,[
        misc security libraries:
   --with-pam              with PAM support],auto,[auto yes no])
@@ -692,12 +700,38 @@ if test "$ol_enable_loadable" != "no" ; then
 		fi
 	fi
 	if test $have_loadable=yes ; then
-		AC_DEFINE(HAVE_LOADABLE,1,[define if you want to use loadable modules])
+		AC_DEFINE(HAVE_RUNTIME_LOADING,1,[define if you want to load runtime])
 	elif test "$ol_enable_loadable" == "yes" ; then
 		AC_MSG_ERROR([no dynamic linking library detected])
 	else
-		AC_MSG_WARN([no dynamic linking library detected; loadable elements will not be enabled])
+		AC_MSG_WARN([no dynamic linking library detected; runtime loading will not be enabled])
 	fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl static modules...
+dnl
+build_static_modules=no
+case "$ol_with_static_modules" in
+	no)
+		if test "$have_loadable" != "yes" ; then
+			AC_MSG_ERROR([modules cannot be built as dynamic because no runtime loading capability is available])
+		fi
+		;;
+	auto)
+		if test "$have_loadable" != "yes" ; then
+			build_static_modules=yes
+		fi
+		;;
+	yes)
+		build_static_modules=yes
+		;;
+	*)
+		;;
+esac
+if test "$build_static_modules" == "yes" ; then
+	AC_DEFINE(STATIC_MODULES,1,[define to build module wheel2 as static])
 fi
 
 dnl ----------------------------------------------------------------

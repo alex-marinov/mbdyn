@@ -82,9 +82,7 @@
 #include <tpldrive.h>
 #include <tpldrive_.h>
 
-#ifdef HAVE_LOADABLE
 #include <loadable.h>
-#endif /* HAVE_LOADABLE */
 
 #ifdef USE_RTAI
 #include <rtai_out_elem.h>
@@ -337,14 +335,12 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     break;
 	  }
 
-#ifdef HAVE_LOADABLE
 	  case LOADABLE: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "loadable" << std::endl);
 	     Typ = Elem::LOADABLE;
 	     break;
 	  }
-#endif /* HAVE_LOADABLE */
-	    
+
 	  case UNKNOWNKEYWORD: {
 	     std::cerr << "Error: unknown element type, cannot modify output" << std::endl;	     
 	     throw DataManager::ErrGeneric();
@@ -796,9 +792,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		  case HYDRAULIC:
 #endif /* USE_HYDRAULIC_NODES */
 		  case BULK:
-#ifdef HAVE_LOADABLE
 		  case LOADABLE:
-#endif /* HAVE_LOADABLE */
 		  case EXISTING: {
 		     DEBUGLCOUT(MYDEBUG_INPUT, "OK, this element can be driven" << std::endl);
 		     break;
@@ -887,13 +881,11 @@ void DataManager::ReadElems(MBDynParser& HP)
 			ppE = ppFindElem(Elem::BULK, uLabel);
 			break;
 		     }
-#ifdef HAVE_LOADABLE
 		     case LOADABLE: {
 			ppE = ppFindElem(Elem::LOADABLE, uLabel);
 			break;
 		     }
-#endif /* HAVE_LOADABLE */
-		       
+
 		     default: {
 			DEBUGCERR("warning, this element can't be driven" << std::endl);
 			break;
@@ -978,9 +970,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	      case HYDRAULIC:
 #endif /* USE_HYDRAULIC_NODES */
 	      case BULK:
-#ifdef HAVE_LOADABLE
 	      case LOADABLE:
-#endif /* HAVE_LOADABLE */
 	      case RTAI_OUTPUT:
 	      case SOCKETSTREAM_OUTPUT:
 		  {		 
@@ -991,7 +981,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	            SAFESTRDUP(sName, sTmp);
 	         }
 
-#if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
+#if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 		 if (CurrDesc == LOADABLE) {
 		    if (loadableElemInitialized == false) {
 		       if (lt_dlinit()) {
@@ -1009,7 +999,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		       loadableElemInitialized = true;
 		    }
 		 }
-#endif /* HAVE_LOADABLE && HAVE_LTDL_H */
+#endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
 		 
 		 ppE = ReadOneElem(HP, uLabel, CurrDesc);
 		 
@@ -1684,7 +1674,6 @@ DataManager::ReadOneElem(MBDynParser& HP,
        break;
     }		 		                     
     
-#ifdef HAVE_LOADABLE
       /* elementi loadable */
     case LOADABLE: {
        silent_cout("Reading loadable element " << uLabel << std::endl);
@@ -1718,7 +1707,6 @@ DataManager::ReadOneElem(MBDynParser& HP,
        
        break;
     }		 		                     
-#endif /* defined(HAVE_LOADABLE) */
 
     case RTAI_OUTPUT:
     case SOCKETSTREAM_OUTPUT: {

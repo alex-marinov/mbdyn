@@ -31,9 +31,13 @@
 #ifndef MODULES_H
 #define MODULES_H
 
+#ifdef STATIC_MODULES
+
 #include <loadable.h>
 
 extern LoadableCalls module_wheel2_lc;
+
+#endif /* STATIC_MODULES */
 
 #endif /* MODULES_H */
 

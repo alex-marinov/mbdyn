@@ -797,7 +797,7 @@ extern "C" {
 
 void *calls = &module_wheel2_lc;
 
-#ifndef __HACK_MODULES_AS_JOINTS__
+#ifndef STATIC_MODULES
 extern "C" int
 module_init(const char *s, void *dm, void *)
 {
@@ -807,7 +807,7 @@ module_init(const char *s, void *dm, void *)
 
 	return 0;
 }
-#endif /* !__HACK_MODULES_AS_JOINTS__ */
+#endif /* !STATIC_MODULES */
 
 }
 

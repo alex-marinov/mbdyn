@@ -125,9 +125,9 @@ private:
 	LinSol CurrSolver;
 #endif /* USE_STRUCT_NODES */
 
-#if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
+#if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 	bool loadableElemInitialized;
-#endif /* HAVE_LOADABLE && HAVE_LTDL_H */
+#endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
 
 	bool bPrintDofStats;
 

@@ -465,11 +465,11 @@ MBDynParser::DriveCaller_int(void)
 void 
 MBDynParser::ModuleLoad_int(void)
 {
-#if !defined(HAVE_LTDL_H) && !defined(HAVE_DLFCN_H)
+#if !defined(HAVE_RUNTIME_LOADING)
 	silent_cerr("ModuleLoad_int: dynamic modules not supported"
 			<< std::endl);
 	throw ErrGeneric();
-#else /* HAVE_LTDL_H || HAVE_DLFCN_H */
+#else /* HAVE_RUNTIME_LOADING */
 	if (FirstToken() == UNKNOWN) {
 		silent_cerr("Parser error in MBDynParser::ModuleLoad_int(), "
 			" colon expected at line "
@@ -547,7 +547,7 @@ MBDynParser::ModuleLoad_int(void)
 	}
 
    	SAFEDELETEARR(module_name);
-#endif /* HAVE_LTDL_H || HAVE_DLFCN_H */
+#endif /* HAVE_RUNTIME_LOADING */
 }
 
 bool
