@@ -51,12 +51,17 @@ Brake::Brake(unsigned int uL, const DofOwner* pDO,
 		const doublereal pref,
 		BasicShapeCoefficient *const sh,
 		BasicFriction *const f,
+#if 0
+		bool isforce,
+		const Vec3& dir,
+#endif
 		DriveCaller *pdc)
 : Elem(uL, Elem::JOINT, fOut), 
 Joint(uL, Joint::PLANEHINGE, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
-d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.), dTheta(0.),
-Sh_c(sh), fc(f), preF(pref), r(rr), brakeForce(pdc)
+d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), /* F(0.), */ M(0.), dTheta(0.),
+Sh_c(sh), fc(f), preF(pref), r(rr), brakeForce(pdc) /* ,
+isForce(isforce), Dir(dir) */
 {
 	NO_OP;
 }
@@ -208,7 +213,6 @@ Brake::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Moltiplica la forza ed il momento per il coefficiente
     * del metodo */
-   Vec3 FTmp = F*dCoef;
    Vec3 MTmp = M*dCoef;
 
    Vec3 e3a(R1hTmp.GetVec(3));
@@ -263,91 +267,26 @@ Brake::AssJac(VariableSubMatrixHandler& WorkMat,
       ExpandableRowVector dv;
           //variation of reaction force
       dF.ReDim(0);
-/*
-      if ((modF == 0.) or (F.Norm() > preF)) {
-          dF.Set(0.,1,12+1);
-          dF.Set(0.,2,12+2);
-          dF.Set(0.,3,12+3);
-      } else {
-          dF.Set(F.dGet(1)/modF,1,12+1);
-          dF.Set(F.dGet(2)/modF,2,12+2);
-          dF.Set(F.dGet(3)/modF,3,12+3);
-      }
-*/
           //variation of relative velocity
       dv.ReDim(6);
       
-/* old (wrong?) relative velocity linearization */
-
-//       dv.Set((e3a.dGet(1)*1.-( e3a.dGet(2)*Omega1r.dGet(3)-e3a.dGet(3)*Omega1r.dGet(2))*dCoef)*r,1,0+4);
-//       dv.Set((e3a.dGet(2)*1.-(-e3a.dGet(1)*Omega1r.dGet(3)+e3a.dGet(3)*Omega1r.dGet(1))*dCoef)*r,2,0+5);
-//       dv.Set((e3a.dGet(3)*1.-( e3a.dGet(1)*Omega1r.dGet(2)-e3a.dGet(2)*Omega1r.dGet(1))*dCoef)*r,3,0+6);
-//       
-//       dv.Set(-(e3a.dGet(1)*1.-( e3a.dGet(2)*Omega2r.dGet(3)-e3a.dGet(3)*Omega2r.dGet(2))*dCoef)*r,4,6+4);
-//       dv.Set(-(e3a.dGet(2)*1.-(-e3a.dGet(1)*Omega2r.dGet(3)+e3a.dGet(3)*Omega2r.dGet(1))*dCoef)*r,5,6+5);
-//       dv.Set(-(e3a.dGet(3)*1.-( e3a.dGet(1)*Omega2r.dGet(2)-e3a.dGet(2)*Omega2r.dGet(1))*dCoef)*r,6,6+6);
-
-/* new (exact?) relative velocity linearization */
-// 
-//       ExpandableRowVector domega11, domega12, domega13;
-//       ExpandableRowVector domega21, domega22, domega23;
-//       domega11.ReDim(3); domega12.ReDim(3); domega13.ReDim(3);
-//       domega21.ReDim(3); domega22.ReDim(3); domega23.ReDim(3);
-//       
-//       domega11.Set(1., 1, 0+4);
-//           domega11.Set( Omega1r.dGet(3)*dCoef, 2, 0+5);
-//           domega11.Set(-Omega1r.dGet(2)*dCoef, 3, 0+6);
-//       domega21.Set(1., 1, 6+4);
-//           domega21.Set( Omega2r.dGet(3)*dCoef, 2, 6+5);
-//           domega21.Set(-Omega2r.dGet(2)*dCoef, 3, 6+6);
-//       domega12.Set(1., 1, 0+5);
-//           domega12.Set(-Omega1r.dGet(3)*dCoef, 2, 0+4);
-//           domega12.Set( Omega1r.dGet(1)*dCoef, 3, 0+6);
-//       domega22.Set(1., 1, 6+5);
-//           domega22.Set(-Omega2r.dGet(3)*dCoef, 2, 6+4);
-//           domega22.Set( Omega2r.dGet(1)*dCoef, 3, 6+6);
-//       domega13.Set(1., 1, 0+6);
-//           domega13.Set( Omega1r.dGet(2)*dCoef, 2, 0+4);
-//           domega13.Set(-Omega1r.dGet(1)*dCoef, 3, 0+5);
-//       domega23.Set(1., 1, 6+6);
-//           domega23.Set( Omega2r.dGet(2)*dCoef, 2, 6+4);
-//           domega23.Set(-Omega2r.dGet(1)*dCoef, 3, 6+5);
-// 
-//       Vec3 domega = Omega1-Omega2;
-//       dv.Set((e3a.dGet(1)*1.-( 
-//       		e3a.dGet(2)*(Omega1.dGet(3)-Omega2.dGet(3))-
-// 		e3a.dGet(3)*(domega.dGet(2)))*dCoef)*r,1);
-// 		dv.Link(1, &domega11);
-//       dv.Set((e3a.dGet(2)*1.-(
-//       		-e3a.dGet(1)*(Omega1.dGet(3)-Omega2.dGet(3))+
-// 		e3a.dGet(3)*(domega.dGet(1)))*dCoef)*r,2);
-// 		dv.Link(2, &domega12);
-//       dv.Set((e3a.dGet(3)*1.-( 
-//       		e3a.dGet(1)*(Omega1.dGet(2)-Omega2.dGet(2))-
-// 		e3a.dGet(2)*(domega.dGet(1)))*dCoef)*r,3);
-// 		dv.Link(3, &domega13);
-// 
-//       dv.Set(-(e3a.dGet(1)*1.)*r,4,6+4); dv.Link(4, &domega21);
-//       dv.Set(-(e3a.dGet(2)*1.)*r,5,6+5); dv.Link(5, &domega22);
-//       dv.Set(-(e3a.dGet(3)*1.)*r,6,6+6); dv.Link(6, &domega23);
-
-
 /* new (approximate: assume constant triads orientations) 
- * relative velocity linearization 
-*/
+ * relative velocity linearization */
 
-      dv.Set((e3a.dGet(1)*1.)*r,1, 0+4);
-      dv.Set((e3a.dGet(2)*1.)*r,2, 0+5);
-      dv.Set((e3a.dGet(3)*1.)*r,3, 0+6);
+      /* FIXME: why *1. ???  */
+      dv.Set((e3a(1)*1.)*r, 0 + 1, 3 + 1);
+      dv.Set((e3a(2)*1.)*r, 0 + 2, 3 + 2);
+      dv.Set((e3a(3)*1.)*r, 0 + 3, 3 + 3);
       
-      dv.Set(-(e3a.dGet(1)*1.)*r,4, 6+4);
-      dv.Set(-(e3a.dGet(2)*1.)*r,5, 6+5);
-      dv.Set(-(e3a.dGet(3)*1.)*r,6, 6+6);
+      dv.Set(-(e3a(1)*1.)*r, 3 + 1, 9 + 1);
+      dv.Set(-(e3a(2)*1.)*r, 3 + 2, 9 + 2);
+      dv.Set(-(e3a(3)*1.)*r, 3 + 3, 9 + 3);
 
 
       //assemble friction states
-      fc->AssJac(WM,dfc,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,dCoef,modF,v,
-      		XCurr,XPrimeCurr,dF,dv);
+      fc->AssJac(WM,dfc, 12 + NumSelfDof,
+		      iFirstReactionIndex + NumSelfDof, dCoef, modF, v,
+		      XCurr, XPrimeCurr, dF, dv);
       ExpandableRowVector dM3;
       ExpandableRowVector dShc;
       //compute 
@@ -355,19 +294,19 @@ Brake::AssJac(VariableSubMatrixHandler& WorkMat,
       Sh_c->dSh_c(dShc,f,modF,v,dfc,dF,dv);
           //variation of moment component
       dM3.ReDim(3);
-      dM3.Set(shc*f,1); dM3.Link(1,&dF);
-      dM3.Set(modF*f,2); dM3.Link(2,&dShc);
-      dM3.Set(shc*modF,3); dM3.Link(3,&dfc);
+      dM3.Set(shc*f, 1); dM3.Link(1, &dF);
+      dM3.Set(modF*f, 2); dM3.Link(2, &dShc);
+      dM3.Set(shc*modF, 3); dM3.Link(3, &dfc);
       //assemble first node
-          //variation of moment component
-      dM3.Add(WM,0+4,e3a.dGet(1));
-      dM3.Add(WM,0+5,e3a.dGet(2));
-      dM3.Add(WM,0+6,e3a.dGet(3));
+      //variation of moment component
+      dM3.Add(WM, 3 + 1, e3a(1));
+      dM3.Add(WM, 3 + 2, e3a(2));
+      dM3.Add(WM, 3 + 3, e3a(3));
       //assemble second node
-          //variation of moment component
-      dM3.Sub(WM,6+4,e3a.dGet(1));
-      dM3.Sub(WM,6+5,e3a.dGet(2));
-      dM3.Sub(WM,6+6,e3a.dGet(3));
+      //variation of moment component
+      dM3.Sub(WM, 9 + 1, e3a(1));
+      dM3.Sub(WM, 9 + 2, e3a(2));
+      dM3.Sub(WM, 9 + 3, e3a(3));
    
    return WorkMat;
 }
@@ -405,7 +344,7 @@ SubVectorHandler& Brake::AssRes(SubVectorHandler& WorkVec,
    
    /* Aggiorna i dati propri */
    //FIXME
-   F = Vec3(0.);
+   //F = Vec3(0.);
    M = Vec3(0.);
 
    /*
@@ -452,9 +391,9 @@ SubVectorHandler& Brake::AssRes(SubVectorHandler& WorkVec,
       }
       doublereal f = fc->fc();
       doublereal shc = Sh_c->Sh_c(f, modF, v);
-      M3 = shc*modF*f;
-      WorkVec.Sub(4, e3a*M3);
-      WorkVec.Add(10, e3a*M3);
+      M(3) = shc*modF*f;
+      WorkVec.Sub(4, e3a*M(3));
+      WorkVec.Add(10, e3a*M(3));
 //!!!!!!!!!!!!!!
 //      M += e3a*M3;
       if (ChangeJac) {
@@ -504,11 +443,11 @@ void Brake::Output(OutputHandler& OH) const
       Mat3x3 R2TmpT(R2Tmp.Transpose());
       
       std::ostream &of = Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
-		    R2TmpT*F, M, F, R2Tmp*M)
+		    /* R2TmpT*F*/ Zero3, M, /* F */ Zero3, R2Tmp*M)
 	<< " " << MatR2EulerAngles(RTmp)*dRaDegr
 	  << " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr());
       if (fc) {
-          of << " " << M3 << " " << fc->fc() << " " << brakeForce.dGet();
+          of << " " << fc->fc() << " " << brakeForce.dGet();
       }
       of << std::endl;
    }
@@ -522,12 +461,7 @@ Brake::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 {
    /* Per ora usa la matrice piena; eventualmente si puo' 
     * passare a quella sparsa quando si ottimizza */
-   FullSubMatrixHandler& WM = WorkMat.SetFull();
-   
-   /* Dimensiona e resetta la matrice di lavoro */
-   integer iNumRows = 0;
-   integer iNumCols = 0;
-   WM.ResizeReset(iNumRows, iNumCols);
+   WorkMat.SetNullMatrix();
    
    return WorkMat;
 }
@@ -541,9 +475,7 @@ Brake::InitialAssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("Entering Brake::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
-   integer iNumRows = 0;
-   integer iNumCols = 0;
-   WorkVec.ResizeReset(iNumRows);
+   WorkVec.ResizeReset(0);
 
    return WorkVec;
 }
@@ -552,6 +484,7 @@ Brake::InitialAssRes(SubVectorHandler& WorkVec,
 unsigned int
 Brake::iGetNumPrivData(void) const
 {
+	/* FIXME: add access to friction priv data... */
 	return 2;
 }
 

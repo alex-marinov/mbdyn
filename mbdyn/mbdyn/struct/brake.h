@@ -40,6 +40,12 @@
 
 class Brake : virtual public Elem, public Joint {
  private:
+	/*
+	 * Brake
+	 *
+	 * rotation axis about local axis 3
+	 */
+
    /* Freno - asse di rotazione dato dall'asse 3 del sistema di 
     * riferimento della cerniera. Tale sistema e' noto relativamente ai due
     * nodi. In particolare rispetto al nodo 1 la trasformazione dal sistema
@@ -54,8 +60,16 @@ class Brake : virtual public Elem, public Joint {
    Mat3x3 R1h;
    Vec3 d2;
    Mat3x3 R2h;
-   Vec3 F;
+   //Vec3 F;
    Vec3 M;
+
+   /* if the brake generates a force, Dir is the direction
+    * with respect to node 1 (supposed to be the fixed one) */
+#if 0
+   bool isForce;
+   Vec3 Dir;
+#endif
+
    mutable doublereal dTheta;
 
    /* friction related data */
@@ -64,7 +78,6 @@ class Brake : virtual public Elem, public Joint {
    const doublereal preF;
    const doublereal r;
    DriveOwner brakeForce;
-   doublereal M3;
    static const unsigned int NumSelfDof;
    static const unsigned int NumDof;
    /* end of friction related data */
@@ -79,6 +92,10 @@ class Brake : virtual public Elem, public Joint {
 		   const doublereal pref,
 		   BasicShapeCoefficient *const sh,
 		   BasicFriction *const f,
+#if 0
+		   bool isforce,
+		   const Vec3& dir,
+#endif
 		   DriveCaller *pdc);
    
    /* Distruttore */

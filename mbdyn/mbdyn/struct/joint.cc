@@ -669,6 +669,11 @@ Elem* ReadJoint(DataManager* pDM,
 
 	   BasicFriction * bf = ParseFriction(HP,pDM);
 	   BasicShapeCoefficient * bsh = ParseShapeCoefficient(HP);
+
+#if 0
+	   bool isForce(false);
+	   Vec3 Dir(0.);
+#endif
 	   
 	   DriveCaller *pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
 	   
@@ -676,7 +681,8 @@ Elem* ReadJoint(DataManager* pDM,
 				  Brake,
 				  Brake(uLabel, pDO, pNode1, pNode2, 
 						  d1, d2, R1h, R2h, fOut,
-						  r, preload, bsh, bf, pDC));
+						  r, preload, bsh, bf,
+						  /* isForce, Dir, */ pDC));
 	   break; 
 	}
 
