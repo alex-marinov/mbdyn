@@ -1568,11 +1568,14 @@ and $ s $ is the Laplace variable.
 
 \section{Force}\label{sec:EL:FORCE}
 The \kw{force} element, in MBDyn, is a general means to introduce 
-a right-hand side to the equations, i.e.\ a contribution to the equations.
-A basic distinction is between abstract and structural forces: the
-former apply to an arbitrary equation, while the latter are specific
-to structural nodes and have a spatial description.
-The \kw{force} element has the following syntax:
+a right-hand side to the equations, i.e.\ an explicit contribution
+to the equations.
+There is a basic distinction between abstract and structural forces:
+the former apply to arbitrary equations, while the latter are specific
+to structural nodes and have a spatial description, essentially
+a direction in space which is amplified by a scalar coefficient
+that may depend on parameters, e.g.\ on time.
+The syntax of the \kw{force} element is:
 \begin{verbatim}
   <normal_arglist> ::= <force_type> , <force_arglist>
 \end{verbatim}
@@ -1649,6 +1652,13 @@ The format is:
     \item the arm of the force, in the global frame (i.e.\ referred
           to point $ \cubr{0,0,0} $)
 \end{itemize}
+Example:
+\begin{verbatim}
+    # constant structural force
+    force: 1, conservative,
+        0.,0.,1., null,
+        const, 100.;
+\end{verbatim}
 
 
 \subsection{Structural couple}
