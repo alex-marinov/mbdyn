@@ -1325,7 +1325,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
    }
    
    /* Se non c'e' il punto e virgola finale */
-   if (HP.fIsArg()) {
+   if (HP.IsArg()) {
       std::cerr << "semicolon expected at line " << HP.GetLineData() << std::endl;     
       THROW(DataManager::ErrGeneric());
    }

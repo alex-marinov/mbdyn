@@ -629,7 +629,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  dInitialPositionStiffness = 
 	    HP.GetReal(dDefaultInitialStiffness);
 	  
-	  if (HP.fIsArg()) {		 
+	  if (HP.IsArg()) {		 
 	     dInitialVelocityStiffness = 
 	       HP.GetReal(dDefaultInitialStiffness);
 	  } else {		 
@@ -711,7 +711,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 /* Crea il file di restart */
        case MAKERESTARTFILE: {
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Restart file will be generated " << std::endl);
-	  if (HP.fIsArg()) {
+	  if (HP.IsArg()) {
 	     if (HP.IsKeyWord("iterations")) {
 		RestartEvery = ITERATIONS;
 		iRestartIterations = HP.GetInt();
@@ -765,14 +765,14 @@ void DataManager::ReadControl(MBDynParser& HP,
        }
 	 
        case OUTPUTRESULTS: {
-	while (HP.fIsArg()) {
+	while (HP.IsArg()) {
 	
 		/* require support for ADAMS/View .res output */
 	  	if (HP.IsKeyWord("adams")) {
 #if defined USE_ADAMS 
 	 	 	ResMode |= RES_ADAMS;
 
-	  		if (HP.fIsArg() && HP.IsKeyWord("model" "name")) {
+	  		if (HP.IsArg() && HP.IsKeyWord("model" "name")) {
 	     			if (sAdamsModelName != NULL) {
 					SAFEDELETEARR(sAdamsModelName);
 					sAdamsModelName = NULL;
@@ -807,7 +807,7 @@ void DataManager::ReadControl(MBDynParser& HP,
        }
 	 
        case DEFAULTOUTPUT: {
-	  while (HP.fIsArg()) {
+	  while (HP.IsArg()) {
 	     KeyWords CurrDefOut(KeyWords(HP.GetWord()));
 	     switch (CurrDefOut) {
 	      case ALL: {
@@ -972,7 +972,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 
 	 
        case DEFAULTSCALE: {
-	  while (HP.fIsArg()) {
+	  while (HP.IsArg()) {
 	     KeyWords CurrDefOut(KeyWords(HP.GetWord()));
 	     doublereal dScale = HP.GetReal(1.);
 
@@ -1109,7 +1109,7 @@ void DataManager::ReadControl(MBDynParser& HP,
    }
    
    /* Se non c'e' il punto e virgola finale */
-   if (HP.fIsArg()) {
+   if (HP.IsArg()) {
       DEBUGCERR("");
       std::cerr << "semicolon expected at line "
 	      << HP.GetLineData() << std::endl;
@@ -1235,7 +1235,7 @@ DataManager::ReadScalarAlgebraicNode(MBDynParser& HP,
 		THROW(DataManager::ErrGeneric());
 	}		  
 
-	if (HP.fIsArg()) {
+	if (HP.IsArg()) {
 		/* eat keyword "value" */
 		if (!HP.IsKeyWord("value")) {
 			pedantic_cerr(psNodeNames[type] << "(" << uLabel 
@@ -1389,7 +1389,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	  }
 	 }
 	 
-	 while (HP.fIsArg()) {
+	 while (HP.IsArg()) {
 	    unsigned int uL = (unsigned int)HP.GetInt();	    	 
 	    Node* pN = pFindNode(Typ, uL);
 	    if (pN == NULL) {
@@ -1688,7 +1688,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 			     
 		/* lettura dei dati specifici */
 		doublereal dX(0.);	    
-		if (HP.fIsArg()) {
+		if (HP.IsArg()) {
 		   dX = HP.GetReal();
 		   DEBUGLCOUT(MYDEBUG_INPUT, "Initial value x = " << dX
 			      << " is supplied" << std::endl);
@@ -1802,7 +1802,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
    }
    
    /* Se non c'e' il punto e virgola finale */
-   if (HP.fIsArg()) {
+   if (HP.IsArg()) {
       DEBUGCERR("");
       std::cerr << "semicolon expected at line " 
 	      << HP.GetLineData() << std::endl;
@@ -1933,7 +1933,7 @@ void DataManager::ReadDrivers(MBDynParser& HP)
    }
    
    /* Se non c'e' il punto e virgola finale */
-   if (HP.fIsArg()) {
+   if (HP.IsArg()) {
       DEBUGCERR("");
       std::cerr << "semicolon expected at line " 
 	      << HP.GetLineData() << std::endl;

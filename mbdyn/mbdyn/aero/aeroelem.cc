@@ -479,7 +479,7 @@ AerodynamicBody::Output(OutputHandler& OH) const
 static AeroData::UnsteadyModel
 ReadUnsteadyFlag(MBDynParser& HP)
 {
-   	if (HP.fIsArg()) {
+   	if (HP.IsArg()) {
 		AeroData::UnsteadyModel iInst = AeroData::STEADY;
 		if (HP.IsKeyWord("unsteady")) {
 			/*
@@ -614,7 +614,7 @@ ReadAeroData(DataManager* pDM,
 			NullDriveCaller(pDM->pGetDrvHdl()));
    	}
  
-   	if (HP.fIsArg()) {
+   	if (HP.IsArg()) {
       		switch (HP.IsKeyWord()) {
        		default:
 	  		std::cerr << "unknown profile type at line "
@@ -854,7 +854,7 @@ ReadAerodynamicBody(DataManager* pDM,
 				iNumber, aerodata, pDC, fOut));
 	
 	/* Se non c'e' il punto e virgola finale */
-	if (HP.fIsArg()) {
+	if (HP.IsArg()) {
 		std::cerr << ": semicolon expected at line "
 			<< HP.GetLineData() << std::endl;      
 		THROW(DataManager::ErrGeneric());
@@ -1481,7 +1481,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 				iNumber, aerodata, pDC, fOut));
 	
 	/* Se non c'e' il punto e virgola finale */
-	if (HP.fIsArg()) {
+	if (HP.IsArg()) {
 		std::cerr << ": semicolon expected at line "
 			<< HP.GetLineData() << std::endl;      
 		THROW(DataManager::ErrGeneric());
@@ -2071,7 +2071,7 @@ ReadAerodynamicBeam2(
 				iNumber, aerodata, pDC, fOut));
 	
 	/* Se non c'e' il punto e virgola finale */
-	if (HP.fIsArg()) {
+	if (HP.IsArg()) {
 		std::cerr << ": semicolon expected at line "
 			<< HP.GetLineData() << std::endl;      
 		THROW(DataManager::ErrGeneric());

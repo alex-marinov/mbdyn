@@ -181,17 +181,17 @@ Elem* ReadGenel(DataManager* pDM,
        AbstractNode* pNode3 = (AbstractNode*)pDM->ReadNode(HP, Node::ABSTRACT);
        
        doublereal dDynCoef = 0.;
-       if (HP.fIsArg()) {
+       if (HP.IsArg()) {
 	  dDynCoef = HP.GetReal(dDynCoef);
        }
        
        doublereal dCyclFact = 1.;
-       if (HP.fIsArg()) {
+       if (HP.IsArg()) {
 	  dCyclFact = HP.GetReal(dCyclFact);
        }
        
        doublereal dCollFact = 1.;
-       if (HP.fIsArg()) {
+       if (HP.IsArg()) {
 	  dCollFact = HP.GetReal(dCollFact);
        }
        
@@ -823,7 +823,7 @@ Elem* ReadGenel(DataManager* pDM,
    }
    
    /* Se non c'e' il punto e virgola finale */
-   if (HP.fIsArg()) {
+   if (HP.IsArg()) {
       std::cerr << "semicolon expected at line " << HP.GetLineData() << std::endl;      
       THROW(DataManager::ErrGeneric());
    }      

@@ -292,7 +292,7 @@ TplDriveCaller<T>* ReadTplDrive(const DataManager* pDM,
 
    /* Nota: siccome capita che non ci sia la deformazione imposta, 
     * faccio chiedere se e' desiderata */
-   if (!HP.fIsArg()) {
+   if (!HP.IsArg()) {
       DriveCaller* pDC = NULL;
       SAFENEWWITHCONSTRUCTOR(pDC,
 			     NullDriveCaller,

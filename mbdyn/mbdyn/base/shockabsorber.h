@@ -247,7 +247,7 @@ public:
 "\n"
 				<< std::endl;
 
-			if (!HP.fIsArg()) {
+			if (!HP.IsArg()) {
 				/*
 				 * Exit quietly if nothing else is provided
 				 */

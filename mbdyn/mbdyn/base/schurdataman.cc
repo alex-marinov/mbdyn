@@ -304,7 +304,7 @@ iTotalExpConnections(0)
 	while (true) {
 		switch (KeyWords(HP.GetDescription())) {
 		case WEIGHTS:
-			if (!HP.fIsArg()) {
+			if (!HP.IsArg()) {
 				std::cerr << "Error: Weight flag expected "
 					"at line " << HP.GetLineData()
 					<< "; aborting ..." << std::endl;
@@ -316,7 +316,7 @@ iTotalExpConnections(0)
 		case PARTITION:
 			SAFENEWARR(pParAmgProcs, int, iTotVertices);
 			for (int i = 0; i < iTotVertices; i++) {
-				if (!HP.fIsArg()) {
+				if (!HP.IsArg()) {
 					std::cerr << "Error: the partition "
 						"assignment is not complete, "
 						"only " << i << " vertices "
@@ -460,7 +460,7 @@ iTotalExpConnections(0)
 							THROW(ErrGeneric());
 						}
 
-						if (HP.fIsArg()) {
+						if (HP.IsArg()) {
 							j = HP.GetInt();
 						} else {
 							std::cerr
@@ -514,7 +514,7 @@ iTotalExpConnections(0)
 							THROW(ErrGeneric());
 						}
 
-						if (HP.fIsArg()) {
+						if (HP.IsArg()) {
 							j = HP.GetInt();
 						} else {
 							std::cerr << std::endl

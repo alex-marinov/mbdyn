@@ -441,7 +441,7 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 				x_i[i] = HP.GetReal();
 				y_i[i] = HP.GetReal();
 			}
-			while (HP.fIsArg()) {
+			while (HP.IsArg()) {
 				int size = x_i.size();
 				x_i.resize(size+1);
 				y_i.resize(size+1);
@@ -461,7 +461,7 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 				x_i[i] = HP.GetReal();
 				y_i[i] = HP.GetReal();
 			}
-			while (HP.fIsArg()) {
+			while (HP.IsArg()) {
 				int size = x_i.size();
 				x_i.resize(size+1);
 				y_i.resize(size+1);

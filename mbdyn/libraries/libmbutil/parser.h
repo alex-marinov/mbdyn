@@ -124,40 +124,44 @@ class KeyTable;
 class HighParser;
 
 
-const unsigned int iBufSize = 1024;
+const unsigned int iDefaultBufSize = 1024;
 
 
 /* LowParser - begin */
 
 class LowParser {
+	friend class HighParser;
 
-   friend class HighParser;
+public:
+	enum Token {
+		UNKNOWN,
 
- public:
-   enum Token {
-      UNKNOWN,
-	WORD,
-	COMMA = ',',
-	COLON = ':',
-	SEMICOLON = ';',
-	NUMBER,
-	ENDOFFILE,
+		WORD,
+		COMMA = ',',
+		COLON = ':',
+		SEMICOLON = ';',
+		NUMBER,
+		ENDOFFILE,
 
-	LASTTOKEN
-   };
+		LASTTOKEN
+	};
    
- private:
-   enum Token CurrToken;
-   char sCurrWordBuf[iBufSize];
-   doublereal dCurrNumber;
+private:
+	HighParser& HP;
+	enum Token CurrToken;
+	char *sCurrWordBuf;
+	unsigned iBufSize;
+	doublereal dCurrNumber;
 
-   void PackWords(InputStream& In);
+	void PackWords(InputStream& In);
    
- public:
-   Token GetToken(InputStream& In);      
-   doublereal dGetReal(void);
-   integer iGetInt(void);   
-   char* sGetWord(void);      
+public:
+	LowParser(HighParser& hp);
+	~LowParser(void);
+	Token GetToken(InputStream& In);      
+	doublereal dGetReal(void);
+	integer iGetInt(void);   
+	char* sGetWord(void);      
 };
 
 /* LowParser - end */
@@ -183,148 +187,152 @@ public:
 /* HighParser - begin */
 
 class HighParser {
+public:   
+	class ErrInvalidCallToGetDescription {};
+	class ErrKeyWordExpected {};
+	class ErrSemicolonExpected {};
+	class ErrColonExpected {};
+	class ErrMissingSeparator {};
+	class ErrIntegerExpected {};
+	class ErrRealExpected {};
+	class ErrStringExpected {};
+	class ErrIllegalDelimiter {};
+   
+public:      
+	enum Token {
+		UNKNOWN = -1,
+		
+		DESCRIPTION,
+		FIRSTARG,
+		ARG,
+		LASTARG,
+		NOARGS,
+		WORD,	
+		NUMBER,
+		STRING,
+		ENDOFFILE,
 
- public:   
-   class ErrInvalidCallToGetDescription {};
-   class ErrKeyWordExpected {};
-   class ErrSemicolonExpected {};
-   class ErrColonExpected {};
-   class ErrMissingSeparator {};
-   class ErrIntegerExpected {};
-   class ErrRealExpected {};
-   class ErrStringExpected {};
-   class ErrIllegalDelimiter {};
+		LASTITEM
+	};
    
- public:      
-   enum Token {
-      UNKNOWN = -1,
-	DESCRIPTION,
-	FIRSTARG,
-	ARG,
-	LASTARG,
-	NOARGS,
-	WORD,	
-	NUMBER,
-	STRING,
-	ENDOFFILE,
+	enum Delims {
+		UNKNOWNDELIM = -1,
+		
+		PLAINBRACKETS,
+		SQUAREBRACKETS,
+		CURLYBRACKETS,
+		SINGLEQUOTE,
+		DOUBLEQUOTE,
+		DEFAULTDELIM,
 
-	LASTITEM
-   };
+		LASTDELIM
+	};
    
-   enum Delims {
-      UNKNOWNDELIM = -1,
-	PLAINBRACKETS,
-	SQUAREBRACKETS,
-	CURLYBRACKETS,
-	SINGLEQUOTE,
-	DOUBLEQUOTE,
-	DEFAULTDELIM,
-	LASTDELIM
-   };
+	const char ESCAPE_CHAR;
    
-   const char ESCAPE_CHAR;
+public:
+	struct ErrOut {
+		const char* sFileName;
+		unsigned int iLineNumber;
+	};
    
- public:
-   struct ErrOut {
-      const char* sFileName;
-      unsigned int iLineNumber;
-   };
-   
- protected:   
-   /* Parser di basso livello, per semplice lettura dei tipi piu' comuni */
-   LowParser LowP;
+protected:   
+	/* Parser di basso livello, per semplice lettura dei tipi piu' comuni */
+	LowParser LowP;
      
-   /* Stream in ingresso */
-   InputStream* pIn;
-   std::ifstream* pf;
-   
-   /* Buffer per le stringhe */
-   char sStringBuf[iBufSize];
-   char sStringBufWithSpaces[iBufSize];
-      
-   /* Parser delle espressioni matematiche, 
-    * usato per acquisire valori sicuramente numerici */
-   MathParser& MathP;
-      
-   /* Tabella dei simboli da riconoscere; puo' essere cambiata */
-   const KeyTable* KeyT;
-   
-   /* Token di basso ed alto livello */
-   LowParser::Token CurrLowToken;
-   Token CurrToken;
-   
-   virtual HighParser::Token FirstToken(void);
-   virtual void NextToken(const char* sFuncName);
-   
-   int iGetDescription_(const char* const s);
-   void Set_(void);
-   void Remark_(void);
-   virtual bool GetDescription_int(const char *s);
-   virtual void Eof(void);
-   
- public:   
-   HighParser(MathParser& MP, InputStream& streamIn);
-   virtual ~HighParser(void);
-   /* Attacca una nuova KeyTable (e ritorna la vecchia) */
-   virtual const KeyTable* PutKeyTable(const KeyTable& KT);
-   /* Numero di linea corrente */   
-   virtual int GetLineNumber(void) const;
-   /* Numero di nome file e linea corrente */   
-   virtual HighParser::ErrOut GetLineData(void) const;
-   /* Restituisce il math parser */
-   virtual MathParser& GetMathParser(void);
-   /* "Chiude" i flussi */
-   virtual void Close(void);
-   /* verifica se il token successivo e' una description (ambiguo ...) */
-   flag fIsDescription(void);
-   /* Legge una parola chiave */
-   int GetDescription(void);
-   /* si attende una descrizione */
-   virtual void ExpectDescription(void);
-   /* si attende una lista di argomenti */
-   virtual void ExpectArg(void);
-   /* 1 se trova la keyword sKeyWord */
-   virtual flag IsKeyWord(const char* sKeyWord);
-   /* numero della keyword trovata */
-   virtual int IsKeyWord(void);
-   /* 1 se e' atteso un argomento */
-   virtual flag fIsArg(void);
-   /* Se ha letto un ";" lo rimette a posto */
-   virtual void PutBackSemicolon(void);
-   /* legge un intero con il mathpar */
-   virtual integer GetInt(int iDefval = 0);
-   /* legge un reale col mathpar */
-   virtual doublereal GetReal(const doublereal& dDefval = 0.0);
-   /* legge una keyword */
-   virtual int GetWord(void);
-   /* legge una stringa */
-   virtual const char* GetString(void);
-   /* stringa delimitata */
-   virtual const char* GetStringWithDelims(enum Delims Del = DEFAULTDELIM); 
-   /* vettore Vec3 */
-   virtual Vec3 GetVec3(void);
-   /* vettore Vec3 */
-   virtual Vec3 GetVec3(const Vec3& vDef);
-   /* matrice R mediante i due vettori */
-   virtual Mat3x3 GetMatR2vec(void);
-   /* matrice 3x3 simmetrica */
-   virtual Mat3x3 GetMat3x3Sym(void);
-   /* matrice 3x3 arbitraria */
-   virtual Mat3x3 GetMat3x3(void);
-   virtual Mat3x3 GetMat3x3(const Mat3x3& mDef);
-   
-   virtual Vec6 GetVec6(void);
-   virtual Vec6 GetVec6(const Vec6& vDef);
-   virtual Mat6x6 GetMat6x6(void);
-   virtual Mat6x6 GetMat6x6(const Mat6x6& mDef);
-   
-   virtual inline doublereal Get(const doublereal& d) { return GetReal(doublereal(d)); };
-   virtual inline Vec3 Get(const Vec3& v) { return GetVec3(v); };
-   virtual inline Mat3x3 Get(const Mat3x3& m) { return GetMat3x3(m); };
-   virtual inline Vec6 Get(const Vec6& v) { return GetVec6(v); };
-   virtual inline Mat6x6 Get(const Mat6x6& m) { return GetMat6x6(m); };
-   
-   virtual void GetMat6xN(Mat3xN& m1, Mat3xN& m2, integer iNumCols);
+	/* Stream in ingresso */
+	InputStream* pIn;
+	std::ifstream* pf;
+
+	/* Buffer per le stringhe */
+	char sStringBuf[iDefaultBufSize];
+	char sStringBufWithSpaces[iDefaultBufSize];
+
+	/* Parser delle espressioni matematiche, 
+	 * usato per acquisire valori sicuramente numerici */
+	MathParser& MathP;
+
+	/* Tabella dei simboli da riconoscere; puo' essere cambiata */
+	const KeyTable* KeyT;
+
+	/* Token di basso ed alto livello */
+	LowParser::Token CurrLowToken;
+	Token CurrToken;
+
+	virtual HighParser::Token FirstToken(void);
+	virtual void NextToken(const char* sFuncName);
+
+	int iGetDescription_(const char* const s);
+	void Set_(void);
+	void Remark_(void);
+	virtual bool GetDescription_int(const char *s);
+	virtual void Eof(void);
+
+public:   
+	HighParser(MathParser& MP, InputStream& streamIn);
+	virtual ~HighParser(void);
+	/* Attacca una nuova KeyTable (e ritorna la vecchia) */
+	virtual const KeyTable* PutKeyTable(const KeyTable& KT);
+	/* Numero di linea corrente */   
+	virtual int GetLineNumber(void) const;
+	/* Numero di nome file e linea corrente */   
+	virtual HighParser::ErrOut GetLineData(void) const;
+	/* Restituisce il math parser */
+	virtual MathParser& GetMathParser(void);
+	/* "Chiude" i flussi */
+	virtual void Close(void);
+	/* verifica se il token successivo e' una description (ambiguo ...) */
+	bool IsDescription(void);
+	/* Legge una parola chiave */
+	int GetDescription(void);
+	/* si attende una descrizione */
+	virtual void ExpectDescription(void);
+	/* si attende una lista di argomenti */
+	virtual void ExpectArg(void);
+	/* 1 se trova la keyword sKeyWord */
+	virtual bool IsKeyWord(const char* sKeyWord);
+	/* numero della keyword trovata */
+	virtual int IsKeyWord(void);
+	/* 1 se e' atteso un argomento */
+	virtual bool IsArg(void);
+	/* Se ha letto un ";" lo rimette a posto */
+	virtual void PutBackSemicolon(void);
+	/* legge un intero con il mathpar */
+	virtual integer GetInt(int iDefval = 0);
+	/* legge un reale col mathpar */
+	virtual doublereal GetReal(const doublereal& dDefval = 0.0);
+	/* legge una keyword */
+	virtual int GetWord(void);
+	/* legge una stringa */
+	virtual const char* GetString(void);
+	/* stringa delimitata */
+	virtual const char* GetStringWithDelims(enum Delims Del = DEFAULTDELIM); 
+	/* vettore Vec3 */
+	virtual Vec3 GetVec3(void);
+	/* vettore Vec3 */
+	virtual Vec3 GetVec3(const Vec3& vDef);
+	/* matrice R mediante i due vettori */
+	virtual Mat3x3 GetMatR2vec(void);
+	/* matrice 3x3 simmetrica */
+	virtual Mat3x3 GetMat3x3Sym(void);
+	/* matrice 3x3 arbitraria */
+	virtual Mat3x3 GetMat3x3(void);
+	virtual Mat3x3 GetMat3x3(const Mat3x3& mDef);
+
+	virtual Vec6 GetVec6(void);
+	virtual Vec6 GetVec6(const Vec6& vDef);
+	virtual Mat6x6 GetMat6x6(void);
+	virtual Mat6x6 GetMat6x6(const Mat6x6& mDef);
+
+	virtual inline doublereal Get(const doublereal& d) {
+		return GetReal(doublereal(d));
+	};
+	virtual inline Vec3 Get(const Vec3& v) { return GetVec3(v); };
+	virtual inline Mat3x3 Get(const Mat3x3& m) { return GetMat3x3(m); };
+	virtual inline Vec6 Get(const Vec6& v) { return GetVec6(v); };
+	virtual inline Mat6x6 Get(const Mat6x6& m) { return GetMat6x6(m); };
+
+	virtual void GetMat6xN(Mat3xN& m1, Mat3xN& m2, integer iNumCols);
 };
 
 /* Le funzioni:
@@ -357,7 +365,8 @@ class HighParser {
 
 /* HighParser - end */
    
-extern std::ostream& operator << (std::ostream& out, const HighParser::ErrOut& err);
+extern std::ostream&
+operator << (std::ostream& out, const HighParser::ErrOut& err);
 
 #endif /* PARSER_H */
 

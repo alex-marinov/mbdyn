@@ -2008,7 +2008,7 @@ Solver::ReadData(MBDynParser& HP)
 		case OUTPUT: {
 			unsigned OF = OUTPUT_DEFAULT;
 
-			while (HP.fIsArg()) {
+			while (HP.IsArg()) {
 				KeyWords OutputFlag(KeyWords(HP.GetWord()));
 				switch (OutputFlag) {
 				case NONE:
@@ -2085,7 +2085,7 @@ Solver::ReadData(MBDynParser& HP)
 	      			pRhoRegular = ReadDriveData(NULL, HP, NULL);
 
 	      			pRhoAlgebraicRegular = NULL;
-				if (HP.fIsArg()) {
+				if (HP.IsArg()) {
 					pRhoAlgebraicRegular = ReadDriveData(NULL, 
 							HP, NULL);
 				} else {
@@ -2152,7 +2152,7 @@ Solver::ReadData(MBDynParser& HP)
 			case HOPE: 	      	     
 				pRhoFictitious = ReadDriveData(NULL, HP, NULL);
 
-				if (HP.fIsArg()) {
+				if (HP.IsArg()) {
 					pRhoAlgebraicFictitious = ReadDriveData(NULL, HP, NULL);
 				} else {
 					pRhoAlgebraicFictitious = pRhoFictitious->pCopy();
@@ -2209,7 +2209,7 @@ Solver::ReadData(MBDynParser& HP)
 				ResTest = NonlinearSolverTest::NONE;
 			}
 				
-			if (HP.fIsArg()) {
+			if (HP.IsArg()) {
 				if (HP.IsKeyWord("test")) {
 					if (HP.IsKeyWord("norm")) {
 						ResTest = NonlinearSolverTest::NORM;
@@ -2239,7 +2239,7 @@ Solver::ReadData(MBDynParser& HP)
 				}
 			}
 
-			if (HP.fIsArg()) {
+			if (HP.IsArg()) {
 				if (!HP.IsKeyWord("null")) {
 					dSolutionTol = HP.GetReal();
 				}
@@ -2249,7 +2249,7 @@ Solver::ReadData(MBDynParser& HP)
 					SolTest = NonlinearSolverTest::NORM;
 				}
 
-				if (HP.fIsArg()) {
+				if (HP.IsArg()) {
 					if (HP.IsKeyWord("test")) {
 						if (HP.IsKeyWord("norm")) {
 							SolTest = NonlinearSolverTest::NORM;
@@ -2392,7 +2392,7 @@ Solver::ReadData(MBDynParser& HP)
 			switch(NewRaph) {
 			case MODIFIED:
 				bTrueNewtonRaphson = 0;
-				if (HP.fIsArg()) {
+				if (HP.IsArg()) {
 					iIterationsBeforeAssembly = HP.GetInt();
 		  		} else {
 		       			iIterationsBeforeAssembly = iDefaultIterationsBeforeAssembly;
@@ -2541,12 +2541,12 @@ Solver::ReadData(MBDynParser& HP)
 			pod.dTime = HP.GetReal();
 
 			pod.iSteps = 1;
-			if (HP.fIsArg()) {
+			if (HP.IsArg()) {
 				pod.iSteps = HP.GetInt();
 			}
 
 			pod.iFrames = (unsigned int)(-1);
-			if (HP.fIsArg()) {
+			if (HP.IsArg()) {
 				pod.iFrames = HP.GetInt();
 			}
 
@@ -2560,7 +2560,7 @@ Solver::ReadData(MBDynParser& HP)
 			std::cerr << "line " << HP.GetLineData()
 				<< ": POD analysis not supported (ignored)" 
 				<< std::endl;
-			for (; HP.fIsArg();) {
+			for (; HP.IsArg();) {
 				(void)HP.GetReal();
 			}
 #endif /* !__HACK_POD__ */
@@ -2606,7 +2606,7 @@ Solver::ReadData(MBDynParser& HP)
 			if (HP.IsKeyWord("yes") || HP.IsKeyWord("nastran")) {
 #ifdef __HACK_EIG__
 				bOutputModes = true;
-				if (HP.fIsArg()) {
+				if (HP.IsArg()) {
 					dUpperFreq = HP.GetReal();
 					if (dUpperFreq < 0.) {
 						std::cerr << "line "
@@ -2620,7 +2620,7 @@ Solver::ReadData(MBDynParser& HP)
 						dUpperFreq = -dUpperFreq;
 					}
 					
-					if (HP.fIsArg()) {
+					if (HP.IsArg()) {
 						dLowerFreq = HP.GetReal();
 						if (dLowerFreq > dUpperFreq) {
 							std::cerr << "line "

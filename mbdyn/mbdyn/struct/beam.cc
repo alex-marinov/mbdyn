@@ -1997,7 +1997,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    
 
    /* Se non c'e' il punto e virgola finale */
-   if (HP.fIsArg()) {
+   if (HP.IsArg()) {
       std::cerr << std::endl
 	<< "semicolon expected at line " << HP.GetLineData() << std::endl;      
       THROW(DataManager::ErrGeneric());

@@ -561,7 +561,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        }
        
        doublereal dTreshold = 0.;
-       if (HP.fIsArg()) {
+       if (HP.IsArg()) {
 	  dTreshold = HP.GetReal(dTreshold);
 	  
 	  // Il legame costitutivo ha la forma seguente:
@@ -581,7 +581,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        }
        
        doublereal dSP = dTreshold*dParabStiff;		      
-       if (HP.fIsArg()) {			 
+       if (HP.IsArg()) {			 
 	  dSP = HP.GetReal(dSP);
        }
        
@@ -770,12 +770,12 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	   }
 	   	   
 	   Vec3 PreStress(0.);
-	   if(HP.fIsArg()) {
+	   if(HP.IsArg()) {
 	      PreStress = HP.GetVec3();
 	   }
 	   
 	   Vec3 PreStrain(0.);
-	   if(HP.fIsArg()) {
+	   if(HP.IsArg()) {
 	      PreStrain = HP.GetVec3();
 	   }		   
 	   
@@ -795,12 +795,12 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	   Mat3x3 K(HP.GetMat3x3());
 	   
 	   Vec3 PreStress(0.);
-	   if(HP.fIsArg()) {
+	   if(HP.IsArg()) {
 	      PreStress = HP.GetVec3();
 	   }
 	   
 	   Vec3 PreStrain(0.);
-	   if(HP.fIsArg()) {
+	   if(HP.IsArg()) {
 	      PreStrain = HP.GetVec3();
 	   }		   
 	   
@@ -844,12 +844,12 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	   }
 	   	   
 	   Vec3 PreStress(0.);
-	   if(HP.fIsArg()) {
+	   if(HP.IsArg()) {
 	      PreStress = HP.GetVec3();
 	   }
 	   
 	   Vec3 PreStrain(0.);
-	   if(HP.fIsArg()) {
+	   if(HP.IsArg()) {
 	      PreStrain = HP.GetVec3();
 	   }		   
 	   
@@ -898,7 +898,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	   }
 	   
 	   doublereal dTreshold = 0.;
-	   if(HP.fIsArg()) {
+	   if(HP.IsArg()) {
 	      dTreshold = HP.GetReal(dTreshold);
 	      
 	      // Il legame costitutivo ha la forma seguente:
@@ -918,7 +918,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	   }
 	   
 	   doublereal dSP = dTreshold*dParabStiff;
-	   if(HP.fIsArg()) {			 
+	   if(HP.IsArg()) {			 
 	      dSP = HP.GetReal(dSP);
 	   }
 	   	   
@@ -985,12 +985,12 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	   }
 	   
 	   Vec3 PreStress(0.);
-	   if(HP.fIsArg()) {
+	   if(HP.IsArg()) {
 	      PreStress = HP.GetVec3();
 	   }
 	   
 	   Vec3 PreStrain(0.);
-	   if(HP.fIsArg()) {
+	   if(HP.IsArg()) {
 	      PreStrain = HP.GetVec3();
 	   }		   
 	   

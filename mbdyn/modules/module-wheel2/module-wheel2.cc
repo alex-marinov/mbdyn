@@ -185,7 +185,7 @@ read(LoadableElem* pEl,
 "		14)	lateral friction coefficient			\n"
 			<< std::endl;
 
-		if (!HP.fIsArg()) {
+		if (!HP.IsArg()) {
 			/*
 			 * Exit quietly if nothing else is provided
 			 */

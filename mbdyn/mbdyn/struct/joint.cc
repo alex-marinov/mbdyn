@@ -331,7 +331,7 @@ Elem* ReadJoint(DataManager* pDM,
        
  
        /* Legge e costruisce il drivecaller */
-       if (!HP.fIsArg()) {
+       if (!HP.IsArg()) {
 	  std::cerr << "line " << HP.GetLineData()
 	    << ": driver data expected" << std::endl;
 	  THROW(DataManager::ErrGeneric());
@@ -844,7 +844,7 @@ Elem* ReadJoint(DataManager* pDM,
        Vec3 q(0.);
        flag fOffset(0);
        
-       if (HP.fIsArg()) {
+       if (HP.IsArg()) {
 	  if (HP.IsKeyWord("offset")) {
 	     fOffset = 1;	     
 	     q = HP.GetPosRel(ReferenceFrame(pNode2));	     
@@ -914,7 +914,7 @@ Elem* ReadJoint(DataManager* pDM,
        Vec3 q(0.);
        flag fOffset(0);
        
-       if (HP.fIsArg()) {
+       if (HP.IsArg()) {
 	  if (HP.IsKeyWord("offset")) {
 	     fOffset = 1;	     
 	     q = HP.GetPosRel(ReferenceFrame(pNode2));	     
@@ -1673,7 +1673,7 @@ Elem* ReadJoint(DataManager* pDM,
    }
 
    /* Se non c'e' il punto e virgola finale */
-   if (HP.fIsArg()) {
+   if (HP.IsArg()) {
       std::cerr << "semicolon expected at line " << HP.GetLineData() << std::endl;
       THROW(DataManager::ErrGeneric());
    }

@@ -1351,7 +1351,7 @@ ReadStructNode(DataManager* pDM,
       doublereal dVelStiff = pDM->dGetInitialVelocityStiffness();
       flag fOmRot = pDM->fDoesOmegaRotate();
 
-      if (HP.fIsArg()) {
+      if (HP.IsArg()) {
 	 if (HP.IsKeyWord("assembly")) {
 	    dPosStiff = HP.GetReal(dPosStiff);
 	    dVelStiff = HP.GetReal(dVelStiff);
@@ -1377,7 +1377,7 @@ ReadStructNode(DataManager* pDM,
       flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
 
       /* Se non c'e' il punto e virgola finale */
-      if (HP.fIsArg()) {
+      if (HP.IsArg()) {
 	 std::cerr << std::endl << sFuncName
 	   << ": semicolon expected at line " << HP.GetLineData() << std::endl;
 	 THROW(DataManager::ErrGeneric());

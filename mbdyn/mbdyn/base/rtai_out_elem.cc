@@ -278,7 +278,7 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
    	(void)pDM->fReadOutput(HP, Elem::LOADABLE); 
 
 	/* Se non c'e' il punto e virgola finale */
-	if (HP.fIsArg()) {
+	if (HP.IsArg()) {
 		std::cerr << "semicolon expected at line " << HP.GetLineData()
 			<< std::endl;      
 		THROW(ErrGeneric());

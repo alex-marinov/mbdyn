@@ -354,7 +354,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 }
 	 
 	 /* Elements list */
-	 while (HP.fIsArg()) {
+	 while (HP.IsArg()) {
 	    unsigned int uL = (unsigned int)HP.GetInt();	    	
 	    Elem* pE = (Elem*)pFindElem(Typ, uL);
 	    if (pE == NULL) {
@@ -395,7 +395,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 
 	 std::set<unsigned int> Body_labels;
 	 Elem::Type Type = Elem::UNKNOWN;
-	 while (HP.fIsArg()) {
+	 while (HP.IsArg()) {
 		 if (HP.IsKeyWord("body")) {
 			 Type = Elem::BODY;
 #if 0
@@ -1045,7 +1045,7 @@ void DataManager::ReadElems(MBDynParser& HP)
    }
    
    /* Se non c'e' il punto e virgola finale */
-   if (HP.fIsArg()) {
+   if (HP.IsArg()) {
       DEBUGCERR("");
       std::cerr << "semicolon expected at line " << HP.GetLineData() << std::endl;
      

@@ -122,7 +122,7 @@ MBDynParser::Reference_(void)
 	Mat3x3 R(GetRotAbs(AbsRefFrame));
 	Vec3 v(0.);
 	Vec3 w(0.);
-	if (fIsArg()) {
+	if (IsArg()) {
 		v = GetVelAbs(AbsRefFrame, x);
 		w = GetOmeAbs(AbsRefFrame);
 	}

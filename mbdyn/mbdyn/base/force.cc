@@ -487,7 +487,7 @@ Elem* ReadForce(DataManager* pDM,
 #endif /* USE_STRUCT_NODES */
    
    /* Se non c'e' il punto e virgola finale */
-   if (HP.fIsArg()) {
+   if (HP.IsArg()) {
       std::cerr << std::endl << sFuncName
 	<< ": semicolon expected at line " << HP.GetLineData() << std::endl;      
       THROW(DataManager::ErrGeneric());

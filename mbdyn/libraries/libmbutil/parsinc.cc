@@ -410,10 +410,10 @@ IncludeParser::GetFileName(enum Delims Del)
    	if (stmp == NULL) {
       		return s;
    	} else {
-      		if (strlen(stmp) >= iBufSize) {
+      		if (strlen(stmp) >= iDefaultBufSize) {
 	 		/* errore */
-	 		strncpy(sStringBuf, stmp, iBufSize-1);
-	 		sStringBuf[iBufSize-1] = '\0';
+	 		strncpy(sStringBuf, stmp, iDefaultBufSize-1);
+	 		sStringBuf[iDefaultBufSize-1] = '\0';
       		} else {
 	 		strcpy(sStringBuf, stmp);
       		}

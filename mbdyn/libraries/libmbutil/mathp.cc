@@ -990,7 +990,7 @@ MathParser::GetToken(void) {
       
    int c = 0;
    
-start_parsing:
+start_parsing:;
    
    /* skip spaces */
    while ((c = in->get()), isspace(c)) {
@@ -1002,8 +1002,13 @@ start_parsing:
    }
    
    if (c == REMARK) {
-      while ((c = in->get()) != '\n') {
-	 NO_OP;
+      for (c = in->get(); c != '\n'; c = in->get()) {
+	 if (c == '\\') {
+	    c = in->get();
+	    if (c == '\r') {
+	       c = in->get();
+	    }
+	 }
       }
       goto start_parsing;
    }
@@ -1093,11 +1098,22 @@ start_parsing:
       return (currtoken = EXP);
     case '*':
       return (currtoken = MULT);
-    case '/':  
+    case '/':
       if ((c = in->get()) == '*') {
 	 for (c = in->get();; c = in->get()) {
-	    if (c == '*' && (c = in->get()) == '/') {
-	       goto start_parsing;
+	    if (c == '*') {
+end_of_comment:;
+	       c = in->get();
+	       if (c == '/') {
+	          goto start_parsing;
+	       }
+	    } else if (c == '/') {
+	       c = in->get();
+	       if (c == '*') {
+		       silent_cerr("warning: '/*' inside a comment at line "
+				  << GetLineNumber() << std::endl);
+		  goto end_of_comment;
+	       }
 	    }
 	 }	 
       } else {
