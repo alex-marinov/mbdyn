@@ -22,6 +22,8 @@ liby12_la_LDFLAGS =
 bin_PROGRAMS = t
 t_SOURCES = test.c
 t_LDADD = ./liby12.la
-INCLUDES = -I../libmbmath
+INCLUDES = \
+-I../libmbmath \
+-I../../mbdyn
 
 

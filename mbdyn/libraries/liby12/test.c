@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>
+#endif /* HAVE_CONFIG_H */
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -46,7 +50,8 @@ main(void)
 	IFLAG[3] = 0;
 	IFLAG[4] = 2;
 
-	y12mbf_((integer *)&N, (integer *)&Z, A, SNR, (integer *)&NN, RNR, 
+	__FC_DECL__(y12mbf)((integer *)&N, (integer *)&Z, A, SNR, 
+			(integer *)&NN, RNR, 
 			(integer *)&NN1, HA, (integer *)&IHA, AFLAG, IFLAG, 
 			&IFAIL);
 
@@ -54,11 +59,13 @@ main(void)
 	B[0] = 1.;
 	B[1] = 1.;
 
-	y12mcf_((integer *)&N, (integer *)&Z, A, SNR, (integer *)&NN, RNR, 
+	__FC_DECL__(y12mcf)((integer *)&N, (integer *)&Z, A, SNR, 
+			(integer *)&NN, RNR, 
 			(integer *)&NN1, PIVOT, B, HA, (integer *)&IHA, AFLAG, 
 			IFLAG, &IFAIL);
 
-	y12mdf_((integer *)&N, A, (integer *)&NN, B, PIVOT, SNR, HA, 
+	__FC_DECL__(y12mdf)((integer *)&N, A, (integer *)&NN, B, PIVOT, SNR, 
+			HA, 
 			(integer *)&IHA, IFLAG, &IFAIL);
 
 	fprintf(stdout, "B = {%e,%e}\n", B[0], B[1]);
@@ -68,7 +75,8 @@ main(void)
 	B[0] = 2.;
 	B[1] = 2.;
 
-	y12mdf_((integer *)&N, A, (integer *)&NN, B, PIVOT, SNR, HA, 
+	__FC_DECL__(y12mdf)((integer *)&N, A, (integer *)&NN, B, PIVOT, SNR, 
+			HA, 
 			(integer *)&IHA, IFLAG, &IFAIL);
 
 	fprintf(stdout, "B = {%e,%e}\n", B[0], B[1]);
@@ -76,7 +84,8 @@ main(void)
 	B[0] = 2.;
 	B[1] = -1.;
 
-	y12mdf_((integer *)&N, A, (integer *)&NN, B, PIVOT, SNR, HA, 
+	__FC_DECL__(y12mdf)((integer *)&N, A, (integer *)&NN, B, PIVOT, SNR, 
+			HA, 
 			(integer *)&IHA, IFLAG, &IFAIL);
 
 	fprintf(stdout, "B = {%e,%e}\n", B[0], B[1]);
