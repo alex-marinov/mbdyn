@@ -733,17 +733,227 @@ because $\T{\theta}$ in general is a finite rotation.
 
 
 \subsubsection{Future Development}
-Try to use
+The desired relative orientation can be expressed by means of a vector 
+$\T{\theta}_0$; the corresponding orientation matrix is
 \begin{displaymath}
-	\exp^{-1}\plbr{\T{R}_{rel} \T{R}_{imposed}^T} = \T{0}
+	\T{R}_0 = \exp\plbr{\T{\theta}_0}
 \end{displaymath}
-as constraint equation.
+this operation can always be performed with no ambiguity.
+The equality
+\begin{displaymath}
+	\T{\theta} - \T{\theta}_0 = \T{0}
+\end{displaymath}
+is equivalent to
+\begin{displaymath}
+	\llk{ax}\plbr{\exp^{-1}\plbr{\T{R}_0^T \T{R}_{rel}}} = \T{0}
+\end{displaymath}
 
-Moreover, try to develop the constraint in a form that allows
-to mix free and constrained angular degrees of freedom, with
-stiffness, friction and more on the free ones.
+\noindent
+In general, the difference between the desired rotation
+$\T{\theta}_0$ and the current relative orientation between
+nodes 1 and 2,
+\begin{displaymath}
+	\T{\theta} = \llk{ax}\plbr{\exp^{-1}\plbr{
+		\T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h}
+	}}
+\end{displaymath}
+through the previous redefinition can be expressed as
+\begin{displaymath}
+	\T{\theta}^{\Delta} = \llk{ax}\plbr{\exp^{-1}\plbr{
+		\T{R}_0^T \T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h}
+	}}
+\end{displaymath}
+and is equivalent to
+\begin{displaymath}
+	\T{\theta}^{\Delta} = \T{\theta} - \T{\theta}_0
+\end{displaymath}
+Each component of $\T{\theta}^{\Delta}$ can be selectively set
+to zero to enforce a constraint on that degree of freedom.
+The axis about which the constraint is applied can be arbitrarily 
+defined by appropriately setting the constant relative orientation
+matrix of each node, $\T{R}_{1h}$ and $\T{R}_{2h}$.
+An arbitrary amplitude of the rotation about that axis can be imposed
+by means of the components of the imposed vector $\T{\theta}_0$.
+
+\noindent
+If any component of $\T{\theta}^{\Delta}$ are left free, they are
+simply ignored, and the resulting constraint equations are dropped.
+Otherwise, they can be used to apply moments based on the 
+relative orientation of the nodes, e.g.\ rotational springs or 
+dampers.
+In this case, the singularity problem comes back: the norm
+of the relative orientation must not exceed $\pi$, i.e.\
+$\shbr{\T{\theta}^{\Delta}}<\pi$.
+Note that the relative orientation is computed with respect to 
+$\T{\theta}_0$, so an anelastic (or imposed) rotation can be easily
+applied to the spring, resulting in an imposed rotation with stiffness.
+
+\noindent
+The linearization of the constraint equations is relatively 
+straightforward. 
+We need to compute the perturbation of $\T{\theta}^{\Delta}$, i.e.,
+after defining
+\begin{displaymath}
+	\T{R}^{\Delta} = \T{R}_0^T \T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h}
+\end{displaymath}
+we obtain
+\begin{eqnarray*}
+	\T{\theta}^{\Delta}_{\delta}
+	& = & \llk{ax}\plbr{\delta\T{R}^{\Delta} \T{R}^{\Delta T}} \\
+	& = & \llk{ax}\plbr{\T{R}_0^T \T{R}_{1h}^T \T{R}_1^T
+		\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}\times{}
+		\T{R}_1 \T{R}_{1h} \T{R}_0} \\
+	& = & \bar{\T{R}}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+\end{eqnarray*}
+where $\bar{\T{R}}=\T{R}_1 \T{R}_{1h} \T{R}_0$.
+Note that, since the constraint equations are defined by setting 
+to zero any components of the vector $\T{\theta}^{\Delta}$, the
+related jacobian contribution is obtained by selecting 
+the corresponding columns of matrix $\bar{\T{R}}$.
+
+\noindent
+The relative angular velocity is defined, in analogy with 
+the differentiation of $\T{\theta}^{\Delta}$, as
+\begin{displaymath}
+	\T{\omega}^{\Delta} = \bar{\T{R}}^T\plbr{\T{\omega}_2 - \T{\omega}_1}
+\end{displaymath}
+whose differentiation yields
+\begin{eqnarray*}
+	\delta\T{\omega}^{\Delta}
+	& = & \bar{\T{R}}^T \plbr{
+		\delta\T{\omega}_2
+		- \delta\T{\omega}_1
+		+ \plbr{\T{\omega}_2 - \T{\omega}_1}\times
+			\T{\theta}_{1\delta}
+	} \\
+	& \cong & \bar{\T{R}}^T \plbr{
+		\delta\dot{\T{g}}_2
+		- \delta\dot{\T{g}}_1
+		- \T{\omega}_2\times\plbr{\delta\T{g}_2 - \delta\T{g}_1}
+	}
+\end{eqnarray*}
+where the simplifications of the updated-updated approach 
+have been considered, as indicated by the $\cong$ operator.
+
+\noindent
+The couples applied by the constrain equations are
+\begin{eqnarray*}
+	C_1 & = & \bar{\T{R}} \T{\alpha} \\
+	C_2 & = & - \bar{\T{R}} \T{\alpha}
+\end{eqnarray*}
+where $\T{\alpha}$ are the reaction unknowns, which correspond 
+to the physical moments in the relative reference frame.
+The matrix $\bar{\T{R}}$ reduces to the subset of its columns 
+that are related to the actual constrains; any relative orientation 
+component that is left free results in no reaction couple.
+
+\noindent
+If rotational springs or dampers are defined, the corresponding
+couples have the same form, i.e.\
+\begin{eqnarray*}
+	C_1 & = & \bar{\T{R}} \T{\beta} \\
+	C_2 & = & - \bar{\T{R}} \T{\beta}
+\end{eqnarray*}
+now $\T{\beta}=\T{\beta}\plbr{\T{\theta}^{\Delta},\T{\omega}^{\Delta}}$ 
+is a relative orientation dependent couple, and no constraint equation
+is related to it.
+
+The linearization of the couples is straightforward; with respect
+to the kinematic constraints:
+\begin{eqnarray*}
+	\delta{C_1} & = &
+	\plbr{\bar{\T{R}} \T{\alpha}}\times\T{\theta}_{1\delta}
+	+ \bar{\T{R}} \delta\T{\alpha} \\
+	\delta{C_2} & = &
+	- \plbr{\bar{\T{R}} \T{\alpha}}\times\T{\theta}_{1\delta}
+	- \bar{\T{R}} \delta\T{\alpha}
+\end{eqnarray*}
+and with respect to the spring and damper constraints:
+\begin{eqnarray*}
+	\delta{C_1} & = &
+	\plbr{\bar{\T{R}} \T{\beta}}\times\T{\theta}_{1\delta}
+	+ \bar{\T{R}}\T{\beta}_{/\T{\theta}} \T{\theta}^{\Delta}_{\delta}
+	+ \bar{\T{R}}\T{\beta}_{/\T{\omega}} \delta\T{\omega}^{\Delta} \\
+	\delta{C_2} & = &
+	- \plbr{\bar{\T{R}} \T{\beta}}\times\T{\theta}_{1\delta}
+	- \bar{\T{R}}\T{\beta}_{/\T{\theta}} \T{\theta}^{\Delta}_{\delta}
+	- \bar{\T{R}}\T{\beta}_{/\T{\omega}} \delta\T{\omega}^{\Delta}
+\end{eqnarray*}
+
+\noindent
+The jacobian and the residual that results from the linearization
+of the constraint equations and of the couples, considering
+the simplifications related to the updated-updated approach,
+are summarized below:
+\begin{displaymath}
+	\sqbr{\matr{ccc}{
+	\plbr{\bar{\T{R}}\T{\alpha}}\times{} & & - \bar{\T{R}} \\
+	- \plbr{\bar{\T{R}}\T{\alpha}}\times{} & & \bar{\T{R}} \\
+	- \bar{\T{R}} & \bar{\T{R}} & 0
+	}}\cubr{\cvvect{
+		\delta\T{g}_1 \\
+		\delta\T{g}_2 \\
+		\delta\T{\alpha} \\
+	}}
+\end{displaymath}
+\begin{displaymath}
+	\mbox{} + \sqbr{\matr{cc}{
+	\plbr{\bar{\T{R}}\T{\beta}}\times{} 
+		+ \bar{\T{R}}\T{\beta}_{/\T{\theta}}\bar{\T{R}}^T &
+		- \bar{\T{R}}\T{\beta}_{/\T{\theta}}\bar{\T{R}}^T \\
+	- \plbr{\bar{\T{R}}\T{\beta}}\times{}
+		- \bar{\T{R}}\T{\beta}_{/\T{\theta}}\bar{\T{R}}^T &
+		\bar{\T{R}}\T{\beta}_{/\T{\theta}}\bar{\T{R}}^T \\
+	0 & 0 
+	}}\cubr{\cvvect{
+		\delta\T{g}_1 \\
+		\delta\T{g}_2 \\
+	}}
+\end{displaymath}
+\begin{displaymath}
+ 	\mbox{} + \sqbr{\matr{cccc}{
+		- \bar{\T{R}}\T{\beta}_{/\T{\omega}}\bar{\T{R}}^T\T{\omega}_2\times{} &
+		\bar{\T{R}}\T{\beta}_{/\T{\omega}}\bar{\T{R}}^T &
+		\bar{\T{R}}\T{\beta}_{/\T{\omega}}\bar{\T{R}}^T\T{\omega}_2\times{} &
+		- \bar{\T{R}}\T{\beta}_{/\T{\omega}}\bar{\T{R}}^T \\
+		\bar{\T{R}}\T{\beta}_{/\T{\omega}}\bar{\T{R}}^T\T{\omega}_2\times{} &
+		- \bar{\T{R}}\T{\beta}_{/\T{\omega}}\bar{\T{R}}^T &
+		- \bar{\T{R}}\T{\beta}_{/\T{\omega}}\bar{\T{R}}^T\T{\omega}_2\times{} &
+		\bar{\T{R}}\T{\beta}_{/\T{\omega}}\bar{\T{R}}^T \\
+	0 & 0 & 0 & 0
+	}}\cubr{\cvvect{
+		\delta\T{g}_1 \\
+		\delta\T{\dot{g}}_1 \\
+		\delta\T{g}_2 \\
+		\delta\T{\dot{g}}_2 \\
+	}}
+\end{displaymath}
+\begin{displaymath}
+ 	\mbox{} = \cubr{\cvvect{
+		\bar{\T{R}} \T{\alpha} + \bar{\T{R}} \T{\beta} \\
+		- \bar{\T{R}} \T{\alpha} - \bar{\T{R}} \T{\beta} \\
+		- \T{\theta}^{\Delta}
+	}}
+\end{displaymath}
 
 
+\subsubsection{Summary}
+\begin{itemize}
+\item each component of the relative orientation can be subjected
+to separate conditions;
+\item the reference relative orientation goes in matrix $\T{R}_0$
+by means of a vector $\T{\theta}_0$ which can be time dependent;
+there is no limitation on the amplitude of that rotation;
+\item a perfect constraint results from setting to zero the error
+on the relative orientation of that component;
+\item a deformable constraint results from freeing the error
+on the relative component, and adding a constitutive law
+based on that error and possibly on its derivative;
+in this case, the norm of the amplitude of the error is limited
+to $\pi$;
+\item friction can be added as well on those components
+that are left free (or constrained by springs).
+\end{itemize}
 
 
 
