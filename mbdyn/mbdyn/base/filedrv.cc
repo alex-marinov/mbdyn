@@ -34,11 +34,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#if defined(HAVE_FSTREAM)
-#include <fstream>
-#elif defined(HAVE_FSTREAM_H)
-#include <fstream.h>
-#endif
+#include <ac/fstream>
 
 #include <dataman.h>
 #include <filedrv.h>

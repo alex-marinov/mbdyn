@@ -30,6 +30,8 @@
 #ifndef DAE_INTG_H
 #define DAE_INTG_H
 
+#include <ac/iostream>
+
 typedef int (*pread)(void**, const char*);
 typedef int (*pinit)(void*, VectorHandler&);
 typedef int (*psize)(void*);
@@ -37,7 +39,7 @@ typedef int (*pgrad)(void*, MatrixHandler&, MatrixHandler&,
 		     const VectorHandler&, const doublereal&);
 typedef int (*pfunc)(void*, VectorHandler&,
 		     const VectorHandler&, const doublereal&);
-typedef ostream& (*pout)(void*, ostream&,
+typedef std::ostream& (*pout)(void*, std::ostream&,
 			 const VectorHandler&, const VectorHandler&);
 typedef int (*pdestroy)(void**);
 

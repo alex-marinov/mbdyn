@@ -36,10 +36,9 @@
 
 extern "C" {
 #include <math.h>
-/* #include <float.h> */
 }
 
-#include "constltp.h"
+#include <constltp.h>
 
 /* ElasticConstitutiveLaw - begin */
 

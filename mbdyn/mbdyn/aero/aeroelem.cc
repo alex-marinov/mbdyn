@@ -145,8 +145,8 @@ M(0.)
       		}
       		catch (ErrMemory) {
 	 		SetOutputFlag(flag(0));
-	 		cerr << "Unable to alloc memory for output"
-				" of AerodynamicBody " << GetLabel() << endl;
+	 		std::cerr << "Unable to alloc memory for output"
+				" of AerodynamicBody " << GetLabel() << std::endl;
       		}
 #endif /* USE_EXCEPTIONS */
    	}
@@ -192,9 +192,9 @@ AerodynamicBody::SetOutputFlag(flag f)
 	 		}
 	 		catch (ErrMemory) {
 	    			SetOutputFlag(flag(0));
-	    			cerr << "Unable to alloc memory for output"
+	    			std::cerr << "Unable to alloc memory for output"
 					" of AerodynamicBody " 
-					<< GetLabel() << endl;
+					<< GetLabel() << std::endl;
 	 		}
 #endif /* USE_EXCEPTIONS */
       		}
@@ -203,8 +203,8 @@ AerodynamicBody::SetOutputFlag(flag f)
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
-ostream&
-AerodynamicBody::Restart(ostream& out) const
+std::ostream&
+AerodynamicBody::Restart(std::ostream& out) const
 {
    	DEBUGCOUTFNAME("AerodynamicBody::Restart");
    
@@ -225,7 +225,7 @@ AerodynamicBody::Restart(ostream& out) const
      		<< ", " << GDI.iGetNum() << ", control, ";
    	pGetDriveCaller()->Restart(out) << ", ";
    	aerodata->Restart(out);
-   	return out << ';' << endl;
+   	return out << ';' << std::endl;
 }
 
 SubVectorHandler&
@@ -450,10 +450,10 @@ AerodynamicBody::Output(OutputHandler& OH) const
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
       		ASSERT(pOutput != NULL);
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
-      		ostream& out = OH.Aerodynamic() << setw(8) << GetLabel();
+      		std::ostream& out = OH.Aerodynamic() << std::setw(8) << GetLabel();
       
 #if AEROD_OUTPUT == AEROD_OUT_NODE
-      		out << " " << setw(8) << pNode->GetLabel()
+      		out << " " << std::setw(8) << pNode->GetLabel()
 			<< " ", F.Write(out, " ") << " ", M.Write(out, " ");
 #else /* AEROD_OUTPUT != AEROD_OUT_NODE */ 
       		for (int i = 0; i < GDI.iGetNum(); i++) {
@@ -467,7 +467,7 @@ AerodynamicBody::Output(OutputHandler& OH) const
 #endif /* AEROD_OUTPUT == AEROD_OUT_STD */
       		}
 #endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
-      		out << endl;      
+      		out << std::endl;      
    	}
 }
 
@@ -490,9 +490,9 @@ ReadUnsteadyFlag(MBDynParser& HP)
 			} else if (HP.IsKeyWord("bielawa")) {
 				iInst = 2;
 			} else {
-				cerr << HP.GetLineData()
+				std::cerr << HP.GetLineData()
  					<<"deprecated unsteady model given by number;"
-					" use 'harris' or 'bielawa' instead" << endl;
+					" use 'harris' or 'bielawa' instead" << std::endl;
 				iInst = HP.GetInt();
 			}
 		} else {
@@ -501,13 +501,13 @@ ReadUnsteadyFlag(MBDynParser& HP)
 
       		if (iInst != 0) {
 	 		if (iInst < 0 || iInst > 2) {
-	    			cerr << "illegal unsteady flag at line "
-					<< HP.GetLineData() << endl;
+	    			std::cerr << "illegal unsteady flag at line "
+					<< HP.GetLineData() << std::endl;
 				THROW(ErrGeneric());
 	 		}
-	    		cerr << HP.GetLineData() << ": warning:"
+	    		std::cerr << HP.GetLineData() << ": warning:"
 				" unsteady aerodynamics are not tested yet"
-				<< endl;
+				<< std::endl;
       		}
 		/*
 		 * unsteady flag
@@ -563,11 +563,11 @@ ReadAeroData(DataManager* pDM,
 
    	*piNumber = HP.GetInt();
 	if ( *piNumber <= 0 ) {
-		cerr << "line " << HP.GetLineData() 
-			<< ": need at least 1 Gauss point" << endl;
+		std::cerr << "line " << HP.GetLineData() 
+			<< ": need at least 1 Gauss point" << std::endl;
 		THROW(ErrGeneric());
 	}
-   	DEBUGLCOUT(MYDEBUG_INPUT, "Gauss points number: " << *piNumber << endl);
+   	DEBUGLCOUT(MYDEBUG_INPUT, "Gauss points number: " << *piNumber << std::endl);
   
    	if (HP.IsKeyWord("control")) {      
       		/* Driver di un'eventuale controllo */
@@ -582,13 +582,13 @@ ReadAeroData(DataManager* pDM,
    	if (HP.fIsArg()) {            
       		switch (HP.IsKeyWord()) {
        		default:
-	  		cerr << "unknown profile type at line "
+	  		std::cerr << "unknown profile type at line "
 	    			<< HP.GetLineData()
-				<< "; using default (NACA0012)" << endl;
+				<< "; using default (NACA0012)" << std::endl;
 
        		case NACA0012: {
 	  		DEBUGLCOUT(MYDEBUG_INPUT,
-				   "profile is NACA0012" << endl);
+				   "profile is NACA0012" << std::endl);
 	  
 	  		integer iInst = ReadUnsteadyFlag(HP);
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
@@ -599,7 +599,7 @@ ReadAeroData(DataManager* pDM,
 	 
        		case RAE9671: {
 	  		DEBUGLCOUT(MYDEBUG_INPUT,
-				"profile is RAE9671" << endl);
+				"profile is RAE9671" << std::endl);
 	  
 	  		integer iInst = ReadUnsteadyFlag(HP);
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
@@ -616,7 +616,7 @@ ReadAeroData(DataManager* pDM,
 			if (HP.IsKeyWord("multiple")) {
 				integer nProfiles = HP.GetInt();
 				if (nProfiles <= 0) {
-					cerr << "Need at least one profile at line " << HP.GetLineData() << endl;
+					std::cerr << "Need at least one profile at line " << HP.GetLineData() << std::endl;
 					THROW(ErrGeneric());
 				}
 				integer *profiles = NULL;
@@ -630,28 +630,28 @@ ReadAeroData(DataManager* pDM,
 					profiles[i] = HP.GetInt();
 					upper_bounds[i] = HP.GetReal();
 					if (upper_bounds[i] <= -1.) {
-						cerr << "upper bound " << i+1 << " = " << upper_bounds[i] << " too small at line " << HP.GetLineData() << endl;
+						std::cerr << "upper bound " << i+1 << " = " << upper_bounds[i] << " too small at line " << HP.GetLineData() << std::endl;
 						THROW(ErrGeneric());
 					} else if (upper_bounds[i] > 1.) {
-						cerr << "upper bound " << i+1 << " = " << upper_bounds[i] << " too large at line " << HP.GetLineData() << endl;
+						std::cerr << "upper bound " << i+1 << " = " << upper_bounds[i] << " too large at line " << HP.GetLineData() << std::endl;
 						THROW(ErrGeneric());
 					} else if (i > 0 && upper_bounds[i] <= upper_bounds[i-1]) {
-						cerr << "upper bound " << i+1 << " = " << upper_bounds[i] << " not in increasing order at line " << HP.GetLineData() << endl;
+						std::cerr << "upper bound " << i+1 << " = " << upper_bounds[i] << " not in increasing order at line " << HP.GetLineData() << std::endl;
 						THROW(ErrGeneric());
 					}
 					data[i] = HP.GetC81Data(profiles[i]);
 					if (data[i] == NULL) {
-						cerr << "Unable to find profile " << profiles[i] << " at line "<< HP.GetLineData() << endl;
+						std::cerr << "Unable to find profile " << profiles[i] << " at line "<< HP.GetLineData() << std::endl;
 						THROW(ErrGeneric());
 					}
 		  			DEBUGLCOUT(MYDEBUG_INPUT, 
 						"profile data " << i+1 
 						<< " is from file c81 "
-						<< profiles[i] << endl);
+						<< profiles[i] << std::endl);
 				}
 
 				if (upper_bounds[nProfiles-1] != 1.) {
-					cerr << "warning: the last upper bound should be 1. at line " << HP.GetLineData() << endl;
+					std::cerr << "warning: the last upper bound should be 1. at line " << HP.GetLineData() << std::endl;
 				}
 				
 				profiles[nProfiles] = -1;
@@ -669,7 +669,7 @@ ReadAeroData(DataManager* pDM,
 
 		  		DEBUGLCOUT(MYDEBUG_INPUT, 
 					"profile data is from file c81 "
-					<< iProfile << endl);
+					<< iProfile << std::endl);
 				integer iInst = ReadUnsteadyFlag(HP);
 	  			SAFENEWWITHCONSTRUCTOR(*aerodata,
 					C81AeroData,
@@ -680,9 +680,9 @@ ReadAeroData(DataManager* pDM,
       		}
 		
    	} else {
-      		cerr << "unknown profile type at line "
+      		std::cerr << "unknown profile type at line "
 			<< HP.GetLineData()
-			<< "; using default (NACA0012)" << endl;
+			<< "; using default (NACA0012)" << std::endl;
       
       		integer iInst = ReadUnsteadyFlag(HP);
       		SAFENEWWITHCONSTRUCTOR(*aerodata,
@@ -708,7 +708,7 @@ ReadAerodynamicBody(DataManager* pDM,
 	if (HP.IsKeyWord("rotor")) {
 		uNode = (unsigned int)HP.GetInt();  
 		DEBUGLCOUT(MYDEBUG_INPUT,
-			   "Linked to Rotor: " << uNode << endl);
+			   "Linked to Rotor: " << uNode << std::endl);
 		
 		/*
 		 * verifica di esistenza del rotore       
@@ -717,10 +717,10 @@ ReadAerodynamicBody(DataManager* pDM,
 		 */
 		 Elem* p = (Elem*)(pDM->pFindElem(Elem::ROTOR, uNode));
 		 if (p  == NULL) {
-		 	cerr << endl
+		 	std::cerr << std::endl
 				<< " at line " << HP.GetLineData() 
 				<< ": rotor " << uNode
-				<< " not defined" << endl;	
+				<< " not defined" << std::endl;	
 				THROW(DataManager::ErrGeneric());
 		}
 		pRotor = (Rotor*)p->pGet();
@@ -729,12 +729,12 @@ ReadAerodynamicBody(DataManager* pDM,
 	ReferenceFrame RF(pNode);
 	Vec3 f(HP.GetPosRel(RF));
 	
-	DEBUGLCOUT(MYDEBUG_INPUT, "Offset: " << f << endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "Offset: " << f << std::endl);
 	
 	Mat3x3 Ra(HP.GetRotRel(RF));
 	
 	doublereal dSpan = HP.GetReal();
-	DEBUGLCOUT(MYDEBUG_INPUT, "Span: " << dSpan << endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "Span: " << dSpan << std::endl);
 	
 	Shape* pChord = NULL;
 	Shape* pForce = NULL;
@@ -760,8 +760,8 @@ ReadAerodynamicBody(DataManager* pDM,
 	
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.fIsArg()) {
-		cerr << ": semicolon expected at line "
-			<< HP.GetLineData() << endl;      
+		std::cerr << ": semicolon expected at line "
+			<< HP.GetLineData() << std::endl;      
 		THROW(DataManager::ErrGeneric());
 	}
 	
@@ -853,8 +853,8 @@ pvdOuta(NULL)
       		}
       		catch (ErrMemory) {
 	 		SetOutputFlag(flag(0));
-	 		cerr << "Unable to alloc memory for output"
-				" of AerodynamicBeam " << GetLabel() << endl;
+	 		std::cerr << "Unable to alloc memory for output"
+				" of AerodynamicBeam " << GetLabel() << std::endl;
       		}
 #endif /* USE_EXCEPTIONS */
    	}
@@ -901,9 +901,9 @@ AerodynamicBeam::SetOutputFlag(flag f)
 	 		}
 	 		catch (ErrMemory) {
 	    			SetOutputFlag(flag(0));
-	    			cerr << "Unable to alloc memory for output"
+	    			std::cerr << "Unable to alloc memory for output"
 					" of AerodynamicBeam "
-					<< GetLabel() << endl;
+					<< GetLabel() << std::endl;
 	 		}
 #endif /* USE_EXCEPTIONS */
       		}
@@ -912,8 +912,8 @@ AerodynamicBeam::SetOutputFlag(flag f)
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
-ostream&
-AerodynamicBeam::Restart(ostream& out) const
+std::ostream&
+AerodynamicBeam::Restart(std::ostream& out) const
 {
 	DEBUGCOUTFNAME("AerodynamicBeam::Restart");
 	out << "  aerodynamic beam: " << GetLabel()
@@ -938,7 +938,7 @@ AerodynamicBeam::Restart(ostream& out) const
 		<< GDI.iGetNum() << ", control, ";
 	pGetDriveCaller()->Restart(out) << ", ";
 	aerodata->Restart(out);
-	return out << ';' << endl;
+	return out << ';' << std::endl;
 }
 
 /* assemblaggio residuo */
@@ -1244,10 +1244,10 @@ AerodynamicBeam::Output(OutputHandler& OH ) const
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 		ASSERT(pOutput != NULL);
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
-		ostream& out = OH.Aerodynamic() << setw(8) << GetLabel();
+		std::ostream& out = OH.Aerodynamic() << std::setw(8) << GetLabel();
 		
 #if AEROD_OUTPUT == AEROD_OUT_NODE
-		out << " " << setw(8) << pBeam->GetLabel();
+		out << " " << std::setw(8) << pBeam->GetLabel();
 		out << " ", F[NODE1].Write(out, " ") << " ", M[NODE1].Write(out, " ");
 		out << " ", F[NODE2].Write(out, " ") << " ", M[NODE2].Write(out, " ");
 		out << " ", F[NODE3].Write(out, " ") << " ", M[NODE3].Write(out, " ");
@@ -1263,7 +1263,7 @@ AerodynamicBeam::Output(OutputHandler& OH ) const
 #endif /* AEROD_OUTPUT == AEROD_OUT_STD */
 		}
 #endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
-		out << endl;
+		out << std::endl;
 	}
 }
 
@@ -1282,15 +1282,15 @@ ReadAerodynamicBeam(DataManager* pDM,
 	/* Trave */
 	unsigned int uBeam = (unsigned int)HP.GetInt();
 	
-	DEBUGLCOUT(MYDEBUG_INPUT, "Linked to beam: " << uBeam << endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "Linked to beam: " << uBeam << std::endl);
 	
 	/* verifica di esistenza della trave */
 	Beam* pBeam;
 	Elem* p = (Elem*)(pDM->pFindElem(Elem::BEAM, uBeam));
 	if (p == NULL) {
-		cerr << " at line " << HP.GetLineData() 
+		std::cerr << " at line " << HP.GetLineData() 
 			<< ": beam " << uBeam
-			<< " not defined" << endl;      
+			<< " not defined" << std::endl;      
 		THROW(DataManager::ErrGeneric());
 	}
 	pBeam = (Beam*)p->pGet();
@@ -1300,7 +1300,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 	if (HP.IsKeyWord("rotor")) {
 		unsigned int uRotor = (unsigned int)HP.GetInt();
 		DEBUGLCOUT(MYDEBUG_INPUT,
-			"Linked to Rotor: " << uRotor << endl);
+			"Linked to Rotor: " << uRotor << std::endl);
 		
 		/*
 		 * verifica di esistenza del rotore
@@ -1309,9 +1309,9 @@ ReadAerodynamicBeam(DataManager* pDM,
 		 */
 		Elem* p = (Elem*)(pDM->pFindElem(Elem::ROTOR, uRotor));
 		if (p == NULL) {
-			cerr << " at line " << HP.GetLineData() 
+			std::cerr << " at line " << HP.GetLineData() 
 				<< ": rotor " << uRotor
-				<< " not defined" << endl;	 
+				<< " not defined" << std::endl;	 
 			THROW(DataManager::ErrGeneric());
 		}
 		pRotor = (Rotor*)p->pGet();
@@ -1324,11 +1324,11 @@ ReadAerodynamicBeam(DataManager* pDM,
 	
 	ReferenceFrame RF(pNode1);
 	Vec3 f1(HP.GetPosRel(RF));      
-	DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << std::endl);
 	
 	Mat3x3 Ra1(HP.GetRotRel(RF));
 	DEBUGLCOUT(MYDEBUG_INPUT,
-		   "Node 1 rotation matrix: " << endl << Ra1 << endl);
+		   "Node 1 rotation matrix: " << std::endl << Ra1 << std::endl);
 
 	/* Nodo 2: */
 	
@@ -1337,11 +1337,11 @@ ReadAerodynamicBeam(DataManager* pDM,
 	
 	RF = ReferenceFrame(pNode2);
 	Vec3 f2(HP.GetPosRel(RF));    
-	DEBUGLCOUT(MYDEBUG_INPUT, "Node 2 offset: " << f2 << endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "Node 2 offset: " << f2 << std::endl);
 	
 	Mat3x3 Ra2(HP.GetRotRel(RF));   
 	DEBUGLCOUT(MYDEBUG_INPUT,
-		   "Node 2 rotation matrix: " << endl << Ra2 << endl);
+		   "Node 2 rotation matrix: " << std::endl << Ra2 << std::endl);
 
 	/* Nodo 3: */
 	
@@ -1350,11 +1350,11 @@ ReadAerodynamicBeam(DataManager* pDM,
 	
 	RF = ReferenceFrame(pNode3);
 	Vec3 f3(HP.GetPosRel(RF));   
-	DEBUGLCOUT(MYDEBUG_INPUT, "Node 3 offset: " << f3 << endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "Node 3 offset: " << f3 << std::endl);
 	
 	Mat3x3 Ra3(HP.GetRotRel(RF));   
 	DEBUGLCOUT(MYDEBUG_INPUT,
-		   "Node 3 rotation matrix: " << endl << Ra3 << endl);
+		   "Node 3 rotation matrix: " << std::endl << Ra3 << std::endl);
 
 	Shape* pChord = NULL;
 	Shape* pForce = NULL;
@@ -1382,8 +1382,8 @@ ReadAerodynamicBeam(DataManager* pDM,
 	
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.fIsArg()) {
-		cerr << ": semicolon expected at line "
-			<< HP.GetLineData() << endl;      
+		std::cerr << ": semicolon expected at line "
+			<< HP.GetLineData() << std::endl;      
 		THROW(DataManager::ErrGeneric());
 	}
 	
@@ -1473,9 +1473,9 @@ pvdOuta(NULL)
       		}
       		catch (ErrMemory) {
 	 		SetOutputFlag(flag(0));
-	 		cerr << "Unable to alloc memory for output"
+	 		std::cerr << "Unable to alloc memory for output"
 				" of AerodynamicBeam2(" << GetLabel() << ")" 
-				<< endl;
+				<< std::endl;
       		}
 #endif /* USE_EXCEPTIONS */
    	}
@@ -1522,9 +1522,9 @@ AerodynamicBeam2::SetOutputFlag(flag f)
 	 		}
 	 		catch (ErrMemory) {
 	    			SetOutputFlag(flag(0));
-	    			cerr << "Unable to alloc memory for output"
+	    			std::cerr << "Unable to alloc memory for output"
 					" of AerodynamicBeam2("
-					<< GetLabel() << ")" << endl;
+					<< GetLabel() << ")" << std::endl;
 	 		}
 #endif /* USE_EXCEPTIONS */
       		}
@@ -1533,8 +1533,8 @@ AerodynamicBeam2::SetOutputFlag(flag f)
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
-ostream&
-AerodynamicBeam2::Restart(ostream& out) const
+std::ostream&
+AerodynamicBeam2::Restart(std::ostream& out) const
 {
 	DEBUGCOUTFNAME("AerodynamicBeam2::Restart");
 	out << "  aerodynamic beam2: " << GetLabel()
@@ -1556,7 +1556,7 @@ AerodynamicBeam2::Restart(ostream& out) const
 		<< GDI.iGetNum() << ", control, ";
 	pGetDriveCaller()->Restart(out) << ", ";
 	aerodata->Restart(out);
-	return out << ';' << endl;
+	return out << ';' << std::endl;
 }
 
 /* assemblaggio residuo */
@@ -1683,7 +1683,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 		M[iNode] = Vec3(0.);
 	
 		doublereal dsi = pdsi2[iNode];
-		doublereal dsf = pdsi2[iNode];
+		doublereal dsf = pdsf2[iNode];
 
 		doublereal dsm = (dsf+dsi)/2.;
 		doublereal dsdCsi = (dsf-dsi)/2.;
@@ -1843,10 +1843,10 @@ AerodynamicBeam2::Output(OutputHandler& OH ) const
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 		ASSERT(pOutput != NULL);
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
-		ostream& out = OH.Aerodynamic() << setw(8) << GetLabel();
+		std::ostream& out = OH.Aerodynamic() << std::setw(8) << GetLabel();
 		
 #if AEROD_OUTPUT == AEROD_OUT_NODE
-		out << " " << setw(8) << pBeam->GetLabel();
+		out << " " << std::setw(8) << pBeam->GetLabel();
 		out << " ", F1.Write(out, " ") << " ", M1.Write(out, " ");
 		out << " ", F2.Write(out, " ") << " ", M2.Write(out, " ");
 #else /* AEROD_OUTPUT != AEROD_OUT_NODE */
@@ -1861,7 +1861,7 @@ AerodynamicBeam2::Output(OutputHandler& OH ) const
 #endif /* AEROD_OUTPUT == AEROD_OUT_STD */
 		}
 #endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
-		out << endl;
+		out << std::endl;
 	}
 }
 
@@ -1882,15 +1882,15 @@ ReadAerodynamicBeam2(
 	/* Trave */
 	unsigned int uBeam = (unsigned int)HP.GetInt();
 	
-	DEBUGLCOUT(MYDEBUG_INPUT, "Linked to beam: " << uBeam << endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "Linked to beam: " << uBeam << std::endl);
 	
 	/* verifica di esistenza della trave */
 	Beam2* pBeam;
 	Elem* p = (Elem *)pDM->pFindElem(Elem::BEAM, uBeam);
 	if (p == NULL) {
-		cerr << " at line " << HP.GetLineData() 
+		std::cerr << " at line " << HP.GetLineData() 
 			<< ": beam " << uBeam
-			<< " not defined" << endl;      
+			<< " not defined" << std::endl;      
 		THROW(DataManager::ErrGeneric());
 	}
 	pBeam = (Beam2 *)p->pGet();
@@ -1900,7 +1900,7 @@ ReadAerodynamicBeam2(
 	if (HP.IsKeyWord("rotor")) {
 		unsigned int uRotor = (unsigned int)HP.GetInt();
 		DEBUGLCOUT(MYDEBUG_INPUT,
-			"Linked to Rotor: " << uRotor << endl);
+			"Linked to Rotor: " << uRotor << std::endl);
 		
 		/*
 		 * verifica di esistenza del rotore
@@ -1909,9 +1909,9 @@ ReadAerodynamicBeam2(
 		 */
 		Elem* p = (Elem*)(pDM->pFindElem(Elem::ROTOR, uRotor));
 		if (p == NULL) {
-			cerr << " at line " << HP.GetLineData() 
+			std::cerr << " at line " << HP.GetLineData() 
 				<< ": rotor " << uRotor
-				<< " not defined" << endl;	 
+				<< " not defined" << std::endl;	 
 			THROW(DataManager::ErrGeneric());
 		}
 		pRotor = (Rotor*)p->pGet();
@@ -1924,11 +1924,11 @@ ReadAerodynamicBeam2(
 	
 	ReferenceFrame RF(pNode1);
 	Vec3 f1(HP.GetPosRel(RF));      
-	DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << std::endl);
 	
 	Mat3x3 Ra1(HP.GetRotRel(RF));
 	DEBUGLCOUT(MYDEBUG_INPUT,
-		   "Node 1 rotation matrix: " << endl << Ra1 << endl);
+		   "Node 1 rotation matrix: " << std::endl << Ra1 << std::endl);
 
 	/* Nodo 2: */
 	
@@ -1937,11 +1937,11 @@ ReadAerodynamicBeam2(
 	
 	RF = ReferenceFrame(pNode2);
 	Vec3 f2(HP.GetPosRel(RF));    
-	DEBUGLCOUT(MYDEBUG_INPUT, "Node 2 offset: " << f2 << endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "Node 2 offset: " << f2 << std::endl);
 	
 	Mat3x3 Ra2(HP.GetRotRel(RF));   
 	DEBUGLCOUT(MYDEBUG_INPUT,
-		   "Node 2 rotation matrix: " << endl << Ra2 << endl);
+		   "Node 2 rotation matrix: " << std::endl << Ra2 << std::endl);
 
 	Shape* pChord = NULL;
 	Shape* pForce = NULL;
@@ -1969,8 +1969,8 @@ ReadAerodynamicBeam2(
 	
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.fIsArg()) {
-		cerr << ": semicolon expected at line "
-			<< HP.GetLineData() << endl;      
+		std::cerr << ": semicolon expected at line "
+			<< HP.GetLineData() << std::endl;      
 		THROW(DataManager::ErrGeneric());
 	}
 	

@@ -59,7 +59,7 @@ pdP(p), pdTau(tau)
    ASSERT(SD_y.iOrder == 0);
    ASSERT(SD_u.iOrder == 0);
    iNumDofs = max(integer(na-1), 0)+max(integer(nb-1), 0);
-   DEBUGCOUT("GenelFilter " << uLabel << ", NumDofs: " << iNumDofs << endl);
+   DEBUGCOUT("GenelFilter " << uLabel << ", NumDofs: " << iNumDofs << std::endl);
 }
 
 
@@ -89,9 +89,9 @@ DofOrder::Order GenelFilter::SetDof(unsigned int i) const
 
 
 /* Scrive il contributo dell'elemento al file di restart */
-ostream& GenelFilter::Restart(ostream& out) const
+std::ostream& GenelFilter::Restart(std::ostream& out) const
 {
-   return out << "GenelFilter: not implemented yet!" << endl;
+   return out << "GenelFilter: not implemented yet!" << std::endl;
 }
 
 
@@ -116,7 +116,7 @@ GenelFilter::AssJac(VariableSubMatrixHandler& WorkMat,
 		    const VectorHandler& /* XCurr */ ,
 		    const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering GenelFilter::AssJac()" << endl);
+   DEBUGCOUT("Entering GenelFilter::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    integer iNumRows = 0;
@@ -176,7 +176,7 @@ GenelFilter::AssRes(SubVectorHandler& WorkVec,
 		    const VectorHandler& XCurr,
 		    const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering GenelFilter::AssRes()" << endl);
+   DEBUGCOUT("Entering GenelFilter::AssRes()" << std::endl);
    
    integer iNumRows = 0;
    integer iNumCols = 0;
@@ -251,7 +251,7 @@ fSteady(fSt)
    ASSERT(Na >= Nb);
    ASSERT(SD_y.iOrder == 0);
    
-   DEBUGCOUT("GenelFilterEq " << uLabel << ", NumDofs: " << Na << endl);
+   DEBUGCOUT("GenelFilterEq " << uLabel << ", NumDofs: " << Na << std::endl);
    
    SAFENEWARR(pdAlpha, doublereal, Na+Nb+1);
       
@@ -302,9 +302,9 @@ DofOrder::Order GenelFilterEq::SetDof(unsigned int i) const
 
 
 /* Scrive il contributo dell'elemento al file di restart */
-ostream& GenelFilterEq::Restart(ostream& out) const
+std::ostream& GenelFilterEq::Restart(std::ostream& out) const
 {
-   return out << "GenelFilterEq: not implemented yet!" << endl;
+   return out << "GenelFilterEq: not implemented yet!" << std::endl;
 }
 
 
@@ -329,7 +329,7 @@ GenelFilterEq::AssJac(VariableSubMatrixHandler& WorkMat,
 		      const VectorHandler& /* XCurr */ ,
 		      const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering GenelFilterEq::AssJac()" << endl);
+   DEBUGCOUT("Entering GenelFilterEq::AssJac()" << std::endl);
    
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    WM.Resize(3*Na, 0);
@@ -372,7 +372,7 @@ GenelFilterEq::AssRes(SubVectorHandler& WorkVec,
 		      const VectorHandler& XCurr,
 		      const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering GenelFilterEq::AssRes()" << endl);
+   DEBUGCOUT("Entering GenelFilterEq::AssRes()" << std::endl);
    
    WorkVec.Resize(Na+1); 
    
@@ -422,14 +422,14 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
 #ifdef USE_MESCHACH
    if (fSteady) {
-      DEBUGCOUT("Finding initial conditions for scalar filter " << GetLabel() << endl);
+      DEBUGCOUT("Finding initial conditions for scalar filter " << GetLabel() << std::endl);
       
       if (Na == 0) {
 	 integer iRowIndex_y = SD_y.pNode->iGetFirstRowIndex()+1;
 	 doublereal u = SD_u.pNode->dGetX();
 	 X.fPutCoef(iRowIndex_y, pdBeta[Nb]*u);
 # ifdef DEBUG
-	    cout << "Y = " << pdBeta[Nb]*u << endl;
+	    std::cout << "Y = " << pdBeta[Nb]*u << std::endl;
 # endif	 
 	 return;
       } 
@@ -437,7 +437,7 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
       MeschachSparseLUSolutionManager sm(Na);
       
       /* preparo matrice */
-      DEBUGCOUT("Preparing matrix ..." << endl);
+      DEBUGCOUT("Preparing matrix ..." << std::endl);
       sm.MatrInit();
       
       MatrixHandler* mh = sm.pMatHdl();
@@ -451,7 +451,7 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
       mh->fPutCoef(Na, Na, -pdAlpha[Na-1]);
       
       /* preparo termine noto */
-      DEBUGCOUT("Preparing rhs ..." << endl);
+      DEBUGCOUT("Preparing rhs ..." << std::endl);
       VectorHandler* rh = sm.pResHdl();
       doublereal u = SD_u.pNode->dGetX();
 
@@ -463,23 +463,23 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
 # ifdef USE_EXCEPTIONS
       try {
 # endif 
-	 DEBUGCOUT("Solving ..." << endl);
+	 DEBUGCOUT("Solving ..." << std::endl);
 	 sm.Solve();
 # ifdef USE_EXCEPTIONS
       } 
       catch (...) {
-	 cerr << "Matrix might be singular; skipping state initialization" << endl;
+	 std::cerr << "Matrix might be singular; skipping state initialization" << std::endl;
 	 return;
       }
 # endif 
       
       /* setto coefficienti */
-      DEBUGCOUT("Solution:" << endl);
+      DEBUGCOUT("Solution:" << std::endl);
       integer iFirstIndex = iGetFirstIndex();
       VectorHandler* sh = sm.pSolHdl();
       for (unsigned long i = 1; i <= Na; i++) {
 # ifdef DEBUG
-	 cout << "X[" << i << "] = " << sh->dGetCoef(i) << endl;
+	 std::cout << "X[" << i << "] = " << sh->dGetCoef(i) << std::endl;
 # endif
 	 X.fPutCoef(iFirstIndex+i, sh->dGetCoef(i));
       }
@@ -489,11 +489,11 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
       if (Na == Nb) {
 	 X.fPutCoef(iRowIndex_y, dXn+pdBeta[Nb]*u);
 # ifdef DEBUG
-	 cout << "Y = " << dXn+pdBeta[Nb]*u << endl;
+	 std::cout << "Y = " << dXn+pdBeta[Nb]*u << std::endl;
 # endif
       } else {
 # ifdef DEBUG
-	 cout << "Y = " << dXn << endl;
+	 std::cout << "Y = " << dXn << std::endl;
 # endif	 
 	 X.fPutCoef(iRowIndex_y, dXn);
       }
@@ -530,7 +530,7 @@ pdX(NULL), pdXP(NULL)
    ASSERT(SD_y.iOrder == 0);
    ASSERT(SD_u.iOrder == 0);	
    DEBUGCOUT("GenelStateSpaceSISO " << uLabel 
-	     << ", NumDofs: " << iNumDofs << endl);
+	     << ", NumDofs: " << iNumDofs << std::endl);
    
    SAFENEWARR(pdX, doublereal, 2*Order);
    pdXP = pdX+Order;
@@ -569,9 +569,9 @@ DofOrder::Order GenelStateSpaceSISO::SetDof(unsigned int i) const
 
 
 /* Scrive il contributo dell'elemento al file di restart */
-ostream& GenelStateSpaceSISO::Restart(ostream& out) const 
+std::ostream& GenelStateSpaceSISO::Restart(std::ostream& out) const 
 {
-   return out << "GenelStateSpaceSISO: not implemented yet!" << endl; 
+   return out << "GenelStateSpaceSISO: not implemented yet!" << std::endl; 
 }
 
 
@@ -597,7 +597,7 @@ GenelStateSpaceSISO::AssJac(VariableSubMatrixHandler& WorkMat,
 			    const VectorHandler& /* XCurr */ ,
 			    const VectorHandler& /* XPrimeCurr */ ) 
 {
-   DEBUGCOUT("Entering GenelStateSpaceSISO::AssJac()" << endl);
+   DEBUGCOUT("Entering GenelStateSpaceSISO::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    integer iNumRows = 0;
@@ -641,7 +641,7 @@ GenelStateSpaceSISO::AssRes(SubVectorHandler& WorkVec,
 			    const VectorHandler& XCurr,
 			    const VectorHandler& XPrimeCurr) 
 {
-   DEBUGCOUT("Entering GenelStateSpaceSISO::AssRes()" << endl);
+   DEBUGCOUT("Entering GenelStateSpaceSISO::AssRes()" << std::endl);
    
    integer iNumRows = 0;
    integer iNumCols = 0;
@@ -729,7 +729,7 @@ pdX(NULL), pdXP(NULL)
    ASSERT(pdD != NULL);	
 #endif /* 0 */
    DEBUGCOUT("GenelStateSpaceMIMO " << uLabel 
-	     << ", NumDofs: " << iNumDofs << endl);
+	     << ", NumDofs: " << iNumDofs << std::endl);
 #endif /* DEBUG */
    
    SAFENEWARR(pdX, doublereal, 2*Order);
@@ -778,9 +778,9 @@ DofOrder::Order GenelStateSpaceMIMO::SetDof(unsigned int i) const
 
 
 /* Scrive il contributo dell'elemento al file di restart */
-ostream& GenelStateSpaceMIMO::Restart(ostream& out) const 
+std::ostream& GenelStateSpaceMIMO::Restart(std::ostream& out) const 
 {
-   return out << "GenelStateSpaceMIMO: not implemented yet!" << endl; 
+   return out << "GenelStateSpaceMIMO: not implemented yet!" << std::endl; 
 }
 
 
@@ -806,7 +806,7 @@ GenelStateSpaceMIMO::AssJac(VariableSubMatrixHandler& WorkMat,
 			    const VectorHandler& /* XCurr */ ,
 			    const VectorHandler& /* XPrimeCurr */ ) 
 {
-   DEBUGCOUT("Entering GenelStateSpaceMIMO::AssJac()" << endl);
+   DEBUGCOUT("Entering GenelStateSpaceMIMO::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    integer iNumRows = 0;
@@ -856,7 +856,7 @@ GenelStateSpaceMIMO::AssRes(SubVectorHandler& WorkVec,
 			    const VectorHandler& XCurr,
 			    const VectorHandler& XPrimeCurr) 
 {
-   DEBUGCOUT("Entering GenelStateSpaceMIMO::AssRes()" << endl);
+   DEBUGCOUT("Entering GenelStateSpaceMIMO::AssRes()" << std::endl);
    
    integer iNumRows = 0;
    integer iNumCols = 0;

@@ -33,11 +33,7 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#if defined(HAVE_IOSTREAM)
-#include <iostream>
-#elif defined(HAVE_IOSTREAM_H)
-#include <iostream.h>
-#endif
+#include <ac/iostream>
 #include "myassert.h"
 
 /* Filtro per la classe istream che conta il numero di righe. */

@@ -43,7 +43,7 @@
 
 /* DiscreteControlARXProcess_Debug - begin */
 
-int DiscreteControlARXProcess_Debug::ReadMatrix(istream& In, 
+int DiscreteControlARXProcess_Debug::ReadMatrix(std::istream& In, 
 						doublereal* pd,
 						unsigned int iNumRows, 
 						unsigned int iNumCols,
@@ -58,15 +58,15 @@ int DiscreteControlARXProcess_Debug::ReadMatrix(istream& In,
 	 for (unsigned int j = 0; j < iNumCols; j++) {  // for every column
 	    In >> pdTmp[j];
 	    if (!In) {
-	       cerr << "Error: unexpected end of stream while reading " 
+	       std::cerr << "Error: unexpected end of stream while reading " 
 		 << sMatName << '_'
-		 << k+1 << '(' << i+1 << ',' << j+1 << ')' << endl;
+		 << k+1 << '(' << i+1 << ',' << j+1 << ')' << std::endl;
 	       
 	       THROW(ErrGeneric());
 	    }
 	    
 	    DEBUGLCOUT(MYDEBUG_INIT, sMatName << '_' << k+1 << "(" << i 
-		       << "," << j << ") = " << pdTmp[j] << endl);
+		       << "," << j << ") = " << pdTmp[j] << std::endl);
 	 }
       }
    }
@@ -79,7 +79,7 @@ DiscreteControlARXProcess_Debug::DiscreteControlARXProcess_Debug(integer iNumOut
 								 integer iNumIn,
 								 integer iOrdA,
 								 integer iOrdB,
-								 istream& In)
+								 std::istream& In)
 : iNumOutputs(iNumOut),
 iNumInputs(iNumIn),
 iOrderA(iOrdA),
@@ -297,13 +297,13 @@ void DiscreteIdentProcess_Debug::PutOutput(doublereal* pdOut,
    if (fout) {
       integer size = pId->iGetSize()*pId->iGetNumOutput();
       if (size*sizeof(doublereal) > BUFSIZE) {
-	 cerr << "buffer is too small" << endl;
+	 std::cerr << "buffer is too small" << std::endl;
       } else {      	 
 	 pId->GetTheta(buf);
 	 for (integer i = 0; i < pId->iGetSize()*pId->iGetNumOutput(); i++) {
-	    out << setw(16) << buf[i];
+	    out << std::setw(16) << buf[i];
 	 }
-	 out << setw(16) << pId->dGetForgettingFactor() << endl;
+	 out << std::setw(16) << pId->dGetForgettingFactor() << std::endl;
       }      
    }  
 }
@@ -429,7 +429,7 @@ fout(sf != NULL ? 1 : 0)
 					       iOrdA, iOrdB, pf));
       break;
     default:
-      cerr << "Unknown type of identification!" << endl;
+      std::cerr << "Unknown type of identification!" << std::endl;
       THROW(ErrGeneric());
    }
    
@@ -505,9 +505,9 @@ void DAC_Process_Debug::PutOutput(doublereal* pdOut,
       pId->GetTheta(pdTheta);
            
       for (integer i = 0; i < pId->iGetSize()*pId->iGetNumOutput(); i++) {
-	 out << setw(16) << pdTheta[i];
+	 out << std::setw(16) << pdTheta[i];
       }
-      out << setw(16) << pId->dGetForgettingFactor() << endl;
+      out << std::setw(16) << pId->dGetForgettingFactor() << std::endl;
    }
       
    if (Trigger.dGet()) {
@@ -721,9 +721,9 @@ DiscreteControlElem::~DiscreteControlElem(void)
 
 
 /* Scrive il contributo dell'elemento al file di restart */
-ostream& DiscreteControlElem::Restart(ostream& out) const
+std::ostream& DiscreteControlElem::Restart(std::ostream& out) const
 {
-   out << "  electric: " << GetLabel() << ", discrete control;" << endl;
+   out << "  electric: " << GetLabel() << ", discrete control;" << std::endl;
    return out;
 }
 

@@ -33,7 +33,8 @@
 #ifndef GAUSS_H
 #define GAUSS_H
 
-#include <myf2c.h>
+#include <ac/f2c.h>
+
 #include <myassert.h>
 
 /* Struttura punto di Gauss.

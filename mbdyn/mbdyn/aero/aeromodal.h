@@ -59,9 +59,9 @@ public DriveOwner {
    integer iInst;               /* switch di instazionarieta': 0/1/2 */  
    integer iProfile;            /* Tipo di profilo */
    
+   integer NAeroElems;          /* Numero di elementi aerodinamici */
    integer NModes;              /* Numero di modi */
    integer NFemNodes;           /* Numero di nodi FEM */
-   integer NAeroElems;          /* Numero di elementi aerodinamici */
    unsigned int* iAeroTable;    /* Tabella con le connessioni nodi FEM <-> aero */
    //integer Zaxis;               
    
@@ -120,7 +120,7 @@ public DriveOwner {
    };
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    /* Tipo dell'elemento (usato per debug ecc.) */
    virtual Elem::Type GetElemType(void) const {

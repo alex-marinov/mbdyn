@@ -99,7 +99,7 @@ class SwashPlate : virtual public Elem, public Genel {
    
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
       
    /* Tipo di Genel */
    virtual Genel::Type GetGenelType(void) const { 

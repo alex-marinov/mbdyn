@@ -37,6 +37,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <ac/float.h>
+
 #include <dataman.h>
 #include <hfluid.h>
 #include <hfluid_.h>
@@ -90,9 +92,9 @@ ReadHydraulicFluid(MBDynParser& HP,
 	  dDensity = HP.GetReal();
        }
        if (dDensity < DBL_EPSILON) {
-	  cerr << "line " << HP.GetLineData()
+	  std::cerr << "line " << HP.GetLineData()
 	    << ": illegal density " << dDensity
-	    << " for hydraulic fluid " << uLabel << endl;
+	    << " for hydraulic fluid " << uLabel << std::endl;
        }
        
        doublereal dViscosity(0.);
@@ -100,9 +102,9 @@ ReadHydraulicFluid(MBDynParser& HP,
 	  dViscosity = HP.GetReal();
        }
         if (dViscosity < DBL_EPSILON) {
-		  cerr << "line " << HP.GetLineData() 
+		  std::cerr << "line " << HP.GetLineData() 
 	            << ": illegal viscosity " << dViscosity
-		    << endl;
+		    << std::endl;
 		  THROW(ErrGeneric());
 	       }
        
@@ -110,9 +112,9 @@ ReadHydraulicFluid(MBDynParser& HP,
        if (HP.IsKeyWord("pressure")) {
 	  dPres0 = HP.GetReal();
 	  if (dPres0 < 0.) {
-	     cerr << "line " << HP.GetLineData() 
+	     std::cerr << "line " << HP.GetLineData() 
 	       << ": illegal reference pressure " << dPres0 
-	       << " for hydraulic fluid " << uLabel << endl;
+	       << " for hydraulic fluid " << uLabel << std::endl;
 	  }	       
        }
        
@@ -120,9 +122,9 @@ ReadHydraulicFluid(MBDynParser& HP,
        if (HP.IsKeyWord("temperature")) {
 	  dTemp0 = HP.GetReal();
 	  if (dTemp0 < 0.) {
-	     cerr << "line " << HP.GetLineData()
+	     std::cerr << "line " << HP.GetLineData()
 	       << ": illegal reference temperature " << dTemp0
-	       << " for hydraulic fluid " << uLabel << endl;
+	       << " for hydraulic fluid " << uLabel << std::endl;
 	  }	       
        }       
        
@@ -148,8 +150,8 @@ ReadHydraulicFluid(MBDynParser& HP,
 	  if (HP.IsKeyWord("soundcelerity")) {
 	     doublereal sound = HP.GetReal();
 	     if (sound < DBL_EPSILON) {
-		cerr << "line " << HP.GetLineData() << ": illegal sound velocity " << sound
-		  << endl;
+		std::cerr << "line " << HP.GetLineData() << ": illegal sound velocity " << sound
+		  << std::endl;
 		THROW(ErrGeneric());		
 	     } 
 	     dBeta = sound*sound*dDensity;
@@ -157,23 +159,23 @@ ReadHydraulicFluid(MBDynParser& HP,
 	    { 
 	       dBeta = HP.GetReal();
 	       if (fabs(dBeta) < DBL_EPSILON) {
-		  cerr << "line " << HP.GetLineData() << ": illegal bulk modulus " << dBeta 
-		    << endl;
+		  std::cerr << "line " << HP.GetLineData() << ": illegal bulk modulus " << dBeta 
+		    << std::endl;
 		  THROW(ErrGeneric());
 	       }
 	    }
 	   
 	  if (dDensity < DBL_EPSILON) {
-	     cerr << "line " << HP.GetLineData()
+	     std::cerr << "line " << HP.GetLineData()
 	       << ": illegal density " << dDensity
-	       << " for hydraulic fluid " << uLabel << endl;
+	       << " for hydraulic fluid " << uLabel << std::endl;
 	  }
 	  
 	  dPres0 = HP.GetReal();
 	  if (dPres0 < 0.) {
-	     cerr << "line " << HP.GetLineData() 
+	     std::cerr << "line " << HP.GetLineData() 
 	       << ": illegal reference pressure " << dPres0 
-	       << " for hydraulic fluid " << uLabel << endl;
+	       << " for hydraulic fluid " << uLabel << std::endl;
 	  }	       
        }
        
@@ -183,9 +185,9 @@ ReadHydraulicFluid(MBDynParser& HP,
        }
         
        if (dViscosity < DBL_EPSILON) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": illegal viscosity " << dViscosity
-	    << endl;
+	    << std::endl;
 	  THROW(ErrGeneric());
        }
        
@@ -193,9 +195,9 @@ ReadHydraulicFluid(MBDynParser& HP,
        if (HP.IsKeyWord("temperature")) {
 	  dTemp0 = HP.GetReal();
 	  if (dTemp0 < 0.) {
-	     cerr << "line " << HP.GetLineData()
+	     std::cerr << "line " << HP.GetLineData()
 	       << ": illegal reference temperature " << dTemp0
-	       << " for hydraulic fluid " << uLabel << endl;
+	       << " for hydraulic fluid " << uLabel << std::endl;
 	  }	       
        }
        
@@ -250,39 +252,39 @@ ReadHydraulicFluid(MBDynParser& HP,
 	  if (HP.IsKeyWord("soundcelerity")) {
 	     doublereal sound = HP.GetReal();
 	     if (sound < DBL_EPSILON) {
-		cerr << "line " << HP.GetLineData() << ": illegal sound velocity " << sound
-		  << endl;
+		std::cerr << "line " << HP.GetLineData() << ": illegal sound velocity " << sound
+		  << std::endl;
 		THROW(ErrGeneric());		
 	     } 
 	     dBeta = sound*sound*dDensity;
 	  } else {
 	     dBeta = HP.GetReal();
 	     if (fabs(dBeta) < DBL_EPSILON) {
-		cerr << "line " << HP.GetLineData() << ": illegal bulk modulus " << dBeta << endl;
+		std::cerr << "line " << HP.GetLineData() << ": illegal bulk modulus " << dBeta << std::endl;
 		THROW(ErrGeneric());
 	     }
 	  }
 	  
 	  if (dDensity < DBL_EPSILON) {
-	     cerr << "line " << HP.GetLineData()
+	     std::cerr << "line " << HP.GetLineData()
 	       << ": illegal density " << dDensity
-	       << " for hydraulic fluid " << uLabel << endl;
+	       << " for hydraulic fluid " << uLabel << std::endl;
 	  }
 	  
 	  dPres0 = HP.GetReal();
 	  if (dPres0 < 0.) {
-	     cerr << "line " << HP.GetLineData() 
+	     std::cerr << "line " << HP.GetLineData() 
 	       << ": illegal reference pressure " << dPres0 
-	       << " for hydraulic fluid " << uLabel << endl;
+	       << " for hydraulic fluid " << uLabel << std::endl;
 	  }	       
 
 	  dAlpha = HP.GetReal();
 	  
 	  dTemp0 = HP.GetReal();
 	  if (dTemp0 < 0.) {
-	     cerr << "line " << HP.GetLineData()
+	     std::cerr << "line " << HP.GetLineData()
 	       << ": illegal reference temperature " << dTemp0
-	       << " for hydraulic fluid " << uLabel << endl;
+	       << " for hydraulic fluid " << uLabel << std::endl;
 	  }	       
        }
        
@@ -292,9 +294,9 @@ ReadHydraulicFluid(MBDynParser& HP,
        }
        
        if (dViscosity < DBL_EPSILON) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": illegal viscosity " << dViscosity
-	    << endl;
+	    << std::endl;
 	  THROW(ErrGeneric());
        }
        
@@ -311,7 +313,7 @@ ReadHydraulicFluid(MBDynParser& HP,
     }
 
     default:
-      cerr << "line " << HP.GetLineData() << ": unknown hydraulic fluid type" << endl;
+      std::cerr << "line " << HP.GetLineData() << ": unknown hydraulic fluid type" << std::endl;
       THROW(ErrGeneric());
    }
    

@@ -10,7 +10,6 @@ env \
 eu2rot \
 femgen \
 intg \
-loadable \
 posrel \
 rot2eu \
 rot2eup \
@@ -39,7 +38,6 @@ env_SOURCES = env.c
 eu2rot_SOURCES = eu2rot.cc
 femgen_SOURCES = femgen.f
 intg_SOURCES = intg.cc
-loadable_SOURCES = loadable.cc
 posrel_SOURCES = posrel.cc
 rot2eup_SOURCES = rot2eup.cc
 rot2eu_SOURCES = rot2eu.cc

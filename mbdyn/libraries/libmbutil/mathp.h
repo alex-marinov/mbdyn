@@ -34,23 +34,19 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include <mymath.h>
+#include <ac/math.h>
 #include <time.h>
-#if defined(HAVE_IOSTREAM)
-#include <iostream>
-#elif defined(HAVE_IOSTREAM_H)
-#include <iostream.h>
-#endif
+#include <ac/iostream>
 
-#include "myassert.h"
-#include "mynewmem.h"
-#include "except.h"
+#include <myassert.h>
+#include <mynewmem.h>
+#include <except.h>
 
-#include "mathtyp.h"
-#include "table.h"
-#include "input.h"
+#include <mathtyp.h>
+#include <table.h>
+#include <input.h>
 
-#include "stack.h"
+#include <stack.h>
 
 /* struttura delle funzioni built-in */
 struct mathfuncs {

@@ -37,9 +37,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-extern "C" {
-#include <float.h>
-}
+#include <ac/float.h>
 
 #include <hutils.h>
 
@@ -100,10 +98,10 @@ Accumulator::GetHydraulicType(void) const
 }
 
 /* Contributo al file di restart */
-ostream&  
-Accumulator::Restart(ostream& out) const
+std::ostream&  
+Accumulator::Restart(std::ostream& out) const
 {
-   return out << " Accumulator not implemented yet!" << endl;
+   return out << " Accumulator not implemented yet!" << std::endl;
 }
 
 
@@ -133,7 +131,7 @@ Accumulator::AssJac(VariableSubMatrixHandler& WorkMat,
 		    const VectorHandler& XCurr, 
 		    const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering  Accumulator::AssJac()" << endl);
+   DEBUGCOUT("Entering  Accumulator::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    WM.Resize(3, 3);
@@ -166,12 +164,12 @@ Accumulator::AssJac(VariableSubMatrixHandler& WorkMat,
    
    if (s > s_max) {
 #ifdef HYDR_DEVEL
-      DEBUGCOUT("AssJac(): ho superato la s_max: s" << s <<endl);
+      DEBUGCOUT("AssJac(): ho superato la s_max: s" << s <<std::endl);
 #endif
       s = s_max;
    } else if(s < 0.) {
 #ifdef HYDR_DEVEL
-      DEBUGCOUT("AssJac(): sono negativo: s" << s <<endl);
+      DEBUGCOUT("AssJac(): sono negativo: s" << s <<std::endl);
 #endif
       s = 0.;
    }
@@ -191,15 +189,15 @@ Accumulator::AssJac(VariableSubMatrixHandler& WorkMat,
    Jac33 = dCoef;
    
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("Jac11: " << Jac11 << endl);
-   DEBUGCOUT("Jac12: " << Jac12 << endl);
-   DEBUGCOUT("Jac13: " << Jac13 << endl);
-   DEBUGCOUT("Jac21: " << Jac21 << endl);
-   DEBUGCOUT("Jac22: " << Jac22 << endl);
-   DEBUGCOUT("Jac23: " << Jac23 << endl);
-   DEBUGCOUT("Jac31: " << Jac31 << endl);
-   DEBUGCOUT("Jac32: " << Jac32 << endl);
-   DEBUGCOUT("Jac33: " << Jac33 << endl);
+   DEBUGCOUT("Jac11: " << Jac11 << std::endl);
+   DEBUGCOUT("Jac12: " << Jac12 << std::endl);
+   DEBUGCOUT("Jac13: " << Jac13 << std::endl);
+   DEBUGCOUT("Jac21: " << Jac21 << std::endl);
+   DEBUGCOUT("Jac22: " << Jac22 << std::endl);
+   DEBUGCOUT("Jac23: " << Jac23 << std::endl);
+   DEBUGCOUT("Jac31: " << Jac31 << std::endl);
+   DEBUGCOUT("Jac32: " << Jac32 << std::endl);
+   DEBUGCOUT("Jac33: " << Jac33 << std::endl);
 #endif
 
    WM.fPutCoef(1, 1, Jac11);
@@ -222,7 +220,7 @@ Accumulator::AssRes(SubVectorHandler& WorkVec,
 		    const VectorHandler& XCurr, 
 		    const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Accumulator::AssRes()" << endl);
+   DEBUGCOUT("Entering Accumulator::AssRes()" << std::endl);
    
    WorkVec.Resize(3);
   
@@ -300,12 +298,12 @@ Accumulator::AssRes(SubVectorHandler& WorkVec,
    if (s > s_max) {
       pgas = press_max;
 #ifdef HYDR_DEVEL
-      DEBUGCOUT("AssJac(): ho superato la s_max: s " << s <<endl);
+      DEBUGCOUT("AssJac(): ho superato la s_max: s " << s <<std::endl);
 #endif
    } else if (s < 0.) {
       pgas = press0;
 #ifdef HYDR_DEVEL
-      DEBUGCOUT("AssJac(): sono negativo: s " << s <<endl);
+      DEBUGCOUT("AssJac(): sono negativo: s " << s <<std::endl);
 #endif
    } else {
       pgas = press0*pow(stroke/(stroke-s), Kappa);
@@ -320,39 +318,39 @@ Accumulator::AssRes(SubVectorHandler& WorkVec,
    flow = -Res_1;  /* portata nodo 1 (per l'output) */
 
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("x0:         " << x0 << endl); 
-   DEBUGCOUT("x0spring:   " << x0spring << endl); 
-   DEBUGCOUT("s:          " << s << endl); 
-   DEBUGCOUT("sp:         " << sp << endl); 
-   DEBUGCOUT("v:          " << v << endl); 
-   DEBUGCOUT("vp:         " << vp << endl); 
-   DEBUGCOUT("p1:         " << p1 << endl); 
-   DEBUGCOUT("pgas:       " << pgas << endl); 
+   DEBUGCOUT("x0:         " << x0 << std::endl); 
+   DEBUGCOUT("x0spring:   " << x0spring << std::endl); 
+   DEBUGCOUT("s:          " << s << std::endl); 
+   DEBUGCOUT("sp:         " << sp << std::endl); 
+   DEBUGCOUT("v:          " << v << std::endl); 
+   DEBUGCOUT("vp:         " << vp << std::endl); 
+   DEBUGCOUT("p1:         " << p1 << std::endl); 
+   DEBUGCOUT("pgas:       " << pgas << std::endl); 
    DEBUGCOUT("smorzatore: " 
-	     << copysign(h*.5*density*area*ratio2*pow(v, 2), v) << endl); 
-   DEBUGCOUT("stroke:     " << stroke << endl); 
-   DEBUGCOUT("area:       " << area << endl); 
-   DEBUGCOUT("area_pipe:  " << area_pipe << endl); 
-   DEBUGCOUT("mass:       " << mass << endl); 
-   DEBUGCOUT("press0:     " << press0 << endl); 
-   DEBUGCOUT("press_max:  " << press_max << endl); 
-   DEBUGCOUT("Kappa:      " << Kappa << endl); 
-   DEBUGCOUT("weight:     " << weight << endl); 
-   DEBUGCOUT("spring:     " << spring <<  endl); 
-   DEBUGCOUT("force0:     " << force0 <<  endl); 
-   DEBUGCOUT("s_min_gas:  " << s_min_gas << endl); 
-   DEBUGCOUT("s_max:      " << s_max << endl); 
-   DEBUGCOUT("c1:         " << c1 << endl);
-   DEBUGCOUT("c2:         " << c2 << endl);
-   DEBUGCOUT("c3:         " << c3 << endl);
-   DEBUGCOUT("c4:         " << c4 << endl);
-   DEBUGCOUT("cf1:        " << cf1 << endl);
-   DEBUGCOUT("cf2:        " << cf2 << endl);
-   DEBUGCOUT("cf3:        " << cf3 << endl);
-   DEBUGCOUT("cf4:        " << cf4 << endl);
-   DEBUGCOUT("-Res_1 (portata nodo1): " << -Res_1 << endl); 
-   DEBUGCOUT("Res_2:                  " << Res_2 << endl); 
-   DEBUGCOUT("Res_3:                  " << Res_3 << endl);
+	     << copysign(h*.5*density*area*ratio2*pow(v, 2), v) << std::endl); 
+   DEBUGCOUT("stroke:     " << stroke << std::endl); 
+   DEBUGCOUT("area:       " << area << std::endl); 
+   DEBUGCOUT("area_pipe:  " << area_pipe << std::endl); 
+   DEBUGCOUT("mass:       " << mass << std::endl); 
+   DEBUGCOUT("press0:     " << press0 << std::endl); 
+   DEBUGCOUT("press_max:  " << press_max << std::endl); 
+   DEBUGCOUT("Kappa:      " << Kappa << std::endl); 
+   DEBUGCOUT("weight:     " << weight << std::endl); 
+   DEBUGCOUT("spring:     " << spring <<  std::endl); 
+   DEBUGCOUT("force0:     " << force0 <<  std::endl); 
+   DEBUGCOUT("s_min_gas:  " << s_min_gas << std::endl); 
+   DEBUGCOUT("s_max:      " << s_max << std::endl); 
+   DEBUGCOUT("c1:         " << c1 << std::endl);
+   DEBUGCOUT("c2:         " << c2 << std::endl);
+   DEBUGCOUT("c3:         " << c3 << std::endl);
+   DEBUGCOUT("c4:         " << c4 << std::endl);
+   DEBUGCOUT("cf1:        " << cf1 << std::endl);
+   DEBUGCOUT("cf2:        " << cf2 << std::endl);
+   DEBUGCOUT("cf3:        " << cf3 << std::endl);
+   DEBUGCOUT("cf4:        " << cf4 << std::endl);
+   DEBUGCOUT("-Res_1 (portata nodo1): " << -Res_1 << std::endl); 
+   DEBUGCOUT("Res_2:                  " << Res_2 << std::endl); 
+   DEBUGCOUT("Res_3:                  " << Res_3 << std::endl);
 #endif
    
    WorkVec.fPutItem(1, iNode1RowIndex, Res_1);
@@ -367,10 +365,10 @@ void
 Accumulator::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) { 
-      ostream& out = OH.Hydraulic();
-      out << setw(8) << GetLabel()
+      std::ostream& out = OH.Hydraulic();
+      out << std::setw(8) << GetLabel()
 	<< " " << s << " " << v << " " << vp << " " << pgas  
-	<< " " << flow << " " << density << endl;
+	<< " " << flow << " " << density << std::endl;
    }
 }
 
@@ -432,10 +430,10 @@ Tank::GetHydraulicType(void) const
 
 
 /* Contributo al file di restart */
-ostream& 
-Tank::Restart(ostream& out) const
+std::ostream& 
+Tank::Restart(std::ostream& out) const
 {
-   return out << "Tank not implemented yet!" << endl;
+   return out << "Tank not implemented yet!" << std::endl;
 }
 
 
@@ -468,7 +466,7 @@ Tank::AssJac(VariableSubMatrixHandler& WorkMat,
 		  const VectorHandler& XCurr, 
 		  const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Tank::AssJac()" << endl);
+   DEBUGCOUT("Entering Tank::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    WM.Resize(3, 3);
@@ -524,14 +522,14 @@ Tank::AssJac(VariableSubMatrixHandler& WorkMat,
       /* Livello dell'olio sotto la soglia minima: 
        * esco dalla presa di emergenza */
 #ifdef HYDR_DEVEL
-      DEBUGCOUT("Jac Esco dalla presa di emergenza: " << endl);
+      DEBUGCOUT("Jac Esco dalla presa di emergenza: " << std::endl);
 #endif
    }
    if (s > s_max && -flow1 > flow2) {
       /* se e' pieno non puo' entrare di piu' di quella che esce */
       Jac31 = Jac32 = 0.;
 #ifdef HYDR_DEVEL
-      DEBUGCOUT("Jac Serbatoio  pieno : " << endl);
+      DEBUGCOUT("Jac Serbatoio  pieno : " << std::endl);
 #endif
    }
 
@@ -539,7 +537,7 @@ Tank::AssJac(VariableSubMatrixHandler& WorkMat,
       /* se e' vuoto non puo' uscire di piu' di quella che entra */
       Jac31 = Jac32 = 0.;
 #ifdef HYDR_DEVEL
-      DEBUGCOUT("Jac Serbatoio vuoto : "<< endl);
+      DEBUGCOUT("Jac Serbatoio vuoto : "<< std::endl);
 #endif
    }
 
@@ -563,7 +561,7 @@ Tank::AssRes(SubVectorHandler& WorkVec,
 	     const VectorHandler& XCurr, 
 	     const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Tank::AssRes()" << endl);
+   DEBUGCOUT("Entering Tank::AssRes()" << std::endl);
    
    WorkVec.Resize(3);
    
@@ -579,7 +577,7 @@ Tank::AssRes(SubVectorHandler& WorkVec,
    sp = XPrimeCurr.dGetCoef(iFirstIndex+1); /* velocita' del livello */
   
    if (s < 0.) {
-      cerr << "Livello dell'olio " << s << " negativo: IMPOSSIBILE " << endl;
+      std::cerr << "Livello dell'olio " << s << " negativo: IMPOSSIBILE " << std::endl;
       THROW(ErrGeneric());
    }
      
@@ -601,7 +599,7 @@ Tank::AssRes(SubVectorHandler& WorkVec,
       Res_1 = -Res_2;
       c_spost = 1.;
 #ifdef HYDR_DEVEL
-      DEBUGCOUT("Res Serbatoio pieno: " << endl);
+      DEBUGCOUT("Res Serbatoio pieno: " << std::endl);
 #endif
    }
 
@@ -609,7 +607,7 @@ Tank::AssRes(SubVectorHandler& WorkVec,
       /* livello dell'olio sotto al livello minimo: 
        * esco dalla presa di emergenza */
 #ifdef HYDR_DEVEL
-      DEBUGCOUT("Esco dalla presa di emergenza: " << endl);
+      DEBUGCOUT("Esco dalla presa di emergenza: " << std::endl);
 #endif
    }
  
@@ -619,7 +617,7 @@ Tank::AssRes(SubVectorHandler& WorkVec,
       /* se e' vuoto non puo' uscire di piu' di quella che entra */
       Res_2 = -Res_1;
 #ifdef HYDR_DEVEL
-      DEBUGCOUT("Res Serbatoio  vuoto: " << endl);
+      DEBUGCOUT("Res Serbatoio  vuoto: " << std::endl);
 #endif
    }
      
@@ -629,25 +627,25 @@ Tank::AssRes(SubVectorHandler& WorkVec,
    flow2 = -Res_2; /* per l'output */
    
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("Kappa1:     " << Kappa1 << endl);
-   DEBUGCOUT("Kappa2:     " << Kappa2 << endl);
-   DEBUGCOUT("jumpPres1S: " << jumpPres1S  << endl);
-   DEBUGCOUT("jumpPresS2: " << jumpPresS2  << endl);
-   DEBUGCOUT("density:    " << density << endl);
-   DEBUGCOUT("p1:         " << p1 << endl);
-   DEBUGCOUT("p2:         " << p2 << endl);
-   DEBUGCOUT("press:      " << press << endl);
-   DEBUGCOUT("s:          " << s << endl);
-   DEBUGCOUT("level:      " << level << endl);
-   DEBUGCOUT("s_max:      " << s_max << endl);
-   DEBUGCOUT("s_min:      " << s_min << endl);
-   DEBUGCOUT("sp:         " << sp << endl);
-   DEBUGCOUT("area_pipe:  " << area_pipe << endl);
-   DEBUGCOUT("area_serb:  " << area_serb << endl);
-   DEBUGCOUT("PORTATE AI VARI NODI (positive se entranti)" << endl);
-   DEBUGCOUT("-Res_1:     " << -Res_1 << " (portata nodo1) " << endl); 
-   DEBUGCOUT("-Res_2:     " << -Res_2 << " (portata nodo2) " << endl);   
-   DEBUGCOUT("Res_3:      " << Res_3 << endl); 
+   DEBUGCOUT("Kappa1:     " << Kappa1 << std::endl);
+   DEBUGCOUT("Kappa2:     " << Kappa2 << std::endl);
+   DEBUGCOUT("jumpPres1S: " << jumpPres1S  << std::endl);
+   DEBUGCOUT("jumpPresS2: " << jumpPresS2  << std::endl);
+   DEBUGCOUT("density:    " << density << std::endl);
+   DEBUGCOUT("p1:         " << p1 << std::endl);
+   DEBUGCOUT("p2:         " << p2 << std::endl);
+   DEBUGCOUT("press:      " << press << std::endl);
+   DEBUGCOUT("s:          " << s << std::endl);
+   DEBUGCOUT("level:      " << level << std::endl);
+   DEBUGCOUT("s_max:      " << s_max << std::endl);
+   DEBUGCOUT("s_min:      " << s_min << std::endl);
+   DEBUGCOUT("sp:         " << sp << std::endl);
+   DEBUGCOUT("area_pipe:  " << area_pipe << std::endl);
+   DEBUGCOUT("area_serb:  " << area_serb << std::endl);
+   DEBUGCOUT("PORTATE AI VARI NODI (positive se entranti)" << std::endl);
+   DEBUGCOUT("-Res_1:     " << -Res_1 << " (portata nodo1) " << std::endl); 
+   DEBUGCOUT("-Res_2:     " << -Res_2 << " (portata nodo2) " << std::endl);   
+   DEBUGCOUT("Res_3:      " << Res_3 << std::endl); 
 #endif
    
    WorkVec.fPutItem(1, iNode1RowIndex, Res_1);
@@ -661,9 +659,9 @@ void
 Tank::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
-      ostream& out = OH.Hydraulic();
-      out << setw(8) << GetLabel();
-      out << " " << s << " " << sp << " " << flow1 << " " << flow2 << endl;
+      std::ostream& out = OH.Hydraulic();
+      out << std::setw(8) << GetLabel();
+      out << " " << s << " " << sp << " " << flow1 << " " << flow2 << std::endl;
    }
 }
 

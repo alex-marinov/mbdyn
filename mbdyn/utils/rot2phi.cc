@@ -31,8 +31,10 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <matvec3.h>
 #include <string.h>
+#include <ac/iostream>
+
+#include <matvec3.h>
 
 
 int main(int argn, const char* const argv[])
@@ -41,31 +43,31 @@ int main(int argn, const char* const argv[])
       if (!strcasecmp(argv[1], "-?")
 	  || !strcasecmp(argv[1], "-h") 
 	  || !strcasecmp(argv[1], "--help")) {
-	 cerr << endl << "usage: " << argv[0] << endl << endl
-	   << "    reads a rotation matrix (row-oriented) from stdin;" << endl
-	   << "    writes the rotation vector {magniture (in degs), direction} on standard output" << endl << endl
-	   << "part of MBDyn package (Copyright (C) Pierangelo Masarati, 1996)" << endl << endl;
+	 std::cerr << std::endl << "usage: " << argv[0] << std::endl << std::endl
+	   << "    reads a rotation matrix (row-oriented) from stdin;" << std::endl
+	   << "    writes the rotation vector {magniture (in degs), direction} on standard output" << std::endl << std::endl
+	   << "part of MBDyn package (Copyright (C) Pierangelo Masarati, 1996)" << std::endl << std::endl;
 	 exit(EXIT_SUCCESS);
       }
    }   
 
    static doublereal d[9];
    while (1) {
-      cin >> d[0];
-      if (cin) {
-	 cin >> d[3] >> d[6] >> d[1] >> d[4] >> d[7] >> d[2] >> d[5] >> d[8];
+      std::cin >> d[0];
+      if (std::cin) {
+	 std::cin >> d[3] >> d[6] >> d[1] >> d[4] >> d[7] >> d[2] >> d[5] >> d[8];
 	 Vec3 g(gparam(Mat3x3(d, 3)));
 	 doublereal d(g.Norm());
 	 if (d > 0.) {
 	    Vec3 phi(g*(2./d*atan(d/2.)));
 	    d = phi.Norm();
 	    if (d != 0.) {
-	       cout << d*180./M_PI << " " << phi/d << endl;
+	       std::cout << d*180./M_PI << " " << phi/d << std::endl;
 	    } else {
-	       cout << 0. << " " << 0. << " " << 0. << " " << 0. << endl;
+	       std::cout << 0. << " " << 0. << " " << 0. << " " << 0. << std::endl;
 	    }
 	 } else {
-	    cout << 0. << " " << 0. << " " << 0. << " " << 0. << endl;
+	    std::cout << 0. << " " << 0. << " " << 0. << " " << 0. << std::endl;
 	 }
       } else {
 	 break;
@@ -74,3 +76,4 @@ int main(int argn, const char* const argv[])
    
    return (EXIT_SUCCESS);
 }
+

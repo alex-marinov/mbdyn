@@ -31,16 +31,13 @@
 #ifndef FORGFACT_H
 #define FORGFACT_H
 
-#include "myassert.h"
-#include "mynewmem.h"
+#include <ac/float.h>
+#include <ac/math.h>
+#include <ac/f2c.h>
 
+#include <myassert.h>
+#include <mynewmem.h>
 
-#include "myf2c.h"
-
-extern "C" {
-#include <float.h>
-#include <mymath.h>
-}
 
 /* Takes care of the forgetting factor */
 

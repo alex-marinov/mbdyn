@@ -36,11 +36,10 @@
 
 #ifdef USE_ELECTRIC_NODES
 
+#include <ac/math.h>
+
 #include <swashpl.h>
 
-extern "C" {
-#include <mymath.h>
-}
 
 /* SwashPlate - begin */
 
@@ -104,7 +103,7 @@ SwashPlate::~SwashPlate(void)
 
 
 /* Scrive il contributo dell'elemento al file di restart */
-ostream& SwashPlate::Restart(ostream& out) const
+std::ostream& SwashPlate::Restart(std::ostream& out) const
 {
    Genel::Restart(out) << ", swash plate, "
      << pCollectiveIn->GetLabel() << ", ";
@@ -126,7 +125,7 @@ ostream& SwashPlate::Restart(ostream& out) const
      << pNode2->GetLabel() << ", "
      << pNode3->GetLabel() << ", "
      << dDynamicCoef << ", "
-     << dCyclicFactor << ", " << dCollectiveFactor << ';' << endl;
+     << dCyclicFactor << ", " << dCollectiveFactor << ';' << std::endl;
    
    return out;
 }
@@ -139,7 +138,7 @@ SwashPlate::AssJac(VariableSubMatrixHandler& WorkMat,
 		   const VectorHandler& /* XCurr */ ,
 		   const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering SwashPlate::AssJac()" << endl);
+   DEBUGCOUT("Entering SwashPlate::AssJac()" << std::endl);
 
    /* Casting di WorkMat */
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();   
@@ -174,7 +173,7 @@ SwashPlate::AssRes(SubVectorHandler& WorkVec,
 		   const VectorHandler& XCurr, 
 		   const VectorHandler& XPrimeCurr)
 {   
-   DEBUGCOUT("Entering SwashPlate::AssRes()" << endl);
+   DEBUGCOUT("Entering SwashPlate::AssRes()" << std::endl);
 
    /* Dimensiona e resetta la matrice di lavoro */
    WorkVec.Resize(6);

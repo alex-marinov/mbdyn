@@ -37,13 +37,15 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <float.h>
+#include <ac/float.h>
 
 #include <constltp.h>
 #include <shapefnc.h>
 #include <beam.h>
 #include <hbeam.h>
-//#include <pzhbeam.h>
+#if 0	/* not implemented yet */
+#include <pzhbeam.h>
+#endif
 #include <hbeam_interp.h>
 #include <dataman.h>
 

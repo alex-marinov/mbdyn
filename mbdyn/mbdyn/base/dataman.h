@@ -35,34 +35,30 @@
 #ifndef DATAMAN_H
 #define DATAMAN_H
 
-//#include <iomanip.h>
+#include <ac/iostream>
 
-/* per il debug */
-#include "myassert.h"
-#include "mynewmem.h"
-#include "except.h"
+#include <myassert.h>
+#include <mynewmem.h>
+#include <except.h>
 
-/* include del programma */
-#include "mbpar.h"
-#include "constltp.h"
-#include "shape.h"
+#include <mbpar.h>
+#include <constltp.h>
+#include <shape.h>
 
 /* da elman.h */
-#include "solman.h"
-#include "submat.h"
-#include "veciter.h"
+#include <solman.h>
+#include <submat.h>
+#include <veciter.h>
 
-#include "elem.h"      /* Classe di base di tutti gli elementi */
-#include "output.h"
+#include <elem.h>      /* Classe di base di tutti gli elementi */
+#include <output.h>
 
-#include "drive.h"     /* Drive vari */
+#include <drive.h>     /* Drive vari */
 
 /* da nodeman.h */
-#include "node.h"
-#include "strnode.h"
-#include "elecnode.h"
-
-
+#include <node.h>
+#include <strnode.h>
+#include <elecnode.h>
 
 /* DataManager - begin */
 

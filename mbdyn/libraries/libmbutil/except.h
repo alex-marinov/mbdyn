@@ -32,11 +32,7 @@
 
 #include <stdio.h>
 
-#if defined(HAVE_IOSTREAM)
-#include <iostream>
-#elif defined(HAVE_IOSTREAM_H)
-#include <iostream.h>
-#endif
+#include <ac/iostream>
 
 #ifdef USE_EXCEPTIONS
 #define THROW(cl) \

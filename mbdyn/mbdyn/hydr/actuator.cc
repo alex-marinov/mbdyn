@@ -89,9 +89,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-extern "C" {
-#include <float.h>
-}
+#include <ac/float.h>
+
 #include <actuator.h>
 
 #define HF1 HF /* Hack to use the base member HF as HF1 in actuator */
@@ -147,9 +146,9 @@ HydraulicElem::Type Actuator::GetHydraulicType(void) const
 
 
 /* Contributo al file di restart */
-ostream& Actuator::Restart(ostream& out) const
+std::ostream& Actuator::Restart(std::ostream& out) const
 {
-   return out << "Actuator not implemented yet!" << endl;
+   return out << "Actuator not implemented yet!" << std::endl;
 }
 
 
@@ -180,7 +179,7 @@ Actuator::AssJac(VariableSubMatrixHandler& WorkMat,
 		       const VectorHandler& XCurr, 
 		       const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Actuator::AssJac()" << endl);
+   DEBUGCOUT("Entering Actuator::AssJac()" << std::endl);
       
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    WM.ResizeInit(16, 16, 0);   
@@ -447,14 +446,14 @@ Actuator::AssRes(SubVectorHandler& WorkVec,
 void Actuator::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) { 
-      ostream& out = OH.Hydraulic();
-      out << setw(8) << GetLabel()
+      std::ostream& out = OH.Hydraulic();
+      out << std::setw(8) << GetLabel()
 	<< " " << flow1  << " " << flow2 
 	<< " " << dp1 << " " << dp2
 	<< " " << dpP1 << " " << dpP2
 	<< " " << Vol1 << " " << Vol2
 	<< " " << rho1 << " " << rho2
-	<< endl;
+	<< std::endl;
    }  
 }
 

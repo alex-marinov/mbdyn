@@ -101,21 +101,12 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#if defined(HAVE_IOSTREAM)
-#include <iostream>
-#elif defined(HAVE_IOSTREAM_H)
-#include <iostream.h>
-#endif
-
-#if defined(HAVE_FSTREAM)
-#include <fstream>
-#elif defined(HAVE_FSTREAM_H)
-#include <fstream.h>
-#endif
+#include <ac/iostream>
+#include <ac/fstream>
+#include <ac/f2c.h>
 
 #include <string.h>
 #include <ctype.h>
-#include <myf2c.h>
 
 #include <stdlib.h>
 #include <unistd.h>

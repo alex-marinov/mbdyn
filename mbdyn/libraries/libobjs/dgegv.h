@@ -51,7 +51,7 @@
 extern "C" {
 #endif /* __cplusplus */
 	
-#include <myf2c.h>
+#include <ac/f2c.h>
 
 /* Subroutine */ extern int
 __FC_DECL__(dgegv)(char *jobvl, char *jobvr, integer *n, doublereal *

@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <string.h>
 
 int get_line(FILE* fin, char* buf, int buf_size)
 {

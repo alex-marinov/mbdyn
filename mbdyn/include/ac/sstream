@@ -28,32 +28,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* Funzione di calcolo delle forze aerodinamiche */
+#ifndef AC_SSTREAM
+#define AC_SSTREAM
 
+#if defined(HAVE_SSTREAM)
+#include <sstream>
+#elif defined(HAVE_STRSTREAM_H)
+#include <strstream.h>
+#else /* !HAVE_SSTREAM && !HAVE_STRSTREAM_H */
+#error "no sstream and no strstream.h"
+#endif /* !HAVE_SSTREAM && !HAVE_STRSTREAM_H */
 
-#ifndef AEROD_H
-#define AEROD_H
+#endif /* AC_SSTREAM */
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-#include <ac/f2c.h>
-   
-extern int __FC_DECL__(aerod2)(doublereal* w,       /* velocita' nel sistema locale, 6 */
-			       doublereal* vam,     /* dati, 6 */
-			       doublereal* tng,     /* forze, 6 (Output) */
-			       doublereal* outa,    /* vettore di lavoro, 20 */
-			       integer* inst,       /* flag di instazionarieta', 0/1/2 */
-			       doublereal* rspeed,  /* Omega */
-			       integer* ipr);       /* profilo */
-   
-extern int __FC_DECL__(coeprd)(doublereal* da,      /* passo, delta t? */
-			       doublereal* outa);   /* vettore di lavoro, 20 */
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-   
-#endif /* AEROD_H */

@@ -61,8 +61,8 @@ AerodynamicModal::AerodynamicModal(unsigned int uLabel,
 AerodynamicElem(uLabel, AerodynamicElem::AERODYNAMICMODAL, fOut), 
 InitialAssemblyElem(uLabel, Elem::AERODYNAMIC, fOut),
 DriveOwner(pDC),
-pModalNode(pN), pModalJoint(pMJ), pRotor(pR),NAeroElems(iAP),
-NModes(iM),NFemNodes(NFN),
+pModalNode(pN), pModalJoint(pMJ), pRotor(pR), NAeroElems(iAP),
+NModes(iM), NFemNodes(NFN),
 pPHIt(pModeShapest), pPHIr(pModeShapesr),
 Ra(RaTmp), Ra3(RaTmp.GetVec(3)), 
 Chord(pC), ForcePoint(pF), VelocityPoint(pV), Twist(pT),
@@ -71,7 +71,6 @@ F(0.), M(0.),ppR1tot(NULL),
 a(NModes, 0.), aPrime(NModes, 0.),
 pH(pH), pGTKG(pGTKG), dL(dL),
 pFemNodesPosition(pFNP)
-//Zaxis(Zaxis)
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
 , pOutput(NULL)
 #endif /* AEROD_OUTPUT */
@@ -111,8 +110,8 @@ pFemNodesPosition(pFNP)
       }
       catch (ErrMemory) {
 	 SetOutputFlag(flag(0));
-	 cerr << "Unable to alloc memory for output of AerodynamicModal " 
-	   << GetLabel() << endl;
+	 std::cerr << "Unable to alloc memory for output of AerodynamicModal " 
+	   << GetLabel() << std::endl;
       }      
 #endif // USE_EXCEPTIONS	 
    }
@@ -163,8 +162,8 @@ void AerodynamicModal::SetOutputFlag(flag f)
 	 }
 	 catch (ErrMemory) {
 	    SetOutputFlag(flag(0));
-	    cerr << "Unable to alloc memory for output of AerodynamicModal " 
-	      << GetLabel() << endl;
+	    std::cerr << "Unable to alloc memory for output of AerodynamicModal " 
+	      << GetLabel() << std::endl;
 	 }      
 #endif // USE_EXCEPTIONS	 
       }	 
@@ -174,7 +173,7 @@ void AerodynamicModal::SetOutputFlag(flag f)
 
 
 /* Scrive il contributo dell'elemento al file di restart */
-ostream& AerodynamicModal::Restart(ostream& out) const
+std::ostream& AerodynamicModal::Restart(std::ostream& out) const
 {
 
 #if 0
@@ -201,9 +200,9 @@ ostream& AerodynamicModal::Restart(ostream& out) const
    } else if(iProfile == 2) {
       out << "RAE9671";
    }
-   return out << ';' << endl;
+   return out << ';' << std::endl;
 #else
-   return out << "  /* aerodynamic modal: not implemented yet */" << endl;
+   return out << "  /* aerodynamic modal: not implemented yet */" << std::endl;
 #endif
 }
 
@@ -368,12 +367,12 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
 	 Vec3 Vr(V0+W0.Cross(Xr)+Rn*Vdef);
 	 Vec3 Wr(W0+Rn*Wdef);
 
-         DEBUGCOUT("X0 :"<<X0<<endl);
-         DEBUGCOUT("V0 :"<<V0<<endl);
-         DEBUGCOUT("Xr :"<<Xr<<endl);
-         DEBUGCOUT("Vr :"<<Vr<<endl);
-         DEBUGCOUT("W0 :"<<W0<<endl);
-         DEBUGCOUT("Rn :"<<Rn<<endl);
+         DEBUGCOUT("X0 :"<<X0<<std::endl);
+         DEBUGCOUT("V0 :"<<V0<<std::endl);
+         DEBUGCOUT("Xr :"<<Xr<<std::endl);
+         DEBUGCOUT("Vr :"<<Vr<<std::endl);
+         DEBUGCOUT("W0 :"<<W0<<std::endl);
+         DEBUGCOUT("Rn :"<<Rn<<std::endl);
      
 	 
 	 /* Contributo di velocita' del vento */
@@ -458,15 +457,15 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
 	  M += RRlocTot*(Vec3(dTng+3)*(dL/2.*dWght));
 	  M += Xr.Cross(FTmp);
 	 
-          DEBUGCOUT("FsdrAer: "<<Vec3(dTng)<<endl);
+          DEBUGCOUT("FsdrAer: "<<Vec3(dTng)<<std::endl);
 	 
       } while(GDI.fGetNext(PW));   // fine ciclo sui punti di Gauss
       
       FTot += F;
       MTot += M;
 
-      DEBUGCOUT("F: "<<F<<endl);
-      DEBUGCOUT("M: "<<M<<endl);
+      DEBUGCOUT("F: "<<F<<std::endl);
+      DEBUGCOUT("M: "<<M<<std::endl);
 
     /* costruisco il vettore delle forze aerodinamiche (serve per il calcolo delle forze 
        aerodinamiche modali) nel sdr locale */
@@ -474,9 +473,9 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
        Fa.Add((iAero-1)*2+2, (RnTotT*M).dGet(1));  
    } // fine ciclo sugli elementi aerodinamici
 
-   DEBUGCOUT("FTOT: "<<FTot<<endl);
-   DEBUGCOUT("MTOT: "<<MTot<<endl);
-   DEBUGCOUT("FModali: "<<endl);
+   DEBUGCOUT("FTOT: "<<FTot<<std::endl);
+   DEBUGCOUT("MTOT: "<<MTot<<std::endl);
+   DEBUGCOUT("FModali: "<<std::endl);
 
     /* Forze aerodinamiche modali : {Fm} = [H ]T*{Fa} */   
     for(int iCnt = 1; iCnt <= NModes; iCnt ++) {
@@ -529,10 +528,10 @@ void AerodynamicModal::Output(OutputHandler& OH) const
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
       ASSERT(pOutput != NULL);
 #endif /* AEROD_OUTPUT */
-      ostream& out = OH.Aerodynamic() << setw(8) << GetLabel();
+      std::ostream& out = OH.Aerodynamic() << std::setw(8) << GetLabel();
       
 #if AEROD_OUTPUT == AEROD_OUT_NODE
-      out << " " << setw(8) << pModalNode->GetLabel()
+      out << " " << std::setw(8) << pModalNode->GetLabel()
 	<< " ", F.Write(out, " ") << " ", M.Write(out, " ");
 #else /* AEROD_OUTPUT */      
       for (int i = 0; i < GDI.iGetNum(); i++) {
@@ -545,7 +544,7 @@ void AerodynamicModal::Output(OutputHandler& OH) const
 #endif /* AEROD_OUTPUT */
       }
 #endif /* AEROD_OUTPUT */
-      out << endl;      
+      out << std::endl;      
    }   
 }
 
@@ -627,16 +626,16 @@ void ReadAeroModalData(DataManager* pDM,
 #endif
        ) {      
       if (*piInst < 0 || *piInst > 2) {
-	 cerr << "illegal unsteady flag";
+	 std::cerr << "illegal unsteady flag";
       } else {
-	 cerr << "unsteady aerodynamics are not tested yet";
+	 std::cerr << "unsteady aerodynamics are not tested yet";
       }
-      cerr << " at line " << HP.GetLineData() << endl;
+      std::cerr << " at line " << HP.GetLineData() << std::endl;
       THROW(ErrGeneric());
    }
    *piNumber = HP.GetInt();
-   DEBUGLCOUT(MYDEBUG_INPUT, "PK flag flag: " << *piInst << endl
-	      << "Gauss points number: " << *piNumber << endl);
+   DEBUGLCOUT(MYDEBUG_INPUT, "PK flag flag: " << *piInst << std::endl
+	      << "Gauss points number: " << *piNumber << std::endl);
   
    if (HP.IsKeyWord("control")) {      
       /* Driver di un'eventuale controllo */
@@ -652,18 +651,18 @@ void ReadAeroModalData(DataManager* pDM,
    if (HP.fIsArg()) {            
       switch (HP.IsKeyWord()) {
        case NACA0012: {
-	  DEBUGLCOUT(MYDEBUG_INPUT, "profile is NACA0012" << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "profile is NACA0012" << std::endl);
 	  *piProfile = 1;
 	  break;
        }
        case RAE9671: {
-	  DEBUGLCOUT(MYDEBUG_INPUT, "profile is RAE9671" << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "profile is RAE9671" << std::endl);
 	  *piProfile = 2;
 	  break;
        }
        default: {
-	  cerr << endl << "Unknown profile type at line "
-	    << HP.GetLineData() << "; using default (NACA0012)" << endl;
+	  std::cerr << std::endl << "Unknown profile type at line "
+	    << HP.GetLineData() << "; using default (NACA0012)" << std::endl;
 	  *piProfile = 1;
 	  break;
        }
@@ -698,8 +697,8 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    Elem* pM = pDM->ReadElem(HP, Elem::JOINT);
    Modal* pModalJoint = (Modal*)pM->pGet();
    if (pModalJoint->GetJointType() != Joint::MODAL) {
-      cerr << "element " << pModalJoint->GetLabel()
-	      << " is required to be a modal joint" << endl;
+      std::cerr << "element " << pModalJoint->GetLabel()
+	      << " is required to be a modal joint" << std::endl;
       THROW(DataManager::ErrGeneric());
    }
 
@@ -725,38 +724,38 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
        * NOTA: ovviamente il rotore deve essere definito 
        * prima dell'elemento aerodinamico */
       Elem* p = pDM->ReadElem(HP, Elem::ROTOR);
-      DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Rotor: " << p->GetLabel() << endl);
+      DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Rotor: " << p->GetLabel() << std::endl);
       pRotor = (Rotor*)p->pGet();
    }   
 
    /* legge il numero di elementi aerodinamici */
    integer NAeroElems = HP.GetInt();
    DEBUGLCOUT(MYDEBUG_INPUT, "Number of Aerodynamics Elements: " 
-              << NAeroElems << endl);
+              << NAeroElems << std::endl);
 	
    /* lunghezza degli elementi aerodinamici (per adesso
       e' costante, poi variera' */
 
    double dL = HP.GetReal();
    DEBUGLCOUT(MYDEBUG_INPUT, "Lenght : " 
-              << dL << endl);
+              << dL << std::endl);
       
    
    /* legge la direzione dell'asse z (temoraneo)! */
    /*integer Zaxis = HP.GetInt();
      if (Zaxis <= 0 || Zaxis > 3) {
-	  cerr << endl
+	  std::cerr << std::endl
 	    << " at line " << HP.GetLineData() 
-	    << " z axis is'nt valid" << endl;	
+	    << " z axis is'nt valid" << std::endl;	
 	  THROW(DataManager::ErrGeneric());
        }
    */
    /* apre il file contenente la matrice GTKG */
    const char *sFileGTKG = HP.GetFileName();
-   ifstream fgtkg(sFileGTKG);       
-   DEBUGCOUT("Reading Interpolation Matrix Data from file " << sFileGTKG << endl);
-   if(!fgtkg) {
-     cerr << endl << "Unable to open file " << sFileGTKG << endl;
+   std::ifstream fgtkg(sFileGTKG);       
+   DEBUGCOUT("Reading Interpolation Matrix Data from file " << sFileGTKG << std::endl);
+   if (!fgtkg) {
+     std::cerr << std::endl << "Unable to open file " << sFileGTKG << std::endl;
      THROW(DataManager::ErrGeneric());
    }	
 	      
@@ -841,8 +840,8 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.fIsArg()) {
-      cerr << endl
-	<< ": semicolon expected at line " << HP.GetLineData() << endl;      
+      std::cerr << std::endl
+	<< ": semicolon expected at line " << HP.GetLineData() << std::endl;      
       THROW(DataManager::ErrGeneric());
    }   
    

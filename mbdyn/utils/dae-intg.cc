@@ -31,15 +31,15 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <string.h>
+#include <dlfcn.h>
+
 #include <myassert.h>
 #include <solman.h>
 #include <fullmh.h>
 #include <y12wrap.h>
 #include <harwrap.h>
 #include <mschwrap.h>
-
-#include <string.h>
-#include <dlfcn.h>
 
 struct integration_data {
    	doublereal ti;
@@ -112,32 +112,32 @@ main(int argn, char *const argv[])
       		switch(curropt) {
        		case int('?'):
 	  		/* 
-			 * cerr << "unknown option -" << char(optopt) << endl;
+			 * std::cerr << "unknown option -" << char(optopt) << std::endl;
 			 */
 	  		break;
 			
        		case int(':'):
-	  		cerr << "missing parameter for option -" 
-				<< optopt << endl;
+	  		std::cerr << "missing parameter for option -" 
+				<< optopt << std::endl;
 	  		break;
 			
        		case int('h'):
-	  		cerr << "usage: int -[imtTnruh] [module]" << endl
-	    			<< endl
+	  		std::cerr << "usage: int -[imtTnruh] [module]" << std::endl
+	    			<< std::endl
 	    			<< " -i,--integrator   : integration method"
-				<< endl
+				<< std::endl
 	    			<< " -m,--method-data  : method-dependent data"
-				<< endl
-	    			<< " -t,--timing       : ti:dt:tf" << endl
-	    			<< " -T,--tolerance" << endl
-	    			<< " -n,--maxiter" << endl
+				<< std::endl
+	    			<< " -t,--timing       : ti:dt:tf" << std::endl
+	    			<< " -T,--tolerance" << std::endl
+	    			<< " -n,--maxiter" << std::endl
 	    			<< " -r,--rho          : asymptotic radius"
-				<< endl
+				<< std::endl
 	    			<< " -u,--user         : user-defined data"
-				<< endl
-	    			<< endl
+				<< std::endl
+	    			<< std::endl
 	    			<< " -h,--help         : print this message"
-				" and exit" << endl;
+				" and exit" << std::endl;
 	  		exit(EXIT_SUCCESS);
 
        		case int('i'): {
@@ -150,8 +150,8 @@ main(int argn, char *const argv[])
 	     			p++;
 	  		}
 	  		if (p->s == NULL) {
-	     			cerr << "unknown integrator " 
-					<< optarg << endl;
+	     			std::cerr << "unknown integrator " 
+					<< optarg << std::endl;
 	     			exit(EXIT_FAILURE);
 	  		}
 	  		break;
@@ -166,14 +166,14 @@ main(int argn, char *const argv[])
 	  		strcpy(s, optarg);
 	  		char* p = strrchr(s, ':');
 	  		if (p == NULL) {
-	     			cerr << "syntax: ti:dt:tf" << endl;
+	     			std::cerr << "syntax: ti:dt:tf" << std::endl;
 	     			exit(EXIT_FAILURE);
 	  		}
 	  		d.tf = atof(p+1);
 	  		p[0] = '\0';
 	  		p = strrchr(s, ':');
 	  		if (p == NULL) {
-	     			cerr << "syntax: ti:dt:tf" << endl;
+	     			std::cerr << "syntax: ti:dt:tf" << std::endl;
 	     			exit(EXIT_FAILURE);
 	  		}
 	  		d.dt = atof(p+1);
@@ -201,14 +201,14 @@ main(int argn, char *const argv[])
 	  		break;
 			
        		default:
-	  		/* cerr << "unknown option" << endl; */
+	  		/* std::cerr << "unknown option" << std::endl; */
 	  		break;
       		}
    	}
    
    	if (argv[optind] != NULL) {
       		module = argv[optind];
-      		/* cerr << "using module " << module << endl; */
+      		/* std::cerr << "using module " << module << std::endl; */
    	}
    
    	int rc = 0;
@@ -226,7 +226,7 @@ main(int argn, char *const argv[])
       		rc = method_cn(module, &d, method_data, user_defined);
       		break;
     	default:
-      		cerr << "you must select an integration method" << endl;
+      		std::cerr << "you must select an integration method" << std::endl;
       		exit(EXIT_FAILURE);
    	}
    
@@ -242,7 +242,7 @@ get_method_data(int curr_method, const char* optarg)
 {
    	switch (curr_method) {
     	default:
-      		cerr << "not implemented yet" << endl;
+      		std::cerr << "not implemented yet" << std::endl;
       		exit(EXIT_FAILURE);
    	}
    
@@ -259,15 +259,15 @@ open_module(const char* module)
    	const char* err = NULL;
    	if ((handle = dlopen(module, RTLD_NOW)) == NULL) {
       		err = dlerror();
-      		cerr << "dlopen(\"" << module << "\") returned \"" << err
-			<< "\"" << endl;
+      		std::cerr << "dlopen(\"" << module << "\") returned \"" << err
+			<< "\"" << std::endl;
       		exit(EXIT_FAILURE);
    	}
    
    	if ((::ff = (funcs *)dlsym(handle, "ff")) == NULL) {
       		err = dlerror();
-      		cerr << "dlsym(\"ff\") returned \"" << err << "\""
-			<< endl;
+      		std::cerr << "dlsym(\"ff\") returned \"" << err << "\""
+			<< std::endl;
       		exit(EXIT_FAILURE);
    	}
 
@@ -372,8 +372,8 @@ method_multistep(const char* module, integration_data* d,
    	}
    
    	// output iniziale
-   	cout << ti << " " << 0. << " ";
-   	(*::ff->out)(p_data, cout, *pX, *pXP) << endl;
+   	std::cout << ti << " " << 0. << " ";
+   	(*::ff->out)(p_data, std::cout, *pX, *pXP) << std::endl;
    
    	flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);
    
@@ -408,9 +408,9 @@ method_multistep(const char* module, integration_data* d,
 	    			break;
 	 		}
 	 		if (++j > maxiter) {
-	    			cerr << "current iteration " << j 
+	    			std::cerr << "current iteration " << j 
 	      				<< " exceedes max iteration number "
-					<< maxiter << endl;
+					<< maxiter << std::endl;
 	    			exit(EXIT_FAILURE);
 	 		}
 	 
@@ -435,8 +435,8 @@ method_multistep(const char* module, integration_data* d,
       		} while (1);
       
       		// output
-      		cout << t << " " << test << " ";
-      		(*::ff->out)(p_data, cout, *pX, *pXP) << endl;
+      		std::cout << t << " " << test << " ";
+      		(*::ff->out)(p_data, std::cout, *pX, *pXP) << std::endl;
       
       		flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);            
    	}
@@ -454,7 +454,7 @@ method_hope(const char* module, integration_data* d,
 {
    	open_module(module);
    
-   	cerr << __FUNCTION__ << "not implemented yet!" << endl;
+   	std::cerr << __FUNCTION__ << "not implemented yet!" << std::endl;
    	exit(EXIT_FAILURE);
    
    	return 0;
@@ -547,8 +547,8 @@ method_cubic(const char* module, integration_data* d,
    	}
    
    	// output iniziale
-   	cout << ti << " " << 0. << " ";
-   	(*::ff->out)(p_data, cout, *pX, *pXP) << endl;
+   	std::cout << ti << " " << 0. << " ";
+   	(*::ff->out)(p_data, std::cout, *pX, *pXP) << std::endl;
    
    	flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);
    
@@ -598,9 +598,9 @@ method_cubic(const char* module, integration_data* d,
 	    			break;
 	 		}
 	 		if (++j > maxiter) {
-	    			cerr << "current iteration " << j 
+	    			std::cerr << "current iteration " << j 
 	      				<< " exceedes max iteration number "
-					<< maxiter << endl;
+					<< maxiter << std::endl;
 	    			exit(EXIT_FAILURE);
 	 		}
 	 
@@ -633,8 +633,8 @@ method_cubic(const char* module, integration_data* d,
      	 	} while (1);
       
       		// output
-      		cout << t << " " << test << " ";
-      		(*::ff->out)(p_data, cout, *pX, *pXP) << endl;
+      		std::cout << t << " " << test << " ";
+      		(*::ff->out)(p_data, std::cout, *pX, *pXP) << std::endl;
       
       		flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);            
    	}
@@ -652,7 +652,7 @@ method_cn(const char* module, integration_data* d,
 {
    	open_module(module);
    
-   	cerr << __FUNCTION__ << "not implemented yet!" << endl;
+   	std::cerr << __FUNCTION__ << "not implemented yet!" << std::endl;
    	exit(EXIT_FAILURE);
 
    	return 0;

@@ -16,8 +16,6 @@ matvec6.cc \
 matvec6.h \
 matvecexp.cc \
 matvecexp.h \
-myf2c.h \
-mymath.h \
 Rot.cc \
 Rot.hh \
 RotCoeff.hc \

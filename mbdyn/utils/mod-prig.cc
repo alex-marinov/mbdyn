@@ -31,10 +31,12 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <ac/iostream>
+#include <ac/fstream>
+#include <math.h>
+
 #include <myassert.h>
 #include <solman.h>
-#include <fstream.h>
-#include <math.h>
 
 struct private_data {
    doublereal m;

@@ -46,11 +46,11 @@ void AbstractNode::Output(OutputHandler& OH) const
    if(fToBeOutput()) {      
 #ifdef DEBUG   
       OH.Output() << "Abstract node " << GetLabel() 
-	<< ": x = " << dX << ", x' = " << dXP << endl;
+	<< ": x = " << dX << ", x' = " << dXP << std::endl;
 #endif
    
-      OH.Abstract() << setw(8) << GetLabel() << " "
-	<< dX << " " << dXP << endl;
+      OH.Abstract() << std::setw(8) << GetLabel() << " "
+	<< dX << " " << dXP << std::endl;
    }
 }
 
@@ -84,8 +84,8 @@ void ElectricNode::Output(OutputHandler& OH) const
 {
    if(fToBeOutput()) {      
 #ifdef DEBUG   
-      OH.Output() << "Electric node " << uLabel << ':' << endl 
-	<< "sorry, not implemented yet" << endl;
+      OH.Output() << "Electric node " << uLabel << ':' << std::endl 
+	<< "sorry, not implemented yet" << std::endl;
 #endif   
    }   
 }

@@ -31,24 +31,28 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include "matvec3.h"
-#include "string.h"
+#include <string.h>
+#include <ac/iostream>
+
+#include <matvec3.h>
 
 
-int main(int argn, const char* const argv[])
+int
+main(int argn, const char* const argv[])
 {
    static doublereal d[3];
+
    while (1) {
-      cin >> d[0];
-      if (cin) {
-	 cin >> d[1] >> d[2];
+      std::cin >> d[0];
+      if (std::cin) {
+	 std::cin >> d[1] >> d[2];
 	 Vec3 x1(d);
-	 cin >> d[0] >> d[1] >> d[2];
+	 std::cin >> d[0] >> d[1] >> d[2];
 	 Mat3x3 R1(RFromEulerAngles(Vec3(d)/180.*M_PI));
-	 cin >> d[0] >> d[1] >> d[2];
+	 std::cin >> d[0] >> d[1] >> d[2];
 	 Vec3 x2(d);
 
-	 cout << R1.Transpose()*(x2-x1) << endl;
+	 std::cout << R1.Transpose()*(x2-x1) << std::endl;
       } else {
 	 break;
       }      
@@ -56,3 +60,4 @@ int main(int argn, const char* const argv[])
    
    return (EXIT_SUCCESS);
 }
+

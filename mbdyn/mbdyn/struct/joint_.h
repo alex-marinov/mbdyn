@@ -33,12 +33,10 @@
 #ifndef JOINT__H
 #define JOINT__H
 
+#include <ac/float.h>
 
-/* include per derivazione della classe */
-
-#include "joint.h"
-#include "strnode.h"
-#include <float.h>
+#include <strnode.h>
+#include <joint.h>
 
 
 /* Classi di servizio per vincoli.

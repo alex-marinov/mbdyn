@@ -33,9 +33,8 @@
 #ifndef DOFOWN_H
 #define DOFOWN_H
 
-
+#include <ac/f2c.h>
 #include <myassert.h>
-#include <myf2c.h>       /* per integer! */
 
 extern const char* psDofOwnerNames[];   
 

@@ -36,13 +36,10 @@
 
 #ifdef USE_ELECTRIC_NODES
 
+#include <ac/math.h>
+
 #include <myassert.h>
 #include <mynewmem.h>
-
-extern "C" {
-#include <mymath.h>
-}
-
 #include <gpc.h>
 
 /* gpc utility functions - begin */
@@ -541,8 +538,8 @@ gpc_pinv(integer lda, integer m, integer n, doublereal* a,
 	                    u, &ldu, vt, &ldvt, work, &lwork, &info);
 #else /* !USE_LAPACK */
 	integer info = 1;
-   	cerr << "warning: LAPACK libraries are not available," << endl
-     		<< "so the pseudo-inversion will not be performed" << endl;
+   	std::cerr << "warning: LAPACK libraries are not available," << std::endl
+     		<< "so the pseudo-inversion will not be performed" << std::endl;
 #endif /* !USE_LAPACK */
 
    	if (info != 0) {
@@ -708,27 +705,27 @@ pivot(PNULL)
    	ASSERT(n > 0);
 	
    	if ((A = m_get(m, n)) == MNULL) {
-      		cerr << "A = m_get(" << m << ',' << n << ") failed" << endl;
+      		std::cerr << "A = m_get(" << m << ',' << n << ") failed" << std::endl;
       		THROW(ErrGeneric());
    	}
 	
    	if ((diag = v_get(min(m, n))) == VNULL) {
-      		cerr << "diag = v_get(" << min(m, n) << ") failed" << endl;
+      		std::cerr << "diag = v_get(" << min(m, n) << ") failed" << std::endl;
       		THROW(ErrGeneric());
    	}
 	
    	if ((x = v_get(n)) == VNULL) {
-      		cerr << "x = v_get(" << n << ") failed" << endl;
+      		std::cerr << "x = v_get(" << n << ") failed" << std::endl;
       		THROW(ErrGeneric());
    	}
 	
    	if ((b = v_get(m)) == VNULL) {
-      		cerr << "b = v_get(" << m << ") failed" << endl;
+      		std::cerr << "b = v_get(" << m << ") failed" << std::endl;
       		THROW(ErrGeneric());
    	}
 	
    	if ((pivot = px_get(n)) == PNULL) {
-      		cerr << "pivot = px_get(" << n << ") failed" << endl;
+      		std::cerr << "pivot = px_get(" << n << ") failed" << std::endl;
       		THROW(ErrGeneric());
    	}
 }
@@ -948,11 +945,11 @@ DeadBeat::DesignControl(const doublereal* pdTheta,
    	integer info = pInv->Inv(iDim, iTmpRows, iTmpCols, pdPTmp);
    
    	if (info < 0) {
-      		cerr << "DeadBeat::DesignControl(): illegal value in " 
-			<< -info << "-th argument of dgesvd()" << endl;
+      		std::cerr << "DeadBeat::DesignControl(): illegal value in " 
+			<< -info << "-th argument of dgesvd()" << std::endl;
       		THROW(ErrGeneric());
    	} else if (info > 0) {
-      		cerr << "DeadBeat::DesignControl(): error in dgesvd()" << endl;
+      		std::cerr << "DeadBeat::DesignControl(): error in dgesvd()" << std::endl;
       		THROW(ErrGeneric());
    	} /* else: OK */
      
@@ -1061,7 +1058,7 @@ pInv(NULL)
    	}
       
    	if (pInv == NULL) {
-      		cerr << "unable to create GPCInv" << endl;
+      		std::cerr << "unable to create GPCInv" << std::endl;
       		THROW(ErrGeneric());
    	}
    
@@ -1220,11 +1217,11 @@ GPC::DesignControl(const doublereal* pdTheta,
 		   iTmpRows, pdInvP);
    
    	if (info < 0) {
-      		cerr << "GPC::DesignControl(): illegal value in " 
-			<< -info << "-th argument of dgesvd()" << endl;
+      		std::cerr << "GPC::DesignControl(): illegal value in " 
+			<< -info << "-th argument of dgesvd()" << std::endl;
       		THROW(ErrGeneric());
    	} else if (info > 0) {
-      		cerr << "GPC::DesignControl(): error in dgesvd()" << endl;
+      		std::cerr << "GPC::DesignControl(): error in dgesvd()" << std::endl;
       		THROW(ErrGeneric());
    	} /* else: OK */
      
@@ -1347,36 +1344,36 @@ int main(void)
 		      theta);
    
    doublereal* pA = d;
-   cout << "A:" << endl;
+   std::cout << "A:" << std::endl;
    for (integer i = 0; i < nout*s; i++) {     
       for (integer j = 0; j < nout*pa; j++) {
-	 cout << setw(8) << pA[i+nout*s*j];
+	 std::cout << std::setw(8) << pA[i+nout*s*j];
       }
-      cout << endl;
+      std::cout << std::endl;
    }
    doublereal* pB = d+nout*nout*pa*s;
-   cout << "B:" << endl;
+   std::cout << "B:" << std::endl;
    for (integer i = 0; i < nout*s; i++) {     
       for (integer j = 0; j < nin*pb; j++) {
-	 cout << setw(8) << pB[i+nout*s*j];
+	 std::cout << std::setw(8) << pB[i+nout*s*j];
       }
-      cout << endl;
+      std::cout << std::endl;
    }
    doublereal* pP = d+nout*nout*pa*s+nout*s*nin*pb;
-   cout << "P:" << endl;
+   std::cout << "P:" << std::endl;
    for (integer i = 0; i < nout*s; i++) {
       for (integer j = 0; j < nin*s; j++) {
-	 cout << setw(8) << pP[i+nout*s*j];
+	 std::cout << std::setw(8) << pP[i+nout*s*j];
       }
-      cout << endl;
+      std::cout << std::endl;
    }
    doublereal* pC = d+nout*nout*pa*s+nout*s*nin*pb+nout*s*nin*s;
-   cout << "C:" << endl;
+   std::cout << "C:" << std::endl;
    for (integer i = 0; i < nout*s; i++) {     
       for (integer j = 0; j < nout*pa; j++) {
-	 cout << setw(8) << pC[i+nout*s*j];
+	 std::cout << std::setw(8) << pC[i+nout*s*j];
       }
-      cout << endl;
+      std::cout << std::endl;
    }      
 
    integer q = s/2;
@@ -1390,12 +1387,12 @@ int main(void)
    doublereal* pT = pP+s*nout*(s-q)*nin;
    inv.Inv(s*nout, tmprow, tmpcol, pT);
    
-   cout << "Inv(P'):" << endl;
+   std::cout << "Inv(P'):" << std::endl;
    for (integer i = 0; i < tmpcol; i++) {
       for (integer j = 0; j < tmprow; j++) {
-	 cout << setw(12) << pT[tmprow*i+j];
+	 std::cout << std::setw(12) << pT[tmprow*i+j];
       }
-      cout << endl;
+      std::cout << std::endl;
    }
    
    DeadBeat db(nout, nin,
@@ -1408,39 +1405,39 @@ int main(void)
    doublereal* pmd;
    db.DesignControl(theta, &pac, &pbc, &pmd, &pcc);
    
-   cout << "Ac:" << endl;
+   std::cout << "Ac:" << std::endl;
    for (integer i = 0; i < nin; i++) {
       for (integer j = 0; j < nout*pa; j++) {
-	 cout << setw(12) << pac[i*nout*pa+j];
+	 std::cout << std::setw(12) << pac[i*nout*pa+j];
       }
-      cout << endl;
+      std::cout << std::endl;
    }
-   cout << "Bc:" << endl;
+   std::cout << "Bc:" << std::endl;
    for (integer i = 0; i < nin; i++) {
       for (integer j = 0; j < nin*pb; j++) {
-	 cout << setw(12) << pbc[i*nin*pb+j];
+	 std::cout << std::setw(12) << pbc[i*nin*pb+j];
       }
-      cout << endl;
+      std::cout << std::endl;
    }
-   cout << "Cc:" << endl;
+   std::cout << "Cc:" << std::endl;
    for (integer i = 0; i < nin; i++) {
       for (integer j = 0; j < nout*pa; j++) {
-	 cout << setw(12) << pcc[i*nout*pa+j];
+	 std::cout << std::setw(12) << pcc[i*nout*pa+j];
       }
-      cout << endl;
+      std::cout << std::endl;
    }
-   cout << "Md:" << endl;
+   std::cout << "Md:" << std::endl;
    for (integer i = 0; i < nin; i++) {
       for (integer j = 0; j < tmprow; j++) {
-	 cout << setw(12) << pmd[i*tmprow+j];
+	 std::cout << std::setw(12) << pmd[i*tmprow+j];
       }
-      cout << endl;
+      std::cout << std::endl;
    }
 #else /* !USE_DBC */
-   cerr << "cannot use GPC/Deadbeat" << endl;
+   std::cerr << "cannot use GPC/Deadbeat" << std::endl;
 #endif /* !USE_DBC */
 #else /* !USE_ELECTRIC_NODES */
-   cerr << "configure with --with-elec to enable electric stuff" << endl;
+   std::cerr << "configure with --with-elec to enable electric stuff" << std::endl;
 #endif /* !USE_ELECTRIC_NODES */
    return 0;
 }

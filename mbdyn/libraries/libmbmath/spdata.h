@@ -35,7 +35,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include <myf2c.h>
+#include <ac/f2c.h>
 
 
 extern int __FC_DECL__(kd01a)(integer *maxkey, integer *itable, integer *key);
@@ -56,3 +56,4 @@ extern struct ext_kd01cm_ {
 #endif /* __cplusplus */
 
 #endif /* SPDATA_H */
+

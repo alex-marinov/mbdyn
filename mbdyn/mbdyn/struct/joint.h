@@ -36,12 +36,10 @@
 
 /* include per derivazione della classe */
 
-#include "elem.h"
-#include "strnode.h"
+#include <ac/float.h>
 
-extern "C" {
-#include <float.h>
-}
+#include <strnode.h>
+#include <elem.h>
 
 extern const char* psJointNames[];
 

@@ -83,8 +83,8 @@ STAHRAeroData::STAHRAeroData(integer u, integer p)
    	NO_OP;
 }
    
-ostream& 
-STAHRAeroData::Restart(ostream& out) const 
+std::ostream& 
+STAHRAeroData::Restart(std::ostream& out) const 
 {
    	switch (profile) {
     	case 1:
@@ -116,8 +116,8 @@ C81AeroData::C81AeroData(integer u, integer p, const c81_data* d)
    	ASSERT(data != NULL);
 }
 
-ostream& 
-C81AeroData::Restart(ostream& out) const 
+std::ostream& 
+C81AeroData::Restart(std::ostream& out) const 
 {
    	return out << "C81, " << profile << ", unsteady, " << unsteadyflag;
 }
@@ -152,8 +152,8 @@ C81MultipleAeroData::~C81MultipleAeroData(void)
 	SAFEDELETEARR(data);
 }
 
-ostream& 
-C81MultipleAeroData::Restart(ostream& out) const 
+std::ostream& 
+C81MultipleAeroData::Restart(std::ostream& out) const 
 {
    	out << "C81, ";
 	for (int i = 0; i < nprofiles; i++) {

@@ -31,11 +31,13 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <ac/iostream>
+#include <ac/fstream>
+#include <math.h>
+
 #include <myassert.h>
 #include <solman.h>
 #include <harwrap.h>
-#include <fstream.h>
-#include <math.h>
 
 struct private_data {
    doublereal m;
@@ -53,10 +55,9 @@ int read(void** pp, const char* user_defined)
    private_data* pd = (private_data*)*pp;
    
    if (user_defined != NULL) {
-      // cerr << "opening file \"" << user_defined << "\"" << endl;
-      ifstream in(user_defined);
+      std::ifstream in(user_defined);
       if (!in) {
-	 cerr << "unable to open file \"" << user_defined << "\"" << endl;
+	 std::cerr << "unable to open file \"" << user_defined << "\"" << std::endl;
 	 exit(EXIT_FAILURE);
       }
       in >> pd->m >> pd->c >> pd->k >> pd->alpha >> pd->f >> pd->omega
@@ -72,9 +73,9 @@ int read(void** pp, const char* user_defined)
       pd->x[1] = 0.;
    }
    
-   // cerr << "m=" << pd->m << ", c=" << pd->c << ", k=" << pd->k << endl
-   //   << "alpha=" << pd->alpha << ", f=" << pd->f << ", omega=" << pd->omega << endl
-   //   << "x={" << pd->x[0] << "," << pd->x[1] << "}" << endl;
+   // std::cerr << "m=" << pd->m << ", c=" << pd->c << ", k=" << pd->k << std::endl
+   //   << "alpha=" << pd->alpha << ", f=" << pd->f << ", omega=" << pd->omega << std::endl
+   //   << "x={" << pd->x[0] << "," << pd->x[1] << "}" << std::endl;
    
    return 0;
 }
@@ -115,7 +116,7 @@ int res(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
    return 0;
 }
 
-ostream& out(void* p, ostream& o, 
+std::ostream& out(void* p, std::ostream& o, 
 	     const VectorHandler& X, const VectorHandler& XP)
 {
    private_data* pd = (private_data*)p;

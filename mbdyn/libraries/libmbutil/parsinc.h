@@ -101,14 +101,10 @@
 #ifndef PARSINC_H
 #define PARSINC_H
 
-#if defined(HAVE_FSTREAM)
-#include <fstream>
-#elif defined(HAVE_FSTREAM_H)
-#include <fstream.h>
-#endif
+#include <ac/fstream>
 
-#include "parser.h"
-#include "llstack.h" 
+#include <parser.h>
+#include <llstack.h>
 
 /* IncludeParser - begin */
 

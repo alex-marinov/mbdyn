@@ -31,8 +31,10 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <matvec3.h>
 #include <string.h>
+#include<ac/iostream>
+
+#include <matvec3.h>
 
 
 int main(int argn, const char* const argv[])
@@ -41,20 +43,20 @@ int main(int argn, const char* const argv[])
       if (!strcasecmp(argv[1], "-?")
 	  || !strcasecmp(argv[1], "-h") 
 	  || !strcasecmp(argv[1], "--help")) {
-	 cerr << endl << "usage: " << argv[0] << endl << endl
-	   << "    reads a rotation matrix (row-oriented) from stdin;" << endl
-	   << "    writes the Euler angles (in degs) on standard output" << endl << endl
-	   << "part of MBDyn package (Copyright (C) Pierangelo Masarati, 1996)" << endl << endl;
+	 std::cerr << std::endl << "usage: " << argv[0] << std::endl << std::endl
+	   << "    reads a rotation matrix (row-oriented) from stdin;" << std::endl
+	   << "    writes the Euler angles (in degs) on standard output" << std::endl << std::endl
+	   << "part of MBDyn package (Copyright (C) Pierangelo Masarati, 1996)" << std::endl << std::endl;
 	 exit(EXIT_SUCCESS);
       }
    }   
 
    static doublereal d[9];
    while (1) {
-      cin >> d[0];
-      if (cin) {
-	 cin >> d[3] >> d[6] >> d[1] >> d[4] >> d[7] >> d[2] >> d[5] >> d[8];
-	 cout << EulerAngles(Mat3x3(d, 3)) << endl;
+      std::cin >> d[0];
+      if (std::cin) {
+	 std::cin >> d[3] >> d[6] >> d[1] >> d[4] >> d[7] >> d[2] >> d[5] >> d[8];
+	 std::cout << EulerAngles(Mat3x3(d, 3)) << std::endl;
       } else {
 	 break;
       }      
@@ -62,3 +64,4 @@ int main(int argn, const char* const argv[])
    
    return (EXIT_SUCCESS);
 }
+

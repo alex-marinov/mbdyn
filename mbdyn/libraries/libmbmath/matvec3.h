@@ -34,15 +34,11 @@
 #ifndef MATVEC3_H
 #define MATVEC3_H
 
-#if defined(HAVE_IOSTREAM)
-#include <iostream>
-#elif defined(HAVE_IOSTREAM_H)
-#include <iostream.h>
-#endif
+#include <ac/iostream>
+#include <ac/f2c.h>
 
 #include <myassert.h>
 #include <except.h>
-#include <myf2c.h>
 #include <solman.h>
 
 enum {

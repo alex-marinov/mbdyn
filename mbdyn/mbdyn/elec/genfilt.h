@@ -64,7 +64,7 @@ class GenelFilter : public Genel {
    virtual DofOrder::Order SetDof(unsigned int i) const;
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    /* Dimensioni del workspace */
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
@@ -138,7 +138,7 @@ class GenelFilterEq : public Genel {
    virtual DofOrder::Order SetDof(unsigned int i) const;
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    /* Tipo di Genel */
    virtual Genel::Type GetGenelType(void) const { 
@@ -227,7 +227,7 @@ class GenelStateSpaceSISO : public Genel {
    virtual DofOrder::Order SetDof(unsigned int i) const;
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    /* Tipo di Genel */
    virtual Genel::Type GetGenelType(void) const { 
@@ -308,7 +308,7 @@ class GenelStateSpaceMIMO : public Genel {
    virtual DofOrder::Order SetDof(unsigned int i) const;
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    /* Tipo di Genel */
    virtual Genel::Type GetGenelType(void) const { 

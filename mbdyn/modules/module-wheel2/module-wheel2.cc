@@ -28,7 +28,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <mbconfig.h>
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
+
+#include <ac/iostream>
 
 #include <loadable.h>
 
@@ -117,7 +121,7 @@ read(LoadableElem* pEl,
 	 * help
 	 */
 	if (HP.IsKeyWord("help")) {
-		cout <<
+		std::cout <<
 "									\n"
 "Module: 	wheel2							\n"
 "Author: 	Stefania Gualdi <gualdi@aero.polimi.it>			\n"
@@ -172,7 +176,7 @@ read(LoadableElem* pEl,
 "		12)	angolo di deriva				\n"
 "		13)	coefficiente di attrito longitudinale		\n"
 "		14)	coefficiente di attrito laterale		\n"
-			<< endl;
+			<< std::endl;
 
 		if (!HP.fIsArg()) {
 			/*
@@ -210,7 +214,7 @@ read(LoadableElem* pEl,
 	 */
 	doublereal d = p->GroundDirection.Dot();
 	if (d <= DBL_EPSILON) {
-		cerr << "null direction at line " << HP.GetLineData() << endl;
+		std::cerr << "null direction at line " << HP.GetLineData() << std::endl;
 		THROW(DataManager::ErrGeneric());
 	}
 	p->GroundDirection /= sqrt(d);
@@ -280,9 +284,9 @@ output(const LoadableElem* pEl, OutputHandler& OH)
 	
 	if (pEl->fToBeOutput()) {
 		module_wheel* p = (module_wheel *)pEl->pGetData();      
-		ostream& out = OH.Loadable();
+		std::ostream& out = OH.Loadable();
 
-		out << setw(8) << pEl->GetLabel() << " ",
+		out << std::setw(8) << pEl->GetLabel() << " ",
 			p->F.Write(out, " ") << " ",
 			p->M.Write(out, " ") << " "
 			<< p->dInstRadius << " "
@@ -291,15 +295,15 @@ output(const LoadableElem* pEl, OutputHandler& OH)
 			<< p->dSr << " "
 			<< p->dAlpha << " "
 			<< p->dMuX << " "
-			<< p->dMuY << endl;
+			<< p->dMuY << std::endl;
 	}
 }
 
-ostream&
-restart(const LoadableElem* pEl, ostream& out)
+std::ostream&
+restart(const LoadableElem* pEl, std::ostream& out)
 {
 	DEBUGCOUTFNAME("restart");
-	return out << "not implemented yet;" << endl;
+	return out << "not implemented yet;" << std::endl;
 }
 
 static void
@@ -456,8 +460,8 @@ ass_res(LoadableElem* pEl,
 		Vec3 fwd = (p->pWheel->GetRCurr()*p->WheelAxle).Cross(n);
 		doublereal d = fwd.Dot();
 		if (d < DBL_EPSILON) {
-			cerr << "wheel axle is orthogonal to the ground"
-				<< endl;
+			std::cerr << "wheel axle is orthogonal to the ground"
+				<< std::endl;
 			THROW(DataManager::ErrGeneric());
 		}
 		fwd /= sqrt(d);
@@ -666,8 +670,8 @@ doublereal d_get_priv_data(const LoadableElem* pEl, unsigned int i)
 	DEBUGCOUTFNAME("d_get_priv_data");
 	ASSERT(pEl->iGetNumPrivData() > 0);
 	if (i > pEl->iGetNumPrivData()) {
-		cerr << "Module-template Elem: illegal private data index "
-			<< i << endl;      
+		std::cerr << "Module-template Elem: illegal private data index "
+			<< i << std::endl;      
 		THROW(ErrGeneric());
 	}
 	

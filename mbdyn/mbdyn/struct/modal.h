@@ -38,11 +38,7 @@
 #ifndef MODAL_H
 #define MODAL_H
 
-#if defined(HAVE_FSTREAM)
-#include <fstream>
-#elif defined(HAVE_FSTREAM_H)
-#include <fstream.h>
-#endif
+#include <ac/fstream>
 
 #include <joint.h>
 

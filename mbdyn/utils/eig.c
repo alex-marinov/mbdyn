@@ -36,7 +36,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <malloc.h>
-#include <myf2c.h>
+#include <ac/f2c.h>
 
 extern "C" int 
 dgegv_(char* jobvl,

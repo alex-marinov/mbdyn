@@ -61,7 +61,7 @@ Electric::~Electric(void)
 /* Contributo al file di restart 
  * (Nota: e' incompleta, deve essere chiamata dalla funzione corrispndente
  * relativa alla classe derivata */
-ostream& Electric::Restart(ostream& out) const {
+std::ostream& Electric::Restart(std::ostream& out) const {
    return out << "  electric: " << GetLabel();
 }
 
@@ -78,7 +78,7 @@ void Electric::Output(OutputHandler& OH) const
    if (fToBeOutput()) {
 #ifdef DEBUG	
       OH.Output() << "Electric Element " << uLabel 
-	<< ": sorry, not implemented yet" << endl;
+	<< ": sorry, not implemented yet" << std::endl;
 #endif	
    }
 }   
@@ -114,7 +114,7 @@ Accelerometer::~Accelerometer(void)
 
 
 /* Contributo al file di restart */
-ostream& Accelerometer::Restart(ostream& out) const
+std::ostream& Accelerometer::Restart(std::ostream& out) const
 {
    Electric::Restart(out) << ", accelerometer, " 
      << pStrNode->GetLabel() << ", "
@@ -123,7 +123,7 @@ ostream& Accelerometer::Restart(ostream& out) const
      << dOmega << ", "
      << dTau << ", "
      << dCsi << ", "
-     << dKappa << ';' << endl;
+     << dKappa << ';' << std::endl;
 }
 
 
@@ -134,7 +134,7 @@ Accelerometer::AssJac(VariableSubMatrixHandler& WorkMat,
 		      const VectorHandler& /* XCurr */ ,
 		      const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering Accelerometer::AssJac()" << endl);
+   DEBUGCOUT("Entering Accelerometer::AssJac()" << std::endl);
 
    /* Casting di WorkMat */
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
@@ -214,7 +214,7 @@ Accelerometer::AssRes(SubVectorHandler& WorkVec,
 		      const VectorHandler& XCurr, 
 		      const VectorHandler& XPrimeCurr)
 {   
-   DEBUGCOUT("Entering Accelerometer::AssRes()" << endl);
+   DEBUGCOUT("Entering Accelerometer::AssRes()" << std::endl);
       
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -267,13 +267,13 @@ void Accelerometer::Output(OutputHandler& OH) const
 {
    if(fToBeOutput()) {      
 #ifdef DEBUG   
-      OH.Output() << "Accelerometer " << uLabel << ':' << endl
+      OH.Output() << "Accelerometer " << uLabel << ':' << std::endl
 	<< "linked to structural node " << pStrNode->GetLabel() 
-	<< " and to abstract node " << pAbsNode->GetLabel() << endl
+	<< " and to abstract node " << pAbsNode->GetLabel() << std::endl
 	<< "Omega: " << dOmega
 	<< ", Tau: " << dTau
 	<< ", Csi: " << dCsi
-	<< ", Kappa: " << dKappa << endl;
+	<< ", Kappa: " << dKappa << std::endl;
 #endif   
    }   
 }
@@ -341,13 +341,13 @@ TraslAccel::~TraslAccel(void)
 
 
 /* Contributo al file di restart */
-ostream& TraslAccel::Restart(ostream& out) const
+std::ostream& TraslAccel::Restart(std::ostream& out) const
 {
    Electric::Restart(out) << ", accelerometer, translational, " 
      << pStrNode->GetLabel() << ", "
      << pAbsNode->GetLabel() << ", reference, node, ",
      Dir.Write(out, ", ") << ", reference, node, ",
-     f.Write(out, ", ") << ';' << endl;
+     f.Write(out, ", ") << ';' << std::endl;
    return out;
 }
 
@@ -359,7 +359,7 @@ TraslAccel::AssJac(VariableSubMatrixHandler& WorkMat,
 		   const VectorHandler& /* XCurr */ ,
 		   const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering TraslAccel::AssJac()" << endl);
+   DEBUGCOUT("Entering TraslAccel::AssJac()" << std::endl);
 
    /* Casting di WorkMat */
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
@@ -397,7 +397,7 @@ TraslAccel::AssRes(SubVectorHandler& WorkVec,
 		   const VectorHandler& XCurr, 
 		   const VectorHandler& XPrimeCurr)
 {   
-   DEBUGCOUT("Entering TraslAccel::AssRes()" << endl);
+   DEBUGCOUT("Entering TraslAccel::AssRes()" << std::endl);
       
    /* Dimensiona e resetta la matrice di lavoro */
    WorkVec.Resize(2);
@@ -427,9 +427,9 @@ void TraslAccel::Output(OutputHandler& OH) const
 {
    if(fToBeOutput()) {      
 #ifdef DEBUG   
-      OH.Output() << "TraslAccel " << uLabel << ':' << endl
+      OH.Output() << "TraslAccel " << uLabel << ':' << std::endl
 	<< "linked to structural node " << pStrNode->GetLabel() 
-	<< " and to abstract node " << pAbsNode->GetLabel() << endl;
+	<< " and to abstract node " << pAbsNode->GetLabel() << std::endl;
 #endif   
    }   
 }
@@ -499,12 +499,12 @@ RotAccel::~RotAccel(void)
 
 
 /* Contributo al file di restart */
-ostream& RotAccel::Restart(ostream& out) const
+std::ostream& RotAccel::Restart(std::ostream& out) const
 {
    Electric::Restart(out) << ", accelerometer, rotational, "
      << pStrNode->GetLabel() << ", "
      << pAbsNode->GetLabel() << ", reference, node, ",
-     Dir.Write(out, ", ") << ';' << endl;
+     Dir.Write(out, ", ") << ';' << std::endl;
    return out;
 }
 
@@ -516,7 +516,7 @@ RotAccel::AssJac(VariableSubMatrixHandler& WorkMat,
 		   const VectorHandler& /* XCurr */ ,
 		   const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering RotAccel::AssJac()" << endl);
+   DEBUGCOUT("Entering RotAccel::AssJac()" << std::endl);
 
    /* Casting di WorkMat */
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
@@ -547,7 +547,7 @@ RotAccel::AssRes(SubVectorHandler& WorkVec,
 		   const VectorHandler& XCurr, 
 		   const VectorHandler& XPrimeCurr)
 {   
-   DEBUGCOUT("Entering RotAccel::AssRes()" << endl);
+   DEBUGCOUT("Entering RotAccel::AssRes()" << std::endl);
       
    /* Dimensiona e resetta la matrice di lavoro */
    WorkVec.Resize(2);
@@ -576,9 +576,9 @@ void RotAccel::Output(OutputHandler& OH) const
 {
    if(fToBeOutput()) {      
 #ifdef DEBUG   
-      OH.Output() << "RotAccel " << uLabel << ':' << endl
+      OH.Output() << "RotAccel " << uLabel << ':' << std::endl
 	<< "linked to structural node " << pStrNode->GetLabel() 
-	<< " and to abstract node " << pAbsNode->GetLabel() << endl;
+	<< " and to abstract node " << pAbsNode->GetLabel() << std::endl;
 #endif   
    }   
 }
@@ -648,12 +648,12 @@ DispMeasure::~DispMeasure(void)
 
 
 /* Contributo al file di restart */
-ostream& DispMeasure::Restart(ostream& out) const
+std::ostream& DispMeasure::Restart(std::ostream& out) const
 {
    Electric::Restart(out) << ", displacement, "
      << pStrNode1->GetLabel() << ", reference, node, ",
    f1.Write(out, ", ") << pStrNode2->GetLabel() << ", reference, node, ",
-   f2.Write(out, ", ") << pAbsNode->GetLabel() << ';' << endl;
+   f2.Write(out, ", ") << pAbsNode->GetLabel() << ';' << std::endl;
    return out;
 }
 
@@ -665,7 +665,7 @@ DispMeasure::AssJac(VariableSubMatrixHandler& WorkMat,
 		    const VectorHandler& /* XCurr */ ,
 		    const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering DispMeasure::AssJac()" << endl);
+   DEBUGCOUT("Entering DispMeasure::AssJac()" << std::endl);
    
    /* Casting di WorkMat */
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
@@ -687,7 +687,7 @@ DispMeasure::AssRes(SubVectorHandler& WorkVec,
 		   const VectorHandler& /* XCurr */ ,
 		   const VectorHandler& /* XPrimeCurr */ )
 {   
-   DEBUGCOUT("Entering DispMeasure::AssRes()" << endl);
+   DEBUGCOUT("Entering DispMeasure::AssRes()" << std::endl);
       
    /* Dimensiona e resetta la matrice di lavoro */
    WorkVec.Resize(1);
@@ -794,8 +794,8 @@ ForgettingFactor* ReadFF(MBDynParser& HP, integer iNumOutputs)
 							 dKRef, dKLim));
 	 
       } else {	      
-	 cerr << "line " << HP.GetLineData() 
-	   << ": unknown forgetting factor" << endl;
+	 std::cerr << "line " << HP.GetLineData() 
+	   << ": unknown forgetting factor" << std::endl;
 	 THROW(ErrGeneric());
       }	      
    } else {
@@ -888,8 +888,8 @@ Elem* ReadElectric(DataManager* pDM,
    
 #ifdef DEBUG   
    if (CurrKeyWord >= 0) {      
-      cout << "electric element type: " 
-	<< sKeyWords[CurrKeyWord] << endl;
+      std::cout << "electric element type: " 
+	<< sKeyWords[CurrKeyWord] << std::endl;
    }   
 #endif   
 
@@ -912,27 +912,27 @@ Elem* ReadElectric(DataManager* pDM,
 	  
 	  /* nodo strutturale collegato */
 	  unsigned int uNode = (unsigned int)HP.GetInt();	     
-	  DEBUGCOUT("Linked to Structural Node " << uNode << endl);
+	  DEBUGCOUT("Linked to Structural Node " << uNode << std::endl);
 	  
 	  /* verifica di esistenza del nodo strutturale */
 	  StructNode* pStrNode;
 	  if ((pStrNode = pDM->pFindStructNode(uNode)) == NULL) {
-	     cerr << "line " << HP.GetLineData() 
+	     std::cerr << "line " << HP.GetLineData() 
 	       << ": structural node " << uNode
-	       << " not defined" << endl;	  
+	       << " not defined" << std::endl;	  
 	     THROW(DataManager::ErrGeneric());
 	  }		  
 	  
 	  /* nodo astratto collegato */
 	  uNode = (unsigned int)HP.GetInt();	     
-	  DEBUGCOUT("Linked to Abstract Node " << uNode << endl);
+	  DEBUGCOUT("Linked to Abstract Node " << uNode << std::endl);
 	  
 	  /* verifica di esistenza del nodo astratto */
 	  AbstractNode* pAbsNode;
 	  if ((pAbsNode = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
-	     cerr << "line " << HP.GetLineData() 
+	     std::cerr << "line " << HP.GetLineData() 
 	       << ": abstract node " << uNode
-	       << " not defined" << endl;	  
+	       << " not defined" << std::endl;	  
 	     THROW(DataManager::ErrGeneric());
 	  }		  
 	  
@@ -941,10 +941,10 @@ Elem* ReadElectric(DataManager* pDM,
 	  doublereal d = Dir.Dot();
 	  if (d > 0.) {
 	     Dir /= d;
-	     DEBUGCOUT("Direction: " << endl << Dir << endl);
+	     DEBUGCOUT("Direction: " << std::endl << Dir << std::endl);
 	  } else {
-	     cerr << "Warning, null direction in accelerometer "
-	       << uLabel << endl;
+	     std::cerr << "Warning, null direction in accelerometer "
+	       << uLabel << std::endl;
 	  }
 	  
 	  switch (f) {
@@ -971,7 +971,7 @@ Elem* ReadElectric(DataManager* pDM,
 	      break;
 	   }
 	   default: {
-	      cerr << "you shouldn't be here!" << endl;
+	      std::cerr << "you shouldn't be here!" << std::endl;
 	      THROW(ErrGeneric());
 	   }
 	  }	  
@@ -980,27 +980,27 @@ Elem* ReadElectric(DataManager* pDM,
 	  
 	  /* nodo strutturale collegato */
 	  unsigned int uNode = (unsigned int)HP.GetInt();	     
-	  DEBUGCOUT("Linked to Structural Node " << uNode << endl);
+	  DEBUGCOUT("Linked to Structural Node " << uNode << std::endl);
 	  
 	  /* verifica di esistenza del nodo strutturale */
 	  StructNode* pStrNode;
 	  if ((pStrNode = pDM->pFindStructNode(uNode)) == NULL) {
-	     cerr << "line " << HP.GetLineData() 
+	     std::cerr << "line " << HP.GetLineData() 
 	       << ": structural node " << uNode
-	       << " not defined" << endl;	  
+	       << " not defined" << std::endl;	  
 	     THROW(DataManager::ErrGeneric());
 	  }		  
 	  
 	  /* nodo astratto collegato */
 	  uNode = (unsigned int)HP.GetInt();	     
-	  DEBUGCOUT("Linked to Abstract Node " << uNode << endl);
+	  DEBUGCOUT("Linked to Abstract Node " << uNode << std::endl);
 	  
 	  /* verifica di esistenza del nodo astratto */
 	  AbstractNode* pAbsNode;
 	  if ((pAbsNode = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
-	     cerr << "line " << HP.GetLineData() 
+	     std::cerr << "line " << HP.GetLineData() 
 	       << ": abstract node " << uNode
-	       << " not defined" << endl;	  
+	       << " not defined" << std::endl;	  
 	     THROW(DataManager::ErrGeneric());
 	  }		  
 	  
@@ -1009,45 +1009,45 @@ Elem* ReadElectric(DataManager* pDM,
 	  doublereal d = Dir.Dot();
 	  if (d > 0.) {
 	     Dir /= d;
-	     DEBUGCOUT("Direction: " << endl << Dir << endl);
+	     DEBUGCOUT("Direction: " << std::endl << Dir << std::endl);
 	  } else {
-	     cerr << "Warning, null direction in accelerometer "
-	       << uLabel << endl;
+	     std::cerr << "Warning, null direction in accelerometer "
+	       << uLabel << std::endl;
 	  }
 	  
 	  /* Parametri */
 	  doublereal dOmega = HP.GetReal();
 	  if (dOmega <= 0.) {		  
-	     cerr << "Warning, illegal Omega in accelerometer " 
-	       << uLabel << endl;
+	     std::cerr << "Warning, illegal Omega in accelerometer " 
+	       << uLabel << std::endl;
 	     THROW(DataManager::ErrGeneric());
 	  }
 	  
 	  doublereal dTau = HP.GetReal();
 	  if (dTau <= 0.) {		  
-	     cerr << "Warning, illegal Tau in accelerometer " 
-	       << uLabel << "; aborting ..." << endl;	  
+	     std::cerr << "Warning, illegal Tau in accelerometer " 
+	       << uLabel << "; aborting ..." << std::endl;	  
 	     THROW(DataManager::ErrGeneric());
 	  }
 	  
 	  doublereal dCsi = HP.GetReal();
 	  if (dCsi <= 0. || dCsi > 1.) {		  
-	     cerr << "Warning, illegal Csi in accelerometer " 
-	       << uLabel << endl;
+	     std::cerr << "Warning, illegal Csi in accelerometer " 
+	       << uLabel << std::endl;
 	     THROW(DataManager::ErrGeneric());
 	  }
 	  
 	  doublereal dKappa = HP.GetReal();
 	  if (dKappa == 0.) {		  
-	     cerr << "Warning, null Kappa in accelerometer " 
-	       << uLabel << endl;
+	     std::cerr << "Warning, null Kappa in accelerometer " 
+	       << uLabel << std::endl;
 	     THROW(DataManager::ErrGeneric());
 	  }	     
 	  
 	  DEBUGCOUT("Omega: " << dOmega 
 		    << ", Tau: " << dTau
 		    << ", Csi: " << dCsi
-		    << ", Kappa: " << dKappa << endl);
+		    << ", Kappa: " << dKappa << std::endl);
 	  
 	  flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
 	  
@@ -1061,7 +1061,7 @@ Elem* ReadElectric(DataManager* pDM,
        break;
        
 #else // USE_STRUCT_NODES
-       cerr << "you're not allowed to use accelerometer elements" << endl;
+       std::cerr << "you're not allowed to use accelerometer elements" << std::endl;
        THROW(ErrGeneric());
 #endif // USE_STRUCT_NODES
     }
@@ -1071,14 +1071,14 @@ Elem* ReadElectric(DataManager* pDM,
 	  
        /* nodo strutturale collegato 1 */
        unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Structural Node " << uNode << endl);
+       DEBUGCOUT("Linked to Structural Node " << uNode << std::endl);
        
        /* verifica di esistenza del nodo strutturale */
        StructNode* pStrNode1;
        if ((pStrNode1 = pDM->pFindStructNode(uNode)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	      << ": structural node " << uNode
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }
        
@@ -1087,14 +1087,14 @@ Elem* ReadElectric(DataManager* pDM,
 	  
        /* nodo strutturale collegato 2 */
        uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Structural Node " << uNode << endl);
+       DEBUGCOUT("Linked to Structural Node " << uNode << std::endl);
        
        /* verifica di esistenza del nodo strutturale */
        StructNode* pStrNode2;
        if ((pStrNode2 = pDM->pFindStructNode(uNode)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	      << ": structural node " << uNode
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
 	  
@@ -1103,14 +1103,14 @@ Elem* ReadElectric(DataManager* pDM,
        
        /* nodo astratto collegato */
        uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Abstract Node " << uNode << endl);
+       DEBUGCOUT("Linked to Abstract Node " << uNode << std::endl);
        
        /* verifica di esistenza del nodo astratto */
        AbstractNode* pAbsNode;
        if ((pAbsNode = (AbstractNode*)(pDM->pFindNode(Node::ABSTRACT, uNode))) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	      << ": abstract node " << uNode
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
@@ -1124,7 +1124,7 @@ Elem* ReadElectric(DataManager* pDM,
        break;
        
 #else // USE_STRUCT_NODES
-       cerr << "you're not allowed to use displacement measure elements" << endl;
+       std::cerr << "you're not allowed to use displacement measure elements" << std::endl;
        THROW(ErrGeneric());
 #endif // USE_STRUCT_NODES
     }
@@ -1146,11 +1146,11 @@ Elem* ReadElectric(DataManager* pDM,
 
        DEBUGCOUT("Discrete controller of order " << iOrderA);
        if (iOrderB != iOrderA) {
-	  DEBUGCOUT(" (fir order " << iOrderB << ')' << endl);
+	  DEBUGCOUT(" (fir order " << iOrderB << ')' << std::endl);
        }
        DEBUGCOUT(": " << iNumOutputs << " output(s) and " 
-		 << iNumInputs << " input(s)" << endl
-		 << "Update every " << iNumIter << " iterations" << endl);
+		 << iNumInputs << " input(s)" << std::endl
+		 << "Update every " << iNumIter << " iterations" << std::endl);
        
        /* Tipo di controllo */
        DiscreteControlProcess* pDCP = NULL;
@@ -1160,12 +1160,12 @@ Elem* ReadElectric(DataManager* pDM,
 	   const char* sControlFile(HP.GetFileName());
 	   
 	   DEBUGCOUT("Getting control matrices from file <"
-		     << sControlFile << '>' << endl);
+		     << sControlFile << '>' << std::endl);
 	   
-	   ifstream iFIn(sControlFile);
+	   std::ifstream iFIn(sControlFile);
 	   if (!iFIn) {
-	      cerr << "Error in opening control file <" 
-		<< sControlFile << '>' << endl;	      
+	      std::cerr << "Error in opening control file <" 
+		<< sControlFile << '>' << std::endl;	      
 	      THROW(DataManager::ErrGeneric());
 	   }
 	   
@@ -1221,10 +1221,10 @@ Elem* ReadElectric(DataManager* pDM,
 	   doublereal dPeriodicFactor(0.);
 	   
 	   if (HP.IsKeyWord("arx")) {
-	      DEBUGCOUT("ARX adaptive control" << endl);
+	      DEBUGCOUT("ARX adaptive control" << std::endl);
 	      f_ma = 0;
 	   } else if (HP.IsKeyWord("armax")) {
-	      DEBUGCOUT("ARMAX adaptive control" << endl);
+	      DEBUGCOUT("ARMAX adaptive control" << std::endl);
 	      f_ma = 1;
 	   }
 
@@ -1234,37 +1234,37 @@ Elem* ReadElectric(DataManager* pDM,
 	   
 	   GPCDesigner* pCD = NULL;
 	   if (HP.IsKeyWord("gpc")) {
-	      DEBUGCOUT("GPC adaptive control" << endl);
+	      DEBUGCOUT("GPC adaptive control" << std::endl);
 
 	      integer iPredS = HP.GetInt();
 	      integer iContrS = HP.GetInt();	 
 	      integer iPredH = HP.GetInt();
 	      integer iContrH = 0;
 	      
-	      DEBUGCOUT("prediction advancing horizon: " << iPredS << endl
-			<< "prediction receding horizon: " << iPredH << endl
-			<< "control advancing horizon: " << iContrS << endl
-			<< "control receding horizon: " << iContrH << endl);
+	      DEBUGCOUT("prediction advancing horizon: " << iPredS << std::endl
+			<< "prediction receding horizon: " << iPredH << std::endl
+			<< "control advancing horizon: " << iContrS << std::endl
+			<< "control receding horizon: " << iContrH << std::endl);
 	      
 	      if (iPredS < 0) {
-		 cerr << "Prediction advancing horizon (" << iPredS 
-		   << ") must be positive" << endl;
+		 std::cerr << "Prediction advancing horizon (" << iPredS 
+		   << ") must be positive" << std::endl;
 		 THROW(ErrGeneric());
 	      }
 	      if (iPredH < 0) {
-		 cerr << "Prediction receding horizon (" << iPredH
-		   << ") must be positive" << endl;
+		 std::cerr << "Prediction receding horizon (" << iPredH
+		   << ") must be positive" << std::endl;
 		 THROW(ErrGeneric());
 	      }
 	      if (iPredH >= iPredS) {
-		 cerr << "Prediction receding horizon (" << iPredH 
+		 std::cerr << "Prediction receding horizon (" << iPredH 
 		   << ") must be smaller than prediction advancing horizon ("
-		   << iPredS << ")" << endl;
+		   << iPredS << ")" << std::endl;
 		 THROW(ErrGeneric());
 	      }
 	      if (iContrS < 0) {
-		 cerr << "Control advancing horizon (" << iContrS
-		   << ") must be positive" << endl;
+		 std::cerr << "Control advancing horizon (" << iContrS
+		   << ") must be positive" << std::endl;
 		 THROW(ErrGeneric());
 	      }
 	      
@@ -1274,10 +1274,10 @@ Elem* ReadElectric(DataManager* pDM,
 	      SAFENEWARR(pR, doublereal, iContrS-iContrH);
 	      
 	      if (HP.IsKeyWord("predictionweights")) {
-		 DEBUGCOUT("prediction weights:" << endl);
+		 DEBUGCOUT("prediction weights:" << std::endl);
 		 for (integer i = iPredS-iPredH; i-- > 0; ) {
 		    pW[i] = HP.GetReal();
-		    DEBUGCOUT("W[" << i+1 << "] = " << pW[i] << endl);
+		    DEBUGCOUT("W[" << i+1 << "] = " << pW[i] << std::endl);
 		 }
 	      } else {
 		 for (integer i = 0; i < iPredS-iPredH; i++) {
@@ -1286,10 +1286,10 @@ Elem* ReadElectric(DataManager* pDM,
 	      }
 	      
 	      if (HP.IsKeyWord("controlweights")) {
-		 DEBUGCOUT("control weights:" << endl);
+		 DEBUGCOUT("control weights:" << std::endl);
 		 for (integer i = iContrS-iContrH; i-- > 0; ) {
 		    pR[i] = HP.GetReal();
-		    DEBUGCOUT("R[" << i+1 << "] = " << pR[i] << endl);
+		    DEBUGCOUT("R[" << i+1 << "] = " << pR[i] << std::endl);
 		 }
 	      } else {
 		 for (integer i = 0; i < iContrS-iContrH; i++) {
@@ -1297,7 +1297,7 @@ Elem* ReadElectric(DataManager* pDM,
 		 }
 	      }
 	      
-	      DEBUGCOUT("Weight Drive:" << endl);
+	      DEBUGCOUT("Weight Drive:" << std::endl);
 	      DriveCaller* pLambda = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
 	      
 	      SAFENEWWITHCONSTRUCTOR(pCD,
@@ -1310,7 +1310,7 @@ Elem* ReadElectric(DataManager* pDM,
 					 dPeriodicFactor, f_ma));
 	      
 	   } else if (HP.IsKeyWord("deadbeat")) {
-	      DEBUGCOUT("DeadBeat adaptive control" << endl);
+	      DEBUGCOUT("DeadBeat adaptive control" << std::endl);
 	      
 	      int iPredS = HP.GetInt();
 	      int iContrS = HP.GetInt();
@@ -1323,17 +1323,17 @@ Elem* ReadElectric(DataManager* pDM,
 	   }
 	   
 	   /* Forgetting factor */
-	   DEBUGCOUT("Forgetting Factor:" << endl);
+	   DEBUGCOUT("Forgetting Factor:" << std::endl);
 	   ForgettingFactor* pFF = ReadFF(HP, iNumOutputs);
 	   
 	   /* Persistent excitation */
-	   DEBUGCOUT("Persistent Excitation:" << endl);
+	   DEBUGCOUT("Persistent Excitation:" << std::endl);
 	   PersistentExcitation* pPX = ReadPX(pDM, HP, iNumInputs);
 	   HP.PutKeyTable(K);
 	   
 	   DriveCaller* pTrig = NULL;
 	   if (HP.IsKeyWord("trigger")) {	      
-	      DEBUGCOUT("Trigger:" << endl);
+	      DEBUGCOUT("Trigger:" << std::endl);
 	      pTrig = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
 	   } else {
 	      SAFENEWWITHCONSTRUCTOR(pTrig, 
@@ -1344,11 +1344,11 @@ Elem* ReadElectric(DataManager* pDM,
 	   /* desired output */
 	   DriveCaller** pvDesiredOut = NULL;
 	   if (HP.IsKeyWord("desiredoutput")) {
-	      DEBUGCOUT("Desired output:" << endl);
+	      DEBUGCOUT("Desired output:" << std::endl);
 	      SAFENEWARR(pvDesiredOut, DriveCaller*, iNumOutputs);
 	      
 	      for (integer i = 0; i < iNumOutputs; i++) {
-		 DEBUGCOUT("output[" << i+1 << "]:" << endl);
+		 DEBUGCOUT("output[" << i+1 << "]:" << std::endl);
 		 pvDesiredOut[i] = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
 	      }
 	   }
@@ -1356,7 +1356,7 @@ Elem* ReadElectric(DataManager* pDM,
 	   char* s = NULL;
 	   if (HP.IsKeyWord("file")) {
 	      s = (char*)HP.GetFileName();
-	      DEBUGCOUT("Identified matrices will be output in file <" << s << '>' << endl);
+	      DEBUGCOUT("Identified matrices will be output in file <" << s << '>' << std::endl);
 	   }
 	   	   
 	   /* Construction of controller */
@@ -1377,7 +1377,7 @@ Elem* ReadElectric(DataManager* pDM,
 	   
 	   break;
 #else /* !USE_DBC */
-	      cerr << "GPC/deadbeat control is not available" << endl;
+	      std::cerr << "GPC/deadbeat control is not available" << std::endl;
 	      THROW(ErrGeneric());
 #endif /* !USE_DBC */
 	}	   
@@ -1385,7 +1385,7 @@ Elem* ReadElectric(DataManager* pDM,
 	  
 	  
 	default: {
-	   cerr << "Sorry, not implemented yed" << endl;	   
+	   std::cerr << "Sorry, not implemented yed" << std::endl;	   
 	   THROW(ErrNotImplementedYet());
 	}
        }
@@ -1393,8 +1393,8 @@ Elem* ReadElectric(DataManager* pDM,
        
        
        if (!HP.IsKeyWord("outputs")) {
-	  cerr << "Error, outputs expected at line " 
-	    << HP.GetLineData() << endl;
+	  std::cerr << "Error, outputs expected at line " 
+	    << HP.GetLineData() << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1418,8 +1418,8 @@ Elem* ReadElectric(DataManager* pDM,
        }
                             
        if (!HP.IsKeyWord("inputs")) {
-	  cerr << "Error, inputs expected at line "
-	    << HP.GetLineData() << endl;
+	  std::cerr << "Error, inputs expected at line "
+	    << HP.GetLineData() << std::endl;
 	  THROW(DataManager::ErrGeneric());
        }	   
        
@@ -1431,8 +1431,8 @@ Elem* ReadElectric(DataManager* pDM,
        for (int i = 0; i < iNumInputs; i++) {
 	  pInputs[i] = ReadScalarDof(pDM, HP, 1);
 	  if (pInputs[i].pNode->GetNodeType() ==  Node::PARAMETER) {
-	     cerr << "Sorry, parameters are not allowed as input nodes" 
-	       << endl;	     
+	     std::cerr << "Sorry, parameters are not allowed as input nodes" 
+	       << std::endl;	     
 	     THROW(DataManager::ErrGeneric());	      
 	  }	      
        }
@@ -1459,15 +1459,15 @@ Elem* ReadElectric(DataManager* pDM,
       /* Aggiungere altri elementi elettrici */
       
     default: {
-       cerr << "unknown electric element type in electric element " << uLabel 
-	 << " at line " << HP.GetLineData() << endl;       
+       std::cerr << "unknown electric element type in electric element " << uLabel 
+	 << " at line " << HP.GetLineData() << std::endl;       
        THROW(DataManager::ErrGeneric());
     }	
    }
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.fIsArg()) {
-      cerr << "semicolon expected at line " << HP.GetLineData() << endl;     
+      std::cerr << "semicolon expected at line " << HP.GetLineData() << std::endl;     
       THROW(DataManager::ErrGeneric());
    }   
    

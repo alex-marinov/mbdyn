@@ -33,12 +33,12 @@ Macro di assert personalizzate
 
 Uso: ASSERT(<expr>);
 	- se <expr> e' vera ( != 0 ) non fa nulla;
-	- se <expr> e' falsa, scrive sul flusso di errore cerr il file e la riga
+	- se <expr> e' falsa, scrive sul flusso di errore std::cerr il file e la riga
 		solo se DEBUG e' definita.
 
 Uso: ASSERTMSG(<expr>, <msg>);
 	- se <expr> e' vera ( != 0 ) non fa nulla;
-	- se <expr> e' falsa, scrive sul flusso di errore cerr il file e la riga,
+	- se <expr> e' falsa, scrive sul flusso di errore std::cerr il file e la riga,
 		seguiti dal messaggio <msg>, solo se DEBUG e' definita.
 
 Entrambe chiamano la funzione _Assert(file, line, msg = NULL);
@@ -60,14 +60,14 @@ long int DEFAULT_DEBUG_LEVEL = MYDEBUG_ANY;
 
 void _Assert(const char* file, const int line, const char* msg)
 {
-   cout.flush();
+   std::cout.flush();
    
-   cerr << endl << "ASSERT fault in file " << file 
+   std::cerr << std::endl << "ASSERT fault in file " << file 
      << " at line " << line;
    if (msg) { 
-      cerr << ':' << endl << msg; 
+      std::cerr << ':' << std::endl << msg; 
    }
-   cerr << endl;
+   std::cerr << std::endl;
    
 #ifdef DEBUG_STOP
    THROW(MyAssert::ErrGeneric());
@@ -76,9 +76,9 @@ void _Assert(const char* file, const int line, const char* msg)
    return;
 }
 
-ostream& _Out(ostream& out, const char* file, const int line)
+std::ostream& _Out(std::ostream& out, const char* file, const int line)
 {
-   cout.flush();
+   std::cout.flush();
    
    // out << "File <" << file << ">, line [" << line << "]: ";
    out << "[" << file << "," << line << "]: ";
@@ -114,15 +114,15 @@ int get_debug_options(const char *const s, const debug_array da[])
 	 } else if (l == 3 && strncmp("any", p, 3) == 0) {
 	    ::debug_level = MYDEBUG_ANY;
 	 } else {
-	    cerr << "Unknown debug level \"";
+	    std::cerr << "Unknown debug level \"";
 	    for (unsigned int i = 0; i < l; i++) {
-	       cerr << p[i];
+	       std::cerr << p[i];
 	    }
-	    cerr << "\"" << endl;
+	    std::cerr << "\"" << std::endl;
 	 }
       } else {
 	 ::debug_level |= w->l;
-	 cerr << "debug level: " << w->s << endl;
+	 std::cerr << "debug level: " << w->s << std::endl;
       }
       if (sep == NULL) {
 	 break;

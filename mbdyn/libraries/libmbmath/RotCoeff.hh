@@ -51,11 +51,11 @@
 #ifndef RotCoeff_hh
 #define RotCoeff_hh
 
-#include "myf2c.h"
-#include "mystddef.h"
+#include <ac/f2c.h>
+#include <mystddef.h>
 
-#include "matvec3.h"
-#include "matvecexp.h"
+#include <matvec3.h>
+#include <matvecexp.h>
 
 namespace RotCoeff {
 

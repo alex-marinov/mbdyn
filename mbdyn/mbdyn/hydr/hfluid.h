@@ -34,10 +34,11 @@
  */
 
 #ifndef HFLUID_H
-# define HFLUID_H
+#define HFLUID_H
+
+#include <ac/f2c.h>
 
 #include <withlab.h>
-#include <myf2c.h>
 
 /* HydraulicFluid - begin */
 
@@ -123,3 +124,4 @@ extern HydraulicFluid* ReadHydraulicFluid(MBDynParser& HP, unsigned int uLabel);
 /* HydraulicFluid - end */
 
 #endif /* HFLUID_H */
+

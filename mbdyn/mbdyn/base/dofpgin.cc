@@ -32,7 +32,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <sstream.h>
+#include <ac/sstream>
 #include <dofpgin.h>
 
 DofPlugIn::DofPlugIn(MathParser& mp, DataManager *pDM)

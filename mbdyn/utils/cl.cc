@@ -31,9 +31,11 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <ac/iostream>
+#include <ac/sstream>
+
 #include <input.h>
 #include <mathp.h>
-#include <sstream.h>
 
 /* plugins per math parser */
 #include <dummypgin.h>
@@ -50,14 +52,14 @@ main(int argc, const char* const argv[])
 		if (strcmp(argv[1], "-?") == 0 
 		    || strcmp(argv[1], "-h") == 0
 		    || strcmp(argv[1], "--help") == 0) {
-		    	cerr 
+		    	std::cerr 
 				<< "usage: " << argv[0] 
-				<< "     reads from stdin" << endl
+				<< "     reads from stdin" << std::endl
 		   		<< "       " << argv[0] << " {-?|-h|--help}"
-		   		" prints this message" << endl
+		   		" prints this message" << std::endl
 	   			<< "       " << argv[0] 
 				<< " <arg1> [<arg2> ...]"
-				" evaluates the expressions" << endl;
+				" evaluates the expressions" << std::endl;
 	 		exit(EXIT_SUCCESS);
       		} else if (strcmp(argv[1], "-s") == 0) {
 			verbose = 0;
@@ -93,17 +95,17 @@ main(int argc, const char* const argv[])
 #endif /* USE_TCL */
 	
 			if (verbose) {
-	    			cout << "argv[" << i << "] = ";
+	    			std::cout << "argv[" << i << "] = ";
 			}
 
 #ifdef USE_EXCEPTIONS
 			try {
 #endif /* USE_EXCEPTIONS */
-	    		mp.GetForever(cout, "; ");
-	    		cout << endl;
+	    		mp.GetForever(std::cout, "; ");
+	    		std::cout << std::endl;
 #ifdef USE_EXCEPTIONS
 			} catch (...) {
-      				cout << endl;
+      				std::cout << std::endl;
 				exit(EXIT_FAILURE);
 			}
 #endif /* USE_EXCEPTIONS */
@@ -111,7 +113,7 @@ main(int argc, const char* const argv[])
 	 	exit(EXIT_SUCCESS);
       	}
 
-	InputStream In(cin);
+	InputStream In(std::cin);
 #ifdef USE_TABLE
       	MathParser mp(In, t);
 #else /* !USE_TABLE */
@@ -129,12 +131,12 @@ main(int argc, const char* const argv[])
 #ifdef USE_EXCEPTIONS
 	try {	
 #endif /* USE_EXCEPTIONS */
-	mp.GetForever(cout, "\n");
-      	cout << endl;
+	mp.GetForever(std::cout, "\n");
+      	std::cout << std::endl;
       	exit(EXIT_SUCCESS);
 #ifdef USE_EXCEPTIONS
 	} catch (...) {
-      		cout << endl;
+      		std::cout << std::endl;
 		exit(EXIT_FAILURE);
 	}
 #endif /* USE_EXCEPTIONS */

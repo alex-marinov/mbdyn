@@ -74,7 +74,7 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
    };
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out; 
    };
    
@@ -91,8 +91,8 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
    
    void Output(OutputHandler& OH ) const {
       if (fToBeOutput()) {
-	 ostream& out = OH.Genels();
-	 out << setw(8) << GetLabel() << " " << dRct << endl;
+	 std::ostream& out = OH.Genels();
+	 out << std::setw(8) << GetLabel() << " " << dRct << std::endl;
       }
    };
    
@@ -103,7 +103,7 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
 	    const VectorHandler& /* XCurr */ ,
 	    const VectorHandler& /* XPrimeCurr */ ) {
 
-	DEBUGCOUT("Entering GenelClamp::AssJac()" << endl);
+	DEBUGCOUT("Entering GenelClamp::AssJac()" << std::endl);
 	
 	SparseSubMatrixHandler& WM = WorkMat.SetSparse();     
 	WM.Resize(2, 0);
@@ -123,7 +123,7 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
 				    doublereal dCoef,
 				    const VectorHandler& XCurr,
 				    const VectorHandler& /* XPrimeCurr */ ) {
-      DEBUGCOUT("Entering GenelClamp::AssRes()" << endl);
+      DEBUGCOUT("Entering GenelClamp::AssRes()" << std::endl);
       
       WorkVec.Resize(2);  
 
@@ -208,7 +208,7 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
    };
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out; 
    };
   
@@ -225,8 +225,8 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
    
    void Output(OutputHandler& OH) const {
       if (fToBeOutput()) {
-	 ostream& out = OH.Genels();
-	 out << setw(8) << GetLabel() << " " << dRct << endl;
+	 std::ostream& out = OH.Genels();
+	 out << std::setw(8) << GetLabel() << " " << dRct << std::endl;
       }
    };
    
@@ -236,7 +236,7 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
 	    doublereal dCoef, 
 	    const VectorHandler& /* XCurr */ ,
 	    const VectorHandler& /* XPrimeCurr */ ) {
-	DEBUGCOUT("Entering GenelDistance::AssJac()" << endl);
+	DEBUGCOUT("Entering GenelDistance::AssJac()" << std::endl);
 	
 	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
 	WM.ResizeInit(4, 0, 0.);
@@ -275,7 +275,7 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
 				    doublereal dCoef,
 				    const VectorHandler& XCurr,
 				    const VectorHandler& /* XPrimeCurr */ ) {
-      DEBUGCOUT("Entering GenelDistance::AssRes()" << endl);
+      DEBUGCOUT("Entering GenelDistance::AssRes()" << std::endl);
       
       WorkVec.Resize(3);
       WorkVec.Reset(0.);
@@ -358,7 +358,7 @@ class GenelSpring
    };   
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out; 
    };
   
@@ -383,7 +383,7 @@ class GenelSpring
 	    doublereal dCoef, 
 	    const VectorHandler& /* XCurr */ ,
 	    const VectorHandler& /* XPrimeCurr */ ) {
-	DEBUGCOUT("Entering GenelSpring::AssJac()" << endl);
+	DEBUGCOUT("Entering GenelSpring::AssJac()" << std::endl);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	WM.ResizeInit(2, 2, 0.);
@@ -424,7 +424,7 @@ class GenelSpring
 				    doublereal /* dCoef */ ,
 				    const VectorHandler& /* XCurr */ ,
 				    const VectorHandler& /* XPrimeCurr */ ) {
-      DEBUGCOUT("Entering GenelSpring::AssRes()" << endl);
+      DEBUGCOUT("Entering GenelSpring::AssRes()" << std::endl);
       
       WorkVec.Resize(2);
       WorkVec.Reset(0.);
@@ -492,7 +492,7 @@ class GenelSpringSupport
    };   
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out; 
    };
 
@@ -517,7 +517,7 @@ class GenelSpringSupport
 	    doublereal dCoef, 
 	    const VectorHandler& /* XCurr */ ,
 	    const VectorHandler& /* XPrimeCurr */ ) {
-	DEBUGCOUT("Entering GenelSpringSupport::AssJac()" << endl);
+	DEBUGCOUT("Entering GenelSpringSupport::AssJac()" << std::endl);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	WM.ResizeInit(1, 1, 0.);
@@ -538,7 +538,7 @@ class GenelSpringSupport
 				    doublereal /* dCoef */ ,
 				    const VectorHandler& /* XCurr */ ,
 				    const VectorHandler& /* XPrimeCurr */ ) {
-      DEBUGCOUT("Entering GenelSpringSupport::AssRes()" << endl);
+      DEBUGCOUT("Entering GenelSpringSupport::AssRes()" << std::endl);
       
       WorkVec.Resize(1);
       WorkVec.Reset(0.);
@@ -601,7 +601,7 @@ class GenelCrossSpringSupport
    };   
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out; 
    };
    
@@ -626,7 +626,7 @@ class GenelCrossSpringSupport
 	    doublereal dCoef, 
 	    const VectorHandler& /* XCurr */ ,
 	    const VectorHandler& /* XPrimeCurr */ ) {
-	DEBUGCOUT("Entering GenelCrossSpringSupport::AssJac()" << endl);
+	DEBUGCOUT("Entering GenelCrossSpringSupport::AssJac()" << std::endl);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	WM.ResizeInit(1, 1, 0.);
@@ -647,7 +647,7 @@ class GenelCrossSpringSupport
 				    doublereal /* dCoef */ ,
 				    const VectorHandler& /* XCurr */ ,
 				    const VectorHandler& /* XPrimeCurr */ ) {
-      DEBUGCOUT("Entering GenelCrossSpringSupport::AssRes()" << endl);
+      DEBUGCOUT("Entering GenelCrossSpringSupport::AssRes()" << std::endl);
       
       WorkVec.Resize(1);
       WorkVec.Reset(0.);
@@ -712,7 +712,7 @@ class GenelCrossSpringDamperSupport
    };   
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out; 
    };
    
@@ -737,7 +737,7 @@ class GenelCrossSpringDamperSupport
 	    doublereal dCoef, 
 	    const VectorHandler& /* XCurr */ ,
 	    const VectorHandler& /* XPrimeCurr */ ) {
-	DEBUGCOUT("Entering GenelCrossSpringDamperSupport::AssJac()" << endl);
+	DEBUGCOUT("Entering GenelCrossSpringDamperSupport::AssJac()" << std::endl);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	WM.ResizeInit(1, 1, 0.);
@@ -758,7 +758,7 @@ class GenelCrossSpringDamperSupport
 				    doublereal /* dCoef */ ,
 				    const VectorHandler& /* XCurr */ ,
 				    const VectorHandler& /* XPrimeCurr */ ) {
-      DEBUGCOUT("Entering GenelCrossSpringDamperSupport::AssRes()" << endl);
+      DEBUGCOUT("Entering GenelCrossSpringDamperSupport::AssRes()" << std::endl);
       
       WorkVec.Resize(1);
       WorkVec.Reset(0.);
@@ -822,7 +822,7 @@ class GenelSpringDamperSupport
    };   
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out; 
    };
    
@@ -847,7 +847,7 @@ class GenelSpringDamperSupport
 	    doublereal dCoef, 
 	    const VectorHandler& /* XCurr */ ,
 	    const VectorHandler& /* XPrimeCurr */ ) {
-	DEBUGCOUT("Entering GenelSpringDamperSupport::AssJac()" << endl);
+	DEBUGCOUT("Entering GenelSpringDamperSupport::AssJac()" << std::endl);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	WM.ResizeInit(1, 1, 0.);
@@ -868,7 +868,7 @@ class GenelSpringDamperSupport
 				    doublereal /* dCoef */ ,
 				    const VectorHandler& /* XCurr */ ,
 				    const VectorHandler& /* XPrimeCurr */ ) {
-      DEBUGCOUT("Entering GenelSpringDamperSupport::AssRes()" << endl);
+      DEBUGCOUT("Entering GenelSpringDamperSupport::AssRes()" << std::endl);
       
       WorkVec.Resize(1);
       WorkVec.Reset(0.);
@@ -940,7 +940,7 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
    };
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out; 
    };
    
@@ -966,7 +966,7 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
 	    const VectorHandler& /* XCurr */ ,
 	    const VectorHandler& /* XPrimeCurr */ ) {
 
-	DEBUGCOUT("Entering GenelMass::AssJac()" << endl);
+	DEBUGCOUT("Entering GenelMass::AssJac()" << std::endl);
 	
 	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
 	WM.ResizeInit(3, 0, 0.);
@@ -987,7 +987,7 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
 				    doublereal /* dCoef */ ,
 				    const VectorHandler& XCurr,
 				    const VectorHandler& XPrimeCurr) {
-      DEBUGCOUT("Entering GenelMass::AssRes()" << endl);
+      DEBUGCOUT("Entering GenelMass::AssRes()" << std::endl);
       
       WorkVec.Resize(2);
       WorkVec.Reset(0.);

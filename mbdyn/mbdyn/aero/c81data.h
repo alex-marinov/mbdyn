@@ -31,11 +31,7 @@
 #ifndef C81DATA_H
 #define C81DATA_H
 
-#if defined(HAVE_IOSTREAM)
-#include <iostream>
-#elif defined(HAVE_IOSTREAM_H)
-#include <iostream.h>
-#endif
+#include <ac/iostream>
 
 extern "C" {
 extern c81_data* get_c81_data(long int jpro);

@@ -36,31 +36,15 @@
 
 /* se #define DEBUG_COUT l'output avviene su cout anziche' nei files */
 
+#include <ac/iostream>
+#include <ac/iomanip>
+#include <ac/fstream>
+
 #include <myassert.h>
 #include <mystddef.h>
 #include <except.h>
 #include <solman.h>
-
-
-/* include di servizio */
-#include "filename.h"
-
-/* include generali */
-#if defined(HAVE_IOSTREAM)
-#include <iostream>
-#elif defined(HAVE_IOSTREAM_H)
-#include <iostream.h>
-#endif
-#if defined(HAVE_IOMANIP)
-#include <iomanip>
-#elif defined(HAVE_IOMANIP_H)
-#include <iomanip.h>
-#endif
-#if defined(HAVE_FSTREAM)
-#include <fstream>
-#elif defined(HAVE_FSTREAM_H)
-#include <fstream.h>
-#endif
+#include <filename.h>
 
 /* OutputHandler - begin */
 

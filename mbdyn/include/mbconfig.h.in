@@ -50,6 +50,9 @@
 /* Define if you have the <f2c.h> header file.  */
 #undef HAVE_F2C_H
 
+/* Define if you have the <float.h> header file.  */
+#undef HAVE_FLOAT_H
+
 /* Define if you have the <fstream> header file.  */
 #undef HAVE_FSTREAM
 
@@ -70,6 +73,9 @@
 
 /* Define if you have the <iostream.h> header file.  */
 #undef HAVE_IOSTREAM_H
+
+/* Define if you have the <math.h> header file.  */
+#undef HAVE_MATH_H
 
 /* Define if you have the <meschach/sparse2.h> header file.  */
 #undef HAVE_MESCHACH_SPARSE2_H
@@ -109,6 +115,9 @@
 
 /* Define if you have the <unistd.h> header file.  */
 #undef HAVE_UNISTD_H
+
+/* Define if you have the <values.h> header file.  */
+#undef HAVE_VALUES_H
 
 /* Name of package */
 #undef PACKAGE
@@ -226,6 +235,9 @@
 
 /* define if class ostream has 'form' method */
 #undef HAVE_FORM_IN_OSTREAM
+
+/* define if class ios has 'fmtflags' type */
+#undef HAVE_FMTFLAGS_IN_IOS
 
 /* define if class ios has 'fmtflags' type */
 #undef HAVE_FMTFLAGS_IN_IOS

@@ -32,12 +32,7 @@
 #endif
 
 #include <stdlib.h>
-#if defined(HAVE_IOSTREAM)
-#include <iostream>
-#elif defined(HAVE_IOSTREAM_H)
-#include <iostream.h>
-#endif
-//#include <string.h>
+#include <ac/iostream>
 
 #include <solman.h>
 #include <y12wrap.h>

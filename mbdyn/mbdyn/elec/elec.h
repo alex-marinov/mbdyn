@@ -33,16 +33,12 @@
 #ifndef ELEC_H
 #define ELEC_H
 
-
-/* include per derivazione della classe */
-
 #include "elem.h"
 #include "elecnode.h"
 #include "strnode.h"
 #include "drive.h"
       
 extern const char* psElectricNames[];
-
 
 /* Electric - begin */
 
@@ -70,7 +66,7 @@ class Electric : virtual public Elem, public ElemWithDofs {
    /* Contributo al file di restart 
     * (Nota: e' incompleta, deve essere chiamata dalla funzione corrispndente
     * relativa alla classe derivata */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    /* Tipo dell'elemento (usato solo per debug ecc.) */
    virtual Elem::Type GetElemType(void) const;
@@ -113,7 +109,7 @@ class Accelerometer : virtual public Elem, public Electric {
    };
    
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual unsigned int iGetNumDof(void) const;
    virtual DofOrder::Order SetDof(unsigned int i) const;
@@ -178,7 +174,7 @@ class TraslAccel : virtual public Elem, public Electric {
    };
    
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual unsigned int iGetNumDof(void) const;
    virtual DofOrder::Order SetDof(unsigned int i) const;
@@ -241,7 +237,7 @@ class RotAccel : virtual public Elem, public Electric {
    };
    
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual unsigned int iGetNumDof(void) const;
    virtual DofOrder::Order SetDof(unsigned int i) const;
@@ -306,7 +302,7 @@ class DispMeasure : virtual public Elem, public Electric {
    };
    
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
       

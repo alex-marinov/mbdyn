@@ -34,19 +34,11 @@
 ******************************************************************************/
 
 
-#ifndef _MYSTDDEF
-#define _MYSTDDEF
+#ifndef MYSTDDEF_H
+#define MYSTDDEF_H
 
-#if defined(HAVE_IOSTREAM)
-#include <iostream>
-#elif defined(HAVE_IOSTREAM_H)
-#include <iostream.h>
-#endif
-#if defined(HAVE_IOMANIP)
-#include <iomanip>
-#elif defined(HAVE_IOMANIP_H)
-#include <iomanip.h>
-#endif
+#include <ac/iostream>
+#include <ac/iomanip>
 
 // Definizioni generali
 #ifdef __alpha
@@ -68,4 +60,5 @@ typedef double        Real;
 #define OUTSET(prec, width) \
           setprecision(prec) << setw(width)
 
-#endif
+#endif /* MYSTDDEF_H */
+

@@ -32,9 +32,9 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <stdlib.h>
-#include <iostream.h>
-#include <iomanip.h>
-#include <fstream.h>
+#include <ac/iostream>
+#include <ac/iomanip>
+#include <ac/fstream>
 
 extern "C" {
 #include <aerodc81.h>

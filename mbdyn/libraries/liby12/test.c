@@ -33,8 +33,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <ac/f2c.h>
 
-#include <myf2c.h>
 #include <y12lib.h>
 
 int

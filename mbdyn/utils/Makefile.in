@@ -91,7 +91,7 @@ Y12_LIBS = @Y12_LIBS@
 mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
 
-bin_PROGRAMS =  autopilot cl dae-intg deriv env eu2rot femgen intg loadable posrel rot2eu rot2eup rot2phi rotrel sockdrive
+bin_PROGRAMS =  autopilot cl dae-intg deriv env eu2rot femgen intg posrel rot2eu rot2eup rot2phi rotrel sockdrive
 
 
 LIBS =  ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la ../libraries/libobjs/libobjs.la @Y12_LIBS@ @HARWELL_LIBS@ @UMFPACK3_LIBS@ ../libraries/libmbwrap/libmbwrap.la @MESCHACH_LIBS@ @F2C_LIBS@ @TCL_LIBS@
@@ -105,7 +105,6 @@ env_SOURCES = env.c
 eu2rot_SOURCES = eu2rot.cc
 femgen_SOURCES = femgen.f
 intg_SOURCES = intg.cc
-loadable_SOURCES = loadable.cc
 posrel_SOURCES = posrel.cc
 rot2eup_SOURCES = rot2eup.cc
 rot2eu_SOURCES = rot2eu.cc
@@ -157,10 +156,6 @@ femgen_LDFLAGS =
 intg_OBJECTS =  intg.o
 intg_DEPENDENCIES = 
 intg_LDFLAGS = 
-loadable_OBJECTS =  loadable.o
-loadable_LDADD = $(LDADD)
-loadable_DEPENDENCIES = 
-loadable_LDFLAGS = 
 posrel_OBJECTS =  posrel.o
 posrel_LDADD = $(LDADD)
 posrel_DEPENDENCIES = 
@@ -208,11 +203,11 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/autopilot.P .deps/cl.P .deps/dae-intg.P .deps/deriv.P \
-.deps/env.P .deps/eu2rot.P .deps/femgen.P .deps/intg.P .deps/loadable.P \
-.deps/posrel.P .deps/rot2eu.P .deps/rot2eup.P .deps/rot2phi.P \
-.deps/rotrel.P .deps/sockdrive.P
-SOURCES = $(autopilot_SOURCES) $(cl_SOURCES) $(dae_intg_SOURCES) $(deriv_SOURCES) $(env_SOURCES) $(eu2rot_SOURCES) $(femgen_SOURCES) $(intg_SOURCES) $(loadable_SOURCES) $(posrel_SOURCES) $(rot2eu_SOURCES) $(rot2eup_SOURCES) $(rot2phi_SOURCES) $(rotrel_SOURCES) $(sockdrive_SOURCES)
-OBJECTS = $(autopilot_OBJECTS) $(cl_OBJECTS) $(dae_intg_OBJECTS) $(deriv_OBJECTS) $(env_OBJECTS) $(eu2rot_OBJECTS) $(femgen_OBJECTS) $(intg_OBJECTS) $(loadable_OBJECTS) $(posrel_OBJECTS) $(rot2eu_OBJECTS) $(rot2eup_OBJECTS) $(rot2phi_OBJECTS) $(rotrel_OBJECTS) $(sockdrive_OBJECTS)
+.deps/env.P .deps/eu2rot.P .deps/femgen.P .deps/intg.P .deps/posrel.P \
+.deps/rot2eu.P .deps/rot2eup.P .deps/rot2phi.P .deps/rotrel.P \
+.deps/sockdrive.P
+SOURCES = $(autopilot_SOURCES) $(cl_SOURCES) $(dae_intg_SOURCES) $(deriv_SOURCES) $(env_SOURCES) $(eu2rot_SOURCES) $(femgen_SOURCES) $(intg_SOURCES) $(posrel_SOURCES) $(rot2eu_SOURCES) $(rot2eup_SOURCES) $(rot2phi_SOURCES) $(rotrel_SOURCES) $(sockdrive_SOURCES)
+OBJECTS = $(autopilot_OBJECTS) $(cl_OBJECTS) $(dae_intg_OBJECTS) $(deriv_OBJECTS) $(env_OBJECTS) $(eu2rot_OBJECTS) $(femgen_OBJECTS) $(intg_OBJECTS) $(posrel_OBJECTS) $(rot2eu_OBJECTS) $(rot2eup_OBJECTS) $(rot2phi_OBJECTS) $(rotrel_OBJECTS) $(sockdrive_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -313,10 +308,6 @@ femgen: $(femgen_OBJECTS) $(femgen_DEPENDENCIES)
 intg: $(intg_OBJECTS) $(intg_DEPENDENCIES)
 	@rm -f intg
 	$(CXXLINK) $(intg_LDFLAGS) $(intg_OBJECTS) $(intg_LDADD) $(LIBS)
-
-loadable: $(loadable_OBJECTS) $(loadable_DEPENDENCIES)
-	@rm -f loadable
-	$(CXXLINK) $(loadable_LDFLAGS) $(loadable_OBJECTS) $(loadable_LDADD) $(LIBS)
 
 posrel: $(posrel_OBJECTS) $(posrel_DEPENDENCIES)
 	@rm -f posrel

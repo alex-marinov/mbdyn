@@ -33,7 +33,7 @@
 #ifndef SHAPE_H
 #define SHAPE_H
 
-#include <myf2c.h>
+#include <ac/f2c.h>
 
 #include <myassert.h>
 #include <mynewmem.h>

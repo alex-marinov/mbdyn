@@ -36,12 +36,15 @@
 #ifndef DISCCTRL_H
 #define DISCCTRL_H
 
-#include "elec.h"
-#include "veciter.h"
+#include <ac/iostream>
+#include <ac/fstream>
 
-#include "id.h"
-#include "gpc.h"
-#include "px.h"
+#include <elec.h>
+#include <veciter.h>
+
+#include <id.h>
+#include <gpc.h>
+#include <px.h>
 
 /* DiscreteControlProcess - begin */
 /* This class provides input and output writing to and from the discrete
@@ -126,7 +129,7 @@ class DiscreteControlARXProcess_Debug : public DiscreteControlProcess {
    integer iRefB;           /* Current position of most recent input */
    
    /* Reads the control matrices */
-   int ReadMatrix(istream& In,
+   int ReadMatrix(std::istream& In,
 		  doublereal* pd, unsigned int iRows, unsigned int iCols,
 		  unsigned int iNumSubMats,
 		  const char* sMatName);
@@ -136,7 +139,7 @@ class DiscreteControlARXProcess_Debug : public DiscreteControlProcess {
  public:
    DiscreteControlARXProcess_Debug(integer iNumOut, integer iNumIn,
 				   integer iOrdA, integer iOrdB, 
-				   istream& In);
+				   std::istream& In);
    virtual ~DiscreteControlARXProcess_Debug(void);
   
    /* Returns the new control input values in array pdIn */
@@ -165,7 +168,7 @@ class DiscreteIdentProcess_Debug : public DiscreteControlProcess {
    
    /* provvisorio?!? */
    flag fout;
-   ofstream out;
+   std::ofstream out;
    
  public:
    DiscreteIdentProcess_Debug(integer iNumOut, integer iNumIn,
@@ -223,7 +226,7 @@ class DAC_Process_Debug : public DiscreteControlProcess {
    
    /* provvisorio?!? */
    flag fout;
-   ofstream out;   
+   std::ofstream out;   
     
  public:
    DAC_Process_Debug(integer iNumOut, integer iNumIn,
@@ -289,7 +292,7 @@ class DiscreteControlElem : virtual public Elem, public Electric {
    };
 
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual void Output(OutputHandler& OH) const;
       
@@ -371,3 +374,4 @@ class DiscreteControlElem : virtual public Elem, public Electric {
 /* DiscreteControlElem - end */
 
 #endif /* DISCCTRL_H */
+

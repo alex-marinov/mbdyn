@@ -34,8 +34,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <rotor.h>
-#include <dataman.h>
+#include <ac/math.h>
 
 #ifdef USE_MPI
 #ifdef USE_MYSLEEP
@@ -50,9 +49,9 @@ extern "C" {
 #endif /* MPI_PROFILING */
 #endif /* USE_MPI */
 
-extern "C" {
-#include <mymath.h>
-}
+#include <rotor.h>
+#include <dataman.h>
+
 
 /* Rotor - begin */
 
@@ -85,8 +84,8 @@ iNumSteps(0)
    Vec3 R3C((pCraft->GetRCurr()).GetVec(3));
    Vec3 R3R((pRotor->GetRCurr()).GetVec(3));
    if (R3C.Dot(R3R) < 1.-DBL_EPSILON) {
-      cerr << "warning, possible misalignment of rotor and craft axes "
-	      "for Rotor(" << GetLabel() << ")" << endl;
+      std::cerr << "warning, possible misalignment of rotor and craft axes "
+	      "for Rotor(" << GetLabel() << ")" << std::endl;
    }
 #ifdef USE_MPI
    RotorComm = MPI::COMM_WORLD.Dup();
@@ -119,7 +118,7 @@ void Rotor::Output(OutputHandler& OH) const
 	    if (RotorComm.Get_rank() == 0) {
 		Vec3 TmpF(TmpVecR), TmpM(TmpVecR+3);
 		Mat3x3 RT((pCraft->GetRCurr()).Transpose());
-		OH.Rotors() << setw(8) << GetLabel() << " " 
+		OH.Rotors() << std::setw(8) << GetLabel() << " " 
 			<< (RT*TmpF) << " " << (RT*TmpM) << " " 
 			<< dUMean 
 #if 1
@@ -129,11 +128,11 @@ void Rotor::Output(OutputHandler& OH) const
 			<< dMu << " " << dLambda << " " << dChi << " "
 			<< dPsi0
 #endif
-			<< endl;
+			<< std::endl;
 	    }
 	} else {
 	    Mat3x3 RT((pCraft->GetRCurr()).Transpose());
-	    OH.Rotors() << setw(8) << GetLabel() << " "
+	    OH.Rotors() << std::setw(8) << GetLabel() << " "
 		    << (RT*FTraction) << " " << (RT*MTraction) << " " 
 		    << dUMean 
 #if 1
@@ -143,11 +142,11 @@ void Rotor::Output(OutputHandler& OH) const
 		    << dMu << " " << dLambda << " " << dChi << " "
 		    << dPsi0
 #endif 
-		    << endl;
+		    << std::endl;
 	}
 #else /* !USE_MPI */     
 	Mat3x3 RT((pCraft->GetRCurr()).Transpose());
-	OH.Rotors() << setw(8) << GetLabel() << " " 
+	OH.Rotors() << std::setw(8) << GetLabel() << " " 
 		<< (RT*FTraction) << " " << (RT*MTraction) << " " 
 		<< dUMean 
 #if 1
@@ -157,7 +156,7 @@ void Rotor::Output(OutputHandler& OH) const
 		<< dMu << " " << dLambda << " " << dChi << " "
 		<< dPsi0
 #endif
-		<< endl;
+		<< std::endl;
 #endif /* !USE_MPI */
     }
 }
@@ -284,12 +283,12 @@ VariableSubMatrixHandler& Rotor::AssJac(VariableSubMatrixHandler& WorkMat,
 					const VectorHandler& /* XCurr */ ,
 					const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering Rotor::AssJac()" << endl);
+   DEBUGCOUT("Entering Rotor::AssJac()" << std::endl);
    WorkMat.SetNullMatrix();
    return WorkMat;	
 }
 
-ostream& Rotor::Restart(ostream& out) const
+std::ostream& Rotor::Restart(std::ostream& out) const
 {
    return out << "  rotor: " << GetLabel() << ", " 
      << pCraft->GetLabel() << ", " << pRotor->GetLabel() 
@@ -387,7 +386,7 @@ SubVectorHandler& NoRotor::AssRes(SubVectorHandler& WorkVec,
 				  const VectorHandler& /* XCurr */ ,
 				  const VectorHandler& /* XPrimeCurr */ )
 {
-  DEBUGCOUT("Entering NoRotor::AssRes()" << endl);
+  DEBUGCOUT("Entering NoRotor::AssRes()" << std::endl);
    
 #ifdef USE_MPI
   if (fToBeOutput()) {
@@ -417,9 +416,9 @@ SubVectorHandler& NoRotor::AssRes(SubVectorHandler& WorkVec,
   return WorkVec;
 }
 
-ostream& NoRotor::Restart(ostream& out) const
+std::ostream& NoRotor::Restart(std::ostream& out) const
 {
-  return Rotor::Restart(out) << "no;" << endl;
+  return Rotor::Restart(out) << "no;" << std::endl;
 }
 
 /* Somma alla trazione il contributo di forza di un elemento generico */
@@ -515,7 +514,7 @@ SubVectorHandler& UniformRotor::AssRes(SubVectorHandler& WorkVec,
 				       const VectorHandler& /* XCurr */ ,
 				       const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering UniformRotor::AssRes()" << endl);  
+   DEBUGCOUT("Entering UniformRotor::AssRes()" << std::endl);  
 
 #ifdef USE_MPI
    ExchangeTraction(fToBeOutput());
@@ -533,21 +532,21 @@ SubVectorHandler& UniformRotor::AssRes(SubVectorHandler& WorkVec,
 	Vec3 XTmp(2.,2.,0.);
 	doublereal dPsiTmp = dGetPsi(XTmp);
 	doublereal dXTmp = dGetPos(XTmp);
-	cout 
-	<< "X rotore:  " << pRotor->GetXCurr() << endl
-	<< "V rotore:  " << VCraft << endl
-	<< "X punto:   " << XTmp << endl
-	<< "Omega:     " << dOmega << endl
-	<< "Velocita': " << dVelocity << endl
-	<< "Psi0:      " << dPsi0 << endl
-	<< "Psi punto: " << dPsiTmp << endl
-	<< "Raggio:    " << dRadius << endl
-	<< "r punto:   " << dXTmp << endl
-	<< "mu:        " << dMu << endl
-	<< "lambda:    " << dLambda << endl
-	<< "cos(ad):   " << dCosAlphad << endl
-	<< "sin(ad):   " << dSinAlphad << endl
-	<< "UMean:     " << dUMean << endl;
+	std::cout 
+	<< "X rotore:  " << pRotor->GetXCurr() << std::endl
+	<< "V rotore:  " << VCraft << std::endl
+	<< "X punto:   " << XTmp << std::endl
+	<< "Omega:     " << dOmega << std::endl
+	<< "Velocita': " << dVelocity << std::endl
+	<< "Psi0:      " << dPsi0 << std::endl
+	<< "Psi punto: " << dPsiTmp << std::endl
+	<< "Raggio:    " << dRadius << std::endl
+	<< "r punto:   " << dXTmp << std::endl
+	<< "mu:        " << dMu << std::endl
+	<< "lambda:    " << dLambda << std::endl
+	<< "cos(ad):   " << dCosAlphad << std::endl
+	<< "sin(ad):   " << dSinAlphad << std::endl
+	<< "UMean:     " << dUMean << std::endl;
      */        
 #endif /* DEBUG */
    
@@ -562,10 +561,10 @@ SubVectorHandler& UniformRotor::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;  
 }
 
-ostream& UniformRotor::Restart(ostream& out) const
+std::ostream& UniformRotor::Restart(std::ostream& out) const
 {
   return Rotor::Restart(out) << "uniform, " << dRadius << ", " 
-	  << dWeight << ", correction, " << dCorrection << ';' << endl;
+	  << dWeight << ", correction, " << dCorrection << ';' << std::endl;
 }
 
 /* Somma alla trazione il contributo di forza di un elemento generico */
@@ -669,7 +668,7 @@ SubVectorHandler& GlauertRotor::AssRes(SubVectorHandler& WorkVec,
 				       const VectorHandler& /* XCurr */ , 
 				       const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering GlauertRotor::AssRes()" << endl);  
+   DEBUGCOUT("Entering GlauertRotor::AssRes()" << std::endl);  
 
 #ifdef USE_MPI
    ExchangeTraction(fToBeOutput());
@@ -692,10 +691,10 @@ SubVectorHandler& GlauertRotor::AssRes(SubVectorHandler& WorkVec,
 }
 
 
-ostream& GlauertRotor::Restart(ostream& out) const
+std::ostream& GlauertRotor::Restart(std::ostream& out) const
 {
    return Rotor::Restart(out) << "Glauert, " << dRadius << ", " 
-     << dWeight << ';' << endl;
+     << dWeight << ';' << std::endl;
 }
 
 
@@ -815,7 +814,7 @@ SubVectorHandler& ManglerRotor::AssRes(SubVectorHandler& WorkVec,
 				       const VectorHandler& /* XCurr */ ,
 				       const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ManglerRotor::AssRes()" << endl);  
+   DEBUGCOUT("Entering ManglerRotor::AssRes()" << std::endl);  
 
 #ifdef USE_MPI
    ExchangeTraction(fToBeOutput());
@@ -833,22 +832,22 @@ SubVectorHandler& ManglerRotor::AssRes(SubVectorHandler& WorkVec,
      doublereal dPsiTmp = dGetPsi(XTmp);
      doublereal dXTmp = dGetPos(XTmp);
      Vec3 IndV = GetInducedVelocity(XTmp);
-     cout 
-       << "X rotore:  " << pRotor->GetXCurr() << endl
-       << "V rotore:  " << VCraft << endl
-       << "X punto:   " << XTmp << endl
-       << "Omega:     " << dOmega << endl
-       << "Velocita': " << dVelocity << endl
-       << "Psi0:      " << dPsi0 << endl
-       << "Psi punto: " << dPsiTmp << endl
-       << "Raggio:    " << dRadius << endl
-       << "r punto:   " << dXTmp << endl
-       << "mu:        " << dMu << endl
-       << "lambda:    " << dLambda << endl
-       << "cos(ad):   " << dCosAlphad << endl
-       << "sin(ad):   " << dSinAlphad << endl
-       << "UMean:     " << dUMean << endl
-       << "iv punto:  " << IndV << endl;
+     std::cout 
+       << "X rotore:  " << pRotor->GetXCurr() << std::endl
+       << "V rotore:  " << VCraft << std::endl
+       << "X punto:   " << XTmp << std::endl
+       << "Omega:     " << dOmega << std::endl
+       << "Velocita': " << dVelocity << std::endl
+       << "Psi0:      " << dPsi0 << std::endl
+       << "Psi punto: " << dPsiTmp << std::endl
+       << "Raggio:    " << dRadius << std::endl
+       << "r punto:   " << dXTmp << std::endl
+       << "mu:        " << dMu << std::endl
+       << "lambda:    " << dLambda << std::endl
+       << "cos(ad):   " << dCosAlphad << std::endl
+       << "sin(ad):   " << dSinAlphad << std::endl
+       << "UMean:     " << dUMean << std::endl
+       << "iv punto:  " << IndV << std::endl;
 #endif /* DEBUG */
 
 #ifdef USE_MPI 
@@ -863,10 +862,10 @@ SubVectorHandler& ManglerRotor::AssRes(SubVectorHandler& WorkVec,
 }
    
 
-ostream& ManglerRotor::Restart(ostream& out) const
+std::ostream& ManglerRotor::Restart(std::ostream& out) const
 {
   return Rotor::Restart(out) << "Mangler, " << dRadius << ", " 
-			     << dWeight << ';' << endl;
+			     << dWeight << ';' << std::endl;
 }
 
 
@@ -1030,24 +1029,24 @@ void DynamicInflowRotor::Output(OutputHandler& OH) const
      if (fToBeOutput()) {
        Vec3 TmpF(TmpVecR), TmpM(TmpVecR+3);
        Mat3x3 RT((pCraft->GetRCurr()).Transpose());
-       OH.Rotors() << setw(8) << GetLabel() << " " 
+       OH.Rotors() << std::setw(8) << GetLabel() << " " 
 		   << (RT*TmpF) << " " << (RT*TmpM) << " " << dUMean << " "
-		   << dVConst << " " << dVCosine << " " << dVSine  << endl; 
+		   << dVConst << " " << dVCosine << " " << dVSine  << std::endl; 
      }
    }
   } else {
     Mat3x3 RT((pCraft->GetRCurr()).Transpose());
-	 OH.Rotors() << setw(8) << GetLabel() << " "
+	 OH.Rotors() << std::setw(8) << GetLabel() << " "
 		     << (RT*FTraction) << " " << (RT*MTraction) << " " << dUMean << " "
-		     << dVConst << " " << dVCosine << " " << dVSine  << endl;
+		     << dVConst << " " << dVCosine << " " << dVSine  << std::endl;
   }
 #else /* !USE_MPI */     
    if (fToBeOutput()) {
      Mat3x3 RT((pCraft->GetRCurr()).Transpose());
-     OH.Rotors() << setw(8) << GetLabel() << " " 
+     OH.Rotors() << std::setw(8) << GetLabel() << " " 
 		 << (RT*FTraction) << " " << (RT*MTraction) << " " 
 		 << dUMean << " "
-		 << dVConst << " " << dVCosine << " " << dVSine  << endl;
+		 << dVConst << " " << dVCosine << " " << dVSine  << std::endl;
    } 
 #endif /* !USE_MPI */     
 }
@@ -1059,7 +1058,7 @@ DynamicInflowRotor::AssJac(VariableSubMatrixHandler& WorkMat,
 			   const VectorHandler& /* XCurr */ ,
 			   const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering DynamicInflowRotor::AssJac()" << endl);
+   DEBUGCOUT("Entering DynamicInflowRotor::AssJac()" << std::endl);
 #ifdef USE_MPI 
    if (RotorComm.Get_rank() == 0) {
 #endif /* USE_MPI */     
@@ -1089,7 +1088,7 @@ SubVectorHandler& DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 					     const VectorHandler& XCurr, 
 					     const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering DynamicInflowRotor::AssRes()" << endl);
+   DEBUGCOUT("Entering DynamicInflowRotor::AssRes()" << std::endl);
    
 #ifdef USE_MPI
    ExchangeTraction(flag(1));
@@ -1107,22 +1106,22 @@ SubVectorHandler& DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
      doublereal dPsiTmp = dGetPsi(XTmp);
      doublereal dXTmp = dGetPos(XTmp);
      Vec3 IndV = GetInducedVelocity(XTmp);
-     cout 
-       << "X rotore:  " << pRotor->GetXCurr() << endl
-       << "V rotore:  " << VCraft << endl
-       << "X punto:   " << XTmp << endl
-       << "Omega:     " << dOmega << endl
-       << "Velocita': " << dVelocity << endl
-       << "Psi0:      " << dPsi0 << endl
-       << "Psi punto: " << dPsiTmp << endl
-       << "Raggio:    " << dRadius << endl
-       << "r punto:   " << dXTmp << endl
-       << "mu:        " << dMu << endl
-       << "lambda:    " << dLambda << endl
-       << "cos(ad):   " << dCosAlphad << endl
-       << "sin(ad):   " << dSinAlphad << endl
-       << "UMean:     " << dUMean << endl
-       << "iv punto:  " << IndV << endl;
+     std::cout 
+       << "X rotore:  " << pRotor->GetXCurr() << std::endl
+       << "V rotore:  " << VCraft << std::endl
+       << "X punto:   " << XTmp << std::endl
+       << "Omega:     " << dOmega << std::endl
+       << "Velocita': " << dVelocity << std::endl
+       << "Psi0:      " << dPsi0 << std::endl
+       << "Psi punto: " << dPsiTmp << std::endl
+       << "Raggio:    " << dRadius << std::endl
+       << "r punto:   " << dXTmp << std::endl
+       << "mu:        " << dMu << std::endl
+       << "lambda:    " << dLambda << std::endl
+       << "cos(ad):   " << dCosAlphad << std::endl
+       << "sin(ad):   " << dSinAlphad << std::endl
+       << "UMean:     " << dUMean << std::endl
+       << "iv punto:  " << IndV << std::endl;
 #endif /* DEBUG */
      
      WorkVec.Resize(3);
@@ -1240,9 +1239,9 @@ void DynamicInflowRotor::SetValue(VectorHandler& X, VectorHandler& XP) const
 
 
 /* Restart */
-ostream& DynamicInflowRotor::Restart(ostream& out) const
+std::ostream& DynamicInflowRotor::Restart(std::ostream& out) const
 {
-   return Rotor::Restart(out) << "dynamic inflow, " << dRadius << ';' << endl;
+   return Rotor::Restart(out) << "dynamic inflow, " << dRadius << ';' << std::endl;
 }
 
 
@@ -1299,7 +1298,7 @@ Elem* ReadRotor(DataManager* pDM,
 		unsigned int uLabel)
 {
    const char sFuncName[] = "ReadRotor()";
-   DEBUGCOUT("Entering " << sFuncName << endl);
+   DEBUGCOUT("Entering " << sFuncName << std::endl);
    
    const char* sKeyWords[] = {
       "inducedvelocity",
@@ -1333,37 +1332,37 @@ Elem* ReadRotor(DataManager* pDM,
    /*     Velivolo */
    unsigned int uNode = (unsigned int)HP.GetInt();
    
-   DEBUGCOUT("Craft Node: " << uNode << endl);
+   DEBUGCOUT("Craft Node: " << uNode << std::endl);
    
    /* verifica di esistenza del nodo */
    StructNode* pCraft;
    if ((pCraft = pDM->pFindStructNode(uNode)) == NULL) {
-      cerr << endl << sFuncName
+      std::cerr << std::endl << sFuncName
 	<< " at line " << HP.GetLineData() 
 	<< ": craft structural node " << uNode
-	<< " not defined" << endl;     
+	<< " not defined" << std::endl;     
       THROW(DataManager::ErrGeneric());
    }		     
    
    uNode = (unsigned int)HP.GetInt();
    
-   DEBUGCOUT("Rotor Node: " << uNode << endl);
+   DEBUGCOUT("Rotor Node: " << uNode << std::endl);
    
    /* verifica di esistenza del nodo */
    StructNode* pRotor;
    if ((pRotor = pDM->pFindStructNode(uNode)) == NULL) {
-      cerr << endl << sFuncName
+      std::cerr << std::endl << sFuncName
 	<< " at line " << HP.GetLineData() 
 	<< ": rotor structural node " << uNode
-	<< " not defined" << endl;     
+	<< " not defined" << std::endl;     
       THROW(DataManager::ErrGeneric());
    }		     
    
    /* Tipo di velocita' indotta */
    HP.ExpectDescription();
    if (KeyWords(HP.GetDescription()) != INDUCEDVELOCITY) {
-      cerr << endl << "\"induced velocity\" expected at line " 
-	<< HP.GetLineData() << endl;      
+      std::cerr << std::endl << "\"induced velocity\" expected at line " 
+	<< HP.GetLineData() << std::endl;      
       THROW(DataManager::ErrGeneric());
    }
 
@@ -1373,7 +1372,7 @@ Elem* ReadRotor(DataManager* pDM,
    switch (InducedType = KeyWords(HP.GetWord())) {
       
     case NO: {
-       DEBUGCOUT("No induced velocity is considered" << endl);
+       DEBUGCOUT("No induced velocity is considered" << std::endl);
        
        doublereal dR = 0.;
        if (HP.IsKeyWord("radius")) {
@@ -1393,24 +1392,24 @@ Elem* ReadRotor(DataManager* pDM,
     case MANGLER:
     case DYNAMICINFLOW: {
        doublereal dOR = HP.GetReal();
-       DEBUGCOUT("Reference rotation speed: " << dOR << endl);
+       DEBUGCOUT("Reference rotation speed: " << dOR << std::endl);
        if (dOR <= 0.) {
-	  cerr << endl << "Illegal null or negative reference speed for rotor "
-	    << uLabel << " at line " << HP.GetLineData() << endl;
+	  std::cerr << std::endl << "Illegal null or negative reference speed for rotor "
+	    << uLabel << " at line " << HP.GetLineData() << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
        
        doublereal dR = HP.GetReal();
-       DEBUGCOUT("Radius: " << dR << endl);
+       DEBUGCOUT("Radius: " << dR << std::endl);
        if (dR <= 0.) {
-	  cerr << endl << "Illegal null or negative radius for rotor " 
-	    << uLabel << " at line " << HP.GetLineData() << endl;	  
+	  std::cerr << std::endl << "Illegal null or negative radius for rotor " 
+	    << uLabel << " at line " << HP.GetLineData() << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }	   
        
        if (InducedType == DYNAMICINFLOW) {
-	  DEBUGCOUT("Dynamic inflow induced velocity is considered" << endl);
+	  DEBUGCOUT("Dynamic inflow induced velocity is considered" << std::endl);
 	  
 	  doublereal dVConst = 0.;
 	  doublereal dVCosine = 0.;
@@ -1449,18 +1448,18 @@ Elem* ReadRotor(DataManager* pDM,
 	  doublereal dW = 0.;
 	  if (HP.IsKeyWord("weight") || HP.IsKeyWord("delay")) {
 	     dW = HP.GetReal();
-	     DEBUGCOUT("Weight: " << dW << endl);
+	     DEBUGCOUT("Weight: " << dW << std::endl);
 	     if (dW < 0.) {
-		cerr 
+		std::cerr 
 		  << "warning, illegal negative weight for uniform rotor "
 		  << uLabel << ", switching to 0." 
-		  << endl;
+		  << std::endl;
 		dW = 0.;
 	     } else if(dW > 1.) {
-		cerr 
+		std::cerr 
 		  << "warning, illegal weight greater than 1. for uniform rotor "
 		  << uLabel << ", switching to 1." 
-		  << endl;
+		  << std::endl;
 		dW = 1.;
 	     }
 	  }
@@ -1469,12 +1468,12 @@ Elem* ReadRotor(DataManager* pDM,
 	  doublereal dC = 1.;
 	  if (HP.IsKeyWord("correction")) {
 	     dC = HP.GetReal();
-	     DEBUGCOUT("Correction: " << dC << endl);
+	     DEBUGCOUT("Correction: " << dC << std::endl);
 	     if (dC <= 0.) {
-		cerr 
+		std::cerr 
 		  << "warning, illegal null or negative correction"
 		  " for uniform rotor " << uLabel << ", switching to 1" 
-		  << endl;
+		  << std::endl;
 		dW = 1.;
 	     }
 	  }
@@ -1483,7 +1482,7 @@ Elem* ReadRotor(DataManager* pDM,
 	  
 	  switch (InducedType) {
 	   case UNIFORM: {		      
-	      DEBUGCOUT("Uniform induced velocity is considered" << endl);
+	      DEBUGCOUT("Uniform induced velocity is considered" << std::endl);
 	      SAFENEWWITHCONSTRUCTOR(pEl, 
 				     UniformRotor,
 				     UniformRotor(uLabel, pDO, pCraft, pRotor,
@@ -1492,7 +1491,7 @@ Elem* ReadRotor(DataManager* pDM,
 	   }
 	     
 	   case GLAUERT: {		      
-	      DEBUGCOUT("Glauert induced velocity is considered" << endl);
+	      DEBUGCOUT("Glauert induced velocity is considered" << std::endl);
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     GlauertRotor,
 				     GlauertRotor(uLabel, pDO, pCraft, pRotor,
@@ -1501,7 +1500,7 @@ Elem* ReadRotor(DataManager* pDM,
 	   }
 	     
 	   case MANGLER: {		      
-	      DEBUGCOUT("Mangler induced velocity is considered" << endl);
+	      DEBUGCOUT("Mangler induced velocity is considered" << std::endl);
 	      
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     ManglerRotor,
@@ -1521,16 +1520,16 @@ Elem* ReadRotor(DataManager* pDM,
     }
       
     default: {
-       cerr << endl << "unknown induced velocity type at line " 
-	 << HP.GetLineData() << endl;       
+       std::cerr << std::endl << "unknown induced velocity type at line " 
+	 << HP.GetLineData() << std::endl;       
        THROW(DataManager::ErrGeneric());
     }
    }
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.fIsArg()) {
-      cerr << endl << sFuncName
-	<< ": semicolon expected at line " << HP.GetLineData() << endl;      
+      std::cerr << std::endl << sFuncName
+	<< ": semicolon expected at line " << HP.GetLineData() << std::endl;      
       THROW(DataManager::ErrGeneric());
    }   
 

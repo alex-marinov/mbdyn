@@ -102,8 +102,8 @@ RotorTrim::iGetNumDof(void) const
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
-ostream&
-RotorTrim::Restart(ostream& out) const
+std::ostream&
+RotorTrim::Restart(std::ostream& out) const
 {
 	return out << " /* rotor trim not implemented yet */ ";
 }
@@ -129,7 +129,7 @@ RotorTrim::AssJac(VariableSubMatrixHandler& WorkMat,
 		  const VectorHandler& /* XCurr */ ,
 		  const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering RotorTrim::AssJac()" << endl);
+	DEBUGCOUT("Entering RotorTrim::AssJac()" << std::endl);
 	
 	SparseSubMatrixHandler& WM = WorkMat.SetSparse();        
 	WM.Resize(3, 0);
@@ -159,7 +159,7 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 		  const VectorHandler& /* XCurr */ ,
 		  const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering RotorTrim::AssRes()" << endl);
+	DEBUGCOUT("Entering RotorTrim::AssRes()" << std::endl);
 	
 	WorkVec.Resize(3);
 	WorkVec.Reset(0.);

@@ -37,9 +37,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-extern "C" {
-#include <float.h>
-}
+#include <ac/float.h>
 
 #include <hminor.h>
 
@@ -75,9 +73,9 @@ HydraulicElem::Type Minor_loss::GetHydraulicType(void) const {
 }
 
 /* Contributo al file di restart */
-ostream& Minor_loss::Restart(ostream& out) const
+std::ostream& Minor_loss::Restart(std::ostream& out) const
 {
-   return out << "Minor_loss not implemented yet!" << endl;
+   return out << "Minor_loss not implemented yet!" << std::endl;
 }
    
 unsigned int Minor_loss::iGetNumDof(void) const { 
@@ -85,7 +83,7 @@ unsigned int Minor_loss::iGetNumDof(void) const {
 }
    
 DofOrder::Order Minor_loss::SetDof(unsigned int i) const {
-   cerr << "Minor_loss has no dofs!" << endl;
+   std::cerr << "Minor_loss has no dofs!" << std::endl;
    THROW(ErrGeneric());
 }
 
@@ -100,7 +98,7 @@ Minor_loss::AssJac(VariableSubMatrixHandler& WorkMat,
 		  const VectorHandler& XCurr, 
 		  const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Minor_loss::AssJac()" << endl);
+   DEBUGCOUT("Entering Minor_loss::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    WM.Resize(2, 2);
@@ -151,7 +149,7 @@ Minor_loss::AssRes(SubVectorHandler& WorkVec,
 		     const VectorHandler& XCurr, 
 		     const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Minor_loss::AssRes()" << endl);
+   DEBUGCOUT("Entering Minor_loss::AssRes()" << std::endl);
    
    WorkVec.Resize(2);
    
@@ -174,16 +172,16 @@ Minor_loss::AssRes(SubVectorHandler& WorkVec,
    vel= flow/(density*area);
 
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("RES area :           " << area << endl);
-   DEBUGCOUT("RES flow:            " << flow << endl);
-   DEBUGCOUT("RES p1:              " << p1 << endl);
-   DEBUGCOUT("RES p2:              " << p2 << endl);
-   DEBUGCOUT("RES dKappa:          " << dKappa << endl);
-   DEBUGCOUT("****************************************************" << endl);
-   DEBUGCOUT("RES velocita':       " << vel << endl);
-   DEBUGCOUT("    se positiva il fluido va dal nodo 1 al nodo 2 " << endl);
-   DEBUGCOUT("RES portata (nodo2): " << flow << endl);
-   DEBUGCOUT("****************************************************" << endl);
+   DEBUGCOUT("RES area :           " << area << std::endl);
+   DEBUGCOUT("RES flow:            " << flow << std::endl);
+   DEBUGCOUT("RES p1:              " << p1 << std::endl);
+   DEBUGCOUT("RES p2:              " << p2 << std::endl);
+   DEBUGCOUT("RES dKappa:          " << dKappa << std::endl);
+   DEBUGCOUT("****************************************************" << std::endl);
+   DEBUGCOUT("RES velocita':       " << vel << std::endl);
+   DEBUGCOUT("    se positiva il fluido va dal nodo 1 al nodo 2 " << std::endl);
+   DEBUGCOUT("RES portata (nodo2): " << flow << std::endl);
+   DEBUGCOUT("****************************************************" << std::endl);
 #endif
    WorkVec.fPutItem(1, iNode1RowIndex, flow);
    WorkVec.fPutItem(2, iNode2RowIndex, -flow);         
@@ -194,9 +192,9 @@ Minor_loss::AssRes(SubVectorHandler& WorkVec,
 void Minor_loss::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) { 
-      ostream& out = OH.Hydraulic();
-      out << setw(8) << GetLabel() 
-          << " " << vel  << " " << flow << endl;
+      std::ostream& out = OH.Hydraulic();
+      out << std::setw(8) << GetLabel() 
+          << " " << vel  << " " << flow << std::endl;
    }
 }
 
@@ -243,9 +241,9 @@ HydraulicElem::Type ThreeWayMinorLoss::GetHydraulicType(void) const {
 }
 
 /* Contributo al file di restart */
-ostream& ThreeWayMinorLoss::Restart(ostream& out) const
+std::ostream& ThreeWayMinorLoss::Restart(std::ostream& out) const
 {
-	return out << "ThreeWayMinorLoss not implemented yet!" << endl;
+	return out << "ThreeWayMinorLoss not implemented yet!" << std::endl;
 }
  
 unsigned int ThreeWayMinorLoss::iGetNumDof(void) const { 
@@ -253,7 +251,7 @@ unsigned int ThreeWayMinorLoss::iGetNumDof(void) const {
 }
    
 DofOrder::Order ThreeWayMinorLoss::SetDof(unsigned int i) const {
-	cerr << "Minor_loss has no dofs!" << endl;
+	std::cerr << "Minor_loss has no dofs!" << std::endl;
 	THROW(ErrGeneric());
 }
 
@@ -272,7 +270,7 @@ ThreeWayMinorLoss::AssJac(
 		const VectorHandler& XPrimeCurr
 		)
 {
-	DEBUGCOUT("Entering Minor_loss::AssJac()" << endl);
+	DEBUGCOUT("Entering Minor_loss::AssJac()" << std::endl);
    
 	ASSERT(pNodeN != NULL);
 	
@@ -327,7 +325,7 @@ ThreeWayMinorLoss::AssRes(
 		const VectorHandler& XPrimeCurr
 		)
 {
-	DEBUGCOUT("Entering ThreeWayMinorLoss::AssRes()" << endl);
+	DEBUGCOUT("Entering ThreeWayMinorLoss::AssRes()" << std::endl);
 	
 	WorkVec.Resize(2);
 	
@@ -361,16 +359,16 @@ ThreeWayMinorLoss::AssRes(
 	vel = flow/(density*area);
 	
 #ifdef HYDR_DEVEL
-	DEBUGCOUT("RES area :           " << area << endl);
-	DEBUGCOUT("RES flow:            " << flow << endl);
-	DEBUGCOUT("RES p0:              " << p0 << endl);
-	DEBUGCOUT("RES p:               " << p << endl);
-	DEBUGCOUT("RES dKappa:          " << dKappa << endl);
-	DEBUGCOUT("****************************************************" << endl);
-	DEBUGCOUT("RES velocita':       " << vel << endl);
-	DEBUGCOUT("    se positiva il fluido va dal nodo 0 al nodo n " << endl);
-	DEBUGCOUT("RES portata (nodo n):" << flow << endl);
-	DEBUGCOUT("****************************************************" << endl);
+	DEBUGCOUT("RES area :           " << area << std::endl);
+	DEBUGCOUT("RES flow:            " << flow << std::endl);
+	DEBUGCOUT("RES p0:              " << p0 << std::endl);
+	DEBUGCOUT("RES p:               " << p << std::endl);
+	DEBUGCOUT("RES dKappa:          " << dKappa << std::endl);
+	DEBUGCOUT("****************************************************" << std::endl);
+	DEBUGCOUT("RES velocita':       " << vel << std::endl);
+	DEBUGCOUT("    se positiva il fluido va dal nodo 0 al nodo n " << std::endl);
+	DEBUGCOUT("RES portata (nodo n):" << flow << std::endl);
+	DEBUGCOUT("****************************************************" << std::endl);
 #endif
 	integer iNode0RowIndex = pNode0->iGetFirstRowIndex()+1;
 	integer iNodeNRowIndex = pNodeN->iGetFirstRowIndex()+1;
@@ -385,9 +383,9 @@ void
 ThreeWayMinorLoss::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) { 
-		ostream& out = OH.Hydraulic();
-		out << setw(8) << GetLabel() 
-			<< " " << vel  << " " << flow << endl;
+		std::ostream& out = OH.Hydraulic();
+		out << std::setw(8) << GetLabel() 
+			<< " " << vel  << " " << flow << std::endl;
 	}
 }
 
@@ -446,9 +444,9 @@ HydraulicElem::Type Orifice::GetHydraulicType(void) const
 }
 
 /* Contributo al file di restart */
-ostream& Orifice::Restart(ostream& out) const
+std::ostream& Orifice::Restart(std::ostream& out) const
 {
-   return out << "Orifice not implemented yet!" << endl;
+   return out << "Orifice not implemented yet!" << std::endl;
 }
    
 unsigned int Orifice::iGetNumDof(void) const 
@@ -457,7 +455,7 @@ unsigned int Orifice::iGetNumDof(void) const
 }
    
 DofOrder::Order Orifice::SetDof(unsigned int i) const {
-   cerr << "Orifice has no dofs!" << endl;
+   std::cerr << "Orifice has no dofs!" << std::endl;
    THROW(ErrGeneric());
 }
 
@@ -472,7 +470,7 @@ Orifice::AssJac(VariableSubMatrixHandler& WorkMat,
 		  const VectorHandler& XCurr, 
 		  const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Orifice::AssJac()" << endl);
+   DEBUGCOUT("Entering Orifice::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    WM.Resize(2, 2);
@@ -514,7 +512,7 @@ Orifice::AssJac(VariableSubMatrixHandler& WorkMat,
       rad = 1.-pow(Cc*area_diaf/area_pipe, 2.);
 	   
       if (rad < 1.e3*DBL_EPSILON) {		  
-	 cerr << "error in orifice: Cd" << endl;
+	 std::cerr << "error in orifice: Cd" << std::endl;
 	 THROW(ErrGeneric());
       }
 
@@ -537,7 +535,7 @@ SubVectorHandler& Orifice::AssRes(SubVectorHandler& WorkVec,
 				    const VectorHandler& XCurr, 
 				    const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Orifice::AssRes()" << endl);
+   DEBUGCOUT("Entering Orifice::AssRes()" << std::endl);
    
    WorkVec.Resize(2);
    
@@ -558,13 +556,13 @@ SubVectorHandler& Orifice::AssRes(SubVectorHandler& WorkVec,
    if (jumpPres < CriticJump) {
       /*  moto sicuramente laminare (residuo) */
 #ifdef HYDR_DEVEL
-      DEBUGCOUT("we are in orifice laminar" << endl);
+      DEBUGCOUT("we are in orifice laminar" << std::endl);
 #endif
       flow = density*2.*(delta*delta)*diameter*area_diaf*(p1-p2)/viscosity;
    } else {
       /*  moto sicuramente turbolento  (residuo) */
 #ifdef HYDR_DEVEL
-      DEBUGCOUT("we are in orifice turbulent:" << endl);
+      DEBUGCOUT("we are in orifice turbulent:" << std::endl);
 #endif
       /* calcolo del Cd */
       
@@ -579,7 +577,7 @@ SubVectorHandler& Orifice::AssRes(SubVectorHandler& WorkVec,
       doublereal base= Cc*area_diaf/area_pipe;
       rad = 1.-base*base;
       if (rad < 1.e3*DBL_EPSILON) {		  
-	 cerr << "error in orifice: Cd" << endl;
+	 std::cerr << "error in orifice: Cd" << std::endl;
 	 THROW(ErrGeneric());
       }	   
 		      
@@ -591,25 +589,25 @@ SubVectorHandler& Orifice::AssRes(SubVectorHandler& WorkVec,
    Re = fabs(density*vel*diameter/viscosity);
    
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("jumpPres:       " << jumpPres << endl);
-   DEBUGCOUT("density:        " << density << endl);
-   DEBUGCOUT("Cd:             " << Cd << endl);
-   DEBUGCOUT("p1:             " << p1 << endl);
-   DEBUGCOUT("p2:             " << p2 << endl);
-   DEBUGCOUT("Cc:             " << Cc << endl);
-   DEBUGCOUT("CriticJump:     " << CriticJump << endl);
-   DEBUGCOUT("delta:          " << delta << endl);
-   DEBUGCOUT("viscosity:      " << viscosity << endl);
-   DEBUGCOUT("rad:            " << rad << endl);
-   DEBUGCOUT("area_pipe:      " << area_pipe << endl);
-   DEBUGCOUT("area_diaf:      " << area_diaf << endl);
-   DEBUGCOUT("RES area_pipe : " << area_pipe << endl);
-   DEBUGCOUT("RES flow:       " << flow << endl);
-   DEBUGCOUT("RES Reynolds:   " << Re << endl);
-   DEBUGCOUT("******************************************" << endl);
-   DEBUGCOUT("RES velocita': " << vel << endl);
-   DEBUGCOUT("    se positiva il fluido va dal nodo 1 al nodo 2" << endl);
-   DEBUGCOUT("*********************************************" << endl);
+   DEBUGCOUT("jumpPres:       " << jumpPres << std::endl);
+   DEBUGCOUT("density:        " << density << std::endl);
+   DEBUGCOUT("Cd:             " << Cd << std::endl);
+   DEBUGCOUT("p1:             " << p1 << std::endl);
+   DEBUGCOUT("p2:             " << p2 << std::endl);
+   DEBUGCOUT("Cc:             " << Cc << std::endl);
+   DEBUGCOUT("CriticJump:     " << CriticJump << std::endl);
+   DEBUGCOUT("delta:          " << delta << std::endl);
+   DEBUGCOUT("viscosity:      " << viscosity << std::endl);
+   DEBUGCOUT("rad:            " << rad << std::endl);
+   DEBUGCOUT("area_pipe:      " << area_pipe << std::endl);
+   DEBUGCOUT("area_diaf:      " << area_diaf << std::endl);
+   DEBUGCOUT("RES area_pipe : " << area_pipe << std::endl);
+   DEBUGCOUT("RES flow:       " << flow << std::endl);
+   DEBUGCOUT("RES Reynolds:   " << Re << std::endl);
+   DEBUGCOUT("******************************************" << std::endl);
+   DEBUGCOUT("RES velocita': " << vel << std::endl);
+   DEBUGCOUT("    se positiva il fluido va dal nodo 1 al nodo 2" << std::endl);
+   DEBUGCOUT("*********************************************" << std::endl);
 #endif
    
    WorkVec.fPutItem(1, iNode1RowIndex, flow);	
@@ -621,11 +619,11 @@ SubVectorHandler& Orifice::AssRes(SubVectorHandler& WorkVec,
 void Orifice::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) { 
-      ostream& out = OH.Hydraulic();
-      out << setw(8) << GetLabel() << " " 
+      std::ostream& out = OH.Hydraulic();
+      out << std::setw(8) << GetLabel() << " " 
         << vel << " " 
 	<< flow << " " 
-	<< Re << endl;
+	<< Re << std::endl;
    }
 }
 

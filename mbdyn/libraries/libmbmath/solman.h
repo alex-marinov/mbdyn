@@ -40,24 +40,14 @@
 #ifndef SOLMAN_H
 #define SOLMAN_H
 
-extern "C" {
-#include <mymath.h>
-}
-
-#if defined(HAVE_IOSTREAM)
-#include <iostream>
-#elif defined(HAVE_IOSTREAM_H)
-#include <iostream.h>
-#endif
+#include <ac/math.h>
+#include <ac/iostream>
+#include <ac/f2c.h>
 
 /* per il debugging */
 #include <myassert.h>
 #include <mynewmem.h>
 #include <except.h>
-
-/* viene incluso per avere le dichiarazioni dei tipi */
-
-#include <myf2c.h>
 
 /* Zero for sparse vector and matrix handlers */
 extern const doublereal dZero;

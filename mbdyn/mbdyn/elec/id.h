@@ -31,14 +31,14 @@
 #ifndef ID_H
 #define ID_H
 
-#include "myf2c.h"
-#include "myassert.h"
+#include <ac/f2c.h>
+#include <myassert.h>
 
 extern "C" {
-#include "ldl.h"
+#include <ldl.h>
 }
 
-#include "forgfact.h"
+#include <forgfact.h>
 
 const doublereal LDL_INIT = 1.e12;
 

@@ -247,6 +247,10 @@ AC_CHECK_HEADERS(signal.h)
 AC_CHECK_HEADERS(unistd.h)
 AC_CHECK_HEADERS(getopt.h)
 AC_CHECK_HEADERS(pwd.h)
+AC_CHECK_HEADERS(math.h)
+
+AC_CHECK_HEADERS(float.h)
+AC_CHECK_HEADERS(values.h)
 
 dnl ----------------------------------------------------------------
 dnl
@@ -528,7 +532,7 @@ if test $ol_with_libf2c != no ; then
 		try_libf2c_LIBS="-l$l"
 		save_LIBS=$LIBS
 		LIBS="$LIBS $try_libf2c_LIBS -lm"
-		AC_TRY_LINK([#include <$top_builddir/libraries/libmbmath/myf2c.h>],[
+		AC_TRY_LINK([#include <$top_builddir/include/ac/f2c.h>],[
 			doublereal i = 1., o;
 			o = d_cos(&i);
 		],[have_libf2c=yes],[have_libf2c=no])

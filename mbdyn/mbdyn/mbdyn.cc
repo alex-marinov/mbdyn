@@ -34,6 +34,8 @@
 #include <mbconfig.h> 		/* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <ac/fstream>
+
 #include <myassert.h>
 #include <mynewmem.h>
 #include <except.h>
@@ -43,8 +45,6 @@ extern "C" {
 #include <sys/times.h>
 #endif /* HAVE_TIMES_H */
 }
-
-#include <fstream.h>
 
 #ifdef USE_MPI 
 #include <mpi++.h>
@@ -90,63 +90,63 @@ const debug_array da[] = {
 
 #ifdef HAVE_GETOPT
 static void
-mbdyn_usage( ostream& out, const char *sShortOpts )
+mbdyn_usage(std::ostream& out, const char *sShortOpts)
 {
-    cout 
-        << endl
-	<< "MBDyn - Multi-Body Dynamics " << VERSION << endl
-	<< "compiled on " << __DATE__ << " at " << __TIME__ << endl 
-	<< endl
-	<< "mbdyn is a multibody simulation program." << endl
-	<< endl
-	<< "usage: mbdyn [" << sShortOpts << "] [input-file list] " << endl 
-	<< endl
+    std::cout 
+        << std::endl
+	<< "MBDyn - Multi-Body Dynamics " << VERSION << std::endl
+	<< "compiled on " << __DATE__ << " at " << __TIME__ << std::endl 
+	<< std::endl
+	<< "mbdyn is a multibody simulation program." << std::endl
+	<< std::endl
+	<< "usage: mbdyn [" << sShortOpts << "] [input-file list] " << std::endl 
+	<< std::endl
 	<< "  -f, --input-file {file}  :"
-	" reads from 'file' instead of stdin" << endl
-	<< "  -o, --output-file {file} : writes to '{file}.xxx'" << endl
-	<< "                             instead of '{input-file}.xxx'" << endl
+	" reads from 'file' instead of stdin" << std::endl
+	<< "  -o, --output-file {file} : writes to '{file}.xxx'" << std::endl
+	<< "                             instead of '{input-file}.xxx'" << std::endl
 	<< "                            "
-	" (or 'Mbdyn.xxx' if input from stdin)" << endl
+	" (or 'Mbdyn.xxx' if input from stdin)" << std::endl
 	<< "  -m, --mail {address}     :"
-	" mails to {address} at job completion" << endl;
+	" mails to {address} at job completion" << std::endl;
 #ifdef DEBUG
     out
         << "  -d, --debug {level[:level[...]]} :"
-        " when using the debug version of the code," << endl
+        " when using the debug version of the code," << std::endl
         << "                            "
-	" enables debug levels; available:" << endl
-        << "                                 none" << endl;
+	" enables debug levels; available:" << std::endl
+        << "                                 none" << std::endl;
     for (int i = 0; da[i].s != NULL; i++) {
-        out << "                                 " << da[i].s << endl;
+        out << "                                 " << da[i].s << std::endl;
     }      
     out 
-        << "                                 any" << endl;
+        << "                                 any" << std::endl;
 #endif /* DEBUG */
     out    
-        << "  -t, --same-table" << endl
+        << "  -t, --same-table" << std::endl
         << "  -T, --no-same-table      :"
-        " use/don't use same symbol table for multiple runs" << endl
-        << "  -r, --redefine" << endl
+        " use/don't use same symbol table for multiple runs" << std::endl
+        << "  -r, --redefine" << std::endl
         << "  -R, --no-redefine        :"
-        " redefine/don't redefine symbols in table" << endl
+        " redefine/don't redefine symbols in table" << std::endl
 	<< "  -H, --show-table         :"
-	" print symbol table and exit" << endl
+	" print symbol table and exit" << std::endl
         << "  -s, --silent             :"
-        " runs quietly" << endl
+        " runs quietly" << std::endl
         << "  -h, --help               :"
-        " prints this message" << endl
+        " prints this message" << std::endl
         << "  -l, --license            :"
-        " prints the licensing terms" << endl
+        " prints the licensing terms" << std::endl
         << "  -w, --warranty           :"
-        " prints the warranty conditions" << endl
-        << endl
+        " prints the warranty conditions" << std::endl
+        << std::endl
         << "Usually mbdyn reads the input from stdin"
-        " and writes messages on stdout; a log" << endl
+        " and writes messages on stdout; a log" << std::endl
         << "is put in '{file}.out', and data output"
-        " is sent to various '{file}.xxx' files" << endl
-        << "('Mbdyn.xxx' if input from stdin)" << endl
-        << endl;
-    cout << endl;   
+        " is sent to various '{file}.xxx' files" << std::endl
+        << "('Mbdyn.xxx' if input from stdin)" << std::endl
+        << std::endl;
+    std::cout << std::endl;   
 }
 
 /* Dati di getopt */
@@ -230,8 +230,8 @@ main(int argc, char* argv[])
         	} CurrInputFormat = MBDYN;
       
         	/* Stream di ingresso dati */
-        	istream* pIn = NULL;
-        	ifstream FileStreamIn;
+		std::istream* pIn = NULL;
+		std::ifstream FileStreamIn;
         	char* sInputFileName = NULL;
         	char* sOutputFileName = NULL;
       
@@ -286,18 +286,18 @@ main(int argc, char* argv[])
 	        		SAFESTRDUP(sInputFileName, optarg);
 	        		FileStreamIn.open(sInputFileName);
 	        		if (!FileStreamIn) {
-		    			cerr 
-		        			<< endl 
+		    			std::cerr 
+		        			<< std::endl 
 		        			<< "Unable to open file '"
 						<< sInputFileName
 #ifdef USE_MPI
 		        			<< "' on " << ProcessorName
 #endif /* USE_MPI */
-						<< ";" << endl 
-						<< "aborting ..." << endl;
+						<< ";" << std::endl 
+						<< "aborting ..." << std::endl;
 		    			THROW(ErrGeneric());
 	        		}
-	        		pIn = (istream*)&FileStreamIn;
+	        		pIn = (std::istream*)&FileStreamIn;
 	        		break;
 	    
 	    		case int('a'):
@@ -306,13 +306,13 @@ main(int argc, char* argv[])
 	        		CurrInputSource = FILE_OPT;
 	        		SAFESTRDUP(sInputFileName, optarg);
 	     
-	        		cerr << "ADAMS input not implemented yet,"
+	        		std::cerr << "ADAMS input not implemented yet,"
 		    			" cannot open file '"
-					<< sInputFileName << "'" << endl;
+					<< sInputFileName << "'" << std::endl;
 				THROW(ErrGeneric());
 	        		break;
 #else /* !USE_ADAMS_PP */
-	        		cerr << "Illegal option -a" << endl;
+	        		std::cerr << "Illegal option -a" << std::endl;
 	        		THROW(ErrGeneric());
 				break;
 #endif /* !USE_ADAMS_PP */
@@ -328,15 +328,15 @@ main(int argc, char* argv[])
 	    		case int('d'):
 #ifdef DEBUG
 	        		if (get_debug_options(optarg, da)) {
-		    			cerr << "Unable to interpret debug"
+		    			std::cerr << "Unable to interpret debug"
 						" option argument;"
-						" using default" << endl;
+						" using default" << std::endl;
 		    			::debug_level = DEFAULT_DEBUG_LEVEL;
 		    			/* THROW(ErrGeneric()); */
 	        		}
 #else /* !DEBUG */
-	        		cerr << "Compile with '-DDEBUG'"
-					" to use debug features" << endl;
+	        		std::cerr << "Compile with '-DDEBUG'"
+					" to use debug features" << std::endl;
 #endif /* !DEBUG */
 	        		break;
 	       
@@ -361,7 +361,7 @@ main(int argc, char* argv[])
 	        		break;
 
 	    		case int('l'):
-	        		mbdyn_license(cout);
+	        		mbdyn_license(std::cout);
 #ifdef USE_EXCEPTIONS
 	        		throw NoErr();
 #else /* !USE_EXCEPTIONS */
@@ -369,7 +369,7 @@ main(int argc, char* argv[])
 #endif /* !USE_EXCEPTIONS */
 	    
 	    		case int('w'):
-				mbdyn_warranty(cout);
+				mbdyn_warranty(std::cout);
 #ifdef USE_EXCEPTIONS
 	        		throw NoErr();
 #else /* !USE_EXCEPTIONS */
@@ -377,14 +377,14 @@ main(int argc, char* argv[])
 #endif /* !USE_EXCEPTIONS */
 	    
 	    		case int('?'):
-	        		cerr << "Unknown option -"
-					<< char(optopt) << endl;
+	        		std::cerr << "Unknown option -"
+					<< char(optopt) << std::endl;
 
 	    		case int('h'):
 #ifdef USE_MPI
 	        		if (myrank == 0) {
 #endif /* USE_MPI */
-		    			mbdyn_usage( cout, sShortOpts );
+		    			mbdyn_usage(std::cout, sShortOpts);
 #ifdef USE_MPI
 	        		}
 #endif /* USE_MPI */
@@ -399,9 +399,9 @@ main(int argc, char* argv[])
 	        		break;
 	    
 	    		default:
-	        		cerr << endl 
+	        		std::cerr << std::endl 
 	            			<< "Unrecoverable error; aborting ..."
-					<< endl;
+					<< std::endl;
 	        		THROW(ErrGeneric());
 	    		}
         	}
@@ -412,30 +412,30 @@ main(int argc, char* argv[])
         	currarg = optind;
 #endif /* HAVE_GETOPT */
 
-        	silent_cout(endl
+        	silent_cout(std::endl
                     	    << "MBDyn - Multi-Body Dynamics " << VERSION 
-		    	    << endl
+		    	    << std::endl
 		    	    << "compiled on " << __DATE__ << " at " << __TIME__ 
-		    	    << endl
-			    << endl
+		    	    << std::endl
+			    << std::endl
 		    	    << "Copyright 1997-2000 Pierangelo Masarati,"
-			    << endl
+			    << std::endl
 		    	    << "Dipartimento di Ingegneria Aerospaziale,"
-		    	    " Politecnico di Milano." << endl
+		    	    " Politecnico di Milano." << std::endl
 		    	    << "MBDyn is free software, covered by the"
-		    	    " GNU General Public License, and you are" << endl
+		    	    " GNU General Public License, and you are" << std::endl
 		    	    << "welcome to change it and/or distribute"
-		    	    " copies of it under certain conditions." << endl
+		    	    " copies of it under certain conditions." << std::endl
 		    	    << "Use 'mbdyn --license' to see the conditions."
-			    << endl
+			    << std::endl
 		    	    << "There is absolutely no warranty for"
 		    	    " MBDyn.  Use \"mbdyn --warranty\" for details."
-			    << endl 
-		    	    << endl);
+			    << std::endl 
+		    	    << std::endl);
 #ifdef USE_MPI
-        	cerr << "Process " << myrank 
+        	std::cerr << "Process " << myrank 
 	    		<< " (" << myrank+1 << " of " << WorldSize
-            		<< ") is alive on " << ProcessorName << endl;
+            		<< ") is alive on " << ProcessorName << std::endl;
 #endif /* USE_MPI */
       
       		/* Mostra la tabella dei simboli ed esce */
@@ -444,8 +444,8 @@ main(int argc, char* argv[])
 	    		if (myrank == 0) {
 #endif /* USE_MPI */
 	        		Table t(31, 1);
-	        		cout << "default symbol table:"
-					<< endl << t << endl;
+	        		std::cout << "default symbol table:"
+					<< std::endl << t << std::endl;
 #ifdef USE_MPI
 	    		}
 #endif /* USE_MPI */
@@ -469,7 +469,7 @@ main(int argc, char* argv[])
 	        		CurrInputSource = FILE_STDIN;
 	        		CurrInputFormat = MBDYN;
 	        		ASSERT(pIn == NULL);
-	        		pIn = (istream*)&cin;
+	        		pIn = (std::istream*)&std::cin;
 	    		}
         	}
       
@@ -480,18 +480,18 @@ main(int argc, char* argv[])
         	int last = 0;
         	while (last == 0) {
 	    		if (CurrInputSource == FILE_STDIN) {
-				silent_cout("reading from stdin" << endl);
+				silent_cout("reading from stdin" << std::endl);
 				last = 1;
 			} else if (CurrInputSource == FILE_OPT) {
 				silent_cout("reading from file '" 
 						<< sInputFileName 
-						<< "'" << endl);
+						<< "'" << std::endl);
 	        		last = 1;
 	    		} else if (CurrInputSource == FILE_ARGS) {
 	        		sInputFileName = argv[currarg];
 				silent_cout("reading from file '"
 						<< argv[currarg] 
-						<< "'" << endl);
+						<< "'" << std::endl);
 				
 	        		/* incrementa il numero di argomento */
 	        		currarg++; 
@@ -507,10 +507,10 @@ main(int argc, char* argv[])
 				    && !strncasecmp(p+1, "adm", 3)) {
 	            			CurrInputFormat = ADAMS;
 	       
-	            			cerr << "ADAMS input not implemented"
+	            			std::cerr << "ADAMS input not implemented"
 						" yet, cannot open file '"
 						<< sInputFileName << "'"
-						<< endl;
+						<< std::endl;
 	            			THROW(ErrGeneric());
 	        		} else {
 #endif /* USE_ADAMS_PP */
@@ -518,12 +518,12 @@ main(int argc, char* argv[])
 	       
 	            			FileStreamIn.open(sInputFileName);
 	            			if (!FileStreamIn) {
-		        			cerr << endl 
+		        			std::cerr << std::endl 
 			    				<< "Unable to open"
 							" file '"
 							<< sInputFileName 
 			    				<< "'; aborting ..."
-							<< endl;
+							<< std::endl;
 		        			THROW(ErrGeneric());
 	            			}
 #ifdef USE_ADAMS_PP
@@ -564,12 +564,12 @@ main(int argc, char* argv[])
 	    		}
 	       
 	    		case ADAMS:
-	        		cerr << "ADAMS input not implemented yet!"
-					<< endl;
+	        		std::cerr << "ADAMS input not implemented yet!"
+					<< std::endl;
 	        		THROW(ErrNotImplementedYet());
 	    
 	    		default:
-	        		cerr << "You shouldn't be here!" << endl;
+	        		std::cerr << "You shouldn't be here!" << std::endl;
 	        		THROW(ErrGeneric());
 	    		}
 	    
@@ -598,13 +598,13 @@ main(int argc, char* argv[])
 				+buf.tms_stime+buf.tms_cstime;
 	    		tSecs = ct/CLK_TCK;
 	    		tCents = ((ct*100)/CLK_TCK)%100;
-	    		cout << endl << "The simulation required " 
+	    		std::cout << std::endl << "The simulation required " 
 	        		<< tSecs << '.' << tCents 
 	        		<< " seconds of CPU time";
 #ifdef USE_MPI
-	    		cout << " on " << ProcessorName;
+	    		std::cout << " on " << ProcessorName;
 #endif /* USE_MPI */
-	    		cout << endl;
+	    		std::cout << std::endl;
 #endif /* HAVE_TIMES_H */
 	 
 #ifdef HAVE_GETOPT
@@ -631,11 +631,11 @@ main(int argc, char* argv[])
 #ifdef USE_EXCEPTIONS
         	throw NoErr();
     	} catch (NoErr) {     
-        	silent_cout("MBDyn terminated normally" << endl);
+        	silent_cout("MBDyn terminated normally" << std::endl);
         	MB_EXIT(EXIT_SUCCESS);
     	} catch (...) {
-        	cerr << "An error occurred during the execution of MBDyn;"
-	    		" aborting ... " << endl;
+        	std::cerr << "An error occurred during the execution of MBDyn;"
+	    		" aborting ... " << std::endl;
         	MB_EXIT(EXIT_FAILURE);
     	}
 #endif /* USE_EXCEPTIONS */
@@ -691,16 +691,16 @@ RunMBDyn(MBDynParser& HP,
    
     	/* legge i dati della simulazione */
     	if (KeyWords(HP.GetDescription()) != BEGIN) {
-        	cerr << endl 
+        	std::cerr << std::endl 
 	    		<< "Error: <begin> expected at line " 
-	    		<< HP.GetLineData() << "; aborting ..." << endl;
+	    		<< HP.GetLineData() << "; aborting ..." << std::endl;
         	THROW(ErrGeneric());
     	}
    
     	if (KeyWords(HP.GetWord()) != DATA) {
-        	cerr << endl 
+        	std::cerr << std::endl 
 	    		<< "Error: <begin: data;> expected at line " 
-	    		<< HP.GetLineData() << "; aborting ..." << endl;
+	    		<< HP.GetLineData() << "; aborting ..." << std::endl;
         	THROW(ErrGeneric());
     	}
    
@@ -724,10 +724,10 @@ RunMBDyn(MBDynParser& HP,
 	        		break;
 		
             		default:
-	        		cerr << endl 
+	        		std::cerr << std::endl 
 		    			<< "Unknown integrator at line " 
 	            			<< HP.GetLineData()
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 	        		THROW(ErrGeneric());
             		}
             		break;    
@@ -737,8 +737,8 @@ RunMBDyn(MBDynParser& HP,
             		fParallel = 1;
 	    		break;
 #else /* !USE_MPI */
-            		cerr << "complile with -DUSE_MPI to have parallel"
-				<< endl;
+            		std::cerr << "complile with -DUSE_MPI to have parallel"
+				<< std::endl;
 	    		THROW(ErrGeneric());
 #ifndef USE_EXCEPTIONS
 	    		break;
@@ -747,19 +747,19 @@ RunMBDyn(MBDynParser& HP,
 
         	case END:
 	    		if (KeyWords(HP.GetWord()) != DATA) {
-	        		cerr << endl 
+	        		std::cerr << std::endl 
 		    			<< "Error: <end: data;> expected"
 					" at line " << HP.GetLineData()
-					<< "; aborting ..." << endl;
+					<< "; aborting ..." << std::endl;
 	        		THROW(ErrGeneric());
 	    		}
 	    		goto endofcycle;        
 	 
         	default:
-	    		cerr << endl 
+	    		std::cerr << std::endl 
 	        		<< "Unknown description at line " 
 	        		<< HP.GetLineData()
-				<< "; aborting ..." << endl;
+				<< "; aborting ..." << std::endl;
 	    		THROW(ErrGeneric());      
         	}
     	}
@@ -770,8 +770,8 @@ endofcycle:
     	switch (CurrInt) {
     	case MULTISTEP:
 		if (fParallel == 1) {
-	    		cerr << "Sorry, multistep method cannot be parallel;"
-	        		" aborting ..." << endl;
+	    		std::cerr << "Sorry, multistep method cannot be parallel;"
+	        		" aborting ..." << std::endl;
 	    		THROW(ErrGeneric());
         	}
         	SAFENEWWITHCONSTRUCTOR(pIntg,
@@ -782,23 +782,23 @@ endofcycle:
         	break;
       
     	case RUNGEKUTTA:
-        	cerr << "Sorry, implicit Runge-Kutta isn't supported yet;"
-	    		<< endl << "aborting ..." << endl;
+        	std::cerr << "Sorry, implicit Runge-Kutta isn't supported yet;"
+	    		<< std::endl << "aborting ..." << std::endl;
         	THROW(ErrNotImplementedYet());
 
     	case SSCHUR:
         	if (!fParallel) {
-	    		cerr << "Sorry Schur method is supported only"
+	    		std::cerr << "Sorry Schur method is supported only"
 	        		" for parallel computations; aborting ..."
-				<< endl;
+				<< std::endl;
 	    		THROW(ErrNotImplementedYet());
         	}
 #ifdef USE_MPI
         	if (MPI::COMM_WORLD.Get_size() == 1) {
-            		cerr << "Schur method is inefficient"
-	        		" if used with only one processor;" << endl 
+            		std::cerr << "Schur method is inefficient"
+	        		" if used with only one processor;" << std::endl 
 				<< "multistep method will be used instead"
-				<< endl;
+				<< std::endl;
 
             		SAFENEWWITHCONSTRUCTOR(pIntg,
                                    	       MultiStepIntegrator,
@@ -815,12 +815,12 @@ endofcycle:
 				       fParallel));
         	break;
 #else /* !USE_MPI */
-        	cerr << "compile with -DUSE_MPI to have parallel" << endl;
+        	std::cerr << "compile with -DUSE_MPI to have parallel" << std::endl;
         	THROW(ErrGeneric());
 #endif /* !USE_MPI */
     
     	default:
-        	cerr << "Unknown integrator; aborting ..." << endl;
+        	std::cerr << "Unknown integrator; aborting ..." << std::endl;
         	THROW(ErrGeneric());   
     	}
    
@@ -839,7 +839,7 @@ SendMessage(const char* const sInputFileName,
     	DEBUGCOUTFNAME("SendMessage");
    
     	/* Scrive il messaggio in un file temporaneo */
-    	ofstream Msg("mbdyn.msg");
+	std::ofstream Msg("mbdyn.msg");
     	Msg << "Mbdyn terminated job ";
     	if (sInputFileName != NULL) {
         	Msg << "'" << sInputFileName << "' ";
@@ -847,7 +847,7 @@ SendMessage(const char* const sInputFileName,
 #ifdef HAVE_TIMES_H
     	Msg << "in " << tSecs << '.' << tCents << " seconds of CPU time";
 #endif /* HAVE_TIMES_H */
-    	Msg << '.' << endl;
+    	Msg << '.' << std::endl;
     	Msg.close();
    
     	/* Crea la linea di comando */

@@ -35,14 +35,12 @@
 
 
 /* include generali */
-extern "C" {
 #include <time.h>
-}
+#include <ac/f2c.h>
 
 /* include per il debug */
 #include <myassert.h>
 #include <mynewmem.h>
-
 
 /* include del programma */
 #include <mathp.h>
@@ -50,7 +48,6 @@ extern "C" {
 #include <solman.h>
 #include <withlab.h>
 #include <llist.h>
-#include <myf2c.h>
 
 
 /* Tipi di Drive */

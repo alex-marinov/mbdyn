@@ -31,8 +31,10 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <matvec3.h>
 #include <string.h>
+#include <ac/iostream>
+
+#include <matvec3.h>
 
 
 int 
@@ -44,21 +46,21 @@ main(int argn, const char* const argv[])
       		if (!strcasecmp(argv[1], "-?")
 	  	    || !strcasecmp(argv[1], "-h") 
 	  	    || !strcasecmp(argv[1], "--help")) {
-	 		cerr << endl 
+	 		std::cerr << std::endl 
 				<< "usage: " << argv[0] 
-				<< " [mat|euler]" << endl 
-				<< endl
+				<< " [mat|euler]" << std::endl 
+				<< std::endl
 	   			<< "    reads the Euler angles (in degs)"
-				" of bodies 1 and 2 from stdin;" << endl
-	   			<< "    writes, on standard output:" << endl
+				" of bodies 1 and 2 from stdin;" << std::endl
+	   			<< "    writes, on standard output:" << std::endl
 	   			<< "        default|\"euler\", the relative"
-				" Euler angles," << endl
+				" Euler angles," << std::endl
 	   			<< "        \"mat\", the relative rotation"
-				" matrix (column-oriented)" << endl 
-				<< endl
+				" matrix (column-oriented)" << std::endl 
+				<< std::endl
 	   			<< "part of MBDyn package (Copyright (C)"
-				" Pierangelo Masarati, 1996-2000)" << endl 
-				<< endl;
+				" Pierangelo Masarati, 1996-2000)" << std::endl 
+				<< std::endl;
 	 		exit(EXIT_SUCCESS);
       		} else if (!strcasecmp(argv[1], "mat")) {
 	 		f = flag(1);
@@ -71,17 +73,17 @@ main(int argn, const char* const argv[])
    
    	static doublereal d[3];
    	while (1) {
-      		cin >> d[0];
-      		if (cin) {
-	 		cin >> d[1] >> d[2];
+      		std::cin >> d[0];
+      		if (std::cin) {
+	 		std::cin >> d[1] >> d[2];
 	 		Mat3x3 R1(RFromEulerAngles(Vec3(d)/180.*M_PI));
-	 		cin >> d[0] >> d[1] >> d[2];
+	 		std::cin >> d[0] >> d[1] >> d[2];
 	 		Mat3x3 R2(RFromEulerAngles(Vec3(d)/180.*M_PI));
 			
 	 		if (f) {
-	    			cout << R1.Transpose()*R2 << endl;
+	    			std::cout << R1.Transpose()*R2 << std::endl;
 	 		} else {
-	    			cout << EulerAngles(R1.Transpose()*R2) << endl;
+	    			std::cout << EulerAngles(R1.Transpose()*R2) << std::endl;
 	 		}
       		} else {
 	 		break;

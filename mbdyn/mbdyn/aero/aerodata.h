@@ -31,8 +31,9 @@
 #ifndef AERODATA_H
 #define AERODATA_H
 
+#include <ac/f2c.h>
+
 #include <myassert.h>
-#include <myf2c.h>
 extern "C" {
 #include <aerodc81.h>
 }

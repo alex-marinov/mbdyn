@@ -36,8 +36,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <ac/f2c.h>
+
 #include <harwout.h>
-#include <myf2c.h>
 
 /* ma28ad - begin */
 

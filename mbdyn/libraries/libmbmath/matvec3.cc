@@ -34,16 +34,12 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-extern "C" {
-#include <mymath.h>
-#include <float.h>
-}
+#include <ac/math.h>
+#include <ac/float.h>
 
 #include <matvec3.h>
-// #include <output.h> /* ? */
 
-/* matrice identita' */
-
+/* noteworthy constant */
 const Mat3x3 Eye3(1., 0., 0., 0., 1., 0., 0., 0., 1.);
 const Mat3x3 Zero3x3(0., 0., 0., 0., 0., 0., 0., 0., 0.);
 const Vec3 Zero3(0., 0., 0.);

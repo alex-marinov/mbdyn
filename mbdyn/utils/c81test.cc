@@ -32,8 +32,9 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <stdlib.h>
-#include <iostream.h>
-#include <fstream.h>
+
+#include <ac/iostream>
+#include <ac/fstream>
 
 #include <myassert.h>
 #include <mynewmem.h>
@@ -52,38 +53,40 @@ main(int argc, char *argv[])
 {
 #if defined(USE_AERODYNAMIC_ELEMS)
 	if (argc != 4) {
-		cerr << "usage: testc81 file alpha mach" << endl;
+		std::cerr << "usage: testc81 <file> <alpha> <mach>" << std::endl;
 		exit(EXIT_SUCCESS);
 	}
 
-	ifstream in(argv[1]);
+	std::ifstream in(argv[1]);
 	if (!in) {
-		cerr << "unable to open file '" << argv[1] << "'" << endl;
+		std::cerr << "unable to open file '" << argv[1] 
+			<< "'" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
 	c81_data* data = new C81Data(1);
 
 	if (read_c81_data(in, data)) {
-		cerr << "unable to read c81 data from file '" 
-			<< argv[1] << "'" << endl;
+		std::cerr << "unable to read c81 data from file '" 
+			<< argv[1] << "'" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
 	double alpha(atof(argv[2])), mach(atof(argv[3]));
 
-	cout 
-		<< "alpha: " << alpha << endl
-		<< "mach: " << mach << endl
+	std::cout 
+		<< "alpha: " << alpha << std::endl
+		<< "mach: " << mach << std::endl
 		<< "cl: " << get_c81_coef(data->NML, data->ml, data->NAL, 
-				data->al, alpha, mach) << endl
+				data->al, alpha, mach) << std::endl
 		<< "cd: " << get_c81_coef(data->NMD, data->md, data->NAD, 
-				data->ad, alpha, mach) << endl
+				data->ad, alpha, mach) << std::endl
 		<< "cm: " << get_c81_coef(data->NMM, data->mm, data->NAM, 
-				data->am, alpha, mach) << endl;
+				data->am, alpha, mach) << std::endl;
 
 #else /* !USE_AERODYNAMIC_ELEMS */
-	cerr << "compile with --with-aero to enable aerodynamic stuff" << endl;
+	std::cerr << "compile with --with-aero to enable aerodynamic stuff" 
+		<< std::endl;
 #endif /* !USE_AERODYNAMIC_ELEMS */
 
 	return 0;

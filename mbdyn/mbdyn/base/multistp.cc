@@ -35,11 +35,17 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <unistd.h>
-#include <float.h>
+#include <ac/float.h>
+#include <ac/math.h>
+
+#ifdef HAVE_SIGNAL
+#ifdef HAVE_SIGNAL_H
+#include <signal.h>
+#endif /* HAVE_SIGNAL_H */
+#endif /* HAVE_SIGNAL */
 
 #include <multistp.h>
 #include <mynewmem.h>
-#include <mymath.h>
 
 #include <harwrap.h>
 #include <mschwrap.h>
@@ -47,10 +53,6 @@
 #include <umfpackwrap.h>
 
 #ifdef HAVE_SIGNAL
-#ifdef HAVE_SIGNAL_H
-#include <signal.h>
-#endif /* HAVE_SIGNAL_H */
-
 volatile sig_atomic_t keep_going = 1;
 __sighandler_t sh_term = SIG_DFL;
 __sighandler_t sh_int = SIG_DFL;

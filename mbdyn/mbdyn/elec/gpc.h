@@ -31,12 +31,12 @@
 #ifndef GPC_H
 #define GPC_H
 
-#include "myf2c.h"
-#include "drive.h"
+#include <ac/f2c.h>
+#include <drive.h>
 
 #ifdef USE_MESCHACH
 extern "C" {
-#include "meschach/matrix2.h"
+#include <meschach/matrix2.h>
 }
 #endif /* USE_MESCHACH */
 

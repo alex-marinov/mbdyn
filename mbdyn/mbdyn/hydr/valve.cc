@@ -37,9 +37,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-extern "C" {
-#include <float.h>
-}
+#include <ac/float.h>
 
 #include <valve.h>
 
@@ -84,9 +82,9 @@ HydraulicElem::Type Control_valve::GetHydraulicType(void) const
 }
 
 /* Contributo al file di restart */
-ostream& Control_valve::Restart(ostream& out) const
+std::ostream& Control_valve::Restart(std::ostream& out) const
 {
-   return out << "Control_valve not implemented yet!" << endl;
+   return out << "Control_valve not implemented yet!" << std::endl;
 }
    
 unsigned int Control_valve::iGetNumDof(void) const 
@@ -96,7 +94,7 @@ unsigned int Control_valve::iGetNumDof(void) const
    
 DofOrder::Order Control_valve::SetDof(unsigned int i) const 
 {
-   cerr << "Control valve has no dofs!" << endl;
+   std::cerr << "Control valve has no dofs!" << std::endl;
    THROW(ErrGeneric());
 }
 
@@ -115,7 +113,7 @@ Control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
 		      const VectorHandler& XCurr, 
 		      const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Control_valve::AssJac()" << endl);
+   DEBUGCOUT("Entering Control_valve::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    WM.Resize(4, 4);
@@ -238,7 +236,7 @@ Control_valve::AssRes(SubVectorHandler& WorkVec,
 		      const VectorHandler& XCurr, 
 		      const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Control_valve::AssRes()" << endl);
+   DEBUGCOUT("Entering Control_valve::AssRes()" << std::endl);
    
    WorkVec.Resize(4);
    
@@ -302,28 +300,28 @@ Control_valve::AssRes(SubVectorHandler& WorkVec,
    flow4 = -Res_4;
 
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("Stato:   " << Stato << endl);
-   DEBUGCOUT("A1:      " << A1 << endl);
-   DEBUGCOUT("A2:      " << A2  << endl);
-   DEBUGCOUT("A3:      " << A3 << endl);
-   DEBUGCOUT("A4:      " << A4 << endl);
-   DEBUGCOUT("p1:      " << p1 << endl);
-   DEBUGCOUT("p2:      " << p2 << endl);
-   DEBUGCOUT("p3:      " << p3 << endl);
-   DEBUGCOUT("p4:      " << p4 << endl);
-   DEBUGCOUT("Cd:      " << Cd << endl);
-   DEBUGCOUT("density: " << density << endl);
-   DEBUGCOUT("Area_max:             " << area_max << endl);
-   DEBUGCOUT("Loss_area in %:       " << loss_area << endl);
-   DEBUGCOUT("Q12:     " << Q12 << endl);
-   DEBUGCOUT("Q13:     " << Q13 << endl);
-   DEBUGCOUT("Q24:     " << Q24 << endl);
-   DEBUGCOUT("Q34:     " << Q34 << endl);
-   DEBUGCOUT("PORTATE AI VARI NODI (positive se entranti)"<< endl);
-   DEBUGCOUT("-Res_1 (portata nodo1): " << -Res_1 << endl); 
-   DEBUGCOUT("-Res_2 (portata nodo2): " << -Res_2 << endl); 
-   DEBUGCOUT("-Res_3 (portata nodo3): " << -Res_3 << endl); 
-   DEBUGCOUT("-Res_4 (portata nodo4): " << -Res_4 << endl); 
+   DEBUGCOUT("Stato:   " << Stato << std::endl);
+   DEBUGCOUT("A1:      " << A1 << std::endl);
+   DEBUGCOUT("A2:      " << A2  << std::endl);
+   DEBUGCOUT("A3:      " << A3 << std::endl);
+   DEBUGCOUT("A4:      " << A4 << std::endl);
+   DEBUGCOUT("p1:      " << p1 << std::endl);
+   DEBUGCOUT("p2:      " << p2 << std::endl);
+   DEBUGCOUT("p3:      " << p3 << std::endl);
+   DEBUGCOUT("p4:      " << p4 << std::endl);
+   DEBUGCOUT("Cd:      " << Cd << std::endl);
+   DEBUGCOUT("density: " << density << std::endl);
+   DEBUGCOUT("Area_max:             " << area_max << std::endl);
+   DEBUGCOUT("Loss_area in %:       " << loss_area << std::endl);
+   DEBUGCOUT("Q12:     " << Q12 << std::endl);
+   DEBUGCOUT("Q13:     " << Q13 << std::endl);
+   DEBUGCOUT("Q24:     " << Q24 << std::endl);
+   DEBUGCOUT("Q34:     " << Q34 << std::endl);
+   DEBUGCOUT("PORTATE AI VARI NODI (positive se entranti)"<< std::endl);
+   DEBUGCOUT("-Res_1 (portata nodo1): " << -Res_1 << std::endl); 
+   DEBUGCOUT("-Res_2 (portata nodo2): " << -Res_2 << std::endl); 
+   DEBUGCOUT("-Res_3 (portata nodo3): " << -Res_3 << std::endl); 
+   DEBUGCOUT("-Res_4 (portata nodo4): " << -Res_4 << std::endl); 
 #endif
    
    WorkVec.fPutItem(1, iNode1RowIndex, Res_1);
@@ -337,11 +335,11 @@ Control_valve::AssRes(SubVectorHandler& WorkVec,
 void Control_valve::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) { 
-      ostream& out = OH.Hydraulic();
-      out << setw(8) << GetLabel()
+      std::ostream& out = OH.Hydraulic();
+      out << std::setw(8) << GetLabel()
 	<< " " << Stato 
 	<< " " << flow1 << " " << flow2 
-	<< " " << flow3 << " " << flow4 << endl;
+	<< " " << flow3 << " " << flow4 << std::endl;
    }   
 }
 
@@ -404,10 +402,10 @@ Control_valve2::GetHydraulicType(void) const
 }
 
 /* Contributo al file di restart */
-ostream& 
-Control_valve2::Restart(ostream& out) const
+std::ostream& 
+Control_valve2::Restart(std::ostream& out) const
 {
-	return out << "Control_valve2 not implemented yet!" << endl;
+	return out << "Control_valve2 not implemented yet!" << std::endl;
 }
    
 unsigned int 
@@ -435,7 +433,7 @@ Control_valve2::AssJac(VariableSubMatrixHandler& WorkMat,
 		      const VectorHandler& XCurr, 
 		      const VectorHandler& XPrimeCurr)
 {
-	DEBUGCOUT("Entering Control_valve2::AssJac()" << endl);
+	DEBUGCOUT("Entering Control_valve2::AssJac()" << std::endl);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	integer iNumRows, iNumCols;
@@ -573,7 +571,7 @@ Control_valve2::AssRes(SubVectorHandler& WorkVec,
 		      const VectorHandler& XCurr, 
 		      const VectorHandler& XPrimeCurr)
 {
-	DEBUGCOUT("Entering Control_valve2::AssRes()" << endl);
+	DEBUGCOUT("Entering Control_valve2::AssRes()" << std::endl);
 	
 	integer iNumRows, iNumCols;
 	WorkSpaceDim(&iNumRows, &iNumCols);
@@ -621,11 +619,11 @@ void
 Control_valve2::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) { 
-		ostream& out = OH.Hydraulic();
-		out << setw(8) << GetLabel()
+		std::ostream& out = OH.Hydraulic();
+		out << std::setw(8) << GetLabel()
 			<< " " << Stato 
 			<< " " << -f[N1] << " " << -f[N2] 
-			<< " " << -f[N3] << " " << -f[N4] << endl;
+			<< " " << -f[N3] << " " << -f[N4] << std::endl;
 	}   
 }
 
@@ -711,9 +709,9 @@ HydraulicElem::Type Dynamic_control_valve::GetHydraulicType(void) const
 }
 
 /* Contributo al file di restart */
-ostream& Dynamic_control_valve::Restart(ostream& out) const
+std::ostream& Dynamic_control_valve::Restart(std::ostream& out) const
 {
-   return out << "Dynamic_control_valve not implemented yet!" << endl;
+   return out << "Dynamic_control_valve not implemented yet!" << std::endl;
 }
    
 unsigned int Dynamic_control_valve::iGetNumDof(void) const 
@@ -741,7 +739,7 @@ Dynamic_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
 		  const VectorHandler& XCurr, 
 		  const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Control_valve::AssJac()" << endl);
+   DEBUGCOUT("Entering Control_valve::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    WM.ResizeInit(6, 6, 0.);
@@ -892,7 +890,7 @@ Dynamic_control_valve::AssRes(SubVectorHandler& WorkVec,
 			  const VectorHandler& XCurr, 
 			  const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Dynamic_control_valve::AssRes()" << endl);
+   DEBUGCOUT("Entering Dynamic_control_valve::AssRes()" << std::endl);
    
    WorkVec.Resize(6);
    
@@ -1010,48 +1008,48 @@ Dynamic_control_valve::AssRes(SubVectorHandler& WorkVec,
    flow4 = -Res_4;
 
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("Force:         " << Force << endl);
-   DEBUGCOUT("X equilibrio:  " << Force/K << endl);
-   DEBUGCOUT("A1:            " << A1 << endl);
-   DEBUGCOUT("A2:            " << A2  << endl);
-   DEBUGCOUT("A3:            " << A3 << endl);
-   DEBUGCOUT("A4:            " << A4 << endl);
-   DEBUGCOUT("p1:            " << p1 << endl);
-   DEBUGCOUT("p2:            " << p2 << endl);
-   DEBUGCOUT("p3:            " << p3 << endl);
-   DEBUGCOUT("p4:            " << p4 << endl);
-   DEBUGCOUT("Cd:            " << Cd << endl);
-   DEBUGCOUT("s_max :        " << s_max << endl);
-   DEBUGCOUT("s :            " << s << endl);
-   DEBUGCOUT("sp:            " << sp << endl);
-   DEBUGCOUT("v :            " << v << endl);
-   DEBUGCOUT("vp:            " << vp << endl);
-   DEBUGCOUT("Valve_diameter:" << valve_diameter << endl);
-   DEBUGCOUT("massa:         " << Mass << endl);
-   DEBUGCOUT("smorzatore:    " << C << endl);
-   DEBUGCOUT("molla:         " << K << endl);
-   DEBUGCOUT("density:       " << density << endl);
-   DEBUGCOUT("Valve_density: " << valve_density << endl);
-   DEBUGCOUT("Area_max:      " << area_max << endl);
-   DEBUGCOUT("Width:         " << width << endl);
-   DEBUGCOUT("Loss_area:     " << loss_area << endl);
-   DEBUGCOUT("c1:            " << c1 << endl);
-   DEBUGCOUT("c2:            " << c2 << endl);
-   DEBUGCOUT("c3:            " << c3 << endl);
-   DEBUGCOUT("cf1:           " << cf1 << endl);
-   DEBUGCOUT("cf2:           " << cf2 << endl);
-   DEBUGCOUT("cf3:           " << cf3 << endl);
-   DEBUGCOUT("Q12:           " << Q12 << endl);
-   DEBUGCOUT("Q13:           " << Q13 << endl);
-   DEBUGCOUT("Q24:           " << Q24 << endl);
-   DEBUGCOUT("Q34:           " << Q34 << endl);
-   DEBUGCOUT("PORTATE AI VARI NODI (positive se entranti)"<< endl);
-   DEBUGCOUT("-Res_1 (portata nodo1): " << -Res_1 << endl); 
-   DEBUGCOUT("-Res_2 (portata nodo2): " << -Res_2 << endl); 
-   DEBUGCOUT("-Res_3 (portata nodo3): " << -Res_3 << endl); 
-   DEBUGCOUT("-Res_4 (portata nodo4): " << -Res_4 << endl); 
-   DEBUGCOUT("-Res_5  eq.dinamica   : " << -Res_5 << endl); 
-   DEBUGCOUT("-Res_6 sp-v           : " << -Res_6 << endl); 
+   DEBUGCOUT("Force:         " << Force << std::endl);
+   DEBUGCOUT("X equilibrio:  " << Force/K << std::endl);
+   DEBUGCOUT("A1:            " << A1 << std::endl);
+   DEBUGCOUT("A2:            " << A2  << std::endl);
+   DEBUGCOUT("A3:            " << A3 << std::endl);
+   DEBUGCOUT("A4:            " << A4 << std::endl);
+   DEBUGCOUT("p1:            " << p1 << std::endl);
+   DEBUGCOUT("p2:            " << p2 << std::endl);
+   DEBUGCOUT("p3:            " << p3 << std::endl);
+   DEBUGCOUT("p4:            " << p4 << std::endl);
+   DEBUGCOUT("Cd:            " << Cd << std::endl);
+   DEBUGCOUT("s_max :        " << s_max << std::endl);
+   DEBUGCOUT("s :            " << s << std::endl);
+   DEBUGCOUT("sp:            " << sp << std::endl);
+   DEBUGCOUT("v :            " << v << std::endl);
+   DEBUGCOUT("vp:            " << vp << std::endl);
+   DEBUGCOUT("Valve_diameter:" << valve_diameter << std::endl);
+   DEBUGCOUT("massa:         " << Mass << std::endl);
+   DEBUGCOUT("smorzatore:    " << C << std::endl);
+   DEBUGCOUT("molla:         " << K << std::endl);
+   DEBUGCOUT("density:       " << density << std::endl);
+   DEBUGCOUT("Valve_density: " << valve_density << std::endl);
+   DEBUGCOUT("Area_max:      " << area_max << std::endl);
+   DEBUGCOUT("Width:         " << width << std::endl);
+   DEBUGCOUT("Loss_area:     " << loss_area << std::endl);
+   DEBUGCOUT("c1:            " << c1 << std::endl);
+   DEBUGCOUT("c2:            " << c2 << std::endl);
+   DEBUGCOUT("c3:            " << c3 << std::endl);
+   DEBUGCOUT("cf1:           " << cf1 << std::endl);
+   DEBUGCOUT("cf2:           " << cf2 << std::endl);
+   DEBUGCOUT("cf3:           " << cf3 << std::endl);
+   DEBUGCOUT("Q12:           " << Q12 << std::endl);
+   DEBUGCOUT("Q13:           " << Q13 << std::endl);
+   DEBUGCOUT("Q24:           " << Q24 << std::endl);
+   DEBUGCOUT("Q34:           " << Q34 << std::endl);
+   DEBUGCOUT("PORTATE AI VARI NODI (positive se entranti)"<< std::endl);
+   DEBUGCOUT("-Res_1 (portata nodo1): " << -Res_1 << std::endl); 
+   DEBUGCOUT("-Res_2 (portata nodo2): " << -Res_2 << std::endl); 
+   DEBUGCOUT("-Res_3 (portata nodo3): " << -Res_3 << std::endl); 
+   DEBUGCOUT("-Res_4 (portata nodo4): " << -Res_4 << std::endl); 
+   DEBUGCOUT("-Res_5  eq.dinamica   : " << -Res_5 << std::endl); 
+   DEBUGCOUT("-Res_6 sp-v           : " << -Res_6 << std::endl); 
 #endif
    
    WorkVec.fPutItem(1, iNode1RowIndex, Res_1);
@@ -1068,11 +1066,11 @@ Dynamic_control_valve::AssRes(SubVectorHandler& WorkVec,
 void Dynamic_control_valve::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) { 
-      ostream& out = OH.Hydraulic();
-      out << setw(8) << GetLabel()
+      std::ostream& out = OH.Hydraulic();
+      out << std::setw(8) << GetLabel()
 	<< " " << s << " "  << sp << " "  << vp 
 	<< " " << flow1 << " " << flow2 << " " << flow3 << " " << flow4
-	<< " " << A1 << " "  << A2 << " "  << A3 << " " << A4 << " " << endl;
+	<< " " << A1 << " "  << A2 << " "  << A3 << " " << A4 << " " << std::endl;
    }
 }
 
@@ -1150,9 +1148,9 @@ HydraulicElem::Type Pressure_flow_control_valve::GetHydraulicType(void) const
 }
 
 /* Contributo al file di restart */
-ostream& Pressure_flow_control_valve::Restart(ostream& out) const
+std::ostream& Pressure_flow_control_valve::Restart(std::ostream& out) const
 {
-   return out << "Pressure_flow_control_valve not implemented yet!" << endl;
+   return out << "Pressure_flow_control_valve not implemented yet!" << std::endl;
 }
    
 unsigned int Pressure_flow_control_valve::iGetNumDof(void) const 
@@ -1180,7 +1178,7 @@ Pressure_flow_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
 		  const VectorHandler& XCurr, 
 		  const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Control_valve::AssJac()" << endl);
+   DEBUGCOUT("Entering Control_valve::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    WM.ResizeInit(8, 8, 0.);
@@ -1338,7 +1336,7 @@ Pressure_flow_control_valve::AssRes(SubVectorHandler& WorkVec,
 			  const VectorHandler& XCurr, 
 			  const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Pressure_flow_control_valve::AssRes()" << endl);
+   DEBUGCOUT("Entering Pressure_flow_control_valve::AssRes()" << std::endl);
    
    WorkVec.Resize(8);
    
@@ -1421,51 +1419,51 @@ Pressure_flow_control_valve::AssRes(SubVectorHandler& WorkVec,
    flow6 = -Res_6;
 
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("Force:         " << Force << endl);
-   DEBUGCOUT("X equilibrio:  " << Force/K << endl);
-   DEBUGCOUT("A1:            " << A1 << endl);
-   DEBUGCOUT("A2:            " << A2  << endl);
-   DEBUGCOUT("A3:            " << A3 << endl);
-   DEBUGCOUT("A4:            " << A4 << endl);
-   DEBUGCOUT("p1:            " << p1 << endl);
-   DEBUGCOUT("p2:            " << p2 << endl);
-   DEBUGCOUT("p3:            " << p3 << endl);
-   DEBUGCOUT("p4:            " << p4 << endl);
-   DEBUGCOUT("Cd:            " << Cd << endl);
-   DEBUGCOUT("s_max :        " << s_max << endl);
-   DEBUGCOUT("x :            " << x << endl);
-   DEBUGCOUT("s :            " << s << endl);
-   DEBUGCOUT("sp:            " << sp << endl);
-   DEBUGCOUT("v :            " << v << endl);
-   DEBUGCOUT("vp:            " << vp << endl);
-   DEBUGCOUT("Valve_diameter:" << valve_diameter << endl);
-   DEBUGCOUT("massa:         " << Mass << endl);
-   DEBUGCOUT("smorzatore:    " << C << endl);
-   DEBUGCOUT("molla:         " << K << endl);
-   DEBUGCOUT("density:       " << density << endl);
-   DEBUGCOUT("Valve_density: " << valve_density << endl);
-   DEBUGCOUT("Area_max:      " << area_max << endl);
-   DEBUGCOUT("Width:         " << width << endl);
-   DEBUGCOUT("Loss_area:     " << loss_area << endl);
-   DEBUGCOUT("c1:            " << c1 << endl);
-   DEBUGCOUT("c2:            " << c2 << endl);
-   DEBUGCOUT("c3:            " << c3 << endl);
-   DEBUGCOUT("cf1:           " << cf1 << endl);
-   DEBUGCOUT("cf2:           " << cf2 << endl);
-   DEBUGCOUT("cf3:           " << cf3 << endl);
-   DEBUGCOUT("Q12:           " << Q12 << endl);
-   DEBUGCOUT("Q13:           " << Q13 << endl);
-   DEBUGCOUT("Q24:           " << Q24 << endl);
-   DEBUGCOUT("Q34:           " << Q34 << endl);
-   DEBUGCOUT("PORTATE AI VARI NODI (positive se entranti)"<< endl);
-   DEBUGCOUT("-Res_1 (portata nodo1): " << -Res_1 << endl); 
-   DEBUGCOUT("-Res_2 (portata nodo2): " << -Res_2 << endl); 
-   DEBUGCOUT("-Res_3 (portata nodo3): " << -Res_3 << endl); 
-   DEBUGCOUT("-Res_4 (portata nodo4): " << -Res_4 << endl); 
-   DEBUGCOUT("-Res_5 (portata nodo3): " << -Res_5 << endl); 
-   DEBUGCOUT("-Res_6 (portata nodo4): " << -Res_6 << endl); 
-   DEBUGCOUT("-Res_6   eq dinamica  : " << -Res_7 << endl); 
-   DEBUGCOUT("-Res_7 sp-v           : " << -Res_8 << endl); 
+   DEBUGCOUT("Force:         " << Force << std::endl);
+   DEBUGCOUT("X equilibrio:  " << Force/K << std::endl);
+   DEBUGCOUT("A1:            " << A1 << std::endl);
+   DEBUGCOUT("A2:            " << A2  << std::endl);
+   DEBUGCOUT("A3:            " << A3 << std::endl);
+   DEBUGCOUT("A4:            " << A4 << std::endl);
+   DEBUGCOUT("p1:            " << p1 << std::endl);
+   DEBUGCOUT("p2:            " << p2 << std::endl);
+   DEBUGCOUT("p3:            " << p3 << std::endl);
+   DEBUGCOUT("p4:            " << p4 << std::endl);
+   DEBUGCOUT("Cd:            " << Cd << std::endl);
+   DEBUGCOUT("s_max :        " << s_max << std::endl);
+   DEBUGCOUT("x :            " << x << std::endl);
+   DEBUGCOUT("s :            " << s << std::endl);
+   DEBUGCOUT("sp:            " << sp << std::endl);
+   DEBUGCOUT("v :            " << v << std::endl);
+   DEBUGCOUT("vp:            " << vp << std::endl);
+   DEBUGCOUT("Valve_diameter:" << valve_diameter << std::endl);
+   DEBUGCOUT("massa:         " << Mass << std::endl);
+   DEBUGCOUT("smorzatore:    " << C << std::endl);
+   DEBUGCOUT("molla:         " << K << std::endl);
+   DEBUGCOUT("density:       " << density << std::endl);
+   DEBUGCOUT("Valve_density: " << valve_density << std::endl);
+   DEBUGCOUT("Area_max:      " << area_max << std::endl);
+   DEBUGCOUT("Width:         " << width << std::endl);
+   DEBUGCOUT("Loss_area:     " << loss_area << std::endl);
+   DEBUGCOUT("c1:            " << c1 << std::endl);
+   DEBUGCOUT("c2:            " << c2 << std::endl);
+   DEBUGCOUT("c3:            " << c3 << std::endl);
+   DEBUGCOUT("cf1:           " << cf1 << std::endl);
+   DEBUGCOUT("cf2:           " << cf2 << std::endl);
+   DEBUGCOUT("cf3:           " << cf3 << std::endl);
+   DEBUGCOUT("Q12:           " << Q12 << std::endl);
+   DEBUGCOUT("Q13:           " << Q13 << std::endl);
+   DEBUGCOUT("Q24:           " << Q24 << std::endl);
+   DEBUGCOUT("Q34:           " << Q34 << std::endl);
+   DEBUGCOUT("PORTATE AI VARI NODI (positive se entranti)"<< std::endl);
+   DEBUGCOUT("-Res_1 (portata nodo1): " << -Res_1 << std::endl); 
+   DEBUGCOUT("-Res_2 (portata nodo2): " << -Res_2 << std::endl); 
+   DEBUGCOUT("-Res_3 (portata nodo3): " << -Res_3 << std::endl); 
+   DEBUGCOUT("-Res_4 (portata nodo4): " << -Res_4 << std::endl); 
+   DEBUGCOUT("-Res_5 (portata nodo3): " << -Res_5 << std::endl); 
+   DEBUGCOUT("-Res_6 (portata nodo4): " << -Res_6 << std::endl); 
+   DEBUGCOUT("-Res_6   eq dinamica  : " << -Res_7 << std::endl); 
+   DEBUGCOUT("-Res_7 sp-v           : " << -Res_8 << std::endl); 
 #endif
    
    WorkVec.fPutItem(1, iNode1RowIndex, Res_1);
@@ -1484,12 +1482,12 @@ Pressure_flow_control_valve::AssRes(SubVectorHandler& WorkVec,
 void Pressure_flow_control_valve::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) { 
-      ostream& out = OH.Hydraulic();
-      out << setw(8) << GetLabel()
+      std::ostream& out = OH.Hydraulic();
+      out << std::setw(8) << GetLabel()
 	<< " " << s << " "  << sp << " "  << vp 
 	<< " " << flow1 << " " << flow2 << " " << flow3 << " " << flow4
 	<< " " << flow5 << " " << flow6
-	<< " " << A1 << " "  << A2 << " "  << A3 << " " << A4 << " " << endl;
+	<< " " << A1 << " "  << A2 << " "  << A3 << " " << A4 << " " << std::endl;
    }
 }
 
@@ -1552,9 +1550,9 @@ HydraulicElem::Type Pressure_valve::GetHydraulicType(void) const
 
 
 /* Contributo al file di restart */
-ostream& Pressure_valve::Restart(ostream& out) const
+std::ostream& Pressure_valve::Restart(std::ostream& out) const
 {
-   return out << "Pressure_valve not implemented yet!" << endl;
+   return out << "Pressure_valve not implemented yet!" << std::endl;
 }
 
 
@@ -1586,7 +1584,7 @@ Pressure_valve::AssJac(VariableSubMatrixHandler& WorkMat,
 		       const VectorHandler& XCurr, 
 		       const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Pressure_valve::AssJac()" << endl);
+   DEBUGCOUT("Entering Pressure_valve::AssJac()" << std::endl);
       
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    WM.Resize(4, 4);
@@ -1641,9 +1639,9 @@ Pressure_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal Jac44 = 0.;
    
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("Valore di c1: " << c1 << endl);
-   DEBUGCOUT("Valore di c2: " << c2 << endl);
-   DEBUGCOUT("Valore di c3: " << c3 << endl);
+   DEBUGCOUT("Valore di c1: " << c1 << std::endl);
+   DEBUGCOUT("Valore di c2: " << c2 << std::endl);
+   DEBUGCOUT("Valore di c3: " << c3 << std::endl);
 #endif
    
    Jac11 = -density*width*s*Cd/sqrt(2*jumpPres/density)/density;
@@ -1669,7 +1667,7 @@ Pressure_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    Jac44 = dCoef;
    
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("Jac smorzatore " << density*area_max*pow(area_max/(area_diaf*Cd), 2) << endl);
+   DEBUGCOUT("Jac smorzatore " << density*area_max*pow(area_max/(area_diaf*Cd), 2) << std::endl);
 #endif
    
    WM.fPutCoef(1, 1, Jac11);
@@ -1724,10 +1722,10 @@ Pressure_valve::AssRes(SubVectorHandler& WorkVec,
    doublereal x0 = (p1*area_max-force0)/Kappa; /* punto di equilibrio */
    
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("s:  " << s << endl);
-   DEBUGCOUT("sp: " << sp << endl);
-   DEBUGCOUT("v:  " << v << endl);
-   DEBUGCOUT("vp: " << vp << endl);
+   DEBUGCOUT("s:  " << s << std::endl);
+   DEBUGCOUT("sp: " << sp << std::endl);
+   DEBUGCOUT("v:  " << v << std::endl);
+   DEBUGCOUT("vp: " << vp << std::endl);
 #endif
    
    if (s <= 0.) { 
@@ -1788,37 +1786,37 @@ Pressure_valve::AssRes(SubVectorHandler& WorkVec,
    flow2 = -Res_2;   /* per l'output */
 
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("width:    " << width << endl);
-   DEBUGCOUT("Cd:       " << Cd << endl);
-   DEBUGCOUT("jumpPres: " << jumpPres  << endl);
-   DEBUGCOUT("density:  " << density << endl);
-   DEBUGCOUT("p1:       " << p1 << endl);
-   DEBUGCOUT("p2:       " << p2 << endl);
-   DEBUGCOUT("s:        " << s << endl);
-   DEBUGCOUT("sp:       " << sp << endl);
-   DEBUGCOUT("v:        " << v << endl);
-   DEBUGCOUT("vp:       " << vp << endl);
-   DEBUGCOUT("area_max: " << area_max << endl);
-   DEBUGCOUT("Kappa:    " << Kappa << endl);
-   DEBUGCOUT("force0:   " << force0 << endl);
-   DEBUGCOUT("mass:     " << mass  << endl);
-   DEBUGCOUT("x0:       " << x0 << endl);
-   DEBUGCOUT("s_max:    " << s_max << endl);
+   DEBUGCOUT("width:    " << width << std::endl);
+   DEBUGCOUT("Cd:       " << Cd << std::endl);
+   DEBUGCOUT("jumpPres: " << jumpPres  << std::endl);
+   DEBUGCOUT("density:  " << density << std::endl);
+   DEBUGCOUT("p1:       " << p1 << std::endl);
+   DEBUGCOUT("p2:       " << p2 << std::endl);
+   DEBUGCOUT("s:        " << s << std::endl);
+   DEBUGCOUT("sp:       " << sp << std::endl);
+   DEBUGCOUT("v:        " << v << std::endl);
+   DEBUGCOUT("vp:       " << vp << std::endl);
+   DEBUGCOUT("area_max: " << area_max << std::endl);
+   DEBUGCOUT("Kappa:    " << Kappa << std::endl);
+   DEBUGCOUT("force0:   " << force0 << std::endl);
+   DEBUGCOUT("mass:     " << mass  << std::endl);
+   DEBUGCOUT("x0:       " << x0 << std::endl);
+   DEBUGCOUT("s_max:    " << s_max << std::endl);
    DEBUGCOUT("Valore dello smorzatore: " 
-	     << copysign(.5*density*area_max*pow(area_max/(area_diaf*Cd), 2), sp) << endl);
-   DEBUGCOUT("c1:       " << c1 << endl);
-   DEBUGCOUT("c2:       " << c2 << endl);
-   DEBUGCOUT("c3:       " << c3 << endl);
-   DEBUGCOUT("c4:       " << c4 << endl);
-   DEBUGCOUT("cf1:      " << cf1 << endl);
-   DEBUGCOUT("cf2:      " << cf2 << endl);
-   DEBUGCOUT("cf3:      " << cf3 << endl);
-   DEBUGCOUT("cf4:      " << cf4 << endl);
-   DEBUGCOUT("PORTATE AI VARI NODI (positive se entranti)" << endl);
-   DEBUGCOUT("-Res_1 (portata nodo1): " << -Res_1 << endl); 
-   DEBUGCOUT("-Res_2 (portata nodo2): " << -Res_2 << endl);   
-   DEBUGCOUT("Res_3:                  " << Res_3 << endl); 
-   DEBUGCOUT("Res_4:                  " << Res_4 << endl); 
+	     << copysign(.5*density*area_max*pow(area_max/(area_diaf*Cd), 2), sp) << std::endl);
+   DEBUGCOUT("c1:       " << c1 << std::endl);
+   DEBUGCOUT("c2:       " << c2 << std::endl);
+   DEBUGCOUT("c3:       " << c3 << std::endl);
+   DEBUGCOUT("c4:       " << c4 << std::endl);
+   DEBUGCOUT("cf1:      " << cf1 << std::endl);
+   DEBUGCOUT("cf2:      " << cf2 << std::endl);
+   DEBUGCOUT("cf3:      " << cf3 << std::endl);
+   DEBUGCOUT("cf4:      " << cf4 << std::endl);
+   DEBUGCOUT("PORTATE AI VARI NODI (positive se entranti)" << std::endl);
+   DEBUGCOUT("-Res_1 (portata nodo1): " << -Res_1 << std::endl); 
+   DEBUGCOUT("-Res_2 (portata nodo2): " << -Res_2 << std::endl);   
+   DEBUGCOUT("Res_3:                  " << Res_3 << std::endl); 
+   DEBUGCOUT("Res_4:                  " << Res_4 << std::endl); 
 #endif
    
    WorkVec.fPutItem(1, iNode1RowIndex, Res_1);
@@ -1833,10 +1831,10 @@ Pressure_valve::AssRes(SubVectorHandler& WorkVec,
 void Pressure_valve::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) { 
-      ostream& out = OH.Hydraulic();
-      out << setw(8) << GetLabel()
+      std::ostream& out = OH.Hydraulic();
+      out << std::setw(8) << GetLabel()
 	<< " " << s << " " << v  << " "<< vp  
-	<< " " << flow1  << " " << flow2 << endl;
+	<< " " << flow1  << " " << flow2 << std::endl;
    }  
 }
 
@@ -1906,9 +1904,9 @@ HydraulicElem::Type  Flow_valve::GetHydraulicType(void) const
 
 
 /* Contributo al file di restart */
-ostream&  Flow_valve::Restart(ostream& out) const
+std::ostream&  Flow_valve::Restart(std::ostream& out) const
 {
-   return out << " Flow_valve not implemented yet!" << endl;
+   return out << " Flow_valve not implemented yet!" << std::endl;
 }
  
 
@@ -1938,7 +1936,7 @@ Flow_valve::AssJac(VariableSubMatrixHandler& WorkMat,
 		   const VectorHandler& XCurr, 
 		   const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering  Flow_valve::AssJac()" << endl);
+   DEBUGCOUT("Entering  Flow_valve::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    WM.Resize(5, 5);
@@ -2013,10 +2011,10 @@ Flow_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal Jac55 = 0.;
 
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("Valore di p1: " << p1 << endl);
-   DEBUGCOUT("Valore di p2: " << p2 << endl);
-   DEBUGCOUT("Valore di p3: " << p3 << endl);
-   DEBUGCOUT("Valore di s: " << s << endl);
+   DEBUGCOUT("Valore di p1: " << p1 << std::endl);
+   DEBUGCOUT("Valore di p2: " << p2 << std::endl);
+   DEBUGCOUT("Valore di p3: " << p3 << std::endl);
+   DEBUGCOUT("Valore di s: " << s << std::endl);
 #endif
    
    doublereal s12 = sqrt(2.*jumpPres12/density);
@@ -2062,37 +2060,37 @@ Flow_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    
 #ifdef HYDR_DEVEL
    DEBUGCOUT("Jac smorzatore " 
-	     << density*area_max*pow(area_max/(area_diaf*Cd), 2) << endl);
-   DEBUGCOUT("Jac smorzatore " << h*density << endl);
-   DEBUGCOUT("Jac smorzatore Jac45old1 " << Jac45old1 << endl);
-   DEBUGCOUT("Jac smorzatore Jac45old2 " << Jac45old2 << endl);
-   DEBUGCOUT("Jac smorzatore Jac45     " << Jac45 << endl);
+	     << density*area_max*pow(area_max/(area_diaf*Cd), 2) << std::endl);
+   DEBUGCOUT("Jac smorzatore " << h*density << std::endl);
+   DEBUGCOUT("Jac smorzatore Jac45old1 " << Jac45old1 << std::endl);
+   DEBUGCOUT("Jac smorzatore Jac45old2 " << Jac45old2 << std::endl);
+   DEBUGCOUT("Jac smorzatore Jac45     " << Jac45 << std::endl);
    
-   DEBUGCOUT("Jac11: " << Jac11 << endl);
-   DEBUGCOUT("Jac12: " << Jac12 << endl);
-   DEBUGCOUT("Jac13: " << Jac13 << endl);
-   DEBUGCOUT("Jac14: " << Jac14 << endl);
-   DEBUGCOUT("Jac15: " << Jac15 << endl);
-   DEBUGCOUT("Jac21: " << Jac21 << endl);
-   DEBUGCOUT("Jac22: " << Jac22 << endl);
-   DEBUGCOUT("Jac23: " << Jac23 << endl);
-   DEBUGCOUT("Jac24: " << Jac24 << endl);
-   DEBUGCOUT("Jac25: " << Jac25 << endl);
-   DEBUGCOUT("Jac31: " << Jac31 << endl);
-   DEBUGCOUT("Jac32: " << Jac32 << endl);
-   DEBUGCOUT("Jac33: " << Jac33 << endl);
-   DEBUGCOUT("Jac34: " << Jac34 << endl);
-   DEBUGCOUT("Jac35: " << Jac35 << endl);
-   DEBUGCOUT("Jac41: " << Jac41 << endl);
-   DEBUGCOUT("Jac42: " << Jac42 << endl);
-   DEBUGCOUT("Jac43: " << Jac43 << endl);
-   DEBUGCOUT("Jac44: " << Jac44 << endl);
-   DEBUGCOUT("Jac45: " << Jac45 << endl);
-   DEBUGCOUT("Jac51: " << Jac51 << endl);
-   DEBUGCOUT("Jac52: " << Jac52 << endl);
-   DEBUGCOUT("Jac53: " << Jac53 << endl);
-   DEBUGCOUT("Jac54: " << Jac54 << endl);
-   DEBUGCOUT("Jac55: " << Jac55 << endl);
+   DEBUGCOUT("Jac11: " << Jac11 << std::endl);
+   DEBUGCOUT("Jac12: " << Jac12 << std::endl);
+   DEBUGCOUT("Jac13: " << Jac13 << std::endl);
+   DEBUGCOUT("Jac14: " << Jac14 << std::endl);
+   DEBUGCOUT("Jac15: " << Jac15 << std::endl);
+   DEBUGCOUT("Jac21: " << Jac21 << std::endl);
+   DEBUGCOUT("Jac22: " << Jac22 << std::endl);
+   DEBUGCOUT("Jac23: " << Jac23 << std::endl);
+   DEBUGCOUT("Jac24: " << Jac24 << std::endl);
+   DEBUGCOUT("Jac25: " << Jac25 << std::endl);
+   DEBUGCOUT("Jac31: " << Jac31 << std::endl);
+   DEBUGCOUT("Jac32: " << Jac32 << std::endl);
+   DEBUGCOUT("Jac33: " << Jac33 << std::endl);
+   DEBUGCOUT("Jac34: " << Jac34 << std::endl);
+   DEBUGCOUT("Jac35: " << Jac35 << std::endl);
+   DEBUGCOUT("Jac41: " << Jac41 << std::endl);
+   DEBUGCOUT("Jac42: " << Jac42 << std::endl);
+   DEBUGCOUT("Jac43: " << Jac43 << std::endl);
+   DEBUGCOUT("Jac44: " << Jac44 << std::endl);
+   DEBUGCOUT("Jac45: " << Jac45 << std::endl);
+   DEBUGCOUT("Jac51: " << Jac51 << std::endl);
+   DEBUGCOUT("Jac52: " << Jac52 << std::endl);
+   DEBUGCOUT("Jac53: " << Jac53 << std::endl);
+   DEBUGCOUT("Jac54: " << Jac54 << std::endl);
+   DEBUGCOUT("Jac55: " << Jac55 << std::endl);
 #endif
    
    WM.fPutCoef(1, 1, Jac11);
@@ -2130,7 +2128,7 @@ Flow_valve::AssRes(SubVectorHandler& WorkVec,
 		   const VectorHandler& XCurr, 
 		   const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Flow_valve::AssRes()" << endl);
+   DEBUGCOUT("Entering Flow_valve::AssRes()" << std::endl);
    
    WorkVec.Resize(5);
    
@@ -2232,46 +2230,46 @@ Flow_valve::AssRes(SubVectorHandler& WorkVec,
    flow3=-Res_3;   /* per l'output */
    
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("Res_4:         " <<  Res_4 << endl);
-   DEBUGCOUT("Res_4old:      " <<  Res_4old << endl);
+   DEBUGCOUT("Res_4:         " <<  Res_4 << std::endl);
+   DEBUGCOUT("Res_4old:      " <<  Res_4old << std::endl);
    DEBUGCOUT("smorazatore:   " 
-	     << copysign(.5*density*area_max*pow(sp*area_max/(area_diaf*Cd), 2), sp) << endl);
+	     << copysign(.5*density*area_max*pow(sp*area_max/(area_diaf*Cd), 2), sp) << std::endl);
    DEBUGCOUT("smorzatoreold: " 
-	     << copysign(.5*h*density*pow(sp*area_max/area_pipe, 2), sp) << endl);
+	     << copysign(.5*h*density*pow(sp*area_max/area_pipe, 2), sp) << std::endl);
    
-   DEBUGCOUT("width:         " << width << endl);
-   DEBUGCOUT("Cd:            " << Cd << endl);
-   DEBUGCOUT("jumpPres12:    " << jumpPres12  << endl);
-   DEBUGCOUT("jumpPres23:    " << jumpPres23  << endl);
-   DEBUGCOUT("jumpPres13:    " << jumpPres13  << endl);
-   DEBUGCOUT("density:       " << density << endl);
-   DEBUGCOUT("p1:            " << p1 << endl);
-   DEBUGCOUT("p2:            " << p2 << endl);
-   DEBUGCOUT("p3:            " << p3 << endl);
-   DEBUGCOUT("s:             " << s << endl);
-   DEBUGCOUT("sp:            " << sp << endl);
-   DEBUGCOUT("v:             " << v << endl);
-   DEBUGCOUT("vp:            " << vp << endl);
-   DEBUGCOUT("area_max:      " << area_max << endl);
-   DEBUGCOUT("Kappa:         " << Kappa << endl);
-   DEBUGCOUT("force0:        " << force0 << endl);
-   DEBUGCOUT("mass:          " << mass << endl);
-   DEBUGCOUT("s_max:         " << s_max << endl);
-   DEBUGCOUT("x0:            " << x0  << endl);
-   DEBUGCOUT("c1:            " << c1 << endl);
-   DEBUGCOUT("c2:            " << c2 << endl);
-   DEBUGCOUT("c3:            " << c3 << endl);
-   DEBUGCOUT("c4:            " << c4 << endl);
-   DEBUGCOUT("cf1:           " << cf1 << endl);
-   DEBUGCOUT("cf2:           " << cf2 << endl);
-   DEBUGCOUT("cf3:           " << cf3 << endl);
-   DEBUGCOUT("cf4:           " << cf4 << endl);
-   DEBUGCOUT("PORTATE AI VARI NODI (positive se entranti)" << endl);
-   DEBUGCOUT("-Res_1 (portata nodo1): " << -Res_1 << endl); 
-   DEBUGCOUT("-Res_2 (portata nodo2): " << -Res_2 << endl); 
-   DEBUGCOUT("-Res_3:(portata nodo3): " << -Res_3 << endl); 
-   DEBUGCOUT("-Res_4:                 " << -Res_4 << endl); 
-   DEBUGCOUT("-Res_5:                 " << -Res_5 << endl); 
+   DEBUGCOUT("width:         " << width << std::endl);
+   DEBUGCOUT("Cd:            " << Cd << std::endl);
+   DEBUGCOUT("jumpPres12:    " << jumpPres12  << std::endl);
+   DEBUGCOUT("jumpPres23:    " << jumpPres23  << std::endl);
+   DEBUGCOUT("jumpPres13:    " << jumpPres13  << std::endl);
+   DEBUGCOUT("density:       " << density << std::endl);
+   DEBUGCOUT("p1:            " << p1 << std::endl);
+   DEBUGCOUT("p2:            " << p2 << std::endl);
+   DEBUGCOUT("p3:            " << p3 << std::endl);
+   DEBUGCOUT("s:             " << s << std::endl);
+   DEBUGCOUT("sp:            " << sp << std::endl);
+   DEBUGCOUT("v:             " << v << std::endl);
+   DEBUGCOUT("vp:            " << vp << std::endl);
+   DEBUGCOUT("area_max:      " << area_max << std::endl);
+   DEBUGCOUT("Kappa:         " << Kappa << std::endl);
+   DEBUGCOUT("force0:        " << force0 << std::endl);
+   DEBUGCOUT("mass:          " << mass << std::endl);
+   DEBUGCOUT("s_max:         " << s_max << std::endl);
+   DEBUGCOUT("x0:            " << x0  << std::endl);
+   DEBUGCOUT("c1:            " << c1 << std::endl);
+   DEBUGCOUT("c2:            " << c2 << std::endl);
+   DEBUGCOUT("c3:            " << c3 << std::endl);
+   DEBUGCOUT("c4:            " << c4 << std::endl);
+   DEBUGCOUT("cf1:           " << cf1 << std::endl);
+   DEBUGCOUT("cf2:           " << cf2 << std::endl);
+   DEBUGCOUT("cf3:           " << cf3 << std::endl);
+   DEBUGCOUT("cf4:           " << cf4 << std::endl);
+   DEBUGCOUT("PORTATE AI VARI NODI (positive se entranti)" << std::endl);
+   DEBUGCOUT("-Res_1 (portata nodo1): " << -Res_1 << std::endl); 
+   DEBUGCOUT("-Res_2 (portata nodo2): " << -Res_2 << std::endl); 
+   DEBUGCOUT("-Res_3:(portata nodo3): " << -Res_3 << std::endl); 
+   DEBUGCOUT("-Res_4:                 " << -Res_4 << std::endl); 
+   DEBUGCOUT("-Res_5:                 " << -Res_5 << std::endl); 
 #endif
    
    WorkVec.fPutItem(1, iNode1RowIndex, Res_1);
@@ -2286,10 +2284,10 @@ Flow_valve::AssRes(SubVectorHandler& WorkVec,
 void Flow_valve::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) { 
-      ostream& out = OH.Hydraulic();
-      out << setw(8) << GetLabel()
+      std::ostream& out = OH.Hydraulic();
+      out << std::setw(8) << GetLabel()
 	<< " " << s  << " " << v  << " "<< vp  
-	<< " " << flow1  << " "<< flow2  << " "<< flow3  << endl;
+	<< " " << flow1  << " "<< flow2  << " "<< flow3  << std::endl;
    }  
 }
 

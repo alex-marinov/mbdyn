@@ -45,16 +45,8 @@
 #ifdef DEBUG
 
 #include <string.h>
-#if defined(HAVE_IOSTREAM)
-#include <iostream>
-#elif defined(HAVE_IOSTREAM_H)
-#include <iostream.h>
-#endif
-#if defined(HAVE_IOMANIP)
-#include <iomanip>
-#elif defined(HAVE_IOMANIP_H)
-#include <iomanip.h>
-#endif
+#include <ac/iostream>
+#include <ac/iomanip>
 
 #include <myassert.h>
 #include <mynewmem.h>
@@ -64,15 +56,15 @@
 void 
 _Safenew(const char *file, int line, int flag)
 {
-   	cout.flush();
+   	std::cout.flush();
    	if (flag == 0) {
-      		cerr << endl 
+      		std::cerr << std::endl 
 			<< "SAFENEW fault: NULL return pointer in file " 
-			<< file << " at line " << line << endl;
+			<< file << " at line " << line << std::endl;
    	} else if (flag == 1) {
-      		cerr << endl 
+      		std::cerr << std::endl 
 			<< "SAFENEWARR fault: NULL return pointer in file " 
-			<< file << " at line " << line << endl;
+			<< file << " at line " << line << std::endl;
    	}
 }
 
@@ -110,8 +102,8 @@ clMemMan::pstFindElem(const void* pvToFind) const
 	 		}
       		}
    	}
-   	CERR << endl << "clMemMan " << sName << " error: pointer " 
-     		<< (void*)pvToFind << " not found in pstFindElem()" << endl;
+   	CERR << std::endl << "clMemMan " << sName << " error: pointer " 
+     		<< (void*)pvToFind << " not found in pstFindElem()" << std::endl;
    	return NULL;
 }
 
@@ -134,9 +126,9 @@ clMemMan::pstFindPrev(const void *pvToFindPrev) const
       		pstL = pstN;
    	}
    
-   	CERR << endl << "clMemMan " << sName << " error: pointer " 
+   	CERR << std::endl << "clMemMan " << sName << " error: pointer " 
      		<< (void*)pvToFindPrev << " not found in pstFindPrev()" 
-		<< endl;
+		<< std::endl;
    	return NULL;
 }
 
@@ -150,12 +142,12 @@ clMemMan::_remove(const void *pvToRemove, clMemMan::eRemoveMode eMode, flag fArr
    	ASSERT(pstL);
    
    	if (!pstL) {
-      		CERR << endl << "clMemMan " << sName << " warning: pointer " 
+      		CERR << std::endl << "clMemMan " << sName << " warning: pointer " 
 			<< (void*)pvToRemove;
       		if (fArr) {
-	 		cerr << " to array";
+	 		std::cerr << " to array";
       		}
-      		cerr << " not found in _remove()" << endl;
+      		std::cerr << " not found in _remove()" << std::endl;
       		THROW(clMemMan::ErrNotFound());
    	}
    
@@ -360,16 +352,16 @@ clMemMan::fIsRefd(const void *pvIsRefd) const
 }
 
 /* enum eStatus { UNKNOWN, ALLOCATED, FREED, FREEDBUTNOTRELEASED }; */
-ostream& 
-clMemMan::DumpRef(ostream& rout) const
+std::ostream& 
+clMemMan::DumpRef(std::ostream& rout) const
 {
    	rout << "Memory Manager 1.0";
    	if (sName) { 
 		rout << ": " << sName; 
 	}
-   	rout << endl;
+   	rout << std::endl;
    
-   	rout << "Ref'd blocks:" << endl;
+   	rout << "Ref'd blocks:" << std::endl;
    
    	stList *pstL = pstRoot;
    	ASSERT(pstL);
@@ -381,22 +373,22 @@ clMemMan::DumpRef(ostream& rout) const
       
       		iCount++;
       		if (pstL->stMB.fRef) {
-	 		rout << "Block " << setw(4) << iCount << ':' << endl
+	 		rout << "Block " << setw(4) << iCount << ':' << std::endl
 	   			<< "pointer " << pstL->stMB.pv
 	   			<< ", size " << pstL->stMB.size 
 	   			<< ", status: ";
 	 
 	 		if (pstL->stMB.eSt == ALLOCATED) {
-	    			rout << "ALLOCATED" << endl;
+	    			rout << "ALLOCATED" << std::endl;
 	 		} else if (pstL->stMB.eSt == FREED) {
-	    			rout << "FREED" << endl;
+	    			rout << "FREED" << std::endl;
 	 		} else if (pstL->stMB.eSt == FREEDBUTNOTRELEASED) {
-	    			rout << "FREEDBUTNOTRELEASED" << endl;
+	    			rout << "FREEDBUTNOTRELEASED" << std::endl;
 	 		}
       		}
    	}
    
-   	rout << "Unref'd blocks:" << endl;
+   	rout << "Unref'd blocks:" << std::endl;
    
    	pstL = pstRoot;
    	iCount = 0;
@@ -406,17 +398,17 @@ clMemMan::DumpRef(ostream& rout) const
       
       		iCount++;
       		if (!pstL->stMB.fRef) {
-	 		rout << "Block " << setw(4) << iCount << ':' << endl
+	 		rout << "Block " << setw(4) << iCount << ':' << std::endl
 	   			<< "pointer " << pstL->stMB.pv
 	   			<< ", size " << pstL->stMB.size
 	   			<< ", status: ";
 	 
 	 		if (pstL->stMB.eSt == ALLOCATED) {
-	    			rout << "ALLOCATED" << endl;
+	    			rout << "ALLOCATED" << std::endl;
 	 		} else if (pstL->stMB.eSt == FREED) {
-	    			rout << "FREED" << endl;
+	    			rout << "FREED" << std::endl;
 	 		} else if (pstL->stMB.eSt == FREEDBUTNOTRELEASED) {
-	    			rout << "FREEDBUTNOTRELEASED" << endl;
+	    			rout << "FREEDBUTNOTRELEASED" << std::endl;
 	 		}
       		}
    	}
@@ -438,11 +430,11 @@ clMemMan::add(const void *pvIn, size_t sizeIn, flag fArr)
    	while (pstL->pstNext) {
       		pstN = pstL->pstNext;
       		if ((pstN->stMB.pv == pvIn) && (pstN->stMB.eSt == ALLOCATED)) {
-	 		CERR << endl << "clMemMan" << sName 
+	 		CERR << std::endl << "clMemMan" << sName 
 	   			<< " error: block pointed by " 
-	   			<< (void*)pvIn << ", size " << sizeIn << endl
+	   			<< (void*)pvIn << ", size " << sizeIn << std::endl
 	   			<< "is already defined. Previous size is " 
-	   			<< pstN->stMB.size << endl;
+	   			<< pstN->stMB.size << std::endl;
 	 		return;
       		}
 		
@@ -456,8 +448,8 @@ clMemMan::add(const void *pvIn, size_t sizeIn, flag fArr)
    	ASSERT(pstN);
    
    	if (pstN == NULL) {
-      		CERR << endl << "clMemMan " << sName 
-			<< ": error in allocation in add()" << endl;
+      		CERR << std::endl << "clMemMan " << sName 
+			<< ": error in allocation in add()" << std::endl;
       		THROW(ErrMemory());
    	}
    
@@ -466,14 +458,14 @@ clMemMan::add(const void *pvIn, size_t sizeIn, flag fArr)
 }
 
 /* Operatore friend del memory manager */
-ostream& 
-operator << (ostream& rout, const clMemMan& rm)
+std::ostream& 
+operator << (std::ostream& rout, const clMemMan& rm)
 {
    	rout << "Memory Manager 1.0";
    	if (rm.sName) { 
       		rout << ": " << rm.sName; 
    	}
-   	rout << endl;
+   	rout << std::endl;
    
    	clMemMan::stList *pstL = rm.pstRoot;
    
@@ -482,17 +474,17 @@ operator << (ostream& rout, const clMemMan& rm)
       		pstL = pstL->pstNext;
       		ASSERT(pstL->stMB.eSt != UNKNOWN);
 	
-      		rout << "Block " << setw(4) << (++iCount) << ':' << endl
+      		rout << "Block " << setw(4) << (++iCount) << ':' << std::endl
 			<< "pointer " << pstL->stMB.pv
 			<< ", size " << pstL->stMB.size
 			<< ", status: ";
       
       		if (pstL->stMB.eSt == ALLOCATED) {
-	 		rout << "ALLOCATED" << endl;
+	 		rout << "ALLOCATED" << std::endl;
       		} else if (pstL->stMB.eSt == FREED) {
-	 		rout << "FREED" << endl;
+	 		rout << "FREED" << std::endl;
       		} else if (pstL->stMB.eSt == FREEDBUTNOTRELEASED) {
-	 		rout << "FREEDBUTNOTRELEASED" << endl;
+	 		rout << "FREEDBUTNOTRELEASED" << std::endl;
       		}
    	}
    

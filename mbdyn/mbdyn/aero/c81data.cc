@@ -34,11 +34,10 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <iostream.h>
-#include <iomanip.h>
-#include <fstream.h>
 
-#include <mymath.h>
+#include <ac/iostream>
+#include <ac/iomanip>
+#include <ac/math.h>
 
 extern "C" {
 #include <aerodc81.h>
@@ -61,7 +60,7 @@ static int
 do_c81_data_stall(c81_data *data);
 
 static int 
-get_vec(istream& in, double* v, int nrows)
+get_vec(std::istream& in, double* v, int nrows)
 {
    	if (!in || v == NULL || nrows < 1) {
       		return -1;
@@ -75,7 +74,7 @@ get_vec(istream& in, double* v, int nrows)
 }
 
 static int 
-get_mat(istream& in, double* m, int nrows, int ncols)
+get_mat(std::istream& in, double* m, int nrows, int ncols)
 {
    	if (!in || m == NULL || nrows < 1 || ncols < 1) {
       		return -1;
@@ -91,37 +90,37 @@ get_mat(istream& in, double* m, int nrows, int ncols)
 }
 
 static int
-put_row(ostream& out, double* v, int dim, int ncols, int first = 0)
+put_row(std::ostream& out, double* v, int dim, int ncols, int first = 0)
 {
    	int start = 0;
    	const int N = 9;
    
    	if (first) {
-      		out << setw(7) << v[0];
+      		out << std::setw(7) << v[0];
       		start = dim;
       		ncols--;
    	} else {
-      		out << setw(7) << "";
+      		out << std::setw(7) << "";
    	}
    
    	for (int i = 0; i < (ncols-1)/N; i++) {
       		for (int j = 0; j < N; j++) {
-	 		out << setw(7) << v[start+dim*j];
+	 		out << std::setw(7) << v[start+dim*j];
      	 	}
-      		out << endl << setw(7) << "";
+      		out << std::endl << std::setw(7) << "";
       		start += dim*N;
    	}
    
    	for (int j = 0; j < (ncols-1)%N+1; j++) {
-      		out << setw(7) << v[start+dim*j];
+      		out << std::setw(7) << v[start+dim*j];
    	}
-   	out << endl;
+   	out << std::endl;
    
    	return 0;
 }
 
 static int
-put_vec(ostream& out, double* v, int nrows)
+put_vec(std::ostream& out, double* v, int nrows)
 {
    	if (!out || v == NULL || nrows < 1) {
       		return -1;
@@ -133,7 +132,7 @@ put_vec(ostream& out, double* v, int nrows)
 }
 
 static int
-put_mat(ostream& out, double* m, int nrows, int ncols)
+put_mat(std::ostream& out, double* m, int nrows, int ncols)
 {
    	if (!out || m == NULL || nrows < 1 || ncols < 1) {
       		return -1;
@@ -147,7 +146,7 @@ put_mat(ostream& out, double* m, int nrows, int ncols)
 }
 
 int
-read_c81_data(istream& in, c81_data* data)
+read_c81_data(std::istream& in, c81_data* data)
 {
    	char buf[1024];      
    
@@ -200,16 +199,16 @@ read_c81_data(istream& in, c81_data* data)
 }
 
 int
-write_c81_data(ostream& out, c81_data* data)
+write_c81_data(std::ostream& out, c81_data* data)
 {
    	out << data->header
-     		<< setw(2) << data->NML
-     		<< setw(2) << data->NAL
-     		<< setw(2) << data->NMD
-     		<< setw(2) << data->NAD
-     		<< setw(2) << data->NMM
-     		<< setw(2) << data->NAM
-		<< endl;
+     		<< std::setw(2) << data->NML
+     		<< std::setw(2) << data->NAL
+     		<< std::setw(2) << data->NMD
+     		<< std::setw(2) << data->NAD
+     		<< std::setw(2) << data->NMM
+     		<< std::setw(2) << data->NAM
+		<< std::endl;
    
    	put_vec(out, data->ml, data->NML);
    	put_mat(out, data->al, data->NAL, data->NML+1);
@@ -258,7 +257,7 @@ set_c81_data(long int jpro, c81_data* data)
       		__c81_pdata = pp;
       		c81_ndata = ndata;
    	} else if (__c81_pdata[jpro] != NULL) {
-      		cerr << "profile " << jpro << "already defined" << endl;
+      		std::cerr << "profile " << jpro << "already defined" << std::endl;
       		return -1;
    	}
    

@@ -88,7 +88,7 @@ class HydraulicElem : virtual public Elem, public ElemWithDofs {
    /* Contributo al file di restart 
     * (Nota: e' incompleta, deve essere chiamata dalla funzione corrispndente
     * relativa alla classe derivata */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    /* Tipo di elemento elettrico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const = 0;

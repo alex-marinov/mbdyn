@@ -47,7 +47,7 @@
 #ifndef HARWLIB_H
 #define HARWLIB_H
 
-#include <myf2c.h>
+#include <ac/f2c.h>
 
 #ifdef USE_UNDERSCORES
 #define __U_S__ _

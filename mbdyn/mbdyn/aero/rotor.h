@@ -33,16 +33,16 @@
 #ifndef ROTOR_H
 #define ROTOR_H
 
-#include "aerodyn.h"
-#include "strnode.h"
-
 extern "C" {
-#include <float.h>
+#include <ac/float.h>
 }
 
 #ifdef USE_MPI
-#include "mpi++.h"
+#include <mpi++.h>
 #endif /* USE_MPI */
+
+#include <aerodyn.h>
+#include <strnode.h>
 
 extern const char* psRotorNames[];
 
@@ -193,7 +193,7 @@ class Rotor
    virtual void Output(OutputHandler& OH) const;
 
    /* Contributo al file di Restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    /* Relativo ai ...WithDofs */
    virtual void SetInitialValue(VectorHandler& /* X */ ) const {
@@ -305,7 +305,7 @@ class NoRotor : virtual public Elem, public Rotor {
 				    const VectorHandler& XPrimeCurr);   
 
    /* Contributo al file di Restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual Rotor::Type GetRotorType(void) const {
      return Rotor::NO;
@@ -349,7 +349,7 @@ class UniformRotor : virtual public Elem, public Rotor {
 				    const VectorHandler& XPrimeCurr);   
 
    /* Contributo al file di Restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    Rotor::Type GetRotorType(void) const {
       return Rotor::UNIFORM;
@@ -391,7 +391,7 @@ class GlauertRotor : virtual public Elem, public Rotor {
 				    const VectorHandler& XPrimeCurr);   
 
    /* Contributo al file di Restart */
-   virtual ostream& Restart(ostream& out) const;   
+   virtual std::ostream& Restart(std::ostream& out) const;   
    
    Rotor::Type GetRotorType(void) const {
       return Rotor::GLAUERT;
@@ -433,7 +433,7 @@ class ManglerRotor : virtual public Elem, public Rotor {
 				    const VectorHandler& XPrimeCurr);   
 
    /* Contributo al file di Restart */
-   virtual ostream& Restart(ostream& out) const;   
+   virtual std::ostream& Restart(std::ostream& out) const;   
 
    Rotor::Type GetRotorType(void) const {
       return Rotor::MANGLER;
@@ -508,7 +508,7 @@ class DynamicInflowRotor : virtual public Elem, public Rotor {
 				    const VectorHandler& XPrimeCurr);   
    
    /* Contributo al file di Restart */
-   virtual ostream& Restart(ostream& out) const;   
+   virtual std::ostream& Restart(std::ostream& out) const;   
    
    /* Relativo ai ...WithDofs */
    virtual void SetInitialValue(VectorHandler& X) const;

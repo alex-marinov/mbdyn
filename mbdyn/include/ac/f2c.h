@@ -27,8 +27,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef MYF2C_H
-#define MYF2C_H
+#ifndef AC_F2C_H
+#define AC_F2C_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,4 +82,5 @@ typedef char *address;
 }
 #endif /* __cplusplus */
 
-#endif /* MYF2C_H */
+#endif /* AC_F2C_H */
+

@@ -1,6 +1,8 @@
 # Tailor to your machine if you installed any package in uncommon way
 
-CPPFLAGS="-I/home/masarati/Math/Meschach \
+CPPFLAGS="\
+	-I/usr/local/gcc-3.0.2/include/g++-v3 \
+	-I/home/masarati/Math/Meschach \
 	-I/home/masarati/Math/mpich-1.2/include \
 	-I/home/masarati/Math/mpich-1.2/include/c++ \
 	-I/home/masarati/Math/metis-4.0/Lib \
@@ -11,12 +13,13 @@ CPPFLAGS="-I/home/masarati/Math/Meschach \
 	-D__HACK_NASTRAN_MODES__=2"
 CFLAGS="-g -Wall -O6 -march=pentiumpro"
 CXXFLAGS=$CFLAGS
-CC=gcc
-CXX=g++
-F77="g77 -O"
+CC=/usr/local/gcc-3.0.2/bin/gcc
+CXX=/usr/local/gcc-3.0.2/bin/g++
+F77="/usr/local/gcc-3.0.2/bin/g77 -O"
 
 # -rdynamic required to allow dynamic resolution of symbols in modules
 LDFLAGS="-rdynamic \
+	-L/usr/local/gcc-3.0.2/lib \
 	-L/home/masarati/Math/Meschach/meschach \
 	-L/home/masarati/Math/mpich-1.2/lib \
 	-L/home/masarati/Math/metis-4.0 \

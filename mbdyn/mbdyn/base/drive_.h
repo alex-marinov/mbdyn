@@ -34,7 +34,7 @@
 #define DRIVE__H
 
 /* include generali */
-#include <sstream.h>
+#include <ac/sstream>
 
 /* include per il debug */
 #include <myassert.h>

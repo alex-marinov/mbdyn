@@ -32,9 +32,9 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <mymath.h>
+#include <stdlib.h>
+#include <ac/math.h>
 
 #include <aerodc81.h>
 

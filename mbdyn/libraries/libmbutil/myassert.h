@@ -64,15 +64,11 @@ Uso:
 
 
 #ifndef MYASSERT_H
-# define MYASSERT_H
+#define MYASSERT_H
 
 #include <stdlib.h>
-#if defined(HAVE_IOSTREAM)
-#include <iostream>
-#elif defined(HAVE_IOSTREAM_H)
-#include <iostream.h>
-#endif
-#include "except.h"
+#include <ac/iostream>
+#include <except.h>
 
 #define NO_OP do {} while(0)
 

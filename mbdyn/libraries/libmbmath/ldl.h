@@ -30,7 +30,7 @@
 #ifndef LDL_H
 #define LDL_H
 
-#include <myf2c.h>
+#include <ac/f2c.h>
 
 /*
  **********************     UPDLDL_ADD       ***********************

@@ -76,7 +76,7 @@ class Control_valve : virtual public Elem, public HydraulicElem, public DriveOwn
    virtual HydraulicElem::Type GetHydraulicType(void) const;
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual unsigned int iGetNumDof(void) const;
    virtual DofOrder::Order SetDof(unsigned int i) const;
@@ -194,7 +194,7 @@ public:
 	virtual HydraulicElem::Type GetHydraulicType(void) const;
 	
 	/* Contributo al file di restart */
-	virtual ostream& Restart(ostream& out) const;
+	virtual std::ostream& Restart(std::ostream& out) const;
 	
 	virtual unsigned int iGetNumDof(void) const;
 	virtual DofOrder::Order SetDof(unsigned int i) const;
@@ -298,7 +298,7 @@ class Dynamic_control_valve : virtual public Elem, public HydraulicElem, public 
    virtual HydraulicElem::Type GetHydraulicType(void) const;
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual unsigned int iGetNumDof(void) const;
    virtual DofOrder::Order SetDof(unsigned int i) const;
@@ -408,7 +408,7 @@ class Pressure_flow_control_valve : virtual public Elem, public HydraulicElem, p
    virtual HydraulicElem::Type GetHydraulicType(void) const;
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual unsigned int iGetNumDof(void) const;
    virtual DofOrder::Order SetDof(unsigned int i) const;
@@ -504,7 +504,7 @@ class Pressure_valve : virtual public Elem, public HydraulicElem {
    virtual HydraulicElem::Type GetHydraulicType(void) const;
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual unsigned int iGetNumDof(void) const;
    virtual DofOrder::Order SetDof(unsigned int i) const;
@@ -597,7 +597,7 @@ class  Flow_valve : virtual public Elem, public HydraulicElem {
    virtual HydraulicElem::Type GetHydraulicType(void) const;
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual unsigned int iGetNumDof(void) const;
    virtual DofOrder::Order SetDof(unsigned int i) const;

@@ -32,15 +32,16 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <mymath.h>
-#include <dataman.h>
-#include <drive_.h>
-#include <dofdrive.h>
-#include <filedrv.h>
+#include <ac/math.h>
 
 #ifdef USE_MPI
 #include <mpi++.h>
 #endif /* USE_MPI */
+
+#include <dataman.h>
+#include <drive_.h>
+#include <dofdrive.h>
+#include <filedrv.h>
 
 /* StringDriveCaller - begin */
 
