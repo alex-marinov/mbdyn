@@ -55,6 +55,8 @@
 #define RTAI_LOG
 
 #include <unistd.h>
+#include <sys/stat.h>
+
 #include "ac/float.h"
 #include "ac/math.h"
 #include "ac/sys_sysinfo.h"
@@ -87,6 +89,8 @@
 #include <sys/mman.h>
 #endif /* HAVE_SYS_MMAN_H */
 #endif /* USE_RTAI */
+
+const char sDefaultOutputFileName[] = "MBDyn";
 
 #ifdef HAVE_SIGNAL
 static volatile sig_atomic_t mbdyn_keep_going = 1;
@@ -320,13 +324,63 @@ Solver::Run(void)
 	}
 #endif /* USE_RTAI */
 
+	/* Nome del file di output */
+	if (sOutputFileName == 0) {
+		if (sInputFileName != 0) {
+			SAFESTRDUP(sOutputFileName, sInputFileName);
+
+		} else {
+			SAFESTRDUP(sOutputFileName, sDefaultOutputFileName);
+		}
+		
+	} else {
+		struct stat	s;
+		
+		if (stat(sOutputFileName, &s) != 0) {
+			int	save_errno = errno;
+			char	*errmsg = strerror(save_errno);
+		
+			silent_cerr("stat(" << sOutputFileName << ") failed "
+				"(" << save_errno << ": " << errmsg << ")" << std::endl);
+			throw ErrGeneric();
+		}
+
+		if (S_ISDIR(s.st_mode)) {
+			unsigned 	lOld, lNew;
+			char		*tmpOut = 0;
+			const char	*tmpIn;
+
+			if (sInputFileName) {
+				tmpIn = strrchr(sInputFileName, '/');
+				if (tmpIn == 0) {
+					tmpIn = sInputFileName;
+				}
+
+			} else {
+				tmpIn = sDefaultOutputFileName;
+			}
+
+			lOld = strlen(sOutputFileName);
+			lNew = lOld + strlen(tmpIn) + 2;
+
+			SAFENEWARR(tmpOut, char, lNew);
+			memcpy(tmpOut, sOutputFileName, lOld);
+			if (sOutputFileName[lOld - 1] != '/') {
+				tmpOut[lOld] = '/';
+				lOld++;
+			}
+			memcpy(&tmpOut[lOld], tmpIn, lNew - lOld);
+			SAFEDELETEARR(sOutputFileName);
+			sOutputFileName = tmpOut;
+		}
+	}
+
 #ifdef USE_MPI
 	int mpi_finalize = 0;
 
-	//int MyRank = 0;
+	int MyRank = 0;
 	if (bParallel) {
 
-#if 0
 		/*
 		 * E' necessario poter determinare in questa routine
 		 * quale e' il master in modo da far calcolare la soluzione
@@ -344,26 +398,16 @@ Solver::Run(void)
 		int iRankLength = 1 + (int)log10(MPI::COMM_WORLD.Get_size() - 1);
 
 		char* sNewOutName = NULL;
-		const char* sOutName = NULL;
-		int iOutLen;
-
-		if (sOutputFileName == NULL) {
-			iOutLen = strlen(sInputFileName);
-
-			sOutName = sInputFileName;
-
-		} else {
-			iOutLen = strlen(sOutputFileName);
-
-			sOutName = sOutputFileName;
-		}
-
-		iOutLen += sizeof(".") - 1 + iRankLength + sizeof("\0") - 1;
+		int iOutLen = strlen(sOutputFileName)
+			+ sizeof(".") - 1
+			+ iRankLength
+			+ sizeof("\0") - 1;
 
 		SAFENEWARR(sNewOutName, char, iOutLen);
 		snprintf(sNewOutName, iOutLen, "%s.%.*d",
-				sOutName, iRankLength, MyRank);
-#endif
+				sOutputFileName, iRankLength, MyRank);
+		SAFEDELETEARR(sOutputFileName);
+		sOutputFileName = sNewOutName;
 
 		DEBUGLCOUT(MYDEBUG_MEM, "creating parallel SchurDataManager"
 				<< std::endl);
@@ -373,8 +417,7 @@ Solver::Run(void)
 			SchurDataManager(HP,
 				OutputFlags,
 				dInitialTime,
-				sInputFileName,
-				sOutputFileName, // sNewOutName,
+				sOutputFileName,
 				eAbortAfter == AFTER_INPUT));
 
 		/* FIXME: who frees sNewOutname? */
@@ -421,7 +464,6 @@ Solver::Run(void)
 					MultiThreadDataManager(HP,
 						OutputFlags,
 						dInitialTime,
-						sInputFileName,
 						sOutputFileName,
 						eAbortAfter == AFTER_INPUT,
 						nThreads));
@@ -443,7 +485,6 @@ Solver::Run(void)
 					DataManager(HP,
 						OutputFlags,
 						dInitialTime,
-						sInputFileName,
 						sOutputFileName,
 						eAbortAfter == AFTER_INPUT));
 		}

@@ -143,7 +143,6 @@ public:
 	MultiThreadDataManager(MBDynParser& HP,
 			unsigned OF,
 			doublereal dInitialTime,
-			const char* sInputFileName,
 			const char* sOutputFileName,
 			bool bAbortAfterInput,
 			unsigned nt);

@@ -104,10 +104,6 @@ protected:
 	DriveHandler DrvHdl;
 	mutable OutputHandler OutHdl;
 
-	const char *sInName;
-	const char *sOutName;
-	virtual void PrepareOutputFileName(void);
-
 	/* Puntatore alla variabile Time nella GlobalSymbolTable */
 	Var* pTime;
 
@@ -191,8 +187,7 @@ protected:
 
 private:
 	/* chiamate dal costruttore per leggere i relativi articoli */
-	void ReadControl(MBDynParser& HP, const char* sInputFileName,
-			const char* sOutputFileName);
+	void ReadControl(MBDynParser& HP, const char* sOutputFileName);
 	void ReadNodes(MBDynParser& HP);
 	void ReadDrivers(MBDynParser& HP);
 	void ReadElems(MBDynParser& HP);
@@ -243,7 +238,6 @@ public:
 	DataManager(MBDynParser& HP,
 			unsigned OF,
 			doublereal dInitialTime,
-			const char* sInputFileName,
 			const char* sOutputFileName,
 			bool bAbortAfterInput);
 

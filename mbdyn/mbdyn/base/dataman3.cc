@@ -34,7 +34,6 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <sys/stat.h>
 #include <unistd.h>
 
 #if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
@@ -55,25 +54,9 @@ class NotAllowed {};
 
 /* Legge i dati di controllo */
 
-void DataManager::ReadControl(MBDynParser& HP, 
-			      const char* sInputFileName, 
-			      const char* sOutputFileName)
+void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
 {
    DEBUGCOUTFNAME("DataManager::ReadControl");
-
-   /* Nome del file di input */
-   if (sInputFileName == 0) {
-      SAFESTRDUP(sInName, sDefaultInputFileName);
-   } else {
-      SAFESTRDUP(sInName, sInputFileName);
-   }
-
-   /* Nome del file di output */
-   if (sOutputFileName == 0) {
-      SAFESTRDUP(sOutName, sInName);
-   } else {
-      SAFESTRDUP(sOutName, sOutputFileName);
-   }
 
    /* attach self to parser ... */
    HP.SetDataManager(this);
@@ -767,20 +750,10 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  break;
        }
 	 
-       case OUTPUTFILENAME: {
-	  const char* sTmp(HP.GetFileName());
-	  if (sTmp == NULL) {
-	     silent_cerr("Null file name at line "
-		     << HP.GetLineData() << std::endl);
-	     throw DataManager::ErrGeneric();
-	  }
-	  if (sOutName != 0) {
-	     SAFEDELETEARR(sOutName);
-	     sOutName = 0;
-	  }
-	  SAFESTRDUP(sOutName, sTmp);
-	  break;
-       }
+       case OUTPUTFILENAME:
+	  silent_cerr("\"output file name\" no longer supported at line "
+			  << HP.GetLineData() << std::endl);
+	  throw DataManager::ErrGeneric();
 
        case OUTPUTPRECISION: {
           int iPrec = HP.GetInt();
@@ -1184,51 +1157,13 @@ void DataManager::ReadControl(MBDynParser& HP,
       throw DataManager::ErrGeneric();
    }   
 
-   /* initialize output handler */
-   if (sOutName == 0) {
-      SAFESTRDUP(sOutName, sInputFileName);
-   }
-
-   PrepareOutputFileName();
-
-   OutHdl.Init(sOutName, 0);
+   /* inizializza l'output handler */
+   OutHdl.Init(sOutputFileName, 0);
    
    OutHdl.Log() << "output frequency: " << iOutputFrequency << std::endl;
 
    DEBUGLCOUT(MYDEBUG_INPUT, "End of control data" << std::endl);
 } /* End of DataManager::ReadControl() */
-
-void
-DataManager::PrepareOutputFileName(void)
-{
-	/* sOutName and sInName are defined (either because supplied
-	 * or because defaults have been used */
-	struct stat	s;
-	if (stat(sOutName, &s) != 0) {
-		int	save_errno = errno;
-		char	*errmsg = str2error(save_errno);
-		
-		silent_cerr("stat(" << sOutName << ") failed "
-				"(" << save_errno << ": " << errmsg << ")" << std::endl);
-		throw Errgeneric();
-	}
-
-	if (S_ISDIR(s.st_mode)) {
-		unsigned 	lOld = strlen(sOutName),
-				lNew = lOld + strlen(sInName) + 2;
-		char		*tmpout = 0;
-
-		SAFENEWARR(tmpout, char, lNew);
-		memcpy(tmpout, sOutName, lOld);
-		if (sOutName[lOld - 1] != '/') {
-			tmpout[lOld] = '/';
-			lOld++;
-		}
-		memcpy(&tmpout[lOld], sInName, lNew - lOld);
-		SAFEDELETEARR(sOutName);
-		sOutName = tmpout;
-	}
-}
 
 
 /* Legge se un item deve scrivere sull'output handler */

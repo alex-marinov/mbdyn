@@ -73,9 +73,6 @@ const flag fDefaultOmegaRotates = flag(0);
 const doublereal dDefaultInitialAssemblyTol = 1.e-6;
 const integer iDefaultMaxInitialIterations = 1;
 
-const char sDefaultOutputFileName[] = "MBDyn";
-
-
 /*
  * costruttore: inizializza l'oggetto, legge i dati e crea le strutture di
  * gestione di Dof, nodi, elementi e drivers.
@@ -84,7 +81,6 @@ const char sDefaultOutputFileName[] = "MBDyn";
 DataManager::DataManager(MBDynParser& HP, 
 		unsigned OF,
 		doublereal dInitialTime,
-		const char* sInputFileName, 
 		const char* sOutputFileName,
 		bool bAbortAfterInput)
 :
@@ -96,8 +92,6 @@ MathPar(HP.GetMathParser()),
 GlobalSymbolTable((HP.GetMathParser()).GetSymbolTable()),
 DrvHdl((HP.GetMathParser()).GetSymbolTable()),
 OutHdl(),
-sInName(0),
-sOutName(0),
 pTime(NULL),
 pXCurr(NULL), pXPrimeCurr(NULL),
 #if defined(USE_STRUCT_NODES)
@@ -255,7 +249,7 @@ DofIter()
       throw DataManager::ErrGeneric();
    }
 
-   ReadControl(HP, sInputFileName, sOutputFileName);
+   ReadControl(HP, sOutputFileName);
    try {
 	   CurrDesc = KeyWords(HP.GetDescription());
    } catch (EndOfFile) {

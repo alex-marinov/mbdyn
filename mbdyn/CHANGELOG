@@ -16,6 +16,8 @@ MBDyn 1.X-Engineering
 		- honor describe dofs directive in initial assembly
 		- added support for describing equations
 	Backward compatibility issues:
+		- "output file name" statement in "control data"
+		  is no longer supported
 	Known issues:
 	Bug fixes:
 		- fixed angular acceleration bug with ScalarDof
@@ -25,6 +27,7 @@ MBDyn 1.X-Engineering
 		- fixed default model name for adams output
 		- fixed modal inertia computation when clamped
 		- fixed rigid body inertia reference point in restart
+		- fixed output file name handling (scalar and parallel)
 
 MBDyn 1.2-Engineering
 	Enhancements:

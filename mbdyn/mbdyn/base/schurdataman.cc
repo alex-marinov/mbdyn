@@ -72,11 +72,9 @@ const int ADJ_UNDEFINED = -1;
 SchurDataManager::SchurDataManager(MBDynParser& HP,
 		unsigned OF,
 		doublereal dInitialTime,
-		const char* sInputFileName,
 		const char* sOutputFileName,
 		bool bAbortAfterInput)
-: DataManager(HP, OF, dInitialTime, sInputFileName,
-		sOutputFileName, bAbortAfterInput)
+: DataManager(HP, OF, dInitialTime, sOutputFileName, bAbortAfterInput)
 {
 	silent_cerr("fatal error: you are building SchurDataManager, "
 		"but mbdyn was compiled without MPI. "
@@ -174,11 +172,9 @@ SchurDataManager::Output(bool force) const
 SchurDataManager::SchurDataManager(MBDynParser& HP,
 		unsigned OF,
 		doublereal dInitialTime,
-		const char* sInputFileName,
 		const char* sOutputFileName,
 		bool bAbortAfterInput)
-: DataManager(HP, OF, dInitialTime, sInputFileName,
-		sOutputFileName, bAbortAfterInput),
+: DataManager(HP, OF, dInitialTime, sOutputFileName, bAbortAfterInput),
 iTotVertices(0),
 ppMyElems(NULL),
 iNumLocElems(0),
@@ -639,34 +635,6 @@ SchurDataManager::~SchurDataManager(void)
 	if (ppExpCntElems != NULL) {
 		SAFEDELETEARR(ppExpCntElems);
 	}
-}
-
-void
-SchurDataManager::PrepareOutputFileName(void)
-{
-	/* sOutName and sInName are defined (either because supplied
-	 * or because defaults have been used */
-
-	/* deals with directories and so... */
-	DataManager::InitOutput();
-
-	/*
-	 * I file di output vengono stampati localmente
-	 * da ogni processo aggiungendo al termine
-	 * dell'OutputFileName il rank del processo
-	 */
-	ASSERT(MPI::COMM_WORLD.Get_size() > 1);
-	int iRankLength = 1 + (int)log10(MPI::COMM_WORLD.Get_size() - 1);
-
-	char* sNewOutName = 0;
-	int iOutLen = strlen(sOutName) + sizeof(".") - 1 + iRankLength + sizeof("\0") - 1;
-
-	SAFENEWARR(sNewOutName, char, iOutLen);
-	snprintf(sNewOutName, iOutLen, "%s.%.*d",
-			sOutName, iRankLength, MyRank);
-
-	SAFEDELETEARR(sOutName);
-	sOutName = sNewOutName;
 }
 
 integer

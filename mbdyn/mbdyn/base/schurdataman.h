@@ -114,8 +114,6 @@ protected:
 	Elem** ppExpCntElems;
 	int iTotalExpConnections;
 
-	virtual void PrepareOutputFileName(void);
-
 private:
 
 	/* compatta il vettore delle adiacenze */
@@ -135,7 +133,6 @@ public:
 	SchurDataManager(MBDynParser& HP,
 			unsigned OF,
 			doublereal dInitialTime,
-			const char* sInputFileName,
 			const char* sOutputFileName,
 			bool bAbortAfterInput);
 
