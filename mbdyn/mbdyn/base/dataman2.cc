@@ -863,7 +863,7 @@ void DataManager::Output(bool force) const
 
 #ifdef USE_ADAMS 
    /* Se richiesto, esegue l'output delle condizioni iniziali*/
-   if (fAdamsOutput()) {
+   if (bAdamsOutput()) {
       ((integer&)iAdamsOutputBlock)++;
       AdamsResOutput(iAdamsOutputBlock, "DYNAMIC", "MBDyn");
    }
@@ -871,7 +871,7 @@ void DataManager::Output(bool force) const
 
 #ifdef USE_MOTIONVIEW
    /* Se richiesto, esegue l'output delle condizioni iniziali*/
-   if (fMotionViewOutput()) {
+   if (bMotionViewOutput()) {
       MotionViewResOutput(iAdamsOutputBlock, "DYNAMIC", "MBDyn");
    }
 #endif /* USE_MOTIONVIEW */

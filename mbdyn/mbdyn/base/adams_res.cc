@@ -43,7 +43,7 @@
 #include <dataman_.h>
 
 bool
-DataManager::fAdamsOutput(void) const
+DataManager::bAdamsOutput(void) const
 {
 	return (ResMode & RES_ADAMS) ? true : false;
 }
@@ -62,10 +62,11 @@ DataManager::AdamsResOutputInit(void)
 	for (unsigned int i = 0; i < NodeData[Node::STRUCTURAL].iNum; i++) {
 		StructNode *pStr = (StructNode *)NodeData[Node::STRUCTURAL].ppFirstNode[i];
 
+		/* Skip relative frame dummy nodes */
 		if (pStr->GetStructNodeType() == StructNode::DUMMY) {
 			DummyStructNode *pDmy = (DummyStructNode *)pStr;
 
-			if ( pDmy->GetDummyType() == DummyStructNode::RELATIVEFRAME) {
+			if (pDmy->GetDummyType() == DummyStructNode::RELATIVEFRAME) {
 				continue;
 			}
 		}
@@ -462,13 +463,11 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 		StructNode *pNode =
 			(StructNode *)NodeData[Node::STRUCTURAL].ppFirstNode[i];
 
-		/*
-		 * se il nodo e' dummy reference frame viene saltato
-		 */
+		/* Skip relative frame dummy nodes */
 		if (pNode->GetStructNodeType() == StructNode::DUMMY) {
 			DummyStructNode *pDmy = (DummyStructNode *)pNode;
 
-			if ( pDmy->GetDummyType() == DummyStructNode::RELATIVEFRAME) {
+			if (pDmy->GetDummyType() == DummyStructNode::RELATIVEFRAME) {
 				continue;
 			}
 		}

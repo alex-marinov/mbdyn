@@ -422,7 +422,7 @@ DofIter()
 
 #ifdef USE_ADAMS 
    /* Se richiesto, inizializza il file di output AdamsRes */
-   if (fAdamsOutput()) {
+   if (bAdamsOutput()) {
       AdamsResOutputInit();
       iAdamsOutputBlock = 1;
       AdamsResOutput(iAdamsOutputBlock, "INPUT", "MBDyn");
@@ -430,7 +430,7 @@ DofIter()
 #endif /* USE_ADAMS */
 
 #ifdef USE_MOTIONVIEW
-   if (fMotionViewOutput()) {
+   if (bMotionViewOutput()) {
       MotionViewResOutputInit(sOutputFileName);
       MotionViewResOutput(1, "INPUT", "MBDyn");
    }
@@ -502,7 +502,7 @@ DofIter()
    
    /* Se richiesto, esegue l'output delle condizioni iniziali */
 #ifdef USE_ADAMS
-   if (fAdamsOutput()) {
+   if (bAdamsOutput()) {
       iAdamsOutputBlock = 2;
       AdamsResOutput(iAdamsOutputBlock, "INITIAL CONDITIONS", "MBDyn");
    }
@@ -510,7 +510,7 @@ DofIter()
    
    /* Se richiesto, esegue l'output delle condizioni iniziali */
 #ifdef USE_MOTIONVIEW
-   if (fMotionViewOutput()) {
+   if (bMotionViewOutput()) {
       MotionViewResOutput(2, "INITIAL CONDITIONS", "MBDyn");
    }
 #endif /* USE_ADAMS */
@@ -533,7 +533,7 @@ DataManager::~DataManager(void)
    }
 
 #ifdef USE_MOTIONVIEW
-   if (fMotionViewOutput()) {
+   if (bMotionViewOutput()) {
       MotionViewResOutputFini();
    }
 #endif /* USE_MOTIONVIEW */
@@ -556,6 +556,12 @@ DataManager::~DataManager(void)
 #endif /* HAVE_LOADABLE && HAVE_LTDL_H */
 } /* End of DataManager::DataManager() */
 
+
+bool
+DataManager::bOutput(ResType t) const
+{
+	return (ResMode & t) ? true : false;
+}
 
 void DataManager::MakeRestart(void) 
 {

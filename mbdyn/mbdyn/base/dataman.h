@@ -133,6 +133,8 @@ class DataManager : public SolutionDataManager {
 	   RES_MOTIONVIEW = 0x04
    };
 
+   bool bOutput(ResType t) const;
+
  protected:
    int ResMode;
 
@@ -151,8 +153,8 @@ class DataManager : public SolutionDataManager {
    /* chiamate dal costruttore per leggere i relativi articoli */
    void ReadControl(MBDynParser& HP, const char* sInputFileName, const char* sOutputFileName);
    void ReadNodes(MBDynParser& HP);
-   void ReadElems(MBDynParser& HP);
    void ReadDrivers(MBDynParser& HP);
+   void ReadElems(MBDynParser& HP);
          
    /* read functions */
    friend Node* ReadStructNode(DataManager* pDM, MBDynParser& HP, DofOwner* pDO, unsigned int uLabel);   
@@ -275,14 +277,14 @@ class DataManager : public SolutionDataManager {
 
 #ifdef USE_ADAMS 
    /* MSC's ADAMS/View .res output */
-   bool fAdamsOutput(void) const;
+   bool bAdamsOutput(void) const;
    void AdamsResOutputInit(void);
    void AdamsResOutput(integer iBlock, const char *type, const char *id) const;
 #endif /* USE_ADAMS */
 
 #ifdef USE_MOTIONVIEW 
    /* Altair's Motion View output */
-   bool fMotionViewOutput(void) const;
+   bool bMotionViewOutput(void) const;
    void MotionViewResOutputInit(const char *sOutputFileName);
    void MotionViewResOutput(integer iBlock, const char *type, const char *id) const;
    void MotionViewResOutputFini(void) const;

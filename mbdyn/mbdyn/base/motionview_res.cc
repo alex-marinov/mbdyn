@@ -56,7 +56,7 @@ struct MRFDataType_s {
 };
 
 bool
-DataManager::fMotionViewOutput(void) const
+DataManager::bMotionViewOutput(void) const
 {
 	return (ResMode & RES_MOTIONVIEW) ? true : false;
 }
@@ -108,10 +108,11 @@ DataManager::MotionViewResOutputInit(const char *sOutputFileName)
 	for (unsigned int i = 0; i < NodeData[Node::STRUCTURAL].iNum; i++) {
 		StructNode *pStr = (StructNode *)NodeData[Node::STRUCTURAL].ppFirstNode[i];
 
+		/* Skip relative frame dummy nodes */
 		if (pStr->GetStructNodeType() == StructNode::DUMMY) {
 			DummyStructNode *pDmy = (DummyStructNode *)pStr;
 
-			if ( pDmy->GetDummyType() == DummyStructNode::RELATIVEFRAME) {
+			if (pDmy->GetDummyType() == DummyStructNode::RELATIVEFRAME) {
 				continue;
 			}
 		}
@@ -131,7 +132,8 @@ DataManager::MotionViewResOutputInit(const char *sOutputFileName)
 }
 
 void 
-DataManager::MotionViewResOutput(integer iBlock, const char *type, const char *id) const
+DataManager::MotionViewResOutput(integer iBlock, const char *type,
+		const char *id) const
 {
 	mrfOpenTimeStep((float)pTime->GetVal().GetReal());
 
@@ -139,10 +141,11 @@ DataManager::MotionViewResOutput(integer iBlock, const char *type, const char *i
 	for (unsigned int i = 0; i < NodeData[Node::STRUCTURAL].iNum; i++) {
 		StructNode *pStr = (StructNode *)NodeData[Node::STRUCTURAL].ppFirstNode[i];
 
+		/* Skip relative frame dummy nodes */
 		if (pStr->GetStructNodeType() == StructNode::DUMMY) {
 			DummyStructNode *pDmy = (DummyStructNode *)pStr;
 
-			if ( pDmy->GetDummyType() == DummyStructNode::RELATIVEFRAME) {
+			if (pDmy->GetDummyType() == DummyStructNode::RELATIVEFRAME) {
 				continue;
 			}
 		}
