@@ -148,6 +148,7 @@ public:
 				return Ax[idx];
 			}
 		}
+
 		/* fixme: handle case */
 		THROW(ErrRebuildMatrix());
 	};
@@ -202,14 +203,14 @@ public:
 		doublereal *const Ax,
 		int *const Ai,
 		int *const Ap) const {
-		std::cerr << "CColMatrixHandler::MakeCompressedColumnForm called" << std::endl;
+		silent_cerr("CColMatrixHandler::MakeCompressedColumnForm called" << std::endl);
 		THROW(ErrGeneric());		
 	};
         void MakeCompressedColumnForm(
                 std::vector<doublereal>& Ax,
                 std::vector<int>& Ai,
                 std::vector<int>& Ap) const {
-		std::cerr << "CColMatrixHandler::MakeCompressedColumnForm called" << std::endl;
+		silent_cerr("CColMatrixHandler::MakeCompressedColumnForm called" << std::endl);
 		THROW(ErrGeneric());		
         };
 	integer MakeIndexForm(
@@ -217,7 +218,7 @@ public:
 		integer *const Arow,
 		integer *const Acol,
 		integer offset=0) const {
-		std::cerr << "CColMatrixHandler::MakeIndexForm called" << std::endl;
+		silent_cerr("CColMatrixHandler::MakeIndexForm called" << std::endl);
 		THROW(ErrGeneric());	
 		for (integer col = 0; col < NCols; col++) {
 			integer idx = Ap[col];
@@ -235,7 +236,7 @@ public:
                 std::vector<integer>& Arow,
                 std::vector<integer>& Acol,
 		integer offset=0) const {
-		std::cerr << "CColMatrixHandler::MakeIndexForm called" << std::endl;
+		silent_cerr("CColMatrixHandler::MakeIndexForm called" << std::endl);
 		THROW(ErrGeneric());		
 		rAx.resize(Nz());
 		Arow.resize(Nz());
@@ -246,8 +247,7 @@ public:
 		std::fill(Ax.begin(), Ax.end(), r);
 	};
 	void Resize(const int &n, const int &nn = 0) {
-		std::cerr << "CColMatrixHandler::Resize called" 
-			<< std::endl;
+		silent_cerr("CColMatrixHandler::Resize called" << std::endl);
 		THROW(ErrGeneric());
 	};
 	const int Nz() const {
@@ -256,7 +256,7 @@ public:
 	
 	/* Estrae una colonna da una matrice */
 	VectorHandler& GetCol(integer icol, VectorHandler& out) const {
-		std::cerr << "CColMatrixHandler::GetCol called" << std::endl;
+		silent_cerr("CColMatrixHandler::GetCol called" << std::endl);
 		THROW(ErrGeneric());		
 	        if (icol > iGetNumCols()) {
 			THROW(ErrGeneric());
@@ -271,7 +271,7 @@ public:
 	
         /* Prodotto Matrice per Matrice */
 	SpMapMatrixHandler& MatMatMul(SpMapMatrixHandler& out, const SpMapMatrixHandler& in) const {
-		std::cerr << "CColMatrixHandler::MatMatMul called" << std::endl;
+		silent_cerr("CColMatrixHandler::MatMatMul called" << std::endl);
 		THROW(ErrGeneric());		
 /*
  * 		if ((in.iGetNumCols() != iGetNumRows())
@@ -298,11 +298,11 @@ public:
         /* Moltiplica per uno scalare e somma a una matrice */
 	MatrixHandler& MulAndSumWithShift(MatrixHandler& out, doublereal s = 1.,
 		integer drow = 0, integer dcol = 0) const {
-		std::cerr << "CColMatrixHandler::MulAndSumWithShift called" << std::endl;
+		silent_cerr("CColMatrixHandler::MulAndSumWithShift called" << std::endl);
 		THROW(ErrGeneric());		
 		if ((out.iGetNumCols() < iGetNumCols()+dcol)
 			|| (out.iGetNumRows() < iGetNumRows()+drow)) {
-			std::cerr << "Assertion fault in CColMatrixHandler::MulAndSumWithShift" << std::endl;
+			silent_cerr("Assertion fault in CColMatrixHandler::MulAndSumWithShift" << std::endl);
 			THROW(ErrGeneric());
 		}
 		drow = drow + 1;
@@ -323,11 +323,11 @@ public:
 		doublereal s = 1.,
 		integer drow = 0, 
 		integer dcol = 0) const {
-		std::cerr << "CColMatrixHandler::FakeThirdOrderMulAndSumWithShift called" << std::endl;
+		silent_cerr("CColMatrixHandler::FakeThirdOrderMulAndSumWithShift called" << std::endl);
 		THROW(ErrGeneric());		
 		if ((out.iGetNumCols() < iGetNumCols()+dcol)
 			|| (out.iGetNumRows() < iGetNumRows()+drow)) {
-			std::cerr << "Assertion fault in CColMatrixHandler::MulAndSumWithShift" << std::endl;
+			silent_cerr("Assertion fault in CColMatrixHandler::MulAndSumWithShift" << std::endl);
 			THROW(ErrGeneric());
 		}
 		drow = drow + 1;
@@ -345,7 +345,7 @@ public:
 	};
 	
 	VectorHandler& MatTVecMul(VectorHandler& out, const VectorHandler& in) const {
-		std::cerr << "CColMatrixHandler::MatTVecMul called" << std::endl;
+		silent_cerr("CColMatrixHandler::MatTVecMul called" << std::endl);
 		THROW(ErrGeneric());		
 		if (out.iGetSize() != iGetNumRows()
 				|| in.iGetSize() != iGetNumCols()) {
@@ -365,7 +365,7 @@ public:
 	};
 	
 	VectorHandler& MatVecMul(VectorHandler& out, const VectorHandler& in) const {
-		std::cerr << "CColMatrixHandler::MatTVecMul called" << std::endl;
+		silent_cerr("CColMatrixHandler::MatTVecMul called" << std::endl);
 		THROW(ErrGeneric());		
 		if (in.iGetSize() != iGetNumCols() 
 				|| out.iGetSize() != iGetNumRows()) {
@@ -377,7 +377,7 @@ public:
 	};
 
 	VectorHandler& MatTVecIncMul(VectorHandler& out, const VectorHandler& in) const {
-		std::cerr << "CColMatrixHandler::MatTVecMul called" << std::endl;
+		silent_cerr("CColMatrixHandler::MatTVecMul called" << std::endl);
 		THROW(ErrGeneric());		
 		if (out.iGetSize() != iGetNumRows()
 				|| in.iGetSize() != iGetNumCols()) {
@@ -397,7 +397,7 @@ public:
 	};
 	
 	VectorHandler& MatVecIncMul(VectorHandler& out, const VectorHandler& in) const {
-		std::cerr << "CColMatrixHandler::MatTVecMul called" << std::endl;
+		silent_cerr("CColMatrixHandler::MatTVecMul called" << std::endl);
 		THROW(ErrGeneric());		
 		if (in.iGetSize() != iGetNumCols()
 				|| out.iGetSize() != iGetNumRows()) {
@@ -416,7 +416,7 @@ public:
 	};
 
 	VectorHandler& MatVecDecMul(VectorHandler& out, const VectorHandler& in) const {
-		std::cerr << "CColMatrixHandler::MatTVecMul called" << std::endl;
+		silent_cerr("CColMatrixHandler::MatTVecMul called" << std::endl);
 		THROW(ErrGeneric());		
 		if (in.iGetSize() != iGetNumCols()
 				|| out.iGetSize() != iGetNumRows()) {
