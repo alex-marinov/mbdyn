@@ -44,9 +44,13 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <stdio.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <arpa/inet.h>
 
 #include "usesock.h"
