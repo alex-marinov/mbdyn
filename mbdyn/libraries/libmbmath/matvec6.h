@@ -147,11 +147,11 @@ class Vec6 {
    };
    
    inline Vec6 operator + (const Vec6& x) const {
-      return Vec6(v[0]+x.GetVec1(), v[1]+x.GetVec2());
+      return Vec6(v[0] + x.GetVec1(), v[1] + x.GetVec2());
    };
    
    inline Vec6 operator - (const Vec6& x) const {
-      return Vec6(v[0]-x.GetVec1(), v[1]-x.GetVec2());
+      return Vec6(v[0] - x.GetVec1(), v[1] - x.GetVec2());
    };
    
    inline Vec6 operator * (const doublereal& d) const {
@@ -164,19 +164,19 @@ class Vec6 {
    };   
   
    inline doublereal operator * (const Vec6& x) const {
-      return v[0]*(x.v[0])+v[1]*(x.v[1]);
+      return v[0]*(x.v[0]) + v[1]*(x.v[1]);
    };  
 
    inline doublereal Dot(const Vec6& x) const {
-      return v[0].Dot(x.GetVec1())+v[1].Dot(x.GetVec2());
+      return v[0].Dot(x.GetVec1()) + v[1].Dot(x.GetVec2());
    };
    
    inline doublereal Dot(void) const {
-      return v[0].Dot()+v[1].Dot();
+      return v[0].Dot() + v[1].Dot();
    };
    
    inline doublereal Norm(void) const {
-      return sqrt(v[0].Dot()+v[1].Dot());
+      return sqrt(v[0].Dot() + v[1].Dot());
    };
 
    inline const doublereal& dGet(unsigned short int i) const {
@@ -184,8 +184,20 @@ class Vec6 {
       if (i < 1 || i > 6) {
 	 throw ErrOutOfRange();
       }
-      unsigned short int j = (i-1)/3;
-      return v[j].dGet(i-3*j);
+      unsigned short int j = (i - 1)/3;
+      return v[j].dGet(i - 3*j);
+   };
+
+   inline const doublereal& operator ()( unsigned short int i) const {
+      ASSERT(i > 0 && i < 7);
+      unsigned short int j = (i - 1)/3;
+      return v[j](i - 3*j);
+   };
+   
+   inline doublereal& operator ()( unsigned short int i) {
+      ASSERT(i > 0 && i < 7);
+      unsigned short int j = (i - 1)/3;
+      return v[j](i - 3*j);
    };
    
    inline void Put(unsigned short int i, const doublereal& d) {
@@ -506,6 +518,20 @@ class Mat6x6 {
       unsigned short int jc = (ic-1)/3;
       return m[jr][jc].dGet(ir-3*jr, ic-3*jc);
    };      
+   
+   const doublereal& operator ()(unsigned short int ir, unsigned short int ic) const {
+      ASSERT((ir > 0 && ir < 7) && (ic > 0 && ic < 7));
+      unsigned short int jr = (ir - 1)/3;
+      unsigned short int jc = (ic - 1)/3;
+      return m[jr][jc](ir - 3*jr, ic - 3*jc);
+   };
+   
+   doublereal& operator ()(unsigned short int ir, unsigned short int ic) {
+      ASSERT((ir > 0 && ir < 7) && (ic > 0 && ic < 7));
+      unsigned short int jr = (ir - 1)/3;
+      unsigned short int jc = (ic - 1)/3;
+      return m[jr][jc](ir - 3*jr, ic - 3*jc);
+   };
    
    void Put(unsigned short int ir, unsigned short int ic, const doublereal& d) {
       ASSERT((ir > 0 && ir < 7) && (ic > 0 && ic < 7));

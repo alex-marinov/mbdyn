@@ -41,78 +41,81 @@
 
 class DeformableJoint : 
 virtual public Elem, public Joint, public ConstitutiveLaw6DOwner {
- protected:
-   const StructNode* pNode1;
-   const StructNode* pNode2;
-   const Vec3 f1;
-   const Vec3 f2;
-   const Mat3x3 R1h;
-   const Mat3x3 R2h;      
-   
+protected:
+	const StructNode* pNode1;
+	const StructNode* pNode2;
+	const Vec3 f1;
+	const Vec3 f2;
+	const Mat3x3 R1h;
+	const Mat3x3 R2h;      
+
 	bool bFirstRes;
- public:
-   /* Costruttore non banale */
-   DeformableJoint(unsigned int uL,
-			    const DofOwner* pDO,
-			    const ConstitutiveLaw6D* pCL,
-			    const StructNode* pN1, 
-			    const StructNode* pN2,
-			    const Vec3& f1Tmp,
-			    const Vec3& f2Tmp,
-			    const Mat3x3& R1,
-			    const Mat3x3& R2,
-			    flag fOut);
-   
-   /* Distruttore */
-   virtual ~DeformableJoint(void);
-   
-   /* Tipo di Joint */
-   virtual Joint::Type GetJointType(void) const {
-      return Joint::DEFORMABLEJOINT; 
-   };
-   
-   /* Contributo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
 
-   virtual void Output(OutputHandler& OH) const;
-   
-   /* Tipo di DeformableJoint */
-   virtual ConstLawType::Type GetConstLawType(void) const = 0;
-   
-   virtual unsigned int iGetNumDof(void) const { 
-      return 0;
-   };
-   
-   virtual DofOrder::Order GetDofType(unsigned int /* i */ ) const {
-      return DofOrder::UNKNOWN;
-   };
+	Vec6 F;
 
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 12; 
-      *piNumCols = 12; 
-   };
+public:
+	/* Costruttore non banale */
+	DeformableJoint(unsigned int uL,
+		const DofOwner* pDO,
+		const ConstitutiveLaw6D* pCL,
+		const StructNode* pN1, 
+		const StructNode* pN2,
+		const Vec3& f1Tmp,
+		const Vec3& f2Tmp,
+		const Mat3x3& R1,
+		const Mat3x3& R2,
+		flag fOut);
+
+	/* Distruttore */
+	virtual ~DeformableJoint(void);
+
+	/* Tipo di Joint */
+	virtual Joint::Type GetJointType(void) const {
+		return Joint::DEFORMABLEJOINT; 
+	};
+
+	/* Contributo al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	virtual void Output(OutputHandler& OH) const;
+
+	/* Tipo di DeformableJoint */
+	virtual ConstLawType::Type GetConstLawType(void) const = 0;
+
+	virtual unsigned int iGetNumDof(void) const { 
+		return 0;
+	};
+
+	virtual DofOrder::Order GetDofType(unsigned int /* i */ ) const {
+		return DofOrder::UNKNOWN;
+	};
+
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+		*piNumRows = 12; 
+		*piNumCols = 12; 
+	};
          
-   /* funzioni usate nell'assemblaggio iniziale */
-   
-   virtual unsigned int iGetInitialNumDof(void) const { 
-      return 0;
-   };
-   
-   virtual unsigned int iGetNumPrivData(void) const;
-   virtual unsigned int iGetPrivDataIdx(const char *s) const;
-   virtual doublereal dGetPrivData(unsigned int i) const;
+	/* funzioni usate nell'assemblaggio iniziale */
 
-   /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = pNode1->GetNodeType();
-     NdLabels[0] = pNode1->GetLabel();
-     NdTyps[1] = pNode2->GetNodeType();
-     NdLabels[1] = pNode2->GetLabel();
-   };
-   /* ************************************************ */  
+	virtual unsigned int iGetInitialNumDof(void) const { 
+		return 0;
+	};
+
+	virtual unsigned int iGetNumPrivData(void) const;
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+	virtual doublereal dGetPrivData(unsigned int i) const;
+
+	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	   utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
+		NumNodes = 2;
+		NdTyps[0] = pNode1->GetNodeType();
+		NdLabels[0] = pNode1->GetLabel();
+		NdTyps[1] = pNode2->GetNodeType();
+		NdLabels[1] = pNode2->GetLabel();
+	};
+	/* ************************************************ */  
 };
 
 /* DeformableJoint - end */

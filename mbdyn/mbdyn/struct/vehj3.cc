@@ -96,7 +96,7 @@ DeformableJoint::Output(OutputHandler& OH) const
       		Vec3 F(GetF().GetVec1());
 		Vec3 M(GetF().GetVec2());
 		Joint::Output(OH.Joints(), "DeformableJoint", GetLabel(),
-				F, M, R1*F, R1*M) << std::endl;	
+				F, M, R1*F, R1*(R1h*M)) << std::endl;	
    }     
 }
 
@@ -167,29 +167,33 @@ DeformableJoint::dGetPrivData(unsigned int i) const
 	case 2:
 	case 3:
 	{
-		return 0.;
+		Vec3 f1Tmp(pNode1->GetRCurr()*f1);
+		Vec3 f2Tmp(pNode2->GetRCurr()*f2);
+		Mat3x3 R1T(pNode1->GetRCurr().Transpose());
+		Vec3 d(R1T*(pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr() - f1Tmp));   
+
+		return d(i);
 	}
 	
 	case 4:
 	case 5:
 	case 6:
 	{
-		return 0.;
+		Mat3x3 R1HT((pNode1->GetRCurr()*R1h).Transpose());
+		Mat3x3 R2H(pNode2->GetRCurr()*R2h);
+
+		Vec3 v(RotManip::VecRot(R1HT*R2H));
+
+		return v(i - 3);
 	}
 	
 	case 7:
 	case 8:
 	case 9:
-	{
-		return 0.;
-	}
-	
 	case 10:
 	case 11:
 	case 12:
-	{
-		return 0.;
-	}
+		return F(i - 6);
 	
 	default:
 		return ConstitutiveLaw6DOwner::dGetPrivData(i - 12);
@@ -280,7 +284,7 @@ ElasticJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	Vec3 d1(pNode2->GetXCurr()+f2Tmp-pNode1->GetXCurr());
 
 	Mat3x3 R1(pNode1->GetRRef()*R1h);
-	Vec6 F(MultRV(GetF(), R1));
+	F = MultRV(GetF(), R1);
 
 	/* D11 */
 	Mat3x3 DTmp = FDE.GetMat11()*dCoef;
@@ -411,7 +415,7 @@ ElasticJoint::AssRes(SubVectorHandler& WorkVec,
 void
 ElasticJoint::AssVec(SubVectorHandler& WorkVec)
 {   
-	Mat3x3 R1(pNode1->GetRCurr()*R1h);
+	Mat3x3 R1(pNode1->GetRCurr());
 	Vec3 f1Tmp(pNode1->GetRCurr()*f1);
 	Vec3 f2Tmp(pNode2->GetRCurr()*f2);
 
@@ -420,17 +424,18 @@ ElasticJoint::AssVec(SubVectorHandler& WorkVec)
 
 	} else {
 		Mat3x3 R1T(R1.Transpose());
-		Mat3x3 R2(pNode2->GetRCurr()*R2h);
+		Mat3x3 R1HT((R1*R1h).Transpose());
+		Mat3x3 R2H(pNode2->GetRCurr()*R2h);
 		Vec3 d1(pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr());   
 
-		ThetaCurr = RotManip::VecRot(R1T*R2);
+		ThetaCurr = RotManip::VecRot(R1HT*R2H);
 
 		k = Vec6(R1T*(d1 - f1Tmp), ThetaCurr);
 		
 		ConstitutiveLaw6DOwner::Update(k);
 	}
 
-	Vec6 F(MultRV(GetF(), R1));
+	F = MultRV(GetF(), R1);
    
 	WorkVec.Add(1, F.GetVec1());
 	WorkVec.Add(4, f1Tmp.Cross(F.GetVec1()) + F.GetVec2());
@@ -446,12 +451,15 @@ ElasticJoint::AfterPredict(VectorHandler& /* X */ ,
 	 * e crea la FDE */
 
 	/* Recupera i dati */
-	Mat3x3 R1(pNode1->GetRRef()*R1h);
-	Mat3x3 R2(pNode2->GetRRef()*R2h);
+	Mat3x3 R1(pNode1->GetRRef());
+	Mat3x3 R1H(R1*R1h);
+	Mat3x3 R2(pNode2->GetRRef());
+	Mat3x3 R2H(R2*R2h);
 	Mat3x3 R1T(R1.Transpose());
+	Mat3x3 R1HT(R1H.Transpose());
 
 	/* Calcola la deformazione corrente nel sistema locale (nodo a) */
-	ThetaCurr = ThetaRef = RotManip::VecRot(R1T*R2);
+	ThetaCurr = ThetaRef = RotManip::VecRot(R1HT*R2H);
 
 	/* Calcola l'inversa di Gamma di ThetaRef */
 	Mat3x3 GammaRefm1 = RotManip::DRot_I(ThetaRef);
@@ -468,7 +476,7 @@ ElasticJoint::AfterPredict(VectorHandler& /* X */ ,
 	/* Chiede la matrice tangente di riferimento e la porta
 	 * nel sistema globale */
 	/* FIXME: horrible */
-        FDE = MultRMRt(ConstitutiveLaw6DOwner::GetFDE()*Mat6x6(Eye3, Zero3x3, Zero3x3, GammaRefm1), R1);
+        FDE = Mat6x6(R1, Zero3x3, Zero3x3, R1H)*ConstitutiveLaw6DOwner::GetFDE()*Mat6x6(R1T, Zero3x3, Zero3x3, GammaRefm1*R1HT);
 
 	bFirstRes = true;
 }
