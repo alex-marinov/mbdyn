@@ -70,11 +70,6 @@ mbdyn_METIS_PartGraph(int iTotVertices,
 			pParAmgProcs);
 
 	return 0;
-#else /* !USE_METIS */
-    	std::cerr <<"Sorry. You need to compile with -DUSE_METIS." << std::endl 
-    	    << "No other partition library is implemented yet."
-	    " Aborting ..." << std::endl;
-	THROW(ErrGeneric());
 #endif /* !USE_METIS */
 }
 
