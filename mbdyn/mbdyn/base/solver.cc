@@ -72,9 +72,12 @@
 #endif /* USE_MPI */
 
 
-#if defined(USE_RTAI) && defined(HAVE_SYS_MMAN_H)
+#if defined(USE_RTAI) 
+#include <mbrtai_utils.h>
+#if defined(HAVE_SYS_MMAN_H)
 #include <sys/mman.h>
-#endif /* USE_RTAI && HAVE_SYS_MMAN_H */
+#endif /* HAVE_SYS_MMAN_H */
+#endif /* USE_RTAI */
 
 #include <harwrap.h>
 #include <mschwrap.h>
@@ -158,6 +161,11 @@ fOutputModes(0),
 dUpperFreq(FLT_MAX),
 dLowerFreq(0.),
 #endif /* __HACK_EIG__ */
+#ifdef USE_RTAI
+bRT(false),
+bRTWaitPeriod(true),
+lRTPeriod(-1),
+#endif /* USE_RTAI */
 #ifdef __HACK_POD__
 fPOD(0),
 iPODStep(0),
@@ -233,6 +241,7 @@ pNLS(NULL)
 	
    	/* Legge i dati relativi al metodo di integrazione */
    	ReadData(HP);
+
 #if USE_RTAI
 	/* FIXME: if using RTAI, clear out output */
 	iOutputFlags &= ~OUTPUT_MASK;
@@ -1092,6 +1101,21 @@ IfFirstStepIsToBeRepeated:
 		OneEig.fDone = flag(1);
       	}
 #endif /* __HACK_EIG__ */
+
+#ifdef USE_RTAI
+	if (bRT && bRTWaitPeriod) {
+		long long t = mbdyn_rt_get_time();
+		int r;
+
+		r = mbdyn_rt_task_make_periodic(mbdyn_rtai_task, t, lRTPeriod);
+
+		if (r) {
+			std::cerr << "rt_task_make_periodic() failed"
+				<< std::endl;
+			THROW(ErrGeneric());
+		}
+	}
+#endif /* USE_RTAI */
    
     	/* Altri passi regolari */ 
 	ASSERT(pRegularStep!= NULL);
@@ -1444,6 +1468,7 @@ Solver::ReadData(MBDynParser& HP)
 		"full" "jacobian",
 
 		/* RTAI stuff */
+		"real" "time",
 		"reserve" "stack",
 
 		NULL
@@ -1529,6 +1554,7 @@ Solver::ReadData(MBDynParser& HP)
 		FULLJACOBIAN,
 
 		/* RTAI stuff */
+		REALTIME,
 		RESERVESTACK,
 	
 		LASTKEYWORD
@@ -2489,7 +2515,38 @@ Solver::ReadData(MBDynParser& HP)
 		
 		break;
         }
-       		
+
+       case REALTIME: {
+#ifdef USE_RTAI
+         bRT = true;
+	 if (HP.IsKeyWord("wait")) {
+	    if (HP.IsKeyWord("period")) {
+	       bRTWaitPeriod = true;
+	    } else if (HP.IsKeyWord("signal")) {
+	       /* FIXME: not implemented yet ... */
+	       bRTWaitPeriod = false;
+	    }
+	 }
+
+	 if (HP.IsKeyWord("time" "step")) {
+	    lRTPeriod = HP.GetInt();
+
+	    if (lRTPeriod <= 0) {
+               std::cerr << "illegal time step " << lRTPeriod << " at line "
+		 << HP.GetLineData() << std::endl;
+	       THROW(ErrGeneric());
+	    }
+	 } else {
+	    std::cerr << "need a time step for real time at line "
+	      << HP.GetLineData() << std::endl;
+	    THROW(ErrGeneric());
+	 }
+
+#else /* !USE_RTAI */
+         std::cerr << "need to configure --with-rtai to use realtime" << std::endl;
+	 THROW(ErrGeneric());
+#endif /* !USE_RTAI */
+       }
 
        case RESERVESTACK: {
 #ifdef USE_RTAI

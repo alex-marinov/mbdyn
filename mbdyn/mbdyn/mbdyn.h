@@ -134,5 +134,10 @@ static const long int MYDEBUG_INIT                = 0x00020000;
 static const long int MYDEBUG_OUTPUT              = 0x00040000;
 static const long int MYDEBUG_JAC                 = 0x00080000;
 
+#ifdef USE_RTAI
+/* visible to all */
+extern void *mbdyn_rtai_task;
+#endif /* USE_RTAI */
+
 #endif /* MBDYN_H */
 

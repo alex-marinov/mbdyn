@@ -79,6 +79,11 @@ std::list<MPI::Intercomm>  InterfaceComms;
 
 #endif /* !USE_MPI */
 
+#ifdef USE_RTAI
+#include <mbrtai_utils.h>
+void *mbdyn_rtai_task = NULL;
+#endif /* USE_RTAI */
+
 #include <myassert.h>
 #include <mynewmem.h>
 #include <except.h>
@@ -241,6 +246,15 @@ static void SendMessage(const char* const, const char* const, time_t, time_t);
 int
 main(int argc, char* argv[])
 {
+	int	rc = EXIT_SUCCESS;
+
+#ifdef USE_RTAI
+	if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, &mbdyn_rtai_task)) {
+		std::cerr << "unable to init RTAI task" << std::endl;
+		THROW(ErrGeneric());
+	}
+#endif /* USE_RTAI */
+
 #ifdef USE_MPI
 	int using_mpi = 0;
 	int WorldSize = 1;
@@ -468,7 +482,8 @@ main(int argc, char* argv[])
 #ifdef USE_EXCEPTIONS
 	        		throw NoErr();
 #else /* !USE_EXCEPTIONS */
-	        		MB_EXIT(EXIT_SUCCESS);
+	        		rc = EXIT_SUCCESS;
+				goto exit_point;
 #endif /* !USE_EXCEPTIONS */
 	    
 	    		case int('w'):
@@ -476,7 +491,8 @@ main(int argc, char* argv[])
 #ifdef USE_EXCEPTIONS
 	        		throw NoErr();
 #else /* !USE_EXCEPTIONS */
-	        		MB_EXIT(EXIT_SUCCESS);
+	        		rc = EXIT_SUCCESS;
+				goto exit_point;
 #endif /* !USE_EXCEPTIONS */
 
 			case int('W'):
@@ -508,7 +524,8 @@ main(int argc, char* argv[])
 #ifdef USE_EXCEPTIONS
 	        		throw NoErr();
 #else /* !USE_EXCEPTIONS */
-	        		MB_EXIT(EXIT_SUCCESS);
+	        		rc = EXIT_SUCCESS;
+				goto exit_point;
 #endif /* !USE_EXCEPTIONS */
 	    
 	    		case int('H'):
@@ -573,7 +590,8 @@ main(int argc, char* argv[])
 #ifdef USE_EXCEPTIONS
 	    		throw NoErr();
 #else /* !USE_EXCEPTIONS */
-	    		MB_EXIT(EXIT_SUCCESS);
+	    		rc = EXIT_SUCCESS;
+			goto exit_point;
 #endif /* !USE_EXCEPTIONS */
         	}
 
@@ -771,15 +789,21 @@ main(int argc, char* argv[])
         	throw NoErr();
     	} catch (NoErr) {     
         	silent_cout("MBDyn terminated normally" << std::endl);
-        	MB_EXIT(EXIT_SUCCESS);
+        	rc = EXIT_SUCCESS;
     	} catch (...) {
         	std::cerr << "An error occurred during the execution of MBDyn;"
 	    		" aborting ... " << std::endl;
-        	MB_EXIT(EXIT_FAILURE);
+        	rc = EXIT_FAILURE;
     	}
+#else /* ! USE_EXCEPTIONS */
+exit_point:;
 #endif /* USE_EXCEPTIONS */
+
+#ifdef USE_RTAI
+	(void)mbdyn_rt_task_delete(&mbdyn_rtai_task);
+#endif /* USE_RTAI */
    
-    	MB_EXIT(EXIT_SUCCESS);
+    	MB_EXIT(rc);
 }
 
 

@@ -50,24 +50,42 @@
 /* RTAIOutElem - begin */
 
 RTAIOutElem::RTAIOutElem(unsigned int uL, unsigned int nch, ScalarDof *& pn,
-		const char *h, unsigned long n)
+		const char *h, const char *m, unsigned long n, bool c)
 : Elem(uL, Elem::RTAI_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
-host(h), node(n), port(-1), mbx(NULL)
+host(h), name(m), create(c), node(n), port(-1), mbx(NULL)
 {
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(double)*nch;
 	SAFENEWARR(buf, char, size);
 
-	if (mbdyn_rt_mbx_init(&mbx, size)) {
-		std::cerr << "RTAI mailbox failed" << std::endl;
-		THROW(ErrGeneric());
-	}
+	/* RATIONALE:
+	 *
+	 * if host/node is present, the mailbox is "remote";
+	 * if it not, we may need to create it
+	 */
 
-	if (node) {
-		/* get port ... */
-		port = mbdyn_rt_request_port(node);
-		/* FIXME: what in case of failure? */
+	if (create) {
+		ASSERT(node == 0);
+
+		if (mbdyn_rt_mbx_init(name, size, &mbx)) {
+			std::cerr << "RTAI mailbox(" << name << ") "
+				"init failed" << std::endl;
+			THROW(ErrGeneric());
+		}
+
+	} else {
+		if (node) {
+			/* get port ... */
+			port = mbdyn_rt_request_port(node);
+			/* FIXME: what in case of failure? */
+		}
+
+		if (mbdyn_RT_get_adr(node, port, name, &mbx)) {
+			std::cerr << "RTAI mailbox(" << name << ") "
+				"get_adr failed" << std::endl;
+			THROW(ErrGeneric());
+		}
 	}
 }
 
@@ -153,6 +171,44 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 {
 	unsigned long node = 0;
 	const char *host = NULL;
+	const char *name = NULL;
+	bool create = false;
+
+	if (HP.IsKeyWord("mailbox" "name")) {
+		const char *m = HP.GetStringWithDelims();
+		if (m == NULL) {
+			std::cerr << "unable to read mailbox name "
+				"for RTAIOutElem(" << uLabel << ") at line "
+				<< HP.GetLineData() << std::endl;
+			THROW(ErrGeneric());
+
+		} else if (strlen(m) != 6) {
+			std::cerr << "illegal mailbox name \"" << m
+				<< "\" for RTAIOutElem(" << uLabel 
+				<< ") (must be 6 char) at line "
+				<< HP.GetLineData() << std::endl;
+			THROW(ErrGeneric());
+		}
+
+		SAFESTRDUP(name, m);
+
+	} else {
+		std::cerr << "missing mailbox name for RTAIOutElem(" << uLabel
+			<< ") at line " << HP.GetLineData() << std::endl;
+		THROW(ErrGeneric());
+	}
+
+	if (HP.IsKeyWord("create")) {
+		if (HP.IsKeyWord("yes")) {
+			create = true;
+		} else if (HP.IsKeyWord("no")) {
+			create = false;
+		} else {
+			std::cerr << "\"create\" must be \"yes\" or \"no\" "
+				"at line " << HP.GetLineData() << std::endl;
+			THROW(ErrGeneric());
+		}
+	}
 
 	if (HP.IsKeyWord("host")) {
 #if defined(HAVE_GETHOSTBYNAME) || defined(HAVE_INET_ATON)
@@ -164,6 +220,12 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				<< psElemNames[Elem::RTAI_OUTPUT]
 				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl;
+			THROW(ErrGeneric());
+		}
+
+		if (create) {
+			std::cerr << "cannot create mailbox(" << name
+				<< ") as remote on host " << h << std::endl;
 			THROW(ErrGeneric());
 		}
 
@@ -215,7 +277,8 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 
 	Elem *pEl = NULL;
 	SAFENEWWITHCONSTRUCTOR(pEl, RTAIOutElem,
-			RTAIOutElem(uLabel, nch, pNodes, host, node));
+			RTAIOutElem(uLabel, nch, pNodes,
+				host, name, node, create));
 	return pEl;
 }
 

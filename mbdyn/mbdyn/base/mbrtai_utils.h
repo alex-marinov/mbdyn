@@ -39,12 +39,27 @@
 extern "C" {
 #endif /* __cplusplus */
 
+extern int mbdyn_rt_task_init(const char *name, int priority, int stack_size,
+	int max_msg_size, void **__task);
+extern int mbdyn_rt_task_delete(void **__task);
+
+extern int mbdyn_rt_task_make_periodic(void *task, long long start_time,
+	long long period);
+extern void mbdyn_rt_task_wait_period(void);
+
+extern long long mbdyn_rt_get_time(void);
+extern long long mbdyn_count2nano(long long count);
+extern long long mbdyn_nano2count(long long nanos);
+
 extern int mbdyn_rt_request_port(unsigned long node);
 
-extern int mbdyn_rt_mbx_init(void **__mbx, int size);
+extern int mbdyn_rt_mbx_init(const char *name, int size, void **__mbx);
 extern int mbdyn_rt_mbx_delete(void **__mbx);
 extern int mbdyn_RT_mbx_send_if(unsigned long node, int port, void *__mbx,
 		void *msg, int msg_size);
+
+extern int mbdyn_RT_get_adr(unsigned long node, int port, const char *name, 
+		void **__task);
 
 #ifdef __cplusplus
 }

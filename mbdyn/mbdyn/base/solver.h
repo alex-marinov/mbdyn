@@ -109,6 +109,12 @@ private:
 	void Eig(void);
 #endif /* __HACK_EIG__ */
 
+#ifdef USE_RTAI
+	bool bRT;
+	bool bRTWaitPeriod;
+	long long lRTPeriod;
+#endif /* USE_RTAI */
+
 #ifdef __HACK_POD__
        struct PODData {
                doublereal dTime;

@@ -96,7 +96,7 @@ const char* psReadControlElems[] = {
    "loadable" "elements",
    "driven" "elements",
 
-   "rtai" "output" "mailboxes",
+   "rtai" "output" "elements",
    
    NULL
 };

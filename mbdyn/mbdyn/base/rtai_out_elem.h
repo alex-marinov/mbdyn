@@ -54,12 +54,15 @@ protected:
 	/* FIXME: store restart info as well */
 	const char *host;
 	unsigned long node;
+	const char *name;
+	bool create;
 	int port;
 	void *mbx;
    
 public:
    	RTAIOutElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
-			const char *host, unsigned long n);
+			const char *host, const char *m, unsigned long n,
+			bool c);
    	virtual ~RTAIOutElem(void);
 
 	virtual inline void* pGet(void) const;

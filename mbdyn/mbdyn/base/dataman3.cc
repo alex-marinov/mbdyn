@@ -94,6 +94,8 @@ void DataManager::ReadControl(MBDynParser& HP,
       psReadControlElems[Elem::HYDRAULIC],      
       psReadControlElems[Elem::BULK],
       psReadControlElems[Elem::LOADABLE],
+      psReadControlElems[Elem::RTAI_OUTPUT],
+
       psReadControlDrivers[Drive::FILEDRIVE],
 
       "loadable" "path",
@@ -156,6 +158,8 @@ void DataManager::ReadControl(MBDynParser& HP,
       HYDRAULICELEMENTS,
       BULKELEMENTS,
       LOADABLEELEMENTS,
+      RTAIOUTPUTELEMENTS,
+
       FILEDRIVERS,
 
       LOADABLEPATH,
@@ -469,7 +473,19 @@ void DataManager::ReadControl(MBDynParser& HP,
        }
 #endif /* HAVE_LTDL_H */
 #endif /* defined(HAVE_LOADABLE) */
-	 	 
+
+       case RTAIOUTPUTELEMENTS: {
+#ifdef USE_RTAI
+	  int iDmy = HP.GetInt();
+	  ElemData[Elem::RTAI_OUTPUT].iNum = iDmy;	     
+	  DEBUGLCOUT(MYDEBUG_INPUT, "RTAI output elements: " << iDmy
+		<< std::endl);
+#else /* ! USE_RTAI */
+          std::cerr << "cannot use RTAI output elements when not configured --with-rtai" << std::endl;
+#endif /* ! USE_RTAI */
+	  break;
+       }
+
 	 /* Numero di drivers attesi */
        case FILEDRIVERS: {
 	  int iDmy = HP.GetInt();
