@@ -2191,8 +2191,8 @@ EndOfCycle: /* esce dal ciclo di lettura */
 /* Estrazione autovalori, vincolata alla disponibilita' delle LAPACK */
 #ifdef __HACK_EIG__
 #ifdef USE_LAPACK
-extern "C" int dgegv_(char* jobvl,
-		      char* jobvr, 
+extern "C" int __FC_DECL__(dgegv)(integer* jobvl,
+		      integer* jobvr, 
 		      integer* n, 
 		      doublereal* a,
 		      integer* lda, 
@@ -2286,6 +2286,7 @@ MultiStepIntegrator::Eig(void)
 {
    DEBUGCOUTFNAME("MultiStepIntegrator::Eig");   
 
+#if 0
    /* create data structures */
    /* Workspaces */
    integer iSize = iNumDofs;
@@ -2349,7 +2350,7 @@ MultiStepIntegrator::Eig(void)
    ASSERT(SMmm.fIsValid((void*)Beta.pdGetVec(), iSize*sizeof(doublereal)));
    ASSERT(SMmm.fIsValid((void*)WorkVec.pdGetVec(), iWorkSize*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
-   
+
    /* get a temp file name */
    char* tmpFileName = tempnam(NULL, "mbdyn");
    if (tmpFileName == NULL) {
@@ -2422,9 +2423,9 @@ MultiStepIntegrator::Eig(void)
    
    SAFEDELETEARR(sFileIn, SMmm);
    SAFEDELETEARR(sFileOut, SMmm);
-   
+#endif /* 0 */   
 
-#if 0
+#if 1
    
 #ifdef DEBUG
    DEBUGCOUT("eigenanalysis of 2x2 test problem" << endl);
@@ -2518,8 +2519,8 @@ MultiStepIntegrator::Eig(void)
    
    DEBUGCOUT("MultiStepIntegrator::Eig(): performing eigenanalysis" << endl);
    
-   char* sL = "V";
-   char* sR = "V";
+   char sL[9] = "V";
+   char sR[9] = "V";
    
    /* iNumDof is a member, set after dataman constr. */
    integer iSize = iNumDofs;
@@ -2627,8 +2628,8 @@ MultiStepIntegrator::Eig(void)
      
    
    /* Eigenanalysis */
-   dgegv_(sL,
-	  sR,
+   __FC_DECL__(dgegv)((integer*)sL,
+	  (integer*)sR,
 	  &iSize,
 	  MatA.pdGetMat(),
 	  &iSize,
@@ -2693,7 +2694,12 @@ MultiStepIntegrator::Eig(void)
    for (int iCnt = 1; iCnt <= iSize; iCnt++) {
       Out << "Mode " << setw(4) << iCnt 
 	<< ": ( " << AlphaR.dGetCoef(iCnt) << " + j * "
-	<< AlphaI.dGetCoef(iCnt) << " ) / " << Beta.dGetCoef(iCnt) << endl;
+	<< AlphaI.dGetCoef(iCnt) << " ) / " << Beta.dGetCoef(iCnt);
+      if (fabs(Beta.dGetCoef(iCnt)) > 1.e-16) {
+         Out << " (" << AlphaR.dGetCoef(iCnt)/Beta.dGetCoef(iCnt)
+	   << " + j * " << AlphaI.dGetCoef(iCnt)/Beta.dGetCoef(iCnt) << ")";
+      }
+      Out << endl;
    }
 
    /* Non puo' arrivare qui se le due aree di lavoro non sono definite */
