@@ -101,20 +101,20 @@ public:
 	const Vec3& Couple(void) const;
 };
 
-struct SetResForces : public WithLabel {
+struct ResForceSet : public WithLabel {
 	ResForces *pRes;
 	std::set<unsigned int> labelSet;
 	
-	SetResForces(unsigned int uLabel, ResForces *p);
-	virtual ~SetResForces(void);
+	ResForceSet(unsigned int uLabel, ResForces *p);
+	virtual ~ResForceSet(void);
 	bool is_in(unsigned int uL);
 };
 
 /* ResForces - end */
 
-extern SetResForces *
+extern ResForceSet *
 ReadResSet(DataManager* pDM, MBDynParser& HP, unsigned int uL);
-extern SetResForces **
+extern ResForceSet **
 ReadResSets(DataManager* pDM, MBDynParser& HP);
 
 #endif /* RESFORCES_H */

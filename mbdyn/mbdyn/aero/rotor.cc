@@ -59,7 +59,7 @@ extern "C" {
 Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
 	     const StructNode* pC, const Mat3x3& rrot,
 	     const StructNode* pR, const StructNode* pG, 
-	     SetResForces **ppres, flag fOut)
+	     ResForceSet **ppres, flag fOut)
 : Elem(uL, Elem::ROTOR, fOut), 
 AerodynamicElem(uL, AerodynamicElem::ROTOR, fOut), 
 ElemWithDofs(uL, Elem::ROTOR, pDO, fOut),
@@ -576,7 +576,7 @@ NoRotor::NoRotor(unsigned int uLabel,
 		 const StructNode* pCraft, 
 		 const Mat3x3& rrot,
 		 const StructNode* pRotor,
-		 SetResForces **ppres, 
+		 ResForceSet **ppres, 
 		 doublereal dR,
 		 flag fOut)
 : Elem(uLabel, Elem::ROTOR, fOut), 
@@ -691,7 +691,7 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 			   const Mat3x3& rrot,
 			   const StructNode* pRotor,
 			   const StructNode* pGround,
-			   SetResForces **ppres, 
+			   ResForceSet **ppres, 
 			   doublereal dOR,
 			   doublereal dR, 
 			   DriveCaller *pdW,
@@ -845,7 +845,7 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 			   const Mat3x3& rrot,
 			   const StructNode* pRotor,
 			   const StructNode* pGround,
-			   SetResForces **ppres, 
+			   ResForceSet **ppres, 
 			   doublereal dOR,
 			   doublereal dR, 
 			   DriveCaller *pdW,
@@ -1002,7 +1002,7 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 			   const Mat3x3& rrot,
 			   const StructNode* pRotor,
 			   const StructNode* pGround,
-			   SetResForces **ppres, 
+			   ResForceSet **ppres, 
 			   doublereal dOR,
 			   doublereal dR, 
 			   DriveCaller *pdW,
@@ -1213,7 +1213,7 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 				       const Mat3x3& rrot,
 				       const StructNode* pRotor,
 	    			       const StructNode* pGround,
-				       SetResForces **ppres, 
+				       ResForceSet **ppres, 
 				       doublereal dOR,
 				       doublereal dR,
 	    			       doublereal dCH,
@@ -1742,7 +1742,7 @@ ReadRotor(DataManager* pDM,
      	}
 
      	Elem* pEl = NULL;
-     	SetResForces **ppres = NULL;
+     	ResForceSet **ppres = NULL;
    
      	switch (InducedType) {
 	case NO: {

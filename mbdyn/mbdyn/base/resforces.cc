@@ -189,27 +189,27 @@ LocalNodeResForces::Couple(void) const
 	return (Cr = pNode->GetRCurr().Transpose()*C);
 }
 
-SetResForces::SetResForces(unsigned int uLabel, ResForces *p) 
+ResForceSet::ResForceSet(unsigned int uLabel, ResForces *p) 
 : WithLabel(uLabel), pRes(p)
 {
 	ASSERT(pRes);
 }
 
-SetResForces::~SetResForces(void)
+ResForceSet::~ResForceSet(void)
 {
 	SAFEDELETE(pRes);
 }
 
 bool
-SetResForces::is_in(unsigned int uL)
+ResForceSet::is_in(unsigned int uL)
 { 
 	return labelSet.find(uL) != labelSet.end(); 
 }
 
-SetResForces *
+ResForceSet *
 ReadResSet(DataManager* pDM, MBDynParser& HP, unsigned int uL)
 {
-	SetResForces *pset = NULL;
+	ResForceSet *pset = NULL;
 	ResForces *pres = NULL;
 
 	if (HP.IsKeyWord("external")) {
@@ -246,7 +246,7 @@ ReadResSet(DataManager* pDM, MBDynParser& HP, unsigned int uL)
 		THROW(DataManager::ErrGeneric());
 	}
 
-	SAFENEWWITHCONSTRUCTOR(pset, SetResForces, SetResForces(uL, pres));
+	SAFENEWWITHCONSTRUCTOR(pset, ResForceSet, ResForceSet(uL, pres));
 
 	for (unsigned int i = 0; i < nItems; i++) {
 		unsigned int uLabel = HP.GetInt();
@@ -265,10 +265,10 @@ ReadResSet(DataManager* pDM, MBDynParser& HP, unsigned int uL)
 	return pset;
 }
 
-SetResForces **
+ResForceSet **
 ReadResSets(DataManager* pDM, MBDynParser& HP)
 {
-	SetResForces **ppres = NULL;
+	ResForceSet **ppres = NULL;
 
 	if (HP.IsKeyWord("set")) {
 		int nSets = HP.GetInt();
@@ -280,7 +280,7 @@ ReadResSets(DataManager* pDM, MBDynParser& HP)
 			THROW(DataManager::ErrGeneric());
 		}
 
-		SAFENEWARR(ppres, SetResForces*, nSets+1);
+		SAFENEWARR(ppres, ResForceSet*, nSets+1);
 		for (unsigned int i = 0; i <= (unsigned int)nSets; i++) {
 			ppres[i] = NULL;
 		}

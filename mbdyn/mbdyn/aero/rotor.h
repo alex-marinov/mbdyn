@@ -101,7 +101,7 @@ class Rotor
    doublereal dForwardFlightCorrection; /* FF */
    
    ExternResForces Res;	     /* force, couple and pole for resultants */
-   SetResForces **ppRes;     /* extra forces */
+   ResForceSet **ppRes;     /* extra forces */
 
    Mat3x3 RRotTranspose;     /* Trasposta della matrice di rotazione rotore */
    Mat3x3 RRot;
@@ -143,7 +143,7 @@ class Rotor
  public:
    Rotor(unsigned int uL, const DofOwner* pDO, 
 	 const StructNode* pC, const Mat3x3& rrot, const StructNode* pR, 
-	 const StructNode* pG, SetResForces **ppres, flag fOut);
+	 const StructNode* pG, ResForceSet **ppres, flag fOut);
    virtual ~Rotor(void);      
    
    /* funzioni di servizio */
@@ -307,7 +307,7 @@ class NoRotor : virtual public Elem, public Rotor {
 	   const StructNode* pCraft, 
 	   const Mat3x3& rrot,
 	   const StructNode* pRotor, 
-	   SetResForces **ppres, 
+	   ResForceSet **ppres, 
 	   doublereal dR, 
 	   flag fOut);
    virtual ~NoRotor(void);
@@ -352,7 +352,7 @@ class UniformRotor : virtual public Elem, public Rotor {
 	   	const Mat3x3& rrot,
 		const StructNode* pRotor, 
 		const StructNode* pGround, 
-		SetResForces **ppres, 
+		ResForceSet **ppres, 
 		doublereal dOR,
 		doublereal dR,
 		DriveCaller *pdW,
@@ -399,7 +399,7 @@ class GlauertRotor : virtual public Elem, public Rotor {
 		const Mat3x3& rrot,
 		const StructNode* pRotor,
 		const StructNode* pGround, 
-		SetResForces **ppres, 
+		ResForceSet **ppres, 
 		doublereal dOR,
 		doublereal dR,
 		DriveCaller *pdW,
@@ -446,7 +446,7 @@ class ManglerRotor : virtual public Elem, public Rotor {
 		const Mat3x3& rrot,
 		const StructNode* pRotor,
 		const StructNode* pGround, 
-		SetResForces **ppres,
+		ResForceSet **ppres,
 		doublereal dOR,
 		doublereal dR,
 		DriveCaller *pdW,
@@ -518,7 +518,7 @@ class DynamicInflowRotor : virtual public Elem, public Rotor {
 		      const Mat3x3& rrot,
 		      const StructNode* pRotor,
       		      const StructNode* pGround, 
-		      SetResForces **ppres, 
+		      ResForceSet **ppres, 
 		      doublereal dOR,
 		      doublereal dR,
 		      doublereal dCH,
