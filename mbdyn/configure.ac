@@ -1438,17 +1438,6 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Check for a solver
-dnl
-if test $ol_link_umfpack = no \
-	-a $ol_link_y12 = no \
-	-a $ol_link_harwell = no \
-	-a $ol_link_meschach = no ; then
-	AC_MSG_ERROR([Need at least one (sparse) solver])
-fi
-
-dnl ----------------------------------------------------------------
-dnl
 dnl Check for LAPACK
 dnl
 ol_link_lapack=no
