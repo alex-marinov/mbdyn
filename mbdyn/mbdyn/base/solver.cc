@@ -756,13 +756,17 @@ Solver::Run(void)
 	 * quali equazioni sono di vincolo o meno.
 	 */
 
+	pDM->SetValue(*pX, *pXPrime);
+
    	/*
 	 * Dialoga con il DataManager per dargli il tempo iniziale
-	 * e per farsi inizializzare i vettori di soluzione e derivata */
-
+	 * e per farsi inizializzare i vettori di soluzione e derivata
+	 */
+	/* FIXME: the time is already set by DataManager, but FileDrivers
+	 * have not been ServePending'd
+	 */
 	dTime = dInitialTime;
 	pDM->SetTime(dTime);
-	pDM->SetValue(*pX, *pXPrime);
 	
 
 #ifdef __HACK_EIG__

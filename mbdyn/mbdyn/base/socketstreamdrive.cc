@@ -58,8 +58,7 @@
 #include <sys/un.h>
 #include <arpa/inet.h>
 
-#define UNIX_PATH_MAX    108
-#define DEFAULT_PORT	5500 /* FIXME:da definire meglio */
+#define DEFAULT_PORT	5500 /* FIXME: da definire meglio */
 #define DEFAULT_HOST 	"127.0.0.1"
 
 SocketStreamDrive::SocketStreamDrive(unsigned int uL,
@@ -131,37 +130,52 @@ SocketStreamDrive::ServePending(const doublereal& t)
 		return;
 	}
 
-	/* read only every InputEvery steps */
-	InputCounter++;
-	if (InputCounter != InputEvery) {
-		return;
-	}
-	InputCounter = 0;
-
-	/* FIXME: no receive at first step? */
-	switch (recv(pUS->GetSock(), buf, size, recv_flags)) {
-	case 0:
-		silent_cout("SocketStreamDrive(" << sFileName << "): "
-				<< "communication closed by host" << std::endl);
-		pUS->Abandon();
-		/* FIXME: stop simulation? */
-		break;
-
-	case -1: {
-		int save_errno = errno;
-		char *err_msg = strerror(save_errno);
-		silent_cout("SocketStreamDrive(" << sFileName << ") "
-				<< "failed (" << save_errno << ": " 
-				<< err_msg << ")" << std::endl);
-		throw ErrGeneric();
-	}
-
-	default: {	
-		doublereal *rbuf = (doublereal *)buf;
-		for (int i = 1; i <= iNumDrives; i++) {
-			pdVal[i] = rbuf[i-1];
+	if (pUS->Connected()) {
+		/* read only every InputEvery steps */
+		InputCounter++;
+		if (InputCounter != InputEvery) {
+			return;
 		}
-	}
+		InputCounter = 0;
+
+		/* FIXME: no receive at first step? */
+		switch (recv(pUS->GetSock(), buf, size, recv_flags)) {
+		case 0:
+do_abandon:;
+			silent_cout("SocketStreamDrive(" << sFileName << "): "
+					<< "communication closed by host" << std::endl);
+			pUS->Abandon();
+			/* FIXME: stop simulation? */
+			break;
+
+		case -1: {
+			int save_errno = errno;
+
+			/* some errno values may be legal */
+			switch (save_errno) {
+			case ECONNRESET:
+				goto do_abandon;
+			}
+
+			char *err_msg = strerror(save_errno);
+
+			silent_cout("SocketStreamDrive(" << sFileName << ") "
+					<< "failed (" << save_errno << ": " 
+					<< err_msg << ")" << std::endl);
+			throw ErrGeneric();
+		}
+
+		default: {	
+			doublereal *rbuf = (doublereal *)buf;
+
+			for (int i = 1; i <= iNumDrives; i++) {
+				pdVal[i] = rbuf[i-1];
+			}
+		}
+		}
+
+	} else {
+		pUS->Connect();
 	}
 }
 
@@ -175,7 +189,6 @@ ReadSocketStreamDrive(DataManager* pDM,
 {
 	
 	bool create = false;
-	bool nonblocking = false;
 	unsigned short int port = DEFAULT_PORT;
 	const char *name = 0;
 	const char *host = 0;

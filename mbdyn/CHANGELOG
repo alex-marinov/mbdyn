@@ -43,6 +43,7 @@ MBDyn 1.X-Devel
 		- fixed modal inertia matrix computation (problem noted
 		  by Fabio Riva and Luca Zucchetti)
 		- fixed test for node type in Body
+		- fixed stream opening sequence
 
 MBDyn 1.2.1
 	Enhancements:

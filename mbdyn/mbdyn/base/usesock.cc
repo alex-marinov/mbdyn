@@ -51,6 +51,9 @@
 
 #include "usesock.h"
 
+#define DEFAULT_PORT	5500 /* FIXME: da definire meglio */
+#define DEFAULT_HOST 	"127.0.0.1"
+
 UseSocket::UseSocket(bool c)
 : sock(-1),
 create(c),
@@ -189,7 +192,7 @@ port(p)
 		snprintf(buf, sizeof(buf), "%s:%u", host, port);
 
 	} else {
-		snprintf(buf, sizeof(buf), "127.0.0.1:%u", port);
+		snprintf(buf, sizeof(buf), "%s:%u", DEFAULT_HOST, port);
 	}
 	
 	if (create) {
@@ -268,7 +271,7 @@ UseInetSocket::Connect(void)
 	if (sock < 0) {
 		const char *h = host;
 		if (h == 0) {
-			h = "127.0.0.1";
+			h = DEFAULT_HOST;
 		}
 		silent_cerr("UseSocket(): socket() failed "
 				<< "\"" << h << ":" << port << "\""
@@ -281,7 +284,7 @@ UseInetSocket::Connect(void)
 	if (inet_aton(host, &addr.sin_addr) == 0) {
 		const char *h = host;
 		if (h == 0) {
-			h = "127.0.0.1";
+			h = DEFAULT_HOST;
 		}
 		silent_cerr("UseSocket(): unknown host "
 				"\"" << h << ":" << port << "\""

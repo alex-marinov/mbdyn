@@ -200,7 +200,7 @@ DofIter()
 
       throw DataManager::ErrGeneric();
    }   
-   SetTime(dInitialTime);
+   SetTime(dInitialTime, false);
    
    DEBUGLCOUT(MYDEBUG_INIT, "Global symbol table:" 
 	      << MathPar.GetSymbolTable() << std::endl);

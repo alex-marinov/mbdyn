@@ -75,6 +75,7 @@ pUS(0), name(m), send_flags(flags)
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(doublereal)*nch;
 	SAFENEWARR(buf, char, size);
+	memset(buf, 0, size);
 
 	SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(h, p, c));
 	if (c) {
@@ -99,6 +100,7 @@ pUS(0), name(m), send_flags(flags)
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(doublereal)*nch;
 	SAFENEWARR(buf, char, size);
+	memset(buf, 0, size);
 	
 	SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(p, c));
 	if (c) {
@@ -112,6 +114,10 @@ SocketStreamElem::~SocketStreamElem(void)
 {
 	if (pUS != 0) {
 		SAFEDELETE(pUS);
+	}
+
+	if (buf != 0) {
+		SAFEDELETEARR(buf);
 	}
 }
 
@@ -165,8 +171,13 @@ SocketStreamElem::SetValue(VectorHandler& X, VectorHandler& XP) const
 	AfterConvergence(X, XP);
 #else
 	if (send(pUS->GetSock(), (void *)buf, size, send_flags) == -1) {
-		silent_cerr("SocketStreamElem(" << name << ") "
-			<< "Communication closed by host" << std::endl);
+		int save_errno = errno;
+		char *msg = strerror(save_errno);
+		
+		silent_cerr("SocketStreamElem(" << name << "): send() failed "
+				"(" << save_errno << ": " << msg << ")"
+				<< std::endl);
+
 		pUS->Abandon();
 		/* FIXME: stop simulation? */
 	}
@@ -202,8 +213,13 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 	}
 	
 	if (send(pUS->GetSock(), (void *)buf, size, send_flags) == -1) {
-		silent_cerr("SocketStreamElem(" << name << ") "
-			<< "Communication closed by host" << std::endl);
+		int save_errno = errno;
+		char *msg = strerror(save_errno);
+		
+		silent_cerr("SocketStreamElem(" << name << "): send() failed "
+				"(" << save_errno << ": " << msg << ")"
+				<< std::endl);
+
 		pUS->Abandon();
 		/* FIXME: stop simulation? */
 	}
@@ -278,7 +294,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			throw ErrGeneric();		
 		}
 		int p = HP.GetInt();
-		/*Da sistemare da qui*/
+		/* Da sistemare da qui */
 		
 		if (p <= IPPORT_USERRESERVED) {
 			silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]

@@ -266,7 +266,7 @@ public:
 
 	/* Setta il valore della variabile tempo nella tabella dei simboli
 	 * del DataManager e nel DriveHandler */
-	void SetTime(doublereal dTime, bool bDerivatives = false);
+	void SetTime(doublereal dTime, bool bServePending = true);
 	doublereal dGetTime() const;
 
 	NamedValue *InsertSym(const char* const s, const Real& v,

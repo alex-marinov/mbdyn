@@ -148,7 +148,7 @@ DataManager::IncElemCount(Elem::Type type)
  * usato dal metodo numerico all'inizio di ogni step temporale */
 
 void
-DataManager::SetTime(doublereal dTime, bool bDerivatives)
+DataManager::SetTime(doublereal dTime, bool bServePending)
 {
 	/* Setta la variabile Time nella tabella dei simboli */
 	ASSERT(pTime != NULL);
@@ -162,7 +162,7 @@ DataManager::SetTime(doublereal dTime, bool bDerivatives)
 	DrvHdl.SetTime(dTime);
 
 	/* serve i drive pending */
-	if (true) {//!bDerivatives
+	if (bServePending) {
 		for (int iType = 0; iType < Drive::LASTDRIVETYPE; iType++) {
 			for (unsigned int iCnt = 0; iCnt < DriveData[iType].iNum; iCnt++) {
 				DriveData[iType].ppFirstDrive[iCnt]->ServePending(dTime);
