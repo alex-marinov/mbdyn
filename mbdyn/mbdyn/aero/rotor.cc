@@ -1038,7 +1038,7 @@ Vec3 ManglerRotor::GetInducedVelocity(const Vec3& X) const
       dm = sqrt(dm2);
    }
    doublereal da = 1.+dSinAlphad;
-   if (fabs(da) > 1e-9) {
+   if (fabs(da) > 1.e-9) {
       da = (1.-dSinAlphad)/da;
    }
    if (fabs(da) > 0.) {
@@ -1324,36 +1324,9 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		doublereal dCm = 0.;
 
 	   	/* Attenzione: moltiplico tutte le equazioni per dOmega */
-	   	doublereal d = dGetAirDensity(GetXCurr())*dArea*dOmega*(dRadius*dRadius);
-	   	if (d > DBL_EPSILON) {
+	   	doublereal dDim = dGetAirDensity(GetXCurr())*dArea*dOmega*(dRadius*dRadius);
+	   	if (dDim > DBL_EPSILON) {
 	   	
-		   	/* PROVA */
-		   	dUMean = dVConst*dOmega*dRadius;
-     
-		   	/* Trazione nel sistema rotore */
-		   	doublereal dT(RRot3*Res.Force());
-     
-		   	/* Momento nel sistema rotore-vento */
-		   	doublereal dCosP = cos(dPsi0);
-		   	doublereal dSinP = sin(dPsi0);
-		   	Mat3x3 RTmp( dCosP, dSinP, 0., 
-		      			-dSinP, dCosP, 0.,
-		      			0., 0., 1.);
-		   	Vec3 M(RTmp*(RRotTranspose*Res.Couple()));
-
-		 	/* Coefficienti di trazione e momento */
-		 	dCt = dT/d;
-		 	d *= dRadius;
-		 	dCl = M.dGet(1)/d;
-		 	dCm = M.dGet(2)/d;
-
-#if 0
-			std::cout << dCt/(fabs(dOmega) + 1e-12)
-				<< " " << dCl/(fabs(dOmega) + 1e-12)
-				<< " " << dCm/(fabs(dOmega) + 1e-12)
-				<< std::endl;
-#endif /* 0 */
-   
 		 	/*** FIXME: this is from Rotor::InitParams() ***/
 	
 		     	/* 
@@ -1424,8 +1397,37 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		       		dUm = (dMuTmp*dMuTmp+dLambdaTmp*(dLambdaTmp+dVConst))/dUt;
 		 	}
 #endif /* !0 */
-       
-		 	d = dChi/2.;      
+      
+			/* This is just for output */	
+		   	dUMean = dVConst*dOmega*dRadius;
+     
+		   	/* Trazione nel sistema rotore */
+		   	doublereal dT(RRot3*Res.Force());
+     
+		   	/* Momento nel sistema rotore-vento */
+		   	doublereal dCosP = cos(dPsi0);
+		   	doublereal dSinP = sin(dPsi0);
+		   	Mat3x3 RTmp( dCosP, dSinP, 0., 
+		      			-dSinP, dCosP, 0.,
+		      			0., 0., 1.);
+		   	Vec3 M(RTmp*(RRotTranspose*Res.Couple()));
+
+		 	/* Coefficienti di trazione e momento */
+		 	dCt = dT/dDim;
+		 	dDim *= dRadius;
+		 	dCl = M.dGet(1)/dDim;
+		 	dCm = M.dGet(2)/dDim;
+
+#if 0
+			/* we can't get here if dOmega is too small ... */
+			std::cout << dCt/fabs(dOmega)
+				<< " " << dCl/fabs(dOmega)
+				<< " " << dCm/fabs(dOmega)
+				<< std::endl;
+#endif /* 0 */
+
+			/* Matgrix coefficients */
+		 	doublereal d = dChi/2.;      
 		 	doublereal dSinChi2 = sin(d);
 		 	doublereal dCosChi2 = cos(d);
        
@@ -1534,16 +1536,13 @@ DynamicInflowRotor::AddForce(unsigned int uL,
 
 /* Restituisce ad un elemento la velocita' indotta in base alla posizione
  * azimuthale */
-Vec3 DynamicInflowRotor::GetInducedVelocity(const Vec3& X) const
+Vec3
+DynamicInflowRotor::GetInducedVelocity(const Vec3& X) const
 {
-   if (fabs(dVConst) <= DBL_EPSILON) {
-      return Vec3(0.);
-   }
-   
-   doublereal dr = dGetPos(X);
-   doublereal dp = dGetPsi(X);
-   
-   return RRot3*((dRadius*dVConst+dr*(dVCosine*cos(dp)+dVSine*sin(dp)))*dOmega);
+	doublereal dr = dGetPos(X);
+	doublereal dp = dGetPsi(X);
+	
+	return RRot3*((dRadius*dVConst+dr*(dVCosine*cos(dp)+dVSine*sin(dp)))*dOmega);
 };
 
 /* DynamicInflowRotor - end */
