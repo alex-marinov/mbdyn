@@ -817,7 +817,77 @@ module. \\
 
 
 
+\chapter{Scalar functions}\label{sec:SCALARFUNCS}
+A \texttt{ScalarFunction} object allows to compute the value of a function.
+Almost every scalar function is of type \texttt{DifferentialbeScalarFunction},
+derived from \texttt{ScalarFunction}, and allows to compute the derivatives of
+the function as well. Currently implemented scalar functions are
+\begin{itemize}
+\item \texttt{const}: $f(x)=c$
+\item \texttt{log}: $f(x)=m\textrm{log}(x)$
+\item \texttt{pow}: $f(x)=x^p$
+\item \texttt{linear}: linear interpolation between the two points $(x_1,y_1)$
+and $(x_1,y_1)$
+\item \texttt{cubicspline}: cubic natual spline interpolation between the 
+set of points $\{(x_i,y_i), i\in[1,k\geq3]\}$
+\item \texttt{multilinear}: multilinear interpolation between the 
+set of points $\{(x_i,y_i), i\in[1,k\geq2]\}$
+\end{itemize}
 
+\noindent
+Every \texttt{ScalarFunction} card has the following format:
+\begin{verbatim}
+    <card> :: = scalar function : <unique_scalar_func_name>, 
+                    <scalar_func_type>,
+                    <scalar_func_args>
+\end{verbatim}
+\begin{verbatim}
+    <scalar_func_name> :: = string 
+\end{verbatim}
+
+\noindent
+The type of scalar function,
+\texttt{scalar\_func\_type}, together 
+with relevant arguments, \texttt{scalar\_func\_type},
+are as follows:
+\subsubsection{Const scalar function}
+\begin{verbatim}
+    <scalar_func_type> ::= const
+    <scalar_func_args> ::= <const_coef>
+\end{verbatim}
+\subsubsection{Log scalar function}
+\begin{verbatim}
+    <scalar_func_type> ::= log
+    <scalar_func_args> ::= <multiplier_coef>
+\end{verbatim}
+\subsubsection{Pow scalar function}
+\begin{verbatim}
+    <scalar_func_type> ::= pow
+    <scalar_func_args> ::= <exponent_coef>
+\end{verbatim}
+\subsubsection{Linear scalar function}
+\begin{verbatim}
+    <scalar_func_type> ::= linear
+    <scalar_func_args> ::= <point>, <point>
+    <point>            ::= <x>, <y>
+\end{verbatim}
+\subsubsection{Cubic natural spline scalar function}
+\begin{verbatim}
+    <scalar_func_type> ::= cubicspline
+    <scalar_func_args> ::= <point>, 
+                           <point>, 
+                           <point>
+                           [, ...]
+    <point>            ::= <x>, <y>
+\end{verbatim}
+\subsubsection{Multilinear scalar function}
+\begin{verbatim}
+    <scalar_func_type> ::= multilinear
+    <scalar_func_args> ::= <point>, 
+                           <point>, 
+                           [, ...]
+    <point>            ::= <x>, <y>
+\end{verbatim}
 
 
 \chapter{Drivers}\label{sec:DRIVERS}
