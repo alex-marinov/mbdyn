@@ -352,9 +352,9 @@ ViscousHingeJoint::~ViscousHingeJoint(void)
 void ViscousHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 				     VectorHandler& /* XP */ )
 {
-   // Calcola le deformazioni, aggiorna il legame costitutivo e crea la FDE
+   /* Calcola le deformazioni, aggiorna il legame costitutivo e crea la FDE */
    
-   // Recupera i dati
+   /* Recupera i dati */
    Mat3x3 Ra(pNode1->GetRRef()*R1h);
    Mat3x3 RaT(Ra.Transpose());
    
@@ -367,24 +367,25 @@ void ViscousHingeJoint::AfterPredict(VectorHandler& /* X */ ,
    Vec3 gPa(pNode1->GetgPRef());
    Vec3 gPb(pNode2->GetgPRef());
    
-   // Aggiorna le deformazioni di riferimento nel sistema globale
-   // Nota: non occorre G*g in quanto g/\g e' zero.
+   /* Aggiorna le deformazioni di riferimento nel sistema globale
+    * Nota: non occorre G*g in quanto g/\g e' zero. */
    TaCurrPrime = Mat3x3(MatG, ga)*gPa-Wa.Cross(ga*(4./(4.+ga.Dot())));
    TbCurrPrime = Mat3x3(MatG, gb)*gPb-Wa.Cross(gb*(4./(4.+gb.Dot())));
 
-   // Calcola la deformazione corrente nel sistema locale (nodo a)  
+   /* Calcola la deformazione corrente nel sistema locale (nodo a) */
    ThetaCurrPrime = ThetaRefPrime = RaT*(TbCurrPrime-TaCurrPrime); // +ThetaCurrPrime;
    
-   // Aggiorna il legame costitutivo
+   /* Aggiorna il legame costitutivo */
    ConstitutiveLaw3DOwner::Update(0., ThetaRefPrime);
       
-   // Chiede la matrice tangente di riferimento e la porta nel sistema globale
+   /* Chiede la matrice tangente di riferimento e la porta
+    * nel sistema globale */
    FDEPrime = Ra*GetFDEPrime()*RaT;
 
    bFirstRes = true;						     
 }
-						    
-						     
+
+
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 
 ViscousHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
