@@ -43,7 +43,7 @@ if test "$?" != 0 ; then
 	echo "         ###################################"
 	echo "         ### unable to link integertest! ###"
 	echo "         ###################################"
-	rm -f integertest.o
+	# rm -f integertest.o
 	exit 0
 fi
 
@@ -53,9 +53,9 @@ if test "$?" != 0 ; then
 	echo "         ###############################################"
 	echo "         ### WARNING: sizeof(integer) != sizeof(int) ###"
 	echo "         ###############################################"
-	rm -f integertest.o
+	# rm -f integertest.o
 	exit 0
 fi
 
-rm -f integertest.o
+# rm -f integertest.o
 exit 0
