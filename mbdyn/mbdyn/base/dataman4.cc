@@ -372,20 +372,29 @@ void DataManager::ReadElems(MBDynParser& HP)
 			 Elem **ppTmpEl = ElemData[Type].ppFirstElem;
 			 for (unsigned int cnt = 0; cnt < ElemData[Type].iNum; cnt++) {
 				 unsigned int uL = ppTmpEl[cnt]->GetLabel();
-				 Body_labels.insert(uL);
-				 ElemGravityOwner *pEl = 
-					 (ElemGravityOwner *)ppTmpEl[cnt]->pGetElemGravityOwner();
+ 				 std::set<unsigned int>::const_iterator BL_end = Body_labels.end();
 
-				 dM += pEl->dGetM();
-				 S += pEl->GetS();
-				 J += pEl->GetJ();
+				 if (Body_labels.find(uL) == BL_end) {
+				 	Body_labels.insert(uL);
+				 	ElemGravityOwner *pEl = 
+						(ElemGravityOwner *)ppTmpEl[cnt]->pGetElemGravityOwner();
+
+       					dM += pEl->dGetM();
+       					S += pEl->GetS();
+       					J += pEl->GetJ();
+				 } else {
+	 				 std::cerr << psElemNames[Type]
+						 << "(" << uL 
+						 << ") duplicate label at line "
+	 					 << HP.GetLineData() 
+						 << " (ignored)" << std::endl;
+				 }
 			 }
 
 		 } else {
 			 unsigned int uL = (unsigned int)HP.GetInt();
 			 std::set<unsigned int>::const_iterator BL_end = Body_labels.end();
 			 if (Body_labels.find(uL) == BL_end) {			 
-				Body_labels.insert(uL);
 			 	Elem **ppTmpEl = (Elem **)ppFindElem(Type, uL);
 			 	if (ppTmpEl == NULL || ppTmpEl[0] == NULL) {
 				 	std::cerr << "inertia " << uIn 
@@ -394,7 +403,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 					 	<< "( " << uL << ")" << std::endl;
 				 	THROW(ErrGeneric());
 			 	}
-			 
+
+				Body_labels.insert(uL);
 			 	ElemGravityOwner *pEl = 
 				 	(ElemGravityOwner *)ppTmpEl[0]->pGetElemGravityOwner();
 
@@ -402,8 +412,10 @@ void DataManager::ReadElems(MBDynParser& HP)
 			 	S += pEl->GetS();
 			 	J += pEl->GetJ();
 		 	} else {
-				std::cerr << "Warning: duplicated label at line " << HP.GetLineData()
-					  << std::endl;
+				std::cerr << psElemNames[Type] << "(" << uL
+					<< "): duplicate label at line "
+					<< HP.GetLineData() << " (ignored)"
+					<< std::endl;
 			}
 		}
 	} 
