@@ -734,11 +734,10 @@ EndOfFictitiousStep:
 	    			pDM->Output();
 				
 	    			Out << "Step " << iStep 
-					<< " at time " << dTime+dCurrTimeStep
-					<< " time step " << dCurrTimeStep
-					<< " performed in " << iIterCnt
-					<< " iterations with " << dTest 
-					<< " error" << endl;
+					<< " time " << dTime+dCurrTimeStep
+					<< " step " << dCurrTimeStep
+					<< " iterations " << iIterCnt
+					<< " error " << dTest << endl;
 	 		}
 #endif /* DEBUG */
 
@@ -777,11 +776,10 @@ EndOfFictitiousStep:
    	pDM->Output();
    
    	Out << "Step " << 0
-     		<< " at time " << dTime+dCurrTimeStep
-     		<< " with time step " << dCurrTimeStep
-     		<< " performed in " << iIterCnt
-     		<< " iterations with " << dTest 
-     		<< " error" << endl;
+     		<< " time " << dTime+dCurrTimeStep
+     		<< " step " << dCurrTimeStep
+     		<< " iterations " << iIterCnt
+     		<< " error " << dTest << endl;
    
    	if (fAbortAfterFictitiousSteps) {
       		Out << "End of dummy steps; no simulation is required."
@@ -931,11 +929,10 @@ EndOfFirstStep:
    	} else {
 #endif /* HAVE_SIGNAL */
       		Out << "Step " << iStep
-			<< " at time " << dTime+dCurrTimeStep
-			<< " with time step " << dCurrTimeStep
-			<< " performed in " << iIterCnt
-			<< " iterations with " << dTest 
-			<< " error" << endl;
+			<< " time " << dTime+dCurrTimeStep
+			<< " step " << dCurrTimeStep
+			<< " iterations " << iIterCnt
+			<< " error " << dTest << endl;
 #ifdef HAVE_SIGNAL
    	}
 #endif /* HAVE_SIGNAL */
@@ -1131,11 +1128,10 @@ EndOfStep:
       		pDM->Output();     
 	 
       		Out << "Step " << iStep 
-			<< " at time " << dTime+dCurrTimeStep
-			<< " with time step " << dCurrTimeStep
-			<< " performed in " << iIterCnt
-			<< " iterations with " << dTest 
-			<< " error" << endl;
+			<< " time " << dTime+dCurrTimeStep
+			<< " step " << dCurrTimeStep
+			<< " iterations " << iIterCnt
+			<< " error " << dTest << endl;
       
       		DEBUGCOUT("Step " << iStep
 			  << " has been completed successfully in "
