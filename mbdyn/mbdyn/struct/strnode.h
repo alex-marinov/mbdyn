@@ -95,14 +95,14 @@ class StructNode : public Node {
  private:
    
  protected:
-   Mat3x3 RPrev;   /* Matrice di rotazione da zero al passo precedente */
-   Mat3x3 RRef;    /* Matrice di rotazione predetta al passo corrente */
-   Mat3x3 RCurr;   /* Matrice di rotazione all'iterazione corrente */
+   mutable Mat3x3 RPrev;   /* Matrice di rotazione da zero al passo prec. */
+   Mat3x3 RRef;            /* Matrice di rotazione predetta al passo corr. */
+   Mat3x3 RCurr;           /* Matrice di rotazione all'iterazione corrente */
    
-   Vec3 gRef;
-   Vec3 gCurr;     /* parametri e derivate correnti */
-   Vec3 gPRef;
-   Vec3 gPCurr;
+   mutable Vec3 gRef;
+   mutable Vec3 gCurr;     /* parametri e derivate correnti */
+   mutable Vec3 gPRef;
+   mutable Vec3 gPCurr;
    
    /* Valgono le relazioni:  
     *        RCurr = RDelta*RRef                (1)
@@ -112,21 +112,21 @@ class StructNode : public Node {
     * non conservarla e calcolarla in base alla relazione (2).
     */
    
-   Vec3 XPrev;   /* Posizione al passo precedente */
-   Vec3 XCurr;   /* Posizione corrente */
+   mutable Vec3 XPrev;   /* Posizione al passo precedente */
+   Vec3 XCurr;           /* Posizione corrente */
    
-   Vec3 VPrev;   /* Velocita' al passo precedente */
-   Vec3 VCurr;   /* Velocita' corrente */
+   mutable Vec3 VPrev;   /* Velocita' al passo precedente */
+   Vec3 VCurr;           /* Velocita' corrente */
    
-   Vec3 WPrev;   /* Velocita' angolare al passo precedente */
-   Vec3 WRef;    /* Velocita' angolare predetta al passo corrente */
-   Vec3 WCurr;   /* Velocita' angolare corrente */
+   mutable Vec3 WPrev;   /* Velocita' angolare al passo precedente */
+   Vec3 WRef;            /* Velocita' angolare predetta al passo corrente */
+   Vec3 WCurr;           /* Velocita' angolare corrente */
 
    /* Rigidezze fittizie usate nell'assemblaggio dei vincoli */
    doublereal dPositionStiffness; 
    doublereal dVelocityStiffness;
-   flag fOmegaRot; /* Flag di velocita' angolare solidale col nodo */
-   
+   flag fOmegaRot;       /* Flag di velocita' angolare solidale col nodo */
+
  public:
    /* Costruttore definitivo */
    StructNode(unsigned int uL, 
@@ -506,7 +506,7 @@ inline integer StaticStructNode::iGetFirstMomentumIndex(void) const
 class ModalNode : public DynamicStructNode {
  protected:
    
-   /* aggiungo accelerazioni lineari e angolari (da usarsi solo col nodo modale) */
+   /* accelerazioni lineari e angolari (da usarsi solo col nodo modale) */
    Vec3 XPPCurr;   /* Accelerazione lineare  corrente */
    Vec3 WPCurr;    /* Accelerazione angolare corrente */
 

@@ -600,7 +600,7 @@ StructNode::BeforePredict(VectorHandler& X,
    /* Pongo la R al passo precedente uguale a quella corrente
     * mi servira' se devo ripetere il passo con un diverso Delta t 
     * e per la rettifica dopo la predizione */
-   (Mat3x3&)RPrev = RCurr;
+   RPrev = RCurr;
    
    integer iFirstPos = iGetFirstIndex()+3;
    
@@ -624,10 +624,10 @@ StructNode::BeforePredict(VectorHandler& X,
    
    /* Pongo le Omega al passo precedente uguali alle Omega al passo corrente
     * mi servira' per la correzione dopo la predizione */
-   (Vec3&)WPrev = WCurr;
+   WPrev = WCurr;
    
-   (Vec3&)XPrev = XCurr;   
-   (Vec3&)VPrev = VCurr;
+   XPrev = XCurr;   
+   VPrev = VCurr;
 }
 
 void 
@@ -658,7 +658,7 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
    X.Put(iFirstIndex+4, Vec3(0.));
    XP.Put(iFirstIndex+4, Vec3(0.));   
 
-   (Vec3&)gCurr = (Vec3&)gPCurr = Vec3(0.);
+   gCurr = gPCurr = Vec3(0.);
 }
 
 /* StructNode - end */
@@ -713,7 +713,7 @@ DynamicStructNode::SetValue(VectorHandler& X, VectorHandler& XP) const
    integer iFirstIndex = iGetFirstIndex();
    X.Put(iFirstIndex+1, XCurr);
    X.Put(iFirstIndex+4, Vec3(0.));
-   (Vec3&)gRef = (Vec3&)gCurr = (Vec3&)gPRef = (Vec3&)gPCurr = Vec3(0.);
+   gRef = gCurr = gPRef = gPCurr = Vec3(0.);
    XP.Put(iFirstIndex+1, VCurr);
    XP.Put(iFirstIndex+4, WCurr);
 }
@@ -762,7 +762,7 @@ StaticStructNode::SetValue(VectorHandler& X, VectorHandler& XP) const
    integer iFirstIndex = iGetFirstIndex();
    X.Put(iFirstIndex+1, XCurr);
    X.Put(iFirstIndex+4, Vec3(0.));   
-   (Vec3&)gRef = (Vec3&)gCurr = (Vec3&)gPRef = (Vec3&)gPCurr = Vec3(0.);
+   gRef = gCurr = gPRef = gPCurr = Vec3(0.);
    XP.Put(iFirstIndex+1, VCurr);
    XP.Put(iFirstIndex+4, WCurr);   
 }
@@ -821,7 +821,7 @@ ModalNode::SetValue(VectorHandler& X, VectorHandler& XP) const
    integer iFirstIndex = iGetFirstIndex();
    X.Put(iFirstIndex+1, XCurr);
    X.Put(iFirstIndex+4, Vec3(0.));
-   (Vec3&)gRef = (Vec3&)gCurr = (Vec3&)gPRef = (Vec3&)gPCurr = Vec3(0.);
+   gRef = gCurr = gPRef = gPCurr = Vec3(0.);
    XP.Put(iFirstIndex+1, VCurr);
    XP.Put(iFirstIndex+4, WCurr);
 
