@@ -84,7 +84,7 @@ protected:
 	VectorHandler* pScale; 
 #endif /* __HACK_SCALE_RES__ */
 
-
+	virtual doublereal MakeTest(const VectorHandler& Vec) = 0;
 
 public:
 	NonlinearSolver(void);
@@ -97,8 +97,6 @@ public:
 		
 	virtual ~NonlinearSolver(void);
 
-	virtual doublereal MakeTest(const VectorHandler& Vec) = 0;
-	
 	virtual void Solve(const NonlinearProblem* NLP,
 			SolutionManager* pSolMan,
 			const integer iMaxIter,

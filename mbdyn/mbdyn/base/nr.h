@@ -70,7 +70,7 @@ public:
 #endif /* MBDYN_X_CONVSOL  */	
 			);
 			
-private:
+protected:
 	doublereal MakeTest(const VectorHandler& Vec);
 };
 
