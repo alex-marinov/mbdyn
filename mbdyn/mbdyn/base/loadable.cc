@@ -225,7 +225,8 @@ ElemWithDofs(uLabel, Elem::LOADABLE, pDO, flag(0)),
 priv_data(NULL),
 module_name(NULL),
 handle(NULL),
-calls(NULL)
+calls(NULL),
+needsAirProperties(false)
 {
    	ASSERT(pDM != NULL);
    
@@ -576,6 +577,18 @@ ReadLoadable(DataManager* pDM,
 			       LoadableElem,
 			       LoadableElem(uLabel, pDO, pDM, HP));
    	return pEl;
+}
+
+bool
+LoadableElem::NeedsAirProperties(void) const
+{
+	return needsAirProperties;
+}
+
+void
+LoadableElem::NeedsAirProperties(bool yesno)
+{
+	needsAirProperties = yesno;
 }
 
 #endif /* HAVE_LOADABLE */

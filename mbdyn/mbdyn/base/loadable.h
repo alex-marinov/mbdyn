@@ -191,6 +191,7 @@ protected:
    	char* module_name;	/* Nome del modulo */
    	void* handle;		/* Handle del modulo (usato per chiusura) */
 	LoadableCalls *calls;	/* Simboli delle funzioni attese */
+	bool needsAirProperties;
    
 public:
    	LoadableElem(unsigned int uLabel, const DofOwner* pDO,
@@ -249,6 +250,9 @@ public:
 
    	virtual unsigned int iGetNumPrivData(void) const;
    	virtual doublereal dGetPrivData(unsigned int i) const;
+
+	bool NeedsAirProperties(void) const;
+	void NeedsAirProperties(bool yesno);
 };
 
 inline void* 

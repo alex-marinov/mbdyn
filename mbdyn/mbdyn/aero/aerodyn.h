@@ -306,6 +306,10 @@ class AerodynamicElem : virtual public Elem, public AirPropOwner {
    virtual AerodynamicElem* pGetAerodynamicElem(void) const {
       return (AerodynamicElem*)this; 
    };
+
+   virtual bool NeedsAirProperties(void) const {
+      return true;
+   };
    
 #ifdef DEBUG
    virtual flag fIsAerodynamicElem(void) const { 

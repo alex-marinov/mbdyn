@@ -863,7 +863,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 #ifdef USE_AERODYNAMIC_ELEMS
    /* Linka gli elementi che usano le proprieta' dell'aria all'elemento
     * proprieta' dell'aria */
-   if (ElemData[Elem::AIRPROPERTIES].iNum > 0) {      
+   if (ElemData[Elem::AIRPROPERTIES].iNum > 0) {
       AirProperties* pProp =
 	(AirProperties*)(*(ElemData[Elem::AIRPROPERTIES].ppFirstElem))->pGet();
       
@@ -873,7 +873,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    
 	    Elem** ppTmp = ElemData[iCnt].ppFirstElem;	    
 	    Elem** ppLastEl = ppTmp+ElemData[iCnt].iNum;	    
-	    while (ppTmp < ppLastEl) {	      
+	    while (ppTmp < ppLastEl) {
 	       ASSERT((*ppTmp)->pGetAerodynamicElem() != NULL);
 	       (*ppTmp)->pGetAerodynamicElem()->PutAirProperties(pProp);
 	       ppTmp++;
@@ -890,10 +890,15 @@ void DataManager::ReadElems(MBDynParser& HP)
       for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 	 if ((ElemData[iCnt].fUsesAirProperties == 1)
 	     && (ElemData[iCnt].iNum > 0)) {
-	    if (fStop == 0) {
-	       std::cerr << "warning, the following aerodynamic elements are defined: " << std::endl;	       
-	       fStop = 1;
+	    for (unsigned int iEl = 0; iEl < ElemData[iCnt].iNum; iEl++) {
+	       if (ElemData[iCnt].ppFirstElem[iEl]->pGetAerodynamicElem()->NeedsAirProperties()) {
+	          if (fStop == 0) {
+	             std::cerr << "The following aerodynamic elements are defined: " << std::endl;	       
+	             fStop = 1;
+		  }
+	       }
 	    }
+
 	    std::cerr << ElemData[iCnt].iNum << " " 
 	      << psElemNames[iCnt] << std::endl;
 	 }
