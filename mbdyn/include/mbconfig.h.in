@@ -134,6 +134,9 @@
 /* define if you want to use Meschach */
 #undef USE_MESCHACH
 
+/* define to use Y12 sparse LU library */
+#undef USE_Y12
+
 /* define to use LAPACK libraries */
 #undef USE_LAPACK
 
