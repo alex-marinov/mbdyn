@@ -25,6 +25,7 @@ private:
 	
 	bool bAdvanceCalledFirstTime;
 	MyVectorHandler Res1, Res2;
+	std::vector<bool> EqIsAlgebraic, EqIsDifferential;
 	SpMapMatrixHandler Jacxi_xp, Jacxi_x, Jac_xp, Jac_x;
 	MatrixHandler *pJacxi_xp, *pJacxi_x, *pJac_xp, *pJac_x;
 

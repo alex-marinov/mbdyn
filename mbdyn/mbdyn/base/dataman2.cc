@@ -159,6 +159,7 @@ void DataManager::DofOwnerInit(void)
 	 for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 	    /* (Dof*)->Order = */
 	    (pDf+iCnt)->Order = (*ppNd)->GetDofType(iCnt);
+	    (pDf+iCnt)->EqOrder = (*ppNd)->GetEqType(iCnt);
 	 }
       }	
       ppNd++;
@@ -208,6 +209,7 @@ void DataManager::DofOwnerInit(void)
 	 for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 	    /* (Dof*)->Order = */
 	    (pDf+iCnt)->Order = pElWD->GetDofType(iCnt);
+	    (pDf+iCnt)->EqOrder = pElWD->GetEqType(iCnt);
 	 }
       }	
       ppEl++;
@@ -261,6 +263,7 @@ void DataManager::DofOwnerInit(void)
 	    for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 	       /* (Dof*)->Order = */
 	       pDf[iCnt].Order = pElWD->GetDofType(iCnt);
+	       pDf[iCnt].EqOrder = pElWD->GetEqType(iCnt);
 	    }
 	 }
       } while (ElemIter.fGetNext(pEl));

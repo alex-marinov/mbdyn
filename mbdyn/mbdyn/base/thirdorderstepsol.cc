@@ -128,6 +128,16 @@ doublereal ThirdOrderIntegrator::Advance(const doublereal TStep,
 			){
 	if (bAdvanceCalledFirstTime) {
 		integer n = pDM->iGetNumDofs();
+		EqIsAlgebraic.resize(n);
+		EqIsDifferential.resize(n);
+	   	Dof CurrDof;
+		DofIterator.fGetFirst(CurrDof);
+		for (int iCntp1 = 0; iCntp1 < n;
+			iCntp1++, DofIterator.fGetNext(CurrDof)) {
+			EqIsAlgebraic[iCntp1] = (
+				CurrDof.EqOrder==DofOrder::ALGEBRAIC);
+			EqIsDifferential[iCntp1] = (!EqIsAlgebraic[iCntp1]);
+		}
 // 		Res1.Resize(n);
 // 		Res2.Resize(n);
 		Jacxi_xp.Resize(n);
@@ -306,31 +316,31 @@ void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
 	/* 2,2 */
 	doublereal J22_x = (1.+3.*rho)/(6.*rho*(1.+rho))*dT;
 	Jacxi_x.MulAndSumWithShift(*pJac,J22_x,iNumDofs,iNumDofs);
-	Jacxi_xp.MulAndSumWithShift(*pJac,1.-J22_x,iNumDofs,iNumDofs);
+	Jacxi_xp.FakeThirdOrderMulAndSumWithShift(*pJac,EqIsDifferential,1.-J22_x,iNumDofs,iNumDofs);
 	
 	/* 2,1 */
 	doublereal J21_x = -1./(6.*rho*(1.+rho)*(1.+rho))*dT;
 	Jacxi_x.MulAndSumWithShift(*pJac,J21_x,iNumDofs,0);
-	Jacxi_xp.MulAndSumWithShift(*pJac,-J21_x,iNumDofs,0);
+	Jacxi_xp.FakeThirdOrderMulAndSumWithShift(*pJac,EqIsDifferential,-J21_x,iNumDofs,0);
 	
 	/* 1,2 */
 	doublereal J12_x = (1.+rho)*(1.+rho)/(6.*rho)*dT;
 	Jac_x.MulAndSumWithShift(*pJac,J12_x,0,iNumDofs);
-	Jac_xp.MulAndSumWithShift(*pJac,-J12_x,0,iNumDofs);
+	Jac_xp.FakeThirdOrderMulAndSumWithShift(*pJac,EqIsDifferential,-J12_x,0,iNumDofs);
 	
 	/* 1,1 */
 	doublereal J11_x = (2.*rho-1.)/(6.*rho)*dT;
 	Jac_x.MulAndSumWithShift(*pJac,J11_x,0,0);
-	Jac_xp.MulAndSumWithShift(*pJac,1.-J11_x,0,0);
+	Jac_xp.FakeThirdOrderMulAndSumWithShift(*pJac,EqIsDifferential,1.-J11_x,0,0);
 	
 	return;
 };
 
 void ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
 {
-   	DEBUGCOUTFNAME("ThirdOrderIntegrator::Predict");
-   	ASSERT(pDM != NULL);
-   	Dof CurrDof;
+  	DEBUGCOUTFNAME("ThirdOrderIntegrator::Predict");
+  	ASSERT(pDM != NULL);
+  	Dof CurrDof;
 	
 	{SchurDataManager* pSDM;
 	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {

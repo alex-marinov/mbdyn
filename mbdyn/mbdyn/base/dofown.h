@@ -58,6 +58,7 @@ class VectorHandler;
 struct Dof {
    integer iIndex;
    DofOrder::Order Order;
+   DofOrder::Order EqOrder;
 };
 
 

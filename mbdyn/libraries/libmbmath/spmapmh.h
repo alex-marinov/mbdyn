@@ -326,6 +326,30 @@ public:
 		return out;	
 	};
 	
+	MatrixHandler& FakeThirdOrderMulAndSumWithShift(
+		MatrixHandler& out, 
+		std::vector<bool> b,
+		doublereal s = 1.,
+		integer drow = 0, 
+		integer dcol = 0) const {
+		if ((out.iGetNumCols() < iGetNumCols()+dcol)
+			|| (out.iGetNumRows() < iGetNumRows()+drow)) {
+			std::cerr << "Assertion fault in SpMapMatrixHandler::MulAndSumWithShift" << std::endl;
+			THROW(ErrGeneric());
+		}
+		for (int col=0; col<NCols; col++) {
+			row_cont_type::const_iterator ri, re;
+			re = col_indices[col].end();
+			integer newcol = col + dcol;
+			for (ri = col_indices[col].begin(); ri!=re; ri++) {
+				if (b[ri->first]) {
+					out.fIncCoef(ri->first+drow+1,newcol+1,ri->second*s);
+				}
+			}
+		}
+		return out;	
+	};
+	
 	VectorHandler& MatTVecMul(VectorHandler& out, const VectorHandler& in) const {
 		if (out.iGetSize() != iGetNumRows()
 				|| in.iGetSize() != iGetNumCols()) {
