@@ -19,7 +19,7 @@ c81data.h \
 rotor.cc \
 rotor.h
 
-libaero_la_LIBADD = @LIB@
+libaero_la_LIBADD = @LIBS@
 libaero_la_LDFLAGS = -static
 
 #bin_PROGRAMS = testc81
