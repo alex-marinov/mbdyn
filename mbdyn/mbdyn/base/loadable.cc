@@ -140,8 +140,8 @@ __update(LoadableElem* /* pEl */ ,
 
 static void 
 __after_convergence(const LoadableElem* /* pEl */ ,
-		VectorHandler& /* X */ ,
-		VectorHandler& /* XP */ )
+		const VectorHandler& /* X */ ,
+		const VectorHandler& /* XP */ )
 {
    	NO_OP;
 }
@@ -547,8 +547,8 @@ LoadableElem::Update(const VectorHandler& XCurr,
 }
 
 void 
-LoadableElem::AfterConvergence(VectorHandler& X,
-		VectorHandler& XP)
+LoadableElem::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP)
 {
    	ASSERT(calls->after_convergence != NULL);
    	(*calls->after_convergence)(this, X, XP);

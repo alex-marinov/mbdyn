@@ -257,13 +257,14 @@ void DataManager::InitialJointAssembly(void)
       iNumDofs = pTmp->iNumDofs = (*ppNode)->iGetInitialNumDof();
       if (iNumDofs > 0) {
 	 DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
-		    "Node " << (*ppNode)->GetLabel() 
-		    << ": first index = " << iIndex+1 << std::endl);
+		    psNodeNames[(*ppNode)->GetNodeType()] 
+		    << "(" << (*ppNode)->GetLabel() 
+		    << "): first index = " << iIndex+1 << std::endl);
 	 pTmp->iFirstIndex = iIndex;
 	 iIndex += iNumDofs;
       } else {
-	 DEBUGCERR("");
-	 std::cerr << "warning, item " << iCnt << " has 0 dofs" << std::endl;
+	 pedantic_cerr(psNodeNames[(*ppNode)->GetNodeType()] << "(" << iCnt 
+			 << ") has 0 dofs" << std::endl);
       }
    }     
 
@@ -298,21 +299,20 @@ void DataManager::InitialJointAssembly(void)
 		 (*ppEl)->pGetInitialAssemblyElem()->iGetInitialNumDof();
 	       if ((pTmp->iNumDofs = iNumDofs) > 0) {
 		  DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
-			     "Elem " << (*ppEl)->GetLabel()
-			     << " of type \"" << psElemNames[iCnt1]
-			     << "\": first index = "
-			     << iIndex+1 << std::endl);
+			     psElemNames[iCnt1] << "(" << (*ppEl)->GetLabel()
+			     << "): first index = " << iIndex+1 << std::endl);
 		  pTmp->iFirstIndex = iIndex;
 		  iIndex += iNumDofs;
 	       } else {
-		  DEBUGCERR("");
-		  std::cerr << "warning, item " << iCnt << " has 0 dofs" << std::endl;
-	       }	
+		  pedantic_cerr(psElemNames[iCnt1] 
+				  << "(" << (*ppEl)->GetLabel() 
+				  << ") has 0 dofs" << std::endl);
+	       }
 	    }
-	 }	 
+	 }
       }
    }
-   
+ 
 
    /* Numero totale di Dof durante l'assemblaggio iniziale */
    integer iInitialNumDofs = iIndex;

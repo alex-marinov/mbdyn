@@ -112,7 +112,8 @@ public:
 	/*
 	 * Elaborazione stato interno dopo la convergenza
 	 */
-	virtual void AfterConvergence(VectorHandler& X, VectorHandler& XP);
+	virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP);
 };
 
 /* SimulationEntity - end */

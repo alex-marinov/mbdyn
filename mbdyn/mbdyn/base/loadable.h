@@ -126,8 +126,8 @@ typedef void
 	     const VectorHandler& XP);
 typedef void
 (* p_after_convergence)(const LoadableElem* pEl, 
-    			VectorHandler& X,
-    			VectorHandler& XP);
+    			const VectorHandler& X,
+    			const VectorHandler& XP);
 typedef unsigned int (* p_i_get_initial_num_dof)(const LoadableElem*);
 typedef void
 (* p_initial_work_space_dim)(const LoadableElem*, 
@@ -244,8 +244,8 @@ public:
 				  VectorHandler& XP);   
 	virtual void Update(const VectorHandler& XCurr, 
                        	    const VectorHandler& XPrimeCurr);
-   	virtual void AfterConvergence(VectorHandler& X,
-			VectorHandler& XP);   
+   	virtual void AfterConvergence(const VectorHandler& X,
+			const VectorHandler& XP);   
 
 #ifdef USE_STRUCT_NODES
    	virtual unsigned int iGetInitialNumDof(void) const;

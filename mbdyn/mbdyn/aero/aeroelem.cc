@@ -411,8 +411,8 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 }
 
 void 
-AerodynamicBody::AfterConvergence(VectorHandler& /* X */ , 
-		VectorHandler& /* XP */ )
+AerodynamicBody::AfterConvergence(const VectorHandler& /* X */ , 
+		const VectorHandler& /* XP */ )
 {
    	/* Memoria in caso di forze instazionarie */
    	switch (aerodata->Unsteady()) {
@@ -1238,8 +1238,8 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 }
 
 void 
-AerodynamicBeam::AfterConvergence(VectorHandler& /* X */ , 
-		VectorHandler& /* XP */ )
+AerodynamicBeam::AfterConvergence(const VectorHandler& /* X */ , 
+		const VectorHandler& /* XP */ )
 {
 	/* Memoria in caso di forze instazionarie */
 	switch (aerodata->Unsteady()) {
@@ -1838,8 +1838,8 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 }
 
 void 
-AerodynamicBeam2::AfterConvergence(VectorHandler& /* X */ , 
-		VectorHandler& /* XP */ )
+AerodynamicBeam2::AfterConvergence(const VectorHandler& /* X */ , 
+		const VectorHandler& /* XP */ )
 {
    	/* Memoria in caso di forze instazionarie */
    	switch (aerodata->Unsteady()) {

@@ -423,7 +423,7 @@ Pipe::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
-Pipe::AfterConvergence(VectorHandler& X, VectorHandler& XP)
+Pipe::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 {
    if (Re < HF->dGetRe(HydraulicFluid::LOWER)) {
 #ifdef HYDR_DEVEL
@@ -949,7 +949,7 @@ Dynamic_pipe::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
-Dynamic_pipe::AfterConvergence(VectorHandler& X, VectorHandler& XP)
+Dynamic_pipe::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 {
    if (Re < HF->dGetRe(HydraulicFluid::LOWER)) {
       turbulent = 0;
@@ -1339,7 +1339,7 @@ DynamicPipe::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
-DynamicPipe::AfterConvergence(VectorHandler& X, VectorHandler& XP)
+DynamicPipe::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 {
    if (Re < HF->dGetRe(HydraulicFluid::LOWER)) {
       turbulent = 0;

@@ -188,7 +188,8 @@ class DrivenElem : /* virtual */ public Elem, protected DriveOwner {
       }
    };
    
-   virtual void AfterConvergence(VectorHandler& X, VectorHandler& XP) {
+   virtual void AfterConvergence(const VectorHandler& X, 
+		   const VectorHandler& XP) {
       ASSERT(pElem != NULL);
       if (dGet() != 0.) {
 	 pElem->AfterConvergence(X, XP);

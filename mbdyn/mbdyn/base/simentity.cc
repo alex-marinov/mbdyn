@@ -86,8 +86,8 @@ SimulationEntity::Update(const VectorHandler& /* XCurr */ ,
 }
 
 void 
-SimulationEntity::AfterConvergence(VectorHandler& /* X */ , 
-		VectorHandler& /* XP */ )
+SimulationEntity::AfterConvergence(const VectorHandler& /* X */ , 
+		const VectorHandler& /* XP */ )
 {
 	NO_OP;
 }

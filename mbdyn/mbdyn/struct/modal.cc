@@ -1436,13 +1436,14 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
       b.Put(iCnt, XCurr.dGetCoef(iFlexIndex+NModes+iCnt));
    }
    
+   doublereal temp;
    for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-      double temp1 = 0, temp2 = 0; 
+      temp = 0.;
       for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) { 
-	 temp1 += pModalStiff->dGet(iCnt,jCnt)*a.dGet(jCnt);
-	 temp2 += pModalDamp->dGet(iCnt,jCnt)*b.dGet(jCnt); 
+	 temp += pModalStiff->dGet(iCnt, jCnt)*a.dGet(jCnt)
+		 + pModalDamp->dGet(iCnt, jCnt)*b.dGet(jCnt); 
       }
-      WorkVec.fIncCoef(12+iCnt, -temp1-temp2); 
+      WorkVec.fDecCoef(12+iCnt, temp); 
    }
    
    /* equazioni di vincolo */

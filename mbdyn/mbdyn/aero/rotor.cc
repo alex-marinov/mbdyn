@@ -116,8 +116,8 @@ Elem::Type Rotor::GetElemType(void) const
 }
 
 void 
-Rotor::AfterConvergence(VectorHandler& /* X */ , 
-		VectorHandler& /* XP */ )
+Rotor::AfterConvergence(const VectorHandler& /* X */ , 
+		const VectorHandler& /* XP */ )
 {
     /* non mi ricordo a cosa serve! */
     iNumSteps++;

@@ -192,7 +192,8 @@ class Rotor
    /*
     * Elaborazione stato interno dopo la convergenza
     */
-   virtual void AfterConvergence(VectorHandler& X, VectorHandler& XP);
+   virtual void AfterConvergence(const VectorHandler& X, 
+		   const VectorHandler& XP);
 
    /* output; si assume che ogni tipo di elemento sappia, attraverso
     * l'OutputHandler, dove scrivere il proprio output */

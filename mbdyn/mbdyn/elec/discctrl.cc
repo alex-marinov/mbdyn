@@ -729,8 +729,8 @@ std::ostream& DiscreteControlElem::Restart(std::ostream& out) const
 
 
 void 
-DiscreteControlElem::AfterConvergence(VectorHandler& X,
-		VectorHandler& XP)
+DiscreteControlElem::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP)
 {
    /* Sets the flag for a new step */
    if (++iCurrIter == iNumIter) {      
