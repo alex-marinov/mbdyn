@@ -51,7 +51,7 @@ extern "C" {
  * esegue d = m1*m2+m3 
  */
 
-static int
+static inline int
 gpc_addmul(integer ndim1, integer nrow1, integer ncol1, const doublereal* m1,
 	   integer ndim2, integer nrow2, integer ncol2, const doublereal* m2,
 	   integer ndim3, integer nrow3, integer ncol3, const doublereal* m3,
@@ -103,7 +103,7 @@ gpc_addmul(integer ndim1, integer nrow1, integer ncol1, const doublereal* m1,
  * esegue d = m1*m2
  */
 
-static int 
+static inline int 
 gpc_mul(integer ndim1, integer nrow1, integer ncol1, const doublereal* m1,
 	integer ndim2, integer nrow2, integer ncol2, const doublereal* m2,
 	integer ndimd, integer nrowd, integer ncold, doublereal* d)
@@ -147,7 +147,7 @@ gpc_mul(integer ndim1, integer nrow1, integer ncol1, const doublereal* m1,
  * esegue d = m1*m2; se m3 e' definita, d = m1*m2+m3
  */
 
-static int 
+static inline int 
 gpc_add_mul(integer ndim1, integer nrow1, integer ncol1, const doublereal* m1,
 	    integer ndim2, integer nrow2, integer ncol2, const doublereal* m2,
 	    integer ndim3, integer nrow3, integer ncol3, const doublereal* m3,
@@ -168,7 +168,7 @@ gpc_add_mul(integer ndim1, integer nrow1, integer ncol1, const doublereal* m1,
  * esegue d = m1*m2+m3 senza check sulle dimensioni
  */
  
-static int
+static inline int
 gpc_addmul(integer ndim1, integer nrow1, integer ncol1, const doublereal* m1,
 	   integer ndim2, integer ncol2, const doublereal* m2,
 	   integer ndim3, const doublereal* m3,
@@ -214,7 +214,7 @@ gpc_addmul(integer ndim1, integer nrow1, integer ncol1, const doublereal* m1,
  * copia una matrice su un'altra
  */
 
-static int
+static inline int
 gpc_mcopy(integer ndims, integer nrows, integer ncols, const doublereal* s,
 	  integer ndimd, doublereal* d)
 {
@@ -237,7 +237,7 @@ gpc_mcopy(integer ndims, integer nrows, integer ncols, const doublereal* s,
  * copia una matrice orientata per righe su una orientata per colonne
  */
 
-static int
+static inline int
 gpc_mcopy_t(integer ndims, integer nrows, integer ncols, const doublereal* s,
 	    integer ndimd, doublereal* d)
 {
@@ -260,7 +260,7 @@ gpc_mcopy_t(integer ndims, integer nrows, integer ncols, const doublereal* s,
  * azzera un vettore
  */
 
-static int
+static inline int
 gpc_zero(integer size, doublereal* v)
 {
    	for (integer i = size; i-- > 0; ) {
@@ -273,7 +273,7 @@ gpc_zero(integer size, doublereal* v)
  * setta un vettore
  */
 
-static int
+static inline int
 gpc_set(integer size, doublereal* v, const doublereal d)
 {
    	for (integer i = size; i-- > 0; ) {
@@ -286,7 +286,7 @@ gpc_set(integer size, doublereal* v, const doublereal d)
  * costruisce le matrici grezze di predizione
  */
 
-static int
+static inline int
 gpc_build_matrices(integer ndimA, doublereal* A,
 		   integer ndimB, doublereal* B,
 		   integer ndimP, doublereal* P,
@@ -520,7 +520,7 @@ __FC_DECL__(dgesvd)(char* jobu, char* jobvt,
  * sovrascrivendola orientata per righe
  */
  
-static integer
+static inline integer
 gpc_pinv(integer lda, integer m, integer n, doublereal* a,
 	 doublereal* s, 
 	 integer ldu, doublereal* u,
@@ -550,9 +550,10 @@ gpc_pinv(integer lda, integer m, integer n, doublereal* a,
    	}
    
    	/* corregge con gli inversi dei SV */
-   	const doublereal THR = s[0]*1.e-12; /* mettere qualcosa tipo RCOND */
+	/* FIXME: mettere qualcosa tipo RCOND */
+   	const doublereal THR = s[0]*1.e-12; 
    	integer x = min(m, n);
-   	for (integer i = x; i-- > 0; ) {   
+   	for (integer i = x; i-- > 0; ) {
       		doublereal d = s[i];
       		if (fabs(d) < THR) {
 	 		d = 0.;
