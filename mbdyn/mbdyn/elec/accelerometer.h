@@ -31,10 +31,10 @@
 #ifndef ACCELEROMETER_H
 #define ACCELEROMETER_H
 
-#include "elec.h"
-      
 #if defined(USE_ELECTRIC_NODES) && defined(USE_STRUCT_NODES)
 
+#include "elec.h"
+      
 /* Accelerometer - begin */
 
 class Accelerometer : virtual public Elem, public Electric {
