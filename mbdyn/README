@@ -22,6 +22,14 @@ developers:
     the ancillary files will be available even if the target 
     system does not have those tools.
 
+  NOTE: at least on my system I could not use the syntax
+  AC_CONFIG_HEADER(include/mbconfig.h:pre:include/mbconfig.h.in:post)
+  so the lines
+  
+	/* this file must be included by every .c/.cc file */
+	#include <mbdyn.h>
+  
+  must be manually added at the bottom of include/mbconfig.h.in
 
 
 distribution:
