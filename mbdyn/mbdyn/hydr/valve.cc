@@ -70,9 +70,13 @@ A4min(area_max*loss_area)
    ASSERT(A_max > DBL_EPSILON);
    ASSERT(loss_area >= 0.);
    
-
-   Cd = .611; /* coefficiente di perdita */
- //   W = .005;  /* larghezza del condotto (m): A=x*W 0.005; */
+   /* 
+    * Cd = pi / ( pi + 2 ) ~= .611
+    * 
+    * cfr. Merritt, Hydraulic Control Systems, Par. 3.4, pp. 39-45
+    * John Wiley & Sons, New York, 1967
+    */
+   Cd = M_PI / ( M_PI + 2. ); 
 }
 
 Control_valve::~Control_valve(void)
