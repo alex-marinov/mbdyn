@@ -594,7 +594,7 @@ class DummyStructNode : public StructNode {
  protected:
    const StructNode* pNode;
    
-   virtual void __Update(void) = 0;
+   virtual void Update_int(void) = 0;
 
  public:
    /* Costruttore definitivo */
@@ -695,7 +695,7 @@ class OffsetDummyStructNode : public DummyStructNode {
    Vec3 f;
    Mat3x3 R;
    
-   void __Update(void);
+   void Update_int(void);
    
  public:
    /* Costruttore definitivo */
@@ -727,7 +727,7 @@ class RelFrameDummyStructNode : public DummyStructNode {
    const Mat3x3 RhT;
    const Vec3 fhT;
    
-   void __Update(void);
+   void Update_int(void);
    
  public:
    /* Costruttore definitivo */

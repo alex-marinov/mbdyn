@@ -1058,7 +1058,7 @@ OffsetDummyStructNode::OffsetDummyStructNode(unsigned int uL,
 : DummyStructNode(uL, pDO, pN), f(f), R(R)
 {
    /* forzo la ricostruzione del nodo strutturale sottostante */
-   __Update();
+   Update_int();
 }
 
 
@@ -1070,7 +1070,7 @@ OffsetDummyStructNode::~OffsetDummyStructNode(void)
 
 
 /* update - interno */
-void OffsetDummyStructNode::__Update(void)
+void OffsetDummyStructNode::Update_int(void)
 {
    RCurr = pNode->GetRCurr();
    XCurr = pNode->GetXCurr()+RCurr*f;
@@ -1092,7 +1092,7 @@ void
 OffsetDummyStructNode::Update(const VectorHandler& /* X */ ,
 			      const VectorHandler& /* XP */ )
 {
-   __Update();
+   Update_int();
 }
 
 /* OffsetDummyStructNode - end */
@@ -1132,7 +1132,7 @@ RelFrameDummyStructNode::RelFrameDummyStructNode(unsigned int uL,
     */
 
    /* forzo la ricostruzione del nodo strutturale sottostante */
-   __Update();
+   Update_int();
 }
 
 
@@ -1144,7 +1144,7 @@ RelFrameDummyStructNode::~RelFrameDummyStructNode(void)
 
 
 /* update - interno */
-void RelFrameDummyStructNode::__Update(void)
+void RelFrameDummyStructNode::Update_int(void)
 {
    Mat3x3 RrT(pNodeRef->GetRCurr().Transpose());
    Mat3x3 RT(RhT*RrT);
@@ -1173,7 +1173,7 @@ void
 RelFrameDummyStructNode::Update(const VectorHandler& /* X */ ,
 				const VectorHandler& /* XP */ )
 {
-   __Update();
+   Update_int();
 }
 
 /* RelFrameDummyStructNode - end */
@@ -1385,6 +1385,11 @@ ReadStructNode(DataManager* pDM,
 	   << ": semicolon expected at line " << HP.GetLineData() << std::endl;
 	 THROW(DataManager::ErrGeneric());
       }
+
+      std::ostream& out = pDM->GetLogFile();
+      out << "structural node: " << uLabel
+	      << " ", X0.Write(out, " ")
+	      << std::endl;
 
       /* costruzione del nodo */
       if (CurrType == STATIC) {
