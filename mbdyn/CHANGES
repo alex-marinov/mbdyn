@@ -41,6 +41,7 @@ MBDyn 1.2-Engineering
 		  res format
 		- fixed time handling
 		- fixed force ando couple initial assembly
+		- fix rotor output when no induced velocity is used
 
 
 MBDyn 1.1.4

@@ -526,31 +526,32 @@ SubVectorHandler& NoRotor::AssRes(SubVectorHandler& WorkVec,
 				  const VectorHandler& /* XCurr */ ,
 				  const VectorHandler& /* XPrimeCurr */ )
 {
-  DEBUGCOUT("Entering NoRotor::AssRes()" << std::endl);
-   
+   DEBUGCOUT("Entering NoRotor::AssRes()" << std::endl);
+
+   flag out = fToBeOutput();
+  
 #ifdef USE_MPI
-  if (fToBeOutput()) {
-    ExchangeTraction(fToBeOutput());
-  }
-  if (!is_parallel || RotorComm.Get_rank() == 0) {
+   if (out) {
+      ExchangeTraction(out);
+   }
+   if (!is_parallel || RotorComm.Get_rank() == 0) {
 #endif /* USE_MPI */   
-    
-     /* Velocita' angolare del rotore */
-    Vec3 Omega(pRotor->GetWCurr()-pCraft->GetWCurr());
-    dOmega = Omega.Dot();
-    if (dOmega > DBL_EPSILON) {
-      dOmega = sqrt(dOmega);
-    }
+
+      if (out) { 
+         /* Calcola parametri vari */
+         Rotor::InitParam();   
     
 #ifdef USE_MPI 
-    if (fToBeOutput()) {
-      ExchangeVelocity();
-    }
-  }
+         ExchangeVelocity();
 #endif /* USE_MPI */
-  ResetForce();
-  WorkVec.Resize(0);
-  return WorkVec;
+      }
+
+#ifdef USE_MPI 
+   }
+#endif /* USE_MPI */
+   ResetForce();
+   WorkVec.Resize(0);
+   return WorkVec;
 }
 
 std::ostream& NoRotor::Restart(std::ostream& out) const
