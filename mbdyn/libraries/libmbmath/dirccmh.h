@@ -150,10 +150,6 @@ public:
 			const VectorHandler& in) const;
 };
 
-#include "dirccmh.hc"
-
-typedef DirCColMatrixHandler<0> DirCColMatrixHandler0;
-typedef DirCColMatrixHandler<1> DirCColMatrixHandler1;
 
 #endif /* DirCColMatrixHandler_hh */
 

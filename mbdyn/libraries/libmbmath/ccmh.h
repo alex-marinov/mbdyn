@@ -184,7 +184,6 @@ public:
 			const VectorHandler& in) const;
 };
 
-#include "ccmh.hc"
 
 #endif /* CColMatrixHandler_hh */
 

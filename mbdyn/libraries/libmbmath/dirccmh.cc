@@ -36,19 +36,28 @@
 #endif /* HAVE_CONFIG_H */
 
 #include "spmapmh.h"
-#include "ccmh.h"
+#include "dirccmh.h"
 
 template <int off>
-CColMatrixHandler<off>::CColMatrixHandler(std::vector<doublereal>& x,
+DirCColMatrixHandler<off>::DirCColMatrixHandler(std::vector<doublereal>& x,
 		const std::vector<int>& i,
 		const std::vector<int>& p)
-: CompactSparseMatrixHandler(p.size() - 1, p.size() - 1, x, i, p)
+: CompactSparseMatrixHandler(p.size() - 1, p.size() - 1, x, i, p),
+  pindices(NCols + 1), indices(NRows*NCols, -1)
 {
-	NO_OP;
+	for (integer col = 1; col <= NCols; col++) {
+		pindices[col] = &indices[(col - 1)*NRows] - 1;
+
+		int row_begin = p[col - 1], row_end = p[col];
+
+		for (int r = row_begin; r < row_end; r++) {
+			pindices[col][i[r] + 1 - off] = r;
+		}
+	}
 }
 
 template <int off>
-CColMatrixHandler<off>::~CColMatrixHandler()
+DirCColMatrixHandler<off>::~DirCColMatrixHandler()
 {
 	NO_OP;
 }
@@ -57,10 +66,10 @@ CColMatrixHandler<off>::~CColMatrixHandler()
  * while preserving the CC indices */
 template <int off>
 CompactSparseMatrixHandler *
-CColMatrixHandler<off>::Copy(void) const
+DirCColMatrixHandler<off>::Copy(void) const
 {
 	std::vector<doublereal> *pax = new std::vector<doublereal>(Ax);
-	CColMatrixHandler<off> *p = new CColMatrixHandler<off>(*pax, Ai, Ap);
+	DirCColMatrixHandler<off> *p = new DirCColMatrixHandler<off>(*pax, Ai, Ap);
 	p->bMatDuplicate = true;
 
 	return p;
@@ -68,7 +77,7 @@ CColMatrixHandler<off>::Copy(void) const
 
 template <int off>
 int
-CColMatrixHandler<off>::MakeCompressedColumnForm(doublereal *const Ax,
+DirCColMatrixHandler<off>::MakeCompressedColumnForm(doublereal *const Ax,
 		int *const Ai, int *const Ap,
 		int offset) const
 {
@@ -77,7 +86,7 @@ CColMatrixHandler<off>::MakeCompressedColumnForm(doublereal *const Ax,
 
 template <int off>
 int
-CColMatrixHandler<off>::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
+DirCColMatrixHandler<off>::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
 		std::vector<int>& Ai, std::vector<int>& Ap,
 		int offset) const
 {
@@ -86,11 +95,11 @@ CColMatrixHandler<off>::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
 
 template <int off>
 int
-CColMatrixHandler<off>::MakeIndexForm(doublereal *const rAx,
+DirCColMatrixHandler<off>::MakeIndexForm(doublereal *const rAx,
 		integer *const Arow, integer *const Acol,
 		integer *const AcolSt, int offset) const
 {
-	silent_cerr("CColMatrixHandler<off>::MakeIndexForm called" << std::endl);
+	silent_cerr("DirCColMatrixHandler<off>::MakeIndexForm called" << std::endl);
 	THROW(ErrGeneric());
 
 	/*
@@ -116,11 +125,11 @@ CColMatrixHandler<off>::MakeIndexForm(doublereal *const rAx,
 
 template <int off>
 int
-CColMatrixHandler<off>::MakeIndexForm(std::vector<doublereal>& rAx,
+DirCColMatrixHandler<off>::MakeIndexForm(std::vector<doublereal>& rAx,
                 std::vector<integer>& Arow, std::vector<integer>& Acol,
 		std::vector<integer>& AcolSt, int offset) const
 {
-	silent_cerr("CColMatrixHandler<off>::MakeIndexForm called" << std::endl);
+	silent_cerr("DirCColMatrixHandler<off>::MakeIndexForm called" << std::endl);
 
 	rAx.resize(Nz());
 	Arow.resize(Nz());
@@ -133,16 +142,16 @@ CColMatrixHandler<off>::MakeIndexForm(std::vector<doublereal>& rAx,
 
 template <int off>
 void
-CColMatrixHandler<off>::Resize(integer n, integer nn)
+DirCColMatrixHandler<off>::Resize(integer n, integer nn)
 {
-	silent_cerr("CColMatrixHandler<off>::Resize called" << std::endl);
+	silent_cerr("DirCColMatrixHandler<off>::Resize called" << std::endl);
 	THROW(ErrGeneric());
 }
 
 /* Estrae una colonna da una matrice */
 template <int off>
 VectorHandler&
-CColMatrixHandler<off>::GetCol(integer icol, VectorHandler& out) const
+DirCColMatrixHandler<off>::GetCol(integer icol, VectorHandler& out) const
 {
 	/*
 	 * Note: we assume out has been reset
@@ -165,10 +174,10 @@ CColMatrixHandler<off>::GetCol(integer icol, VectorHandler& out) const
 /* Prodotto Matrice per Matrice */
 template <int off>
 SpMapMatrixHandler& 
-CColMatrixHandler<off>::MatMatMul(SpMapMatrixHandler& out,
+DirCColMatrixHandler<off>::MatMatMul(SpMapMatrixHandler& out,
 		const SpMapMatrixHandler& in) const
 {
-	silent_cerr("CColMatrixHandler<off>::MatMatMul called" << std::endl);
+	silent_cerr("DirCColMatrixHandler<off>::MatMatMul called" << std::endl);
 	THROW(ErrGeneric());		
 /*
  * 	if ((in.iGetNumCols() != iGetNumRows())
@@ -196,16 +205,16 @@ CColMatrixHandler<off>::MatMatMul(SpMapMatrixHandler& out,
 /* Moltiplica per uno scalare e somma a una matrice */
 template <int off>
 MatrixHandler&
-CColMatrixHandler<off>::MulAndSumWithShift(MatrixHandler& out, doublereal s,
+DirCColMatrixHandler<off>::MulAndSumWithShift(MatrixHandler& out, doublereal s,
 		integer drow, integer dcol) const
 {
-	silent_cerr("CColMatrixHandler<off>::MulAndSumWithShift called"
+	silent_cerr("DirCColMatrixHandler<off>::MulAndSumWithShift called"
 			<< std::endl);
 	THROW(ErrGeneric());		
 	if ((out.iGetNumCols() < iGetNumCols()+dcol)
 		|| (out.iGetNumRows() < iGetNumRows()+drow)) {
 		silent_cerr("Assertion fault "
-				"in CColMatrixHandler<off>::MulAndSumWithShift"
+				"in DirCColMatrixHandler<off>::MulAndSumWithShift"
 				<< std::endl);
 		THROW(ErrGeneric());
 	}
@@ -223,19 +232,19 @@ CColMatrixHandler<off>::MulAndSumWithShift(MatrixHandler& out, doublereal s,
 
 template <int off>
 MatrixHandler&
-CColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out, 
+DirCColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out, 
 		std::vector<bool> b,
 		doublereal s,
 		integer drow, 
 		integer dcol) const
 {
-	silent_cerr("CColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift "
+	silent_cerr("DirCColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift "
 			"called" << std::endl);
 	THROW(ErrGeneric());		
 	if ((out.iGetNumCols() < iGetNumCols()+dcol)
 			|| (out.iGetNumRows() < iGetNumRows()+drow)) {
 		silent_cerr("Assertion fault "
-				"in CColMatrixHandler<off>::MulAndSumWithShift"
+				"in DirCColMatrixHandler<off>::MulAndSumWithShift"
 				<< std::endl);
 		THROW(ErrGeneric());
 	}
@@ -255,10 +264,10 @@ CColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
 	
 template <int off>
 VectorHandler&
-CColMatrixHandler<off>::MatTVecMul(VectorHandler& out,
+DirCColMatrixHandler<off>::MatTVecMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
-	silent_cerr("CColMatrixHandler<off>::MatTVecMul called" << std::endl);
+	silent_cerr("DirCColMatrixHandler<off>::MatTVecMul called" << std::endl);
 	THROW(ErrGeneric());		
 	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols()) {
@@ -279,10 +288,10 @@ CColMatrixHandler<off>::MatTVecMul(VectorHandler& out,
 	
 template <int off>
 VectorHandler&
-CColMatrixHandler<off>::MatVecMul(VectorHandler& out,
+DirCColMatrixHandler<off>::MatVecMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
-	silent_cerr("CColMatrixHandler<off>::MatTVecMul called" << std::endl);
+	silent_cerr("DirCColMatrixHandler<off>::MatTVecMul called" << std::endl);
 	THROW(ErrGeneric());		
 	if (in.iGetSize() != iGetNumCols() 
 			|| out.iGetSize() != iGetNumRows()) {
@@ -295,10 +304,10 @@ CColMatrixHandler<off>::MatVecMul(VectorHandler& out,
 
 template <int off>
 VectorHandler&
-CColMatrixHandler<off>::MatTVecIncMul(VectorHandler& out,
+DirCColMatrixHandler<off>::MatTVecIncMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
-	silent_cerr("CColMatrixHandler<off>::MatTVecMul called" << std::endl);
+	silent_cerr("DirCColMatrixHandler<off>::MatTVecMul called" << std::endl);
 	THROW(ErrGeneric());		
 	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols()) {
@@ -319,9 +328,9 @@ CColMatrixHandler<off>::MatTVecIncMul(VectorHandler& out,
 	
 template <int off>
 VectorHandler&
-CColMatrixHandler<off>::MatVecIncMul(VectorHandler& out,
+DirCColMatrixHandler<off>::MatVecIncMul(VectorHandler& out,
 		const VectorHandler& in) const {
-	silent_cerr("CColMatrixHandler<off>::MatTVecMul called" << std::endl);
+	silent_cerr("DirCColMatrixHandler<off>::MatTVecMul called" << std::endl);
 	THROW(ErrGeneric());		
 	if (in.iGetSize() != iGetNumCols()
 			|| out.iGetSize() != iGetNumRows()) {
@@ -341,10 +350,10 @@ CColMatrixHandler<off>::MatVecIncMul(VectorHandler& out,
 
 template <int off>
 VectorHandler&
-CColMatrixHandler<off>::MatVecDecMul(VectorHandler& out,
+DirCColMatrixHandler<off>::MatVecDecMul(VectorHandler& out,
 		const VectorHandler& in) const
 {
-	silent_cerr("CColMatrixHandler<off>::MatTVecMul called" << std::endl);
+	silent_cerr("DirCColMatrixHandler<off>::MatTVecMul called" << std::endl);
 	THROW(ErrGeneric());		
 	if (in.iGetSize() != iGetNumCols()
 			|| out.iGetSize() != iGetNumRows()) {
@@ -362,3 +371,5 @@ CColMatrixHandler<off>::MatVecDecMul(VectorHandler& out,
 	return out;
 }
 
+class DirCColMatrixHandler<0>;
+class DirCColMatrixHandler<1>;
