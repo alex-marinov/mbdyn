@@ -397,6 +397,7 @@ class PlanePinJoint : virtual public Elem, public Joint {
    Mat3x3 Rh;
    Vec3 F;
    Vec3 M;
+   mutable doublereal dTheta;
    
  public:
    /* Costruttore non banale */
@@ -427,6 +428,11 @@ class PlanePinJoint : virtual public Elem, public Joint {
       ASSERT(i >= 0 && i < 5);
       return DofOrder::ALGEBRAIC;
    };
+
+	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+
+	virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP);
 
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
       *piNumRows = 11; 
@@ -464,6 +470,11 @@ class PlanePinJoint : virtual public Elem, public Joint {
    SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
 				   const VectorHandler& XCurr);
 
+   /* Dati privati */
+   virtual unsigned int iGetNumPrivData(void) const;
+   virtual unsigned int iGetPrivDataIdx(const char *s) const;
+   virtual doublereal dGetPrivData(unsigned int i) const;
+   
  /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */

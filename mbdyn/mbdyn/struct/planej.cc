@@ -2197,7 +2197,7 @@ PlanePinJoint::PlanePinJoint(unsigned int uL, const DofOwner* pDO,
 Joint(uL, Joint::PLANEPIN, pDO, fOut), 
 pNode(pN), 
 X0(X0Tmp), R0(R0Tmp), d(dTmp), Rh(RhTmp),
-F(0.), M(0.)
+F(0.), M(0.), dTheta(0.)
 {
    NO_OP;
 }
@@ -2208,6 +2208,27 @@ PlanePinJoint::~PlanePinJoint(void)
 {
    NO_OP;
 };
+
+
+void
+PlanePinJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
+{
+	Mat3x3 R(pNode->GetRCurr()*Rh);
+	Mat3x3 RTmp(R0.Transpose()*R);
+	Vec3 v(MatR2EulerAngles(RTmp));
+
+	dTheta = v.dGet(3);
+}
+
+void
+PlanePinJoint::AfterConvergence(const VectorHandler& X, 
+		const VectorHandler& XP)
+{
+	Mat3x3 RTmp(pNode->GetRPrev().Transpose()*pNode->GetRCurr());
+	Vec3 v(MatR2EulerAngles(RTmp));
+
+	dTheta += v.dGet(3);
+}
 
 
 /* Contributo al file di restart */
@@ -2659,6 +2680,57 @@ PlanePinJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.fPutCoef(22, e1.Dot(Tmp));
       
    return WorkVec;
+}
+
+unsigned int
+PlanePinJoint::iGetNumPrivData(void) const
+{
+	return 2;
+}
+
+unsigned int
+PlanePinJoint::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+
+	if (strcmp(s, "rz") == 0) {
+		return 1;
+	}
+
+	if (strcmp(s, "wz") == 0) {
+		return 2;
+	}
+
+	return 0;
+}
+
+doublereal
+PlanePinJoint::dGetPrivData(unsigned int i) const
+{
+   ASSERT(i >= 1 && i <= iGetNumPrivData());
+   
+   switch (i) {
+    case 1: {
+	Mat3x3 RTmp(pNode->GetRPrev().Transpose()*pNode->GetRCurr());
+	Vec3 v(MatR2EulerAngles(RTmp));
+
+       return dTheta + v.dGet(3);
+    }
+      
+    case 2: {
+       Mat3x3 R(pNode->GetRCurr()*Rh);
+       Mat3x3 RTmp((R0).Transpose()*R);
+   
+       Mat3x3 RT(R.Transpose());
+       Vec3 v(RT*(pNode->GetWCurr()));
+       
+       return -v.dGet(3);
+    }
+      
+    default:
+      std::cerr << "Illegal private data" << std::endl;
+      THROW(ErrGeneric());
+   }
 }
 
 /* PlanePinJoint - end */
