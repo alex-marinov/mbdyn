@@ -45,7 +45,7 @@ RTAIInDrive::RTAIInDrive(unsigned int uL,
 			 const char* const sFileName,
 			 const char *h,
 			 integer nd, bool c, int n)
-: StreamDrive(uL, pDH, sFileName, ndi, c),
+: StreamDrive(uL, pDH, sFileName, nd, c),
 host(h), node(n), port(-1), mbx(NULL)
 {
 	if (create) {
