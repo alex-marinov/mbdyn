@@ -326,19 +326,25 @@ Solver::Run(void)
 		 * da ogni processo aggiungendo al termine 
 		 * dell'OutputFileName il rank del processo 
 		 */
-		int iRankLength = 3;	/* should be configurable? */
+		ASSERT(MPI::COMM_WORLD.Get_size() > 1);
+		int iRankLength = 1 + (int)log10(MPI::COMM_WORLD.Get_size() - 1);
+
 		char* sNewOutName = NULL;
 		const char* sOutName = NULL;
+		int iOutLen;
 
 		if (sOutputFileName == NULL) {
-			int iOutLen = strlen(sInputFileName);
-			SAFENEWARR(sNewOutName, char, iOutLen+1+iRankLength+1);
+			iOutLen = strlen(sInputFileName);
+
 			sOutName = sInputFileName;
+
 		} else {
-			int iOutLen = strlen(sOutputFileName);
-			SAFENEWARR(sNewOutName, char, iOutLen+1+iRankLength+1);
+			iOutLen = strlen(sOutputFileName);
+			
 			sOutName = sOutputFileName;
 		}
+
+		SAFENEWARR(sNewOutName, char, iOutLen + 1 + iRankLength + 1);
 		sprintf(sNewOutName,"%s.%.*d", sOutName, iRankLength, MyRank);
 
 		DEBUGLCOUT(MYDEBUG_MEM, "creating parallel SchurDataManager" 
