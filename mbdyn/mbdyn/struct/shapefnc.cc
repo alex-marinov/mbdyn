@@ -43,6 +43,9 @@ const doublereal dN2_2 = .5;            /* ShapeFunc3N(0., 2, 0) */
 const doublereal dN2P_1 = -.5;          /* ShapeFunc2N(0., 1, 1) */
 const doublereal dN2P_2 = .5;           /* ShapeFunc2N(0., 2, 1) */
 
+const doublereal dN2PP_1 = 0.;          /* ShapeFunc2N(0., 1, 2) */
+const doublereal dN2PP_2 = 0.;          /* ShapeFunc2N(0., 2, 2) */
+
 /* Per l'interpolazione piu' compatta */
 const doublereal dN2[2] = {
 	dN2_1, dN2_2
@@ -52,15 +55,18 @@ const doublereal dN2P[2] = {
 	dN2P_1, dN2P_2
 };
 
+const doublereal dN2PP[2] = {
+	dN2PP_1, dN2PP_2
+};
+
 /* Funzioni di interpolazione */
 doublereal 
-ShapeFunc2N(doublereal d, integer iNode, integer iOrd)
+ShapeFunc2N(doublereal d, integer iNode, enum Order Ord)
 {
-	ASSERT(iOrd == 0 || iOrd == 1);
 	ASSERT(iNode == 1 || iNode == 2);
 	
-	switch (iOrd) {
-	case 0:
+	switch (Ord) {
+	case ORD_ALG:
 		switch (iNode) {
 		case 1:
 			return .5*(1.-d);
@@ -72,13 +78,25 @@ ShapeFunc2N(doublereal d, integer iNode, integer iOrd)
 			THROW(ErrGeneric());
 		}
 		
-	case 1:
+	case ORD_D1:
 		switch (iNode) {
 		case 1:		
 			return -.5;
 			
 		case 2:
 			return .5;
+			
+		default:
+			THROW(ErrGeneric());
+		}
+		
+	case ORD_D2:
+		switch (iNode) {
+		case 1:		
+			return 0.;
+			
+		case 2:
+			return 0.;
 			
 		default:
 			THROW(ErrGeneric());
@@ -92,8 +110,8 @@ ShapeFunc2N(doublereal d, integer iNode, integer iOrd)
 doublereal
 DxDcsi2N(doublereal d, const Vec3& X1, const Vec3& X2)
 {
-	doublereal dN1p = ShapeFunc2N(d, 1, 1);
-	doublereal dN2p = ShapeFunc2N(d, 2, 1);
+	doublereal dN1p = ShapeFunc2N(d, 1, ORD_D1);
+	doublereal dN2p = ShapeFunc2N(d, 2, ORD_D1);
 	Vec3 DXDcsi(X1*dN1p+X2*dN2p);
 	doublereal dd = DXDcsi.Dot();
 
@@ -116,6 +134,10 @@ const doublereal dN1P_I = -(2.*sqrt(3.)+3.)/6.;  /* ShapeFunc3N(-dS, 1, 1) */
 const doublereal dN2P_I = 2./sqrt(3.);           /* ShapeFunc3N(-dS, 2, 1) */
 const doublereal dN3P_I = -(2.*sqrt(3.)-3.)/6.;  /* ShapeFunc3N(-dS, 3, 1) */
 
+const doublereal dN1PP_I = 1.;                   /* ShapeFunc3N(-dS, 1, 2) */
+const doublereal dN2PP_I = -2.;                  /* ShapeFunc3N(-dS, 2, 2) */
+const doublereal dN3PP_I = 1.;                   /* ShapeFunc3N(-dS, 3, 2) */
+
 /* Funzioni di forma e loro derivate - punto II */
 const doublereal dN1II = dN3_I;
 const doublereal dN2II = dN2_I;
@@ -124,6 +146,10 @@ const doublereal dN3II = dN1_I;
 const doublereal dN1PII = -dN3P_I;
 const doublereal dN2PII = -dN2P_I;
 const doublereal dN3PII = -dN1P_I;
+
+const doublereal dN1PPII = dN3PP_I;
+const doublereal dN2PPII = dN2PP_I;
+const doublereal dN3PPII = dN1PP_I;
 
 /* Per l'interpolazione piu' compatta */
 const doublereal dN3[2][3] = {
@@ -136,14 +162,19 @@ const doublereal dN3P[2][3] = {
 	{ dN1PII, dN2PII, dN3PII }
 };
 
+const doublereal dN3PP[2][3] = {
+	{ dN1PP_I, dN2PP_I, dN3PP_I },
+	{ dN1PPII, dN2PPII, dN3PPII }
+};
+
 doublereal 
-ShapeFunc3N(doublereal d, integer iNode, integer iOrd)
+ShapeFunc3N(doublereal d, integer iNode, enum Order Ord)
 {
-	ASSERT(iOrd == 0 || iOrd == 1);
+	ASSERT(iOrd == 0 || iOrd == 1 || iOrd == 2);
 	ASSERT(iNode == 1 || iNode == 2 || iNode == 3);
 	
-	switch (iOrd) {
-	case 0:
+	switch (Ord) {
+	case ORD_ALG:
 		switch (iNode) {
 		case 1:		
 			return .5*d*(d-1.);
@@ -158,7 +189,7 @@ ShapeFunc3N(doublereal d, integer iNode, integer iOrd)
 			THROW(ErrGeneric());
 		}
 		
-	case 1:
+	case ORD_D1:
 		switch (iNode) {
 		case 1:		
 			return d-.5;
@@ -172,6 +203,20 @@ ShapeFunc3N(doublereal d, integer iNode, integer iOrd)
 		default:
 			THROW(ErrGeneric());
 		}
+	case ORD_D2:
+		switch (iNode) {
+		case 1:		
+			return 1.;
+			
+		case 2:
+			return -2.;
+			
+		case 3:
+			return 1.;
+			
+		default:
+			THROW(ErrGeneric());
+		}
 	}
 	
 	/* Per evitare warnings */
@@ -181,9 +226,9 @@ ShapeFunc3N(doublereal d, integer iNode, integer iOrd)
 doublereal
 DxDcsi3N(doublereal d, const Vec3& X1, const Vec3& X2, const Vec3& X3)
 {
-	doublereal dN1p = ShapeFunc3N(d, 1, 1);
-	doublereal dN2p = ShapeFunc3N(d, 2, 1);
-	doublereal dN3p = ShapeFunc3N(d, 3, 1);
+	doublereal dN1p = ShapeFunc3N(d, 1, ORD_D1);
+	doublereal dN2p = ShapeFunc3N(d, 2, ORD_D1);
+	doublereal dN3p = ShapeFunc3N(d, 3, ORD_D1);
 	Vec3 DXDcsi(X1*dN1p+X2*dN2p+X3*dN3p);
 	doublereal dd = DXDcsi.Dot();
 

@@ -38,20 +38,24 @@
 #include "myassert.h"
 #include "except.h"
 
+enum Order { ORD_ALG = 0, ORD_D1 = 1, ORD_D2 = 2 };
+
 /* Funzioni di interpolazione */
 extern const doublereal dN3[2][3];
 extern const doublereal dN3P[2][3];
+extern const doublereal dN3PP[2][3];
 
 extern doublereal 
-ShapeFunc2N(doublereal d, integer iNode, integer iOrd = 0);
+ShapeFunc2N(doublereal d, integer iNode, enum Order Ord = ORD_ALG);
 extern doublereal 
 DxDcsi2N(doublereal d, const Vec3& X1, const Vec3& X2);
 
 extern const doublereal dN2[2];
 extern const doublereal dN2P[2];
+extern const doublereal dN2PP[2];
 
 extern doublereal
-ShapeFunc3N(doublereal d, integer iNode, integer iOrd = 0);
+ShapeFunc3N(doublereal d, integer iNode, enum Order Ord = ORD_ALG);
 extern doublereal
 DxDcsi3N(doublereal d, const Vec3& X1, const Vec3& X2, const Vec3& X3);
 
