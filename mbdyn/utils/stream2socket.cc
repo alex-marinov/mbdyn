@@ -53,24 +53,26 @@ void
 usage(int rc)
 {
 	silent_cerr(
-"MBDyn (C) is a multibody analysis code.\n"
-"http://www.mbdyn.org\n"
 "\n"
-"Copyright (C) 1996-2004\n"
+"    MBDyn (C) is a multibody analysis code.\n"
+"    http://www.mbdyn.org\n"
 "\n"
-"Pierangelo Masarati	<masarati@aero.polimi.it>\n"
+"    Copyright (C) 1996-2004\n"
 "\n"
-"Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano\n"
-"via La Masa, 34 - 20156 Milano, Italy\n"
-"http://www.aero.polimi.it\n"
+"    Pierangelo Masarati	<masarati@aero.polimi.it>\n"
 "\n"
-"usage: stream2socket [options]\n"
+"    Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano\n"
+"    via La Masa, 34 - 20156 Milano, Italy\n"
+"    http://www.aero.polimi.it\n"
 "\n"
-"    -h <host>\t"	"host name (for INET sockets; default: \"localhost\")\n"
+"    usage: stream2socket [options]\n"
+"\n"
+"    -C\t\t\t"		"create socket (default: connect to existing)\n"
+"    -h <host>\t\t"	"host name (for INET sockets; default: \"localhost\")\n"
 "    -n <channels>\t"	"number of channels (default: auto-detect)\n"
-"    -p <port>\t"	"port number (for INET sockets)\n"
-"    -P <path>\t"	"path (for LOCAL sockets)\n"
-"    -s\t\t"		"decrease verbosity level\n"
+"    -p <port>\t\t"	"port number (for INET sockets)\n"
+"    -P <path>\t\t"	"path (for LOCAL sockets)\n"
+"    -s\t\t\t"		"decrease verbosity level\n"
 			<< std::endl);
 	exit(rc);
 }
@@ -83,15 +85,20 @@ main(int argc, char *argv[])
 	int	port = -1;
 	char	*path = 0;
 	char	*next;
+	bool	create = false;
 
 	while (true) {
-		int opt = getopt(argc, argv, "h:n:p:P:s");
+		int opt = getopt(argc, argv, "Ch:n:p:P:s");
 
 		if (opt == EOF) {
 			break;
 		}
 
 		switch (opt) {
+		case 'C':
+			create = true;
+			break;
+
 		case 'h':
 			host = optarg;
 			break;
