@@ -3052,7 +3052,6 @@ Solver::ReadData(MBDynParser& HP)
 #endif /* ! USE_MULTITHREAD */
 				
 			} else {
-#ifdef USE_MULTITHREAD
 				bool bAssembly = false;
 				bool bSolver = false;
 				bool bAll = true;
@@ -3069,6 +3068,7 @@ Solver::ReadData(MBDynParser& HP)
 
 				nt = HP.GetInt();
 
+#ifdef USE_MULTITHREAD
 				if (bAll || bAssembly) {
 					nThreads = nt;
 				}
@@ -3078,7 +3078,6 @@ Solver::ReadData(MBDynParser& HP)
 					nSolverThreads = nt;
 				}
 #else /* ! USE_MULTITHREAD */
-				(void)HP.GetInt();
 				silent_cerr("configure with "
 						"--enable-multithread "
 						"for multithreaded assembly"
