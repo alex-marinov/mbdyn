@@ -33,13 +33,15 @@
 #ifndef REFFRM_H
 #define REFFRM_H
 
-#include "myassert.h"
-#include "mynewmem.h"
+#include <ac/iostream>
 
-#include "withlab.h"
-#include "matvec3.h"
+#include <myassert.h>
+#include <mynewmem.h>
 
-#include "strnode.h"
+#include <withlab.h>
+#include <matvec3.h>
+
+#include <strnode.h>
 
 class ReferenceFrame : public WithLabel {
 private:
@@ -92,6 +94,13 @@ public:
 		v = rf.v;
 		w = rf.w;
 		return *this;
+	};
+
+	ostream& Output(ostream& out) const {
+		return out 
+			<< std::setw(8) << GetLabel() << " "
+			<< x << " " << EulerAngles(R) << " "
+			<< v << " " << w << " " << std::endl;
 	};
 };
 

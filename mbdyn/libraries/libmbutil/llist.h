@@ -45,11 +45,11 @@
  * if(pmrIn == NULL) {
  *    // error ...
  * }
- * if(!LL.iAdd(pmrIn)) {
+ * if(!LL.Add(pmrIn)) {
  *    // error ...
  * }
  * MyRand* pmrOut = NULL;
- * if(!LL.iGetFirst(pmrOut)) {
+ * if(!LL.GetFirst(pmrOut)) {
  *    // error ...
  * }
  * if(pmrOut->GetLabel() != pmrIn->GetLabel()) {
@@ -83,7 +83,7 @@ class MyLList {
    };      
    
    LLItem* pBase;
-   LLItem* pCurr;
+   mutable LLItem* pCurr;
    
    long int iSize;
    
@@ -120,15 +120,15 @@ class MyLList {
    ~MyLList(void);
    
    /* Gestione lista */
-   int iAdd(const T* pTIn);
-   int iRemove(unsigned int uLabel);
+   bool Add(const T* pTIn);
+   bool Remove(unsigned int uLabel);
       
    /* Ricerca per chiave */
    const T* Get(unsigned int uLabel) const;
 
    /* Iteratore built-in */
-   int iGetFirst(T*& pTOut) const;
-   int iGetNext(T*& pTOut) const;
+   bool GetFirst(T*& pTOut) const;
+   bool GetNext(T*& pTOut) const;
    
    /* Numero di elementi nella lista */
    long int iGetSize(void) const { return iSize; };
@@ -192,26 +192,26 @@ MyLList<T>::LLItem* MyLList<T>::pFind(unsigned int uLabel)
 
 
 template <class T>
-int MyLList<T>::iAdd(const T* pTIn)
+bool MyLList<T>::Add(const T* pTIn)
 {
    ASSERT(pTIn != NULL);
       
-   LLItem* p = pFindPrev(pTIn->GetLabel());
+   const LLItem* p = pFindPrev(pTIn->GetLabel());
    if ((p->pNext->pTItem != NULL) 
       && (p->pNext->pTItem->GetLabel() == pTIn->GetLabel())) {
-      return 1;
+      return true;
    }
    
    LLItem* pn = NULL;
    SAFENEWWITHCONSTRUCTOR(pn, LLItem, LLItem(p->pNext, pTIn));
    (LLItem*&)(p->pNext) = pn;
    iSize++;
-   return 0;
+   return false;
 }
 
 
 template <class T>
-int MyLList<T>::iRemove(unsigned int uLabel)
+bool MyLList<T>::Remove(unsigned int uLabel)
 {
    // ASSERT(uLabel > 0);
    LLItem* p = pFindPrev(uLabel);
@@ -226,9 +226,9 @@ int MyLList<T>::iRemove(unsigned int uLabel)
       ASSERT(iSize > 0);
       iSize--;
       
-      return 1;
+      return true;
    }
-   return 0;
+   return false;
 }
 
   
@@ -244,26 +244,27 @@ const T* MyLList<T>::Get(unsigned int uLabel) const
 
 
 template <class T>
-int MyLList<T>::iGetFirst(T*& pTOut) const
+bool MyLList<T>::GetFirst(T*& pTOut) const
 {
    if (pBase->pNext == pBase) {
-      return 0;
+      return false;
    }
    (LLItem*&)pCurr = (LLItem*)pBase->pNext;
    pTOut = (T*)(pCurr->pTItem);
-   return 1;
+   return true;
 }
 
 
 template <class T>
-int MyLList<T>::iGetNext(T*& pTOut) const
+bool MyLList<T>::GetNext(T*& pTOut) const
 {
-   (LLItem*&)pCurr = (LLItem*)(pCurr->pNext);
+   pCurr = (LLItem*)(pCurr->pNext);
    if (pCurr == pBase) {
-      return 0;
+      return false;
    }
    pTOut = (T*)(pCurr->pTItem);
-   return 1;
+   return true;
 }
 
-#endif
+#endif /* LLIST_H */
+

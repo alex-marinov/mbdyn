@@ -83,7 +83,7 @@ IncludeParser::~IncludeParser(void)
 void IncludeParser::Close(void)
 {
    	MyInput* pmi = NULL;
-   	if (MyInStack.iPop(pmi)) {
+   	if (MyInStack.Pop(pmi)) {
       		ASSERT(pmi != NULL);
       		/* Nota: deve esserci solo l'ultimo file */
       		ASSERT(pf != NULL);
@@ -150,7 +150,7 @@ flag
 IncludeParser::fCheckStack(void)
 {
    	MyInput* pmi = NULL;
-   	if (MyInStack.iPop(pmi)) {
+   	if (MyInStack.Pop(pmi)) {
       		ASSERT(pmi != NULL);
       		/* 
        		 * Nota: se la stack e' piena, allora sia pf che pIn

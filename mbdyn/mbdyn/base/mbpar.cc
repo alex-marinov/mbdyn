@@ -137,7 +137,7 @@ MBDynParser::Reference_(void)
 	SAFENEWWITHCONSTRUCTOR(pRF,
 		ReferenceFrame,
 		ReferenceFrame(uLabel, x, R, v, w));
-	if (RF.iAdd(pRF)) {
+	if (RF.Add(pRF)) {
 		std::cerr << "Reference frame " << uLabel
 			<< " already defined at line " << GetLineData()
 			<< std::endl;
@@ -180,7 +180,7 @@ MBDynParser::HydraulicFluid_(void)
 	}
 	PutKeyTable(CurrTable);
 	
-	if (HF.iAdd(pHF)) {
+	if (HF.Add(pHF)) {
 		std::cerr << "hydraulic fluid " << uLabel
 			<< " already defined at line " << GetLineData()
 			<< std::endl;
@@ -240,7 +240,7 @@ MBDynParser::C81Data_(void)
 	}
 #endif
 
-	if (AD.iAdd(data)) {
+	if (AD.Add(data)) {
 		std::cerr << "c81 data " << uLabel
 			<< " already defined at line " << GetLineData()
 			<< std::endl;
@@ -376,6 +376,19 @@ MBDynParser::GetRef(ReferenceFrame& rf)
 	
 	rf = *pRF;
 	return MBDynParser::REFERENCE;   
+}
+
+void 
+MBDynParser::OutputFrames(ostream& out) const
+{
+	ReferenceFrame *pRF = NULL;
+
+	if (!RF.GetFirst(pRF)) {
+		return;	
+	}
+	do {
+		pRF->Output(out);
+	} while (RF.GetNext(pRF));
 }
 
 Vec3 

@@ -167,7 +167,7 @@ integer DriveHandler::iRandInit(integer iSteps)
       
       MyRand** ppmr = ppMyRand;
       MyRand* pmr = NULL;
-      if (!MyRandLL.iGetFirst(pmr)) {
+      if (!MyRandLL.GetFirst(pmr)) {
 	 std::cerr << "Error in getting first random drive data" << std::endl;
 	 
 	 THROW(ErrGeneric());
@@ -179,7 +179,7 @@ integer DriveHandler::iRandInit(integer iSteps)
       do {
 	 ASSERT(++iCnt <= iRandDriveSize); 	  
 	 *ppmr++ = pmr;	 
-      } while (MyRandLL.iGetNext(pmr));
+      } while (MyRandLL.GetNext(pmr));
 	                   
       return 0;
    }
@@ -191,7 +191,7 @@ integer DriveHandler::iRandInit(integer iSteps)
 			  MyRand, 
 			  MyRand((unsigned int)iNumber, iSteps, rand()));
    
-   if (MyRandLL.iAdd(pmr)) {
+   if (MyRandLL.Add(pmr)) {
       std::cerr << "Error in insertion of random driver data" << std::endl;
       THROW(ErrGeneric());
    }

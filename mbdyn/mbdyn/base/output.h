@@ -70,8 +70,9 @@ class OutputHandler : public FileName {
       ADAMSRES    = 16,
       ADAMSCMD    = 17,
       AEROMODALS  = 18,
+      REFERENCEFRAMES	= 19,
       
-      LASTFILE    /* = 19 */
+      LASTFILE    /* = 20 */
    };   
    
  private:
@@ -102,6 +103,7 @@ class OutputHandler : public FileName {
    std::ofstream ofAdamsRes;
    std::ofstream ofAdamsCmd;
    std::ofstream ofAeroModals;
+   std::ofstream ofReferenceFrames;
    
    int iCurrWidth;
    int iCurrPrecision;
@@ -291,6 +293,13 @@ class OutputHandler : public FileName {
       ASSERT(ofAeroModals.is_open());
 #endif /* HAVE_ISOPEN */
       return (std::ostream&)ofAeroModals;	  
+   };   
+
+   inline std::ostream& ReferenceFrames(void) const {
+#if HAVE_ISOPEN
+      ASSERT(ofReferenceFrames.is_open());
+#endif /* HAVE_ISOPEN */
+      return (std::ostream&)ofReferenceFrames;	  
    };   
 
    inline int iW(void) const { 

@@ -65,6 +65,7 @@ const char* psExt[] = {
    ".res",
    ".ada",
    ".amd",
+   ".rfm",
    
    NULL
 };
@@ -92,6 +93,7 @@ ofPartition(),
 ofAdamsRes(),
 ofAdamsCmd(),
 ofAeroModals(),
+ofReferenceFrames(),
 iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
 {
    OutData[OUTPUT].fToUseDefaultPrecision = flag(0);
@@ -169,6 +171,10 @@ iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
    OutData[AEROMODALS].fToUseDefaultPrecision = flag(1);
    OutData[AEROMODALS].fToUseScientific = flag(1);
    OutData[AEROMODALS].pof = &ofAeroModals;
+   
+   OutData[REFERENCEFRAMES].fToUseDefaultPrecision = flag(1);
+   OutData[REFERENCEFRAMES].fToUseScientific = flag(1);
+   OutData[REFERENCEFRAMES].pof = &ofReferenceFrames;
 }
 
 
@@ -195,6 +201,7 @@ ofPartition(),
 ofAdamsRes(),
 ofAdamsCmd(),
 ofAeroModals(),
+ofReferenceFrames(),
 iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
 {
    OutData[OUTPUT].fToUseDefaultPrecision = flag(0);
@@ -274,6 +281,10 @@ iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
    OutData[AEROMODALS].fToUseDefaultPrecision = flag(1);
    OutData[AEROMODALS].fToUseScientific = flag(1);
    OutData[AEROMODALS].pof = &ofAeroModals;
+   
+   OutData[REFERENCEFRAMES].fToUseDefaultPrecision = flag(1);
+   OutData[REFERENCEFRAMES].fToUseScientific = flag(1);
+   OutData[REFERENCEFRAMES].pof = &ofReferenceFrames;
 }
 
 

@@ -84,11 +84,11 @@ class LLStack {
       pTop = p;
    };
    
-   int iPop(T*& pTOut) {
+   bool Pop(T*& pTOut) {
       ASSERT(pTop != NULL);
       
       /* Empty stack ? */
-      if(iIsEmpty()) {
+      if(IsEmpty()) {
 #ifdef DEBUG
 	 pTOut = NULL;
 #endif	   
@@ -103,8 +103,8 @@ class LLStack {
       return 1;
    };
    
-   inline int iIsEmpty(void) const { 
-      return int(pTop->pnext == NULL);
+   inline bool IsEmpty(void) const { 
+      return (pTop->pnext == NULL);
    };
 };
 

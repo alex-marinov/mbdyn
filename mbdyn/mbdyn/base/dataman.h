@@ -98,6 +98,7 @@ class DataManager : public SolutionDataManager {
 #if defined(USE_STRUCT_NODES)   
    flag fInitialJointAssemblyToBeMade;
    flag fSkipInitialJointAssembly;
+   flag fOutputFrames;
    doublereal dInitialPositionStiffness;
    doublereal dInitialVelocityStiffness;
    flag fOmegaRotates;

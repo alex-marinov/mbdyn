@@ -68,7 +68,7 @@ const flag fDefaultOmegaRotates = flag(0);
 const doublereal dDefaultInitialAssemblyToll = 1.e-6;
 const integer iDefaultMaxInitialIterations = 1;
 
-const char sDefaultOutputFileName[] = "Mbdyn";
+const char sDefaultOutputFileName[] = "MBDyn";
 
 
 
@@ -92,6 +92,7 @@ pXCurr(NULL), pXPrimeCurr(NULL),
 #if defined(USE_STRUCT_NODES)
 fInitialJointAssemblyToBeMade(fDefaultInitialJointAssemblyToBeMade),
 fSkipInitialJointAssembly(fDefaultSkipInitialJointAssembly),
+fOutputFrames(0),
 dInitialPositionStiffness(dDefaultInitialStiffness), 
 dInitialVelocityStiffness(dDefaultInitialStiffness),
 fOmegaRotates(fDefaultOmegaRotates),
@@ -327,8 +328,15 @@ DofIter()
    } else {
       DEBUGCERR("");
       std::cerr << "warning, no elements are defined" << std::endl;
-   }   
-	
+   }
+
+#ifdef USE_STRUCT_NODES
+   if (fOutputFrames) {
+      OutHdl.Open(OutputHandler::REFERENCEFRAMES);
+      HP.OutputFrames(OutHdl.ReferenceFrames());
+   }
+#endif /* USE_STRUCT_NODES */
+
    /* fine lettura elementi */     
    
    

@@ -112,7 +112,9 @@ void DataManager::ReadControl(MBDynParser& HP,
       "adams" "res" "output",
       "default" "output",
       "all",	
-      "none"
+      "none",
+      "reference" "frames",
+      NULL
    };
    
    
@@ -167,6 +169,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       DEFAULTOUTPUT,
       ALL,
       NONE,
+      REFERENCEFRAMES,
       LASTKEYWORD
    };
    
@@ -673,6 +676,12 @@ void DataManager::ReadControl(MBDynParser& HP,
 		 }			 
 		 break;
 	      }
+
+#if defined(USE_STRUCT_NODES)
+	      case REFERENCEFRAMES:
+		 fOutputFrames = 1;
+		 break;
+#endif /* USE_STRUCT_NODES */
 
 #if defined(USE_STRUCT_NODES)
 	      case STRUCTURALNODES: {
