@@ -186,6 +186,7 @@ OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[au
 OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math library - historical],auto,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library - historical],auto,[auto yes no])
 OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library - eXperimental],auto,[auto yes no])
+OL_ARG_WITH(wsmp,[  --with-wsmp             with Watson library - eXperimental],auto,[auto yes no])
 
 dnl temporarily disabled until we find out how to make it work...
 dnl OL_ARG_WITH(taucs,[  --with-taucs            with TAUCS math library - eXperimental],auto,[auto yes no])
@@ -240,6 +241,7 @@ BLAS_LIBS=
 THREAD_LIBS=
 MESCHACH_LIBS=
 SUPERLU_LIBS=
+WSMP_LIBS=
 HARWELL_LIBS=
 LAPACK_LIBS=
 TAUCS_LIBS=
@@ -1415,6 +1417,24 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Check for Watson wsmp
+dnl
+ol_link_wsmp=no
+if test $ol_with_wsmp != no ; then
+	try_wsmp_LIBS="-lwsmp"
+	AC_CHECK_LIB(wsmp,wgsmp_,[have_wsmp=yes],[have_wsmp=no],[$try_wsmp_LIBS])
+	if test "$have_wsmp" = "yes" ; then
+		AC_DEFINE(HAVE_WSMP,1,[define to use Watson wsmp library])
+		WSMP_LIBS="$try_wsmp_LIBS"
+	else
+		if test "$ol_with_wsmp" = "yes" ; then
+			AC_MSG_ERROR([wsmp library not available])
+		fi
+	fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for Y12
 dnl
 ol_link_y12=no
@@ -2063,6 +2083,7 @@ AC_SUBST(METIS_LIBS)
 AC_SUBST(UMFPACK_LIBS)
 AC_SUBST(Y12_LIBS)
 AC_SUBST(SUPERLU_LIBS)
+AC_SUBST(WSMP_LIBS)
 AC_SUBST(HARWELL_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)

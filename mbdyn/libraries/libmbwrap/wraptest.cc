@@ -52,6 +52,7 @@
 #include <taucswrap.h>
 #include <naivewrap.h>
 #include <parnaivewrap.h>
+#include <wsmpwrap.h>
 
 char *solvers[] = {
 #if defined(USE_Y12)
@@ -74,6 +75,9 @@ char *solvers[] = {
 #endif
 #if defined(USE_TAUCS)
 		"taucs",
+#endif
+#if defined(USE_WSMP)
+		"wsmp",
 #endif
 		"naive",
 		NULL
@@ -141,7 +145,7 @@ void SetupSystem(
 		file.close();
 		
 		for (integer i = 1; i <= size; i++) {
-			pV->PutCoef(i, (*pM)(i,size));
+			pV->PutCoef(i, pM->dGetCoef(i,size));
 		}
 		std::cout << "\nThe matrix has "
 			<< pM->iGetNumRows() << " rows, "
@@ -150,12 +154,12 @@ void SetupSystem(
 	}
 }
 
-// static inline unsigned long long rd_CPU_ts(void)
-// {
-// 	unsigned long long time;
-// 	__asm__ __volatile__( "rdtsc" : "=A" (time));
-// 	return time;
-// }
+static inline unsigned long long rd_CPU_ts(void)
+{
+	unsigned long long time;
+	__asm__ __volatile__( "rdtsc" : "=A" (time));
+	return time;
+}
 
 static void
 usage(int err)
@@ -190,6 +194,8 @@ main(int argc, char *argv[])
 		"lapack"
 #elif defined(USE_TAUCS)
 		"taucs"
+#elif defined(USE_WSMP)
+		"wsmp"
 #else
 		"naive"
 #if 0
@@ -392,6 +398,32 @@ main(int argc, char *argv[])
 		usage(EXIT_FAILURE);
 #endif /* !USE_UMFPACK */
 
+	} else if (strcasecmp(solver, "wsmp") == 0) {
+#ifdef USE_WSMP
+		std::cerr << "Wsmp solver";
+		if (dir) {
+			std::cerr << " with dir matrix";
+			typedef WsmpSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, nt));
+
+		} else if (cc) {
+			std::cerr << " with cc matrix";
+			typedef WsmpSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, nt));
+
+		} else {
+			SAFENEWWITHCONSTRUCTOR(pSM,
+					WsmpSparseSolutionManager,
+					WsmpSparseSolutionManager(size, nt));
+		}
+		std::cerr << " using " << nt << " threads " << std::endl;
+		std::cerr << std::endl;
+#else /* !USE_WSMP */
+		std::cerr << "need --with-wsmp to use Wsmp library" 
+			<< std::endl;
+		usage(EXIT_FAILURE);
+#endif /* !USE_WSMP */
+
 	} else if (strcasecmp(solver, "naive") == 0) {
 		std::cerr << "Naive solver";
 		if (cc) {
@@ -450,9 +482,9 @@ main(int argc, char *argv[])
 	
 	try {
 		start = clock();
-		//tf = rd_CPU_ts();
+		tf = rd_CPU_ts();
 		pSM->Solve();
-		//tf = rd_CPU_ts() - tf;
+		tf = rd_CPU_ts() - tf;
 		end = clock();
 	} catch (...) {
 		exit(EXIT_FAILURE);
@@ -466,7 +498,7 @@ main(int argc, char *argv[])
 	//cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 	cpu_time_used = ((double) (end - start));
 	cpu_time_used = cpu_time_used / CLOCKS_PER_SEC;
-	std::cout << "Clock tics to solve: " << end - start << std::endl;
+	std::cout << "Clock tics to solve: " << tf << std::endl;
 	std::cout << "Time to solve: " << cpu_time_used << std::endl;
 	
 
@@ -481,9 +513,9 @@ main(int argc, char *argv[])
 	
 	try {
 		start = clock();
-		//tf = rd_CPU_ts();
+		tf = rd_CPU_ts();
 		pSM->Solve();
-		//tf = rd_CPU_ts() - tf;
+		tf = rd_CPU_ts() - tf;
 		end = clock();
 	} catch (...) {
 		exit(EXIT_FAILURE);
@@ -498,7 +530,7 @@ main(int argc, char *argv[])
 	//cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 	cpu_time_used = ((double) (end - start));
 	cpu_time_used = cpu_time_used / CLOCKS_PER_SEC;
-	std::cout << "Clock tics to solve: " << end - start << std::endl;
+	std::cout << "Clock tics to solve: " << tf << std::endl;
 	std::cout << "Time to solve: " << cpu_time_used << std::endl;
 	
 	return 0;

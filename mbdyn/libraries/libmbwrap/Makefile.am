@@ -26,7 +26,9 @@ umfpackwrap.h \
 taucswrap.cc \
 taucswrap.h \
 y12wrap.cc \
-y12wrap.h
+y12wrap.h \
+wsmpwrap.cc \
+wsmpwrap.h
 
 libmbwrap_la_LIBADD = \
 ../libmbmath/libmbmath.la \

@@ -75,7 +75,7 @@
 #include "wsmpwrap.h"
 
 extern "C" {
-	extern void wgsmp_(int *N,
+extern void wgsmp_(int *N,
 		int *IA,
 		int *JA,
 		double *AVALS,
