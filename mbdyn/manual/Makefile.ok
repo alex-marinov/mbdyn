@@ -32,7 +32,10 @@ MAIN=input
 SRCS=$(MAIN).tex \
 	data.tex  elements.tex  general.tex \
 	stdmacro.tex
+EPDF=airfoil.epdf
 LATEX=latex
+PDFLATEX=pdflatex
+PS2PDF=epstopdf
 LATEX2HTML=latex2html
 LATEXRERUN="LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right."
 DVIPS=dvips
@@ -53,6 +56,9 @@ $(TARGET): $(MAIN).dvi
 	    cat $(MAIN).latex.log | grep 'Warning' ; \
 	    $(RM) $(MAIN).latex.log ; \
 	fi
+	$(PDFLATEX) $(MAIN)
+	$(PDFLATEX) $(MAIN)
+	$(PDFLATEX) $(MAIN)
 
 $(MAIN).dvi: $(SRCS)
 	$(MAKE) latex
@@ -65,7 +71,10 @@ latex:
 	@while test "x`$(GREP) $(LATEXRERUN) $(MAIN).latex.log`" != "x" ; do \
 		$(LATEX) $(MAIN) 2>&1 | $(TEE) $(MAIN).latex.log ; \
 	done
-	
+
+$(PDF): %.pdf : %.eps
+	$(PS2PDF) $@ $%
+
 html: $(SRCS)
 	-$(LATEX2HTML) $(MAIN)
 
