@@ -1,3 +1,34 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2003
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+#include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>
 
@@ -29,6 +60,18 @@ struct Arg {
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
+static void
+f2(VecIter<A *>* pi, unsigned n)
+{
+	A* pA = NULL;
+
+	if (pi->bGetFirst(pA)) {
+		do {
+			pA->Set(n);
+		} while (pi->bGetNext(pA));
+	}
+}
+
 void *
 f(void *p)
 {
@@ -36,12 +79,7 @@ f(void *p)
 
 	sem_wait(&arg->s);
 
-	A* pA = NULL;
-	if (arg->i.bGetFirst(pA)) {
-		do {
-			pA->Set(arg->n);
-		} while (arg->i.bGetNext(pA));
-	}
+	f2(&arg->i, arg->n);
 
 	pthread_mutex_lock(&mutex);
 	--*(arg->c);
@@ -88,28 +126,32 @@ main(int argc, char* argv[])
 	}
 
 	Arg arg[nt];
-	unsigned c = nt;
+	unsigned c = nt - 1;
 
 	A** ppA = new A*[size];
 	for (unsigned i = 0; i < size; i++) {
 		ppA[i] = new A;
-		//ppA[i]->SetInUse(false);
+		ppA[i]->SetInUse(false);
 	}
 
 	for (unsigned i = 0; i < nt; i++) {
-		sem_init(&arg[i].s, 0, 0);
 		arg[i].n = i;
 		arg[i].i.Init(ppA, size);
 		arg[i].c = &c;
 
+		if (i == 0) continue;
+
+		sem_init(&arg[i].s, 0, 0);
 		pthread_create(&arg[i].t, NULL, f, &arg[i]);
 	}
 
 	pthread_mutex_lock(&mutex);
 
-	for (unsigned i = 0; i < nt; i++) {
+	for (unsigned i = 1; i < nt; i++) {
 		sem_post(&arg[i].s);
 	}
+
+	f2(&arg[0].i, arg[0].n);
 
 	pthread_cond_wait(&cond, &mutex);
 	pthread_mutex_unlock(&mutex);
