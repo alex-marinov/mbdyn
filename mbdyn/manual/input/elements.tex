@@ -119,8 +119,14 @@ where
 and
 \begin{verbatim}
     <c81_data> ::= <c81_label> 
-        | multiple , <airfoil_number> ,
-        <c81_label> , <end_point> [ , ... ]
+
+    <c81_data> ::= multiple , <airfoil_number> ,
+        <c81_label> , <end_point>
+        [ ... ]
+
+    <c81_data> ::= interpolated, <airfoil_number> ,
+        <c81_label> , <position>
+        [ ... ]
 \end{verbatim}
 The field \kw{rotor} instructs the element that it is linked to a 
 \kw{rotor} element; this means that it can get information about the
@@ -154,9 +160,50 @@ and properties.
   \caption{\em Airfoil Geometry}\label{fig:AIRFOIL}
 \end{figure}
 
-The \kw{airfoil\_ data} defaults to a builtin NACA 0012 semi-analytical
+The \kw{airfoil\_data} defaults to a builtin NACA 0012 semi-analytical
 model (FIXME: the unsteady correction is buggy; use the \kw{c81} 
 mode instead).
+
+The \kw{multiple} mode of the c81 data allows to specify
+more than one airfoil for an aerodynamic element; the transition
+between airfoils is sharp.
+The integer \kw{airfoil\_number} indicates how many airfoils are expected;
+the real \kw{end\_point} indicates where the influence zone for that
+airfoil ends, expressed in terms of an adimensional abscissa spanning 
+$\plbr{-1,1}$ along the reference line, roughly along axis 3 
+of the aerodynamic reference frame; \kw{end\_point} must not lie outside
+the element.
+So, for example, if airfoil NACA 0015 is used in the leftmost part
+of an element up to 1/4 span, NACA 0012 is used from 1/4 to 3/4 span,
+and NACA 0009 is used in the remaining rightmost 1/4, the syntax is:
+\begin{verbatim}
+    set: integer naca0015 = 15;
+    set: integer naca0012 = 12;
+    set: integer naca0009 = 9;
+    c81 data: naca0015, "naca0015.c81";
+    c81 data: naca0012, "naca0012.c81";
+    c81 data: naca0009, "naca0009.c81";
+    # beginning of aerodynamic element definition...
+        multiple, 3,
+            naca0015, -0.5,    # from -1.0 to -0.5
+            naca0012,  0.5,    # from -0.5 to  0.5
+            naca0009,  1.0,    # from  0.5 to  1.0
+    # ...rest of aerodynamic element definition
+\end{verbatim}
+
+The \kw{interpolated} mode of the c81 data allows to specify 
+a smooth transition between different airfoils inside an element.
+The interpolation occurs at the integration points where the
+aerodynamic data is required, and it is performed once for all
+at the beginning of the analysis.
+Since this operation is time consuming, and essentially unnecessary,
+the interpolated data can be generated once for all with the utility
+\kw{util/c81merge} once the position of the integration point is known,
+and the \kw{multiple} mode can be used to directly provide
+the interpolated data to the aerodynamic element.
+
+\noindent
+\emph{FIXME: not implemented yet}
 
 
 \subsection{Output}

@@ -196,7 +196,7 @@ main(int argc, char *argv[])
 	} mode = MODE_UNDEFINED;
 
 	while (1) {
-		int	opt = getopt(argc, argv, "f:h:m:o:s:t:");
+		int	opt = getopt(argc, argv, "f:hH:m:o:s:t:");
 
 		if (opt == EOF) {
 			break;
@@ -210,7 +210,7 @@ main(int argc, char *argv[])
 			name_from = optarg;
 			break;
 
-		case 'h':
+		case 'H':
 			if (header[0] != '\0') {
 				silent_cerr("-h already set to \"" << header << "\"" << std::endl);
 			}
@@ -267,7 +267,7 @@ main(int argc, char *argv[])
 				silent_cerr("illegal value \"" << optarg << "\" for -s option" << std::endl);
 				throw ErrGeneric();
 			}
-			if (dFrom <= 0. || dFrom >= 1.) {
+			if (dFrom < 0. || dFrom > 1.) {
 				silent_cerr("-s " << optarg << " is out of bounds (0.,1.)" << std::endl);
 				throw ErrGeneric();
 			}
@@ -279,6 +279,21 @@ main(int argc, char *argv[])
 			}
 			name_to = optarg;
 			break;
+
+		case 'h':
+			silent_cout(
+"\n"
+"c81merge: merges two c81 files in a given proportion\n"
+"\n"
+"\t-f first.c81\t"	"first c81 data set\n"
+"\t-h\t\t"		"this message\n"
+"\t-H header\t"		"the header (max 30 chars)\n"
+"\t-o out.c81\t"	"output file name (stdout if missing)\n"
+"\t-s s in [0,1]\t"	"real number; result = s * first + (1 - s) * second\n"
+"\t-t second.c81\t"	"second c81 data set\n" 
+"\n"
+					);
+			exit(EXIT_SUCCESS);
 
 		default:
 			throw ErrGeneric();
