@@ -254,7 +254,7 @@ MultiThreadDataManager::thread(void *p)
 		if (fd <= 0) {
 			silent_cerr("Error opening /dev/TASK2CPU" << std::endl);
 		}
-		ioctl(fd, 0, arg->threadNumber);
+		ioctl(fd, 0, arg->threadNumber - 1);
 		close(fd);
 	} while(false);
 
@@ -473,7 +473,7 @@ MultiThreadDataManager::ThreadSpawn(void)
 		if (fd <= 0) {
 			silent_cerr("Error opening /dev/TASK2CPU" << std::endl);
 		}
-		ioctl(fd, 0, 0);
+		ioctl(fd, 0, nThreads);
 		close(fd);
 	} while(false);
 
