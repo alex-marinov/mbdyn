@@ -133,7 +133,7 @@ LinSol::LinSol(void)
 : CurrSolver(LinSol::defaultSolver),
 nThreads(1),
 iWorkSpaceSize(0),
-dPivotFactor(1.)
+dPivotFactor(-1.)
 {
 	NO_OP;
 }
@@ -377,9 +377,10 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		switch (CurrSolver) {
 		case LinSol::NAIVE_SOLVER:
 			if (dPivotFactor <= 0. || dPivotFactor > 1.) {
-				dPivotFactor = 1.E-8;
+				dPivotFactor = 1.e-8;
 			}
 			break;
+
 		case LinSol::TAUCS_SOLVER:
 		case LinSol::EMPTY_SOLVER:
 			pedantic_cerr("pivot factor is meaningless for "
@@ -391,6 +392,17 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 			if (dPivotFactor <= 0. || dPivotFactor > 1.) {
 				dPivotFactor = 1.;
 			}
+			break;
+		}
+
+	} else {
+		switch (CurrSolver) {
+		case LinSol::NAIVE_SOLVER:
+			dPivotFactor = 1.e-8;
+			break;
+
+		default:
+			dPivotFactor = 1.;
 			break;
 		}
 	}
@@ -602,16 +614,14 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
 			typedef Y12SparseCCSolutionManager<DirCColMatrixHandler<1> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, iLWS,
-					dPivotFactor == -1. ? 1. : dPivotFactor));
+					CCSM(iNLD, iLWS, dPivotFactor));
 			break;
 		}
 
 		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
 			typedef Y12SparseCCSolutionManager<CColMatrixHandler<1> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, iLWS,
-					dPivotFactor == -1. ? 1. : dPivotFactor));
+					CCSM(iNLD, iLWS, dPivotFactor));
 			break;
 		}
 
@@ -619,7 +629,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
       			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				Y12SparseSolutionManager,
 				Y12SparseSolutionManager(iNLD, iLWS,
-					dPivotFactor == -1. ? 1. : dPivotFactor));
+					dPivotFactor));
 			break;
 		}
       		break;
@@ -639,16 +649,14 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
 			typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(nThreads, iNLD,
-					dPivotFactor == -1. ? 1. : dPivotFactor));
+					CCSM(nThreads, iNLD, dPivotFactor));
 			break;
 		}
 
 		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
 			typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(nThreads, iNLD,
-					dPivotFactor == -1. ? 1. : dPivotFactor));
+					CCSM(nThreads, iNLD, dPivotFactor));
 			break;
 		}
 
@@ -656,7 +664,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
       			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				SuperLUSparseSolutionManager,
 				SuperLUSparseSolutionManager(nThreads, iNLD,
-					dPivotFactor == -1. ? 1. : dPivotFactor));
+					dPivotFactor));
 			break;
 		}
       		break;
@@ -671,7 +679,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		SAFENEWWITHCONSTRUCTOR(pCurrSM,
 			MeschachSparseSolutionManager,
 			MeschachSparseSolutionManager(iNLD, iLWS,
-				dPivotFactor == -1. ? 1. : dPivotFactor));
+				dPivotFactor));
 		break;
 #else /* !USE_MESCHACH */
 		std::cerr << "Configure with --with-meschach "
@@ -724,7 +732,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		SAFENEWWITHCONSTRUCTOR(pCurrSM,
 			HarwellSparseSolutionManager,
 			HarwellSparseSolutionManager(iNLD, iLWS,
-				dPivotFactor == -1. ? 1. : dPivotFactor));
+				dPivotFactor));
       		break;
 #else /* !USE_HARWELL */
       		std::cerr << "Configure with --with-harwell "
