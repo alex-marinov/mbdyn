@@ -41,6 +41,8 @@
 #include<external.h>
 #include<nonlinpb.h>
 #include<solman.h>  
+#include <ac/float.h>
+#include<vector>
 
 class NonlinearSolver
 {
@@ -222,11 +224,19 @@ public:
 	 
 };
 
-const doublereal defaultTau = 1.e-7;
+const doublereal defaultTau = sqrt(DBL_EPSILON);
 const doublereal defaultGamma = 0.9;
 
-class BiCGMatrixFreeSolver : public NonlinearSolver
+class MatrixFreeSolver : public NonlinearSolver
 {
+
+public:
+	enum SolverType {
+		BICGSTAB,
+		GMRES
+	};	
+
+protected:
 	SolutionManager* pSM;
 	Preconditioner* pPM;
 	VectorHandler* 	pRes;
@@ -240,15 +250,46 @@ class BiCGMatrixFreeSolver : public NonlinearSolver
 	const NonlinearProblem* pPrevNLP;
 	
 public:
-	BiCGMatrixFreeSolver(const Preconditioner::PrecondType PType, 
+	MatrixFreeSolver(const Preconditioner::PrecondType PType, 
 			const integer iPStep,
 			doublereal ITol,
 			integer MaxIt,
 			doublereal etaMx); 
 
-	~BiCGMatrixFreeSolver(void) { };
+	~MatrixFreeSolver(void) { };
 	
-	void Solve(const NonlinearProblem* NLP,
+	virtual void Solve(const NonlinearProblem* NLP,
+			SolutionManager* pSolMan,
+			const integer iMaxIter,
+			const doublereal Toll,
+			const doublereal SolToll,
+			integer& iIterCnt,
+			doublereal& dErr
+#ifdef MBDYN_X_CONVSOL
+			, doublereal& dSolErr
+#endif /* MBDYN_X_CONVSOL  */	
+			) = 0;
+
+protected:
+	doublereal MakeTest(const VectorHandler& Vec);
+};
+
+
+class BiCGStab : public MatrixFreeSolver
+{
+
+public:
+
+	BiCGStab(const Preconditioner::PrecondType PType, 
+			const integer iPStep,
+			doublereal ITol,
+			integer MaxIt,
+			doublereal etaMx) 
+	: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx) {};
+	
+	~BiCGStab(void) { };
+	
+	virtual void Solve(const NonlinearProblem* NLP,
 			SolutionManager* pSolMan,
 			const integer iMaxIter,
 			const doublereal Toll,
@@ -259,10 +300,106 @@ public:
 			, doublereal& dSolErr
 #endif /* MBDYN_X_CONVSOL  */	
 			);
-
-private:
-	doublereal MakeTest(const VectorHandler& Vec);
 };
+
+
+class UpHessMatrix 
+{
+	
+	std::vector<doublereal> M;
+	integer Size;
+
+public:	
+	UpHessMatrix(integer n) : M(n*n+1), Size(n) {};
+	void Reset(doublereal d = 0.) {
+		for (unsigned int i=0; i < M.size(); i++) M[i] = 0;
+	};
+	doublereal& operator() (const integer i, const integer j) {
+		return M[i*Size+j];
+	};
+	
+	doublereal operator() (const integer i, const integer j) const {
+		return M[i*Size+j];
+	};
+
+};
+
+
+class Gmres : public MatrixFreeSolver
+{
+
+public:
+
+	Gmres(const Preconditioner::PrecondType PType, 
+			const integer iPStep,
+			doublereal ITol,
+			integer MaxIt,
+			doublereal etaMx) 
+	:MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx) {};
+	
+	~Gmres(void) { };
+	
+	virtual void Solve(const NonlinearProblem* NLP,
+			SolutionManager* pSolMan,
+			const integer iMaxIter,
+			const doublereal Toll,
+			const doublereal SolToll,
+			integer& iIterCnt,
+			doublereal& dErr
+#ifdef MBDYN_X_CONVSOL
+			, doublereal& dSolErr
+#endif /* MBDYN_X_CONVSOL  */	
+			);
+			
+private:
+
+	void GeneratePlaneRotation(const doublereal &dx, const doublereal &dy, 
+			doublereal &cs, doublereal &sn) const 
+	{
+		if (fabs(dy) < DBL_EPSILON) {
+    			cs = 1.0;
+    			sn = 0.0;
+  		} else if (fabs(dy) > fabs(dx)) {
+    			doublereal temp = dx / dy; 
+    			sn = 1.0 / sqrt( 1.0 + temp*temp );
+    			cs = temp * sn;
+  		} else {
+    			doublereal temp = dy / dx; 
+    			cs = 1.0 / sqrt( 1.0 + temp*temp );
+    			sn = temp * cs;
+  		}
+	};
+			
+	void ApplyPlaneRotation(doublereal &dx, doublereal &dy, 
+			const doublereal &cs, const doublereal &sn) const 
+	{ 
+  		doublereal temp = cs * dx + sn * dy; 
+  		dy = -sn * dx + cs * dy;
+		dx  = temp;
+		return;  
+	};
+			
+	
+	void Backsolve(VectorHandler& x, integer sz,  UpHessMatrix& H, 
+			VectorHandler& s, MyVectorHandler* v) 
+	{ 
+ 
+		for (int i = sz; i >= 0; i--) {
+    			s.fPutCoef(i+1, s.dGetCoef(i+1) / H(i,i));
+    			for (int j = i - 1; j >= 0; j--)
+      				s.fDecCoef(j+1, H(j,i) * s.dGetCoef(i+1));
+  		}
+
+  		for (int j = 0; j <= sz; j++) {
+    			x.ScalarAddMul(v[j], s.dGetCoef(j+1));
+		}
+		return;
+	};
+
+					
+};
+
+
 
 
 

@@ -585,7 +585,10 @@ void Step2Integrator::EvalProd(doublereal Tau, const VectorHandler& f0,
                 Tau = copysign(Tau*xx, sigma);
         }
         Tau /= nw;
-
+#ifdef DEBUG_ITERATIVE
+	std::cout << "Tau " << Tau << std::endl;
+#endif /* DEBUG_ITERATIVE */
+		
         MyVectorHandler XTau(w.iGetSize());
 
 	XTau.Reset(0.);

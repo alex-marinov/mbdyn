@@ -194,6 +194,7 @@ dPivotFactor(-1.),
 fTrueNewtonRaphson(1),
 iIterationsBeforeAssembly(0),
 fMatrixFree(0),
+MFSolverType(MatrixFreeSolver::BICGSTAB),
 dIterTol(dDefaultTol),
 PcType(Preconditioner::FULLJACOBIAN),
 iPrecondSteps(iDefaultPreconditionerSteps),
@@ -580,13 +581,23 @@ void Solver::Run(void)
 	/* a questo punto si costruisce il nonlinear solver passandogli 
 	   il solution manager */
 	if (fMatrixFree) {
-		SAFENEWWITHCONSTRUCTOR(pNLS,
-				BiCGMatrixFreeSolver,
-				BiCGMatrixFreeSolver(PcType, 
-					iPrecondSteps,
-					dIterTol, 
-					iIterativeMaxSteps,
-					dIterertiveEtaMax));  
+		if (MFSolverType == MatrixFreeSolver::BICGSTAB) {
+			SAFENEWWITHCONSTRUCTOR(pNLS,
+					BiCGStab,
+					BiCGStab(PcType, 
+						iPrecondSteps,
+						dIterTol, 
+						iIterativeMaxSteps,
+						dIterertiveEtaMax));
+		} else {
+			SAFENEWWITHCONSTRUCTOR(pNLS,
+					Gmres,
+					Gmres(PcType, 
+						iPrecondSteps,
+						dIterTol, 
+						iIterativeMaxSteps,
+						dIterertiveEtaMax));
+		}			  
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pNLS,
 				NewtonRaphsonSolver,
@@ -1422,6 +1433,8 @@ Solver::ReadData(MBDynParser& HP)
 			"umfpack3",
 			"empty",
 		"matrix" "free",
+		"bicgstab",
+		"gmres",
 		"preconditioner",
 		"full" "jacobian",
 
@@ -1505,6 +1518,8 @@ Solver::ReadData(MBDynParser& HP)
 		EMPTY,
 		
 		MATRIXFREE,
+		BICGSTAB,
+		GMRES,
 		PRECONDITIONER,
 		FULLJACOBIAN,
 
@@ -2407,6 +2422,22 @@ Solver::ReadData(MBDynParser& HP)
        
        case MATRIXFREE: {
 		fMatrixFree = 1;
+
+		switch(KeyWords(HP.GetWord())) {           
+		
+			case BICGSTAB:
+				MFSolverType = MatrixFreeSolver::BICGSTAB;
+				break;
+			
+			case GMRES:
+				MFSolverType = MatrixFreeSolver::GMRES;
+				break;
+		
+			default:
+				std::cerr << "Unknown iterative solver switching to default (Bicgstab)" 
+					<< std::endl;
+		}	
+	       
 		if (HP.IsKeyWord("toll")) {
 			dIterTol = HP.GetReal();
 			DEBUGLCOUT(MYDEBUG_INPUT, "Inner Iterative Solver Tolerance: " 

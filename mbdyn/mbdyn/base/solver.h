@@ -206,6 +206,7 @@ private:
    	flag fTrueNewtonRaphson;
    	integer iIterationsBeforeAssembly;
 	flag fMatrixFree;
+	MatrixFreeSolver::SolverType MFSolverType;
 	doublereal dIterTol;
 	Preconditioner::PrecondType PcType;
 	integer iPrecondSteps;
