@@ -246,6 +246,7 @@ dnl Checks for header files.
 dnl
 AC_STDC_HEADERS
 AC_CHECK_HEADERS(arpa/inet.h)
+AC_CHECK_HEADERS(asm/system.h)
 AC_CHECK_HEADERS(float.h)
 AC_CHECK_HEADERS(getopt.h)
 AC_CHECK_HEADERS(math.h)
@@ -758,7 +759,21 @@ AC_TRY_COMPILE([
 			: "memory");
 ],[have_cmpxchg=yes],[have_cmpxchg=no])
 if test "$have_cmpxchg" = "yes" ; then
-	AC_DEFINE(HAVE_CMPXCHG,1,[define if system ( >= i486) has cmpxchg])
+	AC_DEFINE(HAVE_i486_CMPXCHG,1,[define if system ( >= i486) has cmpxchg])
+	have_compare_and_swap=yes
+fi
+dnl
+dnl IA64
+AC_TRY_COMPILE([
+#ifdef HAVE_ASM_SYSTEM_H
+#include <asm/system.h>
+#endif /* HAVE_ASM_SYSTEM_H */
+	],[
+	int8_t	valptr = 0, oldval = 0, newval = 1;
+	return (cmpxchg(&valptr, oldval, newval) == oldval);
+],[have_cmpxchg=yes],[have_cmpxchg=no])
+if test "$have_cmpxchg" = "yes" ; then
+	AC_DEFINE(HAVE_IA64_CMPXCHG,1,[define if system ( >= i486) has cmpxchg])
 	have_compare_and_swap=yes
 fi
 dnl

@@ -39,7 +39,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#ifdef HAVE_CMPXCHG
+#if defined(HAVE_i486_CMPXCHG)
 
 #if 1
 
@@ -111,7 +111,15 @@ mbdyn_cmpxchg(int *valptr, int newval, int oldval)
 }
 #endif /* NEED_INT_VERSION */
 
-#endif /* HAVE_CMPXCHG */
+#elif defined(HAVE_IA64_CMPXCHG) /* HAVE_IA64_CMPXCHG */
+
+#ifdef HAVE_ASM_SYSTEM_H
+#include <asm/system.h>
+#endif /* HAVE_ASM_SYSTEM_H */
+
+#define	mbdyn_cmpxchg(ptr, newval, oldval) cmpxchg((ptr), (oldval), (newval))
+
+#endif /* */
 
 #ifdef __cplusplus
 }
@@ -119,8 +127,10 @@ mbdyn_cmpxchg(int *valptr, int newval, int oldval)
 static inline bool
 mbdyn_compare_and_swap(int8_t &val, int8_t newval, int8_t oldval)
 {
-#if defined(HAVE_CMPXCHG)
+#if defined(HAVE_i486_CMPXCHG)
 	return (mbdyn_cmpxchgb(&val, newval, oldval) == oldval);
+#elif defined(HAVE_IA64_CMPXCHG)
+	return (mbdyn_cmpxchg(&val, newval, oldval) == oldval);
 #elif defined(HAVE_COMPARE_AND_SWAP)
 	atomic_p	word_addr = (atomic_p *)&val;
 	int		old_val = oldval;
@@ -135,8 +145,10 @@ mbdyn_compare_and_swap(int8_t &val, int8_t newval, int8_t oldval)
 static inline bool
 mbdyn_compare_and_swap(int16_t &val, int16_t newval, int16_t oldval)
 {
-#if defined(HAVE_CMPXCHG)
+#if defined(HAVE_i486_CMPXCHG)
 	return (mbdyn_cmpxchgw(&val, newval, oldval) == oldval);
+#elif defined(HAVE_IA64_CMPXCHG)
+	return (mbdyn_cmpxchg(&val, newval, oldval) == oldval);
 #elif defined(HAVE_COMPARE_AND_SWAP)
 	atomic_p	word_addr = (atomic_p *)&val;
 	int		old_val = oldval;
@@ -151,8 +163,10 @@ mbdyn_compare_and_swap(int16_t &val, int16_t newval, int16_t oldval)
 static inline bool
 mbdyn_compare_and_swap(int32_t &val, int32_t newval, int32_t oldval)
 {
-#if defined(HAVE_CMPXCHG)
+#if defined(HAVE_i486_CMPXCHG)
 	return (mbdyn_cmpxchgl(&val, newval, oldval) == oldval);
+#elif defined(HAVE_IA64_CMPXCHG)
+	return (mbdyn_cmpxchg(&val, newval, oldval) == oldval);
 #elif defined(HAVE_COMPARE_AND_SWAP)
 	atomic_p	word_addr = (atomic_p *)&val;
 	int		old_val = oldval;
@@ -168,7 +182,9 @@ mbdyn_compare_and_swap(int32_t &val, int32_t newval, int32_t oldval)
 static inline bool
 mbdyn_compare_and_swap(int &val, int newval, int oldval)
 {
-#if defined(HAVE_CMPXCHG)
+#if defined(HAVE_i486_CMPXCHG)
+	return (mbdyn_cmpxchg(&val, newval, oldval) == oldval);
+#elif defined(HAVE_IA64_CMPXCHG)
 	return (mbdyn_cmpxchg(&val, newval, oldval) == oldval);
 #elif defined(HAVE_COMPARE_AND_SWAP)
 	atomic_p	word_addr = (atomic_p *)&val;
