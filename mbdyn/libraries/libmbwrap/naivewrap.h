@@ -113,7 +113,7 @@ private:
 	void ComputePermutation();
 	void BackPerm();
 protected:
-	bool CCReady;
+	bool PermReady;
 	NaivePermMatrixHandler *Ac;
 	
 	mutable std::vector<integer> perm;
