@@ -52,16 +52,15 @@ extern "C" {
 
 
 static inline void
-do_lock(integer *p)
+do_lock(integer &p)
 {
-//	while (mbdyn_cmpxchg((p), 1, 0) != 0);
-	while (!mbdyn_compare_and_swap(*p, 1, 0));
+	while (!mbdyn_compare_and_swap(p, 1, 0));
 }
 	
 static inline void
-do_unlock(integer *p)
+do_unlock(integer &p)
 {
-	mbdyn_compare_and_swap(*p, 0, 1);
+	mbdyn_compare_and_swap(p, 0, 1);
 }
 static void
 naivepsad(doublereal ** ga, integer ** gri, 
@@ -74,14 +73,15 @@ naivepsad(doublereal ** ga, integer ** gri,
 		integer nc = nzc[r];
 			
 		if (nc) {
-			doublereal * pgar = ga[r];
-			doublereal * par  = a[r];
+			doublereal *pgar = ga[r];
+			doublereal *par  = a[r];
 			
 			for (integer i = 0; i < nc; i++) {
 				integer c = ci[r][i];
 				
 				if (gnz[r][c]) {
 					pgar[c] += par[c];
+
 				} else {
 					pgar[c] = par[c];
 					gci[r][gnzc[r]] = c;
@@ -90,14 +90,12 @@ naivepsad(doublereal ** ga, integer ** gri,
 					 */
 					gnz[r][c] = 1;
 					
-					//do_lock(&lock[gnzc[r]]);
-					do_lock(&lock[c]);
+					do_lock(lock[c]);
 
 					gri[c][gnzr[c]] = r;
 					gnzr[c]++;
 										
-					//do_unlock(&lock[gnzc[r]]);
-					do_unlock(&lock[c]);
+					do_unlock(lock[c]);
 					gnzc[r]++;
 				}
 			}
@@ -288,24 +286,21 @@ MultiThreadDataManager::thread(void *p)
 			break;
 
 		case MultiThreadDataManager::OP_SUM_NAIVE:
-			{/* PUT SOME CODE HERE */;
+		{
 			NaiveMatrixHandler* to = arg->ppNaiveJacHdl[0];
 			integer nn = to->iGetNumRows();
-			integer ifrom = nn/arg->nThreads*(arg->threadNumber);
-			integer ito = nn/arg->nThreads*(arg->threadNumber+1)-1;
-			if (arg->threadNumber == arg->nThreads-1) {
-				ito = nn-1;
-			}
-			for (integer matrix=1; matrix<arg->nThreads; matrix++) {
-				NaiveMatrixHandler* from = *(arg->ppNaiveJacHdl+matrix);
+			integer iFrom = (nn*(arg->threadNumber))/arg->nThreads;
+			integer iTo = (nn*(arg->threadNumber + 1))/arg->nThreads - 1;
+			for (integer matrix = 1; matrix < arg->nThreads; matrix++) {
+				NaiveMatrixHandler* from = arg->ppNaiveJacHdl[matrix];
 				naivepsad(to->ppdRows, 
 						to->ppiRows, to->piNzr, 
 						to->ppiCols, to->piNzc, to->ppnonzero,
-					  from->ppdRows, from->ppiCols, from->piNzc, 
-					  ifrom, ito, arg->lock);
-			}
+						from->ppdRows, from->ppiCols, from->piNzc, 
+      						iFrom, iTo, arg->lock);
 			}
 			break;
+		}
 
 #ifdef MBDYN_X_MT_ASSRES
 		case MultiThreadDataManager::OP_ASSRES:
@@ -656,18 +651,15 @@ MultiThreadDataManager::NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 
 	NaiveMatrixHandler* to = thread_data[0].ppNaiveJacHdl[0];
 	integer nn = to->iGetNumRows();
-	integer ifrom = 0;
-	integer ito = nn/nThreads-1;
-	if (nThreads == 1) {
-		ito = nn-1;
-	}
-	for (unsigned matrix=1; matrix<nThreads; matrix++) {
+	integer iFrom = 0;
+	integer iTo = nn/nThreads - 1;
+	for (unsigned matrix = 1; matrix < nThreads; matrix++) {
 		NaiveMatrixHandler* from = thread_data[0].ppNaiveJacHdl[matrix];
 		naivepsad(to->ppdRows, 
 				to->ppiRows, to->piNzr, 
 				to->ppiCols, to->piNzc, to->ppnonzero,
-			  from->ppdRows, from->ppiCols, from->piNzc, 
-			  ifrom, ito, thread_data[0].lock);
+				from->ppdRows, from->ppiCols, from->piNzc, 
+				iFrom, iTo, thread_data[0].lock);
 	}
 
 	pthread_mutex_lock(&thread_mutex);

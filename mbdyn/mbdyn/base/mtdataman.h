@@ -51,12 +51,13 @@ protected:
 	enum {
 		ASS_UNKNOWN = -1,
 
-		ASS_CC,
-		ASS_NAIVE,
+		ASS_CC,			/* use native column-compressed form */
+		ASS_NAIVE,		/* use native H-P sparse solver */
 
 		ASS_LAST
 	} AssMode;
 
+	/* steps of CC computation */
 	enum {
 		CC_NO,
 		CC_FIRST,
@@ -81,6 +82,7 @@ protected:
 
 		/* for CC assembly */
 		CompactSparseMatrixHandler* pJacHdl;
+
 		/* for Naive assembly */
 		NaiveMatrixHandler* pNaiveJacHdl;
 		NaiveMatrixHandler** ppNaiveJacHdl;
@@ -96,6 +98,7 @@ protected:
 		OP_UNKNOWN = -1,
 
 		OP_ASSJAC,
+
 		OP_ASSJAC_NAIVE,
 		OP_SUM_NAIVE,
 
