@@ -43,7 +43,6 @@
 #include <aerodata.h>
 #include <aerodc81.h>
 #include <c81data.h>
-#endif /* USE_AERODYNAMIC_ELEMS */
 
 static void
 merge_vecs(int n, doublereal *v1, doublereal w1, doublereal *v2, doublereal w2, doublereal *v)
@@ -76,18 +75,20 @@ merge_data_from(int NA, int NM, int NM_to,
 			}
 		}
 
+		/* last, step back and maintain */
 		if (mt == NM_to) {
 			mt = NM_to - 1;
 			merge_vecs(NA, &a_from[NA*(1 + m)], wfrom,
 					&a_to[NA*(1 + mt)], wto,
 					&a_dst[NA*(1 + m)]);
 					
-		       
-		} else if (m_to[mt] == m_dst[m]) {
+		/* first, or exact match */
+		} else if (mt == 0 || m_to[mt] == m_dst[m]) {
 			merge_vecs(NA, &a_from[NA*(1 + m)], wfrom,
 					&a_to[NA*(1 + mt)], wto,
 					&a_dst[NA*(1 + m)]);
-					
+
+		/* need interpolation */
 		} else {
 			doublereal dd = m_to[mt] - m_to[mt - 1];
 			doublereal d1 = (m_to[mt] - m_dst[m])/dd;
@@ -100,7 +101,6 @@ merge_data_from(int NA, int NM, int NM_to,
 					&a_dst[NA*(1 + m)]);
 		}
 	}
-
 }
 
 static int
@@ -159,10 +159,111 @@ merge_c81_data_from(c81_data *data_from, doublereal wfrom, c81_data *data_to, do
 	return 0;
 }
 
+static void
+merge_data_to(int NA, int NM, int NM_from,
+		doublereal wfrom, doublereal wto, doublereal *workv,
+		doublereal *m_from, doublereal *m_to, doublereal *m_dst,
+		doublereal *a_from, doublereal *a_to, doublereal *a_dst)
+{
+	int	mf = 0;
+
+	for (int m = 0; m < NM; m++) {
+		m_dst[m] = m_to[m];
+	}
+
+	for (int a = 0; a < NA; a++) {
+		a_dst[a] = a_to[a];
+	}
+
+	for (int m = 0; m < NM; m++) {
+		for (; mf < NM_from; mf++) {
+			if (m_from[mf] >= m_dst[m]) {
+				break;
+			}
+		}
+
+		/* last, step back and maintain */
+		if (mf == NM_from) {
+			mf = NM_from - 1;
+			merge_vecs(NA, &a_from[NA*(1 + mf)], wfrom,
+					&a_to[NA*(1 + m)], wto,
+					&a_dst[NA*(1 + m)]);
+
+		/* first, or exact match */
+		} else if (mf == 0 || m_from[mf] == m_dst[m]) {
+			merge_vecs(NA, &a_from[NA*(1 + mf)], wfrom,
+					&a_to[NA*(1 + m)], wto,
+					&a_dst[NA*(1 + m)]);
+
+		/* need interpolation */
+		} else {
+			doublereal dd = m_from[mf] - m_from[mf - 1];
+			doublereal d1 = (m_from[mf] - m_dst[m])/dd;
+			doublereal d2 = (m_dst[m] - m_from[mf - 1])/dd;
+			merge_vecs(NA, &a_from[NA*(mf)], d1,
+					&a_from[NA*(mf + 1)], d2,
+					workv);
+			merge_vecs(NA, workv, wfrom,
+					&a_to[NA*(1 + m)], wto,
+					&a_dst[NA*(1 + m)]);
+		}
+	}
+}
+
 static int
 merge_c81_data_to(c81_data *data_from, doublereal wfrom, c81_data *data_to, doublereal wto, c81_data *data)
 {
-	return -1;
+	*data = *data_to;
+
+	data->ml = new doublereal[data->NML];
+	data->al = new doublereal[data->NAL*(data->NML + 1)];
+
+	data->md = new doublereal[data->NMD];
+	data->ad = new doublereal[data->NAD*(data->NMD + 1)];
+
+	data->mm = new doublereal[data->NMM];
+	data->am = new doublereal[data->NAM*(data->NMM + 2)];
+
+	int		NA, NM, NM_from;
+	doublereal	*workv = &data->am[data->NAM*(data->NMM + 1)],
+			*a_from, *a_to, *a_dst, *m_from, *m_to, *m_dst;
+
+	a_from = data_from->al;
+	a_to = data_to->al;
+	a_dst = data->al;
+	m_from = data_from->ml;
+	m_to = data_to->ml;
+	m_dst = data->ml;
+	NA = data->NAL;
+	NM = data->NML;
+	NM_from = data_from->NML;
+	merge_data_to(NA, NM, NM_from, wfrom, wto, workv, m_from, m_to, m_dst, a_from, a_to, a_dst);
+
+	a_from = data_from->ad;
+	a_to = data_to->ad;
+	a_dst = data->ad;
+	m_from = data_from->md;
+	m_to = data_to->md;
+	m_dst = data->md;
+	NA = data->NAD;
+	NM = data->NMD;
+	NM_from = data_from->NMD;
+	merge_data_to(NA, NM, NM_from, wfrom, wto, workv, m_from, m_to, m_dst, a_from, a_to, a_dst);
+
+	a_from = data_from->am;
+	a_to = data_to->am;
+	a_dst = data->am;
+	m_from = data_from->mm;
+	m_to = data_to->mm;
+	m_dst = data->mm;
+	NA = data->NAM;
+	NM = data->NMM;
+	NM_from = data_from->NMM;
+	merge_data_to(NA, NM, NM_from, wfrom, wto, workv, m_from, m_to, m_dst, a_from, a_to, a_dst);
+
+	// do_c81_data_stall(data);
+
+	return 0;
 }
 
 static int
@@ -170,6 +271,7 @@ merge_c81_data_both(c81_data *data_from, doublereal wfrom, c81_data *data_to, do
 {
 	return -1;
 }
+#endif /* USE_AERODYNAMIC_ELEMS */
 
 /*
  * uso: 
