@@ -76,14 +76,14 @@ AeroData::SetSectionData(const doublereal& chord,
    	Omega = omega;
 }
    
-LanzAeroData::LanzAeroData(integer p, integer u) 
+STAHRAeroData::STAHRAeroData(integer p, integer u) 
 : profile(p), unsteadyflag(u) 
 {
    	NO_OP;
 }
    
 ostream& 
-LanzAeroData::Restart(ostream& out) const 
+STAHRAeroData::Restart(ostream& out) const 
 {
    	switch (profile) {
     	case 1:
@@ -102,7 +102,7 @@ LanzAeroData::Restart(ostream& out) const
 }
    
 int 
-LanzAeroData::GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA) 
+STAHRAeroData::GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA) 
 {
    	__FC_DECL__(aerod2)(W, VAM, TNG, OUTA, 
 			    &unsteadyflag,  &Omega, &profile);
@@ -121,7 +121,8 @@ C81AeroData::Restart(ostream& out) const
    	return out << "C81, " << profile;
 }
 
-int C81AeroData::GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA) 
+int
+C81AeroData::GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA) 
 {
    	return c81_aerod2(W, VAM, TNG, OUTA, (c81_data*)data);
 }

@@ -38,56 +38,75 @@ extern "C" {
 }
 #include <withlab.h>
 
+/* C81Data - begin */
+
 class C81Data : public WithLabel, public c81_data {
- public:
-   C81Data(unsigned int uLabel);
+public:
+   	C81Data(unsigned int uLabel);
 };
+
+/* C81Data - end */
+
+
+/* AeroData - begin */
 
 class AeroData {
- protected:
-   doublereal VAM[6];
-   doublereal Omega;
+protected:
+   	doublereal VAM[6];
+   	doublereal Omega;
    
- public:
-   AeroData(void);
-   virtual ~AeroData(void);
+public:
+   	AeroData(void);
+   	virtual ~AeroData(void);
    
-   virtual ostream& Restart(ostream& out) const = 0;   
-   void SetAirData(const doublereal& rho, const doublereal& c);
+   	virtual ostream& Restart(ostream& out) const = 0;   
+   	void SetAirData(const doublereal& rho, const doublereal& c);
    
-   void SetSectionData(const doublereal& chord,
-		       const doublereal& forcepoint,
-		       const doublereal& velocitypoint,
-		       const doublereal& twist,
-		       const doublereal& omega = 0.);
+   	void SetSectionData(const doublereal& chord,
+			    const doublereal& forcepoint,
+			    const doublereal& velocitypoint,
+			    const doublereal& twist,
+			    const doublereal& omega = 0.);
    
-   virtual int GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA) = 0;
+   	virtual int
+	GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA) = 0;
 };
 
+/* AeroData - end */
 
-class LanzAeroData : public AeroData {
- protected:
-   integer profile;
-   integer unsteadyflag;
+
+/* STAHRAeroData - begin */
+
+class STAHRAeroData : public AeroData {
+protected:
+   	integer profile;
+   	integer unsteadyflag;
    
- public: 
-   LanzAeroData(integer p, integer u);
+public: 
+   	STAHRAeroData(integer p, integer u);
    
-   ostream& Restart(ostream& out) const;   
-   int GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA);
+   	ostream& Restart(ostream& out) const;   
+   	int GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA);
 };
 
+/* STAHRAeroData - end */
+
+
+/* C81AeroData - begin */
 
 class C81AeroData : public AeroData {
- protected:
-   integer profile;
-   const c81_data* data;
+protected:
+   	integer profile;
+   	const c81_data* data;
    
- public: 
-   C81AeroData(integer p, const c81_data* d);
+public: 
+   	C81AeroData(integer p, const c81_data* d);
 
-   ostream& Restart(ostream& out) const;
-   int GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA);
+   	ostream& Restart(ostream& out) const;
+   	int GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA);
 };
 
+/* C81AeroData - end */
+
 #endif /* AERODATA_H */
+

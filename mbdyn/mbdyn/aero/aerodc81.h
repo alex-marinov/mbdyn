@@ -33,7 +33,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /* 
  * dati in formato c81;
@@ -55,22 +55,22 @@ extern "C" {
  *     aX[NAX*(j+1)+i]
  */
 typedef struct c81_data {
-   char header[31];
+   	char header[31];
    
-   int NML;
-   int NAL;
-   double *ml;
-   double *al;
+   	int NML;
+   	int NAL;
+   	double *ml;
+   	double *al;
    
-   int NMD;
-   int NAD;
-   double *md;
-   double *ad;
+   	int NMD;
+   	int NAD;
+   	double *md;
+   	double *ad;
    
-   int NMM;
-   int NAM;
-   double *mm;
-   double *am;
+   	int NMM;
+   	int NAM;
+   	double *mm;
+   	double *am;
 } c81_data;
 
 extern int 
@@ -78,6 +78,7 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data);
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
    
-#endif
+#endif /* AERODC81_H */
+

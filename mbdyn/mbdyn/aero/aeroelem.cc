@@ -524,8 +524,8 @@ ReadAeroData(DataManager* pDM,
 	  
 	  integer iInst = ReadUnsteadyFlag(HP);
 	  SAFENEWWITHCONSTRUCTOR(*aerodata,
-				 LanzAeroData,
-				 LanzAeroData(1, iInst),
+				 STAHRAeroData,
+				 STAHRAeroData(1, iInst),
 				 DMmm);
 	  break;
        }
@@ -535,8 +535,8 @@ ReadAeroData(DataManager* pDM,
 	  
 	  integer iInst = ReadUnsteadyFlag(HP);
 	  SAFENEWWITHCONSTRUCTOR(*aerodata,
-				 LanzAeroData,
-				 LanzAeroData(2, iInst),
+				 STAHRAeroData,
+				 STAHRAeroData(2, iInst),
 				 DMmm);
 	  break;
        }
@@ -563,8 +563,8 @@ ReadAeroData(DataManager* pDM,
       
       integer iInst = ReadUnsteadyFlag(HP);
       SAFENEWWITHCONSTRUCTOR(*aerodata,
-			     LanzAeroData,
-			     LanzAeroData(1, iInst),
+			     STAHRAeroData,
+			     STAHRAeroData(1, iInst),
 			     DMmm);
    }
 }

@@ -58,174 +58,173 @@ extern "C" {
 static int 
 get_vec(istream& in, double* v, int nrows)
 {
-   if (!in || v == NULL || nrows < 1) {
-      return -1;
-   }
+   	if (!in || v == NULL || nrows < 1) {
+      		return -1;
+   	}
    
-   for (int i = 0; i < nrows; i++) {
-      in >> v[i];
-   }
+   	for (int i = 0; i < nrows; i++) {
+      		in >> v[i];
+   	}
    
-   return 0;
+   	return 0;
 }
 
 static int 
 get_mat(istream& in, double* m, int nrows, int ncols)
 {
-   if (!in || m == NULL || nrows < 1 || ncols < 1) {
-      return -1;
-   }
+   	if (!in || m == NULL || nrows < 1 || ncols < 1) {
+      		return -1;
+   	}
    
-   for (int i = 0; i < nrows; i++) {
-      for (int j = 0; j < ncols; j++) {
-	 in >> m[i+nrows*j];
-      }
-   }
+   	for (int i = 0; i < nrows; i++) {
+      		for (int j = 0; j < ncols; j++) {
+	 		in >> m[i+nrows*j];
+      		}
+   	}
    
-   return 0;
+   	return 0;
 }
 
 static int
 put_row(ostream& out, double* v, int dim, int ncols, int first = 0)
 {
-   int start = 0;
-   const int N = 9;
+   	int start = 0;
+   	const int N = 9;
    
-   if (first) {
-      out << setw(7) << v[0];
-      start = dim;
-      ncols--;
-   } else {
-      out << setw(7) << "";
-   }
+   	if (first) {
+      		out << setw(7) << v[0];
+      		start = dim;
+      		ncols--;
+   	} else {
+      		out << setw(7) << "";
+   	}
    
-   for (int i = 0; i < (ncols-1)/N; i++) {
-      for (int j = 0; j < N; j++) {
-	 out << setw(7) << v[start+dim*j];
-      }
-      out << endl << setw(7) << "";
-      start += dim*N;
-   }
+   	for (int i = 0; i < (ncols-1)/N; i++) {
+      		for (int j = 0; j < N; j++) {
+	 		out << setw(7) << v[start+dim*j];
+     	 	}
+      		out << endl << setw(7) << "";
+      		start += dim*N;
+   	}
    
-   for (int j = 0; j < (ncols-1)%N+1; j++) {
-      out << setw(7) << v[start+dim*j];
-   }
-   out << endl;
+   	for (int j = 0; j < (ncols-1)%N+1; j++) {
+      		out << setw(7) << v[start+dim*j];
+   	}
+   	out << endl;
    
-   return 0;
+   	return 0;
 }
-   
-
 
 static int
 put_vec(ostream& out, double* v, int nrows)
 {
-   if (!out || v == NULL || nrows < 1) {
-      return -1;
-   }
+   	if (!out || v == NULL || nrows < 1) {
+      		return -1;
+   	}
 
-   /*
-   for (int i = 0; i < nrows; i++) {
-      out << setw(7) << v[i];
-   }
-   out << endl;
-    */
-   put_row(out, v, 1, nrows);
+   	/*
+   	for (int i = 0; i < nrows; i++) {
+      		out << setw(7) << v[i];
+   	}
+   	out << endl;
+    	 */
+   	put_row(out, v, 1, nrows);
    
-   return 0;
+   	return 0;
 }
 
 static int
 put_mat(ostream& out, double* m, int nrows, int ncols)
 {
-   if (!out || m == NULL || nrows < 1 || ncols < 1) {
-      return -1;
-   }
+   	if (!out || m == NULL || nrows < 1 || ncols < 1) {
+      		return -1;
+   	}
      
-   for (int i = 0; i < nrows; i++) {
-      /*
-      for (int j = 0; j < ncols; j++) {
-	 out << setw(7) << m[i+nrows*j];
-      }
-      out << endl;
-       */
-      put_row(out, m+i, nrows, ncols, 1);
-   }   
+   	for (int i = 0; i < nrows; i++) {
+      		/*
+      		for (int j = 0; j < ncols; j++) {
+	 		out << setw(7) << m[i+nrows*j];
+      		}
+      		out << endl;
+       		 */
+      		put_row(out, m+i, nrows, ncols, 1);
+   	}
 	 
-   return 0;
+   	return 0;
 }
 
 int
 read_c81_data(istream& in, c81_data* data)
 {
-   char buf[1024];      
+   	char buf[1024];      
    
-   // header
-   in.getline(buf, sizeof(buf));
+   	/* header */
+   	in.getline(buf, sizeof(buf));
    
-   data->NAM = atoi(buf+40);
-   buf[40] = '\0';
-   data->NMM = atoi(buf+38);
-   buf[38] = '\0';
+   	data->NAM = atoi(buf+40);
+   	buf[40] = '\0';
+   	data->NMM = atoi(buf+38);
+   	buf[38] = '\0';
    
-   data->NAD = atoi(buf+36);
-   buf[36] = '\0';
-   data->NMD = atoi(buf+34);
-   buf[34] = '\0';
+   	data->NAD = atoi(buf+36);
+   	buf[36] = '\0';
+   	data->NMD = atoi(buf+34);
+   	buf[34] = '\0';
    
-   data->NAL = atoi(buf+32);
-   buf[32] = '\0';
-   data->NML = atoi(buf+30);
-   buf[30] = '\0';
+   	data->NAL = atoi(buf+32);
+   	buf[32] = '\0';
+   	data->NML = atoi(buf+30);
+   	buf[30] = '\0';
    
-   strncpy(data->header, buf, 30);
-   data->header[30] = '\0';
+   	strncpy(data->header, buf, 30);
+   	data->header[30] = '\0';
    
-   // lift
-   data->ml = new double[data->NML];
-   get_vec(in, data->ml, data->NML);
+   	/* lift */
+   	data->ml = new double[data->NML];
+   	get_vec(in, data->ml, data->NML);
    
-   data->al = new double[(data->NML+1)*data->NAL];
-   get_mat(in, data->al, data->NAL, data->NML+1);
+   	data->al = new double[(data->NML+1)*data->NAL];
+   	get_mat(in, data->al, data->NAL, data->NML+1);
    
-   // drag
-   data->md = new double[data->NMD];
-   get_vec(in, data->md, data->NMD);
+   	/* drag */
+   	data->md = new double[data->NMD];
+   	get_vec(in, data->md, data->NMD);
    
-   data->ad = new double[(data->NMD+1)*data->NAD];      
-   get_mat(in, data->ad, data->NAD, data->NMD+1);
+   	data->ad = new double[(data->NMD+1)*data->NAD];      
+   	get_mat(in, data->ad, data->NAD, data->NMD+1);
    
-   // moment
-   data->mm = new double[data->NMM];
-   get_vec(in, data->mm, data->NMM);
+   	/* moment */
+   	data->mm = new double[data->NMM];
+   	get_vec(in, data->mm, data->NMM);
    
-   data->am = new double[(data->NMM+1)*data->NAM];
-   get_mat(in, data->am, data->NAM, data->NMM+1);
+   	data->am = new double[(data->NMM+1)*data->NAM];
+   	get_mat(in, data->am, data->NAM, data->NMM+1);
    
-   return 0;
+   	return 0;
 }
 
 int
 write_c81_data(ostream& out, c81_data* data)
 {
-   out << data->header
-     << setw(2) << data->NML
-     << setw(2) << data->NAL
-     << setw(2) << data->NMD
-     << setw(2) << data->NAD
-     << setw(2) << data->NMM
-     << setw(2) << data->NAM << endl;
+   	out << data->header
+     		<< setw(2) << data->NML
+     		<< setw(2) << data->NAL
+     		<< setw(2) << data->NMD
+     		<< setw(2) << data->NAD
+     		<< setw(2) << data->NMM
+     		<< setw(2) << data->NAM
+		<< endl;
    
-   put_vec(out, data->ml, data->NML);
-   put_mat(out, data->al, data->NAL, data->NML+1);
+   	put_vec(out, data->ml, data->NML);
+   	put_mat(out, data->al, data->NAL, data->NML+1);
    
-   put_vec(out, data->md, data->NMD);
-   put_mat(out, data->ad, data->NAD, data->NMD+1);
+   	put_vec(out, data->md, data->NMD);
+   	put_mat(out, data->ad, data->NAD, data->NMD+1);
    
-   put_vec(out, data->mm, data->NMM);
-   put_mat(out, data->am, data->NAM, data->NMM+1);
+   	put_vec(out, data->mm, data->NMM);
+   	put_mat(out, data->am, data->NAM, data->NMM+1);
    
-   return 0;
+   	return 0;
 }
 
 
@@ -236,40 +235,40 @@ static c81_data** __c81_pdata = NULL;
 c81_data*
 get_c81_data(long int jpro)
 {
-   if (__c81_pdata == NULL) {
-      return NULL;
-   }
-   return __c81_pdata[jpro];
+   	if (__c81_pdata == NULL) {
+      		return NULL;
+   	}
+   	return __c81_pdata[jpro];
 }
 
 int 
 set_c81_data(long int jpro, c81_data* data)
 {
-   if (__c81_pdata == NULL || jpro >= c81_ndata) {
-      c81_data** pp = NULL;
-      int ndata = c81_ndata;
+   	if (__c81_pdata == NULL || jpro >= c81_ndata) {
+      		c81_data** pp = NULL;
+      		int ndata = c81_ndata;
       
-      if (jpro >= c81_ndata) {
-	 ndata = jpro+1;
-      }
+      		if (jpro >= c81_ndata) {
+	 		ndata = jpro+1;
+      		}
       
-      pp = new c81_data*[ndata];
-      if (__c81_pdata != NULL) {
-	 for (int i = 0; i < ndata; i++) {
-	    pp[i] = __c81_pdata[i];
-	 }	 
-	 delete[] __c81_pdata;
-      }
-      __c81_pdata = pp;
-      c81_ndata = ndata;
-   } else if (__c81_pdata[jpro] != NULL) {
-      cerr << "profile " << jpro << "already defined" << endl;
-      return -1;
-   }
+      		pp = new c81_data*[ndata];
+      		if (__c81_pdata != NULL) {
+	 		for (int i = 0; i < ndata; i++) {
+	    			pp[i] = __c81_pdata[i];
+	 		}
+	 		delete[] __c81_pdata;
+      		}
+      		__c81_pdata = pp;
+      		c81_ndata = ndata;
+   	} else if (__c81_pdata[jpro] != NULL) {
+      		cerr << "profile " << jpro << "already defined" << endl;
+      		return -1;
+   	}
    
-   __c81_pdata[jpro] = data;
+   	__c81_pdata[jpro] = data;
    
-   return 0;
+   	return 0;
 }
 
 } /* extern "C" */
