@@ -7,12 +7,15 @@
 
 # Prints the labels
 function print_preamble() {
+	# triads
 	printf("# Preamble\n");
 	printf("object \"TriadLabels\" class array type int rank 1 shape 1 items %d data follows\n", strnode_num);
 	for (i = 0; i < strnode_num; i++) {
 		printf("\t%d\n", strnode_label[i]);
 	}
 	printf("attribute \"dep\" string \"positions\"\n");
+
+	# beams
 	beam_num = beam2_num + 2*beam3_num;
 	if (beam_num > 0) {
 		printf("object \"Beam2Connections\" class array type int shape 2 items %d data follows\n", beam_num);
@@ -54,6 +57,71 @@ function print_preamble() {
 		}
 		printf("attribute \"dep\" string \"connections\"\n");
 	}
+
+	# aero
+	aero_num = aero0_num + aero2_num + 2*aero3_num;
+	if (aero_num > 0) {
+		printf("object \"Aero4Connections\" class array type int shape 4 items %d data follows\n", aero_num);
+		for (i = 0; i < aero0_num; i++) {
+			l = aero0_label[i];
+			printf("\t%d %d %d %d\n", aero0[l, 1], aero0[l, 1], aero0[l, 1], aero0[l, 1]);
+		}
+		for (i = 0; i < aero2_num; i++) {
+			l = aero2_label[i];
+			printf("\t%d %d %d %d\n", aero2[l, 1], aero2[l, 2], aero2[l, 1], aero2[l, 2]);
+		}
+		for (i = 0; i < aero3_num; i++) {
+			l = aero3_label[i];
+			printf("\t%d %d %d %d\n", aero3[l, 1], aero3[l, 2], aero3[l, 1], aero3[l, 2]);
+			printf("\t%d %d %d %d\n", aero3[l, 2], aero3[l, 3], aero3[l, 2], aero3[l, 3]);
+		}
+		printf("attribute \"element type\" string \"lines\"\n");
+		printf("object \"Aero4Labels\" class array type int shape 1 items %d data follows\n", aero_num);
+		for (i = 0; i < aero0_num; i++) {
+			printf("\t%d\n", aero0_label[i]);
+		}
+		for (i = 0; i < aero2_num; i++) {
+			printf("\t%d\n", aero2_label[i]);
+		}
+		for (i = 0; i < aero3_num; i++) {
+			printf("\t%d\n", aero3_label[i]);
+			printf("\t%d\n", aero3_label[i]);
+		}
+		# FIXME: check names
+		printf("attribute \"dep\" string \"connections\"\n");
+		printf("attribute \"element type\" string \"lines\"\n");
+		printf("object \"Aero4Offsets\" class array type float shape 12 items %d data follows\n", aero_num);
+		for (i = 0; i < aero0_num; i++) {
+			l = aero0_label[i];
+			printf("\t%f %f %f %f %f %f %f %f %f %f %f %f\n", 
+				aero0[l, 1, 1], aero0[l, 1, 2], aero0[l, 1, 3],
+				aero0[l, 3, 1], aero0[l, 3, 2], aero0[l, 3, 3],
+				aero0[l, 2, 1], aero0[l, 2, 2], aero0[l, 2, 3],
+				aero0[l, 4, 1], aero0[l, 4, 2], aero0[l, 4, 3]);
+		}
+		for (i = 0; i < aero2_num; i++) {
+			l = aero2_label[i];
+			printf("\t%f %f %f %f %f %f %f %f %f %f %f %f\n", 
+				aero2[l, 1, 1], aero2[l, 1, 2], aero2[l, 1, 3],
+				aero2[l, 3, 1], aero2[l, 3, 2], aero2[l, 3, 3],
+				aero2[l, 2, 1], aero2[l, 2, 2], aero2[l, 2, 3],
+				aero2[l, 4, 1], aero2[l, 4, 2], aero2[l, 4, 3]);
+		}
+		for (i = 0; i < aero3_num; i++) {
+			l = aero3_label[i];
+			printf("\t%f %f %f %f %f %f %f %f %f %f %f %f\n", 
+				aero3[l, 1, 1], aero3[l, 1, 2], aero3[l, 1, 3],
+				aero3[l, 3, 1], aero3[l, 3, 2], aero3[l, 3, 3],
+				aero3[l, 2, 1], aero3[l, 2, 2], aero3[l, 2, 3],
+				aero3[l, 4, 1], aero3[l, 4, 2], aero3[l, 4, 3]);
+			printf("\t%f %f %f %f %f %f %f %f %f %f %f %f\n", 
+				aero3[l, 3, 1], aero3[l, 3, 2], aero3[l, 3, 3],
+				aero3[l, 5, 1], aero3[l, 5, 2], aero3[l, 5, 3],
+				aero3[l, 4, 1], aero3[l, 4, 2], aero3[l, 4, 3],
+				aero3[l, 6, 1], aero3[l, 6, 2], aero3[l, 6, 3]);
+		}
+		printf("attribute \"dep\" string \"connections\"\n");
+	}
 }
 
 # Prints the objects at one step
@@ -88,6 +156,9 @@ function print_step() {
 		printf("component \"nodelabels\" \"TriadLabels\"\n");
 		printf("component \"offsets\" \"Beam2Offsets\"\n");
 	}
+	if (aero_num > 0) {
+		# FIXME ?!?
+	}
 	printf("object \"MBDynSym%f\" class group\n", t);
 	printf("member \"OrientedTriads\" value \"OrientedTriads%f\"\n", t);
 	if (beam_num > 0) {
@@ -112,6 +183,10 @@ function skip_node_label(l) {
 }
 
 function skip_beam_label(l) {
+	return 0;
+}
+
+function skip_aero_label(l) {
 	return 0;
 }
 
@@ -243,6 +318,120 @@ BEGIN {
 		beam3[$2, 3, 2] = $13;
 		beam3[$2, 3, 3] = $14;
 		beam3_num++;
+	}
+}
+
+/^aero0:/ {
+	if (!Preamble) {
+		print "got \"aero0\" out of preamble" > "/dev/stderr";
+		exit;
+	}
+
+	if (!skip_aero_label($2)) {
+		if (!($3 in strnode)) {
+			print "structural node("$3") requested by aero0("$2") as node not found" > "/dev/stderr";
+			exit;
+		}
+
+		aero0_label[aero0_num] = $2;
+		aero0[$2, 1] = $3;
+		aero0[$2, 1, 1] = $4;
+		aero0[$2, 1, 2] = $5;
+		aero0[$2, 1, 3] = $6;
+		aero0[$2, 2, 1] = $7;
+		aero0[$2, 2, 2] = $8;
+		aero0[$2, 2, 3] = $9;
+		aero0[$2, 3, 1] = $10;
+		aero0[$2, 3, 2] = $11;
+		aero0[$2, 3, 3] = $12;
+		aero0[$2, 4, 1] = $13;
+		aero0[$2, 4, 2] = $14;
+		aero0[$2, 4, 3] = $15;
+		aero0_num++;
+	}
+}
+
+/^aero2:/ {
+	if (!Preamble) {
+		print "got \"aero2\" out of preamble" > "/dev/stderr";
+		exit;
+	}
+
+	if (!skip_aero_label($2)) {
+		if (!($3 in strnode)) {
+			print "structural node("$3") requested by aero2("$2") as node not found" > "/dev/stderr";
+			exit;
+		}
+
+		if (!($10 in strnode)) {
+			print "structural node("$10") requested by aero2("$2") as node not found" > "/dev/stderr";
+			exit;
+		}
+
+		aero2_label[aero2_num] = $2;
+		aero2[$2, 1] = $3;
+		aero2[$2, 1, 1] = $4;
+		aero2[$2, 1, 2] = $5;
+		aero2[$2, 1, 3] = $6;
+		aero2[$2, 2, 1] = $7;
+		aero2[$2, 2, 2] = $8;
+		aero2[$2, 2, 3] = $9;
+		aero2[$2, 2] = $10;
+		aero2[$2, 3, 1] = $11;
+		aero2[$2, 3, 2] = $12;
+		aero2[$2, 3, 3] = $13;
+		aero2[$2, 4, 1] = $14;
+		aero2[$2, 4, 2] = $15;
+		aero2[$2, 4, 3] = $16;
+		aero2_num++;
+	}
+}
+
+/^aero3:/ {
+	if (!Preamble) {
+		print "got \"aero3\" out of preamble" > "/dev/stderr";
+		exit;
+	}
+
+	if (!skip_aero_label($2)) {
+		if (!($3 in strnode)) {
+			print "structural node("$3") requested by aero3("$2") as node not found" > "/dev/stderr";
+			exit;
+		}
+
+		if (!($10 in strnode)) {
+			print "structural node("$10") requested by aero3("$2") as node not found" > "/dev/stderr";
+			exit;
+		}
+
+		if (!($17 in strnode)) {
+			print "structural node("$17") requested by aero3("$2") as node not found" > "/dev/stderr";
+			exit;
+		}
+
+		aero3_label[aero3_num] = $2;
+		aero3[$2, 1] = $3;
+		aero3[$2, 1, 1] = $4;
+		aero3[$2, 1, 2] = $5;
+		aero3[$2, 1, 3] = $6;
+		aero3[$2, 2, 1] = $7;
+		aero3[$2, 2, 2] = $8;
+		aero3[$2, 2, 3] = $9;
+		aero3[$2, 2] = $10;
+		aero3[$2, 3, 1] = $11;
+		aero3[$2, 3, 2] = $12;
+		aero3[$2, 3, 3] = $13;
+		aero3[$2, 4, 1] = $14;
+		aero3[$2, 4, 2] = $15;
+		aero3[$2, 4, 3] = $16;
+		aero3[$2, 3] = $17;
+		aero3[$2, 5, 1] = $18;
+		aero3[$2, 5, 2] = $19;
+		aero3[$2, 5, 3] = $20;
+		aero3[$2, 6, 1] = $21;
+		aero3[$2, 6, 2] = $22;
+		aero3[$2, 6, 3] = $23;
+		aero3_num++;
 	}
 }
 
