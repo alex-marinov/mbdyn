@@ -660,7 +660,7 @@ UniversalRotationJoint::UniversalRotationJoint(unsigned int uL,
 		const Mat3x3& R2hTmp,
 		flag fOut)
 : Elem(uL, Elem::JOINT, fOut),
-Joint(uL, Joint::UNIVERSALHINGE, pDO, fOut), 
+Joint(uL, Joint::UNIVERSALROTATION, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
 R1h(R1hTmp), R2h(R2hTmp), dM(0.)
 {
@@ -770,6 +770,7 @@ UniversalRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    }
    
    WM.fPutRowIndex(6+1, iFirstReactionIndex+1);
+   WM.fPutColIndex(6+1, iFirstReactionIndex+1);
    
    Vec3 e3a(R1hTmp.GetVec(3));
    Vec3 e2b(R2hTmp.GetVec(2));
@@ -778,39 +779,25 @@ UniversalRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    Mat3x3 MWedgee3aWedge(MTmp, e3a);
    Mat3x3 e3aWedgeMWedge(e3a, MTmp);
    
-   WM.Sub(1, 1, MWedgee3aWedge);
-   WM.Add(1, 4, e3aWedgeMWedge);
+   WM.Sub(0+1, 0+1, MWedgee3aWedge);
+   WM.Add(0+1, 3+1, e3aWedgeMWedge);
    
-   WM.Add(4, 1, MWedgee3aWedge);   
-   WM.Sub(4, 4, e3aWedgeMWedge);      
+   WM.Add(3+1, 0+1, MWedgee3aWedge);   
+   WM.Sub(3+1, 3+1, e3aWedgeMWedge);      
    
    /* Contributo del momento alle equazioni di equilibrio dei nodi */
    Vec3 Tmp(e2b.Cross(e3a));
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = Tmp.dGet(iCnt);
-      WM.fIncCoef(iCnt, 7, d);
-      WM.fDecCoef(3+iCnt, 7, d);
-   }         
+      WM.fIncCoef(iCnt, 6+1, d);
+      WM.fDecCoef(3+iCnt, 6+1, d);
    
-   /* Modifica: divido le equazioni di vincolo per dCoef */
-   
-   /* Equazione di vincolo del momento
-    * 
-    * Attenzione: bisogna scrivere il vettore trasposto
-    *   (Sb[1]^T*(Sa[3]/\))*dCoef
-    * Questo pero' e' uguale a:
-    *   (-Sa[3]/\*Sb[1])^T*dCoef,
-    * che puo' essere ulteriormente semplificato:
-    *   (Sa[3].Cross(Sb[1])*(-dCoef))^T;
-    */
-   
-   for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      doublereal d = Tmp.dGet(iCnt);
-      WM.fIncCoef(7, iCnt, d);
-      WM.fDecCoef(7, 3+iCnt, d);
-   }   
-   
+      /* Modifica: divido le equazioni di vincolo per dCoef */
+      WM.fIncCoef(6+1, iCnt, d);
+      WM.fDecCoef(6+1, 3+iCnt, d);
+   }
+
    return WorkMat;
 }
 
