@@ -529,6 +529,7 @@ if test $ol_with_libf2c != no ; then
 	for l in $libf2c_pool ; do
 		AC_MSG_CHECKING([for lib$l])
 
+		try_libf2c="$l"
 		try_libf2c_LIBS="-l$l"
 		save_LIBS=$LIBS
 		LIBS="$LIBS $try_libf2c_LIBS -lm"
@@ -555,6 +556,11 @@ if test $ol_with_libf2c != no ; then
 		else
 			AC_MSG_WARN([f2c library not supported!])
 		fi
+	else
+		dnl Hack to allow different Fortran compatibility libraries
+		dnl that apparently do not implement integer power of double
+		AC_CHECK_LIB($try_libf2c,pow_di,[
+			AC_DEFINE(HAVE_POW_DI,1,[define if pow_di() function is available])])
 	fi
 else
 	AC_MSG_WARN([f2c library not supported!])
