@@ -777,7 +777,7 @@ C=    COMPILER (LINK=IBJ$)
       REAL*8 ALF(25,3), PP(5,5), COE(5,5), PUNTI(2,25),
      &  PERM(5), CD(5)
 
-      REAL*8 DSCAL
+      REAL*8 DSCALL
       REAL*8 QPSI1, QPSI2,QPSI3
       INTEGER*4 I, K, L, INDER
       
@@ -806,14 +806,14 @@ C=    COMPILER (LINK=IBJ$)
           CD(3) = 2.D0*QPSI1
           CD(4) = 3.D0*QPSI2
           CD(5) = 4.D0*QPSI3
-          ALF(L,2) = DSCAL(CD,COE,NUPIA)
+          ALF(L,2) = DSCALL(CD,COE,NUPIA)
 C
           CD(1) = 0.D0
           CD(2) = 0.D0
           CD(3) = 2.D0
           CD(4) = 6.D0*QPSI1
           CD(5) = 12.D0*QPSI2
-          ALF(L,3) = DSCAL(CD,COE,NUPIA)
+          ALF(L,3) = DSCALL(CD,COE,NUPIA)
    40   CONTINUE
    50 CONTINUE
       RETURN
@@ -1330,9 +1330,9 @@ C=    COMPILER (LINK=IBJ$)
       END
 
 
-C*************************          DSCAL          *********************
+C*************************          DSCALL         *********************
 C=    COMPILER (LINK=IBJ$)
-      REAL*8 FUNCTION DSCAL(X,Y,N)
+      REAL*8 FUNCTION DSCALL(X,Y,N)
 C
 C     ESEGUE IL PRODOTTO SCALARE DI X PER Y
 C
@@ -1342,9 +1342,9 @@ C
 
       INTEGER*4 I
       DIMENSION X(1),Y(1)
-      DSCAL=0.
+      DSCALL=0.
       DO 1 I=1,N
-1     DSCAL=DSCAL+X(I)*Y(I)
+1     DSCALL=DSCALL+X(I)*Y(I)
       RETURN
       END
 
