@@ -38,7 +38,6 @@ libmbmath_la_LDFLAGS =
 
 INCLUDES = \
 -I../../libraries/liby12 \
--I../../libraries/libharwell \
 -I../../libraries/libmbutil \
 -I../../libraries/libmbmath \
 -I../../libraries/libmbwrap \

@@ -98,7 +98,7 @@ libmbmath_la_SOURCES =  fullmh.cc fullmh.h ldl.f ldl.h matvec3.cc matvec3.h matv
 libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@
 libmbmath_la_LDFLAGS = 
 
-INCLUDES =  -I../../libraries/liby12 -I../../libraries/libharwell -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../libraries/libmbwrap -I../../mbdyn
+INCLUDES =  -I../../libraries/liby12 -I../../libraries/libmbutil -I../../libraries/libmbmath -I../../libraries/libmbwrap -I../../mbdyn
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = ../../include/mbconfig.h

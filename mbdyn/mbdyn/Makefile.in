@@ -101,7 +101,7 @@ mbdyn_LDADD =  base/libbase.la struct/libstruct.la aero/libaero.la elec/libelec.
 
 #mbdyn_LDFLAGS = -static
 
-INCLUDES =  -I../libraries/libmbutil -I../libraries/libmbmath -I../libraries/libmbwrap -I../libraries/libharwell -I../mbdyn/base -I../mbdyn/struct -I../mbdyn/aero -I../mbdyn/elec -I../mbdyn/hydr
+INCLUDES =  -I../libraries/libmbutil -I../libraries/libmbmath -I../libraries/libmbwrap -I../mbdyn/base -I../mbdyn/struct -I../mbdyn/aero -I../mbdyn/elec -I../mbdyn/hydr
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = ../include/mbconfig.h

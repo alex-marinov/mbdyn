@@ -84,7 +84,6 @@ INCLUDES = \
 -I../../libraries/libmbutil \
 -I../../libraries/libmbmath \
 -I../../libraries/libmbwrap \
--I../../libraries/libharwell \
 -I../../mbdyn \
 -I../../mbdyn/base \
 -I../../mbdyn/struct \

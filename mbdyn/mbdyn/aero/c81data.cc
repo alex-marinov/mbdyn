@@ -44,17 +44,17 @@ extern "C" {
 #include <aerodc81.h>
 
 /*
- * header NML,NAL,NMD,NAD,NMM,NAM          A30,6I2 
- * ML(1),....,ML(NML)               7x,9F7.0   eventualmente su piu' righe 
- * AL(1)  CL(1,1),....,CL(1,NML)           10F7.0/(7x,9F7.0) 
+ * header NML,NAL,NMD,NAD,NMM,NAM	A30,6I2 
+ * ML(1),....,ML(NML)			7x,9F7.0   eventualmente su piu' righe 
+ * AL(1)  CL(1,1),....,CL(1,NML)	10F7.0/(7x,9F7.0) 
  * :         :     :       : 
- * AL(NAL)CL(NAL,1),....,CL(NAL,NML)       10F7.0/(7x,9F7.0) 
- * AD(1)  CD(1,1),....,CD(1,NMD)           10F7.0/(7x,9F7.0) 
+ * AL(NAL)CL(NAL,1),....,CL(NAL,NML)	10F7.0/(7x,9F7.0) 
+ * AD(1)  CD(1,1),....,CD(1,NMD)	10F7.0/(7x,9F7.0) 
  * :         :     :       : 
- * AD(NAD)CD(NAD,1),....,CD(NAD,NMD)       10F7.0/(7x,9F7.0) 
- * AM(1)  CM(1,1),....,CL(1,NMM)           10F7.0/(7x,9F7.0) 
+ * AD(NAD)CD(NAD,1),....,CD(NAD,NMD)	10F7.0/(7x,9F7.0) 
+ * AM(1)  CM(1,1),....,CL(1,NMM)	10F7.0/(7x,9F7.0) 
  * :         :     :       : 
- * AM(NAM)CM(NAM,1),....,CL(NAM,NMM)       10F7.0/(7x,9F7.0) 
+ * AM(NAM)CM(NAM,1),....,CL(NAM,NMM)	10F7.0/(7x,9F7.0) 
  */
 
 static int
