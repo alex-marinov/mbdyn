@@ -98,8 +98,12 @@ get_matrix(FILE* in, integer nrows, integer ncols, doublereal* m)
 	    p++;
 	 }
 	 *p = '\0';
-	 
+	
+#ifdef HAVE_STRTOD
 	 m[i+nrows*j] = strtod(buf, NULL);
+#else /* !HAVE_STRTOD */
+	 m[i+nrows*j] = atof(buf);
+#endif /* !HAVE_STRTOD */
       }
    }
    

@@ -128,11 +128,14 @@ iMatSize(iMSize),
 pSD(NULL),
 ppiRow(ppiTmpRow),
 ppiCol(ppiTmpCol), 
-ppdMat(ppdTmpMat)
+ppdMat(ppdTmpMat),
+pdMatm1(NULL)
 {
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
+
+	pdMatm1 = *ppdMat - 1;
 
    	SAFENEWWITHCONSTRUCTOR(pSD, SparseData,
 			       SparseData(iCurSize, ppiRow, ppiCol));
@@ -155,6 +158,7 @@ SparseMatrixHandler::PacMat(void)
 {
 	ASSERT(iCurSize > 0);
 
+#if 0
    	doublereal* pdMatNew = *ppdMat;
    	integer* piRowNew = *ppiRow;
    	integer* piColNew = *ppiCol;
@@ -162,20 +166,10 @@ SparseMatrixHandler::PacMat(void)
    	doublereal* pdMatOld = *ppdMat;
    	integer* piRowOld = *ppiRow;
    	integer* piColOld = *ppiCol;
+#endif
    
    	integer iEmpty = -(iCurSize+1);
 	integer iNew = 0;
-
-	for (integer iOld = 0; iOld < iCurSize; iOld++) {
-		if (piRowOld[iOld] != iEmpty) {
-			SparseData::uPacVec uPV;
-			uPV.iInt = piColOld[iOld];
-			pdMatNew[iNew] = pdMatOld[iOld];
-			piRowNew[iNew] = integer(uPV.sRC.ir);
-			piColNew[iNew] = integer(uPV.sRC.ic);
-			iNew++;
-		}
-	}
 
 #if 0
    	for ( ;
@@ -187,11 +181,23 @@ SparseMatrixHandler::PacMat(void)
 	 		*pdMatNew++ = *pdMatOld;
 	 		*piRowNew++ = integer(uPV.sRC.ir);
 	 		*piColNew++ = integer(uPV.sRC.ic);	     
-	 		iCount++;
+	 		iNew++;
       		}
    	}
 #endif
 	
+	for (integer iOld = 0; iOld < iCurSize; iOld++) {
+		if ((*ppiRow)[iOld] != iEmpty) {
+			SparseData::uPacVec uPV;
+			uPV.iInt = (*ppiCol)[iOld];
+			(*ppdMat)[iNew] = (*ppdMat)[iOld];
+			(*ppiRow)[iNew] = integer(uPV.sRC.ir);
+			(*ppiCol)[iNew] = integer(uPV.sRC.ic);
+			iNew++;
+		}
+	}
+
+
    	return iNew;
 }
 
@@ -206,6 +212,7 @@ SparseMatrixHandler::IsValid(void) const
    	ASSERT(*ppiRow != NULL);
    	ASSERT(*ppiCol != NULL);
    	ASSERT(*ppdMat != NULL);
+   	ASSERT(pdMatm1 != NULL);
    
 #ifdef DEBUG_MEMMANAGER
    	ASSERT(defaultMemoryManager.fIsValid(*ppiRow, 
@@ -230,6 +237,7 @@ SparseMatrixHandler::Init(const doublereal& dResetVal)
 #endif /* DEBUG_MEMMANAGER */
    
    	pSD->ResetVec();
+#ifndef SPARSE_MATRIX_NO_RESET
 #ifdef HAVE_MEMSET
 	if (dResetVal == 0.) {
 		/*
@@ -247,6 +255,7 @@ SparseMatrixHandler::Init(const doublereal& dResetVal)
 #ifdef HAVE_MEMSET
 	}
 #endif /* HAVE_MEMSET */
+#endif /* !SPARSE_MATRIX_NO_RESET */
 }
 
 integer
@@ -280,7 +289,8 @@ SparseMatrixHandler::iPacVec(void)
 #endif  /* DEBUG */
 
 	ASSERT(iCurSize > 0);
-	
+
+#if 0	
 	doublereal* pdMatNew = *ppdMat;
 	integer* piRowNew = *ppiRow;
 	integer* piColNew = *ppiCol;
@@ -288,21 +298,11 @@ SparseMatrixHandler::iPacVec(void)
 	doublereal* pdMatOld = *ppdMat;
 	integer* piRowOld = *ppiRow;
 	integer* piColOld = *ppiCol;
+#endif
 	
 	integer iEmpty = -(iCurSize+1);
 	integer iNew = 0;
-	
-	for (integer iOld = 0; iOld < iCurSize; iOld++) {
-		if (piRowOld[iOld] != iEmpty) {
-			SparseData::uPacVec uPV;
-			uPV.iInt = piColOld[iOld];
-			pdMatNew[iNew] = pdMatOld[iOld];
-			piRowNew[iNew] = integer(uPV.sRC.ir);
-			piColNew[iNew] = integer(uPV.sRC.ic);
-			iNew++;
-		}
-	}
-	
+
 #if 0
 	for ( ;
 	     piRowOld < *ppiRow+iCurSize;
@@ -313,11 +313,22 @@ SparseMatrixHandler::iPacVec(void)
 			*pdMatNew++ = *pdMatOld;
 			*piRowNew++ = integer(uPV.sRC.ir);
 			*piColNew++ = integer(uPV.sRC.ic);
-			iCount++;
+			iNew++;
 		}
 	}
 #endif
 	
+	for (integer iOld = 0; iOld < iCurSize; iOld++) {
+		if ((*ppiRow)[iOld] != iEmpty) {
+			SparseData::uPacVec uPV;
+			uPV.iInt = (*ppiCol)[iOld];
+			(*ppdMat)[iNew] = (*ppdMat)[iOld];
+			(*ppiRow)[iNew] = integer(uPV.sRC.ir);
+			(*ppiCol)[iNew] = integer(uPV.sRC.ic);
+			iNew++;
+		}
+	}
+
 	return iNew;
 }
 

@@ -423,4 +423,5 @@ class SolutionManager {
 
 /* SolutionManager - end */
 
-#endif
+#endif /* SOLMAN_H */
+

@@ -90,9 +90,8 @@ VectorHandler& VectorHandler::ScalarAddMul(const VectorHandler& VH, const double
    ASSERT(iGetSize() == VH.iGetSize());
 #endif
    
-   for (integer i = iGetSize(); i > 0; ) {
+   for (integer i = iGetSize(); i > 0; i--) {
       fIncCoef(i, d*VH.dGetCoef(i));
-      i--;
    }
    
    return *this;
@@ -106,9 +105,8 @@ VectorHandler& VectorHandler::ScalarMul(const VectorHandler& VH, const doublerea
    ASSERT(iGetSize() == VH.iGetSize());
 #endif
    
-   for (integer i = iGetSize(); i > 0; ) {
+   for (integer i = iGetSize(); i > 0; i--) {
       fPutCoef(i, d*VH.dGetCoef(i));
-      i--;
    }
    
    return *this;
@@ -122,9 +120,8 @@ VectorHandler& VectorHandler::operator += (const VectorHandler& VH) {
    ASSERT(iGetSize() == VH.iGetSize());
 #endif
    
-   for (integer i = iGetSize(); i > 0; ) {
+   for (integer i = iGetSize(); i > 0; i--) {
       fIncCoef(i, VH.dGetCoef(i));
-      i--;
    }
    
    return *this;
@@ -152,9 +149,8 @@ VectorHandler& VectorHandler::operator -= (const VectorHandler& VH) {
    ASSERT(iGetSize() == VH.iGetSize());
 #endif
    
-   for (integer i = iGetSize(); i > 0; ) {
+   for (integer i = iGetSize(); i > 0; i--) {
       fDecCoef(i, VH.dGetCoef(i));
-      i--;
    }
    
    return *this;
@@ -168,9 +164,8 @@ VectorHandler& VectorHandler::operator = (const VectorHandler& VH) {
    ASSERT(iGetSize() == VH.iGetSize());
 #endif
    
-   for (integer i = iGetSize(); i > 0; ) {
+   for (integer i = iGetSize(); i > 0; i--) {
       fPutCoef(i, VH.dGetCoef(i));
-      i--;
    }
    
    return *this;
@@ -184,10 +179,9 @@ doublereal VectorHandler::Dot(void) const {
    
    doublereal d2 = 0.;
    
-   for (integer i = iGetSize(); i > 0;) {
+   for (integer i = iGetSize(); i > 0; i--) {
       doublereal d = dGetCoef(i);
       d2 += d*d;
-      i--;
    }
    
    return d2;
@@ -322,10 +316,18 @@ void MyVectorHandler::Reset(doublereal dResetVal)
    
    ASSERT(iCurSize > 0);
    ASSERT(pdVec+iCurSize > pdVec);
-   
+
+#ifdef HAVE_MEMSET
+   if (dResetVal == 0.) {
+	  memset(pdVec, 0, iGetSize()*sizeof(doublereal));
+   } else {
+#endif /* HAVE_MEMSET */
    for (integer i = iGetSize(); i-- > 0; ) {
       pdVec[i] = dResetVal;
-   }	
+   }
+#ifdef HAVE_MEMSET
+   }
+#endif /* HAVE_MEMSET */
 }
 
 /* Somma e moltiplica per uno scalare */
@@ -341,9 +343,8 @@ MyVectorHandler::ScalarAddMul(const VectorHandler& VH, const doublereal& d)
 #endif
 
    if (d != 0.) {
-      for (integer i = iGetSize(); i > 0; ) {
+      for (integer i = iGetSize(); i > 0; i--) {
 	 pdVecm1[i] += d*VH.dGetCoef(i);
-	 i--;
       }
    }   
 
@@ -362,13 +363,12 @@ MyVectorHandler::ScalarMul(const VectorHandler& VH, const doublereal& d)
    ASSERT(iCurSize == VH.iGetSize());
 #endif   
 
-   if (d != 0.) {
-      for (integer i = iGetSize(); i > 0; ) {	 
-	 pdVecm1[i] = d*VH.dGetCoef(i);
-	 i--;
-      }
-   } else {
+   if (d == 0.) {
       Reset(0.);
+   } else {
+      for (integer i = iGetSize(); i > 0; i--) { 
+	 pdVecm1[i] = d*VH.dGetCoef(i);
+      }
    }   
    
    return *this;
@@ -549,7 +549,7 @@ MatrixHandler& MatrixHandler::operator -=(const VariableSubMatrixHandler& SubMH)
 MatrixHandler& MatrixHandler::ScalarMul(const doublereal& d)
 {
    for (integer i = 1; i <= iGetNumRows(); i++) {
-      for (integer j = 0; j <= iGetNumCols(); i++) {
+      for (integer j = 0; j <= iGetNumCols(); j++) {
 	 fPutCoef(i, j, dGetCoef(i, j)*d);
       }
    }

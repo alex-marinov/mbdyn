@@ -40,9 +40,17 @@
 void FullMatrixHandler::Init(const doublereal& dResetVal)
 {
    IsValid();
+#ifdef HAVE_MEMSET
+   if (dResetVal == 0.) {
+	   memset(pdRaw, 0, iNumCols*iNumRows*sizeof(doublereal));
+   } else {
+#endif /* HAVE_MEMSET */
    for (integer i = iNumCols*iNumRows; i-- > 0; ) {
       pdRaw[i] = dResetVal;
    }
+#ifdef HAVE_MEMSET
+   }
+#endif /* HAVE_MEMSET */
 }
 
 void FullMatrixHandler::CreateColRow(integer iNR, integer iNC)

@@ -50,6 +50,12 @@
 /* Define if you have the signal function.  */
 #undef HAVE_SIGNAL
 
+/* Define if you have the strtod function.  */
+#undef HAVE_STRTOD
+
+/* Define if you have the strtol function.  */
+#undef HAVE_STRTOL
+
 /* Define if you have the <f2c.h> header file.  */
 #undef HAVE_F2C_H
 

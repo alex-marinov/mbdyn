@@ -19,11 +19,12 @@ MBDyn 1.0 Engineering
 		  initialization after input
 		- improved optional parameter input for struct nodes
 		- added helper for BDF integration scheme also in dummy steps
-		- added support for Umfpack3 (default if available)
+		- added support for Umfpack3
 		- explicitly referenced std namespace symbols (complying
 		  with ANSI C++)
 		- better header handling/system properties detection
 		- optimal storage detection for y12m
+		- optimization of sparsity handling
 	Bug fixes:
 		- Hydraulic nodes did not honor the output flag (always on)
 		- minor fixes in documentation

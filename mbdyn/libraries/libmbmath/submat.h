@@ -35,18 +35,18 @@
 #define SUBMAT_H
 
 
-#include "myassert.h"
-#include "except.h"
+#include <myassert.h>
+#include <except.h>
 
 
 /* include del programma */
 /* si assume che solman.h includa piu' o meno direttamnte f2c.h, 
  * che contiene le dichiarazioni dei tipi derivati dal fortran. */
 
-#include "solman.h"
-#include "fullmh.h"
-#include "matvec3.h"
-#include "matvec3n.h"
+#include <solman.h>
+#include <fullmh.h>
+#include <matvec3.h>
+#include <matvec3n.h>
 
 /* SubMatrixHandler - begin */    
 
@@ -248,15 +248,28 @@ class FullSubMatrixHandler : public SubMatrixHandler {
 #ifdef DEBUG	
       IsValid();
 #endif
-      integer i;
       
-      for (i = iNumRows*iNumCols; i-- > 0; ) {
+#ifdef HAVE_MEMSET
+      if (dResetVal == 0.) {
+	      memset(pdMat, 0, iNumRows*iNumCols*sizeof(doublereal));
+      } else {
+#endif /* HAVE_MEMSET */
+      for (integer i = iNumRows*iNumCols; i-- > 0; ) {
 	 pdMat[i] = dResetVal;
       }
-      
-      for (i = iNumRows+iNumCols; i-- > 0; ) {
+#ifdef HAVE_MEMSET
+      }
+#endif /* HAVE_MEMSET */
+     
+#if 0 
+      /* 
+       * this is not strictly required, because all the indices should
+       * be explicitly set before the matrix is used
+       */
+      for (integer i = iNumRows+iNumCols; i-- > 0; ) {
 	 piRow[i] = 0;
       }	
+#endif
    };   
    
    /**
@@ -296,8 +309,8 @@ class FullSubMatrixHandler : public SubMatrixHandler {
     Ridimensiona ed inizializza.
     */
    void ResizeInit(integer iNewRow, integer iNewCol, const doublereal& dResetVal = 0.) {
-      this->Resize(iNewRow, iNewCol);	
-      this->Init(dResetVal);
+      Resize(iNewRow, iNewCol);	
+      Init(dResetVal);
    };
 
    /**
@@ -307,7 +320,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
      iNumRows = iRows;
      iNumCols = iCols;
      piRow = piTmpIndx;
-     piCol =(piRow+iNumRows);
+     piCol = piRow+iNumRows;
      pdMat = pdTmpMat;
    };
    //@}
@@ -387,7 +400,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       
       ASSERT((iSubRow > 0) && (iSubRow <= iNumRows));
       
-      *(piRow+(--iSubRow)) = iRow;
+      piRow[--iSubRow] = iRow;
       
       return flag(0);
    };   
@@ -402,7 +415,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       
       ASSERT((iSubCol > 0) && (iSubCol <= iNumCols));
       
-      *(piCol+(--iSubCol)) = iCol;
+      piCol[--iSubCol] = iCol;
       
       return flag(0);
    };   
@@ -417,7 +430,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       
       ASSERT((iSubRow > 0) && (iSubRow <= iNumRows));
       
-      return *(piRow+(--iSubRow));
+      return piRow[--iSubRow];
    };   
    
    /** 
@@ -430,7 +443,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       
       ASSERT((iSubCol > 0) && (iSubCol <= iNumCols));
       
-      return *(piCol+(--iSubCol));
+      return piCol[--iSubCol];
    };
    
    /**
@@ -633,15 +646,17 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       
       ASSERT(iNumItems > 0);	
       
-      integer* piTmpRow = piRow;
-      integer* piTmpCol = piCol;
-      doublereal* pdTmpMat = pdMat;
-      
-      while (piTmpRow < piRow+iNumItems) {
-	 *piTmpRow++ = 0;
-	 *piTmpCol++ = 0;
-	 *pdTmpMat++ = dCoef;
-      }	
+#ifdef HAVE_MEMSET
+      if (dCoef == 0.) {
+	      memset(pdMat, 0, iNumItems*sizeof(doublereal));
+      } else {
+#endif /* HAVE_MEMSET */
+      for (integer i = 0; i < iNumItems; i++) {
+	      pdMat[i] = dCoef;
+      }
+#ifdef HAVE_MEMSET
+      }
+#endif /* HAVE_MEMSET */
    };
    
    /** 
@@ -679,8 +694,8 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
     Unione dei due metodi precedenti 
     */
    void ResizeInit(integer iNewRow, integer iNewCol, const doublereal& dCoef = 0.) {
-      this->Resize(iNewRow, iNewCol);
-      this->Init(dCoef);
+      Resize(iNewRow, iNewCol);
+      Init(dCoef);
    };
 
    /** 
@@ -769,7 +784,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
 #endif	
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));      
-      *(piRow+(--iSubIt)) = iRow;
+      piRow[--iSubIt] = iRow;
       
       return flag(0);
    };   
@@ -783,7 +798,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
 #endif	
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));      
-      *(piCol+(--iSubIt)) = iCol;
+      piCol[--iSubIt] = iCol;
       
       return flag(0);
    };   
@@ -798,7 +813,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));
       
-      return *(piRow+(--iSubIt));
+      return piRow[--iSubIt];
    };   
    
    /**
@@ -811,7 +826,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));
       
-      return *(piCol+(--iSubIt));
+      return piCol[--iSubIt];
    };   
    
    /**
@@ -830,9 +845,9 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       ASSERT(iRow > 0);
       ASSERT(iCol > 0);
       
-      *(pdMat+(--iSubIt)) = dCoef;
-      *(piRow+iSubIt) = iRow;
-      *(piCol+iSubIt) = iCol;
+      pdMat[--iSubIt] = dCoef;
+      piRow[iSubIt] = iRow;
+      piCol[iSubIt] = iCol;
       
       return flag(0);
    }
@@ -991,11 +1006,15 @@ class VariableSubMatrixHandler
     Numero di righe della sottomatrice
    */ 
    integer iGetNumRows(void) const {
-     if (fIsFull()) { 
-       return FullSubMatrixHandler::iGetNumRows();
-     }
-     else {
-       return SparseSubMatrixHandler::iGetNumRows();
+     switch (eStatus) {
+     case FULL:
+        return FullSubMatrixHandler::iGetNumRows();
+     
+     case SPARSE:
+        return SparseSubMatrixHandler::iGetNumRows();
+
+     default:
+	return 0;
      }
    };
 
@@ -1003,11 +1022,15 @@ class VariableSubMatrixHandler
     Numero di colonne della sottomatrice
    */ 
    integer iGetNumCols(void) const {
-     if (fIsFull()) { 
+     switch (eStatus) {
+     case FULL:
        return FullSubMatrixHandler::iGetNumCols();
-     }
-     else {
+     
+     case SPARSE:
        return SparseSubMatrixHandler::iGetNumCols();
+
+     default:
+       return 0;
      }
    };
       
@@ -1023,7 +1046,7 @@ class VariableSubMatrixHandler
    /** 
     Collega una matrice Full con della memoria già assegnata 
    */
-   void Attach(int iNumRows,int iNumCols, doublereal* pdTmpMat, integer* piTmpIndx) { 
+   void Attach(int iNumRows, int iNumCols, doublereal* pdTmpMat, integer* piTmpIndx) { 
      SetFull();
      FullSubMatrixHandler::Attach(iNumRows, iNumCols, pdTmpMat, piTmpIndx);
    };
@@ -1037,26 +1060,32 @@ class VariableSubMatrixHandler
     Si somma ad una matrice completa con metodi generici.
     */
    MatrixHandler& AddTo(MatrixHandler& MH) const {
-      if (fIsSparse()) {
-	 return SparseSubMatrixHandler::AddTo(MH);
-      }
-      if (fIsFull()) {
+      switch (eStatus) {
+      case FULL:
 	 return FullSubMatrixHandler::AddTo(MH);
+
+      case SPARSE:
+	 return SparseSubMatrixHandler::AddTo(MH);
+      
+      default:
+	 return MH;
       }
-      return MH;
    };
 
    /** 
     Si sottrae da una matrice completa con metodi generici.
     */
    MatrixHandler& SubFrom(MatrixHandler& MH) const {
-      if (fIsSparse()) {
-	 return SparseSubMatrixHandler::SubFrom(MH);
-      }
-      if (fIsFull()) {
+      switch (eStatus) {
+      case FULL:
 	 return FullSubMatrixHandler::SubFrom(MH);
+
+      case SPARSE:
+	 return SparseSubMatrixHandler::SubFrom(MH);
+      
+      default:
+	 return MH;
       }
-      return MH;
    };
    //@}
 };

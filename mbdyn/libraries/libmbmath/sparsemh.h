@@ -35,6 +35,8 @@
 #ifndef SPARSEMH_H
 #define SPARSEMH_H
 
+#define SPARSE_MATRIX_NO_RESET
+
 #include <myassert.h>
 #include <mynewmem.h>
 #include <except.h>
@@ -163,6 +165,7 @@ protected:
    	integer** ppiRow; /* punt. a punt. ad array di int. di dim. iMaxSize */
    	integer** ppiCol; /* '' '' */
    	doublereal** ppdMat; /* p. a p. ad array di reali di dim. iMaxSize */
+   	doublereal* pdMatm1; /* p. a p. ad array di reali di dim. iMaxSize */
 
 public:
    
@@ -263,15 +266,15 @@ SparseMatrixHandler::fPutCoef(integer iRow,
    	ASSERT((iRow > 0) && (iRow <= iMatSize));
    	ASSERT((iCol > 0) && (iCol <= iMatSize));
 
-   	if (dCoef != doublereal(0.) ) {
+   	if (dCoef != doublereal(0.)) {
       		SparseData::uPacVec uPV;
       		uPV.sRC.ir = (unsigned short int)(iRow);
       		uPV.sRC.ic = (unsigned short int)(iCol);
       
       		integer iField = uPV.iInt;
       		integer iReturnFlag = pSD->iGetIndex(iField);
-      		iReturnFlag = abs(iReturnFlag)-1;
-      		(*ppdMat)[iReturnFlag] = dCoef;
+      		iReturnFlag = abs(iReturnFlag);
+      		pdMatm1[iReturnFlag] = dCoef;
       
       		return flag(0);	
    	}
@@ -298,8 +301,24 @@ SparseMatrixHandler::fIncCoef(integer iRow,
       
       		integer iField = uPV.iInt;
       		integer iReturnFlag = pSD->iGetIndex(iField);
-      		iReturnFlag = abs(iReturnFlag)-1;
-      		(*ppdMat)[iReturnFlag] += dCoef;
+#ifndef SPARSE_MATRIX_NO_RESET
+      		iReturnFlag = abs(iReturnFlag);
+      		pdMatm1[iReturnFlag] += dCoef;
+#else /* SPARSE_MATRIX_NO_RESET */
+		if (iReturnFlag < 0) {
+			/* 
+			 * already in: add
+			 */
+			pdMatm1[-iReturnFlag] += dCoef;
+
+		} else {
+			/*
+			 * first insert: set (so there's no need 
+			 * to reset the matrix, another 1% speedup)
+			 */
+			pdMatm1[iReturnFlag] = dCoef;
+		}
+#endif /* SPARSE_MATRIX_NO_RESET */
       
       		return flag(0);	
    	}
@@ -326,8 +345,24 @@ SparseMatrixHandler::fDecCoef(integer iRow,
       
       		integer iField = uPV.iInt;
       		integer iReturnFlag = pSD->iGetIndex(iField);
-      		iReturnFlag = abs(iReturnFlag)-1;
-      		(*ppdMat)[iReturnFlag] -= dCoef;
+#ifndef SPARSE_MATRIX_NO_RESET
+      		iReturnFlag = abs(iReturnFlag);
+      		pdMatm1[iReturnFlag] -= dCoef;
+#else /* SPARSE_MATRIX_NO_RESET */
+		if (iReturnFlag < 0) {
+			/* 
+			 * already in: sub
+			 */
+			pdMatm1[-iReturnFlag] -= dCoef;
+
+		} else {
+			/*
+			 * first insert: set (so there's no need 
+			 * to reset the matrix, another 1% speedup)
+			 */
+			pdMatm1[iReturnFlag] = dCoef;
+		}
+#endif /* SPARSE_MATRIX_NO_RESET */
       
       		return flag(0);	
    	}
@@ -348,13 +383,23 @@ SparseMatrixHandler::dGetCoef(integer iRow, integer iCol) const
    	SparseData::uPacVec uPV;
    	uPV.sRC.ir = short(iRow);
    	uPV.sRC.ic = short(iCol);
-	
+
+	/* 
+	 * warning: the key is allocated if it does not exist, 
+	 * so the matrix gets filled if traversed
+	 */
    	integer iField = uPV.iInt;
    	integer iReturnFlag = pSD->iGetIndex(iField);
+
+	/* pSD->iGetIndex throws an excetion if no room left in matrix */
+#if 0
    	if (iReturnFlag != 0) {
-      		iReturnFlag = abs(iReturnFlag)-1;
-      		return (*ppdMat)[iReturnFlag];
+#endif
+      		iReturnFlag = abs(iReturnFlag);
+      		return pdMatm1[iReturnFlag];
+#if 0
    	}
+#endif
 
    	return ::dZero; /* zero! */
 }

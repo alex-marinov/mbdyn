@@ -61,7 +61,11 @@ typedef sighandler_t __sighandler_t;
 #include <bool.h>
 #endif /* NEED_BOOL_H */
 #else /* !HAVE_BOOL */
-typedef char bool;
+typedef int bool;
+enum {
+	false = 0,
+	true = 1
+};
 #endif /* !HAVE_BOOL */
 
 /* decides whether to build include capability in parser */

@@ -7,6 +7,14 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Sun Jan 13 09:04:22 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - actually there's no need to reset the matrix as we know in advance
+   if we're adding/subtracting a coefficient for the first time; all
+   we need to do is reset the hash vector.
+ - y12m promoted back to default as it saves some 20-25% time on average
+   test cases; umfpack3 has a more versatile memory handling and is less 
+   sensitive to pivoting issues.
+
 *** Sat Jan 12 10:47:06 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - memset allows some 0.5% speedup!
 

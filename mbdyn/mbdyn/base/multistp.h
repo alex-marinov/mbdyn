@@ -54,7 +54,6 @@
 #include <myassert.h>
 #include <mynewmem.h>
 #include <solman.h>
-// #include <fullmh.h>
 #include <dataman.h>
 #include <integr.h>
 #include <intmeth.h>

@@ -118,21 +118,21 @@ void FullSubMatrixHandler::Add(integer iRow, integer iCol, const Mat3x3& m)
    doublereal* pdFrom = m.pGetMat();
 
    /* Prima colonna */
-   pdTo[0] += pdFrom[0];
-   pdTo[1] += pdFrom[1];
-   pdTo[2] += pdFrom[2];
+   pdTo[0] += pdFrom[M11];
+   pdTo[1] += pdFrom[M21];
+   pdTo[2] += pdFrom[M31];
    
    /* Seconda colonna */
    pdTo += iNumRows;
-   pdTo[0] += pdFrom[3];
-   pdTo[1] += pdFrom[4];
-   pdTo[2] += pdFrom[5];
+   pdTo[0] += pdFrom[M12];
+   pdTo[1] += pdFrom[M22];
+   pdTo[2] += pdFrom[M32];
    
    /* Terza colonna */
    pdTo += iNumRows;
-   pdTo[0] += pdFrom[6];
-   pdTo[1] += pdFrom[7];
-   pdTo[2] += pdFrom[8];
+   pdTo[0] += pdFrom[M13];
+   pdTo[1] += pdFrom[M23];
+   pdTo[2] += pdFrom[M33];
 }
 
 
@@ -156,21 +156,21 @@ void FullSubMatrixHandler::Sub(integer iRow, integer iCol, const Mat3x3& m)
    doublereal* pdFrom = m.pGetMat();
    
    /* Prima colonna */
-   pdTo[0] -= pdFrom[0];
-   pdTo[1] -= pdFrom[1];
-   pdTo[2] -= pdFrom[2];
+   pdTo[0] -= pdFrom[M11];
+   pdTo[1] -= pdFrom[M21];
+   pdTo[2] -= pdFrom[M31];
    
    /* Seconda colonna */
    pdTo += iNumRows;
-   pdTo[0] -= pdFrom[3];
-   pdTo[1] -= pdFrom[4];
-   pdTo[2] -= pdFrom[5];
+   pdTo[0] -= pdFrom[M12];
+   pdTo[1] -= pdFrom[M22];
+   pdTo[2] -= pdFrom[M32];
    
    /* Terza colonna */
    pdTo += iNumRows;
-   pdTo[0] -= pdFrom[6];
-   pdTo[1] -= pdFrom[7];
-   pdTo[2] -= pdFrom[8];
+   pdTo[0] -= pdFrom[M13];
+   pdTo[1] -= pdFrom[M23];
+   pdTo[2] -= pdFrom[M33];
 }
 
 
@@ -189,21 +189,21 @@ void FullSubMatrixHandler::Put(integer iRow, integer iCol, const Mat3x3& m)
    doublereal* pdFrom = m.pGetMat();
    
    /* Prima colonna */
-   pdTo[0] = pdFrom[0];
-   pdTo[1] = pdFrom[1];
-   pdTo[2] = pdFrom[2];
+   pdTo[0] = pdFrom[M11];
+   pdTo[1] = pdFrom[M21];
+   pdTo[2] = pdFrom[M31];
    
    /* Seconda colonna */
    pdTo += iNumRows;
-   pdTo[0] = pdFrom[3];
-   pdTo[1] = pdFrom[4];
-   pdTo[2] = pdFrom[5];
+   pdTo[0] = pdFrom[M12];
+   pdTo[1] = pdFrom[M22];
+   pdTo[2] = pdFrom[M32];
    
    /* Terza colonna */
    pdTo += iNumRows;
-   pdTo[0] = pdFrom[6];
-   pdTo[1] = pdFrom[7];
-   pdTo[2] = pdFrom[8];
+   pdTo[0] = pdFrom[M13];
+   pdTo[1] = pdFrom[M23];
+   pdTo[2] = pdFrom[M33];
 }
 
 
@@ -221,11 +221,11 @@ void FullSubMatrixHandler::Add(integer iRow, integer iCol, const Mat3xN& m)
    ASSERT((iCol > 0) && (iCol <= iNumCols-m.iGetNumCols()+1));
 #endif	
 
+   --iRow;
+   --iCol;
    for (int i = 3; i > 0; i--) {
       for (integer j = m.iGetNumCols(); j > 0; j--) {
-
-// modifica : gli indici partono da i+iRow e non da i!!!
-	 fIncCoef(i+iRow-1, j+iCol-1, m.dGet(i, j));
+	 fIncCoef(i+iRow, j+iCol, m.dGet(i, j));
       }
    }
 }
@@ -244,10 +244,11 @@ void FullSubMatrixHandler::Sub(integer iRow, integer iCol, const Mat3xN& m)
    ASSERT((iCol > 0) && (iCol <= iNumCols-m.iGetNumCols()+1));
 #endif	
 
+   --iRow;
+   --iCol;
    for (int i = 3; i > 0; i--) {
       for (integer j = m.iGetNumCols(); j > 0; j--) {
-// modifica : gli indici partono da i+iRow e non da i!!!
-	 fDecCoef(i+iRow-1, j+iCol-1, m.dGet(i, j));
+	 fDecCoef(i+iRow, j+iCol, m.dGet(i, j));
       }
    }
 }
@@ -262,9 +263,11 @@ void FullSubMatrixHandler::Add(integer iRow, integer iCol, const MatNx3& m)
    ASSERT((iCol > 0) && (iCol <= iNumCols-2));
 #endif	 
 
- for (int i = m.iGetNumRows(); i > 0; i--) {
+   --iRow;
+   --iCol;
+   for (int i = m.iGetNumRows(); i > 0; i--) {
       for (integer j = 3; j > 0; j--) {
-	 fIncCoef(i+iRow-1, j+iCol-1, m.dGet(i, j));
+	 fIncCoef(i+iRow, j+iCol, m.dGet(i, j));
       }
    }
 }
@@ -279,9 +282,11 @@ void FullSubMatrixHandler::Sub(integer iRow, integer iCol, const MatNx3& m)
    ASSERT((iCol > 0) && (iCol <= iNumCols-2));
 #endif	 
 
- for (int i = m.iGetNumRows(); i > 0; i--) {
+   --iRow;
+   --iCol;
+   for (int i = m.iGetNumRows(); i > 0; i--) {
       for (integer j = 3; j > 0; j--) {
-	 fDecCoef(i+iRow-1, j+iCol-1, m.dGet(i, j));
+	 fDecCoef(i+iRow, j+iCol, m.dGet(i, j));
       }
    }
 }
@@ -301,10 +306,11 @@ void FullSubMatrixHandler::Put(integer iRow, integer iCol, const Mat3xN& m)
    ASSERT((iCol > 0) && (iCol <= iNumCols-m.iGetNumCols()+1));
 #endif	
 
+   --iRow;
+   --iCol;
    for (int i = 3; i > 0; i--) {
       for (integer j = m.iGetNumCols(); j > 0; j--) {
-// modifica: gli indici partono da i+iRow e non da i!!!
-	 fPutCoef(i+iRow-1, j+iCol-1, m.dGet(i, j));
+	 fPutCoef(i+iRow, j+iCol, m.dGet(i, j));
       }
    }
 }
@@ -517,32 +523,32 @@ flag SparseSubMatrixHandler::fPutCross(integer iSubIt, integer iFirstRow,
    integer* pir = piRow+iSubIt;
    integer* pic = piCol+iSubIt;
    
-   pdm[0] = -pdFrom[2];               // -v.dGet(3);
+   pdm[0] = -pdFrom[V3];               // -v.dGet(3);
    pir[0] = iFirstRow+1;
    pic[0] = iFirstCol+2;
    
    /* Coefficiente 1,3 */
-   pdm[1] = pdFrom[1];                // v.dGet(2);
+   pdm[1] = pdFrom[V2];                // v.dGet(2);
    pir[1] = iFirstRow+1;
    pic[1] = iFirstCol+3;
    
    /* Coefficiente 2,1 */
-   pdm[2] = pdFrom[2];                // v.dGet(3);
+   pdm[2] = pdFrom[V3];                // v.dGet(3);
    pir[2] = iFirstRow+2;
    pic[2] = iFirstCol+1;
    
    /* Coefficiente 2,3 */
-   pdm[3] = -pdFrom[0];               // -v.dGet(1);
+   pdm[3] = -pdFrom[V1];               // -v.dGet(1);
    pir[3] = iFirstRow+2;
    pic[3] = iFirstCol+3;
    
    /* Coefficiente 3,1 */
-   pdm[4] = -pdFrom[1];                // -v.dGet(2);
+   pdm[4] = -pdFrom[V2];                // -v.dGet(2);
    pir[4] = iFirstRow+3;
    pic[4] = iFirstCol+1;
    
    /* Coefficiente 3,2 */
-   pdm[5] = pdFrom[0];                 // v.dGet(1);
+   pdm[5] = pdFrom[V1];                 // v.dGet(1);
    pir[5] = iFirstRow+3;
    pic[5] = iFirstCol+2;
    
@@ -589,15 +595,15 @@ flag SparseSubMatrixHandler::fPutMat3x3(integer iSubIt, integer iFirstRow,
    iFirstCol++;     
    
    /* Prima riga */
-   pdTmpMat[0] = pdFrom[0];
+   pdTmpMat[0] = pdFrom[M11];
    piTmpRow[0] = iFirstRow++;
    piTmpCol[0] = iFirstCol;
 
-   pdTmpMat[1] = pdFrom[1];
+   pdTmpMat[1] = pdFrom[M21];
    piTmpRow[1] = iFirstRow++;
    piTmpCol[1] = iFirstCol;
 
-   pdTmpMat[2] = pdFrom[2];
+   pdTmpMat[2] = pdFrom[M31];
    piTmpRow[2] = iFirstRow;
    piTmpCol[2] = iFirstCol;
    
@@ -605,15 +611,15 @@ flag SparseSubMatrixHandler::fPutMat3x3(integer iSubIt, integer iFirstRow,
    iFirstRow -= 2;
    iFirstCol++;
 
-   pdTmpMat[3] = pdFrom[3];
+   pdTmpMat[3] = pdFrom[M12];
    piTmpRow[3] = iFirstRow++;
    piTmpCol[3] = iFirstCol;
 
-   pdTmpMat[4] = pdFrom[4];
+   pdTmpMat[4] = pdFrom[M22];
    piTmpRow[4] = iFirstRow++;
    piTmpCol[4] = iFirstCol;
 
-   pdTmpMat[5] = pdFrom[5];
+   pdTmpMat[5] = pdFrom[M32];
    piTmpRow[5] = iFirstRow;
    piTmpCol[5] = iFirstCol;
    
@@ -621,15 +627,15 @@ flag SparseSubMatrixHandler::fPutMat3x3(integer iSubIt, integer iFirstRow,
    iFirstRow -= 2;
    iFirstCol++;
 
-   pdTmpMat[6] = pdFrom[6];
+   pdTmpMat[6] = pdFrom[M13];
    piTmpRow[6] = iFirstRow++;
    piTmpCol[6] = iFirstCol;
 
-   pdTmpMat[7] = pdFrom[7];
+   pdTmpMat[7] = pdFrom[M23];
    piTmpRow[7] = iFirstRow++;
    piTmpCol[7] = iFirstCol;
 
-   pdTmpMat[8] = pdFrom[8];
+   pdTmpMat[8] = pdFrom[M33];
    piTmpRow[8] = iFirstRow;
    piTmpCol[8] = iFirstCol;
 
@@ -663,7 +669,7 @@ MatrixHandler& SparseSubMatrixHandler::AddTo(FullMatrixHandler& MH) const {
    
    doublereal* pdTo = MH.pdGetMat();
    integer iNumR = MH.iGetNumRows();
-   
+
    for (integer i = iNumItems; i-- > 0; ) {
       ASSERT(piRow[i] > 0 && piRow[i] <= MH.iGetNumRows());
       ASSERT(piCol[i] > 0 && piCol[i] <= MH.iGetNumCols());
@@ -831,9 +837,8 @@ VectorHandler& MySubVectorHandler::AddTo(VectorHandler& VH) const {
    VH.IsValid();
 #endif
    
-   for (integer i = iGetSize(); i > 0; ) {
+   for (integer i = iGetSize(); i > 0; i--) {
       VH.fIncCoef(piRowm1[i], pdVecm1[i]);
-      i--;
    }
    return VH;
 }
@@ -845,9 +850,8 @@ VectorHandler& MySubVectorHandler::AddTo(MyVectorHandler& VH) const {
 #endif
    
    doublereal* pdm1 = VH.pdGetVec()-1;
-   for (integer i = iGetSize(); i > 0; ) {
+   for (integer i = iGetSize(); i > 0; i--) {
       pdm1[piRowm1[i]] += pdVecm1[i];
-      i--;
    }
    return VH;
 }

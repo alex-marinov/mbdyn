@@ -967,10 +967,18 @@ start_parsing:
       char *endptr = NULL;
       if (f == 0) {
 	 value.SetType(TypedValue::VAR_INT);
+#ifdef HAVE_STRTOL
 	 value.Set(Int(strtol(s, &endptr, 10)));
+#else /* !HAVE_STRTOL */
+	 value.Set(Int(atoi(s)));
+#endif /* !HAVE_STRTOL */
       } else {      
 	 value.SetType(TypedValue::VAR_REAL);
+#ifdef HAVE_STRTOD
 	 value.Set(Real(strtod(s, &endptr)));
+#else /* !HAVE_STRTOD */
+	 value.Set(Real(atof(s)));
+#endif /* !HAVE_STRTOD */
       }
 
       if (endptr && endptr[0] != '\0') {

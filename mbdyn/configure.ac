@@ -953,12 +953,14 @@ dnl
 dnl Checks for library functions.
 dnl
 AC_CHECK_FUNCS([ \
+	chdir \
+	getcwd \
 	getopt \
 	getopt_long \
-	signal \
-	getcwd \
-	chdir \
 	memset \
+	signal \
+	strtod \
+	strtol \
 ])
 
 

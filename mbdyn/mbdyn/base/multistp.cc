@@ -94,11 +94,11 @@ const integer iDefaultIterationsBeforeAssembly = 2;
  * Default solver
  */
 MultiStepIntegrator::SolverType
-#if defined(USE_UMFPACK3)
-MultiStepIntegrator::defaultSolver = MultiStepIntegrator::UMFPACK3_SOLVER;
-#elif /* !USE_UMFPACK3 */ defined(USE_Y12)
+#if defined(USE_Y12)
 MultiStepIntegrator::defaultSolver = MultiStepIntegrator::Y12_SOLVER;
-#elif /* !USE_Y12 */ defined(USE_HARWELL)
+#elif /* !USE_Y12 */ defined(USE_UMFPACK3)
+MultiStepIntegrator::defaultSolver = MultiStepIntegrator::UMFPACK3_SOLVER;
+#elif /* !USE_UMFPACK3 */ defined(USE_HARWELL)
 MultiStepIntegrator::defaultSolver = MultiStepIntegrator::HARWELL_SOLVER;
 #elif /* !USE_HARWELL */ defined(USE_MESCHACH)
 MultiStepIntegrator::defaultSolver = MultiStepIntegrator::MESCHACH_SOLVER;
