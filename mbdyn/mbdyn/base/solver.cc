@@ -2606,7 +2606,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		break;
 		  
 	 default:
- 	  	std::cerr << "Unknown integration method" << std::endl;
+ 	  	std::cerr << "Unknown dummy steps integration method" << std::endl;
 	      	THROW(ErrGeneric());
 		break;
 		
@@ -2646,8 +2646,6 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		break;
 		
   }	
-   
-   return;
 }
 
 

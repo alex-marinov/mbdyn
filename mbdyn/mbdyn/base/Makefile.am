@@ -79,6 +79,8 @@ reffrm.h \
 resforces.cc \
 resforces.h \
 restart.h \
+rtai_mbox_drive.cc \
+rtai_mbox_drive.h \
 sah.cc \
 sah.h \
 schurdataman.cc \

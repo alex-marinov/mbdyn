@@ -44,6 +44,7 @@ class FileDrive : public Drive {
 		
 	FIXEDSTEP = 0,
 	SOCKET,
+	RTAIMAILBOX,
 	
 	LASTFILEDRIVE
    };

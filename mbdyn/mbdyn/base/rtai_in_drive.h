@@ -27,42 +27,43 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
- /* 
-  *
-  * Copyright (C) 2003
-  * Giuseppe Quaranta	<quaranta@aero.polimi.it>
-  *
-  * interfaccia dello Step integrator con il nonlinear solver 
-  */
-  
-#ifndef NONLINPB_H
-#define NONLINPB_H
 
-#include <solman.h>
+/* socket driver */
 
-class NonlinearProblem
-{
+#ifndef RTAI_MBOX_DRIVE_H
+#define RTAI_MBOX_DRIVE_H
+
+#ifdef USE_RTAI
+
+/* include del programma */
+
+#include "filedrv.h"
+
+/* RTAIMailboxDrive - begin */
+
+class RTAIMailboxDrive : public FileDrive {
+protected:
+   	doublereal* pdVal;
+   
 public:
-	/* Distruttore */
-   	virtual ~NonlinearProblem(void) { };
+   	RTAIMailboxDrive(unsigned int uL, const DriveHandler* pDH,
+	            integer nd);
+   
+   	virtual ~RTAIMailboxDrive(void);
+   
+   	virtual FileDrive::Type GetFileDriveType(void) const;
 
-	virtual void Residual(VectorHandler* pRes) const = 0;
+   	/* Scrive il contributo del DriveCaller al file di restart */
+   	virtual std::ostream& Restart(std::ostream& out) const;
+   
+   	virtual doublereal dGet(const doublereal& t, int i = 1) const;
+   
+   	virtual void ServePending(void);
+};
 
-	virtual void Jacobian(MatrixHandler* pJac) const = 0;
-	
-	virtual void Update(const VectorHandler* pSol) const = 0;
+/* RTAIMailboxDrive - end */
 
-	/* scale factor for tests */
-#ifdef __HACK_SCALE_RES__
-	virtual doublereal TestScale(const VectorHandler *pScale) const = 0;
-#else /* ! __HACK_SCALE_RES__ */
-	virtual doublereal TestScale(void) const = 0;
-#endif /* ! __HACK_SCALE_RES__ */
-	
-	virtual void EvalProd(doublereal Tau, const VectorHandler& f0,
-			const VectorHandler& w, VectorHandler& z) const = 0;
-};   
+#endif /* USE_RTAI */
 
-#endif /* NONLINPB_H */
+#endif /* RTAI_MBOX_DRIVE_H */
 
