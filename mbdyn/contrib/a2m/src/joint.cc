@@ -256,7 +256,7 @@ void s_joint::Translate (ostream& out)
        MBJoints.insert (MBDyn_entry(JointID, (MBDyn_card*) HJ));
        
        sprintf (comment,
-		"\nSpherical joint %d is related to Adams SPHERICAL JOINT %d",
+		"\n# Spherical joint %d is related to Adams SPHERICAL JOINT %d",
 		JointID,label);
        HJ->Remark(comment);
        
@@ -271,7 +271,7 @@ void s_joint::Translate (ostream& out)
        MBJoints.insert (MBDyn_entry(JointID, (MBDyn_card*) HJ));
        
        sprintf (comment,
-		"\nPlane hinge joint %d is related to Adams REVOLUTE %d",
+		"\n# Plane hinge joint %d is related to Adams REVOLUTE %d",
 		JointID,label);
        HJ->Remark(comment);
        
@@ -290,7 +290,7 @@ void s_joint::Translate (ostream& out)
        MBJoints.insert (MBDyn_entry(JointID, (MBDyn_card*) HJ));
        
        sprintf (comment,
-		"\nIn plane joint %d is related to Adams PLANAR JOINT %d",
+		"\n# In plane joint %d is related to Adams PLANAR JOINT %d",
 		JointID,label);
        HJ->Remark(comment);
        
@@ -305,7 +305,7 @@ void s_joint::Translate (ostream& out)
        MBJoints.insert (MBDyn_entry(JointID, (MBDyn_card*) HJ));
        
        sprintf (comment,
-		"\nInline joint %d is related to Adams TRANSLATIONAL JOINT %d",
+		"\n# Inline joint %d is related to Adams TRANSLATIONAL JOINT %d",
 		JointID,label);
        HJ->Remark(comment);
        

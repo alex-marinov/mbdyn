@@ -765,7 +765,7 @@ ostream& MBDyn_planehinge::Restart(ostream& out) const
    out << "plane hinge, ";
    for (int i = 0; i<2; i++) {
       out << endl << indent << Node[i];
-      if (d[i]!=Null) out << ", reference, node, ", 
+      out << ", reference, node, ", 
 	d[i].Write(out,", ");
       if (Rh[i]!=E) out << ", " << endl 
 	<< indent << "hinge, reference, node, ", Rh[i].RWrite(out,", ","");
@@ -1024,6 +1024,7 @@ ostream& MBDyn_node_structural::Restart(ostream& out) const
 	Abs_vel.Write(out,", ") << ", " 
 	<< endl << indent,
 	Abs_ang_vel.Write(out,", ") << ", " << endl << indent
+	<< "assembly, "
 	<< position_initial_stiffness << ", "
 	<< velocity_initial_stiffness << ", "
 	<< Omega_rotates << ";" << endl;      

@@ -58,7 +58,7 @@ ostream& Vector::Write (ostream& out, const char* fill) const
    /* Check if vector is null */
    Boolean IsNull=Y;
    for (int i=0; i<sz; i++) if (dato[i] != 0) IsNull=N;
-   if ((IsNull) & (EXTENDED_MATRIX_DISPLAY==N)) out << "null";
+   if ((IsNull) && (EXTENDED_MATRIX_DISPLAY==N)) out << "null"; /* FIXME: && ? */
    else {
    for (int i=0; i<(sz-1); i++) out << dato[i] << fill;
       out << dato[sz-1];
@@ -257,7 +257,7 @@ ostream& Matrix::Write(ostream& out, const char* fill,
 	/* DIAG MATRIX */
 	for (int i=0;i<rows();i++)
 	  for (int j=0;j<columns();j++)
-	    if ((i!=j) & ((*data[i])[j]!=0)) TARGET=N;
+	    if ((i!=j) && ((*data[i])[j]!=0)) TARGET=N; /* FIXME: && ? */
 	if (TARGET==Y) TYPE=DIAG_MATRIX;
 	/* NULL MATRIX */
 	for (int i=0;i<rows();i++)
@@ -493,7 +493,7 @@ ostream& Mat3x3::RWrite(ostream& out, const char* fill,
 	/* DIAG MATRIX */
 	for (int i=0;i<rows();i++)
 	  for (int j=0;j<columns();j++)
-	    if ((i!=j) & ((*data[i])[j]!=0)) TARGET=N;
+	    if ((i!=j) && ((*data[i])[j]!=0)) TARGET=N; /* FIXME: && ? */
 	if (TARGET==Y) TYPE=DIAG_MATRIX;
 	/* NULL MATRIX */
 	for (int i=0;i<rows();i++)
@@ -704,7 +704,7 @@ ostream& RVec3::Write (ostream& out, const char* fill) const
    REF.Restart(out);
    Boolean IsNull=Y;
    for (int i=0; i<sz; i++) if (dato[i] != 0) IsNull=N;
-   if ((IsNull) & (EXTENDED_MATRIX_DISPLAY==N)) out << "null";
+   if ((IsNull) && (EXTENDED_MATRIX_DISPLAY==N)) out << "null"; /* FIXME: && ? */
    else {
    for (int i=0; i<(sz-1); i++) out << dato[i] << fill;
       out << dato[sz-1];
@@ -731,7 +731,7 @@ ostream& RMat3x3::Write (ostream& out, const char* fill,
 	/* DIAG MATRIX */
 	for (int i=0;i<rows();i++)
 	  for (int j=0;j<columns();j++)
-	    if ((i!=j) & ((*data[i])[j]!=0)) TARGET=N;
+	    if ((i!=j) && ((*data[i])[j]!=0)) TARGET=N; /* FIXME: && ? */
 	if (TARGET==Y) TYPE=DIAG_MATRIX;
 	/* NULL MATRIX */
 	for (int i=0;i<rows();i++)
@@ -784,7 +784,7 @@ ostream& RMat3x3::RWrite(ostream& out, const char* fill,
 	/* DIAG MATRIX */
 	for (int i=0;i<rows();i++)
 	  for (int j=0;j<columns();j++)
-	    if ((i!=j) & ((*data[i])[j]!=0)) TARGET=N;
+	    if ((i!=j) && ((*data[i])[j]!=0)) TARGET=N; /* FIXME: && ? */
 	if (TARGET==Y) TYPE=DIAG_MATRIX;
 	/* NULL MATRIX */
 	for (int i=0;i<rows();i++)

@@ -3,7 +3,7 @@ INC = -I. -I./include
 LIB = -lfl
 FLG = 
 LEX = flex
-CXX = g++
+CXX = g++ -g -O
 BIS = bison
 
 SRC = b++.cc a++.cc cards.cc errrec.cc output.cc beam.cc marker.cc part.cc \
