@@ -64,6 +64,30 @@ this:
 Or on systems that have the `env' program, you can do it like this:
      env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ./configure
 
+Known Problems
+==============
+
+   Some compilers are known to have problems in compiling MBDyn; its 
+development was mainly based on gcc 2.7.X, and later on gcc egcs-2.91.X
+(egcs-1.1.2 release).
+
+   It is known that later versions, significantly gcc 2.95.X, fail
+at compiling redefinition of enums in descendant classes.  It is also
+known to fail at initializing const arrays with non-const values
+(e.g. "const double d = sqrt(2.);" is correctly initialized, but 
+"const double d[2] = { sqrt(2.); sqrt(3.) };" is not.
+
+   The same applies to some non-official versions like the so-called 
+2.96.X that ships with RedHat >= 7.0.
+
+   gcc 3.0.X works correctly (version 3.0.2 is recommended), but
+a snapshot of gdb is required for debugging because the mangling of the
+names has changed.
+
+   Other problems will be highlighted as soon as they show up.  Please
+drop a mail to mbdyn@aero.polimi.it in case you have problems compiling
+the package.
+
 Compiling For Multiple Architectures
 ====================================
 
