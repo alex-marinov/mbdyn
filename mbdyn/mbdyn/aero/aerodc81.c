@@ -491,7 +491,7 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 
 		SGN = fabs(alpha/ASN);
 		SGM = fabs(alpha/ASM);
-		SGMAX = 1.839-70.33*B;
+		SGMAX = 1.839-70.33*fabs(B);
 		if (SGMAX > 1.86) {
 			SGMAX = 1.86;
 		}
