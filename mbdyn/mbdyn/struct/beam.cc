@@ -28,115 +28,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* Trave a volumi finiti, con predisposizione per forze di inerzia consistenti
- * e legame cositutivo piezoelettico */
+/*
+ * Trave a volumi finiti, con predisposizione per forze di inerzia consistenti
+ * e legame cositutivo piezoelettico
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <constltp.h>
+#include <shapefnc.h>
 #include <beam.h>
 #include <pzbeam.h>
 #include <dataman.h>
 
-/* Nota: non e' ancora stato implementato il contributo 
- * della ViscoElasticBeam all'assemblaggio iniziale */
+/*
+ * Nota: non e' ancora stato implementato il contributo 
+ * della ViscoElasticBeam all'assemblaggio iniziale
+ */
 
-/* Nota: la parte viscoelastica va rivista in accordo con la piu' 
+/*
+ * Nota: la parte viscoelastica va rivista in accordo con la piu' 
  * recente formulazione delle derivate delle deformazioni nel sistema
- * materiale */
-
-/* Funzioni di interpolazione */
-doublereal 
-ShapeFunc3N(doublereal d, integer iNode, integer iOrd)
-{
-    ASSERT(iOrd == 0 || iOrd == 1);
-    ASSERT(iNode == 1 || iNode == 2 || iNode == 3);
-   
-    switch (iOrd) {
-    case 0:
-        switch (iNode) {
-	case 1:		
-	    return .5*d*(d-1.);
-				
-	case 2:		
-	    return 1.-d*d;
-		  		
-	case 3:		
-	    return .5*d*(d+1.);
-	
-	default:
-	    THROW(ErrGeneric());
-	}
-	    
-    case 1:
-        switch (iNode) {
-	case 1:		
-	    return d-.5;
-	  
-	case 2:
-	    return -2.*d;
-	  
-	case 3:
-	    return d+.5;
-
-	default:
-	    THROW(ErrGeneric());
-	}
-    }
-   
-    /* Per evitare warnings */
-    return 0.;
-}
-
-doublereal
-DxDcsi3N(doublereal d, const Vec3& X1, const Vec3& X2, const Vec3& X3)
-{
-    doublereal dN1p = ShapeFunc3N(d, 1, 1);
-    doublereal dN2p = ShapeFunc3N(d, 2, 1);
-    doublereal dN3p = ShapeFunc3N(d, 3, 1);
-    Vec3 DXDcsi(X1*dN1p+X2*dN2p+X3*dN3p);
-    doublereal dd = DXDcsi.Dot();
-    if (dd > DBL_EPSILON) {
-        return sqrt(dd);
-    }
-    return 0.;
-}
-
-
-/* Punto di valutazione */
-const doublereal dS = 1./sqrt(3.);
-
-/* Funzioni di forma e loro derivate - punto I */
-const doublereal dN1_I = (1.+sqrt(3.))/6.;       /* ShapeFunc3N(-dS, 1) */
-const doublereal dN2_I = 2./3.;                  /* ShapeFunc3N(-dS, 2) */
-const doublereal dN3_I = (1.-sqrt(3.))/6.;       /* ShapeFunc3N(-dS, 3) */
-
-const doublereal dN1P_I = -(2.*sqrt(3.)+3.)/6.;  /* ShapeFunc3N(-dS, 1, 1) */
-const doublereal dN2P_I = 2./sqrt(3.);           /* ShapeFunc3N(-dS, 2, 1) */
-const doublereal dN3P_I = -(2.*sqrt(3.)-3.)/6.;  /* ShapeFunc3N(-dS, 3, 1) */
-
-/* Funzioni di forma e loro derivate - punto II */
-const doublereal dN1II = dN3_I;
-const doublereal dN2II = dN2_I;
-const doublereal dN3II = dN1_I;
-
-const doublereal dN1PII = -dN3P_I;
-const doublereal dN2PII = -dN2P_I;
-const doublereal dN3PII = -dN1P_I;
-
-/* Per l'interpolazione piu' compatta */
-const doublereal dN[2][3] = { 
-    { dN1_I, dN2_I, dN3_I },
-    { dN1II, dN2II, dN3II }
-};
-
-const doublereal dNP[2][3] = { 
-    { dN1P_I, dN2P_I, dN3P_I },
-    { dN1PII, dN2PII, dN3PII }
-};
-
+ * materiale
+ */
 
 /* Beam - begin */
 
@@ -305,9 +221,9 @@ Beam::InterpState(const Vec3& v1,
     doublereal* pv1 = (doublereal*)v1.pGetVec();
     doublereal* pv2 = (doublereal*)v2.pGetVec();
     doublereal* pv3 = (doublereal*)v3.pGetVec();
-    return Vec3(pv1[0]*dN[Sec][0]+pv2[0]*dN[Sec][1]+pv3[0]*dN[Sec][2],
-	        pv1[1]*dN[Sec][0]+pv2[1]*dN[Sec][1]+pv3[1]*dN[Sec][2],
-	        pv1[2]*dN[Sec][0]+pv2[2]*dN[Sec][1]+pv3[2]*dN[Sec][2]);
+    return Vec3(pv1[0]*dN3[Sec][0]+pv2[0]*dN3[Sec][1]+pv3[0]*dN3[Sec][2],
+	        pv1[1]*dN3[Sec][0]+pv2[1]*dN3[Sec][1]+pv3[1]*dN3[Sec][2],
+	        pv1[2]*dN3[Sec][0]+pv2[2]*dN3[Sec][1]+pv3[2]*dN3[Sec][2]);
 }
 
 
@@ -320,12 +236,12 @@ Beam::InterpDeriv(const Vec3& v1,
     doublereal* pv1 = (doublereal*)v1.pGetVec();
     doublereal* pv2 = (doublereal*)v2.pGetVec();
     doublereal* pv3 = (doublereal*)v3.pGetVec();
-    return Vec3((pv1[0]*dNP[Sec][0]+pv2[0]*dNP[Sec][1]
-		 +pv3[0]*dNP[Sec][2])*dsdxi[Sec],
-	        (pv1[1]*dNP[Sec][0]+pv2[1]*dNP[Sec][1]
-		 +pv3[1]*dNP[Sec][2])*dsdxi[Sec],
-	        (pv1[2]*dNP[Sec][0]+pv2[2]*dNP[Sec][1]
-		 +pv3[2]*dNP[Sec][2])*dsdxi[Sec]);
+    return Vec3((pv1[0]*dN3P[Sec][0]+pv2[0]*dN3P[Sec][1]
+		 +pv3[0]*dN3P[Sec][2])*dsdxi[Sec],
+	        (pv1[1]*dN3P[Sec][0]+pv2[1]*dN3P[Sec][1]
+		 +pv3[1]*dN3P[Sec][2])*dsdxi[Sec],
+	        (pv1[2]*dN3P[Sec][0]+pv2[2]*dN3P[Sec][1]
+		 +pv3[2]*dN3P[Sec][2])*dsdxi[Sec]);
 }
 
 
@@ -415,8 +331,8 @@ Beam::Omega0(void)
     Vec3 g3P(Mat3x3(MatGm1, g3)*w[NODE3]);
 
     for (unsigned int i = 0; i < NUMSEZ; i++) {
-        Vec3 gTmp(g1*dN[i][NODE1]+g3*dN[i][NODE3]);
-        Vec3 gPTmp(g1P*dN[i][NODE1]+w[NODE2]*dN[i][NODE2]+g3P*dN[i][NODE3]);
+        Vec3 gTmp(g1*dN3[i][NODE1]+g3*dN3[i][NODE3]);
+        Vec3 gPTmp(g1P*dN3[i][NODE1]+w[NODE2]*dN3[i][NODE2]+g3P*dN3[i][NODE3]);
         Omega[i] = Mat3x3(MatG, gTmp)*gPTmp;
     }
 
@@ -427,57 +343,11 @@ Beam::Omega0(void)
         w[i] = pNode[i]->GetWCurr();
     }
     for (unsigned int i = 0; i < NUMSEZ; i++) {      
-        Omega[i] = (w{NODE1]*dN[i][NODE1]
-	            +w[NODE2]*dN[i][NODE2]
-		    +w[NODE3]*dN[i][NODE3]);
+        Omega[i] = (w{NODE1]*dN3[i][NODE1]
+	            +w[NODE2]*dN3[i][NODE2]
+		    +w[NODE3]*dN3[i][NODE3]);
     }
 #endif /* 0 */
-}
-
-
-/* Scrive una matrice 6x6 formata da quattro 3x3 */
-ostream& Beam::WriteMat6x6(ostream& Out, 
-			   const Mat3x3& m11, const Mat3x3& m12, 
-			   const Mat3x3& m21, const Mat3x3& m22) const
-{
-   Out << m11.dGet(1,1)
-     << ", " << m11.dGet(1,2)
-     << ", " << m11.dGet(1,3)
-     << ", " << m12.dGet(1,1)
-     << ", " << m12.dGet(1,2)
-     << ", " << m12.dGet(1,3)
-     << ", " << m11.dGet(2,1)
-     << ", " << m11.dGet(2,2)
-     << ", " << m11.dGet(2,3)
-     << ", " << m12.dGet(2,1)
-     << ", " << m12.dGet(2,2)
-     << ", " << m12.dGet(2,3)
-     << ", " << m11.dGet(3,1)
-     << ", " << m11.dGet(3,2)
-     << ", " << m11.dGet(3,3)
-     << ", " << m12.dGet(3,1)
-     << ", " << m12.dGet(3,2)
-     << ", " << m12.dGet(3,3)
-     << ", " << m21.dGet(1,1)
-     << ", " << m21.dGet(1,2)
-     << ", " << m21.dGet(1,3)
-     << ", " << m22.dGet(1,1)
-     << ", " << m22.dGet(1,2)
-     << ", " << m22.dGet(1,3)
-     << ", " << m21.dGet(2,1)
-     << ", " << m21.dGet(2,2)
-     << ", " << m21.dGet(2,3)
-     << ", " << m22.dGet(2,1)
-     << ", " << m22.dGet(2,2)
-     << ", " << m22.dGet(2,3)
-     << ", " << m21.dGet(3,1)
-     << ", " << m21.dGet(3,2)
-     << ", " << m21.dGet(3,3)
-     << ", " << m22.dGet(3,1)
-     << ", " << m22.dGet(3,2)
-     << ", " << m22.dGet(3,3);
-   
-   return Out;
 }
 
 
@@ -528,18 +398,18 @@ void Beam::AssStiffnessMat(FullSubMatrixHandler& WMA,
    for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {            
       for (unsigned int i = 0; i < NUMNODES; i++) {
 	 /* Delta - deformazioni */
-	 AzTmp[iSez][i] = Mat6x6(Mat3x3(dNP[iSez][i]*dsdxi[iSez]*dCoef),
+	 AzTmp[iSez][i] = Mat6x6(Mat3x3(dN3P[iSez][i]*dsdxi[iSez]*dCoef),
 				 Zero3x3,
-				 Mat3x3(LRef[iSez]*(dN[iSez][i]*dCoef)
-					-fTmp[i]*(dNP[iSez][i]*dsdxi[iSez]*dCoef)),
-				 Mat3x3(dNP[iSez][i]*dsdxi[iSez]*dCoef));
+				 Mat3x3(LRef[iSez]*(dN3[iSez][i]*dCoef)
+					-fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez]*dCoef)),
+				 Mat3x3(dN3P[iSez][i]*dsdxi[iSez]*dCoef));
 	 
 	 /* Delta - azioni interne */
 	 AzTmp[iSez][i] = DRef[iSez]*AzTmp[iSez][i];
 	 
 	 /* Correggo per la rotazione da locale a globale */
-	 AzTmp[iSez][i].SubMat12(Mat3x3(AzRef[iSez].GetVec1()*(dN[iSez][i]*dCoef)));
-	 AzTmp[iSez][i].SubMat22(Mat3x3(AzRef[iSez].GetVec2()*(dN[iSez][i]*dCoef)));
+	 AzTmp[iSez][i].SubMat12(Mat3x3(AzRef[iSez].GetVec1()*(dN3[iSez][i]*dCoef)));
+	 AzTmp[iSez][i].SubMat22(Mat3x3(AzRef[iSez].GetVec2()*(dN3[iSez][i]*dCoef)));
       }
    } /* end ciclo sui punti di valutazione */
    
@@ -561,11 +431,11 @@ void Beam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	 
 	 WMA.Sub(iRow1+3, 6*i+1,
 		 AzTmp[iSez][i].GetMat21()
-		 -Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN[iSez][i]))
+		 -Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN3[iSez][i]))
 		 +Mat3x3(bTmp[0])*AzTmp[iSez][i].GetMat11());
 	 WMA.Sub(iRow1+3, 6*i+4, 
 		 AzTmp[iSez][i].GetMat22()
-		 -Mat3x3(AzRef[iSez].GetVec1()*(-dCoef*dN[iSez][i]), fTmp[i])
+		 -Mat3x3(AzRef[iSez].GetVec1()*(-dCoef*dN3[iSez][i]), fTmp[i])
 		 +Mat3x3(bTmp[0])*AzTmp[iSez][i].GetMat12());
 	 
 	 /* Equazione in avanti: */
@@ -574,11 +444,11 @@ void Beam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 
 	 WMA.Add(iRow2+3, 6*i+1,
 		 AzTmp[iSez][i].GetMat21()
-		 -Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN[iSez][i]))
+		 -Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN3[iSez][i]))
 		 +Mat3x3(bTmp[1])*AzTmp[iSez][i].GetMat11());
 	 WMA.Add(iRow2+3, 6*i+4, 
 		 AzTmp[iSez][i].GetMat22()
-		 +Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN[iSez][i]), fTmp[i])
+		 +Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN3[iSez][i]), fTmp[i])
 		 +Mat3x3(bTmp[1])*AzTmp[iSez][i].GetMat12());
       }
       
@@ -1138,28 +1008,28 @@ void ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
       for (unsigned int i = 0; i < NUMNODES; i++) {
 	 /* Delta - deformazioni */
 	 AzTmp[iSez][i] = AzPrimeTmp[iSez][i]
-	   = Mat6x6(Mat3x3(dNP[iSez][i]*dsdxi[iSez]),
+	   = Mat6x6(Mat3x3(dN3P[iSez][i]*dsdxi[iSez]),
 		    Zero3x3,
-		    Mat3x3(LRef[iSez]*(dN[iSez][i])
-			   -fTmp[i]*(dNP[iSez][i]*dsdxi[iSez])),
-		    Mat3x3(dNP[iSez][i]*dsdxi[iSez]));
+		    Mat3x3(LRef[iSez]*(dN3[iSez][i])
+			   -fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez])),
+		    Mat3x3(dN3P[iSez][i]*dsdxi[iSez]));
 	 
 	 AzTmp[iSez][i] = DRef[iSez]*AzTmp[iSez][i]*dCoef;
 	 
 	 AzTmp[iSez][i] +=
-	   ERef[iSez]*Mat6x6(Mat3x3(OmegaRef[iSez]*(-dNP[iSez][i]*dsdxi[iSez]*dCoef)),
+	   ERef[iSez]*Mat6x6(Mat3x3(OmegaRef[iSez]*(-dN3P[iSez][i]*dsdxi[iSez]*dCoef)),
 			     Zero3x3, 
 			     (Mat3x3(LPrimeRef[iSez])
-			      -Mat3x3(Omega[iSez],LRef[iSez]))*(dN[iSez][i]*dCoef)
-			     +Mat3x3(Omega[iSez], fTmp[i]*(dNP[iSez][i]*dsdxi[iSez]*dCoef))
-			     +Mat3x3(fTmp[i].Cross(pNode[i]->GetWRef()*(dNP[iSez][i]*dsdxi[iSez]*dCoef))),
-			     Mat3x3(OmegaRef[iSez]*(-dNP[iSez][i]*dsdxi[iSez]*dCoef)));
+			      -Mat3x3(Omega[iSez],LRef[iSez]))*(dN3[iSez][i]*dCoef)
+			     +Mat3x3(Omega[iSez], fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez]*dCoef))
+			     +Mat3x3(fTmp[i].Cross(pNode[i]->GetWRef()*(dN3P[iSez][i]*dsdxi[iSez]*dCoef))),
+			     Mat3x3(OmegaRef[iSez]*(-dN3P[iSez][i]*dsdxi[iSez]*dCoef)));
 	 
 	 AzPrimeTmp[iSez][i] = ERef[iSez]*AzPrimeTmp[iSez][i];
 	 
 	 /* Correggo per la rotazione da locale a globale */
-	 AzTmp[iSez][i].SubMat12(Mat3x3(AzRef[iSez].GetVec1()*(dN[iSez][i]*dCoef)));
-	 AzTmp[iSez][i].SubMat22(Mat3x3(AzRef[iSez].GetVec2()*(dN[iSez][i]*dCoef)));
+	 AzTmp[iSez][i].SubMat12(Mat3x3(AzRef[iSez].GetVec1()*(dN3[iSez][i]*dCoef)));
+	 AzTmp[iSez][i].SubMat22(Mat3x3(AzRef[iSez].GetVec2()*(dN3[iSez][i]*dCoef)));
       }
    } /* end ciclo sui punti di valutazione */
    
@@ -1181,11 +1051,11 @@ void ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	 
 	 WMA.Sub(iRow1+3, 6*i+1,
 		 AzTmp[iSez][i].GetMat21()
-		 -Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN[iSez][i]))
+		 -Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN3[iSez][i]))
 		 +Mat3x3(bTmp[0])*AzTmp[iSez][i].GetMat11());
 	 WMA.Sub(iRow1+3, 6*i+4, 
 		 AzTmp[iSez][i].GetMat22()
-		 -Mat3x3(AzRef[iSez].GetVec1()*(-dCoef*dN[iSez][i]), fTmp[i])
+		 -Mat3x3(AzRef[iSez].GetVec1()*(-dCoef*dN3[iSez][i]), fTmp[i])
 		 +Mat3x3(bTmp[0])*AzTmp[iSez][i].GetMat12());
 	 
 	 /* Equazione in avanti: */
@@ -1194,11 +1064,11 @@ void ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 
 	 WMA.Add(iRow2+3, 6*i+1,
 		 AzTmp[iSez][i].GetMat21()
-		 -Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN[iSez][i]))
+		 -Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN3[iSez][i]))
 		 +Mat3x3(bTmp[1])*AzTmp[iSez][i].GetMat11());
 	 WMA.Add(iRow2+3, 6*i+4, 
 		 AzTmp[iSez][i].GetMat22()
-		 +Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN[iSez][i]), fTmp[i])
+		 +Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN3[iSez][i]), fTmp[i])
 		 +Mat3x3(bTmp[1])*AzTmp[iSez][i].GetMat12());
 
       
@@ -1507,20 +1377,8 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
          
    /* Per ogni nodo: */
    
-   /*     Nodo 1 */
-   unsigned int uNode = (unsigned int)HP.GetInt();
-   
-   DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Node " << uNode << endl);
-   
-   /* verifica di esistenza del nodo */
-   StructNode* pNode1;
-   if ((pNode1 = pDM->pFindStructNode(uNode)) == NULL) {
-      cerr << endl
-	<< " at line " << HP.GetLineData() 
-	<< ": structural node " << uNode
-	<< " not defined" << endl;      
-      THROW(DataManager::ErrGeneric());
-   }		     
+   /* Nodo 1 */
+   StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
    
    Mat3x3 R1(pNode1->GetRCurr());   
    Vec3 f1(HP.GetPosRel(ReferenceFrame(pNode1)));
@@ -1530,21 +1388,8 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	      << "(global frame): "
 	      << pNode1->GetXCurr()+pNode1->GetRCurr()*f1 << endl);
    
-   
-   /*     Nodo 2 */
-   uNode = (unsigned int)HP.GetInt();
-   
-   DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Node " << uNode << endl);
-   
-   /* verifica di esistenza del nodo */
-   StructNode* pNode2;
-   if ((pNode2 = pDM->pFindStructNode(uNode)) == NULL) {
-      cerr << endl
-	<< "at line " << HP.GetLineData() 
-	<< ": structural node " << uNode
-	<< " not defined" << endl;      
-      THROW(DataManager::ErrGeneric());
-   }		     
+   /* Nodo 2 */
+   StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
    
    Mat3x3 R2(pNode2->GetRCurr());
    Vec3 f2(HP.GetPosRel(ReferenceFrame(pNode2)));
@@ -1554,22 +1399,8 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	      << "(global frame): "
 	      << pNode2->GetXCurr()+pNode2->GetRCurr()*f2 << endl);
    
-   
-   
-   /*     Nodo 3 */
-   uNode = (unsigned int)HP.GetInt();
-   
-   DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Node " << uNode << endl);
-   
-   /* verifica di esistenza del nodo */
-   StructNode* pNode3;
-   if ((pNode3 = pDM->pFindStructNode(uNode)) == NULL) {
-      cerr << endl
-	<< "at line " << HP.GetLineData() 
-	<< ": structural node " << uNode
-	<< " not defined" << endl;     
-      THROW(DataManager::ErrGeneric());
-   }		     
+   /* Nodo 3 */
+   StructNode* pNode3 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
    
    Mat3x3 R3(pNode3->GetRCurr());   
    Vec3 f3(HP.GetPosRel(ReferenceFrame(pNode3)));
@@ -1578,8 +1409,6 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	      << f3 << endl
 	      << "(global frame): " 
 	      << pNode3->GetXCurr()+pNode3->GetRCurr()*f3 << endl);
-   
-            
    
    /*   Per ogni punto: */
    
@@ -1725,10 +1554,10 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
       Vec3 g1(gparam(R2.Transpose()*R1));
       Vec3 g3(gparam(R2.Transpose()*R3));
       if (f_I) {	     
-	 R_I = R2*Mat3x3(MatR, g1*dN1_I+g3*dN3_I);
+	 R_I = R2*Mat3x3(Beam::InterpState(g1, 0., g3, Beam::S_I));
       }
       if (fII) {
-	 RII = R2*Mat3x3(MatR, g1*dN1II+g3*dN3II);
+	 R_I = R2*Mat3x3(Beam::InterpState(g1, 0., g3, Beam::SII));
       }	
    }
 

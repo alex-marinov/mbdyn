@@ -15,3 +15,7 @@ $(MBDYN_MODULE).so: $(MODULE_DEPENDENCIES) $(MBDYN_MODULE).o
 
 clean:
 	-rm -f *.o core
+
+distclean: clean
+	-rm -f *.lo *.so
+

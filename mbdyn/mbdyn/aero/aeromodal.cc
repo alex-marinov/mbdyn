@@ -687,38 +687,18 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
 
       
    /* Nodo */
-   unsigned int uNode = (unsigned int)HP.GetInt();
-   /* Elemento modale collegato */
-   unsigned int uModalJoint = (unsigned int)HP.GetInt();
-   
-   DEBUGLCOUT(MYDEBUG_INPUT, "Node: " << uNode << endl);
-   DEBUGLCOUT(MYDEBUG_INPUT, "ModalJoint: " << uModalJoint << endl);
+   StructNode* pModalNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
-   /* verifica di esistenza del nodo */
-   StructNode* pModalNode = pDM->pFindStructNode(uNode);
-   if (pModalNode == NULL) {
-      cerr << endl
-	<< " at line " << HP.GetLineData() 
-	<< ": structural node " << uNode
-	<< " not defined" << endl;      
+   /* giunto modale collegato */		     
+   Elem* pM = pDM->ReadElem(HP, Elem::JOINT);
+   Modal* pModalJoint = (Modal*)pM->pGet();
+   if (pModalJoint->GetJointType() != Joint::MODAL) {
+      cerr << "element " << pModalJoint->GetLabel()
+	      << " is required to be a modal joint" << endl;
       THROW(DataManager::ErrGeneric());
    }
 
-  /* giunto modale collegato */		     
-  Modal* pModalJoint = NULL;
-  /* verifica di esistenza del giunto modale */
-   Elem* pM = (Elem*)(pDM->pFindElem(Elem::JOINT, uModalJoint));
-   if (pM == NULL) {
-      cerr << endl
-	<< " at line " << HP.GetLineData() 
-	<< ": modal joint " << uModalJoint
-	<< " not defined" << endl;      
-      THROW(DataManager::ErrGeneric());
-   }	
-
-   pModalJoint = (Modal*)pM->pGet();
-
-   /* numero modi e nodi FEM*/
+   /* numero modi e nodi FEM */
    integer NModes = pModalJoint->uGetNModes();
    integer NFemNodes = pModalJoint->uGetNFemNodes();
 
@@ -735,20 +715,12 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    /* Eventuale rotore */
    Rotor* pRotor = NULL;
    if (HP.IsKeyWord("rotor")) {
-      uNode = (unsigned int)HP.GetInt();  
-      DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Rotor: " << uNode << endl);
    
       /* verifica di esistenza del rotore       
        * NOTA: ovviamente il rotore deve essere definito 
        * prima dell'elemento aerodinamico */
-      Elem* p = (Elem*)(pDM->pFindElem(Elem::ROTOR, uNode));
-      if (p  == NULL) {
-	 cerr << endl
-	   << " at line " << HP.GetLineData() 
-	   << ": rotor " << uNode
-	   << " not defined" << endl;	
-	 THROW(DataManager::ErrGeneric());
-      }
+      Elem* p = pDM->ReadElem(HP, Elem::ROTOR);
+      DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Rotor: " << p->GetLabel() << endl);
       pRotor = (Rotor*)p->pGet();
    }   
 

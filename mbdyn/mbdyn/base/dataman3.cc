@@ -1594,6 +1594,41 @@ DataManager::ReadConstLaw6D(MBDynParser& HP, DefHingeType::Type& T)
 
 /* DataManager - end */
 
+Node* DataManager::ReadNode(MBDynParser& HP, Node::Type type)
+{
+	unsigned int uNode = (unsigned int)HP.GetInt();
+	
+	DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Node " << uNode << endl);
+	
+	/* verifica di esistenza del nodo */
+	Node* pNode;
+	if ((pNode = pFindNode(type, uNode)) == NULL) {
+		cerr << ": " << psNodeNames[type] << " node " << uNode
+			<< " not defined at line " << HP.GetLineData() << endl;
+		THROW(DataManager::ErrGeneric());
+	}
+
+	return pNode;
+}
+
+Elem* DataManager::ReadElem(MBDynParser& HP, Elem::Type type)
+{
+	unsigned int uElem = (unsigned int)HP.GetInt();
+	
+	DEBUGLCOUT(MYDEBUG_INPUT, "Element " << uElem << endl);
+	
+	/* verifica di esistenza dell'elemento */
+	Elem* pElem;
+
+	if ((pElem = (Elem*)pFindElem(type, uElem)) == NULL) {
+		cerr << ": " << psElemNames[type] << uElem
+			<< " not defined at line " << HP.GetLineData() << endl;
+		THROW(DataManager::ErrGeneric());
+	}
+	
+	return pElem;
+}
+
 
 int GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
 {

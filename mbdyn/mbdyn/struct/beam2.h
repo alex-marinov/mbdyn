@@ -32,8 +32,8 @@
  * e legame cositutivo piezoelettico */
 
 
-#ifndef BEAM_H
-#define BEAM_H
+#ifndef BEAM2_H
+#define BEAM2_H
 
 #include "myassert.h"
 #include "except.h"
@@ -46,36 +46,11 @@
 
 #define VISCOELASTIC_BEAM /* uncomment when ViscoElasticBeam is available */
 
-extern const char* psBeamNames[];
-
-/* Funzioni di interpolazione */
-extern doublereal 
-ShapeFunc3N(doublereal d, integer iNode, integer iOrd = 0);
-extern doublereal 
-DxDcsi3N(doublereal d, const Vec3& X1, const Vec3& X2, const Vec3& X3);
-
-
-/* ... */
-class DataManager;
-class MBDynParser;
-
 /* Beam - begin */
 
-class Beam 
+class Beam2
 : virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
     friend class AerodynamicBeam;
-    friend Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
-
-  public:
-    /* Tipi di travi */
-    enum Type {
-        UNKNOWN = -1,
-	ELASTIC = 0,
-	VISCOELASTIC,
-	PIEZOELECTRIC,
-	
-	LASTBEAMTYPE
-    };
 
   public:
     class ErrGeneric {};
@@ -83,12 +58,10 @@ class Beam
   private:
     Beam::Type BeamT;
    
-  public:   
-    enum Section { S_I = 0, SII = 1, NUMSEZ = 2 };
-    enum NodeName { NODE1 = 0, NODE2 = 1, NODE3 = 2, NUMNODES = 3 };
+  protected:   
+    enum NodeName { NODE1 = 0, NODE2 = 1, NUMNODES = 2 };
     enum Deformations { STRAIN = 0, CURVAT = 1, NUMDEFORM = 2 };
    
-  protected:   
     /* Puntatori ai nodi */
     const StructNode* pNode[NUMNODES];
    
@@ -98,61 +71,46 @@ class Beam
    
     /* Matrice di rotazione delle sezioni - non sono const perche' vengono
      * aggiornate ad ogni iterazione */
-    Mat3x3 R[NUMSEZ];
-    Mat3x3 RRef[NUMSEZ];
+    Mat3x3 R;
+    Mat3x3 RRef;
 
     /* Constitutive laws*/
-    ConstitutiveLaw6DOwner* pD[NUMSEZ];
+    ConstitutiveLaw6DOwner* pD;
    
     /* Reference constitutive laws */
-    Mat6x6 DRef[NUMSEZ];
-   
-    /* Per forze d'inerzia consistenti: */
-    const flag fConsistentInertia;
-        
-    const doublereal dMass_I;
-    const Mat3x3 S0_I;
-    const Mat3x3 J0_I;
-   
-    const doublereal dMassII;
-    const Mat3x3 S0II;
-    const Mat3x3 J0II;
+    Mat6x6 DRef;
    
     /* Velocita' angolare delle sezioni */
-    Vec3 Omega[NUMSEZ];
-    Vec3 OmegaRef[NUMSEZ];
+    Vec3 Omega;
+    Vec3 OmegaRef;
    
     /* Dati temporanei che vengono passati da AssRes ad AssJac */
-    Vec6 Az[NUMSEZ];
-    Vec6 AzRef[NUMSEZ];
-    Vec6 AzLoc[NUMSEZ];
-    Vec6 AzLocRef[NUMSEZ];
-    Vec6 DefLoc[NUMSEZ];
-    Vec6 DefLocRef[NUMSEZ];
+    Vec6 Az;
+    Vec6 AzRef;
+    Vec6 AzLoc;
+    Vec6 AzLocRef;
+    Vec6 DefLoc;
+    Vec6 DefLocRef;
 
-    Vec3 p[NUMSEZ];   
-    Vec3 g[NUMSEZ];   
-    Vec3 L0[NUMSEZ];   
-    Vec3 L[NUMSEZ];   
+    Vec3 p;   
+    Vec3 g;   
+    Vec3 L0;   
+    Vec3 L;   
        
-    Vec3 LRef[NUMSEZ];   
+    Vec3 LRef;   
    
-    doublereal dsdxi[NUMSEZ];
+    doublereal dsdxi;
    
     /* Is first res? */
     flag fFirstRes;
          
     /* Funzioni di servizio */
-    static Vec3 
+    virtual Vec3 
     InterpState(const Vec3& v1,
-                const Vec3& v2,
-		const Vec3& v3,
-		enum Section Sec);
-    Vec3 
+                const Vec3& v2);
+    virtual Vec3 
     InterpDeriv(const Vec3& v1,
-                const Vec3& v2,
-		const Vec3& v3,
-		enum Section Sec);
+                const Vec3& v2);
    
     /* Funzioni di calcolo delle matrici */
     virtual void 
@@ -170,7 +128,7 @@ class Beam
 
     /* Per le beam che aggiungono qualcosa alle az. interne */
     virtual void 
-    AddInternalForces(Vec6& /* AzLoc */ , unsigned int /* iSez */ ) {
+    AddInternalForces(Vec6& /* AzLoc */) {
         NO_OP;
     };   
    
@@ -210,26 +168,15 @@ class Beam
    
   public:
     /* Costruttore normale */
-    Beam(unsigned int uL, 
-	 const StructNode* pN1, const StructNode* pN2, const StructNode* pN3,
-	 const Vec3& F1, const Vec3& F2, const Vec3& F3,
-	 const Mat3x3& r_I, const Mat3x3& rII,
-	 const ConstitutiveLaw6D* pD_I, const ConstitutiveLaw6D* pDII,
+    Beam2(unsigned int uL, 
+	 const StructNode* pN1, const StructNode* pN2,
+	 const Vec3& F1, const Vec3& F2,
+	 const Mat3x3& r,
+	 const ConstitutiveLaw6D* pd,
 	 flag fOut);
    
-    /* Costruttore per la trave con forze d'inerzia consistenti */
-    Beam(unsigned int uL, 
-	 const StructNode* pN1, const StructNode* pN2, const StructNode* pN3,
-	 const Vec3& F1, const Vec3& F2, const Vec3& F3,
-	 const Mat3x3& r_I, const Mat3x3& rII,
-	 const ConstitutiveLaw6D* pD_I, const ConstitutiveLaw6D* pDII,
-	 doublereal dM_I,
-	 const Mat3x3& s0_I, const Mat3x3& j0_I,
-	 doublereal dMII,
-	 const Mat3x3& s0II, const Mat3x3& j0II, flag fOut);
-
     /* Distruttore banale */
-    virtual ~Beam(void);
+    virtual ~Beam2(void);
    
     virtual inline void* pGet(void) const { 
         return (void*)this;
@@ -254,13 +201,8 @@ class Beam
      * forze d'inerzia consistenti deve avere accesso alle righe di definizione
      * della quantita' di moto */
     virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-        if (fConsistentInertia) {	   
-	    *piNumRows = 36;	     	     
-        } else {	   
-	    *piNumRows = 18;
-        }	
-      
-        *piNumCols = 18; 
+	*piNumRows = 12;
+        *piNumCols = 12; 
     };
    
     /* Settings iniziali, prima della prima soluzione */
@@ -284,13 +226,6 @@ class Beam
 	   const VectorHandler& XCurr,
 	   const VectorHandler& XPrimeCurr);
 
-    /* assemblaggio matrici per autovalori */
-    void 
-    AssEig(VariableSubMatrixHandler& WorkMatA,
-	   VariableSubMatrixHandler& WorkMatB,
-	   const VectorHandler& XCurr,
-	   const VectorHandler& XPrimeCurr);
-   
     /* output; si assume che ogni tipo di elemento sappia, attraverso
      * l'OutputHandler, dove scrivere il proprio output */
     virtual void Output(OutputHandler& OH) const;   
@@ -320,8 +255,8 @@ class Beam
     virtual void 
     InitialWorkSpaceDim(integer* piNumRows, 
 			integer* piNumCols) const {
-        *piNumRows = 18;
-        *piNumCols = 18; 
+        *piNumRows = 12;
+        *piNumCols = 12; 
     };
    
     /* Setta il valore iniziale delle proprie variabili */
@@ -340,30 +275,24 @@ class Beam
 
     /* Accesso ai dati privati */
     virtual unsigned int iGetNumPrivData(void) const {
-        return 12;
+        return 6;
     };   
       
     virtual doublereal dGetPrivData(unsigned int i) const {
-        ASSERT(i > 0 && i <= 12);
+        ASSERT(i > 0 && i <= 6);
         switch (i) {
         case 1:
         case 4:
         case 5:
         case 6:
-        case 7:
-        case 10:
-        case 11:
-        case 12:
-	    return DefLoc[(i-1)/6].dGet((i-1)%6+1);
+	    return DefLoc.dGet(i);
         case 2:
         case 3:
-        case 8:
-        case 9:
-	    cerr << "Beam " << GetLabel() 
+	    cerr << "Beam2 " << GetLabel() 
 	        << ": not allowed to return shear strain" << endl;
 	    THROW(ErrGeneric());
         default:
-	    cerr << "Beam " << GetLabel() << ": illegal private data " 
+	    cerr << "Beam2 " << GetLabel() << ": illegal private data " 
 	       << i << endl;
 	    THROW(ErrGeneric());
         }
@@ -393,7 +322,7 @@ class Beam
    
     /* Adams output stuff */
     unsigned int iGetNumAdamsDummyParts(void) const {
-        return 2;
+        return 1;
     };
     void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
     ostream& 
@@ -408,19 +337,19 @@ class Beam
 #ifdef VISCOELASTIC_BEAM
 /* ViscoElasticBeam - begin */
 
-class ViscoElasticBeam : virtual public Elem, public Beam {
+class ViscoElasticBeam2 : virtual public Elem, public Beam2 {
   protected:
    
     /* Derivate di deformazioni e curvature */
-    Vec3 LPrime[NUMSEZ]; 
-    Vec3 gPrime[NUMSEZ];  
+    Vec3 LPrime; 
+    Vec3 gPrime;  
       
-    Vec3 LPrimeRef[NUMSEZ]; 
+    Vec3 LPrimeRef;
    
-    Vec6 DefPrimeLoc[NUMSEZ];
-    Vec6 DefPrimeLocRef[NUMSEZ];
+    Vec6 DefPrimeLoc;
+    Vec6 DefPrimeLocRef;
 
-    Mat6x6 ERef[NUMSEZ];
+    Mat6x6 ERef;
       
     /* Funzioni di calcolo delle matrici */
     virtual void 
@@ -438,41 +367,17 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
    
   public:
     /* Costruttore normale */
-    ViscoElasticBeam(unsigned int uL, 
+    ViscoElasticBeam2(unsigned int uL, 
 	             const StructNode* pN1, 
 		     const StructNode* pN2, 
-		     const StructNode* pN3,
 	             const Vec3& F1, 
 		     const Vec3& F2, 
-		     const Vec3& F3,
-	             const Mat3x3& r_I, 
-		     const Mat3x3& rII,
-	             const ConstitutiveLaw6D* pD_I, 
-		     const ConstitutiveLaw6D* pDII,
+	             const Mat3x3& r, 
+	             const ConstitutiveLaw6D* pd, 
 		     flag fOut);
    
-    /* Costruttore per la trave con forze d'inerzia consistenti */
-    ViscoElasticBeam(unsigned int uL, 
-                     const StructNode* pN1,
-		     const StructNode* pN2,
-		     const StructNode* pN3,
-		     const Vec3& F1,
-		     const Vec3& F2,
-		     const Vec3& F3,
-		     const Mat3x3& r_I,
-		     const Mat3x3& rII,
-		     const ConstitutiveLaw6D* pD_I,
-		     const ConstitutiveLaw6D* pDII,
-		     doublereal dM_I,
-		     const Mat3x3& s0_I,
-		     const Mat3x3& j0_I,
-		     doublereal dMII,
-		     const Mat3x3& s0II,
-		     const Mat3x3& j0II,
-		     flag fOut);
-
     /* Distruttore banale */
-    virtual ~ViscoElasticBeam(void) { 
+    virtual ~ViscoElasticBeam2(void) { 
         NO_OP;
     };
 
@@ -496,8 +401,11 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
 /* ViscoElasticBeam - end */
 #endif /* VISCOELASTIC_BEAM */
 
-extern Elem* 
-ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+class DataManager;
+class MBDynParser;
 
-#endif /* BEAM_H */
+extern Elem* 
+ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+
+#endif /* BEAM2_H */
 

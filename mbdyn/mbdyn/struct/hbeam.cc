@@ -36,70 +36,10 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <constltp.h>
+#include <shapefnc.h>
 #include <beam.h>
 #include <hbeam.h>
 #include <dataman.h>
-
-static doublereal dN2[2] = {
-	.5, 
-	.5
-};
-
-static doublereal dN2P[2] = {
-	-.5,
-	.5
-};
-
-/* Funzioni di interpolazione */
-doublereal 
-ShapeFunc2N(doublereal d, integer iNode, integer iOrd)
-{
-    ASSERT(iOrd == 0 || iOrd == 1);
-    ASSERT(iNode == 1 || iNode == 2);
-   
-    switch (iOrd) {
-    case 0:
-        switch (iNode) {
-	case 1:	
-	    return .0;
-				
-	case 2:	
-	    return 0.;
-		  		
-	default:
-	    THROW(ErrGeneric());
-	}
-	    
-    case 1:
-        switch (iNode) {
-	case 1:		
-	    return 0.;
-	  
-	case 2:
-	    return 0.;
-	  
-	default:
-	    THROW(ErrGeneric());
-	}
-    }
-   
-    /* Per evitare warnings */
-    return 0.;
-}
-
-doublereal
-DxDcsi2N(doublereal d, const Vec3& X1, const Vec3& X2)
-{
-    doublereal dNp1 = ShapeFunc3N(d, 1, 1);
-    doublereal dNp2 = ShapeFunc3N(d, 2, 1);
-    Vec3 DXDcsi(X1*dNp1+X2*dNp2);
-    doublereal dd = DXDcsi.Dot();
-    if (dd > DBL_EPSILON) {
-        return sqrt(dd);
-    }
-    return 0.;
-}
-
 
 /* HBeam - begin */
 

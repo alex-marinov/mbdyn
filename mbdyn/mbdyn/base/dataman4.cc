@@ -71,6 +71,7 @@ enum KeyWords {
    JOINT,
    COUPLE,
    BEAM,
+   BEAM2,
    HBEAM,
    
    AIRPROPERTIES,
@@ -112,6 +113,7 @@ void DataManager::ReadElems(MBDynParser& HP)
       "joint",
       "couple",
       "beam",
+      "beam2",
       "hbeam",
       
       "airproperties",
@@ -201,6 +203,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     break;
 	  }
 	  case BEAM:
+	  case BEAM2:
 	  case HBEAM: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "beams" << endl);
 	     Typ = Elem::BEAM;
@@ -312,6 +315,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    t = Elem::FORCE;
 	    break;
 	  case BEAM:
+	  case BEAM2:
 	  case HBEAM:
 	    t = Elem::BEAM;
 	    break;
@@ -530,6 +534,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		  case JOINT:
 		  case COUPLE:
 		  case BEAM:
+		  case BEAM2:
 		  case HBEAM:
 #ifdef USE_AERODYNAMIC_ELEMS
 		  case ROTOR:
@@ -589,6 +594,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 			break;
 		     }
 		     case BEAM:
+		     case BEAM2:
 		     case HBEAM: {
 			ppE = ppFindElem(Elem::BEAM, uLabel);
 			break;
@@ -693,6 +699,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	      case JOINT:
 	      case COUPLE:
 	      case BEAM:
+	      case BEAM2:
 	      case HBEAM:
 #ifdef USE_AERODYNAMIC_ELEMS
 	      case ROTOR:
@@ -1007,6 +1014,7 @@ Elem** ReadOneElem(DataManager* pDM,
       
       /* trave */
     case BEAM:
+    case BEAM2:
     case HBEAM: {      
        silent_cout("Reading beam " << uLabel << endl);
        
@@ -1037,6 +1045,9 @@ Elem** ReadOneElem(DataManager* pDM,
        switch (KeyWords(CurrType)) {
        case BEAM:
           *ppE = ReadBeam(pDM, HP, uLabel);
+	  break;
+       case BEAM2:
+	  *ppE = ReadBeam2(pDM, HP, uLabel);
 	  break;
        case HBEAM:
 	  *ppE = ReadHBeam(pDM, HP, uLabel);

@@ -125,21 +125,17 @@ class HBeam
         NO_OP;
     };   
    
-    /* Inizializza le derivate delle funzioni di forma 
-     * e calcola le deformazioni geometriche iniziali */
+    /*
+     * Inizializza le derivate delle funzioni di forma 
+     * e calcola le deformazioni geometriche iniziali
+     */
     virtual void DsDxi(void);
 
-    /* Calcola la velocita' angolare delle sezioni a partire da quelle
-     * dei nodi; per ora lo fa in modo brutale, ma si puo' fare anche 
-     * in modo consistente */
+    /*
+     * Calcola la velocita' angolare delle sezioni a partire da quelle
+     * dei nodi in modo consistente
+     */
     virtual void Omega0(void);
-   
-    /* Scrive una matrice 6x6 formata da quattro 3x3
-    virtual ostream& 
-    WriteMat6x6(ostream& Out, 
-                const Mat3x3& m11, const Mat3x3& m12, 
-		const Mat3x3& m21, const Mat3x3& m22) const;
-    */
    
     /* Funzione interna di restart */
     virtual ostream& Restart_(ostream& out) const;
@@ -175,12 +171,10 @@ class HBeam
    
     /* funzioni proprie */
    
-    /* Dimensioni del workspace; sono 36 righe perche' se genera anche le 
-     * forze d'inerzia consistenti deve avere accesso alle righe di definizione
-     * della quantita' di moto */
+    /* Dimensioni del workspace */
     virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-	*piNumRows = 18;
-        *piNumCols = 18; 
+	*piNumRows = 12;
+        *piNumCols = 12; 
     };
    
     /* Settings iniziali, prima della prima soluzione */
@@ -233,8 +227,8 @@ class HBeam
     virtual void 
     InitialWorkSpaceDim(integer* piNumRows, 
 			integer* piNumCols) const {
-        *piNumRows = 18;
-        *piNumCols = 18; 
+        *piNumRows = 12;
+        *piNumCols = 12; 
     };
    
     /* Setta il valore iniziale delle proprie variabili */

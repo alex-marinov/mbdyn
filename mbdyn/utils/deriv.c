@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 
 int get_line(FILE* fin, char* buf, int buf_size)
 {
@@ -219,6 +220,8 @@ last_line:
 
    if (isf) {
       fclose(fin);
-   }   
+   }
+
+   return 0;
 }
    

@@ -615,20 +615,9 @@ ReadAerodynamicBody(DataManager* pDM,
    	DEBUGCOUTFNAME("ReadAerodynamicBody");
       
    	/* Nodo */
-   	unsigned int uNode = (unsigned int)HP.GetInt();
+	StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+   	unsigned int uNode = pNode->GetLabel();
    
-   	DEBUGLCOUT(MYDEBUG_INPUT, "Node: " << uNode << endl);
-   
-   	/* verifica di esistenza del nodo */
-   	StructNode* pNode = pDM->pFindStructNode(uNode);
-   	if (pNode == NULL) {
-      		cerr << endl
-			<< " at line " << HP.GetLineData() 
-			<< ": structural node " << uNode
-			<< " not defined" << endl;      
-		THROW(DataManager::ErrGeneric());
-	}
-	
 	/* Eventuale rotore */
 	Rotor* pRotor = NULL;
 	if (HP.IsKeyWord("rotor")) {

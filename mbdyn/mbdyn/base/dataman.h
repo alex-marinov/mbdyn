@@ -151,6 +151,7 @@ class DataManager {
    friend Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
    friend Elem* ReadForce(DataManager* pDM, MBDynParser& HP, unsigned int uLabel, flag = 0);  
    friend Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+   friend Elem* ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
    friend Elem* ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
    friend Elem* ReadRotor(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
    friend Elem* ReadAerodynamicBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
@@ -179,7 +180,7 @@ class DataManager {
    /* chiamate a funzioni di inizializzazione */
 #if defined(USE_STRUCT_NODES)   
    void InitialJointAssembly(void);
-#endif // USE_STRUCT_NODES
+#endif /* USE_STRUCT_NODES */
    
    void DofOwnerSet(void);
    void DofOwnerInit(void);
@@ -197,7 +198,9 @@ class DataManager {
    /* distruttore */
    virtual ~DataManager(void);
    
-   
+   /* helpers */
+   Node* ReadNode(MBDynParser& HP, Node::Type type);
+   Elem* ReadElem(MBDynParser& HP, Elem::Type type);
    
    /* Funzioni usate dal metodo di integrazione */
 

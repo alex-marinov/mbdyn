@@ -117,32 +117,34 @@ class Vec6 {
    
    const Vec6& operator *= (const doublereal& d) {
       if (d == 1.) {
-	 return *this; // No operations
+	 return *this; /* No operations */
       }
       if (d == 0.) {
-	 v[0] = Vec3(0.); // Reset vector
+	 v[0] = Vec3(0.); /* Reset vector */
 	 v[1] = Vec3(0.);
 	 return *this;
       }
-      // else
-      v[0] *= d; // Multiply
+      /* else */
+      v[0] *= d; /* Multiply */
       v[1] *= d;
       return *this;
    };   
    
    const Vec6& operator /= (const doublereal& d) {
       if (d == 1.) {
-	 return *this; // No operations
+	 return *this; /* No operations */
       }
       if (d == 0.) {
-	 THROW(ErrDivideByZero()); // error
-	 // exit(1); 
+	 THROW(ErrDivideByZero()); /* error */
+#if 0	 
+	 exit(1);
+#endif /* 0 */
       }
-      // else
-      v[0] /= d; // divide
+      /* else */
+      v[0] /= d; /* divide */
       v[1] /= d;
       return *this;
-   };   
+   };
    
    inline Vec6 operator + (const Vec6& x) const {
       return Vec6(v[0]+x.GetVec1(), v[1]+x.GetVec2());

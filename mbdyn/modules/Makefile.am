@@ -35,6 +35,13 @@ clean:
 		rm -f $$i/Makefile ; \
 	done
 
-distclean: clean
+distclean:
+	-for i in @MODULES_DIRS@ ; do \
+		export MBDYN_MODULE=$$i ; \
+		cp Makefile.module $$i/Makefile ; \
+		cd $$i && $(MAKE) distclean ; \
+		cd .. ; \
+		rm -f $$i/Makefile ; \
+	done
 	rm -f Makefile
 

@@ -4,11 +4,11 @@ CPPFLAGS="-I/home/masarati/Math/Meschach \
 	-I/usr/share/mpi/include -I/usr/share/mpi/include/c++ \
 	-I/home/masarati/Math/metis-4.0/Lib \
 	-DHAVE_LOADABLE -D__HACK_EIG__"
-CFLAGS="-g -Wall -march=pentiumpro"
+CFLAGS="-g -Wall -O6 -march=pentiumpro"
 CXXFLAGS=$CFLAGS
 CC=gcc
 CXX=g++
-F77=g77
+F77="g77 -O"
 
 # -rdynamic required to allow dynamic resolution of symbols in modules
 LDFLAGS="-rdynamic \

@@ -196,7 +196,7 @@ main(int argn, char *const argv[])
    
    	if (user_defined != NULL) {
       		delete[] user_defined;
-      		user_defined == NULL;
+      		user_defined = NULL;
    	}
    	return 0;
 }
@@ -416,7 +416,6 @@ int method_multistep(const char* module, integration_data* d,
    
    flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);
    
-   int i = 0;
    while (t < tf) {
       t += dt;
       // predict
@@ -577,7 +576,6 @@ int method_cubic(const char* module, integration_data* d,
    
    flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);
    
-   int i = 0;
    while (t < tf) {
       t += dt;
       // predict
