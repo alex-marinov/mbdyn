@@ -228,6 +228,10 @@ public:
 	virtual doublereal dGetPrivData(unsigned int i) const {
 		return pConstLaw->dGetPrivData(i);
 	};
+
+	virtual std::ostream& OutputAppend(std::ostream& out) const {
+		return pConstLaw->OutputAppend(out);
+	};
 };
 
 typedef ConstitutiveLawOwner<doublereal, doublereal> ConstitutiveLaw1DOwner;

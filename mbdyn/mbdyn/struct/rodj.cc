@@ -281,10 +281,13 @@ void Rod::Output(OutputHandler& OH) const
       ASSERT(dElle > DBL_EPSILON);	
       Vec3 vTmp(v/dElle);      
       doublereal d = GetF();
+
+      std::ostream& out = OH.Joints();
       
-      Joint::Output(OH.Joints(), "Rod", GetLabel(),
+      Joint::Output(out, "Rod", GetLabel(),
 		    Vec3(d, 0., 0.), Zero3, vTmp*d, Zero3)
-	<< " " << dElle << " " << vTmp << std::endl;
+	<< " " << dElle << " " << vTmp,
+        ConstitutiveLaw1DOwner::OutputAppend(out) << std::endl;
    }
 }
 

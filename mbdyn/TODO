@@ -98,6 +98,7 @@ D. Code:
 	- allow the FEM data filename as command-line arg in utils/femgen
 	- add orthogonality test when reading orientation matrix
 	- append constitutive law output, if any, to elements' output
+	  (DONE infrastructure, shock absorber and rods)
 
 
 

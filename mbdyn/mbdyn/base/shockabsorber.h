@@ -607,6 +607,11 @@ public:
 
 		THROW(ErrGeneric());
 	};
+
+	virtual std::ostream& OutputAppend(std::ostream& out) const {
+		return out << " " << dPressure << " " << dArea
+			<< " " << dFelastic << " " << dFviscous;
+	};
 };
 
 /* ShockAbsorberConstitutiveLaw - begin */

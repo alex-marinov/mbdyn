@@ -112,5 +112,11 @@ SimulationEntity::dGetPrivData(unsigned int /* i */ ) const
 	THROW(ErrGeneric());
 }
 
+std::ostream&
+SimulationEntity::OutputAppend(std::ostream& out) const
+{
+	return out;
+}
+
 /* SimulationEntity - end */
 

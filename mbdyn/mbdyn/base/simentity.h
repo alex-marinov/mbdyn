@@ -164,6 +164,11 @@ public:
 	 * with 0 < i <= iGetNumPrivData()
 	 */
 	virtual doublereal dGetPrivData(unsigned int i) const;
+
+	/*
+	 * Contributes to output on a stream
+	 */
+	virtual std::ostream& OutputAppend(std::ostream& out) const;
 };
 
 /* SimulationEntity - end */
