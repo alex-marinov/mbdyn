@@ -109,26 +109,32 @@ protected:
 
 	bool PrepareSymbolic(void);
 
+	/* Azzera la matrice (callback per MatrInit) */
 	virtual void MatrReset(const doublereal& d);
+
+	/* Passa in forma di Compressed Column (callback per solve,
+	 * richiesto da SpMap e CC Matrix Handler) */
 	virtual void MakeCompressedColumnForm(void);
 	
+	/* Backward Substitution */
+	void BackSub(doublereal t_iniz = 0.);
+   
 public:
 	UmfpackSparseLUSolutionManager(integer Dim, integer /* unused */ = 0, 
 			doublereal dPivot = -1.);
 	virtual ~UmfpackSparseLUSolutionManager(void);
+#ifdef DEBUG
 	virtual void IsValid(void) const {
 		NO_OP;
 	};
+#endif /* DEBUG */
 
 	/* Inizializzatore generico */
 	virtual void MatrInit(const doublereal& d = 0.);
 	
-	/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
 	virtual void Solve(void);
 
-	/* Bacward Substitution */
-	void BackSub(doublereal t_iniz = 0.);
-   
    	/* sposta il puntatore al vettore del residuo */
    	void ChangeResPoint(doublereal* pRes){
 		pdRhs = pRes;

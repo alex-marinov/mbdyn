@@ -74,9 +74,10 @@ public:
 
 	virtual ~SchurMatrixHandler(void); 
 
+#ifdef DEBUG
 	/* Usata per il debug */
 	virtual void IsValid(void) const;
-
+#endif /* DEBUG */
 
 	virtual integer iGetNumRows(void) const;
 	virtual integer iGetNumCols(void) const;
@@ -456,8 +457,10 @@ public:
    			integer* pGlobToLoc);
 	~SchurVectorHandler(void);
 
+#ifdef DEBUG
 	/* Usata per il debug */
 	void IsValid(void) const;
+#endif /* DEBUG */
  
 	/* restituisce il puntatore al vettore */
 	inline doublereal* pdGetVec(void) const;
@@ -477,6 +480,10 @@ public:
 	inline void IncCoef(integer iRow, const doublereal& dCoef);
 	inline void DecCoef(integer iRow, const doublereal& dCoef);
 	inline const doublereal& dGetCoef(integer iRow) const;
+
+	inline const doublereal& operator () (integer iRow) const;
+	inline doublereal& operator () (integer iRow);
+
 	inline void PrintVector(void);  
 };
 
@@ -619,6 +626,35 @@ SchurVectorHandler::dGetCoef(integer iRow) const
 	} else {
 		return pIV->dGetCoef(-pGTL[iRow]);
 	}
+}
+
+inline const doublereal&
+SchurVectorHandler::operator () (integer iRow) const
+{
+#ifdef DEBUG
+	IsValid();
+#ifdef DEBUG_MPI
+	if (pGTL[iRow] == 0) {
+		std::cerr << "dGetCoef - Process:(" << MBDynComm.Get_rank()
+			<< "): warning, VectorHandler is trying to operate "
+			"on a non local value {" << iRow << "}"
+			<< std::endl;
+		return dZero;
+	}
+#endif /* DEBUG_MPI */
+#endif /* DEBUG */
+
+	if (pGTL[iRow] > 0) {
+		return pLV->dGetCoef(pGTL[iRow]);
+	} else {
+		return pIV->dGetCoef(-pGTL[iRow]);
+	}
+}
+
+inline doublereal&
+SchurVectorHandler::operator () (integer iRow)
+{
+	THROW(ErrGeneric());
 }
 
 inline void

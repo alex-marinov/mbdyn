@@ -36,13 +36,14 @@
 
 /* VecN - begin */
 
+#ifdef DEBUG
 void VecN::IsValid(void) const
 {      
    ASSERT(iMaxRows > 0);
    ASSERT(iNumRows > 0);
    ASSERT(pdVec != NULL);
 }
-
+#endif /* DEBUG */
 
 void VecN::Create_(integer ns)
 {
@@ -73,7 +74,9 @@ VecN::VecN(integer ns)
 : iMaxRows(ns), iNumRows(ns), pdVec(NULL)
 {
    Create_(ns);
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
 }
 
 
@@ -136,13 +139,17 @@ void VecN::Resize(integer ns)
    }
    Create_(ns);
    iMaxRows = iNumRows = ns;
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
 }
 
 
 void VecN::Reset(const doublereal& d)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    for (integer i = iNumRows; i-- > 0; ) {
       pdVec[i] = d;
    }
@@ -150,7 +157,9 @@ void VecN::Reset(const doublereal& d)
 
 void VecN::RightMult(const MatNx3& n, const Vec3& v)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    for (integer i = iNumRows; i-- > 0; ) {
       pdVec[i] = n.pdCols[0][i]*v.pdVec[V1]
                  + n.pdCols[1][i]*v.pdVec[V2]
@@ -160,7 +169,9 @@ void VecN::RightMult(const MatNx3& n, const Vec3& v)
 
 const VecN& VecN::operator += (const VecN& m)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
     for (integer i = m.iNumRows; i-- > 0; ) {
 	 pdVec[i] += m.pdVec[i];
       }
@@ -170,7 +181,9 @@ const VecN& VecN::operator += (const VecN& m)
 const VecN& 
 VecN::operator *= (const doublereal& d)
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	for (integer i = iNumRows; i-- > 0; ) {
 		pdVec[i] *= d;
 	}
@@ -179,7 +192,9 @@ VecN::operator *= (const doublereal& d)
 
 const VecN& VecN::Mult(const MatNxN& m, const VecN& n)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(iNumRows == m.iNumRows);
    ASSERT(m.iNumRows == n.iNumRows);
 
@@ -197,7 +212,9 @@ const VecN&
 VecN::Mult(const MatNxN& m, const ArrayView& vm, 
 		const VecN& n, const ArrayView& vn)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(iNumRows == m.iNumRows);
    ASSERT(m.iNumRows >= vm.Last());
    ASSERT(n.iNumRows >= vn.Last());
@@ -223,13 +240,14 @@ VecN::Mult(const MatNxN& m, const ArrayView& vm,
 
 
 /* Mat3xN - begin */
-
+#ifdef DEBUG
 void Mat3xN::IsValid(void) const
 {
    ASSERT(iNumCols > 0);
    ASSERT(iMaxCols > 0);
    ASSERT(pdRows[0] != NULL);
 }
+#endif /* DEBUG */
 
 
 void Mat3xN::Create_(integer ns)
@@ -270,7 +288,9 @@ Mat3xN::Mat3xN(integer nc)
    pdRows[2] = NULL;
    
    Create_(iNumCols);
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
 }
 
 
@@ -283,7 +303,9 @@ Mat3xN::Mat3xN(integer nc, const doublereal& d)
    pdRows[2] = NULL;
 
    Create_(iNumCols);
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    Reset(d);
 }
 
@@ -304,13 +326,18 @@ void Mat3xN::Resize(integer ns)
       Create_(ns);
       iMaxCols = iNumCols = ns;
    }
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
 }
 
 
 void Mat3xN::Reset(const doublereal& d)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
+
    for (integer j = iNumCols; j-- > 0; ) {
       pdRows[0][j] = d;
       pdRows[1][j] = d;
@@ -321,7 +348,9 @@ void Mat3xN::Reset(const doublereal& d)
 
 const Mat3xN& Mat3xN::LeftMult(const Mat3x3& m) 
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    for (integer i = iNumCols; i-- > 0; ) {
       doublereal d[3] = { 0., 0., 0. };
 
@@ -348,11 +377,14 @@ const Mat3xN& Mat3xN::LeftMult(const Mat3x3& m)
 
 const Mat3xN& Mat3xN::LeftMult(const Mat3x3& m, const Mat3xN& n)
 {
+#ifdef DEBUG
    IsValid();
    n.IsValid();
+#endif /* DEBUG */
+
    if (iNumCols != n.iNumCols) {
       Resize(n.iNumCols);
-      //FIXME: sicuri di voler fare resize? non si azzera?
+      /* FIXME: sicuri di voler fare resize? non si azzera? */
    }   
    
    for (integer i = iNumCols; i-- > 0; ) {
@@ -375,7 +407,9 @@ const Mat3xN& Mat3xN::LeftMult(const Mat3x3& m, const Mat3xN& n)
 
 const Mat3xN& Mat3xN::Copy(const Mat3xN& m) 
 {
+#ifdef DEBUG
    m.IsValid();
+#endif /* DEBUG */
    Resize(m.iNumCols);
    for (integer j = m.iNumCols; j-- > 0; ) {
       pdRows[0][j] = m.pdRows[0][j];
@@ -388,7 +422,9 @@ const Mat3xN& Mat3xN::Copy(const Mat3xN& m)
 
 const Mat3xN& Mat3xN::operator *= (const doublereal& d) 
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
 
    if (d != 1.) {
       for (integer j = iNumCols; j-- > 0; ) {
@@ -403,7 +439,9 @@ const Mat3xN& Mat3xN::operator *= (const doublereal& d)
 
 const Mat3xN& Mat3xN::operator /= (const doublereal& d) 
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    if (d == 0.) {
       std::cerr << "division by zero" << std::endl;
       THROW(ErrGeneric());
@@ -421,7 +459,9 @@ const Mat3xN& Mat3xN::operator /= (const doublereal& d)
 
 const Mat3xN& Mat3xN::operator += (const Mat3xN& m)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    for (integer j = m.iNumCols; j-- > 0; ) {
       pdRows[0][j] += m.pdRows[0][j];
       pdRows[1][j] += m.pdRows[1][j];
@@ -433,7 +473,9 @@ const Mat3xN& Mat3xN::operator += (const Mat3xN& m)
 
 const Mat3xN& Mat3xN::operator -= (const Mat3xN& m)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    for (integer j = m.iNumCols; j-- > 0; ) {
       pdRows[0][j] -= m.pdRows[0][j];
       pdRows[1][j] -= m.pdRows[1][j];
@@ -446,7 +488,9 @@ const Mat3xN& Mat3xN::operator -= (const Mat3xN& m)
 Vec3 
 Mat3xN::operator * (const VecN& v) const
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iNumCols == v.iNumRows);
 
 	doublereal d[3] = { 0., 0., 0. };
@@ -462,7 +506,9 @@ Mat3xN::operator * (const VecN& v) const
 Vec3 
 Mat3xN::Mult(const ArrayView& vm, const VecN& v) const
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iNumCols >= vm.Last());
 	ASSERT(vm.Number() == v.iNumRows);
 
@@ -482,7 +528,9 @@ Mat3xN::Mult(const ArrayView& vm, const VecN& v) const
 Vec3 
 Mat3xN::Mult(const ArrayView& vm, const VecN& v, const ArrayView& vv) const
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iNumCols >= vm.Last());
 	ASSERT(v.iNumRows >= vv.Last());
 	ASSERT(vm.Number() == vv.Number());
@@ -505,7 +553,9 @@ Mat3xN::Mult(const ArrayView& vm, const VecN& v, const ArrayView& vv) const
 Vec3 
 Mat3xN::GetVec(integer iCol) const
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iCol > 0 && iCol <= iNumCols);
 
 	--iCol;
@@ -515,7 +565,9 @@ Mat3xN::GetVec(integer iCol) const
 void 
 Mat3xN::PutVec(integer iCol, const Vec3& v)
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iCol > 0 && iCol <= iNumCols);
 
 	--iCol;
@@ -527,7 +579,9 @@ Mat3xN::PutVec(integer iCol, const Vec3& v)
 void 
 Mat3xN::AddVec(integer iCol, const Vec3& v)
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iCol > 0 && iCol <= iNumCols);
 
 	--iCol;
@@ -539,7 +593,9 @@ Mat3xN::AddVec(integer iCol, const Vec3& v)
 void 
 Mat3xN::SubVec(integer iCol, const Vec3& v)
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iCol > 0 && iCol <= iNumCols);
 
 	--iCol;
@@ -551,7 +607,9 @@ Mat3xN::SubVec(integer iCol, const Vec3& v)
 Mat3x3 
 Mat3xN::GetMat3x3(integer iFirstCol) const
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iFirstCol >= 1 && iFirstCol <= iNumCols-2);
 	
 	--iFirstCol;
@@ -570,7 +628,9 @@ Mat3xN::GetMat3x3(integer iFirstCol) const
 void
 Mat3xN::PutMat3x3(integer iFirstCol, const Mat3x3& m)
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iFirstCol >= 1 && iFirstCol <= iNumCols-2);
 	
 	--iFirstCol;
@@ -592,7 +652,9 @@ Mat3xN::PutMat3x3(integer iFirstCol, const Mat3x3& m)
 void
 Mat3xN::AddMat3x3(integer iFirstCol, const Mat3x3& m)
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iFirstCol >= 1 && iFirstCol <= iNumCols-2);
 	
 	--iFirstCol;
@@ -614,7 +676,9 @@ Mat3xN::AddMat3x3(integer iFirstCol, const Mat3x3& m)
 void
 Mat3xN::SubMat3x3(integer iFirstCol, const Mat3x3& m)
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iFirstCol >= 1 && iFirstCol <= iNumCols-2);
 	
 	--iFirstCol;
@@ -636,7 +700,9 @@ Mat3xN::SubMat3x3(integer iFirstCol, const Mat3x3& m)
 Mat3x3
 Mat3xN::GetMat3x3ScalarMult(integer iFirstCol, const doublereal& d) const
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iFirstCol >= 1 && iFirstCol <= iNumCols-2);
 	
 	--iFirstCol;
@@ -657,7 +723,7 @@ Mat3xN::GetMat3x3ScalarMult(integer iFirstCol, const doublereal& d) const
 
 
 /* MatNx3 - begin */
-
+#ifdef DEBUG
 void MatNx3::IsValid(void) const
 {      
    ASSERT(iMaxRows > 0);
@@ -666,6 +732,7 @@ void MatNx3::IsValid(void) const
    ASSERT(pdCols[1] != NULL);
    ASSERT(pdCols[2] != NULL);
 }
+#endif /* DEBUG */
 
 
 void MatNx3::Create_(integer ns)
@@ -700,7 +767,9 @@ MatNx3::MatNx3(integer ns)
 {
    pdCols[0] = NULL;
    Create_(ns);
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
 }
 
 
@@ -726,12 +795,16 @@ void MatNx3::Resize(integer ns)
    }
    Create_(ns);
    iMaxRows = iNumRows = ns;
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
 }
 
 void MatNx3::Reset(const doublereal& d)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    for (integer i = iNumRows; i-- > 0; ) {
       pdCols[0][i] = d;
       pdCols[1][i] = d;
@@ -740,9 +813,11 @@ void MatNx3::Reset(const doublereal& d)
 }
 
 const MatNx3& MatNx3::RightMult(const MatNx3& n, const Mat3x3& m)
-{  
+{
+#ifdef DEBUG
    IsValid();
    n.IsValid();
+#endif /* DEBUG */
 
    if (iNumRows != n.iNumRows) {
       Resize(n.iNumRows);
@@ -769,7 +844,9 @@ const MatNx3& MatNx3::RightMult(const MatNx3& n, const Mat3x3& m)
 Vec3 
 MatNx3::GetVec(integer iRow) const
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iRow > 0 && iRow <= iNumRows);
 
 	--iRow;
@@ -779,7 +856,9 @@ MatNx3::GetVec(integer iRow) const
 void 
 MatNx3::PutVec(integer iRow, const Vec3& v)
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iRow > 0 && iRow <= iNumRows);
 
 	--iRow;
@@ -791,7 +870,9 @@ MatNx3::PutVec(integer iRow, const Vec3& v)
 void 
 MatNx3::AddVec(integer iRow, const Vec3& v)
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iRow > 0 && iRow <= iNumRows);
 
 	--iRow;
@@ -803,7 +884,9 @@ MatNx3::AddVec(integer iRow, const Vec3& v)
 void 
 MatNx3::SubVec(integer iRow, const Vec3& v)
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 	ASSERT(iRow > 0 && iRow <= iNumRows);
 
 	--iRow;
@@ -815,8 +898,10 @@ MatNx3::SubVec(integer iRow, const Vec3& v)
 
 const MatNx3& MatNx3::Transpose(const Mat3xN& n)
 {
+#ifdef DEBUG
   IsValid();
   n.IsValid();
+#endif /* DEBUG */
 
   for (integer i = iNumRows; i-- > 0; ) {
      pdCols[0][i] = n.pdRows[0][i];
@@ -830,6 +915,7 @@ const MatNx3& MatNx3::Transpose(const Mat3xN& n)
 
 /* MatNxN - begin */
 
+#ifdef DEBUG
 void MatNxN::IsValid(void) const
 {      
    ASSERT(iMaxRows > 0);
@@ -837,6 +923,7 @@ void MatNxN::IsValid(void) const
    ASSERT(pdVec != NULL);
    ASSERT(pdMat != NULL);
 }
+#endif /* DEBUG */
 
 
 void MatNxN::Create_(integer ns)
@@ -878,7 +965,9 @@ MatNxN::MatNxN(integer ns)
 : iMaxRows(ns), iNumRows(ns), pdVec(NULL), pdMat(NULL)
 {
    Create_(ns);
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
 }
 
 
@@ -897,7 +986,9 @@ MatNxN::~MatNxN(void)
 
 void MatNxN::Reset(const doublereal& d)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    for (integer i = iNumRows*iNumRows; i-- > 0; ) {
       pdVec[i] = d;
    }
@@ -905,9 +996,11 @@ void MatNxN::Reset(const doublereal& d)
 
 const MatNxN& MatNxN::Mult(const MatNx3& m, const Mat3xN& n)
 {
+#ifdef DEBUG
    IsValid();
    n.IsValid();
    m.IsValid();
+#endif /* DEBUG */
 
    ASSERT(m.iNumRows == iNumRows);  
    ASSERT(m.iNumRows == n.iNumCols); 

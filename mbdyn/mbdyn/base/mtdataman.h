@@ -38,8 +38,8 @@
 #include "ac/pthread.h"		/* includes POSIX semaphores */
 
 #include "dataman.h"
-#include "spmapmh.h"
-#include "ccmh.h"
+#include "spmh.h"
+// #include "spmapmh.h"
 
 /* MultiThreadDataManager - begin */
 
@@ -72,7 +72,7 @@ protected:
 		VariableSubMatrixHandler *pWorkMat;
 		MySubVectorHandler *pWorkVec;
 
-		CColMatrixHandler* pJacHdl;
+		CompactSparseMatrixHandler* pJacHdl;
 		VectorHandler* pResHdl;
 		MatrixHandler* pMatA;
 		MatrixHandler* pMatB;

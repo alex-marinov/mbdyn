@@ -1,0 +1,154 @@
+/*
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2003
+ * 
+ * This code is a partial merge of HmFe and MBDyn.
+ *
+ * Pierangelo Masarati  <masarati@aero.polimi.it>
+ * Paolo Mantegazza     <mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+#ifndef SPMH_H
+#define SPMH_H
+
+#include <vector>
+
+#include "myassert.h"
+#include "solman.h"
+
+/* Sparse Matrix */
+class SparseMatrixHandler : public MatrixHandler {
+protected:
+	int NRows;
+	int NCols;
+	int NZ;
+	static doublereal zero;
+
+#ifdef DEBUG
+	void IsValid(void) const {
+		NO_OP;
+	};
+#endif /* DEBUG */
+
+	const int Nz() const {
+		return NZ;
+	};
+	
+public:
+	/* FIXME: always square? */
+	SparseMatrixHandler(const int &n, const int &nn = 0);
+
+	virtual ~SparseMatrixHandler(void);
+
+	integer iGetNumRows(void) const {
+		return NRows;
+	};
+
+	integer iGetNumCols(void) const {
+		return NCols;
+	};
+
+	void Init(const doublereal &r = 0.);
+
+	virtual int MakeCompressedColumnForm(doublereal *const Ax,
+			int *const Ai, int *const Ap,
+			integer offset = 0) const = 0;
+
+        virtual int MakeCompressedColumnForm(std::vector<doublereal>& Ax,
+                	std::vector<int>& Ai, std::vector<int>& Ap,
+			integer offset = 0) const = 0;
+
+	virtual int MakeIndexForm(doublereal *const Ax,
+			integer *const Arow, integer *const Acol,
+			integer offset = 0) const = 0;
+
+        virtual int MakeIndexForm(std::vector<doublereal>& Ax,
+			std::vector<integer>& Arow, std::vector<integer>& Acol,
+			integer offset = 0) const = 0;
+
+	virtual void Reset(const doublereal &r = 0.) = 0;
+
+	virtual void Resize(const int &n, const int &nn = 0) = 0;
+
+	/* Estrae una colonna da una matrice */
+	virtual VectorHandler& GetCol(integer icol,
+			VectorHandler& out) const = 0;
+};
+
+/* Sparse Matrix in compact form */
+class CompactSparseMatrixHandler : public SparseMatrixHandler {
+protected:
+	bool bMatDuplicate;
+	std::vector<doublereal>& Ax;
+	const std::vector<int>& Ai;
+	const std::vector<int>& Ap;
+
+#ifdef DEBUG
+	void IsValid(void) const {
+		NO_OP;
+	};
+#endif /* DEBUG */
+
+public:
+	CompactSparseMatrixHandler(const int &n, const int &nn,
+			std::vector<doublereal>&x,
+			const std::vector<int>& i,
+			const std::vector<int>& p);
+
+	virtual ~CompactSparseMatrixHandler();
+
+	/* used by MultiThreadDataManager to duplicate the storage array
+	 * while preserving the CC indices */
+	virtual CompactSparseMatrixHandler *Copy(void) const = 0;
+
+	/* used to sum CC matrices with identical indices */
+	void AddUnchecked(const CompactSparseMatrixHandler& m);
+
+	/* Restituisce un puntatore all'array di reali della matrice */
+	virtual inline doublereal* pdGetMat(void) const {
+		return &Ax[0];
+	};
+
+public:
+	void IncCoef(integer ix, integer iy, const doublereal& inc) {
+		operator()(ix,iy) += inc;
+	};
+	
+	void DecCoef(integer ix, integer iy, const doublereal& inc) {
+		operator()(ix,iy) -= inc;
+	};
+
+	void PutCoef(integer ix, integer iy, const doublereal& val) {
+		operator()(ix,iy) = val;
+	};
+
+	const doublereal& dGetCoef(integer ix, integer iy) const {
+		return operator()(ix, iy);
+	};
+
+	void Reset(const doublereal &r);
+};
+
+#endif /* SPMH_H */

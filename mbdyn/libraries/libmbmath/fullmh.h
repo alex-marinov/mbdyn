@@ -85,8 +85,10 @@ public:
 			doublereal* pd, doublereal** ppd,
 			integer iMSize = 0, integer iMaxC = 0);
 
+#ifdef DEBUG
 	/* Usata per il debug */
 	virtual void IsValid(void) const;
+#endif /* DEBUG */
 
 	/* Resetta la matrice ecc. */
 	virtual void Init(const doublereal& dResetVal = 0.);
@@ -100,47 +102,48 @@ public:
 	/* Inserisce un coefficiente */
 	virtual inline void
 	PutCoef(integer iRow, integer iCol, const doublereal& dCoef) {
-		IsValid();
 #ifdef DEBUG
+		IsValid();
 		ASSERT(iRow > 0 && iRow <= iNumRows);
 		ASSERT(iCol > 0 && iCol <= iNumCols);
 #endif /* DEBUG */
+
 		ppdColsm1[iCol][iRow] = dCoef;
-		return;
 	};
 
 	/* Incrementa un coefficiente - se non esiste lo crea */
 	virtual inline void
 	IncCoef(integer iRow, integer iCol, const doublereal& dCoef) {
-		IsValid();
 #ifdef DEBUG
+		IsValid();
 		ASSERT(iRow > 0 && iRow <= iNumRows);
 		ASSERT(iCol > 0 && iCol <= iNumCols);
 #endif /* DEBUG */
+
 		ppdColsm1[iCol][iRow] += dCoef;
-		return;
 	};
 
 	/* Incrementa un coefficiente - se non esiste lo crea */
 	virtual inline void
 	DecCoef(integer iRow, integer iCol, const doublereal& dCoef) {
-		IsValid();
 #ifdef DEBUG
+		IsValid();
 		ASSERT(iRow > 0 && iRow <= iNumRows);
 		ASSERT(iCol > 0 && iCol <= iNumCols);
 #endif /* DEBUG */
+
 		ppdColsm1[iCol][iRow] -= dCoef;
-		return;
 	};
 
 	/* Restituisce un coefficiente - zero se non e' definito */
 	virtual inline const doublereal&
 	dGetCoef(integer iRow, integer iCol) const {
-		IsValid();
 #ifdef DEBUG
+		IsValid();
 		ASSERT(iRow > 0 && iRow <= iNumRows);
 		ASSERT(iCol > 0 && iCol <= iNumCols);
 #endif /* DEBUG */
+
 		return ppdColsm1[iCol][iRow];
 	};
 
@@ -155,21 +158,23 @@ public:
 
 	virtual doublereal&
 	operator () (integer iRow, integer iCol) {
-		IsValid();
 #ifdef DEBUG
+		IsValid();
 		ASSERT(iRow > 0 && iRow <= iNumRows);
 		ASSERT(iCol > 0 && iCol <= iNumCols);
 #endif /* DEBUG */
+
 		return ppdColsm1[iCol][iRow];
 	};
 
 	virtual const doublereal&
 	operator () (integer iRow, integer iCol) const {
-		IsValid();
 #ifdef DEBUG
+		IsValid();
 		ASSERT(iRow > 0 && iRow <= iNumRows);
 		ASSERT(iCol > 0 && iCol <= iNumCols);
 #endif /* DEBUG */
+
 		return ppdColsm1[iCol][iRow];
 	};
 

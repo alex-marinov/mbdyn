@@ -315,11 +315,13 @@ SchurSolutionManager::~SchurSolutionManager(void)
 	}
 }
 
+#ifdef DEBUG
 void
 SchurSolutionManager::IsValid(void) const
 {
 	NO_OP;
 }
+#endif /* DEBUG */
 
 /* Inizializza il gestore delle matrici */
 

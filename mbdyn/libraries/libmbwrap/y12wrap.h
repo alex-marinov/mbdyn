@@ -52,11 +52,11 @@
  *         Y12SparseLUSolutionManager SM(size, workspacesize, pivotfactor);
  * 
  * // ottenere l'handling alla matrice ed al termine noto
- *         SparseMatrixHandler* pMH = SM.pMatHdl();
+ *         MatrixHandler* pMH = SM.pMatHdl();
  *         VectorHandler* pRH = SM.pResHdl();
  * 
  * // Ogni volta che si desidera riassemblare la matrice:
- * // inizializzare lo SparseMatrixHandler
+ * // inizializzare il MatrixHandler
  *         SM.MatrInit();
  * 
  * // Operare sulla matrice e sui vettori
@@ -76,7 +76,7 @@
  *         SM.Solve();
  * 
  * // Se si desidera modificare la matrice per una nuova soluzione, occorre
- * // inizializzare di nuovo lo SparseMatrixHandler, con:
+ * // inizializzare di nuovo il MatrixHandler, con:
  *         SM.MatrInit();
  * 
  * // Per i parametri di inizializzazione e per eventuali modifiche
@@ -124,11 +124,11 @@ class Y12LUSolver {
 
 
 public:
-   	class ErrFactorisation {
+   	class ErrFactorization {
     	private: 
       		int iErrCode;
     	public:
-      		ErrFactorisation(int i) : iErrCode(i) {
+      		ErrFactorization(int i) : iErrCode(i) {
 			NO_OP;
 		};
       		int iGetErrCode(void) const {
@@ -164,7 +164,7 @@ private:
    	integer iN;         	/* ordine della matrice */
    	integer iNonZeroes; 	/* coeff. non nulli */
    	doublereal* pdRhs;  /* Soluzione e termine noto */
-private:   
+
    	integer* piHA;    	/* vettore di lavoro */
    	integer  iIFLAG[10];    /* vettore di lavoro */
 	doublereal dAFLAG[8];	/* vettore di lavoro */
@@ -187,11 +187,13 @@ protected:
 		    integer iPivotParam);
    	/* Distruttore */
    	~Y12LUSolver(void);
-   
+
+#ifdef DEBUG	
    	void IsValid(void) const;
+#endif /* DEBUG */
    	
 	/* Fattorizza la matrice */
-   	flag fLUFactor(void);
+   	bool bLUFactor(void);
    
    	/* Risolve */
    	void Solve(void);
@@ -225,15 +227,12 @@ protected:
    	std::vector<doublereal> dMat;    /* reali con la matrice */
    	std::vector<doublereal> dVec;    /* reali con residuo/soluzione */
    
-	mutable SpMapMatrixHandler MH; /* SparseMatrixHandler */
-   	/* SparseMatrixHandler* pMH;  puntatore a SparseMatrixHandler */
+	mutable SpMapMatrixHandler MH; /* sparse MatrixHandler */
    	VectorHandler* pVH;   /* puntatore a VectorHandler */
    	Y12LUSolver* pLU;     /* puntatore a Y12LUSolver */
    
-   	flag fHasBeenReset;   /* flag di matrice resettata */
+   	bool bHasBeenReset;   /* flag di matrice resettata */
 
-	bool optimizeWorkSize;
-   
    	/* Prepara i vettori e la matrice per il solutore */
    	void PacVec(void); 
    
@@ -241,6 +240,10 @@ protected:
     	 * ma da Solve se la matrice ancora non e' stata fattorizzata) */
    	void Factor(void);
 
+#ifdef DEBUG
+   	/* Usata per il debug */
+   	void IsValid(void) const;
+#endif /* DEBUG */
  
 public:
    	/* Costruttore: usa e mette a disposizione matrici che gli sono date */
@@ -250,15 +253,7 @@ public:
    
    	/* Distruttore: dealloca le matrici e distrugge gli oggetti propri */
    	~Y12SparseLUSolutionManager(void);
-   
-   	/* Usata per il debug */
-   	void IsValid(void) const;
-   
-   	/* Ridimensiona le matrici */
-   	void MatrResize(integer iNewSize) {
-   		THROW(ErrNotImplementedYet());
-   	};
-   
+
    	/* Inizializza il gestore delle matrici */
    	void MatrInit(const doublereal& dResetVal = 0.);
    

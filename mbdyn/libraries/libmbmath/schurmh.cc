@@ -128,6 +128,7 @@ SchurMatrixHandler::~SchurMatrixHandler(void)
 	}
 }
 
+#ifdef DEBUG
 /* Usata per il debug */
 void
 SchurMatrixHandler::IsValid(void) const
@@ -140,6 +141,7 @@ SchurMatrixHandler::IsValid(void) const
 	ASSERT(pC != NULL);
 	ASSERT(pGTL != NULL);
 }
+#endif /* DEBUG */
 
 /* SchurMatrixHandler - End */
 
@@ -178,12 +180,14 @@ SchurVectorHandler::~SchurVectorHandler(void)
 	}	 
 }
 
+#ifdef DEBUG
 /* Usata per il debug */
 void
 SchurVectorHandler::IsValid(void) const
 {
 	NO_OP;
 }
+#endif /* DEBUG */
                                        
 /* SchurVectorHandler - End */
 

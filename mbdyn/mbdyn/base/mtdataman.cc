@@ -373,7 +373,8 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 
 	propagate_ErrMatrixRebuild = sig_atomic_t(false);
 
-	CColMatrixHandler *pMH = dynamic_cast<CColMatrixHandler *>(&JacHdl);
+	CompactSparseMatrixHandler *pMH
+		= dynamic_cast<CompactSparseMatrixHandler *>(&JacHdl);
 
 	while (false) {
 retry:;

@@ -88,7 +88,7 @@ fHasBeenReset(1)
    
 #ifdef DEBUG
    	IsValid();
-#endif      
+#endif /* DEBUG */
 }
 
 
@@ -97,7 +97,7 @@ HarwellSparseLUSolutionManager::~HarwellSparseLUSolutionManager(void)
 {
 #ifdef DEBUG
    	IsValid();
-#endif      
+#endif /* DEBUG */
    
    	/* Dealloca oggetti strani */
    	if (pLU != NULL) {	
@@ -108,6 +108,7 @@ HarwellSparseLUSolutionManager::~HarwellSparseLUSolutionManager(void)
    	}
 }
 
+#ifdef DEBUG
 /* Test di validita' del manager */
 void 
 HarwellSparseLUSolutionManager::IsValid(void) const
@@ -123,6 +124,7 @@ HarwellSparseLUSolutionManager::IsValid(void) const
    	ASSERT((pVH->IsValid(), 1));
    	ASSERT((pLU->IsValid(), 1));
 }
+#endif /* DEBUG */
 
 /* Prepara i vettori e la matrice per il solutore */
 void
@@ -160,7 +162,7 @@ HarwellSparseLUSolutionManager::Solve(void)
    	if (fHasBeenReset == 1) {
       		PacVec();
       		fHasBeenReset = flag(0);
-      		if (pLU->fLUFactor() < 0) {	 
+      		if (!pLU->bLUFactor()) {
 	 		THROW(HarwellSparseLUSolutionManager::ErrGeneric());
       		}
    	}

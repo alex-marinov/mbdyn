@@ -58,9 +58,11 @@ protected:
 public:
 	MeschachVectorHandler(int iSize = 0);   
 	virtual ~MeschachVectorHandler(void);
-   
+
+#ifdef DEBUG
    	/* Usata per il debug */
    	virtual void IsValid(void) const;
+#endif /* DEBUG */
    
    	virtual inline doublereal* pdGetVec(void) const;
    	inline VEC* pGetMeschachVEC(void) const;
@@ -74,6 +76,9 @@ public:
    	virtual inline flag IncCoef(integer iRow, const doublereal& dCoef);
    	virtual inline flag DecCoef(integer iRow, const doublereal& dCoef);
    	virtual inline const doublereal& dGetCoef(integer iRow) const;
+
+	virtual inline const doublereal& operator () (integer iRow) const;
+	virtual inline doublereal& operator () (integer iRow);
 };
 
 
@@ -143,6 +148,24 @@ MeschachVectorHandler::dGetCoef(integer iRow) const
    	return pdVecm1[iRow];
 }
 
+inline const doublereal&
+MeschachVectorHandler::operator () (integer iRow) const 
+{
+#ifdef DEBUG
+   	IsValid();
+#endif /* DEBUG */
+   	return pdVecm1[iRow];
+}
+
+inline doublereal&
+MeschachVectorHandler::operator () (integer iRow)
+{
+#ifdef DEBUG
+   	IsValid();
+#endif /* DEBUG */
+   	return pdVecm1[iRow];
+}
+
 /* MeschachVectorHandler - end */
 
 /* MeschachSparseMatrixHandler - begin */
@@ -164,7 +187,9 @@ public:
    
    	/* costruisce la matrice */
    	void Create(unsigned int m, unsigned int n, unsigned int maxlen = 0);
+#ifdef DEBUG
    	void IsValid(void) const;
+#endif /* DEBUG */
    	void Init(const doublereal& d = 0.);
    
    	/* Inserisce un coefficiente */
@@ -297,7 +322,9 @@ public:
 					const doublereal& a = 1.);
    	~MeschachSparseLUSolutionManager(void);
 
+#ifdef DEBUG
    	void IsValid(void) const;
+#endif /* DEBUG */
    	void MatrInit(const doublereal& d = 0.);
    
    	void Solve(void);

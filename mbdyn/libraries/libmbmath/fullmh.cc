@@ -44,7 +44,10 @@
 void
 FullMatrixHandler::Init(const doublereal& dResetVal)
 {
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
+
 #ifdef HAVE_MEMSET
 	if (dResetVal == 0.) {
 		memset(pdRaw, 0, iNumCols*iNumRows*sizeof(doublereal));
@@ -79,7 +82,10 @@ ppdCols(ppd), ppdColsm1(ppd-1)
 	}
 
 	CreateColRow(iNumRows, iNumCols);
+
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 }
 
 /* costruttore che si alloca la memoria */
@@ -93,7 +99,10 @@ ppdCols(NULL), ppdColsm1(NULL)
 	ASSERT(iNumRows > 0);
 	ASSERT(iNumCols > 0);
 	Resize(iNumRows, iNumCols);
+
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 }
 
 
@@ -110,7 +119,10 @@ ppdCols(NULL), ppdColsm1(NULL)
 	ASSERT(iNumCols > 0);
 	Resize(iNumRows, iNumCols);
 	Reset(dVal);
+
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 }
 
 
@@ -269,10 +281,12 @@ FullMatrixHandler::Attach(integer iNewRows, integer iNewCols,
 	ppdCols = ppd;
 	ppdColsm1 = ppdCols-1;
 
+#ifdef DEBUG
 	IsValid();
+#endif /* DEBUG */
 }
 
-
+#ifdef DEBUG
 /* Usata per il debug */
 void
 FullMatrixHandler::IsValid(void) const
@@ -290,6 +304,7 @@ FullMatrixHandler::IsValid(void) const
 	ASSERT(defaultMemoryManager.fIsValid(ppdCols, iNumCols*sizeof(doublereal*)));
 #endif /* DEBUG_MEMMANAGER */
 }
+#endif /* DEBUG */
 
 
 std::ostream&

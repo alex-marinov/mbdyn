@@ -73,12 +73,14 @@ class SubMatrixHandler : public MatrixHandler {
    
 
    /*Metodi di servizio */
-   
+
+#ifdef DEBUG 
    /*
     Routine di verifica della validita' dell'oggetto.
     Usata per il debug.
     */
    virtual void IsValid(void) const = 0;
+#endif /* DEBUG */
    
    
    /*Inizializzazione */
@@ -215,12 +217,14 @@ class FullSubMatrixHandler : public SubMatrixHandler {
 
    /*Metodi di servizio */
    
-      
+
+#ifdef DEBUG 
    /*
     Routine di verifica della validita' dell'oggetto.
     Usata per il debug.
     */
    virtual void IsValid(void) const;
+#endif /* DEBUG */
 
    /*
     Numero di righe della sottomatrice 
@@ -252,7 +256,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    void Resize(integer iNewRow, integer iNewCol) {
 #ifdef DEBUG	
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT(iNewRow > 0);
       ASSERT(iNewCol > 0);
@@ -276,7 +280,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       
 #ifdef DEBUG	
       IsValid();
-#endif		
+#endif /* DEBUG */
    };
    
    /*
@@ -308,14 +312,12 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    inline void PutCoef(integer iSubRow, integer iSubCol, const doublereal& dCoef) {
 #ifdef DEBUG	
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubRow > 0) && (iSubRow <= iNumRows));
       ASSERT((iSubCol > 0) && (iSubCol <= iNumCols));
       
       pdMat[(--iSubCol)*iNumRows+(--iSubRow)] = dCoef;
-      
-      return;
    };
    
    /* 
@@ -324,14 +326,12 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    inline void IncCoef(integer iSubRow, integer iSubCol, const doublereal& dCoef) {
 #ifdef DEBUG	
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubRow > 0) && (iSubRow <= iNumRows));
       ASSERT((iSubCol > 0) && (iSubCol <= iNumCols));	
       
       pdMat[(--iSubCol)*iNumRows+(--iSubRow)] += dCoef;
-      
-      return;
    };
    
    /* 
@@ -340,14 +340,12 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    inline void DecCoef(integer iSubRow, integer iSubCol, const doublereal& dCoef) {
 #ifdef DEBUG	
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubRow > 0) && (iSubRow <= iNumRows));
       ASSERT((iSubCol > 0) && (iSubCol <= iNumCols));	
       
       pdMat[(--iSubCol)*iNumRows+(--iSubRow)] -= dCoef;
-      
-      return;
    };
    
    /* 
@@ -356,7 +354,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    inline const doublereal& dGetCoef(integer iSubRow, integer iSubCol) const {
 #ifdef DEBUG	
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubRow > 0) && (iSubRow <= iNumRows));
       ASSERT((iSubCol > 0) && (iSubCol <= iNumCols));	
@@ -371,7 +369,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    operator () (integer iSubRow, integer iSubCol) const {
 #ifdef DEBUG	
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubRow > 0) && (iSubRow <= iNumRows));
       ASSERT((iSubCol > 0) && (iSubCol <= iNumCols));	
@@ -385,7 +383,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    inline doublereal& operator () (integer iSubRow, integer iSubCol) {
 #ifdef DEBUG	
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubRow > 0) && (iSubRow <= iNumRows));
       ASSERT((iSubCol > 0) && (iSubCol <= iNumCols));	
@@ -399,7 +397,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    inline void PutRowIndex(integer iSubRow, integer iRow) {	
 #ifdef DEBUG	
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubRow > 0) && (iSubRow <= iNumRows));
       
@@ -412,7 +410,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    inline void PutColIndex(integer iSubCol, integer iCol) {
 #ifdef DEBUG	
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubCol > 0) && (iSubCol <= iNumCols));
       
@@ -425,7 +423,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    inline integer iGetRowIndex(integer iSubRow) {	
 #ifdef DEBUG	
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubRow > 0) && (iSubRow <= iNumRows));
       
@@ -438,7 +436,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    inline integer iGetColIndex(integer iSubCol) {	
 #ifdef DEBUG	
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubCol > 0) && (iSubCol <= iNumCols));
       
@@ -599,7 +597,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
      pdMat(pdTmpMat) {
 #ifdef DEBUG
 	IsValid();
-#endif	
+#endif /* DEBUG */
      };
    
    /* Distruttore banale.
@@ -612,12 +610,13 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    
    /*Metodi di servizio */
    
-      
+#ifdef DEBUG
    /*
     Routine di verifica della validita' dell'oggetto.
     Usata per il debug.
     */
    virtual void IsValid(void) const;
+#endif /* DEBUG */
 
    /*
     Numero di righe della sottomatrice.
@@ -654,7 +653,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    void Resize(integer iNewRow, integer /* iNewCol */ ) {
 #ifdef DEBUG
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT(iNewRow > 0);
       ASSERT(2*iNewRow <= iIntSize);
@@ -671,7 +670,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       
 #ifdef DEBUG
       IsValid();
-#endif		
+#endif /* DEBUG */
    };
    
    /*
@@ -696,7 +695,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
      pdMat = pdTmpMat;
 #ifdef DEBUG
      IsValid();
-#endif
+#endif /* DEBUG */
     };   
 
    
@@ -710,13 +709,11 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    inline void PutCoef(integer iSubIt, integer /* iDmy */ , const doublereal& dCoef) {
 #ifdef DEBUG
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));
       
       pdMat[--iSubIt] = dCoef;
-      
-      return;
    };
    
    /* 
@@ -725,12 +722,10 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    inline void IncCoef(integer iSubIt, integer /* iDmy */ , const doublereal& dCoef) {
 #ifdef DEBUG
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));   
       pdMat[--iSubIt] += dCoef;
-      
-      return;
    };
    
    /* 
@@ -739,12 +734,10 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    inline void DecCoef(integer iSubIt, integer /* iDmy */ , const doublereal& dCoef) {
 #ifdef DEBUG
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));   
       pdMat[--iSubIt] -= dCoef;
-      
-      return;
    };
    
    /* 
@@ -753,7 +746,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    inline const doublereal& dGetCoef(integer iSubIt, integer /* iDmy */ ) const {
 #ifdef DEBUG
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));
       
@@ -767,7 +760,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    operator () (integer iSubIt, integer /* iDmy */ ) const {
 #ifdef DEBUG
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));
       
@@ -780,7 +773,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    inline doublereal& operator () (integer iSubIt, integer /* iDmy */ ) {
 #ifdef DEBUG
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));
       
@@ -793,7 +786,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    inline void PutRowIndex(integer iSubIt, integer iRow) {
 #ifdef DEBUG
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));      
       piRow[--iSubIt] = iRow;
@@ -805,7 +798,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    inline void PutColIndex(integer iSubIt, integer iCol) {
 #ifdef DEBUG
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));      
       piCol[--iSubIt] = iCol;
@@ -817,7 +810,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    inline integer iGetRowIndex(integer iSubIt) {	
 #ifdef DEBUG
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));
       
@@ -830,7 +823,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    inline integer iGetColIndex(integer iSubIt) {	
 #ifdef DEBUG
       IsValid();
-#endif	
+#endif /* DEBUG */
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));
       
@@ -847,7 +840,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    inline void PutItem(integer iSubIt, integer iRow, integer iCol, const doublereal& dCoef) {
 #ifdef DEBUG
       IsValid();
-#endif
+#endif /* DEBUG */
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));
       ASSERT(iRow > 0);
@@ -1141,12 +1134,13 @@ class SubVectorHandler : public VectorHandler {
    
    /*Metodi di servizio */
    
-      
+#ifdef DEBUG
    /*
     * Routine di verifica della validita' dell'oggetto.
     * Usata per il debug.
     */
    virtual void IsValid(void) const = 0;
+#endif /* DEBUG */
    
    
    /* Operazioni su indici e coefficienti */
@@ -1281,14 +1275,13 @@ class MySubVectorHandler : public SubVectorHandler, public MyVectorHandler {
     era posseduta dal vettore.
     */
    void Attach(integer iSize, doublereal* pd, integer* pi, integer iMSize = 0);   
-   
+#ifdef DEBUG
    /*
     Verifica la validita' del vettore.
     Usata per debug
     */
    virtual void IsValid(void) const;
-   
-
+#endif /* DEBUG */
 
    /*Operazioni sugli indici e sui coefficienti */
    
@@ -1298,7 +1291,6 @@ class MySubVectorHandler : public SubVectorHandler, public MyVectorHandler {
     */
    virtual void PutCoef(integer i, const doublereal& d) {
       MyVectorHandler::PutCoef(i, d);
-      return;
    };
 
    /* 
@@ -1306,7 +1298,6 @@ class MySubVectorHandler : public SubVectorHandler, public MyVectorHandler {
     */
    virtual void IncCoef(integer i, const doublereal& d) {
       MyVectorHandler::IncCoef(i, d);
-      return;
    };
 
    /* 
@@ -1314,7 +1305,6 @@ class MySubVectorHandler : public SubVectorHandler, public MyVectorHandler {
     */
    virtual void DecCoef(integer i, const doublereal& d) {
       MyVectorHandler::DecCoef(i, d);
-      return;
    };
 
    /* 
@@ -1324,6 +1314,14 @@ class MySubVectorHandler : public SubVectorHandler, public MyVectorHandler {
       return MyVectorHandler::dGetCoef(i);
    };
    
+   virtual inline const doublereal& operator () (integer iRow) const {
+      return MyVectorHandler::operator () (iRow);
+   };
+
+   virtual inline doublereal& operator () (integer iRow) {
+      return MyVectorHandler::operator () (iRow);
+   };
+
    /* 
     Scrive un indice di riga in base al sottoindice.
     */
@@ -1362,7 +1360,7 @@ inline void MySubVectorHandler::PutRowIndex(integer iSubRow, integer iRow) {
    IsValid();
    ASSERT((iSubRow > 0) && (iSubRow <= iCurSize));
    ASSERT(iRow > 0);
-#endif
+#endif /* DEBUG */
    
    piRowm1[iSubRow] = iRow;
 }
@@ -1371,7 +1369,7 @@ inline integer MySubVectorHandler::iGetRowIndex(integer iSubRow) const {
 #ifdef DEBUG
    IsValid();
    ASSERT((iSubRow > 0) && (iSubRow <= iCurSize));
-#endif
+#endif /* DEBUG */
    
    return piRowm1[iSubRow];
 }
@@ -1382,7 +1380,7 @@ inline void MySubVectorHandler::PutItem(integer iSubRow, integer iRow,
    IsValid();
    ASSERT((iSubRow > 0) && (iSubRow <= iCurSize));
    ASSERT(iRow > 0);
-#endif	
+#endif /* DEBUG */
    
    piRowm1[iSubRow] = iRow;
    pdVecm1[iSubRow] = dCoef;

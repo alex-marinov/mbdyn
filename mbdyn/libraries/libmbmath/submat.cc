@@ -74,8 +74,8 @@ FullSubMatrixHandler::~FullSubMatrixHandler(void)
 {
    NO_OP;
 }
-					   
-					   
+
+#ifdef DEBUG
 void FullSubMatrixHandler::IsValid(void) const
 {
    ASSERT(iVecSize > 0);
@@ -93,6 +93,7 @@ void FullSubMatrixHandler::IsValid(void) const
    ASSERT(defaultMemoryManager.fIsValid(pdMat, iMatSize*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
 }
+#endif /* DEBUG */
 
 
 void 
@@ -577,6 +578,7 @@ operator << (std::ostream& out, const FullSubMatrixHandler& m)
 
 /* SparseSubMatrixHandler - begin */
 
+#ifdef DEBUG
 void SparseSubMatrixHandler::IsValid(void) const
 {
    ASSERT(iIntSize > 0);
@@ -593,6 +595,7 @@ void SparseSubMatrixHandler::IsValid(void) const
    ASSERT(defaultMemoryManager.fIsValid(pdMat, iDoubleSize*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
 }
+#endif /* DEBUG */
 
 
 flag SparseSubMatrixHandler::fPutDiag(integer iSubIt, integer iFirstRow, 
@@ -1060,6 +1063,7 @@ void MySubVectorHandler::Attach(integer iSize, doublereal* pd,
    piRowm1 = piRow-1;
 }
 
+#ifdef DEBUG
 void MySubVectorHandler::IsValid(void) const
 {
    MyVectorHandler::IsValid();
@@ -1073,6 +1077,7 @@ void MySubVectorHandler::IsValid(void) const
 			   MyVectorHandler::iMaxSize*sizeof(integer)));
 #endif /* DEBUG_MEMMANAGER */
 }
+#endif /* DEBUG */
 
 VectorHandler& MySubVectorHandler::AddTo(VectorHandler& VH) const {
 #ifdef DEBUG 

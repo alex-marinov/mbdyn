@@ -84,8 +84,10 @@ class VecN {
    integer iMaxRows;
    integer iNumRows;
    doublereal* pdVec;
-   
+
+#ifdef DEBUG 
    void IsValid(void) const;   
+#endif /* DEBUG */
    void Create_(integer ns);
    void Destroy_(void);
    
@@ -132,14 +134,18 @@ class VecN {
 
 inline integer VecN::iGetNumRows(void) const 
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    return iNumRows;
 }
 
 
 inline void VecN::Put(integer i, const doublereal& d)
-{   
+{
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    pdVec[--i] = d;
 }
@@ -147,14 +153,18 @@ inline void VecN::Put(integer i, const doublereal& d)
 
 inline void VecN::Add(integer i, const doublereal& d)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    pdVec[--i] += d;
 }
 
 inline void VecN::Sub(integer i, const doublereal& d)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    pdVec[--i] -= d;
 }
@@ -162,7 +172,9 @@ inline void VecN::Sub(integer i, const doublereal& d)
 
 inline const doublereal& VecN::dGet(integer i) const
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    return pdVec[--i];
 }
@@ -170,7 +182,9 @@ inline const doublereal& VecN::dGet(integer i) const
 inline doublereal &
 VecN::operator () (integer i)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    return pdVec[--i];
 }
@@ -196,7 +210,9 @@ class Mat3xN {
    integer iNumCols;
    doublereal* pdRows[3];
 
+#ifdef DEBUG
    void IsValid(void) const;
+#endif /* DEBUG */
    void Create_(integer ns);
    void Destroy_(void);
    
@@ -254,13 +270,17 @@ class Mat3xN {
 
 inline integer Mat3xN::iGetNumCols(void) const
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    return iNumCols;
 }
    
 inline void Mat3xN::Put(int i, integer j, const doublereal& d)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= 3);
    ASSERT(j > 0 && j <= iNumCols);
    pdRows[--i][--j] = d;
@@ -268,7 +288,9 @@ inline void Mat3xN::Put(int i, integer j, const doublereal& d)
 
 inline void Mat3xN::Add(int i, integer j, const doublereal& d)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= 3);
    ASSERT(j > 0 && j <= iNumCols);
    pdRows[--i][--j] += d;
@@ -276,7 +298,9 @@ inline void Mat3xN::Add(int i, integer j, const doublereal& d)
 
 inline void Mat3xN::Sub(int i, integer j, const doublereal& d)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= 3);
    ASSERT(j > 0 && j <= iNumCols);
    pdRows[--i][--j] -= d;
@@ -284,7 +308,9 @@ inline void Mat3xN::Sub(int i, integer j, const doublereal& d)
 
 inline const doublereal& Mat3xN::dGet(int i, integer j) const
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= 3);
    ASSERT(j > 0 && j <= iNumCols);
    return pdRows[--i][--j];
@@ -293,7 +319,9 @@ inline const doublereal& Mat3xN::dGet(int i, integer j) const
 inline doublereal &
 Mat3xN::operator () (integer i, integer j)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= 3);
    ASSERT(j > 0 && j <= iNumCols);
    return pdRows[--i][--j];
@@ -321,8 +349,10 @@ class MatNx3 {
    integer iMaxRows;
    integer iNumRows;
    doublereal* pdCols[3];
-   
+
+#ifdef DEBUG 
    void IsValid(void) const;   
+#endif /* DEBUG */
    void Create_(integer ns);
    void Destroy_(void);
    
@@ -361,15 +391,19 @@ class MatNx3 {
 inline integer 
 MatNx3::iGetNumRows(void) const 
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    return iNumRows;
 }
 
 
 inline void 
 MatNx3::Put(integer i, integer j, const doublereal& d)
-{   
+{
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= 3);
    pdCols[--j][--i] = d;
@@ -378,7 +412,9 @@ MatNx3::Put(integer i, integer j, const doublereal& d)
 inline void 
 MatNx3::Add(integer i, integer j, const doublereal& d)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= 3);
    pdCols[--j][--i] += d;
@@ -387,7 +423,9 @@ MatNx3::Add(integer i, integer j, const doublereal& d)
 inline void 
 MatNx3::Sub(integer i, integer j, const doublereal& d)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= 3);
    pdCols[--j][--i] -= d;
@@ -396,7 +434,9 @@ MatNx3::Sub(integer i, integer j, const doublereal& d)
 inline const doublereal& 
 MatNx3::dGet(integer i, integer j) const
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= 3);
    return pdCols[--j][--i];
@@ -405,7 +445,9 @@ MatNx3::dGet(integer i, integer j) const
 inline doublereal &
 MatNx3::operator () (integer i, integer j)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= 3);
    return pdCols[--j][--i];
@@ -435,8 +477,10 @@ class MatNxN {
    integer iNumRows;
    doublereal* pdVec;
    doublereal** pdMat;
-   
+
+#ifdef DEBUG 
    void IsValid(void) const;   
+#endif /* DEBUG */
    void Create_(integer ns);
    void Destroy_(void);
    
@@ -462,14 +506,18 @@ class MatNxN {
 
 inline integer MatNxN::iGetNumRows(void) const 
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    return iNumRows;
 }
 
 
 inline void MatNxN::Put(integer i, integer j, const doublereal& d)
-{   
+{
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= iNumRows);
    pdMat[--j][--i] = d;
@@ -478,7 +526,9 @@ inline void MatNxN::Put(integer i, integer j, const doublereal& d)
 
 inline void MatNxN::Add(integer i, integer j, const doublereal& d)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= iNumRows);
    pdMat[--j][--i] += d;
@@ -487,7 +537,9 @@ inline void MatNxN::Add(integer i, integer j, const doublereal& d)
 
 inline void MatNxN::Sub(integer i, integer j, const doublereal& d)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= iNumRows);
    pdMat[--j][--i] -= d;
@@ -497,7 +549,9 @@ inline void MatNxN::Sub(integer i, integer j, const doublereal& d)
 inline const doublereal& 
 MatNxN::dGet(integer i, integer j) const
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= iNumRows);
    return pdMat[--j][--i];
@@ -506,7 +560,9 @@ MatNxN::dGet(integer i, integer j) const
 inline doublereal&
 MatNxN::operator () (integer i, integer j)
 {
+#ifdef DEBUG
    IsValid();
+#endif /* DEBUG */
    ASSERT(i > 0 && i <= iNumRows);
    ASSERT(j > 0 && j <= iNumRows);
    return pdMat[--j][--i];

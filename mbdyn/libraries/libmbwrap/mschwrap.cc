@@ -66,6 +66,7 @@ MeschachVectorHandler::~MeschachVectorHandler(void)
    	}
 }
 
+#ifdef DEBUG
 /* Usata per il debug */
 void
 MeschachVectorHandler::IsValid(void) const 
@@ -78,6 +79,7 @@ MeschachVectorHandler::IsValid(void) const
 	ASSERT(pdVecm1 != NULL);
 	ASSERT(pdVecm1 == pv->ve - 1);
 }
+#endif /* DEBUG */
 
 void
 MeschachVectorHandler::Resize(integer iNewSize) 
@@ -153,11 +155,13 @@ MeschachSparseMatrixHandler::Create(unsigned int m,
    	}
 }
 
+#ifdef DEBUG
 void
 MeschachSparseMatrixHandler::IsValid(void) const 
 {
    	ASSERT(mat != SMNULL);
 }
+#endif /* DEBUG */
 
 void
 MeschachSparseMatrixHandler::Init(const doublereal& d)
@@ -211,7 +215,7 @@ MeschachSparseLUSolutionManager::Factor(void)
 {
 #ifdef DEBUG
    	IsValid();
-#endif
+#endif /* DEBUG */
    
    	spLUfactor(pmh->pGetMAT(), pivot, alpha);
    	fStatus = FACTORED;
@@ -230,7 +234,7 @@ MeschachSparseLUSolutionManager::~MeschachSparseLUSolutionManager(void)
 {
 #ifdef DEBUG
    	IsValid();
-#endif
+#endif /* DEBUG */
    
    	if (prhs != NULL) {
       		SAFEDELETE(prhs);
@@ -245,6 +249,7 @@ MeschachSparseLUSolutionManager::~MeschachSparseLUSolutionManager(void)
    	}
 }
 
+#ifdef DEBUG
 void
 MeschachSparseLUSolutionManager::IsValid(void) const 
 {
@@ -257,6 +262,7 @@ MeschachSparseLUSolutionManager::IsValid(void) const
    	ASSERT(pivot->size >= pmh->iGetNumCols());
    	ASSERT(pivot->size >= pmh->iGetNumRows());
 }
+#endif /* DEBUG */
 
 void
 MeschachSparseLUSolutionManager::MatrInit(const doublereal& d) 

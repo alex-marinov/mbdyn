@@ -5,8 +5,12 @@ include $(top_srcdir)/build/top.mk
 lib_LTLIBRARIES = libmbmath.la
 
 libmbmath_la_SOURCES = \
+ccmh.cc \
+ccmh.h \
 fullmh.cc \
 fullmh.h \
+idxmh.cc \
+idxmh.h \
 interp.h \
 interp.cc \
 JacSubMatrix.cc \
@@ -31,11 +35,12 @@ schurmh.h \
 schurmh.cc \
 solman.cc \
 solman.h \
-sparsemh.cc \
-sparsemh.h \
 spdata.h \
 spdata_.f \
+spmapmh.cc \
 spmapmh.h \
+spmh.cc \
+spmh.h \
 submat.cc \
 submat.h
 

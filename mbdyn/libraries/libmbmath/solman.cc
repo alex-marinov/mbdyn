@@ -58,7 +58,7 @@ void VectorHandler::Add(integer iRow, const Vec3& v) {
    IsValid();
    ASSERT(iRow > 0);
    ASSERT(iGetSize() >= iRow+2);
-#endif
+#endif /* DEBUG */
 
    IncCoef(iRow, v.dGet(1));
    IncCoef(++iRow, v.dGet(2));
@@ -71,7 +71,7 @@ void VectorHandler::Sub(integer iRow, const Vec3& v) {
    IsValid();
    ASSERT(iRow > 0);
    ASSERT(iGetSize() >= iRow+2);
-#endif
+#endif /* DEBUG */
 
    DecCoef(iRow, v.dGet(1));
    DecCoef(++iRow, v.dGet(2));
@@ -84,7 +84,7 @@ void VectorHandler::Put(integer iRow, const Vec3& v) {
    IsValid();
    ASSERT(iRow > 0);
    ASSERT(iGetSize() >= iRow+2);
-#endif
+#endif /* DEBUG */
 
    PutCoef(iRow, v.dGet(1));
    PutCoef(++iRow, v.dGet(2));
@@ -97,7 +97,7 @@ VectorHandler& VectorHandler::ScalarAddMul(const VectorHandler& VH, const double
    IsValid();
    VH.IsValid();
    ASSERT(iGetSize() == VH.iGetSize());
-#endif
+#endif /* DEBUG */
 
    for (integer i = iGetSize(); i > 0; i--) {
       IncCoef(i, d*VH.dGetCoef(i));
@@ -115,7 +115,7 @@ VectorHandler& VectorHandler::ScalarAddMul(const VectorHandler& VH, const Vector
    ASSERT(iGetSize() == VH.iGetSize());
    VH1.IsValid();
    ASSERT(iGetSize() == VH1.iGetSize());
-#endif
+#endif /* DEBUG */
 
    for (integer i = iGetSize(); i > 0; i--) {
       PutCoef(i, VH.dGetCoef(i) + d*VH1.dGetCoef(i));
@@ -130,7 +130,7 @@ VectorHandler& VectorHandler::ScalarMul(const VectorHandler& VH, const doublerea
    IsValid();
    VH.IsValid();
    ASSERT(iGetSize() == VH.iGetSize());
-#endif
+#endif /* DEBUG */
 
    for (integer i = iGetSize(); i > 0; i--) {
       PutCoef(i, d*VH.dGetCoef(i));
@@ -145,7 +145,7 @@ VectorHandler& VectorHandler::operator += (const VectorHandler& VH) {
    IsValid();
    VH.IsValid();
    ASSERT(iGetSize() == VH.iGetSize());
-#endif
+#endif /* DEBUG */
 
    for (integer i = iGetSize(); i > 0; i--) {
       IncCoef(i, VH.dGetCoef(i));
@@ -159,7 +159,7 @@ VectorHandler& VectorHandler::operator += (const SubVectorHandler& SubVH)
 {
 #ifdef DEBUG
    SubVH.IsValid();
-#endif
+#endif /* DEBUG */
 
    if (SubVH.iGetSize() == 0) {
       return *this;
@@ -174,7 +174,7 @@ VectorHandler& VectorHandler::operator -= (const VectorHandler& VH) {
    IsValid();
    VH.IsValid();
    ASSERT(iGetSize() == VH.iGetSize());
-#endif
+#endif /* DEBUG */
 
    for (integer i = iGetSize(); i > 0; i--) {
       DecCoef(i, VH.dGetCoef(i));
@@ -189,7 +189,7 @@ VectorHandler& VectorHandler::operator = (const VectorHandler& VH) {
    IsValid();
    VH.IsValid();
    ASSERT(iGetSize() == VH.iGetSize());
-#endif
+#endif /* DEBUG */
 
    for (integer i = iGetSize(); i > 0; i--) {
       PutCoef(i, VH.dGetCoef(i));
@@ -202,7 +202,7 @@ VectorHandler& VectorHandler::operator = (const VectorHandler& VH) {
 doublereal VectorHandler::Dot(void) const {
 #ifdef DEBUG
    IsValid();
-#endif
+#endif /* DEBUG */
 
    doublereal d2 = 0.;
 
@@ -225,7 +225,7 @@ doublereal VectorHandler::InnerProd(const VectorHandler& VH) const {
    IsValid();
    VH.IsValid();
    ASSERT(iGetSize() == VH.iGetSize());
-#endif
+#endif /* DEBUG */
 
    doublereal d2 = 0.;
 
@@ -257,9 +257,7 @@ iMaxSize(iSize), iCurSize(iSize), pdVec(pdTmpVec), pdVecm1(pdVec-1)
 {
 #ifdef DEBUG
    IsValid();
-#else
-   NO_OP;
-#endif
+#endif /* DEBUG */
 }
 
 MyVectorHandler::~MyVectorHandler(void) {
@@ -340,6 +338,7 @@ void MyVectorHandler::Attach(integer iSize, doublereal* pd, integer iMSize)
    pdVecm1 = pdVec-1;
 }
 
+#ifdef DEBUG
 void MyVectorHandler::IsValid(void) const
 {
    ASSERT(iMaxSize > 0);
@@ -356,12 +355,13 @@ void MyVectorHandler::IsValid(void) const
    }
 #endif /* DEBUG_MEMMANAGER */
 }
+#endif /* DEBUG */
 
 void MyVectorHandler::Reset(doublereal dResetVal)
 {
 #ifdef DEBUG
    IsValid();
-#endif
+#endif /* DEBUG */
 
    ASSERT(iCurSize > 0);
    ASSERT(pdVec+iCurSize > pdVec);
@@ -389,7 +389,7 @@ MyVectorHandler::ScalarAddMul(const VectorHandler& VH, const doublereal& d)
    ASSERT(iCurSize > 0);
    ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
-#endif
+#endif /* DEBUG */
 
    if (d != 0.) {
       for (integer i = iGetSize(); i > 0; i--) {
@@ -409,7 +409,7 @@ VectorHandler& MyVectorHandler::ScalarAddMul(const VectorHandler& VH, const Vect
    ASSERT(iGetSize() == VH.iGetSize());
    VH1.IsValid();
    ASSERT(iGetSize() == VH1.iGetSize());
-#endif
+#endif /* DEBUG */
 
    for (integer i = iGetSize(); i > 0; i--) {
 	 pdVecm1[i] = VH.dGetCoef(i) + d*VH1.dGetCoef(i);
@@ -428,7 +428,7 @@ MyVectorHandler::ScalarMul(const VectorHandler& VH, const doublereal& d)
    ASSERT(iCurSize > 0);
    ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
-#endif
+#endif /* DEBUG */
 
    if (d == 0.) {
       Reset(0.);
@@ -447,7 +447,7 @@ VectorHandler& MyVectorHandler::operator += (const VectorHandler& VH)
 #ifdef DEBUG
    IsValid();
    VH.IsValid();
-#endif
+#endif /* DEBUG */
 
    ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
@@ -465,7 +465,7 @@ MyVectorHandler& MyVectorHandler::operator += (const MyVectorHandler& VH)
 #ifdef DEBUG
    IsValid();
    VH.IsValid();
-#endif
+#endif /* DEBUG */
 
    ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
@@ -484,7 +484,7 @@ VectorHandler& MyVectorHandler::operator -= (const VectorHandler& VH)
 #ifdef DEBUG
    IsValid();
    VH.IsValid();
-#endif
+#endif /* DEBUG */
 
    ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
@@ -502,7 +502,7 @@ MyVectorHandler& MyVectorHandler::operator -= (const MyVectorHandler& VH)
 #ifdef DEBUG
    IsValid();
    VH.IsValid();
-#endif
+#endif /* DEBUG */
 
    ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
@@ -521,7 +521,7 @@ VectorHandler& MyVectorHandler::operator = (const VectorHandler& VH)
 #ifdef DEBUG
    IsValid();
    VH.IsValid();
-#endif
+#endif /* DEBUG */
 
    ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
@@ -539,7 +539,7 @@ MyVectorHandler& MyVectorHandler::operator = (const MyVectorHandler& VH)
 #ifdef DEBUG
    IsValid();
    VH.IsValid();
-#endif
+#endif /* DEBUG */
 
    ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
@@ -557,7 +557,7 @@ void MyVectorHandler::Add(integer iRow, const Vec3& v)
 #ifdef DEBUG
    IsValid();
    ASSERT((iRow > 0) && (iRow <= iCurSize-2));
-#endif
+#endif /* DEBUG */
 
    pdVecm1[iRow] += v.dGet(1);
    pdVecm1[++iRow] += v.dGet(2);
@@ -569,7 +569,7 @@ void MyVectorHandler::Sub(integer iRow, const Vec3& v)
 #ifdef DEBUG
    IsValid();
    ASSERT((iRow > 0) && (iRow <= iCurSize-2));
-#endif
+#endif /* DEBUG */
 
    pdVecm1[iRow] -= v.dGet(1);
    pdVecm1[++iRow] -= v.dGet(2);
@@ -581,7 +581,7 @@ void MyVectorHandler::Put(integer iRow, const Vec3& v)
 #ifdef DEBUG
    IsValid();
    ASSERT((iRow > 0) && (iRow <= iCurSize-2));
-#endif
+#endif /* DEBUG */
 
    pdVecm1[iRow] = v.dGet(1);
    pdVecm1[++iRow] = v.dGet(2);
@@ -594,7 +594,7 @@ MyVectorHandler::Dot(void) const
 {
 #ifdef DEBUG
 	IsValid();
-#endif
+#endif /* DEBUG */
 
 	doublereal d2 = 0.;
 

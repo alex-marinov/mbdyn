@@ -106,6 +106,7 @@ Y12LUSolver::~Y12LUSolver(void)
 	}
 }
 
+#ifdef DEBUG
 void 
 Y12LUSolver::IsValid(void) const
 {
@@ -125,6 +126,7 @@ Y12LUSolver::IsValid(void) const
 	ASSERT(defaultMemoryManager.fIsBlock(pdPIVOT, 1*iN*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
 }
+#endif /* DEBUG */
 
 bool
 Y12LUSolver::SetCurSize(integer i)
@@ -145,8 +147,8 @@ Y12LUSolver::iGetCurSize(void) const
 }
 
 /* Fattorizza la matrice */
-flag
-Y12LUSolver::fLUFactor(void)
+bool
+Y12LUSolver::bLUFactor(void)
 {
 #ifdef DEBUG 
 	IsValid();
@@ -180,7 +182,7 @@ Y12LUSolver::fLUFactor(void)
 			"error during pre-factorization, code " 
 			<< iIFAIL << ":" << std::endl;
 		PutError(std::cerr, iIFAIL);
-		THROW(Y12LUSolver::ErrFactorisation(iIFAIL));
+		THROW(Y12LUSolver::ErrFactorization(iIFAIL));
 	}
 
 	/* actual factorization */
@@ -196,7 +198,7 @@ Y12LUSolver::fLUFactor(void)
 			"error during factorization, code " 
 			<< iIFAIL << ":" << std::endl;
 		PutError(std::cerr, iIFAIL);
-		THROW(Y12LUSolver::ErrFactorisation(iIFAIL));
+		THROW(Y12LUSolver::ErrFactorization(iIFAIL));
 	}
 
 	if (dAFLAG[7] < 1.e-12) {
@@ -228,7 +230,7 @@ Y12LUSolver::Solve(void)
 			"error during back substitution, code "
 			<< iIFAIL << ":" << std::endl;
 		PutError(std::cerr, iIFAIL);
-		THROW(Y12LUSolver::ErrFactorisation(iIFAIL));
+		THROW(Y12LUSolver::ErrFactorization(iIFAIL));
 	}
 	
 	if (iFirstSol == 1) {
@@ -503,14 +505,10 @@ Y12SparseLUSolutionManager::Y12SparseLUSolutionManager(integer iSize,
 						       const doublereal& dPivotFactor) :
 iMatMaxSize(iSize),
 iMatSize(iSize), 
-// iRow(iWorkSpaceSize,0),
-// iCol(iWorkSpaceSize,0), 
-// dMat(iWorkSpaceSize,0.),
 MH(iSize),
 pVH(NULL),
 pLU(NULL),
-fHasBeenReset(1),
-optimizeWorkSize(false)
+bHasBeenReset(true)
 {
    	ASSERT(iSize > 0);
    	ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
@@ -523,12 +521,6 @@ optimizeWorkSize(false)
 		 * for multiple backsubs
 		 */
       		iWorkSpaceSize = 3*iSize*iSize;
-
-		/*
-		 * work size will be optimized
-		 */
-		optimizeWorkSize = true;
-
    	}
 	
 	integer iPivot;
@@ -545,9 +537,11 @@ optimizeWorkSize(false)
    	SAFENEWWITHCONSTRUCTOR(pVH,
 			       MyVectorHandler,
 			       MyVectorHandler(iMatSize, &(dVec[0])));
+
 	iRow.reserve(iWorkSpaceSize);
 	iCol.reserve(iWorkSpaceSize);
 	dMat.reserve(iWorkSpaceSize);
+
    	SAFENEWWITHCONSTRUCTOR(pLU, 
 			       Y12LUSolver,
 			       Y12LUSolver(iMatSize, iWorkSpaceSize,
@@ -571,6 +565,7 @@ Y12SparseLUSolutionManager::~Y12SparseLUSolutionManager(void)
    	if (pLU != NULL) {	
       		SAFEDELETE(pLU);
    	}
+
    	if (pVH != NULL) {      
       		SAFEDELETE(pVH);
    	}
@@ -578,6 +573,7 @@ Y12SparseLUSolutionManager::~Y12SparseLUSolutionManager(void)
    	/* Dealloca arrays */
 }
 
+#ifdef DEBUG
 /* Test di validita' del manager */
 void 
 Y12SparseLUSolutionManager::IsValid(void) const
@@ -593,6 +589,7 @@ Y12SparseLUSolutionManager::IsValid(void) const
    	ASSERT((pVH->IsValid(), 1));
    	ASSERT((pLU->IsValid(), 1));
 }
+#endif /* DEBUG */
 
 /* Prepara i vettori e la matrice per il solutore */
 void
@@ -602,43 +599,10 @@ Y12SparseLUSolutionManager::PacVec(void)
    	IsValid();
 #endif /* DEBUG */
    
-   	ASSERT(fHasBeenReset == 1);
+   	ASSERT(bHasBeenReset);
 	
 	/* FIXME: move this to the matrix handler! */
-   	pLU->iNonZeroes = MH.MakeIndexForm(dMat,iRow,iCol,1);
-
-#if 0
-	/*
-	 * This is not much important because we actually have
-	 * all the space we need; the real optimization is in reducing
-	 * the space for the sparse matrix.
-	 */
-
-	if (optimizeWorkSize) {
-		integer cs = pLU->iGetCurSize();
-		integer nz = pLU->iNonZeroes;
-		integer ns = -1;
-
-		/*
-		 * y12m (to save the factored LU matrices) requires 
-		 * 3 * nonzeros <= NN, NN1 <= 5 * nonzeros
-		 */
-		if (cs < 3*nz) {
-			/* compromise (tune 3 => 5 ?) */
-			ns = 5*nz;
-
-		} else {
-			/* asyntotically go to 4*nz */
-			ns = (5*nz+cs)/2;
-		}
-
-		if (ns != -1 && ns != cs) {
-			// pMH->SetCurSize(ns);	/* same as solver */
-			pLU->SetCurSize(ns);
-		}
-		pMH->SetCurSize(2*nz);	/* optimal fill? */
-	}
-#endif
+   	pLU->iNonZeroes = MH.MakeIndexForm(dMat, iRow, iCol, 1);
 }
 
 /* Inizializza il gestore delle matrici */
@@ -650,7 +614,7 @@ Y12SparseLUSolutionManager::MatrInit(const doublereal& dResetVal)
 #endif /* DEBUG */
 
    	MH.Init(dResetVal);
-   	fHasBeenReset = flag(1);
+   	bHasBeenReset = true;
 }
 
 /* Risolve il problema */
@@ -661,22 +625,13 @@ Y12SparseLUSolutionManager::Solve(void)
    	IsValid();
 #endif /* DEBUG */
 
-   	if (fHasBeenReset == 1) {
-// 		std::fill(iRow.begin(),iRow.end(),0);
-// 		std::fill(iCol.begin(),iCol.end(),0);
-// 		std::fill(dMat.begin(),dMat.end(),0.);
-// 		iRow.resize(iRow.capacity(),0);
-// 		iCol.resize(iCol.capacity(),0);
-// 		dMat.resize(dMat.capacity(),0.);
-// 		std::fill(iRow.begin(),iRow.end(),0);
-// 		std::fill(iCol.begin(),iCol.end(),0);
-// 		std::fill(dMat.begin(),dMat.end(),0.);
+   	if (bHasBeenReset) {
       		PacVec();
-      		if (pLU->fLUFactor() < 0) {	 
+      		if (!pLU->bLUFactor()) {	 
 	 		THROW(Y12SparseLUSolutionManager::ErrGeneric());
       		}
 	
-      		fHasBeenReset = 0;
+      		bHasBeenReset = false;
    	}
 
    	pLU->Solve();

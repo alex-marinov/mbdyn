@@ -76,8 +76,10 @@ public:
 public:
 	virtual ~MatrixHandler(void);
 
+#ifdef DEBUG
 	/* Usata per il debug */
 	virtual void IsValid(void) const = 0;
+#endif /* DEBUG */
 
 	/* Resetta la matrice ecc. */
 	virtual void Init(const doublereal& dResetVal = 0.) = 0;
@@ -190,8 +192,10 @@ class VectorHandler {
 public:
 	virtual ~VectorHandler(void);
 
+#ifdef DEBUG
 	/* Usata per il debug */
 	virtual void IsValid(void) const = 0;
+#endif /* DEBUG */
 
 	virtual doublereal* pdGetVec(void) const = 0;
 
@@ -208,6 +212,10 @@ public:
 	virtual void DecCoef(integer iRow, const doublereal& dCoef) = 0;
 
 	virtual const doublereal& dGetCoef(integer iRow) const = 0;
+
+	virtual const doublereal& operator () (integer iRow) const = 0;
+
+	virtual doublereal& operator () (integer iRow) = 0;
 
 	/* Somma un Vec3 nella posizione desiderata */
 	virtual void Add(integer iRow, const Vec3& v);
@@ -285,8 +293,10 @@ public:
 
 	void Attach(integer iSize, doublereal* pd, integer iMSize = 0);
 
+#ifdef DEBUG
 	/* Usata per il debug */
 	virtual void IsValid(void) const;
+#endif /* DEBUG */
 
 	virtual inline doublereal* pdGetVec(void) const;
 
@@ -301,6 +311,10 @@ public:
 	virtual inline void DecCoef(integer iRow, const doublereal& dCoef);
 
 	virtual inline const doublereal& dGetCoef(integer iRow) const;
+
+	virtual inline const doublereal& operator () (integer iRow) const;
+
+	virtual inline doublereal& operator () (integer iRow);
 
 	/* Somma un Vec3 nella posizione desiderata */
 	virtual void Add(integer iRow, const Vec3& v);
@@ -347,15 +361,6 @@ public:
 
 	/* Norma del vettore */
 	doublereal Norm(void) const;
-
-	inline doublereal& operator () (integer iRow) const {
-#ifdef DEBUG
-		IsValid();
-		ASSERT((iRow > 0) && (iRow <= iCurSize));
-#endif
-
-		return pdVecm1[iRow];
-	};
 };
 
 inline doublereal*
@@ -363,7 +368,7 @@ MyVectorHandler::pdGetVec(void) const
 {
 #ifdef DEBUG
 	IsValid();
-#endif
+#endif /* DEBUG */
 
 	return pdVec;
 }
@@ -431,7 +436,33 @@ MyVectorHandler::dGetCoef(integer iRow) const
 #ifdef DEBUG
 	IsValid();
 	ASSERT((iRow > 0) && (iRow <= iCurSize));
-#endif
+#endif /* DEBUG */
+
+	return pdVecm1[iRow];
+}
+
+inline const doublereal&
+MyVectorHandler::operator () (integer iRow) const
+{
+	/* Vedi nota di PutCoef() */
+
+#ifdef DEBUG
+	IsValid();
+	ASSERT((iRow > 0) && (iRow <= iCurSize));
+#endif /* DEBUG */
+
+	return pdVecm1[iRow];
+}
+
+inline doublereal&
+MyVectorHandler::operator () (integer iRow)
+{
+	/* Vedi nota di PutCoef() */
+
+#ifdef DEBUG
+	IsValid();
+	ASSERT((iRow > 0) && (iRow <= iCurSize));
+#endif /* DEBUG */
 
 	return pdVecm1[iRow];
 }
@@ -468,7 +499,9 @@ public:
 	LinkToSolution(const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
+#ifdef DEBUG
 	virtual void IsValid(void) const = 0;
+#endif /* DEBUG */
 
 	/* Inizializzatore generico */
 	virtual void MatrInit(const doublereal& d = 0.) = 0;

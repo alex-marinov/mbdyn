@@ -140,7 +140,9 @@ public:
 	
 	virtual ~SchurSolutionManager(void);
 
+#ifdef DEBUG
 	void IsValid(void) const;
+#endif /* DEBUG */
 
 	/* Inizializza il gestore delle  matrici */
 	void MatrInit(const doublereal& dResetVal);

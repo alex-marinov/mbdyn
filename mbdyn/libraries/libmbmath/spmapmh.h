@@ -65,68 +65,62 @@
 
 #include <map>
 #include <vector>
-#include <myassert.h>
-#include <solman.h>
+#include "myassert.h"
+#include "solman.h"
+#include "spmh.h"
 
 /* #define MBDYN_X_KEEP_SPARSITY */
 
 /* Sparse Matrix in columns form */
-class SpMapMatrixHandler : public MatrixHandler {
+class SpMapMatrixHandler : public SparseMatrixHandler {
 private:
-	typedef std::map<int,doublereal> row_cont_type;
-	int NRows;
-	int NCols;
-	int NZ;
-	doublereal zero;
-	std::vector<row_cont_type> col_indices;
-	
+	struct payload { doublereal d; int p; };
+	typedef std::map<int, payload> row_cont_type;
+	mutable std::vector<row_cont_type> col_indices;
+
+#ifdef DEBUG
 	void IsValid(void) const {
 		NO_OP;
 	};
-public:
-	SpMapMatrixHandler(const int &n = 0,const int &nn = 0) : NZ(0), zero(0.) {
-		int nnn;
-		if (nn == 0) {
-			nnn = n;
-		} else {
-			nnn = nn;
-		}
-		NRows = n; 
-		NCols = nnn;
-		col_indices.resize(NCols);
-	};
-
-	virtual ~SpMapMatrixHandler() {};
-
-	void Init(const doublereal& c = 0.) {
-		Reset(c);
-	};
-	integer iGetNumRows(void) const {
-		return NRows;
-	}
-	integer iGetNumCols(void) const {
-		return NCols;
-	}
+#endif /* DEBUG */
 
 public:
+	SpMapMatrixHandler(const int &n = 0,const int &nn = 0);
+
+	virtual ~SpMapMatrixHandler();
+
 	doublereal & operator()(integer i_row, integer i_col) {
-		ASSERTMSGBREAK(i_row > 0 && i_row <= NRows, "Error in SpMapMatrixHandler::operator(), row index out of range");
-		ASSERTMSGBREAK(i_col > 0 && i_col <= NCols, "Error in SpMapMatrixHandler::operator(), col index out of range");
+		ASSERTMSGBREAK(i_row > 0 && i_row <= NRows,
+				"Error in SpMapMatrixHandler::operator(), "
+				"row index out of range");
+		ASSERTMSGBREAK(i_col > 0 && i_col <= NCols, 
+				"Error in SpMapMatrixHandler::operator(), "
+				"col index out of range");
 		i_row--;
 		i_col--;
 		row_cont_type::iterator i;
-		row_cont_type & row = col_indices[i_col];
+		row_cont_type& row = col_indices[i_col];
 		i = row.find(i_row);
 		if (i == row.end()) {
 			NZ++;
-			return row[i_row] = 0.;
+
+			row[i_row].d = 0.;
+			row[i_row].p = -1;
+
+			return row[i_row].d;
+
 		} else {
-			return i->second;
+			return i->second.d;
 		}
 	};
+
 	void IncCoef(integer ix, integer iy, const doublereal& inc) {
-		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::IncCoef(), row index out of range");
-		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::IncCoef(), col index out of range");
+		ASSERTMSGBREAK(ix > 0 && ix <= NRows,
+				"Error in SpMapMatrixHandler::IncCoef(), "
+				"row index out of range");
+		ASSERTMSGBREAK(iy > 0 && iy <= NCols,
+				"Error in SpMapMatrixHandler::IncCoef(), "
+				"col index out of range");
 #ifdef MBDYN_X_KEEP_SPARSITY
 		/* try to keep sparsity */
 		if (inc != 0.) {
@@ -135,11 +129,15 @@ public:
 #ifdef MBDYN_X_KEEP_SPARSITY
 		}
 #endif /* MBDYN_X_KEEP_SPARSITY */
-		return;
 	};
+
 	void DecCoef(integer ix, integer iy, const doublereal& inc) {
-		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::DecCoef(), row index out of range");
-		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::DecCoef(), col index out of range");
+		ASSERTMSGBREAK(ix > 0 && ix <= NRows,
+				"Error in SpMapMatrixHandler::DecCoef(), "
+				"row index out of range");
+		ASSERTMSGBREAK(iy > 0 && iy <= NCols,
+				"Error in SpMapMatrixHandler::DecCoef(), "
+				"col index out of range");
 #ifdef MBDYN_X_KEEP_SPARSITY
 		/* try to keep sparsity */
 		if (inc != 0.) {
@@ -148,11 +146,15 @@ public:
 #ifdef MBDYN_X_KEEP_SPARSITY
 		}
 #endif /* MBDYN_X_KEEP_SPARSITY */
-		return;
 	};
+
 	void PutCoef(integer ix, integer iy, const doublereal& val) {
-		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::PutCoef(), row index out of range");
-		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::PutCoef(), col index out of range");
+		ASSERTMSGBREAK(ix - 1 < NRows,
+				"Error in SpMapMatrixHandler::PutCoef(), "
+				"row index out of range");
+		ASSERTMSGBREAK(iy - 1 < NCols,
+				"Error in SpMapMatrixHandler::PutCoef(), "
+				"col index out of range");
 #ifdef MBDYN_X_KEEP_SPARSITY
 		/* try to keep sparsity */
 		if (val != 0.) {
@@ -161,318 +163,102 @@ public:
 #ifdef MBDYN_X_KEEP_SPARSITY
 		} else {
 			row_cont_type::iterator i;
-			row_cont_type & row = col_indices[iy-1];
-			i = row.find(ix-1);
+			row_cont_type& row = col_indices[iy-1];
+			i = row.find(ix - 1);
 			if (i != row.end()) {
-				i->second = val;
+				i->second.d = val;
 			}
 		}
 #endif /* MBDYN_X_KEEP_SPARSITY */
-		return;
 	};
-	const doublereal& dGetCoef(integer ix, integer iy) const {
-		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::dGetCoef(), row index out of range");
-		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::dGetCoef(), col index out of range");
-		row_cont_type::iterator i;
-		row_cont_type & row = ((std::vector<row_cont_type>&)col_indices)[iy-1];
-		i = row.find(ix-1);
-		if (i == row.end()) {
-			return zero;
-		} else {
-			return i->second;
-		}
-	};
-	const doublereal& operator () (integer ix, integer iy) const {
-		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::operator(), row index out of range");
-		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::operator(), col index out of range");
-		row_cont_type::iterator i;
-		row_cont_type & row = ((std::vector<row_cont_type>&)col_indices)[iy-1];
-		i = row.find(ix-1);
-		if (i == row.end()) {
-			return zero;
-		} else {
-			return i->second;
-		}
-	};
-	void MakeCompressedColumnForm(
-		doublereal *const Ax,
-		int *const Ai,
-		int *const Ap) const {
-		int x_ptr = 0;
-		
-		row_cont_type::const_iterator ri, re;
-		
-		for (int col=0; col<NCols; col++) {
-			Ap[col] = x_ptr;
-			re = col_indices[col].end();
-			for (ri = col_indices[col].begin();ri != re; ri++) {
-				Ax[x_ptr] = ri->second;
-				Ai[x_ptr] = ri->first;
-				x_ptr++;
-			}
-		}
-		ASSERTMSGBREAK(x_ptr == NZ, "Error in SpMapMatrixHandler::MakeCompressedColumnForm");
-		Ap[NCols] = x_ptr;
-	};
-        void MakeCompressedColumnForm(
-                std::vector<doublereal>& Ax,
-                std::vector<int>& Ai,
-                std::vector<int>& Ap) const {
-                Ax.resize(Nz());
-                Ai.resize(Nz());
-                Ap.resize(iGetNumCols()+1);
-                MakeCompressedColumnForm(&(Ax[0]),&(Ai[0]),&(Ap[0]));
-        };
-	integer MakeIndexForm(
-		doublereal *const Ax,
-		integer *const Arow,
-		integer *const Acol,
-		integer offset=0) const {
-		
-		integer x_ptr = 0;
 
-		row_cont_type::const_iterator ri, re;		
-		
-		for (int col=0; col<NCols; col++) {
-			re = col_indices[col].end();
-			for (ri = col_indices[col].begin();ri != re; ri++) {
-				Ax[x_ptr] = ri->second;
-				Arow[x_ptr] = ri->first+offset;
-				Acol[x_ptr] = col+offset;
-				x_ptr++;
-			}
-		}
-		ASSERTMSGBREAK(x_ptr == NZ, "Error in SpMapMatrixHandler::MakeIndexForm");
-		return Nz();
-	};
-        integer MakeIndexForm(
-                std::vector<doublereal>& Ax,
-                std::vector<integer>& Arow,
-                std::vector<integer>& Acol,
-		integer offset=0) const {
-                Ax.resize(Nz());
-                Arow.resize(Nz());
-                Acol.resize(Nz());
-                return MakeIndexForm(&(Ax[0]),&(Arow[0]),&(Acol[0]),offset);
-        };
-	void Reset(doublereal r = 0.) {
-		row_cont_type::const_iterator re;
-		row_cont_type::iterator ri;
-		for (int col=0; col<NCols; col++) {
-			re = col_indices[col].end();
-			for (ri = col_indices[col].begin();ri != re; ri++) {
-				ri->second = r;
-			}
-		}
-	};
-/*
- * 	void Reset() {
- * 		for (int i=0; i<N; i++) {
- * 			col_indices[i].clear();
- * 		};
- * 		NZ = 0;
- * 	};
- */
-	void Resize(const int &n, const int &nn = 0) {
-		int nnn;
-		if (nn == 0) {
-			nnn = n;
+	const doublereal& dGetCoef(integer ix, integer iy) const {
+		ASSERTMSGBREAK(ix > 0 && ix <= NRows,
+				"Error in SpMapMatrixHandler::dGetCoef(), "
+				"row index out of range");
+		ASSERTMSGBREAK(iy > 0 && iy <= NCols,
+				"Error in SpMapMatrixHandler::dGetCoef(), "
+				"col index out of range");
+		row_cont_type::iterator i;
+		row_cont_type& row = col_indices[iy - 1];
+		i = row.find(ix - 1);
+		if (i == row.end()) {
+			return zero;
+
 		} else {
-			nnn = nn;
+			return i->second.d;
 		}
-		for (int col=0; col<NCols; col++) {
-			col_indices[col].clear();
+	};
+
+	const doublereal& operator () (integer ix, integer iy) const {
+		ASSERTMSGBREAK(ix > 0 && ix <= NRows,
+				"Error in SpMapMatrixHandler::operator(), "
+				"row index out of range");
+		ASSERTMSGBREAK(iy > 0 && iy <= NCols,
+				"Error in SpMapMatrixHandler::operator(), "
+				"col index out of range");
+		row_cont_type::iterator i;
+		row_cont_type& row = col_indices[iy - 1];
+		i = row.find(ix - 1);
+		if (i == row.end()) {
+			return zero;
+
+		} else {
+			return i->second.d;
 		}
-		col_indices.resize(nnn);
-		NRows = n;
-		NCols = nnn;
-		NZ = 0;
 	};
-	const int Nz() const {
-		return NZ;
-	};
-	
+
+	int MakeCompressedColumnForm(doublereal *const Ax,
+			int *const Ai, int *const Ap,
+			integer offset = 0) const;
+
+        int MakeCompressedColumnForm(std::vector<doublereal>& Ax,
+                	std::vector<int>& Ai, std::vector<int>& Ap,
+			integer offset = 0) const;
+
+	int MakeIndexForm(doublereal *const Ax,
+			integer *const Arow, integer *const Acol,
+			integer offset = 0) const;
+
+        int MakeIndexForm(std::vector<doublereal>& Ax,
+			std::vector<integer>& Arow, std::vector<integer>& Acol,
+			integer offset = 0) const;
+
+	void Reset(const doublereal &r = 0.);
+
+	void Resize(const int &n, const int &nn = 0);
+
 	/* Estrae una colonna da una matrice */
-	VectorHandler& GetCol(integer icol, VectorHandler& out) const {
-	        if (icol > iGetNumCols()) {
-			THROW(ErrGeneric());
-		}
-		row_cont_type::const_iterator ri, re;
-		re = col_indices[icol].end();
-		for (ri = col_indices[icol].begin();ri != re; ri++) {		
-			out.PutCoef(ri->first+1, ri->second);
-		}
-		return out;
-	};		 	
+	VectorHandler& GetCol(integer icol, VectorHandler& out) const;
 	
         /* Prodotto Matrice per Matrice */
-	SpMapMatrixHandler& MatMatMul(SpMapMatrixHandler& out, const SpMapMatrixHandler& in) const {
-		if ((in.iGetNumCols() != iGetNumRows())
-				|| (in.iGetNumRows() != out.iGetNumRows())
-				|| (out.iGetNumCols() != iGetNumCols())) {
-			std::cerr << "Assertion fault in SpMapMatrixHandler::MatMatMul" << std::endl;
-			THROW(ErrGeneric());
-		}
-		out.Reset(0.);
-		for (int col=0; col<NCols; col++) {
-			row_cont_type::const_iterator ri, re;
-			re = col_indices[col].end();
-			for (ri = col_indices[col].begin(); ri!=re; ri++) {
-				int iend = in.iGetNumCols();
-				for (int col2=0; col2<iend;  col2++) {
-				out.IncCoef(ri->first,col2,ri->second*in.dGetCoef(col,col2));
-				}
-			}
-		}
-		return out;	
-	};
+	SpMapMatrixHandler& MatMatMul(SpMapMatrixHandler& out,
+			const SpMapMatrixHandler& in) const;
 	
         /* Moltiplica per uno scalare e somma a una matrice */
-	MatrixHandler& MulAndSumWithShift(MatrixHandler& out, doublereal s = 1.,
-		integer drow = 0, integer dcol = 0) const {
-		if ((out.iGetNumCols() < iGetNumCols()+dcol)
-			|| (out.iGetNumRows() < iGetNumRows()+drow)) {
-			std::cerr << "Assertion fault in SpMapMatrixHandler::MulAndSumWithShift" << std::endl;
-			THROW(ErrGeneric());
-		}
-		drow = drow + 1;
-		for (int col=0; col<NCols; col++) {
-			row_cont_type::const_iterator ri, re;
-			re = col_indices[col].end();
-			integer newcol = col + dcol + 1;
-			for (ri = col_indices[col].begin(); ri!=re; ri++) {
-				out.IncCoef(ri->first+drow,newcol,ri->second*s);
-			}
-		}
-		return out;	
-	};
+	MatrixHandler& MulAndSumWithShift(MatrixHandler& out,
+			doublereal s = 1.,
+			integer drow = 0, integer dcol = 0) const;
 	
-	MatrixHandler& FakeThirdOrderMulAndSumWithShift(
-		MatrixHandler& out, 
-		std::vector<bool> b,
-		doublereal s = 1.,
-		integer drow = 0, 
-		integer dcol = 0) const {
-		if ((out.iGetNumCols() < iGetNumCols()+dcol)
-			|| (out.iGetNumRows() < iGetNumRows()+drow)) {
-			std::cerr << "Assertion fault in SpMapMatrixHandler::MulAndSumWithShift" << std::endl;
-			THROW(ErrGeneric());
-		}
-		drow = drow + 1;
-		for (int col=0; col<NCols; col++) {
-			row_cont_type::const_iterator ri, re;
-			re = col_indices[col].end();
-			integer newcol = col + dcol + 1;
-			for (ri = col_indices[col].begin(); ri!=re; ri++) {
-				if (b[ri->first]) {
-					out.IncCoef(ri->first+drow,newcol,ri->second*s);
-				}
-			}
-		}
-		return out;	
-	};
+	MatrixHandler& FakeThirdOrderMulAndSumWithShift(MatrixHandler& out, 
+			std::vector<bool> b, doublereal s = 1.,
+			integer drow = 0, integer dcol = 0) const;
 	
-	VectorHandler& MatTVecMul(VectorHandler& out, const VectorHandler& in) const {
-		if (out.iGetSize() != iGetNumRows()
-				|| in.iGetSize() != iGetNumCols()) {
-			THROW(ErrGeneric());
-		}
-
-		row_cont_type::const_iterator ri, re;
-		for (int col=0; col<NCols; col++) {
-			doublereal d = 0.;
-			re = col_indices[col].end();
-			for (ri = col_indices[col].begin();ri != re; ri++) {
-				d += ri->second*in.dGetCoef(ri->first+1);
-			}
-			out.PutCoef(col+1, d);
-		}
-		return out;
-	};
+	VectorHandler& MatTVecMul(VectorHandler& out,
+			const VectorHandler& in) const;
 	
-	VectorHandler& MatVecMul(VectorHandler& out, const VectorHandler& in) const {
-		if (in.iGetSize() != iGetNumCols()
-				|| out.iGetSize() != iGetNumRows()) {
-			THROW(ErrGeneric());
-  		}
+	VectorHandler& MatVecMul(VectorHandler& out,
+			const VectorHandler& in) const;
 
-		row_cont_type::const_iterator ri, re;
-		out.Reset(0.);
-		for (int col=0; col<NCols; col++) {
-			re = col_indices[col].end();
-			for (ri = col_indices[col].begin();ri != re; ri++) {
-				doublereal d = ri->second*in.dGetCoef(col+1);
-				out.IncCoef(ri->first+1, d);
-			}
-		}
-		return out;
-	};
-
-	VectorHandler& MatTVecIncMul(VectorHandler& out, const VectorHandler& in) const {
-		if (out.iGetSize() != iGetNumRows()
-				|| in.iGetSize() != iGetNumCols()) {
-			THROW(ErrGeneric());
-		}
-
-		row_cont_type::const_iterator ri, re;
-		for (int col=0; col<NCols; col++) {
-			doublereal d = 0.;
-			re = col_indices[col].end();
-			for (ri = col_indices[col].begin();ri != re; ri++) {
-				d += ri->second*in.dGetCoef(ri->first+1);
-			}
-			out.IncCoef(col+1, d);
-		}
-		return out;
-	};
+	VectorHandler& MatTVecIncMul(VectorHandler& out,
+			const VectorHandler& in) const;
 	
-	VectorHandler& MatVecIncMul(VectorHandler& out, const VectorHandler& in) const {
-		if (in.iGetSize() != iGetNumCols()
-				|| out.iGetSize() != iGetNumRows()) {
-			THROW(ErrGeneric());
-		}
+	VectorHandler& MatVecIncMul(VectorHandler& out,
+			const VectorHandler& in) const;
 
-		row_cont_type::const_iterator ri, re;
-		for (int col=0; col<NCols; col++) {
-			re = col_indices[col].end();
-			for (ri = col_indices[col].begin();ri != re; ri++) {
-				doublereal d = ri->second*in.dGetCoef(col+1);
-				out.IncCoef(ri->first+1, d);
-			}
-		}
-		return out;
-	};
-
-	VectorHandler& MatVecDecMul(VectorHandler& out, const VectorHandler& in) const {
-		if (in.iGetSize() != iGetNumCols()
-				|| out.iGetSize() != iGetNumRows()) {
-			THROW(ErrGeneric());
-		}
-
-		row_cont_type::const_iterator ri, re;
-		for (int col=0; col<NCols; col++) {
-			re = col_indices[col].end();
-			for (ri = col_indices[col].begin();ri != re; ri++) {
-				doublereal d = ri->second*in.dGetCoef(col+1);
-				out.DecCoef(ri->first+1, d);
-			}
-		}
-		return out;
-	};
+	VectorHandler& MatVecDecMul(VectorHandler& out,
+			const VectorHandler& in) const;
 };
 
-/*
- * #include "SubMatrix.hh"
- * void SubMatrix<SpMapMatrixHandler>::addtovalue(
- * 	SpMapMatrixHandler*const m,
- * 	const doublereal &x,
- * 	int ix,
- * 	int iy) const {
- * 	if (x != 0) {
- * 		(*m)(ix,iy) += x;
- * 	}
- * };
- */
-
-
 #endif /* SpMapMatrixHandler_hh */
+

@@ -31,8 +31,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef CColMatrixHandler_hh
-#define CColMatrixHandler_hh
+#ifndef IDXMH_H
+#define IDXMH_H
 
 #include <vector>
 
@@ -41,7 +41,7 @@
 #include "spmh.h"
 
 /* Sparse Matrix in columns form */
-class CColMatrixHandler : public CompactSparseMatrixHandler {
+class IndexMatrixHandler : public CompactSparseMatrixHandler {
 private:
 #ifdef DEBUG
 	void IsValid(void) const {
@@ -50,11 +50,12 @@ private:
 #endif /* DEBUG */
 
 public:
-	CColMatrixHandler(std::vector<doublereal>&x,
-		const std::vector<int>& i,
-		const std::vector<int>& p);
+	IndexMatrixHandler(const int &n,
+			std::vector<doublereal>&x,
+			const std::vector<int>& i,
+			const std::vector<int>& p);
 
-	virtual ~CColMatrixHandler();
+	virtual ~IndexMatrixHandler();
 
 	/* used by MultiThreadDataManager to duplicate the storage array
 	 * while preserving the CC indices */
@@ -63,35 +64,11 @@ public:
 public:
 	doublereal & operator()(integer i_row, integer i_col) {
 		ASSERTMSGBREAK(i_row > 0 && i_row <= NRows,
-				"Error in CColMatrixHandler::operator(), "
+				"Error in IndexMatrixHandler::operator(), "
 				"row index out of range");
 		ASSERTMSGBREAK(i_col > 0 && i_col <= NCols,
-				"Error in CColMatrixHandler::operator(), "
+				"Error in IndexMatrixHandler::operator(), "
 				"col index out of range");
-		i_row--;
-		integer row_begin = Ap[i_col - 1];
-		integer row_end = Ap[i_col] - 1;
-		integer idx;
-		integer row;
-
-		if (row_begin == Ap[i_col]
-				|| Ai[row_begin] > i_row
-				|| Ai[row_end] < i_row) {
-			/* matrix must be rebuilt */
-			THROW(ErrRebuildMatrix());
-		}
-
-		while (row_end >= row_begin) {
-			idx = (row_begin + row_end)/2;
-			row = Ai[idx];
-			if (i_row < row) {
-				row_end = idx - 1;
-			} else if (i_row > row) {
-				row_begin = idx + 1;
-			} else {
-				return Ax[idx];
-			}
-		}
 
 		/* matrix must be rebuilt */
 		THROW(ErrRebuildMatrix());
@@ -99,34 +76,11 @@ public:
 
 	const doublereal& operator () (integer i_row, integer i_col) const {
 		ASSERTMSGBREAK(ix > 0 && ix <= NRows,
-				"Error in CColMatrixHandler::operator(), "
+				"Error in IndexMatrixHandler::operator(), "
 				"row index out of range");
 		ASSERTMSGBREAK(iy > 0 && iy <= NCols,
-				"Error in CColMatrixHandler::operator(), "
+				"Error in IndexMatrixHandler::operator(), "
 				"col index out of range");
-		i_row--;
-		integer row_begin = Ap[i_col - 1];
-		integer row_end = Ap[i_col] - 1;
-		integer idx;
-		integer row;
-
-		if (row_begin == Ap[i_col]
-				|| Ai[row_begin] > i_row
-				|| Ai[row_end] < i_row) {
-			return zero;
-		}
-
-		while (row_end >= row_begin) {
-			idx = (row_begin + row_end)/2;
-			row = Ai[idx];
-			if (i_row < row) {
-				row_end = idx - 1;
-			} else if (i_row > row) {
-				row_begin = idx + 1;
-			} else {
-				return Ax[idx];
-			}
-		}
 
 		return zero;
 	};
@@ -146,6 +100,8 @@ public:
         int MakeIndexForm(std::vector<doublereal>& rAx,
                 	std::vector<integer>& Arow, std::vector<integer>& Acol,
 			integer offset = 0) const;
+
+	void Reset(const doublereal& c = 0.);
 
 	void Resize(const int &n, const int &nn = 0);
 
@@ -181,5 +137,5 @@ public:
 			const VectorHandler& in) const;
 };
 
-#endif /* CColMatrixHandler_hh */
+#endif /* IDXMH_H */
 

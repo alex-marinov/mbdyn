@@ -125,11 +125,11 @@ class HarwellLUSolver {
 
 
 public:
-   	class ErrFactorisation {
+   	class ErrFactorization {
     	private: 
       		int iErrCode;
     	public:
-      		ErrFactorisation(int i) : iErrCode(i) {
+      		ErrFactorization(int i) : iErrCode(i) {
 			NO_OP;
 		};
       		int iGetErrCode(void) const {
@@ -218,7 +218,8 @@ protected:
 	 		SAFEDELETEARR(piKeep);
       		}
    	};
-   
+
+#ifdef DEBUG	
    	void IsValid(void) const {
       		ASSERT(iMatSize > 0);
       		ASSERT(piRow != NULL);
@@ -248,9 +249,10 @@ protected:
 					1*iN*sizeof(doublereal)));	
 #endif /* DEBUG_MEMMANAGER */
    	};
+#endif /* DEBUG */
    
    	/* Fattorizza la matrice */
-   	flag fLUFactor(void) {
+   	bool bLUFactor(void) {
 #ifdef DEBUG
       		IsValid();
 #endif /* DEBUG */
@@ -284,17 +286,18 @@ protected:
 	 		std::cerr << sLUClassName 
 	   			<< ": error during factorization, code "
 				<< iFlag << std::endl;	 
-	 		THROW(HarwellLUSolver::ErrFactorisation(iFlag));
+	 		THROW(HarwellLUSolver::ErrFactorization(iFlag));
       		}
       
-      		return iFlag;		
+		/* FIXME: handle iFlag > 0 ??? */
+      		return true;
    	};
    
    	/* Risolve */
    	void Solve(void) {
 #ifdef DEBUG
       		IsValid();
-#endif
+#endif /* DEBUG */
       
       		integer iLicn = iMatSize;
       		integer iMtype = 1;
@@ -355,12 +358,9 @@ public:
    	~HarwellSparseLUSolutionManager(void);
    
    	/* Usata per il debug */
+#ifdef DEBUG
    	void IsValid(void) const;
-   
-   	/* Ridimensiona le matrici */
-   	void MatrResize(integer iNewSize) {
-   		THROW(ErrNotImplementedYet());
-   	};
+#endif /* DEBUG */
    
    	/* Inizializza il gestore delle matrici */
    	void MatrInit(const doublereal& dResetVal = 0.);
