@@ -50,6 +50,7 @@ D. Code:
 		including scripts, and especially matlab scripts.
 	- move critical Reynolds numbers from constants to fluid properties
 		with pressure/temperature dependencies.
+	- add symbolic constitutive law (based on GiNaC)
 
 
 
