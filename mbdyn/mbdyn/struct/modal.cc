@@ -1825,17 +1825,15 @@ ReadModal(DataManager* pDM,
 	    }
 	 }
 	 if (NFemNodes != NFemNodesDADS) { 
-	    cerr << endl << " in file " 
-	      << sFileFem 
-	      << ": FEM nodes " 
-	      << " exceeds maximum nodes number" << endl;
+	    cerr << "file '" << sFileFem << "': FEM nodes " << NFemNodes
+		    << " do not match node number " << NFemNodesDADS
+		    << "of modal joint " << uLabel << endl;
 	    THROW(DataManager::ErrGeneric());
 	 }
 	 if (NModes != NModesDADS) { 
-	    cerr << endl << " in file " 
-	      << sFileFem  
-	      << ": Modes " 
-	      << " exceeds maximum modes number" << endl;
+	    cerr << "file '" << sFileFem << "': modes " << NModes
+		    << " do not match mode number" << NModesDADS
+		    << "of modal joint " << uLabel << endl;
 	    THROW(DataManager::ErrGeneric());
 	 }
       }
