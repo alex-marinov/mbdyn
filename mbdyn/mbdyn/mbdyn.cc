@@ -476,10 +476,11 @@ main(int argc, char* argv[])
 		    	    << "compiled on " << __DATE__ << " at " << __TIME__ 
 		    	    << std::endl
 			    << std::endl
-		    	    << "Copyright 1997-2002 Paolo Mantegazza and Pierangelo Masarati,"
+		    	    << "Copyright 1997-2002 (C) Paolo Mantegazza and Pierangelo Masarati,"
 			    << std::endl
 		    	    << "Dipartimento di Ingegneria Aerospaziale,"
 		    	    " Politecnico di Milano." << std::endl
+ 			    << std::endl
 		    	    << "MBDyn is free software, covered by the"
 		    	    " GNU General Public License, and you are" << std::endl
 		    	    << "welcome to change it and/or distribute"
