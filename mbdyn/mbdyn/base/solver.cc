@@ -71,6 +71,7 @@
 #include "gmres.h"
 #include "solman.h"
 #include <vector>
+#include "readlinsol.h"
 
 #if defined(HAVE_SIGNAL) && defined(HAVE_SIGNAL_H)
 #include <signal.h>
@@ -2890,11 +2891,11 @@ Solver::ReadData(MBDynParser& HP)
 			break;
 
 		case SOLVER:
-			CurrLinearSolver.Read(HP);
+			ReadLinSol(CurrLinearSolver, HP);
 			break;
 
 		case INTERFACESOLVER:
-			CurrIntSolver.Read(HP, true);
+			ReadLinSol(CurrIntSolver, HP, true);
 
 #ifndef USE_MPI
 			silent_cerr("Interface solver only allowed "

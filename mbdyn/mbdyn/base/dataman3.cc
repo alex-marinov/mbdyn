@@ -42,6 +42,7 @@
 
 #include "dataman.h"
 #include "dataman_.h"
+#include "readlinsol.h"
 
 #include "drive.h"
 #include "filedrv.h"
@@ -713,7 +714,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
 	  break;
 
        case SOLVER:
-	  CurrSolver.Read(HP);
+	  ReadLinSol(CurrSolver, HP);
 	  break;
 	 
 	 /* Titolo */
@@ -2155,10 +2156,6 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
 
 /* Legge una shape1D; 
  * NOTA: il proprietario del puntatore alla Shape la deve distruggere */
-
-#ifdef DEBUG_MEMMANAGER
-#undef DEBUG_MEMMANAGER
-#endif	   
 
 #if (defined(USE_STRUCT_NODES) && defined(USE_AERODYNAMIC_ELEMS))
 Shape* ReadShape(MBDynParser& HP)

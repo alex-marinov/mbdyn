@@ -36,6 +36,9 @@
 /* Integrator - begin */
 
 class LinSol {
+	friend void
+	ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty);
+
 public:
    	enum SolverType {
 		EMPTY_SOLVER = 0,
@@ -62,6 +65,16 @@ public:
 		SOLVER_FLAGS_ALLOWS_COLAMD = 0x40U
 	};
 	
+	/* solver data */
+	struct solver_t {
+		const char *const	s_name;
+		const char *const	s_alias;
+		enum SolverType		s_type;
+		unsigned		s_flags;
+		unsigned		s_default_flags;
+		doublereal		s_pivot_factor;
+	};
+
 protected:
 	SolverType CurrSolver;
 	unsigned solverFlags;
@@ -98,7 +111,6 @@ public:
 
 	LinSol(void);
    	virtual ~LinSol(void);
-	void Read(HighParser &HP, bool bAllowEmpty = false);
  
 	SolverType GetSolver(void) const;
 	unsigned GetSolverFlags(void) const;
@@ -117,7 +129,9 @@ public:
 	GetSolutionManager(integer iNLD, integer iLWS = 0) const;
 };
 
-/* Integrator - end */
+extern LinSol::solver_t solver[];
+
+/* LinSol - end */
 
 #endif /* LINEARSOLVER_H */
 

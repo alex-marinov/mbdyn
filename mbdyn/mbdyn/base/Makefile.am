@@ -56,8 +56,6 @@ gmres.cc \
 gmres.h \
 j2p.cc \
 j2p.h \
-linsol.cc \
-linsol.h \
 loadable.cc \
 loadable.h \
 mbpar.cc \
@@ -93,6 +91,8 @@ privdrive.h \
 privpgin.cc \
 privpgin.h \
 readclaw.h \
+readlinsol.cc \
+readlinsol.h \
 reffrm.cc \
 reffrm.h \
 resforces.cc \

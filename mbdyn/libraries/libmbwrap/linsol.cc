@@ -35,7 +35,7 @@
 #include "myassert.h"
 #include "ac/sys_sysinfo.h"
 
-#include "mbpar.h"
+#include "parser.h"
 
 #include "spmapmh.h"
 #include "ccmh.h"
@@ -53,15 +53,8 @@
 
 #include "linsol.h"
 
-/* private data */
-static struct solver_t {
-	const char *const	s_name;
-	const char *const	s_alias;
-	enum LinSol::SolverType	s_type;
-	unsigned		s_flags;
-	unsigned		s_default_flags;
-	doublereal		s_pivot_factor;
-} solver[] = {
+/* solver data */
+LinSol::solver_t solver[] = {
 	{ "Empty", NULL,
 		LinSol::EMPTY_SOLVER,
 		LinSol::SOLVER_FLAGS_NONE,
@@ -158,6 +151,7 @@ LinSol::~LinSol(void)
 	NO_OP;
 }
 
+#if 0
 void
 LinSol::Read(HighParser &HP, bool bAllowEmpty)
 {
@@ -459,6 +453,7 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		}
 	}
 }
+#endif
 
 LinSol::SolverType
 LinSol::GetSolver(void) const

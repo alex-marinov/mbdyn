@@ -13,6 +13,8 @@ harwrap.cc \
 harwrap.h \
 lapackwrap.cc \
 lapackwrap.h \
+linsol.cc \
+linsol.h \
 mschwrap.cc \
 mschwrap.h \
 naivewrap.cc \
