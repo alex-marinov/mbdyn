@@ -1260,6 +1260,141 @@ the linearization becomes
 \section{Deformable Constraints}
 
 \subsection{Deformable Hinge}
+The deformable hinge applies an internal moment to two nodes that may depend
+on their relative orientation and angular velocity through a 3D constitutive law.
+
+\noindent
+The relative orientation is computed in analogy with the Drive Hinge joint
+\begin{equation*}
+	\T{\theta} = \llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{1h}^T \T{R}_{2h}}}
+\end{equation*}
+The relative angular velocity is
+\begin{equation*}
+	\tilde{\T{\omega}} = \T{R}_{1h}^T \plbr{\T{\omega}_2 - \T{\omega}_1}
+\end{equation*}
+The linearization of the relative orientation yields
+\begin{equation*}
+	\T{\theta}_{\Delta} \cong
+	\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \plbr{
+		\Delta\T{g}_2 - \Delta\T{g}_1
+	}
+\end{equation*}
+The linearization of the angular velocity yields
+\begin{equation*}
+	\Delta\tilde{\T{\omega}} \cong \T{R}_{1h}^T \plbr{
+		\Delta\dot{\T{g}}_2
+		- \Delta\dot{\T{g}}_1
+		- \T{\omega}_2 \times \Delta\T{g}_2
+		+ \T{\omega}_2 \times \Delta\T{g}_1
+	}
+\end{equation*}
+The moment is
+\begin{equation*}
+	\T{M}_i = \plbr{ -1 }^i \T{R}_{1h} \tilde{\T{M}}\plbr{\T{\theta}, \tilde{\T{\omega}}}
+\end{equation*}
+Its linearization yields
+\begin{equation*}
+	\Delta\T{M}_i \cong \plbr{ -1 }^i \T{R}_{1h} \plbr{
+		\tilde{\T{M}}_{/\T{\theta}} \T{\theta}_{\Delta}
+		+ \tilde{\T{M}}_{/\tilde{\T{\omega}}} \Delta\tilde{\T{\omega}}
+	} - \T{M}_i \times \Delta\T{g}_1
+\end{equation*}
+
+
+
+
+
+
+\subsection{Deformable Displacement Joint}
+The deformable hinge applies an internal force to two nodes at a specified 
+point that may be offset from the nodes; the force may depend on the relative
+position and velocity of the nodes at the point of application
+through a 3D constitutive law.
+
+\noindent
+The relative position is expressed in a reference frame attached to node 1:
+\begin{equation*}
+	\tilde{\T{d}} = \T{R}_{1h}^T\plbr{
+		\T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1
+	}
+\end{equation*}
+The relative velocity is
+\begin{eqnarray*}
+	\dot{\tilde{\T{d}}} & = & \T{R}_{1h}^T\plbr{
+		\dot{\T{x}}_2 - \T{f}_2\times\T{\omega}_2
+		- \dot{\T{x}}_1 + \T{f}_1\times\T{\omega}_1
+	} + \tilde{\T{d}}\times\T{R}_{1h}^T \T{\omega}_1 \\
+	& = & \T{R}_{1h}^T\plbr{
+		\dot{\T{x}}_2 - \dot{\T{x}}_1
+		- \T{f}_2\times\T{\omega}_2
+		+ \plbr{\T{x}_2 + \T{f}_2 - \T{x}_1}\times\T{\omega}_1
+	}
+\end{eqnarray*}
+The linearization of the distance yields
+\begin{eqnarray*}
+	\Delta{\tilde{\T{d}}} & \cong & \T{R}_{1h}^T\plbr{
+		\Delta{\T{x}}_2 - \T{f}_2\times\Delta\T{g}_2
+		- \Delta{\T{x}}_1 + \T{f}_1\times\Delta\T{g}_1
+	} + \tilde{\T{d}}\times\T{R}_{1h}^T \Delta\T{g}_1 \\
+	& \cong & \T{R}_{1h}^T\plbr{
+		\Delta{\T{x}}_2 - \Delta{\T{x}}_1
+		- \T{f}_2\times\Delta\T{g}_2
+		+ \plbr{\T{x}_2 + \T{f}_2 - \T{x}_1}\times\Delta\T{g}_1
+	}
+\end{eqnarray*}
+while the linearization of the relative velocity yields
+\begin{eqnarray*}
+	\Delta\dot{\tilde{\T{d}}} & \cong & \T{R}_{1h}^T\lplbr{
+		\Delta\dot{\T{x}}_2
+		- \Delta\dot{\T{x}}_1
+		- \T{f}_2\times\Delta\dot{g}_2
+		+ \plbr{\T{x}_2 + \T{f}_2 - \T{x}_1}\times\Delta\dot{\T{g}}_1
+	} \\
+	& & \mbox{} - \T{\omega}_1 \times \Delta\T{x}_2
+		+ \T{\omega}_1 \times \Delta\T{x}_1
+		+ \plbr{
+			\plbr{\T{f}_2 \times \T{\omega}_2}\times{}
+			- \T{\omega}_1 \times \T{f}_2 \times{}
+		} \Delta\T{g}_2 \\
+	& & \rplbr{
+		+ \plbr{
+			\plbr{
+				\dot{\T{x}}_2
+				- \T{f}_2 \times \T{\omega}_2 
+				- \dot{\T{x}}_1
+			} \times{} - \T{\omega}_1 \times \plbr{
+				\T{x}_2 + \T{f}_2 - \T{x}_1
+			}\times{}
+		} \Delta\T{g}_1
+	}
+\end{eqnarray*}
+The force and the moment are
+\begin{eqnarray*}
+	\T{F}_i & = & \plbr{ -1 }^i \T{R}_{1h} \tilde{\T{F}}\plbr{\tilde{\T{d}}, \dot{\tilde{\T{d}}}} \\
+	\T{M}_i & = & \T{f}_i \times \T{F}_i
+\end{eqnarray*}
+Their linerization yields
+\begin{eqnarray*}
+	\Delta\T{F}_i & = & \plbr{ -1 }^i \T{R}_{1h} \plbr{
+		\tilde{\T{F}}_{/\tilde{\T{d}}} \Delta{\tilde{\T{d}}}
+		+ \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \Delta\dot{\tilde{\T{d}}}
+	} - \T{F}_i \times \Delta\T{g}_1 \\
+	\Delta\T{M}_i & = & \T{f}_i \times \Delta\T{F}_i + \T{F}_i \times \T{f}_i \times \Delta\T{g}_i
+\end{eqnarray*}
+
+
+\subsection{Deformable Joint}
+The deformable hinge applies an internal force and an internal moment
+to two nodes at a specified point that may be offset from the nodes;
+the force and the moment may depend on the relative position and velocity
+at the point of application and on the relative orientation and angular 
+velocity of the nodes through a 6D constitutive law.
+
+Although it may appear as a combination of the Deformable Hinge
+and the Deformable Displacement Joint, and despite some commonality
+of code, it is much more general because the internal force
+and moment depend on the relative displacement and orientation,
+i.e.\ the displacements and the orientations are coupled.
 
 
 \chapter{Hydraulic Library}
