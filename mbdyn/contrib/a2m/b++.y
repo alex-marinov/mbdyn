@@ -122,7 +122,7 @@ Id GROUND_PART_ID=0;
 
 double A2M_initial_time = 0;
 double A2M_final_time = 1;
-double A2M_time_step = .1;
+double A2M_time_step = 1.e-3;
 double A2M_rho = .6;
 char A2M_method [] = "ms, rho, rho";
 double A2M_tolerance = 1.e-6;
