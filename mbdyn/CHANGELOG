@@ -34,6 +34,7 @@ MBDyn 1.2-Beta.3
 		- fixed aeromodal bug for v=0
 		- fixed solver diagnostics incremental activation
 		- fixed 3 node beam constitutive law type selection
+		- fixed C++ templates to compile with gcc 3.4.0
 	Backward compatibility issues:
 		- bind now uses "name" instead of "string";
 		  compatibility preserved
