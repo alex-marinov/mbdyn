@@ -43,9 +43,6 @@ extern "C" {
 
 #include <pipe.h>
 
-const doublereal RecL = 2000.;    /* se Re < RecL moto laminare */
-const doublereal RecT = 4000.;	  /* se Re > RecT moto turbolento */
-
 /* Pipe - begin */
 
 Pipe::Pipe(unsigned int uL, const DofOwner* pDO, HydraulicFluid* hf,
@@ -144,16 +141,13 @@ Pipe::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal p2 = pNode2->dGetX();
    doublereal jumpPres = fabs(p1-p2);
    doublereal q = XCurr.dGetCoef(iFirstIndex);  /* portata */
-#ifdef DEBUG
-   doublereal density = HF->dGetDensity((p1+p2)/2.);
-#endif
    doublereal Jac13 = -1.;
    doublereal Jac23 = 1.;
    doublereal Jac31 = 1.;
    doublereal Jac32 = -1.;
    doublereal Jac33;
    
-   if (Re < RecL ) {
+   if (Re < HF->dGetRe(HydraulicFluid::LOWER)) {
       /****************************************
        * moto sicuramente laminare (jacobiano)
        ***************************************/
@@ -161,7 +155,7 @@ Pipe::AssJac(VariableSubMatrixHandler& WorkMat,
       DEBUGCOUT("Entering Pipe::AssJac() sono laminare" << endl);
 #endif
       Jac33 = -klam;
-   }  else if (Re > RecT) {
+   }  else if (Re > HF->dGetRe(HydraulicFluid::UPPER)) {
       /*******************************************
        * moto sicuramente turbolento  (jacobiano)
        ******************************************/
@@ -192,7 +186,8 @@ Pipe::AssJac(VariableSubMatrixHandler& WorkMat,
 #ifdef HYDR_DEVEL
 	 DEBUGCOUT("Sono in transizione lam->turb" << endl);
 #endif
-	 if (Re < RecL*1.25) { /* uso lo jacobiano laminare */
+	 if (Re < HF->dGetRe(HydraulicFluid::LOWER)*1.25) {
+	    /* uso lo jacobiano laminare */
 	    Jac33 = -klam;
 	 } else {
 	    doublereal dva = diameter/(viscosity*area);
@@ -217,7 +212,8 @@ Pipe::AssJac(VariableSubMatrixHandler& WorkMat,
 #ifdef HYDR_DEVEL
 	 DEBUGCOUT("Sono in transizione turb->lam" << endl);    
 #endif
-	 if (Re > RecT*.775) { /* uso lo jacobiano turbolento per la parte finale */
+	 if (Re > HF->dGetRe(HydraulicFluid::UPPER)*.775) {
+	    /* uso lo jacobiano turbolento per la parte finale */
 	    /* evito di dividere per un numero troppo piccolo */
 	    if (jumpPres < 1.e8*DBL_EPSILON) {
 	       jumpPres = 1.e8*DBL_EPSILON;
@@ -252,7 +248,7 @@ Pipe::AssJac(VariableSubMatrixHandler& WorkMat,
 
 #ifdef HYDR_DEVEL
    DEBUGCOUT("JAC Re:        " << Re << endl);
-   DEBUGCOUT("JAC density:   " << density << endl);
+   DEBUGCOUT("JAC density:   " << HF->dGetDensity((p1+p2)/2.) << endl);
    DEBUGCOUT("JAC p1:        " << p1 << endl);
    DEBUGCOUT("JAC p2:        " << p2 << endl);
    DEBUGCOUT("JAC jumpPres:  " << jumpPres << endl);
@@ -304,7 +300,7 @@ Pipe::AssRes(SubVectorHandler& WorkVec,
    flow = q;
    vel = flow/(density*area);
    Re = density*fabs(vel)*diameter/viscosity;
-   if (Re < RecL) {
+   if (Re < HF->dGetRe(HydraulicFluid::LOWER)) {
       /**************************************
        * moto sicuramente laminare (residuo)
        *************************************/
@@ -312,7 +308,7 @@ Pipe::AssRes(SubVectorHandler& WorkVec,
       DEBUGCOUT("Entering Pipe::AssRes() SONO LAMINARE" << endl);
 #endif
       Res_3 = klam*q-p1+p2;
-   } else if (Re > RecT) {
+   } else if (Re > HF->dGetRe(HydraulicFluid::UPPER)) {
       /*****************************************
        * moto sicuramente turbolento  (residuo)
        ****************************************/
@@ -337,7 +333,8 @@ Pipe::AssRes(SubVectorHandler& WorkVec,
 #ifdef HYDR_DEVEL
 	 DEBUGCOUT("SONO IN TRANSIZIONE lam->turb" << endl);
 #endif
-	 if (Re < RecL*1.25) { /* uso il residuo laminare */
+	 if (Re < HF->dGetRe(HydraulicFluid::LOWER)*1.25) {
+	    /* uso il residuo laminare */
 	    Res_3 = klam*q-p1+p2;
 #ifdef HYDR_DEVEL
 	    DEBUGCOUT("RES lam->turb: TRATTO 64/RE" << endl);
@@ -373,7 +370,8 @@ Pipe::AssRes(SubVectorHandler& WorkVec,
 #ifdef HYDR_DEVEL	 
 	 DEBUGCOUT("SONO IN TRANSIZIONE turb->lam" << endl);
 #endif
-	 if (Re > RecT*.775) { /* utilizzo il residuo turbolento */
+	 if (Re > HF->dGetRe(HydraulicFluid::UPPER)*.775) {
+	     /* utilizzo il residuo turbolento */
 	     Res_3= ktrb*copysign(pow(fabs(q),7./4.),q)-p1+p2;  
    
 #ifdef HYDR_DEVEL
@@ -433,12 +431,12 @@ void Pipe::Output(OutputHandler& OH) const
 #ifdef __GNUC__
 #warning "Pipe::Output is altering data"
 #endif
-   if (Re < RecL) {
+   if (Re < HF->dGetRe(HydraulicFluid::LOWER)) {
 #ifdef HYDR_DEVEL
       DEBUGCOUT("Output: sono laminare:" << endl);
 #endif
       (flag&)turbulent = 0;
-   } else if (Re > RecT) {
+   } else if (Re > HF->dGetRe(HydraulicFluid::UPPER)) {
 #ifdef HYDR_DEVEL
       DEBUGCOUT("Output: sono turbolento:" << endl);
 #endif
@@ -574,7 +572,6 @@ Dynamic_pipe::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal densityS = HF->dGetDensity(p1);            /* densita' all'inizio del tubo */
    doublereal densityE = HF->dGetDensity(p2);            /* densita' alla fine del nodo */
    doublereal densityM = HF->dGetDensity(pr);            /* densita' a meta' tubo */
-   doublereal density = HF->dGetDensity();               /* densita' di default INUTILIZZATO */
    doublereal kappa1 = length*area*densityDPres;
 
    doublereal Jac14 = dCoef;
@@ -595,13 +592,13 @@ Dynamic_pipe::AssJac(VariableSubMatrixHandler& WorkMat,
    
    doublereal kappa2 = length/(6.*diameter*area); /* usata nel caso turbolento & transizione */
   
-   if (Re < RecL) {
+   if (Re < HF->dGetRe(HydraulicFluid::LOWER)) {
        /*******************************************
        * moto sicuramente laminare  (jacobiano)
        ******************************************/
       lack54 = dCoef*(-2.*klam/densityS);
       lack55 = dCoef*(2.*klam/densityE);
-   } else if (Re > RecT) {
+   } else if (Re > HF->dGetRe(HydraulicFluid::UPPER)) {
       /*******************************************
        * moto sicuramente turbolento  (jacobiano)
        ******************************************/
@@ -630,7 +627,8 @@ Dynamic_pipe::AssJac(VariableSubMatrixHandler& WorkMat,
 #ifdef HYDR_DEVEL
 	 DEBUGCOUT("Sono in transizione lam->turb" << endl);
 #endif
-	 if (Re < RecL*1.25) { /* uso lo jacobiano laminare */	
+	 if (Re < HF->dGetRe(HydraulicFluid::LOWER)*1.25) {
+	    /* uso lo jacobiano laminare */	
 	    lack54 = dCoef*(-2.*klam/densityS);
 	    lack55 = dCoef*(+2.*klam/densityE);
 	 } else {
@@ -662,7 +660,8 @@ Dynamic_pipe::AssJac(VariableSubMatrixHandler& WorkMat,
 	 DEBUGCOUT("Sono in transizione turb->lam" << endl);
 #endif
 	 
-	 if (Re > RecT*.775) { /* uso lo jacobiano turbolento per la parte finale */
+	 if (Re > HF->dGetRe(HydraulicFluid::UPPER)*.775) {
+	    /* uso lo jacobiano turbolento per la parte finale */
 	    fa = .3164/pow(Re, .25);
 	    
 	    lack54 = -dCoef*(fa*kappa2/densityS)*fabs(-q2+2.*q1);
@@ -702,7 +701,7 @@ Dynamic_pipe::AssJac(VariableSubMatrixHandler& WorkMat,
    
 #ifdef HYDR_DEVEL
    DEBUGCOUT("JAC Re:        " << Re << endl);
-   DEBUGCOUT("JAC density:   " << density << endl);
+   DEBUGCOUT("JAC density:   " << HF->dGetDensity() << endl);
    DEBUGCOUT("JAC p1:        " << p1 << endl);
    DEBUGCOUT("JAC p2:        " << p2 << endl);
    DEBUGCOUT("JAC q1:        " << q1 << endl);
@@ -772,7 +771,6 @@ Dynamic_pipe::AssRes(SubVectorHandler& WorkVec,
    flow2 = q2;  /* per l'output */
    pp = prp;    /* per l'output */
   
-   doublereal density = HF->dGetDensity();              /* densita' di default INUTILIZZATO */
    doublereal densityS = HF->dGetDensity(p1);           /* densita' all'inizio del tubo */
    doublereal densityE = HF->dGetDensity(p2);           /* densita' alla fine del nodo */
    doublereal densityM = HF->dGetDensity(pr);           /* densita' a meta' tubo */
@@ -802,13 +800,13 @@ Dynamic_pipe::AssRes(SubVectorHandler& WorkVec,
    doublereal Res_5 = (length/2.)*(q1p-q2p)+q1*q1/(area*densityS)-q2*q2/(area*densityE)+area*(p1-p2);
    doublereal lack;
    
-   if (Re < RecL) {
+   if (Re < HF->dGetRe(HydraulicFluid::LOWER)) {
 #ifdef HYDR_DEVEL
      DEBUGCOUT("SONO IN LAMINARE" << endl);
 #endif
      lack = -klam*(Qx1/densityx1+Qx2/densityx2);
    
-   } else if (Re > RecT) {
+   } else if (Re > HF->dGetRe(HydraulicFluid::UPPER)) {
 #ifdef HYDR_DEVEL
       DEBUGCOUT("SONO IN TURBOLENTO" << endl);
 #endif
@@ -836,7 +834,8 @@ Dynamic_pipe::AssRes(SubVectorHandler& WorkVec,
 #ifdef HYDR_DEVEL
 	 DEBUGCOUT("SONO IN TRANSIZIONE lam->turb" << endl);
 #endif
-	 if (Re < RecL*1.25) { /* uso il residuo laminare */
+	 if (Re < HF->dGetRe(HydraulicFluid::LOWER)*1.25) {
+	    /* uso il residuo laminare */
 	    lack = -klam*(Qx1/densityx1+Qx2/densityx2);
 #ifdef HYDR_DEVEL
 	    DEBUGCOUT("RES lam->turb: TRATTO 64/RE" << endl);
@@ -873,7 +872,8 @@ Dynamic_pipe::AssRes(SubVectorHandler& WorkVec,
 #ifdef HYDR_DEVEL
 	 DEBUGCOUT("SONO IN TRANSIZIONE turb->lam" << endl);
 #endif
-	 if (Re > RecT*.775) { /* utilizzo il residuo turbolento */
+	 if (Re > HF->dGetRe(HydraulicFluid::UPPER)*.775) {
+	    /* utilizzo il residuo turbolento */
 	    const doublereal espo = 7./4.;
 
 	    lack = -ktrb*(copysign(pow(.5*fabs(Qx1), espo)/densityx1, Qx1)
@@ -915,7 +915,7 @@ Dynamic_pipe::AssRes(SubVectorHandler& WorkVec,
    Re = densityM*fabs(VelM)*diameter/viscosity;   /* numero di Reynolds medio */
    
 #ifdef HYDR_DEVEL   
-   DEBUGCOUT("RES density:          " << density << endl);
+   DEBUGCOUT("RES density:          " << HF->dGetDensity() << endl);
    DEBUGCOUT("RES densityS:         " << densityS << endl);
    DEBUGCOUT("RES densityM:         " << densityM << endl);
    DEBUGCOUT("RES densityE:         " << densityE << endl);
@@ -959,9 +959,9 @@ void Dynamic_pipe::Output(OutputHandler& OH) const
 #ifdef __GNUC__
 #warning "Dynamic_pipe::Output is altering data"
 #endif
-   if (Re < RecL) {
+   if (Re < HF->dGetRe(HydraulicFluid::LOWER)) {
       (flag&)turbulent = 0;
-   } else if (Re > RecT) {
+   } else if (Re > HF->dGetRe(HydraulicFluid::UPPER)) {
       (flag&)turbulent = 1;
    }
    
@@ -969,13 +969,11 @@ void Dynamic_pipe::Output(OutputHandler& OH) const
    DEBUGCOUT("turbulent: " << turbulent << endl);
 #endif
    if (fToBeOutput()) { 
-      doublereal density = HF->dGetDensity();
       ostream& out = OH.Hydraulic();
       out 
 	<< setw(8) << GetLabel()
         << " " << Re << " " << -flow1 << " " << flow2
-	<< " " << density << " " << densitySt 
-	<< " " << densityMe << " " << densityEn
+	<< " " << densitySt << " " << densityMe << " " << densityEn
 	<< " " << VelS << " " << VelM << " " << VelE
 	<< " " << pp
 	<< endl;
@@ -1124,7 +1122,8 @@ DynamicPipe::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal dLoss21 = 0.;
    doublereal dLoss22 = 0.;
    
-   if ((Re < RecL) || ((turbulent == 0) && (Re < 1.25*RecL))) {
+   if ((Re < HF->dGetRe(HydraulicFluid::LOWER)) || ((turbulent == 0) 
+			   && (Re < 1.25*HF->dGetRe(HydraulicFluid::LOWER)))) {
       /* laminar, or ascending transition ascendente (continuation) */
       doublereal dk = dKlam*viscosity*dCoef;
 
@@ -1132,7 +1131,8 @@ DynamicPipe::AssJac(VariableSubMatrixHandler& WorkMat,
       dLoss12 = .25*dk/dd1;
       dLoss21 = .25*dk/dd2;
       dLoss22 = .75*dk/dd2;
-   } else if ((Re > RecT) || ((turbulent == 1) && (Re > .775*RecT))) {
+   } else if ((Re > HF->dGetRe(HydraulicFluid::UPPER)) || ((turbulent == 1) 
+			   && (Re > .775*HF->dGetRe(HydraulicFluid::UPPER)))) {
       /* turbulent, or descending transition (continuation) */
       
       doublereal dk = dKtrb*1.75*pow(viscosity, .25)*dCoef;
@@ -1279,13 +1279,15 @@ DynamicPipe::AssRes(SubVectorHandler& WorkVec,
    doublereal dLoss1 = 0.;
    doublereal dLoss2 = 0.;
 
-   if ((Re < RecL) || ((turbulent == 0) && (Re < 1.25*RecL))) {
+   if ((Re < HF->dGetRe(HydraulicFluid::LOWER)) || ((turbulent == 0) 
+			   && (Re < 1.25*HF->dGetRe(HydraulicFluid::LOWER)))) {
       /* laminar, or ascending transition ascendente (continuation) */
       doublereal dk = dKlam*viscosity;
       
       dLoss1 = dk*qq1/dd1;
       dLoss2 = dk*qq2/dd2;
-   } else if ((Re > RecT) || ((turbulent == 1) && (Re > .775*RecT))) {
+   } else if ((Re > HF->dGetRe(HydraulicFluid::UPPER)) || ((turbulent == 1) 
+			   && (Re > .775*HF->dGetRe(HydraulicFluid::UPPER)))) {
       /* turbulent, or descending transition (continuation) */
       doublereal dk = dKtrb*pow(viscosity, .25);
       
@@ -1349,9 +1351,9 @@ void DynamicPipe::Output(OutputHandler& OH) const
 #ifdef __GNUC__
 #warning "DynamicPipe::Output is altering data"
 #endif
-   if (Re < RecL) {
+   if (Re < HF->dGetRe(HydraulicFluid::LOWER)) {
       (flag&)turbulent = 0;
-   } else if (Re > RecT) {
+   } else if (Re > HF->dGetRe(HydraulicFluid::UPPER)) {
       (flag&)turbulent = 1;
    }
    

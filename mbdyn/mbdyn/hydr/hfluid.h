@@ -83,6 +83,13 @@ class HydraulicFluid : public WithLabel {
    virtual doublereal dGetViscosity(const doublereal& dPres) const = 0;
    virtual doublereal dGetViscosity(const doublereal& dPres,
 				    const doublereal& dTemp) const = 0;
+   enum Re { UPPER, LOWER };
+   virtual inline doublereal dGetRe(Re which);
+#if 0
+   virtual inline doublereal dGetRe(Re which, const doublereal& dPres) = 0;
+   virtual inline doublereal dGetRe(Re which, const doublereal& dPres,
+		   const doublereal& dTemp) = 0;
+#endif
    
    virtual doublereal dGetPres0(void) const {
       ASSERT(dPres0 != -1.);
@@ -93,6 +100,21 @@ class HydraulicFluid : public WithLabel {
       return dTemp0;
    };
 };
+
+inline doublereal 
+HydraulicFluid::dGetRe(HydraulicFluid::Re which)
+{
+	switch (which) {
+	case HydraulicFluid::LOWER:
+		return 2000.;
+		
+	case HydraulicFluid::UPPER:
+		return 4000.;
+
+	default:
+		THROW(ErrGeneric());
+	}
+}
 
 /* legge un fluido idraulico; non va usata direttamente, viene invece 
  * gestita dal parser specializzato di MBDyn, MBDynParser (mbpar.h) */
