@@ -2702,7 +2702,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 			     DerivativeSolver,
 			     DerivativeSolver(dDerivativesTol,
 		  			      0.,
-		  			      dDerivativesCoef,
+		  			      dInitialTimeStep*dDerivativesCoef,
 		  			      iDerivativesMaxIterations));
 
      /* First step prediction must always be Crank-Nicholson for accuracy */
