@@ -113,5 +113,11 @@ public:
 	/* ************************************************ */
 };
 
+inline void*
+Motor::pGet(void) const
+{
+	return (void *)this;
+}
+
 #endif /* MOTOR_H */
 
