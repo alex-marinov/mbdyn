@@ -43,6 +43,9 @@
 
 class SocketStreamDrive : public StreamDrive {
 protected:
+	unsigned int InputEvery;
+	unsigned int InputCounter;
+
 	const char *host;
 	int type;
 	union {
@@ -58,14 +61,14 @@ public:
 	SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		const DriveHandler* pDH,
 		const char* const sFileName,
-		integer nd, bool c,
+		integer nd, unsigned int ie, bool c,
 		unsigned short int p,
 		const char* const h);
 
 	SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		const DriveHandler* pDH,
 		const char* const sFileName,
-		integer nd, bool c,
+		integer nd, unsigned int ie, bool c,
 		const char* const Path);
 				
 	virtual ~SocketStreamDrive(void);

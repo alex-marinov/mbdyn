@@ -65,12 +65,16 @@
 SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		const DriveHandler* pDH,
 		const char* const sFileName,
-		integer nd, bool c,
+		integer nd, unsigned int ie, bool c,
 		unsigned short int p,
 		const char* const h)
 : StreamDrive(uL, pDH, sFileName, nd, c),
-host(0), type(AF_INET), sock(0), connected(false), abandoned(false)
+InputEvery(ie), InputCounter(0),
+host(0), type(AF_INET), sock(0),
+connected(false), abandoned(false)
 {
+	ASSERT(InputEvery > 0);
+
 	if (h) {
 		SAFESTRDUP(host, h);
 	}
@@ -128,11 +132,14 @@ host(0), type(AF_INET), sock(0), connected(false), abandoned(false)
 SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		const DriveHandler* pDH,
 		const char* const sFileName,
-		integer nd, bool c,
+		integer nd, unsigned int ie, bool c,
 		const char* const Path)
 : StreamDrive(uL, pDH, sFileName, nd, c),
-host(NULL), type(AF_LOCAL), sock(0), connected(false), abandoned(false)
+InputEvery(ie), InputCounter(0),
+host(NULL), type(AF_LOCAL), sock(0),
+connected(false), abandoned(false)
 {
+	ASSERT(InputEvery > 0);
 	ASSERT(Path != NULL);
 
 	SAFESTRDUP(data.Path, Path);
@@ -219,7 +226,13 @@ SocketStreamDrive::Restart(std::ostream& out) const
 void
 SocketStreamDrive::ServePending(const doublereal& t)
 {
-	
+	/* read only every InputEvery steps */
+	InputCounter++;
+	if (InputCounter != InputEvery) {
+		return;
+	}
+	InputCounter = 0;
+
 	if (!connected) {
 		if (create) {
 			int tmp_sock = sock;
@@ -522,6 +535,18 @@ ReadSocketStreamDrive(DataManager* pDM,
 		SAFESTRDUP(host, DEFAULT_HOST);
 	}
 
+	unsigned int InputEvery = 1;
+	if (HP.IsKeyWord("input" "every")) {
+		int i = HP.GetInt();
+		if (i <= 0) {
+			silent_cerr("invalid input every value " << i
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
+			throw ErrGeneric();
+		}
+		InputEvery = (unsigned int)i;
+	}
+
 	int idrives = HP.GetInt();
 	if (idrives <= 0) {
 		silent_cerr("illegal number of channels for "
@@ -536,13 +561,13 @@ ReadSocketStreamDrive(DataManager* pDM,
 		SAFENEWWITHCONSTRUCTOR(pDr, SocketStreamDrive,
 				SocketStreamDrive(uLabel, 
 				pDM->pGetDrvHdl(),
-				name, idrives, create, port, host));
+				name, idrives, InputEvery, create, port, host));
 
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pDr, SocketStreamDrive,
 				SocketStreamDrive(uLabel, 
 				pDM->pGetDrvHdl(),
-				name, idrives, create, path));	
+				name, idrives, InputEvery, create, path));	
 	}
 
 	return pDr;

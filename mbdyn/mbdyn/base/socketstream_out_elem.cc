@@ -62,12 +62,16 @@
 /* SocketStreamElem - begin */
 
 SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch, ScalarDof *& pn,
+		unsigned int oe,
 		const char *h, const char *m, unsigned short int p, bool c, int flags)
 : Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
+OutputEvery(oe), OutputCounter(0), 
 host(h), type(AF_INET), sock(0), name(m),
 create(c), connected(false), abandoned(false), send_flags(flags)
 {
+	ASSERT(OutputEvery > 0);
+
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(doublereal)*nch;
 	SAFENEWARR(buf, char, size);
@@ -121,12 +125,16 @@ create(c), connected(false), abandoned(false), send_flags(flags)
 }
 
 SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch, ScalarDof *& pn,
+		unsigned int oe,
 		const char *m, const char* const Path, bool c, int flags)
 : Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
+OutputEvery(oe), OutputCounter(0), 
 host(NULL), type(AF_LOCAL), sock(0), name(m),
 create(c), connected(false), abandoned(false), send_flags(flags)
 {
+	ASSERT(OutputEvery > 0);
+
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(doublereal)*nch;
 	SAFENEWARR(buf, char, size);
@@ -230,6 +238,13 @@ void
 SocketStreamElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
+	/* output only every OutputEvery steps */
+	OutputCounter++;
+	if (OutputCounter != OutputEvery) {
+		return;
+	}
+	OutputCounter = 0;
+
 	if (!connected) {
 		if (create) {
 			int tmp_sock = sock;
@@ -546,6 +561,18 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		flags = MSG_NOSIGNAL;
 	}
 
+	unsigned int OutputEvery = 1;
+	if (HP.IsKeyWord("output" "every")) {
+		int i = HP.GetInt();
+		if (i <= 0) {
+			silent_cerr("invalid output every value " << i
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
+			throw ErrGeneric();
+		}
+		OutputEvery = (unsigned int)i;
+	}
+
 	int nch = HP.GetInt();
 	if (nch <= 0) {
 		silent_cerr("illegal number of channels for "
@@ -576,10 +603,12 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	if (path == NULL){
 		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
 				SocketStreamElem(uLabel, nch, pNodes,
+					OutputEvery,
 					host, name, port, create, flags));
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
 				SocketStreamElem(uLabel, nch, pNodes,
+					OutputEvery,
 					name, path, create, flags));
 	}
 

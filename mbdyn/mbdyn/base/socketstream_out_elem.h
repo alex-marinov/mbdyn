@@ -51,6 +51,10 @@ protected:
 	int size;
 	char *buf;
 
+	/* output with lower ratio */
+	unsigned int OutputEvery;
+	mutable unsigned int OutputCounter;
+
 	/* FIXME: store restart info as well */
 	const char *host;
 	int type;
@@ -69,9 +73,11 @@ protected:
 	
 public:
    	SocketStreamElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
+			unsigned int oe,
 			const char *h, const char *m, unsigned short int p,
 			bool c, int flags);
    	SocketStreamElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
+			unsigned int oe,
 			const char *m, const char* const Path,
 			bool c, int flags);
 			
