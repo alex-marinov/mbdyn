@@ -71,11 +71,12 @@ pRefLength(pRefL),
 OffN(3),
 pOffsetVectors(NULL),
 pInterfComm(pIC),
-pSenReq(NULL),
-pRecReq(NULL),
 VelFlag(VF),
 MomFlag(MF),
-SentFlag(false)
+SentFlag(false),
+pForce(NULL),
+pMoms(NULL),
+pLabList(NULL)
 {
 	
 	/* costruisce la mat 3xN degli offset */
@@ -108,11 +109,12 @@ pRefLength(pRefL),
 OffN(ON),
 pOffsetVectors(OV),
 pInterfComm(pIC),
-pSenReq(NULL),
-pRecReq(NULL),
 VelFlag(VF),
 MomFlag(MF),
-SentFlag(false)
+SentFlag(false),
+pForce(NULL),
+pMoms(NULL),
+pLabList(NULL)
 {	
 	ConstructAndInitialize();
 }	
@@ -123,22 +125,25 @@ AerodynamicExternal::~AerodynamicExternal(void)
 	if (pdBufferVel != NULL) SAFEDELETE(pdBufferVel);
 	if (ppNode != NULL) SAFEDELETEARR(ppNode);
 	if (pRefLength != NULL) SAFEDELETEARR(pRefLength);
-	if (pSenReq != NULL) SAFEDELETEARR(pSenReq);
-	if (pRecReq != NULL) SAFEDELETEARR(pRecReq);
+	if (pForce != NULL) SAFEDELETEARR(pForce);
+	if (pMoms != NULL) SAFEDELETEARR(pMoms);
+	if (pLabList != NULL) SAFEDELETEARR(pLabList);	
 }
 		
 void AerodynamicExternal::ConstructAndInitialize(void) 
 {
 	/* dimensiona l'array per il buffer */
 	DEBUGCOUTFNAME("AerodynamicExternal::ConstructAndInitialize");
+	 if (fToBeOutput()) {
+		SAFENEWWITHCONSTRUCTOR(pForce, Mat3xN, Mat3xN(NodeN+1,0.));
+		SAFENEWWITHCONSTRUCTOR(pMoms, Mat3xN, Mat3xN(NodeN+1,0.));
+	}
 	SAFENEWWITHCONSTRUCTOR(pdBuffer, MyVectorHandler,
 			MyVectorHandler(8+3*NodeN*(OffN+1)));
-	
 	if (VelFlag || MomFlag) SAFENEWWITHCONSTRUCTOR(pdBufferVel, MyVectorHandler,
 			MyVectorHandler(3*NodeN*(OffN+1)));
 	
 	/* invio delle posizioni iniziali dei nodi per il calcolo della matrice di interpolazione */
-	unsigned int*  pLabList = NULL; 
 	SAFENEWARR(pLabList, unsigned int, 2*NodeN);
 	Mat3xN MatTmp(OffN,0.);
 	Vec3 X;
@@ -157,26 +162,6 @@ void AerodynamicExternal::ConstructAndInitialize(void)
 	codice di interfaccia e' sempre fatto da una macchina sola */
 	pInterfComm->Send(pLabList, 2*NodeN, MPI::UNSIGNED, 0,(this->GetLabel())*10+1); 
 	pInterfComm->Send(pdBuffer->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+2);
-	
-	/* creo le request per la trasmissione e ricezione dei dati */
-	 
-	if (VelFlag) {
-		SAFENEWARR(pSenReq, MPI::Prequest, 2);
-		pSenReq[0] = pInterfComm->Send_init(pdBuffer->pdGetVec(), 8+3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+2);
-		pSenReq[1] = pInterfComm->Send_init(pdBufferVel->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+3);
-	} else { 
-		SAFENEWARR(pSenReq, MPI::Prequest, 1);
-		pSenReq[0] = pInterfComm->Send_init(pdBuffer->pdGetVec(), 8+3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+2);
-	}			
-	if (MomFlag) {
-		SAFENEWARR(pRecReq, MPI::Prequest, 2);
-		pRecReq[0] = pInterfComm->Recv_init(pdBuffer->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+4);
-		pRecReq[1] = pInterfComm->Recv_init(pdBufferVel->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+5);
-	}else {
-		SAFENEWARR(pRecReq, MPI::Prequest, 1);
-		pRecReq[0] = pInterfComm->Recv_init(pdBuffer->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+4);
-	}
-	SAFEDELETEARR(pLabList);	
 }
 
 
@@ -185,7 +170,7 @@ void AerodynamicExternal::AfterPredict(VectorHandler& X  ,
 					VectorHandler&  XP  )
 {
 	DEBUGCOUTFNAME("AerodynamicExternal::AfterPredict");
-	std::cout << "New Step "  << std::endl; 
+	//std::cout << "AerodynamicExternal::AfterPredict" << std::endl;
 	Send(X, XP);
 }
 
@@ -194,56 +179,50 @@ void AerodynamicExternal::Update(const VectorHandler& X  ,
 					const VectorHandler&  XP  )
 {
 	DEBUGCOUTFNAME("AerodynamicExternal::Update");
+	//std::cout << "AerodynamicExternal::Update" << std::endl;
 	Send(X, XP);
+	//std::cout << "done" << std::endl;
 }
 
 void AerodynamicExternal::Send(const VectorHandler& X  , 
 					const VectorHandler&  XP  )
 {
-	Vec3 Vinf(0.);
-	Vec3 Xc(0.), V;
-	Mat3x3 R;
-	doublereal rho, c, p, T;
-	GetAirProps(Xc, rho, c, p, T); 
-	fGetAirVelocity(Vinf,Xc); 
-	/* current time */
-	pdBuffer->fPutCoef(1, DriveOwner::dGet());
-	pdBuffer->Put(2, Vinf);
-	pdBuffer->fPutCoef(5, rho);
-	pdBuffer->fPutCoef(6,c);
-	pdBuffer->fPutCoef(7,p);
-	pdBuffer->fPutCoef(8,T);
+	if(!SentFlag) {
+		//std::cout << "AerodynamicExternal::Send " <<  SentFlag << std::endl;
+		Vec3 Vinf(0.);
+		Vec3 Xc(0.), V;
+		Mat3x3 R;
+		doublereal rho, c, p, T;
+		GetAirProps(Xc, rho, c, p, T); 
+		fGetAirVelocity(Vinf,Xc); 
+		/* current time */
+		pdBuffer->fPutCoef(1, DriveOwner::dGet());
+		pdBuffer->Put(2, Vinf);
+		pdBuffer->fPutCoef(5, rho);
+		pdBuffer->fPutCoef(6,c);
+		pdBuffer->fPutCoef(7,p);
+		pdBuffer->fPutCoef(8,T);
  		
-	Mat3xN MatTmp(OffN,0.);
-	for (int i=0; i < NodeN; i++) {
-		Xc = ppNode[i]->GetXCurr();
-		pdBuffer->Put(8+i*(OffN+1)*3+1, Xc);
-		if (VelFlag) {
-			V = ppNode[i]->GetVCurr();
-			pdBufferVel->Put(i*(OffN+1)*3+1, V);
+		Mat3xN MatTmp(OffN,0.);
+		for (int i=0; i < NodeN; i++) {
+			Xc = ppNode[i]->GetXCurr();
+			pdBuffer->Put(8+i*(OffN+1)*3+1, Xc);
+			if (VelFlag) {
+				V = ppNode[i]->GetVCurr();
+				pdBufferVel->Put(i*(OffN+1)*3+1, V);
+			}
+			for (int j=1; j <= OffN; j++) {
+				R = ppNode[i]->GetRCurr();
+				MatTmp.LeftMult(R, *pOffsetVectors);
+				MatTmp *= pRefLength[i];
+				pdBuffer->Put(8+i*(OffN+1)*3+j*3+1, Xc + MatTmp.GetVec(j));
+				if (VelFlag) pdBufferVel->Put(i*(OffN+1)*3+j*3+1, V + ( Mat3x3(ppNode[i]->GetWCurr()) * R)* MatTmp.GetVec(j));
+			}
 		}
-		for (int j=1; j <= OffN; j++) {
-			R = ppNode[i]->GetRCurr();
-			MatTmp.LeftMult(R, *pOffsetVectors);
-			MatTmp *= pRefLength[i];
-			pdBuffer->Put(8+i*(OffN+1)*3+j*3+1, Xc + MatTmp.GetVec(j));
-			if (VelFlag) pdBufferVel->Put(i*(OffN+1)*3+j*3+1, V + ( Mat3x3(ppNode[i]->GetWCurr()) * R)* MatTmp.GetVec(j));
-		}
-	}
-	MPI::Status ss;
-	pSenReq->Wait(ss);
-	int pippo = ss.Get_error();
-	std::cout << "pippo 1 " << pippo << std::endl; 
-	if (VelFlag) {
-		(pSenReq[1]).Wait(ss);
-		int pippo = ss.Get_error();
-		std::cout << "pippo 2 " << pippo << std::endl; 
-	}
-	MPI::Prequest::Startall(1 + VelFlag, pSenReq);
-	std::cout <<"nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn "  << std::endl; 
-	/* attiva la ricezione delle forze */
-	MPI::Prequest::Startall(1 , pRecReq);
-	SentFlag = true; 
+		pInterfComm->Send(pdBuffer->pdGetVec(), 8+3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+2);
+		if (VelFlag) pInterfComm->Send(pdBufferVel->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+3);
+		SentFlag = true;
+	} 
 }
 
 SubVectorHandler&
@@ -254,17 +233,10 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 {
 	DEBUGCOUTFNAME("AerodynamicExternal::AssRes");
 	/* verifica il completamento dei send */
-	if(!SentFlag) Send(XCurr, XPrimeCurr);
+	//std::cout << "AerodynamicExternal::AssRes " <<  SentFlag << std::endl;
 	
-	MPI::Status ss;
-	pSenReq->Wait(ss);
-	int pippo = ss.Get_error();
-	std::cout << "pippo 1 " << pippo << std::endl; 
-	if (VelFlag) {
-		(pSenReq[1]).Wait(ss);
-		int pippo = ss.Get_error();
-		std::cout << "pippo 2 " << pippo << std::endl; 
-	}
+	Send(XCurr, XPrimeCurr);
+	
 	WorkVec.Resize(6*NodeN);
    	WorkVec.Reset(0.);
 
@@ -276,13 +248,14 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
    		}
 	}
 		
-	/* attende il completamento dei receive */
-	MPI::Prequest::Waitall(1 + MomFlag, pRecReq);
-	
+	pInterfComm->Recv(pdBuffer->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+4);
+	if(MomFlag) pInterfComm->Recv(pdBufferVel->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+5);
 	/* calcola le forze su ciascun nodo */
 	/* le forze e i momenti sono gia' espressi nel sistema di riferimento global */
-	Vec3 FT(0.);
-	Vec3 MT(0.);
+	if (fToBeOutput()) { 
+		pForce->Reset();
+		pMoms->Reset();
+	}
 	for (int i=0; i < NodeN; i++) {
 		Vec3 F(0.);
 		Vec3 Fo(0.);
@@ -305,19 +278,41 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 				M[1] +=  pdBufferVel->dGetCoef(i*(OffN+1)*3+j*3+2);
 				M[2] +=  pdBufferVel->dGetCoef(i*(OffN+1)*3+j*3+3);
 			}
-			//Vec3 TmpF(*pdBuffer, i*(OffN+1)*3+(j+1)*3+1);
-			
 			M -= Fo.Cross( ppNode[i]->GetRCurr() * pOffsetVectors->GetVec(j) * pRefLength[i]);
+		}
+		if (fToBeOutput()) { 
+			pForce->AddVec(1,F);
+			pMoms->AddVec(1,M);
+			pForce->PutVec(i+2,F);
+			pMoms->PutVec(i+2,M);
 		}
 		WorkVec.Add(i*6+1, F);
    		WorkVec.Add(i*6+4, M);
-		FT +=F;
-		MT +=M;
 	}
-	std::cerr << "FT " << FT << std::endl;
-	std::cerr << "MT " << MT << std::endl;
+	//std::cout << "FT " <<  pForce->GetVec(1) << std::endl;
+	//std::cout << "MT " <<  pMoms->GetVec(1) << std::endl;
+
 	SentFlag = false; 
 	return WorkVec;			
+}
+
+void
+AerodynamicExternal::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) {
+		integer lab = -1*GetLabel();
+		std::ostream& out = OH.Externals()
+                        << std::setw(8) << lab 
+			<< " " << pForce->GetVec(1)
+			<< " " << pMoms->GetVec(1) << std::endl;
+		if (NodeN > 1) {
+			for (int i=1; i <= NodeN; i++) {
+				out << std::setw(8) << pLabList[i-1]
+					<< " " << pForce->GetVec(i+1)
+					<< " " << pMoms->GetVec(i+1) << std::endl;
+			}
+		}
+	}
 }
 
 Elem *
@@ -328,8 +323,7 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    
    	unsigned int NodeN = HP.GetInt(); 
    
-   	DEBUGCOUT("Aerodynamic External Block made of : " << NodeN << " Nodes." << std::endl);    
-   	std::cout << "Aerodynamic External Block made of : " << NodeN << " Nodes." << std::endl;    
+   	std::cout << "Aerodynamic External Block made of  " << NodeN << " Nodes." << std::endl;    
    	
 	const StructNode** ppNodeList = NULL;
 	SAFENEWARR(ppNodeList, const StructNode*, NodeN);
@@ -403,8 +397,7 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsKeyWord("velocity")) VelFlag = true;
 	if (HP.IsKeyWord("moment")) MomFlag = true;
 		  
-   	/* per ora l'elemento non genera output */
-	flag fOut = 0;
+	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 	DriveCaller* pDC = NULL;
 	SAFENEWWITHCONSTRUCTOR(pDC, TimeDriveCaller, TimeDriveCaller(pDM->pGetDrvHdl()));
 	
@@ -461,14 +454,19 @@ pdBufferVel(NULL),
 pModal(pM),
 ModalNodes(pM->uGetNFemNodes()),
 pInterfComm(IC),
-pSenReq(NULL),
-pRecReq(NULL),
 VelFlag(VF),
 MomFlag(MF),
-SentFlag(false)
+SentFlag(false),
+pForce(NULL)
 {
 	SAFENEWWITHCONSTRUCTOR(pdBuffer, MyVectorHandler,
 			MyVectorHandler(8+3*ModalNodes));
+	
+	if (fToBeOutput()) {
+		integer NModes = pModal->uGetNModes();
+		SAFENEWWITHCONSTRUCTOR(pForce, MyVectorHandler,
+			MyVectorHandler(NModes));
+	}	
 	
 	if (VelFlag || MomFlag) SAFENEWWITHCONSTRUCTOR(pdBufferVel, MyVectorHandler,
 			MyVectorHandler(3*ModalNodes));
@@ -486,24 +484,6 @@ SentFlag(false)
 		pdBuffer->Put(i*3, pNodePos->GetVec(i+1));
 	}
 	pInterfComm->Send(pdBuffer->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+2);
-	/* creo le request per la trasmissione e ricezione dei dati */
-	 
-	if (VelFlag) {
-		SAFENEWARR(pSenReq, MPI::Prequest, 2);
-		pSenReq[0] = pInterfComm->Send_init(pdBuffer->pdGetVec(), 8+3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+2);
-		pSenReq[1] = pInterfComm->Send_init(pdBufferVel->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+3);
-	} else { 
-		SAFENEWARR(pSenReq, MPI::Prequest, 1);
-		pSenReq[0] = pInterfComm->Send_init(pdBuffer->pdGetVec(), 8+3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+2);
-	}			
-	if (MomFlag) {
-		SAFENEWARR(pRecReq, MPI::Prequest, 2);
-		pRecReq[0] = pInterfComm->Recv_init(pdBuffer->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+4);
-		pRecReq[1] = pInterfComm->Recv_init(pdBufferVel->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+5);
-	}else {
-		SAFENEWARR(pRecReq, MPI::Prequest, 1);
-		pRecReq[0] = pInterfComm->Recv_init(pdBuffer->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+4);
-	}
 
 }
 
@@ -511,8 +491,7 @@ AerodynamicExternalModal::~AerodynamicExternalModal(void)
 {
 	if (pdBuffer != NULL) SAFEDELETE(pdBuffer);
 	if (pdBufferVel != NULL) SAFEDELETE(pdBufferVel);
-	if (pSenReq != NULL) SAFEDELETEARR(pSenReq);
-	if (pRecReq != NULL) SAFEDELETEARR(pRecReq);
+	if (pForce != NULL) SAFEDELETE(pForce);
 }
 
 /* invia posizione e velocita' predetti */ 
@@ -553,10 +532,8 @@ void AerodynamicExternalModal::Send(const VectorHandler& X  ,
 		pdBuffer->Put(8+i*3, pNodePos->GetVec(i+1));
 		if (VelFlag) pdBufferVel->Put(i*3, pNodeVel->GetVec(i+1));
 	}
-		
-	MPI::Prequest::Startall(1 + VelFlag, pSenReq);
-	/* attiva la ricezione delle forze */
-	MPI::Prequest::Startall(1 + MomFlag, pRecReq);
+	pInterfComm->Send(pdBuffer->pdGetVec(), 8+3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+2);
+	if (VelFlag) pInterfComm->Send(pdBufferVel->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+3);
 	SentFlag = true; 
  
 }
@@ -569,9 +546,7 @@ AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
 	       			const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("AerodynamicExternalModal::AssRes");
-	/* verifica il completamento dei send */
 	if(!SentFlag) Send(XCurr, XPrimeCurr);
-	MPI::Prequest::Waitall(1 + VelFlag, pSenReq);
    	integer NModes = pModal->uGetNModes();
 	WorkVec.Resize(NModes);
    	WorkVec.Reset(0.);
@@ -582,8 +557,8 @@ AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
       		WorkVec.fPutRowIndex(iCnt, iFirstIndex+NModes+iCnt);
 	}
 		
-	/* attende il completamento dei receive */
-	MPI::Prequest::Waitall(1 + MomFlag, pRecReq);
+	pInterfComm->Recv(pdBuffer->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+4);
+	if (MomFlag) pInterfComm->Recv(pdBufferVel->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+5);
 	
 	/* calcola le forze su ciascun nodo 
 	 * le forze e i momenti sono espressi nel sistema di riferimento global 
@@ -610,10 +585,27 @@ AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
 			if (MomFlag) WorkVec.Add(iMode+1, RT*M*((pModal->pGetPHIr())->GetVec(iMode*ModalNodes+iNode+1)));
 		}	
 	}
+	if (fToBeOutput()) {
+		*pForce = WorkVec;
+	}
 	SentFlag = false; 
 	return WorkVec;			
 }
 	
+
+void
+AerodynamicExternalModal::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) {
+		std::ostream& out = OH.Externals()
+                        << std::setw(8) << -1*GetLabel();
+		int size = pForce->iGetSize();
+		for (int i=0; i < size; i++) {
+			out << std::setw(8) 
+				<< " " << pForce->dGetCoef(i+1) << std::endl;
+		}
+	}
+}
 
 Elem *
 ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
@@ -644,8 +636,7 @@ ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLa
 	if (HP.IsKeyWord("velocity")) VelFlag = true;
 	if (HP.IsKeyWord("moment")) MomFlag = true;
 		  
-   	/* per ora l'elemento non genera output */
-	flag fOut = 0;
+	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 	DriveCaller* pDC = NULL;
 	SAFENEWWITHCONSTRUCTOR(pDC, TimeDriveCaller, TimeDriveCaller(pDM->pGetDrvHdl()));
 

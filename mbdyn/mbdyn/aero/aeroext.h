@@ -62,11 +62,13 @@ private:
 	int                OffN;	/* numero di punto rigidamente collegati con coascun nodo */
 	Mat3xN*            pOffsetVectors; /* posizioni dei punto collegati con ciascun nodo */
 	MPI::Intercomm*    pInterfComm;    /* Intercomunicatore con il codice di interfacia */
-	MPI::Prequest*     pSenReq;
-	MPI::Prequest* 	   pRecReq;
+	MPI::Request* 	   pRecReq;
 	bool               VelFlag;
 	bool		   MomFlag;
 	bool               SentFlag;
+	Mat3xN*            pForce;    	/* output forze  */
+	Mat3xN*            pMoms;    	/* output momenti  */
+	unsigned int*      pLabList;    /* lista label nodi */
 
 public:
 	
@@ -155,8 +157,7 @@ public:
 	 * output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output
 	 */
-	virtual void Output(OutputHandler& OH) const
-	{ NO_OP; };
+	virtual void Output(OutputHandler& OH) const;
  
  	/* Tipo di elemento aerodinamico */
 	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const {
@@ -218,6 +219,7 @@ protected:
 	bool               VelFlag;
 	bool		   MomFlag;
 	bool               SentFlag;
+	MyVectorHandler*   pForce;    /* buffer per l'output delle forze */
 
 public:
 	
@@ -294,8 +296,7 @@ public:
 	 * output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output
 	 */
-	virtual void Output(OutputHandler& OH) const
-	{ NO_OP; };
+	virtual void Output(OutputHandler& OH) const;
  
  	/* Tipo di elemento aerodinamico */
 	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const {
