@@ -703,6 +703,9 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
 	     } else if (HP.IsKeyWord("equation" "description")) {
 	        uPrintFlags |= (PRINT_DOFSTATS | PRINT_EQDESCRIPTION);
 
+	     } else if (HP.IsKeyWord("all")) {
+	        uPrintFlags = ~PRINT_NONE;
+
 	     } else if (HP.IsKeyWord("none")) {
 	        uPrintFlags = PRINT_NONE;
 	     }
