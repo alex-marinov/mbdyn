@@ -372,7 +372,7 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 			SEGNO, SGN, SGM, SGMAX, 
 			DAN, DCN, DAM, DCM, 
 			S2, alphaN, alphaM, C1,
-			dcma, cm0;
+			dcma;
 
 		double ALF1, ALF2;
 		
@@ -542,7 +542,7 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 
 		/* nota: qui il CLalpha e' in 1/deg */
 		if (fabs(alpha) > 1.e-6) {
-			double dclatmp = (cl-cl0)/(alpha*cosgam);
+			double dclatmp = (cl-cl0)/(OUTA[1]*cosgam);
 			if (dclatmp < dcla) {
 				dcla = dclatmp;
 			}
