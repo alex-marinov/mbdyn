@@ -1,4 +1,6 @@
 mbdyn		mbdyn/mbdyn-1.0
 mbdyn-legacy	mbdyn/mbdyn-devel
 ldap2bibtex	masarati/ldap2bibtex
+anpa		masarati/anpa
+anpa-base	masarati/anpa/anpa-base
 
