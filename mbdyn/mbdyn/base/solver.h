@@ -218,7 +218,6 @@ private:
 	integer iIWorkSpaceSize;
 	doublereal dIPivotFactor;
 	SolutionManager *pLocalSM;
-        SchurSolutionManager *pSSM;
 #endif /* USE_MPI */  
 
 	/* il solution manager v*/
@@ -237,6 +236,11 @@ private:
 			       integer iPerformedIters,
 			       StepIntegrator::StepChange Dmy 
 			       = StepIntegrator::NEWSTEP);
+	
+	/* Alloca Solman */
+	SolutionManager *const AllocateSolman(integer iNLD, integer iLWS = 0);
+	/* Alloca SchurSolman */
+	SolutionManager *const AllocateSchurSolman();
    
 
 public:   

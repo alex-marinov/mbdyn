@@ -227,7 +227,6 @@ pDofs(NULL),
 iIWorkSpaceSize(0),
 dIPivotFactor(-1.),
 pLocalSM(NULL),
-pSSM(NULL),
 #endif /* USE_MPI */
 pSM(NULL),
 pNLS(NULL)
@@ -457,69 +456,7 @@ void Solver::Run(void)
 	}
 #endif /* USE_MPI */
 
-	SolutionManager *pCurrSM(NULL);
-
-   	switch (CurrSolver) {
-     	case LinSol::Y12_SOLVER: 
-#ifdef USE_Y12
-      		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			Y12SparseLUSolutionManager,
-			Y12SparseLUSolutionManager(iNLD, iLWS,
-				dPivotFactor == -1. ? 1. : dPivotFactor));
-      		break;
-#else /* !USE_Y12 */
-      		std::cerr << "Configure with --with-y12 "
-			"to enable Y12 solver" << std::endl;
-      		THROW(ErrGeneric());
-#endif /* !USE_Y12 */
-
-	case LinSol::MESCHACH_SOLVER:
-#ifdef USE_MESCHACH
-		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			MeschachSparseLUSolutionManager,
-			MeschachSparseLUSolutionManager(iNLD, iLWS,
-				dPivotFactor == -1. ? 1. : dPivotFactor));
-		break;
-#else /* !USE_MESCHACH */
-		std::cerr << "Configure with --with-meschach "
-			"to enable Meschach solver" << std::endl;
-      		THROW(ErrGeneric());
-#endif /* !USE_MESCHACH */
-
- 	case LinSol::HARWELL_SOLVER:
-#ifdef USE_HARWELL
-		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			HarwellSparseLUSolutionManager,
-			HarwellSparseLUSolutionManager(iNLD, iLWS,
-				dPivotFactor == -1. ? 1. : dPivotFactor));
-      		break;
-#else /* !USE_HARWELL */
-      		std::cerr << "Configure with --with-harwell "
-			"to enable Harwell solver" << std::endl;
-		THROW(ErrGeneric());
-#endif /* !USE_HARWELL */
-
-	case LinSol::UMFPACK_SOLVER:
-#ifdef USE_UMFPACK
-		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			UmfpackSparseLUSolutionManager,
-			UmfpackSparseLUSolutionManager(iNLD, 
-				0, dPivotFactor));
-      		break;
-#else /* !USE_UMFPACK */
-      		std::cerr << "Configure with --with-umfpack "
-			"to enable Umfpack solver" << std::endl;
-      		THROW(ErrGeneric());
-#endif /* !USE_UMFPACK */
-
-	case LinSol::EMPTY_SOLVER:
-		break;
-				
-   	default:
-		ASSERT(0);
-		THROW(ErrGeneric());
-
-	}
+	SolutionManager *pCurrSM = AllocateSolman(iNLD,iLWS);
 
 	/*
 	 * This is the LOCAL solver if instantiating a parallel
@@ -530,77 +467,8 @@ void Solver::Run(void)
 		pLocalSM = pCurrSM;
 
 		/* Crea il solutore di Schur globale */
-		switch (CurrIntSolver) {
-		case LinSol::Y12_SOLVER:
-#ifdef USE_Y12
-			SAFENEWWITHCONSTRUCTOR(pSSM,
-				SchurSolutionManager,
-				SchurSolutionManager(iNumDofs, pLocDofs,
-					iNumLocDofs,
-					pIntDofs, iNumIntDofs,
-					pLocalSM,
-					(Y12SparseLUSolutionManager*)0,
-					iIWorkSpaceSize,
-					dIPivotFactor == -1. ? 1. : dIPivotFactor));
-			break;
-#else /* !USE_Y12 */
-			std::cerr << "Configure with --with-y12 "
-				"to enable Y12 solver" << std::endl;
-			THROW(ErrGeneric());
-#endif /* !USE_Y12 */
+		pSM = AllocateSchurSolman();
 
-		case LinSol::HARWELL_SOLVER:
-			std::cerr << "Harwell solver cannot be used "
-				"as interface solver"
-#ifdef USE_MESCHACH
-				"; switching to Meschach" 
-#endif /* USE_MESCHACH */
-				<< std::endl;
-#ifndef USE_MESCHACH
-			THROW(ErrGeneric());
-#endif /* !USE_MESCHACH */
-
-		case LinSol::MESCHACH_SOLVER:
-#ifdef USE_MESCHACH
-			SAFENEWWITHCONSTRUCTOR(pSSM,
-				SchurSolutionManager,
-				SchurSolutionManager(iNumDofs, pLocDofs,
-					iNumLocDofs,
-					pIntDofs, iNumIntDofs,
-					pLocalSM,
-					(MeschachSparseLUSolutionManager*)0,
-					iIWorkSpaceSize,
-					dIPivotFactor == -1. ? 1. : dIPivotFactor));
-			break;
-#else /* !USE_MESCHACH */
-			std::cerr << "Configure with --with-meschach "
-				"to enable Meschach solver" << std::endl;
-			THROW(ErrGeneric());
-#endif /* !USE_MESCHACH */
-
-		case LinSol::UMFPACK_SOLVER:
-#ifdef USE_UMFPACK
-			SAFENEWWITHCONSTRUCTOR(pSSM,
-				SchurSolutionManager,
-				SchurSolutionManager(iNumDofs, pLocDofs,
-					iNumLocDofs,
-					pIntDofs, iNumIntDofs,
-					pLocalSM,
-					(UmfpackSparseLUSolutionManager*)0,
-					0, 
-					dIPivotFactor));
-			break;
-#else /* !USE_UMFPACK */
-			std::cerr << "Configure with --with-umfpack "
-				"to enable Umfpack solver" << std::endl;
-			THROW(ErrGeneric());
-#endif /* !USE_UMFPACK */
-		case LinSol::EMPTY_SOLVER:
-			break;
-		}
-
-		pSM = pSSM;
-		
 	} else {
 #endif /* USE_MPI */
 		pSM = pCurrSM;
@@ -3468,3 +3336,151 @@ Solver::Eig(void)
 }
 
 #endif /* __HACK_EIG__ */
+
+
+SolutionManager *const Solver::AllocateSolman(integer iNLD, integer iLWS) {
+	SolutionManager *pCurrSM(NULL);
+
+   	switch (CurrSolver) {
+     	case LinSol::Y12_SOLVER: 
+#ifdef USE_Y12
+      		SAFENEWWITHCONSTRUCTOR(pCurrSM,
+			Y12SparseLUSolutionManager,
+			Y12SparseLUSolutionManager(iNLD, iLWS,
+				dPivotFactor == -1. ? 1. : dPivotFactor));
+      		break;
+#else /* !USE_Y12 */
+      		std::cerr << "Configure with --with-y12 "
+			"to enable Y12 solver" << std::endl;
+      		THROW(ErrGeneric());
+#endif /* !USE_Y12 */
+
+	case LinSol::MESCHACH_SOLVER:
+#ifdef USE_MESCHACH
+		SAFENEWWITHCONSTRUCTOR(pCurrSM,
+			MeschachSparseLUSolutionManager,
+			MeschachSparseLUSolutionManager(iNLD, iLWS,
+				dPivotFactor == -1. ? 1. : dPivotFactor));
+		break;
+#else /* !USE_MESCHACH */
+		std::cerr << "Configure with --with-meschach "
+			"to enable Meschach solver" << std::endl;
+      		THROW(ErrGeneric());
+#endif /* !USE_MESCHACH */
+
+ 	case LinSol::HARWELL_SOLVER:
+#ifdef USE_HARWELL
+		SAFENEWWITHCONSTRUCTOR(pCurrSM,
+			HarwellSparseLUSolutionManager,
+			HarwellSparseLUSolutionManager(iNLD, iLWS,
+				dPivotFactor == -1. ? 1. : dPivotFactor));
+      		break;
+#else /* !USE_HARWELL */
+      		std::cerr << "Configure with --with-harwell "
+			"to enable Harwell solver" << std::endl;
+		THROW(ErrGeneric());
+#endif /* !USE_HARWELL */
+
+	case LinSol::UMFPACK_SOLVER:
+#ifdef USE_UMFPACK
+		SAFENEWWITHCONSTRUCTOR(pCurrSM,
+			UmfpackSparseLUSolutionManager,
+			UmfpackSparseLUSolutionManager(iNLD, 
+				0, dPivotFactor));
+      		break;
+#else /* !USE_UMFPACK */
+      		std::cerr << "Configure with --with-umfpack "
+			"to enable Umfpack solver" << std::endl;
+      		THROW(ErrGeneric());
+#endif /* !USE_UMFPACK */
+
+	case LinSol::EMPTY_SOLVER:
+		break;
+				
+   	default:
+		ASSERT(0);
+		THROW(ErrGeneric());
+
+	}
+	return pCurrSM;
+};
+
+
+SolutionManager *const Solver::AllocateSchurSolman() {
+	SolutionManager *pSSM(NULL);
+#ifdef USE_MPI
+	switch (CurrIntSolver) {
+		case LinSol::Y12_SOLVER:
+#ifdef USE_Y12
+		SAFENEWWITHCONSTRUCTOR(pSSM,
+			SchurSolutionManager,
+			SchurSolutionManager(iNumDofs, pLocDofs,
+				iNumLocDofs,
+				pIntDofs, iNumIntDofs,
+				pLocalSM,
+				(Y12SparseLUSolutionManager*)0,
+				iIWorkSpaceSize,
+				dIPivotFactor == -1. ? 1. : dIPivotFactor));
+		break;
+#else /* !USE_Y12 */
+		std::cerr << "Configure with --with-y12 "
+			"to enable Y12 solver" << std::endl;
+		THROW(ErrGeneric());
+#endif /* !USE_Y12 */
+
+	case LinSol::HARWELL_SOLVER:
+		std::cerr << "Harwell solver cannot be used "
+			"as interface solver"
+#ifdef USE_MESCHACH
+			"; switching to Meschach" 
+#endif /* USE_MESCHACH */
+			<< std::endl;
+#ifndef USE_MESCHACH
+		THROW(ErrGeneric());
+#endif /* !USE_MESCHACH */
+
+	case LinSol::MESCHACH_SOLVER:
+#ifdef USE_MESCHACH
+		SAFENEWWITHCONSTRUCTOR(pSSM,
+			SchurSolutionManager,
+			SchurSolutionManager(iNumDofs, pLocDofs,
+				iNumLocDofs,
+				pIntDofs, iNumIntDofs,
+				pLocalSM,
+				(MeschachSparseLUSolutionManager*)0,
+				iIWorkSpaceSize,
+				dIPivotFactor == -1. ? 1. : dIPivotFactor));
+		break;
+#else /* !USE_MESCHACH */
+	std::cerr << "Configure with --with-meschach "
+		"to enable Meschach solver" << std::endl;
+	THROW(ErrGeneric());
+#endif /* !USE_MESCHACH */
+
+	case LinSol::UMFPACK_SOLVER:
+#ifdef USE_UMFPACK
+		SAFENEWWITHCONSTRUCTOR(pSSM,
+			SchurSolutionManager,
+			SchurSolutionManager(iNumDofs, pLocDofs,
+				iNumLocDofs,
+				pIntDofs, iNumIntDofs,
+				pLocalSM,
+				(UmfpackSparseLUSolutionManager*)0,
+				0, 
+				dIPivotFactor));
+		break;
+#else /* !USE_UMFPACK */
+		std::cerr << "Configure with --with-umfpack "
+			"to enable Umfpack solver" << std::endl;
+		THROW(ErrGeneric());
+#endif /* !USE_UMFPACK */
+	case LinSol::EMPTY_SOLVER:
+		break;
+	}
+#else /* !USE_MPI */
+		std::cerr << "Configure --with-mpi "
+			"to enable schur solver" << std::endl;
+		THROW(ErrGeneric());
+#endif /* !USE_MPI */
+	return pSSM;
+};
