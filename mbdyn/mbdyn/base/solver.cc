@@ -257,7 +257,7 @@ iPrecondSteps(iDefaultPreconditionerSteps),
 iIterativeMaxSteps(iDefaultPreconditionerSteps),
 dIterertiveEtaMax(defaultIterativeEtaMax),
 dIterertiveTau(defaultIterativeTau),
-honorJacRequest(false),
+bHonorJacRequest(false),
 /* for parallel solvers */
 bParallel(bPar),
 pSDM(NULL),
@@ -1871,7 +1871,7 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 			if (bKeepJac) {
 				out << ", keep jacobian";
 			}
-			if (honorJacRequest) {
+			if (bHonorJacRequest) {
 				out << ", honor element requests";
 			}
 		}
@@ -3067,7 +3067,7 @@ Solver::ReadData(MBDynParser& HP)
 							<< " iterations"
 							<< std::endl);
 					if (HP.IsKeyWord("honor" "element" "requests")) {
-						honorJacRequest = true;
+						bHonorJacRequest = true;
 						DEBUGLCOUT(MYDEBUG_INPUT,
 								"honor elements' "
 								"request to update "
@@ -3155,7 +3155,7 @@ Solver::ReadData(MBDynParser& HP)
 									<< std::endl);
 						}
 						if (HP.IsKeyWord("honor" "element" "requests")) {
-							honorJacRequest = true;
+							bHonorJacRequest = true;
 							DEBUGLCOUT(MYDEBUG_INPUT,
 									"honor elements' "
 									"request to update "
@@ -4109,7 +4109,7 @@ Solver::AllocateNonlinearSolver()
 						iIterativeMaxSteps,
 						dIterertiveEtaMax,
 						dIterertiveTau,
-						honorJacRequest));
+						bHonorJacRequest));
 			break;
 
 		default:
@@ -4126,7 +4126,7 @@ Solver::AllocateNonlinearSolver()
 						iIterativeMaxSteps,
 						dIterertiveEtaMax,
 						dIterertiveTau,
-						honorJacRequest));
+						bHonorJacRequest));
 			break;
 		}
 		break;
@@ -4141,7 +4141,7 @@ Solver::AllocateNonlinearSolver()
 				NewtonRaphsonSolver(bTrueNewtonRaphson,
 					bKeepJac,
 					iIterationsBeforeAssembly,
-					honorJacRequest));
+					bHonorJacRequest));
 		break;
 	}
 	return pNLS;

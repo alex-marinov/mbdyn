@@ -109,7 +109,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 	      		pNLP->Residual(pRes);
 		}
 		catch (SolutionDataManager::ChangedEquationStructure) {
-			if (honorJacRequest) {
+			if (bHonorJacRequest) {
 				forceJacobian = true;
 			}
 		}
@@ -135,7 +135,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 
 		if (outputIters()) {
 #ifdef USE_MPI
-			if (!MPI::Is_initialized() || MBDynComm.Get_rank() == 0) {
+			if (!bParallel || MBDynComm.Get_rank() == 0) {
 #endif /* USE_MPI */
 				silent_cout("\tIteration " << iIterCnt
 					<< " " << dErr);
@@ -223,7 +223,7 @@ rebuild_matrix:;
 		dSolErr = MakeSolTest(pS, *pSol);
 		if (outputIters()) {
 #ifdef USE_MPI
-			if (!MPI::Is_initialized() || MBDynComm.Get_rank() == 0) {
+			if (!bParallel || MBDynComm.Get_rank() == 0) {
 #endif /* USE_MPI */
 				silent_cout("\t\tSolErr "
 					<< dSolErr << std::endl);

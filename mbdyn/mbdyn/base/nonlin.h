@@ -179,7 +179,10 @@ public:
 protected:
 	integer Size;
 	integer TotJac;	
-	bool honorJacRequest;
+	bool bHonorJacRequest;
+#ifdef USE_MPI
+	bool bParallel;
+#endif /* USE_MPI */
 	NonlinearSolverTest *pResTest;
 	NonlinearSolverTest *pSolTest;
 #ifdef USE_EXTERNAL	

@@ -241,7 +241,7 @@ private:
 	integer iIterativeMaxSteps;
 	doublereal dIterertiveEtaMax;
 	doublereal dIterertiveTau;
-	bool honorJacRequest;
+	bool bHonorJacRequest;
 
 /* FOR PARALLEL SOLVERS */
 	bool bParallel;

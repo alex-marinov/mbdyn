@@ -320,7 +320,10 @@ NonlinearSolverTestScaleMinMax::dScaleCoef(const integer& iIndex) const
 NonlinearSolver::NonlinearSolver(bool JacReq)
 : Size(0),
 TotJac(0),
-honorJacRequest(JacReq),
+bHonorJacRequest(JacReq),
+#ifdef USE_MPI
+bParallel(MPI::Is_initialized()),
+#endif /* USE_MPI */
 pResTest(0),
 pSolTest(0)
 #ifdef USE_EXTERNAL
