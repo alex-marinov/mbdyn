@@ -53,7 +53,7 @@ PlaneHingeJoint::PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
 Joint(uL, Joint::PLANEHINGE, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.), dTheta(0.),
-r(rr), Sh_c(sh), fc(f)
+Sh_c(sh), fc(f), r(rr)
 {
 	NO_OP;
 }
@@ -130,14 +130,14 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstReactionIndex = iGetFirstIndex();
 
    /* Setta gli indici delle equazioni */
-   for (int iCnt = 1; iCnt <= 6; iCnt++) {	
+   for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {	
       WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
       WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
       WM.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
       WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
    }
    
-   for (int iCnt = 1; iCnt <= iGetNumDof(); iCnt++) {	
+   for (unsigned int iCnt = 1; iCnt <= iGetNumDof(); iCnt++) {	
       WM.fPutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
       WM.fPutColIndex(12+iCnt, iFirstReactionIndex+iCnt);
    }

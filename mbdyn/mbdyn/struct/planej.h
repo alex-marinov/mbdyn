@@ -58,11 +58,15 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    Vec3 F;
    Vec3 M;
    mutable doublereal dTheta;
+
+   /* friction related data */
    BasicShapeCoefficient *const Sh_c;
    BasicFriction *const fc;
    const doublereal r;
    static const unsigned int NumSelfDof;
    static const unsigned int NumDof;
+   /* end of friction related data */
+   
  public:
    /* Costruttore non banale */
    PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
