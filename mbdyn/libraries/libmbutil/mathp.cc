@@ -1133,53 +1133,62 @@ MathParser::mult(void)
    }
 }
 
+
 TypedValue 
 MathParser::power(void) {
-   TypedValue d = unary();
-   while (1) {
-      switch(currtoken) {
-       case EXP:
-	 GetToken();	
-	 powerstack.Push(d);
-	 d = unary();
-	 break;
-       default: {
-	  TypedValue e(Real(0));
-	  while (powerstack.Pop(e)) {	    
-	     if (e < 0. && d <= 0.) {
-		DEBUGCERR("can't compute " << e << '^' << d << " in power()" << endl);
-		THROW(ErrGeneric(this, "invalid operands in power()"));
-	     }	    
-	     if (d.GetType() == TypedValue::VAR_INT
-		 && e.GetType() == TypedValue::VAR_INT) {
-		Int i = d.GetInt();
-#if 1
-		Int j = e.GetInt();
-		Int r = j;
-		if (i == 0) {
-		   r = 1;
-		} else if (i < 0) {
-		   r = 0;
-		} else {
-		   for (Int k = i-1; k-- > 0; ) {
-		      r *= j;
-		   }
+	TypedValue d = unary();
+	
+	if (currtoken == EXP) {
+		GetToken();
+		
+		/*
+		 * Per l'esponente chiamo di nuovo power cosi' richiama unary;
+		 * se per caso dopo unary c'e' di nuovo un esponente,
+		 * l'associazione avviene correttamente da destra:
+		 *
+		 * 	d^e1^e2 == d^(e1^e2)
+		 */
+		TypedValue e = power();
+		
+		if (d < 0. && e <= 0.) {
+			DEBUGCERR("can't compute " << d << '^'
+					<< e << " in power()" << endl);
+			THROW(ErrGeneric(this, "invalid operands in power()"));
 		}
-		d = TypedValue(r);
-#else /* 0 */
-		d = TypedValue(Int(pow(e.GetInt(), i)));
-#endif /* 0 */
-	     } else {
-		Real r = d.GetReal();
-		d.SetType(TypedValue::VAR_REAL);
-		d = TypedValue(Real(pow(e.GetReal(), r)));
-	     }	     
-	  }	  	  	  
-	  
-	  return d;
-       }
-      }
-   }
+
+		/*
+		 * Se sono entrambi interi, uso la sequenza di prodotti
+		 * (maggiore accuratezza? comunque va in overflow
+		 * correttamente)
+		 */
+		if (e.GetType() == TypedValue::VAR_INT
+				&& d.GetType() == TypedValue::VAR_INT) {
+			Int i = e.GetInt();
+			Int j = d.GetInt();
+			Int r = j;
+			if (i == 0) {
+				r = 1;
+			} else if (i < 0) {
+				r = 0;
+			} else {
+				for (Int k = i-1; k-- > 0; ) {
+					r *= j;
+				}
+			}
+			d = TypedValue(r);
+		/*
+		 * Altrimenti li forzo entrambi a reale e uso pow
+		 * (ottimizzata di suo)
+		 */
+		} else {
+			Real r = e.GetReal();
+			Real b = d.GetReal();
+			d.SetType(TypedValue::VAR_REAL);
+			d = TypedValue(Real(pow(b, r)));
+		}
+	}
+
+	return d;
 }
 
 
