@@ -125,6 +125,10 @@ public:
 		NdLabels[1] = pNode2->GetLabel();
 	};
 	/* ************************************************ */
+
+	virtual unsigned int iGetNumPrivData(void) const;
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+	virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 /* DeformableHingeJoint - end */

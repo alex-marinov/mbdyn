@@ -94,6 +94,36 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 	}
 }
 
+unsigned int
+DeformableHingeJoint::iGetNumPrivData(void) const 
+{
+	return ConstitutiveLaw3DOwner::iGetNumPrivData();
+}
+
+unsigned int
+DeformableHingeJoint::iGetPrivDataIdx(const char *s) const 
+{
+	ASSERT(s != NULL);
+
+	size_t l = sizeof("constitutiveLaw.") - 1;
+	if (strncmp(s, "constitutiveLaw.", l) == 0) {
+		return ConstitutiveLaw3DOwner::iGetPrivDataIdx(s + l);
+	}
+
+	/* error; handle later */
+	return 0;
+}
+
+doublereal
+DeformableHingeJoint::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i > 0);
+
+	ASSERT(i <= ConstitutiveLaw3DOwner::iGetNumPrivData());
+
+	return ConstitutiveLaw3DOwner::dGetPrivData(i);
+}
+
 /* DeformableHingeJoint - end */
 
 
