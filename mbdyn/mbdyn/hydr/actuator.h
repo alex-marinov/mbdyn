@@ -58,12 +58,12 @@ class Actuator : virtual public Elem, public HydraulicElem {
    doublereal dpP1;
    doublereal dpP2;
    
-   doublereal flow1;              /* per l'output */
-   doublereal flow2;              /* per l'output */
-   doublereal Vol1;               /* per l'output */   
-   doublereal Vol2;               /* per l'output */
-   doublereal rho1;               /* per l'output */
-   doublereal rho2;               /* per l'output */
+   doublereal flow1;
+   doublereal flow2;
+   doublereal Vol1;
+   doublereal Vol2;
+   doublereal density1;
+   doublereal density2;
  
    const StructNode* pNodeStr1;   /* nodo strutturale 1 */
    const StructNode* pNodeStr2;   /* nodo strutturale 2 */

@@ -398,12 +398,9 @@ Actuator::AssRes(SubVectorHandler& WorkVec,
    Vec3 f1Tmp(R1*f1);
    Vec3 f2Tmp(R2*f2);
   
-   doublereal density1 = HF1->dGetDensity(p1);
-   doublereal density2 = HF2->dGetDensity(p2);
+   density1 = HF1->dGetDensity(p1);
+   density2 = HF2->dGetDensity(p2);
  
-   rho1 = density1; /* per l'output */
-   rho2 = density2; /*  per l'output */
-    
    doublereal densityDP1 = HF1->dGetDensityDPres(p1);
    doublereal densityDP2 = HF2->dGetDensityDPres(p2);
    
@@ -414,8 +411,14 @@ Actuator::AssRes(SubVectorHandler& WorkVec,
    Vec3 FHyd = TmpAxis*(area1*p1-area2*p2);
    
    /* Calcolo delle portate */
-   doublereal dDist = TmpAxis.Dot(x2+f2Tmp-x1-f1Tmp);
-   doublereal dVel = TmpAxis.Dot(v2+Omega2.Cross(f2Tmp)-v1-Omega1.Cross(f1Tmp));
+   /*
+    * FIXME: manca nello Jacobiano un pezzo della velocita' 
+    * dell'attuatore dipendente dalla velocita' angolare dell'asse
+    */
+   Vec3 Dist = x2+f2Tmp-x1-f1Tmp;
+   doublereal dDist = TmpAxis*Dist;
+   doublereal dVel = TmpAxis.Dot(v2+Omega2.Cross(f2Tmp)-v1-Omega1.Cross(f1Tmp))
+	   +Dist*(Omega1.Cross(TmpAxis));
    flow1 = area1*(densityDP1*dpP1*dDist+density1*dVel);
    flow2 = area2*(densityDP2*dpP2*(dl-dDist)-density2*dVel);
    Vol1 = area1*dDist;
@@ -452,7 +455,7 @@ void Actuator::Output(OutputHandler& OH) const
 	<< " " << dp1 << " " << dp2
 	<< " " << dpP1 << " " << dpP2
 	<< " " << Vol1 << " " << Vol2
-	<< " " << rho1 << " " << rho2
+	<< " " << density1 << " " << density2
 	<< std::endl;
    }  
 }
