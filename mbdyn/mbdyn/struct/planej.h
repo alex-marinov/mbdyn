@@ -306,6 +306,16 @@ public Joint, public DriveOwner {
    Vec3 F;
    Vec3 M;
    mutable doublereal dTheta;
+
+   /* friction related data */
+   BasicShapeCoefficient *const Sh_c;
+   BasicFriction *const fc;
+   const doublereal preF;
+   const doublereal r;
+   doublereal M3;
+   static const unsigned int NumSelfDof;
+   static const unsigned int NumDof;
+   /* end of friction related data */
    
  public:
    /* Costruttore non banale */
@@ -313,7 +323,11 @@ public Joint, public DriveOwner {
 		      const StructNode* pN1, const StructNode* pN2,
 		      const Vec3& dTmp1, const Vec3& dTmp2,
 		      const Mat3x3& R1hTmp, const Mat3x3& R2hTmp,
-		      const DriveCaller* pDC, flag fOut);
+		      const DriveCaller* pDC, flag fOut,
+		      const doublereal rr = 0.,
+		      const doublereal pref = 0.,
+		      BasicShapeCoefficient *const sh = 0,
+		      BasicFriction *const f = 0);
    
    /* Distruttore */
    ~AxialRotationJoint(void);
@@ -331,12 +345,20 @@ public Joint, public DriveOwner {
    virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetNumDof(void) const { 
-      return 6;
+       unsigned int i = NumSelfDof;
+       if (fc) {
+           i+=fc->iGetNumDof();
+       } 
+       return i;
    };
    
    DofOrder::Order GetDofType(unsigned int i) const {
-      ASSERT(i >= 0 && i < 6);
-      return DofOrder::ALGEBRAIC; 
+      ASSERT(i >= 0 && i < iGetNumDof());
+      if (i<NumSelfDof) {
+          return DofOrder::ALGEBRAIC; 
+      } else {
+          return fc->GetDofType(i-NumSelfDof);
+      }
    };
 
 	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
@@ -345,8 +367,12 @@ public Joint, public DriveOwner {
 			const VectorHandler& XP);
 
    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 18;
-      *piNumCols = 18; 
+      *piNumRows = NumDof;
+      *piNumCols = NumDof;
+      if (fc) {
+          *piNumRows += fc->iGetNumDof();
+          *piNumCols += fc->iGetNumDof();
+      } 
    };
    
       

@@ -565,7 +565,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
           of << " " << M3 << " " << fc->fc();
       }
       of << std::endl;
-   }   
+   }
 }
 
 
@@ -1624,6 +1624,9 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
 
 /* AxialRotationJoint - begin */
 
+const unsigned int AxialRotationJoint::NumSelfDof(6);
+const unsigned int AxialRotationJoint::NumDof(18);
+
 /* Costruttore non banale */
 AxialRotationJoint::AxialRotationJoint(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pN1, 
@@ -1631,12 +1634,17 @@ AxialRotationJoint::AxialRotationJoint(unsigned int uL, const DofOwner* pDO,
 		const Vec3& dTmp1, const Vec3& dTmp2,
 		const Mat3x3& R1hTmp, 
 		const Mat3x3& R2hTmp,
-		const DriveCaller* pDC, flag fOut)
+		const DriveCaller* pDC, flag fOut,
+		const doublereal rr,
+		const doublereal pref,
+		BasicShapeCoefficient *const sh,
+		BasicFriction *const f)
 : Elem(uL, Elem::JOINT, fOut), 
 Joint(uL, Joint::AXIALROTATION, pDO, fOut), 
 DriveOwner(pDC), 
 pNode1(pN1), pNode2(pN2), 
-d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.), dTheta(0.)
+d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.), dTheta(0.),
+Sh_c(sh), fc(f), preF(pref), r(rr)
 {
 	NO_OP;
 }
@@ -1656,6 +1664,10 @@ AxialRotationJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta = v.dGet(3);
+	
+	if (fc) {
+		fc->SetValue(X,XP,iGetFirstIndex()+NumSelfDof);
+	}
 }
 
 void
@@ -1667,6 +1679,19 @@ AxialRotationJoint::AfterConvergence(const VectorHandler& X,
 	Vec3 v1(MatR2EulerAngles(R1Tmp.Transpose()));
 
 	dTheta += v1.dGet(3);
+	
+	if (fc) {
+		Mat3x3 R1(pNode1->GetRCurr());
+		Mat3x3 R1hTmp(R1*R1h);
+		Vec3 e3a(R1hTmp.GetVec(3));
+		Vec3 Omega1(pNode1->GetWCurr());
+		Vec3 Omega2(pNode2->GetWCurr());
+		//relative velocity
+		doublereal v = (Omega1-Omega2).Dot(e3a)*r;
+		//reaction norm
+		doublereal modF = std::max(F.Norm(), preF);;
+		fc->AfterConvergence(modF,v,X,XP,iGetFirstIndex()+NumSelfDof);
+	}
 }
 
 
@@ -1691,8 +1716,8 @@ std::ostream& AxialRotationJoint::Restart(std::ostream& out) const
 VariableSubMatrixHandler& 
 AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			   doublereal dCoef,
-			   const VectorHandler& /* XCurr */ ,
-			   const VectorHandler& /* XPrimeCurr */ )
+			   const VectorHandler& XCurr,
+			   const VectorHandler& XPrimeCurr)
 {
    DEBUGCOUT("Entering AxialRotationJoint::AssJac()" << std::endl);
    
@@ -1855,6 +1880,79 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       WM.PutCoef(18, 3+iCnt, -d);
       WM.PutCoef(18, 9+iCnt, d);
    }   
+
+   if (fc) {
+      //retrive
+          //friction coef
+      doublereal f = fc->fc();
+          //shape function
+      doublereal shc = Sh_c->Sh_c();
+          //omega and omega rif
+      Vec3 Omega1(pNode1->GetWCurr());
+      Vec3 Omega2(pNode2->GetWCurr());
+      Vec3 Omega1r(pNode1->GetWRef());
+      Vec3 Omega2r(pNode2->GetWRef());   
+      //compute 
+          //relative velocity
+      doublereal v = (Omega1-Omega2).Dot(e3a)*r;
+          //reaction norm
+      doublereal modF = std::max(F.Norm(), preF);
+          //reaction moment
+      //doublereal M3 = shc*modF*f;
+      
+      ExpandableRowVector dfc;
+      ExpandableRowVector dF;
+      ExpandableRowVector dv;
+          //variation of reaction force
+      dF.ReDim(3);
+      if ((modF == 0.) or (F.Norm() > preF)) {
+          dF.Set(0.,1,12+1);
+          dF.Set(0.,2,12+2);
+          dF.Set(0.,3,12+3);
+      } else {
+          dF.Set(F.dGet(1)/modF,1,12+1);
+          dF.Set(F.dGet(2)/modF,2,12+2);
+          dF.Set(F.dGet(3)/modF,3,12+3);
+      }
+          //variation of relative velocity
+      dv.ReDim(6);
+      
+/* new (approximate: assume constant triads orientations) 
+ * relative velocity linearization 
+*/
+      dv.Set((e3a.dGet(1)*1.)*r,1, 0+4);
+      dv.Set((e3a.dGet(2)*1.)*r,2, 0+5);
+      dv.Set((e3a.dGet(3)*1.)*r,3, 0+6);
+      
+      dv.Set(-(e3a.dGet(1)*1.)*r,4, 6+4);
+      dv.Set(-(e3a.dGet(2)*1.)*r,5, 6+5);
+      dv.Set(-(e3a.dGet(3)*1.)*r,6, 6+6);
+
+
+      //assemble friction states
+      fc->AssJac(WM,dfc,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,dCoef,modF,v,
+      		XCurr,XPrimeCurr,dF,dv);
+      ExpandableRowVector dM3;
+      ExpandableRowVector dShc;
+      //compute 
+          //variation of shape function
+      Sh_c->dSh_c(dShc,f,modF,v,dfc,dF,dv);
+          //variation of moment component
+      dM3.ReDim(3);
+      dM3.Set(shc*f,1); dM3.Link(1,&dF);
+      dM3.Set(modF*f,2); dM3.Link(2,&dShc);
+      dM3.Set(shc*modF,3); dM3.Link(3,&dfc);
+      //assemble first node
+          //variation of moment component
+      dM3.Add(WM,0+4,e3a.dGet(1));
+      dM3.Add(WM,0+5,e3a.dGet(2));
+      dM3.Add(WM,0+6,e3a.dGet(3));
+      //assemble second node
+          //variation of moment component
+      dM3.Sub(WM,6+4,e3a.dGet(1));
+      dM3.Sub(WM,6+5,e3a.dGet(2));
+      dM3.Sub(WM,6+6,e3a.dGet(3));
+   }
    
    return WorkMat;
 }
@@ -1864,7 +1962,7 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 SubVectorHandler& AxialRotationJoint::AssRes(SubVectorHandler& WorkVec,
 					     doublereal dCoef,
 					     const VectorHandler& XCurr,
-					     const VectorHandler& /* XPrimeCurr */ )
+					     const VectorHandler& XPrimeCurr)
 {
    DEBUGCOUT("Entering AxialRotationJoint::AssRes()" << std::endl);
 
@@ -1935,6 +2033,30 @@ SubVectorHandler& AxialRotationJoint::AssRes(SubVectorHandler& WorkVec,
    Vec3 Omega2(pNode2->GetWCurr());
    doublereal dOmega0 = pGetDriveCaller()->dGet();
    WorkVec.PutCoef(18, dOmega0-e3a.Dot(Omega2-Omega1));
+
+   if (fc) {
+      bool ChangeJac(false);
+      Vec3 Omega1(pNode1->GetWCurr());
+      Vec3 Omega2(pNode2->GetWCurr());
+      doublereal v = (Omega1-Omega2).Dot(e3a)*r;
+      doublereal modF = std::max(F.Norm(), preF);
+      try {
+          fc->AssRes(WorkVec,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,modF,v,XCurr,XPrimeCurr);
+      }
+      catch (Elem::ChangedEquationStructure) {
+          ChangeJac = true;
+      }
+      doublereal f = fc->fc();
+      doublereal shc = Sh_c->Sh_c(f,modF,v);
+      M3 = shc*modF*f;
+      WorkVec.Sub(4,e3a*M3);
+      WorkVec.Add(10,e3a*M3);
+//!!!!!!!!!!!!!!
+//      M += e3a*M3;
+      if (ChangeJac) {
+          throw Elem::ChangedEquationStructure();
+      }
+   }
    
    return WorkVec;
 }
@@ -1946,9 +2068,11 @@ AxialRotationJoint::GetEqType(unsigned int i) const
 		"INDEX ERROR in AxialRotationJoint::GetEqType");
 	if (i == 5) {
 		return DofOrder::DIFFERENTIAL;
+	} else if (i < NumSelfDof) {
+		return DofOrder::ALGEBRAIC;
+	} else {
+		return fc->GetEqType(i-NumSelfDof);
 	}
-	
-	return DofOrder::ALGEBRAIC;
 }
 
 
@@ -1960,10 +2084,14 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
       Mat3x3 R2TmpT(R2Tmp.Transpose());
       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
       
-      Joint::Output(OH.Joints(), "AxialRotation", GetLabel(),
+      std::ostream &of = Joint::Output(OH.Joints(), "AxialRotation", GetLabel(),
 		    R2TmpT*F, M, F, R2Tmp*M) 
 	<< " " << MatR2EulerAngles(RTmp)*dRaDegr << " " << dGet()
-	<< " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()) << std::endl;
+	<< " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()); 
+        if (fc) {
+            of << " " << M3 << " " << fc->fc();
+        }
+	of << std::endl;
    }
 }
 
