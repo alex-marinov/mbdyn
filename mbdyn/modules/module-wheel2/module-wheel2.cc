@@ -14,23 +14,57 @@
  *	-	Ground supporta un piano definito dalla normale e da
  *		un punto (potra' essere reso deformabile e "non piano"
  *		in futuro)
+ *	-	Le forze sono applicate nel "punto di contatto", che viene
+ *		calcolato in base a considerazioni geometriche sulla
+ *		posizione ed orientazione relativa tra Wheel e Ground.
  */
 
 struct module_wheel {
+	/*
+	 * Connessioni
+	 */
 	StructNode *pAxle;
 	StructNode *pWheel;
 	StructNode *pGround;
 
+	/*
+	 * Posizione e orientazione del terreno
+	 */
 	Vec3 GroundPosition;
 	Vec3 GroundDirection;
+
+	/*
+	 * Geometria ruota
+	 */
+	doublereal dRadius;
+	doublereal dInternalRadius;
+	doublereal dVolCoef;
+
+	doublereal dRefArea;
+	doublereal dRNP;		/* R+nG'*pG */
+	doublereal dV0;
+
+	/*
+	 * Proprieta' pneumatico
+	 */
+	doublereal dP0;
+	doublereal dGamma;
+
+	/*
+	 * Output
+	 */
+	doublereal dDeltaL;
+	doublereal dInstRadius;
+	Vec3 F;
+	Vec3 M;
 };
 
 /* funzioni di default */
 static void*
 read(LoadableElem* pEl,
-	   DataManager* pDM,
-	   MBDynParser& HP,
-	   const DriveHandler* pDH)
+		DataManager* pDM,
+		MBDynParser& HP,
+		const DriveHandler* pDH)
 {
 	DEBUGCOUTFNAME("read");
 	
@@ -38,7 +72,60 @@ read(LoadableElem* pEl,
 	module_wheel* p = NULL;
 	SAFENEW(p, module_wheel, EMmm);
 
+	/*
+	 * leggo i 3 nodi
+	 */
 	p->pAxle = (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL);
+	p->pWheel = (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL);
+	p->pGround = (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL);
+	
+	/*
+	 * leggo posizione ed orientazione del terreno nel sistema del nodo
+	 */
+	ReferenceFrame RF = ReferenceFrame(p->pGround);
+	p->GroundPosition = HP.GetPosRel(RF);
+	p->GroundDirection = HP.GetVecRel(RF);
+
+	/*
+	 * normalizzo l'orientazione del terreno
+	 */
+	doublereal d = p->GroundDirection.Dot();
+	if (d <= DBL_EPSILON) {
+		cerr << "null direction at line " << HP.GetLineData() << endl;
+		THROW(DataManager::ErrGeneric());
+	}
+	p->GroundDirection /= sqrt(d);
+
+	/*
+	 * Geometria ruota
+	 */
+	p->dRadius = HP.GetReal();
+	p->dInternalRadius = HP.GetReal();
+	p->dVolCoef = HP.GetReal();
+	
+	/*
+	 * Area di riferimento
+	 */
+	p->dRefArea = 3.7*p->dInternalRadius*sqrt(
+			p->dInternalRadius*(2.*p->dRadius-p->dInternalRadius)
+			);
+
+	/*
+	 * termine per il calcolo di Delta L
+	 */
+	p->dRNP = p->dRadius+p->GroundPosition*p->GroundDirection;
+
+	/*
+	 * Volume di riferimento
+	 */
+	p->dV0 = 2.*M_PI*(p->dRadius-p->dInternalRadius)
+		*M_PI*p->dInternalRadius*p->dInternalRadius*p->dVolCoef;
+
+	/*
+	 * Proprieta' pneumatico
+	 */
+	p->dP0 = HP.GetReal();
+	p->dGamma = HP.GetReal();
 	
 	return (void *)p;
 }
@@ -56,7 +143,14 @@ output(const LoadableElem* pEl, OutputHandler& OH)
 	DEBUGCOUTFNAME("output");
 	
 	if (pEl->fToBeOutput()) {
-		
+		module_wheel* p = (module_wheel *)pEl->pGetData();      
+		ostream& out = OH.Loadable();
+
+		out << setw(8) << pEl->GetLabel() << " ",
+			p->F.Write(out, " ") << " ",
+			p->M.Write(out, " ") << " "
+			<< p->dInstRadius << " "
+			<< p->dDeltaL << endl;
 	}
 }
 
@@ -73,8 +167,8 @@ work_space_dim(const LoadableElem* pEl,
 		    integer* piNumCols)
 {
 	DEBUGCOUTFNAME("work_space_dim");
-	*piNumRows = 0;
-	*piNumCols = 0;
+	*piNumRows = 12;
+	*piNumCols = 12;
 }
 
 static VariableSubMatrixHandler& 
@@ -98,14 +192,94 @@ ass_res(LoadableElem* pEl,
 	const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("ass_res");
+	
+	module_wheel* p = (module_wheel *)pEl->pGetData();
+
+	/*
+	 * Orientazione del terreno nel sistema assoluto
+	 */
+	Vec3 n = p->pGround->GetRCurr()*p->GroundDirection;
+	
+	/*
+	 * Distanza Wheel Ground nel sistema assoluto
+	 */
+	Vec3 x = p->pWheel->GetXCurr()-p->pGround->GetXCurr();
+
+	/*
+	 * se dDeltaL > 0 c'e' contatto, altrimenti no
+	 */
+	doublereal dDeltaL = p->dRNP - x*n;
+
+	/*
+	 * Reset dati per output
+	 */
+	p->dDeltaL = dDeltaL;
+	p->dInstRadius = p->dRadius-dDeltaL;
+	p->F = Zero3;
+	p->M = Zero3;
+	
+	if (dDeltaL < 0.) {
+		/*
+		 * Non assemblo neppure il vettore ;)
+		 */
+		WorkVec.Resize(0);
+
+		return WorkVec;
+	}
+	
+	/*
+	 * Dimensiono il vettore
+	 */
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
    
 	WorkVec.Resize(iNumRows);
 	WorkVec.Reset(0.);
+
+	integer iGroundFirstMomIndex = p->pGround->iGetFirstMomentumIndex();
+	integer iWheelFirstMomIndex = p->pWheel->iGetFirstMomentumIndex();
+
+	/* Indici equazioni */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.fPutRowIndex(iCnt, iGroundFirstMomIndex+iCnt);
+		WorkVec.fPutRowIndex(6+iCnt, iWheelFirstMomIndex+iCnt);
+	}
+
+	/*
+	 * Stima dell'area di contatto
+	 */
+	doublereal dA = p->dRefArea*(dDeltaL/p->dRadius);
 	
-	module_wheel* p = (module_wheel *)pEl->pGetData();
+	/*
+	 * Stima del volume di compenetrazione tra ruota e terreno
+	 */
+	doublereal dDeltaV = .5*dA*dDeltaL;
+
+	/*
+	 * Stima della pressione del pneumatico (adiabatica)
+	 */
+	doublereal dP = p->dP0*pow(p->dV0/(p->dV0-dDeltaV), p->dGamma);
+
+	/*
+	 * Il punto di applicazione della forza e' xW - R * nG ;
+	 * per la forza normale si puo' usare anche la posizione
+	 * della ruota, nell'ipotesi che il punto di contatto
+	 * stia nell'intersezione della normale al ground passante
+	 * per l'asse ruota
+	 */
+	Vec3 pc = p->pWheel->GetXCurr()-(n*p->dRadius);
+
+	/*
+	 * Forza
+	 */
+	p->F = n*(dA*dP);
+	p->M = (pc-p->pWheel->GetXCurr()).Cross(p->F);
+	
+	WorkVec.Sub(1, p->F);
+	WorkVec.Sub(4, (pc-p->pGround->GetXCurr()).Cross(p->F));
+	WorkVec.Add(7, p->F);
+	WorkVec.Add(10, p->M);
 
 	return WorkVec;
 }
@@ -168,7 +342,7 @@ initial_ass_jac(LoadableElem* pEl,
 	
 	module_wheel* p = (module_wheel *)pEl->pGetData();
    
-	// set sub-matrix indices and coefs
+	/* set sub-matrix indices and coefs */
 
 	return WorkMat;
 }
@@ -187,7 +361,7 @@ initial_ass_res(LoadableElem* pEl,
 	
 	module_wheel* p = (module_wheel *)pEl->pGetData(); 
 	
-	// set sub-vector indices and coefs
+	/* set sub-vector indices and coefs */
    
 	return WorkVec;
 }
@@ -221,7 +395,7 @@ doublereal d_get_priv_data(const LoadableElem* pEl, unsigned int i)
 		THROW(ErrGeneric());
 	}
 	
-	// return i-th priv data
+	/* return i-th priv data */
 
 	return 0.;
 }
@@ -263,5 +437,4 @@ LoadableCalls lc = {
 extern "C" {
 void *calls = &lc;
 }
-
 
