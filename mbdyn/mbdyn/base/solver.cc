@@ -3876,6 +3876,7 @@ Solver::AllocateSchurSolman(integer iStates)
 
 #ifdef USE_MPI
 	switch (CurrIntSolver.GetSolver()) {
+	case LinSol::LAPACK_SOLVER:
 	case LinSol::Y12_SOLVER:
 	case LinSol::UMFPACK_SOLVER:
 	case LinSol::MESCHACH_SOLVER:
