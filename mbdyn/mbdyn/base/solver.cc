@@ -460,19 +460,6 @@ void Solver::Run(void)
 	/* at the beginning of pX, pXPrime                               */
    	pDM->LinkToSolution(*(pX), *(pXPrime));         
 
-
-   	/* costruisce il SolutionManager */
-	AllocateSolmans(iUnkStates);
-	
-	/*
-	 * FIXME: at present there MUST be a pSM
-	 * (even for matrix-free nonlinear solvers)
-	 */
-	if (pSM == NULL) {
-		std::cerr << "No linear solver defined" << std::endl;
-		THROW(ErrGeneric());
-	}
-	
 	/* a questo punto si costruisce il nonlinear solver */
 	pNLS = AllocateNonlinearSolver();
 
@@ -567,7 +554,9 @@ void Solver::Run(void)
 #ifdef USE_EXTERNAL
 	pNLS->SetExternal(External::EMPTY);
 #endif /* USE_EXTERNAL */
-
+   	/* Setup SolutionManager(s) */
+	SetupSolmans(pDerivativeSteps->GetIntegratorNumUnknownStates());
+	/* Derivative steps */
 	try {
 		
 		dTest = pDerivativeSteps->Advance(0., 1.,
@@ -661,6 +650,9 @@ void Solver::Run(void)
 		
 	 	ASSERT(pFirstFictitiousStep != NULL);
 		
+   		/* Setup SolutionManager(s) */
+		SetupSolmans(pFirstFictitiousStep->GetIntegratorNumUnknownStates());
+		/* pFirstFictitiousStep */
 		try {
 	 		dTest = pFirstFictitiousStep->Advance(dRefTimeStep, 1.,
 				StepIntegrator::NEWSTEP,
@@ -723,7 +715,10 @@ void Solver::Run(void)
 #endif /* DEBUG_FICTITIOUS */
             
        		/* Passi fittizi successivi */
-	
+		if (iFictitiousStepsNumber > 1) {
+   			/* Setup SolutionManager(s) */
+			SetupSolmans(pFictitiousSteps->GetIntegratorNumUnknownStates());
+		}
       		for (int iSubStep = 2;
 		     iSubStep <= iFictitiousStepsNumber;
 		     iSubStep++) {
@@ -872,6 +867,8 @@ void Solver::Run(void)
 	StepIntegrator::StepChange CurrStep 
 			= StepIntegrator::NEWSTEP;
    
+	/* Setup SolutionManager(s) */
+	SetupSolmans(pFirstRegularStep->GetIntegratorNumUnknownStates());
 IfFirstStepIsToBeRepeated:
 	try {   	
 		pDM->SetTime(dTime+dCurrTimeStep);
@@ -1039,6 +1036,8 @@ IfFirstStepIsToBeRepeated:
     	/* Altri passi regolari */ 
 	ASSERT(pRegularSteps != NULL);
 	
+	/* Setup SolutionManager(s) */
+	SetupSolmans(pRegularSteps->GetIntegratorNumUnknownStates());
       	while (1) {
 		
 		StepIntegrator::StepChange CurrStep 
@@ -3491,12 +3490,21 @@ NonlinearSolver *const Solver::AllocateNonlinearSolver() {
 	return pNLS;
 }
 
-void Solver::AllocateSolmans(integer iStates) {
+void Solver::SetupSolmans(integer iStates) {
    	DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager\n\tsize = "
 		   << iNumDofs*iUnkStates << 
 		   "\n\tnumdofs = " << iNumDofs <<
 		   "\n\tnumstates = " iStates << std::endl);
 
+	/*delete previous solmans*/
+	if (pSM != 0) {
+		SAFEDELETE(pSM);
+		pSM = 0;
+	}
+	if (pLocalSM != 0) {
+		SAFEDELETE(pLocalSM);
+		pLocalSM = 0;
+	}
 	
 	integer iLWS = iWorkSpaceSize;
 	integer iNLD = iNumDofs*iStates;
@@ -3521,5 +3529,13 @@ void Solver::AllocateSolmans(integer iStates) {
 
 	} else {
 		pSM = pCurrSM;
+	}
+	/*
+	 * FIXME: at present there MUST be a pSM
+	 * (even for matrix-free nonlinear solvers)
+	 */
+	if (pSM == NULL) {
+		std::cerr << "No linear solver defined" << std::endl;
+		THROW(ErrGeneric());
 	}
 };

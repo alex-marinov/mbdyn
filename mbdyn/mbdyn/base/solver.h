@@ -246,7 +246,7 @@ private:
 	/* Alloca Nonlinear Solver */
 	NonlinearSolver *const AllocateNonlinearSolver();
 	/* Alloca tutti i solman*/
-	void AllocateSolmans(integer iStates);
+	void SetupSolmans(integer iStates);
    
 
 public:   
