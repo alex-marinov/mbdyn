@@ -39,14 +39,9 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-//#ifdef USE_MPI
 /* libreria per il calcolo delle partizioni */
-#ifdef USE_METIS
-extern "C" {
-#include <metis.h>
-}
-#undef ASSERT /* kill annoying redefiniton message */
-#endif /* USE_METIS */
+#include <metiswrap.h>
+#include <chaco_interface.h>
 
 #include <schurdataman.h>
 #include <mbcomm.h>
@@ -920,7 +915,11 @@ SchurDataManager::CreatePartition(void)
 
     Adjacency Vertices;  /* Struttura contenente le connessioni fra i vertici */
     int* pVertexWgts;   /* Pesi dei vertici = dofs x ogni v. utile per METIS */
+#ifndef USE_CHACO
     int* pCommWgts;
+#else /* USE_CHACO */
+    float* pCommWgts;
+#endif /* USE_CHACO */
     Vertices.pXadj = NULL;
     Vertices.pAdjncy = NULL;
     pVertexWgts = NULL;
@@ -935,7 +934,11 @@ SchurDataManager::CreatePartition(void)
     /* Costruisco e inizializzo le due strutture */
     SAFENEWARR(Vertices.pXadj, int, iTotVertices+1);
     SAFENEWARR(pVertexWgts, int, iTotVertices*2);
+#ifndef USE_CHACO
     SAFENEWARR(pCommWgts, int, iTotVertices);
+#else /* USE_CHACO */
+    SAFENEWARR(pCommWgts, float, iTotVertices);
+#endif /* USE_CHACO */
     
     /* Ciclo per la scrittura degli array delle connessioni. 
      * Il ciclo viene ripetuto se per un vertice si ha un numero
@@ -1117,7 +1120,7 @@ SchurDataManager::CreatePartition(void)
     	}
 #endif /* DEBUG */
     
-#ifdef USE_METIS
+#if defined(USE_METIS)
     	int numflag = 0;
     	int options = 0;      
 
@@ -1132,11 +1135,23 @@ SchurDataManager::CreatePartition(void)
 			     &options,
 			     &edgecut,
 			     pParAmgProcs);    
-#else /* !USE_METIS */
-    	std::cerr <<"Sorry. You need to compile with -DUSE_METIS." << std::endl 
-    	    << "No other partition library is implemented yet."
-	    " Aborting ..." << std::endl;
-#endif /* !USE_METIS */    
+#elif defined(USE_CHACO)
+        chaco_interface(iTotVertices,
+                        Vertices.pXadj,
+                        Vertices.pAdjncy,
+                        pVertexWgts,
+                        pCommWgts,
+                        DataCommSize,
+                        edgecut,
+                        pParAmgProcs);    
+#else /* ! USE_METIS && ! USE_CHACO */
+
+    	std::cerr
+          << "Sorry. You need to compile with -DUSE_METIS or -DUSE_CHACO."
+          << std::endl 
+          << "No other partition library is implemented yet."
+          " Aborting ..." << std::endl;
+#endif /* ! USE_METIS && ! USE_CHACO */    
     }
  
     int MyDim = iTotVertices/DataCommSize; /* Stima del # vertici per blocco */
@@ -1668,6 +1683,14 @@ SchurDataManager::Pack(int* pList, int dim)
 /* Inizializza le varie liste di interi usate in Create Partition */
 void
 SchurDataManager::InitList(int* list, int dim, int value)
+{ 
+    for (int i = 0; i <= dim-1; i++) {
+    	list[i] = value;
+    }
+}  
+
+void
+SchurDataManager::InitList(float* list, int dim, int value)
 { 
     for (int i = 0; i <= dim-1; i++) {
     	list[i] = value;

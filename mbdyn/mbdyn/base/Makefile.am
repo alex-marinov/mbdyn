@@ -12,6 +12,8 @@ bicg.cc \
 bicg.h \
 bulk.cc \
 bulk.h \
+chaco_interface.cc \
+chaco_interface.h \
 constltp.h \
 constltp_.h \
 contactj.h \

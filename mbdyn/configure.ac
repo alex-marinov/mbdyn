@@ -157,6 +157,7 @@ OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}]  with f2c library],auto,[auto ye
 OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support],auto,[auto yes no])
 OL_ARG_WITH(metis,[  --with-metis            with Metis support],auto,[auto yes no])
+OL_ARG_WITH(chaco,[  --with-chaco            with Chaco support],auto,[auto yes no])
 OL_ARG_WITH(rtai,[  --with-rtai              with RTAI support],no,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library],auto,[auto yes no])
 OL_ARG_WITH(umfpack,[  --with-umfpack         with Umfpack math library],auto,[auto yes no])
@@ -208,6 +209,7 @@ dnl
 F2C_LIBS=
 MPI_LIBS=
 METIS_LIBS=
+CHACO_LIBS=
 Y12_LIBS=
 UMFPACK_LIBS=
 MESCHACH_LIBS=
@@ -987,15 +989,23 @@ if test $ol_with_mpi != no ; then
 	if test $ac_cv_header_mpi_h = yes -a $ac_cv_header_mpipp_h = yes ; then
 		AC_MSG_CHECKING([for mpi libraries])
 		AC_LANG_CPLUSPLUS
-		try_mpi_LIBS="-lmpich++ -lmpich -lnsl"
+		try_mpi_LIBS=
 		save_LIBS=$LIBS
-		LIBS="$LIBS $try_mpi_LIBS"
-		AC_TRY_LINK([#include <mpi++.h>],[
-			int argc = 0;
-			char **argv = 0;
-			MPI::Init(argc, argv);
-		],[have_mpi=yes],[have_mpi=no])
-		LIBS=$save_LIBS
+ 		AC_TRY_LINK([#include <mpi++.h>],[
+ 			int argc = 0;
+ 			char **argv = 0;
+ 			MPI::Init(argc, argv);
+ 		],[have_mpi=yes],[have_mpi=no])
+                if test $have_mpi = no ; then
+        		try_mpi_LIBS="-lmpich++ -lmpich -lnsl"
+		        LIBS="$LIBS $try_mpi_LIBS"
+		        AC_TRY_LINK([#include <mpi++.h>],[
+			        int argc = 0;
+	        		char **argv = 0;
+		        	MPI::Init(argc, argv);
+        		],[have_mpi=yes],[have_mpi=no])
+	        	LIBS=$save_LIBS
+                fi
 		AC_LANG_C
 
 		if test $have_mpi != no ; then
@@ -1032,8 +1042,9 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Need also Metis with MPI
+dnl Need either Metis or Chaco with MPI
 dnl
+dnl First we check for Metis
 ol_link_metis=no
 if test $ol_with_metis != no ; then
 	OL_ADD_DIRS(metis)
@@ -1059,15 +1070,41 @@ if test $ol_with_metis != no ; then
 			AC_MSG_WARN([Could not locate Metis])
 			AC_MSG_WARN([Metis not supported!])
 		fi
-
-		if test $ol_link_mpi = yes ; then
-			AC_MSG_ERROR([You NEED Metis \
-				to use Schur parallel solver!])
-		fi
 	fi
 else
 	AC_MSG_WARN([Metis not supported!])
 fi
+
+
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Now we check for Chaco.  There is no attempt to find or test Chaco.
+dnl
+ol_link_chaco=no
+if test $ol_with_chaco != no ; then
+	OL_ADD_DIRS(chaco)
+	
+	CHACO_LIBS="-lchaco"
+	AC_DEFINE(USE_CHACO,1,
+		[define if you want to use Chaco])
+	ol_link_chaco=yes
+else
+	AC_MSG_WARN([Chaco not supported!])
+fi
+
+
+dnl ----------------------------------------------------------------
+dnl
+dnl If neither Chaco nor Metis is available, then exit with an error.
+dnl
+
+if test $ol_link_mpi = yes ; then
+        if test $ol_link_chaco = no -a $ol_link_metis = no ; then
+	        AC_MSG_ERROR([You NEED Metis or Chaco to use Schur parallel solver!])
+        fi
+fi
+
 
 dnl ----------------------------------------------------------------
 dnl
@@ -1223,6 +1260,7 @@ dnl Variable substituion
 dnl
 AC_SUBST(F2C_LIBS)
 AC_SUBST(MPI_LIBS)
+AC_SUBST(CHACO_LIBS)
 AC_SUBST(METIS_LIBS)
 AC_SUBST(UMFPACK_LIBS)
 AC_SUBST(MESCHACH_LIBS)

@@ -98,6 +98,7 @@ private:
 	/* Inizializza le varie liste che vengono utilizzate 
 	 * in CreatePartition */
 	void InitList(int* list, int dim, int value);
+	void InitList(float* list, int dim, int value);
 
 	Node** SearchNode(Node** ppFirst, int dim, unsigned int& label);
 
