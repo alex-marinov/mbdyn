@@ -90,7 +90,7 @@ private:
 	struct thread_data_t {
 		pthread_t		thread;
 		SuperLUSolver		*pSLUS;
-		int			threadNumber;
+		unsigned		threadNumber;
 		sem_t			sem;
 		void			*pdgstrf_threadarg;
 	} *thread_data;
@@ -125,9 +125,9 @@ public:
 	/* Index Form */
 	void MakeCompactForm(SparseMatrixHandler& mh,
 			std::vector<doublereal>& Ax,
-			std::vector<int>& Ar,
-			std::vector<int>& Ac,
-			std::vector<int>& Ap) const;
+			std::vector<integer>& Ar,
+			std::vector<integer>& Ac,
+			std::vector<integer>& Ap) const;
 };
 
 /* SuperLUSolver - end */
@@ -173,9 +173,8 @@ protected:
 	virtual void MakeCompressedColumnForm(void);
 public:
 	/* Costruttore: usa e mette a disposizione matrici che gli sono date */
-	SuperLUSparseSolutionManager(integer iSize,
-			integer iWorkSpaceSize = 0,
-			const doublereal& dPivotFactor = 1.0, unsigned nt = 1);
+	SuperLUSparseSolutionManager(unsigned nt, integer iSize,
+			const doublereal& dPivotFactor = 1.0);
 
 	/* Distruttore: dealloca le matrici e distrugge gli oggetti propri */
 	~SuperLUSparseSolutionManager(void);
@@ -222,8 +221,8 @@ protected:
 	virtual void MakeCompressedColumnForm(void);
 	
 public:
-	SuperLUSparseCCSolutionManager(integer Dim, integer /* unused */ = 0, 
-			doublereal dPivot = -1., unsigned nt = 1);
+	SuperLUSparseCCSolutionManager(unsigned nt, integer Dim,
+			const doublereal &dPivot = -1.);
 	virtual ~SuperLUSparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */

@@ -124,11 +124,11 @@ main(int argc, char *argv[])
 #ifdef USE_SUPERLU
 		if (dir) {
 			typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
-			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, 0, 1., nt));
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size));
 
 		} else {
 			typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
-			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, 0, 1., nt));
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size));
 		}
 #else /* !USE_SUPERLU */
 		std::cerr << "need --with-superlu to use SuperLU library" 
@@ -180,7 +180,6 @@ main(int argc, char *argv[])
 	VectorHandler *pV = pSM->pResHdl();
 	VectorHandler *px = pSM->pSolHdl();
 
-	doublereal d = 0.;
 	int count = 0;
 
 	int p = 2;
@@ -188,15 +187,23 @@ main(int argc, char *argv[])
 	std::cout.setf(std::ios::scientific);
 	std::cout.precision(p);
 
+	double	m11 = 4.,
+		m22 = 4.,
+		m33 = 2.,
+		d = 0.,
+		b1 = 0.,
+		b2 = 0.,
+		b3 = 1.;
+
 retry:;
 	pSM->MatrInit(0.);
 
 	try {
 		pM = pSM->pMatHdl();
 
-		pM->PutCoef(1, 1, 2.);
-		pM->PutCoef(2, 2, 2.);
-		pM->PutCoef(3, 3, 1.);
+		pM->PutCoef(1, 1, m11);
+		pM->PutCoef(2, 2, m22);
+		pM->PutCoef(3, 3, m33);
 		if (d) {
 			pM->PutCoef(1, 2, d);
 			pM->PutCoef(2, 1, d);
@@ -204,9 +211,9 @@ retry:;
 			pM->PutCoef(3, 2, d);
 		}
 		
-		pV->PutCoef(1, 0.);
-		pV->PutCoef(2, 0.);
-		pV->PutCoef(3, 1.);
+		pV->PutCoef(1, b1);
+		pV->PutCoef(2, b2);
+		pV->PutCoef(3, b3);
 
 	} catch (MatrixHandler::ErrRebuildMatrix) {
 		std::cerr << "need to rebuild matrix..." << std::endl;
@@ -230,25 +237,25 @@ retry:;
 	}
 
 	std::cout
-		<< "{x1}   [" << std::setw(w) << 2.
+		<< "{x1}   [" << std::setw(w) << m11
 			<< "," << std::setw(w) << d 
 			<< "," << std::setw(w) << 0.
-		<< "]^-1 {" << std::setw(w) << 0.
+		<< "]^-1 {" << std::setw(w) << b1
 		<< "}   {" << std::setw(w) << (*px)(1) << "}" << std::endl
 		<< "{x2} = ["<< std::setw(w) << d
-			<< "," << std::setw(w) << 2.
+			<< "," << std::setw(w) << m22
 			<< "," << std::setw(w) << d 
-		<< "]    {" << std::setw(w) << 0.
+		<< "]    {" << std::setw(w) << b2
 		<< "} = {" << std::setw(w) << (*px)(2) << "}" << std::endl	
 		<< "{x3}   [" << std::setw(w) << 0.
 			<< "," << std::setw(w) << d 
-			<< "," << std::setw(w) << 1.
-		<< "]    {" << std::setw(w) << 1.
+			<< "," << std::setw(w) << m33
+		<< "]    {" << std::setw(w) << b3
 		<< "}   {" << std::setw(w) << (*px)(3) << "}" << std::endl;
 
 	switch (count) {
 	case 1:
-		d = -1.;
+		d = -2.;
 		break;
 
 	case 2:

@@ -510,18 +510,18 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		if (dir) {
 			typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, iLWS,
-					dPivotFactor == -1. ? 1. : dPivotFactor, nThreads));
+					CCSM(nThreads, iNLD,
+					dPivotFactor == -1. ? 1. : dPivotFactor));
 		} else if (cc) {
 			typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, iLWS,
-					dPivotFactor == -1. ? 1. : dPivotFactor, nThreads));
+					CCSM(nThreads, iNLD,
+					dPivotFactor == -1. ? 1. : dPivotFactor));
 		} else {
       			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				SuperLUSparseSolutionManager,
-				SuperLUSparseSolutionManager(iNLD, iLWS,
-					dPivotFactor == -1. ? 1. : dPivotFactor, nThreads));
+				SuperLUSparseSolutionManager(nThreads, iNLD,
+					dPivotFactor == -1. ? 1. : dPivotFactor));
 		}
       		break;
 #else /* !USE_Y12 */

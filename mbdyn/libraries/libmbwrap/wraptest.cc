@@ -118,15 +118,15 @@ main(int argc, char *argv[])
 #ifdef USE_SUPERLU
 		if (dir) {
 			typedef SuperLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
-			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, 0, 1., nt));
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size));
 
 		} else if (cc) {
 			typedef SuperLUSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
-			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, 0, 1., nt));
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(nt, size));
 
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pSM, SuperLUSparseSolutionManager,
-					SuperLUSparseSolutionManager(size, 0, 1., nt));
+					SuperLUSparseSolutionManager(nt, size));
 		}
 #else /* !USE_SUPERLU */
 		std::cerr << "need --with-superlu to use SuperLU library" 

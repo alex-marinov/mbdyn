@@ -56,7 +56,7 @@ protected:
 	doublereal* pdVecm1;
    
 public:
-	MeschachVectorHandler(int iSize = 0);   
+	MeschachVectorHandler(integer iSize = 0);   
 	virtual ~MeschachVectorHandler(void);
 
 #ifdef DEBUG
@@ -178,7 +178,7 @@ private:
    	SPMAT* mat;
    
 public:
-   	MeschachSparseMatrixHandler(int m, int n, int maxlen = 0);
+   	MeschachSparseMatrixHandler(integer m, integer n, integer maxlen = 0);
    	~MeschachSparseMatrixHandler(void);
 
    	/* helpers */
@@ -186,7 +186,7 @@ public:
    	inline integer iGetNumCols(void) const;
    
    	/* costruisce la matrice */
-   	void Create(unsigned int m, unsigned int n, unsigned int maxlen = 0);
+   	void Create(integer m, integer n, integer maxlen = 0);
 #ifdef DEBUG
    	void IsValid(void) const;
 #endif /* DEBUG */
@@ -313,12 +313,12 @@ protected:
    	enum { RESET, FACTORED } fStatus;
    	doublereal alpha;
    
-   	void Create(unsigned int iSize, unsigned int iMaxSize);
+   	void Create(integer iSize, integer iMaxSize);
    	void Factor(void);
    
 public:
-   	MeschachSparseSolutionManager(int iSize,
-					int iMaxSize = 0, 
+   	MeschachSparseSolutionManager(integer iSize,
+					integer iMaxSize = 0, 
 					const doublereal& a = 1.);
    	~MeschachSparseSolutionManager(void);
 

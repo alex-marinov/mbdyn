@@ -124,7 +124,7 @@
 
 /* UmfpackSolver - begin */
 	
-UmfpackSolver::UmfpackSolver(const int &size, const doublereal &dPivot)
+UmfpackSolver::UmfpackSolver(const integer &size, const doublereal &dPivot)
 : iSize(size),
 Axp(0),
 Aip(0),
@@ -260,9 +260,9 @@ UmfpackSolver::Factor(void)
 void
 UmfpackSolver::MakeCompactForm(SparseMatrixHandler& mh,
 		std::vector<doublereal>& Ax,
-		std::vector<int>& Ai,
-		std::vector<int>& Ac,
-		std::vector<int>& Ap) const
+		std::vector<integer>& Ai,
+		std::vector<integer>& Ac,
+		std::vector<integer>& Ap) const
 {
 	if (!bHasBeenReset) {
 		return;

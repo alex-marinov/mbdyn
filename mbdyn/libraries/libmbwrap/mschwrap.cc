@@ -41,7 +41,7 @@
 
 /* MeschachVectorHandler - begin */
 
-MeschachVectorHandler::MeschachVectorHandler(int iSize)
+MeschachVectorHandler::MeschachVectorHandler(integer iSize)
 : pv(VNULL),
 pdVecm1(NULL)
 {
@@ -115,9 +115,9 @@ MeschachVectorHandler::Reset(doublereal dResetVal)
 
 /* MeschachSparseMatrixHandler - begin */
 
-MeschachSparseMatrixHandler::MeschachSparseMatrixHandler(int m, 
-							 int n,
-							 int maxlen) 
+MeschachSparseMatrixHandler::MeschachSparseMatrixHandler(integer m, 
+							 integer n,
+							 integer maxlen) 
 : mat(SMNULL)
 {
    	if (m > 0 && n > 0) {
@@ -140,9 +140,9 @@ MeschachSparseMatrixHandler::~MeschachSparseMatrixHandler(void)
 
 /* costruisce la matrice */
 void
-MeschachSparseMatrixHandler::Create(unsigned int m,
-				    unsigned int n,
-				    unsigned int maxlen) 
+MeschachSparseMatrixHandler::Create(integer m,
+				    integer n,
+				    integer maxlen) 
 {
 	/*
 	 * Note: MeschachSparseMatrixHandler owns its workspace memory 
@@ -175,8 +175,8 @@ MeschachSparseMatrixHandler::Init(const doublereal& d)
 /* MeschachSparseSolutionManager - begin */
 
 void
-MeschachSparseSolutionManager::Create(unsigned int iSize,
-					unsigned int iMaxSize) 
+MeschachSparseSolutionManager::Create(unsigned integer iSize,
+					unsigned integer iMaxSize) 
 {
    	if (prhs == NULL) {
       		SAFENEWWITHCONSTRUCTOR(prhs, 
@@ -221,8 +221,8 @@ MeschachSparseSolutionManager::Factor(void)
    	fStatus = FACTORED;
 }
 
-MeschachSparseSolutionManager::MeschachSparseSolutionManager(int iSize,
-		int iMaxSize, 
+MeschachSparseSolutionManager::MeschachSparseSolutionManager(integer iSize,
+		integer iMaxSize, 
 		const doublereal& a)
 : prhs(NULL), pivot(PNULL), pmh(NULL), fStatus(RESET), alpha (a)
 {
@@ -333,8 +333,8 @@ std::ostream&
 operator << (std::ostream& out, const MeschachSparseMatrixHandler& MH)
 {
    	SPMAT* p = MH.pGetMAT();
-   	for (int i = 0; i < p->m; i++) {
-      		for (int j = 0; j < p->n; j++) {
+   	for (integer i = 0; i < p->m; i++) {
+      		for (integer j = 0; j < p->n; j++) {
 	 		std::cout << std::setw(16) << sp_get_val(p, i, j);
       		}
       		std::cout << std::endl;

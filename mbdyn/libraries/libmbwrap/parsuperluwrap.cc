@@ -164,7 +164,8 @@ SuperLUSolver::thread_op(void *arg)
 	thread_data_t *td = (thread_data_t *)arg;
 
 	silent_cout("SuperLUSolver: thread " << td->threadNumber
-			<< "[" << pthread_self() << "," << getpid() << "]"
+			<< " [self=" << pthread_self()
+			<< ",pid=" << getpid() << "]"
 			<< " starting..." << std::endl);
 
 	/* deal with signals ... */
@@ -312,11 +313,14 @@ SuperLUSolver::Factor(void)
 		 */
 	
 		int	permc_spec = 1;
-		get_perm_c(permc_spec, &sld->A, &sld->perm_c[0]);
+		int	*pc = &(sld->perm_c[0]);
+		get_perm_c(permc_spec, &sld->A, pc);
 
 		bRegenerateMatrix = false;
 	}
 
+	int		*pr = &(sld->perm_r[0]),
+			*pc = &(sld->perm_c[0]);
 
 	/* ------------------------------------------------------------
 	 * Initialize the option structure pdgstrf_options using the
@@ -324,8 +328,7 @@ SuperLUSolver::Factor(void)
 	 * Apply perm_c to the columns of original A to form AC.
 	 * ------------------------------------------------------------*/
 	pdgstrf_init(nThreads, refact, panel_size, relax,
-			u, usepr, drop_tol,
-			&sld->perm_c[0], &sld->perm_r[0],
+			u, usepr, drop_tol, pc, pr,
 			work, lwork, &sld->A, &sld->AC,
 			&sld->pdgstrf_options, &sld->Gstat);
 
@@ -365,7 +368,7 @@ SuperLUSolver::Factor(void)
 	 * Clean up and free storage after multithreaded factorization.
 	 * ------------------------------------------------------------*/
 	pdgstrf_thread_finalize(sld->pdgstrf_threadarg, &sld->pxgstrf_shared, 
-			&sld->A, &sld->perm_r[0], &sld->L, &sld->U);
+			&sld->A, pr, &sld->L, &sld->U);
 }
 
 /* Risolve */
@@ -398,8 +401,8 @@ SuperLUSolver::Solve(void) const
 void
 SuperLUSolver::MakeCompactForm(SparseMatrixHandler& mh,
 		std::vector<doublereal>& Ax,
-		std::vector<int>& Ar, std::vector<int>& Ac,
-		std::vector<int>& Ap) const
+		std::vector<integer>& Ar, std::vector<integer>& Ac,
+		std::vector<integer>& Ap) const
 {
 	/* no need to rebuild matrix */
 	if (!bHasBeenReset) {
@@ -427,10 +430,8 @@ SuperLUSolver::MakeCompactForm(SparseMatrixHandler& mh,
 /* SuperLUSparseSolutionManager - begin: code */
 
 /* Costruttore */
-SuperLUSparseSolutionManager::SuperLUSparseSolutionManager(integer iSize, 
-		integer iWorkSpaceSize,
-		const doublereal& dPivotFactor,
-		unsigned nt)
+SuperLUSparseSolutionManager::SuperLUSparseSolutionManager(unsigned nt,
+		integer iSize, const doublereal& dPivotFactor)
 : iMatSize(iSize), 
 Ap(iSize + 1),
 xb(iSize),
@@ -575,9 +576,9 @@ SuperLUSparseSolutionManager::Solve(void)
 /* SuperLUSparseCCSolutionManager - begin */
 
 template <class CC>
-SuperLUSparseCCSolutionManager<CC>::SuperLUSparseCCSolutionManager(integer Dim,
-		integer dummy, doublereal dPivot, unsigned nt)
-: SuperLUSparseSolutionManager(Dim, dummy, dPivot, nt),
+SuperLUSparseCCSolutionManager<CC>::SuperLUSparseCCSolutionManager(unsigned nt,
+		integer Dim, const doublereal &dPivot)
+: SuperLUSparseSolutionManager(nt, Dim, dPivot),
 CCReady(false),
 Ac(0)
 {

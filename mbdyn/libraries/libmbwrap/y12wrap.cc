@@ -85,11 +85,11 @@ pdPIVOT(NULL)
 	SAFENEWARR(pdPIVOT, doublereal, iN);
 	
 #ifdef DEBUG
-	for (int iCnt = 0; iCnt < 11*iN; iCnt++) {
+	for (integer iCnt = 0; iCnt < 11*iN; iCnt++) {
 		piHA[iCnt] = 0;
 	}
 
-	for (int iCnt = 0; iCnt < iN; iCnt++) {
+	for (integer iCnt = 0; iCnt < iN; iCnt++) {
 		pdPIVOT[iCnt] = 0;
 	}
 #endif /* DEBUG */
@@ -258,8 +258,8 @@ Y12Solver::Solve(void) const
 void
 Y12Solver::MakeCompactForm(SparseMatrixHandler& mh,
 		std::vector<doublereal>& Ax,
-		std::vector<int>& Ar, std::vector<int>& Ac,
-		std::vector<int>& Ap) const
+		std::vector<integer>& Ar, std::vector<integer>& Ac,
+		std::vector<integer>& Ap) const
 {
 	if (!bHasBeenReset) {
 		return;
@@ -286,7 +286,7 @@ Y12Solver::MakeCompactForm(SparseMatrixHandler& mh,
 }
 
 void 
-Y12Solver::PutError(std::ostream& out, int rc) const
+Y12Solver::PutError(std::ostream& out, integer rc) const
 {
 	out << std::endl;
 

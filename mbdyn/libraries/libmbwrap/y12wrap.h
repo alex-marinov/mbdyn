@@ -119,14 +119,14 @@ class Y12Solver : public LinearSolver  {
 public:
 	class ErrFactorization {
 	private: 
-		int iErrCode;
+		integer iErrCode;
 
 	public:
-		ErrFactorization(int i) : iErrCode(i) {
+		ErrFactorization(integer i) : iErrCode(i) {
 			NO_OP;
 		};
 
-		int iGetErrCode(void) const {
+		integer iGetErrCode(void) const {
 			return iErrCode;
 		};
 	};
@@ -175,7 +175,7 @@ private:
 
 	mutable bool bFirstSol;		/* true se prima backsubst */
 
-	void PutError(std::ostream& out, int rc) const; /* scrive l'errore */
+	void PutError(std::ostream& out, integer rc) const; /* scrive l'errore */
 
 	/* Fattorizza la matrice */
 	void Factor(void);
@@ -198,9 +198,9 @@ public:
 	/* Index Form */
 	void MakeCompactForm(SparseMatrixHandler& mh,
 			std::vector<doublereal>& Ax,
-			std::vector<int>& Ar,
-			std::vector<int>& Ac,
-			std::vector<int>& Ap) const;
+			std::vector<integer>& Ar,
+			std::vector<integer>& Ac,
+			std::vector<integer>& Ap) const;
 };
 
 /* Y12Solver - end */

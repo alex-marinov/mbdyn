@@ -127,12 +127,12 @@ class HarwellSolver {
 public:
    	class ErrFactorization {
     	private: 
-      		int iErrCode;
+      		integer iErrCode;
     	public:
-      		ErrFactorization(int i) : iErrCode(i) {
+      		ErrFactorization(integer i) : iErrCode(i) {
 			NO_OP;
 		};
-      		int iGetErrCode(void) const {
+      		integer iGetErrCode(void) const {
 			return iErrCode;
 		};
    	};
@@ -194,13 +194,13 @@ protected:
 		SAFENEWARR(pdW, doublereal, iN);
 	
 #ifdef DEBUG	
-		for (int iCnt = 0; iCnt < 5*iN; iCnt++) {
+		for (integer iCnt = 0; iCnt < 5*iN; iCnt++) {
 	   		piKeep[iCnt] = 0;
 		}
-		for (int iCnt = 0; iCnt < 8*iN; iCnt++) {
+		for (integer iCnt = 0; iCnt < 8*iN; iCnt++) {
 	   		piW[iCnt] = 0;
 		}
-		for (int iCnt = 0; iCnt < 1*iN; iCnt++) {
+		for (integer iCnt = 0; iCnt < 1*iN; iCnt++) {
 	   		pdW[iCnt] = 0.;
 		}
 #endif /* DEBUG */

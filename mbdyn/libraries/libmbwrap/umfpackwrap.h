@@ -87,10 +87,10 @@ extern "C" {
 
 class UmfpackSolver: public LinearSolver {
 private:
-	int iSize;
+	integer iSize;
 	mutable doublereal *Axp;
-	mutable int *Aip;
-	mutable int *App;
+	mutable integer *Aip;
+	mutable integer *App;
 
 	void *Symbolic;
 	mutable doublereal Control[UMFPACK_CONTROL];
@@ -102,7 +102,7 @@ private:
 	void Factor(void);
 
 public:
-	UmfpackSolver(const int &size, const doublereal &dPivot);
+	UmfpackSolver(const integer &size, const doublereal &dPivot);
 	~UmfpackSolver(void);
 
 	void Init(void);
@@ -110,9 +110,9 @@ public:
 
 	void MakeCompactForm(SparseMatrixHandler&,
 			std::vector<doublereal>& Ax,
-			std::vector<int>& Ar,
-			std::vector<int>& Ac,
-			std::vector<int>& Ap) const;
+			std::vector<integer>& Ar,
+			std::vector<integer>& Ac,
+			std::vector<integer>& Ap) const;
 };
 
 /* UmfpackSolver - end */
@@ -129,9 +129,9 @@ protected:
 	mutable MyVectorHandler xVH, bVH;
 
 	std::vector<doublereal> Ax;
-	std::vector<int> Ai;
-	std::vector<int> Adummy;
-	std::vector<int> Ap;
+	std::vector<integer> Ai;
+	std::vector<integer> Adummy;
+	std::vector<integer> Ap;
 
 	UmfpackSolver *pLS;
 
