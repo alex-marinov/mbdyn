@@ -39,6 +39,7 @@
 #ifdef USE_MPI
 #ifdef USE_MYSLEEP
 #include <mysleep.h>
+const int mysleeptime = 300;
 #endif /* USE_MYSLEEP */
 
 #ifdef MPI_PROFILING
@@ -542,30 +543,24 @@ void
 NoRotor::AddForce(unsigned int uL, 
 		const Vec3& F, const Vec3& M, const Vec3& X)
 {
-  /*
-   * Non gli serve in quanto non calcola velocita' indotta.
-   * Solo se deve fare l'output lo calcola
-   */
+	/*
+	 * Non gli serve in quanto non calcola velocita' indotta.
+	 * Solo se deve fare l'output lo calcola
+	 */
 #ifdef USE_MPI
-  if (ReqV != MPI::REQUEST_NULL) {
-    flag RecvFlag;
-    while (1) {
-      RecvFlag = ReqV.Test();
-      if (RecvFlag) { 
-	break;
+	if (ReqV != MPI::REQUEST_NULL) {
+		while (!ReqV.Test()) {
 #ifdef USE_MYSLEEP
-      } else {
-	mysleep(300);
+			mysleep(mysleeptime);
 #endif /* USE_MYSLEEP */
-      }
-    }
-  }
+		}
+	}
 #endif /* USE_MPI */
 
-  if (fToBeOutput()) {
-    Res.AddForces(F, M, X);
-    Rotor::AddForce(uL, F, M, X);
-  }
+	if (fToBeOutput()) {
+		Res.AddForces(F, M, X);
+		Rotor::AddForce(uL, F, M, X);
+	}
 }
 
 /* Restituisce ad un elemento la velocita' indotta in base alla posizione
@@ -698,28 +693,22 @@ UniformRotor::AddForce(unsigned int uL,
 		const Vec3& F, const Vec3& M, const Vec3& X)
 {
 #ifdef USE_MPI
-  if (ReqV != MPI::REQUEST_NULL) {
-    flag RecvFlag;
-    while (1) {
-      RecvFlag = ReqV.Test();
-      if (RecvFlag) { 
-	break;
+	if (ReqV != MPI::REQUEST_NULL) {
+		while (!ReqV.Test()) { 
 #ifdef USE_MYSLEEP	
-      } else {
-	mysleep(300);
+			mysleep(mysleeptime);
 #endif /* USE_MYSLEEP */
-      }
-    }
-  }
+		}
+	}
 #endif /* USE_MPI */
 
-  /* Solo se deve fare l'output calcola anche il momento */
-   if (fToBeOutput()) {      
-     Res.AddForces(F, M, X);
-     Rotor::AddForce(uL, F, M, X);
-   } else {
-     Res.AddForce(F);
-   }
+	/* Solo se deve fare l'output calcola anche il momento */
+	if (fToBeOutput()) {      
+		Res.AddForces(F, M, X);
+		Rotor::AddForce(uL, F, M, X);
+	} else {
+		Res.AddForce(F);
+	}
 }
 
 /* Restituisce ad un elemento la velocita' indotta in base alla posizione
@@ -838,28 +827,22 @@ GlauertRotor::AddForce(unsigned int uL,
 		const Vec3& F, const Vec3& M, const Vec3& X)
 {
 #ifdef USE_MPI
-  if (ReqV != MPI::REQUEST_NULL) {
-    flag RecvFlag;
-    while (1) {
-      RecvFlag = ReqV.Test();
-      if (RecvFlag) { 
-	break;
+	if (ReqV != MPI::REQUEST_NULL) {
+		while (!ReqV.Test()) { 
 #ifdef USE_MYSLEEP
-      } else {
-	mysleep(300);
+			mysleep(mysleeptime);
 #endif /* USE_MYSLEEP */
-      }
-    }
-  }
+		}
+	}
 #endif /* USE_MPI */
 
-   /* Solo se deve fare l'output calcola anche il momento */
-   if (fToBeOutput()) {      
-      Res.AddForces(F, M, X);
-      Rotor::AddForce(uL, F, M, X);
-   } else {
-      Res.AddForce(F);
-   }
+	/* Solo se deve fare l'output calcola anche il momento */
+	if (fToBeOutput()) {      
+		Res.AddForces(F, M, X);
+		Rotor::AddForce(uL, F, M, X);
+	} else {
+		Res.AddForce(F);
+	}
 }
 
 
@@ -1018,28 +1001,22 @@ ManglerRotor::AddForce(unsigned int uL,
 		const Vec3& F, const Vec3& M, const Vec3& X)
 {
 #ifdef USE_MPI
-  if (ReqV != MPI::REQUEST_NULL) {
-    flag RecvFlag;
-    while (1) {
-      RecvFlag = ReqV.Test();
-      if (RecvFlag) { 
-	break;
+	if (ReqV != MPI::REQUEST_NULL) {
+		while (!ReqV.Test()) { 
 #ifdef USE_MYSLEEP
-      } else {
-	mysleep(300);
+			mysleep(mysleeptime);
 #endif /* USE_MYSLEEP */
-      }
-    }
-  }
+		}
+	}
 #endif /* USE_MPI */
 
-  /* Solo se deve fare l'output calcola anche il momento */
-  if (fToBeOutput()) {      
-    Res.AddForces(F, M, X);
-    Rotor::AddForce(uL, F, M, X);
-  } else {
-    Res.AddForce(F);
-  }
+	/* Solo se deve fare l'output calcola anche il momento */
+	if (fToBeOutput()) {      
+		Res.AddForces(F, M, X);
+		Rotor::AddForce(uL, F, M, X);
+	} else {
+		Res.AddForce(F);
+	}
 }
 
 
@@ -1369,6 +1346,11 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		 	d *= dRadius;
 		 	dCl = M.dGet(1)/d;
 		 	dCm = M.dGet(2)/d;
+
+			std::cout << dCt/(fabs(dOmega) + 1e-12)
+				<< " " << dCl/(fabs(dOmega) + 1e-12)
+				<< " " << dCm/(fabs(dOmega) + 1e-12)
+				<< std::endl;
    
 		 	/*** FIXME: this is from Rotor::InitParams() ***/
 	
@@ -1484,24 +1466,26 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 
 
 /* Relativo ai ...WithDofs */
-void DynamicInflowRotor::SetInitialValue(VectorHandler& /* X */ ) const
+void
+DynamicInflowRotor::SetInitialValue(VectorHandler& /* X */ ) const
 {
-    NO_OP;
+	NO_OP;
 }
 
 
 /* Relativo ai ...WithDofs */
-void DynamicInflowRotor::SetValue(VectorHandler& X, VectorHandler& XP) const
+void
+DynamicInflowRotor::SetValue(VectorHandler& X, VectorHandler& XP) const
 {
-  integer iFirstIndex = iGetFirstIndex();
-  
-  for (int iCnt = 1; iCnt <= 3; iCnt++) {
-    XP.fPutCoef(iFirstIndex+iCnt, 0.);
-  }   
-  
-  X.fPutCoef(iFirstIndex+1, dVConst);
-  X.fPutCoef(iFirstIndex+2, dVSine);
-  X.fPutCoef(iFirstIndex+3, dVCosine);
+	integer iFirstIndex = iGetFirstIndex();
+
+	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+		XP.fPutCoef(iFirstIndex+iCnt, 0.);
+	}   
+
+	X.fPutCoef(iFirstIndex+1, dVConst);
+	X.fPutCoef(iFirstIndex+2, dVSine);
+	X.fPutCoef(iFirstIndex+3, dVCosine);
 }
 
 
@@ -1519,30 +1503,24 @@ void
 DynamicInflowRotor::AddForce(unsigned int uL,
 		const Vec3& F, const Vec3& M, const Vec3& X)
 {
-   /*
-    * Gli serve la trazione ed il momento rispetto al rotore, 
-    * che si calcola da se'
-    */
+	/*
+	 * Gli serve la trazione ed il momento rispetto al rotore, 
+	 * che si calcola da se'
+	 */
 #ifdef USE_MPI
-  if (ReqV != MPI::REQUEST_NULL) {
-    flag RecvFlag;
-    while (1) {
-      RecvFlag = ReqV.Test();
-      if (RecvFlag) { 
-	break;
+	if (ReqV != MPI::REQUEST_NULL) {
+		while (!ReqV.Test()) { 
 #ifdef USE_MYSLEEP
-      } else {
-	mysleep(300);
+			mysleep(mysleeptime);
 #endif /* USE_MYSLEEP */
-      }
-    }
-  }
+		}
+	}
 #endif /* USE_MPI */
 
-   Res.AddForces(F, M, X);
-   if (fToBeOutput()) {
-      Rotor::AddForce(uL, F, M, X);
-   }
+	Res.AddForces(F, M, X);
+	if (fToBeOutput()) {
+		Rotor::AddForce(uL, F, M, X);
+	}
 }
 
 
