@@ -6,6 +6,9 @@ Copyright (C) 1996-2002
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Wed Dec 18 23:09:03 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - internal forces (will evolve into electric motors ...)
+
 *** Sun Dec 15 14:29:00 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - added AeroDyn package as contrib.; module-aerodyn started
  - changed API of modules (added info stuff)

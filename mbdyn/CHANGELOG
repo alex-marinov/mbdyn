@@ -24,6 +24,7 @@ MBDyn 1.2-Engineering
 		- set default load path to module install dir (libexec)
 		- improve modules installation
 		- clamp joint reactions also output in node reference frame
+		- added internal forces and couples (i.e. between two nodes)
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
@@ -32,7 +33,8 @@ MBDyn 1.2-Engineering
 	Bug fixes:
 		- do not output RelativeFrame dummy struct nodes in ADAMS
 		  res format
-		- fix timing
+		- fixed time handling
+		- fixed force ando couple initial assembly
 
 
 MBDyn 1.1.4

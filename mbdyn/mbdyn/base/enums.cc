@@ -202,11 +202,17 @@ extern const char* psGenelNames[] = {
 /* Tipi di Force */
 extern const char* psForceNames[] = {
    "Abstract Force",
+   "Abstract Reaction Force",
 
    "Conservative Force",
    "Follower Force",
    "Conservative Couple",
    "Follower Couple",
+
+   "Conservative Reaction Force",
+   "Follower Reaction Force",
+   "Conservative Reaction Couple",
+   "Follower Reaction Couple",
    
    NULL
 };

@@ -37,11 +37,15 @@
 #include <ac/float.h>
 
 #include <force.h>
+#ifdef USE_STRUCT_NODES
+#include <strforce.h>
+#endif /* USE_STRUCT_NODES */
 #include <dataman.h>
 
 /* Force - begin */
 
-std::ostream& Force::Output(unsigned int NodeLabel, std::ostream& out) const
+std::ostream&
+Force::Output(unsigned int NodeLabel, std::ostream& out) const
 {
    return out << std::setw(8) << GetLabel() << " "
      << std::setw(8) << NodeLabel << " " 
@@ -49,7 +53,8 @@ std::ostream& Force::Output(unsigned int NodeLabel, std::ostream& out) const
 }
 
 
-std::ostream& Force::Restart(std::ostream& out) const
+std::ostream&
+Force::Restart(std::ostream& out) const
 {
    return out << "  force: " << GetLabel();
 }
@@ -57,40 +62,12 @@ std::ostream& Force::Restart(std::ostream& out) const
 /* Force - end */
 
 
-/* StructuralForce - begin */
-
-/* Costruttore */
-StructuralForce::StructuralForce(unsigned int uL, 
-				 Force::Type T,
-				 const StructNode* pN,
-				 const DriveCaller* pDC, 
-				 const Vec3& TmpDir,
-				 flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-Force(uL, T, pDC, fOut), 
-pNode(pN), Dir(TmpDir)
-{ 
-   ASSERT(pNode != NULL);
-   ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
-   ASSERT(pDC != NULL);
-   ASSERT(Dir.Dot() > 0.);
-}
-
-
-StructuralForce::~StructuralForce(void) 
-{ 
-   NO_OP; 
-};
-
-/* StructuralForce - end */
-
-
 /* AbstractForce - begin */
 
 /* Costruttore non banale */
 
 AbstractForce::AbstractForce(unsigned int uL, const Node* pN, 
-			     const DriveCaller* pDC, flag fOut)
+		const DriveCaller* pDC, flag fOut)
 : Elem(uL, Elem::FORCE, fOut),
 Force(uL, Force::ABSTRACTFORCE, pDC, fOut),
 pNode(pN)
@@ -100,20 +77,22 @@ pNode(pN)
 
 
 /* Contributo al file di restart */
-std::ostream& AbstractForce::Restart(std::ostream& out) const
+std::ostream&
+AbstractForce::Restart(std::ostream& out) const
 {
    Force::Restart(out) << ", abstract, " 
      << pNode->GetLabel() << ", " 
-     << psReadNodesNodes[pNode->GetNodeType()] << ", " /* << iDofNumber << ", " */;
+     << psReadNodesNodes[pNode->GetNodeType()] << ", ";
    return pGetDriveCaller()->Restart(out) << ';' << std::endl;     
 }
 
 
 /* Assembla il residuo */
-SubVectorHandler& AbstractForce::AssRes(SubVectorHandler& WorkVec,
-					doublereal /* dCoef */ ,
-					const VectorHandler& /* XCurr */ ,
-					const VectorHandler& /* XPrimeCurr */ )
+SubVectorHandler&
+AbstractForce::AssRes(SubVectorHandler& WorkVec,
+		doublereal /* dCoef */ ,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
 {
    DEBUGCOUT("Entering AbstractForce::AssRes()" << std::endl);
 
@@ -124,7 +103,6 @@ SubVectorHandler& AbstractForce::AssRes(SubVectorHandler& WorkVec,
    doublereal dAmplitude = pGetDriveCaller()->dGet();
    
    /* Indici delle incognite del nodo */
-   // integer iFirstIndex = pNode->iGetFirstRowIndex()+iDofNumber;
    integer iFirstIndex = pNode->iGetFirstRowIndex();
    WorkVec.fPutRowIndex(1, iFirstIndex+1);
 
@@ -133,7 +111,8 @@ SubVectorHandler& AbstractForce::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-void AbstractForce::Output(OutputHandler& OH) const 
+void
+AbstractForce::Output(OutputHandler& OH) const 
 {
    if (fToBeOutput()) {
       Force::Output(pNode->GetLabel(), OH.Forces()) << std::endl;
@@ -143,7 +122,7 @@ void AbstractForce::Output(OutputHandler& OH) const
 /* Contributo al residuo durante l'assemblaggio iniziale */   
 SubVectorHandler& 
 AbstractForce::InitialAssRes(SubVectorHandler& WorkVec,
-			     const VectorHandler& XCurr)
+		const VectorHandler& XCurr)
 {
    DEBUGCOUT("Entering AbstractForce::InitialAssRes()" << std::endl);
 
@@ -153,660 +132,80 @@ AbstractForce::InitialAssRes(SubVectorHandler& WorkVec,
 /* AbstractForce - end */
 
 
-/* ConservativeForce - begin */
+/* AbstractInternalForce - begin */
 
 /* Costruttore non banale */
 
-ConservativeForce::ConservativeForce(unsigned int uL, const StructNode* pN, 
-				     const DriveCaller* pDC,
-				     const Vec3& TmpDir, const Vec3& TmpArm,
-				     flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-StructuralForce(uL, Force::CONSERVATIVEFORCE, pN, pDC, TmpDir, fOut), 
-Arm(TmpArm)
-{ 
-   NO_OP; 
-};
+AbstractInternalForce::AbstractInternalForce(unsigned int uL,
+		const Node* pN1, const Node *pN2, 
+		const DriveCaller* pDC, flag fOut)
+: Elem(uL, Elem::FORCE, fOut),
+Force(uL, Force::ABSTRACTFORCE, pDC, fOut),
+pNode1(pN1), pNode2(pN2)
+{
+   NO_OP;
+}
 
 
 /* Contributo al file di restart */
-std::ostream& ConservativeForce::Restart(std::ostream& out) const
+std::ostream&
+AbstractInternalForce::Restart(std::ostream& out) const
 {
-   Force::Restart(out) << ", conservative, " 
-     << pNode->GetLabel() << ", reference, global, ",
-     ((pNode->GetRCurr()).Transpose()*Dir).Write(out, ", ") 
-       << ", reference, node, ",
-     Arm.Write(out, ", ") << ", ";
-   return pGetDriveCaller()->Restart(out) << ';' << std::endl;     
-}
-
-
-VariableSubMatrixHandler& 
-ConservativeForce::AssJac(VariableSubMatrixHandler& WorkMat,
-			  doublereal dCoef,
-			  const VectorHandler& /* XCurr */ ,
-			  const VectorHandler& /* XPrimeCurr */ )
-{
-   DEBUGCOUT("Entering ConservativeForce::AssJac()" << std::endl);
-   
-   FullSubMatrixHandler& WM = WorkMat.SetFull();
-   
-   /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(3, 3, 0.);
-
-   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
-   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
-   for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt); 
-      WM.fPutColIndex(iCnt, iFirstPositionIndex+iCnt);
-   }      
-   
-   /* Dati */
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
-   Vec3 TmpArm(pNode->GetRRef()*Arm);
-   Vec3 TmpDir = Dir*dAmplitude;
-   
-   /* |    F/\   |           |   F  |
-    * |          | Delta_g = |      |
-    * | (d/\F)/\ |           | d/\F | */
-     
-   WM.Add(1, 1, Mat3x3(TmpDir, TmpArm*(-dCoef)));
-   
-   return WorkMat;
-};
-
-
-/* Assembla il residuo */
-SubVectorHandler& ConservativeForce::AssRes(SubVectorHandler& WorkVec,
-					    doublereal /* dCoef */ ,
-					    const VectorHandler& /* XCurr */ ,
-					    const VectorHandler& /* XPrimeCurr */ )
-{
-   DEBUGCOUT("Entering ConservativeForce::AssRes()" << std::endl);
-
-   integer iNumRows;
-   integer iNumCols;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-
-   /* Dati */
-   
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
-   
-   /* Indici delle incognite del nodo */
-   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-   for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
-   }   
-   
-   Mat3x3 R(pNode->GetRCurr());
-   Vec3 F(Dir*dAmplitude);
-   Vec3 M((R*Arm).Cross(F));
-   
-   WorkVec.Add(1, F);
-   WorkVec.Add(4, M);
-
-   return WorkVec;
-}
-
-
-void ConservativeForce::Output(OutputHandler& OH) const 
-{
-   if (fToBeOutput()) {      
-      Force::Output(pNode->GetLabel(), OH.Forces())
-	<< " " << Dir*dGet()
-	  << " " << pNode->GetXCurr()+pNode->GetRCurr()*Arm << std::endl;
-   }
-}
-
-
-/* Contributo allo jacobiano durante l'assemblaggio iniziale */
-VariableSubMatrixHandler& 
-ConservativeForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
-				 const VectorHandler& /* XCurr */ )
-{
-   DEBUGCOUT("Entering ConservativeForce::InitialAssJac()" << std::endl);
-   
-   FullSubMatrixHandler& WM = WorkMat.SetFull();
-   
-   /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(6, 6, 0.);
-
-   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
-   integer iFirstVelocityIndex = iFirstPositionIndex+6;
-   for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);     
-      WM.fPutRowIndex(3+iCnt, iFirstVelocityIndex+iCnt);     
-      WM.fPutColIndex(iCnt, iFirstPositionIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iFirstVelocityIndex+iCnt);
-   }      
-
-   /* Dati */
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
-   Vec3 TmpArm(pNode->GetRRef()*Arm);
-   Vec3 TmpDir = Dir*dAmplitude;
-   Vec3 Omega(pNode->GetWRef());
-   
-   /* |    F/\   |           |   F  |
-    * |          | Delta_g = |      |
-    * | (d/\F)/\ |           | d/\F | */
-     
-   WM.Add(1, 1, Mat3x3(-TmpDir, TmpArm));
-   WM.Add(4, 1, Mat3x3(-TmpDir, Omega)*Mat3x3(TmpArm));
-   WM.Add(4, 4, Mat3x3(-TmpDir, TmpArm));
-   
-   return WorkMat;
-}
-
-
-/* Contributo al residuo durante l'assemblaggio iniziale */   
-SubVectorHandler& 
-ConservativeForce::InitialAssRes(SubVectorHandler& WorkVec,
-				 const VectorHandler& /* XCurr */ )
-{
-   DEBUGCOUT("Entering ConservativeForce::InitialAssRes()" << std::endl);
-
-   integer iNumRows;
-   integer iNumCols;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-
-   /* Dati */
-   
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
-   
-   /* Indici delle incognite del nodo */
-   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-   integer iFirstVelocityIndex = iFirstPositionIndex+6;
-   for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
-   }   
-   
-   Mat3x3 R(pNode->GetRCurr());
-   Vec3 TmpDir(Dir*dAmplitude);
-   Vec3 TmpArm(R*Arm);
-   Vec3 Omega(pNode->GetWCurr());
-   
-   WorkVec.Add(1, TmpDir);
-   WorkVec.Add(4, TmpArm.Cross(TmpDir));
-   /* In 7 non c'e' nulla */
-   WorkVec.Add(10, (Omega.Cross(TmpArm)).Cross(TmpDir));
-
-   return WorkVec;
-}
-
-/* ConservativeForce - end */
-
-
-/* FollowerForce - begin */
-
-/* Costruttore non banale */
-
-FollowerForce::FollowerForce(unsigned int uL, const StructNode* pN, 
-			     const DriveCaller* pDC,
-			     const Vec3& TmpDir, const Vec3& TmpArm,
-			     flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-StructuralForce(uL, Force::FOLLOWERFORCE, pN, pDC, TmpDir, fOut), 
-Arm(TmpArm)
-{ 
-   NO_OP; 
-};
-
-
-/* Contributo al file di restart */
-std::ostream& FollowerForce::Restart(std::ostream& out) const
-{
-   Force::Restart(out) << ", follower, "
-     << pNode->GetLabel() 
-     << ", reference, node, ",
-     Dir.Write(out, ", ") 
-     << ", reference, node, ",
-     Arm.Write(out, ", ") << ", ";
-   return pGetDriveCaller()->Restart(out) << ';' << std::endl;     
-}
-
-
-VariableSubMatrixHandler& 
-FollowerForce::AssJac(VariableSubMatrixHandler& WorkMat,
-		      doublereal dCoef,
-		      const VectorHandler& /* XCurr */ ,
-		      const VectorHandler& /* XPrimeCurr */ )
-{
-   DEBUGCOUT("Entering FollowerForce::AssJac()" << std::endl);
-   
-   FullSubMatrixHandler& WM = WorkMat.SetFull();
-   
-   /* Dimensiona e resetta la matrice di lavoro */
-   integer iNumRows = 0;
-   integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
-
-   integer iFirstRotationIndex = pNode->iGetFirstPositionIndex()+3;
-   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-   for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);     /* forza */
-      WM.fPutRowIndex(3+iCnt, iFirstMomentumIndex+3+iCnt); /* coppia */
-      WM.fPutColIndex(iCnt, iFirstRotationIndex+iCnt);     /* rotazione */
-   }      
-   
-   /* Dati */
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
-   Mat3x3 R(pNode->GetRRef());
-   Vec3 TmpDir(R*(Dir*dAmplitude));
-   Vec3 TmpArm(R*Arm);
-   
-   /* |    F/\   |           |   F  |
-    * |          | Delta_g = |      |
-    * | (d/\F)/\ |           | d/\F | */
-     
-   WM.Add(1, 1, Mat3x3(TmpDir*dCoef));
-   WM.Add(4, 1, Mat3x3(TmpArm.Cross(TmpDir*dCoef)));   
-   
-   return WorkMat;
-};
-
-
-/* Assembla il residuo */
-SubVectorHandler& FollowerForce::AssRes(SubVectorHandler& WorkVec,
-					doublereal /* dCoef */ ,
-					const VectorHandler& /* XCurr */ ,
-					const VectorHandler& /* XPrimeCurr */ )
-{
-   DEBUGCOUT("Entering FollowerForce::AssRes()" << std::endl);
-   
-   integer iNumRows;
-   integer iNumCols;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
-   /* Dati */
-   
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
-   
-   /* Indici delle incognite del nodo */
-   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-   for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
-   }   
-   
-   Mat3x3 R(pNode->GetRCurr());
-   Vec3 TmpDir = Dir*dAmplitude;
-   Vec3 F(R*TmpDir);
-   Vec3 M(R*Arm.Cross(TmpDir));
-   
-   WorkVec.Add(1, F);
-   WorkVec.Add(4, M);
-
-   return WorkVec;
-}
-
-
-void FollowerForce::Output(OutputHandler& OH) const 
-{   
-   if (fToBeOutput()) {
-      Force::Output(pNode->GetLabel(), OH.Forces())
-	<< " " << pNode->GetRCurr()*(Dir*dGet())
-	  << " " << pNode->GetXCurr()+pNode->GetRCurr()*Arm << std::endl;
-   }
-}
-
-
-/* Contributo allo jacobiano durante l'assemblaggio iniziale */
-VariableSubMatrixHandler& 
-FollowerForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
-			     const VectorHandler& /* XCurr */ )
-{
-   DEBUGCOUT("Entering FollowerForce::InitialAssJac()" << std::endl);
-   
-   FullSubMatrixHandler& WM = WorkMat.SetFull();
-   
-   /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(12, 6, 0.);
-
-   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-   integer iFirstVelocityIndex = iFirstPositionIndex+6;
-   for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);     
-      WM.fPutRowIndex(3+iCnt, iFirstPositionIndex+3+iCnt);     
-      WM.fPutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);     
-      WM.fPutRowIndex(9+iCnt, iFirstVelocityIndex+3+iCnt);     
-      WM.fPutColIndex(iCnt, iFirstPositionIndex+3+iCnt);
-      WM.fPutColIndex(3+iCnt, iFirstVelocityIndex+3+iCnt);
-   }      
-
-   /* Dati */
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
-   Mat3x3 R(pNode->GetRRef());
-   Vec3 TmpArm(R*Arm);
-   Vec3 TmpDir = R*(Dir*dAmplitude);
-   Vec3 Omega(pNode->GetWRef());
-   
-   /* |    F/\   |           |   F  |
-    * |          | Delta_g = |      |
-    * | (d/\F)/\ |           | d/\F | */
-     
-   WM.Add(1, 1, Mat3x3(TmpDir));
-   WM.Add(4, 1, Mat3x3(TmpArm.Cross(TmpDir)));
-   WM.Add(7, 1, Mat3x3(Omega, TmpDir));
-   WM.Add(7, 4, Mat3x3(TmpDir));
-   WM.Add(10, 1, Mat3x3(Omega, TmpArm.Cross(TmpDir)));
-   WM.Add(10, 4, Mat3x3(TmpArm.Cross(TmpDir)));
-   
-   return WorkMat;
-}
-
-
-/* Contributo al residuo durante l'assemblaggio iniziale */   
-SubVectorHandler& 
-FollowerForce::InitialAssRes(SubVectorHandler& WorkVec,
-			     const VectorHandler& /* XCurr */ )
-{
-   DEBUGCOUT("Entering FollowerForce::InitialAssRes()" << std::endl);
-
-   integer iNumRows;
-   integer iNumCols;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-
-   /* Dati */
-   
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
-   
-   /* Indici delle incognite del nodo */
-   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-   integer iFirstVelocityIndex = iFirstPositionIndex+6;
-   for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
-   }   
-   
-   Mat3x3 R(pNode->GetRCurr());
-   Vec3 TmpDir(R*(Dir*dAmplitude));
-   Vec3 TmpArm(R*Arm);
-   Vec3 Omega(pNode->GetWCurr());
-   
-   WorkVec.Add(1, TmpDir);
-   WorkVec.Add(4, TmpArm.Cross(TmpDir));
-   WorkVec.Add(7, Omega.Cross(TmpDir));
-   WorkVec.Add(10, (Omega.Cross(TmpArm)).Cross(TmpDir)
-	       +TmpArm.Cross(Omega.Cross(TmpDir)));
-
-   return WorkVec;
-}
-
-/* FollowerForce - end */
-
-
-/* ConservativeCouple - begin */
-
-/* Costruttore non banale */
-
-ConservativeCouple::ConservativeCouple(unsigned int uL, const StructNode* pN, 
-				       const DriveCaller* pDC, 
-				       const Vec3& TmpDir,
-				       flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-StructuralForce(uL, Force::CONSERVATIVECOUPLE, pN, pDC, TmpDir, fOut)
-{ 
-   NO_OP; 
-};
-
-
-/* Contributo al file di restart */
-std::ostream& ConservativeCouple::Restart(std::ostream& out) const
-{
-   out << "  couple: " << GetLabel() << ", conservative, " 
-     << pNode->GetLabel() << ", reference, global, ",
-     Dir.Write(out, ", ")
-       << ", ";
+   Force::Restart(out) << ", abstract internal, " 
+     << pNode1->GetLabel() << ", " 
+     << psReadNodesNodes[pNode1->GetNodeType()] << ", "
+     << pNode1->GetLabel() << ", " 
+     << psReadNodesNodes[pNode1->GetNodeType()] << ", ";
    return pGetDriveCaller()->Restart(out) << ';' << std::endl;     
 }
 
 
 /* Assembla il residuo */
-SubVectorHandler& ConservativeCouple::AssRes(SubVectorHandler& WorkVec,
-					     doublereal /* dCoef */ ,
-					     const VectorHandler& /* XCurr */ ,
-					     const VectorHandler& /* XPrimeCurr */ )
+SubVectorHandler&
+AbstractInternalForce::AssRes(SubVectorHandler& WorkVec,
+		doublereal /* dCoef */ ,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ConservativeCouple::AssRes()" << std::endl);
+   DEBUGCOUT("Entering AbstractInternalForce::AssRes()" << std::endl);
 
-   integer iNumRows;
-   integer iNumCols;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
+   WorkVec.Resize(2);
    WorkVec.Reset(0.);
 
-   /* Dati */
-   
+   /* Dati */   
    doublereal dAmplitude = pGetDriveCaller()->dGet();
    
    /* Indici delle incognite del nodo */
-   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
-   for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
-   }   
-   
-   WorkVec.Add(1, Dir*dAmplitude);
+   integer iFirstIndex1 = pNode1->iGetFirstRowIndex();
+   integer iFirstIndex2 = pNode2->iGetFirstRowIndex();
+   WorkVec.fPutRowIndex(1, iFirstIndex1+1);
+   WorkVec.fPutRowIndex(2, iFirstIndex2+1);
+
+   WorkVec.fPutCoef(1, dAmplitude);
+   WorkVec.fPutCoef(2, -dAmplitude);
 
    return WorkVec;
 }
 
-
-void ConservativeCouple::Output(OutputHandler& OH) const 
-{   
+void
+AbstractInternalForce::Output(OutputHandler& OH) const 
+{
    if (fToBeOutput()) {
-      Force::Output(pNode->GetLabel(), OH.Forces())
-	<< " " << Dir*dGet() << std::endl;
+      Force::Output(pNode1->GetLabel(), OH.Forces()) << std::endl;
    }
 }
-
 
 /* Contributo al residuo durante l'assemblaggio iniziale */   
 SubVectorHandler& 
-ConservativeCouple::InitialAssRes(SubVectorHandler& WorkVec,
-				  const VectorHandler& /* XCurr */ )
+AbstractInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering ConservativeCouple::InitialAssRes()" << std::endl);
+   DEBUGCOUT("Entering AbstractInternalForce::InitialAssRes()" << std::endl);
 
-   WorkVec.Resize(3);
-   WorkVec.Reset(0.);
-
-   /* Dati */
-   
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
-   
-   /* Indici delle incognite del nodo */
-   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
-   for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-   }   
-   
-   WorkVec.Add(1, Dir*dAmplitude);
-
-   return WorkVec;
+   return AssRes(WorkVec, 1., XCurr, XCurr);
 }
 
-/* ConservativeCouple - end */
-
-
-/* FollowerCouple - begin */
-
-FollowerCouple::FollowerCouple(unsigned int uL, const StructNode* pN, 
-			       const DriveCaller* pDC, const Vec3& TmpDir,
-			       flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-StructuralForce(uL, Force::FOLLOWERCOUPLE, pN, pDC, TmpDir, fOut)
-{ 
-   NO_OP; 
-};
-
-
-/* Contributo al file di restart */
-std::ostream& FollowerCouple::Restart(std::ostream& out) const
-{
-   out << "  couple: " << GetLabel() << ", follower, " 
-     << pNode->GetLabel() << ", reference, node, ",
-     Dir.Write(out, ", ") << ", ";
-   return pGetDriveCaller()->Restart(out) << ';' << std::endl;
-}
-
-
-VariableSubMatrixHandler& 
-FollowerCouple::AssJac(VariableSubMatrixHandler& WorkMat,
-		       doublereal dCoef,
-		       const VectorHandler& /* XCurr */ ,
-		       const VectorHandler& /* XPrimeCurr */ )
-{
-   DEBUGCOUT("Entering FollowerCouple::AssJac()" << std::endl);
-   
-   FullSubMatrixHandler& WM = WorkMat.SetFull();
-   
-   /* Dimensiona e resetta la matrice di lavoro */
-   integer iNumRows = 0;
-   integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
-
-   integer iFirstRotationIndex = pNode->iGetFirstPositionIndex()+3;
-   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
-   for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);    /* coppia */
-      WM.fPutColIndex(iCnt, iFirstRotationIndex+iCnt);    /* rotazione */
-   }      
-   
-   /* Dati */
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
-   Mat3x3 R(pNode->GetRRef());
-   Mat3x3 MWedge((R*Dir)*(dAmplitude*dCoef));
-   
-   /* | M /\| Delta_g = | M | */
-     
-   WM.Add(1, 1, MWedge);   
-   
-   return WorkMat;
-};
-
-
-/* Assembla il residuo */
-SubVectorHandler& FollowerCouple::AssRes(SubVectorHandler& WorkVec,
-					 doublereal /* dCoef */ ,
-					 const VectorHandler& /* XCurr */ , 
-					 const VectorHandler& /* XPrimeCurr */ )
-{
-   DEBUGCOUT("Entering FollowerCouple::AssRes()" << std::endl);
-   
-   integer iNumRows;
-   integer iNumCols;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
-   
-   /* Dati */
-   
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
-   
-   /* Indici delle incognite del nodo */
-   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
-   for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
-   }
-       
-   Mat3x3 R(pNode->GetRCurr());
-   WorkVec.Add(1, (R*Dir)*dAmplitude);
-   
-   return WorkVec;
-}
-
-
-void FollowerCouple::Output(OutputHandler& OH) const 
-{   
-   if (fToBeOutput()) {
-      Force::Output(pNode->GetLabel(), OH.Forces())
-	<< " " << pNode->GetRCurr()*(Dir*dGet()) << std::endl;
-   }
-}
-
-
-/* Contributo allo jacobiano durante l'assemblaggio iniziale */
-VariableSubMatrixHandler& 
-FollowerCouple::InitialAssJac(VariableSubMatrixHandler& WorkMat,
-			      const VectorHandler& /* XCurr */ )
-{
-   DEBUGCOUT("Entering FollowerCouple::InitialAssJac()" << std::endl);
-   
-   FullSubMatrixHandler& WM = WorkMat.SetFull();
-   
-   /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(6, 6, 0.);
-
-   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
-   integer iFirstVelocityIndex = iFirstPositionIndex+6;
-   for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);     
-      WM.fPutRowIndex(3+iCnt, iFirstVelocityIndex+iCnt);     
-      WM.fPutColIndex(iCnt, iFirstPositionIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iFirstVelocityIndex+iCnt);
-   }      
-   
-   /* Dati */
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
-   Vec3 TmpDir(pNode->GetRRef()*(Dir*dAmplitude));
-   Vec3 Omega(pNode->GetWRef());
-   
-   /* |    F/\   |           |   F  |
-    * |          | Delta_g = |      |
-    * | (d/\F)/\ |           | d/\F | */
-     
-   WM.Add(1, 1, Mat3x3(TmpDir));
-   WM.Add(4, 1, Mat3x3(Omega, TmpDir));
-   WM.Add(4, 4, Mat3x3(TmpDir));
-   
-   return WorkMat;
-}
-
-
-/* Contributo al residuo durante l'assemblaggio iniziale */   
-SubVectorHandler& 
-FollowerCouple::InitialAssRes(SubVectorHandler& WorkVec,
-			      const VectorHandler& /* XCurr */ )
-{
-   DEBUGCOUT("Entering FollowerCouple::InitialAssRes()" << std::endl);
-
-   WorkVec.Resize(6);
-   WorkVec.Reset(0.);
-
-   /* Dati */
-   
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
-   
-   /* Indici delle incognite del nodo */
-   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
-   integer iFirstVelocityIndex = iFirstPositionIndex+6;
-   for(integer iCnt = 1; iCnt <= 3; iCnt++)
-     {
-	WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-	WorkVec.fPutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
-     }   
-   
-   Mat3x3 R(pNode->GetRCurr());
-   Vec3 TmpDir(R*(Dir*dAmplitude));
-   Vec3 Omega(pNode->GetWCurr());
-   
-   WorkVec.Add(1, TmpDir);
-   WorkVec.Add(4, Omega.Cross(TmpDir));
-
-   return WorkVec;
-}
-
-/* FollowerCouple - end */
+/* AbstractInternalForce - end */
 
 
 /* Legge una forza */
@@ -820,29 +219,40 @@ Elem* ReadForce(DataManager* pDM,
    DEBUGCOUT("Entering " << sFuncName << std::endl);
    
    const char* sKeyWords[] = {
+
 #if defined(USE_STRUCT_NODES)
       "conservative",
-	"follower"
+      "follower",
+      
+      "conservative" "internal",
+      "follower" "internal",
+#endif /* USE_STRUCT_NODES */
+
 #if defined(USE_ELECTRIC_NODES)
-	, "abstract"
-#endif
-#elif defined(USE_ELECTRIC_NODES)
-	"abstract"
-#endif
+      "abstract",
+      "abstract" "internal",
+#endif /* USE_ELECTRIC_NODES */
+
+      NULL
    };
    
    /* enum delle parole chiave */
    enum KeyWords {
       UNKNOWN = -1,
+
 #if defined(USE_STRUCT_NODES)
-	CONSERVATIVE = 0,
+	CONSERVATIVE,
 	FOLLOWER,
+	
+	CONSERVATIVEINTERNAL,
+	FOLLOWERINTERNAL,
+#endif /* USE_STRUCT_NODES */
+
 #if defined(USE_ELECTRIC_NODES)
 	ABSTRACT,
-#endif
-#elif defined(USE_ELECTRIC_NODES)
-	ABSTRACT = 0,
-#endif
+	ABSTRACTINTERNAL,
+#endif /* USE_ELECTRIC_NODES */
+
 	LASTKEYWORD 
    };
    
@@ -863,19 +273,41 @@ Elem* ReadForce(DataManager* pDM,
    }   
    
 #ifdef DEBUG
+   switch(CurrType) {
 #if defined(USE_STRUCT_NODES)
-   if (CurrType == CONSERVATIVE) {      
+    case CONSERVATIVE:
       std::cout << "Force type: \"Conservative\"" << std::endl;
-   } else if (CurrType == FOLLOWER) {      
+      break;
+
+    case FOLLOWER:
       std::cout << "Force type: \"Follower\"" << std::endl;
-   }
+      break;
+
+    case CONSERVATIVEINTERNAL:
+      std::cout << "Force type: \"Conservative Internal\"" << std::endl;
+      break;
+
+    case FOLLOWERINTERNAL:
+      std::cout << "Force type: \"Follower Internal\"" << std::endl;
+      break;
+
+#endif /* USE_STRUCT_NODES */
+
 #if defined(USE_ELECTRIC_NODES)
-   else if (CurrType == ABSTRACT) {
+    case ABSTRACT:
       std::cout << "Force type: \"Abstract\"" << std::endl;
+      break;
+
+    case ABSTRACTINTERNAL:
+      std::cout << "Force type: \"Abstract Internal\"" << std::endl;
+      break;
+
+#endif /* USE_ELECTRIC_NODES */
+      
+    default:
+      THROW(ErrGeneric());
    }
-#endif
-#endif
-#endif // DEBUG
+#endif /* DEBUG */
 
    Elem* pEl = NULL;
    
@@ -898,9 +330,31 @@ Elem* ReadForce(DataManager* pDM,
 			     AbstractForce,
 			     AbstractForce(uLabel, SD.pNode, pDC, fOut));
             
+   } else if (CurrType == ABSTRACTINTERNAL) {
+      
+      /* tabella delle parole chiave */
+      KeyTable KDof((int)Node::LASTNODETYPE, psReadNodesNodes);
+      HP.PutKeyTable(KDof);
+      
+      ScalarDof SD1 = ReadScalarDof(pDM, HP, 0);                          
+      HP.PutKeyTable(KDof);
+      
+      ScalarDof SD2 = ReadScalarDof(pDM, HP, 0);                          
+      HP.PutKeyTable(KDof);
+      
+      DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+      HP.PutKeyTable(K);
+
+      flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
+      
+      SAFENEWWITHCONSTRUCTOR(pEl,
+		      AbstractInternalForce,
+		      AbstractInternalForce(uLabel, SD1.pNode, SD2.pNode,
+			      pDC, fOut));
+ 
    } else
      
-#endif // USE_ELECTRIC_NODES
+#endif /* USE_ELECTRIC_NODES */
      
 #if defined(USE_STRUCT_NODES)
      { /* CurrType e' <structural> */
@@ -926,7 +380,7 @@ Elem* ReadForce(DataManager* pDM,
       Vec3 Dir(HP.GetVecRel(RF));
 
       /* Se la forza e' conservativa, viene passata nel sistema globale */
-      if (CurrType == CONSERVATIVE) {	 
+      if (CurrType == CONSERVATIVE || CurrType == CONSERVATIVEINTERNAL) {
 	 Dir = RNode*Dir;
       }      	           
       
@@ -947,21 +401,49 @@ Elem* ReadForce(DataManager* pDM,
 	    Arm = HP.GetPosRel(RF);	    
 	    DEBUGCOUT("Distance is supplied" << std::endl);
 	 }
-      }   
-            
-            
+      }
+
+      StructNode *pNode2 = NULL;
+      Vec3 Arm2(0.);
+      if (CurrType == CONSERVATIVEINTERNAL || CurrType == FOLLOWERINTERNAL) {
+	      
+         /* nodo collegato */
+         uNode = (unsigned int)HP.GetInt();
+      
+   	 DEBUGCOUT("Linked to Node " << uNode << std::endl);
+      
+   	 /* verifica di esistenza del nodo */
+   	 if ((pNode2 = pDM->pFindStructNode(uNode)) == NULL) {
+	    std::cerr << std::endl << sFuncName
+	      << " at line " << HP.GetLineData() 
+   	      << ": structural node " << uNode
+   	      << " not defined" << std::endl;	 
+   	    THROW(DataManager::ErrGeneric());
+   	 }		        
+      
+   	 /* distanza dal nodo (vettore di 3 elementi) ( solo se e' una forza) */
+   	 if (fCouple == 0) {	
+	    if (!HP.IsKeyWord("null")) {	  
+	       Arm2 = HP.GetPosRel(RF);	    
+	       DEBUGCOUT("Distance is supplied" << std::endl);
+   	    }
+   	 }
+      }
+ 
 #ifdef DEBUG
-      if (CurrType == CONSERVATIVE) {      
-	 std::cout << "Global reference frame direction: " << std::endl << Dir << std::endl;
-      } else if (CurrType == FOLLOWER) {      
-	 std::cout << "Node reference frame direction: " << std::endl << Dir << std::endl;
+      if (CurrType == CONSERVATIVE || CurrType == CONSERVATIVEINTERNAL) {      
+	 std::cout << "Global reference frame direction: " << std::endl
+		 << Dir << std::endl;
+      } else if (CurrType == FOLLOWER || CurrType == FOLLOWERINTERNAL) {      
+	 std::cout << "Node reference frame direction: " << std::endl
+		 << Dir << std::endl;
       }
       
       if (!fCouple) {      
-	 std::cout << "Node reference frame arm: " << std::endl << Arm << std::endl;
+	 std::cout << "Node reference frame arm: " << std::endl
+		 << Arm << std::endl;
       }   
-#endif   
-      
+#endif /* DEBUG */
             
       DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
       HP.PutKeyTable(K);
@@ -969,33 +451,70 @@ Elem* ReadForce(DataManager* pDM,
       flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
       
       /* Alloca la forza */
-      if (fCouple == 0) {	
-	 if (CurrType == CONSERVATIVE) {
+      if (fCouple == 0) {
+	 switch (CurrType) {
+	  case CONSERVATIVE:
 	    SAFENEWWITHCONSTRUCTOR(pEl, 
-				   ConservativeForce,
-				   ConservativeForce(uLabel, pNode, pDC, 
-						     Dir, Arm, fOut));
-	 } else if (CurrType == FOLLOWER) {	     
+			    ConservativeForce,
+			    ConservativeForce(uLabel, pNode, pDC, 
+				    Dir, Arm, fOut));
+	    break;
+
+	  case CONSERVATIVEINTERNAL:
 	    SAFENEWWITHCONSTRUCTOR(pEl, 
-				   FollowerForce,
-				   FollowerForce(uLabel, pNode, pDC, 
-						 Dir, Arm, fOut));
-	 }	
+			    ConservativeInternalForce,
+			    ConservativeInternalForce(uLabel, pNode, pNode2,
+				    pDC, Dir, Arm, Arm2, fOut));
+	    break;
+
+	  case FOLLOWER:
+	    SAFENEWWITHCONSTRUCTOR(pEl, 
+			    FollowerForce,
+			    FollowerForce(uLabel, pNode, pDC, 
+				    Dir, Arm, fOut));
+	    break;
+
+	  case FOLLOWERINTERNAL:
+	    SAFENEWWITHCONSTRUCTOR(pEl, 
+			    FollowerInternalForce,
+			    FollowerInternalForce(uLabel, pNode, pNode2,
+				    pDC, Dir, Arm, Arm2, fOut));
+	    break;
+	 }
+
       } else if (fCouple == 1) {
-	 if (CurrType == CONSERVATIVE) {
+	 switch (CurrType) {
+	  case  CONSERVATIVE:
 	    SAFENEWWITHCONSTRUCTOR(pEl, 
-				   ConservativeCouple,
-				   ConservativeCouple(uLabel, pNode, pDC, 
-						      Dir, fOut));
-	 } else if (CurrType == FOLLOWER) {	  	
+			    ConservativeCouple,
+			    ConservativeCouple(uLabel, pNode, pDC, 
+				    Dir, fOut));
+	    break;
+
+	  case CONSERVATIVEINTERNAL:
 	    SAFENEWWITHCONSTRUCTOR(pEl, 
-				   FollowerCouple,
-				   FollowerCouple(uLabel, pNode, pDC, 
-						  Dir, fOut));
-	 }	
-      }      
+			    ConservativeInternalCouple,
+			    ConservativeInternalCouple(uLabel, pNode, pNode2,
+				    pDC, Dir, fOut));
+	    break;
+
+	  case FOLLOWER:
+	    SAFENEWWITHCONSTRUCTOR(pEl, 
+			    FollowerCouple,
+			    FollowerCouple(uLabel, pNode, pDC, 
+				    Dir, fOut));
+	    break;
+
+	  case FOLLOWERINTERNAL:
+	    SAFENEWWITHCONSTRUCTOR(pEl, 
+			    FollowerInternalCouple,
+			    FollowerInternalCouple(uLabel, pNode, pNode2,
+				    pDC, Dir, fOut));
+	    break;
+	 }
+      }
    }
-#endif // USE_STRUCT_NODES
+#endif /* USE_STRUCT_NODES */
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.fIsArg()) {
@@ -1006,3 +525,4 @@ Elem* ReadForce(DataManager* pDM,
    
    return pEl;
 } /* End of ReadForce() */
+

@@ -50,11 +50,17 @@ class Force
    enum Type {
       UNKNOWN = -1,
 	ABSTRACTFORCE = 0,
-	
+	ABSTRACTINTERNALFORCE,
+
 	CONSERVATIVEFORCE,
 	FOLLOWERFORCE,
 	CONSERVATIVECOUPLE,
 	FOLLOWERCOUPLE,
+	
+	CONSERVATIVEINTERNALFORCE,
+	FOLLOWERINTERNALFORCE,
+	CONSERVATIVEINTERNALCOUPLE,
+	FOLLOWERINTERNALCOUPLE,
 	
 	LASTFORCETYPE
    };
@@ -117,42 +123,11 @@ class Force
 /* Force - end */
 
 
-/* StructuralForce - begin */
-
-class StructuralForce : virtual public Elem, public Force {
- protected:
-   const StructNode* pNode;
-   const Vec3 Dir;
-   
- public:
-   /* Costruttore */
-   StructuralForce(unsigned int uL, Force::Type T, 
-		   const StructNode* pN,
-		   const DriveCaller* pDC, const Vec3& TmpDir,
-		   flag fOut);
-
-   virtual ~StructuralForce(void);
-
-   /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 1;
-     NdTyps[0] = pNode->GetNodeType();
-     NdLabels[0] = pNode->GetLabel();
-   };
-   /* ************************************************ */
-};
-
-/* StructuralForce - end */
-
-
 /* AbstractForce - begin */
 
 class AbstractForce : virtual public Elem, public Force {
  protected:
    const Node* pNode;
-   // const integer iDofNumber;
    
  public:
    /* Costruttore banale */
@@ -212,251 +187,71 @@ class AbstractForce : virtual public Elem, public Force {
 /* AbstractForce - end */
 
 
-/* ConservativeForce - begin */
+/* AbstractInternalForce - begin */
 
-class ConservativeForce : virtual public Elem, public StructuralForce {
+class AbstractInternalForce : virtual public Elem, public Force {
  protected:
-   const Vec3 Arm;
+   const Node* pNode1;
+   const Node* pNode2;
    
  public:
-   /* Costruttore non banale */
-   ConservativeForce(unsigned int uL, const StructNode* pN, 
-		     const DriveCaller* pDC, 
-		     const Vec3& TmpDir, const Vec3& TmpArm, 
-		     flag fOut);
+   /* Costruttore banale */
+   AbstractInternalForce(unsigned int uL, const Node* pN1, const Node* pN2, 
+		 const DriveCaller* pDC, flag fOut);
       
-   ~ConservativeForce(void) { 
+   virtual ~AbstractInternalForce(void) { 
       NO_OP;
    };
    
    virtual inline void* pGet(void) const { 
       return (void*)this;
    };
-     
+         
    /* Tipo di forza */
    virtual Force::Type GetForceType(void) const { 
-      return Force::CONSERVATIVEFORCE; 
-   };   
-   
-   /* Contributo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
-
-   void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 6; 
-      *piNumCols = 3; 
+      return Force::ABSTRACTINTERNALFORCE;
    };
-
-   VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
-				    doublereal dCoef,
-				    const VectorHandler& XCurr, 
-				    const VectorHandler& XPrimeCurr);
-   
-   SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-			    doublereal dCoef,
-			    const VectorHandler& XCurr, 
-			    const VectorHandler& XPrimeCurr);     
-
-   virtual void Output(OutputHandler& OH) const;
-   
-   virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-      *piNumRows = 12; 
-      *piNumCols = 6; 
-   };
-   
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		   const VectorHandler& XCurr);
-
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& 
-     InitialAssRes(SubVectorHandler& WorkVec,
-		   const VectorHandler& XCurr);   
-};
-
-/* ConservativeForce - end */
-
-
-/* FollowerForce - begin */
-
-class FollowerForce : virtual public Elem, public StructuralForce {
- protected:
-   const Vec3 Arm;
-   
- public:
-   /* Costruttore banale */
-   FollowerForce(unsigned int uL, const StructNode* pN, 
-		 const DriveCaller* pDC, 
-		 const Vec3& TmpDir, const Vec3& TmpArm,
-		 flag fOut);
-      
-   ~FollowerForce(void) { 
-      NO_OP;
-   };
-   
-   virtual inline void* pGet(void) const { return (void*)this; };
-     
-   /* Tipo di forza */
-   virtual Force::Type GetForceType(void) const {
-      return Force::FOLLOWERFORCE; 
-   };
-
-   /* Contributo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
-
-   void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-      *piNumRows = 6;
-      *piNumCols = 3;
-   };
-   
-   VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
-				    doublereal dCoef,
-				    const VectorHandler& XCurr, 
-				    const VectorHandler& XPrimeCurr);
-   
-   SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-			    doublereal dCoef,
-			    const VectorHandler& XCurr, 
-			    const VectorHandler& XPrimeCurr);     
-
-   virtual void Output(OutputHandler& OH) const;
-   
-   virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 12; 
-      *piNumCols = 6; 
-   };
-
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& 
-     InitialAssRes(SubVectorHandler& WorkVec,
-		   const VectorHandler& XCurr);
-};
-
-/* FollowerForce - end */
-
-
-/* ConservativeCouple - begin */
-
-class ConservativeCouple : virtual public Elem, public StructuralForce {
-   
- public:
-   /* Costruttore banale */
-   ConservativeCouple(unsigned int uL, const StructNode* pN, 
-		      const DriveCaller* pDC, 
-		      const Vec3& TmpDir,
-		      flag fOut);
-
-   ~ConservativeCouple(void) { 
-      NO_OP;
-   };
-   
-   virtual inline void* pGet(void) const { return (void*)this; };
-     
-   /* Tipo di forza */
-   virtual Force::Type GetForceType(void) const {
-      return Force::CONSERVATIVECOUPLE; 
-   };
-
-   /* Contributo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
-
-   void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-      *piNumRows = 3;
-      *piNumCols = 1;
-   };
-
-   SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-			    doublereal dCoef,
-			    const VectorHandler& XCurr, 
-			    const VectorHandler& XPrimeCurr);     
-
-   virtual void Output(OutputHandler& OH) const;
-   
-   virtual void InitialWorkSpaceDim(integer* piNumRows,integer* piNumCols) const { 
-      *piNumRows = 3;
-      *piNumCols = 1; 
-   };
-
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& 
-     InitialAssRes(SubVectorHandler& WorkVec,
-		   const VectorHandler& XCurr);
-};
-
-/* ConservativeCouple - end */
-
-
-/* FollowerCouple - begin */
-
-class FollowerCouple : virtual public Elem, public StructuralForce {
-   
- public:
-   /* Costruttore banale */
-   FollowerCouple(unsigned int uL, const StructNode* pN, 
-		  const DriveCaller* pDC, 
-		  const Vec3& TmpDir,
-		  flag fOut);
-      
-   ~FollowerCouple(void) { 
-      NO_OP;
-   };
-   
-   virtual inline void* pGet(void) const { return (void*)this; };
-
-   /* Tipo di forza */
-   virtual Force::Type GetForceType(void) const {
-      return Force::FOLLOWERCOUPLE; 
-   };   
 
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
 
    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 3; 
-      *piNumCols = 3; 
+      *piNumRows = 2; 
+      *piNumCols = 2; 
    };
-   
-   VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
-				    doublereal dCoef,
-				    const VectorHandler& XCurr, 
-				    const VectorHandler& XPrimeCurr);
 
+   /* Contributo al residuo */
    SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
-			    const VectorHandler& XPrimeCurr);     
+			    const VectorHandler& XPrimeCurr);
 
    virtual void Output(OutputHandler& OH) const;
    
-   virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-      *piNumRows = 6;
-      *piNumCols = 6;
+   virtual void InitialWorkSpaceDim(integer* piNumRows, 
+				    integer* piNumCols) const {
+      *piNumRows = 2;
+      *piNumCols = 2;
    };
 
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& 
-     InitialAssRes(SubVectorHandler& WorkVec,
-		   const VectorHandler& XCurr);
+   /* Contributo al residuo nell'assemblaggio iniziale */
+   SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
+				   const VectorHandler& XCurr);
+
+   /* *******PER IL SOLUTORE PARALLELO******** */        
+   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+      utile per l'assemblaggio della matrice di connessione fra i dofs */
+   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
+     NumNodes = 2;
+     NdTyps[0] = pNode1->GetNodeType();
+     NdTyps[1] = pNode2->GetNodeType();
+     NdLabels[0] = pNode1->GetLabel();
+     NdLabels[1] = pNode2->GetLabel();
+   };
+   /* ************************************************ */
 };
 
-/* FollowerCouple - end */
+/* AbstractInternalForce - end */
 
-class DataManager;
-class MBDynParser;
+#endif /* FORCE_H */
 
-extern Elem* ReadForce(DataManager* pDM, 
-		       MBDynParser& HP, 
-		       unsigned int uLabel, 
-		       flag fCouple);
-
-#endif

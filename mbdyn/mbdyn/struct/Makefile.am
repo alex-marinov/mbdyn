@@ -58,6 +58,8 @@ shapefnc.cc \
 shapefnc.h \
 spherj.cc \
 spherj.h \
+strforce.cc \
+strforce.h \
 strnode.cc \
 strnode.h \
 univj.cc \
