@@ -143,7 +143,7 @@ mbdyn_usage( ostream& out, const char *sShortOpts )
         << "Usually mbdyn reads the input from stdin"
         " and writes messages on stdout; a log" << endl
         << "is put in '{file}.out', and data output"
-        " is put in various '{file}.xxx' files" << endl
+        " is sent to various '{file}.xxx' files" << endl
         << "('Mbdyn.xxx' if input from stdin)" << endl
         << endl;
     cout << endl;   
