@@ -21,7 +21,6 @@ dataman3.cc \
 dataman4.cc \
 dataman5.cc \
 dataman_.h \
-demangled.h \
 dofdrive.cc \
 dofdrive.h \
 dofman.cc \
@@ -52,7 +51,6 @@ j2p.cc \
 j2p.h \
 loadable.cc \
 loadable.h \
-mangled.h \
 mbpar.cc \
 mbpar.h \
 node.cc \
