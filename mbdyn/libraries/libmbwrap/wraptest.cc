@@ -103,6 +103,7 @@ main(int argc, char *argv[])
 	
 	MatrixHandler *pM = pSM->pMatHdl();
 	VectorHandler *pV = pSM->pResHdl();
+	VectorHandler *px = pSM->pSolHdl();
 
 	pM->fPutCoef(1, 1, 1.);
 	pM->fPutCoef(2, 2, 2.);
@@ -127,7 +128,7 @@ main(int argc, char *argv[])
 #endif /* USE_EXCEPTIONS */
 	
 	for (int i = 1; i <= size; i++) {
-		std::cout << "\tsol[" << i << "] = " << pV->dGetCoef(i) 
+		std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 
 			<< std::endl;
 	}
 	
