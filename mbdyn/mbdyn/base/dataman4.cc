@@ -184,7 +184,7 @@ void DataManager::ReadElems(MBDynParser& HP)
       "loadable",
       "driven",
 
-      //"socket" "stream" "output",
+      // "socket" "stream" "output",	/* deprecated */
       "stream" "output",
       "RTAI" "output",
 
@@ -1760,15 +1760,21 @@ DataManager::ReadOneElem(MBDynParser& HP,
     }		 		                     
 
     case RTAI_OUTPUT:
+#ifndef USE_RTAI
+       silent_cout("need --with-rtai to allow RTAI mailboxes; "
+		       "using stream output..." << std::endl);
+#endif /* ! USE_RTAI */
+       /* fall thru... */
+
     case SOCKETSTREAM_OUTPUT: {
-       silent_cout("Reading Socket Stream output element " << uLabel
+       silent_cout("Reading stream output element " << uLabel
 		       << std::endl);
        
        if (iNumTypes[Elem::SOCKETSTREAM_OUTPUT]-- <= 0) {
 	  DEBUGCERR("");
 	  silent_cerr("line " << HP.GetLineData() 
-	    << ": Socket Stream output element " << uLabel
-	    << " exceeds Socket Stream output elements number" << std::endl);
+	    << ": stream output element " << uLabel
+	    << " exceeds stream output elements number" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
        }	  
@@ -1777,7 +1783,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
        if (pFindElem(Elem::SOCKETSTREAM_OUTPUT, uLabel) != NULL) {
 	  DEBUGCERR("");
 	  silent_cerr("line " << HP.GetLineData() 
-	    << ": Socket Stream output element " << uLabel
+	    << ": stream output element " << uLabel
 	    << " already defined" << std::endl);
 	  
 	  throw DataManager::ErrGeneric();
@@ -1795,12 +1801,9 @@ DataManager::ReadOneElem(MBDynParser& HP,
        } else
 #endif /* USE_RTAI */
        {
-	  silent_cerr("starting Socket Stream element" << std::endl);
+	  pedantic_cout("starting stream element" << std::endl);
           *ppE = ReadSocketStreamElem(this, HP, uLabel);
        }
-#ifndef USE_RTAI
-       silent_cerr("need USE_RTAI to allow RTAI mailboxes" << std::endl);
-#endif /* ! USE_RTAI */
        break;
     }
      

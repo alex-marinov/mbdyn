@@ -444,7 +444,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 
 		SAFESTRDUP(host, h);
 
-	} else if (!create){
+	} else if (!path && !create) {
 		silent_cerr("host undefined for "
 				<< "SocketStreamDrive("
 			 	<< uLabel << ") at line "

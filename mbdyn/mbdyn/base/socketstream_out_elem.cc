@@ -454,7 +454,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 
 		SAFESTRDUP(host, h);
 
-	} else if (!create){
+	} else if (!path && !create){
 		silent_cerr("host undefined for "
 			<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 			<< "(" << uLabel << ") at line "

@@ -183,10 +183,19 @@ ReadFileDriver(DataManager* pDM,
 		pedantic_cout("\"socket stream\" is deprecated; "
 				"use \"stream\" instead at line "
 				<< HP.GetLineData() << std::endl);
+		goto read_stream;
+
 	case RTAIINPUT:
+#ifndef USE_RTAI
+	       	silent_cout("need --with-rtai to allow RTAI mailboxes; "
+				"using stream..." << std::endl);
+#endif /* ! USE_RTAI */
+		/* fall thru... */
+
 	case STREAM:
+read_stream:;
 #ifdef USE_RTAI
-		if(mbdyn_rtai_task != NULL){
+		if (mbdyn_rtai_task != NULL){
 			std::cerr << "starting RTAI in drive" << std::endl;
 			pDr = ReadRTAIInDrive(pDM, HP, uLabel);
 		} else 
@@ -195,10 +204,6 @@ ReadFileDriver(DataManager* pDM,
 			std::cerr << "starting stream drive" << std::endl;
 			pDr = ReadSocketStreamDrive(pDM, HP, uLabel);
 		}
-#ifndef USE_RTAI
-	       	silent_cerr("need --with-rtai to allow RTAI mailboxes"
-				<< std::endl);
-#endif /* ! USE_RTAI */
 		break;
 
 	default:
