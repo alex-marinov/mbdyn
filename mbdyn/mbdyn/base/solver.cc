@@ -360,8 +360,11 @@ Solver::Run(void)
 			sOutName = sOutputFileName;
 		}
 
-		SAFENEWARR(sNewOutName, char, iOutLen + 1 + iRankLength + 1);
-		sprintf(sNewOutName,"%s.%.*d", sOutName, iRankLength, MyRank);
+		iOutLen += 1 + iRankLength + 1;
+
+		SAFENEWARR(sNewOutName, char, iOutLen);
+		snprintf(sNewOutName, iOutLen, "%s.%.*d",
+				sOutName, iRankLength, MyRank);
 
 		DEBUGLCOUT(MYDEBUG_MEM, "creating parallel SchurDataManager"
 				<< std::endl);
