@@ -630,7 +630,8 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 	  }
        }
 
-       L::Status s = L::INACTIVE;
+       typedef typename LinearViscoElasticBiStopConstitutiveLaw<T, Tder>::Status LS;
+       LS s = L::INACTIVE;
        if (HP.IsKeyWord("initialstatus")) {
           if (HP.IsKeyWord("active")) {
 	     s = L::ACTIVE;
