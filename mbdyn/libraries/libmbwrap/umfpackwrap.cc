@@ -81,6 +81,33 @@
  * of umfpack 3.0 so the matrix must be square
  */
 
+/* in some cases, int and int32_t differ; then, define UMFPACK_LONG
+ * (will be automated in the future ...)
+ */
+
+#define UMFPACK_LONG
+
+#ifdef UMFPACK_LONG
+
+#define UMFPACKWRAP_defaults 		umfpack_dl_defaults
+#define UMFPACKWRAP_free_symbolic 	umfpack_dl_free_symbolic
+#define UMFPACKWRAP_free_numeric 	umfpack_dl_free_numeric
+
+#ifdef HAVE_UMFPACK4_1
+#define UMFPACKWRAP_symbolic(size, app, aip, axp, sym, ctrl, info) \
+	umfpack_dl_symbolic(size, size, app, aip, axp, sym, ctrl, info)
+#else /* !HAVE_UMFPACK4_1 */
+#define UMFPACKWRAP_symbolic(size, app, aip, axp, sym, ctrl, info) \
+	umfpack_dl_symbolic(size, size, app, aip, sym, ctrl, info)
+#endif /* !HAVE_UMFPACK4_1 */
+
+#define UMFPACKWRAP_report_info 	umfpack_dl_report_info
+#define UMFPACKWRAP_report_status 	umfpack_dl_report_status
+#define UMFPACKWRAP_numeric 		umfpack_dl_numeric
+#define UMFPACKWRAP_solve 		umfpack_dl_solve
+
+#else /* ! UMFPACK_LONG */
+
 #define UMFPACKWRAP_defaults 		umfpack_di_defaults
 #define UMFPACKWRAP_free_symbolic 	umfpack_di_free_symbolic
 #define UMFPACKWRAP_free_numeric 	umfpack_di_free_numeric
@@ -97,6 +124,8 @@
 #define UMFPACKWRAP_report_status 	umfpack_di_report_status
 #define UMFPACKWRAP_numeric 		umfpack_di_numeric
 #define UMFPACKWRAP_solve 		umfpack_di_solve
+
+#endif
 
 /* required factorization type (A * x = b) */
 #define SYS_VALUE 			UMFPACK_A
