@@ -8,6 +8,13 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
 
+*** Thu Nov  8 21:00:00 CEST 2001 Pierangelo Masarati <masarati@aero.polimi.it>
+ - keywords for number of cycles in sine/cosine drives
+ - strtol/d in parser; better parsing of reals
+ - configure checks for crypt library
+ - do not compile GPC if no pseudo-inverse is available
+ - Reynolds numbers in hydraulic fluids (needs improvements)
+
 *** Wed Oct 24 15:57:20 CEST 2001 Pierangelo Masarati <masarati@aero.polimi.it>
  - big leap towards distribution: 
    - wiped out HSL stuff; 
