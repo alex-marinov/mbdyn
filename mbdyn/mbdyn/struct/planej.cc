@@ -1416,27 +1416,49 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
 
 /* Costruttore non banale */
 AxialRotationJoint::AxialRotationJoint(unsigned int uL, const DofOwner* pDO,
-				       const StructNode* pN1, 
-				       const StructNode* pN2,
-				       const Vec3& dTmp1, const Vec3& dTmp2,
-				       const Mat3x3& R1hTmp, 
-				       const Mat3x3& R2hTmp,
-				       const DriveCaller* pDC, flag fOut)
+		const StructNode* pN1, 
+		const StructNode* pN2,
+		const Vec3& dTmp1, const Vec3& dTmp2,
+		const Mat3x3& R1hTmp, 
+		const Mat3x3& R2hTmp,
+		const DriveCaller* pDC, flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
 Joint(uL, Joint::AXIALROTATION, pDO, fOut), 
 DriveOwner(pDC), 
 pNode1(pN1), pNode2(pN2), 
-d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.)
+d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.), dTheta(0.)
 {
-   NO_OP;
+	NO_OP;
 }
 
 
 /* Distruttore banale */
 AxialRotationJoint::~AxialRotationJoint(void)
 {
-   NO_OP;
+	NO_OP;
 };
+
+
+void
+AxialRotationJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
+{
+	Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
+	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
+	Vec3 v(MatR2EulerAngles(RTmp));
+
+	dTheta = v.dGet(3);
+}
+
+void
+AxialRotationJoint::AfterConvergence(const VectorHandler& X, 
+		const VectorHandler& XP)
+{
+	Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
+			*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr());
+	Vec3 v(MatR2EulerAngles(RTmp));
+
+	dTheta += v.dGet(3);
+}
 
 
 /* Contributo al file di restart */
@@ -2120,7 +2142,7 @@ AxialRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
 unsigned int
 AxialRotationJoint::iGetNumPrivData(void) const
 {
-	return 1;
+	return 2;
 }
 
 unsigned int
@@ -2128,8 +2150,12 @@ AxialRotationJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 
-	if (strcmp(s, "wz") == 0) {
+	if (strcmp(s, "rz") == 0) {
 		return 1;
+	}
+
+	if (strcmp(s, "wz") == 0) {
+		return 2;
 	}
 
 	return 0;
@@ -2138,9 +2164,18 @@ AxialRotationJoint::iGetPrivDataIdx(const char *s) const
 doublereal
 AxialRotationJoint::dGetPrivData(unsigned int i) const
 {
-	ASSERT(i == 1);
+	ASSERT(i >= 1 && i <= iGetNumPrivData());
+   
+	switch (i) {
+	case 1: {
+		Mat3x3 RTmp(pNode1->GetRCurr().Transpose()*pNode1->GetRPrev()
+				*pNode2->GetRPrev().Transpose()*pNode2->GetRCurr());
+		Vec3 v(MatR2EulerAngles(RTmp));
 
-	if (i == 1) {
+		return dTheta + v.dGet(3);
+	}
+      
+	case 2:
 		return dGet();
 	}
 

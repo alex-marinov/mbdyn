@@ -287,6 +287,7 @@ public Joint, public DriveOwner {
    Mat3x3 R2h;
    Vec3 F;
    Vec3 M;
+   mutable doublereal dTheta;
    
  public:
    /* Costruttore non banale */
@@ -319,6 +320,11 @@ public Joint, public DriveOwner {
       ASSERT(i >= 0 && i < 6);
       return DofOrder::ALGEBRAIC; 
    };
+
+	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+
+	virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP);
 
    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
       *piNumRows = 18;
