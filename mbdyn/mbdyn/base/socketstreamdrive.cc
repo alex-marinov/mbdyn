@@ -67,9 +67,9 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		const char* const sFileName,
 		integer nd, unsigned int ie, bool c,
 		unsigned short int p,
-		const char* const h)
+		const char* const h, int flags)
 : StreamDrive(uL, pDM->pGetDrvHdl(), sFileName, nd, c),
-InputEvery(ie), InputCounter(0), pUS(0)
+InputEvery(ie), InputCounter(0), pUS(0), recv_flags(flags)
 {
 	ASSERT(InputEvery > 0);
 
@@ -85,9 +85,9 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		DataManager* pDM,
 		const char* const sFileName,
 		integer nd, unsigned int ie, bool c,
-		const char* const p)
+		const char* const p, int flags)
 : StreamDrive(uL, pDM->pGetDrvHdl(), sFileName, nd, c),
-InputEvery(ie), InputCounter(0), pUS(0)
+InputEvery(ie), InputCounter(0), pUS(0), recv_flags(flags)
 {
 	ASSERT(InputEvery > 0);
 
@@ -125,6 +125,12 @@ SocketStreamDrive::Restart(std::ostream& out) const
 void
 SocketStreamDrive::ServePending(const doublereal& t)
 {
+	/* by now, an abandoned drive is not read any more;
+	 * should we retry or what? */
+	if (pUS->Abandoned()) {
+		return;
+	}
+
 	/* read only every InputEvery steps */
 	InputCounter++;
 	if (InputCounter != InputEvery) {
@@ -132,30 +138,8 @@ SocketStreamDrive::ServePending(const doublereal& t)
 	}
 	InputCounter = 0;
 
-	if (!pUS->Connected()) {
-		pUS->Connect();
-
-		struct linger lin;
-		lin.l_onoff = 1;
-		lin.l_linger = 0;
-		
-		if (setsockopt(pUS->GetSock(), SOL_SOCKET, SO_LINGER,
-					&lin, sizeof(lin)))
-		{
-      			silent_cerr("SocketStreamDrive(" << sFileName
-				<< "): setsockopt() failed" << std::endl);
-      			throw ErrGeneric();
-		}
-	}
-
-	/* by now, an abandoned drive is not read any more;
-	 * should we retry or what? */
-	if (pUS->Abandoned()) {
-		return;
-	}
-
 	/* FIXME: no receive at first step? */
-	switch (recv(pUS->GetSock(), buf, size, 0)) {
+	switch (recv(pUS->GetSock(), buf, size, recv_flags)) {
 	case 0:
 		silent_cout("SocketStreamDrive(" << sFileName << "): "
 				<< "communication closed by host" << std::endl);
@@ -303,6 +287,19 @@ ReadSocketStreamDrive(DataManager* pDM,
 		SAFESTRDUP(host, DEFAULT_HOST);
 	}
 
+	int flags = 0;
+	while (HP.IsArg()) {
+		if (HP.IsKeyWord("no" "signal")) {
+			flags |= MSG_NOSIGNAL;
+
+		} else if (HP.IsKeyWord("non" "blocking")) {
+			flags |= MSG_DONTWAIT;
+
+		} else {
+			break;
+		}
+	}
+
 	unsigned int InputEvery = 1;
 	if (HP.IsKeyWord("input" "every")) {
 		int i = HP.GetInt();
@@ -329,13 +326,15 @@ ReadSocketStreamDrive(DataManager* pDM,
 		SAFENEWWITHCONSTRUCTOR(pDr, SocketStreamDrive,
 				SocketStreamDrive(uLabel, 
 				pDM,
-				name, idrives, InputEvery, create, port, host));
+				name, idrives, InputEvery, create, port, host,
+				flags));
 
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pDr, SocketStreamDrive,
 				SocketStreamDrive(uLabel, 
 				pDM,
-				name, idrives, InputEvery, create, path));	
+				name, idrives, InputEvery, create, path,
+				flags));
 	}
 
 	return pDr;

@@ -43,6 +43,8 @@ protected:
 
 	mutable socklen_t socklen;
 
+	void PostConnect(void);
+
 public:
 	UseSocket(bool c);
 	virtual ~UseSocket(void);

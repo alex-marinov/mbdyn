@@ -118,8 +118,6 @@ SocketStreamElem::~SocketStreamElem(void)
 std::ostream&
 SocketStreamElem::Restart(std::ostream& out) const
 {   	
-	//return out << "0. /* SocketStreamDrive not implemented yet */"
-	//	<< std::endl;
 	out << "  stream output: " << uLabel 
 		<< ", stream name, \"" << name << "\"";
 	pUS->Restart(out);
@@ -161,43 +159,36 @@ SocketStreamElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 }
 
 void
+SocketStreamElem::SetValue(VectorHandler& X, VectorHandler& XP) const
+{
+#if 0
+	AfterConvergence(X, XP);
+#else
+	if (send(pUS->GetSock(), (void *)buf, size, send_flags) == -1) {
+		silent_cerr("SocketStreamElem(" << name << ") "
+			<< "Communication closed by host" << std::endl);
+		pUS->Abandon();
+		/* FIXME: stop simulation? */
+	}
+#endif
+}
+
+void
 SocketStreamElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
+	/* by now, an abandoned element does not write any more;
+	 * should we retry or what? */
+	if (pUS->Abandoned()) {
+		return;
+	}
+
 	/* output only every OutputEvery steps */
 	OutputCounter++;
 	if (OutputCounter != OutputEvery) {
 		return;
 	}
 	OutputCounter = 0;
-
-	if (!pUS->Connected()) {
-		pUS->Connect();
-
-		struct linger	lin;
-		lin.l_onoff = 1;
-		lin.l_linger = 0;
-		
-		if (setsockopt(pUS->GetSock(), SOL_SOCKET, SO_LINGER,
-					&lin, sizeof(lin)))
-		{
-			int	save_errno = errno;
-			const char	*err_msg = strerror(save_errno);
-						
-      			silent_cerr("SocketStreamElem(" << name
-				<< "): setsockopt failed "
-				"(" << save_errno << ": " << err_msg << ")"
-				<< std::endl);
-      			throw ErrGeneric();
-			
-		}
-	} /* sock == 0 */
-
-	/* by now, an abandoned element does not write any more;
-	 * should we retry or what? */
-	if (pUS->Abandoned()) {
-		return;
-	}
 
 	char *curbuf = buf;
 	for (unsigned int i = 0; i < NumChannels; i++) {
@@ -337,8 +328,16 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 
 	int flags = 0;
-	if (HP.IsKeyWord("no" "signal")) {
-		flags = MSG_NOSIGNAL;
+	while (HP.IsArg()) {
+		if (HP.IsKeyWord("no" "signal")) {
+			flags |= MSG_NOSIGNAL;
+
+		} else if (HP.IsKeyWord("non" "blocking")) {
+			flags |= MSG_DONTWAIT;
+
+		} else {
+			break;
+		}
 	}
 
 	unsigned int OutputEvery = 1;

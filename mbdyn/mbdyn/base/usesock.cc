@@ -91,6 +91,24 @@ UseSocket::SetSock(int s)
 }
 
 void
+UseSocket::PostConnect(void)
+{
+	struct linger lin;
+	lin.l_onoff = 1;
+	lin.l_linger = 0;
+		
+	if (setsockopt(GetSock(), SOL_SOCKET, SO_LINGER, &lin, sizeof(lin))) {
+		int save_errno = errno;
+		char *msg = strerror(save_errno);
+
+      		silent_cerr("UseSocket(): setsockopt() failed "
+				"(" << save_errno << ": " << msg << ")"
+				<< std::endl);
+      		throw ErrGeneric();
+	}
+}
+
+void
 UseSocket::Connect(void)
 {
 	switch (mbdyn_connect(sock, GetSockaddr(), GetSocklen(), 1000)) {
@@ -113,18 +131,21 @@ UseSocket::Connect(void)
 		silent_cerr("UseSocket(): set socket option failed "
 				<< std::endl);
 		throw ErrGeneric();
-
-	default:
-		connected = true;
-		NO_OP;
 	}
+
+	connected = true;
+
+	PostConnect();
 }
 
 void
 UseSocket::ConnectSock(int s)
 {
 	SetSock(s);
+
 	connected = true;
+
+	PostConnect();
 }
 
 bool

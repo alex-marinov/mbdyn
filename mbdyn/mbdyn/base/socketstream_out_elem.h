@@ -86,6 +86,7 @@ public:
 	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 			const VectorHandler& X, const VectorHandler& XP);
 
+	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);
 };
