@@ -2780,7 +2780,6 @@ SchurMultiStepIntegrator::Eig(void)
 #endif /* __HACK_EIG__ */
 
 /* SchurMultiStepIntegrator - end */
-#elif
-#error "Compile with -DUSE_MPI!"
-#endif /* USE_MPI */
+
+#endif /* !USE_MPI */
 
