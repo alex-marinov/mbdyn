@@ -294,6 +294,8 @@ main(int argc, char *argv[])
 			*next;
 	doublereal	dFrom = -1.,
 			dTo;
+	int		rc = EXIT_SUCCESS;
+	
 	enum {
 		MODE_UNDEFINED, MODE_FROM, MODE_TO, MODE_BOTH
 	} mode = MODE_UNDEFINED;
@@ -383,6 +385,9 @@ main(int argc, char *argv[])
 			name_to = optarg;
 			break;
 
+		default:
+			rc = EXIT_FAILURE;
+
 		case 'h':
 			silent_cout(
 "\n"
@@ -391,15 +396,13 @@ main(int argc, char *argv[])
 "\t-f first.c81\t"	"first c81 data set\n"
 "\t-h\t\t"		"this message\n"
 "\t-H header\t"		"the header (max 30 chars)\n"
+"\t-m {from|to|both}\t"	"use alpha/mach of \"from\", \"to\" or both\n"
 "\t-o out.c81\t"	"output file name (stdout if missing)\n"
 "\t-s s in [0,1]\t"	"real number; result = s * first + (1 - s) * second\n"
 "\t-t second.c81\t"	"second c81 data set\n" 
 "\n"
 					);
-			exit(EXIT_SUCCESS);
-
-		default:
-			throw ErrGeneric();
+			exit(rc);
 		}
 	}
 
@@ -505,8 +508,6 @@ main(int argc, char *argv[])
 	}
 
 	/* merge */
-	int	rc;
-	
 	switch (mode) {
 	case MODE_FROM:
 		rc = merge_c81_data_from(&data_from, dFrom, &data_to, dTo, &data);
@@ -528,6 +529,7 @@ main(int argc, char *argv[])
 
 	if (rc) {
 		silent_cerr("data merge failed" << std::endl);
+		return rc;
 	}
 
 	if (name) {
