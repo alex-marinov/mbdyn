@@ -87,6 +87,12 @@ public:
 		const VectorHandler& XP,
 		const ExpandableRowVector& dF,
 		const ExpandableRowVector& dv) const = 0;
+	virtual void AfterConvergence(
+		const doublereal F,
+		const doublereal v,
+		const VectorHandler&X, 
+		const VectorHandler&XP,
+		const unsigned int solution_startdof) {};
 };
 
 /** Base class for friction shape coefficient
@@ -142,7 +148,7 @@ public:
 		const doublereal sigma1,
 		const doublereal sigma2,
 		const doublereal kappa,
-		const BasicScalarFunction *const f);
+		const BasicScalarFunction *const ff);
 	void SetValue(VectorHandler&X, 
 		VectorHandler&XP, 
 		const unsigned int solution_startdof) const;
@@ -171,6 +177,71 @@ public:
 		const ExpandableRowVector& dF,
 		const ExpandableRowVector& dv) const;
 };
+
+/** A Coulomb model based on 
+ * Morandini's ideas
+ */
+class DiscreteCoulombFriction : public BasicFriction {
+private:
+	enum tr_type{
+		null,
+		from_sticked_to_sliding,
+		from_sticking_to_sliding,
+		from_sliding_to_sticked,
+		from_sliding_to_sticking};
+	enum status_type{
+		sticked,
+		sticking,
+		sliding};
+	logical converged_sticked;
+	status_type status;
+	tr_type transition_type;	
+	doublereal converged_v;
+	logical first_iter;
+	logical first_switch;
+	doublereal previous_switch_v;
+	doublereal current_velocity;
+	
+	const DifferentiableScalarFunction & fss;
+	doublereal f;
+public:
+	DiscreteCoulombFriction(
+		const BasicScalarFunction *const ff);
+	void SetValue(VectorHandler&X, 
+		VectorHandler&XP, 
+		const unsigned int solution_startdof) const;
+	unsigned int iGetNumDof(void) const;
+	DofOrder::Order GetDofType(unsigned int i) const;
+	DofOrder::Order GetEqType (unsigned int i) const;
+	doublereal fc(void) const;
+	void AfterConvergence(
+		const doublereal F,
+		const doublereal v,
+		const VectorHandler&X, 
+		const VectorHandler&XP,
+		const unsigned int solution_startdof);
+	void AssRes(
+		SubVectorHandler& WorkVec,
+		const unsigned int startdof,
+		const unsigned int solution_startdof,
+		const doublereal F,
+		const doublereal v,
+		const VectorHandler& X,
+		const VectorHandler& XP);
+	void AssJac(
+		FullSubMatrixHandler& WorkMat,
+		ExpandableRowVector& dfc,
+		const unsigned int startdof,
+		const unsigned int solution_startdof,
+		const doublereal dCoef,
+		const doublereal F,
+		const doublereal v,
+		const VectorHandler& X,
+		const VectorHandler& XP,
+		const ExpandableRowVector& dF,
+		const ExpandableRowVector& dv) const;
+};
+
 
 /** Simple shape coefficient: 1.
  */

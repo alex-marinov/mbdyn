@@ -56,12 +56,12 @@ ModLugreFriction::ModLugreFriction(
 		const doublereal s1,
 		const doublereal s2,
 		const doublereal k,
-		const BasicScalarFunction *const f) : 
+		const BasicScalarFunction *const ff) : 
 sigma0(s0),
 sigma1(s1),
 sigma2(s2),
 kappa(k),
-fss(dynamic_cast<const DifferentiableScalarFunction&>(*f)),
+fss(dynamic_cast<const DifferentiableScalarFunction&>(*ff)),
 //f(fss(0.)) {
 f(0.) {
 };
@@ -237,7 +237,217 @@ void ModLugreFriction::AssJac(
 	dfc.Set(1.,1,startdof+1);
 };
 
+//----------------------
+DiscreteCoulombFriction::DiscreteCoulombFriction(
+		const BasicScalarFunction *const ff) :
+converged_sticked(true),
+status(sticked),
+transition_type(null),
+converged_v(0),
+first_iter(true),
+first_switch(true),
+previous_switch_v(0),
+current_velocity(0),
+fss(dynamic_cast<const DifferentiableScalarFunction&>(*ff)),
+f(0) {
+};
 
+void DiscreteCoulombFriction::SetValue(VectorHandler&X, 
+	VectorHandler&XP, 
+	const unsigned int solution_startdof) const{
+	X.fPutCoef(solution_startdof+1,f);
+};
+
+unsigned int DiscreteCoulombFriction::iGetNumDof(void) const {
+	return 1;
+};
+
+DofOrder::Order DiscreteCoulombFriction::GetDofType(unsigned int i) const {
+	ASSERTMSGBREAK(i<iGetNumDof(), "INDEX ERROR in ModLugreFriction::GetDofType");
+	return DofOrder::ALGEBRAIC;
+};
+
+DofOrder::Order DiscreteCoulombFriction::GetEqType(unsigned int i) const {
+	ASSERTMSGBREAK(i<iGetNumDof(), "INDEX ERROR in ModLugreFriction::GetEqType");
+	return DofOrder::DIFFERENTIAL;
+};
+
+doublereal DiscreteCoulombFriction::fc(void) const {
+	return f;
+};
+
+void DiscreteCoulombFriction::AfterConvergence(
+	const doublereal F,
+	const doublereal v,
+	const VectorHandler&X, 
+	const VectorHandler&XP, 
+	const unsigned int solution_startdof) {
+	converged_v = v;
+	current_velocity = v;
+	previous_switch_v = v;
+	transition_type = null;
+	first_iter = true;
+	first_switch = true;
+	if (status == sticking) {
+// 		std::cerr << "sticking" << std::endl;
+		status = sticked;
+	} else if (status == sliding) {
+// 		std::cerr << "sliding" << std::endl;
+	} else {
+// 		std::cerr << "sticked" << std::endl;
+	}
+};
+
+
+void DiscreteCoulombFriction::AssRes(
+	SubVectorHandler& WorkVec,
+	const unsigned int startdof,
+	const unsigned int solution_startdof,
+	const doublereal F,
+	const doublereal v,
+	const VectorHandler& X,
+	const VectorHandler& XP) {
+	f = X.dGetCoef(solution_startdof+1);
+	if ((std::fabs(f)-fss(0) > 1.0E-6) && (first_iter == false)) {
+		//unconditionally switch to sliding
+		if (status == sticked) {
+			transition_type = from_sticked_to_sliding;
+// 			std::cerr << "switch to sliding: " << transition_type << std::endl;
+		} else if (status == sticking) {
+			transition_type = from_sticking_to_sliding;
+// 			std::cerr << "switch to sliding: " << transition_type << std::endl;
+		} else if (status == sliding) {
+			//do nothing
+			std::cerr << "DiscreteCoulombFriction::AssRes message\n:"
+				<< "you shold not go here1! What's wrong?\n"
+				<< "status: " << status << "\n"
+				<< "transition: " << transition_type << "\n"
+				<< "error: " << fabs(f)-fss(0)
+				<< std::endl;
+		} else {
+			std::cerr << "DiscreteCoulombFriction::AssRes logical error1"
+				<< std::endl;
+		}
+		status = sliding;
+	//%printf("QUI merda\n");
+	} else if (status == sliding) {
+		if (v*current_velocity < 0.) {
+			if ((transition_type == from_sticked_to_sliding) &&
+				((std::fabs(v) < std::fabs(previous_switch_v)) ||
+					(first_switch == true)
+				)
+			) {
+				first_switch = false;
+				transition_type = from_sliding_to_sticked;
+				previous_switch_v = 0.8*(v-current_velocity);
+				//previous_switch_v = v;
+				status = sticked;
+// 				std::cerr << "switch to sticked: " << transition_type << std::endl;
+			} else if ((std::fabs(v) < std::fabs(previous_switch_v)) ||
+				(first_switch == true)) {
+				first_switch = false;
+				status = sticking;
+				transition_type = from_sliding_to_sticking;
+				previous_switch_v = 0.8*(v-current_velocity);
+				//previous_switch_v = v;
+// 				std::cerr << "switch to sticking: " << transition_type << std::endl;
+			}
+		}
+	}
+
+	if ((status == sliding) || (status == sticking)) {
+		if (transition_type == from_sliding_to_sticking) {
+			//switch to sticking: null velocity at the end of time step
+			WorkVec.fIncCoef(startdof+1,v);
+		} else {
+			//still sliding
+			//printf("here1\n");
+			//cur_sticking = false;
+			doublereal friction_force;
+			if (transition_type == from_sticked_to_sliding) {
+				friction_force = sign(f)*fss(v);
+			} else if (std::fabs(f) > 0.) {
+				friction_force = sign(v)*fss(v);
+			} else {
+				//limit the force value while taking the sticking force direction
+				friction_force = sign(f)*fss(v);
+			}
+			//save friction force value in the (algebric) state
+			WorkVec.fIncCoef(startdof+1,f-friction_force);
+		}
+	//} else if (status == sticking)
+	//	//printf("here2\n");
+	//	//switch to sticking: null velocity at the end of time step
+	//	WorkVec.fIncCoef(startdof+1,v);
+	} else if (status == sticked) {
+		//printf("here3\n");
+		WorkVec.fIncCoef(startdof+1,v);
+	} else {
+		std::cerr << "DiscreteCoulombFriction::AssRes: logical error" << std::endl;
+	}
+	//update status
+	first_iter = false;
+	current_velocity = v;
+};
+
+void DiscreteCoulombFriction::AssJac(
+	FullSubMatrixHandler& WorkMat,
+	ExpandableRowVector& dfc,
+	const unsigned int startdof,
+	const unsigned int solution_startdof,
+	const doublereal dCoef,
+	const doublereal F,
+	const doublereal v,
+	const VectorHandler& X,
+	const VectorHandler& XP,
+	const ExpandableRowVector& dF,
+	const ExpandableRowVector& dv) const {
+	if ((status == sliding) || (status == sticking)) {
+		if (transition_type == from_sliding_to_sticking) {
+			//switch to sticking: null velocity at the end of time step
+			//WorkVec.fIncCoef(startdof+1,v);
+			dv.Sub(WorkMat,startdof+1);
+			dfc.ReDim(1);
+			dfc.Set(1.,1,startdof+1);
+		} else {
+			//still sliding
+			////printf("here1\n");
+			//cur_sticking = false;
+			doublereal friction_force;
+			if (transition_type == from_sticked_to_sliding) {
+				friction_force = sign(f)*fss(v);
+			} else if (std::fabs(f) > 0.) {
+				friction_force = sign(v)*fss(v);
+			} else {
+				//limit the force value while taking the sticking force direction
+				friction_force = sign(f)*fss(v);
+			}
+			//save friction force value in the (algebric) state
+			//WorkVec.fIncCoef(startdof+1,f-friction_force);
+			WorkMat.fIncCoef(startdof+1,startdof+1,-1);
+			dv.Add(WorkMat,startdof+1,
+				sign(friction_force)*fss.ComputeDiff(v));
+			dfc.ReDim(1);
+			dfc.Set(1.,1,startdof+1);
+		}
+	//} else if (status == sticking)
+	//	//printf("here2\n");
+	//	//switch to sticking: null velocity at the end of time step
+	//	WorkVec.fIncCoef(startdof+1,v);
+	} else if (status == sticked) {
+		//printf("here3\n");
+		//WorkVec.fIncCoef(startdof+1,v);
+		dv.Sub(WorkMat,startdof+1);
+		dfc.ReDim(1);
+		dfc.Set(1.,1,startdof+1);
+	} else {
+		std::cerr << "DiscreteCoulombFriction::AssRes: logical error" << std::endl;
+	}
+};
+
+
+
+//------------------------
 doublereal SimpleShapeCoefficient::Sh_c(void) const {
 	return 1.;
 }
@@ -302,10 +512,12 @@ BasicFriction *const ParseFriction(MBDynParser& HP,
 {
    const char* sKeyWords[] = { 
       "modlugre",
+      "discrete" "coulomb",
       NULL
    };
 	enum KeyWords { 
 	     MODLUGRE = 0,
+	     DISCRETECOULOMB,
 	     LASTKEYWORD
 	};
 	/* token corrente */
@@ -323,6 +535,12 @@ BasicFriction *const ParseFriction(MBDynParser& HP,
 		const BasicScalarFunction*const sf = 
 			ParseScalarFunction(HP,pDM);
 		return new ModLugreFriction(sigma0, sigma1, sigma2, kappa, sf);
+		break;
+	}
+	case DISCRETECOULOMB: {
+		const BasicScalarFunction*const sf = 
+			ParseScalarFunction(HP,pDM);
+		return new DiscreteCoulombFriction(sf);
 		break;
 	}
 	default: {
