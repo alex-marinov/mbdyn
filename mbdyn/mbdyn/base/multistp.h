@@ -203,6 +203,7 @@ private:
    	/* Parametri per la variazione passo */
    	integer iStepsAfterReduction;
    	integer iStepsAfterRaise;
+	integer iWeightedPerformedIters;
    	flag fLastChance;
  
    	/* Parametri per il metodo */

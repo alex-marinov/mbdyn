@@ -135,11 +135,11 @@ MultiStepIntegrator::MultiStepIntegrator(MBDynParser& HPar,
 		flag fIter)
 :
 CurrStrategy(NOCHANGE),
-pStrategyChangeDrive(NULL),
 CurrSolver(Integrator::defaultSolver),
 sInputFileName(NULL),
 sOutputFileName(NULL),
 HP(HPar),
+pStrategyChangeDrive(NULL),
 #ifdef __HACK_EIG__
 fEigenAnalysis(0),
 dEigParam(1.),
@@ -201,6 +201,7 @@ iIterationsBeforeAssembly(0),
 iPerformedIterations(0),
 iStepsAfterReduction(0),
 iStepsAfterRaise(0),
+iWeightedPerformedIters(0),
 fLastChance(0),
 pMethod(NULL),
 pFictitiousStepsMethod(NULL),
@@ -1113,7 +1114,9 @@ EndOfFirstFictitiousStep:
 						<< iIterCnt 
 						<< " has been reached"
 						" during dummy step " 
-						<< iSubStep << ';' << std::endl
+						<< iSubStep 
+						<< "(time = " << dTime
+						<< ");" << std::endl
 						<< "aborting ..." << std::endl;
 						
 	       				pDM->Output();
@@ -1344,8 +1347,8 @@ IfFirstStepIsToBeRepeated:
 					<< "Maximum iterations number "
 					<< iIterCnt
 					<< " has been reached during"
-					" first step;"
-					<< std::endl
+					" first step (time = "
+					<< dTime << ");" << std::endl
 					<< "time step dt = " << dCurrTimeStep 
 					<< " cannot be reduced further;"
 					<< std::endl
@@ -2174,11 +2177,9 @@ MultiStepIntegrator::NewTimeStep(doublereal dCurrTimeStep,
    	switch (CurrStrategy) {
     	case NOCHANGE:
        		return dCurrTimeStep;
-		break;
-	
+      
 	case CHANGE:
 		return pStrategyChangeDrive->dGet(dTime);
-		break;
       
     	case FACTOR:
        		if (Why == MultiStepIntegrationMethod::REPEATSTEP) {
@@ -2205,13 +2206,23 @@ MultiStepIntegrator::NewTimeStep(doublereal dCurrTimeStep,
        
        		if (Why == MultiStepIntegrationMethod::NEWSTEP) {
 	  		iStepsAfterReduction++;
-	  		iStepsAfterRaise++;      
+	  		iStepsAfterRaise++;
+
+#if 0
+			/* never raise after iPerformedIters > StrategyFactor.iMinIters */
+			if (iPerformedIters > iWeightedPerformedIters) {
+				iWeightedPerformedIters = iPerformedIters;
+			}
+#else
+			iWeightedPerformedIters = (10*iPerformedIters + 9*iWeightedPerformedIters)/10;
+#endif
 	  
 	  		if (iPerformedIters <= StrategyFactor.iMinIters
 	      		    && iStepsAfterReduction > StrategyFactor.iStepsBeforeReduction
 			    && iStepsAfterRaise > StrategyFactor.iStepsBeforeRaise
 			    && dCurrTimeStep < dMaxTimeStep) {
 	     			iStepsAfterRaise = 0;
+				iWeightedPerformedIters = 0;
 	     			return dCurrTimeStep*StrategyFactor.dRaiseFactor;
 	  		}
 	  		return dCurrTimeStep;
@@ -3015,6 +3026,15 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	     
 	   case STRATEGYFACTOR: {
 	      CurrStrategy = FACTOR;
+
+	      /*
+	       *	strategy: factor ,
+	       *		<reduction factor> ,
+	       *		<steps before reduction> ,
+	       *		<raise factor> ,
+	       *		<steps before raise> ,
+	       *		<min iterations> ;
+	       */
 	      
 	      StrategyFactor.dReductionFactor = HP.GetReal();
 	      if (StrategyFactor.dReductionFactor >= 1.) {
