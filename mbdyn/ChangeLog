@@ -3,6 +3,11 @@ see http://www.mbdyn.org
 
 Copyright: 1996-2000 Pierangelo Masarati
 
+*** Thu Sep 21 15:20:33 CEST 2000 Pierangelo Masarati <masarati@aero.polimi.it>
+ - Cleaned up Meschach wrappers.
+ - Modified '-s' fSilent switch to act more strictly the higher the value.
+ - In the past days: added y12 sparse LU library, comparable to Harwell.
+
 *** Sat Sep 16 01:03:24 CEST 2000 Pierangelo Masarati <masarati@aero.polimi.it>
  - Added checks for: exceptions, lapack, aerodynamic output, various flags.
  - Cleaned up gpc, aeroelem and other files.
