@@ -136,7 +136,7 @@ public:
 		 * 	false:	make it true; return true
 		 */
 		/* FIXME: make it portable */
-		bool b = mbdyn_compare_and_swap(&inuse,
+		bool b = mbdyn_compare_and_swap(inuse,
 				sig_atomic_t(true), sig_atomic_t(false));
 
 		return !b;

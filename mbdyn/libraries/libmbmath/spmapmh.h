@@ -74,8 +74,7 @@
 /* Sparse Matrix in columns form */
 class SpMapMatrixHandler : public SparseMatrixHandler {
 private:
-	struct payload { doublereal d; int p; };
-	typedef std::map<int, payload> row_cont_type;
+	typedef std::map<int, doublereal> row_cont_type;
 	mutable std::vector<row_cont_type> col_indices;
 
 #ifdef DEBUG
@@ -104,13 +103,12 @@ public:
 		if (i == row.end()) {
 			NZ++;
 
-			row[i_row].d = 0.;
-			row[i_row].p = -1;
+			row[i_row] = 0.;
 
-			return row[i_row].d;
+			return row[i_row];
 
 		} else {
-			return i->second.d;
+			return i->second;
 		}
 	};
 
@@ -166,7 +164,7 @@ public:
 			row_cont_type& row = col_indices[iy-1];
 			i = row.find(ix - 1);
 			if (i != row.end()) {
-				i->second.d = val;
+				i->second = val;
 			}
 		}
 #endif /* MBDYN_X_KEEP_SPARSITY */
@@ -183,10 +181,10 @@ public:
 		row_cont_type& row = col_indices[iy - 1];
 		i = row.find(ix - 1);
 		if (i == row.end()) {
-			return zero;
+			return ::dZero;
 
 		} else {
-			return i->second.d;
+			return i->second;
 		}
 	};
 
@@ -201,28 +199,30 @@ public:
 		row_cont_type& row = col_indices[iy - 1];
 		i = row.find(ix - 1);
 		if (i == row.end()) {
-			return zero;
+			return ::dZero;
 
 		} else {
-			return i->second.d;
+			return i->second;
 		}
 	};
 
 	int MakeCompressedColumnForm(doublereal *const Ax,
 			int *const Ai, int *const Ap,
-			integer offset = 0) const;
+			int offset = 0) const;
 
         int MakeCompressedColumnForm(std::vector<doublereal>& Ax,
                 	std::vector<int>& Ai, std::vector<int>& Ap,
-			integer offset = 0) const;
+			int offset = 0) const;
 
 	int MakeIndexForm(doublereal *const Ax,
 			integer *const Arow, integer *const Acol,
-			integer offset = 0) const;
+			integer *const AcolSt,
+			int offset = 0) const;
 
         int MakeIndexForm(std::vector<doublereal>& Ax,
 			std::vector<integer>& Arow, std::vector<integer>& Acol,
-			integer offset = 0) const;
+			std::vector<integer>& AcolSt,
+			int offset = 0) const;
 
 	void Reset(const doublereal &r = 0.);
 

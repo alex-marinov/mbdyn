@@ -68,44 +68,70 @@
 
 #ifdef USE_UMFPACK
 
-#include <ac/iostream>
+#include "ac/iostream"
 #include <vector>
 
 extern "C" {
 #include <umfpack.h>
 }
 
-#include <myassert.h>
-#include <mynewmem.h>
-#include <solman.h>
-#include <spmapmh.h>
-#include <ccmh.h>
+#include "myassert.h"
+#include "mynewmem.h"
+#include "ls.h"
+#include "solman.h"
+#include "spmapmh.h"
+#include "ccmh.h"
 
+	
+/* UmfpackSolver - begin */
 
-#ifdef UMFPACK3_COMPAT
-#warning "Umfpack3SparseLUSolutionManager => UmfpackSparseSolutionManager"
-#define Umfpack3SparseLUSolutionManager UmfpackSparseSolutionManager
-#endif /* UMFPACK3_COMPAT */
+class UmfpackSolver: public LinearSolver {
+private:
+	int iSize;
+	mutable doublereal *Axp;
+	mutable int *Aip;
+	mutable int *App;
+
+	void *Symbolic;
+	mutable doublereal Control[UMFPACK_CONTROL];
+	mutable doublereal Info[UMFPACK_INFO];
+	mutable void *Numeric;
+
+	bool bPrepareSymbolic(void);
+	
+	void Factor(void);
+
+public:
+	UmfpackSolver(const int &size, const doublereal &dPivot);
+	~UmfpackSolver(void);
+
+	void Init(void);
+	void Solve(void) const;
+
+	void MakeCompactForm(SparseMatrixHandler&,
+			std::vector<doublereal>& Ax,
+			std::vector<int>& Ar,
+			std::vector<int>& Ac,
+			std::vector<int>& Ap) const;
+};
+
+/* UmfpackSolver - end */
+
+/* UmfpackSparseSolutionManager - begin */
 
 class UmfpackSparseSolutionManager: public SolutionManager {
 protected:
 	mutable SpMapMatrixHandler A;
+
 	MyVectorHandler *xVH, *bVH;
 	std::vector<doublereal> x;
 	std::vector<doublereal> b;
 	std::vector<doublereal> Ax;
 	std::vector<int> Ai;
+	std::vector<int> Adummy;
 	std::vector<int> Ap;
-	doublereal* pdRhs;
-	doublereal* pdSol;
-	
 
-	void * Symbolic;
-	doublereal Control[UMFPACK_CONTROL];
-	doublereal Info[UMFPACK_INFO];
-	void * Numeric;
-	
-	bool HasBeenReset;
+	UmfpackSolver *pLS;
 
 	bool PrepareSymbolic(void);
 
@@ -135,16 +161,6 @@ public:
 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
 	virtual void Solve(void);
 
-   	/* sposta il puntatore al vettore del residuo */
-   	void ChangeResPoint(doublereal* pRes){
-		pdRhs = pRes;
-	};
-   
-   	/* sposta il puntatore al vettore del residuo */
-   	void ChangeSolPoint(doublereal* pSol){
-		pdSol = pSol;
-	};
-	
 	/* Rende disponibile l'handler per la matrice */
 	virtual MatrixHandler* pMatHdl(void) const;
 
@@ -155,11 +171,14 @@ public:
 	virtual MyVectorHandler* pSolHdl(void) const;
 };
 
+/* UmfpackSparseSolutionManager - end */
+
+/* UmfpackSparseCCSolutionManager - begin */
 
 class UmfpackSparseCCSolutionManager: public UmfpackSparseSolutionManager {
 protected:
 	bool CCReady;
-	CColMatrixHandler *Ac;
+	CompactSparseMatrixHandler *Ac;
 
 	virtual void MatrReset(const doublereal& d);
 	virtual void MakeCompressedColumnForm(void);
@@ -175,6 +194,8 @@ public:
 	/* Rende disponibile l'handler per la matrice */
 	virtual MatrixHandler* pMatHdl(void) const;
 };
+
+/* UmfpackSparseCCSolutionManager - end */
 
 #endif /* USE_UMFPACK */
 

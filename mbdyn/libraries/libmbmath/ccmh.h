@@ -41,6 +41,7 @@
 #include "spmh.h"
 
 /* Sparse Matrix in columns form */
+template <int off>
 class CColMatrixHandler : public CompactSparseMatrixHandler {
 private:
 #ifdef DEBUG
@@ -50,8 +51,7 @@ private:
 #endif /* DEBUG */
 
 public:
-	CColMatrixHandler(const int &n,
-			std::vector<doublereal>& x,
+	CColMatrixHandler(std::vector<doublereal>& x,
 			const std::vector<int>& i,
 			const std::vector<int>& p);
 
@@ -76,15 +76,15 @@ public:
 		integer row;
 
 		if (row_begin == Ap[i_col]
-				|| Ai[row_begin] > i_row
-				|| Ai[row_end] < i_row) {
+				|| Ai[row_begin] - off > i_row
+				|| Ai[row_end] - off < i_row) {
 			/* matrix must be rebuilt */
 			THROW(ErrRebuildMatrix());
 		}
 
 		while (row_end >= row_begin) {
 			idx = (row_begin + row_end)/2;
-			row = Ai[idx];
+			row = Ai[idx] - off;
 			if (i_row < row) {
 				row_end = idx - 1;
 			} else if (i_row > row) {
@@ -112,14 +112,14 @@ public:
 		integer row;
 
 		if (row_begin == Ap[i_col]
-				|| Ai[row_begin] > i_row
-				|| Ai[row_end] < i_row) {
-			return zero;
+				|| Ai[row_begin] - off > i_row
+				|| Ai[row_end] - off < i_row) {
+			return ::dZero;
 		}
 
 		while (row_end >= row_begin) {
 			idx = (row_begin + row_end)/2;
-			row = Ai[idx];
+			row = Ai[idx] - off;
 			if (i_row < row) {
 				row_end = idx - 1;
 			} else if (i_row > row) {
@@ -129,24 +129,26 @@ public:
 			}
 		}
 
-		return zero;
+		return ::dZero;
 	};
 
 	int MakeCompressedColumnForm(doublereal *const Ax,
 			int *const Ai, int *const Ap,
-			integer offset = 0) const;
+			int offset = 0) const;
 
         int MakeCompressedColumnForm(std::vector<doublereal>& Ax,
                 	std::vector<int>& Ai, std::vector<int>& Ap,
-			integer offset = 0) const;
+			int offset = 0) const;
 
-	int MakeIndexForm(doublereal *const rAx, integer *const Arow,
-			integer *const Acol,
-			integer offset = 0) const;
+	int MakeIndexForm(doublereal *const rAx,
+			integer *const Arow, integer *const Acol,
+			integer *const AcolSt,
+			int offset = 0) const;
 
         int MakeIndexForm(std::vector<doublereal>& rAx,
                 	std::vector<integer>& Arow, std::vector<integer>& Acol,
-			integer offset = 0) const;
+			std::vector<integer>& AcolSt,
+			int offset = 0) const;
 
 	void Resize(const int &n, const int &nn = 0);
 
@@ -181,6 +183,11 @@ public:
 	VectorHandler& MatVecDecMul(VectorHandler& out,
 			const VectorHandler& in) const;
 };
+
+#include "ccmh.hc"
+
+typedef CColMatrixHandler<0> CColMatrixHandler0;
+typedef CColMatrixHandler<1> CColMatrixHandler1;
 
 #endif /* CColMatrixHandler_hh */
 

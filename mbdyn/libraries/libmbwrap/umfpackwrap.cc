@@ -68,7 +68,10 @@
 #endif /* HAVE_CONFIG_H */
 
 #ifdef USE_UMFPACK
-#include <umfpackwrap.h>
+#include "solman.h"
+#include "spmapmh.h"
+#include "ccmh.h"
+#include "umfpackwrap.h"
 
 #ifdef HAVE_UMFPACK4
 
@@ -118,25 +121,16 @@
 
 #endif /* HAVE_UMFPACK4 */
 
-/* UmfpackSparseSolutionManager - begin */
-
-UmfpackSparseSolutionManager::UmfpackSparseSolutionManager(integer Dim,
-		integer dummy, doublereal dPivot)
-: A(Dim),
-xVH(0),
-bVH(0), 
-x(Dim),
-b(Dim), 
+/* UmfpackSolver - begin */
+	
+UmfpackSolver::UmfpackSolver(const int &size, const doublereal &dPivot)
+: iSize(size),
+Axp(0),
+Aip(0),
+App(0),
 Symbolic(0),
-Numeric(0),
-HasBeenReset(true)
+Numeric(0)
 {
-	SAFENEWWITHCONSTRUCTOR(xVH, MyVectorHandler, 
-			MyVectorHandler(Dim, &(x[0])));
-	SAFENEWWITHCONSTRUCTOR(bVH, MyVectorHandler, 
-			MyVectorHandler(Dim, &(b[0])));
-	pdRhs = &(b[0]);
-	pdSol = &(x[0]);
 	UMFPACKWRAP_defaults(Control);
 
 	if (dPivot != -1. && (dPivot >= 0. && dPivot <= 1.)) {
@@ -150,158 +144,45 @@ HasBeenReset(true)
 	}
 }
 
-UmfpackSparseSolutionManager::~UmfpackSparseSolutionManager(void) 
+UmfpackSolver::~UmfpackSolver(void)
 {
 	UMFPACKWRAP_free_symbolic(&Symbolic);
 	ASSERT(Symbolic == 0);
 
 	UMFPACKWRAP_free_numeric(&Numeric);
 	ASSERT(Numeric == 0);
-	
-	SAFEDELETE(xVH);
-	SAFEDELETE(bVH);
 }
 
 void
-UmfpackSparseSolutionManager::MatrReset(const doublereal& d)
+UmfpackSolver::Init(void)
 {
-	A.Reset(d);
-}
-
-void
-UmfpackSparseSolutionManager::MakeCompressedColumnForm(void)
-{
-	A.MakeCompressedColumnForm(Ax, Ai, Ap);
-}
-
-void
-UmfpackSparseSolutionManager::MatrInit(const doublereal& d)
-{
-	MatrReset(d);
-
 	if (Numeric) {
 		UMFPACKWRAP_free_numeric(&Numeric);
 		ASSERT(Numeric == 0);
 	}
-	HasBeenReset = true;
+
+	bHasBeenReset = true;
 }
 
-bool 
-UmfpackSparseSolutionManager::PrepareSymbolic(void)
+void
+UmfpackSolver::Solve(void) const
 {
-	const int* const Aip = &(Ai[0]);
-	const int* const App = &(Ap[0]);
-	const doublereal* const Axp = &(Ax[0]);
+	if (bHasBeenReset) {
+      		((UmfpackSolver *)this)->Factor();
+      		bHasBeenReset = false;
+	}
+		
 	int status;
 
-#if 0
-	std::cout << "b.size() = " << b.size() << std::endl
-		<< "App = " << App << std::endl
-		<< "Aip = " << Aip << std::endl
-		<< "Axp = " << Axp << std::endl
-		<< "&Symbolic = " << &Symbolic << std::endl
-		<< "Control = " << Control << std::endl
-		<< "Info = " << Info << std::endl;
-#endif
-
-	status = UMFPACKWRAP_symbolic(b.size(), App, Aip, Axp,
-			&Symbolic, Control, Info);
-	if (status != UMFPACK_OK) {
-		UMFPACKWRAP_report_info(Control, Info) ;
-		UMFPACKWRAP_report_status(Control, status);
-		silent_cerr("UMFPACKWRAP_symbolic failed" << std::endl);
-
-		/* de-allocate memory */
-		UMFPACKWRAP_free_symbolic(&Symbolic);
-		ASSERT(Symbolic == 0);
-
-		return false;
-	}
-
-	return true;
-}
-
-/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
-void
-UmfpackSparseSolutionManager::Solve(void)
-{
-	doublereal t = 0.;
-
-#ifdef UMFPACK_REPORT
-	t = umfpack_timer() ;
-#endif /* UMFPACK_REPORT */
-
-	if (HasBeenReset) {
-		MakeCompressedColumnForm();
-
-		const doublereal* const Axp = &(Ax[0]);
-		const int* const Aip = &(Ai[0]);
-		const int* const App = &(Ap[0]);
-		int status;
+	/*
+	 * NOTE: Axp, Aip, App should have been set by * MakeCompactForm()
+	 */
 		
-		if (Symbolic == 0 && !PrepareSymbolic()) {
-			THROW(ErrGeneric());
-		}
-#ifdef UMFPACK_REPORT
-		UMFPACKWRAP_report_symbolic ("Symbolic factorization of A",
-				Symbolic, Control) ;
-		UMFPACKWRAP_report_info(Control, Info);
-		doublereal t1 = umfpack_timer() - t;
-#endif /* UMFPACK_REPORT */
-
-		status = UMFPACKWRAP_numeric(App, Aip, Axp, Symbolic, 
-				&Numeric, Control, Info);
-		if (status == UMFPACK_ERROR_different_pattern) {
-			UMFPACKWRAP_free_symbolic(&Symbolic);
-			if (!PrepareSymbolic()) {
-				THROW(ErrGeneric());
-			}
-			status = UMFPACKWRAP_numeric(App, Aip, Axp, Symbolic, 
-					&Numeric, Control, Info);
-		}
-
-		if (status != UMFPACK_OK) {
-			UMFPACKWRAP_report_info(Control, Info);
-			UMFPACKWRAP_report_status(Control, status);
-			silent_cerr("UMFPACKWRAP_numeric failed" << std::endl);
-
-			/* de-allocate memory */
-			UMFPACKWRAP_free_symbolic(&Symbolic);
-			UMFPACKWRAP_free_numeric(&Numeric);
-			ASSERT(Numeric == 0);
-
-			THROW(ErrGeneric());
-		}
-		
-#ifdef UMFPACK_REPORT
-		UMFPACKWRAP_report_numeric ("Numeric factorization of A",
-				Numeric, Control);
-		UMFPACKWRAP_report_info(Control, Info);
-		t1 = umfpack_timer() - t;
-#endif /* UMFPACK_REPORT */
-
-		HasBeenReset = false;
-	}
-	
-	BackSub(t);
-}
-
-/* Bacward Substitution */
-void
-UmfpackSparseSolutionManager::BackSub(doublereal t_iniz)
-{
-	const doublereal* const Axp = &(Ax[0]);
-	const int* const Aip = &(Ai[0]);
-	const int* const App = &(Ap[0]);
-	int status;
-
-	ASSERT(HasBeenReset == false);
-	
 #ifdef UMFPACK_REPORT
 	doublereal t = t_iniz;
 #endif /* UMFPACK_REPORT */
 
-	Control[UMFPACK_IRSTEP]= 0;
+	Control[UMFPACK_IRSTEP] = 0;
 	status = UMFPACKWRAP_solve(SYS_VALUE,
 			App, Aip, Axp, pdSol, pdRhs, 
 			Numeric, Control, Info);
@@ -319,8 +200,158 @@ UmfpackSparseSolutionManager::BackSub(doublereal t_iniz)
 	
 #ifdef UMFPACK_REPORT
 	UMFPACKWRAP_report_info(Control, Info);
-	doublereal t1 = umfpack_timer() - t;
+	doublereal t1 = umfpack_timer() - t;	/* ?!? not used! */
 #endif /* UMFPACK_REPORT */
+}
+
+void
+UmfpackSolver::Factor(void)
+{
+	int status;
+
+	/*
+	 * NOTE: Axp, Aip, App should have been set by * MakeCompactForm()
+	 */
+		
+	if (Symbolic == 0 && !bPrepareSymbolic()) {
+		THROW(ErrGeneric());
+	}
+
+#ifdef UMFPACK_REPORT
+	UMFPACKWRAP_report_symbolic ("Symbolic factorization of A",
+			Symbolic, Control) ;
+	UMFPACKWRAP_report_info(Control, Info);
+	doublereal t1 = umfpack_timer() - t;	/* ?!? not used! */
+#endif /* UMFPACK_REPORT */
+
+	status = UMFPACKWRAP_numeric(App, Aip, Axp, Symbolic, 
+			&Numeric, Control, Info);
+	if (status == UMFPACK_ERROR_different_pattern) {
+		UMFPACKWRAP_free_symbolic(&Symbolic);
+		if (!bPrepareSymbolic()) {
+			THROW(ErrGeneric());
+		}
+		status = UMFPACKWRAP_numeric(App, Aip, Axp, Symbolic, 
+				&Numeric, Control, Info);
+	}
+
+	if (status != UMFPACK_OK) {
+		UMFPACKWRAP_report_info(Control, Info);
+		UMFPACKWRAP_report_status(Control, status);
+		silent_cerr("UMFPACKWRAP_numeric failed" << std::endl);
+
+		/* de-allocate memory */
+		UMFPACKWRAP_free_symbolic(&Symbolic);
+		UMFPACKWRAP_free_numeric(&Numeric);
+		ASSERT(Numeric == 0);
+
+		THROW(ErrGeneric());
+	}
+		
+#ifdef UMFPACK_REPORT
+	UMFPACKWRAP_report_numeric ("Numeric factorization of A",
+			Numeric, Control);
+	UMFPACKWRAP_report_info(Control, Info);
+	t1 = umfpack_timer() - t;	/* ?!? not used! */
+#endif /* UMFPACK_REPORT */
+}
+
+void
+UmfpackSolver::MakeCompactForm(SparseMatrixHandler& mh,
+		std::vector<doublereal>& Ax,
+		std::vector<int>& Ai,
+		std::vector<int>& Ac,
+		std::vector<int>& Ap) const
+{
+	if (!bHasBeenReset) {
+		return;
+	}
+	
+	mh.MakeCompressedColumnForm(Ax, Ai, Ap, 0);
+
+	Axp = &(Ax[0]);
+	Aip = &(Ai[0]);
+	App = &(Ap[0]);
+}
+
+bool 
+UmfpackSolver::bPrepareSymbolic(void)
+{
+	int status;
+
+	status = UMFPACKWRAP_symbolic(iSize, App, Aip, Axp,
+			&Symbolic, Control, Info);
+	if (status != UMFPACK_OK) {
+		UMFPACKWRAP_report_info(Control, Info) ;
+		UMFPACKWRAP_report_status(Control, status);
+		silent_cerr("UMFPACKWRAP_symbolic failed" << std::endl);
+
+		/* de-allocate memory */
+		UMFPACKWRAP_free_symbolic(&Symbolic);
+		ASSERT(Symbolic == 0);
+
+		return false;
+	}
+
+	return true;
+}
+
+/* UmfpackSolver - end */
+
+/* UmfpackSparseSolutionManager - begin */
+
+UmfpackSparseSolutionManager::UmfpackSparseSolutionManager(integer Dim,
+		integer dummy, doublereal dPivot)
+: A(Dim),
+xVH(0),
+bVH(0), 
+x(Dim),
+b(Dim),
+pLS(0)
+{
+	SAFENEWWITHCONSTRUCTOR(pLS, UmfpackSolver, UmfpackSolver(Dim, dPivot));
+	
+	pLS->ChangeResPoint(&(b[0]));
+	pLS->ChangeSolPoint(&(x[0]));
+	pLS->SetSolutionManager(this);
+
+	SAFENEWWITHCONSTRUCTOR(xVH, MyVectorHandler, 
+			MyVectorHandler(Dim, &(x[0])));
+	SAFENEWWITHCONSTRUCTOR(bVH, MyVectorHandler, 
+			MyVectorHandler(Dim, &(b[0])));
+}
+
+UmfpackSparseSolutionManager::~UmfpackSparseSolutionManager(void) 
+{
+	SAFEDELETE(xVH);
+	SAFEDELETE(bVH);
+}
+
+void
+UmfpackSparseSolutionManager::MatrReset(const doublereal& d)
+{
+	A.Reset(d);
+}
+
+void
+UmfpackSparseSolutionManager::MakeCompressedColumnForm(void)
+{
+	pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
+}
+
+void
+UmfpackSparseSolutionManager::MatrInit(const doublereal& d)
+{
+	MatrReset(d);
+	pLS->Init();
+}
+
+/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+void
+UmfpackSparseSolutionManager::Solve(void)
+{
+	MakeCompressedColumnForm();
+	pLS->Solve();
 }
 
 /* Rende disponibile l'handler per la matrice */
@@ -332,13 +363,15 @@ UmfpackSparseSolutionManager::pMatHdl(void) const
 
 /* Rende disponibile l'handler per il termine noto */
 MyVectorHandler*
-UmfpackSparseSolutionManager::pResHdl(void) const {
+UmfpackSparseSolutionManager::pResHdl(void) const
+{
 	return bVH;
 }
 
 /* Rende disponibile l'handler per la soluzione */
 MyVectorHandler*
-UmfpackSparseSolutionManager::pSolHdl(void) const {
+UmfpackSparseSolutionManager::pSolHdl(void) const
+{
 	return xVH;
 }
 
@@ -377,11 +410,13 @@ void
 UmfpackSparseCCSolutionManager::MakeCompressedColumnForm(void)
 {
 	if (!CCReady) {
-		A.MakeCompressedColumnForm(Ax, Ai, Ap);
+		pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
 
 		ASSERT(Ac == 0);
-		SAFENEWWITHCONSTRUCTOR(Ac, CColMatrixHandler, 
-				CColMatrixHandler(A.iGetNumRows(), Ax, Ai, Ap));
+
+		typedef CColMatrixHandler<0> CC;
+		
+		SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(Ax, Ai, Ap));
 
 		CCReady = true;
 	}

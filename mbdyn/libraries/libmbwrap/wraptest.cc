@@ -32,6 +32,7 @@
 #endif /* HAVE_CONFIG */
 
 #include <stdlib.h>
+#include <unistd.h>
 #include <ac/iostream>
 
 #include <solman.h>
@@ -43,9 +44,8 @@
 static void
 usage(void)
 {
-	std::cerr << "usage: wraptest "
-		"[y12|harwell|meschach|{umfpack [cc]} [singular]]" 
-		<< std::endl;
+	std::cerr << "usage: wraptest [-c] [-m <solver>] [-s]" << std::endl
+		<< "\t<solver>={y12|harwell|meschach|umfpack}" << std::endl;
 	exit(EXIT_FAILURE);
 }
 
@@ -53,17 +53,58 @@ int
 main(int argc, char *argv[])
 {
 	SolutionManager *pSM = NULL;
-	char *solver = "y12";
-	const int size = 3;
+	char *solver =
+#if defined(USE_UMFPACK)
+		"umfpack"
+#elif defined(USE_Y12)
+		"y12"
+#elif defined(USE_HARWELL)
+		"harwell"
+#elif defined(USE_MESCHACH)
+		"meschach"
+#else
+		"no solver!!!"
+#endif /* NO SOLVER !!! */
+		;
+	bool cc(false);
+	bool singular(false);
+	const int size(3);
 
-	if (argc > 1) {
-		solver = argv[1];
+	while (1) {
+		int opt = getopt(argc, argv, "cm:s");
+
+		if (opt == EOF) {
+			break;
+		}
+
+		switch (opt) {
+		case 'c':
+			cc = true;
+			break;
+
+		case 'm':
+			solver = optarg;
+			break;
+
+		case 's':
+			singular = true;
+			break;
+
+		default:
+			usage();
+		}
 	}
 
 	if (strcasecmp(solver, "y12") == 0) {
 #ifdef USE_Y12
-		SAFENEWWITHCONSTRUCTOR(pSM, Y12SparseSolutionManager,
-				Y12SparseSolutionManager(size));
+		if (cc) {
+			SAFENEWWITHCONSTRUCTOR(pSM, Y12SparseCCSolutionManager,
+					Y12SparseCCSolutionManager(size));
+
+		} else {
+			SAFENEWWITHCONSTRUCTOR(pSM, Y12SparseSolutionManager,
+					Y12SparseSolutionManager(size));
+		}
 #else /* !USE_Y12 */
 		std::cerr << "need --with-y12 to use y12m library" 
 			<< std::endl;
@@ -92,7 +133,7 @@ main(int argc, char *argv[])
 	} else if (strcasecmp(solver, "umfpack") == 0
 			|| strcasecmp(solver, "umfpack3") == 0) {
 #ifdef USE_UMFPACK
-		if (argc > 2 && strcasecmp(argv[2], "cc") == 0) {
+		if (cc) {
 			SAFENEWWITHCONSTRUCTOR(pSM,
 					UmfpackSparseCCSolutionManager,
 					UmfpackSparseCCSolutionManager(size));
@@ -113,8 +154,6 @@ main(int argc, char *argv[])
 		std::cerr << "unknown solver '" << solver << "'" << std::endl;
 		usage();
 	}
-	argc--;
-	argv++;
 
 	pSM->MatrInit(0.);
 	
@@ -124,8 +163,9 @@ main(int argc, char *argv[])
 
 	pM->PutCoef(1, 1, 1.);
 	pM->PutCoef(2, 2, 2.);
-	if (argc > 1 && strcasecmp(argv[1], "singular") == 0) {
+	if (singular) {
 		pM->PutCoef(3, 3, 0.);
+
 	} else {
 		pM->PutCoef(3, 3, 3.);
 	}

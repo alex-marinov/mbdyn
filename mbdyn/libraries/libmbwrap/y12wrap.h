@@ -97,48 +97,45 @@
 
 #ifdef USE_Y12
 
-#include <ac/iostream>
+#include "ac/iostream"
 #include <vector>
 
-#include <myassert.h>
-#include <mynewmem.h>
-#include <except.h>
-#include <solman.h>
-#include <submat.h>
-#include <spmapmh.h>
-
-/* classi dichiarate in questo file */
-class Y12Solver;      	/* solutore */
-class Y12SparseSolutionManager;  /* gestore della soluzione */
-
+#include "myassert.h"
+#include "mynewmem.h"
+#include "except.h"
+#include "solman.h"
+#include "submat.h"
+#include "spmapmh.h"
+#include "ls.h"
 
 /* Y12Solver - begin */
+
+#define Y12_CC_SAFE
 
 /*
  * Solutore LU per matrici sparse. usa spazio messo a disposizione da altri 
  * e si aspetta le matrici gia' bell'e preparate
  */
 
-class Y12Solver {
-   	friend class Y12SparseSolutionManager;
-
-
+class Y12Solver : public LinearSolver  {
 public:
-   	class ErrFactorization {
-    	private: 
-      		int iErrCode;
-    	public:
-      		ErrFactorization(int i) : iErrCode(i) {
+	class ErrFactorization {
+	private: 
+		int iErrCode;
+
+	public:
+		ErrFactorization(int i) : iErrCode(i) {
 			NO_OP;
 		};
-      		int iGetErrCode(void) const {
+
+		int iGetErrCode(void) const {
 			return iErrCode;
 		};
-   	};
-   
+	};
+
 private:
 
- 	/*
+	/*
 	 * indices of array iIFLAG
 	 */
 	enum {
@@ -154,49 +151,63 @@ private:
 		I10 = 9
 	};
 
-   	integer iMatSize;
-   	integer iCurSize;
+	mutable integer iMaxSize;
+	mutable integer iCurSize;
 
-   	std::vector<integer>*const piRow;
-   	std::vector<integer>*const piCol;
-   	std::vector<doublereal>*const pdMat;
-   
-   	integer iN;         	/* ordine della matrice */
-   	integer iNonZeroes; 	/* coeff. non nulli */
-   	doublereal* pdRhs;  /* Soluzione e termine noto */
+	std::vector<integer> *const piRow;
+	std::vector<integer> *const piCol;
+	std::vector<doublereal> *const pdMat;
 
-   	integer* piHA;    	/* vettore di lavoro */
-   	integer  iIFLAG[10];    /* vettore di lavoro */
-	doublereal dAFLAG[8];	/* vettore di lavoro */
-   	doublereal* pdPIVOT;    /* vettore di lavoro */
+	integer *pir, *pic;
 
-	integer iFirstSol;      /* 1 se prima backsubst, else 0 */
+#ifdef Y12_CC_SAFE
+	/*
+	 * NOTE: Y12 alters the index arrays :(
+	 */
+	bool bDuplicateIndices;		/* true if need to duplicate indices */
+	std::vector<integer> iRow;
+	mutable std::vector<integer> iCol;
+#endif /* Y12_CC_SAFE */
+
+	mutable integer iN;     	/* ordine della matrice */
+	mutable integer iNonZeroes; 	/* coeff. non nulli */
+
+	integer *piHA;    		/* vettore di lavoro */
+	mutable integer iIFLAG[10];     /* vettore di lavoro */
+	doublereal dAFLAG[8];		/* vettore di lavoro */
+	doublereal* pdPIVOT;    	/* vettore di lavoro */
+
+	mutable bool bFirstSol;		/* true se prima backsubst */
 
 	void PutError(std::ostream& out, int rc) const; /* scrive l'errore */
 
-	bool SetCurSize(integer i);
-	integer iGetCurSize(void) const;
-   
-protected:
-   	/* Costruttore: si limita ad allocare la memoria */
-   	Y12Solver(integer iMatOrd, integer iSize,
-		    std::vector<integer>*const piTmpRow, 
-		    std::vector<integer>*const piTmpCol, 
-		    std::vector<doublereal>*const  pdTmpMat,
-		    doublereal*  pdTmpRhs, 
-		    integer iPivotParam);
-   	/* Distruttore */
-   	~Y12Solver(void);
+	/* Fattorizza la matrice */
+	void Factor(void);
+
+public:
+	/* Costruttore: si limita ad allocare la memoria */
+	Y12Solver(integer iMatOrd, integer iWorkSpaceSize,
+			std::vector<integer>*const piTmpRow, 
+			std::vector<integer>*const piTmpCol, 
+			std::vector<doublereal>*const  pdTmpMat,
+			doublereal*  pdTmpRhs, 
+			integer iPivotParam, bool bDupInd = false);
+	/* Distruttore */
+	~Y12Solver(void);
 
 #ifdef DEBUG	
-   	void IsValid(void) const;
+	void IsValid(void) const;
 #endif /* DEBUG */
-   	
-	/* Fattorizza la matrice */
-   	bool bLUFactor(void);
-   
-   	/* Risolve */
-   	void Solve(void);
+
+	/* Risolve */
+	void Solve(void) const;
+
+	/* Index Form */
+	void MakeCompactForm(SparseMatrixHandler& mh,
+			std::vector<doublereal>& Ax,
+			std::vector<int>& Ar,
+			std::vector<int>& Ac,
+			std::vector<int>& Ap) const;
 };
 
 /* Y12Solver - end */
@@ -211,85 +222,95 @@ protected:
 
 class Y12SparseSolutionManager : public SolutionManager {
 public: 
-   	class ErrGeneric {};
-   
-private:
-   
-protected:
-   	integer iMatMaxSize;  /* Dimensione max della matrice (per resize) */
-   	integer iMatSize;     /* ordine della matrice */
-   	std::vector<integer> iRow;       /* array di interi con:
-			       * tabella di SparseData/indici di riga
-			       * di Y12Solver */
-   	std::vector<integer> iCol;       /* array di interi con:
-	                       * keys di SparseData/indici di colonna
-			       * di Y12Solver */
-   	std::vector<doublereal> dMat;    /* reali con la matrice */
-   	std::vector<doublereal> dVec;    /* reali con residuo/soluzione */
-   
-	mutable SpMapMatrixHandler MH; /* sparse MatrixHandler */
-   	VectorHandler* pVH;   /* puntatore a VectorHandler */
-   	Y12Solver* pLU;     /* puntatore a Y12Solver */
-   
-   	bool bHasBeenReset;   /* flag di matrice resettata */
+	class ErrGeneric {};
 
-   	/* Prepara i vettori e la matrice per il solutore */
-   	void PacVec(void); 
-   
-   	/* Fattorizza la matrice (non viene mai chiamato direttamente, 
-    	 * ma da Solve se la matrice ancora non e' stata fattorizzata) */
-   	void Factor(void);
+private:
+
+protected:
+	integer iMatSize;		/* ordine della matrice */
+	std::vector<integer> iRow;	/* array di interi con
+					 * indici di riga di Y12Solver */
+	std::vector<integer> iCol;	/* array di interi con
+					 * indici di colonna di Y12Solver */
+   	std::vector<integer> iColStart;	/* array di interi con
+					 * indici di colonna CC */
+	std::vector<doublereal> dMat;	/* reali con la matrice */
+	std::vector<doublereal> dVec;	/* reali con residuo/soluzione */
+
+	mutable SpMapMatrixHandler MH;	/* sparse MatrixHandler */
+	VectorHandler* pVH;		/* puntatore a VectorHandler */
+
+	/* Fattorizza la matrice (non viene mai chiamato direttamente, 
+	 * ma da Solve se la matrice ancora non e' stata fattorizzata) */
+	void Factor(void);
 
 #ifdef DEBUG
-   	/* Usata per il debug */
-   	void IsValid(void) const;
+	/* Usata per il debug */
+	void IsValid(void) const;
 #endif /* DEBUG */
- 
+
+	virtual void MatrReset(const doublereal& d);
+	virtual void MakeIndexForm(void);
 public:
-   	/* Costruttore: usa e mette a disposizione matrici che gli sono date */
-   	Y12SparseSolutionManager(integer iSize,
-				   integer iWorkSpaceSize = 0,
-				   const doublereal& dPivotFactor = 1.0);
-   
-   	/* Distruttore: dealloca le matrici e distrugge gli oggetti propri */
-   	~Y12SparseSolutionManager(void);
+	/* Costruttore: usa e mette a disposizione matrici che gli sono date */
+	Y12SparseSolutionManager(integer iSize,
+			integer iWorkSpaceSize = 0,
+			const doublereal& dPivotFactor = 1.0,
+			bool bDupInd = false);
 
-   	/* Inizializza il gestore delle matrici */
-   	void MatrInit(const doublereal& dResetVal = 0.);
-   
-   	/* Risolve il sistema */
-   	void Solve(void);
-   
-   	/* sposta il puntatore al vettore del residuo */
-   	void ChangeResPoint(doublereal* pRes){
-		pLU->pdRhs = pRes;
-	};
-   
-   	/* sposta il puntatore al vettore della soluzione */
-   	void ChangeSolPoint(doublereal* pSol){
-		pLU->pdRhs = pSol;
+	/* Distruttore: dealloca le matrici e distrugge gli oggetti propri */
+	~Y12SparseSolutionManager(void);
+
+	/* Inizializza il gestore delle matrici */
+	void MatrInit(const doublereal& dResetVal = 0.);
+
+	/* Risolve il sistema */
+	void Solve(void);
+
+	/* Rende disponibile l'handler per la matrice */
+	MatrixHandler* pMatHdl(void) const {
+		return &MH;
 	};
 
-   	/* Rende disponibile l'handler per la matrice */
-   	MatrixHandler* pMatHdl(void) const {
-      		return &MH;
-   	};
-   
-   	/* Rende disponibile l'handler per il termine noto */
-   	VectorHandler* pResHdl(void) const {
-      		ASSERT(pVH != NULL);	
-      		return pVH;
-   	};
+	/* Rende disponibile l'handler per il termine noto */
+	VectorHandler* pResHdl(void) const {
+		ASSERT(pVH != NULL);	
+		return pVH;
+	};
 
-   	/* Rende disponibile l'handler per la soluzione (e' lo stesso 
-    	 * del termine noto, ma concettualmente sono separati) */
-   	VectorHandler* pSolHdl(void) const {
-      		ASSERT(pVH != NULL);	
-      		return pVH;
-   	};
+	/* Rende disponibile l'handler per la soluzione (e' lo stesso 
+	 * del termine noto, ma concettualmente sono separati) */
+	VectorHandler* pSolHdl(void) const {
+		ASSERT(pVH != NULL);	
+		return pVH;
+	};
 };
 
 /* Y12SparseSolutionManager - end */
+
+/* Y12SparseCCSolutionManager - begin */
+
+class Y12SparseCCSolutionManager: public Y12SparseSolutionManager {
+protected:
+	bool CCReady;
+	CompactSparseMatrixHandler *Ac;
+
+	virtual void MatrReset(const doublereal& d);
+	virtual void MakeIndexForm(void);
+	
+public:
+	Y12SparseCCSolutionManager(integer Dim, integer /* unused */ = 0, 
+			doublereal dPivot = -1.);
+	virtual ~Y12SparseCCSolutionManager(void);
+
+	/* Inizializzatore "speciale" */
+	virtual void MatrInitialize(const doublereal& d = 0.);
+	
+	/* Rende disponibile l'handler per la matrice */
+	virtual MatrixHandler* pMatHdl(void) const;
+};
+
+/* Y12SparseCCSolutionManager - end */
 
 #endif /* USE_Y12 */
 

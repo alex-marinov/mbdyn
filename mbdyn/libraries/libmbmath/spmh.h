@@ -44,7 +44,6 @@ protected:
 	int NRows;
 	int NCols;
 	int NZ;
-	static doublereal zero;
 
 #ifdef DEBUG
 	void IsValid(void) const {
@@ -72,21 +71,27 @@ public:
 
 	void Init(const doublereal &r = 0.);
 
-	virtual int MakeCompressedColumnForm(doublereal *const Ax,
+	virtual
+	int MakeCompressedColumnForm(doublereal *const Ax,
 			int *const Ai, int *const Ap,
-			integer offset = 0) const = 0;
+			int offset = 0) const = 0;
 
-        virtual int MakeCompressedColumnForm(std::vector<doublereal>& Ax,
+	virtual
+        int MakeCompressedColumnForm(std::vector<doublereal>& Ax,
                 	std::vector<int>& Ai, std::vector<int>& Ap,
-			integer offset = 0) const = 0;
+			int offset = 0) const = 0;
 
-	virtual int MakeIndexForm(doublereal *const Ax,
+	virtual
+	int MakeIndexForm(doublereal *const Ax,
 			integer *const Arow, integer *const Acol,
-			integer offset = 0) const = 0;
+			integer *const AcolSt,
+			int offset = 0) const = 0;
 
-        virtual int MakeIndexForm(std::vector<doublereal>& Ax,
+	virtual
+        int MakeIndexForm(std::vector<doublereal>& Ax,
 			std::vector<integer>& Arow, std::vector<integer>& Acol,
-			integer offset = 0) const = 0;
+			std::vector<integer>& AcolSt,
+			int offset = 0) const = 0;
 
 	virtual void Reset(const doublereal &r = 0.) = 0;
 

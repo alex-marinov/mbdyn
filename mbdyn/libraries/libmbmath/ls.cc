@@ -40,65 +40,58 @@
 #include "ac/iomanip"
 
 #include "solman.h"
-#include "matvec3.h"
 #include "ls.h"
 
-/* Zero for sparse vector and matrix handlers */
-const doublereal dZero = 0.;
+/* LinearSolver - begin */
 
-/* SolutionDataManager - begin */
-
-SolutionDataManager::~SolutionDataManager(void)
+LinearSolver::LinearSolver(SolutionManager *psm)
+: pSM(psm), bHasBeenReset(true), pdRhs(0), pdSol(0)
 {
 	NO_OP;
 }
 
-/* SolutionDataManager - end */
-
-
-/* SolutionManager - begin */
-
-SolutionManager::SolutionManager(void)
-: pLS(0)
+LinearSolver::~LinearSolver(void)
 {
 	NO_OP;
-}
-
-SolutionManager::~SolutionManager(void)
-{
-   	if (pLS != NULL) {	
-      		SAFEDELETE(pLS);
-   	}
-}
-
-/* Inizializzatore "speciale" */
-void
-SolutionManager::MatrInitialize(const doublereal& d)
-{
-	MatrInit(d);
 }
 
 void
-SolutionManager::LinkToSolution(const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr) {
-	NO_OP;
+LinearSolver::Init(void)
+{
+	bHasBeenReset = true;
+}
+
+void
+LinearSolver::SetSolutionManager(SolutionManager *psm)
+{
+	ASSERT(pSM);
+
+	pSM = psm;
 }
 
 /* sposta il puntatore al vettore del residuo */
 void
-SolutionManager::ChangeResPoint(doublereal* pdRes)
+LinearSolver::ChangeResPoint(doublereal* pd)
 {
-	ASSERT(pLS);
-	pLS->ChangeResPoint(pdRes);
-}
-   
-/* sposta il puntatore al vettore della soluzione */
-void
-SolutionManager::ChangeSolPoint(doublereal* pdSol)
-{
-	ASSERT(pLS);
-	pLS->ChangeSolPoint(pdSol);
+	pdRhs = pd;
 }
 
-/* SolutionManager - end */
+/* sposta il puntatore al vettore della soluzione */
+void
+LinearSolver::ChangeSolPoint(doublereal* pd)
+{
+	pdSol = pd;
+}
+
+void
+LinearSolver::MakeCompactForm(SparseMatrixHandler& mh,
+		std::vector<doublereal>& Ax,
+		std::vector<int>& Ar,
+		std::vector<int>& Ac,
+		std::vector<int>& Ap) const
+{
+	NO_OP;
+}
+
+/* LinearSolver - end */
 

@@ -21,9 +21,23 @@ y12wrap.h
 libmbwrap_la_LIBADD = @LIBS@ @F2C_LIBS@
 libmbwrap_la_LDFLAGS =
 
-noinst_PROGRAMS = wraptest
-wraptest_SOURCES = test.cc
+noinst_PROGRAMS = wraptest cctest
+
+wraptest_SOURCES = wraptest.cc
 wraptest_LDADD = \
+./libmbwrap.la \
+../libmbmath/libmbmath.la \
+../libmbutil/libmbutil.la \
+../libobjs/libobjs.la \
+../liby12/liby12.la \
+@UMFPACK_LIBS@ \
+@MESCHACH_LIBS@ \
+@HARWELL_LIBS@ \
+@F2C_LIBS@ \
+@TCL_LIBS@
+
+cctest_SOURCES = cctest.cc
+cctest_LDADD = \
 ./libmbwrap.la \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \

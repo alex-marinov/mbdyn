@@ -40,36 +40,56 @@
 
 #ifdef USE_Y12
 
-#include <y12wrap.h>
-#include <y12lib.h>
+#include "y12wrap.h"
+#include "y12lib.h"
+#include "ccmh.h"
 
 /* Y12Solver - begin */
 
 /* Costruttore: si limita ad allocare la memoria */
-Y12Solver::Y12Solver(integer iMatOrd, integer iSize,
+Y12Solver::Y12Solver(integer iMatOrd, integer iWorkSpaceSize,
 			 std::vector<integer>*const piTmpRow, 
 			 std::vector<integer>*const piTmpCol,
 			 std::vector<doublereal>*const pdTmpMat,
 			 doublereal* pdTmpRhs, 
-			 integer iPivotParam)
-: iMatSize(iSize),
-iCurSize(iSize),
+			 integer iPivotParam,
+			 bool bDupInd)
+: iMaxSize(iWorkSpaceSize),
+iCurSize(iWorkSpaceSize),
 piRow(piTmpRow),
 piCol(piTmpCol),
 pdMat(pdTmpMat),
+pir(0),
+pic(0),
+#ifdef Y12_CC_SAFE
+bDuplicateIndices(bDupInd),
+#endif /* Y12_CC_SAFE */
 iN(iMatOrd),
 iNonZeroes(0),
-pdRhs(pdTmpRhs),
 piHA(NULL),
 pdPIVOT(NULL),
-iFirstSol(-1)
+bFirstSol(true)
 {
-	ASSERT(iMatSize > 0);
+	LinearSolver::pdRhs = pdTmpRhs;
+	LinearSolver::pdSol = pdTmpRhs;
+
 	ASSERT(piRow != NULL);
 	ASSERT(piCol != NULL);
 	ASSERT(pdMat != NULL);
-	ASSERT(pdRhs != NULL);
+	ASSERT(pdTmpRhs != NULL);
 	ASSERT(iN > 0);
+
+#ifdef Y12_CC_SAFE
+	if (bDuplicateIndices) {
+		/*
+		 * NOTE: Y12 alters the index arrays :(
+		 *
+		 * FIXME: make it stl-ish
+		 */
+		iRow.reserve(iCurSize);
+		iCol.reserve(iCurSize);
+	}
+#endif /* Y12_CC_SAFE */
 	
 	SAFENEWARR(piHA, integer, 11*iN);
 	SAFENEWARR(pdPIVOT, doublereal, iN);
@@ -92,7 +112,7 @@ iFirstSol(-1)
         dAFLAG[I_1] = 8.;	/* Should be 4.<dAFLAG[0]<16. for stability */
 	dAFLAG[I_2] = 0.;	/* Should be 0.<dAFLAG[1]<1.e-12 */
 	dAFLAG[I_3] = 1.e6;	/* Should be dAFLAG[2]>1.e5 */
-	dAFLAG[I_4] = 0.;   	/* FIXME: Should be 0<dAFLAG[3]<1.e-12 */
+	dAFLAG[I_4] = 0.;   	/* FIXME: Should be 0 < dAFLAG[3]<1.e-12 */
 }
 
 /* Distruttore */
@@ -110,12 +130,10 @@ Y12Solver::~Y12Solver(void)
 void 
 Y12Solver::IsValid(void) const
 {
-	ASSERT(iMatSize > 0);
-	ASSERT(iCurSize > 0 && iCurSize <= iMatSize);
+	ASSERT(iCurSize > 0);
 	ASSERT(piRow != NULL);
 	ASSERT(piCol != NULL);
 	ASSERT(pdMat != NULL);
-	ASSERT(pdRhs != NULL);
 	ASSERT(iN > 0); 
 	
 	ASSERT(piHA != NULL);
@@ -128,41 +146,19 @@ Y12Solver::IsValid(void) const
 }
 #endif /* DEBUG */
 
-bool
-Y12Solver::SetCurSize(integer i)
-{
-	if (i < 1 || i > iMatSize) {
-		return false;
-	}
-
-	iCurSize = i;
-
-	return true;
-}
-
-integer
-Y12Solver::iGetCurSize(void) const
-{
-	return iCurSize;
-}
-
 /* Fattorizza la matrice */
-bool
-Y12Solver::bLUFactor(void)
+void
+Y12Solver::Factor(void)
 {
 #ifdef DEBUG 
 	IsValid();
 #endif /* DEBUG */
 
-	/*
-	 * FIXME: This is set by Y12SparseSolutionManager in PacVec;
-	 * better move such info to the matrix handler!
-	 */
 	ASSERT(iNonZeroes > 0);
 	
 	/* Sets parameters */
 	integer iIFAIL = 0;
-	iFirstSol = 1;
+	bFirstSol = true;
 
 	/*
 	 * must be set to 0 before the first call to a routine 
@@ -170,10 +166,33 @@ Y12Solver::bLUFactor(void)
 	 */
 	iIFLAG[I_1] = 0;
 	iIFLAG[I_5] = 2;
-	
+
+#ifdef Y12_CC_SAFE
+	if (bDuplicateIndices) {
+		/*
+		 * NOTE: Y12 alters the index arrays :(
+		 *
+		 * FIXME: make it stl-ish
+		 */
+		iRow.resize(piRow->size());
+		iCol.resize(piCol->size());
+		for (unsigned i = 0; i < piRow->size(); i++) {
+			iRow[i] = (*piRow)[i];
+			iCol[i] = (*piCol)[i];
+		}
+
+		pir = &(iRow[0]);
+		pic = &(iCol[0]);
+	} else
+#endif /* Y12_CC_SAFE */
+	{
+		pir = &((*piRow)[0]);
+		pic = &((*piCol)[0]);
+	}
+
 	y12prefactor(&iN, &iNonZeroes, &((*pdMat)[0]),
-			    &((*piCol)[0]), &iCurSize,
-			    &((*piRow)[0]), &iCurSize,
+			    pic, &iCurSize,
+			    pir, &iCurSize,
 			    piHA, &iN,
 			    dAFLAG, iIFLAG, &iIFAIL);
 			    
@@ -187,9 +206,9 @@ Y12Solver::bLUFactor(void)
 
 	/* actual factorization */
 	y12factor(&iN, &iNonZeroes, &((*pdMat)[0]),
-			    &((*piCol)[0]), &iCurSize,
-			    &((*piRow)[0]), &iCurSize,
-			    pdPIVOT, pdRhs,
+			    pic, &iCurSize,
+			    pir, &iCurSize,
+			    pdPIVOT, LinearSolver::pdRhs,
 			    piHA, &iN,
 			    dAFLAG, iIFLAG, &iIFAIL);
 
@@ -206,22 +225,25 @@ Y12Solver::bLUFactor(void)
 			" warning, possible bad conditioning of matrix" 
 			<< std::endl;
 	}
-	
-	return iIFAIL;
 }
 
 /* Risolve */
 void
-Y12Solver::Solve(void)
+Y12Solver::Solve(void) const
 {
 #ifdef DEBUG
 	IsValid();
 #endif /* DEBUG */
-
-	integer iIFAIL = 0;
 	
-	y12solve(&iN, &((*pdMat)[0]), &iCurSize, pdRhs,
-			    pdPIVOT, &((*piCol)[0]),
+	if (bHasBeenReset) {
+      		((Y12Solver *)this)->Factor();
+      		bHasBeenReset = false;
+	}
+		
+	integer iIFAIL = 0;
+
+	y12solve(&iN, &((*pdMat)[0]), &iCurSize, LinearSolver::pdRhs,
+			    pdPIVOT, pic,
 			    piHA, &iN,
 			    iIFLAG, &iIFAIL);
 	
@@ -233,9 +255,36 @@ Y12Solver::Solve(void)
 		THROW(Y12Solver::ErrFactorization(iIFAIL));
 	}
 	
-	if (iFirstSol == 1) {
+	if (bFirstSol) {
 		iIFLAG[I_5] = 3;
-		iFirstSol = 0;
+		bFirstSol = false;
+	}
+}
+
+/* Index Form */
+void
+Y12Solver::MakeCompactForm(SparseMatrixHandler& mh,
+		std::vector<doublereal>& Ax,
+		std::vector<int>& Ar, std::vector<int>& Ac,
+		std::vector<int>& Ap) const
+{
+	if (!bHasBeenReset) {
+		return;
+	}
+	
+	iNonZeroes = mh.MakeIndexForm(Ax, Ar, Ac, Ap, 1);
+	ASSERT(iNonZeroes > 0);
+
+	/* iCurSize should be between 3 and 5 times iNonZeroes ... */
+	if (iCurSize > 5*iNonZeroes) {
+		iCurSize = 4*iNonZeroes;
+		
+	} else if (iCurSize < 3*iNonZeroes) {
+		if (iMaxSize < 4*iNonZeroes) {
+			iCurSize = iMaxSize;
+		} else {
+			iCurSize = 4*iNonZeroes;
+		}
 	}
 }
 
@@ -501,14 +550,12 @@ Y12Solver::PutError(std::ostream& out, int rc) const
 
 /* Costruttore */
 Y12SparseSolutionManager::Y12SparseSolutionManager(integer iSize, 
-						       integer iWorkSpaceSize,
-						       const doublereal& dPivotFactor) :
-iMatMaxSize(iSize),
-iMatSize(iSize), 
+		integer iWorkSpaceSize,
+		const doublereal& dPivotFactor, bool bDupInd)
+: iMatSize(iSize), 
+iColStart(iSize + 1),
 MH(iSize),
-pVH(NULL),
-pLU(NULL),
-bHasBeenReset(true)
+pVH(NULL)
 {
    	ASSERT(iSize > 0);
    	ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
@@ -531,7 +578,7 @@ bHasBeenReset(true)
 	}
 
    	/* Alloca arrays */
-	dVec.resize(iMatSize,0.);
+	dVec.resize(iMatSize, 0.);
    
    	/* Alloca handlers ecc. */
    	SAFENEWWITHCONSTRUCTOR(pVH,
@@ -542,12 +589,15 @@ bHasBeenReset(true)
 	iCol.reserve(iWorkSpaceSize);
 	dMat.reserve(iWorkSpaceSize);
 
-   	SAFENEWWITHCONSTRUCTOR(pLU, 
+   	SAFENEWWITHCONSTRUCTOR(SolutionManager::pLS, 
 			       Y12Solver,
 			       Y12Solver(iMatSize, iWorkSpaceSize,
 			       		   &iRow, &iCol,
-					   &dMat, &(dVec[0]), iPivot));
+					   &dMat, &(dVec[0]), iPivot,
+					   bDupInd));
    
+	pLS->SetSolutionManager(this);
+
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
@@ -561,11 +611,6 @@ Y12SparseSolutionManager::~Y12SparseSolutionManager(void)
    	IsValid();
 #endif /* DEBUG */
    
-   	/* Dealloca oggetti strani */
-   	if (pLU != NULL) {	
-      		SAFEDELETE(pLU);
-   	}
-
    	if (pVH != NULL) {      
       		SAFEDELETE(pVH);
    	}
@@ -578,32 +623,17 @@ Y12SparseSolutionManager::~Y12SparseSolutionManager(void)
 void 
 Y12SparseSolutionManager::IsValid(void) const
 {   
-   	ASSERT(iMatMaxSize > 0);
    	ASSERT(iMatSize > 0);
    
 #ifdef DEBUG_MEMMANAGER
    	ASSERT(defaultMemoryManager.fIsPointerToBlock(pVH));
-   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pLU));
+   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pLS));
 #endif /* DEBUG_MEMMANAGER */
    
    	ASSERT((pVH->IsValid(), 1));
-   	ASSERT((pLU->IsValid(), 1));
+   	ASSERT((pLS->IsValid(), 1));
 }
 #endif /* DEBUG */
-
-/* Prepara i vettori e la matrice per il solutore */
-void
-Y12SparseSolutionManager::PacVec(void)
-{
-#ifdef DEBUG
-   	IsValid();
-#endif /* DEBUG */
-   
-   	ASSERT(bHasBeenReset);
-	
-	/* FIXME: move this to the matrix handler! */
-   	pLU->iNonZeroes = MH.MakeIndexForm(dMat, iRow, iCol, 1);
-}
 
 /* Inizializza il gestore delle matrici */
 void
@@ -613,8 +643,25 @@ Y12SparseSolutionManager::MatrInit(const doublereal& dResetVal)
    	IsValid();
 #endif /* DEBUG */
 
-   	MH.Init(dResetVal);
-   	bHasBeenReset = true;
+	MatrReset(dResetVal);
+	pLS->Init();
+}
+
+void
+Y12SparseSolutionManager::MatrReset(const doublereal& d)
+{
+	MH.Reset(d);
+}
+
+void
+Y12SparseSolutionManager::MakeIndexForm(void)
+{
+#ifdef DEBUG
+   	IsValid();
+#endif /* DEBUG */
+
+	/* FIXME: move this to the matrix handler! */
+	pLS->MakeCompactForm(MH, dMat, iRow, iCol, iColStart);
 }
 
 /* Risolve il problema */
@@ -625,19 +672,122 @@ Y12SparseSolutionManager::Solve(void)
    	IsValid();
 #endif /* DEBUG */
 
-   	if (bHasBeenReset) {
-      		PacVec();
-      		if (!pLU->bLUFactor()) {	 
-	 		THROW(Y12SparseSolutionManager::ErrGeneric());
-      		}
-	
-      		bHasBeenReset = false;
-   	}
+	/* FIXME: move this to the matrix handler! */
+   	MakeIndexForm();
 
-   	pLU->Solve();
+#if 0
+	std::cerr << "### after MakeIndexForm:" << std::endl
+		<< "{col Ap[col]}={" << std::endl;
+	for (unsigned i = 0; i < iColStart.size(); i++) {
+		std::cerr << i << " " << iColStart[i] << std::endl;
+	}
+	std::cerr << "}" << std::endl;
+	
+	std::cerr << "{idx Ai[idx] col Ax[idx]}={" << std::endl;
+	unsigned c = 0;
+	for (unsigned i = 0; i < dMat.size(); i++) {
+		std::cerr << i << " " << iRow[i] << " " << c << " " << dMat[i] << std::endl;
+		if (i == iColStart[c]) {
+			c++;
+		}
+	}
+	std::cerr << "}" << std::endl;
+#endif
+
+   	pLS->Solve();
+
+#if 0
+	std::cerr << "### after Solve:" << std::endl
+		<< "{col Ap[col]}={" << std::endl;
+	for (unsigned i = 0; i < iColStart.size(); i++) {
+		std::cerr << i << " " << iColStart[i] << std::endl;
+	}
+	std::cerr << "}" << std::endl;
+	
+	std::cerr << "{idx Ai[idx] col Ax[idx]}={" << std::endl;
+	c = 0;
+	for (unsigned i = 0; i < dMat.size(); i++) {
+		std::cerr << i << " " << iRow[i] << " " << c << " " << dMat[i] << std::endl;
+		if (i == iColStart[c]) {
+			c++;
+		}
+	}
+	std::cerr << "}" << std::endl;
+#endif
 }
 
 /* Y12SparseSolutionManager - end */
+
+/* Y12SparseCCSolutionManager - begin */
+
+Y12SparseCCSolutionManager::Y12SparseCCSolutionManager(integer Dim,
+		integer dummy, doublereal dPivot)
+: Y12SparseSolutionManager(Dim, dummy, dPivot, true),
+CCReady(false),
+Ac(0)
+{
+	NO_OP;
+}
+
+Y12SparseCCSolutionManager::~Y12SparseCCSolutionManager(void) 
+{
+	if (Ac) {
+		SAFEDELETE(Ac);
+	}
+}
+
+void
+Y12SparseCCSolutionManager::MatrReset(const doublereal& d)
+{
+	if (!CCReady) {
+		MH.Reset(d);
+	} else {
+		Ac->Reset(d);
+	}
+}
+
+/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+void
+Y12SparseCCSolutionManager::MakeIndexForm(void)
+{
+	if (!CCReady) {
+		pLS->MakeCompactForm(MH, dMat, iRow, iCol, iColStart);
+
+		ASSERT(Ac == 0);
+
+		typedef CColMatrixHandler<1> CC;
+		
+		SAFENEWWITHCONSTRUCTOR(Ac, CC, CC(dMat, iRow, iColStart));
+
+		CCReady = true;
+	}
+}
+
+/* Inizializzatore "speciale" */
+void
+Y12SparseCCSolutionManager::MatrInitialize(const doublereal& d)
+{
+	SAFEDELETE(Ac);
+	Ac = 0;
+
+	CCReady = false;
+
+	MatrInit();
+}
+	
+/* Rende disponibile l'handler per la matrice */
+MatrixHandler*
+Y12SparseCCSolutionManager::pMatHdl(void) const
+{
+	if (!CCReady) {
+		return &MH;
+	}
+
+	ASSERT(Ac != 0);
+	return Ac;
+}
+
+/* Y12SparseCCSolutionManager - end */
 
 #endif /* USE_Y12 */
 

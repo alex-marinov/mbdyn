@@ -36,8 +36,6 @@
 
 #include "spmh.h"
 
-doublereal SparseMatrixHandler::zero = 0.;
-
 SparseMatrixHandler::SparseMatrixHandler(const int &n, const int &nn)
 :  NRows(n), NCols(nn == 0 ? n : nn), NZ(0)
 {
