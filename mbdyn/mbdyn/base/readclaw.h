@@ -38,6 +38,7 @@
 #ifdef USE_GRAALLDAMPER
 #include <damper.h>
 #endif /* USE_GRAALLDAMPER */
+#include <shockabsorber.h>
 
 
 template <class T>
@@ -101,7 +102,8 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 	"linear" "viscoelastic" "generic",
 	"doublelinear" "viscoelastic",
 	"turbulent" "viscoelastic",
-	"graall" "damper"
+	"graall" "damper",
+	"shock" "absorber"
    };
    
    /* enum delle parole chiave */
@@ -125,6 +127,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 	DOUBLELINEARVISCOELASTIC,
 	TURBULENTVISCOELASTIC,
 	GRAALLDAMPER,
+	SHOCKABSORBER,
 	
 	LASTKEYWORD
    };
@@ -554,7 +557,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     }	      	     	      
          
 	   
-    case GRAALLDAMPER:	{
+    case GRAALLDAMPER: {
 #ifdef USE_GRAALLDAMPER    
        ConstLawType = DefHingeType::VISCOELASTIC;
 
@@ -584,14 +587,34 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 			      DMmm);
               
        break;
-#else // USE_GRAALLDAMPER
+#else /* USE_GRAALLDAMPER */
        cerr << "can't use GRAALL Damper" << endl;
        THROW(ErrGeneric());
-#endif // USE_GRAALLDAMPER
+#endif /* USE_GRAALLDAMPER */
+    }
+
+    /*
+     * Shock absorber per Stefy:
+     *
+     * ``Riprogettazione dell'ammortizzatore del carrello anteriore
+     * di un velivolo di aviazione generale'', 
+     * S. Carlucci e S. Gualdi,
+     * A.A. 1997-98
+     */
+    case SHOCKABSORBER: {
+       ConstLawType = DefHingeType::VISCOELASTIC;
+
+       T PreStrain(0.);
+       TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, pDH, PreStrain);
+	      
+       typedef ShockAbsorberConstitutiveLaw<T, Tder> L;
+       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pDM, pTplDC, HP), DMmm);
+
+       break;
     }
 
 	   
-      // Aggiungere altri rods
+    // Aggiungere altri rods
       
     default: {
        cerr << "Unknown constitutive law type at line " 

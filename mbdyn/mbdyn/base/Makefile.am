@@ -20,7 +20,8 @@ dataman.h    drive_.h     intmeth.cc   output.cc    tpldrive.h   tpldrive_.h\
 dataman2.cc  driven.h     intmeth.h    output.h     vec3drv.h \
 dataman3.cc  elem.cc      j2p.cc       posrel.h \
 dataman4.cc  elem.h       j2p.h        readclaw.h \
-schur.cc     schur.h      schurdataman.cc           schurdataman.h
+schur.cc     schur.h      schurdataman.cc           schurdataman.h \
+shockabsorber.h
 
 libbase_la_LIBADD = @LIBS@
 libbase_la_LDFLAGS = -static
