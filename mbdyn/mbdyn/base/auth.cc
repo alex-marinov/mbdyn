@@ -38,8 +38,6 @@
 #include <dataman.h>
 #include <auth.h>
 
-extern "C" char *crypt(const char *, const char *);
-
 /* NoAuth - begin */
 
 AuthMethod::AuthRes
@@ -120,7 +118,7 @@ extern "C" {
 #elif HAVE_SECURITY_PAM_MISC_H
 #include <security/pam_misc.h>
 #endif /* HAVE_SECURITY_PAM_MISC_H */
-extern "C" char * strdup(const char *);
+#include <string.h>
 }
 
 #define INPUTSIZE PAM_MAX_MSG_SIZE           /* maximum length of input+1 */
