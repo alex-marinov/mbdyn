@@ -220,9 +220,9 @@ PiezoActuatorBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Dimensiona la matrice, la azzera e pone gli indici corretti */
    if(fConsistentInertia) {
-      WM.ResizeInit(36, 18+iNumElec, 0.);
+      WM.ResizeReset(36, 18+iNumElec);
    } else {
-      WM.ResizeInit(18, 18+iNumElec, 0.);
+      WM.ResizeReset(18, 18+iNumElec);
    }
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -463,9 +463,9 @@ PiezoActuatorVEBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Dimensiona la matrice, la azzera e pone gli indici corretti */
    if(fConsistentInertia) {
-      WM.ResizeInit(36, 18+iNumElec, 0.);
+      WM.ResizeReset(36, 18+iNumElec);
    } else {
-      WM.ResizeInit(18, 18+iNumElec, 0.);
+      WM.ResizeReset(18, 18+iNumElec);
    }
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {

@@ -106,7 +106,7 @@ ConservativeForce::AssJac(VariableSubMatrixHandler& WorkMat,
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
    /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(3, 3, 0.);
+   WM.ResizeReset(3, 3);
 
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
@@ -141,7 +141,7 @@ SubVectorHandler& ConservativeForce::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
 
    /* Dati */
    
@@ -184,7 +184,7 @@ ConservativeForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
    /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(6, 6, 0.);
+   WM.ResizeReset(6, 6);
 
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
    integer iFirstVelocityIndex = iFirstPositionIndex+6;
@@ -223,7 +223,7 @@ ConservativeForce::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
 
    /* Dati */
    
@@ -296,7 +296,7 @@ FollowerForce::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   WM.ResizeReset(iNumRows, iNumCols);
 
    integer iFirstRotationIndex = pNode->iGetFirstPositionIndex()+3;
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
@@ -334,7 +334,7 @@ SubVectorHandler& FollowerForce::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
    
    /* Dati */
    
@@ -378,7 +378,7 @@ FollowerForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
    /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(12, 6, 0.);
+   WM.ResizeReset(12, 6);
 
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    integer iFirstVelocityIndex = iFirstPositionIndex+6;
@@ -423,7 +423,7 @@ FollowerForce::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
 
    /* Dati */
    
@@ -491,7 +491,7 @@ SubVectorHandler& ConservativeCouple::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
 
    /* Dati */
    
@@ -581,7 +581,7 @@ FollowerCouple::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   WM.ResizeReset(iNumRows, iNumCols);
 
    integer iFirstRotationIndex = pNode->iGetFirstPositionIndex()+3;
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
@@ -614,7 +614,7 @@ SubVectorHandler& FollowerCouple::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
    
    /* Dati */
    
@@ -652,7 +652,7 @@ FollowerCouple::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
    /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(6, 6, 0.);
+   WM.ResizeReset(6, 6);
 
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
    integer iFirstVelocityIndex = iFirstPositionIndex+6;
@@ -687,7 +687,7 @@ FollowerCouple::InitialAssRes(SubVectorHandler& WorkVec,
 {
    DEBUGCOUT("Entering FollowerCouple::InitialAssRes()" << std::endl);
 
-   WorkVec.ResizeInit(6, 0.);
+   WorkVec.ResizeReset(6);
 
    /* Dati */
    
@@ -788,7 +788,7 @@ ConservativeInternalForce::AssJac(VariableSubMatrixHandler& WorkMat,
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
    /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(6, 6, 0.);
+   WM.ResizeReset(6, 6);
 
    integer iFirstPositionIndex1 = pNode1->iGetFirstPositionIndex()+3;
    integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex()+3;
@@ -833,7 +833,7 @@ ConservativeInternalForce::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
 
    /* Dati */
    
@@ -884,7 +884,7 @@ ConservativeInternalForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
    /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(12, 12, 0.);
+   WM.ResizeReset(12, 12);
 
    integer iFirstPositionIndex1 = pNode1->iGetFirstPositionIndex()+3;
    integer iFirstVelocityIndex1 = iFirstPositionIndex1+6;
@@ -940,7 +940,7 @@ ConservativeInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
 
    /* Dati */
    
@@ -1033,7 +1033,7 @@ FollowerInternalForce::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   WM.ResizeReset(iNumRows, iNumCols);
 
    integer iFirstRotationIndex1 = pNode1->iGetFirstPositionIndex()+3;
    integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
@@ -1081,7 +1081,7 @@ FollowerInternalForce::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
    
    /* Dati */
    
@@ -1135,7 +1135,7 @@ FollowerInternalForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WorkSpaceDim(&iNumRows, &iNumCols);
    
    /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   WM.ResizeReset(iNumRows, iNumCols);
 
    integer iFirstPositionIndex1 = pNode1->iGetFirstPositionIndex();
    integer iFirstVelocityIndex1 = iFirstPositionIndex1+6;
@@ -1205,7 +1205,7 @@ FollowerInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
 
    /* Dati */
    
@@ -1290,7 +1290,7 @@ ConservativeInternalCouple::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
 
    /* Dati */
    
@@ -1328,7 +1328,7 @@ ConservativeInternalCouple::InitialAssRes(SubVectorHandler& WorkVec,
 {
    DEBUGCOUT("Entering ConservativeInternalCouple::InitialAssRes()" << std::endl);
 
-   WorkVec.ResizeInit(6, 0.);
+   WorkVec.ResizeReset(6);
 
    /* Dati */
    
@@ -1390,7 +1390,7 @@ FollowerInternalCouple::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   WM.ResizeReset(iNumRows, iNumCols);
 
    integer iFirstRotationIndex1 = pNode1->iGetFirstPositionIndex()+3;
    integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex()+3;
@@ -1427,7 +1427,7 @@ FollowerInternalCouple::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
    
    /* Dati */
    
@@ -1469,7 +1469,7 @@ FollowerInternalCouple::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
    /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(12, 6, 0.);
+   WM.ResizeReset(12, 6);
 
    integer iFirstPositionIndex1 = pNode1->iGetFirstPositionIndex()+3;
    integer iFirstVelocityIndex1 = iFirstPositionIndex1+6;
@@ -1514,7 +1514,7 @@ FollowerInternalCouple::InitialAssRes(SubVectorHandler& WorkVec,
 {
    DEBUGCOUT("Entering FollowerInternalCouple::InitialAssRes()" << std::endl);
 
-   WorkVec.ResizeInit(12, 0.);
+   WorkVec.ResizeReset(12);
 
    /* Dati */
    

@@ -80,7 +80,7 @@ LinearVelocityJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Entering LinearVelocityJoint::AssJac()" << std::endl);
 
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   WM.ResizeInit(6, 0, 0.);
+   WM.ResizeReset(6, 0);
    
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
@@ -110,8 +110,7 @@ LinearVelocityJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeReset(iNumRows);
       
    /* Indici */
    // integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
@@ -162,7 +161,7 @@ LinearVelocityJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Entering LinearVelocityJoint::InitialAssJac()" << std::endl);
 
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   WM.ResizeInit(6, 0, 0.);
+   WM.ResizeReset(6, 0);
    
    integer iFirstVelocityIndex = pNode->iGetFirstPositionIndex()+6;
    integer iFirstReactionIndex = iGetFirstIndex();
@@ -190,8 +189,7 @@ LinearVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeReset(iNumRows);
       
    /* Indici */
    integer iFirstVelocityIndex = pNode->iGetFirstPositionIndex()+6;
@@ -269,7 +267,7 @@ AngularVelocityJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Entering AngularVelocityJoint::AssJac()" << std::endl);
 
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   WM.ResizeInit(12, 0, 0.);
+   WM.ResizeReset(12, 0);
    
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
@@ -304,8 +302,7 @@ AngularVelocityJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeReset(iNumRows);
       
    /* Indici */
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
@@ -357,7 +354,7 @@ AngularVelocityJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Entering AngularVelocityJoint::InitialAssJac()" << std::endl);
 
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   WM.ResizeInit(15, 0, 0.);
+   WM.ResizeReset(15, 0);
    
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
    integer iFirstVelocityIndex = iFirstPositionIndex+6;
@@ -392,8 +389,7 @@ AngularVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.Resize(iNumRows);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeReset(iNumRows);
       
    /* Indici */
    integer iFirstVelocityIndex = pNode->iGetFirstPositionIndex()+9;

@@ -120,7 +120,7 @@ Pipe::AssJac(VariableSubMatrixHandler& WorkMat,
 #endif /* HYDR_DEVEL */
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
-   WM.ResizeInit(3, 3, 0.);
+   WM.ResizeReset(3, 3);
    
    integer iNode1RowIndex = pNode1->iGetFirstRowIndex()+1;
    integer iNode2RowIndex = pNode2->iGetFirstRowIndex()+1;
@@ -535,7 +535,7 @@ Dynamic_pipe::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Entering Pipe::AssJac()" << std::endl);
    DEBUGCOUT("Valore di dblepsilon INIZIO:"  << DBL_EPSILON << std::endl); 
    FullSubMatrixHandler& WM = WorkMat.SetFull();
-   WM.ResizeInit(5, 5, 0.);
+   WM.ResizeReset(5, 5);
   
    integer iNode1RowIndex = pNode1->iGetFirstRowIndex()+1;
    integer iNode2RowIndex = pNode2->iGetFirstRowIndex()+1;
@@ -1083,7 +1083,7 @@ DynamicPipe::AssJac(VariableSubMatrixHandler& WorkMat,
 	     const VectorHandler& XPrimeCurr)
 {
    FullSubMatrixHandler& WM = WorkMat.SetFull();
-   WM.ResizeInit(6, 6, 0.);
+   WM.ResizeReset(6, 6);
   
    integer iNode1RowIndex = pNode1->iGetFirstRowIndex()+1;
    integer iNode2RowIndex = pNode2->iGetFirstRowIndex()+1;

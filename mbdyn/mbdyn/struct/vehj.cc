@@ -176,7 +176,7 @@ ElasticHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
@@ -253,7 +253,7 @@ ElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeInit(iNumRows, 0.);
+	WorkVec.ResizeReset(iNumRows);
  
 	/* Recupera gli indici */
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex()+3;
@@ -303,7 +303,7 @@ ElasticHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
@@ -331,7 +331,7 @@ ElasticHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeInit(iNumRows, 0.);
+	WorkVec.ResizeReset(iNumRows);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
@@ -432,7 +432,7 @@ ViscousHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
@@ -473,7 +473,7 @@ ViscousHingeJoint::AssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeInit(iNumRows, 0.);
+	WorkVec.ResizeReset(iNumRows);
 
 	/* Recupera gli indici */
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex()+3;
@@ -531,7 +531,7 @@ ViscousHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
@@ -585,7 +585,7 @@ ViscousHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeInit(iNumRows, 0.);
+	WorkVec.ResizeReset(iNumRows);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
@@ -719,7 +719,7 @@ ViscoElasticHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
@@ -761,7 +761,7 @@ ViscoElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeInit(iNumRows, 0.);
+	WorkVec.ResizeReset(iNumRows);
 
 	/* Recupera gli indici */
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex()+3;
@@ -820,7 +820,7 @@ ViscoElasticHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
@@ -873,7 +873,7 @@ ViscoElasticHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeInit(iNumRows, 0.);
+	WorkVec.ResizeReset(iNumRows);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;

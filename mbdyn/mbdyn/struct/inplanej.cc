@@ -76,7 +76,7 @@ InPlaneJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 {
    DEBUGCOUT("Entering InPlaneJoint::AssJac()" << std::endl);
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   WM.ResizeInit(51, 0, 0.);
+   WM.ResizeReset(51, 0);
    
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
@@ -131,7 +131,7 @@ SubVectorHandler& InPlaneJoint::AssRes(SubVectorHandler& WorkVec,
 				       const VectorHandler& /* XPrimeCurr */ )
 {
    DEBUGCOUT("Entering InPlaneJoint::AssRes()" << std::endl);
-   WorkVec.ResizeInit(13, 0.);
+   WorkVec.ResizeReset(13);
  
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
@@ -183,7 +183,7 @@ InPlaneJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 {
    DEBUGCOUT("Entering InPlaneJoint::InitialAssJac()" << std::endl);
    FullSubMatrixHandler& WM = WorkMat.SetFull();
-   WM.ResizeInit(26, 26, 0.);
+   WM.ResizeReset(26, 26);
    
    /* Indici gdl */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
@@ -295,7 +295,7 @@ SubVectorHandler& InPlaneJoint::InitialAssRes(SubVectorHandler& WorkVec,
 					      const VectorHandler& XCurr)
 {
    DEBUGCOUT("Entering InPlaneJoint::InitialAssRes()" << std::endl);
-   WorkVec.ResizeInit(26, 0.);
+   WorkVec.ResizeReset(26);
    
    /* Indici gdl */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
@@ -403,7 +403,7 @@ InPlaneWithOffsetJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 {
    DEBUGCOUT("Entering InPlaneWithOffsetJoint::AssJac()" << std::endl);
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   WM.ResizeInit(84, 0, 0.);
+   WM.ResizeReset(84, 0);
    
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
@@ -477,7 +477,7 @@ InPlaneWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
 			       const VectorHandler& /* XPrimeCurr */ )
 {
    DEBUGCOUT("Entering InPlaneWithOffsetJoint::AssRes()" << std::endl);
-   WorkVec.ResizeInit(13, 0.);
+   WorkVec.ResizeReset(13);
  
    // integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
@@ -531,7 +531,7 @@ InPlaneWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 {
    DEBUGCOUT("Entering InPlaneWithOffsetJoint::InitialAssJac()" << std::endl);
    FullSubMatrixHandler& WM = WorkMat.SetFull();
-   WM.ResizeInit(26, 26, 0.);
+   WM.ResizeReset(26, 26);
    
    /* Indici gdl */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
@@ -681,7 +681,7 @@ InPlaneWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
 				      const VectorHandler& XCurr)
 {
    DEBUGCOUT("Entering InPlaneWithOffsetJoint::InitialAssRes()" << std::endl);
-   WorkVec.ResizeInit(26, 0.);
+   WorkVec.ResizeReset(26);
    
    /* Indici gdl */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();

@@ -66,7 +66,7 @@ LinearSolver::IsValid(void) const
 #endif /* DEBUG */
 
 void
-LinearSolver::Init(void)
+LinearSolver::Reset(void)
 {
 	bHasBeenReset = true;
 }

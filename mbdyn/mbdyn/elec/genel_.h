@@ -241,7 +241,7 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
 	DEBUGCOUT("Entering GenelDistance::AssJac()" << std::endl);
 	
 	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-	WM.ResizeInit(4, 0, 0.);
+	WM.ResizeReset(4, 0);
 	
 	integer iNode1RowIndex = SD1.pNode->iGetFirstRowIndex()+1;
 	integer iNode1ColIndex = SD1.pNode->iGetFirstColIndex()+1;
@@ -279,8 +279,7 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
 				    const VectorHandler& /* XPrimeCurr */ ) {
       DEBUGCOUT("Entering GenelDistance::AssRes()" << std::endl);
       
-      WorkVec.Resize(3);
-      WorkVec.Reset(0.);
+      WorkVec.ResizeReset(3);
 
       integer iNode1RowIndex = SD1.pNode->iGetFirstRowIndex()+1;
       integer iNode2RowIndex = SD2.pNode->iGetFirstRowIndex()+1;
@@ -391,7 +390,7 @@ class GenelSpring
 	DEBUGCOUT("Entering GenelSpring::AssJac()" << std::endl);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeInit(2, 2, 0.);
+	WM.ResizeReset(2, 2);
 	
 	integer iNode1RowIndex = SD1.pNode->iGetFirstRowIndex()+1;
 	integer iNode1ColIndex = SD1.pNode->iGetFirstColIndex()+1;
@@ -431,8 +430,7 @@ class GenelSpring
 				    const VectorHandler& /* XPrimeCurr */ ) {
       DEBUGCOUT("Entering GenelSpring::AssRes()" << std::endl);
       
-      WorkVec.Resize(2);
-      WorkVec.Reset(0.);
+      WorkVec.ResizeReset(2);
 
       integer iNode1RowIndex = SD1.pNode->iGetFirstRowIndex()+1;
       integer iNode2RowIndex = SD2.pNode->iGetFirstRowIndex()+1;    
@@ -527,7 +525,7 @@ class GenelSpringSupport
 	DEBUGCOUT("Entering GenelSpringSupport::AssJac()" << std::endl);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeInit(1, 1, 0.);
+	WM.ResizeReset(1, 1);
 	
 	integer iNodeRowIndex = SD.pNode->iGetFirstRowIndex()+1;
 	integer iNodeColIndex = SD.pNode->iGetFirstColIndex()+1;
@@ -547,8 +545,7 @@ class GenelSpringSupport
 				    const VectorHandler& /* XPrimeCurr */ ) {
       DEBUGCOUT("Entering GenelSpringSupport::AssRes()" << std::endl);
       
-      WorkVec.Resize(1);
-      WorkVec.Reset(0.);
+      WorkVec.ResizeReset(1);
       
       integer iNodeRowIndex = SD.pNode->iGetFirstRowIndex()+1;
       
@@ -637,7 +634,7 @@ class GenelCrossSpringSupport
 	DEBUGCOUT("Entering GenelCrossSpringSupport::AssJac()" << std::endl);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeInit(1, 1, 0.);
+	WM.ResizeReset(1, 1);
 	
 	integer iNodeRowIndex = SDRow.pNode->iGetFirstRowIndex()+1;
 	integer iNodeColIndex = SDCol.pNode->iGetFirstColIndex()+1;
@@ -657,8 +654,7 @@ class GenelCrossSpringSupport
 				    const VectorHandler& /* XPrimeCurr */ ) {
       DEBUGCOUT("Entering GenelCrossSpringSupport::AssRes()" << std::endl);
       
-      WorkVec.Resize(1);
-      WorkVec.Reset(0.);
+      WorkVec.ResizeReset(1);
       
       integer iNodeRowIndex = SDRow.pNode->iGetFirstRowIndex()+1;
       
@@ -751,7 +747,7 @@ class GenelCrossSpringDamperSupport
 	DEBUGCOUT("Entering GenelCrossSpringDamperSupport::AssJac()" << std::endl);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeInit(1, 1, 0.);
+	WM.ResizeReset(1, 1);
 	
 	integer iNodeRowIndex = SDRow.pNode->iGetFirstRowIndex()+1;
 	integer iNodeColIndex = SDCol.pNode->iGetFirstColIndex()+1;
@@ -771,8 +767,7 @@ class GenelCrossSpringDamperSupport
 				    const VectorHandler& /* XPrimeCurr */ ) {
       DEBUGCOUT("Entering GenelCrossSpringDamperSupport::AssRes()" << std::endl);
       
-      WorkVec.Resize(1);
-      WorkVec.Reset(0.);
+      WorkVec.ResizeReset(1);
       
       integer iNodeRowIndex = SDRow.pNode->iGetFirstRowIndex()+1;
       
@@ -863,7 +858,7 @@ class GenelSpringDamperSupport
 	DEBUGCOUT("Entering GenelSpringDamperSupport::AssJac()" << std::endl);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeInit(1, 1, 0.);
+	WM.ResizeReset(1, 1);
 	
 	integer iNodeRowIndex = SD.pNode->iGetFirstRowIndex()+1;
 	integer iNodeColIndex = SD.pNode->iGetFirstColIndex()+1;
@@ -883,8 +878,7 @@ class GenelSpringDamperSupport
 				    const VectorHandler& /* XPrimeCurr */ ) {
       DEBUGCOUT("Entering GenelSpringDamperSupport::AssRes()" << std::endl);
       
-      WorkVec.Resize(1);
-      WorkVec.Reset(0.);
+      WorkVec.ResizeReset(1);
       
       integer iNodeRowIndex = SD.pNode->iGetFirstRowIndex()+1;
       
@@ -978,7 +972,7 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
 	DEBUGCOUT("Entering GenelMass::AssJac()" << std::endl);
 	
 	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-	WM.ResizeInit(3, 0, 0.);
+	WM.ResizeReset(3, 0);
 	
 	integer iRowIndex = SD.pNode->iGetFirstRowIndex()+1;
 	integer iColIndex = SD.pNode->iGetFirstColIndex()+1;
@@ -998,8 +992,7 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
 				    const VectorHandler& XPrimeCurr) {
       DEBUGCOUT("Entering GenelMass::AssRes()" << std::endl);
       
-      WorkVec.Resize(2);
-      WorkVec.Reset(0.);
+      WorkVec.ResizeReset(2);
 
       integer iRowIndex = SD.pNode->iGetFirstRowIndex()+1;
       integer iDerivativeIndex = iGetFirstIndex()+1;

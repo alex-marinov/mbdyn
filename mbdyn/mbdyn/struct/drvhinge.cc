@@ -117,7 +117,7 @@ DriveHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
@@ -194,7 +194,7 @@ DriveHingeJoint::AssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeInit(iNumRows, 0.);
+	WorkVec.ResizeReset(iNumRows);
 
 	/* Recupera gli indici */
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex()+3;
@@ -254,7 +254,7 @@ DriveHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
@@ -328,7 +328,7 @@ DriveHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeInit(iNumRows, 0.);
+	WorkVec.ResizeReset(iNumRows);
 
 	/* Recupera gli indici */
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;

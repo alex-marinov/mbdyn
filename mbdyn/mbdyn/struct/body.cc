@@ -103,7 +103,7 @@ Body::AssJac(VariableSubMatrixHandler& WorkMat,
     FullSubMatrixHandler& WM = WorkMat.SetFull();
    
     /* Dimensiona e resetta la matrice di lavoro */
-    WM.ResizeInit(6, 6, 0.);
+    WM.ResizeReset(6, 6);
       
     /* Setta gli indici della matrice - le incognite sono ordinate come:
      *   - posizione (3)
@@ -137,8 +137,8 @@ Body::AssMats(VariableSubMatrixHandler& WorkMatA,
     FullSubMatrixHandler& WMB = WorkMatB.SetFull();
    
     /* Dimensiona e resetta la matrice di lavoro */
-    WMA.ResizeInit(6, 6, 0.);
-    WMB.ResizeInit(6, 6, 0.);
+    WMA.ResizeReset(6, 6);
+    WMB.ResizeReset(6, 6);
       
     /* Setta gli indici della matrice - le incognite sono ordinate come:
      *   - posizione (3)
@@ -225,7 +225,7 @@ Body::AssRes(SubVectorHandler& WorkVec,
 	    iNumRows = 12;
     }
 
-    WorkVec.ResizeInit(iNumRows, 0.);
+    WorkVec.ResizeReset(iNumRows);
 
     integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
     for (integer iCnt = 1; iCnt <= iNumRows; iCnt++) {
@@ -269,7 +269,7 @@ Body::InitialAssJac(VariableSubMatrixHandler& WorkMat,
     integer iNumRows = 0;
     integer iNumCols = 0;
     InitialWorkSpaceDim(&iNumRows, &iNumCols);
-    WM.ResizeInit(iNumRows, iNumCols, 0.);
+    WM.ResizeReset(iNumRows, iNumCols);
    
     /* Setta gli indici della matrice - le incognite sono ordinate come:
      *   - posizione (3)
@@ -333,7 +333,7 @@ Body::InitialAssRes(SubVectorHandler& WorkVec,
     integer iNumRows;
     integer iNumCols;
     InitialWorkSpaceDim(&iNumRows, &iNumCols);
-    WorkVec.ResizeInit(iNumRows, 0.);
+    WorkVec.ResizeReset(iNumRows);
    
     integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
     for (integer iCnt = 1; iCnt <= 12; iCnt++) {

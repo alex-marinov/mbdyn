@@ -102,7 +102,7 @@ LapackSolver::~LapackSolver(void)
 }
 
 void
-LapackSolver::Init(void)
+LapackSolver::Reset(void)
 {
 	bHasBeenReset = true;
 }
@@ -152,16 +152,10 @@ LapackSolutionManager::~LapackSolutionManager(void)
 }
 
 void
-LapackSolutionManager::MatrReset(const doublereal d)
+LapackSolutionManager::MatrReset()
 {
-	A.Reset(d);
-}
-
-void
-LapackSolutionManager::MatrInit(const doublereal d)
-{
-	MatrReset(d);
-	pLS->Init();
+	A.Reset();
+	pLS->Reset();
 }
 
 /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/

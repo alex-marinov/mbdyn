@@ -103,7 +103,7 @@ PrismaticJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNumRows = 0;
    integer iNumCols = 0;
    this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   WM.ResizeReset(iNumRows, iNumCols);
    
    /* Recupera gli indici delle varie incognite */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;
@@ -209,7 +209,7 @@ SubVectorHandler& PrismaticJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    this->WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
    
    /* Indici */
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex()+3;
@@ -285,7 +285,7 @@ PrismaticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    integer iNumRows = 0;
    integer iNumCols = 0;
    this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   WM.ResizeReset(iNumRows, iNumCols);
         
     
    /* Indici */
@@ -467,7 +467,7 @@ PrismaticJoint::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
 
    /* Indici */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex()+3;

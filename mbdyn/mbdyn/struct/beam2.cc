@@ -521,7 +521,7 @@ Beam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	FullSubMatrixHandler& WM = WorkMat.SetFull();   
 	
 	/* Dimensiona la matrice, la azzera e pone gli indici corretti */
-	WM.ResizeInit(12, 12, 0.);
+	WM.ResizeReset(12, 12);
 	
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
@@ -549,7 +549,7 @@ Beam2::AssRes(SubVectorHandler& WorkVec,
 	integer iNode2FirstMomIndex = pNode[NODE2]->iGetFirstMomentumIndex();
 	
 	/* Dimensiona il vettore, lo azzera e pone gli indici corretti */
-	WorkVec.ResizeInit(12, 0.);
+	WorkVec.ResizeReset(12);
 
 	for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
@@ -795,7 +795,7 @@ Beam2::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	
 	/* Dimensiona la matrice, la azzera e pone gli indici corretti */
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeInit(12, 12, 0.);
+	WM.ResizeReset(12, 12);
 	
 	integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
 	integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();
@@ -820,7 +820,7 @@ Beam2::InitialAssRes(SubVectorHandler& WorkVec,
 	DEBUGCOUTFNAME("Beam2::InitialAssRes => AssStiffnessVec");
 
 	/* Dimensiona il vettore, lo azzera e pone gli indici corretti */
-	WorkVec.ResizeInit(12, 0.);
+	WorkVec.ResizeReset(12);
 
 	integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
 	integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();

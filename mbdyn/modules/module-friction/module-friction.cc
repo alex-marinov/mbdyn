@@ -296,7 +296,7 @@ initial_ass_jac(LoadableElem* pEl,
 	pEl->InitialWorkSpaceDim(&iNumRows, &iNumCols);
    
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols, 0.);
 
 	return WorkMat;
 }

@@ -224,7 +224,7 @@ public:
 			std::vector<integer>& AcolSt,
 			int offset = 0) const;
 
-	void Reset(const doublereal r = 0.);
+	void Reset(void);
 
 	void Resize(integer ir, integer ic);
 

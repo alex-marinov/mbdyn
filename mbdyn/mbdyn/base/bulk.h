@@ -119,7 +119,7 @@ class BulkSpringSupport
 	    const VectorHandler& /* XPrimeCurr */ ) {
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeInit(1, 1, 0.);
+	WM.ResizeReset(1, 1);
 	
 	integer iRowIndex = SD.pNode->iGetFirstRowIndex()+1;
 	integer iColIndex = SD.pNode->iGetFirstColIndex()+1;
@@ -141,7 +141,7 @@ class BulkSpringSupport
 				    const VectorHandler& /* XCurr */ ,
 				    const VectorHandler& /* XPrimeCurr */ ) {
       WorkVec.Resize(1);
-      WorkVec.Reset(0.);
+      WorkVec.Reset();
 
       integer iRowIndex = SD.pNode->iGetFirstRowIndex()+1;
       doublereal dVal = SD.pNode->dGetDofValue(1, SD.iOrder);

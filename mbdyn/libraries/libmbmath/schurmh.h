@@ -85,14 +85,14 @@ public:
 	doublereal* GetCMat(void);
   
 	/* Resetta la matrice */
-	virtual inline void Init(const doublereal dResetVal);
+	virtual inline void Reset(void);
   
 	/* Ridimensiona la matrice */
 	virtual void Resize(integer, integer);
 
 	/* Resetta la matrice */
 	virtual inline void 
-	SchurMatrixHandler::MatEFCInit(const doublereal dResetVal);
+	SchurMatrixHandler::MatEFCReset(void);
 
 	/* Inserisce un coefficiente */
 	virtual inline void PutCoef(integer iRow, integer iCol,
@@ -146,28 +146,28 @@ SchurMatrixHandler::GetEColSol(const integer iCol) const
 }
 
 inline void
-SchurMatrixHandler::MatEFCInit(const doublereal dResetVal)
+SchurMatrixHandler::MatEFCReset(void)
 {
 #ifdef DEBUG
 	IsValid();
 #endif /* DEBUG */
 
-	pE->Reset(dResetVal);
-	pF->Reset(dResetVal);
-	pC->Reset(dResetVal);
+	pE->Reset();
+	pF->Reset();
+	pC->Reset();
 }
 
 inline void
-SchurMatrixHandler::Init(const doublereal dResetVal)
+SchurMatrixHandler::Reset(void)
 {
 #ifdef DEBUG
 	IsValid();
 #endif /* DEBUG */
 
-	pB->Init(dResetVal);
-	pE->Reset(dResetVal);
-	pF->Reset(dResetVal);
-	pC->Reset(dResetVal);
+	pB->Reset();
+	pE->Reset();
+	pF->Reset();
+	pC->Reset();
 }
 
 inline void
@@ -471,7 +471,7 @@ public:
 	/* restituisce le dimensioni del vettore */
 	inline integer iGetSize(void) const;
 
-	virtual void Init(doublereal dResetVal = 0.);
+	virtual void Reset(void);
 
 	inline void Resize(integer iNewSize);
 
@@ -514,12 +514,12 @@ SchurVectorHandler::Resize(integer iNewSize)
 		<< "No Operation Performed!!" << std::endl;
 }
 
-/* assegna il dResetVal a tutti gli elementi del vettore */
+/* assegna 0. a tutti gli elementi del vettore */
 inline void
-SchurVectorHandler::Init(doublereal dResetVal)
+SchurVectorHandler::Reset()
 {
-	pLV->Init(dResetVal);
-	pIV->Init(dResetVal); 
+	pLV->Reset();
+	pIV->Reset(); 
 }
   
 inline VectorHandler*
@@ -692,10 +692,10 @@ public:
 	~SchurMatrixHandlerUm(void); 
 	
 	/* Resetta le matrici E F e C */
-	inline void MatEFCInit(const doublereal dResetVal);
+	inline void MatEFCReset();
 
 	/* Resetta la matrice */
-	inline void Init(const doublereal dResetVal);
+	inline void Reset(void);
   
 	/* Inserisce un coefficiente */
 	inline void PutCoef(integer iRow, integer iCol,
@@ -727,7 +727,7 @@ public:
 };
 
 inline void
-SchurMatrixHandlerUm::MatEFCInit(const doublereal dResetVal)
+SchurMatrixHandlerUm::MatEFCReset(void)
 {
 #ifdef DEBUG
 	IsValid();
@@ -735,25 +735,25 @@ SchurMatrixHandlerUm::MatEFCInit(const doublereal dResetVal)
 
 	Eflag = true;
 	for (int i = 0; i < LSize*(ISize+1); i++) {
-		pdEs[i] = dResetVal;
+		pdEs[i] = 0.;
 	}
-	pF->Reset(dResetVal);
-	pC->Reset(dResetVal);
+	pF->Reset();
+	pC->Reset();
 }
 
-inline void SchurMatrixHandlerUm::Init(const doublereal dResetVal)
+inline void SchurMatrixHandlerUm::Reset()
 {
 #ifdef DEBUG
 	IsValid();
 #endif /* DEBUG */
 
 	Eflag = true;
-	pB->Init(dResetVal);
+	pB->Reset();
 	for (int i = 0; i < LSize*(ISize+1); i++) {
-		pdEs[i] = dResetVal;
+		pdEs[i] = 0.;
 	}
-	pF->Reset(dResetVal);
-	pC->Reset(dResetVal);
+	pF->Reset();
+	pC->Reset();
 }
 
 inline void

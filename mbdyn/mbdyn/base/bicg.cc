@@ -140,7 +140,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		SendExternal();
 #endif /* USE_EXTERNAL */
 		
-		pRes->Reset(0.);
+		pRes->Reset();
       		pNLP->Residual(pRes);
 		
       		if (outputRes()) {
@@ -207,13 +207,13 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		
 		rho_1 = dErr*dErr;   /*rhat.InnerProd(r); */
 		resid = dErr;
-		v.Reset(0.);
-		t.Reset(0.);
-		p.Reset(0.);
-		dx.Reset(0.);
+		v.Reset();
+		t.Reset();
+		p.Reset();
+		dx.Reset();
 		
 		if (bBuildMat) {
-			pSM->MatrInit(0.);
+			pSM->MatrReset();
 
 rebuild_matrix:;
 			try {
@@ -225,7 +225,7 @@ rebuild_matrix:;
 						<< std::endl);
 
 				/* need to rebuild the matrix... */
-      				pSM->MatrInitialize(0.);
+      				pSM->MatrInitialize();
 				goto rebuild_matrix;
 
 			} catch (...) {

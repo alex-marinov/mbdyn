@@ -232,7 +232,7 @@ AerodynamicBody::AssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& /* XPrimeCurr */ )
 {
    	DEBUGCOUTFNAME("AerodynamicBody::AssRes");
-   	WorkVec.ResizeInit(6, 0.);
+   	WorkVec.ResizeReset(6);
    
    	integer iFirstIndex = pNode->iGetFirstMomentumIndex();
    	for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -251,7 +251,7 @@ AerodynamicBody::InitialAssRes(SubVectorHandler& WorkVec,
 {
    	DEBUGCOUTFNAME("AerodynamicBody::InitialAssRes");
    
-   	WorkVec.ResizeInit(6, 0.);
+   	WorkVec.ResizeReset(6);
    
    	integer iFirstIndex = pNode->iGetFirstPositionIndex();
    	for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -1043,7 +1043,7 @@ AerodynamicBeam::AssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUTFNAME("AerodynamicBeam::AssRes");
-	WorkVec.ResizeInit(18, 0.);
+	WorkVec.ResizeReset(18);
 	
 	integer iNode1FirstIndex = pNode1->iGetFirstMomentumIndex();
 	integer iNode2FirstIndex = pNode2->iGetFirstMomentumIndex();
@@ -1065,7 +1065,7 @@ AerodynamicBeam::InitialAssRes(SubVectorHandler& WorkVec,
 			       const VectorHandler& /* XCurr */ )
 {
 	DEBUGCOUTFNAME("AerodynamicBeam::InitialAssRes");
-	WorkVec.ResizeInit(18, 0.);
+	WorkVec.ResizeReset(18);
 	
 	integer iNode1FirstIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode2FirstIndex = pNode2->iGetFirstPositionIndex();
@@ -1665,7 +1665,7 @@ AerodynamicBeam2::AssRes(
 )
 {
 	DEBUGCOUTFNAME("AerodynamicBeam2::AssRes");
-	WorkVec.ResizeInit(12, 0.);
+	WorkVec.ResizeReset(12);
 	
 	integer iNode1FirstIndex = pNode1->iGetFirstMomentumIndex();
 	integer iNode2FirstIndex = pNode2->iGetFirstMomentumIndex();
@@ -1687,7 +1687,7 @@ AerodynamicBeam2::InitialAssRes(
 )
 {
 	DEBUGCOUTFNAME("AerodynamicBeam2::InitialAssRes");
-	WorkVec.ResizeInit(12, 0.);
+	WorkVec.ResizeReset(12);
 	
 	integer iNode1FirstIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode2FirstIndex = pNode2->iGetFirstPositionIndex();

@@ -90,7 +90,7 @@ Accelerometer::AssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Casting di WorkMat */
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   WM.ResizeInit(15, 0, 0.);
+   WM.ResizeReset(15, 0);
    
    /* Indici delle equazioni */
    integer iFirstPositionIndex = pStrNode->iGetFirstPositionIndex();
@@ -172,7 +172,7 @@ Accelerometer::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
       
    integer iAbstractIndex = pAbsNode->iGetFirstIndex();
    integer iFirstIndex = iGetFirstIndex();
@@ -297,7 +297,7 @@ TraslAccel::AssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Casting di WorkMat */
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   WM.ResizeInit(9, 0, 0.);
+   WM.ResizeReset(9, 0);
    
    /* Indici delle equazioni */
    integer iFirstColIndex = pStrNode->iGetFirstColIndex();
@@ -442,7 +442,7 @@ RotAccel::AssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Casting di WorkMat */
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   WM.ResizeInit(6, 0, 0.);
+   WM.ResizeReset(6, 0);
    
    /* Indici delle equazioni */
    integer iFirstColIndex = pStrNode->iGetFirstColIndex();

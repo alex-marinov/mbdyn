@@ -139,7 +139,7 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
         
 	doublereal nw = w.Norm();
         if (nw < DBL_EPSILON) {
-                z.Reset(0.);
+                z.Reset();
                 return;
         }
         doublereal sigma = pXCurr->InnerProd(w);
@@ -153,8 +153,8 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 	std::cout << "Tau " << Tau << std::endl;
 #endif /* DEBUG_ITERATIVE */
 	
-	XTau.Reset(0.);
-	z.Reset(0.);
+	XTau.Reset();
+	z.Reset();
         XTau.ScalarMul(w, Tau);
 	Update(&XTau);
 #ifdef  USE_EXTERNAL

@@ -509,11 +509,11 @@ Solver::Run(void)
 
 	/* Resetta i vettori */
    	for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {
-		qX[ivec]->Reset(0.);
-		qXPrime[ivec]->Reset(0.);
+		qX[ivec]->Reset();
+		qXPrime[ivec]->Reset();
 	}
-	pX->Reset(0.);
-	pXPrime->Reset(0.);
+	pX->Reset();
+	pXPrime->Reset();
 
 #ifdef __HACK_POD__
 	std::ofstream PodOut;

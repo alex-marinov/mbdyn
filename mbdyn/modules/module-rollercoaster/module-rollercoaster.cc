@@ -172,7 +172,7 @@ ass_jac(LoadableElem* pEl,
    pEl->WorkSpaceDim(&iNumRows, &iNumCols);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   WM.ResizeReset(iNumRows, iNumCols, 0.);
    
    module_rollercoaster* p = (module_rollercoaster *)pEl->pGetData();
    
@@ -254,10 +254,10 @@ ass_mats(LoadableElem* pEl,
    pEl->WorkSpaceDim(&iNumRows, &iNumCols);
    
    FullSubMatrixHandler& WMA = WorkMatA.SetFull();
-   WMA.ResizeInit(iNumRows, iNumCols, 0.);
+   WMA.ResizeReset(iNumRows, iNumCols, 0.);
    
    FullSubMatrixHandler& WMB = WorkMatB.SetFull();
-   WMB.ResizeInit(iNumRows, iNumCols, 0.);
+   WMB.ResizeReset(iNumRows, iNumCols, 0.);
    
    module_rollercoaster* p = (module_rollercoaster *)pEl->pGetData();
    
@@ -372,7 +372,7 @@ initial_ass_jac(LoadableElem* pEl,
    pEl->InitialWorkSpaceDim(&iNumRows, &iNumCols);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   WM.ResizeReset(iNumRows, iNumCols, 0.);
    
    module_rollercoaster* p = (module_rollercoaster *)pEl->pGetData();
    

@@ -159,7 +159,7 @@ AerodynamicModal::AssJac(VariableSubMatrixHandler& WorkMat,
    	integer iNumRows = 0;
    	integer iNumCols = 0;
    	WorkSpaceDim(&iNumRows, &iNumCols);
-   	WM.ResizeInit(iNumRows, iNumCols, 0.);
+   	WM.ResizeReset(iNumRows, iNumCols);
 	
    	integer iModalIndex = pModalJoint->iGetModalIndex();
 
@@ -279,7 +279,7 @@ SubVectorHandler& AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
 					  const VectorHandler&  XPrimeCurr )
 {
    DEBUGCOUTFNAME("AerodynamicModal::AssRes");
-   WorkVec.ResizeInit(RigidF + NStModes + NAeroStates + 2*NGust, 0.);
+   WorkVec.ResizeReset(RigidF + NStModes + NAeroStates + 2*NGust);
 
 
    if (RigidF) {
@@ -362,8 +362,7 @@ SubVectorHandler& AerodynamicModal::InitialAssRes(SubVectorHandler& WorkVec,
    Mat3x3 RRT(R0.Transpose());
    P0 = RRT*X0;
     
-   WorkVec.Resize(RigidF+NStModes+NAeroStates+2*NGust);
-   WorkVec.Reset(0.);
+   WorkVec.ResizeReset(RigidF+NStModes+NAeroStates+2*NGust);
 
    if (RigidF) {
    	integer iFirstIndex = pModalNode->iGetFirstIndex();
@@ -643,11 +642,11 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    FullMatrixHandler* pD2Mat = NULL;
    SAFENEWWITHCONSTRUCTOR(pAMat, SpMapMatrixHandler, SpMapMatrixHandler(AeroN, AeroN));
    pAMat->Reset();
-   SAFENEWWITHCONSTRUCTOR(pBMat, FullMatrixHandler, FullMatrixHandler(AeroN, NModes+GustN, 0.));
-   SAFENEWWITHCONSTRUCTOR(pCMat, FullMatrixHandler, FullMatrixHandler(NModes, AeroN, 0.));
-   SAFENEWWITHCONSTRUCTOR(pD0Mat, FullMatrixHandler, FullMatrixHandler(NModes, NModes+GustN, 0.));
-   SAFENEWWITHCONSTRUCTOR(pD1Mat, FullMatrixHandler, FullMatrixHandler(NModes, NModes+GustN, 0.));
-   SAFENEWWITHCONSTRUCTOR(pD2Mat, FullMatrixHandler, FullMatrixHandler(NModes, NModes+GustN, 0.));
+   SAFENEWWITHCONSTRUCTOR(pBMat, FullMatrixHandler, FullMatrixHandler(AeroN, NModes+GustN));
+   SAFENEWWITHCONSTRUCTOR(pCMat, FullMatrixHandler, FullMatrixHandler(NModes, AeroN));
+   SAFENEWWITHCONSTRUCTOR(pD0Mat, FullMatrixHandler, FullMatrixHandler(NModes, NModes+GustN));
+   SAFENEWWITHCONSTRUCTOR(pD1Mat, FullMatrixHandler, FullMatrixHandler(NModes, NModes+GustN));
+   SAFENEWWITHCONSTRUCTOR(pD2Mat, FullMatrixHandler, FullMatrixHandler(NModes, NModes+GustN));
    
    doublereal d;
    char str[256];

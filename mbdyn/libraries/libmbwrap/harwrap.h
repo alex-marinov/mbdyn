@@ -57,7 +57,7 @@
  * 
  * // Ogni volta che si desidera riassemblare la matrice:
  * // inizializzare lo SparseMatrixHandler
- *         SM.MatrInit();
+ *         SM.MatrReset();
  * 
  * // Operare sulla matrice e sui vettori
  *         pMH->PutCoef(row, col, coef);
@@ -77,7 +77,7 @@
  * 
  * // Se si desidera modificare la matrice per una nuova soluzione, occorre
  * // inizializzare di nuovo lo SparseMatrixHandler, con:
- *         SM.MatrInit();
+ *         SM.MatrReset();
  * 
  * // Per i parametri di inizializzazione e per eventuali modifiche
  * // fare riferimento al codice sorgente ed alla libreria originaria
@@ -363,7 +363,7 @@ public:
 #endif /* DEBUG */
    
    	/* Inizializza il gestore delle matrici */
-   	void MatrInit(const doublereal dResetVal = 0.);
+   	void MatrReset();
    
    	/* Risolve il sistema */
    	void Solve(void);

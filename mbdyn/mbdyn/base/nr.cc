@@ -103,7 +103,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		SendExternal();
 #endif /* USE_EXTERNAL */
 		
-		pRes->Reset(0.);
+		pRes->Reset();
       		pNLP->Residual(pRes);
 		
       		if (outputRes()) {
@@ -151,7 +151,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
       		iIterCnt++;
 
 		if (bTrueNewtonRaphson || (iPerformedIterations%IterationBeforeAssembly == 0)) {
-      			pSM->MatrInit(0.);
+      			pSM->MatrReset();
 rebuild_matrix:;
 			try {
       				pNLP->Jacobian(pSM->pMatHdl());
@@ -162,7 +162,7 @@ rebuild_matrix:;
 						<< std::endl);
 
 				/* need to rebuild the matrix... */
-      				pSM->MatrInitialize(0.);
+      				pSM->MatrInitialize();
 				goto rebuild_matrix;
 
 			} catch (...) {

@@ -52,16 +52,10 @@ VectorHandler::~VectorHandler(void)
 }
 
 void
-VectorHandler::ResizeInit(integer iNewRow, const doublereal& dResetVal)
+VectorHandler::ResizeReset(integer iNewRow)
 {
 	Resize(iNewRow);
-	Init(dResetVal);
-}
-
-void
-VectorHandler::Reset(doublereal dResetVal)
-{
-	Init(dResetVal);
+	Reset();
 }
 
 /* Somma un Vec3 nella posizione desiderata */
@@ -432,7 +426,7 @@ MyVectorHandler::IsValid(void) const
 #endif /* DEBUG */
 
 void
-MyVectorHandler::Init(doublereal dResetVal)
+MyVectorHandler::Reset()
 {
 #ifdef DEBUG
 	IsValid();
@@ -440,15 +434,11 @@ MyVectorHandler::Init(doublereal dResetVal)
 
 	ASSERT(iCurSize > 0);
 
-#ifdef HAVE_MEMSET
-	if (dResetVal == 0.) {
-		memset(pdVecm1 + 1, 0, iGetSize()*sizeof(doublereal));
-	} else {
-#endif /* HAVE_MEMSET */
-		for (integer i = iGetSize(); i > 0; i--) {
-			pdVecm1[i] = dResetVal;
-		}
-#ifdef HAVE_MEMSET
+#if defined HAVE_MEMSET
+	memset(pdVecm1 + 1, 0, iGetSize()*sizeof(doublereal));
+#else /* !HAVE_MEMSET */
+	for (integer i = iGetSize(); i > 0; i--) {
+		pdVecm1[i] = 0.;
 	}
 #endif /* HAVE_MEMSET */
 }
@@ -507,7 +497,7 @@ MyVectorHandler::ScalarMul(const VectorHandler& VH, const doublereal& d)
 #endif /* DEBUG */
 
 	if (d == 0.) {
-		Reset(0.);
+		Reset();
 	} else {
 		for (integer i = iGetSize(); i > 0; i--) {
 			pdVecm1[i] = d*VH(i);

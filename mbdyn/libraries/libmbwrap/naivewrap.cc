@@ -65,7 +65,7 @@ NaiveSolver::~NaiveSolver(void)
 }
 
 void
-NaiveSolver::Init(void)
+NaiveSolver::Reset(void)
 {
 	bHasBeenReset = true;
 }
@@ -150,16 +150,10 @@ NaiveSparseSolutionManager::~NaiveSparseSolutionManager(void)
 }
 
 void
-NaiveSparseSolutionManager::MatrReset(const doublereal d)
+NaiveSparseSolutionManager::MatrReset()
 {
-	A.Reset(d);
-}
-
-void
-NaiveSparseSolutionManager::MatrInit(const doublereal d)
-{
-	MatrReset(d);
-	pLS->Init();
+	A.Reset();
+	pLS->Reset();
 }
 
 /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/

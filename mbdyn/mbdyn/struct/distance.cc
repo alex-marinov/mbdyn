@@ -167,7 +167,7 @@ DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	DEBUGCOUT("Entering DistanceJoint::AssJac()" << std::endl);
 
  	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeInit(7, 7, 0.);
+	WM.ResizeReset(7, 7);
  
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
@@ -200,10 +200,10 @@ DistanceJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
 	DEBUGCOUT("Entering DistanceJoint::AssMats()" << std::endl);
 
  	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
-	WMA.ResizeInit(7, 7, 0.);
+	WMA.ResizeReset(7, 7);
  
  	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
-	WMB.ResizeInit(7, 7, 0.);
+	WMB.ResizeReset(7, 7);
  
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
@@ -245,7 +245,7 @@ DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeInit(iNumRows, 0.);
+	WorkVec.ResizeReset(iNumRows);
  
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();  
 	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
@@ -538,7 +538,7 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 	DEBUGCOUT("Entering DistanceJointWithOffset::AssJac()" << std::endl);
 
  	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeInit(13, 13, 0.);
+	WM.ResizeReset(13, 13);
  
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
@@ -570,10 +570,10 @@ DistanceJointWithOffset::AssMats(VariableSubMatrixHandler& WorkMatA,
 	DEBUGCOUT("Entering DistanceJointWithOffset::AssMats()" << std::endl);
  
  	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
-	WMA.ResizeInit(13, 13, 0.);
+	WMA.ResizeReset(13, 13);
  
  	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
-	WMB.ResizeInit(13, 13, 0.);
+	WMB.ResizeReset(13, 13);
  
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
@@ -614,7 +614,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeInit(iNumRows, 0.);
+	WorkVec.ResizeReset(iNumRows);
 
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();  
 	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();

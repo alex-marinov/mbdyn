@@ -106,7 +106,7 @@ public:
 			const unsigned blockSize);
 	~UmfpackSolver(void);
 
-	void Init(void);
+	void Reset(void);
 	void Solve(void) const;
 
 	void MakeCompactForm(SparseMatrixHandler&,
@@ -134,9 +134,6 @@ protected:
 	std::vector<integer> Adummy;
 	std::vector<integer> Ap;
 
-	/* Azzera la matrice (callback per MatrInit) */
-	virtual void MatrReset(const doublereal d);
-
 	/* Passa in forma di Compressed Column (callback per solve,
 	 * richiesto da SpMap e CC Matrix Handler) */
 	virtual void MakeCompressedColumnForm(void);
@@ -155,7 +152,7 @@ public:
 #endif /* DEBUG */
 
 	/* Inizializzatore generico */
-	virtual void MatrInit(const doublereal d = 0.);
+	virtual void MatrReset(void);
 	
 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
 	virtual void Solve(void);
@@ -180,7 +177,7 @@ protected:
 	bool CCReady;
 	CompactSparseMatrixHandler *Ac;
 
-	virtual void MatrReset(const doublereal d);
+	virtual void MatrReset(void);
 	virtual void MakeCompressedColumnForm(void);
 	
 public:
@@ -189,7 +186,7 @@ public:
 	virtual ~UmfpackSparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */
-	virtual void MatrInitialize(const doublereal d = 0.);
+	virtual void MatrInitialize(void);
 	
 	/* Rende disponibile l'handler per la matrice */
 	virtual MatrixHandler* pMatHdl(void) const;

@@ -417,7 +417,7 @@ Control_valve2::AssJac(VariableSubMatrixHandler& WorkMat,
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	integer iNumRows, iNumCols;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols);
 
 	integer iFirstIndex = iGetFirstIndex();
 	
@@ -721,7 +721,7 @@ Dynamic_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Entering Control_valve::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
-   WM.ResizeInit(6, 6, 0.);
+   WM.ResizeReset(6, 6);
    
    integer iNode1RowIndex = pNode1->iGetFirstRowIndex()+1;
    integer iNode2RowIndex = pNode2->iGetFirstRowIndex()+1;
@@ -1161,7 +1161,7 @@ Pressure_flow_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Entering Control_valve::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
-   WM.ResizeInit(8, 8, 0.);
+   WM.ResizeReset(8, 8);
    
    integer iNode1RowIndex = pNode1->iGetFirstRowIndex()+1;
    integer iNode2RowIndex = pNode2->iGetFirstRowIndex()+1;

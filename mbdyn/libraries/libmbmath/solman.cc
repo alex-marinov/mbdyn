@@ -73,9 +73,9 @@ SolutionManager::~SolutionManager(void)
 
 /* Inizializzatore "speciale" */
 void
-SolutionManager::MatrInitialize(const doublereal d)
+SolutionManager::MatrInitialize()
 {
-	MatrInit(d);
+	MatrReset();
 }
 
 void

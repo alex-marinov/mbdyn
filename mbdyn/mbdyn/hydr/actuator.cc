@@ -188,7 +188,7 @@ Actuator::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Entering Actuator::AssJac()" << std::endl);
       
    FullSubMatrixHandler& WM = WorkMat.SetFull();
-   WM.ResizeInit(16, 16, 0);   
+   WM.ResizeReset(16, 16);   
    
    /* Recupera gli indici */
    integer iNode1FirstPosIndex = pNodeStr1->iGetFirstPositionIndex();
@@ -360,7 +360,7 @@ Actuator::AssRes(SubVectorHandler& WorkVec,
 		 const VectorHandler& XPrimeCurr)
 
 {      
-   WorkVec.ResizeInit(16, 0.);
+   WorkVec.ResizeReset(16);
    
    integer iNode1RowIndex = pNodeHyd1->iGetFirstRowIndex()+1;
    integer iNode2RowIndex = pNodeHyd2->iGetFirstRowIndex()+1;

@@ -52,17 +52,10 @@ MatrixHandler::~MatrixHandler(void)
 
 /* Ridimensiona ed inizializza. */
 void
-MatrixHandler::ResizeInit(integer iNewRow, integer iNewCol,
-		const doublereal dResetVal)
+MatrixHandler::ResizeReset(integer iNewRow, integer iNewCol)
 {
 	Resize(iNewRow, iNewCol);
-	Init(dResetVal);
-}
-
-void
-MatrixHandler::Reset(const doublereal dResetVal)
-{
-	Init(dResetVal);
+	Reset();
 }
 
 /* Impacchetta la matrice; restituisce il numero di elementi 

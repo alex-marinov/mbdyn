@@ -99,7 +99,7 @@ TaucsSolver::~TaucsSolver(void)
 }
 
 void
-TaucsSolver::Init(void)
+TaucsSolver::Reset(void)
 {
 	if (Factorization) {
 		/* de-allocate factorization */
@@ -239,22 +239,16 @@ TaucsSparseSolutionManager::~TaucsSparseSolutionManager(void)
 }
 
 void
-TaucsSparseSolutionManager::MatrReset(const doublereal d)
+TaucsSparseSolutionManager::MatrReset()
 {
-	A.Reset(d);
+	A.Reset();
+	pLS->Reset();
 }
 
 void
 TaucsSparseSolutionManager::MakeCompressedColumnForm(void)
 {
 	pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
-}
-
-void
-TaucsSparseSolutionManager::MatrInit(const doublereal d)
-{
-	MatrReset(d);
-	pLS->Init();
 }
 
 /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
@@ -307,12 +301,12 @@ TaucsSparseCCSolutionManager<CC>::~TaucsSparseCCSolutionManager(void)
 
 template <class CC>
 void
-TaucsSparseCCSolutionManager<CC>::MatrReset(const doublereal d)
+TaucsSparseCCSolutionManager<CC>::MatrReset()
 {
 	if (!CCReady) {
-		A.Reset(d);
+		A.Reset();
 	} else {
-		Ac->Reset(d);
+		Ac->Reset();
 	}
 }
 
@@ -334,14 +328,14 @@ TaucsSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 /* Inizializzatore "speciale" */
 template <class CC>
 void
-TaucsSparseCCSolutionManager<CC>::MatrInitialize(const doublereal d)
+TaucsSparseCCSolutionManager<CC>::MatrInitialize(void)
 {
 	SAFEDELETE(Ac);
 	Ac = 0;
 
 	CCReady = false;
 
-	MatrInit();
+	MatrReset();
 }
 	
 /* Rende disponibile l'handler per la matrice */

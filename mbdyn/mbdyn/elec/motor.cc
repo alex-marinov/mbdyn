@@ -122,7 +122,7 @@ Motor::AssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols);
 
 	integer iStrNode1FirstPosIdx = pStrNode1->iGetFirstPositionIndex() + 3;
 	integer iStrNode2FirstPosIdx = pStrNode2->iGetFirstPositionIndex() + 3;
@@ -188,7 +188,7 @@ Motor::AssRes(SubVectorHandler& WorkVec,
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeInit(iNumRows, 0.);
+	WorkVec.ResizeReset(iNumRows);
 
 	integer iStrNode1FirstIndex = pStrNode1->iGetFirstMomentumIndex() + 3;
 	integer iStrNode2FirstIndex = pStrNode2->iGetFirstMomentumIndex() + 3;

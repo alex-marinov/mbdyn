@@ -91,11 +91,6 @@ public:
 
 
 	/*
-	 * Inizializza la matrice con d
-	 */
-	virtual void Init(const doublereal) = 0;
-
-	/*
 	 * Ridimensiona la matrice.
 	 * Nota: nell'implementazione corrente le dimensioni possono essere solamente
 	 * inferiori alle dimensioni massime con cui e' stata dimensionata.
@@ -106,7 +101,7 @@ public:
 	 * Ridimensiona ed inizializza.
 	 * Combina le due funzioni precedenti in una chiamata.
 	 */
-	virtual void ResizeInit(integer, integer, const doublereal) = 0;
+	virtual void ResizeReset(integer, integer) = 0;
 
 	/* Gestione dei vettori di incidenza */
 
@@ -231,7 +226,7 @@ public:
 	/*
 	 * Inizializza la porzione utilizzata con il valore desiderato
 	 */
-	void Init(const doublereal dResetVal = 0.);
+	void Reset(void);
 
 	/*
 	 * Modifica le dimensioni correnti
@@ -239,7 +234,7 @@ public:
 	void Resize(integer iNewRow, integer iNewCol);
 
 	/* Ridimensiona ed inizializza. */
-	virtual void ResizeInit(integer, integer, const doublereal);
+	virtual void ResizeReset(integer, integer);
 
 	/*
 	 * Collega la matrice Full alla memoria che gli viene passata
@@ -603,11 +598,6 @@ public:
 	/* Metodi di inizializzazione */
 
 	/*
-	 * Inizializza la matrice con d.
-	 */
-	void Init(const doublereal dCoef = 0.);
-
-	/*
 	 * Ridimensiona la matrice.
 	 * Nota: solo il primo argomento viene considerato,
 	 * e rappresenta il numero totale di entries.
@@ -620,8 +610,10 @@ public:
 	 * Ridimensiona ed inizializza.
 	 * Unione dei due metodi precedenti
 	 */
-	void ResizeInit(integer iNewRow, integer iNewCol,
-			const doublereal dCoef = 0.);
+	void ResizeReset(integer iNewRow, integer iNewCol);
+	
+	/* Azzera */
+	void Reset(void);
 
 	/*
 	 * Collega la matrice sparsa alla memoria che gli viene passata
@@ -1193,8 +1185,8 @@ public:
 	/*
 	 * Inizializza il vettore con d
 	 */
-	virtual void Init(doublereal d = 0.) {
-		MyVectorHandler::Init(d);
+	virtual void Reset() {
+		MyVectorHandler::Reset();
 	};
 
 	/*

@@ -114,7 +114,7 @@ CColMatrixHandler<off>::MatMatMul(SpMapMatrixHandler& out,
  			<< std::endl);
  		THROW(ErrGeneric());
  	}
- 	out.Reset(0.);
+ 	out.Reset();
  	for (integer col=0; col<NCols; col++) {
  		row_cont_type::const_iterator ri, re;
  		re = col_indices[col].end();
@@ -226,7 +226,7 @@ CColMatrixHandler<off>::MatVecMul(VectorHandler& out,
 		THROW(ErrGeneric());
   	}
 
-	out.Reset(0.);
+	out.Reset();
 	return MatVecIncMul(out, in);
 }
 

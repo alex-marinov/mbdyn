@@ -694,9 +694,9 @@ VariableSubMatrixHandler& Beam::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Dimensiona la matrice, la azzera e pone gli indici corretti */
    if(fConsistentInertia) {	
-      WM.ResizeInit(36, 18, 0.);
+      WM.ResizeReset(36, 18);
    } else {
-      WM.ResizeInit(18, 18, 0.);	
+      WM.ResizeReset(18, 18);	
    }   
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -744,10 +744,10 @@ void Beam::AssMats(VariableSubMatrixHandler& WorkMatA,
    
    /* Dimensiona la matrice, la azzera e pone gli indici corretti */
    if (fConsistentInertia) {    
-      WMA.ResizeInit(36, 18, 0.);
-      WMB.ResizeInit(36, 18, 0.);
+      WMA.ResizeReset(36, 18);
+      WMB.ResizeReset(36, 18);
    } else  {
-      WMA.ResizeInit(18, 18, 0.);	
+      WMA.ResizeReset(18, 18);	
       WorkMatB.SetNullMatrix();
    }   
       
@@ -801,9 +801,9 @@ SubVectorHandler& Beam::AssRes(SubVectorHandler& WorkVec,
 
    /* Dimensiona il vettore, lo azzera e pone gli indici corretti */
    if (fConsistentInertia) {	
-      WorkVec.ResizeInit(36, 0.);
+      WorkVec.ResizeReset(36);
    } else {	
-      WorkVec.ResizeInit(18, 0.);
+      WorkVec.ResizeReset(18);
    }
    
    for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -1125,7 +1125,7 @@ Beam::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Dimensiona la matrice, la azzera e pone gli indici corretti */
    FullSubMatrixHandler& WM = WorkMat.SetFull();
-   WM.ResizeInit(18, 18, 0.);
+   WM.ResizeReset(18, 18);
    
    integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
    integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();
@@ -1152,7 +1152,7 @@ SubVectorHandler& Beam::InitialAssRes(SubVectorHandler& WorkVec,
    DEBUGCOUTFNAME("Beam::InitialAssRes => AssStiffnessVec");
 
    /* Dimensiona il vettore, lo azzera e pone gli indici corretti */
-   WorkVec.ResizeInit(18, 0.);
+   WorkVec.ResizeReset(18);
    
    integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
    integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();

@@ -68,7 +68,7 @@ public:
 	void IsValid(void) const;
 #endif /* DEBUG */
 
-	virtual void Init(void);
+	virtual void Reset(void);
 	virtual void Solve(void) const = 0;
 
 	bool bReset(void) const { return bHasBeenReset; };

@@ -73,13 +73,11 @@ public:
 
 	virtual integer iGetSize(void) const = 0;
 
-	virtual void Init(doublereal dResetVal = 0.) = 0;
+	virtual void Reset(void) = 0;
 
 	virtual void Resize(integer iNewSize) = 0;
 
-	virtual void ResizeInit(integer, const doublereal&);
-
-	virtual void Reset(doublereal dResetVal = 0.);
+	virtual void ResizeReset(integer);
 
 	virtual void PutCoef(integer iRow, const doublereal& dCoef) = 0;
 
@@ -175,7 +173,7 @@ public:
 
 	virtual inline integer iGetSize(void) const;
 
-	virtual void Init(doublereal dResetVal = 0.);
+	virtual void Reset(void);
 
 	virtual inline void PutCoef(integer iRow, const doublereal& dCoef);
 

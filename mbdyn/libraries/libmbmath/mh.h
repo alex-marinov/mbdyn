@@ -72,14 +72,11 @@ public:
 	virtual void IsValid(void) const = 0;
 #endif /* DEBUG */
 
-	/* Resetta la matrice ecc. */
-	virtual void Init(const doublereal dResetVal = 0.) = 0;
-
 	/* Ridimensiona la matrice */
 	virtual void Resize(integer, integer) = 0;
 
 	/* Ridimensiona ed inizializza. */
-	virtual void ResizeInit(integer, integer, const doublereal = 0.);
+	virtual void ResizeReset(integer, integer);
 
 	/* Restituisce un puntatore all'array di reali della matrice */
 	virtual inline doublereal* pdGetMat(void) const;
@@ -95,7 +92,7 @@ public:
 	virtual integer PacMat(void);
 
 	/* Resetta la matrice ecc. */
-	virtual void Reset(const doublereal dResetVal = 0.);
+	virtual void Reset(void) = 0;
 
 	/* Inserisce un coefficiente */
 	virtual void

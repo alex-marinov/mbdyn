@@ -134,13 +134,13 @@ HarwellSparseSolutionManager::PacVec(void)
 
 /* Inizializza il gestore delle matrici */
 void
-HarwellSparseSolutionManager::MatrInit(const doublereal& dResetVal)
+HarwellSparseSolutionManager::MatrReset()
 {
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
    
-   	MH.Init(dResetVal);
+   	MH.Reset();
    	fHasBeenReset = flag(1);
 }
 

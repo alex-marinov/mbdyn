@@ -115,7 +115,7 @@ ass_jac(
 	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols, 0.);
 
 #if 0
 	module_template* p = (module_template *)pEl->pGetData();
@@ -143,10 +143,10 @@ ass_mats(
 	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
 	
 	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
-	WMA.ResizeInit(iNumRows, iNumCols, 0.);
+	WMA.ResizeReset(iNumRows, iNumCols, 0.);
 	
 	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
-	WMB.ResizeInit(iNumRows, iNumCols, 0.);
+	WMB.ResizeReset(iNumRows, iNumCols, 0.);
 
 #if 0
 	module_template* p = (module_template *)pEl->pGetData();
@@ -256,7 +256,7 @@ initial_ass_jac(
 	pEl->InitialWorkSpaceDim(&iNumRows, &iNumCols);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols, 0.);
 	
 #if 0
 	module_template* p = (module_template *)pEl->pGetData();

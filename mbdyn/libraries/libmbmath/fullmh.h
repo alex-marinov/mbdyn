@@ -66,9 +66,6 @@ public:
 	/* costruttore che si alloca la memoria */
 	FullMatrixHandler(integer iNR, integer iNC = 0);
 
-	/* costruttore che si alloca la memoria */
-	FullMatrixHandler(integer iNR, integer iNC, const doublereal& dVal);
-
 	/* costruttore che non fa nulla */
 	FullMatrixHandler(void);
 
@@ -79,6 +76,9 @@ public:
 
 	/* si stacca dalla memoria a cui e' associato */
 	void Detach(void);
+	
+	/* zero the matrix */
+	void Reset(void);
 
 	/* Attacca un nuovo array, con n. righe, n. colonne e dim. massima;
 	 * se assente, assunta = nrighe*ncolonne */
@@ -90,9 +90,6 @@ public:
 	/* Usata per il debug */
 	virtual void IsValid(void) const;
 #endif /* DEBUG */
-
-	/* Resetta la matrice ecc. */
-	virtual void Init(const doublereal dResetVal = 0.);
 
 	/* Used to access raw data by c functions */
 	doublereal* pdGetMat(void) const {

@@ -99,16 +99,12 @@ MeschachVectorHandler::Resize(integer iNewSize)
 }
 
 void
-MeschachVectorHandler::Reset(doublereal dResetVal)
+MeschachVectorHandler::Reset(void)
 {
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
-   	if (dResetVal == 0.) {
-      		v_zero(pv);
-   	} else {
-      		v_init(pv, dResetVal);
-   	}
+	v_zero(pv);
 }
 
 /* MeschachVectorHandler - end */
@@ -164,9 +160,8 @@ MeschachSparseMatrixHandler::IsValid(void) const
 #endif /* DEBUG */
 
 void
-MeschachSparseMatrixHandler::Init(const doublereal& d)
+MeschachSparseMatrixHandler::Reset(void)
 {
-   	/* FIXME: d is always assumed 0. */
    	sp_zero(mat);
 }
 
@@ -227,7 +222,7 @@ MeschachSparseSolutionManager::MeschachSparseSolutionManager(integer iSize,
 : prhs(NULL), pivot(PNULL), pmh(NULL), fStatus(RESET), alpha (a)
 {
    	Create(iSize, iMaxSize);
-   	MatrInit(0.);
+   	MatrReset();
 }
 
 MeschachSparseSolutionManager::~MeschachSparseSolutionManager(void) 
@@ -265,14 +260,14 @@ MeschachSparseSolutionManager::IsValid(void) const
 #endif /* DEBUG */
 
 void
-MeschachSparseSolutionManager::MatrInit(const doublereal& d) 
+MeschachSparseSolutionManager::MatrReset(void) 
 {
 #ifdef DEBUG
    	IsValid();
 #endif /* DEBUG */
    
    	fStatus = RESET;
-   	pmh->Init(d);
+   	pmh->Reset();
 }
 
 void

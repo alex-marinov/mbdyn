@@ -111,9 +111,8 @@ NaiveMatrixHandler::~NaiveMatrixHandler(void)
 }
 
 void
-NaiveMatrixHandler::Reset(const doublereal c)
+NaiveMatrixHandler::Reset(void)
 {
-	ASSERTMSGBREAK(c == 0., "NaiveMatrixHandler::Init(const doublereal& c) with c!= 0. is meaningless");
 #ifdef HAVE_MEMSET_H
 	memset(ppnonzero[0], 0, sizeof(char)*iSize*iSize);
 	memset(piNzr, 0, sizeof(integer)*iSize);

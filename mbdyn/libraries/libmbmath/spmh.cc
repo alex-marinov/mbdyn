@@ -47,12 +47,6 @@ SparseMatrixHandler::~SparseMatrixHandler(void)
 	NO_OP;
 }
 
-void
-SparseMatrixHandler::Init(const doublereal c)
-{
-	Reset(c);
-}
-
 CompactSparseMatrixHandler::CompactSparseMatrixHandler(const integer &n,
 		const integer &nn,
 		std::vector<doublereal>&x,
@@ -109,9 +103,9 @@ CompactSparseMatrixHandler::AddUnchecked(const CompactSparseMatrixHandler& m)
 }
 
 void
-CompactSparseMatrixHandler::Reset(const doublereal r)
+CompactSparseMatrixHandler::Reset(void)
 {
-	std::fill(Ax.begin(), Ax.end(), r);
+	std::fill(Ax.begin(), Ax.end(), 0.);
 }
 
 integer

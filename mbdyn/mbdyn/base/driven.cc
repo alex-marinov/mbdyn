@@ -173,7 +173,7 @@ DrivenElem::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	} else {
 		SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-		WM.ResizeInit(iNumDofs, 0, 0.);
+		WM.ResizeReset(iNumDofs, 0);
 
 		integer iFirstIndex = pElem->pGetElemWithDofs()->iGetFirstIndex();
   		
@@ -205,7 +205,7 @@ DrivenElem::AssMats(VariableSubMatrixHandler& WorkMatA,
 		WorkMatB.SetNullMatrix();
 	} else {
 		SparseSubMatrixHandler& WM = WorkMatB.SetSparse();
-		WM.ResizeInit(iNumDofs, 0, 0.);
+		WM.ResizeReset(iNumDofs, 0);
 
 		integer iFirstIndex = pElem->pGetElemWithDofs()->iGetFirstIndex();
   		
@@ -232,7 +232,7 @@ DrivenElem::AssRes(SubVectorHandler& WorkVec,
 	if (iNumDofs == 0) {
 		WorkVec.Resize(0);
 	} else {
-		WorkVec.ResizeInit(iNumDofs, 0.);
+		WorkVec.ResizeReset(iNumDofs);
 
 		integer iFirstIndex = pElem->pGetElemWithDofs()->iGetFirstIndex();
 

@@ -194,7 +194,7 @@ ass_jac(LoadableElem* pEl,
 	integer iNumCols = 0;
 	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
 
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols, 0.);
 
 	integer iFirstMomentumIndex = p->mom.pNode->iGetFirstRowIndex();
 	integer iFirstPositionIndex = p->pos.pNode->iGetFirstRowIndex();

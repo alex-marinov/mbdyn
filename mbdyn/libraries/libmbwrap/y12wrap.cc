@@ -620,22 +620,11 @@ Y12SparseSolutionManager::IsValid(void) const
 }
 #endif /* DEBUG */
 
-/* Inizializza il gestore delle matrici */
 void
-Y12SparseSolutionManager::MatrInit(const doublereal dResetVal)
+Y12SparseSolutionManager::MatrReset(void)
 {
-#ifdef DEBUG
-   	IsValid();
-#endif /* DEBUG */
-
-	MatrReset(dResetVal);
-	pLS->Init();
-}
-
-void
-Y12SparseSolutionManager::MatrReset(const doublereal d)
-{
-	MH.Reset(d);
+	MH.Reset();
+	pLS->Reset();
 }
 
 void
@@ -725,12 +714,12 @@ Y12SparseCCSolutionManager<CC>::~Y12SparseCCSolutionManager(void)
 
 template <class CC>
 void
-Y12SparseCCSolutionManager<CC>::MatrReset(const doublereal d)
+Y12SparseCCSolutionManager<CC>::MatrReset()
 {
 	if (!CCReady) {
-		MH.Reset(d);
+		MH.Reset();
 	} else {
-		Ac->Reset(d);
+		Ac->Reset();
 	}
 }
 
@@ -754,11 +743,11 @@ Y12SparseCCSolutionManager<CC>::MakeIndexForm(void)
 /* Inizializzatore "speciale" */
 template <class CC>
 void
-Y12SparseCCSolutionManager<CC>::MatrInitialize(const doublereal d)
+Y12SparseCCSolutionManager<CC>::MatrInitialize(void)
 {
 	CCReady = false;
 
-	MatrInit();
+	MatrReset();
 }
 	
 /* Rende disponibile l'handler per la matrice */

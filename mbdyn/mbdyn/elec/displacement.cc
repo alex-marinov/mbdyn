@@ -91,7 +91,7 @@ DispMeasure::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Casting di WorkMat */
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   WM.ResizeInit(1, 0, 0.);
+   WM.ResizeReset(1, 0);
    
    /* Indici delle equazioni */
    integer iAbstractIndex = pAbsNode->iGetFirstIndex()+1;

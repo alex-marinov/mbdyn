@@ -188,7 +188,7 @@ UmfpackSolver::~UmfpackSolver(void)
 }
 
 void
-UmfpackSolver::Init(void)
+UmfpackSolver::Reset(void)
 {
 	if (Numeric) {
 		UMFPACKWRAP_free_numeric(&Numeric);
@@ -358,22 +358,16 @@ UmfpackSparseSolutionManager::~UmfpackSparseSolutionManager(void)
 }
 
 void
-UmfpackSparseSolutionManager::MatrReset(const doublereal d)
+UmfpackSparseSolutionManager::MatrReset()
 {
-	A.Reset(d);
+	A.Reset();
+	pLS->Reset();
 }
 
 void
 UmfpackSparseSolutionManager::MakeCompressedColumnForm(void)
 {
 	pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
-}
-
-void
-UmfpackSparseSolutionManager::MatrInit(const doublereal d)
-{
-	MatrReset(d);
-	pLS->Init();
 }
 
 /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
@@ -428,12 +422,12 @@ UmfpackSparseCCSolutionManager<CC>::~UmfpackSparseCCSolutionManager(void)
 
 template <class CC>
 void
-UmfpackSparseCCSolutionManager<CC>::MatrReset(const doublereal d)
+UmfpackSparseCCSolutionManager<CC>::MatrReset(void)
 {
 	if (!CCReady) {
-		A.Reset(d);
+		A.Reset();
 	} else {
-		Ac->Reset(d);
+		Ac->Reset();
 	}
 }
 
@@ -455,11 +449,11 @@ UmfpackSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 /* Inizializzatore "speciale" */
 template <class CC>
 void
-UmfpackSparseCCSolutionManager<CC>::MatrInitialize(const doublereal d)
+UmfpackSparseCCSolutionManager<CC>::MatrInitialize()
 {
 	CCReady = false;
 
-	MatrInit();
+	MatrReset();
 }
 	
 /* Rende disponibile l'handler per la matrice */

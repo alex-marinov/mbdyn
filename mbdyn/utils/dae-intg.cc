@@ -548,8 +548,8 @@ method_multistep(const char* module, integration_data* d,
 	 		}
 	 
 	 		// correct
-	 		sm.MatrInit();
-	 		J.Init();
+	 		sm.MatrReset();
+	 		J.Reset();
 	 		(*::ff->grad)(p_data, J, JP, *pX, *pXP, t);
 	 		for (int ir = 1; ir <= size; ir++) {
 	    			for (int ic = 1; ic <= size; ic++) {
@@ -773,11 +773,11 @@ method_cubic(const char* module, integration_data* d,
 	 		}
 	 
 	 		// correct
-	 		sm.MatrInit();
-	 		Jz.Init();
-	 		JPz.Init();
-	 		J0.Init();
-	 		JP0.Init();
+	 		sm.MatrReset();
+	 		Jz.Reset();
+	 		JPz.Reset();
+	 		J0.Reset();
+	 		JP0.Reset();
 	 		(*::ff->grad)(p_data, Jz, JPz, Xz, XPz, t + z*dt);
 	 		(*::ff->grad)(p_data, J0, JP0, *pX, *pXP, t);
 
@@ -1049,11 +1049,11 @@ method_radau_II(const char* module, integration_data* d,
 	 		}
 	 
 	 		// correct
-	 		sm.MatrInit();
-	 		Jz.Init();
-	 		JPz.Init();
-	 		J0.Init();
-	 		JP0.Init();
+	 		sm.MatrReset();
+	 		Jz.Reset();
+	 		JPz.Reset();
+	 		J0.Reset();
+	 		JP0.Reset();
 	 		(*::ff->grad)(p_data, Jz, JPz, Xz, XPz, t + z*dt);
 	 		(*::ff->grad)(p_data, J0, JP0, *pX, *pXP, t);
 

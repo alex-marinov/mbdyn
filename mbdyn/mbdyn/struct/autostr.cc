@@ -82,7 +82,7 @@ AutomaticStructElem::AssJac(VariableSubMatrixHandler& WorkMat,
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    
    /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(24, 0, 0.);
+   WM.ResizeReset(24, 0);
       
    /* Setta gli indici della matrice - le incognite sono ordinate come:
     *   - posizione (3)
@@ -124,8 +124,8 @@ AutomaticStructElem::AssMats(VariableSubMatrixHandler& WorkMatA,
    SparseSubMatrixHandler& WMB = WorkMatB.SetSparse();
    
    /* Dimensiona e resetta la matrice di lavoro */
-   WMA.ResizeInit(6, 0, 0.);
-   WMB.ResizeInit(6, 0, 0.);
+   WMA.ResizeReset(6, 0);
+   WMB.ResizeReset(6, 0);
       
    /* Setta gli indici della matrice - le incognite sono ordinate come:
     *   - posizione (3)
@@ -156,7 +156,7 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
 {
    DEBUGCOUTFNAME("AutomaticStructElem::AssRes");
 
-   WorkVec.ResizeInit(12, 0.);
+   WorkVec.ResizeReset(12);
    
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();

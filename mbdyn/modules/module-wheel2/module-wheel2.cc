@@ -418,8 +418,7 @@ ass_res(LoadableElem* pEl,
 	integer iNumCols = 0;
 	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
    
-	WorkVec.Resize(iNumRows);
-	WorkVec.Reset(0.);
+	WorkVec.ResizeReset(iNumRows);
 
 	integer iGroundFirstMomIndex = p->pGround->iGetFirstMomentumIndex();
 	integer iWheelFirstMomIndex = p->pWheel->iGetFirstMomentumIndex();
@@ -647,7 +646,7 @@ initial_ass_jac(LoadableElem* pEl,
 	pEl->InitialWorkSpaceDim(&iNumRows, &iNumCols);
    
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeInit(iNumRows, iNumCols, 0.);
+	WM.ResizeReset(iNumRows, iNumCols);
 #if 0	
 	module_wheel* p = (module_wheel *)pEl->pGetData();
 #endif /* 0 */

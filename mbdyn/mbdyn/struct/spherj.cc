@@ -88,7 +88,7 @@ SphericalHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Entering SphericalHingeJoint::AssJac()" << std::endl);
       
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   WM.ResizeInit(54, 1, 0.);
+   WM.ResizeReset(54, 1);
    
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
@@ -168,7 +168,7 @@ SubVectorHandler& SphericalHingeJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
  
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
@@ -241,7 +241,7 @@ SphericalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    integer iNumRows = 0;
    integer iNumCols = 0;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   WM.ResizeReset(iNumRows, iNumCols);
 
    /* Equazioni: vedi joints.dvi */
     
@@ -360,7 +360,7 @@ SphericalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
    
    /* Indici */
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
@@ -468,7 +468,7 @@ PinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Entering PinJoint::AssJac()" << std::endl);
       
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   WM.ResizeInit(27, 0, 0.);
+   WM.ResizeReset(27, 0);
    
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
@@ -538,7 +538,7 @@ SubVectorHandler& PinJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
       
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
    integer iFirstReactionIndex = iGetFirstIndex();
@@ -601,7 +601,7 @@ PinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    integer iNumRows = 0;
    integer iNumCols = 0;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   WM.ResizeReset(iNumRows, iNumCols);
 
    /* Equazioni: vedi joints.dvi */
     
@@ -683,7 +683,7 @@ PinJoint::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
    
    /* Indici */
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();

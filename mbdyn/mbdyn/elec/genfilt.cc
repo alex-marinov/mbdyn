@@ -116,7 +116,7 @@ GenelFilter::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   WM.ResizeReset(iNumRows, iNumCols);
    
    integer iRowIndex_y = SD_y.pNode->iGetFirstRowIndex()+1;
    integer iColIndex_y = SD_y.pNode->iGetFirstColIndex()+1;
@@ -175,7 +175,7 @@ GenelFilter::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
    
    integer iRowIndex_y = SD_y.pNode->iGetFirstRowIndex()+1;
    integer iFirstIndex = iGetFirstIndex();
@@ -425,7 +425,7 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
       
       /* preparo matrice */
       DEBUGCOUT("Preparing matrix ..." << std::endl);
-      sm.MatrInit();
+      sm.MatrReset();
       
       MatrixHandler* mh = sm.pMatHdl();
       for (unsigned long i = 1; i < Na; i++) {
@@ -584,7 +584,7 @@ GenelStateSpaceSISO::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   WM.ResizeReset(iNumRows, iNumCols);
    
    integer iRowIndex_y = SD_y.pNode->iGetFirstRowIndex()+1;
    integer iColIndex_y = SD_y.pNode->iGetFirstColIndex()+1;
@@ -627,7 +627,7 @@ GenelStateSpaceSISO::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
    
    integer iRowIndex_y = SD_y.pNode->iGetFirstRowIndex()+1;    
    integer iFirstIndex = iGetFirstIndex();
@@ -786,7 +786,7 @@ GenelStateSpaceMIMO::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeInit(iNumRows, iNumCols, 0.);
+   WM.ResizeReset(iNumRows, iNumCols);
 
    integer iFirstIndex = iGetFirstIndex();
    doublereal* pdc = pdC+iNumOutputs*iNumDofs-1;
@@ -835,7 +835,7 @@ GenelStateSpaceMIMO::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
    
    integer iFirstIndex = iGetFirstIndex();
    

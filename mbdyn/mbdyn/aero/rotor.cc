@@ -1562,7 +1562,7 @@ DynamicInflowRotor::AssJac(VariableSubMatrixHandler& WorkMat,
 		SparseSubMatrixHandler& WM = WorkMat.SetSparse();
 		integer iFirstIndex = iGetFirstIndex();
 
-		WM.ResizeInit(5, 0, 0.);
+		WM.ResizeReset(5, 0);
    
 		WM.PutItem(1, iFirstIndex+1, iFirstIndex+1, dM11+dCoef*dL11);
 		WM.PutItem(2, iFirstIndex+3, iFirstIndex+1, dCoef*dL31);

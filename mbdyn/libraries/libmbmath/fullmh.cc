@@ -42,7 +42,7 @@
 /* FullMatrixHandler - begin */
 
 void
-FullMatrixHandler::Init(const doublereal dResetVal)
+FullMatrixHandler::Reset(void)
 {
 #ifdef DEBUG
 	IsValid();
@@ -50,7 +50,7 @@ FullMatrixHandler::Init(const doublereal dResetVal)
 
 	for (integer c = iNumCols; c > 0; c--) {
 		for (integer r = iNumRows; r > 0; r--) {
-			ppdColsm1[c][r] = dResetVal;
+			ppdColsm1[c][r] = 0.;
 		}
 	}
 }
@@ -108,26 +108,6 @@ ppdCols(NULL), ppdColsm1(NULL)
 	ASSERT(iNumRows > 0);
 	ASSERT(iNumCols > 0);
 	Resize(iNumRows, iNumCols);
-
-#ifdef DEBUG
-	IsValid();
-#endif /* DEBUG */
-}
-
-
-/* costruttore che si alloca la memoria */
-FullMatrixHandler::FullMatrixHandler(integer iNR, integer iNC,
-		const doublereal& dVal)
-: bOwnsMemory(true),
-iNumRows(iNR), iNumCols(iNC),
-iRawSize(iNumRows*iNumCols), iMaxCols(iNumCols),
-pdRaw(NULL), pdRawm1(NULL),
-ppdCols(NULL), ppdColsm1(NULL)
-{
-	ASSERT(iNumRows > 0);
-	ASSERT(iNumCols > 0);
-	Resize(iNumRows, iNumCols);
-	Reset(dVal);
 
 #ifdef DEBUG
 	IsValid();

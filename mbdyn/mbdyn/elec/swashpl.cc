@@ -142,7 +142,7 @@ SwashPlate::AssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Casting di WorkMat */
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();   
-   WM.ResizeInit(6, 0, 0.);
+   WM.ResizeReset(6, 0);
       
    integer iCollFirstIndex = pCollectiveIn->iGetFirstIndex()+1;
    integer iLongFirstIndex = pLongitudinalIn->iGetFirstIndex()+1;
@@ -176,7 +176,7 @@ SwashPlate::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("Entering SwashPlate::AssRes()" << std::endl);
 
    /* Dimensiona e resetta la matrice di lavoro */
-   WorkVec.ResizeInit(6, 0.);
+   WorkVec.ResizeReset(6);
  
    integer iCollFirstIndex = pCollectiveIn->iGetFirstIndex()+1;
    integer iLongFirstIndex = pLongitudinalIn->iGetFirstIndex()+1;

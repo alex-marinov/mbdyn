@@ -64,7 +64,7 @@ public:
 			NaiveMatrixHandler *const a);
 	~NaiveSolver(void);
 
-	void Init(void);
+	void Reset(void);
 	void Solve(void) const;
 };
 
@@ -77,9 +77,6 @@ protected:
 	mutable NaiveMatrixHandler A;
 	mutable MyVectorHandler VH;
 
-	/* Azzera la matrice (callback per MatrInit) */
-	virtual void MatrReset(const doublereal d);
-
 public:
 	NaiveSparseSolutionManager(integer Dim, const doublereal dMP = 1.e-9);
 	virtual ~NaiveSparseSolutionManager(void);
@@ -90,7 +87,7 @@ public:
 #endif /* DEBUG */
 
 	/* Inizializzatore generico */
-	virtual void MatrInit(const doublereal d = 0.);
+	virtual void MatrReset(void);
 	
 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
 	virtual void Solve(void);

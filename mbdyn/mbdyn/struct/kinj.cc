@@ -70,7 +70,7 @@ KinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		 const VectorHandler& XPrimeCurr)
 {
    FullSubMatrixHandler& WM = WorkMat.SetFull();
-   WM.ResizeInit(24, 24, 0.);
+   WM.ResizeReset(24, 24);
    
    integer iNodeFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
    integer iNodeFirstPositionIndex = pNode->iGetFirstPositionIndex();
@@ -138,7 +138,7 @@ KinJoint::AssRes(SubVectorHandler& WorkVec,
 		 const VectorHandler& XCurr, 
 		 const VectorHandler& XPrimeCurr)
 {
-   WorkVec.ResizeInit(24, 0.);
+   WorkVec.ResizeReset(24);
  
    integer iNodeFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
    integer iFirstIndex = iGetFirstIndex();

@@ -245,7 +245,7 @@ main(int argc, char *argv[])
 		usage();
 	}
 
-	pSM->MatrInit(0.);
+	pSM->MatrReset();
 	
 	MatrixHandler *pM = pSM->pMatHdl();
 	VectorHandler *pV = pSM->pResHdl();
@@ -253,7 +253,7 @@ main(int argc, char *argv[])
 
 	VariableSubMatrixHandler SBMH(10,10);
 	FullSubMatrixHandler& WM = SBMH.SetFull();
-	WM.ResizeInit(3, 3, 0.);
+	WM.ResizeReset(3, 3);
 	WM.PutRowIndex(1,1);
 	WM.PutRowIndex(2,2);
 	WM.PutRowIndex(3,3);

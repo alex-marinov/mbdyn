@@ -455,7 +455,7 @@ DataManager::InitialJointAssembly(void)
 #endif /* DEBUG_MEMMANAGER */
 
 	MyVectorHandler X(iInitialNumDofs, pdX);
-	X.Reset(0.);
+	X.Reset();
 
 	/* Linka il DriveHandler al vettore soluzione */
 	LinkToSolution(X, X);
@@ -499,7 +499,7 @@ DataManager::InitialJointAssembly(void)
 	integer iNumIter = 0;
 	while (++iNumIter) {
 		/* Assemblo il residuo */
-		pResHdl->Reset(0.);
+		pResHdl->Reset();
 
 		/* Contributo dei nodi */
 		for (StructNode** ppTmpNode = ppFirstNode;
@@ -601,7 +601,7 @@ DataManager::InitialJointAssembly(void)
 		}
 
 		/* Assemblo lo jacobiano e risolvo */
-		pSM->MatrInit(0.);
+		pSM->MatrReset();
 
 		/* Contributo dei nodi */
 		for (StructNode** ppTmpNode = ppFirstNode;

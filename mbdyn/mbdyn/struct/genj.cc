@@ -142,7 +142,7 @@ DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
        * con c = dCoef, a = dAlpha
        */
       
-      WM.ResizeInit(24, 0, 0.);
+      WM.ResizeReset(24, 0);
       
       /* Nota: la direzione della reazione, v,
        * ed il coefficiente di amplificazione dAlpha
@@ -205,7 +205,7 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
  
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();  
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
@@ -326,7 +326,7 @@ DistanceJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
        * a = dAlpha
        */
       
-      WM.ResizeInit(51, 1, 0.);
+      WM.ResizeReset(51, 1);
       
       /* Nota: la direzione della reazione, v,
        * ed il coefficiente di amplificazione dAlpha
@@ -435,7 +435,7 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("Entering DistanceJoint::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
-   WorkVec.ResizeInit(20, 0.);
+   WorkVec.ResizeReset(20);
       
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
    integer iNode1FirstVelIndex = iNode1FirstPosIndex+6;
@@ -714,7 +714,7 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 f2Tmp(pNode2->GetRRef()*f2);
    
    /* Distanza nulla */
-      WM.ResizeInit(72, 0, 0.);
+      WM.ResizeReset(72, 0);
             
       for (int iCnt = 1; iCnt <= 3; iCnt++) {
 	 
@@ -815,7 +815,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
       
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
@@ -894,7 +894,7 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
-   WM.ResizeInit(32, 32, 0.);
+   WM.ResizeReset(32, 32);
 
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
    integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
@@ -1063,7 +1063,7 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("Entering DistanceJointWithOffset::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
-   WorkVec.ResizeInit(32, 0.);
+   WorkVec.ResizeReset(32);
       
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
    integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
@@ -1308,7 +1308,7 @@ ClampJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    
    /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeInit(12, 1, 0.);
+   WM.ResizeReset(12, 1);
    
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
@@ -1396,7 +1396,7 @@ SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNumRows;
    integer iNumCols;
    WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
 
    /* Per i commenti, vedi AssJac */
    
@@ -1456,7 +1456,7 @@ ClampJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("Entering ClampJoint::InitialAssJac()" << std::endl);
    
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   WM.ResizeInit(24, 1, 0.);
+   WM.ResizeReset(24, 1);
    
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    integer iFirstVelocityIndex = iFirstPositionIndex+6;
@@ -1506,7 +1506,7 @@ ClampJoint::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNumRows = 0;
    integer iNumCols = 0;
    InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeInit(iNumRows, 0.);
+   WorkVec.ResizeReset(iNumRows);
       
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();  
    integer iFirstReactionIndex = iGetFirstIndex();

@@ -69,8 +69,6 @@ public:
 		return NCols;
 	};
 
-	void Init(const doublereal r = 0.);
-
 	virtual
 	integer MakeCompressedColumnForm(doublereal *const Ax,
 			integer *const Ai, integer *const Ap,
@@ -133,7 +131,7 @@ public:
 	};
 
 public:
-	void Reset(const doublereal r);
+	void Reset(void);
 	
 	virtual
 	integer MakeCompressedColumnForm(doublereal *const Ax,

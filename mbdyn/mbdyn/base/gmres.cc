@@ -180,7 +180,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 #ifdef 	USE_EXTERNAL 	
 		SendExternal();
 #endif /* USE_EXTERNAL */
-		pRes->Reset(0.);
+		pRes->Reset();
       		pNLP->Residual(pRes);
 		
       		if (outputRes()) {
@@ -249,10 +249,10 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 #endif /* DEBUG_ITERATIVE */
 	
 		resid = dErr;
-		dx.Reset(0.);
+		dx.Reset();
 		
 		if (bBuildMat) {
-			pSM->MatrInit(0.);
+			pSM->MatrReset();
 
 rebuild_matrix:;
 			try {
@@ -264,7 +264,7 @@ rebuild_matrix:;
 						<< std::endl);
 
 				/* need to rebuild the matrix... */
-      				pSM->MatrInitialize(0.);
+      				pSM->MatrInitialize();
 				goto rebuild_matrix;
 
 			} catch (...) {
@@ -284,9 +284,9 @@ rebuild_matrix:;
 		int i = 0;
         	v[0].Resize(Size);
 		v[0].ScalarMul(*pr, 1./resid);
-		s.Reset(0.);
-		cs.Reset(0.);
-		sn.Reset(0.);
+		s.Reset();
+		cs.Reset();
+		sn.Reset();
 		s.PutCoef(1, resid);
 		while ((i < MaxLinIt)) {
 
@@ -384,7 +384,7 @@ rebuild_matrix:;
 				std::cerr << "happy breakdown: "  << std::endl;
 #endif /* DEBUG_ITERATIVE */
 
-				v[i+1].Reset(0.);
+				v[i+1].Reset();
 			} 
 			for (int k = 0; k < i; k++) {
         			ApplyPlaneRotation(H(k+1, i+1), H(k+2, i+1),

@@ -491,8 +491,8 @@ int method_multistep(const char* module, integration_data* d,
 	 }
 	 
 	 // correct
-	 sm.MatrInit();
-	 J.Init();
+	 sm.MatrReset();
+	 J.Reset();
 	 (*::ff_grad)(p_data, J, *pX, t);
 	 for (int k = 1; k <= size; k++) {
 	    for (int l = 1; l <= size; l++) {
@@ -672,9 +672,9 @@ int method_cubic(const char* module, integration_data* d,
 	 }
 	 
 	 // correct
-	 sm.MatrInit();
-	 Jz.Init();
-	 J0.Init();      
+	 sm.MatrReset();
+	 Jz.Reset();
+	 J0.Reset();      
 	 (*::ff_grad)(p_data, Jz, Xz, t+z*dt);
 	 (*::ff_grad)(p_data, J0, *pX, t);	 
 	 for (int k = 1; k <= size; k++) {

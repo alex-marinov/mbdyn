@@ -196,7 +196,7 @@ main(int argc, char *argv[])
 		b3 = 1.;
 
 retry:;
-	pSM->MatrInit(0.);
+	pSM->MatrReset();
 
 	try {
 		pM = pSM->pMatHdl();

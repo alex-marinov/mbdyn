@@ -70,7 +70,7 @@ public:
    	virtual inline integer iGetSize(void) const;
    
    	virtual void Resize(integer iNewSize);
-   	virtual void Reset(doublereal dResetVal = 0.);
+   	virtual void Reset(void);
    
    	virtual inline flag PutCoef(integer iRow, const doublereal& dCoef);
    	virtual inline flag IncCoef(integer iRow, const doublereal& dCoef);
@@ -190,7 +190,7 @@ public:
 #ifdef DEBUG
    	void IsValid(void) const;
 #endif /* DEBUG */
-   	void Init(const doublereal d = 0.);
+   	void Reset(void);
    
    	/* Inserisce un coefficiente */
    	inline flag PutCoef(integer iRow, integer iCol,
@@ -325,7 +325,7 @@ public:
 #ifdef DEBUG
    	void IsValid(void) const;
 #endif /* DEBUG */
-   	void MatrInit(const doublereal d = 0.);
+   	void MatrReset(void);
    
    	void Solve(void);
    	

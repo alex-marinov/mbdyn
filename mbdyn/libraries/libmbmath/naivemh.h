@@ -71,10 +71,7 @@ public:
 		return iSize;
 	};
 
-	void Reset(const doublereal r = 0.);
-	void Init(const doublereal d = 0.) {
-		Reset(d);
-	};
+	void Reset(void);
 
 	/* Ridimensiona la matrice */
 	virtual void Resize(integer, integer) {

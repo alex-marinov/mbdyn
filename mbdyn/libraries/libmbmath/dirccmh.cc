@@ -233,7 +233,7 @@ DirCColMatrixHandler<off>::MatVecMul(VectorHandler& out,
 		THROW(ErrGeneric());
   	}
 
-	out.Reset(0.);
+	out.Reset();
 	return MatVecIncMul(out, in);
 }
 

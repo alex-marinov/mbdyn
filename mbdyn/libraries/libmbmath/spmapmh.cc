@@ -159,14 +159,14 @@ SpMapMatrixHandler::MakeIndexForm(std::vector<doublereal>& Ax,
 }
 
 void
-SpMapMatrixHandler::Reset(const doublereal r)
+SpMapMatrixHandler::Reset(void)
 {
 	row_cont_type::const_iterator re;
 	row_cont_type::iterator ri;
 	for (integer col = 0; col < NCols; col++) {
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin();ri != re; ri++) {
-			ri->second = r;
+			ri->second = 0.;
 		}
 	}
 }
@@ -220,7 +220,7 @@ SpMapMatrixHandler::MatMatMul(SpMapMatrixHandler& out,
 		THROW(ErrGeneric());
 	}
 
-	out.Reset(0.);
+	out.Reset();
 
 	for (integer col = 0; col < NCols; col++) {
 		row_cont_type::const_iterator ri, re;
@@ -327,7 +327,7 @@ SpMapMatrixHandler::MatVecMul(VectorHandler& out,
   	}
 
 	row_cont_type::const_iterator ri, re;
-	out.Reset(0.);
+	out.Reset();
 
 	for (integer col = 0; col < NCols; col++) {
 		re = col_indices[col].end();

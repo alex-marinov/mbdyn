@@ -318,16 +318,16 @@ SchurSolutionManager::IsValid(void) const
 /* Inizializza il gestore delle matrici */
 
 void
-SchurSolutionManager::MatrInit(const doublereal dResetVal)
+SchurSolutionManager::MatrReset(void)
 {
 #ifdef DEBUG
 	IsValid();
 #endif /* DEBUG */
 
-	pLocalSM->MatrInit(dResetVal);
-	pMH->MatEFCInit(dResetVal);
+	pLocalSM->MatrReset();
+	pMH->MatEFCReset();
 	if (!MyRank) {
-		pInterSM->MatrInit(dResetVal);
+		pInterSM->MatrReset();
 	}
 	bNewMatrix = true;
 }

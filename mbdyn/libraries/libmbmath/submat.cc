@@ -113,13 +113,13 @@ FullSubMatrixHandler::IsValid(void) const
 
 
 void
-FullSubMatrixHandler::Init(const doublereal dResetVal)
+FullSubMatrixHandler::Reset(void)
 {
 #ifdef DEBUG
 	IsValid();
 #endif /* DEBUG */
 
-	FullMatrixHandler::Init(dResetVal);
+	FullMatrixHandler::Reset();
 
 #if 0
 	/*
@@ -180,10 +180,10 @@ FullSubMatrixHandler::Resize(integer iNewRow, integer iNewCol) {
 
 /* Ridimensiona ed inizializza. */
 void
-FullSubMatrixHandler::ResizeInit(integer ir, integer ic, const doublereal d)
+FullSubMatrixHandler::ResizeReset(integer ir, integer ic)
 {
 	FullSubMatrixHandler::Resize(ir, ic);
-	FullSubMatrixHandler::Init(d);
+	FullSubMatrixHandler::Reset();
 }
 
 /*
@@ -835,11 +835,10 @@ SparseSubMatrixHandler::Resize(integer iNewRow, integer iNewCol)
  * Unione dei due metodi precedenti
  */
 void
-SparseSubMatrixHandler::ResizeInit(integer iNewRow, integer iNewCol,
-		const doublereal dCoef)
+SparseSubMatrixHandler::ResizeReset(integer iNewRow, integer iNewCol)
 {
 	Resize(iNewRow, iNewCol);
-	Init(dCoef);
+	Reset();
 }
 
 /*
@@ -1059,7 +1058,7 @@ SparseSubMatrixHandler::PutCross(integer iSubIt, integer iFirstRow,
 
 
 void
-SparseSubMatrixHandler::Init(const doublereal dCoef)
+SparseSubMatrixHandler::Reset(void)
 {
 #ifdef DEBUG
 	IsValid();
@@ -1067,16 +1066,13 @@ SparseSubMatrixHandler::Init(const doublereal dCoef)
 
 	ASSERT(iNumItems > 0);
 
-#ifdef HAVE_MEMSET
-	if (dCoef == 0.) {
-		memset(pdMatm1 + 1, 0, iNumItems*sizeof(doublereal));
-	} else
-#endif /* HAVE_MEMSET */
-	{
-		for (integer i = iNumItems; i > 0; i--) {
-			pdMatm1[i] = dCoef;
-		}
+#if defined HAVE_MEMSET
+	memset(pdMatm1 + 1, 0, iNumItems*sizeof(doublereal));
+#else /* !HAVE_MEMSET */
+	for (integer i = iNumItems; i > 0; i--) {
+		pdMatm1[i] = 0.;
 	}
+#endif /* HAVE_MEMSET */
 }
 
 

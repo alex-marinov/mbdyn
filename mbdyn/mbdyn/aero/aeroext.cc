@@ -242,7 +242,7 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 	
 	Send(XCurr, XPrimeCurr);
 	
-	WorkVec.ResizeInit(6*NodeN, 0.);
+	WorkVec.ResizeReset(6*NodeN);
 	
 	for (int i=0; i < NodeN; i++) {
 		integer iFirstIndex = ppNode[i]->iGetFirstMomentumIndex();
@@ -551,7 +551,7 @@ AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
 	DEBUGCOUTFNAME("AerodynamicExternalModal::AssRes");
 	if(!SentFlag) Send(XCurr, XPrimeCurr);
    	integer NModes = pModal->uGetNModes();
-	WorkVec.ResizeInit(NModes, 0.);
+	WorkVec.ResizeReset(NModes);
 
 	
 	integer iFirstIndex = pModal->iGetFirstIndex();

@@ -211,7 +211,7 @@ PiezoActuatorBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	
 	/* Dimensiona la matrice, la azzera e pone gli indici corretti */
-	WM.ResizeInit(12, 12+iNumElec, 0.);
+	WM.ResizeReset(12, 12+iNumElec);
 	
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
@@ -429,7 +429,7 @@ PiezoActuatorVEBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	
 	/* Dimensiona la matrice, la azzera e pone gli indici corretti */
-	WM.ResizeInit(12, 12+iNumElec, 0.);
+	WM.ResizeReset(12, 12+iNumElec);
 	
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
