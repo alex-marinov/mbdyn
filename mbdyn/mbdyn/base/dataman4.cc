@@ -405,8 +405,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 		 << "    mass:  " << dM << std::endl
 		 << "    Xcg:   " << Xcg << std::endl
 		 << "    Xcg-X: " << (Xcg - x) << std::endl
-		 << "    J:     " << R*J*RT << std::endl
-		 << "    Jcg:   " << R*Jcg*RT << std::endl;
+		 << "    J:     " << RT*J*R << std::endl
+		 << "    Jcg:   " << RT*Jcg*R << std::endl;
 	 if (sName) {
 	    SAFEDELETEARR(sName);
 	 }

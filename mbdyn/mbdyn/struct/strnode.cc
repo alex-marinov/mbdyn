@@ -454,9 +454,9 @@ StructNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
 
    /* Forza configurazione e velocita' al valore iniziale */
    ((VectorHandler&)X).Put(iFirstIndex+1, XCurr);
-   ((VectorHandler&)X).Put(iFirstIndex+4, Vec3(0.));
+   ((VectorHandler&)X).Put(iFirstIndex+4, Zero3);
    ((VectorHandler&)XP).Put(iFirstIndex+1, VCurr);
-   ((VectorHandler&)XP).Put(iFirstIndex+4, Vec3(0.));
+   ((VectorHandler&)XP).Put(iFirstIndex+4, Zero3);
       
    /* Questa parte e' spuria, va messa a punto (?) */
    XPrev = XCurr;
