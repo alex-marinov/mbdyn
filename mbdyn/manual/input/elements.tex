@@ -1768,7 +1768,13 @@ of a hydraulic actuator.
     axis 3.
 }
 
-\subsection{Rod}
+\subsection{Rod}\label{sec:EL-STRUCT-JOINT-ROD}
+The \kw{rod} element represents a force between two nodes that depends
+on the relative position and velocity of the nodes.
+The direction of the force is also based on the relative position
+of the nodes, usually the line passing through them, unless 
+an \kw{offset} is defined.
+The syntax is:
 \begin{verbatim}
     <joint_type> ::= rod 
     <joint_arglist> ::= <node_1> , <node_2> , 
@@ -1787,11 +1793,15 @@ and in general
 	F = F\plbr{\frac{l - l_0}{l_0}, \frac{\dot{l}}{l_0}}
 \end{displaymath}
 where $l_0=\kw{<rod\_length>}$.
-For further details on the constitutive laws, 
+For further details on the supported constitutive laws, 
 see Section~\ref{sec:CONSTITUTIVE-LAWS}.
-See also \kw{rod with offset} in Section~\ref{sec:EL-STRUCT-JOINT-ROD-WITH-OFFSET}.
+If the optional \kw{offset} keyword is used, the element falls through
+to the more general \kw{rod with offset};
+see also \kw{rod with offset}
+in Section~\ref{sec:EL-STRUCT-JOINT-ROD-WITH-OFFSET}.
 
-\subsection{Rod with offset}\label{sec:EL-STRUCT-JOINT-ROD-WITH-OFFSET}.
+\subsection{Rod with offset}\label{sec:EL-STRUCT-JOINT-ROD-WITH-OFFSET}
+The syntax is:
 \begin{verbatim}
     <joint_type> ::= rod with offset
     <joint_arglist> ::= <node_1> , (Vec3) <relative_offset_1>
@@ -1799,9 +1809,11 @@ See also \kw{rod with offset} in Section~\ref{sec:EL-STRUCT-JOINT-ROD-WITH-OFFSE
         (scalar) { <rod_length> | from nodes } ,
         (ConstitutiveLaw1D) <const_law>
 \end{verbatim}
-Analogous to \kw{rod} with the optional arg \kw{offset}.
+Analogous to the \kw{rod} joint with the optional arg \kw{offset};
+see Section~\ref{sec:EL-STRUCT-JOINT-ROD} for details.
 
 \subsection{Spherical hinge}
+The syntax is:
 \begin{verbatim}
     <joint_type> ::= spherical hinge
     <joint_arglist> ::= 
@@ -1812,10 +1824,8 @@ Analogous to \kw{rod} with the optional arg \kw{offset}.
         [ , hinge , 
             (OrientationMatrix) <relative_orientation_matrix_2> ]
 \end{verbatim}
-{\em
-    Note: the orientation matrix is used for output purposes only. 
-    A default identity matrix is assumed.
-}
+Note: the orientation matrix is used for output purposes only. 
+A default identity matrix is assumed.
 
 \subsection{Spherical pin}
 \begin{verbatim}
@@ -1878,7 +1888,7 @@ A universal joint without position constraints.
 }
 
 
-\section{Loadable Element}
+\section{Loadable Element}\label{sec:EL-BASE-LOADABLE}
 The \kw{loadable} element is a wrapper for a user-defined element that is
 compiled in a separated module and linked run-time.
 The module should provide a comprehensive set of functions with a specified
@@ -1889,8 +1899,8 @@ There are virtually no limits on what a loadable element can do.
 The syntax is simply:
 \begin{verbatim}
     <normal_arglist> ::= " <module_name> "
-                         [ , name, " <calls> " ] 
-                         [ , <module_data> ]
+        [ , name, " <calls> " ] 
+        [ , <module_data> ]
 \end{verbatim}
 where \kw{module\_name} is the name of the module file; as soon as the file
 is checked and the binding of the structure with function bindings 
@@ -1898,6 +1908,25 @@ succeeded, a function called \kw{read} is invoked, and passed the input
 stream.
 This function is in charge of reading \kw{module\_data} following the
 general syntax of the input file.
+
+An alternative form is
+\begin{verbatim}
+    <normal_arglist> ::= reference , " <name> "
+        [ , <module_data> ]
+\end{verbatim}
+where \kw{name} is the name by which the loadable element recorded itself
+when registered via the \kw{module load} directive, as described
+in Section~\ref{sec:MODULE-LOAD}.
+As a consequence, the following forms are equivalent:
+\begin{verbatim}
+    # direct runtime loading
+    loadable: 1, "/some/module.so";
+    # "/some/module.so" registers itself as "some_module"
+    module load: "/some/module.so";
+    loadable: 2, reference, "some_module";
+    # works also as joint (might obsolete loadable elements)
+    joint: 3, some_module;
+\end{verbatim}
 
 It is advisable that the function \kw{read} prints some help message
 when the first field of \kw{module\_data} is the keyword \kw{help}.
