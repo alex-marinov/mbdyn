@@ -491,54 +491,61 @@ They are:
 
 
 
-\subsection{Set}
-The \kw{set} directive:
+\subsection{Constitutive Law}\label{sec:CONSTITUTIVE-LAW}
 \begin{verbatim}
-    <card> ::= set : <math_expression> ;
+    <card> ::= constitutive law : <label>
+        [ , name , " <name> " ]
+        <dim> , (ConstitutiveLaw<dim>D) <constitutive_law> ;
 \end{verbatim}
-This directive simply invokes the math parser to evaluate the expression
-\kw{math\_expression} and then discards the result. It can be useful
-to declare new variables, or to set the values of existing ones.
+Constitutive laws are grouped by their dimensionality \kw{<dim>},
+which can be any of 1, 3 and 6; the \kw{<constitutive\_law>}
+is parsed according to the rules described
+in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
 
 
-\subsection{Setenv}
-The \kw{setenv} directive:
+\subsection{C81 Data}\label{sec:C81-DATA}
+This keyword allows to define and read the \kw{c81 data} 
+airfoil tables that are used by aerodynamic elements.
 \begin{verbatim}
-    <card> ::= setenv : [ overwrite , ] " <varname> [ = <value> ] " ;
+    <card> ::= c81 data : <label> [ , name , " <name> " ]
+        " <filename> " ;
 \end{verbatim}
-This directive sets the environment variable \kw{<varname>} 
-to the value \kw{<value>}, if given; otherwise, the variable
-is unset.
-If the keyword \kw{overwrite} is set, the variable is overwritten, 
-if already set.
-See \kw{setenv(3)} and \kw{unsetenv(3)} man pages for details.
 
 
 
-\subsection{Remark}
-The \kw{remark} directive:
+\subsection{Drive Caller}\label{sec:DRIVE-CALLER}
 \begin{verbatim}
-    <card> ::= remark : " <remark_string >
-        [ , <math_expression> [ , ... ] ] ;
+    <card> ::= drive caller : <label>
+        [ , name , " <name> " ]
+        (DriveCaller)<drive_caller> ;
 \end{verbatim}
-This directive simply prints to stdout the string \kw{remark\_string} and
-optionally evaluates any subsequent expression \kw{math\_expression}
-according to the \kw{set} directive.
-It is used to allow rough input debugging, where the file name and line 
-is logged, followed by a message, possibly followed by the evaluation 
-of expressions. 
-Example:
+The keyword \kw{drive caller} allows to define
+a \hyperref{\kw{drive caller}}{\kw{drive caller} (see Section~}{)}{sec:DRIVE}
+that can be subsequently reused.
+It is useful essentially in two cases:
+\begin{enumerate}
+	\renewcommand{\labelenumi}{\alph{enumi})}
+	\item to define a \htmlref{\kw{drive}}{sec:DRIVE}
+	that will be used many times throughout a model;
+	\item to define a \htmlref{\kw{drive}}{sec:DRIVE} 
+	that needs to be used in a later defined part of a model, 
+	to make it parametric.
+\end{enumerate}
+
+
+
+\subsection{Hydraulic fluid}\label{sec:HYDRAULIC-FLUID}
+The \kw{hydraulic fluid} directive:
 \begin{verbatim}
-    remark: "square root of 2", sqrt(2);
-    set: (
-        real EA = 1e6; # N, axial stiffness
-        real GA = 1e6; # N, shear stiffness
-        real EJ = 1e3; # Nm^2, bending stiffness
-        real GJ = 1e3; # Nm^2, torsional stiffness
-    0);
-    remark: "Stiffness properties", EA, GA, EJ, GJ;
+    <card> ::= hydraulic fluid : <unique_label> , 
+        <fluid_type> , <fluid_properties> ;
 \end{verbatim}
+allows to define a hydraulic fluid to be later used in hydraulic elements,
+see Section~\ref{sec:EL-HYDR}.
+The fluid is identified by a numerical label. 
+The \kw{fluid\_type}s, with the related \kw{fluid\_properties}, are
+described in \ref{sec:HYDRAULIC-FLUID-DATA}
 
 
 
@@ -566,38 +573,29 @@ Examples of this usage are given in the tutorials
 
 
 
-\subsection{Drive Caller}\label{sec:DRIVE-CALLER}
+\subsection{Module Load}\label{sec:MODULE-LOAD}
+The \kw{module load} directive:
 \begin{verbatim}
-    <card> ::= drive caller : <label>
-        [ , name , " <name> " ]
-        (DriveCaller)<drive_caller> ;
+    <card> ::= module load : " <file_name> "
+        [ , <module_arglist> ] ;
 \end{verbatim}
-The keyword \kw{drive caller} allows to define
-a \hyperref{\kw{drive caller}}{\kw{drive caller} (see Section~}{)}{sec:DRIVE}
-that can be subsequently reused.
-It is useful essentially in two cases:
-\begin{enumerate}
-	\renewcommand{\labelenumi}{\alph{enumi})}
-	\item to define a \htmlref{\kw{drive}}{sec:DRIVE}
-	that will be used many times throughout a model;
-	\item to define a \htmlref{\kw{drive}}{sec:DRIVE} 
-	that needs to be used in a later defined part of a model, 
-	to make it parametric.
-\end{enumerate}
-
-
-
-\subsection{Constitutive Law}\label{sec:CONSTITUTIVE-LAW}
+where \kw{file\_name} is the name of a runtime loadable object,
+causes the object to be opened, and a function \kw{module\_init},
+with prototype
 \begin{verbatim}
-    <card> ::= constitutive law : <label>
-        [ , name , " <name> " ]
-        <dim> , (ConstitutiveLaw<dim>D) <constitutive_law> ;
+    int module_init(const char *module_name,
+        void *data_manager, void* mbdyn_parser);
 \end{verbatim}
-Constitutive laws are grouped by their dimensionality \kw{<dim>},
-which can be any of 1, 3 and 6; the \kw{<constitutive\_law>}
-is parsed according to the rules described
-in Section~\ref{sec:CONSTITUTIVE-LAWS}.
-
+to be executed; the function is assumed to perform the operations
+required by the module, eventually taking advantage of the parsing
+and of the data manager; see the technical manual for details.
+The typical use consists in registering some methods for later use;
+a clear example is given in \kw{modules/module-wheel2/module-wheel2.cc},
+where the function registers the loadable element in the set
+of loadable element handlers which can later be retrieved by using
+the syntax described in Section~\ref{sec:EL-BASE-LOADABLE}.
+Note, however, that the execution of the \kw{module\_init} function 
+may be used for any purpose.
 
 
 \subsection{Reference}
@@ -735,27 +733,54 @@ Notes:
 
 
 
-\subsection{C81 Data}\label{sec:C81-DATA}
-This keyword allows to define and read the \kw{c81 data} 
-airfoil tables that are used by aerodynamic elements.
+\subsection{Remark}
+The \kw{remark} directive:
 \begin{verbatim}
-    <card> ::= c81 data : <label> [ , name , " <name> " ]
-        " <filename> " ;
+    <card> ::= remark : " <remark_string >
+        [ , <math_expression> [ , ... ] ] ;
+\end{verbatim}
+This directive simply prints to stdout the string \kw{remark\_string} and
+optionally evaluates any subsequent expression \kw{math\_expression}
+according to the \kw{set} directive.
+It is used to allow rough input debugging, where the file name and line 
+is logged, followed by a message, possibly followed by the evaluation 
+of expressions. 
+Example:
+\begin{verbatim}
+    remark: "square root of 2", sqrt(2);
+    set: (
+        real EA = 1e6; # N, axial stiffness
+        real GA = 1e6; # N, shear stiffness
+        real EJ = 1e3; # Nm^2, bending stiffness
+        real GJ = 1e3; # Nm^2, torsional stiffness
+    0);
+    remark: "Stiffness properties", EA, GA, EJ, GJ;
 \end{verbatim}
 
 
 
-\subsection{Hydraulic fluid}\label{sec:HYDRAULIC-FLUID}
-The \kw{hydraulic fluid} directive:
+\subsection{Set}
+The \kw{set} directive:
 \begin{verbatim}
-    <card> ::= hydraulic fluid : <unique_label> , 
-        <fluid_type> , <fluid_properties> ;
+    <card> ::= set : <math_expression> ;
 \end{verbatim}
-allows to define a hydraulic fluid to be later used in hydraulic elements,
-see Section~\ref{sec:EL-HYDR}.
-The fluid is identified by a numerical label. 
-The \kw{fluid\_type}s, with the related \kw{fluid\_properties}, are
-described in \ref{sec:HYDRAULIC-FLUID-DATA}
+This directive simply invokes the math parser to evaluate the expression
+\kw{math\_expression} and then discards the result. It can be useful
+to declare new variables, or to set the values of existing ones.
+
+
+
+\subsection{Setenv}
+The \kw{setenv} directive:
+\begin{verbatim}
+    <card> ::= setenv : [ overwrite , ] " <varname> [ = <value> ] " ;
+\end{verbatim}
+This directive sets the environment variable \kw{<varname>} 
+to the value \kw{<value>}, if given; otherwise, the variable
+is unset.
+If the keyword \kw{overwrite} is set, the variable is overwritten, 
+if already set.
+See \kw{setenv(3)} and \kw{unsetenv(3)} man pages for details.
 
 
 
