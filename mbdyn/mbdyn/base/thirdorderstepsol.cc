@@ -52,7 +52,8 @@ ThirdOrderIntegrator::ThirdOrderIntegrator(const doublereal dT,
 : ImplicitStepIntegrator(iMaxIt, dT, dSolutionTol, 1, 2),
 pXPrev(0),
 pXPrimePrev(0),
-Rho(pRho)
+Rho(pRho),
+bAdvanceCalledFirstTime(true)
 {
 	NO_OP;
 }
@@ -77,3 +78,76 @@ void ThirdOrderIntegrator::SetCoef(doublereal dT,
 	jxp[1][1] = 1.;
 	
 };
+
+doublereal ThirdOrderIntegrator::Advance(const doublereal TStep, 
+			const doublereal dAlph, 
+			const StepChange StType,
+			SolutionManager* pSM,
+			NonlinearSolver* pNLS, 
+			std::deque<MyVectorHandler*>& qX,
+	 		std::deque<MyVectorHandler*>& qXPrime,
+			MyVectorHandler*const pX,
+ 			MyVectorHandler*const pXPrime,
+			integer& EffIter
+#ifdef MBDYN_X_CONVSOL
+			, doublereal& SolErr
+#endif /* MBDYN_X_CONVSOL */
+			){
+	if (bAdvanceCalledFirstTime) {
+		integer n = pDM->iGetNumDofs();
+		Res1.Resize(n);
+		Res2.Resize(n);
+		Jac11.Resize(n);
+		Jac12.Resize(n);
+		Jac21.Resize(n);
+		Jac22.Resize(n);
+		bAdvanceCalledFirstTime = false;
+	}
+	pXCurr  = pX;
+	pXPrev  = qX[0];
+
+	pXPrimeCurr  = pXPrime;
+	pXPrimePrev  = qXPrime[0];
+	Predict();
+	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
+	pDM->AfterPredict();
+
+}
+
+void Predict(void) {
+	DofIterator.fGetFirst(CurrDof);
+	integer iNumDofs = pDM->iGetNumDofs();
+   	/* 
+	 * Combinazione lineare di stato e derivata 
+	 * al passo precedente ecc. 
+	 */
+	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
+		iCntp1++, DofIterator.fGetNext(CurrDof)) {
+		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+			doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
+	 		doublereal dXPnm1 = 
+				pXPrimePrev->dGetCoef(iCntp1);
+
+	 		doublereal dXPn = dPredDer(dXnm1, dXPnm1);
+			doublereal dXn = dPredState(dXnm1, dXPn, dXPnm1);
+		
+	 		pXPrimeCurr->fPutCoef(iCntp1, dXPn);
+	 		pXCurr->fPutCoef(iCntp1, dXn);
+		
+      		} else if (CurrDof.Order == DofOrder::ALGEBRAIC) {
+	 		doublereal dXnm1 = pXPrev->dGetCoef(iCntp1);
+	 		doublereal dXInm1 = pXPrimePrev->dGetCoef(iCntp1);
+	 		doublereal dXn = dPredDerAlg(dXInm1, dXnm1);
+			doublereal dXIn = dPredStateAlg(dXInm1, dXn, dXnm1);
+		
+	 		pXCurr->fPutCoef(iCntp1, dXn);
+	 		pXPrimeCurr->fPutCoef(iCntp1, dXIn);
+
+		} else {
+	 		std::cerr << "unknown order for dof " 
+				<< iCntp1<< std::endl;
+	 		THROW(ErrGeneric());
+		}
+   	}
+	
+}

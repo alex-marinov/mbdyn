@@ -2,6 +2,7 @@
 #define THIRD_ORDER_STEPSOL_H
 
 #include "stepsol.h"
+#include "spmapmh.h"
 
 class ThirdOrderIntegrator :  
 	public ImplicitStepIntegrator
@@ -18,6 +19,10 @@ private:
 	doublereal w[3];
 	doublereal jx[2][2];
 	doublereal jxp[2][2];
+	
+	bool bAdvanceCalledFirstTime;
+	MyVectorHandler Res1, Res2;
+	SpMapMatrixHandler Jac11, Jac12, Jac21, Jac22;
 
 public:
 	ThirdOrderIntegrator(const doublereal dT, 
@@ -39,10 +44,6 @@ public:
 #else /* ! __HACK_SCALE_RES__ */
 	virtual doublereal TestScale(void) const;
 #endif /* ! __HACK_SCALE_RES__ */
-
-	virtual void
-	EvalProd(doublereal Tau, const VectorHandler& f0,
-			const VectorHandler& w, VectorHandler& z) const;
 
 	virtual doublereal
 	Advance(const doublereal TStep, 
