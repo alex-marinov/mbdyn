@@ -68,14 +68,14 @@ protected:
 	bool extpdE;
 
 public: 
-	inline SchurMatrixHandler(int LocSize, int IntSize,
+ 	SchurMatrixHandler(int LocSize, int IntSize,
    			MatrixHandler* pBM, 
    			integer* pGlobToLoc, doublereal* pdEv = NULL);
 
-	virtual inline ~SchurMatrixHandler(void); 
+	virtual ~SchurMatrixHandler(void); 
 
 	/* Usata per il debug */
-	virtual inline void IsValid(void) const;
+	virtual void IsValid(void) const;
 
 
 	virtual integer iGetNumRows(void) const;
@@ -565,10 +565,10 @@ private:
 	bool Eflag;  
 
 public: 
-	inline SchurMatrixHandlerUm(int LocSize, int IntSize,
+	SchurMatrixHandlerUm(int LocSize, int IntSize,
    			MatrixHandler* pBM, 
    			integer* pGlobToLoc);
-	inline ~SchurMatrixHandlerUm(void); 
+	~SchurMatrixHandlerUm(void); 
 	
 	/* Resetta le matrici E F e C */
 	inline void MatEFCInit(const doublereal& dResetVal);
