@@ -2309,6 +2309,27 @@ in the future.
 \emph{Note: this element is eXperimental; now it is more reliable, 
 but it is limited to $\nrbr{\tt <hinge\_orientation>} < \pi$}.
 
+\subsection{Gimbal}
+A constant velocity joint without position constraints;
+this joint, in conjunction with a \kw{spherical hinge} joint, 
+should be used to implement an ideal tiltrotor gimbal
+instead of a \kw{universal rotation}.
+See the technical manual for details.
+\begin{verbatim}
+    <joint_type> ::= gimbal
+    <joint_arglist> ::= 
+        <node_1>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
+\end{verbatim}
+{\em
+    Note: this joint allows nodes 1 and 2 to rotate about relative 
+    axes 1 and 2.
+}
+
 \subsection{In line}
 \begin{verbatim}
     <joint_type> ::= in line
