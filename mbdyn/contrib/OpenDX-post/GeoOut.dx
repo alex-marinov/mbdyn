@@ -5,7 +5,12 @@ object "TriadCosines" class array type float rank 1 shape 9 items 2 data follows
 1 0 0 0 1 0 0 0 1
 0 1 0 1 0 0 0 0 1
 attribute "dep" string "positions"
+object "TriadLabels" class array type int rank 1 shape 1 items 2 data follows
+               1        
+               15
+attribute "dep" string "positions"
 object "OrientedTriads" class field
 component "positions" "TriadPositions"
 component "cosines" "TriadCosines"
+component "labels" "TriadLabels"
 end
