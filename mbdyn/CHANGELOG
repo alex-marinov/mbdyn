@@ -19,6 +19,7 @@ MBDyn 1.1-Engineering
 		  differentials
 	Bug fixes:
 		- fixed SIGSEGV when reading from stdin
+		- fixed SIGSEGV when including nonexisting file
 
 MBDyn 1.1.2
 	Enhancements:

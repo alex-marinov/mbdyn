@@ -206,18 +206,11 @@ IncludeParser::Include_()
       		THROW(HighParser::ErrColonExpected());
    	}
    
+	std::ifstream *pf_old = pf;
+	InputStream *pIn_old = pIn;
+   
    	const char* sfname = GetFileName();
-   
-   	MyInput* pmi = NULL;
-#ifdef USE_INCLUDE_PARSER
-   	SAFENEWWITHCONSTRUCTOR(pmi, 
-			       MyInput,
-			       MyInput(pf, pIn, sCurrPath, sCurrFile));
-#else /* !USE_INCLUDE_PARSER */
-   	SAFENEWWITHCONSTRUCTOR(pmi, MyInput, MyInput(pf, pIn));
-#endif /* !USE_INCLUDE_PARSER */
-   	MyInStack.Push(pmi);
-   
+
    	pf = NULL;
    	pIn = NULL;
 
@@ -236,7 +229,7 @@ IncludeParser::Include_()
    	}
    
    	SAFENEWWITHCONSTRUCTOR(pIn, InputStream, InputStream(*pf));
-   
+
    	/* Cambio di directory */
 #ifdef USE_INCLUDE_PARSER
    	sCurrPath = NULL;
@@ -246,13 +239,13 @@ IncludeParser::Include_()
    	char* s = (char*)stmp+strlen(sfname);
    	while (--s >= stmp) {
       		if (s[0] == '/') {
-	 		char c = *(s+1);
+	 		char c = s[1];
 	 		s[1] = '\0';
 	 		if (chdir(stmp)) {
 				std::cerr << "Error in chdir, path = " 
 					<< stmp << std::endl;
 	    			THROW(ErrFileSystem());
-	 		}	 
+	 		}
 	 		char* p = NULL;
 	 		SAFENEWARR(p, char, PATHBUFSIZE);
 	 		sCurrPath = getcwd(p, PATHBUFSIZE);
@@ -288,7 +281,18 @@ IncludeParser::Include_()
 			<< '>' << std::endl);
    	}
 #endif /* USE_INCLUDE_PARSER */
-   
+
+      	MyInput* pmi = NULL;
+#ifdef USE_INCLUDE_PARSER
+   	SAFENEWWITHCONSTRUCTOR(pmi, 
+			       MyInput,
+			       MyInput(pf_old, pIn_old, sCurrPath, sCurrFile));
+#else /* !USE_INCLUDE_PARSER */
+   	SAFENEWWITHCONSTRUCTOR(pmi, MyInput, MyInput(pf_old, pIn_old));
+#endif /* !USE_INCLUDE_PARSER */
+ 
+   	MyInStack.Push(pmi);
+ 
    	/* FIXME: mettere un test se c'e' il punto e virgola? */
    	CurrToken = HighParser::DESCRIPTION;
 }
