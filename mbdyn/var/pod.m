@@ -4,6 +4,7 @@
 %	A	data (number of frames x number of outputs)
 %	ns	desired POMs
 %	dt	time lag between two frames (optional, defaults to 1.0)
+%       uu      input signals (number of frames x number of input signals; Matlab only) 
 %	dec	decimation factor (Matlab only)
 %
 %output:
@@ -18,7 +19,7 @@
 %	H	transition matrix
 %	BB	expanded POMs
 %
-function [S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, dec)
+function [S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, uu, dec)
 
 if nargin < 3,
 	dt = 1.;
@@ -57,6 +58,13 @@ if ((exist('dec') == 1)),
 	for i = 1:ngt,
 		AA(:, i) = decimate(A(:, i), dec);
 	end
+        if (exist('uu') & ~isempty(uu)),
+                [ru,cu] = size(uu);
+                for i = 1:cu,
+                        uuu(:, i) = decimate(uu(:, i), dec);
+                end
+                uu = uuu;
+        end
 	A = AA;
 	dt = dt*dec;
 	r = fix(r/dec);
@@ -117,7 +125,14 @@ if exist('OCTAVE_HOME'),
 	%%% This is a very rough estimate of the transition matrix ...
 	H = (Aout(1:r-1, :)\Aout(2:r, :))';
 else
-	H = ssdata(arx(Aout, ones(ns), 'CovarianceMatrix', 'None'));
+       if (exist('uu') & ~isempty(uu)),
+                [ru,cu] = size(uu);
+                yu = iddata(Aout, uu);
+		%% si potrebbe dare la struttura della B noto il nodo eccitato... 
+                H = ssdata(arx(yu, [ones(ns), ones(ns,cu), zeros(ns,cu)], 'Covariance', 'None'));
+    	else
+		H = ssdata(arx(Aout, ones(ns), 'Covariance', 'None'));
+	end
 end
 
 % physical eigenvalues and eigenvectors ...
