@@ -34,6 +34,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_ELECTRIC_NODES
+
 #include <genel_.h>
 #include <genfilt.h>
 #include <swashpl.h>
@@ -894,3 +896,6 @@ Elem* ReadGenel(DataManager* pDM,
    
    return pEl;
 } /* ReadGenel() */
+
+#endif /* USE_ELECTRIC_NODES */
+

@@ -80,18 +80,6 @@
 /* append underscore to fortran calls */
 #undef USE_UNDERSCORE
 
-/* use structural nodes */
-#undef USE_STRUCT_NODES
-
-/* use aerodynamic elements (requires USE_STRUCT_NODES */
-#undef USE_AERODYNAMIC_ELEMS
-
-/* use electric nodes */
-#undef USE_ELECTRIC_NODES
-
-/* use hydraulic nodes */
-#undef USE_HYDRAULIC_NODES
-
 /* define this to add MPI debugging code */
 #undef DEBUG_MPI
 
@@ -121,6 +109,18 @@
 
 /* set to 0,1,2 for std,gauss,node */
 #undef AEROD_OUTPUT
+
+/* set to 1 to use structural stuff */
+#undef USE_STRUCT_NODES
+
+/* set to 1 to use electric stuff */
+#undef USE_ELECTRIC_NODES
+
+/* set to 1 to use hydraulic stuff */
+#undef USE_HYDRAULIC_NODES
+
+/* set to 1 to use electric stuff */
+#undef USE_AERODYNAMIC_ELEMS
 
 /* define this to use UNIX-style filenames */
 #undef USE_UNIX_FILE

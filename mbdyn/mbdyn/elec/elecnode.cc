@@ -32,6 +32,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_ELECTRIC_NODES
+
 #include <mynewmem.h>
 #include <elecnode.h>
 #include <solman.h>
@@ -90,4 +92,5 @@ void ElectricNode::Output(OutputHandler& OH) const
 
 /* ElectricNode - end */
 
+#endif /* USE_ELECTRIC_NODES */
 

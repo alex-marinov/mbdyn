@@ -157,6 +157,10 @@ OL_ARG_WITH(pam,[  --with-pam              with PAM support],auto,[auto yes no])
 
 OL_ARG_WITH(aero_output,[  --with-aero-output={std,gauss,node}  aerodynamic output mode],auto,[auto std gauss node])
 
+OL_ARG_WITH(struct,[  --with-struct           with structural elements],yes,[yes no])
+OL_ARG_WITH(elec,[  --with-elec             with electric stuff],yes,[yes no])
+OL_ARG_WITH(aero,[  --with-aero             with aerodynamic stuff],yes,[yes no])
+OL_ARG_WITH(hydr,[  --with-hydr             with hydraulic stuff],yes,[yes no])
 
 dnl ----------------------------------------------------------------
 dnl Validate general "enable" options
@@ -225,10 +229,10 @@ dnl ----------------------------------------------------------------
 dnl
 dnl define packages (will be made configurable)
 dnl
-AC_DEFINE(USE_STRUCT_NODES,1,[use structural nodes])
-AC_DEFINE(USE_AERODYNAMIC_ELEMS,1,[use aerodynamic elements (requires USE_STRUCT_NODES])
-AC_DEFINE(USE_ELECTRIC_NODES,1,[use electric nodes])
-AC_DEFINE(USE_HYDRAULIC_NODES,1,[use hydraulic nodes])
+dnl AC_DEFINE(USE_STRUCT_NODES,1,[use structural nodes])
+dnl AC_DEFINE(USE_AERODYNAMIC_ELEMS,1,[use aerodynamic elements (requires USE_STRUCT_NODES)])
+dnl AC_DEFINE(USE_ELECTRIC_NODES,1,[use electric nodes])
+dnl AC_DEFINE(USE_HYDRAULIC_NODES,1,[use hydraulic nodes])
 
 
 dnl ----------------------------------------------------------------
@@ -341,6 +345,27 @@ else
 	AC_DEFINE(AEROD_OUTPUT,0,[set to 0,1,2 for std,gauss,node])
 fi
 
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for packages
+dnl
+if test $ol_with_struct = yes ; then
+        AC_DEFINE(USE_STRUCT_NODES,1,[set to 1 to use structural stuff])
+fi
+if test $ol_with_elec = yes ; then
+	AC_DEFINE(USE_ELECTRIC_NODES,1,[set to 1 to use electric stuff])
+fi
+if test $ol_with_hydr = yes ; then
+        AC_DEFINE(USE_HYDRAULIC_NODES,1,[set to 1 to use hydraulic stuff])
+fi
+if test $ol_with_aero = yes ; then
+	if test $ol_with_struct != yes ; then
+		AC_MSG_WARN([Need --with-struct to enable aerodynamic stuff])
+	else
+        	AC_DEFINE(USE_AERODYNAMIC_ELEMS,1,[set to 1 to use electric stuff])
+	fi
+fi
 
 dnl ----------------------------------------------------------------
 dnl

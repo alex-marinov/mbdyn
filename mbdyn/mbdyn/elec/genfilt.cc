@@ -32,6 +32,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_ELECTRIC_NODES
+
 #include <genfilt.h>
 #ifdef USE_MESCHACH
 #include <mschwrap.h>
@@ -923,3 +925,6 @@ GenelStateSpaceMIMO::AssRes(SubVectorHandler& WorkVec,
 }
 
 /* GenelStateSpaceMIMO - end */
+
+#endif /* USE_ELECTRIC_NODES */
+

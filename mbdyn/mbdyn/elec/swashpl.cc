@@ -34,6 +34,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_ELECTRIC_NODES
+
 #include <swashpl.h>
 
 extern "C" {
@@ -260,3 +262,6 @@ void SwashPlate::SetValue(VectorHandler& /* X */ ,
 }
 
 /* SwashPlate - end */
+
+#endif /* USE_ELECTRIC_NODES */
+

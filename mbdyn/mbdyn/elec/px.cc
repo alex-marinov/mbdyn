@@ -32,6 +32,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_ELECTRIC_NODES
+
 #include <px.h>
 
 
@@ -135,3 +137,6 @@ void VectorPX::AddInput(doublereal* pd) const
       pd[i] += pvDrives[i]->dGet();
    }
 }
+
+#endif /* USE_ELETRIC_NODES */
+

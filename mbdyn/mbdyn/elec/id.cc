@@ -30,6 +30,8 @@
 
 /* identificatore generico */
 
+#ifdef USE_ELECTRIC_NODES
+
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
@@ -375,3 +377,6 @@ flag IdentARMAXProcess::fCheckMA(doublereal* /* pdTheta */ )
 }
 
 /* IdentARMAXProcess - end */
+
+#endif /* USE_ELECTRIC_NODES */
+

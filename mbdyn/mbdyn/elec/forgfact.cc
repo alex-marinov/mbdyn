@@ -32,6 +32,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_ELECTRIC_NODES
+
 #include <forgfact.h>
 
 
@@ -249,3 +251,6 @@ void DynamicForgettingFactor2::Update(const doublereal* pE) {
       dk = dRho*dk+(1-dRho)*dkLim;
    }
 }
+
+#endif /* USE_ELECTRIC_NODES */
+

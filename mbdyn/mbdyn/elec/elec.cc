@@ -34,6 +34,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_ELECTRIC_NODES
+
 #include <elec.h>
 #include <dataman.h>
 #include <discctrl.h>
@@ -1481,3 +1483,6 @@ Elem* ReadElectric(DataManager* pDM,
    
    return pEl;
 } /* ReadElectric() */
+
+#endif /* USE_ELECTRIC_NODES */
+

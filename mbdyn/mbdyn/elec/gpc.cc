@@ -34,6 +34,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_ELECTRIC_NODES
+
 #include <myassert.h>
 #include <mynewmem.h>
 
@@ -1370,7 +1372,11 @@ int main(void)
    integer q = s/2;
    integer tmprow = (s-q)*nout;
    integer tmpcol = q*nin;
+#ifdef USE_MESCHACH
    GPC_Meschach_QRinv inv(tmprow, tmpcol);
+#else /* !USE_MESCHACH */
+#error "Need Meschach"
+#endif /* !USE_MESCHACH */
    doublereal* pT = pP+s*nout*(s-q)*nin;
    inv.Inv(s*nout, tmprow, tmpcol, pT);
    
@@ -1425,4 +1431,16 @@ int main(void)
 }
 
 #endif /* TEST_DPC */
+
+#else /* !USE_ELECTRIC_NODES */
+#ifdef TEST_DPC
+
+int
+main(void)
+{
+	return 0;
+}
+
+#endif /* TEST_DPC */
+#endif /* !USE_ELECTRIC_NODES */
 
