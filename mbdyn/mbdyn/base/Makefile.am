@@ -56,8 +56,8 @@ gmres.cc \
 gmres.h \
 j2p.cc \
 j2p.h \
-linearsolver.cc \
-linearsolver.h \
+linsol.cc \
+linsol.h \
 loadable.cc \
 loadable.h \
 mbpar.cc \

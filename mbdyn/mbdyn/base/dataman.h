@@ -62,7 +62,7 @@
 #include "elecnode.h"
 
 #include "solverdiagnostics.h"
-#include "linearsolver.h"
+#include "linsol.h"
 
 #include "ScalarFunctions.h"
 

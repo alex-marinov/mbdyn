@@ -60,7 +60,7 @@
 #include "schurdataman.h"
 #include "schsolman.h"
 #include <deque>
-#include "linearsolver.h"
+#include "linsol.h"
 #include "stepsol.h"
 #include "nonlin.h"
 #include "mfree.h"

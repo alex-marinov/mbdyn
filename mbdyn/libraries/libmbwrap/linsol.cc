@@ -49,7 +49,7 @@
 
 #include "mbpar.h"
 
-#include "linearsolver.h"
+#include "linsol.h"
 
 /* private data */
 static struct solver_t {
