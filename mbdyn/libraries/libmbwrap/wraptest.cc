@@ -238,8 +238,8 @@ main(int argc, char *argv[])
 	} else if (strcasecmp(solver, "naive") == 0) {
 		if (cc) {
 			SAFENEWWITHCONSTRUCTOR(pSM,
-				NaiveSparseCCSolutionManager,
-				NaiveSparseCCSolutionManager(size));
+				NaiveSparsePermSolutionManager,
+				NaiveSparsePermSolutionManager(size));
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pSM,
 				NaiveSparseSolutionManager,

@@ -108,7 +108,7 @@ public:
 
 /* UmfpackSparseCCSolutionManager - begin */
 
-class NaiveSparseCCSolutionManager: public NaiveSparseSolutionManager {
+class NaiveSparsePermSolutionManager: public NaiveSparseSolutionManager {
 private:
 	const doublereal dMinPiv;
 	void ComputePermutation();
@@ -123,8 +123,8 @@ protected:
 	virtual void MatrReset(void);
 	
 public:
-	NaiveSparseCCSolutionManager(const integer Dim, const doublereal dMP = 1.e-9);
-	virtual ~NaiveSparseCCSolutionManager(void);
+	NaiveSparsePermSolutionManager(const integer Dim, const doublereal dMP = 1.e-9);
+	virtual ~NaiveSparsePermSolutionManager(void);
 
 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
 	virtual void Solve(void);

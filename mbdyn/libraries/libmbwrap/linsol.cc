@@ -790,8 +790,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		switch (type) {
 		case LinSol::SOLVER_FLAGS_ALLOWS_COLAMD:
 			SAFENEWWITHCONSTRUCTOR(pCurrSM,
-				NaiveSparseCCSolutionManager,
-				NaiveSparseCCSolutionManager(iNLD, dPivotFactor));
+				NaiveSparsePermSolutionManager,
+				NaiveSparsePermSolutionManager(iNLD, dPivotFactor));
 			break;
 		
 		default:

@@ -198,7 +198,7 @@ extern "C" {
 #include "colamd.h"
 }
 
-NaiveSparseCCSolutionManager::NaiveSparseCCSolutionManager(const integer Dim, 
+NaiveSparsePermSolutionManager::NaiveSparsePermSolutionManager(const integer Dim, 
 	const doublereal dMP)
 : NaiveSparseSolutionManager(Dim, dMP),
 dMinPiv(dMP),
@@ -209,7 +209,7 @@ Ac(0)
 	invperm.resize(Dim,0);
 }
 
-NaiveSparseCCSolutionManager::~NaiveSparseCCSolutionManager(void) 
+NaiveSparsePermSolutionManager::~NaiveSparsePermSolutionManager(void) 
 {
 	if (Ac) {
 		SAFEDELETE(Ac);
@@ -217,7 +217,7 @@ NaiveSparseCCSolutionManager::~NaiveSparseCCSolutionManager(void)
 }
 
 void
-NaiveSparseCCSolutionManager::MatrReset(void)
+NaiveSparsePermSolutionManager::MatrReset(void)
 {
 	if (!Ac) {
 		A.Reset();
@@ -240,7 +240,7 @@ NaiveSparseCCSolutionManager::MatrReset(void)
 }
 
 void
-NaiveSparseCCSolutionManager::ComputePermutation(void) {
+NaiveSparsePermSolutionManager::ComputePermutation(void) {
 	std::vector<integer> Ai;
 	A.MakeCCStructure(Ai, invperm);
 	doublereal knobs [COLAMD_KNOBS];
@@ -259,7 +259,7 @@ NaiveSparseCCSolutionManager::ComputePermutation(void) {
 }
 
 void
-NaiveSparseCCSolutionManager::BackPerm(void) {
+NaiveSparsePermSolutionManager::BackPerm(void) {
 	for (integer i = 0; i < A.iGetNumCols(); i++) {
 		XH.PutCoef(invperm[i] + 1, VH.dGetCoef(i + 1));
 	}
@@ -268,7 +268,7 @@ NaiveSparseCCSolutionManager::BackPerm(void) {
 
 /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
 void
-NaiveSparseCCSolutionManager::Solve(void)
+NaiveSparsePermSolutionManager::Solve(void)
 {
 	if ((!CCReady) && (!Ac)) {
 		ComputePermutation();
@@ -289,7 +289,7 @@ NaiveSparseCCSolutionManager::Solve(void)
 
 /* Inizializzatore "speciale" */
 void
-NaiveSparseCCSolutionManager::MatrInitialize()
+NaiveSparsePermSolutionManager::MatrInitialize()
 {
 	CCReady = false;
 
@@ -298,7 +298,7 @@ NaiveSparseCCSolutionManager::MatrInitialize()
 	
 /* Rende disponibile l'handler per la matrice */
 MatrixHandler*
-NaiveSparseCCSolutionManager::pMatHdl(void) const
+NaiveSparsePermSolutionManager::pMatHdl(void) const
 {
 	if (!CCReady) {
 		return &A;
