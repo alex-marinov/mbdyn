@@ -15,7 +15,7 @@ mbdyn.h
 
 ## mbdyn_LDADD = @XLIBOBJS@
 mbdyn_LDADD = \
-base/libbase.la \
+../mbdyn/base/libbase.la \
 aero/libaero.la \
 ../libraries/libmbwrap/libmbwrap.la \
 struct/libstruct.la \
