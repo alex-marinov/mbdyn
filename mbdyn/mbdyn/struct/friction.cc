@@ -213,6 +213,10 @@ void ModLugreFriction::AssJac(
 SimplePlaneHingeJointSh_c::SimplePlaneHingeJointSh_c(const doublereal rr): 
 	r(rr) {};
 	
+doublereal SimplePlaneHingeJointSh_c::Sh_c(void) const {
+	return shc;
+}
+	
 doublereal SimplePlaneHingeJointSh_c::Sh_c(
 	const doublereal f,
 	const doublereal F,
