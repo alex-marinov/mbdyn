@@ -1314,6 +1314,7 @@ AC_CHECK_FUNCS([ \
 	atol \
 	chdir \
 	getcwd \
+	get_ncpus \
 	get_nprocs \
 	get_nprocs_conf \
 	gethostbyname \

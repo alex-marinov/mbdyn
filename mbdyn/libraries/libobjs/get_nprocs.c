@@ -83,7 +83,7 @@ get_nprocs_conf(void)
 #elif defined(_SC_NPROC_CONF)
 	/* IRIX? POSIX? */
 	return sysconf(_SC_NPROC_CONF);
-#elif defined(_SC_CRAY_NCPU)
+#elif defined(HAVE_GET_NCPUS)
 	/* Cray? */
 	return get_ncpus();
 #elif defined(HAVE_PSTAT_GETDYNAMIC)
