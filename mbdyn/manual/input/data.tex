@@ -149,7 +149,7 @@ Experimental, not available nor documented yet.
     <card> ::= abort after : { input 
                              | assembly 
                              | derivatives 
-                             | fictitious steps } ;
+                             | dummy steps } ;
 \end{verbatim}
 mainly used to check models and simulations at various phases.
 
@@ -204,51 +204,52 @@ stiffness and high inertia, the coefficient can be big, if the system
 has high stiffness and small inertia, the coefficient must be small.
 
 
-\subsection{Fictitious steps data}
-Data related to the fictitious steps phase. They are:
+\subsection{Dummy steps data}
+Data related to the dummy steps phase. They are:
 
-\subsubsection{Fictitious steps tolerance}
+\subsubsection{Dummy steps tolerance}
 \begin{verbatim}
-    <card> ::= fictitious steps tolerance : <tolerance> ;
+    <card> ::= dummy steps tolerance : <tolerance> ;
 \end{verbatim}
 
-\subsubsection{Fictitious steps max iterations}
+\subsubsection{Dummy steps max iterations}
 \begin{verbatim}
-    <card> ::= fictitious steps max iterations : <max iterations> ;
+    <card> ::= dummy steps max iterations : <max iterations> ;
 \end{verbatim}    
 {\em
     Note: no step change, modified Newton-Raphson and so on is allowed
-    during the fictitious steps.
+    during the dummy steps.
 }
 
-\subsubsection{Fictitious steps number}
+\subsubsection{Dummy steps number}
 \begin{verbatim}
-    <card> ::= fictitious steps number : <number> ;
+    <card> ::= dummy steps number : <number> ;
 \end{verbatim}
-number of fictitious steps.
+number of dummy steps.
 
-\subsubsection{Fictitious steps ratio}
+\subsubsection{Dummy steps ratio}
 \begin{verbatim}
-    <card> ::= fictitious steps ratio : <ratio> ;
+    <card> ::= dummy steps ratio : <ratio> ;
 \end{verbatim}
-ratio of the time step to be used in the fictitious steps to the regular
+ratio of the time step to be used in the dummy steps to the regular
 time step.
 
-\subsubsection{Fictitious steps method}
+\subsubsection{Dummy steps method}
 \begin{verbatim}
     <card> ::= method : <method_data> ;
 \end{verbatim}
-Same as for the normal simulation method. The fictitious steps are
-intended as a sort of numerical computation of the second order
-derivatives of the constraint equations. The displacement constraint 
-equations in an index three Differential-Algebraic Equations system
+Same as for the normal simulation method. 
+The dummyi steps are intended as a sort of numerical computation 
+of the second order derivatives of the constraint equations. 
+The displacement constraint equations in an index three 
+Differential-Algebraic Equations system
 (DAE) represent the second derivative effect of the constraints on the
 kinematic unknowns. Thus, to ensure the proper initial conditions, the
 constraint equations should be derivated twice. To simplify the code,
 those equations have been derivated once only, in the initial assembly,
-the second derivation being performed numerically by the fictitious steps.
+the second derivation being performed numerically by the dummy steps.
 During these steps the system converges to a solution whose error from
-the sought solution is bounded. For this reason, the fictitious steps
+the sought solution is bounded. For this reason, the dummy steps
 should be performed with a very short time step, to seek accuracy, and
 with a high numerical damping, to cancel as quickly as possible the high
 frequency numerical noise.
