@@ -35,6 +35,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <float.h>
+#include <vector>
 
 #include <dataman.h>
 #include <dataman_.h>
@@ -361,21 +362,39 @@ void DataManager::ReadElems(MBDynParser& HP)
 			 THROW(ErrGeneric());
 		 }
 
-		 unsigned int uL = (unsigned int)HP.GetInt();
-		 Elem **ppTmpEl = (Elem **)ppFindElem(Type, uL);
-		 if (ppTmpEl == NULL || ppTmpEl[0] == NULL) {
-			 std::cerr << "inertia " << uIn 
-				 << " at line " << HP.GetLineData()
-				 << ": unable to find " << psElemNames[Type]
-				 << "( " << uL << ")" << std::endl;
-			 THROW(ErrGeneric());
-		 }
-		 ElemGravityOwner *pEl = 
-			 (ElemGravityOwner *)ppTmpEl[0]->pGetElemGravityOwner();
+		/*
+		 * FIXME: duplicate check?
+		 */
 
-		 dM += pEl->dGetM();
-		 S += pEl->GetS();
-		 J += pEl->GetJ();
+		 if (HP.IsKeyWord("all")) {
+			 Elem **ppTmpEl = ElemData[Type].ppFirstElem;
+			 for (unsigned int cnt = 0; cnt < ElemData[Type].iNum; cnt++) {
+				 unsigned int uL = ppTmpEl[cnt]->GetLabel();
+				 ElemGravityOwner *pEl = 
+					 (ElemGravityOwner *)ppTmpEl[cnt]->pGetElemGravityOwner();
+
+				 dM += pEl->dGetM();
+				 S += pEl->GetS();
+				 J += pEl->GetJ();
+			 }
+
+		 } else {
+			 unsigned int uL = (unsigned int)HP.GetInt();
+			 Elem **ppTmpEl = (Elem **)ppFindElem(Type, uL);
+			 if (ppTmpEl == NULL || ppTmpEl[0] == NULL) {
+				 std::cerr << "inertia " << uIn 
+					 << " at line " << HP.GetLineData()
+					 << ": unable to find " << psElemNames[Type]
+					 << "( " << uL << ")" << std::endl;
+				 THROW(ErrGeneric());
+			 }
+			 ElemGravityOwner *pEl = 
+				 (ElemGravityOwner *)ppTmpEl[0]->pGetElemGravityOwner();
+
+			 dM += pEl->dGetM();
+			 S += pEl->GetS();
+			 J += pEl->GetJ();
+		 }
 	 }
 
 	 Vec3 Xcg(0.);
