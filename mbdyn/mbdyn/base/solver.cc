@@ -359,6 +359,7 @@ Solver::Run(void)
 #endif /* USE_MPI */
 	{
 		/* chiama il gestore dei dati generali della simulazione */
+#ifdef USE_MULTITHREAD
 		if (nThreads > 1) {
 			silent_cout("Creating MultiThread solver "
 					"with " << nThreads << " threads"
@@ -374,7 +375,9 @@ Solver::Run(void)
 						eAbortAfter == AFTER_INPUT,
 						nThreads));
 
-		} else {
+		} else 
+#endif /* USE_MULTITHREAD */
+		{
 			DEBUGLCOUT(MYDEBUG_MEM, "creating DataManager"
 					<< std::endl);
 
