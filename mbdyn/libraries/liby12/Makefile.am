@@ -4,8 +4,6 @@
 lib_LTLIBRARIES = liby12.la
 
 liby12_la_SOURCES = \
-y12cck.f \
-y12m.f \
 y12mae.f \
 y12maf.f \
 y12mbe.f \

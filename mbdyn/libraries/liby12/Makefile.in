@@ -92,7 +92,7 @@ top_builddir = @top_builddir@
 
 lib_LTLIBRARIES = liby12.la
 
-liby12_la_SOURCES =  y12cck.f y12m.f y12mae.f y12maf.f y12mbe.f y12mbf.f y12mce.f y12mcf.f y12mde.f y12mdf.f y12mfe.f y12mge.f y12mhe.f
+liby12_la_SOURCES =  y12mae.f y12maf.f y12mbe.f y12mbf.f y12mce.f y12mcf.f y12mde.f y12mdf.f y12mfe.f y12mge.f y12mhe.f
 
 
 liby12_la_LIBADD = @LIBS@ @F2C_LIBS@
@@ -113,9 +113,8 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 liby12_la_DEPENDENCIES = 
-liby12_la_OBJECTS =  y12cck.lo y12m.lo y12mae.lo y12maf.lo y12mbe.lo \
-y12mbf.lo y12mce.lo y12mcf.lo y12mde.lo y12mdf.lo y12mfe.lo y12mge.lo \
-y12mhe.lo
+liby12_la_OBJECTS =  y12mae.lo y12maf.lo y12mbe.lo y12mbf.lo y12mce.lo \
+y12mcf.lo y12mde.lo y12mdf.lo y12mfe.lo y12mge.lo y12mhe.lo
 PROGRAMS =  $(bin_PROGRAMS)
 
 t_OBJECTS =  test.o
