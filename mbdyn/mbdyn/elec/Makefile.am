@@ -1,3 +1,4 @@
+include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 
 # Build libelec.a library
@@ -57,3 +58,4 @@ dpc.o : gpc.cc
 dpc : dpc.o
 	-$(CXXLINK) -o dpc $(dpc_LDADD)
 
+include $(top_srcdir)/build/bot.mk

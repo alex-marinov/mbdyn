@@ -1,3 +1,4 @@
+include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 
 # Build libstruct.a library
@@ -81,3 +82,4 @@ INCLUDES = \
 -I../../mbdyn/elec \
 -I../../mbdyn/hydr
 
+include $(top_srcdir)/build/bot.mk

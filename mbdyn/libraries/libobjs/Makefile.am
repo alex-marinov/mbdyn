@@ -1,3 +1,4 @@
+include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 
 noinst_LTLIBRARIES = libobjs.la
@@ -15,3 +16,4 @@ INCLUDES = -I../../mbdyn \
 	-I../../libraries/libmbutil \
 	-I../../libraries/libmbmath
 
+include $(top_srcdir)/build/bot.mk

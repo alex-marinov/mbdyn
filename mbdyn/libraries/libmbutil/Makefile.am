@@ -1,3 +1,4 @@
+include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 
 # Build libmbutil.a library
@@ -50,3 +51,4 @@ INCLUDES = \
 -I../../mbdyn
 
 
+include $(top_srcdir)/build/bot.mk

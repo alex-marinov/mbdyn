@@ -1117,29 +1117,29 @@ dnl final output
 dnl
 
 AC_OUTPUT([ \
-	Makefile:build/top.mk:Makefile.in:build/bot.mk \
-	libraries/Makefile:build/top.mk:libraries/Makefile.in:build/bot.mk \
-	libraries/libmbutil/Makefile:build/top.mk:libraries/libmbutil/Makefile.in:build/bot.mk \
-	libraries/libmbmath/Makefile:build/top.mk:libraries/libmbmath/Makefile.in:build/bot.mk \
-	libraries/libmbwrap/Makefile:build/top.mk:libraries/libmbwrap/Makefile.in:build/bot.mk \
-	libraries/liby12/Makefile:build/top.mk:libraries/liby12/Makefile.in:build/bot.mk \
-	libraries/libobjs/Makefile:build/top.mk:libraries/libobjs/Makefile.in:build/bot.mk \
-	mbdyn/Makefile:build/top.mk:mbdyn/Makefile.in:build/bot.mk \
-	mbdyn/base/Makefile:build/top.mk:mbdyn/base/Makefile.in:build/bot.mk \
-	mbdyn/aero/Makefile:build/top.mk:mbdyn/aero/Makefile.in:build/bot.mk \
-	mbdyn/elec/Makefile:build/top.mk:mbdyn/elec/Makefile.in:build/bot.mk \
-	mbdyn/hydr/Makefile:build/top.mk:mbdyn/hydr/Makefile.in:build/bot.mk \
-	mbdyn/struct/Makefile:build/top.mk:mbdyn/struct/Makefile.in:build/bot.mk \
-	modules/Makefile:build/top.mk:modules/Makefile.in:build/bot.mk \
-	utils/Makefile:build/top.mk:utils/Makefile.in:build/bot.mk
-	etc/Makefile:build/top.mk:etc/Makefile.in:build/bot.mk
-	etc/modal.d/Makefile:build/top.mk:etc/modal.d/Makefile.in:build/bot.mk
-	etc/pam.d/Makefile:build/top.mk:etc/pam.d/Makefile.in:build/bot.mk
-	var/Makefile:build/top.mk:var/Makefile.in:build/bot.mk
-	manual/Makefile:build/top.mk:manual/Makefile.in:build/bot.mk
-	include/Makefile:build/top.mk:include/Makefile.in:build/bot.mk
-	include/ac/Makefile:build/top.mk:include/ac/Makefile.in:build/bot.mk
-	build/Makefile:build/top.mk:build/Makefile.in:build/bot.mk
+	Makefile:Makefile.in \
+	libraries/Makefile:libraries/Makefile.in \
+	libraries/libmbutil/Makefile:libraries/libmbutil/Makefile.in \
+	libraries/libmbmath/Makefile:libraries/libmbmath/Makefile.in \
+	libraries/libmbwrap/Makefile:libraries/libmbwrap/Makefile.in \
+	libraries/liby12/Makefile:libraries/liby12/Makefile.in \
+	libraries/libobjs/Makefile:libraries/libobjs/Makefile.in \
+	mbdyn/Makefile:mbdyn/Makefile.in \
+	mbdyn/base/Makefile:mbdyn/base/Makefile.in \
+	mbdyn/aero/Makefile:mbdyn/aero/Makefile.in \
+	mbdyn/elec/Makefile:mbdyn/elec/Makefile.in \
+	mbdyn/hydr/Makefile:mbdyn/hydr/Makefile.in \
+	mbdyn/struct/Makefile:mbdyn/struct/Makefile.in \
+	modules/Makefile:modules/Makefile.in \
+	utils/Makefile:utils/Makefile.in
+	etc/Makefile:etc/Makefile.in
+	etc/modal.d/Makefile:etc/modal.d/Makefile.in
+	etc/pam.d/Makefile:etc/pam.d/Makefile.in
+	var/Makefile:var/Makefile.in
+	manual/Makefile:manual/Makefile.in
+	include/Makefile:include/Makefile.in
+	include/ac/Makefile:include/ac/Makefile.in
+	build/Makefile:build/Makefile.in
 ],[
 	date > stamp-h
 ])

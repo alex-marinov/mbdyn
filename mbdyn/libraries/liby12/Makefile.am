@@ -1,3 +1,4 @@
+include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 
 # Build liby12.a library
@@ -27,3 +28,4 @@ INCLUDES = \
 -I../libmbmath \
 -I../../mbdyn
 
+include $(top_srcdir)/build/bot.mk

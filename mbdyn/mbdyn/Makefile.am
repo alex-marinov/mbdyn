@@ -1,3 +1,4 @@
+include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 
 # Build static libraries in subdirs
@@ -42,3 +43,4 @@ INCLUDES = \
 -I../mbdyn/elec \
 -I../mbdyn/hydr \
 $(GINACLIB_CPPFLAGS)
+include $(top_srcdir)/build/bot.mk

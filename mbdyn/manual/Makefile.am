@@ -1,3 +1,4 @@
+include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 ## Do not forget to run automake ( --add-missing ) when you modify Makefile.am
 
@@ -16,3 +17,4 @@ stdmacro.tex \
 airfoil.eps \
 hydr-in.txt
 
+include $(top_srcdir)/build/bot.mk
