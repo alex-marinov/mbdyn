@@ -195,7 +195,7 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
     * e ruotati di R
     */
    Vec3 GetS(const Vec3& X, const Mat3x3& R) const {
-      return R(_GetS()-X*dGetM());
+      return R*(_GetS()-X*dGetM());
    };
 
    Mat3x3 GetJ(const Vec3& X, const Mat3x3& R) const {
