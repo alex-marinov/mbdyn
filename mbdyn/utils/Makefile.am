@@ -5,6 +5,7 @@ include $(top_srcdir)/build/top.mk
 bin_PROGRAMS = \
 autopilot \
 cl \
+crypt \
 dae-intg \
 deriv \
 env \
@@ -37,6 +38,7 @@ MYLIBS = \
 @LIBS@
 
 autopilot_SOURCES = autopilot.c
+crypt_SOURCES = crypt.c
 cl_SOURCES = cl.cc
 dae_intg_SOURCES = dae-intg.cc dae-intg.h
 deriv_SOURCES = deriv.c
@@ -55,6 +57,7 @@ sockdrive_SOURCES = sockdrive.c
 vec2rot_SOURCES = vec2rot.cc
 
 autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@
+crypt_LDADD = $(MYLIBS) @SECURITY_LIBS@
 cl_LDADD = $(MYLIBS)
 dae_intg_LDADD = $(MYLIBS)
 eu2rot_LDADD = $(MYLIBS)
