@@ -68,8 +68,9 @@ Drive::Type FileDrive::GetDriveType(void) const
 /* FileDriveCaller - begin */
 
 FileDriveCaller::FileDriveCaller(const DriveHandler* pDH, 
-				 const FileDrive* p, integer i)
-: DriveCaller(pDH), pFileDrive((FileDrive*)p), iNumDrive(i)
+				 const FileDrive* p, integer i,
+				 const doublereal& da)
+: DriveCaller(pDH), pFileDrive((FileDrive*)p), iNumDrive(i), dAmplitude(da)
 {
    ASSERT(pFileDrive != NULL);
    ASSERT(iNumDrive > 0 && iNumDrive <= pFileDrive->iGetNumDrives());
@@ -87,18 +88,23 @@ DriveCaller* FileDriveCaller::pCopy(void) const
    DriveCaller* pDC = NULL;
    SAFENEWWITHCONSTRUCTOR(pDC, 
 			  FileDriveCaller,
-			  FileDriveCaller(pDrvHdl,  pFileDrive, iNumDrive));
+			  FileDriveCaller(pDrvHdl,  pFileDrive, 
+				  iNumDrive, dAmplitude));
    
    return pDC;
 }
 
 
 /* Scrive il contributo del DriveCaller al file di restart */   
-std::ostream& FileDriveCaller::Restart(std::ostream& out) const
+std::ostream&
+FileDriveCaller::Restart(std::ostream& out) const
 {
-   return out << " file, " 
-     << pFileDrive->GetLabel() << ", " 
-     << iNumDrive << std::endl;
+	out << " file, " << pFileDrive->GetLabel()
+		<< ", " << iNumDrive;
+	if (dAmplitude != 1.) {
+		out << ", amplitude, " << dAmplitude;
+	}
+	return out;
 }
    
 /* FileDriveCaller - end */

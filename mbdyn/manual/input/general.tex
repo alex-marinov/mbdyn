@@ -880,11 +880,14 @@ and defined in the \htmlref{\texttt{drivers}}{sec:DRIVERS} section
 of the input file (see Section~\ref{sec:DRIVERS}).
 \begin{verbatim}
     <drive_caller> ::= file , <drive_label> [ , <column_number> ]
+                              [ , amplitude , <amplitude> ]
 \end{verbatim}
 \texttt{drive\_label} is the label of the \htmlref{\texttt{drive}}{sec:DRIVES} 
 the \texttt{DriveCaller} is attached to, while
 \texttt{column\_number} is the number of the column the \texttt{DriveCaller}
 refers to (defaults to 1).
+An additional scaling factor \texttt{amplitude} can be used to rescale
+the drive value (defaults to 1.0).
 
 \subsubsection{String drive}
 \begin{verbatim}

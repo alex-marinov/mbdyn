@@ -1503,11 +1503,16 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        if (HP.fIsArg()) {
 	  id = HP.GetInt(id);
        }
+
+       doublereal da = 1.;
+       if (HP.IsKeyWord("amplitude")) {
+	       da = HP.GetReal();
+       }
        
        /* allocazione e creazione */
 	SAFENEWWITHCONSTRUCTOR(pDC,
 			       FileDriveCaller,
-			       FileDriveCaller(pDM->pGetDrvHdl(), pDrv, id));
+			       FileDriveCaller(pDM->pGetDrvHdl(), pDrv, id, da));
        
        break;
     }

@@ -84,9 +84,11 @@ class FileDriveCaller : public DriveCaller {
  protected:
    FileDrive* pFileDrive;
    integer iNumDrive;
+   doublereal dAmplitude;
    
  public:
-   FileDriveCaller(const DriveHandler* pDH, const FileDrive* p, integer i);
+   FileDriveCaller(const DriveHandler* pDH, const FileDrive* p,
+		   integer i, const doublereal& da);
    virtual ~FileDriveCaller(void);
    
    /* Copia */
@@ -103,7 +105,7 @@ class FileDriveCaller : public DriveCaller {
 
 inline doublereal FileDriveCaller::dGet(const doublereal& dVal) const
 {
-   return pFileDrive->dGet(dVal, iNumDrive);
+   return dAmplitude*pFileDrive->dGet(dVal, iNumDrive);
 }
 
 /* FileDriveCaller - end */
