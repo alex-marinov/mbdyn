@@ -437,7 +437,7 @@ class SchurSolutionManager : public SolutionManager {
   integer*  piBRow;
   integer*  piBCol;
   //  doublereal*  pdBMat;
-  HSMatrixHandler* pBMH;
+  SparseMatrixHandler* pBMH;
   
   /* Matrice B */
   doublereal*  pdBMat;

@@ -40,17 +40,17 @@
 
 #include <harwrap.h>
 
-/* HSMatrixHandler - begin: code */
+/* SparseMatrixHandler - begin: code */
 
 #ifdef DEBUG_MEMMANAGER
-clMemMan MHmm("HSMatrixHandler");
+clMemMan MHmm("SparseMatrixHandler");
 #endif
 
-HSMatrixHandler::HSMatrixHandler(integer iMSize, 
-				 integer** ppiTmpRow,
-				 integer** ppiTmpCol,
-				 doublereal** ppdTmpMat,
-				 integer iWSSize)
+SparseMatrixHandler::SparseMatrixHandler(integer iMSize, 
+				         integer** ppiTmpRow,
+					 integer** ppiTmpCol,
+					 doublereal** ppdTmpMat,
+					 integer iWSSize)
 : iWorkSpaceSize(iWSSize),
 iCurSize(iWSSize), 
 iNumItem(0), iMatSize(iMSize),
@@ -70,7 +70,7 @@ ppdMat(ppdTmpMat)
 }
 
 
-HSMatrixHandler::~HSMatrixHandler(void) 
+SparseMatrixHandler::~SparseMatrixHandler(void) 
 {
 #ifdef DEBUG
    IsValid();
@@ -81,7 +81,7 @@ HSMatrixHandler::~HSMatrixHandler(void)
    }
 }
 
-integer HSMatrixHandler::PacMat(void)
+integer SparseMatrixHandler::PacMat(void)
 {
   //  ASSERT(pMH->iCurSize > 0);   
    
@@ -109,7 +109,7 @@ integer HSMatrixHandler::PacMat(void)
    return iCount;
 }
 
-void HSMatrixHandler::IsValid(void) const
+void SparseMatrixHandler::IsValid(void) const
 {   
    ASSERT(iMatSize > 0);
    ASSERT(iWorkSpaceSize > 0);
@@ -129,7 +129,7 @@ void HSMatrixHandler::IsValid(void) const
 }
 
 
-void HSMatrixHandler::Init(const doublereal& dResetVal)
+void SparseMatrixHandler::Init(const doublereal& dResetVal)
 {
 #ifdef DEBUG
    IsValid();
@@ -147,7 +147,7 @@ void HSMatrixHandler::Init(const doublereal& dResetVal)
    }  
 }
 
-/* HSMatrixHandler - end */
+/* SparseMatrixHandler - end */
 
 
 
@@ -203,9 +203,9 @@ fHasBeenReset(1)
    
    /* Alloca handlers ecc. */
    SAFENEWWITHCONSTRUCTOR(pMH, 
-			  HSMatrixHandler,
-			  HSMatrixHandler(iMatSize, &piRow, &piCol, &pdMat, 
-					  iWorkSpaceSize), 
+			  SparseMatrixHandler,
+			  SparseMatrixHandler(iMatSize, &piRow, &piCol, &pdMat,
+				   	      iWorkSpaceSize), 
 			  SMmm);
    SAFENEWWITHCONSTRUCTOR(pVH,
 			  MyVectorHandler,

@@ -51,11 +51,11 @@
  *         HSLUSolutionManager SM(size, workspacesize, pivotfactor);
  * 
  * // ottenere l'handling alla matrice ed al termine noto
- *         HSMatrixHandler* pMH = SM.pMatHdl();
+ *         SparseMatrixHandler* pMH = SM.pMatHdl();
  *         VectorHandler* pRH = SM.pResHdl();
  * 
  * // Ogni volta che si desidera riassemblare la matrice:
- * // inizializzare l'HSMatrixHandler
+ * // inizializzare lo SparseMatrixHandler
  *         SM.MatrInit();
  * 
  * // Operare sulla matrice e sui vettori
@@ -75,7 +75,7 @@
  *         SM.Solve();
  * 
  * // Se si desidera modificare la matrice per una nuova soluzione, occorre
- * // inizializzare di nuovo l'HSMatrixHandler, con:
+ * // inizializzare di nuovo lo SparseMatrixHandler, con:
  *         SM.MatrInit();
  * 
  * // Per i parametri di inizializzazione e per eventuali modifiche
@@ -114,7 +114,7 @@
 /* classi dichiarate in questo file */
 
 class SparseData;           /* gestore di sparsita' */
-class HSMatrixHandler;      /* gestore matrice sparsa (assemblaggio) */
+class SparseMatrixHandler;      /* gestore matrice sparsa (assemblaggio) */
 class VectorHandler;        /* gestore vettore (pieno, assemblaggio) */
 class HarwellLUSolver;      /* solutore */
 class HSLUSolutionManager;  /* gestore della soluzione */
@@ -128,7 +128,7 @@ class SchurSolutionManager;
 #ifdef DEBUG_MEMMANAGER
 extern clMemMan SMmm;  /* memory manager per SolutionManager (vedi mynewmem.h) */
 extern clMemMan LUmm;  /* memory manager per HarwellLUSolver */
-extern clMemMan MHmm;  /* memory manager per HSMatrixHandler */
+extern clMemMan MHmm;  /* memory manager per SparseMatrixHandler */
 #endif
 
 
@@ -152,7 +152,7 @@ union uPacVec {
 
 class SparseData {
    friend class HSLUSolutionManager;
-   friend class HSMatrixHandler;
+   friend class SparseMatrixHandler;
 
  public: 
    class ErrNoRoom {};
@@ -246,12 +246,12 @@ class SparseData {
 /* SparseData - end */
 
 
-/* HSMatrixHandler - begin */
+/* SparseMatrixHandler - begin */
 
 /* Gestore di matrici sparse; usa spazio messo a disposizione da altri;
  * usa il gestore di sparsita' SparseData */
  
-class HSMatrixHandler : public MatrixHandler {
+class SparseMatrixHandler : public MatrixHandler {
    friend class HSLUSolutionManager;
  
  private:
@@ -282,14 +282,14 @@ class HSMatrixHandler : public MatrixHandler {
     * ppdMat   - puntatore ad array di reali, contiene la matrice;
     * iWSSize  - dimensione del workspace
     */
-   HSMatrixHandler(integer iMSize, 
-		   integer** ppiTmpRow, 
-		   integer** ppiTmpCol, 
-		   doublereal** ppdTmpMat, 
-		   integer iWSSize);
+   SparseMatrixHandler(integer iMSize, 
+		       integer** ppiTmpRow, 
+		       integer** ppiTmpCol, 
+		       doublereal** ppdTmpMat, 
+		       integer iWSSize);
    
    /* Distruttore banale - non c'e' nulla da distruggere */
-   ~HSMatrixHandler(void);
+   ~SparseMatrixHandler(void);
    
    /* Usato per il debug */
    virtual void IsValid(void) const;
@@ -334,9 +334,9 @@ class HSMatrixHandler : public MatrixHandler {
 
 
 
-inline flag HSMatrixHandler::fPutCoef(integer iRow, 
-				      integer iCol, 
-				      const doublereal& dCoef)
+inline flag SparseMatrixHandler::fPutCoef(integer iRow, 
+				      	  integer iCol, 
+					  const doublereal& dCoef)
 {
 #ifdef DEBUG
    IsValid();
@@ -363,9 +363,9 @@ inline flag HSMatrixHandler::fPutCoef(integer iRow,
 }
 
 
-inline flag HSMatrixHandler::fIncCoef(integer iRow, 
-				      integer iCol, 
-				      const doublereal& dCoef)
+inline flag SparseMatrixHandler::fIncCoef(integer iRow, 
+				      	  integer iCol, 
+					  const doublereal& dCoef)
 {
 #ifdef DEBUG
    IsValid();
@@ -391,9 +391,9 @@ inline flag HSMatrixHandler::fIncCoef(integer iRow,
 }
 
 
-inline flag HSMatrixHandler::fDecCoef(integer iRow,
-				      integer iCol, 
-				      const doublereal& dCoef)
+inline flag SparseMatrixHandler::fDecCoef(integer iRow,
+				      	  integer iCol, 
+					  const doublereal& dCoef)
 {
 #ifdef DEBUG
    IsValid();
@@ -419,7 +419,8 @@ inline flag HSMatrixHandler::fDecCoef(integer iRow,
 }
 
 
-inline const doublereal& HSMatrixHandler::dGetCoef(integer iRow, integer iCol) const
+inline const doublereal& 
+SparseMatrixHandler::dGetCoef(integer iRow, integer iCol) const
 {
 #ifdef DEBUG
    IsValid();
@@ -442,7 +443,7 @@ inline const doublereal& HSMatrixHandler::dGetCoef(integer iRow, integer iCol) c
    return dZero; // zero!
 }
 
-/* HSMatrixHandler - end */
+/* SparseMatrixHandler - end */
 
 
 /* VectorHandler */
@@ -693,7 +694,7 @@ class HSLUSolutionManager : public SolutionManager {
    doublereal* pdMat;    /* puntatore ad array di reali con la matrice */
    doublereal* pdVec;    /* punattore ad array di reali con residuo/soluzione */
    
-   HSMatrixHandler* pMH; /* puntatore a HSMatrixHandler */
+   SparseMatrixHandler* pMH; /* puntatore a SparseMatrixHandler */
    VectorHandler* pVH;   /* puntatore a VectorHandler */
    HarwellLUSolver* pLU; /* puntatore a HarwellLUSolver */
    

@@ -215,9 +215,11 @@ iWorkSpaceSize(0), fNewMatrix(0)
   /* Alloca arrays per il solutore */
   
   
-  SAFENEWWITHCONSTRUCTOR(pBMH, HSMatrixHandler, 
-			 HSMatrixHandler(iWorkSpaceSize, &piBRow, &piBCol, &pdBMat,
- 					 iWorkSpaceSize*iWorkSpaceSize),
+  SAFENEWWITHCONSTRUCTOR(pBMH, 
+                         SparseMatrixHandler, 
+			 SparseMatrixHandler(iWorkSpaceSize, &piBRow, 
+			 		     &piBCol, &pdBMat,
+ 					     iWorkSpaceSize*iWorkSpaceSize),
  			 SMmm);
   
   SAFENEWWITHCONSTRUCTOR(pLU, 

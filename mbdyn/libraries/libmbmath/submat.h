@@ -539,7 +539,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
  */
 
 class SparseSubMatrixHandler : public SubMatrixHandler {
-   friend class HSMatrixHandler;
+   friend class SparseMatrixHandler;
    friend class FullMatrixHandler;
    
  public:
