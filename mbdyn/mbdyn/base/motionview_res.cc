@@ -203,7 +203,7 @@ mrfOpenResult(const float start_time, const float end_time, int num_time_steps)
 }
 
 int
-mrfCloseResult(int flag = 0)
+mrfCloseResult(int flag)
 {
 	return 0;
 }
