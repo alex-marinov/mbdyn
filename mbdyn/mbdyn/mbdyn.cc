@@ -244,7 +244,7 @@ main(int argc, char* argv[])
 			 * all these temporaries are to avoid complains from
 			 * the compiler (MPI's API is really messy ):
 			 */
-			int ProcessorNameLength = sizeof(ProcessorName);
+			int ProcessorNameLength = sizeof(ProcessorName_);
 			MPI::Get_processor_name(ProcessorName, 
 					ProcessorNameLength); 
 			using_mpi = 1;
