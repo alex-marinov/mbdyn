@@ -24,7 +24,8 @@ private:
 	
 	bool bAdvanceCalledFirstTime;
 	MyVectorHandler Res1, Res2;
-	SpMapMatrixHandler Jac11, Jac12, Jac21, Jac22;
+	SpMapMatrixHandler Jacxi_xp, Jacxi_x, Jac_xp, Jac_x;
+	MatrixHandler *pJacxi_xp, *pJacxi_x, *pJac_xp, *pJac_x;
 
 public:
 	ThirdOrderIntegrator(const doublereal dT, 

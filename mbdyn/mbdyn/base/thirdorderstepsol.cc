@@ -55,7 +55,10 @@ pXPrimePrev(0),
 Rho(pRho),
 bAdvanceCalledFirstTime(true)
 {
-	NO_OP;
+	pJacxi_xp = &Jacxi_xp;
+	pJacxi_x  = &Jacxi_x;
+	pJac_xp   = &Jac_xp;
+	pJac_x    = &Jac_x;
 }
 
 
@@ -97,12 +100,12 @@ doublereal ThirdOrderIntegrator::Advance(const doublereal TStep,
 	doublereal dErr = 0.;
 	if (bAdvanceCalledFirstTime) {
 		integer n = pDM->iGetNumDofs();
-		Res1.Resize(n);
-		Res2.Resize(n);
-		Jac11.Resize(n);
-		Jac12.Resize(n);
-		Jac21.Resize(n);
-		Jac22.Resize(n);
+// 		Res1.Resize(n);
+// 		Res2.Resize(n);
+		Jacxi_xp.Resize(n);
+		Jacxi_x.Resize(n);
+		Jac_xp.Resize(n);
+		Jac_x.Resize(n);
 		bAdvanceCalledFirstTime = false;
 	}
 	pXCurr  = pX;
@@ -217,3 +220,61 @@ void ThirdOrderIntegrator::Residual(VectorHandler* pRes) const
 	pDM->AssRes(res, 1.);
 	
 }
+
+void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
+{
+	ASSERT(pDM != NULL);
+	
+	integer iNumDofs = pDM->iGetNumDofs();
+
+	MyVectorHandler state, stateder;
+
+	/* theta*dT */
+	state.Attach(iNumDofs,pXCurr->pdGetVec()+iNumDofs);
+	stateder.Attach(iNumDofs,pXPrimeCurr->pdGetVec()+iNumDofs);
+	pDM->SetTime(pDM->dGetTime()-(1.-theta)*dT);
+	pDM->LinkToSolution(state, stateder);
+	pDM->Update();
+	pDM->AssJac(*pJacxi_x, 1.);
+	pDM->AssJac(*pJacxi_xp, 0.);
+	
+	/* dT */
+	state.Attach(iNumDofs,pXCurr->pdGetVec());
+	stateder.Attach(iNumDofs,pXPrimeCurr->pdGetVec());
+	pDM->SetTime(pDM->dGetTime()+(1.-theta)*dT);
+	pDM->LinkToSolution(state, stateder);
+	pDM->Update();
+	pDM->AssJac(*pJac_x, 1.);
+	pDM->AssJac(*pJac_xp, 0.);
+	
+	
+	/* Attenzione: a differenza di quanto riportato a p. 16,
+	 * "Unconditionally stable multistep integration of oridnary
+	 * differential and differential-algebraic equations with
+	 * controlled algorithmic dissipation for multibody dynamic
+	 * applications"
+	 * qui il tempo finale e' in cima, il tempo theta in basso
+	 */ 
+	 
+	/* 2,2 */
+	doublereal J22_x = (1.+3.*rho)/(6.*rho*(1.+rho))*dT;
+	Jacxi_x.MulAndSumWithShift(*pJac,J22_x,iNumDofs,iNumDofs);
+	Jacxi_xp.MulAndSumWithShift(*pJac,1.-J22_x,iNumDofs,iNumDofs);
+	
+	/* 2,1 */
+	doublereal J21_x = -1./(6.*rho*(1.+rho)*(1.+rho))*dT;
+	Jacxi_x.MulAndSumWithShift(*pJac,J21_x,iNumDofs,0);
+	Jacxi_xp.MulAndSumWithShift(*pJac,-J21_x,iNumDofs,0);
+	
+	/* 1,2 */
+	doublereal J12_x = (1.+rho)*(1.+rho)/(6.*rho)*dT;
+	Jac_x.MulAndSumWithShift(*pJac,J12_x,0,iNumDofs);
+	Jac_xp.MulAndSumWithShift(*pJac,-J12_x,0,iNumDofs);
+	
+	/* 1,1 */
+	doublereal J11_x = (2.*rho-1.)/(6.*rho)*dT;
+	Jac_x.MulAndSumWithShift(*pJac,J11_x,0,0);
+	Jac_xp.MulAndSumWithShift(*pJac,1.-J11_x,0,0);
+}
+
+
