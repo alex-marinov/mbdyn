@@ -135,5 +135,92 @@ public:
 	};
 };
 
+template <class T>
+class DiscStateFriction : public Friction<T> {
+public:
+	enum State {
+		Stick,
+		Slip
+	};
+
+private:
+	State		m_state;
+	T		m_maxForce;
+	doublereal	m_stiffness;
+	T		m_s0;
+	doublereal 	m_velTreshold;
+
+public:
+	DiscStateFriction(const doublereal &maxForce, 
+			const doublereal &stiffness, 
+			const doublereal &velTreshold, 
+			DiscStateFriction::State initialState = Stick)
+	: m_state(initialState),
+	m_maxForce(maxForce),
+	m_stiffness(stiffness),
+	m_s0(0.),
+	m_velTreshold(velTreshold) {
+		NO_OP;
+	};
+
+	virtual ~DiscStateFriction(void) { NO_OP; };
+
+private:
+	const char *S() const {
+		if (m_state == Stick) {
+			return "stick";
+		}
+		return "slip";
+	};
+
+	virtual void Update(const T &force,
+			const T & position, 
+			const T &velocity, 
+			Friction::UpdateType update = ANY) {
+		switch (m_state) {
+		case Stick:
+			m_F = (position-m_s0)*(-m_stiffness);
+			if (position > m_s0) {
+				if (m_F < -m_maxForce) {
+					m_F = -m_maxForce;
+					if (update == FIRST) {
+						m_state = Slip;
+					}
+				}
+			} else {
+				if (m_F > m_maxForce) {
+					m_F = m_maxForce;
+					if (update == FIRST) {
+						m_state = Slip;
+					}
+				}
+			}
+			break;
+
+		case Slip: {
+			doublereal s = dir(velocity);
+			
+			if (update == FIRST) {
+				doublereal v = norm(velocity);
+
+				if (v < m_velTreshold) {
+					m_s0 = position - m_maxForce*(s/m_stiffness);
+					m_F = m_maxForce*(-s);
+					m_state = Stick;
+				} else {
+					m_F = m_maxForce*(-s);
+				}
+			} else {
+				m_F = m_maxForce*(-s);
+			}
+			break;
+		}
+		}
+
+		std::cerr << "state: " << S() << "; p=" << position << "; v=" << velocity << "; m_s0=" << m_s0 << "; F=" << m_F << std::endl;
+	};
+		
+};
+
 #endif /* FRICTION_H */
 

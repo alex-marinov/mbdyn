@@ -73,7 +73,7 @@ read(LoadableElem* pEl,
 	if (HP.IsKeyWord("help")) {
 		std::cout <<
 "									\n"
-"Module: 	wheel2							\n"
+"Module: 	friction						\n"
 "Author: 	Stefania Gualdi <gualdi@aero.polimi.it>			\n"
 "		Marco Morandini <morandini@aero.polimi.it>		\n"
 "		Pierangelo Masarati <masarati@aero.polimi.it>		\n"
@@ -114,6 +114,26 @@ read(LoadableElem* pEl,
 
 		typedef TanhFriction<doublereal> S;
 		SAFENEWWITHCONSTRUCTOR(p->f, S, S(mu, vrif));
+
+	} else if (HP.IsKeyWord("discretestate")) {
+		doublereal maxForce = HP.GetReal();
+		doublereal stiffness = HP.GetReal();
+		doublereal velTreshold = HP.GetReal();
+
+		DiscStateFriction<doublereal>::State state = DiscStateFriction<doublereal>::Stick;
+		if (HP.IsKeyWord("initialstate")) {
+			if (HP.IsKeyWord("stick")) {
+				state = DiscStateFriction<doublereal>::Stick;
+			} else if (HP.IsKeyWord("slip")) {
+				state = DiscStateFriction<doublereal>::Slip;
+			} else {
+				std::cerr << "unknown state for discrete state friction model" << std::endl;
+				THROW(ErrGeneric());
+			}
+		}
+		
+		typedef DiscStateFriction<doublereal> S;
+		SAFENEWWITHCONSTRUCTOR(p->f, S, S(maxForce, stiffness, velTreshold, state));
 
 	} else {
 		std::cerr << "unknown friction model" << std::endl;
@@ -239,9 +259,9 @@ update(LoadableElem* pEl,
 	module_friction* p = (module_friction*)pEl->pGetData();
 
 	p->firstUpdate = true;
-	p->f->Update(1., p->dof.pNode->dGetX(), p->dof.pNode->dGetXPrime(), Friction<doublereal>::ANY);
+	p->f->Update(1., p->dof.pNode->dGetX(), p->dof.pNode->dGetXPrime(), Friction<doublereal>::FIRST);
 
-	//std::cerr << "update; F=" << p->f->F() << std::endl;
+	std::cerr << "update; F=" << p->f->F() << std::endl;
 }
 
 static unsigned int
