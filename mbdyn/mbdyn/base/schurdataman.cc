@@ -151,6 +151,11 @@ SchurDataManager::pGetDofsList(void) const
 	return 0;
 }
 
+void
+SchurDataManager::Output(bool force) const
+{
+	NO_OP;
+}
 #else /* USE_MPI */
 
 /* Costruttore - begin */
