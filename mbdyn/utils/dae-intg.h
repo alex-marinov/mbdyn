@@ -32,25 +32,25 @@
 
 #include <ac/iostream>
 
-typedef int (*pread)(void**, const char*);
-typedef int (*pinit)(void*, VectorHandler&);
-typedef int (*psize)(void*);
-typedef int (*pgrad)(void*, MatrixHandler&, MatrixHandler&, 
+typedef int (*pread_t)(void**, const char*);
+typedef int (*pinit_t)(void*, VectorHandler&);
+typedef int (*psize_t)(void*);
+typedef int (*pgrad_t)(void*, MatrixHandler&, MatrixHandler&, 
 		     const VectorHandler&, const doublereal&);
-typedef int (*pfunc)(void*, VectorHandler&,
+typedef int (*pfunc_t)(void*, VectorHandler&,
 		     const VectorHandler&, const doublereal&);
-typedef std::ostream& (*pout)(void*, std::ostream&,
+typedef std::ostream& (*pout_t)(void*, std::ostream&,
 			 const VectorHandler&, const VectorHandler&);
-typedef int (*pdestroy)(void**);
+typedef int (*pdestroy_t)(void**);
 
 typedef struct _funcs {
-	pread read;
-	pinit init;
-	psize size;
-	pgrad grad;
-	pfunc func;
-	pout out;
-	pdestroy destroy;
+	pread_t read;
+	pinit_t init;
+	psize_t size;
+	pgrad_t grad;
+	pfunc_t func;
+	pout_t out;
+	pdestroy_t destroy;
 } funcs;
 
 #endif /* DAE_INTG_H */

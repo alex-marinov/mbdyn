@@ -247,13 +247,13 @@ get_method_data(int curr_method, const char* optarg)
 }
 
 
-typedef int (*pread)(void**, const char*);
-typedef int (*pinit)(void*, VectorHandler&);
-typedef int (*psize)(void*);
-typedef int (*pgrad)(void*, MatrixHandler&, const VectorHandler&, const doublereal&);
-typedef int (*pfunc)(void*, VectorHandler&, const VectorHandler&, const doublereal&);
-typedef std::ostream& (*pout)(void*, std::ostream&, const VectorHandler&, const VectorHandler&);
-typedef int (*pdestroy)(void**);
+typedef int (*pread_t)(void**, const char*);
+typedef int (*pinit_t)(void*, VectorHandler&);
+typedef int (*psize_t)(void*);
+typedef int (*pgrad_t)(void*, MatrixHandler&, const VectorHandler&, const doublereal&);
+typedef int (*pfunc_t)(void*, VectorHandler&, const VectorHandler&, const doublereal&);
+typedef std::ostream& (*pout_t)(void*, std::ostream&, const VectorHandler&, const VectorHandler&);
+typedef int (*pdestroy_t)(void**);
 
 
 enum {
@@ -292,13 +292,13 @@ const char* fnames_mangled[] = {
      NULL
 };
 
-static pread ff_read = NULL;
-static pinit ff_init = NULL;
-static psize ff_size = NULL;
-static pgrad ff_grad = NULL;
-static pfunc ff_func = NULL;
-static pout ff_out = NULL;
-static pdestroy ff_destroy = NULL;
+static pread_t ff_read = NULL;
+static pinit_t ff_init = NULL;
+static psize_t ff_size = NULL;
+static pgrad_t ff_grad = NULL;
+static pfunc_t ff_func = NULL;
+static pout_t ff_out = NULL;
+static pdestroy_t ff_destroy = NULL;
 
 int open_module(const char* module) 
 {
@@ -311,43 +311,43 @@ int open_module(const char* module)
       exit(EXIT_FAILURE);
    }
    
-   if ((::ff_read = (pread)dlsym(handle, fnames_mangled[F_READ])) == NULL) {
+   if ((::ff_read = (pread_t)dlsym(handle, fnames_mangled[F_READ])) == NULL) {
       err = dlerror();
       std::cerr << "dlsym(\"read\") returned \"" << err << "\"" << std::endl;
       exit(EXIT_FAILURE);
    }
    
-   if ((::ff_init = (pinit)dlsym(handle, fnames_mangled[F_INIT])) == NULL) {
+   if ((::ff_init = (pinit_t)dlsym(handle, fnames_mangled[F_INIT])) == NULL) {
       err = dlerror();
       std::cerr << "dlsym(\"init\") returned \"" << err << "\"" << std::endl;
       exit(EXIT_FAILURE);
    }
    
-   if ((::ff_size = (psize)dlsym(handle, fnames_mangled[F_SIZE])) == NULL) {
+   if ((::ff_size = (psize_t)dlsym(handle, fnames_mangled[F_SIZE])) == NULL) {
       err = dlerror();
       std::cerr << "dlsym(\"size\") returned \"" << err << "\"" << std::endl;
       exit(EXIT_FAILURE);
    }
    
-   if ((::ff_grad = (pgrad)dlsym(handle, fnames_mangled[F_GRAD])) == NULL) {
+   if ((::ff_grad = (pgrad_t)dlsym(handle, fnames_mangled[F_GRAD])) == NULL) {
       err = dlerror();
       std::cerr << "dlsym(\"grad\") returned \"" << err << "\"" << std::endl;
       exit(EXIT_FAILURE);
    }
    
-   if ((::ff_func = (pfunc)dlsym(handle, fnames_mangled[F_FUNC])) == NULL) {
+   if ((::ff_func = (pfunc_t)dlsym(handle, fnames_mangled[F_FUNC])) == NULL) {
       err = dlerror();
       std::cerr << "dlsym(\"func\") returned \"" << err << "\"" << std::endl;
       exit(EXIT_FAILURE);
    }
    
-   if ((::ff_out = (pout)dlsym(handle, fnames_mangled[F_OUT])) == NULL) {
+   if ((::ff_out = (pout_t)dlsym(handle, fnames_mangled[F_OUT])) == NULL) {
       err = dlerror();
       std::cerr << "dlsym(\"out\") returned \"" << err << "\"" << std::endl;
       exit(EXIT_FAILURE);
    }
    
-   if ((::ff_destroy = (pdestroy)dlsym(handle, fnames_mangled[F_DESTROY])) == NULL) {
+   if ((::ff_destroy = (pdestroy_t)dlsym(handle, fnames_mangled[F_DESTROY])) == NULL) {
       err = dlerror();
       std::cerr << "dlsym(\"destroy\") returned \"" << err << "\"" << std::endl;
       exit(EXIT_FAILURE);
