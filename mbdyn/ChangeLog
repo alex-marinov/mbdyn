@@ -6,6 +6,10 @@ Copyright (C) 1996-2002
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Mon Mar  4 16:52:59 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - use pdflatex to generate better quality pdf documentation (as suggested
+   by Herman Bruyninckx <Herman.Bruyninckx@mech.kuleuven.ac.be>)
+
 *** Mon Mar  4 14:17:16 CET 2002 Giuseppe Quaranta <quaranta@aero.polimi.it>
  - fix configure.in check for parallel solver
 
