@@ -293,13 +293,16 @@ mainly used to cleanly check models and simulations at various phases.
 
 \subsubsection{Solver}   
 \begin{verbatim}
-    <card> ::= solver : { umfpack | y12 | harwell | meschach }
-               [ , workspace size , <size> ] 
-	       [ , pivot factor , <factor> ] ;
+    <card> ::= solver :
+            { umfpack | y12 | harwell | meschach | superlu }
+        [ , { map | cc | dir } ]
+        [ , mt , <threads> ]
+        [ , workspace size , <size> ] 
+        [ , pivot factor , <factor> ] ;
 \end{verbatim}
 The default, if available, is \kw{umfpack} which dynamically
 allocates memory as required, so the \kw{workspace size} 
-parameter is ignored.
+parameter, if given, is ignored.
 The \kw{y12} solver requires static allocation of the workspace;
 the optimal size is between 2 and 3 times the number of nonzero 
 coefficients.
@@ -315,6 +318,42 @@ might prefer a smaller workspace, since the matrix is handled as sparse,
 while sometimes a larger space is required, since when the matrix is
 full, a little more space is required, due to extra storage needs when
 the matrix fills up.
+Finally, \kw{superlu} is an experimental solver that is able to perform
+the factorization in a multithreaded environment.
+If more than one CPU is available, it automatically uses all the CPUs;
+the keyword \kw{mt} allows to enforce the desired number of threads.
+See also the \kw{threads} keyword for more details on multithreaded
+solution.
+The keywords \kw{map} (Sparse Map), \kw{cc} (Column Compressed)
+and \kw{dir} (Direct Access) can be used to modify the way
+the sparse matrix is handled:
+\begin{itemize}
+\item \kw{map} uses an array of binary trees to store the matrix,
+coefficients; right before the factorization, the matrix is transformed
+in the form required by each solver, usually Column Compressed
+(also known as Harwell-Boieng format) or Index (as used by \kw{y12}).
+The matrix is regenerated each time an assembly is required.
+\item \kw{cc} uses the compact format resulting from the trasformation
+required by the solver to store the coefficients in subsequent assemblies,
+thus saving the tiem required to transform the matrix.
+If the profile of the matrix changes, the compact form is invalidated,
+and the matrix is reset to \kw{map} form.  As a consequence, this matrix
+form allows faster access and reduced factorization cost, but in certain
+cases may require an additional cost.
+\item \kw{dir} uses a full index table to grant direct access time to
+the actual location of each coefficient.
+In principle it should be a bit faster than \kw{cc}, at the cost
+of some memory waste.
+However, in practical applications, the cost of these operations
+is a very small fraction of the factorization time.
+If the problem is quite large, the memory consumption might
+become unacceptable; if the problem is quite small, the access time
+of \kw{cc} is quite limited ($\log_2\plbr{\mathrm{<nz>}}$, where
+\kw{<nz>} is the number of nonzeroes in a column) so it is definitely
+comparable to that of \kw{cc}.
+\end{itemize}
+Only \kw{umfpack}, \kw{y12} and \kw{superlu} solvers allow these
+settings.
 
 \noindent
 Pivot factor is a real, which in a heuristic sense can be regarded as
@@ -328,17 +367,49 @@ Table~\ref{tab:solvers} summarizes the properties of the solvers
 \begin{table}
 \centering
 \caption{Properties of the solvers}\label{tab:solvers}
-\begin{tabular}{lccc}
-Solver & Pivot & Size & Memory allocation \\
+\begin{tabular}{llll}
+\hline\hline
+Solver		& Pivot			& Size			& Memory \\
+		&			&			& Allocation \\
 \hline
-Umfpack 3	& full: 1.0 	& 			& dynamic \\
- 		& default: 0.1 	&			& \\
-Y12m 		& full: 1.0 	& $2 \times n^2 $	& static \\
-		&		& optimal		& \\
-Harwell		& full: 1.0	& ?			& static \\
-Meschach	& full: 1.0	& 			& dynamic
+Umfpack 3	& 0.0$\rightarrow$1.0 	& 			& dynamic \\
+ 		& default: 0.1 		&			& \\
+Y12m 		& none=0.0, 		& $2\times{n^2} $	& static \\
+		& full=1.0		& optimal		& \\
+SuperLU		& 0.0$\rightarrow$1.0	&			& dynamic \\
+Harwell		& full: 1.0		& ?			& static \\
+Meschach	& full: 1.0		& 			& dynamic \\
+\hline\hline
 \end{tabular}
 \end{table}
+
+
+\subsubsection{Threads}   
+\begin{verbatim}
+    <card> ::= threads :
+        { auto | disable | [ { assembly | solver } , ] <threads> }
+\end{verbatim}
+By default, if enabled at compile time, the assembly is performed
+in a multithreaded environment if more than one CPU is available 
+and the selected solver allows it (e.g.\ if it supports any form 
+of compressed matrix handling, \kw{cc} or \kw{dir}).
+However, this behavior can be influenced by the \kw{threads} directive.
+The value \kw{auto} is the default; the value \kw{disable} reverts
+to the usual scalar behavior; otherwise \kw{<threads>}, the desired 
+number of threads, is read.
+If it is prefixed by the keyword \kw{assembly}, the desired number
+of threads is used only in assembly; if it is prefixed by the keyword
+\kw{solver}, the desired number of threads is used only during 
+factorization/solution, if the linear solver supports it (currently,
+only the \kw{superlu} solver does).
+As an example, on a 4 CPU architecture, to use 2 threads for assembly
+and 4 threads for solution, use
+\begin{verbatim}
+    threads: assembly, 2;
+    solver: superlu, cc, mt, 4;
+\end{verbatim}
+
+
 
 
 
