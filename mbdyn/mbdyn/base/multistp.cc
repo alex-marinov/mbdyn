@@ -194,6 +194,7 @@ iOutputFlags(0),
 fTrueNewtonRaphson(1),
 iIterationsBeforeAssembly(0),
 iPerformedIterations(0),
+fPrintRes(false),
 iStepsAfterReduction(0),
 iStepsAfterRaise(0),
 iWeightedPerformedIters(0),
@@ -732,15 +733,16 @@ MultiStepIntegrator::Run(void)
 		MPE_Log_event(4, 0, "end");
 #endif /* MPI_PROFILING */
       
-#ifdef DEBUG
-      		if (DEBUG_LEVEL_MATCH(MYDEBUG_DERIVATIVES|MYDEBUG_RESIDUAL)) {
+//#ifdef DEBUG
+      		if (DEBUG_LEVEL_MATCH(MYDEBUG_DERIVATIVES|MYDEBUG_RESIDUAL)||
+			fPrintRes) {
 	 		std::cout << "Residual:" << std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
 	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": " 
 	      				<< pRes->dGetCoef(iTmpCnt) << std::endl;
 	 		}
       		}
-#endif /* DEBUG */
+//#endif /* DEBUG */
 
       		if (dTest < dDerivativesTol) {
 	 		goto EndOfDerivatives;
@@ -933,8 +935,9 @@ EndOfDerivatives:
 			MPE_Log_event(4, 0, "end");
 #endif /* MPI_PROFILING */
 	 
-#ifdef DEBUG
-			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)) {
+//#ifdef DEBUG
+			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)||
+				fPrintRes) {
 				std::cout << "Residual:" << std::endl;
 				for (int iTmpCnt = 1;
 				     iTmpCnt <= iNumDofs;
@@ -944,7 +947,7 @@ EndOfDerivatives:
 						<< pRes->dGetCoef(iTmpCnt) << std::endl;
 	    			}
 	 		}
-#endif /* DEBUG */
+//#endif /* DEBUG */
 	 
 	 		if (dTest < dFictitiousStepsTolerance) {
 	   			goto EndOfFirstFictitiousStep;
@@ -1122,8 +1125,9 @@ EndOfFirstFictitiousStep:
 				MPE_Log_event(4, 0, "end");
 #endif /* MPI_PROFILING */
 
-#ifdef DEBUG
-	    			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)) {
+//#ifdef DEBUG
+	    			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL) ||
+					fPrintRes) {
 	       				std::cout << "Residual:" << std::endl;
 	       				for (int iTmpCnt = 1;
 					     iTmpCnt <= iNumDofs;
@@ -1135,7 +1139,7 @@ EndOfFirstFictitiousStep:
 							<< std::endl;
 	       				}
 	    			}
-#endif /* DEBUG */
+//#endif /* DEBUG */
 
 	    
 	    			if (dTest < dFictitiousStepsTolerance) {
@@ -1352,8 +1356,8 @@ IfFirstStepIsToBeRepeated:
 
       		dTest = MakeTest(*pRes, *pXPrimeCurr);
       
-#ifdef DEBUG
-      		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL)) {
+//#ifdef DEBUG
+      		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL)||fPrintRes) {
 	 		std::cout << "Residual:" << std::endl;
 	 		std::cout << iStep  << "   " << iIterCnt <<std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
@@ -1361,7 +1365,7 @@ IfFirstStepIsToBeRepeated:
 					<< pRes->dGetCoef(iTmpCnt) << std::endl;
 			}
       		}
-#endif /* DEBUG */
+//#endif /* DEBUG */
       
       		if (dTest < dTol) {
 	 		goto EndOfFirstStep;
@@ -1633,8 +1637,8 @@ IfStepIsToBeRepeated:
 			}
 #endif /* USE_EXCEPTIONS */
 
-#ifdef DEBUG   
-	 		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL)) {
+//#ifdef DEBUG   
+	 		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL)|| fPrintRes) {
 	    			std::cout << "Residual:" << std::endl;
 	    			std::cout << iStep  << "   " << iIterCnt << std::endl;
 	    			for (int iTmpCnt = 1;
@@ -1646,7 +1650,7 @@ IfStepIsToBeRepeated:
 						<< std::endl;
 	    			}
 	 		}
-#endif /* DEBUG */
+//#endif /* DEBUG */
 
         		if (dTest < dTol) {
 				CurrStep = MultiStepIntegrationMethod::NEWSTEP;
@@ -2547,6 +2551,8 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		"Newton" "Raphson",
 			"true",
 			"modified",
+		
+		"PrintRes",
 	
 		"strategy",
 			"factor",
@@ -2622,7 +2628,9 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		NEWTONRAPHSON,
 		NR_TRUE,
 		MODIFIED,
-	
+
+		PRINTRES,
+			
 		STRATEGY,
 		STRATEGYFACTOR,
 		STRATEGYNOCHANGE,
@@ -3154,7 +3162,12 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	   }		 
 	  }		  		  
 	  break;
-       }	     
+       }
+
+       case PRINTRES: {
+          fPrintRes = true;
+          break;
+       }   
 	 
        case END: {	     
 	  if (KeyWords(HP.GetWord()) != MULTISTEP) {

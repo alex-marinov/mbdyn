@@ -306,7 +306,10 @@ private:
    	flag fTrueNewtonRaphson;
    	integer iIterationsBeforeAssembly;
    	integer iPerformedIterations;
- 
+
+        /* Parametri per debug */
+ 	flag fPrintRes;
+
    	/* Parametri per la variazione passo */
    	integer iStepsAfterReduction;
    	integer iStepsAfterRaise;
