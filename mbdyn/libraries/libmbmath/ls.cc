@@ -59,12 +59,12 @@ LinearSolver::~LinearSolver(void)
 void
 LinearSolver::IsValid(void) const
 {
-	ASSERT(pSM);	
-	ASSERT(pdRhs);	
-	ASSERT(pdSol);	
+	ASSERT(pSM);
+	ASSERT(pdRhs);
+	ASSERT(pdSol);
 }
 #endif /* DEBUG */
-	
+
 void
 LinearSolver::Init(void)
 {
@@ -78,17 +78,25 @@ LinearSolver::SetSolutionManager(SolutionManager *psm)
 }
 
 /* sposta il puntatore al vettore del residuo */
-void
+doublereal *
 LinearSolver::ChangeResPoint(doublereal* pd)
 {
+	doublereal *p = pdRhs;
+
 	pdRhs = pd;
+
+	return p;
 }
 
 /* sposta il puntatore al vettore della soluzione */
-void
+doublereal *
 LinearSolver::ChangeSolPoint(doublereal* pd)
 {
+	doublereal *p = pdSol;
+
 	pdSol = pd;
+
+	return p;
 }
 
 void

@@ -129,10 +129,10 @@ public:
 	virtual VectorHandler* pSolHdl(void) const = 0;
 
    	/* sposta il puntatore al vettore del residuo */
-   	void ChangeResPoint(doublereal* pdres);
+   	doublereal *ChangeResPoint(doublereal* pd);
    
    	/* sposta il puntatore al vettore della soluzione */
-   	void ChangeSolPoint(doublereal* pdsol);
+   	doublereal *ChangeSolPoint(doublereal* pd);
 };
 
 /* SolutionManager - end */

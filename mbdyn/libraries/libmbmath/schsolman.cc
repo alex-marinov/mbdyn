@@ -694,7 +694,7 @@ SchurSolutionManager::InitializeComm(void)
 
 
 /* sposta il puntatore al vettore del residuo */
-void
+doublereal *
 SchurSolutionManager::ChangeResPoint(doublereal* pRes)
 {
 	std::cerr << "SchurSolutionManager::ChangeResPoint(): "
@@ -704,7 +704,7 @@ SchurSolutionManager::ChangeResPoint(doublereal* pRes)
 }
 
 /* sposta il puntatore al vettore del residuo */
-void
+doublereal *
 SchurSolutionManager::ChangeSolPoint(doublereal* pSol)
 {
 	std::cerr << "SchurSolutionManager::ChangeSolPoint(): "

@@ -151,10 +151,10 @@ public:
 	void Solve(void);
 
 	/* sposta il puntatore al vettore del residuo */
-	void ChangeResPoint(doublereal* pRes);
+	doublereal *ChangeResPoint(doublereal* pRes);
 
 	/* sposta il puntatore al vettore del residuo */
-	void ChangeSolPoint(doublereal* pSol);
+	doublereal *ChangeSolPoint(doublereal* pSol);
 
 	/* Rende disponibile l'handler per la matrice */
 	SchurMatrixHandler* pMatHdl(void) const;

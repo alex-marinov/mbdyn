@@ -280,7 +280,7 @@ VectorHandler::InnerProd(const VectorHandler& VH) const
 
 MyVectorHandler::MyVectorHandler(integer iSize, doublereal* pdTmpVec)
 : bOwnsMemory(false),
-iMaxSize(iSize), iCurSize(iSize), pdVecm1()
+iMaxSize(iSize), iCurSize(iSize), pdVecm1(0)
 {
 	if (iSize == 0) {
 		ASSERT(pdVecm1 == NULL);
@@ -311,8 +311,7 @@ MyVectorHandler::Resize(integer iSize)
 		THROW(ErrGeneric());
 	}
 
-
-	if (bOwnsMemory) {
+	if (pdVecm1 == NULL || bOwnsMemory) {
 		if (pdVecm1 != NULL) {
 			if (iSize > iMaxSize) {
 				doublereal* pd = NULL;

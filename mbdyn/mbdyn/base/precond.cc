@@ -57,14 +57,36 @@ void
 FullJacobianPr::Precond(VectorHandler& b, VectorHandler& x, 
 		SolutionManager* pSM) const
 {
+	/*
+	 * To be conservative, restore the existing vectors when done :)
+	 */
+	doublereal *pdr = NULL, *pds = NULL;
+
+	/*
+	 * FIXME: what if they're null, but in general need be different?
+	 *
+	 * better do a
+
+	 bool bChangePointers(doublereal *newRhs, doublereal *newSol,
+	 		doublereal *&oldRhs, doublereal *&oldSol)
+	
+	 * that, if both are needed does what expected, otherwise
+	 * copies rhs in sol and uses only sol
+	 */
 	if (pSM->pSolHdl() != pSM->pResHdl()) {	
-		pSM->ChangeResPoint(b.pdGetVec());
-		pSM->ChangeSolPoint(x.pdGetVec());
-		pSM->Solve();
+		pdr = pSM->ChangeResPoint(b.pdGetVec());
+		pds = pSM->ChangeSolPoint(x.pdGetVec());
+
 	} else {
 		x = b;
-		pSM->ChangeResPoint(x.pdGetVec());
-		pSM->Solve();
+		pdr = pSM->ChangeResPoint(x.pdGetVec());
+	}
+
+	pSM->Solve();
+
+	(void)pSM->ChangeResPoint(pdr);
+	if (pds != pdr) {
+		(void)pSM->ChangeSolPoint(pds);
 	}
 }
 

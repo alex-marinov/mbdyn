@@ -59,18 +59,15 @@ Gmres::Gmres(const Preconditioner::PrecondType PType,
 		doublereal etaMx,
 		doublereal T) 
 : MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T),
-v(NULL)
+v(NULL),
+s(MaxLinIt + 1), cs(MaxLinIt + 1), sn(MaxLinIt + 1)
 {
-	SAFENEWARR(v, MyVectorHandler, MaxLinIt+1); 
-
-	s.Resize(MaxLinIt+1);
-	cs.Resize(MaxLinIt+1);
-	sn.Resize(MaxLinIt+1);
+	SAFENEWARR(v, MyVectorHandler, MaxLinIt + 1); 
 }
 	
 Gmres::~Gmres(void)
 {
-	for (int i = 0; i <= MaxLinIt; i++) {
+	for (int i = 0; i < MaxLinIt + 1; i++) {
 		v[i].Detach();
 	}
 
@@ -84,10 +81,12 @@ Gmres::GeneratePlaneRotation(const doublereal &dx, const doublereal &dy,
 	if (fabs(dy) < DBL_EPSILON) {
 		cs = 1.0;
 		sn = 0.0;
+
 	} else if (fabs(dy) > fabs(dx)) {
 		doublereal temp = dx / dy; 
 		sn = 1.0 / sqrt( 1.0 + temp*temp );
 		cs = temp * sn;
+
 	} else {
 		doublereal temp = dy / dx; 
 		cs = 1.0 / sqrt( 1.0 + temp*temp );
@@ -168,12 +167,12 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 	vHat.Resize(Size);
 	dx.Resize(Size);
 
-	H.Resize(Size, MaxLinIt+1);
+	H.Resize(Size, MaxLinIt + 1);
 
 	integer TotalIter = 0;
 
 #ifdef DEBUG_ITERATIVE
-	std::cout << " Gmres New Step " <<std::endl; 			
+	std::cout << " Gmres New Step " << std::endl;
 #endif /* DEBUG_ITERATIVE */
 
 	while (true) {
