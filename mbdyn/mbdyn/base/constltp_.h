@@ -1392,6 +1392,123 @@ class TurbulentViscoElasticConstitutiveLaw<doublereal, doublereal>
 /* TurbulentViscoElasticConstitutiveLaw - end */
 
 
+/* LinearViscoElasticBiStopConstitutiveLaw - begin */
+
+template <class T, class Tder>
+class LinearViscoElasticBiStopConstitutiveLaw 
+: public ElasticConstitutiveLaw<T, Tder> {
+public:
+	enum Status { INACTIVE, ACTIVE };
+private:
+	enum Status status;
+	const DriveCaller *pActivatingCondition;
+	const DriveCaller *pDeactivatingCondition;
+	Tder FDECurr;
+	Tder FDEPrimeCurr;
+	T EpsRef;
+public:
+	LinearViscoElasticBiStopConstitutiveLaw(
+			const TplDriveCaller<T>* pDC,
+			const T& PStress,
+			const Tder& Stiff,
+			const Tder& StiffPrime,
+			enum Status initialStatus,
+			const DriveCaller *pA,
+			const DriveCaller *pD
+	) : ElasticConstitutiveLaw<T, Tder>(pDC, PStress),
+	status(initialStatus), 
+	pActivatingCondition(pA), pDeactivatingCondition(pD), EpsRef(0.) {
+		ASSERT(pActivatingCondition != NULL);
+		ASSERT(pDeactivatingCondition != NULL);
+		FDECurr = Stiff;
+		FDEPrimeCurr = StiffPrime;
+		if (status == ACTIVE) {
+			ConstitutiveLaw<T, Tder>::FDE = Stiff;
+			ConstitutiveLaw<T, Tder>::FDEPrime = StiffPrime;
+		}
+	};
+   
+	virtual 
+	~LinearViscoElasticBiStopConstitutiveLaw(void) {
+		NO_OP;
+	};
+	
+	virtual 
+	ConstitutiveLaw<T, Tder>* pCopy(void) const {
+		ConstitutiveLaw<T, Tder>* pCL = NULL;
+		
+		typedef LinearViscoElasticBiStopConstitutiveLaw<T, Tder> cl;
+		SAFENEWWITHCONSTRUCTOR(pCL, 
+			cl, 
+			cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(),
+				ElasticConstitutiveLaw<T, Tder>::PreStress, 
+				ConstitutiveLaw<T, Tder>::FDE,
+				ConstitutiveLaw<T, Tder>::FDEPrime,
+				status, 
+				pActivatingCondition->pCopy(), 
+				pDeactivatingCondition->pCopy()));
+		
+		return pCL;
+	};
+   
+	virtual ostream& 
+	Restart(ostream& out) const {
+		out << "linear viscoelastic bistop, ",
+			Write(out, ConstitutiveLaw<T, Tder>::FDE, ", ") << ", ",
+			Write(out, ConstitutiveLaw<T, Tder>::FDEPrime, ", ")
+			<< ", initial status, ";
+		if (status == INACTIVE) {
+			out << "inactive";
+		} else {
+			out << "active";
+		}
+		out << ", ",
+			pActivatingCondition->Restart(out) << ", ",
+			pDeactivatingCondition->Restart(out);
+		return Restart_(out);
+	};
+	
+	virtual void 
+	Update(const T& Eps, const T& EpsPrime = 0.) {
+		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
+		ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
+
+		switch (status) {
+		case INACTIVE:
+			if (pActivatingCondition->dGet() == 0.) {
+				break;
+			}
+			status = ACTIVE;
+			EpsRef = ConstitutiveLaw<T, Tder>::Epsilon-ElasticConstitutiveLaw<T, Tder>::Get();
+			ConstitutiveLaw<T, Tder>::FDE = FDECurr;
+			ConstitutiveLaw<T, Tder>::FDEPrime = FDEPrimeCurr;
+
+		case ACTIVE:
+			if (pDeactivatingCondition->dGet() != 0.) {
+				status = INACTIVE;
+				ConstitutiveLaw<T, Tder>::FDE = 0.;
+				ConstitutiveLaw<T, Tder>::FDEPrime = 0.;
+				ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress;
+				break;
+			}
+			ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress
+				+ConstitutiveLaw<T, Tder>::FDE*(ConstitutiveLaw<T, Tder>::Epsilon-ElasticConstitutiveLaw<T, Tder>::Get()-EpsRef)
+				+ConstitutiveLaw<T, Tder>::FDEPrime*ConstitutiveLaw<T, Tder>::EpsilonPrime;
+			break;
+		}
+	};
+	
+	virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.) {
+		Update(ConstitutiveLaw<T, Tder>::Epsilon+DeltaEps, EpsPrime);
+	};
+};
+
+typedef LinearViscoElasticBiStopConstitutiveLaw<doublereal, doublereal> LinearViscoElasticBiStopConstitutiveLaw1D;
+typedef LinearViscoElasticBiStopConstitutiveLaw<Vec3, Mat3x3> LinearViscoElasticBiStopConstitutiveLaw3D;
+typedef LinearViscoElasticBiStopConstitutiveLaw<Vec6, Mat6x6> LinearViscoElasticBiStopConstitutiveLaw6D;
+
+/* LinearViscoElasticBiStopConstitutiveLaw - end */
+
 
 
 

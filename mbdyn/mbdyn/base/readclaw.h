@@ -88,6 +88,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
       "linear" "elastic" "isotropic",
 	"linear" "elastic" "generic",
 	"linear" "elastic" "generic" "axial" "torsion" "coupling",
+	"linear" "elastic" "bistop",
 	"log" "elastic",
 	"double" "linear" "elastic",
 	"isotropic" "hardening" "elastic",
@@ -100,6 +101,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 	"linear" "viscoelastic" "generic",
 	"doublelinear" "viscoelastic",
 	"turbulent" "viscoelastic",
+	"linear" "viscoelastic" "bistop",
 	"graall" "damper",
 	"shock" "absorber"
    };
@@ -112,6 +114,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 	LINEARELASTICISOTROPIC,
 	LINEARELASTICGENERIC,
 	LINEARELASTICGENERICAXIALTORSIONCOUPLING,
+	LINEARELASTICBISTOP,
 	LOGELASTIC,
 	DOUBLELINEARELASTIC,
 	ISOTROPICHARDENINGELASTIC,
@@ -124,11 +127,13 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 	LINEARVISCOELASTICGENERIC,
 	DOUBLELINEARVISCOELASTIC,
 	TURBULENTVISCOELASTIC,
+	LINEARVISCOELASTICBISTOP,
 	GRAALLDAMPER,
 	SHOCKABSORBER,
 	
 	LASTKEYWORD
    };
+   int CurrKW;
    
    /* tabella delle parole chiave */
    KeyTable K((int)LASTKEYWORD, sKeyWords);
@@ -137,7 +142,8 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
    HP.PutKeyTable(K);
    
    ConstitutiveLaw<T, Tder>* pCL = NULL;   
-   switch (HP.GetWord()) {
+   CurrKW = HP.GetWord();
+   switch (CurrKW) {
     case LINEARELASTIC:
     case LINEARELASTICISOTROPIC: {
        ConstLawType = DefHingeType::ELASTIC;
@@ -205,7 +211,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        break;
     }
 
-    case LOGELASTIC: {
+   case LOGELASTIC: {
        ConstLawType = DefHingeType::ELASTIC;
              
        DEBUGCOUT("Logaritmic Elastic Constitutive Law" << endl);
@@ -550,7 +556,54 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        
        break;
     }	      	     	      
-         
+        
+				
+    case LINEARELASTICBISTOP:
+    case LINEARVISCOELASTICBISTOP: {
+       typedef LinearViscoElasticBiStopConstitutiveLaw<T, Tder> L;
+       ConstLawType = DefHingeType::VISCOELASTIC;
+             
+       DEBUGCOUT("Linear Viscoelastic Bi Stop Constitutive Law" << endl);
+       doublereal dS = HP.GetReal();
+       if (dS <= 0.) {
+	  cerr << "warning, null or negative stiffness at line " 
+	    << HP.GetLineData() << endl;
+       }
+
+       doublereal dSp = 0.;
+       if (CurrKW == LINEARVISCOELASTICBISTOP) {
+	  dSp = HP.GetReal();
+	  if (dSp <= 0.) {
+             cerr << "warning, null or negative stiffness prime at line " 
+		     << HP.GetLineData() << endl;
+	  }
+       }
+
+       enum L::Status s = L::INACTIVE;
+       if (HP.IsKeyWord("initialstatus")) {
+          if (HP.IsKeyWord("active")) {
+	     s = L::ACTIVE;
+	  } else if (HP.IsKeyWord("inactive")) {
+	     s = L::INACTIVE;
+	  } else {
+             cerr << "unknown initial status at line " << HP.GetLineData() << endl;
+	     THROW(ErrGeneric());
+	  }
+       }
+
+       const DriveCaller *pA = ReadDriveData(pDM, HP, pDH);
+       const DriveCaller *pD = ReadDriveData(pDM, HP, pDH);
+       
+       /* Prestress and prestrain */
+       T PreStress(0.);
+       GetPreStress(HP, PreStress);
+       T PreStrain(0.);
+       TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, pDH, PreStrain);
+       
+       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS, dSp, s, pA, pD));
+       
+       break;
+    }      
 	   
     case GRAALLDAMPER: {
 #ifdef USE_GRAALLDAMPER    

@@ -822,10 +822,11 @@ Table~\ref{tab:CONST-LAW-DIM} shows the availability of each constitutive law.
         \hline
         Constitutive Law & 1D & 3D & 6D \\ 
 	\hline
-	linear elastic,  linear elastic isotropic              & x & x & x \\
+	linear elastic, linear elastic isotropic               & x & x & x \\
 	linear elastic generic                                 & x & x & x \\
 	linear elastic generic axial torsion coupling          &   &   & x \\
 	log elastic                                            & x &   &   \\
+	linear elastic generic bi-stop                         & x & x & x \\
 	double linear elastic                                  & x & x &   \\
 	isotropic hardening elastic                            & x & x & x \\
 	linear viscous, linear viscous isotropic               & x & x & x \\
@@ -834,6 +835,7 @@ Table~\ref{tab:CONST-LAW-DIM} shows the availability of each constitutive law.
 	linear viscoelastic generic                            & x & x & x \\
 	double linear viscoelastic                             & x & x &   \\
 	turbulent viscoelastic                                 & x &   &   \\
+	linear viscoelastic generic bi-stop                    & x & x & x \\
 	GRAALL damper                                          & x &   &   \\
 	\hline
     \end{tabular}
@@ -895,6 +897,15 @@ this is defined only for scalars. The force is defined as:
 \begin{displaymath}
     f \ = \ \texttt{stiffness} \ \llk{log}\plbr{1+\varepsilon}
 \end{displaymath}
+  
+\subsubsection{Linear elastic bi-stop generic}
+\begin{verbatim}
+    <specific_const_law> ::= linear elastic bistop,
+                             (derivative_of_entity) <stiffness>
+                             [ , initial state, { inactive | active } ]
+                             (DriveCaller)<activating_condition> ,
+                             (DriveCaller)<deactivating_condition>
+\end{verbatim}
   
 \subsubsection{Double linear elastic}
 \begin{verbatim}
@@ -1009,6 +1020,16 @@ computed based on \texttt{parabolic\_viscous\_coefficient} and on
 Otherwise, it can be set by the user to give a discontinuous force curve,
 as observed in some fluids at intermediate Reynolds number.
 
+\subsubsection{Linear viscoelastic bi-stop generic}
+\begin{verbatim}
+    <specific_const_law> ::= linear viscoelastic bistop,
+                             (derivative_of_entity) <stiffness>
+                             (derivative_of_entity) <viscosity_coefficient>
+                             [ , initial state, { inactive | active } ]
+                             (DriveCaller)<activating_condition> ,
+                             (DriveCaller)<deactivating_condition>
+\end{verbatim}
+  
 \subsubsection{GRAALL damper}
 This is a very experimental constitutive law, based on a nonlinear model
 for a hydraulic damper to be used in landing gear modelling.
