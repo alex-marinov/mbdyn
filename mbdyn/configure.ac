@@ -145,6 +145,8 @@ dnl General "enable" options
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debugging], no)dnl
 OL_ARG_WITH(debug_mode,[  --with-debug-mode[={none|mem}]  with debug mode {none|mem}],none,[none mem])
 OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], auto)dnl
+OL_ARG_ENABLE(loadable,[  --enable-loadable       enable loadable elements], auto)dnl
+OL_ARG_ENABLE(crypt,[  --enable-crypt          enable crypt (deprecated)], no)dnl
 OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver
                           (needs MPI and either Metis or Chaco)],auto,[auto yes no])dnl needs MPI and Metis or Chaco
 OL_ARG_ENABLE(multithread,[  --enable-multithread    enable multithread solution], no,[auto yes no force])dnl
@@ -647,34 +649,38 @@ esac
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Check for dlopen
+dnl Check for loadable
 dnl
 have_loadable=no
-AC_CHECK_HEADER(ltdl.h,[have_ltdl_h=yes],[have_ltdl_h=no])
-if test $have_ltdl_h = "yes" ; then
-	AC_DEFINE(HAVE_LTDL_H,1,[define if you have <ltdl.h>])
-	AC_CHECK_LIB(ltdl, lt_dlinit,[have_lt_dlinit=yes],[have_lt_dlinit=no])
-	if test $have_lt_dlinit = "yes" ; then
-		LIBS="$LIBS -lltdl"
-		have_loadable=yes
-		MODULE_LOADPATH=$libexecdir
-	fi
-fi
-if test $have_loadable = no ; then
-	AC_CHECK_HEADER(dlfcn.h,[have_dlfcn_h=yes],[have_dlfcn_h=no])
-	if test $have_dlfcn_h="yes" ; then
-		AC_DEFINE(HAVE_DLFCN_H,1,[define if you have <dlfcn.h>])
-		AC_CHECK_LIB(dl, dlopen,[have_dlopen_in_ldl=yes],[have_dlopen_in_ldl=no], -ldl)
-		if test $have_dlopen_in_ldl = "yes" ; then
-			LIBS="$LIBS -ldl"
+if test "$ol_enable_loadable" != "no" ; then
+	AC_CHECK_HEADER(ltdl.h,[have_ltdl_h=yes],[have_ltdl_h=no])
+	if test $have_ltdl_h = "yes" ; then
+		AC_DEFINE(HAVE_LTDL_H,1,[define if you have <ltdl.h>])
+		AC_CHECK_LIB(ltdl, lt_dlinit,[have_lt_dlinit=yes],[have_lt_dlinit=no])
+		if test $have_lt_dlinit = "yes" ; then
+			LIBS="$LIBS -lltdl"
 			have_loadable=yes
+			MODULE_LOADPATH=$libexecdir
 		fi
 	fi
-fi
-if test $have_loadable=yes ; then
-	AC_DEFINE(HAVE_LOADABLE,1,[define if you want to use loadable modules])
-else
-	AC_MSG_WARN([no dynamic linking library detected; loadable elements will be disabled])
+	if test $have_loadable = no ; then
+		AC_CHECK_HEADER(dlfcn.h,[have_dlfcn_h=yes],[have_dlfcn_h=no])
+		if test $have_dlfcn_h="yes" ; then
+			AC_DEFINE(HAVE_DLFCN_H,1,[define if you have <dlfcn.h>])
+			AC_CHECK_LIB(dl, dlopen,[have_dlopen_in_ldl=yes],[have_dlopen_in_ldl=no], -ldl)
+			if test $have_dlopen_in_ldl = "yes" ; then
+				LIBS="$LIBS -ldl"
+				have_loadable=yes
+			fi
+		fi
+	fi
+	if test $have_loadable=yes ; then
+		AC_DEFINE(HAVE_LOADABLE,1,[define if you want to use loadable modules])
+	elif test "$ol_enable_loadable" == "yes" ; then
+		AC_MSG_ERROR([no dynamic linking library detected])
+	else
+		AC_MSG_WARN([no dynamic linking library detected; loadable elements will not be enabled])
+	fi
 fi
 
 dnl ----------------------------------------------------------------
@@ -1262,34 +1268,41 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check if crypt needs libcrypt
 dnl
-AC_MSG_CHECKING([how to link crypt])
-crypt_pool="\"\" -lcrypt -lcrypto"
-for i in $crypt_pool ; do
-	save_LIBS=$LIBS
-	LIBS="$LIBS $i"
-	AC_TRY_LINK([
+ol_link_crypt=no
+if test "$ol_enable_crypt" != no ; then
+	AC_MSG_CHECKING([how to link crypt])
+	crypt_pool="\"\" -lcrypt -lcrypto"
+	for i in $crypt_pool ; do
+		save_LIBS=$LIBS
+		LIBS="$LIBS $i"
+		AC_TRY_LINK([
 #include <unistd.h>
 #include <pwd.h>
-	],[
+		],[
 	crypt(NULL,NULL);
-	],[crypt_ok=yes],[crypt_ok=no])
-	LIBS=$save_LIBS
+		],[crypt_ok=yes],[crypt_ok=no])
+		LIBS=$save_LIBS
 
-	if test $crypt_ok = yes ; then
-		if test "x$i" = "x" ; then
-			AC_MSG_RESULT([automatically linked])
-		else
-			AC_MSG_RESULT([with $i])
-			SECURITY_LIBS="$SECURITY_LIBS $i"
+		if test $crypt_ok = yes ; then
+			if test "x$i" = "x" ; then
+				AC_MSG_RESULT([automatically linked])
+			else
+				AC_MSG_RESULT([with $i])
+				SECURITY_LIBS="$SECURITY_LIBS $i"
+			fi
+			AC_DEFINE(HAVE_CRYPT,1,[define if crypt(3) can be linked])
+			break
 		fi
-		AC_DEFINE(HAVE_CRYPT,1,[define if crypt(3) can be linked])
-		break
-	fi
-done
+	done
 
-if test $crypt_ok != yes ; then
-	AC_MSG_RESULT([no])
-	AC_MSG_WARN([don't know how to link crypt...])
+	if test $crypt_ok != yes ; then
+		AC_MSG_RESULT([no])
+		if test "$ol_enable_crypt" = "yes" ; then
+			AC_MSG_ERROR([don't know how to link crypt])
+		else
+			AC_MSG_WARN([don't know how to link crypt...])
+		fi
+	fi
 fi
 
 dnl ----------------------------------------------------------------
@@ -1480,7 +1493,7 @@ if test $ol_with_ginac != no ; then
 	AC_CHECK_HEADERS(ginac/ginac.h)
 	AC_LANG_C
 	AC_MSG_CHECKING([for GiNaC library])
-	which ginac-config >/dev/null 2>&1
+	ginac-config >/dev/null 2>&1
 	if test $? = 0 ; then
 		GINACLIB_CONFIG="ginac-config"
 		GINACLIB_LIBS=`$GINACLIB_CONFIG --libs`

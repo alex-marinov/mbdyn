@@ -41,7 +41,16 @@
 
 #include <dataman.h>
 #include <dataman_.h>
+
+#define USE_MOTION_VIEW_C_API
+
+#ifdef USE_MOTION_VIEW_C_API
+#include <mbs_result_c_api.h>
+#define MRF(f) (f ## _c)
+#else /* USE_MOTION_VIEW_C_API */
 #include <mbs_result_api.h>
+#define MRF(f) (f)
+#endif /* USE_MOTION_VIEW_C_API */
 
 enum {
 	MRF_RIGID_BODY = 0,
@@ -66,9 +75,9 @@ DataManager::MotionViewResOutputInit(const char *sOutputFileName)
 {
 	/* FIXME: need initial time, final time and number of steps :( */
 #if MRFOPENRESULT_NEEDS_ARGS
-	mrfOpenResult(0., 1., 1);
+	MRF(mrfOpenResult)(0., 1., 1);
 #else /* MRFOPENRESULT_NEEDS_ARGS */
-	mrfOpenResult();
+	MRF(mrfOpenResult)();
 #endif /* MRFOPENRESULT_NEEDS_ARGS */
 
 	/* FIXME: need a file name */
@@ -78,37 +87,37 @@ DataManager::MotionViewResOutputInit(const char *sOutputFileName)
 	snprintf(mrf_buf, sizeof(mrf_buf), "%s.mrf", sOutputFileName);
 	snprintf(abf_buf, sizeof(abf_buf), "%s.abf", sOutputFileName);
 	snprintf(tab_buf, sizeof(tab_buf), "%s.tab", sOutputFileName);
-	mrfOpenResultHeader(mrf_buf, abf_buf, tab_buf);
+	MRF(mrfOpenResultHeader)(mrf_buf, abf_buf, tab_buf);
 	
 	/* Rigid bodies associated to structural nodes */
-	mrfCreateDataType(MRFDataType[MRF_RIGID_BODY].name);
+	MRF(mrfCreateDataType)(MRFDataType[MRF_RIGID_BODY].name);
 
 	/* Rigid bodies associated to structural nodes */
-	mrfOpenDataTypeByName(MRFDataType[MRF_RIGID_BODY].name);
-	mrfRegisterForRigidBodyAnimation();
-	mrfRegisterNoGroundBody();
-	mrfRegisterForTabulatedOutput();
+	MRF(mrfOpenDataTypeByName)(MRFDataType[MRF_RIGID_BODY].name);
+	MRF(mrfRegisterForRigidBodyAnimation)();
+	MRF(mrfRegisterNoGroundBody)();
+	MRF(mrfRegisterForTabulatedOutput)();
 
 	/* Mandatory: position and orientation thru Euler params ... */
-	mrfCreateComponent("x");
-	mrfCreateComponent("y");
-	mrfCreateComponent("z");
-	mrfCreateComponent("e0");
-	mrfCreateComponent("e1");
-	mrfCreateComponent("e2");
-	mrfCreateComponent("e3");
+	MRF(mrfCreateComponent)("x");
+	MRF(mrfCreateComponent)("y");
+	MRF(mrfCreateComponent)("z");
+	MRF(mrfCreateComponent)("e0");
+	MRF(mrfCreateComponent)("e1");
+	MRF(mrfCreateComponent)("e2");
+	MRF(mrfCreateComponent)("e3");
 
 	/* ... plus velocity and angular velocity */
-	mrfCreateComponent("vx");
-	mrfCreateComponent("vy");
-	mrfCreateComponent("vz");
-	mrfCreateComponent("wx");
-	mrfCreateComponent("wy");
-	mrfCreateComponent("wz");
+	MRF(mrfCreateComponent)("vx");
+	MRF(mrfCreateComponent)("vy");
+	MRF(mrfCreateComponent)("vz");
+	MRF(mrfCreateComponent)("wx");
+	MRF(mrfCreateComponent)("wy");
+	MRF(mrfCreateComponent)("wz");
 
-	mrfCloseDataType();
+	MRF(mrfCloseDataType)();
 
-	mrfOpenDataTypeByIndex(MRFDataType[MRF_RIGID_BODY].index);
+	MRF(mrfOpenDataTypeByIndex)(MRFDataType[MRF_RIGID_BODY].index);
 	for (unsigned int i = 0; i < NodeData[Node::STRUCTURAL].iNum; i++) {
 		StructNode *pStr = (StructNode *)NodeData[Node::STRUCTURAL].ppFirstNode[i];
 
@@ -128,20 +137,24 @@ DataManager::MotionViewResOutputInit(const char *sOutputFileName)
 			snprintf(namebuf, sizeof(namebuf), "Node %u", pStr->GetLabel());
 			sName = namebuf;
 		}
+#ifdef USE_MOTION_VIEW_C_API
+		mrfCreateElement_c_id(sName, pStr->GetLabel());
+#else /* USE_MOTION_VIEW_C_API */
 		mrfCreateElement(sName, pStr->GetLabel());
+#endif /* USE_MOTION_VIEW_C_API */
 	}
-	mrfCloseDataType();
+	MRF(mrfCloseDataType)();
 
-	mrfCloseResultHeader();
+	MRF(mrfCloseResultHeader)();
 }
 
 void 
 DataManager::MotionViewResOutput(integer iBlock, const char *type,
 		const char *id) const
 {
-	mrfOpenTimeStep((float)pTime->GetVal().GetReal());
+	MRF(mrfOpenTimeStep)((float)pTime->GetVal().GetReal());
 
-	mrfOpenDataTypeByIndex(MRFDataType[MRF_RIGID_BODY].index);
+	MRF(mrfOpenDataTypeByIndex)(MRFDataType[MRF_RIGID_BODY].index);
 	for (unsigned int i = 0; i < NodeData[Node::STRUCTURAL].iNum; i++) {
 		StructNode *pStr = (StructNode *)NodeData[Node::STRUCTURAL].ppFirstNode[i];
 
@@ -154,7 +167,7 @@ DataManager::MotionViewResOutput(integer iBlock, const char *type,
 			}
 		}
 
-		mrfMoveToElementByIndex(i);
+		MRF(mrfMoveToElementByIndex)(i);
 		float q[13];
 
 		Vec3 X(pStr->GetXCurr());
@@ -184,23 +197,27 @@ DataManager::MotionViewResOutput(integer iBlock, const char *type,
 		q[11] = W.dGet(2);
 		q[12] = W.dGet(3);
 
-		mrfPutComponentData(q);
+		MRF(mrfPutComponentData)(q);
 	}
-	mrfCloseDataType();
+	MRF(mrfCloseDataType)();
 
-	mrfCloseTimeStep();
+	MRF(mrfCloseTimeStep)();
 }
 
 void
 DataManager::MotionViewResOutputFini(void) const
 {
+#ifdef USE_MOTION_VIEW_C_API
+	mrfCloseResult_c_0();
+#else /* USE_MOTION_VIEW_C_API */
 	mrfCloseResult();
+#endif /* USE_MOTION_VIEW_C_API */
 }
 
 /*
  * Emulate API calls while waiting for Linux-compatible version ...
  */
-#define MIMIC_MOTIONVIEW
+//#define MIMIC_MOTIONVIEW
 #ifdef MIMIC_MOTIONVIEW
 
 int

@@ -1107,10 +1107,13 @@ method_cn(const char* module, integration_data* d,
 
 #else /* defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H) */
 
+#include <ac/iostream>
+#include <stdlib.h>
+
 int
 main(void)
 {
-	std::cerr << "Need dynamic load capabilities" << atd::endl;
+	std::cerr << "Need dynamic load capabilities" << std::endl;
    	exit(EXIT_FAILURE);
 }
 
