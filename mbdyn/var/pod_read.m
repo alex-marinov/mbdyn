@@ -16,10 +16,17 @@ if (fid == -1),
 	error('pod_read: %s', msg)
 end
 
+if 0
+	nrows = fread(fid, 1, 'ulong', 0, 'native');
+	ncols = fread(fid, 1, 'ulong', 0, 'native');
+else
+	ncols = ndof;
+end
+
 if nargin < 2,
 	[W, cnt] = fread(fid, Inf, 'double', 0, 'native');
 else
-	[W, cnt] = fread(fid, [ndof, Inf], 'double', 0, 'native');
+	[W, cnt] = fread(fid, [ncols, Inf], 'double', 0, 'native');
 end
 
 fclose(fid);
