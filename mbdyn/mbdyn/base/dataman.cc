@@ -45,6 +45,7 @@ extern "C" {
 #include <ltdl.h>
 #endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
 
+#include "solver.h"
 #include "constltp.h"
 #include "dataman_.h"
 /* add-ons for math parser */
@@ -62,6 +63,8 @@ extern "C" {
 /* To allow direct loading of modules */
 #include <modules.h>
 
+/* To handle  of Elem2Param */
+#include "j2p.h"
 /* DataManager - begin */
 
 /* linka i singoli DriveCaller al DriveHandler posseduto dal DataManager */
@@ -81,6 +84,7 @@ const integer iDefaultMaxInitialIterations = 1;
 
 DataManager::DataManager(MBDynParser& HP, 
 		unsigned OF,
+		Solver* pS,
 		doublereal dInitialTime,
 		const char* sOutputFileName,
 		bool bAbortAfterInput)
@@ -90,6 +94,7 @@ SolverDiagnostics(OF),
 nThreads(0),
 #endif /* USE_MULTITHREAD */
 MathPar(HP.GetMathParser()),
+pSolver(pS),
 DrvHdl(HP.GetMathParser()),
 OutHdl(),
 pTime(NULL),
@@ -113,8 +118,13 @@ sSimulationTitle(NULL),
 RestartEvery(NEVER),
 iRestartIterations(0),
 dRestartTime(0.),
+pdRestartTimes(0),
+iNumRestartTimes(0),
+iCurrRestartTime(0),
 iCurrRestartIter(0),
 dLastRestartTime(dInitialTime),
+saveXSol(false),
+solArrFileName(NULL),
 iOutputFrequency(1),
 iOutputCount(0),
 ResMode(RES_NATIVE),
@@ -602,132 +612,142 @@ DataManager::bOutput(ResType t) const
 
 void DataManager::MakeRestart(void) 
 {
-  if (RestartEvery == ATEND) {	
-   silent_cout("Making restart file ..." << std::endl);
-   
-   /* Inizializzazione del file di restart */
-   OutHdl.RestartOpen();
-  
-   time_t tCurrTime(time(NULL));
-   OutHdl.Restart() << "# Restart file prepared by Mbdyn, " 
-     << ctime(&tCurrTime) << std::endl << std::endl;
-   
-   /* Dati iniziali */
-   OutHdl.Restart() << "begin: data;" << std::endl
-     << "# uncomment this line to use the default integrator" << std::endl
-     << "  # integrator: multistep;" << std::endl
-     << "end: data;" << std::endl << std::endl
-     << "# the following block contains data for the multistep integrator" 
-     << std::endl
-     << "begin: multistep;" << std::endl
-     << "# add data for the multistep integrator:" << std::endl
-     << "  # initial time: " << pTime->GetVal().GetReal() << ';' << std::endl
-     << "  # final time: " << pTime->GetVal().GetReal() << ';' << std::endl
-     << "  # time step: 1.;" << std::endl
-     << "  # method: ms, .0, .0;" << std::endl
-     << "  # max iterations: 1;" << std::endl
-     << "  # tolerance: 1.e-6;" << std::endl
-     << "  # derivatives max iterations: 1;" << std::endl
-     << "  # derivatives tolerance: 1.e-6;" << std::endl
-     << "  # derivatives coefficient: 1.e-6;" << std::endl
-     << "  # fictitious steps max iterations: 1;" << std::endl
-     << "  # fictitious steps tolerance: 1.e-6;" << std::endl
-     << "  # fictitious steps number: 2;" << std::endl
-     << "  # fictitious steps ratio: 1.e-3;" << std::endl
-     << "  # Newton Raphson: true;" << std::endl
-     << "end: multistep;" << std::endl << std::endl;
-   
-   /* Dati di controllo */	
-   OutHdl.Restart() << "begin: control data;" << std::endl;
-   
-   /* Nodi */
-   for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {	     
-      if (NodeData[iCnt].iNum > 0) {		  
-	 OutHdl.Restart() << "  " << psReadControlNodes[iCnt] << ": "
-	   << NodeData[iCnt].iNum << ';' << std::endl;
-      }
-   }
-   
-   /* Drivers */
-   for (int iCnt = 0; iCnt < Drive::LASTDRIVETYPE; iCnt++) {	     
-      if (DriveData[iCnt].iNum > 0) {		  
-	 OutHdl.Restart() << "  " 
-	   << psReadControlDrivers[iCnt] << ": "
-	   << DriveData[iCnt].iNum << ';' << std::endl;
-      }
-   }
-   
-   /* Elementi */
-   for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {	     
-      if (ElemData[iCnt].iNum > 0) {
-	 if (ElemData[iCnt].fIsUnique == 1) {
-	    OutHdl.Restart() << "  " << psReadControlElems[iCnt] 
-	      << ';' << std::endl;
-	 } else {		     		     
-	    OutHdl.Restart() << "  " << psReadControlElems[iCnt] << ": "
-	      << ElemData[iCnt].iNum << ';' << std::endl;
-	 }		  
-      }
-   }	
-   
-   if (sSimulationTitle != NULL) {
-      OutHdl.Restart() << "  title: \"" 
-	<< sSimulationTitle << "\";" << std::endl;
-   }
+	silent_cout("Making restart file ..." << std::endl);
+	OutHdl.RestartOpen(saveXSol);
+	/* Inizializzazione del file di restart */
+	time_t tCurrTime(time(NULL));
+	OutHdl.Restart() << "# Restart file prepared by Mbdyn, " 
+		<< ctime(&tCurrTime) << std::endl << std::endl;
+	/* Dati iniziali */
+	OutHdl.Restart() << "begin: data;" << std::endl
+		<< "# uncomment this line to use the default integrator" << std::endl
+		<< "  integrator: multistep;" << std::endl
+		<< "end: data;" << std::endl << std::endl
+		<< "# the following block contains data for the multistep integrator" 
+		<< std::endl;
+	pSolver->Restart(OutHdl.Restart(), RestartEvery);
+      
+	/* Dati di controllo */      
+	OutHdl.Restart() << "begin: control data;" << std::endl;
+
+	/* Nodi */
+	for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) { 	  
+	   if (NodeData[iCnt].iNum > 0) {	       
+	      OutHdl.Restart() << "  " << psReadControlNodes[iCnt] << ": "
+	     	<< NodeData[iCnt].iNum << ';' << std::endl;
+	   }
+	}
+
+	/* Drivers */
+	for (int iCnt = 0; iCnt < Drive::LASTDRIVETYPE; iCnt++) {	  
+	   if (DriveData[iCnt].iNum > 0) {	       
+	      OutHdl.Restart() << "  " 
+	     	<< psReadControlDrivers[iCnt] << ": "
+	     	<< DriveData[iCnt].iNum << ';' << std::endl;
+	   }
+	}
+
+	/* Elementi */
+	for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) { 	  
+	   if (ElemData[iCnt].iNum > 0) {
+	      if (ElemData[iCnt].fIsUnique == 1) {
+	     	 OutHdl.Restart() << "  " << psReadControlElems[iCnt] 
+	     	   << ';' << std::endl;
+	      } else {  				  
+	     	 OutHdl.Restart() << "  " << psReadControlElems[iCnt] << ": "
+	     	   << ElemData[iCnt].iNum << ';' << std::endl;
+	      } 	       
+	   }
+	}    
+
+	if (sSimulationTitle != NULL) {
+	   OutHdl.Restart() << "  title: \"" 
+	     << sSimulationTitle << "\";" << std::endl;
+	}
 
 #if defined(USE_STRUCT_NODES)   
-   OutHdl.Restart() << std::endl
-     << "# comment this line if the model is to be modified!" << std::endl
-     << "  skip initial joint assembly;" << std::endl
-     << "# uncomment the following lines to improve the satisfaction of constraints"
-     << std::endl
-     << "  # initial stiffness: " << dInitialPositionStiffness << ", "
-     << dInitialVelocityStiffness << ';' << std::endl
-     << "  # initial tolerance: " << dInitialAssemblyTol << ';' << std::endl
-     << "  # max initial iterations: " << iMaxInitialIterations 
-     << ';' << std::endl;
+	OutHdl.Restart() << std::endl
+	  << "# comment this line if the model is to be modified!" << std::endl
+	  << "  skip initial joint assembly;" << std::endl
+	  << "# uncomment the following lines to improve the satisfaction of constraints"
+	  << std::endl
+	  << "  # initial stiffness: " << dInitialPositionStiffness << ", "
+	  << dInitialVelocityStiffness << ';' << std::endl
+	  << "  # initial tolerance: " << dInitialAssemblyTol << ';' << std::endl
+	  << "  # max initial iterations: " << iMaxInitialIterations 
+	  << ';' << std::endl;
 #endif // USE_STRUCT_NODES     
-   OutHdl.Restart() << "# uncomment this line if restart file is to be made again" 
-     << std::endl
-     << "  # make restart file;" << std::endl
-     << "# remember: it will replace the present file if you don't change its name"
-     << std::endl;
-   
-   OutHdl.Restart() << "end: control data;" << std::endl << std::endl;
-   
-   /* Dati dei nodi */
-   OutHdl.Restart() << "begin: nodes;" << std::endl;
-   for (Node** ppTmpNode = ppNodes;
-	ppTmpNode < ppNodes+iTotNodes;
-	ppTmpNode++) {
-      (*ppTmpNode)->Restart(OutHdl.Restart());
-   }	
-   OutHdl.Restart() << "end: nodes;" << std::endl << std::endl;
-   
-   /* Dati dei driver */
-   if (iTotDrive > 0) {	     
-      OutHdl.Restart() << "begin: drivers;" << std::endl;
-      for (Drive** ppTmpDrv = ppDrive;
-	   ppTmpDrv < ppDrive+iTotDrive;
-	   ppTmpDrv++) {
-	 OutHdl.Restart() 
-	   << "  # file driver " << (*ppTmpDrv)->GetLabel()
-	     << " is required" << std::endl;
-      }	
-      OutHdl.Restart() << "end: drivers;" << std::endl << std::endl;
-   }	
-   
-   /* Dati degli elementi */
-   OutHdl.Restart() << "begin: elements;" << std::endl;
-   Elem** ppLastElem = ppElems+iTotElem;
-   for (Elem** ppTmpEl = ppElems; ppTmpEl < ppLastElem; ppTmpEl++) {
-      ASSERT(*ppTmpEl != NULL);
-      (*ppTmpEl)->Restart(OutHdl.Restart());
-   }
-   OutHdl.Restart() << "end: elements;" << std::endl;
-  }
+	OutHdl.Restart() << "# uncomment this line if restart file is to be made again" 
+	  << std::endl
+	  << "  # make restart file;" << std::endl
+	  << "# remember: it will replace the present file if you don't change its name"
+	  << std::endl
+	  << "  default output: none";
+	for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
+	     if(NodeData[iCnt].fDefaultOut == flag(1)) {
+	     	 OutHdl.Restart() << ", " << psReadControlNodes[iCnt];
+	     }
+	}		      
+	for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
+	     if(ElemData[iCnt].fDefaultOut == flag(1)) {
+	     	 OutHdl.Restart() << ", " << psReadControlElems[iCnt];
+	     }
+	}		      
+	OutHdl.Restart() << "; " << std::endl;
+	if(saveXSol) {
+		OutHdl.Restart() << "  read solution array;" << std::endl;		
+	}
+	OutHdl.Restart() << "end: control data;" << std::endl << std::endl;
 
-  OutHdl.Close(OutputHandler::RESTART);
+	/* Dati dei nodi */
+	OutHdl.Restart() << "begin: nodes;" << std::endl;
+	for (Node** ppTmpNode = ppNodes;
+	     ppTmpNode < ppNodes+iTotNodes;
+	     ppTmpNode++) {
+	   (*ppTmpNode)->Restart(OutHdl.Restart());
+	}    
+	OutHdl.Restart() << "end: nodes;" << std::endl << std::endl;
+
+	/* Dati dei driver */
+	if (iTotDrive > 0) {	  
+	   OutHdl.Restart() << "begin: drivers;" << std::endl;
+	   for (Drive** ppTmpDrv = ppDrive;
+	     	ppTmpDrv < ppDrive+iTotDrive;
+	     	ppTmpDrv++) {
+	     	(*ppTmpDrv)->Restart(OutHdl.Restart());
+	      /*OutHdl.Restart() 
+	     	<< "  # file driver " << (*ppTmpDrv)->GetLabel()
+	     	  << " is required" << std::endl;*/
+	   } 
+	   OutHdl.Restart() << "end: drivers;" << std::endl << std::endl;
+	}    
+
+	/* Dati degli elementi */
+	OutHdl.Restart() << "begin: elements;" << std::endl;
+	Elem** ppLastElem = ppElems+iTotElem;
+	for (Elem** ppTmpEl = ppElems; ppTmpEl < ppLastElem; ppTmpEl++) {
+	   ASSERT(*ppTmpEl != NULL);
+	   (*ppTmpEl)->Restart(OutHdl.Restart());
+	}
+
+	Node** pLastNP = NodeData[Node::PARAMETER].ppFirstNode
+		     + NodeData[Node::PARAMETER].iNum;
+	for (Node** pTmpNP = NodeData[Node::PARAMETER].ppFirstNode; pTmpNP < pLastNP; pTmpNP++) {
+	     ((Elem2Param* )*pTmpNP) ->RestartBind(OutHdl.Restart());
+	}
+
+	OutHdl.Restart() << "end: elements;" << std::endl;
+	
+	
+	if(saveXSol) {
+		OutHdl.RestartXSol().write((char*)(pXCurr->pdGetVec()),
+					(pXCurr->iGetSize())*sizeof(double));
+		OutHdl.RestartXSol().write((char*)(pXPrimeCurr->pdGetVec()),
+					(pXPrimeCurr->iGetSize())*sizeof(double));
+		OutHdl.Close(OutputHandler::RESTARTXSOL);
+	}
+
+	OutHdl.Close(OutputHandler::RESTART);
 }
 
 NamedValue *

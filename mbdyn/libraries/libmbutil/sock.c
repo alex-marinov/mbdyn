@@ -49,6 +49,8 @@
 #include <netdb.h>
 #include <sys/un.h>
 #include <arpa/inet.h>
+#include <errno.h>
+#include <sys/poll.h>
 
 int
 make_inet_socket(struct sockaddr_in *name, const char *hostname,
@@ -134,4 +136,73 @@ make_named_socket(const char *path, int dobind, int *perrno)
    	return sock;
 }
 
+int
+make_nonblocking(int sock)
+{
+	int flags = fcntl(sock, F_GETFL, 0);
+	if (flags == -1) {
+		return -1;
+	}
+	
+	if ((flags & O_NONBLOCK) != O_NONBLOCK) {
+		flags |= O_NONBLOCK;
+		if (fcntl(sock, F_SETFL, flags) == -1) {
+			return -1;
+		}
+	}	
+	return 0;
+}
+
+int
+make_blocking(int sock)
+{
+	int flags = fcntl(sock, F_GETFL, 0);
+	if (flags == -1) {
+		return -1;
+	}
+	if ((flags & O_NONBLOCK) == O_NONBLOCK) {
+		flags &= (!O_NONBLOCK);
+		if (fcntl(sock, F_SETFL, flags) == -1) {
+			return -1;
+		}
+	}
+	return 0;
+}
+
+int
+MBDyn_connect(int sock, struct sockaddr * addr, socklen_t dim, int _count)
+{
+	int count =  _count;
+	if (make_nonblocking(sock)) {
+		return -4;//Set Socket option error
+	}
+	if (connect(sock, addr, dim) < 0) {
+		if (errno != EINPROGRESS) {
+			return -1;//Connect error
+		}								
+	}
+	struct pollfd ufds;
+	
+	ufds.fd = sock;
+	ufds.events = POLLIN|POLLOUT;
+	while (1) {
+		if (count <= 0) {
+			return -2;//TIME OUT
+		}
+		int flag = poll(&ufds, 1, 1000);
+		if (flag <0) {
+			return -3;//POLL ERROR
+		}
+		if ( (ufds.revents & (POLLIN|POLLOUT)) == (POLLIN|POLLOUT) ||
+			(ufds.revents & (POLLOUT)) == (POLLOUT)) {
+			if (make_blocking(sock)) {
+				return -4;//Set Socket option error
+			}
+			break;			
+		}
+		usleep(1);
+		count --;
+	}
+	return 0;
+}
 #endif /* USE_SOCKET_DRIVES */

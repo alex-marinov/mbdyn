@@ -49,6 +49,7 @@ public:
 
 	/* Contributo del nodo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
+	std::ostream& RestartBind(std::ostream& out) const;
 
 	/* Restituisce il valore del dof iDof;
 	 * se differenziale, iOrder puo' essere = 1 per la derivata */

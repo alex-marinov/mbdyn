@@ -158,7 +158,6 @@ class LinearDriveCaller : public DriveCaller {
  private:
    doublereal dC0;
    doublereal dC1;
-   
  public:
    LinearDriveCaller(const DriveHandler* pDH, doublereal d0, doublereal d1);
    virtual ~LinearDriveCaller(void);

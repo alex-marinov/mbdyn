@@ -1409,11 +1409,19 @@ ClampJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) co
 	return out;
 }
 
+/*Funzione che legge lo stato iniziale dal file di input*/
+void ClampJoint::ReadIinitialState(MBDynParser& HP)
+{
+	F = Vec3(HP.GetVec3());
+	M = Vec3(HP.GetVec3());
+}
 /* Contributo al file di restart */
 std::ostream& ClampJoint::Restart(std::ostream& out) const
 {
    return Joint::Restart(out) << ", clamp, "
-     << pNode->GetLabel() << ", node, node;" << std::endl;
+     << pNode->GetLabel() << ", node, node, "
+     << "initial state, ", F.Write(out, ", ")
+     << ", ", M.Write(out, ", ") << ';' << std::endl;
 }
 
 
@@ -1667,6 +1675,12 @@ ClampJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+void ClampJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
+{
+	integer iFirstReactionIndex = iGetFirstIndex();
+	X.Put(iFirstReactionIndex+1,F);
+	X.Put(iFirstReactionIndex+4,M);
+}
 
 /* Metodi per l'estrazione di dati "privati".
  * Si suppone che l'estrattore li sappia interpretare.

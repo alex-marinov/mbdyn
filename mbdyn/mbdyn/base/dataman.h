@@ -67,6 +67,7 @@
 #include "ScalarFunctions.h"
 
 #include "loadable.h"
+class Solver;
 
 /* DataManager - begin */
 
@@ -90,6 +91,7 @@ private:
 	
 	/* Handler vari */
 	MathParser& MathPar;      /* Received from MultiStepIntegrator */
+	Solver* pSolver;
 
 	/* scalar functions */
 	std::map<std::string, const BasicScalarFunction *> MapOfScalarFunctions;
@@ -138,16 +140,24 @@ private:
 	/* Parametri vari */
 	char* sSimulationTitle;
 
+public:
+	enum eRestart { NEVER, ATEND, ITERATIONS, TIME, TIMES };
 protected:
 	/* soft-restart stuff */
-	enum eRestart { NEVER, ATEND, ITERATIONS, TIME };
 	eRestart RestartEvery;
 	integer iRestartIterations;
 	doublereal dRestartTime;
 
+	doublereal *pdRestartTimes;
+	integer iNumRestartTimes;
+	mutable integer iCurrRestartTime;
+	
 	mutable integer iCurrRestartIter;
 	mutable doublereal dLastRestartTime;
-
+	
+	bool saveXSol;
+	char * solArrFileName;
+	
 	/* raw output stuff */
 	integer iOutputFrequency;
 	mutable integer iOutputCount;
@@ -229,11 +239,11 @@ private:
 
 	void DofOwnerSet(void);
 	void DofOwnerInit(void);
-
 public:
 	/* costruttore - legge i dati e costruisce le relative strutture */
 	DataManager(MBDynParser& HP,
 			unsigned OF,
+			Solver* pS,
 			doublereal dInitialTime,
 			const char* sOutputFileName,
 			bool bAbortAfterInput);
@@ -253,7 +263,7 @@ public:
 
 	/* Setta il valore della variabile tempo nella tabella dei simboli
 	 * del DataManager e nel DriveHandler */
-	void SetTime(doublereal dTime);
+	void SetTime(doublereal dTime, bool bDerivatives = false);
 	doublereal dGetTime() const;
 
 	NamedValue *InsertSym(const char* const s, const Real& v,

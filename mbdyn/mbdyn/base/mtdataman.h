@@ -40,6 +40,7 @@
 #include "dataman.h"
 #include "spmh.h"
 #include "naivemh.h"
+class Solver;
 
 /* MultiThreadDataManager - begin */
 
@@ -142,6 +143,7 @@ public:
 	/* costruttore - legge i dati e costruisce le relative strutture */
 	MultiThreadDataManager(MBDynParser& HP,
 			unsigned OF,
+			Solver* pS,
 			doublereal dInitialTime,
 			const char* sOutputFileName,
 			bool bAbortAfterInput,

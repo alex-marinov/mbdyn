@@ -514,7 +514,6 @@ std::ostream& Node2Scalar::Restart(std::ostream& out) const
      return out;
 }
 
-
 unsigned int Node2Scalar::iGetNumDof(void) const
 {
    return 1; 
@@ -607,8 +606,8 @@ ScalarDof::ScalarDof(void)
 }
 
 
-ScalarDof::ScalarDof(ScalarNode* p, int i) 
-: pNode(p), iOrder(i)
+ScalarDof::ScalarDof(ScalarNode* p, int iO, int iI) 
+: pNode(p), iOrder(iO), iIndex(iI)
 {
    NO_OP;
 }
@@ -626,11 +625,37 @@ doublereal ScalarDof::dGetValue(void) const
    return pNode->dGetDofValue(1, iOrder);
 }
 
-
 doublereal ScalarDof::dGetValuePrev(void) const
 {
    return pNode->dGetDofValuePrev(1, iOrder);
 }
 
+std::ostream& ScalarDof::RestartScalarDofCaller(std::ostream& out) const
+{
+	Node::Type type = pNode -> GetNodeType();
+	switch (type) {
+	case Node::PARAMETER :
+		out << pNode -> GetLabel() << ", "
+		    << psReadNodesNodes[type];		
+		break;
+	case Node::STRUCTURAL :
+		out << pNode -> GetLabel() << ", "
+	   		<< psReadNodesNodes[type] << ", "
+			<< iIndex << ", ";
+			if (iOrder > 0) {
+				out << "order, " << iOrder << std::endl;
+			} else {
+				out << "algebraic";
+			}		
+		break;
+	case Node::ABSTRACT:
+	case Node::ELECTRIC:
+	case Node::HYDRAULIC:
+		out << "# RestartScalarDofCaller: warning, not implemented yet";
+		break;
+	default :
+		NO_OP;
+	}
+	return out;
+}
 /* ScalarDof - end */
-

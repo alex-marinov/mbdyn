@@ -130,7 +130,7 @@ DofPlugIn::Read(int argc, char *argv[])
 		break;
 	}
 	}
-	dof = ScalarDof((ScalarNode*)pNode, iOrder);
+	dof = ScalarDof((ScalarNode*)pNode, iOrder, 0);
 
 	/* legge i parametri (<param>=<value>, separati da '&') */
 	if (argc == iParams + 1) {

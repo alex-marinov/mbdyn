@@ -52,6 +52,7 @@
 #ifdef USE_MPI
 #include <mpi++.h>
 #endif /* USE_MPI */
+class Solver;
 
 class SchurDataManager : public DataManager {
 public:
@@ -132,6 +133,7 @@ public:
 	/* Costruttore Inizializza i dati */
 	SchurDataManager(MBDynParser& HP,
 			unsigned OF,
+			Solver* pS,
 			doublereal dInitialTime,
 			const char* sOutputFileName,
 			bool bAbortAfterInput);

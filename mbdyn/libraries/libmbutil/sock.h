@@ -46,6 +46,13 @@ make_inet_socket(struct sockaddr_in *name, const char *hostname,
 extern int
 make_named_socket(const char *path, int dobind, int *perror);
 
+extern int
+make_nonblocking(int sock);
+
+extern int
+make_blocking(int sock);
+extern int
+MBDyn_connect(int sock, struct sockaddr * addr, socklen_t dim, int _count);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

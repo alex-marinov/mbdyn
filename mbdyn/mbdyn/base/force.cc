@@ -490,7 +490,7 @@ Elem* ReadForce(DataManager* pDM,
       silent_cerr(sFuncName
 	<< ": semicolon expected at line " << HP.GetLineData() << std::endl);
       throw DataManager::ErrGeneric();
-   }      
+   }
    
    return pEl;
 } /* End of ReadForce() */

@@ -1796,7 +1796,7 @@ DataManager::ReadOneElem(MBDynParser& HP,
               
 #ifdef USE_RTAI
        if (mbdyn_rtai_task != 0) {
-	   silent_cerr("starting RTAI out element" << std::endl);
+	  silent_cerr("starting RTAI out element" << std::endl);
           *ppE = ReadRTAIOutElem(this, HP, uLabel);
        } else
 #endif /* USE_RTAI */

@@ -55,7 +55,7 @@ Gravity::~Gravity(void)
 /* Scrive il contributo dell'elemento al file di restart */
 std::ostream& Gravity::Restart(std::ostream& out) const
 {
-   return out << "  gravity: reference, global, ",
+   return out << "  gravity: /*reference, global,*/ ",
      pGetDriveCaller()->Restart(out) << ";" << std::endl;
 }
 
@@ -88,7 +88,6 @@ SubVectorHandler& Gravity::AssRes(SubVectorHandler& WorkVec,
     * questa restituisce un reference all'accelerazione con il
     * minimo overhead */
    Acc = Get();
-   
    return WorkVec;
 }
 

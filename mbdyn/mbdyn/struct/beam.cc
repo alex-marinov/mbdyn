@@ -2007,7 +2007,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
       silent_cerr("semicolon expected "
 	      "at line " << HP.GetLineData() << std::endl);
       throw DataManager::ErrGeneric();
-   }   
+   }
    
    return pEl;
 } /* End of ReadBeam() */

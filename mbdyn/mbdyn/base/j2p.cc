@@ -87,7 +87,20 @@ Elem2Param::Bind(const Elem* pEl, unsigned int i)
 std::ostream&
 Elem2Param::Restart(std::ostream& out) const
 {
-	return out << "# Elem2Param is not implemented yet" << std::endl;
+	//return out << "# Elem2Param is not implemented yet" << std::endl;
+	return out << "  parameter: "
+			<< GetLabel() << " ,element;" << std::endl;
+}
+
+std::ostream&
+Elem2Param::RestartBind(std::ostream& out) const
+{
+	//return out << "# Elem2Param is not implemented yet" << std::endl;
+	return out << "  bind: "
+			<< pElem ->GetLabel() <<", "
+			<< psReadElemsElems[pElem -> GetElemType()] << ", "
+			<< GetLabel() << ", " << iNum << ";"
+			<< std::endl;
 }
 
 /* Setta il valore del dof iDof a dValue;

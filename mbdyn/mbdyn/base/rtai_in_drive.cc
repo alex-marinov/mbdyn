@@ -166,6 +166,11 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		}
 	}
 
+	if (HP.IsKeyWord("non-blocking")) {
+		silent_cout(" RTAIInDrive(" << uLabel 
+			<< "): RTAI mailboxes are always non-blocking");
+	}
+
 	if (HP.IsKeyWord("local") || HP.IsKeyWord("path")) {
 		const char *m = HP.GetStringWithDelims();
 		

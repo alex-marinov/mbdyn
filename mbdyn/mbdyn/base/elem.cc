@@ -93,7 +93,6 @@ Elem* Elem::pGetElem(void) const
    return (Elem*)this; 
 }
 
-
 ElemWithDofs* Elem::pGetElemWithDofs(void) const
 {
    return NULL;

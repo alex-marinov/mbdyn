@@ -56,10 +56,18 @@ SimulationEntity::bIsValidIndex(unsigned int i) const
 }
 
 void 
-SimulationEntity::SetValue(VectorHandler& /* X */ , 
-		VectorHandler& /* XP */ ) const
+SimulationEntity::SetValue(VectorHandler&  X  , 
+		VectorHandler&  XP  ) const
 {
+#if 0
+	if(*ppX0_Xp0!=NULL) {
+		/*(*ppX0_Xp0)[0]
+		(*ppX0_Xp0)[1]*/
+		//scive in X e XP i dati iniziali
+	}
+#endif
 	NO_OP;
+	
 }
 	         
 void 
@@ -116,6 +124,11 @@ std::ostream&
 SimulationEntity::OutputAppend(std::ostream& out) const
 {
 	return out;
+}
+
+void SimulationEntity::ReadIinitialState(MBDynParser& HP)
+{
+	NO_OP;
 }
 
 /* SimulationEntity - end */

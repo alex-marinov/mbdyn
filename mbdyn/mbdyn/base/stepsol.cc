@@ -87,6 +87,24 @@ StepIntegrator::GetIntegratorNumUnknownStates(void) const
 	return unkstates;
 }
 
+integer
+StepIntegrator::GetIntegratorMaxIters(void) const
+{
+	return MaxIters;
+}
+
+doublereal
+StepIntegrator::GetIntegratorDTol(void) const
+{
+	return dTol;
+}
+
+doublereal
+StepIntegrator::GetIntegratorDSolTol(void) const
+{
+	return dSolTol;
+}
+
 void
 StepIntegrator::OutputTypes(const bool fpred)
 {

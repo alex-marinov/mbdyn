@@ -232,11 +232,18 @@ iStepsAfterReduction(0),
 iStepsAfterRaise(0),
 iWeightedPerformedIters(0),
 bLastChance(false),
+RegularType(INT_UNKNOWN),
+FictitiousType(INT_UNKNOWN),
 pDerivativeSteps(0),
 pFirstFictitiousStep(0),
 pFictitiousSteps(0),
 pFirstRegularStep(0),
 pRegularSteps(0),
+pRhoRegular(NULL),
+pRhoAlgebraicRegular(NULL),
+pRhoFictitious(NULL),
+pRhoAlgebraicFictitious(NULL),
+dDerivativesCoef(1.),
 ResTest(NonlinearSolverTest::NORM),
 SolTest(NonlinearSolverTest::NONE),
 bScale(false),
@@ -445,6 +452,7 @@ Solver::Run(void)
 			SchurDataManager,
 			SchurDataManager(HP,
 				OutputFlags,
+				this,
 				dInitialTime,
 				sOutputFileName,
 				eAbortAfter == AFTER_INPUT));
@@ -492,6 +500,7 @@ Solver::Run(void)
 					MultiThreadDataManager,
 					MultiThreadDataManager(HP,
 						OutputFlags,
+						this,
 						dInitialTime,
 						sOutputFileName,
 						eAbortAfter == AFTER_INPUT,
@@ -513,6 +522,7 @@ Solver::Run(void)
 					DataManager,
 					DataManager(HP,
 						OutputFlags,
+						this,
 						dInitialTime,
 						sOutputFileName,
 						eAbortAfter == AFTER_INPUT));
@@ -753,6 +763,7 @@ Solver::Run(void)
 	dTime = dInitialTime;
 	pDM->SetTime(dTime);
 	pDM->SetValue(*pX, *pXPrime);
+	
 
 #ifdef __HACK_EIG__
    	if (eEigenAnalysis != EIG_NO && OneEig.dTime <= dTime && !OneEig.bDone) {
@@ -886,6 +897,8 @@ Solver::Run(void)
       		/*
 		 * Fa l'output della soluzione delle derivate iniziali ed esce
 		 */
+		
+
       		pDM->Output(true);
       		Out << "End of derivatives; no simulation is required."
 			<< std::endl;
@@ -919,7 +932,8 @@ Solver::Run(void)
 
       		dRefTimeStep = dInitialTimeStep*dFictitiousStepsRatio;
       		dCurrTimeStep = dRefTimeStep;
-      		pDM->SetTime(dTime+dCurrTimeStep);
+		/* FIXME: do we need to serve pending drives in dummy steps? */
+      		pDM->SetTime(dTime+dCurrTimeStep, true);
 
       		DEBUGLCOUT(MYDEBUG_FSTEPS, "Current time step: "
 			   << dCurrTimeStep << std::endl);
@@ -1149,7 +1163,8 @@ Solver::Run(void)
 	SetupSolmans(pFirstRegularStep->GetIntegratorNumUnknownStates());
 IfFirstStepIsToBeRepeated:
 	try {
-		pDM->SetTime(dTime+dCurrTimeStep);
+		pDM->SetTime(dTime+dCurrTimeStep,
+				iFictitiousStepsNumber == 0 ? true : false);
 		dTest = pFirstRegularStep->Advance(this, dRefTimeStep,
 				dCurrTimeStep/dRefTimeStep, CurrStep,
 				qX, qXPrime, pX, pXPrime,
@@ -1418,7 +1433,7 @@ IfFirstStepIsToBeRepeated:
 				mbdyn_rt_make_soft_real_time();
 			}
 #endif /* USE_RTAI */
-	 		silent_cout("End of simulation at time "
+			silent_cout("End of simulation at time "
 				<< dTime << " after "
 				<< iStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
@@ -1745,6 +1760,122 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 const integer iDefaultMaxIterations = 1;
 const doublereal dDefaultFictitiousStepsTolerance = dDefaultTol;
 
+/*scrive il contributo al file di restart*/
+std::ostream & 
+Solver::Restart(std::ostream& out,DataManager::eRestart type) const
+{
+	
+	out << "begin: multistep;" << std::endl;
+	switch(type) {
+	case DataManager::ATEND:
+		out << "  #  initial time: " << pDM->dGetTime() << ";"
+			<< std::endl
+			<< "  #  final time: " << dFinalTime << ";"
+			<< std::endl
+			<< "  #  time step: " << dInitialTimeStep << ";" 
+			<< std::endl;
+		break;
+	case DataManager::ITERATIONS:
+	case DataManager::TIME:
+	case DataManager::TIMES:
+		out << "  initial time: " << pDM->dGetTime()<< ";" << std::endl
+			<< "  final time: " << dFinalTime << ";" << std::endl
+			<< "  time step: " << dInitialTimeStep << ";" 
+			<< std::endl;
+		break;
+	default:
+		ASSERT(0);
+	}
+	
+	out << "  method: ";
+	switch(RegularType) {
+	case INT_CRANKNICHOLSON:
+		out << "Crank Nicholson; " << std::endl;
+		break;
+	case INT_MS2:
+		out << "ms, ";
+		pRhoRegular->Restart(out) << ", ";
+		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
+		break;
+	case INT_HOPE:
+		out << "hope, " << pRhoRegular->Restart(out) << ", "
+			<< pRhoAlgebraicRegular->Restart(out) << ";"
+			<< std::endl;
+		break;
+			
+	case INT_THIRDORDER:
+		out << "thirdorder, ";
+		if (!pRhoRegular)
+			out << "ad hoc;" << std::endl;
+			else
+			pRhoRegular->Restart(out) << ";" << std::endl;
+		break;
+	case INT_IMPLICITEULER:
+		out << "implicit euler;" << std::endl;
+		break;
+	default:
+		ASSERT(0);
+	}
+
+	out << "  max iterations: " << pRegularSteps->GetIntegratorMaxIters()
+		<< ";" << std::endl
+		<< "  tolerance: " << pRegularSteps->GetIntegratorDTol();
+	switch(ResTest) {
+	case NonlinearSolverTest::NORM:
+		out << ", test, norm" ;
+		break;
+	case NonlinearSolverTest::MINMAX:
+		out << ", test, minmax" ;
+		break;
+	case NonlinearSolverTest::NONE:
+		NO_OP;
+	}
+	if (bScale) {
+		out << ", scale"
+			<< ", " << pRegularSteps->GetIntegratorDSolTol();
+	}
+
+	switch (SolTest) {
+	case NonlinearSolverTest::NORM:
+		out << ", test, norm" ;
+		break;
+	case NonlinearSolverTest::MINMAX:
+		out << ", test, minmax" ;
+		break;
+	case NonlinearSolverTest::NONE:
+		NO_OP;
+	default:
+		ASSERT(0);
+	}
+	out<< ";" << std::endl
+		<< "  derivatives max iterations: " << pDerivativeSteps->GetIntegratorMaxIters() << ";" << std::endl
+		<< "  derivatives tolerance: " << pDerivativeSteps->GetIntegratorDTol() << ";" << std::endl
+		<< "  derivatives coefficient: " << dDerivativesCoef << ";" << std::endl
+		<< "  fictitious steps max iterations: " << pFictitiousSteps->GetIntegratorMaxIters() << ";" << std::endl
+		<< "  fictitious steps tolerance: " << pFictitiousSteps->GetIntegratorDTol() << ";" << std::endl
+		<< "  fictitious steps number: " << iFictitiousStepsNumber << ";" << std::endl
+		<< "  fictitious steps ratio: " << dFictitiousStepsRatio << ";" << std::endl;
+	switch (NonlinearSolverType) {
+	case NonlinearSolver::MATRIXFREE:
+		out << "  #  nonlinear solver: matrix free;" << std::endl;
+		break;
+	case NonlinearSolver::NEWTONRAPHSON:
+	default :
+		out << "  nonlinear solver: newton raphson";
+		if (!bTrueNewtonRaphson) {
+			out << ", modified, " << iIterationsBeforeAssembly;
+			if (bKeepJac) {
+				out << ", keep jacobian";
+			}
+			if (honorJacRequest) {
+				out << ", honor element requests";
+			}
+		}
+		out << ";" << std::endl;
+	}
+	out << "end: multistep;" << std::endl << std::endl;	
+	return out;
+}
 
 /* Dati dell'integratore */
 void
@@ -1979,24 +2110,7 @@ Solver::ReadData(MBDynParser& HP)
    	/* Dati del passo iniziale di calcolo delle derivate */
 
 	doublereal dDerivativesTol = dDefaultTol;
-   	doublereal dDerivativesCoef = 1.;
    	integer iDerivativesMaxIterations = iDefaultMaxIterations;
-
-	DriveCaller* pRhoRegular = NULL;
-	DriveCaller* pRhoAlgebraicRegular = NULL;
-	DriveCaller* pRhoFictitious = NULL;
-	DriveCaller* pRhoAlgebraicFictitious = NULL;
-
-	enum StepIntegratorType {
-			INT_CRANKNICHOLSON,
-			INT_MS2,
-			INT_HOPE,
-			INT_THIRDORDER,
-			INT_IMPLICITEULER,
-			INT_UNKNOWN
-	};
-
-	StepIntegratorType RegularType = INT_UNKNOWN, FictitiousType = INT_UNKNOWN;
 
 #ifdef USE_MULTITHREAD
 	bool bSolverThreads(false);

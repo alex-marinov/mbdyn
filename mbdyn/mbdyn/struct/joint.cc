@@ -1754,6 +1754,16 @@ Elem* ReadJoint(DataManager* pDM,
    }
 
    /* Se non c'e' il punto e virgola finale */
+   if (pEl == NULL) {
+       DEBUGCERR("");
+       silent_cerr("error in allocation of element "
+        << uLabel << std::endl);
+		       
+       throw ErrMemory();
+   }		  
+   if (HP.IsKeyWord("initial" "state")) {
+   	pEl->ReadIinitialState(HP);
+   }
    if (HP.IsArg()) {
       silent_cerr("semicolon expected at line " << HP.GetLineData()
 		      << std::endl);

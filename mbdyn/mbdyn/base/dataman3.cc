@@ -127,6 +127,8 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
 
       "default" "scale",
       
+      "read" "solution" "array",
+      
       NULL
    };
    
@@ -196,6 +198,8 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
       REFERENCEFRAMES,
 
       DEFAULTSCALE,
+      
+      READSOLUTIONARRAY,
 
       LASTKEYWORD
    };
@@ -737,11 +741,27 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
 	     if (HP.IsKeyWord("iterations")) {
 		RestartEvery = ITERATIONS;
 		iRestartIterations = HP.GetInt();
-		DEBUGLCOUT(MYDEBUG_INPUT, "every " << iRestartIterations << " iterations" << std::endl);
+		DEBUGLCOUT(MYDEBUG_INPUT, "every " << iRestartIterations
+				<< " iterations" << std::endl);
 	     } else if (HP.IsKeyWord("time")) {
 		RestartEvery = TIME;
 		dRestartTime = HP.GetReal();
-		DEBUGLCOUT(MYDEBUG_INPUT, "every " << dRestartTime << " time units" << std::endl);
+		DEBUGLCOUT(MYDEBUG_INPUT, "every " << pdRestartTime[0]
+				<< " time units" << std::endl);
+	     } else if (HP.IsKeyWord("times")) {
+		RestartEvery = TIMES;
+		iNumRestartTimes = HP.GetInt();
+		if (iNumRestartTimes < 1) {
+			silent_cerr("illegal number of restart times "
+				<< iNumRestartTimes << std::endl);
+			throw ErrGeneric();
+		}
+		SAFENEWARR(pdRestartTimes, doublereal, iNumRestartTimes);
+		for (integer i = 0; i < iNumRestartTimes; i++) {
+			pdRestartTimes[i] = HP.GetReal();
+			DEBUGLCOUT(MYDEBUG_INPUT, "    at time "
+					<< pdRestartTimes[0] << std::endl);
+		}
 	     } else {
 		silent_cerr("Error: unrecognized restart option at line "
 		  << HP.GetLineData() << std::endl);
@@ -750,6 +770,9 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
 	     }
 	  } else {
 	     RestartEvery = ATEND;
+	  }
+	  if (HP.IsKeyWord("with" "solution" "array")) {
+	     saveXSol = true;
 	  }
 	  break;
        }
@@ -1122,10 +1145,15 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
 	  
 	  break;
        }
-
 	 
 	 /* add more entries ... */
-	 
+       case READSOLUTIONARRAY:{
+	  int len = strlen(sInputFileName)+sizeof(".X");
+	  SAFENEWARR(solArrFileName, char, len);
+	  snprintf(solArrFileName, len, "%s.X", sInputFileName);
+          break;
+       }
+ 
        case UNKNOWN: { /*
 			* If description is not in key table the parser
 	                * returns UNKNONW, so "default" can be used to 
@@ -2151,7 +2179,7 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
 	       "at line " << HP.GetLineData() << std::endl);
    } 
    
-   return ScalarDof((ScalarNode*)pNode, iOrder);
+   return ScalarDof((ScalarNode*)pNode, iOrder, iIndex);
 }
 
 /* Legge una shape1D; 

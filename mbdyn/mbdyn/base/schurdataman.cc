@@ -48,7 +48,7 @@
 #include <mbcomm.h>
 #include <mysleep.h>
 #include <except.h>
-
+#include "solver.h"
 #undef min
 #undef max
 #include <vector>
@@ -71,10 +71,11 @@ const int ADJ_UNDEFINED = -1;
 #ifndef USE_MPI
 SchurDataManager::SchurDataManager(MBDynParser& HP,
 		unsigned OF,
+		Solver* pS,
 		doublereal dInitialTime,
 		const char* sOutputFileName,
 		bool bAbortAfterInput)
-: DataManager(HP, OF, dInitialTime, sOutputFileName, bAbortAfterInput)
+: DataManager(HP, OF, pS, dInitialTime, sOutputFileName, bAbortAfterInput)
 {
 	silent_cerr("fatal error: you are building SchurDataManager, "
 		"but mbdyn was compiled without MPI. "

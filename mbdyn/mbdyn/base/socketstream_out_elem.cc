@@ -55,8 +55,7 @@
 #include <dataman.h>
 
 #define UNIX_PATH_MAX    108
-#define DEFAULT_PORT	5500 /*FIXME:da defineire meglio*/
-#define SYSTEM_PORT	1000 /*FIXME:da defineire meglio*/
+#define DEFAULT_PORT	5501 /*FIXME:da defineire meglio*/
 #define DEFAULT_HOST 	"127.0.0.1"
 
 /* SocketStreamElem - begin */
@@ -183,13 +182,27 @@ create(c), connected(false), abandoned(false), send_flags(flags)
 
 SocketStreamElem::~SocketStreamElem(void)
 {
-	shutdown(sock,SHUT_WR);		
-	switch (type) {
+	//std::cerr << "MBDyn: SocketStreamElem: sock clsed!" << std::endl;
+	switch (type) { //connect
 	case AF_LOCAL:
+		if(create) {
+			shutdown(sock,SHUT_RDWR);
+			unlink(data.Path);
+		}
+		close(sock);
 		if (data.Path) {
 			unlink(data.Path);
 			SAFEDELETEARR(data.Path);
 			data.Path = 0;
+		}
+		break;
+	case AF_INET:
+		if(create) {
+			shutdown(sock,SHUT_RDWR);
+		}
+		close(sock);
+		if (host) {
+			SAFEDELETEARR(host);
 		}
 		break;
 	default:
@@ -201,9 +214,36 @@ SocketStreamElem::~SocketStreamElem(void)
 
 std::ostream&
 SocketStreamElem::Restart(std::ostream& out) const
-{
-	return out << "# not implemented yet" << std::endl;
-}
+{   	
+	//return out << "0. /* SocketStreamDrive not implemented yet */"
+	//	<< std::endl;
+	out << "  stream output: " << uLabel 
+		<< ", stream name, \"" << name << "\",create , ";
+	if(create) {
+		out << "yes, ";
+	} else	{
+		out << "no, ";
+	}
+	/*if(nonblocking)	{
+		out << "non blocking, ";
+	}*/
+	switch (type) {
+	case AF_LOCAL:
+		out << "path, " << "\"" << data.Path << "\", ";
+		break;
+	case AF_INET:
+		out << "port, " << data.Port << ", ";
+		if(host)
+			out << "host, " << "\"" << host << "\", ";
+		break;
+	}
+	out << NumChannels;
+	for(int i = 0; i < NumChannels; i++) {
+		out << ", " ;
+		pNodes[i].RestartScalarDofCaller(out);
+	}
+	return out << ";" << std::endl;
+}	
 
 Elem::Type
 SocketStreamElem::GetElemType(void) const
@@ -273,7 +313,8 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 					throw ErrGeneric();
        				}
 				if (client_addr.sun_path[0] == '\0') {
-					strncpy(client_addr.sun_path, data.Path, sizeof(client_addr.sun_path));
+					strncpy(client_addr.sun_path, data.Path,
+							sizeof(client_addr.sun_path));
 				}
       				silent_cout("SocketStreamElem(" << GetLabel()
 	  				<< "): connect from " << client_addr.sun_path
@@ -316,6 +357,8 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 			}
 			
 		} else {
+			//connect
+			int flag;
 			switch (type) {
 			case AF_LOCAL: {
 				struct sockaddr_un addr;
@@ -330,6 +373,7 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 						"(" << save_errno << ": " << err_msg << ")"
 						<< std::endl);
 					throw ErrGeneric();
+>>>>>>> 1.14
 				}
 				addr.sun_family = AF_UNIX;
 				strncpy(addr.sun_path, data.Path, UNIX_PATH_MAX);
@@ -338,17 +382,9 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 					<< name << "\" (" << data.Path << ") ..." 
 					<< std::endl);
 
-				if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0) {
-					int	save_errno = errno;
-					const char	*err_msg = strerror(save_errno);
-					
-					silent_cerr("SocketStreamElem(" << name << ") "
-						"connect(" << sock << ", \"" << data.Path << "\""
-						", " << sizeof(struct sockaddr_un) << ") "
-						"failed (" << save_errno << ": " << err_msg << ")"
-						<< std::endl);
-					throw ErrGeneric();									
-				} // da sistemare in modo da rendere non bloccante il connect					
+				/* 1000 number of trials FIXME: make configurable */
+				flag = MBDyn_connect(sock, (struct sockaddr *) &addr,
+						sizeof(addr), 1000);
 				break;
 			}
 	
@@ -380,22 +416,34 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 					<< ":" << ntohs(addr.sin_port)
 					<< ") ..." << std::endl);
 						
-				if (connect(sock,(struct sockaddr *) &addr, sizeof (addr)) < 0){
-					int	save_errno = errno;
-					const char	*err_msg = strerror(save_errno);
-					
-					silent_cerr("SocketStreamElem(" << name << ") "
-						"connect(" << sock << ", \"" << host << ":" << data.Port << "\""
-						", " << sizeof(struct sockaddr_un) << ") "
-							"failed (" << save_errno << ": " << err_msg << ")"
-						<< std::endl);
-					throw ErrGeneric();					
-				} //da sistemare in modo da rendere non bloccante il connect
+				flag = MBDyn_connect(sock, (struct sockaddr *) &addr,
+						sizeof(addr), 1000);
 				break;
 			}
 				
 			default:
 				break;
+			}
+			
+			switch(flag) {
+			case -1:
+				silent_cerr("SocketStreamDrive(" << name << ") "
+					"connect() failed " << std::endl);
+				throw ErrGeneric();
+			case -2:
+				silent_cerr("SocketStreamDrive(" << name << ") "
+					"connection timeout reached " << std::endl);
+				throw ErrGeneric();
+			case -3:
+				silent_cerr("SocketStreamDrive(" << name << ") "
+					"poll() failed " << std::endl);
+				throw ErrGeneric();
+			case -4:
+				silent_cerr("SocketStreamDrive(" << name << ") "
+					"set socket option failed " << std::endl);
+				throw ErrGeneric();
+			default:
+				NO_OP;
 			}
 	
 		} /* create */
@@ -485,7 +533,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 	
 	if (HP.IsKeyWord("local") || HP.IsKeyWord("path")) {
-		const char *m = HP.GetStringWithDelims();
+		const char *m = HP.GetFileName();
 		
 		if (m == NULL) {
 			silent_cerr("unable to read local path for "

@@ -120,6 +120,12 @@ public:
 	
 	virtual integer GetIntegratorNumUnknownStates(void) const;
 	
+	virtual integer GetIntegratorMaxIters(void) const;
+		
+	virtual doublereal GetIntegratorDTol(void) const;
+	
+	virtual doublereal GetIntegratorDSolTol(void) const;
+	
 	virtual void OutputTypes(const bool fpred);
 	
 	virtual void SetDriveHandler(const DriveHandler* pDH);

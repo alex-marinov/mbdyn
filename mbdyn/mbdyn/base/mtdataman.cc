@@ -120,6 +120,7 @@ naivepsad(doublereal **ga, integer **gri,
 
 MultiThreadDataManager::MultiThreadDataManager(MBDynParser& HP, 
 		unsigned OF,
+		Solver* pS,
 		doublereal dInitialTime,
 		const char* sOutputFileName,
 		bool bAbortAfterInput,

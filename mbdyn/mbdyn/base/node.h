@@ -254,7 +254,7 @@ class ScalarDifferentialNode : public ScalarNode {
    
 
    /* Metodi di servizio */
-   
+      
    /* 
     Esegue operazioni sui DoF di proprieta' dell'elemento.
     In particolare ritorna il tipo di DoF in base all'indice i.
@@ -428,7 +428,6 @@ inline const doublereal& ScalarAlgebraicNode::dGetXPrime(void) const
 
 /* ScalarAlgebraicNode - end */
 
-
 /* ParameterNode - begin */
 
 /* Parametri.
@@ -439,7 +438,7 @@ inline const doublereal& ScalarAlgebraicNode::dGetXPrime(void) const
  elementi elettrici e Genel che normalmente usano un DoF scalare senza farlo
  partecipare allo jacobiano.
  */
-class ParameterNode : public ScalarAlgebraicNode {   
+class ParameterNode : public ScalarAlgebraicNode{   
  public:
    /* Costruttori */
    
@@ -535,7 +534,7 @@ class Node2Scalar : public ScalarNode {
 
    /* Contributo del nodo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
-   
+     
    /* 
     Ritorna il numero di dofs.
     Non usa il DofOwner in quanto viene usata per generare il DofOwner stesso 
@@ -598,6 +597,7 @@ class Node2Scalar : public ScalarNode {
    
    /* Setta il valore della derivata del DoF */
    virtual inline const doublereal& dGetXPrime(void) const;
+   
 };
 
 
@@ -627,17 +627,17 @@ struct ScalarDof {
    ScalarNode* pNode;
    /* Ordine del grado di liberta' */
    int iOrder;
-   
+   int iIndex;
    /* Costruttori */
    
    /* Costruttore di default */
    ScalarDof(void);
    /* Costruttore */
-   ScalarDof(ScalarNode* p, int i);
+   ScalarDof(ScalarNode* p, int iO, int iI);
    /* Distruttore */   
    ~ScalarDof(void);
    
-      
+
    /* Funzioni che operano sui valori del DoF */
    
    /* Ottiene il valore del DoF */
@@ -645,6 +645,9 @@ struct ScalarDof {
    
    /* Ottiene il valore del DoF al passo precedente */
    doublereal dGetValuePrev(void) const;
+
+   /*Scrive nel file di Restart il contributo per la chiamata allo ScalarDof*/
+   std::ostream& RestartScalarDofCaller(std::ostream& out) const ;
 };
 
 /* ScalarDof - end */

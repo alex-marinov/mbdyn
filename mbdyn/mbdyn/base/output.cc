@@ -56,17 +56,18 @@ const char* psExt[] = {
    ".act",
    ".rot",
    ".rst",
-   ".aer",  /* 10 */
+   ".rst.X" /* 10 */
+   ".aer",  
    ".hyd",
    ".prs",
    ".usr",
-   ".gen",
-   ".par",  /* 15 */
+   ".gen",  /* 15 */
+   ".par",
    ".res",
    ".ada",
    ".amd",
-   ".rfm",
-   ".log",  /* 20 */
+   ".rfm",  /* 20 */
+   ".log",
    ".air",
    ".prm",
    ".ext", 
@@ -87,6 +88,7 @@ ofForces(),
 ofBeams(),
 ofRotors(),
 ofRestart(),
+ofRestartXSol(),
 ofAerodynamic(),
 ofHydraulic(),
 ofPresNodes(),
@@ -101,7 +103,7 @@ ofLog(),
 ofAirProps(),
 ofParameters(),
 ofExternals(),
-iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
+iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision), nCurrRestartFile(0)
 {
    OutData[OUTPUT].UseDefaultPrecision = false;
    OutData[OUTPUT].UseScientific = false;
@@ -142,6 +144,10 @@ iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
    OutData[RESTART].UseDefaultPrecision = true;
    OutData[RESTART].UseScientific = true;
    OutData[RESTART].pof = &ofRestart;
+
+   OutData[RESTARTXSOL].UseDefaultPrecision = true;
+   OutData[RESTARTXSOL].UseScientific = true;
+   OutData[RESTARTXSOL].pof = &ofRestartXSol;
 
    OutData[AERODYNAMIC].UseDefaultPrecision = true;
    OutData[AERODYNAMIC].UseScientific = true;
@@ -219,6 +225,7 @@ ofForces(),
 ofBeams(),
 ofRotors(),
 ofRestart(),
+ofRestartXSol(),
 ofAerodynamic(),
 ofHydraulic(),
 ofPresNodes(),
@@ -233,7 +240,7 @@ ofLog(),
 ofAirProps(),
 ofParameters(),
 ofExternals(),
-iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
+iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision), nCurrRestartFile(0)
 {
    OutData[OUTPUT].UseDefaultPrecision = false;
    OutData[OUTPUT].UseScientific = false;
@@ -277,6 +284,10 @@ iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision)
    OutData[RESTART].UseScientific = true;
    OutData[RESTART].pof = &ofRestart;
    
+   OutData[RESTARTXSOL].UseDefaultPrecision = true;
+   OutData[RESTARTXSOL].UseScientific = true;
+   OutData[RESTARTXSOL].pof = &ofRestartXSol;
+
    OutData[AERODYNAMIC].UseDefaultPrecision = true;
    OutData[AERODYNAMIC].UseScientific = true;
    OutData[AERODYNAMIC].pof = &ofAerodynamic;
@@ -420,6 +431,7 @@ OutputHandler::Close(const OutputHandler::OutFiles out)
 
    /* Chiude lo stream */
    OutData[out].pof->close();
+   OutData[out].IsOpen = false;
 
    return true;
 }
@@ -431,13 +443,75 @@ OutputHandler::OutputOpen(void)
 }
 
 bool
-OutputHandler::RestartOpen(void)
-{ 
+OutputHandler::RestartOpen(bool openResXSol)
+{
+	if (!OutData[RESTART].IsOpen) {
+	
 #ifdef HAVE_ISOPEN
-   ASSERT(!ofRestart.is_open());
+		ASSERT(!OutData[RESTART].pof->is_open());
 #endif /* HAVE_ISOPEN */
-   return Open(RESTART);
+		char *resExt = NULL;
+		int n = nCurrRestartFile > 0 ?
+			(int)log10(nCurrRestartFile) + 1 : 1;
+		int lenExt = sizeof(".") - 1
+			+ n
+			+ sizeof(".rst") - 1
+			+ sizeof("\0") - 1;
+	
+		SAFENEWARR(resExt, char, lenExt);
+		snprintf(resExt, lenExt, ".%.*d.rst", n, nCurrRestartFile);
+		/* Apre lo stream */
+	      	OutData[RESTART].pof->open(_sPutExt(resExt));
+	
+	      	if(!(*OutData[RESTART].pof)) {
+		 	std::cerr << "Unable to open file '" << _sPutExt(resExt)
+		   		<< '\'' << std::endl;
+			throw ErrFile();
+		}
+		SAFEDELETEARR(resExt);
+		OutData[RESTART].IsOpen = true;
+      
+		/* Setta la formattazione dei campi */
+		if(OutData[RESTART].UseDefaultPrecision) {		        
+			OutData[RESTART].pof->precision(iCurrPrecision);
+		}
+
+		/* Setta la notazione */
+		if(OutData[RESTART].UseScientific) {
+			OutData[RESTART].pof->setf(std::ios::scientific);
+		}
+		
+		if (openResXSol) {
+			char *resXSolExt = NULL;
+			int n = nCurrRestartFile > 0 ?
+				(int)log10(nCurrRestartFile) + 1 : 1;
+			int lenXSolExt = sizeof(".") - 1
+				+ n
+				+ sizeof(".rst.X") - 1
+				+ sizeof("\0") - 1;
+		
+			SAFENEWARR(resXSolExt, char, lenXSolExt);
+			snprintf(resXSolExt, lenXSolExt, ".%.*d.rst.X", n, nCurrRestartFile);
+			/* Apre lo stream */
+		      	OutData[RESTARTXSOL].pof->open(_sPutExt(resXSolExt));
+		      	if(!(*OutData[RESTARTXSOL].pof)) {
+			 	std::cerr << "Unable to open file '" << _sPutExt(resExt)
+			   		<< '\'' << std::endl;
+				throw ErrFile();
+			}
+			SAFEDELETEARR(resXSolExt);
+			OutData[RESTARTXSOL].IsOpen = true;
+			/*non occorre settare la precisone e il formato
+			perchè il file è binario*/		
+		}
+
+		nCurrRestartFile++;
+		
+ 	     	return false;
+	}
+	return true;
 }
+
 
 bool
 OutputHandler::PartitionOpen(void)

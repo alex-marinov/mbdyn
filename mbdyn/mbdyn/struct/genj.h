@@ -284,6 +284,9 @@ class ClampJoint : virtual public Elem, public Joint {
       return Joint::CLAMP; 
    };
 
+   /*Funzione che legge lo stato iniziale dal file di input*/
+   void ClampJoint::ReadIinitialState(MBDynParser& HP);
+
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
 
@@ -346,7 +349,8 @@ class ClampJoint : virtual public Elem, public Joint {
    /* Contributo al residuo durante l'assemblaggio iniziale */   
    SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
 				   const VectorHandler& XCurr);
-   
+				   
+   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const; 
    /* Metodi per l'estrazione di dati "privati".
     * Si suppone che l'estrattore li sappia interpretare.
     * Come default non ci sono dati privati estraibili */

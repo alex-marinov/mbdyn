@@ -65,7 +65,15 @@
  *	dGetPrivData()		: get an internal state
  */
 
+class MBDynParser;
+
 class SimulationEntity {
+#if 0 
+protected:
+	/*punta a un vettore di due elementi che sono il valore
+	 iniziale dello stato e la sue derivata prima*/
+	const VectorHandler const** ppX0_Xp0;
+#endif
 public:
 	SimulationEntity(void);
 	virtual ~SimulationEntity(void);
@@ -183,6 +191,8 @@ public:
 	 * Contributes to output on a stream
 	 */
 	virtual std::ostream& OutputAppend(std::ostream& out) const;
+	virtual void ReadIinitialState(MBDynParser& HP);
+
 };
 
 /* SimulationEntity - end */

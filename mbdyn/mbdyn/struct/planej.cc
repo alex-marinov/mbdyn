@@ -34,6 +34,9 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <iostream>
+#include<fstream>
+
 #include <planej.h>
 
 /* PlaneHingeJoint - begin */
@@ -58,6 +61,12 @@ d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.), dTheta(0.),
 Sh_c(sh), fc(f), preF(pref), r(rr)
 {
 	NO_OP;
+	char * fname = NULL;
+	int n = (uL > 0 ? 1+(int)log10(uL):1);
+	int len = sizeof("hinge")-1+n+sizeof(".out");
+	SAFENEWARR(fname, char, len);
+	snprintf(fname,len,"hinge%.*d.out",n,uL);
+	SAFEDELETEARR(fname);
 }
 
 
@@ -160,7 +169,14 @@ PlaneHingeJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta = v.dGet(3);
-
+	integer iFirstReactionIndex = iGetFirstIndex();
+	std::cerr << "F: " << F << std::endl;
+	std::cerr << "M: " << M << std::endl;
+	
+	X.Put(iFirstReactionIndex+1,F);
+	X.PutCoef(iFirstReactionIndex+4,M.dGet(1));
+	X.PutCoef(iFirstReactionIndex+5,M.dGet(2));
+		
 	if (fc) {
 		fc->SetValue(X,XP,iGetFirstIndex()+NumSelfDof);
 	}
@@ -193,6 +209,13 @@ PlaneHingeJoint::AfterConvergence(const VectorHandler& X,
 	}
 }
 
+/*Funzione che legge lo stato iniziale dal file di input*/
+void PlaneHingeJoint::ReadIinitialState(MBDynParser& HP)
+{
+	F = Vec3(HP.GetVec3());
+	M = Vec3(HP.GetReal(), HP.GetReal(), 0.);
+}
+
 
 /* Contributo al file di restart */
 std::ostream& PlaneHingeJoint::Restart(std::ostream& out) const
@@ -205,7 +228,9 @@ std::ostream& PlaneHingeJoint::Restart(std::ostream& out) const
      << pNode2->GetLabel() << ", reference, node, ",
      d2.Write(out, ", ")
      << ", hinge, reference, node, 1, ", (R2h.GetVec(1)).Write(out, ", ")
-     << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ';' << std::endl;
+     << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ", " 
+     << "initial state, ",F.Write(out, ", ") 
+     << ", " << M.dGet(1) << ", " << M.dGet(2) << ';' << std::endl;
    
    return out;
 }
@@ -2943,7 +2968,7 @@ std::ostream& PlanePinJoint::Restart(std::ostream& out) const
      (Rh.GetVec(1)).Write(out, ", ") << ", 2, ", 
      (Rh.GetVec(2)).Write(out, ", ") 
      << ", reference, global, ", X0.Write(out, ", ") 
-     << ", reference, global, 1, ",
+     << ",hinge, reference, global, 1, ",
      (R0.GetVec(1)).Write(out, ", ") << ", 2, ", 
      (R0.GetVec(2)).Write(out, ", ") << ';' << std::endl;
    

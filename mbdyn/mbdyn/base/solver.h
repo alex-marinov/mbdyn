@@ -52,7 +52,7 @@
 #include "ac/float.h"
 #include "ac/math.h"
 
-
+class Solver;
 #include "myassert.h"
 #include "mynewmem.h"
 #include "except.h"
@@ -199,12 +199,28 @@ private:
    	flag bLastChance;
 
    	/* Parametri per il metodo */
+	enum StepIntegratorType {
+			INT_CRANKNICHOLSON,
+			INT_MS2,
+			INT_HOPE,
+			INT_THIRDORDER,
+			INT_IMPLICITEULER,
+			INT_UNKNOWN
+	};
+	StepIntegratorType RegularType,  FictitiousType;
+	
    	StepIntegrator* pDerivativeSteps;
    	StepIntegrator* pFirstFictitiousStep;
 	StepIntegrator* pFictitiousSteps;
    	StepIntegrator* pFirstRegularStep;
    	StepIntegrator* pRegularSteps;
 	
+	DriveCaller* pRhoRegular;
+	DriveCaller* pRhoAlgebraicRegular;
+	DriveCaller* pRhoFictitious;
+	DriveCaller* pRhoAlgebraicFictitious;
+	
+	doublereal dDerivativesCoef;
 	/* Type of linear solver */
 	LinSol CurrLinearSolver;
 
@@ -281,6 +297,7 @@ public:
 
    	/* distruttore: esegue tutti i distruttori e libera la memoria */
    	~Solver(void);
+	std::ostream & Restart(std::ostream& out, DataManager::eRestart type) const;
 
 	/* EXPERIMENTAL */
 	/* FIXME: better const'ify? */
@@ -293,7 +310,9 @@ public:
 	NonlinearSolver *pGetNonlinearSolver(void) const {
 		return pNLS;
 	};
-
+	doublereal GetDInitialTimeStep(void) const {
+		return dInitialTimeStep;
+	};
 	virtual clock_t GetCPUTime(void) const;
 };
 

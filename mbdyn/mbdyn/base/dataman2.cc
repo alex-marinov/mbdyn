@@ -41,6 +41,8 @@
 #include <dataman_.h>
 
 #include <gravity.h>
+#include <solver.h>
+
 
 /* DataManager - continue */
 
@@ -146,7 +148,7 @@ DataManager::IncElemCount(Elem::Type type)
  * usato dal metodo numerico all'inizio di ogni step temporale */
 
 void
-DataManager::SetTime(doublereal dTime)
+DataManager::SetTime(doublereal dTime, bool bDerivatives)
 {
 	/* Setta la variabile Time nella tabella dei simboli */
 	ASSERT(pTime != NULL);
@@ -160,12 +162,14 @@ DataManager::SetTime(doublereal dTime)
 	DrvHdl.SetTime(dTime);
 
 	/* serve i drive pending */
-	for (int iType = 0; iType < Drive::LASTDRIVETYPE; iType++) {
-		for (unsigned int iCnt = 0; iCnt < DriveData[iType].iNum; iCnt++) {
-			DriveData[iType].ppFirstDrive[iCnt]->ServePending(dTime);
+	if (true) {//!bDerivatives
+		for (int iType = 0; iType < Drive::LASTDRIVETYPE; iType++) {
+			for (unsigned int iCnt = 0; iCnt < DriveData[iType].iNum; iCnt++) {
+				DriveData[iType].ppFirstDrive[iCnt]->ServePending(dTime);
+			}
 		}
+		
 	}
-
 } /* End of DataManager::SetTime() */
 
 doublereal
@@ -880,6 +884,42 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 			pEl->SetValue(X, XP);
 		} while (ElemIter.bGetNext(pEl));
 	}
+	if (solArrFileName != NULL) {
+		std::ifstream fp(solArrFileName);
+#ifdef HAVE_ISOPEN
+   		if (!fp.is_open()) {
+			silent_cerr("DataManager::SetValue(): " 
+				"Cannot open file " << solArrFileName << std::endl);
+			throw ErrGeneric();	
+		}
+#endif /* HAVE_ISOPEN */
+		/*int count = 0;
+		while(!fp.eof()) {
+			char tmp;
+			count ++;
+			fp.get(tmp);
+		}
+		count--;
+		if (count != (X.iGetSize()+XP.iGetSize())*sizeof(double)) {
+			silent_cerr("DataManager::SetValue(): " 
+				"File(" << solArrFileName << ") too short!" << std::endl);
+			throw ErrGeneric();				
+		}*/
+		fp.read((char*)X.pdGetVec() , X.iGetSize()*sizeof(double));
+		if(fp.gcount()!=X.iGetSize()*sizeof(double)) {
+			silent_cerr("DataManager::SetValue(): " 
+				"File(" << solArrFileName << ") too short!" << std::endl);
+			throw ErrGeneric();				
+		}
+		fp.read((char*)XP.pdGetVec() , XP.iGetSize()*sizeof(double));
+		if(fp.gcount()!=XP.iGetSize()*sizeof(double)) {
+			silent_cerr("DataManager::SetValue(): " 
+				"File(" << solArrFileName << ") too short!" << std::endl);
+			throw ErrGeneric();				
+		}
+		SAFEDELETEARR(solArrFileName);
+		fp.close();
+	}
 } /* End of SetValue */
 
 
@@ -1081,7 +1121,26 @@ DataManager::AfterConvergence(void) const
 		break;
 	}
 
+	case TIMES: {
+		ASSERT(pTime != NULL);
+
+		doublereal dT = pTime->GetVal().GetReal() 
+				+ pSolver->GetDInitialTimeStep()/100.;
+		if (iCurrRestartTime == iNumRestartTimes) {
+			break;
+		}
+		
+		ASSERT(iCurrRestartTime < iNumRestartTimes);
+		
+		if (dT >= pdRestartTimes[iCurrRestartTime]) {
+			iCurrRestartTime++;
+			((DataManager*)this)->MakeRestart();
+		}
+		break;
+	}
+
 	default:
+		ASSERT(0);
 		break;
 	}
 }

@@ -387,10 +387,8 @@ Body::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
     Vec3 V(pNode->GetVCurr());
     Vec3 W(pNode->GetWCurr());
     Mat3x3 R(pNode->GetRCurr());
-
     S = R*S0;  
     J = R*(J0*R.Transpose());
-   
     X.Add(iFirstIndex+1, V*dMass+W.Cross(S));
     X.Add(iFirstIndex+4, S.Cross(V)+J*W);
 }
@@ -549,7 +547,7 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
         silent_cerr("semicolon expected "
 		"at line " << HP.GetLineData() << std::endl);
         throw DataManager::ErrGeneric();
-    }   
+    }
    
     return pEl;   
 } /* End of ReadBody() */

@@ -87,6 +87,8 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
       return (void*)this;
    };
 
+   virtual void ReadIinitialState(MBDynParser& HP);
+   
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
 

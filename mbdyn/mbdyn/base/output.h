@@ -61,7 +61,8 @@ class OutputHandler : public FileName {
       BEAMS,
       ROTORS,
       RESTART,
-      AERODYNAMIC,	/* 10 */
+      RESTARTXSOL,	/* 10 */
+      AERODYNAMIC,
       HYDRAULIC,
       PRESNODES,
       LOADABLE,
@@ -70,13 +71,13 @@ class OutputHandler : public FileName {
       ADAMSRES,
       ADAMSCMD,
       AEROMODALS,
-      REFERENCEFRAMES,
-      LOG,		/* 20 */
+      REFERENCEFRAMES,	/* 20 */
+      LOG,	
       AIRPROPS,
       PARAMETERS,
       EXTERNALS,
 
-      LASTFILE		/* 24 */
+      LASTFILE		/* 25 */
    };   
    
  private:
@@ -99,12 +100,13 @@ class OutputHandler : public FileName {
    std::ofstream ofBeams;
    std::ofstream ofRotors;
    std::ofstream ofRestart;
-   std::ofstream ofAerodynamic; /* 10 */
+   std::ofstream ofRestartXSol; /* 10 */
+   std::ofstream ofAerodynamic;
    std::ofstream ofHydraulic;
    std::ofstream ofPresNodes;
    std::ofstream ofLoadable;
-   std::ofstream ofGenels;
-   std::ofstream ofPartition;   /* 15 */
+   std::ofstream ofGenels;	/* 15 */
+   std::ofstream ofPartition;
    std::ofstream ofAdamsRes;
    std::ofstream ofAdamsCmd;
    std::ofstream ofAeroModals;
@@ -116,7 +118,8 @@ class OutputHandler : public FileName {
    
    int iCurrWidth;
    int iCurrPrecision;
-   
+   int nCurrRestartFile;
+    
  public:
    OutputHandler(void);
    
@@ -135,7 +138,7 @@ class OutputHandler : public FileName {
    bool Close(const OutputHandler::OutFiles out);
    
    bool OutputOpen(void);
-   bool RestartOpen(void);
+   bool RestartOpen(bool openResXSol = false);
 
    bool PartitionOpen(void);
    bool AdamsResOpen(void);
@@ -234,6 +237,14 @@ class OutputHandler : public FileName {
       ASSERT(ofRestart.is_open());
 #endif /* HAVE_ISOPEN */
       return (std::ostream&)ofRestart;	  
+   };   
+   
+   inline std::ostream& RestartXSol(void) const {
+      ASSERT(OutData[RESTART].IsOpen);
+#ifdef HAVE_ISOPEN
+      ASSERT(ofRestartXSol.is_open());
+#endif /* HAVE_ISOPEN */
+      return (std::ostream&)ofRestartXSol;	  
    };   
    
    inline std::ostream& Aerodynamic(void) const {
