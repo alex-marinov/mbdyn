@@ -1,17 +1,17 @@
 //
-// time: Mon Jan 20 10:13:14 2003
+// time: Thu Jan 15 17:49:42 2004
 //
-// version: 3.1.2 (format), 4.1.3 (DX)
+// version: 3.1.2 (format), 4.2.0 (DX)
 //
 //
 //
-// macro reference (direct): DecimateFormatList /home2/marco/mbdyn/contrib/OpenDX-post/DecimateFormatList.net
+// macro reference (direct): DecimateFormatList /home/marco/Mbdyn/mbdyn/contrib/OpenDX-post/DecimateFormatList.net
 include "DecimateFormatList.net"
 //
-// macro reference (direct): M3TimesP3 /home2/marco/mbdyn/contrib/OpenDX-post/M3TimesP3.net
+// macro reference (direct): M3TimesP3 /home/marco/Mbdyn/mbdyn/contrib/OpenDX-post/M3TimesP3.net
 include "M3TimesP3.net"
 //
-// macro reference (direct): P3TimesM3 /home2/marco/mbdyn/contrib/OpenDX-post/P3TimesM3.net
+// macro reference (direct): P3TimesM3 /home/marco/Mbdyn/mbdyn/contrib/OpenDX-post/P3TimesM3.net
 include "P3TimesM3.net"
 //
 // MODULE main
@@ -36,12 +36,12 @@ include "P3TimesM3.net"
 // comment: without even the implied warranty of
 // comment: MERCHANTABILITY or FITNESS FOR 
 // comment: A PARTICULAR PURPOSE.
-// page assignment: MainControl	order=2, windowed=0, showing=1
-// page assignment: PlotAll	order=6, windowed=0, showing=0
+// page assignment: MainControl	order=2, windowed=0, showing=0
+// page assignment: PlotAll	order=6, windowed=0, showing=1
 // page assignment: ScaleDispl	order=3, windowed=0, showing=0
 // page assignment: ShowBeams2	order=5, windowed=0, showing=0
 // page assignment: ShowTriads	order=4, windowed=0, showing=0
-// workspace: width = 850, height = 903
+// workspace: width = 752, height = 748
 // layout: snap = 0, width = 50, height = 50, align = NN
 //
 macro main(
@@ -49,8 +49,8 @@ macro main(
 ) {
     // 
     // node FileSelector[1]: x = 187, y = 16, inputs = 0, label = FileSelector
-    // output[1]: visible = 1, type = 32, value = "/home3/marco/Adyn/ph_13c.dx"
-    // output[2]: visible = 1, type = 32, value = "ph_13c.dx"
+    // output[1]: visible = 1, type = 32, value = "/home/marco/Hover/hover_5_x.dx"
+    // output[2]: visible = 1, type = 32, value = "hover_5_x.dx"
     // page group: MainControl
     //
     // 
@@ -69,12 +69,12 @@ main_Import_1_out_1 =
     // 
     // node Selector[16]: x = 350, y = 469, inputs = 7, label = Selector
     // input[1]: defaulting = 0, visible = 0, type = 32, value = "Selector_16"
-    // input[2]: defaulting = 0, visible = 0, type = 32, value = "Show step" 
-    // input[3]: defaulting = 0, visible = 0, type = 29, value = 1 
+    // input[2]: defaulting = 0, visible = 0, type = 32, value = "Show sequence" 
+    // input[3]: defaulting = 0, visible = 0, type = 29, value = 2 
     // input[4]: defaulting = 1, visible = 1, type = 16777248, value = { "Show step" "Show sequence" }
     // input[5]: defaulting = 1, visible = 0, type = 16777245, value = { 1 2 }
-    // output[1]: visible = 1, type = 29, value = 1 
-    // output[2]: visible = 1, type = 32, value = "Show step" 
+    // output[1]: visible = 1, type = 29, value = 2 
+    // output[2]: visible = 1, type = 32, value = "Show sequence" 
     // page group: MainControl
     //
     // 
@@ -141,8 +141,8 @@ main_DecimateFormatList_1_out_1 =
     // input[1]: defaulting = 0, visible = 0, type = 32, value = "Selector_12"
     // input[2]: defaulting = 0, visible = 0, type = 32, value = "0.000000" 
     // input[3]: defaulting = 0, visible = 0, type = 29, value = 0 
-    // input[4]: defaulting = 1, visible = 1, type = 16777248, value = {"0.000000" "0.045000" "0.090000" "0.135000" "0.180000" "0.225000" "0.270000" "0.315000" "0.360000" "0.405000" "0.450000" "0.495000" "0.540000" "0.585000" "0.630000" "0.675000" "0.720000" "0.765000" "0.810000" "0.855000" "0.900000" "0.945000" "0.990000" "1.000000" }
-    // input[5]: defaulting = 1, visible = 0, type = 16777245, value = {0  1  2  3  4  5  6  7  8  9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  }
+    // input[4]: defaulting = 1, visible = 1, type = 16777248, value = { "0.000000" "95.000000" "190.000000" "285.000000" "380.000000" "475.000000" "570.000000" "665.000000" "760.000000" "855.000000" "950.000000" "1045.000000" "1140.000000" "1235.000000" "1330.000000" "1425.000000" "1520.000000" "1615.000000" "1710.000000" "1805.000000" "1900.000000" "1995.000000" "2000.000000" }
+    // input[5]: defaulting = 1, visible = 0, type = 16777245, value = { 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 }
     // output[1]: visible = 1, type = 29, value = 0 
     // output[2]: visible = 1, type = 32, value = "0.000000" 
     // page group: MainControl
@@ -201,11 +201,11 @@ main_Compute_4_out_1 =
     // node Sequencer[1]: x = 617, y = 314, inputs = 7, label = Sequencer
     // input[1]: defaulting = 0, visible = 0, type = 32, value = "Sequencer_1"
     // input[4]: defaulting = 1, visible = 1, type = 1, value = 0
-    // input[5]: defaulting = 1, visible = 1, type = 1, value = 200
+    // input[5]: defaulting = 1, visible = 1, type = 1, value = 2000
     // input[6]: defaulting = 1, visible = 1, type = 1, value = 1
-    // input[7]: defaulting = 0, visible = 0, type = 16777217, value = { 0 200 1 0 200 1 }
+    // input[7]: defaulting = 0, visible = 0, type = 16777217, value = { 0 2000 1 0 2000 1 }
     // page group: MainControl
-    // vcr[1]: min = 0, max = 200, beg = 0, end = 200, cur = 2, inc = 1, loop = off, step = off, pal = off
+    // vcr[1]: min = 0, max = 2000, beg = 0, end = 2000, cur = 0, inc = 1, loop = off, step = off, pal = off
     // window: position = (0.0000,0.0000), size = 0.2734x0.1045
     //
     main_Sequencer_1_in_3 = @frame;
@@ -905,12 +905,12 @@ main_Compute_1_out_1 =
     // 
     // node Scalar[1]: x = 419, y = 46, inputs = 11, label = Scalar
     // input[1]: defaulting = 0, visible = 0, type = 32, value = "Scalar_1"
-    // input[3]: defaulting = 0, visible = 0, type = 5, value = 0.55 
+    // input[3]: defaulting = 0, visible = 0, type = 5, value = 0.3 
     // input[5]: defaulting = 1, visible = 0, type = 5, value = 0.01
     // input[6]: defaulting = 1, visible = 0, type = 5, value = 10.0
     // input[7]: defaulting = 1, visible = 0, type = 5, value = 1.0
     // input[9]: defaulting = 1, visible = 0, type = 1, value = 5
-    // output[1]: visible = 1, type = 5, value = 0.55 
+    // output[1]: visible = 1, type = 5, value = 0.3 
     // page group: ShowTriads
     //
     // 
@@ -1043,30 +1043,6 @@ main_Color_3_out_1 =
     main_Color_3_in_5
     ) [instance: 3, cache: 1];
     // 
-    // node Legend[1]: x = 647, y = 634, inputs = 10, label = Legend
-    // input[1]: defaulting = 0, visible = 1, type = 16777248, value = {"z","y","x"}
-    // input[2]: defaulting = 0, visible = 1, type = 16777248, value = {"blue","green","red"}
-    // input[3]: defaulting = 0, visible = 1, type = 8, value = [1 1]
-    // input[4]: defaulting = 0, visible = 1, type = 8, value = [200 25]
-    // input[5]: defaulting = 1, visible = 1, type = 3, value = 0
-    // input[8]: defaulting = 1, visible = 0, type = 16777248, value = {"ticks"}
-    // input[9]: defaulting = 0, visible = 0, type = 5, value = 1.0
-    // page group: ShowTriads
-    //
-main_Legend_1_out_1 = 
-    Legend(
-    main_Legend_1_in_1,
-    main_Legend_1_in_2,
-    main_Legend_1_in_3,
-    main_Legend_1_in_4,
-    main_Legend_1_in_5,
-    main_Legend_1_in_6,
-    main_Legend_1_in_7,
-    main_Legend_1_in_8,
-    main_Legend_1_in_9,
-    main_Legend_1_in_10
-    ) [instance: 1, cache: 1];
-    // 
     // node Selector[2]: x = 759, y = 481, inputs = 7, label = Selector
     // input[1]: defaulting = 0, visible = 0, type = 32, value = "Selector_2"
     // input[2]: defaulting = 0, visible = 0, type = 32, value = "No Data" 
@@ -1098,7 +1074,7 @@ main_Collect_1_out_1 =
     main_Color_1_out_1,
     main_Color_2_out_1,
     main_Color_3_out_1,
-    main_Legend_1_out_1,
+    main_Collect_1_in_4,
     main_Switch_1_out_1
     ) [instance: 1, cache: 1];
     // 
@@ -1329,25 +1305,25 @@ main_Switch_6_out_1 =
     // node Image[2]: x = 161, y = 352, inputs = 49, label = Image
     // input[1]: defaulting = 0, visible = 0, type = 67108863, value = "Image_2"
     // input[4]: defaulting = 0, visible = 0, type = 1, value = 1
-    // input[5]: defaulting = 0, visible = 0, type = 8, value = [7.91 5.43847 4.5]
-    // input[6]: defaulting = 0, visible = 0, type = 8, value = [-17.55 24.4375 -4.92506]
-    // input[7]: defaulting = 0, visible = 0, type = 5, value = 17.7577
+    // input[5]: defaulting = 0, visible = 0, type = 8, value = [1.98366 1.35022 1.64629]
+    // input[6]: defaulting = 0, visible = 0, type = 8, value = [-2.58554 -8.32664 7.49405]
+    // input[7]: defaulting = 0, visible = 0, type = 5, value = 3.43867
     // input[8]: defaulting = 0, visible = 0, type = 1, value = 640
     // input[9]: defaulting = 0, visible = 0, type = 5, value = 0.750781
-    // input[10]: defaulting = 0, visible = 0, type = 8, value = [0.172524 0.613488 0.770628]
-    // input[11]: defaulting = 1, visible = 0, type = 5, value = 30.0001
+    // input[10]: defaulting = 0, visible = 0, type = 8, value = [0.189484 0.440748 0.877404]
+    // input[11]: defaulting = 1, visible = 0, type = 5, value = 16.0503
     // input[12]: defaulting = 0, visible = 0, type = 1, value = 0
     // input[14]: defaulting = 0, visible = 0, type = 1, value = 1
     // input[15]: defaulting = 1, visible = 0, type = 32, value = "none"
     // input[16]: defaulting = 1, visible = 0, type = 32, value = "none"
     // input[17]: defaulting = 0, visible = 0, type = 1, value = 1
     // input[18]: defaulting = 0, visible = 0, type = 1, value = 1
-    // input[19]: defaulting = 0, visible = 0, type = 1, value = 1
+    // input[19]: defaulting = 0, visible = 0, type = 3, value = 1
     // input[20]: visible = 1
     // input[29]: defaulting = 0, visible = 0, type = 3, value = 0
     // input[33]: defaulting = 0, visible = 0, type = 3, value = 0
     // input[36]: defaulting = 0, visible = 0, type = 3, value = 0
-    // input[41]: defaulting = 0, visible = 0, type = 32, value = "rotate"
+    // input[41]: defaulting = 0, visible = 0, type = 32, value = "panzoom"
     // output[3]: visible = 0
     // page group: PlotAll
     // depth: value = 16
@@ -1430,8 +1406,8 @@ main_Route_2_out_2[cache: 0] =
     ) [instance: 1, cache: 1];
     // 
     // node FileSelector[2]: x = 359, y = 506, inputs = 0, label = FileSelector
-    // output[1]: visible = 1, type = 32, value = "/home3/marco/Adyn/ph_13c"
-    // output[2]: visible = 1, type = 32, value = "ph_13c"
+    // output[1]: visible = 1, type = 32, value = "/home/marco/Hover/Film/hover"
+    // output[2]: visible = 1, type = 32, value = "hover"
     // page group: PlotAll
     //
     // 
@@ -1446,7 +1422,7 @@ ImageNumber = main_Sequencer_1_out_1;
 main_Receiver_32_out_1[cache: 0] = ImageNumber;
     // 
     // node Format[1]: x = 442, y = 602, inputs = 3, label = Format
-    // input[1]: defaulting = 0, visible = 1, type = 32, value = "%s_%3.3d"
+    // input[1]: defaulting = 0, visible = 1, type = 32, value = "%s_%d"
     // page group: PlotAll
     //
 main_Format_1_out_1 = 
@@ -1454,6 +1430,30 @@ main_Format_1_out_1 =
     main_Format_1_in_1,
     main_FileSelector_2_out_1,
     main_Receiver_32_out_1
+    ) [instance: 1, cache: 1];
+    // 
+    // node Legend[1]: x = 647, y = 634, inputs = 10, label = Legend
+    // input[1]: defaulting = 0, visible = 1, type = 16777248, value = {"z","y","x"}
+    // input[2]: defaulting = 0, visible = 1, type = 16777248, value = {"blue","green","red"}
+    // input[3]: defaulting = 0, visible = 1, type = 8, value = [1 1]
+    // input[4]: defaulting = 0, visible = 1, type = 8, value = [200 25]
+    // input[5]: defaulting = 1, visible = 1, type = 3, value = 0
+    // input[8]: defaulting = 1, visible = 0, type = 16777248, value = {"ticks"}
+    // input[9]: defaulting = 0, visible = 0, type = 5, value = 1.0
+    // page group: ShowTriads
+    //
+main_Legend_1_out_1 = 
+    Legend(
+    main_Legend_1_in_1,
+    main_Legend_1_in_2,
+    main_Legend_1_in_3,
+    main_Legend_1_in_4,
+    main_Legend_1_in_5,
+    main_Legend_1_in_6,
+    main_Legend_1_in_7,
+    main_Legend_1_in_8,
+    main_Legend_1_in_9,
+    main_Legend_1_in_10
     ) [instance: 1, cache: 1];
     // 
     // node ManageSequencer[1]: x = 303, y = 670, inputs = 1, label = ManageSequencer
@@ -1465,13 +1465,13 @@ main_Format_1_out_1 =
     // 
     // node Toggle[4]: x = 72, y = 435, inputs = 6, label = Toggle
     // input[1]: defaulting = 0, visible = 0, type = 32, value = "Toggle_4"
-    // input[2]: defaulting = 0, visible = 0, type = 29, value = 0
-    // input[3]: defaulting = 0, visible = 0, type = 3, value = 0
+    // input[2]: defaulting = 0, visible = 0, type = 29, value = 1
+    // input[3]: defaulting = 0, visible = 0, type = 3, value = 1
     // input[4]: defaulting = 1, visible = 1, type = 29, value = 1
     // input[5]: defaulting = 1, visible = 1, type = 29, value = 0
-    // output[1]: visible = 1, type = 29, value = 0
+    // output[1]: visible = 1, type = 29, value = 1
     // page group: PlotAll
-    // toggle : 0
+    // toggle : 1
     //
     // 
     // node Route[1]: x = 167, y = 514, inputs = 2, outputs = 2, label = Route
@@ -1517,7 +1517,7 @@ Time = main_Selector_12_out_1;
 // network: end of macro body
 CacheScene(main_Image_2_in_1, main_Image_2_out_1, main_Image_2_out_2);
 }
-main_FileSelector_1_out_1 = "/home3/marco/Adyn/ph_13c.dx";
+main_FileSelector_1_out_1 = "/home/marco/Hover/hover_5_x.dx";
 main_Import_1_in_2 = NULL;
 main_Import_1_in_3 = NULL;
 main_Import_1_in_4 = NULL;
@@ -1525,13 +1525,13 @@ main_Import_1_in_5 = NULL;
 main_Import_1_in_6 = NULL;
 main_Import_1_out_1 = NULL;
 main_Selector_16_in_1 = "Selector_16";
-main_Selector_16_in_2 = "Show step" ;
-main_Selector_16_in_3 = 1 ;
+main_Selector_16_in_2 = "Show sequence" ;
+main_Selector_16_in_3 = 2 ;
 main_Selector_16_in_4 = NULL;
 main_Selector_16_in_5 = NULL;
 main_Selector_16_in_6 = NULL;
 main_Selector_16_in_7 = NULL;
-main_Selector_16_out_1 = 1 ;
+main_Selector_16_out_1 = 2 ;
 main_Inquire_5_in_2 = "series positions";
 main_Inquire_5_in_3 = NULL;
 main_Inquire_5_out_1 = NULL;
@@ -1575,12 +1575,12 @@ main_Sequencer_1_in_1 = "Sequencer_1";
 main_Sequencer_1_in_2 = NULL;
 main_Sequencer_1_in_3 = NULL;
 main_Sequencer_1_in_6 = NULL;
-main_Sequencer_1_in_7 = { 0 200 1 0 200 1 };
+main_Sequencer_1_in_7 = { 0 2000 1 0 2000 1 };
 main_Sequencer_1_out_1 = NULL;
 
 @startframe = 0;
 @nextframe  = @startframe;
-@endframe   = 200;
+@endframe   = 2000;
 @deltaframe = 1;
 main_Switch_2_out_1 = NULL;
 main_Select_10_in_3 = NULL;
@@ -1753,7 +1753,7 @@ main_Compute_1_in_3 = NULL;
 main_Compute_1_out_1 = NULL;
 main_Scalar_1_in_1 = "Scalar_1";
 main_Scalar_1_in_2 = NULL;
-main_Scalar_1_in_3 = 0.55 ;
+main_Scalar_1_in_3 = 0.3 ;
 main_Scalar_1_in_4 = NULL;
 main_Scalar_1_in_5 = NULL;
 main_Scalar_1_in_6 = NULL;
@@ -1762,7 +1762,7 @@ main_Scalar_1_in_8 = NULL;
 main_Scalar_1_in_9 = NULL;
 main_Scalar_1_in_10 = NULL;
 main_Scalar_1_in_11 = NULL;
-main_Scalar_1_out_1 = 0.55 ;
+main_Scalar_1_out_1 = 0.3 ;
 main_Transmitter_1_out_1 = NULL;
 main_Receiver_1_out_1 = NULL;
 main_Glyph_1_in_2 = NULL;
@@ -1806,17 +1806,6 @@ main_Color_3_in_3 = NULL;
 main_Color_3_in_4 = NULL;
 main_Color_3_in_5 = NULL;
 main_Color_3_out_1 = NULL;
-main_Legend_1_in_1 = {"z","y","x"};
-main_Legend_1_in_2 = {"blue","green","red"};
-main_Legend_1_in_3 = [1 1];
-main_Legend_1_in_4 = [200 25];
-main_Legend_1_in_5 = NULL;
-main_Legend_1_in_6 = NULL;
-main_Legend_1_in_7 = NULL;
-main_Legend_1_in_8 = NULL;
-main_Legend_1_in_9 = 1.0;
-main_Legend_1_in_10 = NULL;
-main_Legend_1_out_1 = NULL;
 main_Selector_2_in_1 = "Selector_2";
 main_Selector_2_in_2 = "No Data" ;
 main_Selector_2_in_3 = 0 ;
@@ -1828,6 +1817,7 @@ main_Selector_2_out_1 = 0 ;
 main_Switch_1_in_4 = NULL;
 main_Switch_1_in_5 = NULL;
 main_Switch_1_out_1 = NULL;
+main_Collect_1_in_4 = NULL;
 main_Collect_1_out_1 = NULL;
 main_Toggle_2_in_1 = "Toggle_2";
 main_Toggle_2_in_2 = 1;
@@ -2214,12 +2204,12 @@ macro Image(
 main_Image_2_in_1 = "Image_2";
 main_Image_2_in_3 = "X16,,";
 main_Image_2_in_4 = 1;
-main_Image_2_in_5 = [7.91 5.43847 4.5];
-main_Image_2_in_6 = [-17.55 24.4375 -4.92506];
-main_Image_2_in_7 = 17.7577;
+main_Image_2_in_5 = [1.98366 1.35022 1.64629];
+main_Image_2_in_6 = [-2.58554 -8.32664 7.49405];
+main_Image_2_in_7 = 3.43867;
 main_Image_2_in_8 = 640;
 main_Image_2_in_9 = 0.750781;
-main_Image_2_in_10 = [0.172524 0.613488 0.770628];
+main_Image_2_in_10 = [0.189484 0.440748 0.877404];
 main_Image_2_in_11 = NULL;
 main_Image_2_in_12 = 0;
 main_Image_2_in_13 = NULL;
@@ -2248,7 +2238,7 @@ main_Image_2_in_37 = NULL;
 main_Image_2_in_38 = NULL;
 main_Image_2_in_39 = NULL;
 main_Image_2_in_40 = NULL;
-main_Image_2_in_41 = "rotate";
+main_Image_2_in_41 = "panzoom";
 main_Image_2_in_42 = NULL;
 main_Image_2_in_43 = NULL;
 main_Image_2_in_44 = NULL;
@@ -2261,24 +2251,34 @@ main_Image_2_out_1 = NULL;
 main_Image_2_out_2 = NULL;
 main_Route_2_out_1 = NULL;
 main_Export_1_in_3 = "dx text follows";
-main_FileSelector_2_out_1 = "/home3/marco/Adyn/ph_13c";
+main_FileSelector_2_out_1 = "/home/marco/Hover/Film/hover";
 main_Transmitter_28_out_1 = NULL;
 main_Receiver_32_out_1 = NULL;
-main_Format_1_in_1 = "%s_%3.3d";
+main_Format_1_in_1 = "%s_%d";
 main_Format_1_out_1 = NULL;
+main_Legend_1_in_1 = {"z","y","x"};
+main_Legend_1_in_2 = {"blue","green","red"};
+main_Legend_1_in_3 = [1 1];
+main_Legend_1_in_4 = [200 25];
+main_Legend_1_in_5 = NULL;
+main_Legend_1_in_6 = NULL;
+main_Legend_1_in_7 = NULL;
+main_Legend_1_in_8 = NULL;
+main_Legend_1_in_9 = 1.0;
+main_Legend_1_in_10 = NULL;
 main_Toggle_4_in_1 = "Toggle_4";
-main_Toggle_4_in_2 = 0;
-main_Toggle_4_in_3 = 0;
+main_Toggle_4_in_2 = 1;
+main_Toggle_4_in_3 = 1;
 main_Toggle_4_in_4 = NULL;
 main_Toggle_4_in_5 = NULL;
 main_Toggle_4_in_6 = NULL;
-main_Toggle_4_out_1 = 0;
+main_Toggle_4_out_1 = 1;
 main_Route_1_out_1 = NULL;
 main_Render_1_in_3 = NULL;
 main_Render_1_out_1 = NULL;
 main_WriteImage_1_in_3 = "tiff";
 main_WriteImage_1_in_4 = NULL;
-Executive("product version 4 1 3");
+Executive("product version 4 2 0");
 $sync
 
 sequence main();
