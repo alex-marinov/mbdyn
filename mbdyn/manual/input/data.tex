@@ -297,16 +297,26 @@ mainly used to cleanly check models and simulations at various phases.
             { umfpack | y12 | harwell | meschach | superlu }
         [ , { map | cc | dir } ]
         [ , mt , <threads> ]
-        [ , workspace size , <size> ] 
+        [ , workspace size , <workspace_size> ] 
         [ , pivot factor , <factor> ] ;
+        [ , block size, <block_size> ] ;
 \end{verbatim}
 The default, if available, is \kw{umfpack} which dynamically
 allocates memory as required, so the \kw{workspace size} 
 parameter, if given, is ignored.
+The \kw{umfpack} solver honors the \kw{block size} keyword,
+which refers to an internal parameter.
+The default value (32) is usually good for most problems; however,
+it has been observed that alower value can slightly improve
+performances on small problems (e.g.\ a rigid rotorcraft model
+with some 180 degrees of freedom showed a 10\% speedup with 
+a block size of 4, while a rigid robot showed eve higher speedups,
+in the 30\%, with a block size between 4 and 16).
 The \kw{y12} solver requires static allocation of the workspace;
-the optimal size is between 2 and 3 times the number of nonzero 
+the optimal size is between 3 and 5 times the number of nonzero 
 coefficients.
-By default twice the size of the full matrix is allocated;
+By default, twice the size of the full matrix is allocated
+(which sounds a bit nonsense, but is conservative enough);
 then the solver automatically uses an optimal amount of memory
 based on the results of the previous factorization; this could
 result in a failure if the filling of the matrix changes 
