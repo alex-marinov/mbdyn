@@ -149,3 +149,23 @@ CompactSparseMatrixHandler::MakeIndexForm(std::vector<doublereal>& rAx,
 	THROW(ErrGeneric());
 	return Nz();
 }
+
+integer
+CompactSparseMatrixHandler::MakeNaiveForm(doublereal *const Ax,
+		integer *const Arow, integer *const Acol,
+		integer *const nzr, integer *const nzc,
+		int offset) const
+{
+	THROW(ErrGeneric());
+	return Nz();
+}
+
+integer
+CompactSparseMatrixHandler::MakeNaiveForm(std::vector<doublereal>& Ax,
+               	std::vector<integer>& Arow, std::vector<integer>& Acol,
+		std::vector<integer>& Nzr, std::vector<integer>& Nzc,
+		int offset) const
+{
+	THROW(ErrGeneric());
+	return Nz();
+}

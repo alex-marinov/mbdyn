@@ -93,6 +93,18 @@ public:
 			std::vector<integer>& AcolSt,
 			int offset = 0) const = 0;
 
+	virtual
+	integer MakeNaiveForm(doublereal *const Ax,
+			integer *const Arow, integer *const Acol,
+			integer *const nzr, integer *const nzc,
+			int offset = 0) const = 0;
+
+	virtual
+	integer MakeNaiveForm(std::vector<doublereal>& Ax,
+                	std::vector<integer>& Arow, std::vector<integer>& Acol,
+			std::vector<integer>& Nzr, std::vector<integer>& Nzc,
+			int offset = 0) const = 0;
+
 	/* Estrae una colonna da una matrice */
 	virtual VectorHandler& GetCol(integer icol,
 			VectorHandler& out) const = 0;
@@ -171,6 +183,18 @@ public:
         integer MakeIndexForm(std::vector<doublereal>& Ax,
 			std::vector<integer>& Arow, std::vector<integer>& Acol,
 			std::vector<integer>& AcolSt,
+			int offset = 0) const;
+
+	virtual
+	integer MakeNaiveForm(doublereal *const Ax,
+			integer *const Arow, integer *const Acol,
+			integer *const nzr, integer *const nzc,
+			int offset = 0) const;
+
+	virtual
+	integer MakeNaiveForm(std::vector<doublereal>& Ax,
+                	std::vector<integer>& Arow, std::vector<integer>& Acol,
+			std::vector<integer>& Nzr, std::vector<integer>& Nzc,
 			int offset = 0) const;
 };
 

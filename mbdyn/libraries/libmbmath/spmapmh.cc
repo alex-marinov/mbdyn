@@ -113,7 +113,7 @@ SpMapMatrixHandler::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
 	Ai.resize(Nz());
 	Ap.resize(iGetNumCols() + 1);
 
-	return MakeCompressedColumnForm(&(Ax[0]), &(Ai[0]), &(Ap[0]), offset);
+	return MakeCompressedColumnForm(&Ax[0], &Ai[0], &Ap[0], offset);
 }
 
 integer
@@ -155,7 +155,178 @@ SpMapMatrixHandler::MakeIndexForm(std::vector<doublereal>& Ax,
 	Acol.resize(Nz());
 	Ap.resize(iGetNumCols() + 1);
 
-	return MakeIndexForm(&(Ax[0]), &(Arow[0]), &(Acol[0]), &(Ap[0]), offset);
+	return MakeIndexForm(&Ax[0], &Arow[0], &Acol[0], &Ap[0], offset);
+}
+
+#if 0	/* column-oriented */
+integer
+SpMapMatrixHandler::MakeNaiveForm(doublereal *const Ax,
+		integer *const Arow, integer *const Acol,
+		integer *const curCol, int offset) const
+{
+	row_cont_type::iterator ri;
+	row_cont_type::const_iterator re;
+
+	integer *picol = Acol;
+	integer size = iGetNumCols();
+	doublereal *pd = Ax;
+
+	for (integer col = 0; col < NCols; col++) {
+		integer row_ptr = 0;
+
+		re = col_indices[col].end();
+		for (ri = col_indices[col].begin(); ri != re; ri++) {
+			/* the location in column <col>, row <ri->first>
+			 * is set to <ri->second>, the matrix coefficient */
+			pd[ri->first + offset] = ri->second;
+
+			/* the location in column <col>, row <row_ptr>
+			 * is set to <ri->first>, the row index */
+			picol[row_ptr++] = ri->first + offset;
+
+			/* the location in column <col_ptr>, row <ri->first>
+			 * is set to <col>, the column index
+			 *
+			 * FIXME: this is the weak part; I'm using
+			 * a linear search throughout the row, maybe
+			 * a binary search between columns 0 and <col>
+			 * is better.
+			 */
+#if 1
+			Arow[ri->first + curCol[ri->first]*size] = col;
+			curCol[ri->first]++;
+#else
+			integer *pdrow = &Arow[ri->first];
+			for (integer ic = 0; ic < size; ic++) {
+				if (pdrow[0] == -offset) {
+					break;
+				}
+				pdrow += size;
+			}
+			ASSERT(pdrow[0] == -offset);
+			pdrow[0] = col;
+#endif
+		}
+
+		picol += size;
+		pd += size;
+	}
+
+	return Nz();
+}
+#endif /* 0 */
+
+integer
+SpMapMatrixHandler::MakeNaiveForm(doublereal *const Ax,
+		integer *const Arow, integer *const Acol,
+		integer *const nzr, integer *const nzc,
+		int offset) const
+{
+	integer	size = iGetNumRows();
+
+	for (integer col = 0; col < NCols; col++) {
+		row_cont_type::iterator row_it = col_indices[col].begin();
+		row_cont_type::const_iterator row_end = col_indices[col].end();
+
+		for (; row_it != row_end; row_it++) {
+			integer irow = row_it->first;
+			integer icol = col;
+
+#if 0
+			if (row_it->second == 0.) {
+				continue;
+			}
+			Ax[size*irow + col] = row_it->second;
+#else
+			if (row_it->second == 0.) {
+				Ax[size*irow + col] = 1.e-307;
+			} else {
+				Ax[size*irow + col] = row_it->second;
+			}
+#endif
+
+			Arow[size*icol + nzr[icol]] = irow;
+			Acol[size*irow + nzc[irow]] = icol;
+
+			nzc[irow]++;
+			nzr[icol]++;
+		}
+	}
+
+#if 1
+	std::cerr << "/////////////////////////////////////" << std::endl;
+	std::cerr << "int neq = " << size << ";" << std::endl;
+	std::cerr << "int nzr[] = {" << std::endl;
+	for (integer ir = 0; ir < size - 1; ir++) {
+		std::cerr << "\t" << nzr[ir] << "," << std::endl;
+	}
+	std::cerr << "\t" << nzr[0] << std::endl
+		<< "};" << std::endl;
+
+	std::cerr << "int nzc[] = {" << std::endl;
+	for (integer ir = 0; ir < size - 1; ir++) {
+		std::cerr << "\t" << nzc[ir] << "," << std::endl;
+	}
+	std::cerr << "\t" << nzc[0] << std::endl
+		<< "};" << std::endl;
+
+	std::cerr << "int ri[]["<< size << "] = {" << std::endl;
+	for (integer ir = 0; ir < size; ir++) {
+		std::cerr << "\t{";
+		for (integer iz = 0; iz < nzr[ir] - 1; iz++) {
+			std::cerr << Arow[size*ir + iz] << ", ";
+		}
+		std::cerr << Arow[size*ir + nzr[ir] - 1] << "}," << std::endl;
+	}
+	std::cerr << "\t{0} // last + 1" << std::endl
+		<< "};" << std::endl;
+
+	std::cerr << "int ci[]["<< size << "] = {" << std::endl;
+	for (integer ic = 0; ic < size; ic++) {
+		std::cerr << "\t{";
+		for (integer iz = 0; iz < nzc[ic] - 1; iz++) {
+			std::cerr << Acol[size*ic + iz] << ", ";
+		}
+		std::cerr << Arow[size*ic + nzc[ic] - 1] << "}," << std::endl;
+	}
+	std::cerr << "\t{0} // last + 1" << std::endl
+		<< "};" << std::endl;
+	std::cerr << "double A[][" << size << "] = {" << std::endl;
+	for (integer ir = 0; ir < size; ir++) {
+		std::cerr << "\t{";
+		for (integer ic = 0; ic < size-1; ic++) {
+			std::cerr << Ax[size*ir + ic] << ", ";
+		}
+		std::cerr << Ax[size*ir + size - 1] << "}," << std::endl;
+	}
+	std::cerr << "\t{0} // last + 1" << std::endl
+		<< "};" << std::endl;
+#endif
+
+	return Nz();
+}
+
+integer
+SpMapMatrixHandler::MakeNaiveForm(std::vector<doublereal>& Ax,
+                std::vector<integer>& Arow, std::vector<integer>& Acol,
+		std::vector<integer>& Nzr, std::vector<integer>& Nzc,
+		int offset) const
+{
+	integer s = iGetNumCols();
+	integer s2 = s*s;
+
+	Ax.resize(s2);
+	std::fill(Ax.begin(), Ax.end(), 0.);
+	Arow.resize(s2);
+	Acol.resize(s2);
+
+	Nzr.resize(s, 0);
+	std::fill(Nzr.begin(), Nzr.end(), 0);
+	Nzc.resize(s, 0);
+	std::fill(Nzc.begin(), Nzc.end(), 0);
+
+	return MakeNaiveForm(&Ax[0], &Arow[0], &Acol[0],
+			&Nzr[0], &Nzc[0], offset);
 }
 
 void

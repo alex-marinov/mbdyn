@@ -224,6 +224,16 @@ public:
 			std::vector<integer>& AcolSt,
 			int offset = 0) const;
 
+	integer MakeNaiveForm(doublereal *const Ax,
+			integer *const Arow, integer *const Acol,
+			integer *const nzr, integer *const nzc,
+			int offset = 0) const;
+
+	integer MakeNaiveForm(std::vector<doublereal>& Ax,
+                	std::vector<integer>& Arow, std::vector<integer>& Acol,
+			std::vector<integer>& Nzr, std::vector<integer>& Nzc,
+			int offset = 0) const;
+
 	void Reset(const doublereal &r = 0.);
 
 	void Resize(integer ir, integer ic);
