@@ -13,50 +13,53 @@ function print_preamble() {
 		printf("\t%d\n", strnode_label[i]);
 	}
 	printf("attribute \"dep\" string \"positions\"\n");
-	printf("object \"Beam2Connections\" class array type int shape 2 items %d data follows\n", beam2_num + 2*beam3_num);
-	for (i = 0; i < beam2_num; i++) {
-		l = beam2_label[i];
-		printf("\t%d %d\n", beam2[l, 1], beam2[l, 2]);
+	beam_num = beam2_num + 2*beam3_num;
+	if (beam_num > 0) {
+		printf("object \"Beam2Connections\" class array type int shape 2 items %d data follows\n", beam_num);
+		for (i = 0; i < beam2_num; i++) {
+			l = beam2_label[i];
+			printf("\t%d %d\n", beam2[l, 1], beam2[l, 2]);
+		}
+		for (i = 0; i < beam3_num; i++) {
+			l = beam3_label[i];
+			printf("\t%d %d\n", beam3[l, 1], beam3[l, 2]);
+			printf("\t%d %d\n", beam3[l, 2], beam3[l, 3]);
+		}
+		printf("attribute \"element type\" string \"lines\"\n");
+		printf("object \"Beam2Labels\" class array type int shape 1 items %d data follows\n", beam_num);
+		for (i = 0; i < beam2_num; i++) {
+			printf("\t%d\n", beam2_label[i]);
+		}
+		for (i = 0; i < beam3_num; i++) {
+			printf("\t%d\n", beam3_label[i]);
+			printf("\t%d\n", beam3_label[i]);
+		}
+		printf("attribute \"dep\" string \"connections\"\n");
+		printf("attribute \"element type\" string \"lines\"\n");
+		printf("object \"Beam2Offsets\" class array type float shape 6 items %d data follows\n", beam_num);
+		for (i = 0; i < beam2_num; i++) {
+			l = beam2_label[i];
+			printf("\t%f %f %f %f %f %f\n", 
+				beam2[l, 1, 1], beam2[l, 1, 2], beam2[l, 1, 3],
+				beam2[l, 2, 1], beam2[l, 2, 2], beam2[l, 2, 3]);
+		}
+		for (i = 0; i < beam3_num; i++) {
+			l = beam3_label[i];
+			printf("\t%f %f %f %f %f %f\n", 
+				beam3[l, 1, 1], beam3[l, 1, 2], beam3[l, 1, 3],
+				beam3[l, 2, 1], beam3[l, 2, 2], beam3[l, 2, 3]);
+			printf("\t%f %f %f %f %f %f\n", 
+				beam3[l, 2, 1], beam3[l, 2, 2], beam3[l, 2, 3],
+				beam3[l, 3, 1], beam3[l, 3, 2], beam3[l, 3, 3]);
+		}
+		printf("attribute \"dep\" string \"connections\"\n");
 	}
-	for (i = 0; i < beam3_num; i++) {
-		l = beam3_label[i];
-		printf("\t%d %d\n", beam3[l, 1], beam3[l, 2]);
-		printf("\t%d %d\n", beam3[l, 2], beam3[l, 3]);
-	}
-	printf("attribute \"element type\" string \"lines\"\n");
-	printf("object \"Beam2Labels\" class array type int shape 1 items %d data follows\n", beam2_num + 2*beam3_num);
-	for (i = 0; i < beam2_num; i++) {
-		printf("\t%d\n", beam2_label[i]);
-	}
-	for (i = 0; i < beam3_num; i++) {
-		printf("\t%d\n", beam3_label[i]);
-		printf("\t%d\n", beam3_label[i]);
-	}
-	printf("attribute \"dep\" string \"connections\"\n");
-	printf("attribute \"element type\" string \"lines\"\n");
-	printf("object \"Beam2Offsets\" class array type float shape 6 items %d data follows\n", beam2_num + 2*beam3_num);
-	for (i = 0; i < beam2_num; i++) {
-		l = beam2_label[i];
-		printf("\t%f %f %f %f %f %f\n", 
-			beam2[l, 1, 1], beam2[l, 1, 2], beam2[l, 1, 3],
-			beam2[l, 2, 1], beam2[l, 2, 2], beam2[l, 2, 3]);
-	}
-	for (i = 0; i < beam3_num; i++) {
-		l = beam3_label[i];
-		printf("\t%f %f %f %f %f %f\n", 
-			beam3[l, 1, 1], beam3[l, 1, 2], beam3[l, 1, 3],
-			beam3[l, 2, 1], beam3[l, 2, 2], beam3[l, 2, 3]);
-		printf("\t%f %f %f %f %f %f\n", 
-			beam3[l, 2, 1], beam3[l, 2, 2], beam3[l, 2, 3],
-			beam3[l, 3, 1], beam3[l, 3, 2], beam3[l, 3, 3]);
-	}
-	printf("attribute \"dep\" string \"connections\"\n");
 }
 
 # Prints the objects at one step
 function print_step() {
 	t = Start + Step*Skip*Incr;
-	printf("# Step%f\n", t);
+	printf("# Step %f\n", t);
 	printf("object \"TriadPositions%f\" class array type float rank 1 shape 3 items %d data follows\n", t, strnode_num);
 	for (i = 0; i < strnode_num; i++) {
 		l = strnode_label[i];
@@ -76,16 +79,20 @@ function print_step() {
 	printf("component \"positions\" \"TriadPositions%f\"\n", t);
 	printf("component \"cosines\" \"TriadCosines%f\"\n", t);
 	printf("component \"labels\" \"TriadLabels\"\n");
-	printf("object \"Beams2%f\" class field\n", t);
-	printf("component \"positions\" \"TriadPositions%f\"\n", t);
-	printf("component \"connections\" \"Beam2Connections\"\n");
-	printf("component \"cosines\" \"TriadCosines%f\"\n", t);
-	printf("component \"labels\" \"Beam2Labels\"\n");
-	printf("component \"nodelabels\" \"TriadLabels\"\n");
-	printf("component \"offsets\" \"Beam2Offsets\"\n");
+	if (beam_num > 0) {
+		printf("object \"Beams2%f\" class field\n", t);
+		printf("component \"positions\" \"TriadPositions%f\"\n", t);
+		printf("component \"connections\" \"Beam2Connections\"\n");
+		printf("component \"cosines\" \"TriadCosines%f\"\n", t);
+		printf("component \"labels\" \"Beam2Labels\"\n");
+		printf("component \"nodelabels\" \"TriadLabels\"\n");
+		printf("component \"offsets\" \"Beam2Offsets\"\n");
+	}
 	printf("object \"MBDynSym%f\" class group\n", t);
 	printf("member \"OrientedTriads\" value \"OrientedTriads%f\"\n", t);
-	printf("member \"Beams2\" value \"Beams2%f\"\n", t);
+	if (beam_num > 0) {
+		printf("member \"Beams2\" value \"Beams2%f\"\n", t);
+	}
 }
 
 # Prints the members of the group at the end
