@@ -36,7 +36,39 @@ extern "C" {
 
 #ifdef HAVE_F2C_H
 #include <f2c.h>
+/*
+ * Quoting gcc 3.2.1's cstdlib ...
+ */
+// Get rid of those macros defined in <stdlib.h> in lieu of real functions.
+#undef abort
 #undef abs
+#undef atexit
+#undef atof
+#undef atoi
+#undef atol
+#undef bsearch
+#undef calloc
+#undef div
+#undef exit
+#undef free
+#undef getenv
+#undef labs
+#undef ldiv
+#undef malloc
+#undef mblen
+#undef mbstowcs
+#undef mbtowc
+#undef qsort
+#undef rand
+#undef realloc
+#undef srand
+#undef strtod
+#undef strtol
+#undef strtoul
+#undef system
+#undef wcstombs
+#undef wctomb
+
 #define HAVE_FLAG_T
 #else /* !HAVE_F2C_H */
 
