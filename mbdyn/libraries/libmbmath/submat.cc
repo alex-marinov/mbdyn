@@ -431,17 +431,19 @@ ostream& operator << (ostream& out, const FullSubMatrixHandler& m)
    ASSERT(pd != NULL);
    
    integer* piCnt = piCol;
-   out << "            ";
+   out << setw(12) << "";
    while (piCnt < piCol+iCol) {      
       out << setw(12) << *piCnt++;
-   }   
+   }
+   out << endl << endl;
      
    piCnt = piRow;
    while (piCnt < piRow+iRow) {	
       out << setw(12) << *piCnt++;
       for (integer iCnt = 0; iCnt < iRow; iCnt++) {	 
 	 out << setw(12) << *(pd+iCnt*iRow);
-      }      
+      }
+      out << endl;
       pd++;
    }
    
