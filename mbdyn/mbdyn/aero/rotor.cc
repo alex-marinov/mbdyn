@@ -39,16 +39,16 @@
 
 #ifdef USE_MPI
 #ifdef USE_MYSLEEP
-extern mysleep(int);
+#include <mysleep.h>
 #endif /* USE_MYSLEEP */
-#endif /* USE_MPI */
 
 #ifdef MPI_PROFILING
 extern "C" {
 #include <mpe.h>
 #include <stdio.h>
 }
-#endif /*MPI_PROFILING */
+#endif /* MPI_PROFILING */
+#endif /* USE_MPI */
 
 extern "C" {
 #include <mymath.h>

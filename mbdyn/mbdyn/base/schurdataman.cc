@@ -42,6 +42,7 @@
 #ifdef USE_MPI
 
 #include <schurdataman.h>
+#include <mysleep.h>
 #include <except.h>
 
 /* libreria per il calcolo delle partizioni */
