@@ -15,6 +15,15 @@ MBDyn 1.X-Devel
 		  (by Marco Morandini)
 		- added TAUCS linear solver (experimental) (by Marco Morandini)
 		- added "ad hoc" (Radau IIA) third-order integrator
+		- added ideal gimbal joint
+		- reworked matrix/matrix and matrix/vector product
+	Backward compatibility issues:
+	Known issues:
+	Bug fixes:
+		- fixed stream opening sequence
+
+MBDyn 1.2.2
+	Enhancements:
 		- honor describe dofs directive in initial assembly
 		- added support for equation description
 		- added support for namespaces in math parser
@@ -23,8 +32,6 @@ MBDyn 1.X-Devel
 		- added socket2stream/stream2socket utilities
 		  for easy socket I/O piping
 		- rewritten viscous and viscoelastic hinge joint
-		- added ideal gimbal joint
-		- reworked matrix/matrix and matrix/vector product
 	Backward compatibility issues:
 		- "output file name" statement in "control data"
 		  is no longer supported
@@ -43,7 +50,6 @@ MBDyn 1.X-Devel
 		- fixed modal inertia matrix computation (problem noted
 		  by Fabio Riva and Luca Zucchetti)
 		- fixed test for node type in Body
-		- fixed stream opening sequence
 
 MBDyn 1.2.1
 	Enhancements:
