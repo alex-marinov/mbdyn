@@ -82,8 +82,16 @@ ppdRows(0), ppiRows(0), ppiCols(0), piNzr(0), piNzc(0)
 
 		SAFENEWARR(piNzr, integer, iSize);
 		SAFENEWARR(piNzc, integer, iSize);
-		
-		Reset();
+
+#ifdef HAVE_MEMSET_H
+		memset(piNzr, 0, sizeof(integer)*iSize);
+		memset(piNzc, 0, sizeof(integer)*iSize);
+#else /* ! HAVE_MEMSET_H */
+		for (integer row=0; row < iSize; row++) {
+			piNzr[row] = 0;
+			piNzc[row] = 0;
+		}
+#endif /* ! HAVE_MEMSET_H */		
 	}
 }
 
@@ -131,17 +139,28 @@ void
 NaiveMatrixHandler::Reset(void)
 {
 #ifdef HAVE_MEMSET_H
-	memset(ppnonzero[0], 0, sizeof(char)*iSize*iSize);
+	for (integer row=0; row < iSize; row++) {
+		integer ncols = piNzc[row];
+		integer * piCols = ppiCols[row];
+		char * pnonzero = ppnonzero[row];
+		for (integer col = 0; col < ncols; col++) {
+			pnonzero[piCols[col]] = 0;
+		}
+	}
+//	memset(ppnonzero[0], 0, sizeof(char)*iSize*iSize);
 	memset(piNzr, 0, sizeof(integer)*iSize);
 	memset(piNzc, 0, sizeof(integer)*iSize);
 #else /* ! HAVE_MEMSET_H */
-	for (integer i = 0; i < iSize; i++) {
-		for (integer j = 0; j < iSize; j++) {
-			ppnonzero[i][j] = 0;
+	for (integer row=0; row < iSize; row++) {
+		integer ncols = piNzc[row];
+		integer * piCols = ppiCols[row];
+		char * pnonzero = ppnonzero[row];
+		for (integer col = 0; col < ncols; col++) {
+			pnonzero[piCols[col]] = 0;
 		}
-
-		piNzr[i] = 0;
-		piNzc[i] = 0;
+		
+		piNzr[row] = 0;
+		piNzc[row] = 0;
 	}
 #endif /* ! HAVE_MEMSET_H */
 }
