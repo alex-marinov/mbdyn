@@ -344,9 +344,9 @@ UmfpackSparseSolutionManager::pSolHdl(void) const {
 
 /* UmfpackSparseSolutionManager - end */
 
-/* UmfpackSparseCCLUSolutionManager - begin */
+/* UmfpackSparseCCSolutionManager - begin */
 
-UmfpackSparseCCLUSolutionManager::UmfpackSparseCCLUSolutionManager(integer Dim,
+UmfpackSparseCCSolutionManager::UmfpackSparseCCSolutionManager(integer Dim,
 		integer dummy, doublereal dPivot)
 : UmfpackSparseSolutionManager(Dim, dummy, dPivot),
 CCReady(false),
@@ -355,7 +355,7 @@ Ac(0)
 	NO_OP;
 }
 
-UmfpackSparseCCLUSolutionManager::~UmfpackSparseCCLUSolutionManager(void) 
+UmfpackSparseCCSolutionManager::~UmfpackSparseCCSolutionManager(void) 
 {
 	if (Ac) {
 		SAFEDELETE(Ac);
@@ -363,7 +363,7 @@ UmfpackSparseCCLUSolutionManager::~UmfpackSparseCCLUSolutionManager(void)
 }
 
 void
-UmfpackSparseCCLUSolutionManager::MatrReset(const doublereal& d)
+UmfpackSparseCCSolutionManager::MatrReset(const doublereal& d)
 {
 	if (!CCReady) {
 		A.Reset(d);
@@ -374,7 +374,7 @@ UmfpackSparseCCLUSolutionManager::MatrReset(const doublereal& d)
 
 /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
 void
-UmfpackSparseCCLUSolutionManager::MakeCompressedColumnForm(void)
+UmfpackSparseCCSolutionManager::MakeCompressedColumnForm(void)
 {
 	if (!CCReady) {
 		A.MakeCompressedColumnForm(Ax, Ai, Ap);
@@ -389,7 +389,7 @@ UmfpackSparseCCLUSolutionManager::MakeCompressedColumnForm(void)
 
 /* Inizializzatore "speciale" */
 void
-UmfpackSparseCCLUSolutionManager::MatrInitialize(const doublereal& d)
+UmfpackSparseCCSolutionManager::MatrInitialize(const doublereal& d)
 {
 	SAFEDELETE(Ac);
 	Ac = 0;
@@ -401,7 +401,7 @@ UmfpackSparseCCLUSolutionManager::MatrInitialize(const doublereal& d)
 	
 /* Rende disponibile l'handler per la matrice */
 MatrixHandler*
-UmfpackSparseCCLUSolutionManager::pMatHdl(void) const
+UmfpackSparseCCSolutionManager::pMatHdl(void) const
 {
 	if (!CCReady) {
 		return &A;
@@ -411,7 +411,7 @@ UmfpackSparseCCLUSolutionManager::pMatHdl(void) const
 	return Ac;
 }
 
-/* UmfpackSparseCCLUSolutionManager - end */
+/* UmfpackSparseCCSolutionManager - end */
 
 #endif /* USE_UMFPACK */
 

@@ -156,7 +156,7 @@ public:
 };
 
 
-class UmfpackSparseCCLUSolutionManager: public UmfpackSparseSolutionManager {
+class UmfpackSparseCCSolutionManager: public UmfpackSparseSolutionManager {
 protected:
 	bool CCReady;
 	CColMatrixHandler *Ac;
@@ -165,9 +165,9 @@ protected:
 	virtual void MakeCompressedColumnForm(void);
 	
 public:
-	UmfpackSparseCCLUSolutionManager(integer Dim, integer /* unused */ = 0, 
+	UmfpackSparseCCSolutionManager(integer Dim, integer /* unused */ = 0, 
 			doublereal dPivot = -1.);
-	virtual ~UmfpackSparseCCLUSolutionManager(void);
+	virtual ~UmfpackSparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */
 	virtual void MatrInitialize(const doublereal& d = 0.);

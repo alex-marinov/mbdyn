@@ -94,8 +94,8 @@ main(int argc, char *argv[])
 #ifdef USE_UMFPACK
 		if (argc > 2 && strcasecmp(argv[2], "cc") == 0) {
 			SAFENEWWITHCONSTRUCTOR(pSM,
-					UmfpackSparseCCLUSolutionManager,
-					UmfpackSparseCCLUSolutionManager(size));
+					UmfpackSparseCCSolutionManager,
+					UmfpackSparseCCSolutionManager(size));
 			argc--;
 			argv++;
 		} else {

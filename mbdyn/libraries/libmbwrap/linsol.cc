@@ -355,8 +355,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 	case LinSol::UMFPACK_CC_SOLVER:
 #ifdef USE_UMFPACK
 		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			UmfpackSparseCCLUSolutionManager,
-			UmfpackSparseCCLUSolutionManager(iNLD, 
+			UmfpackSparseCCSolutionManager,
+			UmfpackSparseCCSolutionManager(iNLD, 
 				0, dPivotFactor));
       		break;
 #else /* !USE_UMFPACK */
