@@ -503,6 +503,8 @@ class DynamicInflowRotor : virtual public Elem, public Rotor {
 		      SetResForces **ppres, 
 		      doublereal dOR,
 		      doublereal dR,
+		      doublereal dCH,
+		      doublereal dCFF,
 		      doublereal dVConstTmp,
 		      doublereal dVCosineTmp,
 		      doublereal dVSineTmp,

@@ -1083,6 +1083,8 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 				       SetResForces **ppres, 
 				       doublereal dOR,
 				       doublereal dR,
+	    			       doublereal dCH,
+	    			       doublereal dCFF,
 				       doublereal dVConstTmp,
 				       doublereal dVCosineTmp,
 				       doublereal dVSineTmp,
@@ -1099,6 +1101,9 @@ dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
    dRadius = dR;
    dArea = M_PI*dRadius*dRadius;
    
+   dHoverCorrection = dCH;
+   dForwardFlightCorrection = dCFF;
+
    /* Significa che valuta la velocita' indotta media al passo corrente */
    dWeight = 0.;
 
@@ -1185,171 +1190,237 @@ void DynamicInflowRotor::Output(OutputHandler& OH) const
 #endif /* !USE_MPI */     
    }
 }
-     
+
+
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 
 DynamicInflowRotor::AssJac(VariableSubMatrixHandler& WorkMat,
-			   doublereal dCoef,
-			   const VectorHandler& /* XCurr */ ,
-			   const VectorHandler& /* XPrimeCurr */ )
+		doublereal dCoef,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering DynamicInflowRotor::AssJac()" << std::endl);
+	DEBUGCOUT("Entering DynamicInflowRotor::AssJac()" << std::endl);
 #ifdef USE_MPI 
-   if (is_parallel && RotorComm.Get_rank() == 0) {
+	if (is_parallel && RotorComm.Get_rank() == 0) {
 #endif /* USE_MPI */     
-      SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-      WM.ResizeInit(5, 0, 0.);
+		SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+		WM.ResizeInit(5, 0, 0.);
    
-      integer iFirstIndex = iGetFirstIndex();
-      WM.fPutItem(1, iFirstIndex+1, iFirstIndex+1, dM11+dCoef*dL11);
-      WM.fPutItem(2, iFirstIndex+3, iFirstIndex+1, dCoef*dL31);
-      WM.fPutItem(3, iFirstIndex+2, iFirstIndex+2, dM22+dCoef*dL22);
-      WM.fPutItem(4, iFirstIndex+1, iFirstIndex+3, dCoef*dL13);
-      WM.fPutItem(5, iFirstIndex+3, iFirstIndex+3, dM33+dCoef*dL33);
+		integer iFirstIndex = iGetFirstIndex();
+		WM.fPutItem(1, iFirstIndex+1, iFirstIndex+1, dM11+dCoef*dL11);
+		WM.fPutItem(2, iFirstIndex+3, iFirstIndex+1, dCoef*dL31);
+		WM.fPutItem(3, iFirstIndex+2, iFirstIndex+2, dM22+dCoef*dL22);
+		WM.fPutItem(4, iFirstIndex+1, iFirstIndex+3, dCoef*dL13);
+		WM.fPutItem(5, iFirstIndex+3, iFirstIndex+3, dM33+dCoef*dL33);
 
 #ifdef USE_MPI
-   } else {
-      WorkMat.SetNullMatrix();
-   }
+	} else {
+		WorkMat.SetNullMatrix();
+	}
 #endif /* USE_MPI */
 
-   return WorkMat;
+	return WorkMat;
 }
 
 
 /* assemblaggio residuo */
-SubVectorHandler& DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
-					     doublereal /* dCoef */ ,
-					     const VectorHandler& XCurr, 
-					     const VectorHandler& XPrimeCurr)
+SubVectorHandler&
+DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
+		doublereal /* dCoef */ ,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering DynamicInflowRotor::AssRes()" << std::endl);
+     	DEBUGCOUT("Entering DynamicInflowRotor::AssRes()" << std::endl);
    
 #ifdef USE_MPI
-   ExchangeTraction(flag(1));
+     	ExchangeTraction(flag(1));
    
-   if (!is_parallel || RotorComm.Get_rank() == 0) {
+     	if (!is_parallel || RotorComm.Get_rank() == 0) {
 #endif /* USE_MPI */
 
-     /* Calcola parametri vari */
-     Rotor::InitParam();   
-     Rotor::MeanInducedVelocity();
+	   	/* Calcola parametri vari */
+	   	Rotor::InitParam();   
+	   	Rotor::MeanInducedVelocity();
      
 #ifdef DEBUG
-     /* Prova: */
-     Vec3 XTmp(2.,2.,0.);
-     doublereal dPsiTmp = dGetPsi(XTmp);
-     doublereal dXTmp = dGetPos(XTmp);
-     Vec3 IndV = GetInducedVelocity(XTmp);
-     std::cout 
-       << "X rotore:  " << pRotor->GetXCurr() << std::endl
-       << "V rotore:  " << VCraft << std::endl
-       << "X punto:   " << XTmp << std::endl
-       << "Omega:     " << dOmega << std::endl
-       << "Velocita': " << dVelocity << std::endl
-       << "Psi0:      " << dPsi0 << std::endl
-       << "Psi punto: " << dPsiTmp << std::endl
-       << "Raggio:    " << dRadius << std::endl
-       << "r punto:   " << dXTmp << std::endl
-       << "mu:        " << dMu << std::endl
-       << "lambda:    " << dLambda << std::endl
-       << "cos(ad):   " << dCosAlphad << std::endl
-       << "sin(ad):   " << dSinAlphad << std::endl
-       << "UMean:     " << dUMean << std::endl
-       << "iv punto:  " << IndV << std::endl;
+	   	/* Prova: */
+	   	Vec3 XTmp(2.,2.,0.);
+	   	doublereal dPsiTmp = dGetPsi(XTmp);
+	   	doublereal dXTmp = dGetPos(XTmp);
+	   	Vec3 IndV = GetInducedVelocity(XTmp);
+	   	std::cout 
+		 	<< "X rotore:  " << pRotor->GetXCurr() << std::endl
+		 	<< "V rotore:  " << VCraft << std::endl
+		 	<< "X punto:   " << XTmp << std::endl
+		 	<< "Omega:     " << dOmega << std::endl
+		 	<< "Velocita': " << dVelocity << std::endl
+		 	<< "Psi0:      " << dPsi0 << std::endl
+		 	<< "Psi punto: " << dPsiTmp << std::endl
+		 	<< "Raggio:    " << dRadius << std::endl
+		 	<< "r punto:   " << dXTmp << std::endl
+		 	<< "mu:        " << dMu << std::endl
+		 	<< "lambda:    " << dLambda << std::endl
+		 	<< "cos(ad):   " << dCosAlphad << std::endl
+		 	<< "sin(ad):   " << dSinAlphad << std::endl
+		 	<< "UMean:     " << dUMean << std::endl
+		 	<< "iv punto:  " << IndV << std::endl;
 #endif /* DEBUG */
-     
-     WorkVec.Resize(3);
-     integer iFirstIndex = iGetFirstIndex();
-   
-     WorkVec.fPutRowIndex(1, iFirstIndex+1);
-     WorkVec.fPutRowIndex(2, iFirstIndex+2);
-     WorkVec.fPutRowIndex(3, iFirstIndex+3);
-     
-     dVConst = XCurr.dGetCoef(iFirstIndex+1);
-     
-     /* PROVA */
-     dUMeanPrev = dUMean = dVConst*dOmega*dRadius;
-     
-     dVCosine = XCurr.dGetCoef(iFirstIndex+2);
-     dVSine = XCurr.dGetCoef(iFirstIndex+3);
-     
-     doublereal dVConstPrime = XPrimeCurr.dGetCoef(iFirstIndex+1);
-     doublereal dVCosinePrime = XPrimeCurr.dGetCoef(iFirstIndex+2);
-     doublereal dVSinePrime = XPrimeCurr.dGetCoef(iFirstIndex+3);
-     
-     /* Trazione nel sistema rotore */
-     Vec3 T(RRotTranspose*Res.Force());
-     
-     /* Momento nel sistema rotore-vento */
-     doublereal dCosP = cos(dPsi0);
-     doublereal dSinP = sin(dPsi0);
-     Mat3x3 RTmp( dCosP,  dSinP, 0., 
-		  -dSinP,  dCosP, 0.,
-		  0.,     0.,    1.);
-     Vec3 M(RTmp*(RRotTranspose*Res.Couple()));
-       
 
-     /* Ora la trazione non serve piu' */
-     ResetForce();
+       	   	WorkVec.Resize(3);
+	   	integer iFirstIndex = iGetFirstIndex();
+     	
+	   	WorkVec.fPutRowIndex(1, iFirstIndex+1);
+	   	WorkVec.fPutRowIndex(2, iFirstIndex+2);
+	   	WorkVec.fPutRowIndex(3, iFirstIndex+3);
      
-     /* Attenzione: moltiplico tutte le equazioni per dOmega */
-     doublereal d = dGetAirDensity(GetXCurr())*dArea*dOmega*(dRadius*dRadius);
-     if (d > DBL_EPSILON) {
-       
-       /* Coefficienti di trazione e momento */
-       doublereal dCt = T.dGet(3)/d;
-       d *= dRadius;
-       doublereal dCl = M.dGet(1)/d;
-       doublereal dCm = M.dGet(2)/d;
+	   	dVConst = XCurr.dGetCoef(iFirstIndex+1);
+	   	dVCosine = XCurr.dGetCoef(iFirstIndex+2);
+	   	dVSine = XCurr.dGetCoef(iFirstIndex+3);
+     
+	   	doublereal dVConstPrime = XPrimeCurr.dGetCoef(iFirstIndex+1);
+	   	doublereal dVCosinePrime = XPrimeCurr.dGetCoef(iFirstIndex+2);
+	   	doublereal dVSinePrime = XPrimeCurr.dGetCoef(iFirstIndex+3);
+     
+		doublereal dCt = 0.;
+		doublereal dCl = 0.;
+		doublereal dCm = 0.;
+
+	   	/* Attenzione: moltiplico tutte le equazioni per dOmega */
+	   	doublereal d = dGetAirDensity(GetXCurr())*dArea*dOmega*(dRadius*dRadius);
+	   	if (d > DBL_EPSILON) {
+	   	
+		   	/* PROVA */
+		   	dUMean = dVConst*dOmega*dRadius;
+     
+		   	/* Trazione nel sistema rotore */
+		   	doublereal dT(RRot3*Res.Force());
+     
+		   	/* Momento nel sistema rotore-vento */
+		   	doublereal dCosP = cos(dPsi0);
+		   	doublereal dSinP = sin(dPsi0);
+		   	Mat3x3 RTmp( dCosP, dSinP, 0., 
+		      			-dSinP, dCosP, 0.,
+		      			0., 0., 1.);
+		   	Vec3 M(RTmp*(RRotTranspose*Res.Couple()));
+
+		 	/* Coefficienti di trazione e momento */
+		 	dCt = dT/d;
+		 	d *= dRadius;
+		 	dCl = M.dGet(1)/d;
+		 	dCm = M.dGet(2)/d;
    
-       /* Coefficienti della matrice */
-       doublereal dUt = sqrt(dLambda*dLambda+dMu*dMu);
-       doublereal dUm = 0.;
-       if (dUt > DBL_EPSILON) { 
-	 dUm = (dMu*dMu+dLambda*(dLambda+dVConst))/dUt;
-       }
+		 	/*** FIXME: this is from Rotor::InitParams() ***/
+	
+		     	/* 
+			 * Velocita' nel sistema del velivolo (del disco?)
+			 * decomposta
+			 */
+		     	Vec3 VTmp = RRotTranspose*VCraft;
+		     	doublereal dV1 = VTmp.dGet(1);
+		     	doublereal dV2 = VTmp.dGet(2);
+		     	doublereal dV3 = VTmp.dGet(3);
+		     	doublereal dVV = dV1*dV1+dV2*dV2;
+		     	doublereal dV = sqrt(dVV);
+      	 
+		     	/* Angolo di azimuth del rotore */
+		     	dPsi0 = atan2(-dV2, dV1);
+  	 
+		     	/* Angolo di influsso */
+		     	dVelocity = sqrt(dV3*dV3+dVV);
+		     	if (dVelocity > DBL_EPSILON) {
+			  	dSinAlphad = -dV3/dVelocity;
+			  	dCosAlphad = dV/dVelocity;
+
+		     	} else {
+			  	dSinAlphad = 1.;
+			  	dCosAlphad = 0.;
+		     	}
+	
+		     	/* 
+			 * Parametri di influsso
+			 */
+		     	doublereal dVTip = 0.;
+		     	dMu = 0.;
+		     	dLambda = 0.;
+		     	dVTip = dOmega*dRadius;
+		     	if (dVTip > DBL_EPSILON) {
+			  	dMu = (dVelocity*dCosAlphad)/dVTip;
+			  	dLambda = (dVelocity*dSinAlphad)/dVTip;
+		     	}
+  	 
+		     	if (dMu == 0. && dLambda == 0.) {
+			  	dChi = 0.;
+
+		     	} else {      
+			  	dChi = atan2(dMu, dLambda);
+		     	}
+		 	/*** FIXME ***/
+#if 0
+		 	doublereal dUt = sqrt(dLambda*dLambda+dMu*dMu);
+		 	doublereal dUm = 0.;
+		 	if (dUt > DBL_EPSILON) { 
+		       		dUm = (dMu*dMu+dLambda*(dLambda+dVConst))/dUt;
+		 	}
+#else /* !0 */
+		 	doublereal dLambdaTmp
+				= dLambda/(dHoverCorrection*dHoverCorrection);
+		 	doublereal dMuTmp = dMu/dForwardFlightCorrection;
+	
+		 	doublereal dUt
+				= sqrt(dLambdaTmp*dLambdaTmp+dMuTmp*dMuTmp);
+		 	doublereal dUm = 0.;
+		 	if (dUt > DBL_EPSILON) { 
+		       		dUm = (dMuTmp*dMuTmp+dLambdaTmp*(dLambdaTmp+dVConst))/dUt;
+		 	}
+#endif /* !0 */
        
-       d = dChi/2.;      
-       doublereal dSinChi2 = sin(d);
-       doublereal dCosChi2 = cos(d);
+		 	d = dChi/2.;      
+		 	doublereal dSinChi2 = sin(d);
+		 	doublereal dCosChi2 = cos(d);
        
-       d = 15./64.*M_PI*dSinChi2;
-       doublereal dDen;
-       dDen = 1.+d*d;
+		 	d = 15./64.*M_PI*dSinChi2;
+		 	doublereal dDen;
+		 	dDen = 1.+d*d;
        
-       dL11 = dOmega*(2*dUt/dDen);
-       d = dOmega*(15./64.*M_PI*dSinChi2*dCosChi2/dDen);
-       dL13 = d*dUt;
-       dL31 = d*dUm;
-       d = dOmega*(dCosChi2*dCosChi2/2.);
-       dL22 = -d*dUm;
-       dL33 = -d*dUm/dDen;
-       
-       WorkVec.fPutCoef(1, dCt-dM11*dVConstPrime-dL11*dVConst-dL13*dVSine);
-       WorkVec.fPutCoef(2, dCl-dM22*dVCosinePrime-dL22*dVCosine);
-       WorkVec.fPutCoef(3, dCm-dM33*dVSinePrime-dL31*dVConst-dL33*dVSine);
-     } else {   
-       WorkVec.fPutCoef(1, 0.);
-       WorkVec.fPutCoef(2, 0.);
-       WorkVec.fPutCoef(3, 0.);
-     }
+		 	dL11 = dOmega*(2*dUt/dDen);
+		 	d = dOmega*(15./64.*M_PI*dSinChi2*dCosChi2/dDen);
+		 	dL13 = d*dUt;
+		 	dL31 = d*dUm;
+		 	d = dOmega*(dCosChi2*dCosChi2/2.);
+		 	dL22 = -d*dUm;
+			dL33 = -d*dUm/dDen;
+
+	   	} else {   
+			dL11 = 0.;
+			dL13 = 0.;
+			dL22 = 0.;
+			dL31 = 0.;
+			dL33 = 0.;
+	   	}
+
+		WorkVec.fPutCoef(1, dCt - dM11*dVConstPrime
+				- dL11*dVConst - dL13*dVSine);
+	 	WorkVec.fPutCoef(2, dCl - dM22*dVCosinePrime
+				- dL22*dVCosine);
+	 	WorkVec.fPutCoef(3, dCm - dM33*dVSinePrime
+				- dL31*dVConst - dL33*dVSine);
      
 #ifdef USE_MPI 
-     ExchangeVelocity();
 
-   } else {
+     	} else {
+	   	WorkVec.Resize(0);
+     	}
 
-     /* Ora la trazione non serve piu' */
-     ExchangeVelocity();
-     ResetForce();
-     WorkVec.Resize(0);
-   }
+	ExchangeVelocity();
+
 #endif /* USE_MPI */
 
-   return WorkVec;
+	/* Ora la trazione non serve piu' */
+	ResetForce();
+
+     	return WorkVec;
 }
-   
+
 
 /* Relativo ai ...WithDofs */
 void DynamicInflowRotor::SetInitialValue(VectorHandler& /* X */ ) const
@@ -1430,277 +1501,267 @@ Vec3 DynamicInflowRotor::GetInducedVelocity(const Vec3& X) const
 
 
 /* Legge un rotore */
-Elem* ReadRotor(DataManager* pDM,
+Elem *
+ReadRotor(DataManager* pDM,
 		MBDynParser& HP, 
 		const DofOwner* pDO, 
 		unsigned int uLabel)
 {
-   const char sFuncName[] = "ReadRotor()";
-   DEBUGCOUT("Entering " << sFuncName << std::endl);
+     	const char sFuncName[] = "ReadRotor()";
+     	DEBUGCOUT("Entering " << sFuncName << std::endl);
 
-   silent_cout("WARNING: the syntax changed; use a comma ',' "
-		   "instead of a colon ':' after the keyword "
-		   "\"induced velocity\"" << std::endl);
+     	silent_cout("WARNING: the syntax changed; use a comma ',' "
+     			"instead of a colon ':' after the keyword "
+     			"\"induced velocity\"" << std::endl);
    
-   const char* sKeyWords[] = {
-      "inducedvelocity",
-	"no",
-	"uniform",
-	"glauert",
-	"mangler",
-	"dynamicinflow"
-   };
+     	const char* sKeyWords[] = {
+	  	"induced" "velocity",
+			"no",
+			"uniform",
+			"glauert",
+			"mangler",
+			"dynamic" "inflow"
+     	};
+
+     	/* enum delle parole chiave */
+     	enum KeyWords {
+	  	UNKNOWN = -1,
+		INDUCEDVELOCITY = 0,
+			NO,
+			UNIFORM,
+			GLAUERT,
+			MANGLER,
+			DYNAMICINFLOW,
+		LASTKEYWORD 
+     	};
+
+     	/* tabella delle parole chiave */
+     	KeyTable K((int)LASTKEYWORD, sKeyWords);
    
-   /* enum delle parole chiave */
-   enum KeyWords {
-      UNKNOWN = -1,
-	INDUCEDVELOCITY = 0,
-	NO,
-	UNIFORM,
-	GLAUERT,
-	MANGLER,
-	DYNAMICINFLOW,
-	LASTKEYWORD 
-   };
-   
-   /* tabella delle parole chiave */
-   KeyTable K((int)LASTKEYWORD, sKeyWords);
-   
-   /* parser del blocco di controllo */
-   HP.PutKeyTable(K);
+     	/* parser del blocco di controllo */
+     	HP.PutKeyTable(K);
       
-   /* Per ogni nodo: */
+     	/* Per ogni nodo: */
    
-   /*     Velivolo */
-   unsigned int uNode = (unsigned int)HP.GetInt();
+     	/*     Velivolo */
+     	unsigned int uNode = (unsigned int)HP.GetInt();
+     	DEBUGCOUT("Craft Node: " << uNode << std::endl);
    
-   DEBUGCOUT("Craft Node: " << uNode << std::endl);
-   
-   /* verifica di esistenza del nodo */
-   StructNode* pCraft;
-   if ((pCraft = pDM->pFindStructNode(uNode)) == NULL) {
-      std::cerr << std::endl << sFuncName
-	<< " at line " << HP.GetLineData() 
-	<< ": craft structural node " << uNode
-	<< " not defined" << std::endl;     
-      THROW(DataManager::ErrGeneric());
-   }
+	/* verifica di esistenza del nodo */
+     	StructNode* pCraft = pDM->pFindStructNode(uNode);
+     	if (pCraft == NULL) {
+	  	std::cerr << std::endl << sFuncName
+			<< " at line " << HP.GetLineData() 
+			<< ": craft structural node " << uNode
+			<< " not defined" << std::endl;     
+	  	THROW(DataManager::ErrGeneric());
+     	}
 
-   Mat3x3 rrot(Eye3);
-   if (HP.IsKeyWord("hinge")) {
-	   ReferenceFrame RF(pCraft);
-	   rrot = HP.GetRotRel(RF);
-   }
+     	Mat3x3 rrot(Eye3);
+     	if (HP.IsKeyWord("hinge")) {
+     		ReferenceFrame RF(pCraft);
+     		rrot = HP.GetRotRel(RF);
+     	}
    
-   uNode = (unsigned int)HP.GetInt();
+     	uNode = (unsigned int)HP.GetInt();
+     	DEBUGCOUT("Rotor Node: " << uNode << std::endl);
    
-   DEBUGCOUT("Rotor Node: " << uNode << std::endl);
-   
-   /* verifica di esistenza del nodo */
-   StructNode* pRotor;
-   if ((pRotor = pDM->pFindStructNode(uNode)) == NULL) {
-      std::cerr << std::endl << sFuncName
-	<< " at line " << HP.GetLineData() 
-	<< ": rotor structural node " << uNode
-	<< " not defined" << std::endl;     
-      THROW(DataManager::ErrGeneric());
-   }		     
+     	/* verifica di esistenza del nodo */
+     	StructNode* pRotor = pDM->pFindStructNode(uNode);
+     	if (pRotor == NULL) {
+	  	std::cerr << std::endl << sFuncName
+			<< " at line " << HP.GetLineData() 
+			<< ": rotor structural node " << uNode
+			<< " not defined" << std::endl;     
+	  	THROW(DataManager::ErrGeneric());
+     	}
 
-#if 0 
-   /* Tipo di velocita' indotta */
-   HP.ExpectDescription();
-   if (KeyWords(HP.GetDescription()) != INDUCEDVELOCITY) {
-      std::cerr << std::endl << "\"induced velocity\" expected at line " 
-	<< HP.GetLineData() << std::endl;      
-      THROW(DataManager::ErrGeneric());
-   }
-#endif /* 0 */
+	KeyWords InducedType = NO;
+     	if (HP.fIsArg() && HP.IsKeyWord("induced" "velocity")) {
+      		InducedType = KeyWords(HP.GetWord());
+     	}
 
-   KeyWords InducedType = NO;
-   if (HP.fIsArg() && HP.IsKeyWord("induced" "velocity")) {
-	  InducedType = KeyWords(HP.GetWord());
-   }
-
-   Elem* pEl = NULL;
-   SetResForces **ppres = NULL;
+     	Elem* pEl = NULL;
+     	SetResForces **ppres = NULL;
    
-   switch (InducedType) {
-    case NO: {
-       DEBUGCOUT("No induced velocity is considered" << std::endl);
+     	switch (InducedType) {
+	case NO: {
+		DEBUGCOUT("No induced velocity is considered" << std::endl);
        
-       doublereal dR = 0.;
-       if (HP.IsKeyWord("radius")) {
-	  dR = HP.GetReal();
-       }
+	 	doublereal dR = 0.;
+	 	if (HP.IsKeyWord("radius")) {
+	      		dR = HP.GetReal();
+	 	}
 
-       ppres = ReadResSets(pDM, HP);
+	 	ppres = ReadResSets(pDM, HP);
       
-       flag fOut = pDM->fReadOutput(HP, Elem::ROTOR);
+	 	flag fOut = pDM->fReadOutput(HP, Elem::ROTOR);
        
-       SAFENEWWITHCONSTRUCTOR(pEl,
-			      NoRotor,
-			      NoRotor(uLabel, pDO, pCraft, rrot, pRotor, 
-				      ppres, dR, fOut));
-       break;
-    }
+	 	SAFENEWWITHCONSTRUCTOR(pEl,
+  				NoRotor,
+  				NoRotor(uLabel, pDO, pCraft, rrot, pRotor, 
+  					ppres, dR, fOut));
+	 	break;
+	}
       
-    case UNIFORM:
-    case GLAUERT:
-    case MANGLER:
-    case DYNAMICINFLOW: {
-       doublereal dOR = HP.GetReal();
-       DEBUGCOUT("Reference rotation speed: " << dOR << std::endl);
-       if (dOR <= 0.) {
-	  std::cerr << std::endl << "Illegal null or negative reference speed for rotor "
-	    << uLabel << " at line " << HP.GetLineData() << std::endl;
-	  
-	  THROW(DataManager::ErrGeneric());
-       }
+    	case UNIFORM:
+    	case GLAUERT:
+    	case MANGLER:
+    	case DYNAMICINFLOW: {
+		doublereal dOR = HP.GetReal();
+	 	DEBUGCOUT("Reference rotation speed: " << dOR << std::endl);
+	 	if (dOR <= 0.) {
+	      		std::cerr << "Illegal null or negative "
+				"reference speed for rotor " << uLabel
+				<< " at line " << HP.GetLineData()
+				<< std::endl;
+	      		THROW(DataManager::ErrGeneric());
+	 	}
        
-       doublereal dR = HP.GetReal();
-       DEBUGCOUT("Radius: " << dR << std::endl);
-       if (dR <= 0.) {
-	  std::cerr << std::endl << "Illegal null or negative radius for rotor " 
-	    << uLabel << " at line " << HP.GetLineData() << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }	   
+	 	doublereal dR = HP.GetReal();
+	 	DEBUGCOUT("Radius: " << dR << std::endl);
+	 	if (dR <= 0.) {
+	      		std::cerr << "Illegal null or negative radius "
+				"for rotor " << uLabel
+				<< " at line " << HP.GetLineData()
+				<< std::endl;	  
+	      		THROW(DataManager::ErrGeneric());
+	 	}
        
-       if (InducedType == DYNAMICINFLOW) {
-	  DEBUGCOUT("Dynamic inflow induced velocity is considered" << std::endl);
-	  
-	  doublereal dVConst = 0.;
-	  doublereal dVCosine = 0.;
-	  doublereal dVSine = 0.;
-	  if (HP.IsKeyWord("initial" "value")) {
-	     dVConst = HP.GetReal();
-	     dVCosine = HP.GetReal();
-	     dVSine = HP.GetReal();
-	  }
+	 	doublereal dVConst = 0.;
+	 	doublereal dVCosine = 0.;
+	 	doublereal dVSine = 0.;
+	 	DriveCaller *pdW = NULL;
 
-	  ppres = ReadResSets(pDM, HP);
+	 	if (InducedType == DYNAMICINFLOW) {
+	      		if (HP.IsKeyWord("initial" "value")) {
+		   		dVConst = HP.GetReal();
+		   		dVCosine = HP.GetReal();
+		   		dVSine = HP.GetReal();
+	      		}
 	  
-	  flag fOut = pDM->fReadOutput(HP, Elem::ROTOR);
-	  
-	  /* Mettere qui il caso di Dynamic Inflow */
-	  SAFENEWWITHCONSTRUCTOR(pEl, 
-				 DynamicInflowRotor,
-				 DynamicInflowRotor(uLabel, pDO, 
-						    pCraft, rrot, pRotor, 
-						    ppres, 
-						    dOR, dR,
-						    dVConst, dVCosine, dVSine,
-						    fOut));
-       } else {   	      	   	      	  
-	  /* Legge il coefficiente di peso della velocita' indotta 
-	   * ("weight" e' deprecato, si preferisce "delay") 
-	   *
-	   * nota:
-	   * 
-	   * U = U_n * ( 1 - dW ) + U_n-1 * dW
-	   * 
-	   * quindi dW rappresenta il peso che si da' al valore
-	   * al passo precedente; in questo modo si introduce un
-	   * ritardo euristico (attenzione: il ritardo vero dipende
-	   * dal passo temporale) che aiuta ad evitare problemi 
-	   * di convergenza. Se si desidera un ritardo "fisico",
-	   * conviene forse provare il "Dynamic Inflow".
-	   */
-	  DriveCaller *pdW = NULL;
-	  if (HP.IsKeyWord("weight") || HP.IsKeyWord("delay")) {
-	     pdW = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
-	  } else {
-	     SAFENEWWITHCONSTRUCTOR(pdW, NullDriveCaller,
-			     NullDriveCaller(NULL));
-	  }
+	 	} else {   	      	   	      	  
+	      		/*
+			 * Legge il coefficiente di peso della velocita' 
+			 * indotta ("weight" e' deprecato, si preferisce
+			 * "delay") 
+			 * 
+			 * nota:
+			 *
+			 * U = U_n * ( 1 - dW ) + U_n-1 * dW
+			 *
+			 * quindi dW rappresenta il peso che si da'
+			 * al valore al passo precedente; in questo modo
+			 * si introduce un ritardo euristico (attenzione:
+			 * il ritardo vero dipende dal passo temporale)
+			 * che aiuta ad evitare problemi di convergenza.
+			 * Se si desidera un ritardo "fisico", conviene
+			 * provare il "Dynamic Inflow".
+			 */
+	      		if (HP.IsKeyWord("weight") || HP.IsKeyWord("delay")) {
+		   		pdW = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+	      		} else {
+		   		SAFENEWWITHCONSTRUCTOR(pdW, NullDriveCaller,
+		   				NullDriveCaller(NULL));
+	      		}
+	 	}
 
-	  /* Legge la correzione della velocita' indotta */
-	  doublereal dCH = 1.;
-	  doublereal dCFF = 1.;
-	  if (HP.IsKeyWord("correction")) {
-	     dCH = HP.GetReal();
-	     DEBUGCOUT("Hover correction: " << dC << std::endl);
-	     if (dCH <= 0.) {
-		std::cerr 
-		  << "warning, illegal null or negative correction"
-		  " for uniform rotor " << uLabel << ", switching to 1" 
-		  << std::endl;
-		dCH = 1.;
-	     }
-	     dCFF = HP.GetReal();
-	     DEBUGCOUT("Forward-flight correction: " << dCFF << std::endl);
-	     if (dCFF <= 0.) {
-		std::cerr 
-		  << "warning, illegal null or negative correction"
-		  " for uniform rotor " << uLabel << ", switching to 1"
-		  << std::endl;
-		dCFF = 1.;
-	     }
-	  }
+	 	/* Legge la correzione della velocita' indotta */
+	 	doublereal dCH = 1.;
+	 	doublereal dCFF = 1.;
+	 	if (HP.IsKeyWord("correction")) {
+	 		dCH = HP.GetReal();
+	 		DEBUGCOUT("Hover correction: " << dC << std::endl);
+	 		if (dCH <= 0.) {
+	 			std::cerr << "warning, illegal null "
+					"or negative inflow correction "
+					"for rotor " << uLabel
+	 				<< ", switching to 1" << std::endl;
+	 			dCH = 1.;
+	 		}
 
-	  ppres = ReadResSets(pDM, HP);
+	 		dCFF = HP.GetReal();
+			DEBUGCOUT("Forward-flight correction: " << dCFF << std::endl);
+	 		if (dCFF <= 0.) {
+	 			std::cerr << "warning, illegal null "
+					"or negative inflow correction "
+					"for rotor " << uLabel
+	 				<< ", switching to 1" << std::endl;
+	 			dCFF = 1.;
+	 		}
+	 	}
+
+	 	ppres = ReadResSets(pDM, HP);
 	  
-	  flag fOut = pDM->fReadOutput(HP, Elem::ROTOR);
+	 	flag fOut = pDM->fReadOutput(HP, Elem::ROTOR);
 	  
-	  switch (InducedType) {
-	   case UNIFORM: {		      
-	      DEBUGCOUT("Uniform induced velocity is considered" << std::endl);
-	      SAFENEWWITHCONSTRUCTOR(pEl, 
-				     UniformRotor,
-				     UniformRotor(uLabel, pDO, pCraft, rrot,
-					     pRotor,
-					     ppres, dOR, dR, pdW, dCH, dCFF,
-					     fOut));
-	      break;
-	   }
-	     
-	   case GLAUERT: {		      
-	      DEBUGCOUT("Glauert induced velocity is considered" << std::endl);
-	      SAFENEWWITHCONSTRUCTOR(pEl,
-				     GlauertRotor,
-				     GlauertRotor(uLabel, pDO, pCraft, rrot,
-					     pRotor,
-					     ppres, dOR, dR, pdW, dCH, dCFF, 
-					     fOut));
-	      break;
-	   }
-	     
-	   case MANGLER: {		      
-	      DEBUGCOUT("Mangler induced velocity is considered" << std::endl);
-	      
-	      SAFENEWWITHCONSTRUCTOR(pEl,
-				     ManglerRotor,
-				     ManglerRotor(uLabel, pDO, pCraft, rrot,
-					     pRotor, 
-					     ppres, dOR, dR, pdW, dCH, dCFF, 
-					     fOut));
-	      break;
-	   }
-	     
-	   default: {
-	      ASSERTMSG(0, "You shouldn't have reached this point");
-	      THROW(DataManager::ErrGeneric());	    
-	   }		 
-	  }
-       }
-       
-       break;
-    }
-      
-    default: {
-       std::cerr << std::endl << "unknown induced velocity type at line " 
-	 << HP.GetLineData() << std::endl;       
-       THROW(DataManager::ErrGeneric());
-    }
-   }
+      		switch (InducedType) {
+	     	case UNIFORM:
+	  		DEBUGCOUT("Uniform induced velocity" << std::endl);
+			SAFENEWWITHCONSTRUCTOR(pEl, 
+   					UniformRotor,
+   					UniformRotor(uLabel, pDO, pCraft, rrot,
+   						pRotor,
+   						ppres, dOR, dR, pdW, dCH, dCFF,
+   						fOut));
+	  		break;
+
+     		case GLAUERT:
+	  		DEBUGCOUT("Glauert induced velocity" << std::endl);
+	  		SAFENEWWITHCONSTRUCTOR(pEl,
+   					GlauertRotor,
+   					GlauertRotor(uLabel, pDO, pCraft, rrot,
+   						pRotor,
+   						ppres, dOR, dR, pdW, dCH, dCFF, 
+   						fOut));
+	  		break;
+
+     		case MANGLER:
+	  		DEBUGCOUT("Mangler induced velocity" << std::endl);
+
+	  		SAFENEWWITHCONSTRUCTOR(pEl,
+   					ManglerRotor,
+   					ManglerRotor(uLabel, pDO, pCraft, rrot,
+   						pRotor, 
+   						ppres, dOR, dR, pdW, dCH, dCFF, 
+   						fOut));
+	  		break;
+
+     		case DYNAMICINFLOW:
+	  		DEBUGCOUT("Dynamic inflow" << std::endl);
+
+	  		SAFENEWWITHCONSTRUCTOR(pEl, 
+       					DynamicInflowRotor,
+       					DynamicInflowRotor(uLabel, pDO, 
+						pCraft, rrot, pRotor, 
+						ppres, 
+						dOR, dR,
+						dCH, dCFF,
+						dVConst, dVCosine, dVSine,
+						fOut));
+			break;
+			
+     		default:
+			ASSERTMSG(0, "You shouldn't have reached this point");
+			THROW(DataManager::ErrGeneric());	    
+      		}
+	 	break;
+	}
+
+	default:
+		std::cerr << "unknown induced velocity type at line " 
+	       		<< HP.GetLineData() << std::endl;       
+	 	THROW(DataManager::ErrGeneric());
+	}
    
-   /* Se non c'e' il punto e virgola finale */
-   if (HP.fIsArg()) {
-      std::cerr << std::endl << sFuncName
-	<< ": semicolon expected at line " << HP.GetLineData() << std::endl;      
-      THROW(DataManager::ErrGeneric());
-   }   
+	/* Se non c'e' il punto e virgola finale */
+	if (HP.fIsArg()) {
+		std::cerr << "semicolon expected at line "
+			<< HP.GetLineData() << std::endl;      
+		THROW(DataManager::ErrGeneric());
+	}
 
-   ASSERT(pEl != NULL);
-   return pEl;
+	ASSERT(pEl != NULL);
+	return pEl;
 } /* End of DataManager::ReadRotor() */
 
