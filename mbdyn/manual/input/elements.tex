@@ -591,7 +591,20 @@ The syntax for \kw{electric} elements is:
 The \kw{electric} elements implemented at present are:
 
 \subsection{Accelerometer}
-  \begin{verbatim}
+\begin{verbatim}
+    <electric_arglist> ::=
+        { translational | rotational } ,
+        <struct_node_label> ,
+        <abstract_node_label> ,
+        (Vec3) <measure_direction>
+        [ , position , (Vec3) <position> ]
+\end{verbatim}
+The \kw{position} is optional; it is meaningless for \kw{rotational}
+accelerometers.
+
+\noindent
+Legacy element: accelerometer with builtin transfer function
+\begin{verbatim}
     <electric_arglist> ::= <struct_node_label> ,
         <abstract_node_label> ,
         (Vec3) <measure_direction> ,
@@ -599,20 +612,20 @@ The \kw{electric} elements implemented at present are:
         (scalar) <tau> ,
         (scalar) <csi> ,
         (scalar) <kappa>	
-  \end{verbatim}
-  The label \kw{struct\_node\_label} defines the node whose acceleration 
-  is being measured; the label \kw{abstract\_node\_label} defines the
-  \kw{abstract node} that will receive the output signal. 
-  An \kw{electric node} can be used as well (?).
-  The transfer function of the accelerometer is:
-  \begin{displaymath}
+\end{verbatim}
+The label \kw{struct\_node\_label} defines the node whose acceleration 
+is being measured; the label \kw{abstract\_node\_label} defines the
+\kw{abstract node} that will receive the output signal. 
+An \kw{electric node} can be used as well (?).
+The transfer function of the accelerometer is:
+\begin{displaymath}
     \frac{e_0}{a} = \kw{kappa}\frac{\kw{tau} \ s}{
-      \plbr{1+\kw{tau} \ s}
-      \plbr{1+2 \ \kw{csi}/\kw{omega} \ s+s^2/\kw{omega}^2}
+        \plbr{1+\kw{tau} \ s}
+        \plbr{1+2 \ \kw{csi}/\kw{omega} \ s+s^2/\kw{omega}^2}
     }
-  \end{displaymath}
-  where $ e_0 $ is the output signal, $ a $ is the input (the acceleration)
-  and $ s $ is the Laplace variable.
+\end{displaymath}
+where $ e_0 $ is the output signal, $ a $ is the input (the acceleration)
+and $ s $ is the Laplace variable.
 
 \subsection{Discrete control}
   \begin{verbatim}
