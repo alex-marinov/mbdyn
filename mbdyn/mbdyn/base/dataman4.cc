@@ -554,8 +554,22 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    THROW(ErrGeneric());
 	 }
 
-	 /* Numero d'ordine del dato privato a cui fare il binding */
-	 unsigned int i = HP.GetInt();
+	 	/* Numero d'ordine del dato privato a cui fare il binding */
+	 unsigned int i = 0;
+	 if (HP.IsKeyWord("string")) {
+	    const char *s = HP.GetStringWithDelims();
+
+	    ASSERT(s != NULL);
+
+	    DEBUGCOUT("binding to " << psElemNames[pEl->GetElemType()]
+			    << "(" << pEl->GetLabel() << ") private data \""
+			    << s << "\"" << std::endl);
+
+	    i = pEl->iGetPrivDataIdx(s);
+
+	 } else {
+	    i = HP.GetInt();
+	 }
 	 
 	 /* indice del dato a cui il parametro e' bound */
 	 if (i <= 0 || i > pEl->iGetNumPrivData()) {

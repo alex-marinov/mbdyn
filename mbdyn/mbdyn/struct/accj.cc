@@ -217,6 +217,23 @@ unsigned int LinearAccelerationJoint::iGetNumPrivData(void) const
 }
 
 
+/* Dati privati */
+unsigned int LinearAccelerationJoint::iGetPrivDataIdx(const char *s) const
+{
+   ASSERT(s != NULL);
+
+   if (strcmp(s, "F") == 0) {
+	   return 1;
+   }
+
+   if (strcmp(s, "a") == 0) {
+	   return 2;
+   }
+
+   return 0;
+}
+
+
 doublereal LinearAccelerationJoint::dGetPrivData(unsigned int i) const
 {
    switch (i) {

@@ -164,6 +164,14 @@ private:
 	doublereal FrictionAmpl;
 
 	/*
+	 * Dati necessari per output/priv data
+	 */
+	doublereal dPressure;
+	doublereal dArea;
+	doublereal dFelastic;
+	doublereal dFviscous;
+
+	/*
 	 * Costruttore per pCopy
 	 */
 	ShockAbsorberConstitutiveLaw(
@@ -204,7 +212,7 @@ public:
 	EpsMax(defaultEpsMax), EpsMin(defaultEpsMin), 
 	Penalty(defaultPenalty), PenaltyPrime(defaultPenaltyPrime),
 	pAreaPin(NULL), pAreaOrifices(NULL),
-	EpsPrimeRef(1.), FrictionAmpl(0.) {
+	EpsPrimeRef(1.), FrictionAmpl(0.), dPressure(0.) {
 		if (HP.IsKeyWord("help")) {
 
 			std::cout <<
@@ -247,7 +255,7 @@ public:
 		
 		}
 		
-		P0 = HP.GetReal();
+		dPressure = P0 = HP.GetReal();
 		A0 = HP.GetReal();
 		Cint = HP.GetReal();
 		Gamma = HP.GetReal();
@@ -389,29 +397,39 @@ public:
 		 */
 
 		doublereal CurrEpsilon = Epsilon-Get();
-		if ( CurrEpsilon > EpsMax) {
+		doublereal VRatio = 1./(1.+Cint*CurrEpsilon);
+		doublereal Adiab = pow(VRatio, Gamma);
+
+		dPressure = P0*Adiab;
+
+		if (CurrEpsilon > EpsMax) {
 			F = FMin+Penalty*(CurrEpsilon-EpsMax)
 				+PenaltyPrime*EpsPrime;
 			FDE = Penalty;
 			FDEPrime = PenaltyPrime;
 
-		} else if ( CurrEpsilon < EpsMin ) {
+			dFelastic = F;
+
+		} else if (CurrEpsilon < EpsMin) {
 			F = FMax + Penalty*(CurrEpsilon-EpsMin)
 				+PenaltyPrime*EpsPrime;
 			FDE = Penalty;
 			FDEPrime = PenaltyPrime;
 
-		} else {
-			doublereal VRatio = 1./(1.+Cint*CurrEpsilon);
-			doublereal Adiab = pow(VRatio, Gamma);
+			dFelastic = F;
 
-			F = -A0*P0*Adiab;
+		} else {
+			F = -A0*dPressure;
+
+			dFelastic = F;
+
 			if (FrictionAmpl != 0.) {
 				F *= (1.-FrictionAmpl*tanh(EpsPrime/EpsPrimeRef));
 			}
 
-			FDE = Gamma*Cint*VRatio*Adiab;
+			FDE = Gamma*Cint*VRatio*F;
 		}
+
 
 		/*
 		 * Parte viscosa
@@ -419,23 +437,26 @@ public:
 		 * FIXME: manca L0 per scalare correttamente la velocita'
 		 * (basta metterla in Cd!!!)
 		 */
-		doublereal a = 0.;
+		dArea = 0.;
 		if (pAreaPin != NULL) {
-			a += pAreaPin->dGet(CurrEpsilon);
+			dArea += pAreaPin->dGet(CurrEpsilon);
 		}
 		
 		if (pAreaOrifices != NULL) {
-			a += pAreaOrifices->dGet(EpsPrime);
+			dArea += pAreaOrifices->dGet(EpsPrime);
 		}
 
-		if (a <= 0.) {
+		if (dArea <= 0.) {
 			std::cerr << "ShockAbsorberConstitutiveLaw::Update:"
 				" null or negative area" << std::endl;
 			THROW(ErrGeneric());
 		}
 		
-		doublereal d = .5*RhoFluid*AreaFluid*pow(AreaFluid/(a*Cd), 2);
-		F += d*EpsPrime*fabs(EpsPrime);
+		doublereal d = .5*RhoFluid*AreaFluid*pow(AreaFluid/(dArea*Cd), 2);
+
+		dFviscous = d*EpsPrime*fabs(EpsPrime);
+
+		F += dFviscous;
 		FDEPrime += d*fabs(EpsPrime);
 	}
 
@@ -445,6 +466,77 @@ public:
 		const doublereal& EpsPrime = 0.
 	) {
 		Update(Epsilon+DeltaEps, EpsPrime);
+	};
+
+	/*
+	 * Metodi per l'estrazione di dati "privati".
+	 * Si suppone che l'estrattore li sappia interpretare.
+	 * Come default non ci sono dati privati estraibili
+	 */
+	virtual unsigned int iGetNumPrivData(void) const {
+		/*
+		 * deve essere pari al totale di dati che
+		 * si intende esportare
+		 */
+		return 4;
+	};
+
+	/*
+	 * Maps a string (possibly with substrings) to a private data;
+	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+	 * in case of unrecognized data; error must be handled by caller
+	 */
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		ASSERT(s != NULL);
+
+		if (strcmp(s, "p") == 0) {
+			return 1;
+		}
+
+		if (strcmp(s, "A") == 0) {
+			return 2;
+		}
+
+		if (strcmp(s, "Fe") == 0) {
+			return 3;
+		}
+
+		if (strcmp(s, "Fv") == 0) {
+			return 4;
+		}
+
+		/*
+		 * aggiungere i nomi dei dati che si intende esportare
+		 */
+
+		/* error; handle later */
+		return 0;
+	};
+
+	/*
+	 * Returns the current value of a private data
+	 * with 0 < i <= iGetNumPrivData()
+	 */
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		ASSERT(i > 0 && i <= iGetNumPrivData());
+
+		switch (i) {
+		case 1:
+			return dPressure;
+
+		case 2:
+			return dArea;
+
+		case 3:
+			return dFelastic;
+
+		case 4:
+			return dFviscous;
+
+		/* aggiungere ulteriori case */
+		}
+
+		THROW(ErrGeneric());
 	};
 };
 

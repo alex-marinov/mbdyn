@@ -331,8 +331,11 @@ needsAirProperties(false)
 
 	if (calls->loadable_version != LOADABLE_VERSION) {
 		std::cerr << "Loadable(" << uLabel
-			<< "): incompatible version; need " << LOADABLE_VERSION
-			<< ", got " << calls->loadable_version << std::endl;
+			<< "): incompatible version; need "
+			<< LOADABLE_VERSION_OUT(LOADABLE_VERSION)
+			<< ", got " 
+			<< LOADABLE_VERSION_OUT(calls->loadable_version) 
+			<< std::endl;
 		THROW(ErrGeneric());
 	}
    

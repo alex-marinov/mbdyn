@@ -83,7 +83,8 @@ inline const doublereal& Elem2Param::dGetDofValue(int /* iDof */ , int /* iOrder
 /* Restituisce il valore del dof */
 inline const doublereal& Elem2Param::dGetX(void) const
 {
-   return ((doublereal&)dX = pElem->dGetPrivData(iNum));
+   dX = pElem->dGetPrivData(iNum);
+   return dX;
 }
 
 /* Elem2Param - end */

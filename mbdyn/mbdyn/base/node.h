@@ -216,9 +216,9 @@ class ScalarNode : public Node {
 class ScalarDifferentialNode : public ScalarNode {
  protected:
    /* Valore del DoF */
-   doublereal dX;
+   mutable doublereal dX;
    /* Valore della derivata del DoF */
-   doublereal dXP;
+   mutable doublereal dXP;
    
    /* Valore del DoF al passo precedente */
    doublereal dXPrev;
@@ -324,7 +324,7 @@ inline const doublereal& ScalarDifferentialNode::dGetXPrime(void) const
 class ScalarAlgebraicNode : public ScalarNode {
  protected:
    /* Valore del DoF */
-   doublereal dX;
+   mutable doublereal dX;
    
    /* Valore del DoF al passo precedente */
    doublereal dXPrev;

@@ -34,6 +34,8 @@
 #define LOADABLE_VERSION_SET(maj, min, fix)	\
 	(((maj) << 24) | ((min) << 16) | (fix))
 #define LOADABLE_VERSION	LOADABLE_VERSION_SET(1, 1, 0)
+#define LOADABLE_VERSION_OUT(v) \
+	((v & 0xFF000000U) >> 24) << '.' << ((v & 0x00FF0000U) >> 16) << '.' << (v & 0x0000FFFFU)
 /*
  * CHANGELOG:
  * 

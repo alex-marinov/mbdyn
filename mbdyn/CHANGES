@@ -30,6 +30,7 @@ MBDyn 1.2-Engineering
 		- use a drive for the delay parameter of rotors
 		- allow extra amplitude scaling in file drives
 		- allow previous-step dof plugin
+		- improve private data handling
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility

@@ -175,6 +175,10 @@ virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
    };
    virtual void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
    virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
+
+   virtual unsigned int iGetNumPrivData(void) const;
+   virtual unsigned int iGetPrivDataIdx(const char *s) const;
+   virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 /* Rod - end */
@@ -226,6 +230,16 @@ class ViscoElasticRod : virtual public Elem, public Rod {
    /* Contributo al residuo durante l'assemblaggio iniziale */   
    virtual SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
 				   const VectorHandler& XCurr);   
+
+   virtual unsigned int iGetNumPrivData(void) const {
+      return Rod::iGetNumPrivData();
+   };
+   virtual unsigned int iGetPrivDataIdx(const char *s) const {
+      return Rod::iGetPrivDataIdx(s);
+   };
+   virtual doublereal dGetPrivData(unsigned int i) const {
+      return Rod::dGetPrivData(i);
+   };
 };
 
 /* ViscoElasticRod - end */
@@ -275,9 +289,6 @@ class RodWithOffset : virtual public Elem, public Rod {
 				    doublereal dCoef,
 				    const VectorHandler& XCurr, 
 				    const VectorHandler& XPrimeCurr);
-   
-   virtual void Output(OutputHandler& OH) const;
-
    /* Output di un modello NASTRAN equivalente nella configurazione corrente */
    virtual void Output_pch(std::ostream& out) const;
 
@@ -301,6 +312,15 @@ class RodWithOffset : virtual public Elem, public Rod {
    void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
    std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
 
+   virtual unsigned int iGetNumPrivData(void) const {
+      return Rod::iGetNumPrivData();
+   };
+   virtual unsigned int iGetPrivDataIdx(const char *s) const {
+      return Rod::iGetPrivDataIdx(s);
+   };
+   virtual doublereal dGetPrivData(unsigned int i) const {
+      return Rod::dGetPrivData(i);
+   };
 };
 
 /* RodWithOffset - end */

@@ -469,6 +469,54 @@ Rod::WriteAdamsDummyPartCmd(std::ostream& out,
      << Zero3 << std::endl;
 }
 
+
+unsigned int
+Rod::iGetNumPrivData(void) const 
+{
+	return 2 + ConstitutiveLaw1DOwner::iGetNumPrivData();
+}
+
+unsigned int
+Rod::iGetPrivDataIdx(const char *s) const 
+{
+	ASSERT(s != NULL);
+
+	if (strcmp(s, "F") == 0) {
+		return 1;
+	}
+
+	if (strcmp(s, "L") == 0) {
+		return 2;
+	}
+
+	size_t l = sizeof("constitutiveLaw.") - 1;
+	if (strncmp(s, "constitutiveLaw.", l) == 0) {
+		return 2 + ConstitutiveLaw1DOwner::iGetPrivDataIdx(s + l);
+	}
+
+	/* error; handle later */
+	return 0;
+}
+
+doublereal
+Rod::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i > 0);
+
+	switch (i) {
+	case 1:
+		return GetF();
+
+	case 2:
+		return dElle;
+	}
+
+	i -= 2;
+	ASSERT(i <= ConstitutiveLaw1DOwner::iGetNumPrivData());
+
+	return ConstitutiveLaw1DOwner::dGetPrivData(i);
+}
+
 /* Rod - end */
 
 
@@ -1024,23 +1072,6 @@ RodWithOffset::AssRes(SubVectorHandler& WorkVec,
    
    return WorkVec;
 }
-
-   
-void RodWithOffset::Output(OutputHandler& OH) const
-{
-   /* Mettere magari l'output della forza, 
-    * della deformazione e della velocita' di deformazione ? */
-   
-   if (fToBeOutput()) {
-      ASSERT(dElle > DBL_EPSILON);
-      Vec3 vTmp(v/dElle);
-      doublereal d = GetF();
-      Joint::Output(OH.Joints(), "RodWithOffs", GetLabel(),
-		    Vec3(d, 0., 0.), Zero3, vTmp*d, Zero3) 
-	<< " " << dElle << " " << vTmp << std::endl;      
-   }
-} 
-
 
 /* Output di un modello NASTRAN equivalente nella configurazione corrente */
 void

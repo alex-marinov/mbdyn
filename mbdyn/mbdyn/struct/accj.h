@@ -99,6 +99,7 @@ class LinearAccelerationJoint
 
    /* Dati privati */
    virtual unsigned int iGetNumPrivData(void) const;
+   virtual unsigned int iGetPrivDataIdx(const char *s) const;
    virtual doublereal dGetPrivData(unsigned int i) const;
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
