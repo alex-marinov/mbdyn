@@ -98,6 +98,8 @@ class PrismaticJoint : virtual public Elem, public Joint {
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
    
+   DofOrder::Order GetEqType(unsigned int i) const;
+   
    void Output(OutputHandler& OH) const;
  
 

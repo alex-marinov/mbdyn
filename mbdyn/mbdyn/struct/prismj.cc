@@ -250,6 +250,15 @@ SubVectorHandler& PrismaticJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+DofOrder::Order PrismaticJoint::GetEqType(unsigned int i) const {
+	ASSERTMSGBREAK((i>0) and (i<10), 
+		"INDEX ERROR in PrismaticJoint::GetEqType");
+	if ((i>6) and (i<10)) {
+		return DofOrder::ALGEBRAIC;
+	}
+	return DofOrder::DIFFERENTIAL;
+}
+
 /* Output (da mettere a punto) */
 void PrismaticJoint::Output(OutputHandler& OH) const
 {

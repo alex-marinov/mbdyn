@@ -182,6 +182,14 @@ InLineJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+DofOrder::Order InLineJoint::GetEqType(unsigned int i) const {
+	ASSERTMSGBREAK((i>0) and (i<15), 
+		"INDEX ERROR in InLineJoint::GetEqType");
+	if ((i==13) or (i==14)) {
+		return DofOrder::ALGEBRAIC;
+	}
+	return DofOrder::DIFFERENTIAL;
+}
 
 void InLineJoint::Output(OutputHandler& OH) const
 {
@@ -589,6 +597,14 @@ InLineWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+DofOrder::Order InLineWithOffsetJoint::GetEqType(unsigned int i) const {
+	ASSERTMSGBREAK((i>0) and (i<15), 
+		"INDEX ERROR in InLineWithOffsetJoint::GetEqType");
+	if ((i==13) or (i==14)) {
+		return DofOrder::ALGEBRAIC;
+	}
+	return DofOrder::DIFFERENTIAL;
+}
 
 void InLineWithOffsetJoint::Output(OutputHandler& OH) const
 {
