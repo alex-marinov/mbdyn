@@ -1,4 +1,4 @@
-/* 
+	/* 
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
@@ -531,10 +531,10 @@ ParNaiveSparsePermSolutionManager::ComputePermutation(void)
 	A->MakeCCStructure(Ai, invperm);
 	doublereal knobs [COLAMD_KNOBS];
 	integer stats [COLAMD_STATS];
-	integer Alen = colamd_recommended (Ai.size(), A->iGetNumRows(), A->iGetNumCols());
+	integer Alen = mbdyn_colamd_recommended (Ai.size(), A->iGetNumRows(), A->iGetNumCols());
 	Ai.resize(Alen);
-	colamd_set_defaults(knobs);
-	if (!colamd(A->iGetNumRows(), A->iGetNumCols(), Alen,
+	mbdyn_colamd_set_defaults(knobs);
+	if (!mbdyn_colamd(A->iGetNumRows(), A->iGetNumCols(), Alen,
 		&(Ai[0]), &(invperm[0]), knobs, stats)) {
 		silent_cerr("colamd permutation failed" << std::endl);
 		throw ErrGeneric();

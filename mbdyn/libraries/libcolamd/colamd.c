@@ -1,3 +1,43 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2005
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/*
+ * Colamd is distributed with MBDyn because its license seems to allow it.
+ * The original Copyright is preserved and reported below; credit of course
+ * goes to the original Authors.
+ *
+ * Colamd is used by the naive solver.  The functions have been renamed
+ * in the mbdyn_* namespace for compatibility with other solvers that may
+ * require linking the original colamd functions with incompatible types.
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
@@ -768,8 +808,8 @@ PRIVATE integer init_rows_cols
 (
     integer n_row,
     integer n_col,
-    Colamd_Row Row [],
-    Colamd_Col Col [],
+    mbdyn_Colamd_Row Row [],
+    mbdyn_Colamd_Col Col [],
     integer A [],
     integer p [],
     integer stats [COLAMD_STATS]
@@ -779,8 +819,8 @@ PRIVATE void init_scoring
 (
     integer n_row,
     integer n_col,
-    Colamd_Row Row [],
-    Colamd_Col Col [],
+    mbdyn_Colamd_Row Row [],
+    mbdyn_Colamd_Col Col [],
     integer A [],
     integer head [],
     double knobs [COLAMD_KNOBS],
@@ -794,8 +834,8 @@ PRIVATE integer find_ordering
     integer n_row,
     integer n_col,
     integer Alen,
-    Colamd_Row Row [],
-    Colamd_Col Col [],
+    mbdyn_Colamd_Row Row [],
+    mbdyn_Colamd_Col Col [],
     integer A [],
     integer head [],
     integer n_col2,
@@ -806,7 +846,7 @@ PRIVATE integer find_ordering
 PRIVATE void order_children
 (
     integer n_col,
-    Colamd_Col Col [],
+    mbdyn_Colamd_Col Col [],
     integer p []
 ) ;
 
@@ -815,10 +855,10 @@ PRIVATE void detect_super_cols
 
 #ifndef NDEBUG
     integer n_col,
-    Colamd_Row Row [],
+    mbdyn_Colamd_Row Row [],
 #endif /* NDEBUG */
 
-    Colamd_Col Col [],
+    mbdyn_Colamd_Col Col [],
     integer A [],
     integer head [],
     integer row_start,
@@ -829,8 +869,8 @@ PRIVATE integer garbage_collection
 (
     integer n_row,
     integer n_col,
-    Colamd_Row Row [],
-    Colamd_Col Col [],
+    mbdyn_Colamd_Row Row [],
+    mbdyn_Colamd_Col Col [],
     integer A [],
     integer *pfree
 ) ;
@@ -838,7 +878,7 @@ PRIVATE integer garbage_collection
 PRIVATE integer clear_mark
 (
     integer n_row,
-    Colamd_Row Row []
+    mbdyn_Colamd_Row Row []
 ) ;
 
 PRIVATE void print_report
@@ -879,8 +919,8 @@ PRIVATE void debug_deg_lists
 (
     integer n_row,
     integer n_col,
-    Colamd_Row Row [],
-    Colamd_Col Col [],
+    mbdyn_Colamd_Row Row [],
+    mbdyn_Colamd_Col Col [],
     integer head [],
     integer min_score,
     integer should,
@@ -890,7 +930,7 @@ PRIVATE void debug_deg_lists
 PRIVATE void debug_mark
 (
     integer n_row,
-    Colamd_Row Row [],
+    mbdyn_Colamd_Row Row [],
     integer tag_mark,
     integer max_mark
 ) ;
@@ -899,8 +939,8 @@ PRIVATE void debug_matrix
 (
     integer n_row,
     integer n_col,
-    Colamd_Row Row [],
-    Colamd_Col Col [],
+    mbdyn_Colamd_Row Row [],
+    mbdyn_Colamd_Col Col [],
     integer A []
 ) ;
 
@@ -908,8 +948,8 @@ PRIVATE void debug_structures
 (
     integer n_row,
     integer n_col,
-    Colamd_Row Row [],
-    Colamd_Col Col [],
+    mbdyn_Colamd_Row Row [],
+    mbdyn_Colamd_Col Col [],
     integer A [],
     integer n_col2
 ) ;
@@ -950,7 +990,7 @@ PRIVATE void debug_structures
     can use it for a statically-allocated array size.
 */
 
-PUBLIC integer colamd_recommended	/* returns recommended value of Alen. */
+PUBLIC integer mbdyn_colamd_recommended	/* returns recommended value of Alen. */
 (
     /* === Parameters ======================================================= */
 
@@ -984,7 +1024,7 @@ PUBLIC integer colamd_recommended	/* returns recommended value of Alen. */
 	knobs [2..19]	unused, but future versions might use this
 */
 
-PUBLIC void colamd_set_defaults
+PUBLIC void mbdyn_colamd_set_defaults
 (
     /* === Parameters ======================================================= */
 
@@ -1012,7 +1052,7 @@ PUBLIC void colamd_set_defaults
 /* === symamd =============================================================== */
 /* ========================================================================== */
 
-PUBLIC integer symamd			/* return TRUE if OK, FALSE otherwise */
+PUBLIC integer mbdyn_symamd			/* return TRUE if OK, FALSE otherwise */
 (
     /* === Parameters ======================================================= */
 
@@ -1112,7 +1152,7 @@ PUBLIC integer symamd			/* return TRUE if OK, FALSE otherwise */
 
     if (!knobs)
     {
-	colamd_set_defaults (default_knobs) ;
+	mbdyn_colamd_set_defaults (default_knobs) ;
 	knobs = default_knobs ;
     }
 
@@ -1225,7 +1265,7 @@ PUBLIC integer symamd			/* return TRUE if OK, FALSE otherwise */
 
     mnz = perm [n] ;
     n_row = mnz / 2 ;
-    Mlen = colamd_recommended (mnz, n_row, n) ;
+    Mlen = mbdyn_colamd_recommended (mnz, n_row, n) ;
     M = (integer *) ((*allocate) (Mlen, sizeof (int))) ;
     DEBUG0 (("symamd: M is %d-by-%d with %d entries, Mlen = %d\n",
     	n_row, n, mnz, Mlen)) ;
@@ -1319,7 +1359,7 @@ PUBLIC integer symamd			/* return TRUE if OK, FALSE otherwise */
 
     /* === Order the columns of M =========================================== */
 
-    if (!colamd (n_row, n, Mlen, M, perm, cknobs, cstats))
+    if (!mbdyn_colamd (n_row, n, Mlen, M, perm, cknobs, cstats))
     {
 	/* This "cannot" happen, unless there is a bug in the code. */
 	stats [COLAMD_STATUS] = COLAMD_ERROR_internal_error ;
@@ -1357,7 +1397,7 @@ PUBLIC integer symamd			/* return TRUE if OK, FALSE otherwise */
     (AQ)'(AQ) = LL' remains sparse.
 */
 
-PUBLIC integer colamd		/* returns TRUE if successful, FALSE otherwise*/
+PUBLIC integer mbdyn_colamd		/* returns TRUE if successful, FALSE otherwise*/
 (
     /* === Parameters ======================================================= */
 
@@ -1377,8 +1417,8 @@ PUBLIC integer colamd		/* returns TRUE if successful, FALSE otherwise*/
     integer Row_size ;		/* size of Row [], in integers */
     integer Col_size ;		/* size of Col [], in integers */
     integer need ;			/* minimum required length of A */
-    Colamd_Row *Row ;		/* pointer into A of Row [0..n_row] array */
-    Colamd_Col *Col ;		/* pointer into A of Col [0..n_col] array */
+    mbdyn_Colamd_Row *Row ;		/* pointer into A of Row [0..n_row] array */
+    mbdyn_Colamd_Col *Col ;		/* pointer into A of Col [0..n_col] array */
     integer n_col2 ;		/* number of non-dense, non-empty columns */
     integer n_row2 ;		/* number of non-dense, non-empty rows */
     integer ngarbage ;		/* number of garbage collections performed */
@@ -1455,7 +1495,7 @@ PUBLIC integer colamd		/* returns TRUE if successful, FALSE otherwise*/
 
     if (!knobs)
     {
-	colamd_set_defaults (default_knobs) ;
+	mbdyn_colamd_set_defaults (default_knobs) ;
 	knobs = default_knobs ;
     }
 
@@ -1476,8 +1516,8 @@ PUBLIC integer colamd		/* returns TRUE if successful, FALSE otherwise*/
     }
 
     Alen -= Col_size + Row_size ;
-    Col = (Colamd_Col *) &A [Alen] ;
-    Row = (Colamd_Row *) &A [Alen + Col_size] ;
+    Col = (mbdyn_Colamd_Col *) &A [Alen] ;
+    Row = (mbdyn_Colamd_Row *) &A [Alen + Col_size] ;
 
     /* === Construct the row and column data structures ===================== */
 
@@ -1516,7 +1556,7 @@ PUBLIC integer colamd		/* returns TRUE if successful, FALSE otherwise*/
 /* === colamd_report ======================================================== */
 /* ========================================================================== */
 
-PUBLIC void colamd_report
+PUBLIC void mbdyn_colamd_report
 (
     integer stats [COLAMD_STATS]
 )
@@ -1529,7 +1569,7 @@ PUBLIC void colamd_report
 /* === symamd_report ======================================================== */
 /* ========================================================================== */
 
-PUBLIC void symamd_report
+PUBLIC void mbdyn_symamd_report
 (
     integer stats [COLAMD_STATS]
 )
@@ -1565,8 +1605,8 @@ PRIVATE integer init_rows_cols	/* returns TRUE if OK, or FALSE otherwise */
 
     integer n_row,			/* number of rows of A */
     integer n_col,			/* number of columns of A */
-    Colamd_Row Row [],		/* of size n_row+1 */
-    Colamd_Col Col [],		/* of size n_col+1 */
+    mbdyn_Colamd_Row Row [],		/* of size n_row+1 */
+    mbdyn_Colamd_Col Col [],		/* of size n_col+1 */
     integer A [],			/* row indices of A, of size Alen */
     integer p [],			/* pointers to columns in A, of size n_col+1 */
     integer stats [COLAMD_STATS]	/* colamd statistics */ 
@@ -1802,8 +1842,8 @@ PRIVATE void init_scoring
 
     integer n_row,			/* number of rows of A */
     integer n_col,			/* number of columns of A */
-    Colamd_Row Row [],		/* of size n_row+1 */
-    Colamd_Col Col [],		/* of size n_col+1 */
+    mbdyn_Colamd_Row Row [],		/* of size n_row+1 */
+    mbdyn_Colamd_Col Col [],		/* of size n_col+1 */
     integer A [],			/* column form and row form of A */
     integer head [],		/* of size n_col+1 */
     double knobs [COLAMD_KNOBS],/* parameters */
@@ -2059,8 +2099,8 @@ PRIVATE integer find_ordering	/* return the number of garbage collections */
     integer n_row,			/* number of rows of A */
     integer n_col,			/* number of columns of A */
     integer Alen,			/* size of A, 2*nnz + n_col or larger */
-    Colamd_Row Row [],		/* of size n_row+1 */
-    Colamd_Col Col [],		/* of size n_col+1 */
+    mbdyn_Colamd_Row Row [],		/* of size n_row+1 */
+    mbdyn_Colamd_Col Col [],		/* of size n_col+1 */
     integer A [],			/* column form and row form of A */
     integer head [],		/* of size n_col+1 */
     integer n_col2,			/* Remaining columns to order */
@@ -2621,7 +2661,7 @@ PRIVATE void order_children
     /* === Parameters ======================================================= */
 
     integer n_col,			/* number of columns of A */
-    Colamd_Col Col [],		/* of size n_col+1 */
+    mbdyn_Colamd_Col Col [],		/* of size n_col+1 */
     integer p []			/* p [0 ... n_col-1] is the column permutation*/
 )
 {
@@ -2724,10 +2764,10 @@ PRIVATE void detect_super_cols
 #ifndef NDEBUG
     /* these two parameters are only needed when debugging is enabled: */
     integer n_col,			/* number of columns of A */
-    Colamd_Row Row [],		/* of size n_row+1 */
+    mbdyn_Colamd_Row Row [],		/* of size n_row+1 */
 #endif /* NDEBUG */
 
-    Colamd_Col Col [],		/* of size n_col+1 */
+    mbdyn_Colamd_Col Col [],		/* of size n_col+1 */
     integer A [],			/* row indices of A */
     integer head [],		/* head of degree lists and hash buckets */
     integer row_start,		/* pointer to set of columns to check */
@@ -2880,8 +2920,8 @@ PRIVATE integer garbage_collection  /* returns the new value of pfree */
 
     integer n_row,			/* number of rows */
     integer n_col,			/* number of columns */
-    Colamd_Row Row [],		/* row info */
-    Colamd_Col Col [],		/* column info */
+    mbdyn_Colamd_Row Row [],		/* row info */
+    mbdyn_Colamd_Col Col [],		/* column info */
     integer A [],			/* A [0 ... Alen-1] holds the matrix */
     integer *pfree			/* &A [0] ... pfree is in use */
 )
@@ -3015,7 +3055,7 @@ PRIVATE integer clear_mark	/* return the new value for tag_mark */
     /* === Parameters ======================================================= */
 
     integer n_row,		/* number of rows in A */
-    Colamd_Row Row []	/* Row [0 ... n_row-1].shared2.mark is set to zero */
+    mbdyn_Colamd_Row Row []	/* Row [0 ... n_row-1].shared2.mark is set to zero */
 )
 {
     /* === Local variables ================================================== */
@@ -3191,8 +3231,8 @@ PRIVATE void debug_structures
 
     integer n_row,
     integer n_col,
-    Colamd_Row Row [],
-    Colamd_Col Col [],
+    mbdyn_Colamd_Row Row [],
+    mbdyn_Colamd_Col Col [],
     integer A [],
     integer n_col2
 )
@@ -3278,8 +3318,8 @@ PRIVATE void debug_deg_lists
 
     integer n_row,
     integer n_col,
-    Colamd_Row Row [],
-    Colamd_Col Col [],
+    mbdyn_Colamd_Row Row [],
+    mbdyn_Colamd_Col Col [],
     integer head [],
     integer min_score,
     integer should,
@@ -3351,7 +3391,7 @@ PRIVATE void debug_mark
     /* === Parameters ======================================================= */
 
     integer n_row,
-    Colamd_Row Row [],
+    mbdyn_Colamd_Row Row [],
     integer tag_mark,
     integer max_mark
 )
@@ -3388,8 +3428,8 @@ PRIVATE void debug_matrix
 
     integer n_row,
     integer n_col,
-    Colamd_Row Row [],
-    Colamd_Col Col [],
+    mbdyn_Colamd_Row Row [],
+    mbdyn_Colamd_Col Col [],
     integer A []
 )
 {

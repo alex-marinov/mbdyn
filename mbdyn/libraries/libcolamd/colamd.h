@@ -1,3 +1,43 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2005
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/*
+ * Colamd is distributed with MBDyn because its license seems to allow it.
+ * The original Copyright is preserved and reported below; credit of course
+ * goes to the original Authors.
+ *
+ * Colamd is used by the naive solver.  The functions have been renamed
+ * in the mbdyn_* namespace for compatibility with other solvers that may
+ * require linking the original colamd functions with incompatible types.
+ */
+
 /* ========================================================================== */
 /* === colamd/symamd prototypes and definitions ============================= */
 /* ========================================================================== */
@@ -115,7 +155,7 @@
 /* reference these structures.  They are used only for the COLAMD_RECOMMENDED */
 /* macro. */
 
-typedef struct Colamd_Col_struct
+typedef struct mbdyn_Colamd_Col
 {
     integer start ;		/* index for A of first row in this column, or DEAD */
 			/* if column is dead */
@@ -146,9 +186,9 @@ typedef struct Colamd_Col_struct
 	integer hash_next ;		/* next column, if col is in a hash list */
     } shared4 ;
 
-} Colamd_Col ;
+} mbdyn_Colamd_Col ;
 
-typedef struct Colamd_Row_struct
+typedef struct mbdyn_Colamd_Row
 {
     integer start ;		/* index for A of first col in this row */
     integer length ;	/* number of principal columns in this row */
@@ -163,7 +203,7 @@ typedef struct Colamd_Row_struct
 	integer first_column ;/* first column in row (used in garbage collection) */
     } shared2 ;
 
-} Colamd_Row ;
+} mbdyn_Colamd_Row ;
 
 /* ========================================================================== */
 /* === Colamd recommended memory size ======================================= */
@@ -181,8 +221,8 @@ typedef struct Colamd_Row_struct
     This macro is not needed when using symamd.
 */
 
-#define COLAMD_C(n_col) (((n_col) + 1) * sizeof (Colamd_Col) / sizeof (int))
-#define COLAMD_R(n_row) (((n_row) + 1) * sizeof (Colamd_Row) / sizeof (int))
+#define COLAMD_C(n_col) (((n_col) + 1) * sizeof (mbdyn_Colamd_Col) / sizeof (int))
+#define COLAMD_R(n_row) (((n_row) + 1) * sizeof (mbdyn_Colamd_Row) / sizeof (int))
 
 #define COLAMD_RECOMMENDED(nnz, n_row, n_col)                                 \
 (                                                                             \
@@ -197,7 +237,7 @@ typedef struct Colamd_Row_struct
 /* === Prototypes of user-callable routines ================================= */
 /* ========================================================================== */
 
-integer colamd_recommended		/* returns recommended value of Alen, */
+integer mbdyn_colamd_recommended		/* returns recommended value of Alen, */
 				/* or (-1) if input arguments are erroneous */
 (
     integer nnz,			/* nonzeros in A */
@@ -205,12 +245,12 @@ integer colamd_recommended		/* returns recommended value of Alen, */
     integer n_col			/* number of columns in A */
 ) ;
 
-void colamd_set_defaults	/* sets default parameters */
+void mbdyn_colamd_set_defaults	/* sets default parameters */
 (				/* knobs argument is modified on output */
     double knobs [COLAMD_KNOBS]	/* parameter settings for colamd */
 ) ;
 
-integer colamd			/* returns (1) if successful, (0) otherwise*/
+integer mbdyn_colamd			/* returns (1) if successful, (0) otherwise*/
 (				/* A and p arguments are modified on output */
     integer n_row,			/* number of rows in A */
     integer n_col,			/* number of columns in A */
@@ -221,7 +261,7 @@ integer colamd			/* returns (1) if successful, (0) otherwise*/
     integer stats [COLAMD_STATS]	/* colamd output statistics and error codes */
 ) ;
 
-integer symamd				/* return (1) if OK, (0) otherwise */
+integer mbdyn_symamd				/* return (1) if OK, (0) otherwise */
 (
     integer n,				/* number of rows and columns of A */
     integer A [],				/* row indices of A */
@@ -237,12 +277,12 @@ integer symamd				/* return (1) if OK, (0) otherwise */
     					/* mxFree (for Matlab mexFunction) */
 ) ;
 
-void colamd_report
+void mbdyn_colamd_report
 (
     integer stats [COLAMD_STATS]
 ) ;
 
-void symamd_report
+void mbdyn_symamd_report
 (
     integer stats [COLAMD_STATS]
 ) ;
