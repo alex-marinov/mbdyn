@@ -17,6 +17,7 @@ matvec6.cc \
 matvec6.h \
 matvecexp.cc \
 matvecexp.h \
+mbcomm.h \
 Rot.cc \
 Rot.hh \
 RotCoeff.hc \
@@ -24,6 +25,7 @@ RotCoeff.hh \
 schsolman.cc \
 schsolman.h \
 schurmh.h \
+schurmh.cc \
 solman.cc \
 solman.h \
 sparsemh.cc \
