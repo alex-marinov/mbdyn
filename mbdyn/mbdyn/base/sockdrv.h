@@ -36,6 +36,7 @@
 #ifdef USE_SOCKET_DRIVES
 
 const unsigned short int MBDynSocketDrivePort = 5555;
+extern const char *MBDynSocketDrivePath;
 
 
 /* include del programma */
@@ -54,8 +55,12 @@ protected:
       		INCREMENTAL = 0x0001,
       		IMPULSIVE   = 0x0002
    	};
-   
-   	unsigned short int Port;
+
+	int type;
+	union {
+ 	  	unsigned short int Port;
+		const char *Path;
+	} data;
    	AuthMethod* auth;
    
    	doublereal* pdVal;
@@ -66,6 +71,9 @@ protected:
 public:
    	SocketDrive(unsigned int uL, const DriveHandler* pDH,
 	            unsigned short int p, AuthMethod* a, integer nd);
+   
+   	SocketDrive(unsigned int uL, const DriveHandler* pDH,
+	            const char *path, integer nd);
    
    	virtual ~SocketDrive(void);
    

@@ -625,10 +625,12 @@ data; if the requested value is out of time bounds, zero is returned.
 \subsection{Socket}
 \begin{verbatim}
     <normal_arglist> ::= <columns_number>
-                         [ , port, <port_number> ]
+                         { , local, " <file_name> " 
+                           | [ , port, <port_number> ] }
                          (AuthenticationMethod)<authentication>
 \end{verbatim}
-The driver binds to a socket listening on port {\tt port\_number}; at the
+The driver binds to a socket listening on port {\tt port\_number} 
+(defaults to 5555) or on the named pipe \texttt{file\_name}; at the
 beginning of each time step, in case of connection, the driver expects some
 input data in text format, consisting in an authentication token 
 (if required).

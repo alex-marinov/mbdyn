@@ -195,7 +195,7 @@ Drive* ReadFileDriver(DataManager* pDM,
    Drive* pDr = NULL;
    
    const char* sKeyWords[] = {
-      "fixedstep",
+      "fixed" "step",
 	"socket"
    };
    
@@ -239,22 +239,32 @@ Drive* ReadFileDriver(DataManager* pDM,
 #ifdef USE_SOCKET_DRIVES
        
        integer idrives = HP.GetInt();
-      
        unsigned short int port = MBDynSocketDrivePort;
-       if (HP.IsKeyWord("port")) {
-	  port = HP.GetInt();      
+       const char *path = NULL;
+      
+       if (HP.IsKeyWord("local")) {
+	  path = HP.GetFileName();
+	  ASSERT(path != NULL);
+       } else if (HP.IsKeyWord("port")) {
+          port = HP.GetInt();      
        }
-       
-       AuthMethod* pAuth = ReadAuthMethod(pDM, HP);
-       if (pAuth == NULL) {
-	  cerr << "need an authentication method at line " << HP.GetLineData() << endl;
-	  THROW(ErrGeneric());
+      
+       if (path == NULL) {
+          AuthMethod* pAuth = ReadAuthMethod(pDM, HP);
+          if (pAuth == NULL) {
+	     cerr << "need an authentication method at line " << HP.GetLineData() << endl;
+	     THROW(ErrGeneric());
+	  }
+          SAFENEWWITHCONSTRUCTOR(pDr,
+			  SocketDrive,
+			  SocketDrive(uLabel, pDM->pGetDrvHdl(),
+				  port, pAuth, idrives));
+       } else {
+	  SAFENEWWITHCONSTRUCTOR(pDr,
+			  SocketDrive,
+			  SocketDrive(uLabel, pDM->pGetDrvHdl(), 
+				  path, idrives));
        }
-       
-       SAFENEWWITHCONSTRUCTOR(pDr,
-			      SocketDrive,
-			      SocketDrive(uLabel, pDM->pGetDrvHdl(),
-					  port, pAuth, idrives));
              
 #else /* USE_SOCKET_DRIVES */
        cerr << "Sorry, socket drives not supported." << endl;

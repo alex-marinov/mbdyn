@@ -54,12 +54,14 @@ extern "C" {
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/un.h>
 #include <arpa/inet.h>
 }
 
 const size_t USERLEN = 8;
 const size_t CREDLEN = 128;
 const size_t BUFSIZE = 1024;
+const char *MBDynSocketDrivePath = "/tmp/mbdyn.sock";
 
 static int
 make_socket(unsigned short int port)
@@ -68,7 +70,7 @@ make_socket(unsigned short int port)
    	struct sockaddr_in name;
    
    	/* Create the socket. */
-   	sock = socket (PF_INET, SOCK_STREAM, 0);
+   	sock = socket (PF_LOCAL, SOCK_STREAM, 0);
    	if (sock < 0) {    
       		return -1;
    	}
@@ -84,18 +86,43 @@ make_socket(unsigned short int port)
    	return sock;
 }
 
+static int
+make_named_socket(const char *path)
+{
+   	int sock;
+   	struct sockaddr_un name;
+	size_t size;
+   
+   	/* Create the socket. */
+   	sock = socket (PF_INET, SOCK_STREAM, 0);
+   	if (sock < 0) {    
+      		return -1;
+   	}
+   
+   	/* Give the socket a name. */
+   	name.sun_family = AF_LOCAL;
+   	strncpy(name.sun_path, path, sizeof(name.sun_path));
+	size = (offsetof (struct sockaddr_un, sun_path)
+			+strlen(name.sun_path)+1);
+   	if (bind (sock, (struct sockaddr *) &name, size) < 0) {
+      		return -2;
+   	}
+   
+   	return sock;
+}
+
 
 SocketDrive::SocketDrive(unsigned int uL, const DriveHandler* pDH,
 			 unsigned short int p,
 			 AuthMethod* a,
 			 integer nd)
 : FileDrive(uL, pDH, "socket", nd), 
-Port(p), 
+type(AF_INET),
 auth(a), 
 pdVal(NULL), 
 pFlags(NULL)
 {
-   	ASSERT(Port > 0);
+   	ASSERT(p > 0);
    	ASSERT(auth != NULL);
    	ASSERT(nd > 0);
    
@@ -107,7 +134,8 @@ pFlags(NULL)
    	}
    
    	/* Create the socket and set it up to accept connections. */
-   	sock = make_socket(Port);
+	data.Port = p;
+   	sock = make_socket(data.Port);
    	if (sock == -1) {
       		cerr << "SocketDrive(" << GetLabel() 
 			<< "): socket failed" << endl;
@@ -135,10 +163,70 @@ pFlags(NULL)
    	}
 }
 
+SocketDrive::SocketDrive(unsigned int uL, const DriveHandler* pDH,
+		const char *path, integer nd)
+: FileDrive(uL, pDH, "socket", nd), 
+type(AF_LOCAL),
+auth(NULL), 
+pdVal(NULL), 
+pFlags(NULL)
+{
+   	ASSERT(path != NULL);
+   	ASSERT(nd > 0);
+
+	SAFENEW(auth, NoAuth);
+   
+   	SAFENEWARR(pdVal, doublereal, nd+1);
+   	SAFENEWARR(pFlags, int, nd+1);
+   	for (int iCnt = 0; iCnt <= nd; iCnt++) {
+      		pFlags[iCnt] = SocketDrive::DEFAULT;
+      		pdVal[iCnt] = 0.;
+   	}
+   
+   	/* Create the socket and set it up to accept connections. */
+	SAFESTRDUP(data.Path, path);
+   	sock = make_named_socket(data.Path);
+   	if (sock == -1) {
+      		cerr << "SocketDrive(" << GetLabel() 
+			<< "): socket failed" << endl;
+      		THROW(ErrGeneric());
+   	} else if (sock == -2) {
+      		cerr << "SocketDrive(" << GetLabel() 
+			<< "): bind failed" << endl;
+      		THROW(ErrGeneric());
+   	}
+   
+   	/* non-blocking */
+   	int oldflags = fcntl (sock, F_GETFL, 0);
+   	if (oldflags == -1) {
+      		/* FIXME: err ... */
+   	} 
+   	oldflags |= O_NONBLOCK;
+   	if (fcntl(sock, F_SETFL, oldflags) == -1) {
+      		/* FIXME: err ... */
+   	}
+   
+   	if (listen(sock, 1) < 0) {
+      		cerr << "SocketDrive(" << GetLabel() 
+			<< "): listen failed" << endl;
+      		THROW(ErrGeneric());
+   	}
+}
+
+
 SocketDrive::~SocketDrive(void) 
 {
    	/* some shutdown stuff ... */
    	shutdown(sock, SHUT_RDWR /* 2 */ );
+
+	switch (type) {
+	case AF_LOCAL:
+		SAFEDELETEARR(data.Path);
+		break;
+	default:
+		NO_OP;
+		break;
+	}
    
    	if (auth != NULL) {
       		SAFEDELETE(auth);
